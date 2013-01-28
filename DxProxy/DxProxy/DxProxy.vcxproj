@@ -1,0 +1,143 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{16A8AA38-36D3-437F-922A-B808F654AAAA}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>DxProxy</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <TargetName>d3d9</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <TargetName>d3d9</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;DXPROXY_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(DX)\Include;$(FREESPACE)\include</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ModuleDefinitionFile>Exports.def</ModuleDefinitionFile>
+      <AdditionalLibraryDirectories>$(DX)\Lib\x86;$(FREESPACE)\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libfreespace.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(OutDir)$(TargetName)$(TargetExt)" "C:\Program Files (x86)\Vireio\Perception\bin\$(TargetName)$(TargetExt)"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;DXPROXY_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(DX)\Include;$(FREESPACE)\include</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <ModuleDefinitionFile>Exports.def</ModuleDefinitionFile>
+      <AdditionalLibraryDirectories>$(DX)\Lib\x86;$(FREESPACE)\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libfreespace.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(OutDir)$(TargetName)$(TargetExt)" "C:\Program Files (x86)\Vireio\Perception\bin\$(TargetName)$(TargetExt)"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="D3DProxyDevice.cpp" />
+    <ClCompile Include="D3DProxyDeviceAdv.cpp" />
+    <ClCompile Include="D3DProxyDeviceEgo.cpp" />
+    <ClCompile Include="D3DProxyDeviceFactory.cpp" />
+    <ClCompile Include="D3DProxyDeviceFixed.cpp" />
+    <ClCompile Include="D3DProxyDeviceMono.cpp" />
+    <ClCompile Include="D3DProxyDeviceSource.cpp" />
+    <ClCompile Include="D3DProxyDeviceTest.cpp" />
+    <ClCompile Include="D3DProxyDeviceUnreal.cpp" />
+    <ClCompile Include="Direct3D9.cpp" />
+    <ClCompile Include="Direct3DDevice9.cpp" />
+    <ClCompile Include="FreeSpaceTracker.cpp" />
+    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="MotionTracker.cpp" />
+    <ClCompile Include="MotionTrackerFactory.cpp" />
+    <ClCompile Include="ProxyHelper.cpp" />
+    <ClCompile Include="pugixml.cpp" />
+    <ClCompile Include="StereoView.cpp" />
+    <ClCompile Include="StereoViewFactory.cpp" />
+    <ClCompile Include="StereoViewInterleave.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="D3DProxyDevice.h" />
+    <ClInclude Include="D3DProxyDeviceAdv.h" />
+    <ClInclude Include="D3DProxyDeviceEgo.h" />
+    <ClInclude Include="D3DProxyDeviceFactory.h" />
+    <ClInclude Include="D3DProxyDeviceFixed.h" />
+    <ClInclude Include="D3DProxyDeviceMono.h" />
+    <ClInclude Include="D3DProxyDeviceSource.h" />
+    <ClInclude Include="D3DProxyDeviceTest.h" />
+    <ClInclude Include="D3DProxyDeviceUnreal.h" />
+    <ClInclude Include="Direct3D9.h" />
+    <ClInclude Include="Direct3DDevice9.h" />
+    <ClInclude Include="FreeSpaceTracker.h" />
+    <ClInclude Include="Main.h" />
+    <ClInclude Include="MotionTrackerFactory.h" />
+    <ClInclude Include="ProxyHelper.h" />
+    <ClInclude Include="pugiconfig.hpp" />
+    <ClInclude Include="pugixml.hpp" />
+    <ClInclude Include="StereoView.h" />
+    <ClInclude Include="StereoViewFactory.h" />
+    <ClInclude Include="StereoViewInterleave.h" />
+    <ClInclude Include="MotionTracker.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Exports.def" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

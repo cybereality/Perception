@@ -1,0 +1,145 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{64CBCBD7-0558-4D0E-AA85-A776FE7F615C}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>DxHijack32</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <TargetName>hijackdll</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <TargetName>hijackdll</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;DXHIJACK32_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(DX)/Include;$(FREESPACE)\include;$(DX_PROXY)\</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ModuleDefinitionFile>hijackdll.def</ModuleDefinitionFile>
+      <AdditionalDependencies>shlwapi.lib;d3d9.lib;libfreespace.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(DX)\Lib\x86;$(FREESPACE)\lib;..\..\DxProxy\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(TargetDir)hijackdll.dll" "C:\Program Files (x86)\Vireio\Perception\bin\hijackdll.dll"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;DXHIJACK32_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(DX)/Include;$(FREESPACE)\include;$(DX_PROXY)\</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <ModuleDefinitionFile>hijackdll.def</ModuleDefinitionFile>
+      <AdditionalDependencies>shlwapi.lib;d3d9.lib;libfreespace.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\DxProxy\Debug;$(DX)\Lib\x86;$(FREESPACE)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(TargetDir)hijackdll.dll" "C:\Program Files (x86)\Vireio\Perception\bin\hijackdll.dll"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxyDevice.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxyDeviceAdv.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxyDeviceEgo.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxyDeviceFactory.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxyDeviceFixed.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxyDeviceMono.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxyDeviceSource.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxyDeviceTest.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxyDeviceUnreal.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\Direct3D9.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\Direct3DDevice9.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\FreeSpaceTracker.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\MotionTracker.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\MotionTrackerFactory.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\ProxyHelper.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\pugixml.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\StereoView.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\StereoViewFactory.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\StereoViewInterleave.cpp" />
+    <ClCompile Include="apihijack.cpp" />
+    <ClCompile Include="dllmain.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="hijackdll.def" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyDevice.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyDeviceAdv.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyDeviceEgo.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyDeviceFactory.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyDeviceFixed.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyDeviceMono.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyDeviceSource.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyDeviceTest.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyDeviceUnreal.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\Direct3D9.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\Direct3DDevice9.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\FreeSpaceTracker.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\MotionTracker.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\MotionTrackerFactory.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\ProxyHelper.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\pugiconfig.hpp" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\pugixml.hpp" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\StereoView.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\StereoViewFactory.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\StereoViewInterleave.h" />
+    <ClInclude Include="apihijack.h" />
+    <ClInclude Include="hijackdll.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

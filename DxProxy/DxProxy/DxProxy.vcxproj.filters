@@ -1,0 +1,163 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Direct3D9">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Direct3DDevice9">
+      <UniqueIdentifier>{93a782b4-50f3-4315-aec5-14456eba641a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Main">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Proxy">
+      <UniqueIdentifier>{80cc0ca4-7c65-4467-9166-d0e377de5737}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Implementation">
+      <UniqueIdentifier>{723f04f1-e44b-4f6f-9011-24c8278349b1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Stereo">
+      <UniqueIdentifier>{8e86dd19-8c6e-4701-9dbe-401badc08f9a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Tracking">
+      <UniqueIdentifier>{84220cb3-c67d-49ec-98f3-a45cd7454f58}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="XML">
+      <UniqueIdentifier>{10a1970f-9ec7-4424-9ce2-46eb37af1590}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Main.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3DDevice9.cpp">
+      <Filter>Direct3DDevice9</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3D9.cpp">
+      <Filter>Direct3D9</Filter>
+    </ClCompile>
+    <ClCompile Include="ProxyHelper.cpp">
+      <Filter>Proxy</Filter>
+    </ClCompile>
+    <ClCompile Include="D3DProxyDeviceSource.cpp">
+      <Filter>Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="D3DProxyDeviceUnreal.cpp">
+      <Filter>Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="StereoViewFactory.cpp">
+      <Filter>Stereo</Filter>
+    </ClCompile>
+    <ClCompile Include="StereoView.cpp">
+      <Filter>Stereo</Filter>
+    </ClCompile>
+    <ClCompile Include="D3DProxyDevice.cpp">
+      <Filter>Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="StereoViewInterleave.cpp">
+      <Filter>Stereo</Filter>
+    </ClCompile>
+    <ClCompile Include="D3DProxyDeviceFactory.cpp">
+      <Filter>Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="D3DProxyDeviceTest.cpp">
+      <Filter>Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="D3DProxyDeviceMono.cpp">
+      <Filter>Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="D3DProxyDeviceEgo.cpp">
+      <Filter>Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="D3DProxyDeviceFixed.cpp">
+      <Filter>Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="FreeSpaceTracker.cpp">
+      <Filter>Tracking</Filter>
+    </ClCompile>
+    <ClCompile Include="MotionTracker.cpp">
+      <Filter>Tracking</Filter>
+    </ClCompile>
+    <ClCompile Include="D3DProxyDeviceAdv.cpp">
+      <Filter>Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="pugixml.cpp">
+      <Filter>XML</Filter>
+    </ClCompile>
+    <ClCompile Include="MotionTrackerFactory.cpp">
+      <Filter>Tracking</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Exports.def">
+      <Filter>Main</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Main.h">
+      <Filter>Main</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3DDevice9.h">
+      <Filter>Direct3DDevice9</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3D9.h">
+      <Filter>Direct3D9</Filter>
+    </ClInclude>
+    <ClInclude Include="ProxyHelper.h">
+      <Filter>Proxy</Filter>
+    </ClInclude>
+    <ClInclude Include="D3DProxyDeviceSource.h">
+      <Filter>Implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="D3DProxyDeviceUnreal.h">
+      <Filter>Implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="StereoView.h">
+      <Filter>Stereo</Filter>
+    </ClInclude>
+    <ClInclude Include="StereoViewFactory.h">
+      <Filter>Stereo</Filter>
+    </ClInclude>
+    <ClInclude Include="D3DProxyDevice.h">
+      <Filter>Implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="StereoViewInterleave.h">
+      <Filter>Stereo</Filter>
+    </ClInclude>
+    <ClInclude Include="D3DProxyDeviceFactory.h">
+      <Filter>Implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="D3DProxyDeviceTest.h">
+      <Filter>Implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="D3DProxyDeviceMono.h">
+      <Filter>Implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="D3DProxyDeviceEgo.h">
+      <Filter>Implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="D3DProxyDeviceFixed.h">
+      <Filter>Implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="FreeSpaceTracker.h">
+      <Filter>Tracking</Filter>
+    </ClInclude>
+    <ClInclude Include="MotionTracker.h">
+      <Filter>Tracking</Filter>
+    </ClInclude>
+    <ClInclude Include="D3DProxyDeviceAdv.h">
+      <Filter>Implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="pugiconfig.hpp">
+      <Filter>XML</Filter>
+    </ClInclude>
+    <ClInclude Include="pugixml.hpp">
+      <Filter>XML</Filter>
+    </ClInclude>
+    <ClInclude Include="MotionTrackerFactory.h">
+      <Filter>Tracking</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

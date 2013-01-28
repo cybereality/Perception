@@ -1,0 +1,350 @@
+/********************************************************************
+Vireio Perception: Open-Source Stereoscopic 3D Driver
+Copyright (C) 2012 Andres Hernandez
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+********************************************************************/
+
+#include "StereoView.h"
+
+StereoView::StereoView(ProxyHelper::ProxyConfig& config)
+{
+	OutputDebugString("Created SteroView");
+	initialized = false;
+	game_type = config.game_type;
+	stereo_mode = config.stereo_mode;
+	swap_eyes = false;
+}
+
+StereoView::~StereoView()
+{
+	OutputDebugString("Destroyed SteroView");
+}
+
+void StereoView::Init(IDirect3DDevice9* dev)
+{
+	OutputDebugString("SteroView Init");
+
+	device = dev;
+
+	InitShaderEffects();
+	InitTextureBuffers();
+	InitVertexBuffers();
+
+	initialized = true;
+}
+
+void StereoView::InitShaderEffects()
+{
+	shaderEffect[ANAGLYPH_RED_CYAN] = "AnaglyphRedCyan.fx";
+	shaderEffect[ANAGLYPH_RED_CYAN_GRAY] = "AnaglyphRedCyanGray.fx";
+	shaderEffect[ANAGLYPH_YELLOW_BLUE] = "AnaglyphYellowBlue.fx";
+	shaderEffect[ANAGLYPH_YELLOW_BLUE_GRAY] = "AnaglyphYellowBlueGray.fx";
+	shaderEffect[ANAGLYPH_GREEN_MAGENTA] = "AnaglyphGreenMagenta.fx";
+	shaderEffect[ANAGLYPH_GREEN_MAGENTA_GRAY] = "AnaglyphGreenMagentaGray.fx";
+	shaderEffect[SIDE_BY_SIDE] = "SideBySide.fx";
+	shaderEffect[SIDE_BY_SIDE_RIFT] = "SideBySideRift.fx";
+	shaderEffect[OVER_UNDER] = "OverUnder.fx";
+	shaderEffect[INTERLEAVE_HORZ] = "InterleaveHorz.fx";
+	shaderEffect[INTERLEAVE_VERT] = "InterleaveVert.fx";
+	shaderEffect[CHECKERBOARD] = "Checkerboard.fx";
+
+	char viewPath[512];
+	ProxyHelper helper = ProxyHelper();
+	helper.GetPath(viewPath, "fx\\");
+
+	strcat_s(viewPath, 512, shaderEffect[stereo_mode].c_str());
+
+	D3DXCreateEffectFromFile(device, viewPath, NULL, NULL, 0, NULL, &viewEffect, NULL);
+}
+
+void StereoView::InitTextureBuffers()
+{
+	device->GetViewport(&viewport);
+
+	char buf[32];
+	LPCSTR psz = NULL;
+
+	wsprintf(buf,"vp w: %d",viewport.Width);
+	psz = buf;
+	OutputDebugString(psz);
+	
+	D3DSURFACE_DESC pDesc = D3DSURFACE_DESC();
+	device->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &backBuffer);
+	backBuffer->GetDesc(&pDesc);
+
+	wsprintf(buf,"bb w: %d",pDesc.Width);
+	psz = buf;
+	OutputDebugString(psz);
+
+	device->CreateOffscreenPlainSurface(pDesc.Width, pDesc.Height, pDesc.Format, D3DPOOL_SYSTEMMEM, &leftSurface, NULL);
+	device->CreateTexture(pDesc.Width, pDesc.Height, 0, D3DUSAGE_RENDERTARGET, pDesc.Format, D3DPOOL_DEFAULT, &leftTexture, NULL);
+	leftTexture->GetSurfaceLevel(0, &leftSurface);
+
+	device->CreateOffscreenPlainSurface(pDesc.Width, pDesc.Height, pDesc.Format, D3DPOOL_SYSTEMMEM, &rightSurface, NULL);
+	device->CreateTexture(pDesc.Width, pDesc.Height, 0, D3DUSAGE_RENDERTARGET, pDesc.Format, D3DPOOL_DEFAULT, &rightTexture, NULL);
+	rightTexture->GetSurfaceLevel(0, &rightSurface);
+
+	device->CreateOffscreenPlainSurface(pDesc.Width, pDesc.Height, pDesc.Format, D3DPOOL_SYSTEMMEM, &screenSurface, NULL);
+	device->CreateTexture(pDesc.Width, pDesc.Height, 0, D3DUSAGE_RENDERTARGET, pDesc.Format, D3DPOOL_DEFAULT, &screenTexture, NULL);
+	screenTexture->GetSurfaceLevel(0, &screenSurface);
+}
+
+void StereoView::InitVertexBuffers()
+{
+	OutputDebugString("SteroView initVertexBuffers");
+
+	device->CreateVertexBuffer(sizeof(TEXVERTEX) * 4, NULL,
+        D3DFVF_TEXVERTEX, D3DPOOL_MANAGED, &screenVertexBuffer, NULL);
+
+	TEXVERTEX* vertices;
+
+	screenVertexBuffer->Lock(0, 0, (void**)&vertices, NULL);
+
+	float scale = 1.0f;
+
+	RECT* rDest = new RECT();
+	rDest->left = 0;
+	rDest->right = int(viewport.Width*scale);
+	rDest->top = 0;
+	rDest->bottom = int(viewport.Height*scale);
+	
+	//Setup vertices
+	vertices[0].x = (float) rDest->left - 0.5f;
+	vertices[0].y = (float) rDest->top - 0.5f;
+	vertices[0].z = 0.0f;
+	vertices[0].rhw = 1.0f;
+	vertices[0].u = 0.0f;
+	vertices[0].v = 0.0f;
+	
+	vertices[1].x = (float) rDest->right - 0.5f;
+	vertices[1].y = (float) rDest->top - 0.5f;
+	vertices[1].z = 0.0f;
+	vertices[1].rhw = 1.0f;
+	vertices[1].u = 1.0f;
+	vertices[1].v = 0.0f;
+
+	vertices[2].x = (float) rDest->right - 0.5f;
+	vertices[2].y = (float) rDest->bottom - 0.5f;
+	vertices[2].z = 0.0f;
+	vertices[2].rhw = 1.0f;
+	vertices[2].u = 1.0f;	
+	vertices[2].v = 1.0f;
+
+	vertices[3].x = (float) rDest->left - 0.5f;
+	vertices[3].y = (float) rDest->bottom - 0.5f;
+	vertices[3].z = 0.0f;
+	vertices[3].rhw = 1.0f;
+	vertices[3].u = 0.0f;
+	vertices[3].v = 1.0f;
+
+	screenVertexBuffer->Unlock();
+}
+
+void StereoView::SaveState()
+{
+	device->GetTextureStageState(0, D3DTSS_COLOROP, &tssColorOp);
+	device->GetTextureStageState(0, D3DTSS_COLORARG1, &tssColorArg1);
+	device->GetTextureStageState(0, D3DTSS_ALPHAOP, &tssAlphaOp);
+	device->GetTextureStageState(0, D3DTSS_ALPHAARG1, &tssAlphaArg1);
+	device->GetTextureStageState(0, D3DTSS_CONSTANT, &tssConstant);
+
+	device->GetRenderState(D3DRS_ALPHABLENDENABLE, &rsAlphaEnable);
+	device->GetRenderState(D3DRS_ZWRITEENABLE, &rsZWriteEnable);
+	device->GetRenderState(D3DRS_ZENABLE, &rsZEnable);
+	device->GetRenderState(D3DRS_SRGBWRITEENABLE, &rsSrgbEnable);
+
+	device->GetSamplerState(0, D3DSAMP_SRGBTEXTURE, &ssSrgb);
+	device->GetSamplerState(1, D3DSAMP_SRGBTEXTURE, &ssSrgb1);
+	device->GetSamplerState(0, D3DSAMP_ADDRESSU, &ssAddressU);
+	device->GetSamplerState(0, D3DSAMP_ADDRESSV, &ssAddressV);
+	device->GetSamplerState(0, D3DSAMP_ADDRESSW, &ssAddressW);
+
+	device->GetSamplerState(0, D3DSAMP_MAGFILTER, &ssMag0);
+	device->GetSamplerState(1, D3DSAMP_MAGFILTER, &ssMag1);
+	device->GetSamplerState(0, D3DSAMP_MINFILTER, &ssMin0);
+	device->GetSamplerState(1, D3DSAMP_MINFILTER, &ssMin1);
+	device->GetSamplerState(0, D3DSAMP_MIPFILTER, &ssMip0);
+	device->GetSamplerState(1, D3DSAMP_MIPFILTER, &ssMip1);
+
+	device->GetTexture(0, &lastTexture);
+	device->GetTexture(1, &lastTexture1);
+
+	device->GetVertexShader(&lastVertexShader);
+	device->GetPixelShader(&lastPixelShader);
+
+	device->GetRenderTarget(0, &lastRenderTarget0);
+	device->GetRenderTarget(1, &lastRenderTarget1);
+}
+
+void StereoView::SetState()
+{
+	device->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_SELECTARG1);
+	device->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
+	device->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_SELECTARG1);
+	device->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_CONSTANT);
+	device->SetTextureStageState(0, D3DTSS_CONSTANT, 0xffffffff);
+	
+	device->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
+	device->SetRenderState(D3DRS_ZENABLE, D3DZB_FALSE);
+	device->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
+
+	//device->SetRenderState(D3DRS_SRGBWRITEENABLE, 0);
+	
+	if(game_type == D3DProxyDevice::SOURCE_L4D)
+	{
+		device->SetSamplerState(0, D3DSAMP_SRGBTEXTURE, ssSrgb);
+		device->SetSamplerState(1, D3DSAMP_SRGBTEXTURE, ssSrgb);
+	}
+	else 
+	{
+		device->SetSamplerState(0, D3DSAMP_SRGBTEXTURE, 0);
+		device->SetSamplerState(1, D3DSAMP_SRGBTEXTURE, 0);
+	}
+
+	device->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
+	device->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+	device->SetSamplerState(0, D3DSAMP_ADDRESSW, D3DTADDRESS_CLAMP);
+	device->SetSamplerState(1, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
+	device->SetSamplerState(1, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+	device->SetSamplerState(1, D3DSAMP_ADDRESSW, D3DTADDRESS_CLAMP);
+
+	device->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC);
+	device->SetSamplerState(1, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC);
+	device->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC);
+	device->SetSamplerState(1, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC);
+	device->SetSamplerState(0, D3DSAMP_MIPFILTER, D3DTEXF_NONE);
+	device->SetSamplerState(1, D3DSAMP_MIPFILTER, D3DTEXF_NONE);
+
+	device->SetTexture(0, NULL);
+	device->SetTexture(1, NULL);
+
+	device->SetVertexShader(NULL);
+	device->SetPixelShader(NULL);
+
+	device->SetVertexDeclaration(NULL);
+
+	device->SetRenderTarget(0, NULL);
+	device->SetRenderTarget(1, NULL);
+}
+
+void StereoView::RestoreState()
+{
+	device->SetTextureStageState(0, D3DTSS_COLOROP, tssColorOp);
+	device->SetTextureStageState(0, D3DTSS_COLORARG1, tssColorArg1);
+	device->SetTextureStageState(0, D3DTSS_ALPHAOP, tssAlphaOp);
+	device->SetTextureStageState(0, D3DTSS_ALPHAARG1, tssAlphaArg1);
+	device->SetTextureStageState(0, D3DTSS_CONSTANT, tssConstant);
+
+	device->SetRenderState(D3DRS_ALPHABLENDENABLE, rsAlphaEnable);
+	device->SetRenderState(D3DRS_ZWRITEENABLE, rsZWriteEnable);
+	device->SetRenderState(D3DRS_ZENABLE, rsZEnable);
+	device->SetRenderState(D3DRS_SRGBWRITEENABLE, rsSrgbEnable);
+
+	device->SetSamplerState(0, D3DSAMP_SRGBTEXTURE, ssSrgb);
+	device->SetSamplerState(1, D3DSAMP_SRGBTEXTURE, ssSrgb1);
+
+	device->SetSamplerState(0, D3DSAMP_ADDRESSU, ssAddressU);
+	device->SetSamplerState(0, D3DSAMP_ADDRESSV, ssAddressV);
+	device->SetSamplerState(0, D3DSAMP_ADDRESSW, ssAddressW);
+
+	device->SetSamplerState(0, D3DSAMP_MAGFILTER, ssMag0);
+	device->SetSamplerState(1, D3DSAMP_MAGFILTER, ssMag1);
+	device->SetSamplerState(0, D3DSAMP_MINFILTER, ssMin0);
+	device->SetSamplerState(1, D3DSAMP_MINFILTER, ssMin1);
+	device->SetSamplerState(0, D3DSAMP_MIPFILTER, ssMip0);
+	device->SetSamplerState(1, D3DSAMP_MIPFILTER, ssMip1);
+
+	device->SetTexture(0, lastTexture);
+	device->SetTexture(1, lastTexture1);
+
+	device->SetVertexShader(lastVertexShader);
+	device->SetPixelShader(lastPixelShader);
+
+	device->SetRenderTarget(0, lastRenderTarget0);
+	device->SetRenderTarget(1, lastRenderTarget1);
+}
+
+void StereoView::UpdateEye(int eye)
+{
+	IDirect3DSurface9* currentSurface = NULL;
+
+	if(eye == LEFT_EYE)
+	{
+		currentSurface = leftSurface;
+	} 
+	else
+	{
+		currentSurface = rightSurface;
+	}
+
+	device->StretchRect(backBuffer, NULL, currentSurface, NULL, D3DTEXF_NONE);
+}
+
+void StereoView::SwapEyes(bool doSwap)
+{
+	swap_eyes = doSwap;
+}
+
+void StereoView::Draw()
+{
+	SaveState();
+	SetState();
+
+	device->SetFVF(D3DFVF_TEXVERTEX);
+
+	if(!swap_eyes)
+	{
+		device->SetTexture(0, leftTexture);
+		device->SetTexture(1, rightTexture);
+	}
+	else 
+	{
+		device->SetTexture(0, rightTexture);
+		device->SetTexture(1, leftTexture);
+	}
+
+	device->SetRenderTarget(0, screenSurface);
+	device->SetStreamSource(0, screenVertexBuffer, 0, sizeof(TEXVERTEX));
+
+	UINT iPass, cPasses;
+
+	viewEffect->SetTechnique("ViewShader");
+	viewEffect->Begin(&cPasses, 0);
+
+	for(iPass = 0; iPass < cPasses; iPass++)
+	{
+		viewEffect->BeginPass(iPass);
+		device->DrawPrimitive(D3DPT_TRIANGLEFAN, 0, 2);
+		viewEffect->EndPass();
+	}
+
+	viewEffect->End();
+	
+	device->StretchRect(screenSurface, NULL, backBuffer, NULL, D3DTEXF_NONE);
+
+	RestoreState();
+}
+
+void StereoView::SaveScreen()
+{
+	static int screenCount = 0;
+	++screenCount;
+
+	char fileName[32];
+	wsprintf(fileName, "screenshot_%d.bmp", screenCount);
+	OutputDebugString(fileName);
+
+	D3DXSaveSurfaceToFile(fileName, D3DXIFF_BMP, screenSurface, NULL, NULL);
+}
