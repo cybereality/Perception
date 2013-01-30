@@ -191,6 +191,7 @@ class frame_window {
 				case WM_CREATE:
 				{
 					OutputDebugString("Create Window");
+					break;
 				}
                 case WM_PAINT:   
                 {   
