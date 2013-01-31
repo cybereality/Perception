@@ -371,7 +371,7 @@ bool InitConfig(void)
 	HKEY hKey;
     LPCTSTR sk = TEXT("SOFTWARE\\Vireio\\Perception");
 
-	LONG createRes = RegCreateKeyEx(HKEY_LOCAL_MACHINE, sk, 0, NULL, 0, 0, NULL, &hKey, NULL);
+	LONG createRes = RegCreateKeyEx(HKEY_CURRENT_USER, sk, 0, NULL, 0, 0, NULL, &hKey, NULL);
 
 	if (createRes == ERROR_SUCCESS) {
 		OutputDebugString("Success creating Registry.");
@@ -379,7 +379,7 @@ bool InitConfig(void)
 		OutputDebugString("Error creating Registry.");
 	}
 
-    LONG openRes = RegOpenKeyEx(HKEY_LOCAL_MACHINE, sk, 0, KEY_ALL_ACCESS , &hKey);
+    LONG openRes = RegOpenKeyEx(HKEY_CURRENT_USER, sk, 0, KEY_ALL_ACCESS , &hKey);
 
     if (openRes==ERROR_SUCCESS) {
         OutputDebugString("Success opening key.");

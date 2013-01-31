@@ -308,7 +308,7 @@ void SaveExeName(char* data)
 	HKEY hKey;
     LPCTSTR sk = TEXT("SOFTWARE\\Vireio\\Perception");
 
-    LONG openRes = RegOpenKeyEx(HKEY_LOCAL_MACHINE, sk, 0, KEY_ALL_ACCESS , &hKey);
+    LONG openRes = RegOpenKeyEx(HKEY_CURRENT_USER, sk, 0, KEY_ALL_ACCESS , &hKey);
 
     if (openRes==ERROR_SUCCESS) {
         OutputDebugString("Hx // Success opening key.");

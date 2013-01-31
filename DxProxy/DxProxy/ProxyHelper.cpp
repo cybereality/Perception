@@ -38,7 +38,7 @@ char* ProxyHelper::GetBaseDir()
 	HKEY hKey;
 	LPCTSTR sk = TEXT("SOFTWARE\\Vireio\\Perception");
 
-	LONG openRes = RegOpenKeyEx(HKEY_LOCAL_MACHINE, sk, 0, KEY_ALL_ACCESS , &hKey);
+	LONG openRes = RegOpenKeyEx(HKEY_CURRENT_USER, sk, 0, KEY_QUERY_VALUE , &hKey);
 
 	if (openRes==ERROR_SUCCESS) 
 	{
@@ -72,7 +72,7 @@ char* ProxyHelper::GetTargetExe()
 	HKEY hKey;
 	LPCTSTR sk = TEXT("SOFTWARE\\Vireio\\Perception");
 
-	LONG openRes = RegOpenKeyEx(HKEY_LOCAL_MACHINE, sk, 0, KEY_ALL_ACCESS , &hKey);
+	LONG openRes = RegOpenKeyEx(HKEY_CURRENT_USER, sk, 0, KEY_QUERY_VALUE , &hKey);
 
 	if (openRes==ERROR_SUCCESS) 
 	{
