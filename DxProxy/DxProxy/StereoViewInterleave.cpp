@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 StereoViewInterleave::StereoViewInterleave(ProxyHelper::ProxyConfig& config):StereoView(config)
 {
-	OutputDebugString("Created SteroView Interleave");
+	OutputDebugString("Created SteroView Interleave\n");
 }
 
 StereoViewInterleave::~StereoViewInterleave()

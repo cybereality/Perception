@@ -31,36 +31,37 @@ HRESULT RegGetString(HKEY hKey, LPCTSTR szValueName, LPTSTR * lpszResult);
 char* ProxyHelper::GetBaseDir()
 {
 	if (baseDirLoaded == true){
-		OutputDebugString("PxHelp: Already have base value.");
+		OutputDebugString("PxHelp: Already have base value.\n");
 		return baseDir;
 	}
 
 	HKEY hKey;
 	LPCTSTR sk = TEXT("SOFTWARE\\Vireio\\Perception");
 
-	LONG openRes = RegOpenKeyEx(HKEY_LOCAL_MACHINE, sk, 0, KEY_ALL_ACCESS , &hKey);
+	LONG openRes = RegOpenKeyEx(HKEY_CURRENT_USER, sk, 0, KEY_QUERY_VALUE , &hKey);
 
 	if (openRes==ERROR_SUCCESS) 
 	{
-		OutputDebugString("PxHelp: Success opening key.");
+		OutputDebugString("PxHelp: Success opening key.\n");
 	} 
 	else 
 	{
-		OutputDebugString("PxHelp: Error opening key.");
+		OutputDebugString("PxHelp: Error opening key.\n");
 		return "";
 	}
 
 	HRESULT hr = RegGetString(hKey, TEXT("BasePath"), &baseDir);
 	if (FAILED(hr)) 
 	{
-		OutputDebugString("PxHelp: Error with GetString.");
+		OutputDebugString("PxHelp: Error with GetString.\n");
 		return "";
 	} 
 	else 
 	{
-		OutputDebugString("PxHelp: Success with GetString.");
+		OutputDebugString("PxHelp: Success with GetString.\n");
 		//strcpy_s(baseDir, sizeof(szVal), szVal);
 		OutputDebugString(baseDir);
+		OutputDebugString("\n");
 		baseDirLoaded = true;
 	}
 
@@ -72,28 +73,29 @@ char* ProxyHelper::GetTargetExe()
 	HKEY hKey;
 	LPCTSTR sk = TEXT("SOFTWARE\\Vireio\\Perception");
 
-	LONG openRes = RegOpenKeyEx(HKEY_LOCAL_MACHINE, sk, 0, KEY_ALL_ACCESS , &hKey);
+	LONG openRes = RegOpenKeyEx(HKEY_CURRENT_USER, sk, 0, KEY_QUERY_VALUE , &hKey);
 
 	if (openRes==ERROR_SUCCESS) 
 	{
-		OutputDebugString("PxHelp TE: Success opening key.");
+		OutputDebugString("PxHelp TE: Success opening key.\n");
 	} 
 	else
 	{
-		OutputDebugString("PxHelp TE: Error opening key.");
+		OutputDebugString("PxHelp TE: Error opening key.\n");
 		return "";
 	}
 
 	HRESULT hr = RegGetString(hKey, TEXT("TargetExe"), &targetExe);
 	if (FAILED(hr)) 
 	{
-		OutputDebugString("PxHelp TE: Error with GetString.");
+		OutputDebugString("PxHelp TE: Error with GetString.\n");
 		return "";
 	} 
 	else 
 	{
-		OutputDebugString("PxHelp TE: Success with GetString.");
+		OutputDebugString("PxHelp TE: Success with GetString.\n");
 		OutputDebugString(targetExe);
+		OutputDebugString("\n");
 	}
 
 	return targetExe;
@@ -120,13 +122,15 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config)
 
 	// load the base dir for the app
 	GetBaseDir();
-	OutputDebugString("Got base dir as:");
+	OutputDebugString("Got base dir as: ");
 	OutputDebugString(baseDir);
+	OutputDebugString("\n");
 
 	// get global config
 	char configPath[512];
 	GetPath(configPath, "cfg\\config.xml");
 	OutputDebugString(configPath);
+	OutputDebugString("\n");
 
 	xml_document docConfig;
 	xml_parse_result resultConfig = docConfig.load_file(configPath);
@@ -145,14 +149,16 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config)
 	
 	// get the target exe
 	GetTargetExe();
-	OutputDebugString("Got target exe as:");
+	OutputDebugString("Got target exe as: ");
 	OutputDebugString(targetExe);
+	OutputDebugString("\n");
 
 	// get the profile
 	bool profileFound = false;
 	char profilePath[512];
 	GetPath(profilePath, "cfg\\profiles.xml");
 	OutputDebugString(profilePath);
+	OutputDebugString("\n");
 
 	xml_document docProfiles;
 	xml_parse_result resultProfiles = docProfiles.load_file(profilePath);
@@ -167,7 +173,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config)
 		{
 			if(strcmp(targetExe, profile.attribute("game_exe").value()) == 0)
 			{
-				OutputDebugString("Load the specific profile!!!");
+				OutputDebugString("Load the specific profile!!!\n");
 				gameProfile = profile;
 				profileFound = true;
 				break;
@@ -177,7 +183,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config)
 
 	if(resultProfiles.status == status_ok && profileFound && gameProfile)
 	{
-		OutputDebugString("Set the config to profile!!!");
+		OutputDebugString("Set the config to profile!!!\n");
 		config.game_type = gameProfile.attribute("game_type").as_int();
 
 		char buf[32];
@@ -186,6 +192,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config)
 		wsprintf(buf,"gameType: %d", gameProfile.attribute("game_type").as_int());
 		psz = buf;
 		OutputDebugString(psz);
+		OutputDebugString("\n");
 
 		config.separation = gameProfile.attribute("separation").as_float();
 		config.convergence = gameProfile.attribute("convergence").as_float();
@@ -216,7 +223,7 @@ bool ProxyHelper::HasProfile(char* name)
 		{
 			if(strcmp(name, profile.attribute("game_exe").value()) == 0)
 			{
-				OutputDebugString("Found a profile!!!");
+				OutputDebugString("Found a profile!!!\n");
 				profileFound = true;
 				break;
 			}
@@ -245,7 +252,7 @@ bool ProxyHelper::GetProfile(char* name, ProxyConfig& config)
 		{
 			if(strcmp(name, profile.attribute("game_exe").value()) == 0)
 			{
-				OutputDebugString("Found a profile!!!");
+				OutputDebugString("Found a profile!!!\n");
 				profileFound = true;
 
 				break;
@@ -304,6 +311,7 @@ bool ProxyHelper::SaveConfig(int mode, float aspect)
 	// load the base dir for the app
 	GetBaseDir();
 	OutputDebugString(baseDir);
+	OutputDebugString("\n");
 
 	// get global config
 	char configPath[512];
@@ -335,6 +343,7 @@ bool ProxyHelper::SaveConfig2(int mode)
 	// load the base dir for the app
 	GetBaseDir();
 	OutputDebugString(baseDir);
+	OutputDebugString("\n");
 
 	// get global config
 	char configPath[512];
@@ -363,6 +372,7 @@ bool ProxyHelper::GetConfig(int& mode, int& mode2)
 	// load the base dir for the app
 	GetBaseDir();
 	OutputDebugString(baseDir);
+	OutputDebugString("\n");
 
 	// get global config
 	char configPath[512];
@@ -388,8 +398,9 @@ bool ProxyHelper::SaveProfile(float sep, float conv, float yaw, float pitch, flo
 {
 	// get the target exe
 	GetTargetExe();
-	OutputDebugString("Got target exe as:");
+	OutputDebugString("Got target exe as: ");
 	OutputDebugString(targetExe);
+	OutputDebugString("\n");
 
 	// get the profile
 	bool profileFound = false;
@@ -397,6 +408,7 @@ bool ProxyHelper::SaveProfile(float sep, float conv, float yaw, float pitch, flo
 	char profilePath[512];
 	GetPath(profilePath, "cfg\\profiles.xml");
 	OutputDebugString(profilePath);
+	OutputDebugString("\n");
 
 	xml_document docProfiles;
 	xml_parse_result resultProfiles = docProfiles.load_file(profilePath);
@@ -411,7 +423,7 @@ bool ProxyHelper::SaveProfile(float sep, float conv, float yaw, float pitch, flo
 		{
 			if(strcmp(targetExe, profile.attribute("game_exe").value()) == 0)
 			{
-				OutputDebugString("Load the specific profile!!!");
+				OutputDebugString("Load the specific profile!!!\n");
 				gameProfile = profile;
 				profileFound = true;
 				break;
@@ -421,7 +433,7 @@ bool ProxyHelper::SaveProfile(float sep, float conv, float yaw, float pitch, flo
 
 	if(resultProfiles.status == status_ok && profileFound && gameProfile)
 	{
-		OutputDebugString("Save the settings to profile!!!");
+		OutputDebugString("Save the settings to profile!!!\n");
 
 		gameProfile.attribute("separation") = sep;
 		gameProfile.attribute("convergence") = conv;

@@ -28,7 +28,7 @@ D3DProxyDeviceFixed::~D3DProxyDeviceFixed()
 
 void D3DProxyDeviceFixed::Init(ProxyHelper::ProxyConfig& cfg)
 {
-	OutputDebugString("D3D ProxyDev Fixed Init");
+	OutputDebugString("D3D ProxyDev Fixed Init\n");
 	D3DProxyDevice::Init(cfg);
 }
 

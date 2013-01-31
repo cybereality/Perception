@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="img">
+      <UniqueIdentifier>{93ddb33d-fe13-4a7c-a196-5c7037bdff44}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -48,5 +51,11 @@
     <None Include="icons\app.ico">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="..\..\Release\Perception\README.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\Release\Perception\img\logo.bmp">
+      <Filter>img</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>

@@ -1,3 +1,9 @@
+*.exe
+*.dll
+*.lib
+*.def
+*.exp
+
 #################
 ## Eclipse
 #################
@@ -42,8 +48,13 @@ local.properties
 *.sln.docstates
 
 # Build results
+DxHijack/DxHijack32/Release/
+DxHijack/DxHijack32/Debug/
+DxProxy/DxProxy/Release/
+DxProxy/DxProxy/Debug/
+Perception/Perception/Release/
+Perception/Perception/Debug/
 [Dd]ebug/
-[Rr]elease/
 *_i.c
 *_p.c
 *.ilk

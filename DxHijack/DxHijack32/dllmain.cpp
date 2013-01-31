@@ -95,7 +95,7 @@ SDLLHook D3DHook =
   
 HMODULE WINAPI MyLoadLibraryA(LPCSTR lpLibFileName)    
 {
-	OutputDebugString("LoadLibraryA ENTERED!");
+	OutputDebugString("LoadLibraryA ENTERED!\n");
 
     // Get the old function   
     LoadLibrary_Type OldFn = (LoadLibrary_Type)KernelHook.Functions[KERNEL32_LoadLibraryA].OrigFn;    
@@ -109,9 +109,10 @@ HMODULE WINAPI MyLoadLibraryA(LPCSTR lpLibFileName)
 
 	if(lstrcmpi(lpLibFileName, realDll) == 0)
 	{
-		OutputDebugString("Inject Proxy DLL");    
+		OutputDebugString("Inject Proxy DLL \n");    
 		lpLibFileName = proxyDll;
 		OutputDebugString(lpLibFileName); 
+		OutputDebugString("\n");
 	} 
    
     // Time to call the original function    
@@ -124,7 +125,7 @@ HMODULE WINAPI MyLoadLibraryA(LPCSTR lpLibFileName)
    
 HMODULE WINAPI MyLoadLibraryW(LPCWSTR lpLibFileName)    
 {    
-	OutputDebugString("LoadLibraryW ENTERED!");
+	OutputDebugString("LoadLibraryW ENTERED!\n");
 
     // Get the old function    
     LoadLibraryW_Type OldFn = (LoadLibraryW_Type)KernelHook.Functions[KERNEL32_LoadLibraryW].OrigFn;    
@@ -138,9 +139,10 @@ HMODULE WINAPI MyLoadLibraryW(LPCWSTR lpLibFileName)
 
 	if(lstrcmpiW(lpLibFileName, realDllW) == 0)
 	{
-		OutputDebugString("Inject Proxy DLL");    
+		OutputDebugString("Inject Proxy DLL ");    
 		lpLibFileName = proxyDllW;
 		OutputDebugStringW(lpLibFileName); 
+		OutputDebugString("\n");
 	} 
    
     // Time to call the original function    
@@ -153,7 +155,7 @@ HMODULE WINAPI MyLoadLibraryW(LPCWSTR lpLibFileName)
    
 HMODULE WINAPI MyLoadLibraryExA(LPCTSTR lpFileName, HANDLE hFile, DWORD dwFlags)   
 {   
-	OutputDebugString("LoadLibraryExA ENTERED!");
+	OutputDebugString("LoadLibraryExA ENTERED!\n");
 
     // Get the old function    
     LoadLibraryEx_Type OldFn = (LoadLibraryEx_Type)KernelHook.Functions[KERNEL32_LoadLibraryExA].OrigFn;    
@@ -167,9 +169,10 @@ HMODULE WINAPI MyLoadLibraryExA(LPCTSTR lpFileName, HANDLE hFile, DWORD dwFlags)
 
 	if(lstrcmpi(lpFileName, realDll) == 0)
 	{
-		OutputDebugString("Inject Proxy DLL");    
+		OutputDebugString("Inject Proxy DLL ");    
 		lpFileName = proxyDll;
 		OutputDebugString(lpFileName); 
+		OutputDebugString("\n");
 	} 
    
     // Time to call the original function    
@@ -182,7 +185,7 @@ HMODULE WINAPI MyLoadLibraryExA(LPCTSTR lpFileName, HANDLE hFile, DWORD dwFlags)
    
 HMODULE WINAPI MyLoadLibraryExW(LPCWSTR lpFileName, HANDLE hFile, DWORD dwFlags)   
 {   
-	OutputDebugString("LoadLibraryExW ENTERED!");
+	OutputDebugString("LoadLibraryExW ENTERED!\n");
 
     // Get the old function    
     LoadLibraryExW_Type OldFn = (LoadLibraryExW_Type)KernelHook.Functions[KERNEL32_LoadLibraryExW].OrigFn;    
@@ -196,9 +199,10 @@ HMODULE WINAPI MyLoadLibraryExW(LPCWSTR lpFileName, HANDLE hFile, DWORD dwFlags)
 
 	if(lstrcmpiW(lpFileName, realDllW) == 0)
 	{
-		OutputDebugString("Inject Proxy DLL");    
+		OutputDebugString("Inject Proxy DLL ");    
 		lpFileName = proxyDllW;
 		OutputDebugStringW(lpFileName); 
+		OutputDebugString("\n");
 	} 
    
     // Time to call the original function    
@@ -249,15 +253,15 @@ BOOL APIENTRY DllMain( HINSTANCE hModule, DWORD fdwReason, LPVOID lpReserved )
 		{
 			if (HookAPICalls(&D3DHook))
 			{
-				OutputDebugString("HookAPICalls(D3D): TRUE");
+				OutputDebugString("HookAPICalls(D3D): TRUE\n");
 			} 
 			else if(HookAPICalls(&KernelHook))
 			{	
-				OutputDebugString("HookAPICalls(Kernel): TRUE");
+				OutputDebugString("HookAPICalls(Kernel): TRUE\n");
 			} 
 			else 
 			{
-				OutputDebugString("HookAPICalls(Both): FALSE");
+				OutputDebugString("HookAPICalls(Both): FALSE\n");
 			}
 
 			SetDllDirectory(dllDir);
@@ -308,12 +312,12 @@ void SaveExeName(char* data)
 	HKEY hKey;
     LPCTSTR sk = TEXT("SOFTWARE\\Vireio\\Perception");
 
-    LONG openRes = RegOpenKeyEx(HKEY_LOCAL_MACHINE, sk, 0, KEY_ALL_ACCESS , &hKey);
+    LONG openRes = RegOpenKeyEx(HKEY_CURRENT_USER, sk, 0, KEY_ALL_ACCESS , &hKey);
 
     if (openRes==ERROR_SUCCESS) {
-        OutputDebugString("Hx // Success opening key.");
+        OutputDebugString("Hx // Success opening key.\n");
     } else {
-        OutputDebugString("Hx // Error opening key.");
+        OutputDebugString("Hx // Error opening key.\n");
     }
 
 	LPCTSTR value = TEXT("TargetExe");
@@ -321,16 +325,16 @@ void SaveExeName(char* data)
 	LONG setRes = RegSetValueEx(hKey, value, 0, REG_SZ, (LPBYTE)data, strlen(data)+1);
 
 	if (setRes == ERROR_SUCCESS) {
-		OutputDebugString("Hx // Success writing to Registry.");
+		OutputDebugString("Hx // Success writing to Registry.\n");
 	} else {
-		OutputDebugString("Hx // Error writing to Registry.");
+		OutputDebugString("Hx // Error writing to Registry.\n");
 	}
 
     LONG closeOut = RegCloseKey(hKey);
 
     if (closeOut == ERROR_SUCCESS) {
-        OutputDebugString("Hx // Success closing key.");
+        OutputDebugString("Hx // Success closing key.\n");
     } else {
-        OutputDebugString("Hx // Error closing key.");
+        OutputDebugString("Hx // Error closing key.\n");
     }
 }

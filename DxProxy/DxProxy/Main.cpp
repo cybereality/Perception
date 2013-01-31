@@ -148,6 +148,7 @@ void Log(const char* szFormat, ...)
 		pFile = fopen("C:/D3D9Proxy.log", "w");
 
 	OutputDebugString(szBuff);
+	OutputDebugString("\n");
 	fwrite(szBuff, 1, strlen(szBuff), pFile);
 	fflush(pFile);
 }

@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 MotionTracker::MotionTracker()
 {
-	OutputDebugString("Motion Tracker Created");
+	OutputDebugString("Motion Tracker Created\n");
 	init();
 }
 
@@ -30,7 +30,7 @@ MotionTracker::~MotionTracker()
 
 int MotionTracker::init()
 {
-	OutputDebugString("Motion Tracker Init");
+	OutputDebugString("Motion Tracker Init\n");
 
 	currentYaw = 0.0f;
 	currentPitch = 0.0f;
@@ -56,7 +56,7 @@ int MotionTracker::init()
 
 int MotionTracker::getOrientation(float* yaw, float* pitch, float* roll) 
 {
-	//OutputDebugString("Motion Tracker getOrient");
+	//OutputDebugString("Motion Tracker getOrient\n");
 	return -1;
 }
 
@@ -67,10 +67,10 @@ bool MotionTracker::isAvailable()
 
 void MotionTracker::updateOrientation()
 {
-	//OutputDebugString("Motion Tracker updateOrientation");
+	//OutputDebugString("Motion Tracker updateOrientation\n");
 	if(getOrientation(&yaw, &pitch, &roll) == 0)
 	{
-		//OutputDebugString("Motion Tracker getOrientation == 0");
+		//OutputDebugString("Motion Tracker getOrientation == 0\n");
 		if(!isEqual(currentYaw, 0.0f) && !isEqual(currentPitch, 0.0f))
 		{
 			yaw = fmodf(RADIANS_TO_DEGREES(yaw) + 360.0f, 360.0f)*multiplierYaw;
@@ -85,7 +85,7 @@ void MotionTracker::updateOrientation()
 			mouseData.mi.dx = (long)(deltaYaw);
 			mouseData.mi.dy = (long)(deltaPitch);
 		
-			//OutputDebugString("Motion Tracker SendInput");
+			//OutputDebugString("Motion Tracker SendInput\n");
 			SendInput(1, &mouseData, sizeof(INPUT));
 		}
 

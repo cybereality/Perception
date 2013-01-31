@@ -40,10 +40,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <TargetName>hijackdll</TargetName>
+    <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
+    <OutDir>$(IntDir)</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <TargetName>hijackdll</TargetName>
+    <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
+    <OutDir>$(IntDir)</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -52,18 +56,33 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;DXHIJACK32_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(DX)/Include;$(FREESPACE)\include;$(DX_PROXY)\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(DXSDK_DIR)\Include;$(DX)\Include;$(FREESPACE)\include;$(ProjectDir)\..\..\DxProxy\DxProxy</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ModuleDefinitionFile>hijackdll.def</ModuleDefinitionFile>
       <AdditionalDependencies>shlwapi.lib;d3d9.lib;libfreespace.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(DX)\Lib\x86;$(FREESPACE)\lib;..\..\DxProxy\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(DX)\Lib\x86;$(DX)\Lib\x86;$(FREESPACE)\lib;..\..\DxProxy\DxProxy\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <OutputFile>$(SolutionDir)$(Configuration)\Perception\bin\$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <PostBuildEvent>
       <Command>copy /Y "$(TargetDir)hijackdll.dll" "C:\Program Files (x86)\Vireio\Perception\bin\hijackdll.dll"</Command>
     </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
+    <PreBuildEvent>
+      <Message>
+      </Message>
+    </PreBuildEvent>
+    <PreLinkEvent>
+      <Command>xcopy "$(SolutionDir)\Release\Perception\cfg\*.*" "$(SolutionDir)\$(Configuration)\Perception\cfg\" /S /Y</Command>
+    </PreLinkEvent>
+    <PreLinkEvent>
+      <Message>Copy config xml files from Release  to $(Configuration)</Message>
+    </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -74,7 +93,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;DXHIJACK32_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(DX)/Include;$(FREESPACE)\include;$(DX_PROXY)\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(DXSDK_DIR)\Include;$(DX)\Include;$(FREESPACE)\include;$(ProjectDir)\..\..\DxProxy\DxProxy</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -83,7 +102,8 @@
       <OptimizeReferences>true</OptimizeReferences>
       <ModuleDefinitionFile>hijackdll.def</ModuleDefinitionFile>
       <AdditionalDependencies>shlwapi.lib;d3d9.lib;libfreespace.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\DxProxy\Debug;$(DX)\Lib\x86;$(FREESPACE)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(DX)\Lib\x86;$(DX)\Lib\x86;$(FREESPACE)\lib;..\..\DxProxy\DxProxy\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <OutputFile>$(SolutionDir)$(Configuration)\Perception\bin\$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <PostBuildEvent>
       <Command>copy /Y "$(TargetDir)hijackdll.dll" "C:\Program Files (x86)\Vireio\Perception\bin\hijackdll.dll"</Command>

@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 FreeSpaceTracker::FreeSpaceTracker(void):MotionTracker()
 {
-	OutputDebugString("Free Tracker Created");
+	OutputDebugString("Free Tracker Created\n");
 	init();
 }
 
@@ -35,7 +35,7 @@ FreeSpaceTracker::~FreeSpaceTracker(void)
 
 int FreeSpaceTracker::init()
 {
-	OutputDebugString("Free Tracker Init");
+	OutputDebugString("Free Tracker Init\n");
 	DeviceID = -1;
 	int err = connect();
 	if (err)
@@ -46,7 +46,7 @@ int FreeSpaceTracker::init()
 
 int FreeSpaceTracker::connect() 
 {
-	OutputDebugString("Free Tracker Connect");
+	OutputDebugString("Free Tracker Connect\n");
    // Initialize the freespace library
    int err = freespace_init();
    if (err)
@@ -110,7 +110,7 @@ void FreeSpaceTracker::reset()
 
 void FreeSpaceTracker::close() 
 {
-	OutputDebugString("Free Tracker Close");
+	OutputDebugString("Free Tracker Close\n");
 	if (DeviceID >= 0) 
 	{
 		// Shut off the data stream
@@ -139,7 +139,7 @@ void FreeSpaceTracker::close()
 		freespace_exit();
 	}
 
-   OutputDebugString("Free Tracker Exit");
+   OutputDebugString("Free Tracker Exit\n");
 }
 
 void FreeSpaceTracker::destroy()
@@ -149,7 +149,7 @@ void FreeSpaceTracker::destroy()
 
 int FreeSpaceTracker::getOrientation(float* yaw, float* pitch, float* roll) 
 {
-	//OutputDebugString("Free Tracker getOrient");
+	//OutputDebugString("Free Tracker getOrient\n");
 
 	freespace_message msg;
 
@@ -159,6 +159,7 @@ int FreeSpaceTracker::getOrientation(float* yaw, float* pitch, float* roll)
 	char errChar[512];
 	sprintf_s(errChar, "devID = %d, err == %d", DeviceID, err);
 	OutputDebugString(errChar);
+	OutputDebugString("\n");
 	*/
 
 	if (err == 0) 

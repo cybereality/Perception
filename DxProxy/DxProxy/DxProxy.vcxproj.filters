@@ -27,6 +27,12 @@
     <Filter Include="XML">
       <UniqueIdentifier>{10a1970f-9ec7-4424-9ce2-46eb37af1590}</UniqueIdentifier>
     </Filter>
+    <Filter Include="cfg">
+      <UniqueIdentifier>{35b7e701-018e-4b6a-816b-bb90e55959c8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="fx">
+      <UniqueIdentifier>{6f7e6df9-0c4f-45c2-a4de-a22f8771da08}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -159,5 +165,49 @@
     <ClInclude Include="MotionTrackerFactory.h">
       <Filter>Tracking</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\Release\Perception\cfg\profiles.xml">
+      <Filter>cfg</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\Release\Perception\cfg\config.xml">
+      <Filter>cfg</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\Release\Perception\fx\SideBySide.fx">
+      <Filter>fx</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\Release\Perception\fx\OverUnder.fx">
+      <Filter>fx</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\Release\Perception\fx\InterleaveVert.fx">
+      <Filter>fx</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\Release\Perception\fx\InterleaveHorz.fx">
+      <Filter>fx</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\Release\Perception\fx\Checkerboard.fx">
+      <Filter>fx</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\Release\Perception\fx\AnaglyphYellowBlueGray.fx">
+      <Filter>fx</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\Release\Perception\fx\AnaglyphYellowBlue.fx">
+      <Filter>fx</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\Release\Perception\fx\AnaglyphRedCyanGray.fx">
+      <Filter>fx</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\Release\Perception\fx\AnaglyphRedCyan.fx">
+      <Filter>fx</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\Release\Perception\fx\AnaglyphGreenMagentaGray.fx">
+      <Filter>fx</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\Release\Perception\fx\SideBySideRift.fx">
+      <Filter>fx</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\Release\Perception\fx\AnaglyphGreenMagenta.fx">
+      <Filter>fx</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>
