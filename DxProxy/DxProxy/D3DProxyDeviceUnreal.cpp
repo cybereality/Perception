@@ -28,7 +28,7 @@ D3DProxyDeviceUnreal::~D3DProxyDeviceUnreal()
 
 void D3DProxyDeviceUnreal::Init(ProxyHelper::ProxyConfig& cfg)
 {
-	OutputDebugString("D3D ProxyDev Unreal Init");
+	OutputDebugString("D3D ProxyDev Unreal Init\n");
 	D3DProxyDevice::Init(cfg);
 	matrixIndex = getMatrixIndex();
 }
@@ -123,6 +123,7 @@ HRESULT WINAPI D3DProxyDeviceUnreal::SetVertexShaderConstantF(UINT StartRegister
 		sprintf_s(buf, "sep: %f", separation);
 		psz = buf;
 		OutputDebugString(psz);
+		OutputDebugString("\n");
 		*/
 
 		if(false && saveDebugFile)

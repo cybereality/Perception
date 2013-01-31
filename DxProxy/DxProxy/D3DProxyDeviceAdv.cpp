@@ -46,7 +46,7 @@ D3DProxyDeviceAdv::~D3DProxyDeviceAdv()
 
 void D3DProxyDeviceAdv::Init(ProxyHelper::ProxyConfig& cfg)
 {
-	OutputDebugString("D3D ProxyDev Test Init");
+	OutputDebugString("D3D ProxyDev Test Init\n");
 	D3DProxyDevice::Init(cfg);
 	//matrixIndex = getMatrixIndex();
 }

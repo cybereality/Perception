@@ -173,7 +173,7 @@ class frame_window {
 			helper.GetPath(viewPath, "img\\logo.bmp");
 
 			logo_bitmap = (HBITMAP)LoadImage(NULL,viewPath,IMAGE_BITMAP,0,0,LR_LOADFROMFILE);
-			OutputDebugString("Load the bitmap");
+			OutputDebugString("Load the bitmap\n");
 
             SetCursor(LoadCursor(NULL, IDC_ARROW)); 
             ShowWindow(window_handle, SW_SHOW);   
@@ -190,7 +190,7 @@ class frame_window {
             switch ( message ) {  
 				case WM_CREATE:
 				{
-					OutputDebugString("Create Window");
+					OutputDebugString("Create Window\n");
 					break;
 				}
                 case WM_PAINT:   
@@ -365,8 +365,9 @@ int WINAPI wWinMain(HINSTANCE instance_handle, HINSTANCE, LPWSTR, INT) {
 bool InitConfig(void)
 {
 	std::string basePath = getCurrentPath();
-	OutputDebugString("Current Path:");
+	OutputDebugString("Current Path: ");
 	OutputDebugString(basePath.c_str());
+	OutputDebugString("\n");
 
 	HKEY hKey;
     LPCTSTR sk = TEXT("SOFTWARE\\Vireio\\Perception");
@@ -374,17 +375,17 @@ bool InitConfig(void)
 	LONG createRes = RegCreateKeyEx(HKEY_CURRENT_USER, sk, 0, NULL, 0, 0, NULL, &hKey, NULL);
 
 	if (createRes == ERROR_SUCCESS) {
-		OutputDebugString("Success creating Registry.");
+		OutputDebugString("Success creating Registry.\n");
 	} else {
-		OutputDebugString("Error creating Registry.");
+		OutputDebugString("Error creating Registry.\n");
 	}
 
     LONG openRes = RegOpenKeyEx(HKEY_CURRENT_USER, sk, 0, KEY_ALL_ACCESS , &hKey);
 
     if (openRes==ERROR_SUCCESS) {
-        OutputDebugString("Success opening key.");
+        OutputDebugString("Success opening key.\n");
     } else {
-        OutputDebugString("Error opening key.");
+        OutputDebugString("Error opening key.\n");
     }
 
 	LPCTSTR value = TEXT("BasePath");
@@ -393,17 +394,17 @@ bool InitConfig(void)
 	LONG setRes = RegSetValueEx(hKey, value, 0, REG_SZ, (LPBYTE)data, strlen(data)+1);
 
 	if (setRes == ERROR_SUCCESS) {
-		OutputDebugString("Success writing to Registry.");
+		OutputDebugString("Success writing to Registry.\n");
 	} else {
-		OutputDebugString("Error writing to Registry.");
+		OutputDebugString("Error writing to Registry.\n");
 	}
 
     LONG closeOut = RegCloseKey(hKey);
 
     if (closeOut == ERROR_SUCCESS) {
-        OutputDebugString("Success closing key.");
+        OutputDebugString("Success closing key.\n");
     } else {
-        OutputDebugString("Error closing key.");
+        OutputDebugString("Error closing key.\n");
     }
 
 	return true;

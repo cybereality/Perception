@@ -28,7 +28,7 @@ D3DProxyDeviceTest::~D3DProxyDeviceTest()
 
 void D3DProxyDeviceTest::Init(ProxyHelper::ProxyConfig& cfg)
 {
-	OutputDebugString("D3D ProxyDev Test Init");
+	OutputDebugString("D3D ProxyDev Test Init\n");
 	D3DProxyDevice::Init(cfg);
 	matrixIndex = getMatrixIndex();
 }

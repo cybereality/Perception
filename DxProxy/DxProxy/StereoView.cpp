@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 StereoView::StereoView(ProxyHelper::ProxyConfig& config)
 {
-	OutputDebugString("Created SteroView");
+	OutputDebugString("Created SteroView\n");
 	initialized = false;
 	game_type = config.game_type;
 	stereo_mode = config.stereo_mode;
@@ -29,12 +29,12 @@ StereoView::StereoView(ProxyHelper::ProxyConfig& config)
 
 StereoView::~StereoView()
 {
-	OutputDebugString("Destroyed SteroView");
+	OutputDebugString("Destroyed SteroView\n");
 }
 
 void StereoView::Init(IDirect3DDevice9* dev)
 {
-	OutputDebugString("SteroView Init");
+	OutputDebugString("SteroView Init\n");
 
 	device = dev;
 
@@ -79,6 +79,7 @@ void StereoView::InitTextureBuffers()
 	wsprintf(buf,"vp w: %d",viewport.Width);
 	psz = buf;
 	OutputDebugString(psz);
+	OutputDebugString("\n");
 	
 	D3DSURFACE_DESC pDesc = D3DSURFACE_DESC();
 	device->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &backBuffer);
@@ -87,6 +88,7 @@ void StereoView::InitTextureBuffers()
 	wsprintf(buf,"bb w: %d",pDesc.Width);
 	psz = buf;
 	OutputDebugString(psz);
+	OutputDebugString("\n");
 
 	device->CreateOffscreenPlainSurface(pDesc.Width, pDesc.Height, pDesc.Format, D3DPOOL_SYSTEMMEM, &leftSurface, NULL);
 	device->CreateTexture(pDesc.Width, pDesc.Height, 0, D3DUSAGE_RENDERTARGET, pDesc.Format, D3DPOOL_DEFAULT, &leftTexture, NULL);
@@ -103,7 +105,7 @@ void StereoView::InitTextureBuffers()
 
 void StereoView::InitVertexBuffers()
 {
-	OutputDebugString("SteroView initVertexBuffers");
+	OutputDebugString("SteroView initVertexBuffers\n");
 
 	device->CreateVertexBuffer(sizeof(TEXVERTEX) * 4, NULL,
         D3DFVF_TEXVERTEX, D3DPOOL_MANAGED, &screenVertexBuffer, NULL);
@@ -345,6 +347,7 @@ void StereoView::SaveScreen()
 	char fileName[32];
 	wsprintf(fileName, "screenshot_%d.bmp", screenCount);
 	OutputDebugString(fileName);
+	OutputDebugString("\n");
 
 	D3DXSaveSurfaceToFile(fileName, D3DXIFF_BMP, screenSurface, NULL, NULL);
 }

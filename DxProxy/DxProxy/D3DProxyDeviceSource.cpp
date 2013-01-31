@@ -21,7 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 D3DProxyDeviceSource::D3DProxyDeviceSource(IDirect3DDevice9* pDevice):D3DProxyDevice(pDevice)
 {
-	OutputDebugString("D3D ProxyDev Source Created");
+	OutputDebugString("D3D ProxyDev Source Created\n");
 }
 
 D3DProxyDeviceSource::~D3DProxyDeviceSource()
@@ -30,7 +30,7 @@ D3DProxyDeviceSource::~D3DProxyDeviceSource()
 
 void D3DProxyDeviceSource::Init(ProxyHelper::ProxyConfig& cfg)
 {
-	OutputDebugString("D3D ProxyDev Source Init");
+	OutputDebugString("D3D ProxyDev Source Init\n");
 	D3DProxyDevice::Init(cfg);
 }
 

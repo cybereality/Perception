@@ -30,7 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice):BaseDirect3DDevice9(pDevice)
 {
-	OutputDebugString("D3D ProxyDev Created");
+	OutputDebugString("D3D ProxyDev Created\n");
 }
 
 D3DProxyDevice::~D3DProxyDevice()
@@ -39,7 +39,7 @@ D3DProxyDevice::~D3DProxyDevice()
 
 void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 {
-	OutputDebugString("D3D ProxyDev Init");
+	OutputDebugString("D3D ProxyDev Init\n");
 	stereoView = StereoViewFactory::Get(cfg);
 	SetupMatrices(cfg);
 	SetupOptions(cfg);
@@ -73,6 +73,7 @@ void D3DProxyDevice::SetupOptions(ProxyHelper::ProxyConfig& cfg)
 	sprintf_s(buf, "type: %d, aspect: %f", cfg.game_type, cfg.aspect_multiplier);
 	psz = buf;
 	OutputDebugString(psz);
+	OutputDebugString("\n");
 }
 
 void D3DProxyDevice::SetupMatrices(ProxyHelper::ProxyConfig& cfg)
@@ -250,7 +251,7 @@ void D3DProxyDevice::HandleTracking()
 {
 	if(!trackerInitialized)
 	{
-		OutputDebugString("Try to init Tracker");
+		OutputDebugString("Try to init Tracker\n");
 		tracker = MotionTrackerFactory::Get(config);
 		trackerInitialized = true;
 	}
