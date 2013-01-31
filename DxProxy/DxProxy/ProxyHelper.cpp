@@ -28,6 +28,11 @@ using namespace pugi;
 
 HRESULT RegGetString(HKEY hKey, LPCTSTR szValueName, LPTSTR * lpszResult);
 
+ProxyHelper::ProxyHelper()
+	: baseDirLoaded(false)
+{
+}
+
 char* ProxyHelper::GetBaseDir()
 {
 	if (baseDirLoaded == true){
