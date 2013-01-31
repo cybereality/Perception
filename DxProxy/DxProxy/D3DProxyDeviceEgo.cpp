@@ -28,7 +28,7 @@ D3DProxyDeviceEgo::~D3DProxyDeviceEgo()
 
 void D3DProxyDeviceEgo::Init(ProxyHelper::ProxyConfig& cfg)
 {
-	OutputDebugString("D3D ProxyDev Ego Init");
+	OutputDebugString("D3D ProxyDev Ego Init\n");
 	D3DProxyDevice::Init(cfg);
 	matrixIndex = getMatrixIndex();
 }
@@ -117,6 +117,7 @@ HRESULT WINAPI D3DProxyDeviceEgo::SetVertexShaderConstantF(UINT StartRegister,CO
 		sprintf_s(buf, "sep: %f", separation);
 		psz = buf;
 		OutputDebugString(psz);
+		OutputDebugString("\n");
 		*/
 
 		if(saveDebugFile)

@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 D3DProxyDeviceMono::D3DProxyDeviceMono(IDirect3DDevice9* pDevice):D3DProxyDevice(pDevice)
 {
-	OutputDebugString("D3D ProxyDev Mono Created");
+	OutputDebugString("D3D ProxyDev Mono Created\n");
 }
 
 D3DProxyDeviceMono::~D3DProxyDeviceMono()

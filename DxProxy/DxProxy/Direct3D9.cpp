@@ -144,7 +144,7 @@ HRESULT WINAPI BaseDirect3D9::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, 
 	if(FAILED(hResult))
 		return hResult;
 
-	OutputDebugString("created device success");
+	OutputDebugString("created device success\n");
 
 	// load configuration file
 	ProxyHelper helper = ProxyHelper();
@@ -152,12 +152,12 @@ HRESULT WINAPI BaseDirect3D9::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, 
 	if(!helper.LoadConfig(cfg))
 		return hResult;
 
-	OutputDebugString("loaded config success");
+	OutputDebugString("loaded config success\n");
 
 	if(cfg.stereo_mode == StereoView::DISABLED)
 		return hResult;
 
-	OutputDebugString("stereo mode not disabled");
+	OutputDebugString("stereo mode not disabled\n");
 
 	char buf[32];
 	LPCSTR psz = NULL;
@@ -165,6 +165,7 @@ HRESULT WINAPI BaseDirect3D9::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, 
 	wsprintf(buf,"Config type: %d", cfg.game_type);
 	psz = buf;
 	OutputDebugString(psz);
+	OutputDebugString("\n");
 
 	// Create and return proxy
 	*ppReturnedDeviceInterface = D3DProxyDeviceFactory::Get(cfg, *ppReturnedDeviceInterface);
