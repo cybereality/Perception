@@ -14,13 +14,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DxHijack32", "DxHijack\DxHi
 		{16A8AA38-36D3-437F-922A-B808F654AAAA} = {16A8AA38-36D3-437F-922A-B808F654AAAA}
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{31AC3B6E-46B5-411D-8BA8-745906E0800F}"
-	ProjectSection(SolutionItems) = preProject
-		.gitattributes = .gitattributes
-		.gitignore = .gitignore
-		README.txt = README.txt
-	EndProjectSection
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
