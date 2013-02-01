@@ -143,12 +143,16 @@ void Log(const char* szFormat, ...)
 	_vsnprintf(szBuff, sizeof(szBuff), szFormat, arg);
 	va_end(arg);
 
-	static FILE* pFile;
+	static FILE* pFile = NULL;
 	if(!pFile)
 		pFile = fopen("C:/D3D9Proxy.log", "w");
 
 	OutputDebugString(szBuff);
 	OutputDebugString("\n");
-	fwrite(szBuff, 1, strlen(szBuff), pFile);
-	fflush(pFile);
+	if(pFile) {
+		fwrite(szBuff, 1, strlen(szBuff), pFile);
+		fflush(pFile);
+	} else {
+		OutputDebugString("Couldn't open log file for writing.\n");
+	}
 }
