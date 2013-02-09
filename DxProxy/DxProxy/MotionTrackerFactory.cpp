@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "MotionTrackerFactory.h"
 #include "FreeSpaceTracker.h"
+#include "FreeTrackTracker.h"
 
 MotionTracker* MotionTrackerFactory::Get(ProxyHelper::ProxyConfig& config)
 {
@@ -30,6 +31,9 @@ MotionTracker* MotionTrackerFactory::Get(ProxyHelper::ProxyConfig& config)
 		break;
 	case MotionTracker::HILLCREST:
 		newTracker = new FreeSpaceTracker();
+		break;
+	case MotionTracker::FREETRACK:
+		newTracker = new FreeTrackTracker();
 		break;
 	default:
 		newTracker = new MotionTracker();
