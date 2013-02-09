@@ -345,7 +345,7 @@ int WINAPI wWinMain(HINSTANCE instance_handle, HINSTANCE, LPWSTR, INT) {
 	main_window.add_item("Anaglyph (Green/Magenta) B+W\t11");
 
 	main_window.add_item2("No Tracking\t0");
-    main_window.add_item2("Hillcrest Labs\t10");
+	main_window.add_item2("Hillcrest Labs\t10");
 	main_window.add_item2("FreeTrack\t20");
 
 	int mode;
