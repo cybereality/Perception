@@ -55,13 +55,15 @@ private:
 		float x4;
 		float y4;
 	}FreeTrackData;
+
 	typedef bool (WINAPI *importGetData)(FreeTrackData * data);
-	typedef char *(WINAPI *importGetDllVersion)(void);
-	typedef void (WINAPI *importReportID)(int name);
-	typedef char *(WINAPI *importProvider)(void);
+
 	HINSTANCE hinstLib;
-	importReportID	reportID;
 	importGetData getData;
 	FreeTrackData data;
 	FreeTrackData *pData;
+
+	float lastRoll;
+	float lastPitch;
+	float lastYaw;
 };
