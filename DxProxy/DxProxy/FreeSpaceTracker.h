@@ -35,3 +35,55 @@ private:
 	FreespaceDeviceId DeviceID;
 	FreespaceDeviceInfo Device;
 };
+
+//#include "MotionTracker.h"
+//
+//class FreeSpaceTracker : public MotionTracker
+//{
+//public:
+//	FreeSpaceTracker(void);
+//	~FreeSpaceTracker(void);
+//	int getOrientation(float* yaw, float* pitch, float* roll);
+//	bool isAvailable();
+//	int init();
+//	void reset();
+//	void destroy();
+//private:
+//	typedef struct
+//	{
+//		unsigned long int dataID;
+//		long int camWidth;
+//		long int camHeight;
+//		float yaw;
+//		float pitch;
+//		float roll;
+//		float x;
+//		float y;
+//		float z;
+//		float rawyaw;
+//		float rawpitch;
+//		float rawroll;
+//		float rawx;
+//		float rawy;
+//		float rawz;
+//		float x1;
+//		float y1;
+//		float x2;
+//		float y2;
+//		float x3;
+//		float y3;
+//		float x4;
+//		float y4;
+//	}FreeTrackData;
+//
+//	typedef bool (WINAPI *importGetData)(FreeTrackData * data);
+//
+//	HINSTANCE hinstLib;
+//	importGetData getData;
+//	FreeTrackData data;
+//	FreeTrackData *pData;
+//
+//	float lastRoll;
+//	float lastPitch;
+//	float lastYaw;
+//};
