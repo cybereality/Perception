@@ -27,6 +27,7 @@ should be free to include in this project.
 This file depends on the precence of FreeTrackClient.dll in the same folder
 as the executable, but need not be compiled against or linked to it. Again,
 FreeTrackClient.dll is GPL licensed, and therefore free to redistribute.
+However, I haven't actually included it in this repository yet.
 */
 
 #include "FreeTrackTracker.h"
@@ -75,9 +76,9 @@ void FreeTrackTracker::destroy()
 int FreeTrackTracker::getOrientation(float* yaw, float* pitch, float* roll) 
 {
 	if (getData(pData)) {
-		lastRoll = data.roll * 10;
-		lastPitch = data.pitch * 10;
-		lastYaw = data.yaw * 10;
+		lastRoll = data.roll;
+		lastPitch = data.pitch;
+		lastYaw = data.yaw;
 	}
 
 	*roll = -lastRoll;
