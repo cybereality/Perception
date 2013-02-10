@@ -29,7 +29,6 @@ as the executable, but need not be compiled against or linked to it. Again,
 FreeTrackClient.dll is GPL licensed, and therefore free to redistribute.
 */
 
-
 #include "FreeTrackTracker.h"
 #include <windows.h>
 
@@ -46,21 +45,16 @@ FreeTrackTracker::~FreeTrackTracker(void)
 
 int FreeTrackTracker::init()
 {
-	// declare imported function pointer
-	importGetData		getData;
-
-	// create variables for exchanging data with the DLL
-	FreeTrackData data;
-	FreeTrackData *pData;
-	pData = &data;
-
 	// zero variables for storing data
 	lastRoll = 0;
 	lastPitch = 0;
 	lastYaw = 0;
 
+	// create variable for exchanging data with the DLL
+	pData = &data;
+
 	// Load DLL file
-	HINSTANCE hinstLib = LoadLibrary("FreeTrackClient.dll");
+	hinstLib = LoadLibrary("FreeTrackClient.dll");
 
 	// Get function pointer
 	getData = (importGetData)GetProcAddress(hinstLib, "FTGetData");
@@ -81,19 +75,20 @@ void FreeTrackTracker::destroy()
 int FreeTrackTracker::getOrientation(float* yaw, float* pitch, float* roll) 
 {
 	if (getData(pData)) {
-		lastRoll = data.roll;
-		lastPitch = data.pitch;
-		lastYaw = data.yaw;
+		lastRoll = data.roll * 10;
+		lastPitch = data.pitch * 10;
+		lastYaw = data.yaw * 10;
 	}
-	*roll = lastRoll;
+
+	*roll = -lastRoll;
 	*pitch = lastPitch;
-	*yaw = lastYaw;
+	*yaw = -lastYaw;
 	return 0;
 }
 
 bool FreeTrackTracker::isAvailable()
 {
-	if (hinstLib == NULL) {
+	if (getData == NULL) {
 		return false;
 	} else {
 		return true;

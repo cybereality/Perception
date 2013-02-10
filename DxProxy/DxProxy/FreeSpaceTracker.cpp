@@ -1,4 +1,4 @@
-/********************************************************************
+/*******************************************************************
 Vireio Perception: Open-Source Stereoscopic 3D Driver
 Copyright (C) 2012 Andres Hernandez
 
@@ -215,73 +215,3 @@ bool FreeSpaceTracker::isAvailable()
 {
 	return DeviceID >= 0;
 }
-
-//#include "FreeSpaceTracker.h"
-//#include <windows.h>
-//
-//FreeSpaceTracker::FreeSpaceTracker(void):MotionTracker()
-//{
-//	OutputDebugString("[FREETRACK] FreeTrack Tracker Created\n");
-//	init();
-//}
-//
-//FreeSpaceTracker::~FreeSpaceTracker(void)
-//{
-//	FreeLibrary(hinstLib);
-//}
-//
-//int FreeSpaceTracker::init()
-//{
-//	// declare imported function pointer
-//	importGetData		getData;
-//
-//	// create variables for exchanging data with the DLL
-//	FreeTrackData data;
-//	FreeTrackData *pData;
-//	pData = &data;
-//
-//	// zero variables for storing data
-//	lastRoll = 0;
-//	lastPitch = 0;
-//	lastYaw = 0;
-//
-//	// Load DLL file
-//	HINSTANCE hinstLib = LoadLibrary("FreeTrackClient.dll");
-//
-//	// Get function pointer
-//	getData = (importGetData)GetProcAddress(hinstLib, "FTGetData");
-//
-//	return 0;
-//}
-//
-//void FreeSpaceTracker::reset()
-//{
-//	init();
-//}
-//
-//void FreeSpaceTracker::destroy()
-//{
-//	FreeLibrary(hinstLib);
-//}
-//
-//int FreeSpaceTracker::getOrientation(float* yaw, float* pitch, float* roll) 
-//{
-//	if (false) { //getData(pData)
-//		lastRoll = data.roll;
-//		lastPitch = data.pitch;
-//		lastYaw = data.yaw;
-//	}
-//	*roll = lastRoll;
-//	*pitch = lastPitch;
-//	*yaw = lastYaw;
-//	return 0;
-//}
-//
-//bool FreeSpaceTracker::isAvailable()
-//{
-//	if (hinstLib == NULL) {
-//		return false;
-//	} else {
-//		return true;
-//	}
-//}
