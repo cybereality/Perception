@@ -33,7 +33,7 @@ MotionTracker* MotionTrackerFactory::Get(ProxyHelper::ProxyConfig& config)
 		newTracker = new FreeSpaceTracker();
 		break;
 	case MotionTracker::FREETRACK:
-		//newTracker = new FreeTrackTracker();
+		newTracker = new FreeTrackTracker();
 		break;
 	default:
 		newTracker = new MotionTracker();
