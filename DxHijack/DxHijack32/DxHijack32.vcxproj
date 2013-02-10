@@ -122,6 +122,7 @@
     <ClCompile Include="..\..\DxProxy\DxProxy\Direct3D9.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\Direct3DDevice9.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\FreeSpaceTracker.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\FreeTrackTracker.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\MotionTracker.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\MotionTrackerFactory.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\ProxyHelper.cpp" />

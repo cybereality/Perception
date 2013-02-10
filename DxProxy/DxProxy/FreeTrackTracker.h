@@ -16,47 +16,54 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#ifndef MOTIONTRACKER_H_INCLUDED
-#define MOTIONTRACKER_H_INCLUDED
+#include "MotionTracker.h"
 
-#define PI 3.141592654
-#define RADIANS_TO_DEGREES(rad) ((float) rad * (float) (180.0 / PI))
-
-#include <math.h>
-#include <windows.h>
-
-class MotionTracker
+class FreeTrackTracker : public MotionTracker
 {
 public:
-	MotionTracker(void);
-	virtual ~MotionTracker(void);
-
-	virtual int init();
-	virtual int getOrientation(float* yaw, float* pitch, float* roll);
-	virtual void updateOrientation();
-	virtual bool isAvailable();
-	virtual void setMultipliers(float yaw, float pitch, float roll);
-
-	bool isEqual(float a, float b){ return abs(a-b) < 0.001; };
-
-	float yaw, pitch, roll;
-	float currentYaw;
-	float currentPitch;
-	float currentRoll;
-	float deltaYaw;
-	float deltaPitch;
-
-	float multiplierYaw;
-	float multiplierPitch;
-	float multiplierRoll;
-	INPUT mouseData;
-
-	static enum TrackerTypes
+	FreeTrackTracker(void);
+	~FreeTrackTracker(void);
+	int getOrientation(float* yaw, float* pitch, float* roll);
+	bool isAvailable();
+	int init();
+	void reset();
+	void destroy();
+private:
+	typedef struct
 	{
-		DISABLED = 0,
-		HILLCREST = 10,
-		FREETRACK = 20
-	};
-};
+		unsigned long int dataID;
+		long int camWidth;
+		long int camHeight;
+		float yaw;
+		float pitch;
+		float roll;
+		float x;
+		float y;
+		float z;
+		float rawyaw;
+		float rawpitch;
+		float rawroll;
+		float rawx;
+		float rawy;
+		float rawz;
+		float x1;
+		float y1;
+		float x2;
+		float y2;
+		float x3;
+		float y3;
+		float x4;
+		float y4;
+	}FreeTrackData;
 
-#endif
+	typedef bool (WINAPI *importGetData)(FreeTrackData * data);
+
+	HINSTANCE hinstLib;
+	importGetData getData;
+	FreeTrackData data;
+	FreeTrackData *pData;
+
+	float lastRoll;
+	float lastPitch;
+	float lastYaw;
+};

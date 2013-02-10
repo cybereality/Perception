@@ -78,6 +78,9 @@
     <ClCompile Include="..\..\DxProxy\DxProxy\Direct3D9.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\DxProxy\DxProxy\FreeTrackTracker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="hijackdll.def">

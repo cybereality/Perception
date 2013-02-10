@@ -118,6 +118,7 @@
     <ClCompile Include="Direct3D9.cpp" />
     <ClCompile Include="Direct3DDevice9.cpp" />
     <ClCompile Include="FreeSpaceTracker.cpp" />
+    <ClCompile Include="FreeTrackTracker.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MotionTracker.cpp" />
     <ClCompile Include="MotionTrackerFactory.cpp" />
@@ -140,6 +141,7 @@
     <ClInclude Include="Direct3D9.h" />
     <ClInclude Include="Direct3DDevice9.h" />
     <ClInclude Include="FreeSpaceTracker.h" />
+    <ClInclude Include="FreeTrackTracker.h" />
     <ClInclude Include="Main.h" />
     <ClInclude Include="MotionTrackerFactory.h" />
     <ClInclude Include="ProxyHelper.h" />
