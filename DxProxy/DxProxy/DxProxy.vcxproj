@@ -63,7 +63,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ModuleDefinitionFile>Exports.def</ModuleDefinitionFile>
       <AdditionalLibraryDirectories>$(DXSDK_DIR)\Lib\x86;$(DX)\Lib\x86;$(FREESPACE)\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libfreespace.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libfreespace.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(SolutionDir)$(Configuration)\Perception\bin\$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <PostBuildEvent>
@@ -94,7 +94,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <ModuleDefinitionFile>Exports.def</ModuleDefinitionFile>
       <AdditionalLibraryDirectories>$(DXSDK_DIR)\Lib\x86;$(DX)\Lib\x86;$(FREESPACE)\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libfreespace.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libfreespace.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(SolutionDir)$(Configuration)\Perception\bin\$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <PostBuildEvent>
@@ -118,11 +118,13 @@
     <ClCompile Include="Direct3D9.cpp" />
     <ClCompile Include="Direct3DDevice9.cpp" />
     <ClCompile Include="FreeSpaceTracker.cpp" />
+    <ClCompile Include="FreeTrackTracker.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MotionTracker.cpp" />
     <ClCompile Include="MotionTrackerFactory.cpp" />
     <ClCompile Include="ProxyHelper.cpp" />
     <ClCompile Include="pugixml.cpp" />
+    <ClCompile Include="SocketTracker.cpp" />
     <ClCompile Include="StereoView.cpp" />
     <ClCompile Include="StereoViewFactory.cpp" />
     <ClCompile Include="StereoViewInterleave.cpp" />
@@ -140,11 +142,13 @@
     <ClInclude Include="Direct3D9.h" />
     <ClInclude Include="Direct3DDevice9.h" />
     <ClInclude Include="FreeSpaceTracker.h" />
+    <ClInclude Include="FreeTrackTracker.h" />
     <ClInclude Include="Main.h" />
     <ClInclude Include="MotionTrackerFactory.h" />
     <ClInclude Include="ProxyHelper.h" />
     <ClInclude Include="pugiconfig.hpp" />
     <ClInclude Include="pugixml.hpp" />
+    <ClInclude Include="SocketTracker.h" />
     <ClInclude Include="StereoView.h" />
     <ClInclude Include="StereoViewFactory.h" />
     <ClInclude Include="StereoViewInterleave.h" />

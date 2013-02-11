@@ -54,7 +54,9 @@ public:
 	static enum TrackerTypes
 	{
 		DISABLED = 0,
-		HILLCREST = 10
+		HILLCREST = 10,
+		FREETRACK = 20,
+		SOCKETRACK = 30
 	};
 };
 
