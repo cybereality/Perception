@@ -55,7 +55,7 @@ public:
 	{
 		DISABLED = 0,
 		HILLCREST = 10,
-		FREETRACK = 20
+		FREETRACK = 20,
 		SOCKETRACK = 30
 	};
 };
