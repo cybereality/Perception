@@ -15,34 +15,43 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
+#ifndef SOCKETTRACKER_H_INCLUDED
+#define SOCKETTRACKER_H_INCLUDED
 
-#include "MotionTrackerFactory.h"
-#include "FreeSpaceTracker.h"
-#include "FreeTrackTracker.h"
-#include "SocketTracker.h"
 
-MotionTracker* MotionTrackerFactory::Get(ProxyHelper::ProxyConfig& config)
+#include "MotionTracker.h"
+
+#include <string>
+
+class SocketTracker : public MotionTracker
 {
-	MotionTracker* newTracker = NULL;
+public:
+	SocketTracker(void);
+	~SocketTracker(void);
 
-	switch(config.tracker_mode)
-	{
-	case MotionTracker::DISABLED:
-		newTracker = new MotionTracker();
-		break;
-	case MotionTracker::HILLCREST:
-		newTracker = new FreeSpaceTracker();
-		break;
-	case MotionTracker::FREETRACK:
-		newTracker = new FreeTrackTracker();
-		break;
-	case MotionTracker::SOCKETRACK:
-		newTracker = new SocketTracker();
-		break;
-	default:
-		newTracker = new MotionTracker();
-		break;
-	}
 
-	return newTracker;
-}
+	int getOrientation(float* yaw, float* pitch, float* roll);
+	bool isAvailable();
+	void updateOrientation();
+	int init();
+
+	bool ListenOnPort(int portNum);
+
+private:
+	SOCKET ListenSocket;
+	SOCKET ClientSocket;
+
+    DWORD m_dwThreadID;
+    HANDLE m_hThread;
+
+	std::string port;															// port number to listen on
+
+
+	bool SocketTracker::CreateSockets();
+
+	bool CreateMsgThread();
+	static DWORD WINAPI MsgThread(LPVOID pvParam);
+};
+
+
+#endif
