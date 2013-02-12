@@ -1,4 +1,4 @@
-/********************************************************************
+/*******************************************************************
 Vireio Perception: Open-Source Stereoscopic 3D Driver
 Copyright (C) 2012 Andres Hernandez
 

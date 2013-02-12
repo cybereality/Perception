@@ -95,6 +95,12 @@
     <ClCompile Include="MotionTrackerFactory.cpp">
       <Filter>Tracking</Filter>
     </ClCompile>
+    <ClCompile Include="FreeTrackTracker.cpp">
+      <Filter>Tracking</Filter>
+    </ClCompile>
+    <ClCompile Include="SocketTracker.cpp">
+      <Filter>Tracking</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Exports.def">
@@ -163,6 +169,12 @@
       <Filter>XML</Filter>
     </ClInclude>
     <ClInclude Include="MotionTrackerFactory.h">
+      <Filter>Tracking</Filter>
+    </ClInclude>
+    <ClInclude Include="FreeTrackTracker.h">
+      <Filter>Tracking</Filter>
+    </ClInclude>
+    <ClInclude Include="SocketTracker.h">
       <Filter>Tracking</Filter>
     </ClInclude>
   </ItemGroup>
