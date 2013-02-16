@@ -347,7 +347,7 @@ int WINAPI wWinMain(HINSTANCE instance_handle, HINSTANCE, LPWSTR, INT) {
 	main_window.add_item2("No Tracking\t0");
 	main_window.add_item2("Hillcrest Labs\t10");
 	main_window.add_item2("FreeTrack\t20");
-	main_window.add_item2("Socket Tracker\t30");
+	main_window.add_item2("Shared Memory Tracker\t30");
 
 	int mode;
 	int mode2;
