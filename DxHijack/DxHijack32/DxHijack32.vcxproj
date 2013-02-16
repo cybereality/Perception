@@ -62,7 +62,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ModuleDefinitionFile>hijackdll.def</ModuleDefinitionFile>
-      <AdditionalDependencies>shlwapi.lib;d3d9.lib;libfreespace.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>shlwapi.lib;d3d9.lib;libfreespace.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(DXSDK_DIR)\Lib\x86;$(DX)\Lib\x86;$(FREESPACE)\lib;..\..\DxProxy\DxProxy\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <OutputFile>$(SolutionDir)$(Configuration)\Perception\bin\$(TargetName)$(TargetExt)</OutputFile>
     </Link>
@@ -101,7 +101,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <ModuleDefinitionFile>hijackdll.def</ModuleDefinitionFile>
-      <AdditionalDependencies>shlwapi.lib;d3d9.lib;libfreespace.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>shlwapi.lib;d3d9.lib;libfreespace.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(DXSDK_DIR)\Lib\x86;$(DX)\Lib\x86;$(FREESPACE)\lib;..\..\DxProxy\DxProxy\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <OutputFile>$(SolutionDir)$(Configuration)\Perception\bin\$(TargetName)$(TargetExt)</OutputFile>
     </Link>
@@ -127,7 +127,7 @@
     <ClCompile Include="..\..\DxProxy\DxProxy\MotionTrackerFactory.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\ProxyHelper.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\pugixml.cpp" />
-    <ClCompile Include="..\..\DxProxy\DxProxy\SocketTracker.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\SharedMemoryTracker.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\StereoView.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\StereoViewFactory.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\StereoViewInterleave.cpp" />
@@ -155,7 +155,7 @@
     <ClInclude Include="..\..\DxProxy\DxProxy\ProxyHelper.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\pugiconfig.hpp" />
     <ClInclude Include="..\..\DxProxy\DxProxy\pugixml.hpp" />
-    <ClInclude Include="..\..\DxProxy\DxProxy\SocketTracker.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\SharedMemoryTracker.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\StereoView.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\StereoViewFactory.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\StereoViewInterleave.h" />
