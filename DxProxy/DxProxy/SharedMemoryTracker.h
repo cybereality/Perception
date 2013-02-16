@@ -15,34 +15,44 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
+#ifndef SHAREDMEMORY_TRACKER_H_INCLUDED
+#define SHAREDMEMORY_TRACKER_H_INCLUDED
 
-#include "MotionTrackerFactory.h"
-#include "FreeSpaceTracker.h"
-#include "FreeTrackTracker.h"
-#include "SharedMemoryTracker.h"
 
-MotionTracker* MotionTrackerFactory::Get(ProxyHelper::ProxyConfig& config)
+#include "MotionTracker.h"
+
+#include <string>
+
+struct TrackData
 {
-	MotionTracker* newTracker = NULL;
+	int DataID;				// increased every time data has been sent
 
-	switch(config.tracker_mode)
-	{
-	case MotionTracker::DISABLED:
-		newTracker = new MotionTracker();
-		break;
-	case MotionTracker::HILLCREST:
-		newTracker = new FreeSpaceTracker();
-		break;
-	case MotionTracker::FREETRACK:
-		newTracker = new FreeTrackTracker();
-		break;
-	case MotionTracker::SHAREDMEMTRACK:
-		newTracker = new SharedMemoryTracker();
-		break;
-	default:
-		newTracker = new MotionTracker();
-		break;
-	}
+	float Yaw;
+	float Pitch;
+	float Roll;
 
-	return newTracker;
-}
+	float X;
+	float Y;
+	float Z;
+};
+
+class SharedMemoryTracker : public MotionTracker
+{
+public:
+	SharedMemoryTracker(void);
+	~SharedMemoryTracker(void);
+
+	int getOrientation(float* yaw, float* pitch, float* roll);
+	bool isAvailable();
+	void updateOrientation();
+	int init();
+
+private:
+	HANDLE hMapFile;
+	TrackData* pTrackBuf;
+
+	bool openSharedMemory();
+};
+
+
+#endif
