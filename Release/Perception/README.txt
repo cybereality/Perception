@@ -68,4 +68,4 @@ Unreal Tournament 3: Launch the UT3.exe from the game's directory (Binaries). Sc
 
 Skyrim: Disable shadows by finding "SkyrimPrefs.ini" in "My Documents\My Games\Skyrim" and setting the following: "fShadowDistance=0.0000 fInteriorShadowDistance=0.0000 fShadowLODStartFade=0.0000". Open the developers console and use "FOV 110".
 
-DiRT2: Some objects incorrect in first person dashboard mode.
+DiRT2: Some objects incorrect in first person dashboard mode.  Make sure to force directx 9 in "My Documents\My Games\DiRT2\hardwaresettings\hardware_settings_config.xml"
