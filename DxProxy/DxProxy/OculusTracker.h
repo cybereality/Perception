@@ -16,38 +16,38 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#include "MotionTrackerFactory.h"
-#include "FreeSpaceTracker.h"
-#include "FreeTrackTracker.h"
-#include "SharedMemoryTracker.h"
-#include "OculusTracker.h"
+#ifndef OCULUSTRACKER_H_INCLUDED
+#define OCULUSTRACKER_H_INCLUDED
 
+#define PI 3.141592654
+#define RADIANS_TO_DEGREES(rad) ((float) rad * (float) (180.0 / PI))
 
-MotionTracker* MotionTrackerFactory::Get(ProxyHelper::ProxyConfig& config)
+#include "MotionTracker.h"
+#include "..\..\LibOVR\Include\OVR.h"
+
+using namespace OVR;
+//using namespace OVR::Platform;
+//using namespace OVR::Render;
+
+class OculusTracker : public MotionTracker
 {
-	MotionTracker* newTracker = NULL;
+public:
+	OculusTracker(void);
+	virtual ~OculusTracker(void);
 
-	switch(config.tracker_mode)
-	{
-	case MotionTracker::DISABLED:
-		newTracker = new MotionTracker();
-		break;
-	case MotionTracker::HILLCREST:
-		newTracker = new FreeSpaceTracker();
-		break;
-	case MotionTracker::FREETRACK:
-		newTracker = new FreeTrackTracker();
-		break;
-	case MotionTracker::SHAREDMEMTRACK:
-		newTracker = new SharedMemoryTracker();
-		break;
-	case MotionTracker::OCULUSTRACK:
-		newTracker = new OculusTracker();
-		break;
-	default:
-		newTracker = new MotionTracker();
-		break;
-	}
+	int getOrientation(float* yaw, float* pitch, float* roll);
+	bool isAvailable();
+	int init();
 
-	return newTracker;
-}
+private:
+    Ptr<DeviceManager> pManager;
+    Ptr<HMDDevice>     pHMD;
+    Ptr<SensorDevice>  pSensor;
+
+    SensorFusion       SFusion;
+
+	Quatf hmdOrient;
+ };
+
+
+#endif
