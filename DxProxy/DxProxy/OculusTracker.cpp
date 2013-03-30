@@ -56,15 +56,15 @@ int OculusTracker::getOrientation(float* yaw, float* pitch, float* roll)
 {
 	OutputDebugString("OculusTracker getOrient\n");
 
-	if(SFusion.IsAttachedToSensor() == NULL)
+	if(SFusion.IsAttachedToSensor() == false)
 		return 1;												// error no sensor
 
 	// all orintations are in degrees
 	hmdOrient = SFusion.GetOrientation();
 	hmdOrient.GetEulerAngles<Axis_Y, Axis_X, Axis_Z>(yaw, pitch, roll);
-	*yaw = RadToDegree(*yaw);
+	*yaw = -RadToDegree(*yaw);
 	*pitch = RadToDegree(*pitch);
-	*roll = RadToDegree(*roll);
+	*roll = -RadToDegree(*roll);
 
 	return 0; 
 }
@@ -72,4 +72,32 @@ int OculusTracker::getOrientation(float* yaw, float* pitch, float* roll)
 bool OculusTracker::isAvailable()
 {
 	return SFusion.IsAttachedToSensor();
+}
+
+void OculusTracker::updateOrientation()
+{
+	OutputDebugString("OculusTracker updateOrientation\n");
+
+	if(getOrientation(&yaw, &pitch, &roll) == 0)
+	{
+		yaw = fmodf(yaw + 360.0f, 360.0f);
+		pitch = -fmodf(pitch + 360.0f, 360.0f);
+
+		deltaYaw = yaw - currentYaw;
+		deltaPitch = pitch - currentPitch;
+
+		// hack to avoid errors while translating over 360/0
+		if(fabs(deltaYaw) > 4.0f) deltaYaw = 0.0f;
+		if(fabs(deltaPitch) > 4.0f) deltaPitch = 0.0f;
+
+		mouseData.mi.dx = (long)(deltaYaw*multiplierYaw);
+		mouseData.mi.dy = (long)(deltaPitch*multiplierPitch);
+		
+		OutputDebugString("Motion Tracker SendInput\n");
+		SendInput(1, &mouseData, sizeof(INPUT));
+
+		currentYaw = yaw;
+		currentPitch = pitch;
+		currentRoll = (float)( roll * (PI/180.0) * multiplierRoll);			// convert from deg to radians then apply mutiplier
+	}
 }

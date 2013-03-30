@@ -26,8 +26,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "..\..\LibOVR\Include\OVR.h"
 
 using namespace OVR;
-//using namespace OVR::Platform;
-//using namespace OVR::Render;
 
 class OculusTracker : public MotionTracker
 {
@@ -37,6 +35,7 @@ public:
 
 	int getOrientation(float* yaw, float* pitch, float* roll);
 	bool isAvailable();
+	void updateOrientation();
 	int init();
 
 private:
