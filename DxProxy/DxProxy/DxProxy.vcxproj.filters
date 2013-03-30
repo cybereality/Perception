@@ -101,6 +101,9 @@
     <ClCompile Include="SharedMemoryTracker.cpp">
       <Filter>Tracking</Filter>
     </ClCompile>
+    <ClCompile Include="OculusTracker.cpp">
+      <Filter>Tracking</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Exports.def">
@@ -175,6 +178,9 @@
       <Filter>Tracking</Filter>
     </ClInclude>
     <ClInclude Include="SharedMemoryTracker.h">
+      <Filter>Tracking</Filter>
+    </ClInclude>
+    <ClInclude Include="OculusTracker.h">
       <Filter>Tracking</Filter>
     </ClInclude>
   </ItemGroup>
