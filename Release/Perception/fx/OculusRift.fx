@@ -41,7 +41,7 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 		tColor = tex2D(TexMap1,tc);
 	}
 	
-//	tc.x = tc.x / 2.0f;
+	tc.x = tc.x / 2.0f;
 
 	if (any(clamp(tc, ScreenCenter-float2(0.25,0.5), ScreenCenter+float2(0.25, 0.5)) - tc)){
 		return 0;
