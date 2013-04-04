@@ -87,6 +87,9 @@
     <ClCompile Include="..\..\DxProxy\DxProxy\OculusTracker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\DxProxy\DxProxy\OculusRiftView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="hijackdll.def">
@@ -164,6 +167,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\DxProxy\DxProxy\OculusTracker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\DxProxy\DxProxy\OculusRiftView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -122,6 +122,7 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MotionTracker.cpp" />
     <ClCompile Include="MotionTrackerFactory.cpp" />
+    <ClCompile Include="OculusRiftView.cpp" />
     <ClCompile Include="OculusTracker.cpp" />
     <ClCompile Include="ProxyHelper.cpp" />
     <ClCompile Include="pugixml.cpp" />
@@ -146,6 +147,7 @@
     <ClInclude Include="FreeTrackTracker.h" />
     <ClInclude Include="Main.h" />
     <ClInclude Include="MotionTrackerFactory.h" />
+    <ClInclude Include="OculusRiftView.h" />
     <ClInclude Include="OculusTracker.h" />
     <ClInclude Include="ProxyHelper.h" />
     <ClInclude Include="pugiconfig.hpp" />
@@ -239,6 +241,16 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copying pixel shader from Release to $(Configuration)</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\Release\Perception\fx\OculusRift.fx">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\Release\Perception\fx\OculusRiftCropped.fx">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx;%(Outputs)</Outputs>
     </CustomBuild>
     <None Include="Exports.def" />
   </ItemGroup>

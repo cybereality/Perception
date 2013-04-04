@@ -331,7 +331,9 @@ int WINAPI wWinMain(HINSTANCE instance_handle, HINSTANCE, LPWSTR, INT) {
 
     frame_window main_window("perception");
     main_window.add_item("Disabled\t0");
-    main_window.add_item("Oculus Rift\t25");
+    main_window.add_item("DIY Rift\t25");
+    main_window.add_item("Oculus Rift\t26");
+    main_window.add_item("Oculus Rift Cropped\t27");
 	main_window.add_item("Side by Side\t20");
 	main_window.add_item("Over Under\t30");
 	main_window.add_item("Horizontal Interleave\t40");

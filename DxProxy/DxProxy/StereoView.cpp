@@ -25,6 +25,25 @@ StereoView::StereoView(ProxyHelper::ProxyConfig& config)
 	game_type = config.game_type;
 	stereo_mode = config.stereo_mode;
 	swap_eyes = false;
+
+	// set all member pointers to NULL to prevent uninitialized objects being used
+	device = NULL;
+	backBuffer = NULL;
+	leftTexture = NULL;
+	rightTexture = NULL;
+	screenTexture = NULL;
+	leftSurface = NULL;
+	rightSurface = NULL;
+	screenSurface = NULL;
+	screenVertexBuffer = NULL;
+	lastVertexShader = NULL;
+	lastPixelShader = NULL;
+	lastTexture = NULL;
+	lastTexture1 = NULL;
+	lastVertexDeclaration = NULL;
+	lastRenderTarget0 = NULL;
+	lastRenderTarget1 = NULL;
+	viewEffect = NULL;
 }
 
 StereoView::~StereoView()
@@ -54,7 +73,7 @@ void StereoView::InitShaderEffects()
 	shaderEffect[ANAGLYPH_GREEN_MAGENTA] = "AnaglyphGreenMagenta.fx";
 	shaderEffect[ANAGLYPH_GREEN_MAGENTA_GRAY] = "AnaglyphGreenMagentaGray.fx";
 	shaderEffect[SIDE_BY_SIDE] = "SideBySide.fx";
-	shaderEffect[SIDE_BY_SIDE_RIFT] = "SideBySideRift.fx";
+	shaderEffect[DIY_RIFT] = "SideBySideRift.fx";
 	shaderEffect[OVER_UNDER] = "OverUnder.fx";
 	shaderEffect[INTERLEAVE_HORZ] = "InterleaveHorz.fx";
 	shaderEffect[INTERLEAVE_VERT] = "InterleaveVert.fx";
@@ -186,6 +205,8 @@ void StereoView::SaveState()
 	device->GetVertexShader(&lastVertexShader);
 	device->GetPixelShader(&lastPixelShader);
 
+	device->GetVertexDeclaration(&lastVertexDeclaration);
+
 	device->GetRenderTarget(0, &lastRenderTarget0);
 	device->GetRenderTarget(1, &lastRenderTarget1);
 }
@@ -201,8 +222,7 @@ void StereoView::SetState()
 	device->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
 	device->SetRenderState(D3DRS_ZENABLE, D3DZB_FALSE);
 	device->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
-
-	//device->SetRenderState(D3DRS_SRGBWRITEENABLE, 0);
+	device->SetRenderState(D3DRS_SRGBWRITEENABLE, 0);
 	
 	if(game_type == D3DProxyDevice::SOURCE_L4D)
 	{
@@ -269,17 +289,47 @@ void StereoView::RestoreState()
 	device->SetSamplerState(1, D3DSAMP_MIPFILTER, ssMip1);
 
 	device->SetTexture(0, lastTexture);
+	if(lastTexture != NULL)
+		lastTexture->Release();
+	lastTexture = NULL;
+
 	device->SetTexture(1, lastTexture1);
+	if(lastTexture1 != NULL)
+		lastTexture1->Release();
+	lastTexture1 = NULL;
 
 	device->SetVertexShader(lastVertexShader);
+	if(lastVertexShader != NULL)
+		lastVertexShader->Release();
+	lastVertexShader = NULL;
+
 	device->SetPixelShader(lastPixelShader);
+	if(lastPixelShader != NULL)
+		lastPixelShader->Release();
+	lastPixelShader = NULL;
+
+	device->SetVertexDeclaration(lastVertexDeclaration);
+	if(lastVertexDeclaration != NULL)
+		lastVertexDeclaration->Release();
+	lastVertexDeclaration = NULL;
 
 	device->SetRenderTarget(0, lastRenderTarget0);
+	if(lastRenderTarget0 != NULL)
+		lastRenderTarget0->Release();
+	lastRenderTarget0 = NULL;
+
 	device->SetRenderTarget(1, lastRenderTarget1);
+	if(lastRenderTarget1 != NULL)
+		lastRenderTarget1->Release();
+	lastRenderTarget1 = NULL;
 }
 
 void StereoView::UpdateEye(int eye)
 {
+	// if not initilized assume a reset has occured and device is still valid
+	if(!initialized)
+		Init(device);
+
 	IDirect3DSurface9* currentSurface = NULL;
 
 	if(eye == LEFT_EYE)
@@ -301,6 +351,10 @@ void StereoView::SwapEyes(bool doSwap)
 
 void StereoView::Draw()
 {
+	// if not initilized assume a reset has occured and device is still valid
+	if(!initialized)
+		Init(device);
+
 	SaveState();
 	SetState();
 
@@ -350,4 +404,73 @@ void StereoView::SaveScreen()
 	OutputDebugString("\n");
 
 	D3DXSaveSurfaceToFile(fileName, D3DXIFF_BMP, screenSurface, NULL, NULL);
+}
+
+void StereoView::Reset()
+{
+	if(backBuffer)
+		backBuffer->Release();
+	backBuffer = NULL;
+
+	if(leftTexture)
+		leftTexture->Release();
+	leftTexture = NULL;
+
+	if(rightTexture)
+		rightTexture->Release();
+	rightTexture = NULL;
+
+	if(screenTexture)
+		screenTexture->Release();
+	screenTexture = NULL;
+
+	if(leftSurface)
+		leftSurface->Release();
+	leftSurface = NULL;
+
+	if(rightSurface)
+		rightSurface->Release();
+	rightSurface = NULL;
+
+	if(screenSurface)
+		screenSurface->Release();
+	screenSurface = NULL;
+
+	if(backBuffer)
+		backBuffer->Release();
+	backBuffer = NULL;
+
+	if(lastVertexShader)
+		lastVertexShader->Release();
+	lastVertexShader = NULL;
+
+	if(lastPixelShader)
+		lastPixelShader->Release();
+	lastPixelShader = NULL;
+
+	if(lastTexture)
+		lastTexture->Release();
+	lastTexture = NULL;
+
+	if(lastTexture1)
+		lastTexture1->Release();
+	lastTexture1 = NULL;
+
+	if(lastVertexDeclaration)
+		lastVertexDeclaration->Release();
+	lastVertexDeclaration = NULL;
+
+	if(lastRenderTarget0)
+		lastRenderTarget0->Release();
+	lastRenderTarget0 = NULL;
+
+	if(lastRenderTarget1)
+		lastRenderTarget1->Release();
+	lastRenderTarget1 = NULL;
+
+	if(viewEffect)
+		viewEffect->Release();
+	viewEffect = NULL;
+
+	initialized = false;
 }

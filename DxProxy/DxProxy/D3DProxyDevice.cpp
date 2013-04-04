@@ -46,9 +46,19 @@ void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 	SetupText();
 }
 
+HRESULT WINAPI D3DProxyDevice::Reset(D3DPRESENT_PARAMETERS* pPresentationParameters)
+{
+	if(stereoView != NULL)
+		stereoView->Reset();
+
+	return BaseDirect3DDevice9::Reset(pPresentationParameters);
+}
+
 void D3DProxyDevice::SetupOptions(ProxyHelper::ProxyConfig& cfg)
 {
 	separation = cfg.separation;
+	if(stereoView->stereo_mode == stereoView->OCULUS_RIFT_CROPPED)
+		separation = separation /2.0f;
 	convergence = cfg.convergence;
 	game_type = cfg.game_type;
 	aspect_multiplier = cfg.aspect_multiplier;
@@ -78,6 +88,7 @@ void D3DProxyDevice::SetupOptions(ProxyHelper::ProxyConfig& cfg)
 
 void D3DProxyDevice::SetupMatrices(ProxyHelper::ProxyConfig& cfg)
 {
+//	aspectRatio = (float)stereoView->viewport.Width/(float)stereoView->viewport.Height;
 	aspectRatio = (float)stereoView->viewport.Width/(float)stereoView->viewport.Height;
 	D3DXMatrixPerspectiveFovLH(&matProjection, D3DXToRadian(90), aspectRatio, 1.0f, 100.0f);
 	D3DXMatrixInverse(&matProjectionInv, 0, &matProjection);
@@ -86,7 +97,7 @@ void D3DProxyDevice::SetupMatrices(ProxyHelper::ProxyConfig& cfg)
 
 void D3DProxyDevice::SetupText()
 {
-	D3DXCreateFont( m_pDevice, 22, 0, FW_BOLD, 4, FALSE, DEFAULT_CHARSET, OUT_TT_ONLY_PRECIS, ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_DONTCARE, "Arial", &hudFont );
+	//D3DXCreateFont( m_pDevice, 22, 0, FW_BOLD, 4, FALSE, DEFAULT_CHARSET, OUT_TT_ONLY_PRECIS, ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_DONTCARE, "Arial", &hudFont );
 }
 
 void D3DProxyDevice::HandleControls()
@@ -102,11 +113,20 @@ void D3DProxyDevice::HandleControls()
 	static bool doSaveNext = false;
 
 	if(KEY_DOWN(VK_F1))
-	{
-		if(stereoView->initialized)
+	{// change distortion scale for rift warp.
+		if(KEY_DOWN(VK_SHIFT))
 		{
-			stereoView->SaveScreen();
+			this->stereoView->DistortionScale  -= keySpeed*10;
+		} else 
+		{
+			this->stereoView->DistortionScale  += keySpeed*10;
 		}
+		saveWaitCount = 500;
+		doSaveNext = true;
+//		if(stereoView->initialized)
+//		{
+//			stereoView->SaveScreen();
+//		}
 	}
 
 	if(KEY_DOWN(VK_F2))

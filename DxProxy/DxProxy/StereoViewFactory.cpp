@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "StereoViewFactory.h"
 #include "StereoViewInterleave.h"
+#include "OculusRiftView.h"
 
 StereoView* StereoViewFactory::Get(ProxyHelper::ProxyConfig& config)
 {
@@ -30,9 +31,13 @@ StereoView* StereoViewFactory::Get(ProxyHelper::ProxyConfig& config)
 	case StereoView::ANAGLYPH_GREEN_MAGENTA:
 	case StereoView::ANAGLYPH_GREEN_MAGENTA_GRAY:
 	case StereoView::SIDE_BY_SIDE:
-	case StereoView::SIDE_BY_SIDE_RIFT:
+	case StereoView::DIY_RIFT:
 	case StereoView::OVER_UNDER:
 		return new StereoView(config);
+		break;
+	case StereoView::OCULUS_RIFT:
+	case StereoView::OCULUS_RIFT_CROPPED:
+		return new OculusRiftView(config);
 		break;
 	case StereoView::INTERLEAVE_HORZ:
 	case StereoView::INTERLEAVE_VERT:
