@@ -37,6 +37,7 @@ public:
 	virtual ~D3DProxyDevice();
 
 	virtual void Init(ProxyHelper::ProxyConfig& cfg);
+	virtual HRESULT WINAPI Reset(D3DPRESENT_PARAMETERS* pPresentationParameters);
 	void SetupOptions(ProxyHelper::ProxyConfig& cfg);
 	void SetupMatrices(ProxyHelper::ProxyConfig& cfg);
 	void SetupText();
@@ -64,7 +65,7 @@ public:
 	bool saveDebugFile;
 	std::ofstream debugFile;
 	StereoView* stereoView;
-	ID3DXFont *hudFont;
+	//ID3DXFont *hudFont;
 
 	MotionTracker* tracker;
 	bool trackerInitialized;

@@ -39,7 +39,9 @@ public:
 		ANAGLYPH_GREEN_MAGENTA = 10,
 		ANAGLYPH_GREEN_MAGENTA_GRAY = 11,
 		SIDE_BY_SIDE = 20,
-		SIDE_BY_SIDE_RIFT = 25,
+		DIY_RIFT = 25,
+		OCULUS_RIFT = 26,
+		OCULUS_RIFT_CROPPED = 27,
 		OVER_UNDER = 30,
 		INTERLEAVE_HORZ = 40,
 		INTERLEAVE_VERT = 50,
@@ -65,6 +67,7 @@ public:
 	virtual void UpdateEye(int eye);
 	virtual void SaveScreen();
 	virtual void SwapEyes(bool doSwap);
+	virtual void Reset();
 
 	IDirect3DDevice9* device;
 
@@ -109,6 +112,7 @@ public:
 	IDirect3DPixelShader9* lastPixelShader;
 	IDirect3DBaseTexture9* lastTexture;
 	IDirect3DBaseTexture9* lastTexture1;
+	IDirect3DVertexDeclaration9* lastVertexDeclaration;
 
 	IDirect3DSurface9* lastRenderTarget0;
 	IDirect3DSurface9* lastRenderTarget1;
@@ -121,6 +125,8 @@ public:
 	bool swap_eyes;
 
 	std::map<int, std::string> shaderEffect;
+
+	float DistortionScale;	// used by OculusRiftView and D3DProxyDevice
 };
 
 const DWORD D3DFVF_TEXVERTEX = D3DFVF_XYZRHW | D3DFVF_TEX1;

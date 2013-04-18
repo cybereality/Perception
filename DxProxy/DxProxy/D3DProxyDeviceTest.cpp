@@ -64,7 +64,7 @@ HRESULT WINAPI D3DProxyDeviceTest::EndScene()
 	sprintf_s(vcString, 512, "mat index: %d\n",
 		matrixIndex
 	);
-	hudFont->DrawText(NULL, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));
+	//hudFont->DrawText(NULL, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));
 
 	return D3DProxyDevice::EndScene();
 }

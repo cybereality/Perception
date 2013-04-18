@@ -328,18 +328,11 @@ int WINAPI wWinMain(HINSTANCE instance_handle, HINSTANCE, LPWSTR, INT) {
 	InitModes();
 	InstallHook();
 
-	CreateMainMenu();
-
-	RemoveHook();
-
-	return 0;   
-}
-
-void CreateMainMenu()
-{
-	frame_window main_window("perception");
-	main_window.add_item("Disabled\t0");
-	main_window.add_item("Oculus Rift\t25");
+    frame_window main_window("perception");
+    main_window.add_item("Disabled\t0");
+    main_window.add_item("DIY Rift\t25");
+    main_window.add_item("Oculus Rift\t26");
+    main_window.add_item("Oculus Rift Cropped\t27");
 	main_window.add_item("Side by Side\t20");
 	main_window.add_item("Over Under\t30");
 	main_window.add_item("Horizontal Interleave\t40");
@@ -356,6 +349,7 @@ void CreateMainMenu()
 	main_window.add_item2("Hillcrest Labs\t10");
 	main_window.add_item2("FreeTrack\t20");
 	main_window.add_item2("Shared Memory Tracker\t30");
+	main_window.add_item2("OculusTrack\t40");
 
 	int mode;
 	int mode2;
@@ -366,6 +360,10 @@ void CreateMainMenu()
 	SendMessage(main_window.combobox2->combobox_handle, CB_SETCURSEL, trackerModes[mode2], 0);
 
 	main_window.run();
+
+	RemoveHook();
+
+	return 0;   
 }
 
 bool InitConfig(void)

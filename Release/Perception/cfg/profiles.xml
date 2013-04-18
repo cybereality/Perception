@@ -10,4 +10,5 @@
 	<profile game_name="DiRT 2" game_exe="dirt2.exe" game_type="301" separation="0.00014" convergence="0" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="AaAaAA!!!" game_exe="main.exe" game_type="10" separation="0.00282" convergence="0" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Skyrim" game_exe="SkyrimLauncher.exe" game_type="601" separation="0.00357999" convergence="0" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="test" game_exe="test.exe" game_type="501" separation="2.00001e-005" convergence="0" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 </profiles>

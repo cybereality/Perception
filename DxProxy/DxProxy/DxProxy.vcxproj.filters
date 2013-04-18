@@ -101,6 +101,12 @@
     <ClCompile Include="SharedMemoryTracker.cpp">
       <Filter>Tracking</Filter>
     </ClCompile>
+    <ClCompile Include="OculusTracker.cpp">
+      <Filter>Tracking</Filter>
+    </ClCompile>
+    <ClCompile Include="OculusRiftView.cpp">
+      <Filter>Stereo</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Exports.def">
@@ -177,6 +183,12 @@
     <ClInclude Include="SharedMemoryTracker.h">
       <Filter>Tracking</Filter>
     </ClInclude>
+    <ClInclude Include="OculusTracker.h">
+      <Filter>Tracking</Filter>
+    </ClInclude>
+    <ClInclude Include="OculusRiftView.h">
+      <Filter>Stereo</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\Release\Perception\cfg\profiles.xml">
@@ -219,6 +231,12 @@
       <Filter>fx</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\Release\Perception\fx\AnaglyphGreenMagenta.fx">
+      <Filter>fx</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\Release\Perception\fx\OculusRift.fx">
+      <Filter>fx</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\Release\Perception\fx\OculusRiftCropped.fx">
       <Filter>fx</Filter>
     </CustomBuild>
   </ItemGroup>
