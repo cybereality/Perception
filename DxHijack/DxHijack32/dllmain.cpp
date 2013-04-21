@@ -3,16 +3,16 @@ Vireio Perception: Open-Source Stereoscopic 3D Driver
 Copyright (C) 2012 Andres Hernandez
 
 This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
+it under the terms of the GNU Lesser General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU Lesser General Public License for more details.
 
-You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
@@ -40,14 +40,8 @@ LPCSTR dllDir = NULL;
 
 HINSTANCE hDLL;
 
-typedef HMODULE (WINAPI *LoadLibrary_Type)(LPCSTR lpLibFileName);    
-typedef HMODULE (WINAPI *LoadLibraryW_Type)(LPCWSTR lpLibFileName);  
-typedef HMODULE (WINAPI *LoadLibraryEx_Type)(LPCTSTR lpFileName, HANDLE hFile, DWORD dwFlags);     
 typedef HMODULE (WINAPI *LoadLibraryExW_Type)(LPCWSTR lpFileName, HANDLE hFile, DWORD dwFlags);   
 
-HMODULE WINAPI MyLoadLibraryA(LPCSTR lpLibFileName);    
-HMODULE WINAPI MyLoadLibraryW(LPCWSTR lpLibFileName);    
-HMODULE WINAPI MyLoadLibraryExA(LPCTSTR lpFileName, HANDLE hFile, DWORD dwFlags);   
 HMODULE WINAPI MyLoadLibraryExW(LPCWSTR lpFileName, HANDLE hFile, DWORD dwFlags);   
 
 typedef IDirect3D9* (WINAPI *Direct3DCreate9_t)(UINT sdk_version);
@@ -59,9 +53,6 @@ void SaveExeName(char*);
 // Hook structure.
 enum
 {
-    KERNEL32_LoadLibraryA = 0,   
-    KERNEL32_LoadLibraryW = 1,   
-    KERNEL32_LoadLibraryExA = 2,   
     KERNEL32_LoadLibraryExW = 3
 };
 
@@ -75,9 +66,6 @@ SDLLHook KernelHook =
     "KERNEL32.DLL",
     false, NULL,		// Default hook disabled, NULL function pointer.
     {
-		{ "LoadLibraryA", MyLoadLibraryA },    
-        { "LoadLibraryW", MyLoadLibraryW },   
-        { "LoadLibraryExA", MyLoadLibraryExA },    
         { "LoadLibraryExW", MyLoadLibraryExW },   
         { NULL, NULL }
     }
@@ -93,96 +81,6 @@ SDLLHook D3DHook =
     }
 };
   
-HMODULE WINAPI MyLoadLibraryA(LPCSTR lpLibFileName)    
-{
-	OutputDebugString("LoadLibraryA ENTERED!\n");
-
-    // Get the old function   
-    LoadLibrary_Type OldFn = (LoadLibrary_Type)KernelHook.Functions[KERNEL32_LoadLibraryA].OrigFn;    
-   
-    // A Place to store the module, that is returned    
-    HMODULE retval;    
-   
-    OutputDebugString("LoadLibraryA( lpLibFileName ");    
-    OutputDebugString(lpLibFileName);    
-    OutputDebugString(" )\n");    
-
-	if(lstrcmpi(lpLibFileName, realDll) == 0)
-	{
-		OutputDebugString("Inject Proxy DLL \n");    
-		lpLibFileName = proxyDll;
-		OutputDebugString(lpLibFileName); 
-		OutputDebugString("\n");
-	} 
-   
-    // Time to call the original function    
-    retval = OldFn(lpLibFileName);    
-   
-    //HookAPICalls(&KernelHook, retval);    
-       
-    return retval;   
-}    
-   
-HMODULE WINAPI MyLoadLibraryW(LPCWSTR lpLibFileName)    
-{    
-	OutputDebugString("LoadLibraryW ENTERED!\n");
-
-    // Get the old function    
-    LoadLibraryW_Type OldFn = (LoadLibraryW_Type)KernelHook.Functions[KERNEL32_LoadLibraryW].OrigFn;    
-   
-    // A Place to store the module, that is returned    
-    HMODULE retval;    
-   
-    OutputDebugString("LoadLibraryW( lpLibFileName ");    
-    OutputDebugStringW(lpLibFileName);    
-    OutputDebugString(" )\n");    
-
-	if(lstrcmpiW(lpLibFileName, realDllW) == 0)
-	{
-		OutputDebugString("Inject Proxy DLL ");    
-		lpLibFileName = proxyDllW;
-		OutputDebugStringW(lpLibFileName); 
-		OutputDebugString("\n");
-	} 
-   
-    // Time to call the original function    
-    retval = OldFn(lpLibFileName);    
-   
-    //HookAPICalls(&KernelHook, retval);    
-       
-    return retval;   
-}    
-   
-HMODULE WINAPI MyLoadLibraryExA(LPCTSTR lpFileName, HANDLE hFile, DWORD dwFlags)   
-{   
-	OutputDebugString("LoadLibraryExA ENTERED!\n");
-
-    // Get the old function    
-    LoadLibraryEx_Type OldFn = (LoadLibraryEx_Type)KernelHook.Functions[KERNEL32_LoadLibraryExA].OrigFn;    
-   
-    // A Place to store the module, that is returned    
-    HMODULE retval;    
-   
-    OutputDebugString("LoadLibraryExA( lpLibFileName ");    
-    OutputDebugString(lpFileName);    
-    OutputDebugString(" )\n");    
-
-	if(lstrcmpi(lpFileName, realDll) == 0)
-	{
-		OutputDebugString("Inject Proxy DLL ");    
-		lpFileName = proxyDll;
-		OutputDebugString(lpFileName); 
-		OutputDebugString("\n");
-	} 
-   
-    // Time to call the original function    
-    retval = OldFn(lpFileName, hFile, dwFlags);    
-   
-    //HookAPICalls(&KernelHook, retval);    
-       
-    return retval;   
-}   
-   
 HMODULE WINAPI MyLoadLibraryExW(LPCWSTR lpFileName, HANDLE hFile, DWORD dwFlags)   
 {   
 	OutputDebugString("LoadLibraryExW ENTERED!\n");
