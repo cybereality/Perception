@@ -1,14 +1,20 @@
 <?xml version="1.0"?>
 <profiles>
-	<profile game_name="Left 4 Dead" game_exe="left4dead.exe" game_type="101" separation="0.00054" convergence="0" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
-	<profile game_name="Left 4 Dead 2" game_exe="left4dead2.exe" game_type="101" separation="0.00032" convergence="-0.025" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
-	<profile game_name="Half Life 2" game_exe="hl2.exe" game_type="101" separation="0.00024" convergence="0" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
-	<profile game_name="Portal 2" game_exe="portal2.exe" game_type="101" separation="0.00036" convergence="0" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
-	<profile game_name="Dear Esther" game_exe="dearesther.exe" game_type="101" separation="0.00048" convergence="0" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
-	<profile game_name="Mirrors Edge" game_exe="MirrorsEdge.exe" game_type="201" separation="0.00028" convergence="0" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
-	<profile game_name="Unreal Tournament 3" game_exe="UT3.exe" game_type="202" separation="0.00018" convergence="0" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
-	<profile game_name="DiRT 2" game_exe="dirt2.exe" game_type="301" separation="0.00014" convergence="0" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
-	<profile game_name="AaAaAA!!!" game_exe="main.exe" game_type="10" separation="0.00282" convergence="0" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
-	<profile game_name="Skyrim" game_exe="SkyrimLauncher.exe" game_type="601" separation="0.00357999" convergence="0" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
-	<profile game_name="test" game_exe="test.exe" game_type="501" separation="2.00001e-005" convergence="0" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+  <profile game_name="Antichamber" game_exe="UDK.exe" game_type="200" separation="0.00357999" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+  <profile game_name="Dishonored" game_exe="Dishonored.exe" game_type="200" separation="0.00357999" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="Left 4 Dead" game_exe="left4dead.exe" game_type="101" separation="0.00446002" convergence="25.3987" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="Left 4 Dead 2" game_exe="left4dead2.exe" game_type="101" separation="0.00652004" convergence="13.6903" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="Half Life 2" game_exe="hl2.exe" game_type="101" separation="0.0156001" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="Portal 2" game_exe="portal2.exe" game_type="101" separation="0.00036" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="Dear Esther" game_exe="dearesther.exe" game_type="101" separation="0.00048" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="Mirrors Edge" game_exe="MirrorsEdge.exe" game_type="201" separation="0.00028" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="Unreal Tournament 3" game_exe="UT3.exe" game_type="202" separation="0.00018" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="DiRT 2" game_exe="dirt2.exe" game_type="301" separation="0.00014" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="AaAaAA!!!" game_exe="main.exe" game_type="10" separation="0.00282" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="Skyrim" game_exe="SkyrimLauncher.exe" game_type="601" separation="0.00357999" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="Skyrim(SKSE)" game_exe="skse_loader.exe" game_type="601" separation="0.00357999" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="Skyrim(SKSE)" game_exe="TESV.exe" game_type="601" separation="0.00513603" convergence="30.8828" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="Skyrim(SKSE)" game_exe="skse_1_9_32.dll" game_type="601" separation="0.00357999" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="Skyrim(SKSE)" game_exe="skse_steam_loader.dll" game_type="601" separation="0.00357999" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="test" game_exe="test.exe" game_type="501" separation="0.0211829" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 </profiles>

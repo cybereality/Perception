@@ -3,16 +3,16 @@ Vireio Perception: Open-Source Stereoscopic 3D Driver
 Copyright (C) 2012 Andres Hernandez
 
 This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
+it under the terms of the GNU Lesser General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU Lesser General Public License for more details.
 
-You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
@@ -24,7 +24,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 OculusRiftView::OculusRiftView(ProxyHelper::ProxyConfig& config):StereoView(config)
 {
 	OutputDebugString("Created OculusRiftView\n");
+
 	DistortionScale = 1.70152f;
+
+	float DistortionXCenterOffset = 0.145299f;
+	float
+		VPw = 640,
+		VPh = 800;
+	float
+		x = 0.0f,
+		y = 0.0f,
+		w = 0.5f,
+		h = 1.0f;
+
+	LensCenter[0] = x + (w + DistortionXCenterOffset * 0.5f)*0.5f;			//	0.28632475
+	LensCenter[1] = y + h*0.5f;
+//	LensShift[0]  = LensCenter[0];
+//	LensShift[1]  = LensCenter[1];
+	LensShift[0]  = 0;
+	LensShift[1]  = 0;
 }
 
 OculusRiftView::~OculusRiftView()
@@ -41,7 +59,6 @@ void OculusRiftView::Init(IDirect3DDevice9* dev)
 
 void OculusRiftView::InitShaderEffects()
 {
-//	MessageBox(NULL,"OculusRiftView","",MB_OK);
 	shaderEffect[OCULUS_RIFT] = "OculusRift.fx";
 	shaderEffect[OCULUS_RIFT_CROPPED] = "OculusRiftCropped.fx";
 
@@ -99,6 +116,10 @@ void OculusRiftView::UpdateEye(int eye)
 
 void OculusRiftView::Draw()
 {
+	// if not initilized assume a reset has occured and device is still valid
+	if(!initialized)
+		Init(device);
+
 	SaveState();
 	SetState();
 
@@ -124,6 +145,7 @@ void OculusRiftView::Draw()
 
 /////  difference from StereoView::
 	viewEffect->SetFloatArray("LensCenter", LensCenter,2);
+	viewEffect->SetFloatArray("LensShift", LensShift,2);
 	viewEffect->SetFloatArray("ScreenCenter", ScreenCenter,2);
 	viewEffect->SetFloatArray("Scale", Scale,2);
 	viewEffect->SetFloatArray("ScaleIn", ScaleIn,2);

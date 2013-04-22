@@ -25,6 +25,7 @@ StereoView::StereoView(ProxyHelper::ProxyConfig& config)
 	game_type = config.game_type;
 	stereo_mode = config.stereo_mode;
 	swap_eyes = false;
+	stereoEnabled = true;
 
 	// set all member pointers to NULL to prevent uninitialized objects being used
 	device = NULL;
@@ -222,7 +223,7 @@ void StereoView::SetState()
 	device->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
 	device->SetRenderState(D3DRS_ZENABLE, D3DZB_FALSE);
 	device->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
-	device->SetRenderState(D3DRS_SRGBWRITEENABLE, 0);
+	//device->SetRenderState(D3DRS_SRGBWRITEENABLE, 0);  // will cause visual errors in HL2
 	
 	if(game_type == D3DProxyDevice::SOURCE_L4D)
 	{

@@ -124,6 +124,17 @@ public:
 	int stereo_mode;
 	bool swap_eyes;
 
+	int stereoEnabled;
+
+	/// for OculusRiftView adjustments in D3DProxyDevice
+	float LensCenter[2];
+	float LensShift[2];
+	float ScreenCenter[2];
+	float Scale[2];
+	float ScaleIn[2];
+	float HmdWarpParam[4];
+	///
+
 	std::map<int, std::string> shaderEffect;
 
 	float DistortionScale;	// used by OculusRiftView and D3DProxyDevice
