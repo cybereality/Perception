@@ -107,6 +107,9 @@
     <ClCompile Include="OculusRiftView.cpp">
       <Filter>Stereo</Filter>
     </ClCompile>
+    <ClCompile Include="D3DProxyDeviceSimultaneous.cpp">
+      <Filter>Implementation</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Exports.def">
@@ -188,6 +191,9 @@
     </ClInclude>
     <ClInclude Include="OculusRiftView.h">
       <Filter>Stereo</Filter>
+    </ClInclude>
+    <ClInclude Include="D3DProxyDeviceSimultaneous.h">
+      <Filter>Implementation</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
