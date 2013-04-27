@@ -34,6 +34,15 @@ void D3DProxyDeviceSimultaneous::Init(ProxyHelper::ProxyConfig& cfg)
 
 HRESULT WINAPI D3DProxyDeviceSimultaneous::BeginScene()
 {
+	// Notes:
+	// Save currect state here and reapply before drawing the second eye. (state changes may occur before begin and during the scene so we need to make sure we have the correct initial state)
+	// Move camera to first eye position - if we take the default position to be the center of the two eyes then offset each eye to either side we maintain the "correct" center
+	// (could move eyes forward as well to provide very basic head model for pitch and yaw)
+	// Have a look at how Viewports and Surfaces are used currently in StereoView
+
+
+
+
 	HandleControls();
 //	HandleTracking();
 	ComputeViewTranslation();
@@ -43,6 +52,11 @@ HRESULT WINAPI D3DProxyDeviceSimultaneous::BeginScene()
 
 HRESULT WINAPI D3DProxyDeviceSimultaneous::EndScene()
 {
+	// Notes:
+	// End scene, load saved initial state, change render targets/viewports/whatever to other eye, move camera to position of 2nd eye.
+
+
+
 	// delay to avoid crashing on start
 	static int initDelay = 120;
 	initDelay--;
