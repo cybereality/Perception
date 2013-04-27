@@ -417,22 +417,26 @@ bool InitConfig(void)
 bool InitModes()
 {
 	stereoModes[0] = 0;
-	stereoModes[1] = 7;
-	stereoModes[2] = 8;
-	stereoModes[5] = 9;
-	stereoModes[6] = 10;
-	stereoModes[10] = 11;
-	stereoModes[11] = 12;
-	stereoModes[20] = 2;
+	stereoModes[1] = 9;
+	stereoModes[2] = 10;
+	stereoModes[5] = 11;
+	stereoModes[6] = 12;
+	stereoModes[10] = 13;
+	stereoModes[11] = 14;
+	stereoModes[20] = 4;
 	stereoModes[25] = 1;
-	stereoModes[30] = 3;
-	stereoModes[40] = 4;
-	stereoModes[50] = 5;
-	stereoModes[60] = 6;
+	stereoModes[26] = 2;
+	stereoModes[27] = 3;
+	stereoModes[30] = 5;
+	stereoModes[40] = 6;
+	stereoModes[50] = 7;
+	stereoModes[60] = 8;
 
 	trackerModes[0] = 0;
 	trackerModes[10] = 1;
 	trackerModes[20] = 2;
+	trackerModes[30] = 3;
+	trackerModes[40] = 4;
 
 	return true;
 }

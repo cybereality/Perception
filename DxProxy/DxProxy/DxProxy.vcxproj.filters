@@ -239,5 +239,8 @@
     <CustomBuild Include="..\..\Release\Perception\fx\OculusRiftCropped.fx">
       <Filter>fx</Filter>
     </CustomBuild>
+    <CustomBuild Include="..\..\Release\Perception\cfg\users.xml">
+      <Filter>cfg</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>

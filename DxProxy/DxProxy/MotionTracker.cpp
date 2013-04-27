@@ -76,14 +76,17 @@ void MotionTracker::updateOrientation()
 			yaw = fmodf(RADIANS_TO_DEGREES(yaw) + 360.0f, 360.0f)*multiplierYaw;
 			pitch = -fmodf(RADIANS_TO_DEGREES(pitch) + 360.0f, 360.0f)*multiplierPitch;
 
-			deltaYaw = yaw - currentYaw;
-			deltaPitch = pitch - currentPitch;
+			deltaYaw += yaw - currentYaw;
+			deltaPitch += pitch - currentPitch;
 
 			if(fabs(deltaYaw) > 100.0f) deltaYaw = 0.0f;
 			if(fabs(deltaPitch) > 100.0f) deltaPitch = 0.0f;
 			
 			mouseData.mi.dx = (long)(deltaYaw);
 			mouseData.mi.dy = (long)(deltaPitch);
+			// Keep fractional difference in the delta so it's added to the next update.
+			deltaYaw -= (float)mouseData.mi.dx;
+			deltaPitch -= (float)mouseData.mi.dy;
 		
 			//OutputDebugString("Motion Tracker SendInput\n");
 			SendInput(1, &mouseData, sizeof(INPUT));

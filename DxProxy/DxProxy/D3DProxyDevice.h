@@ -39,15 +39,35 @@ public:
 	virtual void Init(ProxyHelper::ProxyConfig& cfg);
 	virtual HRESULT WINAPI Reset(D3DPRESENT_PARAMETERS* pPresentationParameters);
 	void SetupOptions(ProxyHelper::ProxyConfig& cfg);
-	void SetupMatrices(ProxyHelper::ProxyConfig& cfg);
+	void SetupMatrices();
+	void ComputeViewTranslation();
 	void SetupText();
 	void HandleControls(void);
 	void HandleTracking(void);
 	bool validRegister(UINT reg);
+	virtual HRESULT WINAPI EndScene();
 
 	D3DXMATRIX matProjection;
 	D3DXMATRIX matProjectionInv;
+	D3DXMATRIX matViewTranslation;
+
 	float* currentMatrix;
+
+	// view translation settings
+	int yaw_mode;			// 0 disabled, 1 enabled
+	int pitch_mode;			// 0 disabled, 1 enabled
+	int roll_mode;			// 0 disabled, 1 enabled
+	int translation_mode;	// for head translation
+
+	// Projection Matrix variables
+	float n;	//Minimum z-value of the view volume
+	float f;	//Maximum z-value of the view volume
+	float l;	//Minimum x-value of the view volume
+	float r;	//Maximum x-value of the view volume
+	float t;	//Minimum y-value of the view volume
+	float b;	//Maximum y-value of the view volume
+
+	bool trackingOn;
 
 	int eyeShutter;
 	int game_type;
@@ -65,10 +85,17 @@ public:
 	bool saveDebugFile;
 	std::ofstream debugFile;
 	StereoView* stereoView;
-	//ID3DXFont *hudFont;
+	ID3DXFont *hudFont;
+
+	time_t lastInputTime;
 
 	MotionTracker* tracker;
 	bool trackerInitialized;
+	bool *m_keys;
+	int SHOCT_mode;
+	float centerlineR;
+	float centerlineL;
+
 
 	static enum ProxyTypes
 	{

@@ -30,6 +30,8 @@ D3DProxyDeviceMono::~D3DProxyDeviceMono()
 HRESULT WINAPI D3DProxyDeviceMono::BeginScene()
 {
 	HandleControls();
+//	HandleTracking();
+	ComputeViewTranslation();
 
 	return D3DProxyDevice::BeginScene();
 }
@@ -43,6 +45,7 @@ HRESULT WINAPI D3DProxyDeviceMono::EndScene()
 	if(!stereoView->initialized && initDelay < 0)
 	{
 		stereoView->Init(m_pDevice);
+		SetupMatrices();
 	}
 
 	return D3DProxyDevice::EndScene();
@@ -50,7 +53,7 @@ HRESULT WINAPI D3DProxyDeviceMono::EndScene()
 
 HRESULT WINAPI D3DProxyDeviceMono::Present(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion)
 {
-	if(stereoView->initialized)
+	if(stereoView->initialized && stereoView->stereoEnabled)
 	{
 		stereoView->UpdateEye(StereoView::LEFT_EYE);
 		stereoView->UpdateEye(StereoView::RIGHT_EYE);
