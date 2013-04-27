@@ -28,14 +28,14 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 	if(newPos.x < 0.5f) {
 		tc = HmdWarp(newPos);
 
-		tc.x = tc.x  + 0.25f - (LensCenter.x -0.25f);
+		tc.x = tc.x  + 0.25f - (LensCenter.x+LensShift.x -0.25f);  //offset for ipd
 
 		tColor = tex2D(TexMap0,tc);
 	} else {
 		newPos.x = (1.0f - newPos.x);	// mirror
 		tc = HmdWarp(newPos);
 
-		tc.x = tc.x  + 0.25f - (LensCenter.x -0.25f);
+		tc.x = tc.x  + 0.25f - (LensCenter.x+LensShift.x -0.25f);  //offset for ipd
 
 		tc.x = 1.0f -tc.x;		// unmirror
 		tColor = tex2D(TexMap1,tc);

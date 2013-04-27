@@ -30,6 +30,7 @@ void D3DProxyDeviceEgo::Init(ProxyHelper::ProxyConfig& cfg)
 {
 	OutputDebugString("D3D ProxyDev Ego Init\n");
 	D3DProxyDevice::Init(cfg);
+	roll_mode = 0;
 	matrixIndex = getMatrixIndex();
 }
 
@@ -37,6 +38,7 @@ HRESULT WINAPI D3DProxyDeviceEgo::BeginScene()
 {
 	HandleControls();
 	HandleTracking();
+	ComputeViewTranslation();
 
 	if(saveDebugFile)
 	{
@@ -55,6 +57,7 @@ HRESULT WINAPI D3DProxyDeviceEgo::EndScene()
 	if(!stereoView->initialized && initDelay < 0)
 	{
 		stereoView->Init(m_pDevice);
+		SetupMatrices();
 	}
 
 	return D3DProxyDevice::EndScene();
@@ -62,7 +65,7 @@ HRESULT WINAPI D3DProxyDeviceEgo::EndScene()
 
 HRESULT WINAPI D3DProxyDeviceEgo::Present(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion)
 {
-	if(stereoView->initialized)
+	if(stereoView->initialized && stereoView->stereoEnabled)
 	{
 		if(eyeShutter > 0)
 		{
@@ -94,20 +97,8 @@ HRESULT WINAPI D3DProxyDeviceEgo::SetVertexShaderConstantF(UINT StartRegister,CO
 
 		D3DXMATRIX sourceMatrix(currentMatrix);
 
-		D3DXMATRIX transMatrix;
-		D3DXMatrixIdentity(&transMatrix);
-		D3DXMATRIX worldViewMatrix;
-		D3DXMATRIX worldViewTransMatrix;
-
-		D3DXMatrixMultiply(&worldViewMatrix, &sourceMatrix, &matProjectionInv);
-
-		float spacing = 0.5f;
-		D3DXMatrixPerspectiveOffCenterLH(&matProjection, convergence*eyeShutter-spacing, convergence*eyeShutter+spacing, -spacing, spacing*1.0f, 1.0f, 100.0f);
-		D3DXMatrixMultiply(&sourceMatrix, &worldViewMatrix, &matProjection);
-	
+		sourceMatrix = sourceMatrix * matViewTranslation;
 		currentMatrix = (float*)sourceMatrix;
-
-		currentMatrix[0] += separation*eyeShutter+offset;
 
 		/*
 		char buf[32];

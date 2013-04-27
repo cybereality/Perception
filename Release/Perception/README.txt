@@ -13,6 +13,30 @@ SHIFT + F6 : Reset Settings
 F8 / F9 : Adjust Tracking Yaw.
 SHIFT + F8 / F9 : Adjust Tracking Pitch.
 CONTROL + F8 / F9 : Adjust Tracking Roll.
+NumPad 0 : enable/disable stereo mode
+
+
+Schneider-Hicks Optical Calibration Tool (S.H.O.C.T.)
+-------------------------------------------------------
+
+Stereoscopic 3D drivers make it possible for existing PC games to work with modern VR head mounted displays like the upcoming Oculus Rift (and current Rift SDK). The problem with head mounted displays is it's impossible to observe what each eye is seeing in a way that makes proper 3D calibration easy to do. Furthermore, it's difficult to easily determine if the user's eyes are being forced to diverge which is painful and potentially unhealthy to do.
+
+SHOCT is a new feature that has been added to the Vireio Perception drivers and was invented by Neil Schneider and John Hicks. Based on a movable visual indicator, users are able to accurately mark the placement of their left and right pupil. This marker is then used as a calibration tool to comfortably determine the level of 3D separation in the game based on what the user's eye placement is actually capable of.
+
+The benefits of the SHOCT feature include comfortable VR gaming, effective stereoscopic 3D settings, and a potentially healthier and safer way to game with head mounted displays - especially when dealing with content that wasn't custom designed for the VR experience.
+
+Visit Meant to be Seen (http://www.mtbs3D.com) for complete instructions.
+
+Related hotkeys:
+
+SHIFT + * (NumPad) : Cycle the Schneider-Hicks Optical Calibration Tool(S.H.O.C.T.)
+NumPad 1 & 2: Move left SHOCT line
+NumPad 4 & 5 : Move right SCHOCT line
+
+Non NumPad keys:
+ctrl+I : Cycle the Schneider-Hicks Optical Calibration Tool(S.H.O.C.T.)
+O,P,K,L to adjust SCHOCT line.
+
 
 SUPPORTED GAMES (Rating):
 ---------------------------------
@@ -20,6 +44,8 @@ Half-Life 2 	(Great)
 Left4Dead	(Great)
 Left4Dead 2	(Great)
 Dear Esther	(Great)
+Antichamber	(Good)
+Dishonored	(Good)
 Mirror's Edge	(Good)
 AaaaAAAAA!!!!!	(Good)
 Skyrim 		(Good)
@@ -50,6 +76,8 @@ NOTES:
 
 GAME NOTES:
 ---------------------------------
+Dishonored: Copy "bin/d3d9.dll" and "libfreespace.dll" to game's directory.
+
 Half-Life 2: Set Shadow Detail to Medium. Enable developers console. Use "fov_desired 110".
 
 Left4Dead: Try launching left4dead.exe from game directory (if not working normally). Download and extract "viewmodeloverride(3).zip" to "left4dead/addons". Use "fov_override 110".

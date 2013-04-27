@@ -22,20 +22,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 bool dirtyRegisters[300];
 
-const float n = 0.1f;
-const float f = 10.0f;
-const float l = -0.5f;
-const float r = 0.5f;
-const float t = 0.5f;
-const float b = -0.5f;
-
-const D3DXMATRIX invertProjection(
-	1.0f/(2.0f*n),	0.0f,			0.0f,	0.0f,
-	0.0f,			1.0f/(2.0f*n),	0.0f,	0.0f,
-	0.0f,			0.0f,			0.0f,	(n-f)/(f*n),
-	0.0f,			0.0f,			1.0f,	1.0f/n
-);
-
 D3DProxyDeviceAdv::D3DProxyDeviceAdv(IDirect3DDevice9* pDevice):D3DProxyDevice(pDevice)
 {
 }
@@ -48,6 +34,7 @@ void D3DProxyDeviceAdv::Init(ProxyHelper::ProxyConfig& cfg)
 {
 	OutputDebugString("D3D ProxyDev Test Init\n");
 	D3DProxyDevice::Init(cfg);
+	roll_mode = 1;
 	//matrixIndex = getMatrixIndex();
 }
 
@@ -56,6 +43,7 @@ HRESULT WINAPI D3DProxyDeviceAdv::BeginScene()
 {
 	HandleControls();
 	HandleTracking();
+	ComputeViewTranslation();
 
 	if(saveDebugFile)
 	{
@@ -76,6 +64,7 @@ HRESULT WINAPI D3DProxyDeviceAdv::EndScene()
 	if(!stereoView->initialized && initDelay < 0)
 	{
 		stereoView->Init(m_pDevice);
+		SetupMatrices();
 	}
 
 	return D3DProxyDevice::EndScene();
@@ -83,7 +72,7 @@ HRESULT WINAPI D3DProxyDeviceAdv::EndScene()
 
 HRESULT WINAPI D3DProxyDeviceAdv::Present(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion)
 {
-	if(stereoView->initialized)
+	if(stereoView->initialized && stereoView->stereoEnabled)
 	{
 		if(eyeShutter > 0)
 		{
@@ -121,21 +110,7 @@ HRESULT WINAPI D3DProxyDeviceAdv::SetVertexShaderConstantF(UINT StartRegister,CO
 
 void D3DProxyDeviceAdv::adjustEyeOffsetAndViewFrustum(D3DXMATRIX &outMatrix, D3DXMATRIX &inMatrix)
 {
-	D3DXMATRIX transform;
-	D3DXMatrixTranslation(&transform, separation*eyeShutter*10.0f+offset*10.0f, 0, 0);
-
-	float adjustedFrustumOffset = convergence*eyeShutter*0.1f;		
-	D3DXMATRIX reProject;
-	D3DXMatrixPerspectiveOffCenterLH(&reProject, l+adjustedFrustumOffset, r+adjustedFrustumOffset, b, t, n, f);
-
-	if(trackerInitialized && tracker->isAvailable())
-	{
-		D3DXMATRIX rollMatrix;
-		D3DXMatrixRotationZ(&rollMatrix, tracker->currentRoll);
-		D3DXMatrixMultiply(&transform, &transform, &rollMatrix);
-	}
-
-	outMatrix = inMatrix * invertProjection * transform * reProject;
+	outMatrix = inMatrix * matViewTranslation; 
 }
 
 void transformIndividualFloat(IDirect3DDevice9 *pD3Ddev, int startRegister, D3DProxyDeviceAdv* proxyDev) 

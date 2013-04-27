@@ -36,6 +36,8 @@ void D3DProxyDeviceTest::Init(ProxyHelper::ProxyConfig& cfg)
 HRESULT WINAPI D3DProxyDeviceTest::BeginScene()
 {
 	HandleControls();
+//	HandleTracking();
+	ComputeViewTranslation();
 
 	if(saveDebugFile)
 	{
@@ -57,6 +59,7 @@ HRESULT WINAPI D3DProxyDeviceTest::EndScene()
 	if(!stereoView->initialized && initDelay < 0)
 	{
 		stereoView->Init(m_pDevice);
+		SetupMatrices();
 	}
 
 	RECT rec2 = {30,10,400,200};
@@ -71,7 +74,7 @@ HRESULT WINAPI D3DProxyDeviceTest::EndScene()
 
 HRESULT WINAPI D3DProxyDeviceTest::Present(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion)
 {
-	if(stereoView->initialized)
+	if(stereoView->initialized && stereoView->stereoEnabled)
 	{
 		if(eyeShutter > 0)
 		{
