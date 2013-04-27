@@ -83,8 +83,8 @@ void OculusTracker::updateOrientation()
 		yaw = fmodf(yaw + 360.0f, 360.0f);
 		pitch = -fmodf(pitch + 360.0f, 360.0f);
 
-		deltaYaw = yaw - currentYaw;
-		deltaPitch = pitch - currentPitch;
+		deltaYaw += yaw - currentYaw;
+		deltaPitch += pitch - currentPitch;
 
 		// hack to avoid errors while translating over 360/0
 		if(fabs(deltaYaw) > 4.0f) deltaYaw = 0.0f;
@@ -92,6 +92,9 @@ void OculusTracker::updateOrientation()
 
 		mouseData.mi.dx = (long)(deltaYaw*multiplierYaw);
 		mouseData.mi.dy = (long)(deltaPitch*multiplierPitch);
+		// Keep fractional difference in the delta so it's added to the next update.
+		deltaYaw -= ((float)mouseData.mi.dx)/multiplierYaw;
+		deltaPitch -= ((float)mouseData.mi.dy)/multiplierPitch;
 		
 		OutputDebugString("Motion Tracker SendInput\n");
 		SendInput(1, &mouseData, sizeof(INPUT));
