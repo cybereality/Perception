@@ -17,6 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
 #include "D3DProxyDevice.h"
+#include "Direct3DSurface9Vireio.h"
 #include "StereoViewFactory.h"
 #include "MotionTrackerFactory.h"
 
@@ -25,6 +26,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define KEY_DOWN(vk_code) ((GetAsyncKeyState(vk_code) & 0x8000) ? 1 : 0)
 #define KEY_UP(vk_code) ((GetAsyncKeyState(vk_code) & 0x8000) ? 0 : 1)
 
+
+
 #define PI 3.141592654
 #define RADIANS_TO_DEGREES(rad) ((float) rad * (float) (180.0 / PI))
 
@@ -32,16 +35,32 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice):BaseDirect3DDevice9(pD
 {
 	OutputDebugString("D3D ProxyDev Created\n");
 
-	// Proxy is created after actual Device (pDevice parameter) has been created with actual CreateDevice and before
-	// the proxy CreateDevice has returned
+	/* Proxy is created after actual Device (pDevice parameter) has been created with actual CreateDevice and before
+		the proxy CreateDevice has returned
 
-	/* With the device created we need to create a stereo render target to use in place of the default render target (the backbuffer)
-	This is a special case for stereo render target creation as we want to create left and right targets and leave the original alone
-	(we will use the original later to write the final image into)
-	In all other cases where stereo render targets are needed we will use the original target as the left eye and create a new target 
-	for the right eye. */
+	   With the device created we need to create a stereo render target to use in place of the default render target (the backbuffer) 
+	 */
 
 
+	
+	// Create a stereo render target with the same properties as the backbuffer and set it as the current render target
+	IDirect3DSurface9* pBackBuffer;
+	if (BaseDirect3DDevice9::GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer) != D3D_OK) {
+		OutputDebugString("Failed to fetch backbuffer.\n");
+		exit(1); 
+	}
+
+	D3DSURFACE_DESC* pBackDesc;
+	pBackBuffer->GetDesc(pBackDesc);
+
+	IDirect3DSurface9* pTemp;
+	D3DProxyDevice::CreateRenderTarget(pBackDesc->Width, pBackDesc->Height, pBackDesc->Format, pBackDesc->MultiSampleType, pBackDesc->MultiSampleQuality, false, &pTemp, NULL);
+	stereoBuffer = static_cast<Direct3DSurface9Vireio*>(pTemp);
+
+	m_pDevice->SetRenderTarget(0, stereoBuffer);
+
+
+	
 
 
 
@@ -55,6 +74,11 @@ D3DProxyDevice::~D3DProxyDevice()
 	if(hudFont) {
 		hudFont->Release();
 		hudFont = NULL;
+	}
+
+	if (stereoBuffer != NULL) {
+		stereoBuffer->Release();
+		stereoBuffer = NULL;
 	}
 }
 
@@ -570,5 +594,52 @@ HRESULT WINAPI D3DProxyDevice::EndScene()
 	}
 /////
 	return BaseDirect3DDevice9::EndScene();
+}
+
+
+
+/*
+	The IDirect3DSurface9** ppSurface returned should always be a Direct3DSurface9Vireio. Any class overloading
+	this method should ensure that this remains true.
+ */
+HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample,
+													DWORD MultisampleQuality,BOOL Lockable,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle)
+{
+
+	// Duplicate render target if needed.
+	/* 
+		"If Needed" heuristic is the complicated part here.
+		  Fixed heuristics (based on type, format, size, etc) + game specific overrides + isForcedMono + magic?
+
+		Always create a Direct3DSurface9Vireio using the render target and return that
+	 */
+
+	// TODO Experiment: Try modifying fullscreen render targets to shrink them to side by side sizes.
+
+	IDirect3DSurface9* pLeftRenderTarget = NULL;
+	IDirect3DSurface9* pRightRenderTarget = NULL;
+	HRESULT creationResult;
+
+	if (true) // TODO Should we duplicate this Render Target? Replace "true" with heuristic
+	{
+		if ((creationResult = m_pDevice->CreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, &pLeftRenderTarget, pSharedHandle)) == D3D_OK) {
+			if (m_pDevice->CreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, &pRightRenderTarget, pSharedHandle) != D3D_OK) {
+				OutputDebugString("Failed to create right eye render target while attempting to create stereo pair, falling back to mono\n");
+				pRightRenderTarget = NULL;
+			}
+		}
+		else {
+			OutputDebugString("Failed to create left eye render target while attempting to create stereo pair\n"); 
+		}
+	}
+	else {
+		creationResult = m_pDevice->CreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, &pLeftRenderTarget, pSharedHandle);
+	}
+
+
+	if (creationResult == D3D_OK)
+		*ppSurface = new Direct3DSurface9Vireio(pLeftRenderTarget, pRightRenderTarget);
+
+	return creationResult;
 }
 

@@ -16,43 +16,51 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#ifndef DIRECT3DSURFACE9_H_INCLUDED
-#define DIRECT3DSURFACE9_H_INCLUDED
+#ifndef DIRECT3DSURFACE9VIREIO_H_INCLUDED
+#define DIRECT3DSURFACE9VIREIO_H_INCLUDED
 
 #include <d3d9.h>
+#include "Direct3DSurface9.h"
 #include "ProxyHelper.h"
 
-class BaseDirect3DSurface9 : public IDirect3DSurface9
+/*
+		
+
+
+ */
+class Direct3DSurface9Vireio : public BaseDirect3DSurface9
 {
 public:
-	BaseDirect3DSurface9(IDirect3DSurface9* pSurface);
-	virtual ~BaseDirect3DSurface9();
+	Direct3DSurface9Vireio(IDirect3DSurface9* pLeftSurface, IDirect3DSurface9* pRightSurface);
+	virtual ~Direct3DSurface9Vireio();
 
-	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv);
-	virtual ULONG WINAPI AddRef();
-	virtual ULONG WINAPI Release();
+	bool IsStereo();
+
+	IDirect3DSurface9* getMonoSurface();
+	IDirect3DSurface9* getLeftSurface();
+	IDirect3DSurface9* getRightSurface();
+
 	
-	virtual HRESULT WINAPI GetDevice(IDirect3DDevice9** ppDevice);
+	//virtual HRESULT WINAPI GetDevice(IDirect3DDevice9** ppDevice);
 	virtual HRESULT WINAPI SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags);
-	virtual HRESULT WINAPI GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData);
+	//virtual HRESULT WINAPI GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData);
 	virtual HRESULT WINAPI FreePrivateData(REFGUID refguid);
 	virtual   DWORD WINAPI SetPriority(DWORD PriorityNew);
-	virtual   DWORD WINAPI GetPriority();
+	//virtual   DWORD WINAPI GetPriority();
 	virtual    void WINAPI PreLoad();
-	virtual HRESULT WINAPI GetContainer(REFIID riid, LPVOID* ppContainer);
-	virtual HRESULT WINAPI GetDesc(D3DSURFACE_DESC *pDesc);
+	//virtual HRESULT WINAPI GetContainer(REFIID riid, LPVOID* ppContainer);
+	//virtual HRESULT WINAPI GetDesc(D3DSURFACE_DESC *pDesc);
 	virtual HRESULT WINAPI LockRect(D3DLOCKED_RECT* pLockedRect, CONST RECT* pRect, DWORD Flags);
 	virtual HRESULT WINAPI UnlockRect();
-	virtual HRESULT WINAPI GetDC(HDC *phdc);
+	//virtual HRESULT WINAPI GetDC(HDC *phdc);
 	virtual HRESULT WINAPI ReleaseDC(HDC hdc);
-
-	virtual D3DRESOURCETYPE WINAPI GetType();
-
-protected:
-	IDirect3DSurface9* m_pSurface;
+	//virtual D3DRESOURCETYPE WINAPI GetType();
 
 private:
-	ULONG m_nRefCount;
+
+	IDirect3DSurface9* m_pRightSurface;
+
+	
 };
 
 #endif

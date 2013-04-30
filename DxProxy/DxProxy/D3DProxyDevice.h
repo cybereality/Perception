@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define D3DPROXYDEVICE_H_INCLUDED
 
 #include "Direct3DDevice9.h"
+#include "Direct3DSurface9Vireio.h"
 #include "ProxyHelper.h"
 #include "StereoView.h"
 #include "MotionTracker.h"
@@ -46,6 +47,12 @@ public:
 	void HandleTracking(void);
 	bool validRegister(UINT reg);
 	virtual HRESULT WINAPI EndScene();
+	virtual HRESULT WINAPI CreateRenderTarget(UINT Width,UINT Height,D3DFORMAT Format,D3DMULTISAMPLE_TYPE MultiSample,DWORD MultisampleQuality,BOOL Lockable,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle);
+
+
+	Direct3DSurface9Vireio* stereoBuffer;
+	Direct3DSurface9Vireio* finalBackBuffer;
+
 
 	D3DXMATRIX matProjection;
 	D3DXMATRIX matProjectionInv;
@@ -116,6 +123,13 @@ public:
 		ADVANCED = 600,
 		ADVANCED_SKYRIM = 601
 	};
+
+
+
+private:
+
+
+
 };
 
 #endif
