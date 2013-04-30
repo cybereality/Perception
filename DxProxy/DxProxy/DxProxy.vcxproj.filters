@@ -110,6 +110,9 @@
     <ClCompile Include="D3DProxyDeviceSimultaneous.cpp">
       <Filter>Implementation</Filter>
     </ClCompile>
+    <ClCompile Include="Direct3D9Surface.cpp">
+      <Filter>Direct3DDevice9</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Exports.def">
@@ -194,6 +197,9 @@
     </ClInclude>
     <ClInclude Include="D3DProxyDeviceSimultaneous.h">
       <Filter>Implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3D9Surface.h">
+      <Filter>Direct3DDevice9</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

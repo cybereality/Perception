@@ -117,6 +117,7 @@
     <ClCompile Include="D3DProxyDeviceTest.cpp" />
     <ClCompile Include="D3DProxyDeviceUnreal.cpp" />
     <ClCompile Include="Direct3D9.cpp" />
+    <ClCompile Include="Direct3D9Surface.cpp" />
     <ClCompile Include="Direct3DDevice9.cpp" />
     <ClCompile Include="FreeSpaceTracker.cpp" />
     <ClCompile Include="FreeTrackTracker.cpp" />
@@ -144,6 +145,7 @@
     <ClInclude Include="D3DProxyDeviceTest.h" />
     <ClInclude Include="D3DProxyDeviceUnreal.h" />
     <ClInclude Include="Direct3D9.h" />
+    <ClInclude Include="Direct3D9Surface.h" />
     <ClInclude Include="Direct3DDevice9.h" />
     <ClInclude Include="FreeSpaceTracker.h" />
     <ClInclude Include="FreeTrackTracker.h" />

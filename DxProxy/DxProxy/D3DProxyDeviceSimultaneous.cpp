@@ -20,6 +20,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 D3DProxyDeviceSimultaneous::D3DProxyDeviceSimultaneous(IDirect3DDevice9* pDevice) : D3DProxyDevice(pDevice)
 {
+	// Proxy is created after actual Device (pDevice parameter) has been created with actual CreateDevice and before
+	// the proxy CreateDevice has returned
+
+	// Here we need to duplicate the default render target (the backbuffer)
+
 }
 
 D3DProxyDeviceSimultaneous::~D3DProxyDeviceSimultaneous()

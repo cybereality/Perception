@@ -31,6 +31,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice):BaseDirect3DDevice9(pDevice)
 {
 	OutputDebugString("D3D ProxyDev Created\n");
+
+	// Proxy is created after actual Device (pDevice parameter) has been created with actual CreateDevice and before
+	// the proxy CreateDevice has returned
+
+	/* With the device created we need to create a stereo render target to use in place of the default render target (the backbuffer)
+	This is a special case for stereo render target creation as we want to create left and right targets and leave the original alone
+	(we will use the original later to write the final image into)
+	In all other cases where stereo render targets are needed we will use the original target as the left eye and create a new target 
+	for the right eye. */
+
+
+
+
+
 	hudFont = NULL;
 	centerlineR = 0.0f;
 	centerlineL = 0.0f;
