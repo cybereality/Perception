@@ -61,6 +61,7 @@ public:
 	virtual void InitVertexBuffers();
 	virtual void InitShaderEffects();
 	virtual void Draw();
+	virtual void Draw(Direct3DSurface9Vireio* stereoCapableSurface);
 	virtual void SaveState();
 	virtual void SetState();
 	virtual void RestoreState();
@@ -73,13 +74,14 @@ public:
 
 	D3DVIEWPORT9 viewport;
 
-	IDirect3DSurface9* backBuffer;
 	IDirect3DTexture9* leftTexture;
 	IDirect3DTexture9* rightTexture;
-	IDirect3DTexture9* screenTexture;
+	IDirect3DSurface9* backBuffer;
 	IDirect3DSurface9* leftSurface;
 	IDirect3DSurface9* rightSurface;
-	IDirect3DSurface9* screenSurface;
+	/*IDirect3DTexture9* screenTexture;
+	
+	IDirect3DSurface9* screenSurface;*/
 
 	IDirect3DVertexBuffer9* screenVertexBuffer;
 

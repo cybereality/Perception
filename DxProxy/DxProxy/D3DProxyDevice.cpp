@@ -1,6 +1,7 @@
 /********************************************************************
 Vireio Perception: Open-Source Stereoscopic 3D Driver
 Copyright (C) 2012 Andres Hernandez
+Modifications Copyright (C) 2013 Chris Drain
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -31,16 +32,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define PI 3.141592654
 #define RADIANS_TO_DEGREES(rad) ((float) rad * (float) (180.0 / PI))
 
-D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice):BaseDirect3DDevice9(pDevice)
+D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice):BaseDirect3DDevice9(pDevice),
+	m_activeRenderTargets (1, NULL)		
 {
 	OutputDebugString("D3D ProxyDev Created\n");
 
 	/* Proxy is created after actual Device (pDevice parameter) has been created with actual CreateDevice and before
-		the proxy CreateDevice has returned
-
-	   With the device created we need to create a stereo render target to use in place of the default render target (the backbuffer) 
+		the proxy CreateDevice has returned. Anything that needs to be done before the device is used for anything 
+		should happen here.
 	 */
 
+
+	// Check the maximum number of supported render targets
+	D3DCAPS9 capabilities;
+	m_pDevice->GetDeviceCaps(&capabilities);
+	DWORD maxRenderTargets = capabilities.NumSimultaneousRTs;
+
+	m_activeRenderTargets.resize(maxRenderTargets, NULL);
+	m_currentRenderingSide = Left;
+	
 
 	
 	// Create a stereo render target with the same properties as the backbuffer and set it as the current render target
@@ -50,15 +60,14 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice):BaseDirect3DDevice9(pD
 		exit(1); 
 	}
 
-	D3DSURFACE_DESC* pBackDesc;
-	pBackBuffer->GetDesc(pBackDesc);
+	D3DSURFACE_DESC backDesc;
+	pBackBuffer->GetDesc(&backDesc);
 
 	IDirect3DSurface9* pTemp;
-	D3DProxyDevice::CreateRenderTarget(pBackDesc->Width, pBackDesc->Height, pBackDesc->Format, pBackDesc->MultiSampleType, pBackDesc->MultiSampleQuality, false, &pTemp, NULL);
-	stereoBuffer = static_cast<Direct3DSurface9Vireio*>(pTemp);
-
-	m_pDevice->SetRenderTarget(0, stereoBuffer);
-
+	CreateRenderTarget(backDesc.Width, backDesc.Height, backDesc.Format, backDesc.MultiSampleType, backDesc.MultiSampleQuality, false, &pTemp, NULL);
+	pStereoBuffer = static_cast<Direct3DSurface9Vireio*>(pTemp);
+	SetRenderTarget(0, pTemp);
+	
 
 	
 
@@ -76,9 +85,18 @@ D3DProxyDevice::~D3DProxyDevice()
 		hudFont = NULL;
 	}
 
-	if (stereoBuffer != NULL) {
-		stereoBuffer->Release();
-		stereoBuffer = NULL;
+
+	for(std::vector<Direct3DSurface9Vireio*>::size_type i = 0; i != m_activeRenderTargets.size(); i++) 
+	{
+		if (m_activeRenderTargets[i] != NULL) {
+			m_activeRenderTargets[i]->Release();
+			m_activeRenderTargets[i] = NULL;
+		}
+	}
+
+	if(pStereoBuffer) {
+		pStereoBuffer->Release();
+		pStereoBuffer = NULL;
 	}
 }
 
@@ -643,3 +661,106 @@ HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFO
 	return creationResult;
 }
 
+
+
+
+HRESULT WINAPI D3DProxyDevice::Clear(DWORD Count,CONST D3DRECT* pRects,DWORD Flags,D3DCOLOR Color,float Z,DWORD Stencil)
+{
+
+	// Drawing
+	
+	// For each active render target 
+	//	  switch to left eye rendering
+	// 
+	// draw for left eye
+	setDrawingSide(Left);
+
+	
+	HRESULT result;
+	if (result = m_pDevice->Clear(Count, pRects, Flags, Color, Z, Stencil) == D3D_OK) {
+		
+		// TODO if stereo enabled?
+		setDrawingSide(Right);
+		m_pDevice->Clear(Count, pRects, Flags, D3DCOLOR_RGBA(255, 0, 0, 255), Z, Stencil);
+	}
+
+	
+	// For each active stereo render target 
+	//	  switch to right eye rendering
+	// 
+	// draw for right eye
+	
+
+
+	return result;//m_pDevice->Clear(Count, pRects, Flags, Color, Z, Stencil);
+}
+
+
+
+HRESULT WINAPI D3DProxyDevice::DrawPrimitive(D3DPRIMITIVETYPE PrimitiveType,UINT StartVertex,UINT PrimitiveCount)
+{
+	setDrawingSide(Left);
+	
+	HRESULT result;
+	if (result = m_pDevice->DrawPrimitive(PrimitiveType, StartVertex, PrimitiveCount) == D3D_OK) {
+		
+		// TODO if stereo enabled?
+		setDrawingSide(Right);
+		m_pDevice->DrawPrimitive(PrimitiveType, StartVertex, PrimitiveCount);
+	}
+
+	return result;
+}
+
+
+
+HRESULT WINAPI D3DProxyDevice::SetRenderTarget(DWORD RenderTargetIndex,IDirect3DSurface9* pRenderTarget)
+{
+	Direct3DSurface9Vireio* newRenderTarget = static_cast<Direct3DSurface9Vireio*>(pRenderTarget);
+	
+
+	HRESULT result;
+	if (!newRenderTarget->IsStereo()) {
+		result = m_pDevice->SetRenderTarget(RenderTargetIndex, newRenderTarget->getMonoSurface());
+	}
+	else if (m_currentRenderingSide == Left) {
+		result = m_pDevice->SetRenderTarget(RenderTargetIndex, newRenderTarget->getLeftSurface());
+	}
+	else {
+		result = m_pDevice->SetRenderTarget(RenderTargetIndex, newRenderTarget->getRightSurface());
+	}
+
+	
+	if (result == D3D_OK)
+		m_activeRenderTargets[RenderTargetIndex] = newRenderTarget;
+
+	return result;
+}
+
+
+
+void D3DProxyDevice::setDrawingSide(EyeSide side)
+{
+	if (side == m_currentRenderingSide)
+		return;
+
+	HRESULT result;
+	Direct3DSurface9Vireio* pCurrentRT;
+	for(std::vector<Direct3DSurface9Vireio*>::size_type i = 0; i != m_activeRenderTargets.size(); i++) 
+	{
+		if ((pCurrentRT = m_activeRenderTargets[i]) != NULL) {
+
+			if ((side == Left) || !pCurrentRT->IsStereo()) {
+				result = m_pDevice->SetRenderTarget(i, pCurrentRT->getLeftSurface());
+			}
+			else {
+				result = m_pDevice->SetRenderTarget(i, pCurrentRT->getRightSurface());
+			}
+				
+			if (result != D3D_OK)
+				OutputDebugString("Error trying to set one of the Render Targets while switching between active eyes for drawing.\n");
+		}
+	}
+
+	m_currentRenderingSide = side;
+}

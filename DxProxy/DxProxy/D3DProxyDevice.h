@@ -28,6 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdio.h>
 #include <iostream>
 #include <fstream>
+#include <vector>
 
 class StereoView;
 
@@ -48,11 +49,11 @@ public:
 	bool validRegister(UINT reg);
 	virtual HRESULT WINAPI EndScene();
 	virtual HRESULT WINAPI CreateRenderTarget(UINT Width,UINT Height,D3DFORMAT Format,D3DMULTISAMPLE_TYPE MultiSample,DWORD MultisampleQuality,BOOL Lockable,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle);
+	virtual HRESULT WINAPI Clear(DWORD Count,CONST D3DRECT* pRects,DWORD Flags,D3DCOLOR Color,float Z,DWORD Stencil);
+	virtual HRESULT WINAPI DrawPrimitive(D3DPRIMITIVETYPE PrimitiveType,UINT StartVertex,UINT PrimitiveCount);
+	virtual HRESULT WINAPI SetRenderTarget(DWORD RenderTargetIndex,IDirect3DSurface9* pRenderTarget);
 
-
-	Direct3DSurface9Vireio* stereoBuffer;
-	Direct3DSurface9Vireio* finalBackBuffer;
-
+	
 
 	D3DXMATRIX matProjection;
 	D3DXMATRIX matProjectionInv;
@@ -125,11 +126,37 @@ public:
 	};
 
 
+protected:
+	
+	
+
+	enum EyeSide
+	{
+		Left = 1,
+		Right = 2
+	};
+
+
+	
+
+	// Use to specify the side that you want to draw to
+	void setDrawingSide(enum EyeSide side);
+
+	Direct3DSurface9Vireio* pStereoBuffer;
+
 
 private:
 
+	// The render targets that are currently in use.
+	std::vector<Direct3DSurface9Vireio*> m_activeRenderTargets;
+	
+
+	enum EyeSide m_currentRenderingSide;
 
 
+
+	
+	
 };
 
 #endif

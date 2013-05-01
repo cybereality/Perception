@@ -32,14 +32,14 @@ void D3DProxyDeviceFixed::Init(ProxyHelper::ProxyConfig& cfg)
 	D3DProxyDevice::Init(cfg);
 }
 
-HRESULT WINAPI D3DProxyDeviceFixed::BeginScene()
+/*HRESULT WINAPI D3DProxyDeviceFixed::BeginScene()
 {
 	HandleControls();
 //	HandleTracking();
 	ComputeViewTranslation();
 
 	return D3DProxyDevice::BeginScene();
-}
+}*/
 
 HRESULT WINAPI D3DProxyDeviceFixed::EndScene()
 {
@@ -58,7 +58,7 @@ HRESULT WINAPI D3DProxyDeviceFixed::EndScene()
 
 HRESULT WINAPI D3DProxyDeviceFixed::Present(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion)
 {
-	HandleTracking();
+	/*HandleTracking();
 
 	if(stereoView->initialized && stereoView->stereoEnabled)
 	{
@@ -76,12 +76,16 @@ HRESULT WINAPI D3DProxyDeviceFixed::Present(CONST RECT* pSourceRect,CONST RECT* 
 		eyeShutter *= -1;
 	}
 
-	if(eyeShutter > 0) return D3D_OK;
-	HRESULT hr = D3DProxyDevice::Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
-	return hr;
+	if(eyeShutter > 0) return D3D_OK;*/
+
+	if (stereoView->initialized)
+		stereoView->Draw(pStereoBuffer);
+
+
+	return D3DProxyDevice::Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
 }
 
-HRESULT WINAPI D3DProxyDeviceFixed::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D3DMATRIX* pMatrix)
+/*HRESULT WINAPI D3DProxyDeviceFixed::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D3DMATRIX* pMatrix)
 {
 	if(State == D3DTS_VIEW)
 	{
@@ -120,4 +124,4 @@ HRESULT WINAPI D3DProxyDeviceFixed::SetTransform(D3DTRANSFORMSTATETYPE State, CO
 	}
 
 	return D3DProxyDevice::SetTransform(State, pMatrix);
-}
+}*/

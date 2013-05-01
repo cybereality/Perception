@@ -136,7 +136,7 @@ void OculusRiftView::Draw()
 		device->SetTexture(1, leftTexture);
 	}
 
-	device->SetRenderTarget(0, screenSurface);
+	device->SetRenderTarget(0, backBuffer);
 	device->SetStreamSource(0, screenVertexBuffer, 0, sizeof(TEXVERTEX));
 
 	UINT iPass, cPasses;
@@ -163,7 +163,7 @@ void OculusRiftView::Draw()
 
 	viewEffect->End();
 	
-	device->StretchRect(screenSurface, NULL, backBuffer, NULL, D3DTEXF_NONE);
+	device->StretchRect(backBuffer, NULL, backBuffer, NULL, D3DTEXF_NONE);
 
 	RestoreState();
 }

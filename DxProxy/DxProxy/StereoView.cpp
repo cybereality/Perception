@@ -29,13 +29,13 @@ StereoView::StereoView(ProxyHelper::ProxyConfig& config)
 
 	// set all member pointers to NULL to prevent uninitialized objects being used
 	device = NULL;
-	backBuffer = NULL;
+	backBuffer = NULL;/*
 	leftTexture = NULL;
 	rightTexture = NULL;
 	screenTexture = NULL;
 	leftSurface = NULL;
 	rightSurface = NULL;
-	screenSurface = NULL;
+	screenSurface = NULL;*/
 	screenVertexBuffer = NULL;
 	lastVertexShader = NULL;
 	lastPixelShader = NULL;
@@ -92,7 +92,10 @@ void StereoView::InitShaderEffects()
 void StereoView::InitTextureBuffers()
 {
 	device->GetViewport(&viewport);
-
+	D3DSURFACE_DESC pDesc = D3DSURFACE_DESC();
+	device->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &backBuffer);
+	backBuffer->GetDesc(&pDesc);
+	/*
 	char buf[32];
 	LPCSTR psz = NULL;
 
@@ -101,26 +104,24 @@ void StereoView::InitTextureBuffers()
 	OutputDebugString(psz);
 	OutputDebugString("\n");
 	
-	D3DSURFACE_DESC pDesc = D3DSURFACE_DESC();
-	device->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &backBuffer);
-	backBuffer->GetDesc(&pDesc);
+	
 
 	wsprintf(buf,"bb w: %d",pDesc.Width);
 	psz = buf;
 	OutputDebugString(psz);
 	OutputDebugString("\n");
 
-	device->CreateOffscreenPlainSurface(pDesc.Width, pDesc.Height, pDesc.Format, D3DPOOL_SYSTEMMEM, &leftSurface, NULL);
+	device->CreateOffscreenPlainSurface(pDesc.Width, pDesc.Height, pDesc.Format, D3DPOOL_SYSTEMMEM, &leftSurface, NULL);*/
 	device->CreateTexture(pDesc.Width, pDesc.Height, 0, D3DUSAGE_RENDERTARGET, pDesc.Format, D3DPOOL_DEFAULT, &leftTexture, NULL);
 	leftTexture->GetSurfaceLevel(0, &leftSurface);
 
-	device->CreateOffscreenPlainSurface(pDesc.Width, pDesc.Height, pDesc.Format, D3DPOOL_SYSTEMMEM, &rightSurface, NULL);
+	//device->CreateOffscreenPlainSurface(pDesc.Width, pDesc.Height, pDesc.Format, D3DPOOL_SYSTEMMEM, &rightSurface, NULL);
 	device->CreateTexture(pDesc.Width, pDesc.Height, 0, D3DUSAGE_RENDERTARGET, pDesc.Format, D3DPOOL_DEFAULT, &rightTexture, NULL);
 	rightTexture->GetSurfaceLevel(0, &rightSurface);
 
-	device->CreateOffscreenPlainSurface(pDesc.Width, pDesc.Height, pDesc.Format, D3DPOOL_SYSTEMMEM, &screenSurface, NULL);
+	/*device->CreateOffscreenPlainSurface(pDesc.Width, pDesc.Height, pDesc.Format, D3DPOOL_SYSTEMMEM, &screenSurface, NULL);
 	device->CreateTexture(pDesc.Width, pDesc.Height, 0, D3DUSAGE_RENDERTARGET, pDesc.Format, D3DPOOL_DEFAULT, &screenTexture, NULL);
-	screenTexture->GetSurfaceLevel(0, &screenSurface);
+	screenTexture->GetSurfaceLevel(0, &screenSurface);*/
 }
 
 void StereoView::InitVertexBuffers()
@@ -327,22 +328,22 @@ void StereoView::RestoreState()
 
 void StereoView::UpdateEye(int eye)
 {
-	// if not initilized assume a reset has occured and device is still valid
-	if(!initialized)
-		Init(device);
+	//// if not initilized assume a reset has occured and device is still valid
+	//if(!initialized)
+	//	Init(device);
 
-	IDirect3DSurface9* currentSurface = NULL;
+	//IDirect3DSurface9* currentSurface = NULL;
 
-	if(eye == LEFT_EYE)
-	{
-		currentSurface = leftSurface;
-	} 
-	else
-	{
-		currentSurface = rightSurface;
-	}
+	//if(eye == LEFT_EYE)
+	//{
+	//	currentSurface = leftSurface;
+	//} 
+	//else
+	//{
+	//	currentSurface = rightSurface;
+	//}
 
-	device->StretchRect(backBuffer, NULL, currentSurface, NULL, D3DTEXF_NONE);
+	//device->StretchRect(backBuffer, NULL, currentSurface, NULL, D3DTEXF_NONE);
 }
 
 void StereoView::SwapEyes(bool doSwap)
@@ -350,11 +351,23 @@ void StereoView::SwapEyes(bool doSwap)
 	swap_eyes = doSwap;
 }
 
-void StereoView::Draw()
+void StereoView::Draw() {}
+
+void StereoView::Draw(Direct3DSurface9Vireio* stereoCapableSurface)
 {
 	// if not initilized assume a reset has occured and device is still valid
 	if(!initialized)
 		Init(device);
+
+	IDirect3DSurface9* leftImage = stereoCapableSurface->getLeftSurface();
+	IDirect3DSurface9* rightImage = stereoCapableSurface->getRightSurface();
+	device->StretchRect(leftImage, NULL, leftSurface, NULL, D3DTEXF_NONE);
+
+	if (stereoCapableSurface->IsStereo())
+		device->StretchRect(rightImage, NULL, rightSurface, NULL, D3DTEXF_NONE);
+	else
+		device->StretchRect(leftImage, NULL, rightSurface, NULL, D3DTEXF_NONE);
+
 
 	SaveState();
 	SetState();
@@ -372,7 +385,7 @@ void StereoView::Draw()
 		device->SetTexture(1, leftTexture);
 	}
 
-	device->SetRenderTarget(0, screenSurface);
+	device->SetRenderTarget(0, backBuffer);
 	device->SetStreamSource(0, screenVertexBuffer, 0, sizeof(TEXVERTEX));
 
 	UINT iPass, cPasses;
@@ -389,7 +402,7 @@ void StereoView::Draw()
 
 	viewEffect->End();
 	
-	device->StretchRect(screenSurface, NULL, backBuffer, NULL, D3DTEXF_NONE);
+	//device->StretchRect(screenSurface, NULL, backBuffer, NULL, D3DTEXF_NONE);
 
 	RestoreState();
 }
@@ -404,7 +417,7 @@ void StereoView::SaveScreen()
 	OutputDebugString(fileName);
 	OutputDebugString("\n");
 
-	D3DXSaveSurfaceToFile(fileName, D3DXIFF_BMP, screenSurface, NULL, NULL);
+	D3DXSaveSurfaceToFile(fileName, D3DXIFF_BMP, backBuffer, NULL, NULL);
 }
 
 void StereoView::Reset()
@@ -421,9 +434,9 @@ void StereoView::Reset()
 		rightTexture->Release();
 	rightTexture = NULL;
 
-	if(screenTexture)
+	/*if(screenTexture)
 		screenTexture->Release();
-	screenTexture = NULL;
+	screenTexture = NULL;*/
 
 	if(leftSurface)
 		leftSurface->Release();
@@ -433,9 +446,9 @@ void StereoView::Reset()
 		rightSurface->Release();
 	rightSurface = NULL;
 
-	if(screenSurface)
+	/*if(screenSurface)
 		screenSurface->Release();
-	screenSurface = NULL;
+	screenSurface = NULL;*/
 
 	if(backBuffer)
 		backBuffer->Release();
