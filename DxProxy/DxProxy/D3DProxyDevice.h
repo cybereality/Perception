@@ -39,6 +39,7 @@ public:
 	virtual ~D3DProxyDevice();
 
 	virtual void Init(ProxyHelper::ProxyConfig& cfg);
+	
 	virtual HRESULT WINAPI Reset(D3DPRESENT_PARAMETERS* pPresentationParameters);
 	void SetupOptions(ProxyHelper::ProxyConfig& cfg);
 	void SetupMatrices();
@@ -47,6 +48,8 @@ public:
 	void HandleControls(void);
 	void HandleTracking(void);
 	bool validRegister(UINT reg);
+	
+	
 	virtual HRESULT WINAPI EndScene();
 	virtual HRESULT WINAPI CreateRenderTarget(UINT Width,UINT Height,D3DFORMAT Format,D3DMULTISAMPLE_TYPE MultiSample,DWORD MultisampleQuality,BOOL Lockable,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle);
 	virtual HRESULT WINAPI Clear(DWORD Count,CONST D3DRECT* pRects,DWORD Flags,D3DCOLOR Color,float Z,DWORD Stencil);
@@ -138,6 +141,7 @@ protected:
 
 
 	
+	virtual void OnCreateOrRestore();
 
 	// Use to specify the side that you want to draw to
 	void setDrawingSide(enum EyeSide side);
@@ -146,6 +150,8 @@ protected:
 
 
 private:
+
+	
 
 	// The render targets that are currently in use.
 	std::vector<Direct3DSurface9Vireio*> m_activeRenderTargets;

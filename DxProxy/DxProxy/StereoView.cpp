@@ -29,13 +29,13 @@ StereoView::StereoView(ProxyHelper::ProxyConfig& config)
 
 	// set all member pointers to NULL to prevent uninitialized objects being used
 	device = NULL;
-	backBuffer = NULL;/*
+	backBuffer = NULL;
 	leftTexture = NULL;
 	rightTexture = NULL;
-	screenTexture = NULL;
+	
 	leftSurface = NULL;
 	rightSurface = NULL;
-	screenSurface = NULL;*/
+	
 	screenVertexBuffer = NULL;
 	lastVertexShader = NULL;
 	lastPixelShader = NULL;
@@ -259,7 +259,8 @@ void StereoView::SetState()
 
 	device->SetVertexDeclaration(NULL);
 
-	device->SetRenderTarget(0, NULL);
+	//It's a Direct3D9 error when using the debug runtine to set RenderTarget 0 to NULL
+	//device->SetRenderTarget(0, NULL);
 	device->SetRenderTarget(1, NULL);
 }
 
@@ -359,8 +360,13 @@ void StereoView::Draw(Direct3DSurface9Vireio* stereoCapableSurface)
 	if(!initialized)
 		Init(device);
 
+
+
+	// Copy left and right surfaces to textures to use as shader input
+	// TODO match aspect ratio of source in target (or is that happening in the fx shader?) 
 	IDirect3DSurface9* leftImage = stereoCapableSurface->getLeftSurface();
 	IDirect3DSurface9* rightImage = stereoCapableSurface->getRightSurface();
+
 	device->StretchRect(leftImage, NULL, leftSurface, NULL, D3DTEXF_NONE);
 
 	if (stereoCapableSurface->IsStereo())
@@ -402,7 +408,6 @@ void StereoView::Draw(Direct3DSurface9Vireio* stereoCapableSurface)
 
 	viewEffect->End();
 	
-	//device->StretchRect(screenSurface, NULL, backBuffer, NULL, D3DTEXF_NONE);
 
 	RestoreState();
 }

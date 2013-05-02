@@ -17,10 +17,18 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
+
+
 #include "D3DProxyDevice.h"
 #include "Direct3DSurface9Vireio.h"
 #include "StereoViewFactory.h"
 #include "MotionTrackerFactory.h"
+
+#ifdef _DEBUG
+#include "DxErr.h"
+
+#define D3D_DEBUG_INFO
+#endif
 
 #pragma comment(lib, "d3dx9.lib")
 
@@ -36,13 +44,7 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice):BaseDirect3DDevice9(pD
 	m_activeRenderTargets (1, NULL)		
 {
 	OutputDebugString("D3D ProxyDev Created\n");
-
-	/* Proxy is created after actual Device (pDevice parameter) has been created with actual CreateDevice and before
-		the proxy CreateDevice has returned. Anything that needs to be done before the device is used for anything 
-		should happen here.
-	 */
-
-
+	
 	// Check the maximum number of supported render targets
 	D3DCAPS9 capabilities;
 	m_pDevice->GetDeviceCaps(&capabilities);
@@ -51,32 +53,19 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice):BaseDirect3DDevice9(pD
 	m_activeRenderTargets.resize(maxRenderTargets, NULL);
 	m_currentRenderingSide = Left;
 	
-
-	
-	// Create a stereo render target with the same properties as the backbuffer and set it as the current render target
-	IDirect3DSurface9* pBackBuffer;
-	if (BaseDirect3DDevice9::GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer) != D3D_OK) {
-		OutputDebugString("Failed to fetch backbuffer.\n");
-		exit(1); 
-	}
-
-	D3DSURFACE_DESC backDesc;
-	pBackBuffer->GetDesc(&backDesc);
-
-	IDirect3DSurface9* pTemp;
-	CreateRenderTarget(backDesc.Width, backDesc.Height, backDesc.Format, backDesc.MultiSampleType, backDesc.MultiSampleQuality, false, &pTemp, NULL);
-	pStereoBuffer = static_cast<Direct3DSurface9Vireio*>(pTemp);
-	SetRenderTarget(0, pTemp);
-	
-
-	
-
-
-
 	hudFont = NULL;
 	centerlineR = 0.0f;
 	centerlineL = 0.0f;
+	yaw_mode = 0;
+	pitch_mode = 0;
+	roll_mode = 0;
+	translation_mode = 0;
+	trackingOn = true;
+	SHOCT_mode = 0;
 }
+
+
+
 
 D3DProxyDevice::~D3DProxyDevice()
 {
@@ -100,32 +89,104 @@ D3DProxyDevice::~D3DProxyDevice()
 	}
 }
 
+
+/* 
+	Subclasses which override this method must call through to super method.
+	Anything that needs to be done before the device is used by the actual application should happen here.
+ */
 void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 {
 	OutputDebugString("D3D ProxyDev Init\n");
-	yaw_mode = 0;
-	pitch_mode = 0;
-	roll_mode = 0;
-	translation_mode = 0;
-	trackingOn = true;
-	SHOCT_mode = 0;
 
 	stereoView = StereoViewFactory::Get(cfg);
 	SetupOptions(cfg);
 	SetupMatrices();
+
+	OnCreateOrRestore();
+}
+
+
+/*
+  Subclasses which override this method must call through to super method.
+  Do not directly call this method in subclasses.
+  This method should be used to re/create any resources that are held by the device proxy and deleted by Reset.
+
+  The only resources used like this are going to be extra resources that are used by the proxy and are not
+  part of the actual calling application. 
+  
+  Examples in D3DProxyDevice: The Font used in the SHOCT overlay and the stereo buffer.
+
+  Example of something you wouldn't create here:
+  Render targets in the m_activeRenderTargets collection. They need to be released to successfully Reset
+  the device, but they just wrap IDirect3DSurface9 objects from the underlying application and will be
+  re/created by the underlying application.
+
+  This method will be called when the proxy device is initialised with Init (happens before device is
+  passed back to actual application by CreateDevice) and after a successful device Reset.
+*/
+void D3DProxyDevice::OnCreateOrRestore()
+{
+	// Create a stereo render target with the same properties as the backbuffer and set it as the current render target
+	IDirect3DSurface9* pBackBuffer;
+	if (m_pDevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer) != D3D_OK) {
+		OutputDebugString("Failed to fetch backbuffer.\n");
+		exit(1); 
+	}
+
+	D3DSURFACE_DESC backDesc;
+	pBackBuffer->GetDesc(&backDesc);
+
+	IDirect3DSurface9* pTemp;
+	CreateRenderTarget(backDesc.Width, backDesc.Height, backDesc.Format, backDesc.MultiSampleType, backDesc.MultiSampleQuality, false, &pTemp, NULL);
+	pStereoBuffer = static_cast<Direct3DSurface9Vireio*>(pTemp);
+	SetRenderTarget(0, pTemp);
+
 	SetupText();
 }
 
+
+/*
+	Subclasses which override this method must call through to super method at the end of the subclasses
+	implementation.
+ */
 HRESULT WINAPI D3DProxyDevice::Reset(D3DPRESENT_PARAMETERS* pPresentationParameters)
 {
 	if(stereoView != NULL)
 		stereoView->Reset();
+
 	if(hudFont) {
 		hudFont->Release();
 		hudFont = NULL;
 	}
 
-	return BaseDirect3DDevice9::Reset(pPresentationParameters);
+	for(std::vector<Direct3DSurface9Vireio*>::size_type i = 0; i != m_activeRenderTargets.size(); i++) 
+	{
+		if (m_activeRenderTargets[i] != NULL) {
+			m_activeRenderTargets[i]->Release();
+			m_activeRenderTargets[i] = NULL;
+		}
+	}
+
+	if(pStereoBuffer) {
+		pStereoBuffer->Release();
+		pStereoBuffer = NULL;
+	}
+
+	HRESULT hr = m_pDevice->Reset(pPresentationParameters);
+
+	
+//#ifdef _DEBUG
+	if (FAILED(hr)) {
+		fprintf(stderr, "Error: %s error description: %s\n",
+			DXGetErrorString(hr), DXGetErrorDescription(hr));
+	}
+//#endif
+
+	// if the device has been successfully reset we need to recreate any resources we created
+	if (hr == D3D_OK)
+		OnCreateOrRestore();
+
+	return hr;
 }
 
 void D3DProxyDevice::SetupOptions(ProxyHelper::ProxyConfig& cfg)
@@ -544,8 +605,6 @@ void ClearHLine(LPDIRECT3DDEVICE9 Device_Interface,int x1,int y1,int x2,int y2,i
 HRESULT WINAPI D3DProxyDevice::EndScene()
 {
 ///// hud text
-	if(hudFont == NULL)
-		SetupText();
 
 	if(hudFont && SHOCT_mode !=0) {
 		char vcString[512];
@@ -718,9 +777,12 @@ HRESULT WINAPI D3DProxyDevice::SetRenderTarget(DWORD RenderTargetIndex,IDirect3D
 {
 	Direct3DSurface9Vireio* newRenderTarget = static_cast<Direct3DSurface9Vireio*>(pRenderTarget);
 	
-
+	// Update actual render target
 	HRESULT result;
-	if (!newRenderTarget->IsStereo()) {
+	if (newRenderTarget == NULL) {
+		result = m_pDevice->SetRenderTarget(RenderTargetIndex, newRenderTarget);
+	}
+	else if (!newRenderTarget->IsStereo()) {
 		result = m_pDevice->SetRenderTarget(RenderTargetIndex, newRenderTarget->getMonoSurface());
 	}
 	else if (m_currentRenderingSide == Left) {
@@ -731,8 +793,19 @@ HRESULT WINAPI D3DProxyDevice::SetRenderTarget(DWORD RenderTargetIndex,IDirect3D
 	}
 
 	
-	if (result == D3D_OK)
+	
+	if (result == D3D_OK) {
+		// update proxy collection of stereo render targets to reflect new actual render target
+
+		// release old render target
+		if (m_activeRenderTargets[RenderTargetIndex] != NULL)
+			m_activeRenderTargets[RenderTargetIndex]->Release();
+
+		// replace with new render target (may be NULL)
 		m_activeRenderTargets[RenderTargetIndex] = newRenderTarget;
+		if (m_activeRenderTargets[RenderTargetIndex] != NULL)
+			m_activeRenderTargets[RenderTargetIndex]->AddRef();
+	}
 
 	return result;
 }
