@@ -772,10 +772,8 @@ HRESULT WINAPI D3DProxyDevice::Clear(DWORD Count,CONST D3DRECT* pRects,DWORD Fla
 	
 	HRESULT result;
 	if (result = m_pDevice->Clear(Count, pRects, Flags, Color, Z, Stencil) == D3D_OK) {
-		
-		// TODO if stereo enabled?
-		setDrawingSide(Right);
-		m_pDevice->Clear(Count, pRects, Flags, D3DCOLOR_RGBA(255, 0, 0, 255), Z, Stencil);
+		if (setDrawingSide(Right))
+			m_pDevice->Clear(Count, pRects, Flags, D3DCOLOR_RGBA(255, 0, 0, 255), Z, Stencil);
 	}
 
 	return result;
@@ -789,10 +787,8 @@ HRESULT WINAPI D3DProxyDevice::DrawPrimitive(D3DPRIMITIVETYPE PrimitiveType,UINT
 	
 	HRESULT result;
 	if (result = m_pDevice->DrawPrimitive(PrimitiveType, StartVertex, PrimitiveCount) == D3D_OK) {
-		
-		// TODO if stereo enabled?
-		setDrawingSide(Right);
-		m_pDevice->DrawPrimitive(PrimitiveType, StartVertex, PrimitiveCount);
+		if (setDrawingSide(Right))
+			m_pDevice->DrawPrimitive(PrimitiveType, StartVertex, PrimitiveCount);
 	}
 
 	return result;
@@ -805,10 +801,8 @@ HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitive(D3DPRIMITIVETYPE PrimitiveTy
 	
 	HRESULT result;
 	if (result = m_pDevice->DrawIndexedPrimitive(PrimitiveType, BaseVertexIndex, MinVertexIndex, NumVertices, startIndex, primCount) == D3D_OK) {
-		
-		// TODO if stereo enabled?
-		setDrawingSide(Right);
-		m_pDevice->DrawIndexedPrimitive(PrimitiveType, BaseVertexIndex, MinVertexIndex, NumVertices, startIndex, primCount);
+		if (setDrawingSide(Right))
+			m_pDevice->DrawIndexedPrimitive(PrimitiveType, BaseVertexIndex, MinVertexIndex, NumVertices, startIndex, primCount);
 	}
 
 	return result;
@@ -821,10 +815,8 @@ HRESULT WINAPI D3DProxyDevice::DrawPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType,UI
 	
 	HRESULT result;
 	if (result = m_pDevice->DrawPrimitiveUP(PrimitiveType, PrimitiveCount, pVertexStreamZeroData, VertexStreamZeroStride) == D3D_OK) {
-		
-		// TODO if stereo enabled?
-		setDrawingSide(Right);
-		m_pDevice->DrawPrimitiveUP(PrimitiveType, PrimitiveCount, pVertexStreamZeroData, VertexStreamZeroStride);
+		if (setDrawingSide(Right))
+			m_pDevice->DrawPrimitiveUP(PrimitiveType, PrimitiveCount, pVertexStreamZeroData, VertexStreamZeroStride);
 	}
 
 	return result;
@@ -836,10 +828,8 @@ HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitiveUP(D3DPRIMITIVETYPE Primitive
 	
 	HRESULT result;
 	if (result = m_pDevice->DrawIndexedPrimitiveUP(PrimitiveType, MinVertexIndex, NumVertices, PrimitiveCount, pIndexData, IndexDataFormat, pVertexStreamZeroData, VertexStreamZeroStride) == D3D_OK) {
-		
-		// TODO if stereo enabled?
-		setDrawingSide(Right);
-		m_pDevice->DrawIndexedPrimitiveUP(PrimitiveType, MinVertexIndex, NumVertices, PrimitiveCount, pIndexData, IndexDataFormat, pVertexStreamZeroData, VertexStreamZeroStride);
+		if (setDrawingSide(Right))
+			m_pDevice->DrawIndexedPrimitiveUP(PrimitiveType, MinVertexIndex, NumVertices, PrimitiveCount, pIndexData, IndexDataFormat, pVertexStreamZeroData, VertexStreamZeroStride);
 	}
 
 	return result;
@@ -851,10 +841,8 @@ HRESULT WINAPI D3DProxyDevice::DrawRectPatch(UINT Handle,CONST float* pNumSegs,C
 	
 	HRESULT result;
 	if (result = m_pDevice->DrawRectPatch(Handle, pNumSegs, pRectPatchInfo) == D3D_OK) {
-		
-		// TODO if stereo enabled?
-		setDrawingSide(Right);
-		m_pDevice->DrawRectPatch(Handle, pNumSegs, pRectPatchInfo);
+		if (setDrawingSide(Right))
+			m_pDevice->DrawRectPatch(Handle, pNumSegs, pRectPatchInfo);
 	}
 
 	return result;
@@ -866,10 +854,8 @@ HRESULT WINAPI D3DProxyDevice::DrawTriPatch(UINT Handle,CONST float* pNumSegs,CO
 	
 	HRESULT result;
 	if (result = m_pDevice->DrawTriPatch(Handle, pNumSegs, pTriPatchInfo) == D3D_OK) {
-		
-		// TODO if stereo enabled?
-		setDrawingSide(Right);
-		m_pDevice->DrawTriPatch(Handle, pNumSegs, pTriPatchInfo);
+		if (setDrawingSide(Right))
+			m_pDevice->DrawTriPatch(Handle, pNumSegs, pTriPatchInfo);
 	}
 
 	return result;
@@ -916,10 +902,23 @@ HRESULT WINAPI D3DProxyDevice::SetRenderTarget(DWORD RenderTargetIndex,IDirect3D
 
 
 
-void D3DProxyDevice::setDrawingSide(EyeSide side)
+
+
+
+/*
+	Returns true if change succeeded, false if it fails. The switch will fail if you attempt to setDrawingSide(Right)
+	when the current primary active render target (target 0  in m_activeRenderTargets) is not stereo.
+	Attempting to switch to a side when that side is already the active side will return true without making any changes.
+ */
+bool D3DProxyDevice::setDrawingSide(EyeSide side)
 {
 	if (side == m_currentRenderingSide)
-		return;
+		return true;
+
+	// should never set render target 0 to null.
+	if (!m_activeRenderTargets[0]->IsStereo() && (side == Right)) 
+		return false;
+
 
 	HRESULT result;
 	D3DProxyStereoSurface* pCurrentRT;
@@ -929,6 +928,7 @@ void D3DProxyDevice::setDrawingSide(EyeSide side)
 
 			if (!pCurrentRT->IsStereo() && (side == Left)) {
 				// draw mono surfaces on the left eye pass
+				result = m_pDevice->SetRenderTarget(i, pCurrentRT->getMonoSurface()); 
 			}
 			else {
 				if (side == Left) {
@@ -936,7 +936,7 @@ void D3DProxyDevice::setDrawingSide(EyeSide side)
 				}
 				else {
 					result = m_pDevice->SetRenderTarget(i, pCurrentRT->getRightSurface());
-				}
+				}																			
 			}
 				
 			if (result != D3D_OK)
@@ -945,6 +945,8 @@ void D3DProxyDevice::setDrawingSide(EyeSide side)
 	}
 
 	m_currentRenderingSide = side;
+
+	return true;
 }
 
 

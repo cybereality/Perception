@@ -152,7 +152,7 @@ protected:
 	virtual void OnCreateOrRestore();
 
 	// Use to specify the side that you want to draw to
-	void setDrawingSide(enum EyeSide side);
+	bool setDrawingSide(enum EyeSide side);
 
 	D3DProxyStereoSurface* pStereoBackBuffer;
 
