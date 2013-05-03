@@ -809,7 +809,7 @@ HRESULT WINAPI D3DProxyDevice::SetRenderTarget(DWORD RenderTargetIndex,IDirect3D
 	if (newRenderTarget == NULL) {
 		result = m_pDevice->SetRenderTarget(RenderTargetIndex, newRenderTarget);
 	}
-	else if (!newRenderTarget->IsStereo()) {
+	else if (!newRenderTarget->IsStereo() && (m_currentRenderingSide == Left)) {
 		result = m_pDevice->SetRenderTarget(RenderTargetIndex, newRenderTarget->getMonoSurface());
 	}
 	else if (m_currentRenderingSide == Left) {
