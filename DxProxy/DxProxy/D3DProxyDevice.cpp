@@ -850,11 +850,16 @@ void D3DProxyDevice::setDrawingSide(EyeSide side)
 	{
 		if ((pCurrentRT = m_activeRenderTargets[i]) != NULL) {
 
-			if ((side == Left) || !pCurrentRT->IsStereo()) {
-				result = m_pDevice->SetRenderTarget(i, pCurrentRT->getLeftSurface());
+			if (!pCurrentRT->IsStereo() && (side == Left)) {
+				// draw mono surfaces on the left eye pass
 			}
 			else {
-				result = m_pDevice->SetRenderTarget(i, pCurrentRT->getRightSurface());
+				if (side == Left) {
+					result = m_pDevice->SetRenderTarget(i, pCurrentRT->getLeftSurface()); 
+				}
+				else {
+					result = m_pDevice->SetRenderTarget(i, pCurrentRT->getRightSurface());
+				}
 			}
 				
 			if (result != D3D_OK)
