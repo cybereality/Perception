@@ -365,7 +365,7 @@ void StereoView::UpdateEye(int eye){}
 void StereoView::Draw() {}
 /////////////////////
 
-void StereoView::Draw(Direct3DSurface9Vireio* stereoCapableSurface)
+void StereoView::Draw(D3DProxyStereoSurface* stereoCapableSurface)
 {
 	// Copy left and right surfaces to textures to use as shader input
 	// TODO match aspect ratio of source in target 

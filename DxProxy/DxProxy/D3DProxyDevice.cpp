@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "D3DProxyDevice.h"
-#include "Direct3DSurface9Vireio.h"
+#include "D3DProxyStereoSurface.h"
 #include "StereoViewFactory.h"
 #include "MotionTrackerFactory.h"
 
@@ -76,7 +76,7 @@ D3DProxyDevice::~D3DProxyDevice()
 	}
 
 
-	for(std::vector<Direct3DSurface9Vireio*>::size_type i = 0; i != m_activeRenderTargets.size(); i++) 
+	for(std::vector<D3DProxyStereoSurface*>::size_type i = 0; i != m_activeRenderTargets.size(); i++) 
 	{
 		if (m_activeRenderTargets[i] != NULL) {
 			m_activeRenderTargets[i]->Release();
@@ -142,7 +142,7 @@ void D3DProxyDevice::OnCreateOrRestore()
 
 	IDirect3DSurface9* pTemp;
 	CreateRenderTarget(backDesc.Width, backDesc.Height, backDesc.Format, backDesc.MultiSampleType, backDesc.MultiSampleQuality, false, &pTemp, NULL);
-	pStereoBuffer = static_cast<Direct3DSurface9Vireio*>(pTemp);
+	pStereoBuffer = static_cast<D3DProxyStereoSurface*>(pTemp);
 	SetRenderTarget(0, pTemp);
 
 	SetupText();
@@ -179,7 +179,7 @@ HRESULT WINAPI D3DProxyDevice::Reset(D3DPRESENT_PARAMETERS* pPresentationParamet
 
 	
 
-	for(std::vector<Direct3DSurface9Vireio*>::size_type i = 0; i != m_activeRenderTargets.size(); i++) 
+	for(std::vector<D3DProxyStereoSurface*>::size_type i = 0; i != m_activeRenderTargets.size(); i++) 
 	{
 		if (m_activeRenderTargets[i] != NULL) {
 			newRefCount = m_activeRenderTargets[i]->Release();
@@ -719,7 +719,7 @@ HRESULT WINAPI D3DProxyDevice::EndScene()
 
 
 /*
-	The IDirect3DSurface9** ppSurface returned should always be a Direct3DSurface9Vireio. Any class overloading
+	The IDirect3DSurface9** ppSurface returned should always be a D3DProxyStereoSurface. Any class overloading
 	this method should ensure that this remains true.
  */
 HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample,
@@ -731,7 +731,7 @@ HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFO
 		"If Needed" heuristic is the complicated part here.
 		  Fixed heuristics (based on type, format, size, etc) + game specific overrides + isForcedMono + magic?
 
-		Always create a Direct3DSurface9Vireio using the render target and return that
+		Always create a D3DProxyStereoSurface using the render target and return that
 	 */
 
 	// TODO Experiment: Try modifying fullscreen render targets to shrink them to side by side sizes.
@@ -758,7 +758,7 @@ HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFO
 
 
 	if (creationResult == D3D_OK)
-		*ppSurface = new Direct3DSurface9Vireio(pLeftRenderTarget, pRightRenderTarget);
+		*ppSurface = new D3DProxyStereoSurface(pLeftRenderTarget, pRightRenderTarget);
 
 	return creationResult;
 }
@@ -802,7 +802,7 @@ HRESULT WINAPI D3DProxyDevice::DrawPrimitive(D3DPRIMITIVETYPE PrimitiveType,UINT
 
 HRESULT WINAPI D3DProxyDevice::SetRenderTarget(DWORD RenderTargetIndex,IDirect3DSurface9* pRenderTarget)
 {
-	Direct3DSurface9Vireio* newRenderTarget = static_cast<Direct3DSurface9Vireio*>(pRenderTarget);
+	D3DProxyStereoSurface* newRenderTarget = static_cast<D3DProxyStereoSurface*>(pRenderTarget);
 	
 	// Update actual render target
 	HRESULT result;
@@ -845,8 +845,8 @@ void D3DProxyDevice::setDrawingSide(EyeSide side)
 		return;
 
 	HRESULT result;
-	Direct3DSurface9Vireio* pCurrentRT;
-	for(std::vector<Direct3DSurface9Vireio*>::size_type i = 0; i != m_activeRenderTargets.size(); i++) 
+	D3DProxyStereoSurface* pCurrentRT;
+	for(std::vector<D3DProxyStereoSurface*>::size_type i = 0; i != m_activeRenderTargets.size(); i++) 
 	{
 		if ((pCurrentRT = m_activeRenderTargets[i]) != NULL) {
 

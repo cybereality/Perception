@@ -118,7 +118,7 @@
     <ClCompile Include="Direct3D9.cpp" />
     <ClCompile Include="Direct3DSurface9.cpp" />
     <ClCompile Include="Direct3DDevice9.cpp" />
-    <ClCompile Include="Direct3DSurface9Vireio.cpp" />
+    <ClCompile Include="D3DProxyStereoSurface.cpp" />
     <ClCompile Include="FreeSpaceTracker.cpp" />
     <ClCompile Include="FreeTrackTracker.cpp" />
     <ClCompile Include="Main.cpp" />
@@ -146,7 +146,7 @@
     <ClInclude Include="Direct3D9.h" />
     <ClInclude Include="Direct3DSurface9.h" />
     <ClInclude Include="Direct3DDevice9.h" />
-    <ClInclude Include="Direct3DSurface9Vireio.h" />
+    <ClInclude Include="D3DProxyStereoSurface.h" />
     <ClInclude Include="FreeSpaceTracker.h" />
     <ClInclude Include="FreeTrackTracker.h" />
     <ClInclude Include="Main.h" />

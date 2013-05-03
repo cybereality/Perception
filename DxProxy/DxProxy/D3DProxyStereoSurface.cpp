@@ -16,17 +16,17 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#include "Direct3DSurface9Vireio.h"
+#include "D3DProxyStereoSurface.h"
 #include "Direct3DDevice9.h"
 #include "Main.h"
 #include "D3DProxyDeviceFactory.h"
 
-Direct3DSurface9Vireio::Direct3DSurface9Vireio(IDirect3DSurface9* pLeftSurface, IDirect3DSurface9* pRightSurface) : BaseDirect3DSurface9(pLeftSurface)
+D3DProxyStereoSurface::D3DProxyStereoSurface(IDirect3DSurface9* pLeftSurface, IDirect3DSurface9* pRightSurface) : BaseDirect3DSurface9(pLeftSurface)
 {
 	m_pRightSurface = pRightSurface;
 }
 
-Direct3DSurface9Vireio::~Direct3DSurface9Vireio()
+D3DProxyStereoSurface::~D3DProxyStereoSurface()
 {
 	OutputDebugString("Release Right \n");
 	if(m_pRightSurface) {
@@ -43,24 +43,24 @@ Direct3DSurface9Vireio::~Direct3DSurface9Vireio()
 }
 
 
-bool Direct3DSurface9Vireio::IsStereo()
+bool D3DProxyStereoSurface::IsStereo()
 {
 	return m_pRightSurface != NULL;
 }
 
 
 
-IDirect3DSurface9* Direct3DSurface9Vireio::getMonoSurface()
+IDirect3DSurface9* D3DProxyStereoSurface::getMonoSurface()
 {
 	return getLeftSurface();
 }
 
-IDirect3DSurface9* Direct3DSurface9Vireio::getLeftSurface()
+IDirect3DSurface9* D3DProxyStereoSurface::getLeftSurface()
 {
 	return m_pSurface;
 }
 
-IDirect3DSurface9* Direct3DSurface9Vireio::getRightSurface()
+IDirect3DSurface9* D3DProxyStereoSurface::getRightSurface()
 {
 	return m_pRightSurface;
 }
@@ -68,7 +68,7 @@ IDirect3DSurface9* Direct3DSurface9Vireio::getRightSurface()
 
 
 
-HRESULT WINAPI Direct3DSurface9Vireio::SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags)
+HRESULT WINAPI D3DProxyStereoSurface::SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags)
 {
 	if (IsStereo())
 		m_pRightSurface->SetPrivateData(refguid, pData, SizeOfData, Flags);
@@ -78,7 +78,7 @@ HRESULT WINAPI Direct3DSurface9Vireio::SetPrivateData(REFGUID refguid, CONST voi
 
 
 
-HRESULT WINAPI Direct3DSurface9Vireio::FreePrivateData(REFGUID refguid)
+HRESULT WINAPI D3DProxyStereoSurface::FreePrivateData(REFGUID refguid)
 {
 	if (IsStereo())
 		m_pRightSurface->FreePrivateData(refguid);
@@ -86,7 +86,7 @@ HRESULT WINAPI Direct3DSurface9Vireio::FreePrivateData(REFGUID refguid)
 	return BaseDirect3DSurface9::FreePrivateData(refguid);
 }
 
-DWORD WINAPI Direct3DSurface9Vireio::SetPriority(DWORD PriorityNew)
+DWORD WINAPI D3DProxyStereoSurface::SetPriority(DWORD PriorityNew)
 {
 	if (IsStereo())
 		m_pRightSurface->SetPriority(PriorityNew);
@@ -95,7 +95,7 @@ DWORD WINAPI Direct3DSurface9Vireio::SetPriority(DWORD PriorityNew)
 }
 
 
-void WINAPI Direct3DSurface9Vireio::PreLoad()
+void WINAPI D3DProxyStereoSurface::PreLoad()
 {
 	if (IsStereo())
 		m_pRightSurface->PreLoad();
@@ -104,7 +104,7 @@ void WINAPI Direct3DSurface9Vireio::PreLoad()
 }
 
 
-HRESULT WINAPI Direct3DSurface9Vireio::LockRect(D3DLOCKED_RECT* pLockedRect, CONST RECT* pRect, DWORD Flags)
+HRESULT WINAPI D3DProxyStereoSurface::LockRect(D3DLOCKED_RECT* pLockedRect, CONST RECT* pRect, DWORD Flags)
 {
 	if (IsStereo())
 		m_pRightSurface->LockRect(pLockedRect, pRect, Flags);
@@ -112,7 +112,7 @@ HRESULT WINAPI Direct3DSurface9Vireio::LockRect(D3DLOCKED_RECT* pLockedRect, CON
 	return BaseDirect3DSurface9::LockRect(pLockedRect, pRect, Flags);
 }
 
-HRESULT WINAPI Direct3DSurface9Vireio::UnlockRect()
+HRESULT WINAPI D3DProxyStereoSurface::UnlockRect()
 {
 	if (IsStereo())
 		m_pRightSurface->UnlockRect();
@@ -122,7 +122,7 @@ HRESULT WINAPI Direct3DSurface9Vireio::UnlockRect()
 
 
 
-HRESULT WINAPI Direct3DSurface9Vireio::ReleaseDC(HDC hdc)
+HRESULT WINAPI D3DProxyStereoSurface::ReleaseDC(HDC hdc)
 {
 	if (IsStereo())
 		m_pRightSurface->ReleaseDC(hdc);

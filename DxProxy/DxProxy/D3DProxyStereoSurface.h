@@ -16,8 +16,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#ifndef DIRECT3DSURFACE9VIREIO_H_INCLUDED
-#define DIRECT3DSURFACE9VIREIO_H_INCLUDED
+#ifndef D3DPROXYSTEREOSURFACE_H_INCLUDED
+#define D3DPROXYSTEREOSURFACE_H_INCLUDED
 
 #include <d3d9.h>
 #include "Direct3DSurface9.h"
@@ -28,11 +28,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
  */
-class Direct3DSurface9Vireio : public BaseDirect3DSurface9
+class D3DProxyStereoSurface : public BaseDirect3DSurface9
 {
 public:
-	Direct3DSurface9Vireio(IDirect3DSurface9* pLeftSurface, IDirect3DSurface9* pRightSurface);
-	virtual ~Direct3DSurface9Vireio();
+	D3DProxyStereoSurface(IDirect3DSurface9* pLeftSurface, IDirect3DSurface9* pRightSurface);
+	virtual ~D3DProxyStereoSurface();
 
 	bool IsStereo();
 

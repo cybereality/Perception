@@ -119,10 +119,10 @@
     <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxyDeviceSource.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxyDeviceTest.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxyDeviceUnreal.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxyStereoSurface.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\Direct3D9.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\Direct3DDevice9.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\Direct3DSurface9.cpp" />
-    <ClCompile Include="..\..\DxProxy\DxProxy\Direct3DSurface9Vireio.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\FreeSpaceTracker.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\FreeTrackTracker.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\MotionTracker.cpp" />
@@ -151,10 +151,10 @@
     <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyDeviceSource.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyDeviceTest.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyDeviceUnreal.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyStereoSurface.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\Direct3D9.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\Direct3DDevice9.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\Direct3DSurface9.h" />
-    <ClInclude Include="..\..\DxProxy\DxProxy\Direct3DSurface9Vireio.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\FreeSpaceTracker.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\MotionTracker.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\MotionTrackerFactory.h" />

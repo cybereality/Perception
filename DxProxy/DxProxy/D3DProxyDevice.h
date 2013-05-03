@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define D3DPROXYDEVICE_H_INCLUDED
 
 #include "Direct3DDevice9.h"
-#include "Direct3DSurface9Vireio.h"
+#include "D3DProxyStereoSurface.h"
 #include "ProxyHelper.h"
 #include "StereoView.h"
 #include "MotionTracker.h"
@@ -146,7 +146,7 @@ protected:
 	// Use to specify the side that you want to draw to
 	void setDrawingSide(enum EyeSide side);
 
-	Direct3DSurface9Vireio* pStereoBuffer;
+	D3DProxyStereoSurface* pStereoBuffer;
 
 
 private:
@@ -154,7 +154,7 @@ private:
 	
 
 	// The render targets that are currently in use.
-	std::vector<Direct3DSurface9Vireio*> m_activeRenderTargets;
+	std::vector<D3DProxyStereoSurface*> m_activeRenderTargets;
 	
 
 	enum EyeSide m_currentRenderingSide;

@@ -8,9 +8,6 @@
     <Filter Include="Proxy">
       <UniqueIdentifier>{80cc0ca4-7c65-4467-9166-d0e377de5737}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Implementation">
-      <UniqueIdentifier>{723f04f1-e44b-4f6f-9011-24c8278349b1}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Stereo">
       <UniqueIdentifier>{8e86dd19-8c6e-4701-9dbe-401badc08f9a}</UniqueIdentifier>
     </Filter>
@@ -39,6 +36,15 @@
     <Filter Include="Direct3D9\Direct3DSurface9">
       <UniqueIdentifier>{49eff999-2370-4d8a-8e9d-77ccdf8a53b6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Direct3D9Vireio">
+      <UniqueIdentifier>{28b4cc66-4af3-4ac4-99aa-5a29de9ba8b2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Direct3D9Vireio\Direct3DDevice9">
+      <UniqueIdentifier>{4ef859f6-c511-4db2-b101-b5a4fca35325}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Direct3D9Vireio\Direct3DSurface9">
+      <UniqueIdentifier>{c465f621-2d89-4eb9-9737-8ccc8ba93b3a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -53,47 +59,20 @@
     <ClCompile Include="ProxyHelper.cpp">
       <Filter>Proxy</Filter>
     </ClCompile>
-    <ClCompile Include="D3DProxyDeviceSource.cpp">
-      <Filter>Implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="D3DProxyDeviceUnreal.cpp">
-      <Filter>Implementation</Filter>
-    </ClCompile>
     <ClCompile Include="StereoViewFactory.cpp">
       <Filter>Stereo</Filter>
     </ClCompile>
     <ClCompile Include="StereoView.cpp">
       <Filter>Stereo</Filter>
     </ClCompile>
-    <ClCompile Include="D3DProxyDevice.cpp">
-      <Filter>Implementation</Filter>
-    </ClCompile>
     <ClCompile Include="StereoViewInterleave.cpp">
       <Filter>Stereo</Filter>
-    </ClCompile>
-    <ClCompile Include="D3DProxyDeviceFactory.cpp">
-      <Filter>Implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="D3DProxyDeviceTest.cpp">
-      <Filter>Implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="D3DProxyDeviceMono.cpp">
-      <Filter>Implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="D3DProxyDeviceEgo.cpp">
-      <Filter>Implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="D3DProxyDeviceFixed.cpp">
-      <Filter>Implementation</Filter>
     </ClCompile>
     <ClCompile Include="FreeSpaceTracker.cpp">
       <Filter>Tracking</Filter>
     </ClCompile>
     <ClCompile Include="MotionTracker.cpp">
       <Filter>Tracking</Filter>
-    </ClCompile>
-    <ClCompile Include="D3DProxyDeviceAdv.cpp">
-      <Filter>Implementation</Filter>
     </ClCompile>
     <ClCompile Include="pugixml.cpp">
       <Filter>XML</Filter>
@@ -116,8 +95,35 @@
     <ClCompile Include="Direct3DSurface9.cpp">
       <Filter>Direct3D9\Direct3DSurface9</Filter>
     </ClCompile>
-    <ClCompile Include="Direct3DSurface9Vireio.cpp">
-      <Filter>Direct3D9\Direct3DSurface9</Filter>
+    <ClCompile Include="D3DProxyDevice.cpp">
+      <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
+    </ClCompile>
+    <ClCompile Include="D3DProxyDeviceAdv.cpp">
+      <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
+    </ClCompile>
+    <ClCompile Include="D3DProxyDeviceEgo.cpp">
+      <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
+    </ClCompile>
+    <ClCompile Include="D3DProxyDeviceFactory.cpp">
+      <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
+    </ClCompile>
+    <ClCompile Include="D3DProxyDeviceFixed.cpp">
+      <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
+    </ClCompile>
+    <ClCompile Include="D3DProxyDeviceMono.cpp">
+      <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
+    </ClCompile>
+    <ClCompile Include="D3DProxyDeviceSource.cpp">
+      <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
+    </ClCompile>
+    <ClCompile Include="D3DProxyDeviceTest.cpp">
+      <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
+    </ClCompile>
+    <ClCompile Include="D3DProxyDeviceUnreal.cpp">
+      <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
+    </ClCompile>
+    <ClCompile Include="D3DProxyStereoSurface.cpp">
+      <Filter>Direct3D9Vireio\Direct3DSurface9</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -138,47 +144,20 @@
     <ClInclude Include="ProxyHelper.h">
       <Filter>Proxy</Filter>
     </ClInclude>
-    <ClInclude Include="D3DProxyDeviceSource.h">
-      <Filter>Implementation</Filter>
-    </ClInclude>
-    <ClInclude Include="D3DProxyDeviceUnreal.h">
-      <Filter>Implementation</Filter>
-    </ClInclude>
     <ClInclude Include="StereoView.h">
       <Filter>Stereo</Filter>
     </ClInclude>
     <ClInclude Include="StereoViewFactory.h">
       <Filter>Stereo</Filter>
     </ClInclude>
-    <ClInclude Include="D3DProxyDevice.h">
-      <Filter>Implementation</Filter>
-    </ClInclude>
     <ClInclude Include="StereoViewInterleave.h">
       <Filter>Stereo</Filter>
-    </ClInclude>
-    <ClInclude Include="D3DProxyDeviceFactory.h">
-      <Filter>Implementation</Filter>
-    </ClInclude>
-    <ClInclude Include="D3DProxyDeviceTest.h">
-      <Filter>Implementation</Filter>
-    </ClInclude>
-    <ClInclude Include="D3DProxyDeviceMono.h">
-      <Filter>Implementation</Filter>
-    </ClInclude>
-    <ClInclude Include="D3DProxyDeviceEgo.h">
-      <Filter>Implementation</Filter>
-    </ClInclude>
-    <ClInclude Include="D3DProxyDeviceFixed.h">
-      <Filter>Implementation</Filter>
     </ClInclude>
     <ClInclude Include="FreeSpaceTracker.h">
       <Filter>Tracking</Filter>
     </ClInclude>
     <ClInclude Include="MotionTracker.h">
       <Filter>Tracking</Filter>
-    </ClInclude>
-    <ClInclude Include="D3DProxyDeviceAdv.h">
-      <Filter>Implementation</Filter>
     </ClInclude>
     <ClInclude Include="pugiconfig.hpp">
       <Filter>XML</Filter>
@@ -204,8 +183,35 @@
     <ClInclude Include="Direct3DSurface9.h">
       <Filter>Direct3D9\Direct3DSurface9</Filter>
     </ClInclude>
-    <ClInclude Include="Direct3DSurface9Vireio.h">
-      <Filter>Direct3D9\Direct3DSurface9</Filter>
+    <ClInclude Include="D3DProxyDeviceUnreal.h">
+      <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
+    </ClInclude>
+    <ClInclude Include="D3DProxyDevice.h">
+      <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
+    </ClInclude>
+    <ClInclude Include="D3DProxyDeviceAdv.h">
+      <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
+    </ClInclude>
+    <ClInclude Include="D3DProxyDeviceEgo.h">
+      <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
+    </ClInclude>
+    <ClInclude Include="D3DProxyDeviceFactory.h">
+      <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
+    </ClInclude>
+    <ClInclude Include="D3DProxyDeviceFixed.h">
+      <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
+    </ClInclude>
+    <ClInclude Include="D3DProxyDeviceMono.h">
+      <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
+    </ClInclude>
+    <ClInclude Include="D3DProxyDeviceSource.h">
+      <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
+    </ClInclude>
+    <ClInclude Include="D3DProxyDeviceTest.h">
+      <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
+    </ClInclude>
+    <ClInclude Include="D3DProxyStereoSurface.h">
+      <Filter>Direct3D9Vireio\Direct3DSurface9</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
