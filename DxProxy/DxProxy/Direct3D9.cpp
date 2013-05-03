@@ -146,6 +146,10 @@ HRESULT WINAPI BaseDirect3D9::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, 
 
 	OutputDebugString("created device success\n");
 
+	char buf[64];
+	sprintf_s(buf, "Number of back buffers = %d\n", pPresentationParameters->BackBufferCount);
+	OutputDebugString(buf);
+
 	// load configuration file
 	ProxyHelper helper = ProxyHelper();
 	ProxyHelper::ProxyConfig cfg;
@@ -159,11 +163,11 @@ HRESULT WINAPI BaseDirect3D9::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, 
 
 	OutputDebugString("stereo mode not disabled\n");
 
-	char buf[32];
+	char buf1[32];
 	LPCSTR psz = NULL;
 
-	wsprintf(buf,"Config type: %d", cfg.game_type);
-	psz = buf;
+	wsprintf(buf1,"Config type: %d", cfg.game_type);
+	psz = buf1;
 	OutputDebugString(psz);
 	OutputDebugString("\n");
 

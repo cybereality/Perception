@@ -52,7 +52,7 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice):BaseDirect3DDevice9(pD
 	m_activeRenderTargets.resize(maxRenderTargets, NULL);
 	m_currentRenderingSide = Left;
 	
-	pStereoBuffer = NULL;
+	pStereoBackBuffer = NULL;
 	hudFont = NULL;
 
 	centerlineR = 0.0f;
@@ -84,9 +84,9 @@ D3DProxyDevice::~D3DProxyDevice()
 		}
 	}
 
-	if(pStereoBuffer) {
-		pStereoBuffer->Release();
-		pStereoBuffer = NULL;
+	if(pStereoBackBuffer) {
+		pStereoBackBuffer->Release();
+		pStereoBackBuffer = NULL;
 	}
 }
 
@@ -142,7 +142,7 @@ void D3DProxyDevice::OnCreateOrRestore()
 
 	IDirect3DSurface9* pTemp;
 	CreateRenderTarget(backDesc.Width, backDesc.Height, backDesc.Format, backDesc.MultiSampleType, backDesc.MultiSampleQuality, false, &pTemp, NULL);
-	pStereoBuffer = static_cast<D3DProxyStereoSurface*>(pTemp);
+	pStereoBackBuffer = static_cast<D3DProxyStereoSurface*>(pTemp);
 	SetRenderTarget(0, pTemp);
 
 	SetupText();
@@ -170,7 +170,7 @@ HRESULT WINAPI D3DProxyDevice::Reset(D3DPRESENT_PARAMETERS* pPresentationParamet
 
 		if (newRefCount > 0) {
 			char buf[256];
-			sprintf_s(buf, "Error: hudFont count = %d\n", newRefCount);
+			sprintf_s(buf, "hudFont count = %d\n", newRefCount);
 			OutputDebugString(buf);
 		}
 
@@ -186,7 +186,7 @@ HRESULT WINAPI D3DProxyDevice::Reset(D3DPRESENT_PARAMETERS* pPresentationParamet
 
 			if (newRefCount > 0) {
 				char buf[256];
-				sprintf_s(buf, "Error: m_activeRenderTargets[%d] count = %d\n", i, newRefCount);
+				sprintf_s(buf, "m_activeRenderTargets[%d] count = %d\n", i, newRefCount); // count for one of these will usually be one here because it is also referenced by pStereoBackBuffer
 				OutputDebugString(buf);
 			}
 
@@ -194,16 +194,16 @@ HRESULT WINAPI D3DProxyDevice::Reset(D3DPRESENT_PARAMETERS* pPresentationParamet
 		}
 	}
 
-	if(pStereoBuffer) {
-		newRefCount = pStereoBuffer->Release();
+	if(pStereoBackBuffer) {
+		newRefCount = pStereoBackBuffer->Release();
 
 		if (newRefCount > 0) {
 			char buf[256];
-			sprintf_s(buf, "Error: pStereoBuffer count = %d\n", newRefCount);
+			sprintf_s(buf, "pStereoBackBuffer count = %d\n", newRefCount);
 			OutputDebugString(buf);
 		}
 
-		pStereoBuffer = NULL;
+		pStereoBackBuffer = NULL;
 	}
 	
 
@@ -799,6 +799,83 @@ HRESULT WINAPI D3DProxyDevice::DrawPrimitive(D3DPRIMITIVETYPE PrimitiveType,UINT
 }
 
 
+HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitive(D3DPRIMITIVETYPE PrimitiveType,INT BaseVertexIndex,UINT MinVertexIndex,UINT NumVertices,UINT startIndex,UINT primCount)
+{
+	setDrawingSide(Left);
+	
+	HRESULT result;
+	if (result = m_pDevice->DrawIndexedPrimitive(PrimitiveType, BaseVertexIndex, MinVertexIndex, NumVertices, startIndex, primCount) == D3D_OK) {
+		
+		// TODO if stereo enabled?
+		setDrawingSide(Right);
+		m_pDevice->DrawIndexedPrimitive(PrimitiveType, BaseVertexIndex, MinVertexIndex, NumVertices, startIndex, primCount);
+	}
+
+	return result;
+}
+
+
+HRESULT WINAPI D3DProxyDevice::DrawPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType,UINT PrimitiveCount,CONST void* pVertexStreamZeroData,UINT VertexStreamZeroStride)
+{
+	setDrawingSide(Left);
+	
+	HRESULT result;
+	if (result = m_pDevice->DrawPrimitiveUP(PrimitiveType, PrimitiveCount, pVertexStreamZeroData, VertexStreamZeroStride) == D3D_OK) {
+		
+		// TODO if stereo enabled?
+		setDrawingSide(Right);
+		m_pDevice->DrawPrimitiveUP(PrimitiveType, PrimitiveCount, pVertexStreamZeroData, VertexStreamZeroStride);
+	}
+
+	return result;
+}
+
+HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType,UINT MinVertexIndex,UINT NumVertices,UINT PrimitiveCount,CONST void* pIndexData,D3DFORMAT IndexDataFormat,CONST void* pVertexStreamZeroData,UINT VertexStreamZeroStride)
+{
+	setDrawingSide(Left);
+	
+	HRESULT result;
+	if (result = m_pDevice->DrawIndexedPrimitiveUP(PrimitiveType, MinVertexIndex, NumVertices, PrimitiveCount, pIndexData, IndexDataFormat, pVertexStreamZeroData, VertexStreamZeroStride) == D3D_OK) {
+		
+		// TODO if stereo enabled?
+		setDrawingSide(Right);
+		m_pDevice->DrawIndexedPrimitiveUP(PrimitiveType, MinVertexIndex, NumVertices, PrimitiveCount, pIndexData, IndexDataFormat, pVertexStreamZeroData, VertexStreamZeroStride);
+	}
+
+	return result;
+}
+
+HRESULT WINAPI D3DProxyDevice::DrawRectPatch(UINT Handle,CONST float* pNumSegs,CONST D3DRECTPATCH_INFO* pRectPatchInfo)
+{
+	setDrawingSide(Left);
+	
+	HRESULT result;
+	if (result = m_pDevice->DrawRectPatch(Handle, pNumSegs, pRectPatchInfo) == D3D_OK) {
+		
+		// TODO if stereo enabled?
+		setDrawingSide(Right);
+		m_pDevice->DrawRectPatch(Handle, pNumSegs, pRectPatchInfo);
+	}
+
+	return result;
+}
+
+HRESULT WINAPI D3DProxyDevice::DrawTriPatch(UINT Handle,CONST float* pNumSegs,CONST D3DTRIPATCH_INFO* pTriPatchInfo)
+{
+	setDrawingSide(Left);
+	
+	HRESULT result;
+	if (result = m_pDevice->DrawTriPatch(Handle, pNumSegs, pTriPatchInfo) == D3D_OK) {
+		
+		// TODO if stereo enabled?
+		setDrawingSide(Right);
+		m_pDevice->DrawTriPatch(Handle, pNumSegs, pTriPatchInfo);
+	}
+
+	return result;
+}
+
+
 
 HRESULT WINAPI D3DProxyDevice::SetRenderTarget(DWORD RenderTargetIndex,IDirect3DSurface9* pRenderTarget)
 {
@@ -875,7 +952,55 @@ void D3DProxyDevice::setDrawingSide(EyeSide side)
 HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion)
 {
 	if (stereoView->initialized)
-		stereoView->Draw(pStereoBuffer);
+		stereoView->Draw(pStereoBackBuffer);
 
 	return m_pDevice->Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
+}
+
+
+/*
+	Multiple swap chains not handled. It is assumed that there is only one swap chain. This is guaranteed for full screen applications? (might not be for multi monitor setups?)
+	Currently only supports one back buffer
+
+	This is quick and dirty. Proper swapchain proxying is probably required
+ */
+HRESULT WINAPI D3DProxyDevice::GetBackBuffer(UINT iSwapChain,UINT iBackBuffer,D3DBACKBUFFER_TYPE Type,IDirect3DSurface9** ppBackBuffer)
+{
+	if (iSwapChain > 0)
+		OutputDebugString("GetBackBuffer: Swap chain other than swapchain 0 requested. Support for this has not yet been implemented. Bad things may be about to happen.");
+
+	if (iBackBuffer > 0)
+		OutputDebugString("Swap chain has more than one back buffer. Support for this has not yet been implemented. Bad things may be about to happen.");
+
+
+	*ppBackBuffer = pStereoBackBuffer;
+
+	return D3D_OK;
+
+
+	//return m_pDevice->GetBackBuffer(iSwapChain, iBackBuffer, Type, ppBackBuffer);
+}
+
+
+
+/*
+	Currently only a single swap chain with a single back buffer is supported. Calls to this method probably indicate a need to create a full swapchain proxy
+	(as the backbuffer could be retrieved from the proxy and multiple swap chains mean multiple backbuffers)
+ */
+HRESULT WINAPI D3DProxyDevice::GetSwapChain(UINT iSwapChain,IDirect3DSwapChain9** pSwapChain)
+{
+	if (iSwapChain > 0)
+		OutputDebugString("GetSwapChain: Swap chain other than swapchain 0 requested. Support for this has not yet been implemented. Bad things may be about to happen.");
+
+	OutputDebugString("GetSwapChain: If this chain is used to get anything other than buffer 0 bad things are going to happen");
+
+	return m_pDevice->GetSwapChain(iSwapChain, pSwapChain);
+}
+
+/* see above */
+HRESULT WINAPI D3DProxyDevice::CreateAdditionalSwapChain(D3DPRESENT_PARAMETERS* pPresentationParameters,IDirect3DSwapChain9** pSwapChain)
+{
+	OutputDebugString("CreateAdditionalSwapChain: Doom, doom, doom... go home now.");
+
+	return m_pDevice->CreateAdditionalSwapChain(pPresentationParameters, pSwapChain);
 }
