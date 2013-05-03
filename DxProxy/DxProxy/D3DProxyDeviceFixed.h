@@ -29,11 +29,11 @@ public:
 	D3DProxyDeviceFixed(IDirect3DDevice9* pDevice);
 	virtual ~D3DProxyDeviceFixed();
 	//virtual HRESULT WINAPI BeginScene();
-	virtual HRESULT WINAPI EndScene();
-	virtual HRESULT WINAPI Present(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion);
+	//virtual HRESULT WINAPI EndScene();
+	
 	//virtual HRESULT WINAPI SetTransform(D3DTRANSFORMSTATETYPE State,CONST D3DMATRIX* pMatrix);*/
 
-	virtual void Init(ProxyHelper::ProxyConfig& cfg);
+	//virtual void Init(ProxyHelper::ProxyConfig& cfg);
 };
 
 #endif

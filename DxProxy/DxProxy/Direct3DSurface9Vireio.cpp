@@ -28,8 +28,18 @@ Direct3DSurface9Vireio::Direct3DSurface9Vireio(IDirect3DSurface9* pLeftSurface, 
 
 Direct3DSurface9Vireio::~Direct3DSurface9Vireio()
 {
-	if(m_pRightSurface)
-		m_pRightSurface->Release();
+	OutputDebugString("Release Right \n");
+	if(m_pRightSurface) {
+		int newRefCount = m_pRightSurface->Release();
+		
+		if (newRefCount > 0) {
+			char buf[128];
+			sprintf_s(buf, "Error: count = %d\n", newRefCount);
+			OutputDebugString(buf);
+		}
+
+		m_pRightSurface = NULL;
+	}
 }
 
 

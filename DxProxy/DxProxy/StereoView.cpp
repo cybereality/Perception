@@ -52,9 +52,27 @@ StereoView::~StereoView()
 	OutputDebugString("Destroyed SteroView\n");
 }
 
+
+
+void releaseCheck(char* object, int newRefCount)
+{
+	if (newRefCount > 0) {
+		char buf[128];
+		sprintf_s(buf, "Error: %s count = %d\n", object, newRefCount);
+		OutputDebugString(buf);
+	}
+}
+
+
 void StereoView::Init(IDirect3DDevice9* dev)
 {
 	OutputDebugString("SteroView Init\n");
+
+	if (initialized) {
+		OutputDebugString("SteroView already Init'd\n");
+		return;
+	}
+
 
 	device = dev;
 
@@ -64,6 +82,10 @@ void StereoView::Init(IDirect3DDevice9* dev)
 
 	initialized = true;
 }
+
+
+
+
 
 void StereoView::InitShaderEffects()
 {
@@ -244,6 +266,10 @@ void StereoView::SetState()
 	device->SetSamplerState(1, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
 	device->SetSamplerState(1, D3DSAMP_ADDRESSW, D3DTADDRESS_CLAMP);
 
+	// TODO Need to check device capabilities if we want a prefered order of fallback rather than 
+	// whatever the default is being used when a mode isn't supported.
+	// Example - GeForce 660 doesn't appear to support D3DTEXF_ANISOTROPIC on the MAGFILTER (at least
+	// according to the spam of error messages when running with the directx debug runtime)
 	device->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC);
 	device->SetSamplerState(1, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC);
 	device->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC);
@@ -327,43 +353,22 @@ void StereoView::RestoreState()
 	lastRenderTarget1 = NULL;
 }
 
-void StereoView::UpdateEye(int eye)
-{
-	//// if not initilized assume a reset has occured and device is still valid
-	//if(!initialized)
-	//	Init(device);
 
-	//IDirect3DSurface9* currentSurface = NULL;
-
-	//if(eye == LEFT_EYE)
-	//{
-	//	currentSurface = leftSurface;
-	//} 
-	//else
-	//{
-	//	currentSurface = rightSurface;
-	//}
-
-	//device->StretchRect(backBuffer, NULL, currentSurface, NULL, D3DTEXF_NONE);
-}
 
 void StereoView::SwapEyes(bool doSwap)
 {
 	swap_eyes = doSwap;
 }
 
+/// To be removed ///
+void StereoView::UpdateEye(int eye){}
 void StereoView::Draw() {}
+/////////////////////
 
 void StereoView::Draw(Direct3DSurface9Vireio* stereoCapableSurface)
 {
-	// if not initilized assume a reset has occured and device is still valid
-	if(!initialized)
-		Init(device);
-
-
-
 	// Copy left and right surfaces to textures to use as shader input
-	// TODO match aspect ratio of source in target (or is that happening in the fx shader?) 
+	// TODO match aspect ratio of source in target 
 	IDirect3DSurface9* leftImage = stereoCapableSurface->getLeftSurface();
 	IDirect3DSurface9* rightImage = stereoCapableSurface->getRightSurface();
 
@@ -425,70 +430,75 @@ void StereoView::SaveScreen()
 	D3DXSaveSurfaceToFile(fileName, D3DXIFF_BMP, backBuffer, NULL, NULL);
 }
 
+
+
+
+
 void StereoView::Reset()
 {
+	OutputDebugString("SteroView Reset\n");
+
+	if(!initialized)
+		OutputDebugString("SteroView is already reset\n");
+
 	if(backBuffer)
-		backBuffer->Release();
+		releaseCheck("backBuffer", backBuffer->Release());	
 	backBuffer = NULL;
 
+	
+
 	if(leftTexture)
-		leftTexture->Release();
+		releaseCheck("leftTexture", leftTexture->Release());
 	leftTexture = NULL;
 
 	if(rightTexture)
-		rightTexture->Release();
+		releaseCheck("rightTexture", rightTexture->Release());
 	rightTexture = NULL;
 
-	/*if(screenTexture)
-		screenTexture->Release();
-	screenTexture = NULL;*/
+
 
 	if(leftSurface)
-		leftSurface->Release();
+		releaseCheck("leftSurface", leftSurface->Release());
 	leftSurface = NULL;
 
 	if(rightSurface)
-		rightSurface->Release();
+		releaseCheck("rightSurface", rightSurface->Release());
 	rightSurface = NULL;
 
-	/*if(screenSurface)
-		screenSurface->Release();
-	screenSurface = NULL;*/
 
-	if(backBuffer)
-		backBuffer->Release();
-	backBuffer = NULL;
+	
+	
 
 	if(lastVertexShader)
-		lastVertexShader->Release();
+		releaseCheck("lastVertexShader", lastVertexShader->Release());
 	lastVertexShader = NULL;
 
 	if(lastPixelShader)
-		lastPixelShader->Release();
+		releaseCheck("lastPixelShader", lastPixelShader->Release());
 	lastPixelShader = NULL;
 
 	if(lastTexture)
-		lastTexture->Release();
+		releaseCheck("lastTexture", lastTexture->Release());
 	lastTexture = NULL;
 
 	if(lastTexture1)
-		lastTexture1->Release();
+		releaseCheck("lastTexture1", lastTexture1->Release());
 	lastTexture1 = NULL;
 
 	if(lastVertexDeclaration)
-		lastVertexDeclaration->Release();
+		releaseCheck("lastVertexDeclaration", lastVertexDeclaration->Release());
 	lastVertexDeclaration = NULL;
 
 	if(lastRenderTarget0)
-		lastRenderTarget0->Release();
+		releaseCheck("lastRenderTarget0", lastRenderTarget0->Release());
 	lastRenderTarget0 = NULL;
 
 	if(lastRenderTarget1)
-		lastRenderTarget1->Release();
+		releaseCheck("lastRenderTarget1", lastRenderTarget1->Release());
 	lastRenderTarget1 = NULL;
 
 	if(viewEffect)
-		viewEffect->Release();
+		releaseCheck("viewEffect", viewEffect->Release());
 	viewEffect = NULL;
 
 	initialized = false;

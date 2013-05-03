@@ -79,9 +79,7 @@ public:
 	IDirect3DSurface9* backBuffer;
 	IDirect3DSurface9* leftSurface;
 	IDirect3DSurface9* rightSurface;
-	/*IDirect3DTexture9* screenTexture;
-	
-	IDirect3DSurface9* screenSurface;*/
+
 
 	IDirect3DVertexBuffer9* screenVertexBuffer;
 

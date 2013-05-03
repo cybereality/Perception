@@ -26,7 +26,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifdef _DEBUG
 #include "DxErr.h"
-
 #define D3D_DEBUG_INFO
 #endif
 
@@ -53,7 +52,9 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice):BaseDirect3DDevice9(pD
 	m_activeRenderTargets.resize(maxRenderTargets, NULL);
 	m_currentRenderingSide = Left;
 	
+	pStereoBuffer = NULL;
 	hudFont = NULL;
+
 	centerlineR = 0.0f;
 	centerlineL = 0.0f;
 	yaw_mode = 0;
@@ -100,9 +101,8 @@ void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 
 	stereoView = StereoViewFactory::Get(cfg);
 	SetupOptions(cfg);
-	SetupMatrices();
-
 	OnCreateOrRestore();
+	SetupMatrices();
 }
 
 
@@ -126,6 +126,9 @@ void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 */
 void D3DProxyDevice::OnCreateOrRestore()
 {
+	OutputDebugString(__FUNCTION__);
+	OutputDebugString("\n");
+
 	// Create a stereo render target with the same properties as the backbuffer and set it as the current render target
 	IDirect3DSurface9* pBackBuffer;
 	if (m_pDevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer) != D3D_OK) {
@@ -135,6 +138,7 @@ void D3DProxyDevice::OnCreateOrRestore()
 
 	D3DSURFACE_DESC backDesc;
 	pBackBuffer->GetDesc(&backDesc);
+	pBackBuffer->Release();
 
 	IDirect3DSurface9* pTemp;
 	CreateRenderTarget(backDesc.Width, backDesc.Height, backDesc.Format, backDesc.MultiSampleType, backDesc.MultiSampleQuality, false, &pTemp, NULL);
@@ -142,6 +146,8 @@ void D3DProxyDevice::OnCreateOrRestore()
 	SetRenderTarget(0, pTemp);
 
 	SetupText();
+
+	stereoView->Init(m_pDevice);
 }
 
 
@@ -151,43 +157,80 @@ void D3DProxyDevice::OnCreateOrRestore()
  */
 HRESULT WINAPI D3DProxyDevice::Reset(D3DPRESENT_PARAMETERS* pPresentationParameters)
 {
-	if(stereoView != NULL)
+	OutputDebugString(__FUNCTION__);
+	OutputDebugString("\n");
+
+	if(stereoView)
 		stereoView->Reset();
 
+	int newRefCount = 0;
+
 	if(hudFont) {
-		hudFont->Release();
+		newRefCount = hudFont->Release();
+
+		if (newRefCount > 0) {
+			char buf[256];
+			sprintf_s(buf, "Error: hudFont count = %d\n", newRefCount);
+			OutputDebugString(buf);
+		}
+
 		hudFont = NULL;
 	}
+
+	
 
 	for(std::vector<Direct3DSurface9Vireio*>::size_type i = 0; i != m_activeRenderTargets.size(); i++) 
 	{
 		if (m_activeRenderTargets[i] != NULL) {
-			m_activeRenderTargets[i]->Release();
+			newRefCount = m_activeRenderTargets[i]->Release();
+
+			if (newRefCount > 0) {
+				char buf[256];
+				sprintf_s(buf, "Error: m_activeRenderTargets[%d] count = %d\n", i, newRefCount);
+				OutputDebugString(buf);
+			}
+
 			m_activeRenderTargets[i] = NULL;
 		}
 	}
 
 	if(pStereoBuffer) {
-		pStereoBuffer->Release();
+		newRefCount = pStereoBuffer->Release();
+
+		if (newRefCount > 0) {
+			char buf[256];
+			sprintf_s(buf, "Error: pStereoBuffer count = %d\n", newRefCount);
+			OutputDebugString(buf);
+		}
+
 		pStereoBuffer = NULL;
 	}
+	
 
 	HRESULT hr = m_pDevice->Reset(pPresentationParameters);
 
+
 	
-//#ifdef _DEBUG
+	
+#ifdef _DEBUG
 	if (FAILED(hr)) {
-		fprintf(stderr, "Error: %s error description: %s\n",
-			DXGetErrorString(hr), DXGetErrorDescription(hr));
+		char buf[256];
+		sprintf_s(buf, "Error: %s error description: %s\n",
+				DXGetErrorString(hr), DXGetErrorDescription(hr));
+
+		OutputDebugString(buf);
 	}
-//#endif
+#endif
 
 	// if the device has been successfully reset we need to recreate any resources we created
-	if (hr == D3D_OK)
+	if (hr == D3D_OK) 
 		OnCreateOrRestore();
 
 	return hr;
 }
+
+
+
 
 void D3DProxyDevice::SetupOptions(ProxyHelper::ProxyConfig& cfg)
 {
@@ -725,15 +768,7 @@ HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFO
 
 HRESULT WINAPI D3DProxyDevice::Clear(DWORD Count,CONST D3DRECT* pRects,DWORD Flags,D3DCOLOR Color,float Z,DWORD Stencil)
 {
-
-	// Drawing
-	
-	// For each active render target 
-	//	  switch to left eye rendering
-	// 
-	// draw for left eye
 	setDrawingSide(Left);
-
 	
 	HRESULT result;
 	if (result = m_pDevice->Clear(Count, pRects, Flags, Color, Z, Stencil) == D3D_OK) {
@@ -743,15 +778,7 @@ HRESULT WINAPI D3DProxyDevice::Clear(DWORD Count,CONST D3DRECT* pRects,DWORD Fla
 		m_pDevice->Clear(Count, pRects, Flags, D3DCOLOR_RGBA(255, 0, 0, 255), Z, Stencil);
 	}
 
-	
-	// For each active stereo render target 
-	//	  switch to right eye rendering
-	// 
-	// draw for right eye
-	
-
-
-	return result;//m_pDevice->Clear(Count, pRects, Flags, Color, Z, Stencil);
+	return result;
 }
 
 
@@ -836,4 +863,14 @@ void D3DProxyDevice::setDrawingSide(EyeSide side)
 	}
 
 	m_currentRenderingSide = side;
+}
+
+
+
+HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion)
+{
+	if (stereoView->initialized)
+		stereoView->Draw(pStereoBuffer);
+
+	return m_pDevice->Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
 }

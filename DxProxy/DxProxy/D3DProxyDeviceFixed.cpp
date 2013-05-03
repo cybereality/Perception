@@ -26,11 +26,7 @@ D3DProxyDeviceFixed::~D3DProxyDeviceFixed()
 {
 }
 
-void D3DProxyDeviceFixed::Init(ProxyHelper::ProxyConfig& cfg)
-{
-	OutputDebugString("D3D ProxyDev Fixed Init\n");
-	D3DProxyDevice::Init(cfg);
-}
+
 
 /*HRESULT WINAPI D3DProxyDeviceFixed::BeginScene()
 {
@@ -41,49 +37,9 @@ void D3DProxyDeviceFixed::Init(ProxyHelper::ProxyConfig& cfg)
 	return D3DProxyDevice::BeginScene();
 }*/
 
-HRESULT WINAPI D3DProxyDeviceFixed::EndScene()
-{
-	// delay to avoid crashing on start
-	static int initDelay = 120;
-	initDelay--;
-
-	if(!stereoView->initialized && initDelay < 0)
-	{
-		stereoView->Init(m_pDevice);
-		SetupMatrices();
-	}
-
-	return D3DProxyDevice::EndScene();
-}
-
-HRESULT WINAPI D3DProxyDeviceFixed::Present(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion)
-{
-	/*HandleTracking();
-
-	if(stereoView->initialized && stereoView->stereoEnabled)
-	{
-		if(eyeShutter > 0)
-		{
-			stereoView->UpdateEye(StereoView::LEFT_EYE);
-		}
-		else 
-		{
-			stereoView->UpdateEye(StereoView::RIGHT_EYE);
-		}
-
-		stereoView->Draw();
-
-		eyeShutter *= -1;
-	}
-
-	if(eyeShutter > 0) return D3D_OK;*/
-
-	if (stereoView->initialized)
-		stereoView->Draw(pStereoBuffer);
 
 
-	return D3DProxyDevice::Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
-}
+
 
 /*HRESULT WINAPI D3DProxyDeviceFixed::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D3DMATRIX* pMatrix)
 {

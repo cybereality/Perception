@@ -29,8 +29,18 @@ BaseDirect3DSurface9::BaseDirect3DSurface9(IDirect3DSurface9* pSurface) :
 
 BaseDirect3DSurface9::~BaseDirect3DSurface9()
 {
-	if(m_pSurface)
-		m_pSurface->Release();
+	OutputDebugString("Release Left \n");
+	if(m_pSurface) {
+		int newRefCount = m_pSurface->Release();
+
+		if (newRefCount > 0) {
+			char buf[256];
+			sprintf_s(buf, "Error: count = %d\n", newRefCount);
+			OutputDebugString(buf);
+		}
+
+		m_pSurface = NULL;
+	}
 }
 
 HRESULT WINAPI BaseDirect3DSurface9::QueryInterface(REFIID riid, LPVOID* ppv)
