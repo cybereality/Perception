@@ -36,7 +36,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define KEY_UP(vk_code) ((GetAsyncKeyState(vk_code) & 0x8000) ? 0 : 1)
 
 #define IS_RENDER_TARGET(d3dusage) ((d3dusage & D3DUSAGE_RENDERTARGET) > 0 ? true : false)
-#define IS_POSSIBLE_RENDER_TARGET(d3dpool) ((d3dpool & D3DPOOL_DEFAULT) > 0 ? true : false) // render targets have to be in D3DPOOL_DEFAULT
+#define IS_POOL_DEFAULT(d3dpool) ((d3dpool & D3DPOOL_DEFAULT) > 0 ? true : false) // render targets have to be in D3DPOOL_DEFAULT
 
 
 
@@ -778,7 +778,7 @@ HRESULT WINAPI D3DProxyDevice::CreateOffscreenPlainSurface(UINT Width,UINT Heigh
 	OutputDebugString("\n"); 
 
 	// don't bother wrapping surfaces that aren't in the defalut pool. They can't be used as render targets so don't need to be stereo capable
-	if (!IS_POSSIBLE_RENDER_TARGET(Pool)) 
+	if (!IS_POOL_DEFAULT(Pool)) 
 		return BaseDirect3DDevice9::CreateOffscreenPlainSurface(Width, Height, Format, Pool, ppSurface, pSharedHandle);
 	
 
@@ -799,8 +799,8 @@ HRESULT WINAPI D3DProxyDevice::CreateOffscreenPlainSurface(UINT Width,UINT Heigh
 		}
 	}
 	else {
-		// even though we haven't duplicated this surface we still wrap it as it could be a stereo surface and when past back to
-		// any other method by the underlying application later we will be assuming it is wrapped by a stereo capable surface
+		// Even though we haven't duplicated this surface we still wrap it as it will be treated as a D3DProxyStereoSurface when passed back to
+		// any other method by the underlying application. At that time we will be assuming it is a D3DProxyStereoSurface.
 		creationResult = BaseDirect3DDevice9::CreateOffscreenPlainSurface(Width, Height, Format, Pool, &pLeftSurface, pSharedHandle);
 	}
 
@@ -809,6 +809,24 @@ HRESULT WINAPI D3DProxyDevice::CreateOffscreenPlainSurface(UINT Width,UINT Heigh
 		*ppSurface = new D3DProxyStereoSurface(pLeftSurface, pRightSurface);
 
 	return creationResult;
+}
+
+
+
+HRESULT WINAPI D3DProxyDevice::CreateTexture(UINT Width,UINT Height,UINT Levels,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool,IDirect3DTexture9** ppTexture,HANDLE* pSharedHandle)
+{
+	OutputDebugString(__FUNCTION__); 
+	OutputDebugString("\n"); 
+
+	// is or might be used as a render target. Might need to create stereo capable texture
+	if (IS_RENDER_TARGET(Usage) || IS_POOL_DEFAULT(Pool)) {
+		if (true) {// TODO Should we duplicate this possible Render Target? Replace "true" with heuristic
+			
+
+		}
+	}
+	else
+		return m_pDevice->CreateTexture(Width, Height, Levels, Usage, Format, Pool, ppTexture, pSharedHandle);
 }
 
 
@@ -946,8 +964,14 @@ HRESULT WINAPI D3DProxyDevice::SetRenderTarget(DWORD RenderTargetIndex, IDirect3
 
 	D3DProxyStereoSurface* newRenderTarget = static_cast<D3DProxyStereoSurface*>(pRenderTarget);
 
+#ifdef _DEBUG
 	if (!newRenderTarget)
-		OutputDebugString("SetRenderTarget cast D3DProxyStereoSurface resulted in null surface\n"); 
+		OutputDebugString("newRenderTarget is a null surface\n"); 
+	else {
+		if (!newRenderTarget->getLeftSurface() && !newRenderTarget->getRightSurface())
+			OutputDebugString("RenderTarget is not a valid (D3DProxyStereoSurface) stereo capable surface\n"); 
+	}
+#endif
 	
 	// Update actual render target
 	HRESULT result;
