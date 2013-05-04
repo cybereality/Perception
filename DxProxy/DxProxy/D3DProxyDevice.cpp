@@ -34,6 +34,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define KEY_DOWN(vk_code) ((GetAsyncKeyState(vk_code) & 0x8000) ? 1 : 0)
 #define KEY_UP(vk_code) ((GetAsyncKeyState(vk_code) & 0x8000) ? 0 : 1)
 
+#define IS_RENDER_TARGET(d3dusage) ((d3dusage & D3DUSAGE_RENDERTARGET) > 0 ? true : false)
+#define IS_POSSIBLE_RENDER_TARGET(d3dpool) ((d3dpool & D3DPOOL_DEFAULT) > 0 ? true : false) // render targets have to be in D3DPOOL_DEFAULT
+
 
 
 #define PI 3.141592654
@@ -766,6 +769,47 @@ HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFO
 
 
 
+
+HRESULT WINAPI D3DProxyDevice::CreateOffscreenPlainSurface(UINT Width,UINT Height,D3DFORMAT Format,D3DPOOL Pool,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle)
+{
+	// don't bother wrapping surfaces that aren't in the defalut pool. They can't be used as render targets so don't need to be stereo capable
+	if (!IS_POSSIBLE_RENDER_TARGET(Pool)) 
+		return m_pDevice->CreateOffscreenPlainSurface(Width, Height, Format, Pool, ppSurface, pSharedHandle);
+	
+
+	// Surfaces created in the default pool can be used as render targets so we have to assume this surface will be used as a target and be prepared for that.
+	IDirect3DSurface9* pLeftSurface = NULL;
+	IDirect3DSurface9* pRightSurface = NULL;
+	HRESULT creationResult;
+	if (true) // TODO Should we duplicate this possible Render Target? Replace "true" with heuristic
+	{
+		if ((creationResult = m_pDevice->CreateOffscreenPlainSurface(Width, Height, Format, Pool, &pLeftSurface, pSharedHandle)) == D3D_OK) {
+			if (m_pDevice->CreateOffscreenPlainSurface(Width, Height, Format, Pool, &pRightSurface, pSharedHandle) != D3D_OK) {
+				OutputDebugString("Failed to create right eye OffscreenPlainSurface while attempting to create stereo pair, falling back to mono\n");
+				pRightSurface = NULL;
+			}
+		}
+		else {
+			OutputDebugString("Failed to create left eye while attempting to create stereo pair of OffscreenPlainSurfaces\n"); 
+		}
+	}
+	else {
+		// even though we haven't duplicated this surface we still wrap it as it could be a stereo surface and when past back to
+		// any other method by the underlying application later we will be assuming it is wrapped by a stereo capable surface
+		creationResult = m_pDevice->CreateOffscreenPlainSurface(Width, Height, Format, Pool, &pLeftSurface, pSharedHandle);
+	}
+
+
+	if (creationResult == D3D_OK)
+		*ppSurface = new D3DProxyStereoSurface(pLeftSurface, pRightSurface);
+
+	return creationResult;
+}
+
+
+
+
+
 HRESULT WINAPI D3DProxyDevice::Clear(DWORD Count,CONST D3DRECT* pRects,DWORD Flags,D3DCOLOR Color,float Z,DWORD Stencil)
 {
 	setDrawingSide(Left);
@@ -779,6 +823,20 @@ HRESULT WINAPI D3DProxyDevice::Clear(DWORD Count,CONST D3DRECT* pRects,DWORD Fla
 	return result;
 }
 
+
+
+HRESULT WINAPI D3DProxyDevice::ColorFill(IDirect3DSurface9* pSurface,CONST RECT* pRect,D3DCOLOR color)
+{
+	setDrawingSide(Left);
+	
+	HRESULT result;
+	if (result = m_pDevice->ColorFill(pSurface, pRect, color) == D3D_OK) {
+		if (setDrawingSide(Right))
+			m_pDevice->ColorFill(pSurface, pRect, color);
+	}
+
+	return result;
+}
 
 
 HRESULT WINAPI D3DProxyDevice::DrawPrimitive(D3DPRIMITIVETYPE PrimitiveType,UINT StartVertex,UINT PrimitiveCount)
@@ -1008,3 +1066,4 @@ HRESULT WINAPI D3DProxyDevice::CreateAdditionalSwapChain(D3DPRESENT_PARAMETERS* 
 
 	return m_pDevice->CreateAdditionalSwapChain(pPresentationParameters, pSwapChain);
 }
+
