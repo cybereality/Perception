@@ -368,7 +368,7 @@ void StereoView::Draw() {}
 void StereoView::Draw(D3DProxyStereoSurface* stereoCapableSurface)
 {
 	// Copy left and right surfaces to textures to use as shader input
-	// TODO match aspect ratio of source in target 
+	// TODO match aspect ratio of source in target ? 
 	IDirect3DSurface9* leftImage = stereoCapableSurface->getLeftSurface();
 	IDirect3DSurface9* rightImage = stereoCapableSurface->getRightSurface();
 

@@ -154,16 +154,19 @@ protected:
 	// Use to specify the side that you want to draw to
 	bool setDrawingSide(enum EyeSide side);
 
-	D3DProxyStereoSurface* pStereoBackBuffer;
+	
 
 
 private:
 
 	
+	D3DProxyStereoSurface* pStereoBackBuffer;
 
 	// The render targets that are currently in use.
 	std::vector<D3DProxyStereoSurface*> m_activeRenderTargets;
 	
+
+
 
 	enum EyeSide m_currentRenderingSide;
 

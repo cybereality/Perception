@@ -773,7 +773,7 @@ HRESULT WINAPI D3DProxyDevice::Clear(DWORD Count,CONST D3DRECT* pRects,DWORD Fla
 	HRESULT result;
 	if (result = m_pDevice->Clear(Count, pRects, Flags, Color, Z, Stencil) == D3D_OK) {
 		if (setDrawingSide(Right))
-			m_pDevice->Clear(Count, pRects, Flags, D3DCOLOR_RGBA(255, 0, 0, 255), Z, Stencil);
+			m_pDevice->Clear(Count, pRects, Flags, Color, Z, Stencil);
 	}
 
 	return result;
@@ -906,6 +906,8 @@ HRESULT WINAPI D3DProxyDevice::SetRenderTarget(DWORD RenderTargetIndex,IDirect3D
 
 
 /*
+	Switches to rendering to which ever side is specified by side.
+
 	Returns true if change succeeded, false if it fails. The switch will fail if you attempt to setDrawingSide(Right)
 	when the current primary active render target (target 0  in m_activeRenderTargets) is not stereo.
 	Attempting to switch to a side when that side is already the active side will return true without making any changes.
