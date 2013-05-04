@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "D3DProxyStereoSurface.h"
 #include "StereoViewFactory.h"
 #include "MotionTrackerFactory.h"
+#include <typeinfo>
 
 #ifdef _DEBUG
 #include "DxErr.h"
@@ -932,25 +933,49 @@ HRESULT WINAPI D3DProxyDevice::DrawTriPatch(UINT Handle,CONST float* pNumSegs,CO
 
 
 
-HRESULT WINAPI D3DProxyDevice::SetRenderTarget(DWORD RenderTargetIndex,IDirect3DSurface9* pRenderTarget)
+HRESULT WINAPI D3DProxyDevice::SetRenderTarget(DWORD RenderTargetIndex, IDirect3DSurface9* pRenderTarget)
 {
 	OutputDebugString(__FUNCTION__); 
 	OutputDebugString("\n"); 
 
+	if (!pRenderTarget)
+		OutputDebugString("SetRenderTarget called with null surface\n"); 
+
+	OutputDebugString(typeid(pRenderTarget).name());
+	OutputDebugString("\n");
+
 	D3DProxyStereoSurface* newRenderTarget = static_cast<D3DProxyStereoSurface*>(pRenderTarget);
+
+	if (!newRenderTarget)
+		OutputDebugString("SetRenderTarget cast D3DProxyStereoSurface resulted in null surface\n"); 
 	
 	// Update actual render target
 	HRESULT result;
 	if (newRenderTarget == NULL) {
-		result = BaseDirect3DDevice9::SetRenderTarget(RenderTargetIndex, newRenderTarget);
+		if (RenderTargetIndex == 0) {
+			result = D3DERR_INVALIDCALL;
+			OutputDebugString("newRenderTarget == null and RenderTargetIndex == 0\n"); 
+		}
+		else {
+			result = BaseDirect3DDevice9::SetRenderTarget(RenderTargetIndex, newRenderTarget);
+		}
 	}
 	else if (!newRenderTarget->IsStereo() && (m_currentRenderingSide == Left)) {
+		OutputDebugString("(!newRenderTarget->IsStereo() && (m_currentRenderingSide == Left))\n"); 
+		if (!newRenderTarget->getMonoSurface())
+			OutputDebugString("Mono is null\n"); 
+		if (!newRenderTarget->getLeftSurface())
+			OutputDebugString("Left is null\n"); 
+		if (!newRenderTarget->getRightSurface())
+			OutputDebugString("right is null\n"); 
 		result = BaseDirect3DDevice9::SetRenderTarget(RenderTargetIndex, newRenderTarget->getMonoSurface());
 	}
 	else if (m_currentRenderingSide == Left) {
+		OutputDebugString("(m_currentRenderingSide == Left)\n"); 
 		result = BaseDirect3DDevice9::SetRenderTarget(RenderTargetIndex, newRenderTarget->getLeftSurface());
 	}
 	else {
+		OutputDebugString("else\n"); 
 		result = BaseDirect3DDevice9::SetRenderTarget(RenderTargetIndex, newRenderTarget->getRightSurface());
 	}
 
@@ -973,6 +998,26 @@ HRESULT WINAPI D3DProxyDevice::SetRenderTarget(DWORD RenderTargetIndex,IDirect3D
 }
 
 
+
+
+HRESULT WINAPI D3DProxyDevice::GetRenderTarget(DWORD RenderTargetIndex,IDirect3DSurface9** ppRenderTarget)
+{
+	OutputDebugString(__FUNCTION__); 
+	OutputDebugString("\n"); 
+
+	if ((RenderTargetIndex >= m_activeRenderTargets.capacity()) || (RenderTargetIndex < 0)) {
+		return D3DERR_INVALIDCALL;
+	}
+
+	D3DProxyStereoSurface* targetToReturn = m_activeRenderTargets[RenderTargetIndex];
+	if (!targetToReturn)
+		return D3DERR_NOTFOUND;
+	else {
+		*ppRenderTarget = targetToReturn;
+		targetToReturn->AddRef();
+		return D3D_OK;
+	}
+}
 
 
 

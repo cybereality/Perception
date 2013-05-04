@@ -52,6 +52,10 @@ bool D3DProxyStereoSurface::IsStereo()
 
 IDirect3DSurface9* D3DProxyStereoSurface::getMonoSurface()
 {
+	if (!m_pSurface)
+		OutputDebugString("m_pLeftSurface is null\n");
+	if (!m_pRightSurface)
+		OutputDebugString("m_pRightSurface is null\n");
 	return getLeftSurface();
 }
 
