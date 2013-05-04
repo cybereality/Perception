@@ -26,35 +26,16 @@
     <Filter Include="Direct3D9">
       <UniqueIdentifier>{8518770f-4911-4264-a4c6-0a7e92a34b5d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Direct3D9\Direct3D9">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
-    <Filter Include="Direct3D9\Direct3DDevice9">
-      <UniqueIdentifier>{93a782b4-50f3-4315-aec5-14456eba641a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Direct3D9\Direct3DSurface9">
-      <UniqueIdentifier>{49eff999-2370-4d8a-8e9d-77ccdf8a53b6}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Direct3D9Vireio">
       <UniqueIdentifier>{28b4cc66-4af3-4ac4-99aa-5a29de9ba8b2}</UniqueIdentifier>
     </Filter>
     <Filter Include="Direct3D9Vireio\Direct3DDevice9">
       <UniqueIdentifier>{4ef859f6-c511-4db2-b101-b5a4fca35325}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Direct3D9Vireio\Direct3DSurface9">
-      <UniqueIdentifier>{c465f621-2d89-4eb9-9737-8ccc8ba93b3a}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
       <Filter>Main</Filter>
-    </ClCompile>
-    <ClCompile Include="Direct3DDevice9.cpp">
-      <Filter>Direct3D9\Direct3DDevice9</Filter>
-    </ClCompile>
-    <ClCompile Include="Direct3D9.cpp">
-      <Filter>Direct3D9\Direct3D9</Filter>
     </ClCompile>
     <ClCompile Include="ProxyHelper.cpp">
       <Filter>Proxy</Filter>
@@ -92,9 +73,6 @@
     <ClCompile Include="OculusRiftView.cpp">
       <Filter>Stereo</Filter>
     </ClCompile>
-    <ClCompile Include="Direct3DSurface9.cpp">
-      <Filter>Direct3D9\Direct3DSurface9</Filter>
-    </ClCompile>
     <ClCompile Include="D3DProxyDevice.cpp">
       <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
     </ClCompile>
@@ -122,8 +100,20 @@
     <ClCompile Include="D3DProxyDeviceUnreal.cpp">
       <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
     </ClCompile>
+    <ClCompile Include="Direct3D9.cpp">
+      <Filter>Direct3D9</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3DDevice9.cpp">
+      <Filter>Direct3D9</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3DSurface9.cpp">
+      <Filter>Direct3D9</Filter>
+    </ClCompile>
     <ClCompile Include="D3DProxyStereoSurface.cpp">
-      <Filter>Direct3D9Vireio\Direct3DSurface9</Filter>
+      <Filter>Direct3D9Vireio</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3DTexture9.cpp">
+      <Filter>Direct3D9</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -134,12 +124,6 @@
   <ItemGroup>
     <ClInclude Include="Main.h">
       <Filter>Main</Filter>
-    </ClInclude>
-    <ClInclude Include="Direct3DDevice9.h">
-      <Filter>Direct3D9\Direct3DDevice9</Filter>
-    </ClInclude>
-    <ClInclude Include="Direct3D9.h">
-      <Filter>Direct3D9\Direct3D9</Filter>
     </ClInclude>
     <ClInclude Include="ProxyHelper.h">
       <Filter>Proxy</Filter>
@@ -180,9 +164,6 @@
     <ClInclude Include="OculusRiftView.h">
       <Filter>Stereo</Filter>
     </ClInclude>
-    <ClInclude Include="Direct3DSurface9.h">
-      <Filter>Direct3D9\Direct3DSurface9</Filter>
-    </ClInclude>
     <ClInclude Include="D3DProxyDeviceUnreal.h">
       <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
     </ClInclude>
@@ -210,8 +191,20 @@
     <ClInclude Include="D3DProxyDeviceTest.h">
       <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
     </ClInclude>
+    <ClInclude Include="Direct3D9.h">
+      <Filter>Direct3D9</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3DDevice9.h">
+      <Filter>Direct3D9</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3DSurface9.h">
+      <Filter>Direct3D9</Filter>
+    </ClInclude>
     <ClInclude Include="D3DProxyStereoSurface.h">
-      <Filter>Direct3D9Vireio\Direct3DSurface9</Filter>
+      <Filter>Direct3D9Vireio</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3DTexture9.h">
+      <Filter>Direct3D9</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

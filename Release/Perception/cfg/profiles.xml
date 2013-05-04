@@ -17,4 +17,5 @@
 	<profile game_name="Skyrim(SKSE)" game_exe="skse_1_9_32.dll" game_type="601" separation="0.00357999" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Skyrim(SKSE)" game_exe="skse_steam_loader.dll" game_type="601" separation="0.00357999" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
   <profile game_name="D3D Example" game_exe="dx9_texture_mipmapping.exe" game_type="10" separation="0.0211829" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+  <profile game_name="D3D Example" game_exe="dx9_offscreen_rendering.exe" game_type="10" separation="0.0211829" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 </profiles>

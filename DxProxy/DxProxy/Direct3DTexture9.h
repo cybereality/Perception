@@ -16,22 +16,33 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#ifndef DIRECT3DSURFACE9_H_INCLUDED
-#define DIRECT3DSURFACE9_H_INCLUDED
+#ifndef DIRECT3DTEXTURE9_H_INCLUDED
+#define DIRECT3DTEXTURE9_H_INCLUDED
 
 #include <d3d9.h>
-#include "ProxyHelper.h"
+#include <stdio.h>
 
-class BaseDirect3DSurface9 : public IDirect3DSurface9
+class BaseDirect3DTexture9 : public IDirect3DTexture9
 {
 public:
-	BaseDirect3DSurface9(IDirect3DSurface9* pSurface);
-	virtual ~BaseDirect3DSurface9();
+	BaseDirect3DTexture9(IDirect3DTexture9* pTexture);
+	virtual ~BaseDirect3DTexture9();
 
+	// IUnknown methosa
 	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv);
 	virtual ULONG WINAPI AddRef();
 	virtual ULONG WINAPI Release();
 	
+	
+	// texture methods
+	virtual HRESULT WINAPI GetLevelDesc(UINT Level, D3DSURFACE_DESC *pDesc);
+	virtual HRESULT WINAPI GetSurfaceLevel(UINT Level, IDirect3DSurface9** ppSurfaceLevel);
+    virtual HRESULT WINAPI LockRect(UINT Level, D3DLOCKED_RECT* pLockedRect, CONST RECT* pRect, DWORD Flags);
+	virtual HRESULT WINAPI UnlockRect(UINT Level);
+	virtual HRESULT WINAPI AddDirtyRect(CONST RECT* pDirtyRect);
+
+
+	//base texture methods
 	virtual HRESULT WINAPI GetDevice(IDirect3DDevice9** ppDevice);
 	virtual HRESULT WINAPI SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags);
 	virtual HRESULT WINAPI GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData);
@@ -39,17 +50,20 @@ public:
 	virtual   DWORD WINAPI SetPriority(DWORD PriorityNew);
 	virtual   DWORD WINAPI GetPriority();
 	virtual    void WINAPI PreLoad();
-	virtual HRESULT WINAPI GetContainer(REFIID riid, LPVOID* ppContainer);
-	virtual HRESULT WINAPI GetDesc(D3DSURFACE_DESC *pDesc);
-	virtual HRESULT WINAPI LockRect(D3DLOCKED_RECT* pLockedRect, CONST RECT* pRect, DWORD Flags);
-	virtual HRESULT WINAPI UnlockRect();
-	virtual HRESULT WINAPI GetDC(HDC *phdc);
-	virtual HRESULT WINAPI ReleaseDC(HDC hdc);
+	virtual   DWORD WINAPI SetLOD(DWORD LODNew);
+	virtual   DWORD WINAPI GetLOD();
+	virtual   DWORD WINAPI GetLevelCount();
+	virtual HRESULT WINAPI SetAutoGenFilterType(D3DTEXTUREFILTERTYPE FilterType);
+	virtual    void WINAPI GenerateMipSubLevels();
+	virtual D3DTEXTUREFILTERTYPE WINAPI GetAutoGenFilterType();
+	virtual      D3DRESOURCETYPE WINAPI GetType();
+    
+    
 
-	virtual D3DRESOURCETYPE WINAPI GetType();
+
 
 protected:
-	IDirect3DSurface9* m_pSurface;
+	IDirect3DTexture9* m_pTexture;
 
 private:
 	ULONG m_nRefCount;
