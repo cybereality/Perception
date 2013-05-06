@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define DIRECT3DSURFACE9_H_INCLUDED
 
 #include <d3d9.h>
-#include "ProxyHelper.h"
+#include "Direct3DDevice9.h"
 
 class BaseDirect3DSurface9 : public IDirect3DSurface9
 {
@@ -28,10 +28,13 @@ public:
 	BaseDirect3DSurface9(IDirect3DSurface9* pSurface);
 	virtual ~BaseDirect3DSurface9();
 
+	// IUnknown
 	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv);
 	virtual ULONG WINAPI AddRef();
 	virtual ULONG WINAPI Release();
-	
+
+
+	// IDirect3DResource9
 	virtual HRESULT WINAPI GetDevice(IDirect3DDevice9** ppDevice);
 	virtual HRESULT WINAPI SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags);
 	virtual HRESULT WINAPI GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData);
@@ -39,6 +42,11 @@ public:
 	virtual   DWORD WINAPI SetPriority(DWORD PriorityNew);
 	virtual   DWORD WINAPI GetPriority();
 	virtual    void WINAPI PreLoad();
+	virtual D3DRESOURCETYPE WINAPI GetType();
+
+
+
+	// IDirect3DSurface9
 	virtual HRESULT WINAPI GetContainer(REFIID riid, LPVOID* ppContainer);
 	virtual HRESULT WINAPI GetDesc(D3DSURFACE_DESC *pDesc);
 	virtual HRESULT WINAPI LockRect(D3DLOCKED_RECT* pLockedRect, CONST RECT* pRect, DWORD Flags);
@@ -46,12 +54,9 @@ public:
 	virtual HRESULT WINAPI GetDC(HDC *phdc);
 	virtual HRESULT WINAPI ReleaseDC(HDC hdc);
 
-	virtual D3DRESOURCETYPE WINAPI GetType();
-
 protected:
-	IDirect3DSurface9* m_pSurface;
 
-private:
+	IDirect3DSurface9* m_pActualSurface;
 	ULONG m_nRefCount;
 };
 

@@ -16,23 +16,21 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#ifndef D3DProxyStereoTexture_H_INCLUDED
-#define D3DProxyStereoTexture_H_INCLUDED
+#ifndef D3DPROXYSTEREOTEXTURE_H_INCLUDED
+#define D3DPROXYSTEREOTEXTURE_H_INCLUDED
 
 #include <d3d9.h>
+#include <vector>
 #include "Direct3DTexture9.h"
+#include "D3DProxyStereoSurface.h"
 
 
 class D3DProxyStereoTexture : public BaseDirect3DTexture9
 {
 public:
-	D3DProxyStereoTexture(IDirect3DTexture9* pTexture);
+	D3DProxyStereoTexture(IDirect3DTexture9* leftTexture, IDirect3DTexture9* rightTexture);
 	virtual ~D3DProxyStereoTexture();
 
-	// IUnknown methods
-	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv);
-	virtual ULONG WINAPI AddRef();
-	virtual ULONG WINAPI Release();
 	
 	
 	// texture methods
@@ -43,7 +41,7 @@ public:
 	virtual HRESULT WINAPI AddDirtyRect(CONST RECT* pDirtyRect);
 
 
-	//base texture methods
+	// IDirect3DResource9 methods
 	virtual HRESULT WINAPI GetDevice(IDirect3DDevice9** ppDevice);
 	virtual HRESULT WINAPI SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags);
 	virtual HRESULT WINAPI GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData);
@@ -51,13 +49,16 @@ public:
 	virtual   DWORD WINAPI SetPriority(DWORD PriorityNew);
 	virtual   DWORD WINAPI GetPriority();
 	virtual    void WINAPI PreLoad();
+	virtual      D3DRESOURCETYPE WINAPI GetType();
+	
+	//base texture methods
 	virtual   DWORD WINAPI SetLOD(DWORD LODNew);
 	virtual   DWORD WINAPI GetLOD();
 	virtual   DWORD WINAPI GetLevelCount();
 	virtual HRESULT WINAPI SetAutoGenFilterType(D3DTEXTUREFILTERTYPE FilterType);
 	virtual    void WINAPI GenerateMipSubLevels();
 	virtual D3DTEXTUREFILTERTYPE WINAPI GetAutoGenFilterType();
-	virtual      D3DRESOURCETYPE WINAPI GetType();
+	
     
     
 	bool IsStereo();
@@ -76,8 +77,25 @@ public:
 protected:
 	IDirect3DTexture9* m_pTextureRight;
 
-private:
-	ULONG m_nRefCount;
+	std::vector<D3DProxyStereoSurface*> m_levels;
+
+	// Getting a level from a D3D texture increases the ref count on the texture so we need to do that here as well.
+	// Releasing a surface that is aquired in this fashion also reduces the ref count on the texture it was aquired from.
+	// The reverse applies as well. Releasing the texture would also reduce the ref count on the surface.
+	// This behaviour needs to be replicated for the Stereo texture and surface.
+
+	// We also need to maintain stereo wrapped versions of the surfaces that are retrieved from the texture to maintain
+	// consistency with the behaviour of D3D. Calling GetSurfaceLevel repeatedly will return a pointer to the same
+	// IDirect3DSurface9* even if mip levels are regenerated inbetween. This means we can't just return a new 
+	// StereoSurface reference everytime wrapping the current surfaces returned from Direct3D. If we did the pointers
+	// would no longer be referncing the same object which would be inconsistent with Direct3D behaviour.
+
+	// Given that we need to maintain these stereo surfaces we also need to know when they are released to Release
+	// them from the maintained list so that the underlying surfaces' are released as well.
+
+	// tldr; Stereo Textures need to maintain references to the Stereo Surfaces they (contain?) and vice versa. (This is needed for proper GetContainer implementation on surfaces as well)
+	//       Each has to notify the other if their ref count reaches 0.
+
 };
 
 #endif

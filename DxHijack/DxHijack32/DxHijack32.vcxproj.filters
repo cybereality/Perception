@@ -99,6 +99,9 @@
     <ClCompile Include="..\..\DxProxy\DxProxy\Direct3DTexture9.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxySurface.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="hijackdll.def">
@@ -188,6 +191,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\DxProxy\DxProxy\Direct3DTexture9.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxySurface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

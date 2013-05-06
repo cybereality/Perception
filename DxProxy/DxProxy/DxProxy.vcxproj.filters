@@ -118,6 +118,9 @@
     <ClCompile Include="D3DProxyStereoTexture.cpp">
       <Filter>Direct3D9Vireio</Filter>
     </ClCompile>
+    <ClCompile Include="D3DProxySurface.cpp">
+      <Filter>Direct3D9Vireio</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Exports.def">
@@ -210,6 +213,9 @@
       <Filter>Direct3D9</Filter>
     </ClInclude>
     <ClInclude Include="D3DProxyStereoTexture.h">
+      <Filter>Direct3D9Vireio</Filter>
+    </ClInclude>
+    <ClInclude Include="D3DProxySurface.h">
       <Filter>Direct3D9Vireio</Filter>
     </ClInclude>
   </ItemGroup>

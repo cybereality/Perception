@@ -21,37 +21,30 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Main.h"
 #include "D3DProxyDeviceFactory.h"
 
-BaseDirect3DSurface9::BaseDirect3DSurface9(IDirect3DSurface9* pSurface) :
-	m_pSurface(pSurface),
+BaseDirect3DSurface9::BaseDirect3DSurface9(IDirect3DSurface9* pSurfaceBeingWrapped) :
+	m_pActualSurface(pSurfaceBeingWrapped),
 	m_nRefCount(1)
 {
 }
 
 BaseDirect3DSurface9::~BaseDirect3DSurface9()
 {
-	OutputDebugString("Release Left \n");
-	if(m_pSurface) {
-		int newRefCount = m_pSurface->Release();
-
-		if (newRefCount > 0) {
-			char buf[256];
-			sprintf_s(buf, "Error: count = %d\n", newRefCount);
-			OutputDebugString(buf);
-		}
-
-		m_pSurface = NULL;
+	if(m_pActualSurface) {
+		m_pActualSurface->Release();
+		m_pActualSurface = NULL;
 	}
 }
 
 HRESULT WINAPI BaseDirect3DSurface9::QueryInterface(REFIID riid, LPVOID* ppv)
 {
-	return m_pSurface->QueryInterface(riid, ppv);
+	return m_pActualSurface->QueryInterface(riid, ppv);
 }
 
 ULONG WINAPI BaseDirect3DSurface9::AddRef()
 {
 	return ++m_nRefCount;
 }
+
 
 ULONG WINAPI BaseDirect3DSurface9::Release()
 {
@@ -64,73 +57,96 @@ ULONG WINAPI BaseDirect3DSurface9::Release()
 }
 
 
+
+
+
+
+
+
+
+
 HRESULT WINAPI BaseDirect3DSurface9::GetDevice(IDirect3DDevice9** ppDevice)
 {
-	return m_pSurface->GetDevice(ppDevice);
+	return m_pActualSurface->GetDevice(ppDevice);
 }
+
 
 HRESULT WINAPI BaseDirect3DSurface9::SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags)
 {
-	return m_pSurface->SetPrivateData(refguid, pData, SizeOfData, Flags);
+	return m_pActualSurface->SetPrivateData(refguid, pData, SizeOfData, Flags);
 }
+
 
 HRESULT WINAPI BaseDirect3DSurface9::GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData)
 {
-	return m_pSurface->GetPrivateData(refguid, pData, pSizeOfData);
+	return m_pActualSurface->GetPrivateData(refguid, pData, pSizeOfData);
 }
+
 
 HRESULT WINAPI BaseDirect3DSurface9::FreePrivateData(REFGUID refguid)
 {
-	return m_pSurface->FreePrivateData(refguid);
+	return m_pActualSurface->FreePrivateData(refguid);
 }
+
 
 DWORD WINAPI BaseDirect3DSurface9::SetPriority(DWORD PriorityNew)
 {
-	return m_pSurface->SetPriority(PriorityNew);
+	return m_pActualSurface->SetPriority(PriorityNew);
 }
+
 
 DWORD WINAPI BaseDirect3DSurface9::GetPriority()
 {
-	return m_pSurface->GetPriority();
+	return m_pActualSurface->GetPriority();
 }
+
 
 void WINAPI BaseDirect3DSurface9::PreLoad()
 {
-	return m_pSurface->PreLoad();
+	return m_pActualSurface->PreLoad();
 }
+
+
+D3DRESOURCETYPE WINAPI BaseDirect3DSurface9::GetType()
+{
+	return m_pActualSurface->GetType();
+}
+
+
+
+
+
+
 
 HRESULT WINAPI BaseDirect3DSurface9::GetContainer(REFIID riid, LPVOID* ppContainer)
 {
-	return m_pSurface->GetContainer(riid, ppContainer);
+	return m_pActualSurface->GetContainer(riid, ppContainer);
 }
+
 
 HRESULT WINAPI BaseDirect3DSurface9::GetDesc(D3DSURFACE_DESC *pDesc)
 {
-	return m_pSurface->GetDesc(pDesc);
+	return m_pActualSurface->GetDesc(pDesc);
 }
 
 HRESULT WINAPI BaseDirect3DSurface9::LockRect(D3DLOCKED_RECT* pLockedRect, CONST RECT* pRect, DWORD Flags)
 {
-	return m_pSurface->LockRect(pLockedRect, pRect, Flags);
+	return m_pActualSurface->LockRect(pLockedRect, pRect, Flags);
 }
 
 HRESULT WINAPI BaseDirect3DSurface9::UnlockRect()
 {
-	return m_pSurface->UnlockRect();
+	return m_pActualSurface->UnlockRect();
 }
 
 HRESULT WINAPI BaseDirect3DSurface9::GetDC(HDC *phdc)
 {
-	return m_pSurface->GetDC(phdc);
+	return m_pActualSurface->GetDC(phdc);
 }
 
 HRESULT WINAPI BaseDirect3DSurface9::ReleaseDC(HDC hdc)
 {
-	return m_pSurface->ReleaseDC(hdc);
+	return m_pActualSurface->ReleaseDC(hdc);
 }
 
-D3DRESOURCETYPE WINAPI BaseDirect3DSurface9::GetType()
-{
-	return m_pSurface->GetType();
-}
 

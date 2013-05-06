@@ -120,6 +120,7 @@
     <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxyDeviceTest.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxyDeviceUnreal.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxyStereoSurface.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxySurface.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\Direct3D9.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\Direct3DDevice9.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\Direct3DSurface9.cpp" />
@@ -153,6 +154,7 @@
     <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyDeviceTest.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyDeviceUnreal.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyStereoSurface.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxySurface.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\Direct3D9.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\Direct3DDevice9.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\Direct3DSurface9.h" />

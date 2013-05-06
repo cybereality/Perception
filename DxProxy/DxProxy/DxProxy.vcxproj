@@ -115,6 +115,7 @@
     <ClCompile Include="D3DProxyDeviceSource.cpp" />
     <ClCompile Include="D3DProxyDeviceTest.cpp" />
     <ClCompile Include="D3DProxyDeviceUnreal.cpp" />
+    <ClCompile Include="D3DProxySurface.cpp" />
     <ClCompile Include="Direct3D9.cpp" />
     <ClCompile Include="D3DProxyStereoTexture.cpp" />
     <ClCompile Include="Direct3DSurface9.cpp" />
@@ -145,6 +146,7 @@
     <ClInclude Include="D3DProxyDeviceSource.h" />
     <ClInclude Include="D3DProxyDeviceTest.h" />
     <ClInclude Include="D3DProxyDeviceUnreal.h" />
+    <ClInclude Include="D3DProxySurface.h" />
     <ClInclude Include="Direct3D9.h" />
     <ClInclude Include="D3DProxyStereoTexture.h" />
     <ClInclude Include="Direct3DSurface9.h" />

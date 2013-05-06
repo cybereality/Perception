@@ -18,9 +18,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "D3DProxyStereoTexture.h"
 
-D3DProxyStereoTexture::D3DProxyStereoTexture(IDirect3DTexture9* pTexture) : BaseDirect3DTexture9(pTexture),
-	m_nRefCount(1)
+D3DProxyStereoTexture::D3DProxyStereoTexture(IDirect3DTexture9* leftTexture, IDirect3DTexture9* rightTexture) :
+	BaseDirect3DTexture9(leftTexture),
+	m_levels(1, NULL)
 {
+
 }
 
 D3DProxyStereoTexture::~D3DProxyStereoTexture()
@@ -30,7 +32,7 @@ D3DProxyStereoTexture::~D3DProxyStereoTexture()
 		int newRefCount = m_pTexture->Release();
 
 		if (newRefCount > 0) {
-			char buf[256];
+			char buf[128];
 			sprintf_s(buf, "Error: count = %d\n", newRefCount);
 			OutputDebugString(buf);
 		}
@@ -39,25 +41,6 @@ D3DProxyStereoTexture::~D3DProxyStereoTexture()
 	}
 }
 
-HRESULT WINAPI D3DProxyStereoTexture::QueryInterface(REFIID riid, LPVOID* ppv)
-{
-	return m_pTexture->QueryInterface(riid, ppv);
-}
-
-ULONG WINAPI D3DProxyStereoTexture::AddRef()
-{
-	return ++m_nRefCount;
-}
-
-ULONG WINAPI D3DProxyStereoTexture::Release()
-{
-	if(--m_nRefCount == 0)
-	{
-		delete this;
-		return 0;
-	}
-	return m_nRefCount;
-}
 
 
 
@@ -70,6 +53,9 @@ HRESULT WINAPI D3DProxyStereoTexture::GetLevelDesc(UINT Level, D3DSURFACE_DESC *
 
 HRESULT WINAPI D3DProxyStereoTexture::GetSurfaceLevel(UINT Level, IDirect3DSurface9** ppSurfaceLevel)
 {
+	// return a stereo surface 
+
+
 	return m_pTexture->GetSurfaceLevel(Level, ppSurfaceLevel);
 }
 

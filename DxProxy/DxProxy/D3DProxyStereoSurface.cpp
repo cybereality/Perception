@@ -17,20 +17,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
 #include "D3DProxyStereoSurface.h"
-#include "Direct3DDevice9.h"
-#include "Main.h"
 #include "D3DProxyDeviceFactory.h"
 
-D3DProxyStereoSurface::D3DProxyStereoSurface(IDirect3DSurface9* pLeftSurface, IDirect3DSurface9* pRightSurface) : BaseDirect3DSurface9(pLeftSurface)
+D3DProxyStereoSurface::D3DProxyStereoSurface(IDirect3DSurface9* pLeftSurface, IDirect3DSurface9* pRightSurface, BaseDirect3DDevice9* pOwningDevice, IUnknown* pContainer) : 
+	D3DProxySurface(pLeftSurface, pOwningDevice, pContainer),
+	m_pActualSurfaceRight(pRightSurface)
 {
-	m_pRightSurface = pRightSurface;
 }
 
 D3DProxyStereoSurface::~D3DProxyStereoSurface()
 {
 	OutputDebugString("Release Right \n");
-	if(m_pRightSurface) {
-		int newRefCount = m_pRightSurface->Release();
+	if(m_pActualSurfaceRight) {
+		int newRefCount = m_pActualSurfaceRight->Release();
 		
 		if (newRefCount > 0) {
 			char buf[128];
@@ -38,35 +37,35 @@ D3DProxyStereoSurface::~D3DProxyStereoSurface()
 			OutputDebugString(buf);
 		}
 
-		m_pRightSurface = NULL;
+		m_pActualSurfaceRight = NULL;
 	}
 }
 
 
 bool D3DProxyStereoSurface::IsStereo()
 {
-	return m_pRightSurface != NULL;
+	return m_pActualSurfaceRight != NULL;
 }
 
 
 
 IDirect3DSurface9* D3DProxyStereoSurface::getMonoSurface()
 {
-	if (!m_pSurface)
+	if (!m_pActualSurface)
 		OutputDebugString("m_pLeftSurface is null\n");
-	if (!m_pRightSurface)
-		OutputDebugString("m_pRightSurface is null\n");
+	if (!m_pActualSurfaceRight)
+		OutputDebugString("m_pActualSurfaceRight is null\n");
 	return getLeftSurface();
 }
 
 IDirect3DSurface9* D3DProxyStereoSurface::getLeftSurface()
 {
-	return m_pSurface;
+	return m_pActualSurface;
 }
 
 IDirect3DSurface9* D3DProxyStereoSurface::getRightSurface()
 {
-	return m_pRightSurface;
+	return m_pActualSurfaceRight;
 }
 
 
@@ -75,9 +74,9 @@ IDirect3DSurface9* D3DProxyStereoSurface::getRightSurface()
 HRESULT WINAPI D3DProxyStereoSurface::SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags)
 {
 	if (IsStereo())
-		m_pRightSurface->SetPrivateData(refguid, pData, SizeOfData, Flags);
+		m_pActualSurfaceRight->SetPrivateData(refguid, pData, SizeOfData, Flags);
 
-	return BaseDirect3DSurface9::SetPrivateData(refguid, pData, SizeOfData, Flags);
+	return m_pActualSurface->SetPrivateData(refguid, pData, SizeOfData, Flags);
 }
 
 
@@ -85,33 +84,33 @@ HRESULT WINAPI D3DProxyStereoSurface::SetPrivateData(REFGUID refguid, CONST void
 HRESULT WINAPI D3DProxyStereoSurface::FreePrivateData(REFGUID refguid)
 {
 	if (IsStereo())
-		m_pRightSurface->FreePrivateData(refguid);
+		m_pActualSurfaceRight->FreePrivateData(refguid);
 
-	return BaseDirect3DSurface9::FreePrivateData(refguid);
+	return m_pActualSurface->FreePrivateData(refguid);
 }
 
 DWORD WINAPI D3DProxyStereoSurface::SetPriority(DWORD PriorityNew)
 {
 	if (IsStereo())
-		m_pRightSurface->SetPriority(PriorityNew);
+		m_pActualSurfaceRight->SetPriority(PriorityNew);
 
-	return BaseDirect3DSurface9::SetPriority(PriorityNew);
+	return m_pActualSurface->SetPriority(PriorityNew);
 }
 
 
 void WINAPI D3DProxyStereoSurface::PreLoad()
 {
 	if (IsStereo())
-		m_pRightSurface->PreLoad();
+		m_pActualSurfaceRight->PreLoad();
 
-	return BaseDirect3DSurface9::PreLoad();
+	return m_pActualSurface->PreLoad();
 }
 
 
 HRESULT WINAPI D3DProxyStereoSurface::LockRect(D3DLOCKED_RECT* pLockedRect, CONST RECT* pRect, DWORD Flags)
 {
 	if (IsStereo())
-		m_pRightSurface->LockRect(pLockedRect, pRect, Flags);
+		m_pActualSurfaceRight->LockRect(pLockedRect, pRect, Flags);
 
 	return BaseDirect3DSurface9::LockRect(pLockedRect, pRect, Flags);
 }
@@ -119,7 +118,7 @@ HRESULT WINAPI D3DProxyStereoSurface::LockRect(D3DLOCKED_RECT* pLockedRect, CONS
 HRESULT WINAPI D3DProxyStereoSurface::UnlockRect()
 {
 	if (IsStereo())
-		m_pRightSurface->UnlockRect();
+		m_pActualSurfaceRight->UnlockRect();
 
 	return BaseDirect3DSurface9::UnlockRect();
 }
@@ -129,7 +128,7 @@ HRESULT WINAPI D3DProxyStereoSurface::UnlockRect()
 HRESULT WINAPI D3DProxyStereoSurface::ReleaseDC(HDC hdc)
 {
 	if (IsStereo())
-		m_pRightSurface->ReleaseDC(hdc);
+		m_pActualSurfaceRight->ReleaseDC(hdc);
 
 	return BaseDirect3DSurface9::ReleaseDC(hdc);
 }

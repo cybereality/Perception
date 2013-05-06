@@ -21,17 +21,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <d3d9.h>
 #include "Direct3DSurface9.h"
-#include "ProxyHelper.h"
+#include "Direct3DDevice9.h"
+#include "D3DProxySurface.h"
 
 /*
 		
 
 
  */
-class D3DProxyStereoSurface : public BaseDirect3DSurface9
+class D3DProxyStereoSurface : public D3DProxySurface
 {
 public:
-	D3DProxyStereoSurface(IDirect3DSurface9* pLeftSurface, IDirect3DSurface9* pRightSurface);
+	D3DProxyStereoSurface(IDirect3DSurface9* pLeftSurface, IDirect3DSurface9* pRightSurface, BaseDirect3DDevice9* pOwningDevice, IUnknown* pContainer);
 	virtual ~D3DProxyStereoSurface();
 
 	bool IsStereo();
@@ -41,6 +42,8 @@ public:
 	IDirect3DSurface9* getRightSurface();
 
 	
+
+	
 	//virtual HRESULT WINAPI GetDevice(IDirect3DDevice9** ppDevice);
 	virtual HRESULT WINAPI SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags);
 	//virtual HRESULT WINAPI GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData);
@@ -48,7 +51,11 @@ public:
 	virtual   DWORD WINAPI SetPriority(DWORD PriorityNew);
 	//virtual   DWORD WINAPI GetPriority();
 	virtual    void WINAPI PreLoad();
+
+	
 	//virtual HRESULT WINAPI GetContainer(REFIID riid, LPVOID* ppContainer);
+
+
 	//virtual HRESULT WINAPI GetDesc(D3DSURFACE_DESC *pDesc);
 	virtual HRESULT WINAPI LockRect(D3DLOCKED_RECT* pLockedRect, CONST RECT* pRect, DWORD Flags);
 	virtual HRESULT WINAPI UnlockRect();
@@ -58,8 +65,10 @@ public:
 
 private:
 
-	IDirect3DSurface9* m_pRightSurface;
+	IDirect3DSurface9* m_pActualSurfaceRight;
 
+	//D3DProxyStereoTexture* 
+	// container
 	
 };
 

@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "D3DProxyDevice.h"
+#include "D3DProxySurface.h"
 #include "D3DProxyStereoSurface.h"
 #include "StereoViewFactory.h"
 #include "MotionTrackerFactory.h"
@@ -36,7 +37,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define KEY_UP(vk_code) ((GetAsyncKeyState(vk_code) & 0x8000) ? 0 : 1)
 
 #define IS_RENDER_TARGET(d3dusage) ((d3dusage & D3DUSAGE_RENDERTARGET) > 0 ? true : false)
-#define IS_POOL_DEFAULT(d3dpool) ((d3dpool & D3DPOOL_DEFAULT) > 0 ? true : false) // render targets have to be in D3DPOOL_DEFAULT
+#define IS_POOL_DEFAULT(d3dpool) ((d3dpool & D3DPOOL_DEFAULT) > 0 ? true : false)
 
 
 
@@ -135,7 +136,7 @@ void D3DProxyDevice::OnCreateOrRestore()
 
 	// Create a stereo render target with the same properties as the backbuffer and set it as the current render target
 	IDirect3DSurface9* pBackBuffer;
-	if (BaseDirect3DDevice9::GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer) != D3D_OK) {
+	if (BaseDirect3DDevice9::GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer) != D3D_OK) { //TODO this all needs replacing with proxy swap chain, etc
 		OutputDebugString("Failed to fetch backbuffer.\n");
 		exit(1); 
 	}
@@ -763,7 +764,7 @@ HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFO
 
 
 	if (creationResult == D3D_OK)
-		*ppSurface = new D3DProxyStereoSurface(pLeftRenderTarget, pRightRenderTarget);
+		*ppSurface = new D3DProxyStereoSurface(pLeftRenderTarget, pRightRenderTarget, this, NULL);
 
 	return creationResult;
 }
@@ -777,36 +778,14 @@ HRESULT WINAPI D3DProxyDevice::CreateOffscreenPlainSurface(UINT Width,UINT Heigh
 	OutputDebugString(__FUNCTION__); 
 	OutputDebugString("\n"); 
 
-	// don't bother wrapping surfaces that aren't in the defalut pool. They can't be used as render targets so don't need to be stereo capable
-	if (!IS_POOL_DEFAULT(Pool)) 
-		return BaseDirect3DDevice9::CreateOffscreenPlainSurface(Width, Height, Format, Pool, ppSurface, pSharedHandle);
-	
-
-	// Surfaces created in the default pool can be used as render targets so we have to assume this surface will be used as a target and be prepared for that.
-	IDirect3DSurface9* pLeftSurface = NULL;
-	IDirect3DSurface9* pRightSurface = NULL;
-	HRESULT creationResult;
-	if (true) // TODO Should we duplicate this possible Render Target? Replace "true" with heuristic
-	{
-		if ((creationResult = BaseDirect3DDevice9::CreateOffscreenPlainSurface(Width, Height, Format, Pool, &pLeftSurface, pSharedHandle)) == D3D_OK) {
-			if (BaseDirect3DDevice9::CreateOffscreenPlainSurface(Width, Height, Format, Pool, &pRightSurface, pSharedHandle) != D3D_OK) {
-				OutputDebugString("Failed to create right eye OffscreenPlainSurface while attempting to create stereo pair, falling back to mono\n");
-				pRightSurface = NULL;
-			}
-		}
-		else {
-			OutputDebugString("Failed to create left eye while attempting to create stereo pair of OffscreenPlainSurfaces\n"); 
-		}
-	}
-	else {
-		// Even though we haven't duplicated this surface we still wrap it as it will be treated as a D3DProxyStereoSurface when passed back to
-		// any other method by the underlying application. At that time we will be assuming it is a D3DProxyStereoSurface.
-		creationResult = BaseDirect3DDevice9::CreateOffscreenPlainSurface(Width, Height, Format, Pool, &pLeftSurface, pSharedHandle);
-	}
-
+	// OffscreenPlainSurfaces doesn't need to be Stereo. They can't be used as render targets so don't need to be stereo capable
+	// and they can't have rendertargets copied to them with stretch rect.
+	// See table at bottom of http://msdn.microsoft.com/en-us/library/windows/desktop/bb174471%28v=vs.85%29.aspx for stretch rect restrictions
+	IDirect3DSurface9* pActualSurface = NULL;
+	HRESULT creationResult = BaseDirect3DDevice9::CreateOffscreenPlainSurface(Width, Height, Format, Pool, &pActualSurface, pSharedHandle);
 
 	if (creationResult == D3D_OK)
-		*ppSurface = new D3DProxyStereoSurface(pLeftSurface, pRightSurface);
+		*ppSurface = new D3DProxySurface(pActualSurface, this, NULL);
 
 	return creationResult;
 }
@@ -818,15 +797,15 @@ HRESULT WINAPI D3DProxyDevice::CreateTexture(UINT Width,UINT Height,UINT Levels,
 	OutputDebugString(__FUNCTION__); 
 	OutputDebugString("\n"); 
 
-	// is or might be used as a render target. Might need to create stereo capable texture
-	if (IS_RENDER_TARGET(Usage) || IS_POOL_DEFAULT(Pool)) {
-		if (true) {// TODO Should we duplicate this possible Render Target? Replace "true" with heuristic
+	// Is a render target. Need to create stereo capable texture
+	if (IS_RENDER_TARGET(Usage)) {
+		if (true) {// TODO Should we duplicate this Render Target? Replace "true" with heuristic
 			
 
 		}
 	}
-	else
-		return m_pDevice->CreateTexture(Width, Height, Levels, Usage, Format, Pool, ppTexture, pSharedHandle);
+	else // TODO wrap texture
+		return BaseDirect3DDevice9::CreateTexture(Width, Height, Levels, Usage, Format, Pool, ppTexture, pSharedHandle);
 }
 
 
@@ -962,7 +941,7 @@ HRESULT WINAPI D3DProxyDevice::SetRenderTarget(DWORD RenderTargetIndex, IDirect3
 	OutputDebugString(typeid(pRenderTarget).name());
 	OutputDebugString("\n");
 
-	D3DProxyStereoSurface* newRenderTarget = static_cast<D3DProxyStereoSurface*>(pRenderTarget);
+	D3DProxyStereoSurface* newRenderTarget = dynamic_cast<D3DProxyStereoSurface*>(pRenderTarget);
 
 #ifdef _DEBUG
 	if (!newRenderTarget)
@@ -1047,7 +1026,7 @@ HRESULT WINAPI D3DProxyDevice::GetRenderTarget(DWORD RenderTargetIndex,IDirect3D
 
 
 /*
-	Switches to rendering to which ever side is specified by side.
+	Switches rendering to which ever side is specified by side.
 
 	Returns true if change succeeded, false if it fails. The switch will fail if you attempt to setDrawingSide(Right)
 	when the current primary active render target (target 0  in m_activeRenderTargets) is not stereo.
