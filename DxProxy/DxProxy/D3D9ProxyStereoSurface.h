@@ -22,18 +22,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <d3d9.h>
 #include "Direct3DSurface9.h"
 #include "Direct3DDevice9.h"
-#include "D3DProxySurface.h"
+#include "D3D9ProxySurface.h"
+#include <stdio.h>
 
 /*
 		
 
 
  */
-class D3DProxyStereoSurface : public D3DProxySurface
+class D3D9ProxyStereoSurface : public D3D9ProxySurface
 {
 public:
-	D3DProxyStereoSurface(IDirect3DSurface9* pLeftSurface, IDirect3DSurface9* pRightSurface, BaseDirect3DDevice9* pOwningDevice, IUnknown* pContainer);
-	virtual ~D3DProxyStereoSurface();
+	D3D9ProxyStereoSurface(IDirect3DSurface9* pActualSurfaceLeft, IDirect3DSurface9* pActualSurfaceRight, BaseDirect3DDevice9* pOwningDevice, IUnknown* pStereoContainer);
+	virtual ~D3D9ProxyStereoSurface();
 
 	bool IsStereo();
 
@@ -41,35 +42,24 @@ public:
 	IDirect3DSurface9* getLeftSurface();
 	IDirect3DSurface9* getRightSurface();
 
-	
 
 	
-	//virtual HRESULT WINAPI GetDevice(IDirect3DDevice9** ppDevice);
+
 	virtual HRESULT WINAPI SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags);
-	//virtual HRESULT WINAPI GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData);
 	virtual HRESULT WINAPI FreePrivateData(REFGUID refguid);
 	virtual   DWORD WINAPI SetPriority(DWORD PriorityNew);
-	//virtual   DWORD WINAPI GetPriority();
 	virtual    void WINAPI PreLoad();
 
 	
-	//virtual HRESULT WINAPI GetContainer(REFIID riid, LPVOID* ppContainer);
 
 
-	//virtual HRESULT WINAPI GetDesc(D3DSURFACE_DESC *pDesc);
 	virtual HRESULT WINAPI LockRect(D3DLOCKED_RECT* pLockedRect, CONST RECT* pRect, DWORD Flags);
 	virtual HRESULT WINAPI UnlockRect();
-	//virtual HRESULT WINAPI GetDC(HDC *phdc);
 	virtual HRESULT WINAPI ReleaseDC(HDC hdc);
-	//virtual D3DRESOURCETYPE WINAPI GetType();
 
 private:
 
 	IDirect3DSurface9* m_pActualSurfaceRight;
-
-	//D3DProxyStereoTexture* 
-	// container
-	
 };
 
 #endif

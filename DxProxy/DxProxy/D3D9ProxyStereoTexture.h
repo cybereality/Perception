@@ -22,16 +22,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <d3d9.h>
 #include <vector>
 #include "Direct3DTexture9.h"
-#include "D3DProxyStereoSurface.h"
+#include "D3D9ProxyStereoSurface.h"
 
 
-class D3DProxyStereoTexture : public BaseDirect3DTexture9
+class D3D9ProxyStereoTexture : public BaseDirect3DTexture9
 {
 public:
-	D3DProxyStereoTexture(IDirect3DTexture9* leftTexture, IDirect3DTexture9* rightTexture);
-	virtual ~D3DProxyStereoTexture();
+	D3D9ProxyStereoTexture(IDirect3DTexture9* leftTexture, IDirect3DTexture9* rightTexture);
+	virtual ~D3D9ProxyStereoTexture();
 
-	
+	virtual ULONG WINAPI AddRef();
+	virtual ULONG WINAPI Release();
 	
 	// texture methods
 	virtual HRESULT WINAPI GetLevelDesc(UINT Level, D3DSURFACE_DESC *pDesc);
@@ -75,9 +76,9 @@ public:
 
 
 protected:
-	IDirect3DTexture9* m_pTextureRight;
+	IDirect3DTexture9* m_pActualTextureRight;
 
-	std::vector<D3DProxyStereoSurface*> m_levels;
+	std::vector<D3D9ProxyStereoSurface*> m_levels;
 
 	// Getting a level from a D3D texture increases the ref count on the texture so we need to do that here as well.
 	// Releasing a surface that is aquired in this fashion also reduces the ref count on the texture it was aquired from.

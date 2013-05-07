@@ -16,54 +16,49 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#include "D3DProxyStereoSurface.h"
-#include "D3DProxyDeviceFactory.h"
+#include <assert.h>
+#include "D3D9ProxyStereoSurface.h"
 
-D3DProxyStereoSurface::D3DProxyStereoSurface(IDirect3DSurface9* pLeftSurface, IDirect3DSurface9* pRightSurface, BaseDirect3DDevice9* pOwningDevice, IUnknown* pContainer) : 
-	D3DProxySurface(pLeftSurface, pOwningDevice, pContainer),
-	m_pActualSurfaceRight(pRightSurface)
+D3D9ProxyStereoSurface::D3D9ProxyStereoSurface(IDirect3DSurface9* pActualSurfaceLeft, IDirect3DSurface9* pActualSurfaceRight, BaseDirect3DDevice9* pOwningDevice, IUnknown* pStereoContainer) : 
+	D3D9ProxySurface(pActualSurfaceLeft, pOwningDevice, pStereoContainer),
+	m_pActualSurfaceRight(pActualSurfaceRight)
 {
-}
-
-D3DProxyStereoSurface::~D3DProxyStereoSurface()
-{
-	OutputDebugString("Release Right \n");
-	if(m_pActualSurfaceRight) {
-		int newRefCount = m_pActualSurfaceRight->Release();
-		
-		if (newRefCount > 0) {
-			char buf[128];
-			sprintf_s(buf, "Error: count = %d\n", newRefCount);
-			OutputDebugString(buf);
+	
+	if (pActualSurfaceRight){
+		if (pStereoContainer != NULL) {
+			// Stereo surface is in a container
+			//TODO If Debug get container type and cast to appropriate stereo container to verify stereo
+			// containers are being used with stereo surfaces
+			//assert (pStereoContainer.IsStereo() != NULL);
 		}
-
-		m_pActualSurfaceRight = NULL;
 	}
 }
 
+D3D9ProxyStereoSurface::~D3D9ProxyStereoSurface()
+{
+	if (m_pActualSurfaceRight)
+		m_pActualSurfaceRight->Release();
+}
 
-bool D3DProxyStereoSurface::IsStereo()
+
+bool D3D9ProxyStereoSurface::IsStereo()
 {
 	return m_pActualSurfaceRight != NULL;
 }
 
 
 
-IDirect3DSurface9* D3DProxyStereoSurface::getMonoSurface()
+IDirect3DSurface9* D3D9ProxyStereoSurface::getMonoSurface()
 {
-	if (!m_pActualSurface)
-		OutputDebugString("m_pLeftSurface is null\n");
-	if (!m_pActualSurfaceRight)
-		OutputDebugString("m_pActualSurfaceRight is null\n");
 	return getLeftSurface();
 }
 
-IDirect3DSurface9* D3DProxyStereoSurface::getLeftSurface()
+IDirect3DSurface9* D3D9ProxyStereoSurface::getLeftSurface()
 {
 	return m_pActualSurface;
 }
 
-IDirect3DSurface9* D3DProxyStereoSurface::getRightSurface()
+IDirect3DSurface9* D3D9ProxyStereoSurface::getRightSurface()
 {
 	return m_pActualSurfaceRight;
 }
@@ -71,7 +66,9 @@ IDirect3DSurface9* D3DProxyStereoSurface::getRightSurface()
 
 
 
-HRESULT WINAPI D3DProxyStereoSurface::SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags)
+
+
+HRESULT WINAPI D3D9ProxyStereoSurface::SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags)
 {
 	if (IsStereo())
 		m_pActualSurfaceRight->SetPrivateData(refguid, pData, SizeOfData, Flags);
@@ -81,7 +78,7 @@ HRESULT WINAPI D3DProxyStereoSurface::SetPrivateData(REFGUID refguid, CONST void
 
 
 
-HRESULT WINAPI D3DProxyStereoSurface::FreePrivateData(REFGUID refguid)
+HRESULT WINAPI D3D9ProxyStereoSurface::FreePrivateData(REFGUID refguid)
 {
 	if (IsStereo())
 		m_pActualSurfaceRight->FreePrivateData(refguid);
@@ -89,7 +86,7 @@ HRESULT WINAPI D3DProxyStereoSurface::FreePrivateData(REFGUID refguid)
 	return m_pActualSurface->FreePrivateData(refguid);
 }
 
-DWORD WINAPI D3DProxyStereoSurface::SetPriority(DWORD PriorityNew)
+DWORD WINAPI D3D9ProxyStereoSurface::SetPriority(DWORD PriorityNew)
 {
 	if (IsStereo())
 		m_pActualSurfaceRight->SetPriority(PriorityNew);
@@ -98,7 +95,7 @@ DWORD WINAPI D3DProxyStereoSurface::SetPriority(DWORD PriorityNew)
 }
 
 
-void WINAPI D3DProxyStereoSurface::PreLoad()
+void WINAPI D3D9ProxyStereoSurface::PreLoad()
 {
 	if (IsStereo())
 		m_pActualSurfaceRight->PreLoad();
@@ -107,7 +104,7 @@ void WINAPI D3DProxyStereoSurface::PreLoad()
 }
 
 
-HRESULT WINAPI D3DProxyStereoSurface::LockRect(D3DLOCKED_RECT* pLockedRect, CONST RECT* pRect, DWORD Flags)
+HRESULT WINAPI D3D9ProxyStereoSurface::LockRect(D3DLOCKED_RECT* pLockedRect, CONST RECT* pRect, DWORD Flags)
 {
 	if (IsStereo())
 		m_pActualSurfaceRight->LockRect(pLockedRect, pRect, Flags);
@@ -115,7 +112,7 @@ HRESULT WINAPI D3DProxyStereoSurface::LockRect(D3DLOCKED_RECT* pLockedRect, CONS
 	return BaseDirect3DSurface9::LockRect(pLockedRect, pRect, Flags);
 }
 
-HRESULT WINAPI D3DProxyStereoSurface::UnlockRect()
+HRESULT WINAPI D3D9ProxyStereoSurface::UnlockRect()
 {
 	if (IsStereo())
 		m_pActualSurfaceRight->UnlockRect();
@@ -125,7 +122,7 @@ HRESULT WINAPI D3DProxyStereoSurface::UnlockRect()
 
 
 
-HRESULT WINAPI D3DProxyStereoSurface::ReleaseDC(HDC hdc)
+HRESULT WINAPI D3D9ProxyStereoSurface::ReleaseDC(HDC hdc)
 {
 	if (IsStereo())
 		m_pActualSurfaceRight->ReleaseDC(hdc);

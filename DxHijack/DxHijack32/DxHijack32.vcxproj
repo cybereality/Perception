@@ -110,6 +110,9 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\DxProxy\DxProxy\D3D9ProxyStereoSurface.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\D3D9ProxyStereoTexture.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\D3D9ProxySurface.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxyDevice.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxyDeviceAdv.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxyDeviceEgo.cpp" />
@@ -119,8 +122,6 @@
     <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxyDeviceSource.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxyDeviceTest.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxyDeviceUnreal.cpp" />
-    <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxyStereoSurface.cpp" />
-    <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxySurface.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\Direct3D9.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\Direct3DDevice9.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\Direct3DSurface9.cpp" />
@@ -144,6 +145,9 @@
     <None Include="hijackdll.def" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\DxProxy\DxProxy\D3D9ProxyStereoSurface.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\D3D9ProxyStereoTexture.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\D3D9ProxySurface.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyDevice.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyDeviceAdv.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyDeviceEgo.h" />
@@ -153,8 +157,6 @@
     <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyDeviceSource.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyDeviceTest.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyDeviceUnreal.h" />
-    <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyStereoSurface.h" />
-    <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxySurface.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\Direct3D9.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\Direct3DDevice9.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\Direct3DSurface9.h" />

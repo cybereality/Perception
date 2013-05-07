@@ -16,31 +16,37 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#include "Direct3DTexture9.h"
+#include "D3D9ProxyStereoTexture.h"
 
-BaseDirect3DTexture9::BaseDirect3DTexture9(IDirect3DTexture9* pTexture) :
-	m_pActualTexture(pTexture)
+D3D9ProxyStereoTexture::D3D9ProxyStereoTexture(IDirect3DTexture9* leftTexture, IDirect3DTexture9* rightTexture) :
+	BaseDirect3DTexture9(leftTexture),
+	m_levels(1, NULL)
+{
+
+}
+
+D3D9ProxyStereoTexture::~D3D9ProxyStereoTexture()
 {
 }
 
-BaseDirect3DTexture9::~BaseDirect3DTexture9()
-{
-}
 
-HRESULT WINAPI BaseDirect3DTexture9::QueryInterface(REFIID riid, LPVOID* ppv)
-{
-	return m_pActualTexture->QueryInterface(riid, ppv);
-}
 
-ULONG WINAPI BaseDirect3DTexture9::AddRef()
+
+
+ULONG WINAPI D3D9ProxyStereoTexture::AddRef()
 {
+	m_pActualTextureRight->AddRef();
 	return m_pActualTexture->AddRef();
 }
 
 
-ULONG WINAPI BaseDirect3DTexture9::Release()
+ULONG WINAPI D3D9ProxyStereoTexture::Release()
 {
+	ULONG rightRefCount = m_pActualTextureRight->Release();
 	ULONG refCount = m_pActualTexture->Release();
+
+	if (rightRefCount != refCount)
+		OutputDebugString("Error: StereoSurface - Ref count Releasing left and right surfaces does not match.\n");
 
 	if (refCount <= 0) {
 		delete this;
@@ -51,29 +57,30 @@ ULONG WINAPI BaseDirect3DTexture9::Release()
 
 
 
-
-
-HRESULT WINAPI BaseDirect3DTexture9::GetLevelDesc(UINT Level, D3DSURFACE_DESC *pDesc)
+HRESULT WINAPI D3D9ProxyStereoTexture::GetLevelDesc(UINT Level, D3DSURFACE_DESC *pDesc)
 {
 	return m_pActualTexture->GetLevelDesc(Level, pDesc);
 }
 
-HRESULT WINAPI BaseDirect3DTexture9::GetSurfaceLevel(UINT Level, IDirect3DSurface9** ppSurfaceLevel)
+HRESULT WINAPI D3D9ProxyStereoTexture::GetSurfaceLevel(UINT Level, IDirect3DSurface9** ppSurfaceLevel)
 {
+	// return a stereo surface 
+
+
 	return m_pActualTexture->GetSurfaceLevel(Level, ppSurfaceLevel);
 }
 
-HRESULT WINAPI BaseDirect3DTexture9::LockRect(UINT Level, D3DLOCKED_RECT* pLockedRect, CONST RECT* pRect, DWORD Flags)
+HRESULT WINAPI D3D9ProxyStereoTexture::LockRect(UINT Level, D3DLOCKED_RECT* pLockedRect, CONST RECT* pRect, DWORD Flags)
 {
 	return m_pActualTexture->LockRect(Level, pLockedRect, pRect, Flags);
 }
 	
-HRESULT WINAPI BaseDirect3DTexture9::UnlockRect(UINT Level)
+HRESULT WINAPI D3D9ProxyStereoTexture::UnlockRect(UINT Level)
 {
 	return m_pActualTexture->UnlockRect(Level);
 }
 
-HRESULT WINAPI BaseDirect3DTexture9::AddDirtyRect(CONST RECT* pDirtyRect)
+HRESULT WINAPI D3D9ProxyStereoTexture::AddDirtyRect(CONST RECT* pDirtyRect)
 {
 	return m_pActualTexture->AddDirtyRect(pDirtyRect);
 }
@@ -83,72 +90,72 @@ HRESULT WINAPI BaseDirect3DTexture9::AddDirtyRect(CONST RECT* pDirtyRect)
 
 
 
-HRESULT WINAPI BaseDirect3DTexture9::GetDevice(IDirect3DDevice9** ppDevice)
+HRESULT WINAPI D3D9ProxyStereoTexture::GetDevice(IDirect3DDevice9** ppDevice)
 {
 	return m_pActualTexture->GetDevice(ppDevice);
 }
 
-HRESULT WINAPI BaseDirect3DTexture9::SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags)
+HRESULT WINAPI D3D9ProxyStereoTexture::SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags)
 {
 	return m_pActualTexture->SetPrivateData(refguid, pData, SizeOfData, Flags);
 }
 
-HRESULT WINAPI BaseDirect3DTexture9::GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData)
+HRESULT WINAPI D3D9ProxyStereoTexture::GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData)
 {
 	return m_pActualTexture->GetPrivateData(refguid, pData, pSizeOfData);
 }
 
-HRESULT WINAPI BaseDirect3DTexture9::FreePrivateData(REFGUID refguid)
+HRESULT WINAPI D3D9ProxyStereoTexture::FreePrivateData(REFGUID refguid)
 {
 	return m_pActualTexture->FreePrivateData(refguid);
 }
 
-DWORD WINAPI BaseDirect3DTexture9::SetPriority(DWORD PriorityNew)
+DWORD WINAPI D3D9ProxyStereoTexture::SetPriority(DWORD PriorityNew)
 {
 	return m_pActualTexture->SetPriority(PriorityNew);
 }
 
-DWORD WINAPI BaseDirect3DTexture9::GetPriority()
+DWORD WINAPI D3D9ProxyStereoTexture::GetPriority()
 {
 	return m_pActualTexture->GetPriority();
 }
 
-void WINAPI BaseDirect3DTexture9::PreLoad()
+void WINAPI D3D9ProxyStereoTexture::PreLoad()
 {
 	return m_pActualTexture->PreLoad();
 }
 
-DWORD WINAPI BaseDirect3DTexture9::SetLOD(DWORD LODNew)
+DWORD WINAPI D3D9ProxyStereoTexture::SetLOD(DWORD LODNew)
 {
 	return m_pActualTexture->SetLOD(LODNew);
 }
 
-DWORD WINAPI BaseDirect3DTexture9::GetLOD()
+DWORD WINAPI D3D9ProxyStereoTexture::GetLOD()
 {
 	return m_pActualTexture->GetLOD();
 }
 
-DWORD WINAPI BaseDirect3DTexture9::GetLevelCount()
+DWORD WINAPI D3D9ProxyStereoTexture::GetLevelCount()
 {
 	return m_pActualTexture->GetLevelCount();
 }
 
-HRESULT WINAPI BaseDirect3DTexture9::SetAutoGenFilterType(D3DTEXTUREFILTERTYPE FilterType)
+HRESULT WINAPI D3D9ProxyStereoTexture::SetAutoGenFilterType(D3DTEXTUREFILTERTYPE FilterType)
 {
 	return m_pActualTexture->SetAutoGenFilterType(FilterType);
 }
 
-void WINAPI BaseDirect3DTexture9::GenerateMipSubLevels()
+void WINAPI D3D9ProxyStereoTexture::GenerateMipSubLevels()
 {
 	return m_pActualTexture->GenerateMipSubLevels();
 }
 
-D3DTEXTUREFILTERTYPE WINAPI BaseDirect3DTexture9::GetAutoGenFilterType()
+D3DTEXTUREFILTERTYPE WINAPI D3D9ProxyStereoTexture::GetAutoGenFilterType()
 {
 	return m_pActualTexture->GetAutoGenFilterType();
 }
 
-D3DRESOURCETYPE WINAPI BaseDirect3DTexture9::GetType()
+D3DRESOURCETYPE WINAPI D3D9ProxyStereoTexture::GetType()
 {
 	return m_pActualTexture->GetType();
 }

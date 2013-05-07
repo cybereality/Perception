@@ -20,8 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define D3DPROXYDEVICE_H_INCLUDED
 
 #include "Direct3DDevice9.h"
-#include "D3DProxyStereoSurface.h"
-#include "D3DProxyStereoTexture.h"
+#include "D3D9ProxyStereoSurface.h"
+#include "D3D9ProxyStereoTexture.h"
 #include "ProxyHelper.h"
 #include "StereoView.h"
 #include "MotionTracker.h"
@@ -166,10 +166,10 @@ protected:
 private:
 
 	
-	D3DProxyStereoSurface* pStereoBackBuffer;
+	D3D9ProxyStereoSurface* pStereoBackBuffer;
 
 	// The render targets that are currently in use.
-	std::vector<D3DProxyStereoSurface*> m_activeRenderTargets;
+	std::vector<D3D9ProxyStereoSurface*> m_activeRenderTargets;
 	
 
 

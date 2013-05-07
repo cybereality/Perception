@@ -17,12 +17,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
 #include "Direct3DSurface9.h"
-#include "Direct3DDevice9.h"
-#include "Main.h"
-#include "D3DProxyDeviceFactory.h"
 
-BaseDirect3DSurface9::BaseDirect3DSurface9(IDirect3DSurface9* pSurfaceBeingWrapped) :
-	m_pActualSurface(pSurfaceBeingWrapped),
+
+BaseDirect3DSurface9::BaseDirect3DSurface9(IDirect3DSurface9* pActualSurface) :
+	m_pActualSurface(pActualSurface),
 	m_nRefCount(1)
 {
 }
@@ -45,7 +43,6 @@ ULONG WINAPI BaseDirect3DSurface9::AddRef()
 	return ++m_nRefCount;
 }
 
-
 ULONG WINAPI BaseDirect3DSurface9::Release()
 {
 	if(--m_nRefCount == 0)
@@ -53,6 +50,7 @@ ULONG WINAPI BaseDirect3DSurface9::Release()
 		delete this;
 		return 0;
 	}
+
 	return m_nRefCount;
 }
 

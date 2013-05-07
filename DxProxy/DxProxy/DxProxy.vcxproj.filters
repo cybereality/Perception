@@ -32,6 +32,9 @@
     <Filter Include="Direct3D9Vireio\Direct3DDevice9">
       <UniqueIdentifier>{4ef859f6-c511-4db2-b101-b5a4fca35325}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Direct3D9Vireio\Direct3DSurface9">
+      <UniqueIdentifier>{35832143-223f-444e-9b97-9aa311318b79}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -109,16 +112,16 @@
     <ClCompile Include="Direct3DSurface9.cpp">
       <Filter>Direct3D9</Filter>
     </ClCompile>
-    <ClCompile Include="D3DProxyStereoSurface.cpp">
-      <Filter>Direct3D9Vireio</Filter>
-    </ClCompile>
     <ClCompile Include="Direct3DTexture9.cpp">
       <Filter>Direct3D9</Filter>
     </ClCompile>
-    <ClCompile Include="D3DProxyStereoTexture.cpp">
-      <Filter>Direct3D9Vireio</Filter>
+    <ClCompile Include="D3D9ProxySurface.cpp">
+      <Filter>Direct3D9Vireio\Direct3DSurface9</Filter>
     </ClCompile>
-    <ClCompile Include="D3DProxySurface.cpp">
+    <ClCompile Include="D3D9ProxyStereoSurface.cpp">
+      <Filter>Direct3D9Vireio\Direct3DSurface9</Filter>
+    </ClCompile>
+    <ClCompile Include="D3D9ProxyStereoTexture.cpp">
       <Filter>Direct3D9Vireio</Filter>
     </ClCompile>
   </ItemGroup>
@@ -206,16 +209,16 @@
     <ClInclude Include="Direct3DSurface9.h">
       <Filter>Direct3D9</Filter>
     </ClInclude>
-    <ClInclude Include="D3DProxyStereoSurface.h">
-      <Filter>Direct3D9Vireio</Filter>
-    </ClInclude>
     <ClInclude Include="Direct3DTexture9.h">
       <Filter>Direct3D9</Filter>
     </ClInclude>
-    <ClInclude Include="D3DProxyStereoTexture.h">
-      <Filter>Direct3D9Vireio</Filter>
+    <ClInclude Include="D3D9ProxySurface.h">
+      <Filter>Direct3D9Vireio\Direct3DSurface9</Filter>
     </ClInclude>
-    <ClInclude Include="D3DProxySurface.h">
+    <ClInclude Include="D3D9ProxyStereoSurface.h">
+      <Filter>Direct3D9Vireio\Direct3DSurface9</Filter>
+    </ClInclude>
+    <ClInclude Include="D3D9ProxyStereoTexture.h">
       <Filter>Direct3D9Vireio</Filter>
     </ClInclude>
   </ItemGroup>

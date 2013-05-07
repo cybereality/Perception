@@ -63,10 +63,8 @@ public:
 
 
 protected:
-	IDirect3DTexture9* m_pTexture;
+	IDirect3DTexture9* m_pActualTexture;
 
-private:
-	ULONG m_nRefCount;
 };
 
 #endif

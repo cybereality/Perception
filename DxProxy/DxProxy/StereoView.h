@@ -61,7 +61,7 @@ public:
 	virtual void InitVertexBuffers();
 	virtual void InitShaderEffects();
 	virtual void Draw();
-	virtual void Draw(D3DProxyStereoSurface* stereoCapableSurface);
+	virtual void Draw(D3D9ProxyStereoSurface* stereoCapableSurface);
 	virtual void SaveState();
 	virtual void SetState();
 	virtual void RestoreState();

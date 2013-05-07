@@ -25,7 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class BaseDirect3DSurface9 : public IDirect3DSurface9
 {
 public:
-	BaseDirect3DSurface9(IDirect3DSurface9* pSurface);
+	BaseDirect3DSurface9(IDirect3DSurface9* pActualSurface);
 	virtual ~BaseDirect3DSurface9();
 
 	// IUnknown
