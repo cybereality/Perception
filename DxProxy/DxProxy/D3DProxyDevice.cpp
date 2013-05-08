@@ -1055,6 +1055,20 @@ HRESULT WINAPI D3DProxyDevice::GetRenderTarget(DWORD RenderTargetIndex,IDirect3D
 
 
 
+HRESULT WINAPI D3DProxyDevice::SetTexture(DWORD Stage,IDirect3DBaseTexture9* pTexture)
+{
+	OutputDebugString(__FUNCTION__); 
+	OutputDebugString("\n"); 
+
+	//TODO NEXT
+
+	return m_pDevice->SetTexture(Stage, pTexture);
+}
+
+
+
+
+
 /*
 	Switches rendering to which ever side is specified by side.
 
