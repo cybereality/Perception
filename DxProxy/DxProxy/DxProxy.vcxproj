@@ -118,10 +118,8 @@
     <ClCompile Include="D3DProxyDeviceUnreal.cpp" />
     <ClCompile Include="D3D9ProxySurface.cpp" />
     <ClCompile Include="Direct3D9.cpp" />
-    <ClCompile Include="D3D9ProxyStereoTexture.cpp" />
     <ClCompile Include="Direct3DSurface9.cpp" />
     <ClCompile Include="Direct3DDevice9.cpp" />
-    <ClCompile Include="D3D9ProxyStereoSurface.cpp" />
     <ClCompile Include="Direct3DTexture9.cpp" />
     <ClCompile Include="FreeSpaceTracker.cpp" />
     <ClCompile Include="FreeTrackTracker.cpp" />
@@ -150,10 +148,8 @@
     <ClInclude Include="D3DProxyDeviceUnreal.h" />
     <ClInclude Include="D3D9ProxySurface.h" />
     <ClInclude Include="Direct3D9.h" />
-    <ClInclude Include="D3D9ProxyStereoTexture.h" />
     <ClInclude Include="Direct3DSurface9.h" />
     <ClInclude Include="Direct3DDevice9.h" />
-    <ClInclude Include="D3D9ProxyStereoSurface.h" />
     <ClInclude Include="Direct3DTexture9.h" />
     <ClInclude Include="FreeSpaceTracker.h" />
     <ClInclude Include="FreeTrackTracker.h" />

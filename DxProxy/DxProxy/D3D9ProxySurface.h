@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <d3d9.h>
 #include "Direct3DSurface9.h"
 #include "Direct3DDevice9.h"
+#include <stdio.h>
 
 
 
@@ -32,10 +33,16 @@ public:
 		If the Proxy surface is in a container it will have a combined ref count with it's container
 		and that count is managed by forwarding release and addref to the container. In this case the
 		container must delete this surface when the ref count reaches 0.
-	*/
-	D3D9ProxySurface(IDirect3DSurface9* pActualSurface, BaseDirect3DDevice9* pOwningDevice, IUnknown* pWrappedContainer);
-
+	*/ 
+	D3D9ProxySurface(IDirect3DSurface9* pActualSurfaceLeft, IDirect3DSurface9* pActualSurfaceRight, BaseDirect3DDevice9* pOwningDevice, IUnknown* pWrappedContainer);
 	virtual ~D3D9ProxySurface();
+
+
+	bool IsStereo();
+
+	IDirect3DSurface9* getMonoSurface();
+	IDirect3DSurface9* getLeftSurface();
+	IDirect3DSurface9* getRightSurface();
 
 
 	// IUnknown
@@ -51,13 +58,21 @@ public:
 	 */
 	virtual ULONG WINAPI AddRef();
 	virtual ULONG WINAPI Release();
-	
+
+
 
 	// IDirect3DResource9
 	virtual HRESULT WINAPI GetDevice(IDirect3DDevice9** ppDevice);
+	virtual HRESULT WINAPI SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags);
+	virtual HRESULT WINAPI FreePrivateData(REFGUID refguid);
+	virtual   DWORD WINAPI SetPriority(DWORD PriorityNew);
+	virtual    void WINAPI PreLoad();
 
 	// IDirect3DSurface9
 	virtual HRESULT WINAPI GetContainer(REFIID riid, LPVOID* ppContainer);
+	virtual HRESULT WINAPI LockRect(D3DLOCKED_RECT* pLockedRect, CONST RECT* pRect, DWORD Flags);
+	virtual HRESULT WINAPI UnlockRect();
+	virtual HRESULT WINAPI ReleaseDC(HDC hdc);
 
 protected:
 
@@ -86,6 +101,10 @@ protected:
 		and the use GetDevice to fetch the device. 
 	 */
 	BaseDirect3DDevice9* const m_pOwningDevice;
+
+	
+	// Right surface. NULL for surfaces that aren't being duplicated.
+	IDirect3DSurface9* const m_pActualSurfaceRight;
 };
 
 #endif

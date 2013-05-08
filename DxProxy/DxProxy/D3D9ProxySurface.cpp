@@ -20,8 +20,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "D3D9ProxySurface.h"
 
 
-D3D9ProxySurface::D3D9ProxySurface(IDirect3DSurface9* pActualSurface, BaseDirect3DDevice9* pOwningDevice, IUnknown* pWrappedContainer) :
-	BaseDirect3DSurface9(pActualSurface),
+D3D9ProxySurface::D3D9ProxySurface(IDirect3DSurface9* pActualSurfaceLeft, IDirect3DSurface9* pActualSurfaceRight, BaseDirect3DDevice9* pOwningDevice, IUnknown* pWrappedContainer) :
+	BaseDirect3DSurface9(pActualSurfaceLeft),
+	m_pActualSurfaceRight(pActualSurfaceRight),
 	m_pOwningDevice(pOwningDevice),
 	m_pWrappedContainer(pWrappedContainer)
 {
@@ -43,9 +44,44 @@ D3D9ProxySurface::~D3D9ProxySurface()
 		m_pOwningDevice->Release();
 	}
 
+	if (m_pActualSurfaceRight)
+		m_pActualSurfaceRight->Release();
+
 	// else - m_pWrappedContainer does not have released called on it because the container manages
 	// the device reference
 }
+
+
+
+
+
+bool D3D9ProxySurface::IsStereo()
+{
+	return m_pActualSurfaceRight != NULL;
+}
+
+
+
+IDirect3DSurface9* D3D9ProxySurface::getMonoSurface()
+{
+	return getLeftSurface();
+}
+
+IDirect3DSurface9* D3D9ProxySurface::getLeftSurface()
+{
+	return m_pActualSurface;
+}
+
+IDirect3DSurface9* D3D9ProxySurface::getRightSurface()
+{
+	return m_pActualSurfaceRight;
+}
+
+
+
+
+
+
 
 
 
@@ -64,7 +100,6 @@ ULONG WINAPI D3D9ProxySurface::AddRef()
 ULONG WINAPI D3D9ProxySurface::Release()
 {
 	if (m_pWrappedContainer) {
-
 		return m_pWrappedContainer->Release(); 
 	}
 	else {
@@ -95,6 +130,42 @@ HRESULT WINAPI D3D9ProxySurface::GetDevice(IDirect3DDevice9** ppDevice)
 }
 
 
+
+
+HRESULT WINAPI D3D9ProxySurface::SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags)
+{
+	if (IsStereo())
+		m_pActualSurfaceRight->SetPrivateData(refguid, pData, SizeOfData, Flags);
+
+	return m_pActualSurface->SetPrivateData(refguid, pData, SizeOfData, Flags);
+}
+
+
+
+HRESULT WINAPI D3D9ProxySurface::FreePrivateData(REFGUID refguid)
+{
+	if (IsStereo())
+		m_pActualSurfaceRight->FreePrivateData(refguid);
+
+	return m_pActualSurface->FreePrivateData(refguid);
+}
+
+DWORD WINAPI D3D9ProxySurface::SetPriority(DWORD PriorityNew)
+{
+	if (IsStereo())
+		m_pActualSurfaceRight->SetPriority(PriorityNew);
+
+	return m_pActualSurface->SetPriority(PriorityNew);
+}
+
+
+void WINAPI D3D9ProxySurface::PreLoad()
+{
+	if (IsStereo())
+		m_pActualSurfaceRight->PreLoad();
+
+	return m_pActualSurface->PreLoad();
+}
 
 
 
@@ -137,5 +208,33 @@ HRESULT WINAPI D3D9ProxySurface::GetContainer(REFIID riid, LPVOID* ppContainer)
 
 	// Like GetDevice we need to return the wrapper rather than the underlying container 
 	//return m_pActualSurface->GetContainer(riid, ppContainer);
+}
+
+
+
+HRESULT WINAPI D3D9ProxySurface::LockRect(D3DLOCKED_RECT* pLockedRect, CONST RECT* pRect, DWORD Flags)
+{
+	if (IsStereo())
+		m_pActualSurfaceRight->LockRect(pLockedRect, pRect, Flags);
+
+	return BaseDirect3DSurface9::LockRect(pLockedRect, pRect, Flags);
+}
+
+HRESULT WINAPI D3D9ProxySurface::UnlockRect()
+{
+	if (IsStereo())
+		m_pActualSurfaceRight->UnlockRect();
+
+	return BaseDirect3DSurface9::UnlockRect();
+}
+
+
+
+HRESULT WINAPI D3D9ProxySurface::ReleaseDC(HDC hdc)
+{
+	if (IsStereo())
+		m_pActualSurfaceRight->ReleaseDC(hdc);
+
+	return BaseDirect3DSurface9::ReleaseDC(hdc);
 }
 

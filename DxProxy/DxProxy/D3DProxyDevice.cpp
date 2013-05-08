@@ -21,14 +21,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "D3DProxyDevice.h"
 #include "D3D9ProxySurface.h"
-#include "D3D9ProxyStereoSurface.h"
 #include "StereoViewFactory.h"
 #include "MotionTrackerFactory.h"
 #include <typeinfo>
 
 #ifdef _DEBUG
 #include "DxErr.h"
-#define D3D_DEBUG_INFO
 #endif
 
 #pragma comment(lib, "d3dx9.lib")
@@ -81,7 +79,7 @@ D3DProxyDevice::~D3DProxyDevice()
 	}
 
 
-	for(std::vector<D3D9ProxyStereoSurface*>::size_type i = 0; i != m_activeRenderTargets.size(); i++) 
+	for(std::vector<D3D9ProxySurface*>::size_type i = 0; i != m_activeRenderTargets.size(); i++) 
 	{
 		if (m_activeRenderTargets[i] != NULL) {
 			m_activeRenderTargets[i]->Release();
@@ -147,7 +145,7 @@ void D3DProxyDevice::OnCreateOrRestore()
 
 	IDirect3DSurface9* pTemp;
 	CreateRenderTarget(backDesc.Width, backDesc.Height, backDesc.Format, backDesc.MultiSampleType, backDesc.MultiSampleQuality, false, &pTemp, NULL);
-	pStereoBackBuffer = static_cast<D3D9ProxyStereoSurface*>(pTemp);
+	pStereoBackBuffer = static_cast<D3D9ProxySurface*>(pTemp);
 	SetRenderTarget(0, pTemp);
 
 	SetupText();
@@ -184,7 +182,7 @@ HRESULT WINAPI D3DProxyDevice::Reset(D3DPRESENT_PARAMETERS* pPresentationParamet
 
 	
 
-	for(std::vector<D3D9ProxyStereoSurface*>::size_type i = 0; i != m_activeRenderTargets.size(); i++) 
+	for(std::vector<D3D9ProxySurface*>::size_type i = 0; i != m_activeRenderTargets.size(); i++) 
 	{
 		if (m_activeRenderTargets[i] != NULL) {
 			newRefCount = m_activeRenderTargets[i]->Release();
@@ -724,7 +722,7 @@ HRESULT WINAPI D3DProxyDevice::EndScene()
 
 
 /*
-	The IDirect3DSurface9** ppSurface returned should always be a D3D9ProxyStereoSurface. Any class overloading
+	The IDirect3DSurface9** ppSurface returned should always be a D3D9ProxySurface. Any class overloading
 	this method should ensure that this remains true.
  */
 HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample,
@@ -737,7 +735,7 @@ HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFO
 		"If Needed" heuristic is the complicated part here.
 		  Fixed heuristics (based on type, format, size, etc) + game specific overrides + isForcedMono + magic?
 
-		Always create a D3D9ProxyStereoSurface using the render target and return that
+		Always create a D3D9ProxySurface using the render target and return that
 	 */
 
 	// TODO Experiment: Try modifying fullscreen render targets to shrink them to side by side sizes.
@@ -764,7 +762,7 @@ HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFO
 
 
 	if (creationResult == D3D_OK)
-		*ppSurface = new D3D9ProxyStereoSurface(pLeftRenderTarget, pRightRenderTarget, this, NULL);
+		*ppSurface = new D3D9ProxySurface(pLeftRenderTarget, pRightRenderTarget, this, NULL);
 
 	return creationResult;
 }
@@ -785,7 +783,7 @@ HRESULT WINAPI D3DProxyDevice::CreateOffscreenPlainSurface(UINT Width,UINT Heigh
 	HRESULT creationResult = BaseDirect3DDevice9::CreateOffscreenPlainSurface(Width, Height, Format, Pool, &pActualSurface, pSharedHandle);
 
 	if (creationResult == D3D_OK)
-		*ppSurface = new D3D9ProxySurface(pActualSurface, this, NULL);
+		*ppSurface = new D3D9ProxySurface(pActualSurface, NULL, this, NULL);
 
 	return creationResult;
 }
@@ -821,7 +819,7 @@ HRESULT WINAPI D3DProxyDevice::CreateTexture(UINT Width,UINT Height,UINT Levels,
 		}
 
 		if (creationResult == D3D_OK)
-			*ppTexture = new D3D9ProxyStereoTexture(pLeftRenderTargetTexture, pRightRenderTargetTexture, this);
+			*ppTexture = new D3D9ProxyTexture(pLeftRenderTargetTexture, pRightRenderTargetTexture, this);
 
 
 	}
@@ -831,7 +829,7 @@ HRESULT WINAPI D3DProxyDevice::CreateTexture(UINT Width,UINT Height,UINT Levels,
 		creationResult = BaseDirect3DDevice9::CreateTexture(Width, Height, Levels, Usage, Format, Pool, &pMonoTexture, pSharedHandle);
 
 		if (SUCCEEDED(creationResult)) {
-			*ppTexture = new D3D9ProxyTexture(pMonoTexture, this);
+			*ppTexture = new D3D9ProxyTexture(pMonoTexture, NULL, this);
 		}
 	}
 
@@ -971,14 +969,14 @@ HRESULT WINAPI D3DProxyDevice::SetRenderTarget(DWORD RenderTargetIndex, IDirect3
 	OutputDebugString(typeid(pRenderTarget).name());
 	OutputDebugString("\n");
 
-	D3D9ProxyStereoSurface* newRenderTarget = dynamic_cast<D3D9ProxyStereoSurface*>(pRenderTarget);
+	D3D9ProxySurface* newRenderTarget = dynamic_cast<D3D9ProxySurface*>(pRenderTarget);
 
 #ifdef _DEBUG
 	if (!newRenderTarget)
 		OutputDebugString("newRenderTarget is a null surface\n"); 
 	else {
 		if (!newRenderTarget->getLeftSurface() && !newRenderTarget->getRightSurface())
-			OutputDebugString("RenderTarget is not a valid (D3D9ProxyStereoSurface) stereo capable surface\n"); 
+			OutputDebugString("RenderTarget is not a valid (D3D9ProxySurface) stereo capable surface\n"); 
 	}
 #endif
 	
@@ -1042,7 +1040,7 @@ HRESULT WINAPI D3DProxyDevice::GetRenderTarget(DWORD RenderTargetIndex,IDirect3D
 		return D3DERR_INVALIDCALL;
 	}
 
-	D3D9ProxyStereoSurface* targetToReturn = m_activeRenderTargets[RenderTargetIndex];
+	D3D9ProxySurface* targetToReturn = m_activeRenderTargets[RenderTargetIndex];
 	if (!targetToReturn)
 		return D3DERR_NOTFOUND;
 	else {
@@ -1090,8 +1088,8 @@ bool D3DProxyDevice::setDrawingSide(EyeSide side)
 
 
 	HRESULT result;
-	D3D9ProxyStereoSurface* pCurrentRT;
-	for(std::vector<D3D9ProxyStereoSurface*>::size_type i = 0; i != m_activeRenderTargets.size(); i++) 
+	D3D9ProxySurface* pCurrentRT;
+	for(std::vector<D3D9ProxySurface*>::size_type i = 0; i != m_activeRenderTargets.size(); i++) 
 	{
 		if ((pCurrentRT = m_activeRenderTargets[i]) != NULL) {
 

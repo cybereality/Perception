@@ -28,15 +28,37 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class D3D9ProxyTexture : public BaseDirect3DTexture9
 {
 public:
-	D3D9ProxyTexture(IDirect3DTexture9* pActualTexture, BaseDirect3DDevice9* pOwningDevice);
+	D3D9ProxyTexture(IDirect3DTexture9* pActualTextureLeft, IDirect3DTexture9* pActualTextureRight, BaseDirect3DDevice9* pOwningDevice);
 	virtual ~D3D9ProxyTexture();
+
+
+	bool IsStereo();
+
+	// Get actual textures
+	IDirect3DTexture9* getMonoTexture();
+	IDirect3DTexture9* getLeftTexture();
+	IDirect3DTexture9* getRightTexture();
 	
 	
 	// IDirect3DResource9 methods
 	virtual HRESULT WINAPI GetDevice(IDirect3DDevice9** ppDevice);	
+	virtual HRESULT WINAPI SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags);
+	virtual HRESULT WINAPI FreePrivateData(REFGUID refguid);
+	virtual   DWORD WINAPI SetPriority(DWORD PriorityNew);
+	virtual    void WINAPI PreLoad();
+
+
+	//base texture methods
+	virtual   DWORD WINAPI SetLOD(DWORD LODNew);
+	virtual HRESULT WINAPI SetAutoGenFilterType(D3DTEXTUREFILTERTYPE FilterType);
+	virtual    void WINAPI GenerateMipSubLevels();
+
 
 	// texture methods
-	virtual HRESULT WINAPI GetSurfaceLevel(UINT Level, IDirect3DSurface9** ppSurfaceLevel);
+	virtual HRESULT WINAPI GetSurfaceLevel(UINT Level, IDirect3DSurface9** ppSurfaceLevel); 
+    virtual HRESULT WINAPI LockRect(UINT Level, D3DLOCKED_RECT* pLockedRect, CONST RECT* pRect, DWORD Flags);
+	virtual HRESULT WINAPI UnlockRect(UINT Level);
+	virtual HRESULT WINAPI AddDirtyRect(CONST RECT* pDirtyRect);
 	
 
 protected:
@@ -45,6 +67,7 @@ protected:
 	std::unordered_map<UINT, D3D9ProxySurface*> m_wrappedSurfaceLevels;
 
 	BaseDirect3DDevice9* const m_pOwningDevice;
+	IDirect3DTexture9* const m_pActualTextureRight;
 };
 
 #endif

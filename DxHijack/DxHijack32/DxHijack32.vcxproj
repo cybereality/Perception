@@ -110,8 +110,6 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\DxProxy\DxProxy\D3D9ProxyStereoSurface.cpp" />
-    <ClCompile Include="..\..\DxProxy\DxProxy\D3D9ProxyStereoTexture.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\D3D9ProxySurface.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\D3D9ProxyTexture.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxyDevice.cpp" />
@@ -146,8 +144,6 @@
     <None Include="hijackdll.def" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\DxProxy\DxProxy\D3D9ProxyStereoSurface.h" />
-    <ClInclude Include="..\..\DxProxy\DxProxy\D3D9ProxyStereoTexture.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\D3D9ProxySurface.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\D3D9ProxyTexture.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyDevice.h" />

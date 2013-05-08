@@ -96,12 +96,6 @@
     <ClCompile Include="..\..\DxProxy\DxProxy\Direct3DTexture9.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\DxProxy\DxProxy\D3D9ProxyStereoSurface.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\DxProxy\DxProxy\D3D9ProxyStereoTexture.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\DxProxy\DxProxy\D3D9ProxySurface.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -194,12 +188,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\DxProxy\DxProxy\Direct3DTexture9.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\DxProxy\DxProxy\D3D9ProxyStereoSurface.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\DxProxy\DxProxy\D3D9ProxyStereoTexture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\DxProxy\DxProxy\D3D9ProxySurface.h">

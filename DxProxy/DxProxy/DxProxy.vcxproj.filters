@@ -121,12 +121,6 @@
     <ClCompile Include="D3D9ProxySurface.cpp">
       <Filter>Direct3D9Vireio\Direct3DSurface9</Filter>
     </ClCompile>
-    <ClCompile Include="D3D9ProxyStereoSurface.cpp">
-      <Filter>Direct3D9Vireio\Direct3DSurface9</Filter>
-    </ClCompile>
-    <ClCompile Include="D3D9ProxyStereoTexture.cpp">
-      <Filter>Direct3D9Vireio\Direct3DTexture9</Filter>
-    </ClCompile>
     <ClCompile Include="D3D9ProxyTexture.cpp">
       <Filter>Direct3D9Vireio\Direct3DTexture9</Filter>
     </ClCompile>
@@ -220,12 +214,6 @@
     </ClInclude>
     <ClInclude Include="D3D9ProxySurface.h">
       <Filter>Direct3D9Vireio\Direct3DSurface9</Filter>
-    </ClInclude>
-    <ClInclude Include="D3D9ProxyStereoSurface.h">
-      <Filter>Direct3D9Vireio\Direct3DSurface9</Filter>
-    </ClInclude>
-    <ClInclude Include="D3D9ProxyStereoTexture.h">
-      <Filter>Direct3D9Vireio\Direct3DTexture9</Filter>
     </ClInclude>
     <ClInclude Include="D3D9ProxyTexture.h">
       <Filter>Direct3D9Vireio\Direct3DTexture9</Filter>
