@@ -778,8 +778,8 @@ HRESULT WINAPI D3DProxyDevice::CreateOffscreenPlainSurface(UINT Width,UINT Heigh
 	OutputDebugString(__FUNCTION__); 
 	OutputDebugString("\n"); 
 
-	// OffscreenPlainSurfaces doesn't need to be Stereo. They can't be used as render targets so don't need to be stereo capable
-	// and they can't have rendertargets copied to them with stretch rect.
+	// OffscreenPlainSurfaces doesn't need to be Stereo. They can't be used as render targets and they can't have rendertargets copied to them with stretch rect,
+	// so don't need to be stereo capable.
 	// See table at bottom of http://msdn.microsoft.com/en-us/library/windows/desktop/bb174471%28v=vs.85%29.aspx for stretch rect restrictions
 	IDirect3DSurface9* pActualSurface = NULL;
 	HRESULT creationResult = BaseDirect3DDevice9::CreateOffscreenPlainSurface(Width, Height, Format, Pool, &pActualSurface, pSharedHandle);
@@ -797,15 +797,45 @@ HRESULT WINAPI D3DProxyDevice::CreateTexture(UINT Width,UINT Height,UINT Levels,
 	OutputDebugString(__FUNCTION__); 
 	OutputDebugString("\n"); 
 
+	HRESULT creationResult;
+
 	// Is a render target. Need to create stereo capable texture
 	if (IS_RENDER_TARGET(Usage)) {
-		if (true) {// TODO Should we duplicate this Render Target? Replace "true" with heuristic
-			
 
+		IDirect3DTexture9* pLeftRenderTargetTexture = NULL;
+		IDirect3DTexture9* pRightRenderTargetTexture = NULL;
+
+		if (true) {// TODO Should we duplicate this texture Render Target? Replace "true" with heuristic
+
+			// try and create left
+			if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateTexture(Width, Height, Levels, Usage, Format, Pool, &pLeftRenderTargetTexture, pSharedHandle))) {
+				// try and create right
+				if (FAILED(BaseDirect3DDevice9::CreateTexture(Width, Height, Levels, Usage, Format, Pool, &pRightRenderTargetTexture, pSharedHandle))) {
+					OutputDebugString("Failed to create right eye texture render target while attempting to create stereo pair, falling back to mono\n");
+					pRightRenderTargetTexture = NULL;
+				}
+			}
+			else {
+				OutputDebugString("Failed to create left eye texture render target while attempting to create stereo pair\n"); 
+			}
+		}
+
+		if (creationResult == D3D_OK)
+			*ppTexture = new D3D9ProxyStereoTexture(pLeftRenderTargetTexture, pRightRenderTargetTexture, this);
+
+
+	}
+	else {
+
+		IDirect3DTexture9* pMonoTexture;
+		creationResult = BaseDirect3DDevice9::CreateTexture(Width, Height, Levels, Usage, Format, Pool, &pMonoTexture, pSharedHandle);
+
+		if (SUCCEEDED(creationResult)) {
+			*ppTexture = new D3D9ProxyTexture(pMonoTexture, this);
 		}
 	}
-	else // TODO wrap texture
-		return BaseDirect3DDevice9::CreateTexture(Width, Height, Levels, Usage, Format, Pool, ppTexture, pSharedHandle);
+
+	return creationResult;
 }
 
 

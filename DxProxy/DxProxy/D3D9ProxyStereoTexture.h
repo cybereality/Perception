@@ -20,20 +20,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define D3DPROXYSTEREOTEXTURE_H_INCLUDED
 
 #include <d3d9.h>
-#include <vector>
 #include "Direct3DTexture9.h"
+#include "D3D9ProxyTexture.h"
 #include "D3D9ProxyStereoSurface.h"
 
 
-class D3D9ProxyStereoTexture : public BaseDirect3DTexture9
+class D3D9ProxyStereoTexture : public D3D9ProxyTexture
 {
 public:
-	D3D9ProxyStereoTexture(IDirect3DTexture9* pActualTextureLeft, IDirect3DTexture9* pActualTextureRight);
+	D3D9ProxyStereoTexture(IDirect3DTexture9* pActualTextureLeft, IDirect3DTexture9* pActualTextureRight, BaseDirect3DDevice9* pOwningDevice);
 	virtual ~D3D9ProxyStereoTexture();
 
-	// IUnknown methods
-	virtual ULONG WINAPI AddRef();
-	virtual ULONG WINAPI Release();
+	
 	
 	// texture methods
 	virtual HRESULT WINAPI GetSurfaceLevel(UINT Level, IDirect3DSurface9** ppSurfaceLevel); 
@@ -57,10 +55,9 @@ public:
     
 	bool IsStereo();
 
-	/*IDirect3DSurface9* getMonoSurface(UINT Level);
-	IDirect3DSurface9* getLeftSurface(UINT Level);
-	IDirect3DSurface9* getRightSurface(UINT Level);*/
 
+
+	// Get actual textures
 	IDirect3DTexture9* getMonoTexture();
 	IDirect3DTexture9* getLeftTexture();
 	IDirect3DTexture9* getRightTexture();

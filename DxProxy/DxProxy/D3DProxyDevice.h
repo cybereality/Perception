@@ -21,7 +21,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Direct3DDevice9.h"
 #include "D3D9ProxyStereoSurface.h"
+#include "D3D9ProxySurface.h"
 #include "D3D9ProxyStereoTexture.h"
+#include "D3D9ProxyTexture.h"
 #include "ProxyHelper.h"
 #include "StereoView.h"
 #include "MotionTracker.h"
