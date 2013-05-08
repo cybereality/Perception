@@ -18,7 +18,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <assert.h>
 #include "D3D9ProxySurface.h"
-#include <Windows.h>
 
 
 D3D9ProxySurface::D3D9ProxySurface(IDirect3DSurface9* pActualSurface, BaseDirect3DDevice9* pOwningDevice, IUnknown* pWrappedContainer) :
@@ -66,7 +65,6 @@ ULONG WINAPI D3D9ProxySurface::Release()
 {
 	if (m_pWrappedContainer) {
 
-		DebugBreak();//TODO see if this works
 		return m_pWrappedContainer->Release(); 
 	}
 	else {

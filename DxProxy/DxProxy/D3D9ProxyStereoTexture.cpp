@@ -48,6 +48,7 @@ HRESULT WINAPI D3D9ProxyStereoTexture::GetSurfaceLevel(UINT Level, IDirect3DSurf
 		// underlying texture would still be a success? (not if we don't have to, will see if it becomes a problem)
 
 		*ppSurfaceLevel = m_wrappedSurfaceLevels[Level];
+		(*ppSurfaceLevel)->AddRef();
 		return D3D_OK;
 	}
 	else {
@@ -57,7 +58,7 @@ HRESULT WINAPI D3D9ProxyStereoTexture::GetSurfaceLevel(UINT Level, IDirect3DSurf
 		HRESULT result = m_pActualTexture->GetSurfaceLevel(Level, &pActualSurfaceLevelLeft);
 
 		IDirect3DSurface9* pActualSurfaceLevelRight;
-		HRESULT resultRight = m_pActualTexture->GetSurfaceLevel(Level, &pActualSurfaceLevelRight);
+		HRESULT resultRight = m_pActualTextureRight->GetSurfaceLevel(Level, &pActualSurfaceLevelRight);
 
 		assert( result == resultRight);
 
@@ -66,9 +67,10 @@ HRESULT WINAPI D3D9ProxyStereoTexture::GetSurfaceLevel(UINT Level, IDirect3DSurf
 
 			D3D9ProxyStereoSurface* pWrappedSurfaceLevel = new D3D9ProxyStereoSurface(pActualSurfaceLevelLeft, pActualSurfaceLevelRight, m_pOwningDevice, this);
 
-			if(!m_wrappedSurfaceLevels.insert(std::pair<ULONG, D3D9ProxyStereoSurface*>(Level, pWrappedSurfaceLevel)).second) {
+			if(m_wrappedSurfaceLevels.insert(std::pair<ULONG, D3D9ProxyStereoSurface*>(Level, pWrappedSurfaceLevel)).second) {
 				// insertion of wrapped surface level into m_wrappedSurfaceLevels succeeded
 				*ppSurfaceLevel = pWrappedSurfaceLevel;
+				(*ppSurfaceLevel)->AddRef();
 				return D3D_OK;
 			}
 			else {

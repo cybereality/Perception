@@ -22,6 +22,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <d3d9.h>
 #include "ProxyHelper.h"
 
+
+
 class BaseDirect3D9 : public IDirect3D9
 {
 public:

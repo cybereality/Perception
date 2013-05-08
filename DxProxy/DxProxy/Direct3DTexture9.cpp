@@ -20,7 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <assert.h>
 
 BaseDirect3DTexture9::BaseDirect3DTexture9(IDirect3DTexture9* pActualTexture) :
-	m_pActualTexture(pActualTexture)
+	m_pActualTexture(pActualTexture),
+	m_nRefCount(1)
 {
 	assert (pActualTexture != NULL);
 }

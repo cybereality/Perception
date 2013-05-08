@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "D3D9ProxyTexture.h"
 #include <assert.h>
 
+
 D3D9ProxyTexture::D3D9ProxyTexture(IDirect3DTexture9* pActualTexture, BaseDirect3DDevice9* pOwningDevice) :
 	BaseDirect3DTexture9(pActualTexture),
 	m_wrappedSurfaceLevels(),
@@ -61,6 +62,7 @@ HRESULT WINAPI D3D9ProxyTexture::GetSurfaceLevel(UINT Level, IDirect3DSurface9**
 		// underlying texture would still be a success? (not if we don't have to, will see if it becomes a problem)
 
 		*ppSurfaceLevel = m_wrappedSurfaceLevels[Level];
+		(*ppSurfaceLevel)->AddRef();
 		return D3D_OK;
 	}
 	else {
@@ -71,9 +73,10 @@ HRESULT WINAPI D3D9ProxyTexture::GetSurfaceLevel(UINT Level, IDirect3DSurface9**
 
 			D3D9ProxySurface* pWrappedSurfaceLevel = new D3D9ProxySurface(pActualSurfaceLevel, m_pOwningDevice, this);
 
-			if(!m_wrappedSurfaceLevels.insert(std::pair<ULONG, D3D9ProxySurface*>(Level, pWrappedSurfaceLevel)).second) {
+			if(m_wrappedSurfaceLevels.insert(std::pair<ULONG, D3D9ProxySurface*>(Level, pWrappedSurfaceLevel)).second) {
 				// insertion of wrapped surface level into m_wrappedSurfaceLevels succeeded
 				*ppSurfaceLevel = pWrappedSurfaceLevel;
+				(*ppSurfaceLevel)->AddRef();
 				return D3D_OK;
 			}
 			else {
