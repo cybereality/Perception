@@ -62,17 +62,17 @@ bool D3D9ProxySurface::IsStereo()
 
 
 
-IDirect3DSurface9* D3D9ProxySurface::getMonoSurface()
+IDirect3DSurface9* D3D9ProxySurface::getActualMono()
 {
-	return getLeftSurface();
+	return getActualLeft();
 }
 
-IDirect3DSurface9* D3D9ProxySurface::getLeftSurface()
+IDirect3DSurface9* D3D9ProxySurface::getActualLeft()
 {
 	return m_pActualSurface;
 }
 
-IDirect3DSurface9* D3D9ProxySurface::getRightSurface()
+IDirect3DSurface9* D3D9ProxySurface::getActualRight()
 {
 	return m_pActualSurfaceRight;
 }

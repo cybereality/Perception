@@ -43,7 +43,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define RADIANS_TO_DEGREES(rad) ((float) rad * (float) (180.0 / PI))
 
 D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice):BaseDirect3DDevice9(pDevice),
-	m_activeRenderTargets (1, NULL)		
+	m_activeRenderTargets (1, NULL),
+	m_activeTextureStages()
 {
 	OutputDebugString("D3D ProxyDev Created\n");
 	
@@ -86,6 +87,14 @@ D3DProxyDevice::~D3DProxyDevice()
 			m_activeRenderTargets[i] = NULL;
 		}
 	}
+
+
+	auto it = m_activeTextureStages.begin();
+	while (it != m_activeTextureStages.end()) {
+		it->second->Release();
+		it = m_activeTextureStages.erase(it);
+	}
+
 
 	if(pStereoBackBuffer) {
 		pStereoBackBuffer->Release();
@@ -969,13 +978,13 @@ HRESULT WINAPI D3DProxyDevice::SetRenderTarget(DWORD RenderTargetIndex, IDirect3
 	OutputDebugString(typeid(pRenderTarget).name());
 	OutputDebugString("\n");
 
-	D3D9ProxySurface* newRenderTarget = dynamic_cast<D3D9ProxySurface*>(pRenderTarget);
+	D3D9ProxySurface* newRenderTarget = static_cast<D3D9ProxySurface*>(pRenderTarget);
 
 #ifdef _DEBUG
 	if (!newRenderTarget)
 		OutputDebugString("newRenderTarget is a null surface\n"); 
 	else {
-		if (!newRenderTarget->getLeftSurface() && !newRenderTarget->getRightSurface())
+		if (!newRenderTarget->getActualLeft() && !newRenderTarget->getActualRight())
 			OutputDebugString("RenderTarget is not a valid (D3D9ProxySurface) stereo capable surface\n"); 
 	}
 #endif
@@ -993,21 +1002,21 @@ HRESULT WINAPI D3DProxyDevice::SetRenderTarget(DWORD RenderTargetIndex, IDirect3
 	}
 	else if (!newRenderTarget->IsStereo() && (m_currentRenderingSide == Left)) {
 		OutputDebugString("(!newRenderTarget->IsStereo() && (m_currentRenderingSide == Left))\n"); 
-		if (!newRenderTarget->getMonoSurface())
+		if (!newRenderTarget->getActualMono())
 			OutputDebugString("Mono is null\n"); 
-		if (!newRenderTarget->getLeftSurface())
+		if (!newRenderTarget->getActualLeft())
 			OutputDebugString("Left is null\n"); 
-		if (!newRenderTarget->getRightSurface())
+		if (!newRenderTarget->getActualRight())
 			OutputDebugString("right is null\n"); 
-		result = BaseDirect3DDevice9::SetRenderTarget(RenderTargetIndex, newRenderTarget->getMonoSurface());
+		result = BaseDirect3DDevice9::SetRenderTarget(RenderTargetIndex, newRenderTarget->getActualMono());
 	}
 	else if (m_currentRenderingSide == Left) {
 		OutputDebugString("(m_currentRenderingSide == Left)\n"); 
-		result = BaseDirect3DDevice9::SetRenderTarget(RenderTargetIndex, newRenderTarget->getLeftSurface());
+		result = BaseDirect3DDevice9::SetRenderTarget(RenderTargetIndex, newRenderTarget->getActualLeft());
 	}
 	else {
 		OutputDebugString("else\n"); 
-		result = BaseDirect3DDevice9::SetRenderTarget(RenderTargetIndex, newRenderTarget->getRightSurface());
+		result = BaseDirect3DDevice9::SetRenderTarget(RenderTargetIndex, newRenderTarget->getActualRight());
 	}
 
 	
@@ -1058,11 +1067,47 @@ HRESULT WINAPI D3DProxyDevice::SetTexture(DWORD Stage,IDirect3DBaseTexture9* pTe
 	OutputDebugString(__FUNCTION__); 
 	OutputDebugString("\n"); 
 
-	//TODO NEXT
+	//// Update the actual texture stage
+	//HRESULT result;
+	//if (newRenderTarget == NULL) {
+	//	if (RenderTargetIndex == 0) {
+	//		result = D3DERR_INVALIDCALL;
+	//		OutputDebugString("newRenderTarget == null and RenderTargetIndex == 0\n"); 
+	//	}
+	//	else {
+	//		result = BaseDirect3DDevice9::SetRenderTarget(RenderTargetIndex, newRenderTarget);
+	//	}
+	//}
+	//else if (!newRenderTarget->IsStereo() && (m_currentRenderingSide == Left)) {
+	//	OutputDebugString("(!newRenderTarget->IsStereo() && (m_currentRenderingSide == Left))\n"); 
+	//	if (!newRenderTarget->getMonoSurface())
+	//		OutputDebugString("Mono is null\n"); 
+	//	if (!newRenderTarget->getLeftSurface())
+	//		OutputDebugString("Left is null\n"); 
+	//	if (!newRenderTarget->getRightSurface())
+	//		OutputDebugString("right is null\n"); 
+	//	result = BaseDirect3DDevice9::SetRenderTarget(RenderTargetIndex, newRenderTarget->getMonoSurface());
+	//}
+	//else if (m_currentRenderingSide == Left) {
+	//	OutputDebugString("(m_currentRenderingSide == Left)\n"); 
+	//	result = BaseDirect3DDevice9::SetRenderTarget(RenderTargetIndex, newRenderTarget->getLeftSurface());
+	//}
+	//else {
+	//	OutputDebugString("else\n"); 
+	//	result = BaseDirect3DDevice9::SetRenderTarget(RenderTargetIndex, newRenderTarget->getRightSurface());
+	//}
+	//
 
 	return m_pDevice->SetTexture(Stage, pTexture);
 }
 
+
+HRESULT WINAPI D3DProxyDevice::GetTexture(DWORD Stage,IDirect3DBaseTexture9** ppTexture)
+{
+	OutputDebugString(__FUNCTION__); 
+	OutputDebugString("\n"); 
+	return m_pDevice->GetTexture(Stage, ppTexture);
+}
 
 
 
@@ -1095,14 +1140,14 @@ bool D3DProxyDevice::setDrawingSide(EyeSide side)
 
 			if (!pCurrentRT->IsStereo() && (side == Left)) {
 				// draw mono surfaces on the left eye pass
-				result = BaseDirect3DDevice9::SetRenderTarget(i, pCurrentRT->getMonoSurface()); 
+				result = BaseDirect3DDevice9::SetRenderTarget(i, pCurrentRT->getActualMono()); 
 			}
 			else {
 				if (side == Left) {
-					result = BaseDirect3DDevice9::SetRenderTarget(i, pCurrentRT->getLeftSurface()); 
+					result = BaseDirect3DDevice9::SetRenderTarget(i, pCurrentRT->getActualLeft()); 
 				}
 				else {
-					result = BaseDirect3DDevice9::SetRenderTarget(i, pCurrentRT->getRightSurface());
+					result = BaseDirect3DDevice9::SetRenderTarget(i, pCurrentRT->getActualRight());
 				}																			
 			}
 				

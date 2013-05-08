@@ -62,17 +62,17 @@ bool D3D9ProxyTexture::IsStereo()
 	return (m_pActualTextureRight != NULL);
 }
 
-IDirect3DTexture9* D3D9ProxyTexture::getMonoTexture()
+IDirect3DTexture9* D3D9ProxyTexture::getActualMono()
 {
-	return getLeftTexture();
+	return getActualLeft();
 }
 
-IDirect3DTexture9* D3D9ProxyTexture::getLeftTexture()
+IDirect3DTexture9* D3D9ProxyTexture::getActualLeft()
 {
 	return m_pActualTexture;
 }
 
-IDirect3DTexture9* D3D9ProxyTexture::getRightTexture()
+IDirect3DTexture9* D3D9ProxyTexture::getActualRight()
 {
 	return m_pActualTextureRight;
 }

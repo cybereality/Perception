@@ -369,8 +369,8 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 {
 	// Copy left and right surfaces to textures to use as shader input
 	// TODO match aspect ratio of source in target ? 
-	IDirect3DSurface9* leftImage = stereoCapableSurface->getLeftSurface();
-	IDirect3DSurface9* rightImage = stereoCapableSurface->getRightSurface();
+	IDirect3DSurface9* leftImage = stereoCapableSurface->getActualLeft();
+	IDirect3DSurface9* rightImage = stereoCapableSurface->getActualRight();
 
 	device->StretchRect(leftImage, NULL, leftSurface, NULL, D3DTEXF_NONE);
 

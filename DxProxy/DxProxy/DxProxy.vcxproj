@@ -161,6 +161,7 @@
     <ClInclude Include="pugiconfig.hpp" />
     <ClInclude Include="pugixml.hpp" />
     <ClInclude Include="SharedMemoryTracker.h" />
+    <ClInclude Include="IStereoCapableWrapper.h" />
     <ClInclude Include="StereoView.h" />
     <ClInclude Include="StereoViewFactory.h" />
     <ClInclude Include="StereoViewInterleave.h" />

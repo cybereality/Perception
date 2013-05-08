@@ -22,11 +22,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <d3d9.h>
 #include "Direct3DSurface9.h"
 #include "Direct3DDevice9.h"
+#include "IStereoCapableWrapper.h"
 #include <stdio.h>
 
 
 
-class D3D9ProxySurface : public BaseDirect3DSurface9
+class D3D9ProxySurface : public BaseDirect3DSurface9, public IStereoCapableWrapper<IDirect3DSurface9>
 {
 public:
 	/*
@@ -38,11 +39,11 @@ public:
 	virtual ~D3D9ProxySurface();
 
 
-	bool IsStereo();
+	virtual bool IsStereo();
 
-	IDirect3DSurface9* getMonoSurface();
-	IDirect3DSurface9* getLeftSurface();
-	IDirect3DSurface9* getRightSurface();
+	virtual IDirect3DSurface9* getActualMono();
+	virtual IDirect3DSurface9* getActualLeft();
+	virtual IDirect3DSurface9* getActualRight();
 
 
 	// IUnknown

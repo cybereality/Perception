@@ -23,21 +23,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <unordered_map>
 #include "Direct3DTexture9.h"
 #include "D3D9ProxySurface.h"
+#include "IStereoCapableWrapper.h"
 
 
-class D3D9ProxyTexture : public BaseDirect3DTexture9
+class D3D9ProxyTexture : public BaseDirect3DTexture9, public IStereoCapableWrapper<IDirect3DTexture9>
 {
 public:
 	D3D9ProxyTexture(IDirect3DTexture9* pActualTextureLeft, IDirect3DTexture9* pActualTextureRight, BaseDirect3DDevice9* pOwningDevice);
 	virtual ~D3D9ProxyTexture();
 
-
-	bool IsStereo();
-
-	// Get actual textures
-	IDirect3DTexture9* getMonoTexture();
-	IDirect3DTexture9* getLeftTexture();
-	IDirect3DTexture9* getRightTexture();
+	// IStereoCapableWrapper
+	virtual bool IsStereo();
+	virtual IDirect3DTexture9* getActualMono();
+	virtual IDirect3DTexture9* getActualLeft();
+	virtual IDirect3DTexture9* getActualRight();
 	
 	
 	// IDirect3DResource9 methods

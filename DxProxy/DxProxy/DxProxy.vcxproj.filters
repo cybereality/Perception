@@ -218,6 +218,9 @@
     <ClInclude Include="D3D9ProxyTexture.h">
       <Filter>Direct3D9Vireio\Direct3DTexture9</Filter>
     </ClInclude>
+    <ClInclude Include="IStereoCapableWrapper.h">
+      <Filter>Direct3D9Vireio</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\Release\Perception\cfg\profiles.xml">
