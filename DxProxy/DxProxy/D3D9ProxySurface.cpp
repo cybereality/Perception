@@ -27,14 +27,15 @@ D3D9ProxySurface::D3D9ProxySurface(IDirect3DSurface9* pActualSurface, BaseDirect
 	m_pWrappedContainer(pWrappedContainer)
 {
 	assert (pOwningDevice != NULL);
-	assert (pActualSurface != NULL);
+	
 	
 	if (!pWrappedContainer)
 		pOwningDevice->AddRef();
+	// else - We leave the device ref count changes to the container
 	
 	// pWrappedContainer->AddRef(); is not called here as container add/release is handled
 	// by the container. The ref could be added here but as the release and destruction is
-	// hanlded by the container so we leave it all in the same place (the container)	
+	// hanlded by the container we leave it all in the same place (the container)	
 }
 
 D3D9ProxySurface::~D3D9ProxySurface()
@@ -43,8 +44,8 @@ D3D9ProxySurface::~D3D9ProxySurface()
 		m_pOwningDevice->Release();
 	}
 
-	// m_pWrappedContainer does not have released called on it because the container is already
-	// fully released when the destructor on contained objects is invoked.
+	// else - m_pWrappedContainer does not have released called on it because the container manages
+	// the device reference
 }
 
 

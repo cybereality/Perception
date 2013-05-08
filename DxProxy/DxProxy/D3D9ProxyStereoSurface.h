@@ -59,7 +59,7 @@ public:
 
 private:
 
-	IDirect3DSurface9* m_pActualSurfaceRight;
+	IDirect3DSurface9* const m_pActualSurfaceRight;
 };
 
 #endif

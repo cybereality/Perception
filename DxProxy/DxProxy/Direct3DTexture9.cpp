@@ -17,14 +17,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
 #include "Direct3DTexture9.h"
+#include <assert.h>
 
-BaseDirect3DTexture9::BaseDirect3DTexture9(IDirect3DTexture9* pTexture) :
-	m_pActualTexture(pTexture)
+BaseDirect3DTexture9::BaseDirect3DTexture9(IDirect3DTexture9* pActualTexture) :
+	m_pActualTexture(pActualTexture)
 {
+	assert (pActualTexture != NULL);
 }
 
 BaseDirect3DTexture9::~BaseDirect3DTexture9()
 {
+	if (m_pActualTexture)
+		m_pActualTexture->Release();
 }
 
 HRESULT WINAPI BaseDirect3DTexture9::QueryInterface(REFIID riid, LPVOID* ppv)
@@ -32,21 +36,21 @@ HRESULT WINAPI BaseDirect3DTexture9::QueryInterface(REFIID riid, LPVOID* ppv)
 	return m_pActualTexture->QueryInterface(riid, ppv);
 }
 
+
 ULONG WINAPI BaseDirect3DTexture9::AddRef()
 {
-	return m_pActualTexture->AddRef();
+	return ++m_nRefCount;
 }
-
 
 ULONG WINAPI BaseDirect3DTexture9::Release()
 {
-	ULONG refCount = m_pActualTexture->Release();
-
-	if (refCount <= 0) {
+	if(--m_nRefCount == 0)
+	{
 		delete this;
+		return 0;
 	}
 
-	return refCount;
+	return m_nRefCount;
 }
 
 

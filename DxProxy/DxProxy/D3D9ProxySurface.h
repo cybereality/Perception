@@ -46,7 +46,8 @@ public:
 	
 		If a surface has a container then adding references to the surface should increase the ref count on
 		the container instead of the surface. The surface shares a total ref count with the container, when
-		it reaches 0 the container and its surfaces are destroyed.
+		it reaches 0 the container and its surfaces are destroyed. This is handled by sending all Add/Release
+		on to the container when there is one.
 	 */
 	virtual ULONG WINAPI AddRef();
 	virtual ULONG WINAPI Release();
@@ -67,13 +68,14 @@ protected:
 		The container is responsible for deleting any surfaces it contains when the ref count reaches 0.
 		Surfaces must be deleted before the container.
 	 */
-	IUnknown* m_pWrappedContainer;
+	IUnknown* const m_pWrappedContainer;
 
 	/* 
 		Device that created this surface.
 		If in a container we don't add a ref or release the device when done because...
 		D3D only keeps one ref to the device for the container and all its surfaces. A contained
 		Surface doesn't exist without its container, if the container is destroyed so is the surface.
+		The container handles the device ref count changes.
 
 		This device pointer is maintained here to simplify GetDevice. Normally keeping the pointer would need
 		an add ref, but that would produce different results compared to D3Ds normal behvaiour.
@@ -83,7 +85,7 @@ protected:
 		IDirect3DResource9 or Direct3DISwapChain9 then cast the container to the appropriate interface 
 		and the use GetDevice to fetch the device. 
 	 */
-	BaseDirect3DDevice9* m_pOwningDevice;
+	BaseDirect3DDevice9* const m_pOwningDevice;
 };
 
 #endif

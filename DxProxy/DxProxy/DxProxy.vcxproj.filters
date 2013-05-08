@@ -35,6 +35,9 @@
     <Filter Include="Direct3D9Vireio\Direct3DSurface9">
       <UniqueIdentifier>{35832143-223f-444e-9b97-9aa311318b79}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Direct3D9Vireio\Direct3DTexture9">
+      <UniqueIdentifier>{7c1b5925-d5df-4200-b704-5db49ccbcd35}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -122,7 +125,10 @@
       <Filter>Direct3D9Vireio\Direct3DSurface9</Filter>
     </ClCompile>
     <ClCompile Include="D3D9ProxyStereoTexture.cpp">
-      <Filter>Direct3D9Vireio</Filter>
+      <Filter>Direct3D9Vireio\Direct3DTexture9</Filter>
+    </ClCompile>
+    <ClCompile Include="D3D9ProxyTexture.cpp">
+      <Filter>Direct3D9Vireio\Direct3DTexture9</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -219,7 +225,10 @@
       <Filter>Direct3D9Vireio\Direct3DSurface9</Filter>
     </ClInclude>
     <ClInclude Include="D3D9ProxyStereoTexture.h">
-      <Filter>Direct3D9Vireio</Filter>
+      <Filter>Direct3D9Vireio\Direct3DTexture9</Filter>
+    </ClInclude>
+    <ClInclude Include="D3D9ProxyTexture.h">
+      <Filter>Direct3D9Vireio\Direct3DTexture9</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

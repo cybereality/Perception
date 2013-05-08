@@ -18,9 +18,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "D3D9ProxyStereoTexture.h"
 
-D3D9ProxyStereoTexture::D3D9ProxyStereoTexture(IDirect3DTexture9* leftTexture, IDirect3DTexture9* rightTexture) :
-	BaseDirect3DTexture9(leftTexture),
-	m_levels(1, NULL)
+D3D9ProxyStereoTexture::D3D9ProxyStereoTexture(IDirect3DTexture9* pActualTextureLeft, IDirect3DTexture9* pActualTextureRight) :
+	BaseDirect3DTexture9(pActualTextureLeft),
+	m_pActualTextureRight(pActualTextureRight)
 {
 
 }
@@ -57,10 +57,6 @@ ULONG WINAPI D3D9ProxyStereoTexture::Release()
 
 
 
-HRESULT WINAPI D3D9ProxyStereoTexture::GetLevelDesc(UINT Level, D3DSURFACE_DESC *pDesc)
-{
-	return m_pActualTexture->GetLevelDesc(Level, pDesc);
-}
 
 HRESULT WINAPI D3D9ProxyStereoTexture::GetSurfaceLevel(UINT Level, IDirect3DSurface9** ppSurfaceLevel)
 {
@@ -90,20 +86,12 @@ HRESULT WINAPI D3D9ProxyStereoTexture::AddDirtyRect(CONST RECT* pDirtyRect)
 
 
 
-HRESULT WINAPI D3D9ProxyStereoTexture::GetDevice(IDirect3DDevice9** ppDevice)
-{
-	return m_pActualTexture->GetDevice(ppDevice);
-}
-
 HRESULT WINAPI D3D9ProxyStereoTexture::SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags)
 {
 	return m_pActualTexture->SetPrivateData(refguid, pData, SizeOfData, Flags);
 }
 
-HRESULT WINAPI D3D9ProxyStereoTexture::GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData)
-{
-	return m_pActualTexture->GetPrivateData(refguid, pData, pSizeOfData);
-}
+
 
 HRESULT WINAPI D3D9ProxyStereoTexture::FreePrivateData(REFGUID refguid)
 {
@@ -115,10 +103,7 @@ DWORD WINAPI D3D9ProxyStereoTexture::SetPriority(DWORD PriorityNew)
 	return m_pActualTexture->SetPriority(PriorityNew);
 }
 
-DWORD WINAPI D3D9ProxyStereoTexture::GetPriority()
-{
-	return m_pActualTexture->GetPriority();
-}
+
 
 void WINAPI D3D9ProxyStereoTexture::PreLoad()
 {
@@ -130,15 +115,7 @@ DWORD WINAPI D3D9ProxyStereoTexture::SetLOD(DWORD LODNew)
 	return m_pActualTexture->SetLOD(LODNew);
 }
 
-DWORD WINAPI D3D9ProxyStereoTexture::GetLOD()
-{
-	return m_pActualTexture->GetLOD();
-}
 
-DWORD WINAPI D3D9ProxyStereoTexture::GetLevelCount()
-{
-	return m_pActualTexture->GetLevelCount();
-}
 
 HRESULT WINAPI D3D9ProxyStereoTexture::SetAutoGenFilterType(D3DTEXTUREFILTERTYPE FilterType)
 {
@@ -150,12 +127,4 @@ void WINAPI D3D9ProxyStereoTexture::GenerateMipSubLevels()
 	return m_pActualTexture->GenerateMipSubLevels();
 }
 
-D3DTEXTUREFILTERTYPE WINAPI D3D9ProxyStereoTexture::GetAutoGenFilterType()
-{
-	return m_pActualTexture->GetAutoGenFilterType();
-}
 
-D3DRESOURCETYPE WINAPI D3D9ProxyStereoTexture::GetType()
-{
-	return m_pActualTexture->GetType();
-}

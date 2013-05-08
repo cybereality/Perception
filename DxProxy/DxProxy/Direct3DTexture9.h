@@ -42,7 +42,7 @@ public:
 	virtual HRESULT WINAPI AddDirtyRect(CONST RECT* pDirtyRect);
 
 
-	//base texture methods
+	// IDirect3DResource9 methods
 	virtual HRESULT WINAPI GetDevice(IDirect3DDevice9** ppDevice);
 	virtual HRESULT WINAPI SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags);
 	virtual HRESULT WINAPI GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData);
@@ -50,20 +50,25 @@ public:
 	virtual   DWORD WINAPI SetPriority(DWORD PriorityNew);
 	virtual   DWORD WINAPI GetPriority();
 	virtual    void WINAPI PreLoad();
+	virtual      D3DRESOURCETYPE WINAPI GetType();
+	
+	//base texture methods
 	virtual   DWORD WINAPI SetLOD(DWORD LODNew);
 	virtual   DWORD WINAPI GetLOD();
 	virtual   DWORD WINAPI GetLevelCount();
 	virtual HRESULT WINAPI SetAutoGenFilterType(D3DTEXTUREFILTERTYPE FilterType);
 	virtual    void WINAPI GenerateMipSubLevels();
 	virtual D3DTEXTUREFILTERTYPE WINAPI GetAutoGenFilterType();
-	virtual      D3DRESOURCETYPE WINAPI GetType();
     
     
 
 
 
 protected:
-	IDirect3DTexture9* m_pActualTexture;
+	IDirect3DTexture9* const m_pActualTexture;
+
+private:
+	ULONG m_nRefCount;
 
 };
 

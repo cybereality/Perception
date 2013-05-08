@@ -17,19 +17,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
 #include "Direct3DSurface9.h"
-
+#include <assert.h>
 
 BaseDirect3DSurface9::BaseDirect3DSurface9(IDirect3DSurface9* pActualSurface) :
 	m_pActualSurface(pActualSurface),
 	m_nRefCount(1)
 {
+	assert (pActualSurface != NULL);
 }
 
 BaseDirect3DSurface9::~BaseDirect3DSurface9()
 {
 	if(m_pActualSurface) {
 		m_pActualSurface->Release();
-		m_pActualSurface = NULL;
 	}
 }
 

@@ -56,7 +56,7 @@ public:
 
 protected:
 
-	IDirect3DSurface9* m_pActualSurface;
+	IDirect3DSurface9* const m_pActualSurface;
 	ULONG m_nRefCount;
 };
 
