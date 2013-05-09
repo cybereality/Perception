@@ -106,7 +106,9 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="D3D9ProxyCubeTexture.cpp" />
     <ClCompile Include="D3D9ProxyTexture.cpp" />
+    <ClCompile Include="D3D9ProxyVolumeTexture.cpp" />
     <ClCompile Include="D3DProxyDevice.cpp" />
     <ClCompile Include="D3DProxyDeviceAdv.cpp" />
     <ClCompile Include="D3DProxyDeviceEgo.cpp" />
@@ -118,9 +120,11 @@
     <ClCompile Include="D3DProxyDeviceUnreal.cpp" />
     <ClCompile Include="D3D9ProxySurface.cpp" />
     <ClCompile Include="Direct3D9.cpp" />
+    <ClCompile Include="Direct3DCubeTexture9.cpp" />
     <ClCompile Include="Direct3DSurface9.cpp" />
     <ClCompile Include="Direct3DDevice9.cpp" />
     <ClCompile Include="Direct3DTexture9.cpp" />
+    <ClCompile Include="Direct3DVolumeTexture9.cpp" />
     <ClCompile Include="FreeSpaceTracker.cpp" />
     <ClCompile Include="FreeTrackTracker.cpp" />
     <ClCompile Include="Main.cpp" />
@@ -137,7 +141,9 @@
     <ClCompile Include="WrapperUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="D3D9ProxyCubeTexture.h" />
     <ClInclude Include="D3D9ProxyTexture.h" />
+    <ClInclude Include="D3D9ProxyVolumeTexture.h" />
     <ClInclude Include="D3DProxyDevice.h" />
     <ClInclude Include="D3DProxyDeviceAdv.h" />
     <ClInclude Include="D3DProxyDeviceEgo.h" />
@@ -149,9 +155,11 @@
     <ClInclude Include="D3DProxyDeviceUnreal.h" />
     <ClInclude Include="D3D9ProxySurface.h" />
     <ClInclude Include="Direct3D9.h" />
+    <ClInclude Include="Direct3DCubeTexture9.h" />
     <ClInclude Include="Direct3DSurface9.h" />
     <ClInclude Include="Direct3DDevice9.h" />
     <ClInclude Include="Direct3DTexture9.h" />
+    <ClInclude Include="Direct3DVolumeTexture9.h" />
     <ClInclude Include="FreeSpaceTracker.h" />
     <ClInclude Include="FreeTrackTracker.h" />
     <ClInclude Include="Main.h" />
