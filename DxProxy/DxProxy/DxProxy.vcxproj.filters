@@ -145,6 +145,15 @@
     <ClCompile Include="D3D9ProxyVolumeTexture.cpp">
       <Filter>Direct3D9Vireio\Direct3DTextures</Filter>
     </ClCompile>
+    <ClCompile Include="Direct3DVertexShader9.cpp">
+      <Filter>Direct3D9</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3DPixelShader9.cpp">
+      <Filter>Direct3D9</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3DVertexDeclaration9.cpp">
+      <Filter>Direct3D9</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Exports.def">
@@ -262,6 +271,15 @@
     </ClInclude>
     <ClInclude Include="D3D9ProxyVolumeTexture.h">
       <Filter>Direct3D9Vireio\Direct3DTextures</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3DVertexShader9.h">
+      <Filter>Direct3D9</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3DPixelShader9.h">
+      <Filter>Direct3D9</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3DVertexDeclaration9.h">
+      <Filter>Direct3D9</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

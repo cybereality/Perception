@@ -122,9 +122,12 @@
     <ClCompile Include="D3D9ProxySurface.cpp" />
     <ClCompile Include="Direct3D9.cpp" />
     <ClCompile Include="Direct3DCubeTexture9.cpp" />
+    <ClCompile Include="Direct3DPixelShader9.cpp" />
     <ClCompile Include="Direct3DSurface9.cpp" />
     <ClCompile Include="Direct3DDevice9.cpp" />
     <ClCompile Include="Direct3DTexture9.cpp" />
+    <ClCompile Include="Direct3DVertexDeclaration9.cpp" />
+    <ClCompile Include="Direct3DVertexShader9.cpp" />
     <ClCompile Include="Direct3DVolume9.cpp" />
     <ClCompile Include="Direct3DVolumeTexture9.cpp" />
     <ClCompile Include="FreeSpaceTracker.cpp" />
@@ -159,9 +162,12 @@
     <ClInclude Include="D3D9ProxySurface.h" />
     <ClInclude Include="Direct3D9.h" />
     <ClInclude Include="Direct3DCubeTexture9.h" />
+    <ClInclude Include="Direct3DPixelShader9.h" />
     <ClInclude Include="Direct3DSurface9.h" />
     <ClInclude Include="Direct3DDevice9.h" />
     <ClInclude Include="Direct3DTexture9.h" />
+    <ClInclude Include="Direct3DVertexDeclaration9.h" />
+    <ClInclude Include="Direct3DVertexShader9.h" />
     <ClInclude Include="Direct3DVolume9.h" />
     <ClInclude Include="Direct3DVolumeTexture9.h" />
     <ClInclude Include="FreeSpaceTracker.h" />
