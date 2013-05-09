@@ -124,6 +124,9 @@
     <ClCompile Include="D3D9ProxyTexture.cpp">
       <Filter>Direct3D9Vireio\Direct3DTexture9</Filter>
     </ClCompile>
+    <ClCompile Include="WrapperUtils.cpp">
+      <Filter>Direct3D9Vireio</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Exports.def">
@@ -219,6 +222,9 @@
       <Filter>Direct3D9Vireio\Direct3DTexture9</Filter>
     </ClInclude>
     <ClInclude Include="IStereoCapableWrapper.h">
+      <Filter>Direct3D9Vireio</Filter>
+    </ClInclude>
+    <ClInclude Include="WrapperUtils.h">
       <Filter>Direct3D9Vireio</Filter>
     </ClInclude>
   </ItemGroup>

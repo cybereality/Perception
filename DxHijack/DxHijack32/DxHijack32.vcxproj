@@ -137,6 +137,7 @@
     <ClCompile Include="..\..\DxProxy\DxProxy\StereoView.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\StereoViewFactory.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\StereoViewInterleave.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\WrapperUtils.cpp" />
     <ClCompile Include="apihijack.cpp" />
     <ClCompile Include="dllmain.cpp" />
   </ItemGroup>
@@ -171,6 +172,7 @@
     <ClInclude Include="..\..\DxProxy\DxProxy\StereoView.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\StereoViewFactory.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\StereoViewInterleave.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\WrapperUtils.h" />
     <ClInclude Include="apihijack.h" />
     <ClInclude Include="hijackdll.h" />
   </ItemGroup>

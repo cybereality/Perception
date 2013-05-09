@@ -1044,6 +1044,7 @@ HRESULT WINAPI D3DProxyDevice::GetRenderTarget(DWORD RenderTargetIndex,IDirect3D
 
 
 
+
 HRESULT WINAPI D3DProxyDevice::SetTexture(DWORD Stage,IDirect3DBaseTexture9* pTexture)
 {
 	OutputDebugString(__FUNCTION__); 
@@ -1058,38 +1059,14 @@ HRESULT WINAPI D3DProxyDevice::SetTexture(DWORD Stage,IDirect3DBaseTexture9* pTe
 	
 	HRESULT result;
 	if (pTexture) {
-		// Get actual textures from the various wrapper texture types
-		D3DRESOURCETYPE type = pTexture->GetType();
-
-		bool bIsStereo = false;
+		
 		IDirect3DBaseTexture9* pActualLeftTexture = NULL;
 		IDirect3DBaseTexture9* pActualRightTexture = NULL;
-	
-		switch (type)
-		{
-		case D3DRTYPE_TEXTURE:
-			{
-				D3D9ProxyTexture* pDerivedTexture = static_cast<D3D9ProxyTexture*> (pTexture);
-				bIsStereo = pDerivedTexture->IsStereo();
-				pActualLeftTexture = pDerivedTexture->getActualLeft();
-				pActualRightTexture = pDerivedTexture->getActualRight();
 
-				break;
-			}
-		case D3DRTYPE_VOLUMETEXTURE:
-			//TODO needs volume texture wrapper implemented first
-			break;
-		case D3DRTYPE_CUBETEXTURE:
-			//TODO needs cube texture wrapper implemented first
-			break;
-
-		default:
-			OutputDebugString("Unhandled texture type in SetTexture\n");
-			break;
-		}
-
+		wrapperUtils::UnWrapTexture(pTexture, &pActualLeftTexture, &pActualRightTexture);
+		
 		// Try and Update the actual devices textures
-		if (!bIsStereo || (m_currentRenderingSide == Left))
+		if ((pActualRightTexture == NULL) || (m_currentRenderingSide == Left)) // use left (mono) if not stereo or one left side
 			result = BaseDirect3DDevice9::SetTexture(Stage, pActualLeftTexture);
 		else
 			result = BaseDirect3DDevice9::SetTexture(Stage, pActualRightTexture);
@@ -1100,8 +1077,6 @@ HRESULT WINAPI D3DProxyDevice::SetTexture(DWORD Stage,IDirect3DBaseTexture9* pTe
 	}
 
 	
-
-
 
 
 	// Update m_activeTextureStages if new testure was successfully set
@@ -1169,41 +1144,59 @@ bool D3DProxyDevice::setDrawingSide(EyeSide side)
 	OutputDebugString(__FUNCTION__); 
 	OutputDebugString("\n"); 
 
+	// Already on the correct eye
 	if (side == m_currentRenderingSide)
 		return true;
 
-
-	//TODO
-
-
-	// should never set render target 0 to null.
+	// should never try and render for the right eye if there is no render target for the main render targets right side
 	if (!m_activeRenderTargets[0]->IsStereo() && (side == Right)) 
 		return false;
 
-
+	// switch render targets to new side
 	HRESULT result;
 	D3D9ProxySurface* pCurrentRT;
 	for(std::vector<D3D9ProxySurface*>::size_type i = 0; i != m_activeRenderTargets.size(); i++) 
 	{
 		if ((pCurrentRT = m_activeRenderTargets[i]) != NULL) {
 
-			if (!pCurrentRT->IsStereo() && (side == Left)) {
-				// draw mono surfaces on the left eye pass
-				result = BaseDirect3DDevice9::SetRenderTarget(i, pCurrentRT->getActualMono()); 
-			}
-			else {
-				if (side == Left) {
-					result = BaseDirect3DDevice9::SetRenderTarget(i, pCurrentRT->getActualLeft()); 
-				}
-				else {
-					result = BaseDirect3DDevice9::SetRenderTarget(i, pCurrentRT->getActualRight());
-				}																			
-			}
+			if (side == Left) 
+				result = BaseDirect3DDevice9::SetRenderTarget(i, pCurrentRT->getActualLeft()); 
+			else 
+				result = BaseDirect3DDevice9::SetRenderTarget(i, pCurrentRT->getActualRight());
 				
 			if (result != D3D_OK)
 				OutputDebugString("Error trying to set one of the Render Targets while switching between active eyes for drawing.\n");
 		}
 	}
+
+
+	// switch textures to new side
+	IDirect3DBaseTexture9* pActualLeftTexture = NULL;
+	IDirect3DBaseTexture9* pActualRightTexture = NULL;
+	
+	for(auto it = m_activeTextureStages.begin(); it != m_activeTextureStages.end(); ++it )
+	{
+		if (it->second) {
+			pActualLeftTexture = NULL;
+			pActualRightTexture = NULL;
+			wrapperUtils::UnWrapTexture(it->second, &pActualLeftTexture, &pActualRightTexture);
+
+			// if stereo texture
+			if (pActualRightTexture != NULL) { 
+				if (side == Left) 
+					result = BaseDirect3DDevice9::SetTexture(it->first, pActualLeftTexture); 
+				else 
+					result = BaseDirect3DDevice9::SetTexture(it->first, pActualRightTexture);
+			}
+			// else the texture is mono and doesn't need changing. It will always be set initially and then won't need changing
+				
+			if (result != D3D_OK)
+				OutputDebugString("Error trying to set one of the textures while switching between active eyes for drawing.\n");
+		}
+		else 
+			OutputDebugString("Warn: Null pointer in m_activeTextureStages.\n");
+	}
+
 
 	m_currentRenderingSide = side;
 
