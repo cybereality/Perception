@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "StereoViewFactory.h"
 #include "MotionTrackerFactory.h"
 #include <typeinfo>
+#include <assert.h>
 
 #ifdef _DEBUG
 #include "DxErr.h"
@@ -1049,7 +1050,7 @@ HRESULT WINAPI D3DProxyDevice::GetRenderTarget(DWORD RenderTargetIndex,IDirect3D
 		return D3DERR_INVALIDCALL;
 	}
 
-	D3D9ProxySurface* targetToReturn = m_activeRenderTargets[RenderTargetIndex];
+	IDirect3DSurface9* targetToReturn = m_activeRenderTargets[RenderTargetIndex];
 	if (!targetToReturn)
 		return D3DERR_NOTFOUND;
 	else {
@@ -1067,38 +1068,88 @@ HRESULT WINAPI D3DProxyDevice::SetTexture(DWORD Stage,IDirect3DBaseTexture9* pTe
 	OutputDebugString(__FUNCTION__); 
 	OutputDebugString("\n"); 
 
-	//// Update the actual texture stage
-	//HRESULT result;
-	//if (newRenderTarget == NULL) {
-	//	if (RenderTargetIndex == 0) {
-	//		result = D3DERR_INVALIDCALL;
-	//		OutputDebugString("newRenderTarget == null and RenderTargetIndex == 0\n"); 
-	//	}
-	//	else {
-	//		result = BaseDirect3DDevice9::SetRenderTarget(RenderTargetIndex, newRenderTarget);
-	//	}
-	//}
-	//else if (!newRenderTarget->IsStereo() && (m_currentRenderingSide == Left)) {
-	//	OutputDebugString("(!newRenderTarget->IsStereo() && (m_currentRenderingSide == Left))\n"); 
-	//	if (!newRenderTarget->getMonoSurface())
-	//		OutputDebugString("Mono is null\n"); 
-	//	if (!newRenderTarget->getLeftSurface())
-	//		OutputDebugString("Left is null\n"); 
-	//	if (!newRenderTarget->getRightSurface())
-	//		OutputDebugString("right is null\n"); 
-	//	result = BaseDirect3DDevice9::SetRenderTarget(RenderTargetIndex, newRenderTarget->getMonoSurface());
-	//}
-	//else if (m_currentRenderingSide == Left) {
-	//	OutputDebugString("(m_currentRenderingSide == Left)\n"); 
-	//	result = BaseDirect3DDevice9::SetRenderTarget(RenderTargetIndex, newRenderTarget->getLeftSurface());
-	//}
-	//else {
-	//	OutputDebugString("else\n"); 
-	//	result = BaseDirect3DDevice9::SetRenderTarget(RenderTargetIndex, newRenderTarget->getRightSurface());
-	//}
-	//
+	IDirect3DBaseTexture9* pCurrentTextureInStage = m_activeTextureStages[Stage];
 
-	return m_pDevice->SetTexture(Stage, pTexture);
+
+	// Texture is already in stage so do nothing.
+	if (pCurrentTextureInStage == pTexture)
+		return D3D_OK;
+	
+
+	// Get actual textures from the various wrapper texture types
+	D3DRESOURCETYPE type = pTexture->GetType();
+
+	bool bIsStereo = false;
+	IDirect3DBaseTexture9* pActualLeftTexture = NULL;
+	IDirect3DBaseTexture9* pActualRightTexture = NULL;
+	
+	switch (type)
+	{
+	case D3DRTYPE_TEXTURE:
+		{
+			D3D9ProxyTexture* pDerivedTexture = static_cast<D3D9ProxyTexture*> (pTexture);
+			bIsStereo = pDerivedTexture->IsStereo();
+			pActualLeftTexture = pDerivedTexture->getActualLeft();
+			pActualRightTexture = pDerivedTexture->getActualRight();
+
+			break;
+		}
+	case D3DRTYPE_VOLUMETEXTURE:
+		//TODO needs volume texture wrapper implemented first
+		break;
+	case D3DRTYPE_CUBETEXTURE:
+		//TODO needs cube texture wrapper implemented first
+		break;
+
+	default:
+		OutputDebugString("Unhandled texture type in SetTexture\n");
+		break;
+	}
+
+
+	// Try and Update the actual devices textures
+	HRESULT result;
+	if (!bIsStereo || (m_currentRenderingSide == Left))
+		result = BaseDirect3DDevice9::SetTexture(Stage, pActualLeftTexture);
+	else
+		result = BaseDirect3DDevice9::SetTexture(Stage, pActualRightTexture);
+
+
+
+
+	// Update m_activeTextureStages if new testure was successfully set
+	if (SUCCEEDED(result)) {
+
+		// remove existing texture that was active at Stage if there is one
+		if (m_activeTextureStages[Stage]) { 
+
+			IDirect3DBaseTexture9* pOldTexture = m_activeTextureStages.at(Stage);
+			pOldTexture->Release();
+		}
+		// the [] operator creates a default constructed entry (NULL as the entires are pointers), so we have to remove that even if there wasn't an entry before.
+		m_activeTextureStages.erase(Stage);
+
+		// if there is a new texture (we aren't just clearing out an old one)
+		if (pTexture) {
+			// insert new texture
+			if(m_activeTextureStages.insert(std::pair<DWORD, IDirect3DBaseTexture9*>(Stage, pTexture)).second) {
+				//success
+				pTexture->AddRef();
+			}
+			else {
+				OutputDebugString(__FUNCTION__);
+				OutputDebugString("\n");
+				OutputDebugString("Unable to store active Texture Stage.\n");
+				assert(false);
+
+				//If we get here the state of the texture tracking is fubared and an implosion is imminent.
+
+				result = D3DERR_INVALIDCALL;
+			}
+		}
+	}
+
+	return result;
 }
 
 
@@ -1106,7 +1157,14 @@ HRESULT WINAPI D3DProxyDevice::GetTexture(DWORD Stage,IDirect3DBaseTexture9** pp
 {
 	OutputDebugString(__FUNCTION__); 
 	OutputDebugString("\n"); 
-	return m_pDevice->GetTexture(Stage, ppTexture);
+
+	if (m_activeTextureStages.count(Stage) != 1)
+		return D3DERR_INVALIDCALL;
+	else {
+		*ppTexture = m_activeTextureStages[Stage];
+		(*ppTexture)->AddRef();
+		return D3D_OK;
+	}
 }
 
 
@@ -1126,6 +1184,10 @@ bool D3DProxyDevice::setDrawingSide(EyeSide side)
 
 	if (side == m_currentRenderingSide)
 		return true;
+
+
+	//TODO
+
 
 	// should never set render target 0 to null.
 	if (!m_activeRenderTargets[0]->IsStereo() && (side == Right)) 
