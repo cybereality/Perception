@@ -740,34 +740,29 @@ HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFO
 {
 	OutputDebugString(__FUNCTION__); 
 	OutputDebugString("\n"); 
-	// Duplicate render target if needed.
-	/* 
-		"If Needed" heuristic is the complicated part here.
-		  Fixed heuristics (based on type, format, size, etc) + game specific overrides + isForcedMono + magic?
 
-		Always create a D3D9ProxySurface using the render target and return that
-	 */
-
-	// TODO Experiment: Try modifying fullscreen render targets to shrink them to side by side sizes.
 
 	IDirect3DSurface9* pLeftRenderTarget = NULL;
 	IDirect3DSurface9* pRightRenderTarget = NULL;
 	HRESULT creationResult;
 
-	if (true) // TODO Should we duplicate this Render Target? Replace "true" with heuristic
-	{
-		if ((creationResult = BaseDirect3DDevice9::CreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, &pLeftRenderTarget, pSharedHandle)) == D3D_OK) {
-			if (BaseDirect3DDevice9::CreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, &pRightRenderTarget, pSharedHandle) != D3D_OK) {
+	
+	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, &pLeftRenderTarget, pSharedHandle))) {
+
+		
+		/* "If Needed" heuristic is the complicated part here.
+		  Fixed heuristics (based on type, format, size, etc) + game specific overrides + isForcedMono + magic? */
+		// TODO Should we duplicate this Render Target? Replace "true" with heuristic
+		if (true) 
+		{
+			if (FAILED(BaseDirect3DDevice9::CreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, &pRightRenderTarget, pSharedHandle))) {
 				OutputDebugString("Failed to create right eye render target while attempting to create stereo pair, falling back to mono\n");
 				pRightRenderTarget = NULL;
 			}
 		}
-		else {
-			OutputDebugString("Failed to create left eye render target while attempting to create stereo pair\n"); 
-		}
 	}
 	else {
-		creationResult = BaseDirect3DDevice9::CreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, &pLeftRenderTarget, pSharedHandle);
+		OutputDebugString("Failed to create render target\n"); 
 	}
 
 
@@ -806,42 +801,28 @@ HRESULT WINAPI D3DProxyDevice::CreateTexture(UINT Width,UINT Height,UINT Levels,
 	OutputDebugString("\n"); 
 
 	HRESULT creationResult;
+	IDirect3DTexture9* pLeftTexture = NULL;
+	IDirect3DTexture9* pRightTexture = NULL;	
 
-	// Is a render target. Need to create stereo capable texture
-	if (IS_RENDER_TARGET(Usage)) {
+	// try and create left
+	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateTexture(Width, Height, Levels, Usage, Format, Pool, &pLeftTexture, pSharedHandle))) {
+		
+		// Does this Texture need duplicating?
+		if (IS_RENDER_TARGET(Usage)) {// TODO  Replace with more detailed heuristic. Render targets don't always need to be duplicated
 
-		IDirect3DTexture9* pLeftRenderTargetTexture = NULL;
-		IDirect3DTexture9* pRightRenderTargetTexture = NULL;
-
-		if (true) {// TODO Should we duplicate this texture Render Target? Replace "true" with heuristic
-
-			// try and create left
-			if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateTexture(Width, Height, Levels, Usage, Format, Pool, &pLeftRenderTargetTexture, pSharedHandle))) {
-				// try and create right
-				if (FAILED(BaseDirect3DDevice9::CreateTexture(Width, Height, Levels, Usage, Format, Pool, &pRightRenderTargetTexture, pSharedHandle))) {
-					OutputDebugString("Failed to create right eye texture render target while attempting to create stereo pair, falling back to mono\n");
-					pRightRenderTargetTexture = NULL;
-				}
-			}
-			else {
-				OutputDebugString("Failed to create left eye texture render target while attempting to create stereo pair\n"); 
+			if (FAILED(BaseDirect3DDevice9::CreateTexture(Width, Height, Levels, Usage, Format, Pool, &pRightTexture, pSharedHandle))) {
+				OutputDebugString("Failed to create right eye texture while attempting to create stereo pair, falling back to mono\n");
+				pRightTexture = NULL;
 			}
 		}
-
-		if (creationResult == D3D_OK)
-			*ppTexture = new D3D9ProxyTexture(pLeftRenderTargetTexture, pRightRenderTargetTexture, this);
-
-
 	}
 	else {
-
-		IDirect3DTexture9* pMonoTexture;
-		creationResult = BaseDirect3DDevice9::CreateTexture(Width, Height, Levels, Usage, Format, Pool, &pMonoTexture, pSharedHandle);
-
-		if (SUCCEEDED(creationResult)) {
-			*ppTexture = new D3D9ProxyTexture(pMonoTexture, NULL, this);
-		}
+		OutputDebugString("Failed to create texture\n"); 
 	}
+
+	if (creationResult == D3D_OK)
+		*ppTexture = new D3D9ProxyTexture(pLeftTexture, pRightTexture, this);
+
 
 	return creationResult;
 }
@@ -1283,6 +1264,8 @@ HRESULT WINAPI D3DProxyDevice::GetSwapChain(UINT iSwapChain,IDirect3DSwapChain9*
 HRESULT WINAPI D3DProxyDevice::CreateAdditionalSwapChain(D3DPRESENT_PARAMETERS* pPresentationParameters,IDirect3DSwapChain9** pSwapChain)
 {
 	OutputDebugString("CreateAdditionalSwapChain: Doom, doom, doom... go home now.");
+
+	assert( false);
 
 	return BaseDirect3DDevice9::CreateAdditionalSwapChain(pPresentationParameters, pSwapChain);
 }
