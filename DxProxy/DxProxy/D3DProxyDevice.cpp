@@ -746,10 +746,9 @@ HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFO
 	IDirect3DSurface9* pRightRenderTarget = NULL;
 	HRESULT creationResult;
 
-	
+	// create left/mono
 	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, &pLeftRenderTarget, pSharedHandle))) {
 
-		
 		/* "If Needed" heuristic is the complicated part here.
 		  Fixed heuristics (based on type, format, size, etc) + game specific overrides + isForcedMono + magic? */
 		// TODO Should we duplicate this Render Target? Replace "true" with heuristic
@@ -766,7 +765,7 @@ HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFO
 	}
 
 
-	if (creationResult == D3D_OK)
+	if (SUCCEEDED(creationResult))
 		*ppSurface = new D3D9ProxySurface(pLeftRenderTarget, pRightRenderTarget, this, NULL);
 
 	return creationResult;
@@ -787,7 +786,7 @@ HRESULT WINAPI D3DProxyDevice::CreateOffscreenPlainSurface(UINT Width,UINT Heigh
 	IDirect3DSurface9* pActualSurface = NULL;
 	HRESULT creationResult = BaseDirect3DDevice9::CreateOffscreenPlainSurface(Width, Height, Format, Pool, &pActualSurface, pSharedHandle);
 
-	if (creationResult == D3D_OK)
+	if (SUCCEEDED(creationResult))
 		*ppSurface = new D3D9ProxySurface(pActualSurface, NULL, this, NULL);
 
 	return creationResult;
@@ -820,12 +819,62 @@ HRESULT WINAPI D3DProxyDevice::CreateTexture(UINT Width,UINT Height,UINT Levels,
 		OutputDebugString("Failed to create texture\n"); 
 	}
 
-	if (creationResult == D3D_OK)
+	if (SUCCEEDED(creationResult))
 		*ppTexture = new D3D9ProxyTexture(pLeftTexture, pRightTexture, this);
 
 
 	return creationResult;
 }
+
+
+
+HRESULT WINAPI D3DProxyDevice::CreateCubeTexture(UINT EdgeLength, UINT Levels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool, IDirect3DCubeTexture9** ppCubeTexture, HANDLE* pSharedHandle)
+{
+	OutputDebugString(__FUNCTION__); 
+	OutputDebugString("\n"); 
+
+	HRESULT creationResult;
+	IDirect3DCubeTexture9* pLeftCubeTexture = NULL;
+	IDirect3DCubeTexture9* pRightCubeTexture = NULL;	
+
+	// try and create left
+	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateCubeTexture(EdgeLength, Levels, Usage, Format, Pool, &pLeftCubeTexture, pSharedHandle))) {
+		
+		// Does this Texture need duplicating?
+		if (IS_RENDER_TARGET(Usage)) {// TODO  Replace with more detailed heuristic. Render targets don't always need to be duplicated
+
+			if (FAILED(BaseDirect3DDevice9::CreateCubeTexture(EdgeLength, Levels, Usage, Format, Pool, &pRightCubeTexture, pSharedHandle))) {
+				OutputDebugString("Failed to create right eye texture while attempting to create stereo pair, falling back to mono\n");
+				pRightCubeTexture = NULL;
+			}
+		}
+	}
+	else {
+		OutputDebugString("Failed to create texture\n"); 
+	}
+
+	if (SUCCEEDED(creationResult))
+		*ppCubeTexture = new D3D9ProxyCubeTexture(pLeftCubeTexture, pRightCubeTexture, this);
+
+	return creationResult;
+}
+
+
+HRESULT WINAPI D3DProxyDevice::CreateVolumeTexture(UINT Width,UINT Height,UINT Depth,UINT Levels,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool,IDirect3DVolumeTexture9** ppVolumeTexture,HANDLE* pSharedHandle)
+{
+	OutputDebugString(__FUNCTION__); 
+	OutputDebugString("\n"); 
+
+	// Volumes can't be used as render targets and therefore don't need to be stereo (in DX9)
+	IDirect3DVolumeTexture9* pActualTexture = NULL;
+	HRESULT creationResult = BaseDirect3DDevice9::CreateVolumeTexture(Width, Height, Depth, Levels, Usage, Format, Pool, &pActualTexture, pSharedHandle);
+
+	if (SUCCEEDED(creationResult))
+		*ppVolumeTexture = new D3D9ProxyVolumeTexture(pActualTexture, this);
+
+	return creationResult;
+}
+
 
 
 
