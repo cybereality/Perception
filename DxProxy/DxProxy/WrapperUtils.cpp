@@ -52,10 +52,12 @@ namespace wrapperUtils {
 				break;
 			}
 			case D3DRTYPE_CUBETEXTURE:
+			{
 				D3D9ProxyCubeTexture* pDerivedTexture = static_cast<D3D9ProxyCubeTexture*> (pWrappedTexture);
 				*ppActualLeftTexture = pDerivedTexture->getActualLeft();
 				*ppActualRightTexture = pDerivedTexture->getActualRight();
 				break;
+			}
 
 			default:
 				OutputDebugString("Unhandled texture type in SetTexture\n");
