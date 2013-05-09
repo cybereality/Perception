@@ -1075,44 +1075,50 @@ HRESULT WINAPI D3DProxyDevice::SetTexture(DWORD Stage,IDirect3DBaseTexture9* pTe
 	if (pCurrentTextureInStage == pTexture)
 		return D3D_OK;
 	
+	HRESULT result;
+	if (pTexture) {
+		// Get actual textures from the various wrapper texture types
+		D3DRESOURCETYPE type = pTexture->GetType();
 
-	// Get actual textures from the various wrapper texture types
-	D3DRESOURCETYPE type = pTexture->GetType();
-
-	bool bIsStereo = false;
-	IDirect3DBaseTexture9* pActualLeftTexture = NULL;
-	IDirect3DBaseTexture9* pActualRightTexture = NULL;
+		bool bIsStereo = false;
+		IDirect3DBaseTexture9* pActualLeftTexture = NULL;
+		IDirect3DBaseTexture9* pActualRightTexture = NULL;
 	
-	switch (type)
-	{
-	case D3DRTYPE_TEXTURE:
+		switch (type)
 		{
-			D3D9ProxyTexture* pDerivedTexture = static_cast<D3D9ProxyTexture*> (pTexture);
-			bIsStereo = pDerivedTexture->IsStereo();
-			pActualLeftTexture = pDerivedTexture->getActualLeft();
-			pActualRightTexture = pDerivedTexture->getActualRight();
+		case D3DRTYPE_TEXTURE:
+			{
+				D3D9ProxyTexture* pDerivedTexture = static_cast<D3D9ProxyTexture*> (pTexture);
+				bIsStereo = pDerivedTexture->IsStereo();
+				pActualLeftTexture = pDerivedTexture->getActualLeft();
+				pActualRightTexture = pDerivedTexture->getActualRight();
 
+				break;
+			}
+		case D3DRTYPE_VOLUMETEXTURE:
+			//TODO needs volume texture wrapper implemented first
+			break;
+		case D3DRTYPE_CUBETEXTURE:
+			//TODO needs cube texture wrapper implemented first
+			break;
+
+		default:
+			OutputDebugString("Unhandled texture type in SetTexture\n");
 			break;
 		}
-	case D3DRTYPE_VOLUMETEXTURE:
-		//TODO needs volume texture wrapper implemented first
-		break;
-	case D3DRTYPE_CUBETEXTURE:
-		//TODO needs cube texture wrapper implemented first
-		break;
 
-	default:
-		OutputDebugString("Unhandled texture type in SetTexture\n");
-		break;
+		// Try and Update the actual devices textures
+		if (!bIsStereo || (m_currentRenderingSide == Left))
+			result = BaseDirect3DDevice9::SetTexture(Stage, pActualLeftTexture);
+		else
+			result = BaseDirect3DDevice9::SetTexture(Stage, pActualRightTexture);
+
+	}
+	else {
+		result = BaseDirect3DDevice9::SetTexture(Stage, NULL);
 	}
 
-
-	// Try and Update the actual devices textures
-	HRESULT result;
-	if (!bIsStereo || (m_currentRenderingSide == Left))
-		result = BaseDirect3DDevice9::SetTexture(Stage, pActualLeftTexture);
-	else
-		result = BaseDirect3DDevice9::SetTexture(Stage, pActualRightTexture);
+	
 
 
 
