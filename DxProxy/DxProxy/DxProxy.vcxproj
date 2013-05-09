@@ -108,6 +108,7 @@
   <ItemGroup>
     <ClCompile Include="D3D9ProxyCubeTexture.cpp" />
     <ClCompile Include="D3D9ProxyTexture.cpp" />
+    <ClCompile Include="D3D9ProxyVolume.cpp" />
     <ClCompile Include="D3D9ProxyVolumeTexture.cpp" />
     <ClCompile Include="D3DProxyDevice.cpp" />
     <ClCompile Include="D3DProxyDeviceAdv.cpp" />
@@ -124,6 +125,7 @@
     <ClCompile Include="Direct3DSurface9.cpp" />
     <ClCompile Include="Direct3DDevice9.cpp" />
     <ClCompile Include="Direct3DTexture9.cpp" />
+    <ClCompile Include="Direct3DVolume9.cpp" />
     <ClCompile Include="Direct3DVolumeTexture9.cpp" />
     <ClCompile Include="FreeSpaceTracker.cpp" />
     <ClCompile Include="FreeTrackTracker.cpp" />
@@ -143,6 +145,7 @@
   <ItemGroup>
     <ClInclude Include="D3D9ProxyCubeTexture.h" />
     <ClInclude Include="D3D9ProxyTexture.h" />
+    <ClInclude Include="D3D9ProxyVolume.h" />
     <ClInclude Include="D3D9ProxyVolumeTexture.h" />
     <ClInclude Include="D3DProxyDevice.h" />
     <ClInclude Include="D3DProxyDeviceAdv.h" />
@@ -159,6 +162,7 @@
     <ClInclude Include="Direct3DSurface9.h" />
     <ClInclude Include="Direct3DDevice9.h" />
     <ClInclude Include="Direct3DTexture9.h" />
+    <ClInclude Include="Direct3DVolume9.h" />
     <ClInclude Include="Direct3DVolumeTexture9.h" />
     <ClInclude Include="FreeSpaceTracker.h" />
     <ClInclude Include="FreeTrackTracker.h" />
