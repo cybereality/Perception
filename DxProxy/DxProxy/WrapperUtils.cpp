@@ -37,7 +37,7 @@ namespace wrapperUtils {
 	
 		switch (type)
 		{
-		case D3DRTYPE_TEXTURE:
+			case D3DRTYPE_TEXTURE:
 			{
 				D3D9ProxyTexture* pDerivedTexture = static_cast<D3D9ProxyTexture*> (pWrappedTexture);
 				*ppActualLeftTexture = pDerivedTexture->getActualLeft();
@@ -45,16 +45,21 @@ namespace wrapperUtils {
 
 				break;
 			}
-		case D3DRTYPE_VOLUMETEXTURE:
-			//TODO needs volume texture wrapper implemented first
-			break;
-		case D3DRTYPE_CUBETEXTURE:
-			//TODO needs cube texture wrapper implemented first
-			break;
+			case D3DRTYPE_VOLUMETEXTURE:
+			{
+				D3D9ProxyVolumeTexture* pDerivedTexture = static_cast<D3D9ProxyVolumeTexture*> (pWrappedTexture);
+				*ppActualLeftTexture = pDerivedTexture->getActual();
+				break;
+			}
+			case D3DRTYPE_CUBETEXTURE:
+				D3D9ProxyCubeTexture* pDerivedTexture = static_cast<D3D9ProxyCubeTexture*> (pWrappedTexture);
+				*ppActualLeftTexture = pDerivedTexture->getActualLeft();
+				*ppActualRightTexture = pDerivedTexture->getActualRight();
+				break;
 
-		default:
-			OutputDebugString("Unhandled texture type in SetTexture\n");
-			break;
+			default:
+				OutputDebugString("Unhandled texture type in SetTexture\n");
+				break;
 		}
 
 		if ((*ppActualLeftTexture) == NULL) {

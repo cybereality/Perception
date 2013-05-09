@@ -110,8 +110,11 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\DxProxy\DxProxy\D3D9ProxyCubeTexture.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\D3D9ProxySurface.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\D3D9ProxyTexture.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\D3D9ProxyVolume.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\D3D9ProxyVolumeTexture.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxyDevice.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxyDeviceAdv.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxyDeviceEgo.cpp" />
@@ -122,9 +125,12 @@
     <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxyDeviceTest.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxyDeviceUnreal.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\Direct3D9.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\Direct3DCubeTexture9.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\Direct3DDevice9.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\Direct3DSurface9.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\Direct3DTexture9.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\Direct3DVolume9.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\Direct3DVolumeTexture9.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\FreeSpaceTracker.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\FreeTrackTracker.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\MotionTracker.cpp" />
@@ -145,8 +151,11 @@
     <None Include="hijackdll.def" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\DxProxy\DxProxy\D3D9ProxyCubeTexture.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\D3D9ProxySurface.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\D3D9ProxyTexture.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\D3D9ProxyVolume.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\D3D9ProxyVolumeTexture.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyDevice.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyDeviceAdv.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyDeviceEgo.h" />
@@ -157,9 +166,12 @@
     <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyDeviceTest.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyDeviceUnreal.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\Direct3D9.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\Direct3DCubeTexture9.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\Direct3DDevice9.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\Direct3DSurface9.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\Direct3DTexture9.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\Direct3DVolume9.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\Direct3DVolumeTexture9.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\FreeSpaceTracker.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\MotionTracker.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\MotionTrackerFactory.h" />

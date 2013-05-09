@@ -35,7 +35,7 @@
     <Filter Include="Direct3D9Vireio\Direct3DSurface9">
       <UniqueIdentifier>{35832143-223f-444e-9b97-9aa311318b79}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Direct3D9Vireio\Direct3DTexture9">
+    <Filter Include="Direct3D9Vireio\Direct3DTextures">
       <UniqueIdentifier>{7c1b5925-d5df-4200-b704-5db49ccbcd35}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -122,12 +122,9 @@
       <Filter>Direct3D9Vireio\Direct3DSurface9</Filter>
     </ClCompile>
     <ClCompile Include="D3D9ProxyTexture.cpp">
-      <Filter>Direct3D9Vireio\Direct3DTexture9</Filter>
+      <Filter>Direct3D9Vireio\Direct3DTextures</Filter>
     </ClCompile>
     <ClCompile Include="WrapperUtils.cpp">
-      <Filter>Direct3D9Vireio</Filter>
-    </ClCompile>
-    <ClCompile Include="D3D9ProxyCubeTexture.cpp">
       <Filter>Direct3D9Vireio</Filter>
     </ClCompile>
     <ClCompile Include="Direct3DCubeTexture9.cpp">
@@ -136,14 +133,17 @@
     <ClCompile Include="Direct3DVolumeTexture9.cpp">
       <Filter>Direct3D9</Filter>
     </ClCompile>
-    <ClCompile Include="D3D9ProxyVolumeTexture.cpp">
-      <Filter>Direct3D9Vireio</Filter>
-    </ClCompile>
     <ClCompile Include="Direct3DVolume9.cpp">
       <Filter>Direct3D9</Filter>
     </ClCompile>
     <ClCompile Include="D3D9ProxyVolume.cpp">
       <Filter>Direct3D9Vireio</Filter>
+    </ClCompile>
+    <ClCompile Include="D3D9ProxyCubeTexture.cpp">
+      <Filter>Direct3D9Vireio\Direct3DTextures</Filter>
+    </ClCompile>
+    <ClCompile Include="D3D9ProxyVolumeTexture.cpp">
+      <Filter>Direct3D9Vireio\Direct3DTextures</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -237,15 +237,12 @@
       <Filter>Direct3D9Vireio\Direct3DSurface9</Filter>
     </ClInclude>
     <ClInclude Include="D3D9ProxyTexture.h">
-      <Filter>Direct3D9Vireio\Direct3DTexture9</Filter>
+      <Filter>Direct3D9Vireio\Direct3DTextures</Filter>
     </ClInclude>
     <ClInclude Include="IStereoCapableWrapper.h">
       <Filter>Direct3D9Vireio</Filter>
     </ClInclude>
     <ClInclude Include="WrapperUtils.h">
-      <Filter>Direct3D9Vireio</Filter>
-    </ClInclude>
-    <ClInclude Include="D3D9ProxyCubeTexture.h">
       <Filter>Direct3D9Vireio</Filter>
     </ClInclude>
     <ClInclude Include="Direct3DCubeTexture9.h">
@@ -254,14 +251,17 @@
     <ClInclude Include="Direct3DVolumeTexture9.h">
       <Filter>Direct3D9</Filter>
     </ClInclude>
-    <ClInclude Include="D3D9ProxyVolumeTexture.h">
-      <Filter>Direct3D9Vireio</Filter>
-    </ClInclude>
     <ClInclude Include="Direct3DVolume9.h">
       <Filter>Direct3D9</Filter>
     </ClInclude>
     <ClInclude Include="D3D9ProxyVolume.h">
       <Filter>Direct3D9Vireio</Filter>
+    </ClInclude>
+    <ClInclude Include="D3D9ProxyCubeTexture.h">
+      <Filter>Direct3D9Vireio\Direct3DTextures</Filter>
+    </ClInclude>
+    <ClInclude Include="D3D9ProxyVolumeTexture.h">
+      <Filter>Direct3D9Vireio\Direct3DTextures</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

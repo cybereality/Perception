@@ -22,6 +22,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <d3dx9.h>
 #include <assert.h>
 #include "D3D9ProxyTexture.h"
+#include "D3D9ProxyVolumeTexture.h"
+#include "D3D9ProxyCubeTexture.h"
+
 
 namespace wrapperUtils {
     void UnWrapTexture(IDirect3DBaseTexture9* pWrappedTexture, IDirect3DBaseTexture9** ppActualLeftTexture, IDirect3DBaseTexture9** ppActualRightTexture);
