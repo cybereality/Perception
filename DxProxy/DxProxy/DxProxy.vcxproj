@@ -107,6 +107,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="D3D9ProxyCubeTexture.cpp" />
+    <ClCompile Include="D3D9ProxySwapChain.cpp" />
     <ClCompile Include="D3D9ProxyTexture.cpp" />
     <ClCompile Include="D3D9ProxyVolume.cpp" />
     <ClCompile Include="D3D9ProxyVolumeTexture.cpp" />
@@ -152,6 +153,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="D3D9ProxyCubeTexture.h" />
+    <ClInclude Include="D3D9ProxySwapChain.h" />
     <ClInclude Include="D3D9ProxyTexture.h" />
     <ClInclude Include="D3D9ProxyVolume.h" />
     <ClInclude Include="D3D9ProxyVolumeTexture.h" />

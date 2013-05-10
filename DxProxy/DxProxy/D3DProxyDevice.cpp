@@ -886,7 +886,7 @@ HRESULT WINAPI D3DProxyDevice::Clear(DWORD Count,CONST D3DRECT* pRects,DWORD Fla
 	//OutputDebugString("\n"); 
 
 	HRESULT result;
-	if (result = BaseDirect3DDevice9::Clear(Count, pRects, Flags, Color, Z, Stencil) == D3D_OK) {
+	if (SUCCEEDED(result = BaseDirect3DDevice9::Clear(Count, pRects, Flags, Color, Z, Stencil))) {
 		if (switchDrawingSide())
 			BaseDirect3DDevice9::Clear(Count, pRects, Flags, Color, Z, Stencil);
 	}
@@ -899,7 +899,7 @@ HRESULT WINAPI D3DProxyDevice::Clear(DWORD Count,CONST D3DRECT* pRects,DWORD Fla
 HRESULT WINAPI D3DProxyDevice::ColorFill(IDirect3DSurface9* pSurface,CONST RECT* pRect,D3DCOLOR color)
 {	
 	HRESULT result;
-	if (result = BaseDirect3DDevice9::ColorFill(pSurface, pRect, color) == D3D_OK) {
+	if (SUCCEEDED(result = BaseDirect3DDevice9::ColorFill(pSurface, pRect, color))) {
 		if (switchDrawingSide())
 			BaseDirect3DDevice9::ColorFill(pSurface, pRect, color);
 	}
@@ -911,7 +911,7 @@ HRESULT WINAPI D3DProxyDevice::ColorFill(IDirect3DSurface9* pSurface,CONST RECT*
 HRESULT WINAPI D3DProxyDevice::DrawPrimitive(D3DPRIMITIVETYPE PrimitiveType,UINT StartVertex,UINT PrimitiveCount)
 {
 	HRESULT result;
-	if (result = BaseDirect3DDevice9::DrawPrimitive(PrimitiveType, StartVertex, PrimitiveCount) == D3D_OK) {
+	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawPrimitive(PrimitiveType, StartVertex, PrimitiveCount))) {
 		if (switchDrawingSide())
 			BaseDirect3DDevice9::DrawPrimitive(PrimitiveType, StartVertex, PrimitiveCount);
 	}
@@ -923,7 +923,7 @@ HRESULT WINAPI D3DProxyDevice::DrawPrimitive(D3DPRIMITIVETYPE PrimitiveType,UINT
 HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitive(D3DPRIMITIVETYPE PrimitiveType,INT BaseVertexIndex,UINT MinVertexIndex,UINT NumVertices,UINT startIndex,UINT primCount)
 {
 	HRESULT result;
-	if (result = BaseDirect3DDevice9::DrawIndexedPrimitive(PrimitiveType, BaseVertexIndex, MinVertexIndex, NumVertices, startIndex, primCount) == D3D_OK) {
+	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawIndexedPrimitive(PrimitiveType, BaseVertexIndex, MinVertexIndex, NumVertices, startIndex, primCount))) {
 		if (switchDrawingSide())
 			BaseDirect3DDevice9::DrawIndexedPrimitive(PrimitiveType, BaseVertexIndex, MinVertexIndex, NumVertices, startIndex, primCount);
 	}
@@ -935,7 +935,7 @@ HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitive(D3DPRIMITIVETYPE PrimitiveTy
 HRESULT WINAPI D3DProxyDevice::DrawPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType,UINT PrimitiveCount,CONST void* pVertexStreamZeroData,UINT VertexStreamZeroStride)
 {
 	HRESULT result;
-	if (result = BaseDirect3DDevice9::DrawPrimitiveUP(PrimitiveType, PrimitiveCount, pVertexStreamZeroData, VertexStreamZeroStride) == D3D_OK) {
+	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawPrimitiveUP(PrimitiveType, PrimitiveCount, pVertexStreamZeroData, VertexStreamZeroStride))) {
 		if (switchDrawingSide())
 			BaseDirect3DDevice9::DrawPrimitiveUP(PrimitiveType, PrimitiveCount, pVertexStreamZeroData, VertexStreamZeroStride);
 	}
@@ -946,7 +946,7 @@ HRESULT WINAPI D3DProxyDevice::DrawPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType,UI
 HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType,UINT MinVertexIndex,UINT NumVertices,UINT PrimitiveCount,CONST void* pIndexData,D3DFORMAT IndexDataFormat,CONST void* pVertexStreamZeroData,UINT VertexStreamZeroStride)
 {
 	HRESULT result;
-	if (result = BaseDirect3DDevice9::DrawIndexedPrimitiveUP(PrimitiveType, MinVertexIndex, NumVertices, PrimitiveCount, pIndexData, IndexDataFormat, pVertexStreamZeroData, VertexStreamZeroStride) == D3D_OK) {
+	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawIndexedPrimitiveUP(PrimitiveType, MinVertexIndex, NumVertices, PrimitiveCount, pIndexData, IndexDataFormat, pVertexStreamZeroData, VertexStreamZeroStride))) {
 		if (switchDrawingSide())
 			BaseDirect3DDevice9::DrawIndexedPrimitiveUP(PrimitiveType, MinVertexIndex, NumVertices, PrimitiveCount, pIndexData, IndexDataFormat, pVertexStreamZeroData, VertexStreamZeroStride);
 	}
@@ -957,7 +957,7 @@ HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitiveUP(D3DPRIMITIVETYPE Primitive
 HRESULT WINAPI D3DProxyDevice::DrawRectPatch(UINT Handle,CONST float* pNumSegs,CONST D3DRECTPATCH_INFO* pRectPatchInfo)
 {
 	HRESULT result;
-	if (result = BaseDirect3DDevice9::DrawRectPatch(Handle, pNumSegs, pRectPatchInfo) == D3D_OK) {
+	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawRectPatch(Handle, pNumSegs, pRectPatchInfo))) {
 		if (switchDrawingSide())
 			BaseDirect3DDevice9::DrawRectPatch(Handle, pNumSegs, pRectPatchInfo);
 	}
@@ -968,7 +968,7 @@ HRESULT WINAPI D3DProxyDevice::DrawRectPatch(UINT Handle,CONST float* pNumSegs,C
 HRESULT WINAPI D3DProxyDevice::DrawTriPatch(UINT Handle,CONST float* pNumSegs,CONST D3DTRIPATCH_INFO* pTriPatchInfo)
 {
 	HRESULT result;
-	if (result = BaseDirect3DDevice9::DrawTriPatch(Handle, pNumSegs, pTriPatchInfo) == D3D_OK) {
+	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawTriPatch(Handle, pNumSegs, pTriPatchInfo))) {
 		if (switchDrawingSide())
 			BaseDirect3DDevice9::DrawTriPatch(Handle, pNumSegs, pTriPatchInfo);
 	}
@@ -1002,40 +1002,42 @@ HRESULT WINAPI D3DProxyDevice::SetRenderTarget(DWORD RenderTargetIndex, IDirect3
 	}
 #endif
 	
-	// Update actual render target
+	//// Update actual render target ////
 	HRESULT result;
-	if ((newRenderTarget == NULL) && (RenderTargetIndex == 0)) {
-		// main render target should never be set to NULL
-		result = D3DERR_INVALIDCALL; 
-		
-		/*else {
-			result = BaseDirect3DDevice9::SetRenderTarget(RenderTargetIndex, newRenderTarget);
-		}*/
+
+	// Removing a render target
+	if (newRenderTarget == NULL) {
+		if (RenderTargetIndex == 0) {
+			// main render target should never be set to NULL
+			result = D3DERR_INVALIDCALL; 
+		}		
+		else {
+			result = BaseDirect3DDevice9::SetRenderTarget(RenderTargetIndex, NULL);
+		}
 	}
+	// Setting a render target
 	else {
-		if ((newRenderTarget->getActualRight() == NULL) || (m_currentRenderingSide == Left)) {
+		if (m_currentRenderingSide == Left) {
 			result = BaseDirect3DDevice9::SetRenderTarget(RenderTargetIndex, newRenderTarget->getActualLeft());
 		}
 		else {
-			result = BaseDirect3DDevice9::SetRenderTarget(RenderTargetIndex, newRenderTarget->getActualRight());
+			//if ((RenderTargetIndex == 0) && (!newRenderTarget->IsStereo())) {
+			//	// In this case we are currently set to draw to the right side. However the new render target is mono and
+			//	// as we don't draw to a primary mono render targets on the right pass we first switch to the left side then set the rendertarget to left.
+			//	setDrawingSide(Left);
+			//	result = BaseDirect3DDevice9::SetRenderTarget(RenderTargetIndex, newRenderTarget->getActualLeft());
+			//}
+			//else{
+				result = BaseDirect3DDevice9::SetRenderTarget(RenderTargetIndex, newRenderTarget->getActualRight());
+			
 		}
 	}
 
 
-	/*else if (!newRenderTarget->IsStereo() && (m_currentRenderingSide == Left)) {
-		result = BaseDirect3DDevice9::SetRenderTarget(RenderTargetIndex, newRenderTarget->getActualMono());
-	}
-	else if (m_currentRenderingSide == Left) {
-		result = BaseDirect3DDevice9::SetRenderTarget(RenderTargetIndex, newRenderTarget->getActualLeft());
-	}
-	else {
-		result = BaseDirect3DDevice9::SetRenderTarget(RenderTargetIndex, newRenderTarget->getActualRight());
-	}*/
 
 	
-	
-	if (result == D3D_OK) {
-		// update proxy collection of stereo render targets to reflect new actual render target
+	//// update proxy collection of stereo render targets to reflect new actual render target ////
+	if (result == D3D_OK) {		
 
 		// release old render target
 		if (m_activeRenderTargets[RenderTargetIndex] != NULL)
@@ -1081,8 +1083,11 @@ HRESULT WINAPI D3DProxyDevice::SetTexture(DWORD Stage,IDirect3DBaseTexture9* pTe
 	//OutputDebugString(__FUNCTION__); 
 	//OutputDebugString("\n"); 
 
-	IDirect3DBaseTexture9* pCurrentTextureInStage = m_activeTextureStages[Stage];
-
+	IDirect3DBaseTexture9* pCurrentTextureInStage = NULL;
+	
+	if (m_activeTextureStages.count(Stage) == 1) {
+		pCurrentTextureInStage = m_activeTextureStages[Stage];
+	}
 
 	// Texture is already in stage so do nothing.
 	if (pCurrentTextureInStage == pTexture)
@@ -1114,13 +1119,12 @@ HRESULT WINAPI D3DProxyDevice::SetTexture(DWORD Stage,IDirect3DBaseTexture9* pTe
 	if (SUCCEEDED(result)) {
 
 		// remove existing texture that was active at Stage if there is one
-		if (m_activeTextureStages[Stage]) { 
+		if (m_activeTextureStages.count(Stage) == 1) { 
 
 			IDirect3DBaseTexture9* pOldTexture = m_activeTextureStages.at(Stage);
 			pOldTexture->Release();
+			m_activeTextureStages.erase(Stage);
 		}
-		// the [] operator creates a default constructed entry (NULL as the entires are pointers), so we have to remove that even if there wasn't an entry before.
-		m_activeTextureStages.erase(Stage);
 
 		// if there is a new texture (we aren't just clearing out an old one)
 		if (pTexture) {
@@ -1292,7 +1296,7 @@ HRESULT WINAPI D3DProxyDevice::GetSwapChain(UINT iSwapChain,IDirect3DSwapChain9*
 /* see above */
 HRESULT WINAPI D3DProxyDevice::CreateAdditionalSwapChain(D3DPRESENT_PARAMETERS* pPresentationParameters,IDirect3DSwapChain9** pSwapChain)
 {
-	//OutputDebugString("CreateAdditionalSwapChain: Doom, doom, doom... go home now.");
+	OutputDebugString("CreateAdditionalSwapChain: Doom, doom, doom... go home now.");
 
 	assert( false);
 
