@@ -128,6 +128,7 @@
     <ClCompile Include="Direct3DStateBlock9.cpp" />
     <ClCompile Include="Direct3DSurface9.cpp" />
     <ClCompile Include="Direct3DDevice9.cpp" />
+    <ClCompile Include="Direct3DSwapChain9.cpp" />
     <ClCompile Include="Direct3DTexture9.cpp" />
     <ClCompile Include="Direct3DVertexBuffer9.cpp" />
     <ClCompile Include="Direct3DVertexDeclaration9.cpp" />
@@ -172,6 +173,7 @@
     <ClInclude Include="Direct3DStateBlock9.h" />
     <ClInclude Include="Direct3DSurface9.h" />
     <ClInclude Include="Direct3DDevice9.h" />
+    <ClInclude Include="Direct3DSwapChain9.h" />
     <ClInclude Include="Direct3DTexture9.h" />
     <ClInclude Include="Direct3DVertexBuffer9.h" />
     <ClInclude Include="Direct3DVertexDeclaration9.h" />
