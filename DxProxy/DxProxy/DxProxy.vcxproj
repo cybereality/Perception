@@ -124,6 +124,7 @@
     <ClCompile Include="Direct3DCubeTexture9.cpp" />
     <ClCompile Include="Direct3DIndexBuffer9.cpp" />
     <ClCompile Include="Direct3DPixelShader9.cpp" />
+    <ClCompile Include="Direct3DQuery9.cpp" />
     <ClCompile Include="Direct3DStateBlock9.cpp" />
     <ClCompile Include="Direct3DSurface9.cpp" />
     <ClCompile Include="Direct3DDevice9.cpp" />
@@ -167,6 +168,7 @@
     <ClInclude Include="Direct3DCubeTexture9.h" />
     <ClInclude Include="Direct3DIndexBuffer9.h" />
     <ClInclude Include="Direct3DPixelShader9.h" />
+    <ClInclude Include="Direct3DQuery9.h" />
     <ClInclude Include="Direct3DStateBlock9.h" />
     <ClInclude Include="Direct3DSurface9.h" />
     <ClInclude Include="Direct3DDevice9.h" />

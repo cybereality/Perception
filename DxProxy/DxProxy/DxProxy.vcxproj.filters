@@ -163,6 +163,9 @@
     <ClCompile Include="Direct3DIndexBuffer9.cpp">
       <Filter>Direct3D9</Filter>
     </ClCompile>
+    <ClCompile Include="Direct3DQuery9.cpp">
+      <Filter>Direct3D9</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Exports.def">
@@ -297,6 +300,9 @@
       <Filter>Direct3D9</Filter>
     </ClInclude>
     <ClInclude Include="Direct3DIndexBuffer9.h">
+      <Filter>Direct3D9</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3DQuery9.h">
       <Filter>Direct3D9</Filter>
     </ClInclude>
   </ItemGroup>

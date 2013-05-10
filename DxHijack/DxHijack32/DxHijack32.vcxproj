@@ -129,6 +129,7 @@
     <ClCompile Include="..\..\DxProxy\DxProxy\Direct3DDevice9.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\Direct3DIndexBuffer9.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\Direct3DPixelShader9.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\Direct3DQuery9.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\Direct3DStateBlock9.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\Direct3DSurface9.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\Direct3DTexture9.cpp" />
@@ -176,6 +177,7 @@
     <ClInclude Include="..\..\DxProxy\DxProxy\Direct3DDevice9.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\Direct3DIndexBuffer9.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\Direct3DPixelShader9.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\Direct3DQuery9.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\Direct3DStateBlock9.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\Direct3DSurface9.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\Direct3DTexture9.h" />
