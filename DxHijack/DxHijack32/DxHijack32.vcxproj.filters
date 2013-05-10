@@ -132,6 +132,9 @@
     <ClCompile Include="..\..\DxProxy\DxProxy\Direct3DVertexShader9.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\DxProxy\DxProxy\Direct3DStateBlock9.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="hijackdll.def">
@@ -254,6 +257,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\DxProxy\DxProxy\Direct3DPixelShader9.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\DxProxy\DxProxy\Direct3DStateBlock9.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
