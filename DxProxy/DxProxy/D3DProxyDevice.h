@@ -162,10 +162,11 @@ protected:
 	
 	virtual void OnCreateOrRestore();
 
+	
+	bool switchDrawingSide();
+
 	// Use to specify the side that you want to draw to
 	bool setDrawingSide(enum EyeSide side);
-
-	
 
 
 private:
@@ -179,11 +180,9 @@ private:
 	// Textures assigned to stages. See (Get/Set)Texture
 	std::unordered_map<DWORD, IDirect3DBaseTexture9*> m_activeTextureStages;
 
-
-
 	enum EyeSide m_currentRenderingSide;
 
-
+	
 
 	
 	
