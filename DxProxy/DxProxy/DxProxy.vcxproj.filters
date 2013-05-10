@@ -157,6 +157,12 @@
     <ClCompile Include="Direct3DStateBlock9.cpp">
       <Filter>Direct3D9</Filter>
     </ClCompile>
+    <ClCompile Include="Direct3DVertexBuffer9.cpp">
+      <Filter>Direct3D9</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3DIndexBuffer9.cpp">
+      <Filter>Direct3D9</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Exports.def">
@@ -285,6 +291,12 @@
       <Filter>Direct3D9</Filter>
     </ClInclude>
     <ClInclude Include="Direct3DStateBlock9.h">
+      <Filter>Direct3D9</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3DVertexBuffer9.h">
+      <Filter>Direct3D9</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3DIndexBuffer9.h">
       <Filter>Direct3D9</Filter>
     </ClInclude>
   </ItemGroup>
