@@ -173,13 +173,10 @@ void D3DProxyDevice::OnCreateOrRestore()
 		pDepthStencil->GetDesc(&stencilDesc);
 		pDepthStencil->Release();
 
-		// TODO I have no idea how to determine what the discard boolean should be here
 		pTemp = NULL;
 		CreateDepthStencilSurface(stencilDesc.Width, stencilDesc.Height, stencilDesc.Format, stencilDesc.MultiSampleType, stencilDesc.MultiSampleQuality, false, &pTemp, NULL);
 		SetDepthStencilSurface(pTemp);
-		pTemp->Release();
-
-		
+		pTemp->Release();	
 	}
 	//OutputDebugString(__FUNCTION__);
 	//OutputDebugString("\n");
@@ -1397,6 +1394,7 @@ HRESULT WINAPI D3DProxyDevice::GetBackBuffer(UINT iSwapChain,UINT iBackBuffer,D3
 
 
 	*ppBackBuffer = m_pStereoBackBuffer;
+	m_pStereoBackBuffer->AddRef();
 
 	return D3D_OK;
 
