@@ -62,6 +62,7 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice):BaseDirect3DDevice9(pD
 	m_pActiveStereoDepthStencil = NULL;
 	m_pActiveIndicies = NULL;
 	m_pActivePixelShader = NULL;
+	m_pActiveVertexShader = NULL;
 	hudFont = NULL;
 
 	centerlineR = 0.0f;
@@ -212,6 +213,12 @@ void D3DProxyDevice::ReleaseEverything()
 		m_pActivePixelShader->Release();
 		m_pActivePixelShader = NULL;
 	}
+
+	if (m_pActiveVertexShader) {
+		m_pActiveVertexShader->Release();
+		m_pActiveVertexShader = NULL;
+	}
+	
 }
 
 
@@ -945,6 +952,17 @@ HRESULT WINAPI D3DProxyDevice::CreatePixelShader(CONST DWORD* pFunction,IDirect3
 	return creationResult;
 }
 
+HRESULT WINAPI D3DProxyDevice::CreateVertexShader(CONST DWORD* pFunction,IDirect3DVertexShader9** ppShader)
+{
+	IDirect3DVertexShader9* pActualVShader = NULL;
+	HRESULT creationResult = BaseDirect3DDevice9::CreateVertexShader(pFunction, &pActualVShader);
+
+	if (SUCCEEDED(creationResult))
+		*ppShader = new BaseDirect3DVertexShader9(pActualVShader, this);
+
+	return creationResult;
+}
+
 
 HRESULT WINAPI D3DProxyDevice::Clear(DWORD Count,CONST D3DRECT* pRects,DWORD Flags,D3DCOLOR Color,float Z,DWORD Stencil)
 {
@@ -1431,6 +1449,45 @@ HRESULT WINAPI D3DProxyDevice::GetPixelShader(IDirect3DPixelShader9** ppShader)
 	return D3D_OK;
 }
 
+
+HRESULT WINAPI D3DProxyDevice::SetVertexShader(IDirect3DVertexShader9* pShader)
+{
+	BaseDirect3DVertexShader9* pWrappedVShaderData = static_cast<BaseDirect3DVertexShader9*>(pShader);
+	
+	if (pWrappedVShaderData == m_pActiveVertexShader) 
+		return D3D_OK; 
+
+	// Update actual Vertex shader
+	HRESULT result;
+	if (pWrappedVShaderData)
+		result = BaseDirect3DDevice9::SetVertexShader(pWrappedVShaderData->getActual());
+	else
+		result = BaseDirect3DDevice9::SetVertexShader(NULL);
+
+	// Update stored proxy Vertex shader
+	if (SUCCEEDED(result)) {
+		if (m_pActiveVertexShader) {
+			m_pActiveVertexShader->Release();
+		}
+		
+		m_pActiveVertexShader = pWrappedVShaderData;
+		if (m_pActiveVertexShader) {
+			m_pActiveVertexShader->AddRef();
+		}
+	}
+
+	return result;
+}
+
+HRESULT WINAPI D3DProxyDevice::GetVertexShader(IDirect3DVertexShader9** ppShader)
+{
+	if (!m_pActiveVertexShader)
+		return D3DERR_INVALIDCALL;
+	
+	*ppShader = m_pActiveVertexShader;
+
+	return D3D_OK;
+}
 
 
 bool D3DProxyDevice::switchDrawingSide()

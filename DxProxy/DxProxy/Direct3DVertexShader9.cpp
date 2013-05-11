@@ -60,6 +60,11 @@ ULONG WINAPI BaseDirect3DVertexShader9::Release()
 	return m_nRefCount;
 }
 
+IDirect3DVertexShader9* BaseDirect3DVertexShader9::getActual()
+{
+	return m_pActualVertexShader;
+}
+
 
 HRESULT WINAPI BaseDirect3DVertexShader9::GetDevice(IDirect3DDevice9** ppDevice)
 {

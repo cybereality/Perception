@@ -66,6 +66,7 @@ public:
 	virtual HRESULT WINAPI CreateCubeTexture(UINT EdgeLength,UINT Levels,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool,IDirect3DCubeTexture9** ppCubeTexture,HANDLE* pSharedHandle);
 	virtual HRESULT WINAPI CreateVolumeTexture(UINT Width,UINT Height,UINT Depth,UINT Levels,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool,IDirect3DVolumeTexture9** ppVolumeTexture,HANDLE* pSharedHandle);
 	virtual HRESULT WINAPI CreatePixelShader(CONST DWORD* pFunction,IDirect3DPixelShader9** ppShader);
+	virtual HRESULT WINAPI CreateVertexShader(CONST DWORD* pFunction,IDirect3DVertexShader9** ppShader);
 	virtual HRESULT WINAPI Clear(DWORD Count,CONST D3DRECT* pRects,DWORD Flags,D3DCOLOR Color,float Z,DWORD Stencil);
 	virtual HRESULT WINAPI ColorFill(IDirect3DSurface9* pSurface,CONST RECT* pRect,D3DCOLOR color);
 	virtual HRESULT WINAPI DrawPrimitive(D3DPRIMITIVETYPE PrimitiveType,UINT StartVertex,UINT PrimitiveCount);
@@ -86,6 +87,8 @@ public:
 	virtual HRESULT WINAPI GetTexture(DWORD Stage,IDirect3DBaseTexture9** ppTexture);	
 	virtual HRESULT WINAPI SetPixelShader(IDirect3DPixelShader9* pShader);
 	virtual HRESULT WINAPI GetPixelShader(IDirect3DPixelShader9** ppShader);
+	virtual HRESULT WINAPI SetVertexShader(IDirect3DVertexShader9* pShader);
+	virtual HRESULT WINAPI GetVertexShader(IDirect3DVertexShader9** ppShader);
 	virtual HRESULT WINAPI Present(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion);
 	virtual HRESULT WINAPI GetBackBuffer(UINT iSwapChain,UINT iBackBuffer,D3DBACKBUFFER_TYPE Type,IDirect3DSurface9** ppBackBuffer);
 	virtual HRESULT WINAPI CreateAdditionalSwapChain(D3DPRESENT_PARAMETERS* pPresentationParameters,IDirect3DSwapChain9** pSwapChain);
@@ -193,6 +196,7 @@ private:
 	D3D9ProxySurface* m_pActiveStereoDepthStencil;
 	BaseDirect3DIndexBuffer9* m_pActiveIndicies;
 	BaseDirect3DPixelShader9* m_pActivePixelShader;
+	BaseDirect3DVertexShader9* m_pActiveVertexShader;
 
 	// The render targets that are currently in use.
 	std::vector<D3D9ProxySurface*> m_activeRenderTargets;
