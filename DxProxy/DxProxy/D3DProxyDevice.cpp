@@ -57,7 +57,8 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice):BaseDirect3DDevice9(pD
 	m_activeRenderTargets.resize(maxRenderTargets, NULL);
 	m_currentRenderingSide = Left;
 	
-	pStereoBackBuffer = NULL;
+	m_pStereoBackBuffer = NULL;
+	m_pActiveStereoDepthStencil = NULL;
 	hudFont = NULL;
 
 	centerlineR = 0.0f;
@@ -97,9 +98,14 @@ D3DProxyDevice::~D3DProxyDevice()
 	}
 
 
-	if(pStereoBackBuffer) {
-		pStereoBackBuffer->Release();
-		pStereoBackBuffer = NULL;
+	if(m_pStereoBackBuffer) {
+		m_pStereoBackBuffer->Release();
+		m_pStereoBackBuffer = NULL;
+	}
+
+	if (m_pActiveStereoDepthStencil) {
+		m_pActiveStereoDepthStencil->Release();
+		m_pActiveStereoDepthStencil = NULL;
 	}
 }
 
@@ -155,8 +161,29 @@ void D3DProxyDevice::OnCreateOrRestore()
 
 	IDirect3DSurface9* pTemp;
 	CreateRenderTarget(backDesc.Width, backDesc.Height, backDesc.Format, backDesc.MultiSampleType, backDesc.MultiSampleQuality, false, &pTemp, NULL);
-	pStereoBackBuffer = static_cast<D3D9ProxySurface*>(pTemp);
+	m_pStereoBackBuffer = static_cast<D3D9ProxySurface*>(pTemp);
 	SetRenderTarget(0, pTemp);
+
+
+	// If there is an initial depth stencil
+	IDirect3DSurface9* pDepthStencil;
+	if (SUCCEEDED(BaseDirect3DDevice9::GetDepthStencilSurface(&pDepthStencil))) { 
+		
+		D3DSURFACE_DESC stencilDesc;
+		pDepthStencil->GetDesc(&stencilDesc);
+		pDepthStencil->Release();
+
+		// TODO I have no idea how to determine what the discard boolean should be here
+		pTemp = NULL;
+		CreateDepthStencilSurface(stencilDesc.Width, stencilDesc.Height, stencilDesc.Format, stencilDesc.MultiSampleType, stencilDesc.MultiSampleQuality, false, &pTemp, NULL);
+		SetDepthStencilSurface(pTemp);
+		pTemp->Release();
+
+		
+	}
+	//OutputDebugString(__FUNCTION__);
+	//OutputDebugString("\n");
+
 
 	SetupText();
 
@@ -199,7 +226,7 @@ HRESULT WINAPI D3DProxyDevice::Reset(D3DPRESENT_PARAMETERS* pPresentationParamet
 
 			if (newRefCount > 0) {
 				char buf[256];
-				sprintf_s(buf, "m_activeRenderTargets[%d] count = %d\n", i, newRefCount); // count for one of these will usually be one here because it is also referenced by pStereoBackBuffer
+				sprintf_s(buf, "m_activeRenderTargets[%d] count = %d\n", i, newRefCount); // count for one of these will usually be one here because it is also referenced by m_pStereoBackBuffer
 				OutputDebugString(buf);
 			}
 
@@ -207,16 +234,29 @@ HRESULT WINAPI D3DProxyDevice::Reset(D3DPRESENT_PARAMETERS* pPresentationParamet
 		}
 	}
 
-	if(pStereoBackBuffer) {
-		newRefCount = pStereoBackBuffer->Release();
+	if(m_pStereoBackBuffer) {
+		newRefCount = m_pStereoBackBuffer->Release();
 
 		if (newRefCount > 0) {
 			char buf[256];
-			sprintf_s(buf, "pStereoBackBuffer count = %d\n", newRefCount);
+			sprintf_s(buf, "m_pStereoBackBuffer count = %d\n", newRefCount);
 			OutputDebugString(buf);
 		}
 
-		pStereoBackBuffer = NULL;
+		m_pStereoBackBuffer = NULL;
+	}
+
+
+	if(m_pActiveStereoDepthStencil) {
+		newRefCount = m_pActiveStereoDepthStencil->Release();
+
+		if (newRefCount > 0) {
+			char buf[256];
+			sprintf_s(buf, "m_pActiveStereoDepthStencil count = %d\n", newRefCount);
+			OutputDebugString(buf);
+		}
+
+		m_pActiveStereoDepthStencil = NULL;
 	}
 	
 
@@ -773,6 +813,40 @@ HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFO
 
 
 
+HRESULT WINAPI D3DProxyDevice::CreateDepthStencilSurface(UINT Width,UINT Height,D3DFORMAT Format,D3DMULTISAMPLE_TYPE MultiSample,DWORD MultisampleQuality,BOOL Discard,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle)
+{
+	//OutputDebugString(__FUNCTION__);
+	//OutputDebugString("\n");
+
+	IDirect3DSurface9* pDepthStencilSurfaceLeft = NULL;
+	IDirect3DSurface9* pDepthStencilSurfaceRight = NULL;
+	HRESULT creationResult;
+
+	// create left/mono
+	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateDepthStencilSurface(Width, Height, Format, MultiSample, MultisampleQuality, Discard, &pDepthStencilSurfaceLeft, pSharedHandle))) {
+
+		// TODO Should we always duplicated Depth stencils? I think yes, but there may be exceptions
+		if (true) 
+		{
+			if (FAILED(BaseDirect3DDevice9::CreateDepthStencilSurface(Width, Height, Format, MultiSample, MultisampleQuality, Discard, &pDepthStencilSurfaceRight, pSharedHandle))) {
+				OutputDebugString("Failed to create right eye Depth Stencil Surface while attempting to create stereo pair, falling back to mono\n");
+				pDepthStencilSurfaceRight = NULL;
+			}
+		}
+	}
+	else {
+		OutputDebugString("Failed to create Depth Stencil Surface\n"); 
+	}
+
+
+	if (SUCCEEDED(creationResult))
+		*ppSurface = new D3D9ProxySurface(pDepthStencilSurfaceLeft, pDepthStencilSurfaceRight, this, NULL);
+
+	return creationResult;
+}
+
+
+
 
 
 HRESULT WINAPI D3DProxyDevice::CreateOffscreenPlainSurface(UINT Width,UINT Height,D3DFORMAT Format,D3DPOOL Pool,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle)
@@ -980,15 +1054,6 @@ HRESULT WINAPI D3DProxyDevice::DrawTriPatch(UINT Handle,CONST float* pNumSegs,CO
 
 HRESULT WINAPI D3DProxyDevice::SetRenderTarget(DWORD RenderTargetIndex, IDirect3DSurface9* pRenderTarget)
 {
-	//OutputDebugString(__FUNCTION__); 
-	//OutputDebugString("\n"); 
-
-	if (!pRenderTarget)
-		OutputDebugString("SetRenderTarget called with null surface\n"); 
-
-	//OutputDebugString(typeid(pRenderTarget).name());
-	//OutputDebugString("\n");
-
 	D3D9ProxySurface* newRenderTarget = static_cast<D3D9ProxySurface*>(pRenderTarget);
 
 #ifdef _DEBUG
@@ -1075,6 +1140,59 @@ HRESULT WINAPI D3DProxyDevice::GetRenderTarget(DWORD RenderTargetIndex,IDirect3D
 }
 
 
+
+HRESULT WINAPI D3DProxyDevice::SetDepthStencilSurface(IDirect3DSurface9* pNewZStencil)
+{
+	
+	//OutputDebugString(__FUNCTION__);
+	//OutputDebugString("\n");
+
+	D3D9ProxySurface* pNewDepthStencil = static_cast<D3D9ProxySurface*>(pNewZStencil);
+
+	if (pNewDepthStencil == m_pActiveStereoDepthStencil) // Already set, nothing to do
+		return D3D_OK; 
+
+
+	IDirect3DSurface9* pActualStencilForCurrentSide = NULL;
+	if (pNewDepthStencil) {
+		if (m_currentRenderingSide == Left)
+			pActualStencilForCurrentSide = pNewDepthStencil->getActualLeft();
+		else
+			pActualStencilForCurrentSide = pNewDepthStencil->getActualRight();
+	}
+
+	// Update actual depth stencil
+	HRESULT result = m_pDevice->SetDepthStencilSurface(pActualStencilForCurrentSide);
+
+	// Update stored proxy depth stencil
+	if (SUCCEEDED(result)) {
+		if (m_pActiveStereoDepthStencil) {
+			m_pActiveStereoDepthStencil->Release();
+		}
+		
+		m_pActiveStereoDepthStencil = pNewDepthStencil;
+		if (m_pActiveStereoDepthStencil) {
+			m_pActiveStereoDepthStencil->AddRef();
+		}
+	}
+
+	return result;
+}
+
+HRESULT WINAPI D3DProxyDevice::GetDepthStencilSurface(IDirect3DSurface9** ppZStencilSurface)
+{	
+	
+	//OutputDebugString(__FUNCTION__);
+	//OutputDebugString("\n");
+
+	if (!m_pActiveStereoDepthStencil)
+		return D3DERR_NOTFOUND;
+	
+	*ppZStencilSurface = m_pActiveStereoDepthStencil;
+	(*ppZStencilSurface)->AddRef();
+
+	return D3D_OK;
+}
 
 
 
@@ -1210,6 +1328,15 @@ bool D3DProxyDevice::setDrawingSide(EyeSide side)
 	}
 
 
+	// switch depth stencil to new side
+	if (m_pActiveStereoDepthStencil != NULL) { 
+		if (side == Left) 
+			result = BaseDirect3DDevice9::SetDepthStencilSurface(m_pActiveStereoDepthStencil->getActualLeft()); 
+		else 
+			result = BaseDirect3DDevice9::SetDepthStencilSurface(m_pActiveStereoDepthStencil->getActualRight());
+	}
+
+
 	// switch textures to new side
 	IDirect3DBaseTexture9* pActualLeftTexture = NULL;
 	IDirect3DBaseTexture9* pActualRightTexture = NULL;
@@ -1248,7 +1375,7 @@ bool D3DProxyDevice::setDrawingSide(EyeSide side)
 HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion)
 {
 	if (stereoView->initialized)
-		stereoView->Draw(pStereoBackBuffer);
+		stereoView->Draw(m_pStereoBackBuffer);
 
 	return BaseDirect3DDevice9::Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
 }
@@ -1269,7 +1396,7 @@ HRESULT WINAPI D3DProxyDevice::GetBackBuffer(UINT iSwapChain,UINT iBackBuffer,D3
 		OutputDebugString("Swap chain has more than one back buffer. Support for this has not yet been implemented. Bad things may be about to happen.");
 
 
-	*ppBackBuffer = pStereoBackBuffer;
+	*ppBackBuffer = m_pStereoBackBuffer;
 
 	return D3D_OK;
 
