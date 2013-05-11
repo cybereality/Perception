@@ -1769,16 +1769,17 @@ HRESULT WINAPI D3DProxyDevice::GetFrontBufferData(UINT iSwapChain, IDirect3DSurf
 	if (pDestSurface == NULL)
 		return D3DERR_INVALIDCALL;
 
-	return m_pDevice->GetFrontBufferData(iSwapChain, static_cast<D3D9ProxySurface*>(pDestSurface)->getActualLeft());
+	HRESULT result = BaseDirect3DDevice9::GetFrontBufferData(iSwapChain, static_cast<D3D9ProxySurface*>(pDestSurface)->getActualLeft()); // clear right half of destination surface?
+	return result;
 }
 
 HRESULT WINAPI D3DProxyDevice::GetRenderTargetData(IDirect3DSurface9* pRenderTarget,IDirect3DSurface9* pDestSurface)
 {
-	// Will only get left version of a stereo render target. 
+	// Will only get left version of a stereo render target at the moment.
 	if ((pDestSurface == NULL) || (pRenderTarget == NULL))
 		return D3DERR_INVALIDCALL;
 
-	return m_pDevice->GetRenderTargetData(static_cast<D3D9ProxySurface*>(pRenderTarget)->getActualLeft(), static_cast<D3D9ProxySurface*>(pDestSurface)->getActualLeft());
+	return BaseDirect3DDevice9::GetRenderTargetData(static_cast<D3D9ProxySurface*>(pRenderTarget)->getActualLeft(), static_cast<D3D9ProxySurface*>(pDestSurface)->getActualLeft());
 }
 
 HRESULT WINAPI D3DProxyDevice::SetCursorProperties(UINT XHotSpot, UINT YHotSpot, IDirect3DSurface9* pCursorBitmap)
