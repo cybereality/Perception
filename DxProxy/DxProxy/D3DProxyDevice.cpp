@@ -1570,6 +1570,16 @@ HRESULT WINAPI D3DProxyDevice::GetVertexDeclaration(IDirect3DVertexDeclaration9*
 	return D3D_OK;
 }
 
+HRESULT WINAPI D3DProxyDevice::EndStateBlock(IDirect3DStateBlock9** ppSB)
+{
+	IDirect3DStateBlock9* pActualStateBlock = NULL;
+	HRESULT creationResult = BaseDirect3DDevice9::EndStateBlock(&pActualStateBlock);
+
+	if (SUCCEEDED(creationResult))
+		*ppSB = new BaseDirect3DStateBlock9(pActualStateBlock, this);
+
+	return creationResult;
+}
 
 bool D3DProxyDevice::switchDrawingSide()
 {
