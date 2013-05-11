@@ -19,8 +19,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Direct3DDevice9.h"
 #include "Main.h"
 
-BaseDirect3DDevice9::BaseDirect3DDevice9(IDirect3DDevice9* pDevice) :
+BaseDirect3DDevice9::BaseDirect3DDevice9(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy) :
 	m_pDevice(pDevice),
+	m_pCreatedBy(pCreatedBy),
 	m_nRefCount(1)
 {
 }
@@ -80,9 +81,13 @@ HRESULT WINAPI BaseDirect3DDevice9::EvictManagedResources()
 
 HRESULT WINAPI BaseDirect3DDevice9::GetDirect3D(IDirect3D9** ppD3D9)
 {
-	////OutputDebugString(__FUNCTION__); 
-	////OutputDebugString("\n"); 
-	return m_pDevice->GetDirect3D(ppD3D9);
+	if (!m_pCreatedBy)
+		return D3DERR_INVALIDCALL;
+	else {
+		*ppD3D9 = m_pCreatedBy;
+		m_pCreatedBy->AddRef();
+		return D3D_OK;
+	}
 }
 
 HRESULT WINAPI BaseDirect3DDevice9::GetDeviceCaps(D3DCAPS9* pCaps)

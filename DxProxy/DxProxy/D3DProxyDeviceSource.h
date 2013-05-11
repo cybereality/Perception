@@ -26,7 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class D3DProxyDeviceSource : public D3DProxyDevice
 {
 public:
-	D3DProxyDeviceSource(IDirect3DDevice9* pDevice);
+	D3DProxyDeviceSource(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy);
 	virtual ~D3DProxyDeviceSource();
 	virtual HRESULT WINAPI EndScene();
 	virtual HRESULT WINAPI Present(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion);

@@ -43,7 +43,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define PI 3.141592654
 #define RADIANS_TO_DEGREES(rad) ((float) rad * (float) (180.0 / PI))
 
-D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice):BaseDirect3DDevice9(pDevice),
+D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy):BaseDirect3DDevice9(pDevice, pCreatedBy),
 	m_activeRenderTargets (1, NULL),
 	m_activeTextureStages(),
 	m_activeVertexBuffers()

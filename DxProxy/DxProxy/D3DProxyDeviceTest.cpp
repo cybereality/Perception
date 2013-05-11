@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "D3DProxyDeviceTest.h"
 
-D3DProxyDeviceTest::D3DProxyDeviceTest(IDirect3DDevice9* pDevice):D3DProxyDevice(pDevice)
+D3DProxyDeviceTest::D3DProxyDeviceTest(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy):D3DProxyDevice(pDevice, pCreatedBy)
 {
 }
 

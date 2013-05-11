@@ -22,7 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 bool dirtyRegisters[300];
 
-D3DProxyDeviceAdv::D3DProxyDeviceAdv(IDirect3DDevice9* pDevice):D3DProxyDevice(pDevice)
+D3DProxyDeviceAdv::D3DProxyDeviceAdv(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy):D3DProxyDevice(pDevice, pCreatedBy)
 {
 }
 

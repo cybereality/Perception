@@ -20,11 +20,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define DIRECT3DDEVICE9_H_INCLUDED
 
 #include <d3d9.h>
+#include "Direct3D9.h"
 
 class BaseDirect3DDevice9 : public IDirect3DDevice9
 {
 public:
-	BaseDirect3DDevice9(IDirect3DDevice9* pDevice);
+	BaseDirect3DDevice9(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy);
 	virtual ~BaseDirect3DDevice9();
 
 	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv);
@@ -149,6 +150,7 @@ public:
 	virtual HRESULT WINAPI CreateQuery(D3DQUERYTYPE Type,IDirect3DQuery9** ppQuery);
 
 	IDirect3DDevice9* m_pDevice;
+	BaseDirect3D9* m_pCreatedBy;
 	ULONG m_nRefCount;
 };
 

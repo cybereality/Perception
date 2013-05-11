@@ -25,7 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class D3DProxyDeviceFactory
 {
 public:
-	static D3DProxyDevice* Get(ProxyHelper::ProxyConfig& config, IDirect3DDevice9* dev);
+	static D3DProxyDevice* Get(ProxyHelper::ProxyConfig& config, IDirect3DDevice9* dev, BaseDirect3D9* pCreatedBy);
 };
 
 #endif

@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "D3DProxyDeviceSource.h"
 #include "StereoViewFactory.h"
 
-D3DProxyDeviceSource::D3DProxyDeviceSource(IDirect3DDevice9* pDevice):D3DProxyDevice(pDevice)
+D3DProxyDeviceSource::D3DProxyDeviceSource(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy):D3DProxyDevice(pDevice, pCreatedBy)
 {
 	OutputDebugString("D3D ProxyDev Source Created\n");
 }

@@ -28,7 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class D3DProxyDeviceAdv : public D3DProxyDevice
 {
 public:
-	D3DProxyDeviceAdv(IDirect3DDevice9* pDevice);
+	D3DProxyDeviceAdv(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy);
 	virtual ~D3DProxyDeviceAdv();
 	virtual HRESULT WINAPI BeginScene();
 	virtual HRESULT WINAPI EndScene();

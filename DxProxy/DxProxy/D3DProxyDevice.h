@@ -44,7 +44,7 @@ class StereoView;
 class D3DProxyDevice : public BaseDirect3DDevice9
 {
 public:
-	D3DProxyDevice(IDirect3DDevice9* pDevice);
+	D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy);
 	virtual ~D3DProxyDevice();
 
 	virtual void Init(ProxyHelper::ProxyConfig& cfg);
@@ -200,6 +200,8 @@ protected:
 private:
 
 	void ReleaseEverything();
+
+	
 	
 	D3D9ProxySurface* m_pStereoBackBuffer;
 	D3D9ProxySurface* m_pActiveStereoDepthStencil;
