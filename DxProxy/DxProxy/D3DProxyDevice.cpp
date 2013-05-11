@@ -1780,3 +1780,11 @@ HRESULT WINAPI D3DProxyDevice::GetRenderTargetData(IDirect3DSurface9* pRenderTar
 
 	return m_pDevice->GetRenderTargetData(static_cast<D3D9ProxySurface*>(pRenderTarget)->getActualLeft(), static_cast<D3D9ProxySurface*>(pDestSurface)->getActualLeft());
 }
+
+HRESULT WINAPI D3DProxyDevice::SetCursorProperties(UINT XHotSpot, UINT YHotSpot, IDirect3DSurface9* pCursorBitmap)
+{
+	if (!pCursorBitmap)
+		return BaseDirect3DDevice9::SetCursorProperties(XHotSpot, YHotSpot, NULL);
+
+	return BaseDirect3DDevice9::SetCursorProperties(XHotSpot, YHotSpot, static_cast<D3D9ProxySurface*>(pCursorBitmap)->getActualLeft());
+}
