@@ -1386,11 +1386,15 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
  */
 HRESULT WINAPI D3DProxyDevice::GetBackBuffer(UINT iSwapChain,UINT iBackBuffer,D3DBACKBUFFER_TYPE Type,IDirect3DSurface9** ppBackBuffer)
 {
-	if (iSwapChain > 0)
+	if (iSwapChain > 0) {
 		OutputDebugString("GetBackBuffer: Swap chain other than swapchain 0 requested. Support for this has not yet been implemented. Bad things may be about to happen.");
+		assert( iSwapChain == 0);
+	}
 
-	if (iBackBuffer > 0)
+	if (iBackBuffer > 0) {
 		OutputDebugString("Swap chain has more than one back buffer. Support for this has not yet been implemented. Bad things may be about to happen.");
+		assert( iBackBuffer == 0);
+	}
 
 
 	*ppBackBuffer = m_pStereoBackBuffer;
@@ -1410,8 +1414,10 @@ HRESULT WINAPI D3DProxyDevice::GetBackBuffer(UINT iSwapChain,UINT iBackBuffer,D3
  */
 HRESULT WINAPI D3DProxyDevice::GetSwapChain(UINT iSwapChain,IDirect3DSwapChain9** pSwapChain)
 {
-	if (iSwapChain > 0)
+	if (iSwapChain > 0) {
 		OutputDebugString("GetSwapChain: Swap chain other than swapchain 0 requested. Support for this has not yet been implemented. Bad things may be about to happen.");
+		assert( iSwapChain == 0);
+	}
 
 	//OutputDebugString("GetSwapChain: If this chain is used to get anything other than buffer 0 bad things are going to happen");
 
