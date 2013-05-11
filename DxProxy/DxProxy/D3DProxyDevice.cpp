@@ -1733,3 +1733,19 @@ HRESULT WINAPI D3DProxyDevice::CreateAdditionalSwapChain(D3DPRESENT_PARAMETERS* 
 	return BaseDirect3DDevice9::CreateAdditionalSwapChain(pPresentationParameters, pSwapChain);
 }
 
+HRESULT WINAPI D3DProxyDevice::GetFrontBufferData(UINT iSwapChain, IDirect3DSurface9* pDestSurface)
+{ 
+	if (pDestSurface == NULL)
+		return D3DERR_INVALIDCALL;
+
+	return m_pDevice->GetFrontBufferData(iSwapChain, static_cast<D3D9ProxySurface*>(pDestSurface)->getActualLeft());
+}
+
+HRESULT WINAPI D3DProxyDevice::GetRenderTargetData(IDirect3DSurface9* pRenderTarget,IDirect3DSurface9* pDestSurface)
+{
+	// Will only get left version of a stereo render target. 
+	if ((pDestSurface == NULL) || (pRenderTarget == NULL))
+		return D3DERR_INVALIDCALL;
+
+	return m_pDevice->GetRenderTargetData(static_cast<D3D9ProxySurface*>(pRenderTarget)->getActualLeft(), static_cast<D3D9ProxySurface*>(pDestSurface)->getActualLeft());
+}
