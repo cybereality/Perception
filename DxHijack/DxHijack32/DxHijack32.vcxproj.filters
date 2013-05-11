@@ -144,6 +144,12 @@
     <ClCompile Include="..\..\DxProxy\DxProxy\Direct3DQuery9.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\DxProxy\DxProxy\D3D9ProxySwapChain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\DxProxy\DxProxy\Direct3DSwapChain9.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="hijackdll.def">
@@ -278,6 +284,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\DxProxy\DxProxy\Direct3DQuery9.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\DxProxy\DxProxy\D3D9ProxySwapChain.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

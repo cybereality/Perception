@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Direct3DDevice9.h"
 #include "D3D9ProxySurface.h"
 #include "D3D9ProxyTexture.h"
+#include "Direct3DSwapChain9.h"
 #include "Direct3DVertexBuffer9.h"
 #include "Direct3DIndexBuffer9.h"
 #include "Direct3DPixelShader9.h"
@@ -210,6 +211,7 @@ private:
 	BaseDirect3DPixelShader9* m_pActivePixelShader;
 	BaseDirect3DVertexShader9* m_pActiveVertexShader;
 	BaseDirect3DVertexDeclaration9* m_pActiveVertexDeclaration;
+	BaseDirect3DSwapChain9* m_pPrimarySwapChain;
 
 	// The render targets that are currently in use.
 	std::vector<D3D9ProxySurface*> m_activeRenderTargets;

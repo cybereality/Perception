@@ -80,11 +80,17 @@ HRESULT WINAPI BaseDirect3DSwapChain9::Present(CONST RECT* pSourceRect, CONST RE
 
 HRESULT WINAPI BaseDirect3DSwapChain9::GetFrontBufferData(IDirect3DSurface9* pDestSurface) 
 {
+	OutputDebugString(__FUNCTION__);
+	OutputDebugString("\n");
+	OutputDebugString("GetSwapChain. Danger Will Robinson. Surface not wrapped.\n");
 	return m_pActualSwapChain->GetFrontBufferData(pDestSurface);
 }
 
 HRESULT WINAPI BaseDirect3DSwapChain9::GetBackBuffer(UINT iBackBuffer, D3DBACKBUFFER_TYPE Type, IDirect3DSurface9** ppBackBuffer) 
 {
+	OutputDebugString(__FUNCTION__);
+	OutputDebugString("\n");
+	OutputDebugString("GetSwapChain. Danger Will Robinson. Surface not wrapped.\n");
 	return m_pActualSwapChain->GetBackBuffer(iBackBuffer, Type, ppBackBuffer);
 }
 

@@ -123,6 +123,13 @@ void D3DProxyDevice::OnCreateOrRestore()
 	//OutputDebugString(__FUNCTION__);
 	//OutputDebugString("\n");
 
+	IDirect3DSwapChain9* pActualPrimarySwapChain;
+	if (FAILED(BaseDirect3DDevice9::GetSwapChain(0, &pActualPrimarySwapChain))) {
+		OutputDebugString("Failed to fetch swapchain.\n");
+		exit(1); 
+	}
+	m_pPrimarySwapChain = new BaseDirect3DSwapChain9(pActualPrimarySwapChain, this);
+
 	// Create a stereo render target with the same properties as the backbuffer and set it as the current render target
 	IDirect3DSurface9* pBackBuffer;
 	if (FAILED(BaseDirect3DDevice9::GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer))) { //TODO this all needs replacing with proxy swap chain, etc
@@ -1716,11 +1723,15 @@ HRESULT WINAPI D3DProxyDevice::GetSwapChain(UINT iSwapChain,IDirect3DSwapChain9*
 		assert( iSwapChain == 0);
 	}
 
-	//TODO return wrapped swapchain
+	
+	if (!m_pPrimarySwapChain)
+		return D3DERR_INVALIDCALL;
+	
+	*pSwapChain = m_pPrimarySwapChain;
 
-	OutputDebugString("GetSwapChain. TODO wrap this swapchain\n");
+	OutputDebugString("GetSwapChain. Caution Will Robinson. Methods on proxy swap chain not fully implemented.\n");
 
-	return BaseDirect3DDevice9::GetSwapChain(iSwapChain, pSwapChain);
+	return D3D_OK;
 }
 
 /* see above */
