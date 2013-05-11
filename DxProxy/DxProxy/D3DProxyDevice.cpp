@@ -975,6 +975,17 @@ HRESULT WINAPI D3DProxyDevice::CreateQuery(D3DQUERYTYPE Type,IDirect3DQuery9** p
 	return creationResult;
 }
 
+HRESULT WINAPI D3DProxyDevice::CreateStateBlock(D3DSTATEBLOCKTYPE Type,IDirect3DStateBlock9** ppSB)
+{
+	IDirect3DStateBlock9* pActualStateBlock = NULL;
+	HRESULT creationResult = BaseDirect3DDevice9::CreateStateBlock(Type, &pActualStateBlock);
+
+	if (SUCCEEDED(creationResult))
+		*ppSB = new BaseDirect3DStateBlock9(pActualStateBlock, this);
+
+	return creationResult;
+}
+
 
 
 HRESULT WINAPI D3DProxyDevice::Clear(DWORD Count,CONST D3DRECT* pRects,DWORD Flags,D3DCOLOR Color,float Z,DWORD Stencil)
