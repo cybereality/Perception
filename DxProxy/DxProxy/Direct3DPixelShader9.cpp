@@ -61,6 +61,13 @@ ULONG WINAPI BaseDirect3DPixelShader9::Release()
 }
 
 
+IDirect3DPixelShader9* BaseDirect3DPixelShader9::getActual()
+{
+	return m_pActualPixelShader;
+}
+
+
+
 HRESULT WINAPI BaseDirect3DPixelShader9::GetDevice(IDirect3DDevice9** ppDevice)
 {
 	if (!m_pOwningDevice)

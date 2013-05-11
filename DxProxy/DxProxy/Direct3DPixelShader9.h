@@ -33,6 +33,8 @@ public:
 	virtual ULONG WINAPI AddRef();
 	virtual ULONG WINAPI Release();
 
+	IDirect3DPixelShader9* getActual();
+
 	// IDirect3DPixelShader9
 	virtual HRESULT WINAPI GetDevice(IDirect3DDevice9 **ppDevice);
 	virtual HRESULT WINAPI GetFunction(void *pDate, UINT *pSizeOfData);

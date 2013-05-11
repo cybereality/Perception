@@ -61,6 +61,7 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice):BaseDirect3DDevice9(pD
 	m_pStereoBackBuffer = NULL;
 	m_pActiveStereoDepthStencil = NULL;
 	m_pActiveIndicies = NULL;
+	m_pActivePixelShader = NULL;
 	hudFont = NULL;
 
 	centerlineR = 0.0f;
@@ -205,6 +206,11 @@ void D3DProxyDevice::ReleaseEverything()
 	if (m_pActiveIndicies) {
 		m_pActiveIndicies->Release();
 		m_pActiveIndicies = NULL;
+	}
+
+	if (m_pActivePixelShader) {
+		m_pActivePixelShader->Release();
+		m_pActivePixelShader = NULL;
 	}
 }
 
@@ -928,7 +934,16 @@ HRESULT WINAPI D3DProxyDevice::CreateVolumeTexture(UINT Width,UINT Height,UINT D
 
 
 
+HRESULT WINAPI D3DProxyDevice::CreatePixelShader(CONST DWORD* pFunction,IDirect3DPixelShader9** ppShader)
+{
+	IDirect3DPixelShader9* pActualPShader = NULL;
+	HRESULT creationResult = BaseDirect3DDevice9::CreatePixelShader(pFunction, &pActualPShader);
 
+	if (SUCCEEDED(creationResult))
+		*ppShader = new BaseDirect3DPixelShader9(pActualPShader, this);
+
+	return creationResult;
+}
 
 
 HRESULT WINAPI D3DProxyDevice::Clear(DWORD Count,CONST D3DRECT* pRects,DWORD Flags,D3DCOLOR Color,float Z,DWORD Stencil)
@@ -1373,6 +1388,47 @@ HRESULT WINAPI D3DProxyDevice::GetTexture(DWORD Stage,IDirect3DBaseTexture9** pp
 		(*ppTexture)->AddRef();
 		return D3D_OK;
 	}
+}
+
+
+
+HRESULT WINAPI D3DProxyDevice::SetPixelShader(IDirect3DPixelShader9* pShader)
+{
+	BaseDirect3DPixelShader9* pWrappedPShaderData = static_cast<BaseDirect3DPixelShader9*>(pShader);
+	
+	if (pWrappedPShaderData == m_pActivePixelShader) 
+		return D3D_OK; 
+
+	// Update actual pixel shader
+	HRESULT result;
+	if (pWrappedPShaderData)
+		result = BaseDirect3DDevice9::SetPixelShader(pWrappedPShaderData->getActual());
+	else
+		result = BaseDirect3DDevice9::SetPixelShader(NULL);
+
+	// Update stored proxy pixel shader
+	if (SUCCEEDED(result)) {
+		if (m_pActivePixelShader) {
+			m_pActivePixelShader->Release();
+		}
+		
+		m_pActivePixelShader = pWrappedPShaderData;
+		if (m_pActivePixelShader) {
+			m_pActivePixelShader->AddRef();
+		}
+	}
+
+	return result;
+}
+
+HRESULT WINAPI D3DProxyDevice::GetPixelShader(IDirect3DPixelShader9** ppShader)
+{
+	if (!m_pActivePixelShader)
+		return D3DERR_INVALIDCALL;
+	
+	*ppShader = m_pActivePixelShader;
+
+	return D3D_OK;
 }
 
 
