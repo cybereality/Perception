@@ -65,7 +65,10 @@ ULONG WINAPI BaseDirect3DIndexBuffer9::Release()
 
 
 
-
+IDirect3DIndexBuffer9* BaseDirect3DIndexBuffer9::getActual()
+{
+	return m_pActualIndexBuffer;
+}
 
 
 

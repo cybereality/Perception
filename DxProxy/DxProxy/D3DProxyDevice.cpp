@@ -45,7 +45,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice):BaseDirect3DDevice9(pDevice),
 	m_activeRenderTargets (1, NULL),
-	m_activeTextureStages()
+	m_activeTextureStages(),
+	m_activeVertexBuffers()
 {
 	OutputDebugString("D3D ProxyDev Created\n");
 	
@@ -59,6 +60,7 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice):BaseDirect3DDevice9(pD
 	
 	m_pStereoBackBuffer = NULL;
 	m_pActiveStereoDepthStencil = NULL;
+	m_pActiveIndicies = NULL;
 	hudFont = NULL;
 
 	centerlineR = 0.0f;
@@ -76,37 +78,7 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice):BaseDirect3DDevice9(pD
 
 D3DProxyDevice::~D3DProxyDevice()
 {
-	if(hudFont) {
-		hudFont->Release();
-		hudFont = NULL;
-	}
-
-
-	for(std::vector<D3D9ProxySurface*>::size_type i = 0; i != m_activeRenderTargets.size(); i++) 
-	{
-		if (m_activeRenderTargets[i] != NULL) {
-			m_activeRenderTargets[i]->Release();
-			m_activeRenderTargets[i] = NULL;
-		}
-	}
-
-
-	auto it = m_activeTextureStages.begin();
-	while (it != m_activeTextureStages.end()) {
-		it->second->Release();
-		it = m_activeTextureStages.erase(it);
-	}
-
-
-	if(m_pStereoBackBuffer) {
-		m_pStereoBackBuffer->Release();
-		m_pStereoBackBuffer = NULL;
-	}
-
-	if (m_pActiveStereoDepthStencil) {
-		m_pActiveStereoDepthStencil->Release();
-		m_pActiveStereoDepthStencil = NULL;
-	}
+	ReleaseEverything();
 }
 
 
@@ -150,7 +122,7 @@ void D3DProxyDevice::OnCreateOrRestore()
 
 	// Create a stereo render target with the same properties as the backbuffer and set it as the current render target
 	IDirect3DSurface9* pBackBuffer;
-	if (BaseDirect3DDevice9::GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer) != D3D_OK) { //TODO this all needs replacing with proxy swap chain, etc
+	if (FAILED(BaseDirect3DDevice9::GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer))) { //TODO this all needs replacing with proxy swap chain, etc
 		OutputDebugString("Failed to fetch backbuffer.\n");
 		exit(1); 
 	}
@@ -188,6 +160,55 @@ void D3DProxyDevice::OnCreateOrRestore()
 }
 
 
+void D3DProxyDevice::ReleaseEverything()
+{
+	if(hudFont) {
+		hudFont->Release();
+		hudFont = NULL;
+	}
+
+
+	// one of these will still have a count of 1 until the backbuffer is released
+	for(std::vector<D3D9ProxySurface*>::size_type i = 0; i != m_activeRenderTargets.size(); i++) 
+	{
+		if (m_activeRenderTargets[i] != NULL) {
+			m_activeRenderTargets[i]->Release();
+			m_activeRenderTargets[i] = NULL;
+		}
+	} 
+
+
+	auto it = m_activeTextureStages.begin();
+	while (it != m_activeTextureStages.end()) {
+		it->second->Release();
+		it = m_activeTextureStages.erase(it);
+	}
+
+
+	auto itVB = m_activeVertexBuffers.begin();
+	while (itVB != m_activeVertexBuffers.end()) {
+		itVB->second->Release();
+		itVB = m_activeVertexBuffers.erase(itVB);
+	}
+
+
+	if(m_pStereoBackBuffer) {
+		m_pStereoBackBuffer->Release();
+		m_pStereoBackBuffer = NULL;
+	}
+
+	if (m_pActiveStereoDepthStencil) {
+		m_pActiveStereoDepthStencil->Release();
+		m_pActiveStereoDepthStencil = NULL;
+	}
+
+	if (m_pActiveIndicies) {
+		m_pActiveIndicies->Release();
+		m_pActiveIndicies = NULL;
+	}
+}
+
+
 /*
 	Subclasses which override this method must call through to super method at the end of the subclasses
 	implementation.
@@ -200,77 +221,13 @@ HRESULT WINAPI D3DProxyDevice::Reset(D3DPRESENT_PARAMETERS* pPresentationParamet
 	if(stereoView)
 		stereoView->Reset();
 
-	int newRefCount = 0;
-
-	if(hudFont) {
-		newRefCount = hudFont->Release();
-
-		if (newRefCount > 0) {
-			char buf[256];
-			sprintf_s(buf, "hudFont count = %d\n", newRefCount);
-			OutputDebugString(buf);
-		}
-
-		hudFont = NULL;
-	}
-
 	
-
-	for(std::vector<D3D9ProxySurface*>::size_type i = 0; i != m_activeRenderTargets.size(); i++) 
-	{
-		if (m_activeRenderTargets[i] != NULL) {
-			newRefCount = m_activeRenderTargets[i]->Release();
-
-			if (newRefCount > 0) {
-				char buf[256];
-				sprintf_s(buf, "m_activeRenderTargets[%d] count = %d\n", i, newRefCount); // count for one of these will usually be one here because it is also referenced by m_pStereoBackBuffer
-				OutputDebugString(buf);
-			}
-
-			m_activeRenderTargets[i] = NULL;
-		}
-	}
-
-	if(m_pStereoBackBuffer) {
-		newRefCount = m_pStereoBackBuffer->Release();
-
-		if (newRefCount > 0) {
-			char buf[256];
-			sprintf_s(buf, "m_pStereoBackBuffer count = %d\n", newRefCount);
-			OutputDebugString(buf);
-		}
-
-		m_pStereoBackBuffer = NULL;
-	}
-
-
-	if(m_pActiveStereoDepthStencil) {
-		newRefCount = m_pActiveStereoDepthStencil->Release();
-
-		if (newRefCount > 0) {
-			char buf[256];
-			sprintf_s(buf, "m_pActiveStereoDepthStencil count = %d\n", newRefCount);
-			OutputDebugString(buf);
-		}
-
-		m_pActiveStereoDepthStencil = NULL;
-	}
+	ReleaseEverything();
 	
 
 	HRESULT hr = BaseDirect3DDevice9::Reset(pPresentationParameters);
 
 
-	
-	
-#ifdef _DEBUG
-	if (FAILED(hr)) {
-		char buf[256];
-		sprintf_s(buf, "Error: %s error description: %s\n",
-				DXGetErrorString(hr), DXGetErrorDescription(hr));
-
-		OutputDebugString(buf);
-	}
-#endif
 
 	// if the device has been successfully reset we need to recreate any resources we created
 	if (hr == D3D_OK) 
@@ -767,6 +724,29 @@ HRESULT WINAPI D3DProxyDevice::EndScene()
 }
 
 
+HRESULT WINAPI D3DProxyDevice::CreateVertexBuffer(UINT Length, DWORD Usage, DWORD FVF, D3DPOOL Pool, IDirect3DVertexBuffer9** ppVertexBuffer, HANDLE* pSharedHandle)
+{
+	IDirect3DVertexBuffer9* pActualBuffer = NULL;
+	HRESULT creationResult = BaseDirect3DDevice9::CreateVertexBuffer(Length, Usage, FVF, Pool, &pActualBuffer, pSharedHandle);
+
+	if (SUCCEEDED(creationResult))
+		*ppVertexBuffer = new BaseDirect3DVertexBuffer9(pActualBuffer, this);
+
+	return creationResult;
+}
+
+HRESULT WINAPI D3DProxyDevice::CreateIndexBuffer(UINT Length,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool,IDirect3DIndexBuffer9** ppIndexBuffer,HANDLE* pSharedHandle)
+{
+	IDirect3DIndexBuffer9* pActualBuffer = NULL;
+	HRESULT creationResult = BaseDirect3DDevice9::CreateIndexBuffer(Length, Usage, Format, Pool, &pActualBuffer, pSharedHandle);
+
+	if (SUCCEEDED(creationResult))
+		*ppIndexBuffer = new BaseDirect3DIndexBuffer9(pActualBuffer, this);
+
+	return creationResult;
+}
+
+
 
 /*
 	The IDirect3DSurface9** ppSurface returned should always be a D3D9ProxySurface. Any class overloading
@@ -1047,6 +1027,129 @@ HRESULT WINAPI D3DProxyDevice::DrawTriPatch(UINT Handle,CONST float* pNumSegs,CO
 	return result;
 }
 
+HRESULT WINAPI D3DProxyDevice::SetIndices(IDirect3DIndexBuffer9* pIndexData)
+{
+	BaseDirect3DIndexBuffer9* pWrappedNewIndexData = static_cast<BaseDirect3DIndexBuffer9*>(pIndexData);
+	
+	if (pWrappedNewIndexData == m_pActiveIndicies) 
+		return D3D_OK; 
+
+	// Update actual index buffer
+	HRESULT result;
+	if (pWrappedNewIndexData)
+		result = BaseDirect3DDevice9::SetIndices(pWrappedNewIndexData->getActual());
+	else
+		result = BaseDirect3DDevice9::SetIndices(NULL);
+
+	// Update stored proxy index buffer
+	if (SUCCEEDED(result)) {
+		if (m_pActiveIndicies) {
+			m_pActiveIndicies->Release();
+		}
+		
+		m_pActiveIndicies = pWrappedNewIndexData;
+		if (m_pActiveIndicies) {
+			m_pActiveIndicies->AddRef();
+		}
+	}
+
+	return result;
+}
+
+HRESULT WINAPI D3DProxyDevice::GetIndices(IDirect3DIndexBuffer9** ppIndexData)
+{
+	if (!m_pActiveIndicies)
+		return D3DERR_INVALIDCALL;
+	
+	*ppIndexData = m_pActiveIndicies;
+	m_pActiveIndicies->AddRef();
+
+	return D3D_OK;
+}
+
+
+HRESULT WINAPI D3DProxyDevice::SetStreamSource(UINT StreamNumber, IDirect3DVertexBuffer9* pStreamData, UINT OffsetInBytes, UINT Stride)
+{
+	IDirect3DVertexBuffer9* pCurrentStreamAtNumber = NULL;
+	
+	if (m_activeVertexBuffers.count(StreamNumber) == 1) {
+		pCurrentStreamAtNumber = m_activeVertexBuffers[StreamNumber];
+	}
+
+	
+	BaseDirect3DVertexBuffer9* pCastStreamData = static_cast<BaseDirect3DVertexBuffer9*>(pStreamData);
+	HRESULT result;
+	if (pStreamData) {		
+		result = BaseDirect3DDevice9::SetStreamSource(StreamNumber, pCastStreamData->getActual(), OffsetInBytes, Stride);
+	}
+	else {
+		result = BaseDirect3DDevice9::SetStreamSource(StreamNumber, NULL, OffsetInBytes, Stride);
+	}
+
+	
+
+
+	// Update m_activeVertexBuffers if new vertex buffer was successfully set
+	if (SUCCEEDED(result)) {
+
+		// remove existing vertex buffer that was active at StreamNumber if there is one
+		if (m_activeVertexBuffers.count(StreamNumber) == 1) { 
+
+			IDirect3DVertexBuffer9* pOldBuffer = m_activeVertexBuffers.at(StreamNumber);
+			if (pOldBuffer == pStreamData)
+				return result;
+
+			pOldBuffer->Release();
+			m_activeVertexBuffers.erase(StreamNumber);
+		}
+
+		// if there is a new vertex buffer (we aren't just clearing out an old one)
+		if (pStreamData) {
+			// insert new vertex buffer
+			if(m_activeVertexBuffers.insert(std::pair<UINT, BaseDirect3DVertexBuffer9*>(StreamNumber, pCastStreamData)).second) {
+				//success
+				pStreamData->AddRef();
+			}
+			else {
+				OutputDebugString(__FUNCTION__);
+				OutputDebugString("\n");
+				OutputDebugString("Unable to store active Texture Stage.\n");
+				assert(false);
+
+				//If we get here the state of the texture tracking is fubared and an implosion is imminent.
+
+				result = D3DERR_INVALIDCALL;
+			}
+		}
+	}
+
+	return result;
+}
+
+// TODO ppStreamData is marker in and out in docs. Potentially it can be a get when the stream hasn't been set before???
+// Category of prolbme: Worry about it if it breaks.
+HRESULT WINAPI D3DProxyDevice::GetStreamSource(UINT StreamNumber, IDirect3DVertexBuffer9** ppStreamData,UINT* pOffsetInBytes,UINT* pStride)
+{
+
+	// This whole methods implementation is highly questionable. Not sure exactly how GetStreamSource works
+	HRESULT result = D3DERR_INVALIDCALL;
+
+	if (m_activeVertexBuffers.count(StreamNumber) == 1) {
+
+		IDirect3DVertexBuffer9* pCurrentActual = m_activeVertexBuffers[StreamNumber]->getActual();
+
+		IDirect3DVertexBuffer9* pActualResultBuffer = NULL;
+		HRESULT result = BaseDirect3DDevice9::GetStreamSource(StreamNumber, &pCurrentActual, pOffsetInBytes, pStride);
+
+		if (SUCCEEDED(result)) {
+			*ppStreamData = m_activeVertexBuffers[StreamNumber];
+			(*ppStreamData)->AddRef();
+		}
+	}
+
+	return result;
+}
+
 
 
 HRESULT WINAPI D3DProxyDevice::SetRenderTarget(DWORD RenderTargetIndex, IDirect3DSurface9* pRenderTarget)
@@ -1119,9 +1222,6 @@ HRESULT WINAPI D3DProxyDevice::SetRenderTarget(DWORD RenderTargetIndex, IDirect3
 
 HRESULT WINAPI D3DProxyDevice::GetRenderTarget(DWORD RenderTargetIndex,IDirect3DSurface9** ppRenderTarget)
 {
-	//OutputDebugString(__FUNCTION__); 
-	//OutputDebugString("\n"); 
-
 	if ((RenderTargetIndex >= m_activeRenderTargets.capacity()) || (RenderTargetIndex < 0)) {
 		return D3DERR_INVALIDCALL;
 	}
@@ -1140,10 +1240,6 @@ HRESULT WINAPI D3DProxyDevice::GetRenderTarget(DWORD RenderTargetIndex,IDirect3D
 
 HRESULT WINAPI D3DProxyDevice::SetDepthStencilSurface(IDirect3DSurface9* pNewZStencil)
 {
-	
-	//OutputDebugString(__FUNCTION__);
-	//OutputDebugString("\n");
-
 	D3D9ProxySurface* pNewDepthStencil = static_cast<D3D9ProxySurface*>(pNewZStencil);
 
 	if (pNewDepthStencil == m_pActiveStereoDepthStencil) // Already set, nothing to do
@@ -1401,9 +1497,6 @@ HRESULT WINAPI D3DProxyDevice::GetBackBuffer(UINT iSwapChain,UINT iBackBuffer,D3
 	m_pStereoBackBuffer->AddRef();
 
 	return D3D_OK;
-
-
-	//return BaseDirect3DDevice9::GetBackBuffer(iSwapChain, iBackBuffer, Type, ppBackBuffer);
 }
 
 
@@ -1419,7 +1512,9 @@ HRESULT WINAPI D3DProxyDevice::GetSwapChain(UINT iSwapChain,IDirect3DSwapChain9*
 		assert( iSwapChain == 0);
 	}
 
-	//OutputDebugString("GetSwapChain: If this chain is used to get anything other than buffer 0 bad things are going to happen");
+	//TODO return wrapped swapchain
+
+	OutputDebugString("GetSwapChain. TODO wrap this swapchain\n");
 
 	return BaseDirect3DDevice9::GetSwapChain(iSwapChain, pSwapChain);
 }

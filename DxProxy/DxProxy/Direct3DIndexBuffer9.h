@@ -28,6 +28,8 @@ public:
 	BaseDirect3DIndexBuffer9(IDirect3DIndexBuffer9* pActualIndexBuffer, IDirect3DDevice9* pOwningDevice);
 	virtual ~BaseDirect3DIndexBuffer9();
 
+	IDirect3DIndexBuffer9* getActual();
+
 	// IUnknown
 	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv);
 	virtual ULONG WINAPI AddRef();

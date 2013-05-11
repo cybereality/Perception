@@ -65,7 +65,10 @@ ULONG WINAPI BaseDirect3DVertexBuffer9::Release()
 
 
 
-
+IDirect3DVertexBuffer9* BaseDirect3DVertexBuffer9::getActual()
+{
+	return m_pActualVertexBuffer;
+}
 
 
 
