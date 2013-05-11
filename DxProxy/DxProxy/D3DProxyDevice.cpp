@@ -964,6 +964,19 @@ HRESULT WINAPI D3DProxyDevice::CreateVertexShader(CONST DWORD* pFunction,IDirect
 }
 
 
+HRESULT WINAPI D3DProxyDevice::CreateQuery(D3DQUERYTYPE Type,IDirect3DQuery9** ppQuery)
+{
+	IDirect3DQuery9* pActualQuery = NULL;
+	HRESULT creationResult = BaseDirect3DDevice9::CreateQuery(Type, &pActualQuery);
+
+	if (SUCCEEDED(creationResult))
+		*ppQuery = new BaseDirect3DQuery9(pActualQuery, this);
+
+	return creationResult;
+}
+
+
+
 HRESULT WINAPI D3DProxyDevice::Clear(DWORD Count,CONST D3DRECT* pRects,DWORD Flags,D3DCOLOR Color,float Z,DWORD Stencil)
 {
 	//OutputDebugString(__FUNCTION__); 
