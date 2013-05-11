@@ -33,6 +33,8 @@ public:
 	virtual ULONG WINAPI AddRef();
 	virtual ULONG WINAPI Release();
 
+	IDirect3DVertexDeclaration9* getActual();
+
 	// IDirect3DVertexDeclaration9
 	virtual HRESULT WINAPI GetDevice(IDirect3DDevice9 **ppDevice);
 	virtual HRESULT WINAPI GetDeclaration(D3DVERTEXELEMENT9 *pDecl, UINT *pNumElements);

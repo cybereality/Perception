@@ -26,6 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Direct3DIndexBuffer9.h"
 #include "Direct3DPixelShader9.h"
 #include "Direct3DVertexShader9.h"
+#include "Direct3DVertexDeclaration9.h"
 #include "Direct3DQuery9.h"
 #include "Direct3DStateBlock9.h"
 #include "ProxyHelper.h"
@@ -69,6 +70,7 @@ public:
 	virtual HRESULT WINAPI CreateVolumeTexture(UINT Width,UINT Height,UINT Depth,UINT Levels,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool,IDirect3DVolumeTexture9** ppVolumeTexture,HANDLE* pSharedHandle);
 	virtual HRESULT WINAPI CreatePixelShader(CONST DWORD* pFunction,IDirect3DPixelShader9** ppShader);
 	virtual HRESULT WINAPI CreateVertexShader(CONST DWORD* pFunction,IDirect3DVertexShader9** ppShader);
+	virtual HRESULT WINAPI CreateVertexDeclaration(CONST D3DVERTEXELEMENT9* pVertexElements,IDirect3DVertexDeclaration9** ppDecl);
 	virtual HRESULT WINAPI CreateQuery(D3DQUERYTYPE Type,IDirect3DQuery9** ppQuery);
 	virtual HRESULT WINAPI CreateStateBlock(D3DSTATEBLOCKTYPE Type,IDirect3DStateBlock9** ppSB);
 	virtual HRESULT WINAPI Clear(DWORD Count,CONST D3DRECT* pRects,DWORD Flags,D3DCOLOR Color,float Z,DWORD Stencil);
@@ -93,6 +95,8 @@ public:
 	virtual HRESULT WINAPI GetPixelShader(IDirect3DPixelShader9** ppShader);
 	virtual HRESULT WINAPI SetVertexShader(IDirect3DVertexShader9* pShader);
 	virtual HRESULT WINAPI GetVertexShader(IDirect3DVertexShader9** ppShader);
+	virtual HRESULT WINAPI SetVertexDeclaration(IDirect3DVertexDeclaration9* pDecl);
+	virtual HRESULT WINAPI GetVertexDeclaration(IDirect3DVertexDeclaration9** ppDecl);
 	virtual HRESULT WINAPI Present(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion);
 	virtual HRESULT WINAPI GetBackBuffer(UINT iSwapChain,UINT iBackBuffer,D3DBACKBUFFER_TYPE Type,IDirect3DSurface9** ppBackBuffer);
 	virtual HRESULT WINAPI CreateAdditionalSwapChain(D3DPRESENT_PARAMETERS* pPresentationParameters,IDirect3DSwapChain9** pSwapChain);
@@ -201,6 +205,7 @@ private:
 	BaseDirect3DIndexBuffer9* m_pActiveIndicies;
 	BaseDirect3DPixelShader9* m_pActivePixelShader;
 	BaseDirect3DVertexShader9* m_pActiveVertexShader;
+	BaseDirect3DVertexDeclaration9* m_pActiveVertexDeclaration;
 
 	// The render targets that are currently in use.
 	std::vector<D3D9ProxySurface*> m_activeRenderTargets;

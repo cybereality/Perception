@@ -61,6 +61,12 @@ ULONG WINAPI BaseDirect3DVertexDeclaration9::Release()
 }
 
 
+IDirect3DVertexDeclaration9* BaseDirect3DVertexDeclaration9::getActual()
+{
+	return m_pActualVertexDeclaration;
+}
+
+
 HRESULT WINAPI BaseDirect3DVertexDeclaration9::GetDevice(IDirect3DDevice9** ppDevice)
 {
 	if (!m_pOwningDevice)

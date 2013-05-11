@@ -63,6 +63,7 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice):BaseDirect3DDevice9(pD
 	m_pActiveIndicies = NULL;
 	m_pActivePixelShader = NULL;
 	m_pActiveVertexShader = NULL;
+	m_pActiveVertexDeclaration = NULL;
 	hudFont = NULL;
 
 	centerlineR = 0.0f;
@@ -218,6 +219,12 @@ void D3DProxyDevice::ReleaseEverything()
 		m_pActiveVertexShader->Release();
 		m_pActiveVertexShader = NULL;
 	}
+
+	if (m_pActiveVertexDeclaration) {
+		m_pActiveVertexDeclaration->Release();
+		m_pActiveVertexDeclaration = NULL;
+	}
+	
 	
 }
 
@@ -963,6 +970,17 @@ HRESULT WINAPI D3DProxyDevice::CreateVertexShader(CONST DWORD* pFunction,IDirect
 	return creationResult;
 }
 
+HRESULT WINAPI D3DProxyDevice::CreateVertexDeclaration(CONST D3DVERTEXELEMENT9* pVertexElements,IDirect3DVertexDeclaration9** ppDecl)
+{
+	IDirect3DVertexDeclaration9* pActualVertexDeclaration = NULL;
+	HRESULT creationResult = BaseDirect3DDevice9::CreateVertexDeclaration(pVertexElements, &pActualVertexDeclaration );
+
+	if (SUCCEEDED(creationResult))
+		*ppDecl = new BaseDirect3DVertexDeclaration9(pActualVertexDeclaration, this);
+
+	return creationResult;
+}
+
 
 HRESULT WINAPI D3DProxyDevice::CreateQuery(D3DQUERYTYPE Type,IDirect3DQuery9** ppQuery)
 {
@@ -1509,6 +1527,45 @@ HRESULT WINAPI D3DProxyDevice::GetVertexShader(IDirect3DVertexShader9** ppShader
 		return D3DERR_INVALIDCALL;
 	
 	*ppShader = m_pActiveVertexShader;
+
+	return D3D_OK;
+}
+
+HRESULT WINAPI D3DProxyDevice::SetVertexDeclaration(IDirect3DVertexDeclaration9* pDecl)
+{
+	BaseDirect3DVertexDeclaration9* pWrappedVDeclarationData = static_cast<BaseDirect3DVertexDeclaration9*>(pDecl);
+	
+	if (pWrappedVDeclarationData == m_pActiveVertexDeclaration) 
+		return D3D_OK; 
+
+	// Update actual Vertex Declaration
+	HRESULT result;
+	if (pWrappedVDeclarationData)
+		result = BaseDirect3DDevice9::SetVertexDeclaration(pWrappedVDeclarationData->getActual());
+	else
+		result = BaseDirect3DDevice9::SetVertexDeclaration(NULL);
+
+	// Update stored proxy Vertex Declaration
+	if (SUCCEEDED(result)) {
+		if (m_pActiveVertexDeclaration) {
+			m_pActiveVertexDeclaration->Release();
+		}
+		
+		m_pActiveVertexDeclaration = pWrappedVDeclarationData;
+		if (m_pActiveVertexDeclaration) {
+			m_pActiveVertexDeclaration->AddRef();
+		}
+	}
+
+	return result;
+}
+
+HRESULT WINAPI D3DProxyDevice::GetVertexDeclaration(IDirect3DVertexDeclaration9** ppDecl)
+{
+	if (!m_pActiveVertexDeclaration) 
+		return D3DERR_INVALIDCALL; // TODO check this is the response if no declaration set
+		
+	*ppDecl = m_pActiveVertexDeclaration;
 
 	return D3D_OK;
 }
