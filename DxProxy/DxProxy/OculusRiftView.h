@@ -27,7 +27,7 @@ public:
 
 	OculusRiftView(ProxyHelper::ProxyConfig& config);
 	virtual ~OculusRiftView();
-	virtual void Init(IDirect3DDevice9* dev);
+	virtual void Init(IDirect3DDevice9* pActualDevice);
 	virtual void InitTextureBuffers();
 	virtual void InitVertexBuffers();
 	virtual void InitShaderEffects();

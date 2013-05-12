@@ -51,10 +51,10 @@ OculusRiftView::~OculusRiftView()
 	StereoView::~StereoView();
 }
 
-void OculusRiftView::Init(IDirect3DDevice9* dev)
+void OculusRiftView::Init(IDirect3DDevice9* pActualDevice)
 {
 	OutputDebugString("OculusRiftView Init\n");
-	StereoView::Init(dev);
+	StereoView::Init(pActualDevice);
 }
 
 void OculusRiftView::InitShaderEffects()
@@ -68,7 +68,7 @@ void OculusRiftView::InitShaderEffects()
 
 	strcat_s(viewPath, 512, shaderEffect[stereo_mode].c_str());
 
-	D3DXCreateEffectFromFile(device, viewPath, NULL, NULL, 0, NULL, &viewEffect, NULL);
+	D3DXCreateEffectFromFile(m_pActualDevice, viewPath, NULL, NULL, 0, NULL, &viewEffect, NULL);
 }
 
 void OculusRiftView::InitTextureBuffers()
@@ -111,33 +111,33 @@ void OculusRiftView::UpdateEye(int eye)
 /////  difference from StereoView::
 	CalculateShaderVariables(eye);
 /////
-	device->StretchRect(backBuffer, NULL, currentSurface, NULL, D3DTEXF_NONE);
+	m_pActualDevice->StretchRect(backBuffer, NULL, currentSurface, NULL, D3DTEXF_NONE);
 }
 
 void OculusRiftView::Draw()
 {
-	// if not initilized assume a reset has occured and device is still valid
+	// if not initilized assume a reset has occured and m_pActualDevice is still valid
 	if(!initialized)
-		Init(device);
+		Init(m_pActualDevice);
 
 	SaveState();
 	SetState();
 
-	device->SetFVF(D3DFVF_TEXVERTEX);
+	m_pActualDevice->SetFVF(D3DFVF_TEXVERTEX);
 
 	if(!swap_eyes)
 	{
-		device->SetTexture(0, leftTexture);
-		device->SetTexture(1, rightTexture);
+		m_pActualDevice->SetTexture(0, leftTexture);
+		m_pActualDevice->SetTexture(1, rightTexture);
 	}
 	else 
 	{
-		device->SetTexture(0, rightTexture);
-		device->SetTexture(1, leftTexture);
+		m_pActualDevice->SetTexture(0, rightTexture);
+		m_pActualDevice->SetTexture(1, leftTexture);
 	}
 
-	device->SetRenderTarget(0, backBuffer);
-	device->SetStreamSource(0, screenVertexBuffer, 0, sizeof(TEXVERTEX));
+	m_pActualDevice->SetRenderTarget(0, backBuffer);
+	m_pActualDevice->SetStreamSource(0, screenVertexBuffer, 0, sizeof(TEXVERTEX));
 
 	UINT iPass, cPasses;
 
@@ -157,13 +157,13 @@ void OculusRiftView::Draw()
 	for(iPass = 0; iPass < cPasses; iPass++)
 	{
 		viewEffect->BeginPass(iPass);
-		device->DrawPrimitive(D3DPT_TRIANGLEFAN, 0, 2);
+		m_pActualDevice->DrawPrimitive(D3DPT_TRIANGLEFAN, 0, 2);
 		viewEffect->EndPass();
 	}
 
 	viewEffect->End();
 	
-	device->StretchRect(backBuffer, NULL, backBuffer, NULL, D3DTEXF_NONE);
+	m_pActualDevice->StretchRect(backBuffer, NULL, backBuffer, NULL, D3DTEXF_NONE);
 
 	RestoreState();
 }

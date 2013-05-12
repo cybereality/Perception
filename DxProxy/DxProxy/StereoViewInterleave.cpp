@@ -32,11 +32,11 @@ void StereoViewInterleave::Draw()
 	SaveState();
 	SetState();
 
-	device->SetFVF(D3DFVF_TEXVERTEX);
+	m_pActualDevice->SetFVF(D3DFVF_TEXVERTEX);
 
-	device->SetTexture(0, leftTexture);
-	device->SetTexture(1, rightTexture);
-	device->SetStreamSource(0, screenVertexBuffer, 0, sizeof(TEXVERTEX));
+	m_pActualDevice->SetTexture(0, leftTexture);
+	m_pActualDevice->SetTexture(1, rightTexture);
+	m_pActualDevice->SetStreamSource(0, screenVertexBuffer, 0, sizeof(TEXVERTEX));
 
 	UINT iPass, cPasses;
 
@@ -52,7 +52,7 @@ void StereoViewInterleave::Draw()
 	for(iPass = 0; iPass < cPasses; iPass++)
 	{
 		viewEffect->BeginPass(iPass);
-		device->DrawPrimitive(D3DPT_TRIANGLEFAN, 0, 2);
+		m_pActualDevice->DrawPrimitive(D3DPT_TRIANGLEFAN, 0, 2);
 		viewEffect->EndPass();
 	}
 	viewEffect->End();

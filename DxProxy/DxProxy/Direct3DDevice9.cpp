@@ -58,6 +58,12 @@ ULONG WINAPI BaseDirect3DDevice9::Release()
 	return m_nRefCount;
 }
 
+
+IDirect3DDevice9* BaseDirect3DDevice9::getActual()
+{
+	return m_pDevice;
+}
+
 HRESULT WINAPI BaseDirect3DDevice9::TestCooperativeLevel()
 {
 	////OutputDebugString(__FUNCTION__); 

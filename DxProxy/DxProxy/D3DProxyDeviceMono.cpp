@@ -44,7 +44,7 @@ HRESULT WINAPI D3DProxyDeviceMono::EndScene()
 
 	if(!stereoView->initialized && initDelay < 0)
 	{
-		stereoView->Init(m_pDevice);
+		stereoView->Init(getActual());
 		SetupMatrices();
 	}
 

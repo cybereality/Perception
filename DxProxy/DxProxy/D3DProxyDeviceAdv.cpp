@@ -63,7 +63,7 @@ HRESULT WINAPI D3DProxyDeviceAdv::EndScene()
 
 	if(!stereoView->initialized && initDelay < 0)
 	{
-		stereoView->Init(m_pDevice);
+		stereoView->Init(getActual());
 		SetupMatrices();
 	}
 
@@ -221,8 +221,8 @@ HRESULT APIENTRY D3DProxyDeviceAdv::SetVertexShader(IDirect3DVertexShader9* pvSh
 	LPD3DXCONSTANTTABLE pConstantTable = NULL;
 	BYTE *pData = NULL;
 
-	HRESULT hr = m_pDevice->SetVertexShader(pvShader);
-	m_pDevice->GetVertexShader(&pShader);
+	HRESULT hr = this->SetVertexShader(pvShader);
+	this->GetVertexShader(&pShader);
 	UINT pSizeOfData;
 	if(NULL == pShader) goto grexit;
 	pShader->GetFunction(NULL,&pSizeOfData);
@@ -261,36 +261,36 @@ grexit:
 
 HRESULT APIENTRY D3DProxyDeviceAdv::DrawIndexedPrimitive(D3DPRIMITIVETYPE Type,INT BaseVertexIndex,UINT MinVertexIndex,UINT NumVertices,UINT startIndex,UINT primCount)
 {
-	transformDirtyShaderParams(m_pDevice);
+	transformDirtyShaderParams(this);
 	return D3DProxyDevice::DrawIndexedPrimitive(Type,BaseVertexIndex, MinVertexIndex, NumVertices, startIndex, primCount);
 }
 
 HRESULT APIENTRY D3DProxyDeviceAdv::DrawIndexedPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType, UINT MinIndex, UINT NumVertices, UINT PrimitiveCount, CONST void *pIndexData, D3DFORMAT IndexDataFormat, CONST void *pVertexStreamZeroData, UINT VertexStreamZeroStride) 
 {	
-	transformDirtyShaderParams(m_pDevice);
+	transformDirtyShaderParams(this);
 	return D3DProxyDevice::DrawIndexedPrimitiveUP(PrimitiveType, MinIndex, NumVertices, PrimitiveCount, pIndexData, IndexDataFormat, pVertexStreamZeroData, VertexStreamZeroStride);
 }
 
 HRESULT APIENTRY D3DProxyDeviceAdv::DrawPrimitive(D3DPRIMITIVETYPE PrimitiveType, UINT StartVertex, UINT PrimitiveCount) 
 {
-	transformDirtyShaderParams(m_pDevice);
+	transformDirtyShaderParams(this);
 	return D3DProxyDevice::DrawPrimitive(PrimitiveType, StartVertex, PrimitiveCount);
 }
 
 HRESULT APIENTRY D3DProxyDeviceAdv::DrawPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType, UINT PrimitiveCount, CONST void *pVertexStreamZeroData, UINT VertexStreamZeroStride) 
 {
-	transformDirtyShaderParams(m_pDevice);
+	transformDirtyShaderParams(this);
 	return D3DProxyDevice::DrawPrimitiveUP(PrimitiveType, PrimitiveCount, pVertexStreamZeroData, VertexStreamZeroStride);
 }
 
 HRESULT APIENTRY D3DProxyDeviceAdv::DrawRectPatch(UINT Handle, CONST float *pNumSegs, CONST D3DRECTPATCH_INFO *pRectPatchInfo) 
 {
-	transformDirtyShaderParams(m_pDevice);
+	transformDirtyShaderParams(this);
 	return D3DProxyDevice::DrawRectPatch(Handle, pNumSegs, pRectPatchInfo);
 }
 
 HRESULT APIENTRY D3DProxyDeviceAdv::DrawTriPatch(UINT Handle, CONST float *pNumSegs, CONST D3DTRIPATCH_INFO *pTriPatchInfo)
 {	
-	transformDirtyShaderParams(m_pDevice);
+	transformDirtyShaderParams(this);
 	return D3DProxyDevice::DrawTriPatch(Handle, pNumSegs, pTriPatchInfo);
 }

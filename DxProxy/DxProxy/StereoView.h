@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <d3dx9.h>
 #include <map>
 #include <string.h>
+#include <assert.h>
 
 class StereoView
 {
@@ -56,7 +57,9 @@ public:
 
 	StereoView(ProxyHelper::ProxyConfig& config);
 	virtual ~StereoView();
-	virtual void Init(IDirect3DDevice9* dev);
+
+	/* Must be initialised with an actual device. Not a wrapped device*/
+	virtual void Init(IDirect3DDevice9* pActualDevice);
 	virtual void InitTextureBuffers();
 	virtual void InitVertexBuffers();
 	virtual void InitShaderEffects();
@@ -70,7 +73,7 @@ public:
 	virtual void SwapEyes(bool doSwap);
 	virtual void Reset();
 
-	IDirect3DDevice9* device;
+	
 
 	D3DVIEWPORT9 viewport;
 
@@ -138,6 +141,10 @@ public:
 	std::map<int, std::string> shaderEffect;
 
 	float DistortionScale;	// used by OculusRiftView and D3DProxyDevice
+
+
+protected:
+	IDirect3DDevice9* m_pActualDevice;
 };
 
 const DWORD D3DFVF_TEXVERTEX = D3DFVF_XYZRHW | D3DFVF_TEX1;

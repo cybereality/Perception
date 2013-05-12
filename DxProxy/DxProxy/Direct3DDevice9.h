@@ -32,6 +32,8 @@ public:
 	virtual ULONG WINAPI AddRef();
 	virtual ULONG WINAPI Release();
 
+	IDirect3DDevice9* getActual();
+
 	virtual HRESULT WINAPI TestCooperativeLevel();
 	virtual UINT WINAPI GetAvailableTextureMem();
 	virtual HRESULT WINAPI EvictManagedResources();
@@ -149,6 +151,8 @@ public:
 	virtual HRESULT WINAPI DeletePatch(UINT Handle);
 	virtual HRESULT WINAPI CreateQuery(D3DQUERYTYPE Type,IDirect3DQuery9** ppQuery);
 
+
+private:
 	IDirect3DDevice9* m_pDevice;
 	BaseDirect3D9* m_pCreatedBy;
 	ULONG m_nRefCount;

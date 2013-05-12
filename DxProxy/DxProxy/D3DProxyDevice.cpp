@@ -166,7 +166,7 @@ void D3DProxyDevice::OnCreateOrRestore()
 
 	SetupText();
 
-	stereoView->Init(m_pDevice);
+	stereoView->Init(getActual());
 }
 
 
@@ -340,7 +340,7 @@ void D3DProxyDevice::ComputeViewTranslation()
 
 void D3DProxyDevice::SetupText()
 {
-	D3DXCreateFont( m_pDevice, 22, 0, FW_BOLD, 4, FALSE, DEFAULT_CHARSET, OUT_TT_ONLY_PRECIS, ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_DONTCARE, "Arial", &hudFont );
+	D3DXCreateFont( this, 22, 0, FW_BOLD, 4, FALSE, DEFAULT_CHARSET, OUT_TT_ONLY_PRECIS, ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_DONTCARE, "Arial", &hudFont );
 }
 
 void D3DProxyDevice::HandleControls()
@@ -991,11 +991,16 @@ HRESULT WINAPI D3DProxyDevice::CreateVertexDeclaration(CONST D3DVERTEXELEMENT9* 
 
 HRESULT WINAPI D3DProxyDevice::CreateQuery(D3DQUERYTYPE Type,IDirect3DQuery9** ppQuery)
 {
+	// this seems a weird response to me but it's what the actual device does.
+	if (!ppQuery)
+		return D3D_OK;
+
 	IDirect3DQuery9* pActualQuery = NULL;
 	HRESULT creationResult = BaseDirect3DDevice9::CreateQuery(Type, &pActualQuery);
 
-	if (SUCCEEDED(creationResult))
+	if (SUCCEEDED(creationResult)) {
 		*ppQuery = new BaseDirect3DQuery9(pActualQuery, this);
+	}
 
 	return creationResult;
 }
@@ -1357,7 +1362,7 @@ HRESULT WINAPI D3DProxyDevice::SetDepthStencilSurface(IDirect3DSurface9* pNewZSt
 	}
 
 	// Update actual depth stencil
-	HRESULT result = m_pDevice->SetDepthStencilSurface(pActualStencilForCurrentSide);
+	HRESULT result = BaseDirect3DDevice9::SetDepthStencilSurface(pActualStencilForCurrentSide);
 
 	// Update stored proxy depth stencil
 	if (SUCCEEDED(result)) {

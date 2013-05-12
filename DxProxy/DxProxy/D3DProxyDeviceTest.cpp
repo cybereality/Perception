@@ -50,7 +50,7 @@ HRESULT WINAPI D3DProxyDeviceTest::BeginScene()
 HRESULT WINAPI D3DProxyDeviceTest::EndScene()
 {
 	D3DRECT rec = {1,1,25,25};
-	m_pDevice->Clear(1, &rec, D3DCLEAR_TARGET, D3DCOLOR_ARGB(225,255,255,0),0 ,0);
+	this->Clear(1, &rec, D3DCLEAR_TARGET, D3DCOLOR_ARGB(225,255,255,0),0 ,0);
 
 	// delay to avoid crashing on start
 	static int initDelay = 120;
@@ -58,7 +58,7 @@ HRESULT WINAPI D3DProxyDeviceTest::EndScene()
 
 	if(!stereoView->initialized && initDelay < 0)
 	{
-		stereoView->Init(m_pDevice);
+		stereoView->Init(getActual());
 		SetupMatrices();
 	}
 
