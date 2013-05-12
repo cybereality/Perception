@@ -153,6 +153,8 @@ public:
 
 
 private:
+	/* Private to force you to think about whether you really need direct access to the actual device. Can be accessed via
+	  getActual(). */
 	IDirect3DDevice9* m_pDevice;
 	BaseDirect3D9* m_pCreatedBy;
 	ULONG m_nRefCount;

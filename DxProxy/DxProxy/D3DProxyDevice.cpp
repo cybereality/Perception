@@ -1828,3 +1828,70 @@ HRESULT WINAPI D3DProxyDevice::StretchRect(IDirect3DSurface9* pSourceSurface,CON
 
 	return result;
 }
+
+
+HRESULT WINAPI D3DProxyDevice::UpdateSurface(IDirect3DSurface9* pSourceSurface,CONST RECT* pSourceRect,IDirect3DSurface9* pDestinationSurface,CONST POINT* pDestPoint)
+{
+	if (!pSourceSurface || !pDestinationSurface)
+		 return D3DERR_INVALIDCALL;
+
+	IDirect3DSurface9* pSourceSurfaceLeft = static_cast<D3D9ProxySurface*>(pSourceSurface)->getActualLeft();
+	IDirect3DSurface9* pSourceSurfaceRight = static_cast<D3D9ProxySurface*>(pSourceSurface)->getActualRight();
+	IDirect3DSurface9* pDestSurfaceLeft = static_cast<D3D9ProxySurface*>(pDestinationSurface)->getActualLeft();
+	IDirect3DSurface9* pDestSurfaceRight = static_cast<D3D9ProxySurface*>(pDestinationSurface)->getActualRight();
+
+	HRESULT result = BaseDirect3DDevice9::UpdateSurface(pSourceSurfaceLeft, pSourceRect, pDestSurfaceLeft, pDestPoint);
+
+	if (SUCCEEDED(result)) {
+		if (!pSourceSurfaceRight && pDestSurfaceRight) {
+			OutputDebugString("INFO: UpdateSurface - Source is not stereo, destination is stereo. Copying source to both sides of destination.\n");
+
+			if (FAILED(BaseDirect3DDevice9::UpdateSurface(pSourceSurfaceLeft, pSourceRect, pDestSurfaceRight, pDestPoint))) {
+				OutputDebugString("ERROR: UpdateSurface - Failed to copy source left to destination right.\n");
+			}
+		} 
+		else if (pSourceSurfaceRight && !pDestSurfaceRight) {
+			OutputDebugString("INFO: UpdateSurface - Source is stereo, destination is not stereo. Copied Left side only.\n");
+		}
+		else if (pSourceSurfaceRight && pDestSurfaceRight)	{
+			if (FAILED(BaseDirect3DDevice9::UpdateSurface(pSourceSurfaceRight, pSourceRect, pDestSurfaceRight, pDestPoint))) {
+				OutputDebugString("ERROR: UpdateSurface - Failed to copy source right to destination right.\n");
+			}
+		}
+	}
+
+	return result;
+}
+
+HRESULT WINAPI D3DProxyDevice::UpdateTexture(IDirect3DBaseTexture9* pSourceTexture,IDirect3DBaseTexture9* pDestinationTexture)
+{
+	if (!pSourceTexture || !pDestinationTexture)
+		 return D3DERR_INVALIDCALL;
+
+	IDirect3DTexture9* pSourceTextureLeft = static_cast<D3D9ProxyTexture*>(pSourceTexture)->getActualLeft();
+	IDirect3DTexture9* pSourceTextureRight = static_cast<D3D9ProxyTexture*>(pSourceTexture)->getActualRight();
+	IDirect3DTexture9* pDestTextureLeft = static_cast<D3D9ProxyTexture*>(pDestinationTexture)->getActualLeft();
+	IDirect3DTexture9* pDestTextureRight = static_cast<D3D9ProxyTexture*>(pDestinationTexture)->getActualRight();
+
+	HRESULT result = BaseDirect3DDevice9::UpdateTexture(pSourceTextureLeft, pDestTextureLeft);
+
+	if (SUCCEEDED(result)) {
+		if (!pSourceTextureRight && pDestTextureRight) {
+			OutputDebugString("INFO: UpdateTexture - Source is not stereo, destination is stereo. Copying source to both sides of destination.\n");
+
+			if (FAILED(BaseDirect3DDevice9::UpdateTexture(pSourceTextureLeft, pDestTextureRight))) {
+				OutputDebugString("ERROR: UpdateTexture - Failed to copy source left to destination right.\n");
+			}
+		} 
+		else if (pSourceTextureRight && !pDestTextureRight) {
+			OutputDebugString("INFO: UpdateTexture - Source is stereo, destination is not stereo. Copied Left side only.\n");
+		}
+		else if (pSourceTextureRight && pDestTextureRight)	{
+			if (FAILED(BaseDirect3DDevice9::UpdateTexture(pSourceTextureRight, pDestTextureRight))) {
+				OutputDebugString("ERROR: UpdateTexture - Failed to copy source right to destination right.\n");
+			}
+		}
+	}
+
+	return result;
+}
