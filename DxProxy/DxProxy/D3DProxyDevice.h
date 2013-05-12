@@ -111,6 +111,7 @@ public:
 	virtual HRESULT WINAPI UpdateSurface(IDirect3DSurface9* pSourceSurface,CONST RECT* pSourceRect,IDirect3DSurface9* pDestinationSurface,CONST POINT* pDestPoint);
 	virtual HRESULT WINAPI UpdateTexture(IDirect3DBaseTexture9* pSourceTexture,IDirect3DBaseTexture9* pDestinationTexture);
 	virtual HRESULT WINAPI SetTransform(D3DTRANSFORMSTATETYPE State,CONST D3DMATRIX* pMatrix);
+	virtual HRESULT WINAPI SetViewport(CONST D3DVIEWPORT9* pViewport);
 
 
 
@@ -209,8 +210,11 @@ protected:
 private:
 
 	void ReleaseEverything();
+	bool isViewportDefaultForMainRT(CONST D3DVIEWPORT9* pViewport);
 
 	
+	bool m_bActiveViewportIsDefault;
+	const D3DVIEWPORT9* m_pLastViewportSet;
 	
 	D3D9ProxySurface* m_pStereoBackBuffer;
 	D3D9ProxySurface* m_pActiveStereoDepthStencil;

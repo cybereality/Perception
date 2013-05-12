@@ -30,6 +30,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "DxErr.h"
 #endif
 
+
+
 #pragma comment(lib, "d3dx9.lib")
 
 #define KEY_DOWN(vk_code) ((GetAsyncKeyState(vk_code) & 0x8000) ? 1 : 0)
@@ -37,6 +39,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define IS_RENDER_TARGET(d3dusage) ((d3dusage & D3DUSAGE_RENDERTARGET) > 0 ? true : false)
 #define IS_POOL_DEFAULT(d3dpool) ((d3dpool & D3DPOOL_DEFAULT) > 0 ? true : false)
+
+#define SMALL_FLOAT 0.001f
+#define	SLIGHTLY_LESS_THAN_ONE 0.999f
 
 
 
@@ -65,6 +70,8 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	m_pActiveVertexShader = NULL;
 	m_pActiveVertexDeclaration = NULL;
 	hudFont = NULL;
+	m_pLastViewportSet = NULL;
+	m_bActiveViewportIsDefault = true;
 
 	centerlineR = 0.0f;
 	centerlineL = 0.0f;
@@ -1318,6 +1325,8 @@ HRESULT WINAPI D3DProxyDevice::SetRenderTarget(DWORD RenderTargetIndex, IDirect3
 	
 	//// update proxy collection of stereo render targets to reflect new actual render target ////
 	if (result == D3D_OK) {		
+		// changing rendertarget resets viewport to fullsurface
+		m_bActiveViewportIsDefault = true;
 
 		// release old render target
 		if (m_activeRenderTargets[RenderTargetIndex] != NULL)
@@ -1648,6 +1657,7 @@ bool D3DProxyDevice::setDrawingSide(EyeSide side)
 		return false;
 
 	// switch render targets to new side
+	bool renderTargetChanged = false;
 	HRESULT result;
 	D3D9ProxySurface* pCurrentRT;
 	for(std::vector<D3D9ProxySurface*>::size_type i = 0; i != m_activeRenderTargets.size(); i++) 
@@ -1659,10 +1669,20 @@ bool D3DProxyDevice::setDrawingSide(EyeSide side)
 			else 
 				result = BaseDirect3DDevice9::SetRenderTarget(i, pCurrentRT->getActualRight());
 				
-			if (result != D3D_OK)
+			if (result != D3D_OK) {
 				OutputDebugString("Error trying to set one of the Render Targets while switching between active eyes for drawing.\n");
+			}
+			else {
+				renderTargetChanged = true;
+			}
 		}
 	}
+
+	// if a non-fullsurface viewport is active and a rendertarget changed we need to reapply the viewport
+	if (renderTargetChanged && !m_bActiveViewportIsDefault) {
+		BaseDirect3DDevice9::SetViewport(m_pLastViewportSet);
+	}
+		
 
 
 	// switch depth stencil to new side
@@ -1944,4 +1964,32 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 	}*/
 
 	return BaseDirect3DDevice9::SetTransform(State, pMatrix);
+}
+
+HRESULT WINAPI D3DProxyDevice::SetViewport(CONST D3DVIEWPORT9* pViewport)
+{
+	// try and set, if success save viewport
+	// if viewport width and height match primary render target size and zmin is 0 and zmax 1 (NOTE float comparison?)
+	// set m_bActiveViewportIsDefault flag true.
+
+	HRESULT result = BaseDirect3DDevice9::SetViewport(pViewport);
+
+	if (SUCCEEDED(result)) {
+
+		m_bActiveViewportIsDefault = isViewportDefaultForMainRT(pViewport);
+		m_pLastViewportSet = pViewport;
+	}
+	
+	return result;
+}
+
+/* Comparison made against active primary render target */
+bool D3DProxyDevice::isViewportDefaultForMainRT(CONST D3DVIEWPORT9* pViewport)
+{
+	D3D9ProxySurface* pPrimaryRenderTarget = m_activeRenderTargets[0];
+	D3DSURFACE_DESC pRTDesc;
+	pPrimaryRenderTarget->GetDesc(&pRTDesc);
+
+	return ((pViewport->Height == pRTDesc.Height) && (pViewport->Width == pRTDesc.Width) &&
+			(pViewport->MinZ <= SMALL_FLOAT) && (pViewport->MaxZ >= SLIGHTLY_LESS_THAN_ONE));
 }
