@@ -214,7 +214,7 @@ private:
 
 	
 	bool m_bActiveViewportIsDefault;
-	const D3DVIEWPORT9* m_pLastViewportSet;
+	D3DVIEWPORT9 m_pLastViewportSet;
 	
 	D3D9ProxySurface* m_pStereoBackBuffer;
 	D3D9ProxySurface* m_pActiveStereoDepthStencil;

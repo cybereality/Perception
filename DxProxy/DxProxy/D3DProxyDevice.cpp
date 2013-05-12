@@ -70,7 +70,6 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	m_pActiveVertexShader = NULL;
 	m_pActiveVertexDeclaration = NULL;
 	hudFont = NULL;
-	m_pLastViewportSet = NULL;
 	m_bActiveViewportIsDefault = true;
 
 	centerlineR = 0.0f;
@@ -152,6 +151,8 @@ void D3DProxyDevice::OnCreateOrRestore()
 	CreateRenderTarget(backDesc.Width, backDesc.Height, backDesc.Format, backDesc.MultiSampleType, backDesc.MultiSampleQuality, false, &pTemp, NULL);
 	m_pStereoBackBuffer = static_cast<D3D9ProxySurface*>(pTemp);
 	SetRenderTarget(0, pTemp);
+
+	BaseDirect3DDevice9::GetViewport(&m_pLastViewportSet);
 
 
 	// If there is an initial depth stencil
@@ -1321,7 +1322,7 @@ HRESULT WINAPI D3DProxyDevice::SetRenderTarget(DWORD RenderTargetIndex, IDirect3
 	}
 
 
-
+	
 	
 	//// update proxy collection of stereo render targets to reflect new actual render target ////
 	if (result == D3D_OK) {		
@@ -1680,7 +1681,7 @@ bool D3DProxyDevice::setDrawingSide(EyeSide side)
 
 	// if a non-fullsurface viewport is active and a rendertarget changed we need to reapply the viewport
 	if (renderTargetChanged && !m_bActiveViewportIsDefault) {
-		BaseDirect3DDevice9::SetViewport(m_pLastViewportSet);
+		BaseDirect3DDevice9::SetViewport(&m_pLastViewportSet);
 	}
 		
 
@@ -1977,7 +1978,7 @@ HRESULT WINAPI D3DProxyDevice::SetViewport(CONST D3DVIEWPORT9* pViewport)
 	if (SUCCEEDED(result)) {
 
 		m_bActiveViewportIsDefault = isViewportDefaultForMainRT(pViewport);
-		m_pLastViewportSet = pViewport;
+		m_pLastViewportSet = *pViewport;
 	}
 	
 	return result;
@@ -1990,6 +1991,6 @@ bool D3DProxyDevice::isViewportDefaultForMainRT(CONST D3DVIEWPORT9* pViewport)
 	D3DSURFACE_DESC pRTDesc;
 	pPrimaryRenderTarget->GetDesc(&pRTDesc);
 
-	return ((pViewport->Height == pRTDesc.Height) && (pViewport->Width == pRTDesc.Width) &&
+	return  ((pViewport->Height == pRTDesc.Height) && (pViewport->Width == pRTDesc.Width) &&
 			(pViewport->MinZ <= SMALL_FLOAT) && (pViewport->MaxZ >= SLIGHTLY_LESS_THAN_ONE));
 }
