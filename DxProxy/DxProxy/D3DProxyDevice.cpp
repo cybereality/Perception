@@ -1789,3 +1789,37 @@ HRESULT WINAPI D3DProxyDevice::SetCursorProperties(UINT XHotSpot, UINT YHotSpot,
 
 	return BaseDirect3DDevice9::SetCursorProperties(XHotSpot, YHotSpot, static_cast<D3D9ProxySurface*>(pCursorBitmap)->getActualLeft());
 }
+
+
+HRESULT WINAPI D3DProxyDevice::StretchRect(IDirect3DSurface9* pSourceSurface,CONST RECT* pSourceRect,IDirect3DSurface9* pDestSurface,CONST RECT* pDestRect,D3DTEXTUREFILTERTYPE Filter)
+{
+	if (!pSourceSurface || !pDestSurface)
+		 return D3DERR_INVALIDCALL;
+
+	IDirect3DSurface9* pSourceSurfaceLeft = static_cast<D3D9ProxySurface*>(pSourceSurface)->getActualLeft();
+	IDirect3DSurface9* pSourceSurfaceRight = static_cast<D3D9ProxySurface*>(pSourceSurface)->getActualRight();
+	IDirect3DSurface9* pDestSurfaceLeft = static_cast<D3D9ProxySurface*>(pDestSurface)->getActualLeft();
+	IDirect3DSurface9* pDestSurfaceRight = static_cast<D3D9ProxySurface*>(pDestSurface)->getActualRight();
+
+	HRESULT result = BaseDirect3DDevice9::StretchRect(pSourceSurfaceLeft, pSourceRect, pDestSurfaceLeft, pDestRect, Filter);
+
+	if (SUCCEEDED(result)) {
+		if (!pSourceSurfaceRight && pDestSurfaceRight) {
+			OutputDebugString("INFO: StretchRect - Source is not stereo, destination is stereo. Copying source to both sides of destination.\n");
+
+			if (FAILED(BaseDirect3DDevice9::StretchRect(pSourceSurfaceLeft, pSourceRect, pDestSurfaceRight, pDestRect, Filter))) {
+				OutputDebugString("ERROR: StretchRect - Failed to copy source left to destination right.\n");
+			}
+		} 
+		else if (pSourceSurfaceRight && !pDestSurfaceRight) {
+			OutputDebugString("INFO: StretchRect - Source is stereo, destination is not stereo. Copied Left side only.\n");
+		}
+		else if (pSourceSurfaceRight && pDestSurfaceRight)	{
+			if (FAILED(BaseDirect3DDevice9::StretchRect(pSourceSurfaceRight, pSourceRect, pDestSurfaceRight, pDestRect, Filter))) {
+				OutputDebugString("ERROR: StretchRect - Failed to copy source right to destination right.\n");
+			}
+		}
+	}
+
+	return result;
+}
