@@ -46,15 +46,6 @@ HRESULT WINAPI D3DProxyDeviceUnreal::BeginScene()
 
 HRESULT WINAPI D3DProxyDeviceUnreal::EndScene()
 {
-	// delay to avoid crashing on start
-	static int initDelay = 120;
-	initDelay--;
-
-	if(!stereoView->initialized && initDelay < 0)
-	{
-		stereoView->Init(getActual());
-		SetupMatrices();
-	}
 
 	HandleControls();
 	HandleTracking();
@@ -63,29 +54,7 @@ HRESULT WINAPI D3DProxyDeviceUnreal::EndScene()
 	return D3DProxyDevice::EndScene();
 }
 
-HRESULT WINAPI D3DProxyDeviceUnreal::Present(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion)
-{
-	if(stereoView->initialized && stereoView->stereoEnabled)
-	{
-		if(eyeShutter > 0)
-		{
-			stereoView->UpdateEye(StereoView::LEFT_EYE);
-		}
-		else 
-		{
-			stereoView->UpdateEye(StereoView::RIGHT_EYE);
-		}
 
-		stereoView->Draw();
-
-		eyeShutter *= -1;
-	}
-
-	if(eyeShutter > 0) return D3D_OK;
-	HRESULT hr = D3DProxyDevice::Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
-
-	return hr;
-}
 
 HRESULT WINAPI D3DProxyDeviceUnreal::SetVertexShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount)
 {
@@ -135,10 +104,7 @@ HRESULT WINAPI D3DProxyDeviceUnreal::SetVertexShaderConstantF(UINT StartRegister
 	return D3DProxyDevice::SetVertexShaderConstantF(StartRegister, pConstantData, Vector4fCount);
 }
 
-HRESULT WINAPI D3DProxyDeviceUnreal::SetDepthStencilSurface(IDirect3DSurface9* pNewZStencil)
-{
-	return D3DProxyDevice::SetDepthStencilSurface(pNewZStencil);
-}
+
 
 bool D3DProxyDeviceUnreal::validRegister(UINT reg)
 {

@@ -747,6 +747,14 @@ HRESULT WINAPI D3DProxyDevice::EndScene()
 
 	}
 /////
+
+
+
+	SetupMatrices();
+	HandleControls();
+	HandleTracking();
+	ComputeViewTranslation();
+
 	return BaseDirect3DDevice9::EndScene();
 }
 
@@ -1894,4 +1902,46 @@ HRESULT WINAPI D3DProxyDevice::UpdateTexture(IDirect3DBaseTexture9* pSourceTextu
 	}
 
 	return result;
+}
+
+
+HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D3DMATRIX* pMatrix)
+{
+	/*if(State == D3DTS_VIEW)
+	{
+		D3DXMATRIX sourceMatrix(*pMatrix);
+
+		D3DXMATRIX transMatrix;
+		D3DXMatrixIdentity(&transMatrix);
+
+		if(trackerInitialized && tracker->isAvailable())
+		{
+			D3DXMATRIX rollMatrix;
+			D3DXMatrixRotationZ(&rollMatrix, tracker->currentRoll);
+			D3DXMatrixMultiply(&sourceMatrix, &sourceMatrix, &rollMatrix);
+		}
+
+		D3DXMatrixTranslation(&transMatrix, (separation*eyeShutter+offset)*6000.0f, 0, 0);
+		D3DXMatrixMultiply(&sourceMatrix, &sourceMatrix, &transMatrix);
+
+		return BaseDirect3DDevice9::SetTransform(State, &sourceMatrix);
+	}
+	else if(State == D3DTS_PROJECTION)
+	{
+		D3DXMATRIX sourceMatrix(*pMatrix);
+
+		D3DXMATRIX transMatrix;
+		D3DXMatrixIdentity(&transMatrix);
+
+		D3DXMatrixMultiply(&sourceMatrix, &sourceMatrix, &matProjectionInv);
+
+		transMatrix[8] += convergence*eyeShutter*0.0075f;
+		D3DXMatrixMultiply(&sourceMatrix, &sourceMatrix, &transMatrix);
+
+		D3DXMatrixMultiply(&sourceMatrix, &sourceMatrix, &matProjection);
+
+		return BaseDirect3DDevice9::SetTransform(State, &sourceMatrix);
+	}*/
+
+	return BaseDirect3DDevice9::SetTransform(State, pMatrix);
 }
