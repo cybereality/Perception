@@ -29,9 +29,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace std;
 
-#pragma comment(lib, "comctl32.lib")
-
-void CreateMainMenu();
 bool InitConfig(void);
 bool InitModes(void);
 std::string getCurrentPath(void);

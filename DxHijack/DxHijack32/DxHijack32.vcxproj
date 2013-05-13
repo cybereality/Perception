@@ -123,6 +123,7 @@
     <ClCompile Include="..\..\DxProxy\DxProxy\Direct3DDevice9.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\FreeSpaceTracker.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\FreeTrackTracker.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\Main.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\MotionTracker.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\MotionTrackerFactory.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\OculusRiftView.cpp" />
@@ -137,9 +138,6 @@
     <ClCompile Include="dllmain.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="hijackdll.def" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyDevice.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyDeviceAdv.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyDeviceEgo.h" />
@@ -152,6 +150,8 @@
     <ClInclude Include="..\..\DxProxy\DxProxy\Direct3D9.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\Direct3DDevice9.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\FreeSpaceTracker.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\FreeTrackTracker.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\Main.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\MotionTracker.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\MotionTrackerFactory.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\OculusRiftView.h" />
@@ -164,7 +164,54 @@
     <ClInclude Include="..\..\DxProxy\DxProxy\StereoViewFactory.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\StereoViewInterleave.h" />
     <ClInclude Include="apihijack.h" />
-    <ClInclude Include="hijackdll.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\DxProxy\DxProxy\Exports.def" />
+    <None Include="..\..\Release\Perception\cfg\config.xml" />
+    <None Include="..\..\Release\Perception\cfg\profiles.xml" />
+    <None Include="..\..\Release\Perception\cfg\users.xml" />
+    <None Include="..\..\Release\Perception\fx\AnaglyphGreenMagenta.fx">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="..\..\Release\Perception\fx\AnaglyphGreenMagentaGray.fx">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="..\..\Release\Perception\fx\AnaglyphRedCyan.fx">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="..\..\Release\Perception\fx\AnaglyphRedCyanGray.fx">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="..\..\Release\Perception\fx\AnaglyphYellowBlue.fx">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="..\..\Release\Perception\fx\AnaglyphYellowBlueGray.fx">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="..\..\Release\Perception\fx\Checkerboard.fx">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="..\..\Release\Perception\fx\InterleaveHorz.fx">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="..\..\Release\Perception\fx\InterleaveVert.fx">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="..\..\Release\Perception\fx\OculusRift.fx">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="..\..\Release\Perception\fx\OculusRiftCropped.fx">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="..\..\Release\Perception\fx\OverUnder.fx">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="..\..\Release\Perception\fx\SideBySide.fx">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="..\..\Release\Perception\fx\SideBySideRift.fx">
+      <FileType>Document</FileType>
+    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
