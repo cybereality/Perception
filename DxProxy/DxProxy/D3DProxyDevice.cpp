@@ -1154,8 +1154,8 @@ HRESULT WINAPI D3DProxyDevice::SetIndices(IDirect3DIndexBuffer9* pIndexData)
 {
 	BaseDirect3DIndexBuffer9* pWrappedNewIndexData = static_cast<BaseDirect3DIndexBuffer9*>(pIndexData);
 	
-	if (pWrappedNewIndexData == m_pActiveIndicies) 
-		return D3D_OK; 
+	//if (pWrappedNewIndexData == m_pActiveIndicies) 
+		//return D3D_OK; 
 
 	// Update actual index buffer
 	HRESULT result;
@@ -1584,9 +1584,6 @@ HRESULT WINAPI D3DProxyDevice::GetVertexShader(IDirect3DVertexShader9** ppShader
 HRESULT WINAPI D3DProxyDevice::SetVertexDeclaration(IDirect3DVertexDeclaration9* pDecl)
 {
 	BaseDirect3DVertexDeclaration9* pWrappedVDeclarationData = static_cast<BaseDirect3DVertexDeclaration9*>(pDecl);
-	
-	if (pWrappedVDeclarationData == m_pActiveVertexDeclaration) 
-		return D3D_OK; 
 
 	// Update actual Vertex Declaration
 	HRESULT result;

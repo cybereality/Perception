@@ -31,8 +31,8 @@ public:
 	D3DProxyDeviceAdv(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy);
 	virtual ~D3DProxyDeviceAdv();
 	virtual HRESULT WINAPI BeginScene();
-	virtual HRESULT WINAPI EndScene();
-	virtual HRESULT WINAPI Present(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion);
+	//virtual HRESULT WINAPI EndScene();
+	//virtual HRESULT WINAPI Present(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion);
 	virtual HRESULT WINAPI SetVertexShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
 	virtual HRESULT WINAPI SetVertexShader(IDirect3DVertexShader9* pShader);
 

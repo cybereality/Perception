@@ -41,9 +41,9 @@ void D3DProxyDeviceAdv::Init(ProxyHelper::ProxyConfig& cfg)
 
 HRESULT WINAPI D3DProxyDeviceAdv::BeginScene()
 {
-	HandleControls();
+	/*HandleControls();
 	HandleTracking();
-	ComputeViewTranslation();
+	ComputeViewTranslation();*/
 
 	if(saveDebugFile)
 	{
@@ -55,44 +55,22 @@ HRESULT WINAPI D3DProxyDeviceAdv::BeginScene()
 
 
 
-HRESULT WINAPI D3DProxyDeviceAdv::EndScene()
-{
-	// delay to avoid crashing on start
-	static int initDelay = 120;
-	initDelay--;
+//HRESULT WINAPI D3DProxyDeviceAdv::EndScene()
+//{
+//	// delay to avoid crashing on start
+//	static int initDelay = 120;
+//	initDelay--;
+//
+//	if(!stereoView->initialized && initDelay < 0)
+//	{
+//		stereoView->Init(getActual());
+//		SetupMatrices();
+//	}
+//
+//	return D3DProxyDevice::EndScene();
+//}
 
-	if(!stereoView->initialized && initDelay < 0)
-	{
-		stereoView->Init(getActual());
-		SetupMatrices();
-	}
 
-	return D3DProxyDevice::EndScene();
-}
-
-HRESULT WINAPI D3DProxyDeviceAdv::Present(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion)
-{
-	if(stereoView->initialized && stereoView->stereoEnabled)
-	{
-		if(eyeShutter > 0)
-		{
-			stereoView->UpdateEye(StereoView::LEFT_EYE);
-		}
-		else 
-		{
-			stereoView->UpdateEye(StereoView::RIGHT_EYE);
-		}
-
-		stereoView->Draw();
-
-		eyeShutter *= -1;
-	}
-
-	if(eyeShutter > 0) return D3D_OK;
-	HRESULT hr = D3DProxyDevice::Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
-
-	return hr;
-}
 
 HRESULT WINAPI D3DProxyDeviceAdv::SetVertexShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount)
 {

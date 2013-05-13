@@ -44,15 +44,7 @@ HRESULT WINAPI D3DProxyDeviceUnreal::BeginScene()
 	return D3DProxyDevice::BeginScene();
 }
 
-HRESULT WINAPI D3DProxyDeviceUnreal::EndScene()
-{
 
-	HandleControls();
-	HandleTracking();
-	ComputeViewTranslation();
-
-	return D3DProxyDevice::EndScene();
-}
 
 
 
