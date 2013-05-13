@@ -1153,9 +1153,6 @@ HRESULT WINAPI D3DProxyDevice::ProcessVertices(UINT SrcStartIndex,UINT DestIndex
 HRESULT WINAPI D3DProxyDevice::SetIndices(IDirect3DIndexBuffer9* pIndexData)
 {
 	BaseDirect3DIndexBuffer9* pWrappedNewIndexData = static_cast<BaseDirect3DIndexBuffer9*>(pIndexData);
-	
-	//if (pWrappedNewIndexData == m_pActiveIndicies) 
-		//return D3D_OK; 
 
 	// Update actual index buffer
 	HRESULT result;
@@ -1367,10 +1364,6 @@ HRESULT WINAPI D3DProxyDevice::SetDepthStencilSurface(IDirect3DSurface9* pNewZSt
 {
 	D3D9ProxySurface* pNewDepthStencil = static_cast<D3D9ProxySurface*>(pNewZStencil);
 
-	if (pNewDepthStencil == m_pActiveStereoDepthStencil) // Already set, nothing to do
-		return D3D_OK; 
-
-
 	IDirect3DSurface9* pActualStencilForCurrentSide = NULL;
 	if (pNewDepthStencil) {
 		if (m_currentRenderingSide == Left)
@@ -1500,9 +1493,6 @@ HRESULT WINAPI D3DProxyDevice::GetTexture(DWORD Stage,IDirect3DBaseTexture9** pp
 HRESULT WINAPI D3DProxyDevice::SetPixelShader(IDirect3DPixelShader9* pShader)
 {
 	BaseDirect3DPixelShader9* pWrappedPShaderData = static_cast<BaseDirect3DPixelShader9*>(pShader);
-	
-	if (pWrappedPShaderData == m_pActivePixelShader) 
-		return D3D_OK; 
 
 	// Update actual pixel shader
 	HRESULT result;
@@ -1540,9 +1530,6 @@ HRESULT WINAPI D3DProxyDevice::GetPixelShader(IDirect3DPixelShader9** ppShader)
 HRESULT WINAPI D3DProxyDevice::SetVertexShader(IDirect3DVertexShader9* pShader)
 {
 	BaseDirect3DVertexShader9* pWrappedVShaderData = static_cast<BaseDirect3DVertexShader9*>(pShader);
-	
-	if (pWrappedVShaderData == m_pActiveVertexShader) 
-		return D3D_OK; 
 
 	// Update actual Vertex shader
 	HRESULT result;
@@ -1962,7 +1949,7 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 HRESULT WINAPI D3DProxyDevice::SetViewport(CONST D3DVIEWPORT9* pViewport)
 {
 	// try and set, if success save viewport
-	// if viewport width and height match primary render target size and zmin is 0 and zmax 1 (NOTE float comparison?)
+	// if viewport width and height match primary render target size and zmin is 0 and zmax 1 
 	// set m_bActiveViewportIsDefault flag true.
 
 	HRESULT result = BaseDirect3DDevice9::SetViewport(pViewport);
