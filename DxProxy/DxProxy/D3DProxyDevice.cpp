@@ -1416,18 +1416,13 @@ HRESULT WINAPI D3DProxyDevice::GetDepthStencilSurface(IDirect3DSurface9** ppZSte
 
 HRESULT WINAPI D3DProxyDevice::SetTexture(DWORD Stage,IDirect3DBaseTexture9* pTexture)
 {
-	//OutputDebugString(__FUNCTION__); 
-	//OutputDebugString("\n"); 
-
 	IDirect3DBaseTexture9* pCurrentTextureInStage = NULL;
 	
 	if (m_activeTextureStages.count(Stage) == 1) {
 		pCurrentTextureInStage = m_activeTextureStages[Stage];
 	}
 
-	// Texture is already in stage so do nothing.
-	if (pCurrentTextureInStage == pTexture)
-		return D3D_OK;
+
 	
 	HRESULT result;
 	if (pTexture) {
