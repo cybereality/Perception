@@ -59,7 +59,7 @@ public:
 	void HandleTracking(void);
 	bool validRegister(UINT reg);
 	
-	
+	virtual HRESULT WINAPI BeginScene();
 	virtual HRESULT WINAPI EndScene();
 	virtual HRESULT WINAPI CreateVertexBuffer(UINT Length,DWORD Usage,DWORD FVF,D3DPOOL Pool,IDirect3DVertexBuffer9** ppVertexBuffer,HANDLE* pSharedHandle);
 	virtual HRESULT WINAPI CreateIndexBuffer(UINT Length,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool,IDirect3DIndexBuffer9** ppIndexBuffer,HANDLE* pSharedHandle);
@@ -235,9 +235,14 @@ private:
 
 	enum EyeSide m_currentRenderingSide;
 
-
-
-	
+	bool m_bViewTransformSet;
+	bool m_bProjectionTransformSet;
+	D3DXMATRIX m_leftView;
+	D3DXMATRIX m_rightView;
+	D3DXMATRIX m_leftProjection;
+	D3DXMATRIX m_rightProjection;
+	D3DXMATRIX* m_pCurrentView;
+	D3DXMATRIX* m_pCurrentProjection;
 	
 };
 

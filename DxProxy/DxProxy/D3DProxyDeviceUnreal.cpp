@@ -34,15 +34,7 @@ void D3DProxyDeviceUnreal::Init(ProxyHelper::ProxyConfig& cfg)
 	matrixIndex = getMatrixIndex();
 }
 
-HRESULT WINAPI D3DProxyDeviceUnreal::BeginScene()
-{
-	if(saveDebugFile)
-	{
-		debugFile.open("d3d9_debug.txt", std::ios::out);
-	}
 
-	return D3DProxyDevice::BeginScene();
-}
 
 
 

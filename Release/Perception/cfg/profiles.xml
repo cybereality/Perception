@@ -10,7 +10,7 @@
 	<profile game_name="Mirrors Edge" game_exe="MirrorsEdge.exe" game_type="201" separation="0.00028" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Unreal Tournament 3" game_exe="UT3.exe" game_type="202" separation="0.00018" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="DiRT 2" game_exe="dirt2.exe" game_type="301" separation="0.00014" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
-	<profile game_name="AaAaAA!!!" game_exe="main.exe" game_type="10" separation="0.00282" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="AaAaAA!!!" game_exe="main.exe" game_type="10" separation="0.00182" convergence="6.66511" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Skyrim" game_exe="SkyrimLauncher.exe" game_type="601" separation="0.00357999" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Skyrim(SKSE)" game_exe="skse_loader.exe" game_type="601" separation="0.00357999" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Skyrim(SKSE)" game_exe="TESV.exe" game_type="601" separation="0.00513603" convergence="30.8828" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
@@ -33,7 +33,7 @@
 	<profile game_name="D3D Example" game_exe="dx9_texture_addressing.exe" game_type="10" separation="0.0166239" convergence="5" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="D3D Example" game_exe="dx9_texture_filtering.exe" game_type="10" separation="0.0139081" convergence="5" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="D3D Example" game_exe="dx9_texture_subloading.exe" game_type="10" separation="0.0211829" convergence="5" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
-	<profile game_name="Dead Rising 2" game_exe="deadrising2.exe" game_type="10" separation="0.0211829" convergence="5" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="Dead Rising 2" game_exe="deadrising2.exe" game_type="10" separation="0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Borderlands" game_exe="Borderlands.exe" game_type="202" separation="0.0211829" convergence="5" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Borderlands 2" game_exe="Borderlands2.exe" game_type="202" separation="0.0211829" convergence="5" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Fallout3" game_exe="Fallout3.exe" game_type="10" separation="0.0211829" convergence="5" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />

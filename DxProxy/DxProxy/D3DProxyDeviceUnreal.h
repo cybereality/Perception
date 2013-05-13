@@ -28,7 +28,7 @@ class D3DProxyDeviceUnreal : public D3DProxyDevice
 public:
 	D3DProxyDeviceUnreal(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy);
 	virtual ~D3DProxyDeviceUnreal();
-	virtual HRESULT WINAPI BeginScene();
+	
 	virtual HRESULT WINAPI SetVertexShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
 	
 

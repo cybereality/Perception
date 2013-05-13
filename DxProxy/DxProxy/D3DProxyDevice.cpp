@@ -71,6 +71,8 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	m_pActiveVertexDeclaration = NULL;
 	hudFont = NULL;
 	m_bActiveViewportIsDefault = true;
+	m_bViewTransformSet = false;
+	m_bProjectionTransformSet = false;
 
 	centerlineR = 0.0f;
 	centerlineL = 0.0f;
@@ -102,7 +104,6 @@ void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 	stereoView = StereoViewFactory::Get(cfg);
 	SetupOptions(cfg);
 	OnCreateOrRestore();
-	SetupMatrices();
 }
 
 
@@ -175,6 +176,8 @@ void D3DProxyDevice::OnCreateOrRestore()
 	SetupText();
 
 	stereoView->Init(getActual());
+	
+	SetupMatrices();
 }
 
 
@@ -687,6 +690,26 @@ void ClearHLine(LPDIRECT3DDEVICE9 Device_Interface,int x1,int y1,int x2,int y2,i
 	Device_Interface->Clear(1,&rec,D3DCLEAR_TARGET,Color,0,0);
 }
 
+
+
+
+
+HRESULT WINAPI D3DProxyDevice::BeginScene()
+{
+	if(saveDebugFile)
+	{
+		debugFile.open("d3d9_debug.txt", std::ios::out);
+	}
+
+	
+	HandleControls();
+	HandleTracking();
+	//ComputeViewTranslation();
+
+	return BaseDirect3DDevice9::BeginScene();
+}
+
+
 HRESULT WINAPI D3DProxyDevice::EndScene()
 {
 ///// hud text
@@ -758,10 +781,7 @@ HRESULT WINAPI D3DProxyDevice::EndScene()
 
 
 
-	SetupMatrices();
-	HandleControls();
-	HandleTracking();
-	ComputeViewTranslation();
+	
 
 	return BaseDirect3DDevice9::EndScene();
 }
@@ -1636,6 +1656,35 @@ bool D3DProxyDevice::setDrawingSide(EyeSide side)
 	if (!m_activeRenderTargets[0]->IsStereo() && (side == Right)) 
 		return false;
 
+
+	// update view transform for new side 
+	if (m_bViewTransformSet) {
+
+		if (side == Left) {
+			m_pCurrentView = &m_leftView;
+		}
+		else {
+			m_pCurrentView = &m_rightView;
+		}
+
+		BaseDirect3DDevice9::SetTransform(D3DTS_VIEW, m_pCurrentView);
+	}
+
+
+	// update projection transform for new side 
+	if (m_bProjectionTransformSet) {
+
+		if (side == Left) {
+			m_pCurrentProjection = &m_leftProjection;
+		}
+		else {
+			m_pCurrentProjection = &m_rightProjection;
+		}
+
+		BaseDirect3DDevice9::SetTransform(D3DTS_PROJECTION, m_pCurrentProjection);
+	}
+
+
 	// switch render targets to new side
 	bool renderTargetChanged = false;
 	HRESULT result;
@@ -1907,12 +1956,16 @@ HRESULT WINAPI D3DProxyDevice::UpdateTexture(IDirect3DBaseTexture9* pSourceTextu
 
 HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D3DMATRIX* pMatrix)
 {
-	/*if(State == D3DTS_VIEW)
+	if(State == D3DTS_VIEW)
 	{
+		m_bViewTransformSet = true;
+
 		D3DXMATRIX sourceMatrix(*pMatrix);
 
-		D3DXMATRIX transMatrix;
-		D3DXMatrixIdentity(&transMatrix);
+		D3DXMATRIX transLeftMatrix;
+		D3DXMATRIX transRightMatrix;
+		D3DXMatrixIdentity(&transLeftMatrix);
+		D3DXMatrixIdentity(&transRightMatrix);
 
 		if(trackerInitialized && tracker->isAvailable())
 		{
@@ -1921,27 +1974,64 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 			D3DXMatrixMultiply(&sourceMatrix, &sourceMatrix, &rollMatrix);
 		}
 
-		D3DXMatrixTranslation(&transMatrix, (separation*eyeShutter+offset)*6000.0f, 0, 0);
-		D3DXMatrixMultiply(&sourceMatrix, &sourceMatrix, &transMatrix);
+		D3DXMatrixTranslation(&transLeftMatrix, (separation*eyeShutter+offset)*6000.0f, 0, 0);
+		eyeShutter *= -1;
+		D3DXMatrixTranslation(&transRightMatrix, (separation*eyeShutter+offset)*6000.0f, 0, 0);
+		eyeShutter *= -1;
 
-		return BaseDirect3DDevice9::SetTransform(State, &sourceMatrix);
+		// store current left and right adjusted view matricies
+		D3DXMatrixMultiply(&m_leftView, &sourceMatrix, &transLeftMatrix);
+		D3DXMatrixMultiply(&m_rightView, &sourceMatrix, &transRightMatrix);
+		
+		// Update current eye view and actual transform
+		if (m_currentRenderingSide == Left) {
+			m_pCurrentView = &m_leftView;
+		}
+		else {
+			m_pCurrentView = &m_rightView;
+		}
+
+		return BaseDirect3DDevice9::SetTransform(State, m_pCurrentView);
+		
 	}
 	else if(State == D3DTS_PROJECTION)
 	{
+		m_bProjectionTransformSet = true;
+
+
 		D3DXMATRIX sourceMatrix(*pMatrix);
 
-		D3DXMATRIX transMatrix;
-		D3DXMatrixIdentity(&transMatrix);
+		D3DXMATRIX transMatrixLeft;
+		D3DXMATRIX transMatrixRight;
+		D3DXMatrixIdentity(&transMatrixLeft);
+		D3DXMatrixIdentity(&transMatrixRight);
 
 		D3DXMatrixMultiply(&sourceMatrix, &sourceMatrix, &matProjectionInv);
 
-		transMatrix[8] += convergence*eyeShutter*0.0075f;
-		D3DXMatrixMultiply(&sourceMatrix, &sourceMatrix, &transMatrix);
+		transMatrixLeft[8] += convergence*eyeShutter*0.0075f;
+		eyeShutter *= -1;
+		transMatrixRight[8] += convergence*eyeShutter*0.0075f;
+		eyeShutter *= -1;
 
-		D3DXMatrixMultiply(&sourceMatrix, &sourceMatrix, &matProjection);
+		D3DXMATRIX sourceMatrixRight(sourceMatrix);
 
-		return BaseDirect3DDevice9::SetTransform(State, &sourceMatrix);
-	}*/
+		D3DXMatrixMultiply(&sourceMatrixRight, &sourceMatrixRight, &transMatrixRight);
+		D3DXMatrixMultiply(&m_rightProjection, &sourceMatrixRight, &matProjection);
+
+		D3DXMatrixMultiply(&sourceMatrix, &sourceMatrix, &transMatrixLeft);
+		D3DXMatrixMultiply(&m_leftProjection, &sourceMatrix, &matProjection);
+
+
+		// Update current eye projection and actual transform
+		if (m_currentRenderingSide == Left) {
+			m_pCurrentProjection = &m_leftProjection;
+		}
+		else {
+			m_pCurrentProjection = &m_rightProjection;
+		}
+
+		return BaseDirect3DDevice9::SetTransform(State, m_pCurrentProjection);
+	}
 
 	return BaseDirect3DDevice9::SetTransform(State, pMatrix);
 }
