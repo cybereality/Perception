@@ -704,7 +704,7 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 	
 	HandleControls();
 	HandleTracking();
-	//ComputeViewTranslation();
+	ComputeViewTranslation();
 
 	return BaseDirect3DDevice9::BeginScene();
 }
@@ -1958,37 +1958,58 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 {
 	if(State == D3DTS_VIEW)
 	{
-		m_bViewTransformSet = true;
-
 		D3DXMATRIX sourceMatrix(*pMatrix);
 
-		D3DXMATRIX transLeftMatrix;
-		D3DXMATRIX transRightMatrix;
-		D3DXMatrixIdentity(&transLeftMatrix);
-		D3DXMatrixIdentity(&transRightMatrix);
+		// If the view is set to the identity then we don't need to perform any adjustments
+		if (!pMatrix || D3DXMatrixIsIdentity(&sourceMatrix)) {
 
-		if(trackerInitialized && tracker->isAvailable())
-		{
-			D3DXMATRIX rollMatrix;
-			D3DXMatrixRotationZ(&rollMatrix, tracker->currentRoll);
-			D3DXMatrixMultiply(&sourceMatrix, &sourceMatrix, &rollMatrix);
-		}
+			D3DXMatrixIdentity(&m_leftView);
+			D3DXMatrixIdentity(&m_rightView);
 
-		D3DXMatrixTranslation(&transLeftMatrix, (separation*eyeShutter+offset)*6000.0f, 0, 0);
-		eyeShutter *= -1;
-		D3DXMatrixTranslation(&transRightMatrix, (separation*eyeShutter+offset)*6000.0f, 0, 0);
-		eyeShutter *= -1;
-
-		// store current left and right adjusted view matricies
-		D3DXMatrixMultiply(&m_leftView, &sourceMatrix, &transLeftMatrix);
-		D3DXMatrixMultiply(&m_rightView, &sourceMatrix, &transRightMatrix);
-		
-		// Update current eye view and actual transform
-		if (m_currentRenderingSide == Left) {
-			m_pCurrentView = &m_leftView;
+			m_bViewTransformSet = false;
 		}
 		else {
-			m_pCurrentView = &m_rightView;
+			// If the view matrix is modified we need to apply left/right adjustments (for stereo rendering)
+			// TODO do we need to keep an unmodified view for rendering mono targets or can we just use left view?
+			// TODO ComputeViewTranslation duplicates some of this. This should be using compute view 
+			D3DXMATRIX transLeftMatrix;
+			D3DXMATRIX transRightMatrix;
+			D3DXMatrixIdentity(&transLeftMatrix);
+			D3DXMatrixIdentity(&transRightMatrix);
+
+			if(trackerInitialized && tracker->isAvailable())
+			{
+				D3DXMATRIX rollMatrix;
+				D3DXMatrixRotationZ(&rollMatrix, tracker->currentRoll);
+				D3DXMatrixMultiply(&sourceMatrix, &sourceMatrix, &rollMatrix);
+			}
+
+			// TODO caution, changes to the magic numbers -1 and 1 must also be made below in projection
+			D3DXMatrixTranslation(&transLeftMatrix, ((separation*-1)+offset)*6000.0f, 0, 0);
+			//eyeShutter *= -1;
+			D3DXMatrixTranslation(&transRightMatrix, ((separation*1)+offset)*6000.0f, 0, 0);
+			//eyeShutter *= -1;
+
+			// store current left and right adjusted view matricies
+			D3DXMatrixMultiply(&m_leftView, &sourceMatrix, &transLeftMatrix);
+			D3DXMatrixMultiply(&m_rightView, &sourceMatrix, &transRightMatrix);
+
+			m_bViewTransformSet = true;
+		}
+
+		
+		
+		// Update current eye projection and actual transform
+		if (!pMatrix) {
+			m_pCurrentView = NULL;
+		}
+		else {
+			if (m_currentRenderingSide == Left) {
+				m_pCurrentView = &m_leftView;
+			}
+			else {
+				m_pCurrentView = &m_rightView;
+			}
 		}
 
 		return BaseDirect3DDevice9::SetTransform(State, m_pCurrentView);
@@ -1996,38 +2017,55 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 	}
 	else if(State == D3DTS_PROJECTION)
 	{
-		m_bProjectionTransformSet = true;
 
 
 		D3DXMATRIX sourceMatrix(*pMatrix);
 
-		D3DXMATRIX transMatrixLeft;
-		D3DXMATRIX transMatrixRight;
-		D3DXMatrixIdentity(&transMatrixLeft);
-		D3DXMatrixIdentity(&transMatrixRight);
+		// If the view is set to the identity then we don't need to perform any adjustments
+		
+		if (!pMatrix || D3DXMatrixIsIdentity(&sourceMatrix)) {
 
-		D3DXMatrixMultiply(&sourceMatrix, &sourceMatrix, &matProjectionInv);
+			D3DXMatrixIdentity(&m_leftProjection);
+			D3DXMatrixIdentity(&m_rightProjection);
 
-		transMatrixLeft[8] += convergence*eyeShutter*0.0075f;
-		eyeShutter *= -1;
-		transMatrixRight[8] += convergence*eyeShutter*0.0075f;
-		eyeShutter *= -1;
-
-		D3DXMATRIX sourceMatrixRight(sourceMatrix);
-
-		D3DXMatrixMultiply(&sourceMatrixRight, &sourceMatrixRight, &transMatrixRight);
-		D3DXMatrixMultiply(&m_rightProjection, &sourceMatrixRight, &matProjection);
-
-		D3DXMatrixMultiply(&sourceMatrix, &sourceMatrix, &transMatrixLeft);
-		D3DXMatrixMultiply(&m_leftProjection, &sourceMatrix, &matProjection);
-
-
-		// Update current eye projection and actual transform
-		if (m_currentRenderingSide == Left) {
-			m_pCurrentProjection = &m_leftProjection;
+			m_bProjectionTransformSet = false;
 		}
 		else {
-			m_pCurrentProjection = &m_rightProjection;
+			//TODO same question as view
+			D3DXMATRIX transMatrixLeft;
+			D3DXMATRIX transMatrixRight;
+			D3DXMatrixIdentity(&transMatrixLeft);
+			D3DXMatrixIdentity(&transMatrixRight);
+
+			D3DXMatrixMultiply(&sourceMatrix, &sourceMatrix, &matProjectionInv);
+
+			transMatrixLeft[8] += convergence*-1*0.0075f;
+			//eyeShutter *= -1;
+			transMatrixRight[8] += convergence*1*0.0075f;
+			//eyeShutter *= -1;
+
+			D3DXMATRIX sourceMatrixRight(sourceMatrix);
+
+			D3DXMatrixMultiply(&sourceMatrixRight, &sourceMatrixRight, &transMatrixRight);
+			D3DXMatrixMultiply(&m_rightProjection, &sourceMatrixRight, &matProjection);
+
+			D3DXMatrixMultiply(&sourceMatrix, &sourceMatrix, &transMatrixLeft);
+			D3DXMatrixMultiply(&m_leftProjection, &sourceMatrix, &matProjection);
+
+			m_bProjectionTransformSet = true;
+		}
+
+		// Update current eye projection and actual transform
+		if (!pMatrix) {
+			m_pCurrentProjection = NULL;
+		}
+		else {
+			if (m_currentRenderingSide == Left) {
+				m_pCurrentProjection = &m_leftProjection;
+			}
+			else {
+				m_pCurrentProjection = &m_rightProjection;
+			}
 		}
 
 		return BaseDirect3DDevice9::SetTransform(State, m_pCurrentProjection);
