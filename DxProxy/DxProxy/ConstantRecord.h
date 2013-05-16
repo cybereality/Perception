@@ -1,6 +1,6 @@
 /********************************************************************
 Vireio Perception: Open-Source Stereoscopic 3D Driver
-Copyright (C) 2012 Andres Hernandez
+Copyright (C) 2013 Chris Drain
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -16,36 +16,34 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#ifndef D3DPROXYDEVICEUNREAL_H_INCLUDED
-#define D3DPROXYDEVICEUNREAL_H_INCLUDED
+#ifndef CONSTANTRECORD_H_INCLUDED
+#define CONSTANTRECORD_H_INCLUDED
 
 #include "Direct3DDevice9.h"
 #include "D3DProxyDevice.h"
-#include "ProxyHelper.h"
 
-class D3DProxyDeviceUnreal : public D3DProxyDevice
+template <class T>
+class ConstantRecord
 {
 public:
-	D3DProxyDeviceUnreal(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy);
-	virtual ~D3DProxyDeviceUnreal();
-	
-	virtual HRESULT WINAPI SetVertexShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
-	virtual HRESULT WINAPI SetVertexShader(IDirect3DVertexShader9* pShader);
+	ConstantRecord(UINT StartReg, const T* pConstData, UINT dataCount, UINT countMultiplier) :
+		StartRegister(StartReg),
+		Count(dataCount) 
+	{
+		// copy data
+		T* pConstantData = new T [Count * countMultiplier];
+		std::copy(&pConstData[0], &pConstData[Count], pConstantData);
+	}
 
-	virtual void Init(ProxyHelper::ProxyConfig& cfg);
-	
-	virtual bool setDrawingSide(enum EyeSide side);
+	virtual ~ConstantRecord() 
+	{
+		delete [] pConstantData;
+	}
+		
 
-	bool validRegister(UINT reg);
-	int getMatrixIndex();
-
-
-protected:
-
-	bool	m_bAdjustedShaderActive;
-	float*	m_pCurrentVShaderMatrix;
-	UINT	m_CurrentVShaderRegister;
-	UINT	m_CurrentVShaderVec4Count;
+	UINT StartRegister;
+	T* pConstantData;
+	UINT Count;
 };
 
 #endif

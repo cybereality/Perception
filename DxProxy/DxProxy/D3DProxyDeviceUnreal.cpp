@@ -20,6 +20,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 D3DProxyDeviceUnreal::D3DProxyDeviceUnreal(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy):D3DProxyDevice(pDevice, pCreatedBy)
 {
+	m_pCurrentVShaderMatrix = NULL;
+	m_CurrentVShaderRegister = 0;
+	m_CurrentVShaderVec4Count = -1;
+	m_bAdjustedShaderActive = false;
 }
 
 D3DProxyDeviceUnreal::~D3DProxyDeviceUnreal()
@@ -46,12 +50,18 @@ HRESULT WINAPI D3DProxyDeviceUnreal::SetVertexShaderConstantF(UINT StartRegister
 	if(stereoView->initialized && Vector4fCount >= 4 && validRegister(StartRegister)) // && (fabs(pConstantData[12]) + fabs(pConstantData[13]) + fabs(pConstantData[14]) > 0.001f))
 	{
 		
-		currentMatrix = const_cast<float*>(pConstantData);
-	
-		D3DXMATRIX sourceMatrix(currentMatrix);
+		m_pCurrentVShaderMatrix = const_cast<float*>(pConstantData);
+		m_CurrentVShaderRegister = StartRegister;
+		m_CurrentVShaderVec4Count = Vector4fCount;
 		
-		sourceMatrix = sourceMatrix * matViewTranslation; 
-		currentMatrix = (float*)sourceMatrix;
+		D3DXMATRIX tempMatrix(m_pCurrentVShaderMatrix);
+		
+		if (m_currentRenderingSide == Left)
+			tempMatrix = tempMatrix * matViewTranslationLeft; 
+		else
+			tempMatrix = tempMatrix * matViewTranslationRight; 
+
+		m_bAdjustedShaderActive = true;
 
 		/*
 		char buf[32];
@@ -63,7 +73,7 @@ HRESULT WINAPI D3DProxyDeviceUnreal::SetVertexShaderConstantF(UINT StartRegister
 		OutputDebugString("\n");
 		*/
 
-		if(false && saveDebugFile)
+		/*if(false && saveDebugFile)
 		{
 			char vcString[1024];
 			sprintf_s(vcString, 
@@ -72,21 +82,55 @@ HRESULT WINAPI D3DProxyDeviceUnreal::SetVertexShaderConstantF(UINT StartRegister
 				"%.4f\t%.4f\t%.4f\t%.4f\n"
 				"%.4f\t%.4f\t%.4f\t%.4f\n"
 				"%.4f\t%.4f\t%.4f\t%.4f\n\n", StartRegister, Vector4fCount,
-				currentMatrix[0], currentMatrix[1], currentMatrix[2], currentMatrix[3],
-				currentMatrix[4], currentMatrix[5], currentMatrix[6], currentMatrix[7],
-				currentMatrix[8], currentMatrix[9], currentMatrix[10], currentMatrix[11],
-				currentMatrix[12], currentMatrix[13], currentMatrix[14], currentMatrix[15]
+				tempMatrix[0], tempMatrix[1], tempMatrix[2], tempMatrix[3],
+				tempMatrix[4], tempMatrix[5], tempMatrix[6], tempMatrix[7],
+				tempMatrix[8], tempMatrix[9], tempMatrix[10], tempMatrix[11],
+				tempMatrix[12], tempMatrix[13], tempMatrix[14], tempMatrix[15]
 				);
 
 			debugFile << vcString;
-		}
+		}*/
 
 
-		return D3DProxyDevice::SetVertexShaderConstantF(StartRegister, currentMatrix, Vector4fCount);
+		return D3DProxyDevice::SetVertexShaderConstantF(StartRegister, (float*)&tempMatrix, Vector4fCount);
 	}
 
 	return D3DProxyDevice::SetVertexShaderConstantF(StartRegister, pConstantData, Vector4fCount);
 }
+
+
+HRESULT WINAPI D3DProxyDeviceUnreal::SetVertexShader(IDirect3DVertexShader9* pShader)
+{
+	
+
+	return D3DProxyDevice::SetVertexShader(pShader);
+}
+
+
+
+bool D3DProxyDeviceUnreal::setDrawingSide(EyeSide side)
+{
+	if (!D3DProxyDevice::setDrawingSide(side))
+		return false;
+
+	if (m_bAdjustedShaderActive) {
+		D3DXMATRIX tempMatrix(m_pCurrentVShaderMatrix);
+		//tempMatrix = tempMatrix * (*m_pCurrentMatViewTransform); 
+
+		if (side == Left)
+			tempMatrix = tempMatrix * matViewTranslationLeft; 
+		else
+			tempMatrix = tempMatrix * matViewTranslationRight; 
+
+		m_pVertexShaderConstantTracker->ModifyShaderConstantF(m_CurrentVShaderRegister, (float*)&tempMatrix, m_CurrentVShaderVec4Count);
+		m_pVertexShaderConstantTracker->SetAll();
+		BaseDirect3DDevice9::SetVertexShader(m_pActiveVertexShader->getActual());
+	}
+
+	return true;
+}
+
+
 
 
 

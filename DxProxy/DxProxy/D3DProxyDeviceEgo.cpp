@@ -97,7 +97,7 @@ HRESULT WINAPI D3DProxyDeviceEgo::SetVertexShaderConstantF(UINT StartRegister,CO
 
 		D3DXMATRIX sourceMatrix(currentMatrix);
 
-		sourceMatrix = sourceMatrix * matViewTranslation;
+		sourceMatrix = sourceMatrix * (*m_pCurrentMatViewTransform);
 		currentMatrix = (float*)sourceMatrix;
 
 		/*

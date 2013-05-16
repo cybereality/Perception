@@ -88,7 +88,7 @@ HRESULT WINAPI D3DProxyDeviceAdv::SetVertexShaderConstantF(UINT StartRegister,CO
 
 void D3DProxyDeviceAdv::adjustEyeOffsetAndViewFrustum(D3DXMATRIX &outMatrix, D3DXMATRIX &inMatrix)
 {
-	outMatrix = inMatrix * matViewTranslation; 
+	outMatrix = inMatrix * (*m_pCurrentMatViewTransform); 
 }
 
 void transformIndividualFloat(IDirect3DDevice9 *pD3Ddev, int startRegister, D3DProxyDeviceAdv* proxyDev) 

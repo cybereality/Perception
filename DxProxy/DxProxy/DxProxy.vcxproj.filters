@@ -169,6 +169,9 @@
     <ClCompile Include="D3D9ProxySurface.cpp">
       <Filter>Direct3D9Vireio</Filter>
     </ClCompile>
+    <ClCompile Include="ShaderConstantTracker.cpp">
+      <Filter>Direct3D9Vireio</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Exports.def">
@@ -312,6 +315,12 @@
       <Filter>Direct3D9Vireio</Filter>
     </ClInclude>
     <ClInclude Include="D3D9ProxySurface.h">
+      <Filter>Direct3D9Vireio</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderConstantTracker.h">
+      <Filter>Direct3D9Vireio</Filter>
+    </ClInclude>
+    <ClInclude Include="ConstantRecord.h">
       <Filter>Direct3D9Vireio</Filter>
     </ClInclude>
   </ItemGroup>

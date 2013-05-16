@@ -39,8 +39,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <fstream>
 #include <vector>
 #include "WrapperUtils.h"
+#include "ShaderConstantTracker.h"
+
+
+#define LEFT -1
+#define RIGHT 1
+
 
 class StereoView;
+class ShaderConstantTracker;
 
 class D3DProxyDevice : public BaseDirect3DDevice9
 {
@@ -97,6 +104,9 @@ public:
 	virtual HRESULT WINAPI GetPixelShader(IDirect3DPixelShader9** ppShader);
 	virtual HRESULT WINAPI SetVertexShader(IDirect3DVertexShader9* pShader);
 	virtual HRESULT WINAPI GetVertexShader(IDirect3DVertexShader9** ppShader);
+	virtual HRESULT WINAPI SetVertexShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
+	virtual HRESULT WINAPI SetVertexShaderConstantI(UINT StartRegister,CONST int* pConstantData,UINT Vector4iCount);
+	virtual HRESULT WINAPI SetVertexShaderConstantB(UINT StartRegister,CONST BOOL* pConstantData,UINT  BoolCount);
 	virtual HRESULT WINAPI SetVertexDeclaration(IDirect3DVertexDeclaration9* pDecl);
 	virtual HRESULT WINAPI GetVertexDeclaration(IDirect3DVertexDeclaration9** ppDecl);
 	virtual HRESULT WINAPI EndStateBlock(IDirect3DStateBlock9** ppSB);
@@ -117,7 +127,10 @@ public:
 
 	D3DXMATRIX matProjection;
 	D3DXMATRIX matProjectionInv;
-	D3DXMATRIX matViewTranslation;
+
+	D3DXMATRIX matViewTranslationLeft;
+	D3DXMATRIX matViewTranslationRight;
+
 
 	float* currentMatrix;
 
@@ -201,11 +214,21 @@ protected:
 	virtual void OnCreateOrRestore();
 
 	// Use to specify the side that you want to draw to
-	bool setDrawingSide(enum EyeSide side);
+	// Overriding classes should call the base implementation first and then makes any extra needed changes
+	// based on the result of the base implementation (if the base class doesn't change side then derived shouldn't 
+	// change either)
+	virtual bool setDrawingSide(enum EyeSide side);
+
+	// Try and toggle to other drawing side. Returns false if changes fails due to the current render target being mono.
 	bool switchDrawingSide();
 
-	
+	enum EyeSide m_currentRenderingSide;
 
+	D3DXMATRIX* m_pCurrentMatViewTransform;
+	
+	ShaderConstantTracker* m_pVertexShaderConstantTracker;
+	bool m_bWaitingForNextSetOfVShaderConstants;
+	BaseDirect3DVertexShader9* m_pActiveVertexShader;
 
 private:
 
@@ -220,7 +243,6 @@ private:
 	D3D9ProxySurface* m_pActiveStereoDepthStencil;
 	BaseDirect3DIndexBuffer9* m_pActiveIndicies;
 	BaseDirect3DPixelShader9* m_pActivePixelShader;
-	BaseDirect3DVertexShader9* m_pActiveVertexShader;
 	BaseDirect3DVertexDeclaration9* m_pActiveVertexDeclaration;
 	BaseDirect3DSwapChain9* m_pPrimarySwapChain;
 
@@ -233,14 +255,20 @@ private:
 
 
 
-	enum EyeSide m_currentRenderingSide;
+	
 
 	bool m_bViewTransformSet;
 	bool m_bProjectionTransformSet;
+
+
+	D3DXMATRIX m_rollMatrix;
+
 	D3DXMATRIX m_leftView;
 	D3DXMATRIX m_rightView;
+
 	D3DXMATRIX m_leftProjection;
 	D3DXMATRIX m_rightProjection;
+
 	D3DXMATRIX* m_pCurrentView;
 	D3DXMATRIX* m_pCurrentProjection;
 	

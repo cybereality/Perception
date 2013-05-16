@@ -62,7 +62,10 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 
 	m_activeRenderTargets.resize(maxRenderTargets, NULL);
 	m_currentRenderingSide = Left;
-	
+	m_pCurrentMatViewTransform = &matViewTranslationLeft;
+	m_pCurrentView = &m_leftView;
+	m_pCurrentProjection = &m_leftProjection;
+
 	m_pStereoBackBuffer = NULL;
 	m_pActiveStereoDepthStencil = NULL;
 	m_pActiveIndicies = NULL;
@@ -71,8 +74,17 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	m_pActiveVertexDeclaration = NULL;
 	hudFont = NULL;
 	m_bActiveViewportIsDefault = true;
+
 	m_bViewTransformSet = false;
 	m_bProjectionTransformSet = false;
+
+	D3DXMatrixIdentity(&m_leftView);
+	D3DXMatrixIdentity(&m_rightView);
+	D3DXMatrixIdentity(&m_leftProjection);
+	D3DXMatrixIdentity(&m_rightProjection);	
+	D3DXMatrixIdentity(&m_rollMatrix);
+
+	m_pVertexShaderConstantTracker = new ShaderConstantTracker(pDevice);
 
 	centerlineR = 0.0f;
 	centerlineL = 0.0f;
@@ -89,6 +101,8 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 
 D3DProxyDevice::~D3DProxyDevice()
 {
+	delete m_pVertexShaderConstantTracker;
+
 	ReleaseEverything();
 }
 
@@ -129,6 +143,11 @@ void D3DProxyDevice::OnCreateOrRestore()
 {
 	//OutputDebugString(__FUNCTION__);
 	//OutputDebugString("\n");
+
+	m_currentRenderingSide = Left;
+	m_pCurrentMatViewTransform = &matViewTranslationLeft;
+	m_pCurrentView = &m_leftView;
+	m_pCurrentProjection = &m_leftProjection;
 
 	IDirect3DSwapChain9* pActualPrimarySwapChain;
 	if (FAILED(BaseDirect3DDevice9::GetSwapChain(0, &pActualPrimarySwapChain))) {
@@ -259,7 +278,7 @@ HRESULT WINAPI D3DProxyDevice::Reset(D3DPRESENT_PARAMETERS* pPresentationParamet
 	if(stereoView)
 		stereoView->Reset();
 
-	
+	m_pVertexShaderConstantTracker->Clear();
 	ReleaseEverything();
 	
 
@@ -327,25 +346,42 @@ void D3DProxyDevice::SetupMatrices()
 	D3DXMatrixInverse(&matProjectionInv, 0, &matProjection);
 }
 
+
+// This translation is applied to vertex shader matricies in some subclasses.
+// Note that l/r frustrum changes are applied differently for the transform and would seem
+// to produce different results. So I leave merging this with Transform view/projection code to someone braver.
+// But it really feels like it should be a single code path situation.
 void D3DProxyDevice::ComputeViewTranslation()
 {
-	D3DXMATRIX transform;
-	D3DXMatrixTranslation(&transform, separation*eyeShutter*10.0f+offset*10.0f, 0, 0);
+	D3DXMATRIX transformLeft;
+	D3DXMATRIX transformRight;
+	D3DXMatrixTranslation(&transformLeft, separation * LEFT * 10.0f /*+ offset * 10.0f*/, 0, 0);
+	D3DXMatrixTranslation(&transformRight, separation * RIGHT * 10.0f /*+ offset * 10.0f*/, 0, 0);
 
-	float adjustedFrustumOffset = convergence*eyeShutter*0.1f*separation;		
-	D3DXMATRIX reProject;
-	D3DXMatrixPerspectiveOffCenterLH(&reProject, l, r, b, t, n, f);
-	D3DXMatrixInverse(&matProjectionInv, 0, &reProject);
-	D3DXMatrixPerspectiveOffCenterLH(&reProject, l+adjustedFrustumOffset, r+adjustedFrustumOffset, b, t, n, f);
+	D3DXMATRIX rollTransform;
+	D3DXMatrixIdentity(&rollTransform);
 
-	if(trackerInitialized && tracker->isAvailable() && roll_mode != 0)
-	{
-		D3DXMATRIX rollMatrix;
-		D3DXMatrixRotationZ(&rollMatrix, tracker->currentRoll);
-		D3DXMatrixMultiply(&transform, &rollMatrix, &transform);
+	if (roll_mode != 0) {
+		//D3DXMatrixMultiply(&rollTransform, &rollTransform, &m_rollMatrix);
+		D3DXMatrixMultiply(&transformLeft, &m_rollMatrix, &transformLeft);
+		D3DXMatrixMultiply(&transformRight, &m_rollMatrix, &transformRight);
 	}
+	
 
-	matViewTranslation = matProjectionInv * transform * reProject;
+
+	// TODO this part only needs recalculating after a 3d settings change /////////////////
+	float adjustedFrustumOffsetLeft = convergence * LEFT * 0.1f * separation;		
+	float adjustedFrustumOffsetRight = convergence * RIGHT * 0.1f * separation;		
+
+	D3DXMATRIX reProjectLeft;
+	D3DXMATRIX reProjectRight;
+	D3DXMatrixPerspectiveOffCenterLH(&reProjectLeft, l+adjustedFrustumOffsetLeft, r+adjustedFrustumOffsetLeft, b, t, n, f);
+	D3DXMatrixPerspectiveOffCenterLH(&reProjectRight, l+adjustedFrustumOffsetRight, r+adjustedFrustumOffsetRight, b, t, n, f);
+	///////////////////////////////////////////////////////////////////////////////////////
+	
+
+	matViewTranslationLeft = matProjectionInv * transformLeft * reProjectLeft;
+	matViewTranslationRight = matProjectionInv * transformRight * reProjectRight;
 }
 
 
@@ -703,7 +739,17 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 
 	
 	HandleControls();
-	HandleTracking();
+	HandleTracking(); // TODO Do this as late in frame as possible (Present)? Because input for this frame would already have been handled here so 
+	// injection of any mouse manipulation ?
+
+	// TODO Doing this now gives very current roll to frame. But should it be done with handle tracking to keep latency similar?
+	// How much latency does mouse enulation cause? Probably want direct roll manipulation and mouse emulation to occur with same delay
+	// if possible?
+	if (trackerInitialized && tracker->isAvailable() && roll_mode != 0) {
+		D3DXMatrixIdentity(&m_rollMatrix);
+		D3DXMatrixRotationZ(&m_rollMatrix, tracker->currentRoll);
+	}
+
 	ComputeViewTranslation();
 
 	return BaseDirect3DDevice9::BeginScene();
@@ -1570,6 +1616,8 @@ HRESULT WINAPI D3DProxyDevice::SetVertexShader(IDirect3DVertexShader9* pShader)
 		}
 	}
 
+	m_pVertexShaderConstantTracker->OnShaderSet();
+
 	return result;
 }
 
@@ -1582,6 +1630,40 @@ HRESULT WINAPI D3DProxyDevice::GetVertexShader(IDirect3DVertexShader9** ppShader
 
 	return D3D_OK;
 }
+
+HRESULT WINAPI D3DProxyDevice::SetVertexShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount)
+{
+	HRESULT result = BaseDirect3DDevice9::SetVertexShaderConstantF(StartRegister, pConstantData, Vector4fCount);
+
+	if (SUCCEEDED(result)) {
+		m_pVertexShaderConstantTracker->RecordShaderConstantF(StartRegister, pConstantData, Vector4fCount);
+	}
+
+	return result;
+}
+
+HRESULT WINAPI D3DProxyDevice::SetVertexShaderConstantI(UINT StartRegister,CONST int* pConstantData,UINT Vector4iCount)
+{
+	HRESULT result = BaseDirect3DDevice9::SetVertexShaderConstantI(StartRegister, pConstantData, Vector4iCount);
+
+	if (SUCCEEDED(result)) {
+		m_pVertexShaderConstantTracker->RecordShaderConstantI(StartRegister, pConstantData, Vector4iCount);
+	}
+
+	return result;
+}
+
+HRESULT WINAPI D3DProxyDevice::SetVertexShaderConstantB(UINT StartRegister,CONST BOOL* pConstantData,UINT  BoolCount)
+{
+	HRESULT result = BaseDirect3DDevice9::SetVertexShaderConstantB(StartRegister, pConstantData, BoolCount);
+
+	if (SUCCEEDED(result)) {
+		m_pVertexShaderConstantTracker->RecordShaderConstantB(StartRegister, pConstantData, BoolCount);
+	}
+
+	return result;
+}
+
 
 HRESULT WINAPI D3DProxyDevice::SetVertexDeclaration(IDirect3DVertexDeclaration9* pDecl)
 {
@@ -1670,7 +1752,7 @@ bool D3DProxyDevice::setDrawingSide(EyeSide side)
 		BaseDirect3DDevice9::SetTransform(D3DTS_VIEW, m_pCurrentView);
 	}
 
-
+	
 	// update projection transform for new side 
 	if (m_bProjectionTransformSet) {
 
@@ -1682,6 +1764,14 @@ bool D3DProxyDevice::setDrawingSide(EyeSide side)
 		}
 
 		BaseDirect3DDevice9::SetTransform(D3DTS_PROJECTION, m_pCurrentProjection);
+	}
+
+	// Updated computed view translation (used by several derived proxies - see: ComputeViewTranslation)
+	if (side == Left) {
+		m_pCurrentMatViewTransform = &matViewTranslationLeft;
+	}
+	else {
+		m_pCurrentMatViewTransform = &matViewTranslationRight;
 	}
 
 
@@ -1984,11 +2074,10 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 				D3DXMatrixMultiply(&sourceMatrix, &sourceMatrix, &rollMatrix);
 			}
 
-			// TODO caution, changes to the magic numbers -1 and 1 must also be made below in projection
-			D3DXMatrixTranslation(&transLeftMatrix, ((separation*-1)+offset)*6000.0f, 0, 0);
-			//eyeShutter *= -1;
-			D3DXMatrixTranslation(&transRightMatrix, ((separation*1)+offset)*6000.0f, 0, 0);
-			//eyeShutter *= -1;
+
+			// TODO these only need recalculating on separation changes
+			D3DXMatrixTranslation(&transLeftMatrix, ((separation * LEFT)) * 6000.0f, 0, 0);
+			D3DXMatrixTranslation(&transRightMatrix, ((separation * RIGHT)) * 6000.0f, 0, 0);
 
 			// store current left and right adjusted view matricies
 			D3DXMatrixMultiply(&m_leftView, &sourceMatrix, &transLeftMatrix);
@@ -2039,10 +2128,10 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 
 			D3DXMatrixMultiply(&sourceMatrix, &sourceMatrix, &matProjectionInv);
 
-			transMatrixLeft[8] += convergence*-1*0.0075f;
-			//eyeShutter *= -1;
-			transMatrixRight[8] += convergence*1*0.0075f;
-			//eyeShutter *= -1;
+			// TODO these only need recalculating on 3d setting changes. Also ComputeViewTranslation and this are
+			// using different calulations. Are they both correct? Can they be one code path?
+			transMatrixLeft[8] += convergence * LEFT * 0.0075f;
+			transMatrixRight[8] += convergence * RIGHT * 0.0075f;
 
 			D3DXMATRIX sourceMatrixRight(sourceMatrix);
 

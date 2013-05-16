@@ -85,7 +85,7 @@ HRESULT WINAPI D3DProxyDeviceSource::SetVertexShaderConstantF(UINT StartRegister
 
 		D3DXMatrixTranspose(&sourceMatrix, &sourceMatrix);
 			
-		sourceMatrix = sourceMatrix * matViewTranslation; 
+		sourceMatrix = sourceMatrix * (*m_pCurrentMatViewTransform);  
 
 		D3DXMatrixTranspose(&sourceMatrix, &sourceMatrix);
 
