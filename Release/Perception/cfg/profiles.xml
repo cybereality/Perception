@@ -24,7 +24,7 @@
 	<profile game_name="D3D Example" game_exe="dx9_alpha_blending_material.exe" game_type="10" separation="0.0211829" convergence="5" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="D3D Example" game_exe="dx9_alpha_blending_texture.exe" game_type="10" separation="0.0211829" convergence="5" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="D3D Example" game_exe="dx9_dot3_bump_mapping.exe" game_type="10" separation="0.0211829" convergence="5" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
-	<profile game_name="D3D Example" game_exe="dx9_fonts.exe" game_type="10" separation="0.0211829" convergence="5" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="D3D Example" game_exe="dx9_fonts.exe" game_type="10" separation="0.02" convergence="5" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="D3D Example" game_exe="dx9_point_light.exe" game_type="10" separation="0.0211829" convergence="5" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="D3D Example" game_exe="dx9_indexed_geometry.exe" game_type="10" separation="0.0211829" convergence="5" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="D3D Example" game_exe="dx9_point_sprites.exe" game_type="10" separation="0.0211829" convergence="5" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
@@ -33,7 +33,10 @@
 	<profile game_name="D3D Example" game_exe="dx9_texture_addressing.exe" game_type="10" separation="0.0166239" convergence="5" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="D3D Example" game_exe="dx9_texture_filtering.exe" game_type="10" separation="0.0139081" convergence="5" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="D3D Example" game_exe="dx9_texture_subloading.exe" game_type="10" separation="0.0211829" convergence="5" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
-	<profile game_name="Dead Rising 2" game_exe="deadrising2.exe" game_type="10" separation="0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="D3D Example" game_exe="dx9_transforms.exe" game_type="10" separation="0.0211829" convergence="5" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="D3D Example" game_exe="dx9_fps_controls.exe" game_type="10" separation="0.001" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="D3D Example" game_exe="dx9_vs20_shader_simple.exe" game_type="10" separation="0.001" convergence="2.52501" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="Dead Rising 2" game_exe="deadrising2.exe" game_type="10" separation="0.01366" convergence="5" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Borderlands" game_exe="Borderlands.exe" game_type="202" separation="0.0211829" convergence="5" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Borderlands 2" game_exe="Borderlands2.exe" game_type="202" separation="0.0211829" convergence="5" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Fallout3" game_exe="Fallout3.exe" game_type="10" separation="0.0211829" convergence="5" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
@@ -43,4 +46,5 @@
 	<profile game_name="Metro 2033" game_exe="metro2033.exe" game_type="601" separation="0.0211829" convergence="5" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="LA Noire" game_exe="LANoire.exe" game_type="10" separation="0.0211829" convergence="5" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Payday" game_exe="payday_win32_release.exe" game_type="202" separation="0.0211829" convergence="5" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="Deus Ex" game_exe="dxhr.exe" game_type="10" separation="0.0211829" convergence="5" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 </profiles>

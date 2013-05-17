@@ -51,7 +51,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy):BaseDirect3DDevice9(pDevice, pCreatedBy),
 	m_activeRenderTargets (1, NULL),
 	m_activeTextureStages(),
-	m_activeVertexBuffers()
+	m_activeVertexBuffers(),
+	m_VertexShaderConstantTracker(ShaderConstantTracker(pDevice))
 {
 	OutputDebugString("D3D ProxyDev Created\n");
 	
@@ -84,7 +85,7 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	D3DXMatrixIdentity(&m_rightProjection);	
 	D3DXMatrixIdentity(&m_rollMatrix);
 
-	m_pVertexShaderConstantTracker = new ShaderConstantTracker(pDevice);
+	//m_VertexShaderConstantTracker = new ;
 
 	centerlineR = 0.0f;
 	centerlineL = 0.0f;
@@ -101,8 +102,6 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 
 D3DProxyDevice::~D3DProxyDevice()
 {
-	delete m_pVertexShaderConstantTracker;
-
 	ReleaseEverything();
 }
 
@@ -278,7 +277,7 @@ HRESULT WINAPI D3DProxyDevice::Reset(D3DPRESENT_PARAMETERS* pPresentationParamet
 	if(stereoView)
 		stereoView->Reset();
 
-	m_pVertexShaderConstantTracker->Clear();
+	m_VertexShaderConstantTracker.Clear();
 	ReleaseEverything();
 	
 
@@ -1255,14 +1254,7 @@ HRESULT WINAPI D3DProxyDevice::GetIndices(IDirect3DIndexBuffer9** ppIndexData)
 
 
 HRESULT WINAPI D3DProxyDevice::SetStreamSource(UINT StreamNumber, IDirect3DVertexBuffer9* pStreamData, UINT OffsetInBytes, UINT Stride)
-{
-	IDirect3DVertexBuffer9* pCurrentStreamAtNumber = NULL;
-	
-	if (m_activeVertexBuffers.count(StreamNumber) == 1) {
-		pCurrentStreamAtNumber = m_activeVertexBuffers[StreamNumber];
-	}
-
-	
+{	
 	BaseDirect3DVertexBuffer9* pCastStreamData = static_cast<BaseDirect3DVertexBuffer9*>(pStreamData);
 	HRESULT result;
 	if (pStreamData) {		
@@ -1322,15 +1314,16 @@ HRESULT WINAPI D3DProxyDevice::GetStreamSource(UINT StreamNumber, IDirect3DVerte
 
 	if (m_activeVertexBuffers.count(StreamNumber) == 1) {
 
-		IDirect3DVertexBuffer9* pCurrentActual = m_activeVertexBuffers[StreamNumber]->getActual();
+		//IDirect3DVertexBuffer9* pCurrentActual = m_activeVertexBuffers[StreamNumber]->getActual();
 
-		IDirect3DVertexBuffer9* pActualResultBuffer = NULL;
-		HRESULT result = BaseDirect3DDevice9::GetStreamSource(StreamNumber, &pCurrentActual, pOffsetInBytes, pStride);
+		//IDirect3DVertexBuffer9* pActualResultBuffer = NULL;
+		//HRESULT result = BaseDirect3DDevice9::GetStreamSource(StreamNumber, &pCurrentActual, pOffsetInBytes, pStride);
 
-		if (SUCCEEDED(result)) {
-			*ppStreamData = m_activeVertexBuffers[StreamNumber];
-			(*ppStreamData)->AddRef();
-		}
+		
+		*ppStreamData = m_activeVertexBuffers[StreamNumber];
+		(*ppStreamData)->AddRef();
+		result = D3D_OK;
+		
 	}
 
 	return result;
@@ -1474,15 +1467,7 @@ HRESULT WINAPI D3DProxyDevice::GetDepthStencilSurface(IDirect3DSurface9** ppZSte
 
 
 HRESULT WINAPI D3DProxyDevice::SetTexture(DWORD Stage,IDirect3DBaseTexture9* pTexture)
-{
-	IDirect3DBaseTexture9* pCurrentTextureInStage = NULL;
-	
-	if (m_activeTextureStages.count(Stage) == 1) {
-		pCurrentTextureInStage = m_activeTextureStages[Stage];
-	}
-
-
-	
+{	
 	HRESULT result;
 	if (pTexture) {
 		
@@ -1616,7 +1601,7 @@ HRESULT WINAPI D3DProxyDevice::SetVertexShader(IDirect3DVertexShader9* pShader)
 		}
 	}
 
-	m_pVertexShaderConstantTracker->OnShaderSet();
+	m_VertexShaderConstantTracker.OnShaderSet();
 
 	return result;
 }
@@ -1636,7 +1621,7 @@ HRESULT WINAPI D3DProxyDevice::SetVertexShaderConstantF(UINT StartRegister,CONST
 	HRESULT result = BaseDirect3DDevice9::SetVertexShaderConstantF(StartRegister, pConstantData, Vector4fCount);
 
 	if (SUCCEEDED(result)) {
-		m_pVertexShaderConstantTracker->RecordShaderConstantF(StartRegister, pConstantData, Vector4fCount);
+		m_VertexShaderConstantTracker.RecordShaderConstantF(StartRegister, pConstantData, Vector4fCount);
 	}
 
 	return result;
@@ -1647,7 +1632,7 @@ HRESULT WINAPI D3DProxyDevice::SetVertexShaderConstantI(UINT StartRegister,CONST
 	HRESULT result = BaseDirect3DDevice9::SetVertexShaderConstantI(StartRegister, pConstantData, Vector4iCount);
 
 	if (SUCCEEDED(result)) {
-		m_pVertexShaderConstantTracker->RecordShaderConstantI(StartRegister, pConstantData, Vector4iCount);
+		m_VertexShaderConstantTracker.RecordShaderConstantI(StartRegister, pConstantData, Vector4iCount);
 	}
 
 	return result;
@@ -1658,7 +1643,7 @@ HRESULT WINAPI D3DProxyDevice::SetVertexShaderConstantB(UINT StartRegister,CONST
 	HRESULT result = BaseDirect3DDevice9::SetVertexShaderConstantB(StartRegister, pConstantData, BoolCount);
 
 	if (SUCCEEDED(result)) {
-		m_pVertexShaderConstantTracker->RecordShaderConstantB(StartRegister, pConstantData, BoolCount);
+		m_VertexShaderConstantTracker.RecordShaderConstantB(StartRegister, pConstantData, BoolCount);
 	}
 
 	return result;
@@ -2048,51 +2033,53 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 {
 	if(State == D3DTS_VIEW)
 	{
-		D3DXMATRIX sourceMatrix(*pMatrix);
-
-		// If the view is set to the identity then we don't need to perform any adjustments
-		if (!pMatrix || D3DXMatrixIsIdentity(&sourceMatrix)) {
-
+		if (!pMatrix) {
 			D3DXMatrixIdentity(&m_leftView);
 			D3DXMatrixIdentity(&m_rightView);
+			m_pCurrentView = NULL;
 
 			m_bViewTransformSet = false;
 		}
 		else {
-			// If the view matrix is modified we need to apply left/right adjustments (for stereo rendering)
-			// TODO do we need to keep an unmodified view for rendering mono targets or can we just use left view?
-			// TODO ComputeViewTranslation duplicates some of this. This should be using compute view 
-			D3DXMATRIX transLeftMatrix;
-			D3DXMATRIX transRightMatrix;
-			D3DXMatrixIdentity(&transLeftMatrix);
-			D3DXMatrixIdentity(&transRightMatrix);
 
-			if(trackerInitialized && tracker->isAvailable())
-			{
-				D3DXMATRIX rollMatrix;
-				D3DXMatrixRotationZ(&rollMatrix, tracker->currentRoll);
-				D3DXMatrixMultiply(&sourceMatrix, &sourceMatrix, &rollMatrix);
+			D3DXMATRIX sourceMatrix(*pMatrix);
+
+			// If the view is set to the identity then we don't need to perform any adjustments
+			if (D3DXMatrixIsIdentity(&sourceMatrix)) {
+
+				D3DXMatrixIdentity(&m_leftView);
+				D3DXMatrixIdentity(&m_rightView);
+
+				m_bViewTransformSet = false;
+			}
+			else {
+				// If the view matrix is modified we need to apply left/right adjustments (for stereo rendering)
+				// TODO do we need to keep an unmodified view for rendering mono targets or can we just use left view?
+				// TODO ComputeViewTranslation duplicates some of this. This should be using compute view 
+				D3DXMATRIX transLeftMatrix;
+				D3DXMATRIX transRightMatrix;
+				D3DXMatrixIdentity(&transLeftMatrix);
+				D3DXMatrixIdentity(&transRightMatrix);
+
+				if(trackerInitialized && tracker->isAvailable())
+				{
+					D3DXMATRIX rollMatrix;
+					D3DXMatrixRotationZ(&rollMatrix, tracker->currentRoll);
+					D3DXMatrixMultiply(&sourceMatrix, &sourceMatrix, &rollMatrix);
+				}
+
+
+				// TODO these only need recalculating on separation changes
+				D3DXMatrixTranslation(&transLeftMatrix, ((separation * LEFT)) * 6000.0f, 0, 0);
+				D3DXMatrixTranslation(&transRightMatrix, ((separation * RIGHT)) * 6000.0f, 0, 0);
+
+				// store current left and right adjusted view matricies
+				D3DXMatrixMultiply(&m_leftView, &sourceMatrix, &transLeftMatrix);
+				D3DXMatrixMultiply(&m_rightView, &sourceMatrix, &transRightMatrix);
+
+				m_bViewTransformSet = true;
 			}
 
-
-			// TODO these only need recalculating on separation changes
-			D3DXMatrixTranslation(&transLeftMatrix, ((separation * LEFT)) * 6000.0f, 0, 0);
-			D3DXMatrixTranslation(&transRightMatrix, ((separation * RIGHT)) * 6000.0f, 0, 0);
-
-			// store current left and right adjusted view matricies
-			D3DXMatrixMultiply(&m_leftView, &sourceMatrix, &transLeftMatrix);
-			D3DXMatrixMultiply(&m_rightView, &sourceMatrix, &transRightMatrix);
-
-			m_bViewTransformSet = true;
-		}
-
-		
-		
-		// Update current eye projection and actual transform
-		if (!pMatrix) {
-			m_pCurrentView = NULL;
-		}
-		else {
 			if (m_currentRenderingSide == Left) {
 				m_pCurrentView = &m_leftView;
 			}
@@ -2100,55 +2087,58 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 				m_pCurrentView = &m_rightView;
 			}
 		}
-
 		return BaseDirect3DDevice9::SetTransform(State, m_pCurrentView);
 		
 	}
 	else if(State == D3DTS_PROJECTION)
 	{
 
-
-		D3DXMATRIX sourceMatrix(*pMatrix);
-
-		// If the view is set to the identity then we don't need to perform any adjustments
-		
-		if (!pMatrix || D3DXMatrixIsIdentity(&sourceMatrix)) {
-
+		if (!pMatrix) {
+			
 			D3DXMatrixIdentity(&m_leftProjection);
 			D3DXMatrixIdentity(&m_rightProjection);
+			m_pCurrentProjection = NULL;
 
 			m_bProjectionTransformSet = false;
 		}
 		else {
-			//TODO same question as view
-			D3DXMATRIX transMatrixLeft;
-			D3DXMATRIX transMatrixRight;
-			D3DXMatrixIdentity(&transMatrixLeft);
-			D3DXMatrixIdentity(&transMatrixRight);
+			D3DXMATRIX sourceMatrix(*pMatrix);
 
-			D3DXMatrixMultiply(&sourceMatrix, &sourceMatrix, &matProjectionInv);
+			// If the view is set to the identity then we don't need to perform any adjustments
+		
+			if (D3DXMatrixIsIdentity(&sourceMatrix)) {
 
-			// TODO these only need recalculating on 3d setting changes. Also ComputeViewTranslation and this are
-			// using different calulations. Are they both correct? Can they be one code path?
-			transMatrixLeft[8] += convergence * LEFT * 0.0075f;
-			transMatrixRight[8] += convergence * RIGHT * 0.0075f;
+				D3DXMatrixIdentity(&m_leftProjection);
+				D3DXMatrixIdentity(&m_rightProjection);
 
-			D3DXMATRIX sourceMatrixRight(sourceMatrix);
+				m_bProjectionTransformSet = false;
+			}
+			else {
+				//TODO same question as view
+				D3DXMATRIX transMatrixLeft;
+				D3DXMATRIX transMatrixRight;
+				D3DXMatrixIdentity(&transMatrixLeft);
+				D3DXMatrixIdentity(&transMatrixRight);
 
-			D3DXMatrixMultiply(&sourceMatrixRight, &sourceMatrixRight, &transMatrixRight);
-			D3DXMatrixMultiply(&m_rightProjection, &sourceMatrixRight, &matProjection);
+				D3DXMatrixMultiply(&sourceMatrix, &sourceMatrix, &matProjectionInv);
 
-			D3DXMatrixMultiply(&sourceMatrix, &sourceMatrix, &transMatrixLeft);
-			D3DXMatrixMultiply(&m_leftProjection, &sourceMatrix, &matProjection);
+				// TODO these only need recalculating on 3d setting changes. Also ComputeViewTranslation and this are
+				// using different calulations. Are they both correct? Can they be one code path?
+				transMatrixLeft[8] += convergence * LEFT * 0.0075f;
+				transMatrixRight[8] += convergence * RIGHT * 0.0075f;
 
-			m_bProjectionTransformSet = true;
-		}
+				D3DXMATRIX sourceMatrixRight(sourceMatrix);
 
-		// Update current eye projection and actual transform
-		if (!pMatrix) {
-			m_pCurrentProjection = NULL;
-		}
-		else {
+				D3DXMatrixMultiply(&sourceMatrixRight, &sourceMatrixRight, &transMatrixRight);
+				D3DXMatrixMultiply(&m_rightProjection, &sourceMatrixRight, &matProjection);
+
+				D3DXMatrixMultiply(&sourceMatrix, &sourceMatrix, &transMatrixLeft);
+				D3DXMatrixMultiply(&m_leftProjection, &sourceMatrix, &matProjection);
+
+				m_bProjectionTransformSet = true;
+			}
+
+
 			if (m_currentRenderingSide == Left) {
 				m_pCurrentProjection = &m_leftProjection;
 			}

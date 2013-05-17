@@ -19,8 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef CONSTANTRECORD_H_INCLUDED
 #define CONSTANTRECORD_H_INCLUDED
 
-#include "Direct3DDevice9.h"
-#include "D3DProxyDevice.h"
+#include <Windows.h>
 
 template <class T>
 class ConstantRecord
@@ -28,22 +27,52 @@ class ConstantRecord
 public:
 	ConstantRecord(UINT StartReg, const T* pConstData, UINT dataCount, UINT countMultiplier) :
 		StartRegister(StartReg),
-		Count(dataCount) 
-	{
-		// copy data
-		T* pConstantData = new T [Count * countMultiplier];
-		std::copy(&pConstData[0], &pConstData[Count], pConstantData);
-	}
+		Count(dataCount),
+		Multiplier(countMultiplier),
+		Data(pConstData, pConstData + (Count * countMultiplier)) {}
 
-	virtual ~ConstantRecord() 
-	{
-		delete [] pConstantData;
-	}
+	virtual ~ConstantRecord() {}
 		
+	T* DataPointer() 
+	{
+		return &Data[0];
+	}
 
 	UINT StartRegister;
-	T* pConstantData;
 	UINT Count;
+	UINT Multiplier;
+	std::vector<T> Data;
 };
 
 #endif
+
+//template <class T>
+//class ConstantRecord
+//{
+//public:
+//	ConstantRecord(UINT StartReg, const T* pConstData, UINT dataCount, int countMultiplier) :
+//		StartRegister(StartReg),
+//		Count(dataCount)
+//	{
+//		//DebugBreak();
+//		OutputDebugString("Foo\n");
+//		// copy data
+//		pConstantData = NULL;
+//		pConstantData = new T [Count * countMultiplier];
+//		OutputDebugString("Bar\n");
+//		std::copy(pConstData, pConstData + (Count * countMultiplier), pConstantData);
+//		OutputDebugString("Moo\n");
+//	}
+//
+//	virtual ~ConstantRecord() 
+//	{
+//		delete [] pConstantData;
+//	}
+//		
+//
+//	UINT StartRegister;
+//	T* pConstantData;
+//	UINT Count;
+//};
+//
+//#endif

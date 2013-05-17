@@ -19,43 +19,48 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "ShaderConstantTracker.h"
 #include <utility>
+#include <assert.h>
 
 
 
 
 ShaderConstantTracker::ShaderConstantTracker(IDirect3DDevice9* pActualDevice) :
 		m_pActualDevice(pActualDevice),
-		m_floats(4),
-		m_ints(4),
-		m_bools(4)
+		m_floats(),
+		m_ints(),
+		m_bools(),
+		m_bClearPending(false)
 {
-	m_bClearPending = false;
 }
 
 ShaderConstantTracker::~ShaderConstantTracker()
 {
+	m_pActualDevice->Release();
 }
 	
 void ShaderConstantTracker::RecordShaderConstantF(UINT StartRegister, CONST float* pConstantData,UINT Vector4fCount)
 {
-	if (m_bClearPending)
+	if (m_bClearPending) {
 		Clear();
+	}
 
 	ModifyShaderConstantF(StartRegister, pConstantData, Vector4fCount);
 }
 
 void ShaderConstantTracker::RecordShaderConstantI(UINT StartRegister, CONST int* pConstantData,UINT Vector4iCount)
 {
-	if (m_bClearPending)
+	if (m_bClearPending) {
 		Clear();
+	}
 
 	ModifyShaderConstantI(StartRegister, pConstantData, Vector4iCount);
 }
 
 void ShaderConstantTracker::RecordShaderConstantB(UINT StartRegister, CONST BOOL* pConstantData, UINT  BoolCount)
 {
-	if (m_bClearPending)
+	if (m_bClearPending) {
 		Clear();
+	}
 
 	ModifyShaderConstantB(StartRegister, pConstantData, BoolCount);
 }
@@ -70,10 +75,19 @@ void ShaderConstantTracker::OnShaderSet()
 
 void ShaderConstantTracker::ModifyShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount)
 {
+	assert( _CrtCheckMemory( ) );
 	// delete existing entry if there is one
 	m_floats.erase(StartRegister);
+	assert( _CrtCheckMemory( ) );
 	
-	m_floats.insert(std::pair<UINT, ConstantRecord<float>>(StartRegister, ConstantRecord<float>(StartRegister, pConstantData, Vector4fCount, 4)));
+	ConstantRecord<float> moo (StartRegister, pConstantData, Vector4fCount, 4);
+	std::pair<UINT, ConstantRecord<float>> toInsert = std::pair<UINT, ConstantRecord<float>>(StartRegister, moo);
+	
+	m_floats.insert(toInsert);
+
+
+	////m_floats.insert(std::pair<UINT, ConstantRecord<float>>(StartRegister, ConstantRecord<float>(StartRegister, pConstantData, Vector4fCount, 4));
+	//OutputDebugString("meep\n");
 }
 
 void ShaderConstantTracker::ModifyShaderConstantI(UINT StartRegister,CONST int* pConstantData,UINT Vector4iCount)
@@ -98,21 +112,21 @@ void ShaderConstantTracker::SetAll()
 	ConstantRecord<float>* currentFloatConstant = NULL;
 	while (itF != m_floats.end()) {
 		currentFloatConstant = &(itF->second);
-		m_pActualDevice->SetVertexShaderConstantF(currentFloatConstant->StartRegister, currentFloatConstant->pConstantData, currentFloatConstant->Count);
+		m_pActualDevice->SetVertexShaderConstantF(currentFloatConstant->StartRegister, currentFloatConstant->DataPointer(), currentFloatConstant->Count);
 	}
 
 	auto itI = m_ints.begin();
 	ConstantRecord<int>* currentIntConstant = NULL;
 	while (itI != m_ints.end()) {
 		currentIntConstant = &(itI->second);
-		m_pActualDevice->SetVertexShaderConstantI(currentIntConstant->StartRegister, currentIntConstant->pConstantData, currentIntConstant->Count);
+		m_pActualDevice->SetVertexShaderConstantI(currentIntConstant->StartRegister, currentIntConstant->DataPointer(), currentIntConstant->Count);
 	}
 
 	auto itB = m_bools.begin();
 	ConstantRecord<BOOL>* currentBoolConstant = NULL;
 	while (itB != m_bools.end()) {
 		currentBoolConstant = &(itB->second);
-		m_pActualDevice->SetVertexShaderConstantB(currentBoolConstant->StartRegister, currentBoolConstant->pConstantData, currentBoolConstant->Count);
+		m_pActualDevice->SetVertexShaderConstantB(currentBoolConstant->StartRegister, currentBoolConstant->DataPointer(), currentBoolConstant->Count);
 	}
 }
 

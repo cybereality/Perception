@@ -122,8 +122,8 @@ bool D3DProxyDeviceUnreal::setDrawingSide(EyeSide side)
 		else
 			tempMatrix = tempMatrix * matViewTranslationRight; 
 
-		m_pVertexShaderConstantTracker->ModifyShaderConstantF(m_CurrentVShaderRegister, (float*)&tempMatrix, m_CurrentVShaderVec4Count);
-		m_pVertexShaderConstantTracker->SetAll();
+		m_VertexShaderConstantTracker.ModifyShaderConstantF(m_CurrentVShaderRegister, (float*)&tempMatrix, m_CurrentVShaderVec4Count);
+		m_VertexShaderConstantTracker.SetAll();
 		BaseDirect3DDevice9::SetVertexShader(m_pActiveVertexShader->getActual());
 	}
 

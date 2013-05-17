@@ -226,7 +226,7 @@ protected:
 
 	D3DXMATRIX* m_pCurrentMatViewTransform;
 	
-	ShaderConstantTracker* m_pVertexShaderConstantTracker;
+	ShaderConstantTracker m_VertexShaderConstantTracker;
 	bool m_bWaitingForNextSetOfVShaderConstants;
 	BaseDirect3DVertexShader9* m_pActiveVertexShader;
 
