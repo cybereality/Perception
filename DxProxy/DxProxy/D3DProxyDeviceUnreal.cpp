@@ -47,52 +47,52 @@ void D3DProxyDeviceUnreal::Init(ProxyHelper::ProxyConfig& cfg)
 HRESULT WINAPI D3DProxyDeviceUnreal::SetVertexShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount)
 {
 	
-	if(stereoView->initialized && Vector4fCount >= 4 && validRegister(StartRegister)) // && (fabs(pConstantData[12]) + fabs(pConstantData[13]) + fabs(pConstantData[14]) > 0.001f))
-	{
-		
-		m_matCurrentVShaderMatrix = const_cast<float*>(pConstantData);
-		m_CurrentVShaderRegister = StartRegister;
-		m_CurrentVShaderVec4Count = Vector4fCount;
-		
-		D3DXMATRIX tempMatrix;
-		if (m_currentRenderingSide == Left)
-			tempMatrix = m_matCurrentVShaderMatrix * matViewTranslationLeft; 
-		else
-			tempMatrix = m_matCurrentVShaderMatrix * matViewTranslationRight; 
+	//if(stereoView->initialized && Vector4fCount >= 4 && validRegister(StartRegister)) // && (fabs(pConstantData[12]) + fabs(pConstantData[13]) + fabs(pConstantData[14]) > 0.001f))
+	//{
+	//	
+	//	m_matCurrentVShaderMatrix = const_cast<float*>(pConstantData);
+	//	m_CurrentVShaderRegister = StartRegister;
+	//	m_CurrentVShaderVec4Count = Vector4fCount;
+	//	
+	//	D3DXMATRIX tempMatrix (m_matCurrentVShaderMatrix * matViewTranslationRight);
+	//	//if (m_currentRenderingSide == Left)
+	//	//	tempMatrix = m_matCurrentVShaderMatrix * matViewTranslationLeft; 
+	//	//else
+	//	//	tempMatrix = m_matCurrentVShaderMatrix * matViewTranslationRight; 
 
-		m_bAdjustedShaderActive = true;
+	//	m_bAdjustedShaderActive = true;
 
-		/*
-		char buf[32];
-		LPCSTR psz = NULL;
+	//	/*
+	//	char buf[32];
+	//	LPCSTR psz = NULL;
 
-		sprintf_s(buf, "sep: %f", separation);
-		psz = buf;
-		OutputDebugString(psz);
-		OutputDebugString("\n");
-		*/
+	//	sprintf_s(buf, "sep: %f", separation);
+	//	psz = buf;
+	//	OutputDebugString(psz);
+	//	OutputDebugString("\n");
+	//	*/
 
-		/*if(false && saveDebugFile)
-		{
-			char vcString[1024];
-			sprintf_s(vcString, 
-				"register: %d, count: %d\n"
-				"%.4f\t%.4f\t%.4f\t%.4f\n" 
-				"%.4f\t%.4f\t%.4f\t%.4f\n"
-				"%.4f\t%.4f\t%.4f\t%.4f\n"
-				"%.4f\t%.4f\t%.4f\t%.4f\n\n", StartRegister, Vector4fCount,
-				tempMatrix[0], tempMatrix[1], tempMatrix[2], tempMatrix[3],
-				tempMatrix[4], tempMatrix[5], tempMatrix[6], tempMatrix[7],
-				tempMatrix[8], tempMatrix[9], tempMatrix[10], tempMatrix[11],
-				tempMatrix[12], tempMatrix[13], tempMatrix[14], tempMatrix[15]
-				);
+	//	/*if(false && saveDebugFile)
+	//	{
+	//		char vcString[1024];
+	//		sprintf_s(vcString, 
+	//			"register: %d, count: %d\n"
+	//			"%.4f\t%.4f\t%.4f\t%.4f\n" 
+	//			"%.4f\t%.4f\t%.4f\t%.4f\n"
+	//			"%.4f\t%.4f\t%.4f\t%.4f\n"
+	//			"%.4f\t%.4f\t%.4f\t%.4f\n\n", StartRegister, Vector4fCount,
+	//			tempMatrix[0], tempMatrix[1], tempMatrix[2], tempMatrix[3],
+	//			tempMatrix[4], tempMatrix[5], tempMatrix[6], tempMatrix[7],
+	//			tempMatrix[8], tempMatrix[9], tempMatrix[10], tempMatrix[11],
+	//			tempMatrix[12], tempMatrix[13], tempMatrix[14], tempMatrix[15]
+	//			);
 
-			debugFile << vcString;
-		}*/
+	//		debugFile << vcString;
+	//	}*/
 
 
-		return D3DProxyDevice::SetVertexShaderConstantF(StartRegister, (float*)&tempMatrix, Vector4fCount);
-	}
+	//	return D3DProxyDevice::SetVertexShaderConstantF(StartRegister, (float*)&tempMatrix, Vector4fCount);
+	//}
 
 	return D3DProxyDevice::SetVertexShaderConstantF(StartRegister, pConstantData, Vector4fCount);
 }
@@ -112,25 +112,25 @@ bool D3DProxyDeviceUnreal::setDrawingSide(EyeSide side)
 	if (!D3DProxyDevice::setDrawingSide(side))
 		return false;
 
-	if (m_bAdjustedShaderActive) {
-		
+	//if (m_bAdjustedShaderActive) {
+	//	
 
-		// A shader may not be set at the moment (TODO clear m_bAdjustedShaderActive on end scene?)
-		if (m_pActiveVertexShader) {
-			
-			D3DXMATRIX tempMatrix;
+	//	// A shader may not be set at the moment (TODO clear m_bAdjustedShaderActive on end scene?)
+	//	if (m_pActiveVertexShader) {
+	//		
+	//		D3DXMATRIX tempMatrix(m_matCurrentVShaderMatrix * matViewTranslationRight);
 
-			if (side == Left)
-				tempMatrix = m_matCurrentVShaderMatrix * matViewTranslationLeft; 
-			else
-				tempMatrix = m_matCurrentVShaderMatrix * matViewTranslationRight; 
+	//		//if (side == Left)
+	//		//	tempMatrix = m_matCurrentVShaderMatrix * matViewTranslationLeft; 
+	//		//else
+	//		//	tempMatrix = m_matCurrentVShaderMatrix * matViewTranslationRight; 
 
-			m_VertexShaderConstantTracker.ModifyShaderConstantF(m_CurrentVShaderRegister, (float*)&tempMatrix, m_CurrentVShaderVec4Count);
-			m_VertexShaderConstantTracker.SetAll();
+	//		m_VertexShaderConstantTracker.ModifyShaderConstantF(m_CurrentVShaderRegister, (float*)&tempMatrix, m_CurrentVShaderVec4Count);
+	//		m_VertexShaderConstantTracker.SetAll();
 
-			BaseDirect3DDevice9::SetVertexShader(m_pActiveVertexShader->getActual());
-		}
-	}
+	//		BaseDirect3DDevice9::SetVertexShader(m_pActiveVertexShader->getActual());
+	//	}
+	//}
 
 	return true;
 }
