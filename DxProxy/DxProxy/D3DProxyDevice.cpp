@@ -85,7 +85,6 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	D3DXMatrixIdentity(&m_rightProjection);	
 	D3DXMatrixIdentity(&m_rollMatrix);
 
-	//m_VertexShaderConstantTracker = new ;
 
 	centerlineR = 0.0f;
 	centerlineL = 0.0f;
@@ -171,7 +170,7 @@ void D3DProxyDevice::OnCreateOrRestore()
 	m_pStereoBackBuffer = static_cast<D3D9ProxySurface*>(pTemp);
 	SetRenderTarget(0, pTemp);
 
-	BaseDirect3DDevice9::GetViewport(&m_pLastViewportSet);
+	BaseDirect3DDevice9::GetViewport(&m_LastViewportSet);
 
 
 	// If there is an initial depth stencil
@@ -261,7 +260,10 @@ void D3DProxyDevice::ReleaseEverything()
 		m_pActiveVertexDeclaration = NULL;
 	}
 	
-	
+	if (m_pPrimarySwapChain) {
+		m_pPrimarySwapChain->Release();
+		m_pPrimarySwapChain = NULL;
+	}
 }
 
 
@@ -675,6 +677,7 @@ void D3DProxyDevice::HandleControls()
 		ProxyHelper* helper = new ProxyHelper();
 		helper->SaveProfile(separation, convergence, swap_eyes, yaw_multiplier, pitch_multiplier, roll_multiplier);
 		helper->SaveUserConfig(centerlineL, centerlineR);
+		delete helper;
 	}
 
 }
@@ -1784,7 +1787,7 @@ bool D3DProxyDevice::setDrawingSide(EyeSide side)
 
 	// if a non-fullsurface viewport is active and a rendertarget changed we need to reapply the viewport
 	if (renderTargetChanged && !m_bActiveViewportIsDefault) {
-		BaseDirect3DDevice9::SetViewport(&m_pLastViewportSet);
+		BaseDirect3DDevice9::SetViewport(&m_LastViewportSet);
 	}
 		
 
@@ -2164,7 +2167,7 @@ HRESULT WINAPI D3DProxyDevice::SetViewport(CONST D3DVIEWPORT9* pViewport)
 	if (SUCCEEDED(result)) {
 
 		m_bActiveViewportIsDefault = isViewportDefaultForMainRT(pViewport);
-		m_pLastViewportSet = *pViewport;
+		m_LastViewportSet = *pViewport;
 	}
 	
 	return result;

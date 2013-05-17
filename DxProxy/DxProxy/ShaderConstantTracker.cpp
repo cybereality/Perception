@@ -31,6 +31,7 @@ ShaderConstantTracker::ShaderConstantTracker(IDirect3DDevice9* pActualDevice) :
 		m_bools(),
 		m_bClearPending(false)
 {
+	m_pActualDevice->AddRef();
 }
 
 ShaderConstantTracker::~ShaderConstantTracker()
@@ -78,13 +79,14 @@ void ShaderConstantTracker::ModifyShaderConstantF(UINT StartRegister,CONST float
 	assert( _CrtCheckMemory( ) );
 	// delete existing entry if there is one
 	m_floats.erase(StartRegister);
-	assert( _CrtCheckMemory( ) );
+	 _CrtCheckMemory( ) ;
 	
 	ConstantRecord<float> moo (StartRegister, pConstantData, Vector4fCount, 4);
 	std::pair<UINT, ConstantRecord<float>> toInsert = std::pair<UINT, ConstantRecord<float>>(StartRegister, moo);
 	
 	m_floats.insert(toInsert);
-
+	_CrtCheckMemory( );
+	//ConstantRecord<float> moo2 = m_floats.at(4);
 
 	////m_floats.insert(std::pair<UINT, ConstantRecord<float>>(StartRegister, ConstantRecord<float>(StartRegister, pConstantData, Vector4fCount, 4));
 	//OutputDebugString("meep\n");
