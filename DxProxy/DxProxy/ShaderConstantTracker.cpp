@@ -76,27 +76,17 @@ void ShaderConstantTracker::OnShaderSet()
 
 void ShaderConstantTracker::ModifyShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount)
 {
-	assert( _CrtCheckMemory( ) );
 	// delete existing entry if there is one
 	m_floats.erase(StartRegister);
-	 _CrtCheckMemory( ) ;
-	
-	ConstantRecord<float> moo (StartRegister, pConstantData, Vector4fCount, 4);
-	std::pair<UINT, ConstantRecord<float>> toInsert = std::pair<UINT, ConstantRecord<float>>(StartRegister, moo);
-	
-	m_floats.insert(toInsert);
-	_CrtCheckMemory( );
-	//ConstantRecord<float> moo2 = m_floats.at(4);
 
-	////m_floats.insert(std::pair<UINT, ConstantRecord<float>>(StartRegister, ConstantRecord<float>(StartRegister, pConstantData, Vector4fCount, 4));
-	//OutputDebugString("meep\n");
+	m_floats.insert(std::pair<UINT, ConstantRecord<float>>(StartRegister, ConstantRecord<float>(StartRegister, pConstantData, Vector4fCount, 4)));
 }
 
 void ShaderConstantTracker::ModifyShaderConstantI(UINT StartRegister,CONST int* pConstantData,UINT Vector4iCount)
 {
 	// delete existing entry if there is one
 	m_ints.erase(StartRegister);
-	
+
 	m_ints.insert(std::pair<UINT, ConstantRecord<int>>(StartRegister, ConstantRecord<int>(StartRegister, pConstantData, Vector4iCount, 4)));
 }
 
@@ -111,24 +101,21 @@ void ShaderConstantTracker::ModifyShaderConstantB(UINT StartRegister,CONST BOOL*
 void ShaderConstantTracker::SetAll()
 {
 	auto itF = m_floats.begin();
-	ConstantRecord<float>* currentFloatConstant = NULL;
 	while (itF != m_floats.end()) {
-		currentFloatConstant = &(itF->second);
-		m_pActualDevice->SetVertexShaderConstantF(currentFloatConstant->StartRegister, currentFloatConstant->DataPointer(), currentFloatConstant->Count);
+		m_pActualDevice->SetVertexShaderConstantF(itF->second.StartRegister, itF->second.DataPointer(), itF->second.Count);
+		++itF;
 	}
 
 	auto itI = m_ints.begin();
-	ConstantRecord<int>* currentIntConstant = NULL;
 	while (itI != m_ints.end()) {
-		currentIntConstant = &(itI->second);
-		m_pActualDevice->SetVertexShaderConstantI(currentIntConstant->StartRegister, currentIntConstant->DataPointer(), currentIntConstant->Count);
+		m_pActualDevice->SetVertexShaderConstantI(itI->second.StartRegister, itI->second.DataPointer(), itI->second.Count);
+		++itI;
 	}
 
 	auto itB = m_bools.begin();
-	ConstantRecord<BOOL>* currentBoolConstant = NULL;
 	while (itB != m_bools.end()) {
-		currentBoolConstant = &(itB->second);
-		m_pActualDevice->SetVertexShaderConstantB(currentBoolConstant->StartRegister, currentBoolConstant->DataPointer(), currentBoolConstant->Count);
+		m_pActualDevice->SetVertexShaderConstantB(itB->second.StartRegister, itB->second.DataPointer(), itB->second.Count);
+		++itB;
 	}
 }
 
