@@ -43,7 +43,7 @@ public:
 protected:
 
 	bool	m_bAdjustedShaderActive;
-	float*	m_pCurrentVShaderMatrix;
+	D3DXMATRIX	m_matCurrentVShaderMatrix;
 	UINT	m_CurrentVShaderRegister;
 	UINT	m_CurrentVShaderVec4Count;
 };

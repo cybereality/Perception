@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 D3DProxyDeviceUnreal::D3DProxyDeviceUnreal(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy):D3DProxyDevice(pDevice, pCreatedBy)
 {
-	m_pCurrentVShaderMatrix = NULL;
+	D3DXMatrixIdentity(&m_matCurrentVShaderMatrix);
 	m_CurrentVShaderRegister = 0;
 	m_CurrentVShaderVec4Count = -1;
 	m_bAdjustedShaderActive = false;
@@ -50,16 +50,15 @@ HRESULT WINAPI D3DProxyDeviceUnreal::SetVertexShaderConstantF(UINT StartRegister
 	if(stereoView->initialized && Vector4fCount >= 4 && validRegister(StartRegister)) // && (fabs(pConstantData[12]) + fabs(pConstantData[13]) + fabs(pConstantData[14]) > 0.001f))
 	{
 		
-		m_pCurrentVShaderMatrix = const_cast<float*>(pConstantData);
+		m_matCurrentVShaderMatrix = const_cast<float*>(pConstantData);
 		m_CurrentVShaderRegister = StartRegister;
 		m_CurrentVShaderVec4Count = Vector4fCount;
 		
-		D3DXMATRIX tempMatrix(m_pCurrentVShaderMatrix);
-		
+		D3DXMATRIX tempMatrix;
 		if (m_currentRenderingSide == Left)
-			tempMatrix = tempMatrix * matViewTranslationLeft; 
+			tempMatrix = m_matCurrentVShaderMatrix * matViewTranslationLeft; 
 		else
-			tempMatrix = tempMatrix * matViewTranslationRight; 
+			tempMatrix = m_matCurrentVShaderMatrix * matViewTranslationRight; 
 
 		m_bAdjustedShaderActive = true;
 
@@ -114,17 +113,23 @@ bool D3DProxyDeviceUnreal::setDrawingSide(EyeSide side)
 		return false;
 
 	if (m_bAdjustedShaderActive) {
-		D3DXMATRIX tempMatrix(m_pCurrentVShaderMatrix);
-		//tempMatrix = tempMatrix * (*m_pCurrentMatViewTransform); 
+		
 
-		if (side == Left)
-			tempMatrix = tempMatrix * matViewTranslationLeft; 
-		else
-			tempMatrix = tempMatrix * matViewTranslationRight; 
+		// A shader may not be set at the moment (TODO clear m_bAdjustedShaderActive on end scene?)
+		if (m_pActiveVertexShader) {
+			
+			D3DXMATRIX tempMatrix;
 
-		m_VertexShaderConstantTracker.ModifyShaderConstantF(m_CurrentVShaderRegister, (float*)&tempMatrix, m_CurrentVShaderVec4Count);
-		m_VertexShaderConstantTracker.SetAll();
-		BaseDirect3DDevice9::SetVertexShader(m_pActiveVertexShader->getActual());
+			if (side == Left)
+				tempMatrix = m_matCurrentVShaderMatrix * matViewTranslationLeft; 
+			else
+				tempMatrix = m_matCurrentVShaderMatrix * matViewTranslationRight; 
+
+			m_VertexShaderConstantTracker.ModifyShaderConstantF(m_CurrentVShaderRegister, (float*)&tempMatrix, m_CurrentVShaderVec4Count);
+			m_VertexShaderConstantTracker.SetAll();
+
+			BaseDirect3DDevice9::SetVertexShader(m_pActiveVertexShader->getActual());
+		}
 	}
 
 	return true;

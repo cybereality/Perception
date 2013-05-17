@@ -35,7 +35,7 @@
 	<profile game_name="D3D Example" game_exe="dx9_texture_subloading.exe" game_type="10" separation="0.0211829" convergence="5" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="D3D Example" game_exe="dx9_transforms.exe" game_type="10" separation="0.0211829" convergence="5" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="D3D Example" game_exe="dx9_fps_controls.exe" game_type="10" separation="0.001" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
-	<profile game_name="D3D Example" game_exe="dx9_vs20_shader_simple.exe" game_type="202" separation="0.001" convergence="3.98505" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="D3D Example" game_exe="dx9_vs20_shader_simple.exe" game_type="202" separation="0.001" convergence="4.12005" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Dead Rising 2" game_exe="deadrising2.exe" game_type="10" separation="0.01366" convergence="5" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Borderlands" game_exe="Borderlands.exe" game_type="202" separation="0.0211829" convergence="5" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Borderlands 2" game_exe="Borderlands2.exe" game_type="202" separation="0.0211829" convergence="5" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
