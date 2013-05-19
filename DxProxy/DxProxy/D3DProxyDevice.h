@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Direct3DDevice9.h"
 #include "D3D9ProxySurface.h"
 #include "D3D9ProxyTexture.h"
+#include "D3D9ProxyStateBlock.h"
 #include "Direct3DSwapChain9.h"
 #include "Direct3DVertexBuffer9.h"
 #include "Direct3DIndexBuffer9.h"
@@ -29,7 +30,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Direct3DVertexShader9.h"
 #include "Direct3DVertexDeclaration9.h"
 #include "Direct3DQuery9.h"
-#include "Direct3DStateBlock9.h"
 #include "ProxyHelper.h"
 #include "StereoView.h"
 #include "MotionTracker.h"
@@ -42,18 +42,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ShaderConstantTracker.h"
 
 
-#define LEFT -1
-#define RIGHT 1
+#define LEFT_CONSTANT -1
+#define RIGHT_CONSTANT 1
 
 
 class StereoView;
-class ShaderConstantTracker;
 
 class D3DProxyDevice : public BaseDirect3DDevice9
 {
 public:
 	D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy);
 	virtual ~D3DProxyDevice();
+
+	friend class D3D9ProxyStateBlock;
 
 	virtual void Init(ProxyHelper::ProxyConfig& cfg);
 	
@@ -109,6 +110,7 @@ public:
 	virtual HRESULT WINAPI SetVertexShaderConstantB(UINT StartRegister,CONST BOOL* pConstantData,UINT  BoolCount);
 	virtual HRESULT WINAPI SetVertexDeclaration(IDirect3DVertexDeclaration9* pDecl);
 	virtual HRESULT WINAPI GetVertexDeclaration(IDirect3DVertexDeclaration9** ppDecl);
+	virtual HRESULT WINAPI BeginStateBlock();
 	virtual HRESULT WINAPI EndStateBlock(IDirect3DStateBlock9** ppSB);
 	virtual HRESULT WINAPI Present(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion);
 	virtual HRESULT WINAPI GetBackBuffer(UINT iSwapChain,UINT iBackBuffer,D3DBACKBUFFER_TYPE Type,IDirect3DSurface9** ppBackBuffer);
@@ -121,6 +123,7 @@ public:
 	virtual HRESULT WINAPI UpdateSurface(IDirect3DSurface9* pSourceSurface,CONST RECT* pSourceRect,IDirect3DSurface9* pDestinationSurface,CONST POINT* pDestPoint);
 	virtual HRESULT WINAPI UpdateTexture(IDirect3DBaseTexture9* pSourceTexture,IDirect3DBaseTexture9* pDestinationTexture);
 	virtual HRESULT WINAPI SetTransform(D3DTRANSFORMSTATETYPE State,CONST D3DMATRIX* pMatrix);
+	virtual HRESULT WINAPI MultiplyTransform(D3DTRANSFORMSTATETYPE State,CONST D3DMATRIX* pMatrix);
 	virtual HRESULT WINAPI SetViewport(CONST D3DVIEWPORT9* pViewport);
 
 

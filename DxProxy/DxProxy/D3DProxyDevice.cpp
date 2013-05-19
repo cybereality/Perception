@@ -79,6 +79,7 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	m_bViewTransformSet = false;
 	m_bProjectionTransformSet = false;
 
+
 	D3DXMatrixIdentity(&m_leftView);
 	D3DXMatrixIdentity(&m_rightView);
 	D3DXMatrixIdentity(&m_leftProjection);
@@ -356,8 +357,8 @@ void D3DProxyDevice::ComputeViewTranslation()
 {
 	D3DXMATRIX transformLeft;
 	D3DXMATRIX transformRight;
-	D3DXMatrixTranslation(&transformLeft, separation * LEFT * 10.0f /*+ offset * 10.0f*/, 0, 0);
-	D3DXMatrixTranslation(&transformRight, separation * RIGHT * 10.0f /*+ offset * 10.0f*/, 0, 0);
+	D3DXMatrixTranslation(&transformLeft, separation * LEFT_CONSTANT * 10.0f /*+ offset * 10.0f*/, 0, 0);
+	D3DXMatrixTranslation(&transformRight, separation * RIGHT_CONSTANT * 10.0f /*+ offset * 10.0f*/, 0, 0);
 
 	D3DXMATRIX rollTransform;
 	D3DXMatrixIdentity(&rollTransform);
@@ -371,8 +372,8 @@ void D3DProxyDevice::ComputeViewTranslation()
 
 
 	// TODO this part only needs recalculating after a 3d settings change /////////////////
-	float adjustedFrustumOffsetLeft = convergence * LEFT * 0.1f * separation;		
-	float adjustedFrustumOffsetRight = convergence * RIGHT * 0.1f * separation;		
+	float adjustedFrustumOffsetLeft = convergence * LEFT_CONSTANT * 0.1f * separation;		
+	float adjustedFrustumOffsetRight = convergence * RIGHT_CONSTANT * 0.1f * separation;		
 
 	D3DXMATRIX reProjectLeft;
 	D3DXMATRIX reProjectRight;
@@ -1094,8 +1095,15 @@ HRESULT WINAPI D3DProxyDevice::CreateStateBlock(D3DSTATEBLOCKTYPE Type,IDirect3D
 	IDirect3DStateBlock9* pActualStateBlock = NULL;
 	HRESULT creationResult = BaseDirect3DDevice9::CreateStateBlock(Type, &pActualStateBlock);
 
-	if (SUCCEEDED(creationResult))
+	if (SUCCEEDED(creationResult)) {
 		*ppSB = new BaseDirect3DStateBlock9(pActualStateBlock, this);
+
+		// TODO record stereo state.
+		// record side (by recording side we can switch to the correct side before applying state to actual devie and not have to reapply the correct stereo side after )
+		// record all wrapped stereo states
+		// record all wrapped states (ie current shaders, etc)
+		// View, projection and world matricies
+	}
 
 	return creationResult;
 }
@@ -1104,10 +1112,13 @@ HRESULT WINAPI D3DProxyDevice::CreateStateBlock(D3DSTATEBLOCKTYPE Type,IDirect3D
 
 HRESULT WINAPI D3DProxyDevice::Clear(DWORD Count,CONST D3DRECT* pRects,DWORD Flags,D3DCOLOR Color,float Z,DWORD Stencil)
 {
+
 	HRESULT result;
 	if (SUCCEEDED(result = BaseDirect3DDevice9::Clear(Count, pRects, Flags, Color, Z, Stencil))) {
 		if (switchDrawingSide())
-			BaseDirect3DDevice9::Clear(Count, pRects, Flags, Color, Z, Stencil);
+			if (FAILED(BaseDirect3DDevice9::Clear(Count, pRects, Flags, Color, Z, Stencil))) {
+				OutputDebugString("Clear failed\n");
+			}
 	}
 
 	return result;
@@ -1143,8 +1154,11 @@ HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitive(D3DPRIMITIVETYPE PrimitiveTy
 {
 	HRESULT result;
 	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawIndexedPrimitive(PrimitiveType, BaseVertexIndex, MinVertexIndex, NumVertices, startIndex, primCount))) {
-		if (switchDrawingSide())
-			BaseDirect3DDevice9::DrawIndexedPrimitive(PrimitiveType, BaseVertexIndex, MinVertexIndex, NumVertices, startIndex, primCount);
+		if (switchDrawingSide()) {
+			HRESULT result2 = BaseDirect3DDevice9::DrawIndexedPrimitive(PrimitiveType, BaseVertexIndex, MinVertexIndex, NumVertices, startIndex, primCount);
+			if (result != result2)
+				OutputDebugString("moop\n");
+		}
 	}
 
 	return result;
@@ -1686,6 +1700,13 @@ HRESULT WINAPI D3DProxyDevice::GetVertexDeclaration(IDirect3DVertexDeclaration9*
 	return D3D_OK;
 }
 
+HRESULT WINAPI D3DProxyDevice::BeginStateBlock()
+{
+	//OutputDebugString(__FUNCTION__); 
+	//OutputDebugString("\n"); 
+	return BaseDirect3DDevice9::BeginStateBlock();
+}
+
 HRESULT WINAPI D3DProxyDevice::EndStateBlock(IDirect3DStateBlock9** ppSB)
 {
 	IDirect3DStateBlock9* pActualStateBlock = NULL;
@@ -1699,10 +1720,19 @@ HRESULT WINAPI D3DProxyDevice::EndStateBlock(IDirect3DStateBlock9** ppSB)
 
 bool D3DProxyDevice::switchDrawingSide()
 {
-	if (m_currentRenderingSide == Left)
-		return setDrawingSide(Right);
-	else 
-		return setDrawingSide(Left);
+	bool switched = false;
+
+	if (m_currentRenderingSide == Left) {
+		switched = setDrawingSide(Right);
+	}
+	else if (m_currentRenderingSide == Right) {
+		switched = setDrawingSide(Left);
+	}
+	else {
+		DebugBreak();
+	}
+
+	return switched;
 }
 
 
@@ -1716,48 +1746,19 @@ bool D3DProxyDevice::switchDrawingSide()
 bool D3DProxyDevice::setDrawingSide(EyeSide side)
 {
 	// Already on the correct eye
-	if (side == m_currentRenderingSide)
+	if (side == m_currentRenderingSide) {
 		return true;
+	}
+
+
 
 	// should never try and render for the right eye if there is no render target for the main render targets right side
-	if (!m_activeRenderTargets[0]->IsStereo() && (side == Right)) 
+	if (!m_activeRenderTargets[0]->IsStereo() && (side == Right)) {
 		return false;
-
-
-	// update view transform for new side 
-	if (m_bViewTransformSet) {
-
-		if (side == Left) {
-			m_pCurrentView = &m_leftView;
-		}
-		else {
-			m_pCurrentView = &m_rightView;
-		}
-
-		BaseDirect3DDevice9::SetTransform(D3DTS_VIEW, m_pCurrentView);
 	}
+
 
 	
-	// update projection transform for new side 
-	if (m_bProjectionTransformSet) {
-
-		if (side == Left) {
-			m_pCurrentProjection = &m_leftProjection;
-		}
-		else {
-			m_pCurrentProjection = &m_rightProjection;
-		}
-
-		BaseDirect3DDevice9::SetTransform(D3DTS_PROJECTION, m_pCurrentProjection);
-	}
-
-	// Updated computed view translation (used by several derived proxies - see: ComputeViewTranslation)
-	if (side == Left) {
-		m_pCurrentMatViewTransform = &matViewTranslationLeft;
-	}
-	else {
-		m_pCurrentMatViewTransform = &matViewTranslationRight;
-	}
 
 
 	// switch render targets to new side
@@ -1825,6 +1826,42 @@ bool D3DProxyDevice::setDrawingSide(EyeSide side)
 			OutputDebugString("Warn: Null pointer in m_activeTextureStages.\n");
 	}
 
+
+	// update view transform for new side 
+	if (m_bViewTransformSet) {
+
+		if (side == Left) {
+			m_pCurrentView = &m_leftView;
+		}
+		else {
+			m_pCurrentView = &m_rightView;
+		}
+
+		BaseDirect3DDevice9::SetTransform(D3DTS_VIEW, m_pCurrentView);
+	}
+
+	
+	// update projection transform for new side 
+	if (m_bProjectionTransformSet) {
+
+		if (side == Left) {
+			m_pCurrentProjection = &m_leftProjection;
+		}
+		else {
+			m_pCurrentProjection = &m_rightProjection;
+		}
+
+		BaseDirect3DDevice9::SetTransform(D3DTS_PROJECTION, m_pCurrentProjection);
+	}
+
+
+	// Updated computed view translation (used by several derived proxies - see: ComputeViewTranslation)
+	if (side == Left) {
+		m_pCurrentMatViewTransform = &matViewTranslationLeft;
+	}
+	else {
+		m_pCurrentMatViewTransform = &matViewTranslationRight;
+	}
 
 	m_currentRenderingSide = side;
 
@@ -2070,8 +2107,8 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 
 
 				// TODO these only need recalculating on separation changes
-				D3DXMatrixTranslation(&transLeftMatrix, ((separation * LEFT)) * 6000.0f, 0, 0);
-				D3DXMatrixTranslation(&transRightMatrix, ((separation * RIGHT)) * 6000.0f, 0, 0);
+				D3DXMatrixTranslation(&transLeftMatrix, ((separation * LEFT_CONSTANT)) * 6000.0f, 0, 0);
+				D3DXMatrixTranslation(&transRightMatrix, ((separation * RIGHT_CONSTANT)) * 6000.0f, 0, 0);
 
 				// store current left and right adjusted view matricies
 				D3DXMatrixMultiply(&m_leftView, &sourceMatrix, &transLeftMatrix);
@@ -2124,8 +2161,8 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 
 				// TODO these only need recalculating on 3d setting changes. Also ComputeViewTranslation and this are
 				// using different calulations. Are they both correct? Can they be one code path?
-				transMatrixLeft[8] += convergence * LEFT * 0.0075f;
-				transMatrixRight[8] += convergence * RIGHT * 0.0075f;
+				transMatrixLeft[8] += convergence * LEFT_CONSTANT * 0.0075f;
+				transMatrixRight[8] += convergence * RIGHT_CONSTANT * 0.0075f;
 
 				D3DXMATRIX sourceMatrixRight(sourceMatrix);
 
@@ -2152,6 +2189,17 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 
 	return BaseDirect3DDevice9::SetTransform(State, pMatrix);
 }
+
+
+HRESULT WINAPI D3DProxyDevice::MultiplyTransform(D3DTRANSFORMSTATETYPE State,CONST D3DMATRIX* pMatrix)
+{
+	OutputDebugString(__FUNCTION__); 
+	OutputDebugString("\n"); 
+	OutputDebugString("Not implemented - Fix Me!\n"); 
+
+	return BaseDirect3DDevice9::MultiplyTransform(State, pMatrix);
+}
+
 
 HRESULT WINAPI D3DProxyDevice::SetViewport(CONST D3DVIEWPORT9* pViewport)
 {

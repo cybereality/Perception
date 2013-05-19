@@ -111,6 +111,7 @@
     <ClCompile Include="D3D9ProxyTexture.cpp" />
     <ClCompile Include="D3D9ProxyVolume.cpp" />
     <ClCompile Include="D3D9ProxyVolumeTexture.cpp" />
+    <ClCompile Include="D3D9ProxyStateBlock.cpp" />
     <ClCompile Include="D3DProxyDevice.cpp" />
     <ClCompile Include="D3DProxyDeviceAdv.cpp" />
     <ClCompile Include="D3DProxyDeviceEgo.cpp" />
@@ -159,6 +160,7 @@
     <ClInclude Include="D3D9ProxyTexture.h" />
     <ClInclude Include="D3D9ProxyVolume.h" />
     <ClInclude Include="D3D9ProxyVolumeTexture.h" />
+    <ClInclude Include="D3D9ProxyStateBlock.h" />
     <ClInclude Include="D3DProxyDevice.h" />
     <ClInclude Include="D3DProxyDeviceAdv.h" />
     <ClInclude Include="D3DProxyDeviceEgo.h" />
