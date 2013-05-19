@@ -3,16 +3,16 @@ Vireio Perception: Open-Source Stereoscopic 3D Driver
 Copyright (C) 2012 Andres Hernandez
 
 This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
+it under the terms of the GNU Lesser General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU Lesser General Public License for more details.
 
-You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
@@ -39,7 +39,9 @@ public:
 		ANAGLYPH_GREEN_MAGENTA = 10,
 		ANAGLYPH_GREEN_MAGENTA_GRAY = 11,
 		SIDE_BY_SIDE = 20,
-		SIDE_BY_SIDE_RIFT = 25,
+		DIY_RIFT = 25,
+		OCULUS_RIFT = 26,
+		OCULUS_RIFT_CROPPED = 27,
 		OVER_UNDER = 30,
 		INTERLEAVE_HORZ = 40,
 		INTERLEAVE_VERT = 50,
@@ -65,6 +67,7 @@ public:
 	virtual void UpdateEye(int eye);
 	virtual void SaveScreen();
 	virtual void SwapEyes(bool doSwap);
+	virtual void Reset();
 
 	IDirect3DDevice9* device;
 
@@ -109,6 +112,7 @@ public:
 	IDirect3DPixelShader9* lastPixelShader;
 	IDirect3DBaseTexture9* lastTexture;
 	IDirect3DBaseTexture9* lastTexture1;
+	IDirect3DVertexDeclaration9* lastVertexDeclaration;
 
 	IDirect3DSurface9* lastRenderTarget0;
 	IDirect3DSurface9* lastRenderTarget1;
@@ -120,7 +124,20 @@ public:
 	int stereo_mode;
 	bool swap_eyes;
 
+	int stereoEnabled;
+
+	/// for OculusRiftView adjustments in D3DProxyDevice
+	float LensCenter[2];
+	float LensShift[2];
+	float ScreenCenter[2];
+	float Scale[2];
+	float ScaleIn[2];
+	float HmdWarpParam[4];
+	///
+
 	std::map<int, std::string> shaderEffect;
+
+	float DistortionScale;	// used by OculusRiftView and D3DProxyDevice
 };
 
 const DWORD D3DFVF_TEXVERTEX = D3DFVF_XYZRHW | D3DFVF_TEX1;

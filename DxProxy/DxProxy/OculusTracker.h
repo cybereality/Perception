@@ -16,25 +16,37 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#ifndef D3DPROXYDEVICESOURCE_H_INCLUDED
-#define D3DPROXYDEVICESOURCE_H_INCLUDED
+#ifndef OCULUSTRACKER_H_INCLUDED
+#define OCULUSTRACKER_H_INCLUDED
 
-#include "Direct3DDevice9.h"
-#include "D3DProxyDevice.h"
-#include <d3dx9.h>
+#define PI 3.141592654
+#define RADIANS_TO_DEGREES(rad) ((float) rad * (float) (180.0 / PI))
 
-class D3DProxyDeviceSource : public D3DProxyDevice
+#include "MotionTracker.h"
+#include "..\..\LibOVR\Include\OVR.h"
+
+using namespace OVR;
+
+class OculusTracker : public MotionTracker
 {
 public:
-	D3DProxyDeviceSource(IDirect3DDevice9* pDevice);
-	virtual ~D3DProxyDeviceSource();
-	virtual HRESULT WINAPI EndScene();
-	virtual HRESULT WINAPI Present(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion);
-	virtual HRESULT WINAPI SetVertexShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
+	OculusTracker(void);
+	virtual ~OculusTracker(void);
 
-	void Init(ProxyHelper::ProxyConfig& cfg);
-	bool validRegister(UINT reg);
-	int getMatrixIndex();
-};
+	int getOrientation(float* yaw, float* pitch, float* roll);
+	bool isAvailable();
+	void updateOrientation();
+	int init();
+
+private:
+    Ptr<DeviceManager> pManager;
+    Ptr<HMDDevice>     pHMD;
+    Ptr<SensorDevice>  pSensor;
+
+    SensorFusion       SFusion;
+
+	Quatf hmdOrient;
+ };
+
 
 #endif

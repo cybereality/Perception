@@ -3,16 +3,16 @@ Vireio Perception: Open-Source Stereoscopic 3D Driver
 Copyright (C) 2012 Andres Hernandez
 
 This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
+it under the terms of the GNU Lesser General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU Lesser General Public License for more details.
 
-You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
@@ -76,14 +76,17 @@ void MotionTracker::updateOrientation()
 			yaw = fmodf(RADIANS_TO_DEGREES(yaw) + 360.0f, 360.0f)*multiplierYaw;
 			pitch = -fmodf(RADIANS_TO_DEGREES(pitch) + 360.0f, 360.0f)*multiplierPitch;
 
-			deltaYaw = yaw - currentYaw;
-			deltaPitch = pitch - currentPitch;
+			deltaYaw += yaw - currentYaw;
+			deltaPitch += pitch - currentPitch;
 
 			if(fabs(deltaYaw) > 100.0f) deltaYaw = 0.0f;
 			if(fabs(deltaPitch) > 100.0f) deltaPitch = 0.0f;
 			
 			mouseData.mi.dx = (long)(deltaYaw);
 			mouseData.mi.dy = (long)(deltaPitch);
+			// Keep fractional difference in the delta so it's added to the next update.
+			deltaYaw -= (float)mouseData.mi.dx;
+			deltaPitch -= (float)mouseData.mi.dy;
 		
 			//OutputDebugString("Motion Tracker SendInput\n");
 			SendInput(1, &mouseData, sizeof(INPUT));

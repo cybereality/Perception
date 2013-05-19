@@ -15,26 +15,44 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
+#ifndef SHAREDMEMORY_TRACKER_H_INCLUDED
+#define SHAREDMEMORY_TRACKER_H_INCLUDED
 
-#ifndef D3DPROXYDEVICESOURCE_H_INCLUDED
-#define D3DPROXYDEVICESOURCE_H_INCLUDED
 
-#include "Direct3DDevice9.h"
-#include "D3DProxyDevice.h"
-#include <d3dx9.h>
+#include "MotionTracker.h"
 
-class D3DProxyDeviceSource : public D3DProxyDevice
+#include <string>
+
+struct TrackData
+{
+	int DataID;				// increased every time data has been sent
+
+	float Yaw;
+	float Pitch;
+	float Roll;
+
+	float X;
+	float Y;
+	float Z;
+};
+
+class SharedMemoryTracker : public MotionTracker
 {
 public:
-	D3DProxyDeviceSource(IDirect3DDevice9* pDevice);
-	virtual ~D3DProxyDeviceSource();
-	virtual HRESULT WINAPI EndScene();
-	virtual HRESULT WINAPI Present(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion);
-	virtual HRESULT WINAPI SetVertexShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
+	SharedMemoryTracker(void);
+	~SharedMemoryTracker(void);
 
-	void Init(ProxyHelper::ProxyConfig& cfg);
-	bool validRegister(UINT reg);
-	int getMatrixIndex();
+	int getOrientation(float* yaw, float* pitch, float* roll);
+	bool isAvailable();
+	void updateOrientation();
+	int init();
+
+private:
+	HANDLE hMapFile;
+	TrackData* pTrackBuf;
+
+	bool openSharedMemory();
 };
+
 
 #endif

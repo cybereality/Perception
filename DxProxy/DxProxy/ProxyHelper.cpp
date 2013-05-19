@@ -3,16 +3,16 @@ Vireio Perception: Open-Source Stereoscopic 3D Driver
 Copyright (C) 2012 Andres Hernandez
 
 This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
+it under the terms of the GNU Lesser General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU Lesser General Public License for more details.
 
-You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
@@ -123,6 +123,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config)
 	config.tracker_mode = 0;
 	config.separation = 0.0f;
 	config.convergence = 0.0f;
+	config.swap_eyes = false;
 	config.aspect_multiplier = 1.0f;
 
 	// load the base dir for the app
@@ -201,10 +202,13 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config)
 
 		config.separation = gameProfile.attribute("separation").as_float();
 		config.convergence = gameProfile.attribute("convergence").as_float();
+		config.swap_eyes = gameProfile.attribute("swap_eyes").as_bool();
 		config.yaw_multiplier = gameProfile.attribute("yaw_multiplier").as_float();
 		config.pitch_multiplier = gameProfile.attribute("pitch_multiplier").as_float();
 		config.roll_multiplier = gameProfile.attribute("roll_multiplier").as_float();
 	}
+
+	LoadUserConfig(config);
 
 	return fileFound && profileFound;
 }
@@ -372,6 +376,93 @@ bool ProxyHelper::SaveConfig2(int mode)
 	return false;
 }
 
+
+
+bool ProxyHelper::LoadUserConfig(ProxyConfig& config)
+{
+	config.centerlineL = 0.0f;
+	config.centerlineR = 0.0f;
+	// get the user_profile
+	bool userFound = false;
+	char usersPath[512];
+	GetPath(usersPath, "cfg\\users.xml");
+	OutputDebugString(usersPath);
+	OutputDebugString("\n");
+
+	xml_document docUsers;
+	xml_parse_result resultUsers = docUsers.load_file(usersPath);
+	xml_node users;
+	xml_node userProfile;
+	
+
+
+	if(resultUsers.status == status_ok)
+	{
+		xml_node xml_user_profiles = docUsers.child("users");
+
+		for (xml_node user_profile = xml_user_profiles.child("user"); user_profile; user_profile = user_profile.next_sibling("user"))
+		{
+			if(strcmp("default", user_profile.attribute("user_name").value()) == 0)
+			{
+				OutputDebugString("Load the specific user!!!\n");
+				userProfile = user_profile;
+				userFound = true;
+				config.centerlineL = userProfile.attribute("centerlineL").as_float();
+				config.centerlineR = userProfile.attribute("centerlineR").as_float();
+				break;
+			}
+		}
+	}
+	return userFound;
+}
+
+bool ProxyHelper::SaveUserConfig(float centerlineL, float centerlineR)
+{
+	// get the profile
+	bool profileFound = false;
+	bool profileSaved = false;
+	char profilePath[512];
+	GetPath(profilePath, "cfg\\users.xml");
+	OutputDebugString(profilePath);
+	OutputDebugString("\n");
+
+	xml_document docProfiles;
+	xml_parse_result resultProfiles = docProfiles.load_file(profilePath);
+	xml_node profile;
+	xml_node gameProfile;
+
+	if(resultProfiles.status == status_ok)
+	{
+		xml_node xml_profiles = docProfiles.child("users");
+
+		for (xml_node profile = xml_profiles.child("user"); profile; profile = profile.next_sibling("user"))
+		{
+			if(strcmp("default", profile.attribute("user_name").value()) == 0)
+			{
+				OutputDebugString("Load the specific profile!!!\n");
+				gameProfile = profile;
+				profileFound = true;
+				break;
+			}
+		}
+	}
+
+	if(resultProfiles.status == status_ok && profileFound && gameProfile)
+	{
+		OutputDebugString("Save the settings to profile!!!\n");
+
+		gameProfile.attribute("centerlineL") = centerlineL;
+		gameProfile.attribute("centerlineR") = centerlineR;
+
+		docProfiles.save_file(profilePath);
+
+		profileSaved = true;
+	}
+
+	return profileSaved;
+}
+
+
 bool ProxyHelper::GetConfig(int& mode, int& mode2)
 {
 	// load the base dir for the app
@@ -399,7 +490,7 @@ bool ProxyHelper::GetConfig(int& mode, int& mode2)
 	return false;
 }
 
-bool ProxyHelper::SaveProfile(float sep, float conv, float yaw, float pitch, float roll)
+bool ProxyHelper::SaveProfile(float sep, float conv, bool swap, float yaw, float pitch, float roll)
 {
 	// get the target exe
 	GetTargetExe();
@@ -442,6 +533,7 @@ bool ProxyHelper::SaveProfile(float sep, float conv, float yaw, float pitch, flo
 
 		gameProfile.attribute("separation") = sep;
 		gameProfile.attribute("convergence") = conv;
+		gameProfile.attribute("swap_eyes") = swap;
 		gameProfile.attribute("yaw_multiplier") = yaw;
 		gameProfile.attribute("pitch_multiplier") = pitch;
 		gameProfile.attribute("roll_multiplier") = roll;

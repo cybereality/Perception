@@ -62,8 +62,8 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ModuleDefinitionFile>Exports.def</ModuleDefinitionFile>
-      <AdditionalLibraryDirectories>$(DXSDK_DIR)\Lib\x86;$(DX)\Lib\x86;$(FREESPACE)\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libfreespace.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(DXSDK_DIR)\Lib\x86;$(DX)\Lib\x86;$(FREESPACE)\lib;..\..\LibOVR\Lib\Win32</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libfreespace.lib;libovr.lib;Winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(SolutionDir)$(Configuration)\Perception\bin\$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <PostBuildEvent>
@@ -93,8 +93,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <ModuleDefinitionFile>Exports.def</ModuleDefinitionFile>
-      <AdditionalLibraryDirectories>$(DXSDK_DIR)\Lib\x86;$(DX)\Lib\x86;$(FREESPACE)\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libfreespace.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(DXSDK_DIR)\Lib\x86;$(DX)\Lib\x86;$(FREESPACE)\lib;..\..\LibOVR\Lib\Win32</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libfreespace.lib;libovr.lib;Winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(SolutionDir)$(Configuration)\Perception\bin\$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <PostBuildEvent>
@@ -122,9 +122,11 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MotionTracker.cpp" />
     <ClCompile Include="MotionTrackerFactory.cpp" />
+    <ClCompile Include="OculusRiftView.cpp" />
+    <ClCompile Include="OculusTracker.cpp" />
     <ClCompile Include="ProxyHelper.cpp" />
     <ClCompile Include="pugixml.cpp" />
-    <ClCompile Include="SocketTracker.cpp" />
+    <ClCompile Include="SharedMemoryTracker.cpp" />
     <ClCompile Include="StereoView.cpp" />
     <ClCompile Include="StereoViewFactory.cpp" />
     <ClCompile Include="StereoViewInterleave.cpp" />
@@ -145,10 +147,12 @@
     <ClInclude Include="FreeTrackTracker.h" />
     <ClInclude Include="Main.h" />
     <ClInclude Include="MotionTrackerFactory.h" />
+    <ClInclude Include="OculusRiftView.h" />
+    <ClInclude Include="OculusTracker.h" />
     <ClInclude Include="ProxyHelper.h" />
     <ClInclude Include="pugiconfig.hpp" />
     <ClInclude Include="pugixml.hpp" />
-    <ClInclude Include="SocketTracker.h" />
+    <ClInclude Include="SharedMemoryTracker.h" />
     <ClInclude Include="StereoView.h" />
     <ClInclude Include="StereoViewFactory.h" />
     <ClInclude Include="StereoViewInterleave.h" />
@@ -237,6 +241,21 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copying pixel shader from Release to $(Configuration)</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\Release\Perception\fx\OculusRift.fx">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\Release\Perception\fx\OculusRiftCropped.fx">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\Release\Perception\cfg\users.xml">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\cfg\" /Y</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copying xml config from Release to $(Configuration)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\cfg\%(filename).xml;%(Outputs)</Outputs>
     </CustomBuild>
     <None Include="Exports.def" />
   </ItemGroup>

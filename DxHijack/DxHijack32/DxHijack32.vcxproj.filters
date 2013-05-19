@@ -81,7 +81,13 @@
     <ClCompile Include="..\..\DxProxy\DxProxy\FreeTrackTracker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\DxProxy\DxProxy\SocketTracker.cpp">
+    <ClCompile Include="..\..\DxProxy\DxProxy\SharedMemoryTracker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\DxProxy\DxProxy\OculusTracker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\DxProxy\DxProxy\OculusRiftView.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -157,7 +163,13 @@
     <ClInclude Include="..\..\DxProxy\DxProxy\Direct3D9.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\DxProxy\DxProxy\SocketTracker.h">
+    <ClInclude Include="..\..\DxProxy\DxProxy\SharedMemoryTracker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\DxProxy\DxProxy\OculusTracker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\DxProxy\DxProxy\OculusRiftView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

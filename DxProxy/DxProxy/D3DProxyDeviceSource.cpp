@@ -3,16 +3,16 @@ Vireio Perception: Open-Source Stereoscopic 3D Driver
 Copyright (C) 2012 Andres Hernandez
 
 This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
+it under the terms of the GNU Lesser General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU Lesser General Public License for more details.
 
-You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
@@ -32,6 +32,7 @@ void D3DProxyDeviceSource::Init(ProxyHelper::ProxyConfig& cfg)
 {
 	OutputDebugString("D3D ProxyDev Source Init\n");
 	D3DProxyDevice::Init(cfg);
+	roll_mode = 1;
 }
 
 HRESULT WINAPI D3DProxyDeviceSource::EndScene()
@@ -43,17 +44,19 @@ HRESULT WINAPI D3DProxyDeviceSource::EndScene()
 	if(!stereoView->initialized && initDelay < 0)
 	{
 		stereoView->Init(m_pDevice);
+		SetupMatrices();
 	}
 
 	HandleControls();
 	HandleTracking();
+	ComputeViewTranslation();
 
 	return D3DProxyDevice::EndScene();
 }
 
 HRESULT WINAPI D3DProxyDeviceSource::Present(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion)
 {
-	if(stereoView->initialized)
+	if(stereoView->initialized && stereoView->stereoEnabled)
 	{
 		if(eyeShutter > 0)
 		{
@@ -82,29 +85,9 @@ HRESULT WINAPI D3DProxyDeviceSource::SetVertexShaderConstantF(UINT StartRegister
 
 		D3DXMatrixTranspose(&sourceMatrix, &sourceMatrix);
 			
-		D3DXMATRIX worldViewMatrix;
-		D3DXMATRIX transMatrix;
-		D3DXMatrixIdentity(&transMatrix);
-		D3DXMATRIX worldViewTransMatrix;
-
-		if(trackerInitialized && tracker->isAvailable())
-		{
-			D3DXMATRIX rollMatrix;
-			D3DXMatrixRotationZ(&rollMatrix, tracker->currentRoll);
-			D3DXMatrixMultiply(&sourceMatrix, &sourceMatrix, &rollMatrix);
-		}
-
-		D3DXMatrixMultiply(&worldViewMatrix, &sourceMatrix, &matProjectionInv);
-		D3DXMatrixMultiply(&worldViewTransMatrix, &worldViewMatrix, &transMatrix);
-
-		transMatrix[8] += convergence*eyeShutter;
-		D3DXMatrixMultiply(&worldViewTransMatrix, &worldViewTransMatrix, &transMatrix);
-
-		D3DXMatrixMultiply(&sourceMatrix, &worldViewTransMatrix, &matProjection);
+		sourceMatrix = sourceMatrix * matViewTranslation; 
 
 		D3DXMatrixTranspose(&sourceMatrix, &sourceMatrix);
-
-		sourceMatrix[getMatrixIndex()] += separation*eyeShutter + offset;
 
 		currentMatrix = (float*)sourceMatrix;
 

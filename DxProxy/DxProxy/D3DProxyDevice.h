@@ -3,16 +3,16 @@ Vireio Perception: Open-Source Stereoscopic 3D Driver
 Copyright (C) 2012 Andres Hernandez
 
 This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
+it under the terms of the GNU Lesser General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU Lesser General Public License for more details.
 
-You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
@@ -37,16 +37,37 @@ public:
 	virtual ~D3DProxyDevice();
 
 	virtual void Init(ProxyHelper::ProxyConfig& cfg);
+	virtual HRESULT WINAPI Reset(D3DPRESENT_PARAMETERS* pPresentationParameters);
 	void SetupOptions(ProxyHelper::ProxyConfig& cfg);
-	void SetupMatrices(ProxyHelper::ProxyConfig& cfg);
+	void SetupMatrices();
+	void ComputeViewTranslation();
 	void SetupText();
 	void HandleControls(void);
 	void HandleTracking(void);
 	bool validRegister(UINT reg);
+	virtual HRESULT WINAPI EndScene();
 
 	D3DXMATRIX matProjection;
 	D3DXMATRIX matProjectionInv;
+	D3DXMATRIX matViewTranslation;
+
 	float* currentMatrix;
+
+	// view translation settings
+	int yaw_mode;			// 0 disabled, 1 enabled
+	int pitch_mode;			// 0 disabled, 1 enabled
+	int roll_mode;			// 0 disabled, 1 enabled
+	int translation_mode;	// for head translation
+
+	// Projection Matrix variables
+	float n;	//Minimum z-value of the view volume
+	float f;	//Maximum z-value of the view volume
+	float l;	//Minimum x-value of the view volume
+	float r;	//Maximum x-value of the view volume
+	float t;	//Minimum y-value of the view volume
+	float b;	//Maximum y-value of the view volume
+
+	bool trackingOn;
 
 	int eyeShutter;
 	int game_type;
@@ -66,8 +87,15 @@ public:
 	StereoView* stereoView;
 	ID3DXFont *hudFont;
 
+	time_t lastInputTime;
+
 	MotionTracker* tracker;
 	bool trackerInitialized;
+	bool *m_keys;
+	int SHOCT_mode;
+	float centerlineR;
+	float centerlineL;
+
 
 	static enum ProxyTypes
 	{
