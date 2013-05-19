@@ -16,20 +16,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-/*
-This file contains selections of code copied from freetrack_c_interface.cpp,
-an example program distributed with FreeTrack v2.2 which was originally written
-by Alastair Moore in December 2007. It bears the GNU GPL Version 2 license and
-should be free to include in this project.
-*/
-
-/*
-This file depends on the precence of FreeTrackClient.dll in the same folder
-as the executable, but need not be compiled against or linked to it. Again,
-FreeTrackClient.dll is GPL licensed, and therefore free to redistribute.
-However, I haven't actually included it in this repository yet.
-*/
-
 #include "FreeTrackTracker.h"
 #include <windows.h>
 
