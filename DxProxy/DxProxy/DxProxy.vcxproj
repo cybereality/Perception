@@ -101,8 +101,10 @@
       <Command>copy /Y "$(OutDir)$(TargetName)$(TargetExt)" "C:\Program Files (x86)\Vireio\Perception\bin\$(TargetName)$(TargetExt)"</Command>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>xcopy "$(FREESPACE)\lib\*.dll" "$(SolutionDir)$(Configuration)\Perception\bin\" /Y</Command>
-      <Message>Copy libfreespace.dll from the libfreespace SDK</Message>
+      <Command>xcopy "$(FREESPACE)\lib\*.dll" "$(SolutionDir)$(Configuration)\Perception\bin\" /Y
+
+xcopy "..\..\FreeTrack\*.dll" "$(SolutionDir)$(Configuration)\Perception\bin\" /Y</Command>
+      <Message>Copy libfreespace.dll from the libfreespace SDK and FreeTrackClient.dll from the FreeTrack SDK</Message>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
