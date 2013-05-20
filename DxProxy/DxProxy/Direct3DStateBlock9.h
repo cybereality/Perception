@@ -40,7 +40,7 @@ public:
 
 protected:
 
-	IDirect3DStateBlock9* const m_pActualStateBlock;
+	IDirect3DStateBlock9* m_pActualStateBlock;
 	IDirect3DDevice9* m_pOwningDevice;
 	ULONG m_nRefCount;
 };

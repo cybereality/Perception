@@ -20,27 +20,118 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define D3D9PROXYSTATEBLOCK_H_INCLUDED
 
 #include <d3d9.h>
+#include <d3dx9.h>
 #include "D3DProxyDevice.h"
 #include "Direct3DStateBlock9.h"
+#include <unordered_set>
+#include <unordered_map>
+#include "Direct3DVertexBuffer9.h"
+#include "Direct3DIndexBuffer9.h"
+#include "Direct3DVertexShader9.h"
+#include "Direct3DPixelShader9.h"
+#include "Direct3DVertexDeclaration9.h"
+#include "ConstantRecord.h"
 
 class D3DProxyDevice;
 
+/*
+	Responsible for applying state changes to the proxy device so that the proxy devices state remains
+	consistent with the actual devices state when an actual state block is applied.
+
+	Also responsible for ensuring the the correct side is applied for stereo components. (The side at 
+	the time of capture may not match the side when the state block is applied.)
+
+ */
 class D3D9ProxyStateBlock : public BaseDirect3DStateBlock9
 {
 public:
-	D3D9ProxyStateBlock(IDirect3DStateBlock9* pActualStateBlock, D3DProxyDevice* pOwningDevice, int CaptureType);
+	enum CaptureType
+	{
+		Cap_Type_Full = 1,
+		Cap_Type_Vertex = 2,
+		Cap_Type_Pixel = 3,
+		Cap_Type_Selected = 4
+	};
+
+	/* In this context states to capture are any state that a proxy needs to track extra information for
+		beyond the underlying StateBlocks normal capture. */
+	enum StateToCapture
+	{
+		IndexBuffer = 0,
+		Viewport = 1,
+		ViewMatricies = 2,
+		ProjectionMatricies = 3,
+		PixelShader = 4,
+		VertexShader = 5,
+		VertexShaderConstants = 6,
+		VertexDeclaration = 7
+	};
+
+	enum IndexedStateToCapture
+	{
+		Texture = 1, // needs to track which sampler
+		VertexBuffer = 2// needs to track which stream
+	};
+
+	/*
+		pActualStateBlock can be NULL, but should only be NULL when creating block from within BeginStateBlock.
+		The actual state block should be passed by calling EndStateBlock with the actual stateblock in the
+		EndStateBlock of the device.
+	 */
+	D3D9ProxyStateBlock(IDirect3DStateBlock9* pActualStateBlock, D3DProxyDevice* pOwningDevice, CaptureType type, bool isSideLeft);
 	virtual ~D3D9ProxyStateBlock();
 
 	// ID3D9ProxyStateBlock
 	virtual HRESULT WINAPI Capture();
 	virtual HRESULT WINAPI Apply();
 
+	/* Use these methods when the respective methods on the device are called between Start/End StateBlock */
+	void SelectAndCaptureState(BaseDirect3DIndexBuffer9* pWrappedIndexBuffer);
+	void SelectAndCaptureState(D3DVIEWPORT9 viewport);
+	void SelectAndCaptureViewTransform(D3DXMATRIX left, D3DXMATRIX right);
+	void SelectAndCaptureProjectionTransform(D3DXMATRIX left, D3DXMATRIX right);
+	void SelectAndCaptureState(BaseDirect3DPixelShader9* pWrappedPixelShader);
+	void SelectAndCaptureState(BaseDirect3DVertexShader9* pWrappedVertexShader);
+	void SelectAndCaptureState(BaseDirect3DVertexDeclaration9* pWrappedVertexDeclaration);
+	void SelectAndCaptureState(ConstantRecord<float> stereoFloatConstant);
+	void SelectAndCaptureState(ConstantRecord<int> stereoIntConstant);
+	void SelectAndCaptureState(ConstantRecord<bool> stereoBoolConstant);
+	void SelectAndCaptureState(DWORD Stage, IDirect3DBaseTexture9* pWrappedTexture);
+	void SelectAndCaptureState(UINT StreamNumber, BaseDirect3DVertexBuffer9* pWrappedStreamData);
 
 
+	/* If this ProxyStateBlock was created in a BeginStateBlock call then
+		call this method in the EndStateBlock with the actual stateblock returned from
+		EndStateBlock of the actual device. 
+		It is an error to call this method with NULL, to call it on a ProxyStateBlock
+		created with an actual state block or more than once. */
+	void EndStateBlock(IDirect3DStateBlock9* pActualStateBlock);
 
+private:
+
+	/*
+		If all captures of stereo states are done on the same side we can just switch to
+		that side and apply when needed. If stereo states are captured on different sides
+		then they need to be reapplied using the current side after the actual stateblock 
+		has been applied.
+	 */
+	enum CaptureSides
+	{
+		SidesAllLeft = 1,
+		SidesAllRight = 2,
+		SidesMixed = 3
+	};
 
 	/*	Were all states in this block captured while the device side was set to the same side. */
-	// side flag - AllLeft, AllRight or Mixed
+	CaptureSides m_eSidesAre;
+
+	CaptureType m_eCaptureMode;
+
+	// Selected States to capture are only relevant if CaptureType is Cap_Type_Selected
+	std::unordered_set<StateToCapture> m_selectedStates;
+	std::unordered_set<DWORD> m_selectedTextureSamplers; 
+	std::unordered_set<UINT> m_selectedVertexStreams;
+
 
 	/*
 		All simple states can be tracked by the device. This is basically all states that are basic value types rather 
@@ -51,8 +142,8 @@ public:
 
 		For stereo components like Textures all parameters needed to manually re-apply them need to be saved (textures only 
 		need the texture and the number of the sampler the texture is in). This is because we can't guarantee that all states
-		were saved to the same side. If all states were saved on the same side then the stereo components won't need to be 
-		reappplied and the procedure will be the same as for non-stereo components stated below.
+		will be saved while the same side is active. If all states were saved on the same side then the stereo components won't 
+		need to be reapplied and the procedure will be the same as for non-stereo components stated below.
 
 		Non-stereo componenets like Vertex Buffers and Shaders just need the wrapper reference stored in order to be able
 		to restore the wrapper in the device proxy. The actual state will be restored on the device by the actual StateBlock.
@@ -62,37 +153,51 @@ public:
 		in which case there will be left and right versions. Don't have a good way to handle this yet (or a test case), 
 		leaving world matrix to actual device for now)
 	 */
-	
-	// General State
+		
+	////////////////////// General State //////////////////////
 
-	// Textures in samplers (normal, vertex and displacement)
+	// Textures in samplers (standard, vertex and displacement)
+	std::unordered_map<UINT, IDirect3DBaseTexture9*> m_storedTextureStages;
+
 	// Vertex Buffers
+	std::unordered_map<UINT, BaseDirect3DVertexBuffer9*> m_storedVertexBuffers;
+
 	// Index Buffer
+	BaseDirect3DIndexBuffer9* m_pStoredIndicies;
+
 	// Viewport - Viewport handled by actual device but need to update proxy device viewport state (update m_bActiveViewportIsDefault and m_LastViewportSet) 
+	D3DVIEWPORT9 m_storedViewport;
+	
 	// View and Projection matricies
+	D3DXMATRIX m_storedLeftView;
+	D3DXMATRIX m_storedRightView;
+	D3DXMATRIX m_storedLeftProjection;
+	D3DXMATRIX m_storedRightProjection;
 
-	// Assumed to always be mono at the moment
-	// Texture transforms.
+	// Texture transforms (Ignore - assumed to always be mono at the moment)
 
 
 
 
-	/*
-	Modified vertex shader constants
-	Modified vertex shader constants*/
-
-	// Vertex State
+	////////////////////// Vertex Shader State //////////////////////
 
 	// vertex shader
+	BaseDirect3DVertexShader9* m_pStoredVertexShader;
+
 	// vertex declaration
+	BaseDirect3DVertexDeclaration9* m_pStoredVertexDeclaration;
+
 	// vertex shader constants - if stereo constants enabled
+	//ShaderConstantTracker* m_pVertexShaderConstants; // probably want to create and assign rather than 
+	
 
 
 
-
-	// Pixel State
+	////////////////////// Pixel Shader State //////////////////////
 
 	// pixel shader 
+	BaseDirect3DPixelShader9* m_pStoredPixelShader;
+
 	// Pixel shader constants TODO - if needed (if stereo'ified for some reason), otherwise leave these to the actual device.
 };
 

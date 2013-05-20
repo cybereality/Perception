@@ -79,6 +79,8 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	m_bViewTransformSet = false;
 	m_bProjectionTransformSet = false;
 
+	m_bInBeginEndStateBlock = false;
+	m_pCapturingStateTo = NULL;
 
 	D3DXMatrixIdentity(&m_leftView);
 	D3DXMatrixIdentity(&m_rightView);
@@ -265,6 +267,11 @@ void D3DProxyDevice::ReleaseEverything()
 		m_pPrimarySwapChain->Release();
 		m_pPrimarySwapChain = NULL;
 	}
+
+	if (m_pCapturingStateTo) {
+		m_pCapturingStateTo->Release();
+		m_pCapturingStateTo = NULL;
+	}
 }
 
 
@@ -282,6 +289,8 @@ HRESULT WINAPI D3DProxyDevice::Reset(D3DPRESENT_PARAMETERS* pPresentationParamet
 
 	m_VertexShaderConstantTracker.Clear();
 	ReleaseEverything();
+
+	m_bInBeginEndStateBlock = false;
 	
 
 	HRESULT hr = BaseDirect3DDevice9::Reset(pPresentationParameters);
@@ -1240,15 +1249,26 @@ HRESULT WINAPI D3DProxyDevice::SetIndices(IDirect3DIndexBuffer9* pIndexData)
 	else
 		result = BaseDirect3DDevice9::SetIndices(NULL);
 
-	// Update stored proxy index buffer
+
+	
 	if (SUCCEEDED(result)) {
-		if (m_pActiveIndicies) {
-			m_pActiveIndicies->Release();
+
+		// If in a Begin-End StateBlock pair update the block state rather than the current device state
+		if (m_pCapturingStateTo) {
+			m_pCapturingStateTo->SelectAndCaptureState(pWrappedNewIndexData);
+			pWrappedNewIndexData->Release();
+			pWrappedNewIndexData = NULL;
 		}
+		else {
+			// Update stored proxy index buffer
+			if (m_pActiveIndicies) {
+				m_pActiveIndicies->Release();
+			}
 		
-		m_pActiveIndicies = pWrappedNewIndexData;
-		if (m_pActiveIndicies) {
-			m_pActiveIndicies->AddRef();
+			m_pActiveIndicies = pWrappedNewIndexData;
+			if (m_pActiveIndicies) {
+				m_pActiveIndicies->AddRef();
+			}
 		}
 	}
 
@@ -1702,9 +1722,13 @@ HRESULT WINAPI D3DProxyDevice::GetVertexDeclaration(IDirect3DVertexDeclaration9*
 
 HRESULT WINAPI D3DProxyDevice::BeginStateBlock()
 {
-	//OutputDebugString(__FUNCTION__); 
-	//OutputDebugString("\n"); 
-	return BaseDirect3DDevice9::BeginStateBlock();
+	HRESULT result;
+	if (SUCCEEDED(result = BaseDirect3DDevice9::BeginStateBlock())) {
+		m_bInBeginEndStateBlock = true;
+		m_pCapturingStateTo = new D3D9ProxyStateBlock(NULL, this, D3D9ProxyStateBlock::Cap_Type_Selected, m_currentRenderingSide == Left);
+	}
+
+	return result;
 }
 
 HRESULT WINAPI D3DProxyDevice::EndStateBlock(IDirect3DStateBlock9** ppSB)

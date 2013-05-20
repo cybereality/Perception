@@ -45,34 +45,3 @@ public:
 };
 
 #endif
-
-//template <class T>
-//class ConstantRecord
-//{
-//public:
-//	ConstantRecord(UINT StartReg, const T* pConstData, UINT dataCount, int countMultiplier) :
-//		StartRegister(StartReg),
-//		Count(dataCount)
-//	{
-//		//DebugBreak();
-//		OutputDebugString("Foo\n");
-//		// copy data
-//		pConstantData = NULL;
-//		pConstantData = new T [Count * countMultiplier];
-//		OutputDebugString("Bar\n");
-//		std::copy(pConstData, pConstData + (Count * countMultiplier), pConstantData);
-//		OutputDebugString("Moo\n");
-//	}
-//
-//	virtual ~ConstantRecord() 
-//	{
-//		delete [] pConstantData;
-//	}
-//		
-//
-//	UINT StartRegister;
-//	T* pConstantData;
-//	UINT Count;
-//};
-//
-//#endif

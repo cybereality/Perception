@@ -201,16 +201,17 @@ public:
 		ADVANCED_SKYRIM = 601
 	};
 
-
-protected:
-	
-	
-
 	enum EyeSide
 	{
 		Left = 1,
 		Right = 2
 	};
+
+protected:
+	
+	
+
+	
 
 
 	
@@ -225,7 +226,7 @@ protected:
 	// Try and toggle to other drawing side. Returns false if changes fails due to the current render target being mono.
 	bool switchDrawingSide();
 
-	enum EyeSide m_currentRenderingSide;
+	EyeSide m_currentRenderingSide;
 
 	D3DXMATRIX* m_pCurrentMatViewTransform;
 	
@@ -257,8 +258,8 @@ private:
 	std::unordered_map<UINT, BaseDirect3DVertexBuffer9*> m_activeVertexBuffers;
 
 
-
-	
+	bool m_bInBeginEndStateBlock;
+	D3D9ProxyStateBlock* m_pCapturingStateTo;
 
 	bool m_bViewTransformSet;
 	bool m_bProjectionTransformSet;

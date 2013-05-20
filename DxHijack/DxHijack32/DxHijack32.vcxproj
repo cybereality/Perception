@@ -111,6 +111,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\DxProxy\DxProxy\D3D9ProxyCubeTexture.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\D3D9ProxyStateBlock.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\D3D9ProxySurface.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\D3D9ProxySwapChain.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\D3D9ProxyTexture.cpp" />
@@ -163,6 +164,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\DxProxy\DxProxy\ConstantRecord.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\D3D9ProxyCubeTexture.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\D3D9ProxyStateBlock.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\D3D9ProxySurface.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\D3D9ProxySwapChain.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\D3D9ProxyTexture.h" />
