@@ -109,7 +109,7 @@ HMODULE WINAPI MyLoadLibraryExW(LPCWSTR lpFileName, HANDLE hFile, DWORD dwFlags)
     //HookAPICalls(&KernelHook, retval);    
        
     return retval;   
-}   
+}
 
 IDirect3D9* WINAPI MyDirect3DCreate9(UINT sdk_version)
 {
