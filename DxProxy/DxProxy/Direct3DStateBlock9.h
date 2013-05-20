@@ -15,6 +15,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
+#pragma once
 
 #ifndef DIRECT3DSTATEBLOCK9_H_INCLUDED
 #define DIRECT3DSTATEBLOCK9_H_INCLUDED
@@ -41,8 +42,11 @@ public:
 protected:
 
 	IDirect3DStateBlock9* m_pActualStateBlock;
-	IDirect3DDevice9* m_pOwningDevice;
 	ULONG m_nRefCount;
+
+	IDirect3DDevice9* const m_pOwningDevice;
+
 };
 
 #endif
+

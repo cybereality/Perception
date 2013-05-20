@@ -32,6 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Direct3DVertexDeclaration9.h"
 #include "StereoShaderConstant.h"
 
+class BaseDirect3DStateBlock9;
 class D3DProxyDevice;
 
 /*
@@ -71,8 +72,6 @@ public:
 		Texture = 1,					// needs to track which sampler
 		VertexBuffer = 2,				// needs to track which stream
 		VertexShaderConstantsF = 3,		// StereoShaderConstants only, leave the rest to the actual state block
-		VertexShaderConstantsI = 4,
-		VertexShaderConstantsB = 5
 	};
 
 	/*
@@ -100,10 +99,11 @@ public:
 		Assumption: If multiple SetConstant calls are made during a Begin/End StateBlock they will not partially
 		overwrite each other. There is nothing to stop a program doing this but it would be more difficult to handle
 		and I can't think of a reason for this to be intentionally done so I'm ignoring the possibility for now. 
+
+		Assumption 2: Only float registers will need to be stereo. If this proves to be untrue then int and bool containers
+		will need adding throughout this class.
 	 */
 	void SelectAndCaptureState(StereoShaderConstant<float> stereoFloatConstant);
-	void SelectAndCaptureState(StereoShaderConstant<int> stereoIntConstant);
-	void SelectAndCaptureState(StereoShaderConstant<bool> stereoBoolConstant);
 
 	void SelectAndCaptureState(DWORD Stage, IDirect3DBaseTexture9* pWrappedTexture);
 	void SelectAndCaptureState(UINT StreamNumber, BaseDirect3DVertexBuffer9* pWrappedStreamData);
@@ -117,6 +117,13 @@ public:
 	void EndStateBlock(IDirect3DStateBlock9* pActualStateBlock);
 
 private:
+	void CaptureSelectedFromProxyDevice();
+
+	// Needs to be called whenever a stereo state is recorded to see if side remains consistent.
+	// If sides ever become inconsistent amongst tracked stereo states then all stereo states need
+	// to be manually reapplied on apply. If they remain consisten then device side should be switched 
+	// to that side before applying (actual device will then apply the correct states for the side)
+	void updateCaptureSideTracking();
 
 	/*
 		If all captures of stereo states are done on the same side we can just switch to
@@ -131,15 +138,20 @@ private:
 		SidesMixed = 3
 	};
 
+
+
 	/*	Were all states in this block captured while the device side was set to the same side. */
 	CaptureSides m_eSidesAre;
 
-	CaptureType m_eCaptureMode;
+	const CaptureType m_eCaptureMode;
 
 	// Selected States to capture are only relevant if CaptureType is Cap_Type_Selected
 	std::unordered_set<StateToCapture> m_selectedStates;
 	std::unordered_set<DWORD> m_selectedTextureSamplers; 
 	std::unordered_set<UINT> m_selectedVertexStreams;
+	std::unordered_set<UINT> m_selectedVertexConstantRegistersF;
+
+
 
 
 	/*
@@ -196,8 +208,8 @@ private:
 	// vertex declaration
 	BaseDirect3DVertexDeclaration9* m_pStoredVertexDeclaration;
 
-	// vertex shader constants - if stereo constants enabled
-	//ShaderConstantTracker* m_pVertexShaderConstants; // probably want to create and assign rather than 
+	// stereo vertex shader constants - (normal constants are handled by actual StateBlock)
+	std::unordered_map<UINT, StereoShaderConstant<float>> m_StoredStereoShaderConstsF;
 	
 
 
@@ -208,6 +220,14 @@ private:
 	BaseDirect3DPixelShader9* m_pStoredPixelShader;
 
 	// Pixel shader constants TODO - if needed (if stereo'ified for some reason), otherwise leave these to the actual device.
+
+
+	// Had issues when the type of the device in the base class was the wrapped type rather than the Interface type.
+	// Duplicated the device here under the wrapped pointer. Almost certain to at least confuse someone later.
+	// TODO fix. This was the quick and dirty 2am style solution. This shouldn't be here and the base classs device should
+	// just be of the derived type.
+	D3DProxyDevice* const p_WrappedDevice;
 };
 
 #endif
+

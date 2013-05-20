@@ -24,7 +24,6 @@ BaseDirect3DStateBlock9::BaseDirect3DStateBlock9(IDirect3DStateBlock9* pActualSt
 	m_pOwningDevice(pOwningDevice),
 	m_nRefCount(1)
 {
-	assert (pActualStateBlock != NULL);
 	assert (pOwningDevice != NULL);
 
 	pOwningDevice->AddRef();
@@ -35,12 +34,16 @@ BaseDirect3DStateBlock9::~BaseDirect3DStateBlock9()
 	if(m_pActualStateBlock) 
 		m_pActualStateBlock->Release();
 
-	if (m_pOwningDevice)
-		m_pOwningDevice->Release();
+	m_pOwningDevice->Release();
 }
 
 HRESULT WINAPI BaseDirect3DStateBlock9::QueryInterface(REFIID riid, LPVOID* ppv)
 {
+	if (!m_pActualStateBlock) {
+		OutputDebugString("Proxy state block is missing actual state block.\n");
+		return D3DERR_INVALIDCALL;
+	}
+
 	return m_pActualStateBlock->QueryInterface(riid, ppv);
 }
 
@@ -74,10 +77,20 @@ HRESULT WINAPI BaseDirect3DStateBlock9::GetDevice(IDirect3DDevice9** ppDevice)
 
 HRESULT WINAPI BaseDirect3DStateBlock9::Capture()
 {
+	if (!m_pActualStateBlock) {
+		OutputDebugString("Proxy state block is missing actual state block.\n");
+		return D3DERR_INVALIDCALL;
+	}
+
 	return m_pActualStateBlock->Capture();
 }
 
 HRESULT WINAPI BaseDirect3DStateBlock9::Apply()
 {
+	if (!m_pActualStateBlock) {
+		OutputDebugString("Proxy state block is missing actual state block.\n");
+		return D3DERR_INVALIDCALL;
+	}
+
 	return m_pActualStateBlock->Apply();
 }

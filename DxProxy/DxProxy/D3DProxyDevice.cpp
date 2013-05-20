@@ -1251,7 +1251,7 @@ HRESULT WINAPI D3DProxyDevice::SetIndices(IDirect3DIndexBuffer9* pIndexData)
 	
 	if (SUCCEEDED(result)) {
 
-		// If in a Begin-End StateBlock pair update the block state rather than the current device state
+		// If in a Begin-End StateBlock pair update the block state rather than the current proxy device state
 		if (m_pCapturingStateTo) {
 			m_pCapturingStateTo->SelectAndCaptureState(pWrappedNewIndexData);
 			pWrappedNewIndexData->Release();

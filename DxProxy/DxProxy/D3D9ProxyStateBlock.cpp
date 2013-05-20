@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 D3D9ProxyStateBlock::D3D9ProxyStateBlock(IDirect3DStateBlock9* pActualStateBlock, D3DProxyDevice *pOwningDevice, CaptureType type, bool isSideLeft) :
 	BaseDirect3DStateBlock9(pActualStateBlock, pOwningDevice),
+	p_WrappedDevice(pOwningDevice),
 	m_eCaptureMode(type),
 	m_storedTextureStages(),
 	m_storedVertexBuffers(),
@@ -28,22 +29,61 @@ D3D9ProxyStateBlock::D3D9ProxyStateBlock(IDirect3DStateBlock9* pActualStateBlock
 	m_eSidesAre(isSideLeft ? SidesAllLeft : SidesAllRight),
 	m_selectedStates(),
 	m_selectedTextureSamplers(),
-	m_selectedVertexStreams()
+	m_selectedVertexStreams(),
+	m_StoredStereoShaderConstsF(),
+	m_selectedVertexConstantRegistersF()
 {
+	assert (pOwningDevice != NULL);
+
 	if (!pActualStateBlock) {
 		assert(type == Cap_Type_Selected);
 	}
 
+	p_WrappedDevice->AddRef();
+
 	m_pStoredIndicies = NULL;
 	m_pStoredVertexShader = NULL;
 	m_pStoredVertexDeclaration = NULL;
-	//m_pVertexShaderConstants = NULL;
 	m_pStoredPixelShader = NULL;
 	
 	D3DXMatrixIdentity(&m_storedLeftView);
 	D3DXMatrixIdentity(&m_storedRightView);
 	D3DXMatrixIdentity(&m_storedLeftProjection);
 	D3DXMatrixIdentity(&m_storedRightProjection);
+
+	switch (type) {
+		case Cap_Type_Full: 
+		{
+			static const StateToCapture toCapture[] = { IndexBuffer, Viewport, ViewMatricies, ProjectionMatricies, PixelShader, VertexShader, VertexDeclaration };
+			m_selectedStates.insert(toCapture, toCapture + 7);
+		}
+
+		case Cap_Type_Vertex:
+		{
+			static const StateToCapture toCapture[] = { VertexShader, VertexDeclaration };
+			m_selectedStates.insert(toCapture, toCapture + 2);
+		}
+		
+		case Cap_Type_Pixel:
+		{
+			m_selectedStates.insert(PixelShader);
+		}
+
+		case Cap_Type_Selected:
+		{
+			// Select no specific state, state to capture will be indicated by calls to the various SelectAndCaptureState methods.
+		}
+
+		default:
+		{
+			OutputDebugString("Unhandled stateblock capture mode\n");
+		}
+	}
+
+
+	if (type != Cap_Type_Selected) {
+		CaptureSelectedFromProxyDevice();
+	}
 }
 
 D3D9ProxyStateBlock::~D3D9ProxyStateBlock()
@@ -60,9 +100,14 @@ D3D9ProxyStateBlock::~D3D9ProxyStateBlock()
 		it2 = m_storedVertexBuffers.erase(it2);
 	}
 
+	m_StoredStereoShaderConstsF.clear();
+
+
 	m_selectedStates.clear();
 	m_selectedTextureSamplers.clear();
 	m_selectedVertexStreams.clear();
+	m_selectedVertexConstantRegistersF.clear();
+
 
 	if (m_pStoredIndicies)
 		m_pStoredIndicies->Release();
@@ -76,6 +121,35 @@ D3D9ProxyStateBlock::~D3D9ProxyStateBlock()
 	if (m_pStoredPixelShader)
 		m_pStoredPixelShader->Release();
 		
+	p_WrappedDevice->Release();
+}
+
+
+inline void D3D9ProxyStateBlock::updateCaptureSideTracking()
+{
+	if (m_eSidesAre == SidesMixed)
+		return;
+	
+	if (((p_WrappedDevice->m_currentRenderingSide == D3DProxyDevice::Left) && (m_eSidesAre != SidesAllLeft)) ||
+		((p_WrappedDevice->m_currentRenderingSide == D3DProxyDevice::Right) && (m_eSidesAre != SidesAllRight))) {
+
+		m_eSidesAre = SidesMixed;
+	}
+}
+
+
+void D3D9ProxyStateBlock::CaptureSelectedFromProxyDevice()
+{
+
+	// TODO copy all selected state to ProxyStateBlock from ProxyDevice
+	
+
+	if (p_WrappedDevice->m_currentRenderingSide == D3DProxyDevice::Left) {
+		m_eSidesAre = SidesAllLeft;
+	}
+	else if (p_WrappedDevice->m_currentRenderingSide == D3DProxyDevice::Right) {
+		m_eSidesAre = SidesAllRight;
+	}
 }
 
 
@@ -83,35 +157,61 @@ D3D9ProxyStateBlock::~D3D9ProxyStateBlock()
 
 HRESULT WINAPI D3D9ProxyStateBlock::Capture()
 {
-	// TODO
-	// Capture on actual device
-	// For all actively tracked special states capture from proxy device 
-	//  this could be none (tracked states are all simple and handled by device), it could be a collection of individual states, 
-	//  all states, vertex states or pixel states)
+	HRESULT result = BaseDirect3DStateBlock9::Capture();
 
-
-	return m_pActualStateBlock->Capture();
+	if (SUCCEEDED(result)) {
+		CaptureSelectedFromProxyDevice();
+	}
+	
+	return result;
 }
 
 HRESULT WINAPI D3D9ProxyStateBlock::Apply()
 {
-	// assert that device isn't in the middle of a begin/end stateblock capture cycle becauase said situation is not accounted for 
-	// (don't know if it's possible in directx. Won't test unless this assert starts getting triggerd)
+	// assert that device isn't in the middle of a begin/end stateblock capture cycle because said situation is not accounted for 
+	// (probably an error in D3D but haven't tested to check)
+	assert (!p_WrappedDevice->m_bInBeginEndStateBlock);
 
-	// TODO
-	// Apply on actual device.
-	// If mixed sides then manually apply all state from stereo components based on the current device side
 
-	// Update the proxy device 
+	// If all stereo states recorded on the same side then switch to that side
+	if (m_eSidesAre == SidesAllLeft) {
+		p_WrappedDevice->setDrawingSide(D3DProxyDevice::Left);
+	}
+	else if (m_eSidesAre == SidesAllRight) {
+		p_WrappedDevice->setDrawingSide(D3DProxyDevice::Right);
+	}
+
+	HRESULT result = BaseDirect3DStateBlock9::Apply();
+
+	if (SUCCEEDED(result)) {
+		// If mixed sides then manually apply all state from stereo components based on the current proxy device side to the actual device
+		if (m_eSidesAre == SidesMixed) {
+			// TODO View matrix
+			// Projection matrix
+			// Textures
+			// VertexShader constants
+		}
+
+		// TODO update all proxy device data
+	}
 
 
 	return m_pActualStateBlock->Apply();
 }
 
 
+void D3D9ProxyStateBlock::EndStateBlock(IDirect3DStateBlock9* pActualStateBlock)
+{
+	assert (!pActualStateBlock);
+
+	m_pActualStateBlock = pActualStateBlock;
+}
+
+
 void D3D9ProxyStateBlock::SelectAndCaptureState(BaseDirect3DIndexBuffer9* pWrappedIndexBuffer)
 {
 	assert(m_eCaptureMode == Cap_Type_Selected);
+	assert (p_WrappedDevice->m_bInBeginEndStateBlock);
 
 	m_selectedStates.insert(IndexBuffer);
 
@@ -124,6 +224,7 @@ void D3D9ProxyStateBlock::SelectAndCaptureState(BaseDirect3DIndexBuffer9* pWrapp
 void D3D9ProxyStateBlock::SelectAndCaptureState(D3DVIEWPORT9 viewport)
 {
 	assert(m_eCaptureMode == Cap_Type_Selected);
+	assert (p_WrappedDevice->m_bInBeginEndStateBlock);
 
 	m_selectedStates.insert(Viewport);
 
@@ -133,26 +234,33 @@ void D3D9ProxyStateBlock::SelectAndCaptureState(D3DVIEWPORT9 viewport)
 void D3D9ProxyStateBlock::SelectAndCaptureViewTransform(D3DXMATRIX left, D3DXMATRIX right)
 {
 	assert(m_eCaptureMode == Cap_Type_Selected);
+	assert (p_WrappedDevice->m_bInBeginEndStateBlock);
 
 	m_selectedStates.insert(ViewMatricies);
 
 	m_storedLeftView = left;
 	m_storedRightView = right;
+
+	updateCaptureSideTracking();
 }
 
 void D3D9ProxyStateBlock::SelectAndCaptureProjectionTransform(D3DXMATRIX left, D3DXMATRIX right)
 {
 	assert(m_eCaptureMode == Cap_Type_Selected);
+	assert (p_WrappedDevice->m_bInBeginEndStateBlock);
 
 	m_selectedStates.insert(ProjectionMatricies);
 
 	m_storedLeftProjection = left;
 	m_storedRightProjection = right;
+
+	updateCaptureSideTracking();
 }
 
 void D3D9ProxyStateBlock::SelectAndCaptureState(BaseDirect3DPixelShader9* pWrappedPixelShader)
 {
 	assert(m_eCaptureMode == Cap_Type_Selected);
+	assert (p_WrappedDevice->m_bInBeginEndStateBlock);
 
 	m_selectedStates.insert(PixelShader);
 
@@ -165,6 +273,7 @@ void D3D9ProxyStateBlock::SelectAndCaptureState(BaseDirect3DPixelShader9* pWrapp
 void D3D9ProxyStateBlock::SelectAndCaptureState(BaseDirect3DVertexShader9* pWrappedVertexShader)
 {
 	assert(m_eCaptureMode == Cap_Type_Selected);
+	assert (p_WrappedDevice->m_bInBeginEndStateBlock);
 
 	m_selectedStates.insert(VertexShader);
 
@@ -177,6 +286,7 @@ void D3D9ProxyStateBlock::SelectAndCaptureState(BaseDirect3DVertexShader9* pWrap
 void D3D9ProxyStateBlock::SelectAndCaptureState(BaseDirect3DVertexDeclaration9* pWrappedVertexDeclaration)
 {
 	assert(m_eCaptureMode == Cap_Type_Selected);
+	assert (p_WrappedDevice->m_bInBeginEndStateBlock);
 
 	m_selectedStates.insert(VertexDeclaration);
 
@@ -189,21 +299,25 @@ void D3D9ProxyStateBlock::SelectAndCaptureState(BaseDirect3DVertexDeclaration9* 
 void D3D9ProxyStateBlock::SelectAndCaptureState(StereoShaderConstant<float> stereoFloatConstant)
 {
 	assert(m_eCaptureMode == Cap_Type_Selected);
+	assert (p_WrappedDevice->m_bInBeginEndStateBlock);
+
+	// Mark this starting register as being tracked
+	m_selectedVertexConstantRegistersF.insert(stereoFloatConstant.StartRegister);
+
+	// remove existing (if there is one)
+	m_StoredStereoShaderConstsF.erase(stereoFloatConstant.StartRegister);
+
+	// Store stereoFloatConstant
+	m_StoredStereoShaderConstsF.insert(std::pair<UINT, StereoShaderConstant<float>>(stereoFloatConstant.StartRegister, stereoFloatConstant));
+
+	updateCaptureSideTracking();
 }
 
-/*void D3D9ProxyStateBlock::SelectAndCaptureState(ConstantRecord<int> stereoIntConstant)
-{
-	assert(m_eCaptureMode == Cap_Type_Selected);
-}
-
-void D3D9ProxyStateBlock::SelectAndCaptureState(ConstantRecord<bool> stereoBoolConstant)
-{
-	assert(m_eCaptureMode == Cap_Type_Selected);
-}*/
 
 void D3D9ProxyStateBlock::SelectAndCaptureState(DWORD Stage, IDirect3DBaseTexture9* pWrappedTexture)
 {
 	assert(m_eCaptureMode == Cap_Type_Selected);
+	assert (p_WrappedDevice->m_bInBeginEndStateBlock);
 
 	m_selectedTextureSamplers.insert(Stage);
 
@@ -216,11 +330,14 @@ void D3D9ProxyStateBlock::SelectAndCaptureState(DWORD Stage, IDirect3DBaseTextur
 	if(m_storedTextureStages.insert(std::pair<DWORD, IDirect3DBaseTexture9*>(Stage, pWrappedTexture)).second) {
 		pWrappedTexture->AddRef();
 	}
+
+	updateCaptureSideTracking();
 }
 
 void D3D9ProxyStateBlock::SelectAndCaptureState(UINT StreamNumber, BaseDirect3DVertexBuffer9* pWrappedStreamData)
 {
 	assert(m_eCaptureMode == Cap_Type_Selected);
+	assert (p_WrappedDevice->m_bInBeginEndStateBlock);
 
 	m_selectedVertexStreams.insert(StreamNumber);
 
