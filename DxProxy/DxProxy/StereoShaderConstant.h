@@ -16,32 +16,39 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#ifndef CONSTANTRECORD_H_INCLUDED
-#define CONSTANTRECORD_H_INCLUDED
+#ifndef STEREOSHADERCONSTANT_H_INCLUDED
+#define STEREOSHADERCONSTANT_H_INCLUDED
 
-#include <Windows.h>
+#include <vector>
 
 template <class T>
-class ConstantRecord
+class StereoShaderConstant
 {
 public:
-	ConstantRecord(UINT StartReg, const T* pConstData, UINT dataCount, UINT countMultiplier) :
+	StereoShaderConstant(UINT StartReg, const T* pConstDataLeft, const T* pConstDataRight, UINT dataCount, UINT countMultiplier) :
 		StartRegister(StartReg),
 		Count(dataCount),
 		Multiplier(countMultiplier),
-		Data(pConstData, pConstData + (Count * countMultiplier)) {}
+		DataLeft(pConstData, pConstData + (dataCount * countMultiplier)),
+		DataRight(pConstDataRight, pConstDataRight + (dataCount * countMultiplier)) {}
 
-	virtual ~ConstantRecord() {}
+	virtual ~StereoShaderConstant() {}
 		
-	T* DataPointer() 
+	T* DataLeftPointer() 
 	{
-		return &Data[0];
+		return &DataLeft[0];
+	}
+
+	T* DataRightPointer() 
+	{
+		return &DataRight[0];
 	}
 
 	UINT StartRegister;
 	UINT Count;
 	UINT Multiplier;
-	std::vector<T> Data;
+	std::vector<T> DataLeft;
+	std::vector<T> DataRight;
 };
 
 #endif

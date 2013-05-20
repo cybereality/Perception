@@ -186,7 +186,7 @@ void D3D9ProxyStateBlock::SelectAndCaptureState(BaseDirect3DVertexDeclaration9* 
 	}
 }
 
-void D3D9ProxyStateBlock::SelectAndCaptureState(ConstantRecord<float> stereoFloatConstant)
+void D3D9ProxyStateBlock::SelectAndCaptureState(StereoShaderConstant<float> stereoFloatConstant)
 {
 	assert(m_eCaptureMode == Cap_Type_Selected);
 }

@@ -149,7 +149,6 @@
     <ClCompile Include="..\..\DxProxy\DxProxy\OculusTracker.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\ProxyHelper.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\pugixml.cpp" />
-    <ClCompile Include="..\..\DxProxy\DxProxy\ShaderConstantTracker.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\SharedMemoryTracker.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\StereoView.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\StereoViewFactory.cpp" />
@@ -162,7 +161,6 @@
     <None Include="hijackdll.def" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\DxProxy\DxProxy\ConstantRecord.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\D3D9ProxyCubeTexture.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\D3D9ProxyStateBlock.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\D3D9ProxySurface.h" />
@@ -201,8 +199,8 @@
     <ClInclude Include="..\..\DxProxy\DxProxy\ProxyHelper.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\pugiconfig.hpp" />
     <ClInclude Include="..\..\DxProxy\DxProxy\pugixml.hpp" />
-    <ClInclude Include="..\..\DxProxy\DxProxy\ShaderConstantTracker.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\SharedMemoryTracker.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\StereoShaderConstant.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\StereoView.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\StereoViewFactory.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\StereoViewInterleave.h" />

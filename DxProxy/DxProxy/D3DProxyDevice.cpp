@@ -51,8 +51,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy):BaseDirect3DDevice9(pDevice, pCreatedBy),
 	m_activeRenderTargets (1, NULL),
 	m_activeTextureStages(),
-	m_activeVertexBuffers(),
-	m_VertexShaderConstantTracker(ShaderConstantTracker(pDevice))
+	m_activeVertexBuffers()
 {
 	OutputDebugString("D3D ProxyDev Created\n");
 	
@@ -287,7 +286,6 @@ HRESULT WINAPI D3DProxyDevice::Reset(D3DPRESENT_PARAMETERS* pPresentationParamet
 	if(stereoView)
 		stereoView->Reset();
 
-	m_VertexShaderConstantTracker.Clear();
 	ReleaseEverything();
 
 	m_bInBeginEndStateBlock = false;
@@ -1635,7 +1633,6 @@ HRESULT WINAPI D3DProxyDevice::SetVertexShader(IDirect3DVertexShader9* pShader)
 		}
 	}
 
-	m_VertexShaderConstantTracker.OnShaderSet();
 
 	return result;
 }
@@ -1654,9 +1651,7 @@ HRESULT WINAPI D3DProxyDevice::SetVertexShaderConstantF(UINT StartRegister,CONST
 {
 	HRESULT result = BaseDirect3DDevice9::SetVertexShaderConstantF(StartRegister, pConstantData, Vector4fCount);
 
-	if (SUCCEEDED(result)) {
-		m_VertexShaderConstantTracker.RecordShaderConstantF(StartRegister, pConstantData, Vector4fCount);
-	}
+	
 
 	return result;
 }
@@ -1665,10 +1660,7 @@ HRESULT WINAPI D3DProxyDevice::SetVertexShaderConstantI(UINT StartRegister,CONST
 {
 	HRESULT result = BaseDirect3DDevice9::SetVertexShaderConstantI(StartRegister, pConstantData, Vector4iCount);
 
-	if (SUCCEEDED(result)) {
-		m_VertexShaderConstantTracker.RecordShaderConstantI(StartRegister, pConstantData, Vector4iCount);
-	}
-
+	
 	return result;
 }
 
@@ -1676,9 +1668,7 @@ HRESULT WINAPI D3DProxyDevice::SetVertexShaderConstantB(UINT StartRegister,CONST
 {
 	HRESULT result = BaseDirect3DDevice9::SetVertexShaderConstantB(StartRegister, pConstantData, BoolCount);
 
-	if (SUCCEEDED(result)) {
-		m_VertexShaderConstantTracker.RecordShaderConstantB(StartRegister, pConstantData, BoolCount);
-	}
+	
 
 	return result;
 }

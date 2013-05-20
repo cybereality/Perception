@@ -39,7 +39,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <fstream>
 #include <vector>
 #include "WrapperUtils.h"
-#include "ShaderConstantTracker.h"
 
 
 #define LEFT_CONSTANT -1
@@ -230,8 +229,6 @@ protected:
 
 	D3DXMATRIX* m_pCurrentMatViewTransform;
 	
-	ShaderConstantTracker m_VertexShaderConstantTracker;
-	bool m_bWaitingForNextSetOfVShaderConstants;
 	BaseDirect3DVertexShader9* m_pActiveVertexShader;
 
 private:

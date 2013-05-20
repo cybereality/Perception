@@ -146,7 +146,6 @@
     <ClCompile Include="OculusTracker.cpp" />
     <ClCompile Include="ProxyHelper.cpp" />
     <ClCompile Include="pugixml.cpp" />
-    <ClCompile Include="ShaderConstantTracker.cpp" />
     <ClCompile Include="SharedMemoryTracker.cpp" />
     <ClCompile Include="StereoView.cpp" />
     <ClCompile Include="StereoViewFactory.cpp" />
@@ -154,7 +153,6 @@
     <ClCompile Include="WrapperUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ConstantRecord.h" />
     <ClInclude Include="D3D9ProxyCubeTexture.h" />
     <ClInclude Include="D3D9ProxySwapChain.h" />
     <ClInclude Include="D3D9ProxyTexture.h" />
@@ -195,9 +193,9 @@
     <ClInclude Include="ProxyHelper.h" />
     <ClInclude Include="pugiconfig.hpp" />
     <ClInclude Include="pugixml.hpp" />
-    <ClInclude Include="ShaderConstantTracker.h" />
     <ClInclude Include="SharedMemoryTracker.h" />
     <ClInclude Include="IStereoCapableWrapper.h" />
+    <ClInclude Include="StereoShaderConstant.h" />
     <ClInclude Include="StereoView.h" />
     <ClInclude Include="StereoViewFactory.h" />
     <ClInclude Include="StereoViewInterleave.h" />

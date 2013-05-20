@@ -30,7 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Direct3DVertexShader9.h"
 #include "Direct3DPixelShader9.h"
 #include "Direct3DVertexDeclaration9.h"
-#include "ConstantRecord.h"
+#include "StereoShaderConstant.h"
 
 class D3DProxyDevice;
 
@@ -59,18 +59,20 @@ public:
 	{
 		IndexBuffer = 0,
 		Viewport = 1,
-		ViewMatricies = 2,
-		ProjectionMatricies = 3,
+		ViewMatricies = 2,			//(transform)
+		ProjectionMatricies = 3,	//(transform)
 		PixelShader = 4,
 		VertexShader = 5,
-		VertexShaderConstants = 6,
-		VertexDeclaration = 7
+		VertexDeclaration = 6
 	};
 
 	enum IndexedStateToCapture
 	{
-		Texture = 1, // needs to track which sampler
-		VertexBuffer = 2// needs to track which stream
+		Texture = 1,					// needs to track which sampler
+		VertexBuffer = 2,				// needs to track which stream
+		VertexShaderConstantsF = 3,		// StereoShaderConstants only, leave the rest to the actual state block
+		VertexShaderConstantsI = 4,
+		VertexShaderConstantsB = 5
 	};
 
 	/*
@@ -85,7 +87,7 @@ public:
 	virtual HRESULT WINAPI Capture();
 	virtual HRESULT WINAPI Apply();
 
-	/* Use these methods when the respective methods on the device are called between Start/End StateBlock */
+	/*** Use these methods when the respective methods on the device are called between Start/End StateBlock ***/
 	void SelectAndCaptureState(BaseDirect3DIndexBuffer9* pWrappedIndexBuffer);
 	void SelectAndCaptureState(D3DVIEWPORT9 viewport);
 	void SelectAndCaptureViewTransform(D3DXMATRIX left, D3DXMATRIX right);
@@ -93,12 +95,19 @@ public:
 	void SelectAndCaptureState(BaseDirect3DPixelShader9* pWrappedPixelShader);
 	void SelectAndCaptureState(BaseDirect3DVertexShader9* pWrappedVertexShader);
 	void SelectAndCaptureState(BaseDirect3DVertexDeclaration9* pWrappedVertexDeclaration);
-	void SelectAndCaptureState(ConstantRecord<float> stereoFloatConstant);
-	void SelectAndCaptureState(ConstantRecord<int> stereoIntConstant);
-	void SelectAndCaptureState(ConstantRecord<bool> stereoBoolConstant);
+
+	/* 
+		Assumption: If multiple SetConstant calls are made during a Begin/End StateBlock they will not partially
+		overwrite each other. There is nothing to stop a program doing this but it would be more difficult to handle
+		and I can't think of a reason for this to be intentionally done so I'm ignoring the possibility for now. 
+	 */
+	void SelectAndCaptureState(StereoShaderConstant<float> stereoFloatConstant);
+	void SelectAndCaptureState(StereoShaderConstant<int> stereoIntConstant);
+	void SelectAndCaptureState(StereoShaderConstant<bool> stereoBoolConstant);
+
 	void SelectAndCaptureState(DWORD Stage, IDirect3DBaseTexture9* pWrappedTexture);
 	void SelectAndCaptureState(UINT StreamNumber, BaseDirect3DVertexBuffer9* pWrappedStreamData);
-
+	/***********************************************************************************************************/
 
 	/* If this ProxyStateBlock was created in a BeginStateBlock call then
 		call this method in the EndStateBlock with the actual stateblock returned from
@@ -168,7 +177,7 @@ private:
 	// Viewport - Viewport handled by actual device but need to update proxy device viewport state (update m_bActiveViewportIsDefault and m_LastViewportSet) 
 	D3DVIEWPORT9 m_storedViewport;
 	
-	// View and Projection matricies
+	// View and Projection matricies (transform)
 	D3DXMATRIX m_storedLeftView;
 	D3DXMATRIX m_storedRightView;
 	D3DXMATRIX m_storedLeftProjection;
