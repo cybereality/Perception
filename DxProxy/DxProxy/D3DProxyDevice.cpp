@@ -2352,7 +2352,7 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 		}
 		else { // otherwise update proxy device
 
-			m_bViewTransformSet = tempIsTransformSet;
+			m_bProjectionTransformSet = tempIsTransformSet;
 			m_leftProjection = tempLeft;
 			m_rightProjection = tempRight;
 
