@@ -103,14 +103,16 @@ void D3D9ProxyStateBlock::ClearCapturedData()
 {
 	auto it = m_storedTextureStages.begin();
 	while (it != m_storedTextureStages.end()) {
-		it->second->Release();
+		if (it->second)
+			it->second->Release();
 		++it;
 	}
 	m_storedTextureStages.clear();
 
 	auto it2 = m_storedVertexBuffers.begin();
 	while (it2 != m_storedVertexBuffers.end()) {
-		it2->second->Release();
+		if (it2->second)
+			it2->second->Release();
 		++it2;
 	}
 	m_storedVertexBuffers.clear();
@@ -227,8 +229,8 @@ void D3D9ProxyStateBlock::CaptureSelectedFromProxyDevice()
 				if (m_pWrappedDevice->m_activeTextureStages.count(*itSelectedTextures) == 1) {
 					
 					auto inserted = m_storedTextureStages.insert(std::pair<DWORD, IDirect3DBaseTexture9*>(*itSelectedTextures, m_pWrappedDevice->m_activeTextureStages[*itSelectedTextures]));
-					// insert success
-					if (inserted.second) {
+					// insert success and texture is not NULL
+					if (inserted.second && inserted.first->second) {
 						inserted.first->second->AddRef();
 					}
 					else { // insertfailed
@@ -246,8 +248,8 @@ void D3D9ProxyStateBlock::CaptureSelectedFromProxyDevice()
 				if (m_pWrappedDevice->m_activeVertexBuffers.count(*itSelectedVertexStreams) == 1) {
 
 					auto inserted = m_storedVertexBuffers.insert(std::pair<UINT, BaseDirect3DVertexBuffer9*>(*itSelectedVertexStreams, m_pWrappedDevice->m_activeVertexBuffers[*itSelectedVertexStreams]));
-					// insert success
-					if (inserted.second) {
+					// insert success and buffer is not NULL
+					if (inserted.second && inserted.first->second) {
 						inserted.first->second->AddRef();
 					}
 					else { // insertfailed
@@ -501,8 +503,8 @@ HRESULT WINAPI D3D9ProxyStateBlock::Apply()
 			}
 
 			auto inserted = m_pWrappedDevice->m_activeVertexBuffers.insert(std::pair<UINT, BaseDirect3DVertexBuffer9*>(itVertexBuffer->first, itVertexBuffer->second));
-			// insert success
-			if (inserted.second) {
+			// insert success and buffer not NULL
+			if (inserted.second && inserted.first->second) {
 				inserted.first->second->AddRef();
 			}
 
@@ -544,8 +546,8 @@ HRESULT WINAPI D3D9ProxyStateBlock::Apply()
 				}
 
 				auto inserted = m_pWrappedDevice->m_activeTextureStages.insert(std::pair<DWORD, IDirect3DBaseTexture9*>(itTextures->first, itTextures->second));
-				// insert success
-				if (inserted.second) {
+				// insert success and texture not NULL
+				if (inserted.second && inserted.first->second) {
 					inserted.first->second->AddRef();
 				}
 
@@ -715,12 +717,16 @@ void D3D9ProxyStateBlock::SelectAndCaptureState(DWORD Stage, IDirect3DBaseTextur
 
 	if (m_storedTextureStages.count(Stage) == 1) {
 		IDirect3DBaseTexture9* pOldTexture = m_storedTextureStages.at(Stage);
-		pOldTexture->Release();
+
+		if (pOldTexture)
+			pOldTexture->Release();
+
 		m_storedTextureStages.erase(Stage);
 	}
 
 	if(m_storedTextureStages.insert(std::pair<DWORD, IDirect3DBaseTexture9*>(Stage, pWrappedTexture)).second) {
-		pWrappedTexture->AddRef();
+		if (pWrappedTexture)
+			pWrappedTexture->AddRef();
 	}
 
 	updateCaptureSideTracking();
@@ -736,12 +742,16 @@ void D3D9ProxyStateBlock::SelectAndCaptureState(UINT StreamNumber, BaseDirect3DV
 
 	if (m_storedVertexBuffers.count(StreamNumber) == 1) {
 		BaseDirect3DVertexBuffer9* pOldBuffer = m_storedVertexBuffers.at(StreamNumber);
-		pOldBuffer->Release();
+
+		if (pOldBuffer)
+			pOldBuffer->Release();
+
 		m_storedVertexBuffers.erase(StreamNumber);
 	}
 
 	if(m_storedVertexBuffers.insert(std::pair<DWORD, BaseDirect3DVertexBuffer9*>(StreamNumber, pWrappedStreamData)).second) {
-		pWrappedStreamData->AddRef();
+		if (pWrappedStreamData)
+			pWrappedStreamData->AddRef();
 	}
 }
 
