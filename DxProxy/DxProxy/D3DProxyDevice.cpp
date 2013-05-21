@@ -220,14 +220,18 @@ void D3DProxyDevice::ReleaseEverything()
 
 	auto it = m_activeTextureStages.begin();
 	while (it != m_activeTextureStages.end()) {
-		it->second->Release();
+		if (it->second)
+			it->second->Release();
+
 		it = m_activeTextureStages.erase(it);
 	}
 
 
 	auto itVB = m_activeVertexBuffers.begin();
 	while (itVB != m_activeVertexBuffers.end()) {
-		itVB->second->Release();
+		if (it->second)
+			itVB->second->Release();
+
 		itVB = m_activeVertexBuffers.erase(itVB);
 	}
 
@@ -1313,24 +1317,22 @@ HRESULT WINAPI D3DProxyDevice::SetStreamSource(UINT StreamNumber, IDirect3DVerte
 			m_activeVertexBuffers.erase(StreamNumber);
 		}
 
-		// if there is a new vertex buffer (we aren't just clearing out an old one)
-		if (pStreamData) {
-			// insert new vertex buffer
-			if(m_activeVertexBuffers.insert(std::pair<UINT, BaseDirect3DVertexBuffer9*>(StreamNumber, pCastStreamData)).second) {
-				//success
+		// insert new vertex buffer
+		if(m_activeVertexBuffers.insert(std::pair<UINT, BaseDirect3DVertexBuffer9*>(StreamNumber, pCastStreamData)).second) {
+			//success
+			if (pStreamData)
 				pStreamData->AddRef();
-			}
-			else {
-				OutputDebugString(__FUNCTION__);
-				OutputDebugString("\n");
-				OutputDebugString("Unable to store active Texture Stage.\n");
-				assert(false);
-
-				//If we get here the state of the texture tracking is fubared and an implosion is imminent.
-
-				result = D3DERR_INVALIDCALL;
-			}
 		}
+		else {
+			OutputDebugString(__FUNCTION__);
+			OutputDebugString("\n");
+			OutputDebugString("Unable to store active Texture Stage.\n");
+			assert(false);
+
+			//If we get here the state of the texture tracking is fubared and an implosion is imminent.
+
+			result = D3DERR_INVALIDCALL;
+			}
 	}
 
 	return result;
@@ -1353,7 +1355,9 @@ HRESULT WINAPI D3DProxyDevice::GetStreamSource(UINT StreamNumber, IDirect3DVerte
 
 		
 		*ppStreamData = m_activeVertexBuffers[StreamNumber];
-		(*ppStreamData)->AddRef();
+		if ((*ppStreamData))
+			(*ppStreamData)->AddRef();
+
 		result = D3D_OK;
 		
 	}
@@ -1533,23 +1537,22 @@ HRESULT WINAPI D3DProxyDevice::SetTexture(DWORD Stage,IDirect3DBaseTexture9* pTe
 			m_activeTextureStages.erase(Stage);
 		}
 
-		// if there is a new texture (we aren't just clearing out an old one)
-		if (pTexture) {
-			// insert new texture
-			if(m_activeTextureStages.insert(std::pair<DWORD, IDirect3DBaseTexture9*>(Stage, pTexture)).second) {
-				//success
+
+		// insert new texture (can be a NULL pointer, this is important for StateBlock tracking)
+		if(m_activeTextureStages.insert(std::pair<DWORD, IDirect3DBaseTexture9*>(Stage, pTexture)).second) {
+			//success
+			if (pTexture)
 				pTexture->AddRef();
-			}
-			else {
-				OutputDebugString(__FUNCTION__);
-				OutputDebugString("\n");
-				OutputDebugString("Unable to store active Texture Stage.\n");
-				assert(false);
+		}
+		else {
+			OutputDebugString(__FUNCTION__);
+			OutputDebugString("\n");
+			OutputDebugString("Unable to store active Texture Stage.\n");
+			assert(false);
 
-				//If we get here the state of the texture tracking is fubared and an implosion is imminent.
+			//If we get here the state of the texture tracking is fubared and an implosion is imminent.
 
-				result = D3DERR_INVALIDCALL;
-			}
+			result = D3DERR_INVALIDCALL;
 		}
 	}
 
@@ -1566,7 +1569,8 @@ HRESULT WINAPI D3DProxyDevice::GetTexture(DWORD Stage,IDirect3DBaseTexture9** pp
 		return D3DERR_INVALIDCALL;
 	else {
 		*ppTexture = m_activeTextureStages[Stage];
-		(*ppTexture)->AddRef();
+		if ((*ppTexture))
+			(*ppTexture)->AddRef();
 		return D3D_OK;
 	}
 }
@@ -1836,8 +1840,6 @@ bool D3DProxyDevice::setDrawingSide(EyeSide side)
 			if (result != D3D_OK)
 				OutputDebugString("Error trying to set one of the textures while switching between active eyes for drawing.\n");
 		}
-		else 
-			OutputDebugString("Warn: Null pointer in m_activeTextureStages.\n");
 	}
 
 
@@ -2080,6 +2082,58 @@ HRESULT WINAPI D3DProxyDevice::UpdateTexture(IDirect3DBaseTexture9* pSourceTextu
 }
 
 
+HRESULT D3DProxyDevice::SetStereoViewTransform(D3DXMATRIX pLeftMatrix, D3DXMATRIX pRightMatrix, bool apply)
+{
+	if (D3DXMatrixIsIdentity(&pLeftMatrix) && D3DXMatrixIsIdentity(&pRightMatrix)) {
+		m_bViewTransformSet = false;
+	}
+	else {
+		m_bViewTransformSet = true;
+	}
+	
+	m_leftView = pLeftMatrix;
+	m_rightView = pRightMatrix;
+
+	if (m_currentRenderingSide == Left) {
+		m_pCurrentView = &m_leftView;
+	}
+	else {
+		m_pCurrentView = &m_rightView;
+	}
+
+	if (apply)
+		return BaseDirect3DDevice9::SetTransform(D3DTS_VIEW, m_pCurrentView);
+	else
+		return D3D_OK;
+}
+
+
+HRESULT D3DProxyDevice::SetStereoProjectionTransform(D3DXMATRIX pLeftMatrix, D3DXMATRIX pRightMatrix, bool apply)
+{
+	if (D3DXMatrixIsIdentity(&pLeftMatrix) && D3DXMatrixIsIdentity(&pRightMatrix)) {
+		m_bProjectionTransformSet = false;
+	}
+	else {
+		m_bProjectionTransformSet = true;
+	}
+	
+	m_leftProjection = pLeftMatrix;
+	m_rightProjection = pRightMatrix;
+
+	if (m_currentRenderingSide == Left) {
+		m_pCurrentProjection = &m_leftProjection;
+	}
+	else {
+		m_pCurrentProjection = &m_rightProjection;
+	}
+
+	if (apply)
+		return BaseDirect3DDevice9::SetTransform(D3DTS_PROJECTION, m_pCurrentProjection);
+	else
+		return D3D_OK;
+}
+
+
 HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D3DMATRIX* pMatrix)
 {
 	if(State == D3DTS_VIEW)
@@ -2106,7 +2160,7 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 			else {
 				// If the view matrix is modified we need to apply left/right adjustments (for stereo rendering)
 				// TODO do we need to keep an unmodified view for rendering mono targets or can we just use left view?
-				// TODO ComputeViewTranslation duplicates some of this. This should be using compute view 
+				// TODO ComputeViewTranslation duplicates some of this. Can we make a single code path for the two?
 				D3DXMATRIX transLeftMatrix;
 				D3DXMATRIX transRightMatrix;
 				D3DXMatrixIdentity(&transLeftMatrix);

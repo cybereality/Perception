@@ -43,7 +43,7 @@ protected:
 
 	IDirect3DStateBlock9* m_pActualStateBlock;
 	ULONG m_nRefCount;
-
+private:
 	IDirect3DDevice9* const m_pOwningDevice;
 
 };

@@ -56,7 +56,7 @@ public:
 
 	/* In this context states to capture are any state that a proxy needs to track extra information for
 		beyond the underlying StateBlocks normal capture. */
-	enum StateToCapture
+	enum CaptureableState
 	{
 		IndexBuffer = 0,
 		Viewport = 1,
@@ -67,7 +67,7 @@ public:
 		VertexDeclaration = 6
 	};
 
-	enum IndexedStateToCapture
+	enum IndexedCaptureableState
 	{
 		Texture = 1,					// needs to track which sampler
 		VertexBuffer = 2,				// needs to track which stream
@@ -118,6 +118,11 @@ public:
 
 private:
 	void CaptureSelectedFromProxyDevice();
+	void Capture(CaptureableState toCap);
+
+	void ClearCapturedData();
+
+	void Apply(CaptureableState toApply, bool reApplyStereo);
 
 	// Needs to be called whenever a stereo state is recorded to see if side remains consistent.
 	// If sides ever become inconsistent amongst tracked stereo states then all stereo states need
@@ -146,7 +151,7 @@ private:
 	const CaptureType m_eCaptureMode;
 
 	// Selected States to capture are only relevant if CaptureType is Cap_Type_Selected
-	std::unordered_set<StateToCapture> m_selectedStates;
+	std::unordered_set<CaptureableState> m_selectedStates;
 	std::unordered_set<DWORD> m_selectedTextureSamplers; 
 	std::unordered_set<UINT> m_selectedVertexStreams;
 	std::unordered_set<UINT> m_selectedVertexConstantRegistersF;
@@ -178,7 +183,7 @@ private:
 	////////////////////// General State //////////////////////
 
 	// Textures in samplers (standard, vertex and displacement)
-	std::unordered_map<UINT, IDirect3DBaseTexture9*> m_storedTextureStages;
+	std::unordered_map<DWORD, IDirect3DBaseTexture9*> m_storedTextureStages;
 
 	// Vertex Buffers
 	std::unordered_map<UINT, BaseDirect3DVertexBuffer9*> m_storedVertexBuffers;
@@ -226,7 +231,7 @@ private:
 	// Duplicated the device here under the wrapped pointer. Almost certain to at least confuse someone later.
 	// TODO fix. This was the quick and dirty 2am style solution. This shouldn't be here and the base classs device should
 	// just be of the derived type.
-	D3DProxyDevice* const p_WrappedDevice;
+	D3DProxyDevice* const m_pWrappedDevice;
 };
 
 #endif

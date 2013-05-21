@@ -236,6 +236,8 @@ private:
 	void ReleaseEverything();
 	bool isViewportDefaultForMainRT(CONST D3DVIEWPORT9* pViewport);
 
+	HRESULT SetStereoViewTransform(D3DXMATRIX pLeftMatrix, D3DXMATRIX pRightMatrix, bool apply);
+	HRESULT SetStereoProjectionTransform(D3DXMATRIX pLeftMatrix, D3DXMATRIX pRightMatrix, bool apply);
 	
 	bool m_bActiveViewportIsDefault;
 	D3DVIEWPORT9 m_LastViewportSet;
@@ -250,7 +252,8 @@ private:
 	// The render targets that are currently in use.
 	std::vector<D3D9ProxySurface*> m_activeRenderTargets;
 	
-	// Textures assigned to stages. See (Get/Set)Texture
+	// Textures assigned to stages. See (Get/Set)Texture. (NULL is a valid entry in these containers. It indicates that the application
+	// has specifically cleared that stream/sampler. It is important that this information is available to the proxy StateBlock)
 	std::unordered_map<DWORD, IDirect3DBaseTexture9*> m_activeTextureStages;
 	std::unordered_map<UINT, BaseDirect3DVertexBuffer9*> m_activeVertexBuffers;
 
