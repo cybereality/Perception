@@ -1339,7 +1339,9 @@ HRESULT WINAPI D3DProxyDevice::SetStreamSource(UINT StreamNumber, IDirect3DVerte
 				if (pOldBuffer == pStreamData)
 					return result;
 
-				pOldBuffer->Release();
+				if (pOldBuffer)
+					pOldBuffer->Release();
+
 				m_activeVertexBuffers.erase(StreamNumber);
 			}
 
@@ -1566,7 +1568,9 @@ HRESULT WINAPI D3DProxyDevice::SetTexture(DWORD Stage,IDirect3DBaseTexture9* pTe
 			if (m_activeTextureStages.count(Stage) == 1) { 
 
 				IDirect3DBaseTexture9* pOldTexture = m_activeTextureStages.at(Stage);
-				pOldTexture->Release();
+				if (pOldTexture)
+					pOldTexture->Release();
+
 				m_activeTextureStages.erase(Stage);
 			}
 
