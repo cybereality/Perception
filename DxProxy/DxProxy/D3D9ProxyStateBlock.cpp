@@ -145,6 +145,11 @@ void D3D9ProxyStateBlock::ClearCapturedData()
 		m_pStoredPixelShader->Release();
 		m_pStoredPixelShader = NULL;
 	}
+
+	D3DXMatrixIdentity(&m_storedLeftView);
+	D3DXMatrixIdentity(&m_storedRightView);
+	D3DXMatrixIdentity(&m_storedLeftProjection);
+	D3DXMatrixIdentity(&m_storedRightProjection);
 }
 
 
