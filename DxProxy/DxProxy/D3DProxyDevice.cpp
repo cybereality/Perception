@@ -229,7 +229,7 @@ void D3DProxyDevice::ReleaseEverything()
 
 	auto itVB = m_activeVertexBuffers.begin();
 	while (itVB != m_activeVertexBuffers.end()) {
-		if (it->second)
+		if (itVB->second)
 			itVB->second->Release();
 
 		itVB = m_activeVertexBuffers.erase(itVB);
