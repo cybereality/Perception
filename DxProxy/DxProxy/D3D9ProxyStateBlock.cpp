@@ -126,17 +126,25 @@ void D3D9ProxyStateBlock::ClearCapturedData()
 	m_selectedVertexConstantRegistersF.clear();
 
 
-	if (m_pStoredIndicies)
+	if (m_pStoredIndicies) {
 		m_pStoredIndicies->Release();
+		m_pStoredIndicies = NULL;
+	}
 
-	if (m_pStoredVertexShader)
+	if (m_pStoredVertexShader) {
 		m_pStoredVertexShader->Release();
+		m_pStoredVertexShader = NULL;
+	}
 
-	if (m_pStoredVertexDeclaration)
+	if (m_pStoredVertexDeclaration) {
 		m_pStoredVertexDeclaration->Release();
+		m_pStoredVertexDeclaration = NULL;
+	}
 
-	if (m_pStoredPixelShader)
+	if (m_pStoredPixelShader) {
 		m_pStoredPixelShader->Release();
+		m_pStoredPixelShader = NULL;
+	}
 }
 
 
