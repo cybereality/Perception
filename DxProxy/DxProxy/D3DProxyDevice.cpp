@@ -1107,13 +1107,36 @@ HRESULT WINAPI D3DProxyDevice::CreateStateBlock(D3DSTATEBLOCKTYPE Type,IDirect3D
 	HRESULT creationResult = BaseDirect3DDevice9::CreateStateBlock(Type, &pActualStateBlock);
 
 	if (SUCCEEDED(creationResult)) {
-		*ppSB = new BaseDirect3DStateBlock9(pActualStateBlock, this);
 
-		// TODO record stereo state.
-		// record side (by recording side we can switch to the correct side before applying state to actual devie and not have to reapply the correct stereo side after )
-		// record all wrapped stereo states
-		// record all wrapped states (ie current shaders, etc)
-		// View, projection and world matricies
+		D3D9ProxyStateBlock::CaptureType capType;
+
+		switch (Type) {
+			case D3DSBT_ALL: 
+			{
+				capType = D3D9ProxyStateBlock::Cap_Type_Full;
+				break;
+			}
+
+			case D3DSBT_PIXELSTATE: 
+			{
+				capType = D3D9ProxyStateBlock::Cap_Type_Pixel;
+				break;
+			}
+
+			case D3DSBT_VERTEXSTATE: 
+			{
+				capType = D3D9ProxyStateBlock::Cap_Type_Vertex;
+				break;
+			}
+
+			default:
+			{
+				capType = D3D9ProxyStateBlock::Cap_Type_Full;
+				break;
+			}    
+		}
+
+		*ppSB = new D3D9ProxyStateBlock(pActualStateBlock, this, capType, m_currentRenderingSide == Left);
 	}
 
 	return creationResult;
@@ -1258,8 +1281,6 @@ HRESULT WINAPI D3DProxyDevice::SetIndices(IDirect3DIndexBuffer9* pIndexData)
 		// If in a Begin-End StateBlock pair update the block state rather than the current proxy device state
 		if (m_pCapturingStateTo) {
 			m_pCapturingStateTo->SelectAndCaptureState(pWrappedNewIndexData);
-			pWrappedNewIndexData->Release();
-			pWrappedNewIndexData = NULL;
 		}
 		else {
 			// Update stored proxy index buffer
@@ -1306,33 +1327,39 @@ HRESULT WINAPI D3DProxyDevice::SetStreamSource(UINT StreamNumber, IDirect3DVerte
 	// Update m_activeVertexBuffers if new vertex buffer was successfully set
 	if (SUCCEEDED(result)) {
 
-		// remove existing vertex buffer that was active at StreamNumber if there is one
-		if (m_activeVertexBuffers.count(StreamNumber) == 1) { 
-
-			IDirect3DVertexBuffer9* pOldBuffer = m_activeVertexBuffers.at(StreamNumber);
-			if (pOldBuffer == pStreamData)
-				return result;
-
-			pOldBuffer->Release();
-			m_activeVertexBuffers.erase(StreamNumber);
-		}
-
-		// insert new vertex buffer
-		if(m_activeVertexBuffers.insert(std::pair<UINT, BaseDirect3DVertexBuffer9*>(StreamNumber, pCastStreamData)).second) {
-			//success
-			if (pStreamData)
-				pStreamData->AddRef();
+		// If in a Begin-End StateBlock pair update the block state rather than the current proxy device state
+		if (m_pCapturingStateTo) {
+			m_pCapturingStateTo->SelectAndCaptureState(StreamNumber, pCastStreamData);
 		}
 		else {
-			OutputDebugString(__FUNCTION__);
-			OutputDebugString("\n");
-			OutputDebugString("Unable to store active Texture Stage.\n");
-			assert(false);
+			// remove existing vertex buffer that was active at StreamNumber if there is one
+			if (m_activeVertexBuffers.count(StreamNumber) == 1) { 
 
-			//If we get here the state of the texture tracking is fubared and an implosion is imminent.
+				IDirect3DVertexBuffer9* pOldBuffer = m_activeVertexBuffers.at(StreamNumber);
+				if (pOldBuffer == pStreamData)
+					return result;
 
-			result = D3DERR_INVALIDCALL;
+				pOldBuffer->Release();
+				m_activeVertexBuffers.erase(StreamNumber);
 			}
+
+			// insert new vertex buffer
+			if(m_activeVertexBuffers.insert(std::pair<UINT, BaseDirect3DVertexBuffer9*>(StreamNumber, pCastStreamData)).second) {
+				//success
+				if (pStreamData)
+					pStreamData->AddRef();
+			}
+			else {
+				OutputDebugString(__FUNCTION__);
+				OutputDebugString("\n");
+				OutputDebugString("Unable to store active Texture Stage.\n");
+				assert(false);
+
+				//If we get here the state of the texture tracking is fubared and an implosion is imminent.
+
+				result = D3DERR_INVALIDCALL;
+			}
+		}
 	}
 
 	return result;
@@ -1529,30 +1556,37 @@ HRESULT WINAPI D3DProxyDevice::SetTexture(DWORD Stage,IDirect3DBaseTexture9* pTe
 	// Update m_activeTextureStages if new testure was successfully set
 	if (SUCCEEDED(result)) {
 
-		// remove existing texture that was active at Stage if there is one
-		if (m_activeTextureStages.count(Stage) == 1) { 
-
-			IDirect3DBaseTexture9* pOldTexture = m_activeTextureStages.at(Stage);
-			pOldTexture->Release();
-			m_activeTextureStages.erase(Stage);
-		}
-
-
-		// insert new texture (can be a NULL pointer, this is important for StateBlock tracking)
-		if(m_activeTextureStages.insert(std::pair<DWORD, IDirect3DBaseTexture9*>(Stage, pTexture)).second) {
-			//success
-			if (pTexture)
-				pTexture->AddRef();
+		// If in a Begin-End StateBlock pair update the block state rather than the current proxy device state
+		if (m_pCapturingStateTo) {
+			m_pCapturingStateTo->SelectAndCaptureState(Stage, pTexture);
 		}
 		else {
-			OutputDebugString(__FUNCTION__);
-			OutputDebugString("\n");
-			OutputDebugString("Unable to store active Texture Stage.\n");
-			assert(false);
 
-			//If we get here the state of the texture tracking is fubared and an implosion is imminent.
+			// remove existing texture that was active at Stage if there is one
+			if (m_activeTextureStages.count(Stage) == 1) { 
 
-			result = D3DERR_INVALIDCALL;
+				IDirect3DBaseTexture9* pOldTexture = m_activeTextureStages.at(Stage);
+				pOldTexture->Release();
+				m_activeTextureStages.erase(Stage);
+			}
+
+
+			// insert new texture (can be a NULL pointer, this is important for StateBlock tracking)
+			if(m_activeTextureStages.insert(std::pair<DWORD, IDirect3DBaseTexture9*>(Stage, pTexture)).second) {
+				//success
+				if (pTexture)
+					pTexture->AddRef();
+			}
+			else {
+				OutputDebugString(__FUNCTION__);
+				OutputDebugString("\n");
+				OutputDebugString("Unable to store active Texture Stage.\n");
+				assert(false);
+
+				//If we get here the state of the texture tracking is fubared and an implosion is imminent.
+
+				result = D3DERR_INVALIDCALL;
+			}
 		}
 	}
 
@@ -1590,13 +1624,21 @@ HRESULT WINAPI D3DProxyDevice::SetPixelShader(IDirect3DPixelShader9* pShader)
 
 	// Update stored proxy pixel shader
 	if (SUCCEEDED(result)) {
-		if (m_pActivePixelShader) {
-			m_pActivePixelShader->Release();
+
+		// If in a Begin-End StateBlock pair update the block state rather than the current proxy device state
+		if (m_pCapturingStateTo) {
+			m_pCapturingStateTo->SelectAndCaptureState(pWrappedPShaderData);
 		}
+		else {
+
+			if (m_pActivePixelShader) {
+				m_pActivePixelShader->Release();
+			}
 		
-		m_pActivePixelShader = pWrappedPShaderData;
-		if (m_pActivePixelShader) {
-			m_pActivePixelShader->AddRef();
+			m_pActivePixelShader = pWrappedPShaderData;
+			if (m_pActivePixelShader) {
+				m_pActivePixelShader->AddRef();
+			}
 		}
 	}
 
@@ -1627,13 +1669,20 @@ HRESULT WINAPI D3DProxyDevice::SetVertexShader(IDirect3DVertexShader9* pShader)
 
 	// Update stored proxy Vertex shader
 	if (SUCCEEDED(result)) {
-		if (m_pActiveVertexShader) {
-			m_pActiveVertexShader->Release();
+
+		// If in a Begin-End StateBlock pair update the block state rather than the current proxy device state
+		if (m_pCapturingStateTo) {
+			m_pCapturingStateTo->SelectAndCaptureState(pWrappedVShaderData);
 		}
+		else {
+			if (m_pActiveVertexShader) {
+				m_pActiveVertexShader->Release();
+			}
 		
-		m_pActiveVertexShader = pWrappedVShaderData;
-		if (m_pActiveVertexShader) {
-			m_pActiveVertexShader->AddRef();
+			m_pActiveVertexShader = pWrappedVShaderData;
+			if (m_pActiveVertexShader) {
+				m_pActiveVertexShader->AddRef();
+			}
 		}
 	}
 
@@ -1691,13 +1740,21 @@ HRESULT WINAPI D3DProxyDevice::SetVertexDeclaration(IDirect3DVertexDeclaration9*
 
 	// Update stored proxy Vertex Declaration
 	if (SUCCEEDED(result)) {
-		if (m_pActiveVertexDeclaration) {
-			m_pActiveVertexDeclaration->Release();
+
+		// If in a Begin-End StateBlock pair update the block state rather than the current proxy device state
+		if (m_pCapturingStateTo) {
+			m_pCapturingStateTo->SelectAndCaptureState(pWrappedVDeclarationData);
 		}
+		else {
+
+			if (m_pActiveVertexDeclaration) {
+				m_pActiveVertexDeclaration->Release();
+			}
 		
-		m_pActiveVertexDeclaration = pWrappedVDeclarationData;
-		if (m_pActiveVertexDeclaration) {
-			m_pActiveVertexDeclaration->AddRef();
+			m_pActiveVertexDeclaration = pWrappedVDeclarationData;
+			if (m_pActiveVertexDeclaration) {
+				m_pActiveVertexDeclaration->AddRef();
+			}
 		}
 	}
 
@@ -1730,11 +1787,20 @@ HRESULT WINAPI D3DProxyDevice::EndStateBlock(IDirect3DStateBlock9** ppSB)
 	IDirect3DStateBlock9* pActualStateBlock = NULL;
 	HRESULT creationResult = BaseDirect3DDevice9::EndStateBlock(&pActualStateBlock);
 
-	if (SUCCEEDED(creationResult))
-		*ppSB = new BaseDirect3DStateBlock9(pActualStateBlock, this);
+	if (SUCCEEDED(creationResult)) {
+		m_pCapturingStateTo->EndStateBlock(pActualStateBlock);
+		*ppSB = m_pCapturingStateTo;
+	}
+	else {
+		m_pCapturingStateTo->Release();
+	}
+	
+	m_pCapturingStateTo = NULL;
+	m_bInBeginEndStateBlock = false;
 
 	return creationResult;
 }
+
 
 bool D3DProxyDevice::switchDrawingSide()
 {
@@ -2138,12 +2204,14 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 {
 	if(State == D3DTS_VIEW)
 	{
-		if (!pMatrix) {
-			D3DXMatrixIdentity(&m_leftView);
-			D3DXMatrixIdentity(&m_rightView);
-			m_pCurrentView = NULL;
+		D3DXMATRIX tempLeft;
+		D3DXMATRIX tempRight;
+		D3DXMATRIX* pViewToSet = NULL;
+		bool tempIsTransformSet = false;
 
-			m_bViewTransformSet = false;
+		if (!pMatrix) {
+			D3DXMatrixIdentity(&tempLeft);
+			D3DXMatrixIdentity(&tempRight);
 		}
 		else {
 
@@ -2152,10 +2220,8 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 			// If the view is set to the identity then we don't need to perform any adjustments
 			if (D3DXMatrixIsIdentity(&sourceMatrix)) {
 
-				D3DXMatrixIdentity(&m_leftView);
-				D3DXMatrixIdentity(&m_rightView);
-
-				m_bViewTransformSet = false;
+				D3DXMatrixIdentity(&tempLeft);
+				D3DXMatrixIdentity(&tempRight);
 			}
 			else {
 				// If the view matrix is modified we need to apply left/right adjustments (for stereo rendering)
@@ -2179,11 +2245,29 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 				D3DXMatrixTranslation(&transRightMatrix, ((separation * RIGHT_CONSTANT)) * 6000.0f, 0, 0);
 
 				// store current left and right adjusted view matricies
-				D3DXMatrixMultiply(&m_leftView, &sourceMatrix, &transLeftMatrix);
-				D3DXMatrixMultiply(&m_rightView, &sourceMatrix, &transRightMatrix);
+				D3DXMatrixMultiply(&tempLeft, &sourceMatrix, &transLeftMatrix);
+				D3DXMatrixMultiply(&tempRight, &sourceMatrix, &transRightMatrix);
 
-				m_bViewTransformSet = true;
+				tempIsTransformSet = true;
 			}
+		}
+
+
+		// If capturing state block capture without updating proxy device
+		if (m_pCapturingStateTo) {
+			m_pCapturingStateTo->SelectAndCaptureViewTransform(tempLeft, tempRight);
+			if (m_currentRenderingSide == Left) {
+				pViewToSet = &tempLeft;
+			}
+			else {
+				pViewToSet = &tempRight;
+			}
+		}
+		else { // otherwise update proxy device
+
+			m_bViewTransformSet = tempIsTransformSet;
+			m_leftView = tempLeft;
+			m_rightView = tempRight;
 
 			if (m_currentRenderingSide == Left) {
 				m_pCurrentView = &m_leftView;
@@ -2191,20 +2275,25 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 			else {
 				m_pCurrentView = &m_rightView;
 			}
+
+			pViewToSet = m_pCurrentView;
 		}
-		return BaseDirect3DDevice9::SetTransform(State, m_pCurrentView);
+
+		return BaseDirect3DDevice9::SetTransform(State, pViewToSet);
 		
 	}
 	else if(State == D3DTS_PROJECTION)
 	{
 
+		D3DXMATRIX tempLeft;
+		D3DXMATRIX tempRight;
+		D3DXMATRIX* pProjectionToSet = NULL;
+		bool tempIsTransformSet = false;
+
 		if (!pMatrix) {
 			
-			D3DXMatrixIdentity(&m_leftProjection);
-			D3DXMatrixIdentity(&m_rightProjection);
-			m_pCurrentProjection = NULL;
-
-			m_bProjectionTransformSet = false;
+			D3DXMatrixIdentity(&tempLeft);
+			D3DXMatrixIdentity(&tempRight);
 		}
 		else {
 			D3DXMATRIX sourceMatrix(*pMatrix);
@@ -2213,10 +2302,8 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 		
 			if (D3DXMatrixIsIdentity(&sourceMatrix)) {
 
-				D3DXMatrixIdentity(&m_leftProjection);
-				D3DXMatrixIdentity(&m_rightProjection);
-
-				m_bProjectionTransformSet = false;
+				D3DXMatrixIdentity(&tempLeft);
+				D3DXMatrixIdentity(&tempRight);
 			}
 			else {
 				//TODO same question as view
@@ -2235,14 +2322,35 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 				D3DXMATRIX sourceMatrixRight(sourceMatrix);
 
 				D3DXMatrixMultiply(&sourceMatrixRight, &sourceMatrixRight, &transMatrixRight);
-				D3DXMatrixMultiply(&m_rightProjection, &sourceMatrixRight, &matProjection);
+				D3DXMatrixMultiply(&tempRight, &sourceMatrixRight, &matProjection);
 
 				D3DXMatrixMultiply(&sourceMatrix, &sourceMatrix, &transMatrixLeft);
-				D3DXMatrixMultiply(&m_leftProjection, &sourceMatrix, &matProjection);
+				D3DXMatrixMultiply(&tempLeft, &sourceMatrix, &matProjection);
 
-				m_bProjectionTransformSet = true;
+				tempIsTransformSet = true;
 			}
 
+
+			
+		}
+
+
+		// If capturing state block capture without updating proxy device
+		if (m_pCapturingStateTo) {
+
+			m_pCapturingStateTo->SelectAndCaptureProjectionTransform(tempLeft, tempRight);
+			if (m_currentRenderingSide == Left) {
+				pProjectionToSet = &tempLeft;
+			}
+			else {
+				pProjectionToSet = &tempRight;
+			}
+		}
+		else { // otherwise update proxy device
+
+			m_bViewTransformSet = tempIsTransformSet;
+			m_leftProjection = tempLeft;
+			m_rightProjection = tempRight;
 
 			if (m_currentRenderingSide == Left) {
 				m_pCurrentProjection = &m_leftProjection;
@@ -2250,9 +2358,11 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 			else {
 				m_pCurrentProjection = &m_rightProjection;
 			}
+
+			pProjectionToSet = m_pCurrentProjection;
 		}
 
-		return BaseDirect3DDevice9::SetTransform(State, m_pCurrentProjection);
+		return BaseDirect3DDevice9::SetTransform(State, pProjectionToSet);
 	}
 
 	return BaseDirect3DDevice9::SetTransform(State, pMatrix);
@@ -2279,8 +2389,14 @@ HRESULT WINAPI D3DProxyDevice::SetViewport(CONST D3DVIEWPORT9* pViewport)
 
 	if (SUCCEEDED(result)) {
 
-		m_bActiveViewportIsDefault = isViewportDefaultForMainRT(pViewport);
-		m_LastViewportSet = *pViewport;
+		// If in a Begin-End StateBlock pair update the block state rather than the current proxy device state
+		if (m_pCapturingStateTo) {
+			m_pCapturingStateTo->SelectAndCaptureState(*pViewport);
+		}
+		else {
+			m_bActiveViewportIsDefault = isViewportDefaultForMainRT(pViewport);
+			m_LastViewportSet = *pViewport;
+		}
 	}
 	
 	return result;

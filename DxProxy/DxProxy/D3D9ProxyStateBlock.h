@@ -46,12 +46,14 @@ class D3DProxyDevice;
 class D3D9ProxyStateBlock : public BaseDirect3DStateBlock9
 {
 public:
+
 	enum CaptureType
 	{
-		Cap_Type_Full = 1,
-		Cap_Type_Vertex = 2,
-		Cap_Type_Pixel = 3,
-		Cap_Type_Selected = 4
+		Cap_Type_Full = 1, 
+		Cap_Type_Pixel = 2,
+		Cap_Type_Vertex = 3,
+		Cap_Type_Selected = 4,
+		Cap_Type_FORCE_DWORD   = 0x7fffffff
 	};
 
 	/* In this context states to capture are any state that a proxy needs to track extra information for

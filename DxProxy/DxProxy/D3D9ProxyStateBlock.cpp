@@ -386,6 +386,7 @@ void D3D9ProxyStateBlock::Apply(CaptureableState toApply, bool reApplyStereo)
 		case Viewport: 
 		{
 			m_pWrappedDevice->m_LastViewportSet = m_storedViewport;
+			m_pWrappedDevice->m_bActiveViewportIsDefault = m_pWrappedDevice->isViewportDefaultForMainRT(&m_storedViewport);
 
 			break;
 		}
