@@ -241,6 +241,8 @@ private:
 	
 	bool m_bActiveViewportIsDefault;
 	D3DVIEWPORT9 m_LastViewportSet;
+
+	bool m_isFirstBeginSceneOfFrame;
 	
 	D3D9ProxySurface* m_pStereoBackBuffer;
 	D3D9ProxySurface* m_pActiveStereoDepthStencil;

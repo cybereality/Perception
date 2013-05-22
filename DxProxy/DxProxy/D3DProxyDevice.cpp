@@ -81,6 +81,8 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	m_bInBeginEndStateBlock = false;
 	m_pCapturingStateTo = NULL;
 
+	m_isFirstBeginSceneOfFrame = true;
+
 	D3DXMatrixIdentity(&m_leftView);
 	D3DXMatrixIdentity(&m_rightView);
 	D3DXMatrixIdentity(&m_leftProjection);
@@ -746,25 +748,29 @@ void ClearHLine(LPDIRECT3DDEVICE9 Device_Interface,int x1,int y1,int x2,int y2,i
 
 HRESULT WINAPI D3DProxyDevice::BeginScene()
 {
-	if(saveDebugFile)
-	{
-		debugFile.open("d3d9_debug.txt", std::ios::out);
-	}
+	if (m_isFirstBeginSceneOfFrame) {
+		if(saveDebugFile)
+		{
+			debugFile.open("d3d9_debug.txt", std::ios::out);
+		}
 
 	
-	HandleControls();
-	HandleTracking(); // TODO Do this as late in frame as possible (Present)? Because input for this frame would already have been handled here so 
-	// injection of any mouse manipulation ?
+		HandleControls();
+		HandleTracking(); // TODO Do this as late in frame as possible (Present)? Because input for this frame would already have been handled here so 
+		// injection of any mouse manipulation ?
 
-	// TODO Doing this now gives very current roll to frame. But should it be done with handle tracking to keep latency similar?
-	// How much latency does mouse enulation cause? Probably want direct roll manipulation and mouse emulation to occur with same delay
-	// if possible?
-	if (trackerInitialized && tracker->isAvailable() && roll_mode != 0) {
-		D3DXMatrixIdentity(&m_rollMatrix);
-		D3DXMatrixRotationZ(&m_rollMatrix, tracker->currentRoll);
+		// TODO Doing this now gives very current roll to frame. But should it be done with handle tracking to keep latency similar?
+		// How much latency does mouse enulation cause? Probably want direct roll manipulation and mouse emulation to occur with same delay
+		// if possible?
+		if (trackerInitialized && tracker->isAvailable() && roll_mode != 0) {
+			D3DXMatrixIdentity(&m_rollMatrix);
+			D3DXMatrixRotationZ(&m_rollMatrix, tracker->currentRoll);
+		}
+
+		ComputeViewTranslation();
+
+		m_isFirstBeginSceneOfFrame = false;
 	}
-
-	ComputeViewTranslation();
 
 	return BaseDirect3DDevice9::BeginScene();
 }
@@ -1961,6 +1967,8 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 	if (stereoView->initialized)
 		stereoView->Draw(m_pStereoBackBuffer);
 
+	m_isFirstBeginSceneOfFrame = true;
+
 	return BaseDirect3DDevice9::Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
 }
 
@@ -2056,10 +2064,21 @@ HRESULT WINAPI D3DProxyDevice::StretchRect(IDirect3DSurface9* pSourceSurface,CON
 	if (!pSourceSurface || !pDestSurface)
 		 return D3DERR_INVALIDCALL;
 
-	IDirect3DSurface9* pSourceSurfaceLeft = static_cast<D3D9ProxySurface*>(pSourceSurface)->getActualLeft();
-	IDirect3DSurface9* pSourceSurfaceRight = static_cast<D3D9ProxySurface*>(pSourceSurface)->getActualRight();
-	IDirect3DSurface9* pDestSurfaceLeft = static_cast<D3D9ProxySurface*>(pDestSurface)->getActualLeft();
-	IDirect3DSurface9* pDestSurfaceRight = static_cast<D3D9ProxySurface*>(pDestSurface)->getActualRight();
+	OutputDebugString("BOMOO. \n");
+
+	D3D9ProxySurface* pWrappedSource = static_cast<D3D9ProxySurface*>(pSourceSurface);
+	D3D9ProxySurface* pWrappedDest = static_cast<D3D9ProxySurface*>(pDestSurface);
+
+	OutputDebugString("BOMOO2. \n");
+
+	IDirect3DSurface9* pSourceSurfaceLeft = pWrappedSource->getActualLeft();
+	OutputDebugString("BOMOO3. \n");
+	IDirect3DSurface9* pSourceSurfaceRight = pWrappedSource->getActualRight();
+	OutputDebugString("BOMOO4. \n");
+	IDirect3DSurface9* pDestSurfaceLeft = pWrappedDest->getActualLeft();
+	OutputDebugString("BOMOO5. \n");
+	IDirect3DSurface9* pDestSurfaceRight = pWrappedDest->getActualRight();
+	OutputDebugString("BOMOO6. \n");
 
 	HRESULT result = BaseDirect3DDevice9::StretchRect(pSourceSurfaceLeft, pSourceRect, pDestSurfaceLeft, pDestRect, Filter);
 
