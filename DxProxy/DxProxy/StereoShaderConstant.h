@@ -29,7 +29,7 @@ public:
 		StartRegister(StartReg),
 		Count(dataCount),
 		Multiplier(countMultiplier),
-		DataLeft(pConstData, pConstData + (dataCount * countMultiplier)),
+		DataLeft(pConstDataLeft, pConstDataLeft + (dataCount * countMultiplier)),
 		DataRight(pConstDataRight, pConstDataRight + (dataCount * countMultiplier)) {}
 
 	virtual ~StereoShaderConstant() {}

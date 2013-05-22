@@ -30,22 +30,24 @@ public:
 	virtual ~D3DProxyDeviceUnreal();
 	
 	virtual HRESULT WINAPI SetVertexShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
-	virtual HRESULT WINAPI SetVertexShader(IDirect3DVertexShader9* pShader);
+	virtual HRESULT WINAPI Reset(D3DPRESENT_PARAMETERS* pPresentationParameters);
+
 
 	virtual void Init(ProxyHelper::ProxyConfig& cfg);
 	
 	virtual bool setDrawingSide(enum EyeSide side);
 
 	bool validRegister(UINT reg);
-	int getMatrixIndex();
+	UINT getMatrixIndex();
 
 
 protected:
 
 	bool	m_bAdjustedShaderActive;
-	D3DXMATRIX	m_matCurrentVShaderMatrix;
-	UINT	m_CurrentVShaderRegister;
-	UINT	m_CurrentVShaderVec4Count;
+
+private:
+	
+	bool isPartOfMatrix(UINT Register);
 };
 
 #endif

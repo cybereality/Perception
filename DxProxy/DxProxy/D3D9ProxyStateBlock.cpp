@@ -210,18 +210,16 @@ void D3D9ProxyStateBlock::CaptureSelectedFromProxyDevice()
 			}
 
 
-			// TODO Vertex Shader constants
-
-
-
+			// Vertex Shader constants
+			m_StoredStereoShaderConstsF = m_pWrappedDevice->m_activeStereoVShaderConstF;
+			
 			break;
 		}
 
 		case Cap_Type_Vertex:
 		{
-			// if vertex - iterate m_selectedVertexConstantRegistersF
-
-			//TODO Vertex Shader constants
+			// Vertex Shader constants
+			m_StoredStereoShaderConstsF = m_pWrappedDevice->m_activeStereoVShaderConstF;
 
 			break;
 		}
@@ -275,7 +273,21 @@ void D3D9ProxyStateBlock::CaptureSelectedFromProxyDevice()
 
 			
 
-			//TODO Vertex Shader constants
+			// Vertex Shader constants
+			auto itSelectedVertexConstants = m_selectedVertexConstantRegistersF.begin();
+			while (itSelectedVertexConstants != m_selectedVertexConstantRegistersF.end()) {
+				
+				if (m_pWrappedDevice->m_activeStereoVShaderConstF.count(*itSelectedVertexConstants) == 1) {
+
+					auto toInsert = m_pWrappedDevice->m_activeStereoVShaderConstF.find(*itSelectedVertexConstants);
+
+					if (!(m_StoredStereoShaderConstsF.insert(std::pair<UINT, StereoShaderConstant<float>>(toInsert->first, toInsert->second)).second)) {
+						OutputDebugString("Vertex Shader constant capture to StateBlock failed");
+					}
+				}
+
+				++itSelectedVertexConstants;
+			}
 			
 			break;
 		}
@@ -537,7 +549,13 @@ HRESULT WINAPI D3D9ProxyStateBlock::Apply()
 				++itTextures;
 			}
 			
-			// TODO VertexShader constants
+			// VertexShader constants
+			auto itVSConstF = m_StoredStereoShaderConstsF.begin();
+			while (itVSConstF != m_StoredStereoShaderConstsF.end()) {
+
+				m_pWrappedDevice->SetVertexShaderConstantF(itVSConstF->second.StartRegister, (m_pWrappedDevice->m_currentRenderingSide == D3DProxyDevice::Left) ? itVSConstF->second.DataLeftPointer() : itVSConstF->second.DataRightPointer(), itVSConstF->second.Count);
+				++itVSConstF;
+			}
 
 		}
 		// Update the internal state of the proxy device for the above indexed stereo states without applying to the actual device (actual stateblock will
@@ -567,7 +585,18 @@ HRESULT WINAPI D3D9ProxyStateBlock::Apply()
 				++itTextures;
 			}
 
-			// TODO VertexShader constants
+
+			// VertexShader constants
+			auto itVSConstF = m_StoredStereoShaderConstsF.begin();
+			while (itVSConstF != m_StoredStereoShaderConstsF.end()) {
+
+				if (m_pWrappedDevice->m_activeStereoVShaderConstF.count(itVSConstF->first) == 1) {
+					m_pWrappedDevice->m_activeStereoVShaderConstF.erase(itVSConstF->first);
+				}
+
+				m_pWrappedDevice->m_activeStereoVShaderConstF.insert(std::pair<UINT, StereoShaderConstant<float>>(itVSConstF->first, itVSConstF->second));
+				++itVSConstF;
+			}
 
 		}
 	}

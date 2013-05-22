@@ -39,6 +39,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <fstream>
 #include <vector>
 #include "WrapperUtils.h"
+#include "StereoShaderConstant.h"
 
 
 #define LEFT_CONSTANT -1
@@ -164,7 +165,7 @@ public:
 	float aspectRatio;
 	bool swap_eyes;
 	ProxyHelper::ProxyConfig config;
-	int matrixIndex;
+	UINT matrixIndex;
 	bool saveDebugFile;
 	std::ofstream debugFile;
 	StereoView* stereoView;
@@ -230,6 +231,10 @@ protected:
 	D3DXMATRIX* m_pCurrentMatViewTransform;
 	
 	BaseDirect3DVertexShader9* m_pActiveVertexShader;
+	std::unordered_map<UINT, StereoShaderConstant<float>> m_activeStereoVShaderConstF;
+
+	D3D9ProxyStateBlock* m_pCapturingStateTo;
+
 
 private:
 
@@ -251,6 +256,8 @@ private:
 	BaseDirect3DVertexDeclaration9* m_pActiveVertexDeclaration;
 	BaseDirect3DSwapChain9* m_pPrimarySwapChain;
 
+	
+
 	// The render targets that are currently in use.
 	std::vector<D3D9ProxySurface*> m_activeRenderTargets;
 	
@@ -261,7 +268,6 @@ private:
 
 
 	bool m_bInBeginEndStateBlock;
-	D3D9ProxyStateBlock* m_pCapturingStateTo;
 
 	bool m_bViewTransformSet;
 	bool m_bProjectionTransformSet;

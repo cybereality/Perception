@@ -51,7 +51,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy):BaseDirect3DDevice9(pDevice, pCreatedBy),
 	m_activeRenderTargets (1, NULL),
 	m_activeTextureStages(),
-	m_activeVertexBuffers()
+	m_activeVertexBuffers(),
+	m_activeStereoVShaderConstF()
 {
 	OutputDebugString("D3D ProxyDev Created\n");
 	
@@ -157,6 +158,7 @@ void D3DProxyDevice::OnCreateOrRestore()
 		exit(1); 
 	}
 	m_pPrimarySwapChain = new BaseDirect3DSwapChain9(pActualPrimarySwapChain, this);
+	m_pPrimarySwapChain->AddRef();
 
 	// Create a stereo render target with the same properties as the backbuffer and set it as the current render target
 	IDirect3DSurface9* pBackBuffer;
@@ -236,6 +238,8 @@ void D3DProxyDevice::ReleaseEverything()
 
 		itVB = m_activeVertexBuffers.erase(itVB);
 	}
+
+	m_activeStereoVShaderConstF.clear();
 
 
 	if(m_pStereoBackBuffer) {
@@ -1155,10 +1159,23 @@ HRESULT WINAPI D3DProxyDevice::Clear(DWORD Count,CONST D3DRECT* pRects,DWORD Fla
 
 	HRESULT result;
 	if (SUCCEEDED(result = BaseDirect3DDevice9::Clear(Count, pRects, Flags, Color, Z, Stencil))) {
-		if (switchDrawingSide())
-			if (FAILED(BaseDirect3DDevice9::Clear(Count, pRects, Flags, Color, Z, Stencil))) {
+		if (switchDrawingSide()) {
+
+			HRESULT hr;
+			if (FAILED(hr = BaseDirect3DDevice9::Clear(Count, pRects, Flags, Color, Z, Stencil))) {
+
+#ifdef _DEBUG
+
+				char buf[256];
+				sprintf_s(buf, "Error: %s error description: %s\n",
+						DXGetErrorString(hr), DXGetErrorDescription(hr));
+
+				OutputDebugString(buf);
+				
+#endif
 				OutputDebugString("Clear failed\n");
 			}
+		}
 	}
 
 	return result;
@@ -2012,8 +2029,10 @@ HRESULT WINAPI D3DProxyDevice::GetSwapChain(UINT iSwapChain,IDirect3DSwapChain9*
 	}
 
 	
-	if (!m_pPrimarySwapChain)
+	if (!m_pPrimarySwapChain) {
+		OutputDebugString("GetSwapChain: Proxy swap chain is NULL.");
 		return D3DERR_INVALIDCALL;
+	}
 	
 	*pSwapChain = m_pPrimarySwapChain;
 
@@ -2064,21 +2083,15 @@ HRESULT WINAPI D3DProxyDevice::StretchRect(IDirect3DSurface9* pSourceSurface,CON
 	if (!pSourceSurface || !pDestSurface)
 		 return D3DERR_INVALIDCALL;
 
-	OutputDebugString("BOMOO. \n");
 
 	D3D9ProxySurface* pWrappedSource = static_cast<D3D9ProxySurface*>(pSourceSurface);
 	D3D9ProxySurface* pWrappedDest = static_cast<D3D9ProxySurface*>(pDestSurface);
 
-	OutputDebugString("BOMOO2. \n");
 
 	IDirect3DSurface9* pSourceSurfaceLeft = pWrappedSource->getActualLeft();
-	OutputDebugString("BOMOO3. \n");
 	IDirect3DSurface9* pSourceSurfaceRight = pWrappedSource->getActualRight();
-	OutputDebugString("BOMOO4. \n");
 	IDirect3DSurface9* pDestSurfaceLeft = pWrappedDest->getActualLeft();
-	OutputDebugString("BOMOO5. \n");
 	IDirect3DSurface9* pDestSurfaceRight = pWrappedDest->getActualRight();
-	OutputDebugString("BOMOO6. \n");
 
 	HRESULT result = BaseDirect3DDevice9::StretchRect(pSourceSurfaceLeft, pSourceRect, pDestSurfaceLeft, pDestRect, Filter);
 
