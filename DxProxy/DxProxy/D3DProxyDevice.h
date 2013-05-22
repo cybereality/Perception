@@ -65,7 +65,7 @@ public:
 	void SetupText();
 	void HandleControls(void);
 	void HandleTracking(void);
-	bool validRegister(UINT reg);
+	//bool validRegister(UINT reg);
 	
 	virtual HRESULT WINAPI BeginScene();
 	virtual HRESULT WINAPI EndScene();

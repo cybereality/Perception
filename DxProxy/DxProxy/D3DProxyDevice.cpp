@@ -719,10 +719,10 @@ void D3DProxyDevice::HandleTracking()
 	}
 }
 
-bool D3DProxyDevice::validRegister(UINT reg)
+/*bool D3DProxyDevice::validRegister(UINT reg)
 {
 	return true;
-}
+}*/
 
 void ClearVLine(LPDIRECT3DDEVICE9 Device_Interface,int x1,int y1,int x2,int y2,int bw,D3DCOLOR Color)
 {
