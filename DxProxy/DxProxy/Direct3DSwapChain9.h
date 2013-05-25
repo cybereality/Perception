@@ -20,12 +20,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define DIRECT3DSwapChain9_H_INCLUDED
 
 #include <d3d9.h>
-#include <stdio.h>
+#include "Direct3DDevice9.h"
 
 class BaseDirect3DSwapChain9 : public IDirect3DSwapChain9
 {
 public:
-	BaseDirect3DSwapChain9(IDirect3DSwapChain9* pSwapChain, IDirect3DDevice9* pOwningDevice);
+	BaseDirect3DSwapChain9(IDirect3DSwapChain9* pSwapChain, BaseDirect3DDevice9* pOwningDevice);
 	virtual ~BaseDirect3DSwapChain9();
 
 	// IUnknown methods
@@ -47,10 +47,11 @@ public:
 
 protected:
 	IDirect3DSwapChain9* const m_pActualSwapChain;
+	BaseDirect3DDevice9* m_pOwningDevice;
+
 
 private:
 	ULONG m_nRefCount;
-	IDirect3DDevice9* m_pOwningDevice;
 
 };
 

@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Direct3DSwapChain9.h"
 #include <assert.h>
 
-BaseDirect3DSwapChain9::BaseDirect3DSwapChain9(IDirect3DSwapChain9* pActualSwapChain, IDirect3DDevice9 *pOwningDevice) :
+BaseDirect3DSwapChain9::BaseDirect3DSwapChain9(IDirect3DSwapChain9* pActualSwapChain, BaseDirect3DDevice9 *pOwningDevice) :
 	m_pActualSwapChain(pActualSwapChain),
 	m_pOwningDevice(pOwningDevice),
 	m_nRefCount(1)
@@ -75,6 +75,9 @@ HRESULT WINAPI BaseDirect3DSwapChain9::GetDevice(IDirect3DDevice9** ppDevice)
 
 HRESULT WINAPI BaseDirect3DSwapChain9::Present(CONST RECT* pSourceRect, CONST RECT* pDestRect, HWND hDestWindowOverride, CONST RGNDATA* pDirtyRegion, DWORD dwFlags)
 {
+	OutputDebugString(__FUNCTION__);
+	OutputDebugString("\n");
+
 	return m_pActualSwapChain->Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion, dwFlags);
 }
 

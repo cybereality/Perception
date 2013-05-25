@@ -23,7 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "D3D9ProxySurface.h"
 #include "D3D9ProxyTexture.h"
 #include "D3D9ProxyStateBlock.h"
-#include "Direct3DSwapChain9.h"
+#include "D3D9ProxySwapChain.h"
 #include "Direct3DVertexBuffer9.h"
 #include "Direct3DIndexBuffer9.h"
 #include "Direct3DPixelShader9.h"
@@ -65,6 +65,7 @@ public:
 	void SetupText();
 	void HandleControls(void);
 	void HandleTracking(void);
+
 	//bool validRegister(UINT reg);
 	
 	virtual HRESULT WINAPI BeginScene();
@@ -249,14 +250,12 @@ private:
 
 	bool m_isFirstBeginSceneOfFrame;
 	
-	D3D9ProxySurface* m_pStereoBackBuffer;
 	D3D9ProxySurface* m_pActiveStereoDepthStencil;
 	BaseDirect3DIndexBuffer9* m_pActiveIndicies;
 	BaseDirect3DPixelShader9* m_pActivePixelShader;
 	BaseDirect3DVertexDeclaration9* m_pActiveVertexDeclaration;
-	BaseDirect3DSwapChain9* m_pPrimarySwapChain;
 
-	
+	std::vector<D3D9ProxySwapChain*> m_activeSwapChains;
 
 	// The render targets that are currently in use.
 	std::vector<D3D9ProxySurface*> m_activeRenderTargets;

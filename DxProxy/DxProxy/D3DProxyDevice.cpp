@@ -52,7 +52,8 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	m_activeRenderTargets (1, NULL),
 	m_activeTextureStages(),
 	m_activeVertexBuffers(),
-	m_activeStereoVShaderConstF()
+	m_activeStereoVShaderConstF(),
+	m_activeSwapChains()
 {
 	OutputDebugString("D3D ProxyDev Created\n");
 	
@@ -67,7 +68,6 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	m_pCurrentView = &m_leftView;
 	m_pCurrentProjection = &m_leftProjection;
 
-	m_pStereoBackBuffer = NULL;
 	m_pActiveStereoDepthStencil = NULL;
 	m_pActiveIndicies = NULL;
 	m_pActivePixelShader = NULL;
@@ -144,24 +144,34 @@ void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 */
 void D3DProxyDevice::OnCreateOrRestore()
 {
-	//OutputDebugString(__FUNCTION__);
-	//OutputDebugString("\n");
+	OutputDebugString(__FUNCTION__);
+	OutputDebugString("\n");
 
 	m_currentRenderingSide = Left;
 	m_pCurrentMatViewTransform = &matViewTranslationLeft;
 	m_pCurrentView = &m_leftView;
 	m_pCurrentProjection = &m_leftProjection;
 
+	// Wrap the swap chain
 	IDirect3DSwapChain9* pActualPrimarySwapChain;
 	if (FAILED(BaseDirect3DDevice9::GetSwapChain(0, &pActualPrimarySwapChain))) {
 		OutputDebugString("Failed to fetch swapchain.\n");
 		exit(1); 
 	}
-	m_pPrimarySwapChain = new BaseDirect3DSwapChain9(pActualPrimarySwapChain, this);
-	m_pPrimarySwapChain->AddRef();
+
+	assert (m_activeSwapChains.size() == 0);
+	m_activeSwapChains.push_back(new D3D9ProxySwapChain(pActualPrimarySwapChain, this));
+	assert (m_activeSwapChains.size() == 1);
+
+	// Set the primary rendertarget to the first stereo backbuffer
+	IDirect3DSurface9* pWrappedBackBuffer;
+	m_activeSwapChains[0]->GetBackBuffer(0, D3DBACKBUFFER_TYPE_MONO, &pWrappedBackBuffer);
+	SetRenderTarget(0, pWrappedBackBuffer);
+	pWrappedBackBuffer->Release();
+	pWrappedBackBuffer = NULL;
 
 	// Create a stereo render target with the same properties as the backbuffer and set it as the current render target
-	IDirect3DSurface9* pBackBuffer;
+	/*IDirect3DSurface9* pBackBuffer;
 	if (FAILED(BaseDirect3DDevice9::GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer))) { //TODO this all needs replacing with proxy swap chain, etc
 		OutputDebugString("Failed to fetch backbuffer.\n");
 		exit(1); 
@@ -174,7 +184,7 @@ void D3DProxyDevice::OnCreateOrRestore()
 	IDirect3DSurface9* pTemp;
 	CreateRenderTarget(backDesc.Width, backDesc.Height, backDesc.Format, backDesc.MultiSampleType, backDesc.MultiSampleQuality, false, &pTemp, NULL);
 	m_pStereoBackBuffer = static_cast<D3D9ProxySurface*>(pTemp);
-	SetRenderTarget(0, pTemp);
+	SetRenderTarget(0, pTemp);*/
 
 	BaseDirect3DDevice9::GetViewport(&m_LastViewportSet);
 
@@ -187,7 +197,7 @@ void D3DProxyDevice::OnCreateOrRestore()
 		pDepthStencil->GetDesc(&stencilDesc);
 		pDepthStencil->Release();
 
-		pTemp = NULL;
+		IDirect3DSurface9* pTemp = NULL;
 		CreateDepthStencilSurface(stencilDesc.Width, stencilDesc.Height, stencilDesc.Format, stencilDesc.MultiSampleType, stencilDesc.MultiSampleQuality, false, &pTemp, NULL);
 		SetDepthStencilSurface(pTemp);
 		pTemp->Release();	
@@ -206,6 +216,9 @@ void D3DProxyDevice::OnCreateOrRestore()
 
 void D3DProxyDevice::ReleaseEverything()
 {
+	OutputDebugString(__FUNCTION__);
+	OutputDebugString("\n");
+
 	if(hudFont) {
 		hudFont->Release();
 		hudFont = NULL;
@@ -239,13 +252,17 @@ void D3DProxyDevice::ReleaseEverything()
 		itVB = m_activeVertexBuffers.erase(itVB);
 	}
 
+	auto itSC = m_activeSwapChains.begin();
+	while (itSC != m_activeSwapChains.end()) {
+		if (*itSC)
+			(*itSC)->Release();
+
+		itSC = m_activeSwapChains.erase(itSC);
+	}
+
 	m_activeStereoVShaderConstF.clear();
 
 
-	if(m_pStereoBackBuffer) {
-		m_pStereoBackBuffer->Release();
-		m_pStereoBackBuffer = NULL;
-	}
 
 	if (m_pActiveStereoDepthStencil) {
 		m_pActiveStereoDepthStencil->Release();
@@ -270,11 +287,6 @@ void D3DProxyDevice::ReleaseEverything()
 	if (m_pActiveVertexDeclaration) {
 		m_pActiveVertexDeclaration->Release();
 		m_pActiveVertexDeclaration = NULL;
-	}
-	
-	if (m_pPrimarySwapChain) {
-		m_pPrimarySwapChain->Release();
-		m_pPrimarySwapChain = NULL;
 	}
 
 	if (m_pCapturingStateTo) {
@@ -306,8 +318,21 @@ HRESULT WINAPI D3DProxyDevice::Reset(D3DPRESENT_PARAMETERS* pPresentationParamet
 
 
 	// if the device has been successfully reset we need to recreate any resources we created
-	if (hr == D3D_OK) 
+	if (hr == D3D_OK)  {
 		OnCreateOrRestore();
+	}
+	else {
+#ifdef _DEBUG
+
+		char buf[256];
+		sprintf_s(buf, "Error: %s error description: %s\n",
+				DXGetErrorString(hr), DXGetErrorDescription(hr));
+
+		OutputDebugString(buf);
+				
+#endif
+		OutputDebugString("Device reset failed");
+	}
 
 	return hr;
 }
@@ -1460,7 +1485,7 @@ HRESULT WINAPI D3DProxyDevice::SetRenderTarget(DWORD RenderTargetIndex, IDirect3
 			//	result = BaseDirect3DDevice9::SetRenderTarget(RenderTargetIndex, newRenderTarget->getActualLeft());
 			//}
 			//else{
-				result = BaseDirect3DDevice9::SetRenderTarget(RenderTargetIndex, newRenderTarget->getActualRight());
+			result = BaseDirect3DDevice9::SetRenderTarget(RenderTargetIndex, newRenderTarget->getActualRight());
 			
 		}
 	}
@@ -1979,64 +2004,62 @@ bool D3DProxyDevice::setDrawingSide(EyeSide side)
 
 
 
+
 HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion)
 {
-	if (stereoView->initialized)
-		stereoView->Draw(m_pStereoBackBuffer);
+	OutputDebugString(__FUNCTION__);
+	OutputDebugString("\n");
 
-	m_isFirstBeginSceneOfFrame = true;
+	IDirect3DSurface9* pWrappedBackBuffer;
+
+	try {
+		m_activeSwapChains.at(0)->GetBackBuffer(0, D3DBACKBUFFER_TYPE_MONO, &pWrappedBackBuffer);
+
+		if (stereoView->initialized)
+			stereoView->Draw(static_cast<D3D9ProxySurface*>(pWrappedBackBuffer));
+
+		pWrappedBackBuffer->Release();
+	}
+	catch (std::out_of_range) {
+		OutputDebugString("Present: No primary swap chain found. (Present called before device has been reset)");
+	}
+
+	
+
+	m_isFirstBeginSceneOfFrame = true; // TODO this can break if device present is followed by present on another swap chain... or not work well anyway
 
 	return BaseDirect3DDevice9::Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
 }
 
 
-/*
-	Multiple swap chains not handled. It is assumed that there is only one swap chain. This is guaranteed for full screen applications? (might not be for multi monitor setups?)
-	Currently only supports one back buffer
 
-	This is quick and dirty. Proper swapchain proxying is probably required
- */
 HRESULT WINAPI D3DProxyDevice::GetBackBuffer(UINT iSwapChain,UINT iBackBuffer,D3DBACKBUFFER_TYPE Type,IDirect3DSurface9** ppBackBuffer)
 {
-	if (iSwapChain > 0) {
-		OutputDebugString("GetBackBuffer: Swap chain other than swapchain 0 requested. Support for this has not yet been implemented. Bad things may be about to happen.");
-		assert( iSwapChain == 0);
+	HRESULT result;
+	try {
+		result = m_activeSwapChains.at(iSwapChain)->GetBackBuffer(iBackBuffer, D3DBACKBUFFER_TYPE_MONO, ppBackBuffer);
+		// ref count increase happens it the swapchain GetBackBuffer so we don't add another ref here as we are just passing the value through
+	}
+	catch (std::out_of_range) {
+		OutputDebugString("GetBackBuffer: out of range getting swap chain");
+		result = D3DERR_INVALIDCALL;
 	}
 
-	if (iBackBuffer > 0) {
-		OutputDebugString("Swap chain has more than one back buffer. Support for this has not yet been implemented. Bad things may be about to happen.");
-		assert( iBackBuffer == 0);
-	}
-
-
-	*ppBackBuffer = m_pStereoBackBuffer;
-	m_pStereoBackBuffer->AddRef();
-
-	return D3D_OK;
+	return result;
 }
 
 
 
-/*
-	Currently only a single swap chain with a single back buffer is supported. Calls to this method probably indicate a need to create a full swapchain proxy
-	(as the backbuffer could be retrieved from the proxy and multiple swap chains mean multiple backbuffers)
- */
+
 HRESULT WINAPI D3DProxyDevice::GetSwapChain(UINT iSwapChain,IDirect3DSwapChain9** pSwapChain)
 {
-	if (iSwapChain > 0) {
-		OutputDebugString("GetSwapChain: Swap chain other than swapchain 0 requested. Support for this has not yet been implemented. Bad things may be about to happen.");
-		assert( iSwapChain == 0);
+	try {
+		*pSwapChain = m_activeSwapChains.at(iSwapChain); 
 	}
-
-	
-	if (!m_pPrimarySwapChain) {
-		OutputDebugString("GetSwapChain: Proxy swap chain is NULL.");
+	catch (std::out_of_range) {
+		OutputDebugString("GetSwapChain: out of range fetching swap chain");
 		return D3DERR_INVALIDCALL;
 	}
-	
-	*pSwapChain = m_pPrimarySwapChain;
-
-	OutputDebugString("GetSwapChain. Caution Will Robinson. Methods on proxy swap chain not fully implemented.\n");
 
 	return D3D_OK;
 }
@@ -2044,29 +2067,66 @@ HRESULT WINAPI D3DProxyDevice::GetSwapChain(UINT iSwapChain,IDirect3DSwapChain9*
 /* see above */
 HRESULT WINAPI D3DProxyDevice::CreateAdditionalSwapChain(D3DPRESENT_PARAMETERS* pPresentationParameters,IDirect3DSwapChain9** pSwapChain)
 {
-	OutputDebugString("CreateAdditionalSwapChain: Doom, doom, doom... go home now.");
+	IDirect3DSwapChain9* pActualSwapChain;
+	HRESULT result = BaseDirect3DDevice9::CreateAdditionalSwapChain(pPresentationParameters, &pActualSwapChain);
 
-	assert( false);
+	if (SUCCEEDED(result)) {
+		D3D9ProxySwapChain* wrappedSwapChain = new D3D9ProxySwapChain(pActualSwapChain, this);
+		*pSwapChain = wrappedSwapChain;
+		m_activeSwapChains.push_back(wrappedSwapChain);
+	}
 
-	return BaseDirect3DDevice9::CreateAdditionalSwapChain(pPresentationParameters, pSwapChain);
+	return result;
 }
 
 HRESULT WINAPI D3DProxyDevice::GetFrontBufferData(UINT iSwapChain, IDirect3DSurface9* pDestSurface)
 { 
-	if (pDestSurface == NULL)
-		return D3DERR_INVALIDCALL;
+	HRESULT result;
+	try {
+		result = m_activeSwapChains.at(iSwapChain)->GetFrontBufferData(pDestSurface);
+	}
+	catch (std::out_of_range) {
+		OutputDebugString("GetFrontBufferData: out of range fetching swap chain");
+		result = D3DERR_INVALIDCALL;
+	}
 
-	HRESULT result = BaseDirect3DDevice9::GetFrontBufferData(iSwapChain, static_cast<D3D9ProxySurface*>(pDestSurface)->getActualLeft()); // clear right half of destination surface?
 	return result;
 }
 
 HRESULT WINAPI D3DProxyDevice::GetRenderTargetData(IDirect3DSurface9* pRenderTarget,IDirect3DSurface9* pDestSurface)
 {
-	// Will only get left version of a stereo render target at the moment.
 	if ((pDestSurface == NULL) || (pRenderTarget == NULL))
 		return D3DERR_INVALIDCALL;
 
-	return BaseDirect3DDevice9::GetRenderTargetData(static_cast<D3D9ProxySurface*>(pRenderTarget)->getActualLeft(), static_cast<D3D9ProxySurface*>(pDestSurface)->getActualLeft());
+	D3D9ProxySurface* pWrappedRenderTarget = static_cast<D3D9ProxySurface*>(pRenderTarget);
+	D3D9ProxySurface* pWrappedDest = static_cast<D3D9ProxySurface*>(pDestSurface);
+
+	IDirect3DSurface9* pRenderTargetLeft = pWrappedRenderTarget->getActualLeft();
+	IDirect3DSurface9* pRenderTargetRight = pWrappedRenderTarget->getActualRight();
+	IDirect3DSurface9* pDestSurfaceLeft = pWrappedDest->getActualLeft();
+	IDirect3DSurface9* pDestSurfaceRight = pWrappedDest->getActualRight();
+
+	HRESULT result = BaseDirect3DDevice9::GetRenderTargetData(pRenderTargetLeft, pDestSurfaceLeft);
+
+	if (SUCCEEDED(result)) {
+		if (!pRenderTargetRight && pDestSurfaceRight) {
+			OutputDebugString("INFO: GetRenderTargetData - Source is not stereo, destination is stereo. Copying source to both sides of destination.\n");
+
+			if (FAILED(BaseDirect3DDevice9::GetRenderTargetData(pRenderTargetLeft, pDestSurfaceRight))) {
+				OutputDebugString("ERROR: GetRenderTargetData - Failed to copy source left to destination right.\n");
+			}
+		} 
+		else if (pRenderTargetRight && !pDestSurfaceRight) {
+			OutputDebugString("INFO: GetRenderTargetData - Source is stereo, destination is not stereo. Copied Left side only.\n");
+		}
+		else if (pRenderTargetRight && pDestSurfaceRight)	{
+			if (FAILED(BaseDirect3DDevice9::GetRenderTargetData(pRenderTargetRight, pDestSurfaceRight))) {
+				OutputDebugString("ERROR: GetRenderTargetData - Failed to copy source right to destination right.\n");
+			}
+		}
+	}
+	
+	return result;
 }
 
 HRESULT WINAPI D3DProxyDevice::SetCursorProperties(UINT XHotSpot, UINT YHotSpot, IDirect3DSurface9* pCursorBitmap)
@@ -2277,8 +2337,8 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 
 
 				// TODO these only need recalculating on separation changes
-				D3DXMatrixTranslation(&transLeftMatrix, ((separation * LEFT_CONSTANT)) * 6000.0f, 0, 0);
-				D3DXMatrixTranslation(&transRightMatrix, ((separation * RIGHT_CONSTANT)) * 6000.0f, 0, 0);
+				D3DXMatrixTranslation(&transLeftMatrix, ((separation * LEFT_CONSTANT)) * 6000.0f, 0, 0); //separation * 6000.0f, separation * 6000.0f * (-2)); // rudimentary head/neck model
+				D3DXMatrixTranslation(&transRightMatrix, ((separation * RIGHT_CONSTANT)) * 6000.0f, 0, 0); //separation * 6000.0f, separation * 6000.0f * (-2));
 
 				// store current left and right adjusted view matricies
 				D3DXMatrixMultiply(&tempLeft, &sourceMatrix, &transLeftMatrix);
