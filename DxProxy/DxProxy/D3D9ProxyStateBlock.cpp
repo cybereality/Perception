@@ -94,6 +94,11 @@ D3D9ProxyStateBlock::D3D9ProxyStateBlock(IDirect3DStateBlock9* pActualStateBlock
 D3D9ProxyStateBlock::~D3D9ProxyStateBlock()
 {
 	ClearCapturedData();
+
+	m_selectedStates.clear();
+	m_selectedTextureSamplers.clear();
+	m_selectedVertexStreams.clear();
+	m_selectedVertexConstantRegistersF.clear();
 		
 	m_pWrappedDevice->Release();
 }
@@ -120,10 +125,7 @@ void D3D9ProxyStateBlock::ClearCapturedData()
 	m_StoredStereoShaderConstsF.clear();
 
 
-	m_selectedStates.clear();
-	m_selectedTextureSamplers.clear();
-	m_selectedVertexStreams.clear();
-	m_selectedVertexConstantRegistersF.clear();
+	
 
 
 	if (m_pStoredIndicies) {
