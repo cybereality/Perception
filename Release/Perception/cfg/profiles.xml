@@ -4,7 +4,6 @@
 	<profile game_name="Dishonored" game_exe="Dishonored.exe" game_type="200" separation="0.00357999" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Left 4 Dead" game_exe="left4dead.exe" game_type="101" separation="0.00446002" convergence="25.3987" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Left 4 Dead 2" game_exe="left4dead2.exe" game_type="101" separation="0.00652004" convergence="13.6903" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
-	<profile game_name="Half Life 2" game_exe="hl2.exe" game_type="101" separation="0.0156001" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Portal 2" game_exe="portal2.exe" game_type="101" separation="0.00036" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Dear Esther" game_exe="dearesther.exe" game_type="101" separation="0.00048" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Mirrors Edge" game_exe="MirrorsEdge.exe" game_type="201" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />

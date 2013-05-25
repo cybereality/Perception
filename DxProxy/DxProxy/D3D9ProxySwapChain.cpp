@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "D3D9ProxySwapChain.h"
 #include <assert.h>
+#include "D3DProxyDevice.h"
 
 D3D9ProxySwapChain::D3D9ProxySwapChain(IDirect3DSwapChain9* pActualSwapChain, BaseDirect3DDevice9* pWrappedOwningDevice) : BaseDirect3DSwapChain9(pActualSwapChain, pWrappedOwningDevice),
 		m_backBuffers()
@@ -71,8 +72,23 @@ D3D9ProxySwapChain::~D3D9ProxySwapChain()
 
 HRESULT WINAPI D3D9ProxySwapChain::Present(CONST RECT* pSourceRect, CONST RECT* pDestRect, HWND hDestWindowOverride, CONST RGNDATA* pDirtyRegion, DWORD dwFlags)
 {
-	OutputDebugString(__FUNCTION__);
-	OutputDebugString("\n");
+	// Test only, StereoView needs to be properly integrated as part of SwapChain.
+	// This test allowed deus ex menus and videos to work correctly. Lots of model rendering issues in game though
+	/*D3DProxyDevice* pD3DProxyDev = static_cast<D3DProxyDevice*>(m_pOwningDevice);
+
+	IDirect3DSurface9* pWrappedBackBuffer;
+
+	try {
+		GetBackBuffer(0, D3DBACKBUFFER_TYPE_MONO, &pWrappedBackBuffer);
+
+		if (pD3DProxyDev->stereoView->initialized)
+			pD3DProxyDev->stereoView->Draw(static_cast<D3D9ProxySurface*>(pWrappedBackBuffer));
+
+		pWrappedBackBuffer->Release();
+	}
+	catch (std::out_of_range) {
+		OutputDebugString("Present: No primary swap chain found. (Present probably called before device has been reset)");
+	}*/
 
 	//if (m_pOwningDevice->getst>initialized)
 		//stereoView->Draw(static_cast<D3D9ProxySurface*>(m_backBuffers[0]));

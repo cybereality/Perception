@@ -170,21 +170,6 @@ void D3DProxyDevice::OnCreateOrRestore()
 	pWrappedBackBuffer->Release();
 	pWrappedBackBuffer = NULL;
 
-	// Create a stereo render target with the same properties as the backbuffer and set it as the current render target
-	/*IDirect3DSurface9* pBackBuffer;
-	if (FAILED(BaseDirect3DDevice9::GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer))) { //TODO this all needs replacing with proxy swap chain, etc
-		OutputDebugString("Failed to fetch backbuffer.\n");
-		exit(1); 
-	}
-
-	D3DSURFACE_DESC backDesc;
-	pBackBuffer->GetDesc(&backDesc);
-	pBackBuffer->Release();
-
-	IDirect3DSurface9* pTemp;
-	CreateRenderTarget(backDesc.Width, backDesc.Height, backDesc.Format, backDesc.MultiSampleType, backDesc.MultiSampleQuality, false, &pTemp, NULL);
-	m_pStereoBackBuffer = static_cast<D3D9ProxySurface*>(pTemp);
-	SetRenderTarget(0, pTemp);*/
 
 	BaseDirect3DDevice9::GetViewport(&m_LastViewportSet);
 
@@ -1196,9 +1181,10 @@ HRESULT WINAPI D3DProxyDevice::Clear(DWORD Count,CONST D3DRECT* pRects,DWORD Fla
 						DXGetErrorString(hr), DXGetErrorDescription(hr));
 
 				OutputDebugString(buf);
+				OutputDebugString("Clear failed\n");
 				
 #endif
-				OutputDebugString("Clear failed\n");
+				
 			}
 		}
 	}
@@ -2007,8 +1993,10 @@ bool D3DProxyDevice::setDrawingSide(EyeSide side)
 
 HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion)
 {
-	OutputDebugString(__FUNCTION__);
-	OutputDebugString("\n");
+//#ifdef _DEBUG
+//	OutputDebugString(__FUNCTION__);
+//	OutputDebugString("\n");
+//#endif;
 
 	IDirect3DSurface9* pWrappedBackBuffer;
 
@@ -2021,7 +2009,7 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 		pWrappedBackBuffer->Release();
 	}
 	catch (std::out_of_range) {
-		OutputDebugString("Present: No primary swap chain found. (Present called before device has been reset)");
+		OutputDebugString("Present: No primary swap chain found. (Present probably called before device has been reset)");
 	}
 
 	
