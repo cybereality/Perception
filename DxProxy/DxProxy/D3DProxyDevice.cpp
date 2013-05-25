@@ -281,12 +281,7 @@ HRESULT WINAPI D3DProxyDevice::Reset(D3DPRESENT_PARAMETERS* pPresentationParamet
 	//OutputDebugString(__FUNCTION__);
 	//OutputDebugString("\n");
 
-	if(stereoView)
-		stereoView->Reset();
-
-	ReleaseEverything();
-
-	m_bInBeginEndStateBlock = false;
+	
 	
 
 	HRESULT hr = BaseDirect3DDevice9::Reset(pPresentationParameters);
@@ -748,7 +743,25 @@ void ClearHLine(LPDIRECT3DDEVICE9 Device_Interface,int x1,int y1,int x2,int y2,i
 }
 
 
+HRESULT WINAPI D3DProxyDevice::TestCooperativeLevel()
+{
+	HRESULT result = BaseDirect3DDevice9::TestCooperativeLevel();
 
+	if( result == D3DERR_DEVICENOTRESET ) {
+
+		// The calling application will start releasing resources after TestCooperativeLevel returns D3DERR_DEVICENOTRESET.
+		// So we need to release all the extra resources we are using first incase the application is counting the ref
+		// counts on Release. 
+		if(stereoView)
+			stereoView->Reset();
+
+		ReleaseEverything();
+
+		m_bInBeginEndStateBlock = false;
+	}
+
+	return result;
+}
 
 
 HRESULT WINAPI D3DProxyDevice::BeginScene()

@@ -18,7 +18,7 @@
 	<profile game_name="Skyrim(SKSE)" game_exe="skse_steam_loader.dll" game_type="10" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="D3D Example" game_exe="dx9_view_ports.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="D3D Example" game_exe="dx9_offscreen_rendering.exe" game_type="10" separation="0.0" convergence="0.0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
-	<profile game_name="D3D Example" game_exe="dx9_texture_mipmapping.exe" game_type="10" separation="0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="D3D Example" game_exe="dx9_texture_mipmapping.exe" game_type="10" separation="0.000607999" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="D3D Example" game_exe="dx9_multiple_vertex_buffers.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="D3D Example" game_exe="dx9_alpha_blending_framebuffer.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="D3D Example" game_exe="dx9_alpha_blending_material.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
@@ -51,5 +51,4 @@
 	<profile game_name="R6Vegas 2" game_exe="R6Vegas2_Game.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="inMomentum" game_exe="IMGame.exe" game_type="202" separation="0.1" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Slender The Eight Pages" game_exe="Slender - The Eight Pages.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
-	
 </profiles>

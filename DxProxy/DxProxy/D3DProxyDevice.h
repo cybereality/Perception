@@ -67,7 +67,8 @@ public:
 	void HandleTracking(void);
 
 	//bool validRegister(UINT reg);
-	
+
+	virtual HRESULT WINAPI TestCooperativeLevel();	
 	virtual HRESULT WINAPI BeginScene();
 	virtual HRESULT WINAPI EndScene();
 	virtual HRESULT WINAPI CreateVertexBuffer(UINT Length,DWORD Usage,DWORD FVF,D3DPOOL Pool,IDirect3DVertexBuffer9** ppVertexBuffer,HANDLE* pSharedHandle);
