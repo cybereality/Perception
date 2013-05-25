@@ -62,7 +62,7 @@ D3D9ProxySwapChain::~D3D9ProxySwapChain()
 	auto it = m_backBuffers.begin();
 	while (it != m_backBuffers.end()) {
 		if (*it)
-			releaseCheckO("bbx release", (*it)->Release());
+			releaseCheckO("back buffer count (swapchain wrapper destruction)", (*it)->Release());
 
 		it = m_backBuffers.erase(it);
 	}
@@ -90,8 +90,6 @@ HRESULT WINAPI D3D9ProxySwapChain::Present(CONST RECT* pSourceRect, CONST RECT* 
 		OutputDebugString("Present: No primary swap chain found. (Present probably called before device has been reset)");
 	}*/
 
-	//if (m_pOwningDevice->getst>initialized)
-		//stereoView->Draw(static_cast<D3D9ProxySurface*>(m_backBuffers[0]));
 
 	return m_pActualSwapChain->Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion, dwFlags);
 }

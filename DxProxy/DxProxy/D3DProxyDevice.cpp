@@ -201,9 +201,6 @@ void D3DProxyDevice::OnCreateOrRestore()
 
 void D3DProxyDevice::ReleaseEverything()
 {
-	OutputDebugString(__FUNCTION__);
-	OutputDebugString("\n");
-
 	if(hudFont) {
 		hudFont->Release();
 		hudFont = NULL;
@@ -235,14 +232,6 @@ void D3DProxyDevice::ReleaseEverything()
 			itVB->second->Release();
 
 		itVB = m_activeVertexBuffers.erase(itVB);
-	}
-
-	auto itSC = m_activeSwapChains.begin();
-	while (itSC != m_activeSwapChains.end()) {
-		if (*itSC)
-			(*itSC)->Release();
-
-		itSC = m_activeSwapChains.erase(itSC);
 	}
 
 	m_activeStereoVShaderConstF.clear();
@@ -278,6 +267,8 @@ void D3DProxyDevice::ReleaseEverything()
 		m_pCapturingStateTo->Release();
 		m_pCapturingStateTo = NULL;
 	}
+
+
 }
 
 
@@ -2203,10 +2194,15 @@ HRESULT WINAPI D3DProxyDevice::UpdateTexture(IDirect3DBaseTexture9* pSourceTextu
 	if (!pSourceTexture || !pDestinationTexture)
 		 return D3DERR_INVALIDCALL;
 
-	IDirect3DTexture9* pSourceTextureLeft = static_cast<D3D9ProxyTexture*>(pSourceTexture)->getActualLeft();
-	IDirect3DTexture9* pSourceTextureRight = static_cast<D3D9ProxyTexture*>(pSourceTexture)->getActualRight();
-	IDirect3DTexture9* pDestTextureLeft = static_cast<D3D9ProxyTexture*>(pDestinationTexture)->getActualLeft();
-	IDirect3DTexture9* pDestTextureRight = static_cast<D3D9ProxyTexture*>(pDestinationTexture)->getActualRight();
+
+	IDirect3DBaseTexture9* pSourceTextureLeft = NULL;
+	IDirect3DBaseTexture9* pSourceTextureRight = NULL;
+	IDirect3DBaseTexture9* pDestTextureLeft = NULL;
+	IDirect3DBaseTexture9* pDestTextureRight = NULL;
+
+	wrapperUtils::UnWrapTexture(pSourceTexture, &pSourceTextureLeft, &pSourceTextureRight);
+	wrapperUtils::UnWrapTexture(pDestinationTexture, &pDestTextureLeft, &pDestTextureRight);
+
 
 	HRESULT result = BaseDirect3DDevice9::UpdateTexture(pSourceTextureLeft, pDestTextureLeft);
 
