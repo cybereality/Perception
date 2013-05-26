@@ -35,45 +35,7 @@ void D3DProxyDeviceSource::Init(ProxyHelper::ProxyConfig& cfg)
 	roll_mode = 1;
 }
 
-HRESULT WINAPI D3DProxyDeviceSource::EndScene()
-{
-	// delay to avoid crashing on start
-	static int initDelay = 120;
-	initDelay--;
 
-	if(!stereoView->initialized && initDelay < 0)
-	{
-		stereoView->Init(getActual());
-		SetupMatrices();
-	}
-
-	HandleControls();
-	HandleTracking();
-	ComputeViewTranslation();
-
-	return D3DProxyDevice::EndScene();
-}
-
-HRESULT WINAPI D3DProxyDeviceSource::Present(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion)
-{
-	if(stereoView->initialized && stereoView->stereoEnabled)
-	{
-		if(eyeShutter > 0)
-		{
-			stereoView->UpdateEye(StereoView::LEFT_EYE);
-		}
-		else 
-		{
-			stereoView->UpdateEye(StereoView::RIGHT_EYE);
-		}
-
-		stereoView->Draw();
-
-		eyeShutter *= -1;
-	}
-
-	return D3DProxyDevice::Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
-}
 
 HRESULT WINAPI D3DProxyDeviceSource::SetVertexShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount)
 {

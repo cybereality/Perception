@@ -67,7 +67,7 @@ D3D9ProxySwapChain::~D3D9ProxySwapChain()
 			delete (*it);
 		}
 
-		it = m_backBuffers.erase(it);
+		it = m_backBuffers.erase(it); // NS2 crashes here
 	}
 }
 
