@@ -40,6 +40,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <vector>
 #include "WrapperUtils.h"
 #include "StereoShaderConstant.h"
+#include "StereoBackBuffer.h"
 
 
 #define LEFT_CONSTANT -1
@@ -47,6 +48,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 class StereoView;
+class D3D9ProxySwapChain;
 
 class D3DProxyDevice : public BaseDirect3DDevice9
 {
@@ -73,6 +75,7 @@ public:
 	virtual HRESULT WINAPI EndScene();
 	virtual HRESULT WINAPI CreateVertexBuffer(UINT Length,DWORD Usage,DWORD FVF,D3DPOOL Pool,IDirect3DVertexBuffer9** ppVertexBuffer,HANDLE* pSharedHandle);
 	virtual HRESULT WINAPI CreateIndexBuffer(UINT Length,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool,IDirect3DIndexBuffer9** ppIndexBuffer,HANDLE* pSharedHandle);
+	HRESULT WINAPI CreateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample, DWORD MultisampleQuality,BOOL Lockable,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle, bool isBackBufferOfPrimarySwapChain);
 	virtual HRESULT WINAPI CreateRenderTarget(UINT Width,UINT Height,D3DFORMAT Format,D3DMULTISAMPLE_TYPE MultiSample,DWORD MultisampleQuality,BOOL Lockable,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle);
 	virtual HRESULT WINAPI CreateDepthStencilSurface(UINT Width,UINT Height,D3DFORMAT Format,D3DMULTISAMPLE_TYPE MultiSample,DWORD MultisampleQuality,BOOL Discard,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle);
 	virtual HRESULT WINAPI CreateOffscreenPlainSurface(UINT Width,UINT Height,D3DFORMAT Format,D3DPOOL Pool,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle);
@@ -240,6 +243,7 @@ protected:
 
 private:
 
+
 	void ReleaseEverything();
 	bool isViewportDefaultForMainRT(CONST D3DVIEWPORT9* pViewport);
 
@@ -256,6 +260,8 @@ private:
 	BaseDirect3DPixelShader9* m_pActivePixelShader;
 	BaseDirect3DVertexDeclaration9* m_pActiveVertexDeclaration;
 
+	// The swap chains have to be released and then forcibly destroyed on reset or device dextruction.
+	// This should be the very last thing done in both cases.
 	std::vector<D3D9ProxySwapChain*> m_activeSwapChains;
 
 	// The render targets that are currently in use.

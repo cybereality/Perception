@@ -25,7 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class BaseDirect3DSwapChain9 : public IDirect3DSwapChain9
 {
 public:
-	BaseDirect3DSwapChain9(IDirect3DSwapChain9* pSwapChain, BaseDirect3DDevice9* pOwningDevice);
+	BaseDirect3DSwapChain9(IDirect3DSwapChain9* pSwapChain, BaseDirect3DDevice9* pOwningDevice, bool isAdditionalChain);
 	virtual ~BaseDirect3DSwapChain9();
 
 	// IUnknown methods
@@ -33,6 +33,7 @@ public:
 	virtual ULONG WINAPI AddRef();
 	virtual ULONG WINAPI Release();
 	
+	void Destroy();
 	
 	// SwapChain methods
 	virtual HRESULT WINAPI GetDevice(IDirect3DDevice9** ppDevice);
@@ -46,9 +47,9 @@ public:
 
 
 protected:
-	IDirect3DSwapChain9* const m_pActualSwapChain;
+	IDirect3DSwapChain9* m_pActualSwapChain;
 	BaseDirect3DDevice9* m_pOwningDevice;
-
+	bool m_bIsAdditionalChain;
 
 private:
 	ULONG m_nRefCount;

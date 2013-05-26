@@ -2,7 +2,7 @@
 <profiles>
 	<profile game_name="Antichamber" game_exe="UDK.exe" game_type="200" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Dishonored" game_exe="Dishonored.exe" game_type="200" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
-	<profile game_name="Halflife 2" game_exe="hl2.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="Halflife 2" game_exe="hl2.exe" game_type="10" separation="0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Left 4 Dead" game_exe="left4dead.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Left 4 Dead 2" game_exe="left4dead2.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Portal 2" game_exe="portal2.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />

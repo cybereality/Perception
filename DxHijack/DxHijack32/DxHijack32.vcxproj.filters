@@ -153,6 +153,9 @@
     <ClCompile Include="..\..\DxProxy\DxProxy\D3D9ProxyStateBlock.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\DxProxy\DxProxy\StereoBackbuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="hijackdll.def">
@@ -296,6 +299,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\DxProxy\DxProxy\StereoShaderConstant.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\DxProxy\DxProxy\StereoBackbuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -19,10 +19,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Direct3DSwapChain9.h"
 #include <assert.h>
 
-BaseDirect3DSwapChain9::BaseDirect3DSwapChain9(IDirect3DSwapChain9* pActualSwapChain, BaseDirect3DDevice9 *pOwningDevice) :
+BaseDirect3DSwapChain9::BaseDirect3DSwapChain9(IDirect3DSwapChain9* pActualSwapChain, BaseDirect3DDevice9 *pOwningDevice, bool isAdditionalChain) :
 	m_pActualSwapChain(pActualSwapChain),
 	m_pOwningDevice(pOwningDevice),
-	m_nRefCount(1)
+	m_nRefCount(1),
+	m_bIsAdditionalChain(isAdditionalChain)
 {
 	assert (pActualSwapChain != NULL);
 	assert (pOwningDevice != NULL);
@@ -51,13 +52,32 @@ ULONG WINAPI BaseDirect3DSwapChain9::AddRef()
 
 ULONG WINAPI BaseDirect3DSwapChain9::Release()
 {
-	if(--m_nRefCount == 0)
-	{
-		delete this;
-		return 0;
+	// Primary swap chain isn't destroyed at ref count 0, stays alive. Other swap chains are destoyed if ref count reaches 0.
+	// BUT backbuffers aren't destroyed at 0 either AND this applies to primary and additional chains.
+	// So for additional chains we release the actual to destroy the actual. But we don't delete the proxy because it is
+	// our container for the stereo backbuffers.
+	// Because of this all swap chains have to be forcibly destroyed just before a reset.
+
+	if (m_nRefCount > 0) { 
+		if(--m_nRefCount == 0)
+		{
+
+			if (m_bIsAdditionalChain) {
+				if(m_pActualSwapChain) 
+					m_pActualSwapChain->Release();
+
+				m_pActualSwapChain = NULL;
+			}
+		}
 	}
 
 	return m_nRefCount;
+}
+
+
+void BaseDirect3DSwapChain9::Destroy() 
+{
+	delete this;
 }
 
 

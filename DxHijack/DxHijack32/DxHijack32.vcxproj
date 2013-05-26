@@ -150,6 +150,7 @@
     <ClCompile Include="..\..\DxProxy\DxProxy\ProxyHelper.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\pugixml.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\SharedMemoryTracker.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\StereoBackbuffer.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\StereoView.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\StereoViewFactory.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\StereoViewInterleave.cpp" />
@@ -200,6 +201,7 @@
     <ClInclude Include="..\..\DxProxy\DxProxy\pugiconfig.hpp" />
     <ClInclude Include="..\..\DxProxy\DxProxy\pugixml.hpp" />
     <ClInclude Include="..\..\DxProxy\DxProxy\SharedMemoryTracker.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\StereoBackbuffer.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\StereoShaderConstant.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\StereoView.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\StereoViewFactory.h" />

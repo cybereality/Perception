@@ -172,6 +172,9 @@
     <ClCompile Include="D3D9ProxyStateBlock.cpp">
       <Filter>Direct3D9Vireio</Filter>
     </ClCompile>
+    <ClCompile Include="StereoBackbuffer.cpp">
+      <Filter>Direct3D9Vireio</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Exports.def">
@@ -321,6 +324,9 @@
       <Filter>Direct3D9Vireio</Filter>
     </ClInclude>
     <ClInclude Include="StereoShaderConstant.h">
+      <Filter>Direct3D9Vireio</Filter>
+    </ClInclude>
+    <ClInclude Include="StereoBackbuffer.h">
       <Filter>Direct3D9Vireio</Filter>
     </ClInclude>
   </ItemGroup>

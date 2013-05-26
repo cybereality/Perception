@@ -23,11 +23,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <vector>
 #include "Direct3DSwapChain9.h"
 #include "D3D9ProxySurface.h"
+#include "D3DProxyDevice.h"
+
+
+class D3DProxyDevice;
 
 class D3D9ProxySwapChain : public BaseDirect3DSwapChain9
 {
 public:
-	D3D9ProxySwapChain(IDirect3DSwapChain9* pActualSwapChain, BaseDirect3DDevice9* pWrappedOwningDevice);
+	D3D9ProxySwapChain(IDirect3DSwapChain9* pActualSwapChain, D3DProxyDevice* pWrappedOwningDevice, bool isAdditionalChain);
 	virtual ~D3D9ProxySwapChain();
 
 	

@@ -101,12 +101,25 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	SHOCT_mode = 0;
 }
 
-
+ 
 
 
 D3DProxyDevice::~D3DProxyDevice()
 {
 	ReleaseEverything();
+
+
+	// always do this last
+	auto it = m_activeSwapChains.begin();
+	while (it != m_activeSwapChains.end()) {
+
+		if ((*it) != NULL) {
+			(*it)->Release();
+			delete (*it);
+		}
+
+		it = m_activeSwapChains.erase(it);
+	}
 }
 
 
@@ -160,7 +173,7 @@ void D3DProxyDevice::OnCreateOrRestore()
 	}
 
 	assert (m_activeSwapChains.size() == 0);
-	m_activeSwapChains.push_back(new D3D9ProxySwapChain(pActualPrimarySwapChain, this));
+	m_activeSwapChains.push_back(new D3D9ProxySwapChain(pActualPrimarySwapChain, this, false));
 	assert (m_activeSwapChains.size() == 1);
 
 	// Set the primary rendertarget to the first stereo backbuffer
@@ -201,11 +214,19 @@ void D3DProxyDevice::OnCreateOrRestore()
 
 void D3DProxyDevice::ReleaseEverything()
 {
+	// Fonts and any othe D3DX interfaces should be released first.
+	// They frequently hold stateblocks which are holding further references to other resources.
 	if(hudFont) {
 		hudFont->Release();
 		hudFont = NULL;
 	}
 
+	
+
+	if (m_pCapturingStateTo) {
+		m_pCapturingStateTo->Release();
+		m_pCapturingStateTo = NULL;
+	}
 
 	// one of these will still have a count of 1 until the backbuffer is released
 	for(std::vector<D3D9ProxySurface*>::size_type i = 0; i != m_activeRenderTargets.size(); i++) 
@@ -262,13 +283,6 @@ void D3DProxyDevice::ReleaseEverything()
 		m_pActiveVertexDeclaration->Release();
 		m_pActiveVertexDeclaration = NULL;
 	}
-
-	if (m_pCapturingStateTo) {
-		m_pCapturingStateTo->Release();
-		m_pCapturingStateTo = NULL;
-	}
-
-
 }
 
 
@@ -281,8 +295,25 @@ HRESULT WINAPI D3DProxyDevice::Reset(D3DPRESENT_PARAMETERS* pPresentationParamet
 	//OutputDebugString(__FUNCTION__);
 	//OutputDebugString("\n");
 
+	if(stereoView)
+		stereoView->Reset();
+
+	ReleaseEverything();
+
+	m_bInBeginEndStateBlock = false;
 	
-	
+
+
+	auto it = m_activeSwapChains.begin();
+	while (it != m_activeSwapChains.end()) {
+
+		if ((*it) != NULL)
+			(*it)->Release();
+
+		delete (*it);
+
+		it = m_activeSwapChains.erase(it);
+	}
 
 	HRESULT hr = BaseDirect3DDevice9::Reset(pPresentationParameters);
 
@@ -752,12 +783,7 @@ HRESULT WINAPI D3DProxyDevice::TestCooperativeLevel()
 		// The calling application will start releasing resources after TestCooperativeLevel returns D3DERR_DEVICENOTRESET.
 		// So we need to release all the extra resources we are using first incase the application is counting the ref
 		// counts on Release. 
-		if(stereoView)
-			stereoView->Reset();
-
-		ReleaseEverything();
-
-		m_bInBeginEndStateBlock = false;
+		
 	}
 
 	return result;
@@ -895,12 +921,8 @@ HRESULT WINAPI D3DProxyDevice::CreateIndexBuffer(UINT Length,DWORD Usage,D3DFORM
 
 
 
-/*
-	The IDirect3DSurface9** ppSurface returned should always be a D3D9ProxySurface. Any class overloading
-	this method should ensure that this remains true.
- */
 HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample,
-													DWORD MultisampleQuality,BOOL Lockable,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle)
+													DWORD MultisampleQuality,BOOL Lockable,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle, bool isSwapChainBackBuffer)
 {
 	//OutputDebugString(__FUNCTION__); 
 	//OutputDebugString("\n"); 
@@ -929,11 +951,31 @@ HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFO
 	}
 
 
-	if (SUCCEEDED(creationResult))
-		*ppSurface = new D3D9ProxySurface(pLeftRenderTarget, pRightRenderTarget, this, NULL);
+	if (SUCCEEDED(creationResult)) {
+		if (!isSwapChainBackBuffer)
+			*ppSurface = new D3D9ProxySurface(pLeftRenderTarget, pRightRenderTarget, this, NULL);
+		else
+			*ppSurface = new StereoBackBuffer(pLeftRenderTarget, pRightRenderTarget, this);
+	}
 
 	return creationResult;
 }
+
+
+
+/*
+	The IDirect3DSurface9** ppSurface returned should always be a D3D9ProxySurface. Any class overloading
+	this method should ensure that this remains true.
+ */
+HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample,
+													DWORD MultisampleQuality,BOOL Lockable,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle)
+{
+	//OutputDebugString(__FUNCTION__); 
+	//OutputDebugString("\n"); 
+
+	return CreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, ppSurface, pSharedHandle, false);
+}
+
 
 
 
@@ -2047,6 +2089,8 @@ HRESULT WINAPI D3DProxyDevice::GetSwapChain(UINT iSwapChain,IDirect3DSwapChain9*
 {
 	try {
 		*pSwapChain = m_activeSwapChains.at(iSwapChain); 
+		//Device->GetSwapChain increases ref count on the chain (docs don't say this)
+		(*pSwapChain)->AddRef();
 	}
 	catch (std::out_of_range) {
 		OutputDebugString("GetSwapChain: out of range fetching swap chain");
@@ -2063,7 +2107,7 @@ HRESULT WINAPI D3DProxyDevice::CreateAdditionalSwapChain(D3DPRESENT_PARAMETERS* 
 	HRESULT result = BaseDirect3DDevice9::CreateAdditionalSwapChain(pPresentationParameters, &pActualSwapChain);
 
 	if (SUCCEEDED(result)) {
-		D3D9ProxySwapChain* wrappedSwapChain = new D3D9ProxySwapChain(pActualSwapChain, this);
+		D3D9ProxySwapChain* wrappedSwapChain = new D3D9ProxySwapChain(pActualSwapChain, this, true);
 		*pSwapChain = wrappedSwapChain;
 		m_activeSwapChains.push_back(wrappedSwapChain);
 	}

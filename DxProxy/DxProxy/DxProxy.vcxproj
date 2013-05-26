@@ -147,6 +147,7 @@
     <ClCompile Include="ProxyHelper.cpp" />
     <ClCompile Include="pugixml.cpp" />
     <ClCompile Include="SharedMemoryTracker.cpp" />
+    <ClCompile Include="StereoBackbuffer.cpp" />
     <ClCompile Include="StereoView.cpp" />
     <ClCompile Include="StereoViewFactory.cpp" />
     <ClCompile Include="StereoViewInterleave.cpp" />
@@ -159,6 +160,7 @@
     <ClInclude Include="D3D9ProxyVolume.h" />
     <ClInclude Include="D3D9ProxyVolumeTexture.h" />
     <ClInclude Include="D3D9ProxyStateBlock.h" />
+    <ClInclude Include="StereoBackbuffer.h" />
     <ClInclude Include="D3DProxyDevice.h" />
     <ClInclude Include="D3DProxyDeviceAdv.h" />
     <ClInclude Include="D3DProxyDeviceEgo.h" />

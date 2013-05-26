@@ -18,9 +18,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "D3D9ProxySwapChain.h"
 #include <assert.h>
-#include "D3DProxyDevice.h"
 
-D3D9ProxySwapChain::D3D9ProxySwapChain(IDirect3DSwapChain9* pActualSwapChain, BaseDirect3DDevice9* pWrappedOwningDevice) : BaseDirect3DSwapChain9(pActualSwapChain, pWrappedOwningDevice),
+D3D9ProxySwapChain::D3D9ProxySwapChain(IDirect3DSwapChain9* pActualSwapChain, D3DProxyDevice* pWrappedOwningDevice, bool isAdditionalChain) : 
+		BaseDirect3DSwapChain9(pActualSwapChain, pWrappedOwningDevice, isAdditionalChain),
 		m_backBuffers()
 {
 	// Get creation parameters for backbuffers.
@@ -43,7 +43,7 @@ D3D9ProxySwapChain::D3D9ProxySwapChain(IDirect3DSwapChain9* pActualSwapChain, Ba
 	// Create stereo backbuffers to use in place of actual backbuffers
 	for (UINT i = 0; i < bbCount; i++) {
 		IDirect3DSurface9* pTemp;
-		pWrappedOwningDevice->CreateRenderTarget(backDesc.Width, backDesc.Height, backDesc.Format, backDesc.MultiSampleType, backDesc.MultiSampleQuality, false, &pTemp, NULL);
+		pWrappedOwningDevice->CreateRenderTarget(backDesc.Width, backDesc.Height, backDesc.Format, backDesc.MultiSampleType, backDesc.MultiSampleQuality, false, &pTemp, NULL, true);
 		m_backBuffers.push_back(static_cast<D3D9ProxySurface*>(pTemp));
 	}
 }
@@ -61,8 +61,11 @@ D3D9ProxySwapChain::~D3D9ProxySwapChain()
 {
 	auto it = m_backBuffers.begin();
 	while (it != m_backBuffers.end()) {
-		if (*it)
+		if (*it) {
 			releaseCheckO("back buffer count (swapchain wrapper destruction)", (*it)->Release());
+
+			delete (*it);
+		}
 
 		it = m_backBuffers.erase(it);
 	}
@@ -74,7 +77,7 @@ HRESULT WINAPI D3D9ProxySwapChain::Present(CONST RECT* pSourceRect, CONST RECT* 
 {
 	// Test only, StereoView needs to be properly integrated as part of SwapChain.
 	// This test allowed deus ex menus and videos to work correctly. Lots of model rendering issues in game though
-	/*D3DProxyDevice* pD3DProxyDev = static_cast<D3DProxyDevice*>(m_pOwningDevice);
+	D3DProxyDevice* pD3DProxyDev = static_cast<D3DProxyDevice*>(m_pOwningDevice);
 
 	IDirect3DSurface9* pWrappedBackBuffer;
 
@@ -88,7 +91,7 @@ HRESULT WINAPI D3D9ProxySwapChain::Present(CONST RECT* pSourceRect, CONST RECT* 
 	}
 	catch (std::out_of_range) {
 		OutputDebugString("Present: No primary swap chain found. (Present probably called before device has been reset)");
-	}*/
+	}
 
 
 	return m_pActualSwapChain->Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion, dwFlags);
