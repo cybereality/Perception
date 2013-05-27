@@ -215,9 +215,13 @@ public:
 protected:
 	
 	
-
-	
-
+	////////////////////////
+	// This is halfway from where things were to where they want to be with regard to shader modification handling
+	// Shader constant could overwrite a modified shader const based matrix
+	//virtual bool CouldOverwriteMatrix(UINT StartRegister, UINT Vector4fCount);
+	//virtual bool ContainsMatrixToModify(UINT StartRegister, CONST float* pConstantData, UINT Vector4fCount);
+	//virtual StereoShaderConstant<float> CreateStereoShaderConstant(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
+	////////////////////////
 
 	
 	virtual void OnCreateOrRestore();

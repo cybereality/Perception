@@ -29,13 +29,13 @@ public:
 	D3DProxyDeviceUnreal(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy);
 	virtual ~D3DProxyDeviceUnreal();
 	
-	virtual HRESULT WINAPI SetVertexShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
-	virtual HRESULT WINAPI Reset(D3DPRESENT_PARAMETERS* pPresentationParameters);
 
+	virtual bool CouldOverwriteMatrix(UINT StartRegister, UINT Vector4fCount);
+	virtual bool ContainsMatrixToModify(UINT StartRegister, CONST float* pConstantData, UINT Vector4fCount);
+	virtual StereoShaderConstant<float> CreateStereoShaderConstant(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
 
 	virtual void Init(ProxyHelper::ProxyConfig& cfg);
 	
-	virtual bool setDrawingSide(enum EyeSide side);
 
 	bool validRegister(UINT reg);
 	UINT getMatrixIndex();
@@ -43,7 +43,7 @@ public:
 
 protected:
 
-	bool	m_bAdjustedShaderActive;
+	//bool	m_bAdjustedShaderActive;
 
 private:
 	

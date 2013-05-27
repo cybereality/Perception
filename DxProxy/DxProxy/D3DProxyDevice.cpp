@@ -2029,6 +2029,17 @@ bool D3DProxyDevice::setDrawingSide(EyeSide side)
 		m_pCurrentMatViewTransform = &matViewTranslationRight;
 	}
 
+
+	// Apply active stereo shader constants
+	auto itStereoConstant = m_activeStereoVShaderConstF.begin();
+	while (itStereoConstant != m_activeStereoVShaderConstF.end()) {
+		HRESULT res = BaseDirect3DDevice9::SetVertexShaderConstantF(itStereoConstant->second.StartRegister, (side == Left) ? itStereoConstant->second.DataLeftPointer() : itStereoConstant->second.DataRightPointer(), itStereoConstant->second.Count);
+
+		++itStereoConstant;
+	}
+
+
+
 	m_currentRenderingSide = side;
 
 	return true;
