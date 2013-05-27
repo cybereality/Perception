@@ -106,6 +106,7 @@ public:
 		will need adding throughout this class.
 	 */
 	void SelectAndCaptureState(StereoShaderConstant<float> stereoFloatConstant);
+	void ClearSelected(UINT StartRegister);
 
 	void SelectAndCaptureState(DWORD Stage, IDirect3DBaseTexture9* pWrappedTexture);
 	void SelectAndCaptureState(UINT StreamNumber, BaseDirect3DVertexBuffer9* pWrappedStreamData);

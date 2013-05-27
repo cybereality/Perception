@@ -1786,29 +1786,83 @@ HRESULT WINAPI D3DProxyDevice::GetVertexShader(IDirect3DVertexShader9** ppShader
 
 HRESULT WINAPI D3DProxyDevice::SetVertexShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount)
 {
-	HRESULT result = BaseDirect3DDevice9::SetVertexShaderConstantF(StartRegister, pConstantData, Vector4fCount);
 
-	
+	if (stereoView->initialized) {
+		if (ContainsMatrixToModify(StartRegister, pConstantData, Vector4fCount)) 
+		{
+			StereoShaderConstant<float> stereoConstant = CreateStereoShaderConstant(StartRegister, pConstantData, Vector4fCount);
 
-	return result;
+			HRESULT result = BaseDirect3DDevice9::SetVertexShaderConstantF(StartRegister, (m_currentRenderingSide == Left) ? stereoConstant.DataLeftPointer() : stereoConstant.DataRightPointer(), Vector4fCount);
+			
+			if (SUCCEEDED(result)) {
+				if (m_pCapturingStateTo) {
+					m_pCapturingStateTo->SelectAndCaptureState(stereoConstant);
+				}
+				else { //TODO currently no checking for partial overlap of constants
+					if (m_activeStereoVShaderConstF.count(StartRegister) == 1) {
+						m_activeStereoVShaderConstF.erase(StartRegister);
+					}
+
+					m_activeStereoVShaderConstF.insert(std::pair<UINT, StereoShaderConstant<float>>(StartRegister, stereoConstant));
+				}
+			}
+
+			return result;
+
+
+		}
+		// The matrix is being partially or completely replaced by something other than the matrix
+		else if (CouldOverwriteMatrix(StartRegister, Vector4fCount)) {
+
+			HRESULT result;
+			if (SUCCEEDED(result = BaseDirect3DDevice9::SetVertexShaderConstantF(StartRegister, pConstantData, Vector4fCount))) {
+
+				
+				if (!m_pCapturingStateTo) {
+					// Remove the stereo matrix from active stereo constants
+					if (m_activeStereoVShaderConstF.count(StartRegister) == 1) {
+
+						m_activeStereoVShaderConstF.erase(StartRegister);
+					}
+				}
+				else {
+					// if captureing state then notify stateblock that register state may need removing
+					m_pCapturingStateTo->ClearSelected(StartRegister);
+					// this won't work well. TODO fix register tracking behaviour in general. Lots of issues with tracking by call. Need to track actual registers and what they contain (or at least which contain matricies)
+				}
+			}
+
+			return result;
+		}
+	}
+
+	return BaseDirect3DDevice9::SetVertexShaderConstantF(StartRegister, pConstantData, Vector4fCount);
 }
 
-HRESULT WINAPI D3DProxyDevice::SetVertexShaderConstantI(UINT StartRegister,CONST int* pConstantData,UINT Vector4iCount)
+bool D3DProxyDevice::CouldOverwriteMatrix(UINT StartRegister, UINT Vector4fCount) 
 {
-	HRESULT result = BaseDirect3DDevice9::SetVertexShaderConstantI(StartRegister, pConstantData, Vector4iCount);
-
-	
-	return result;
+	assert(false);
+	return false;
 }
 
-HRESULT WINAPI D3DProxyDevice::SetVertexShaderConstantB(UINT StartRegister,CONST BOOL* pConstantData,UINT  BoolCount)
+bool D3DProxyDevice::ContainsMatrixToModify(UINT StartRegister, CONST float* pConstantData, UINT Vector4fCount)
 {
-	HRESULT result = BaseDirect3DDevice9::SetVertexShaderConstantB(StartRegister, pConstantData, BoolCount);
-
-	
-
-	return result;
+	assert(false);
+	return false;
 }
+
+// Should be pure virtual in this context but is going out into a seperate interface so the shader
+// handling is a component rather than handling by inheritance so this is a stop gap warning
+StereoShaderConstant<float> D3DProxyDevice::CreateStereoShaderConstant(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount)
+{
+	OutputDebugString("Should never call CreateStereoShaderConstant on D3DProxyDevice");
+	assert(false);
+
+	return StereoShaderConstant<float>(0, NULL, NULL,0,0);
+}
+
+
+
 
 
 HRESULT WINAPI D3DProxyDevice::SetVertexDeclaration(IDirect3DVertexDeclaration9* pDecl)

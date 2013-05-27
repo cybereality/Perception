@@ -751,6 +751,13 @@ void D3D9ProxyStateBlock::SelectAndCaptureState(StereoShaderConstant<float> ster
 }
 
 
+void D3D9ProxyStateBlock::ClearSelected(UINT StartRegister) 
+{
+	m_StoredStereoShaderConstsF.erase(StartRegister);
+}
+
+
+
 void D3D9ProxyStateBlock::SelectAndCaptureState(DWORD Stage, IDirect3DBaseTexture9* pWrappedTexture)
 {
 	assert(m_eCaptureMode == Cap_Type_Selected);

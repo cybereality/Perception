@@ -111,8 +111,6 @@ public:
 	virtual HRESULT WINAPI SetVertexShader(IDirect3DVertexShader9* pShader);
 	virtual HRESULT WINAPI GetVertexShader(IDirect3DVertexShader9** ppShader);
 	virtual HRESULT WINAPI SetVertexShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
-	virtual HRESULT WINAPI SetVertexShaderConstantI(UINT StartRegister,CONST int* pConstantData,UINT Vector4iCount);
-	virtual HRESULT WINAPI SetVertexShaderConstantB(UINT StartRegister,CONST BOOL* pConstantData,UINT  BoolCount);
 	virtual HRESULT WINAPI SetVertexDeclaration(IDirect3DVertexDeclaration9* pDecl);
 	virtual HRESULT WINAPI GetVertexDeclaration(IDirect3DVertexDeclaration9** ppDecl);
 	virtual HRESULT WINAPI BeginStateBlock();
@@ -218,9 +216,9 @@ protected:
 	////////////////////////
 	// This is halfway from where things were to where they want to be with regard to shader modification handling
 	// Shader constant could overwrite a modified shader const based matrix
-	//virtual bool CouldOverwriteMatrix(UINT StartRegister, UINT Vector4fCount);
-	//virtual bool ContainsMatrixToModify(UINT StartRegister, CONST float* pConstantData, UINT Vector4fCount);
-	//virtual StereoShaderConstant<float> CreateStereoShaderConstant(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
+	virtual bool CouldOverwriteMatrix(UINT StartRegister, UINT Vector4fCount);
+	virtual bool ContainsMatrixToModify(UINT StartRegister, CONST float* pConstantData, UINT Vector4fCount);
+	virtual StereoShaderConstant<float> CreateStereoShaderConstant(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
 	////////////////////////
 
 	
