@@ -4,6 +4,8 @@
 	<profile game_name="inMomentum" game_exe="IMGame.exe" game_type="202" separation="0.1" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Mirrors Edge" game_exe="MirrorsEdge.exe" game_type="201" separation="0.103205" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Halflife 2" game_exe="hl2.exe" game_type="101" separation="0.1" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="Left 4 Dead 2" game_exe="left4dead2.exe" game_type="101" separation="0.02" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="Portal 2" game_exe="portal2.exe" game_type="101" separation="0.05" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Quantum Conundrum" game_exe="TryGame-Win32-Shipping.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="AaAaAA!!! for the Awesom" game_exe="Awesome.exe" game_type="10" separation="0" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="X3:AP" game_exe="X3AP.exe" game_type="10" separation="0" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
@@ -15,8 +17,6 @@
 	<profile game_name="Antichamber" game_exe="UDK.exe" game_type="200" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Dishonored" game_exe="Dishonored.exe" game_type="200" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Left 4 Dead" game_exe="left4dead.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
-	<profile game_name="Left 4 Dead 2" game_exe="left4dead2.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
-	<profile game_name="Portal 2" game_exe="portal2.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Dear Esther" game_exe="dearesther.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Unreal Tournament 3" game_exe="UT3.exe" game_type="202" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Natural Selection 2" game_exe="NS2.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />

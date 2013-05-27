@@ -27,17 +27,10 @@ public:
 
 	OculusRiftView(ProxyHelper::ProxyConfig& config);
 	virtual ~OculusRiftView();
-	virtual void Init(IDirect3DDevice9* pActualDevice);
-	virtual void InitTextureBuffers();
-	virtual void InitVertexBuffers();
 	virtual void InitShaderEffects();
-	virtual void Draw();
-	virtual void SaveState();
-	virtual void SetState();
-	virtual void RestoreState();
-	virtual void UpdateEye(int eye);
+	virtual void Draw(D3D9ProxySurface* stereoCapableSurface);
 
-	void CalculateShaderVariables(int eye);
+	void CalculateShaderVariables( );
 };
 
 #endif

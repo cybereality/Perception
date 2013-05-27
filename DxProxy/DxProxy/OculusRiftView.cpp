@@ -43,19 +43,14 @@ OculusRiftView::OculusRiftView(ProxyHelper::ProxyConfig& config):StereoView(conf
 //	LensShift[1]  = LensCenter[1];
 	LensShift[0]  = 0;
 	LensShift[1]  = 0;
+
+	CalculateShaderVariables();
 }
 
 OculusRiftView::~OculusRiftView()
 {
-	OutputDebugString("Destroyed OculusRiftView\n");
-	StereoView::~StereoView();
 }
 
-void OculusRiftView::Init(IDirect3DDevice9* pActualDevice)
-{
-	OutputDebugString("OculusRiftView Init\n");
-	StereoView::Init(pActualDevice);
-}
 
 void OculusRiftView::InitShaderEffects()
 {
@@ -71,54 +66,20 @@ void OculusRiftView::InitShaderEffects()
 	D3DXCreateEffectFromFile(m_pActualDevice, viewPath, NULL, NULL, 0, NULL, &viewEffect, NULL);
 }
 
-void OculusRiftView::InitTextureBuffers()
-{
-	StereoView::InitTextureBuffers();
-}
 
-void OculusRiftView::InitVertexBuffers()
+void OculusRiftView::Draw(D3D9ProxySurface* stereoCapableSurface)
 {
-	StereoView::InitVertexBuffers();
-}
+	// Copy left and right surfaces to textures to use as shader input
+	// TODO match aspect ratio of source in target ? 
+	IDirect3DSurface9* leftImage = stereoCapableSurface->getActualLeft();
+	IDirect3DSurface9* rightImage = stereoCapableSurface->getActualRight();
 
-void OculusRiftView::SaveState()
-{
-	StereoView::SaveState();
-}
+	m_pActualDevice->StretchRect(leftImage, NULL, leftSurface, NULL, D3DTEXF_NONE);
 
-void OculusRiftView::SetState()
-{
-	StereoView::SetState();
-}
-
-void OculusRiftView::RestoreState()
-{
-	StereoView::RestoreState();
-}
-
-void OculusRiftView::UpdateEye(int eye)
-{
-	IDirect3DSurface9* currentSurface = NULL;
-
-	if(eye == LEFT_EYE)
-	{
-		currentSurface = leftSurface;
-	} 
+	if (stereoCapableSurface->IsStereo())
+		m_pActualDevice->StretchRect(rightImage, NULL, rightSurface, NULL, D3DTEXF_NONE);
 	else
-	{
-		currentSurface = rightSurface;
-	}
-/////  difference from StereoView::
-	CalculateShaderVariables(eye);
-/////
-	m_pActualDevice->StretchRect(backBuffer, NULL, currentSurface, NULL, D3DTEXF_NONE);
-}
-
-void OculusRiftView::Draw()
-{
-	// if not initilized assume a reset has occured and m_pActualDevice is still valid
-	if(!initialized)
-		Init(m_pActualDevice);
+		m_pActualDevice->StretchRect(leftImage, NULL, rightSurface, NULL, D3DTEXF_NONE);
 
 	SaveState();
 	SetState();
@@ -168,7 +129,7 @@ void OculusRiftView::Draw()
 	RestoreState();
 }
 
-void OculusRiftView::CalculateShaderVariables(int eye)
+void OculusRiftView::CalculateShaderVariables()
 {
 	float
 //		VPw = 1280,
