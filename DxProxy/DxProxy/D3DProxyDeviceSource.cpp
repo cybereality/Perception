@@ -18,8 +18,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "D3DProxyDeviceSource.h"
 #include "StereoViewFactory.h"
+#include <algorithm>
 
-D3DProxyDeviceSource::D3DProxyDeviceSource(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy):D3DProxyDevice(pDevice, pCreatedBy)
+D3DProxyDeviceSource::D3DProxyDeviceSource(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy):D3DProxyDevice(pDevice, pCreatedBy),
+	m_validMatrixRegisters()
 {
 	OutputDebugString("D3D ProxyDev Source Created\n");
 }
@@ -33,54 +35,85 @@ void D3DProxyDeviceSource::Init(ProxyHelper::ProxyConfig& cfg)
 	OutputDebugString("D3D ProxyDev Source Init\n");
 	D3DProxyDevice::Init(cfg);
 	roll_mode = 1;
+
+	m_validMatrixRegisters.clear();
+	m_validMatrixRegisters.push_back(4);
+	m_validMatrixRegisters.push_back(8);
+	m_validMatrixRegisters.push_back(51);
 }
 
 
-
-HRESULT WINAPI D3DProxyDeviceSource::SetVertexShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount)
+bool CheckMatrix(UINT StartRegister, UINT Vector4fCount, UINT theMatrixIndex) 
 {
-	if(stereoView->initialized && Vector4fCount >= 4 && validRegister(StartRegister) && (fabs(pConstantData[12]) + fabs(pConstantData[13]) + fabs(pConstantData[14]) > 0.001f))
-	{
-		currentMatrix = const_cast<float*>(pConstantData);
+	return ((StartRegister >= theMatrixIndex) && (StartRegister < (theMatrixIndex + Vector4fCount)));
+}
 
-		D3DXMATRIX sourceMatrix(currentMatrix);
-
-		D3DXMatrixTranspose(&sourceMatrix, &sourceMatrix);
-			
-		sourceMatrix = sourceMatrix * (*m_pCurrentMatViewTransform);  
-
-		D3DXMatrixTranspose(&sourceMatrix, &sourceMatrix);
-
-		currentMatrix = (float*)sourceMatrix;
-
-		return D3DProxyDevice::SetVertexShaderConstantF(StartRegister, currentMatrix, Vector4fCount);
+bool D3DProxyDeviceSource::CouldOverwriteMatrix(UINT StartRegister, UINT Vector4fCount) 
+{
+	bool couldOverwrite = false;
+	auto itValidRegisters = m_validMatrixRegisters.begin();
+	while (itValidRegisters != m_validMatrixRegisters.end()) {
+		if (validRegister(StartRegister)) {//(CheckMatrix(StartRegister, Vector4fCount, *itValidRegisters)) {
+			couldOverwrite = true;
+			break;
+		}
+		
+		++itValidRegisters;
 	}
 
-	return D3DProxyDevice::SetVertexShaderConstantF(StartRegister, pConstantData, Vector4fCount);
+	return couldOverwrite;
 }
+
+bool D3DProxyDeviceSource::ContainsMatrixToModify(UINT StartRegister, CONST float* pConstantData, UINT Vector4fCount)
+{
+	return (Vector4fCount >= 4 && validRegister(StartRegister) && (fabs(pConstantData[12]) + fabs(pConstantData[13]) + fabs(pConstantData[14]) > 0.001f));
+}
+
+StereoShaderConstant<float> D3DProxyDeviceSource::CreateStereoShaderConstant(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount)
+{
+	D3DXMATRIX tempMatrix (const_cast<float*>(pConstantData));
+	D3DXMatrixTranspose(&tempMatrix, &tempMatrix);
+			
+	D3DXMATRIX tempLeft (tempMatrix * matViewTranslationLeft);
+	D3DXMATRIX tempRight (tempMatrix * matViewTranslationRight);
+
+	D3DXMatrixTranspose(&tempLeft, &tempLeft);
+	D3DXMatrixTranspose(&tempRight, &tempRight);
+		
+	return StereoShaderConstant<float>(StartRegister, tempLeft, tempRight, Vector4fCount, 4);
+}
+
+
+//HRESULT WINAPI D3DProxyDeviceSource::SetVertexShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount)
+//{
+//		currentMatrix = const_cast<float*>(pConstantData);
+//
+//		D3DXMATRIX sourceMatrix(currentMatrix);
+//
+//		D3DXMatrixTranspose(&sourceMatrix, &sourceMatrix);
+//			
+//		sourceMatrix = sourceMatrix * (*m_pCurrentMatViewTransform);  
+//
+//		D3DXMatrixTranspose(&sourceMatrix, &sourceMatrix);
+//
+//		currentMatrix = (float*)sourceMatrix;
+//
+//		return D3DProxyDevice::SetVertexShaderConstantF(StartRegister, currentMatrix, Vector4fCount);
+//	}
+//
+//	return D3DProxyDevice::SetVertexShaderConstantF(StartRegister, pConstantData, Vector4fCount);
+//}
 
 bool D3DProxyDeviceSource::validRegister(UINT reg)
 {
 	switch(game_type)
 	{
 	case SOURCE_L4D:
-		if(reg == 4 || reg == 8 || reg == 51) 
+		if(std::find(m_validMatrixRegisters.begin(), m_validMatrixRegisters.end(), reg) != m_validMatrixRegisters.end())
 			return true;
 		else return false;
 		break;
 	default:
 		return true;
-	}
-}
-
-int D3DProxyDeviceSource::getMatrixIndex()
-{
-	switch(game_type)
-	{
-	case SOURCE_L4D:
-		return 0;
-		break;
-	default:
-		return 0;
 	}
 }

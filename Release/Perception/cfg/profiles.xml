@@ -1,17 +1,27 @@
 <?xml version="1.0"?>
 <profiles>
+	<profile game_name="AaAaAA!!!" game_exe="main.exe" game_type="10" separation="0.00182" convergence="6.66511" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="inMomentum" game_exe="IMGame.exe" game_type="202" separation="0.1" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="Mirrors Edge" game_exe="MirrorsEdge.exe" game_type="201" separation="0.103205" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="Halflife 2" game_exe="hl2.exe" game_type="101" separation="0.1" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="Quantum Conundrum" game_exe="TryGame-Win32-Shipping.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="AaAaAA!!! for the Awesom" game_exe="Awesome.exe" game_type="10" separation="0" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="X3:AP" game_exe="X3AP.exe" game_type="10" separation="0" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="Orcs Must Die 2" game_exe="OrcsMustDie2.exe" game_type="10" separation="0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="AvP" game_exe="AvP.exe" game_type="10" separation="0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="ArmA2OA" game_exe="ArmA2OA.exe" game_type="10" separation="0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="ArmA2" game_exe="arma2.exe" game_type="10" separation="0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="The Ball" game_exe="TheBall.exe" game_type="10" separation="0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Antichamber" game_exe="UDK.exe" game_type="200" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Dishonored" game_exe="Dishonored.exe" game_type="200" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
-	<profile game_name="Halflife 2" game_exe="hl2.exe" game_type="10" separation="0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Left 4 Dead" game_exe="left4dead.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Left 4 Dead 2" game_exe="left4dead2.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Portal 2" game_exe="portal2.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Dear Esther" game_exe="dearesther.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
-	<profile game_name="Mirrors Edge" game_exe="MirrorsEdge.exe" game_type="201" separation="0.103205" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Unreal Tournament 3" game_exe="UT3.exe" game_type="202" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Natural Selection 2" game_exe="NS2.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="Psychonauts" game_exe="Psychonauts.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="DiRT 2" game_exe="dirt2_game.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
-	<profile game_name="AaAaAA!!!" game_exe="main.exe" game_type="10" separation="0.00182" convergence="6.66511" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Skyrim" game_exe="SkyrimLauncher.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Skyrim(SKSE)" game_exe="skse_loader.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Skyrim(SKSE)" game_exe="TESV.exe" game_type="10" separation="0.0" convergence="0.0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
@@ -43,13 +53,12 @@
 	<profile game_name="Borderlands 2" game_exe="Borderlands2.exe" game_type="10" separation="0.0" convergence="0.0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Fallout3" game_exe="Fallout3.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="BatmanAC" game_exe="BatmanAC.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
-	<profile game_name="BatmanAA GOTY" game_exe="ShippingPC-BmGame.exe" game_type="202" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="BatmanAA GOTY" game_exe="ShippingPC-BmGame.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="War Thunder" game_exe="aces.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Metro 2033" game_exe="metro2033.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="LA Noire" game_exe="LANoire.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Payday" game_exe="payday_win32_release.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Deus Ex" game_exe="dxhr.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="R6Vegas 2" game_exe="R6Vegas2_Game.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
-	<profile game_name="inMomentum" game_exe="IMGame.exe" game_type="202" separation="0.1" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Slender The Eight Pages" game_exe="Slender - The Eight Pages.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 </profiles>

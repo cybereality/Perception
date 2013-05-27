@@ -22,17 +22,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Direct3DDevice9.h"
 #include "D3DProxyDevice.h"
 #include <d3dx9.h>
+#include <vector>
 
 class D3DProxyDeviceSource : public D3DProxyDevice
 {
 public:
 	D3DProxyDeviceSource(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy);
 	virtual ~D3DProxyDeviceSource();
-	virtual HRESULT WINAPI SetVertexShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
+
+	virtual bool CouldOverwriteMatrix(UINT StartRegister, UINT Vector4fCount);
+	virtual bool ContainsMatrixToModify(UINT StartRegister, CONST float* pConstantData, UINT Vector4fCount);
+	virtual StereoShaderConstant<float> CreateStereoShaderConstant(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
 
 	void Init(ProxyHelper::ProxyConfig& cfg);
 	bool validRegister(UINT reg);
 	int getMatrixIndex();
+
+	std::vector<UINT> m_validMatrixRegisters;
 };
 
 #endif
