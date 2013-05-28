@@ -1980,7 +1980,9 @@ bool D3DProxyDevice::setDrawingSide(EyeSide side)
 	}
 
 
-	
+	// Everything hasn't changed yet but we set this first so we don't accidentally use the member instead of the local and break
+	// things, as I have already managed twice.
+	m_currentRenderingSide = side;
 
 
 	// switch render targets to new side
@@ -2094,7 +2096,6 @@ bool D3DProxyDevice::setDrawingSide(EyeSide side)
 
 
 
-	m_currentRenderingSide = side;
 
 	return true;
 }
