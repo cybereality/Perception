@@ -52,15 +52,7 @@ HRESULT WINAPI D3DProxyDeviceTest::EndScene()
 	D3DRECT rec = {1,1,25,25};
 	this->Clear(1, &rec, D3DCLEAR_TARGET, D3DCOLOR_ARGB(225,255,255,0),0 ,0);
 
-	// delay to avoid crashing on start
-	static int initDelay = 120;
-	initDelay--;
-
-	if(!stereoView->initialized && initDelay < 0)
-	{
-		stereoView->Init(getActual());
-		SetupMatrices();
-	}
+	
 
 	RECT rec2 = {30,10,400,200};
 	char vcString[512];
@@ -72,29 +64,6 @@ HRESULT WINAPI D3DProxyDeviceTest::EndScene()
 	return D3DProxyDevice::EndScene();
 }
 
-HRESULT WINAPI D3DProxyDeviceTest::Present(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion)
-{
-	if(stereoView->initialized && stereoView->stereoEnabled)
-	{
-		if(eyeShutter > 0)
-		{
-			stereoView->UpdateEye(StereoView::LEFT_EYE);
-		}
-		else 
-		{
-			stereoView->UpdateEye(StereoView::RIGHT_EYE);
-		}
-
-		stereoView->Draw();
-
-		eyeShutter *= -1;
-	}
-
-	if(eyeShutter > 0) return D3D_OK;
-	HRESULT hr = D3DProxyDevice::Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
-
-	return hr;
-}
 
 HRESULT WINAPI D3DProxyDeviceTest::SetVertexShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount)
 {
@@ -219,15 +188,7 @@ HRESULT WINAPI D3DProxyDeviceTest::SetVertexShaderConstantF(UINT StartRegister,C
 	return D3DProxyDevice::SetVertexShaderConstantF(StartRegister, pConstantData, Vector4fCount);
 }
 
-/*
-HRESULT WINAPI D3DProxyDeviceTest::SetDepthStencilSurface(IDirect3DSurface9* pNewZStencil)
-{
-	//m_pDevice->Clear(0, NULL, D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(0,0,0), 1.0f, 0);
 
-	return D3DProxyDevice::SetDepthStencilSurface(pNewZStencil);
-}
-
-*/
 
 bool D3DProxyDeviceTest::validRegister(UINT reg)
 {

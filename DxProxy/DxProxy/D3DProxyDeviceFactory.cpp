@@ -20,9 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "D3DProxyDeviceSource.h"
 #include "D3DProxyDeviceUnreal.h"
 #include "D3DProxyDeviceTest.h"
-#include "D3DProxyDeviceMono.h"
 #include "D3DProxyDeviceEgo.h"
-#include "D3DProxyDeviceFixed.h"
 #include "D3DProxyDeviceAdv.h"
 
 D3DProxyDevice* D3DProxyDeviceFactory::Get(ProxyHelper::ProxyConfig& config, IDirect3DDevice9* dev, BaseDirect3D9* pCreatedBy)
@@ -31,12 +29,6 @@ D3DProxyDevice* D3DProxyDeviceFactory::Get(ProxyHelper::ProxyConfig& config, IDi
 
 	switch(config.game_type)
 	{
-	case D3DProxyDevice::MONO:
-		newDev = new D3DProxyDeviceMono(dev, pCreatedBy);
-		break;
-	case D3DProxyDevice::FIXED:
-		newDev = new D3DProxyDeviceFixed(dev, pCreatedBy);
-		break;
 	case D3DProxyDevice::SOURCE:
 	case D3DProxyDevice::SOURCE_L4D:
 		newDev = new D3DProxyDeviceSource(dev, pCreatedBy);
@@ -45,9 +37,6 @@ D3DProxyDevice* D3DProxyDeviceFactory::Get(ProxyHelper::ProxyConfig& config, IDi
 	case D3DProxyDevice::UNREAL_MIRROR:
 	case D3DProxyDevice::UNREAL_UT3:
 		newDev = new D3DProxyDeviceUnreal(dev, pCreatedBy);
-		break;
-	case D3DProxyDevice::UNREAL_BIOSHOCK:
-		newDev = new D3DProxyDeviceMono(dev, pCreatedBy);
 		break;
 	case D3DProxyDevice::EGO:
 	case D3DProxyDevice::EGO_DIRT:
@@ -65,6 +54,9 @@ D3DProxyDevice* D3DProxyDeviceFactory::Get(ProxyHelper::ProxyConfig& config, IDi
 	case D3DProxyDevice::ADVANCED_SKYRIM:
 		newDev = new D3DProxyDeviceAdv(dev, pCreatedBy);
 		break;
+	case D3DProxyDevice::MONO:
+	case D3DProxyDevice::UNREAL_BIOSHOCK:
+	case D3DProxyDevice::FIXED:
 	default:
 		newDev = new D3DProxyDevice(dev, pCreatedBy);
 		break;

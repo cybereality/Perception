@@ -41,9 +41,6 @@ public:
 	UINT getMatrixIndex();
 
 
-protected:
-
-	//bool	m_bAdjustedShaderActive;
 
 private:
 	

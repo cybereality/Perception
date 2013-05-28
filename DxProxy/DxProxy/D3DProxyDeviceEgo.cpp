@@ -34,34 +34,6 @@ void D3DProxyDeviceEgo::Init(ProxyHelper::ProxyConfig& cfg)
 	matrixIndex = getMatrixIndex();
 }
 
-HRESULT WINAPI D3DProxyDeviceEgo::BeginScene()
-{
-	HandleControls();
-	HandleTracking();
-	ComputeViewTranslation();
-
-	if(saveDebugFile)
-	{
-		debugFile.open("d3d9_debug.txt", std::ios::out);
-	}
-
-	return D3DProxyDevice::BeginScene();
-}
-
-HRESULT WINAPI D3DProxyDeviceEgo::EndScene()
-{
-	// delay to avoid crashing on start
-	static int initDelay = 120;
-	initDelay--;
-
-	if(!stereoView->initialized && initDelay < 0)
-	{
-		stereoView->Init(getActual());
-		SetupMatrices();
-	}
-
-	return D3DProxyDevice::EndScene();
-}
 
 HRESULT WINAPI D3DProxyDeviceEgo::Present(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion)
 {

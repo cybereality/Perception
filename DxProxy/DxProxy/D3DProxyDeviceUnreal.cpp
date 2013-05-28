@@ -20,7 +20,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 D3DProxyDeviceUnreal::D3DProxyDeviceUnreal(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy):D3DProxyDevice(pDevice, pCreatedBy)
 {
-	//m_bAdjustedShaderActive = false;
 }
 
 D3DProxyDeviceUnreal::~D3DProxyDeviceUnreal()
@@ -34,76 +33,6 @@ void D3DProxyDeviceUnreal::Init(ProxyHelper::ProxyConfig& cfg)
 	roll_mode = 1;
 	matrixIndex = getMatrixIndex();
 }
-
-
-//
-//inline bool D3DProxyDeviceUnreal::isPartOfMatrix(UINT Register)
-//{
-//	return ((Register >= matrixIndex) && (Register < (matrixIndex + 4)));
-//}
-//
-//
-//
-//
-//
-//HRESULT WINAPI D3DProxyDeviceUnreal::SetVertexShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount)
-//{
-//	
-//	if (stereoView->initialized) {
-//		if (ContainsMatrixToModify(StartRegister, pConstantData, Vector4fCount)) // && (fabs(pConstantData[12]) + fabs(pConstantData[13]) + fabs(pConstantData[14]) > 0.001f))
-//		{
-//			//D3DXMATRIX tempMatrix = const_cast<float*>(pConstantData);
-//		
-//			//D3DXMATRIX tempLeft (tempMatrix * matViewTranslationLeft);
-//			//D3DXMATRIX tempRight (tempMatrix * matViewTranslationRight);
-//			StereoShaderConstant<float> stereoConstant = CreateStereoShaderConstant(StartRegister, pConstantData, Vector4fCount);
-//
-//
-//			HRESULT result = BaseDirect3DDevice9::SetVertexShaderConstantF(StartRegister, (m_currentRenderingSide == Left) ? stereoConstant.DataLeftPointer() : stereoConstant.DataRightPointer(), Vector4fCount);
-//			// TODO move this up to basic proxy
-//			if (SUCCEEDED(result)) {
-//				if (m_pCapturingStateTo) {
-//					//m_pCapturingStateTo->SelectAndCaptureState(StereoShaderConstant<float>(StartRegister, tempLeft, tempRight, Vector4fCount, 4));
-//					m_pCapturingStateTo->SelectAndCaptureState(stereoConstant);
-//				}
-//				else {
-//					if (m_activeStereoVShaderConstF.count(StartRegister) == 1) {
-//						m_activeStereoVShaderConstF.erase(StartRegister);
-//					}
-//
-//					m_activeStereoVShaderConstF.insert(std::pair<UINT, StereoShaderConstant<float>>(StartRegister, stereoConstant));
-//					//m_bAdjustedShaderActive = true;
-//				}
-//			}
-//
-//
-//			return result;
-//
-//
-//		}
-//		// The matrix is being partially or completely replaced by something other than the matrix
-//		else if (/*m_bAdjustedShaderActive &&*/ CouldOverwriteMatrix(StartRegister, Vector4fCount)) {
-//
-//			HRESULT result;
-//			if (SUCCEEDED(result = D3DProxyDevice::SetVertexShaderConstantF(StartRegister, pConstantData, Vector4fCount))) {
-//
-//				if (!m_pCapturingStateTo) {
-//					// Remove the stereo matrix from active stereo constants
-//					if (m_activeStereoVShaderConstF.count(StartRegister) == 1) {
-//
-//						m_activeStereoVShaderConstF.erase(StartRegister);
-//					}
-//
-//					//m_bAdjustedShaderActive = false;
-//				}
-//			}
-//
-//			return result;
-//		}
-//	}
-//
-//	return D3DProxyDevice::SetVertexShaderConstantF(StartRegister, pConstantData, Vector4fCount);
-//}
 
 
 bool D3DProxyDeviceUnreal::CouldOverwriteMatrix(UINT StartRegister, UINT Vector4fCount) 

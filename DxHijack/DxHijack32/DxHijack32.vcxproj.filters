@@ -54,12 +54,6 @@
     <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxyDeviceFactory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxyDeviceFixed.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxyDeviceMono.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxyDeviceSource.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -200,12 +194,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyDeviceFactory.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyDeviceFixed.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyDeviceMono.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyDeviceSource.h">

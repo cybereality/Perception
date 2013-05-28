@@ -88,12 +88,6 @@
     <ClCompile Include="D3DProxyDeviceFactory.cpp">
       <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
     </ClCompile>
-    <ClCompile Include="D3DProxyDeviceFixed.cpp">
-      <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
-    </ClCompile>
-    <ClCompile Include="D3DProxyDeviceMono.cpp">
-      <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
-    </ClCompile>
     <ClCompile Include="D3DProxyDeviceSource.cpp">
       <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
     </ClCompile>
@@ -237,12 +231,6 @@
       <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
     </ClInclude>
     <ClInclude Include="D3DProxyDeviceFactory.h">
-      <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
-    </ClInclude>
-    <ClInclude Include="D3DProxyDeviceFixed.h">
-      <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
-    </ClInclude>
-    <ClInclude Include="D3DProxyDeviceMono.h">
       <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
     </ClInclude>
     <ClInclude Include="D3DProxyDeviceSource.h">
