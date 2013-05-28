@@ -39,36 +39,6 @@ void D3DProxyDeviceAdv::Init(ProxyHelper::ProxyConfig& cfg)
 }
 
 
-HRESULT WINAPI D3DProxyDeviceAdv::BeginScene()
-{
-	/*HandleControls();
-	HandleTracking();
-	ComputeViewTranslation();*/
-
-	if(saveDebugFile)
-	{
-		debugFile.open("d3d9_debug.txt", std::ios::out);
-	}
-
-	return D3DProxyDevice::BeginScene();
-}
-
-
-
-//HRESULT WINAPI D3DProxyDeviceAdv::EndScene()
-//{
-//	// delay to avoid crashing on start
-//	static int initDelay = 120;
-//	initDelay--;
-//
-//	if(!stereoView->initialized && initDelay < 0)
-//	{
-//		stereoView->Init(getActual());
-//		SetupMatrices();
-//	}
-//
-//	return D3DProxyDevice::EndScene();
-//}
 
 
 
