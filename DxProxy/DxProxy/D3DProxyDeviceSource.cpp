@@ -36,6 +36,7 @@ void D3DProxyDeviceSource::Init(ProxyHelper::ProxyConfig& cfg)
 	D3DProxyDevice::Init(cfg);
 	roll_mode = 1;
 
+	// This set of registers was being used by all source games (all use game type 101, labeled as SOURCE_L4D)
 	m_validMatrixRegisters.clear();
 	m_validMatrixRegisters.push_back(4);
 	m_validMatrixRegisters.push_back(8);
@@ -84,36 +85,17 @@ StereoShaderConstant<float> D3DProxyDeviceSource::CreateStereoShaderConstant(UIN
 }
 
 
-//HRESULT WINAPI D3DProxyDeviceSource::SetVertexShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount)
-//{
-//		currentMatrix = const_cast<float*>(pConstantData);
-//
-//		D3DXMATRIX sourceMatrix(currentMatrix);
-//
-//		D3DXMatrixTranspose(&sourceMatrix, &sourceMatrix);
-//			
-//		sourceMatrix = sourceMatrix * (*m_pCurrentMatViewTransform);  
-//
-//		D3DXMatrixTranspose(&sourceMatrix, &sourceMatrix);
-//
-//		currentMatrix = (float*)sourceMatrix;
-//
-//		return D3DProxyDevice::SetVertexShaderConstantF(StartRegister, currentMatrix, Vector4fCount);
-//	}
-//
-//	return D3DProxyDevice::SetVertexShaderConstantF(StartRegister, pConstantData, Vector4fCount);
-//}
 
 bool D3DProxyDeviceSource::validRegister(UINT reg)
 {
-	switch(game_type)
+	/*switch(game_type)
 	{
-	case SOURCE_L4D:
+	case SOURCE_L4D:*/
 		if(std::find(m_validMatrixRegisters.begin(), m_validMatrixRegisters.end(), reg) != m_validMatrixRegisters.end())
 			return true;
 		else return false;
-		break;
+		/*break;
 	default:
 		return true;
-	}
+	}*/
 }

@@ -70,7 +70,6 @@ void OculusRiftView::InitShaderEffects()
 void OculusRiftView::Draw(D3D9ProxySurface* stereoCapableSurface)
 {
 	// Copy left and right surfaces to textures to use as shader input
-	// TODO match aspect ratio of source in target ? 
 	IDirect3DSurface9* leftImage = stereoCapableSurface->getActualLeft();
 	IDirect3DSurface9* rightImage = stereoCapableSurface->getActualRight();
 
@@ -104,7 +103,10 @@ void OculusRiftView::Draw(D3D9ProxySurface* stereoCapableSurface)
 
 	viewEffect->SetTechnique("ViewShader");
 
-/////  difference from StereoView::
+
+	//TODO refactor this method. StereoView could just call a "setEffectValues/Constants/Whatever" here
+	// and this code could go in that. Or something else. But remove the copy paste duplication os StereoView method
+/////  difference from StereoView:: 
 	viewEffect->SetFloatArray("LensCenter", LensCenter,2);
 	viewEffect->SetFloatArray("LensShift", LensShift,2);
 	viewEffect->SetFloatArray("ScreenCenter", ScreenCenter,2);
