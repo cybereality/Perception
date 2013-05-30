@@ -255,6 +255,8 @@ void StereoView::SetState()
 	m_pActualDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
 	m_pActualDevice->SetRenderState(D3DRS_ZENABLE, D3DZB_FALSE);
 	m_pActualDevice->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
+	m_pActualDevice->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);  // This fixed interior or car not being drawn in rFactor
+	m_pActualDevice->SetRenderState(D3DRS_STENCILENABLE, FALSE); /// this is for funnsies (hasn't noticeably effected anything)
 	//m_pActualDevice->SetRenderState(D3DRS_SRGBWRITEENABLE, 0);  // will cause visual errors in HL2
 	
 	if(game_type == D3DProxyDevice::SOURCE_L4D)
