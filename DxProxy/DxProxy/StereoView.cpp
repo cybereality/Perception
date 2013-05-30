@@ -18,6 +18,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "StereoView.h"
 
+DWORD g_color;   
+
 StereoView::StereoView(ProxyHelper::ProxyConfig& config)
 {
 	OutputDebugString("Created SteroView\n");
@@ -45,6 +47,8 @@ StereoView::StereoView(ProxyHelper::ProxyConfig& config)
 	lastRenderTarget0 = NULL;
 	lastRenderTarget1 = NULL;
 	viewEffect = NULL;
+
+	g_color = D3DCOLOR_RGBA(255,255,0,255);
 }
 
 StereoView::~StereoView()
@@ -109,7 +113,9 @@ void StereoView::InitShaderEffects()
 
 	strcat_s(viewPath, 512, shaderEffect[stereo_mode].c_str());
 
-	D3DXCreateEffectFromFile(m_pActualDevice, viewPath, NULL, NULL, 0, NULL, &viewEffect, NULL);
+	if (FAILED(D3DXCreateEffectFromFile(m_pActualDevice, viewPath, NULL, NULL, D3DXFX_DONOTSAVESTATE, NULL, &viewEffect, NULL))) {
+		OutputDebugString("Effect creation failed\n");
+	}
 }
 
 void StereoView::InitTextureBuffers()
@@ -150,6 +156,7 @@ void StereoView::InitTextureBuffers()
 void StereoView::InitVertexBuffers()
 {
 	OutputDebugString("SteroView initVertexBuffers\n");
+
 
 	m_pActualDevice->CreateVertexBuffer(sizeof(TEXVERTEX) * 4, NULL,
         D3DFVF_TEXVERTEX, D3DPOOL_MANAGED, &screenVertexBuffer, NULL);
@@ -238,6 +245,7 @@ void StereoView::SaveState()
 
 void StereoView::SetState()
 {
+
 	m_pActualDevice->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_SELECTARG1);
 	m_pActualDevice->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
 	m_pActualDevice->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_SELECTARG1);
@@ -278,8 +286,8 @@ void StereoView::SetState()
 	m_pActualDevice->SetSamplerState(0, D3DSAMP_MIPFILTER, D3DTEXF_NONE);
 	m_pActualDevice->SetSamplerState(1, D3DSAMP_MIPFILTER, D3DTEXF_NONE);
 
-	m_pActualDevice->SetTexture(0, NULL);
-	m_pActualDevice->SetTexture(1, NULL);
+	//m_pActualDevice->SetTexture(0, NULL);
+	//m_pActualDevice->SetTexture(1, NULL);
 
 	m_pActualDevice->SetVertexShader(NULL);
 	m_pActualDevice->SetPixelShader(NULL);
@@ -289,6 +297,8 @@ void StereoView::SetState()
 	//It's a Direct3D9 error when using the debug runtine to set RenderTarget 0 to NULL
 	//m_pActualDevice->SetRenderTarget(0, NULL);
 	m_pActualDevice->SetRenderTarget(1, NULL);
+	m_pActualDevice->SetRenderTarget(2, NULL);
+	m_pActualDevice->SetRenderTarget(3, NULL);
 }
 
 void StereoView::RestoreState()
@@ -361,10 +371,12 @@ void StereoView::SwapEyes(bool doSwap)
 	swap_eyes = doSwap;
 }
 
-/// To be removed ///
-void StereoView::UpdateEye(int eye){}
-void StereoView::Draw() {}
-/////////////////////
+
+
+
+
+void StereoView::SetViewEffectInitialValues() {}
+
 
 void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 {
@@ -381,8 +393,24 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 		m_pActualDevice->StretchRect(leftImage, NULL, rightSurface, NULL, D3DTEXF_NONE);
 
 
-	SaveState();
+	//SaveState();
+	
+	IDirect3DStateBlock9* sb;
+	m_pActualDevice->CreateStateBlock(D3DSBT_ALL, &sb);
+
 	SetState();
+	
+	D3DXMATRIX	identity;
+	m_pActualDevice->SetTransform(D3DTS_WORLD, D3DXMatrixIdentity(&identity));
+	m_pActualDevice->SetTransform(D3DTS_VIEW, &identity);
+	m_pActualDevice->SetTransform(D3DTS_PROJECTION, &identity);
+	m_pActualDevice->SetRenderState(D3DRS_LIGHTING, FALSE);
+	m_pActualDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
+	m_pActualDevice->SetRenderState(D3DRS_ZENABLE, FALSE);
+	m_pActualDevice->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
+	m_pActualDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
+
+
 
 	m_pActualDevice->SetFVF(D3DFVF_TEXVERTEX);
 
@@ -397,37 +425,83 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 		m_pActualDevice->SetTexture(1, leftTexture);
 	}
 
-	m_pActualDevice->SetRenderTarget(0, backBuffer);
-	m_pActualDevice->SetStreamSource(0, screenVertexBuffer, 0, sizeof(TEXVERTEX));
+
+
+
+	if (FAILED(m_pActualDevice->SetRenderTarget(0, backBuffer))) {
+		OutputDebugString("SetRenderTarget backbuffer failed\n");
+	}
+
+
+	/*if (FAILED(m_pActualDevice->Clear(0, NULL, D3DCLEAR_TARGET, g_color, 0, 0))) {
+		OutputDebugString("clear failed\n");
+	}*/
+
+	if (FAILED(m_pActualDevice->SetStreamSource(0, screenVertexBuffer, 0, sizeof(TEXVERTEX)))) {
+		OutputDebugString("SetStreamSource failed\n");
+	}
 
 	UINT iPass, cPasses;
 
-	viewEffect->SetTechnique("ViewShader");
-	viewEffect->Begin(&cPasses, 0);
+
+	if (FAILED(viewEffect->SetTechnique("ViewShader"))) {
+		OutputDebugString("SetTechnique failed\n");
+	}
+
+	SetViewEffectInitialValues();
+
+
+	if (FAILED(viewEffect->Begin(&cPasses, 0))) {
+		OutputDebugString("Begin failed\n");
+	}
 
 	for(iPass = 0; iPass < cPasses; iPass++)
 	{
-		viewEffect->BeginPass(iPass);
-		m_pActualDevice->DrawPrimitive(D3DPT_TRIANGLEFAN, 0, 2);
-		viewEffect->EndPass();
+		if (FAILED(viewEffect->BeginPass(iPass))) {
+			OutputDebugString("Beginpass failed\n");
+		}
+
+		if (FAILED(m_pActualDevice->DrawPrimitive(D3DPT_TRIANGLEFAN, 0, 2))) {
+			OutputDebugString("Draw failed\n");
+		}
+
+		if (FAILED(viewEffect->EndPass())) {
+			OutputDebugString("Beginpass failed\n");
+		}
 	}
 
-	viewEffect->End();
+	if (FAILED(viewEffect->End())) {
+		OutputDebugString("End failed\n");
+	}
 	
+	sb->Apply();
+	sb->Release();
 
-	RestoreState();
+
+	//RestoreState();
 }
 
 void StereoView::SaveScreen()
 {
+	g_color = D3DCOLOR_RGBA(255,255,255,255);
+
 	static int screenCount = 0;
 	++screenCount;
 
 	char fileName[32];
-	wsprintf(fileName, "screenshot_%d.bmp", screenCount);
-	OutputDebugString(fileName);
+	wsprintf(fileName, "ss_final_%d.bmp", screenCount);
+
+	char fileNameLeft[32];
+	wsprintf(fileNameLeft, "ss_left_%d.bmp", screenCount);
+	char fileNameRight[32];
+	wsprintf(fileNameRight, "ss_right_%d.bmp", screenCount);
+	/*OutputDebugString(fileName);
 	OutputDebugString("\n");
 
+	D3DXSaveSurfaceToFile(fileName, D3DXIFF_BMP, backBuffer, NULL, NULL);*/
+
+	D3DXSaveSurfaceToFile(fileNameLeft, D3DXIFF_BMP, leftSurface, NULL, NULL);
+	D3DXSaveSurfaceToFile(fileNameRight, D3DXIFF_BMP, rightSurface, NULL, NULL);
 	D3DXSaveSurfaceToFile(fileName, D3DXIFF_BMP, backBuffer, NULL, NULL);
 }
 
@@ -435,7 +509,8 @@ void StereoView::SaveScreen()
 
 
 
-void StereoView::Reset()
+
+void StereoView::ReleaseEverything()
 {
 	OutputDebugString("SteroView Reset\n");
 
@@ -498,9 +573,14 @@ void StereoView::Reset()
 		releaseCheck("lastRenderTarget1", lastRenderTarget1->Release());
 	lastRenderTarget1 = NULL;
 
-	if(viewEffect)
-		releaseCheck("viewEffect", viewEffect->Release());
-	viewEffect = NULL;
+	viewEffect->OnLostDevice();
+		
 
 	initialized = false;
+}
+
+
+void StereoView::PostReset()
+{
+	viewEffect->OnResetDevice();
 }

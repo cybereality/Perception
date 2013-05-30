@@ -78,6 +78,11 @@ D3D9ProxySwapChain::~D3D9ProxySwapChain()
 
 HRESULT WINAPI D3D9ProxySwapChain::Present(CONST RECT* pSourceRect, CONST RECT* pDestRect, HWND hDestWindowOverride, CONST RGNDATA* pDirtyRegion, DWORD dwFlags)
 {
+#ifdef _DEBUG
+	OutputDebugString(__FUNCTION__);
+	OutputDebugString("\n");
+#endif;
+
 	// Test only, StereoView needs to be properly integrated as part of SwapChain.
 	// This test allowed deus ex menus and videos to work correctly. Lots of model rendering issues in game though
 	D3DProxyDevice* pD3DProxyDev = static_cast<D3DProxyDevice*>(m_pOwningDevice);

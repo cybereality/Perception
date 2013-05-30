@@ -27,7 +27,8 @@ StereoViewInterleave::~StereoViewInterleave()
 {
 }
 
-void StereoViewInterleave::Draw()
+//TODO modify to match new drawing method
+/*void StereoViewInterleave::Draw()
 {
 	SaveState();
 	SetState();
@@ -58,4 +59,4 @@ void StereoViewInterleave::Draw()
 	viewEffect->End();
 
 	RestoreState();
-}
+}*/

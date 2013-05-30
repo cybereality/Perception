@@ -296,7 +296,7 @@ HRESULT WINAPI D3DProxyDevice::Reset(D3DPRESENT_PARAMETERS* pPresentationParamet
 	//OutputDebugString("\n");
 
 	if(stereoView)
-		stereoView->Reset();
+		stereoView->ReleaseEverything();
 
 	ReleaseEverything();
 
@@ -322,6 +322,7 @@ HRESULT WINAPI D3DProxyDevice::Reset(D3DPRESENT_PARAMETERS* pPresentationParamet
 	// if the device has been successfully reset we need to recreate any resources we created
 	if (hr == D3D_OK)  {
 		OnCreateOrRestore();
+		stereoView->PostReset();
 	}
 	else {
 #ifdef _DEBUG
@@ -938,7 +939,7 @@ HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFO
 		/* "If Needed" heuristic is the complicated part here.
 		  Fixed heuristics (based on type, format, size, etc) + game specific overrides + isForcedMono + magic? */
 		// TODO Should we duplicate this Render Target? Replace "true" with heuristic
-		if (true) 
+		if (true) //!((Width == Height) || (Width <= 1024))) // Trying some random things out - this one fixes guy on screens in hl2
 		{
 			if (FAILED(BaseDirect3DDevice9::CreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, &pRightRenderTarget, pSharedHandle))) {
 				OutputDebugString("Failed to create right eye render target while attempting to create stereo pair, falling back to mono\n");
@@ -1481,13 +1482,8 @@ HRESULT WINAPI D3DProxyDevice::SetRenderTarget(DWORD RenderTargetIndex, IDirect3
 	D3D9ProxySurface* newRenderTarget = static_cast<D3D9ProxySurface*>(pRenderTarget);
 
 #ifdef _DEBUG
-	if (!newRenderTarget) {
-		OutputDebugString("newRenderTarget is a null surface\n"); 
-	}
-	else {
-		if (!newRenderTarget->getActualLeft() && !newRenderTarget->getActualRight()) {
-			OutputDebugString("RenderTarget is not a valid (D3D9ProxySurface) stereo capable surface\n"); 
-		}
+	if (newRenderTarget && !newRenderTarget->getActualLeft() && !newRenderTarget->getActualRight()) {
+		OutputDebugString("RenderTarget is not a valid (D3D9ProxySurface) stereo capable surface\n"); 
 	}
 #endif
 	
@@ -1841,13 +1837,11 @@ HRESULT WINAPI D3DProxyDevice::SetVertexShaderConstantF(UINT StartRegister,CONST
 
 bool D3DProxyDevice::CouldOverwriteMatrix(UINT StartRegister, UINT Vector4fCount) 
 {
-	assert(false);
 	return false;
 }
 
 bool D3DProxyDevice::ContainsMatrixToModify(UINT StartRegister, CONST float* pConstantData, UINT Vector4fCount)
 {
-	assert(false);
 	return false;
 }
 
@@ -2105,10 +2099,10 @@ bool D3DProxyDevice::setDrawingSide(EyeSide side)
 
 HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion)
 {
-//#ifdef _DEBUG
-//	OutputDebugString(__FUNCTION__);
-//	OutputDebugString("\n");
-//#endif;
+#ifdef _DEBUG
+	OutputDebugString(__FUNCTION__);
+	OutputDebugString("\n");
+#endif;
 
 	IDirect3DSurface9* pWrappedBackBuffer;
 

@@ -28,7 +28,9 @@ public:
 	OculusRiftView(ProxyHelper::ProxyConfig& config);
 	virtual ~OculusRiftView();
 	virtual void InitShaderEffects();
-	virtual void Draw(D3D9ProxySurface* stereoCapableSurface);
+
+	virtual void SetViewEffectInitialValues();
+
 
 	void CalculateShaderVariables( );
 };

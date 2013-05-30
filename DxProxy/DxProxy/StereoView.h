@@ -60,22 +60,56 @@ public:
 
 	/* Must be initialised with an actual device. Not a wrapped device*/
 	virtual void Init(IDirect3DDevice9* pActualDevice);
-	virtual void InitTextureBuffers();
-	virtual void InitVertexBuffers();
-	virtual void InitShaderEffects();
-	virtual void Draw();
+	
+	//virtual void Draw();
 	virtual void Draw(D3D9ProxySurface* stereoCapableSurface);
-	virtual void SaveState();
-	virtual void SetState();
-	virtual void RestoreState();
-	virtual void UpdateEye(int eye);
+	
+	//virtual void UpdateEye(int eye);
 	virtual void SaveScreen();
 	virtual void SwapEyes(bool doSwap);
-	virtual void Reset();
+	virtual void ReleaseEverything();
+	virtual void PostReset();
+
+	
+	D3DVIEWPORT9 viewport;
 
 	
 
-	D3DVIEWPORT9 viewport;
+	bool initialized;
+	int game_type;
+	int stereo_mode;
+	bool swap_eyes;
+
+	int stereoEnabled;
+
+	/// for OculusRiftView adjustments in D3DProxyDevice
+	float LensCenter[2];
+	float LensShift[2];
+	float ScreenCenter[2];
+	float Scale[2];
+	float ScaleIn[2];
+	float HmdWarpParam[4];
+	///
+
+	
+
+	float DistortionScale;	// used by OculusRiftView and D3DProxyDevice
+
+
+protected:
+	IDirect3DDevice9* m_pActualDevice;
+
+	virtual void SetViewEffectInitialValues();
+
+	virtual void SaveState();
+	virtual void SetState();
+	virtual void RestoreState();
+
+	virtual void InitTextureBuffers();
+	virtual void InitVertexBuffers();
+	virtual void InitShaderEffects();
+
+
 
 	IDirect3DTexture9* leftTexture;
 	IDirect3DTexture9* rightTexture;
@@ -122,29 +156,8 @@ public:
 
 	ID3DXEffect* viewEffect;
 
-	bool initialized;
-	int game_type;
-	int stereo_mode;
-	bool swap_eyes;
-
-	int stereoEnabled;
-
-	/// for OculusRiftView adjustments in D3DProxyDevice
-	float LensCenter[2];
-	float LensShift[2];
-	float ScreenCenter[2];
-	float Scale[2];
-	float ScaleIn[2];
-	float HmdWarpParam[4];
-	///
-
 	std::map<int, std::string> shaderEffect;
 
-	float DistortionScale;	// used by OculusRiftView and D3DProxyDevice
-
-
-protected:
-	IDirect3DDevice9* m_pActualDevice;
 };
 
 const DWORD D3DFVF_TEXVERTEX = D3DFVF_XYZRHW | D3DFVF_TEX1;

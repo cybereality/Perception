@@ -35,34 +35,11 @@ void D3DProxyDeviceEgo::Init(ProxyHelper::ProxyConfig& cfg)
 }
 
 
-HRESULT WINAPI D3DProxyDeviceEgo::Present(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion)
-{
-	if(stereoView->initialized && stereoView->stereoEnabled)
-	{
-		if(eyeShutter > 0)
-		{
-			stereoView->UpdateEye(StereoView::LEFT_EYE);
-		}
-		else 
-		{
-			stereoView->UpdateEye(StereoView::RIGHT_EYE);
-		}
-
-		stereoView->Draw();
-
-		eyeShutter *= -1;
-	}
-
-	if(eyeShutter > 0) return D3D_OK;
-	HRESULT hr = D3DProxyDevice::Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
-
-	return hr;
-}
 
 HRESULT WINAPI D3DProxyDeviceEgo::SetVertexShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount)
 {
 	
-	if(stereoView->initialized && Vector4fCount >= 4 && validRegister(StartRegister)) // && (fabs(pConstantData[12]) + fabs(pConstantData[13]) + fabs(pConstantData[14]) > 0.001f))
+	if(stereoView->initialized && Vector4fCount >= 4 && validRegister(StartRegister)) 
 	{
 		
 		currentMatrix = const_cast<float*>(pConstantData);
@@ -72,16 +49,6 @@ HRESULT WINAPI D3DProxyDeviceEgo::SetVertexShaderConstantF(UINT StartRegister,CO
 		sourceMatrix = sourceMatrix * (*m_pCurrentMatViewTransform);
 		currentMatrix = (float*)sourceMatrix;
 
-		/*
-		char buf[32];
-		LPCSTR psz = NULL;
-
-		//wsprintf(buf, "vp w: %d", separation);
-		sprintf_s(buf, "sep: %f", separation);
-		psz = buf;
-		OutputDebugString(psz);
-		OutputDebugString("\n");
-		*/
 
 		if(saveDebugFile)
 		{
@@ -108,10 +75,6 @@ HRESULT WINAPI D3DProxyDeviceEgo::SetVertexShaderConstantF(UINT StartRegister,CO
 	return D3DProxyDevice::SetVertexShaderConstantF(StartRegister, pConstantData, Vector4fCount);
 }
 
-HRESULT WINAPI D3DProxyDeviceEgo::SetDepthStencilSurface(IDirect3DSurface9* pNewZStencil)
-{
-	return D3DProxyDevice::SetDepthStencilSurface(pNewZStencil);
-}
 
 bool D3DProxyDeviceEgo::validRegister(UINT reg)
 {

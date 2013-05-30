@@ -67,69 +67,17 @@ void OculusRiftView::InitShaderEffects()
 }
 
 
-void OculusRiftView::Draw(D3D9ProxySurface* stereoCapableSurface)
+void OculusRiftView::SetViewEffectInitialValues() 
 {
-	// Copy left and right surfaces to textures to use as shader input
-	IDirect3DSurface9* leftImage = stereoCapableSurface->getActualLeft();
-	IDirect3DSurface9* rightImage = stereoCapableSurface->getActualRight();
-
-	m_pActualDevice->StretchRect(leftImage, NULL, leftSurface, NULL, D3DTEXF_NONE);
-
-	if (stereoCapableSurface->IsStereo())
-		m_pActualDevice->StretchRect(rightImage, NULL, rightSurface, NULL, D3DTEXF_NONE);
-	else
-		m_pActualDevice->StretchRect(leftImage, NULL, rightSurface, NULL, D3DTEXF_NONE);
-
-	SaveState();
-	SetState();
-
-	m_pActualDevice->SetFVF(D3DFVF_TEXVERTEX);
-
-	if(!swap_eyes)
-	{
-		m_pActualDevice->SetTexture(0, leftTexture);
-		m_pActualDevice->SetTexture(1, rightTexture);
-	}
-	else 
-	{
-		m_pActualDevice->SetTexture(0, rightTexture);
-		m_pActualDevice->SetTexture(1, leftTexture);
-	}
-
-	m_pActualDevice->SetRenderTarget(0, backBuffer);
-	m_pActualDevice->SetStreamSource(0, screenVertexBuffer, 0, sizeof(TEXVERTEX));
-
-	UINT iPass, cPasses;
-
-	viewEffect->SetTechnique("ViewShader");
-
-
-	//TODO refactor this method. StereoView could just call a "setEffectValues/Constants/Whatever" here
-	// and this code could go in that. Or something else. But remove the copy paste duplication os StereoView method
-/////  difference from StereoView:: 
 	viewEffect->SetFloatArray("LensCenter", LensCenter,2);
 	viewEffect->SetFloatArray("LensShift", LensShift,2);
 	viewEffect->SetFloatArray("ScreenCenter", ScreenCenter,2);
 	viewEffect->SetFloatArray("Scale", Scale,2);
 	viewEffect->SetFloatArray("ScaleIn", ScaleIn,2);
 	viewEffect->SetFloatArray("HmdWarpParam", HmdWarpParam,4);
-/////
-
-	viewEffect->Begin(&cPasses, 0);
-
-	for(iPass = 0; iPass < cPasses; iPass++)
-	{
-		viewEffect->BeginPass(iPass);
-		m_pActualDevice->DrawPrimitive(D3DPT_TRIANGLEFAN, 0, 2);
-		viewEffect->EndPass();
-	}
-
-	viewEffect->End();
-	
-	m_pActualDevice->StretchRect(backBuffer, NULL, backBuffer, NULL, D3DTEXF_NONE);
-
-	RestoreState();
 }
+
+
 
 void OculusRiftView::CalculateShaderVariables()
 {

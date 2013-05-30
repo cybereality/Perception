@@ -4,13 +4,16 @@
 	<profile game_name="inMomentum" game_exe="IMGame.exe" game_type="202" separation="0.01" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Mirrors Edge" game_exe="MirrorsEdge.exe" game_type="201" separation="0.01" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Halflife 2" game_exe="hl2.exe" game_type="101" separation="0.01" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
-	<profile game_name="Left 4 Dead" game_exe="left4dead.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="Left 4 Dead" game_exe="left4dead.exe" game_type="101" separation="0.01" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Left 4 Dead 2" game_exe="left4dead2.exe" game_type="101" separation="0.01" convergence="0" swap_eyes="true" yaw_multiplier="26.5" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Portal 2" game_exe="portal2.exe" game_type="101" separation="0.01" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Dear Esther" game_exe="dearesther.exe" game_type="101" separation="0.01" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Quantum Conundrum" game_exe="TryGame-Win32-Shipping.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Borderlands" game_exe="Borderlands.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Rochard" game_exe="Rochard.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="GRID" game_exe="GRID.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="rFactor" game_exe="rFactor.exe" game_type="10" separation="0" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="Pacific Fighters" game_exe="pf.exe" game_type="10" separation="0" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="AaAaAA!!! for the Awesom" game_exe="Awesome.exe" game_type="10" separation="0" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="X3:AP" game_exe="X3AP.exe" game_type="10" separation="0" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Orcs Must Die 2" game_exe="OrcsMustDie2.exe" game_type="10" separation="0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
