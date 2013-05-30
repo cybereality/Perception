@@ -12,6 +12,7 @@
 	<profile game_name="Borderlands" game_exe="Borderlands.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Rochard" game_exe="Rochard.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="GRID" game_exe="GRID.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="F1 2010" game_exe="F1_2010_game.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="rFactor" game_exe="rFactor.exe" game_type="10" separation="0" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Pacific Fighters" game_exe="pf.exe" game_type="10" separation="0" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="AaAaAA!!! for the Awesom" game_exe="Awesome.exe" game_type="10" separation="0" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />

@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "D3DProxyDeviceTest.h"
 #include "D3DProxyDeviceEgo.h"
 #include "D3DProxyDeviceAdv.h"
+#include "DataGatherer.h"
 
 D3DProxyDevice* D3DProxyDeviceFactory::Get(ProxyHelper::ProxyConfig& config, IDirect3DDevice9* dev, BaseDirect3D9* pCreatedBy)
 {
@@ -29,6 +30,9 @@ D3DProxyDevice* D3DProxyDeviceFactory::Get(ProxyHelper::ProxyConfig& config, IDi
 
 	switch(config.game_type)
 	{
+	case D3DProxyDevice::DATA_GATHERER:
+		newDev = new DataGatherer(dev, pCreatedBy);
+		break;
 	case D3DProxyDevice::SOURCE:
 	case D3DProxyDevice::SOURCE_L4D:
 		newDev = new D3DProxyDeviceSource(dev, pCreatedBy);

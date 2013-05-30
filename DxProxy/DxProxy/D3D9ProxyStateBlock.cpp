@@ -247,7 +247,8 @@ void D3D9ProxyStateBlock::CaptureSelectedFromProxyDevice()
 						inserted.first->second->AddRef();
 					}
 					else { // insertfailed
-						OutputDebugString("Texture sampler capture to StateBlock failed");
+						//OutputDebugString("Texture sampler capture to StateBlock failed");
+						//TODO aaaaa why does this get spammed
 					}
 				}
 

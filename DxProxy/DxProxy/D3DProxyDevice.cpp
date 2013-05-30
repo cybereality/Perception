@@ -1131,6 +1131,9 @@ HRESULT WINAPI D3DProxyDevice::CreatePixelShader(CONST DWORD* pFunction,IDirect3
 
 HRESULT WINAPI D3DProxyDevice::CreateVertexShader(CONST DWORD* pFunction,IDirect3DVertexShader9** ppShader)
 {
+	OutputDebugString(__FUNCTION__);
+	OutputDebugString("\n");
+
 	IDirect3DVertexShader9* pActualVShader = NULL;
 	HRESULT creationResult = BaseDirect3DDevice9::CreateVertexShader(pFunction, &pActualVShader);
 

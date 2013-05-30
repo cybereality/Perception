@@ -144,6 +144,7 @@
     <ClCompile Include="OculusTracker.cpp" />
     <ClCompile Include="ProxyHelper.cpp" />
     <ClCompile Include="pugixml.cpp" />
+    <ClCompile Include="DataGatherer.cpp" />
     <ClCompile Include="SharedMemoryTracker.cpp" />
     <ClCompile Include="StereoBackbuffer.cpp" />
     <ClCompile Include="StereoView.cpp" />
@@ -158,6 +159,7 @@
     <ClInclude Include="D3D9ProxyVolume.h" />
     <ClInclude Include="D3D9ProxyVolumeTexture.h" />
     <ClInclude Include="D3D9ProxyStateBlock.h" />
+    <ClInclude Include="DataGatherer.h" />
     <ClInclude Include="StereoBackbuffer.h" />
     <ClInclude Include="D3DProxyDevice.h" />
     <ClInclude Include="D3DProxyDeviceAdv.h" />

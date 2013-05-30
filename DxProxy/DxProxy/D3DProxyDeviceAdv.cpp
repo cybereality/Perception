@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "D3DProxyDeviceAdv.h"
 
-#define _SAFE_RELEASE(x) if(x) { x->Release(); x = NULL; } 
+
 
 bool dirtyRegisters[300];
 

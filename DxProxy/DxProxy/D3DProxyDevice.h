@@ -45,7 +45,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define LEFT_CONSTANT -1
 #define RIGHT_CONSTANT 1
-
+#define _SAFE_RELEASE(x) if(x) { x->Release(); x = NULL; } 
 
 class StereoView;
 class D3D9ProxySwapChain;
@@ -188,6 +188,7 @@ public:
 	{
 		MONO = 0,
 		FIXED = 10,
+		DATA_GATHERER = 11,
 		SOURCE = 100,
 		SOURCE_L4D = 101,
 		UNREAL = 200,
