@@ -47,6 +47,7 @@ StereoView::StereoView(ProxyHelper::ProxyConfig& config)
 	lastRenderTarget0 = NULL;
 	lastRenderTarget1 = NULL;
 	viewEffect = NULL;
+	sb = NULL;
 
 	g_color = D3DCOLOR_RGBA(255,255,0,255);
 }
@@ -245,6 +246,17 @@ void StereoView::SaveState()
 
 void StereoView::SetState()
 {
+	D3DXMATRIX	identity;
+	m_pActualDevice->SetTransform(D3DTS_WORLD, D3DXMatrixIdentity(&identity));
+	m_pActualDevice->SetTransform(D3DTS_VIEW, &identity);
+	m_pActualDevice->SetTransform(D3DTS_PROJECTION, &identity);
+	m_pActualDevice->SetRenderState(D3DRS_LIGHTING, FALSE);
+	m_pActualDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
+	m_pActualDevice->SetRenderState(D3DRS_ZENABLE, FALSE);
+	m_pActualDevice->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
+	m_pActualDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
+	m_pActualDevice->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);// This fixed interior or car not being drawn in rFactor
+	m_pActualDevice->SetRenderState(D3DRS_STENCILENABLE, FALSE); /// this is for funnsies (hasn't noticeably effected anything)
 
 	m_pActualDevice->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_SELECTARG1);
 	m_pActualDevice->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
@@ -255,8 +267,8 @@ void StereoView::SetState()
 	m_pActualDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
 	m_pActualDevice->SetRenderState(D3DRS_ZENABLE, D3DZB_FALSE);
 	m_pActualDevice->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
-	m_pActualDevice->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);  // This fixed interior or car not being drawn in rFactor
-	m_pActualDevice->SetRenderState(D3DRS_STENCILENABLE, FALSE); /// this is for funnsies (hasn't noticeably effected anything)
+	m_pActualDevice->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);  
+	
 	//m_pActualDevice->SetRenderState(D3DRS_SRGBWRITEENABLE, 0);  // will cause visual errors in HL2
 	
 	if(game_type == D3DProxyDevice::SOURCE_L4D)
@@ -395,23 +407,20 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 		m_pActualDevice->StretchRect(leftImage, NULL, rightSurface, NULL, D3DTEXF_NONE);
 
 
-	//SaveState();
-	
-	IDirect3DStateBlock9* sb;
-	m_pActualDevice->CreateStateBlock(D3DSBT_ALL, &sb);
+	// TODO figure out HL2 problem. This is a workaround for now
+	// Problem: Using StateBlock to save and restore causes the world in HL2 to scale up and down constantly
+	// This only effects HL2 (but all source games are using the l4d profile)
+	if(game_type == D3DProxyDevice::SOURCE_L4D)
+	{
+		SaveState();
+	}
+	else {
+		m_pActualDevice->CreateStateBlock(D3DSBT_ALL, &sb);
+	}
+
+
 
 	SetState();
-	
-	D3DXMATRIX	identity;
-	m_pActualDevice->SetTransform(D3DTS_WORLD, D3DXMatrixIdentity(&identity));
-	m_pActualDevice->SetTransform(D3DTS_VIEW, &identity);
-	m_pActualDevice->SetTransform(D3DTS_PROJECTION, &identity);
-	m_pActualDevice->SetRenderState(D3DRS_LIGHTING, FALSE);
-	m_pActualDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
-	m_pActualDevice->SetRenderState(D3DRS_ZENABLE, FALSE);
-	m_pActualDevice->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
-	m_pActualDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
-
 
 
 	m_pActualDevice->SetFVF(D3DFVF_TEXVERTEX);
@@ -476,11 +485,16 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 		OutputDebugString("End failed\n");
 	}
 	
-	sb->Apply();
-	sb->Release();
-
-
-	//RestoreState();
+	// TODO figure out HL2 problem. This is a workaround for now
+	if(game_type == D3DProxyDevice::SOURCE_L4D)
+	{
+		RestoreState();
+	}
+	else {
+		sb->Apply();
+		sb->Release();
+		sb = NULL;
+	}
 }
 
 void StereoView::SaveScreen()

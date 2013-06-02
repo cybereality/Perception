@@ -158,6 +158,8 @@ protected:
 
 	std::map<int, std::string> shaderEffect;
 
+	IDirect3DStateBlock9* sb;
+
 };
 
 const DWORD D3DFVF_TEXVERTEX = D3DFVF_XYZRHW | D3DFVF_TEX1;
