@@ -409,7 +409,8 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 
 	// TODO figure out HL2 problem. This is a workaround for now
 	// Problem: Using StateBlock to save and restore causes the world in HL2 to scale up and down constantly
-	// This only effects HL2 (but all source games are using the l4d profile)
+	// This only effects HL2 (but all source games are using the l4d profile).
+	// Possbile fix: Use a more discriminant stateblock to save only what is being modified
 	if(game_type == D3DProxyDevice::SOURCE_L4D)
 	{
 		SaveState();
