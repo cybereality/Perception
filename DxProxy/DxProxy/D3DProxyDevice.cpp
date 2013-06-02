@@ -1131,14 +1131,16 @@ HRESULT WINAPI D3DProxyDevice::CreatePixelShader(CONST DWORD* pFunction,IDirect3
 
 HRESULT WINAPI D3DProxyDevice::CreateVertexShader(CONST DWORD* pFunction,IDirect3DVertexShader9** ppShader)
 {
-	OutputDebugString(__FUNCTION__);
-	OutputDebugString("\n");
+
 
 	IDirect3DVertexShader9* pActualVShader = NULL;
 	HRESULT creationResult = BaseDirect3DDevice9::CreateVertexShader(pFunction, &pActualVShader);
 
-	if (SUCCEEDED(creationResult))
+	if (SUCCEEDED(creationResult)) {
+		
+		// TODO Get modifications from gamehandler create shader wrapper with modifications
 		*ppShader = new BaseDirect3DVertexShader9(pActualVShader, this);
+	}
 
 	return creationResult;
 }

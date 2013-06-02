@@ -53,6 +53,8 @@ class D3D9ProxySwapChain;
 class D3DProxyDevice : public BaseDirect3DDevice9
 {
 public:
+
+
 	D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy);
 	virtual ~D3DProxyDevice();
 
