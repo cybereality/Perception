@@ -20,12 +20,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define DIRECT3DVERTEXSHADER9_H_INCLUDED
 
 #include <d3d9.h>
+#include <memory>
+#include <vector>
 #include "Direct3DDevice9.h"
+#include "StereoShaderConstants.h"
+#include "GameHandler.h"
+#include "ShaderRegisters.h"
+#include "MurmurHash3.h"
+#include "ShaderConfig.h"
+
 
 class BaseDirect3DVertexShader9 : public IDirect3DVertexShader9
 {
 public:
-	BaseDirect3DVertexShader9(IDirect3DVertexShader9* pActualVertexShader, IDirect3DDevice9* pOwningDevice);
+	BaseDirect3DVertexShader9(IDirect3DVertexShader9* pActualVertexShader, IDirect3DDevice9* pOwningDevice, std::shared_ptr<ShaderRegisters> spProxyDeviceShaderRegisters, GameHandler* pGameHandler);
 	virtual ~BaseDirect3DVertexShader9();
 
 	// IUnknown
@@ -44,6 +52,7 @@ protected:
 	IDirect3DVertexShader9* const m_pActualVertexShader;
 	IDirect3DDevice9* m_pOwningDevice;
 	ULONG m_nRefCount;
+	StereoShaderConstants* m_pStereoModifiedConstants;
 };
 
 #endif

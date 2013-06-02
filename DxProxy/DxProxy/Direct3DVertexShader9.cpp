@@ -19,13 +19,35 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Direct3DVertexShader9.h"
 #include <assert.h>
 
-BaseDirect3DVertexShader9::BaseDirect3DVertexShader9(IDirect3DVertexShader9* pActualVertexShader, IDirect3DDevice9 *pOwningDevice) :
+BaseDirect3DVertexShader9::BaseDirect3DVertexShader9(IDirect3DVertexShader9* pActualVertexShader, IDirect3DDevice9 *pOwningDevice, std::shared_ptr<ShaderRegisters> spProxyDeviceShaderRegisters, GameHandler* pGameHandler) :
 	m_pActualVertexShader(pActualVertexShader),
 	m_pOwningDevice(pOwningDevice),
 	m_nRefCount(1)
 {
 	assert (pActualVertexShader != NULL);
 	assert (pOwningDevice != NULL);
+
+
+	// Hash the shader and load stereo shader constants
+	BYTE *pData = NULL;
+	UINT pSizeOfData;
+
+	pActualVertexShader->GetFunction(NULL, &pSizeOfData);
+	pData = new BYTE[pSizeOfData];
+	pActualVertexShader->GetFunction(pData,&pSizeOfData);
+
+	Hash128Bit hash = Hash128Bit();
+	MurmurHash3_x86_128(pData, pSizeOfData, VIREIO_SEED, hash.value);
+
+	if (pGameHandler->ConstantConfigsForShaderExists(hash)) {
+		m_pStereoModifiedConstants = new StereoShaderConstants(spProxyDeviceShaderRegisters, pGameHandler->ConstantConfigsForShader(hash));
+	}
+	else {
+		m_pStereoModifiedConstants = NULL;
+		//TODO dump shader constants and hash to file
+	}
+
+	delete [] pData;
 
 	pOwningDevice->AddRef();
 }
@@ -37,6 +59,10 @@ BaseDirect3DVertexShader9::~BaseDirect3DVertexShader9()
 
 	if (m_pOwningDevice)
 		m_pOwningDevice->Release();
+
+	if (m_pStereoModifiedConstants)
+		delete m_pStereoModifiedConstants;
+	m_pStereoModifiedConstants = NULL;
 }
 
 HRESULT WINAPI BaseDirect3DVertexShader9::QueryInterface(REFIID riid, LPVOID* ppv)

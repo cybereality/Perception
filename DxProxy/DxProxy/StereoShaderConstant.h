@@ -20,19 +20,28 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define STEREOSHADERCONSTANT_H_INCLUDED
 
 #include <vector>
+#include <string>
 
-template <class T>
+template <class T, U>
 class StereoShaderConstant
 {
 public:
-	StereoShaderConstant(UINT StartReg, const T* pConstDataLeft, const T* pConstDataRight, UINT dataCount, UINT countMultiplier) :
+	StereoShaderConstant(UINT StartReg, const T* pConstDataLeft, const T* pConstDataRight, UINT dataCount, UINT countMultiplier, std::string name, U modification) :
 		StartRegister(StartReg),
 		Count(dataCount),
 		Multiplier(countMultiplier),
 		DataLeft(pConstDataLeft, pConstDataLeft + (dataCount * countMultiplier)),
-		DataRight(pConstDataRight, pConstDataRight + (dataCount * countMultiplier)) {}
+		DataRight(pConstDataRight, pConstDataRight + (dataCount * countMultiplier)),
+		Name(name) {}
 
 	virtual ~StereoShaderConstant() {}
+
+	Update(UINT StartReg, const T* data, UINT dataCount, UINT countMultiplier) // everything except data must match existing values
+	{
+		// assert sizes match
+
+		// Apply modification to update left and right
+	}
 		
 	T* DataLeftPointer() 
 	{
@@ -44,11 +53,15 @@ public:
 		return &DataRight[0];
 	}
 
-	UINT StartRegister;
-	UINT Count;
-	UINT Multiplier;
+	const std::string Name;
+	const UINT StartRegister;
+	const UINT Count;
+	const UINT Multiplier;
+
+private:
 	std::vector<T> DataLeft;
 	std::vector<T> DataRight;
 };
+
 
 #endif

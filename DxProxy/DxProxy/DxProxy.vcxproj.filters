@@ -35,6 +35,9 @@
     <Filter Include="Direct3D9Vireio\Direct3DTextures">
       <UniqueIdentifier>{7c1b5925-d5df-4200-b704-5db49ccbcd35}</UniqueIdentifier>
     </Filter>
+    <Filter Include="MurmurHash3">
+      <UniqueIdentifier>{ce4cba8f-29ab-44a7-9545-c1859fe4213e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -171,6 +174,12 @@
     </ClCompile>
     <ClCompile Include="DataGatherer.cpp">
       <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
+    </ClCompile>
+    <ClCompile Include="MurmurHash3.cpp">
+      <Filter>MurmurHash3</Filter>
+    </ClCompile>
+    <ClCompile Include="GameHandler.cpp">
+      <Filter>Direct3D9Vireio</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -322,6 +331,24 @@
     </ClInclude>
     <ClInclude Include="DataGatherer.h">
       <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
+    </ClInclude>
+    <ClInclude Include="StereoShaderConstants.h">
+      <Filter>Direct3D9Vireio</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderRegisters.h">
+      <Filter>Direct3D9Vireio</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderConstantModification.h">
+      <Filter>Direct3D9Vireio</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderConfig.h">
+      <Filter>Direct3D9Vireio</Filter>
+    </ClInclude>
+    <ClInclude Include="GameHandler.h">
+      <Filter>Direct3D9Vireio</Filter>
+    </ClInclude>
+    <ClInclude Include="MurmurHash3.h">
+      <Filter>MurmurHash3</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
