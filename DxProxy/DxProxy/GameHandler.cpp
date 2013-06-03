@@ -28,10 +28,18 @@ GameHandler::~GameHandler()
 
 }
 
-GameHandler* GameHandler::CreateFor(/* game (std::string gameId)*/)
+
+GameHandler* GameHandler::Load(std::string gameId)
 {
 
 }
+
+GameHandler* GameHandler::Load(/* std::string gameId and file*/)
+{
+
+}
+
+
 
 bool GameHandler::ShouldDuplicateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample,
 									DWORD MultisampleQuality,BOOL Lockable,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle, bool isSwapChainBackBuffer)
@@ -54,12 +62,7 @@ float GameHandler::ToWorldUnits(float millimeters)
 
 }
 
-vector<ShaderConstantConfig> GameHandler::ConstantConfigsForShader(Hash128Bit shaderHash)
-{
-
-}
-
-bool GameHandler::ConstantConfigsForShaderExists(Hash128Bit shaderHash)
+ShaderModificationLoader* GameHandler::GetShaderModificationLoader()
 {
 
 }

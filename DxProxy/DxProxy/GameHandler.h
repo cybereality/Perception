@@ -21,18 +21,26 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <string>
 #include <vector>
+#include <memory>
 #include <unordered_map>
 #include "d3d9.h"
 #include "MurmurHash3.h"
 #include "ShaderConfig.h"
+#include "ShaderModificationLoader.h"
+
+class ShaderModificationLoader;
 
 class GameHandler
 {
-public:
+private: 
 	GameHandler();
+
+public:
+	
 	virtual ~GameHandler();
 
-	static GameHandler* CreateFor(/* game (std::string gameId)*/);
+	static GameHandler* Load(std::string gameId);
+	static GameHandler* Load(/*std::string gameId, file*/);
 
 	bool ShouldDuplicateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample,
 										DWORD MultisampleQuality,BOOL Lockable,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle, bool isSwapChainBackBuffer);
@@ -41,14 +49,14 @@ public:
 
 	float ToWorldUnits(float millimeters);
 
-	vector<ShaderConstantConfig> ConstantConfigsForShader(Hash128Bit shaderHash);
-	bool ConstantConfigsForShaderExists(Hash128Bit shaderHash);
+	ShaderModificationLoader* GetShaderModificationLoader();
 
 private:
 
-	std::unordered_map<Hash128Bit, vector<ShaderConstantConfig>> m_constantModifications;
 
 	std::string m_gameId;
+	float m_fWorldScaleFactor;
+	ShaderModificationLoader* m_shaderModificationLoader;
 };
 
 #endif

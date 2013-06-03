@@ -31,7 +31,7 @@ public:
 	virtual ~ShaderConstantModification() {};
 
 	/* Applies this modification to toModify */
-	static virtual void ApplyModification(T* toModify, T& outLeft, T& outRight) = 0;
+	virtual void ApplyModification(T* toModify, T& outLeft, T& outRight) = 0;
 
 };
 

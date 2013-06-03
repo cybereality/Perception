@@ -21,22 +21,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <vector>
 #include <string>
+#include "ShaderConstantModification.h"
 
-template <class T, U>
+template <class T>
 class StereoShaderConstant
 {
 public:
-	StereoShaderConstant(UINT StartReg, const T* pConstDataLeft, const T* pConstDataRight, UINT dataCount, UINT countMultiplier, std::string name, U modification) :
-		StartRegister(StartReg),
-		Count(dataCount),
-		Multiplier(countMultiplier),
-		DataLeft(pConstDataLeft, pConstDataLeft + (dataCount * countMultiplier)),
-		DataRight(pConstDataRight, pConstDataRight + (dataCount * countMultiplier)),
-		Name(name) {}
+	StereoShaderConstant(UINT StartReg, const T* pConstDataLeft, const T* pConstDataRight, UINT dataCount, UINT countMultiplier/*register length (4 for float/int, 1 for bool)*/, std::string name, ShaderConstantModification<T> modification) :
+		m_StartRegister(StartReg),
+		m_Count(dataCount),
+		m_Multiplier(countMultiplier),
+		m_DataLeft(pConstDataLeft, pConstDataLeft + (dataCount * countMultiplier)),
+		m_DataRight(pConstDataRight, pConstDataRight + (dataCount * countMultiplier)),
+		m_Name(name) {}
 
 	virtual ~StereoShaderConstant() {}
 
-	Update(UINT StartReg, const T* data, UINT dataCount, UINT countMultiplier) // everything except data must match existing values
+	void Update(UINT StartReg, const T* data, UINT dataCount, UINT countMultiplier) // everything except data must match existing values
 	{
 		// assert sizes match
 
@@ -45,22 +46,24 @@ public:
 		
 	T* DataLeftPointer() 
 	{
-		return &DataLeft[0];
+		return &m_DataLeft[0];
 	}
 
 	T* DataRightPointer() 
 	{
-		return &DataRight[0];
+		return &m_DataRight[0];
 	}
 
-	const std::string Name;
-	const UINT StartRegister;
-	const UINT Count;
-	const UINT Multiplier;
+	
 
 private:
-	std::vector<T> DataLeft;
-	std::vector<T> DataRight;
+	std::vector<T> m_DataLeft;
+	std::vector<T> m_DataRight;
+
+	std::string m_Name;
+	UINT m_StartRegister;
+	UINT m_Count;
+	UINT m_Multiplier;
 };
 
 

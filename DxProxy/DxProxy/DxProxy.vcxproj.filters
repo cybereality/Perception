@@ -181,6 +181,9 @@
     <ClCompile Include="GameHandler.cpp">
       <Filter>Direct3D9Vireio</Filter>
     </ClCompile>
+    <ClCompile Include="D3D9ProxyVertexShader.cpp">
+      <Filter>Direct3D9Vireio</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Exports.def">
@@ -349,6 +352,12 @@
     </ClInclude>
     <ClInclude Include="MurmurHash3.h">
       <Filter>MurmurHash3</Filter>
+    </ClInclude>
+    <ClInclude Include="D3D9ProxyVertexShader.h">
+      <Filter>Direct3D9Vireio</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderModificationLoader.h">
+      <Filter>Direct3D9Vireio</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

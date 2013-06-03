@@ -41,8 +41,8 @@ public:
 
 private:
 
-	vector<float> m_registersF;
-	set<int> m_dirtyRegistersF;
+	std::vector<float> m_registersF;
+	std::set<int> m_dirtyRegistersF;
 
 	IDirect3DDevice9* pActualDevice;
 };
