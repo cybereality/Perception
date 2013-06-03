@@ -43,6 +43,15 @@ public:
 
 		// Apply modification to update left and right
 	}
+
+	/* Return true if this constant represents the same constant as other  (contents of the registers does not need to match)*/
+	bool SameConstantAs(const StereoShaderConstant<T> & other)
+	{
+		return (other.m_StartRegister == m_StartRegister) &&
+			(other.m_Count == m_Count) &&
+			(other.m_Name == m_Name) && 
+			(other.m_Multiplier == m_Multiplier));
+	}
 		
 	T* DataLeftPointer() 
 	{

@@ -21,7 +21,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <d3d9.h>
 #include <memory>
+#include <unordered_map>
 #include <vector>
+#include <algorithm>
 #include "Direct3DVertexShader9.h"
 #include "Direct3DDevice9.h"
 #include "ShaderRegisters.h"
@@ -47,7 +49,8 @@ protected:
 
 	IDirect3DDevice9* m_pActualDevice;
 
-	std::vector<StereoShaderConstant<float>> m_pStereoModifiedConstantsF;
+	// <StartReg, StereoShaderConstant>
+	std::unordered_map<UINT, StereoShaderConstant<float>> m_pStereoModifiedConstantsF;
 	std::shared_ptr<ShaderRegisters> m_spProxyDeviceShaderRegisters;
 	
 };

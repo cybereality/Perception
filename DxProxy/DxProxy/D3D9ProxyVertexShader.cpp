@@ -39,6 +39,22 @@ D3D9ProxyVertexShader::~D3D9ProxyVertexShader()
 void D3D9ProxyVertexShader::MakeActive(D3D9ProxyVertexShader* previousActiveVertexShader)
 {
 	/* Updates the data in this for any constants that exist in both this and other. (from other) */
+	// No idea if this is saving any time or if it would be better to just mark all the registers dirty and re-apply the constants on first draw
+	auto itConstants = m_pStereoModifiedConstantsF.begin();
+	while (itConstants != m_pStereoModifiedConstantsF.end()) {
+
+		bool mightBeDirty = true;
+		if (previousActiveVertexShader->m_pStereoModifiedConstantsF.count(itConstants->first) == 1) {
+			if (previousActiveVertexShader->m_pStereoModifiedConstantsF[itConstants->first].SameConstantAs(itConstants->second)) {
+				m_pStereoModifiedConstantsF[itConstants->first] = previousActiveVertexShader->m_pStereoModifiedConstantsF[itConstants->first];
+				mightBeDirty = false;
+			}
+		}
+
+		if (mightBeDirty) {
+			m_spProxyDeviceShaderRegisters->MarkDirty(itConstants->first);
+		}
+	}
 	
 }
 	

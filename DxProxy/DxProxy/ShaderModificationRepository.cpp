@@ -31,7 +31,7 @@ ShaderModificationRepository::~ShaderModificationRepository()
 
 }
 
-std::vector<StereoShaderConstant<float>> ShaderModificationRepository::GetModifiedConstantsF(IDirect3DVertexShader9* pActualVertexShader)
+std::unordered_map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetModifiedConstantsF(IDirect3DVertexShader9* pActualVertexShader)
 {
 	/*// Hash the shader and load stereo shader constants
 	BYTE *pData = NULL;

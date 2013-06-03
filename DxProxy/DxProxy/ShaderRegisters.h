@@ -26,10 +26,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <vector>
 #include <set>
 #include <algorithm>
+//#include "D3D9ProxyVertexShader.h"
 
 
 class ShaderRegisters
 {
+	//friend class D3D9ProxyVertexShader;
+
 public:
 	ShaderRegisters(DWORD maxConstantRegistersF, IDirect3DDevice9* pActualDevice);
 	virtual ~ShaderRegisters();
@@ -38,6 +41,9 @@ public:
 	HRESULT WINAPI SetConstantRegistersF(UINT StartRegister, const float* pConstantData, UINT Vector4fCount);
 	
 	HRESULT WINAPI GetConstantRegistersF(UINT StartRegister, float* pConstantData, UINT Vector4fCount);
+
+	void MarkDirty(UINT Register);
+
 
 	/* 
 		This will apply all dirty registers as held by this class.
