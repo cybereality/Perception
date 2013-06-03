@@ -19,9 +19,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef SHADERREGISTERS_H_INCLUDED
 #define SHADERREGISTERS_H_INCLUDED
 
+#define VECTOR_LENGTH 4
+#define RegisterIndex(x) (x * VECTOR_LENGTH)
+
 #include "d3d9.h"
 #include <vector>
 #include <set>
+#include <algorithm>
 
 
 class ShaderRegisters
@@ -40,10 +44,15 @@ public:
 	void ApplyToDevice();
 
 private:
-
+	// Number of constant registers supported by device
 	DWORD m_maxConstantRegistersF;
 
+	// [0][1][2][3] would be the first register. 
+	// [4][5][6][7] the second, etc.
+	// use RegisterIndex(x) to access first float in register
 	std::vector<float> m_registersF;
+
+	// Dirty Registers. Noting that this is Registers and NOT indexes of all floats that make up a register
 	std::set<int> m_dirtyRegistersF;
 
 	IDirect3DDevice9* m_pActualDevice;

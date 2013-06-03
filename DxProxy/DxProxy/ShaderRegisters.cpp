@@ -21,7 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ShaderRegisters::ShaderRegisters(DWORD maxConstantRegistersF, IDirect3DDevice9* pActualDevice) :
 	m_maxConstantRegistersF(maxConstantRegistersF),
-	m_registersF(),
+	m_registersF(maxConstantRegistersF * VECTOR_LENGTH, 0), // VECTOR_LENGTH floats per register
 	m_dirtyRegistersF(),
 	m_pActualDevice(pActualDevice)
 {
@@ -30,7 +30,7 @@ ShaderRegisters::ShaderRegisters(DWORD maxConstantRegistersF, IDirect3DDevice9* 
 	m_pActualDevice->AddRef();
 }
 
-	//TODO assignment and cop - add ref to device (remove ref from old device on assign)
+	//TODO assignment and copy - add ref to device (remove ref from old device on assign)? or prevent
 
 ShaderRegisters::~ShaderRegisters()
 {
@@ -46,15 +46,40 @@ HRESULT WINAPI ShaderRegisters::SetConstantRegistersF(UINT StartRegister, const 
 
 	HRESULT result;
 
-	//TODO set registers and mark dirty
+	// Set registers
+	std::copy(pConstantData, pConstantData + (VECTOR_LENGTH * Vector4fCount), m_registersF.begin() + RegisterIndex(StartRegister));
+
+	// Mark registers dirty
+	for (int i = StartRegister; i < StartRegister + Vector4fCount; i++) {
+		m_dirtyRegistersF.insert(i);
+	}
 
 	return result;
 }
 		
 void ShaderRegisters::ApplyToDevice() 
-{
-	/* 
-		This will apply all dirty registers as held by this class.
-		(Active vertex shader should be updated first to clean any registers that it overrides with a stereo constant)
-	 */
+{	
+	auto it =  m_dirtyRegistersF.begin();
+
+	if (it == m_dirtyRegistersF.end())
+		return;
+
+
+	int startReg = *it;
+	while (it != m_dirtyRegistersF.end()) {
+		// skip through until we reach the end of a continuous series of dirty registers
+		auto itNext = std::next(it);
+		if ((itNext != m_dirtyRegistersF.end()) && (*itNext == startReg + 1))
+			continue;
+
+		// set this series of registers
+		m_pActualDevice->SetVertexShaderConstantF(startReg, &m_registersF[RegisterIndex(startReg)], startReg - (*it) + 1);
+
+		// If there are more dirty registers left the next register will be the new startReg
+		if (itNext != m_dirtyRegistersF.end()) {
+			startReg = *itNext;
+		}
+
+		++it;
+	}
 }

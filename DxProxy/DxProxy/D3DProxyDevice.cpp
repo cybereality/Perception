@@ -69,7 +69,7 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	m_pCurrentProjection = &m_leftProjection;
 
 	m_gameSpecificLogic = NULL;
-	m_spManagedShaderRegisters = std::make_shared<ShaderRegisters>(capabilities.MaxVertexShaderConst);
+	m_spManagedShaderRegisters = std::make_shared<ShaderRegisters>(capabilities.MaxVertexShaderConst, pDevice);
 
 	m_pActiveStereoDepthStencil = NULL;
 	m_pActiveIndicies = NULL;
