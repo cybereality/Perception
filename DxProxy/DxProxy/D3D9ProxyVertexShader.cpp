@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "D3D9ProxyVertexShader.h"
 
-D3D9ProxyVertexShader::D3D9ProxyVertexShader(IDirect3DVertexShader9* pActualVertexShader, D3DProxyDevice *pOwningDevice, std::shared_ptr<ShaderRegisters> spProxyDeviceShaderRegisters,  ShaderModifications* pModLoader) :
+D3D9ProxyVertexShader::D3D9ProxyVertexShader(IDirect3DVertexShader9* pActualVertexShader, D3DProxyDevice *pOwningDevice, std::shared_ptr<ShaderRegisters> spProxyDeviceShaderRegisters,  ShaderModificationRepository* pModLoader) :
 	BaseDirect3DVertexShader9(pActualVertexShader, pOwningDevice),
 	m_pActualDevice(pOwningDevice->getActual()),
 	m_pStereoModifiedConstantsF(),

@@ -1142,7 +1142,7 @@ HRESULT WINAPI D3DProxyDevice::CreateVertexShader(CONST DWORD* pFunction,IDirect
 	HRESULT creationResult = BaseDirect3DDevice9::CreateVertexShader(pFunction, &pActualVShader);
 
 	if (SUCCEEDED(creationResult)) {
-		*ppShader = new D3D9ProxyVertexShader(pActualVShader, this, m_spManagedShaderRegisters, m_gameSpecificLogic->GetShaderModifications());
+		*ppShader = new D3D9ProxyVertexShader(pActualVShader, this, m_spManagedShaderRegisters, m_gameSpecificLogic->GetShaderModificationRepository());
 	}
 
 	return creationResult;

@@ -26,14 +26,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Direct3DDevice9.h"
 #include "ShaderRegisters.h"
 #include "D3DProxyDevice.h"
-#include "ShaderModifications.h"
+#include "ShaderModificationRepository.h"
 
 
 
 class D3D9ProxyVertexShader : public BaseDirect3DVertexShader9
 {
 public:
-	D3D9ProxyVertexShader(IDirect3DVertexShader9* pActualVertexShader, D3DProxyDevice* pOwningDevice, std::shared_ptr<ShaderRegisters> spProxyDeviceShaderRegisters, ShaderModifications* pModLoader);
+	D3D9ProxyVertexShader(IDirect3DVertexShader9* pActualVertexShader, D3DProxyDevice* pOwningDevice, std::shared_ptr<ShaderRegisters> spProxyDeviceShaderRegisters, ShaderModificationRepository* pModLoader);
 	virtual ~D3D9ProxyVertexShader();
 
 	/* Updates the data in this for any constants that exist in both this and other. (from other) that aren't dirty 

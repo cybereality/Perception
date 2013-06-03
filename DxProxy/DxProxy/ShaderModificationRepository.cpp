@@ -16,31 +16,23 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#ifndef SHADERMODIFICATIONS_H_INCLUDED
-#define SHADERMODIFICATIONS_H_INCLUDED
+#include "ShaderModificationRepository.h"
+#include <assert.h>
 
-#include <d3d9.h>
-#include <d3dx9.h>
-#include <vector>
-#include <unordered_map>
-#include <string>
-#include "StereoShaderConstant.h"
-#include "GameHandler.h"
-#include "ShaderRegisters.h"
-#include "MurmurHash3.h"
-
-
-class ShaderModifications
+ShaderModificationRepository::ShaderModificationRepository() :
+	m_overrideModifications(),
+	m_defaultModifications(),
+	m_constantModificationsF()
 {
-public:
-	ShaderModifications();
-	virtual ~ShaderModifications();
+}
 
-	// true if load succeeds, false otherwise
-	bool Load(/*file*/);
+ShaderModificationRepository::~ShaderModificationRepository()
+{
 
-	// Returns a collection of modifications that apply to the specified shader. (may be an empty collection of no modifications apply)
-	std::vector<StereoShaderConstant<float>> GetModifiedConstantsF(IDirect3DVertexShader9* pActualVertexShader);
+}
+
+std::vector<StereoShaderConstant<float>> ShaderModificationRepository::GetModifiedConstantsF(IDirect3DVertexShader9* pActualVertexShader)
+{
 	/*// Hash the shader and load stereo shader constants
 	BYTE *pData = NULL;
 	UINT pSizeOfData;
@@ -61,19 +53,4 @@ public:
 	}
 
 	delete [] pData;*/
-	
-
-private:
-
-
-	// <Modification ID, StereoShaderConstant>
-	std::unordered_map<std::string, StereoShaderConstant<float>> m_constantModificationsF;
-
-	// <Modification ID>
-	std::vector<std::string> m_defaultModifications;
-
-	// <Shader hash, vector<Modification ID>>
-	std::unordered_map<Hash128Bit, std::vector<std::string>> m_overrideModifications;
-};
-
-#endif
+}

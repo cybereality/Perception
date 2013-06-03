@@ -62,7 +62,7 @@ float GameHandler::ToWorldUnits(float millimeters)
 
 }
 
-ShaderModifications* GameHandler::GetShaderModifications()
+ShaderModificationRepository* GameHandler::GetShaderModificationRepository()
 {
 
 }

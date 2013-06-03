@@ -24,9 +24,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <memory>
 #include <unordered_map>
 #include "d3d9.h"
-#include "ShaderModifications.h"
+#include "ShaderModificationRepository.h"
 
-class ShaderModifications;
+class ShaderModificationRepository;
 
 class GameHandler
 {
@@ -47,14 +47,14 @@ public:
 
 	float ToWorldUnits(float millimeters);
 
-	ShaderModifications* GetShaderModifications();
+	ShaderModificationRepository* GetShaderModificationRepository();
 
 private:
 
 
 	std::string m_gameId;
 	float m_fWorldScaleFactor;
-	ShaderModifications* m_ShaderModifications;
+	ShaderModificationRepository* m_ShaderModificationRepository;
 };
 
 #endif

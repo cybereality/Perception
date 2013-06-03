@@ -187,7 +187,7 @@
     <ClCompile Include="ShaderRegisters.cpp">
       <Filter>Direct3D9Vireio</Filter>
     </ClCompile>
-    <ClCompile Include="ShaderModifications.cpp">
+    <ClCompile Include="ShaderModificationRepository.cpp">
       <Filter>Direct3D9Vireio</Filter>
     </ClCompile>
   </ItemGroup>
@@ -356,7 +356,7 @@
     <ClInclude Include="D3D9ProxyVertexShader.h">
       <Filter>Direct3D9Vireio</Filter>
     </ClInclude>
-    <ClInclude Include="ShaderModifications.h">
+    <ClInclude Include="ShaderModificationRepository.h">
       <Filter>Direct3D9Vireio</Filter>
     </ClInclude>
   </ItemGroup>
