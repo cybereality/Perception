@@ -39,7 +39,7 @@ public:
 	void UpdateConstantsFrom(D3D9ProxyVertexShader* otherVertexShader);
 	
 	/* Updates all dirty constants from proxy device registers and sets them on the actual device (marks any registers that are set to actual as clean in proxy register) */
-	void UpdateAndSet(D3DProxyDevice::EyeSide side);
+	void UpdateAndApply(D3DProxyDevice::EyeSide side);
 
 protected:
 

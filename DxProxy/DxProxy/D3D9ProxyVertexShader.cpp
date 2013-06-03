@@ -42,7 +42,7 @@ void D3D9ProxyVertexShader::UpdateConstantsFrom(D3D9ProxyVertexShader* otherVert
 	
 }
 	
-void D3D9ProxyVertexShader::UpdateAndSet(D3DProxyDevice::EyeSide side)
+void D3D9ProxyVertexShader::UpdateAndApply(D3DProxyDevice::EyeSide side)
 {
 	/* Updates all dirty constants from proxy device registers and sets them on the actual device */
 }
