@@ -148,6 +148,8 @@
     <ClCompile Include="ProxyHelper.cpp" />
     <ClCompile Include="pugixml.cpp" />
     <ClCompile Include="DataGatherer.cpp" />
+    <ClCompile Include="ShaderModifications.cpp" />
+    <ClCompile Include="ShaderRegisters.cpp" />
     <ClCompile Include="SharedMemoryTracker.cpp" />
     <ClCompile Include="StereoBackbuffer.cpp" />
     <ClCompile Include="StereoView.cpp" />
@@ -167,7 +169,7 @@
     <ClInclude Include="GameHandler.h" />
     <ClInclude Include="MurmurHash3.h" />
     <ClInclude Include="ShaderConstantModification.h" />
-    <ClInclude Include="ShaderModificationLoader.h" />
+    <ClInclude Include="ShaderModifications.h" />
     <ClInclude Include="ShaderRegisters.h" />
     <ClInclude Include="StereoBackbuffer.h" />
     <ClInclude Include="D3DProxyDevice.h" />

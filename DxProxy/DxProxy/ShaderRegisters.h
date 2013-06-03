@@ -27,7 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class ShaderRegisters
 {
 public:
-	ShaderRegisters(DWORD maxConstantRegistersF);
+	ShaderRegisters(DWORD maxConstantRegistersF, IDirect3DDevice9* pActualDevice);
 	virtual ~ShaderRegisters();
 
 	/* Return D3DERR_INVALIDCALL if any registers out of range*/
@@ -41,10 +41,12 @@ public:
 
 private:
 
+	DWORD m_maxConstantRegistersF;
+
 	std::vector<float> m_registersF;
 	std::set<int> m_dirtyRegistersF;
 
-	IDirect3DDevice9* pActualDevice;
+	IDirect3DDevice9* m_pActualDevice;
 };
 
 
