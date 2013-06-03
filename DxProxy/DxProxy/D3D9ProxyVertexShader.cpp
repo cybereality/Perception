@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "D3D9ProxyVertexShader.h"
 
-D3D9ProxyVertexShader::D3D9ProxyVertexShader(IDirect3DVertexShader9* pActualVertexShader, D3DProxyDevice *pOwningDevice, std::shared_ptr<ShaderRegisters> spProxyDeviceShaderRegisters,  ShaderModificationLoader* pModLoader) :
+D3D9ProxyVertexShader::D3D9ProxyVertexShader(IDirect3DVertexShader9* pActualVertexShader, D3DProxyDevice *pOwningDevice, std::shared_ptr<ShaderRegisters> spProxyDeviceShaderRegisters,  ShaderModifications* pModLoader) :
 	BaseDirect3DVertexShader9(pActualVertexShader, pOwningDevice),
 	m_pActualDevice(pOwningDevice->getActual()),
 	m_pStereoModifiedConstantsF(),
@@ -36,7 +36,7 @@ D3D9ProxyVertexShader::~D3D9ProxyVertexShader()
 	m_pStereoModifiedConstantsF.clear();
 }
 
-void D3D9ProxyVertexShader::UpdateConstantsFrom(D3D9ProxyVertexShader* otherVertexShader)
+void D3D9ProxyVertexShader::MakeActive(D3D9ProxyVertexShader* previousActiveVertexShader)
 {
 	/* Updates the data in this for any constants that exist in both this and other. (from other) */
 	

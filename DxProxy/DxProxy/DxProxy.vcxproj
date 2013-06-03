@@ -166,11 +166,9 @@
     <ClInclude Include="DataGatherer.h" />
     <ClInclude Include="GameHandler.h" />
     <ClInclude Include="MurmurHash3.h" />
-    <ClInclude Include="ShaderConfig.h" />
     <ClInclude Include="ShaderConstantModification.h" />
     <ClInclude Include="ShaderModificationLoader.h" />
     <ClInclude Include="ShaderRegisters.h" />
-    <ClInclude Include="StereoShaderConstants.h" />
     <ClInclude Include="StereoBackbuffer.h" />
     <ClInclude Include="D3DProxyDevice.h" />
     <ClInclude Include="D3DProxyDeviceAdv.h" />

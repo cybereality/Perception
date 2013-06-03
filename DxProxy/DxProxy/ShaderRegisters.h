@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef SHADERREGISTERS_H_INCLUDED
 #define SHADERREGISTERS_H_INCLUDED
 
+#include "d3d9.h"
 #include <vector>
 #include <set>
 
@@ -26,18 +27,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class ShaderRegisters
 {
 public:
-	ShaderRegisters() 
-	{
-		
-	}
+	ShaderRegisters(DWORD maxConstantRegistersF);
+	virtual ~ShaderRegisters();
 
-	virtual ~ShaderRegisters() {}
-
-	void SetRegistersF(UINT StartRegister, UINT NumberOfRegisters, float* data)
-	{
-		// set registers and mark as dirty
-	}
+	/* Return D3DERR_INVALIDCALL if any registers out of range*/
+	HRESULT WINAPI SetConstantRegistersF(UINT StartRegister, const float* pConstantData, UINT Vector4fCount);
 		
+	/* 
+		This will apply all dirty registers as held by this class.
+		(Active vertex shader should be updated first to clean any registers that it overrides with a stereo constant)
+	 */
+	void ApplyToDevice();
 
 private:
 
@@ -46,6 +46,7 @@ private:
 
 	IDirect3DDevice9* pActualDevice;
 };
+
 
 
 #endif

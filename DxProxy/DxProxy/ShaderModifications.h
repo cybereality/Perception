@@ -16,8 +16,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#ifndef SHADERMODIFICATIONLOADER_H_INCLUDED
-#define SHADERMODIFICATIONLOADER_H_INCLUDED
+#ifndef SHADERMODIFICATIONS_H_INCLUDED
+#define SHADERMODIFICATIONS_H_INCLUDED
 
 #include <d3d9.h>
 #include <d3dx9.h>
@@ -30,11 +30,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "MurmurHash3.h"
 
 
-class ShaderModificationLoader
+class ShaderModifications
 {
 public:
-	ShaderModificationLoader();
-	virtual ~ShaderModificationLoader();
+	ShaderModifications();
+	virtual ~ShaderModifications();
 
 	// true if load succeeds, false otherwise
 	bool Load(/*file*/);

@@ -30,6 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Direct3DVertexShader9.h"
 #include "Direct3DVertexDeclaration9.h"
 #include "Direct3DQuery9.h"
+#include "D3D9ProxyVertexShader.h"
 #include "ProxyHelper.h"
 #include "StereoView.h"
 #include "MotionTracker.h"
@@ -38,9 +39,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <memory>
 #include "WrapperUtils.h"
 #include "StereoShaderConstant.h"
 #include "StereoBackBuffer.h"
+#include "GameHandler.h"
+#include "ShaderRegisters.h"
 
 
 #define LEFT_CONSTANT -1
@@ -240,7 +244,7 @@ protected:
 
 	D3DXMATRIX* m_pCurrentMatViewTransform;
 	
-	BaseDirect3DVertexShader9* m_pActiveVertexShader;
+	D3D9ProxyVertexShader* m_pActiveVertexShader;
 	std::unordered_map<UINT, StereoShaderConstant<float>> m_activeStereoVShaderConstF;
 
 	D3D9ProxyStateBlock* m_pCapturingStateTo;
@@ -254,6 +258,11 @@ private:
 
 	HRESULT SetStereoViewTransform(D3DXMATRIX pLeftMatrix, D3DXMATRIX pRightMatrix, bool apply);
 	HRESULT SetStereoProjectionTransform(D3DXMATRIX pLeftMatrix, D3DXMATRIX pRightMatrix, bool apply);
+
+	void ApplyShaderRegistersToActualDevice();
+
+	GameHandler* m_gameSpecificLogic;
+	std::shared_ptr<ShaderRegisters> m_spManagedShaderRegisters;
 	
 	bool m_bActiveViewportIsDefault;
 	D3DVIEWPORT9 m_LastViewportSet;

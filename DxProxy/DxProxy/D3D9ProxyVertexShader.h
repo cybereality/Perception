@@ -26,17 +26,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Direct3DDevice9.h"
 #include "ShaderRegisters.h"
 #include "D3DProxyDevice.h"
-#include "ShaderModificationLoader.h"
+#include "ShaderModifications.h"
+
 
 
 class D3D9ProxyVertexShader : public BaseDirect3DVertexShader9
 {
 public:
-	D3D9ProxyVertexShader(IDirect3DVertexShader9* pActualVertexShader, D3DProxyDevice* pOwningDevice, std::shared_ptr<ShaderRegisters> spProxyDeviceShaderRegisters, ShaderModificationLoader* pModLoader);
+	D3D9ProxyVertexShader(IDirect3DVertexShader9* pActualVertexShader, D3DProxyDevice* pOwningDevice, std::shared_ptr<ShaderRegisters> spProxyDeviceShaderRegisters, ShaderModifications* pModLoader);
 	virtual ~D3D9ProxyVertexShader();
 
-	/* Updates the data in this for any constants that exist in both this and other. (from other) */
-	void UpdateConstantsFrom(D3D9ProxyVertexShader* otherVertexShader);
+	/* Updates the data in this for any constants that exist in both this and other. (from other) that aren't dirty 
+		dirties any registers that exist in here that didn't exist in previous */
+	void MakeActive(D3D9ProxyVertexShader* previousActiveVertexShader);
 	
 	/* Updates all dirty constants from proxy device registers and sets them on the actual device (marks any registers that are set to actual as clean in proxy register) */
 	void UpdateAndApply(D3DProxyDevice::EyeSide side);

@@ -27,7 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <unordered_map>
 #include "Direct3DVertexBuffer9.h"
 #include "Direct3DIndexBuffer9.h"
-#include "Direct3DVertexShader9.h"
+#include "D3D9ProxyVertexShader.h"
 #include "Direct3DPixelShader9.h"
 #include "Direct3DVertexDeclaration9.h"
 #include "StereoShaderConstant.h"
@@ -94,7 +94,7 @@ public:
 	void SelectAndCaptureViewTransform(D3DXMATRIX left, D3DXMATRIX right);
 	void SelectAndCaptureProjectionTransform(D3DXMATRIX left, D3DXMATRIX right);
 	void SelectAndCaptureState(BaseDirect3DPixelShader9* pWrappedPixelShader);
-	void SelectAndCaptureState(BaseDirect3DVertexShader9* pWrappedVertexShader);
+	void SelectAndCaptureState(D3D9ProxyVertexShader* pWrappedVertexShader);
 	void SelectAndCaptureState(BaseDirect3DVertexDeclaration9* pWrappedVertexDeclaration);
 
 	/* 
@@ -211,7 +211,7 @@ private:
 	////////////////////// Vertex Shader State //////////////////////
 
 	// vertex shader
-	BaseDirect3DVertexShader9* m_pStoredVertexShader;
+	D3D9ProxyVertexShader* m_pStoredVertexShader;
 
 	// vertex declaration
 	BaseDirect3DVertexDeclaration9* m_pStoredVertexDeclaration;

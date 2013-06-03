@@ -24,11 +24,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <memory>
 #include <unordered_map>
 #include "d3d9.h"
-#include "MurmurHash3.h"
-#include "ShaderConfig.h"
-#include "ShaderModificationLoader.h"
+#include "ShaderModifications.h"
 
-class ShaderModificationLoader;
+class ShaderModifications;
 
 class GameHandler
 {
@@ -49,14 +47,14 @@ public:
 
 	float ToWorldUnits(float millimeters);
 
-	ShaderModificationLoader* GetShaderModificationLoader();
+	ShaderModifications* GetShaderModifications();
 
 private:
 
 
 	std::string m_gameId;
 	float m_fWorldScaleFactor;
-	ShaderModificationLoader* m_shaderModificationLoader;
+	ShaderModifications* m_ShaderModifications;
 };
 
 #endif

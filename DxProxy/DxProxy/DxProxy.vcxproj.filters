@@ -335,16 +335,10 @@
     <ClInclude Include="DataGatherer.h">
       <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
     </ClInclude>
-    <ClInclude Include="StereoShaderConstants.h">
-      <Filter>Direct3D9Vireio</Filter>
-    </ClInclude>
     <ClInclude Include="ShaderRegisters.h">
       <Filter>Direct3D9Vireio</Filter>
     </ClInclude>
     <ClInclude Include="ShaderConstantModification.h">
-      <Filter>Direct3D9Vireio</Filter>
-    </ClInclude>
-    <ClInclude Include="ShaderConfig.h">
       <Filter>Direct3D9Vireio</Filter>
     </ClInclude>
     <ClInclude Include="GameHandler.h">

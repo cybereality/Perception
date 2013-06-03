@@ -68,6 +68,9 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	m_pCurrentView = &m_leftView;
 	m_pCurrentProjection = &m_leftProjection;
 
+	m_gameSpecificLogic = NULL;
+	m_spManagedShaderRegisters = std::make_shared<ShaderRegisters>(capabilities.MaxVertexShaderConst);
+
 	m_pActiveStereoDepthStencil = NULL;
 	m_pActiveIndicies = NULL;
 	m_pActivePixelShader = NULL;
@@ -124,12 +127,16 @@ D3DProxyDevice::~D3DProxyDevice()
 
 
 /* 
+	This method must be called on the proxy device before the device is returned to the calling application
+
 	Subclasses which override this method must call through to super method.
 	Anything that needs to be done before the device is used by the actual application should happen here.
  */
 void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 {
 	OutputDebugString("D3D ProxyDev Init\n");
+
+	m_gameSpecificLogic = GameHandler.Load();
 
 	stereoView = StereoViewFactory::Get(cfg);
 	SetupOptions(cfg);
@@ -1131,15 +1138,11 @@ HRESULT WINAPI D3DProxyDevice::CreatePixelShader(CONST DWORD* pFunction,IDirect3
 
 HRESULT WINAPI D3DProxyDevice::CreateVertexShader(CONST DWORD* pFunction,IDirect3DVertexShader9** ppShader)
 {
-
-
 	IDirect3DVertexShader9* pActualVShader = NULL;
 	HRESULT creationResult = BaseDirect3DDevice9::CreateVertexShader(pFunction, &pActualVShader);
 
 	if (SUCCEEDED(creationResult)) {
-		
-		// TODO Get modifications from gamehandler create shader wrapper with modifications
-		*ppShader = new BaseDirect3DVertexShader9(pActualVShader, this);
+		*ppShader = new D3D9ProxyVertexShader(pActualVShader, this, m_spManagedShaderRegisters, m_gameSpecificLogic->GetShaderModifications());
 	}
 
 	return creationResult;
@@ -1258,8 +1261,20 @@ HRESULT WINAPI D3DProxyDevice::ColorFill(IDirect3DSurface9* pSurface,CONST RECT*
 }
 
 
+void D3DProxyDevice::ApplyShaderRegistersToActualDevice()
+{
+	if (m_pActiveVertexShader) {
+		m_pActiveVertexShader->UpdateAndApply(m_currentRenderingSide);
+
+		m_spManagedShaderRegisters->ApplyToDevice();
+	}
+}
+
+
 HRESULT WINAPI D3DProxyDevice::DrawPrimitive(D3DPRIMITIVETYPE PrimitiveType,UINT StartVertex,UINT PrimitiveCount)
 {
+	ApplyShaderRegistersToActualDevice();
+
 	HRESULT result;
 	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawPrimitive(PrimitiveType, StartVertex, PrimitiveCount))) {
 		if (switchDrawingSide())
@@ -1272,6 +1287,8 @@ HRESULT WINAPI D3DProxyDevice::DrawPrimitive(D3DPRIMITIVETYPE PrimitiveType,UINT
 
 HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitive(D3DPRIMITIVETYPE PrimitiveType,INT BaseVertexIndex,UINT MinVertexIndex,UINT NumVertices,UINT startIndex,UINT primCount)
 {
+	ApplyShaderRegistersToActualDevice();
+
 	HRESULT result;
 	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawIndexedPrimitive(PrimitiveType, BaseVertexIndex, MinVertexIndex, NumVertices, startIndex, primCount))) {
 		if (switchDrawingSide()) {
@@ -1287,6 +1304,8 @@ HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitive(D3DPRIMITIVETYPE PrimitiveTy
 
 HRESULT WINAPI D3DProxyDevice::DrawPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType,UINT PrimitiveCount,CONST void* pVertexStreamZeroData,UINT VertexStreamZeroStride)
 {
+	ApplyShaderRegistersToActualDevice();
+
 	HRESULT result;
 	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawPrimitiveUP(PrimitiveType, PrimitiveCount, pVertexStreamZeroData, VertexStreamZeroStride))) {
 		if (switchDrawingSide())
@@ -1298,6 +1317,8 @@ HRESULT WINAPI D3DProxyDevice::DrawPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType,UI
 
 HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType,UINT MinVertexIndex,UINT NumVertices,UINT PrimitiveCount,CONST void* pIndexData,D3DFORMAT IndexDataFormat,CONST void* pVertexStreamZeroData,UINT VertexStreamZeroStride)
 {
+	ApplyShaderRegistersToActualDevice();
+
 	HRESULT result;
 	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawIndexedPrimitiveUP(PrimitiveType, MinVertexIndex, NumVertices, PrimitiveCount, pIndexData, IndexDataFormat, pVertexStreamZeroData, VertexStreamZeroStride))) {
 		if (switchDrawingSide())
@@ -1309,6 +1330,8 @@ HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitiveUP(D3DPRIMITIVETYPE Primitive
 
 HRESULT WINAPI D3DProxyDevice::DrawRectPatch(UINT Handle,CONST float* pNumSegs,CONST D3DRECTPATCH_INFO* pRectPatchInfo)
 {
+	ApplyShaderRegistersToActualDevice();
+
 	HRESULT result;
 	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawRectPatch(Handle, pNumSegs, pRectPatchInfo))) {
 		if (switchDrawingSide())
@@ -1320,6 +1343,8 @@ HRESULT WINAPI D3DProxyDevice::DrawRectPatch(UINT Handle,CONST float* pNumSegs,C
 
 HRESULT WINAPI D3DProxyDevice::DrawTriPatch(UINT Handle,CONST float* pNumSegs,CONST D3DTRIPATCH_INFO* pTriPatchInfo)
 {
+	ApplyShaderRegistersToActualDevice();
+
 	HRESULT result;
 	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawTriPatch(Handle, pNumSegs, pTriPatchInfo))) {
 		if (switchDrawingSide())
@@ -1333,6 +1358,8 @@ HRESULT WINAPI D3DProxyDevice::ProcessVertices(UINT SrcStartIndex,UINT DestIndex
 {
 	if (!pDestBuffer)
 		return D3DERR_INVALIDCALL;
+
+	ApplyShaderRegistersToActualDevice();
 
 	BaseDirect3DVertexBuffer9* pCastDestBuffer = static_cast<BaseDirect3DVertexBuffer9*>(pDestBuffer);
 	BaseDirect3DVertexDeclaration9* pCastVertexDeclaration = NULL;
@@ -1743,7 +1770,7 @@ HRESULT WINAPI D3DProxyDevice::GetPixelShader(IDirect3DPixelShader9** ppShader)
 
 HRESULT WINAPI D3DProxyDevice::SetVertexShader(IDirect3DVertexShader9* pShader)
 {
-	BaseDirect3DVertexShader9* pWrappedVShaderData = static_cast<BaseDirect3DVertexShader9*>(pShader);
+	D3D9ProxyVertexShader* pWrappedVShaderData = static_cast<D3D9ProxyVertexShader*>(pShader);
 
 	// Update actual Vertex shader
 	HRESULT result;
@@ -1760,13 +1787,16 @@ HRESULT WINAPI D3DProxyDevice::SetVertexShader(IDirect3DVertexShader9* pShader)
 			m_pCapturingStateTo->SelectAndCaptureState(pWrappedVShaderData);
 		}
 		else {
-			if (m_pActiveVertexShader) {
-				m_pActiveVertexShader->Release();
-			}
-		
+			D3D9ProxyVertexShader* lastShader = m_pActiveVertexShader;
 			m_pActiveVertexShader = pWrappedVShaderData;
+
 			if (m_pActiveVertexShader) {
 				m_pActiveVertexShader->AddRef();
+				m_pActiveVertexShader->MakeActive(lastShader);
+			}
+
+			if (lastShader) {
+				lastShader->Release();
 			}
 		}
 	}
@@ -1787,7 +1817,19 @@ HRESULT WINAPI D3DProxyDevice::GetVertexShader(IDirect3DVertexShader9** ppShader
 
 HRESULT WINAPI D3DProxyDevice::SetVertexShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount)
 {
+	HRESULT result = D3DERR_INVALIDCALL;
 
+	if (m_pCapturingStateTo) {
+		//TODO reimplement
+		//m_pCapturingStateTo->SelectAndCaptureState(stereoConstant);
+	}
+	else { 
+		result = m_spManagedShaderRegisters->SetConstantRegistersF(StartRegister, pConstantData, Vector4fCount);
+	}
+
+	return result;
+
+	/*
 	if (stereoView->initialized) {
 		if (ContainsMatrixToModify(StartRegister, pConstantData, Vector4fCount)) 
 		{
@@ -1835,9 +1877,9 @@ HRESULT WINAPI D3DProxyDevice::SetVertexShaderConstantF(UINT StartRegister,CONST
 
 			return result;
 		}
-	}
+	}*/
 
-	return BaseDirect3DDevice9::SetVertexShaderConstantF(StartRegister, pConstantData, Vector4fCount);
+	//return BaseDirect3DDevice9::SetVertexShaderConstantF(StartRegister, pConstantData, Vector4fCount);
 }
 
 bool D3DProxyDevice::CouldOverwriteMatrix(UINT StartRegister, UINT Vector4fCount) 
