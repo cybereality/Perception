@@ -117,6 +117,7 @@ public:
 	virtual HRESULT WINAPI SetVertexShader(IDirect3DVertexShader9* pShader);
 	virtual HRESULT WINAPI GetVertexShader(IDirect3DVertexShader9** ppShader);
 	virtual HRESULT WINAPI SetVertexShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
+	virtual HRESULT WINAPI GetVertexShaderConstantF(UINT StartRegister,float* pConstantData,UINT Vector4fCount);
 	virtual HRESULT WINAPI SetVertexDeclaration(IDirect3DVertexDeclaration9* pDecl);
 	virtual HRESULT WINAPI GetVertexDeclaration(IDirect3DVertexDeclaration9** ppDecl);
 	virtual HRESULT WINAPI BeginStateBlock();

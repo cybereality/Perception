@@ -1882,6 +1882,11 @@ HRESULT WINAPI D3DProxyDevice::SetVertexShaderConstantF(UINT StartRegister,CONST
 	//return BaseDirect3DDevice9::SetVertexShaderConstantF(StartRegister, pConstantData, Vector4fCount);
 }
 
+HRESULT WINAPI D3DProxyDevice::GetVertexShaderConstantF(UINT StartRegister,float* pConstantData,UINT Vector4fCount)
+{
+	return m_spManagedShaderRegisters->GetConstantRegistersF(StartRegister, pConstantData, Vector4fCount);
+}
+
 bool D3DProxyDevice::CouldOverwriteMatrix(UINT StartRegister, UINT Vector4fCount) 
 {
 	return false;

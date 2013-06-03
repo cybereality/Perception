@@ -36,7 +36,9 @@ public:
 
 	/* Return D3DERR_INVALIDCALL if any registers out of range*/
 	HRESULT WINAPI SetConstantRegistersF(UINT StartRegister, const float* pConstantData, UINT Vector4fCount);
-		
+	
+	HRESULT WINAPI GetConstantRegistersF(UINT StartRegister, float* pConstantData, UINT Vector4fCount);
+
 	/* 
 		This will apply all dirty registers as held by this class.
 		(Active vertex shader should be updated first to clean any registers that it overrides with a stereo constant)

@@ -44,8 +44,6 @@ HRESULT WINAPI ShaderRegisters::SetConstantRegistersF(UINT StartRegister, const 
 	if ((StartRegister >= m_maxConstantRegistersF) || ((StartRegister + Vector4fCount) >= m_maxConstantRegistersF))
 		return D3DERR_INVALIDCALL;
 
-	HRESULT result;
-
 	// Set registers
 	std::copy(pConstantData, pConstantData + (VECTOR_LENGTH * Vector4fCount), m_registersF.begin() + RegisterIndex(StartRegister));
 
@@ -54,8 +52,19 @@ HRESULT WINAPI ShaderRegisters::SetConstantRegistersF(UINT StartRegister, const 
 		m_dirtyRegistersF.insert(i);
 	}
 
-	return result;
+	return D3D_OK;
 }
+
+HRESULT WINAPI ShaderRegisters::GetConstantRegistersF(UINT StartRegister, float* pConstantData, UINT Vector4fCount)
+{
+	if ((StartRegister >= m_maxConstantRegistersF) || ((StartRegister + Vector4fCount) >= m_maxConstantRegistersF))
+		return D3DERR_INVALIDCALL;
+
+	pConstantData = &m_registersF[RegisterIndex(StartRegister)];
+	
+	return D3D_OK;
+}
+
 		
 void ShaderRegisters::ApplyToDevice() 
 {	
