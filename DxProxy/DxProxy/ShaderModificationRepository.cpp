@@ -31,6 +31,11 @@ ShaderModificationRepository::~ShaderModificationRepository()
 
 }
 
+bool RuleApplies(D3DXCONSTANT_DESC* constantDesc) 
+{
+	
+}
+
 std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetModifiedConstantsF(IDirect3DVertexShader9* pActualVertexShader)
 {
 	// hash shader
@@ -43,7 +48,8 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 
 	// return collection of stereoshaderconstants for this shader (empty collection if no modifications)
 
-
+	std::vector<ConstantModificationRule*> rulesToApply;
+	// add pointers to rules
 
 	/*// Hash the shader and load stereo shader constants
 	BYTE *pData = NULL;
@@ -65,4 +71,98 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 	}
 
 	delete [] pData;*/
+
+
+	LPD3DXCONSTANTTABLE pConstantTable = NULL;
+
+	BYTE* pData = NULL;
+	UINT pSizeOfData;
+	pActualVertexShader->GetFunction(NULL, &pSizeOfData);
+			
+	pData = new BYTE[pSizeOfData];
+	pActualVertexShader->GetFunction(pData, &pSizeOfData);
+
+	D3DXGetShaderConstantTable(reinterpret_cast<DWORD*>(pData), &pConstantTable);
+			
+	if(pConstantTable) {
+		
+		D3DXCONSTANTTABLE_DESC pDesc;
+		pConstantTable->GetDesc(&pDesc);
+
+		D3DXCONSTANT_DESC pConstantDesc[64];
+
+		//m_shaderDumpFile << std::endl << std::endl;
+		//m_shaderDumpFile << "Shader Creator: " << pDesc.Creator << std::endl;
+		//m_shaderDumpFile << "Shader Version: " << pDesc.Version << std::endl;
+
+		for(UINT i = 0; i < pDesc.Constants; i++)
+		{
+			D3DXHANDLE handle = pConstantTable->GetConstant(NULL,i);
+			if(handle == NULL) continue;
+
+			UINT pConstantNum = 64;
+			pConstantTable->GetConstantDesc(handle, pConstantDesc, &pConstantNum);
+			if (pConstantNum >= 64) {
+				OutputDebugString("ShaderModificationRepository::GetModifiedConstantsF - Need larger constant description buffer");
+			}
+
+			
+			for(UINT j = 0; j < pConstantNum; j++)
+			{
+				if ((pConstantDesc[j].RegisterSet == D3DXRS_FLOAT4) &&
+					((pConstantDesc[j].Class == D3DXPC_VECTOR) || (pConstantDesc[j].Class == D3DXPC_MATRIX_ROWS) || (pConstantDesc[j].Class == D3DXPC_MATRIX_COLUMNS))  ) {
+
+
+					// iterate over chosen rules 
+					auto itRules = rulesToApply.begin();
+					while (itRules != rulesToApply.end()) {
+
+						
+					}
+
+					//m_shaderDumpFile << "Constant";
+					//m_shaderDumpFile << "Name: " << pConstantDesc[j].Name << std::endl;
+					//m_shaderDumpFile << "Type: ";
+
+					if (pConstantDesc[j].Class == D3DXPC_VECTOR) {
+						//m_shaderDumpFile << "Vector" << std::endl;
+					}
+					else if (pConstantDesc[j].Class == D3DXPC_MATRIX_ROWS) {
+						//m_shaderDumpFile << "Row Major Matrix" << std::endl;
+					}
+					else if (pConstantDesc[j].Class == D3DXPC_MATRIX_COLUMNS) {
+						//m_shaderDumpFile << "Col Major Matrix" << std::endl;
+					}
+
+					//m_shaderDumpFile << "Register Index: " << pConstantDesc[j].RegisterIndex << std::endl;
+					//m_shaderDumpFile << "Register Count: " << pConstantDesc[j].RegisterCount << std::endl;
+					//m_shaderDumpFile << "Number of elements in the array:" << pConstantDesc[j].Elements << std::endl << std::endl;
+				}
+						
+			}
+		}
+	}
+
+	_SAFE_RELEASE(pConstantTable);
+	if (pData) delete[] pData;
+
+
+	try {
+		CreateStereoConstantFrom(1);
+	}
+	catch (std::out_of_range) {
+		OutputDebugString("Unable to create StereoShaderConstant from ConstantModificationRule, could not find rule. Rule skipped.");
+	}
+}
+
+
+
+ StereoShaderConstant<float> ShaderModificationRepository::CreateStereoConstantFrom(UINT modificationID/*type(matrix/vec4), rule*/)
+{
+	ConstantModificationRule rule;
+	
+	rule = m_constantModificationRules.at(modificationID);
+
+	//return StereoShaderConstant<float>(rule.startRegIndex, D3DXMATRIX.identity, 4 /*4 for matrix, 1 for vec*/, 4, rule.constantName, /*modification*/, modificationID);
+	
 }

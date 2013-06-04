@@ -26,7 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 template <class T>
 class StereoShaderConstant
 {
-public:
+public:							// TODO take normal data in, generate left and right using modification
 	StereoShaderConstant(UINT StartReg, const T* pConstDataLeft, const T* pConstDataRight, UINT dataCount, UINT countMultiplier/*register length (4 for float/int, 1 for bool)*/, std::string name, ShaderConstantModification<T> modification, UINT modificationId) :
 		m_StartRegister(StartReg),
 		m_Count(dataCount),

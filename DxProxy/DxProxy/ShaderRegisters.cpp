@@ -45,7 +45,7 @@ HRESULT WINAPI ShaderRegisters::SetConstantRegistersF(UINT StartRegister, const 
 	if ((StartRegister <= m_maxConstantRegistersF) || ((StartRegister + Vector4fCount) <= m_maxConstantRegistersF))
 		return D3DERR_INVALIDCALL;
 
-	// Set registers
+	// Set proxy registers
 	std::copy(pConstantData, pConstantData + (VECTOR_LENGTH * Vector4fCount), m_registersF.begin() + RegisterIndex(StartRegister));
 
 	// Mark registers dirty
@@ -66,12 +66,12 @@ HRESULT WINAPI ShaderRegisters::GetConstantRegistersF(UINT StartRegister, float*
 	return D3D_OK;
 }
 
-void ShaderRegisters::MarkDirty(UINT Register)
-{
-	assert (Register <= m_maxConstantRegistersF);
-
-	m_dirtyRegistersF.insert(Register);
-}
+//void ShaderRegisters::MarkDirty(UINT Register)
+//{
+//	assert (Register <= m_maxConstantRegistersF);
+//
+//	m_dirtyRegistersF.insert(Register);
+//}
 
 bool ShaderRegisters::AnyDirty(UINT start, UINT count)
 {
@@ -113,7 +113,7 @@ void ShaderRegisters::ApplyToDevice(D3DProxyDevice::EyeSide currentSide)
 	}
 
 
-	// Apply all remaining dirty registers (should just be non-stereo left) to device
+	// Apply all remaining dirty registers (should just be non-stereo that remain dirty) to device
 	auto it = m_dirtyRegistersF.begin();
 	int startReg = *it;
 
@@ -144,7 +144,7 @@ void ShaderRegisters::ForceApplyStereoConstants(D3DProxyDevice::EyeSide currentS
 	while (itStereoConstant != m_pActiveVertexShader->ModifiedConstants()->end()) {
 
 		// if any of the registers that make up this constant are dirty update before setting
-		if (AnyDirty(itStereoConstant->second.StartRegister(), itStereoConstant->second.Count())) {
+		if (AnyDirty(itStereoConstant->second.StartRegister(), itStereoConstant->second.Count())) { // Should we do this or make this method just switch sides without checking for updated data?
 			itStereoConstant->second.Update(&m_registersF[RegisterIndex(itStereoConstant->second.StartRegister())]);
 
 			// These registers are no longer dirty
@@ -173,7 +173,7 @@ void ShaderRegisters::ActiveVertexShaderChanged(D3D9ProxyVertexShader* pNewVerte
 		if (m_pActiveVertexShader)
 			pOldShaderModConstants = m_pActiveVertexShader->ModifiedConstants();
 
-		/* Updates the data in new constants that exist in old constants.) */
+		// Update the data in new shader constants with data from matching constants from last shader.)
 		auto itNewConstants = pNewShaderModConstants->begin();
 		while (itNewConstants != pNewShaderModConstants->end()) {
 

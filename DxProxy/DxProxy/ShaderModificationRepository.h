@@ -32,7 +32,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 class ShaderModificationRepository
 {
-
 public:
 	ShaderModificationRepository();
 	virtual ~ShaderModificationRepository();
@@ -42,15 +41,28 @@ public:
 
 	// Returns a collection of modifications that apply to the specified shader. (may be an empty collection of no modifications apply)
 	// <StrartRegister, StereoShaderConstant<float>>
-	std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetModifiedConstantsF(IDirect3DVertexShader9* pActualVertexShader);
+	std::map<UINT, StereoShaderConstant<float>> GetModifiedConstantsF(IDirect3DVertexShader9* pActualVertexShader);
 	
 
 
 private:
 
+	class ConstantModificationRule 
+	{
+	public: 
+		std::string constantName;
+		UINT startRegIndex;
+		// type Vector/Matrix
+		std::string operationToApply;
+		UINT modificationID;
+		//type - always float atm
+	};
+
+
+	StereoShaderConstant<float> CreateStereoConstantFrom(UINT modificationID);
 
 	// <Modification ID, ModificationRule>
-	std::unordered_map<UINT, ModificationRule> m_constantModificationRules;
+	std::unordered_map<UINT, ConstantModificationRule> m_constantModificationRules;
 
 	// <Modification ID>
 	std::vector<UINT> m_defaultModifications;

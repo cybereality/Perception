@@ -80,9 +80,9 @@ HRESULT WINAPI DataGatherer::CreateVertexShader(CONST DWORD* pFunction,IDirect3D
 			D3DXCONSTANT_DESC pConstantDesc[64];
 			UINT pConstantNum = 64;
 
-			m_shaderDumpFile << std::endl << std::endl << std::endl;
-			m_shaderDumpFile << "Shader Creator: " << pDesc.Creator << std::endl;
-			m_shaderDumpFile << "Shader Version: " << pDesc.Version << std::endl;
+			m_shaderDumpFile << std::endl << std::endl;
+			//m_shaderDumpFile << "Shader Creator: " << pDesc.Creator << std::endl;
+			//m_shaderDumpFile << "Shader Version: " << pDesc.Version << std::endl;
 
 			for(UINT i = 0; i < pDesc.Constants; i++)
 			{

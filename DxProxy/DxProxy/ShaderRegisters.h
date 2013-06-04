@@ -41,7 +41,7 @@ public:
 	HRESULT WINAPI SetConstantRegistersF(UINT StartRegister, const float* pConstantData, UINT Vector4fCount);
 	HRESULT WINAPI GetConstantRegistersF(UINT StartRegister, float* pConstantData, UINT Vector4fCount);
 
-	void MarkDirty(UINT Register);
+	//void MarkDirty(UINT Register);
 	bool AnyDirty(UINT start, UINT count);
 
 	/* 
