@@ -246,7 +246,7 @@ protected:
 	D3DXMATRIX* m_pCurrentMatViewTransform;
 	
 	D3D9ProxyVertexShader* m_pActiveVertexShader;
-	std::unordered_map<UINT, StereoShaderConstant<float>> m_activeStereoVShaderConstF;
+	//std::unordered_map<UINT, StereoShaderConstant<float>> m_activeStereoVShaderConstF;
 
 	D3D9ProxyStateBlock* m_pCapturingStateTo;
 
@@ -260,7 +260,6 @@ private:
 	HRESULT SetStereoViewTransform(D3DXMATRIX pLeftMatrix, D3DXMATRIX pRightMatrix, bool apply);
 	HRESULT SetStereoProjectionTransform(D3DXMATRIX pLeftMatrix, D3DXMATRIX pRightMatrix, bool apply);
 
-	void ApplyShaderRegistersToActualDevice();
 
 	GameHandler* m_gameSpecificLogic;
 	std::shared_ptr<ShaderRegisters> m_spManagedShaderRegisters;

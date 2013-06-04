@@ -27,30 +27,30 @@ template <class T>
 class StereoShaderConstant
 {
 public:
-	StereoShaderConstant(UINT StartReg, const T* pConstDataLeft, const T* pConstDataRight, UINT dataCount, UINT countMultiplier/*register length (4 for float/int, 1 for bool)*/, std::string name, ShaderConstantModification<T> modification) :
+	StereoShaderConstant(UINT StartReg, const T* pConstDataLeft, const T* pConstDataRight, UINT dataCount, UINT countMultiplier/*register length (4 for float/int, 1 for bool)*/, std::string name, ShaderConstantModification<T> modification, UINT modificationId) :
 		m_StartRegister(StartReg),
 		m_Count(dataCount),
 		m_Multiplier(countMultiplier),
 		m_DataLeft(pConstDataLeft, pConstDataLeft + (dataCount * countMultiplier)),
 		m_DataRight(pConstDataRight, pConstDataRight + (dataCount * countMultiplier)),
-		m_Name(name) {}
+		m_Name(name),
+		m_ModificationID(modificationId) {}
 
 	virtual ~StereoShaderConstant() {}
 
-	void Update(UINT StartReg, const T* data, UINT dataCount, UINT countMultiplier) // everything except data must match existing values
+	// pointer to new data. Verify data dimensions match this constant before calling if needed
+	void Update(const T* data) 
 	{
 		// assert sizes match
 
-		// Apply modification to update left and right
+		// TODO Apply modification to update left and right
 	}
 
 	/* Return true if this constant represents the same constant as other  (contents of the registers does not need to match)*/
 	bool SameConstantAs(const StereoShaderConstant<T> & other)
 	{
 		return (other.m_StartRegister == m_StartRegister) &&
-			(other.m_Count == m_Count) &&
-			(other.m_Name == m_Name) && 
-			(other.m_Multiplier == m_Multiplier));
+			(other.m_ModificationID == m_ModificationID));
 	}
 		
 	T* DataLeftPointer() 
@@ -63,6 +63,10 @@ public:
 		return &m_DataRight[0];
 	}
 
+	std::string Name() { return m_Name; }
+	UINT StartRegister() { return m_StartRegister; }
+	UINT Count() { return m_Count; }
+	UINT Multiplier() { return m_Multiplier; }
 	
 
 private:
@@ -73,6 +77,7 @@ private:
 	UINT m_StartRegister;
 	UINT m_Count;
 	UINT m_Multiplier;
+	UINT m_ModificationID;
 };
 
 

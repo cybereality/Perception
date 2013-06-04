@@ -23,7 +23,8 @@ ShaderRegisters::ShaderRegisters(DWORD maxConstantRegistersF, IDirect3DDevice9* 
 	m_maxConstantRegistersF(maxConstantRegistersF),
 	m_registersF(maxConstantRegistersF * VECTOR_LENGTH, 0), // VECTOR_LENGTH floats per register
 	m_dirtyRegistersF(),
-	m_pActualDevice(pActualDevice)
+	m_pActualDevice(pActualDevice),
+	m_pActiveVertexShader(NULL)
 {
 	assert(pActualDevice != NULL);
 
@@ -72,18 +73,52 @@ void ShaderRegisters::MarkDirty(UINT Register)
 	m_dirtyRegistersF.insert(Register);
 }
 
-
-		
-void ShaderRegisters::ApplyToDevice() 
-{	
-	auto it =  m_dirtyRegistersF.begin();
+bool ShaderRegisters::AnyDirty(UINT start, UINT count)
+{
+	auto it = m_dirtyRegistersF.lower_bound(start);
 
 	if (it == m_dirtyRegistersF.end())
+		return false;
+
+	if (*it >= start + count) {
+		return false;
+	}
+
+	return true;
+}
+		
+void ShaderRegisters::ApplyToDevice(D3DProxyDevice::EyeSide currentSide) 
+{	
+	
+	if (m_dirtyRegistersF.size() == 0)
 		return;
 
+	
+	// Updates all dirty stereo constants and sets them on the actual device
+	auto itStereoConstant = m_pActiveVertexShader->ModifiedConstants()->begin();
+	while (itStereoConstant != m_pActiveVertexShader->ModifiedConstants()->end()) {
 
+		// if any of the registers that make up this constant are dirty
+		if (AnyDirty(itStereoConstant->second.StartRegister(), itStereoConstant->second.Count())) {
+			itStereoConstant->second.Update(&m_registersF[RegisterIndex(itStereoConstant->second.StartRegister())]);
+
+			m_pActualDevice->SetVertexShaderConstantF(itStereoConstant->second.StartRegister(), (currentSide == D3DProxyDevice::Left) ? itStereoConstant->second.DataLeftPointer() : itStereoConstant->second.DataRightPointer(), itStereoConstant->second.Count());
+
+			// These registers are no longer dirty
+			for (UINT i = itStereoConstant->second.StartRegister(); i < itStereoConstant->second.StartRegister() + itStereoConstant->second.Count(); i++)
+				m_dirtyRegistersF.erase(i);
+		}
+
+		++itStereoConstant;
+	}
+
+
+	// Apply all remaining dirty registers (should just be non-stereo left) to device
+	auto it = m_dirtyRegistersF.begin();
 	int startReg = *it;
+
 	while (it != m_dirtyRegistersF.end()) {
+
 		// skip through until we reach the end of a continuous series of dirty registers
 		auto itNext = std::next(it);
 		if ((itNext != m_dirtyRegistersF.end()) && (*itNext == startReg + 1))
@@ -102,3 +137,65 @@ void ShaderRegisters::ApplyToDevice()
 
 	m_dirtyRegistersF.clear();
 }
+
+void ShaderRegisters::ForceApplyStereoConstants(D3DProxyDevice::EyeSide currentSide)
+{
+	auto itStereoConstant = m_pActiveVertexShader->ModifiedConstants()->begin();
+	while (itStereoConstant != m_pActiveVertexShader->ModifiedConstants()->end()) {
+
+		// if any of the registers that make up this constant are dirty update before setting
+		if (AnyDirty(itStereoConstant->second.StartRegister(), itStereoConstant->second.Count())) {
+			itStereoConstant->second.Update(&m_registersF[RegisterIndex(itStereoConstant->second.StartRegister())]);
+
+			// These registers are no longer dirty
+			for (UINT i = itStereoConstant->second.StartRegister(); i < itStereoConstant->second.StartRegister() + itStereoConstant->second.Count(); i++)
+				m_dirtyRegistersF.erase(i);
+		}
+
+		// Apply this constant to device
+		m_pActualDevice->SetVertexShaderConstantF(itStereoConstant->second.StartRegister(), (currentSide == D3DProxyDevice::Left) ? itStereoConstant->second.DataLeftPointer() : itStereoConstant->second.DataRightPointer(), itStereoConstant->second.Count());
+
+		++itStereoConstant;
+	}
+}
+
+
+void ShaderRegisters::ActiveVertexShaderChanged(D3D9ProxyVertexShader* pNewVertexShader)
+{
+	if (m_pActiveVertexShader == pNewVertexShader)
+		return;
+
+	if (pNewVertexShader) {
+
+		std::map<UINT, StereoShaderConstant<float>>* pNewShaderModConstants = pNewVertexShader->ModifiedConstants();
+
+		std::map<UINT, StereoShaderConstant<float>>* pOldShaderModConstants = NULL;
+		if (m_pActiveVertexShader)
+			pOldShaderModConstants = m_pActiveVertexShader->ModifiedConstants();
+
+		/* Updates the data in new constants that exist in old constants.) */
+		auto itNewConstants = pNewShaderModConstants->begin();
+		while (itNewConstants != pNewShaderModConstants->end()) {
+
+			bool mightBeDirty = true;
+
+			if (pOldShaderModConstants) {
+				// No idea if this is saving any time or if it would be better to just mark all the registers dirty and re-apply the constants on first draw
+				if (m_pActiveVertexShader->ModifiedConstants()->count(itNewConstants->first) == 1) {
+					if (pOldShaderModConstants->at(itNewConstants->first).SameConstantAs(itNewConstants->second)) {
+						(*pNewShaderModConstants)[itNewConstants->first] = (*pOldShaderModConstants)[itNewConstants->first];
+						mightBeDirty = false;
+					}
+				}
+			}
+
+			// If there isn't a corresponding old modification then this modified constant well need updating
+			if (mightBeDirty) {
+				MarkDirty(itNewConstants->first);
+			}
+		}
+	}
+	
+	m_pActiveVertexShader = pNewVertexShader;
+}
+	

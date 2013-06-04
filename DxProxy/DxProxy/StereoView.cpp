@@ -256,7 +256,7 @@ void StereoView::SetState()
 	m_pActualDevice->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
 	m_pActualDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
 	m_pActualDevice->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);// This fixed interior or car not being drawn in rFactor
-	m_pActualDevice->SetRenderState(D3DRS_STENCILENABLE, FALSE); /// this is for funnsies (hasn't noticeably effected anything)
+	m_pActualDevice->SetRenderState(D3DRS_STENCILENABLE, FALSE); 
 
 	m_pActualDevice->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_SELECTARG1);
 	m_pActualDevice->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);

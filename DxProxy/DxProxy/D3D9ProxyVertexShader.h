@@ -35,24 +35,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class D3D9ProxyVertexShader : public BaseDirect3DVertexShader9
 {
 public:
-	D3D9ProxyVertexShader(IDirect3DVertexShader9* pActualVertexShader, D3DProxyDevice* pOwningDevice, std::shared_ptr<ShaderRegisters> spProxyDeviceShaderRegisters, ShaderModificationRepository* pModLoader);
+	D3D9ProxyVertexShader(IDirect3DVertexShader9* pActualVertexShader, D3DProxyDevice* pOwningDevice, ShaderModificationRepository* pModLoader);
 	virtual ~D3D9ProxyVertexShader();
 
-	/* Updates the data in this for any constants that exist in both this and other. (from other) that aren't dirty 
-		dirties any registers that exist in here that didn't exist in previous */
-	void MakeActive(D3D9ProxyVertexShader* previousActiveVertexShader);
-	
-	/* Updates all dirty constants from proxy device registers and sets them on the actual device (marks any registers that are set to actual as clean in proxy register) */
-	void UpdateAndApply(D3DProxyDevice::EyeSide side);
+	std::map<UINT, StereoShaderConstant<float>>* ModifiedConstants();
+
 
 protected:
 
 	IDirect3DDevice9* m_pActualDevice;
 
-	// <StartReg, StereoShaderConstant>
-	std::unordered_map<UINT, StereoShaderConstant<float>> m_pStereoModifiedConstantsF;
-	std::shared_ptr<ShaderRegisters> m_spProxyDeviceShaderRegisters;
-	
+	std::map<UINT, StereoShaderConstant<float>> m_modifiedConstants;
 };
 
 #endif

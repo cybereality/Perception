@@ -20,9 +20,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <assert.h>
 
 ShaderModificationRepository::ShaderModificationRepository() :
-	m_overrideModifications(),
+	m_constantModificationRules(),
 	m_defaultModifications(),
-	m_constantModificationsF()
+	m_shaderSpecificModifications()
 {
 }
 
@@ -31,8 +31,20 @@ ShaderModificationRepository::~ShaderModificationRepository()
 
 }
 
-std::unordered_map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetModifiedConstantsF(IDirect3DVertexShader9* pActualVertexShader)
+std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetModifiedConstantsF(IDirect3DVertexShader9* pActualVertexShader)
 {
+	// hash shader
+	// If rules for this specific shader use those
+	// else use default rules
+
+	// For each shader constant
+	//  Check if constant matches a rule (name and/or index)
+	//  If it does create a stereoshaderconstant based on rule and add to map of stereoshaderconstants to return
+
+	// return collection of stereoshaderconstants for this shader (empty collection if no modifications)
+
+
+
 	/*// Hash the shader and load stereo shader constants
 	BYTE *pData = NULL;
 	UINT pSizeOfData;

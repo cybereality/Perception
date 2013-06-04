@@ -25,31 +25,39 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "d3d9.h"
 #include <vector>
 #include <set>
+#include <map>
 #include <algorithm>
-//#include "D3D9ProxyVertexShader.h"
+#include "D3D9ProxyVertexShader.h"
+#include "D3DProxyDevice.h"
 
 
 class ShaderRegisters
 {
-	//friend class D3D9ProxyVertexShader;
-
 public:
 	ShaderRegisters(DWORD maxConstantRegistersF, IDirect3DDevice9* pActualDevice);
 	virtual ~ShaderRegisters();
 
 	/* Return D3DERR_INVALIDCALL if any registers out of range*/
 	HRESULT WINAPI SetConstantRegistersF(UINT StartRegister, const float* pConstantData, UINT Vector4fCount);
-	
 	HRESULT WINAPI GetConstantRegistersF(UINT StartRegister, float* pConstantData, UINT Vector4fCount);
 
 	void MarkDirty(UINT Register);
-
+	bool AnyDirty(UINT start, UINT count);
 
 	/* 
-		This will apply all dirty registers as held by this class.
-		(Active vertex shader should be updated first to clean any registers that it overrides with a stereo constant)
+		Changes the active vertex shader. This will mark appropriate modified constants active and disable/overwrite others as needed
 	 */
-	void ApplyToDevice();
+	void ActiveVertexShaderChanged(D3D9ProxyVertexShader* pNewVertexShader);
+
+	/* 
+		This will apply all dirty registers. Modified registers are updated and applied followed by unmodified
+	 */
+	void ApplyToDevice(D3DProxyDevice::EyeSide currentSide);
+
+	/*
+		This will apply all StereoShaderConstants whether Dirty or not
+	 */
+	void ForceApplyStereoConstants(D3DProxyDevice::EyeSide currentSide);
 
 private:
 	// Number of constant registers supported by device
@@ -61,7 +69,11 @@ private:
 	std::vector<float> m_registersF;
 
 	// Dirty Registers. Noting that this is Registers and NOT indexes of all floats that make up a register
-	std::set<int> m_dirtyRegistersF;
+	std::set<UINT> m_dirtyRegistersF;
+
+	// <StartRegister, ModifiedConstant starting at start register>
+	//const std::map<UINT, StereoShaderConstant<float>>* m_activeModifications;
+	D3D9ProxyVertexShader* m_pActiveVertexShader;
 
 	IDirect3DDevice9* m_pActualDevice;
 };

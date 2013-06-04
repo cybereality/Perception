@@ -1261,19 +1261,13 @@ HRESULT WINAPI D3DProxyDevice::ColorFill(IDirect3DSurface9* pSurface,CONST RECT*
 }
 
 
-void D3DProxyDevice::ApplyShaderRegistersToActualDevice()
-{
-	if (m_pActiveVertexShader) {
-		m_pActiveVertexShader->UpdateAndApply(m_currentRenderingSide);
 
-		m_spManagedShaderRegisters->ApplyToDevice();
-	}
-}
 
 
 HRESULT WINAPI D3DProxyDevice::DrawPrimitive(D3DPRIMITIVETYPE PrimitiveType,UINT StartVertex,UINT PrimitiveCount)
 {
-	ApplyShaderRegistersToActualDevice();
+	m_spManagedShaderRegisters->ApplyToDevice();
+
 
 	HRESULT result;
 	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawPrimitive(PrimitiveType, StartVertex, PrimitiveCount))) {
@@ -1287,7 +1281,7 @@ HRESULT WINAPI D3DProxyDevice::DrawPrimitive(D3DPRIMITIVETYPE PrimitiveType,UINT
 
 HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitive(D3DPRIMITIVETYPE PrimitiveType,INT BaseVertexIndex,UINT MinVertexIndex,UINT NumVertices,UINT startIndex,UINT primCount)
 {
-	ApplyShaderRegistersToActualDevice();
+	m_spManagedShaderRegisters->ApplyToDevice();
 
 	HRESULT result;
 	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawIndexedPrimitive(PrimitiveType, BaseVertexIndex, MinVertexIndex, NumVertices, startIndex, primCount))) {
@@ -1304,7 +1298,7 @@ HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitive(D3DPRIMITIVETYPE PrimitiveTy
 
 HRESULT WINAPI D3DProxyDevice::DrawPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType,UINT PrimitiveCount,CONST void* pVertexStreamZeroData,UINT VertexStreamZeroStride)
 {
-	ApplyShaderRegistersToActualDevice();
+	m_spManagedShaderRegisters->ApplyToDevice();
 
 	HRESULT result;
 	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawPrimitiveUP(PrimitiveType, PrimitiveCount, pVertexStreamZeroData, VertexStreamZeroStride))) {
@@ -1317,7 +1311,7 @@ HRESULT WINAPI D3DProxyDevice::DrawPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType,UI
 
 HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType,UINT MinVertexIndex,UINT NumVertices,UINT PrimitiveCount,CONST void* pIndexData,D3DFORMAT IndexDataFormat,CONST void* pVertexStreamZeroData,UINT VertexStreamZeroStride)
 {
-	ApplyShaderRegistersToActualDevice();
+	m_spManagedShaderRegisters->ApplyToDevice();
 
 	HRESULT result;
 	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawIndexedPrimitiveUP(PrimitiveType, MinVertexIndex, NumVertices, PrimitiveCount, pIndexData, IndexDataFormat, pVertexStreamZeroData, VertexStreamZeroStride))) {
@@ -1330,7 +1324,7 @@ HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitiveUP(D3DPRIMITIVETYPE Primitive
 
 HRESULT WINAPI D3DProxyDevice::DrawRectPatch(UINT Handle,CONST float* pNumSegs,CONST D3DRECTPATCH_INFO* pRectPatchInfo)
 {
-	ApplyShaderRegistersToActualDevice();
+	m_spManagedShaderRegisters->ApplyToDevice();
 
 	HRESULT result;
 	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawRectPatch(Handle, pNumSegs, pRectPatchInfo))) {
@@ -1343,7 +1337,7 @@ HRESULT WINAPI D3DProxyDevice::DrawRectPatch(UINT Handle,CONST float* pNumSegs,C
 
 HRESULT WINAPI D3DProxyDevice::DrawTriPatch(UINT Handle,CONST float* pNumSegs,CONST D3DTRIPATCH_INFO* pTriPatchInfo)
 {
-	ApplyShaderRegistersToActualDevice();
+	m_spManagedShaderRegisters->ApplyToDevice();
 
 	HRESULT result;
 	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawTriPatch(Handle, pNumSegs, pTriPatchInfo))) {
@@ -1359,7 +1353,7 @@ HRESULT WINAPI D3DProxyDevice::ProcessVertices(UINT SrcStartIndex,UINT DestIndex
 	if (!pDestBuffer)
 		return D3DERR_INVALIDCALL;
 
-	ApplyShaderRegistersToActualDevice();
+	m_spManagedShaderRegisters->ApplyToDevice();
 
 	BaseDirect3DVertexBuffer9* pCastDestBuffer = static_cast<BaseDirect3DVertexBuffer9*>(pDestBuffer);
 	BaseDirect3DVertexDeclaration9* pCastVertexDeclaration = NULL;
@@ -1787,17 +1781,16 @@ HRESULT WINAPI D3DProxyDevice::SetVertexShader(IDirect3DVertexShader9* pShader)
 			m_pCapturingStateTo->SelectAndCaptureState(pWrappedVShaderData);
 		}
 		else {
-			D3D9ProxyVertexShader* lastShader = m_pActiveVertexShader;
+			if (m_pActiveVertexShader) {
+				m_pActiveVertexShader->Release();
+			}
+		
 			m_pActiveVertexShader = pWrappedVShaderData;
-
 			if (m_pActiveVertexShader) {
 				m_pActiveVertexShader->AddRef();
-				m_pActiveVertexShader->MakeActive(lastShader);
 			}
 
-			if (lastShader) {
-				lastShader->Release();
-			}
+			m_spManagedShaderRegisters->ActiveVertexShaderChanged(m_pActiveVertexShader);
 		}
 	}
 
@@ -2133,12 +2126,13 @@ bool D3DProxyDevice::setDrawingSide(EyeSide side)
 
 
 	// Apply active stereo shader constants
-	auto itStereoConstant = m_activeStereoVShaderConstF.begin();
+	/*auto itStereoConstant = m_activeStereoVShaderConstF.begin();
 	while (itStereoConstant != m_activeStereoVShaderConstF.end()) {
 		HRESULT res = BaseDirect3DDevice9::SetVertexShaderConstantF(itStereoConstant->second.StartRegister, (side == Left) ? itStereoConstant->second.DataLeftPointer() : itStereoConstant->second.DataRightPointer(), itStereoConstant->second.Count);
 
 		++itStereoConstant;
-	}
+	}*/
+	m_spManagedShaderRegisters->ForceApplyStereoConstants(side);
 
 
 

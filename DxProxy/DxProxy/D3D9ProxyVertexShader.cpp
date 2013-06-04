@@ -18,47 +18,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "D3D9ProxyVertexShader.h"
 
-D3D9ProxyVertexShader::D3D9ProxyVertexShader(IDirect3DVertexShader9* pActualVertexShader, D3DProxyDevice *pOwningDevice, std::shared_ptr<ShaderRegisters> spProxyDeviceShaderRegisters,  ShaderModificationRepository* pModLoader) :
+D3D9ProxyVertexShader::D3D9ProxyVertexShader(IDirect3DVertexShader9* pActualVertexShader, D3DProxyDevice *pOwningDevice, ShaderModificationRepository* pModLoader) :
 	BaseDirect3DVertexShader9(pActualVertexShader, pOwningDevice),
 	m_pActualDevice(pOwningDevice->getActual()),
-	m_pStereoModifiedConstantsF(),
-	m_spProxyDeviceShaderRegisters(spProxyDeviceShaderRegisters)
+	m_modifiedConstants()
 {
-	m_pStereoModifiedConstantsF = pModLoader->GetModifiedConstantsF(pActualVertexShader);
+	m_modifiedConstants = pModLoader->GetModifiedConstantsF(pActualVertexShader);
 }
 
 D3D9ProxyVertexShader::~D3D9ProxyVertexShader()
+{}
+
+std::map<UINT, StereoShaderConstant<float>>* D3D9ProxyVertexShader::ModifiedConstants()
 {
-	if (m_spProxyDeviceShaderRegisters)
-		m_spProxyDeviceShaderRegisters.reset();
-	m_spProxyDeviceShaderRegisters = NULL;
-
-	m_pStereoModifiedConstantsF.clear();
-}
-
-void D3D9ProxyVertexShader::MakeActive(D3D9ProxyVertexShader* previousActiveVertexShader)
-{
-	/* Updates the data in this for any constants that exist in both this and other. (from other) */
-	// No idea if this is saving any time or if it would be better to just mark all the registers dirty and re-apply the constants on first draw
-	auto itConstants = m_pStereoModifiedConstantsF.begin();
-	while (itConstants != m_pStereoModifiedConstantsF.end()) {
-
-		bool mightBeDirty = true;
-		if (previousActiveVertexShader->m_pStereoModifiedConstantsF.count(itConstants->first) == 1) {
-			if (previousActiveVertexShader->m_pStereoModifiedConstantsF[itConstants->first].SameConstantAs(itConstants->second)) {
-				m_pStereoModifiedConstantsF[itConstants->first] = previousActiveVertexShader->m_pStereoModifiedConstantsF[itConstants->first];
-				mightBeDirty = false;
-			}
-		}
-
-		if (mightBeDirty) {
-			m_spProxyDeviceShaderRegisters->MarkDirty(itConstants->first);
-		}
-	}
-	
-}
-	
-void D3D9ProxyVertexShader::UpdateAndApply(D3DProxyDevice::EyeSide side)
-{
-	/* Updates all dirty constants from proxy device registers and sets them on the actual device */
+	return &m_modifiedConstants;
 }

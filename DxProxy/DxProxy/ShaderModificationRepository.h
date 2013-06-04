@@ -41,21 +41,22 @@ public:
 	bool Load(/*file*/);
 
 	// Returns a collection of modifications that apply to the specified shader. (may be an empty collection of no modifications apply)
-	std::unordered_map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetModifiedConstantsF(IDirect3DVertexShader9* pActualVertexShader);
+	// <StrartRegister, StereoShaderConstant<float>>
+	std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetModifiedConstantsF(IDirect3DVertexShader9* pActualVertexShader);
 	
 
 
 private:
 
 
-	// <Modification ID, StereoShaderConstant>
-	std::unordered_map<std::string, StereoShaderConstant<float>> m_constantModificationsF;
+	// <Modification ID, ModificationRule>
+	std::unordered_map<UINT, ModificationRule> m_constantModificationRules;
 
 	// <Modification ID>
-	std::vector<std::string> m_defaultModifications;
+	std::vector<UINT> m_defaultModifications;
 
 	// <Shader hash, vector<Modification ID>>
-	std::unordered_map<Hash128Bit, std::vector<std::string>> m_overrideModifications;
+	std::unordered_map<Hash128Bit, std::vector<UINT>> m_shaderSpecificModifications;
 };
 
 #endif
