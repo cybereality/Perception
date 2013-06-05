@@ -359,6 +359,9 @@
     <ClInclude Include="ShaderModificationRepository.h">
       <Filter>Direct3D9Vireio</Filter>
     </ClInclude>
+    <ClInclude Include="ShaderConstantModificationFactory.h">
+      <Filter>Direct3D9Vireio</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\Release\Perception\cfg\profiles.xml">

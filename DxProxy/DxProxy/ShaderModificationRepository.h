@@ -29,6 +29,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ShaderRegisters.h"
 #include "MurmurHash3.h"
 #include "Limits.h"
+#include "ShaderConstantModification.h"
+#include "ShaderConstantModificationFactory.h"
+
 
 
 class ShaderModificationRepository
@@ -40,7 +43,7 @@ public:
 	// true if load succeeds, false otherwise
 	bool Load(/*file*/);
 
-	// Returns a collection of modifications that apply to the specified shader. (may be an empty collection of no modifications apply)
+	// Returns a collection of modifications that apply to the specified shader. (may be an empty collection if no modifications apply)
 	// <StrartRegister, StereoShaderConstant<float>>
 	std::map<UINT, StereoShaderConstant<float>> GetModifiedConstantsF(IDirect3DVertexShader9* pActualVertexShader);
 	
@@ -48,11 +51,8 @@ public:
 
 private:
 
-	enum ModificationTypes
-	{
-		TranslateWithView = 0, //unreal
-		TransposeTranslateWithViewTranspose = 1 // source
-	};
+	
+
 
 	class ConstantModificationRule 
 	{
@@ -63,12 +63,17 @@ private:
 		UINT startRegIndex;
 		// type Vector/Matrix // only D3DXPC_VECTOR, D3DXPC_MATRIX_ROWS and D3DXPC_MATRIX_COLUMNS are currently handled
 		D3DXPARAMETER_CLASS constantType;
-		// Identifier of the operation to apply
-		ModificationTypes operationToApply;
+		// Identifier (int that maps to a ShaderConstantModificationFactory::(Vector4/Matrix)ModificationTypes as appropriate given constantType) of the operation to apply
+		UINT operationToApply;
 		// Unique (within a given set of rules) id for this modification
 		UINT modificationID;
 		//type - always float atm
 	};
+
+
+	
+
+
 
 
 	StereoShaderConstant<float> CreateStereoConstantFrom(const ConstantModificationRule* rule);

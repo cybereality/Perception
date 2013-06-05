@@ -62,6 +62,7 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 	pActualVertexShader->GetFunction(pData,&pSizeOfData);
 
 	Hash128Bit hash = Hash128Bit();
+	// 32 bit hash would probably be easier to work with but 128 bit hash generation is faster for larger blocks of data
 	MurmurHash3_x86_128(pData, pSizeOfData, VIREIO_SEED, hash.value);
 
 	if (m_shaderSpecificModificationIDs.count(hash) == 1) {
@@ -168,6 +169,9 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
  StereoShaderConstant<float> ShaderModificationRepository::CreateStereoConstantFrom(const ConstantModificationRule* rule)
 {
 	//TODO implementation
-	
+
+
 	//return StereoShaderConstant<float>(rule.startRegIndex, D3DXMATRIX.identity, 4 /*4 for matrix, 1 for vec*/, 4, rule.constantName, /*modification*/, modificationID);
 }
+
+

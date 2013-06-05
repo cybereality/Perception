@@ -33,6 +33,9 @@ public:
 	/* Applies this modification to toModify */
 	virtual void ApplyModification(T* toModify, T& outLeft, T& outRight) = 0;
 
+
+	
 };
+
 
 #endif

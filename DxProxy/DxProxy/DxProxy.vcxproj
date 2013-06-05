@@ -169,6 +169,7 @@
     <ClInclude Include="GameHandler.h" />
     <ClInclude Include="MurmurHash3.h" />
     <ClInclude Include="ShaderConstantModification.h" />
+    <ClInclude Include="ShaderConstantModificationFactory.h" />
     <ClInclude Include="ShaderModificationRepository.h" />
     <ClInclude Include="ShaderRegisters.h" />
     <ClInclude Include="StereoBackbuffer.h" />
