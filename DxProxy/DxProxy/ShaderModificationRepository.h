@@ -28,6 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "GameHandler.h"
 #include "ShaderRegisters.h"
 #include "MurmurHash3.h"
+#include "Limits.h"
 
 
 class ShaderModificationRepository
@@ -47,28 +48,39 @@ public:
 
 private:
 
+	enum ModificationTypes
+	{
+		TranslateWithView = 0, //unreal
+		TransposeTranslateWithViewTranspose = 1 // source
+	};
+
 	class ConstantModificationRule 
 	{
 	public: 
+		// empty string is "no constant"
 		std::string constantName;
+		// UINT_MAX is "any start reg"
 		UINT startRegIndex;
-		// type Vector/Matrix
-		std::string operationToApply;
+		// type Vector/Matrix // only D3DXPC_VECTOR, D3DXPC_MATRIX_ROWS and D3DXPC_MATRIX_COLUMNS are currently handled
+		D3DXPARAMETER_CLASS constantType;
+		// Identifier of the operation to apply
+		ModificationTypes operationToApply;
+		// Unique (within a given set of rules) id for this modification
 		UINT modificationID;
 		//type - always float atm
 	};
 
 
-	StereoShaderConstant<float> CreateStereoConstantFrom(UINT modificationID);
+	StereoShaderConstant<float> CreateStereoConstantFrom(const ConstantModificationRule* rule);
 
 	// <Modification ID, ModificationRule>
-	std::unordered_map<UINT, ConstantModificationRule> m_constantModificationRules;
+	std::unordered_map<UINT, ConstantModificationRule> m_AllModificationRules;
 
 	// <Modification ID>
-	std::vector<UINT> m_defaultModifications;
+	std::vector<UINT> m_defaultModificationIDs;
 
 	// <Shader hash, vector<Modification ID>>
-	std::unordered_map<Hash128Bit, std::vector<UINT>> m_shaderSpecificModifications;
+	std::unordered_map<Hash128Bit, std::vector<UINT>> m_shaderSpecificModificationIDs;
 };
 
 #endif

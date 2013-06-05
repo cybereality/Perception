@@ -20,9 +20,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <assert.h>
 
 ShaderModificationRepository::ShaderModificationRepository() :
-	m_constantModificationRules(),
-	m_defaultModifications(),
-	m_shaderSpecificModifications()
+	m_AllModificationRules(),
+	m_defaultModificationIDs(),
+	m_shaderSpecificModificationIDs()
 {
 }
 
@@ -48,10 +48,12 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 
 	// return collection of stereoshaderconstants for this shader (empty collection if no modifications)
 
+	// All rules are assumed to be valid. Validation of rules should be done when rules are loaded/created
 	std::vector<ConstantModificationRule*> rulesToApply;
-	// add pointers to rules
+	std::map<UINT, StereoShaderConstant<float>> result;
 
-	/*// Hash the shader and load stereo shader constants
+
+	// Hash the shader and load modification rules
 	BYTE *pData = NULL;
 	UINT pSizeOfData;
 
@@ -62,17 +64,26 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 	Hash128Bit hash = Hash128Bit();
 	MurmurHash3_x86_128(pData, pSizeOfData, VIREIO_SEED, hash.value);
 
-	if (pGameHandler->ConstantConfigsForShaderExists(hash)) {
-		m_pStereoModifiedConstants = new StereoShaderConstants(spProxyDeviceShaderRegisters, pGameHandler->ConstantConfigsForShader(hash));
+	if (m_shaderSpecificModificationIDs.count(hash) == 1) {
+
+		// There are specific modification rules to use with this shader
+		auto itRules = m_shaderSpecificModificationIDs[hash].begin();
+		while (itRules != m_shaderSpecificModificationIDs[hash].end()) {
+			rulesToApply.push_back(&(m_AllModificationRules[*itRules]));
+		}
 	}
 	else {
-		m_pStereoModifiedConstants = NULL;
-		//TODO dump shader constants and hash to file
+
+		// No specific rules, use general rules
+		auto itRules = m_defaultModificationIDs.begin();
+		while (itRules != m_defaultModificationIDs.end()) {
+			rulesToApply.push_back(&(m_AllModificationRules[*itRules]));
+		}
 	}
 
-	delete [] pData;*/
 
 
+	// Load the constant descriptions for this shader and create StereoShaderConstants as the applicable rules require them.
 	LPD3DXCONSTANTTABLE pConstantTable = NULL;
 
 	BYTE* pData = NULL;
@@ -90,10 +101,6 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 		pConstantTable->GetDesc(&pDesc);
 
 		D3DXCONSTANT_DESC pConstantDesc[64];
-
-		//m_shaderDumpFile << std::endl << std::endl;
-		//m_shaderDumpFile << "Shader Creator: " << pDesc.Creator << std::endl;
-		//m_shaderDumpFile << "Shader Version: " << pDesc.Version << std::endl;
 
 		for(UINT i = 0; i < pDesc.Constants; i++)
 		{
@@ -113,32 +120,39 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 					((pConstantDesc[j].Class == D3DXPC_VECTOR) || (pConstantDesc[j].Class == D3DXPC_MATRIX_ROWS) || (pConstantDesc[j].Class == D3DXPC_MATRIX_COLUMNS))  ) {
 
 
-					// iterate over chosen rules 
+					// Check if any rules match this constant
 					auto itRules = rulesToApply.begin();
 					while (itRules != rulesToApply.end()) {
 
-						
-					}
+						// Type match
+						if ((*itRules)->constantType == pConstantDesc[j].Class) {
 
-					//m_shaderDumpFile << "Constant";
-					//m_shaderDumpFile << "Name: " << pConstantDesc[j].Name << std::endl;
-					//m_shaderDumpFile << "Type: ";
+							// name match required
+							if ((*itRules)->constantName.size() > 0) {
+								if ((*itRules)->constantName.compare(pConstantDesc[j].Name) != 0) {
+									// no match
+									++itRules;
+									continue;
+								}
+							}
 
-					if (pConstantDesc[j].Class == D3DXPC_VECTOR) {
-						//m_shaderDumpFile << "Vector" << std::endl;
-					}
-					else if (pConstantDesc[j].Class == D3DXPC_MATRIX_ROWS) {
-						//m_shaderDumpFile << "Row Major Matrix" << std::endl;
-					}
-					else if (pConstantDesc[j].Class == D3DXPC_MATRIX_COLUMNS) {
-						//m_shaderDumpFile << "Col Major Matrix" << std::endl;
-					}
+							// register match required
+							if ((*itRules)->startRegIndex != UINT_MAX) {
+								if ((*itRules)->startRegIndex != pConstantDesc[j].RegisterIndex) {
+									// no match
+									++itRules;
+									continue;
+								}
+							}
 
-					//m_shaderDumpFile << "Register Index: " << pConstantDesc[j].RegisterIndex << std::endl;
-					//m_shaderDumpFile << "Register Count: " << pConstantDesc[j].RegisterCount << std::endl;
-					//m_shaderDumpFile << "Number of elements in the array:" << pConstantDesc[j].Elements << std::endl << std::endl;
-				}
-						
+
+							// Create StereoShaderConstant<float> and add to result
+							result.insert(CreateStereoConstantFrom(*itRules));
+						}
+
+						++itRules;
+					}
+				}	
 			}
 		}
 	}
@@ -146,23 +160,14 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 	_SAFE_RELEASE(pConstantTable);
 	if (pData) delete[] pData;
 
-
-	try {
-		CreateStereoConstantFrom(1);
-	}
-	catch (std::out_of_range) {
-		OutputDebugString("Unable to create StereoShaderConstant from ConstantModificationRule, could not find rule. Rule skipped.");
-	}
+	return result;
 }
 
 
 
- StereoShaderConstant<float> ShaderModificationRepository::CreateStereoConstantFrom(UINT modificationID/*type(matrix/vec4), rule*/)
+ StereoShaderConstant<float> ShaderModificationRepository::CreateStereoConstantFrom(const ConstantModificationRule* rule)
 {
-	ConstantModificationRule rule;
+	//TODO implementation
 	
-	rule = m_constantModificationRules.at(modificationID);
-
 	//return StereoShaderConstant<float>(rule.startRegIndex, D3DXMATRIX.identity, 4 /*4 for matrix, 1 for vec*/, 4, rule.constantName, /*modification*/, modificationID);
-	
 }
