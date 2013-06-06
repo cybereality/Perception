@@ -38,6 +38,9 @@
     <Filter Include="MurmurHash3">
       <UniqueIdentifier>{ce4cba8f-29ab-44a7-9545-c1859fe4213e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Direct3D9Vireio\ShaderConstantModification">
+      <UniqueIdentifier>{084bd177-106f-45e6-a3bf-8f38a1279b73}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -188,12 +191,15 @@
       <Filter>Direct3D9Vireio</Filter>
     </ClCompile>
     <ClCompile Include="ShaderModificationRepository.cpp">
-      <Filter>Direct3D9Vireio</Filter>
+      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Exports.def">
       <Filter>Main</Filter>
+    </None>
+    <None Include="SideBySideRiftPartialCrop.fx">
+      <Filter>fx</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -332,9 +338,6 @@
     <ClInclude Include="D3D9ProxyStateBlock.h">
       <Filter>Direct3D9Vireio</Filter>
     </ClInclude>
-    <ClInclude Include="StereoShaderConstant.h">
-      <Filter>Direct3D9Vireio</Filter>
-    </ClInclude>
     <ClInclude Include="StereoBackbuffer.h">
       <Filter>Direct3D9Vireio</Filter>
     </ClInclude>
@@ -342,9 +345,6 @@
       <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
     </ClInclude>
     <ClInclude Include="ShaderRegisters.h">
-      <Filter>Direct3D9Vireio</Filter>
-    </ClInclude>
-    <ClInclude Include="ShaderConstantModification.h">
       <Filter>Direct3D9Vireio</Filter>
     </ClInclude>
     <ClInclude Include="GameHandler.h">
@@ -356,11 +356,17 @@
     <ClInclude Include="D3D9ProxyVertexShader.h">
       <Filter>Direct3D9Vireio</Filter>
     </ClInclude>
+    <ClInclude Include="ShaderConstantModification.h">
+      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
+    </ClInclude>
     <ClInclude Include="ShaderModificationRepository.h">
-      <Filter>Direct3D9Vireio</Filter>
+      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
     </ClInclude>
     <ClInclude Include="ShaderConstantModificationFactory.h">
-      <Filter>Direct3D9Vireio</Filter>
+      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
+    </ClInclude>
+    <ClInclude Include="StereoShaderConstant.h">
+      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -29,13 +29,13 @@ class ShaderConstantModificationFactory
 public:
 	enum Vector4ModificationTypes
 	{
-		V_SimpleTranslate = 0
+		SimpleTranslate = 0
 	};
 
 	enum MatrixModificationTypes
 	{
-		M_TranslateWithView = 0, //unreal
-		M_TransposeTranslateWithViewTranspose = 1, // source
+		TranslateWithView = 0, //unreal
+		TransposeTranslateWithViewTranspose = 1, // source
 	};
 
 	static ShaderConstantModification<D3DXVECTOR4> CreateVector4Modification(Vector4ModificationTypes mod)

@@ -28,12 +28,13 @@ template <class T>
 class ShaderConstantModification
 {
 public:
+	ShaderConstantModification(UINT modID) : m_ModificationID(modID) {};
 	virtual ~ShaderConstantModification() {};
 
 	/* Applies this modification to toModify */
 	virtual void ApplyModification(T* toModify, T& outLeft, T& outRight) = 0;
 
-
+	UINT m_ModificationID;
 	
 };
 

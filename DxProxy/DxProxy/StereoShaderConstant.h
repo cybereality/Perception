@@ -21,36 +21,38 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <vector>
 #include <string>
+#include "d3d9.h"
 #include "ShaderConstantModification.h"
 
-template <class T>
+//  registerLength = (4 for float/int, 1 for bool)
+template <class T=float, UINT L=4>
 class StereoShaderConstant
 {
-public:							// TODO take normal data in, generate left and right using modification
-	StereoShaderConstant(UINT StartReg, const T* pConstDataLeft, const T* pConstDataRight, UINT dataCount, UINT countMultiplier/*register length (4 for float/int, 1 for bool)*/, std::string name, ShaderConstantModification<T> modification, UINT modificationId) :
+public:	
+	StereoShaderConstant(UINT StartReg, const T* pData, UINT dataCount, ShaderConstantModification<T> modification) :
 		m_StartRegister(StartReg),
 		m_Count(dataCount),
-		m_Multiplier(countMultiplier),
-		m_DataLeft(pConstDataLeft, pConstDataLeft + (dataCount * countMultiplier)),
-		m_DataRight(pConstDataRight, pConstDataRight + (dataCount * countMultiplier)),
-		m_Name(name),
-		m_ModificationID(modificationId) {}
+		m_DataLeft(),//pConstDataLeft, pConstDataLeft + (dataCount * L)),
+		m_DataRight()//pConstDataRight, pConstDataRight + (dataCount * L)),
+	{
+		m_DataLeft.resize(dataCount * L);
+		m_DataRight.resize(dataCount * L);
+		Update(pData);
+	}
 
 	virtual ~StereoShaderConstant() {}
 
 	// pointer to new data. Verify data dimensions match this constant before calling if needed
 	void Update(const T* data) 
 	{
-		// assert sizes match
-
-		// TODO Apply modification to update left and right
+		m_modification.ApplyModification(data, &m_DataLeft, &m_DataRight);
 	}
 
-	/* Return true if this constant represents the same constant as other  (contents of the registers does not need to match)*/
+	/* Return true if this constant represents the same constant as other  (contents of the registers does not need to match) but the registers must be the same and use the same modification */
 	bool SameConstantAs(const StereoShaderConstant<T> & other)
 	{
 		return (other.m_StartRegister == m_StartRegister) &&
-			(other.m_ModificationID == m_ModificationID));
+			(other.m_modification.m_ModificationID == m_modification.m_ModificationID));
 	}
 		
 	T* DataLeftPointer() 
@@ -63,22 +65,21 @@ public:							// TODO take normal data in, generate left and right using modific
 		return &m_DataRight[0];
 	}
 
-	std::string Name() { return m_Name; }
 	UINT StartRegister() { return m_StartRegister; }
 	UINT Count() { return m_Count; }
-	UINT Multiplier() { return m_Multiplier; }
 	
 
 private:
 	std::vector<T> m_DataLeft;
 	std::vector<T> m_DataRight;
 
-	std::string m_Name;
+	ShaderConstantModification<T> m_modification;
+
 	UINT m_StartRegister;
 	UINT m_Count;
-	UINT m_Multiplier;
-	UINT m_ModificationID;
+	
 };
+
 
 
 #endif
