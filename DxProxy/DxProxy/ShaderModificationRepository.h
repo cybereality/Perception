@@ -65,8 +65,8 @@ private:
 		D3DXPARAMETER_CLASS constantType;
 		// Identifier (int that maps to a ShaderConstantModificationFactory::(Vector4/Matrix)ModificationTypes as appropriate given constantType) of the operation to apply
 		UINT operationToApply;
-		// Unique (within a given set of rules) id for this modification
-		UINT modificationID;
+		// Unique (within a given set of rules) id for this modification rule
+		UINT modificationRuleID;
 		//type - always float atm
 	};
 
@@ -78,14 +78,14 @@ private:
 	// StartReg is needed for registers that were identified by rule using name for matching but not register
 	StereoShaderConstant<float> CreateStereoConstantFrom(const ConstantModificationRule* rule, UINT StartReg, UINT Count);
 
-	// <Modification ID, ModificationRule>
+	// <Modification Rule ID, ModificationRule>
 	std::unordered_map<UINT, ConstantModificationRule> m_AllModificationRules;
 
 	// <Modification ID>
-	std::vector<UINT> m_defaultModificationIDs;
+	std::vector<UINT> m_defaultModificationRuleIDs;
 
 	// <Shader hash, vector<Modification ID>>
-	std::unordered_map<Hash128Bit, std::vector<UINT>> m_shaderSpecificModificationIDs;
+	std::unordered_map<Hash128Bit, std::vector<UINT>> m_shaderSpecificModificationRuleIDs;
 };
 
 #endif

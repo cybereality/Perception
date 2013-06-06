@@ -21,8 +21,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ShaderModificationRepository::ShaderModificationRepository() :
 	m_AllModificationRules(),
-	m_defaultModificationIDs(),
-	m_shaderSpecificModificationIDs()
+	m_defaultModificationRuleIDs(),
+	m_shaderSpecificModificationRuleIDs()
 {
 	D3DXMatrixIdentity(&m_identity);
 }
@@ -66,19 +66,19 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 	// 32 bit hash would probably be easier to work with but 128 bit hash generation is faster for larger blocks of data
 	MurmurHash3_x86_128(pData, pSizeOfData, VIREIO_SEED, hash.value);
 
-	if (m_shaderSpecificModificationIDs.count(hash) == 1) {
+	if (m_shaderSpecificModificationRuleIDs.count(hash) == 1) {
 
 		// There are specific modification rules to use with this shader
-		auto itRules = m_shaderSpecificModificationIDs[hash].begin();
-		while (itRules != m_shaderSpecificModificationIDs[hash].end()) {
+		auto itRules = m_shaderSpecificModificationRuleIDs[hash].begin();
+		while (itRules != m_shaderSpecificModificationRuleIDs[hash].end()) {
 			rulesToApply.push_back(&(m_AllModificationRules[*itRules]));
 		}
 	}
 	else {
 
 		// No specific rules, use general rules
-		auto itRules = m_defaultModificationIDs.begin();
-		while (itRules != m_defaultModificationIDs.end()) {
+		auto itRules = m_defaultModificationRuleIDs.begin();
+		while (itRules != m_defaultModificationRuleIDs.end()) {
 			rulesToApply.push_back(&(m_AllModificationRules[*itRules]));
 		}
 	}
@@ -96,7 +96,7 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 	pActualVertexShader->GetFunction(pData, &pSizeOfData);
 
 	D3DXGetShaderConstantTable(reinterpret_cast<DWORD*>(pData), &pConstantTable);
-			
+	
 	if(pConstantTable) {
 		
 		D3DXCONSTANTTABLE_DESC pDesc;
@@ -180,7 +180,7 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 	switch (rule->constantType)
 	{
 	case D3DXPC_VECTOR:
-		modification = ShaderConstantModificationFactory::CreateVector4Modification(rule->modificationID);
+		modification = ShaderConstantModificationFactory::CreateVector4Modification(rule->operationToApply);
 		pData = D3DXVECTOR4(0,0,0,0);
 		break;
 
