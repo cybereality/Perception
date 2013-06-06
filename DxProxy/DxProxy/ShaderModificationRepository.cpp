@@ -186,8 +186,7 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 
 	case D3DXPC_MATRIX_ROWS:
 	case D3DXPC_MATRIX_COLUMNS:
-		//TODO more implementation
-		modification = ShaderConstantModificationFactory::CreateVector4Modification(ShaderConstantModificationFactory::SimpleTranslate);
+		modification = ShaderConstantModificationFactory::CreateMatrixModification(rule->operationToApply);
 		pData = m_identity;
 
 		throw 69;
