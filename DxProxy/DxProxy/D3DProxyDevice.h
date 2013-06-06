@@ -40,7 +40,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <fstream>
 #include <vector>
 #include <memory>
-#include "WrapperUtils.h"
+#include "Vireio.h"
 #include "StereoShaderConstant.h"
 #include "StereoBackBuffer.h"
 #include "GameHandler.h"
@@ -53,6 +53,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 class StereoView;
 class D3D9ProxySwapChain;
+class ShaderRegisters;
+class GameHandler;
 
 class D3DProxyDevice : public BaseDirect3DDevice9
 {
@@ -212,11 +214,7 @@ public:
 		ADVANCED_SKYRIM = 601
 	};
 
-	enum EyeSide
-	{
-		Left = 1,
-		Right = 2
-	};
+	
 
 protected:
 	
@@ -224,9 +222,10 @@ protected:
 	////////////////////////
 	// This is halfway from where things were to where they want to be with regard to shader modification handling
 	// Shader constant could overwrite a modified shader const based matrix
+	/*
 	virtual bool CouldOverwriteMatrix(UINT StartRegister, UINT Vector4fCount);
 	virtual bool ContainsMatrixToModify(UINT StartRegister, CONST float* pConstantData, UINT Vector4fCount);
-	virtual StereoShaderConstant<float> CreateStereoShaderConstant(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
+	virtual StereoShaderConstant<float> CreateStereoShaderConstant(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);*/
 	////////////////////////
 
 	
@@ -236,17 +235,16 @@ protected:
 	// Overriding classes should call the base implementation first and then makes any extra needed changes
 	// based on the result of the base implementation (if the base class doesn't change side then derived shouldn't 
 	// change either)
-	virtual bool setDrawingSide(enum EyeSide side);
+	virtual bool setDrawingSide(vireio::RenderPosition side);
 
 	// Try and toggle to other drawing side. Returns false if changes fails due to the current render target being mono.
 	bool switchDrawingSide();
 
-	EyeSide m_currentRenderingSide;
+	vireio::RenderPosition m_currentRenderingSide;
 
 	D3DXMATRIX* m_pCurrentMatViewTransform;
 	
 	D3D9ProxyVertexShader* m_pActiveVertexShader;
-	//std::unordered_map<UINT, StereoShaderConstant<float>> m_activeStereoVShaderConstF;
 
 	D3D9ProxyStateBlock* m_pCapturingStateTo;
 
@@ -261,8 +259,8 @@ private:
 	HRESULT SetStereoProjectionTransform(D3DXMATRIX pLeftMatrix, D3DXMATRIX pRightMatrix, bool apply);
 
 
-	GameHandler* m_gameSpecificLogic;
 	std::shared_ptr<ShaderRegisters> m_spManagedShaderRegisters;
+	GameHandler* m_pGameSpecificLogic;
 	
 	bool m_bActiveViewportIsDefault;
 	D3DVIEWPORT9 m_LastViewportSet;

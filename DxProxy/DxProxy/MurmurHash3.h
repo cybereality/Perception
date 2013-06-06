@@ -8,6 +8,10 @@
 // do not change
 #define VIREIO_SEED 12345
 
+#include <sstream>
+#include <iomanip>
+#include <iostream>
+
 //-----------------------------------------------------------------------------
 // Platform-specific functions and macros
 
@@ -19,7 +23,16 @@ typedef unsigned char uint8_t;
 typedef unsigned long uint32_t;
 typedef unsigned __int64 uint64_t;
 
-typedef struct _Hash128Bit { uint32_t value[4]; } Hash128Bit;
+/*typedef struct _Hash128Bit 
+{ 
+	uint32_t value[4]; 
+
+	std::string ToString()
+	{
+
+	}
+
+} Hash128Bit;*/
 
 // Other compilers
 
@@ -33,9 +46,9 @@ typedef struct _Hash128Bit { uint32_t value[4]; } Hash128Bit;
 
 void MurmurHash3_x86_32  ( const void * key, int len, uint32_t seed, void * out );
 
-void MurmurHash3_x86_128 ( const void * key, int len, uint32_t seed, void * out );
+//void MurmurHash3_x86_128 ( const void * key, int len, uint32_t seed, void * out );
 
-void MurmurHash3_x64_128 ( const void * key, int len, uint32_t seed, void * out );
+//void MurmurHash3_x64_128 ( const void * key, int len, uint32_t seed, void * out );
 
 //-----------------------------------------------------------------------------
 

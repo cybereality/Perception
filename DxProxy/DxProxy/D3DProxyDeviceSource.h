@@ -29,11 +29,11 @@ class D3DProxyDeviceSource : public D3DProxyDevice
 public:
 	D3DProxyDeviceSource(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy);
 	virtual ~D3DProxyDeviceSource();
-
+	/*
 	virtual bool CouldOverwriteMatrix(UINT StartRegister, UINT Vector4fCount);
 	virtual bool ContainsMatrixToModify(UINT StartRegister, CONST float* pConstantData, UINT Vector4fCount);
 	virtual StereoShaderConstant<float> CreateStereoShaderConstant(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
-
+	*/
 	void Init(ProxyHelper::ProxyConfig& cfg);
 	bool validRegister(UINT reg);
 	int getMatrixIndex();

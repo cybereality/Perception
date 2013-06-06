@@ -155,7 +155,7 @@
     <ClCompile Include="StereoView.cpp" />
     <ClCompile Include="StereoViewFactory.cpp" />
     <ClCompile Include="StereoViewInterleave.cpp" />
-    <ClCompile Include="WrapperUtils.cpp" />
+    <ClCompile Include="Vireio.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="D3D9ProxyCubeTexture.h" />
@@ -167,6 +167,7 @@
     <ClInclude Include="D3D9ProxyStateBlock.h" />
     <ClInclude Include="DataGatherer.h" />
     <ClInclude Include="GameHandler.h" />
+    <ClInclude Include="Vireio.h" />
     <ClInclude Include="MurmurHash3.h" />
     <ClInclude Include="ShaderConstantModification.h" />
     <ClInclude Include="ShaderConstantModificationFactory.h" />
@@ -213,7 +214,6 @@
     <ClInclude Include="StereoViewInterleave.h" />
     <ClInclude Include="MotionTracker.h" />
     <ClInclude Include="Vec4SimpleTranslate.h" />
-    <ClInclude Include="WrapperUtils.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\Release\Perception\cfg\config.xml">

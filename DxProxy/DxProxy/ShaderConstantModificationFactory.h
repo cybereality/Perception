@@ -40,12 +40,12 @@ public:
 		TranslateWithViewColMajor = 1, // source
 	};
 
-	static std::shared_ptr<ShaderConstantModification<D3DXVECTOR4>> CreateVector4Modification(UINT modID)
+	static std::shared_ptr<ShaderConstantModification<>> CreateVector4Modification(UINT modID)
 	{
 		return CreateVector4Modification(static_cast<Vector4ModificationTypes>(modID));
 	}
 
-	static std::shared_ptr<ShaderConstantModification<D3DXVECTOR4>> CreateVector4Modification(Vector4ModificationTypes mod)
+	static std::shared_ptr<ShaderConstantModification<>> CreateVector4Modification(Vector4ModificationTypes mod)
 	{
 		switch (mod)
 		{
@@ -59,12 +59,12 @@ public:
 		}
 	}
 
-	static std::shared_ptr<ShaderConstantModification<D3DXMATRIX>> CreateMatrixModification(UINT modID) 
+	static std::shared_ptr<ShaderConstantModification<>> CreateMatrixModification(UINT modID) 
 	{
 		return CreateMatrixModification(static_cast<MatrixModificationTypes>(modID));
 	}
 
-	static std::shared_ptr<ShaderConstantModification<D3DXMATRIX>> CreateMatrixModification(MatrixModificationTypes mod)
+	static std::shared_ptr<ShaderConstantModification<>> CreateMatrixModification(MatrixModificationTypes mod)
 	{
 		switch (mod)
 		{

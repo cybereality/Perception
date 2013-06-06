@@ -160,8 +160,8 @@ inline void D3D9ProxyStateBlock::updateCaptureSideTracking()
 	if (m_eSidesAre == SidesMixed)
 		return;
 	
-	if (((m_pWrappedDevice->m_currentRenderingSide == D3DProxyDevice::Left) && (m_eSidesAre != SidesAllLeft)) ||
-		((m_pWrappedDevice->m_currentRenderingSide == D3DProxyDevice::Right) && (m_eSidesAre != SidesAllRight))) {
+	if (((m_pWrappedDevice->m_currentRenderingSide == vireio::Left) && (m_eSidesAre != SidesAllLeft)) ||
+		((m_pWrappedDevice->m_currentRenderingSide == vireio::Right) && (m_eSidesAre != SidesAllRight))) {
 
 		m_eSidesAre = SidesMixed;
 	}
@@ -303,10 +303,10 @@ void D3D9ProxyStateBlock::CaptureSelectedFromProxyDevice()
 	}
 
 
-	if (m_pWrappedDevice->m_currentRenderingSide == D3DProxyDevice::Left) {
+	if (m_pWrappedDevice->m_currentRenderingSide == vireio::Left) {
 		m_eSidesAre = SidesAllLeft;
 	}
-	else if (m_pWrappedDevice->m_currentRenderingSide == D3DProxyDevice::Right) {
+	else if (m_pWrappedDevice->m_currentRenderingSide == vireio::Right) {
 		m_eSidesAre = SidesAllRight;
 	}
 	else {
@@ -489,10 +489,10 @@ HRESULT WINAPI D3D9ProxyStateBlock::Apply()
 
 	// If all stereo states recorded on the same side then switch the proxy device to that side
 	if (m_eSidesAre == SidesAllLeft) {
-		m_pWrappedDevice->setDrawingSide(D3DProxyDevice::Left);
+		m_pWrappedDevice->setDrawingSide(vireio::Left);
 	}
 	else if (m_eSidesAre == SidesAllRight) {
-		m_pWrappedDevice->setDrawingSide(D3DProxyDevice::Right);
+		m_pWrappedDevice->setDrawingSide(vireio::Right);
 	}
 
 
@@ -556,7 +556,7 @@ HRESULT WINAPI D3D9ProxyStateBlock::Apply()
 			auto itVSConstF = m_StoredStereoShaderConstsF.begin();
 			while (itVSConstF != m_StoredStereoShaderConstsF.end()) {
 
-				m_pWrappedDevice->SetVertexShaderConstantF(itVSConstF->second.StartRegister, (m_pWrappedDevice->m_currentRenderingSide == D3DProxyDevice::Left) ? itVSConstF->second.DataLeftPointer() : itVSConstF->second.DataRightPointer(), itVSConstF->second.Count);
+				m_pWrappedDevice->SetVertexShaderConstantF(itVSConstF->second.StartRegister, (m_pWrappedDevice->m_currentRenderingSide == vireio::Left) ? itVSConstF->second.DataLeftPointer() : itVSConstF->second.DataRightPointer(), itVSConstF->second.Count);
 				++itVSConstF;
 			}
 

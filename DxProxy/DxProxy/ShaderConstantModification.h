@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "d3dx9.h"
 
 
-template <class T>
+template <class T=float>
 class ShaderConstantModification
 {
 public:
@@ -32,7 +32,7 @@ public:
 	virtual ~ShaderConstantModification() {};
 
 	/* Applies this modification to toModify */
-	virtual void ApplyModification(const T* toModify, T& outLeft, T& outRight) = 0;
+	virtual void ApplyModification(const T* toModify, T* outLeft, T* outRight) = 0;
 
 	UINT m_ModificationID;
 	

@@ -43,7 +43,7 @@ void D3DProxyDeviceSource::Init(ProxyHelper::ProxyConfig& cfg)
 	m_validMatrixRegisters.push_back(51);
 }
 
-
+/*
 bool CheckMatrix(UINT StartRegister, UINT Vector4fCount, UINT theMatrixIndex) 
 {
 	return ((StartRegister >= theMatrixIndex) && (StartRegister < (theMatrixIndex + Vector4fCount)));
@@ -83,7 +83,7 @@ StereoShaderConstant<float> D3DProxyDeviceSource::CreateStereoShaderConstant(UIN
 		
 	return StereoShaderConstant<float>(StartRegister, tempLeft, tempRight, Vector4fCount, 4);
 }
-
+*/
 
 
 bool D3DProxyDeviceSource::validRegister(UINT reg)

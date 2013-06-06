@@ -24,12 +24,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "d3dx9.h"
 #include "ShaderConstantModification.h"
 
-class Vec4SimpleTranslate : ShaderConstantModification<D3DXVECTOR4>
+class Vec4SimpleTranslate : public ShaderConstantModification<float>
 {
 public:
 	Vec4SimpleTranslate(UINT modID) : ShaderConstantModification(modID) {};
 
-	virtual void ApplyModification(const D3DXVECTOR4* toModify, D3DXVECTOR4& outLeft, D3DXVECTOR4& outRight)
+	virtual void ApplyModification(const float* toModify, float* outLeft, float* outRight)
 	{
 		//TODO implement
 	}

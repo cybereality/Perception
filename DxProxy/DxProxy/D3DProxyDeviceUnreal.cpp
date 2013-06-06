@@ -34,7 +34,7 @@ void D3DProxyDeviceUnreal::Init(ProxyHelper::ProxyConfig& cfg)
 	matrixIndex = getMatrixIndex();
 }
 
-
+/*
 bool D3DProxyDeviceUnreal::CouldOverwriteMatrix(UINT StartRegister, UINT Vector4fCount) 
 {
 	return ((StartRegister >= matrixIndex) && (StartRegister < (matrixIndex + Vector4fCount)));
@@ -54,7 +54,7 @@ StereoShaderConstant<float> D3DProxyDeviceUnreal::CreateStereoShaderConstant(UIN
 	D3DXMATRIX tempRight (tempMatrix * matViewTranslationRight);
 
 	return StereoShaderConstant<float>(StartRegister, tempLeft, tempRight, Vector4fCount, 4);
-}
+}*/
 
 
 

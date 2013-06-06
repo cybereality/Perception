@@ -118,9 +118,6 @@
     <ClCompile Include="D3D9ProxyTexture.cpp">
       <Filter>Direct3D9Vireio\Direct3DTextures</Filter>
     </ClCompile>
-    <ClCompile Include="WrapperUtils.cpp">
-      <Filter>Direct3D9Vireio</Filter>
-    </ClCompile>
     <ClCompile Include="Direct3DCubeTexture9.cpp">
       <Filter>Direct3D9</Filter>
     </ClCompile>
@@ -192,6 +189,9 @@
     </ClCompile>
     <ClCompile Include="ShaderModificationRepository.cpp">
       <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
+    </ClCompile>
+    <ClCompile Include="Vireio.cpp">
+      <Filter>Direct3D9Vireio</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -284,9 +284,6 @@
     <ClInclude Include="IStereoCapableWrapper.h">
       <Filter>Direct3D9Vireio</Filter>
     </ClInclude>
-    <ClInclude Include="WrapperUtils.h">
-      <Filter>Direct3D9Vireio</Filter>
-    </ClInclude>
     <ClInclude Include="Direct3DCubeTexture9.h">
       <Filter>Direct3D9</Filter>
     </ClInclude>
@@ -370,6 +367,9 @@
     </ClInclude>
     <ClInclude Include="Vec4SimpleTranslate.h">
       <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
+    </ClInclude>
+    <ClInclude Include="Vireio.h">
+      <Filter>Direct3D9Vireio</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

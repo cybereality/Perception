@@ -28,8 +28,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <map>
 #include <algorithm>
 #include "D3D9ProxyVertexShader.h"
-#include "D3DProxyDevice.h"
+#include "Vireio.h"
 
+
+class D3D9ProxyVertexShader;
 
 class ShaderRegisters
 {
@@ -52,12 +54,12 @@ public:
 	/* 
 		This will apply all dirty registers. Modified registers are updated and applied followed by unmodified
 	 */
-	void ApplyToDevice(D3DProxyDevice::EyeSide currentSide);
+	void ApplyToDevice(vireio::RenderPosition currentSide);
 
 	/*
 		This will apply all StereoShaderConstants whether Dirty or not
 	 */
-	void ForceApplyStereoConstants(D3DProxyDevice::EyeSide currentSide);
+	void ForceApplyStereoConstants(vireio::RenderPosition currentSide);
 
 private:
 	// Number of constant registers supported by device

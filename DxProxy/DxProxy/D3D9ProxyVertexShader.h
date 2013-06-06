@@ -31,6 +31,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ShaderModificationRepository.h"
 
 
+class D3DProxyDevice;
+class ShaderModificationRepository;
 
 class D3D9ProxyVertexShader : public BaseDirect3DVertexShader9
 {
@@ -38,14 +40,14 @@ public:
 	D3D9ProxyVertexShader(IDirect3DVertexShader9* pActualVertexShader, D3DProxyDevice* pOwningDevice, ShaderModificationRepository* pModLoader);
 	virtual ~D3D9ProxyVertexShader();
 
-	std::map<UINT, StereoShaderConstant<float>>* ModifiedConstants();
+	std::map<UINT, StereoShaderConstant<>>* ModifiedConstants();
 
 
 protected:
 
 	IDirect3DDevice9* m_pActualDevice;
 
-	std::map<UINT, StereoShaderConstant<float>> m_modifiedConstants;
+	std::map<UINT, StereoShaderConstant<>> m_modifiedConstants;
 };
 
 #endif

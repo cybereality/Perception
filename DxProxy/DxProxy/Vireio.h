@@ -16,8 +16,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#ifndef WRAPPERUTILS_H_INCLUDED
-#define WRAPPERUTILS_H_INCLUDED
+#ifndef VIREIO_H_INCLUDED
+#define VIREIO_H_INCLUDED
 
 #include <d3dx9.h>
 #include <assert.h>
@@ -26,7 +26,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "D3D9ProxyCubeTexture.h"
 
 
-namespace wrapperUtils {
+namespace vireio {
+
+	enum RenderPosition
+	{
+		// porbably need an 'Original' here
+		Left = 1,
+		Right = 2
+		
+	};
 
 	/*
 		Returns actualy textures from wrapped texture.

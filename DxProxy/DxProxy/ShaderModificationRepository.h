@@ -85,7 +85,7 @@ private:
 	std::vector<UINT> m_defaultModificationRuleIDs;
 
 	// <Shader hash, vector<Modification ID>>
-	std::unordered_map<Hash128Bit, std::vector<UINT>> m_shaderSpecificModificationRuleIDs;
+	std::unordered_map<uint32_t, std::vector<UINT>> m_shaderSpecificModificationRuleIDs;
 };
 
 #endif

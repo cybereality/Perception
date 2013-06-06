@@ -96,9 +96,6 @@
     <ClCompile Include="..\..\DxProxy\DxProxy\D3D9ProxyTexture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\DxProxy\DxProxy\WrapperUtils.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\DxProxy\DxProxy\D3D9ProxyVolumeTexture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -239,9 +236,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\DxProxy\DxProxy\D3D9ProxyTexture.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\DxProxy\DxProxy\WrapperUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\DxProxy\DxProxy\D3D9ProxyVolumeTexture.h">

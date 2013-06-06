@@ -32,10 +32,19 @@ ShaderModificationRepository::~ShaderModificationRepository()
 
 }
 
-bool RuleApplies(D3DXCONSTANT_DESC* constantDesc) 
+bool ShaderModificationRepository::Load(/*file*/)
 {
-	
+	m_AllModificationRules.clear();
+	m_defaultModificationRuleIDs.clear();
+	m_shaderSpecificModificationRuleIDs.clear();
+
+	// TODO implementation
+	// load from file
+	// For testing load source settings manually
+
+	return true;
 }
+
 
 std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetModifiedConstantsF(IDirect3DVertexShader9* pActualVertexShader)
 {
@@ -62,9 +71,9 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 	pData = new BYTE[pSizeOfData];
 	pActualVertexShader->GetFunction(pData,&pSizeOfData);
 
-	Hash128Bit hash = Hash128Bit();
+	uint32_t hash;
 	// 32 bit hash would probably be easier to work with but 128 bit hash generation is faster for larger blocks of data
-	MurmurHash3_x86_128(pData, pSizeOfData, VIREIO_SEED, hash.value);
+	MurmurHash3_x86_32(pData, pSizeOfData, VIREIO_SEED, &hash);
 
 	if (m_shaderSpecificModificationRuleIDs.count(hash) == 1) {
 
@@ -87,13 +96,6 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 
 	// Load the constant descriptions for this shader and create StereoShaderConstants as the applicable rules require them.
 	LPD3DXCONSTANTTABLE pConstantTable = NULL;
-
-	BYTE* pData = NULL;
-	UINT pSizeOfData;
-	pActualVertexShader->GetFunction(NULL, &pSizeOfData);
-			
-	pData = new BYTE[pSizeOfData];
-	pActualVertexShader->GetFunction(pData, &pSizeOfData);
 
 	D3DXGetShaderConstantTable(reinterpret_cast<DWORD*>(pData), &pConstantTable);
 	
@@ -149,7 +151,7 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 
 
 							// Create StereoShaderConstant<float> and add to result
-							result.insert(CreateStereoConstantFrom(*itRules, pConstantDesc[j].RegisterIndex, pConstantDesc[j].RegisterCount));
+							result.insert(std::pair<UINT, StereoShaderConstant<>>(pConstantDesc[j].RegisterIndex, CreateStereoConstantFrom(*itRules, pConstantDesc[j].RegisterIndex, pConstantDesc[j].RegisterCount)));
 
 							// only the first matching rule is applied to a constant
 							break;
@@ -170,11 +172,11 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 
 
 
- StereoShaderConstant<float> ShaderModificationRepository::CreateStereoConstantFrom(const ConstantModificationRule* rule, UINT StartReg, UINT Count)
+ StereoShaderConstant<> ShaderModificationRepository::CreateStereoConstantFrom(const ConstantModificationRule* rule, UINT StartReg, UINT Count)
 {
 	assert ((rule->startRegIndex == UINT_MAX) ? (StartReg != UINT_MAX) : (rule->startRegIndex == StartReg));
 
-	std::shared_ptr<ShaderConstantModification<D3DXVECTOR4>> modification = nullptr;
+	std::shared_ptr<ShaderConstantModification<>> modification = nullptr;
 	float* pData = NULL;
 
 	switch (rule->constantType)
@@ -182,6 +184,8 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 	case D3DXPC_VECTOR:
 		modification = ShaderConstantModificationFactory::CreateVector4Modification(rule->operationToApply);
 		pData = D3DXVECTOR4(0,0,0,0);
+
+		return StereoShaderConstant<>(StartReg, pData, Count, modification);
 		break;
 
 	case D3DXPC_MATRIX_ROWS:
@@ -189,7 +193,7 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 		modification = ShaderConstantModificationFactory::CreateMatrixModification(rule->operationToApply);
 		pData = m_identity;
 
-		throw 69;
+		return StereoShaderConstant<>(StartReg, pData, Count, modification);
 		break;
 
 	default:
@@ -198,7 +202,7 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 		break;
 	}
 
-	return StereoShaderConstant<float>(StartReg, pData, Count, modification);
+	
 }
 
 

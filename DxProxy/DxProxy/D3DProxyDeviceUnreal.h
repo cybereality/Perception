@@ -29,11 +29,11 @@ public:
 	D3DProxyDeviceUnreal(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy);
 	virtual ~D3DProxyDeviceUnreal();
 	
-
+	/*
 	virtual bool CouldOverwriteMatrix(UINT StartRegister, UINT Vector4fCount);
 	virtual bool ContainsMatrixToModify(UINT StartRegister, CONST float* pConstantData, UINT Vector4fCount);
 	virtual StereoShaderConstant<float> CreateStereoShaderConstant(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
-
+	*/
 	virtual void Init(ProxyHelper::ProxyConfig& cfg);
 	
 

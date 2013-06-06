@@ -49,7 +49,7 @@ HRESULT WINAPI ShaderRegisters::SetConstantRegistersF(UINT StartRegister, const 
 	std::copy(pConstantData, pConstantData + (VECTOR_LENGTH * Vector4fCount), m_registersF.begin() + RegisterIndex(StartRegister));
 
 	// Mark registers dirty
-	for (int i = StartRegister; i < StartRegister + Vector4fCount; i++) {
+	for (UINT i = StartRegister; i < StartRegister + Vector4fCount; i++) {
 		m_dirtyRegistersF.insert(i);
 	}
 
@@ -66,12 +66,7 @@ HRESULT WINAPI ShaderRegisters::GetConstantRegistersF(UINT StartRegister, float*
 	return D3D_OK;
 }
 
-//void ShaderRegisters::MarkDirty(UINT Register)
-//{
-//	assert (Register <= m_maxConstantRegistersF);
-//
-//	m_dirtyRegistersF.insert(Register);
-//}
+
 
 bool ShaderRegisters::AnyDirty(UINT start, UINT count)
 {
@@ -87,7 +82,7 @@ bool ShaderRegisters::AnyDirty(UINT start, UINT count)
 	return true;
 }
 		
-void ShaderRegisters::ApplyToDevice(D3DProxyDevice::EyeSide currentSide) 
+void ShaderRegisters::ApplyToDevice(vireio::RenderPosition currentSide) 
 {	
 	
 	if (m_dirtyRegistersF.size() == 0)
@@ -102,7 +97,7 @@ void ShaderRegisters::ApplyToDevice(D3DProxyDevice::EyeSide currentSide)
 		if (AnyDirty(itStereoConstant->second.StartRegister(), itStereoConstant->second.Count())) {
 			itStereoConstant->second.Update(&m_registersF[RegisterIndex(itStereoConstant->second.StartRegister())]);
 
-			m_pActualDevice->SetVertexShaderConstantF(itStereoConstant->second.StartRegister(), (currentSide == D3DProxyDevice::Left) ? itStereoConstant->second.DataLeftPointer() : itStereoConstant->second.DataRightPointer(), itStereoConstant->second.Count());
+			m_pActualDevice->SetVertexShaderConstantF(itStereoConstant->second.StartRegister(), (currentSide == vireio::Left) ? itStereoConstant->second.DataLeftPointer() : itStereoConstant->second.DataRightPointer(), itStereoConstant->second.Count());
 
 			// These registers are no longer dirty
 			for (UINT i = itStereoConstant->second.StartRegister(); i < itStereoConstant->second.StartRegister() + itStereoConstant->second.Count(); i++)
@@ -138,7 +133,7 @@ void ShaderRegisters::ApplyToDevice(D3DProxyDevice::EyeSide currentSide)
 	m_dirtyRegistersF.clear();
 }
 
-void ShaderRegisters::ForceApplyStereoConstants(D3DProxyDevice::EyeSide currentSide)
+void ShaderRegisters::ForceApplyStereoConstants(vireio::RenderPosition currentSide)
 {
 	auto itStereoConstant = m_pActiveVertexShader->ModifiedConstants()->begin();
 	while (itStereoConstant != m_pActiveVertexShader->ModifiedConstants()->end()) {
@@ -153,7 +148,7 @@ void ShaderRegisters::ForceApplyStereoConstants(D3DProxyDevice::EyeSide currentS
 		}
 
 		// Apply this constant to device
-		m_pActualDevice->SetVertexShaderConstantF(itStereoConstant->second.StartRegister(), (currentSide == D3DProxyDevice::Left) ? itStereoConstant->second.DataLeftPointer() : itStereoConstant->second.DataRightPointer(), itStereoConstant->second.Count());
+		m_pActualDevice->SetVertexShaderConstantF(itStereoConstant->second.StartRegister(), (currentSide == vireio::Left) ? itStereoConstant->second.DataLeftPointer() : itStereoConstant->second.DataRightPointer(), itStereoConstant->second.Count());
 
 		++itStereoConstant;
 	}
@@ -183,15 +178,15 @@ void ShaderRegisters::ActiveVertexShaderChanged(D3D9ProxyVertexShader* pNewVerte
 				// No idea if this is saving any time or if it would be better to just mark all the registers dirty and re-apply the constants on first draw
 				if (m_pActiveVertexShader->ModifiedConstants()->count(itNewConstants->first) == 1) {
 					if (pOldShaderModConstants->at(itNewConstants->first).SameConstantAs(itNewConstants->second)) {
-						(*pNewShaderModConstants)[itNewConstants->first] = (*pOldShaderModConstants)[itNewConstants->first];
+						(*pNewShaderModConstants).at(itNewConstants->first) = (*pOldShaderModConstants).at(itNewConstants->first);
 						mightBeDirty = false;
 					}
 				}
 			}
 
-			// If there isn't a corresponding old modification then this modified constant well need updating
+			// If there isn't a corresponding old modification then this modified constant will need updating
 			if (mightBeDirty) {
-				MarkDirty(itNewConstants->first);
+				m_dirtyRegistersF.insert(itNewConstants->first);
 			}
 		}
 	}

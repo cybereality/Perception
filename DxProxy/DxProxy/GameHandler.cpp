@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 GameHandler::GameHandler() 
 {
-
+	//TODO implementation
 }
 
 GameHandler::~GameHandler()
@@ -31,12 +31,14 @@ GameHandler::~GameHandler()
 
 GameHandler* GameHandler::Load(std::string gameId)
 {
-
+	//TODO implementation
+	return NULL;
 }
 
 GameHandler* GameHandler::Load(/* std::string gameId and file*/)
 {
-
+	//TODO implementation
+	return NULL;
 }
 
 
@@ -44,25 +46,33 @@ GameHandler* GameHandler::Load(/* std::string gameId and file*/)
 bool GameHandler::ShouldDuplicateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample,
 									DWORD MultisampleQuality,BOOL Lockable,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle, bool isSwapChainBackBuffer)
 {
-
+	//TODO implementation
+	return true;
 }
 
 bool GameHandler::ShouldDuplicateTexture(UINT Width,UINT Height,UINT Levels,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool,IDirect3DTexture9** ppTexture,HANDLE* pSharedHandle)
 {
-
+	//TODO implementation
+	return true;
 }
 
 bool GameHandler::ShouldDuplicateCubeTexture(UINT EdgeLength, UINT Levels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool, IDirect3DCubeTexture9** ppCubeTexture, HANDLE* pSharedHandle)
 {
-
+	//TODO implementation
+	return true;
 }
 
 float GameHandler::ToWorldUnits(float millimeters)
 {
+	float result = 0.0f;
 
+	//TODO implementation
+
+	return result;
 }
 
 ShaderModificationRepository* GameHandler::GetShaderModificationRepository()
 {
-
+	//TODO implementation
+	return NULL;
 }

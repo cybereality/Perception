@@ -23,14 +23,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 #include <memory>
 #include "d3d9.h"
+#include "d3dx9.h"
 #include "ShaderConstantModification.h"
 
 //  RegisterLength L = (4 for float/int, 1 for bool)
-template <class T=float, UINT L=4, class U>
+template <class T=float, UINT L=4>
 class StereoShaderConstant
 {
 public:	
-	StereoShaderConstant(UINT StartReg, const T* pData, UINT dataCount, std::shared_ptr<ShaderConstantModification<U>> modification) :
+	StereoShaderConstant(UINT StartReg, const T* pData, UINT dataCount, std::shared_ptr<ShaderConstantModification<T>> modification) :
 		m_StartRegister(StartReg),
 		m_Count(dataCount),
 		m_DataLeft(),
@@ -46,14 +47,14 @@ public:
 	// pointer to new data. Verify data dimensions match this constant before calling if needed
 	void Update(const T* data) 
 	{
-		m_modification.ApplyModification(data, &m_DataLeft, &m_DataRight);
+		m_modification->ApplyModification(data, &m_DataLeft[0], &m_DataRight[0]);
 	}
 
 	/* Return true if this constant represents the same constant as other  (contents of the registers does not need to match) but the registers must be the same and use the same modification */
 	bool SameConstantAs(const StereoShaderConstant<T> & other)
 	{
-		return (other.m_StartRegister == m_StartRegister) &&
-			(other.m_modification.m_ModificationID == m_modification.m_ModificationID));
+		return ((other.m_StartRegister == m_StartRegister) &&
+			(other.m_modification->m_ModificationID == m_modification->m_ModificationID));
 	}
 		
 	T* DataLeftPointer() 
@@ -74,7 +75,7 @@ private:
 	std::vector<T> m_DataLeft;
 	std::vector<T> m_DataRight;
 
-	std::shared_ptr<ShaderConstantModification<U>> m_modification;
+	std::shared_ptr<ShaderConstantModification<T>> m_modification;
 
 	UINT m_StartRegister;
 	UINT m_Count;
