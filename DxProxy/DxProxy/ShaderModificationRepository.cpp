@@ -24,6 +24,7 @@ ShaderModificationRepository::ShaderModificationRepository() :
 	m_defaultModificationIDs(),
 	m_shaderSpecificModificationIDs()
 {
+	D3DXMatrixIdentity(&m_identity);
 }
 
 ShaderModificationRepository::~ShaderModificationRepository()
@@ -148,7 +149,7 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 
 
 							// Create StereoShaderConstant<float> and add to result
-							result.insert(CreateStereoConstantFrom(*itRules));
+							result.insert(CreateStereoConstantFrom(*itRules, pConstantDesc[j].RegisterIndex, pConstantDesc[j].RegisterCount));
 						}
 
 						++itRules;
@@ -166,12 +167,36 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 
 
 
- StereoShaderConstant<float> ShaderModificationRepository::CreateStereoConstantFrom(const ConstantModificationRule* rule)
+ StereoShaderConstant<float> ShaderModificationRepository::CreateStereoConstantFrom(const ConstantModificationRule* rule, UINT StartReg, UINT Count)
 {
-	//TODO implementation
+	assert ((rule->startRegIndex == UINT_MAX) ? (StartReg != UINT_MAX) : (rule->startRegIndex == StartReg));
 
+	std::shared_ptr<ShaderConstantModification<D3DXVECTOR4>> modification = nullptr;
+	float* pData = NULL;
 
-	//return StereoShaderConstant<float>(rule.startRegIndex, D3DXMATRIX.identity, 4 /*4 for matrix, 1 for vec*/, 4, rule.constantName, /*modification*/, modificationID);
+	switch (rule->constantType)
+	{
+	case D3DXPC_VECTOR:
+		modification = ShaderConstantModificationFactory::CreateVector4Modification(rule->modificationID);
+		pData = D3DXVECTOR4(0,0,0,0);
+		break;
+
+	case D3DXPC_MATRIX_ROWS:
+	case D3DXPC_MATRIX_COLUMNS:
+		//TODO more implementation
+		modification = ShaderConstantModificationFactory::CreateVector4Modification(ShaderConstantModificationFactory::SimpleTranslate);
+		pData = m_identity;
+
+		throw 69;
+		break;
+
+	default:
+
+		throw 69; // unhandled type
+		break;
+	}
+
+	return StereoShaderConstant<float>(StartReg, pData, Count, modification);
 }
 
 

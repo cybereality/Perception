@@ -212,6 +212,7 @@
     <ClInclude Include="StereoViewFactory.h" />
     <ClInclude Include="StereoViewInterleave.h" />
     <ClInclude Include="MotionTracker.h" />
+    <ClInclude Include="Vec4SimpleTranslate.h" />
     <ClInclude Include="WrapperUtils.h" />
   </ItemGroup>
   <ItemGroup>

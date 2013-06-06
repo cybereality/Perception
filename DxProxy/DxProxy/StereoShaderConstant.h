@@ -21,19 +21,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <vector>
 #include <string>
+#include <memory>
 #include "d3d9.h"
 #include "ShaderConstantModification.h"
 
-//  registerLength = (4 for float/int, 1 for bool)
-template <class T=float, UINT L=4>
+//  RegisterLength L = (4 for float/int, 1 for bool)
+template <class T=float, UINT L=4, class U>
 class StereoShaderConstant
 {
 public:	
-	StereoShaderConstant(UINT StartReg, const T* pData, UINT dataCount, ShaderConstantModification<T> modification) :
+	StereoShaderConstant(UINT StartReg, const T* pData, UINT dataCount, std::shared_ptr<ShaderConstantModification<U>> modification) :
 		m_StartRegister(StartReg),
 		m_Count(dataCount),
-		m_DataLeft(),//pConstDataLeft, pConstDataLeft + (dataCount * L)),
-		m_DataRight()//pConstDataRight, pConstDataRight + (dataCount * L)),
+		m_DataLeft(),
+		m_DataRight()
 	{
 		m_DataLeft.resize(dataCount * L);
 		m_DataRight.resize(dataCount * L);
@@ -73,7 +74,7 @@ private:
 	std::vector<T> m_DataLeft;
 	std::vector<T> m_DataRight;
 
-	ShaderConstantModification<T> m_modification;
+	std::shared_ptr<ShaderConstantModification<U>> m_modification;
 
 	UINT m_StartRegister;
 	UINT m_Count;

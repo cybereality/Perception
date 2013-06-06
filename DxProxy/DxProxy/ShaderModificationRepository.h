@@ -73,10 +73,10 @@ private:
 
 	
 
+	D3DXMATRIX m_identity;
 
-
-
-	StereoShaderConstant<float> CreateStereoConstantFrom(const ConstantModificationRule* rule);
+	// StartReg is needed for registers that were identified by rule using name for matching but not register
+	StereoShaderConstant<float> CreateStereoConstantFrom(const ConstantModificationRule* rule, UINT StartReg, UINT Count);
 
 	// <Modification ID, ModificationRule>
 	std::unordered_map<UINT, ConstantModificationRule> m_AllModificationRules;

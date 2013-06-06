@@ -19,9 +19,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef SHADERCONSTANTMODIFICATIONFACTORY_H_INCLUDED
 #define SHADERCONSTANTMODIFICATIONFACTORY_H_INCLUDED
 
-
+#include <memory>
 #include "d3d9.h"
 #include "d3dx9.h"
+#include "Vec4SimpleTranslate.h"
+#include "ShaderConstantModification.h"
 
 
 class ShaderConstantModificationFactory
@@ -35,17 +37,44 @@ public:
 	enum MatrixModificationTypes
 	{
 		TranslateWithView = 0, //unreal
-		TransposeTranslateWithViewTranspose = 1, // source
+		TranslateWithViewColMajor = 1, // source
 	};
 
-	static ShaderConstantModification<D3DXVECTOR4> CreateVector4Modification(Vector4ModificationTypes mod)
+	static std::shared_ptr<ShaderConstantModification<D3DXVECTOR4>> CreateVector4Modification(UINT modID)
 	{
-
+		return CreateVector4Modification(static_cast<Vector4ModificationTypes>(modID));
 	}
 
-	static ShaderConstantModification<D3DXMATRIX> CreateMatrixModification(MatrixModificationTypes mod)
+	static std::shared_ptr<ShaderConstantModification<D3DXVECTOR4>> CreateVector4Modification(Vector4ModificationTypes mod)
 	{
+		switch (mod)
+		{
+		case SimpleTranslate:
+			return std::make_shared<Vec4SimpleTranslate>(mod);
+			break;
 
+		default:
+			throw std::out_of_range ("Nonexistant Vec4 modification");
+			break;
+		}
+	}
+
+	static std::shared_ptr<ShaderConstantModification<D3DXMATRIX>> CreateMatrixModification(UINT modID) 
+	{
+		return CreateMatrixModification(static_cast<MatrixModificationTypes>(modID));
+	}
+
+	static std::shared_ptr<ShaderConstantModification<D3DXMATRIX>> CreateMatrixModification(MatrixModificationTypes mod)
+	{
+		switch (mod)
+		{
+		case TranslateWithView:
+		case TranslateWithViewColMajor:
+
+		default:
+			throw std::out_of_range ("Nonexistant matrix modification");
+			break;
+		}
 	}
 };
 

@@ -32,7 +32,7 @@ public:
 	virtual ~ShaderConstantModification() {};
 
 	/* Applies this modification to toModify */
-	virtual void ApplyModification(T* toModify, T& outLeft, T& outRight) = 0;
+	virtual void ApplyModification(const T* toModify, T& outLeft, T& outRight) = 0;
 
 	UINT m_ModificationID;
 	
