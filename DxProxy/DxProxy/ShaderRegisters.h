@@ -53,7 +53,8 @@ public:
 	// The only time you restore all registers is when the whole vertex shader state is saved, in which case there will always be a vertex shader to go with the registers (it may be null)
 	void SetFromStateBlockData(std::vector<float> * storedRegisters, D3D9ProxyVertexShader* storedShader);
 	
-
+	// call to release any d3d resources (does not include device, that is only release on destruction)
+	void ReleaseResources();
 
 
 	//void MarkDirty(UINT Register);

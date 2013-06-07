@@ -19,7 +19,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ShaderRegisters.h"
 #include <assert.h>
 
-//#pragma warning( disable : 4996 )
 
 ShaderRegisters::ShaderRegisters(DWORD maxConstantRegistersF, IDirect3DDevice9* pActualDevice) :
 	m_maxConstantRegistersF(maxConstantRegistersF),
@@ -42,6 +41,14 @@ ShaderRegisters::~ShaderRegisters()
 
 	if (m_pActiveVertexShader)
 		m_pActiveVertexShader->Release();
+}
+
+void ShaderRegisters::ReleaseResources()
+{
+	if (m_pActiveVertexShader)
+		m_pActiveVertexShader->Release();
+
+	m_pActiveVertexShader = NULL;
 }
 
 

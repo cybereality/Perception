@@ -110,6 +110,7 @@ D3DProxyDevice::~D3DProxyDevice()
 {
 	ReleaseEverything();
 
+	m_spManagedShaderRegisters.reset();
 
 	// always do this last
 	auto it = m_activeSwapChains.begin();
@@ -228,6 +229,7 @@ void D3DProxyDevice::ReleaseEverything()
 	}
 
 	
+	m_spManagedShaderRegisters->ReleaseResources();
 
 	if (m_pCapturingStateTo) {
 		m_pCapturingStateTo->Release();
@@ -1820,9 +1822,9 @@ HRESULT WINAPI D3DProxyDevice::SetVertexShaderConstantF(UINT StartRegister,CONST
 	return result;
 }
 
-HRESULT WINAPI D3DProxyDevice::GetVertexShaderConstantF(UINT StartRegister,float* pConstantData,UINT Vector4fCount)
+HRESULT WINAPI D3DProxyDevice::GetVertexShaderConstantF(UINT StartRegister,float* pData,UINT Vector4fCount)
 {
-	return m_spManagedShaderRegisters->GetConstantRegistersF(StartRegister, pConstantData, Vector4fCount);
+	return m_spManagedShaderRegisters->GetConstantRegistersF(StartRegister, pData, Vector4fCount);
 }
 /*
 bool D3DProxyDevice::CouldOverwriteMatrix(UINT StartRegister, UINT Vector4fCount) 
