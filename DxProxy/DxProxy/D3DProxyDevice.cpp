@@ -1811,66 +1811,13 @@ HRESULT WINAPI D3DProxyDevice::SetVertexShaderConstantF(UINT StartRegister,CONST
 	HRESULT result = D3DERR_INVALIDCALL;
 
 	if (m_pCapturingStateTo) {
-		//TODO reimplement
-		//m_pCapturingStateTo->SelectAndCaptureState(stereoConstant);
+		result = m_pCapturingStateTo->SelectAndCaptureStateVSConst(StartRegister, pConstantData, Vector4fCount);
 	}
 	else { 
 		result = m_spManagedShaderRegisters->SetConstantRegistersF(StartRegister, pConstantData, Vector4fCount);
 	}
 
 	return result;
-
-	/*
-	if (stereoView->initialized) {
-		if (ContainsMatrixToModify(StartRegister, pConstantData, Vector4fCount)) 
-		{
-			StereoShaderConstant<float> stereoConstant = CreateStereoShaderConstant(StartRegister, pConstantData, Vector4fCount);
-
-			HRESULT result = BaseDirect3DDevice9::SetVertexShaderConstantF(StartRegister, (m_currentRenderingSide == Left) ? stereoConstant.DataLeftPointer() : stereoConstant.DataRightPointer(), Vector4fCount);
-			
-			if (SUCCEEDED(result)) {
-				if (m_pCapturingStateTo) {
-					m_pCapturingStateTo->SelectAndCaptureState(stereoConstant);
-				}
-				else { //TODO currently no checking for partial overlap of constants
-					if (m_activeStereoVShaderConstF.count(StartRegister) == 1) {
-						m_activeStereoVShaderConstF.erase(StartRegister);
-					}
-
-					m_activeStereoVShaderConstF.insert(std::pair<UINT, StereoShaderConstant<float>>(StartRegister, stereoConstant));
-				}
-			}
-
-			return result;
-
-
-		}
-		// The matrix is being partially or completely replaced by something other than the matrix
-		else if (CouldOverwriteMatrix(StartRegister, Vector4fCount)) {
-
-			HRESULT result;
-			if (SUCCEEDED(result = BaseDirect3DDevice9::SetVertexShaderConstantF(StartRegister, pConstantData, Vector4fCount))) {
-
-				
-				if (!m_pCapturingStateTo) {
-					// Remove the stereo matrix from active stereo constants
-					if (m_activeStereoVShaderConstF.count(StartRegister) == 1) {
-
-						m_activeStereoVShaderConstF.erase(StartRegister);
-					}
-				}
-				else {
-					// if captureing state then notify stateblock that register state may need removing
-					m_pCapturingStateTo->ClearSelected(StartRegister);
-					// this won't work well. TODO fix register tracking behaviour in general. Lots of issues with tracking by call. Need to track actual registers and what they contain (or at least which contain matricies)
-				}
-			}
-
-			return result;
-		}
-	}*/
-
-	//return BaseDirect3DDevice9::SetVertexShaderConstantF(StartRegister, pConstantData, Vector4fCount);
 }
 
 HRESULT WINAPI D3DProxyDevice::GetVertexShaderConstantF(UINT StartRegister,float* pConstantData,UINT Vector4fCount)

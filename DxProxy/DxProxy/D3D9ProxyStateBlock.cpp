@@ -741,17 +741,25 @@ void D3D9ProxyStateBlock::SelectAndCaptureState(BaseDirect3DVertexDeclaration9* 
 	}
 }
 
-void D3D9ProxyStateBlock::SelectAndCaptureState(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount)
+HRESULT WINAPI  D3D9ProxyStateBlock::SelectAndCaptureStateVSConst(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount)
 {
 	assert(m_eCaptureMode == Cap_Type_Selected);
 	assert (m_pWrappedDevice->m_bInBeginEndStateBlock);
 	assert (!m_pActualStateBlock);
 
-	// Mark these registers as being tracked
-	for (UINT i = StartRegister; i < (StartRegister + Vector4fCount); i++) {
-		m_selectedVertexConstantRegistersF.insert(i);
-		m_storedSelectedRegistersF.insert(std::pair<UINT, D3DXVECTOR4>(i, pConstantData));
+	// The assumption here is that most registers won't need to be stereo so we set them all on the actual device imiediately and overwrite the stereo ones 
+	// when we Apply. (if there are any). This Simplifies "Apply" when this block is applied later.
+	HRESULT result = m_pOwningDevice->SetVertexShaderConstantF(StartRegister, pConstantData, Vector4fCount);
+
+	if (SUCCEEDED(result)) {
+		// Mark these registers as being tracked and save them
+		for (UINT i = StartRegister; i < (StartRegister + Vector4fCount); i++) {
+			m_selectedVertexConstantRegistersF.insert(i);
+			m_storedSelectedRegistersF.insert(std::pair<UINT, D3DXVECTOR4>(i, pConstantData));
+		}
 	}
+
+	return result;
 }
 
 

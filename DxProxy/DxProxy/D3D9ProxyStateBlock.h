@@ -103,7 +103,7 @@ public:
 		Assumption: Only float registers will need to be stereo. If this proves to be untrue then int and bool containers
 		will need adding throughout this class.
 	 */
-	void SelectAndCaptureState(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
+	HRESULT WINAPI SelectAndCaptureStateVSConst(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
 	//void ClearSelected(UINT StartRegister);
 
 	void SelectAndCaptureState(DWORD Stage, IDirect3DBaseTexture9* pWrappedTexture);
