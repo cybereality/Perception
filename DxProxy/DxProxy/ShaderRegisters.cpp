@@ -19,6 +19,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ShaderRegisters.h"
 #include <assert.h>
 
+//#pragma warning( disable : 4996 )
+
 ShaderRegisters::ShaderRegisters(DWORD maxConstantRegistersF, IDirect3DDevice9* pActualDevice) :
 	m_maxConstantRegistersF(maxConstantRegistersF),
 	m_registersF(maxConstantRegistersF * VECTOR_LENGTH, 0), // VECTOR_LENGTH floats per register
@@ -77,7 +79,7 @@ std::vector<float> ShaderRegisters::GetAllConstantRegistersF()
 
 
 
-void ShaderRegisters::SetFromStateBlockData(std::map<UINT, D3DXVECTOR4> storedRegisters, D3D9ProxyVertexShader* storedShader)
+void ShaderRegisters::SetFromStateBlockData(std::map<UINT, D3DXVECTOR4> * storedRegisters, D3D9ProxyVertexShader* storedShader)
 {
 	_SAFE_RELEASE(m_pActiveVertexShader);
 	m_pActiveVertexShader = storedShader;
@@ -87,15 +89,23 @@ void ShaderRegisters::SetFromStateBlockData(std::map<UINT, D3DXVECTOR4> storedRe
 	SetFromStateBlockData(storedRegisters);
 }
 
-void ShaderRegisters::SetFromStateBlockData(std::map<UINT, D3DXVECTOR4> storedRegisters)
+void ShaderRegisters::SetFromStateBlockData(std::map<UINT, D3DXVECTOR4> * storedRegisters)
 {
-	auto itNewRegs = storedRegisters.begin();
-	while (itNewRegs != storedRegisters.end()) {
+	auto itNewRegs = storedRegisters->begin();
+	while (itNewRegs != storedRegisters->end()) {
 
-		if (itNewRegs->first >= m_registersF.size())
+		if ((RegisterIndex(itNewRegs->first) + VECTOR_LENGTH) >= m_registersF.size())
 			throw std::out_of_range("Register from stateblock is out of range, implosion imminent");
 
-		std::copy(*itNewRegs->second, *itNewRegs->second + VECTOR_LENGTH,  &m_registersF[RegisterIndex(itNewRegs->first)]);
+		
+		//std::copy(static_cast<float*>(itNewRegs->second), static_cast<float*>(itNewRegs->second) + VECTOR_LENGTH,  &m_registersF[RegisterIndex(itNewRegs->first)]);
+		// copy produces warnings, this does not.
+		int regStartIndexInVector = RegisterIndex(itNewRegs->first);
+		m_registersF[regStartIndexInVector	  ]	= itNewRegs->second.x;
+		m_registersF[regStartIndexInVector + 1] = itNewRegs->second.y;
+		m_registersF[regStartIndexInVector + 2] = itNewRegs->second.z;
+		m_registersF[regStartIndexInVector + 3] = itNewRegs->second.w;
+		
 
 		// register is clean (now matches device state - unless it's stereo in which case it might not, that is handled at the end)
 		m_dirtyRegistersF.erase(itNewRegs->first);
@@ -119,12 +129,12 @@ void ShaderRegisters::MarkAllStereoConstantsDirty()
 }
 
 
-void ShaderRegisters::SetFromStateBlockData(const std::vector<float> & storedRegisters,D3D9ProxyVertexShader* storedShader)
+void ShaderRegisters::SetFromStateBlockData(std::vector<float> * storedRegisters,D3D9ProxyVertexShader* storedShader)
 {
 	// Full register capture should always match the size of the existing register set as size is fixed and register was captured from this
-	assert(storedRegisters.size() == m_registersF.size());
+	assert(storedRegisters->size() == m_registersF.size());
 
-	std::copy(storedRegisters.begin(), storedRegisters.end(), m_registersF.begin());
+	std::copy(storedRegisters->begin(), storedRegisters->end(), m_registersF.begin());
 
 	// Data should match registers that are already on device (unless it's stereo in which case it might not, that is handled next)
 	m_dirtyRegistersF.clear();

@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Direct3DStateBlock9.h"
 #include <unordered_set>
 #include <unordered_map>
+#include <map>
 #include "Direct3DVertexBuffer9.h"
 #include "Direct3DIndexBuffer9.h"
 #include "D3D9ProxyVertexShader.h"
@@ -99,15 +100,11 @@ public:
 	void SelectAndCaptureState(BaseDirect3DVertexDeclaration9* pWrappedVertexDeclaration);
 
 	/* 
-		Assumption: If multiple SetConstant calls are made during a Begin/End StateBlock they will not partially
-		overwrite each other. There is nothing to stop a program doing this but it would be more difficult to handle
-		and I can't think of a reason for this to be intentionally done so I'm ignoring the possibility for now. 
-
-		Assumption 2: Only float registers will need to be stereo. If this proves to be untrue then int and bool containers
+		Assumption: Only float registers will need to be stereo. If this proves to be untrue then int and bool containers
 		will need adding throughout this class.
 	 */
-	void SelectAndCaptureState(StereoShaderConstant<float> stereoFloatConstant);
-	void ClearSelected(UINT StartRegister);
+	void SelectAndCaptureState(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
+	//void ClearSelected(UINT StartRegister);
 
 	void SelectAndCaptureState(DWORD Stage, IDirect3DBaseTexture9* pWrappedTexture);
 	void SelectAndCaptureState(UINT StreamNumber, BaseDirect3DVertexBuffer9* pWrappedStreamData);
@@ -217,8 +214,15 @@ private:
 	// vertex declaration
 	BaseDirect3DVertexDeclaration9* m_pStoredVertexDeclaration;
 
-	// stereo vertex shader constants - (normal constants are handled by actual StateBlock)
-	std::unordered_map<UINT, StereoShaderConstant<float>> m_StoredStereoShaderConstsF;
+	////// Shader registers //////
+	// Use this when using Cap_Type_Selected
+	std::map<UINT, D3DXVECTOR4> m_storedSelectedRegistersF;
+	// Use this to copy everything when needed with other modes
+	std::vector<float> m_storedAllRegistersF;
+	//// End Shader registers ////
+
+	// stereo vertex shader constants 
+	// Don't save stereo versions of constants. Will be recalculated as needed from dirty registers when proxy registers have been restored
 	
 
 

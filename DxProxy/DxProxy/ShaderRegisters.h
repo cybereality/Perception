@@ -47,11 +47,11 @@ public:
 
 	// For restoring from stateblock. If sides during capture were mixed or the current device side doesn't match side at time of capture then updateStereoConstants should be true
 	// (basically if it's possible that the actual device values for the register don't match the appropriate stereo versin then updateStereoConstants should be set to true)
-	// NOTE: Above is irrelevant; Due to questionable lack of copying of vertex shader into stateblock we have no idea what the state of the constants might be so updating isn't optional. Fix? See stateblock
-	void SetFromStateBlockData(std::map<UINT, D3DXVECTOR4> storedRegisters);
-	void SetFromStateBlockData(std::map<UINT, D3DXVECTOR4> storedRegisters, D3D9ProxyVertexShader* storedShader);
+	// NOTE: Above is irrelevant; Due to questionable lack of copying of vertex shader into stateblock we have no idea what the state of the constants might be so updating isn't optional. Fix? See stateblock textures for further thoughts
+	void SetFromStateBlockData(std::map<UINT, D3DXVECTOR4> * storedRegisters);
+	void SetFromStateBlockData(std::map<UINT, D3DXVECTOR4> * storedRegisters, D3D9ProxyVertexShader* storedShader);
 	// The only time you restore all registers is when the whole vertex shader state is saved, in which case there will always be a vertex shader to go with the registers (it may be null)
-	void SetFromStateBlockData(const std::vector<float> & storedRegisters, D3D9ProxyVertexShader* storedShader);
+	void SetFromStateBlockData(std::vector<float> * storedRegisters, D3D9ProxyVertexShader* storedShader);
 	
 
 

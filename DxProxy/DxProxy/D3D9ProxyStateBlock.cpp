@@ -30,7 +30,8 @@ D3D9ProxyStateBlock::D3D9ProxyStateBlock(IDirect3DStateBlock9* pActualStateBlock
 	m_selectedStates(),
 	m_selectedTextureSamplers(),
 	m_selectedVertexStreams(),
-	m_StoredStereoShaderConstsF(),
+	m_storedSelectedRegistersF(),
+	m_storedAllRegistersF(),
 	m_selectedVertexConstantRegistersF()
 {
 	assert (pOwningDevice != NULL);
@@ -122,7 +123,8 @@ void D3D9ProxyStateBlock::ClearCapturedData()
 	}
 	m_storedVertexBuffers.clear();
 
-	m_StoredStereoShaderConstsF.clear();
+	m_storedSelectedRegistersF.clear();
+	m_storedAllRegistersF.clear();
 
 
 	
@@ -173,7 +175,8 @@ void D3D9ProxyStateBlock::CaptureSelectedFromProxyDevice()
 	// Clear out any existing captured data before we begin.
 	ClearCapturedData();
 
-	// Copy all selected (non-indexed) states to ProxyStateBlock from ProxyDevice
+	
+	// 'Copy' (actually just keeping a reference) all selected (non-indexed) states to ProxyStateBlock from ProxyDevice
 	auto itSelected = m_selectedStates.begin();
 	while (itSelected != m_selectedStates.end()) {
 		Capture(*itSelected);
@@ -189,6 +192,8 @@ void D3D9ProxyStateBlock::CaptureSelectedFromProxyDevice()
 			// Textures
 			m_storedTextureStages = m_pWrappedDevice->m_activeTextureStages;
 
+			// TODO Do we need to copy Textures rather than just keeping reference. Textures could be changed (have new data stretched/copied into them) 
+			// TODO Check actual behaviour of state block. Is it saving a reference to the texture or a copy of the texture??
 			// Need to increase ref count on all copied textures
 			auto itTextures = m_storedTextureStages.begin();
 			while (itTextures != m_storedTextureStages.end()) {
@@ -202,6 +207,7 @@ void D3D9ProxyStateBlock::CaptureSelectedFromProxyDevice()
 			// Vertex buffers
 			m_storedVertexBuffers = m_pWrappedDevice->m_activeVertexBuffers;
 
+			// TODO same question as for Textures above
 			// Need to increase ref count on all copied vbs
 			auto itVB = m_storedVertexBuffers.begin();
 			while (itVB != m_storedVertexBuffers.end()) {
@@ -213,7 +219,7 @@ void D3D9ProxyStateBlock::CaptureSelectedFromProxyDevice()
 
 
 			// Vertex Shader constants
-			m_StoredStereoShaderConstsF = m_pWrappedDevice->m_activeStereoVShaderConstF;
+			m_storedAllRegistersF = m_pWrappedDevice->m_spManagedShaderRegisters->GetAllConstantRegistersF();
 			
 			break;
 		}
@@ -221,7 +227,7 @@ void D3D9ProxyStateBlock::CaptureSelectedFromProxyDevice()
 		case Cap_Type_Vertex:
 		{
 			// Vertex Shader constants
-			m_StoredStereoShaderConstsF = m_pWrappedDevice->m_activeStereoVShaderConstF;
+			m_storedAllRegistersF = m_pWrappedDevice->m_spManagedShaderRegisters->GetAllConstantRegistersF();
 
 			break;
 		}
@@ -277,17 +283,13 @@ void D3D9ProxyStateBlock::CaptureSelectedFromProxyDevice()
 			
 
 			// Vertex Shader constants
+			float currentRegister [4];
 			auto itSelectedVertexConstants = m_selectedVertexConstantRegistersF.begin();
 			while (itSelectedVertexConstants != m_selectedVertexConstantRegistersF.end()) {
 				
-				if (m_pWrappedDevice->m_activeStereoVShaderConstF.count(*itSelectedVertexConstants) == 1) {
+				m_pWrappedDevice->m_spManagedShaderRegisters->GetConstantRegistersF(*itSelectedVertexConstants, currentRegister, 1);
 
-					auto toInsert = m_pWrappedDevice->m_activeStereoVShaderConstF.find(*itSelectedVertexConstants);
-
-					if (!(m_StoredStereoShaderConstsF.insert(std::pair<UINT, StereoShaderConstant<float>>(toInsert->first, toInsert->second)).second)) {
-						OutputDebugString("Vertex Shader constant capture to StateBlock failed");
-					}
-				}
+				m_storedSelectedRegistersF.insert(std::pair<UINT, D3DXVECTOR4>(*itSelectedVertexConstants, currentRegister));
 
 				++itSelectedVertexConstants;
 			}
@@ -541,6 +543,35 @@ HRESULT WINAPI D3D9ProxyStateBlock::Apply()
 
 
 
+		// VertexShader constants
+		switch (m_eCaptureMode) 
+		{			
+		case Cap_Type_Selected:
+
+			if (m_selectedStates.count(VertexShader) == 1) {
+				m_pWrappedDevice->m_spManagedShaderRegisters->SetFromStateBlockData(&m_storedSelectedRegistersF, m_pStoredVertexShader);
+			}
+			else {
+				m_pWrappedDevice->m_spManagedShaderRegisters->SetFromStateBlockData(&m_storedSelectedRegistersF);
+			}
+
+			break;
+
+		case Cap_Type_Full:
+		case Cap_Type_Vertex:
+
+			m_pWrappedDevice->m_spManagedShaderRegisters->SetFromStateBlockData(&m_storedAllRegistersF, m_pStoredVertexShader);
+
+			break;
+
+		case Cap_Type_Pixel:
+		default:
+			// do nothing
+			break;
+		}
+
+
+
 		// Apply stereo indexed states
 		if (reApplyStereo) {
 
@@ -551,15 +582,6 @@ HRESULT WINAPI D3D9ProxyStateBlock::Apply()
 				m_pWrappedDevice->SetTexture(itTextures->first, itTextures->second);
 				++itTextures;
 			}
-			
-			// VertexShader constants
-			auto itVSConstF = m_StoredStereoShaderConstsF.begin();
-			while (itVSConstF != m_StoredStereoShaderConstsF.end()) {
-
-				m_pWrappedDevice->SetVertexShaderConstantF(itVSConstF->second.StartRegister, (m_pWrappedDevice->m_currentRenderingSide == vireio::Left) ? itVSConstF->second.DataLeftPointer() : itVSConstF->second.DataRightPointer(), itVSConstF->second.Count);
-				++itVSConstF;
-			}
-
 		}
 		// Update the internal state of the proxy device for the above indexed stereo states without applying to the actual device (actual stateblock will
 		// have applied the correct state already)
@@ -587,20 +609,6 @@ HRESULT WINAPI D3D9ProxyStateBlock::Apply()
 
 				++itTextures;
 			}
-
-
-			// VertexShader constants
-			auto itVSConstF = m_StoredStereoShaderConstsF.begin();
-			while (itVSConstF != m_StoredStereoShaderConstsF.end()) {
-
-				if (m_pWrappedDevice->m_activeStereoVShaderConstF.count(itVSConstF->first) == 1) {
-					m_pWrappedDevice->m_activeStereoVShaderConstF.erase(itVSConstF->first);
-				}
-
-				m_pWrappedDevice->m_activeStereoVShaderConstF.insert(std::pair<UINT, StereoShaderConstant<float>>(itVSConstF->first, itVSConstF->second));
-				++itVSConstF;
-			}
-
 		}
 	}
 
@@ -695,7 +703,7 @@ void D3D9ProxyStateBlock::SelectAndCaptureState(BaseDirect3DPixelShader9* pWrapp
 	}
 }
 
-void D3D9ProxyStateBlock::SelectAndCaptureState(BaseDirect3DVertexShader9* pWrappedVertexShader)
+void D3D9ProxyStateBlock::SelectAndCaptureState(D3D9ProxyVertexShader* pWrappedVertexShader)
 {
 	assert(m_eCaptureMode == Cap_Type_Selected);
 	assert (m_pWrappedDevice->m_bInBeginEndStateBlock);
@@ -733,29 +741,24 @@ void D3D9ProxyStateBlock::SelectAndCaptureState(BaseDirect3DVertexDeclaration9* 
 	}
 }
 
-void D3D9ProxyStateBlock::SelectAndCaptureState(StereoShaderConstant<float> stereoFloatConstant)
+void D3D9ProxyStateBlock::SelectAndCaptureState(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount)
 {
 	assert(m_eCaptureMode == Cap_Type_Selected);
 	assert (m_pWrappedDevice->m_bInBeginEndStateBlock);
 	assert (!m_pActualStateBlock);
 
-	// Mark this starting register as being tracked
-	m_selectedVertexConstantRegistersF.insert(stereoFloatConstant.StartRegister);
-
-	// remove existing (if there is one)
-	m_StoredStereoShaderConstsF.erase(stereoFloatConstant.StartRegister);
-
-	// Store stereoFloatConstant
-	m_StoredStereoShaderConstsF.insert(std::pair<UINT, StereoShaderConstant<float>>(stereoFloatConstant.StartRegister, stereoFloatConstant));
-
-	updateCaptureSideTracking();
+	// Mark these registers as being tracked
+	for (UINT i = StartRegister; i < (StartRegister + Vector4fCount); i++) {
+		m_selectedVertexConstantRegistersF.insert(i);
+		m_storedSelectedRegistersF.insert(std::pair<UINT, D3DXVECTOR4>(i, pConstantData));
+	}
 }
 
 
-void D3D9ProxyStateBlock::ClearSelected(UINT StartRegister) 
+/*void D3D9ProxyStateBlock::ClearSelected(UINT StartRegister) 
 {
 	m_StoredStereoShaderConstsF.erase(StartRegister);
-}
+}*/
 
 
 
