@@ -506,12 +506,12 @@ void StereoView::SaveScreen()
 	++screenCount;
 
 	char fileName[32];
-	wsprintf(fileName, "ss_final_%d.bmp", screenCount);
+	wsprintf(fileName, "%d_final.bmp", screenCount);
 
 	char fileNameLeft[32];
-	wsprintf(fileNameLeft, "ss_left_%d.bmp", screenCount);
+	wsprintf(fileNameLeft, "%d_left.bmp", screenCount);
 	char fileNameRight[32];
-	wsprintf(fileNameRight, "ss_right_%d.bmp", screenCount);
+	wsprintf(fileNameRight, "%d_right.bmp", screenCount);
 	/*OutputDebugString(fileName);
 	OutputDebugString("\n");
 

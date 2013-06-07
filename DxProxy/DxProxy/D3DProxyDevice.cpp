@@ -754,10 +754,7 @@ void D3DProxyDevice::HandleTracking()
 	}
 }
 
-/*bool D3DProxyDevice::validRegister(UINT reg)
-{
-	return true;
-}*/
+
 
 void ClearVLine(LPDIRECT3DDEVICE9 Device_Interface,int x1,int y1,int x2,int y2,int bw,D3DCOLOR Color)
 {
@@ -789,8 +786,6 @@ HRESULT WINAPI D3DProxyDevice::TestCooperativeLevel()
 	if( result == D3DERR_DEVICENOTRESET ) {
 
 		// The calling application will start releasing resources after TestCooperativeLevel returns D3DERR_DEVICENOTRESET.
-		// So we need to release all the extra resources we are using first incase the application is counting the ref
-		// counts on Release. 
 		
 	}
 
@@ -896,10 +891,6 @@ HRESULT WINAPI D3DProxyDevice::EndScene()
 
 	}
 /////
-
-
-
-	
 
 	return BaseDirect3DDevice9::EndScene();
 }
@@ -1266,7 +1257,7 @@ HRESULT WINAPI D3DProxyDevice::ColorFill(IDirect3DSurface9* pSurface,CONST RECT*
 
 HRESULT WINAPI D3DProxyDevice::DrawPrimitive(D3DPRIMITIVETYPE PrimitiveType,UINT StartVertex,UINT PrimitiveCount)
 {
-	m_spManagedShaderRegisters->ApplyToDevice(m_currentRenderingSide);
+	m_spManagedShaderRegisters->ApplyDirtyToDevice(m_currentRenderingSide);
 
 
 	HRESULT result;
@@ -1281,7 +1272,7 @@ HRESULT WINAPI D3DProxyDevice::DrawPrimitive(D3DPRIMITIVETYPE PrimitiveType,UINT
 
 HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitive(D3DPRIMITIVETYPE PrimitiveType,INT BaseVertexIndex,UINT MinVertexIndex,UINT NumVertices,UINT startIndex,UINT primCount)
 {
-	m_spManagedShaderRegisters->ApplyToDevice(m_currentRenderingSide);
+	m_spManagedShaderRegisters->ApplyDirtyToDevice(m_currentRenderingSide);
 
 	HRESULT result;
 	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawIndexedPrimitive(PrimitiveType, BaseVertexIndex, MinVertexIndex, NumVertices, startIndex, primCount))) {
@@ -1298,7 +1289,7 @@ HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitive(D3DPRIMITIVETYPE PrimitiveTy
 
 HRESULT WINAPI D3DProxyDevice::DrawPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType,UINT PrimitiveCount,CONST void* pVertexStreamZeroData,UINT VertexStreamZeroStride)
 {
-	m_spManagedShaderRegisters->ApplyToDevice(m_currentRenderingSide);
+	m_spManagedShaderRegisters->ApplyDirtyToDevice(m_currentRenderingSide);
 
 	HRESULT result;
 	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawPrimitiveUP(PrimitiveType, PrimitiveCount, pVertexStreamZeroData, VertexStreamZeroStride))) {
@@ -1311,7 +1302,7 @@ HRESULT WINAPI D3DProxyDevice::DrawPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType,UI
 
 HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType,UINT MinVertexIndex,UINT NumVertices,UINT PrimitiveCount,CONST void* pIndexData,D3DFORMAT IndexDataFormat,CONST void* pVertexStreamZeroData,UINT VertexStreamZeroStride)
 {
-	m_spManagedShaderRegisters->ApplyToDevice(m_currentRenderingSide);
+	m_spManagedShaderRegisters->ApplyDirtyToDevice(m_currentRenderingSide);
 
 	HRESULT result;
 	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawIndexedPrimitiveUP(PrimitiveType, MinVertexIndex, NumVertices, PrimitiveCount, pIndexData, IndexDataFormat, pVertexStreamZeroData, VertexStreamZeroStride))) {
@@ -1324,7 +1315,7 @@ HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitiveUP(D3DPRIMITIVETYPE Primitive
 
 HRESULT WINAPI D3DProxyDevice::DrawRectPatch(UINT Handle,CONST float* pNumSegs,CONST D3DRECTPATCH_INFO* pRectPatchInfo)
 {
-	m_spManagedShaderRegisters->ApplyToDevice(m_currentRenderingSide);
+	m_spManagedShaderRegisters->ApplyDirtyToDevice(m_currentRenderingSide);
 
 	HRESULT result;
 	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawRectPatch(Handle, pNumSegs, pRectPatchInfo))) {
@@ -1337,7 +1328,7 @@ HRESULT WINAPI D3DProxyDevice::DrawRectPatch(UINT Handle,CONST float* pNumSegs,C
 
 HRESULT WINAPI D3DProxyDevice::DrawTriPatch(UINT Handle,CONST float* pNumSegs,CONST D3DTRIPATCH_INFO* pTriPatchInfo)
 {
-	m_spManagedShaderRegisters->ApplyToDevice(m_currentRenderingSide);
+	m_spManagedShaderRegisters->ApplyDirtyToDevice(m_currentRenderingSide);
 
 	HRESULT result;
 	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawTriPatch(Handle, pNumSegs, pTriPatchInfo))) {
@@ -1353,7 +1344,7 @@ HRESULT WINAPI D3DProxyDevice::ProcessVertices(UINT SrcStartIndex,UINT DestIndex
 	if (!pDestBuffer)
 		return D3DERR_INVALIDCALL;
 
-	m_spManagedShaderRegisters->ApplyToDevice(m_currentRenderingSide);
+	m_spManagedShaderRegisters->ApplyDirtyToDevice(m_currentRenderingSide);
 
 	BaseDirect3DVertexBuffer9* pCastDestBuffer = static_cast<BaseDirect3DVertexBuffer9*>(pDestBuffer);
 	BaseDirect3DVertexDeclaration9* pCastVertexDeclaration = NULL;
@@ -1427,8 +1418,6 @@ HRESULT WINAPI D3DProxyDevice::SetStreamSource(UINT StreamNumber, IDirect3DVerte
 	else {
 		result = BaseDirect3DDevice9::SetStreamSource(StreamNumber, NULL, OffsetInBytes, Stride);
 	}
-
-	
 
 
 	// Update m_activeVertexBuffers if new vertex buffer was successfully set
@@ -1532,15 +1521,7 @@ HRESULT WINAPI D3DProxyDevice::SetRenderTarget(DWORD RenderTargetIndex, IDirect3
 			result = BaseDirect3DDevice9::SetRenderTarget(RenderTargetIndex, newRenderTarget->getActualLeft());
 		}
 		else {
-			//if ((RenderTargetIndex == 0) && (!newRenderTarget->IsStereo())) {
-			//	// In this case we are currently set to draw to the right side. However the new render target is mono and
-			//	// as we don't draw to a primary mono render targets on the right pass we first switch to the left side then set the rendertarget to left.
-			//	setDrawingSide(Left);
-			//	result = BaseDirect3DDevice9::SetRenderTarget(RenderTargetIndex, newRenderTarget->getActualLeft());
-			//}
-			//else{
 			result = BaseDirect3DDevice9::SetRenderTarget(RenderTargetIndex, newRenderTarget->getActualRight());
-			
 		}
 	}
 
@@ -1618,10 +1599,6 @@ HRESULT WINAPI D3DProxyDevice::SetDepthStencilSurface(IDirect3DSurface9* pNewZSt
 
 HRESULT WINAPI D3DProxyDevice::GetDepthStencilSurface(IDirect3DSurface9** ppZStencilSurface)
 {	
-	
-	//OutputDebugString(__FUNCTION__);
-	//OutputDebugString("\n");
-
 	if (!m_pActiveStereoDepthStencil)
 		return D3DERR_NOTFOUND;
 	
@@ -1702,9 +1679,6 @@ HRESULT WINAPI D3DProxyDevice::SetTexture(DWORD Stage,IDirect3DBaseTexture9* pTe
 
 HRESULT WINAPI D3DProxyDevice::GetTexture(DWORD Stage,IDirect3DBaseTexture9** ppTexture)
 {
-	//OutputDebugString(__FUNCTION__); 
-	//OutputDebugString("\n"); 
-
 	if (m_activeTextureStages.count(Stage) != 1)
 		return D3DERR_INVALIDCALL;
 	else {
@@ -2073,12 +2047,6 @@ bool D3DProxyDevice::setDrawingSide(vireio::RenderPosition side)
 
 
 	// Apply active stereo shader constants
-	/*auto itStereoConstant = m_activeStereoVShaderConstF.begin();
-	while (itStereoConstant != m_activeStereoVShaderConstF.end()) {
-		HRESULT res = BaseDirect3DDevice9::SetVertexShaderConstantF(itStereoConstant->second.StartRegister, (side == Left) ? itStereoConstant->second.DataLeftPointer() : itStereoConstant->second.DataRightPointer(), itStereoConstant->second.Count);
-
-		++itStereoConstant;
-	}*/
 	m_spManagedShaderRegisters->ApplyStereoConstants(side, true);
 
 
@@ -2092,11 +2060,6 @@ bool D3DProxyDevice::setDrawingSide(vireio::RenderPosition side)
 
 HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion)
 {
-#ifdef _DEBUG
-	OutputDebugString(__FUNCTION__);
-	OutputDebugString("\n");
-#endif;
-
 	IDirect3DSurface9* pWrappedBackBuffer;
 
 	try {
@@ -2125,7 +2088,7 @@ HRESULT WINAPI D3DProxyDevice::GetBackBuffer(UINT iSwapChain,UINT iBackBuffer,D3
 	HRESULT result;
 	try {
 		result = m_activeSwapChains.at(iSwapChain)->GetBackBuffer(iBackBuffer, D3DBACKBUFFER_TYPE_MONO, ppBackBuffer);
-		// ref count increase happens it the swapchain GetBackBuffer so we don't add another ref here as we are just passing the value through
+		// ref count increase happens in the swapchain GetBackBuffer so we don't add another ref here as we are just passing the value through
 	}
 	catch (std::out_of_range) {
 		OutputDebugString("GetBackBuffer: out of range getting swap chain");
@@ -2153,7 +2116,6 @@ HRESULT WINAPI D3DProxyDevice::GetSwapChain(UINT iSwapChain,IDirect3DSwapChain9*
 	return D3D_OK;
 }
 
-/* see above */
 HRESULT WINAPI D3DProxyDevice::CreateAdditionalSwapChain(D3DPRESENT_PARAMETERS* pPresentationParameters,IDirect3DSwapChain9** pSwapChain)
 {
 	IDirect3DSwapChain9* pActualSwapChain;
@@ -2563,7 +2525,7 @@ HRESULT WINAPI D3DProxyDevice::MultiplyTransform(D3DTRANSFORMSTATETYPE State,CON
 {
 	OutputDebugString(__FUNCTION__); 
 	OutputDebugString("\n"); 
-	OutputDebugString("Not implemented - Fix Me!\n"); 
+	OutputDebugString("Not implemented - Fix Me! (if i need fixing)\n"); 
 
 	return BaseDirect3DDevice9::MultiplyTransform(State, pMatrix);
 }

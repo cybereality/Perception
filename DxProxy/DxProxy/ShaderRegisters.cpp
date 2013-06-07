@@ -49,6 +49,8 @@ void ShaderRegisters::ReleaseResources()
 		m_pActiveVertexShader->Release();
 
 	m_pActiveVertexShader = NULL;
+
+	// TODO Do the constant registers get cleared on device reset? Current guess is no. Needs testing or a reference finding that says what happens.
 }
 
 
@@ -169,7 +171,7 @@ bool ShaderRegisters::AnyDirty(UINT start, UINT count)
 	return true;
 }
 		
-void ShaderRegisters::ApplyToDevice(vireio::RenderPosition currentSide) 
+void ShaderRegisters::ApplyDirtyToDevice(vireio::RenderPosition currentSide) 
 {	
 	
 	if (m_dirtyRegistersF.size() == 0)
