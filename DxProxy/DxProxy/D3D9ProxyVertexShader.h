@@ -47,6 +47,7 @@ protected:
 
 	IDirect3DDevice9* m_pActualDevice;
 
+	//<StartRegister, StereoShaderConstant<>>
 	std::map<UINT, StereoShaderConstant<>> m_modifiedConstants;
 };
 

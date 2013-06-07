@@ -40,28 +40,51 @@ public:
 	virtual ~ShaderRegisters();
 
 	/* Return D3DERR_INVALIDCALL if any registers out of range*/
+	// clean should only be true when restoring from stateblock. It marks all registers that are set as clean instead of marking dirty
 	HRESULT WINAPI SetConstantRegistersF(UINT StartRegister, const float* pConstantData, UINT Vector4fCount);
 	HRESULT WINAPI GetConstantRegistersF(UINT StartRegister, float* pConstantData, UINT Vector4fCount);
+	std::vector<float> GetAllConstantRegistersF();
+
+	// For restoring from stateblock. If sides during capture were mixed or the current device side doesn't match side at time of capture then updateStereoConstants should be true
+	// (basically if it's possible that the actual device values for the register don't match the appropriate stereo versin then updateStereoConstants should be set to true)
+	// NOTE: Above is irrelevant; Due to questionable lack of copying of vertex shader into stateblock we have no idea what the state of the constants might be so updating isn't optional. Fix? See stateblock
+	void SetFromStateBlockData(std::map<UINT, D3DXVECTOR4> storedRegisters);
+	void SetFromStateBlockData(std::map<UINT, D3DXVECTOR4> storedRegisters, D3D9ProxyVertexShader* storedShader);
+	// The only time you restore all registers is when the whole vertex shader state is saved, in which case there will always be a vertex shader to go with the registers (it may be null)
+	void SetFromStateBlockData(const std::vector<float> & storedRegisters, D3D9ProxyVertexShader* storedShader);
+	
+
+
 
 	//void MarkDirty(UINT Register);
 	bool AnyDirty(UINT start, UINT count);
 
 	/* 
-		Changes the active vertex shader. This will mark appropriate modified constants active and disable/overwrite others as needed
+		Changes the active vertex shader. 
 	 */
 	void ActiveVertexShaderChanged(D3D9ProxyVertexShader* pNewVertexShader);
 
 	/* 
-		This will apply all dirty registers. Modified registers are updated and applied followed by unmodified
+		This will apply all dirty registers to actual device. StereoShaderConstants are updated and applied followed by unmodified
 	 */
 	void ApplyToDevice(vireio::RenderPosition currentSide);
 
 	/*
-		This will apply all StereoShaderConstants whether Dirty or not
+		This will apply (and update) all dirty StereoShaderConstants 
+		If forceApply is true then non-dirty StereoShaderConstants will be updated and applied as well
 	 */
-	void ForceApplyStereoConstants(vireio::RenderPosition currentSide);
+	void ApplyStereoConstants(vireio::RenderPosition currentSide, bool forceApply);
+
+	//void UpdateStereoConstants()
+
+	
 
 private:
+
+	
+	// Marks the first register for each stereoconstant in the active shader dirty to make sure they are updated before being drawn
+	void MarkAllStereoConstantsDirty();
+
 	// Number of constant registers supported by device
 	DWORD m_maxConstantRegistersF;
 
