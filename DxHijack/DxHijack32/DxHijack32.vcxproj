@@ -115,6 +115,7 @@
     <ClCompile Include="..\..\DxProxy\DxProxy\D3D9ProxySurface.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\D3D9ProxySwapChain.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\D3D9ProxyTexture.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\D3D9ProxyVertexShader.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\D3D9ProxyVolume.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\D3D9ProxyVolumeTexture.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxyDevice.cpp" />
@@ -142,17 +143,22 @@
     <ClCompile Include="..\..\DxProxy\DxProxy\Direct3DVolumeTexture9.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\FreeSpaceTracker.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\FreeTrackTracker.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\GameHandler.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\MotionTracker.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\MotionTrackerFactory.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\MurmurHash3.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\OculusRiftView.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\OculusTracker.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\ProxyHelper.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\pugixml.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\ShaderModificationRepository.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\ShaderRegisters.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\SharedMemoryTracker.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\StereoBackbuffer.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\StereoView.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\StereoViewFactory.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\StereoViewInterleave.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\Vireio.cpp" />
     <ClCompile Include="apihijack.cpp" />
     <ClCompile Include="dllmain.cpp" />
   </ItemGroup>
@@ -165,6 +171,7 @@
     <ClInclude Include="..\..\DxProxy\DxProxy\D3D9ProxySurface.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\D3D9ProxySwapChain.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\D3D9ProxyTexture.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\D3D9ProxyVertexShader.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\D3D9ProxyVolume.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\D3D9ProxyVolumeTexture.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyDevice.h" />
@@ -190,19 +197,27 @@
     <ClInclude Include="..\..\DxProxy\DxProxy\Direct3DVolume9.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\Direct3DVolumeTexture9.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\FreeSpaceTracker.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\GameHandler.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\MotionTracker.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\MotionTrackerFactory.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\MurmurHash3.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\OculusRiftView.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\OculusTracker.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\ProxyHelper.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\pugiconfig.hpp" />
     <ClInclude Include="..\..\DxProxy\DxProxy\pugixml.hpp" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\ShaderConstantModification.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\ShaderConstantModificationFactory.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\ShaderModificationRepository.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\ShaderRegisters.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\SharedMemoryTracker.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\StereoBackbuffer.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\StereoShaderConstant.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\StereoView.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\StereoViewFactory.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\StereoViewInterleave.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\Vec4SimpleTranslate.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\Vireio.h" />
     <ClInclude Include="apihijack.h" />
     <ClInclude Include="hijackdll.h" />
   </ItemGroup>

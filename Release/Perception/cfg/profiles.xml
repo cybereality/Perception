@@ -55,7 +55,7 @@
 	<profile game_name="D3D Example" game_exe="dx9_transforms.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="D3D Example" game_exe="dx9_fps_controls.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="D3D Example" game_exe="dx9_vs20_shader_simple.exe" game_type="11" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
-	<profile game_name="Dead Rising 2" game_exe="deadrising2.exe" game_type="10" separation="0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="Dead Rising 2" game_exe="deadrising2.exe" game_type="11" separation="0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Borderlands 2" game_exe="Borderlands2.exe" game_type="10" separation="0.0" convergence="0.0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Fallout3" game_exe="Fallout3.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="BatmanAC" game_exe="BatmanAC.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />

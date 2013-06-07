@@ -2130,7 +2130,7 @@ bool D3DProxyDevice::setDrawingSide(vireio::RenderPosition side)
 
 		++itStereoConstant;
 	}*/
-	m_spManagedShaderRegisters->ForceApplyStereoConstants(side);
+	m_spManagedShaderRegisters->ApplyStereoConstants(side, true);
 
 
 
