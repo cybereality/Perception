@@ -45,10 +45,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "StereoBackBuffer.h"
 #include "GameHandler.h"
 #include "ShaderRegisters.h"
+#include "ViewAdjustmentMatricies.h"
 
 
-#define LEFT_CONSTANT -1
-#define RIGHT_CONSTANT 1
+
+
 #define _SAFE_RELEASE(x) if(x) { x->Release(); x = NULL; } 
 
 class StereoView;
@@ -70,8 +71,8 @@ public:
 	
 	virtual HRESULT WINAPI Reset(D3DPRESENT_PARAMETERS* pPresentationParameters);
 	void SetupOptions(ProxyHelper::ProxyConfig& cfg);
-	void SetupMatrices();
-	void ComputeViewTranslation();
+	//void SetupMatrices();
+	//void ComputeViewTranslation();
 	void SetupText();
 	void HandleControls(void);
 	void HandleTracking(void);
@@ -140,11 +141,7 @@ public:
 
 
 
-	D3DXMATRIX matProjection;
-	D3DXMATRIX matProjectionInv;
-
-	D3DXMATRIX matViewTranslationLeft;
-	D3DXMATRIX matViewTranslationRight;
+	
 
 
 	float* currentMatrix;
@@ -155,13 +152,6 @@ public:
 	int roll_mode;			// 0 disabled, 1 enabled
 	int translation_mode;	// for head translation
 
-	// Projection Matrix variables
-	float n;	//Minimum z-value of the view volume
-	float f;	//Maximum z-value of the view volume
-	float l;	//Minimum x-value of the view volume
-	float r;	//Maximum x-value of the view volume
-	float t;	//Minimum y-value of the view volume
-	float b;	//Maximum y-value of the view volume
 
 	bool trackingOn;
 
@@ -258,7 +248,7 @@ private:
 	HRESULT SetStereoViewTransform(D3DXMATRIX pLeftMatrix, D3DXMATRIX pRightMatrix, bool apply);
 	HRESULT SetStereoProjectionTransform(D3DXMATRIX pLeftMatrix, D3DXMATRIX pRightMatrix, bool apply);
 
-
+	std::shared_ptr<ViewAdjustmentMatricies> m_spShaderViewAdjustmentMatricies;
 	std::shared_ptr<ShaderRegisters> m_spManagedShaderRegisters;
 	GameHandler* m_pGameSpecificLogic;
 	
@@ -285,13 +275,12 @@ private:
 	std::unordered_map<UINT, BaseDirect3DVertexBuffer9*> m_activeVertexBuffers;
 
 
+
 	bool m_bInBeginEndStateBlock;
 
 	bool m_bViewTransformSet;
 	bool m_bProjectionTransformSet;
 
-
-	D3DXMATRIX m_rollMatrix;
 
 	D3DXMATRIX m_leftView;
 	D3DXMATRIX m_rightView;

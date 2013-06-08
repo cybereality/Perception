@@ -16,22 +16,28 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#ifndef VEC4SIMPLETRANSLATE_H_INCLUDED
-#define VEC4SIMPLETRANSLATE_H_INCLUDED
+#ifndef MATSIMPLETRANSLATE_H_INCLUDED
+#define MATSIMPLETRANSLATE_H_INCLUDED
 
 
 #include "d3d9.h"
 #include "d3dx9.h"
 #include "ShaderConstantModification.h"
 
-class Vec4SimpleTranslate : public ShaderConstantModification<float>
+class MatrixSimpleTranslate : public ShaderConstantModification<float>
 {
 public:
-	Vec4SimpleTranslate(UINT modID) : ShaderConstantModification(modID) {};
+	MatrixSimpleTranslate(UINT modID, std::shared_ptr<ViewAdjustmentMatricies> adjustmentMatricies) : ShaderConstantModification(modID, adjustmentMatricies) {};
 
 	virtual void ApplyModification(const float* toModify, float* outLeft, float* outRight)
 	{
-		//TODO implement
+		D3DXMATRIX tempMatrix = const_cast<float*>(toModify);
+		
+		D3DXMATRIX tempLeft (tempMatrix * *(m_spAdjustmentMatricies->LeftAdjustmentMatrix()));
+		D3DXMATRIX tempRight (tempMatrix * *(m_spAdjustmentMatricies->RightAdjustmentMatrix()));
+
+		outLeft = tempLeft;
+		outRight = tempRight;
 	}
 };
 

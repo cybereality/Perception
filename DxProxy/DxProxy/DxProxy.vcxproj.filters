@@ -193,6 +193,9 @@
     <ClCompile Include="Vireio.cpp">
       <Filter>Direct3D9Vireio</Filter>
     </ClCompile>
+    <ClCompile Include="ViewAdjustmentMatricies.cpp">
+      <Filter>Direct3D9Vireio</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Exports.def">
@@ -365,10 +368,19 @@
     <ClInclude Include="StereoShaderConstant.h">
       <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
     </ClInclude>
-    <ClInclude Include="Vec4SimpleTranslate.h">
+    <ClInclude Include="Vireio.h">
+      <Filter>Direct3D9Vireio</Filter>
+    </ClInclude>
+    <ClInclude Include="MatrixSimpleTranslate.h">
       <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
     </ClInclude>
-    <ClInclude Include="Vireio.h">
+    <ClInclude Include="MatrixSimpleTranslateColMajor.h">
+      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
+    </ClInclude>
+    <ClInclude Include="Vector4SimpleTranslate.h">
+      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
+    </ClInclude>
+    <ClInclude Include="ViewAdjustmentMatricies.h">
       <Filter>Direct3D9Vireio</Filter>
     </ClInclude>
   </ItemGroup>

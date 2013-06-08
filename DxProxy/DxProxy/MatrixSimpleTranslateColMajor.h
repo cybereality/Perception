@@ -16,35 +16,33 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#ifndef SHADERCONSTANTMODIFICATION_H_INCLUDED
-#define SHADERCONSTANTMODIFICATION_H_INCLUDED
+#ifndef MATSIMPLETRANSLATECOL_H_INCLUDED
+#define MATSIMPLETRANSLATECOL_H_INCLUDED
 
-#include <memory>
+
 #include "d3d9.h"
 #include "d3dx9.h"
-#include "ViewAdjustmentMatricies.h"
+#include "ShaderConstantModification.h"
 
-template <class T=float>
-class ShaderConstantModification
+class MatrixSimpleTranslateColMajor : public ShaderConstantModification<float>
 {
 public:
-	ShaderConstantModification(UINT modID, std::shared_ptr<ViewAdjustmentMatricies> adjustmentMatricies) : 
-		m_ModificationID(modID),
-		m_spAdjustmentMatricies(adjustmentMatricies)
-	{}
+	MatrixSimpleTranslateColMajor(UINT modID, std::shared_ptr<ViewAdjustmentMatricies> adjustmentMatricies) : ShaderConstantModification(modID, adjustmentMatricies) {};
 
-	virtual ~ShaderConstantModification()
+	virtual void ApplyModification(const float* toModify, float* outLeft, float* outRight)
 	{
-		m_spAdjustmentMatricies.reset();
+		D3DXMATRIX tempMatrix (toModify);
+		D3DXMatrixTranspose(&tempMatrix, &tempMatrix);
+			
+		D3DXMATRIX tempLeft (tempMatrix * *(m_spAdjustmentMatricies->LeftAdjustmentMatrix()));
+		D3DXMATRIX tempRight (tempMatrix * *(m_spAdjustmentMatricies->RightAdjustmentMatrix()));
+
+		D3DXMatrixTranspose(&tempLeft, &tempLeft);
+		D3DXMatrixTranspose(&tempRight, &tempRight);
+
+		outLeft = tempLeft;
+		outRight = tempRight;
 	}
-
-	/* Applies this modification to toModify to produce left and right versions */
-	virtual void ApplyModification(const T* toModify, T* outLeft, T* outRight) = 0;
-
-
-	UINT m_ModificationID;
-protected:
-	std::shared_ptr<ViewAdjustmentMatricies> m_spAdjustmentMatricies;	
 };
 
 

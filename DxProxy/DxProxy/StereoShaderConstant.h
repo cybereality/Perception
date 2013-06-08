@@ -35,14 +35,18 @@ public:
 		m_StartRegister(StartReg),
 		m_Count(dataCount),
 		m_DataLeft(),
-		m_DataRight()
+		m_DataRight(),
+		m_modification(modification)
 	{
 		m_DataLeft.resize(dataCount * L);
 		m_DataRight.resize(dataCount * L);
 		Update(pData);
 	}
 
-	virtual ~StereoShaderConstant() {}
+	virtual ~StereoShaderConstant() 
+	{
+		m_modification.reset();
+	}
 
 	// pointer to new data. Verify data dimensions match this constant before calling if needed
 	void Update(const T* data) 

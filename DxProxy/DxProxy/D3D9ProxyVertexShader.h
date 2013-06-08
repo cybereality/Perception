@@ -37,6 +37,8 @@ class ShaderModificationRepository;
 class D3D9ProxyVertexShader : public BaseDirect3DVertexShader9
 {
 public:
+
+	// pModLoader can be NULL (no modifications in this game profile)
 	D3D9ProxyVertexShader(IDirect3DVertexShader9* pActualVertexShader, D3DProxyDevice* pOwningDevice, ShaderModificationRepository* pModLoader);
 	virtual ~D3D9ProxyVertexShader();
 

@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <vector>
 #include <unordered_map>
 #include <string>
+#include <memory>
 #include "StereoShaderConstant.h"
 #include "GameHandler.h"
 #include "ShaderRegisters.h"
@@ -31,19 +32,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Limits.h"
 #include "ShaderConstantModification.h"
 #include "ShaderConstantModificationFactory.h"
-
+#include "ViewAdjustmentMatricies.h"
 
 
 class ShaderModificationRepository
 {
 public:
-	ShaderModificationRepository();
+	ShaderModificationRepository(std::string rulesFile, std::shared_ptr<ViewAdjustmentMatricies> adjustmentMatricies); //xml_node/doc?
 	virtual ~ShaderModificationRepository();
 
-	// true if load succeeds, false otherwise
-	bool Load(/*file*/);
+	//// true if load succeeds, false otherwise
+	//bool Load(/*file*/);
 
-	// Returns a collection of modifications that apply to the specified shader. (may be an empty collection if no modifications apply)
+	// Returns a collection of modified constants for the specified shader. (may be an empty collection if no modifications apply)
 	// <StrartRegister, StereoShaderConstant<float>>
 	std::map<UINT, StereoShaderConstant<float>> GetModifiedConstantsF(IDirect3DVertexShader9* pActualVertexShader);
 	
@@ -71,8 +72,7 @@ private:
 	};
 
 
-	
-
+	std::shared_ptr<ViewAdjustmentMatricies> m_spAdjustmentMatricies;	
 	D3DXMATRIX m_identity;
 
 	// StartReg is needed for registers that were identified by rule using name for matching but not register
@@ -81,10 +81,10 @@ private:
 	// <Modification Rule ID, ModificationRule>
 	std::unordered_map<UINT, ConstantModificationRule> m_AllModificationRules;
 
-	// <Modification ID>
+	// <Modification Rule ID>
 	std::vector<UINT> m_defaultModificationRuleIDs;
 
-	// <Shader hash, vector<Modification ID>>
+	// <Shader hash, vector<Modification Rule ID>>
 	std::unordered_map<uint32_t, std::vector<UINT>> m_shaderSpecificModificationRuleIDs;
 };
 

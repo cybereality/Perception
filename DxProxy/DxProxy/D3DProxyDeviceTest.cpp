@@ -37,7 +37,7 @@ HRESULT WINAPI D3DProxyDeviceTest::BeginScene()
 {
 	HandleControls();
 //	HandleTracking();
-	ComputeViewTranslation();
+//	ComputeViewTranslation();
 
 	if(saveDebugFile)
 	{
@@ -64,129 +64,129 @@ HRESULT WINAPI D3DProxyDeviceTest::EndScene()
 	return D3DProxyDevice::EndScene();
 }
 
-
-HRESULT WINAPI D3DProxyDeviceTest::SetVertexShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount)
-{
-	
-	if(stereoView->initialized && validVectorCount(Vector4fCount) && validRegister(StartRegister))
-	{
-		
-		currentMatrix = const_cast<float*>(pConstantData);
-	
-		D3DXMATRIX sourceMatrix(currentMatrix);
-		
-		D3DXMatrixTranspose(&sourceMatrix, &sourceMatrix);
-		//D3DXMatrixInverse(&sourceMatrix, 0, &sourceMatrix);
-
-		D3DXMATRIX worldViewMatrix;
-		D3DXMATRIX transMatrix;
-		D3DXMatrixIdentity(&transMatrix);
-		D3DXMATRIX worldViewTransMatrix;
-
-		//D3DXMatrixTranslation(&transMatrix, separation*eyeShutter*50.0f, 0, 0);
-
-		D3DXMatrixMultiply(&worldViewMatrix, &sourceMatrix, &matProjectionInv);
-		D3DXMatrixMultiply(&worldViewTransMatrix, &worldViewMatrix, &transMatrix);
-
-		/*
-		D3DXMATRIX transMatrix;
-		D3DXMatrixIdentity(&transMatrix);
-		D3DXMatrixTranslation(&transMatrix, separation*eyeShutter*100.0f, 0, 0);
-		D3DXMatrixMultiply(&sourceMatrix, &transMatrix, &sourceMatrix);
-		*/
-		//sourceMatrix[matrixIndex] += separation*eyeShutter*500.0f;
-		worldViewTransMatrix[matrixIndex] += separation*eyeShutter*5.0f;
-
-		D3DXMatrixMultiply(&sourceMatrix, &worldViewTransMatrix, &matProjection);
-
-		//D3DXMatrixInverse(&sourceMatrix, 0, &sourceMatrix);
-		D3DXMatrixTranspose(&sourceMatrix, &sourceMatrix);
-		
-
-		/*
-		D3DXMATRIX sourceMatrix(currentMatrix);
-		
-		D3DXMatrixTranspose(&sourceMatrix, &sourceMatrix);
-			
-		D3DXMATRIX worldViewMatrix;
-		D3DXMATRIX transMatrix;
-		D3DXMatrixIdentity(&transMatrix);
-		D3DXMATRIX worldViewTransMatrix;
-
-		D3DXMatrixTranslation(&transMatrix, separation*eyeShutter*10.0f, 0, 0);
-		//D3DXMatrixMultiply(&sourceMatrix, &sourceMatrix, &transMatrix);
-
-		//D3DXMatrixMultiply(&worldViewMatrix, &sourceMatrix, &matProjectionInv);
-
-		//transMatrix[8] += convergence*drawLeftEye;
-
-		//D3DXMatrixMultiply(&worldViewTransMatrix, &worldViewMatrix, &transMatrix);
-			
-		//D3DXMATRIX rollMatrix;
-		//D3DXMatrixRotationZ(&rollMatrix, currentRoll);
-		//D3DXMatrixMultiply(&worldViewTransMatrix, &worldViewTransMatrix, &rollMatrix);
-
-		//D3DXMatrixMultiply(&sourceMatrix, &worldViewTransMatrix, &matProjection);
-
-		D3DXMatrixTranspose(&sourceMatrix, &sourceMatrix);
-		//
-		//sourceMatrix[0] += separation*eyeShutter;
-
-		currentMatrix = (float*)sourceMatrix;
-
-		currentMatrix[matrixIndex] += separation*eyeShutter;
-		*/
-
-		if(saveDebugFile)
-		{
-			char vcString[1024];
-			sprintf_s(vcString, 
-				"register: %d, count: %d\n"
-				"%.4f\t%.4f\t%.4f\t%.4f\n" 
-				"%.4f\t%.4f\t%.4f\t%.4f\n"
-				"%.4f\t%.4f\t%.4f\t%.4f\n"
-				"%.4f\t%.4f\t%.4f\t%.4f\n\n", StartRegister, Vector4fCount,
-				currentMatrix[0], currentMatrix[1], currentMatrix[2], currentMatrix[3],
-				currentMatrix[4], currentMatrix[5], currentMatrix[6], currentMatrix[7],
-				currentMatrix[8], currentMatrix[9], currentMatrix[10], currentMatrix[11],
-				currentMatrix[12], currentMatrix[13], currentMatrix[14], currentMatrix[15]
-				);
-
-			debugFile << vcString;
-		}
-
-
-		//sourceMatrix._13 += separation*eyeShutter;
-
-		//currentMatrix = (float*)sourceMatrix;
-		
-		
-		currentMatrix[0] = sourceMatrix._11;
-		currentMatrix[1] = sourceMatrix._12;
-		currentMatrix[2] = sourceMatrix._13;
-		currentMatrix[3] = sourceMatrix._14;
-		currentMatrix[4] = sourceMatrix._21;
-		currentMatrix[5] = sourceMatrix._22;
-		currentMatrix[6] = sourceMatrix._23;
-		currentMatrix[7] = sourceMatrix._24;
-		currentMatrix[8] = sourceMatrix._31;
-		currentMatrix[9] = sourceMatrix._32;
-		currentMatrix[10] = sourceMatrix._33;
-		currentMatrix[11] = sourceMatrix._34;
-		currentMatrix[12] = sourceMatrix._41;
-		currentMatrix[13] = sourceMatrix._42;
-		currentMatrix[14] = sourceMatrix._43;
-		currentMatrix[15] = sourceMatrix._44;
-
-		//currentMatrix[matrixIndex] += separation*eyeShutter*5.0f;
-
-		//currentMatrix[matrixIndex] += separation*eyeShutter*50.0f;
-
-		return D3DProxyDevice::SetVertexShaderConstantF(StartRegister, currentMatrix, Vector4fCount);
-	}
-
-	return D3DProxyDevice::SetVertexShaderConstantF(StartRegister, pConstantData, Vector4fCount);
-}
+//
+//HRESULT WINAPI D3DProxyDeviceTest::SetVertexShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount)
+//{
+//	
+//	if(stereoView->initialized && validVectorCount(Vector4fCount) && validRegister(StartRegister))
+//	{
+//		
+//		currentMatrix = const_cast<float*>(pConstantData);
+//	
+//		D3DXMATRIX sourceMatrix(currentMatrix);
+//		
+//		D3DXMatrixTranspose(&sourceMatrix, &sourceMatrix);
+//		//D3DXMatrixInverse(&sourceMatrix, 0, &sourceMatrix);
+//
+//		D3DXMATRIX worldViewMatrix;
+//		D3DXMATRIX transMatrix;
+//		D3DXMatrixIdentity(&transMatrix);
+//		D3DXMATRIX worldViewTransMatrix;
+//
+//		//D3DXMatrixTranslation(&transMatrix, separation*eyeShutter*50.0f, 0, 0);
+//
+//		D3DXMatrixMultiply(&worldViewMatrix, &sourceMatrix, &matProjectionInv);
+//		D3DXMatrixMultiply(&worldViewTransMatrix, &worldViewMatrix, &transMatrix);
+//
+//		/*
+//		D3DXMATRIX transMatrix;
+//		D3DXMatrixIdentity(&transMatrix);
+//		D3DXMatrixTranslation(&transMatrix, separation*eyeShutter*100.0f, 0, 0);
+//		D3DXMatrixMultiply(&sourceMatrix, &transMatrix, &sourceMatrix);
+//		*/
+//		//sourceMatrix[matrixIndex] += separation*eyeShutter*500.0f;
+//		worldViewTransMatrix[matrixIndex] += separation*eyeShutter*5.0f;
+//
+//		D3DXMatrixMultiply(&sourceMatrix, &worldViewTransMatrix, &matProjection);
+//
+//		//D3DXMatrixInverse(&sourceMatrix, 0, &sourceMatrix);
+//		D3DXMatrixTranspose(&sourceMatrix, &sourceMatrix);
+//		
+//
+//		/*
+//		D3DXMATRIX sourceMatrix(currentMatrix);
+//		
+//		D3DXMatrixTranspose(&sourceMatrix, &sourceMatrix);
+//			
+//		D3DXMATRIX worldViewMatrix;
+//		D3DXMATRIX transMatrix;
+//		D3DXMatrixIdentity(&transMatrix);
+//		D3DXMATRIX worldViewTransMatrix;
+//
+//		D3DXMatrixTranslation(&transMatrix, separation*eyeShutter*10.0f, 0, 0);
+//		//D3DXMatrixMultiply(&sourceMatrix, &sourceMatrix, &transMatrix);
+//
+//		//D3DXMatrixMultiply(&worldViewMatrix, &sourceMatrix, &matProjectionInv);
+//
+//		//transMatrix[8] += convergence*drawLeftEye;
+//
+//		//D3DXMatrixMultiply(&worldViewTransMatrix, &worldViewMatrix, &transMatrix);
+//			
+//		//D3DXMATRIX rollMatrix;
+//		//D3DXMatrixRotationZ(&rollMatrix, currentRoll);
+//		//D3DXMatrixMultiply(&worldViewTransMatrix, &worldViewTransMatrix, &rollMatrix);
+//
+//		//D3DXMatrixMultiply(&sourceMatrix, &worldViewTransMatrix, &matProjection);
+//
+//		D3DXMatrixTranspose(&sourceMatrix, &sourceMatrix);
+//		//
+//		//sourceMatrix[0] += separation*eyeShutter;
+//
+//		currentMatrix = (float*)sourceMatrix;
+//
+//		currentMatrix[matrixIndex] += separation*eyeShutter;
+//		*/
+//
+//		if(saveDebugFile)
+//		{
+//			char vcString[1024];
+//			sprintf_s(vcString, 
+//				"register: %d, count: %d\n"
+//				"%.4f\t%.4f\t%.4f\t%.4f\n" 
+//				"%.4f\t%.4f\t%.4f\t%.4f\n"
+//				"%.4f\t%.4f\t%.4f\t%.4f\n"
+//				"%.4f\t%.4f\t%.4f\t%.4f\n\n", StartRegister, Vector4fCount,
+//				currentMatrix[0], currentMatrix[1], currentMatrix[2], currentMatrix[3],
+//				currentMatrix[4], currentMatrix[5], currentMatrix[6], currentMatrix[7],
+//				currentMatrix[8], currentMatrix[9], currentMatrix[10], currentMatrix[11],
+//				currentMatrix[12], currentMatrix[13], currentMatrix[14], currentMatrix[15]
+//				);
+//
+//			debugFile << vcString;
+//		}
+//
+//
+//		//sourceMatrix._13 += separation*eyeShutter;
+//
+//		//currentMatrix = (float*)sourceMatrix;
+//		
+//		
+//		currentMatrix[0] = sourceMatrix._11;
+//		currentMatrix[1] = sourceMatrix._12;
+//		currentMatrix[2] = sourceMatrix._13;
+//		currentMatrix[3] = sourceMatrix._14;
+//		currentMatrix[4] = sourceMatrix._21;
+//		currentMatrix[5] = sourceMatrix._22;
+//		currentMatrix[6] = sourceMatrix._23;
+//		currentMatrix[7] = sourceMatrix._24;
+//		currentMatrix[8] = sourceMatrix._31;
+//		currentMatrix[9] = sourceMatrix._32;
+//		currentMatrix[10] = sourceMatrix._33;
+//		currentMatrix[11] = sourceMatrix._34;
+//		currentMatrix[12] = sourceMatrix._41;
+//		currentMatrix[13] = sourceMatrix._42;
+//		currentMatrix[14] = sourceMatrix._43;
+//		currentMatrix[15] = sourceMatrix._44;
+//
+//		//currentMatrix[matrixIndex] += separation*eyeShutter*5.0f;
+//
+//		//currentMatrix[matrixIndex] += separation*eyeShutter*50.0f;
+//
+//		return D3DProxyDevice::SetVertexShaderConstantF(StartRegister, currentMatrix, Vector4fCount);
+//	}
+//
+//	return D3DProxyDevice::SetVertexShaderConstantF(StartRegister, pConstantData, Vector4fCount);
+//}
 
 
 

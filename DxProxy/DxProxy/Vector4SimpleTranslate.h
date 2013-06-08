@@ -16,21 +16,24 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#include "D3D9ProxyVertexShader.h"
+#ifndef VEC4SIMPLETRANSLATE_H_INCLUDED
+#define VEC4SIMPLETRANSLATE_H_INCLUDED
 
-D3D9ProxyVertexShader::D3D9ProxyVertexShader(IDirect3DVertexShader9* pActualVertexShader, D3DProxyDevice *pOwningDevice, ShaderModificationRepository* pModLoader) :
-	BaseDirect3DVertexShader9(pActualVertexShader, pOwningDevice),
-	m_pActualDevice(pOwningDevice->getActual()),
-	m_modifiedConstants()
+
+#include "d3d9.h"
+#include "d3dx9.h"
+#include "ShaderConstantModification.h"
+
+class Vector4SimpleTranslate : public ShaderConstantModification<float>
 {
-	if (pModLoader)
-		m_modifiedConstants = pModLoader->GetModifiedConstantsF(pActualVertexShader);
-}
+public:
+	Vector4SimpleTranslate(UINT modID, std::shared_ptr<ViewAdjustmentMatricies> adjustmentMatricies) : ShaderConstantModification(modID, adjustmentMatricies) {};
 
-D3D9ProxyVertexShader::~D3D9ProxyVertexShader()
-{}
+	virtual void ApplyModification(const float* toModify, float* outLeft, float* outRight)
+	{
+		//TODO implement
+	}
+};
 
-std::map<UINT, StereoShaderConstant<float>>* D3D9ProxyVertexShader::ModifiedConstants()
-{
-	return &m_modifiedConstants;
-}
+
+#endif

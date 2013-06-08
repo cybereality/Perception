@@ -168,6 +168,9 @@
     <ClCompile Include="..\..\DxProxy\DxProxy\GameHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\DxProxy\DxProxy\ViewAdjustmentMatricies.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="hijackdll.def">
@@ -335,6 +338,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\DxProxy\DxProxy\MurmurHash3.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\DxProxy\DxProxy\MatrixSimpleTranslate.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\DxProxy\DxProxy\MatrixSimpleTranslateColMajor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\DxProxy\DxProxy\Vector4SimpleTranslate.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\DxProxy\DxProxy\ViewAdjustmentMatricies.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

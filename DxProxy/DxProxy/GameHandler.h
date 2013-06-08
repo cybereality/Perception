@@ -30,31 +30,31 @@ class ShaderModificationRepository;
 
 class GameHandler
 {
-private: 
-	GameHandler();
-
 public:
-	
+	GameHandler(); 
 	virtual ~GameHandler();
 
-	static GameHandler* Load(std::string gameId);
-	static GameHandler* Load(/*std::string gameId, file*/);
+	void Load(std::string gameId, std::shared_ptr<ViewAdjustmentMatricies> adjustmentMatricies); //ifstream/xml_doc?	
 
-	bool ShouldDuplicateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample,
-										DWORD MultisampleQuality,BOOL Lockable,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle, bool isSwapChainBackBuffer);
-	bool ShouldDuplicateTexture(UINT Width,UINT Height,UINT Levels,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool,IDirect3DTexture9** ppTexture,HANDLE* pSharedHandle);
-	bool ShouldDuplicateCubeTexture(UINT EdgeLength, UINT Levels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool, IDirect3DCubeTexture9** ppCubeTexture, HANDLE* pSharedHandle);
+
+	bool ShouldDuplicateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample, DWORD MultisampleQuality,BOOL Lockable, bool isSwapChainBackBuffer);
+	bool ShouldDuplicateDepthStencilSurface(UINT Width,UINT Height,D3DFORMAT Format,D3DMULTISAMPLE_TYPE MultiSample,DWORD MultisampleQuality,BOOL Discard);
+	bool ShouldDuplicateTexture(UINT Width,UINT Height,UINT Levels,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool);
+	bool ShouldDuplicateCubeTexture(UINT EdgeLength, UINT Levels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool);
 
 	float ToWorldUnits(float millimeters);
 
 	ShaderModificationRepository* GetShaderModificationRepository();
 
+
+	
+
 private:
 
-
-	std::string m_gameId;
-	float m_fWorldScaleFactor;
 	ShaderModificationRepository* m_ShaderModificationRepository;
+
+	//std::string m_gameName;
+	float m_fWorldScaleFactor;
 };
 
 #endif

@@ -22,8 +22,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <memory>
 #include "d3d9.h"
 #include "d3dx9.h"
-#include "Vec4SimpleTranslate.h"
+#include "Vector4SimpleTranslate.h"
 #include "ShaderConstantModification.h"
+#include "MatrixSimpleTranslate.h"
+#include "MatrixSimpleTranslateColMajor.h"
 
 
 class ShaderConstantModificationFactory
@@ -31,49 +33,49 @@ class ShaderConstantModificationFactory
 public:
 	enum Vector4ModificationTypes
 	{
-		SimpleTranslate = 0
+		Vec4SimpleTranslate = 0
 	};
 
 	enum MatrixModificationTypes
 	{
-		TranslateWithView = 0, //unreal
-		TranslateWithViewColMajor = 1, // source
+		MatSimpleTranslate = 0, //unreal
+		MatSimpleTranslateColMajor = 1 // source
 	};
 
-	static std::shared_ptr<ShaderConstantModification<>> CreateVector4Modification(UINT modID)
+	static std::shared_ptr<ShaderConstantModification<>> CreateVector4Modification(UINT modID, std::shared_ptr<ViewAdjustmentMatricies> adjustmentMatricies)
 	{
-		return CreateVector4Modification(static_cast<Vector4ModificationTypes>(modID));
+		return CreateVector4Modification(static_cast<Vector4ModificationTypes>(modID), adjustmentMatricies);
 	}
 
-	static std::shared_ptr<ShaderConstantModification<>> CreateVector4Modification(Vector4ModificationTypes mod)
+	static std::shared_ptr<ShaderConstantModification<>> CreateVector4Modification(Vector4ModificationTypes mod, std::shared_ptr<ViewAdjustmentMatricies> adjustmentMatricies)
 	{
 		switch (mod)
 		{
-		case SimpleTranslate:
-			return std::make_shared<Vec4SimpleTranslate>(mod);
-			break;
+		case Vec4SimpleTranslate:
+			return std::make_shared<Vector4SimpleTranslate>(mod, adjustmentMatricies);
 
 		default:
 			throw std::out_of_range ("Nonexistant Vec4 modification");
-			break;
 		}
 	}
 
-	static std::shared_ptr<ShaderConstantModification<>> CreateMatrixModification(UINT modID) 
+	static std::shared_ptr<ShaderConstantModification<>> CreateMatrixModification(UINT modID, std::shared_ptr<ViewAdjustmentMatricies> adjustmentMatricies) 
 	{
-		return CreateMatrixModification(static_cast<MatrixModificationTypes>(modID));
+		return CreateMatrixModification(static_cast<MatrixModificationTypes>(modID), adjustmentMatricies);
 	}
 
-	static std::shared_ptr<ShaderConstantModification<>> CreateMatrixModification(MatrixModificationTypes mod)
+	static std::shared_ptr<ShaderConstantModification<>> CreateMatrixModification(MatrixModificationTypes mod, std::shared_ptr<ViewAdjustmentMatricies> adjustmentMatricies)
 	{
 		switch (mod)
 		{
-		case TranslateWithView:
-		case TranslateWithViewColMajor:
+		case MatSimpleTranslate:
+			return std::make_shared<MatrixSimpleTranslate>(mod, adjustmentMatricies);
+
+		case MatSimpleTranslateColMajor:
+			return std::make_shared<MatrixSimpleTranslateColMajor>(mod, adjustmentMatricies);
 
 		default:
 			throw std::out_of_range ("Nonexistant matrix modification");
-			break;
 		}
 	}
 };

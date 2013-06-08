@@ -19,20 +19,36 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ShaderModificationRepository.h"
 #include <assert.h>
 
-ShaderModificationRepository::ShaderModificationRepository() :
+ShaderModificationRepository::ShaderModificationRepository(std::string rulesFile, std::shared_ptr<ViewAdjustmentMatricies> adjustmentMatricies) :
 	m_AllModificationRules(),
 	m_defaultModificationRuleIDs(),
-	m_shaderSpecificModificationRuleIDs()
+	m_shaderSpecificModificationRuleIDs(),
+	m_spAdjustmentMatricies(adjustmentMatricies)
 {
 	D3DXMatrixIdentity(&m_identity);
+
+
+	// TODO implementation
+	// load from file
+	
+	
+
+
+	// For testing load source settings manually
+	//m_AllModificationRules.insert(
+
+	m_defaultModificationRuleIDs.push_back(1);
+	m_defaultModificationRuleIDs.push_back(2);
+	m_defaultModificationRuleIDs.push_back(3);
+
 }
 
 ShaderModificationRepository::~ShaderModificationRepository()
 {
-
+	m_spAdjustmentMatricies.reset();
 }
-
-bool ShaderModificationRepository::Load(/*file*/)
+/*
+bool ShaderModificationRepository::Load(file)
 {
 	m_AllModificationRules.clear();
 	m_defaultModificationRuleIDs.clear();
@@ -43,7 +59,7 @@ bool ShaderModificationRepository::Load(/*file*/)
 	// For testing load source settings manually
 
 	return true;
-}
+}*/
 
 
 std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetModifiedConstantsF(IDirect3DVertexShader9* pActualVertexShader)
@@ -182,7 +198,7 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 	switch (rule->constantType)
 	{
 	case D3DXPC_VECTOR:
-		modification = ShaderConstantModificationFactory::CreateVector4Modification(rule->operationToApply);
+		modification = ShaderConstantModificationFactory::CreateVector4Modification(rule->operationToApply, m_spAdjustmentMatricies);
 		pData = D3DXVECTOR4(0,0,0,0);
 
 		return StereoShaderConstant<>(StartReg, pData, Count, modification);
@@ -190,7 +206,7 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 
 	case D3DXPC_MATRIX_ROWS:
 	case D3DXPC_MATRIX_COLUMNS:
-		modification = ShaderConstantModificationFactory::CreateMatrixModification(rule->operationToApply);
+		modification = ShaderConstantModificationFactory::CreateMatrixModification(rule->operationToApply, m_spAdjustmentMatricies);
 		pData = m_identity;
 
 		return StereoShaderConstant<>(StartReg, pData, Count, modification);

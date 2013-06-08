@@ -158,6 +158,7 @@
     <ClCompile Include="..\..\DxProxy\DxProxy\StereoView.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\StereoViewFactory.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\StereoViewInterleave.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\ViewAdjustmentMatricies.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\Vireio.cpp" />
     <ClCompile Include="apihijack.cpp" />
     <ClCompile Include="dllmain.cpp" />
@@ -198,6 +199,8 @@
     <ClInclude Include="..\..\DxProxy\DxProxy\Direct3DVolumeTexture9.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\FreeSpaceTracker.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\GameHandler.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\MatrixSimpleTranslate.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\MatrixSimpleTranslateColMajor.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\MotionTracker.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\MotionTrackerFactory.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\MurmurHash3.h" />
@@ -217,6 +220,8 @@
     <ClInclude Include="..\..\DxProxy\DxProxy\StereoViewFactory.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\StereoViewInterleave.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\Vec4SimpleTranslate.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\Vector4SimpleTranslate.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\ViewAdjustmentMatricies.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\Vireio.h" />
     <ClInclude Include="apihijack.h" />
     <ClInclude Include="hijackdll.h" />

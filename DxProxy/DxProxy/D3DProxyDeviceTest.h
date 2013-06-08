@@ -30,7 +30,7 @@ public:
 	virtual ~D3DProxyDeviceTest();
 	virtual HRESULT WINAPI BeginScene();
 	virtual HRESULT WINAPI EndScene();
-	virtual HRESULT WINAPI SetVertexShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
+	//virtual HRESULT WINAPI SetVertexShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
 	//virtual HRESULT WINAPI SetDepthStencilSurface(IDirect3DSurface9* pNewZStencil);
 	//virtual HRESULT WINAPI SetTransform(D3DTRANSFORMSTATETYPE State,CONST D3DMATRIX* pMatrix);
 

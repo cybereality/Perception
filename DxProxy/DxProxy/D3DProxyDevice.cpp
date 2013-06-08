@@ -37,8 +37,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define KEY_DOWN(vk_code) ((GetAsyncKeyState(vk_code) & 0x8000) ? 1 : 0)
 #define KEY_UP(vk_code) ((GetAsyncKeyState(vk_code) & 0x8000) ? 0 : 1)
 
-#define IS_RENDER_TARGET(d3dusage) ((d3dusage & D3DUSAGE_RENDERTARGET) > 0 ? true : false)
-#define IS_POOL_DEFAULT(d3dpool) ((d3dpool & D3DPOOL_DEFAULT) > 0 ? true : false)
+
 
 #define SMALL_FLOAT 0.001f
 #define	SLIGHTLY_LESS_THAN_ONE 0.999f
@@ -56,6 +55,8 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 {
 	OutputDebugString("D3D ProxyDev Created\n");
 	
+	m_spShaderViewAdjustmentMatricies = std::make_shared<ViewAdjustmentMatricies>();
+
 	// Check the maximum number of supported render targets
 	D3DCAPS9 capabilities;
 	BaseDirect3DDevice9::GetDeviceCaps(&capabilities);
@@ -63,11 +64,11 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 
 	m_activeRenderTargets.resize(maxRenderTargets, NULL);
 	m_currentRenderingSide = vireio::Left;
-	m_pCurrentMatViewTransform = &matViewTranslationLeft;
+	m_pCurrentMatViewTransform = m_spShaderViewAdjustmentMatricies->LeftAdjustmentMatrix(); //&matViewTranslationLeft;
 	m_pCurrentView = &m_leftView;
 	m_pCurrentProjection = &m_leftProjection;
 
-	m_pGameSpecificLogic = NULL;
+	m_pGameSpecificLogic = new GameHandler();
 	m_spManagedShaderRegisters = std::make_shared<ShaderRegisters>(capabilities.MaxVertexShaderConst, pDevice);
 
 	m_pActiveStereoDepthStencil = NULL;
@@ -90,7 +91,7 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	D3DXMatrixIdentity(&m_rightView);
 	D3DXMatrixIdentity(&m_leftProjection);
 	D3DXMatrixIdentity(&m_rightProjection);	
-	D3DXMatrixIdentity(&m_rollMatrix);
+	
 
 
 	centerlineR = 0.0f;
@@ -110,6 +111,9 @@ D3DProxyDevice::~D3DProxyDevice()
 {
 	ReleaseEverything();
 
+	delete m_pGameSpecificLogic;
+
+	m_spShaderViewAdjustmentMatricies.reset();
 	m_spManagedShaderRegisters.reset();
 
 	// always do this last
@@ -136,7 +140,7 @@ void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 {
 	OutputDebugString("D3D ProxyDev Init\n");
 
-	m_pGameSpecificLogic = GameHandler::Load();
+	m_pGameSpecificLogic->Load("meep", m_spShaderViewAdjustmentMatricies);
 
 	stereoView = StereoViewFactory::Get(cfg);
 	SetupOptions(cfg);
@@ -168,7 +172,7 @@ void D3DProxyDevice::OnCreateOrRestore()
 	OutputDebugString("\n");
 
 	m_currentRenderingSide = vireio::Left;
-	m_pCurrentMatViewTransform = &matViewTranslationLeft;
+	m_pCurrentMatViewTransform = m_spShaderViewAdjustmentMatricies->LeftAdjustmentMatrix();
 	m_pCurrentView = &m_leftView;
 	m_pCurrentProjection = &m_leftProjection;
 
@@ -215,7 +219,7 @@ void D3DProxyDevice::OnCreateOrRestore()
 
 	stereoView->Init(getActual());
 	
-	SetupMatrices();
+	m_spShaderViewAdjustmentMatricies->UpdateProjectionMatrices(separation, convergence, (float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
 }
 
 
@@ -384,59 +388,7 @@ void D3DProxyDevice::SetupOptions(ProxyHelper::ProxyConfig& cfg)
 	OutputDebugString("\n");
 }
 
-void D3DProxyDevice::SetupMatrices()
-{	// call this function after StereoView::Init()
 
-	aspectRatio = (float)stereoView->viewport.Width/(float)stereoView->viewport.Height;
-
-	n = 0.1f;					
-	f = 10.0f;
-	l = -0.5f;
-	r = 0.5f;
-	t = 0.5f / aspectRatio;
-	b = -0.5f / aspectRatio;
-
-	D3DXMatrixPerspectiveOffCenterLH(&matProjection, l, r, b, t, n, f);
-	D3DXMatrixInverse(&matProjectionInv, 0, &matProjection);
-}
-
-
-// This translation is applied to vertex shader matricies in some subclasses.
-// Note that l/r frustrum changes are applied differently for the transform and would seem
-// to produce different results. So I leave merging this with Transform view/projection code to someone braver.
-// But it really feels like it should be a single code path situation.
-void D3DProxyDevice::ComputeViewTranslation()
-{
-	D3DXMATRIX transformLeft;
-	D3DXMATRIX transformRight;
-	D3DXMatrixTranslation(&transformLeft, separation * LEFT_CONSTANT * 10.0f /*+ offset * 10.0f*/, 0, 0);
-	D3DXMatrixTranslation(&transformRight, separation * RIGHT_CONSTANT * 10.0f /*+ offset * 10.0f*/, 0, 0);
-
-	D3DXMATRIX rollTransform;
-	D3DXMatrixIdentity(&rollTransform);
-
-	if (roll_mode != 0) {
-		//D3DXMatrixMultiply(&rollTransform, &rollTransform, &m_rollMatrix);
-		D3DXMatrixMultiply(&transformLeft, &m_rollMatrix, &transformLeft);
-		D3DXMatrixMultiply(&transformRight, &m_rollMatrix, &transformRight);
-	}
-	
-
-
-	// TODO this part only needs recalculating after a 3d settings change /////////////////
-	float adjustedFrustumOffsetLeft = convergence * LEFT_CONSTANT * 0.1f * separation;		
-	float adjustedFrustumOffsetRight = convergence * RIGHT_CONSTANT * 0.1f * separation;		
-
-	D3DXMATRIX reProjectLeft;
-	D3DXMATRIX reProjectRight;
-	D3DXMatrixPerspectiveOffCenterLH(&reProjectLeft, l+adjustedFrustumOffsetLeft, r+adjustedFrustumOffsetLeft, b, t, n, f);
-	D3DXMatrixPerspectiveOffCenterLH(&reProjectRight, l+adjustedFrustumOffsetRight, r+adjustedFrustumOffsetRight, b, t, n, f);
-	///////////////////////////////////////////////////////////////////////////////////////
-	
-
-	matViewTranslationLeft = matProjectionInv * transformLeft * reProjectLeft;
-	matViewTranslationRight = matProjectionInv * transformRight * reProjectRight;
-}
 
 
 void D3DProxyDevice::SetupText()
@@ -810,11 +762,10 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 		// How much latency does mouse enulation cause? Probably want direct roll manipulation and mouse emulation to occur with same delay
 		// if possible?
 		if (trackerInitialized && tracker->isAvailable() && roll_mode != 0) {
-			D3DXMatrixIdentity(&m_rollMatrix);
-			D3DXMatrixRotationZ(&m_rollMatrix, tracker->currentRoll);
+			m_spShaderViewAdjustmentMatricies->UpdateRoll(tracker->currentRoll);
 		}
 
-		ComputeViewTranslation();
+		m_spShaderViewAdjustmentMatricies->ComputeViewTranslations(separation, convergence, roll_mode != 0);
 
 		m_isFirstBeginSceneOfFrame = false;
 	}
@@ -923,9 +874,6 @@ HRESULT WINAPI D3DProxyDevice::CreateIndexBuffer(UINT Length,DWORD Usage,D3DFORM
 HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample,
 													DWORD MultisampleQuality,BOOL Lockable,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle, bool isSwapChainBackBuffer)
 {
-	//OutputDebugString(__FUNCTION__); 
-	//OutputDebugString("\n"); 
-
 
 	IDirect3DSurface9* pLeftRenderTarget = NULL;
 	IDirect3DSurface9* pRightRenderTarget = NULL;
@@ -937,7 +885,7 @@ HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFO
 		/* "If Needed" heuristic is the complicated part here.
 		  Fixed heuristics (based on type, format, size, etc) + game specific overrides + isForcedMono + magic? */
 		// TODO Should we duplicate this Render Target? Replace "true" with heuristic
-		if (true) //!((Width == Height) || (Width <= 1024))) // Trying some random things out - this one fixes guy on screens in hl2
+		if (m_pGameSpecificLogic->ShouldDuplicateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, isSwapChainBackBuffer))
 		{
 			if (FAILED(BaseDirect3DDevice9::CreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, &pRightRenderTarget, pSharedHandle))) {
 				OutputDebugString("Failed to create right eye render target while attempting to create stereo pair, falling back to mono\n");
@@ -991,7 +939,7 @@ HRESULT WINAPI D3DProxyDevice::CreateDepthStencilSurface(UINT Width,UINT Height,
 	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateDepthStencilSurface(Width, Height, Format, MultiSample, MultisampleQuality, Discard, &pDepthStencilSurfaceLeft, pSharedHandle))) {
 
 		// TODO Should we always duplicated Depth stencils? I think yes, but there may be exceptions
-		if (true) 
+		if (m_pGameSpecificLogic->ShouldDuplicateDepthStencilSurface(Width, Height, Format, MultiSample, MultisampleQuality, Discard)) 
 		{
 			if (FAILED(BaseDirect3DDevice9::CreateDepthStencilSurface(Width, Height, Format, MultiSample, MultisampleQuality, Discard, &pDepthStencilSurfaceRight, pSharedHandle))) {
 				OutputDebugString("Failed to create right eye Depth Stencil Surface while attempting to create stereo pair, falling back to mono\n");
@@ -1046,7 +994,7 @@ HRESULT WINAPI D3DProxyDevice::CreateTexture(UINT Width,UINT Height,UINT Levels,
 	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateTexture(Width, Height, Levels, Usage, Format, Pool, &pLeftTexture, pSharedHandle))) {
 		
 		// Does this Texture need duplicating?
-		if (IS_RENDER_TARGET(Usage)) {// TODO  Replace with more detailed heuristic. Render targets don't always need to be duplicated
+		if (m_pGameSpecificLogic->ShouldDuplicateTexture(Width, Height, Levels, Usage, Format, Pool)) {
 
 			if (FAILED(BaseDirect3DDevice9::CreateTexture(Width, Height, Levels, Usage, Format, Pool, &pRightTexture, pSharedHandle))) {
 				OutputDebugString("Failed to create right eye texture while attempting to create stereo pair, falling back to mono\n");
@@ -1080,7 +1028,7 @@ HRESULT WINAPI D3DProxyDevice::CreateCubeTexture(UINT EdgeLength, UINT Levels, D
 	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateCubeTexture(EdgeLength, Levels, Usage, Format, Pool, &pLeftCubeTexture, pSharedHandle))) {
 		
 		// Does this Texture need duplicating?
-		if (IS_RENDER_TARGET(Usage)) {// TODO  Replace with more detailed heuristic. Render targets don't always need to be duplicated
+		if (m_pGameSpecificLogic->ShouldDuplicateCubeTexture(EdgeLength, Levels, Usage, Format, Pool)) {
 
 			if (FAILED(BaseDirect3DDevice9::CreateCubeTexture(EdgeLength, Levels, Usage, Format, Pool, &pRightCubeTexture, pSharedHandle))) {
 				OutputDebugString("Failed to create right eye texture while attempting to create stereo pair, falling back to mono\n");
@@ -1463,7 +1411,7 @@ HRESULT WINAPI D3DProxyDevice::SetStreamSource(UINT StreamNumber, IDirect3DVerte
 	return result;
 }
 
-// TODO ppStreamData is marker in and out in docs. Potentially it can be a get when the stream hasn't been set before???
+// TODO ppStreamData is marked in and out in docs. Potentially it can be a get when the stream hasn't been set before???
 // Category of prolbme: Worry about it if it breaks.
 HRESULT WINAPI D3DProxyDevice::GetStreamSource(UINT StreamNumber, IDirect3DVertexBuffer9** ppStreamData,UINT* pOffsetInBytes,UINT* pStride)
 {
@@ -1800,27 +1748,6 @@ HRESULT WINAPI D3DProxyDevice::GetVertexShaderConstantF(UINT StartRegister,float
 {
 	return m_spManagedShaderRegisters->GetConstantRegistersF(StartRegister, pData, Vector4fCount);
 }
-/*
-bool D3DProxyDevice::CouldOverwriteMatrix(UINT StartRegister, UINT Vector4fCount) 
-{
-	return false;
-}
-
-bool D3DProxyDevice::ContainsMatrixToModify(UINT StartRegister, CONST float* pConstantData, UINT Vector4fCount)
-{
-	return false;
-}
-
-// Should be pure virtual in this context but is going out into a seperate interface so the shader
-// handling is a component rather than handling by inheritance so this is a stop gap warning
-StereoShaderConstant<float> D3DProxyDevice::CreateStereoShaderConstant(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount)
-{
-	OutputDebugString("Should never call CreateStereoShaderConstant on D3DProxyDevice");
-	assert(false);
-
-	return StereoShaderConstant<float>(0, NULL, NULL,0,0);
-}
-*/
 
 
 
@@ -2039,10 +1966,10 @@ bool D3DProxyDevice::setDrawingSide(vireio::RenderPosition side)
 
 	// Updated computed view translation (used by several derived proxies - see: ComputeViewTranslation)
 	if (side == vireio::Left) {
-		m_pCurrentMatViewTransform = &matViewTranslationLeft;
+		m_pCurrentMatViewTransform = m_spShaderViewAdjustmentMatricies->LeftAdjustmentMatrix();
 	}
 	else {
-		m_pCurrentMatViewTransform = &matViewTranslationRight;
+		m_pCurrentMatViewTransform = m_spShaderViewAdjustmentMatricies->RightAdjustmentMatrix();
 	}
 
 
@@ -2464,7 +2391,7 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 				D3DXMatrixIdentity(&transMatrixLeft);
 				D3DXMatrixIdentity(&transMatrixRight);
 
-				D3DXMatrixMultiply(&sourceMatrix, &sourceMatrix, &matProjectionInv);
+				D3DXMatrixMultiply(&sourceMatrix, &sourceMatrix, m_spShaderViewAdjustmentMatricies->ProjectionInverse());
 
 				// TODO these only need recalculating on 3d setting changes. Also ComputeViewTranslation and this are
 				// using different calulations. Are they both correct? Can they be one code path?
@@ -2474,10 +2401,10 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 				D3DXMATRIX sourceMatrixRight(sourceMatrix);
 
 				D3DXMatrixMultiply(&sourceMatrixRight, &sourceMatrixRight, &transMatrixRight);
-				D3DXMatrixMultiply(&tempRight, &sourceMatrixRight, &matProjection);
+				D3DXMatrixMultiply(&tempRight, &sourceMatrixRight, m_spShaderViewAdjustmentMatricies->Projection());
 
 				D3DXMatrixMultiply(&sourceMatrix, &sourceMatrix, &transMatrixLeft);
-				D3DXMatrixMultiply(&tempLeft, &sourceMatrix, &matProjection);
+				D3DXMatrixMultiply(&tempLeft, &sourceMatrix, m_spShaderViewAdjustmentMatricies->Projection());
 
 				tempIsTransformSet = true;
 			}

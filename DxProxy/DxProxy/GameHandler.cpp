@@ -18,61 +18,76 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "GameHandler.h"
 
-GameHandler::GameHandler() 
+#define IS_RENDER_TARGET(d3dusage) ((d3dusage & D3DUSAGE_RENDERTARGET) > 0 ? true : false)
+#define IS_POOL_DEFAULT(d3dpool) ((d3dpool & D3DPOOL_DEFAULT) > 0 ? true : false)
+
+
+GameHandler::GameHandler() :
+	m_fWorldScaleFactor(1.0f),
+	m_ShaderModificationRepository(nullptr)
 {
-	//TODO implementation
+	
 }
 
 GameHandler::~GameHandler()
 {
-
+	if (m_ShaderModificationRepository)
+		delete m_ShaderModificationRepository;
 }
 
 
-GameHandler* GameHandler::Load(std::string gameId)
+void GameHandler::Load(std::string gameId, std::shared_ptr<ViewAdjustmentMatricies> adjustmentMatricies)
 {
 	//TODO implementation
-	return NULL;
+	//if (game profile has shader rules)
+	m_ShaderModificationRepository = new ShaderModificationRepository("", adjustmentMatricies);
+	// else
+	// m_ShaderModificationRepository = NULL;
 }
 
-GameHandler* GameHandler::Load(/* std::string gameId and file*/)
+//TODO implementation - For now use one set of rules for everything, at some point this is probably going to need to be reworked to allow modifications per game.
+// TODO - externalise these as rules? It might be good to have default values for various rules like
+// "Don't duplicate targets smaller than X pixels", where that rule could be enabled and the value changed in the cfg file for the game
+// Do something similar to shader modifications?
+// Extending class and overriding these methods would end up with a similar problem with duplicate code to original shader handling. Try and avoid (or at least find approach that avoids the duplication)
+bool GameHandler::ShouldDuplicateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample, DWORD MultisampleQuality,BOOL Lockable, bool isSwapChainBackBuffer)
 {
+	if (isSwapChainBackBuffer) {
+		return true;
+	}
+
+	//!((Width == Height) || (Width <= 1024))) // Trying some random things out - this one fixes guy on screens in hl2 (but makes him left shifted - his shader would need a non-stereo value or a modification that returns unmodified in place of left)
 	//TODO implementation
-	return NULL;
+	return true;
+
 }
 
-
-
-bool GameHandler::ShouldDuplicateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample,
-									DWORD MultisampleQuality,BOOL Lockable,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle, bool isSwapChainBackBuffer)
+bool GameHandler::ShouldDuplicateDepthStencilSurface(UINT Width,UINT Height,D3DFORMAT Format,D3DMULTISAMPLE_TYPE MultiSample,DWORD MultisampleQuality,BOOL Discard)
 {
 	//TODO implementation
 	return true;
 }
 
-bool GameHandler::ShouldDuplicateTexture(UINT Width,UINT Height,UINT Levels,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool,IDirect3DTexture9** ppTexture,HANDLE* pSharedHandle)
+bool GameHandler::ShouldDuplicateTexture(UINT Width,UINT Height,UINT Levels,DWORD Usage, D3DFORMAT Format,D3DPOOL Pool)
 {
 	//TODO implementation
-	return true;
+	// IF render target then check render target rules?
+	return IS_RENDER_TARGET(Usage);
 }
 
-bool GameHandler::ShouldDuplicateCubeTexture(UINT EdgeLength, UINT Levels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool, IDirect3DCubeTexture9** ppCubeTexture, HANDLE* pSharedHandle)
+bool GameHandler::ShouldDuplicateCubeTexture(UINT EdgeLength, UINT Levels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool)
 {
 	//TODO implementation
-	return true;
+	// IF render target then check render target rules?
+	return IS_RENDER_TARGET(Usage);
 }
 
 float GameHandler::ToWorldUnits(float millimeters)
 {
-	float result = 0.0f;
-
-	//TODO implementation
-
-	return result;
+	return millimeters * m_fWorldScaleFactor;
 }
 
 ShaderModificationRepository* GameHandler::GetShaderModificationRepository()
 {
-	//TODO implementation
-	return NULL;
+	return m_ShaderModificationRepository;
 }
