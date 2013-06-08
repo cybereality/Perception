@@ -56,7 +56,7 @@ void ShaderRegisters::ReleaseResources()
 
 HRESULT WINAPI ShaderRegisters::SetConstantRegistersF(UINT StartRegister, const float* pConstantData, UINT Vector4fCount)
 {
-	if ((StartRegister <= m_maxConstantRegistersF) || ((StartRegister + Vector4fCount) <= m_maxConstantRegistersF))
+	if ((StartRegister >= m_maxConstantRegistersF) || ((StartRegister + Vector4fCount) >= m_maxConstantRegistersF))
 		return D3DERR_INVALIDCALL;
 
 	// Set proxy registers
@@ -206,15 +206,17 @@ void ShaderRegisters::ApplyDirtyToDevice(vireio::RenderPosition currentSide)
 
 		// skip through until we reach the end of a continuous series of dirty registers
 		auto itNext = std::next(it);
-		if ((itNext != m_dirtyRegistersF.end()) && (*itNext == startReg + 1))
-			continue;
+		if ((itNext != m_dirtyRegistersF.end()) && (*itNext == startReg + 1)) {
+			//continue
+		}
+		else {
+			// set this series of registers
+			m_pActualDevice->SetVertexShaderConstantF(startReg, &m_registersF[RegisterIndex(startReg)], startReg - (*it) + 1);
 
-		// set this series of registers
-		m_pActualDevice->SetVertexShaderConstantF(startReg, &m_registersF[RegisterIndex(startReg)], startReg - (*it) + 1);
-
-		// If there are more dirty registers left the next register will be the new startReg
-		if (itNext != m_dirtyRegistersF.end()) {
-			startReg = *itNext;
+			// If there are more dirty registers left the next register will be the new startReg
+			if (itNext != m_dirtyRegistersF.end()) {
+				startReg = *itNext;
+			}
 		}
 
 		++it;

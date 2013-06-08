@@ -37,13 +37,13 @@ ShaderModificationRepository::ShaderModificationRepository(std::string rulesFile
 	// For testing load source settings manually
 	//m_AllModificationRules.insert(
 
-	m_defaultModificationRuleIDs.push_back(1);
+	/*m_defaultModificationRuleIDs.push_back(1);
 	m_defaultModificationRuleIDs.push_back(2);
 	m_defaultModificationRuleIDs.push_back(3);
 
 	m_AllModificationRules.insert(std::make_pair<UINT, ConstantModificationRule>(1, ConstantModificationRule("", 4, D3DXPC_MATRIX_ROWS, 1, 1)));
 	m_AllModificationRules.insert(std::make_pair<UINT, ConstantModificationRule>(2, ConstantModificationRule("", 8, D3DXPC_MATRIX_ROWS, 1, 2))); 
-	m_AllModificationRules.insert(std::make_pair<UINT, ConstantModificationRule>(3, ConstantModificationRule("", 51, D3DXPC_MATRIX_ROWS, 1, 3)));
+	m_AllModificationRules.insert(std::make_pair<UINT, ConstantModificationRule>(3, ConstantModificationRule("", 51, D3DXPC_MATRIX_ROWS, 1, 3)));*/
 
 }
 
