@@ -38,8 +38,7 @@ ViewAdjustmentMatricies::~ViewAdjustmentMatricies()
 
 
 void ViewAdjustmentMatricies::UpdateProjectionMatrices(float separation, float convergence, float aspectRatio)
-{	// call this function after StereoView::Init()
-
+{
 	//aspectRatio = (float)stereoView->viewport.Width/(float)stereoView->viewport.Height;
 	t = 0.5f / aspectRatio;
 	b = -0.5f / aspectRatio;
@@ -63,7 +62,7 @@ void ViewAdjustmentMatricies::UpdateRoll(float roll)
 	D3DXMatrixRotationZ(&rollMatrix, roll);
 }
 
-// This translation is applied to vertex shader matricies in some subclasses.
+// This translation is applied to vertex shader matricies in various ways by matrix modifications
 // Note that l/r frustrum changes are applied differently for the transform and would seem
 // to produce different results. So I leave merging this with Transform view/projection code to someone braver.
 // But it really feels like it should be a single code path situation.
@@ -81,12 +80,6 @@ void ViewAdjustmentMatricies::ComputeViewTranslations(float separation, float co
 		D3DXMatrixMultiply(&transformLeft, &rollMatrix, &transformLeft);
 		D3DXMatrixMultiply(&transformRight, &rollMatrix, &transformRight);
 	}
-	
-
-
-	// TODO this part only needs recalculating after a 3d settings change /////////////////
-	
-	///////////////////////////////////////////////////////////////////////////////////////
 	
 
 	matViewProjTranslateLeft = matProjectionInv * transformLeft * reProjectLeft;

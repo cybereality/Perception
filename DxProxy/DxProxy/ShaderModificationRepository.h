@@ -58,16 +58,39 @@ private:
 	class ConstantModificationRule 
 	{
 	public: 
+
+		ConstantModificationRule () :
+			m_constantName("ThisWontMatchAnything"),
+			m_startRegIndex(999999), // niether will this
+			m_constantType(),
+			m_operationToApply(0),
+			m_modificationRuleID(0)
+		{
+			// This constructor exists so that the [] operator of map can be used (default constructor is needed) BUT, if this
+			// ever actually gets used something is wrong so implode;
+			assert(false);
+			throw 69;
+		};
+
+
+		ConstantModificationRule (std::string constantName, UINT startRegIndex, D3DXPARAMETER_CLASS constantType, UINT operationToApply, UINT modificationRuleID) :
+			m_constantName(constantName),
+			m_startRegIndex(startRegIndex),
+			m_constantType(constantType),
+			m_operationToApply(operationToApply),
+			m_modificationRuleID(modificationRuleID)
+		{};
+
 		// empty string is "no constant"
-		std::string constantName;
+		std::string m_constantName;
 		// UINT_MAX is "any start reg"
-		UINT startRegIndex;
+		UINT m_startRegIndex;
 		// type Vector/Matrix // only D3DXPC_VECTOR, D3DXPC_MATRIX_ROWS and D3DXPC_MATRIX_COLUMNS are currently handled
-		D3DXPARAMETER_CLASS constantType;
+		D3DXPARAMETER_CLASS m_constantType;
 		// Identifier (int that maps to a ShaderConstantModificationFactory::(Vector4/Matrix)ModificationTypes as appropriate given constantType) of the operation to apply
-		UINT operationToApply;
+		UINT m_operationToApply;
 		// Unique (within a given set of rules) id for this modification rule
-		UINT modificationRuleID;
+		UINT m_modificationRuleID;
 		//type - always float atm
 	};
 

@@ -41,6 +41,10 @@ ShaderModificationRepository::ShaderModificationRepository(std::string rulesFile
 	m_defaultModificationRuleIDs.push_back(2);
 	m_defaultModificationRuleIDs.push_back(3);
 
+	m_AllModificationRules.insert(std::make_pair<UINT, ConstantModificationRule>(1, ConstantModificationRule("", 4, D3DXPC_MATRIX_ROWS, 1, 1)));
+	m_AllModificationRules.insert(std::make_pair<UINT, ConstantModificationRule>(2, ConstantModificationRule("", 8, D3DXPC_MATRIX_ROWS, 1, 2))); 
+	m_AllModificationRules.insert(std::make_pair<UINT, ConstantModificationRule>(3, ConstantModificationRule("", 51, D3DXPC_MATRIX_ROWS, 1, 3)));
+
 }
 
 ShaderModificationRepository::~ShaderModificationRepository()
@@ -97,6 +101,7 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 		auto itRules = m_shaderSpecificModificationRuleIDs[hash].begin();
 		while (itRules != m_shaderSpecificModificationRuleIDs[hash].end()) {
 			rulesToApply.push_back(&(m_AllModificationRules[*itRules]));
+			++itRules;
 		}
 	}
 	else {
@@ -105,6 +110,7 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 		auto itRules = m_defaultModificationRuleIDs.begin();
 		while (itRules != m_defaultModificationRuleIDs.end()) {
 			rulesToApply.push_back(&(m_AllModificationRules[*itRules]));
+			++itRules;
 		}
 	}
 
@@ -145,11 +151,11 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 					while (itRules != rulesToApply.end()) {
 
 						// Type match
-						if ((*itRules)->constantType == pConstantDesc[j].Class) {
+						if ((*itRules)->m_constantType == pConstantDesc[j].Class) {
 
 							// name match required
-							if ((*itRules)->constantName.size() > 0) {
-								if ((*itRules)->constantName.compare(pConstantDesc[j].Name) != 0) {
+							if ((*itRules)->m_constantName.size() > 0) {
+								if ((*itRules)->m_constantName.compare(pConstantDesc[j].Name) != 0) {
 									// no match
 									++itRules;
 									continue;
@@ -157,8 +163,8 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 							}
 
 							// register match required
-							if ((*itRules)->startRegIndex != UINT_MAX) {
-								if ((*itRules)->startRegIndex != pConstantDesc[j].RegisterIndex) {
+							if ((*itRules)->m_startRegIndex != UINT_MAX) {
+								if ((*itRules)->m_startRegIndex != pConstantDesc[j].RegisterIndex) {
 									// no match
 									++itRules;
 									continue;
@@ -190,15 +196,15 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 
  StereoShaderConstant<> ShaderModificationRepository::CreateStereoConstantFrom(const ConstantModificationRule* rule, UINT StartReg, UINT Count)
 {
-	assert ((rule->startRegIndex == UINT_MAX) ? (StartReg != UINT_MAX) : (rule->startRegIndex == StartReg));
+	assert ((rule->m_startRegIndex == UINT_MAX) ? (StartReg != UINT_MAX) : (rule->m_startRegIndex == StartReg));
 
 	std::shared_ptr<ShaderConstantModification<>> modification = nullptr;
 	float* pData = NULL;
 
-	switch (rule->constantType)
+	switch (rule->m_constantType)
 	{
 	case D3DXPC_VECTOR:
-		modification = ShaderConstantModificationFactory::CreateVector4Modification(rule->operationToApply, m_spAdjustmentMatricies);
+		modification = ShaderConstantModificationFactory::CreateVector4Modification(rule->m_operationToApply, m_spAdjustmentMatricies);
 		pData = D3DXVECTOR4(0,0,0,0);
 
 		return StereoShaderConstant<>(StartReg, pData, Count, modification);
@@ -206,7 +212,7 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 
 	case D3DXPC_MATRIX_ROWS:
 	case D3DXPC_MATRIX_COLUMNS:
-		modification = ShaderConstantModificationFactory::CreateMatrixModification(rule->operationToApply, m_spAdjustmentMatricies);
+		modification = ShaderConstantModificationFactory::CreateMatrixModification(rule->m_operationToApply, m_spAdjustmentMatricies);
 		pData = m_identity;
 
 		return StereoShaderConstant<>(StartReg, pData, Count, modification);

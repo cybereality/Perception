@@ -177,23 +177,24 @@ void ShaderRegisters::ApplyDirtyToDevice(vireio::RenderPosition currentSide)
 	if (m_dirtyRegistersF.size() == 0)
 		return;
 
-	
-	// Updates all dirty stereo constants and sets them on the actual device
-	auto itStereoConstant = m_pActiveVertexShader->ModifiedConstants()->begin();
-	while (itStereoConstant != m_pActiveVertexShader->ModifiedConstants()->end()) {
+	if (m_pActiveVertexShader) {
+		// Updates all dirty stereo constants and sets them on the actual device
+		auto itStereoConstant = m_pActiveVertexShader->ModifiedConstants()->begin();
+		while (itStereoConstant != m_pActiveVertexShader->ModifiedConstants()->end()) {
 
-		// if any of the registers that make up this constant are dirty
-		if (AnyDirty(itStereoConstant->second.StartRegister(), itStereoConstant->second.Count())) {
-			itStereoConstant->second.Update(&m_registersF[RegisterIndex(itStereoConstant->second.StartRegister())]);
+			// if any of the registers that make up this constant are dirty
+			if (AnyDirty(itStereoConstant->second.StartRegister(), itStereoConstant->second.Count())) {
+				itStereoConstant->second.Update(&m_registersF[RegisterIndex(itStereoConstant->second.StartRegister())]);
 
-			m_pActualDevice->SetVertexShaderConstantF(itStereoConstant->second.StartRegister(), (currentSide == vireio::Left) ? itStereoConstant->second.DataLeftPointer() : itStereoConstant->second.DataRightPointer(), itStereoConstant->second.Count());
+				m_pActualDevice->SetVertexShaderConstantF(itStereoConstant->second.StartRegister(), (currentSide == vireio::Left) ? itStereoConstant->second.DataLeftPointer() : itStereoConstant->second.DataRightPointer(), itStereoConstant->second.Count());
 
-			// These registers are no longer dirty
-			for (UINT i = itStereoConstant->second.StartRegister(); i < itStereoConstant->second.StartRegister() + itStereoConstant->second.Count(); i++)
-				m_dirtyRegistersF.erase(i);
+				// These registers are no longer dirty
+				for (UINT i = itStereoConstant->second.StartRegister(); i < itStereoConstant->second.StartRegister() + itStereoConstant->second.Count(); i++)
+					m_dirtyRegistersF.erase(i);
+			}
+
+			++itStereoConstant;
 		}
-
-		++itStereoConstant;
 	}
 
 
@@ -224,6 +225,9 @@ void ShaderRegisters::ApplyDirtyToDevice(vireio::RenderPosition currentSide)
 
 void ShaderRegisters::ApplyStereoConstants(vireio::RenderPosition currentSide, bool forceApply)
 {
+	if (!m_pActiveVertexShader)
+		return;
+
 	auto itStereoConstant = m_pActiveVertexShader->ModifiedConstants()->begin();
 	while (itStereoConstant != m_pActiveVertexShader->ModifiedConstants()->end()) {
 
@@ -277,7 +281,11 @@ void ShaderRegisters::ActiveVertexShaderChanged(D3D9ProxyVertexShader* pNewVerte
 			if (mightBeDirty) {
 				m_dirtyRegistersF.insert(itNewConstants->first);
 			}
+
+			++itNewConstants;
 		}
+
+
 	}
 	
 	_SAFE_RELEASE(m_pActiveVertexShader);
