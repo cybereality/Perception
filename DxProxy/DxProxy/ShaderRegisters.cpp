@@ -138,7 +138,7 @@ void ShaderRegisters::MarkAllStereoConstantsDirty()
 }
 
 
-void ShaderRegisters::SetFromStateBlockData(std::vector<float> * storedRegisters,D3D9ProxyVertexShader* storedShader)
+void ShaderRegisters::SetFromStateBlockData(std::vector<float> * storedRegisters, D3D9ProxyVertexShader* storedShader)
 {
 	// Full register capture should always match the size of the existing register set as size is fixed and register was captured from this
 	assert(storedRegisters->size() == m_registersF.size());
@@ -201,21 +201,24 @@ void ShaderRegisters::ApplyDirtyToDevice(vireio::RenderPosition currentSide)
 	// Apply all remaining dirty registers (should just be non-stereo that remain dirty) to device
 	auto it = m_dirtyRegistersF.begin();
 	int startReg = *it;
+	int lastReg = startReg;
 
 	while (it != m_dirtyRegistersF.end()) {
 
-		// skip through until we reach the end of a continuous series of dirty registers
+		
 		auto itNext = std::next(it);
-		if ((itNext != m_dirtyRegistersF.end()) && (*itNext == startReg + 1)) {
-			//continue
+		if ((itNext != m_dirtyRegistersF.end()) && (*itNext == lastReg + 1)) {
+			// skip through until we reach the end of a continuous series of dirty registers
+			lastReg = *itNext;
 		}
 		else {
 			// set this series of registers
-			m_pActualDevice->SetVertexShaderConstantF(startReg, &m_registersF[RegisterIndex(startReg)], startReg - (*it) + 1);
+			m_pActualDevice->SetVertexShaderConstantF(startReg, &m_registersF[RegisterIndex(startReg)], lastReg - startReg + 1);
 
 			// If there are more dirty registers left the next register will be the new startReg
 			if (itNext != m_dirtyRegistersF.end()) {
 				startReg = *itNext;
+				lastReg = startReg;
 			}
 		}
 
