@@ -41,6 +41,9 @@
     <Filter Include="Direct3D9Vireio\ShaderConstantModification">
       <UniqueIdentifier>{084bd177-106f-45e6-a3bf-8f38a1279b73}</UniqueIdentifier>
     </Filter>
+    <Filter Include="cfg\shader_rules">
+      <UniqueIdentifier>{001cd5d3-206b-4679-9b96-8e7a1aacf08f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -203,6 +206,9 @@
     </None>
     <None Include="SideBySideRiftPartialCrop.fx">
       <Filter>fx</Filter>
+    </None>
+    <None Include="..\..\Release\Perception\cfg\shader_rules\source.xml">
+      <Filter>cfg\shader_rules</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

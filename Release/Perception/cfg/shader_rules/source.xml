@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<shaderConfig>
+  <rules>
+    <rule id="1" constantType="MatrixC" modToApply="3" startReg="4"/> <!-- constantName="" startReg="" -  At least one of name or reg is required, optionally both can be supplied -->
+    <rule id="2" constantType="MatrixC" modToApply="3" startReg="8"/>
+    <rule id="3" constantType="MatrixC" modToApply="3" startReg="51"/>
+  </rules>
+
+  <!-- Default rules to apply to all shaders are optional -->
+  <defaultRuleIDs>
+    <ruleID id="1" />
+    <ruleID id="2" />
+    <ruleID id="3" />
+  </defaultRuleIDs>
+
+  <!-- Shader specific rule collections are optional (if both default and shader specific are left out then no rules will ever be applied) -->
+  <shaderSpecificRuleIDs shaderHash="12345">
+    <ruleID id="3" />
+  </shaderSpecificRuleIDs>
+</shaderConfig>

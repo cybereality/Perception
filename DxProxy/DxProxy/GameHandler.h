@@ -34,7 +34,7 @@ public:
 	GameHandler(); 
 	virtual ~GameHandler();
 
-	void Load(std::string gameId, std::shared_ptr<ViewAdjustment> adjustmentMatricies); //ifstream/xml_doc?	
+	bool Load(std::string gameId, std::shared_ptr<ViewAdjustment> adjustmentMatricies); //ifstream/xml_doc?	
 
 
 	bool ShouldDuplicateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample, DWORD MultisampleQuality,BOOL Lockable, bool isSwapChainBackBuffer);

@@ -36,13 +36,15 @@ GameHandler::~GameHandler()
 }
 
 
-void GameHandler::Load(std::string gameId, std::shared_ptr<ViewAdjustment> adjustmentMatricies)
+bool GameHandler::Load(std::string gameId, std::shared_ptr<ViewAdjustment> adjustmentMatricies)
 {
 	//TODO implementation
 	//if (game profile has shader rules)
 	m_ShaderModificationRepository = new ShaderModificationRepository("", adjustmentMatricies);
 	// else
 	// m_ShaderModificationRepository = NULL;
+
+	return true;
 }
 
 //TODO implementation - For now use one set of rules for everything, at some point this is probably going to need to be reworked to allow modifications per game.

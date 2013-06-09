@@ -41,8 +41,8 @@ public:
 	ShaderModificationRepository(std::string rulesFile, std::shared_ptr<ViewAdjustment> adjustmentMatricies); //xml_node/doc?
 	virtual ~ShaderModificationRepository();
 
-	//// true if load succeeds, false otherwise
-	//bool Load(/*file*/);
+	// true if load succeeds, false otherwise
+	bool Load(std::string gameId); //ifstream/xml_doc?	
 
 	// Returns a collection of modified constants for the specified shader. (may be an empty collection if no modifications apply)
 	// <StrartRegister, StereoShaderConstant<float>>

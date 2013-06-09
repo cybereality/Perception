@@ -320,6 +320,7 @@
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copying xml config from Release to $(Configuration)</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\cfg\%(filename).xml;%(Outputs)</Outputs>
     </CustomBuild>
+    <None Include="..\..\Release\Perception\cfg\shader_rules\source.xml" />
     <None Include="Exports.def" />
     <None Include="SideBySideRiftPartialCrop.fx" />
   </ItemGroup>
