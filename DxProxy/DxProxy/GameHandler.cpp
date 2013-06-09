@@ -36,7 +36,7 @@ GameHandler::~GameHandler()
 }
 
 
-void GameHandler::Load(std::string gameId, std::shared_ptr<ViewAdjustmentMatricies> adjustmentMatricies)
+void GameHandler::Load(std::string gameId, std::shared_ptr<ViewAdjustment> adjustmentMatricies)
 {
 	//TODO implementation
 	//if (game profile has shader rules)
@@ -56,7 +56,7 @@ bool GameHandler::ShouldDuplicateRenderTarget(UINT Width, UINT Height, D3DFORMAT
 		return true;
 	}
 
-	//!((Width == Height) || (Width <= 1024))) // Trying some random things out - this one fixes guy on screens in hl2 (but makes him left shifted - his shader would need a non-stereo value or a modification that returns unmodified in place of left)
+	//!((Width == Height) || (Width <= 1024))) // Trying some random things out - this one fixes guy on screens in hl2 (but makes him left shifted - his shaders would need a non-stereo value or a modification that returns unmodified in place of left)
 	//TODO implementation
 	return true;
 

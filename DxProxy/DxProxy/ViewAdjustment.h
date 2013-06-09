@@ -16,8 +16,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#ifndef VIEWADJUSTMENTMATRICIES_H_INCLUDED
-#define VIEWADJUSTMENTMATRICIES_H_INCLUDED
+#ifndef VIEWADJUSTMENT_H_INCLUDED
+#define VIEWADJUSTMENT_H_INCLUDED
 
 #include "d3d9.h"
 #include "d3dx9.h"
@@ -26,11 +26,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define LEFT_CONSTANT -1
 #define RIGHT_CONSTANT 1
 
-class ViewAdjustmentMatricies
+class ViewAdjustment
 {
 public:	
-	ViewAdjustmentMatricies();
-	virtual ~ViewAdjustmentMatricies();
+	ViewAdjustment();
+	virtual ~ViewAdjustment();
 
 	void UpdateProjectionMatrices(float separation, float convergence, float aspectRatio);
 	void UpdateRoll(float roll);

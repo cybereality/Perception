@@ -30,7 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class MatrixSimpleTranslateColMajorIgnoreOrtho : public MatrixSimpleTranslateColMajor
 {
 public:
-	MatrixSimpleTranslateColMajorIgnoreOrtho(UINT modID, std::shared_ptr<ViewAdjustmentMatricies> adjustmentMatricies) : MatrixSimpleTranslateColMajor(modID, adjustmentMatricies) {};
+	MatrixSimpleTranslateColMajorIgnoreOrtho(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatricies) : MatrixSimpleTranslateColMajor(modID, adjustmentMatricies) {};
 
 	virtual void ApplyModification(const float* inData, std::vector<float>* outLeft, std::vector<float>* outRight)
 	{

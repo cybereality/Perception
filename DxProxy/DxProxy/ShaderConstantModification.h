@@ -23,13 +23,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <vector>
 #include "d3d9.h"
 #include "d3dx9.h"
-#include "ViewAdjustmentMatricies.h"
+#include "ViewAdjustment.h"
 
 template <class T=float>
 class ShaderConstantModification
 {
 public:
-	ShaderConstantModification(UINT modID, std::shared_ptr<ViewAdjustmentMatricies> adjustmentMatricies) : 
+	ShaderConstantModification(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatricies) : 
 		m_ModificationID(modID),
 		m_spAdjustmentMatricies(adjustmentMatricies)
 	{}
@@ -45,7 +45,7 @@ public:
 
 	UINT m_ModificationID;
 protected:
-	std::shared_ptr<ViewAdjustmentMatricies> m_spAdjustmentMatricies;	
+	std::shared_ptr<ViewAdjustment> m_spAdjustmentMatricies;	
 };
 
 

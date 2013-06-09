@@ -168,7 +168,7 @@
     <ClCompile Include="..\..\DxProxy\DxProxy\GameHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\DxProxy\DxProxy\ViewAdjustmentMatricies.cpp">
+    <ClCompile Include="..\..\DxProxy\DxProxy\ViewAdjustment.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -349,7 +349,10 @@
     <ClInclude Include="..\..\DxProxy\DxProxy\Vector4SimpleTranslate.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\DxProxy\DxProxy\ViewAdjustmentMatricies.h">
+    <ClInclude Include="..\..\DxProxy\DxProxy\MatrixSimpleTranslateColMajorIgnoreOrtho.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\DxProxy\DxProxy\ViewAdjustment.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

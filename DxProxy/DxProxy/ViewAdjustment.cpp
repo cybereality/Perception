@@ -17,10 +17,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
 
-#include "ViewAdjustmentMatricies.h"
+#include "ViewAdjustment.h"
 
 
-ViewAdjustmentMatricies::ViewAdjustmentMatricies()
+ViewAdjustment::ViewAdjustment()
 {
 	n = 0.1f;					
 	f = 10.0f;
@@ -38,12 +38,12 @@ ViewAdjustmentMatricies::ViewAdjustmentMatricies()
 	ComputeViewTranslations(0, 0, false);
 }
 
-ViewAdjustmentMatricies::~ViewAdjustmentMatricies() 
+ViewAdjustment::~ViewAdjustment() 
 {
 }
 
 
-void ViewAdjustmentMatricies::UpdateProjectionMatrices(float separation, float convergence, float aspectRatio)
+void ViewAdjustment::UpdateProjectionMatrices(float separation, float convergence, float aspectRatio)
 {
 	//aspectRatio = (float)stereoView->viewport.Width/(float)stereoView->viewport.Height;
 	t = 0.5f / aspectRatio;
@@ -60,7 +60,7 @@ void ViewAdjustmentMatricies::UpdateProjectionMatrices(float separation, float c
 }
 
 
-void ViewAdjustmentMatricies::UpdateRoll(float roll)
+void ViewAdjustment::UpdateRoll(float roll)
 {
 	D3DXMatrixIdentity(&rollMatrix);
 	D3DXMatrixRotationZ(&rollMatrix, roll);
@@ -70,7 +70,7 @@ void ViewAdjustmentMatricies::UpdateRoll(float roll)
 // Note that l/r frustrum changes are applied differently for the transform and would seem
 // to produce different results. So I leave merging this with Transform view/projection code to someone braver.
 // But it really feels like it should be a single code path situation.
-void ViewAdjustmentMatricies::ComputeViewTranslations(float separation, float convergence, bool rollEnabled)
+void ViewAdjustment::ComputeViewTranslations(float separation, float convergence, bool rollEnabled)
 {
 	D3DXMATRIX transformLeft;
 	D3DXMATRIX transformRight;
@@ -90,22 +90,22 @@ void ViewAdjustmentMatricies::ComputeViewTranslations(float separation, float co
 	matViewProjTranslateRight = matProjectionInv * transformRight * reProjectRight;
 }
 
-D3DXMATRIX ViewAdjustmentMatricies::LeftAdjustmentMatrix()
+D3DXMATRIX ViewAdjustment::LeftAdjustmentMatrix()
 {
 	return matViewProjTranslateLeft;
 }
 
-D3DXMATRIX ViewAdjustmentMatricies::RightAdjustmentMatrix()
+D3DXMATRIX ViewAdjustment::RightAdjustmentMatrix()
 {
 	return matViewProjTranslateRight;
 }
 
-D3DXMATRIX ViewAdjustmentMatricies::Projection()
+D3DXMATRIX ViewAdjustment::Projection()
 {
 	return matProjection;
 }
 
-D3DXMATRIX ViewAdjustmentMatricies::ProjectionInverse()
+D3DXMATRIX ViewAdjustment::ProjectionInverse()
 {
 	return matProjectionInv;
 }

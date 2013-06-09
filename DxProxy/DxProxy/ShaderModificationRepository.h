@@ -32,13 +32,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Limits.h"
 #include "ShaderConstantModification.h"
 #include "ShaderConstantModificationFactory.h"
-#include "ViewAdjustmentMatricies.h"
+#include "ViewAdjustment.h"
 
 
 class ShaderModificationRepository
 {
 public:
-	ShaderModificationRepository(std::string rulesFile, std::shared_ptr<ViewAdjustmentMatricies> adjustmentMatricies); //xml_node/doc?
+	ShaderModificationRepository(std::string rulesFile, std::shared_ptr<ViewAdjustment> adjustmentMatricies); //xml_node/doc?
 	virtual ~ShaderModificationRepository();
 
 	//// true if load succeeds, false otherwise
@@ -96,7 +96,7 @@ private:
 	};
 
 
-	std::shared_ptr<ViewAdjustmentMatricies> m_spAdjustmentMatricies;	
+	std::shared_ptr<ViewAdjustment> m_spAdjustmentMatricies;	
 	D3DXMATRIX m_identity;
 
 	// StartReg is needed for registers that were identified by rule using name for matching but not register

@@ -155,7 +155,7 @@
     <ClCompile Include="StereoView.cpp" />
     <ClCompile Include="StereoViewFactory.cpp" />
     <ClCompile Include="StereoViewInterleave.cpp" />
-    <ClCompile Include="ViewAdjustmentMatricies.cpp" />
+    <ClCompile Include="ViewAdjustment.cpp" />
     <ClCompile Include="Vireio.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -172,7 +172,7 @@
     <ClInclude Include="MatrixSimpleTranslate.h" />
     <ClInclude Include="MatrixSimpleTranslateColMajor.h" />
     <ClInclude Include="MatrixSimpleTranslateColMajorIgnoreOrtho.h" />
-    <ClInclude Include="ViewAdjustmentMatricies.h" />
+    <ClInclude Include="ViewAdjustment.h" />
     <ClInclude Include="Vireio.h" />
     <ClInclude Include="MurmurHash3.h" />
     <ClInclude Include="ShaderConstantModification.h" />

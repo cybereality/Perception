@@ -55,7 +55,7 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 {
 	OutputDebugString("D3D ProxyDev Created\n");
 	
-	m_spShaderViewAdjustmentMatricies = std::make_shared<ViewAdjustmentMatricies>();
+	m_spShaderViewAdjustment = std::make_shared<ViewAdjustment>();
 
 	// Check the maximum number of supported render targets
 	D3DCAPS9 capabilities;
@@ -64,7 +64,7 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 
 	m_activeRenderTargets.resize(maxRenderTargets, NULL);
 	m_currentRenderingSide = vireio::Left;
-	m_pCurrentMatViewTransform = &m_spShaderViewAdjustmentMatricies->LeftAdjustmentMatrix(); //&matViewTranslationLeft;
+	m_pCurrentMatViewTransform = &m_spShaderViewAdjustment->LeftAdjustmentMatrix(); //&matViewTranslationLeft;
 	m_pCurrentView = &m_leftView;
 	m_pCurrentProjection = &m_leftProjection;
 
@@ -113,7 +113,7 @@ D3DProxyDevice::~D3DProxyDevice()
 
 	delete m_pGameSpecificLogic;
 
-	m_spShaderViewAdjustmentMatricies.reset();
+	m_spShaderViewAdjustment.reset();
 	m_spManagedShaderRegisters.reset();
 
 	// always do this last
@@ -140,7 +140,7 @@ void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 {
 	OutputDebugString("D3D ProxyDev Init\n");
 
-	m_pGameSpecificLogic->Load("meep", m_spShaderViewAdjustmentMatricies);
+	m_pGameSpecificLogic->Load("meep", m_spShaderViewAdjustment);
 
 	stereoView = StereoViewFactory::Get(cfg);
 	SetupOptions(cfg);
@@ -172,7 +172,7 @@ void D3DProxyDevice::OnCreateOrRestore()
 	OutputDebugString("\n");
 
 	m_currentRenderingSide = vireio::Left;
-	m_pCurrentMatViewTransform = &m_spShaderViewAdjustmentMatricies->LeftAdjustmentMatrix();
+	m_pCurrentMatViewTransform = &m_spShaderViewAdjustment->LeftAdjustmentMatrix();
 	m_pCurrentView = &m_leftView;
 	m_pCurrentProjection = &m_leftProjection;
 
@@ -217,7 +217,7 @@ void D3DProxyDevice::OnCreateOrRestore()
 
 	stereoView->Init(getActual());
 	
-	m_spShaderViewAdjustmentMatricies->UpdateProjectionMatrices(separation, convergence, (float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
+	m_spShaderViewAdjustment->UpdateProjectionMatrices(separation, convergence, (float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
 }
 
 
@@ -760,10 +760,10 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 		// How much latency does mouse enulation cause? Probably want direct roll manipulation and mouse emulation to occur with same delay
 		// if possible?
 		if (trackerInitialized && tracker->isAvailable() && roll_mode != 0) {
-			m_spShaderViewAdjustmentMatricies->UpdateRoll(tracker->currentRoll);
+			m_spShaderViewAdjustment->UpdateRoll(tracker->currentRoll);
 		}
 
-		m_spShaderViewAdjustmentMatricies->ComputeViewTranslations(separation, convergence, roll_mode != 0);
+		m_spShaderViewAdjustment->ComputeViewTranslations(separation, convergence, roll_mode != 0);
 
 		m_isFirstBeginSceneOfFrame = false;
 	}
@@ -1964,10 +1964,10 @@ bool D3DProxyDevice::setDrawingSide(vireio::RenderPosition side)
 
 	// Updated computed view translation (used by several derived proxies - see: ComputeViewTranslation)
 	if (side == vireio::Left) {
-		m_pCurrentMatViewTransform = &m_spShaderViewAdjustmentMatricies->LeftAdjustmentMatrix();
+		m_pCurrentMatViewTransform = &m_spShaderViewAdjustment->LeftAdjustmentMatrix();
 	}
 	else {
-		m_pCurrentMatViewTransform = &m_spShaderViewAdjustmentMatricies->RightAdjustmentMatrix();
+		m_pCurrentMatViewTransform = &m_spShaderViewAdjustment->RightAdjustmentMatrix();
 	}
 
 
@@ -2389,7 +2389,7 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 				D3DXMatrixIdentity(&transMatrixLeft);
 				D3DXMatrixIdentity(&transMatrixRight);
 
-				D3DXMatrixMultiply(&sourceMatrix, &sourceMatrix, &m_spShaderViewAdjustmentMatricies->ProjectionInverse());
+				D3DXMatrixMultiply(&sourceMatrix, &sourceMatrix, &m_spShaderViewAdjustment->ProjectionInverse());
 
 				// TODO these only need recalculating on 3d setting changes. Also ComputeViewTranslation and this are
 				// using different calulations. Are they both correct? Can they be one code path?
@@ -2399,10 +2399,10 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 				D3DXMATRIX sourceMatrixRight(sourceMatrix);
 
 				D3DXMatrixMultiply(&sourceMatrixRight, &sourceMatrixRight, &transMatrixRight);
-				D3DXMatrixMultiply(&tempRight, &sourceMatrixRight, &m_spShaderViewAdjustmentMatricies->Projection());
+				D3DXMatrixMultiply(&tempRight, &sourceMatrixRight, &m_spShaderViewAdjustment->Projection());
 
 				D3DXMatrixMultiply(&sourceMatrix, &sourceMatrix, &transMatrixLeft);
-				D3DXMatrixMultiply(&tempLeft, &sourceMatrix, &m_spShaderViewAdjustmentMatricies->Projection());
+				D3DXMatrixMultiply(&tempLeft, &sourceMatrix, &m_spShaderViewAdjustment->Projection());
 
 				tempIsTransformSet = true;
 			}

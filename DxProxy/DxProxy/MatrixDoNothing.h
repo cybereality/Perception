@@ -27,7 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class MatrixDoNothing : public ShaderConstantModification<float>
 {
 public:
-	MatrixDoNothing(UINT modID, std::shared_ptr<ViewAdjustmentMatricies> adjustmentMatricies) : ShaderConstantModification(modID, adjustmentMatricies) {};
+	MatrixDoNothing(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatricies) : ShaderConstantModification(modID, adjustmentMatricies) {};
 
 	virtual void ApplyModification(const float* inData, std::vector<float>* outLeft, std::vector<float>* outRight)
 	{

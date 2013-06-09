@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ShaderModificationRepository.h"
 #include <assert.h>
 
-ShaderModificationRepository::ShaderModificationRepository(std::string rulesFile, std::shared_ptr<ViewAdjustmentMatricies> adjustmentMatricies) :
+ShaderModificationRepository::ShaderModificationRepository(std::string rulesFile, std::shared_ptr<ViewAdjustment> adjustmentMatricies) :
 	m_AllModificationRules(),
 	m_defaultModificationRuleIDs(),
 	m_shaderSpecificModificationRuleIDs(),

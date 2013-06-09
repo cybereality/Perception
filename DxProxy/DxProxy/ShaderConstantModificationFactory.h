@@ -52,12 +52,12 @@ public:
 
 
 
-	static std::shared_ptr<ShaderConstantModification<>> CreateVector4Modification(UINT modID, std::shared_ptr<ViewAdjustmentMatricies> adjustmentMatricies)
+	static std::shared_ptr<ShaderConstantModification<>> CreateVector4Modification(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatricies)
 	{
 		return CreateVector4Modification(static_cast<Vector4ModificationTypes>(modID), adjustmentMatricies);
 	}
 
-	static std::shared_ptr<ShaderConstantModification<>> CreateVector4Modification(Vector4ModificationTypes mod, std::shared_ptr<ViewAdjustmentMatricies> adjustmentMatricies)
+	static std::shared_ptr<ShaderConstantModification<>> CreateVector4Modification(Vector4ModificationTypes mod, std::shared_ptr<ViewAdjustment> adjustmentMatricies)
 	{
 		switch (mod)
 		{
@@ -71,12 +71,12 @@ public:
 		}
 	}
 
-	static std::shared_ptr<ShaderConstantModification<>> CreateMatrixModification(UINT modID, std::shared_ptr<ViewAdjustmentMatricies> adjustmentMatricies) 
+	static std::shared_ptr<ShaderConstantModification<>> CreateMatrixModification(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatricies) 
 	{
 		return CreateMatrixModification(static_cast<MatrixModificationTypes>(modID), adjustmentMatricies);
 	}
 
-	static std::shared_ptr<ShaderConstantModification<>> CreateMatrixModification(MatrixModificationTypes mod, std::shared_ptr<ViewAdjustmentMatricies> adjustmentMatricies)
+	static std::shared_ptr<ShaderConstantModification<>> CreateMatrixModification(MatrixModificationTypes mod, std::shared_ptr<ViewAdjustment> adjustmentMatricies)
 	{
 		switch (mod)
 		{

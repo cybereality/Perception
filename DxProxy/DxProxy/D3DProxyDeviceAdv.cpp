@@ -126,7 +126,7 @@ void D3DProxyDeviceAdv::parse4by4Matrices(D3DXCONSTANT_DESC &desc)
 {
 	if(desc.Name == NULL) return;
 	if(!strstr(desc.Name, "proj") && !strstr(desc.Name, "Proj"))return;
-	if(desc.RegisterCount != 4) return;			
+	if(desc.RegisterCount != 4) return;
 	TargetMatrix tm;
 	tm.startRegister = desc.RegisterIndex;
 	tm.transformationFunc = (desc.Class == 2) ? &transformRowMajor4by4 : &transform4by4;

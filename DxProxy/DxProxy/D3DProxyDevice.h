@@ -45,7 +45,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "StereoBackBuffer.h"
 #include "GameHandler.h"
 #include "ShaderRegisters.h"
-#include "ViewAdjustmentMatricies.h"
+#include "ViewAdjustment.h"
 
 
 
@@ -248,7 +248,7 @@ private:
 	HRESULT SetStereoViewTransform(D3DXMATRIX pLeftMatrix, D3DXMATRIX pRightMatrix, bool apply);
 	HRESULT SetStereoProjectionTransform(D3DXMATRIX pLeftMatrix, D3DXMATRIX pRightMatrix, bool apply);
 
-	std::shared_ptr<ViewAdjustmentMatricies> m_spShaderViewAdjustmentMatricies;
+	std::shared_ptr<ViewAdjustment> m_spShaderViewAdjustment;
 	std::shared_ptr<ShaderRegisters> m_spManagedShaderRegisters;
 	GameHandler* m_pGameSpecificLogic;
 	
