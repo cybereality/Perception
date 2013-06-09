@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "d3d9.h"
 #include "d3dx9.h"
 #include "ShaderConstantModification.h"
+#include "Vireio.h"
 
 class MatrixSimpleTranslateColMajor : public ShaderConstantModification<float>
 {
@@ -32,6 +33,7 @@ public:
 	virtual void ApplyModification(const float* inData, std::vector<float>* outLeft, std::vector<float>* outRight)
 	{
 		D3DXMATRIX tempMatrix (inData);
+
 		D3DXMatrixTranspose(&tempMatrix, &tempMatrix);
 			
 		D3DXMATRIX tempLeft (tempMatrix * m_spAdjustmentMatricies->LeftAdjustmentMatrix());

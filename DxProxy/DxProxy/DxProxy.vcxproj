@@ -171,6 +171,7 @@
     <ClInclude Include="MatrixDoNothing.h" />
     <ClInclude Include="MatrixSimpleTranslate.h" />
     <ClInclude Include="MatrixSimpleTranslateColMajor.h" />
+    <ClInclude Include="MatrixSimpleTranslateColMajorIgnoreOrtho.h" />
     <ClInclude Include="ViewAdjustmentMatricies.h" />
     <ClInclude Include="Vireio.h" />
     <ClInclude Include="MurmurHash3.h" />

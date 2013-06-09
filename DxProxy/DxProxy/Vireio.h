@@ -42,6 +42,9 @@ namespace vireio {
 		ppActualLeftTexture, ppActualRightTexture - Output. Will be set to the actual texztures from pWrappedTexture. Left should never be NULL. Right maybe NULL if texture isn't stereo
 	 */
     void UnWrapTexture(IDirect3DBaseTexture9* pWrappedTexture, IDirect3DBaseTexture9** ppActualLeftTexture, IDirect3DBaseTexture9** ppActualRightTexture);
+
+
+	bool AlmostSame(float a, float b, float epsilon);
 };
 
 #endif

@@ -69,4 +69,10 @@ namespace vireio {
 			assert (false);
 		}
 	}
+
+
+	bool AlmostSame(float a, float b, float epsilon)
+	{
+		return fabs(a - b) < epsilon;
+	}
 };

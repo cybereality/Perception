@@ -41,9 +41,9 @@ ShaderModificationRepository::ShaderModificationRepository(std::string rulesFile
 	m_defaultModificationRuleIDs.push_back(2);
 	m_defaultModificationRuleIDs.push_back(3);
 
-	m_AllModificationRules.insert(std::make_pair<UINT, ConstantModificationRule>(1, ConstantModificationRule("", 4, D3DXPC_MATRIX_COLUMNS, ShaderConstantModificationFactory::MatSimpleTranslateColMajor, 1)));
-	m_AllModificationRules.insert(std::make_pair<UINT, ConstantModificationRule>(2, ConstantModificationRule("", 8, D3DXPC_MATRIX_COLUMNS, ShaderConstantModificationFactory::MatSimpleTranslateColMajor, 2))); 
-	m_AllModificationRules.insert(std::make_pair<UINT, ConstantModificationRule>(3, ConstantModificationRule("", 51, D3DXPC_MATRIX_COLUMNS, ShaderConstantModificationFactory::MatSimpleTranslateColMajor, 3)));
+	m_AllModificationRules.insert(std::make_pair<UINT, ConstantModificationRule>(1, ConstantModificationRule("", 4, D3DXPC_MATRIX_COLUMNS, ShaderConstantModificationFactory::MatSimpleTranslateColMajorIgnoreOrtho, 1)));
+	m_AllModificationRules.insert(std::make_pair<UINT, ConstantModificationRule>(2, ConstantModificationRule("", 8, D3DXPC_MATRIX_COLUMNS, ShaderConstantModificationFactory::MatSimpleTranslateColMajorIgnoreOrtho, 2))); 
+	m_AllModificationRules.insert(std::make_pair<UINT, ConstantModificationRule>(3, ConstantModificationRule("", 51, D3DXPC_MATRIX_COLUMNS, ShaderConstantModificationFactory::MatSimpleTranslateColMajorIgnoreOrtho, 3)));
 
 }
 

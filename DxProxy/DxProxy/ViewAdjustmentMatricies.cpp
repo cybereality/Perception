@@ -55,8 +55,6 @@ void ViewAdjustmentMatricies::UpdateProjectionMatrices(float separation, float c
 	float adjustedFrustumOffsetLeft = convergence * LEFT_CONSTANT * 0.1f * separation;		
 	float adjustedFrustumOffsetRight = convergence * RIGHT_CONSTANT * 0.1f * separation;		
 
-	D3DXMATRIX reProjectLeft;
-	D3DXMATRIX reProjectRight;
 	D3DXMatrixPerspectiveOffCenterLH(&reProjectLeft, l+adjustedFrustumOffsetLeft, r+adjustedFrustumOffsetLeft, b, t, n, f);
 	D3DXMatrixPerspectiveOffCenterLH(&reProjectRight, l+adjustedFrustumOffsetRight, r+adjustedFrustumOffsetRight, b, t, n, f);
 }
