@@ -27,6 +27,12 @@ ViewAdjustmentMatricies::ViewAdjustmentMatricies()
 	l = -0.5f;
 	r = 0.5f;
 
+	D3DXMatrixIdentity(&matProjection);
+	D3DXMatrixIdentity(&matProjectionInv);
+	D3DXMatrixIdentity(&reProjectLeft);
+	D3DXMatrixIdentity(&reProjectRight);
+	D3DXMatrixIdentity(&matViewProjTranslateRight);
+
 	UpdateProjectionMatrices(0, 0, 1.6f);
 	D3DXMatrixIdentity(&rollMatrix);
 	ComputeViewTranslations(0, 0, false);
@@ -86,22 +92,22 @@ void ViewAdjustmentMatricies::ComputeViewTranslations(float separation, float co
 	matViewProjTranslateRight = matProjectionInv * transformRight * reProjectRight;
 }
 
-D3DXMATRIX* ViewAdjustmentMatricies::LeftAdjustmentMatrix()
+D3DXMATRIX ViewAdjustmentMatricies::LeftAdjustmentMatrix()
 {
-	return &matViewProjTranslateLeft;
+	return matViewProjTranslateLeft;
 }
 
-D3DXMATRIX* ViewAdjustmentMatricies::RightAdjustmentMatrix()
+D3DXMATRIX ViewAdjustmentMatricies::RightAdjustmentMatrix()
 {
-	return &matViewProjTranslateRight;
+	return matViewProjTranslateRight;
 }
 
-D3DXMATRIX* ViewAdjustmentMatricies::Projection()
+D3DXMATRIX ViewAdjustmentMatricies::Projection()
 {
-	return &matProjection;
+	return matProjection;
 }
 
-D3DXMATRIX* ViewAdjustmentMatricies::ProjectionInverse()
+D3DXMATRIX ViewAdjustmentMatricies::ProjectionInverse()
 {
-	return &matProjectionInv;
+	return matProjectionInv;
 }

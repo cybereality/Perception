@@ -171,64 +171,57 @@ bool ShaderRegisters::AnyDirty(UINT start, UINT count)
 	return true;
 }
 		
-void ShaderRegisters::ApplyDirtyToDevice(vireio::RenderPosition currentSide) 
+void ShaderRegisters::ApplyAllDirty(vireio::RenderPosition currentSide) 
 {	
 	
 	if (m_dirtyRegistersF.size() == 0)
 		return;
 
 	if (m_pActiveVertexShader) {
-		// Updates all dirty stereo constants and sets them on the actual device
-		auto itStereoConstant = m_pActiveVertexShader->ModifiedConstants()->begin();
-		while (itStereoConstant != m_pActiveVertexShader->ModifiedConstants()->end()) {
-
-			// if any of the registers that make up this constant are dirty
-			if (AnyDirty(itStereoConstant->second.StartRegister(), itStereoConstant->second.Count())) {
-				itStereoConstant->second.Update(&m_registersF[RegisterIndex(itStereoConstant->second.StartRegister())]);
-
-				m_pActualDevice->SetVertexShaderConstantF(itStereoConstant->second.StartRegister(), (currentSide == vireio::Left) ? itStereoConstant->second.DataLeftPointer() : itStereoConstant->second.DataRightPointer(), itStereoConstant->second.Count());
-
-				// These registers are no longer dirty
-				for (UINT i = itStereoConstant->second.StartRegister(); i < itStereoConstant->second.StartRegister() + itStereoConstant->second.Count(); i++)
-					m_dirtyRegistersF.erase(i);
-			}
-
-			++itStereoConstant;
-		}
+		ApplyStereoConstants(currentSide, true);
 	}
 
 
 	// Apply all remaining dirty registers (should just be non-stereo that remain dirty) to device
 	auto it = m_dirtyRegistersF.begin();
-	int startReg = *it;
-	int lastReg = startReg;
 
-	while (it != m_dirtyRegistersF.end()) {
+	if (it != m_dirtyRegistersF.end()) {
+
+		int startReg = *it; // can't dererefence this if it might be end
+		int lastReg = startReg;
+
+		while (it != m_dirtyRegistersF.end()) {
 
 		
-		auto itNext = std::next(it);
-		if ((itNext != m_dirtyRegistersF.end()) && (*itNext == lastReg + 1)) {
-			// skip through until we reach the end of a continuous series of dirty registers
-			lastReg = *itNext;
-		}
-		else {
-			// set this series of registers
-			m_pActualDevice->SetVertexShaderConstantF(startReg, &m_registersF[RegisterIndex(startReg)], lastReg - startReg + 1);
-
-			// If there are more dirty registers left the next register will be the new startReg
-			if (itNext != m_dirtyRegistersF.end()) {
-				startReg = *itNext;
-				lastReg = startReg;
+			auto itNext = std::next(it);
+			if ((itNext != m_dirtyRegistersF.end()) && (*itNext == lastReg + 1)) {
+				// skip through until we reach the end of a continuous series of dirty registers
+				lastReg = *itNext;
 			}
-		}
+			else {
+				// set this series of registers
+				m_pActualDevice->SetVertexShaderConstantF(startReg, &m_registersF[RegisterIndex(startReg)], lastReg - startReg + 1);
 
-		++it;
+				// If there are more dirty registers left the next register will be the new startReg
+				if (itNext != m_dirtyRegistersF.end()) {
+					startReg = *itNext;
+					lastReg = startReg;
+				}
+			}
+
+			++it;
+		}
 	}
 
 	m_dirtyRegistersF.clear();
 }
 
-void ShaderRegisters::ApplyStereoConstants(vireio::RenderPosition currentSide, bool forceApply)
+void ShaderRegisters::ApplyAllStereoConstants(vireio::RenderPosition currentSide)
+{
+	ApplyStereoConstants(currentSide, false);
+}
+
+void ShaderRegisters::ApplyStereoConstants(vireio::RenderPosition currentSide, const bool dirtyOnly)
 {
 	if (!m_pActiveVertexShader)
 		return;
@@ -237,16 +230,24 @@ void ShaderRegisters::ApplyStereoConstants(vireio::RenderPosition currentSide, b
 	while (itStereoConstant != m_pActiveVertexShader->ModifiedConstants()->end()) {
 
 		// if any of the registers that make up this constant are dirty update before setting
-		if (forceApply || AnyDirty(itStereoConstant->second.StartRegister(), itStereoConstant->second.Count())) { // Should we do this or make this method just switch sides without checking for updated data? (when not forcing update)
+		if ( AnyDirty(itStereoConstant->second.StartRegister(), itStereoConstant->second.Count())) { // Should we do this or make this method just switch sides without checking for updated data? 
+
 			itStereoConstant->second.Update(&m_registersF[RegisterIndex(itStereoConstant->second.StartRegister())]);
+
+			if (dirtyOnly) {
+				// Apply this dirty constant to device
+				m_pActualDevice->SetVertexShaderConstantF(itStereoConstant->second.StartRegister(), (currentSide == vireio::Left) ? itStereoConstant->second.DataLeftPointer() : itStereoConstant->second.DataRightPointer(), itStereoConstant->second.Count());
+			}
 
 			// These registers are no longer dirty
 			for (UINT i = itStereoConstant->second.StartRegister(); i < itStereoConstant->second.StartRegister() + itStereoConstant->second.Count(); i++)
 				m_dirtyRegistersF.erase(i);
 		}
 
-		// Apply this constant to device
-		m_pActualDevice->SetVertexShaderConstantF(itStereoConstant->second.StartRegister(), (currentSide == vireio::Left) ? itStereoConstant->second.DataLeftPointer() : itStereoConstant->second.DataRightPointer(), itStereoConstant->second.Count());
+		if (!dirtyOnly) {
+			// Apply this constant to device
+			m_pActualDevice->SetVertexShaderConstantF(itStereoConstant->second.StartRegister(), (currentSide == vireio::Left) ? itStereoConstant->second.DataLeftPointer() : itStereoConstant->second.DataRightPointer(), itStereoConstant->second.Count());
+		}
 
 		++itStereoConstant;
 	}

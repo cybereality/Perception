@@ -383,6 +383,9 @@
     <ClInclude Include="ViewAdjustmentMatricies.h">
       <Filter>Direct3D9Vireio</Filter>
     </ClInclude>
+    <ClInclude Include="MatrixDoNothing.h">
+      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\Release\Perception\cfg\profiles.xml">

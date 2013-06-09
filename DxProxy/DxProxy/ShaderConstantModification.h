@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SHADERCONSTANTMODIFICATION_H_INCLUDED
 
 #include <memory>
+#include <vector>
 #include "d3d9.h"
 #include "d3dx9.h"
 #include "ViewAdjustmentMatricies.h"
@@ -39,7 +40,7 @@ public:
 	}
 
 	/* Applies this modification to toModify to produce left and right versions */
-	virtual void ApplyModification(const T* toModify, T* outLeft, T* outRight) = 0;
+	virtual void ApplyModification(const T* inData, std::vector<T>* outLeft, std::vector<T>* outRight) = 0;
 
 
 	UINT m_ModificationID;

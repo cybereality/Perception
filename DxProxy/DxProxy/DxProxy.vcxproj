@@ -168,6 +168,7 @@
     <ClInclude Include="D3D9ProxyStateBlock.h" />
     <ClInclude Include="DataGatherer.h" />
     <ClInclude Include="GameHandler.h" />
+    <ClInclude Include="MatrixDoNothing.h" />
     <ClInclude Include="MatrixSimpleTranslate.h" />
     <ClInclude Include="MatrixSimpleTranslateColMajor.h" />
     <ClInclude Include="ViewAdjustmentMatricies.h" />

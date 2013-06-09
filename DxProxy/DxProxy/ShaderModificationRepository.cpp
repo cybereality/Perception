@@ -37,13 +37,13 @@ ShaderModificationRepository::ShaderModificationRepository(std::string rulesFile
 	// For testing load source settings manually
 	//m_AllModificationRules.insert(
 
-	/*m_defaultModificationRuleIDs.push_back(1);
+	m_defaultModificationRuleIDs.push_back(1);
 	m_defaultModificationRuleIDs.push_back(2);
 	m_defaultModificationRuleIDs.push_back(3);
 
-	m_AllModificationRules.insert(std::make_pair<UINT, ConstantModificationRule>(1, ConstantModificationRule("", 4, D3DXPC_MATRIX_ROWS, 1, 1)));
-	m_AllModificationRules.insert(std::make_pair<UINT, ConstantModificationRule>(2, ConstantModificationRule("", 8, D3DXPC_MATRIX_ROWS, 1, 2))); 
-	m_AllModificationRules.insert(std::make_pair<UINT, ConstantModificationRule>(3, ConstantModificationRule("", 51, D3DXPC_MATRIX_ROWS, 1, 3)));*/
+	m_AllModificationRules.insert(std::make_pair<UINT, ConstantModificationRule>(1, ConstantModificationRule("", 4, D3DXPC_MATRIX_COLUMNS, ShaderConstantModificationFactory::MatSimpleTranslateColMajor, 1)));
+	m_AllModificationRules.insert(std::make_pair<UINT, ConstantModificationRule>(2, ConstantModificationRule("", 8, D3DXPC_MATRIX_COLUMNS, ShaderConstantModificationFactory::MatSimpleTranslateColMajor, 2))); 
+	m_AllModificationRules.insert(std::make_pair<UINT, ConstantModificationRule>(3, ConstantModificationRule("", 51, D3DXPC_MATRIX_COLUMNS, ShaderConstantModificationFactory::MatSimpleTranslateColMajor, 3)));
 
 }
 
@@ -92,7 +92,6 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 	pActualVertexShader->GetFunction(pData,&pSizeOfData);
 
 	uint32_t hash;
-	// 32 bit hash would probably be easier to work with but 128 bit hash generation is faster for larger blocks of data
 	MurmurHash3_x86_32(pData, pSizeOfData, VIREIO_SEED, &hash);
 
 	if (m_shaderSpecificModificationRuleIDs.count(hash) == 1) {
@@ -142,9 +141,9 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 			
 			for(UINT j = 0; j < pConstantNum; j++)
 			{
+				// We are only modifying selected float vectors/matricies.
 				if ((pConstantDesc[j].RegisterSet == D3DXRS_FLOAT4) &&
 					((pConstantDesc[j].Class == D3DXPC_VECTOR) || (pConstantDesc[j].Class == D3DXPC_MATRIX_ROWS) || (pConstantDesc[j].Class == D3DXPC_MATRIX_COLUMNS))  ) {
-
 
 					// Check if any rules match this constant
 					auto itRules = rulesToApply.begin();
@@ -170,7 +169,6 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 									continue;
 								}
 							}
-
 
 							// Create StereoShaderConstant<float> and add to result
 							result.insert(std::pair<UINT, StereoShaderConstant<>>(pConstantDesc[j].RegisterIndex, CreateStereoConstantFrom(*itRules, pConstantDesc[j].RegisterIndex, pConstantDesc[j].RegisterCount)));

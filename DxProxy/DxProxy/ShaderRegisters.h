@@ -70,19 +70,21 @@ public:
 		Note that stereo constants will only be applied if the underlying register has changed. To apply a specific side whether dirty or not
 		use ApplyStereoConstants with forceApply true.
 	 */
-	void ApplyDirtyToDevice(vireio::RenderPosition currentSide);
+	void ApplyAllDirty(vireio::RenderPosition currentSide);
 
 	/*
-		This will apply (and update) all dirty StereoShaderConstants 
-		If forceApply is true then non-dirty StereoShaderConstants will be updated and applied as well
+		This will apply all StereoShaderConstants to the device (updating dirty ones before applying them)
 	 */
-	void ApplyStereoConstants(vireio::RenderPosition currentSide, bool forceApply);
+	void ApplyAllStereoConstants(vireio::RenderPosition currentSide);
 
 	//void UpdateStereoConstants()
 
 	
 
 private:
+
+
+	void ApplyStereoConstants(vireio::RenderPosition currentSide, const bool dirtyOnly);
 
 	
 	// Marks the first register for each stereoconstant in the active shader dirty to make sure they are updated before being drawn

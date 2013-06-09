@@ -68,6 +68,7 @@ private:
 		{
 			// This constructor exists so that the [] operator of map can be used (default constructor is needed) BUT, if this
 			// ever actually gets used something is wrong so implode;
+			// Fail fast
 			assert(false);
 			throw 69;
 		};

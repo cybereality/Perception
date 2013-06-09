@@ -29,19 +29,19 @@ class MatrixSimpleTranslateColMajor : public ShaderConstantModification<float>
 public:
 	MatrixSimpleTranslateColMajor(UINT modID, std::shared_ptr<ViewAdjustmentMatricies> adjustmentMatricies) : ShaderConstantModification(modID, adjustmentMatricies) {};
 
-	virtual void ApplyModification(const float* toModify, float* outLeft, float* outRight)
+	virtual void ApplyModification(const float* inData, std::vector<float>* outLeft, std::vector<float>* outRight)
 	{
-		D3DXMATRIX tempMatrix (toModify);
+		D3DXMATRIX tempMatrix (inData);
 		D3DXMatrixTranspose(&tempMatrix, &tempMatrix);
 			
-		D3DXMATRIX tempLeft (tempMatrix * *(m_spAdjustmentMatricies->LeftAdjustmentMatrix()));
-		D3DXMATRIX tempRight (tempMatrix * *(m_spAdjustmentMatricies->RightAdjustmentMatrix()));
+		D3DXMATRIX tempLeft (tempMatrix * m_spAdjustmentMatricies->LeftAdjustmentMatrix());
+		D3DXMATRIX tempRight (tempMatrix * m_spAdjustmentMatricies->RightAdjustmentMatrix());
 
 		D3DXMatrixTranspose(&tempLeft, &tempLeft);
 		D3DXMatrixTranspose(&tempRight, &tempRight);
 
-		outLeft = tempLeft;
-		outRight = tempRight;
+		outLeft->assign(&tempLeft[0], &tempLeft[0] + outLeft->size());
+		outRight->assign(&tempRight[0], &tempRight[0] + outRight->size());
 	}
 };
 

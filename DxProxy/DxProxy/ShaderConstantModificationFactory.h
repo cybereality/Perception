@@ -26,21 +26,30 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ShaderConstantModification.h"
 #include "MatrixSimpleTranslate.h"
 #include "MatrixSimpleTranslateColMajor.h"
+#include "MatrixDoNothing.h"
 
 
 class ShaderConstantModificationFactory
 {
 public:
+
 	enum Vector4ModificationTypes
 	{
-		Vec4SimpleTranslate = 0
+		Vec4DoNothing = 0,
+		Vec4SimpleTranslate = 1
 	};
+
 
 	enum MatrixModificationTypes
 	{
-		MatSimpleTranslate = 0, //unreal
-		MatSimpleTranslateColMajor = 1 // source
+		MatDoNothing = 0,
+		MatSimpleTranslate = 1, //unreal
+		MatSimpleTranslateColMajor = 2, // source
+		
 	};
+
+
+
 
 	static std::shared_ptr<ShaderConstantModification<>> CreateVector4Modification(UINT modID, std::shared_ptr<ViewAdjustmentMatricies> adjustmentMatricies)
 	{
@@ -55,6 +64,8 @@ public:
 			return std::make_shared<Vector4SimpleTranslate>(mod, adjustmentMatricies);
 
 		default:
+			OutputDebugString("Nonexistant Vec4 modification\n");
+			assert(false);
 			throw std::out_of_range ("Nonexistant Vec4 modification");
 		}
 	}
@@ -74,7 +85,12 @@ public:
 		case MatSimpleTranslateColMajor:
 			return std::make_shared<MatrixSimpleTranslateColMajor>(mod, adjustmentMatricies);
 
+		case MatDoNothing:
+			return std::make_shared<MatrixDoNothing>(mod, adjustmentMatricies);
+
 		default:
+			OutputDebugString("Nonexistant matrix modification\n");
+			assert(false);
 			throw std::out_of_range ("Nonexistant matrix modification");
 		}
 	}

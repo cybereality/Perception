@@ -64,7 +64,7 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 
 	m_activeRenderTargets.resize(maxRenderTargets, NULL);
 	m_currentRenderingSide = vireio::Left;
-	m_pCurrentMatViewTransform = m_spShaderViewAdjustmentMatricies->LeftAdjustmentMatrix(); //&matViewTranslationLeft;
+	m_pCurrentMatViewTransform = &m_spShaderViewAdjustmentMatricies->LeftAdjustmentMatrix(); //&matViewTranslationLeft;
 	m_pCurrentView = &m_leftView;
 	m_pCurrentProjection = &m_leftProjection;
 
@@ -172,7 +172,7 @@ void D3DProxyDevice::OnCreateOrRestore()
 	OutputDebugString("\n");
 
 	m_currentRenderingSide = vireio::Left;
-	m_pCurrentMatViewTransform = m_spShaderViewAdjustmentMatricies->LeftAdjustmentMatrix();
+	m_pCurrentMatViewTransform = &m_spShaderViewAdjustmentMatricies->LeftAdjustmentMatrix();
 	m_pCurrentView = &m_leftView;
 	m_pCurrentProjection = &m_leftProjection;
 
@@ -211,8 +211,6 @@ void D3DProxyDevice::OnCreateOrRestore()
 		SetDepthStencilSurface(pTemp);
 		pTemp->Release();	
 	}
-	//OutputDebugString(__FUNCTION__);
-	//OutputDebugString("\n");
 
 
 	SetupText();
@@ -1205,7 +1203,7 @@ HRESULT WINAPI D3DProxyDevice::ColorFill(IDirect3DSurface9* pSurface,CONST RECT*
 
 HRESULT WINAPI D3DProxyDevice::DrawPrimitive(D3DPRIMITIVETYPE PrimitiveType,UINT StartVertex,UINT PrimitiveCount)
 {
-	m_spManagedShaderRegisters->ApplyDirtyToDevice(m_currentRenderingSide);
+	m_spManagedShaderRegisters->ApplyAllDirty(m_currentRenderingSide);
 
 
 	HRESULT result;
@@ -1220,7 +1218,7 @@ HRESULT WINAPI D3DProxyDevice::DrawPrimitive(D3DPRIMITIVETYPE PrimitiveType,UINT
 
 HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitive(D3DPRIMITIVETYPE PrimitiveType,INT BaseVertexIndex,UINT MinVertexIndex,UINT NumVertices,UINT startIndex,UINT primCount)
 {
-	m_spManagedShaderRegisters->ApplyDirtyToDevice(m_currentRenderingSide);
+	m_spManagedShaderRegisters->ApplyAllDirty(m_currentRenderingSide);
 
 	HRESULT result;
 	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawIndexedPrimitive(PrimitiveType, BaseVertexIndex, MinVertexIndex, NumVertices, startIndex, primCount))) {
@@ -1237,7 +1235,7 @@ HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitive(D3DPRIMITIVETYPE PrimitiveTy
 
 HRESULT WINAPI D3DProxyDevice::DrawPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType,UINT PrimitiveCount,CONST void* pVertexStreamZeroData,UINT VertexStreamZeroStride)
 {
-	m_spManagedShaderRegisters->ApplyDirtyToDevice(m_currentRenderingSide);
+	m_spManagedShaderRegisters->ApplyAllDirty(m_currentRenderingSide);
 
 	HRESULT result;
 	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawPrimitiveUP(PrimitiveType, PrimitiveCount, pVertexStreamZeroData, VertexStreamZeroStride))) {
@@ -1250,7 +1248,7 @@ HRESULT WINAPI D3DProxyDevice::DrawPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType,UI
 
 HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType,UINT MinVertexIndex,UINT NumVertices,UINT PrimitiveCount,CONST void* pIndexData,D3DFORMAT IndexDataFormat,CONST void* pVertexStreamZeroData,UINT VertexStreamZeroStride)
 {
-	m_spManagedShaderRegisters->ApplyDirtyToDevice(m_currentRenderingSide);
+	m_spManagedShaderRegisters->ApplyAllDirty(m_currentRenderingSide);
 
 	HRESULT result;
 	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawIndexedPrimitiveUP(PrimitiveType, MinVertexIndex, NumVertices, PrimitiveCount, pIndexData, IndexDataFormat, pVertexStreamZeroData, VertexStreamZeroStride))) {
@@ -1263,7 +1261,7 @@ HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitiveUP(D3DPRIMITIVETYPE Primitive
 
 HRESULT WINAPI D3DProxyDevice::DrawRectPatch(UINT Handle,CONST float* pNumSegs,CONST D3DRECTPATCH_INFO* pRectPatchInfo)
 {
-	m_spManagedShaderRegisters->ApplyDirtyToDevice(m_currentRenderingSide);
+	m_spManagedShaderRegisters->ApplyAllDirty(m_currentRenderingSide);
 
 	HRESULT result;
 	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawRectPatch(Handle, pNumSegs, pRectPatchInfo))) {
@@ -1276,7 +1274,7 @@ HRESULT WINAPI D3DProxyDevice::DrawRectPatch(UINT Handle,CONST float* pNumSegs,C
 
 HRESULT WINAPI D3DProxyDevice::DrawTriPatch(UINT Handle,CONST float* pNumSegs,CONST D3DTRIPATCH_INFO* pTriPatchInfo)
 {
-	m_spManagedShaderRegisters->ApplyDirtyToDevice(m_currentRenderingSide);
+	m_spManagedShaderRegisters->ApplyAllDirty(m_currentRenderingSide);
 
 	HRESULT result;
 	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawTriPatch(Handle, pNumSegs, pTriPatchInfo))) {
@@ -1292,7 +1290,7 @@ HRESULT WINAPI D3DProxyDevice::ProcessVertices(UINT SrcStartIndex,UINT DestIndex
 	if (!pDestBuffer)
 		return D3DERR_INVALIDCALL;
 
-	m_spManagedShaderRegisters->ApplyDirtyToDevice(m_currentRenderingSide);
+	m_spManagedShaderRegisters->ApplyAllDirty(m_currentRenderingSide);
 
 	BaseDirect3DVertexBuffer9* pCastDestBuffer = static_cast<BaseDirect3DVertexBuffer9*>(pDestBuffer);
 	BaseDirect3DVertexDeclaration9* pCastVertexDeclaration = NULL;
@@ -1966,15 +1964,15 @@ bool D3DProxyDevice::setDrawingSide(vireio::RenderPosition side)
 
 	// Updated computed view translation (used by several derived proxies - see: ComputeViewTranslation)
 	if (side == vireio::Left) {
-		m_pCurrentMatViewTransform = m_spShaderViewAdjustmentMatricies->LeftAdjustmentMatrix();
+		m_pCurrentMatViewTransform = &m_spShaderViewAdjustmentMatricies->LeftAdjustmentMatrix();
 	}
 	else {
-		m_pCurrentMatViewTransform = m_spShaderViewAdjustmentMatricies->RightAdjustmentMatrix();
+		m_pCurrentMatViewTransform = &m_spShaderViewAdjustmentMatricies->RightAdjustmentMatrix();
 	}
 
 
 	// Apply active stereo shader constants
-	m_spManagedShaderRegisters->ApplyStereoConstants(side, true);
+	m_spManagedShaderRegisters->ApplyAllStereoConstants(side);
 
 
 
@@ -2391,7 +2389,7 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 				D3DXMatrixIdentity(&transMatrixLeft);
 				D3DXMatrixIdentity(&transMatrixRight);
 
-				D3DXMatrixMultiply(&sourceMatrix, &sourceMatrix, m_spShaderViewAdjustmentMatricies->ProjectionInverse());
+				D3DXMatrixMultiply(&sourceMatrix, &sourceMatrix, &m_spShaderViewAdjustmentMatricies->ProjectionInverse());
 
 				// TODO these only need recalculating on 3d setting changes. Also ComputeViewTranslation and this are
 				// using different calulations. Are they both correct? Can they be one code path?
@@ -2401,10 +2399,10 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 				D3DXMATRIX sourceMatrixRight(sourceMatrix);
 
 				D3DXMatrixMultiply(&sourceMatrixRight, &sourceMatrixRight, &transMatrixRight);
-				D3DXMatrixMultiply(&tempRight, &sourceMatrixRight, m_spShaderViewAdjustmentMatricies->Projection());
+				D3DXMatrixMultiply(&tempRight, &sourceMatrixRight, &m_spShaderViewAdjustmentMatricies->Projection());
 
 				D3DXMatrixMultiply(&sourceMatrix, &sourceMatrix, &transMatrixLeft);
-				D3DXMatrixMultiply(&tempLeft, &sourceMatrix, m_spShaderViewAdjustmentMatricies->Projection());
+				D3DXMatrixMultiply(&tempLeft, &sourceMatrix, &m_spShaderViewAdjustmentMatricies->Projection());
 
 				tempIsTransformSet = true;
 			}

@@ -16,28 +16,28 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#ifndef MATSIMPLETRANSLATE_H_INCLUDED
-#define MATSIMPLETRANSLATE_H_INCLUDED
+#ifndef MATDONOTHING_H_INCLUDED
+#define MATDONOTHING_H_INCLUDED
 
 
 #include "d3d9.h"
 #include "d3dx9.h"
 #include "ShaderConstantModification.h"
 
-class MatrixSimpleTranslate : public ShaderConstantModification<float>
+class MatrixDoNothing : public ShaderConstantModification<float>
 {
 public:
-	MatrixSimpleTranslate(UINT modID, std::shared_ptr<ViewAdjustmentMatricies> adjustmentMatricies) : ShaderConstantModification(modID, adjustmentMatricies) {};
+	MatrixDoNothing(UINT modID, std::shared_ptr<ViewAdjustmentMatricies> adjustmentMatricies) : ShaderConstantModification(modID, adjustmentMatricies) {};
 
 	virtual void ApplyModification(const float* inData, std::vector<float>* outLeft, std::vector<float>* outRight)
 	{
-		D3DXMATRIX tempMatrix (inData);
-		
-		D3DXMATRIX tempLeft (tempMatrix * m_spAdjustmentMatricies->LeftAdjustmentMatrix());
-		D3DXMATRIX tempRight (tempMatrix * m_spAdjustmentMatricies->RightAdjustmentMatrix());
+		assert(outLeft->size() == 16);
+		assert(outRight->size() == 16);
 
-		outLeft->assign(&tempLeft[0], &tempLeft[0] + outLeft->size());
-		outRight->assign(&tempRight[0], &tempRight[0] + outRight->size());	
+		D3DXMATRIX tempMatrix (inData);
+
+		outLeft->assign(&tempMatrix[0], &tempMatrix[0] + outLeft->size());
+		outRight->assign(&tempMatrix[0], &tempMatrix[0] + outRight->size());		
 	}
 };
 

@@ -21,7 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "d3d9.h"
 #include "d3dx9.h"
-
+#include <string>
 
 #define LEFT_CONSTANT -1
 #define RIGHT_CONSTANT 1
@@ -36,10 +36,10 @@ public:
 	void UpdateRoll(float roll);
 	void ComputeViewTranslations(float separation, float convergence, bool rollEnabled);
 	
-	D3DXMATRIX* LeftAdjustmentMatrix();
-	D3DXMATRIX* RightAdjustmentMatrix();
-	D3DXMATRIX* Projection();
-	D3DXMATRIX* ProjectionInverse();
+	D3DXMATRIX LeftAdjustmentMatrix();
+	D3DXMATRIX RightAdjustmentMatrix();
+	D3DXMATRIX Projection();
+	D3DXMATRIX ProjectionInverse();
 
 private:
 

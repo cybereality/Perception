@@ -29,7 +29,7 @@ class Vector4SimpleTranslate : public ShaderConstantModification<float>
 public:
 	Vector4SimpleTranslate(UINT modID, std::shared_ptr<ViewAdjustmentMatricies> adjustmentMatricies) : ShaderConstantModification(modID, adjustmentMatricies) {};
 
-	virtual void ApplyModification(const float* toModify, float* outLeft, float* outRight)
+	virtual void ApplyModification(const float* inData, std::vector<float>* outLeft, std::vector<float>* outRight)
 	{
 		//TODO implement
 	}
