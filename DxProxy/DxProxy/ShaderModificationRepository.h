@@ -63,16 +63,18 @@ private:
 			m_startRegIndex(999999), // niether will this
 			m_constantType(D3DXPC_FORCE_DWORD), // or this
 			m_operationToApply(0),
-			m_modificationRuleID(0)
+			m_modificationRuleID(0),
+			m_allowPartialNameMatch(false)
 		{};
 
 
-		ConstantModificationRule (std::string constantName, UINT startRegIndex, D3DXPARAMETER_CLASS constantType, UINT operationToApply, UINT modificationRuleID) :
+		ConstantModificationRule (std::string constantName, bool allowPartialNameMatch, UINT startRegIndex, D3DXPARAMETER_CLASS constantType, UINT operationToApply, UINT modificationRuleID) :
 			m_constantName(constantName),
 			m_startRegIndex(startRegIndex),
 			m_constantType(constantType),
 			m_operationToApply(operationToApply),
-			m_modificationRuleID(modificationRuleID)
+			m_modificationRuleID(modificationRuleID),
+			m_allowPartialNameMatch(allowPartialNameMatch)
 		{};
 
 		static D3DXPARAMETER_CLASS ConstantTypeFrom(std::string type) 
@@ -97,6 +99,8 @@ private:
 
 		// empty string is "no constant"
 		std::string m_constantName;
+		// If true and a constantName has been set then partial name matches are allowed (using strstr for matching)
+		bool m_allowPartialNameMatch;
 		// UINT_MAX is "any start reg"
 		UINT m_startRegIndex;
 		// type Vector/Matrix // only D3DXPC_VECTOR, D3DXPC_MATRIX_ROWS and D3DXPC_MATRIX_COLUMNS are currently handled

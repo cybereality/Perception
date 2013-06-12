@@ -3,8 +3,8 @@
   <rules>
     <!-- constantName="" startReg="" -  At least one of name or reg is required, optionally both can be supplied -->
     <rule id="1" constantType="MatrixC" modToApply="3" startReg="4"/>
-
-    <rule id="2" constantName ="cProjView" constantType="MatrixC" modToApply="2" startReg="8"/>
+    <!-- partialName="false" is false if not specified -->
+    <rule id="2" constantName ="Proj" partialName="true" constantType="MatrixC" modToApply="2" startReg="8"/>
   </rules>
 
   <!-- Default rules to apply to all shaders (optional) -->

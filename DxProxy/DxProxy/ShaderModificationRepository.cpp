@@ -32,8 +32,6 @@ ShaderModificationRepository::ShaderModificationRepository(std::shared_ptr<ViewA
 
 
 	// For testing load source settings manually
-	//m_AllModificationRules.insert(
-
 	/*m_defaultModificationRuleIDs.push_back(1);
 	m_defaultModificationRuleIDs.push_back(2);
 	m_defaultModificationRuleIDs.push_back(3);
@@ -86,6 +84,7 @@ bool ShaderModificationRepository::LoadRules(std::string rulesPath)
 			newRule.m_modificationRuleID = rule.attribute("id").as_uint();
 			newRule.m_operationToApply = rule.attribute("modToApply").as_uint();
 			newRule.m_startRegIndex = rule.attribute("startReg").as_uint(UINT_MAX);
+			newRule.m_allowPartialNameMatch = rule.attribute("partialName").as_bool(false);
 
 			if (!(m_AllModificationRules.insert(std::make_pair<UINT, ConstantModificationRule>(newRule.m_modificationRuleID, newRule)).second)) {
 				OutputDebugString("Two rules found with the same 'id'. Only the first will be applied.\n"); 
@@ -218,7 +217,16 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 
 							// name match required
 							if ((*itRules)->m_constantName.size() > 0) {
-								if ((*itRules)->m_constantName.compare(pConstantDesc[j].Name) != 0) {
+
+								bool nameMatch = false;
+								if ((*itRules)->m_allowPartialNameMatch) {
+									nameMatch = std::strstr(pConstantDesc[j].Name, (*itRules)->m_constantName.c_str()) != NULL;
+								}
+								else {
+									nameMatch = (*itRules)->m_constantName.compare(pConstantDesc[j].Name) == 0;
+								}
+
+								if (!nameMatch) {
 									// no match
 									++itRules;
 									continue;
