@@ -40,9 +40,11 @@ public:
 	D3DXMATRIX RightAdjustmentMatrix();
 	D3DXMATRIX Projection();
 	D3DXMATRIX ProjectionInverse();
+	float Separation() { return m_separation; };
 
 private:
 
+	float m_separation;
 	
 	// Projection Matrix variables
 	float n;	//Minimum z-value of the view volume

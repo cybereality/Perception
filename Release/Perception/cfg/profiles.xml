@@ -3,7 +3,7 @@
 	<profile game_name="AaAaAA!!!" game_exe="main.exe" game_type="10" separation="0.00182" convergence="6.66511" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="inMomentum" game_exe="IMGame.exe" game_type="202" separation="0.01" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Mirrors Edge" game_exe="MirrorsEdge.exe" game_type="201" separation="0.01" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
-	<profile game_name="Halflife 2" game_exe="hl2.exe" shaderModRules="source.xml" rollEnabled="true" worldScaleFactor="1" game_type="101" separation="0.009468" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="Halflife 2" game_exe="hl2.exe" shaderModRules="source.xml" rollEnabled="true" worldScaleFactor="1" game_type="101" separation="0.0396866" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Left 4 Dead" game_exe="left4dead.exe" game_type="101" separation="0.01" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Left 4 Dead 2" game_exe="left4dead2.exe" game_type="101" separation="0.01" convergence="0" swap_eyes="true" yaw_multiplier="26.5" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Portal 2" game_exe="portal2.exe" game_type="101" separation="0.01" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
@@ -12,7 +12,7 @@
 	<profile game_name="Borderlands" game_exe="Borderlands.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Rochard" game_exe="Rochard.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="GRID" game_exe="GRID.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
-	<profile game_name="F1 2010" game_exe="F1_2010_game.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="F1 2010" game_exe="F1_2010_game.exe" shaderModRules="ego.xml" rollEnabled="false" worldScaleFactor="1" game_type="10" separation="0" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="rFactor" game_exe="rFactor.exe" game_type="10" separation="0" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Pacific Fighters" game_exe="pf.exe" game_type="10" separation="0" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="AaAaAA!!! for the Awesom" game_exe="Awesome.exe" game_type="10" separation="0" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
@@ -27,7 +27,7 @@
 	<profile game_name="Unreal Tournament 3" game_exe="UT3.exe" game_type="202" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Natural Selection 2" game_exe="NS2.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Psychonauts" game_exe="Psychonauts.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
-	<profile game_name="DiRT 2" game_exe="dirt2_game.exe" game_type="11" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="DiRT 2" game_exe="dirt2_game.exe" shaderModRules="dirt2.xml" rollEnabled="false" worldScaleFactor="1" game_type="10" separation="6e-005" convergence="5.5236" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Skyrim" game_exe="SkyrimLauncher.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Skyrim(SKSE)" game_exe="skse_loader.exe" game_type="10" separation="0.0" convergence="0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Skyrim(SKSE)" game_exe="TESV.exe" game_type="10" separation="0.0" convergence="0.0" swap_eyes="false" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />

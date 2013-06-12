@@ -22,6 +22,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ViewAdjustment::ViewAdjustment()
 {
+	m_separation = 0.0f;
+
 	n = 0.1f;					
 	f = 10.0f;
 	l = -0.5f;
@@ -45,6 +47,7 @@ ViewAdjustment::~ViewAdjustment()
 
 void ViewAdjustment::UpdateProjectionMatrices(float separation, float convergence, float aspectRatio)
 {
+	m_separation = separation;
 	//aspectRatio = (float)stereoView->viewport.Width/(float)stereoView->viewport.Height;
 	t = 0.5f / aspectRatio;
 	b = -0.5f / aspectRatio;
@@ -72,6 +75,8 @@ void ViewAdjustment::UpdateRoll(float roll)
 // But it really feels like it should be a single code path situation.
 void ViewAdjustment::ComputeViewTranslations(float separation, float convergence, bool rollEnabled)
 {
+	m_separation = separation;
+
 	D3DXMATRIX transformLeft;
 	D3DXMATRIX transformRight;
 	D3DXMatrixTranslation(&transformLeft, separation * LEFT_CONSTANT * 10.0f, 0, 0);

@@ -48,10 +48,15 @@ bool GameHandler::Load(ProxyHelper::ProxyConfig& cfg, std::shared_ptr<ViewAdjust
 	//if (game profile has shader rules)
 	if (!cfg.shaderRulePath.empty()) {
 		m_ShaderModificationRepository = new ShaderModificationRepository(adjustmentMatricies);
-		m_ShaderModificationRepository->LoadRules(cfg.shaderRulePath);
+		
+		if (!m_ShaderModificationRepository->LoadRules(cfg.shaderRulePath)) {
+			OutputDebugString("Rules failed to load.");
+		}
 	}
-	// else
-	// m_ShaderModificationRepository = NULL;
+	else {
+		OutputDebugString("No shader rule path found.");
+	}
+	
 
 	m_fWorldScaleFactor = cfg.worldScaleFactor;
 	m_bRollEnabled = cfg.rollEnabled;

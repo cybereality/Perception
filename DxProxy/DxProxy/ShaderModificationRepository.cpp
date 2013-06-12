@@ -59,6 +59,7 @@ bool ShaderModificationRepository::LoadRules(std::string rulesPath)
 
 	if(resultProfiles.status != pugi::status_ok) {
 		OutputDebugString("Parsing of shader rules file failed. No rules loaded.\n");
+		OutputDebugString(rulesPath.c_str());
 		return false;
 	}
 
@@ -221,9 +222,18 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 								bool nameMatch = false;
 								if ((*itRules)->m_allowPartialNameMatch) {
 									nameMatch = std::strstr(pConstantDesc[j].Name, (*itRules)->m_constantName.c_str()) != NULL;
+
+									/*if (nameMatch) {
+										OutputDebugString("Match\n");
+									}
+									else {
+										OutputDebugString("No Match\n");
+									}*/
 								}
 								else {
 									nameMatch = (*itRules)->m_constantName.compare(pConstantDesc[j].Name) == 0;
+
+									//OutputDebugString("Full name match only\n");
 								}
 
 								if (!nameMatch) {
