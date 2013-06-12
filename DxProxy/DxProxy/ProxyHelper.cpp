@@ -17,12 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
 #include "ProxyHelper.h"
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <string>
-#include <windows.h>
-#include "pugixml.hpp"
+
 
 using namespace pugi;
 

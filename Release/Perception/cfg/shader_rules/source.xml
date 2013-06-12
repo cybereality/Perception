@@ -6,7 +6,7 @@
     <rule id="3" constantType="MatrixC" modToApply="3" startReg="51"/>
   </rules>
 
-  <!-- Default rules to apply to all shaders are optional -->
+  <!-- Default rules to apply to all shaders (optional) -->
   <defaultRuleIDs>
     <ruleID id="1" />
     <ruleID id="2" />

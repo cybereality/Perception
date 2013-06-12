@@ -33,16 +33,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ShaderConstantModification.h"
 #include "ShaderConstantModificationFactory.h"
 #include "ViewAdjustment.h"
+#include "pugixml.hpp"
+
 
 
 class ShaderModificationRepository
 {
 public:
-	ShaderModificationRepository(std::string rulesFile, std::shared_ptr<ViewAdjustment> adjustmentMatricies); //xml_node/doc?
+	ShaderModificationRepository(std::shared_ptr<ViewAdjustment> adjustmentMatricies); 
 	virtual ~ShaderModificationRepository();
 
 	// true if load succeeds, false otherwise
-	bool Load(std::string gameId); //ifstream/xml_doc?	
+	bool LoadRules(pugi::xml_document rulesFile); //ifstream/xml_doc?	
 
 	// Returns a collection of modified constants for the specified shader. (may be an empty collection if no modifications apply)
 	// <StrartRegister, StereoShaderConstant<float>>
@@ -51,7 +53,6 @@ public:
 
 
 private:
-
 	
 
 
@@ -81,6 +82,26 @@ private:
 			m_operationToApply(operationToApply),
 			m_modificationRuleID(modificationRuleID)
 		{};
+
+		static D3DXPARAMETER_CLASS ConstantTypeFrom(std::string type) 
+		{
+			if (type.compare("MatrixC")) {
+				return D3DXPC_MATRIX_COLUMNS;
+			}
+			else if (type.compare("MatrixR")) {
+				return D3DXPC_MATRIX_ROWS;
+			}
+			else if (type.compare("Vector")) {
+				return D3DXPC_VECTOR;
+			}
+			else {
+				OutputDebugString("Unknown or unsupported constant type: ");
+				OutputDebugString(type.c_str());
+				OutputDebugString("\n");
+
+				return D3DXPC_FORCE_DWORD;
+			}
+		}
 
 		// empty string is "no constant"
 		std::string m_constantName;

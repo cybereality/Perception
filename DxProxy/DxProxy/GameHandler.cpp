@@ -40,7 +40,7 @@ bool GameHandler::Load(std::string gameId, std::shared_ptr<ViewAdjustment> adjus
 {
 	//TODO implementation
 	//if (game profile has shader rules)
-	m_ShaderModificationRepository = new ShaderModificationRepository("", adjustmentMatricies);
+	m_ShaderModificationRepository = new ShaderModificationRepository(adjustmentMatricies);
 	// else
 	// m_ShaderModificationRepository = NULL;
 

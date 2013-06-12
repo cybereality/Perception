@@ -19,6 +19,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef PROXYHELPER_H_INCLUDED
 #define PROXYHELPER_H_INCLUDED
 
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <windows.h>
+#include "pugixml.hpp"
+
 class ProxyHelper
 {
 public:
@@ -36,8 +43,20 @@ public:
 		float yaw_multiplier;
 		float pitch_multiplier;
 		float roll_multiplier;
+
+		float worldScaleFactor; // mm * worldScaleFactor = mm in game units
+		bool rollEnabled;
+		std::string shaderRulePath; // full path of shader rules for this game
+
+		///// user.cfg /////
 		float centerlineR;// to be used as IPD
 		float centerlineL;
+
+		float ipd; // in mm
+
+		// separation and convergence should be here as per game config (separation becoming an adjustment that is added to ipd)
+		
+		////////////////////
 	};
 
 	bool LoadConfig(ProxyConfig& config);

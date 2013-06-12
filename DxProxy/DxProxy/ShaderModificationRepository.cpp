@@ -19,7 +19,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ShaderModificationRepository.h"
 #include <assert.h>
 
-ShaderModificationRepository::ShaderModificationRepository(std::string rulesFile, std::shared_ptr<ViewAdjustment> adjustmentMatricies) :
+
+
+
+ShaderModificationRepository::ShaderModificationRepository(std::shared_ptr<ViewAdjustment> adjustmentMatricies) :
 	m_AllModificationRules(),
 	m_defaultModificationRuleIDs(),
 	m_shaderSpecificModificationRuleIDs(),
@@ -28,22 +31,16 @@ ShaderModificationRepository::ShaderModificationRepository(std::string rulesFile
 	D3DXMatrixIdentity(&m_identity);
 
 
-	// TODO implementation
-	// load from file
-	
-	
-
-
 	// For testing load source settings manually
 	//m_AllModificationRules.insert(
 
-	m_defaultModificationRuleIDs.push_back(1);
+	/*m_defaultModificationRuleIDs.push_back(1);
 	m_defaultModificationRuleIDs.push_back(2);
 	m_defaultModificationRuleIDs.push_back(3);
 
 	m_AllModificationRules.insert(std::make_pair<UINT, ConstantModificationRule>(1, ConstantModificationRule("", 4, D3DXPC_MATRIX_COLUMNS, ShaderConstantModificationFactory::MatSimpleTranslateColMajorIgnoreOrtho, 1)));
 	m_AllModificationRules.insert(std::make_pair<UINT, ConstantModificationRule>(2, ConstantModificationRule("", 8, D3DXPC_MATRIX_COLUMNS, ShaderConstantModificationFactory::MatSimpleTranslateColMajorIgnoreOrtho, 2))); 
-	m_AllModificationRules.insert(std::make_pair<UINT, ConstantModificationRule>(3, ConstantModificationRule("", 51, D3DXPC_MATRIX_COLUMNS, ShaderConstantModificationFactory::MatSimpleTranslateColMajorIgnoreOrtho, 3)));
+	m_AllModificationRules.insert(std::make_pair<UINT, ConstantModificationRule>(3, ConstantModificationRule("", 51, D3DXPC_MATRIX_COLUMNS, ShaderConstantModificationFactory::MatSimpleTranslateColMajorIgnoreOrtho, 3)));*/
 
 }
 
@@ -51,19 +48,77 @@ ShaderModificationRepository::~ShaderModificationRepository()
 {
 	m_spAdjustmentMatricies.reset();
 }
-/*
-bool ShaderModificationRepository::Load(file)
+
+bool ShaderModificationRepository::LoadRules(pugi::xml_document rulesFile)
 {
 	m_AllModificationRules.clear();
 	m_defaultModificationRuleIDs.clear();
 	m_shaderSpecificModificationRuleIDs.clear();
 
-	// TODO implementation
 	// load from file
-	// For testing load source settings manually
+	pugi::xml_node xmlShaderConfig = rulesFile.child("shaderConfig");
+	if (!xmlShaderConfig) {
+		OutputDebugString("'shaderConfig' node missing, malformed shader rules doc.\n"); 
+		return false;
+	}
+
+	pugi::xml_node xmlRules = xmlShaderConfig.child("rules");
+	if (!xmlRules) {
+		OutputDebugString("No 'rules' node found, malformed shader rules doc.\n"); 
+		return false;
+	}
+	else {
+		for (pugi::xml_node rule = xmlRules.child("rule"); rule; rule = rule.next_sibling("rule")) {
+
+			ConstantModificationRule newRule;
+
+			newRule.m_constantName = rule.attribute("constantName").as_string();
+			newRule.m_constantType = ConstantModificationRule::ConstantTypeFrom(rule.attribute("").as_string());
+			newRule.m_modificationRuleID = rule.attribute("id").as_uint();
+			newRule.m_operationToApply = rule.attribute("modToApply").as_uint();
+			newRule.m_startRegIndex = rule.attribute("startReg").as_uint(UINT_MAX);
+
+			if (!(m_AllModificationRules.insert(std::make_pair<UINT, ConstantModificationRule>(newRule.m_modificationRuleID, newRule)).second)) {
+				OutputDebugString("Two rules found with the same 'id'. Only the first will be applied.\n"); 
+			}
+		}
+
+		// default rules (these are optional but will most likely exist for 99% of profiles)
+		pugi::xml_node defaultRules = xmlShaderConfig.child("defaultRuleIDs");
+		if (defaultRules) {
+			for (pugi::xml_node ruleId = defaultRules.child("ruleID"); ruleId; ruleId = ruleId.next_sibling("ruleID")) {
+
+				m_defaultModificationRuleIDs.push_back(ruleId.attribute("id").as_uint());
+			}
+		}
+		else {
+			OutputDebugString("No default rules found, did you do this intentionally?\n");
+		}
+
+		// Shader specific rules (optional)
+		for (pugi::xml_node shader = xmlShaderConfig.child("shaderSpecificRuleIDs"); shader; shader = shader.next_sibling("shaderSpecificRuleIDs"))
+		{
+			uint32_t hash = shader.attribute("shaderHash").as_uint(0);
+
+			if (hash == 0) {
+				OutputDebugString("Shader specific rule with invalid/no hash. Skipping rule.\n");
+				continue;
+			}
+
+			std::vector<UINT> shaderRules;
+
+			for (pugi::xml_node ruleId = shader.child("ruleID"); ruleId; ruleId = ruleId.next_sibling("ruleID")) {
+				shaderRules.push_back(ruleId.attribute("id").as_uint());
+			}
+
+			if (!(m_shaderSpecificModificationRuleIDs.insert(std::pair<uint32_t, std::vector<UINT>>(hash, shaderRules)).second)) {
+				OutputDebugString("Two sets of rules found with the same 'shaderHash'. Only the first will be applied.\n"); 
+			}
+		}
+	}
 
 	return true;
-}*/
+}
 
 
 std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetModifiedConstantsF(IDirect3DVertexShader9* pActualVertexShader)
