@@ -98,7 +98,7 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	centerlineL = 0.0f;
 	yaw_mode = 0;
 	pitch_mode = 0;
-	roll_mode = 0;
+	//roll_mode = false;
 	translation_mode = 0;
 	trackingOn = true;
 	SHOCT_mode = 0;
@@ -139,8 +139,8 @@ D3DProxyDevice::~D3DProxyDevice()
 void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 {
 	OutputDebugString("D3D ProxyDev Init\n");
-
-	m_pGameSpecificLogic->Load("meep", m_spShaderViewAdjustment);
+	//DebugBreak();
+	m_pGameSpecificLogic->Load(cfg, m_spShaderViewAdjustment);
 
 	stereoView = StereoViewFactory::Get(cfg);
 	SetupOptions(cfg);
@@ -759,11 +759,11 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 		// TODO Doing this now gives very current roll to frame. But should it be done with handle tracking to keep latency similar?
 		// How much latency does mouse enulation cause? Probably want direct roll manipulation and mouse emulation to occur with same delay
 		// if possible?
-		if (trackerInitialized && tracker->isAvailable() && roll_mode != 0) {
+		if (trackerInitialized && tracker->isAvailable() && m_pGameSpecificLogic->RollEnabled()) {
 			m_spShaderViewAdjustment->UpdateRoll(tracker->currentRoll);
 		}
 
-		m_spShaderViewAdjustment->ComputeViewTranslations(separation, convergence, roll_mode != 0);
+		m_spShaderViewAdjustment->ComputeViewTranslations(separation, convergence, m_pGameSpecificLogic->RollEnabled());
 
 		m_isFirstBeginSceneOfFrame = false;
 	}

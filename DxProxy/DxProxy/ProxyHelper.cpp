@@ -201,6 +201,23 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config)
 		config.yaw_multiplier = gameProfile.attribute("yaw_multiplier").as_float();
 		config.pitch_multiplier = gameProfile.attribute("pitch_multiplier").as_float();
 		config.roll_multiplier = gameProfile.attribute("roll_multiplier").as_float();
+
+		
+
+		// get file name
+		std::string shaderRulesFileName = gameProfile.attribute("shaderModRules").as_string("");
+
+		if (!shaderRulesFileName.empty()) {
+			std::stringstream sstm;
+			sstm << GetBaseDir() << "cfg\\shader_rules\\" << shaderRulesFileName;
+			config.shaderRulePath = sstm.str();
+		}
+		else {
+			config.shaderRulePath = "";
+		}
+
+		config.rollEnabled = gameProfile.attribute("rollEnabled").as_bool(false);
+		config.worldScaleFactor = gameProfile.attribute("worldScaleFactor").as_float(1.0f);
 	}
 
 	LoadUserConfig(config);

@@ -49,11 +49,20 @@ ShaderModificationRepository::~ShaderModificationRepository()
 	m_spAdjustmentMatricies.reset();
 }
 
-bool ShaderModificationRepository::LoadRules(pugi::xml_document rulesFile)
+bool ShaderModificationRepository::LoadRules(std::string rulesPath)
 {
 	m_AllModificationRules.clear();
 	m_defaultModificationRuleIDs.clear();
 	m_shaderSpecificModificationRuleIDs.clear();
+
+
+	pugi::xml_document rulesFile;
+	pugi::xml_parse_result resultProfiles = rulesFile.load_file(rulesPath.c_str());
+
+	if(resultProfiles.status != pugi::status_ok) {
+		OutputDebugString("Parsing of shader rules file failed. No rules loaded.\n");
+		return false;
+	}
 
 	// load from file
 	pugi::xml_node xmlShaderConfig = rulesFile.child("shaderConfig");

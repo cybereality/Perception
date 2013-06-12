@@ -43,8 +43,8 @@ public:
 	ShaderModificationRepository(std::shared_ptr<ViewAdjustment> adjustmentMatricies); 
 	virtual ~ShaderModificationRepository();
 
-	// true if load succeeds, false otherwise
-	bool LoadRules(pugi::xml_document rulesFile); //ifstream/xml_doc?	
+	// true if load succeeds, false otherwise.  pugi::xml_document
+	bool LoadRules(std::string rulesPath); 	
 
 	// Returns a collection of modified constants for the specified shader. (may be an empty collection if no modifications apply)
 	// <StrartRegister, StereoShaderConstant<float>>
@@ -53,8 +53,6 @@ public:
 
 
 private:
-	
-
 
 	class ConstantModificationRule 
 	{
@@ -63,16 +61,10 @@ private:
 		ConstantModificationRule () :
 			m_constantName("ThisWontMatchAnything"),
 			m_startRegIndex(999999), // niether will this
-			m_constantType(),
+			m_constantType(D3DXPC_FORCE_DWORD), // or this
 			m_operationToApply(0),
 			m_modificationRuleID(0)
-		{
-			// This constructor exists so that the [] operator of map can be used (default constructor is needed) BUT, if this
-			// ever actually gets used something is wrong so implode;
-			// Fail fast
-			assert(false);
-			throw 69;
-		};
+		{};
 
 
 		ConstantModificationRule (std::string constantName, UINT startRegIndex, D3DXPARAMETER_CLASS constantType, UINT operationToApply, UINT modificationRuleID) :

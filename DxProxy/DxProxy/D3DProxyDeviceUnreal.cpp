@@ -30,7 +30,7 @@ void D3DProxyDeviceUnreal::Init(ProxyHelper::ProxyConfig& cfg)
 {
 	OutputDebugString("D3D ProxyDev Unreal Init\n");
 	D3DProxyDevice::Init(cfg);
-	roll_mode = 1;
+	//roll_mode = 1;
 	matrixIndex = getMatrixIndex();
 }
 

@@ -3,7 +3,7 @@
 	<profile game_name="AaAaAA!!!" game_exe="main.exe" game_type="10" separation="0.00182" convergence="6.66511" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="inMomentum" game_exe="IMGame.exe" game_type="202" separation="0.01" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Mirrors Edge" game_exe="MirrorsEdge.exe" game_type="201" separation="0.01" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
-	<profile game_name="Halflife 2" game_exe="hl2.exe" game_type="101" separation="0.009468" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
+	<profile game_name="Halflife 2" game_exe="hl2.exe" shaderModRules="source.xml" rollEnabled="true" worldScaleFactor="1" game_type="101" separation="0.009468" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Left 4 Dead" game_exe="left4dead.exe" game_type="101" separation="0.01" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Left 4 Dead 2" game_exe="left4dead2.exe" game_type="101" separation="0.01" convergence="0" swap_eyes="true" yaw_multiplier="26.5" pitch_multiplier="25" roll_multiplier="1" />
 	<profile game_name="Portal 2" game_exe="portal2.exe" game_type="101" separation="0.01" convergence="0" swap_eyes="true" yaw_multiplier="25" pitch_multiplier="25" roll_multiplier="1" />

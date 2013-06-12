@@ -24,7 +24,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 GameHandler::GameHandler() :
 	m_fWorldScaleFactor(1.0f),
-	m_ShaderModificationRepository(nullptr)
+	m_ShaderModificationRepository(nullptr),
+	m_bRollEnabled(false)
 {
 	
 }
@@ -36,13 +37,24 @@ GameHandler::~GameHandler()
 }
 
 
-bool GameHandler::Load(std::string gameId, std::shared_ptr<ViewAdjustment> adjustmentMatricies)
+bool GameHandler::Load(ProxyHelper::ProxyConfig& cfg, std::shared_ptr<ViewAdjustment> adjustmentMatricies)
 {
-	//TODO implementation
+	// Get rid of existing modification repository if there is one (shouldn't be, load should only need to be called once)
+	if (m_ShaderModificationRepository) {
+		delete m_ShaderModificationRepository;
+		m_ShaderModificationRepository = nullptr;
+	}
+
 	//if (game profile has shader rules)
-	m_ShaderModificationRepository = new ShaderModificationRepository(adjustmentMatricies);
+	if (!cfg.shaderRulePath.empty()) {
+		m_ShaderModificationRepository = new ShaderModificationRepository(adjustmentMatricies);
+		m_ShaderModificationRepository->LoadRules(cfg.shaderRulePath);
+	}
 	// else
 	// m_ShaderModificationRepository = NULL;
+
+	m_fWorldScaleFactor = cfg.worldScaleFactor;
+	m_bRollEnabled = cfg.rollEnabled;
 
 	return true;
 }

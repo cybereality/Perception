@@ -30,7 +30,7 @@ void D3DProxyDeviceEgo::Init(ProxyHelper::ProxyConfig& cfg)
 {
 	OutputDebugString("D3D ProxyDev Ego Init\n");
 	D3DProxyDevice::Init(cfg);
-	roll_mode = 0;
+	//roll_mode = 0;
 	matrixIndex = getMatrixIndex();
 }
 

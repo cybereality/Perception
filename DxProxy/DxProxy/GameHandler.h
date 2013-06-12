@@ -24,7 +24,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <memory>
 #include <unordered_map>
 #include "d3d9.h"
+#include "pugixml.hpp"
 #include "ShaderModificationRepository.h"
+#include "ProxyHelper.h"
 
 class ShaderModificationRepository;
 
@@ -34,7 +36,7 @@ public:
 	GameHandler(); 
 	virtual ~GameHandler();
 
-	bool Load(std::string gameId, std::shared_ptr<ViewAdjustment> adjustmentMatricies); //ifstream/xml_doc?	
+	bool Load(ProxyHelper::ProxyConfig& cfg, std::shared_ptr<ViewAdjustment> adjustmentMatricies); //ifstream/xml_doc?	
 
 
 	bool ShouldDuplicateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample, DWORD MultisampleQuality,BOOL Lockable, bool isSwapChainBackBuffer);
@@ -46,7 +48,7 @@ public:
 
 	ShaderModificationRepository* GetShaderModificationRepository();
 
-
+	bool RollEnabled() { return m_bRollEnabled; };
 	
 
 private:
@@ -56,7 +58,7 @@ private:
 	//std::string m_gameName;
 	float m_fWorldScaleFactor;
 
-	bool rollEnabled;
+	bool m_bRollEnabled;
 };
 
 #endif

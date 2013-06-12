@@ -323,6 +323,7 @@
     <None Include="..\..\Release\Perception\cfg\shader_rules\source.xml">
       <SubType>Designer</SubType>
     </None>
+    <None Include="example.xml" />
     <None Include="Exports.def" />
     <None Include="SideBySideRiftPartialCrop.fx" />
   </ItemGroup>

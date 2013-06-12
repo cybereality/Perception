@@ -210,6 +210,9 @@
     <None Include="..\..\Release\Perception\cfg\shader_rules\source.xml">
       <Filter>cfg\shader_rules</Filter>
     </None>
+    <None Include="example.xml">
+      <Filter>cfg\shader_rules</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Main.h">

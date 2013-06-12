@@ -34,7 +34,7 @@ void D3DProxyDeviceAdv::Init(ProxyHelper::ProxyConfig& cfg)
 {
 	OutputDebugString("D3D ProxyDev Test Init\n");
 	D3DProxyDevice::Init(cfg);
-	roll_mode = 1;
+	//roll_mode = 1;
 	//matrixIndex = getMatrixIndex();
 }
 

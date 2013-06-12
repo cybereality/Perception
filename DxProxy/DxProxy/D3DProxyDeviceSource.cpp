@@ -33,7 +33,6 @@ void D3DProxyDeviceSource::Init(ProxyHelper::ProxyConfig& cfg)
 {
 	OutputDebugString("D3D ProxyDev Source Init\n");
 	D3DProxyDevice::Init(cfg);
-	roll_mode = 1;
 }
 
 

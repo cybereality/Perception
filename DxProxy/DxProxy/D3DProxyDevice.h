@@ -149,7 +149,7 @@ public:
 	// view translation settings
 	int yaw_mode;			// 0 disabled, 1 enabled
 	int pitch_mode;			// 0 disabled, 1 enabled
-	int roll_mode;			// 0 disabled, 1 enabled
+	//int roll_mode;			// 0 disabled, 1 enabled
 	int translation_mode;	// for head translation
 
 
