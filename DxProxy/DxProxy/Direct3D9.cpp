@@ -144,7 +144,7 @@ HRESULT WINAPI BaseDirect3D9::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, 
 	if(FAILED(hResult))
 		return hResult;
 
-	OutputDebugString("created device success\n");
+	OutputDebugString("[OK] Normal D3D device created\n");
 
 	char buf[64];
 	sprintf_s(buf, "Number of back buffers = %d\n", pPresentationParameters->BackBufferCount);
@@ -153,15 +153,19 @@ HRESULT WINAPI BaseDirect3D9::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, 
 	// load configuration file
 	ProxyHelper helper = ProxyHelper();
 	ProxyHelper::ProxyConfig cfg;
-	if(!helper.LoadConfig(cfg))
+	if(!helper.LoadConfig(cfg)) {
+		OutputDebugString("[ERR] Config loading failed, config could not be loaded. Returning normal D3DDevice. Vireio will not be active.\n");
 		return hResult;
+	}
 
-	OutputDebugString("loaded config success\n");
+	OutputDebugString("[OK] Config loading - OK\n");
 
-	if(cfg.stereo_mode == StereoView::DISABLED)
+	if(cfg.stereo_mode == StereoView::DISABLED) {
+		OutputDebugString("[WARN] stereo_mode == disabled. Returning normal D3DDevice. Vireio will not be active.\n");
 		return hResult;
+	}
 
-	OutputDebugString("stereo mode not disabled\n");
+	OutputDebugString("[OK] Stereo mode is enabled.\n");
 
 	char buf1[32];
 	LPCSTR psz = NULL;
@@ -173,5 +177,8 @@ HRESULT WINAPI BaseDirect3D9::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, 
 
 	// Create and return proxy
 	*ppReturnedDeviceInterface = D3DProxyDeviceFactory::Get(cfg, *ppReturnedDeviceInterface, this);
+
+	OutputDebugString("[OK] Vireio D3D device created.\n");
+
 	return hResult;
 }
