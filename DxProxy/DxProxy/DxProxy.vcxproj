@@ -324,6 +324,7 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="..\..\Release\Perception\cfg\shader_rules\example.xml" />
+    <None Include="..\..\Release\Perception\cfg\shader_rules\rfactor.xml" />
     <None Include="..\..\Release\Perception\cfg\shader_rules\source.xml">
       <SubType>Designer</SubType>
     </None>
