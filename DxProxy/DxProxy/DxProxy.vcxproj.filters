@@ -213,10 +213,10 @@
     <None Include="..\..\Release\Perception\cfg\shader_rules\example.xml">
       <Filter>cfg\shader_rules</Filter>
     </None>
-    <None Include="..\..\Release\Perception\cfg\shader_rules\dirt2.xml">
+    <None Include="..\..\Release\Perception\cfg\shader_rules\ego.xml">
       <Filter>cfg\shader_rules</Filter>
     </None>
-    <None Include="..\..\Release\Perception\cfg\shader_rules\ego.xml">
+    <None Include="..\..\Release\Perception\cfg\shader_rules\unreal.xml">
       <Filter>cfg\shader_rules</Filter>
     </None>
   </ItemGroup>

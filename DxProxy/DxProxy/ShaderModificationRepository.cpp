@@ -206,8 +206,11 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 			for(UINT j = 0; j < pConstantNum; j++)
 			{
 				// We are only modifying selected float vectors/matricies.
-				if ((pConstantDesc[j].RegisterSet == D3DXRS_FLOAT4) &&
-					((pConstantDesc[j].Class == D3DXPC_VECTOR) || (pConstantDesc[j].Class == D3DXPC_MATRIX_ROWS) || (pConstantDesc[j].Class == D3DXPC_MATRIX_COLUMNS))  ) {
+				if (pConstantDesc[j].RegisterSet != D3DXRS_FLOAT4)
+					continue;
+
+				if ( ((pConstantDesc[j].Class == D3DXPC_VECTOR) && (pConstantDesc[j].RegisterCount == 1))
+					|| (((pConstantDesc[j].Class == D3DXPC_MATRIX_ROWS) || (pConstantDesc[j].Class == D3DXPC_MATRIX_COLUMNS)) && (pConstantDesc[j].RegisterCount == 4)) ) {
 
 					// Check if any rules match this constant
 					auto itRules = rulesToApply.begin();
