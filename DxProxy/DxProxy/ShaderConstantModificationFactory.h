@@ -25,9 +25,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Vector4SimpleTranslate.h"
 #include "ShaderConstantModification.h"
 #include "MatrixSimpleTranslate.h"
-#include "MatrixSimpleTranslateColMajor.h"
+#include "MatrixTSimpleTranslate.h"
 #include "MatrixDoNothing.h"
-#include "MatrixSimpleTranslateColMajorIgnoreOrtho.h"
+#include "MatrixTSimpleTranslateIgnoreOrtho.h"
 
 
 class ShaderConstantModificationFactory
@@ -45,8 +45,8 @@ public:
 	{
 		MatDoNothing = 0,
 		MatSimpleTranslate = 1, //unreal
-		MatSimpleTranslateColMajor = 2, 
-		MatSimpleTranslateColMajorIgnoreOrtho = 3// source
+		MatTSimpleTranslate = 2, 
+		MatTSimpleTranslateIgnoreOrtho = 3// source
 	};
 
 
@@ -83,14 +83,14 @@ public:
 		case MatSimpleTranslate:
 			return std::make_shared<MatrixSimpleTranslate>(mod, adjustmentMatricies);
 
-		case MatSimpleTranslateColMajor:
-			return std::make_shared<MatrixSimpleTranslateColMajor>(mod, adjustmentMatricies);
+		case MatTSimpleTranslate:
+			return std::make_shared<MatrixTSimpleTranslate>(mod, adjustmentMatricies);
 
 		case MatDoNothing:
 			return std::make_shared<MatrixDoNothing>(mod, adjustmentMatricies);
 
-		case MatSimpleTranslateColMajorIgnoreOrtho:
-			return std::make_shared<MatrixSimpleTranslateColMajorIgnoreOrtho>(mod, adjustmentMatricies);
+		case MatTSimpleTranslateIgnoreOrtho:
+			return std::make_shared<MatrixTSimpleTranslateIgnoreOrtho>(mod, adjustmentMatricies);
 
 		default:
 			OutputDebugString("Nonexistant matrix modification\n");

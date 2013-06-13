@@ -24,13 +24,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "d3dx9.h"
 #include "ShaderConstantModification.h"
 #include "Vireio.h"
-#include "MatrixSimpleTranslateColMajor.h"
+#include "MatrixTSimpleTranslate.h"
 
 
-class MatrixSimpleTranslateColMajorIgnoreOrtho : public MatrixSimpleTranslateColMajor
+class MatrixTSimpleTranslateIgnoreOrtho : public MatrixTSimpleTranslate
 {
 public:
-	MatrixSimpleTranslateColMajorIgnoreOrtho(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatricies) : MatrixSimpleTranslateColMajor(modID, adjustmentMatricies) {};
+	MatrixTSimpleTranslateIgnoreOrtho(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatricies) : MatrixTSimpleTranslate(modID, adjustmentMatricies) {};
 
 	virtual void ApplyModification(const float* inData, std::vector<float>* outLeft, std::vector<float>* outRight)
 	{
@@ -39,7 +39,7 @@ public:
 		// for other models as well... if it is this seems like the only option unless there is another way to identify the constant from it's properties rather than the actual value
 		if (!vireio::AlmostSame(inData[15], 1.0f, 0.00001f)) { //if not ortho 
 
-			MatrixSimpleTranslateColMajor::ApplyModification(inData, outLeft, outRight);
+			MatrixTSimpleTranslate::ApplyModification(inData, outLeft, outRight);
 		}
 		else {
 			D3DXMATRIX tempMatrix (inData);

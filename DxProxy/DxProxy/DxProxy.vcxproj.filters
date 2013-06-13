@@ -392,20 +392,20 @@
     <ClInclude Include="MatrixSimpleTranslate.h">
       <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
     </ClInclude>
-    <ClInclude Include="MatrixSimpleTranslateColMajor.h">
-      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
-    </ClInclude>
     <ClInclude Include="Vector4SimpleTranslate.h">
       <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
     </ClInclude>
     <ClInclude Include="MatrixDoNothing.h">
       <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
     </ClInclude>
-    <ClInclude Include="MatrixSimpleTranslateColMajorIgnoreOrtho.h">
-      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
-    </ClInclude>
     <ClInclude Include="ViewAdjustment.h">
       <Filter>Direct3D9Vireio</Filter>
+    </ClInclude>
+    <ClInclude Include="MatrixTSimpleTranslate.h">
+      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
+    </ClInclude>
+    <ClInclude Include="MatrixTSimpleTranslateIgnoreOrtho.h">
+      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

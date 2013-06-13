@@ -25,10 +25,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ShaderConstantModification.h"
 #include "Vireio.h"
 
-class MatrixSimpleTranslateColMajor : public ShaderConstantModification<float>
+class MatrixTSimpleTranslate : public ShaderConstantModification<float>
 {
 public:
-	MatrixSimpleTranslateColMajor(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatricies) : ShaderConstantModification(modID, adjustmentMatricies) {};
+	MatrixTSimpleTranslate(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatricies) : ShaderConstantModification(modID, adjustmentMatricies) {};
 
 	virtual void ApplyModification(const float* inData, std::vector<float>* outLeft, std::vector<float>* outRight)
 	{
