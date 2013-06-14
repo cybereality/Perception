@@ -222,6 +222,9 @@
     <None Include="..\..\Release\Perception\cfg\shader_rules\rfactor.xml">
       <Filter>cfg\shader_rules</Filter>
     </None>
+    <None Include="..\..\Release\Perception\cfg\shader_rules\borderlands2.xml">
+      <Filter>cfg\shader_rules</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Main.h">
