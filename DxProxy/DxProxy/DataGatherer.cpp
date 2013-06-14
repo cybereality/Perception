@@ -23,7 +23,7 @@ DataGatherer::DataGatherer(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy)
 {
 	m_shaderDumpFile.open("vertexShaderDump.csv", std::ios::out);
 
-	m_shaderDumpFile << "Shader Hash,Constant Name,ConstantType,Start Register, Register Count" << std::endl;
+	m_shaderDumpFile << "Shader Hash,Constant Name,ConstantType,Start Register,Register Count" << std::endl;
 }
 
 DataGatherer::~DataGatherer()
