@@ -19,20 +19,5 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef D3DPROXYDEVICEEGO_H_INCLUDED
 #define D3DPROXYDEVICEEGO_H_INCLUDED
 
-#include "Direct3DDevice9.h"
-#include "D3DProxyDevice.h"
-#include "ProxyHelper.h"
-
-class D3DProxyDeviceEgo : public D3DProxyDevice
-{
-public:
-	D3DProxyDeviceEgo(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy);
-	virtual ~D3DProxyDeviceEgo();
-	virtual HRESULT WINAPI SetVertexShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
-
-	virtual void Init(ProxyHelper::ProxyConfig& cfg);
-	bool validRegister(UINT reg);
-	int getMatrixIndex();
-};
 
 #endif

@@ -117,9 +117,6 @@
     <ClCompile Include="D3DProxyDeviceAdv.cpp" />
     <ClCompile Include="D3DProxyDeviceEgo.cpp" />
     <ClCompile Include="D3DProxyDeviceFactory.cpp" />
-    <ClCompile Include="D3DProxyDeviceSource.cpp" />
-    <ClCompile Include="D3DProxyDeviceTest.cpp" />
-    <ClCompile Include="D3DProxyDeviceUnreal.cpp" />
     <ClCompile Include="D3D9ProxySurface.cpp" />
     <ClCompile Include="Direct3D9.cpp" />
     <ClCompile Include="Direct3DCubeTexture9.cpp" />
@@ -183,9 +180,6 @@
     <ClInclude Include="D3DProxyDeviceAdv.h" />
     <ClInclude Include="D3DProxyDeviceEgo.h" />
     <ClInclude Include="D3DProxyDeviceFactory.h" />
-    <ClInclude Include="D3DProxyDeviceSource.h" />
-    <ClInclude Include="D3DProxyDeviceTest.h" />
-    <ClInclude Include="D3DProxyDeviceUnreal.h" />
     <ClInclude Include="D3D9ProxySurface.h" />
     <ClInclude Include="Direct3D9.h" />
     <ClInclude Include="Direct3DCubeTexture9.h" />

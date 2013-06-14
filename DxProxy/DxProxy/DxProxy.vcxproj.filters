@@ -97,15 +97,6 @@
     <ClCompile Include="D3DProxyDeviceFactory.cpp">
       <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
     </ClCompile>
-    <ClCompile Include="D3DProxyDeviceSource.cpp">
-      <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
-    </ClCompile>
-    <ClCompile Include="D3DProxyDeviceTest.cpp">
-      <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
-    </ClCompile>
-    <ClCompile Include="D3DProxyDeviceUnreal.cpp">
-      <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
-    </ClCompile>
     <ClCompile Include="Direct3D9.cpp">
       <Filter>Direct3D9</Filter>
     </ClCompile>
@@ -269,9 +260,6 @@
     <ClInclude Include="OculusRiftView.h">
       <Filter>Stereo</Filter>
     </ClInclude>
-    <ClInclude Include="D3DProxyDeviceUnreal.h">
-      <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
-    </ClInclude>
     <ClInclude Include="D3DProxyDevice.h">
       <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
     </ClInclude>
@@ -282,12 +270,6 @@
       <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
     </ClInclude>
     <ClInclude Include="D3DProxyDeviceFactory.h">
-      <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
-    </ClInclude>
-    <ClInclude Include="D3DProxyDeviceSource.h">
-      <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
-    </ClInclude>
-    <ClInclude Include="D3DProxyDeviceTest.h">
       <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
     </ClInclude>
     <ClInclude Include="Direct3D9.h">
