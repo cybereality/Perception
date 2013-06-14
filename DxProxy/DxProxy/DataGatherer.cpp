@@ -21,7 +21,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 DataGatherer::DataGatherer(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy):D3DProxyDevice(pDevice, pCreatedBy),
 	m_recordedShaders()
 {
-	m_shaderDumpFile.open("vertexShaderDump.txt", std::ios::out);
+	m_shaderDumpFile.open("vertexShaderDump.csv", std::ios::out);
+
+	m_shaderDumpFile << "Shader Hash,Constant Name,ConstantType,Start Register, Register Count" << std::endl;
 }
 
 DataGatherer::~DataGatherer()
@@ -67,6 +69,9 @@ HRESULT WINAPI DataGatherer::CreateVertexShader(CONST DWORD* pFunction,IDirect3D
 			pData = new BYTE[pSizeOfData];
 			pActualShader->GetFunction(pData, &pSizeOfData);
 
+			uint32_t hash = 0;
+			MurmurHash3_x86_32(pData, pSizeOfData, VIREIO_SEED, &hash);
+
 			D3DXGetShaderConstantTable(reinterpret_cast<DWORD*>(pData), &pConstantTable);
 			
 			if(pConstantTable == NULL) 
@@ -77,10 +82,10 @@ HRESULT WINAPI DataGatherer::CreateVertexShader(CONST DWORD* pFunction,IDirect3D
 			D3DXCONSTANTTABLE_DESC pDesc;
 			pConstantTable->GetDesc(&pDesc);
 
-			D3DXCONSTANT_DESC pConstantDesc[64];
-			UINT pConstantNum = 64;
+			D3DXCONSTANT_DESC pConstantDesc[512];
+			UINT pConstantNum = 512;
 
-			m_shaderDumpFile << std::endl << std::endl;
+			//m_shaderDumpFile << std::endl << std::endl;
 			//m_shaderDumpFile << "Shader Creator: " << pDesc.Creator << std::endl;
 			//m_shaderDumpFile << "Shader Version: " << pDesc.Version << std::endl;
 
@@ -90,7 +95,7 @@ HRESULT WINAPI DataGatherer::CreateVertexShader(CONST DWORD* pFunction,IDirect3D
 				if(handle == NULL) continue;
 
 				pConstantTable->GetConstantDesc(handle, pConstantDesc, &pConstantNum);
-				if (pConstantNum >= 64) {
+				if (pConstantNum >= 512) {
 					OutputDebugString("Need larger constant description buffer");
 				}
 
@@ -100,23 +105,25 @@ HRESULT WINAPI DataGatherer::CreateVertexShader(CONST DWORD* pFunction,IDirect3D
 					if ((pConstantDesc[j].RegisterSet == D3DXRS_FLOAT4) &&
 						((pConstantDesc[j].Class == D3DXPC_VECTOR) || (pConstantDesc[j].Class == D3DXPC_MATRIX_ROWS) || (pConstantDesc[j].Class == D3DXPC_MATRIX_COLUMNS))  ) {
 
-						m_shaderDumpFile << "Constant";
-						m_shaderDumpFile << "Name: " << pConstantDesc[j].Name << std::endl;
-						m_shaderDumpFile << "Type: ";
+						m_shaderDumpFile << hash;
+						//m_shaderDumpFile << "Constant";
+						//m_shaderDumpFile << "Name: " << pConstantDesc[j].Name << std::endl;
+						m_shaderDumpFile << "," << pConstantDesc[j].Name;
+						//m_shaderDumpFile << "Type: ";
 
 						if (pConstantDesc[j].Class == D3DXPC_VECTOR) {
-							m_shaderDumpFile << "Vector" << std::endl;
+							m_shaderDumpFile << ",Vector";
 						}
 						else if (pConstantDesc[j].Class == D3DXPC_MATRIX_ROWS) {
-							m_shaderDumpFile << "Row Major Matrix" << std::endl;
+							m_shaderDumpFile << ",MatrixR";
 						}
 						else if (pConstantDesc[j].Class == D3DXPC_MATRIX_COLUMNS) {
-							m_shaderDumpFile << "Col Major Matrix" << std::endl;
+							m_shaderDumpFile << ",MatrixC";
 						}
 
-						m_shaderDumpFile << "Register Index: " << pConstantDesc[j].RegisterIndex << std::endl;
-						m_shaderDumpFile << "Register Count: " << pConstantDesc[j].RegisterCount << std::endl;
-						m_shaderDumpFile << "Number of elements in the array:" << pConstantDesc[j].Elements << std::endl << std::endl;
+						m_shaderDumpFile << "," << pConstantDesc[j].RegisterIndex;
+						m_shaderDumpFile << "," << pConstantDesc[j].RegisterCount << std::endl;
+						//m_shaderDumpFile << "Number of elements in the array:" << pConstantDesc[j].Elements << std::endl << std::endl;
 					}
 						
 				}

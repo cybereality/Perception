@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Direct3DDevice9.h"
 #include "D3DProxyDevice.h"
 #include "ProxyHelper.h"
+#include "MurmurHash3.h"
 #include "Direct3DVertexShader9.h"
 
 class DataGatherer : public D3DProxyDevice
