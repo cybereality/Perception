@@ -169,9 +169,8 @@
     <ClInclude Include="DataGatherer.h" />
     <ClInclude Include="GameHandler.h" />
     <ClInclude Include="MatrixDoNothing.h" />
-    <ClInclude Include="MatrixSimpleTranslate.h" />
-    <ClInclude Include="MatrixTSimpleTranslate.h" />
-    <ClInclude Include="MatrixTSimpleTranslateIgnoreOrtho.h" />
+    <ClInclude Include="ShaderMatrixModification.h" />
+    <ClInclude Include="MatrixIgnoreOrtho.h" />
     <ClInclude Include="ViewAdjustment.h" />
     <ClInclude Include="Vireio.h" />
     <ClInclude Include="MurmurHash3.h" />

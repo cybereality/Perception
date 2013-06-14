@@ -64,17 +64,19 @@ private:
 			m_constantType(D3DXPC_FORCE_DWORD), // or this
 			m_operationToApply(0),
 			m_modificationRuleID(0),
-			m_allowPartialNameMatch(false)
+			m_allowPartialNameMatch(false),
+			m_transpose(false)
 		{};
 
 
-		ConstantModificationRule (std::string constantName, bool allowPartialNameMatch, UINT startRegIndex, D3DXPARAMETER_CLASS constantType, UINT operationToApply, UINT modificationRuleID) :
+		ConstantModificationRule (std::string constantName, bool allowPartialNameMatch, UINT startRegIndex, D3DXPARAMETER_CLASS constantType, UINT operationToApply, UINT modificationRuleID, bool transpose) :
 			m_constantName(constantName),
 			m_startRegIndex(startRegIndex),
 			m_constantType(constantType),
 			m_operationToApply(operationToApply),
 			m_modificationRuleID(modificationRuleID),
-			m_allowPartialNameMatch(allowPartialNameMatch)
+			m_allowPartialNameMatch(allowPartialNameMatch),
+			m_transpose(transpose)
 		{};
 
 		static D3DXPARAMETER_CLASS ConstantTypeFrom(std::string type) 
@@ -109,7 +111,8 @@ private:
 		UINT m_operationToApply;
 		// Unique (within a given set of rules) id for this modification rule
 		UINT m_modificationRuleID;
-		//type - always float atm
+		// If input matrix should be transposed before modifying (and transposed back after)
+		bool m_transpose;
 	};
 
 

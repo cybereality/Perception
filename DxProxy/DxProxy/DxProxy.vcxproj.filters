@@ -389,9 +389,6 @@
     <ClInclude Include="Vireio.h">
       <Filter>Direct3D9Vireio</Filter>
     </ClInclude>
-    <ClInclude Include="MatrixSimpleTranslate.h">
-      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
-    </ClInclude>
     <ClInclude Include="Vector4SimpleTranslate.h">
       <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
     </ClInclude>
@@ -401,10 +398,10 @@
     <ClInclude Include="ViewAdjustment.h">
       <Filter>Direct3D9Vireio</Filter>
     </ClInclude>
-    <ClInclude Include="MatrixTSimpleTranslate.h">
+    <ClInclude Include="ShaderMatrixModification.h">
       <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
     </ClInclude>
-    <ClInclude Include="MatrixTSimpleTranslateIgnoreOrtho.h">
+    <ClInclude Include="MatrixIgnoreOrtho.h">
       <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
     </ClInclude>
   </ItemGroup>

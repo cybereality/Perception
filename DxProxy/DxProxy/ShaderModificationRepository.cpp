@@ -86,6 +86,7 @@ bool ShaderModificationRepository::LoadRules(std::string rulesPath)
 			newRule.m_operationToApply = rule.attribute("modToApply").as_uint();
 			newRule.m_startRegIndex = rule.attribute("startReg").as_uint(UINT_MAX);
 			newRule.m_allowPartialNameMatch = rule.attribute("partialName").as_bool(false);
+			newRule.m_transpose = rule.attribute("transpose").as_bool(false);
 
 			if (!(m_AllModificationRules.insert(std::make_pair<UINT, ConstantModificationRule>(newRule.m_modificationRuleID, newRule)).second)) {
 				OutputDebugString("Two rules found with the same 'id'. Only the first will be applied.\n"); 
@@ -295,7 +296,7 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 
 	case D3DXPC_MATRIX_ROWS:
 	case D3DXPC_MATRIX_COLUMNS:
-		modification = ShaderConstantModificationFactory::CreateMatrixModification(rule->m_operationToApply, m_spAdjustmentMatricies);
+		modification = ShaderConstantModificationFactory::CreateMatrixModification(rule->m_operationToApply, m_spAdjustmentMatricies, rule->m_transpose);
 		pData = m_identity;
 
 		return StereoShaderConstant<>(StartReg, pData, Count, modification);

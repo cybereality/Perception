@@ -24,10 +24,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "d3dx9.h"
 #include "Vector4SimpleTranslate.h"
 #include "ShaderConstantModification.h"
-#include "MatrixSimpleTranslate.h"
-#include "MatrixTSimpleTranslate.h"
+#include "ShaderMatrixModification.h"
+#include "MatrixIgnoreOrtho.h"
 #include "MatrixDoNothing.h"
-#include "MatrixTSimpleTranslateIgnoreOrtho.h"
 
 
 class ShaderConstantModificationFactory
@@ -41,15 +40,20 @@ public:
 	};
 
 
+	//enum MatrixModificationTypes
+	//{
+	//	MatDoNothing = 0,
+	//	MatSimpleTranslate = 1, //unreal
+	//	MatTSimpleTranslate = 2, 
+	//	MatTSimpleTranslateIgnoreOrtho = 3// source
+	//};
+
 	enum MatrixModificationTypes
 	{
 		MatDoNothing = 0,
-		MatSimpleTranslate = 1, //unreal
-		MatTSimpleTranslate = 2, 
-		MatTSimpleTranslateIgnoreOrtho = 3// source
+		MatSimpleTranslate = 1, 
+		MatSimpleTranslateIgnoreOrtho = 3
 	};
-
-
 
 
 	static std::shared_ptr<ShaderConstantModification<>> CreateVector4Modification(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatricies)
@@ -71,26 +75,23 @@ public:
 		}
 	}
 
-	static std::shared_ptr<ShaderConstantModification<>> CreateMatrixModification(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatricies) 
+	static std::shared_ptr<ShaderConstantModification<>> CreateMatrixModification(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatricies, bool transpose) 
 	{
-		return CreateMatrixModification(static_cast<MatrixModificationTypes>(modID), adjustmentMatricies);
+		return CreateMatrixModification(static_cast<MatrixModificationTypes>(modID), adjustmentMatricies, transpose);
 	}
 
-	static std::shared_ptr<ShaderConstantModification<>> CreateMatrixModification(MatrixModificationTypes mod, std::shared_ptr<ViewAdjustment> adjustmentMatricies)
+	static std::shared_ptr<ShaderConstantModification<>> CreateMatrixModification(MatrixModificationTypes mod, std::shared_ptr<ViewAdjustment> adjustmentMatricies, bool transpose)
 	{
 		switch (mod)
 		{
-		case MatSimpleTranslate:
-			return std::make_shared<MatrixSimpleTranslate>(mod, adjustmentMatricies);
-
-		case MatTSimpleTranslate:
-			return std::make_shared<MatrixTSimpleTranslate>(mod, adjustmentMatricies);
-
 		case MatDoNothing:
 			return std::make_shared<MatrixDoNothing>(mod, adjustmentMatricies);
 
-		case MatTSimpleTranslateIgnoreOrtho:
-			return std::make_shared<MatrixTSimpleTranslateIgnoreOrtho>(mod, adjustmentMatricies);
+		case MatSimpleTranslate:
+			return std::make_shared<ShaderMatrixModification>(mod, adjustmentMatricies, transpose);
+			
+		case MatSimpleTranslateIgnoreOrtho:
+			return std::make_shared<MatrixIgnoreOrtho>(mod, adjustmentMatricies, transpose);
 
 		default:
 			OutputDebugString("Nonexistant matrix modification\n");

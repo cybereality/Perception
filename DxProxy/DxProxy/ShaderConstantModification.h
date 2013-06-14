@@ -39,13 +39,14 @@ public:
 		m_spAdjustmentMatricies.reset();
 	}
 
-	/* Applies this modification to toModify to produce left and right versions */
+	/* Applies this modification to toModify to produce left and right versions. */
 	virtual void ApplyModification(const T* inData, std::vector<T>* outLeft, std::vector<T>* outRight) = 0;
 
 
 	UINT m_ModificationID;
 protected:
-	std::shared_ptr<ViewAdjustment> m_spAdjustmentMatricies;	
+	std::shared_ptr<ViewAdjustment> m_spAdjustmentMatricies;
+	
 };
 
 

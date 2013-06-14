@@ -1,11 +1,16 @@
 <?xml version="1.0"?>
 <shaderConfig>
   <rules>
-    <!-- constantName="" startReg="" -  At least one of name or reg is required, optionally both can be supplied -->
-    <rule id="1" constantType="MatrixC" modToApply="3" startReg="4"/>
-    <!-- partialName="false" is false if not specified -->
+    <!-- REQUIRED: id, constantType, and modToApply as well as at least one of constantName and startReg (can supply both)-->
+    
+    <!-- partialName="false" is false if not specified. If true and provided constantName will be matched using strstr logic 
+        (case sensitive, partial names appearing anywhere in actual name) -->
     <!-- Valid constant types are MatrixC, MatrixR and Vector -->
-    <rule id="2" constantType="MatrixC" modToApply="2" startReg="8" constantName ="Proj" partialName="true" />
+    <!-- transpose - Should the matricies be transposed before and after operations are applied. deafult = false if not specified 
+        Note that whether the stored type of the constant is MatrixC or MatrixR doesn't have much bearing on whether you need to transpose or not 
+        (because the C or R part doesn't always match the actual format) -->
+    <rule id="1" constantType="MatrixC" modToApply="3" startReg="4"/>
+    <rule id="2" constantType="MatrixC" modToApply="2" startReg="8" constantName ="Proj" partialName="true" transpose="true"/>
   </rules>
 
   <!-- Default rules to apply to all shaders (optional) -->

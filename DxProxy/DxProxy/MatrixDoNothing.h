@@ -16,28 +16,25 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#ifndef MATDONOTHING_H_INCLUDED
-#define MATDONOTHING_H_INCLUDED
+#ifndef MATRIXDONOTHING_H_INCLUDED
+#define MATRIXDONOTHING_H_INCLUDED
 
 
 #include "d3d9.h"
 #include "d3dx9.h"
 #include "ShaderConstantModification.h"
+#include "Vireio.h"
+#include "ShaderMatrixModification.h"
 
-class MatrixDoNothing : public ShaderConstantModification<float>
+
+class MatrixDoNothing : public ShaderMatrixModification
 {
 public:
-	MatrixDoNothing(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatricies) : ShaderConstantModification(modID, adjustmentMatricies) {};
+	MatrixDoNothing(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatricies) : ShaderMatrixModification(modID, adjustmentMatricies, false) {};
 
-	virtual void ApplyModification(const float* inData, std::vector<float>* outLeft, std::vector<float>* outRight)
+	virtual bool DoNotApply(D3DXMATRIX in)
 	{
-		assert(outLeft->size() == 16);
-		assert(outRight->size() == 16);
-
-		D3DXMATRIX tempMatrix (inData);
-
-		outLeft->assign(&tempMatrix[0], &tempMatrix[0] + outLeft->size());
-		outRight->assign(&tempMatrix[0], &tempMatrix[0] + outRight->size());		
+		return true;
 	}
 };
 
