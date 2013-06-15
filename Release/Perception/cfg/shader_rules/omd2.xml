@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <shaderConfig>
-  <!-- WIP Notes: The 2D elements like the HUD and menus need to use the transpose. The models in game don't. 
-      Will have to identify shaders used for 2D and create overrides -->
+  <!-- WIP
+    Notes: The 2D elements like the HUD and menus need to use rule 2. The models in game use rule 1. -->
   <rules>
     <rule id="1" constantType="MatrixC" modToApply="1" constantName ="matMVP" transpose="false"/>
-    <rule id="2" constantType="MatrixC" modToApply="1" constantName ="mvp" transpose="false"/>
+    <rule id="2" constantType="MatrixC" modToApply="1" constantName ="mvp" transpose="true"/>
   </rules>
 
   <defaultRuleIDs>
