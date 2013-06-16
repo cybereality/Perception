@@ -154,13 +154,13 @@ D3DXMATRIX ViewAdjustment::ProjectionInverse()
 	return matProjectionInv;
 }
 
-float ViewAdjustment::ChangeSeparation(float toAdd)
+float ViewAdjustment::ChangeSeparationAdjustment(float toAdd)
 {
 	separationAdjustment += toAdd;
 	
 	vireio::clamp(&separationAdjustment, minSeparationAdjusment, maxSeparationAdjusment);
 
-	return separationAdjustment + SEPARATION_DEFAULT;
+	return separationAdjustment;
 }
 
 float ViewAdjustment::SeparationInWorldUnits() 

@@ -59,8 +59,9 @@ public:
 	D3DXMATRIX ProjectionInverse();
 
 	
-	// returns the new separation in m. (toAdd is the amount to adjust the separation by in m)
-	float ChangeSeparation(float toAdd);
+	// returns the new separation adjustment in m. (toAdd is the amount to adjust the separation by in m)
+	// new adjustment mgiht be the same as old adjustment if adjustment limit is reached
+	float ChangeSeparationAdjustment(float toAdd);
 
 	// returns the current separation adjustment being used in m (this is game and user specific and should be saved appropriately)
 	//TODO remove this and set on gamehandler which has a 'current user'?

@@ -397,7 +397,7 @@ void D3DProxyDevice::HandleControls()
 {
 	bool anyKeyPressed = false;
 	//float keySpeed = 0.00002f;
-	float keySpeed = 0.001f; // 1 mm
+	float seperationChange = 0.001f; // 1 mm
 	//float keySpeed2 = 0.0005f;
 	//float mouseSpeed = 0.25f;
 	float rollSpeed = 0.01f;
@@ -544,11 +544,10 @@ void D3DProxyDevice::HandleControls()
 		{
 
 			if(KEY_DOWN(VK_SHIFT)) {
-				m_pGameHandler->ViewAdjustments()->ChangeSeparation(-keySpeed * 10);
-				separation -= keySpeed * 10;
+				separation = m_pGameHandler->ViewAdjustments()->ChangeSeparationAdjustment(-seperationChange * 10);
 			} 
 			else {
-				m_pGameHandler->ViewAdjustments()->ChangeSeparation(-keySpeed);
+				separation = m_pGameHandler->ViewAdjustments()->ChangeSeparationAdjustment(-seperationChange);
 			}
 			saveWaitCount = 500;
 			doSaveNext = true;
@@ -559,11 +558,11 @@ void D3DProxyDevice::HandleControls()
 		{
 			if(KEY_DOWN(VK_SHIFT))
 			{
-				m_pGameHandler->ViewAdjustments()->ChangeSeparation(keySpeed * 10);
+				separation = m_pGameHandler->ViewAdjustments()->ChangeSeparationAdjustment(seperationChange * 10);
 			} 
 			else 
 			{
-				m_pGameHandler->ViewAdjustments()->ChangeSeparation(keySpeed);
+				separation = m_pGameHandler->ViewAdjustments()->ChangeSeparationAdjustment(seperationChange);
 			}
 			saveWaitCount = 500;
 			doSaveNext = true;
