@@ -39,10 +39,6 @@ OculusRiftView::OculusRiftView(ProxyHelper::ProxyConfig& config):StereoView(conf
 
 	LensCenter[0] = x + (w + DistortionXCenterOffset * 0.5f)*0.5f;			//	0.28632475
 	LensCenter[1] = y + h*0.5f;
-//	LensShift[0]  = LensCenter[0];
-//	LensShift[1]  = LensCenter[1];
-	LensShift[0]  = 0;
-	LensShift[1]  = 0;
 
 	CalculateShaderVariables();
 }
@@ -70,7 +66,6 @@ void OculusRiftView::InitShaderEffects()
 void OculusRiftView::SetViewEffectInitialValues() 
 {
 	viewEffect->SetFloatArray("LensCenter", LensCenter,2);
-	viewEffect->SetFloatArray("LensShift", LensShift,2);
 	viewEffect->SetFloatArray("ScreenCenter", ScreenCenter,2);
 	viewEffect->SetFloatArray("Scale", Scale,2);
 	viewEffect->SetFloatArray("ScaleIn", ScaleIn,2);

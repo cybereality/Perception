@@ -33,6 +33,14 @@ public:
 
 
 	void CalculateShaderVariables( );
+
+private:
+	float LensCenter[2];
+	float ScreenCenter[2];
+	float Scale[2];
+	float ScaleIn[2];
+	float HmdWarpParam[4];
+
 };
 
 #endif

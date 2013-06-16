@@ -4,7 +4,6 @@ sampler2D TexMap0;
 sampler2D TexMap1;
 
 float2 LensCenter;
-float2 LensShift;
 float2 ScreenCenter;
 float2 Scale;
 float2 ScaleIn;
@@ -29,14 +28,14 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 	if(newPos.x < 0.5f) {
 		tc = HmdWarp(newPos);
 
-		tc.x = (tc.x - (LensCenter.x+LensShift.x -0.25f)) * 2.0f;  //offset for ipd
+		tc.x = (tc.x - (LensCenter.x-0.25f)) * 2.0f;  //offset for ipd
 
 		tColor = tex2D(TexMap0,tc);
 	} else {
 		newPos.x = (1.0f - newPos.x);	// mirror
 		tc = HmdWarp(newPos);
 
-		tc.x = (tc.x - (LensCenter.x+LensShift.x -0.25f)) * 2.0f;  //offset for ipd
+		tc.x = (tc.x - (LensCenter.x-0.25f)) * 2.0f;  //offset for ipd
 
 		tc.x = 1.0f -tc.x;		// unmirror
 		tColor = tex2D(TexMap1,tc);

@@ -82,14 +82,6 @@ public:
 
 	int stereoEnabled;
 
-	/// for OculusRiftView adjustments in D3DProxyDevice
-	float LensCenter[2];
-	float LensShift[2];
-	float ScreenCenter[2];
-	float Scale[2];
-	float ScaleIn[2];
-	float HmdWarpParam[4];
-	///
 
 	
 
