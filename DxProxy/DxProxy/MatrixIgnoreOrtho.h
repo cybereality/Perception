@@ -26,7 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Vireio.h"
 #include "ShaderMatrixModification.h"
 
-
+// This is the intent, not sure that the math holds up but it works for HL2. (Doesn't seem to work for omd2, stops all separation)
 class MatrixIgnoreOrtho : public ShaderMatrixModification
 {
 public:

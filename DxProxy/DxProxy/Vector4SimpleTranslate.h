@@ -34,8 +34,8 @@ public:
 		D3DXVECTOR4 tempLeft (inData);
 		D3DXVECTOR4 tempRight (inData);
 
-		tempLeft[0] += m_spAdjustmentMatricies->Separation() * 100.0f * LEFT_CONSTANT;
-		tempRight[0] += m_spAdjustmentMatricies->Separation() * 100.0f * RIGHT_CONSTANT;
+		tempLeft[0] += m_spAdjustmentMatricies->SeparationInWorldUnits() * LEFT_CONSTANT;
+		tempRight[0] += m_spAdjustmentMatricies->SeparationInWorldUnits() * RIGHT_CONSTANT;
 
 		outLeft->assign(&tempLeft[0], &tempLeft[0] + outLeft->size());
 		outRight->assign(&tempRight[0], &tempRight[0] + outRight->size());	

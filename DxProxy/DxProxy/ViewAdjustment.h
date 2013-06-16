@@ -19,32 +19,68 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef VIEWADJUSTMENT_H_INCLUDED
 #define VIEWADJUSTMENT_H_INCLUDED
 
+#include <string>
+#include <memory>
 #include "d3d9.h"
 #include "d3dx9.h"
-#include <string>
+#include "HMDisplayInfo.h"
+#include "Vireio.h"
+//#include "GameHandler.h"
 
 #define LEFT_CONSTANT -1
 #define RIGHT_CONSTANT 1
 
+#define IPD_DEFAULT 0.064f
+// IPD_DEFAULT / 2
+#define SEPARATION_DEFAULT 0.032f
+
+//class GameHandler;
+
+
 class ViewAdjustment
 {
 public:	
-	ViewAdjustment();
+	ViewAdjustment(HMDisplayInfo &hmdInfo, float metersToWorldUnits, bool enableRoll);
 	virtual ~ViewAdjustment();
 
-	void UpdateProjectionMatrices(float separation, float convergence, float aspectRatio);
+	void UpdateProjectionMatrices(/*float separation, float convergence,*/ float aspectRatio);
 	void UpdateRoll(float roll);
-	void ComputeViewTranslations(float separation, float convergence, bool rollEnabled);
+	void ComputeViewTransforms();
 	
+	// Unprojects, shifts view position left/right and reprojects using left/right projection
 	D3DXMATRIX LeftAdjustmentMatrix();
 	D3DXMATRIX RightAdjustmentMatrix();
+
+	// This shift * projection = left/right shifted projection
+	D3DXMATRIX LeftShiftProjection();
+	D3DXMATRIX RightShiftProjection();
+
 	D3DXMATRIX Projection();
 	D3DXMATRIX ProjectionInverse();
-	float Separation() { return m_separation; };
+
+	
+	// returns the new separation in m. (toAdd is the amount to adjust the separation by in m)
+	float ChangeSeparation(float toAdd);
+
+	// returns the current separation adjustment being used in m (this is game and user specific and should be saved appropriately)
+	//TODO remove this and set on gamehandler which has a 'current user'?
+	float SeparationAdjustment();
+
+	// returns the separation being used for view adjustments in game units
+	float SeparationInWorldUnits();
+
+	bool RollEnabled();
+	void EnableRoll(bool enable);
+	void SetWorldScaleFactor(float scale);
+	
 
 private:
 
-	float m_separation;
+	float minSeparationAdjusment;
+	float maxSeparationAdjusment;
+
+	float separationAdjustment;
+	
 	
 	// Projection Matrix variables
 	float n;	//Minimum z-value of the view volume
@@ -57,13 +93,24 @@ private:
 	D3DXMATRIX matProjection;
 	D3DXMATRIX matProjectionInv;
 
-	D3DXMATRIX reProjectLeft;
-	D3DXMATRIX reProjectRight;
+	// The translation applied to projection to shift it left/right to get project(Left/Right)
+	D3DXMATRIX leftShiftProjection;
+	D3DXMATRIX rightShiftProjection;
+
+	// The shifted left and right projection matricies
+	D3DXMATRIX projectLeft;
+	D3DXMATRIX projectRight;
 
 	D3DXMATRIX rollMatrix;
 
-	D3DXMATRIX matViewProjTranslateLeft;
-	D3DXMATRIX matViewProjTranslateRight;
+	D3DXMATRIX matViewProjTransformLeft;
+	D3DXMATRIX matViewProjTransformRight;
+
+	HMDisplayInfo hmdInfo;
+
+	bool rollEnabled;
+	float metersToWorldMultiplier;
+	//std::shared_ptr<GameHandler> m_spGameSpecific;
 };
 
 

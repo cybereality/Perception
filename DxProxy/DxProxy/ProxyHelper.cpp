@@ -195,8 +195,8 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config)
 		OutputDebugString(psz);
 		OutputDebugString("\n");
 
-		config.separation = gameProfile.attribute("separation").as_float();
-		config.convergence = gameProfile.attribute("convergence").as_float();
+		config.separation = gameProfile.attribute("separation").as_float(0.0f);
+		config.convergence = gameProfile.attribute("convergence").as_float(0.0f);
 		config.swap_eyes = gameProfile.attribute("swap_eyes").as_bool();
 		config.yaw_multiplier = gameProfile.attribute("yaw_multiplier").as_float();
 		config.pitch_multiplier = gameProfile.attribute("pitch_multiplier").as_float();

@@ -51,24 +51,30 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	m_activeRenderTargets (1, NULL),
 	m_activeTextureStages(),
 	m_activeVertexBuffers(),
-	m_activeSwapChains()
+	m_activeSwapChains(),
+	m_keyRepeatRate(0.1f) // 100ms
 {
 	OutputDebugString("D3D ProxyDev Created\n");
+
+	m_pGameHandler = new GameHandler();
 	
-	m_spShaderViewAdjustment = std::make_shared<ViewAdjustment>();
 
 	// Check the maximum number of supported render targets
 	D3DCAPS9 capabilities;
 	BaseDirect3DDevice9::GetDeviceCaps(&capabilities);
 	DWORD maxRenderTargets = capabilities.NumSimultaneousRTs;
-
 	m_activeRenderTargets.resize(maxRenderTargets, NULL);
+
+	D3DXMatrixIdentity(&m_leftView);
+	D3DXMatrixIdentity(&m_rightView);
+	D3DXMatrixIdentity(&m_leftProjection);
+	D3DXMatrixIdentity(&m_rightProjection);	
+
 	m_currentRenderingSide = vireio::Left;
-	m_pCurrentMatViewTransform = &m_spShaderViewAdjustment->LeftAdjustmentMatrix(); //&matViewTranslationLeft;
+	m_pCurrentMatViewTransform = &m_pGameHandler->ViewAdjustments()->LeftAdjustmentMatrix(); 
 	m_pCurrentView = &m_leftView;
 	m_pCurrentProjection = &m_leftProjection;
 
-	m_pGameSpecificLogic = new GameHandler();
 	m_spManagedShaderRegisters = std::make_shared<ShaderRegisters>(capabilities.MaxVertexShaderConst, pDevice);
 
 	m_pActiveStereoDepthStencil = NULL;
@@ -87,13 +93,6 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 
 	m_isFirstBeginSceneOfFrame = true;
 
-	D3DXMatrixIdentity(&m_leftView);
-	D3DXMatrixIdentity(&m_rightView);
-	D3DXMatrixIdentity(&m_leftProjection);
-	D3DXMatrixIdentity(&m_rightProjection);	
-	
-
-
 	centerlineR = 0.0f;
 	centerlineL = 0.0f;
 	yaw_mode = 0;
@@ -102,6 +101,8 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	translation_mode = 0;
 	trackingOn = true;
 	SHOCT_mode = 0;
+
+	keyWait = false;
 }
 
  
@@ -111,9 +112,7 @@ D3DProxyDevice::~D3DProxyDevice()
 {
 	ReleaseEverything();
 
-	delete m_pGameSpecificLogic;
-
-	m_spShaderViewAdjustment.reset();
+	delete m_pGameHandler;
 	m_spManagedShaderRegisters.reset();
 
 	// always do this last
@@ -140,7 +139,7 @@ void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 {
 	OutputDebugString("D3D ProxyDev Init\n");
 	//DebugBreak();
-	m_pGameSpecificLogic->Load(cfg, m_spShaderViewAdjustment);
+	m_pGameHandler->Load(cfg);
 
 	stereoView = StereoViewFactory::Get(cfg);
 	SetupOptions(cfg);
@@ -172,7 +171,7 @@ void D3DProxyDevice::OnCreateOrRestore()
 	OutputDebugString("\n");
 
 	m_currentRenderingSide = vireio::Left;
-	m_pCurrentMatViewTransform = &m_spShaderViewAdjustment->LeftAdjustmentMatrix();
+	m_pCurrentMatViewTransform = &m_pGameHandler->ViewAdjustments()->LeftAdjustmentMatrix();
 	m_pCurrentView = &m_leftView;
 	m_pCurrentProjection = &m_leftProjection;
 
@@ -217,7 +216,7 @@ void D3DProxyDevice::OnCreateOrRestore()
 
 	stereoView->Init(getActual());
 	
-	m_spShaderViewAdjustment->UpdateProjectionMatrices(separation, convergence, (float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
+	m_pGameHandler->ViewAdjustments()->UpdateProjectionMatrices(/*separation, convergence,*/ (float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
 }
 
 
@@ -396,270 +395,308 @@ void D3DProxyDevice::SetupText()
 
 void D3DProxyDevice::HandleControls()
 {
-	float keySpeed = 0.00002f;
-	float keySpeed2 = 0.0005f;
-	float mouseSpeed = 0.25f;
+	bool anyKeyPressed = false;
+	//float keySpeed = 0.00002f;
+	float keySpeed = 0.001f; // 1 mm
+	//float keySpeed2 = 0.0005f;
+	//float mouseSpeed = 0.25f;
 	float rollSpeed = 0.01f;
-	static int keyWaitCount = 0; 
-	keyWaitCount--;
+
+
+
+
+
 	static int saveWaitCount = 0; 
 	saveWaitCount--;
 	static bool doSaveNext = false;
 
-	if(keyWaitCount<0)
-		keyWaitCount=0;
-
-	if(KEY_DOWN(VK_NUMPAD0))		// turn on/off stereo3D
-	{
-		if(keyWaitCount <= 0)
+		if (!keyWait) {
+		/*
+		if(KEY_DOWN(VK_NUMPAD0))		// turn on/off stereo3D
 		{
-			if(stereoView->stereoEnabled)
-				stereoView->stereoEnabled = false;
-			else
-				stereoView->stereoEnabled = true;
-			keyWaitCount = 50;
-		}
-	}
-
-//////////  SHOCT non numpad
-	if(KEY_DOWN(0x4F))// VK_KEY_O
-	{
-		centerlineL  -= keySpeed/2.0f;
-		saveWaitCount = 500;
-		doSaveNext = true;
-	}
-	if(KEY_DOWN(0x50))// VK_KEY_P
-	{
-		centerlineL  += keySpeed/2.0f;
-		saveWaitCount = 500;
-		doSaveNext = true;
-	}
-
-	if(KEY_DOWN(0x4B))//VK_KEY_K
-	{
-		centerlineR  -= keySpeed/2.0f;
-		saveWaitCount = 500;
-		doSaveNext = true;
-	}
-	if(KEY_DOWN(0x4C))//VK_KEY_L
-	{
-		centerlineR  += keySpeed/2.0f;
-		saveWaitCount = 500;
-		doSaveNext = true;
-	}
-
-	if(KEY_DOWN(0x49) && KEY_DOWN(VK_CONTROL))//VK_KEY_I		// Schneider-Hicks VR Calibration Tool
-	{
-		if(keyWaitCount <= 0)
-		{
-			SHOCT_mode++;
-			SHOCT_mode %= 3;
-			if(SHOCT_mode == 0){//off
-				trackingOn = true;
+			if(keyWaitCount <= 0)
+			{
+				if(stereoView->stereoEnabled)
+					stereoView->stereoEnabled = false;
+				else
+					stereoView->stereoEnabled = true;
+				keyWaitCount = 50;
 			}
-			if(SHOCT_mode == 1){// seperation
-				trackingOn = false;
-			}
-			if(SHOCT_mode == 2){// convergence
-				trackingOn = false;
-			}
-			keyWaitCount = 50;
+
+			anyKeyPressed = true;
 		}
-	}
-//////////
 
-//////////  SHOCT numpad
-	if(KEY_DOWN(VK_NUMPAD1))
-	{
-		centerlineL  -= keySpeed/2.0f;
-		saveWaitCount = 500;
-		doSaveNext = true;
-	}
-	if(KEY_DOWN(VK_NUMPAD2))
-	{
-		centerlineL  += keySpeed/2.0f;
-		saveWaitCount = 500;
-		doSaveNext = true;
-	}
-
-	if(KEY_DOWN(VK_NUMPAD4))
-	{
-		centerlineR  -= keySpeed/2.0f;
-		saveWaitCount = 500;
-		doSaveNext = true;
-	}
-	if(KEY_DOWN(VK_NUMPAD5))
-	{
-		centerlineR  += keySpeed/2.0f;
-		saveWaitCount = 500;
-		doSaveNext = true;
-	}
-
-	if(KEY_DOWN(VK_MULTIPLY) && KEY_DOWN(VK_SHIFT))		// Schneider-Hicks VR Calibration Tool
-	{
-		if(keyWaitCount <= 0)
+	//////////  SHOCT non numpad
+		if(KEY_DOWN(0x4F))// VK_KEY_O
 		{
-			SHOCT_mode++;
-			SHOCT_mode %= 3;
-			if(SHOCT_mode == 0){//off
-				trackingOn = true;
-			}
-			if(SHOCT_mode == 1){// seperation
-				trackingOn = false;
-			}
-			if(SHOCT_mode == 2){// convergence
-				trackingOn = false;
-			}
-			keyWaitCount = 50;
-		}
-	}
-//////////
-
-	if(KEY_DOWN(VK_F1))
-	{
-		if(stereoView->initialized)
-		{
-			stereoView->SaveScreen();
-		}
-	}
-
-	if(KEY_DOWN(VK_F2))
-	{
-
-		if(KEY_DOWN(VK_SHIFT))
-		{
-			offset -= keySpeed;
-		} else 
-		{
-			separation -= keySpeed * 0.2f;
-			if(separation < 0)		// no negative seperation
-				separation = 0;
-		}
-		saveWaitCount = 500;
-		doSaveNext = true;
-	}
-
-	if(KEY_DOWN(VK_F3))
-	{
-		if(KEY_DOWN(VK_SHIFT))
-		{
-			offset += keySpeed;
-		} 
-		else 
-		{
-			separation += keySpeed * 0.2f;
-		}
-		saveWaitCount = 500;
-		doSaveNext = true;
-	}
-
-	if(KEY_DOWN(VK_F4))
-	{
-		if(KEY_DOWN(VK_SHIFT))
-		{
-			this->stereoView->DistortionScale  -= keySpeed*10;
-		} 
-		else 
-		{
-			convergence -= keySpeed2*10;
-		}
-		saveWaitCount = 500;
-		doSaveNext = true;
-	}
-
-	if(KEY_DOWN(VK_F5))
-	{
-		if(KEY_DOWN(VK_SHIFT))
-		{
-			this->stereoView->DistortionScale  += keySpeed*10;
-		} 
-		else 
-		{
-			convergence += keySpeed2*10;
-		}
-		saveWaitCount = 500;
-		doSaveNext = true;
-	}
-
-	if(KEY_DOWN(VK_F6))
-	{
-		if(KEY_DOWN(VK_SHIFT))
-		{
-			separation = 0.0f;
-			convergence = 0.0f;
-			offset = 0.0f;
-			yaw_multiplier = 25.0f;
-			pitch_multiplier = 25.0f;
-			roll_multiplier = 1.0f;
-			//matrixIndex = 0;
+			centerlineL  -= keySpeed/2.0f;
 			saveWaitCount = 500;
 			doSaveNext = true;
+			anyKeyPressed = true;
 		}
-		else if(keyWaitCount <= 0)
+		if(KEY_DOWN(0x50))// VK_KEY_P
 		{
-			swap_eyes = !swap_eyes;
-			stereoView->SwapEyes(swap_eyes);
+			centerlineL  += keySpeed/2.0f;
+			saveWaitCount = 500;
+			doSaveNext = true;
+			anyKeyPressed = true;
+		}
+
+		if(KEY_DOWN(0x4B))//VK_KEY_K
+		{
+			centerlineR  -= keySpeed/2.0f;
+			saveWaitCount = 500;
+			doSaveNext = true;
+			anyKeyPressed = true;
+		}
+		if(KEY_DOWN(0x4C))//VK_KEY_L
+		{
+			centerlineR  += keySpeed/2.0f;
+			saveWaitCount = 500;
+			doSaveNext = true;
+			anyKeyPressed = true;
+		}
+
+		if(KEY_DOWN(0x49) && KEY_DOWN(VK_CONTROL))//VK_KEY_I		// Schneider-Hicks VR Calibration Tool
+		{
+			if(keyWaitCount <= 0)
+			{
+				SHOCT_mode++;
+				SHOCT_mode %= 3;
+				if(SHOCT_mode == 0){//off
+					trackingOn = true;
+				}
+				if(SHOCT_mode == 1){// seperation
+					trackingOn = false;
+				}
+				if(SHOCT_mode == 2){// convergence
+					trackingOn = false;
+				}
+				keyWaitCount = 50;
+			}
+
+			anyKeyPressed = true;
+		}
+	//////////
+
+	//////////  SHOCT numpad
+		if(KEY_DOWN(VK_NUMPAD1))
+		{
+			centerlineL  -= keySpeed/2.0f;
+			saveWaitCount = 500;
+			doSaveNext = true;
+			anyKeyPressed = true;
+		}
+		if(KEY_DOWN(VK_NUMPAD2))
+		{
+			centerlineL  += keySpeed/2.0f;
+			saveWaitCount = 500;
+			doSaveNext = true;
+			anyKeyPressed = true;
+		}
+
+		if(KEY_DOWN(VK_NUMPAD4))
+		{
+			centerlineR  -= keySpeed/2.0f;
+			saveWaitCount = 500;
+			doSaveNext = true;
+			anyKeyPressed = true;
+		}
+		if(KEY_DOWN(VK_NUMPAD5))
+		{
+			centerlineR  += keySpeed/2.0f;
+			saveWaitCount = 500;
+			doSaveNext = true;
+			anyKeyPressed = true;
+		}
+
+		if(KEY_DOWN(VK_MULTIPLY) && KEY_DOWN(VK_SHIFT))		// Schneider-Hicks VR Calibration Tool
+		{
+			if(keyWaitCount <= 0)
+			{
+				SHOCT_mode++;
+				SHOCT_mode %= 3;
+				if(SHOCT_mode == 0){//off
+					trackingOn = true;
+				}
+				if(SHOCT_mode == 1){// seperation
+					trackingOn = false;
+				}
+				if(SHOCT_mode == 2){// convergence
+					trackingOn = false;
+				}
+				keyWaitCount = 50;
+			}
+			anyKeyPressed = true;
+		}*/
+	//////////
+
+		if(KEY_DOWN(VK_F1))
+		{
+			if(stereoView->initialized)
+			{
+				stereoView->SaveScreen();
+			}
+			anyKeyPressed = true;
+		}
+
+		if(KEY_DOWN(VK_F2))
+		{
+
+			if(KEY_DOWN(VK_SHIFT)) {
+				m_pGameHandler->ViewAdjustments()->ChangeSeparation(-keySpeed * 10);
+				separation -= keySpeed * 10;
+			} 
+			else {
+				m_pGameHandler->ViewAdjustments()->ChangeSeparation(-keySpeed);
+			}
+			saveWaitCount = 500;
+			doSaveNext = true;
+			anyKeyPressed = true;
+		}
+
+		if(KEY_DOWN(VK_F3))
+		{
+			if(KEY_DOWN(VK_SHIFT))
+			{
+				m_pGameHandler->ViewAdjustments()->ChangeSeparation(keySpeed * 10);
+			} 
+			else 
+			{
+				m_pGameHandler->ViewAdjustments()->ChangeSeparation(keySpeed);
+			}
+			saveWaitCount = 500;
+			doSaveNext = true;
+			anyKeyPressed = true;
+		}
+		/*
+		if(KEY_DOWN(VK_F4))
+		{
+			if(KEY_DOWN(VK_SHIFT))
+			{
+				this->stereoView->DistortionScale  -= keySpeed*10;
+			} 
+			else 
+			{
+				convergence -= keySpeed2*10;
+			}
+			saveWaitCount = 500;
+			doSaveNext = true;
+			anyKeyPressed = true;
+		}
+
+		if(KEY_DOWN(VK_F5))
+		{
+			if(KEY_DOWN(VK_SHIFT))
+			{
+				this->stereoView->DistortionScale  += keySpeed*10;
+			} 
+			else 
+			{
+				convergence += keySpeed2*10;
+			}
+			saveWaitCount = 500;
+			doSaveNext = true;
+			anyKeyPressed = true;
+		}
+
+		if(KEY_DOWN(VK_F6))
+		{
+			if(KEY_DOWN(VK_SHIFT))
+			{
+				separation = 0.0f;
+				convergence = 0.0f;
+				offset = 0.0f;
+				yaw_multiplier = 25.0f;
+				pitch_multiplier = 25.0f;
+				roll_multiplier = 1.0f;
+				//matrixIndex = 0;
+				saveWaitCount = 500;
+				doSaveNext = true;
+			}
+			else if(keyWaitCount <= 0)
+			{
+				swap_eyes = !swap_eyes;
+				stereoView->SwapEyes(swap_eyes);
+				keyWaitCount = 200;
+				saveWaitCount = 500;
+				doSaveNext = true;
+			}
+			anyKeyPressed = true;
+		}
+	
+		if(KEY_DOWN(VK_F7) && keyWaitCount <= 0)
+		{
+			matrixIndex++;
+			if(matrixIndex > 15) 
+			{
+				matrixIndex = 0;
+			}
 			keyWaitCount = 200;
+			anyKeyPressed = true;
+		}
+
+		if(KEY_DOWN(VK_F8))
+		{
+			if(KEY_DOWN(VK_SHIFT))
+			{
+				pitch_multiplier -= mouseSpeed;
+			}  
+			else if(KEY_DOWN(VK_CONTROL))
+			{
+				roll_multiplier -= rollSpeed;
+			}  
+			else 
+			{
+				yaw_multiplier -= mouseSpeed;
+			}
+
+			if(trackerInitialized && tracker->isAvailable())
+			{
+				tracker->setMultipliers(yaw_multiplier, pitch_multiplier, roll_multiplier);
+			}
+
 			saveWaitCount = 500;
 			doSaveNext = true;
+			anyKeyPressed = true;
 		}
+		if(KEY_DOWN(VK_F9))
+		{
+			if(KEY_DOWN(VK_SHIFT))
+			{
+				pitch_multiplier += mouseSpeed;
+			}  
+			else if(KEY_DOWN(VK_CONTROL))
+			{
+				roll_multiplier += rollSpeed;
+			}  
+			else 
+			{
+				yaw_multiplier += mouseSpeed;
+			}
+
+			if(trackerInitialized && tracker->isAvailable())
+			{
+				tracker->setMultipliers(yaw_multiplier, pitch_multiplier, roll_multiplier);
+			}
+			saveWaitCount = 500;
+			doSaveNext = true;
+			anyKeyPressed = true;
+		}*/
+		
+		if (anyKeyPressed) {
+			startTime = clock();
+			keyWait = true;
+		}
+	}
+	else {
+		float elapseTimeSinceLastHandledKey = (float)(clock() - startTime) / CLOCKS_PER_SEC;
+		if (elapseTimeSinceLastHandledKey >= m_keyRepeatRate) {
+			keyWait = false;
+		}		
 	}
 	
-	if(KEY_DOWN(VK_F7) && keyWaitCount <= 0)
-	{
-		matrixIndex++;
-		if(matrixIndex > 15) 
-		{
-			matrixIndex = 0;
-		}
-		keyWaitCount = 200;
-	}
-
-	if(KEY_DOWN(VK_F8))
-	{
-		if(KEY_DOWN(VK_SHIFT))
-		{
-			pitch_multiplier -= mouseSpeed;
-		}  
-		else if(KEY_DOWN(VK_CONTROL))
-		{
-			roll_multiplier -= rollSpeed;
-		}  
-		else 
-		{
-			yaw_multiplier -= mouseSpeed;
-		}
-
-		if(trackerInitialized && tracker->isAvailable())
-		{
-			tracker->setMultipliers(yaw_multiplier, pitch_multiplier, roll_multiplier);
-		}
-
-		saveWaitCount = 500;
-		doSaveNext = true;
-	}
-	if(KEY_DOWN(VK_F9))
-	{
-		if(KEY_DOWN(VK_SHIFT))
-		{
-			pitch_multiplier += mouseSpeed;
-		}  
-		else if(KEY_DOWN(VK_CONTROL))
-		{
-			roll_multiplier += rollSpeed;
-		}  
-		else 
-		{
-			yaw_multiplier += mouseSpeed;
-		}
-
-		if(trackerInitialized && tracker->isAvailable())
-		{
-			tracker->setMultipliers(yaw_multiplier, pitch_multiplier, roll_multiplier);
-		}
-		saveWaitCount = 500;
-		doSaveNext = true;
-	}
+	
 
 	if(saveDebugFile)
 	{
@@ -667,12 +704,21 @@ void D3DProxyDevice::HandleControls()
 	}
 	saveDebugFile = false;
 
-	if(KEY_DOWN(VK_F12) && keyWaitCount <= 0)
+	/*if(KEY_DOWN(VK_F12) && keyWaitCount <= 0)
 	{
 		// uncomment to save text debug file
 		//saveDebugFile = true;
 		keyWaitCount = 200;
-	}
+		anyKeyPressed = true;
+	}*/
+
+
+	
+
+
+		 
+	
+
 
 	if(doSaveNext && saveWaitCount < 0)
 	{
@@ -759,11 +805,11 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 		// TODO Doing this now gives very current roll to frame. But should it be done with handle tracking to keep latency similar?
 		// How much latency does mouse enulation cause? Probably want direct roll manipulation and mouse emulation to occur with same delay
 		// if possible?
-		if (trackerInitialized && tracker->isAvailable() && m_pGameSpecificLogic->RollEnabled()) {
-			m_spShaderViewAdjustment->UpdateRoll(tracker->currentRoll);
+		if (trackerInitialized && tracker->isAvailable() && m_pGameHandler->ViewAdjustments()->RollEnabled()) {
+			m_pGameHandler->ViewAdjustments()->UpdateRoll(tracker->currentRoll);
 		}
 
-		m_spShaderViewAdjustment->ComputeViewTranslations(separation, convergence, m_pGameSpecificLogic->RollEnabled());
+		m_pGameHandler->ViewAdjustments()->ComputeViewTransforms();
 
 		m_isFirstBeginSceneOfFrame = false;
 	}
@@ -883,7 +929,7 @@ HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFO
 		/* "If Needed" heuristic is the complicated part here.
 		  Fixed heuristics (based on type, format, size, etc) + game specific overrides + isForcedMono + magic? */
 		// TODO Should we duplicate this Render Target? Replace "true" with heuristic
-		if (m_pGameSpecificLogic->ShouldDuplicateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, isSwapChainBackBuffer))
+		if (m_pGameHandler->ShouldDuplicateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, isSwapChainBackBuffer))
 		{
 			if (FAILED(BaseDirect3DDevice9::CreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, &pRightRenderTarget, pSharedHandle))) {
 				OutputDebugString("Failed to create right eye render target while attempting to create stereo pair, falling back to mono\n");
@@ -937,7 +983,7 @@ HRESULT WINAPI D3DProxyDevice::CreateDepthStencilSurface(UINT Width,UINT Height,
 	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateDepthStencilSurface(Width, Height, Format, MultiSample, MultisampleQuality, Discard, &pDepthStencilSurfaceLeft, pSharedHandle))) {
 
 		// TODO Should we always duplicated Depth stencils? I think yes, but there may be exceptions
-		if (m_pGameSpecificLogic->ShouldDuplicateDepthStencilSurface(Width, Height, Format, MultiSample, MultisampleQuality, Discard)) 
+		if (m_pGameHandler->ShouldDuplicateDepthStencilSurface(Width, Height, Format, MultiSample, MultisampleQuality, Discard)) 
 		{
 			if (FAILED(BaseDirect3DDevice9::CreateDepthStencilSurface(Width, Height, Format, MultiSample, MultisampleQuality, Discard, &pDepthStencilSurfaceRight, pSharedHandle))) {
 				OutputDebugString("Failed to create right eye Depth Stencil Surface while attempting to create stereo pair, falling back to mono\n");
@@ -992,7 +1038,7 @@ HRESULT WINAPI D3DProxyDevice::CreateTexture(UINT Width,UINT Height,UINT Levels,
 	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateTexture(Width, Height, Levels, Usage, Format, Pool, &pLeftTexture, pSharedHandle))) {
 		
 		// Does this Texture need duplicating?
-		if (m_pGameSpecificLogic->ShouldDuplicateTexture(Width, Height, Levels, Usage, Format, Pool)) {
+		if (m_pGameHandler->ShouldDuplicateTexture(Width, Height, Levels, Usage, Format, Pool)) {
 
 			if (FAILED(BaseDirect3DDevice9::CreateTexture(Width, Height, Levels, Usage, Format, Pool, &pRightTexture, pSharedHandle))) {
 				OutputDebugString("Failed to create right eye texture while attempting to create stereo pair, falling back to mono\n");
@@ -1026,7 +1072,7 @@ HRESULT WINAPI D3DProxyDevice::CreateCubeTexture(UINT EdgeLength, UINT Levels, D
 	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateCubeTexture(EdgeLength, Levels, Usage, Format, Pool, &pLeftCubeTexture, pSharedHandle))) {
 		
 		// Does this Texture need duplicating?
-		if (m_pGameSpecificLogic->ShouldDuplicateCubeTexture(EdgeLength, Levels, Usage, Format, Pool)) {
+		if (m_pGameHandler->ShouldDuplicateCubeTexture(EdgeLength, Levels, Usage, Format, Pool)) {
 
 			if (FAILED(BaseDirect3DDevice9::CreateCubeTexture(EdgeLength, Levels, Usage, Format, Pool, &pRightCubeTexture, pSharedHandle))) {
 				OutputDebugString("Failed to create right eye texture while attempting to create stereo pair, falling back to mono\n");
@@ -1079,7 +1125,7 @@ HRESULT WINAPI D3DProxyDevice::CreateVertexShader(CONST DWORD* pFunction,IDirect
 	HRESULT creationResult = BaseDirect3DDevice9::CreateVertexShader(pFunction, &pActualVShader);
 
 	if (SUCCEEDED(creationResult)) {
-		*ppShader = new D3D9ProxyVertexShader(pActualVShader, this, m_pGameSpecificLogic->GetShaderModificationRepository());
+		*ppShader = new D3D9ProxyVertexShader(pActualVShader, this, m_pGameHandler->GetShaderModificationRepository());
 	}
 
 	return creationResult;
@@ -1964,10 +2010,10 @@ bool D3DProxyDevice::setDrawingSide(vireio::RenderPosition side)
 
 	// Updated computed view translation (used by several derived proxies - see: ComputeViewTranslation)
 	if (side == vireio::Left) {
-		m_pCurrentMatViewTransform = &m_spShaderViewAdjustment->LeftAdjustmentMatrix();
+		m_pCurrentMatViewTransform = &m_pGameHandler->ViewAdjustments()->LeftAdjustmentMatrix();
 	}
 	else {
-		m_pCurrentMatViewTransform = &m_spShaderViewAdjustment->RightAdjustmentMatrix();
+		m_pCurrentMatViewTransform = &m_pGameHandler->ViewAdjustments()->RightAdjustmentMatrix();
 	}
 
 
@@ -2279,7 +2325,7 @@ HRESULT D3DProxyDevice::SetStereoProjectionTransform(D3DXMATRIX pLeftMatrix, D3D
 
 HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D3DMATRIX* pMatrix)
 {
-	if(State == D3DTS_VIEW)
+	/*if(State == D3DTS_VIEW)
 	{
 		D3DXMATRIX tempLeft;
 		D3DXMATRIX tempRight;
@@ -2440,7 +2486,7 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 		}
 
 		return BaseDirect3DDevice9::SetTransform(State, pProjectionToSet);
-	}
+	}*/
 
 	return BaseDirect3DDevice9::SetTransform(State, pMatrix);
 }

@@ -27,6 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "pugixml.hpp"
 #include "ShaderModificationRepository.h"
 #include "ProxyHelper.h"
+#include "ViewAdjustment.h"
 
 class ShaderModificationRepository;
 
@@ -36,7 +37,7 @@ public:
 	GameHandler(); 
 	virtual ~GameHandler();
 
-	bool Load(ProxyHelper::ProxyConfig& cfg, std::shared_ptr<ViewAdjustment> adjustmentMatricies); //ifstream/xml_doc?	
+	bool Load(ProxyHelper::ProxyConfig& cfg); 
 
 
 	bool ShouldDuplicateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample, DWORD MultisampleQuality,BOOL Lockable, bool isSwapChainBackBuffer);
@@ -44,21 +45,18 @@ public:
 	bool ShouldDuplicateTexture(UINT Width,UINT Height,UINT Levels,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool);
 	bool ShouldDuplicateCubeTexture(UINT EdgeLength, UINT Levels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool);
 
-	float ToWorldUnits(float millimeters);
 
 	ShaderModificationRepository* GetShaderModificationRepository();
 
-	bool RollEnabled() { return m_bRollEnabled; };
+
+	ViewAdjustment* ViewAdjustments() { return m_spShaderViewAdjustment.get(); };
 	
 
 private:
 
 	ShaderModificationRepository* m_ShaderModificationRepository;
+	std::shared_ptr<ViewAdjustment> m_spShaderViewAdjustment;
 
-	//std::string m_gameName;
-	float m_fWorldScaleFactor;
-
-	bool m_bRollEnabled;
 };
 
 #endif

@@ -216,6 +216,9 @@
     <None Include="..\..\Release\Perception\cfg\shader_rules\borderlands2.xml">
       <Filter>cfg\shader_rules</Filter>
     </None>
+    <None Include="..\..\Release\Perception\cfg\shader_rules\omd2.xml">
+      <Filter>cfg\shader_rules</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Main.h">
@@ -387,6 +390,10 @@
       <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
     </ClInclude>
     <ClInclude Include="MatrixIgnoreOrtho.h">
+      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
+    </ClInclude>
+    <ClInclude Include="HMDisplayInfo.h" />
+    <ClInclude Include="MatrixHudSquash.h">
       <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
     </ClInclude>
   </ItemGroup>

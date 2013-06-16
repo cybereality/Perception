@@ -20,9 +20,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ViewAdjustment.h"
 
 
-ViewAdjustment::ViewAdjustment()
+ViewAdjustment::ViewAdjustment(HMDisplayInfo &displayInfo, float metersToWorldUnits, bool enableRoll) :
+	hmdInfo(displayInfo),
+	metersToWorldMultiplier(metersToWorldUnits),
+	rollEnabled(enableRoll)
 {
-	m_separation = 0.0f;
+	separationAdjustment = 0.0f;
+
+	minSeparationAdjusment = -SEPARATION_DEFAULT;
+	maxSeparationAdjusment = 4 * SEPARATION_DEFAULT;
 
 	n = 0.1f;					
 	f = 10.0f;
@@ -31,13 +37,16 @@ ViewAdjustment::ViewAdjustment()
 
 	D3DXMatrixIdentity(&matProjection);
 	D3DXMatrixIdentity(&matProjectionInv);
-	D3DXMatrixIdentity(&reProjectLeft);
-	D3DXMatrixIdentity(&reProjectRight);
-	D3DXMatrixIdentity(&matViewProjTranslateRight);
+	D3DXMatrixIdentity(&leftShiftProjection);
+	D3DXMatrixIdentity(&rightShiftProjection);
+	D3DXMatrixIdentity(&projectLeft);
+	D3DXMatrixIdentity(&projectRight);
+	D3DXMatrixIdentity(&matViewProjTransformRight);
+	D3DXMatrixIdentity(&matViewProjTransformLeft);
 
-	UpdateProjectionMatrices(0, 0, 1.6f);
+	UpdateProjectionMatrices(displayInfo.screenAspectRatio);
 	D3DXMatrixIdentity(&rollMatrix);
-	ComputeViewTranslations(0, 0, false);
+	ComputeViewTransforms();
 }
 
 ViewAdjustment::~ViewAdjustment() 
@@ -45,21 +54,35 @@ ViewAdjustment::~ViewAdjustment()
 }
 
 
-void ViewAdjustment::UpdateProjectionMatrices(float separation, float convergence, float aspectRatio)
+void ViewAdjustment::UpdateProjectionMatrices(float aspectRatio)
 {
-	m_separation = separation;
-	//aspectRatio = (float)stereoView->viewport.Width/(float)stereoView->viewport.Height;
 	t = 0.5f / aspectRatio;
 	b = -0.5f / aspectRatio;
 
 	D3DXMatrixPerspectiveOffCenterLH(&matProjection, l, r, b, t, n, f);
 	D3DXMatrixInverse(&matProjectionInv, 0, &matProjection);
 
-	float adjustedFrustumOffsetLeft = convergence * LEFT_CONSTANT * 0.1f * separation;		
-	float adjustedFrustumOffsetRight = convergence * RIGHT_CONSTANT * 0.1f * separation;		
 
-	D3DXMatrixPerspectiveOffCenterLH(&reProjectLeft, l+adjustedFrustumOffsetLeft, r+adjustedFrustumOffsetLeft, b, t, n, f);
-	D3DXMatrixPerspectiveOffCenterLH(&reProjectRight, l+adjustedFrustumOffsetRight, r+adjustedFrustumOffsetRight, b, t, n, f);
+	// Based on Rift docs way. //TODO still need to use the 'old way' (or something similar/different) for rendering on a monitor? needs testing
+	// if (HMD)
+	// Shift projection centers to the center of each lens (assumption: lenses are vertically centered)
+	float viewCenter = hmdInfo.physicalScreenSize.first * 0.25f;
+	float eyeProjectionShift = viewCenter - hmdInfo.physicaLensSeparation * 0.5f;
+	float projectionCenterOffset = 4.0f * eyeProjectionShift / hmdInfo.physicalScreenSize.first;
+
+	D3DXMatrixTranslation(&leftShiftProjection, projectionCenterOffset * LEFT_CONSTANT, 0, 0);
+	D3DXMatrixTranslation(&rightShiftProjection, projectionCenterOffset * RIGHT_CONSTANT, 0, 0);
+	// else if desktop screen {}
+
+	// old way
+	//float adjustedFrustumOffsetLeft = convergence * LEFT_CONSTANT * 0.1f * separation;
+	//float adjustedFrustumOffsetRight = convergence * RIGHT_CONSTANT * 0.1f * separation;
+
+	//D3DXMatrixPerspectiveOffCenterLH(&reProjectLeft, l+adjustedFrustumOffsetLeft, r+adjustedFrustumOffsetLeft, b, t, n, f);
+	//D3DXMatrixPerspectiveOffCenterLH(&reProjectRight, l+adjustedFrustumOffsetRight, r+adjustedFrustumOffsetRight, b, t, n, f);
+	
+	projectLeft = leftShiftProjection * matProjection;
+	projectRight = rightShiftProjection * matProjection;
 }
 
 
@@ -73,14 +96,20 @@ void ViewAdjustment::UpdateRoll(float roll)
 // Note that l/r frustrum changes are applied differently for the transform and would seem
 // to produce different results. So I leave merging this with Transform view/projection code to someone braver.
 // But it really feels like it should be a single code path situation.
-void ViewAdjustment::ComputeViewTranslations(float separation, float convergence, bool rollEnabled)
+void ViewAdjustment::ComputeViewTransforms()
 {
-	m_separation = separation;
+	//activeSeparation = separation;
 
 	D3DXMATRIX transformLeft;
 	D3DXMATRIX transformRight;
-	D3DXMatrixTranslation(&transformLeft, separation * LEFT_CONSTANT * 10.0f, 0, 0);
-	D3DXMatrixTranslation(&transformRight, separation * RIGHT_CONSTANT * 10.0f, 0, 0);
+	//D3DXMatrixTranslation(&transformLeft, separation * LEFT_CONSTANT * 10.0f, 0, 0);
+	//D3DXMatrixTranslation(&transformRight, separation * RIGHT_CONSTANT * 10.0f, 0, 0);
+
+	// if (HMD)
+	D3DXMatrixTranslation(&transformLeft, SeparationInWorldUnits() * LEFT_CONSTANT, 0, 0);
+	D3DXMatrixTranslation(&transformRight, SeparationInWorldUnits() * RIGHT_CONSTANT, 0, 0);
+	// else if desktop screen {}
+
 
 	D3DXMATRIX rollTransform;
 	D3DXMatrixIdentity(&rollTransform);
@@ -91,18 +120,28 @@ void ViewAdjustment::ComputeViewTranslations(float separation, float convergence
 	}
 	
 
-	matViewProjTranslateLeft = matProjectionInv * transformLeft * reProjectLeft;
-	matViewProjTranslateRight = matProjectionInv * transformRight * reProjectRight;
+	matViewProjTransformLeft = matProjectionInv * transformLeft * projectLeft;
+	matViewProjTransformRight = matProjectionInv * transformRight * projectRight;
 }
 
 D3DXMATRIX ViewAdjustment::LeftAdjustmentMatrix()
 {
-	return matViewProjTranslateLeft;
+	return matViewProjTransformLeft;
 }
 
 D3DXMATRIX ViewAdjustment::RightAdjustmentMatrix()
 {
-	return matViewProjTranslateRight;
+	return matViewProjTransformRight;
+}
+
+D3DXMATRIX ViewAdjustment::LeftShiftProjection()
+{
+	return leftShiftProjection;
+}
+
+D3DXMATRIX ViewAdjustment::RightShiftProjection()
+{
+	return rightShiftProjection;
 }
 
 D3DXMATRIX ViewAdjustment::Projection()
@@ -113,4 +152,38 @@ D3DXMATRIX ViewAdjustment::Projection()
 D3DXMATRIX ViewAdjustment::ProjectionInverse()
 {
 	return matProjectionInv;
+}
+
+float ViewAdjustment::ChangeSeparation(float toAdd)
+{
+	separationAdjustment += toAdd;
+	
+	vireio::clamp(&separationAdjustment, minSeparationAdjusment, maxSeparationAdjusment);
+
+	return separationAdjustment + SEPARATION_DEFAULT;
+}
+
+float ViewAdjustment::SeparationInWorldUnits() 
+{ 
+	return (separationAdjustment + SEPARATION_DEFAULT) * metersToWorldMultiplier; 
+}
+
+float ViewAdjustment::SeparationAdjustment() 
+{ 
+	return separationAdjustment; 
+}
+
+bool ViewAdjustment::RollEnabled() 
+{ 
+	return rollEnabled; 
+}
+
+void ViewAdjustment::EnableRoll(bool enable)
+{
+	rollEnabled = enable;
+}
+
+void ViewAdjustment::SetWorldScaleFactor(float scale)
+{
+	metersToWorldMultiplier = scale;
 }

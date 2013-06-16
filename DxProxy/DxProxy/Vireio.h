@@ -45,6 +45,7 @@ namespace vireio {
 
 
 	bool AlmostSame(float a, float b, float epsilon);
+	void clamp(float* toClamp, float min, float max);
 };
 
 #endif

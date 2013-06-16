@@ -40,6 +40,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <fstream>
 #include <vector>
 #include <memory>
+#include <ctime>
 #include "Vireio.h"
 #include "StereoShaderConstant.h"
 #include "StereoBackBuffer.h"
@@ -182,8 +183,12 @@ public:
 	float centerlineR;
 	float centerlineL;
 
-
-	static enum ProxyTypes
+	// These types are largely unused with the changes to game specific config.
+	// TODO Some changes are still needed before they can be removed. Data gathering should
+	// probably become part of a debug/diagnostic mode.
+	// TODO SOURCE_L4D is used in StereoView to change behaviour of state save/load to prevent
+	// issues in hl2 (and probably other source games)
+	enum ProxyTypes
 	{
 		MONO = 0,
 		FIXED = 10,
@@ -248,9 +253,8 @@ private:
 	HRESULT SetStereoViewTransform(D3DXMATRIX pLeftMatrix, D3DXMATRIX pRightMatrix, bool apply);
 	HRESULT SetStereoProjectionTransform(D3DXMATRIX pLeftMatrix, D3DXMATRIX pRightMatrix, bool apply);
 
-	std::shared_ptr<ViewAdjustment> m_spShaderViewAdjustment;
 	std::shared_ptr<ShaderRegisters> m_spManagedShaderRegisters;
-	GameHandler* m_pGameSpecificLogic;
+	GameHandler* m_pGameHandler;
 	
 	bool m_bActiveViewportIsDefault;
 	D3DVIEWPORT9 m_LastViewportSet;
@@ -290,7 +294,11 @@ private:
 
 	D3DXMATRIX* m_pCurrentView;
 	D3DXMATRIX* m_pCurrentProjection;
-	
+
+
+	const float m_keyRepeatRate;
+	clock_t startTime;
+	bool keyWait;
 };
 
 #endif

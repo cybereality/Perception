@@ -75,4 +75,9 @@ namespace vireio {
 	{
 		return fabs(a - b) < epsilon;
 	}
+
+	void clamp(float* pfToClamp, float min, float max)
+	{
+		*pfToClamp > max ? *pfToClamp = max : (*pfToClamp < min ? *pfToClamp = min : *pfToClamp = *pfToClamp);
+	}
 };

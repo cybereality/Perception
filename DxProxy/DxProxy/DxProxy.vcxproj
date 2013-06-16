@@ -165,7 +165,9 @@
     <ClInclude Include="D3D9ProxyStateBlock.h" />
     <ClInclude Include="DataGatherer.h" />
     <ClInclude Include="GameHandler.h" />
+    <ClInclude Include="HMDisplayInfo.h" />
     <ClInclude Include="MatrixDoNothing.h" />
+    <ClInclude Include="MatrixHudSquash.h" />
     <ClInclude Include="ShaderMatrixModification.h" />
     <ClInclude Include="MatrixIgnoreOrtho.h" />
     <ClInclude Include="ViewAdjustment.h" />
@@ -318,6 +320,9 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="..\..\Release\Perception\cfg\shader_rules\example.xml" />
+    <None Include="..\..\Release\Perception\cfg\shader_rules\omd2.xml">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="..\..\Release\Perception\cfg\shader_rules\rfactor.xml">
       <SubType>Designer</SubType>
     </None>

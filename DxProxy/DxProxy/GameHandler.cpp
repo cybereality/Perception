@@ -23,21 +23,24 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 GameHandler::GameHandler() :
-	m_fWorldScaleFactor(1.0f),
 	m_ShaderModificationRepository(nullptr),
-	m_bRollEnabled(false)
+	m_spShaderViewAdjustment(nullptr)
 {
-	
+	HMDisplayInfo defaultInfo; // rift info
+	m_spShaderViewAdjustment = std::make_shared<ViewAdjustment>(defaultInfo, 1.0f, false);
 }
 
 GameHandler::~GameHandler()
 {
 	if (m_ShaderModificationRepository)
 		delete m_ShaderModificationRepository;
+
+	if (m_spShaderViewAdjustment)
+		m_spShaderViewAdjustment.reset();
 }
 
 
-bool GameHandler::Load(ProxyHelper::ProxyConfig& cfg, std::shared_ptr<ViewAdjustment> adjustmentMatricies)
+bool GameHandler::Load(ProxyHelper::ProxyConfig& cfg)
 {
 	// Get rid of existing modification repository if there is one (shouldn't be, load should only need to be called once)
 	if (m_ShaderModificationRepository) {
@@ -45,21 +48,26 @@ bool GameHandler::Load(ProxyHelper::ProxyConfig& cfg, std::shared_ptr<ViewAdjust
 		m_ShaderModificationRepository = nullptr;
 	}
 
+	m_spShaderViewAdjustment->EnableRoll(cfg.rollEnabled);
+	m_spShaderViewAdjustment->SetWorldScaleFactor(cfg.worldScaleFactor);
+
+	bool loadSuccess = true;
+
 	//if (game profile has shader rules)
 	if (!cfg.shaderRulePath.empty()) {
-		m_ShaderModificationRepository = new ShaderModificationRepository(adjustmentMatricies);
+		m_ShaderModificationRepository = new ShaderModificationRepository(m_spShaderViewAdjustment);
 		
 		if (!m_ShaderModificationRepository->LoadRules(cfg.shaderRulePath)) {
 			OutputDebugString("Rules failed to load.");
+			loadSuccess = false;
 		}
 	}
 	else {
 		OutputDebugString("No shader rule path found.");
+		// We call this success as we have successfully loaded nothing. We assume no rules is intentional
 	}
 	
 
-	m_fWorldScaleFactor = cfg.worldScaleFactor;
-	m_bRollEnabled = cfg.rollEnabled;
 
 	return true;
 }
@@ -101,10 +109,6 @@ bool GameHandler::ShouldDuplicateCubeTexture(UINT EdgeLength, UINT Levels, DWORD
 	return IS_RENDER_TARGET(Usage);
 }
 
-float GameHandler::ToWorldUnits(float millimeters)
-{
-	return millimeters * m_fWorldScaleFactor;
-}
 
 ShaderModificationRepository* GameHandler::GetShaderModificationRepository()
 {

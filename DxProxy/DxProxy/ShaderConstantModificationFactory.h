@@ -27,7 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ShaderMatrixModification.h"
 #include "MatrixIgnoreOrtho.h"
 #include "MatrixDoNothing.h"
-
+#include "MatrixHudSquash.h"
 
 class ShaderConstantModificationFactory
 {
@@ -39,20 +39,12 @@ public:
 		Vec4SimpleTranslate = 1
 	};
 
-
-	//enum MatrixModificationTypes
-	//{
-	//	MatDoNothing = 0,
-	//	MatSimpleTranslate = 1, //unreal
-	//	MatTSimpleTranslate = 2, 
-	//	MatTSimpleTranslateIgnoreOrtho = 3// source
-	//};
-
 	enum MatrixModificationTypes
 	{
 		MatDoNothing = 0,
 		MatSimpleTranslate = 1, 
-		MatSimpleTranslateIgnoreOrtho = 3
+		MatSimpleTranslateIgnoreOrtho = 3,
+		MatHudSquash = 4
 	};
 
 
@@ -92,6 +84,9 @@ public:
 			
 		case MatSimpleTranslateIgnoreOrtho:
 			return std::make_shared<MatrixIgnoreOrtho>(mod, adjustmentMatricies, transpose);
+
+		case MatHudSquash:
+			return std::make_shared<MatrixHudSquash>(mod, adjustmentMatricies, transpose);
 
 		default:
 			OutputDebugString("Nonexistant matrix modification\n");

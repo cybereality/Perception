@@ -25,6 +25,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "d3dx9.h"
 #include "ViewAdjustment.h"
 
+
+
 template <class T=float>
 class ShaderConstantModification
 {
