@@ -30,7 +30,7 @@ struct HMDisplayInfo
 public:
 
 #pragma warning( push )
-#pragma warning( disable : 4351 ) //disable "new behaviour warning for default initialised array"
+#pragma warning( disable : 4351 ) //disable "new behaviour warning for default initialised array" for this constructor
 
 	// All rift values from OVR_Win32_HMDDevice.cpp in LibOVR
 	// Default constructing with Rift DK1 values
@@ -40,13 +40,19 @@ public:
 		halfScreenAspectRatio(((float)resolution.first * 0.5f) / (float)resolution.second),
 		physicalScreenSize(std::make_pair<float, float>(0.14976f, 0.0935f)), // Rift dev kit 
 		eyeToScreenDistance(0.041f), // Rift dev kit
-		physicaLensSeparation(0.064f), // Rift dev kit 
+		physicalLensSeparation(0.064f), // Rift dev kit 
 		distortionCoefficients()
 	{
+		 // Rift dev kit 
 		distortionCoefficients[0] = 1.0f;
 		distortionCoefficients[1] = 0.22f;
 		distortionCoefficients[2] = 0.24f;
 		distortionCoefficients[3] = 0.0f;
+
+		float physicalViewCenter = physicalScreenSize.first * 0.25f; 
+		float physicalOffset = physicalViewCenter - physicalLensSeparation * 0.5f;	
+		// Normalised range at this point would be -0.25 to 0.25 units. So multiply the last step by 4 to get the offset in a -1 to 1
+		lensXCenterOffset = 4.0f * physicalOffset / physicalScreenSize.first; 
 	}
 
 #pragma warning( pop )
@@ -61,8 +67,11 @@ public:
 	// <horizontal, vertical> 
 	std::pair<float, float> physicalScreenSize;
     float eyeToScreenDistance;
-    float physicaLensSeparation;
+    float physicalLensSeparation;
 
+	// The distance in a -1 to 1 range that the center of each lens is from the center of each half of the screen.
+	// -1 being the far left edge of the screen half and +1 being the far right of the screen half.
+	float lensXCenterOffset;
 
 	// From Rift docs on distortion  
     //   uvResult = uvInput * (K0 + K1 * uvLength^2 + K2 * uvLength^4)

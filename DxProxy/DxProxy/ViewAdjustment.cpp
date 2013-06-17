@@ -65,13 +65,9 @@ void ViewAdjustment::UpdateProjectionMatrices(float aspectRatio)
 
 	// Based on Rift docs way. //TODO still need to use the 'old way' (or something similar/different) for rendering on a monitor? needs testing
 	// if (HMD)
-	// Shift projection centers to the center of each lens (assumption: lenses are vertically centered)
-	float viewCenter = hmdInfo.physicalScreenSize.first * 0.25f;
-	float eyeProjectionShift = viewCenter - hmdInfo.physicaLensSeparation * 0.5f;
-	float projectionCenterOffset = 4.0f * eyeProjectionShift / hmdInfo.physicalScreenSize.first;
-
-	D3DXMatrixTranslation(&leftShiftProjection, projectionCenterOffset * LEFT_CONSTANT, 0, 0);
-	D3DXMatrixTranslation(&rightShiftProjection, projectionCenterOffset * RIGHT_CONSTANT, 0, 0);
+	// The lensXCenterOffset is in the same -1 to 1 space as the perspective so shift by that amount to move projection in line with the lenses
+	D3DXMatrixTranslation(&leftShiftProjection, hmdInfo.lensXCenterOffset * LEFT_CONSTANT, 0, 0);
+	D3DXMatrixTranslation(&rightShiftProjection, hmdInfo.lensXCenterOffset * RIGHT_CONSTANT, 0, 0);
 	// else if desktop screen {}
 
 	// old way
