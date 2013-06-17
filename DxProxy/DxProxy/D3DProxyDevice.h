@@ -166,7 +166,6 @@ public:
 	float roll_multiplier;
 	float offset;
 	float aspectRatio;
-	bool swap_eyes;
 	ProxyHelper::ProxyConfig config;
 	UINT matrixIndex;
 	bool saveDebugFile;

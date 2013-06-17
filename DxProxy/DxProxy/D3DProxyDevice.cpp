@@ -364,8 +364,8 @@ void D3DProxyDevice::SetupOptions(ProxyHelper::ProxyConfig& cfg)
 	eyeShutter = 1;
 	matrixIndex = 0;
 	offset = 0.0f;
-	swap_eyes = cfg.swap_eyes;
-	stereoView->SwapEyes(swap_eyes);// why are there two swap_eyes
+	
+	
 	centerlineL = cfg.centerlineL;
 	centerlineR = cfg.centerlineR;
 
@@ -615,8 +615,7 @@ void D3DProxyDevice::HandleControls()
 			}
 			else if(keyWaitCount <= 0)
 			{
-				swap_eyes = !swap_eyes;
-				stereoView->SwapEyes(swap_eyes);
+				stereoView->swap_eyes = !stereoView->swap_eyes;
 				keyWaitCount = 200;
 				saveWaitCount = 500;
 				doSaveNext = true;
@@ -723,7 +722,7 @@ void D3DProxyDevice::HandleControls()
 	{
 		doSaveNext = false;
 		ProxyHelper* helper = new ProxyHelper();
-		helper->SaveProfile(separation, convergence, swap_eyes, yaw_multiplier, pitch_multiplier, roll_multiplier);
+		helper->SaveProfile(separation, convergence, stereoView->swap_eyes, yaw_multiplier, pitch_multiplier, roll_multiplier);
 		helper->SaveUserConfig(centerlineL, centerlineR);
 		delete helper;
 	}

@@ -26,7 +26,7 @@ StereoView::StereoView(ProxyHelper::ProxyConfig& config)
 	initialized = false;
 	game_type = config.game_type;
 	stereo_mode = config.stereo_mode;
-	swap_eyes = false;
+	swap_eyes = config.swap_eyes;
 	stereoEnabled = true;
 
 	// set all member pointers to NULL to prevent uninitialized objects being used
@@ -379,11 +379,6 @@ void StereoView::RestoreState()
 }
 
 
-
-void StereoView::SwapEyes(bool doSwap)
-{
-	swap_eyes = doSwap;
-}
 
 
 

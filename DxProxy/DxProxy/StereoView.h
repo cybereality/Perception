@@ -66,7 +66,6 @@ public:
 	
 	//virtual void UpdateEye(int eye);
 	virtual void SaveScreen();
-	virtual void SwapEyes(bool doSwap);
 	virtual void ReleaseEverything();
 	virtual void PostReset();
 
