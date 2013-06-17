@@ -43,9 +43,11 @@ namespace vireio {
 	 */
     void UnWrapTexture(IDirect3DBaseTexture9* pWrappedTexture, IDirect3DBaseTexture9** ppActualLeftTexture, IDirect3DBaseTexture9** ppActualRightTexture);
 
-
+	
 	bool AlmostSame(float a, float b, float epsilon);
 	void clamp(float* toClamp, float min, float max);
+
+	
 };
 
 #endif

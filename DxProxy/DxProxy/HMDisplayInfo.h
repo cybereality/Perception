@@ -53,6 +53,12 @@ public:
 		float physicalOffset = physicalViewCenter - physicalLensSeparation * 0.5f;	
 		// Normalised range at this point would be -0.25 to 0.25 units. So multiply the last step by 4 to get the offset in a -1 to 1
 		lensXCenterOffset = 4.0f * physicalOffset / physicalScreenSize.first; 
+
+		// This scaling will ensure the source image is sampled so that the left edge of the left half of the screen is just reached
+		// by the image. -1 is the left edge of the -1 to 1 range and it is adjusted for the lens center offset (note that this needs
+		// adjusting if the lens is also offset vertically. See StereoConfig::updateDistortionOffsetAndScale in LibOVR for an example
+		// of how to do this)
+		scaleToFillHorizontal = Distort(-1 - lensXCenterOffset);
 	}
 
 #pragma warning( pop )
@@ -77,6 +83,15 @@ public:
     //   uvResult = uvInput * (K0 + K1 * uvLength^2 + K2 * uvLength^4)
     float distortionCoefficients[4];
 
+	float scaleToFillHorizontal;
+
+	// This distortion must match that being used in the shader (the distortion, not including the scaling that is included in the shader)
+	virtual float Distort(float radius)
+	{
+        float radiusSqared = radius * radius;
+        return radius * (distortionCoefficients[0] + distortionCoefficients[1] * radiusSqared + distortionCoefficients[2] * 
+						radiusSqared * radiusSqared + distortionCoefficients[3] * radiusSqared * radiusSqared * radiusSqared);
+	}
 };
 
 
