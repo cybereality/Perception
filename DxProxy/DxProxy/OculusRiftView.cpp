@@ -56,34 +56,30 @@ void OculusRiftView::SetViewEffectInitialValues()
 
 void OculusRiftView::CalculateShaderVariables()
 {
-
 	// Center of half screen is 0.25 in x (halfscreen x input in 0 to 0.5 range)
 	// Lens offset is in a -1 to 1 range. Using in shader with a 0 to 0.5 range so use 25% of the value.
-	LensCenter[0] = 0.25f;// + (hmdInfo.lensXCenterOffset * 0.25f);
+	LensCenter[0] = 0.25f + (hmdInfo.lensXCenterOffset * 0.25f);
 	// Center of halfscreen range is 0.5 in y (halfscreen y input in 0 to 1 range)
 	LensCenter[1] = 0.5f; // lens is assumed to be vertically centered with respect to the screen.
-
-
+	
 	D3DSURFACE_DESC eyeTextureDescriptor;
 	leftSurface->GetDesc(&eyeTextureDescriptor);
 
 	float inputTextureAspectRatio = (float)eyeTextureDescriptor.Width / (float)eyeTextureDescriptor.Height;
-
-
+	
 	// Note: The range is shifted using the LensCenter in the shader before the scale is applied so you actually end up with a -1 to 1 range
 	// in the distortion function rather than the 0 to 2 I mention below.
 	// Input texture scaling to sample the 0 to 0.5 x range of the half screen area in the correct aspect ratio in the distortion function
 	// x is changed from 0 to 0.5 to 0 to 2.
 	ScaleIn[0] = 4.0f;
 	// y is changed from 0 to 1 to 0 to 2 and scaled to account for aspect ratio
-	ScaleIn[1] = 2.0f / (inputTextureAspectRatio * 0.5f); // use half aspect ratio as x range is mapped to half as much range as y is
-
-
+	ScaleIn[1] = 2.0f / (inputTextureAspectRatio * 0.5f); // 1/2 aspect ratio for differing input ranges
+	
 	float scaleFactor = 1.0f / hmdInfo.scaleToFillHorizontal;
 
 	// Scale from 0 to 2 to 0 to 1  for x and y 
 	// Then use scaleFactor to fill horizontal space in line with the lens and adjust for aspect ratio for y.
 	Scale[0] = (1.0f / 4.0f) * scaleFactor;
-	Scale[1] = (1.0f / 2.0f) * scaleFactor *  inputTextureAspectRatio;
+	Scale[1] = (1.0f / 2.0f) * scaleFactor * inputTextureAspectRatio;
 }
 
