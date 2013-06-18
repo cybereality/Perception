@@ -73,6 +73,8 @@ public:
 	bool RollEnabled();
 	void EnableRoll(bool enable);
 	void SetWorldScaleFactor(float scale);
+
+	HMDisplayInfo HMDInfo();
 	
 
 private:

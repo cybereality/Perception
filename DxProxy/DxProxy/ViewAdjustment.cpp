@@ -183,3 +183,8 @@ void ViewAdjustment::SetWorldScaleFactor(float scale)
 {
 	metersToWorldMultiplier = scale;
 }
+
+HMDisplayInfo ViewAdjustment::HMDInfo()
+{
+	return hmdInfo;
+}

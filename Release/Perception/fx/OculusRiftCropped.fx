@@ -23,7 +23,6 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 	float2 newPos = Tex;
 	float2 tc;
 	float4 tColor;
-	float2 theta;
 
 	if(newPos.x < 0.5f) {
 		tc = HmdWarp(newPos);

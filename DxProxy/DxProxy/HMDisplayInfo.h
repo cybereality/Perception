@@ -51,14 +51,14 @@ public:
 
 		float physicalViewCenter = physicalScreenSize.first * 0.25f; 
 		float physicalOffset = physicalViewCenter - physicalLensSeparation * 0.5f;	
-		// Normalised range at this point would be -0.25 to 0.25 units. So multiply the last step by 4 to get the offset in a -1 to 1
+		// Range at this point would be -0.25 to 0.25 units. So multiply the last step by 4 to get the offset in a -1 to 1  range
 		lensXCenterOffset = 4.0f * physicalOffset / physicalScreenSize.first; 
 
 		// This scaling will ensure the source image is sampled so that the left edge of the left half of the screen is just reached
 		// by the image. -1 is the left edge of the -1 to 1 range and it is adjusted for the lens center offset (note that this needs
-		// adjusting if the lens is also offset vertically. See StereoConfig::updateDistortionOffsetAndScale in LibOVR for an example
+		// adjusting if the lens is also offset vertically, See: StereoConfig::updateDistortionOffsetAndScale in LibOVR for an example
 		// of how to do this)
-		scaleToFillHorizontal = Distort(-1 - lensXCenterOffset);
+		scaleToFillHorizontal = Distort(-1 - lensXCenterOffset) / (-1 - lensXCenterOffset);
 	}
 
 #pragma warning( pop )
@@ -75,7 +75,7 @@ public:
     float eyeToScreenDistance;
     float physicalLensSeparation;
 
-	// The distance in a -1 to 1 range that the center of each lens is from the center of each half of the screen.
+	// The distance in a -1 to 1 range that the center of each lens is from the center of each half of the screen (center of a screen half is 0,0).
 	// -1 being the far left edge of the screen half and +1 being the far right of the screen half.
 	float lensXCenterOffset;
 

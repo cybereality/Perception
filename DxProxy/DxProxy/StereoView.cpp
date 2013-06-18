@@ -85,6 +85,7 @@ void StereoView::Init(IDirect3DDevice9* pActualDevice)
 	InitShaderEffects();
 	InitTextureBuffers();
 	InitVertexBuffers();
+	CalculateShaderVariables();
 
 	initialized = true;
 }
@@ -385,6 +386,7 @@ void StereoView::RestoreState()
 
 
 void StereoView::SetViewEffectInitialValues() {}
+void StereoView::CalculateShaderVariables() {}
 
 
 void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
@@ -454,6 +456,7 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 	if (FAILED(viewEffect->SetTechnique("ViewShader"))) {
 		OutputDebugString("SetTechnique failed\n");
 	}
+
 
 	SetViewEffectInitialValues();
 

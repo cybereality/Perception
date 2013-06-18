@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "StereoViewInterleave.h"
 #include "OculusRiftView.h"
 
-StereoView* StereoViewFactory::Get(ProxyHelper::ProxyConfig& config)
+StereoView* StereoViewFactory::Get(ProxyHelper::ProxyConfig& config, HMDisplayInfo hmd)
 {
 	switch(config.stereo_mode)
 	{
@@ -37,7 +37,7 @@ StereoView* StereoViewFactory::Get(ProxyHelper::ProxyConfig& config)
 		break;
 	case StereoView::OCULUS_RIFT:
 	case StereoView::OCULUS_RIFT_CROPPED:
-		return new OculusRiftView(config);
+		return new OculusRiftView(config, hmd);
 		break;
 	case StereoView::INTERLEAVE_HORZ:
 	case StereoView::INTERLEAVE_VERT:

@@ -91,6 +91,7 @@ protected:
 	IDirect3DDevice9* m_pActualDevice;
 
 	virtual void SetViewEffectInitialValues();
+	virtual void CalculateShaderVariables();
 
 	virtual void SaveState();
 	virtual void SetState();

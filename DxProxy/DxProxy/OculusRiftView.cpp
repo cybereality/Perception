@@ -21,30 +21,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "D3DProxyDevice.h"
 
 
-OculusRiftView::OculusRiftView(ProxyHelper::ProxyConfig& config):StereoView(config)
+OculusRiftView::OculusRiftView(ProxyHelper::ProxyConfig& config, HMDisplayInfo hmd) : StereoView(config),
+	hmdInfo(hmd)
 {
 	OutputDebugString("Created OculusRiftView\n");
-
-	DistortionScale = 1.70152f;
-
-	float DistortionXCenterOffset = 0.145299f;
-	float
-		VPw = 640,
-		VPh = 800;
-	float
-		x = 0.0f,
-		y = 0.0f,
-		w = 0.5f,
-		h = 1.0f;
-
-	LensCenter[0] = x + (w + DistortionXCenterOffset * 0.5f)*0.5f;			//	0.28632475
-	LensCenter[1] = y + h*0.5f;
-
-	CalculateShaderVariables();
-}
-
-OculusRiftView::~OculusRiftView()
-{
 }
 
 
@@ -63,51 +43,47 @@ void OculusRiftView::InitShaderEffects()
 }
 
 
+
 void OculusRiftView::SetViewEffectInitialValues() 
 {
-	viewEffect->SetFloatArray("LensCenter", LensCenter,2);
-	viewEffect->SetFloatArray("ScreenCenter", ScreenCenter,2);
-	viewEffect->SetFloatArray("Scale", Scale,2);
-	viewEffect->SetFloatArray("ScaleIn", ScaleIn,2);
-	viewEffect->SetFloatArray("HmdWarpParam", HmdWarpParam,4);
+	viewEffect->SetFloatArray("LensCenter", LensCenter, 2);
+	viewEffect->SetFloatArray("Scale", Scale, 2);
+	viewEffect->SetFloatArray("ScaleIn", ScaleIn, 2);
+	viewEffect->SetFloatArray("HmdWarpParam", hmdInfo.distortionCoefficients, 4);
 }
 
 
 
 void OculusRiftView::CalculateShaderVariables()
 {
-	float
-//		VPw = 1280,
-		VPw = 640,
-		VPh = 800;
-	float
-		x = 0.0f,
-		y = 0.0f,
-//		w = 1.0f,
-		w = 0.5f,
-		h = 1.0f;
 
-	float asIn = float(VPw) / float(VPh);	// resoultion of eye input texture
-	float as = float(1280) / float(800);	// resolution of eye on screen texture
-	if(stereo_mode == OCULUS_RIFT_CROPPED)
-		as = float(640) / float(800);	// resolution of eye on screen texture
+	// Center of half screen is 0.25 in x (halfscreen x input in 0 to 0.5 range)
+	// Lens offset is in a -1 to 1 range. Using in shader with a 0 to 0.5 range so use 25% of the value.
+	LensCenter[0] = 0.25f;// + (hmdInfo.lensXCenterOffset * 0.25f);
+	// Center of halfscreen range is 0.5 in y (halfscreen y input in 0 to 1 range)
+	LensCenter[1] = 0.5f; // lens is assumed to be vertically centered with respect to the screen.
 
-	float scaleFactor = 1.0f / DistortionScale;
 
-	float DistortionXCenterOffset = 0.145299f;
-//	float DistortionXCenterOffset = 0.25;
+	D3DSURFACE_DESC eyeTextureDescriptor;
+	leftSurface->GetDesc(&eyeTextureDescriptor);
 
-	LensCenter[0] = x + (w + DistortionXCenterOffset * 0.5f)*0.5f;			//	0.28632475
-	LensCenter[1] = y + h*0.5f;
-	ScreenCenter[0] = x + w*0.5f;
-	ScreenCenter[1] = y + h*0.5f;
-	Scale[0] = (w/2.0f) * scaleFactor;
-	Scale[1] = (h/2.0f) * scaleFactor * as;
-	ScaleIn[0] = 2.0f/w;
-	ScaleIn[1] = (2.0f/h) / asIn;
+	float inputTextureAspectRatio = (float)eyeTextureDescriptor.Width / (float)eyeTextureDescriptor.Height;
 
-	// y or z
-	HmdWarpParam[0] = 1.0f;	HmdWarpParam[1] = 0.22f;	HmdWarpParam[2] = 0.24f;	HmdWarpParam[3] = 0.0f;
-//	HmdWarpParam[0] = 1.0f;	HmdWarpParam[1] = 0.18f;	HmdWarpParam[2] = 0.115;	HmdWarpParam[3] = 0.0f;
+
+	// Note: The range is shifted using the LensCenter in the shader before the scale is applied so you actually end up with a -1 to 1 range
+	// in the distortion function rather than the 0 to 2 I mention below.
+	// Input texture scaling to sample the 0 to 0.5 x range of the half screen area in the correct aspect ratio in the distortion function
+	// x is changed from 0 to 0.5 to 0 to 2.
+	ScaleIn[0] = 4.0f;
+	// y is changed from 0 to 1 to 0 to 2 and scaled to account for aspect ratio
+	ScaleIn[1] = 2.0f / (inputTextureAspectRatio * 0.5f); // use half aspect ratio as x range is mapped to half as much range as y is
+
+
+	float scaleFactor = 1.0f / hmdInfo.scaleToFillHorizontal;
+
+	// Scale from 0 to 2 to 0 to 1  for x and y 
+	// Then use scaleFactor to fill horizontal space in line with the lens and adjust for aspect ratio for y.
+	Scale[0] = (1.0f / 4.0f) * scaleFactor;
+	Scale[1] = (1.0f / 2.0f) * scaleFactor *  inputTextureAspectRatio;
 }
 

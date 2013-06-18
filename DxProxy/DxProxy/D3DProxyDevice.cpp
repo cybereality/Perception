@@ -141,7 +141,7 @@ void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 	//DebugBreak();
 	m_pGameHandler->Load(cfg);
 
-	stereoView = StereoViewFactory::Get(cfg);
+	stereoView = StereoViewFactory::Get(cfg, m_pGameHandler->ViewAdjustments()->HMDInfo());
 	SetupOptions(cfg);
 	OnCreateOrRestore();
 }
