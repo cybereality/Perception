@@ -216,7 +216,8 @@ void D3DProxyDevice::OnCreateOrRestore()
 
 	stereoView->Init(getActual());
 	
-	m_pGameHandler->ViewAdjustments()->UpdateProjectionMatrices(/*separation, convergence,*/ (float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
+	m_pGameHandler->ViewAdjustments()->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
+	m_pGameHandler->ViewAdjustments()->ComputeViewTransforms();
 }
 
 
@@ -2323,7 +2324,7 @@ HRESULT D3DProxyDevice::SetStereoProjectionTransform(D3DXMATRIX pLeftMatrix, D3D
 
 HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D3DMATRIX* pMatrix)
 {
-	/*if(State == D3DTS_VIEW)
+	if(State == D3DTS_VIEW)
 	{
 		D3DXMATRIX tempLeft;
 		D3DXMATRIX tempRight;
@@ -2346,28 +2347,8 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 			}
 			else {
 				// If the view matrix is modified we need to apply left/right adjustments (for stereo rendering)
-				// TODO do we need to keep an unmodified view for rendering mono targets or can we just use left view?
-				// TODO ComputeViewTranslation duplicates some of this. Can we make a single code path for the two?
-				D3DXMATRIX transLeftMatrix;
-				D3DXMATRIX transRightMatrix;
-				D3DXMatrixIdentity(&transLeftMatrix);
-				D3DXMatrixIdentity(&transRightMatrix);
-
-				if(trackerInitialized && tracker->isAvailable())
-				{
-					D3DXMATRIX rollMatrix;
-					D3DXMatrixRotationZ(&rollMatrix, tracker->currentRoll);
-					D3DXMatrixMultiply(&sourceMatrix, &sourceMatrix, &rollMatrix);
-				}
-
-
-				// TODO these only need recalculating on separation changes
-				D3DXMatrixTranslation(&transLeftMatrix, ((separation * LEFT_CONSTANT)) * 6000.0f, 0, 0); //separation * 6000.0f, separation * 6000.0f * (-2)); // rudimentary head/neck model
-				D3DXMatrixTranslation(&transRightMatrix, ((separation * RIGHT_CONSTANT)) * 6000.0f, 0, 0); //separation * 6000.0f, separation * 6000.0f * (-2));
-
-				// store current left and right adjusted view matricies
-				D3DXMatrixMultiply(&tempLeft, &sourceMatrix, &transLeftMatrix);
-				D3DXMatrixMultiply(&tempRight, &sourceMatrix, &transRightMatrix);
+				tempLeft = sourceMatrix * m_pGameHandler->ViewAdjustments()->LeftViewTransform();
+				tempRight = sourceMatrix * m_pGameHandler->ViewAdjustments()->RightViewTransform();
 
 				tempIsTransformSet = true;
 			}
@@ -2427,26 +2408,10 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 				D3DXMatrixIdentity(&tempRight);
 			}
 			else {
-				//TODO same question as view
-				D3DXMATRIX transMatrixLeft;
-				D3DXMATRIX transMatrixRight;
-				D3DXMatrixIdentity(&transMatrixLeft);
-				D3DXMatrixIdentity(&transMatrixRight);
+				
 
-				D3DXMatrixMultiply(&sourceMatrix, &sourceMatrix, &m_spShaderViewAdjustment->ProjectionInverse());
-
-				// TODO these only need recalculating on 3d setting changes. Also ComputeViewTranslation and this are
-				// using different calulations. Are they both correct? Can they be one code path?
-				transMatrixLeft[8] += convergence * LEFT_CONSTANT * 0.0075f;
-				transMatrixRight[8] += convergence * RIGHT_CONSTANT * 0.0075f;
-
-				D3DXMATRIX sourceMatrixRight(sourceMatrix);
-
-				D3DXMatrixMultiply(&sourceMatrixRight, &sourceMatrixRight, &transMatrixRight);
-				D3DXMatrixMultiply(&tempRight, &sourceMatrixRight, &m_spShaderViewAdjustment->Projection());
-
-				D3DXMatrixMultiply(&sourceMatrix, &sourceMatrix, &transMatrixLeft);
-				D3DXMatrixMultiply(&tempLeft, &sourceMatrix, &m_spShaderViewAdjustment->Projection());
+				tempLeft = sourceMatrix * m_pGameHandler->ViewAdjustments()->LeftShiftProjection();
+				tempRight = sourceMatrix * m_pGameHandler->ViewAdjustments()->RightShiftProjection();
 
 				tempIsTransformSet = true;
 			}
@@ -2484,7 +2449,7 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 		}
 
 		return BaseDirect3DDevice9::SetTransform(State, pProjectionToSet);
-	}*/
+	}
 
 	return BaseDirect3DDevice9::SetTransform(State, pMatrix);
 }

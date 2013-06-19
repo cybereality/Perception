@@ -41,6 +41,8 @@ ViewAdjustment::ViewAdjustment(HMDisplayInfo &displayInfo, float metersToWorldUn
 	D3DXMatrixIdentity(&rightShiftProjection);
 	D3DXMatrixIdentity(&projectLeft);
 	D3DXMatrixIdentity(&projectRight);
+	D3DXMatrixIdentity(&transformLeft);
+	D3DXMatrixIdentity(&transformRight);
 	D3DXMatrixIdentity(&matViewProjTransformRight);
 	D3DXMatrixIdentity(&matViewProjTransformLeft);
 
@@ -88,24 +90,13 @@ void ViewAdjustment::UpdateRoll(float roll)
 	D3DXMatrixRotationZ(&rollMatrix, roll);
 }
 
-// This translation is applied to vertex shader matricies in various ways by matrix modifications
-// Note that l/r frustrum changes are applied differently for the transform and would seem
-// to produce different results. So I leave merging this with Transform view/projection code to someone braver.
-// But it really feels like it should be a single code path situation.
+
 void ViewAdjustment::ComputeViewTransforms()
 {
-	//activeSeparation = separation;
-
-	D3DXMATRIX transformLeft;
-	D3DXMATRIX transformRight;
-	//D3DXMatrixTranslation(&transformLeft, separation * LEFT_CONSTANT * 10.0f, 0, 0);
-	//D3DXMatrixTranslation(&transformRight, separation * RIGHT_CONSTANT * 10.0f, 0, 0);
-
 	// if (HMD)
 	D3DXMatrixTranslation(&transformLeft, SeparationInWorldUnits() * LEFT_CONSTANT, 0, 0);
 	D3DXMatrixTranslation(&transformRight, SeparationInWorldUnits() * RIGHT_CONSTANT, 0, 0);
 	// else if desktop screen {}
-
 
 	D3DXMATRIX rollTransform;
 	D3DXMatrixIdentity(&rollTransform);
@@ -114,10 +105,19 @@ void ViewAdjustment::ComputeViewTransforms()
 		D3DXMatrixMultiply(&transformLeft, &rollMatrix, &transformLeft);
 		D3DXMatrixMultiply(&transformRight, &rollMatrix, &transformRight);
 	}
-	
 
 	matViewProjTransformLeft = matProjectionInv * transformLeft * projectLeft;
 	matViewProjTransformRight = matProjectionInv * transformRight * projectRight;
+}
+
+D3DXMATRIX ViewAdjustment::LeftViewTransform()
+{
+	return transformLeft;
+}
+	
+D3DXMATRIX ViewAdjustment::RightViewTransform()
+{
+	return transformRight;
 }
 
 D3DXMATRIX ViewAdjustment::LeftAdjustmentMatrix()

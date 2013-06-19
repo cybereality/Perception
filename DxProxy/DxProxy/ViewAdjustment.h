@@ -47,11 +47,15 @@ public:
 	void UpdateRoll(float roll);
 	void ComputeViewTransforms();
 	
-	// Unprojects, shifts view position left/right and reprojects using left/right projection
+	// Unprojects, shifts view position left/right (using same matricies as (Left/Right)ViewRollAndShift) and reprojects using left/right projection
 	D3DXMATRIX LeftAdjustmentMatrix();
 	D3DXMATRIX RightAdjustmentMatrix();
 
-	// This shift * projection = left/right shifted projection
+	// The matricies used to roll (if roll enabled) and shift view for ipd
+	D3DXMATRIX LeftViewTransform();
+	D3DXMATRIX RightViewTransform();
+
+	// projection * This shift = left/right shifted projection
 	D3DXMATRIX LeftShiftProjection();
 	D3DXMATRIX RightShiftProjection();
 
@@ -105,6 +109,9 @@ private:
 	D3DXMATRIX projectRight;
 
 	D3DXMATRIX rollMatrix;
+
+	D3DXMATRIX transformLeft;
+	D3DXMATRIX transformRight;
 
 	D3DXMATRIX matViewProjTransformLeft;
 	D3DXMATRIX matViewProjTransformRight;
