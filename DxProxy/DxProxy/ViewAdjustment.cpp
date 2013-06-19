@@ -77,8 +77,8 @@ void ViewAdjustment::UpdateProjectionMatrices(float aspectRatio)
 	//D3DXMatrixPerspectiveOffCenterLH(&reProjectLeft, l+adjustedFrustumOffsetLeft, r+adjustedFrustumOffsetLeft, b, t, n, f);
 	//D3DXMatrixPerspectiveOffCenterLH(&reProjectRight, l+adjustedFrustumOffsetRight, r+adjustedFrustumOffsetRight, b, t, n, f);
 	
-	projectLeft = leftShiftProjection * matProjection;
-	projectRight = rightShiftProjection * matProjection;
+	projectLeft = matProjection * leftShiftProjection;
+	projectRight = matProjection * rightShiftProjection;
 }
 
 

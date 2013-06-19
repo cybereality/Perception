@@ -79,7 +79,7 @@ void OculusRiftView::CalculateShaderVariables()
 
 	// Scale from 0 to 2 to 0 to 1  for x and y 
 	// Then use scaleFactor to fill horizontal space in line with the lens and adjust for aspect ratio for y.
-	Scale[0] = (1.0f / 4.0f) ;//* scaleFactor;
-	Scale[1] = (1.0f / 2.0f) /** scaleFactor*/ * inputTextureAspectRatio;
+	Scale[0] = (1.0f / 4.0f) * scaleFactor;
+	Scale[1] = (1.0f / 2.0f) * scaleFactor * inputTextureAspectRatio;
 }
 
