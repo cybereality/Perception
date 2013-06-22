@@ -20,17 +20,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define D3DPROXYDEVICE_H_INCLUDED
 
 #include "Direct3DDevice9.h"
+
 #include "D3D9ProxySurface.h"
 #include "D3D9ProxyTexture.h"
+#include "D3D9ProxyVolumeTexture.h"
+#include "D3D9ProxyCubeTexture.h"
 #include "D3D9ProxyStateBlock.h"
 #include "D3D9ProxySwapChain.h"
+#include "D3D9ProxyVertexShader.h"
+
 #include "Direct3DVertexBuffer9.h"
 #include "Direct3DIndexBuffer9.h"
 #include "Direct3DPixelShader9.h"
 #include "Direct3DVertexShader9.h"
 #include "Direct3DVertexDeclaration9.h"
 #include "Direct3DQuery9.h"
-#include "D3D9ProxyVertexShader.h"
+
 #include "ProxyHelper.h"
 #include "StereoView.h"
 #include "MotionTracker.h"
@@ -71,14 +76,10 @@ public:
 	virtual void Init(ProxyHelper::ProxyConfig& cfg);
 	
 	virtual HRESULT WINAPI Reset(D3DPRESENT_PARAMETERS* pPresentationParameters);
-	void SetupOptions(ProxyHelper::ProxyConfig& cfg);
-	//void SetupMatrices();
-	//void ComputeViewTranslation();
 	void SetupText();
 	void HandleControls(void);
 	void HandleTracking(void);
 
-	//bool validRegister(UINT reg);
 
 	virtual HRESULT WINAPI TestCooperativeLevel();	
 	virtual HRESULT WINAPI BeginScene();
@@ -156,16 +157,13 @@ public:
 
 	bool trackingOn;
 
-	int eyeShutter;
-	int game_type;
-	float aspect_multiplier;
-	float yaw_multiplier;
-	float pitch_multiplier;
-	float roll_multiplier;
-	float offset;
-	float aspectRatio;
 	ProxyHelper::ProxyConfig config;
-	UINT matrixIndex;
+
+	int eyeShutter;
+
+	float aspectRatio;
+	
+	
 	bool saveDebugFile;
 	std::ofstream debugFile;
 	StereoView* stereoView;
@@ -177,8 +175,6 @@ public:
 	bool trackerInitialized;
 	bool *m_keys;
 	int SHOCT_mode;
-	float centerlineR;
-	float centerlineL;
 
 	// These types are largely unused with the changes to game specific config.
 	// TODO Some changes are still needed before they can be removed. Data gathering should
@@ -210,15 +206,6 @@ public:
 
 protected:
 	
-	
-	////////////////////////
-	// This is halfway from where things were to where they want to be with regard to shader modification handling
-	// Shader constant could overwrite a modified shader const based matrix
-	/*
-	virtual bool CouldOverwriteMatrix(UINT StartRegister, UINT Vector4fCount);
-	virtual bool ContainsMatrixToModify(UINT StartRegister, CONST float* pConstantData, UINT Vector4fCount);
-	virtual StereoShaderConstant<float> CreateStereoShaderConstant(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);*/
-	////////////////////////
 
 	
 	virtual void OnCreateOrRestore();
@@ -265,7 +252,7 @@ private:
 	BaseDirect3DPixelShader9* m_pActivePixelShader;
 	BaseDirect3DVertexDeclaration9* m_pActiveVertexDeclaration;
 
-	// The swap chains have to be released and then forcibly destroyed on reset or device dextruction.
+	// The swap chains have to be released and then forcibly destroyed on reset or device destruction.
 	// This should be the very last thing done in both cases.
 	std::vector<D3D9ProxySwapChain*> m_activeSwapChains;
 

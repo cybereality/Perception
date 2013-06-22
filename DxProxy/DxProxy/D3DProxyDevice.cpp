@@ -96,8 +96,6 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 
 	m_isFirstBeginSceneOfFrame = true;
 
-	centerlineR = 0.0f;
-	centerlineL = 0.0f;
 	yaw_mode = 0;
 	pitch_mode = 0;
 	//roll_mode = false;
@@ -143,12 +141,22 @@ D3DProxyDevice::~D3DProxyDevice()
 void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 {
 	OutputDebugString("D3D ProxyDev Init\n");
+
+	config = cfg;
+	eyeShutter = 1;
+	saveDebugFile = false;
+	trackerInitialized = false;
+
+	char buf[64];
+	LPCSTR psz = NULL;
+	sprintf_s(buf, "type: %d, aspect: %f\n", cfg.game_type, cfg.aspect_multiplier);
+	psz = buf;
+	OutputDebugString(psz);
 	
 	m_spShaderViewAdjustment->Load(cfg);
 	m_pGameHandler->Load(cfg, m_spShaderViewAdjustment);
-
 	stereoView = StereoViewFactory::Get(cfg, m_spShaderViewAdjustment->HMDInfo());
-	SetupOptions(cfg);
+
 	OnCreateOrRestore();
 }
 
@@ -358,37 +366,6 @@ HRESULT WINAPI D3DProxyDevice::Reset(D3DPRESENT_PARAMETERS* pPresentationParamet
 
 
 
-void D3DProxyDevice::SetupOptions(ProxyHelper::ProxyConfig& cfg)
-{
-	game_type = cfg.game_type;
-	aspect_multiplier = cfg.aspect_multiplier;
-	yaw_multiplier = cfg.yaw_multiplier;
-	pitch_multiplier = cfg.pitch_multiplier;
-	roll_multiplier = cfg.roll_multiplier;
-	config = cfg;
-	eyeShutter = 1;
-	matrixIndex = 0;
-	offset = 0.0f;
-	
-	
-	centerlineL = cfg.centerlineL;
-	centerlineR = cfg.centerlineR;
-
-	saveDebugFile = false;
-	trackerInitialized = false;
-
-	if(yaw_multiplier == 0.0f) yaw_multiplier = 25.0f;
-	if(pitch_multiplier == 0.0f) pitch_multiplier = 25.0f;
-	if(roll_multiplier == 0.0f) roll_multiplier = 1.0f;
-
-	char buf[64];
-	LPCSTR psz = NULL;
-
-	sprintf_s(buf, "type: %d, aspect: %f", cfg.game_type, cfg.aspect_multiplier);
-	psz = buf;
-	OutputDebugString(psz);
-	OutputDebugString("\n");
-}
 
 
 
@@ -686,19 +663,13 @@ void D3DProxyDevice::HandleControls()
 	}*/
 
 
-	
-
-
-		 
-	
-
 
 	if(doSaveNext && saveWaitCount < 0)
 	{
 		doSaveNext = false;
 		ProxyHelper* helper = new ProxyHelper();
-		helper->SaveProfile(m_spShaderViewAdjustment->SeparationAdjustment(),  stereoView->swap_eyes, yaw_multiplier, pitch_multiplier, roll_multiplier);
-		helper->SaveUserConfig(centerlineL, centerlineR);
+		helper->SaveProfile(m_spShaderViewAdjustment->SeparationAdjustment(),  stereoView->swap_eyes, config.yaw_multiplier, config.pitch_multiplier, config.roll_multiplier);
+		helper->SaveUserConfig(config.centerlineL, config.centerlineR);
 		delete helper;
 	}
 
@@ -793,6 +764,8 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 
 HRESULT WINAPI D3DProxyDevice::EndScene()
 {
+
+	/*
 ///// hud text
 
 	if(hudFont && SHOCT_mode !=0) {
@@ -815,9 +788,9 @@ HRESULT WINAPI D3DProxyDevice::EndScene()
 		if(SHOCT_mode == 1){//Separation mode
 			if((eyeShutter > 0 && stereoView->swap_eyes == false) || (eyeShutter < 0 && stereoView->swap_eyes == true)) {// left eye
 				//eye center line
-				ClearVLine(this, (int)(width/2 + (centerlineL * width)), 0, (int)(width/2 + (centerlineL * width)), height, 1, D3DCOLOR_ARGB(255,255,0,0));
+				ClearVLine(this, (int)(width/2 + (config.centerlineL * width)), 0, (int)(width/2 + (config.centerlineL * width)), height, 1, D3DCOLOR_ARGB(255,255,0,0));
 			}else{// right eye
-				ClearVLine(this, (int)(width/2 + (centerlineR * width)), 0, (int)(width/2 + (centerlineR * width)), height, 1, D3DCOLOR_ARGB(255,255,0,0));
+				ClearVLine(this, (int)(width/2 + (config.centerlineR * width)), 0, (int)(width/2 + (config.centerlineR * width)), height, 1, D3DCOLOR_ARGB(255,255,0,0));
 			}
 		}
 		if(SHOCT_mode == 2){//Convergence mode
@@ -858,7 +831,7 @@ HRESULT WINAPI D3DProxyDevice::EndScene()
 		hudFont->DrawText(NULL, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));
 
 	}
-/////
+/////*/
 
 	return BaseDirect3DDevice9::EndScene();
 }

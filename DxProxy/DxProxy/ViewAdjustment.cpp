@@ -27,8 +27,7 @@ ViewAdjustment::ViewAdjustment(HMDisplayInfo &displayInfo, float metersToWorldUn
 {
 	separationAdjustment = 0.0f;
 
-	minSeparationAdjusment = -SEPARATION_DEFAULT;
-	maxSeparationAdjusment = 4 * SEPARATION_DEFAULT;
+	SetIPD(IPD_DEFAULT);
 
 	n = 0.1f;					
 	f = 10.0f;
@@ -55,11 +54,19 @@ ViewAdjustment::~ViewAdjustment()
 {
 }
 
+void ViewAdjustment::SetIPD(float ipdInMeters)
+{
+	ipd = ipdInMeters;
+	minSeparationAdjusment = -(ipd / 2.0f);
+	maxSeparationAdjusment = 4 * (ipd / 2.0f);
+}
+
 void ViewAdjustment::Load(ProxyHelper::ProxyConfig& cfg) 
 {
 	EnableRoll(cfg.rollEnabled);
 	metersToWorldMultiplier  = cfg.worldScaleFactor;
 	separationAdjustment = cfg.separationAdjustment;
+	SetIPD(cfg.separationAdjustment);
 }
 
 void ViewAdjustment::Save(ProxyHelper::ProxyConfig& cfg) 
@@ -174,7 +181,7 @@ float ViewAdjustment::ChangeSeparationAdjustment(float toAdd)
 
 float ViewAdjustment::SeparationInWorldUnits() 
 { 
-	return (separationAdjustment + SEPARATION_DEFAULT) * metersToWorldMultiplier; 
+	return (separationAdjustment + (IPD_DEFAULT / 2.0f)) * metersToWorldMultiplier; 
 }
 
 float ViewAdjustment::SeparationAdjustment() 

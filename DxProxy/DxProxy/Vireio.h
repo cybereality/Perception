@@ -19,12 +19,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef VIREIO_H_INCLUDED
 #define VIREIO_H_INCLUDED
 
-#include <d3dx9.h>
+#include <d3d9.h>
 #include <assert.h>
-#include "D3D9ProxyTexture.h"
-#include "D3D9ProxyVolumeTexture.h"
-#include "D3D9ProxyCubeTexture.h"
 
+// 64mm in meters
+#define IPD_DEFAULT 0.064f
 
 namespace vireio {
 

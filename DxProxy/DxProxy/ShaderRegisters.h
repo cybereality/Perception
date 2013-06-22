@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define RegisterIndex(x) (x * VECTOR_LENGTH)
 
 #include "d3d9.h"
+#include "d3dx9.h"
 #include <vector>
 #include <set>
 #include <map>

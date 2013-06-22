@@ -196,11 +196,15 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config)
 
 		config.separationAdjustment = gameProfile.attribute("separationAdjustment").as_float(0.0f);
 		config.swap_eyes = gameProfile.attribute("swap_eyes").as_bool();
-		config.yaw_multiplier = gameProfile.attribute("yaw_multiplier").as_float();
-		config.pitch_multiplier = gameProfile.attribute("pitch_multiplier").as_float();
-		config.roll_multiplier = gameProfile.attribute("roll_multiplier").as_float();
+		config.yaw_multiplier = gameProfile.attribute("yaw_multiplier").as_float(25.0f);
+		config.pitch_multiplier = gameProfile.attribute("pitch_multiplier").as_float(25.0f);
+		config.roll_multiplier = gameProfile.attribute("roll_multiplier").as_float(1.0f);
 
+		if(config.yaw_multiplier == 0.0f) config.yaw_multiplier = 25.0f;
+		if(config.pitch_multiplier == 0.0f) config.pitch_multiplier = 25.0f;
+		if(config.roll_multiplier == 0.0f) config.roll_multiplier = 1.0f;
 		
+		config.ipd = IPD_DEFAULT;
 
 		// get file name
 		std::string shaderRulesFileName = gameProfile.attribute("shaderModRules").as_string("");

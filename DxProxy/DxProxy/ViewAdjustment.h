@@ -25,16 +25,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "d3dx9.h"
 #include "HMDisplayInfo.h"
 #include "Vireio.h"
-//#include "GameHandler.h"
+#include "ProxyHelper.h"
+
 
 #define LEFT_CONSTANT -1
 #define RIGHT_CONSTANT 1
 
-#define IPD_DEFAULT 0.064f
-// IPD_DEFAULT / 2
-#define SEPARATION_DEFAULT 0.032f
 
-//class GameHandler;
 
 
 class ViewAdjustment
@@ -85,6 +82,8 @@ public:
 
 private:
 
+	void SetIPD(float ipdInMeters);
+
 	float minSeparationAdjusment;
 	float maxSeparationAdjusment;
 
@@ -122,7 +121,7 @@ private:
 
 	bool rollEnabled;
 	float metersToWorldMultiplier;
-	//std::shared_ptr<GameHandler> m_spGameSpecific;
+	float ipd;
 };
 
 
