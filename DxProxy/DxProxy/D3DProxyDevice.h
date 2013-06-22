@@ -299,6 +299,8 @@ private:
 	// You can use other objects if they are to scale and you can make a reasonable guess (example - the steering wheel in F1 2010 is to scale and makes
 	// for a good measuring stick as it's stright infront of the camera)
 	bool worldScaleCalculationMode;
+	// Note: Make sure the game fov is set correctly before doing the above. When view is scaled to just fill the horizontal (normal behaviour)
+	// 92.568 (use 92 if only whole numbers can be used) if horizontal, 66 if vertical (16:10 resolution), 61 if vertical (16:9 resolution)
 };
 
 #endif
