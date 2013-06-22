@@ -78,6 +78,7 @@ bool GameHandler::ShouldDuplicateRenderTarget(UINT Width, UINT Height, D3DFORMAT
 	}
 
 	//return !((Width == Height) || (Width <= 1024)); // Trying some random things out - this one fixes guy on screens in hl2 (but makes him left shifted - his shaders would need a non-stereo value or a modification that returns unmodified in place of left)
+	// enabling the line above breaks reflections in f1 2010
 	//TODO implementation
 	return true;
 

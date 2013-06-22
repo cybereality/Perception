@@ -104,9 +104,9 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 
 	keyWait = false;
 
-	// should be false for publiched builds
-	// TODO if worldscale calculation mode?
-	worldScaleCalculationMode = true;
+	// should be false for published builds
+	// TODO Allow this to be turned on and off in cfg file along with vertex shader dumping and other debug/maintenance features.
+	worldScaleCalculationMode = false;
 }
 
  
@@ -2023,6 +2023,7 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 
 	if (worldScaleCalculationMode) {
 		// draw red lines vertically through the center of the lens/distortion.
+		//TODO doesn't currently work with source based games
 		int width = stereoView->viewport.Width;
 		int height = stereoView->viewport.Height;
 		ClearVLine(getActual(), (int)(m_spShaderViewAdjustment->HMDInfo().LeftLensCenterAsPercentage() * width), 0, (int)(m_spShaderViewAdjustment->HMDInfo().LeftLensCenterAsPercentage() * width) + 1, height, 1, D3DCOLOR_ARGB(255,255,0,0));
