@@ -116,8 +116,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config)
 	config.game_type = 0;
 	config.stereo_mode = 0;
 	config.tracker_mode = 0;
-	config.separation = 0.0f;
-	config.convergence = 0.0f;
+	config.separationAdjustment = 0.0f;
 	config.swap_eyes = false;
 	config.aspect_multiplier = 1.0f;
 
@@ -195,8 +194,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config)
 		OutputDebugString(psz);
 		OutputDebugString("\n");
 
-		config.separation = gameProfile.attribute("separation").as_float(0.0f);
-		config.convergence = gameProfile.attribute("convergence").as_float(0.0f);
+		config.separationAdjustment = gameProfile.attribute("separationAdjustment").as_float(0.0f);
 		config.swap_eyes = gameProfile.attribute("swap_eyes").as_bool();
 		config.yaw_multiplier = gameProfile.attribute("yaw_multiplier").as_float();
 		config.pitch_multiplier = gameProfile.attribute("pitch_multiplier").as_float();
@@ -502,7 +500,7 @@ bool ProxyHelper::GetConfig(int& mode, int& mode2)
 	return false;
 }
 
-bool ProxyHelper::SaveProfile(float sep, float conv, bool swap, float yaw, float pitch, float roll)
+bool ProxyHelper::SaveProfile(float sepAdjustmet, bool swap, float yaw, float pitch, float roll)
 {
 	// get the target exe
 	GetTargetExe();
@@ -543,8 +541,7 @@ bool ProxyHelper::SaveProfile(float sep, float conv, bool swap, float yaw, float
 	{
 		OutputDebugString("Save the settings to profile!!!\n");
 
-		gameProfile.attribute("separation") = sep;
-		gameProfile.attribute("convergence") = conv;
+		gameProfile.attribute("separationAdjustment") = sepAdjustmet;
 		gameProfile.attribute("swap_eyes") = swap;
 		gameProfile.attribute("yaw_multiplier") = yaw;
 		gameProfile.attribute("pitch_multiplier") = pitch;

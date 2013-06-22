@@ -219,6 +219,9 @@
     <None Include="..\..\Release\Perception\cfg\shader_rules\omd2.xml">
       <Filter>cfg\shader_rules</Filter>
     </None>
+    <None Include="..\..\Release\Perception\cfg\shader_rules\serious3.xml">
+      <Filter>cfg\shader_rules</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Main.h">

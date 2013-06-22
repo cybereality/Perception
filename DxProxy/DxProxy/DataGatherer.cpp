@@ -35,10 +35,6 @@ void DataGatherer::Init(ProxyHelper::ProxyConfig& cfg)
 {
 	OutputDebugString("Special Proxy: Shader data gatherer created.\n");
 
-	// Force seperation and convergence to 0
-	cfg.separation = 0;
-	cfg.convergence = 0;
-
 	D3DProxyDevice::Init(cfg);
 }
 

@@ -55,6 +55,19 @@ ViewAdjustment::~ViewAdjustment()
 {
 }
 
+void ViewAdjustment::Load(ProxyHelper::ProxyConfig& cfg) 
+{
+	EnableRoll(cfg.rollEnabled);
+	metersToWorldMultiplier  = cfg.worldScaleFactor;
+	separationAdjustment = cfg.separationAdjustment;
+}
+
+void ViewAdjustment::Save(ProxyHelper::ProxyConfig& cfg) 
+{
+	cfg.rollEnabled = rollEnabled;
+	cfg.worldScaleFactor = metersToWorldMultiplier;
+	cfg.separationAdjustment = separationAdjustment;
+}
 
 void ViewAdjustment::UpdateProjectionMatrices(float aspectRatio)
 {
@@ -177,11 +190,6 @@ bool ViewAdjustment::RollEnabled()
 void ViewAdjustment::EnableRoll(bool enable)
 {
 	rollEnabled = enable;
-}
-
-void ViewAdjustment::SetWorldScaleFactor(float scale)
-{
-	metersToWorldMultiplier = scale;
 }
 
 HMDisplayInfo ViewAdjustment::HMDInfo()

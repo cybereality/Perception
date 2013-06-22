@@ -56,6 +56,9 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 {
 	OutputDebugString("D3D ProxyDev Created\n");
 
+	HMDisplayInfo defaultInfo; // rift info
+	m_spShaderViewAdjustment = std::make_shared<ViewAdjustment>(defaultInfo, 1.0f, false);
+
 	m_pGameHandler = new GameHandler();
 	
 
@@ -71,7 +74,7 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	D3DXMatrixIdentity(&m_rightProjection);	
 
 	m_currentRenderingSide = vireio::Left;
-	m_pCurrentMatViewTransform = &m_pGameHandler->ViewAdjustments()->LeftAdjustmentMatrix(); 
+	m_pCurrentMatViewTransform = &m_spShaderViewAdjustment->LeftAdjustmentMatrix(); 
 	m_pCurrentView = &m_leftView;
 	m_pCurrentProjection = &m_leftProjection;
 
@@ -112,6 +115,8 @@ D3DProxyDevice::~D3DProxyDevice()
 {
 	ReleaseEverything();
 
+	m_spShaderViewAdjustment.reset();
+
 	delete m_pGameHandler;
 	m_spManagedShaderRegisters.reset();
 
@@ -138,10 +143,11 @@ D3DProxyDevice::~D3DProxyDevice()
 void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 {
 	OutputDebugString("D3D ProxyDev Init\n");
-	//DebugBreak();
-	m_pGameHandler->Load(cfg);
+	
+	m_spShaderViewAdjustment->Load(cfg);
+	m_pGameHandler->Load(cfg, m_spShaderViewAdjustment);
 
-	stereoView = StereoViewFactory::Get(cfg, m_pGameHandler->ViewAdjustments()->HMDInfo());
+	stereoView = StereoViewFactory::Get(cfg, m_spShaderViewAdjustment->HMDInfo());
 	SetupOptions(cfg);
 	OnCreateOrRestore();
 }
@@ -171,7 +177,7 @@ void D3DProxyDevice::OnCreateOrRestore()
 	OutputDebugString("\n");
 
 	m_currentRenderingSide = vireio::Left;
-	m_pCurrentMatViewTransform = &m_pGameHandler->ViewAdjustments()->LeftAdjustmentMatrix();
+	m_pCurrentMatViewTransform = &m_spShaderViewAdjustment->LeftAdjustmentMatrix();
 	m_pCurrentView = &m_leftView;
 	m_pCurrentProjection = &m_leftProjection;
 
@@ -216,8 +222,8 @@ void D3DProxyDevice::OnCreateOrRestore()
 
 	stereoView->Init(getActual());
 	
-	m_pGameHandler->ViewAdjustments()->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
-	m_pGameHandler->ViewAdjustments()->ComputeViewTransforms();
+	m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
+	m_spShaderViewAdjustment->ComputeViewTransforms();
 }
 
 
@@ -354,8 +360,6 @@ HRESULT WINAPI D3DProxyDevice::Reset(D3DPRESENT_PARAMETERS* pPresentationParamet
 
 void D3DProxyDevice::SetupOptions(ProxyHelper::ProxyConfig& cfg)
 {
-	separation = cfg.separation;
-	convergence = cfg.convergence;
 	game_type = cfg.game_type;
 	aspect_multiplier = cfg.aspect_multiplier;
 	yaw_multiplier = cfg.yaw_multiplier;
@@ -545,10 +549,10 @@ void D3DProxyDevice::HandleControls()
 		{
 
 			if(KEY_DOWN(VK_SHIFT)) {
-				separation = m_pGameHandler->ViewAdjustments()->ChangeSeparationAdjustment(-seperationChange * 10);
+				m_spShaderViewAdjustment->ChangeSeparationAdjustment(-seperationChange * 10);
 			} 
 			else {
-				separation = m_pGameHandler->ViewAdjustments()->ChangeSeparationAdjustment(-seperationChange);
+				m_spShaderViewAdjustment->ChangeSeparationAdjustment(-seperationChange);
 			}
 			saveWaitCount = 500;
 			doSaveNext = true;
@@ -559,47 +563,17 @@ void D3DProxyDevice::HandleControls()
 		{
 			if(KEY_DOWN(VK_SHIFT))
 			{
-				separation = m_pGameHandler->ViewAdjustments()->ChangeSeparationAdjustment(seperationChange * 10);
+				m_spShaderViewAdjustment->ChangeSeparationAdjustment(seperationChange * 10);
 			} 
 			else 
 			{
-				separation = m_pGameHandler->ViewAdjustments()->ChangeSeparationAdjustment(seperationChange);
+				m_spShaderViewAdjustment->ChangeSeparationAdjustment(seperationChange);
 			}
 			saveWaitCount = 500;
 			doSaveNext = true;
 			anyKeyPressed = true;
 		}
 		/*
-		if(KEY_DOWN(VK_F4))
-		{
-			if(KEY_DOWN(VK_SHIFT))
-			{
-				this->stereoView->DistortionScale  -= keySpeed*10;
-			} 
-			else 
-			{
-				convergence -= keySpeed2*10;
-			}
-			saveWaitCount = 500;
-			doSaveNext = true;
-			anyKeyPressed = true;
-		}
-
-		if(KEY_DOWN(VK_F5))
-		{
-			if(KEY_DOWN(VK_SHIFT))
-			{
-				this->stereoView->DistortionScale  += keySpeed*10;
-			} 
-			else 
-			{
-				convergence += keySpeed2*10;
-			}
-			saveWaitCount = 500;
-			doSaveNext = true;
-			anyKeyPressed = true;
-		}
-
 		if(KEY_DOWN(VK_F6))
 		{
 			if(KEY_DOWN(VK_SHIFT))
@@ -723,7 +697,7 @@ void D3DProxyDevice::HandleControls()
 	{
 		doSaveNext = false;
 		ProxyHelper* helper = new ProxyHelper();
-		helper->SaveProfile(separation, convergence, stereoView->swap_eyes, yaw_multiplier, pitch_multiplier, roll_multiplier);
+		helper->SaveProfile(m_spShaderViewAdjustment->SeparationAdjustment(),  stereoView->swap_eyes, yaw_multiplier, pitch_multiplier, roll_multiplier);
 		helper->SaveUserConfig(centerlineL, centerlineR);
 		delete helper;
 	}
@@ -804,11 +778,11 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 		// TODO Doing this now gives very current roll to frame. But should it be done with handle tracking to keep latency similar?
 		// How much latency does mouse enulation cause? Probably want direct roll manipulation and mouse emulation to occur with same delay
 		// if possible?
-		if (trackerInitialized && tracker->isAvailable() && m_pGameHandler->ViewAdjustments()->RollEnabled()) {
-			m_pGameHandler->ViewAdjustments()->UpdateRoll(tracker->currentRoll);
+		if (trackerInitialized && tracker->isAvailable() && m_spShaderViewAdjustment->RollEnabled()) {
+			m_spShaderViewAdjustment->UpdateRoll(tracker->currentRoll);
 		}
 
-		m_pGameHandler->ViewAdjustments()->ComputeViewTransforms();
+		m_spShaderViewAdjustment->ComputeViewTransforms();
 
 		m_isFirstBeginSceneOfFrame = false;
 	}
@@ -2009,10 +1983,10 @@ bool D3DProxyDevice::setDrawingSide(vireio::RenderPosition side)
 
 	// Updated computed view translation (used by several derived proxies - see: ComputeViewTranslation)
 	if (side == vireio::Left) {
-		m_pCurrentMatViewTransform = &m_pGameHandler->ViewAdjustments()->LeftAdjustmentMatrix();
+		m_pCurrentMatViewTransform = &m_spShaderViewAdjustment->LeftAdjustmentMatrix();
 	}
 	else {
-		m_pCurrentMatViewTransform = &m_pGameHandler->ViewAdjustments()->RightAdjustmentMatrix();
+		m_pCurrentMatViewTransform = &m_spShaderViewAdjustment->RightAdjustmentMatrix();
 	}
 
 
@@ -2131,14 +2105,14 @@ HRESULT WINAPI D3DProxyDevice::GetRenderTargetData(IDirect3DSurface9* pRenderTar
 
 	if (SUCCEEDED(result)) {
 		if (!pRenderTargetRight && pDestSurfaceRight) {
-			OutputDebugString("INFO: GetRenderTargetData - Source is not stereo, destination is stereo. Copying source to both sides of destination.\n");
+			//OutputDebugString("INFO: GetRenderTargetData - Source is not stereo, destination is stereo. Copying source to both sides of destination.\n");
 
 			if (FAILED(BaseDirect3DDevice9::GetRenderTargetData(pRenderTargetLeft, pDestSurfaceRight))) {
 				OutputDebugString("ERROR: GetRenderTargetData - Failed to copy source left to destination right.\n");
 			}
 		} 
 		else if (pRenderTargetRight && !pDestSurfaceRight) {
-			OutputDebugString("INFO: GetRenderTargetData - Source is stereo, destination is not stereo. Copied Left side only.\n");
+			//OutputDebugString("INFO: GetRenderTargetData - Source is stereo, destination is not stereo. Copied Left side only.\n");
 		}
 		else if (pRenderTargetRight && pDestSurfaceRight)	{
 			if (FAILED(BaseDirect3DDevice9::GetRenderTargetData(pRenderTargetRight, pDestSurfaceRight))) {
@@ -2178,14 +2152,14 @@ HRESULT WINAPI D3DProxyDevice::StretchRect(IDirect3DSurface9* pSourceSurface,CON
 
 	if (SUCCEEDED(result)) {
 		if (!pSourceSurfaceRight && pDestSurfaceRight) {
-			OutputDebugString("INFO: StretchRect - Source is not stereo, destination is stereo. Copying source to both sides of destination.\n");
+			//OutputDebugString("INFO: StretchRect - Source is not stereo, destination is stereo. Copying source to both sides of destination.\n");
 
 			if (FAILED(BaseDirect3DDevice9::StretchRect(pSourceSurfaceLeft, pSourceRect, pDestSurfaceRight, pDestRect, Filter))) {
 				OutputDebugString("ERROR: StretchRect - Failed to copy source left to destination right.\n");
 			}
 		} 
 		else if (pSourceSurfaceRight && !pDestSurfaceRight) {
-			OutputDebugString("INFO: StretchRect - Source is stereo, destination is not stereo. Copied Left side only.\n");
+			//OutputDebugString("INFO: StretchRect - Source is stereo, destination is not stereo. Copied Left side only.\n");
 		}
 		else if (pSourceSurfaceRight && pDestSurfaceRight)	{
 			if (FAILED(BaseDirect3DDevice9::StretchRect(pSourceSurfaceRight, pSourceRect, pDestSurfaceRight, pDestRect, Filter))) {
@@ -2212,14 +2186,14 @@ HRESULT WINAPI D3DProxyDevice::UpdateSurface(IDirect3DSurface9* pSourceSurface,C
 
 	if (SUCCEEDED(result)) {
 		if (!pSourceSurfaceRight && pDestSurfaceRight) {
-			OutputDebugString("INFO: UpdateSurface - Source is not stereo, destination is stereo. Copying source to both sides of destination.\n");
+			//OutputDebugString("INFO: UpdateSurface - Source is not stereo, destination is stereo. Copying source to both sides of destination.\n");
 
 			if (FAILED(BaseDirect3DDevice9::UpdateSurface(pSourceSurfaceLeft, pSourceRect, pDestSurfaceRight, pDestPoint))) {
 				OutputDebugString("ERROR: UpdateSurface - Failed to copy source left to destination right.\n");
 			}
 		} 
 		else if (pSourceSurfaceRight && !pDestSurfaceRight) {
-			OutputDebugString("INFO: UpdateSurface - Source is stereo, destination is not stereo. Copied Left side only.\n");
+			//OutputDebugString("INFO: UpdateSurface - Source is stereo, destination is not stereo. Copied Left side only.\n");
 		}
 		else if (pSourceSurfaceRight && pDestSurfaceRight)	{
 			if (FAILED(BaseDirect3DDevice9::UpdateSurface(pSourceSurfaceRight, pSourceRect, pDestSurfaceRight, pDestPoint))) {
@@ -2250,14 +2224,14 @@ HRESULT WINAPI D3DProxyDevice::UpdateTexture(IDirect3DBaseTexture9* pSourceTextu
 
 	if (SUCCEEDED(result)) {
 		if (!pSourceTextureRight && pDestTextureRight) {
-			OutputDebugString("INFO: UpdateTexture - Source is not stereo, destination is stereo. Copying source to both sides of destination.\n");
+			//OutputDebugString("INFO: UpdateTexture - Source is not stereo, destination is stereo. Copying source to both sides of destination.\n");
 
 			if (FAILED(BaseDirect3DDevice9::UpdateTexture(pSourceTextureLeft, pDestTextureRight))) {
 				OutputDebugString("ERROR: UpdateTexture - Failed to copy source left to destination right.\n");
 			}
 		} 
 		else if (pSourceTextureRight && !pDestTextureRight) {
-			OutputDebugString("INFO: UpdateTexture - Source is stereo, destination is not stereo. Copied Left side only.\n");
+			//OutputDebugString("INFO: UpdateTexture - Source is stereo, destination is not stereo. Copied Left side only.\n");
 		}
 		else if (pSourceTextureRight && pDestTextureRight)	{
 			if (FAILED(BaseDirect3DDevice9::UpdateTexture(pSourceTextureRight, pDestTextureRight))) {
@@ -2347,8 +2321,8 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 			}
 			else {
 				// If the view matrix is modified we need to apply left/right adjustments (for stereo rendering)
-				tempLeft = sourceMatrix * m_pGameHandler->ViewAdjustments()->LeftViewTransform();
-				tempRight = sourceMatrix * m_pGameHandler->ViewAdjustments()->RightViewTransform();
+				tempLeft = sourceMatrix * m_spShaderViewAdjustment->LeftViewTransform();
+				tempRight = sourceMatrix * m_spShaderViewAdjustment->RightViewTransform();
 
 				tempIsTransformSet = true;
 			}
@@ -2410,8 +2384,8 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 			else {
 				
 
-				tempLeft = sourceMatrix * m_pGameHandler->ViewAdjustments()->LeftShiftProjection();
-				tempRight = sourceMatrix * m_pGameHandler->ViewAdjustments()->RightShiftProjection();
+				tempLeft = sourceMatrix * m_spShaderViewAdjustment->LeftShiftProjection();
+				tempRight = sourceMatrix * m_spShaderViewAdjustment->RightShiftProjection();
 
 				tempIsTransformSet = true;
 			}

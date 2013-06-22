@@ -23,11 +23,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 GameHandler::GameHandler() :
-	m_ShaderModificationRepository(nullptr),
-	m_spShaderViewAdjustment(nullptr)
+	m_ShaderModificationRepository(nullptr)
 {
-	HMDisplayInfo defaultInfo; // rift info
-	m_spShaderViewAdjustment = std::make_shared<ViewAdjustment>(defaultInfo, 1.0f, false);
+	
 }
 
 GameHandler::~GameHandler()
@@ -35,12 +33,11 @@ GameHandler::~GameHandler()
 	if (m_ShaderModificationRepository)
 		delete m_ShaderModificationRepository;
 
-	if (m_spShaderViewAdjustment)
-		m_spShaderViewAdjustment.reset();
+	
 }
 
 
-bool GameHandler::Load(ProxyHelper::ProxyConfig& cfg)
+bool GameHandler::Load(ProxyHelper::ProxyConfig& cfg, std::shared_ptr<ViewAdjustment> spShaderViewAdjustments)
 {
 	// Get rid of existing modification repository if there is one (shouldn't be, load should only need to be called once)
 	if (m_ShaderModificationRepository) {
@@ -48,26 +45,23 @@ bool GameHandler::Load(ProxyHelper::ProxyConfig& cfg)
 		m_ShaderModificationRepository = nullptr;
 	}
 
-	m_spShaderViewAdjustment->EnableRoll(cfg.rollEnabled);
-	m_spShaderViewAdjustment->SetWorldScaleFactor(cfg.worldScaleFactor);
 
 	bool loadSuccess = true;
 
 	//if (game profile has shader rules)
 	if (!cfg.shaderRulePath.empty()) {
-		m_ShaderModificationRepository = new ShaderModificationRepository(m_spShaderViewAdjustment);
-		
+		m_ShaderModificationRepository = new ShaderModificationRepository(spShaderViewAdjustments);
+	
 		if (!m_ShaderModificationRepository->LoadRules(cfg.shaderRulePath)) {
 			OutputDebugString("Rules failed to load.");
 			loadSuccess = false;
 		}
 	}
 	else {
-		OutputDebugString("No shader rule path found.");
-		// We call this success as we have successfully loaded nothing. We assume no rules is intentional
+		OutputDebugString("No shader rule path found. No rules to apply");
+		// We call this success as we have successfully loaded nothing. We assume 'no rules' is intentional
 	}
 	
-
 
 	return true;
 }
@@ -83,9 +77,9 @@ bool GameHandler::ShouldDuplicateRenderTarget(UINT Width, UINT Height, D3DFORMAT
 		return true;
 	}
 
-	//!((Width == Height) || (Width <= 1024))) // Trying some random things out - this one fixes guy on screens in hl2 (but makes him left shifted - his shaders would need a non-stereo value or a modification that returns unmodified in place of left)
+	return !((Width == Height) || (Width <= 1024)); // Trying some random things out - this one fixes guy on screens in hl2 (but makes him left shifted - his shaders would need a non-stereo value or a modification that returns unmodified in place of left)
 	//TODO implementation
-	return true;
+	//return true;
 
 }
 

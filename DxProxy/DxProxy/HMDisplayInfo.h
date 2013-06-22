@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "d3d9.h"
 #include "d3dx9.h"
 #include <utility>
+#include <sstream>
 
 
 
@@ -59,6 +60,10 @@ public:
 		// adjusting if the lens is also offset vertically, See: StereoConfig::updateDistortionOffsetAndScale in LibOVR for an example
 		// of how to do this)
 		scaleToFillHorizontal = Distort(-1 - lensXCenterOffset) / (-1 - lensXCenterOffset);
+
+		std::stringstream sstm;
+		sstm << "scaleToFillHorizontal: " << scaleToFillHorizontal << std::endl;
+		OutputDebugString(sstm.str().c_str());
 	}
 
 #pragma warning( pop )

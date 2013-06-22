@@ -36,8 +36,7 @@ public:
 		int game_type;
 		int stereo_mode;
 		int tracker_mode;
-		float separation;
-		float convergence;
+		float separationAdjustment;
 		float aspect_multiplier;
 		bool swap_eyes;
 		float yaw_multiplier;
@@ -73,7 +72,7 @@ public:
 	bool LoadUserConfig(ProxyConfig& config);
 	bool GetConfig(int& mode, int& mode2);
 	bool GetProfile(char* name, ProxyConfig& config);
-	bool SaveProfile(float sep = 0.0f, float conv = 0.0f, bool swap_eyes = false, float yaw = 25.0f, float pitch = 25.0f, float roll = 1.0f);
+	bool SaveProfile(float sepAdjustment = 0.0f, bool swap_eyes = false, float yaw = 25.0f, float pitch = 25.0f, float roll = 1.0f);
 };
 
 #endif

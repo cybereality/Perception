@@ -37,8 +37,9 @@ public:
 	GameHandler(); 
 	virtual ~GameHandler();
 
-	bool Load(ProxyHelper::ProxyConfig& cfg); 
+	bool Load(ProxyHelper::ProxyConfig& cfg, std::shared_ptr<ViewAdjustment> spShaderViewAdjustments); 
 
+	
 
 	bool ShouldDuplicateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample, DWORD MultisampleQuality,BOOL Lockable, bool isSwapChainBackBuffer);
 	bool ShouldDuplicateDepthStencilSurface(UINT Width,UINT Height,D3DFORMAT Format,D3DMULTISAMPLE_TYPE MultiSample,DWORD MultisampleQuality,BOOL Discard);
@@ -49,13 +50,11 @@ public:
 	ShaderModificationRepository* GetShaderModificationRepository();
 
 
-	ViewAdjustment* ViewAdjustments() { return m_spShaderViewAdjustment.get(); };
 	
 
 private:
 
 	ShaderModificationRepository* m_ShaderModificationRepository;
-	std::shared_ptr<ViewAdjustment> m_spShaderViewAdjustment;
 
 };
 

@@ -158,8 +158,6 @@ public:
 
 	int eyeShutter;
 	int game_type;
-	float separation;
-	float convergence;
 	float aspect_multiplier;
 	float yaw_multiplier;
 	float pitch_multiplier;
@@ -254,6 +252,8 @@ private:
 
 	std::shared_ptr<ShaderRegisters> m_spManagedShaderRegisters;
 	GameHandler* m_pGameHandler;
+
+	std::shared_ptr<ViewAdjustment> m_spShaderViewAdjustment;
 	
 	bool m_bActiveViewportIsDefault;
 	D3DVIEWPORT9 m_LastViewportSet;

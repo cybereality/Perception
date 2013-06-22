@@ -1,6 +1,7 @@
 /********************************************************************
 Vireio Perception: Open-Source Stereoscopic 3D Driver
 Copyright (C) 2012 Andres Hernandez
+Modifications 2013 Chris Drain
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -79,7 +80,7 @@ void OculusRiftView::CalculateShaderVariables()
 
 	// Scale from 0 to 2 to 0 to 1  for x and y 
 	// Then use scaleFactor to fill horizontal space in line with the lens and adjust for aspect ratio for y.
-	Scale[0] = (1.0f / 4.0f) * scaleFactor;
-	Scale[1] = (1.0f / 2.0f) * scaleFactor * inputTextureAspectRatio;
+	Scale[0] = (1.0f / 4.0f) ;//* scaleFactor;
+	Scale[1] = (1.0f / 2.0f) /* scaleFactor */ * inputTextureAspectRatio;
 }
 

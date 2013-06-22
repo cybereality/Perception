@@ -43,6 +43,9 @@ public:
 	ViewAdjustment(HMDisplayInfo &hmdInfo, float metersToWorldUnits, bool enableRoll);
 	virtual ~ViewAdjustment();
 
+	void Load(ProxyHelper::ProxyConfig& cfg);
+	void Save(ProxyHelper::ProxyConfig& cfg);
+
 	void UpdateProjectionMatrices(/*float separation, float convergence,*/ float aspectRatio);
 	void UpdateRoll(float roll);
 	void ComputeViewTransforms();
@@ -76,7 +79,6 @@ public:
 
 	bool RollEnabled();
 	void EnableRoll(bool enable);
-	void SetWorldScaleFactor(float scale);
 
 	HMDisplayInfo HMDInfo();
 	
