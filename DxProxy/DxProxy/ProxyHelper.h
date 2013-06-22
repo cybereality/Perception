@@ -48,10 +48,6 @@ public:
 		bool rollEnabled;
 		std::string shaderRulePath; // full path of shader rules for this game
 
-		///// user.cfg /////
-		float centerlineR;// to be used as IPD
-		float centerlineL;
-
 		float ipd; // in mm
 
 		// separation and convergence should be here as per game config (separation becoming an adjustment that is added to ipd)
@@ -67,13 +63,14 @@ public:
 	char* baseDir;
 	char* targetExe;
 	bool HasProfile(char* name);
+	bool SaveConfig(ProxyConfig& config);
 	bool SaveConfig(int mode = -1, float aspect = -1.0f);
 	bool SaveConfig2(int mode = -1);
-	bool SaveUserConfig(float centerlineL = 0.0f, float centerlineR = 0.0f);
+	bool SaveUserConfig(float ipd = IPD_DEFAULT);
 	bool LoadUserConfig(ProxyConfig& config);
 	bool GetConfig(int& mode, int& mode2);
 	bool GetProfile(char* name, ProxyConfig& config);
-	bool SaveProfile(float sepAdjustment = 0.0f, bool swap_eyes = false, float yaw = 25.0f, float pitch = 25.0f, float roll = 1.0f);
+	bool SaveProfile(float sepAdjustment = 0.0f, bool swap_eyes = false, float yaw = 25.0f, float pitch = 25.0f, float roll = 1.0f, float worldScale = 1.0f);
 };
 
 #endif

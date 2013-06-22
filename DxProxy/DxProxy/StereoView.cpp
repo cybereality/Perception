@@ -26,7 +26,7 @@ StereoView::StereoView(ProxyHelper::ProxyConfig& config)
 	initialized = false;
 	game_type = config.game_type;
 	stereo_mode = config.stereo_mode;
-	swap_eyes = config.swap_eyes;
+	swapEyes = config.swap_eyes;
 	stereoEnabled = true;
 
 	// set all member pointers to NULL to prevent uninitialized objects being used
@@ -423,7 +423,7 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 
 	m_pActualDevice->SetFVF(D3DFVF_TEXVERTEX);
 
-	if(!swap_eyes)
+	if(!swapEyes)
 	{
 		m_pActualDevice->SetTexture(0, leftTexture);
 		m_pActualDevice->SetTexture(1, rightTexture);

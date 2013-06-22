@@ -285,6 +285,8 @@ private:
 	const float m_keyRepeatRate;
 	clock_t startTime;
 	bool keyWait;
+
+	bool worldScaleCalculationMode;
 };
 
 #endif

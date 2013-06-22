@@ -73,11 +73,10 @@ public:
 	D3DVIEWPORT9 viewport;
 
 	
-
+	bool swapEyes;
 	bool initialized;
 	int game_type;
 	int stereo_mode;
-	bool swap_eyes;
 
 	int stereoEnabled;
 

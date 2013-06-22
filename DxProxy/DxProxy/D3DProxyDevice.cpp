@@ -98,12 +98,15 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 
 	yaw_mode = 0;
 	pitch_mode = 0;
-	//roll_mode = false;
 	translation_mode = 0;
 	trackingOn = true;
 	SHOCT_mode = 0;
 
 	keyWait = false;
+
+	// should be false for publiched builds
+	// TODO if worldscale calculation mode?
+	worldScaleCalculationMode = true;
 }
 
  
@@ -142,20 +145,24 @@ void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 {
 	OutputDebugString("D3D ProxyDev Init\n");
 
+	if (worldScaleCalculationMode)
+		cfg.separationAdjustment = 0.0f;
+
 	config = cfg;
+
 	eyeShutter = 1;
 	saveDebugFile = false;
 	trackerInitialized = false;
 
 	char buf[64];
 	LPCSTR psz = NULL;
-	sprintf_s(buf, "type: %d, aspect: %f\n", cfg.game_type, cfg.aspect_multiplier);
+	sprintf_s(buf, "type: %d, aspect: %f\n", config.game_type, config.aspect_multiplier);
 	psz = buf;
 	OutputDebugString(psz);
 	
-	m_spShaderViewAdjustment->Load(cfg);
-	m_pGameHandler->Load(cfg, m_spShaderViewAdjustment);
-	stereoView = StereoViewFactory::Get(cfg, m_spShaderViewAdjustment->HMDInfo());
+	m_spShaderViewAdjustment->Load(config);
+	m_pGameHandler->Load(config, m_spShaderViewAdjustment);
+	stereoView = StereoViewFactory::Get(config, m_spShaderViewAdjustment->HMDInfo());
 
 	OnCreateOrRestore();
 }
@@ -384,7 +391,9 @@ void D3DProxyDevice::HandleControls()
 	//float mouseSpeed = 0.25f;
 	float rollSpeed = 0.01f;
 
-
+	
+	if (worldScaleCalculationMode)
+		seperationChange = 0.1f;
 
 
 
@@ -524,13 +533,18 @@ void D3DProxyDevice::HandleControls()
 
 		if(KEY_DOWN(VK_F2))
 		{
-
-			if(KEY_DOWN(VK_SHIFT)) {
-				m_spShaderViewAdjustment->ChangeSeparationAdjustment(-seperationChange * 10);
-			} 
-			else {
-				m_spShaderViewAdjustment->ChangeSeparationAdjustment(-seperationChange);
+			if(KEY_DOWN(VK_CONTROL)) {
+				seperationChange /= 10.0f;
 			}
+			else if(KEY_DOWN(VK_SHIFT)) {
+				seperationChange *= 10.0f;
+			} 
+
+			if (worldScaleCalculationMode)
+				m_spShaderViewAdjustment->ChangeWorldScale(-seperationChange);
+			else
+				m_spShaderViewAdjustment->ChangeSeparationAdjustment(-seperationChange);
+			
 			saveWaitCount = 500;
 			doSaveNext = true;
 			anyKeyPressed = true;
@@ -538,14 +552,19 @@ void D3DProxyDevice::HandleControls()
 
 		if(KEY_DOWN(VK_F3))
 		{
-			if(KEY_DOWN(VK_SHIFT))
-			{
-				m_spShaderViewAdjustment->ChangeSeparationAdjustment(seperationChange * 10);
-			} 
-			else 
-			{
-				m_spShaderViewAdjustment->ChangeSeparationAdjustment(seperationChange);
+			if(KEY_DOWN(VK_CONTROL)) {
+				seperationChange /= 10.0f;
 			}
+			else if(KEY_DOWN(VK_SHIFT))
+			{
+				seperationChange *= 10.0f;
+			} 
+			
+			if (worldScaleCalculationMode)
+				m_spShaderViewAdjustment->ChangeWorldScale(seperationChange);
+			else
+				m_spShaderViewAdjustment->ChangeSeparationAdjustment(seperationChange);
+			
 			saveWaitCount = 500;
 			doSaveNext = true;
 			anyKeyPressed = true;
@@ -668,8 +687,12 @@ void D3DProxyDevice::HandleControls()
 	{
 		doSaveNext = false;
 		ProxyHelper* helper = new ProxyHelper();
-		helper->SaveProfile(m_spShaderViewAdjustment->SeparationAdjustment(),  stereoView->swap_eyes, config.yaw_multiplier, config.pitch_multiplier, config.roll_multiplier);
-		helper->SaveUserConfig(config.centerlineL, config.centerlineR);
+
+		config.swap_eyes = stereoView->swapEyes;
+		m_spShaderViewAdjustment->Save(config);
+
+		helper->SaveConfig(config);
+		
 		delete helper;
 	}
 
@@ -832,6 +855,8 @@ HRESULT WINAPI D3DProxyDevice::EndScene()
 
 	}
 /////*/
+
+	
 
 	return BaseDirect3DDevice9::EndScene();
 }
@@ -1994,6 +2019,15 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 	
 
 	m_isFirstBeginSceneOfFrame = true; // TODO this can break if device present is followed by present on another swap chain... or not work well anyway
+
+
+	if (worldScaleCalculationMode) {
+		// draw red lines vertically through the center of the lens/distortion.
+		int width = stereoView->viewport.Width;
+		int height = stereoView->viewport.Height;
+		ClearVLine(getActual(), (int)(m_spShaderViewAdjustment->HMDInfo().LeftLensCenterAsPercentage() * width), 0, (int)(m_spShaderViewAdjustment->HMDInfo().LeftLensCenterAsPercentage() * width) + 1, height, 1, D3DCOLOR_ARGB(255,255,0,0));
+		ClearVLine(getActual(), (int)((1 - m_spShaderViewAdjustment->HMDInfo().LeftLensCenterAsPercentage()) * width), 0, (int)((1 - m_spShaderViewAdjustment->HMDInfo().LeftLensCenterAsPercentage()) * width) + 1, height, 1, D3DCOLOR_ARGB(255,255,0,0));
+	}
 
 	return BaseDirect3DDevice9::Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
 }

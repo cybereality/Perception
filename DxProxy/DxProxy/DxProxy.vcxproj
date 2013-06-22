@@ -314,6 +314,7 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\cfg\" /Y</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copying xml config from Release to $(Configuration)</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\cfg\%(filename).xml;%(Outputs)</Outputs>
+      <SubType>Designer</SubType>
     </CustomBuild>
     <None Include="..\..\Release\Perception\cfg\shader_rules\borderlands2.xml" />
     <None Include="..\..\Release\Perception\cfg\shader_rules\ego.xml">

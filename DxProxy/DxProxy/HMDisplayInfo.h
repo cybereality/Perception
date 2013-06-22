@@ -66,6 +66,12 @@ public:
 		OutputDebugString(sstm.str().c_str());
 	}
 
+
+	float LeftLensCenterAsPercentage()
+	{
+		return ((physicalScreenSize.first / 2.0f) - (physicalLensSeparation / 2.0f)) / (physicalScreenSize.first);
+	}
+
 #pragma warning( pop )
 
 	// <horizontal, vertical>

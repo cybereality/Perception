@@ -77,9 +77,9 @@ bool GameHandler::ShouldDuplicateRenderTarget(UINT Width, UINT Height, D3DFORMAT
 		return true;
 	}
 
-	return !((Width == Height) || (Width <= 1024)); // Trying some random things out - this one fixes guy on screens in hl2 (but makes him left shifted - his shaders would need a non-stereo value or a modification that returns unmodified in place of left)
+	//return !((Width == Height) || (Width <= 1024)); // Trying some random things out - this one fixes guy on screens in hl2 (but makes him left shifted - his shaders would need a non-stereo value or a modification that returns unmodified in place of left)
 	//TODO implementation
-	//return true;
+	return true;
 
 }
 

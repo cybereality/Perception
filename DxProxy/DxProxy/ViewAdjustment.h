@@ -67,6 +67,12 @@ public:
 	// new adjustment mgiht be the same as old adjustment if adjustment limit is reached
 	float ChangeSeparationAdjustment(float toAdd);
 
+	void ResetSeparationAdjustment();
+
+	// Modifies the world scale with its limits 0.01f and 1,000,000 (arbitrary limit)
+	// NOTE: This should not be changed during normal usage, this is here to facilitate finding a reasonable scale
+	float ChangeWorldScale(float toAdd);
+
 	// returns the current separation adjustment being used in m (this is game and user specific and should be saved appropriately)
 	//TODO remove this and set on gamehandler which has a 'current user'?
 	float SeparationAdjustment();
@@ -75,7 +81,6 @@ public:
 	float SeparationInWorldUnits();
 
 	bool RollEnabled();
-	void EnableRoll(bool enable);
 
 	HMDisplayInfo HMDInfo();
 	

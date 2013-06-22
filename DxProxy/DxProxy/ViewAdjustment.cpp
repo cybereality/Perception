@@ -26,8 +26,10 @@ ViewAdjustment::ViewAdjustment(HMDisplayInfo &displayInfo, float metersToWorldUn
 	rollEnabled(enableRoll)
 {
 	separationAdjustment = 0.0f;
+	minSeparationAdjusment = -(IPD_DEFAULT / 2.0f);
+	maxSeparationAdjusment = 4 * (IPD_DEFAULT / 2.0f);
 
-	SetIPD(IPD_DEFAULT);
+	ipd = IPD_DEFAULT;
 
 	n = 0.1f;					
 	f = 10.0f;
@@ -54,26 +56,22 @@ ViewAdjustment::~ViewAdjustment()
 {
 }
 
-void ViewAdjustment::SetIPD(float ipdInMeters)
-{
-	ipd = ipdInMeters;
-	minSeparationAdjusment = -(ipd / 2.0f);
-	maxSeparationAdjusment = 4 * (ipd / 2.0f);
-}
-
 void ViewAdjustment::Load(ProxyHelper::ProxyConfig& cfg) 
 {
-	EnableRoll(cfg.rollEnabled);
+	rollEnabled = cfg.rollEnabled;
 	metersToWorldMultiplier  = cfg.worldScaleFactor;
 	separationAdjustment = cfg.separationAdjustment;
-	SetIPD(cfg.separationAdjustment);
+	ipd = cfg.ipd;
 }
 
 void ViewAdjustment::Save(ProxyHelper::ProxyConfig& cfg) 
 {
 	cfg.rollEnabled = rollEnabled;
-	cfg.worldScaleFactor = metersToWorldMultiplier;
 	cfg.separationAdjustment = separationAdjustment;
+	
+	//worldscale and ipd are not normally edited;
+	cfg.worldScaleFactor = metersToWorldMultiplier;
+	cfg.ipd = ipd;
 }
 
 void ViewAdjustment::UpdateProjectionMatrices(float aspectRatio)
@@ -179,6 +177,20 @@ float ViewAdjustment::ChangeSeparationAdjustment(float toAdd)
 	return separationAdjustment;
 }
 
+void ViewAdjustment::ResetSeparationAdjustment()
+{
+	separationAdjustment = 0.0f;
+}
+
+float ViewAdjustment::ChangeWorldScale(float toAdd)
+{
+	metersToWorldMultiplier+= toAdd;
+
+	vireio::clamp(&metersToWorldMultiplier, 0.01f, 1000000.0f);
+
+	return metersToWorldMultiplier;
+}
+
 float ViewAdjustment::SeparationInWorldUnits() 
 { 
 	return (separationAdjustment + (IPD_DEFAULT / 2.0f)) * metersToWorldMultiplier; 
@@ -192,11 +204,6 @@ float ViewAdjustment::SeparationAdjustment()
 bool ViewAdjustment::RollEnabled() 
 { 
 	return rollEnabled; 
-}
-
-void ViewAdjustment::EnableRoll(bool enable)
-{
-	rollEnabled = enable;
 }
 
 HMDisplayInfo ViewAdjustment::HMDInfo()
