@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "D3DProxyDeviceEgo.h"
 #include "D3DProxyDeviceFixed.h"
 #include "D3DProxyDeviceAdv.h"
+#include "D3DProxyDeviceLFS.h"
 
 D3DProxyDevice* D3DProxyDeviceFactory::Get(ProxyHelper::ProxyConfig& config, IDirect3DDevice9* dev)
 {
@@ -64,6 +65,9 @@ D3DProxyDevice* D3DProxyDeviceFactory::Get(ProxyHelper::ProxyConfig& config, IDi
 	case D3DProxyDevice::ADVANCED:
 	case D3DProxyDevice::ADVANCED_SKYRIM:
 		newDev = new D3DProxyDeviceAdv(dev);
+		break;
+	case D3DProxyDevice::LFS:
+		newDev = new D3DProxyDeviceLFS(dev);
 		break;
 	default:
 		newDev = new D3DProxyDevice(dev);

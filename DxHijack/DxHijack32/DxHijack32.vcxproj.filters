@@ -115,6 +115,9 @@
     <ClCompile Include="apihijack.cpp">
       <Filter>Main</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxyDeviceLFS.cpp">
+      <Filter>Implementation</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\DxProxy\DxProxy\Direct3DDevice9.h">
@@ -194,6 +197,9 @@
     </ClInclude>
     <ClInclude Include="apihijack.h">
       <Filter>Main</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyDeviceLFS.h">
+      <Filter>Implementation</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
