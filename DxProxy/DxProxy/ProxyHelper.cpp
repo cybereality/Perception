@@ -17,12 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
 #include "ProxyHelper.h"
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <string>
-#include <windows.h>
-#include "pugixml.hpp"
+
 
 using namespace pugi;
 
@@ -121,8 +116,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config)
 	config.game_type = 0;
 	config.stereo_mode = 0;
 	config.tracker_mode = 0;
-	config.separation = 0.0f;
-	config.convergence = 0.0f;
+	config.separationAdjustment = 0.0f;
 	config.swap_eyes = false;
 	config.aspect_multiplier = 1.0f;
 
@@ -200,12 +194,32 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config)
 		OutputDebugString(psz);
 		OutputDebugString("\n");
 
-		config.separation = gameProfile.attribute("separation").as_float();
-		config.convergence = gameProfile.attribute("convergence").as_float();
+		config.separationAdjustment = gameProfile.attribute("separationAdjustment").as_float(0.0f);
 		config.swap_eyes = gameProfile.attribute("swap_eyes").as_bool();
-		config.yaw_multiplier = gameProfile.attribute("yaw_multiplier").as_float();
-		config.pitch_multiplier = gameProfile.attribute("pitch_multiplier").as_float();
-		config.roll_multiplier = gameProfile.attribute("roll_multiplier").as_float();
+		config.yaw_multiplier = gameProfile.attribute("yaw_multiplier").as_float(25.0f);
+		config.pitch_multiplier = gameProfile.attribute("pitch_multiplier").as_float(25.0f);
+		config.roll_multiplier = gameProfile.attribute("roll_multiplier").as_float(1.0f);
+
+		if(config.yaw_multiplier == 0.0f) config.yaw_multiplier = 25.0f;
+		if(config.pitch_multiplier == 0.0f) config.pitch_multiplier = 25.0f;
+		if(config.roll_multiplier == 0.0f) config.roll_multiplier = 1.0f;
+		
+		
+
+		// get file name
+		std::string shaderRulesFileName = gameProfile.attribute("shaderModRules").as_string("");
+
+		if (!shaderRulesFileName.empty()) {
+			std::stringstream sstm;
+			sstm << GetBaseDir() << "cfg\\shader_rules\\" << shaderRulesFileName;
+			config.shaderRulePath = sstm.str();
+		}
+		else {
+			config.shaderRulePath = "";
+		}
+
+		config.rollEnabled = gameProfile.attribute("rollEnabled").as_bool(false);
+		config.worldScaleFactor = gameProfile.attribute("worldScaleFactor").as_float(1.0f);
 	}
 
 	LoadUserConfig(config);
@@ -315,6 +329,14 @@ HRESULT RegGetString(HKEY hKey, LPCTSTR szValueName, LPTSTR * lpszResult) {
     return NOERROR;
 }
 
+
+bool ProxyHelper::SaveConfig(ProxyConfig& cfg)
+{
+	SaveProfile(cfg.separationAdjustment, cfg.swap_eyes, cfg.yaw_multiplier, cfg.pitch_multiplier, cfg.roll_multiplier, cfg.worldScaleFactor);
+	return SaveUserConfig(cfg.ipd);
+}
+
+
 bool ProxyHelper::SaveConfig(int mode, float aspect)
 {
 	// load the base dir for the app
@@ -380,8 +402,6 @@ bool ProxyHelper::SaveConfig2(int mode)
 
 bool ProxyHelper::LoadUserConfig(ProxyConfig& config)
 {
-	config.centerlineL = 0.0f;
-	config.centerlineR = 0.0f;
 	// get the user_profile
 	bool userFound = false;
 	char usersPath[512];
@@ -394,7 +414,7 @@ bool ProxyHelper::LoadUserConfig(ProxyConfig& config)
 	xml_node users;
 	xml_node userProfile;
 	
-
+	config.ipd = IPD_DEFAULT;
 
 	if(resultUsers.status == status_ok)
 	{
@@ -407,8 +427,7 @@ bool ProxyHelper::LoadUserConfig(ProxyConfig& config)
 				OutputDebugString("Load the specific user!!!\n");
 				userProfile = user_profile;
 				userFound = true;
-				config.centerlineL = userProfile.attribute("centerlineL").as_float();
-				config.centerlineR = userProfile.attribute("centerlineR").as_float();
+				config.ipd = userProfile.attribute("ipd").as_float(IPD_DEFAULT);
 				break;
 			}
 		}
@@ -416,7 +435,7 @@ bool ProxyHelper::LoadUserConfig(ProxyConfig& config)
 	return userFound;
 }
 
-bool ProxyHelper::SaveUserConfig(float centerlineL, float centerlineR)
+bool ProxyHelper::SaveUserConfig(float ipd)
 {
 	// get the profile
 	bool profileFound = false;
@@ -451,8 +470,7 @@ bool ProxyHelper::SaveUserConfig(float centerlineL, float centerlineR)
 	{
 		OutputDebugString("Save the settings to profile!!!\n");
 
-		gameProfile.attribute("centerlineL") = centerlineL;
-		gameProfile.attribute("centerlineR") = centerlineR;
+		gameProfile.attribute("ipd") = ipd;
 
 		docProfiles.save_file(profilePath);
 
@@ -490,7 +508,7 @@ bool ProxyHelper::GetConfig(int& mode, int& mode2)
 	return false;
 }
 
-bool ProxyHelper::SaveProfile(float sep, float conv, bool swap, float yaw, float pitch, float roll)
+bool ProxyHelper::SaveProfile(float sepAdjustmet, bool swap, float yaw, float pitch, float roll, float worldScale)
 {
 	// get the target exe
 	GetTargetExe();
@@ -531,13 +549,12 @@ bool ProxyHelper::SaveProfile(float sep, float conv, bool swap, float yaw, float
 	{
 		OutputDebugString("Save the settings to profile!!!\n");
 
-		gameProfile.attribute("separation") = sep;
-		gameProfile.attribute("convergence") = conv;
+		gameProfile.attribute("separationAdjustment") = sepAdjustmet;
 		gameProfile.attribute("swap_eyes") = swap;
 		gameProfile.attribute("yaw_multiplier") = yaw;
 		gameProfile.attribute("pitch_multiplier") = pitch;
 		gameProfile.attribute("roll_multiplier") = roll;
-
+		gameProfile.attribute("worldScaleFactor") = worldScale;
 		docProfiles.save_file(profilePath);
 
 		profileSaved = true;

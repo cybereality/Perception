@@ -1,6 +1,6 @@
 /********************************************************************
 Vireio Perception: Open-Source Stereoscopic 3D Driver
-Copyright (C) 2012 Andres Hernandez
+Copyright (C) 2013 Chris Drain
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -15,28 +15,40 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
+#pragma once
 
-#ifndef D3DPROXYDEVICELFS_H_INCLUDED
-#define D3DPROXYDEVICELFS_H_INCLUDED
+#ifndef DIRECT3DSTATEBLOCK9_H_INCLUDED
+#define DIRECT3DSTATEBLOCK9_H_INCLUDED
 
+#include <d3d9.h>
 #include "Direct3DDevice9.h"
-#include "D3DProxyDevice.h"
-#include <d3dx9.h>
 
-class D3DProxyDeviceLFS : public D3DProxyDevice
+class BaseDirect3DStateBlock9 : public IDirect3DStateBlock9
 {
 public:
-	D3DProxyDeviceLFS(IDirect3DDevice9* pDevice);
-	virtual ~D3DProxyDeviceLFS();
-	virtual HRESULT WINAPI BeginScene();
-	virtual HRESULT WINAPI EndScene();
-	virtual HRESULT WINAPI Present(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion);
-	virtual HRESULT WINAPI SetVertexShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
-	virtual HRESULT WINAPI SetTransform(D3DTRANSFORMSTATETYPE State,CONST D3DMATRIX* pMatrix);
+	BaseDirect3DStateBlock9(IDirect3DStateBlock9* pActualStateBlock, IDirect3DDevice9* pOwningDevice);
+	virtual ~BaseDirect3DStateBlock9();
 
-	void Init(ProxyHelper::ProxyConfig& cfg);
-	bool validRegister(UINT reg);
-	int getMatrixIndex();
+	// IUnknown
+	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv);
+	virtual ULONG WINAPI AddRef();
+	virtual ULONG WINAPI Release();
+
+	// IDirect3DStateBlock9
+	virtual HRESULT WINAPI GetDevice(IDirect3DDevice9 **ppDevice);
+	virtual HRESULT WINAPI Capture();
+	virtual HRESULT WINAPI Apply();
+
+protected:
+
+	IDirect3DStateBlock9* m_pActualStateBlock;
+	ULONG m_nRefCount;
+
+	IDirect3DDevice9* const m_pOwningDevice;
+private:
+	
+
 };
 
 #endif
+

@@ -19,6 +19,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef PROXYHELPER_H_INCLUDED
 #define PROXYHELPER_H_INCLUDED
 
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <windows.h>
+#include "pugixml.hpp"
+#include "Vireio.h"
+
 class ProxyHelper
 {
 public:
@@ -29,15 +37,22 @@ public:
 		int game_type;
 		int stereo_mode;
 		int tracker_mode;
-		float separation;
-		float convergence;
+		float separationAdjustment;
 		float aspect_multiplier;
 		bool swap_eyes;
 		float yaw_multiplier;
 		float pitch_multiplier;
 		float roll_multiplier;
-		float centerlineR;// to be used as IPD
-		float centerlineL;
+
+		float worldScaleFactor; // mm * worldScaleFactor = mm in game units
+		bool rollEnabled;
+		std::string shaderRulePath; // full path of shader rules for this game
+
+		float ipd; // in mm
+
+		// separation and convergence should be here as per game config (separation becoming an adjustment that is added to ipd)
+		
+		////////////////////
 	};
 
 	bool LoadConfig(ProxyConfig& config);
@@ -48,13 +63,14 @@ public:
 	char* baseDir;
 	char* targetExe;
 	bool HasProfile(char* name);
+	bool SaveConfig(ProxyConfig& config);
 	bool SaveConfig(int mode = -1, float aspect = -1.0f);
 	bool SaveConfig2(int mode = -1);
-	bool SaveUserConfig(float centerlineL = 0.0f, float centerlineR = 0.0f);
+	bool SaveUserConfig(float ipd = IPD_DEFAULT);
 	bool LoadUserConfig(ProxyConfig& config);
 	bool GetConfig(int& mode, int& mode2);
 	bool GetProfile(char* name, ProxyConfig& config);
-	bool SaveProfile(float sep = 0.0f, float conv = 0.0f, bool swap_eyes = false, float yaw = 25.0f, float pitch = 25.0f, float roll = 1.0f);
+	bool SaveProfile(float sepAdjustment = 0.0f, bool swap_eyes = false, float yaw = 25.0f, float pitch = 25.0f, float roll = 1.0f, float worldScale = 1.0f);
 };
 
 #endif

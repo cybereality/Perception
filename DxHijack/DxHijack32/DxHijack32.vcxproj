@@ -62,8 +62,8 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ModuleDefinitionFile>hijackdll.def</ModuleDefinitionFile>
-      <AdditionalDependencies>shlwapi.lib;d3d9.lib;libfreespace.lib;libovr.lib;Winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(DXSDK_DIR)\Lib\x86;$(DX)\Lib\x86;$(FREESPACE)\lib;..\..\DxProxy\DxProxy\$(Configuration);$(LIBOVR)\Lib\Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>shlwapi.lib;d3d9.lib;libfreespace.lib;libovr.lib;Winmm.lib;DxErr.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(DXSDK_DIR)\Lib\x86;$(DX)\Lib\x86;$(FREESPACE)\lib;..\..\DxProxy\DxProxy\$(Configuration);..\..\LibOVR\Lib\Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <OutputFile>$(SolutionDir)$(Configuration)\Perception\bin\$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <PostBuildEvent>
@@ -110,110 +110,116 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\DxProxy\DxProxy\D3D9ProxyCubeTexture.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\D3D9ProxyStateBlock.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\D3D9ProxySurface.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\D3D9ProxySwapChain.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\D3D9ProxyTexture.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\D3D9ProxyVertexShader.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\D3D9ProxyVolume.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\D3D9ProxyVolumeTexture.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxyDevice.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxyDeviceAdv.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxyDeviceEgo.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxyDeviceFactory.cpp" />
-    <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxyDeviceFixed.cpp" />
-    <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxyDeviceLFS.cpp" />
-    <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxyDeviceMono.cpp" />
-    <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxyDeviceSource.cpp" />
-    <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxyDeviceTest.cpp" />
-    <ClCompile Include="..\..\DxProxy\DxProxy\D3DProxyDeviceUnreal.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\DataGatherer.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\Direct3D9.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\Direct3DCubeTexture9.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\Direct3DDevice9.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\Direct3DIndexBuffer9.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\Direct3DPixelShader9.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\Direct3DQuery9.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\Direct3DStateBlock9.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\Direct3DSurface9.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\Direct3DSwapChain9.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\Direct3DTexture9.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\Direct3DVertexBuffer9.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\Direct3DVertexDeclaration9.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\Direct3DVertexShader9.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\Direct3DVolume9.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\Direct3DVolumeTexture9.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\FreeSpaceTracker.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\FreeTrackTracker.cpp" />
-    <ClCompile Include="..\..\DxProxy\DxProxy\Main.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\GameHandler.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\MotionTracker.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\MotionTrackerFactory.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\MurmurHash3.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\OculusRiftView.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\OculusTracker.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\ProxyHelper.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\pugixml.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\ShaderModificationRepository.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\ShaderRegisters.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\SharedMemoryTracker.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\StereoBackbuffer.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\StereoView.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\StereoViewFactory.cpp" />
     <ClCompile Include="..\..\DxProxy\DxProxy\StereoViewInterleave.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\ViewAdjustment.cpp" />
+    <ClCompile Include="..\..\DxProxy\DxProxy\Vireio.cpp" />
     <ClCompile Include="apihijack.cpp" />
     <ClCompile Include="dllmain.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="hijackdll.def" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\DxProxy\DxProxy\D3D9ProxyCubeTexture.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\D3D9ProxyStateBlock.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\D3D9ProxySurface.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\D3D9ProxySwapChain.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\D3D9ProxyTexture.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\D3D9ProxyVertexShader.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\D3D9ProxyVolume.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\D3D9ProxyVolumeTexture.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyDevice.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyDeviceAdv.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyDeviceEgo.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyDeviceFactory.h" />
-    <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyDeviceFixed.h" />
-    <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyDeviceLFS.h" />
-    <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyDeviceMono.h" />
-    <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyDeviceSource.h" />
-    <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyDeviceTest.h" />
-    <ClInclude Include="..\..\DxProxy\DxProxy\D3DProxyDeviceUnreal.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\DataGatherer.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\Direct3D9.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\Direct3DCubeTexture9.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\Direct3DDevice9.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\Direct3DIndexBuffer9.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\Direct3DPixelShader9.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\Direct3DQuery9.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\Direct3DStateBlock9.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\Direct3DSurface9.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\Direct3DTexture9.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\Direct3DVertexBuffer9.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\Direct3DVertexDeclaration9.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\Direct3DVertexShader9.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\Direct3DVolume9.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\Direct3DVolumeTexture9.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\FreeSpaceTracker.h" />
-    <ClInclude Include="..\..\DxProxy\DxProxy\FreeTrackTracker.h" />
-    <ClInclude Include="..\..\DxProxy\DxProxy\Main.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\GameHandler.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\MatrixSimpleTranslate.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\MatrixSimpleTranslateColMajor.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\MatrixSimpleTranslateColMajorIgnoreOrtho.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\MotionTracker.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\MotionTrackerFactory.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\MurmurHash3.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\OculusRiftView.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\OculusTracker.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\ProxyHelper.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\pugiconfig.hpp" />
     <ClInclude Include="..\..\DxProxy\DxProxy\pugixml.hpp" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\ShaderConstantModification.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\ShaderConstantModificationFactory.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\ShaderModificationRepository.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\ShaderRegisters.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\SharedMemoryTracker.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\StereoBackbuffer.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\StereoShaderConstant.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\StereoView.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\StereoViewFactory.h" />
     <ClInclude Include="..\..\DxProxy\DxProxy\StereoViewInterleave.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\Vec4SimpleTranslate.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\Vector4SimpleTranslate.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\ViewAdjustment.h" />
+    <ClInclude Include="..\..\DxProxy\DxProxy\Vireio.h" />
     <ClInclude Include="apihijack.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\DxProxy\DxProxy\Exports.def" />
-    <None Include="..\..\Release\Perception\cfg\config.xml" />
-    <None Include="..\..\Release\Perception\cfg\profiles.xml" />
-    <None Include="..\..\Release\Perception\cfg\users.xml" />
-    <None Include="..\..\Release\Perception\fx\AnaglyphGreenMagenta.fx">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\Release\Perception\fx\AnaglyphGreenMagentaGray.fx">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\Release\Perception\fx\AnaglyphRedCyan.fx">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\Release\Perception\fx\AnaglyphRedCyanGray.fx">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\Release\Perception\fx\AnaglyphYellowBlue.fx">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\Release\Perception\fx\AnaglyphYellowBlueGray.fx">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\Release\Perception\fx\Checkerboard.fx">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\Release\Perception\fx\InterleaveHorz.fx">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\Release\Perception\fx\InterleaveVert.fx">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\Release\Perception\fx\OculusRift.fx">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\Release\Perception\fx\OculusRiftCropped.fx">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\Release\Perception\fx\OverUnder.fx">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\Release\Perception\fx\SideBySide.fx">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\Release\Perception\fx\SideBySideRift.fx">
-      <FileType>Document</FileType>
-    </None>
+    <ClInclude Include="hijackdll.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,6 +1,6 @@
 /********************************************************************
 Vireio Perception: Open-Source Stereoscopic 3D Driver
-Copyright (C) 2012 Andres Hernandez
+Copyright (C) 2013 Chris Drain
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -16,24 +16,32 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#ifndef D3DPROXYDEVICEFIXED_H_INCLUDED
-#define D3DPROXYDEVICEFIXED_H_INCLUDED
+#ifndef STEREOBACKBUFFER_H_INCLUDED
+#define STEREOBACKBUFFER_H_INCLUDED
 
+#include <d3d9.h>
+#include "D3D9ProxySurface.h"
 #include "Direct3DDevice9.h"
-#include "D3DProxyDevice.h"
-#include "ProxyHelper.h"
+#include "IStereoCapableWrapper.h"
+#include <stdio.h>
 
-class D3DProxyDeviceFixed : public D3DProxyDevice
+
+
+class StereoBackBuffer : public D3D9ProxySurface
 {
 public:
-	D3DProxyDeviceFixed(IDirect3DDevice9* pDevice);
-	virtual ~D3DProxyDeviceFixed();
-	virtual HRESULT WINAPI BeginScene();
-	virtual HRESULT WINAPI EndScene();
-	virtual HRESULT WINAPI Present(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion);
-	virtual HRESULT WINAPI SetTransform(D3DTRANSFORMSTATETYPE State,CONST D3DMATRIX* pMatrix);
+	/*
+		If the Proxy surface is in a container it will have a combined ref count with it's container
+		and that count is managed by forwarding release and addref to the container. In this case the
+		container must delete this surface when the ref count reaches 0.
+	*/ 
+	StereoBackBuffer(IDirect3DSurface9* pActualSurfaceLeft, IDirect3DSurface9* pActualSurfaceRight, BaseDirect3DDevice9* pOwningDevice);
+	virtual ~StereoBackBuffer();
 
-	virtual void Init(ProxyHelper::ProxyConfig& cfg);
+
+	virtual ULONG WINAPI Release();
+
+
 };
 
 #endif

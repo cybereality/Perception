@@ -1,6 +1,6 @@
 /********************************************************************
 Vireio Perception: Open-Source Stereoscopic 3D Driver
-Copyright (C) 2012 Andres Hernandez
+Copyright (C) 2013 Chris Drain
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -16,27 +16,26 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#ifndef D3DPROXYDEVICEUNREAL_H_INCLUDED
-#define D3DPROXYDEVICEUNREAL_H_INCLUDED
+#ifndef MATRIXDONOTHING_H_INCLUDED
+#define MATRIXDONOTHING_H_INCLUDED
 
-#include "Direct3DDevice9.h"
-#include "D3DProxyDevice.h"
-#include "ProxyHelper.h"
 
-class D3DProxyDeviceUnreal : public D3DProxyDevice
+#include "d3d9.h"
+#include "d3dx9.h"
+#include "ShaderConstantModification.h"
+#include "Vireio.h"
+#include "ShaderMatrixModification.h"
+
+class MatrixDoNothing : public ShaderMatrixModification
 {
 public:
-	D3DProxyDeviceUnreal(IDirect3DDevice9* pDevice);
-	virtual ~D3DProxyDeviceUnreal();
-	virtual HRESULT WINAPI BeginScene();
-	virtual HRESULT WINAPI EndScene();
-	virtual HRESULT WINAPI Present(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion);
-	virtual HRESULT WINAPI SetVertexShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
-	virtual HRESULT WINAPI SetDepthStencilSurface(IDirect3DSurface9* pNewZStencil);
+	MatrixDoNothing(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatricies) : ShaderMatrixModification(modID, adjustmentMatricies, false) {};
 
-	virtual void Init(ProxyHelper::ProxyConfig& cfg);
-	bool validRegister(UINT reg);
-	int getMatrixIndex();
+	virtual bool DoNotApply(D3DXMATRIX in)
+	{
+		return true;
+	}
 };
+
 
 #endif

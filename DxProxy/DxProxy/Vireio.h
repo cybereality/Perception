@@ -16,22 +16,37 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#ifndef D3DPROXYDEVICEMONO_H_INCLUDED
-#define D3DPROXYDEVICEMONO_H_INCLUDED
+#ifndef VIREIO_H_INCLUDED
+#define VIREIO_H_INCLUDED
 
-#include "Direct3DDevice9.h"
-#include "D3DProxyDevice.h"
-#include "ProxyHelper.h"
+#include <d3d9.h>
+#include <assert.h>
 
-class D3DProxyDeviceMono : public D3DProxyDevice
-{
-public:
-	D3DProxyDeviceMono(IDirect3DDevice9* pDevice);
-	virtual ~D3DProxyDeviceMono();
+// 64mm in meters
+#define IPD_DEFAULT 0.064f
 
-	virtual HRESULT WINAPI BeginScene();
-	virtual HRESULT WINAPI EndScene();
-	virtual HRESULT WINAPI Present(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion);
+namespace vireio {
+
+	enum RenderPosition
+	{
+		// porbably need an 'Original' here
+		Left = 1,
+		Right = 2
+		
+	};
+
+	/*
+		Returns actualy textures from wrapped texture.
+		pWrappedTexture - Input, wrapped texture
+		ppActualLeftTexture, ppActualRightTexture - Output. Will be set to the actual texztures from pWrappedTexture. Left should never be NULL. Right maybe NULL if texture isn't stereo
+	 */
+    void UnWrapTexture(IDirect3DBaseTexture9* pWrappedTexture, IDirect3DBaseTexture9** ppActualLeftTexture, IDirect3DBaseTexture9** ppActualRightTexture);
+
+	
+	bool AlmostSame(float a, float b, float epsilon);
+	void clamp(float* toClamp, float min, float max);
+
+	
 };
 
 #endif

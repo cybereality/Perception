@@ -1,6 +1,6 @@
 /********************************************************************
 Vireio Perception: Open-Source Stereoscopic 3D Driver
-Copyright (C) 2012 Andres Hernandez
+Copyright (C) 2013 Chris Drain
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -16,29 +16,29 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#ifndef D3DPROXYDEVICETEST_H_INCLUDED
-#define D3DPROXYDEVICETEST_H_INCLUDED
+#ifndef DATAGATHERER_H_INCLUDED
+#define DATAGATHERER_H_INCLUDED
 
 #include "Direct3DDevice9.h"
 #include "D3DProxyDevice.h"
 #include "ProxyHelper.h"
+#include "MurmurHash3.h"
+#include "Direct3DVertexShader9.h"
 
-class D3DProxyDeviceTest : public D3DProxyDevice
+class DataGatherer : public D3DProxyDevice
 {
 public:
-	D3DProxyDeviceTest(IDirect3DDevice9* pDevice);
-	virtual ~D3DProxyDeviceTest();
-	virtual HRESULT WINAPI BeginScene();
-	virtual HRESULT WINAPI EndScene();
-	virtual HRESULT WINAPI Present(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion);
-	virtual HRESULT WINAPI SetVertexShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
-	//virtual HRESULT WINAPI SetDepthStencilSurface(IDirect3DSurface9* pNewZStencil);
-	//virtual HRESULT WINAPI SetTransform(D3DTRANSFORMSTATETYPE State,CONST D3DMATRIX* pMatrix);
+	DataGatherer(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy);
+	virtual ~DataGatherer();
+	
+	virtual HRESULT WINAPI CreateVertexShader(CONST DWORD* pFunction,IDirect3DVertexShader9** ppShader);
 
 	virtual void Init(ProxyHelper::ProxyConfig& cfg);
-	bool validRegister(UINT reg);
-	bool validVectorCount(UINT count);
-	int getMatrixIndex();
+	
+
+private:
+	std::unordered_set<IDirect3DVertexShader9*> m_recordedShaders;
+	std::ofstream m_shaderDumpFile;
 };
 
 #endif

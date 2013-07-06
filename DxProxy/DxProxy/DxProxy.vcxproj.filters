@@ -1,22 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Direct3D9">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
-    <Filter Include="Direct3DDevice9">
-      <UniqueIdentifier>{93a782b4-50f3-4315-aec5-14456eba641a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Main">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
     <Filter Include="Proxy">
       <UniqueIdentifier>{80cc0ca4-7c65-4467-9166-d0e377de5737}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Implementation">
-      <UniqueIdentifier>{723f04f1-e44b-4f6f-9011-24c8278349b1}</UniqueIdentifier>
     </Filter>
     <Filter Include="Stereo">
       <UniqueIdentifier>{8e86dd19-8c6e-4701-9dbe-401badc08f9a}</UniqueIdentifier>
@@ -33,25 +23,34 @@
     <Filter Include="fx">
       <UniqueIdentifier>{6f7e6df9-0c4f-45c2-a4de-a22f8771da08}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Direct3D9">
+      <UniqueIdentifier>{8518770f-4911-4264-a4c6-0a7e92a34b5d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Direct3D9Vireio">
+      <UniqueIdentifier>{28b4cc66-4af3-4ac4-99aa-5a29de9ba8b2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Direct3D9Vireio\Direct3DDevice9">
+      <UniqueIdentifier>{4ef859f6-c511-4db2-b101-b5a4fca35325}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Direct3D9Vireio\Direct3DTextures">
+      <UniqueIdentifier>{7c1b5925-d5df-4200-b704-5db49ccbcd35}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MurmurHash3">
+      <UniqueIdentifier>{ce4cba8f-29ab-44a7-9545-c1859fe4213e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Direct3D9Vireio\ShaderConstantModification">
+      <UniqueIdentifier>{084bd177-106f-45e6-a3bf-8f38a1279b73}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="cfg\shader_rules">
+      <UniqueIdentifier>{001cd5d3-206b-4679-9b96-8e7a1aacf08f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
       <Filter>Main</Filter>
     </ClCompile>
-    <ClCompile Include="Direct3DDevice9.cpp">
-      <Filter>Direct3DDevice9</Filter>
-    </ClCompile>
-    <ClCompile Include="Direct3D9.cpp">
-      <Filter>Direct3D9</Filter>
-    </ClCompile>
     <ClCompile Include="ProxyHelper.cpp">
       <Filter>Proxy</Filter>
-    </ClCompile>
-    <ClCompile Include="D3DProxyDeviceSource.cpp">
-      <Filter>Implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="D3DProxyDeviceUnreal.cpp">
-      <Filter>Implementation</Filter>
     </ClCompile>
     <ClCompile Include="StereoViewFactory.cpp">
       <Filter>Stereo</Filter>
@@ -59,35 +58,14 @@
     <ClCompile Include="StereoView.cpp">
       <Filter>Stereo</Filter>
     </ClCompile>
-    <ClCompile Include="D3DProxyDevice.cpp">
-      <Filter>Implementation</Filter>
-    </ClCompile>
     <ClCompile Include="StereoViewInterleave.cpp">
       <Filter>Stereo</Filter>
-    </ClCompile>
-    <ClCompile Include="D3DProxyDeviceFactory.cpp">
-      <Filter>Implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="D3DProxyDeviceTest.cpp">
-      <Filter>Implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="D3DProxyDeviceMono.cpp">
-      <Filter>Implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="D3DProxyDeviceEgo.cpp">
-      <Filter>Implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="D3DProxyDeviceFixed.cpp">
-      <Filter>Implementation</Filter>
     </ClCompile>
     <ClCompile Include="FreeSpaceTracker.cpp">
       <Filter>Tracking</Filter>
     </ClCompile>
     <ClCompile Include="MotionTracker.cpp">
       <Filter>Tracking</Filter>
-    </ClCompile>
-    <ClCompile Include="D3DProxyDeviceAdv.cpp">
-      <Filter>Implementation</Filter>
     </ClCompile>
     <ClCompile Include="pugixml.cpp">
       <Filter>XML</Filter>
@@ -107,33 +85,150 @@
     <ClCompile Include="OculusRiftView.cpp">
       <Filter>Stereo</Filter>
     </ClCompile>
-    <ClCompile Include="D3DProxyDeviceLFS.cpp">
-      <Filter>Implementation</Filter>
+    <ClCompile Include="D3DProxyDevice.cpp">
+      <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
+    </ClCompile>
+    <ClCompile Include="D3DProxyDeviceAdv.cpp">
+      <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
+    </ClCompile>
+    <ClCompile Include="D3DProxyDeviceEgo.cpp">
+      <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
+    </ClCompile>
+    <ClCompile Include="D3DProxyDeviceFactory.cpp">
+      <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3D9.cpp">
+      <Filter>Direct3D9</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3DDevice9.cpp">
+      <Filter>Direct3D9</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3DSurface9.cpp">
+      <Filter>Direct3D9</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3DTexture9.cpp">
+      <Filter>Direct3D9</Filter>
+    </ClCompile>
+    <ClCompile Include="D3D9ProxyTexture.cpp">
+      <Filter>Direct3D9Vireio\Direct3DTextures</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3DCubeTexture9.cpp">
+      <Filter>Direct3D9</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3DVolumeTexture9.cpp">
+      <Filter>Direct3D9</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3DVolume9.cpp">
+      <Filter>Direct3D9</Filter>
+    </ClCompile>
+    <ClCompile Include="D3D9ProxyVolume.cpp">
+      <Filter>Direct3D9Vireio</Filter>
+    </ClCompile>
+    <ClCompile Include="D3D9ProxyCubeTexture.cpp">
+      <Filter>Direct3D9Vireio\Direct3DTextures</Filter>
+    </ClCompile>
+    <ClCompile Include="D3D9ProxyVolumeTexture.cpp">
+      <Filter>Direct3D9Vireio\Direct3DTextures</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3DVertexShader9.cpp">
+      <Filter>Direct3D9</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3DPixelShader9.cpp">
+      <Filter>Direct3D9</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3DVertexDeclaration9.cpp">
+      <Filter>Direct3D9</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3DStateBlock9.cpp">
+      <Filter>Direct3D9</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3DVertexBuffer9.cpp">
+      <Filter>Direct3D9</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3DIndexBuffer9.cpp">
+      <Filter>Direct3D9</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3DQuery9.cpp">
+      <Filter>Direct3D9</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3DSwapChain9.cpp">
+      <Filter>Direct3D9</Filter>
+    </ClCompile>
+    <ClCompile Include="D3D9ProxySwapChain.cpp">
+      <Filter>Direct3D9Vireio</Filter>
+    </ClCompile>
+    <ClCompile Include="D3D9ProxySurface.cpp">
+      <Filter>Direct3D9Vireio</Filter>
+    </ClCompile>
+    <ClCompile Include="D3D9ProxyStateBlock.cpp">
+      <Filter>Direct3D9Vireio</Filter>
+    </ClCompile>
+    <ClCompile Include="StereoBackbuffer.cpp">
+      <Filter>Direct3D9Vireio</Filter>
+    </ClCompile>
+    <ClCompile Include="DataGatherer.cpp">
+      <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
+    </ClCompile>
+    <ClCompile Include="MurmurHash3.cpp">
+      <Filter>MurmurHash3</Filter>
+    </ClCompile>
+    <ClCompile Include="GameHandler.cpp">
+      <Filter>Direct3D9Vireio</Filter>
+    </ClCompile>
+    <ClCompile Include="D3D9ProxyVertexShader.cpp">
+      <Filter>Direct3D9Vireio</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderRegisters.cpp">
+      <Filter>Direct3D9Vireio</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderModificationRepository.cpp">
+      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
+    </ClCompile>
+    <ClCompile Include="Vireio.cpp">
+      <Filter>Direct3D9Vireio</Filter>
+    </ClCompile>
+    <ClCompile Include="ViewAdjustment.cpp">
+      <Filter>Direct3D9Vireio</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Exports.def">
       <Filter>Main</Filter>
     </None>
+    <None Include="SideBySideRiftPartialCrop.fx">
+      <Filter>fx</Filter>
+    </None>
+    <None Include="..\..\Release\Perception\cfg\shader_rules\source.xml">
+      <Filter>cfg\shader_rules</Filter>
+    </None>
+    <None Include="..\..\Release\Perception\cfg\shader_rules\example.xml">
+      <Filter>cfg\shader_rules</Filter>
+    </None>
+    <None Include="..\..\Release\Perception\cfg\shader_rules\ego.xml">
+      <Filter>cfg\shader_rules</Filter>
+    </None>
+    <None Include="..\..\Release\Perception\cfg\shader_rules\unreal.xml">
+      <Filter>cfg\shader_rules</Filter>
+    </None>
+    <None Include="..\..\Release\Perception\cfg\shader_rules\rfactor.xml">
+      <Filter>cfg\shader_rules</Filter>
+    </None>
+    <None Include="..\..\Release\Perception\cfg\shader_rules\borderlands2.xml">
+      <Filter>cfg\shader_rules</Filter>
+    </None>
+    <None Include="..\..\Release\Perception\cfg\shader_rules\omd2.xml">
+      <Filter>cfg\shader_rules</Filter>
+    </None>
+    <None Include="..\..\Release\Perception\cfg\shader_rules\serious3.xml">
+      <Filter>cfg\shader_rules</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Main.h">
       <Filter>Main</Filter>
     </ClInclude>
-    <ClInclude Include="Direct3DDevice9.h">
-      <Filter>Direct3DDevice9</Filter>
-    </ClInclude>
-    <ClInclude Include="Direct3D9.h">
-      <Filter>Direct3D9</Filter>
-    </ClInclude>
     <ClInclude Include="ProxyHelper.h">
       <Filter>Proxy</Filter>
-    </ClInclude>
-    <ClInclude Include="D3DProxyDeviceSource.h">
-      <Filter>Implementation</Filter>
-    </ClInclude>
-    <ClInclude Include="D3DProxyDeviceUnreal.h">
-      <Filter>Implementation</Filter>
     </ClInclude>
     <ClInclude Include="StereoView.h">
       <Filter>Stereo</Filter>
@@ -141,35 +236,14 @@
     <ClInclude Include="StereoViewFactory.h">
       <Filter>Stereo</Filter>
     </ClInclude>
-    <ClInclude Include="D3DProxyDevice.h">
-      <Filter>Implementation</Filter>
-    </ClInclude>
     <ClInclude Include="StereoViewInterleave.h">
       <Filter>Stereo</Filter>
-    </ClInclude>
-    <ClInclude Include="D3DProxyDeviceFactory.h">
-      <Filter>Implementation</Filter>
-    </ClInclude>
-    <ClInclude Include="D3DProxyDeviceTest.h">
-      <Filter>Implementation</Filter>
-    </ClInclude>
-    <ClInclude Include="D3DProxyDeviceMono.h">
-      <Filter>Implementation</Filter>
-    </ClInclude>
-    <ClInclude Include="D3DProxyDeviceEgo.h">
-      <Filter>Implementation</Filter>
-    </ClInclude>
-    <ClInclude Include="D3DProxyDeviceFixed.h">
-      <Filter>Implementation</Filter>
     </ClInclude>
     <ClInclude Include="FreeSpaceTracker.h">
       <Filter>Tracking</Filter>
     </ClInclude>
     <ClInclude Include="MotionTracker.h">
       <Filter>Tracking</Filter>
-    </ClInclude>
-    <ClInclude Include="D3DProxyDeviceAdv.h">
-      <Filter>Implementation</Filter>
     </ClInclude>
     <ClInclude Include="pugiconfig.hpp">
       <Filter>XML</Filter>
@@ -192,8 +266,138 @@
     <ClInclude Include="OculusRiftView.h">
       <Filter>Stereo</Filter>
     </ClInclude>
-    <ClInclude Include="D3DProxyDeviceLFS.h">
-      <Filter>Implementation</Filter>
+    <ClInclude Include="D3DProxyDevice.h">
+      <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
+    </ClInclude>
+    <ClInclude Include="D3DProxyDeviceAdv.h">
+      <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
+    </ClInclude>
+    <ClInclude Include="D3DProxyDeviceEgo.h">
+      <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
+    </ClInclude>
+    <ClInclude Include="D3DProxyDeviceFactory.h">
+      <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3D9.h">
+      <Filter>Direct3D9</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3DDevice9.h">
+      <Filter>Direct3D9</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3DSurface9.h">
+      <Filter>Direct3D9</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3DTexture9.h">
+      <Filter>Direct3D9</Filter>
+    </ClInclude>
+    <ClInclude Include="D3D9ProxyTexture.h">
+      <Filter>Direct3D9Vireio\Direct3DTextures</Filter>
+    </ClInclude>
+    <ClInclude Include="IStereoCapableWrapper.h">
+      <Filter>Direct3D9Vireio</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3DCubeTexture9.h">
+      <Filter>Direct3D9</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3DVolumeTexture9.h">
+      <Filter>Direct3D9</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3DVolume9.h">
+      <Filter>Direct3D9</Filter>
+    </ClInclude>
+    <ClInclude Include="D3D9ProxyVolume.h">
+      <Filter>Direct3D9Vireio</Filter>
+    </ClInclude>
+    <ClInclude Include="D3D9ProxyCubeTexture.h">
+      <Filter>Direct3D9Vireio\Direct3DTextures</Filter>
+    </ClInclude>
+    <ClInclude Include="D3D9ProxyVolumeTexture.h">
+      <Filter>Direct3D9Vireio\Direct3DTextures</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3DVertexShader9.h">
+      <Filter>Direct3D9</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3DPixelShader9.h">
+      <Filter>Direct3D9</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3DVertexDeclaration9.h">
+      <Filter>Direct3D9</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3DStateBlock9.h">
+      <Filter>Direct3D9</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3DVertexBuffer9.h">
+      <Filter>Direct3D9</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3DIndexBuffer9.h">
+      <Filter>Direct3D9</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3DQuery9.h">
+      <Filter>Direct3D9</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3DSwapChain9.h">
+      <Filter>Direct3D9</Filter>
+    </ClInclude>
+    <ClInclude Include="D3D9ProxySwapChain.h">
+      <Filter>Direct3D9Vireio</Filter>
+    </ClInclude>
+    <ClInclude Include="D3D9ProxySurface.h">
+      <Filter>Direct3D9Vireio</Filter>
+    </ClInclude>
+    <ClInclude Include="D3D9ProxyStateBlock.h">
+      <Filter>Direct3D9Vireio</Filter>
+    </ClInclude>
+    <ClInclude Include="StereoBackbuffer.h">
+      <Filter>Direct3D9Vireio</Filter>
+    </ClInclude>
+    <ClInclude Include="DataGatherer.h">
+      <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderRegisters.h">
+      <Filter>Direct3D9Vireio</Filter>
+    </ClInclude>
+    <ClInclude Include="GameHandler.h">
+      <Filter>Direct3D9Vireio</Filter>
+    </ClInclude>
+    <ClInclude Include="MurmurHash3.h">
+      <Filter>MurmurHash3</Filter>
+    </ClInclude>
+    <ClInclude Include="D3D9ProxyVertexShader.h">
+      <Filter>Direct3D9Vireio</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderConstantModification.h">
+      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderModificationRepository.h">
+      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderConstantModificationFactory.h">
+      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
+    </ClInclude>
+    <ClInclude Include="StereoShaderConstant.h">
+      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
+    </ClInclude>
+    <ClInclude Include="Vireio.h">
+      <Filter>Direct3D9Vireio</Filter>
+    </ClInclude>
+    <ClInclude Include="Vector4SimpleTranslate.h">
+      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
+    </ClInclude>
+    <ClInclude Include="MatrixDoNothing.h">
+      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
+    </ClInclude>
+    <ClInclude Include="ViewAdjustment.h">
+      <Filter>Direct3D9Vireio</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderMatrixModification.h">
+      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
+    </ClInclude>
+    <ClInclude Include="MatrixIgnoreOrtho.h">
+      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
+    </ClInclude>
+    <ClInclude Include="HMDisplayInfo.h" />
+    <ClInclude Include="MatrixHudSquash.h">
+      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -27,7 +27,7 @@ public:
 	StereoViewInterleave(ProxyHelper::ProxyConfig& config);
 	~StereoViewInterleave();
 
-	virtual void Draw();
+	//virtual void Draw();
 };
 
 #endif

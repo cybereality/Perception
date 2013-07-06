@@ -1,6 +1,6 @@
 /********************************************************************
 Vireio Perception: Open-Source Stereoscopic 3D Driver
-Copyright (C) 2012 Andres Hernandez
+Copyright (C) 2013 Chris Drain
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -16,25 +16,31 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#ifndef D3DPROXYDEVICESOURCE_H_INCLUDED
-#define D3DPROXYDEVICESOURCE_H_INCLUDED
+#include <assert.h>
+#include "StereoBackBuffer.h"
 
-#include "Direct3DDevice9.h"
-#include "D3DProxyDevice.h"
-#include <d3dx9.h>
 
-class D3DProxyDeviceSource : public D3DProxyDevice
+StereoBackBuffer::StereoBackBuffer(IDirect3DSurface9* pActualSurfaceLeft, IDirect3DSurface9* pActualSurfaceRight, BaseDirect3DDevice9* pOwningDevice) :
+	D3D9ProxySurface(pActualSurfaceLeft, pActualSurfaceRight, pOwningDevice, NULL)
 {
-public:
-	D3DProxyDeviceSource(IDirect3DDevice9* pDevice);
-	virtual ~D3DProxyDeviceSource();
-	virtual HRESULT WINAPI EndScene();
-	virtual HRESULT WINAPI Present(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion);
-	virtual HRESULT WINAPI SetVertexShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
 
-	void Init(ProxyHelper::ProxyConfig& cfg);
-	bool validRegister(UINT reg);
-	int getMatrixIndex();
-};
+}
 
-#endif
+StereoBackBuffer::~StereoBackBuffer()
+{
+
+}
+
+
+
+
+ULONG WINAPI StereoBackBuffer::Release()
+{
+	// Back buffers don't appear to be destroyed when the refcount reaches 0. So the wrapper must be forcibly destroyed by the swap chain just before reset
+	// (see SwapChain::Destroy()) and ProxySwapChain destructor
+	if (m_nRefCount > 0) { 
+		--m_nRefCount;
+	}
+
+	return m_nRefCount;
+}

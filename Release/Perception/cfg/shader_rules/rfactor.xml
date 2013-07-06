@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<shaderConfig>
+  <rules>
+    <rule id="1" constantType="MatrixC" modToApply="1" startReg="0"/>
+  </rules>
+
+  <defaultRuleIDs>
+    <ruleID id="1" />
+  </defaultRuleIDs>
+</shaderConfig>

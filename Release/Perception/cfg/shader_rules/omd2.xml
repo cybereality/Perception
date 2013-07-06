@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<shaderConfig>
+  <!-- WIP
+    Notes: The 2D elements like the HUD and menus need to use rule 2. The models in game use rule 1. 
+    Doesn't look correct, but that was testing without reprojection.
+    -->
+  <rules>
+    <rule id="1" constantType="MatrixC" modToApply="1" constantName ="matMVP" transpose="false"/>
+    <rule id="2" constantType="MatrixC" modToApply="4" constantName ="mvp" transpose="true"/>
+  </rules>
+
+  <defaultRuleIDs>
+    <ruleID id="1" />
+    <ruleID id="2" />
+  </defaultRuleIDs>
+</shaderConfig>

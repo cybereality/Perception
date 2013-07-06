@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <d3dx9.h>
 #include <map>
 #include <string.h>
+#include <assert.h>
 
 class StereoView
 {
@@ -56,30 +57,57 @@ public:
 
 	StereoView(ProxyHelper::ProxyConfig& config);
 	virtual ~StereoView();
-	virtual void Init(IDirect3DDevice9* dev);
-	virtual void InitTextureBuffers();
-	virtual void InitVertexBuffers();
-	virtual void InitShaderEffects();
-	virtual void Draw();
+
+	/* Must be initialised with an actual device. Not a wrapped device*/
+	virtual void Init(IDirect3DDevice9* pActualDevice);
+	
+	//virtual void Draw();
+	virtual void Draw(D3D9ProxySurface* stereoCapableSurface);
+	
+	//virtual void UpdateEye(int eye);
+	virtual void SaveScreen();
+	virtual void ReleaseEverything();
+	virtual void PostReset();
+
+	
+	D3DVIEWPORT9 viewport;
+
+	
+	bool swapEyes;
+	bool initialized;
+	int game_type;
+	int stereo_mode;
+
+	int stereoEnabled;
+
+
+	
+
+	float DistortionScale;	// used by OculusRiftView and D3DProxyDevice
+
+
+protected:
+	IDirect3DDevice9* m_pActualDevice;
+
+	virtual void SetViewEffectInitialValues();
+	virtual void CalculateShaderVariables();
+
 	virtual void SaveState();
 	virtual void SetState();
 	virtual void RestoreState();
-	virtual void UpdateEye(int eye);
-	virtual void SaveScreen();
-	virtual void SwapEyes(bool doSwap);
-	virtual void Reset();
 
-	IDirect3DDevice9* device;
+	virtual void InitTextureBuffers();
+	virtual void InitVertexBuffers();
+	virtual void InitShaderEffects();
 
-	D3DVIEWPORT9 viewport;
 
-	IDirect3DSurface9* backBuffer;
+
 	IDirect3DTexture9* leftTexture;
 	IDirect3DTexture9* rightTexture;
-	IDirect3DTexture9* screenTexture;
+	IDirect3DSurface9* backBuffer;
 	IDirect3DSurface9* leftSurface;
 	IDirect3DSurface9* rightSurface;
-	IDirect3DSurface9* screenSurface;
+
 
 	IDirect3DVertexBuffer9* screenVertexBuffer;
 
@@ -119,25 +147,10 @@ public:
 
 	ID3DXEffect* viewEffect;
 
-	bool initialized;
-	int game_type;
-	int stereo_mode;
-	bool swap_eyes;
-
-	int stereoEnabled;
-
-	/// for OculusRiftView adjustments in D3DProxyDevice
-	float LensCenter[2];
-	float LensShift[2];
-	float ScreenCenter[2];
-	float Scale[2];
-	float ScaleIn[2];
-	float HmdWarpParam[4];
-	///
-
 	std::map<int, std::string> shaderEffect;
 
-	float DistortionScale;	// used by OculusRiftView and D3DProxyDevice
+	IDirect3DStateBlock9* sb;
+
 };
 
 const DWORD D3DFVF_TEXVERTEX = D3DFVF_XYZRHW | D3DFVF_TEX1;

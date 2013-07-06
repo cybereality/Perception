@@ -20,24 +20,27 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define OCULUSRIFTVIEW_H_INCLUDED
 
 #include "StereoView.h"
+#include "HMDisplayInfo.h"
 
 class OculusRiftView : public StereoView
 {
 public:
 
-	OculusRiftView(ProxyHelper::ProxyConfig& config);
-	virtual ~OculusRiftView();
-	virtual void Init(IDirect3DDevice9* dev);
-	virtual void InitTextureBuffers();
-	virtual void InitVertexBuffers();
+	OculusRiftView(ProxyHelper::ProxyConfig& config, HMDisplayInfo hmd);
+	//virtual ~OculusRiftView();
 	virtual void InitShaderEffects();
-	virtual void Draw();
-	virtual void SaveState();
-	virtual void SetState();
-	virtual void RestoreState();
-	virtual void UpdateEye(int eye);
 
-	void CalculateShaderVariables(int eye);
+	virtual void SetViewEffectInitialValues();
+
+
+	virtual void CalculateShaderVariables( );
+
+private:
+	float LensCenter[2];
+	float Scale[2];
+	float ScaleIn[2];
+
+	HMDisplayInfo hmdInfo;
 };
 
 #endif
