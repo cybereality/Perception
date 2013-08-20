@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 
-class BaseDirect3D9 : public IDirect3D9
+class __declspec(dllexport) BaseDirect3D9 : public IDirect3D9
 {
 public:
 	BaseDirect3D9(IDirect3D9* pD3D);
