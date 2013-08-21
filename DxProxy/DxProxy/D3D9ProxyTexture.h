@@ -25,21 +25,28 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "D3D9ProxySurface.h"
 #include "IStereoCapableWrapper.h"
 
-
+/**
+* 
+* 
+*/
 class D3D9ProxyTexture : public BaseDirect3DTexture9, public IStereoCapableWrapper<IDirect3DTexture9>
 {
 public:
 	D3D9ProxyTexture(IDirect3DTexture9* pActualTextureLeft, IDirect3DTexture9* pActualTextureRight, BaseDirect3DDevice9* pOwningDevice);
 	virtual ~D3D9ProxyTexture();
 
-	// IStereoCapableWrapper
+	/*** IUnknown methods ***/
+	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv);
+
+
+	// IStereoCapableWrapper /*** public methods ***/
 	virtual bool IsStereo();
 	virtual IDirect3DTexture9* getActualMono();
 	virtual IDirect3DTexture9* getActualLeft();
 	virtual IDirect3DTexture9* getActualRight();
 	
 	
-	// IDirect3DResource9 methods
+	// IDirect3DResource9 methods /*** public methods ***/
 	virtual HRESULT WINAPI GetDevice(IDirect3DDevice9** ppDevice);	
 	virtual HRESULT WINAPI SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags);
 	virtual HRESULT WINAPI FreePrivateData(REFGUID refguid);

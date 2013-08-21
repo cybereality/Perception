@@ -17,7 +17,7 @@
 
 // Microsoft Visual Studio
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && (_MSC_VER<1700)
 
 typedef unsigned char uint8_t;
 typedef unsigned long uint32_t;
@@ -36,11 +36,11 @@ typedef unsigned __int64 uint64_t;
 
 // Other compilers
 
-#else	// defined(_MSC_VER)
+#else	// defined(_MSC_VER) && (_MSC_VER<1700)
 
 #include <stdint.h>
 
-#endif // !defined(_MSC_VER)
+#endif // !defined(_MSC_VER) && (_MSC_VER<1700)
 
 //-----------------------------------------------------------------------------
 
