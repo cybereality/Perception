@@ -21,22 +21,29 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define IS_RENDER_TARGET(d3dusage) ((d3dusage & D3DUSAGE_RENDERTARGET) > 0 ? true : false)
 #define IS_POOL_DEFAULT(d3dpool) ((d3dpool & D3DPOOL_DEFAULT) > 0 ? true : false)
 
-
+/**
+* Almost empty constructor.
+***/
 GameHandler::GameHandler() :
 	m_ShaderModificationRepository(nullptr)
 {
 	
 }
 
+/**
+* Almost empty destructor.
+***/
 GameHandler::~GameHandler()
 {
 	if (m_ShaderModificationRepository)
 		delete m_ShaderModificationRepository;
-
-	
 }
 
-
+/**
+* Loads the shader view adjustments for the handled game.
+* @param cfg The game configuration.
+* @param spShaderViewAdjustments 
+***/
 bool GameHandler::Load(ProxyHelper::ProxyConfig& cfg, std::shared_ptr<ViewAdjustment> spShaderViewAdjustments)
 {
 	// Get rid of existing modification repository if there is one (shouldn't be, load should only need to be called once)
@@ -44,7 +51,6 @@ bool GameHandler::Load(ProxyHelper::ProxyConfig& cfg, std::shared_ptr<ViewAdjust
 		delete m_ShaderModificationRepository;
 		m_ShaderModificationRepository = nullptr;
 	}
-
 
 	bool loadSuccess = true;
 
@@ -60,17 +66,16 @@ bool GameHandler::Load(ProxyHelper::ProxyConfig& cfg, std::shared_ptr<ViewAdjust
 	else {
 		OutputDebugString("No shader rule path found. No rules to apply");
 		// We call this success as we have successfully loaded nothing. We assume 'no rules' is intentional
-	}
-	
+	}	
 
 	return true;
 }
 
-//TODO implementation - For now use one set of rules for everything, at some point this is probably going to need to be reworked to allow modifications per game.
-// TODO - externalise these as rules? It might be good to have default values for various rules like
-// "Don't duplicate targets smaller than X pixels", where that rule could be enabled and the value changed in the cfg file for the game
-// Do something similar to shader modifications?
-// Extending class and overriding these methods would end up with a similar problem with duplicate code to original shader handling. Try and avoid (or at least find approach that avoids the duplication)
+/**
+* True if the by parameters described render target is to be duplicated for the handled game.
+* Currently, always returns true.
+* @see D3DProxyDevice::CreateRenderTarget()
+***/
 bool GameHandler::ShouldDuplicateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample, DWORD MultisampleQuality,BOOL Lockable, bool isSwapChainBackBuffer)
 {
 	if (isSwapChainBackBuffer) {
@@ -84,12 +89,22 @@ bool GameHandler::ShouldDuplicateRenderTarget(UINT Width, UINT Height, D3DFORMAT
 
 }
 
+/**
+* True if the by parameters described depth stencil surface is to be duplicated for the handled game.
+* Currently, always returns true.
+* @see D3DProxyDevice::CreateDepthStencilSurface()
+***/
 bool GameHandler::ShouldDuplicateDepthStencilSurface(UINT Width,UINT Height,D3DFORMAT Format,D3DMULTISAMPLE_TYPE MultiSample,DWORD MultisampleQuality,BOOL Discard)
 {
 	//TODO implementation
 	return true;
 }
 
+/**
+* True if the by parameters described texture is to be duplicated for the handled game.
+* Currently, returns true if texture is a render target.
+* @see D3DProxyDevice::CreateTexture()
+***/
 bool GameHandler::ShouldDuplicateTexture(UINT Width,UINT Height,UINT Levels,DWORD Usage, D3DFORMAT Format,D3DPOOL Pool)
 {
 	//TODO implementation
@@ -97,6 +112,11 @@ bool GameHandler::ShouldDuplicateTexture(UINT Width,UINT Height,UINT Levels,DWOR
 	return IS_RENDER_TARGET(Usage);
 }
 
+/**
+* True if the by parameters described cube texture is to be duplicated for the handled game.
+* Currently, returns true if cube texture is a render target.
+* @see D3DProxyDevice::CreateCubeTexture()
+***/
 bool GameHandler::ShouldDuplicateCubeTexture(UINT EdgeLength, UINT Levels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool)
 {
 	//TODO implementation
@@ -104,7 +124,9 @@ bool GameHandler::ShouldDuplicateCubeTexture(UINT EdgeLength, UINT Levels, DWORD
 	return IS_RENDER_TARGET(Usage);
 }
 
-
+/**
+* Returns the shader modification repository for the handled game.
+***/
 ShaderModificationRepository* GameHandler::GetShaderModificationRepository()
 {
 	return m_ShaderModificationRepository;

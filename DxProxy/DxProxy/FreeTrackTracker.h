@@ -18,17 +18,31 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "MotionTracker.h"
 
+/**
+* Freetrack tracker class.
+* FreeTrack is a free optical motion tracking application for Microsoft Windows, released under the
+* GNU General Public License. Its main function is inexpensive head tracking in computer games and 
+* simulations but can also be used for general computer accessibility, in particular hands-free 
+* computing. Tracking is sensitive enough that only small head movements are required so that the 
+* user's eyes never leave the screen. <http://www.free-track.net/english/>
+***/
 class FreeTrackTracker : public MotionTracker
 {
 public:
 	FreeTrackTracker(void);
 	~FreeTrackTracker(void);
-	int getOrientation(float* yaw, float* pitch, float* roll);
-	bool isAvailable();
-	int init();
+
+	/*** FreeTrackTracker public methods ***/
+	int  init();
 	void reset();
 	void destroy();
+	int  getOrientation(float* yaw, float* pitch, float* roll);
+	bool isAvailable();
+	
 private:
+	/**
+	* FreeTrack tracking data structure.
+	***/
 	typedef struct
 	{
 		unsigned long int dataID;
@@ -54,16 +68,40 @@ private:
 		float y3;
 		float x4;
 		float y4;
-	}FreeTrackData;
-
+	} FreeTrackData;
+	/**
+	* FreeTrack FTGetData function type definition.
+	***/
 	typedef bool (WINAPI *importGetData)(FreeTrackData * data);
-
+	/**
+	* FreeTrack library instance handle.
+	***/
 	HINSTANCE hinstLib;
+	/**
+	* FreeTrack FTGetData function.
+	***/
 	importGetData getData;
+	/**
+	* FreeTrack tracking data.
+	***/
 	FreeTrackData data;
+	/**
+	* FreeTrack tracking data pointer.
+	***/
 	FreeTrackData *pData;
-
-	float lastRoll;
-	float lastPitch;
+	/**
+	* FreeTrack yaw angle retrieved.
+	* Returned negated.
+	***/
 	float lastYaw;
+	/**
+	* FreeTrack pitch angle retrieved.
+	* Returned negated.
+	***/
+	float lastPitch;
+	/**
+	* FreeTrack roll angle retrieved.
+	* Returned negated.
+	***/
+	float lastRoll;
 };

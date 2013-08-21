@@ -22,41 +22,49 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <d3d9.h>
 #include "Direct3DDevice9.h"
 
+/**
+*  Direct 3D index buffer class. 
+*  Overwrites IDirect3DIndexBuffer9 and imbeds the actual index buffer.
+*/
 class BaseDirect3DIndexBuffer9 : public IDirect3DIndexBuffer9
 {
 public:
 	BaseDirect3DIndexBuffer9(IDirect3DIndexBuffer9* pActualIndexBuffer, IDirect3DDevice9* pOwningDevice);
 	virtual ~BaseDirect3DIndexBuffer9();
 
+	/*** IUnknown methods ***/
+	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv);
+	virtual ULONG   WINAPI AddRef();
+	virtual ULONG   WINAPI Release();
+
+	/*** IDirect3DResource9 methods ***/
+	virtual HRESULT         WINAPI GetDevice(IDirect3DDevice9** ppDevice);
+	virtual HRESULT         WINAPI SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags);
+	virtual HRESULT         WINAPI GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData);
+	virtual HRESULT	        WINAPI FreePrivateData(REFGUID refguid);
+	virtual DWORD           WINAPI SetPriority(DWORD PriorityNew);
+	virtual DWORD           WINAPI GetPriority();
+	virtual void            WINAPI PreLoad();
+	virtual D3DRESOURCETYPE WINAPI GetType();
+	virtual HRESULT         WINAPI Lock(UINT OffsetToLock, UINT SizeToLock, VOID **ppbData, DWORD Flags);
+	virtual HRESULT         WINAPI Unlock();
+	virtual HRESULT         WINAPI GetDesc(D3DINDEXBUFFER_DESC *pDesc);
+
+	/*** BaseDirect3DIndexBuffer9 methods ***/
 	IDirect3DIndexBuffer9* getActual();
 
-	// IUnknown
-	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv);
-	virtual ULONG WINAPI AddRef();
-	virtual ULONG WINAPI Release();
-
-
-	// IDirect3DResource9
-	virtual HRESULT WINAPI GetDevice(IDirect3DDevice9** ppDevice);
-	virtual HRESULT WINAPI SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags);
-	virtual HRESULT WINAPI GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData);
-	virtual HRESULT WINAPI FreePrivateData(REFGUID refguid);
-	virtual   DWORD WINAPI SetPriority(DWORD PriorityNew);
-	virtual   DWORD WINAPI GetPriority();
-	virtual    void WINAPI PreLoad();
-	virtual D3DRESOURCETYPE WINAPI GetType();
-
-
-
-	// IDirect3DIndexBuffer9
-	virtual HRESULT WINAPI GetDesc(D3DINDEXBUFFER_DESC *pDesc);
-	virtual HRESULT WINAPI Lock(UINT OffsetToLock, UINT SizeToLock, VOID **ppbData, DWORD Flags);
-	virtual HRESULT WINAPI Unlock();
-
 protected:
-
+	/**
+	* The actual index buffer embedded. 
+	***/
 	IDirect3DIndexBuffer9* const m_pActualIndexBuffer;
+	/**
+	* Pointer to the D3D device that owns the buffer. 
+	***/
 	IDirect3DDevice9* m_pOwningDevice;
+	/**
+	* Internal reference counter. 
+	***/
 	ULONG m_nRefCount;
 };
 

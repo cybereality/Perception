@@ -11,6 +11,8 @@
  * Copyright (C) 2003, by Kristen Wegner (kristen@tima.net)
  */
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
 #ifndef HEADER_PUGICONFIG_HPP
 #define HEADER_PUGICONFIG_HPP
 
@@ -42,6 +44,8 @@
 // #define PUGIXML_MEMORY_XPATH_PAGE_SIZE 4096
 
 #endif
+
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  * Copyright (c) 2006-2012 Arseny Kapoulkine

@@ -19,7 +19,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ShaderRegisters.h"
 #include <assert.h>
 
-
+/**
+* Constructor, creates register vector.
+* @param maxConstantRegistersF Maximum number of constant registers.
+* @param pActualDevice Pointer to actual (not wrapped) D3D device.
+***/
 ShaderRegisters::ShaderRegisters(DWORD maxConstantRegistersF, IDirect3DDevice9* pActualDevice) :
 	m_maxConstantRegistersF(maxConstantRegistersF),
 	m_registersF(maxConstantRegistersF * VECTOR_LENGTH, 0), // VECTOR_LENGTH floats per register
@@ -29,11 +33,13 @@ ShaderRegisters::ShaderRegisters(DWORD maxConstantRegistersF, IDirect3DDevice9* 
 {
 	assert(pActualDevice != NULL);
 
+	//TODO assignment and copy - add ref to device (remove ref from old device on assign)? or prevent
 	m_pActualDevice->AddRef();
 }
 
-	//TODO assignment and copy - add ref to device (remove ref from old device on assign)? or prevent
-
+/**
+* Destructor, releases device and vertex shader.
+***/
 ShaderRegisters::~ShaderRegisters()
 {
 	if (m_pActualDevice)
@@ -43,17 +49,16 @@ ShaderRegisters::~ShaderRegisters()
 		m_pActiveVertexShader->Release();
 }
 
-void ShaderRegisters::ReleaseResources()
-{
-	if (m_pActiveVertexShader)
-		m_pActiveVertexShader->Release();
-
-	m_pActiveVertexShader = NULL;
-
-	// TODO Do the constant registers get cleared on device reset? Current guess is no. Needs testing or a reference finding that says what happens.
-}
-
-
+/**
+* Sets proxy registers and marks them dirty.
+* Register should only have clean set to true when restoring from stateblock. It marks all registers
+* that are set as clean instead of marking dirty.
+*
+* Return D3DERR_INVALIDCALL if any registers out of internal range.
+* @param StartRegister Look at D3DProxyDevice::SetVertexShaderConstantF(). 
+* @param pConstantData Look at D3DProxyDevice::SetVertexShaderConstantF().
+* @param Vector4fCount Look at D3DProxyDevice::SetVertexShaderConstantF().
+***/
 HRESULT WINAPI ShaderRegisters::SetConstantRegistersF(UINT StartRegister, const float* pConstantData, UINT Vector4fCount)
 {
 	if ((StartRegister >= m_maxConstantRegistersF) || ((StartRegister + Vector4fCount) >= m_maxConstantRegistersF))
@@ -70,6 +75,12 @@ HRESULT WINAPI ShaderRegisters::SetConstantRegistersF(UINT StartRegister, const 
 	return D3D_OK;
 }
 
+/**
+* Gets shader constant register.
+* @param StartRegister Look at D3DProxyDevice::GetVertexShaderConstantF(). 
+* @param pConstantData Look at D3DProxyDevice::GetVertexShaderConstantF().
+* @param Vector4fCount Look at D3DProxyDevice::GetVertexShaderConstantF().
+***/
 HRESULT WINAPI ShaderRegisters::GetConstantRegistersF(UINT StartRegister, float* pConstantData, UINT Vector4fCount)
 {
 	if ((StartRegister >= m_maxConstantRegistersF) || ((StartRegister + Vector4fCount) >= m_maxConstantRegistersF))
@@ -80,14 +91,65 @@ HRESULT WINAPI ShaderRegisters::GetConstantRegistersF(UINT StartRegister, float*
 	return D3D_OK;
 }
 
+/**
+* Returns the register vector containing all constant registers.
+***/
 std::vector<float> ShaderRegisters::GetAllConstantRegistersF()
 {
 	return m_registersF;
 }
 
+/**
+* For restoring states from D3DProxyStateBlock.
+* If sides during capture were mixed or the current device side doesn't match side at time of
+* capture then updateStereoConstants should be true.
+* (basically if it's possible that the actual device values for the register don't match the
+* appropriate stereo versin then updateStereoConstants should be set to true)
+* NOTE: Above is irrelevant; Due to questionable lack of copying of vertex shader into stateblock we
+* have no idea what the state of the constants might be so updating isn't optional. Fix? See
+* stateblock textures for further thoughts.
+* The only time you restore all registers is when the whole vertex shader state is saved, in which
+* case there will always be a vertex shader to go with the registers (it may be null).
+* @param storedRegisters Pointer to stored register map.
+***/
+void ShaderRegisters::SetFromStateBlockData(std::map<UINT, D3DXVECTOR4> * storedRegisters)
+{
+	auto itNewRegs = storedRegisters->begin();
+	while (itNewRegs != storedRegisters->end()) {
 
+		if ((RegisterIndex(itNewRegs->first) + VECTOR_LENGTH) >= m_registersF.size())
+			throw std::out_of_range("Register from stateblock is out of range, implosion imminent");
+				
+		//std::copy(static_cast<float*>(itNewRegs->second), static_cast<float*>(itNewRegs->second) + VECTOR_LENGTH,  &m_registersF[RegisterIndex(itNewRegs->first)]);
+		// copy produces warnings, this does not.
+		int regStartIndexInVector = RegisterIndex(itNewRegs->first);
+		m_registersF[regStartIndexInVector	  ]	= itNewRegs->second.x;
+		m_registersF[regStartIndexInVector + 1] = itNewRegs->second.y;
+		m_registersF[regStartIndexInVector + 2] = itNewRegs->second.z;
+		m_registersF[regStartIndexInVector + 3] = itNewRegs->second.w;
+		
+		// register is clean (now matches device state - unless it's stereo in which case it might not, that is handled at the end)
+		m_dirtyRegistersF.erase(itNewRegs->first);
+		++itNewRegs;
+	}
 
+	MarkAllStereoConstantsDirty();
+}
 
+/**
+* For restoring states from D3DProxyStateBlock.
+* If sides during capture were mixed or the current device side doesn't match side at time of
+* capture then updateStereoConstants should be true.
+* (basically if it's possible that the actual device values for the register don't match the
+* appropriate stereo versin then updateStereoConstants should be set to true)
+* NOTE: Above is irrelevant; Due to questionable lack of copying of vertex shader into stateblock we
+* have no idea what the state of the constants might be so updating isn't optional. Fix? See
+* stateblock textures for further thoughts.
+* The only time you restore all registers is when the whole vertex shader state is saved, in which
+* case there will always be a vertex shader to go with the registers (it may be null).
+* @param storedRegisters Pointer to stored register map.
+* @param storedShader Pointer to stored vertex shader.
+***/
 void ShaderRegisters::SetFromStateBlockData(std::map<UINT, D3DXVECTOR4> * storedRegisters, D3D9ProxyVertexShader* storedShader)
 {
 	_SAFE_RELEASE(m_pActiveVertexShader);
@@ -98,46 +160,20 @@ void ShaderRegisters::SetFromStateBlockData(std::map<UINT, D3DXVECTOR4> * stored
 	SetFromStateBlockData(storedRegisters);
 }
 
-void ShaderRegisters::SetFromStateBlockData(std::map<UINT, D3DXVECTOR4> * storedRegisters)
-{
-	auto itNewRegs = storedRegisters->begin();
-	while (itNewRegs != storedRegisters->end()) {
-
-		if ((RegisterIndex(itNewRegs->first) + VECTOR_LENGTH) >= m_registersF.size())
-			throw std::out_of_range("Register from stateblock is out of range, implosion imminent");
-
-		
-		//std::copy(static_cast<float*>(itNewRegs->second), static_cast<float*>(itNewRegs->second) + VECTOR_LENGTH,  &m_registersF[RegisterIndex(itNewRegs->first)]);
-		// copy produces warnings, this does not.
-		int regStartIndexInVector = RegisterIndex(itNewRegs->first);
-		m_registersF[regStartIndexInVector	  ]	= itNewRegs->second.x;
-		m_registersF[regStartIndexInVector + 1] = itNewRegs->second.y;
-		m_registersF[regStartIndexInVector + 2] = itNewRegs->second.z;
-		m_registersF[regStartIndexInVector + 3] = itNewRegs->second.w;
-		
-
-		// register is clean (now matches device state - unless it's stereo in which case it might not, that is handled at the end)
-		m_dirtyRegistersF.erase(itNewRegs->first);
-		++itNewRegs;
-	}
-
-	MarkAllStereoConstantsDirty();
-}
-
-void ShaderRegisters::MarkAllStereoConstantsDirty()
-{
-	if (m_pActiveVertexShader) {
-		// Mark all StereoShaderConstants dirty so they are updated before drawing
-		auto itStereoConstant = m_pActiveVertexShader->ModifiedConstants()->begin();
-		while (itStereoConstant != m_pActiveVertexShader->ModifiedConstants()->end()) {
-			
-			m_dirtyRegistersF.insert(itStereoConstant->first);
-			++itStereoConstant;
-		}
-	}
-}
-
-
+/**
+* For restoring states from D3DProxyStateBlock.
+* If sides during capture were mixed or the current device side doesn't match side at time of
+* capture then updateStereoConstants should be true.
+* (basically if it's possible that the actual device values for the register don't match the
+* appropriate stereo versin then updateStereoConstants should be set to true)
+* NOTE: Above is irrelevant; Due to questionable lack of copying of vertex shader into stateblock we
+* have no idea what the state of the constants might be so updating isn't optional. Fix? See
+* stateblock textures for further thoughts.
+* The only time you restore all registers is when the whole vertex shader state is saved, in which
+* case there will always be a vertex shader to go with the registers (it may be null).
+* @param storedRegisters Pointer to stored register vector.
+* @param storedShader Pointer to stored vertex shader.
+***/
 void ShaderRegisters::SetFromStateBlockData(std::vector<float> * storedRegisters, D3D9ProxyVertexShader* storedShader)
 {
 	// Full register capture should always match the size of the existing register set as size is fixed and register was captured from this
@@ -156,7 +192,11 @@ void ShaderRegisters::SetFromStateBlockData(std::vector<float> * storedRegisters
 	MarkAllStereoConstantsDirty();
 }
 
-
+/**
+* Returns true if any dirty register found in the specified range.
+* @param start Start register.
+* @param count Register count.
+***/
 bool ShaderRegisters::AnyDirty(UINT start, UINT count)
 {
 	auto it = m_dirtyRegistersF.lower_bound(start);
@@ -170,7 +210,14 @@ bool ShaderRegisters::AnyDirty(UINT start, UINT count)
 
 	return true;
 }
-		
+	
+/**
+* This will apply all dirty registers to actual device. 
+* StereoShaderConstants are updated and applied followed by unmodified.
+* Note that stereo constants will only be applied if the underlying register has changed. To apply a 
+* specific side whether dirty or not use ApplyStereoConstants with forceApply true.
+* @param currentSide Left or Right side.
+***/
 void ShaderRegisters::ApplyAllDirty(vireio::RenderPosition currentSide) 
 {	
 	
@@ -180,7 +227,6 @@ void ShaderRegisters::ApplyAllDirty(vireio::RenderPosition currentSide)
 	if (m_pActiveVertexShader) {
 		ApplyStereoConstants(currentSide, true);
 	}
-
 
 	// Apply all remaining dirty registers (should just be non-stereo that remain dirty) to device
 	auto it = m_dirtyRegistersF.begin();
@@ -216,11 +262,84 @@ void ShaderRegisters::ApplyAllDirty(vireio::RenderPosition currentSide)
 	m_dirtyRegistersF.clear();
 }
 
+/**
+* This will apply all StereoShaderConstants to the device (updating dirty ones before applying them).
+* @param currentSide Left or Right side.
+***/
 void ShaderRegisters::ApplyAllStereoConstants(vireio::RenderPosition currentSide)
 {
 	ApplyStereoConstants(currentSide, false);
 }
 
+/**
+* Changes the active vertex shader.
+* Updates the data in new shader constants with data from matching constants from last shader.
+* @param pNewVertexShader Pointer to the new vertex shader.
+***/
+void ShaderRegisters::ActiveVertexShaderChanged(D3D9ProxyVertexShader* pNewVertexShader)
+{
+	if (m_pActiveVertexShader == pNewVertexShader)
+		return;
+
+	if (pNewVertexShader) {
+
+		std::map<UINT, StereoShaderConstant<float>>* pNewShaderModConstants = pNewVertexShader->ModifiedConstants();
+
+		std::map<UINT, StereoShaderConstant<float>>* pOldShaderModConstants = NULL;
+		if (m_pActiveVertexShader)
+			pOldShaderModConstants = m_pActiveVertexShader->ModifiedConstants();
+
+		// Update the data in new shader constants with data from matching constants from last shader.
+		auto itNewConstants = pNewShaderModConstants->begin();
+		while (itNewConstants != pNewShaderModConstants->end()) {
+
+			bool mightBeDirty = true;
+
+			if (pOldShaderModConstants) {
+				// No idea if this is saving any time or if it would be better to just mark all the registers dirty and re-apply the constants on first draw
+				if (m_pActiveVertexShader->ModifiedConstants()->count(itNewConstants->first) == 1) {
+					if (pOldShaderModConstants->at(itNewConstants->first).SameConstantAs(itNewConstants->second)) {
+						(*pNewShaderModConstants).at(itNewConstants->first) = (*pOldShaderModConstants).at(itNewConstants->first);
+						mightBeDirty = false;
+					}
+				}
+			}
+
+			// If there isn't a corresponding old modification then this modified constant will need updating
+			if (mightBeDirty) {
+				m_dirtyRegistersF.insert(itNewConstants->first);
+			}
+
+			++itNewConstants;
+		}
+
+
+	}
+	
+	_SAFE_RELEASE(m_pActiveVertexShader);
+	m_pActiveVertexShader = pNewVertexShader;
+	if (m_pActiveVertexShader)
+		m_pActiveVertexShader->AddRef();
+}
+
+/**
+* Releases any d3d resources (does not include device, that is only release on destruction).
+***/
+void ShaderRegisters::ReleaseResources()
+{
+	if (m_pActiveVertexShader)
+		m_pActiveVertexShader->Release();
+
+	m_pActiveVertexShader = NULL;
+
+	// TODO Do the constant registers get cleared on device reset? Current guess is no. Needs testing or a reference finding that says what happens.
+}
+
+/**
+* This will apply all StereoShaderConstants to the device (updating dirty ones before applying them).
+* @param currentSide Left or Right side.
+* @param dirtyOnly Set to true if only dirty registers are to be applied.
+***/
 void ShaderRegisters::ApplyStereoConstants(vireio::RenderPosition currentSide, const bool dirtyOnly)
 {
 	if (!m_pActiveVertexShader)
@@ -253,50 +372,19 @@ void ShaderRegisters::ApplyStereoConstants(vireio::RenderPosition currentSide, c
 	}
 }
 
-
-void ShaderRegisters::ActiveVertexShaderChanged(D3D9ProxyVertexShader* pNewVertexShader)
+/**
+* Marks the first register for each stereoconstant in the active shader dirty.
+* (to make sure they are updated before being drawn)
+***/
+void ShaderRegisters::MarkAllStereoConstantsDirty()
 {
-	if (m_pActiveVertexShader == pNewVertexShader)
-		return;
-
-	if (pNewVertexShader) {
-
-		std::map<UINT, StereoShaderConstant<float>>* pNewShaderModConstants = pNewVertexShader->ModifiedConstants();
-
-		std::map<UINT, StereoShaderConstant<float>>* pOldShaderModConstants = NULL;
-		if (m_pActiveVertexShader)
-			pOldShaderModConstants = m_pActiveVertexShader->ModifiedConstants();
-
-		// Update the data in new shader constants with data from matching constants from last shader.)
-		auto itNewConstants = pNewShaderModConstants->begin();
-		while (itNewConstants != pNewShaderModConstants->end()) {
-
-			bool mightBeDirty = true;
-
-			if (pOldShaderModConstants) {
-				// No idea if this is saving any time or if it would be better to just mark all the registers dirty and re-apply the constants on first draw
-				if (m_pActiveVertexShader->ModifiedConstants()->count(itNewConstants->first) == 1) {
-					if (pOldShaderModConstants->at(itNewConstants->first).SameConstantAs(itNewConstants->second)) {
-						(*pNewShaderModConstants).at(itNewConstants->first) = (*pOldShaderModConstants).at(itNewConstants->first);
-						mightBeDirty = false;
-					}
-				}
-			}
-
-			// If there isn't a corresponding old modification then this modified constant will need updating
-			if (mightBeDirty) {
-				m_dirtyRegistersF.insert(itNewConstants->first);
-			}
-
-			++itNewConstants;
+	if (m_pActiveVertexShader) {
+		// Mark all StereoShaderConstants dirty so they are updated before drawing
+		auto itStereoConstant = m_pActiveVertexShader->ModifiedConstants()->begin();
+		while (itStereoConstant != m_pActiveVertexShader->ModifiedConstants()->end()) {
+			
+			m_dirtyRegistersF.insert(itStereoConstant->first);
+			++itStereoConstant;
 		}
-
-
 	}
-	
-	_SAFE_RELEASE(m_pActiveVertexShader);
-	m_pActiveVertexShader = pNewVertexShader;
-	if (m_pActiveVertexShader)
-		m_pActiveVertexShader->AddRef();
 }
-	

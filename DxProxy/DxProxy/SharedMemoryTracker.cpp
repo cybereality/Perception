@@ -22,8 +22,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 #include <iostream>
 
+/**
+* Name of mapping object.
+***/
 TCHAR szName[]=TEXT("VireioSMTrack");
 
+/**
+* Constructor.
+* Calls init function.
+***/ 
 SharedMemoryTracker::SharedMemoryTracker(void):MotionTracker()
 {
 	OutputDebugString("Socket Tracker Created\n");
@@ -32,12 +39,20 @@ SharedMemoryTracker::SharedMemoryTracker(void):MotionTracker()
 	init();
 }
 
+/**
+* Destructor.
+* Unmaps shared memory pointer. Closes file mapping object handle.
+***/
 SharedMemoryTracker::~SharedMemoryTracker(void)
 {
 	UnmapViewOfFile(pTrackBuf);
 	CloseHandle(hMapFile);
 }
 
+/**
+* FreeTrack Tracker init.
+* Calls openSharedMemory function.
+***/
 int SharedMemoryTracker::init()
 {
 	OutputDebugString("Socket Tracker Init\n");
@@ -45,13 +60,18 @@ int SharedMemoryTracker::init()
 	return 0;
 }
 
-
+/**
+* Retrieve shared memory tracker orientation.
+* Reads and returns memory input.
+***/
 int SharedMemoryTracker::getOrientation(float* yaw, float* pitch, float* roll) 
 {
+#ifdef _DEBUG
 	OutputDebugString("Socket Tracker getOrient\n");
+#endif
 
 	if(pTrackBuf == NULL)
-		return 1;												// error no buffer
+		return 1;						// error no buffer
 
 	// all orintations are in degrees
 	*yaw = pTrackBuf->Yaw;
@@ -61,20 +81,26 @@ int SharedMemoryTracker::getOrientation(float* yaw, float* pitch, float* roll)
 	return 0; 
 }
 
-bool SharedMemoryTracker::isAvailable()
-{
-	return true;
-}
-
+/**
+* Update shared memory tracker orientation.
+* Updates tracker orientation and passes it to game mouse input accordingly.
+***/
 void SharedMemoryTracker::updateOrientation()
 {
+#ifdef _DEBUG
 	OutputDebugString("Motion Tracker updateOrientation\n");
+#endif
 
+	// Get orientation from shared memory.
 	if(getOrientation(&yaw, &pitch, &roll) == 0)
 	{
+		// Convert yaw, pitch to positive degrees.
+		// (-180.0f...0.0f -> 180.0f....360.0f)
+		// (0.0f...180.0f -> 0.0f...180.0f)
 		yaw = fmodf(yaw + 360.0f, 360.0f);
 		pitch = -fmodf(pitch + 360.0f, 360.0f);
 
+		// Get difference.
 		deltaYaw += yaw - currentYaw;
 		deltaPitch += pitch - currentPitch;
 
@@ -82,24 +108,43 @@ void SharedMemoryTracker::updateOrientation()
 		if(fabs(deltaYaw) > 4.0f) deltaYaw = 0.0f;
 		if(fabs(deltaPitch) > 4.0f) deltaPitch = 0.0f;
 
+		// Pass to mouse data (long integer).
 		mouseData.mi.dx = (long)(deltaYaw*multiplierYaw);
 		mouseData.mi.dy = (long)(deltaPitch*multiplierPitch);
+		
 		// Keep fractional difference in the delta so it's added to the next update.
 		deltaYaw -= ((float)mouseData.mi.dx)/multiplierYaw;
 		deltaPitch -= ((float)mouseData.mi.dy)/multiplierPitch;
-		
+
+#ifdef _DEBUG
 		OutputDebugString("Motion Tracker SendInput\n");
+#endif
+		// Send to mouse input
 		SendInput(1, &mouseData, sizeof(INPUT));
 
+		// Set current data.
 		currentYaw = yaw;
 		currentPitch = pitch;
-		currentRoll = (float)( roll * (PI/180.0) * multiplierRoll);			// convert from deg to radians then apply mutiplier
+		currentRoll = (float)( roll * (PI/180.0) * multiplierRoll);	// convert from deg to radians then apply mutiplier
 	}
 }
 
+/**
+* Is tracker selected and detected?
+* Returns wether a tracker option is selected. Naturally returns true.
+***/
+bool SharedMemoryTracker::isAvailable()
+{
+	return true;
+}
+
+/**
+*  Open shared memory file mapping object. 
+*  Creates a file mapping object ("VireioSMTrack") to be provided with tracking data.
+*/
 bool SharedMemoryTracker::openSharedMemory()
 {
-		hMapFile = CreateFileMapping(
+	hMapFile = CreateFileMapping(
 		INVALID_HANDLE_VALUE,	// use paging file
 		NULL,					// default security
 		PAGE_READWRITE,			// read/write access
@@ -109,7 +154,7 @@ bool SharedMemoryTracker::openSharedMemory()
 
 	if (hMapFile == NULL)										// Could not create file mapping object
 		return false;
-		
+
 	pTrackBuf = (TrackData*) MapViewOfFile(hMapFile,			// handle to map object
 		FILE_MAP_ALL_ACCESS,									// read/write permission
 		0,

@@ -31,31 +31,35 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 class ShaderModificationRepository;
 
+/**
+* Game-specific shader modification handling class.
+* TODO implementation - For now use one set of rules for everything, at some point this is probably 
+* going to need to be reworked to allow modifications per game.
+* TODO - externalise these as rules? It might be good to have default values for various rules like
+* "Don't duplicate targets smaller than X pixels", where that rule could be enabled and the value 
+* changed in the cfg file for the game.
+* Do something similar to shader modifications?
+* Extending class and overriding these methods would end up with a similar problem with duplicate code
+* to original shader handling. Try and avoid (or at least find approach that avoids the duplication)
+* 
+*/
 class GameHandler
 {
 public:
 	GameHandler(); 
 	virtual ~GameHandler();
 
-	bool Load(ProxyHelper::ProxyConfig& cfg, std::shared_ptr<ViewAdjustment> spShaderViewAdjustments); 
-
-	
-
-	bool ShouldDuplicateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample, DWORD MultisampleQuality,BOOL Lockable, bool isSwapChainBackBuffer);
-	bool ShouldDuplicateDepthStencilSurface(UINT Width,UINT Height,D3DFORMAT Format,D3DMULTISAMPLE_TYPE MultiSample,DWORD MultisampleQuality,BOOL Discard);
-	bool ShouldDuplicateTexture(UINT Width,UINT Height,UINT Levels,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool);
-	bool ShouldDuplicateCubeTexture(UINT EdgeLength, UINT Levels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool);
-
-
+	/*** GameHandler public methods ***/
+	bool                          Load(ProxyHelper::ProxyConfig& cfg, std::shared_ptr<ViewAdjustment> spShaderViewAdjustments);
+	bool                          ShouldDuplicateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample, DWORD MultisampleQuality,BOOL Lockable, bool isSwapChainBackBuffer);
+	bool                          ShouldDuplicateDepthStencilSurface(UINT Width,UINT Height,D3DFORMAT Format,D3DMULTISAMPLE_TYPE MultiSample,DWORD MultisampleQuality,BOOL Discard);
+	bool                          ShouldDuplicateTexture(UINT Width,UINT Height,UINT Levels,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool);
+	bool                          ShouldDuplicateCubeTexture(UINT EdgeLength, UINT Levels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool);
 	ShaderModificationRepository* GetShaderModificationRepository();
-
-
-	
-
 private:
-
+	/**
+	* The shader modification repository for the handled game.
+	***/
 	ShaderModificationRepository* m_ShaderModificationRepository;
-
 };
-
 #endif

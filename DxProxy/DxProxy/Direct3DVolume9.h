@@ -22,32 +22,39 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <d3d9.h>
 #include "Direct3DDevice9.h"
 
+/**
+*  Direct 3D volume class. 
+*  Overwrites IDirect3DVolume9 and imbeds the actual volume.
+*/
 class BaseDirect3DVolume9 : public IDirect3DVolume9
 {
 public:
 	BaseDirect3DVolume9(IDirect3DVolume9* pActualVolume);
 	virtual ~BaseDirect3DVolume9();
 
-	// IUnknown
+	/*** IUnknown methods ***/
 	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv);
-	virtual ULONG WINAPI AddRef();
-	virtual ULONG WINAPI Release();
+	virtual ULONG   WINAPI AddRef();
+	virtual ULONG   WINAPI Release();
 
-
-
-	// IDirect3Dvolume9
-	virtual HRESULT WINAPI GetContainer(REFIID riid, LPVOID* ppContainer);
-	virtual HRESULT WINAPI GetDesc(D3DVOLUME_DESC *pDesc);
-	virtual HRESULT WINAPI LockBox(D3DLOCKED_BOX *pLockedVolume, const D3DBOX *pBox, DWORD Flags);
-	virtual HRESULT WINAPI UnlockBox();
+	/*** IDirect3DVolume9 methods ***/
 	virtual HRESULT WINAPI GetDevice(IDirect3DDevice9** ppDevice);
 	virtual HRESULT WINAPI SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags);
 	virtual HRESULT WINAPI GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData);
 	virtual HRESULT WINAPI FreePrivateData(REFGUID refguid);
+	virtual HRESULT WINAPI GetContainer(REFIID riid, LPVOID* ppContainer);
+	virtual HRESULT WINAPI GetDesc(D3DVOLUME_DESC *pDesc);
+	virtual HRESULT WINAPI LockBox(D3DLOCKED_BOX *pLockedVolume, const D3DBOX *pBox, DWORD Flags);
+	virtual HRESULT WINAPI UnlockBox();
 
 protected:
-
+	/**
+	* The actual volume embedded. 
+	***/
 	IDirect3DVolume9* const m_pActualVolume;
+	/**
+	* Internal reference counter. 
+	***/
 	ULONG m_nRefCount;
 };
 

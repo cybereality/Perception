@@ -19,6 +19,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Direct3DIndexBuffer9.h"
 #include <assert.h>
 
+/**
+* Constructor. 
+* @param pActualIndexBuffer Imbed actual index buffer. 
+* @param pOwningDevice Pointer to the device that owns the buffer. 
+***/
 BaseDirect3DIndexBuffer9::BaseDirect3DIndexBuffer9(IDirect3DIndexBuffer9* pActualIndexBuffer, IDirect3DDevice9* pOwningDevice) :
 	m_pActualIndexBuffer(pActualIndexBuffer),
 	m_pOwningDevice(pOwningDevice),
@@ -30,6 +35,10 @@ BaseDirect3DIndexBuffer9::BaseDirect3DIndexBuffer9(IDirect3DIndexBuffer9* pActua
 	pOwningDevice->AddRef();
 }
 
+/**
+* Destructor. 
+* Releases embedded index buffer. 
+***/
 BaseDirect3DIndexBuffer9::~BaseDirect3DIndexBuffer9()
 {
 	if(m_pActualIndexBuffer) {
@@ -41,16 +50,25 @@ BaseDirect3DIndexBuffer9::~BaseDirect3DIndexBuffer9()
 	}
 }
 
+/**
+* Base QueryInterface functionality. 
+***/
 HRESULT WINAPI BaseDirect3DIndexBuffer9::QueryInterface(REFIID riid, LPVOID* ppv)
 {
 	return m_pActualIndexBuffer->QueryInterface(riid, ppv);
 }
 
+/**
+* Base AddRef functionality.
+***/
 ULONG WINAPI BaseDirect3DIndexBuffer9::AddRef()
 {
 	return ++m_nRefCount;
 }
 
+/**
+* Base Release functionality.
+***/
 ULONG WINAPI BaseDirect3DIndexBuffer9::Release()
 {
 	if(--m_nRefCount == 0)
@@ -62,18 +80,9 @@ ULONG WINAPI BaseDirect3DIndexBuffer9::Release()
 	return m_nRefCount;
 }
 
-
-
-
-IDirect3DIndexBuffer9* BaseDirect3DIndexBuffer9::getActual()
-{
-	return m_pActualIndexBuffer;
-}
-
-
-
-
-
+/**
+* Base GetDevice functionality.
+***/
 HRESULT WINAPI BaseDirect3DIndexBuffer9::GetDevice(IDirect3DDevice9** ppDevice)
 {
 	if (!m_pOwningDevice)
@@ -85,68 +94,90 @@ HRESULT WINAPI BaseDirect3DIndexBuffer9::GetDevice(IDirect3DDevice9** ppDevice)
 	}
 }
 
-
+/**
+* Base SetPrivateData functionality.
+***/
 HRESULT WINAPI BaseDirect3DIndexBuffer9::SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags)
 {
 	return m_pActualIndexBuffer->SetPrivateData(refguid, pData, SizeOfData, Flags);
 }
 
-
+/**
+* Base GetPrivateData functionality.
+***/
 HRESULT WINAPI BaseDirect3DIndexBuffer9::GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData)
 {
 	return m_pActualIndexBuffer->GetPrivateData(refguid, pData, pSizeOfData);
 }
 
-
+/**
+* Base FreePrivateData functionality.
+***/
 HRESULT WINAPI BaseDirect3DIndexBuffer9::FreePrivateData(REFGUID refguid)
 {
 	return m_pActualIndexBuffer->FreePrivateData(refguid);
 }
 
-
+/**
+* Base SetPriority functionality.
+***/
 DWORD WINAPI BaseDirect3DIndexBuffer9::SetPriority(DWORD PriorityNew)
 {
 	return m_pActualIndexBuffer->SetPriority(PriorityNew);
 }
 
-
+/**
+* Base GetPriority functionality.
+***/
 DWORD WINAPI BaseDirect3DIndexBuffer9::GetPriority()
 {
 	return m_pActualIndexBuffer->GetPriority();
 }
 
-
+/**
+* Base PreLoad functionality.
+***/
 void WINAPI BaseDirect3DIndexBuffer9::PreLoad()
 {
 	return m_pActualIndexBuffer->PreLoad();
 }
 
-
+/**
+* Base GetType functionality.
+***/
 D3DRESOURCETYPE WINAPI BaseDirect3DIndexBuffer9::GetType()
 {
 	return m_pActualIndexBuffer->GetType();
 }
 
-
-
-
-
-
-
-
-HRESULT WINAPI BaseDirect3DIndexBuffer9::GetDesc(D3DINDEXBUFFER_DESC *pDesc)
-{
-	return m_pActualIndexBuffer->GetDesc(pDesc);
-}
-
+/**
+* Base Lock functionality.
+***/
 HRESULT WINAPI BaseDirect3DIndexBuffer9::Lock(UINT OffsetToLock, UINT SizeToLock, VOID **ppbData, DWORD Flags)
 {
 	return m_pActualIndexBuffer->Lock(OffsetToLock, SizeToLock, ppbData, Flags);
 }
 
+/**
+* Base Unlock functionality.
+***/
 HRESULT WINAPI BaseDirect3DIndexBuffer9::Unlock()
 {
 	return m_pActualIndexBuffer->Unlock();
 }
 
+/**
+* Base GetDesc functionality.
+***/
+HRESULT WINAPI BaseDirect3DIndexBuffer9::GetDesc(D3DINDEXBUFFER_DESC *pDesc)
+{
+	return m_pActualIndexBuffer->GetDesc(pDesc);
+}
 
+/**
+* Returns the actual embedded buffer pointer.
+***/
+IDirect3DIndexBuffer9* BaseDirect3DIndexBuffer9::getActual()
+{
+	return m_pActualIndexBuffer;
+}

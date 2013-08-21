@@ -19,17 +19,29 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "FreeTrackTracker.h"
 #include <windows.h>
 
+/**
+* Constructor.
+* Calls init function.
+***/ 
 FreeTrackTracker::FreeTrackTracker(void):MotionTracker()
 {
 	OutputDebugString("FreeTrack Tracker Created\n");
 	init();
 }
 
+/**
+* Destructor.
+* Calls FreeTrack FreeLibrary function.
+***/
 FreeTrackTracker::~FreeTrackTracker(void)
 {
 	FreeLibrary(hinstLib);
 }
 
+/**
+* FreeTrack Tracker init.
+* Loads FreeTrack library ("FreeTrackClient.dll") and gets FTGetData function pointer.
+***/
 int FreeTrackTracker::init()
 {
 	// zero variables for storing data
@@ -51,19 +63,33 @@ int FreeTrackTracker::init()
 	return 0;
 }
 
+/**
+* FreeTrack reset.
+* Calls init function.
+***/
 void FreeTrackTracker::reset()
 {
 	init();
 }
 
+/**
+* Destroy FreeTrack tracker.
+* Calls FreeTrack FreeLibrary function.
+***/
 void FreeTrackTracker::destroy()
 {
 	FreeLibrary(hinstLib);
 }
 
+/**
+* Retrieve FreeTrack tracker orientation.
+* Reads device input and returns orientation negated.
+***/
 int FreeTrackTracker::getOrientation(float* yaw, float* pitch, float* roll) 
 {
+#ifdef _DEBUG
 	OutputDebugString("FreeTrack Tracker getOrient\n");
+#endif
 
 	if (getData(pData)) {
 		lastRoll = data.roll;
@@ -75,11 +101,17 @@ int FreeTrackTracker::getOrientation(float* yaw, float* pitch, float* roll)
 	*pitch = lastPitch;
 	*yaw = -lastYaw;
 
+#ifdef _DEBUG
 	OutputDebugString("FreeTrack Tracker updateOrientation\n");
+#endif
 
 	return 0;
 }
 
+/**
+* Is tracker selected and detected?
+* Returns wether FreeTrack tracker option is selected. Returns true if FTGetData function pointer present.
+***/
 bool FreeTrackTracker::isAvailable()
 {
 	if (getData == NULL) {

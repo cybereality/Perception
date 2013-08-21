@@ -21,13 +21,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "StereoView.h"
 
+/**
+* Interleaved render class.
+*/
 class StereoViewInterleave : public StereoView
 {
 public:
 	StereoViewInterleave(ProxyHelper::ProxyConfig& config);
 	~StereoViewInterleave();
 
-	//virtual void Draw();
+	/*** StereoViewInterleave public methods ***/
+	virtual void Draw(D3D9ProxySurface* stereoCapableSurface);
 };
 
 #endif

@@ -23,44 +23,45 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ProxyHelper.h"
 
 
-
+/**
+*  Direct 3D. 
+*  Overwrites IDirect3D9 and imbeds the actual D3D object pointer in m_pD3D.
+*/
 class __declspec(dllexport) BaseDirect3D9 : public IDirect3D9
 {
 public:
 	BaseDirect3D9(IDirect3D9* pD3D);
 	virtual ~BaseDirect3D9();
 
+	/*** IUnknown methods ***/
 	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv);
-	virtual ULONG WINAPI AddRef();
-	virtual ULONG WINAPI Release();
+	virtual ULONG   WINAPI AddRef();
+	virtual ULONG   WINAPI Release();
 
-	virtual HRESULT WINAPI RegisterSoftwareDevice(void* pInitializeFunction);
-	virtual UINT WINAPI GetAdapterCount();
-	virtual HRESULT WINAPI GetAdapterIdentifier(UINT Adapter, DWORD Flags,
-		D3DADAPTER_IDENTIFIER9* pIdentifier);
-	virtual UINT WINAPI GetAdapterModeCount(UINT Adapter, D3DFORMAT Format);
-	virtual HRESULT WINAPI EnumAdapterModes(UINT Adapter, D3DFORMAT Format, UINT Mode,
-		D3DDISPLAYMODE* pMode);
-	virtual HRESULT WINAPI GetAdapterDisplayMode(UINT Adapter, D3DDISPLAYMODE* pMode);
-	virtual HRESULT WINAPI CheckDeviceType(UINT Adapter, D3DDEVTYPE DevType,
-		D3DFORMAT AdapterFormat, D3DFORMAT BackBufferFormat, BOOL bWindowed);
-	virtual HRESULT WINAPI CheckDeviceFormat(UINT Adapter, D3DDEVTYPE DeviceType,
-		D3DFORMAT AdapterFormat, DWORD Usage, D3DRESOURCETYPE RType, D3DFORMAT CheckFormat);
-	virtual HRESULT WINAPI CheckDeviceMultiSampleType(UINT Adapter, D3DDEVTYPE DeviceType,
-		D3DFORMAT SurfaceFormat, BOOL Windowed, D3DMULTISAMPLE_TYPE MultiSampleType,
-		DWORD* pQualityLevels);
-	virtual HRESULT WINAPI CheckDepthStencilMatch(UINT Adapter, D3DDEVTYPE DeviceType,
-		D3DFORMAT AdapterFormat, D3DFORMAT RenderTargetFormat, D3DFORMAT DepthStencilFormat);
-	virtual HRESULT WINAPI CheckDeviceFormatConversion(UINT Adapter, D3DDEVTYPE DeviceType,
-		D3DFORMAT SourceFormat, D3DFORMAT TargetFormat);
-	virtual HRESULT WINAPI GetDeviceCaps(UINT Adapter, D3DDEVTYPE DeviceType, D3DCAPS9* pCaps);
+	/*** IDirect3D9 methods ***/
+	virtual HRESULT	 WINAPI RegisterSoftwareDevice(void* pInitializeFunction);
+	virtual UINT     WINAPI GetAdapterCount();
+	virtual HRESULT	 WINAPI GetAdapterIdentifier(UINT Adapter, DWORD Flags, D3DADAPTER_IDENTIFIER9* pIdentifier);
+	virtual UINT     WINAPI GetAdapterModeCount(UINT Adapter, D3DFORMAT Format);
+	virtual HRESULT	 WINAPI EnumAdapterModes(UINT Adapter, D3DFORMAT Format, UINT Mode, D3DDISPLAYMODE* pMode);
+	virtual HRESULT	 WINAPI GetAdapterDisplayMode(UINT Adapter, D3DDISPLAYMODE* pMode);
+	virtual HRESULT	 WINAPI CheckDeviceType(UINT Adapter, D3DDEVTYPE DevType, D3DFORMAT AdapterFormat, D3DFORMAT BackBufferFormat, BOOL bWindowed);
+	virtual HRESULT	 WINAPI CheckDeviceFormat(UINT Adapter, D3DDEVTYPE DeviceType, D3DFORMAT AdapterFormat, DWORD Usage, D3DRESOURCETYPE RType, D3DFORMAT CheckFormat);
+	virtual HRESULT	 WINAPI CheckDeviceMultiSampleType(UINT Adapter, D3DDEVTYPE DeviceType, D3DFORMAT SurfaceFormat, BOOL Windowed, D3DMULTISAMPLE_TYPE MultiSampleType, DWORD* pQualityLevels);
+	virtual HRESULT	 WINAPI CheckDepthStencilMatch(UINT Adapter, D3DDEVTYPE DeviceType, D3DFORMAT AdapterFormat, D3DFORMAT RenderTargetFormat, D3DFORMAT DepthStencilFormat);
+	virtual HRESULT	 WINAPI CheckDeviceFormatConversion(UINT Adapter, D3DDEVTYPE DeviceType,	D3DFORMAT SourceFormat, D3DFORMAT TargetFormat);
+	virtual HRESULT	 WINAPI GetDeviceCaps(UINT Adapter, D3DDEVTYPE DeviceType, D3DCAPS9* pCaps);
 	virtual HMONITOR WINAPI GetAdapterMonitor(UINT Adapter);
-	virtual HRESULT WINAPI CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, HWND hFocusWindow,
-		DWORD BehaviorFlags, D3DPRESENT_PARAMETERS* pPresentationParameters,
-		IDirect3DDevice9** ppReturnedDeviceInterface);
+	virtual HRESULT	 WINAPI CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, HWND hFocusWindow,	DWORD BehaviorFlags, D3DPRESENT_PARAMETERS* pPresentationParameters, IDirect3DDevice9** ppReturnedDeviceInterface);
 
 private:
+	/**
+	* The actual device embedded. 
+	***/
 	IDirect3D9* m_pD3D;
+	/**
+	* Internal reference counter. 
+	***/
 	ULONG m_nRefCount;
 };
 

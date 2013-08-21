@@ -19,6 +19,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Direct3DQuery9.h"
 #include <assert.h>
 
+/**
+* Constructor. 
+* @param pActualQuery Imbed actual query. 
+* @param pOwningDevice Pointer to the device that owns the query. 
+***/
 BaseDirect3DQuery9::BaseDirect3DQuery9(IDirect3DQuery9* pActualQuery, IDirect3DDevice9* pOwningDevice) :
 	m_pActualQuery(pActualQuery),
 	m_pOwningDevice(pOwningDevice),
@@ -30,6 +35,10 @@ BaseDirect3DQuery9::BaseDirect3DQuery9(IDirect3DQuery9* pActualQuery, IDirect3DD
 	pOwningDevice->AddRef();
 }
 
+/**
+* Destructor. 
+* Releases embedded query. 
+***/
 BaseDirect3DQuery9::~BaseDirect3DQuery9()
 {
 	if(m_pActualQuery) {
@@ -41,16 +50,25 @@ BaseDirect3DQuery9::~BaseDirect3DQuery9()
 	}
 }
 
+/**
+* Base QueryInterface functionality. 
+***/
 HRESULT WINAPI BaseDirect3DQuery9::QueryInterface(REFIID riid, LPVOID* ppv)
 {
 	return m_pActualQuery->QueryInterface(riid, ppv);
 }
 
+/**
+* Base AddRef functionality.
+***/
 ULONG WINAPI BaseDirect3DQuery9::AddRef()
 {
 	return ++m_nRefCount;
 }
 
+/**
+* Base Release functionality.
+***/
 ULONG WINAPI BaseDirect3DQuery9::Release()
 {
 	if(--m_nRefCount == 0)
@@ -62,15 +80,9 @@ ULONG WINAPI BaseDirect3DQuery9::Release()
 	return m_nRefCount;
 }
 
-
-
-
-
-
-
-
-
-
+/**
+* Base GetDevice functionality.
+***/
 HRESULT WINAPI BaseDirect3DQuery9::GetDevice(IDirect3DDevice9** ppDevice)
 {
 	if (!m_pOwningDevice)
@@ -81,22 +93,33 @@ HRESULT WINAPI BaseDirect3DQuery9::GetDevice(IDirect3DDevice9** ppDevice)
 	}
 }
 
-
+/**
+* Base GetType functionality.
+***/
 D3DQUERYTYPE WINAPI BaseDirect3DQuery9::GetType()
 {
 	return m_pActualQuery->GetType();
 }
 
+/**
+* Base GetDataSize functionality.
+***/
 DWORD WINAPI BaseDirect3DQuery9::GetDataSize()
 {
 	return m_pActualQuery->GetDataSize();
 }
 
+/**
+* Base Issue functionality.
+***/
 HRESULT WINAPI BaseDirect3DQuery9::Issue(DWORD dwIssueFlags)
 {
 	return m_pActualQuery->Issue(dwIssueFlags);
 }
 
+/**
+* Base GetData functionality.
+***/
 HRESULT WINAPI BaseDirect3DQuery9::GetData(void* pData, DWORD dwSize, DWORD dwGetDataFlags)
 {
 	return m_pActualQuery->GetData(pData, dwSize, dwGetDataFlags);

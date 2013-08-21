@@ -22,38 +22,42 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <d3d9.h>
 #include "Direct3D9.h"
 
+/**
+*  Direct 3D device class. 
+*  Overwrites IDirect3DDevice9 and imbeds the actual device pointer.
+*/
 class BaseDirect3DDevice9 : public IDirect3DDevice9
 {
 public:
 	BaseDirect3DDevice9(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy);
 	virtual ~BaseDirect3DDevice9();
 
+	/*** IUnknown methods ***/
 	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv);
-	virtual ULONG WINAPI AddRef();
-	virtual ULONG WINAPI Release();
+	virtual ULONG   WINAPI AddRef();
+	virtual ULONG   WINAPI Release();
 
-	IDirect3DDevice9* getActual();
-
+	/*** IDirect3DDevice9 methods ***/
 	virtual HRESULT WINAPI TestCooperativeLevel();
-	virtual UINT WINAPI GetAvailableTextureMem();
+	virtual UINT    WINAPI GetAvailableTextureMem();
 	virtual HRESULT WINAPI EvictManagedResources();
 	virtual HRESULT WINAPI GetDirect3D(IDirect3D9** ppD3D9);
 	virtual HRESULT WINAPI GetDeviceCaps(D3DCAPS9* pCaps);
 	virtual HRESULT WINAPI GetDisplayMode(UINT iSwapChain,D3DDISPLAYMODE* pMode);
 	virtual HRESULT WINAPI GetCreationParameters(D3DDEVICE_CREATION_PARAMETERS *pParameters);
 	virtual HRESULT WINAPI SetCursorProperties(UINT XHotSpot,UINT YHotSpot,IDirect3DSurface9* pCursorBitmap);
-	virtual void WINAPI SetCursorPosition(int X,int Y,DWORD Flags);
-	virtual BOOL WINAPI ShowCursor(BOOL bShow);
+	virtual void    WINAPI SetCursorPosition(int X,int Y,DWORD Flags);
+	virtual BOOL    WINAPI ShowCursor(BOOL bShow);
 	virtual HRESULT WINAPI CreateAdditionalSwapChain(D3DPRESENT_PARAMETERS* pPresentationParameters,IDirect3DSwapChain9** pSwapChain);
 	virtual HRESULT WINAPI GetSwapChain(UINT iSwapChain,IDirect3DSwapChain9** pSwapChain);
-	virtual UINT WINAPI GetNumberOfSwapChains();
+	virtual UINT    WINAPI GetNumberOfSwapChains();
 	virtual HRESULT WINAPI Reset(D3DPRESENT_PARAMETERS* pPresentationParameters);
 	virtual HRESULT WINAPI Present(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion);
 	virtual HRESULT WINAPI GetBackBuffer(UINT iSwapChain,UINT iBackBuffer,D3DBACKBUFFER_TYPE Type,IDirect3DSurface9** ppBackBuffer);
 	virtual HRESULT WINAPI GetRasterStatus(UINT iSwapChain,D3DRASTER_STATUS* pRasterStatus);
 	virtual HRESULT WINAPI SetDialogBoxMode(BOOL bEnableDialogs);
-	virtual void WINAPI SetGammaRamp(UINT iSwapChain,DWORD Flags,CONST D3DGAMMARAMP* pRamp);
-	virtual void WINAPI GetGammaRamp(UINT iSwapChain,D3DGAMMARAMP* pRamp);
+	virtual void    WINAPI SetGammaRamp(UINT iSwapChain,DWORD Flags,CONST D3DGAMMARAMP* pRamp);
+	virtual void    WINAPI GetGammaRamp(UINT iSwapChain,D3DGAMMARAMP* pRamp);
 	virtual HRESULT WINAPI CreateTexture(UINT Width,UINT Height,UINT Levels,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool,IDirect3DTexture9** ppTexture,HANDLE* pSharedHandle);
 	virtual HRESULT WINAPI CreateVolumeTexture(UINT Width,UINT Height,UINT Depth,UINT Levels,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool,IDirect3DVolumeTexture9** ppVolumeTexture,HANDLE* pSharedHandle);
 	virtual HRESULT WINAPI CreateCubeTexture(UINT EdgeLength,UINT Levels,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool,IDirect3DCubeTexture9** ppCubeTexture,HANDLE* pSharedHandle);
@@ -109,9 +113,9 @@ public:
 	virtual HRESULT WINAPI SetScissorRect(CONST RECT* pRect);
 	virtual HRESULT WINAPI GetScissorRect(RECT* pRect);
 	virtual HRESULT WINAPI SetSoftwareVertexProcessing(BOOL bSoftware);
-	virtual BOOL WINAPI GetSoftwareVertexProcessing();
+	virtual BOOL    WINAPI GetSoftwareVertexProcessing();
 	virtual HRESULT WINAPI SetNPatchMode(float nSegments);
-	virtual float WINAPI GetNPatchMode();
+	virtual float   WINAPI GetNPatchMode();
 	virtual HRESULT WINAPI DrawPrimitive(D3DPRIMITIVETYPE PrimitiveType,UINT StartVertex,UINT PrimitiveCount);
 	virtual HRESULT WINAPI DrawIndexedPrimitive(D3DPRIMITIVETYPE PrimitiveType,INT BaseVertexIndex,UINT MinVertexIndex,UINT NumVertices,UINT startIndex,UINT primCount);
 	virtual HRESULT WINAPI DrawPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType,UINT PrimitiveCount,CONST void* pVertexStreamZeroData,UINT VertexStreamZeroStride);
@@ -151,12 +155,23 @@ public:
 	virtual HRESULT WINAPI DeletePatch(UINT Handle);
 	virtual HRESULT WINAPI CreateQuery(D3DQUERYTYPE Type,IDirect3DQuery9** ppQuery);
 
+	/*** BaseDirect3DDevice9 methods ***/
+	IDirect3DDevice9* getActual();
 
 private:
-	/* Private to force you to think about whether you really need direct access to the actual device. Can be accessed via
-	  getActual(). */
+	/**
+	* Actual Direct3D Device pointer embedded. 
+	* Private to force you to think about whether you really need direct 
+	* access to the actual device. Can be accessed via getActual(). 
+	***/
 	IDirect3DDevice9* m_pDevice;
+	/**
+	* Pointer to the D3D object that created the device. 
+	***/
 	BaseDirect3D9* m_pCreatedBy;
+	/**
+	* Internal reference counter. 
+	***/
 	ULONG m_nRefCount;
 };
 

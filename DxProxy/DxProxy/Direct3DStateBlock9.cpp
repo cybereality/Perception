@@ -19,6 +19,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Direct3DStateBlock9.h"
 #include <assert.h>
 
+/**
+* Constructor. 
+* @param pActualStateBlock Imbed actual state block. 
+* @param pOwningDevice Pointer to the device that owns the block. 
+***/
 BaseDirect3DStateBlock9::BaseDirect3DStateBlock9(IDirect3DStateBlock9* pActualStateBlock, IDirect3DDevice9 *pOwningDevice) :
 	m_pActualStateBlock(pActualStateBlock),
 	m_pOwningDevice(pOwningDevice),
@@ -29,6 +34,10 @@ BaseDirect3DStateBlock9::BaseDirect3DStateBlock9(IDirect3DStateBlock9* pActualSt
 	pOwningDevice->AddRef();
 }
 
+/**
+* Destructor. 
+* Releases embedded pixel shader. 
+***/
 BaseDirect3DStateBlock9::~BaseDirect3DStateBlock9()
 {
 	if(m_pActualStateBlock) 
@@ -37,6 +46,9 @@ BaseDirect3DStateBlock9::~BaseDirect3DStateBlock9()
 	m_pOwningDevice->Release();
 }
 
+/**
+* Base QueryInterface functionality. 
+***/
 HRESULT WINAPI BaseDirect3DStateBlock9::QueryInterface(REFIID riid, LPVOID* ppv)
 {
 	if (!m_pActualStateBlock) {
@@ -47,11 +59,17 @@ HRESULT WINAPI BaseDirect3DStateBlock9::QueryInterface(REFIID riid, LPVOID* ppv)
 	return m_pActualStateBlock->QueryInterface(riid, ppv);
 }
 
+/**
+* Base AddRef functionality.
+***/
 ULONG WINAPI BaseDirect3DStateBlock9::AddRef()
 {
 	return ++m_nRefCount;
 }
 
+/**
+* Base Release functionality.
+***/
 ULONG WINAPI BaseDirect3DStateBlock9::Release()
 {
 	if(--m_nRefCount == 0)
@@ -63,7 +81,10 @@ ULONG WINAPI BaseDirect3DStateBlock9::Release()
 	return m_nRefCount;
 }
 
-
+/**
+* Base GetDevice functionality.
+* TODO D3D behaviour. Docs don't have the notice that is usually there about a refcount increase
+***/
 HRESULT WINAPI BaseDirect3DStateBlock9::GetDevice(IDirect3DDevice9** ppDevice)
 {
 	if (!m_pOwningDevice)
@@ -75,6 +96,9 @@ HRESULT WINAPI BaseDirect3DStateBlock9::GetDevice(IDirect3DDevice9** ppDevice)
 	}
 }
 
+/**
+* Base Capture functionality.
+***/
 HRESULT WINAPI BaseDirect3DStateBlock9::Capture()
 {
 	if (!m_pActualStateBlock) {
@@ -85,6 +109,9 @@ HRESULT WINAPI BaseDirect3DStateBlock9::Capture()
 	return m_pActualStateBlock->Capture();
 }
 
+/**
+* Base Apply functionality.
+***/
 HRESULT WINAPI BaseDirect3DStateBlock9::Apply()
 {
 	if (!m_pActualStateBlock) {

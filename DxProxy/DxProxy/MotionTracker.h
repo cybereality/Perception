@@ -25,39 +25,77 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <math.h>
 #include <windows.h>
 
+/**
+*  Base motion tracker class. 
+*  Derive base functionality from this to any tracking class.
+*/
 class MotionTracker
 {
 public:
 	MotionTracker(void);
 	virtual ~MotionTracker(void);
 
-	virtual int init();
-	virtual int getOrientation(float* yaw, float* pitch, float* roll);
+	/*** MotionTracker virtual public methods ***/
+	virtual int  init();
+	virtual int  getOrientation(float* yaw, float* pitch, float* roll);
 	virtual void updateOrientation();
 	virtual bool isAvailable();
 	virtual void setMultipliers(float yaw, float pitch, float roll);
 
+	/*** MotionTracker public methods ***/
 	bool isEqual(float a, float b){ return abs(a-b) < 0.001; };
 
+	/**
+	* Orientation, as received from tracker.
+	***/
 	float yaw, pitch, roll;
+	/**
+	* Current yaw angle, in positive degrees, multiplied by yaw multiplier.
+	***/
 	float currentYaw;
+	/**
+	* Current pitch angle, in positive degrees, multiplied by pitch multiplier.
+	***/
 	float currentPitch;
+	/**
+	* Current roll angle, in radians, multiplied by roll multiplier.
+	***/
 	float currentRoll;
+	/**
+	* Yaw difference, to be passed to game mouse input.
+	***/
 	float deltaYaw;
+	/**
+	* Pitch difference, to be passed to game mouse input.
+	***/
 	float deltaPitch;
-
+	/**
+	* Game specific yaw angle multiplier.
+	***/
 	float multiplierYaw;
+	/**
+	* Game specific pitch angle multiplier.
+	***/
 	float multiplierPitch;
+	/**
+	* Game specific roll angle multiplier.
+	***/
 	float multiplierRoll;
+	/**
+	* Mouse data, to be passed to the game.
+	***/
 	INPUT mouseData;
 
+	/**
+	* Currently supported tracker types enumeration.
+	***/
 	static enum TrackerTypes
 	{
-		DISABLED = 0,
-		HILLCREST = 10,
-		FREETRACK = 20,
-		SHAREDMEMTRACK = 30,
-		OCULUSTRACK = 40
+		DISABLED = 0,         /**< Tracking disabled. */
+		HILLCREST = 10,       /**< Hillcrest Labs. Freespace. */
+		FREETRACK = 20,       /**< FreeTrack optical motion tracking. */
+		SHAREDMEMTRACK = 30,  /**< Shared memory tracking. */
+		OCULUSTRACK = 40      /**< Oculus Rift tracking. */
 	};
 };
 
