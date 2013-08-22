@@ -25,31 +25,49 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "d3dx9.h"
 #include "ViewAdjustment.h"
 
-
-
 template <class T=float>
+
+/**
+* Shader constant modification class template.
+* Prototype for any shader register modification.
+* @see ViewAdjustment
+*/
 class ShaderConstantModification
 {
 public:
-	ShaderConstantModification(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatricies) : 
+	/**
+	* Constructor.
+	* @param modID Identifier of the modification. Identifier enumerations defined in ShaderConstantModificationFactory.
+	* @param adjustmentMatrices Pointer to view adjustment class.
+	* @see ViewAdjustment Matrix calculation class pointer.
+	***/
+	ShaderConstantModification(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatrices) : 
 		m_ModificationID(modID),
-		m_spAdjustmentMatricies(adjustmentMatricies)
+		m_spAdjustmentMatrices(adjustmentMatrices)
 	{}
-
+	/**
+	* Destructor.
+	* calls ViewAdjustment::reset()
+	* @see ViewAdjustment
+	***/
 	virtual ~ShaderConstantModification()
 	{
-		m_spAdjustmentMatricies.reset();
+		m_spAdjustmentMatrices.reset();
 	}
 
-	/* Applies this modification to toModify to produce left and right versions. */
+	/**
+	* Applies this modification to produce left and right versions. 
+	***/
 	virtual void ApplyModification(const T* inData, std::vector<T>* outLeft, std::vector<T>* outRight) = 0;
-
-
+	
+	/**
+	* Modification identifier.
+	***/
 	UINT m_ModificationID;
 protected:
-	std::shared_ptr<ViewAdjustment> m_spAdjustmentMatricies;
-	
+	/**
+	* Matrix calculation class pointer.
+	***/
+	std::shared_ptr<ViewAdjustment> m_spAdjustmentMatrices;	
 };
-
-
 #endif

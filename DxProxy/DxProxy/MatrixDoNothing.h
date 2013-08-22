@@ -26,16 +26,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Vireio.h"
 #include "ShaderMatrixModification.h"
 
+/**
+* Simple modification that does not apply anything. 
+*/
 class MatrixDoNothing : public ShaderMatrixModification
 {
 public:
+	/**
+	* Base constructor.
+	***/
 	MatrixDoNothing(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatricies) : ShaderMatrixModification(modID, adjustmentMatricies, false) {};
 
+	/**
+	* Returns true.
+	***/
 	virtual bool DoNotApply(D3DXMATRIX in)
 	{
 		return true;
 	}
 };
-
-
 #endif

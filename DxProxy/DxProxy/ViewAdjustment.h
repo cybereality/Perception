@@ -36,6 +36,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 *
 * ALL MATRICES are identity matrices if worldScaleFactor in game configuration not set (==zero). 
 * Currently IPD is not used, (just IPD_DEFAULT) !! (much to do here)
+* @see ShaderConstantModification
 */
 class ViewAdjustment
 {

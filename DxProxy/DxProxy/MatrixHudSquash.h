@@ -26,6 +26,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Vireio.h"
 #include "ShaderMatrixModification.h"
 
+/**
+* Modification that squashes the head-up display(HUD).
+* Could probably be also used to squash the whole GUI.
+*/
 class MatrixHudSquash : public ShaderMatrixModification
 {
 public:
@@ -34,22 +38,25 @@ public:
 		D3DXMatrixScaling(&squash, 0.5f, 0.5f, 1);
 	};
 
+	/**
+	* Matrix modification does multiply: translation * squash.
+	* TODO probably don't want to be translating the HUD around.
+	* Need an adjustment that does unproject, reproject left/right? (then squash)
+	* Refactor modifications into view adjustments? Or just make unproject->reproject a standard adjustment in adjustments?
+	* Or ???
+	* TODO Refactor so adjustments aren't recalculated every time constant is applied that don't need to be
+	* Shift adustments to some kind of indexed lookup in view adjustments with adjustments only being updated if dirty?
+	***/
 	virtual void DoMatrixModification(D3DXMATRIX in, D3DXMATRIX& outLeft, D3DXMATRIX& outright)
 	{
-		// TODO probably don't want to be translating the HUD around.
-		// Need an adjustment that does unproject, reproject left/right? (then squash)
-		// Refactor modifications into view adjustments? Or just make unproject->reproject a standard adjustment in adjustments?
-		// Or ???
-		// TODO Refactor so adjustments aren't recalculated every time constant is applied that don't need to be
-		// Shift adustments to some kind of indexed lookup in view adjustments with adjustments only being updated if dirty?
-		outLeft = in * m_spAdjustmentMatricies->LeftShiftProjection() * squash;
-		outright = in * m_spAdjustmentMatricies->RightShiftProjection() * squash;
+		outLeft = in * m_spAdjustmentMatrices->LeftShiftProjection() * squash;
+		outright = in * m_spAdjustmentMatrices->RightShiftProjection() * squash;
 	};
 
-
 private:
+	/**
+	* Squash scaling matrix.
+	***/
 	D3DXMATRIX squash;
 };
-
-
 #endif

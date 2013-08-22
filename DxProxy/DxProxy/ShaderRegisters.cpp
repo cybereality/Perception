@@ -296,7 +296,8 @@ void ShaderRegisters::ActiveVertexShaderChanged(D3D9ProxyVertexShader* pNewVerte
 			bool mightBeDirty = true;
 
 			if (pOldShaderModConstants) {
-				// No idea if this is saving any time or if it would be better to just mark all the registers dirty and re-apply the constants on first draw
+				// No idea if this is saving any time or if it would be better to just mark all the registers dirty 
+				// and re-apply the constants on first draw
 				if (m_pActiveVertexShader->ModifiedConstants()->count(itNewConstants->first) == 1) {
 					if (pOldShaderModConstants->at(itNewConstants->first).SameConstantAs(itNewConstants->second)) {
 						(*pNewShaderModConstants).at(itNewConstants->first) = (*pOldShaderModConstants).at(itNewConstants->first);
