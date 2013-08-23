@@ -29,30 +29,43 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "MatrixDoNothing.h"
 #include "MatrixHudSquash.h"
 
+/**
+* Shader constant modification helper class.
+* Contains static functions to create modifications and modification enumerations.
+*/
 class ShaderConstantModificationFactory
 {
 public:
-
+	/**
+	* Vector4 modification identifiers. 
+	***/
 	enum Vector4ModificationTypes
 	{
-		Vec4DoNothing = 0,
-		Vec4SimpleTranslate = 1
+		Vec4DoNothing = 0,                 /**< Simple modification that does not apply anything. **/
+		Vec4SimpleTranslate = 1            /**< Default modification is simple translate. **/
 	};
-
+	/**
+	* Matrix modification identifiers.
+	***/
 	enum MatrixModificationTypes
 	{
-		MatDoNothing = 0,
-		MatSimpleTranslate = 1, 
-		MatSimpleTranslateIgnoreOrtho = 3,
-		MatHudSquash = 4
+		MatDoNothing = 0,                  /**< Simple modification that does not apply anything. **/
+		MatSimpleTranslate = 1,            /**< Default modification is simple translate. **/
+		MatSimpleTranslateIgnoreOrtho = 3, /**< Modification to ignore orthographic matrices. **/
+		MatHudSquash = 4                   /**< Modification to squash the head-up display(HUD). **/
 	};
 
-
+	/**
+	* Calls twin function.
+	***/
 	static std::shared_ptr<ShaderConstantModification<>> CreateVector4Modification(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatricies)
 	{
 		return CreateVector4Modification(static_cast<Vector4ModificationTypes>(modID), adjustmentMatricies);
 	}
-
+	/**
+	* Creates Vector4 modification.
+	* @see Vector4SimpleTranslate
+	***/
 	static std::shared_ptr<ShaderConstantModification<>> CreateVector4Modification(Vector4ModificationTypes mod, std::shared_ptr<ViewAdjustment> adjustmentMatricies)
 	{
 		switch (mod)
@@ -66,12 +79,20 @@ public:
 			throw std::out_of_range ("Nonexistant Vec4 modification");
 		}
 	}
-
+	/**
+	* Calls twin function.
+	***/
 	static std::shared_ptr<ShaderConstantModification<>> CreateMatrixModification(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatricies, bool transpose) 
 	{
 		return CreateMatrixModification(static_cast<MatrixModificationTypes>(modID), adjustmentMatricies, transpose);
 	}
-
+	/**
+	* Creates matrix modification.
+	* @see MatrixDoNothing
+	* @see ShaderMatrixModification
+	* @see MatrixIgnoreOrtho
+	* @see MatrixHudSquash
+	***/
 	static std::shared_ptr<ShaderConstantModification<>> CreateMatrixModification(MatrixModificationTypes mod, std::shared_ptr<ViewAdjustment> adjustmentMatricies, bool transpose)
 	{
 		switch (mod)
@@ -95,6 +116,4 @@ public:
 		}
 	}
 };
-
-
 #endif

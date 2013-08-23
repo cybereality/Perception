@@ -24,23 +24,28 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "d3dx9.h"
 #include "ShaderConstantModification.h"
 
+/**
+* Vector4 translation.
+* Translates Vector4 to left and right by separation in world units.
+*/
 class Vector4SimpleTranslate : public ShaderConstantModification<float>
 {
-public:
+public:		
 	Vector4SimpleTranslate(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatricies) : ShaderConstantModification(modID, adjustmentMatricies) {};
 
+	/**
+	* Translates Vector4 to left and right by separation in world units.
+	***/
 	virtual void ApplyModification(const float* inData, std::vector<float>* outLeft, std::vector<float>* outRight)
 	{
 		D3DXVECTOR4 tempLeft (inData);
 		D3DXVECTOR4 tempRight (inData);
 
-		tempLeft[0] += m_spAdjustmentMatricies->SeparationInWorldUnits() * LEFT_CONSTANT;
-		tempRight[0] += m_spAdjustmentMatricies->SeparationInWorldUnits() * RIGHT_CONSTANT;
+		tempLeft[0] += m_spAdjustmentMatrices->SeparationInWorldUnits() * LEFT_CONSTANT;
+		tempRight[0] += m_spAdjustmentMatrices->SeparationInWorldUnits() * RIGHT_CONSTANT;
 
 		outLeft->assign(&tempLeft[0], &tempLeft[0] + outLeft->size());
 		outRight->assign(&tempRight[0], &tempRight[0] + outRight->size());	
 	}
 };
-
-
 #endif

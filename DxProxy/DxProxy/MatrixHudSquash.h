@@ -48,31 +48,29 @@ public:
 		D3DXMatrixScaling(&squash, 0.5f, 0.5f, 1);
 	};
 
-	/* TODO: NEED TO LOOK THIS MORE TOMORROW- Josh
-	 *  Does the matrix squash and outputs the results.  Does not only affect HUD at this point in time (August 22nd, 2013).
-	 * @param in The matrix to be multiply by the adjustmentMatricies.
-	 * @param[out] outLeft The resulting left side matrix
-	 * @param[out] outRight The resulting right side matrix
-	 */
+	/**
+	* Matrix modification does multiply: translation * squash.
+	* *  Does the matrix squash and outputs the results.  Does not only affect HUD at this point in time (August 22nd, 2013).
+	* @param in The matrix to be multiply by the adjustmentMatricies.
+	* @param[out] outLeft The resulting left side matrix
+	* @param[out] outRight The resulting right side matrix
+	* TODO probably don't want to be translating the HUD around.
+	* Need an adjustment that does unproject, reproject left/right? (then squash)
+	* Refactor modifications into view adjustments? Or just make unproject->reproject a standard adjustment in adjustments?
+	* Or ???
+	* TODO Refactor so adjustments aren't recalculated every time constant is applied that don't need to be
+	* Shift adustments to some kind of indexed lookup in view adjustments with adjustments only being updated if dirty?
+	***/
 	virtual void DoMatrixModification(D3DXMATRIX in, D3DXMATRIX& outLeft, D3DXMATRIX& outright)
 	{
-		// TODO probably don't want to be translating the HUD around.
-		// Need an adjustment that does unproject, reproject left/right? (then squash)
-		// Refactor modifications into view adjustments? Or just make unproject->reproject a standard adjustment in adjustments?
-		// Or ???
-		// TODO Refactor so adjustments aren't recalculated every time constant is applied that don't need to be
-		// Shift adustments to some kind of indexed lookup in view adjustments with adjustments only being updated if dirty?
-		outLeft = in * m_spAdjustmentMatricies->LeftShiftProjection() * squash;
-		outright = in * m_spAdjustmentMatricies->RightShiftProjection() * squash;
+		outLeft = in * m_spAdjustmentMatrices->LeftShiftProjection() * squash;
+		outright = in * m_spAdjustmentMatrices->RightShiftProjection() * squash;
 	};
-
 
 private:
 	/*
-	 * The matrix used to squash the AdjustmentMatricies through multiplication, obtained by the D3DXMatrixScaling.
+	 * Squash scaling matrix, obtained by the D3DXMatrixScaling.
 	 */
 	D3DXMATRIX squash;
 };
-
-
 #endif
