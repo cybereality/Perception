@@ -18,7 +18,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef MATRIXDONOTHING_H_INCLUDED
 #define MATRIXDONOTHING_H_INCLUDED
-
+/*
+ * @file MatrixDoNothing.h
+ * Conatains matrix class which modifies nothing.
+ */
 
 #include "d3d9.h"
 #include "d3dx9.h"
@@ -26,11 +29,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Vireio.h"
 #include "ShaderMatrixModification.h"
 
+
+/*
+ * This does nothing, but is needed for certain methods that could do things but sometimes won't.
+ */
 class MatrixDoNothing : public ShaderMatrixModification
 {
 public:
-	MatrixDoNothing(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatricies) : ShaderMatrixModification(modID, adjustmentMatricies, false) {};
+	/*
+	 * Just sets the class values that correspond to the parameters. 
+	 * @param modID The modification ID
+	 * @param adjustmentMatricies The matricies to do the adjustments to.
+	 */
+	MatrixDoNothing(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatricies) : 
+		ShaderMatrixModification(modID, adjustmentMatricies, false) {};
 
+	/*
+	 * Simply returns True.
+	 * @param in Irrelevant parameter.
+	 */
 	virtual bool DoNotApply(D3DXMATRIX in)
 	{
 		return true;

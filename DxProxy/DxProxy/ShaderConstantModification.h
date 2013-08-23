@@ -16,6 +16,10 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
+/*
+ * @file ShaderConstantModification.h
+ * Contains ShaderConstantModification class.
+ */
 #ifndef SHADERCONSTANTMODIFICATION_H_INCLUDED
 #define SHADERCONSTANTMODIFICATION_H_INCLUDED
 
@@ -26,27 +30,47 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ViewAdjustment.h"
 
 
-
+/*
+ * Abstract class acts as the skeleton class for Shader Modification Classes, 
+ * contains no shader modification logic simply keeps track of info.
+ * Must implement ApplyModification method.
+ * @tparam T The type of parameter to use for applying modifciations, default is float.
+ */
 template <class T=float>
 class ShaderConstantModification
 {
 public:
+	/*
+	 * Constructor simply sets the corresponding attributes.
+	 * @param modID The shader modification ID
+	 * @param adjustmentMatricies The view matrices that will be adjusted
+	 */
 	ShaderConstantModification(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatricies) : 
 		m_ModificationID(modID),
 		m_spAdjustmentMatricies(adjustmentMatricies)
 	{}
 
+	/*
+	 * Destructor, simply releases resources.
+	 */
 	virtual ~ShaderConstantModification()
 	{
 		m_spAdjustmentMatricies.reset();
 	}
 
-	/* Applies this modification to toModify to produce left and right versions. */
+	/*
+	 *  Pure virtual method, should apply the modification to produce left and right versions.   
+	 */
 	virtual void ApplyModification(const T* inData, std::vector<T>* outLeft, std::vector<T>* outRight) = 0;
 
-
+	/*
+	 * Simply a way to identify this modification.  Useful for comparing shadermodification equality.
+	 */
 	UINT m_ModificationID;
 protected:
+	/*
+	 * The view matrices to be adjusted.
+	 */
 	std::shared_ptr<ViewAdjustment> m_spAdjustmentMatricies;
 	
 };
