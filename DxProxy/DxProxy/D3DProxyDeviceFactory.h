@@ -22,6 +22,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ProxyHelper.h"
 #include "D3DProxyDevice.h"
 
+/**
+*  D3D proxy device factory class. 
+*  Class to retrieve the proxy device.
+*/
 class D3DProxyDeviceFactory
 {
 public:
