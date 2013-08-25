@@ -29,8 +29,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Vireio.h"
 #include "ShaderMatrixModification.h"
 
-<<<<<<< HEAD
-
 /*
  * Simple modification that does not apply anything. Is needed for certain methods that could do things but sometimes won't.
  */

@@ -75,6 +75,6 @@ protected:
 	/*
 	 * Matrix calculation class pointer
 	 */
-	std::shared_ptr<ViewAdjustment> m_spAdjustmentMatricies;
+	std::shared_ptr<ViewAdjustment> m_spAdjustmentMatrices;
 };
 #endif
