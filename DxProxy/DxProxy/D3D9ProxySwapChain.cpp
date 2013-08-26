@@ -19,6 +19,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "D3D9ProxySwapChain.h"
 #include <assert.h>
 
+/**
+* Debug output helper.
+***/
+void releaseCheckO(char* object, int newRefCount)
+{
+	if (newRefCount > 0) {
+		char buf[128];
+		sprintf_s(buf, "Error: %s count = %d\n", object, newRefCount);
+		OutputDebugString(buf);
+	}
+}
+
+/**
+* Constructor.
+* Creates stereo backbuffers to use in place of actual backbuffers.
+* @see m_backBuffers
+***/
 D3D9ProxySwapChain::D3D9ProxySwapChain(IDirect3DSwapChain9* pActualSwapChain, D3DProxyDevice* pWrappedOwningDevice, bool isAdditionalChain) : 
 		BaseDirect3DSwapChain9(pActualSwapChain, pWrappedOwningDevice, isAdditionalChain),
 		m_backBuffers()
@@ -48,15 +65,10 @@ D3D9ProxySwapChain::D3D9ProxySwapChain(IDirect3DSwapChain9* pActualSwapChain, D3
 	}
 }
 
-void releaseCheckO(char* object, int newRefCount)
-{
-	if (newRefCount > 0) {
-		char buf[128];
-		sprintf_s(buf, "Error: %s count = %d\n", object, newRefCount);
-		OutputDebugString(buf);
-	}
-}
-
+/**
+* Destructor.
+* Releases stored proxy backbuffers.
+***/
 D3D9ProxySwapChain::~D3D9ProxySwapChain()
 {
 	auto it = m_backBuffers.begin();
@@ -74,8 +86,10 @@ D3D9ProxySwapChain::~D3D9ProxySwapChain()
 	m_backBuffers.clear();
 }
 
-
-
+/**
+* Here, the stereo view render method is called.
+* @see StereoView::Draw()
+***/
 HRESULT WINAPI D3D9ProxySwapChain::Present(CONST RECT* pSourceRect, CONST RECT* pDestRect, HWND hDestWindowOverride, CONST RGNDATA* pDirtyRegion, DWORD dwFlags)
 {
 #ifdef _DEBUG
@@ -101,10 +115,15 @@ HRESULT WINAPI D3D9ProxySwapChain::Present(CONST RECT* pSourceRect, CONST RECT* 
 		OutputDebugString("Present: No primary swap chain found. (Present probably called before device has been reset)");
 	}
 
-
 	return m_pActualSwapChain->Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion, dwFlags);
 }
 
+/**
+* Gets the front buffer data from both (left/right) surface.
+* TODO Might be able to use a frame delayed backbuffer (copy last back buffer?) to get proper 
+* left/right images. Much pondering required, and some testing.
+*	
+***/
 HRESULT WINAPI D3D9ProxySwapChain::GetFrontBufferData(IDirect3DSurface9* pDestSurface) 
 {
 	D3D9ProxySurface* pWrappedDestSurface = static_cast<D3D9ProxySurface*>(pDestSurface);
@@ -129,6 +148,9 @@ HRESULT WINAPI D3D9ProxySwapChain::GetFrontBufferData(IDirect3DSurface9* pDestSu
 	return result;
 }
 
+/**
+* Provides the stored proxy back buffer.
+***/
 HRESULT WINAPI D3D9ProxySwapChain::GetBackBuffer(UINT iBackBuffer, D3DBACKBUFFER_TYPE Type, IDirect3DSurface9** ppBackBuffer) 
 {
 	if ((iBackBuffer < 0) || (iBackBuffer >= m_backBuffers.size())) 
