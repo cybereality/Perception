@@ -26,8 +26,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "IStereoCapableWrapper.h"
 
 /**
-* 
-* 
+*  Direct 3D proxy texture class. 
+*  Overwrites IDirect3DTexture9 and imbeds the additional right texture pointer.
 */
 class D3D9ProxyTexture : public BaseDirect3DTexture9, public IStereoCapableWrapper<IDirect3DTexture9>
 {
@@ -37,43 +37,40 @@ public:
 
 	/*** IUnknown methods ***/
 	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv);
-
-
-	// IStereoCapableWrapper /*** public methods ***/
-	virtual bool IsStereo();
-	virtual IDirect3DTexture9* getActualMono();
-	virtual IDirect3DTexture9* getActualLeft();
-	virtual IDirect3DTexture9* getActualRight();
 	
-	
-	// IDirect3DResource9 methods /*** public methods ***/
+	/*** IDirect3DBaseTexture9 methods ***/
 	virtual HRESULT WINAPI GetDevice(IDirect3DDevice9** ppDevice);	
 	virtual HRESULT WINAPI SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags);
 	virtual HRESULT WINAPI FreePrivateData(REFGUID refguid);
-	virtual   DWORD WINAPI SetPriority(DWORD PriorityNew);
-	virtual    void WINAPI PreLoad();
-
-
-	//base texture methods
-	virtual   DWORD WINAPI SetLOD(DWORD LODNew);
+	virtual DWORD   WINAPI SetPriority(DWORD PriorityNew);
+	virtual void    WINAPI PreLoad();
+	virtual DWORD   WINAPI SetLOD(DWORD LODNew);
 	virtual HRESULT WINAPI SetAutoGenFilterType(D3DTEXTUREFILTERTYPE FilterType);
-	virtual    void WINAPI GenerateMipSubLevels();
-
-
-	// texture methods
+	virtual void    WINAPI GenerateMipSubLevels();
 	virtual HRESULT WINAPI GetSurfaceLevel(UINT Level, IDirect3DSurface9** ppSurfaceLevel); 
-    virtual HRESULT WINAPI LockRect(UINT Level, D3DLOCKED_RECT* pLockedRect, CONST RECT* pRect, DWORD Flags);
+	virtual HRESULT WINAPI LockRect(UINT Level, D3DLOCKED_RECT* pLockedRect, CONST RECT* pRect, DWORD Flags);
 	virtual HRESULT WINAPI UnlockRect(UINT Level);
 	virtual HRESULT WINAPI AddDirtyRect(CONST RECT* pDirtyRect);
-	
+
+	/*** IStereoCapableWrapper methods ***/
+	virtual IDirect3DTexture9* getActualMono();
+	virtual IDirect3DTexture9* getActualLeft();
+	virtual IDirect3DTexture9* getActualRight();
+	virtual bool               IsStereo();
 
 protected:
-
-	/* Wrapped Surface levels */
+	/**
+	* Wrapped Surface levels.
+	***/
 	std::unordered_map<UINT, D3D9ProxySurface*> m_wrappedSurfaceLevels;
-
+	/**
+	* The owning device.
+	* @see D3D9ProxySurface::m_pOwningDevice
+	***/
 	BaseDirect3DDevice9* const m_pOwningDevice;
+	/**
+	* The actual right texture embedded. 
+	***/
 	IDirect3DTexture9* const m_pActualTextureRight;
 };
-
 #endif
