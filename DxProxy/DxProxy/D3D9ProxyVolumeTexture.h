@@ -24,34 +24,32 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Direct3DVolumeTexture9.h"
 #include "D3D9ProxyVolume.h"
 
-
+/**
+*  Direct 3D proxy volume texture class. 
+*  Overwrites BaseDirect3DVolumeTexture9 and imbeds wrapped volume levels.
+*/
 class D3D9ProxyVolumeTexture : public BaseDirect3DVolumeTexture9
 {
 public:
 	D3D9ProxyVolumeTexture(IDirect3DVolumeTexture9* pActualVolumeTexture, BaseDirect3DDevice9* pOwningDevice);
 	virtual ~D3D9ProxyVolumeTexture();
-
-
-	IDirect3DVolumeTexture9* getActual();
-	
-	
-	// IDirect3DResource9 methods
+		
+	/*** IDirect3DBaseTexture9 methods ***/
 	virtual HRESULT WINAPI GetDevice(IDirect3DDevice9** ppDevice);
-
-	// VolumeTexture methods
 	virtual HRESULT WINAPI GetVolumeLevel(UINT Level, IDirect3DVolume9** ppVolumeLevel);
 
-
-   
-    
-	
-	
+	/*** IDirect3DVolumeTexture9 public methods ***/
+	IDirect3DVolumeTexture9* getActual();	
 
 protected:
-
-	/* Wrapped Volume levels */
-	std::unordered_map<UINT, D3D9ProxyVolume*> m_wrappedVolumeLevels; 
+	/**
+	* Wrapped Volume levels. 
+	***/
+	std::unordered_map<UINT, D3D9ProxyVolume*> m_wrappedVolumeLevels;
+	/**
+	* The owning device.
+	* @see D3D9ProxySurface::m_pOwningDevice
+	***/
 	BaseDirect3DDevice9* const m_pOwningDevice;
 };
-
 #endif
