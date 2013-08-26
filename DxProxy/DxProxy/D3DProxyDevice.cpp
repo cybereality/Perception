@@ -1144,7 +1144,7 @@ HRESULT WINAPI D3DProxyDevice::SetViewport(CONST D3DVIEWPORT9* pViewport)
 
 /**
 * Creates proxy state block.
-* Also, some capture type options are primed here but not used currently.
+* Also, selects capture type option according to state block type.
 * @param ppSB [in, out] The proxy (or wrapped) state block returned.
 * @see D3DProxyStateBlock
 ***/
