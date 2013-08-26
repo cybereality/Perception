@@ -18,6 +18,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "D3D9ProxyVertexShader.h"
 
+/**
+* Constructor.
+* @param pModLoader Can be NULL (no modifications in this game profile).
+***/
 D3D9ProxyVertexShader::D3D9ProxyVertexShader(IDirect3DVertexShader9* pActualVertexShader, D3DProxyDevice *pOwningDevice, ShaderModificationRepository* pModLoader) :
 	BaseDirect3DVertexShader9(pActualVertexShader, pOwningDevice),
 	m_pActualDevice(pOwningDevice->getActual()),
@@ -27,9 +31,15 @@ D3D9ProxyVertexShader::D3D9ProxyVertexShader(IDirect3DVertexShader9* pActualVert
 		m_modifiedConstants = pModLoader->GetModifiedConstantsF(pActualVertexShader);
 }
 
+/**
+* Empty destructor.
+***/
 D3D9ProxyVertexShader::~D3D9ProxyVertexShader()
 {}
 
+/**
+* Returns modified constants pointer.
+***/
 std::map<UINT, StereoShaderConstant<float>>* D3D9ProxyVertexShader::ModifiedConstants()
 {
 	return &m_modifiedConstants;
