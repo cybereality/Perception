@@ -31,7 +31,7 @@ public:
 	BaseDirect3DCubeTexture9(IDirect3DCubeTexture9* pCubeTexture);
 	virtual ~BaseDirect3DCubeTexture9();
 
-	// IUnknown methods
+	/*** IUnknown methods ***/
 	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv);
 	virtual ULONG	WINAPI AddRef();
 	virtual ULONG	WINAPI Release();

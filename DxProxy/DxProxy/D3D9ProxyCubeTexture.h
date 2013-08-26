@@ -27,10 +27,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <functional>
 #include <utility>
 
-// Pair to use as key for storing surface levels
+/**
+* Pair to use as key for storing surface levels.
+***/
 typedef std::pair<D3DCUBEMAP_FACES,UINT> CubeSurfaceKey;
 
-// Hash for surface level key
+/**
+* Hash for surface level key.
+***/
 struct hash_CubeSurfaceKey {
     size_t operator()(const CubeSurfaceKey &cubeSurfaceKey ) const
     {
@@ -38,49 +42,49 @@ struct hash_CubeSurfaceKey {
     }
 };
 
-
+/**
+*  Direct 3D proxy Cube Texture class. 
+*  Overwrites BaseDirect3DCubeTexture9 and imbeds the wrapped surface levels.
+*/
 class D3D9ProxyCubeTexture : public BaseDirect3DCubeTexture9, public IStereoCapableWrapper<IDirect3DCubeTexture9>
 {
 public:
 	D3D9ProxyCubeTexture(IDirect3DCubeTexture9* pActualTextureLeft, IDirect3DCubeTexture9* pActualTextureRight, BaseDirect3DDevice9* pOwningDevice);
-	virtual ~D3D9ProxyCubeTexture();
-
-	// IStereoCapableWrapper
-	virtual bool IsStereo();
-	virtual IDirect3DCubeTexture9* getActualMono();
-	virtual IDirect3DCubeTexture9* getActualLeft();
-	virtual IDirect3DCubeTexture9* getActualRight();
+	virtual ~D3D9ProxyCubeTexture();	
 	
-	
-	// IDirect3DResource9 methods
+	/*** IDirect3DBaseTexture9 methods ***/
 	virtual HRESULT WINAPI GetDevice(IDirect3DDevice9** ppDevice);	
 	virtual HRESULT WINAPI SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags);
 	virtual HRESULT WINAPI FreePrivateData(REFGUID refguid);
-	virtual   DWORD WINAPI SetPriority(DWORD PriorityNew);
-	virtual    void WINAPI PreLoad();
-
-
-	//base texture methods
-	virtual   DWORD WINAPI SetLOD(DWORD LODNew);
+	virtual DWORD   WINAPI SetPriority(DWORD PriorityNew);
+	virtual void    WINAPI PreLoad();
+	virtual DWORD   WINAPI SetLOD(DWORD LODNew);
 	virtual HRESULT WINAPI SetAutoGenFilterType(D3DTEXTUREFILTERTYPE FilterType);
-	virtual    void WINAPI GenerateMipSubLevels();
-
-
-	
-	// cube texture methods
+	virtual void    WINAPI GenerateMipSubLevels();
 	virtual HRESULT WINAPI GetCubeMapSurface(D3DCUBEMAP_FACES FaceType, UINT Level, IDirect3DSurface9** ppCubeMapSurface);
     virtual HRESULT WINAPI LockRect(D3DCUBEMAP_FACES FaceType, UINT Level, D3DLOCKED_RECT* pLockedRect, CONST RECT* pRect, DWORD Flags);
 	virtual HRESULT WINAPI UnlockRect(D3DCUBEMAP_FACES FaceType, UINT Level);
 	virtual HRESULT WINAPI AddDirtyRect(D3DCUBEMAP_FACES FaceType, CONST RECT* pDirtyRect);
 	
+	// IStereoCapableWrapper	
+	virtual IDirect3DCubeTexture9* getActualMono();
+	virtual IDirect3DCubeTexture9* getActualLeft();
+	virtual IDirect3DCubeTexture9* getActualRight();
+	virtual bool                   IsStereo();
 
 protected:
-
-	/* Wrapped Surface levels */
+	/**
+	* Wrapped Surface levels.
+	***/
 	std::unordered_map<CubeSurfaceKey, D3D9ProxySurface*, hash_CubeSurfaceKey> m_wrappedSurfaceLevels;
-
+	/**
+	* The owning device.
+	* @see D3D9ProxySurface::m_pOwningDevice
+	***/
 	BaseDirect3DDevice9* const m_pOwningDevice;
+	/**
+	* The actual right cube texture embedded. 
+	***/
 	IDirect3DCubeTexture9* const m_pActualTextureRight;
 };
-
 #endif
