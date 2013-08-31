@@ -34,23 +34,28 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class D3DProxyDevice;
 class ShaderModificationRepository;
 
+/**
+*  Direct 3D proxy vertex shader class.
+*  Overwrites BaseDirect3DVertexShader9 and handles modified constants.
+*/
 class D3D9ProxyVertexShader : public BaseDirect3DVertexShader9
 {
-public:
-
-	// pModLoader can be NULL (no modifications in this game profile)
+public:	
 	D3D9ProxyVertexShader(IDirect3DVertexShader9* pActualVertexShader, D3DProxyDevice* pOwningDevice, ShaderModificationRepository* pModLoader);
 	virtual ~D3D9ProxyVertexShader();
 
+	/*** D3D9ProxyVertexShader public methods ***/
 	std::map<UINT, StereoShaderConstant<>>* ModifiedConstants();
-
-
 protected:
-
+	/**
+	* Currently not used actual owning device.
+	***/
 	IDirect3DDevice9* m_pActualDevice;
-
-	//<StartRegister, StereoShaderConstant<>>
+	/**
+	* Modified shader constants.
+	* <StartRegister, StereoShaderConstant<>>
+	* @see StereoShaderConstant
+	***/
 	std::map<UINT, StereoShaderConstant<>> m_modifiedConstants;
 };
-
 #endif

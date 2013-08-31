@@ -22,9 +22,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ProxyHelper.h"
 #include "MotionTracker.h"
 
+/**
+*  Motion tracker factory class. 
+*  Class to retrieve the currently selected motion tracker.
+*/
 class MotionTrackerFactory
 {
 public:
+	/*** MotionTrackerFactory public methods ***/
 	static MotionTracker* Get(ProxyHelper::ProxyConfig& config);
 };
 

@@ -22,10 +22,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ProxyHelper.h"
 #include "StereoView.h"
 
+/**
+*  Stereo view factory class. 
+*  Class to retrieve the currently selected stereo view.
+*/
 class StereoViewFactory
 {
 public:
+	/*** StereoViewFactory public methods ***/
 	static StereoView* Get(ProxyHelper::ProxyConfig& config, HMDisplayInfo hmd);
 };
-
 #endif

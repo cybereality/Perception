@@ -11,6 +11,8 @@
  * Copyright (C) 2003, by Kristen Wegner (kristen@tima.net)
  */
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
 #ifndef SOURCE_PUGIXML_CPP
 #define SOURCE_PUGIXML_CPP
 
@@ -10223,6 +10225,8 @@ namespace pugi
 #undef PUGI__CHECK_ERROR
 
 #endif
+
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  * Copyright (c) 2006-2012 Arseny Kapoulkine

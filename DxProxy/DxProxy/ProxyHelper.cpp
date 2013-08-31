@@ -18,16 +18,69 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "ProxyHelper.h"
 
-
 using namespace pugi;
 
-HRESULT RegGetString(HKEY hKey, LPCTSTR szValueName, LPTSTR * lpszResult);
+/**
+* Reads a string from registry.
+* @param hKey Registry key handle.
+* @param szValueName Name of the value to be read.
+* @param lpszResult The string result.
+***/
+HRESULT RegGetString(HKEY hKey, LPCTSTR szValueName, LPTSTR * lpszResult) {
+ 
+    // Given a HKEY and value name returns a string from the registry.
+    // Upon successful return the string should be freed using free()
+    // eg. RegGetString(hKey, TEXT("my value"), &szString);
+ 
+    DWORD dwType=0, dwDataSize=0, dwBufSize=0;
+    LONG lResult;
+ 
+    // Incase we fail set the return string to null...
+    if (lpszResult != NULL) *lpszResult = NULL;
+ 
+    // Check input parameters...
+    if (hKey == NULL || lpszResult == NULL) return E_INVALIDARG;
+ 
+    // Get the length of the string in bytes (placed in dwDataSize)...
+    lResult = RegQueryValueEx(hKey, szValueName, 0, &dwType, NULL, &dwDataSize );
+ 
+    // Check result and make sure the registry value is a string(REG_SZ)...
+    if (lResult != ERROR_SUCCESS) return HRESULT_FROM_WIN32(lResult);
+    else if (dwType != REG_SZ)    return DISP_E_TYPEMISMATCH;
+ 
+    // Allocate memory for string - We add space for a null terminating character...
+    dwBufSize = dwDataSize + (1 * sizeof(TCHAR));
+    *lpszResult = (LPTSTR)malloc(dwBufSize);
+ 
+    if (*lpszResult == NULL) return E_OUTOFMEMORY;
+ 
+    // Now get the actual string from the registry...
+    lResult = RegQueryValueEx(hKey, szValueName, 0, &dwType, (LPBYTE) *lpszResult, &dwDataSize );
+ 
+    // Check result and type again.
+    // If we fail here we must free the memory we allocated...
+    if (lResult != ERROR_SUCCESS) { free(*lpszResult); return HRESULT_FROM_WIN32(lResult); }
+    else if (dwType != REG_SZ)    { free(*lpszResult); return DISP_E_TYPEMISMATCH; }
+ 
+    // We are not guaranteed a null terminated string from RegQueryValueEx.
+    // Explicitly null terminate the returned string...
+    (*lpszResult)[(dwBufSize / sizeof(TCHAR)) - 1] = TEXT('\0');
+ 
+    return NOERROR;
+}
 
+/**
+* Almost empty constructor.
+***/
 ProxyHelper::ProxyHelper()
 	: baseDirLoaded(false)
 {
 }
 
+/**
+* Returns the name of the Vireio Perception base directory read from registry.
+* Saved to registry by InitConfig() in Main.cpp.
+***/
 char* ProxyHelper::GetBaseDir()
 {
 	if (baseDirLoaded == true){
@@ -68,6 +121,10 @@ char* ProxyHelper::GetBaseDir()
 	return baseDir;
 }
 
+/**
+* Returns the name of the target exe process read from registry.
+* Saved to registry by SaveExeName() in dllmain.cpp.
+***/
 char* ProxyHelper::GetTargetExe()
 {
 	HKEY hKey;
@@ -101,13 +158,53 @@ char* ProxyHelper::GetTargetExe()
 	return targetExe;
 }
 
+/**
+* Simple helper to append a path string to the base Vireio directory.
+* @param newFolder The folder string returned.
+* @param path The Vireio sub-path.
+***/
 void ProxyHelper::GetPath(char* newFolder, char* path)
 {
 	strcpy_s(newFolder, 512, GetBaseDir());
 	strcat_s(newFolder, 512, path);
 }
 
+/**
+* Reads global config stereo and tracker mode.
+* @param mode Stereo mode returned.
+* @param mode2 Tracker mode returned.
+***/
+bool ProxyHelper::GetConfig(int& mode, int& mode2)
+{
+	// load the base dir for the app
+	GetBaseDir();
+	OutputDebugString(baseDir);
+	OutputDebugString("\n");
 
+	// get global config
+	char configPath[512];
+	GetPath(configPath, "cfg\\config.xml");
+
+	xml_document docConfig;
+	xml_parse_result resultConfig = docConfig.load_file(configPath);
+
+	if(resultConfig.status == status_ok)
+	{
+		xml_node xml_config = docConfig.child("config");
+
+		mode = xml_config.attribute("stereo_mode").as_int();
+		mode2 = xml_config.attribute("tracker_mode").as_int();
+
+		return true;
+	}
+	
+	return false;
+}
+
+/**
+* Loads the game configuration for the target process specified in the registry (targetExe).
+* @param config Returned game configuration.
+***/
 bool ProxyHelper::LoadConfig(ProxyConfig& config)
 {
 	bool fileFound = false;
@@ -227,116 +324,21 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config)
 	return fileFound && profileFound;
 }
 
-bool ProxyHelper::HasProfile(char* name)
-{
-	// get the profile
-	bool profileFound = false;
-	char profilePath[512];
-	GetPath(profilePath, "cfg\\profiles.xml");
-
-	xml_document docProfiles;
-	xml_parse_result resultProfiles = docProfiles.load_file(profilePath);
-	xml_node profile;
-
-	if(resultProfiles.status == status_ok)
-	{
-		xml_node xml_profiles = docProfiles.child("profiles");
-
-		for (xml_node profile = xml_profiles.child("profile"); profile; profile = profile.next_sibling("profile"))
-		{
-			if(strcmp(name, profile.attribute("game_exe").value()) == 0)
-			{
-				OutputDebugString("Found a profile!!!\n");
-				profileFound = true;
-				break;
-			}
-		}
-	}
-
-	return profileFound;
-}
-
-bool ProxyHelper::GetProfile(char* name, ProxyConfig& config)
-{
-	// get the profile
-	bool profileFound = false;
-	char profilePath[512];
-	GetPath(profilePath, "cfg\\profiles.xml");
-
-	xml_document docProfiles;
-	xml_parse_result resultProfiles = docProfiles.load_file(profilePath);
-	xml_node profile;
-
-	if(resultProfiles.status == status_ok)
-	{
-		xml_node xml_profiles = docProfiles.child("profiles");
-
-		for (xml_node profile = xml_profiles.child("profile"); profile; profile = profile.next_sibling("profile"))
-		{
-			if(strcmp(name, profile.attribute("game_exe").value()) == 0)
-			{
-				OutputDebugString("Found a profile!!!\n");
-				profileFound = true;
-
-				break;
-			}
-		}
-	}
-
-	return profileFound;
-}
-
-HRESULT RegGetString(HKEY hKey, LPCTSTR szValueName, LPTSTR * lpszResult) {
- 
-    // Given a HKEY and value name returns a string from the registry.
-    // Upon successful return the string should be freed using free()
-    // eg. RegGetString(hKey, TEXT("my value"), &szString);
- 
-    DWORD dwType=0, dwDataSize=0, dwBufSize=0;
-    LONG lResult;
- 
-    // Incase we fail set the return string to null...
-    if (lpszResult != NULL) *lpszResult = NULL;
- 
-    // Check input parameters...
-    if (hKey == NULL || lpszResult == NULL) return E_INVALIDARG;
- 
-    // Get the length of the string in bytes (placed in dwDataSize)...
-    lResult = RegQueryValueEx(hKey, szValueName, 0, &dwType, NULL, &dwDataSize );
- 
-    // Check result and make sure the registry value is a string(REG_SZ)...
-    if (lResult != ERROR_SUCCESS) return HRESULT_FROM_WIN32(lResult);
-    else if (dwType != REG_SZ)    return DISP_E_TYPEMISMATCH;
- 
-    // Allocate memory for string - We add space for a null terminating character...
-    dwBufSize = dwDataSize + (1 * sizeof(TCHAR));
-    *lpszResult = (LPTSTR)malloc(dwBufSize);
- 
-    if (*lpszResult == NULL) return E_OUTOFMEMORY;
- 
-    // Now get the actual string from the registry...
-    lResult = RegQueryValueEx(hKey, szValueName, 0, &dwType, (LPBYTE) *lpszResult, &dwDataSize );
- 
-    // Check result and type again.
-    // If we fail here we must free the memory we allocated...
-    if (lResult != ERROR_SUCCESS) { free(*lpszResult); return HRESULT_FROM_WIN32(lResult); }
-    else if (dwType != REG_SZ)    { free(*lpszResult); return DISP_E_TYPEMISMATCH; }
- 
-    // We are not guaranteed a null terminated string from RegQueryValueEx.
-    // Explicitly null terminate the returned string...
-    (*lpszResult)[(dwBufSize / sizeof(TCHAR)) - 1] = TEXT('\0');
- 
-    return NOERROR;
-}
-
-
+/**
+* Saves a game configuration.
+* @param cfg The game configuration to be saved.
+***/
 bool ProxyHelper::SaveConfig(ProxyConfig& cfg)
 {
 	SaveProfile(cfg.separationAdjustment, cfg.swap_eyes, cfg.yaw_multiplier, cfg.pitch_multiplier, cfg.roll_multiplier, cfg.worldScaleFactor);
 	return SaveUserConfig(cfg.ipd);
 }
 
-
+/**
+* Saves the global Vireio Perception configuration (stereo mode and aspect multiplier).
+* @param mode The chosen stereo mode option.
+* @param aspect The aspect multiplier.
+***/
 bool ProxyHelper::SaveConfig(int mode, float aspect)
 {
 	// load the base dir for the app
@@ -357,7 +359,6 @@ bool ProxyHelper::SaveConfig(int mode, float aspect)
 
 		if(mode >= 0)
 			xml_config.attribute("stereo_mode") = mode;
-
 		if(aspect >= 0.0f)
 			xml_config.attribute("aspect_multiplier") = aspect;
 
@@ -369,6 +370,10 @@ bool ProxyHelper::SaveConfig(int mode, float aspect)
 	return false;
 }
 
+/**
+* Saves the global Vireio Perception configuration (only tracking mode).
+* @param mode The chosen tracking mode option.
+***/
 bool ProxyHelper::SaveConfig2(int mode)
 {
 	// load the base dir for the app
@@ -398,8 +403,10 @@ bool ProxyHelper::SaveConfig2(int mode)
 	return false;
 }
 
-
-
+/**
+* Loads the user configuration.
+* @param config Returned user configuration.
+***/
 bool ProxyHelper::LoadUserConfig(ProxyConfig& config)
 {
 	// get the user_profile
@@ -435,6 +442,10 @@ bool ProxyHelper::LoadUserConfig(ProxyConfig& config)
 	return userFound;
 }
 
+/**
+* Save user interpupillary distance.
+* @param ipd The interpupillary distance.
+***/
 bool ProxyHelper::SaveUserConfig(float ipd)
 {
 	// get the profile
@@ -469,46 +480,92 @@ bool ProxyHelper::SaveUserConfig(float ipd)
 	if(resultProfiles.status == status_ok && profileFound && gameProfile)
 	{
 		OutputDebugString("Save the settings to profile!!!\n");
-
 		gameProfile.attribute("ipd") = ipd;
-
 		docProfiles.save_file(profilePath);
-
 		profileSaved = true;
 	}
 
 	return profileSaved;
 }
 
-
-bool ProxyHelper::GetConfig(int& mode, int& mode2)
+/**
+* True if process has a configuration profile.
+* @param name The exe process name.
+***/
+bool ProxyHelper::HasProfile(char* name)
 {
-	// load the base dir for the app
-	GetBaseDir();
-	OutputDebugString(baseDir);
-	OutputDebugString("\n");
+	// get the profile
+	bool profileFound = false;
+	char profilePath[512];
+	GetPath(profilePath, "cfg\\profiles.xml");
 
-	// get global config
-	char configPath[512];
-	GetPath(configPath, "cfg\\config.xml");
+	xml_document docProfiles;
+	xml_parse_result resultProfiles = docProfiles.load_file(profilePath);
+	xml_node profile;
 
-	xml_document docConfig;
-	xml_parse_result resultConfig = docConfig.load_file(configPath);
-
-	if(resultConfig.status == status_ok)
+	if(resultProfiles.status == status_ok)
 	{
-		xml_node xml_config = docConfig.child("config");
+		xml_node xml_profiles = docProfiles.child("profiles");
 
-		mode = xml_config.attribute("stereo_mode").as_int();
-		mode2 = xml_config.attribute("tracker_mode").as_int();
-
-		return true;
+		for (xml_node profile = xml_profiles.child("profile"); profile; profile = profile.next_sibling("profile"))
+		{
+			if(strcmp(name, profile.attribute("game_exe").value()) == 0)
+			{
+				OutputDebugString("Found a profile!!!\n");
+				profileFound = true;
+				break;
+			}
+		}
 	}
-	
-	return false;
+
+	return profileFound;
 }
 
-bool ProxyHelper::SaveProfile(float sepAdjustmet, bool swap, float yaw, float pitch, float roll, float worldScale)
+/**
+* Currently incomplete : Get configuration for the specified process name.
+* @param name The exe process name.
+* @param config Currently unused: The returned configuration.
+***/
+bool ProxyHelper::GetProfile(char* name, ProxyConfig& config) // TODO !!! fill config
+{
+	// get the profile
+	bool profileFound = false;
+	char profilePath[512];
+	GetPath(profilePath, "cfg\\profiles.xml");
+
+	xml_document docProfiles;
+	xml_parse_result resultProfiles = docProfiles.load_file(profilePath);
+	xml_node profile;
+
+	if(resultProfiles.status == status_ok)
+	{
+		xml_node xml_profiles = docProfiles.child("profiles");
+
+		for (xml_node profile = xml_profiles.child("profile"); profile; profile = profile.next_sibling("profile"))
+		{
+			if(strcmp(name, profile.attribute("game_exe").value()) == 0)
+			{
+				OutputDebugString("Found a profile!!!\n");
+				profileFound = true;
+
+				break;
+			}
+		}
+	}
+
+	return profileFound;
+}
+
+/**
+* Currently incomplete save game profile function.
+* @param sepAdjustment Seperation Adjustment.
+* @param swap True to swap eye output.
+* @param yaw Yaw tracking multiplier.
+* @param pitch Pitch tracking multiplier.
+* @param roll Roll tracking multiplier.
+* @param worldScale Game world scaling.
+***/
+bool ProxyHelper::SaveProfile(float sepAdjustment, bool swap, float yaw, float pitch, float roll, float worldScale)
 {
 	// get the target exe
 	GetTargetExe();
@@ -549,7 +606,7 @@ bool ProxyHelper::SaveProfile(float sepAdjustmet, bool swap, float yaw, float pi
 	{
 		OutputDebugString("Save the settings to profile!!!\n");
 
-		gameProfile.attribute("separationAdjustment") = sepAdjustmet;
+		gameProfile.attribute("separationAdjustment") = sepAdjustment;
 		gameProfile.attribute("swap_eyes") = swap;
 		gameProfile.attribute("yaw_multiplier") = yaw;
 		gameProfile.attribute("pitch_multiplier") = pitch;

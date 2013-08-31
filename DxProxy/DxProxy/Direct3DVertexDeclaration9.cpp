@@ -19,6 +19,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Direct3DVertexDeclaration9.h"
 #include <assert.h>
 
+/**
+* Constructor. 
+* @param pActualVertexDeclaration Imbed actual vertex declaration. 
+* @param pOwningDevice Pointer to the device that owns the declaration. 
+***/
 BaseDirect3DVertexDeclaration9::BaseDirect3DVertexDeclaration9(IDirect3DVertexDeclaration9* pActualVertexDeclaration, IDirect3DDevice9 *pOwningDevice) :
 	m_pActualVertexDeclaration(pActualVertexDeclaration),
 	m_pOwningDevice(pOwningDevice),
@@ -30,6 +35,10 @@ BaseDirect3DVertexDeclaration9::BaseDirect3DVertexDeclaration9(IDirect3DVertexDe
 	pOwningDevice->AddRef();
 }
 
+/**
+* Destructor. 
+* Releases embedded vertex declaration. 
+***/
 BaseDirect3DVertexDeclaration9::~BaseDirect3DVertexDeclaration9()
 {
 	if(m_pActualVertexDeclaration) 
@@ -39,16 +48,25 @@ BaseDirect3DVertexDeclaration9::~BaseDirect3DVertexDeclaration9()
 		m_pOwningDevice->Release();
 }
 
+/**
+* Base QueryInterface functionality. 
+***/
 HRESULT WINAPI BaseDirect3DVertexDeclaration9::QueryInterface(REFIID riid, LPVOID* ppv)
 {
 	return m_pActualVertexDeclaration->QueryInterface(riid, ppv);
 }
 
+/**
+* Base AddRef functionality.
+***/
 ULONG WINAPI BaseDirect3DVertexDeclaration9::AddRef()
 {
 	return ++m_nRefCount;
 }
 
+/**
+* Base Release functionality.
+***/
 ULONG WINAPI BaseDirect3DVertexDeclaration9::Release()
 {
 	if(--m_nRefCount == 0)
@@ -60,13 +78,10 @@ ULONG WINAPI BaseDirect3DVertexDeclaration9::Release()
 	return m_nRefCount;
 }
 
-
-IDirect3DVertexDeclaration9* BaseDirect3DVertexDeclaration9::getActual()
-{
-	return m_pActualVertexDeclaration;
-}
-
-
+/**
+* Base GetDevice functionality.
+* TODO Test this. Docs don't have the notice that is usually there about a refcount increase
+***/
 HRESULT WINAPI BaseDirect3DVertexDeclaration9::GetDevice(IDirect3DDevice9** ppDevice)
 {
 	if (!m_pOwningDevice)
@@ -78,7 +93,18 @@ HRESULT WINAPI BaseDirect3DVertexDeclaration9::GetDevice(IDirect3DDevice9** ppDe
 	}
 }
 
+/**
+* Base GetDeclaration functionality.
+***/
 HRESULT WINAPI BaseDirect3DVertexDeclaration9::GetDeclaration(D3DVERTEXELEMENT9 *pDecl, UINT *pNumElements)
 {
 	return m_pActualVertexDeclaration->GetDeclaration(pDecl, pNumElements);
+}
+
+/**
+* Returns the actual embedded declaration pointer.
+***/
+IDirect3DVertexDeclaration9* BaseDirect3DVertexDeclaration9::getActual()
+{
+	return m_pActualVertexDeclaration;
 }

@@ -20,6 +20,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "StereoViewInterleave.h"
 #include "OculusRiftView.h"
 
+/**
+*  Get stereo view. 
+*  Creates the currently selected stereo view class pointer.
+***/
 StereoView* StereoViewFactory::Get(ProxyHelper::ProxyConfig& config, HMDisplayInfo hmd)
 {
 	switch(config.stereo_mode)

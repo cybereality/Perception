@@ -19,7 +19,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Direct3DVolume9.h"
 #include <assert.h>
 
-
+/**
+* Constructor. 
+* @param pActualVolume Imbed actual volume. 
+* @param pOwningDevice Pointer to the device that owns the volume. 
+***/
 BaseDirect3DVolume9::BaseDirect3DVolume9(IDirect3DVolume9* pActualVolume) :
 	m_pActualVolume(pActualVolume),
 	m_nRefCount(1)
@@ -27,6 +31,10 @@ BaseDirect3DVolume9::BaseDirect3DVolume9(IDirect3DVolume9* pActualVolume) :
 	assert (pActualVolume != NULL);
 }
 
+/**
+* Destructor. 
+* Releases embedded volume. 
+***/
 BaseDirect3DVolume9::~BaseDirect3DVolume9()
 {
 	if(m_pActualVolume) {
@@ -34,16 +42,25 @@ BaseDirect3DVolume9::~BaseDirect3DVolume9()
 	}
 }
 
+/**
+* Base QueryInterface functionality. 
+***/
 HRESULT WINAPI BaseDirect3DVolume9::QueryInterface(REFIID riid, LPVOID* ppv)
 {
 	return m_pActualVolume->QueryInterface(riid, ppv);
 }
 
+/**
+* Base AddRef functionality.
+***/
 ULONG WINAPI BaseDirect3DVolume9::AddRef()
 {
 	return ++m_nRefCount;
 }
 
+/**
+* Base Release functionality.
+***/
 ULONG WINAPI BaseDirect3DVolume9::Release()
 {
 	if(--m_nRefCount == 0)
@@ -55,49 +72,66 @@ ULONG WINAPI BaseDirect3DVolume9::Release()
 	return m_nRefCount;
 }
 
-
-
-
-
-
-HRESULT WINAPI BaseDirect3DVolume9::GetContainer(REFIID riid, LPVOID* ppContainer)
-{
-	return m_pActualVolume->GetContainer(riid, ppContainer);
-}
-
-HRESULT WINAPI BaseDirect3DVolume9::GetDesc(D3DVOLUME_DESC *pDesc)
-{
-	return m_pActualVolume->GetDesc(pDesc);
-}
-
-HRESULT WINAPI BaseDirect3DVolume9::LockBox(D3DLOCKED_BOX *pLockedVolume, const D3DBOX *pBox, DWORD Flags)
-{
-	return m_pActualVolume->LockBox(pLockedVolume, pBox, Flags);
-}
-
-HRESULT WINAPI BaseDirect3DVolume9::UnlockBox()
-{
-	return m_pActualVolume->UnlockBox();
-}
-
+/**
+* Base GetDevice functionality.
+***/
 HRESULT WINAPI BaseDirect3DVolume9::GetDevice(IDirect3DDevice9** ppDevice)
 {
 	return m_pActualVolume->GetDevice(ppDevice);
 }
 
+/**
+* Base SetPrivateData functionality.
+***/
 HRESULT WINAPI BaseDirect3DVolume9::SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags)
 {
 	return m_pActualVolume->SetPrivateData(refguid, pData, SizeOfData, Flags);
 }
 
-
+/**
+* Base GetPrivateData functionality.
+***/
 HRESULT WINAPI BaseDirect3DVolume9::GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData)
 {
 	return m_pActualVolume->GetPrivateData(refguid, pData, pSizeOfData);
 }
 
-
+/**
+* Base FreePrivateData functionality.
+***/
 HRESULT WINAPI BaseDirect3DVolume9::FreePrivateData(REFGUID refguid)
 {
 	return m_pActualVolume->FreePrivateData(refguid);
+}
+
+/**
+* Base GetContainer functionality.
+***/
+HRESULT WINAPI BaseDirect3DVolume9::GetContainer(REFIID riid, LPVOID* ppContainer)
+{
+	return m_pActualVolume->GetContainer(riid, ppContainer);
+}
+
+/**
+* Base GetDesc functionality.
+***/
+HRESULT WINAPI BaseDirect3DVolume9::GetDesc(D3DVOLUME_DESC *pDesc)
+{
+	return m_pActualVolume->GetDesc(pDesc);
+}
+
+/**
+* Base LockBox functionality.
+***/
+HRESULT WINAPI BaseDirect3DVolume9::LockBox(D3DLOCKED_BOX *pLockedVolume, const D3DBOX *pBox, DWORD Flags)
+{
+	return m_pActualVolume->LockBox(pLockedVolume, pBox, Flags);
+}
+
+/**
+* Base UnlockBox functionality.
+***/
+HRESULT WINAPI BaseDirect3DVolume9::UnlockBox()
+{
+	return m_pActualVolume->UnlockBox();
 }

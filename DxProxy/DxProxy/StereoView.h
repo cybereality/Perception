@@ -27,134 +27,205 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include <assert.h>
 
+/**
+* Stereo-view render class.
+* Basic class to render in stereo.
+*/
 class StereoView
 {
 public:
+	StereoView(ProxyHelper::ProxyConfig& config);
+	virtual ~StereoView();
+
+	/*** StereoView public methods ***/
+	virtual void Init(IDirect3DDevice9* pActualDevice);
+	virtual void ReleaseEverything();
+	virtual void Draw(D3D9ProxySurface* stereoCapableSurface);
+	virtual void SaveScreen();
+	virtual void PostReset();
+
+	/**
+	* Stereo render options.
+	***/
 	static enum StereoTypes
 	{
-		DISABLED = 0,
-		ANAGLYPH_RED_CYAN = 1,
-		ANAGLYPH_RED_CYAN_GRAY = 2,
-		ANAGLYPH_YELLOW_BLUE = 5,
-		ANAGLYPH_YELLOW_BLUE_GRAY = 6,
-		ANAGLYPH_GREEN_MAGENTA = 10,
-		ANAGLYPH_GREEN_MAGENTA_GRAY = 11,
-		SIDE_BY_SIDE = 20,
-		DIY_RIFT = 25,
-		OCULUS_RIFT = 26,
-		OCULUS_RIFT_CROPPED = 27,
-		OVER_UNDER = 30,
-		INTERLEAVE_HORZ = 40,
-		INTERLEAVE_VERT = 50,
-		CHECKERBOARD = 60
+		DISABLED = 0,                       /**< Disabled. */
+		ANAGLYPH_RED_CYAN = 1,              /**< Anaglyph render in complementary colors red, cyan. */
+		ANAGLYPH_RED_CYAN_GRAY = 2,         /**< Anaglyph render in complementary colors cyan, gray. */
+		ANAGLYPH_YELLOW_BLUE = 5,           /**< Anaglyph render in complementary colors yellow, blue. */
+		ANAGLYPH_YELLOW_BLUE_GRAY = 6,      /**< Anaglyph render in complementary colors blue, grey. */
+		ANAGLYPH_GREEN_MAGENTA = 10,        /**< Anaglyph render in complementary colors green, magenta. */
+		ANAGLYPH_GREEN_MAGENTA_GRAY = 11,   /**< Gray anaglyph render in complementary colors red,cyan. */
+		SIDE_BY_SIDE = 20,                  /**< Left and right image. */
+		DIY_RIFT = 25,                      /**< For do-it-yourself Oculus Rift kits. */
+		OCULUS_RIFT = 26,                   /**< Standard Oculus Rift render method. */
+		OCULUS_RIFT_CROPPED = 27,           /**< Cropped Oculus Rift render method. */
+		OVER_UNDER = 30,                    /**< Upper and lower image. */
+		INTERLEAVE_HORZ = 40,               /**< Horizontally interleaved for polarized 3D systems. */
+		INTERLEAVE_VERT = 50,               /**< Vertically interleaved for polarized 3D systems. */
+		CHECKERBOARD = 60                   /**< Checkerboard for 3D Digital Light Processing Displays. */
 	};
-
+	/**
+	* Left and right enumeration.
+	***/
 	static enum Eyes
 	{
 		LEFT_EYE,
 		RIGHT_EYE
 	};
-
-	StereoView(ProxyHelper::ProxyConfig& config);
-	virtual ~StereoView();
-
-	/* Must be initialised with an actual device. Not a wrapped device*/
-	virtual void Init(IDirect3DDevice9* pActualDevice);
-	
-	//virtual void Draw();
-	virtual void Draw(D3D9ProxySurface* stereoCapableSurface);
-	
-	//virtual void UpdateEye(int eye);
-	virtual void SaveScreen();
-	virtual void ReleaseEverything();
-	virtual void PostReset();
-
-	
+	/**
+	* Current Direct3D Viewport.
+	***/
 	D3DVIEWPORT9 viewport;
-
-	
+	/**
+	* Option to swap the eye output for different 3D systems.
+	***/	
 	bool swapEyes;
+	/**
+	* True if class is initialized. Needed since initialization is not done in constructor.
+	***/
 	bool initialized;
+	/**
+	* Type of the game or engine as configured in cfg file.
+	***/
 	int game_type;
+	/**
+	* Stereo render option as enumerated in StereoTypes.
+	***/
 	int stereo_mode;
-
-	int stereoEnabled;
-
-
-	
-
-	float DistortionScale;	// used by OculusRiftView and D3DProxyDevice
-
+	/**
+	* True if stereo is enabled.
+	***/
+	bool stereoEnabled() { return (stereo_mode != DISABLED); }; 
+	/**
+	* Currently unused, should be used by OculusRiftView and D3DProxyDevice.
+	* Better move this to OculusRiftView ?
+	***/
+	float DistortionScale;	// TODO !!!
 
 protected:
-	IDirect3DDevice9* m_pActualDevice;
-
-	virtual void SetViewEffectInitialValues();
-	virtual void CalculateShaderVariables();
-
-	virtual void SaveState();
-	virtual void SetState();
-	virtual void RestoreState();
-
+	/*** StereoView protected methods ***/
 	virtual void InitTextureBuffers();
 	virtual void InitVertexBuffers();
 	virtual void InitShaderEffects();
-
-
-
-	IDirect3DTexture9* leftTexture;
-	IDirect3DTexture9* rightTexture;
-	IDirect3DSurface9* backBuffer;
-	IDirect3DSurface9* leftSurface;
-	IDirect3DSurface9* rightSurface;
-
-
-	IDirect3DVertexBuffer9* screenVertexBuffer;
-
-	DWORD tssColorOp;
-	DWORD tssColorArg1;
-	DWORD tssAlphaOp;
-	DWORD tssAlphaArg1;
-	DWORD tssConstant;
-
-	DWORD rsAlphaEnable;
-	DWORD rsZEnable;
-	DWORD rsZWriteEnable;
-	DWORD rsDepthBias;
-	DWORD rsSlopeScaleDepthBias;
-	DWORD rsSrgbEnable;
-
-	DWORD ssSrgb;
-	DWORD ssSrgb1;
-	DWORD ssAddressU;
-	DWORD ssAddressV;
-	DWORD ssAddressW;
-	DWORD ssMag0;
-	DWORD ssMag1;
-	DWORD ssMin0;
-	DWORD ssMin1;
-	DWORD ssMip0;
-	DWORD ssMip1;
-
+	virtual void SetViewEffectInitialValues(); 
+	virtual void CalculateShaderVariables();
+	virtual void SaveState();
+	virtual void SetState();
+	virtual void RestoreState();
+	virtual void SaveAllRenderStates(LPDIRECT3DDEVICE9 pDevice);
+	virtual void SetAllRenderStatesDefault(LPDIRECT3DDEVICE9 pDevice);
+	virtual void RestoreAllRenderStates(LPDIRECT3DDEVICE9 pDevice);
+	
+	/**
+	* The actual, unwrapped Direct3D Device. 
+	* Class cannot be initialized with wrapped device.
+	***/
+	IDirect3DDevice9* m_pActualDevice;
+	/**
+	* Saved game vertex shader to be restored after drawing stereoscopic.
+	***/
 	IDirect3DVertexShader9* lastVertexShader;
+	/**
+	* Saved game pixel shader to be restored after drawing stereoscopic.
+	***/
 	IDirect3DPixelShader9* lastPixelShader;
+	/**
+	* Saved game texture 0 to be restored after drawing stereoscopic.
+	***/
 	IDirect3DBaseTexture9* lastTexture;
+	/**
+	* Saved game texture 1 to be restored after drawing stereoscopic.
+	***/
 	IDirect3DBaseTexture9* lastTexture1;
+	/**
+	* Saved game vertex declaration to be restored after drawing stereoscopic.
+	***/
 	IDirect3DVertexDeclaration9* lastVertexDeclaration;
-
+	/**
+	* Saved game render target 0 to be restored after drawing stereoscopic.
+	***/
 	IDirect3DSurface9* lastRenderTarget0;
+	/**
+	* Saved game render target 1 to be restored after drawing stereoscopic.
+	***/
 	IDirect3DSurface9* lastRenderTarget1;
-
-	ID3DXEffect* viewEffect;
-
-	std::map<int, std::string> shaderEffect;
-
+	/**
+	* Left eye (or upper) target texture buffer.
+	* Surface data from D3D9ProxySurface is copied on that. To be swapped with right texture if swap_eyes set to true.
+	***/
+	IDirect3DTexture9* leftTexture;
+	/**
+	* Right eye (or lower) target texture buffer.
+	* Surface data from D3D9ProxySurface is copied on that. To be swapped with left texture if swap_eyes set to true.
+	***/
+	IDirect3DTexture9* rightTexture;
+	/**
+	* Current render target.
+	***/
+	IDirect3DSurface9* backBuffer;
+	/**
+	* Surface of the left eye texture.
+	***/
+	IDirect3DSurface9* leftSurface;
+	/**
+	* Surface of the right eye texture.
+	***/
+	IDirect3DSurface9* rightSurface;
+	/**
+	* Full screen render vertex buffer containing 4 vertices.
+	***/
+	IDirect3DVertexBuffer9* screenVertexBuffer;
+	/**
+	* Render state block.
+	* Stores all render states to be restored after drawing stereoscopic.
+	* To be renamed.
+	***/
 	IDirect3DStateBlock9* sb;
-
+	/**
+	* Stores render states.
+	* For games (Half Life 2?) that do not work with direct 3d state block for some reason.
+	***/
+	DWORD renderStates[256];
+	/**
+	* View effect according to the stereo mode preset in stereo_mode.
+	***/
+	ID3DXEffect* viewEffect;
+	/**
+	* Map of the shader effect file names.
+	***/
+	std::map<int, std::string> shaderEffect;
+	DWORD tssColorOp;            /**< Various states, to be deleted when we figured out HL2 problem. This is a workaround for now. */
+	DWORD tssColorArg1;          /**< Various states, to be deleted when we figured out HL2 problem. This is a workaround for now. */
+	DWORD tssAlphaOp;            /**< Various states, to be deleted when we figured out HL2 problem. This is a workaround for now. */
+	DWORD tssAlphaArg1;          /**< Various states, to be deleted when we figured out HL2 problem. This is a workaround for now. */
+	DWORD tssConstant;           /**< Various states, to be deleted when we figured out HL2 problem. This is a workaround for now. */
+	DWORD rsAlphaEnable;         /**< Various states, to be deleted when we figured out HL2 problem. This is a workaround for now. */
+	DWORD rsZEnable;             /**< Various states, to be deleted when we figured out HL2 problem. This is a workaround for now. */
+	DWORD rsZWriteEnable;        /**< Various states, to be deleted when we figured out HL2 problem. This is a workaround for now. */
+	DWORD rsDepthBias;           /**< Various states, to be deleted when we figured out HL2 problem. This is a workaround for now. */
+	DWORD rsSlopeScaleDepthBias; /**< Various states, to be deleted when we figured out HL2 problem. This is a workaround for now. */
+	DWORD rsSrgbEnable;          /**< Various states, to be deleted when we figured out HL2 problem. This is a workaround for now. */
+	DWORD ssSrgb;                /**< Various states, to be deleted when we figured out HL2 problem. This is a workaround for now. */  
+	DWORD ssSrgb1;               /**< Various states, to be deleted when we figured out HL2 problem. This is a workaround for now. */
+	DWORD ssAddressU;            /**< Various states, to be deleted when we figured out HL2 problem. This is a workaround for now. */
+	DWORD ssAddressV;            /**< Various states, to be deleted when we figured out HL2 problem. This is a workaround for now. */
+	DWORD ssAddressW;            /**< Various states, to be deleted when we figured out HL2 problem. This is a workaround for now. */
+	DWORD ssMag0;                /**< Various states, to be deleted when we figured out HL2 problem. This is a workaround for now. */
+	DWORD ssMag1;                /**< Various states, to be deleted when we figured out HL2 problem. This is a workaround for now. */
+	DWORD ssMin0;                /**< Various states, to be deleted when we figured out HL2 problem. This is a workaround for now. */
+	DWORD ssMin1;                /**< Various states, to be deleted when we figured out HL2 problem. This is a workaround for now. */
+	DWORD ssMip0;                /**< Various states, to be deleted when we figured out HL2 problem. This is a workaround for now. */
+	DWORD ssMip1;                /**< Various states, to be deleted when we figured out HL2 problem. This is a workaround for now. */
 };
 
+/**
+* Declaration of texture vertex used for full screen render.
+***/
 const DWORD D3DFVF_TEXVERTEX = D3DFVF_XYZRHW | D3DFVF_TEX1;
-
+/**
+* Texture vertex used for full screen render.
+***/
 struct TEXVERTEX
 {
 	float x;

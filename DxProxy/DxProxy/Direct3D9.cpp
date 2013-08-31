@@ -21,28 +21,45 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Main.h"
 #include "D3DProxyDeviceFactory.h"
 
+/**
+* Constructor. 
+* @param pD3D Imbed actual Direct3D object. 
+***/
 BaseDirect3D9::BaseDirect3D9(IDirect3D9* pD3D) :
 	m_pD3D(pD3D),
 	m_nRefCount(1)
 {
 }
 
+/**
+* Destructor. 
+* Releases embedded object m_pD3D. 
+***/
 BaseDirect3D9::~BaseDirect3D9()
 {
 	if(m_pD3D)
 		m_pD3D->Release();
 }
 
+/**
+* Base QueryInterface functionality. 
+***/
 HRESULT WINAPI BaseDirect3D9::QueryInterface(REFIID riid, LPVOID* ppv)
 {
 	return m_pD3D->QueryInterface(riid, ppv);
 }
 
+/**
+* Base AddRef functionality.
+***/
 ULONG WINAPI BaseDirect3D9::AddRef()
 {
 	return ++m_nRefCount;
 }
 
+/**
+* Base Release functionality.
+***/
 ULONG WINAPI BaseDirect3D9::Release()
 {
 	if(--m_nRefCount == 0)
@@ -53,44 +70,68 @@ ULONG WINAPI BaseDirect3D9::Release()
 	return m_nRefCount;
 }
 
+/**
+* Base RegisterSoftwareDevice functionality.
+***/
 HRESULT WINAPI BaseDirect3D9::RegisterSoftwareDevice(void* pInitializeFunction)
 {
 	return m_pD3D->RegisterSoftwareDevice(pInitializeFunction);
 }
 
+/**
+* Base GetAdapterCount functionality.
+***/
 UINT BaseDirect3D9::GetAdapterCount()
 {
 	return m_pD3D->GetAdapterCount();
 }
 
+/**
+* Base GetAdapterIdentifier functionality.
+***/
 HRESULT WINAPI BaseDirect3D9::GetAdapterIdentifier(UINT Adapter, DWORD Flags,
 	D3DADAPTER_IDENTIFIER9* pIdentifier)
 {
 	return m_pD3D->GetAdapterIdentifier(Adapter, Flags, pIdentifier);
 }
 
+/**
+* Base GetAdapterModeCount functionality.
+***/
 UINT WINAPI BaseDirect3D9::GetAdapterModeCount(UINT Adapter, D3DFORMAT Format)
 {
 	return m_pD3D->GetAdapterModeCount(Adapter, Format);
 }
 
+/**
+* Base EnumAdapterModes functionality.
+***/
 HRESULT WINAPI BaseDirect3D9::EnumAdapterModes(UINT Adapter, D3DFORMAT Format, UINT Mode,
 	D3DDISPLAYMODE* pMode)
 {
 	return m_pD3D->EnumAdapterModes(Adapter, Format, Mode, pMode);
 }
 
+/**
+* Base GetAdapterDisplayMode functionality.
+***/
 HRESULT WINAPI BaseDirect3D9::GetAdapterDisplayMode(UINT Adapter, D3DDISPLAYMODE* pMode)
 {
 	return m_pD3D->GetAdapterDisplayMode(Adapter, pMode);
 }
 
+/**
+* Base CheckDeviceType functionality.
+***/
 HRESULT WINAPI BaseDirect3D9::CheckDeviceType(UINT Adapter, D3DDEVTYPE DevType,
 	D3DFORMAT AdapterFormat, D3DFORMAT BackBufferFormat, BOOL bWindowed)
 {
 	return m_pD3D->CheckDeviceType(Adapter, DevType, AdapterFormat, BackBufferFormat, bWindowed);
 }
 
+/**
+* Base CheckDeviceFormat functionality.
+***/
 HRESULT WINAPI BaseDirect3D9::CheckDeviceFormat(UINT Adapter, D3DDEVTYPE DeviceType,
 	D3DFORMAT AdapterFormat, DWORD Usage, D3DRESOURCETYPE RType, D3DFORMAT CheckFormat)
 {
@@ -98,6 +139,9 @@ HRESULT WINAPI BaseDirect3D9::CheckDeviceFormat(UINT Adapter, D3DDEVTYPE DeviceT
 		CheckFormat);
 }
 
+/**
+* Base CheckDeviceMultiSampleType functionality.
+***/
 HRESULT WINAPI BaseDirect3D9::CheckDeviceMultiSampleType(UINT Adapter, D3DDEVTYPE DeviceType,
 	D3DFORMAT SurfaceFormat, BOOL Windowed, D3DMULTISAMPLE_TYPE MultiSampleType,
 	DWORD* pQualityLevels)
@@ -106,6 +150,9 @@ HRESULT WINAPI BaseDirect3D9::CheckDeviceMultiSampleType(UINT Adapter, D3DDEVTYP
 		MultiSampleType, pQualityLevels);
 }
 
+/**
+* Base CheckDepthStencilMatch functionality.
+***/
 HRESULT WINAPI BaseDirect3D9::CheckDepthStencilMatch(UINT Adapter, D3DDEVTYPE DeviceType,
 	D3DFORMAT AdapterFormat, D3DFORMAT RenderTargetFormat, D3DFORMAT DepthStencilFormat)
 {
@@ -113,27 +160,37 @@ HRESULT WINAPI BaseDirect3D9::CheckDepthStencilMatch(UINT Adapter, D3DDEVTYPE De
 		DepthStencilFormat);
 }
 
+/**
+* Base CheckDeviceFormatConversion functionality.
+***/
 HRESULT WINAPI BaseDirect3D9::CheckDeviceFormatConversion(UINT Adapter, D3DDEVTYPE DeviceType,
 	D3DFORMAT SourceFormat, D3DFORMAT TargetFormat)
 {
 	return m_pD3D->CheckDeviceFormatConversion(Adapter, DeviceType, SourceFormat, TargetFormat);
 }
 
+/**
+* Base GetDeviceCaps functionality.
+***/
 HRESULT WINAPI BaseDirect3D9::GetDeviceCaps(UINT Adapter, D3DDEVTYPE DeviceType, D3DCAPS9* pCaps)
-{
-	HRESULT hResult = m_pD3D->GetDeviceCaps(Adapter, DeviceType, pCaps);
-
-	if(FAILED(hResult))
-		return hResult;
-
-	return hResult;
+{	
+	return m_pD3D->GetDeviceCaps(Adapter, DeviceType, pCaps);
 }
 
+/**
+* Base GetAdapterMonitor functionality.
+***/
 HMONITOR WINAPI BaseDirect3D9::GetAdapterMonitor(UINT Adapter)
 {
 	return m_pD3D->GetAdapterMonitor(Adapter);
 }
 
+/**
+* Create D3D device proxy. 
+* First it creates the device, then it loads the game configuration
+* calling the ProxyHelper class. Last it creates and returns the
+* device proxy calling D3DProxyDeviceFactory::Get().
+***/
 HRESULT WINAPI BaseDirect3D9::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, HWND hFocusWindow,
 	DWORD BehaviorFlags, D3DPRESENT_PARAMETERS* pPresentationParameters,
 	IDirect3DDevice9** ppReturnedDeviceInterface)

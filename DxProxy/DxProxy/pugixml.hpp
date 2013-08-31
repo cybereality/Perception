@@ -11,6 +11,8 @@
  * Copyright (C) 2003, by Kristen Wegner (kristen@tima.net)
  */
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
 #ifndef PUGIXML_VERSION
 // Define version macro; evaluates to major * 100 + minor so that it's safe to use in less-than comparisons
 #	define PUGIXML_VERSION 120
@@ -1238,6 +1240,8 @@ namespace std
 #endif
 
 #endif
+
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  * Copyright (c) 2006-2012 Arseny Kapoulkine

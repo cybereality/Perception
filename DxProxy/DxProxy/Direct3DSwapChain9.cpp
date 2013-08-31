@@ -19,6 +19,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Direct3DSwapChain9.h"
 #include <assert.h>
 
+/**
+* Constructor. 
+* @param pActualSwapChain Imbed actual swap chain. 
+* @param pOwningDevice Pointer to the device that owns the chain. 
+* @param isAdditionalChain Bool to ensure only additional chains are destroyed on release.
+***/
 BaseDirect3DSwapChain9::BaseDirect3DSwapChain9(IDirect3DSwapChain9* pActualSwapChain, BaseDirect3DDevice9 *pOwningDevice, bool isAdditionalChain) :
 	m_pActualSwapChain(pActualSwapChain),
 	m_pOwningDevice(pOwningDevice),
@@ -31,6 +37,10 @@ BaseDirect3DSwapChain9::BaseDirect3DSwapChain9(IDirect3DSwapChain9* pActualSwapC
 	pOwningDevice->AddRef();
 }
 
+/**
+* Destructor. 
+* Releases embedded swap chain. 
+***/
 BaseDirect3DSwapChain9::~BaseDirect3DSwapChain9()
 {
 	if(m_pActualSwapChain) 
@@ -40,24 +50,32 @@ BaseDirect3DSwapChain9::~BaseDirect3DSwapChain9()
 		m_pOwningDevice->Release();
 }
 
+/**
+* Base QueryInterface functionality. 
+***/
 HRESULT WINAPI BaseDirect3DSwapChain9::QueryInterface(REFIID riid, LPVOID* ppv)
 {
 	return m_pActualSwapChain->QueryInterface(riid, ppv);
 }
 
+/**
+* Base AddRef functionality.
+***/
 ULONG WINAPI BaseDirect3DSwapChain9::AddRef()
 {
 	return ++m_nRefCount;
 }
 
+/**
+* Releases only additional swap chains.
+* Primary swap chain isn't destroyed at ref count 0, stays alive. Other swap chains are destoyed if ref count reaches 0.
+* BUT backbuffers aren't destroyed at 0 either AND this applies to primary and additional chains.
+* So for additional chains we release the actual to destroy the actual. But we don't delete the proxy because it is
+* our container for the stereo backbuffers.
+* Because of this all swap chains have to be forcibly destroyed just before a reset.
+***/
 ULONG WINAPI BaseDirect3DSwapChain9::Release()
-{
-	// Primary swap chain isn't destroyed at ref count 0, stays alive. Other swap chains are destoyed if ref count reaches 0.
-	// BUT backbuffers aren't destroyed at 0 either AND this applies to primary and additional chains.
-	// So for additional chains we release the actual to destroy the actual. But we don't delete the proxy because it is
-	// our container for the stereo backbuffers.
-	// Because of this all swap chains have to be forcibly destroyed just before a reset.
-
+{	
 	if (m_nRefCount > 0) { 
 		if(--m_nRefCount == 0)
 		{
@@ -74,13 +92,59 @@ ULONG WINAPI BaseDirect3DSwapChain9::Release()
 	return m_nRefCount;
 }
 
-
-void BaseDirect3DSwapChain9::Destroy() 
+/**
+* Base Present functionality.
+***/
+HRESULT WINAPI BaseDirect3DSwapChain9::Present(CONST RECT* pSourceRect, CONST RECT* pDestRect, HWND hDestWindowOverride, CONST RGNDATA* pDirtyRegion, DWORD dwFlags)
 {
-	delete this;
+	return m_pActualSwapChain->Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion, dwFlags);
 }
 
+/**
+* Base GetFrontBufferData functionality.
+***/
+HRESULT WINAPI BaseDirect3DSwapChain9::GetFrontBufferData(IDirect3DSurface9* pDestSurface) 
+{
+#ifdef _DEBUG
+	OutputDebugString(__FUNCTION__);
+	OutputDebugString("\n");
+	OutputDebugString("GetSwapChain. Danger Will Robinson. Surface not wrapped.\n");
+#endif
+	return m_pActualSwapChain->GetFrontBufferData(pDestSurface);
+}
 
+/**
+* Base functionality.
+***/
+HRESULT WINAPI BaseDirect3DSwapChain9::GetBackBuffer(UINT iBackBuffer, D3DBACKBUFFER_TYPE Type, IDirect3DSurface9** ppBackBuffer) 
+{
+#ifdef _DEBUG
+	OutputDebugString(__FUNCTION__);
+	OutputDebugString("\n");
+	OutputDebugString("GetSwapChain. Danger Will Robinson. Surface not wrapped.\n");
+#endif
+	return m_pActualSwapChain->GetBackBuffer(iBackBuffer, Type, ppBackBuffer);
+}
+
+/**
+* Base functionality.
+***/
+HRESULT WINAPI BaseDirect3DSwapChain9::GetRasterStatus(D3DRASTER_STATUS* pRasterStatus)
+{
+	return m_pActualSwapChain->GetRasterStatus(pRasterStatus);
+}
+
+/**
+* Base GetDisplayMode functionality.
+***/
+HRESULT WINAPI BaseDirect3DSwapChain9::GetDisplayMode(D3DDISPLAYMODE* pMode)
+{
+	return m_pActualSwapChain->GetDisplayMode(pMode);
+}
+
+/**
+* Base GetDevice functionality.
+***/
 HRESULT WINAPI BaseDirect3DSwapChain9::GetDevice(IDirect3DDevice9** ppDevice)
 {
 	if (!m_pOwningDevice)
@@ -92,42 +156,18 @@ HRESULT WINAPI BaseDirect3DSwapChain9::GetDevice(IDirect3DDevice9** ppDevice)
 	}
 }
 
-
-HRESULT WINAPI BaseDirect3DSwapChain9::Present(CONST RECT* pSourceRect, CONST RECT* pDestRect, HWND hDestWindowOverride, CONST RGNDATA* pDirtyRegion, DWORD dwFlags)
-{
-	OutputDebugString(__FUNCTION__);
-	OutputDebugString("\n");
-
-	return m_pActualSwapChain->Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion, dwFlags);
-}
-
-HRESULT WINAPI BaseDirect3DSwapChain9::GetFrontBufferData(IDirect3DSurface9* pDestSurface) 
-{
-	OutputDebugString(__FUNCTION__);
-	OutputDebugString("\n");
-	OutputDebugString("GetSwapChain. Danger Will Robinson. Surface not wrapped.\n");
-	return m_pActualSwapChain->GetFrontBufferData(pDestSurface);
-}
-
-HRESULT WINAPI BaseDirect3DSwapChain9::GetBackBuffer(UINT iBackBuffer, D3DBACKBUFFER_TYPE Type, IDirect3DSurface9** ppBackBuffer) 
-{
-	OutputDebugString(__FUNCTION__);
-	OutputDebugString("\n");
-	OutputDebugString("GetSwapChain. Danger Will Robinson. Surface not wrapped.\n");
-	return m_pActualSwapChain->GetBackBuffer(iBackBuffer, Type, ppBackBuffer);
-}
-
-HRESULT WINAPI BaseDirect3DSwapChain9::GetRasterStatus(D3DRASTER_STATUS* pRasterStatus)
-{
-	return m_pActualSwapChain->GetRasterStatus(pRasterStatus);
-}
- 
-HRESULT WINAPI BaseDirect3DSwapChain9::GetDisplayMode(D3DDISPLAYMODE* pMode)
-{
-	return m_pActualSwapChain->GetDisplayMode(pMode);
-}
-
+/**
+* Base GetPresentParameters functionality.
+***/
 HRESULT WINAPI BaseDirect3DSwapChain9::GetPresentParameters(D3DPRESENT_PARAMETERS* pPresentationParameters)
 {
 	return m_pActualSwapChain->GetPresentParameters(pPresentationParameters);
+}
+
+/**
+* Simple "delete this" function.
+***/
+void BaseDirect3DSwapChain9::Destroy() 
+{
+	delete this;
 }

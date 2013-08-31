@@ -19,7 +19,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "D3D9ProxyTexture.h"
 #include <assert.h>
 
-
+/**
+* Constructor.
+* @see D3D9ProxySurface::D3D9ProxySurface
+***/
 D3D9ProxyTexture::D3D9ProxyTexture(IDirect3DTexture9* pActualTextureLeft, IDirect3DTexture9* pActualTextureRight, BaseDirect3DDevice9* pOwningDevice) :
 	BaseDirect3DTexture9(pActualTextureLeft),
 	m_pActualTextureRight(pActualTextureRight),
@@ -31,6 +34,10 @@ D3D9ProxyTexture::D3D9ProxyTexture(IDirect3DTexture9* pActualTextureLeft, IDirec
 	m_pOwningDevice->AddRef();
 }
 
+/**
+* Destructor.
+* Deletes wrapped surfaces, releases textures.
+***/
 D3D9ProxyTexture::~D3D9ProxyTexture()
 {
 	// delete all surfaces in m_levels
@@ -49,41 +56,40 @@ D3D9ProxyTexture::~D3D9ProxyTexture()
 		m_pOwningDevice->Release();
 }
 
-
-
-
-
-
-
-
-
-bool D3D9ProxyTexture::IsStereo() 
+#define IF_GUID(riid,a,b,c,d,e,f,g) if ((riid.Data1==a)&&(riid.Data2==b)&&(riid.Data3==c)&&(riid.Data4[0]==d)&&(riid.Data4[1]==e)&&(riid.Data4[2]==f)&&(riid.Data4[3]==g))
+/**
+* Ensures Skyrim works (and maybe other games).
+* Skyrim sometimes calls QueryInterface() to get the underlying surface instead of GetSurfaceLevel().
+* It even calls it to query the texture class.
+* @return (this) in case of query texture interface, GetSurfaceLevel() in case of query surface.
+***/
+HRESULT WINAPI D3D9ProxyTexture::QueryInterface(REFIID riid, LPVOID* ppv)
 {
-	return (m_pActualTextureRight != NULL);
+	/* IID_IDirect3DTexture9 */
+	/* {85C31227-3DE5-4f00-9B3A-F11AC38C18B5} */
+	IF_GUID(riid,0x85c31227,0x3de5,0x4f00,0x9b,0x3a,0xf1,0x1a)
+	{	
+		*ppv=(LPVOID)this;
+		return S_OK;
+	}
+
+	/* IID_IDirect3DSurface9 */
+	/* {0CFBAF3A-9FF6-429a-99B3-A2796AF8B89B} */
+	IF_GUID(riid,0x0cfbaf3a,0x9ff6,0x429a,0x99,0xb3,0xa2,0x79)
+		return this->GetSurfaceLevel(0,(IDirect3DSurface9**)ppv);
+	
+	return m_pActualTexture->QueryInterface(riid, ppv);
 }
 
-IDirect3DTexture9* D3D9ProxyTexture::getActualMono()
-{
-	return getActualLeft();
-}
-
-IDirect3DTexture9* D3D9ProxyTexture::getActualLeft()
-{
-	return m_pActualTexture;
-}
-
-IDirect3DTexture9* D3D9ProxyTexture::getActualRight()
-{
-	return m_pActualTextureRight;
-}
-
-
-
-
-
-
-
-
+/**
+* GetDevice on the underlying IDirect3DTexture9 will return the device used to create it. 
+* Which is the actual device and not the wrapper. Therefore we have to keep track of the 
+* wrapper device and return that instead.
+* 
+* Calling this method will increase the internal reference count on the IDirect3DDevice9 interface. 
+* Failure to call IUnknown::Release when finished using this IDirect3DDevice9 interface results in a 
+* memory leak.
+*/
 HRESULT WINAPI D3D9ProxyTexture::GetDevice(IDirect3DDevice9** ppDevice)
 {
 	if (!m_pOwningDevice)
@@ -95,6 +101,9 @@ HRESULT WINAPI D3D9ProxyTexture::GetDevice(IDirect3DDevice9** ppDevice)
 	}
 }
 
+/**
+* Sets private data on both (left/right) textures.
+***/
 HRESULT WINAPI D3D9ProxyTexture::SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags)
 {
 	if (IsStereo())
@@ -103,6 +112,9 @@ HRESULT WINAPI D3D9ProxyTexture::SetPrivateData(REFGUID refguid, CONST void* pDa
 	return m_pActualTexture->SetPrivateData(refguid, pData, SizeOfData, Flags);
 }
 
+/**
+* Frees private data on both (left/right) textures.
+***/
 HRESULT WINAPI D3D9ProxyTexture::FreePrivateData(REFGUID refguid)
 {
 	if (IsStereo())
@@ -111,6 +123,9 @@ HRESULT WINAPI D3D9ProxyTexture::FreePrivateData(REFGUID refguid)
 	return m_pActualTexture->FreePrivateData(refguid);
 }
 
+/**
+* Sets priority on both (left/right) textures.
+***/
 DWORD WINAPI D3D9ProxyTexture::SetPriority(DWORD PriorityNew)
 {
 	if (IsStereo())
@@ -119,6 +134,9 @@ DWORD WINAPI D3D9ProxyTexture::SetPriority(DWORD PriorityNew)
 	return m_pActualTexture->SetPriority(PriorityNew);
 }
 
+/**
+* Calls method on both (left/right) textures.
+***/
 void WINAPI D3D9ProxyTexture::PreLoad()
 {
 	if (IsStereo())
@@ -127,12 +145,9 @@ void WINAPI D3D9ProxyTexture::PreLoad()
 	return m_pActualTexture->PreLoad();
 }
 
-
-
-
-
-
-
+/**
+* Sets LOD on both (left/right) texture.
+***/
 DWORD WINAPI D3D9ProxyTexture::SetLOD(DWORD LODNew)
 {
 	if (IsStereo())
@@ -141,6 +156,9 @@ DWORD WINAPI D3D9ProxyTexture::SetLOD(DWORD LODNew)
 	return m_pActualTexture->SetLOD(LODNew);
 }
 
+/**
+* Sets filter type on both (left/right) texture.
+***/
 HRESULT WINAPI D3D9ProxyTexture::SetAutoGenFilterType(D3DTEXTUREFILTERTYPE FilterType)
 {
 	if (IsStereo())
@@ -149,6 +167,9 @@ HRESULT WINAPI D3D9ProxyTexture::SetAutoGenFilterType(D3DTEXTUREFILTERTYPE Filte
 	return m_pActualTexture->SetAutoGenFilterType(FilterType);
 }
 
+/**
+* Generates sub levels on both (left/right) texture.
+***/
 void WINAPI D3D9ProxyTexture::GenerateMipSubLevels()
 {
 	if (IsStereo())
@@ -157,12 +178,10 @@ void WINAPI D3D9ProxyTexture::GenerateMipSubLevels()
 	return m_pActualTexture->GenerateMipSubLevels();
 }
 
-
-
-
-
-
-
+/**
+* If proxy surface is already stored on this level, return this one, otherwise create it.
+* To create a new stored surface level, call the method on both (left/right) actual textures.
+***/
 HRESULT WINAPI D3D9ProxyTexture::GetSurfaceLevel(UINT Level, IDirect3DSurface9** ppSurfaceLevel)
 {
 	HRESULT finalResult;
@@ -225,8 +244,9 @@ HRESULT WINAPI D3D9ProxyTexture::GetSurfaceLevel(UINT Level, IDirect3DSurface9**
 	return finalResult;
 }
 
-
-
+/**
+* Locks rectangle on both (left/right) textures.
+***/
 HRESULT WINAPI D3D9ProxyTexture::LockRect(UINT Level, D3DLOCKED_RECT* pLockedRect, CONST RECT* pRect, DWORD Flags)
 {
 	if (IsStereo())
@@ -235,6 +255,9 @@ HRESULT WINAPI D3D9ProxyTexture::LockRect(UINT Level, D3DLOCKED_RECT* pLockedRec
 	return m_pActualTexture->LockRect(Level, pLockedRect, pRect, Flags);
 }
 	
+/**
+* Unlocks rectangle on both (left/right) textures.
+***/
 HRESULT WINAPI D3D9ProxyTexture::UnlockRect(UINT Level)
 {
 	if (IsStereo())
@@ -243,6 +266,9 @@ HRESULT WINAPI D3D9ProxyTexture::UnlockRect(UINT Level)
 	return m_pActualTexture->UnlockRect(Level);
 }
 
+/**
+* Adds dirty rectangle on both (left/right) textures.
+***/
 HRESULT WINAPI D3D9ProxyTexture::AddDirtyRect(CONST RECT* pDirtyRect)
 {
 	if (IsStereo())
@@ -251,9 +277,34 @@ HRESULT WINAPI D3D9ProxyTexture::AddDirtyRect(CONST RECT* pDirtyRect)
 	return m_pActualTexture->AddDirtyRect(pDirtyRect);
 }
 
+/**
+* Returns the left texture.
+***/
+IDirect3DTexture9* D3D9ProxyTexture::getActualMono()
+{
+	return getActualLeft();
+}
 
+/**
+* Returns the left texture.
+***/
+IDirect3DTexture9* D3D9ProxyTexture::getActualLeft()
+{
+	return m_pActualTexture;
+}
 
+/**
+* Returns the right texture.
+***/
+IDirect3DTexture9* D3D9ProxyTexture::getActualRight()
+{
+	return m_pActualTextureRight;
+}
 
-
-
-
+/**
+* True if right texture present.
+***/
+bool D3D9ProxyTexture::IsStereo() 
+{
+	return (m_pActualTextureRight != NULL);
+}

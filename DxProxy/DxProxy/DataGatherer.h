@@ -25,19 +25,33 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "MurmurHash3.h"
 #include "Direct3DVertexShader9.h"
 
+/**
+* Data gatherer class, outputs relevant shader data to dump file (.csv format) .
+* Outputs Shader Hash,Constant Name,ConstantType,Start Register,Register Count to "vertexShaderDump.csv".
+* Used ".csv" file format to easily open and sort using OpenOffice (for example). These informations let 
+* you create new shader rules.
+* (if compiled to debug, it outputs shader code to "VS(hash).txt")
+*/
 class DataGatherer : public D3DProxyDevice
 {
 public:
 	DataGatherer(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy);
 	virtual ~DataGatherer();
-	
-	virtual HRESULT WINAPI CreateVertexShader(CONST DWORD* pFunction,IDirect3DVertexShader9** ppShader);
+		
+	/*** IDirect3DDevice9 methods ***/
+	virtual HRESULT WINAPI CreateVertexShader(CONST DWORD* pFunction,IDirect3DVertexShader9** ppShader);	
 
+	/*** DataGatherer methods ***/
 	virtual void Init(ProxyHelper::ProxyConfig& cfg);
-	
 
 private:
+	/**
+	* Set of recorded shaders, to avoid double output.
+	***/
 	std::unordered_set<IDirect3DVertexShader9*> m_recordedShaders;
+	/**
+	* The shader dump file (.csv format).
+	***/
 	std::ofstream m_shaderDumpFile;
 };
 

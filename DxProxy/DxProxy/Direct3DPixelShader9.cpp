@@ -19,6 +19,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Direct3DPixelShader9.h"
 #include <assert.h>
 
+/**
+* Constructor. 
+* @param pActualPixelShader Imbed actual pixel shader. 
+* @param pOwningDevice Pointer to the device that owns the shader. 
+***/
 BaseDirect3DPixelShader9::BaseDirect3DPixelShader9(IDirect3DPixelShader9* pActualPixelShader, IDirect3DDevice9 *pOwningDevice) :
 	m_pActualPixelShader(pActualPixelShader),
 	m_pOwningDevice(pOwningDevice),
@@ -30,6 +35,10 @@ BaseDirect3DPixelShader9::BaseDirect3DPixelShader9(IDirect3DPixelShader9* pActua
 	pOwningDevice->AddRef();
 }
 
+/**
+* Destructor. 
+* Releases embedded pixel shader. 
+***/
 BaseDirect3DPixelShader9::~BaseDirect3DPixelShader9()
 {
 	if(m_pActualPixelShader) 
@@ -39,16 +48,25 @@ BaseDirect3DPixelShader9::~BaseDirect3DPixelShader9()
 		m_pOwningDevice->Release();
 }
 
+/**
+* Base QueryInterface functionality. 
+***/
 HRESULT WINAPI BaseDirect3DPixelShader9::QueryInterface(REFIID riid, LPVOID* ppv)
 {
 	return m_pActualPixelShader->QueryInterface(riid, ppv);
 }
 
+/**
+* Base AddRef functionality.
+***/
 ULONG WINAPI BaseDirect3DPixelShader9::AddRef()
 {
 	return ++m_nRefCount;
 }
 
+/**
+* Base Release functionality.
+***/
 ULONG WINAPI BaseDirect3DPixelShader9::Release()
 {
 	if(--m_nRefCount == 0)
@@ -60,14 +78,10 @@ ULONG WINAPI BaseDirect3DPixelShader9::Release()
 	return m_nRefCount;
 }
 
-
-IDirect3DPixelShader9* BaseDirect3DPixelShader9::getActual()
-{
-	return m_pActualPixelShader;
-}
-
-
-
+/**
+* Base GetDevice functionality.
+* TODO D3D behaviour. Docs don't have the notice that is usually there about a refcount increase
+***/
 HRESULT WINAPI BaseDirect3DPixelShader9::GetDevice(IDirect3DDevice9** ppDevice)
 {
 	if (!m_pOwningDevice)
@@ -79,7 +93,18 @@ HRESULT WINAPI BaseDirect3DPixelShader9::GetDevice(IDirect3DDevice9** ppDevice)
 	}
 }
 
+/**
+* Base GetFunction functionality.
+***/
 HRESULT WINAPI BaseDirect3DPixelShader9::GetFunction(void *pDate, UINT *pSizeOfData)
 {
 	return m_pActualPixelShader->GetFunction(pDate, pSizeOfData);
+}
+
+/**
+* Returns the actual embedded shader pointer.
+***/
+IDirect3DPixelShader9* BaseDirect3DPixelShader9::getActual()
+{
+	return m_pActualPixelShader;
 }

@@ -26,22 +26,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdio.h>
 
 
-
+/**
+* Proxy surface class with own Release() function.
+*
+* If the Proxy surface is in a container it will have a combined ref count with it's container
+* and that count is managed by forwarding release and addref to the container. In this case the
+* container must delete this surface when the ref count reaches 0.
+*/
 class StereoBackBuffer : public D3D9ProxySurface
 {
 public:
-	/*
-		If the Proxy surface is in a container it will have a combined ref count with it's container
-		and that count is managed by forwarding release and addref to the container. In this case the
-		container must delete this surface when the ref count reaches 0.
-	*/ 
 	StereoBackBuffer(IDirect3DSurface9* pActualSurfaceLeft, IDirect3DSurface9* pActualSurfaceRight, BaseDirect3DDevice9* pOwningDevice);
 	virtual ~StereoBackBuffer();
-
-
+	
+	/*** StereoBackBuffer public methods ***/
 	virtual ULONG WINAPI Release();
-
-
 };
-
 #endif

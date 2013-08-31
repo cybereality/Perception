@@ -25,16 +25,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <sstream>
 
 
-
+/**
+* Predefined head mounted display info.
+* Default constructing with Rift DK1 values.
+***/
 struct HMDisplayInfo
 {
 public:
 
 #pragma warning( push )
 #pragma warning( disable : 4351 ) //disable "new behaviour warning for default initialised array" for this constructor
-
-	// All rift values from OVR_Win32_HMDDevice.cpp in LibOVR
-	// Default constructing with Rift DK1 values
+	/**
+	* All rift values from OVR_Win32_HMDDevice.cpp in LibOVR
+	* Default constructing with Rift DK1 values.
+	***/
 	HMDisplayInfo() :
 		resolution(std::make_pair<UINT, UINT>(1280, 800)), // Rift dev kit 
 		screenAspectRatio((float)resolution.first / (float)resolution.second),
@@ -44,7 +48,7 @@ public:
 		physicalLensSeparation(0.064f), // Rift dev kit 
 		distortionCoefficients()
 	{
-		 // Rift dev kit 
+		// Rift dev kit 
 		distortionCoefficients[0] = 1.0f;
 		distortionCoefficients[1] = 0.22f;
 		distortionCoefficients[2] = 0.24f;
@@ -66,45 +70,64 @@ public:
 		OutputDebugString(sstm.str().c_str());
 	}
 
-
+	/**
+	* Left lens center as percentage of the physical screen size.
+	***/
 	float LeftLensCenterAsPercentage()
 	{
 		return ((physicalScreenSize.first / 2.0f) - (physicalLensSeparation / 2.0f)) / (physicalScreenSize.first);
 	}
-
 #pragma warning( pop )
-
-	// <horizontal, vertical>
+	/**
+	* Screen resolution, in pixels.
+	* <horizontal, vertical>
+	***/
 	std::pair<UINT, UINT>  resolution;
-
+	/**
+	* Screen aspect ratio, computed using resolution.
+	***/
 	float screenAspectRatio;
+	/**
+	* Half screen aspect ratio, computed using resolution (half width) .
+	***/
 	float halfScreenAspectRatio;
-
-    // Physical characteristics are in meters
-	// <horizontal, vertical> 
+	/**
+	* Physical characteristics are in meters.
+	* <horizontal, vertical> 
+	***/
 	std::pair<float, float> physicalScreenSize;
-    float eyeToScreenDistance;
-    float physicalLensSeparation;
-
-	// The distance in a -1 to 1 range that the center of each lens is from the center of each half of the screen (center of a screen half is 0,0).
-	// -1 being the far left edge of the screen half and +1 being the far right of the screen half.
+	/**
+	* Currently constant eye to screen distance (according to rift dev kit 1)
+	***/
+	float eyeToScreenDistance;
+	/**
+	* Physical lens seperation (currently constant rift dev kit 1 value=default ipd 0.064f).
+	***/
+	float physicalLensSeparation;
+	/**
+	* The distance in a -1 to 1 range that the center of each lens is from the center of each half of
+	* the screen (center of a screen half is 0,0).
+	* -1 being the far left edge of the screen half and +1 being the far right of the screen half.
+	***/
 	float lensXCenterOffset;
-
-	// From Rift docs on distortion  
-    //   uvResult = uvInput * (K0 + K1 * uvLength^2 + K2 * uvLength^4)
-    float distortionCoefficients[4];
-
+	/**
+	* From Rift docs on distortion : uvResult = uvInput * (K0 + K1 * uvLength^2 + K2 * uvLength^4).
+	***/
+	float distortionCoefficients[4];
+	/**
+	* Scaling value, used to fill shader constants.
+	* @see OculusRiftView::CalculateShaderVariables()
+	***/
 	float scaleToFillHorizontal;
-
-	// This distortion must match that being used in the shader (the distortion, not including the scaling that is included in the shader)
+	/**
+	* This distortion must match that being used in the shader (the distortion, not including the scaling 
+	* that is included in the shader).
+	***/
 	virtual float Distort(float radius)
 	{
-        float radiusSqared = radius * radius;
-        return radius * (distortionCoefficients[0] + distortionCoefficients[1] * radiusSqared + distortionCoefficients[2] * 
-						radiusSqared * radiusSqared + distortionCoefficients[3] * radiusSqared * radiusSqared * radiusSqared);
+		float radiusSqared = radius * radius;
+		return radius * (distortionCoefficients[0] + distortionCoefficients[1] * radiusSqared + distortionCoefficients[2] * 
+			radiusSqared * radiusSqared + distortionCoefficients[3] * radiusSqared * radiusSqared * radiusSqared);
 	}
 };
-
-
-
 #endif

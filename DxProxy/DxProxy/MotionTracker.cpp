@@ -18,16 +18,27 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "MotionTracker.h"
 
+/**
+* Constructor.
+* Calls init function.
+***/ 
 MotionTracker::MotionTracker()
 {
 	OutputDebugString("Motion Tracker Created\n");
 	init();
 }
 
+/**
+* Empty destructor.
+***/
 MotionTracker::~MotionTracker()
 {
 }
 
+/**
+* Motion Tracker init.
+* Resets tracker data.
+***/
 int MotionTracker::init()
 {
 	OutputDebugString("Motion Tracker Init\n");
@@ -54,50 +65,87 @@ int MotionTracker::init()
 	return 0;
 }
 
+/**
+* Tracker specific orientation update.
+* returns -1 in base class.
+***/
 int MotionTracker::getOrientation(float* yaw, float* pitch, float* roll) 
 {
-	//OutputDebugString("Motion Tracker getOrient\n");
+#ifdef _DEBUG
+	OutputDebugString("Motion Tracker getOrient\n");
+#endif
 	return -1;
 }
 
-bool MotionTracker::isAvailable()
-{
-	return false;
-}
-
+/**
+* Update tracker orientation.
+* Updates tracker orientation and passes it to game mouse input accordingly.
+***/
 void MotionTracker::updateOrientation()
 {
-	//OutputDebugString("Motion Tracker updateOrientation\n");
+#ifdef _DEBUG
+	OutputDebugString("Motion Tracker updateOrientation\n");
+#endif
+	// Get orientation from derived tracker.
 	if(getOrientation(&yaw, &pitch, &roll) == 0)
 	{
-		//OutputDebugString("Motion Tracker getOrientation == 0\n");
+#ifdef _DEBUG
+		OutputDebugString("Motion Tracker getOrientation == 0\n");
+#endif
+		// Skip empty input data.
 		if(!isEqual(currentYaw, 0.0f) && !isEqual(currentPitch, 0.0f))
 		{
+			// Convert yaw, pitch to positive degrees, multiply by multiplier.
+			// (-180.0f...0.0f -> 180.0f....360.0f)
+			// (0.0f...180.0f -> 0.0f...180.0f)
 			yaw = fmodf(RADIANS_TO_DEGREES(yaw) + 360.0f, 360.0f)*multiplierYaw;
 			pitch = -fmodf(RADIANS_TO_DEGREES(pitch) + 360.0f, 360.0f)*multiplierPitch;
 
+			// Get difference.
 			deltaYaw += yaw - currentYaw;
 			deltaPitch += pitch - currentPitch;
 
+			// Set limits.
 			if(fabs(deltaYaw) > 100.0f) deltaYaw = 0.0f;
 			if(fabs(deltaPitch) > 100.0f) deltaPitch = 0.0f;
 			
+			// Pass to mouse data (long integer).
 			mouseData.mi.dx = (long)(deltaYaw);
 			mouseData.mi.dy = (long)(deltaPitch);
+
 			// Keep fractional difference in the delta so it's added to the next update.
 			deltaYaw -= (float)mouseData.mi.dx;
 			deltaPitch -= (float)mouseData.mi.dy;
 		
+#ifdef _DEBUG
 			//OutputDebugString("Motion Tracker SendInput\n");
+#endif
+			// Send to mouse input.
 			SendInput(1, &mouseData, sizeof(INPUT));
 		}
 
+		// Set current data.
 		currentYaw = yaw;
 		currentPitch = pitch;
 		currentRoll = roll*multiplierRoll;
 	}
 }
 
+/**
+* Is tracker selected and detected?
+* Returns wether a tracker option is selected. Naturally returns false in base class.
+***/
+bool MotionTracker::isAvailable()
+{
+	return false;
+}
+
+/**
+* Set game-specific angle multipliers.
+* @param yaw Yaw Degree multiplier.
+* @param pitch Pitch Degree multiplier.
+* @param roll Roll Radian multiplier.
+***/
 void MotionTracker::setMultipliers(float yaw, float pitch, float roll)
 {
 	multiplierYaw = yaw;

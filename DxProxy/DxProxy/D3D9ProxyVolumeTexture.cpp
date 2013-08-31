@@ -19,7 +19,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "D3D9ProxyVolumeTexture.h"
 #include <assert.h>
 
-
+/**
+* Constructor.
+* @see D3D9ProxySurface::D3D9ProxySurface
+***/
 D3D9ProxyVolumeTexture::D3D9ProxyVolumeTexture(IDirect3DVolumeTexture9* pActualVolumeTexture, BaseDirect3DDevice9* pOwningDevice) :
 	BaseDirect3DVolumeTexture9(pActualVolumeTexture),
 	m_wrappedVolumeLevels(),
@@ -30,6 +33,10 @@ D3D9ProxyVolumeTexture::D3D9ProxyVolumeTexture(IDirect3DVolumeTexture9* pActualV
 	m_pOwningDevice->AddRef();
 }
 
+/**
+* Destructor.
+* Deletes wrapped volumes.
+***/
 D3D9ProxyVolumeTexture::~D3D9ProxyVolumeTexture()
 {
 	// delete all surfaces in m_levels
@@ -45,16 +52,15 @@ D3D9ProxyVolumeTexture::~D3D9ProxyVolumeTexture()
 		m_pOwningDevice->Release();
 }
 
-
-
-
-IDirect3DVolumeTexture9* D3D9ProxyVolumeTexture::getActual()
-{
-	return m_pActualTexture;
-}
-
-
-
+/**
+* GetDevice on the underlying IDirect3DVolumeTexture9 will return the device used to create it. 
+* Which is the actual device and not the wrapper. Therefore we have to keep track of the 
+* wrapper device and return that instead.
+* 
+* Calling this method will increase the internal reference count on the IDirect3DDevice9 interface. 
+* Failure to call IUnknown::Release when finished using this IDirect3DDevice9 interface results in a 
+* memory leak.
+*/
 HRESULT WINAPI D3D9ProxyVolumeTexture::GetDevice(IDirect3DDevice9** ppDevice)
 {
 	if (!m_pOwningDevice)
@@ -67,7 +73,10 @@ HRESULT WINAPI D3D9ProxyVolumeTexture::GetDevice(IDirect3DDevice9** ppDevice)
 }
 
 
-
+/**
+* If proxy volume is already stored on this level, return this one, otherwise create it.
+* To create a new stored volume level, call the method on both (left/right) actual volumes.
+***/
 HRESULT WINAPI D3D9ProxyVolumeTexture::GetVolumeLevel(UINT Level, IDirect3DVolume9** ppVolumeLevel)
 {
 	HRESULT finalResult;
@@ -121,4 +130,12 @@ HRESULT WINAPI D3D9ProxyVolumeTexture::GetVolumeLevel(UINT Level, IDirect3DVolum
 	}
 
 	return finalResult;
+}
+
+/**
+* Returns the actual volume texture.
+***/
+IDirect3DVolumeTexture9* D3D9ProxyVolumeTexture::getActual()
+{
+	return m_pActualTexture;
 }

@@ -22,17 +22,29 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <time.h>
 #include <stdio.h>
 
+/**
+* Constructor.
+* Calls init function.
+***/ 
 FreeSpaceTracker::FreeSpaceTracker(void):MotionTracker()
 {
 	OutputDebugString("Free Tracker Created\n");
 	init();
 }
 
+/**
+* Destructor.
+* Calls close function.
+***/
 FreeSpaceTracker::~FreeSpaceTracker(void)
 {
 	close();
 }
 
+/**
+* Freespace Tracker init.
+* Calls connect function.
+***/
 int FreeSpaceTracker::init()
 {
 	OutputDebugString("Free Tracker Init\n");
@@ -44,70 +56,83 @@ int FreeSpaceTracker::init()
 	return err;
 }
 
+/**
+* Connect to freespace tracker.
+* Initializes the freespace library, looks for a single tracker and attaches it.
+* Calls freespace functions to make the tracker ready to use.
+***/
 int FreeSpaceTracker::connect() 
 {
 	OutputDebugString("Free Tracker Connect\n");
-   // Initialize the freespace library
-   int err = freespace_init();
-   if (err)
-      return err;
+	// Initialize the freespace library
+	int err = freespace_init();
+	if (err)
+		return err;
 
-   // Look for a single tracker
-   int num_devices;
-   err = freespace_getDeviceList(&DeviceID, 1, &num_devices);
-   if (err)
-      return err;
+	// Look for a single tracker
+	int num_devices;
+	err = freespace_getDeviceList(&DeviceID, 1, &num_devices);
+	if (err)
+		return err;
 
-   if (num_devices == 0)
-      return FREESPACE_ERROR_NO_DEVICE;
+	if (num_devices == 0)
+		return FREESPACE_ERROR_NO_DEVICE;
 
-   // Attach to the tracker
-   err = freespace_openDevice(DeviceID);
-   if (err) 
-   {
-      DeviceID = -1;
-      return err;
-   }
+	// Attach to the tracker
+	err = freespace_openDevice(DeviceID);
+	if (err) 
+	{
+		DeviceID = -1;
+		return err;
+	}
 
-   err = freespace_getDeviceInfo(DeviceID, &Device);
+	err = freespace_getDeviceInfo(DeviceID, &Device);
 
-   // Flush the message stream
-   err = freespace_flush(DeviceID);
-   if (err)
-      return err;
+	// Flush the message stream
+	err = freespace_flush(DeviceID);
+	if (err)
+		return err;
 
-   // Turn on the orientation message stream
-   freespace_message msg;
-   memset(&msg, 0, sizeof(msg));
+	// Turn on the orientation message stream
+	freespace_message msg;
+	memset(&msg, 0, sizeof(msg));
 
-   if (Device.hVer >= 2) 
-   {
-      // version 2 protocol
-      msg.messageType = FREESPACE_MESSAGE_DATAMODECONTROLV2REQUEST;
-      msg.dataModeControlV2Request.packetSelect = 3;    // User Frame (orientation)
-      msg.dataModeControlV2Request.modeAndStatus = 0;   // operating mode == full motion
-   }
-   else 
-   {
-      // version 1 protocol
-      msg.messageType = FREESPACE_MESSAGE_DATAMODEREQUEST;
-      msg.dataModeRequest.enableUserPosition = 1;
-      msg.dataModeRequest.inhibitPowerManager = 1;
-   }
+	if (Device.hVer >= 2) 
+	{
+		// version 2 protocol
+		msg.messageType = FREESPACE_MESSAGE_DATAMODECONTROLV2REQUEST;
+		msg.dataModeControlV2Request.packetSelect = 3;    // User Frame (orientation)
+		msg.dataModeControlV2Request.modeAndStatus = 0;   // operating mode == full motion
+	}
+	else 
+	{
+		// version 1 protocol
+		msg.messageType = FREESPACE_MESSAGE_DATAMODEREQUEST;
+		msg.dataModeRequest.enableUserPosition = 1;
+		msg.dataModeRequest.inhibitPowerManager = 1;
+	}
 
-   err = freespace_sendMessage(DeviceID, &msg);
-   if (err)
-      return err;
+	err = freespace_sendMessage(DeviceID, &msg);
+	if (err)
+		return err;
 
-   // Now the tracker is ready to read
-   return 0;
+	// Now the tracker is ready to read
+	return 0;
 }
 
+/**
+* Freespace reset.
+* Calls init function.
+***/
 void FreeSpaceTracker::reset()
 {
 	init();
 }
 
+/**
+* Release freespace tracker.
+* Calls relevant freespace functions to release the device.
+***/
 void FreeSpaceTracker::close() 
 {
 	OutputDebugString("Free Tracker Close\n");
@@ -120,8 +145,8 @@ void FreeSpaceTracker::close()
 		if (Device.hVer >= 2) 
 		{
 			msg.messageType = FREESPACE_MESSAGE_DATAMODECONTROLV2REQUEST;
-			msg.dataModeControlV2Request.packetSelect = 0;        // No output
-			msg.dataModeControlV2Request.modeAndStatus = 1 << 1;  // operating mode == sleep  
+			msg.dataModeControlV2Request.packetSelect = 0;        // No output 
+			msg.dataModeControlV2Request.modeAndStatus = 1 << 1;  // operating mode == sleep 
 		}
 		else 
 		{
@@ -131,7 +156,7 @@ void FreeSpaceTracker::close()
 		}
 
 		int err = freespace_sendMessage(DeviceID, &msg);
-      
+
 		// Detach from the tracker
 		freespace_closeDevice(DeviceID);
 		DeviceID = -1;
@@ -139,33 +164,36 @@ void FreeSpaceTracker::close()
 		freespace_exit();
 	}
 
-   OutputDebugString("Free Tracker Exit\n");
+	OutputDebugString("Free Tracker Exit\n");
 }
 
+/**
+* Destroy freespace tracker.
+* Calls close function.
+***/
 void FreeSpaceTracker::destroy()
 {
 	close();
 }
 
+/**
+* Retrieve freespace tracker orientation.
+* Reads device input and converts data from quaternion to Euler angles.
+***/
 int FreeSpaceTracker::getOrientation(float* yaw, float* pitch, float* roll) 
 {
-	//OutputDebugString("Free Tracker getOrient\n");
+#ifdef _DEBUG
+	OutputDebugString("Free Tracker getOrient\n");
+#endif
 
 	freespace_message msg;
 
 	int err = freespace_readMessage(DeviceID, &msg, 10);
 
-	/*
-	char errChar[512];
-	sprintf_s(errChar, "devID = %d, err == %d", DeviceID, err);
-	OutputDebugString(errChar);
-	OutputDebugString("\n");
-	*/
-
 	if (err == 0) 
 	{
-        // Check if this is a user frame message.
-        if (msg.messageType == FREESPACE_MESSAGE_USERFRAME) 
+		// Check if this is a user frame message.
+		if (msg.messageType == FREESPACE_MESSAGE_USERFRAME) 
 		{
 			// Convert from quaternion to Euler angles
 
@@ -189,7 +217,7 @@ int FreeSpaceTracker::getOrientation(float* yaw, float* pitch, float* roll)
 			x = -x;
 			y = -y;
 			z = -z;
-      
+
 			// Convert to angles in radians
 			float m11 = (2.0f * w * w) + (2.0f * x * x) - 1.0f;
 			float m12 = (2.0f * x * y) + (2.0f * w * z);
@@ -201,16 +229,30 @@ int FreeSpaceTracker::getOrientation(float* yaw, float* pitch, float* roll)
 			*pitch = asinf(-m13);
 			*yaw = atan2f(m12, m11);
 			return 0;   
-        }
+		}
 
-        // any other message types will just fall through and keep looping until the timeout is reached
-    }
-    else
-        return err;  // return on timeouts or serious errors
+		// any other message types will just fall through and keep looping until the timeout is reached
+	}
+	else
+	{
+#ifdef _DEBUG
+		char errChar[512];
+		sprintf_s(errChar, "devID = %d, err == %d", DeviceID, err);
+		OutputDebugString("Freespace Error:");
+		OutputDebugString(errChar);
+		OutputDebugString("\n");
+#endif
+		return err;  // return on timeouts or serious errors
+	}
 
-   return FREESPACE_ERROR_TIMEOUT;  // The function returns gracefully without values
+	return FREESPACE_ERROR_TIMEOUT;  // The function returns gracefully without values
+
 }
 
+/**
+* Is tracker selected and detected?
+* Returns wether freespace tracker option is selected. Returns true if device ID present.
+***/
 bool FreeSpaceTracker::isAvailable()
 {
 	return DeviceID >= 0;

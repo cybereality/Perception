@@ -25,6 +25,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ShaderConstantModification.h"
 #include "Vireio.h"
 
+/**
+* Shader matrix modification parent class.
+* These classes contain the shader modification rules and are called by ShaderRegisters.
+* Here, it is the most common way of modification, simple translation. Override for specific modification rules.
+* @see ShaderRegisters
+*/
 class ShaderMatrixModification : public ShaderConstantModification<float>
 {
 public:
@@ -32,13 +38,22 @@ public:
 		ShaderConstantModification(modID, adjustmentMatricies),
 		m_bTranspose(transpose)
 		{};
-
-	/* This method should not generally be overridden by subclasses (if it is the overriding method should respect the result of DoNotApply). 
-		Do modification in DoMatrixModification. Transposed matricies will be provided to DoMatrixModification if transpose is true */
+	
+	/**
+	* Applies modification to registers.
+	* This method should not generally be overridden by subclasses (if it is the overriding method
+	* should respect the result of DoNotApply). 
+	* Do modification in DoMatrixModification. Transposed matrices will be provided to 
+	* DoMatrixModification if transpose is true.
+	* @param [in] inData Input matrix to be modified and assigned to registers.
+	* @param [in, out] outLeft Register vector left.
+	* @param [in, out] outRight Register vector right.
+	***/
 	virtual void ApplyModification(const float* inData, std::vector<float>* outLeft, std::vector<float>* outRight)
 	{
 		D3DXMATRIX tempMatrix (inData);
 
+		// conditions to apply the matrix ?
 		if (DoNotApply(tempMatrix)) {
 
 			outLeft->assign(&tempMatrix[0], &tempMatrix[0] + outLeft->size());
@@ -46,6 +61,7 @@ public:
 		}
 		else {
 
+			// matrix to be transposed ?
 			if (m_bTranspose) {
 				D3DXMatrixTranspose(&tempMatrix, &tempMatrix);
 			}
@@ -53,13 +69,16 @@ public:
 			D3DXMATRIX tempLeft;
 			D3DXMATRIX tempRight;
 
+			// do modification
 			DoMatrixModification(tempMatrix, tempLeft, tempRight);
 
+			// transpose back
 			if (m_bTranspose) {
 				D3DXMatrixTranspose(&tempLeft, &tempLeft);
 				D3DXMatrixTranspose(&tempRight, &tempRight);
 			}
 
+			// assign to output
 			outLeft->assign(&tempLeft[0], &tempLeft[0] + outLeft->size());
 			outRight->assign(&tempRight[0], &tempRight[0] + outRight->size());
 		}
@@ -67,26 +86,36 @@ public:
 
 
 protected:
-
-	/* Override to do actual modification. Default is simple translate */
+	/**
+	* Default modification is simple translate. Override to do actual modification. 
+	* @param in [in] Modification matrix to be multiplied by adjustment matrix (left/right).
+	* @param outLeft [in, out] Left transform matrix.
+	* @param outRight [in, out] Right transform matrix.
+	***/
 	virtual void DoMatrixModification(D3DXMATRIX in, D3DXMATRIX& outLeft, D3DXMATRIX& outright)
 	{
-		outLeft = in * m_spAdjustmentMatricies->LeftAdjustmentMatrix();
-		outright = in * m_spAdjustmentMatricies->RightAdjustmentMatrix();
+		outLeft = in * m_spAdjustmentMatrices->LeftAdjustmentMatrix();
+		outright = in * m_spAdjustmentMatrices->RightAdjustmentMatrix();
 	}
 
-	/* Override to provide condition underwhich this mod should not be applied (modification will always perform simple copy of in to left and right if this returns true)
-		If false then modification will be applied.
-		Available so ortho check can be done without performing any uneccessary transposes (and generalised to this method in case other cases become apparent)
-		Default is to always apply */
+	/**
+	* Override to provide condition underwhich this mod should not be applied.
+	* Modification will always perform simple copy of in to left and right if this returns true.
+	* If false then modification will be applied.
+	* Available so ortho check can be done without performing any uneccessary transposes (and 
+	* generalised to this method in case other cases become apparent).
+	* Default is to always apply.
+	* @param in Matrix to test wether it should be applied.
+	***/
 	virtual bool DoNotApply(D3DXMATRIX in)
 	{
 		return false;
 	}
 
 private:
+	/**
+	* True if matrix is to be transposed before and after the modification is done.
+	***/
 	bool m_bTranspose;
 };
-
-
 #endif

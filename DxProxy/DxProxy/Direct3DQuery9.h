@@ -22,34 +22,40 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <d3d9.h>
 #include "Direct3DDevice9.h"
 
+/**
+*  Direct 3D query class. 
+*  Overwrites IDirect3DQuery9 and imbeds the actual query.
+*/
 class BaseDirect3DQuery9 : public IDirect3DQuery9
 {
 public:
 	BaseDirect3DQuery9(IDirect3DQuery9* pActualQuery, IDirect3DDevice9* pOwningDevice);
 	virtual ~BaseDirect3DQuery9();
 
-	// IUnknown
+	/*** IUnknown methods ***/
 	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv);
-	virtual ULONG WINAPI AddRef();
-	virtual ULONG WINAPI Release();
+	virtual ULONG   WINAPI AddRef();
+	virtual ULONG   WINAPI Release();
 
-
-	// IDirect3DQuery9
-
+	/*** IDirect3DQuery9 methods ***/
 	virtual D3DQUERYTYPE WINAPI GetType();
-	virtual HRESULT WINAPI GetDevice(IDirect3DDevice9** ppDevice);
-    virtual   DWORD WINAPI GetDataSize();
-    virtual HRESULT WINAPI Issue(DWORD dwIssueFlags);
-    virtual HRESULT WINAPI GetData(void* pData, DWORD dwSize, DWORD dwGetDataFlags);
-
-
-	
+	virtual HRESULT	     WINAPI GetDevice(IDirect3DDevice9** ppDevice);
+    virtual DWORD        WINAPI GetDataSize();
+    virtual HRESULT      WINAPI Issue(DWORD dwIssueFlags);
+    virtual HRESULT      WINAPI GetData(void* pData, DWORD dwSize, DWORD dwGetDataFlags);
 
 protected:
-
+	/**
+	* The actual query embedded. 
+	***/
 	IDirect3DQuery9* const m_pActualQuery;
+	/**
+	* Pointer to the D3D device that owns the query. 
+	***/
 	IDirect3DDevice9* m_pOwningDevice;
+	/**
+	* Internal reference counter. 
+	***/
 	ULONG m_nRefCount;
 };
-
 #endif

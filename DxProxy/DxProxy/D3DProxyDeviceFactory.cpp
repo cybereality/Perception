@@ -21,6 +21,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "D3DProxyDeviceAdv.h"
 #include "DataGatherer.h"
 
+/**
+* Provides proxy device, for new games use Data-Gatherer to catch Shader-Data (game_type==11).
+* Creates the Direct3D proxy device class pointer. For a new Game, set "game_type" to 11 in 
+* "profiles.cfg" to retrieve shader constant data.
+* @param config The game configuration.
+* @param pDevice The actual device pointer for the proxy constructor.
+* @param pCreatedBy Pointer to the object that created the device.
+***/
 D3DProxyDevice* D3DProxyDeviceFactory::Get(ProxyHelper::ProxyConfig& config, IDirect3DDevice9* dev, BaseDirect3D9* pCreatedBy)
 {
 	D3DProxyDevice* newDev = NULL;

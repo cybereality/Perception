@@ -22,42 +22,45 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <d3d9.h>
 #include "Direct3DDevice9.h"
 
+/**
+*  Direct 3D surface class. 
+*  Overwrites IDirect3DSurface9 and imbeds the actual surface.
+*/
 class BaseDirect3DSurface9 : public IDirect3DSurface9
 {
 public:
 	BaseDirect3DSurface9(IDirect3DSurface9* pActualSurface);
 	virtual ~BaseDirect3DSurface9();
 
-	// IUnknown
+	/*** IUnknown methods ***/
 	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv);
-	virtual ULONG WINAPI AddRef();
-	virtual ULONG WINAPI Release();
+	virtual ULONG   WINAPI AddRef();
+	virtual ULONG   WINAPI Release();
 
-
-	// IDirect3DResource9
-	virtual HRESULT WINAPI GetDevice(IDirect3DDevice9** ppDevice);
-	virtual HRESULT WINAPI SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags);
-	virtual HRESULT WINAPI GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData);
-	virtual HRESULT WINAPI FreePrivateData(REFGUID refguid);
-	virtual   DWORD WINAPI SetPriority(DWORD PriorityNew);
-	virtual   DWORD WINAPI GetPriority();
-	virtual    void WINAPI PreLoad();
+	/*** IDirect3DResource9 methods ***/
+	virtual HRESULT         WINAPI GetDevice(IDirect3DDevice9** ppDevice);
+	virtual HRESULT         WINAPI SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags);
+	virtual HRESULT         WINAPI GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData);
+	virtual HRESULT         WINAPI FreePrivateData(REFGUID refguid);
+	virtual DWORD           WINAPI SetPriority(DWORD PriorityNew);
+	virtual DWORD           WINAPI GetPriority();
+	virtual void            WINAPI PreLoad();
 	virtual D3DRESOURCETYPE WINAPI GetType();
-
-
-
-	// IDirect3DSurface9
-	virtual HRESULT WINAPI GetContainer(REFIID riid, LPVOID* ppContainer);
-	virtual HRESULT WINAPI GetDesc(D3DSURFACE_DESC *pDesc);
-	virtual HRESULT WINAPI LockRect(D3DLOCKED_RECT* pLockedRect, CONST RECT* pRect, DWORD Flags);
-	virtual HRESULT WINAPI UnlockRect();
-	virtual HRESULT WINAPI GetDC(HDC *phdc);
-	virtual HRESULT WINAPI ReleaseDC(HDC hdc);
+	virtual HRESULT         WINAPI GetContainer(REFIID riid, LPVOID* ppContainer);
+	virtual HRESULT         WINAPI GetDesc(D3DSURFACE_DESC *pDesc);
+	virtual HRESULT         WINAPI LockRect(D3DLOCKED_RECT* pLockedRect, CONST RECT* pRect, DWORD Flags);
+	virtual HRESULT         WINAPI UnlockRect();
+	virtual HRESULT         WINAPI GetDC(HDC *phdc);
+	virtual HRESULT         WINAPI ReleaseDC(HDC hdc);
 
 protected:
-
+	/**
+	* The actual surface embedded. 
+	***/
 	IDirect3DSurface9* const m_pActualSurface;
+	/**
+	* Internal reference counter. 
+	***/
 	ULONG m_nRefCount;
 };
-
 #endif

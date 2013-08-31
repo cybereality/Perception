@@ -21,56 +21,53 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <d3d9.h>
 
-
-
+/**
+*  Direct 3D volume texture class. 
+*  Overwrites IDirect3DVolumeTexture9 and imbeds the actual volume texture.
+*/
 class BaseDirect3DVolumeTexture9 : public IDirect3DVolumeTexture9
 {
 public:
 	BaseDirect3DVolumeTexture9(IDirect3DVolumeTexture9* pVolumeTexture);
 	virtual ~BaseDirect3DVolumeTexture9();
 
-	// IUnknown methods
+	//*** IUnknown methods ***/
 	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv);
-	virtual ULONG WINAPI AddRef();
-	virtual ULONG WINAPI Release();
-	
-	
-	// Volume texture methods
-	virtual HRESULT WINAPI GetLevelDesc(UINT Level, D3DVOLUME_DESC *pDesc);
-	virtual HRESULT WINAPI GetVolumeLevel(UINT Level, IDirect3DVolume9 **ppVolumeLevel);
-    virtual HRESULT WINAPI LockBox(UINT Level, D3DLOCKED_BOX *pLockedVolume, const D3DBOX *pBox, DWORD Flags);
-	virtual HRESULT WINAPI UnlockBox(UINT Level);
-	virtual HRESULT WINAPI AddDirtyBox(const D3DBOX *pDirtyBox);
+	virtual ULONG	WINAPI AddRef();
+	virtual ULONG	WINAPI Release();
 
-
-	// IDirect3DResource9 methods
-	virtual HRESULT WINAPI GetDevice(IDirect3DDevice9** ppDevice);
-	virtual HRESULT WINAPI SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags);
-	virtual HRESULT WINAPI GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData);
-	virtual HRESULT WINAPI FreePrivateData(REFGUID refguid);
-	virtual   DWORD WINAPI SetPriority(DWORD PriorityNew);
-	virtual   DWORD WINAPI GetPriority();
-	virtual    void WINAPI PreLoad();
-	virtual      D3DRESOURCETYPE WINAPI GetType();
-	
-	//base texture methods
-	virtual   DWORD WINAPI SetLOD(DWORD LODNew);
-	virtual   DWORD WINAPI GetLOD();
-	virtual   DWORD WINAPI GetLevelCount();
-	virtual HRESULT WINAPI SetAutoGenFilterType(D3DTEXTUREFILTERTYPE FilterType);
-	virtual    void WINAPI GenerateMipSubLevels();
+	/*** IDirect3DBaseTexture9 methods ***/
+	virtual HRESULT              WINAPI GetDevice(IDirect3DDevice9** ppDevice);
+	virtual HRESULT              WINAPI SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags);
+	virtual HRESULT              WINAPI GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData);
+	virtual HRESULT              WINAPI FreePrivateData(REFGUID refguid);
+	virtual DWORD                WINAPI SetPriority(DWORD PriorityNew);
+	virtual DWORD                WINAPI GetPriority();
+	virtual void                 WINAPI PreLoad();
+	virtual D3DRESOURCETYPE      WINAPI GetType();
+	virtual DWORD                WINAPI SetLOD(DWORD LODNew);
+	virtual DWORD                WINAPI GetLOD();
+	virtual DWORD                WINAPI GetLevelCount();
+	virtual HRESULT              WINAPI SetAutoGenFilterType(D3DTEXTUREFILTERTYPE FilterType);
 	virtual D3DTEXTUREFILTERTYPE WINAPI GetAutoGenFilterType();
-    
-    
-
-
+	virtual void                 WINAPI GenerateMipSubLevels();
+	virtual HRESULT              WINAPI GetLevelDesc(UINT Level, D3DVOLUME_DESC *pDesc);
+	virtual HRESULT              WINAPI GetVolumeLevel(UINT Level, IDirect3DVolume9 **ppVolumeLevel);
+	virtual HRESULT              WINAPI LockBox(UINT Level, D3DLOCKED_BOX *pLockedVolume, const D3DBOX *pBox, DWORD Flags);
+	virtual HRESULT              WINAPI UnlockBox(UINT Level);
+	virtual HRESULT              WINAPI AddDirtyBox(const D3DBOX *pDirtyBox);
 
 protected:
+	/**
+	* The actual texture embedded. 
+	***/
 	IDirect3DVolumeTexture9* const m_pActualTexture;
 
 private:
+	/**
+	* Internal reference counter. 
+	***/
 	ULONG m_nRefCount;
-
 };
 
 #endif

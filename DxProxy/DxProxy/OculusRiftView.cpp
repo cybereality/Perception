@@ -21,30 +21,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "StereoView.h"
 #include "D3DProxyDevice.h"
 
-
+/**
+* Constructor.
+* @param config Game configuration.
+* @param hmd Oculus Rift Head Mounted Display info.
+***/ 
 OculusRiftView::OculusRiftView(ProxyHelper::ProxyConfig& config, HMDisplayInfo hmd) : StereoView(config),
 	hmdInfo(hmd)
 {
 	OutputDebugString("Created OculusRiftView\n");
 }
 
-
-void OculusRiftView::InitShaderEffects()
-{
-	shaderEffect[OCULUS_RIFT] = "OculusRift.fx";
-	shaderEffect[OCULUS_RIFT_CROPPED] = "OculusRiftCropped.fx";
-
-	char viewPath[512];
-	ProxyHelper helper = ProxyHelper();
-	helper.GetPath(viewPath, "fx\\");
-
-	strcat_s(viewPath, 512, shaderEffect[stereo_mode].c_str());
-
-	D3DXCreateEffectFromFile(m_pActualDevice, viewPath, NULL, NULL, 0, NULL, &viewEffect, NULL);
-}
-
-
-
+/**
+* Sets vertex shader constants.
+***/ 
 void OculusRiftView::SetViewEffectInitialValues() 
 {
 	viewEffect->SetFloatArray("LensCenter", LensCenter, 2);
@@ -53,8 +43,9 @@ void OculusRiftView::SetViewEffectInitialValues()
 	viewEffect->SetFloatArray("HmdWarpParam", hmdInfo.distortionCoefficients, 4);
 }
 
-
-
+/**
+* Calculate all vertex shader constants.
+***/ 
 void OculusRiftView::CalculateShaderVariables()
 {
 	// Center of half screen is 0.25 in x (halfscreen x input in 0 to 0.5 range)
@@ -83,4 +74,22 @@ void OculusRiftView::CalculateShaderVariables()
 	Scale[0] = (1.0f / 4.0f) * scaleFactor;
 	Scale[1] = (1.0f / 2.0f) * scaleFactor * inputTextureAspectRatio;
 }
+
+/**
+* Loads Oculus Rift shader effect files.
+***/ 
+void OculusRiftView::InitShaderEffects()
+{
+	shaderEffect[OCULUS_RIFT] = "OculusRift.fx";
+	shaderEffect[OCULUS_RIFT_CROPPED] = "OculusRiftCropped.fx";
+
+	char viewPath[512];
+	ProxyHelper helper = ProxyHelper();
+	helper.GetPath(viewPath, "fx\\");
+
+	strcat_s(viewPath, 512, shaderEffect[stereo_mode].c_str());
+
+	D3DXCreateEffectFromFile(m_pActualDevice, viewPath, NULL, NULL, 0, NULL, &viewEffect, NULL);
+}
+
 

@@ -22,28 +22,40 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <d3d9.h>
 #include "Direct3DDevice9.h"
 
+/**
+*  Direct 3D pixel shader class. 
+*  Overwrites IDirect3DPixelShader9 and imbeds the actual pixel shader.
+*/
 class BaseDirect3DPixelShader9 : public IDirect3DPixelShader9
 {
 public:
 	BaseDirect3DPixelShader9(IDirect3DPixelShader9* pActualPixelShader, IDirect3DDevice9* pOwningDevice);
 	virtual ~BaseDirect3DPixelShader9();
 
-	// IUnknown
+	/*** IUnknown methods ***/
 	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv);
-	virtual ULONG WINAPI AddRef();
-	virtual ULONG WINAPI Release();
-
-	IDirect3DPixelShader9* getActual();
-
-	// IDirect3DPixelShader9
+	virtual ULONG   WINAPI AddRef();
+	virtual ULONG   WINAPI Release();
+	
+	/*** IDirect3DPixelShader9 methods ***/
 	virtual HRESULT WINAPI GetDevice(IDirect3DDevice9 **ppDevice);
 	virtual HRESULT WINAPI GetFunction(void *pDate, UINT *pSizeOfData);
 
-protected:
+	/*** BaseDirect3DPixelShader9 methods ***/
+	IDirect3DPixelShader9* getActual();
 
+protected:
+	/**
+	* The actual pixel shader embedded. 
+	***/
 	IDirect3DPixelShader9* const m_pActualPixelShader;
+	/**
+	* Pointer to the D3D device that owns the shader. 
+	***/
 	IDirect3DDevice9* m_pOwningDevice;
+	/**
+	* Internal reference counter. 
+	***/
 	ULONG m_nRefCount;
 };
-
 #endif

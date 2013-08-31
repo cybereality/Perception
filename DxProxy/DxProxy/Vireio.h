@@ -25,28 +25,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 64mm in meters
 #define IPD_DEFAULT 0.064f
 
+/**
+* Vireio helper namespace.
+* Contains helper methods and enumeration.
+*/
 namespace vireio {
 
+	/**
+	* Simple left, right enumeration.
+	***/
 	enum RenderPosition
 	{
-		// porbably need an 'Original' here
+		// probably need an 'Original' here
 		Left = 1,
-		Right = 2
-		
+		Right = 2		
 	};
-
-	/*
-		Returns actualy textures from wrapped texture.
-		pWrappedTexture - Input, wrapped texture
-		ppActualLeftTexture, ppActualRightTexture - Output. Will be set to the actual texztures from pWrappedTexture. Left should never be NULL. Right maybe NULL if texture isn't stereo
-	 */
-    void UnWrapTexture(IDirect3DBaseTexture9* pWrappedTexture, IDirect3DBaseTexture9** ppActualLeftTexture, IDirect3DBaseTexture9** ppActualRightTexture);
-
 	
+	/*** vireio public methods ***/
+	void UnWrapTexture(IDirect3DBaseTexture9* pWrappedTexture, IDirect3DBaseTexture9** ppActualLeftTexture, IDirect3DBaseTexture9** ppActualRightTexture);
 	bool AlmostSame(float a, float b, float epsilon);
 	void clamp(float* toClamp, float min, float max);
-
-	
 };
-
 #endif

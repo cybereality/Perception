@@ -22,27 +22,40 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <d3d9.h>
 #include "Direct3DDevice9.h"
 
+/**
+*  Direct 3D verex declaration class. 
+*  Overwrites IDirect3DVertexDeclaration9 and imbeds the actual vertex declaration.
+*/
 class BaseDirect3DVertexDeclaration9 : public IDirect3DVertexDeclaration9
 {
 public:
 	BaseDirect3DVertexDeclaration9(IDirect3DVertexDeclaration9* pActualVertexDeclaration, IDirect3DDevice9* pOwningDevice);
 	virtual ~BaseDirect3DVertexDeclaration9();
 
-	// IUnknown
+	/*** IUnknown methods ***/
 	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv);
-	virtual ULONG WINAPI AddRef();
-	virtual ULONG WINAPI Release();
-
-	IDirect3DVertexDeclaration9* getActual();
-
-	// IDirect3DVertexDeclaration9
+	virtual ULONG   WINAPI AddRef();
+	virtual ULONG   WINAPI Release();
+		
+	//*** IDirect3DVertexDeclaration9 methods ***/
 	virtual HRESULT WINAPI GetDevice(IDirect3DDevice9 **ppDevice);
 	virtual HRESULT WINAPI GetDeclaration(D3DVERTEXELEMENT9 *pDecl, UINT *pNumElements);
 
-protected:
+	/*** BaseDirect3DVertexDeclaration9 methods ***/
+	IDirect3DVertexDeclaration9* getActual();
 
+protected:
+	/**
+	* The actual vertex declaration embedded. 
+	***/
 	IDirect3DVertexDeclaration9* const m_pActualVertexDeclaration;
+	/**
+	* Pointer to the D3D device that owns the declaration. 
+	***/
 	IDirect3DDevice9* m_pOwningDevice;
+	/**
+	* Internal reference counter. 
+	***/
 	ULONG m_nRefCount;
 };
 
