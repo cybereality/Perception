@@ -22,7 +22,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "SharedMemoryTracker.h"
 #include "OculusTracker.h"
 
-
+/**
+*  Get motion tracker. 
+*  Creates the currently selected motion tracker class pointer.
+***/
 MotionTracker* MotionTrackerFactory::Get(ProxyHelper::ProxyConfig& config)
 {
 	MotionTracker* newTracker = NULL;

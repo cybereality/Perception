@@ -28,25 +28,29 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 class D3DProxyDevice;
 
+/**
+*  Direct 3D proxy swap chain class. 
+*  Overwrites BaseDirect3DSwapChain9 and imbeds the back buffers and front buffer data.
+*/
 class D3D9ProxySwapChain : public BaseDirect3DSwapChain9
 {
 public:
 	D3D9ProxySwapChain(IDirect3DSwapChain9* pActualSwapChain, D3DProxyDevice* pWrappedOwningDevice, bool isAdditionalChain);
-	virtual ~D3D9ProxySwapChain();
-
+	virtual ~D3D9ProxySwapChain();	
 	
-	
-	// SwapChain methods
+	/*** IDirect3DSwapChain9 methods ***/
     virtual HRESULT WINAPI Present(CONST RECT* pSourceRect, CONST RECT* pDestRect, HWND hDestWindowOverride, CONST RGNDATA* pDirtyRegion, DWORD dwFlags);
     virtual HRESULT WINAPI GetFrontBufferData(IDirect3DSurface9* pDestSurface);
     virtual HRESULT WINAPI GetBackBuffer(UINT iBackBuffer, D3DBACKBUFFER_TYPE Type, IDirect3DSurface9** ppBackBuffer);
-
-
+	
 private:
-
+	/**
+	* Currently not used front buffer proxy surface.
+	***/
 	D3D9ProxySurface* m_pWrappedFrontBufferData;
-
+	/**
+	* Stored indexed proxy back buffer surfaces.
+	***/
 	std::vector<D3D9ProxySurface*> m_backBuffers;
 };
-
 #endif

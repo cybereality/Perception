@@ -19,25 +19,28 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <assert.h>
 #include "StereoBackBuffer.h"
 
-
+/**
+* Constructor, creates parent D3D9ProxySurface.
+***/
 StereoBackBuffer::StereoBackBuffer(IDirect3DSurface9* pActualSurfaceLeft, IDirect3DSurface9* pActualSurfaceRight, BaseDirect3DDevice9* pOwningDevice) :
 	D3D9ProxySurface(pActualSurfaceLeft, pActualSurfaceRight, pOwningDevice, NULL)
 {
-
 }
 
+/**
+* Empty destructor.
+***/
 StereoBackBuffer::~StereoBackBuffer()
 {
-
 }
 
-
-
-
+/**
+* Back buffers don't appear to be destroyed when the refcount reaches 0. 
+* So the wrapper must be forcibly destroyed by the swap chain just before reset.
+* See SwapChain::Destroy() and ProxySwapChain destructor.
+***/
 ULONG WINAPI StereoBackBuffer::Release()
-{
-	// Back buffers don't appear to be destroyed when the refcount reaches 0. So the wrapper must be forcibly destroyed by the swap chain just before reset
-	// (see SwapChain::Destroy()) and ProxySwapChain destructor
+{	
 	if (m_nRefCount > 0) { 
 		--m_nRefCount;
 	}

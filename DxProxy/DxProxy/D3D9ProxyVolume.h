@@ -25,33 +25,40 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdio.h>
 
 
-/* See D3D9ProxySurface for notes on reference counting when in container */ 
+/**
+* Direct 3D proxy volume class. 
+* Overwrites BaseDirect3DVolume9 and imbeds the wrapped container this volume is part of.
+*
+* See D3D9ProxySurface for notes on reference counting when in container.
+* @see D3D9ProxySurface
+***/ 
 class D3D9ProxyVolume : public BaseDirect3DVolume9
 {
 public:
-
 	D3D9ProxyVolume(IDirect3DVolume9* pActualVolume, BaseDirect3DDevice9* pOwningDevice, IUnknown* pWrappedContainer);
 	virtual ~D3D9ProxyVolume();
 	
-	IDirect3DVolume9* getActualVolume();
-
-
+	/*** IUnknown methods ***/
 	virtual ULONG WINAPI AddRef();
 	virtual ULONG WINAPI Release();
-
-
-	// IDirect3Dvolume9
-	virtual HRESULT WINAPI GetContainer(REFIID riid, LPVOID* ppContainer);
+	
+	/*** IDirect3DVolume9 methods ***/
 	virtual HRESULT WINAPI GetDevice(IDirect3DDevice9** ppDevice);
+	virtual HRESULT WINAPI GetContainer(REFIID riid, LPVOID* ppContainer);
 
+	/*** D3D9ProxyVolume public methods ***/
+	IDirect3DVolume9* getActualVolume();
 
 protected:
-
-	//Container this Volume is part of. VolumeTexture, (other?) NULL if standalone.
+	/**
+	* Container this Volume is part of. 
+	* VolumeTexture, (other?) NULL if standalone.
+	***/
 	IUnknown* const m_pWrappedContainer;
+	/**
+	* The owning device.
+	* @see D3D9ProxySurface::m_pOwningDevice
+	***/
 	BaseDirect3DDevice9* const m_pOwningDevice;
-
-	
 };
-
 #endif

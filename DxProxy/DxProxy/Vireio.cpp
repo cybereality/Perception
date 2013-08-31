@@ -17,17 +17,19 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-
-
 #include "D3D9ProxyTexture.h"
 #include "D3D9ProxyVolumeTexture.h"
 #include "D3D9ProxyCubeTexture.h"
 #include "Vireio.h"
 
-
 namespace vireio {
-    
-	// Get actual textures from the various wrapper texture types
+
+	/**
+	* Returns actual textures from wrapped texture.
+	* @param pWrappedTexture [in] Wrapped texture.
+	* @param ppActualLeftTexture [in, out] Will be set to the actual textures from pWrappedTexture. Left should never be NULL.
+	* @param ppActualRightTexture [in, out] Will be set to the actual textures from pWrappedTexture. Right maybe NULL if texture isn't stereo.
+	***/
 	void UnWrapTexture(IDirect3DBaseTexture9* pWrappedTexture, IDirect3DBaseTexture9** ppActualLeftTexture, IDirect3DBaseTexture9** ppActualRightTexture)
 	{
 		if (!pWrappedTexture)
@@ -37,10 +39,10 @@ namespace vireio {
 
 		*ppActualLeftTexture = NULL;
 		*ppActualRightTexture = NULL;
-	
+
 		switch (type)
 		{
-			case D3DRTYPE_TEXTURE:
+		case D3DRTYPE_TEXTURE:
 			{
 				D3D9ProxyTexture* pDerivedTexture = static_cast<D3D9ProxyTexture*> (pWrappedTexture);
 				*ppActualLeftTexture = pDerivedTexture->getActualLeft();
@@ -48,13 +50,13 @@ namespace vireio {
 
 				break;
 			}
-			case D3DRTYPE_VOLUMETEXTURE:
+		case D3DRTYPE_VOLUMETEXTURE:
 			{
 				D3D9ProxyVolumeTexture* pDerivedTexture = static_cast<D3D9ProxyVolumeTexture*> (pWrappedTexture);
 				*ppActualLeftTexture = pDerivedTexture->getActual();
 				break;
 			}
-			case D3DRTYPE_CUBETEXTURE:
+		case D3DRTYPE_CUBETEXTURE:
 			{
 				D3D9ProxyCubeTexture* pDerivedTexture = static_cast<D3D9ProxyCubeTexture*> (pWrappedTexture);
 				*ppActualLeftTexture = pDerivedTexture->getActualLeft();
@@ -62,9 +64,9 @@ namespace vireio {
 				break;
 			}
 
-			default:
-				OutputDebugString("Unhandled texture type in SetTexture\n");
-				break;
+		default:
+			OutputDebugString("Unhandled texture type in SetTexture\n");
+			break;
 		}
 
 		if ((*ppActualLeftTexture) == NULL) {
@@ -73,12 +75,23 @@ namespace vireio {
 		}
 	}
 
-
+	/**
+	* Returns true if two values are almost equal, with limit value epsilon.
+	* @param [in] a First value.
+	* @param [in] b Second value.
+	* @param [in] epsilon The limit value.
+	***/
 	bool AlmostSame(float a, float b, float epsilon)
 	{
 		return fabs(a - b) < epsilon;
 	}
-
+	
+	/**
+	* Clamps the specified value to the specified minimum and maximum range.
+	* @param pfToClamp [in, out] A pointer to a value to clamp.
+	* @param min [in] The specified minimum range.
+	* @param max [in] The specified maximum range.
+	***/
 	void clamp(float* pfToClamp, float min, float max)
 	{
 		*pfToClamp > max ? *pfToClamp = max : (*pfToClamp < min ? *pfToClamp = min : *pfToClamp = *pfToClamp);

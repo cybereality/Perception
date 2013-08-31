@@ -27,108 +27,128 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Vireio.h"
 #include "ProxyHelper.h"
 
-
 #define LEFT_CONSTANT -1
 #define RIGHT_CONSTANT 1
 
-
-
-
+/**
+* Class for eye and head roll adjustment matrix calculation.
+* Calculates left and right view projection transform matrices.
+*
+* ALL MATRICES are identity matrices if worldScaleFactor in game configuration not set (==zero). 
+* Currently IPD is not used, (just IPD_DEFAULT) !! (much to do here)
+* @see ShaderConstantModification
+*/
 class ViewAdjustment
 {
 public:	
 	ViewAdjustment(HMDisplayInfo &hmdInfo, float metersToWorldUnits, bool enableRoll);
 	virtual ~ViewAdjustment();
 
-	void Load(ProxyHelper::ProxyConfig& cfg);
-	void Save(ProxyHelper::ProxyConfig& cfg);
-
-	void UpdateProjectionMatrices(/*float separation, float convergence,*/ float aspectRatio);
-	void UpdateRoll(float roll);
-	void ComputeViewTransforms();
-	
-	// Unprojects, shifts view position left/right (using same matricies as (Left/Right)ViewRollAndShift) and reprojects using left/right projection
-	D3DXMATRIX LeftAdjustmentMatrix();
-	D3DXMATRIX RightAdjustmentMatrix();
-
-	// The matricies used to roll (if roll enabled) and shift view for ipd
-	D3DXMATRIX LeftViewTransform();
-	D3DXMATRIX RightViewTransform();
-
-	// projection * This shift = left/right shifted projection
-	D3DXMATRIX LeftShiftProjection();
-	D3DXMATRIX RightShiftProjection();
-
-	D3DXMATRIX Projection();
-	D3DXMATRIX ProjectionInverse();
-
-	
-	// returns the new separation adjustment in m. (toAdd is the amount to adjust the separation by in m)
-	// new adjustment mgiht be the same as old adjustment if adjustment limit is reached
-	float ChangeSeparationAdjustment(float toAdd);
-
-	void ResetSeparationAdjustment();
-
-	// Modifies the world scale with its limits 0.01f and 1,000,000 (arbitrary limit)
-	// NOTE: This should not be changed during normal usage, this is here to facilitate finding a reasonable scale
-	float ChangeWorldScale(float toAdd);
-
-	// returns the current separation adjustment being used in m (this is game and user specific and should be saved appropriately)
-	//TODO remove this and set on gamehandler which has a 'current user'?
-	float SeparationAdjustment();
-
-	// returns the separation being used for view adjustments in game units
-	float SeparationInWorldUnits();
-
-	bool RollEnabled();
-
-	HMDisplayInfo HMDInfo();
-	
+	/*** ViewAdjustment public methods ***/
+	void          Load(ProxyHelper::ProxyConfig& cfg);
+	void          Save(ProxyHelper::ProxyConfig& cfg);
+	void          UpdateProjectionMatrices(float aspectRatio);
+	void          UpdateRoll(float roll);
+	void          ComputeViewTransforms(); 
+	D3DXMATRIX    LeftAdjustmentMatrix();
+	D3DXMATRIX    RightAdjustmentMatrix();	
+	D3DXMATRIX    LeftViewTransform();
+	D3DXMATRIX    RightViewTransform();	
+	D3DXMATRIX    LeftShiftProjection();
+	D3DXMATRIX    RightShiftProjection();
+	D3DXMATRIX    Projection();
+	D3DXMATRIX    ProjectionInverse();	
+	float         ChangeWorldScale(float toAdd);
+	float         ChangeSeparationAdjustment(float toAdd);
+	void          ResetSeparationAdjustment();	
+	float         SeparationAdjustment();	
+	float         SeparationInWorldUnits();
+	bool          RollEnabled();
+	HMDisplayInfo HMDInfo();	
 
 private:
-
+	/***  private methods ***/
 	void SetIPD(float ipdInMeters);
+			
+	/*** Projection Matrix variables ***/
+	float n;	/**< Minimum z-value of the view volume. */
+	float f;	/**< Maximum z-value of the view volume. */
+	float l;	/**< Minimum x-value of the view volume. */
+	float r;	/**< Maximum x-value of the view volume. */
+	float t;	/**< Minimum y-value of the view volume. */
+	float b;	/**< Maximum y-value of the view volume. */
 
-	float minSeparationAdjusment;
-	float maxSeparationAdjusment;
-
+	/**
+	* Constant minimum seperation adjustment.
+	***/
+	float minSeperationAdjustment;
+	/**
+	* Constant maximum seperation adjustment.
+	***/
+	float maxSeparationAdjustment;
+	/**
+	* Seperation adjustment, as read from configuration.
+	***/
 	float separationAdjustment;
-	
-	
-	// Projection Matrix variables
-	float n;	//Minimum z-value of the view volume
-	float f;	//Maximum z-value of the view volume
-	float l;	//Minimum x-value of the view volume
-	float r;	//Maximum x-value of the view volume
-	float t;	//Minimum y-value of the view volume
-	float b;	//Maximum y-value of the view volume
-
+	/**
+	* Projection matrix.
+	***/
 	D3DXMATRIX matProjection;
+	/**
+	* Projection inverse matrix.
+	***/
 	D3DXMATRIX matProjectionInv;
-
-	// The translation applied to projection to shift it left/right to get project(Left/Right)
+	/**
+	* The translation applied to projection to shift it left/right to get project(Left/Right).
+	***/
 	D3DXMATRIX leftShiftProjection;
+	/**
+	* The translation applied to projection to shift it left/right to get project(Left/Right).
+	***/
 	D3DXMATRIX rightShiftProjection;
-
-	// The shifted left and right projection matricies
+	/**
+	* The shifted left projection matrix.
+	***/
 	D3DXMATRIX projectLeft;
+	/**
+	* The shifted right projection matrix.
+	***/
 	D3DXMATRIX projectRight;
-
+	/**
+	* The head roll matrix.
+	***/
 	D3DXMATRIX rollMatrix;
-
+	/**
+	* Left matrix used to roll (if roll enabled) and shift view for ipd.
+	***/
 	D3DXMATRIX transformLeft;
+	/**
+	* Right matrix used to roll (if roll enabled) and shift view for ipd.
+	***/
 	D3DXMATRIX transformRight;
-
+	/**
+	* Left view projection transform matrix.
+	***/
 	D3DXMATRIX matViewProjTransformLeft;
+	/**
+	* Right view projection transform matrix.
+	***/
 	D3DXMATRIX matViewProjTransformRight;
-
+	/**
+	* Head mounted display info.
+	***/
 	HMDisplayInfo hmdInfo;
-
+	/**
+	* True if head roll enabled.
+	***/
 	bool rollEnabled;
+	/**
+	* World scale, used to correct eye seperation game-specific.
+	***/
 	float metersToWorldMultiplier;
+	/**
+	* Interpupillary distance, currently not used (uses default IPD_DEFAULT instead)!!
+	***/
 	float ipd;
 };
-
-
-
 #endif

@@ -19,6 +19,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Direct3DVertexShader9.h"
 #include <assert.h>
 
+/**
+* Constructor. 
+* @param pActualVertexShader Imbed actual pixel shader. 
+* @param pOwningDevice Pointer to the device that owns the shader. 
+***/
 BaseDirect3DVertexShader9::BaseDirect3DVertexShader9(IDirect3DVertexShader9* pActualVertexShader, IDirect3DDevice9 *pOwningDevice) :
 	m_pActualVertexShader(pActualVertexShader),
 	m_pOwningDevice(pOwningDevice),
@@ -26,12 +31,14 @@ BaseDirect3DVertexShader9::BaseDirect3DVertexShader9(IDirect3DVertexShader9* pAc
 {
 	assert (pActualVertexShader != NULL);
 	assert (pOwningDevice != NULL);
-
-
-
+	
 	pOwningDevice->AddRef();
 }
 
+/**
+* Destructor. 
+* Releases embedded vertex shader. 
+***/
 BaseDirect3DVertexShader9::~BaseDirect3DVertexShader9()
 {
 	if(m_pActualVertexShader) 
@@ -42,16 +49,25 @@ BaseDirect3DVertexShader9::~BaseDirect3DVertexShader9()
 
 }
 
+/**
+* Base QueryInterface functionality. 
+***/
 HRESULT WINAPI BaseDirect3DVertexShader9::QueryInterface(REFIID riid, LPVOID* ppv)
 {
 	return m_pActualVertexShader->QueryInterface(riid, ppv);
 }
 
+/**
+* Base AddRef functionality.
+***/
 ULONG WINAPI BaseDirect3DVertexShader9::AddRef()
 {
 	return ++m_nRefCount;
 }
 
+/**
+* Base Release functionality.
+***/
 ULONG WINAPI BaseDirect3DVertexShader9::Release()
 {
 	if(--m_nRefCount == 0)
@@ -63,12 +79,10 @@ ULONG WINAPI BaseDirect3DVertexShader9::Release()
 	return m_nRefCount;
 }
 
-IDirect3DVertexShader9* BaseDirect3DVertexShader9::getActual()
-{
-	return m_pActualVertexShader;
-}
-
-
+/**
+* Base GetDevice functionality.
+* TODO D3D behaviour. Docs don't have the notice that is usually there about a refcount increase
+***/
 HRESULT WINAPI BaseDirect3DVertexShader9::GetDevice(IDirect3DDevice9** ppDevice)
 {
 	if (!m_pOwningDevice)
@@ -80,7 +94,18 @@ HRESULT WINAPI BaseDirect3DVertexShader9::GetDevice(IDirect3DDevice9** ppDevice)
 	}
 }
 
+/**
+* Base GetFunction functionality.
+***/
 HRESULT WINAPI BaseDirect3DVertexShader9::GetFunction(void *pDate, UINT *pSizeOfData)
 {
 	return m_pActualVertexShader->GetFunction(pDate, pSizeOfData);
+}
+
+/**
+* Returns the actual embedded shader pointer.
+***/
+IDirect3DVertexShader9* BaseDirect3DVertexShader9::getActual()
+{
+	return m_pActualVertexShader;
 }

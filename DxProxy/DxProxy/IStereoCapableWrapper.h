@@ -19,20 +19,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef STEREOCAPABLEWRAPPER_H_INCLUDED
 #define STEREOCAPABLEWRAPPER_H_INCLUDED
 
-
-
 template <class T>
+
+/**
+* Template class, stereo capable wrapper prototype. 
+*/
 class IStereoCapableWrapper
 {
 public:
 	virtual ~IStereoCapableWrapper() {}
 
-
+	/*** IStereoCapableWrapper public methods ***/
 	virtual bool IsStereo() = 0;
-
-	virtual T* getActualMono() = 0;
-	virtual T* getActualLeft() = 0;
-	virtual T* getActualRight() = 0;
+	virtual T*   getActualMono() = 0;
+	virtual T*   getActualLeft() = 0;
+	virtual T*   getActualRight() = 0;
 };
 
 #endif

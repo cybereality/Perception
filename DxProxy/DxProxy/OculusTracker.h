@@ -23,30 +23,55 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define RADIANS_TO_DEGREES(rad) ((float) rad * (float) (180.0 / PI))
 
 #include "MotionTracker.h"
-#include "..\..\LibOVR\Include\OVR.h"  //how is this found?
+#include "..\..\LibOVR\Include\OVR.h"  
 
 using namespace OVR;
 
+/**
+* Oculus tracker class.
+* Oculus VR(TM) was founded by Palmer Luckey, self-described virtual reality enthusiast and hardware 
+* geek. The company launched a Kickstarter campaign to help fund development of their first product,
+* the Oculus Rift, a ground-breaking virtual reality headset for immersive gaming. With the support
+* of top video game companies including Valve, Epic Games and Unity, the Kickstarter was an enormous
+* success, raising over $2.4 million in funding from project backers and supporters around the world.
+*
+* The team is currently developing the Oculus Rift in an effort to revolutionize the way people 
+* experience interactive content.<http://www.oculusvr.com/company/>
+*/
 class OculusTracker : public MotionTracker
 {
 public:
 	OculusTracker(void);
 	virtual ~OculusTracker(void);
 
-	int getOrientation(float* yaw, float* pitch, float* roll);
-	bool isAvailable();
+	/*** OculusTracker public methods ***/
+	int  init();
+	int  getOrientation(float* yaw, float* pitch, float* roll);
 	void updateOrientation();
-	int init();
+	bool isAvailable();	
 
 private:
+	/**
+	* Oculus device manager.
+	***/
     Ptr<DeviceManager> pManager;
-    Ptr<HMDDevice>     pHMD;
-    Ptr<SensorDevice>  pSensor;
-
-    SensorFusion       SFusion;
-
+	/**
+	* Oculus head mounted display device.
+	***/
+    Ptr<HMDDevice> pHMD;
+	/**
+	* Oculus sensor device.
+	***/
+    Ptr<SensorDevice> pSensor;
+	/**
+	* Oculus sensor fusion.
+	* Retrieves tracking data.
+	***/
+    SensorFusion SFusion;
+	/**
+	* Oculus orientation quaternion.
+	***/
 	Quatf hmdOrient;
  };
-
 
 #endif

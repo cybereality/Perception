@@ -18,19 +18,29 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "StereoViewInterleave.h"
 
+/**
+* Empty constructor.
+***/ 
 StereoViewInterleave::StereoViewInterleave(ProxyHelper::ProxyConfig& config):StereoView(config)
 {
 	OutputDebugString("Created SteroView Interleave\n");
 }
 
+/**
+* Empty constructor.
+***/ 
 StereoViewInterleave::~StereoViewInterleave()
 {
 }
 
-//TODO modify to match new drawing method
-/*void StereoViewInterleave::Draw()
+/**
+* Empty render function, to be new written for the new architecture.
+***/ 
+void StereoViewInterleave::Draw(D3D9ProxySurface* stereoCapableSurface)
 {
-	SaveState();
+	// TODO modify to match new drawing method
+	// old code:
+	/*SaveState();
 	SetState();
 
 	m_pActualDevice->SetFVF(D3DFVF_TEXVERTEX);
@@ -58,5 +68,5 @@ StereoViewInterleave::~StereoViewInterleave()
 	}
 	viewEffect->End();
 
-	RestoreState();
-}*/
+	RestoreState();*/
+}

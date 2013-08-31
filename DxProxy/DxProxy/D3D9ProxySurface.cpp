@@ -19,7 +19,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <assert.h>
 #include "D3D9ProxySurface.h"
 
-
+/**
+* Constructor.
+* If the Proxy surface is in a container it will have a combined ref count with it's container
+* and that count is managed by forwarding release and addref to the container. In this case the
+* container must delete this surface when the ref count reaches 0.
+***/ 
 D3D9ProxySurface::D3D9ProxySurface(IDirect3DSurface9* pActualSurfaceLeft, IDirect3DSurface9* pActualSurfaceRight, BaseDirect3DDevice9* pOwningDevice, IUnknown* pWrappedContainer) :
 	BaseDirect3DSurface9(pActualSurfaceLeft),
 	m_pActualSurfaceRight(pActualSurfaceRight),
@@ -27,17 +32,22 @@ D3D9ProxySurface::D3D9ProxySurface(IDirect3DSurface9* pActualSurfaceLeft, IDirec
 	m_pWrappedContainer(pWrappedContainer)
 {
 	assert (pOwningDevice != NULL);
-	
-	
+
+
 	if (!pWrappedContainer)
 		pOwningDevice->AddRef();
 	// else - We leave the device ref count changes to the container
-	
+
 	// pWrappedContainer->AddRef(); is not called here as container add/release is handled
 	// by the container. The ref could be added here but as the release and destruction is
 	// hanlded by the container we leave it all in the same place (the container)	
 }
 
+/**
+* Destructor.
+* (else - m_pWrappedContainer does not have released called on it because the container manages
+* the device reference)
+***/
 D3D9ProxySurface::~D3D9ProxySurface()
 {
 	if (!m_pWrappedContainer) { 
@@ -46,45 +56,19 @@ D3D9ProxySurface::~D3D9ProxySurface()
 
 	if (m_pActualSurfaceRight)
 		m_pActualSurfaceRight->Release();
-
-	// else - m_pWrappedContainer does not have released called on it because the container manages
-	// the device reference
 }
 
+/**
+* Behaviour determined through observing D3D with various test cases.
+*
+* Creating a surface should only increase the device ref count iff the surface has no parent container.
+* (The container adds one ref to the device for it and all its surfaces)
 
-
-
-
-bool D3D9ProxySurface::IsStereo()
-{
-	return m_pActualSurfaceRight != NULL;
-}
-
-
-
-IDirect3DSurface9* D3D9ProxySurface::getActualMono()
-{
-	return getActualLeft();
-}
-
-IDirect3DSurface9* D3D9ProxySurface::getActualLeft()
-{
-	return m_pActualSurface;
-}
-
-IDirect3DSurface9* D3D9ProxySurface::getActualRight()
-{
-	return m_pActualSurfaceRight;
-}
-
-
-
-
-
-
-
-
-
+* If a surface has a container then adding references to the surface should increase the ref count on
+* the container instead of the surface. The surface shares a total ref count with the container, when
+* it reaches 0 the container and its surfaces are destroyed. This is handled by sending all Add/Release
+* on to the container when there is one.
+***/
 ULONG WINAPI D3D9ProxySurface::AddRef()
 {
 	// if surface is in a container increase count on container instead of the surface
@@ -97,6 +81,9 @@ ULONG WINAPI D3D9ProxySurface::AddRef()
 	}
 }
 
+/**
+* Releases wrapped container if present else the base surface.
+***/
 ULONG WINAPI D3D9ProxySurface::Release()
 {
 	if (m_pWrappedContainer) {
@@ -107,16 +94,14 @@ ULONG WINAPI D3D9ProxySurface::Release()
 	}
 }
 
-
-
-
-
-/*
-	GetDevice on the underlying IDirect3DSurface9 will return the device used to create it. Which is the actual
-	device and not the wrapper. Therefore we have to keep track of the wrapper device and return that instead.
-
-	Calling this method will increase the internal reference count on the IDirect3DDevice9 interface. 
-	Failure to call IUnknown::Release when finished using this IDirect3DDevice9 interface results in a memory leak.
+/**
+* GetDevice on the underlying IDirect3DSurface9 will return the device used to create it. 
+* Which is the actual device and not the wrapper. Therefore we have to keep track of the 
+* wrapper device and return that instead.
+* 
+* Calling this method will increase the internal reference count on the IDirect3DDevice9 interface. 
+* Failure to call IUnknown::Release when finished using this IDirect3DDevice9 interface results in a 
+* memory leak.
 */
 HRESULT WINAPI D3D9ProxySurface::GetDevice(IDirect3DDevice9** ppDevice)
 {
@@ -129,9 +114,9 @@ HRESULT WINAPI D3D9ProxySurface::GetDevice(IDirect3DDevice9** ppDevice)
 	}
 }
 
-
-
-
+/**
+* Sets private data on both (left/right) surfaces.
+***/
 HRESULT WINAPI D3D9ProxySurface::SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags)
 {
 	if (IsStereo())
@@ -140,8 +125,9 @@ HRESULT WINAPI D3D9ProxySurface::SetPrivateData(REFGUID refguid, CONST void* pDa
 	return m_pActualSurface->SetPrivateData(refguid, pData, SizeOfData, Flags);
 }
 
-
-
+/**
+* Frees private data on both (left/right) surfaces.
+***/
 HRESULT WINAPI D3D9ProxySurface::FreePrivateData(REFGUID refguid)
 {
 	if (IsStereo())
@@ -150,6 +136,9 @@ HRESULT WINAPI D3D9ProxySurface::FreePrivateData(REFGUID refguid)
 	return m_pActualSurface->FreePrivateData(refguid);
 }
 
+/**
+* Sets priority on both (left/right) surfaces.
+***/
 DWORD WINAPI D3D9ProxySurface::SetPriority(DWORD PriorityNew)
 {
 	if (IsStereo())
@@ -158,7 +147,9 @@ DWORD WINAPI D3D9ProxySurface::SetPriority(DWORD PriorityNew)
 	return m_pActualSurface->SetPriority(PriorityNew);
 }
 
-
+/**
+* Calls method on both (left/right) surfaces.
+***/
 void WINAPI D3D9ProxySurface::PreLoad()
 {
 	if (IsStereo())
@@ -167,20 +158,20 @@ void WINAPI D3D9ProxySurface::PreLoad()
 	return m_pActualSurface->PreLoad();
 }
 
-
-
-
-
-
-// "Provides access to the parent cube texture or texture (mipmap) object, if this surface is a child level of a cube texture or a mipmap. This method can // also provide access to the parent swap chain if the surface is a back-buffer child."
-
-/*  "If the surface is created using CreateRenderTarget or CreateOffscreenPlainSurface or 
-	   CreateDepthStencilSurface, the surface is considered stand alone. In this case, GetContainer 
-	   will return the Direct3D device used to create the surface."
-	   http://msdn.microsoft.com/en-us/library/windows/desktop/bb205893%28v=vs.85%29.aspx 
-	   
-	   If the call succeeds, the reference count of the container is increased by one.
- */
+/**
+* Provides acces to parent object.
+* "Provides access to the parent cube texture or texture (mipmap) object, if this surface is a child 
+* level of a cube texture or a mipmap. This method can also provide access to the parent swap chain 
+* if the surface is a back-buffer child."
+*
+* "If the surface is created using CreateRenderTarget or CreateOffscreenPlainSurface or 
+* CreateDepthStencilSurface, the surface is considered stand alone. In this case, GetContainer 
+* will return the Direct3D device used to create the surface."
+* <http://msdn.microsoft.com/en-us/library/windows/desktop/bb205893%28v=vs.85%29.aspx>
+*
+* If the call succeeds, the reference count of the container is increased by one.
+* @return Owning device if no wrapped container present, otherwise the container.
+***/
 HRESULT WINAPI D3D9ProxySurface::GetContainer(REFIID riid, LPVOID* ppContainer)
 {
 	if (!m_pWrappedContainer) {
@@ -210,8 +201,9 @@ HRESULT WINAPI D3D9ProxySurface::GetContainer(REFIID riid, LPVOID* ppContainer)
 	//return m_pActualSurface->GetContainer(riid, ppContainer);
 }
 
-
-
+/**
+* Locks rectangle on both (left/right) surfaces.
+***/
 HRESULT WINAPI D3D9ProxySurface::LockRect(D3DLOCKED_RECT* pLockedRect, CONST RECT* pRect, DWORD Flags)
 {
 	if (IsStereo())
@@ -220,6 +212,9 @@ HRESULT WINAPI D3D9ProxySurface::LockRect(D3DLOCKED_RECT* pLockedRect, CONST REC
 	return BaseDirect3DSurface9::LockRect(pLockedRect, pRect, Flags);
 }
 
+/**
+* Unlocks rectangle on both (left/right) surfaces.
+***/
 HRESULT WINAPI D3D9ProxySurface::UnlockRect()
 {
 	if (IsStereo())
@@ -228,8 +223,9 @@ HRESULT WINAPI D3D9ProxySurface::UnlockRect()
 	return BaseDirect3DSurface9::UnlockRect();
 }
 
-
-
+/**
+* Releases device context on both (left/right) surfaces.
+***/
 HRESULT WINAPI D3D9ProxySurface::ReleaseDC(HDC hdc)
 {
 	if (IsStereo())
@@ -238,3 +234,34 @@ HRESULT WINAPI D3D9ProxySurface::ReleaseDC(HDC hdc)
 	return BaseDirect3DSurface9::ReleaseDC(hdc);
 }
 
+/**
+* Returns the left surface.
+***/
+IDirect3DSurface9* D3D9ProxySurface::getActualMono()
+{
+	return getActualLeft();
+}
+
+/**
+* Returns the left surface.
+***/
+IDirect3DSurface9* D3D9ProxySurface::getActualLeft()
+{
+	return m_pActualSurface;
+}
+
+/**
+* Returns the right surface.
+***/
+IDirect3DSurface9* D3D9ProxySurface::getActualRight()
+{
+	return m_pActualSurfaceRight;
+}
+
+/**
+* True if right surface present.
+***/
+bool D3D9ProxySurface::IsStereo()
+{
+	return m_pActualSurfaceRight != NULL;
+}

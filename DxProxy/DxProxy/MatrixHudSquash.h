@@ -18,7 +18,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef MATRIXHUDSQUASH_H_INCLUDED
 #define MATRIXHUDSQUASH_H_INCLUDED
-
+/**
+* @file MatrixHudSquash.h
+* Contains shader modification to squash the HUD.
+*/
 
 #include "d3d9.h"
 #include "d3dx9.h"
@@ -26,30 +29,48 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Vireio.h"
 #include "ShaderMatrixModification.h"
 
+/**
+* Incomplete matrix implementation whose purpose is to squash the hud.  Right now will squish the whole matrix.  
+*/
 class MatrixHudSquash : public ShaderMatrixModification
 {
 public:
-	MatrixHudSquash(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatricies, bool transpose) : ShaderMatrixModification(modID, adjustmentMatricies, transpose) 
+	/**
+	*  Constructor, sets attributes and such.
+	* @param modID The id for this matrix modification.
+	* @param adjustmentMatricies The matricies to be adjusted
+	* @param transpose Decides if the matrices should be transposed (aka: have rows and columns interchanged)
+	*/
+	MatrixHudSquash(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatricies, bool transpose) 
+		: ShaderMatrixModification(modID, adjustmentMatricies, transpose) 
 	{
+		// should this be hard coded?  Seems a bit fishy... - Josh
 		D3DXMatrixScaling(&squash, 0.5f, 0.5f, 1);
 	};
 
+	/**
+	* Matrix modification does multiply: translation * squash.
+	* *  Does the matrix squash and outputs the results.  Does not only affect HUD at this point in time (August 22nd, 2013).
+	* @param in The matrix to be multiply by the adjustmentMatricies.
+	* @param[out] outLeft The resulting left side matrix
+	* @param[out] outRight The resulting right side matrix
+	* TODO probably don't want to be translating the HUD around.
+	* Need an adjustment that does unproject, reproject left/right? (then squash)
+	* Refactor modifications into view adjustments? Or just make unproject->reproject a standard adjustment in adjustments?
+	* Or ???
+	* TODO Refactor so adjustments aren't recalculated every time constant is applied that don't need to be
+	* Shift adustments to some kind of indexed lookup in view adjustments with adjustments only being updated if dirty?
+	***/
 	virtual void DoMatrixModification(D3DXMATRIX in, D3DXMATRIX& outLeft, D3DXMATRIX& outright)
 	{
-		// TODO probably don't want to be translating the HUD around.
-		// Need an adjustment that does unproject, reproject left/right? (then squash)
-		// Refactor modifications into view adjustments? Or just make unproject->reproject a standard adjustment in adjustments?
-		// Or ???
-		// TODO Refactor so adjustments aren't recalculated every time constant is applied that don't need to be
-		// Shift adustments to some kind of indexed lookup in view adjustments with adjustments only being updated if dirty?
-		outLeft = in * m_spAdjustmentMatricies->LeftShiftProjection() * squash;
-		outright = in * m_spAdjustmentMatricies->RightShiftProjection() * squash;
+		outLeft = in * m_spAdjustmentMatrices->LeftShiftProjection() * squash;
+		outright = in * m_spAdjustmentMatrices->RightShiftProjection() * squash;
 	};
 
-
 private:
+	/**
+	* Squash scaling matrix, obtained by the D3DXMatrixScaling.
+	*/
 	D3DXMATRIX squash;
 };
-
-
 #endif

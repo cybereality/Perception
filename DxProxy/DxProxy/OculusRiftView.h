@@ -22,24 +22,39 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "StereoView.h"
 #include "HMDisplayInfo.h"
 
+/**
+* Oculus rift render class.
+* Renders in stereo, warped for Oculus Rift.
+*/
 class OculusRiftView : public StereoView
 {
 public:
-
 	OculusRiftView(ProxyHelper::ProxyConfig& config, HMDisplayInfo hmd);
-	//virtual ~OculusRiftView();
+	
+	/*** OculusRiftView public methods ***/
+	virtual void SetViewEffectInitialValues();
+	virtual void CalculateShaderVariables( );
 	virtual void InitShaderEffects();
 
-	virtual void SetViewEffectInitialValues();
-
-
-	virtual void CalculateShaderVariables( );
-
 private:
+	/**
+	* Lens center position, Oculus Rift vertex shader constant.
+	***/
 	float LensCenter[2];
+	/**
+	* Scales image, Oculus Rift vertex shader constant.
+	***/
 	float Scale[2];
+	/**
+	* Maps texture coordinates, Oculus Rift vertex shader constant.
+	* ScaleIn maps texture coordinates to Scales to ([-1, 1]), although top/bottom will be larger 
+	* due to aspect ratio.
+	***/
 	float ScaleIn[2];
-
+	/**
+	* Predefined Oculus Rift Head Mounted Display info.
+	* Contains distortionCoefficients, needed as vertex shader constants
+	***/
 	HMDisplayInfo hmdInfo;
 };
 

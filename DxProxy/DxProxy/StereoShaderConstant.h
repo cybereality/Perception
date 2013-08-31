@@ -28,9 +28,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 //  Number of T in a Register (L) = (4 for float/int, 1 for bool)
 template <class T=float, UINT L=4>
+
+/**
+* Stero shader constant data class.
+* Here, the current shader constant is stored.
+*/
 class StereoShaderConstant
 {
-public:	
+public:
+	/**
+	* Constructor.
+	* @param StartReg
+	* @param pData
+	* @param dataCount
+	* @param modification
+	***/
 	StereoShaderConstant(UINT StartReg, const T* pData, UINT dataCount, std::shared_ptr<ShaderConstantModification<T>> modification) :
 		m_StartRegister(StartReg),
 		m_Count(dataCount),
@@ -43,52 +55,88 @@ public:
 		m_DataRight.resize(dataCount * L);
 		Update(pData);
 	}
-
+	/**
+	* Destructor.
+	* Calls ShaderConstantModification::reset()
+	* @see ShaderConstantModification::reset()
+	***/
 	virtual ~StereoShaderConstant() 
 	{
 		m_modification.reset();
 	}
-
-	// pointer to new data. Verify data dimensions match this constant _before_ calling if needed
+	/**
+	* Updates this constant by specified data.
+	* Assigns data to original data, applies constant modification.
+	* Verify data dimensions match this constant _before_ calling if needed.
+	* @param pData Pointer to new data. 
+	***/
 	void Update(const T* pData) 
 	{
 		m_DataOriginal.assign(pData, pData + (m_Count * L));
 		m_modification->ApplyModification(pData, &m_DataLeft, &m_DataRight);
 	}
-
-	/* Return true if this constant represents the same constant as other  (contents of the registers does not need to match) but the registers must be the same and use the same modification */
+	/**
+	* Return true if this constant represents the same constant as other.
+	* Contents of the registers does not need to match, but the registers 
+	* must be the same and use the same modification.
+	* @param other Pointer to other shader constant.
+	***/
 	bool SameConstantAs(const StereoShaderConstant<T> & other)
 	{
 		return ((other.m_StartRegister == m_StartRegister) &&
 			(other.m_modification->m_ModificationID == m_modification->m_ModificationID));
 	}
-		
+	/**
+	* Returns pointer to left data.
+	***/
 	T* DataLeftPointer() 
 	{
 		return &m_DataLeft[0];
 	}
-
+	/**
+	* Returns pointer to right data.
+	***/
 	T* DataRightPointer() 
 	{
 		return &m_DataRight[0];
 	}
-
+	/**
+	* Returns the shader constant start register.
+	***/
 	UINT StartRegister() { return m_StartRegister; }
+	/**
+	* Returns the register count.
+	* (4*float == 1 : Vector4 == 1, D3DMATRIX == 4,...)
+	***/
 	UINT Count() { return m_Count; }
-	
-
 private:
+	/**
+	* Original constant data, currently not used but assigned.
+	* Number of T in a Register (L) = (4 for float/int, 1 for bool).
+	***/
 	std::vector<T> m_DataOriginal;
+	/**
+	* Left constant data.
+	* Number of T in a Register (L) = (4 for float/int, 1 for bool)
+	***/
 	std::vector<T> m_DataLeft;
+	/**
+	* Right constant data
+	* Number of T in a Register (L) = (4 for float/int, 1 for bool)
+	***/
 	std::vector<T> m_DataRight;
-
+	/**
+	* Pointer to constant modification.
+	***/
 	std::shared_ptr<ShaderConstantModification<T>> m_modification;
-
+	/**
+	* Shader start register.
+	***/
 	UINT m_StartRegister;
-	UINT m_Count;
-	
+	/**
+	* Shader constant size.
+	* (4*float == 1 : Vector4 == 1, D3DMATRIX == 4,...)
+	***/
+	UINT m_Count;	
 };
-
-
-
 #endif

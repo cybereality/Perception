@@ -16,6 +16,10 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
+/**
+* @file ShaderConstantModification.h
+* Contains ShaderConstantModification class.
+*/
 #ifndef SHADERCONSTANTMODIFICATION_H_INCLUDED
 #define SHADERCONSTANTMODIFICATION_H_INCLUDED
 
@@ -25,31 +29,52 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "d3dx9.h"
 #include "ViewAdjustment.h"
 
-
-
+/**
+* Abstract class acts as the skeleton class for Shader Modification Classes, 
+* contains no shader modification logic simply keeps track of info.
+* Must implement ApplyModification method.
+* Prototype for any shader register modification.
+* @tparam T The type of parameter to use for applying modifications, default is float.
+* @see ViewAdjustment
+*/
 template <class T=float>
 class ShaderConstantModification
 {
 public:
-	ShaderConstantModification(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatricies) : 
+	/**
+	* Constructor.
+	* @param modID Identifier of the modification. Identifier enumerations defined in ShaderConstantModificationFactory.
+	* @param adjustmentMatrices Pointer to view adjustment class.
+	* @see ViewAdjustment Matrix calculation class pointer.
+	***/
+	ShaderConstantModification(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatrices) : 
 		m_ModificationID(modID),
-		m_spAdjustmentMatricies(adjustmentMatricies)
+		m_spAdjustmentMatrices(adjustmentMatrices)
 	{}
 
+	/**
+	* Destructor.
+	* calls ViewAdjustment::reset()
+	* @see ViewAdjustment
+	*/
 	virtual ~ShaderConstantModification()
 	{
-		m_spAdjustmentMatricies.reset();
+		m_spAdjustmentMatrices.reset();
 	}
 
-	/* Applies this modification to toModify to produce left and right versions. */
+	/**
+	*  Pure virtual method, should apply the modification to produce left and right versions.   
+	*/
 	virtual void ApplyModification(const T* inData, std::vector<T>* outLeft, std::vector<T>* outRight) = 0;
 
-
+	/**
+	* Simply a way to identify this modification.  Useful for comparing shadermodification equality.
+	*/
 	UINT m_ModificationID;
 protected:
-	std::shared_ptr<ViewAdjustment> m_spAdjustmentMatricies;
-	
+	/**
+	* Matrix calculation class pointer
+	*/
+	std::shared_ptr<ViewAdjustment> m_spAdjustmentMatrices;
 };
-
-
 #endif

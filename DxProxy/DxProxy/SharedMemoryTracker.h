@@ -23,9 +23,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <string>
 
+/**
+* Shared memory tracking data structure.
+***/
 struct TrackData
 {
-	int DataID;				// increased every time data has been sent
+	int DataID;	/**< increased every time data has been sent */
 
 	float Yaw;
 	float Pitch;
@@ -36,22 +39,34 @@ struct TrackData
 	float Z;
 };
 
+/**
+* Shared memory tracking class.
+* Retrieves data from external tracking sources.
+*/
 class SharedMemoryTracker : public MotionTracker
 {
 public:
 	SharedMemoryTracker(void);
 	~SharedMemoryTracker(void);
 
-	int getOrientation(float* yaw, float* pitch, float* roll);
-	bool isAvailable();
+	/*** SharedMemoryTracker public methods ***/
+	int  init();
+	int  getOrientation(float* yaw, float* pitch, float* roll);
 	void updateOrientation();
-	int init();
-
+	bool isAvailable();
+	
 private:
-	HANDLE hMapFile;
-	TrackData* pTrackBuf;
-
+	/*** SharedMemoryTracker private methods ***/
 	bool openSharedMemory();
+
+	/**
+	* Handle to file mapping object.
+	***/
+	HANDLE hMapFile;
+	/**
+	* Pointer to tracking data source.
+	***/
+	TrackData* pTrackBuf;
 };
 
 
