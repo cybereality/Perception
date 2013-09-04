@@ -37,10 +37,11 @@ inline void releaseCheck(char* object, int newRefCount)
 * Constructor.
 * Sets game configuration data. Sets all member pointers to NULL to prevent uninitialized objects being used.
 ***/ 
-StereoView::StereoView(ProxyHelper::ProxyConfig& config)
+StereoView::StereoView(ProxyHelper::ProxyConfig& config)	
 {
 	OutputDebugString("Created SteroView\n");
 	initialized = false;
+	DistortionScale = 0.0f;
 	game_type = config.game_type;
 	stereo_mode = config.stereo_mode;
 	swapEyes = config.swap_eyes;
@@ -290,6 +291,7 @@ void StereoView::SaveScreen()
 ***/
 void StereoView::PostReset()
 {
+	CalculateShaderVariables();
 	viewEffect->OnResetDevice();
 }
 

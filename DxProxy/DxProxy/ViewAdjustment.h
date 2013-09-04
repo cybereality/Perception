@@ -66,11 +66,8 @@ public:
 	float         SeparationInWorldUnits();
 	bool          RollEnabled();
 	HMDisplayInfo HMDInfo();	
-
+	
 private:
-	/***  private methods ***/
-	void SetIPD(float ipdInMeters);
-			
 	/*** Projection Matrix variables ***/
 	float n;	/**< Minimum z-value of the view volume. */
 	float f;	/**< Maximum z-value of the view volume. */
@@ -153,5 +150,9 @@ private:
 	* Left/Rigth offset adjustment. In millimeters.
 	***/
 	float convergence;
+	/**
+	* The current way to render stereo. Matches StereoView::StereoTypes.
+	***/
+	int stereoType;
 };
 #endif

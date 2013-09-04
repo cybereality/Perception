@@ -139,10 +139,6 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	SHOCT_mode = 0;
 
 	keyWait = false;
-
-	// should be false for published builds
-	// TODO Allow this to be turned on and off in cfg file along with vertex shader dumping and other debug/maintenance features.
-	//worldScaleCalculationMode = false;
 }
 
 /**
@@ -307,15 +303,6 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 
 	m_isFirstBeginSceneOfFrame = true; // TODO this can break if device present is followed by present on another swap chain... or not work well anyway
 
-	//if (worldScaleCalculationMode) {
-	//	// draw red lines vertically through the center of the lens/distortion.
-	//	//TODO doesn't currently work with source based games
-	//	int width = stereoView->viewport.Width;
-	//	int height = stereoView->viewport.Height;
-	//	ClearVLine(getActual(), (int)(m_spShaderViewAdjustment->HMDInfo().LeftLensCenterAsPercentage() * width), 0, (int)(m_spShaderViewAdjustment->HMDInfo().LeftLensCenterAsPercentage() * width) + 1, height, 1, D3DCOLOR_ARGB(255,255,0,0));
-	//	ClearVLine(getActual(), (int)((1 - m_spShaderViewAdjustment->HMDInfo().LeftLensCenterAsPercentage()) * width), 0, (int)((1 - m_spShaderViewAdjustment->HMDInfo().LeftLensCenterAsPercentage()) * width) + 1, height, 1, D3DCOLOR_ARGB(255,255,0,0));
-	//}
-	
 	return BaseDirect3DDevice9::Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
 }
 
@@ -873,70 +860,70 @@ HRESULT WINAPI D3DProxyDevice::EndScene()
 	///// hud text
 
 	if(hudFont && SHOCT_mode !=0) {
-	char vcString[512];
-	int width = stereoView->viewport.Width;
-	int height = stereoView->viewport.Height;
+		char vcString[512];
+		int width = stereoView->viewport.Width;
+		int height = stereoView->viewport.Height;
 
-	float horWidth = 0.15f;
-	int beg = (int)(width*(1.0f-horWidth)/2.0);
-	int end = (int)(width*(0.5f+(horWidth/2.0f)));
+		float horWidth = 0.15f;
+		int beg = (int)(width*(1.0f-horWidth)/2.0);
+		int end = (int)(width*(0.5f+(horWidth/2.0f)));
 
-	int hashTop = (int)(height * 0.48f);
-	int hashBottom = (int)(height * 0.52f);
+		int hashTop = (int)(height * 0.48f);
+		int hashBottom = (int)(height * 0.52f);
 
-	RECT rec2 = {(int)(width*0.27f), (int)(height*0.3f),width,height};
-	sprintf_s(vcString, 512, "Schneider-Hicks Optical Calibration Tool (S.H.O.C.T.).\n");
-	hudFont->DrawText(NULL, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));
+		RECT rec2 = {(int)(width*0.27f), (int)(height*0.3f),width,height};
+		sprintf_s(vcString, 512, "Schneider-Hicks Optical Calibration Tool (S.H.O.C.T.).\n");
+		hudFont->DrawText(NULL, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));
 
 
-	if(SHOCT_mode == 1){//Separation mode
-	if((eyeShutter > 0 && stereoView->swap_eyes == false) || (eyeShutter < 0 && stereoView->swap_eyes == true)) {// left eye
-	//eye center line
-	ClearVLine(this, (int)(width/2 + (config.centerlineL * width)), 0, (int)(width/2 + (config.centerlineL * width)), height, 1, D3DCOLOR_ARGB(255,255,0,0));
-	}else{// right eye
-	ClearVLine(this, (int)(width/2 + (config.centerlineR * width)), 0, (int)(width/2 + (config.centerlineR * width)), height, 1, D3DCOLOR_ARGB(255,255,0,0));
+		if(SHOCT_mode == 1){//Separation mode
+			if((eyeShutter > 0 && stereoView->swapEyes == false) || (eyeShutter < 0 && stereoView->swapEyes == true)) {// left eye
+				//eye center line
+				ClearVLine(this, (int)(width/2 + (config.centerlineL * width)), 0, (int)(width/2 + (config.centerlineL * width)), height, 1, D3DCOLOR_ARGB(255,255,0,0));
+			}else{// right eye
+				ClearVLine(this, (int)(width/2 + (config.centerlineR * width)), 0, (int)(width/2 + (config.centerlineR * width)), height, 1, D3DCOLOR_ARGB(255,255,0,0));
+			}
+		}
+		if(SHOCT_mode == 2){//Convergence mode
+			//screen center line
+			ClearVLine(this,width/2,0,width/2, height,1,D3DCOLOR_ARGB(255,0,0,255));
+			if((eyeShutter > 0 && stereoView->swapEyes == false) || (eyeShutter < 0 && stereoView->swapEyes == true)) {// left eye
+				// horizontal line
+				ClearHLine(this,beg,(height/2),end, (height/2),1,D3DCOLOR_ARGB(255,0,0,255));
+
+				// hash lines
+				int hashNum = 10;
+				float hashSpace = horWidth*width / (float)hashNum;
+				for(int i=0; i<=hashNum; i++) {
+					ClearVLine(this,beg+(int)(i*hashSpace),hashTop,beg+(int)(i*hashSpace),hashBottom,1,D3DCOLOR_ARGB(255,255,255,0));
+				}
+
+				RECT rec2 = {(int)(width*0.37f), (int)(height*0.525f), width, height};
+				sprintf_s(vcString, 512, "Positive Parallax");
+				hudFont->DrawText(NULL, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));
+
+				rec2.left = (int)(width *0.52f);
+				sprintf_s(vcString, 512, "Negative Parallax");
+				hudFont->DrawText(NULL, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));
+
+			}else{// right eye
+				RECT rec2 = {(int)(width*0.37f), (int)(height*0.44f), width, height};
+				sprintf_s(vcString, 512, "Walk up as close as possible to a 90 degree\n vertical object, and align this line with its edge.\n Good examples include a wall, corner, a table corner,\n a squared post, etc.");
+				hudFont->DrawText(NULL, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));
+			}
+		}
+
+		rec2.left = (int)(width*0.35f);
+		rec2.top = (int)(height*0.33f);
+		if(SHOCT_mode == 1)
+			sprintf_s(vcString, 512, "Separation");
+		if(SHOCT_mode == 2)
+			sprintf_s(vcString, 512, "Convergence");
+		hudFont->DrawText(NULL, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));
+
 	}
-	}
-	if(SHOCT_mode == 2){//Convergence mode
-	//screen center line
-	ClearVLine(this,width/2,0,width/2, height,1,D3DCOLOR_ARGB(255,0,0,255));
-	if((eyeShutter > 0 && stereoView->swap_eyes == false) || (eyeShutter < 0 && stereoView->swap_eyes == true)) {// left eye
-	// horizontal line
-	ClearHLine(this,beg,(height/2),end, (height/2),1,D3DCOLOR_ARGB(255,0,0,255));
-
-	// hash lines
-	int hashNum = 10;
-	float hashSpace = horWidth*width / (float)hashNum;
-	for(int i=0; i<=hashNum; i++) {
-	ClearVLine(this,beg+(int)(i*hashSpace),hashTop,beg+(int)(i*hashSpace),hashBottom,1,D3DCOLOR_ARGB(255,255,255,0));
-	}
-
-	RECT rec2 = {(int)(width*0.37f), (int)(height*0.525f), width, height};
-	sprintf_s(vcString, 512, "Positive Parallax");
-	hudFont->DrawText(NULL, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));
-
-	rec2.left = (int)(width *0.52f);
-	sprintf_s(vcString, 512, "Negative Parallax");
-	hudFont->DrawText(NULL, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));
-
-	}else{// right eye
-	RECT rec2 = {(int)(width*0.37f), (int)(height*0.44f), width, height};
-	sprintf_s(vcString, 512, "Walk up as close as possible to a 90 degree\n vertical object, and align this line with its edge.\n Good examples include a wall, corner, a table corner,\n a squared post, etc.");
-	hudFont->DrawText(NULL, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));
-	}
-	}
-
-	rec2.left = (int)(width*0.35f);
-	rec2.top = (int)(height*0.33f);
-	if(SHOCT_mode == 1)
-	sprintf_s(vcString, 512, "Separation");
-	if(SHOCT_mode == 2)
-	sprintf_s(vcString, 512, "Convergence");
-	hudFont->DrawText(NULL, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));
-
-	}
-	/////*/
-
+	/////
+	*/
 	return BaseDirect3DDevice9::EndScene();
 }
 
@@ -1883,9 +1870,6 @@ void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 {
 	OutputDebugString("D3D ProxyDev Init\n");
 
-	/*if (worldScaleCalculationMode)
-	cfg.convergence = 0.0f;*/
-
 	config = cfg;
 
 	eyeShutter = 1;
@@ -1918,17 +1902,15 @@ void D3DProxyDevice::SetupText()
 ***/
 void D3DProxyDevice::HandleControls()
 {
+	// helpers
 	bool anyKeyPressed = false;
-	//float keySpeed = 0.00002f;
+	float keySpeed = 0.001f; //0.00002f;
 	float seperationChange = 0.05f; 
-	float convergenceChange = 0.001f; // 1 mm
-	//float keySpeed2 = 0.0005f;
-	//float mouseSpeed = 0.25f;
+	float convergenceChange = 0.001f;
+	float mouseSpeed = 0.25f;
 	float rollSpeed = 0.01f;
 
-	/*if (worldScaleCalculationMode)
-	seperationChange = 0.1f;*/
-
+	// static helpers
 	static int keyWaitCount = 0;
 	static int saveWaitCount = 0; 
 	keyWaitCount--;
@@ -1936,23 +1918,24 @@ void D3DProxyDevice::HandleControls()
 	static bool doSaveNext = false;
 
 	if (!keyWait) {
-		/*
-		if(KEY_DOWN(VK_NUMPAD0))		// turn on/off stereo3D
-		{
-		if(keyWaitCount <= 0)
-		{
-		if(stereoView->stereoEnabled)
-		stereoView->stereoEnabled = false;
-		else
-		stereoView->stereoEnabled = true;
-		keyWaitCount = 50;
-		}
 
-		anyKeyPressed = true;
-		}
+		// TODO !! is that possible in the new architecture ?
+		//if(KEY_DOWN(VK_NUMPAD0))		// turn on/off stereo3D
+		//{
+		//	if(keyWaitCount <= 0)
+		//	{
+		//		if(stereoView->stereoEnabled)
+		//			stereoView->stereoEnabled = false;
+		//		else
+		//			stereoView->stereoEnabled = true;
+		//		keyWaitCount = 50;
+		//	}
+
+		//	anyKeyPressed = true;
+		//}
 
 		//////////  SHOCT non numpad
-		if(KEY_DOWN(0x4F))// VK_KEY_O
+		/*if(KEY_DOWN(0x4F))// VK_KEY_O
 		{
 		centerlineL  -= keySpeed/2.0f;
 		saveWaitCount = 500;
@@ -2054,8 +2037,11 @@ void D3DProxyDevice::HandleControls()
 		}
 		anyKeyPressed = true;
 		}*/
-		//////////
+		//////////////////////////////////////////////////////////////////////////////////////////////
 
+		/**
+		* F1 : Screenshot
+		***/
 		if(KEY_DOWN(VK_F1))
 		{
 			if(stereoView->initialized)
@@ -2065,6 +2051,9 @@ void D3DProxyDevice::HandleControls()
 			anyKeyPressed = true;
 		}
 
+		/**
+		* F2 : Decrease world scale (hold CTRL to lower speed, SHIFT to speed up)
+		***/
 		if(KEY_DOWN(VK_F2))
 		{
 			if(KEY_DOWN(VK_CONTROL)) {
@@ -2077,16 +2066,14 @@ void D3DProxyDevice::HandleControls()
 			m_spShaderViewAdjustment->ChangeWorldScale(-seperationChange);
 			m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
 
-			/*if (worldScaleCalculationMode)
-			m_spShaderViewAdjustment->ChangeWorldScale(-seperationChange);
-			else
-			m_spShaderViewAdjustment->ChangeSeparationAdjustment(-seperationChange);
-			*/
 			saveWaitCount = 500;
 			doSaveNext = true;
 			anyKeyPressed = true;
 		}
 
+		/**
+		* F3 : Increase world scale (hold CTRL to lower speed, SHIFT to speed up)
+		***/
 		if(KEY_DOWN(VK_F3))
 		{
 			if(KEY_DOWN(VK_CONTROL)) {
@@ -2100,78 +2087,91 @@ void D3DProxyDevice::HandleControls()
 			m_spShaderViewAdjustment->ChangeWorldScale(seperationChange);
 			m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
 
-			/*if (worldScaleCalculationMode)
-			m_spShaderViewAdjustment->ChangeWorldScale(seperationChange);
-			else
-			m_spShaderViewAdjustment->ChangeSeparationAdjustment(seperationChange);*/
-
 			saveWaitCount = 500;
 			doSaveNext = true;
 			anyKeyPressed = true;
 		}
+
+		/**
+		* F4 : Decrease convergence (hold CTRL to lower speed, SHIFT to speed up)
+		* ALT-F4 : Decrease Oculus Rift distortion scale.
+		***/
 		if(KEY_DOWN(VK_F4))
 		{
-			if(KEY_DOWN(VK_CONTROL)) {
-				convergenceChange /= 10.0f;
-			}
-			else if(KEY_DOWN(VK_SHIFT)) {
-				convergenceChange *= 10.0f;
-			} 
-
-			m_spShaderViewAdjustment->ChangeConvergence(-convergenceChange);
-			m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
-
-			/*
-			if(KEY_DOWN(VK_SHIFT))
+			if(KEY_DOWN(VK_LMENU))
 			{
-			this->stereoView->DistortionScale  -= keySpeed*10;
+				this->stereoView->DistortionScale -= keySpeed*10;
+				this->stereoView->PostReset();
 			} 
 			else 
 			{
-			convergence -= keySpeed2*10;
-			}*/
+				if(KEY_DOWN(VK_CONTROL)) {
+					convergenceChange /= 10.0f;
+				}
+				else if(KEY_DOWN(VK_SHIFT)) {
+					convergenceChange *= 10.0f;
+				} 
+
+				m_spShaderViewAdjustment->ChangeConvergence(-convergenceChange);
+				m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
+			}
+
 			saveWaitCount = 500;
 			doSaveNext = true;
 			anyKeyPressed = true;
 		}
 
+		/**
+		* F5 : Increase convergence (hold CTRL to lower speed, SHIFT to speed up)
+		* ALT-F5 : Increase Oculus Rift distortion scale
+		***/
 		if(KEY_DOWN(VK_F5))
 		{
-			if(KEY_DOWN(VK_CONTROL)) {
-				convergenceChange /= 10.0f;
-			}
-			else if(KEY_DOWN(VK_SHIFT)) {
-				convergenceChange *= 10.0f;
-			} 
-
-			m_spShaderViewAdjustment->ChangeConvergence(convergenceChange);
-			m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
-
-			/*if(KEY_DOWN(VK_SHIFT))
+			if(KEY_DOWN(VK_LMENU))
 			{
-			this->stereoView->DistortionScale  += keySpeed*10;
+				this->stereoView->DistortionScale += keySpeed*10;
+				this->stereoView->PostReset();
 			} 
 			else 
 			{
-			convergence += keySpeed2*10;
-			}*/
+				if(KEY_DOWN(VK_CONTROL)) {
+					convergenceChange /= 10.0f;
+				}
+				else if(KEY_DOWN(VK_SHIFT)) {
+					convergenceChange *= 10.0f;
+				} 
+
+				m_spShaderViewAdjustment->ChangeConvergence(convergenceChange);
+				m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
+			}
+
 			saveWaitCount = 500;
 			doSaveNext = true;
 			anyKeyPressed = true;
 		}
 
+		/**
+		* F6 : Swap eye output
+		* SHIFT-F6 : Reset world scale, convergence and tracker multipliers
+		* ALT-F6 : Reset distortion scale
+		***/
 		if(KEY_DOWN(VK_F6))
 		{
-			if(KEY_DOWN(VK_SHIFT))
+			if(KEY_DOWN(VK_LMENU))
+			{				
+				this->stereoView->DistortionScale = 0.0f;
+				this->stereoView->PostReset();
+			}
+			else if(KEY_DOWN(VK_SHIFT))
 			{
 				m_spShaderViewAdjustment->ResetConvergence();
 				m_spShaderViewAdjustment->ResetWorldScale();
 				m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
 
-				//yaw_multiplier = 25.0f;
-				//pitch_multiplier = 25.0f;
-				//roll_multiplier = 1.0f;
-				//matrixIndex = 0;
+				tracker->multiplierYaw = 25.0f;
+				tracker->multiplierPitch = 25.0f;
+				tracker->multiplierRoll = 1.0f;
+				
 				saveWaitCount = 500;
 				doSaveNext = true;
 			}
@@ -2184,65 +2184,74 @@ void D3DProxyDevice::HandleControls()
 			}
 			anyKeyPressed = true;
 		}
-		/*
-		if(KEY_DOWN(VK_F7) && keyWaitCount <= 0)
-		{
-		matrixIndex++;
-		if(matrixIndex > 15) 
-		{
-		matrixIndex = 0;
-		}
-		keyWaitCount = 200;
-		anyKeyPressed = true;
-		}
 
+		// TODO !! matrix index ?? not used in old version either
+		/*if(KEY_DOWN(VK_F7) && keyWaitCount <= 0)
+		{
+			matrixIndex++;
+			if(matrixIndex > 15) 
+			{
+				matrixIndex = 0;
+			}
+			keyWaitCount = 200;
+			anyKeyPressed = true;
+		}*/
+				
+		/**
+		* F8 : Decrease tracker yaw multiplier
+		* SHIFT-F8 : Decrease tracker pitch multiplier
+		* CTRL-F8 : Decrease tracker roll multiplier
+		***/
 		if(KEY_DOWN(VK_F8))
 		{
-		if(KEY_DOWN(VK_SHIFT))
-		{
-		pitch_multiplier -= mouseSpeed;
-		}  
-		else if(KEY_DOWN(VK_CONTROL))
-		{
-		roll_multiplier -= rollSpeed;
-		}  
-		else 
-		{
-		yaw_multiplier -= mouseSpeed;
+			if(KEY_DOWN(VK_SHIFT))
+			{
+				if(trackerInitialized && tracker->isAvailable())
+					tracker->multiplierPitch -= mouseSpeed;
+			}  
+			else if(KEY_DOWN(VK_CONTROL))
+			{
+				if(trackerInitialized && tracker->isAvailable())
+					tracker->multiplierRoll -= rollSpeed;
+			}  
+			else 
+			{
+				if(trackerInitialized && tracker->isAvailable())
+					tracker->multiplierYaw -= mouseSpeed;
+			}
+
+			saveWaitCount = 500;
+			doSaveNext = true;
+			anyKeyPressed = true;
 		}
 
-		if(trackerInitialized && tracker->isAvailable())
-		{
-		tracker->setMultipliers(yaw_multiplier, pitch_multiplier, roll_multiplier);
-		}
-
-		saveWaitCount = 500;
-		doSaveNext = true;
-		anyKeyPressed = true;
-		}
+		/**
+		* F9 : Increase tracker yaw multiplier
+		* SHIFT-F9 : Increase tracker pitch multiplier
+		* CTRL-F9 : Increase tracker roll multiplier
+		***/
 		if(KEY_DOWN(VK_F9))
 		{
-		if(KEY_DOWN(VK_SHIFT))
-		{
-		pitch_multiplier += mouseSpeed;
-		}  
-		else if(KEY_DOWN(VK_CONTROL))
-		{
-		roll_multiplier += rollSpeed;
-		}  
-		else 
-		{
-		yaw_multiplier += mouseSpeed;
-		}
+			if(KEY_DOWN(VK_SHIFT))
+			{
+				if(trackerInitialized && tracker->isAvailable())
+					tracker->multiplierPitch += mouseSpeed;
+			}  
+			else if(KEY_DOWN(VK_CONTROL))
+			{
+				if(trackerInitialized && tracker->isAvailable())
+					tracker->multiplierRoll += rollSpeed;
+			}  
+			else 
+			{
+				if(trackerInitialized && tracker->isAvailable())
+					tracker->multiplierYaw += mouseSpeed;
+			}
 
-		if(trackerInitialized && tracker->isAvailable())
-		{
-		tracker->setMultipliers(yaw_multiplier, pitch_multiplier, roll_multiplier);
+			saveWaitCount = 500;
+			doSaveNext = true;
+			anyKeyPressed = true;
 		}
-		saveWaitCount = 500;
-		doSaveNext = true;
-		anyKeyPressed = true;
-		}*/
 
 		if (anyKeyPressed) {
 			startTime = clock();
@@ -2250,13 +2259,12 @@ void D3DProxyDevice::HandleControls()
 		}
 	}
 	else {
+		// handle key repeat rate
 		float elapseTimeSinceLastHandledKey = (float)(clock() - startTime) / CLOCKS_PER_SEC;
 		if (elapseTimeSinceLastHandledKey >= m_keyRepeatRate) {
 			keyWait = false;
 		}		
 	}
-
-
 
 	if(saveDebugFile)
 	{
@@ -2277,6 +2285,9 @@ void D3DProxyDevice::HandleControls()
 		doSaveNext = false;
 		ProxyHelper* helper = new ProxyHelper();
 
+		config.roll_multiplier = tracker->multiplierRoll;
+		config.yaw_multiplier = tracker->multiplierYaw;
+		config.pitch_multiplier = tracker->multiplierPitch;
 		config.swap_eyes = stereoView->swapEyes;
 		m_spShaderViewAdjustment->Save(config);
 
@@ -2284,7 +2295,6 @@ void D3DProxyDevice::HandleControls()
 
 		delete helper;
 	}
-
 }
 
 /**
@@ -2300,6 +2310,7 @@ void D3DProxyDevice::HandleTracking()
 	{
 		OutputDebugString("Try to init Tracker\n");
 		tracker = MotionTrackerFactory::Get(config);
+		tracker->setMultipliers(config.yaw_multiplier, config.pitch_multiplier, config.roll_multiplier); 
 		trackerInitialized = true;
 	}
 

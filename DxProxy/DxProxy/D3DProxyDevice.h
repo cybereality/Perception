@@ -392,26 +392,6 @@ private:
 	* True to avoid key input due to repeat rate.
 	**/
 	bool keyWait;
-	/**
-	* To calculate world scale build with this value set to true in the constructor.
-	* Set the IPD in the user cfg to match the lens separation of the hmd.
-	* In-game find something that appears correctly scaled that you can measure against.
-	* Example:
-	* I use NPC eye separation whenever possible (I assume they have average IPD, if they have obviously
-	* messed up features do some guesstimating). Adjust so that the redline on the left half of the 
-	* screen aligns with the leftmost eye (your left) of the NPC and the redline on the right half of 
-	* the screen aligns with the rightmost eye (your right) of the NPC. The aim is to get a rough 
-	* estimate of the world scale so that the starting separation isn't to far off for users and the 
-	* scale is appropriate so that adjustments they make happen at a sensible (and somewhat consistent 
-	* between games) rate.
-	* You can use other objects if they are to scale and you can make a reasonable guess (example - 
-	* the steering wheel in F1 2010 is to scale and makes for a good measuring stick as it's stright 
-	* infront of the camera).
-	* Note: Make sure the game fov is set correctly before doing the above. When view is scaled to just 
-	* fill the horizontal (normal behaviour) 92.568 (use 92 if only whole numbers can be used) if 
-	* horizontal, 66 if vertical (16:10 resolution), 61 if vertical (16:9 resolution).
-	***/
-	//bool worldScaleCalculationMode;
 };
 
 #endif

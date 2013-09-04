@@ -98,10 +98,9 @@ public:
 	***/
 	bool stereoEnabled() { return (stereo_mode != DISABLED); }; 
 	/**
-	* Currently unused, should be used by OculusRiftView and D3DProxyDevice.
-	* Better move this to OculusRiftView ?
+	* Should be used by OculusRiftView and D3DProxyDevice.
 	***/
-	float DistortionScale;	// TODO !!!
+	float DistortionScale;	
 
 protected:
 	/*** StereoView protected methods ***/

@@ -73,6 +73,7 @@ void ViewAdjustment::Load(ProxyHelper::ProxyConfig& cfg)
 	metersToWorldMultiplier  = cfg.worldScaleFactor;
 	convergence = cfg.convergence;
 	ipd = cfg.ipd;
+	stereoType = cfg.stereo_mode;
 }
 
 /**
@@ -104,7 +105,7 @@ void ViewAdjustment::UpdateProjectionMatrices(float aspectRatio)
 
 	D3DXMatrixPerspectiveOffCenterLH(&matProjection, l, r, b, t, n, f);
 	D3DXMatrixInverse(&matProjectionInv, 0, &matProjection);
-	
+		
 	// convergence frustum adjustment, based on NVidia explanations
 	//
 	// It is evident that the ratio of frustum shift to the near clipping plane is equal to the ratio of 
@@ -116,6 +117,7 @@ void ViewAdjustment::UpdateProjectionMatrices(float aspectRatio)
 	// (convergence = virtual screen distance)
 	// ALL stated in meters here !
 	const float nearClippingPlaneDistance = 1; // < TODO !! Assumption here : near clipping plane distance = 1 meter 
+	if (convergence <= nearClippingPlaneDistance) convergence = nearClippingPlaneDistance + 0.001f;
 	float frustumAsymmetryInMeters = ((ipd/2) * nearClippingPlaneDistance) / convergence;
 
 	// divide the frustum asymmetry by the assumed physical size of the physical screen
@@ -132,6 +134,18 @@ void ViewAdjustment::UpdateProjectionMatrices(float aspectRatio)
 	// now, create the re-projection matrices for both eyes using this frustum asymmetry
 	D3DXMatrixPerspectiveOffCenterLH(&projectLeft, l+frustumAsymmetryLeft, r+frustumAsymmetryLeft, b, t, n, f);
 	D3DXMatrixPerspectiveOffCenterLH(&projectRight, l+frustumAsymmetryRight, r+frustumAsymmetryRight, b, t, n, f);
+
+	// Based on Rift docs way.
+	if ((stereoType == 26) || // = StereoView::StereoTypes::OCULUS_RIFT
+		(stereoType == 27) || // = StereoView::StereoTypes::OCULUS_RIFT_CROPPED
+		(stereoType == 25))   // = StereoView::StereoTypes::DIY_RIFT))
+	{
+		// The lensXCenterOffset is in the same -1 to 1 space as the perspective so shift by that amount to move projection in line with the lenses
+		D3DXMatrixTranslation(&leftShiftProjection, hmdInfo.lensXCenterOffset * LEFT_CONSTANT, 0, 0);
+		D3DXMatrixTranslation(&rightShiftProjection, hmdInfo.lensXCenterOffset * RIGHT_CONSTANT, 0, 0);
+		projectLeft *= leftShiftProjection;
+		projectRight *= rightShiftProjection;
+	}	
 }
 
 /**
@@ -156,7 +170,7 @@ void ViewAdjustment::ComputeViewTransforms()
 	D3DXMatrixTranslation(&transformLeft, SeparationInWorldUnits() * LEFT_CONSTANT, 0, 0);
 	D3DXMatrixTranslation(&transformRight, SeparationInWorldUnits() * RIGHT_CONSTANT, 0, 0);
 	// else if desktop screen {}
-	
+
 	if (rollEnabled) {
 		D3DXMatrixMultiply(&transformLeft, &rollMatrix, &transformLeft);
 		D3DXMatrixMultiply(&transformRight, &rollMatrix, &transformRight);
