@@ -142,7 +142,7 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 
 	// should be false for published builds
 	// TODO Allow this to be turned on and off in cfg file along with vertex shader dumping and other debug/maintenance features.
-	worldScaleCalculationMode = false;
+	//worldScaleCalculationMode = false;
 }
 
 /**
@@ -306,16 +306,16 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 	}
 
 	m_isFirstBeginSceneOfFrame = true; // TODO this can break if device present is followed by present on another swap chain... or not work well anyway
-	
-	if (worldScaleCalculationMode) {
-		// draw red lines vertically through the center of the lens/distortion.
-		//TODO doesn't currently work with source based games
-		int width = stereoView->viewport.Width;
-		int height = stereoView->viewport.Height;
-		ClearVLine(getActual(), (int)(m_spShaderViewAdjustment->HMDInfo().LeftLensCenterAsPercentage() * width), 0, (int)(m_spShaderViewAdjustment->HMDInfo().LeftLensCenterAsPercentage() * width) + 1, height, 1, D3DCOLOR_ARGB(255,255,0,0));
-		ClearVLine(getActual(), (int)((1 - m_spShaderViewAdjustment->HMDInfo().LeftLensCenterAsPercentage()) * width), 0, (int)((1 - m_spShaderViewAdjustment->HMDInfo().LeftLensCenterAsPercentage()) * width) + 1, height, 1, D3DCOLOR_ARGB(255,255,0,0));
-	}
 
+	//if (worldScaleCalculationMode) {
+	//	// draw red lines vertically through the center of the lens/distortion.
+	//	//TODO doesn't currently work with source based games
+	//	int width = stereoView->viewport.Width;
+	//	int height = stereoView->viewport.Height;
+	//	ClearVLine(getActual(), (int)(m_spShaderViewAdjustment->HMDInfo().LeftLensCenterAsPercentage() * width), 0, (int)(m_spShaderViewAdjustment->HMDInfo().LeftLensCenterAsPercentage() * width) + 1, height, 1, D3DCOLOR_ARGB(255,255,0,0));
+	//	ClearVLine(getActual(), (int)((1 - m_spShaderViewAdjustment->HMDInfo().LeftLensCenterAsPercentage()) * width), 0, (int)((1 - m_spShaderViewAdjustment->HMDInfo().LeftLensCenterAsPercentage()) * width) + 1, height, 1, D3DCOLOR_ARGB(255,255,0,0));
+	//}
+	
 	return BaseDirect3DDevice9::Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
 }
 
@@ -868,7 +868,7 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 * Currently base functionality, SHOCT code here in semicolons.
 ***/
 HRESULT WINAPI D3DProxyDevice::EndScene()
-{
+{	
 	/*
 	///// hud text
 
@@ -1883,8 +1883,8 @@ void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 {
 	OutputDebugString("D3D ProxyDev Init\n");
 
-	if (worldScaleCalculationMode)
-		cfg.separationAdjustment = 0.0f;
+	/*if (worldScaleCalculationMode)
+	cfg.convergence = 0.0f;*/
 
 	config = cfg;
 
@@ -1920,15 +1920,18 @@ void D3DProxyDevice::HandleControls()
 {
 	bool anyKeyPressed = false;
 	//float keySpeed = 0.00002f;
-	float seperationChange = 0.001f; // 1 mm
+	float seperationChange = 0.05f; 
+	float convergenceChange = 0.001f; // 1 mm
 	//float keySpeed2 = 0.0005f;
 	//float mouseSpeed = 0.25f;
 	float rollSpeed = 0.01f;
 
-	if (worldScaleCalculationMode)
-		seperationChange = 0.1f;
+	/*if (worldScaleCalculationMode)
+	seperationChange = 0.1f;*/
 
+	static int keyWaitCount = 0;
 	static int saveWaitCount = 0; 
+	keyWaitCount--;
 	saveWaitCount--;
 	static bool doSaveNext = false;
 
@@ -2071,11 +2074,14 @@ void D3DProxyDevice::HandleControls()
 				seperationChange *= 10.0f;
 			} 
 
-			if (worldScaleCalculationMode)
-				m_spShaderViewAdjustment->ChangeWorldScale(-seperationChange);
-			else
-				m_spShaderViewAdjustment->ChangeSeparationAdjustment(-seperationChange);
+			m_spShaderViewAdjustment->ChangeWorldScale(-seperationChange);
+			m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
 
+			/*if (worldScaleCalculationMode)
+			m_spShaderViewAdjustment->ChangeWorldScale(-seperationChange);
+			else
+			m_spShaderViewAdjustment->ChangeSeparationAdjustment(-seperationChange);
+			*/
 			saveWaitCount = 500;
 			doSaveNext = true;
 			anyKeyPressed = true;
@@ -2089,42 +2095,96 @@ void D3DProxyDevice::HandleControls()
 			else if(KEY_DOWN(VK_SHIFT))
 			{
 				seperationChange *= 10.0f;
-			} 
+			}
 
-			if (worldScaleCalculationMode)
-				m_spShaderViewAdjustment->ChangeWorldScale(seperationChange);
+			m_spShaderViewAdjustment->ChangeWorldScale(seperationChange);
+			m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
+
+			/*if (worldScaleCalculationMode)
+			m_spShaderViewAdjustment->ChangeWorldScale(seperationChange);
 			else
-				m_spShaderViewAdjustment->ChangeSeparationAdjustment(seperationChange);
+			m_spShaderViewAdjustment->ChangeSeparationAdjustment(seperationChange);*/
 
 			saveWaitCount = 500;
 			doSaveNext = true;
 			anyKeyPressed = true;
 		}
-		/*
-		if(KEY_DOWN(VK_F6))
+		if(KEY_DOWN(VK_F4))
 		{
-		if(KEY_DOWN(VK_SHIFT))
-		{
-		separation = 0.0f;
-		convergence = 0.0f;
-		offset = 0.0f;
-		yaw_multiplier = 25.0f;
-		pitch_multiplier = 25.0f;
-		roll_multiplier = 1.0f;
-		//matrixIndex = 0;
-		saveWaitCount = 500;
-		doSaveNext = true;
-		}
-		else if(keyWaitCount <= 0)
-		{
-		stereoView->swap_eyes = !stereoView->swap_eyes;
-		keyWaitCount = 200;
-		saveWaitCount = 500;
-		doSaveNext = true;
-		}
-		anyKeyPressed = true;
+			if(KEY_DOWN(VK_CONTROL)) {
+				convergenceChange /= 10.0f;
+			}
+			else if(KEY_DOWN(VK_SHIFT)) {
+				convergenceChange *= 10.0f;
+			} 
+
+			m_spShaderViewAdjustment->ChangeConvergence(-convergenceChange);
+			m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
+
+			/*
+			if(KEY_DOWN(VK_SHIFT))
+			{
+			this->stereoView->DistortionScale  -= keySpeed*10;
+			} 
+			else 
+			{
+			convergence -= keySpeed2*10;
+			}*/
+			saveWaitCount = 500;
+			doSaveNext = true;
+			anyKeyPressed = true;
 		}
 
+		if(KEY_DOWN(VK_F5))
+		{
+			if(KEY_DOWN(VK_CONTROL)) {
+				convergenceChange /= 10.0f;
+			}
+			else if(KEY_DOWN(VK_SHIFT)) {
+				convergenceChange *= 10.0f;
+			} 
+
+			m_spShaderViewAdjustment->ChangeConvergence(convergenceChange);
+			m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
+
+			/*if(KEY_DOWN(VK_SHIFT))
+			{
+			this->stereoView->DistortionScale  += keySpeed*10;
+			} 
+			else 
+			{
+			convergence += keySpeed2*10;
+			}*/
+			saveWaitCount = 500;
+			doSaveNext = true;
+			anyKeyPressed = true;
+		}
+
+		if(KEY_DOWN(VK_F6))
+		{
+			if(KEY_DOWN(VK_SHIFT))
+			{
+				m_spShaderViewAdjustment->ResetConvergence();
+				m_spShaderViewAdjustment->ResetWorldScale();
+				m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
+
+				//yaw_multiplier = 25.0f;
+				//pitch_multiplier = 25.0f;
+				//roll_multiplier = 1.0f;
+				//matrixIndex = 0;
+				saveWaitCount = 500;
+				doSaveNext = true;
+			}
+			else if(keyWaitCount <= 0)
+			{
+				stereoView->swapEyes = !stereoView->swapEyes;
+				keyWaitCount = 200;
+				saveWaitCount = 500;
+				doSaveNext = true;
+			}
+			anyKeyPressed = true;
+		}
+		/*
 		if(KEY_DOWN(VK_F7) && keyWaitCount <= 0)
 		{
 		matrixIndex++;
@@ -2211,7 +2271,7 @@ void D3DProxyDevice::HandleControls()
 	keyWaitCount = 200;
 	anyKeyPressed = true;
 	}*/
-	
+
 	if(doSaveNext && saveWaitCount < 0)
 	{
 		doSaveNext = false;
@@ -2295,7 +2355,7 @@ void D3DProxyDevice::OnCreateOrRestore()
 
 
 	BaseDirect3DDevice9::GetViewport(&m_LastViewportSet);
-	
+
 	// If there is an initial depth stencil
 	IDirect3DSurface9* pDepthStencil;
 	if (SUCCEEDED(BaseDirect3DDevice9::GetDepthStencilSurface(&pDepthStencil))) { 
@@ -2442,7 +2502,7 @@ bool D3DProxyDevice::setDrawingSide(vireio::RenderPosition side)
 
 	// Apply active stereo shader constants
 	m_spManagedShaderRegisters->ApplyAllStereoConstants(side);
-	
+
 	return true;
 }
 

@@ -34,6 +34,7 @@ bool InitModes(void);
 std::string getCurrentPath(void);
 void LoadDLL(void);
 HINSTANCE hD3D9;
+ProxyHelper::OculusProfile oculusProfile;
 
 class static_control;
 
@@ -203,6 +204,9 @@ public:
 		logo_bitmap = (HBITMAP)LoadImage(NULL,viewPath,IMAGE_BITMAP,0,0,LR_LOADFROMFILE);
 		OutputDebugString("Load the bitmap\n");
 
+		ProxyHelper::ProxyConfig cfg;
+		helper.LoadUserConfig(cfg, oculusProfile);
+
 		SetCursor(LoadCursor(NULL, IDC_ARROW)); 
 		ShowWindow(window_handle, SW_SHOW);   
 		UpdateWindow(window_handle); 
@@ -250,6 +254,11 @@ public:
 					SelectObject(paint_dc, This->logo_bitmap);   
 					BitBlt(paint_device_context,0,0,600,140,paint_dc,0,0,SRCCOPY);
 
+					// Output user profile data
+					SetBkMode(paint_device_context, TRANSPARENT);
+					TextOut (paint_device_context,290,81,"Oculus Profile:",15);
+					TextOut (paint_device_context,290,101,oculusProfile.Name.c_str(),oculusProfile.Name.size());
+
 					DeleteDC(paint_dc);   
 					EndPaint(window_handle, &paint_structure);   
 					return 0;   
@@ -287,7 +296,7 @@ public:
 					if ( HIWORD(wparam) == CBN_SELCHANGE ) {
 						This->combobox->new_selection();
 						This->combobox2->new_selection2();
-					}
+					} 
 					return 0;
 				}
 			case WM_CLOSE:   
@@ -325,11 +334,11 @@ int WINAPI wWinMain(HINSTANCE instance_handle, HINSTANCE, LPWSTR, INT) {
 	InitModes();
 	InstallHook();
 
-    frame_window main_window("perception");
-    main_window.add_item("Disabled\t0");
-    main_window.add_item("DIY Rift\t25");
-    main_window.add_item("Oculus Rift\t26");
-    main_window.add_item("Oculus Rift Cropped\t27");
+	frame_window main_window("perception");
+	main_window.add_item("Disabled\t0");
+	main_window.add_item("DIY Rift\t25");
+	main_window.add_item("Oculus Rift\t26");
+	main_window.add_item("Oculus Rift Cropped\t27");
 	main_window.add_item("Side by Side\t20");
 	main_window.add_item("Over Under\t30");
 	main_window.add_item("Horizontal Interleave\t40");

@@ -28,9 +28,10 @@ ViewAdjustment::ViewAdjustment(HMDisplayInfo &displayInfo, float metersToWorldUn
 	metersToWorldMultiplier(metersToWorldUnits),
 	rollEnabled(enableRoll)
 {
-	separationAdjustment = 0.0f;
-	minSeperationAdjustment = -(IPD_DEFAULT / 2.0f);
-	maxSeparationAdjustment = 4 * (IPD_DEFAULT / 2.0f);
+	// TODO : max, min convergence; arbitrary now
+	convergence = 0.0f;
+	minConvergence = -10.0f;
+	maxConvergence = 10.0f;
 
 	ipd = IPD_DEFAULT;
 
@@ -70,7 +71,7 @@ void ViewAdjustment::Load(ProxyHelper::ProxyConfig& cfg)
 {
 	rollEnabled = cfg.rollEnabled;
 	metersToWorldMultiplier  = cfg.worldScaleFactor;
-	separationAdjustment = cfg.separationAdjustment;
+	convergence = cfg.convergence;
 	ipd = cfg.ipd;
 }
 
@@ -81,7 +82,7 @@ void ViewAdjustment::Load(ProxyHelper::ProxyConfig& cfg)
 void ViewAdjustment::Save(ProxyHelper::ProxyConfig& cfg) 
 {
 	cfg.rollEnabled = rollEnabled;
-	cfg.separationAdjustment = separationAdjustment;
+	cfg.convergence = convergence;
 
 	//worldscale and ipd are not normally edited;
 	cfg.worldScaleFactor = metersToWorldMultiplier;
@@ -89,7 +90,11 @@ void ViewAdjustment::Save(ProxyHelper::ProxyConfig& cfg)
 }
 
 /**
-* Updates left and right projection matrices. (much to do here!!)
+* Updates left and right projection matrices.
+* Now, the convergence point is specified in real, physical meters, since the IPD is also specified
+* in physical meters. That means, if the game-specific world scale is set correctly, a convergence
+* value of 3.0f would mean that the virtual screen, neutral point or convergence point is 3 meters
+* ahead of us.
 * @param aspectRation The aspect ratio for the projection matrix.
 ***/
 void ViewAdjustment::UpdateProjectionMatrices(float aspectRatio)
@@ -99,23 +104,34 @@ void ViewAdjustment::UpdateProjectionMatrices(float aspectRatio)
 
 	D3DXMatrixPerspectiveOffCenterLH(&matProjection, l, r, b, t, n, f);
 	D3DXMatrixInverse(&matProjectionInv, 0, &matProjection);
+	
+	// convergence frustum adjustment, based on NVidia explanations
+	//
+	// It is evident that the ratio of frustum shift to the near clipping plane is equal to the ratio of 
+	// IOD/2 to the distance from the screenplane. (IOD=IPD) 
+	// frustumAsymmetryInMeters = ((IPD/2) * nearClippingPlaneDistance) / convergence
+	// <http://www.orthostereo.com/geometryopengl.html>
+	//
+	// (near clipping plane distance = physical screen distance)
+	// (convergence = virtual screen distance)
+	// ALL stated in meters here !
+	const float nearClippingPlaneDistance = 1; // < TODO !! Assumption here : near clipping plane distance = 1 meter 
+	float frustumAsymmetryInMeters = ((ipd/2) * nearClippingPlaneDistance) / convergence;
 
-	// Based on Rift docs way. //TODO still need to use the 'old way' (or something similar/different) for rendering on a monitor? needs testing
-	// if (HMD)
-	// The lensXCenterOffset is in the same -1 to 1 space as the perspective so shift by that amount to move projection in line with the lenses
-	D3DXMatrixTranslation(&leftShiftProjection, hmdInfo.lensXCenterOffset * LEFT_CONSTANT, 0, 0);
-	D3DXMatrixTranslation(&rightShiftProjection, hmdInfo.lensXCenterOffset * RIGHT_CONSTANT, 0, 0);
-	// else if desktop screen {}
+	// divide the frustum asymmetry by the assumed physical size of the physical screen
+	const float physicalScreenSizeInMeters = 1; // < TODO !! Assumption here : physical screen size = 1 meter
+	float frustumAsymmetryLeftInMeters = (frustumAsymmetryInMeters * LEFT_CONSTANT) / physicalScreenSizeInMeters;
+	float frustumAsymmetryRightInMeters = (frustumAsymmetryInMeters * RIGHT_CONSTANT) / physicalScreenSizeInMeters;
 
-	// old way
-	//float adjustedFrustumOffsetLeft = convergence * LEFT_CONSTANT * 0.1f * separation;
-	//float adjustedFrustumOffsetRight = convergence * RIGHT_CONSTANT * 0.1f * separation;
+	// get the horizontal screen space size and compute screen space adjustment
+	float screenSpaceXSize = abs(l)+abs(r);
+	float multiplier = screenSpaceXSize/1; // = 1 meter
+	float frustumAsymmetryLeft = frustumAsymmetryLeftInMeters * multiplier;
+	float frustumAsymmetryRight = frustumAsymmetryRightInMeters * multiplier;
 
-	//D3DXMatrixPerspectiveOffCenterLH(&reProjectLeft, l+adjustedFrustumOffsetLeft, r+adjustedFrustumOffsetLeft, b, t, n, f);
-	//D3DXMatrixPerspectiveOffCenterLH(&reProjectRight, l+adjustedFrustumOffsetRight, r+adjustedFrustumOffsetRight, b, t, n, f);
-
-	projectLeft = matProjection * leftShiftProjection;
-	projectRight = matProjection * rightShiftProjection;
+	// now, create the re-projection matrices for both eyes using this frustum asymmetry
+	D3DXMatrixPerspectiveOffCenterLH(&projectLeft, l+frustumAsymmetryLeft, r+frustumAsymmetryLeft, b, t, n, f);
+	D3DXMatrixPerspectiveOffCenterLH(&projectRight, l+frustumAsymmetryRight, r+frustumAsymmetryRight, b, t, n, f);
 }
 
 /**
@@ -140,10 +156,7 @@ void ViewAdjustment::ComputeViewTransforms()
 	D3DXMatrixTranslation(&transformLeft, SeparationInWorldUnits() * LEFT_CONSTANT, 0, 0);
 	D3DXMatrixTranslation(&transformRight, SeparationInWorldUnits() * RIGHT_CONSTANT, 0, 0);
 	// else if desktop screen {}
-
-	//D3DXMATRIX rollTransform;
-	//D3DXMatrixIdentity(&rollTransform);
-
+	
 	if (rollEnabled) {
 		D3DXMatrixMultiply(&transformLeft, &rollMatrix, &transformLeft);
 		D3DXMatrixMultiply(&transformRight, &rollMatrix, &transformRight);
@@ -227,40 +240,53 @@ float ViewAdjustment::ChangeWorldScale(float toAdd)
 {
 	metersToWorldMultiplier+= toAdd;
 
-	vireio::clamp(&metersToWorldMultiplier, 0.01f, 1000000.0f);
+	vireio::clamp(&metersToWorldMultiplier, 0.0001f, 1000000.0f);
 
 	return metersToWorldMultiplier;
 }
 
 /**
-* Returns the new separation adjustment in m. 
-* (toAdd is the amount to adjust the separation by in m)
-* new adjustment might be the same as old adjustment if adjustment limit is reached. 
+* Changes and clamps convergence.
 ***/
-float ViewAdjustment::ChangeSeparationAdjustment(float toAdd)
+float ViewAdjustment::ChangeConvergence(float toAdd)
 {
-	separationAdjustment += toAdd;
+	convergence += toAdd;
 
-	vireio::clamp(&separationAdjustment, minSeperationAdjustment, maxSeparationAdjustment);
+	vireio::clamp(&convergence, minConvergence, maxConvergence);
 
-	return separationAdjustment;
+	return convergence;
 }
 
 /**
-* Currently just sets seperation adjustment to zero.
+* Just sets world scale to 1.0f.
 ***/
-void ViewAdjustment::ResetSeparationAdjustment()
+void ViewAdjustment::ResetWorldScale()
 {
-	separationAdjustment = 0.0f;
+	metersToWorldMultiplier = 1.0f;
 }
 
 /**
-* Returns the current separation adjustment being used in m (this is game and user specific and should be saved appropriately).
-* TODO remove this and set on gamehandler which has a 'current user'? 
+* Just sets convergence to zero.
 ***/
-float ViewAdjustment::SeparationAdjustment() 
+void ViewAdjustment::ResetConvergence()
+{
+	convergence = 0.0f;
+}
+
+/**
+* Returns the current convergence adjustment, in meters.
+***/
+float ViewAdjustment::Convergence() 
 { 
-	return separationAdjustment; 
+	return convergence; 
+}
+
+/**
+* Returns the current convergence adjustment, in game units.
+***/
+float ViewAdjustment::ConvergenceInWorldUnits() 
+{ 
+	return convergence * metersToWorldMultiplier; 
 }
 
 /**
@@ -268,7 +294,7 @@ float ViewAdjustment::SeparationAdjustment()
 ***/
 float ViewAdjustment::SeparationInWorldUnits() 
 { 
-	return (separationAdjustment + (IPD_DEFAULT / 2.0f)) * metersToWorldMultiplier; 
+	return  (ipd / 2.0f) * metersToWorldMultiplier; 
 }
 
 /**

@@ -35,7 +35,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * Calculates left and right view projection transform matrices.
 *
 * ALL MATRICES are identity matrices if worldScaleFactor in game configuration not set (==zero). 
-* Currently IPD is not used, (just IPD_DEFAULT) !! (much to do here)
 * @see ShaderConstantModification
 */
 class ViewAdjustment
@@ -59,9 +58,11 @@ public:
 	D3DXMATRIX    Projection();
 	D3DXMATRIX    ProjectionInverse();	
 	float         ChangeWorldScale(float toAdd);
-	float         ChangeSeparationAdjustment(float toAdd);
-	void          ResetSeparationAdjustment();	
-	float         SeparationAdjustment();	
+	float         ChangeConvergence(float toAdd);
+	void          ResetWorldScale();
+	void          ResetConvergence();	
+	float         Convergence();
+	float         ConvergenceInWorldUnits();
 	float         SeparationInWorldUnits();
 	bool          RollEnabled();
 	HMDisplayInfo HMDInfo();	
@@ -79,17 +80,13 @@ private:
 	float b;	/**< Maximum y-value of the view volume. */
 
 	/**
-	* Constant minimum seperation adjustment.
+	* Constant minimum convergence.
 	***/
-	float minSeperationAdjustment;
+	float minConvergence;
 	/**
-	* Constant maximum seperation adjustment.
+	* Constant maximum convergence.
 	***/
-	float maxSeparationAdjustment;
-	/**
-	* Seperation adjustment, as read from configuration.
-	***/
-	float separationAdjustment;
+	float maxConvergence;
 	/**
 	* Projection matrix.
 	***/
@@ -147,8 +144,14 @@ private:
 	***/
 	float metersToWorldMultiplier;
 	/**
-	* Interpupillary distance, currently not used (uses default IPD_DEFAULT instead)!!
+	* Interpupillary distance.
+	* As provided from Oculus Configuration Utility (or set in the "user.xml" file).
 	***/
 	float ipd;
+	/**
+	* Convergence.
+	* Left/Rigth offset adjustment. In millimeters.
+	***/
+	float convergence;
 };
 #endif

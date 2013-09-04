@@ -411,7 +411,7 @@ private:
 	* fill the horizontal (normal behaviour) 92.568 (use 92 if only whole numbers can be used) if 
 	* horizontal, 66 if vertical (16:10 resolution), 61 if vertical (16:9 resolution).
 	***/
-	bool worldScaleCalculationMode;
+	//bool worldScaleCalculationMode;
 };
 
 #endif

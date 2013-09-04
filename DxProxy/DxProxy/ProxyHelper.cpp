@@ -21,52 +21,67 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 using namespace pugi;
 
 /**
+* Simple inline helper to erase characters in a string.
+* @param string The string to be formatted.
+* @param char The character to be deleted.
+***/
+void EraseCharacter(std::string& string, char character)
+{
+	auto found=string.find(character);
+	while(found!=std::string::npos)
+	{
+		string.erase(found,1);
+		found=string.find(character);
+	}
+}
+
+/**
 * Reads a string from registry.
 * @param hKey Registry key handle.
 * @param szValueName Name of the value to be read.
 * @param lpszResult The string result.
 ***/
 HRESULT RegGetString(HKEY hKey, LPCTSTR szValueName, LPTSTR * lpszResult) {
- 
-    // Given a HKEY and value name returns a string from the registry.
-    // Upon successful return the string should be freed using free()
-    // eg. RegGetString(hKey, TEXT("my value"), &szString);
- 
-    DWORD dwType=0, dwDataSize=0, dwBufSize=0;
-    LONG lResult;
- 
-    // Incase we fail set the return string to null...
-    if (lpszResult != NULL) *lpszResult = NULL;
- 
-    // Check input parameters...
-    if (hKey == NULL || lpszResult == NULL) return E_INVALIDARG;
- 
-    // Get the length of the string in bytes (placed in dwDataSize)...
-    lResult = RegQueryValueEx(hKey, szValueName, 0, &dwType, NULL, &dwDataSize );
- 
-    // Check result and make sure the registry value is a string(REG_SZ)...
-    if (lResult != ERROR_SUCCESS) return HRESULT_FROM_WIN32(lResult);
-    else if (dwType != REG_SZ)    return DISP_E_TYPEMISMATCH;
- 
-    // Allocate memory for string - We add space for a null terminating character...
-    dwBufSize = dwDataSize + (1 * sizeof(TCHAR));
-    *lpszResult = (LPTSTR)malloc(dwBufSize);
- 
-    if (*lpszResult == NULL) return E_OUTOFMEMORY;
- 
-    // Now get the actual string from the registry...
-    lResult = RegQueryValueEx(hKey, szValueName, 0, &dwType, (LPBYTE) *lpszResult, &dwDataSize );
- 
-    // Check result and type again.
-    // If we fail here we must free the memory we allocated...
-    if (lResult != ERROR_SUCCESS) { free(*lpszResult); return HRESULT_FROM_WIN32(lResult); }
-    else if (dwType != REG_SZ)    { free(*lpszResult); return DISP_E_TYPEMISMATCH; }
- 
-    // We are not guaranteed a null terminated string from RegQueryValueEx.
-    // Explicitly null terminate the returned string...
-    (*lpszResult)[(dwBufSize / sizeof(TCHAR)) - 1] = TEXT('\0');
- 
-    return NOERROR;
+
+	// Given a HKEY and value name returns a string from the registry.
+	// Upon successful return the string should be freed using free()
+	// eg. RegGetString(hKey, TEXT("my value"), &szString);
+
+	DWORD dwType=0, dwDataSize=0, dwBufSize=0;
+	LONG lResult;
+
+	// Incase we fail set the return string to null...
+	if (lpszResult != NULL) *lpszResult = NULL;
+
+	// Check input parameters...
+	if (hKey == NULL || lpszResult == NULL) return E_INVALIDARG;
+
+	// Get the length of the string in bytes (placed in dwDataSize)...
+	lResult = RegQueryValueEx(hKey, szValueName, 0, &dwType, NULL, &dwDataSize );
+
+	// Check result and make sure the registry value is a string(REG_SZ)...
+	if (lResult != ERROR_SUCCESS) return HRESULT_FROM_WIN32(lResult);
+	else if (dwType != REG_SZ)    return DISP_E_TYPEMISMATCH;
+
+	// Allocate memory for string - We add space for a null terminating character...
+	dwBufSize = dwDataSize + (1 * sizeof(TCHAR));
+	*lpszResult = (LPTSTR)malloc(dwBufSize);
+
+	if (*lpszResult == NULL) return E_OUTOFMEMORY;
+
+	// Now get the actual string from the registry...
+	lResult = RegQueryValueEx(hKey, szValueName, 0, &dwType, (LPBYTE) *lpszResult, &dwDataSize );
+
+	// Check result and type again.
+	// If we fail here we must free the memory we allocated...
+	if (lResult != ERROR_SUCCESS) { free(*lpszResult); return HRESULT_FROM_WIN32(lResult); }
+	else if (dwType != REG_SZ)    { free(*lpszResult); return DISP_E_TYPEMISMATCH; }
+
+	// We are not guaranteed a null terminated string from RegQueryValueEx.
+	// Explicitly null terminate the returned string...
+	(*lpszResult)[(dwBufSize / sizeof(TCHAR)) - 1] = TEXT('\0');
+
+	return NOERROR;
 }
 
 /**
@@ -197,15 +212,16 @@ bool ProxyHelper::GetConfig(int& mode, int& mode2)
 
 		return true;
 	}
-	
+
 	return false;
 }
 
 /**
 * Loads the game configuration for the target process specified in the registry (targetExe).
 * @param config Returned game configuration.
+* @param oculusProfile Returned Oculus Player Profile.
 ***/
-bool ProxyHelper::LoadConfig(ProxyConfig& config)
+bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 {
 	bool fileFound = false;
 
@@ -213,7 +229,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config)
 	config.game_type = 0;
 	config.stereo_mode = 0;
 	config.tracker_mode = 0;
-	config.separationAdjustment = 0.0f;
+	config.convergence = 0.0f;
 	config.swap_eyes = false;
 	config.aspect_multiplier = 1.0f;
 
@@ -243,7 +259,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config)
 		fileFound = true;
 	}
 
-	
+
 	// get the target exe
 	GetTargetExe();
 	OutputDebugString("Got target exe as: ");
@@ -291,7 +307,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config)
 		OutputDebugString(psz);
 		OutputDebugString("\n");
 
-		config.separationAdjustment = gameProfile.attribute("separationAdjustment").as_float(0.0f);
+		config.convergence = gameProfile.attribute("convergence").as_float(0.0f);
 		config.swap_eyes = gameProfile.attribute("swap_eyes").as_bool();
 		config.yaw_multiplier = gameProfile.attribute("yaw_multiplier").as_float(25.0f);
 		config.pitch_multiplier = gameProfile.attribute("pitch_multiplier").as_float(25.0f);
@@ -300,8 +316,8 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config)
 		if(config.yaw_multiplier == 0.0f) config.yaw_multiplier = 25.0f;
 		if(config.pitch_multiplier == 0.0f) config.pitch_multiplier = 25.0f;
 		if(config.roll_multiplier == 0.0f) config.roll_multiplier = 1.0f;
-		
-		
+
+
 
 		// get file name
 		std::string shaderRulesFileName = gameProfile.attribute("shaderModRules").as_string("");
@@ -319,7 +335,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config)
 		config.worldScaleFactor = gameProfile.attribute("worldScaleFactor").as_float(1.0f);
 	}
 
-	LoadUserConfig(config);
+	LoadUserConfig(config, oculusProfile);
 
 	return fileFound && profileFound;
 }
@@ -330,7 +346,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config)
 ***/
 bool ProxyHelper::SaveConfig(ProxyConfig& cfg)
 {
-	SaveProfile(cfg.separationAdjustment, cfg.swap_eyes, cfg.yaw_multiplier, cfg.pitch_multiplier, cfg.roll_multiplier, cfg.worldScaleFactor);
+	SaveProfile(cfg.convergence, cfg.swap_eyes, cfg.yaw_multiplier, cfg.pitch_multiplier, cfg.roll_multiplier, cfg.worldScaleFactor);
 	return SaveUserConfig(cfg.ipd);
 }
 
@@ -366,7 +382,7 @@ bool ProxyHelper::SaveConfig(int mode, float aspect)
 
 		return true;
 	}
-	
+
 	return false;
 }
 
@@ -399,7 +415,7 @@ bool ProxyHelper::SaveConfig2(int mode)
 
 		return true;
 	}
-	
+
 	return false;
 }
 
@@ -407,7 +423,7 @@ bool ProxyHelper::SaveConfig2(int mode)
 * Loads the user configuration.
 * @param config Returned user configuration.
 ***/
-bool ProxyHelper::LoadUserConfig(ProxyConfig& config)
+bool ProxyHelper::LoadUserConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 {
 	// get the user_profile
 	bool userFound = false;
@@ -420,9 +436,10 @@ bool ProxyHelper::LoadUserConfig(ProxyConfig& config)
 	xml_parse_result resultUsers = docUsers.load_file(usersPath);
 	xml_node users;
 	xml_node userProfile;
-	
+
 	config.ipd = IPD_DEFAULT;
 
+	// first, load user settings stored in "cfg\users.xml"
 	if(resultUsers.status == status_ok)
 	{
 		xml_node xml_user_profiles = docUsers.child("users");
@@ -439,6 +456,108 @@ bool ProxyHelper::LoadUserConfig(ProxyConfig& config)
 			}
 		}
 	}
+	
+	// get user path
+	char *pValue;
+	size_t len;
+	errno_t err = _dupenv_s( &pValue, &len, "userprofile" );
+	std::stringstream sstm;
+	sstm << pValue << "\\AppData\\Local\\Oculus\\Profiles.json";
+	std::string filePath = sstm.str();
+	OutputDebugString(filePath.c_str());
+
+	// load the oculus rift user profile
+	std::ifstream filestream;
+	filestream.open(filePath);
+
+	// set default data
+	oculusProfile.Name = "Default";
+	oculusProfile.Gender = "Unspecified";
+	oculusProfile.IPD = config.ipd;
+	oculusProfile.PlayerHeight = 1.0f;
+	oculusProfile.RiftVersion = "None";		
+
+	// user profile existing ? use default ipd-data from "user.cfg" file
+	if (!filestream.is_open())
+	{
+		OutputDebugString("No Oculus User Profile present.");
+		return false;
+	}
+
+	// loop through file data lines
+	OutputDebugString("Load Oculus User Profile.");
+	std::string currentUser = "";
+	std::string currentUserParsed = "";
+	std::string line_stream;    
+	while(std::getline(filestream, line_stream)){  
+
+		// get line data
+		std::stringstream str_stream(line_stream);
+		std::string type_str;
+		std::string data_str;
+		str_stream >> type_str >> data_str;
+
+		// erase unnecessarry characters
+		EraseCharacter(type_str, '"'); 
+		EraseCharacter(type_str, ':'); 
+		EraseCharacter(type_str, ','); 
+		EraseCharacter(type_str, ' ');
+
+		EraseCharacter(data_str, '"'); 
+		EraseCharacter(data_str, ':'); 
+		EraseCharacter(data_str, ','); 
+		EraseCharacter(data_str, ' ');		
+
+		// parse data
+		if(type_str == "CurrentProfile")
+		{
+			auto found = line_stream.find(data_str);
+			currentUser = line_stream.substr(found);
+			EraseCharacter(currentUser, '"');
+			EraseCharacter(currentUser, ':'); 
+			EraseCharacter(currentUser, ','); 
+		}
+		if(type_str == "Name")
+		{
+			auto found = line_stream.find(data_str);
+			currentUserParsed = line_stream.substr(found);
+			EraseCharacter(currentUserParsed, '"');
+			EraseCharacter(currentUserParsed, ':'); 
+			EraseCharacter(currentUserParsed, ','); 
+		}
+		if((type_str == "Name") && (currentUser.compare(currentUserParsed)==0))
+			oculusProfile.Name = currentUserParsed;
+		if((type_str == "Gender") && (currentUser.compare(currentUserParsed)==0))
+			oculusProfile.Gender = data_str;
+		if((type_str == "PlayerHeight") && (currentUser.compare(currentUserParsed)==0))
+		{
+			std::stringstream st(data_str);
+			st >> oculusProfile.PlayerHeight;
+		}
+		if((type_str == "IPD") && (currentUser.compare(currentUserParsed)==0))
+		{
+			std::stringstream st(data_str);
+			st >> oculusProfile.IPD;
+		}
+		if((type_str == "RiftDK1") && (currentUser.compare(currentUserParsed)==0))
+			oculusProfile.RiftVersion = "RiftDK1";
+	}
+
+	// set and save ipd
+	config.ipd = oculusProfile.IPD;
+	SaveUserConfig(oculusProfile.IPD);
+
+	// output data to debug console
+	OutputDebugString("Using Rift Profile:");
+	OutputDebugString(oculusProfile.Name.c_str());
+	OutputDebugString(oculusProfile.Gender.c_str());
+	OutputDebugString(oculusProfile.RiftVersion.c_str());
+	char buf[32];
+	sprintf_s(buf,"IPD: %g", oculusProfile.IPD);
+	OutputDebugString(buf);
+	sprintf_s(buf,"PlayerHeight: %g", oculusProfile.PlayerHeight);
+	OutputDebugString(buf);
+
 	return userFound;
 }
 
@@ -558,14 +677,14 @@ bool ProxyHelper::GetProfile(char* name, ProxyConfig& config) // TODO !!! fill c
 
 /**
 * Currently incomplete save game profile function.
-* @param sepAdjustment Seperation Adjustment.
+* @param convergence Convergence adjustment, in meters.
 * @param swap True to swap eye output.
 * @param yaw Yaw tracking multiplier.
 * @param pitch Pitch tracking multiplier.
 * @param roll Roll tracking multiplier.
 * @param worldScale Game world scaling.
 ***/
-bool ProxyHelper::SaveProfile(float sepAdjustment, bool swap, float yaw, float pitch, float roll, float worldScale)
+bool ProxyHelper::SaveProfile(float convergence, bool swap, float yaw, float pitch, float roll, float worldScale)
 {
 	// get the target exe
 	GetTargetExe();
@@ -606,7 +725,7 @@ bool ProxyHelper::SaveProfile(float sepAdjustment, bool swap, float yaw, float p
 	{
 		OutputDebugString("Save the settings to profile!!!\n");
 
-		gameProfile.attribute("separationAdjustment") = sepAdjustment;
+		gameProfile.attribute("convergence") = convergence;
 		gameProfile.attribute("swap_eyes") = swap;
 		gameProfile.attribute("yaw_multiplier") = yaw;
 		gameProfile.attribute("pitch_multiplier") = pitch;
