@@ -272,19 +272,19 @@ float ViewAdjustment::ChangeConvergence(float toAdd)
 }
 
 /**
-* Just sets world scale to 1.0f.
+* Just sets world scale to 3.0f.
 ***/
 void ViewAdjustment::ResetWorldScale()
 {
-	metersToWorldMultiplier = 1.0f;
+	metersToWorldMultiplier = 3.0f;
 }
 
 /**
-* Just sets convergence to zero.
+* Just sets convergence to 3.0f (= 3 physical meters).
 ***/
 void ViewAdjustment::ResetConvergence()
 {
-	convergence = 0.0f;
+	convergence = 3.0f;
 }
 
 /**

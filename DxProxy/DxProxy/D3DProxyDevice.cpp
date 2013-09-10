@@ -303,6 +303,13 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 
 	m_isFirstBeginSceneOfFrame = true; // TODO this can break if device present is followed by present on another swap chain... or not work well anyway
 
+	// SHOCT called here (if not source engine)
+	if(stereoView->game_type != D3DProxyDevice::SOURCE_L4D)
+	{
+		if ((SHOCT_mode>=1) && (SHOCT_mode<=2))
+			DrawSHOCT();
+	}
+
 	return BaseDirect3DDevice9::Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
 }
 
@@ -852,78 +859,15 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 }
 
 /**
-* Currently base functionality, SHOCT code here in semicolons.
+* SHOCT called here for source engine games.
 ***/
 HRESULT WINAPI D3DProxyDevice::EndScene()
 {	
-	/*
-	///// hud text
-
-	if(hudFont && SHOCT_mode !=0) {
-		char vcString[512];
-		int width = stereoView->viewport.Width;
-		int height = stereoView->viewport.Height;
-
-		float horWidth = 0.15f;
-		int beg = (int)(width*(1.0f-horWidth)/2.0);
-		int end = (int)(width*(0.5f+(horWidth/2.0f)));
-
-		int hashTop = (int)(height * 0.48f);
-		int hashBottom = (int)(height * 0.52f);
-
-		RECT rec2 = {(int)(width*0.27f), (int)(height*0.3f),width,height};
-		sprintf_s(vcString, 512, "Schneider-Hicks Optical Calibration Tool (S.H.O.C.T.).\n");
-		hudFont->DrawText(NULL, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));
-
-
-		if(SHOCT_mode == 1){//Separation mode
-			if((eyeShutter > 0 && stereoView->swapEyes == false) || (eyeShutter < 0 && stereoView->swapEyes == true)) {// left eye
-				//eye center line
-				ClearVLine(this, (int)(width/2 + (config.centerlineL * width)), 0, (int)(width/2 + (config.centerlineL * width)), height, 1, D3DCOLOR_ARGB(255,255,0,0));
-			}else{// right eye
-				ClearVLine(this, (int)(width/2 + (config.centerlineR * width)), 0, (int)(width/2 + (config.centerlineR * width)), height, 1, D3DCOLOR_ARGB(255,255,0,0));
-			}
-		}
-		if(SHOCT_mode == 2){//Convergence mode
-			//screen center line
-			ClearVLine(this,width/2,0,width/2, height,1,D3DCOLOR_ARGB(255,0,0,255));
-			if((eyeShutter > 0 && stereoView->swapEyes == false) || (eyeShutter < 0 && stereoView->swapEyes == true)) {// left eye
-				// horizontal line
-				ClearHLine(this,beg,(height/2),end, (height/2),1,D3DCOLOR_ARGB(255,0,0,255));
-
-				// hash lines
-				int hashNum = 10;
-				float hashSpace = horWidth*width / (float)hashNum;
-				for(int i=0; i<=hashNum; i++) {
-					ClearVLine(this,beg+(int)(i*hashSpace),hashTop,beg+(int)(i*hashSpace),hashBottom,1,D3DCOLOR_ARGB(255,255,255,0));
-				}
-
-				RECT rec2 = {(int)(width*0.37f), (int)(height*0.525f), width, height};
-				sprintf_s(vcString, 512, "Positive Parallax");
-				hudFont->DrawText(NULL, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));
-
-				rec2.left = (int)(width *0.52f);
-				sprintf_s(vcString, 512, "Negative Parallax");
-				hudFont->DrawText(NULL, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));
-
-			}else{// right eye
-				RECT rec2 = {(int)(width*0.37f), (int)(height*0.44f), width, height};
-				sprintf_s(vcString, 512, "Walk up as close as possible to a 90 degree\n vertical object, and align this line with its edge.\n Good examples include a wall, corner, a table corner,\n a squared post, etc.");
-				hudFont->DrawText(NULL, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));
-			}
-		}
-
-		rec2.left = (int)(width*0.35f);
-		rec2.top = (int)(height*0.33f);
-		if(SHOCT_mode == 1)
-			sprintf_s(vcString, 512, "Separation");
-		if(SHOCT_mode == 2)
-			sprintf_s(vcString, 512, "Convergence");
-		hudFont->DrawText(NULL, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));
-
+	if(stereoView->game_type == D3DProxyDevice::SOURCE_L4D)
+	{
+		if ((SHOCT_mode>=1) && (SHOCT_mode<=2))
+			DrawSHOCT();
 	}
-	/////
-	*/
 	return BaseDirect3DDevice9::EndScene();
 }
 
@@ -1904,9 +1848,9 @@ void D3DProxyDevice::HandleControls()
 {
 	// helpers
 	bool anyKeyPressed = false;
-	float keySpeed = 0.001f; //0.00002f;
+	float keySpeed = 0.001f;
 	float seperationChange = 0.05f; 
-	float convergenceChange = 0.001f;
+	float convergenceChange = 0.05f;
 	float mouseSpeed = 0.25f;
 	float rollSpeed = 0.01f;
 
@@ -1935,108 +1879,108 @@ void D3DProxyDevice::HandleControls()
 		//}
 
 		//////////  SHOCT non numpad
-		/*if(KEY_DOWN(0x4F))// VK_KEY_O
+		if(KEY_DOWN(0x4F))// VK_KEY_O
 		{
-		centerlineL  -= keySpeed/2.0f;
-		saveWaitCount = 500;
-		doSaveNext = true;
-		anyKeyPressed = true;
+			centerlineL  -= keySpeed/2.0f;
+			saveWaitCount = 500;
+			doSaveNext = true;
+			anyKeyPressed = true;
 		}
 		if(KEY_DOWN(0x50))// VK_KEY_P
 		{
-		centerlineL  += keySpeed/2.0f;
-		saveWaitCount = 500;
-		doSaveNext = true;
-		anyKeyPressed = true;
+			centerlineL  += keySpeed/2.0f;
+			saveWaitCount = 500;
+			doSaveNext = true;
+			anyKeyPressed = true;
 		}
 
 		if(KEY_DOWN(0x4B))//VK_KEY_K
 		{
-		centerlineR  -= keySpeed/2.0f;
-		saveWaitCount = 500;
-		doSaveNext = true;
-		anyKeyPressed = true;
+			centerlineR  -= keySpeed/2.0f;
+			saveWaitCount = 500;
+			doSaveNext = true;
+			anyKeyPressed = true;
 		}
 		if(KEY_DOWN(0x4C))//VK_KEY_L
 		{
-		centerlineR  += keySpeed/2.0f;
-		saveWaitCount = 500;
-		doSaveNext = true;
-		anyKeyPressed = true;
+			centerlineR  += keySpeed/2.0f;
+			saveWaitCount = 500;
+			doSaveNext = true;
+			anyKeyPressed = true;
 		}
 
 		if(KEY_DOWN(0x49) && KEY_DOWN(VK_CONTROL))//VK_KEY_I		// Schneider-Hicks VR Calibration Tool
 		{
-		if(keyWaitCount <= 0)
-		{
-		SHOCT_mode++;
-		SHOCT_mode %= 3;
-		if(SHOCT_mode == 0){//off
-		trackingOn = true;
-		}
-		if(SHOCT_mode == 1){// seperation
-		trackingOn = false;
-		}
-		if(SHOCT_mode == 2){// convergence
-		trackingOn = false;
-		}
-		keyWaitCount = 50;
-		}
+			if(keyWaitCount <= 0)
+			{
+				SHOCT_mode++;
+				SHOCT_mode %= 3;
+				if(SHOCT_mode == 0){//off
+					trackingOn = true;
+				}
+				if(SHOCT_mode == 1){// seperation
+					trackingOn = false;
+				}
+				if(SHOCT_mode == 2){// convergence
+					trackingOn = false;
+				}
+				keyWaitCount = 50;
+			}
 
-		anyKeyPressed = true;
+			anyKeyPressed = true;
 		}
 		//////////
 
 		//////////  SHOCT numpad
 		if(KEY_DOWN(VK_NUMPAD1))
 		{
-		centerlineL  -= keySpeed/2.0f;
-		saveWaitCount = 500;
-		doSaveNext = true;
-		anyKeyPressed = true;
+			centerlineL  -= keySpeed/2.0f;
+			saveWaitCount = 500;
+			doSaveNext = true;
+			anyKeyPressed = true;
 		}
 		if(KEY_DOWN(VK_NUMPAD2))
 		{
-		centerlineL  += keySpeed/2.0f;
-		saveWaitCount = 500;
-		doSaveNext = true;
-		anyKeyPressed = true;
+			centerlineL  += keySpeed/2.0f;
+			saveWaitCount = 500;
+			doSaveNext = true;
+			anyKeyPressed = true;
 		}
 
 		if(KEY_DOWN(VK_NUMPAD4))
 		{
-		centerlineR  -= keySpeed/2.0f;
-		saveWaitCount = 500;
-		doSaveNext = true;
-		anyKeyPressed = true;
+			centerlineR  -= keySpeed/2.0f;
+			saveWaitCount = 500;
+			doSaveNext = true;
+			anyKeyPressed = true;
 		}
 		if(KEY_DOWN(VK_NUMPAD5))
 		{
-		centerlineR  += keySpeed/2.0f;
-		saveWaitCount = 500;
-		doSaveNext = true;
-		anyKeyPressed = true;
+			centerlineR  += keySpeed/2.0f;
+			saveWaitCount = 500;
+			doSaveNext = true;
+			anyKeyPressed = true;
 		}
 
 		if(KEY_DOWN(VK_MULTIPLY) && KEY_DOWN(VK_SHIFT))		// Schneider-Hicks VR Calibration Tool
 		{
-		if(keyWaitCount <= 0)
-		{
-		SHOCT_mode++;
-		SHOCT_mode %= 3;
-		if(SHOCT_mode == 0){//off
-		trackingOn = true;
+			if(keyWaitCount <= 0)
+			{
+				SHOCT_mode++;
+				SHOCT_mode %= 3;
+				if(SHOCT_mode == 0){//off
+					trackingOn = true;
+				}
+				if(SHOCT_mode == 1){// seperation
+					trackingOn = false;
+				}
+				if(SHOCT_mode == 2){// convergence
+					trackingOn = false;
+				}
+				keyWaitCount = 50;
+			}
+			anyKeyPressed = true;
 		}
-		if(SHOCT_mode == 1){// seperation
-		trackingOn = false;
-		}
-		if(SHOCT_mode == 2){// convergence
-		trackingOn = false;
-		}
-		keyWaitCount = 50;
-		}
-		anyKeyPressed = true;
-		}*/
 		//////////////////////////////////////////////////////////////////////////////////////////////
 
 		/**
@@ -2171,7 +2115,7 @@ void D3DProxyDevice::HandleControls()
 				tracker->multiplierYaw = 25.0f;
 				tracker->multiplierPitch = 25.0f;
 				tracker->multiplierRoll = 1.0f;
-				
+
 				saveWaitCount = 500;
 				doSaveNext = true;
 			}
@@ -2188,15 +2132,15 @@ void D3DProxyDevice::HandleControls()
 		// TODO !! matrix index ?? not used in old version either
 		/*if(KEY_DOWN(VK_F7) && keyWaitCount <= 0)
 		{
-			matrixIndex++;
-			if(matrixIndex > 15) 
-			{
-				matrixIndex = 0;
-			}
-			keyWaitCount = 200;
-			anyKeyPressed = true;
+		matrixIndex++;
+		if(matrixIndex > 15) 
+		{
+		matrixIndex = 0;
+		}
+		keyWaitCount = 200;
+		anyKeyPressed = true;
 		}*/
-				
+
 		/**
 		* F8 : Decrease tracker yaw multiplier
 		* SHIFT-F8 : Decrease tracker pitch multiplier
@@ -2612,6 +2556,118 @@ void D3DProxyDevice::ReleaseEverything()
 		m_pActiveVertexDeclaration->Release();
 		m_pActiveVertexDeclaration = NULL;
 	}
+}
+
+/**
+* Draw the Schneider-Hicks Optical Calibration Tool.
+***/
+void D3DProxyDevice::DrawSHOCT()
+{
+	///// hud text
+	if(hudFont){
+
+		// watch HMDInfo::LeftLensCenterAsPercentage() for this formular
+		// TODO !! setup HMDInfo::physicalLensSeparation to match the configured IPD (is currently default
+		// IPD = 0.064f)
+		float LeftLensCenterAsPercentage = ((m_spShaderViewAdjustment->HMDInfo().physicalScreenSize.first / 2.0f) - 
+			(/*m_spShaderViewAdjustment->HMDInfo().physicalLensSeparation*/config.ipd  / 2.0f)) / 
+			(m_spShaderViewAdjustment->HMDInfo().physicalScreenSize.first);
+
+		// should be the right formular, note to ADD lens center offset 
+		float ScreenCenterAsPercentage = LeftLensCenterAsPercentage + m_spShaderViewAdjustment->HMDInfo().lensXCenterOffset;
+
+		char vcString[512];
+		int width = stereoView->viewport.Width;
+		int height = stereoView->viewport.Height;
+
+		float horWidth = 0.15f;
+		int beg = (int)(width*(1.0f-horWidth)/2.0) + (int)(ScreenCenterAsPercentage * width * 0.25f);
+		int end = (int)(width*(0.5f+(horWidth/2.0f))) + (int)(ScreenCenterAsPercentage * width * 0.25f);
+
+		int hashTop = (int)(height * 0.48f);
+		int hashBottom = (int)(height * 0.52f);
+
+		RECT rec2 = {(int)(width*0.27f), (int)(height*0.3f),width,height};
+		sprintf_s(vcString, 512, "Schneider-Hicks Optical Calibration Tool (S.H.O.C.T.).\n");
+		hudFont->DrawText(NULL, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));
+
+		// Seperation mode (= world scale mode)
+		if(SHOCT_mode == 1)
+		{
+			// Note that the default left screen is on the physical right side of the users view,
+			// the default right screen on the physical left screen. (swapped if swap_eyes==true)
+
+			// draw left line (using BaseDirect3DDevice9, since otherwise we have two lines)
+			D3DRECT rec3 = {(int)(width/2 + ((centerlineL-LeftLensCenterAsPercentage) * width * 0.25f))-1, 0,
+				(int)(width/2 + ((centerlineL-LeftLensCenterAsPercentage) * width * 0.25f))+1,height};
+			ClearRect(vireio::RenderPosition::Left, rec3, D3DCOLOR_ARGB(255,255,0,0));
+
+			// draw right line (using BaseDirect3DDevice9, since otherwise we have two lines)
+			D3DRECT rec4 = {(int)(width/2 + ((centerlineR+LeftLensCenterAsPercentage) * width * 0.25f))-1, 0,
+				(int)(width/2 + ((centerlineR+LeftLensCenterAsPercentage) * width * 0.25f))+1,height};
+			ClearRect(vireio::RenderPosition::Right, rec4, D3DCOLOR_ARGB(255,255,0,0));
+		}
+		// Convergence mode
+		if(SHOCT_mode == 2)
+		{
+			//screen center line
+
+			// draw left line (using BaseDirect3DDevice9, since otherwise we have two lines)
+			D3DRECT rec3 = {(int)(width/2 + (-ScreenCenterAsPercentage * width * 0.25f))-1, 0,
+				(int)(width/2 + (-ScreenCenterAsPercentage * width * 0.25f))+1,height};
+			ClearRect(vireio::RenderPosition::Left, rec3, D3DCOLOR_ARGB(255,0,0,255));
+
+			// draw right line (using BaseDirect3DDevice9, since otherwise we have two lines)
+			D3DRECT rec4 = {(int)(width/2 + (ScreenCenterAsPercentage * width * 0.25f))-1, 0,
+				(int)(width/2 + (ScreenCenterAsPercentage * width * 0.25f))+1,height};
+			ClearRect(vireio::RenderPosition::Right, rec4, D3DCOLOR_ARGB(255,0,0,255));
+
+			// horizontal line
+			D3DRECT rec5 = {beg, (height/2)-1, end, (height/2)+1 };
+			ClearRect(vireio::RenderPosition::Right, rec5, D3DCOLOR_ARGB(255,0,0,255));
+
+			// hash lines
+			int hashNum = 10;
+			float hashSpace = horWidth*width / (float)hashNum;
+			for(int i=0; i<=hashNum; i++) {
+				D3DRECT rec5 = {beg+(int)(i*hashSpace)-1, hashTop, beg+(int)(i*hashSpace)+1, hashBottom};
+				ClearRect(vireio::RenderPosition::Right, rec5, D3DCOLOR_ARGB(255,255,255,0));
+			}
+
+			/*RECT rec2 = {(int)(width*0.37f), (int)(height*0.525f), width, height};
+			sprintf_s(vcString, 512, "Positive Parallax");
+			hudFont->DrawText(NULL, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));
+
+			rec2.left = (int)(width *0.52f);
+			sprintf_s(vcString, 512, "Negative Parallax");
+			hudFont->DrawText(NULL, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));*/
+
+			// draw description
+			RECT rec7 = {(int)(width*0.37f), (int)(height*0.59f), width, height};
+			sprintf_s(vcString, 512, "Walk up as close as possible to a 90 degree\n vertical object, and align this line with its edge.\n Good examples include a wall, corner, a table corner,\n a squared post, etc.");
+			hudFont->DrawText(NULL, vcString, -1, &rec7, 0, D3DCOLOR_ARGB(255,255,255,255));
+		}
+
+		rec2.left = (int)(width*0.35f);
+		rec2.top = (int)(height*0.33f);
+		if(SHOCT_mode == 1)
+			sprintf_s(vcString, 512, "Separation");
+		if(SHOCT_mode == 2)
+			sprintf_s(vcString, 512, "Convergence");
+		hudFont->DrawText(NULL, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));
+	}
+}
+
+/**
+* Simple helper to clear a rectangle using the specified color.
+* @param renderPosition Left or Right render target to be used.
+* @param rect The rectangle in pixel space to be cleared.
+* @param color The direct 3d color to be used.
+***/
+void D3DProxyDevice::ClearRect(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color)
+{
+	setDrawingSide(renderPosition);
+	BaseDirect3DDevice9::Clear(1, &rect, D3DCLEAR_TARGET, color, 0, 0);
 }
 
 /**

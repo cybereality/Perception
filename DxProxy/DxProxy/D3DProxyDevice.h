@@ -147,6 +147,9 @@ public:
 	* probably become part of a debug/diagnostic mode.
 	* TODO SOURCE_L4D is used in StereoView to change behaviour of state save/load to prevent
 	* issues in hl2 (and probably other source games)
+	*
+	* Update: No, we will still use these ProxyTypes to determine either to draw SHOCT in 
+	* EndScene() or in Present().
 	***/
 	enum ProxyTypes
 	{
@@ -221,7 +224,19 @@ public:
 	**/
 	MotionTracker* tracker;
 	/**
-	* HUD font to be uses for SHOCT.
+	* Schneider-Hicks Optical Calibration Tool GUI mode.
+	**/
+	int SHOCT_mode;
+	/**
+	* Schneider-Hicks Optical Calibration Tool center of right line.
+	**/
+	float centerlineR;
+	/**
+	* Schneider-Hicks Optical Calibration Tool center of left line.
+	**/
+	float centerlineL;
+	/**
+	* HUD font to be used for SHOCT.
 	**/
 	ID3DXFont *hudFont;
 	/**
@@ -236,10 +251,6 @@ public:
 	* Currently not used.
 	**/
 	bool *m_keys;
-	/**
-	* Currently not used SHOCT GUI mode.
-	**/
-	int SHOCT_mode;
 
 protected:
 	/*** D3DProxyDevice protected methods ***/
@@ -267,6 +278,8 @@ protected:
 private:
 	/*** D3DProxyDevice private methods ***/
 	void    ReleaseEverything();
+	void    DrawSHOCT();
+	void    ClearRect(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color);
 	bool    isViewportDefaultForMainRT(CONST D3DVIEWPORT9* pViewport);
 	HRESULT SetStereoViewTransform(D3DXMATRIX pLeftMatrix, D3DXMATRIX pRightMatrix, bool apply);
 	HRESULT SetStereoProjectionTransform(D3DXMATRIX pLeftMatrix, D3DXMATRIX pRightMatrix, bool apply);
