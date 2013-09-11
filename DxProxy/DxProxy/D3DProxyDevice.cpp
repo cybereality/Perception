@@ -2594,44 +2594,59 @@ void D3DProxyDevice::DrawSHOCT()
 		// Seperation mode (= world scale mode)
 		if(SHOCT_mode == 1)
 		{
-			// Note that the default left screen is on the physical right side of the users view,
-			// the default right screen on the physical left screen. (swapped if swap_eyes==true)
-
 			// draw left line (using BaseDirect3DDevice9, since otherwise we have two lines)
-			D3DRECT rec3 = {(int)(width/2 + ((centerlineL-LeftLensCenterAsPercentage) * width * 0.25f))-1, 0,
-				(int)(width/2 + ((centerlineL-LeftLensCenterAsPercentage) * width * 0.25f))+1,height};
-			ClearRect(vireio::RenderPosition::Left, rec3, D3DCOLOR_ARGB(255,255,0,0));
-
-			// draw right line (using BaseDirect3DDevice9, since otherwise we have two lines)
 			D3DRECT rec4 = {(int)(width/2 + ((centerlineR+LeftLensCenterAsPercentage) * width * 0.25f))-1, 0,
 				(int)(width/2 + ((centerlineR+LeftLensCenterAsPercentage) * width * 0.25f))+1,height};
-			ClearRect(vireio::RenderPosition::Right, rec4, D3DCOLOR_ARGB(255,255,0,0));
+			if (!config.swap_eyes)
+				ClearRect(vireio::RenderPosition::Left, rec4, D3DCOLOR_ARGB(255,255,0,0));
+			else
+				ClearRect(vireio::RenderPosition::Right, rec4, D3DCOLOR_ARGB(255,255,0,0));
+
+			// draw right line (using BaseDirect3DDevice9, since otherwise we have two lines)
+			D3DRECT rec3 = {(int)(width/2 + ((centerlineL-LeftLensCenterAsPercentage) * width * 0.25f))-1, 0,
+				(int)(width/2 + ((centerlineL-LeftLensCenterAsPercentage) * width * 0.25f))+1,height};
+			if (!config.swap_eyes)
+				ClearRect(vireio::RenderPosition::Right, rec3, D3DCOLOR_ARGB(255,255,0,0));
+			else
+				ClearRect(vireio::RenderPosition::Left, rec3, D3DCOLOR_ARGB(255,255,0,0));
 		}
 		// Convergence mode
 		if(SHOCT_mode == 2)
 		{
 			//screen center line
 
-			// draw left line (using BaseDirect3DDevice9, since otherwise we have two lines)
+			// draw right line (using BaseDirect3DDevice9, since otherwise we have two lines)
 			D3DRECT rec3 = {(int)(width/2 + (-ScreenCenterAsPercentage * width * 0.25f))-1, 0,
 				(int)(width/2 + (-ScreenCenterAsPercentage * width * 0.25f))+1,height};
-			ClearRect(vireio::RenderPosition::Left, rec3, D3DCOLOR_ARGB(255,0,0,255));
+			if (!config.swap_eyes)
+				ClearRect(vireio::RenderPosition::Right, rec3, D3DCOLOR_ARGB(255,0,0,255));
+			else
+				ClearRect(vireio::RenderPosition::Left, rec3, D3DCOLOR_ARGB(255,0,0,255));
 
-			// draw right line (using BaseDirect3DDevice9, since otherwise we have two lines)
+			// draw left line (using BaseDirect3DDevice9, since otherwise we have two lines)
 			D3DRECT rec4 = {(int)(width/2 + (ScreenCenterAsPercentage * width * 0.25f))-1, 0,
 				(int)(width/2 + (ScreenCenterAsPercentage * width * 0.25f))+1,height};
-			ClearRect(vireio::RenderPosition::Right, rec4, D3DCOLOR_ARGB(255,0,0,255));
+			if (!config.swap_eyes)
+				ClearRect(vireio::RenderPosition::Left, rec4, D3DCOLOR_ARGB(255,0,0,255));
+			else
+				ClearRect(vireio::RenderPosition::Right, rec4, D3DCOLOR_ARGB(255,0,0,255));
 
 			// horizontal line
 			D3DRECT rec5 = {beg, (height/2)-1, end, (height/2)+1 };
-			ClearRect(vireio::RenderPosition::Right, rec5, D3DCOLOR_ARGB(255,0,0,255));
+			if (!config.swap_eyes)
+				ClearRect(vireio::RenderPosition::Left, rec5, D3DCOLOR_ARGB(255,0,0,255));
+			else
+				ClearRect(vireio::RenderPosition::Right, rec5, D3DCOLOR_ARGB(255,0,0,255));
 
 			// hash lines
 			int hashNum = 10;
 			float hashSpace = horWidth*width / (float)hashNum;
 			for(int i=0; i<=hashNum; i++) {
 				D3DRECT rec5 = {beg+(int)(i*hashSpace)-1, hashTop, beg+(int)(i*hashSpace)+1, hashBottom};
-				ClearRect(vireio::RenderPosition::Right, rec5, D3DCOLOR_ARGB(255,255,255,0));
+				if (!config.swap_eyes)
+					ClearRect(vireio::RenderPosition::Left, rec5, D3DCOLOR_ARGB(255,255,255,0));
+				else
+					ClearRect(vireio::RenderPosition::Right, rec5, D3DCOLOR_ARGB(255,255,255,0));
 			}
 
 			/*RECT rec2 = {(int)(width*0.37f), (int)(height*0.525f), width, height};
