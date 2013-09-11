@@ -28,6 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "MatrixIgnoreOrtho.h"
 #include "MatrixDoNothing.h"
 #include "MatrixHudSquash.h"
+#include "MatrixOrthoSquash.h"
 
 /**
 * Shader constant modification helper class.
@@ -51,6 +52,7 @@ public:
 	{
 		MatDoNothing = 0,                  /**< Simple modification that does not apply anything. **/
 		MatSimpleTranslate = 1,            /**< Default modification is simple translate. **/
+		MatOrthographicSquash = 2,         /**< Squashes matrix if orthographic, otherwise simple translate. **/
 		MatSimpleTranslateIgnoreOrtho = 3, /**< Modification to ignore orthographic matrices. **/
 		MatHudSquash = 4                   /**< Modification to squash the head-up display(HUD). **/
 	};
@@ -102,6 +104,9 @@ public:
 
 		case MatSimpleTranslate:
 			return std::make_shared<ShaderMatrixModification>(mod, adjustmentMatricies, transpose);
+
+		case MatOrthographicSquash:
+			return std::make_shared<MatrixOrthoSquash>(mod, adjustmentMatricies, transpose);
 			
 		case MatSimpleTranslateIgnoreOrtho:
 			return std::make_shared<MatrixIgnoreOrtho>(mod, adjustmentMatricies, transpose);
