@@ -138,7 +138,7 @@ public:
 	HRESULT WINAPI CreateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample, DWORD MultisampleQuality,BOOL Lockable,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle, bool isBackBufferOfPrimarySwapChain);
 	virtual void   Init(ProxyHelper::ProxyConfig& cfg);
 	void           SetupText();
-	void           HandleControls(void);
+	virtual void   HandleControls(void);
 	void           HandleTracking(void);
 
 	/**
@@ -257,6 +257,9 @@ protected:
 	virtual void OnCreateOrRestore();	
 	virtual bool setDrawingSide(vireio::RenderPosition side);
 	bool         switchDrawingSide();
+	void         addRule(std::string constantName, bool allowPartialNameMatch, UINT startRegIndex, D3DXPARAMETER_CLASS constantType, UINT operationToApply, bool transpose);
+	void         saveShaderRules();
+	void         ClearRect(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color);
 
 	/**
 	* Current drawing side, only changed in setDrawingSide().
@@ -279,7 +282,6 @@ private:
 	/*** D3DProxyDevice private methods ***/
 	void    ReleaseEverything();
 	void    DrawSHOCT();
-	void    ClearRect(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color);
 	bool    isViewportDefaultForMainRT(CONST D3DVIEWPORT9* pViewport);
 	HRESULT SetStereoViewTransform(D3DXMATRIX pLeftMatrix, D3DXMATRIX pRightMatrix, bool apply);
 	HRESULT SetStereoProjectionTransform(D3DXMATRIX pLeftMatrix, D3DXMATRIX pRightMatrix, bool apply);

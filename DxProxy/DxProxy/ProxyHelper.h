@@ -83,7 +83,7 @@ public:
 	bool  SaveUserConfig(float ipd = IPD_DEFAULT);
 	bool  HasProfile(char* name);
 	bool  GetProfile(char* name, ProxyConfig& config);
-	bool  SaveProfile(float convergence = 0.0f, bool swap_eyes = false, float yaw = 25.0f, float pitch = 25.0f, float roll = 1.0f, float worldScale = 1.0f);
+	bool  SaveProfile(std::string shaderRulePath = "", float convergence = 0.0f, bool swap_eyes = false, float yaw = 25.0f, float pitch = 25.0f, float roll = 1.0f, float worldScale = 1.0f);
 
 	/**
 	* True if base directory path loaded.

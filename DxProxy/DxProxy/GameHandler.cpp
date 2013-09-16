@@ -42,11 +42,11 @@ GameHandler::~GameHandler()
 /**
 * Loads the shader view adjustments for the handled game.
 * @param cfg The game configuration.
-* @param spShaderViewAdjustments 
+* @param spShaderViewAdjustments The view adjustments pointer.
 ***/
 bool GameHandler::Load(ProxyHelper::ProxyConfig& cfg, std::shared_ptr<ViewAdjustment> spShaderViewAdjustments)
 {
-	// Get rid of existing modification repository if there is one (shouldn't be, load should only need to be called once)
+	// Get rid of existing modification repository if there is one
 	if (m_ShaderModificationRepository) {
 		delete m_ShaderModificationRepository;
 		m_ShaderModificationRepository = nullptr;
@@ -66,6 +66,28 @@ bool GameHandler::Load(ProxyHelper::ProxyConfig& cfg, std::shared_ptr<ViewAdjust
 	else {
 		OutputDebugString("No shader rule path found. No rules to apply");
 		// We call this success as we have successfully loaded nothing. We assume 'no rules' is intentional
+	}	
+
+	return true;
+}
+
+/**
+* Saves the shader view adjustments for the handled game.
+* @param cfg The game configuration.
+* @param spShaderViewAdjustments The view adjustments pointer.
+***/
+bool GameHandler::Save(ProxyHelper::ProxyConfig& cfg, std::shared_ptr<ViewAdjustment> spShaderViewAdjustments)
+{
+	OutputDebugString("Save shader rules...");
+
+	// if (game profile has shader rules path) and (modification repository present)
+	if ((!cfg.shaderRulePath.empty()) && (m_ShaderModificationRepository)) {
+		if (!m_ShaderModificationRepository->SaveRules(cfg.shaderRulePath)) {
+			OutputDebugString("Rules failed to save.");
+		}
+	}
+	else {
+		OutputDebugString("No shader rule path found. No rules to save.");
 	}	
 
 	return true;
@@ -122,6 +144,20 @@ bool GameHandler::ShouldDuplicateCubeTexture(UINT EdgeLength, UINT Levels, DWORD
 	//TODO implementation
 	// IF render target then check render target rules?
 	return IS_RENDER_TARGET(Usage);
+}
+
+/**
+* Add a default rule to the existing shader modification repository or create a new and add.
+***/
+void GameHandler::AddRule(std::shared_ptr<ViewAdjustment> spShaderViewAdjustments, std::string constantName, bool allowPartialNameMatch, UINT startRegIndex, D3DXPARAMETER_CLASS constantType, UINT operationToApply, bool transpose)
+{
+	// repository present ?
+	if (!m_ShaderModificationRepository)
+		m_ShaderModificationRepository = new ShaderModificationRepository(spShaderViewAdjustments);
+
+	// get unique id and add rule
+	UINT uniqueID = m_ShaderModificationRepository->GetUniqueRuleID();
+	m_ShaderModificationRepository->AddRule(constantName, allowPartialNameMatch, startRegIndex, constantType, operationToApply, uniqueID, transpose);
 }
 
 /**

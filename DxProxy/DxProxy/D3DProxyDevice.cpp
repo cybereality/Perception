@@ -304,7 +304,7 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 	m_isFirstBeginSceneOfFrame = true; // TODO this can break if device present is followed by present on another swap chain... or not work well anyway
 
 	// SHOCT called here (if not source engine)
-	if(stereoView->game_type != D3DProxyDevice::SOURCE_L4D)
+	if((stereoView->game_type != D3DProxyDevice::SOURCE_L4D) && (stereoView->game_type != D3DProxyDevice::ADVANCED_SKYRIM))
 	{
 		if ((SHOCT_mode>=1) && (SHOCT_mode<=2))
 			DrawSHOCT();
@@ -863,7 +863,7 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 ***/
 HRESULT WINAPI D3DProxyDevice::EndScene()
 {	
-	if(stereoView->game_type == D3DProxyDevice::SOURCE_L4D)
+	if((stereoView->game_type == D3DProxyDevice::SOURCE_L4D) || (stereoView->game_type == D3DProxyDevice::ADVANCED_SKYRIM))
 	{
 		if ((SHOCT_mode>=1) && (SHOCT_mode<=2))
 			DrawSHOCT();
@@ -885,7 +885,7 @@ HRESULT WINAPI D3DProxyDevice::Clear(DWORD Count,CONST D3DRECT* pRects,DWORD Fla
 			if (FAILED(hr = BaseDirect3DDevice9::Clear(Count, pRects, Flags, Color, Z, Stencil))) {
 
 #ifdef _DEBUG
-
+				// TODO !! Deus Ex fails when trying to clear resulting in depth buffer issues.
 				char buf[256];
 				sprintf_s(buf, "Error: %s error description: %s\n",
 					DXGetErrorString(hr), DXGetErrorDescription(hr));
@@ -2483,6 +2483,37 @@ bool D3DProxyDevice::switchDrawingSide()
 }
 
 /**
+* Adds a default shader rule to the game configuration.
+***/
+void D3DProxyDevice::addRule(std::string constantName, bool allowPartialNameMatch, UINT startRegIndex, D3DXPARAMETER_CLASS constantType, UINT operationToApply, bool transpose)
+{
+	m_pGameHandler->AddRule(m_spShaderViewAdjustment, constantName, allowPartialNameMatch, startRegIndex, constantType, operationToApply, transpose);
+}
+
+/**
+* Saves current game shader rules (and game configuration).
+***/
+void D3DProxyDevice::saveShaderRules()
+{ 
+	m_pGameHandler->Save(config, m_spShaderViewAdjustment);
+
+	ProxyHelper* helper = new ProxyHelper();
+	helper->SaveConfig(config);
+}
+
+/**
+* Simple helper to clear a rectangle using the specified color.
+* @param renderPosition Left or Right render target to be used.
+* @param rect The rectangle in pixel space to be cleared.
+* @param color The direct 3d color to be used.
+***/
+void D3DProxyDevice::ClearRect(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color)
+{
+	setDrawingSide(renderPosition);
+	BaseDirect3DDevice9::Clear(1, &rect, D3DCLEAR_TARGET, color, 0, 0);
+}
+
+/**
 * Releases HUD font, shader registers, render targets, texture stages, vertex buffers, depth stencils, indices, shaders, declarations.
 ***/
 void D3DProxyDevice::ReleaseEverything()
@@ -2671,18 +2702,6 @@ void D3DProxyDevice::DrawSHOCT()
 			sprintf_s(vcString, 512, "Convergence");
 		hudFont->DrawText(NULL, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));
 	}
-}
-
-/**
-* Simple helper to clear a rectangle using the specified color.
-* @param renderPosition Left or Right render target to be used.
-* @param rect The rectangle in pixel space to be cleared.
-* @param color The direct 3d color to be used.
-***/
-void D3DProxyDevice::ClearRect(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color)
-{
-	setDrawingSide(renderPosition);
-	BaseDirect3DDevice9::Clear(1, &rect, D3DCLEAR_TARGET, color, 0, 0);
 }
 
 /**

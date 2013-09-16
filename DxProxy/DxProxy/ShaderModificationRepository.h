@@ -47,8 +47,11 @@ public:
 	virtual ~ShaderModificationRepository();
 
 	/*** ShaderModificationRepository public methods ***/
-	bool                                        LoadRules(std::string rulesPath); 	
+	bool                                        LoadRules(std::string rulesPath);
+	bool                                        SaveRules(std::string rulesPath);
+	void                                        AddRule(std::string constantName, bool allowPartialNameMatch, UINT startRegIndex, D3DXPARAMETER_CLASS constantType, UINT operationToApply, UINT modificationRuleID, bool transpose);
 	std::map<UINT, StereoShaderConstant<float>> GetModifiedConstantsF(IDirect3DVertexShader9* pActualVertexShader);
+	UINT                                        GetUniqueRuleID();
 
 private:
 	/**
@@ -97,13 +100,13 @@ private:
 		***/
 		static D3DXPARAMETER_CLASS ConstantTypeFrom(std::string type) 
 		{
-			if (type.compare("MatrixC")) {
+			if (type.compare("MatrixC") == 0) {
 				return D3DXPC_MATRIX_COLUMNS;
 			}
-			else if (type.compare("MatrixR")) {
+			else if (type.compare("MatrixR") == 0) {
 				return D3DXPC_MATRIX_ROWS;
 			}
-			else if (type.compare("Vector")) {
+			else if (type.compare("Vector") == 0) {
 				return D3DXPC_VECTOR;
 			}
 			else {
@@ -113,6 +116,27 @@ private:
 
 				return D3DXPC_FORCE_DWORD;
 			}
+		}
+
+		/**
+		* Returns string from D3DXPARAMETER_CLASS constant type.
+		* @param paramClass [in] The constant type.
+		***/
+		static std::string ConstantStringFrom(D3DXPARAMETER_CLASS paramClass)
+		{
+			switch(paramClass)
+			{
+			case D3DXPARAMETER_CLASS::D3DXPC_MATRIX_COLUMNS:
+				return "MatrixC";
+				break;
+			case D3DXPARAMETER_CLASS::D3DXPC_MATRIX_ROWS:
+				return "MatrixR";
+				break;
+			case D3DXPARAMETER_CLASS::D3DXPC_VECTOR:
+				return "Vector";
+				break;
+			}
+			return "Unknown";
 		}
 
 		/**

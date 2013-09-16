@@ -346,7 +346,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 ***/
 bool ProxyHelper::SaveConfig(ProxyConfig& cfg)
 {
-	SaveProfile(cfg.convergence, cfg.swap_eyes, cfg.yaw_multiplier, cfg.pitch_multiplier, cfg.roll_multiplier, cfg.worldScaleFactor);
+	SaveProfile(cfg.shaderRulePath, cfg.convergence, cfg.swap_eyes, cfg.yaw_multiplier, cfg.pitch_multiplier, cfg.roll_multiplier, cfg.worldScaleFactor);
 	return SaveUserConfig(cfg.ipd);
 }
 
@@ -456,7 +456,7 @@ bool ProxyHelper::LoadUserConfig(ProxyConfig& config, OculusProfile& oculusProfi
 			}
 		}
 	}
-	
+
 	// get user path
 	char *pValue;
 	size_t len;
@@ -677,6 +677,7 @@ bool ProxyHelper::GetProfile(char* name, ProxyConfig& config) // TODO !!! fill c
 
 /**
 * Currently incomplete save game profile function.
+* @param shaderRulePath Path to the shader rules xml file.
 * @param convergence Convergence adjustment, in meters.
 * @param swap True to swap eye output.
 * @param yaw Yaw tracking multiplier.
@@ -684,7 +685,7 @@ bool ProxyHelper::GetProfile(char* name, ProxyConfig& config) // TODO !!! fill c
 * @param roll Roll tracking multiplier.
 * @param worldScale Game world scaling.
 ***/
-bool ProxyHelper::SaveProfile(float convergence, bool swap, float yaw, float pitch, float roll, float worldScale)
+bool ProxyHelper::SaveProfile(std::string shaderRulePath, float convergence, bool swap, float yaw, float pitch, float roll, float worldScale)
 {
 	// get the target exe
 	GetTargetExe();
@@ -725,6 +726,21 @@ bool ProxyHelper::SaveProfile(float convergence, bool swap, float yaw, float pit
 	{
 		OutputDebugString("Save the settings to profile!!!\n");
 
+		// get filename
+		auto lastBackSlash = shaderRulePath.find_last_of("\\");
+		std::string fileName;
+		if (lastBackSlash!=std::string::npos)
+			fileName = shaderRulePath.substr(lastBackSlash+1, shaderRulePath.size()-(lastBackSlash+1));
+		else
+			fileName = shaderRulePath;
+
+		// shader mod rules attribute present ? otherwise insert
+		if (strcmp(gameProfile.attribute("game_exe").next_attribute().name(), "shaderModRules") == 0)
+			gameProfile.attribute("shaderModRules") = fileName.c_str();
+		else
+			gameProfile.insert_attribute_after("shaderModRules", gameProfile.attribute("game_exe")) = fileName.c_str();
+
+		// change other attributes
 		gameProfile.attribute("convergence") = convergence;
 		gameProfile.attribute("swap_eyes") = swap;
 		gameProfile.attribute("yaw_multiplier") = yaw;

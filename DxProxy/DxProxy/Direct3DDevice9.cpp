@@ -67,7 +67,7 @@ ULONG WINAPI BaseDirect3DDevice9::Release()
 		delete this;
 		return 0;
 	}	
-	 
+
 	return m_nRefCount;
 }
 
@@ -785,7 +785,7 @@ HRESULT WINAPI BaseDirect3DDevice9::GetFVF(DWORD* pFVF)
 * Base CreateVertexShader functionality.
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::CreateVertexShader(CONST DWORD* pFunction,IDirect3DVertexShader9** ppShader)
-{	 
+{
 	return m_pDevice->CreateVertexShader(pFunction, ppShader);
 }
 

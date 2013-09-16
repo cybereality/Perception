@@ -39,12 +39,48 @@ public:
 	virtual ~DataGatherer();
 		
 	/*** IDirect3DDevice9 methods ***/
-	virtual HRESULT WINAPI CreateVertexShader(CONST DWORD* pFunction,IDirect3DVertexShader9** ppShader);	
+	virtual HRESULT WINAPI Present(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion);
+	virtual HRESULT WINAPI DrawPrimitive(D3DPRIMITIVETYPE PrimitiveType,UINT StartVertex,UINT PrimitiveCount);
+	virtual HRESULT WINAPI DrawIndexedPrimitive(D3DPRIMITIVETYPE PrimitiveType,INT BaseVertexIndex,UINT MinVertexIndex,UINT NumVertices,UINT startIndex,UINT primCount);
+	virtual HRESULT WINAPI DrawPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType,UINT PrimitiveCount,CONST void* pVertexStreamZeroData,UINT VertexStreamZeroStride);
+	virtual HRESULT WINAPI DrawIndexedPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType,UINT MinVertexIndex,UINT NumVertices,UINT PrimitiveCount,CONST void* pIndexData,D3DFORMAT IndexDataFormat,CONST void* pVertexStreamZeroData,UINT VertexStreamZeroStride);
+	virtual HRESULT WINAPI CreateVertexShader(CONST DWORD* pFunction,IDirect3DVertexShader9** ppShader);
+	virtual HRESULT WINAPI SetVertexShader(IDirect3DVertexShader9* pShader);
+	virtual HRESULT WINAPI SetVertexShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
 
-	/*** DataGatherer methods ***/
+	/*** DataGatherer public methods ***/
 	virtual void Init(ProxyHelper::ProxyConfig& cfg);
+	virtual void HandleControls();
 
 private:
+	/*** DataGatherer private methods ***/
+	void Analyze();
+
+	/**
+	* Describes a shader constant.
+	***/
+	struct ShaderConstant
+	{
+		UINT hash;              /**< The shader hash. */
+		D3DXCONSTANT_DESC desc; /**< The constant description. */
+		bool transposed;        /**< True if this constant is a transposed matrix. */
+	};
+	/**
+	* Vector of all relevant vertex shader constants.
+	***/
+	std::vector<ShaderConstant> m_relevantVSConstants;
+	/**
+	* Array of possible world-view-projection matrix shader constant names.
+	***/
+	std::string* m_wvpMatrixConstantNames;
+	/**
+	* Array of matrix substring names to be avoided.
+	***/
+	std::string* m_wvpMatrixAvoidedSubstrings;
+	/**
+	* True if analyzing tool is activated.
+	***/
+	bool m_startAnalyzingTool;
 	/**
 	* Set of recorded shaders, to avoid double output.
 	***/
@@ -53,6 +89,14 @@ private:
 	* The shader dump file (.csv format).
 	***/
 	std::ofstream m_shaderDumpFile;
+	/**
+	* Counts the per-frame calls for each vertex shader.
+	***/
+	std::map<UINT, UINT> m_vertexShaderCallCount;
+	/**
+	* The hash code of the vertex shader currently set.
+	***/
+	uint32_t m_currentVertexShaderHash;
 };
 
 #endif
