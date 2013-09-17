@@ -145,6 +145,7 @@ char* ProxyHelper::GetTargetExe()
 	HKEY hKey;
 	LPCTSTR sk = TEXT("SOFTWARE\\Vireio\\Perception");
 
+	// open registry key
 	LONG openRes = RegOpenKeyEx(HKEY_CURRENT_USER, sk, 0, KEY_QUERY_VALUE , &hKey);
 
 	if (openRes==ERROR_SUCCESS) 
@@ -157,6 +158,7 @@ char* ProxyHelper::GetTargetExe()
 		return "";
 	}
 
+	// get exe
 	HRESULT hr = RegGetString(hKey, TEXT("TargetExe"), &targetExe);
 	if (FAILED(hr)) 
 	{
@@ -167,6 +169,20 @@ char* ProxyHelper::GetTargetExe()
 	{
 		OutputDebugString("PxHelp TE: Success with GetString.\n");
 		OutputDebugString(targetExe);
+		OutputDebugString("\n");
+	}
+
+	// get exe path
+	hr = RegGetString(hKey, TEXT("TargetPath"), &targetPath);
+	if (FAILED(hr)) 
+	{
+		OutputDebugString("PxHelp TE: Error with GetString.\n");
+		return "";
+	} 
+	else 
+	{
+		OutputDebugString("PxHelp TE: Success with GetString.\n");
+		OutputDebugString(targetPath);
 		OutputDebugString("\n");
 	}
 
@@ -181,6 +197,17 @@ char* ProxyHelper::GetTargetExe()
 void ProxyHelper::GetPath(char* newFolder, char* path)
 {
 	strcpy_s(newFolder, 512, GetBaseDir());
+	strcat_s(newFolder, 512, path);
+}
+
+/**
+* Simple helper to append a path string to the base target directory.
+* @param newFolder The folder string returned.
+* @param path The target sub-path.
+***/
+void ProxyHelper::GetTargetPath(char* newFolder, char* path)
+{
+	strcpy_s(newFolder, 512, targetPath);
 	strcat_s(newFolder, 512, path);
 }
 
@@ -317,8 +344,6 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 		if(config.pitch_multiplier == 0.0f) config.pitch_multiplier = 25.0f;
 		if(config.roll_multiplier == 0.0f) config.roll_multiplier = 1.0f;
 
-
-
 		// get file name
 		std::string shaderRulesFileName = gameProfile.attribute("shaderModRules").as_string("");
 
@@ -333,6 +358,32 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 
 		config.rollEnabled = gameProfile.attribute("rollEnabled").as_bool(false);
 		config.worldScaleFactor = gameProfile.attribute("worldScaleFactor").as_float(1.0f);
+
+		// copy game dlls
+		bool copyDlls = gameProfile.attribute("copyDlls").as_bool();
+		if (copyDlls)
+		{
+			// d3d9.dll
+			char sourcePath[512];
+			GetPath(sourcePath, "bin\\d3d9.dll");
+			char destPath[512];
+			GetTargetPath(destPath, "d3d9.dll");
+
+			std::stringstream sstm;
+			sstm << "copy " << sourcePath << " " << destPath;
+			system(sstm.str().c_str());
+			OutputDebugString(sstm.str().c_str());
+
+			// libfreespace.dll
+			GetPath(sourcePath, "bin\\libfreespace.dll");
+			GetTargetPath(destPath, "libfreespace.dll");
+
+			std::stringstream sstm1;
+			sstm1 << "copy " << sourcePath << " " << destPath;
+			system(sstm1.str().c_str());
+			OutputDebugString(sstm1.str().c_str());
+
+		}
 	}
 
 	LoadUserConfig(config, oculusProfile);

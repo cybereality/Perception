@@ -74,6 +74,7 @@ public:
 	char* GetBaseDir();
 	char* GetTargetExe();
 	void  GetPath(char* newFolder, char* path);
+	void  GetTargetPath(char* newFolder, char* path);
 	bool  GetConfig(int& mode, int& mode2);
 	bool  LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile);	
 	bool  SaveConfig(ProxyConfig& config);
@@ -99,6 +100,11 @@ public:
 	* Saved to registry by SaveExeName() in dllmain.cpp.
 	***/
 	char* targetExe;
+	/**
+	* Name of the game process path.
+	* Saved to registry by SaveExeName() in dllmain.cpp.
+	***/
+	char* targetPath;
 };
 
 #endif

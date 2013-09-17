@@ -48,52 +48,52 @@ typedef IDirect3D9* (WINAPI *Direct3DCreate9_t)(UINT sdk_version);
 IDirect3D9* WINAPI MyDirect3DCreate9(UINT sdk_version);
 
 void ParsePaths();
-void SaveExeName(char*);
+void SaveExeName(char*, char*);
 
 // Hook structure.
 enum
 {
-    KERNEL32_LoadLibraryExW = 3
+	KERNEL32_LoadLibraryExW = 3
 };
 
 enum
 {
-    D3DFN_Direct3DCreate9 = 0
+	D3DFN_Direct3DCreate9 = 0
 };
 
 SDLLHook KernelHook = 
 {
-    "KERNEL32.DLL",
-    false, NULL,		// Default hook disabled, NULL function pointer.
-    {
-        { "LoadLibraryExW", MyLoadLibraryExW },   
-        { NULL, NULL }
-    }
+	"KERNEL32.DLL",
+	false, NULL,		// Default hook disabled, NULL function pointer.
+	{
+		{ "LoadLibraryExW", MyLoadLibraryExW },   
+		{ NULL, NULL }
+	}
 };
 
 SDLLHook D3DHook = 
 {
-    "D3D9.DLL",
-    false, NULL,		// Default hook disabled, NULL function pointer.
-    {
+	"D3D9.DLL",
+	false, NULL,		// Default hook disabled, NULL function pointer.
+	{
 		{ "Direct3DCreate9", MyDirect3DCreate9},
-        { NULL, NULL }
-    }
+		{ NULL, NULL }
+	}
 };
-  
+
 HMODULE WINAPI MyLoadLibraryExW(LPCWSTR lpFileName, HANDLE hFile, DWORD dwFlags)   
 {   
 	OutputDebugString("LoadLibraryExW ENTERED!\n");
 
-    // Get the old function    
-    LoadLibraryExW_Type OldFn = (LoadLibraryExW_Type)KernelHook.Functions[KERNEL32_LoadLibraryExW].OrigFn;    
-   
-    // A Place to store the module, that is returned    
-    HMODULE retval;    
-   
-    OutputDebugString("LoadLibraryExW( lpLibFileName ");    
-    OutputDebugStringW(lpFileName);    
-    OutputDebugString(" )\n");    
+	// Get the old function    
+	LoadLibraryExW_Type OldFn = (LoadLibraryExW_Type)KernelHook.Functions[KERNEL32_LoadLibraryExW].OrigFn;    
+
+	// A Place to store the module, that is returned    
+	HMODULE retval;    
+
+	OutputDebugString("LoadLibraryExW( lpLibFileName ");    
+	OutputDebugStringW(lpFileName);    
+	OutputDebugString(" )\n");    
 
 	if(lstrcmpiW(lpFileName, realDllW) == 0)
 	{
@@ -102,13 +102,13 @@ HMODULE WINAPI MyLoadLibraryExW(LPCWSTR lpFileName, HANDLE hFile, DWORD dwFlags)
 		OutputDebugStringW(lpFileName); 
 		OutputDebugString("\n");
 	} 
-   
-    // Time to call the original function    
-    retval = OldFn(lpFileName, hFile, dwFlags);    
-   
-    //HookAPICalls(&KernelHook, retval);    
-       
-    return retval;   
+
+	// Time to call the original function    
+	retval = OldFn(lpFileName, hFile, dwFlags);    
+
+	//HookAPICalls(&KernelHook, retval);    
+
+	return retval;   
 }
 
 IDirect3D9* WINAPI MyDirect3DCreate9(UINT sdk_version)
@@ -117,37 +117,37 @@ IDirect3D9* WINAPI MyDirect3DCreate9(UINT sdk_version)
 
 	Direct3DCreate9_t old_func = (Direct3DCreate9_t) D3DHook.Functions[D3DFN_Direct3DCreate9].OrigFn;
 	IDirect3D9* d3d = old_func(sdk_version);
-	
+
 	return d3d ? new BaseDirect3D9(d3d) : 0;
 }
 
 // CBT Hook-style injection.
 BOOL APIENTRY DllMain( HINSTANCE hModule, DWORD fdwReason, LPVOID lpReserved )
 {
-    if (fdwReason == DLL_PROCESS_ATTACH)  // When initializing....
-    {
-        hDLL = hModule;
+	if (fdwReason == DLL_PROCESS_ATTACH)  // When initializing....
+	{
+		hDLL = hModule;
 
-        // We don't need thread notifications for what we're doing.  Thus, get
-        // rid of them, thereby eliminating some of the overhead of this DLL
-        DisableThreadLibraryCalls(hModule);
+		// We don't need thread notifications for what we're doing.  Thus, get
+		// rid of them, thereby eliminating some of the overhead of this DLL
+		DisableThreadLibraryCalls(hModule);
 
-        // Only hook the APIs if this is the right process.
-        GetModuleFileName(GetModuleHandle(NULL), targetExe, sizeof(targetExe));
-        PathStripPath(targetExe);
+		// Only hook the APIs if this is the right process.
+		GetModuleFileName(GetModuleHandle(NULL), targetExe, sizeof(targetExe));
+		PathStripPath(targetExe);
 
 		GetModuleFileName(GetModuleHandle(NULL), targetPath, sizeof(targetPath));
 		targetPathString = std::string(targetPath);
-		targetPathString = targetPathString.substr(0, targetPathString.find_last_of("\\/"));
+		targetPathString = targetPathString.substr(0, targetPathString.find_last_of("\\/") + 1);
 
-        OutputDebugString("HIJACKDLL checking process: ");
-        OutputDebugString(targetExe);
-        OutputDebugString("\n");
+		OutputDebugString("HIJACKDLL checking process: ");
+		OutputDebugString(targetExe);
+		OutputDebugString("\n");
 
 		ParsePaths();
 		ProxyHelper helper = ProxyHelper();
 
-        if (helper.HasProfile(targetExe))
+		if (helper.HasProfile(targetExe))
 		{
 			if (HookAPICalls(&D3DHook))
 			{
@@ -163,11 +163,11 @@ BOOL APIENTRY DllMain( HINSTANCE hModule, DWORD fdwReason, LPVOID lpReserved )
 			}
 
 			SetDllDirectory(dllDir);
-			SaveExeName(targetExe);
+			SaveExeName(targetExe, (char*)targetPathString.c_str());
 		}
-    }
+	}
 
-    return TRUE;
+	return TRUE;
 }
 
 // This segment must be defined as SHARED in the .DEF
@@ -178,19 +178,19 @@ HHOOK hHook = NULL;
 
 HIJACKDLL_API LRESULT CALLBACK HookProc(int nCode, WPARAM wParam, LPARAM lParam) 
 {
-    return CallNextHookEx(hHook, nCode, wParam, lParam); 
+	return CallNextHookEx(hHook, nCode, wParam, lParam); 
 }
 
 HIJACKDLL_API void InstallHook()
 {
-    OutputDebugString( "HIJACKDLL hook installed.\n" );
-    hHook = SetWindowsHookEx( WH_CBT, HookProc, hDLL, 0 ); 
+	OutputDebugString( "HIJACKDLL hook installed.\n" );
+	hHook = SetWindowsHookEx( WH_CBT, HookProc, hDLL, 0 ); 
 }
 
 HIJACKDLL_API void RemoveHook()
 {
-    OutputDebugString( "HIJACKDLL hook removed.\n" );
-    UnhookWindowsHookEx( hHook );
+	OutputDebugString( "HIJACKDLL hook removed.\n" );
+	UnhookWindowsHookEx( hHook );
 }
 
 void ParsePaths()
@@ -205,18 +205,18 @@ void ParsePaths()
 	mbstowcs_s(NULL, (wchar_t*)proxyDllW, 512, proxyDll, 512);
 }
 
-void SaveExeName(char* data)
+void SaveExeName(char* data, char* path)
 {
 	HKEY hKey;
-    LPCTSTR sk = TEXT("SOFTWARE\\Vireio\\Perception");
+	LPCTSTR sk = TEXT("SOFTWARE\\Vireio\\Perception");
 
-    LONG openRes = RegOpenKeyEx(HKEY_CURRENT_USER, sk, 0, KEY_ALL_ACCESS , &hKey);
+	LONG openRes = RegOpenKeyEx(HKEY_CURRENT_USER, sk, 0, KEY_ALL_ACCESS , &hKey);
 
-    if (openRes==ERROR_SUCCESS) {
-        OutputDebugString("Hx // Success opening key.\n");
-    } else {
-        OutputDebugString("Hx // Error opening key.\n");
-    }
+	if (openRes==ERROR_SUCCESS) {
+		OutputDebugString("Hx // Success opening key.\n");
+	} else {
+		OutputDebugString("Hx // Error opening key.\n");
+	}
 
 	LPCTSTR value = TEXT("TargetExe");
 
@@ -228,11 +228,21 @@ void SaveExeName(char* data)
 		OutputDebugString("Hx // Error writing to Registry.\n");
 	}
 
-    LONG closeOut = RegCloseKey(hKey);
+	value = TEXT("TargetPath");
 
-    if (closeOut == ERROR_SUCCESS) {
-        OutputDebugString("Hx // Success closing key.\n");
-    } else {
-        OutputDebugString("Hx // Error closing key.\n");
-    }
+	setRes = RegSetValueEx(hKey, value, 0, REG_SZ, (LPBYTE)path, strlen(path)+1);
+
+	if (setRes == ERROR_SUCCESS) {
+		OutputDebugString("Hx // Success writing to Registry.\n");
+	} else {
+		OutputDebugString("Hx // Error writing to Registry.\n");
+	}
+
+	LONG closeOut = RegCloseKey(hKey);
+
+	if (closeOut == ERROR_SUCCESS) {
+		OutputDebugString("Hx // Success closing key.\n");
+	} else {
+		OutputDebugString("Hx // Error closing key.\n");
+	}
 }
