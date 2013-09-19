@@ -46,7 +46,7 @@ public:
 		: ShaderMatrixModification(modID, adjustmentMatricies, transpose) 
 	{
 		// should this be hard coded?  Seems a bit fishy... - Josh
-		D3DXMatrixScaling(&squash, 0.7f, 0.7f, 1);
+		D3DXMatrixScaling(&squash, 0.625f, 0.625f, 1);
 	};
 
 	/**
@@ -59,8 +59,8 @@ public:
 	virtual void DoMatrixModification(D3DXMATRIX in, D3DXMATRIX& outLeft, D3DXMATRIX& outright)
 	{
 		if (vireio::AlmostSame(in[15], 1.0f, 0.00001f)) {
-			outLeft = in * m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->LeftViewTransform() * squash * m_spAdjustmentMatrices->Projection();
-			outright = in * m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->RightViewTransform() * squash * m_spAdjustmentMatrices->Projection();
+			outLeft = in * m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->LeftShiftProjection() * squash * m_spAdjustmentMatrices->Projection();
+			outright = in * m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->RightShiftProjection() * squash * m_spAdjustmentMatrices->Projection();
 		}
 		else {
 			ShaderMatrixModification::DoMatrixModification(in, outLeft, outright);
