@@ -148,8 +148,9 @@ bool GameHandler::ShouldDuplicateCubeTexture(UINT EdgeLength, UINT Levels, DWORD
 
 /**
 * Add a default rule to the existing shader modification repository or create a new and add.
+* @return True if rule was added, false if rule already present.
 ***/
-void GameHandler::AddRule(std::shared_ptr<ViewAdjustment> spShaderViewAdjustments, std::string constantName, bool allowPartialNameMatch, UINT startRegIndex, D3DXPARAMETER_CLASS constantType, UINT operationToApply, bool transpose)
+bool GameHandler::AddRule(std::shared_ptr<ViewAdjustment> spShaderViewAdjustments, std::string constantName, bool allowPartialNameMatch, UINT startRegIndex, D3DXPARAMETER_CLASS constantType, UINT operationToApply, bool transpose)
 {
 	// repository present ?
 	if (!m_ShaderModificationRepository)
@@ -157,7 +158,7 @@ void GameHandler::AddRule(std::shared_ptr<ViewAdjustment> spShaderViewAdjustment
 
 	// get unique id and add rule
 	UINT uniqueID = m_ShaderModificationRepository->GetUniqueRuleID();
-	m_ShaderModificationRepository->AddRule(constantName, allowPartialNameMatch, startRegIndex, constantType, operationToApply, uniqueID, transpose);
+	return m_ShaderModificationRepository->AddRule(constantName, allowPartialNameMatch, startRegIndex, constantType, operationToApply, uniqueID, transpose);
 }
 
 /**

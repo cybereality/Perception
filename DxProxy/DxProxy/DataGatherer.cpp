@@ -21,8 +21,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define KEY_DOWN(vk_code) ((GetAsyncKeyState(vk_code) & 0x8000) ? 1 : 0)
 #define KEY_UP(vk_code) ((GetAsyncKeyState(vk_code) & 0x8000) ? 0 : 1)
 
-#define MATRIX_NAMES 16
+#define MATRIX_NAMES 9
 #define AVOID_SUBSTRINGS 2
+#define ANALYZE_FRAMES 3000
 
 /**
 * Simple helper to get the hash of a shader.
@@ -53,16 +54,15 @@ uint32_t ShaderHash(LPDIRECT3DVERTEXSHADER9 pShader)
 ***/
 DataGatherer::DataGatherer(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy):D3DProxyDevice(pDevice, pCreatedBy),
 	m_recordedShaders(),
-	m_startAnalyzingTool(false)
+	m_startAnalyzingTool(false),
+	m_analyzingFrameCounter(0)
 {
 	m_shaderDumpFile.open("vertexShaderDump.csv", std::ios::out);
 
 	m_shaderDumpFile << "Shader Hash,Constant Name,ConstantType,Start Register,Register Count" << std::endl;
 
 	// create matrix name array 
-	static std::string names[] = { "WorldViewProj", "worldviewproj", "worldViewProj", "worldviewProj", 
-		"worldViewproj", "ModelViewProj", "modelviewproj", "modelViewProj", "modelviewProj", "modelViewProj",
-		"wvp", "mvp", "WVP", "MVP", "wvP", "mvP" };
+	static std::string names[] = { "ViewProj", "viewproj", "viewProj", "wvp", "mvp", "WVP", "MVP", "wvP", "mvP" };
 	m_wvpMatrixConstantNames = names;
 	static std::string avoid[] = { "Inv", "inv" };
 	m_wvpMatrixAvoidedSubstrings = avoid;
@@ -90,6 +90,9 @@ HRESULT WINAPI DataGatherer::Present(CONST RECT* pSourceRect,CONST RECT* pDestRe
 			Analyze();
 			m_startAnalyzingTool = false;
 			startAnalyzingTool = false;
+
+			// set frame counter to ANALYZE_FRAMES
+			m_analyzingFrameCounter = ANALYZE_FRAMES;
 		}
 		else 
 			startAnalyzingTool = true;
@@ -97,6 +100,29 @@ HRESULT WINAPI DataGatherer::Present(CONST RECT* pSourceRect,CONST RECT* pDestRe
 		// draw a rectangle to show beeing in analyze mode
 		D3DRECT rec = {320, 320, 384, 384};
 		ClearRect(vireio::RenderPosition::Left, rec, D3DCOLOR_ARGB(255,255,0,0));
+	}
+	// analyze for ANALYZE_FRAMES frames
+	else if (m_analyzingFrameCounter > 0)
+	{
+		Analyze();
+		m_analyzingFrameCounter--;
+
+		// draw a rectangle to show beeing in analyze mode
+		D3DRECT rec = {320, 320, 384, 384};
+		ClearRect(vireio::RenderPosition::Left, rec, D3DCOLOR_ARGB(255,255,0,0));
+	}
+
+	// draw an indicator (colored rectangle) for each found rule
+	UINT xPos = 320;
+	auto itAddedConstants = m_addedVSConstants.begin();
+	while (itAddedConstants != m_addedVSConstants.end())
+	{
+		// draw a rectangle to show beeing in analyze mode
+		D3DRECT rec = {xPos, 288, xPos+16, 304};
+		ClearRect(vireio::RenderPosition::Left, rec, D3DCOLOR_ARGB(255,0,255,0));
+
+		xPos+=20;
+		++itAddedConstants;
 	}
 
 	// reset all shader count data to zero
@@ -417,24 +443,24 @@ void DataGatherer::Analyze()
 	while (itShaderConstants != m_relevantVSConstants.end())
 	{
 		// loop through matrix constant name assumptions
-		for (int i = 0; i < 16; i++)
+		for (int i = 0; i < MATRIX_NAMES; i++)
 		{
 			// test if assumption is found in constant name
 			if (strstr(itShaderConstants->desc.Name, m_wvpMatrixConstantNames[i].c_str()) != 0)
 			{
 				// test for "to-be-avoided" assumptions
-				for (int j = 0; j < 2; j++)
+				for (int j = 0; j < AVOID_SUBSTRINGS; j++)
 				{
 					if (strstr(itShaderConstants->desc.Name, m_wvpMatrixAvoidedSubstrings[j].c_str()) != 0)
 					{
 						// break loop
-						i = 16;
+						i = MATRIX_NAMES;
 						break;
 					}
 				}
 
 				// still in loop ?
-				if (i < 16)
+				if (i < MATRIX_NAMES)
 				{
 					auto itRelevantShaders = m_vertexShaderCallCount.begin();
 					while (itRelevantShaders != m_vertexShaderCallCount.end())
@@ -443,7 +469,8 @@ void DataGatherer::Analyze()
 						if ((itRelevantShaders->first == itShaderConstants->hash) && (itRelevantShaders->second > 0))
 						{
 							// add this rule !!!!
-							addRule(itShaderConstants->desc.Name, true, itShaderConstants->desc.RegisterIndex, itShaderConstants->desc.Class, 1, itShaderConstants->transposed);
+							if (addRule(itShaderConstants->desc.Name, true, itShaderConstants->desc.RegisterIndex, itShaderConstants->desc.Class, 1, itShaderConstants->transposed))
+								m_addedVSConstants.push_back(*itShaderConstants);
 
 							// output debug data
 							OutputDebugString("---Shader Rule");
@@ -475,7 +502,7 @@ void DataGatherer::Analyze()
 					}
 
 					// end loop
-					i = 16;
+					i = MATRIX_NAMES;
 				}
 			}
 		}
@@ -511,9 +538,9 @@ void DataGatherer::Analyze()
 	std::string shaderRulesFileName = helper->GetTargetExe();
 	auto ext = shaderRulesFileName.find("exe");
 	if (ext!=std::string::npos)
-	shaderRulesFileName.replace(ext,3,"xml");
+		shaderRulesFileName.replace(ext,3,"xml");
 	else
-	shaderRulesFileName = "default.xml";
+		shaderRulesFileName = "default.xml";
 
 	// ... and add path, delete proxy helper
 	std::stringstream sstm;

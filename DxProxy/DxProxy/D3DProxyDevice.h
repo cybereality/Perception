@@ -257,7 +257,7 @@ protected:
 	virtual void OnCreateOrRestore();	
 	virtual bool setDrawingSide(vireio::RenderPosition side);
 	bool         switchDrawingSide();
-	void         addRule(std::string constantName, bool allowPartialNameMatch, UINT startRegIndex, D3DXPARAMETER_CLASS constantType, UINT operationToApply, bool transpose);
+	bool         addRule(std::string constantName, bool allowPartialNameMatch, UINT startRegIndex, D3DXPARAMETER_CLASS constantType, UINT operationToApply, bool transpose);
 	void         saveShaderRules();
 	void         ClearRect(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color);
 

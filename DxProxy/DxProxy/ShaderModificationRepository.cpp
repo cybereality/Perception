@@ -214,8 +214,9 @@ bool ShaderModificationRepository::SaveRules(std::string rulesPath)
 
 /**
 * Adds a default shader rule specified by parameters if that rule is not already present.
+* @return True if rule was added, false if rule already present.
 ***/
-void ShaderModificationRepository::AddRule(std::string constantName, bool allowPartialNameMatch, UINT startRegIndex, D3DXPARAMETER_CLASS constantType, UINT operationToApply, UINT modificationRuleID, bool transpose)
+bool ShaderModificationRepository::AddRule(std::string constantName, bool allowPartialNameMatch, UINT startRegIndex, D3DXPARAMETER_CLASS constantType, UINT operationToApply, UINT modificationRuleID, bool transpose)
 {
 	UINT rulePresent = false;
 	auto itModificationRules = m_AllModificationRules.begin();
@@ -239,6 +240,8 @@ void ShaderModificationRepository::AddRule(std::string constantName, bool allowP
 		m_defaultModificationRuleIDs.push_back(modificationRuleID);
 		m_AllModificationRules.insert(std::make_pair<UINT, ConstantModificationRule>((UINT)int(modificationRuleID), (ShaderModificationRepository::ConstantModificationRule)ConstantModificationRule(std::string(constantName), allowPartialNameMatch, startRegIndex, constantType, operationToApply, modificationRuleID, transpose)));
 	}
+
+	return (!rulePresent);
 }
 
 /**

@@ -49,7 +49,7 @@ public:
 	/*** ShaderModificationRepository public methods ***/
 	bool                                        LoadRules(std::string rulesPath);
 	bool                                        SaveRules(std::string rulesPath);
-	void                                        AddRule(std::string constantName, bool allowPartialNameMatch, UINT startRegIndex, D3DXPARAMETER_CLASS constantType, UINT operationToApply, UINT modificationRuleID, bool transpose);
+	bool                                        AddRule(std::string constantName, bool allowPartialNameMatch, UINT startRegIndex, D3DXPARAMETER_CLASS constantType, UINT operationToApply, UINT modificationRuleID, bool transpose);
 	std::map<UINT, StereoShaderConstant<float>> GetModifiedConstantsF(IDirect3DVertexShader9* pActualVertexShader);
 	UINT                                        GetUniqueRuleID();
 

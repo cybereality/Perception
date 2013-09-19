@@ -70,6 +70,10 @@ private:
 	***/
 	std::vector<ShaderConstant> m_relevantVSConstants;
 	/**
+	* Vector of all added vertex shader constants (rules).
+	***/
+	std::vector<ShaderConstant> m_addedVSConstants;
+	/**
 	* Array of possible world-view-projection matrix shader constant names.
 	***/
 	std::string* m_wvpMatrixConstantNames;
@@ -81,6 +85,10 @@ private:
 	* True if analyzing tool is activated.
 	***/
 	bool m_startAnalyzingTool;
+	/**
+	* Frame counter for analyzing.
+	***/
+	UINT m_analyzingFrameCounter;
 	/**
 	* Set of recorded shaders, to avoid double output.
 	***/
