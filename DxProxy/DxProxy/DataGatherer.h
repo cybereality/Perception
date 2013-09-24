@@ -61,6 +61,7 @@ private:
 	***/
 	struct ShaderConstant
 	{
+		std::string name;
 		UINT hash;              /**< The shader hash. */
 		D3DXCONSTANT_DESC desc; /**< The constant description. */
 		bool transposed;        /**< True if this constant is a transposed matrix. */

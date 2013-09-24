@@ -21,9 +21,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define KEY_DOWN(vk_code) ((GetAsyncKeyState(vk_code) & 0x8000) ? 1 : 0)
 #define KEY_UP(vk_code) ((GetAsyncKeyState(vk_code) & 0x8000) ? 0 : 1)
 
-#define MATRIX_NAMES 9
+#define MATRIX_NAMES 14
 #define AVOID_SUBSTRINGS 2
-#define ANALYZE_FRAMES 3000
+#define ANALYZE_FRAMES 500
 
 /**
 * Simple helper to get the hash of a shader.
@@ -62,7 +62,7 @@ DataGatherer::DataGatherer(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy)
 	m_shaderDumpFile << "Shader Hash,Constant Name,ConstantType,Start Register,Register Count" << std::endl;
 
 	// create matrix name array 
-	static std::string names[] = { "ViewProj", "viewproj", "viewProj", "wvp", "mvp", "WVP", "MVP", "wvP", "mvP" };
+	static std::string names[] = { "ViewProj", "viewproj", "viewProj", "wvp", "mvp", "WVP", "MVP", "wvP", "mvP", "matFinal", "matrixFinal", "MatrixFinal", "FinalMatrix", "finalMatrix" };
 	m_wvpMatrixConstantNames = names;
 	static std::string avoid[] = { "Inv", "inv" };
 	m_wvpMatrixAvoidedSubstrings = avoid;
@@ -81,37 +81,18 @@ DataGatherer::~DataGatherer()
 ***/
 HRESULT WINAPI DataGatherer::Present(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion)
 {
-	// set a second bool to analyze one frame before starting the analyze() method
-	static bool startAnalyzingTool = false;
+	// analyze ?
 	if (m_startAnalyzingTool)
 	{
-		if (startAnalyzingTool)
-		{
-			Analyze();
-			m_startAnalyzingTool = false;
-			startAnalyzingTool = false;
-
-			// set frame counter to ANALYZE_FRAMES
-			m_analyzingFrameCounter = ANALYZE_FRAMES;
-		}
-		else 
-			startAnalyzingTool = true;
-
-		// draw a rectangle to show beeing in analyze mode
-		D3DRECT rec = {320, 320, 384, 384};
-		ClearRect(vireio::RenderPosition::Left, rec, D3DCOLOR_ARGB(255,255,0,0));
-	}
-	// analyze for ANALYZE_FRAMES frames
-	else if (m_analyzingFrameCounter > 0)
-	{
+		// analyze the first time
 		Analyze();
-		m_analyzingFrameCounter--;
-
+		m_startAnalyzingTool = false;
+		
 		// draw a rectangle to show beeing in analyze mode
 		D3DRECT rec = {320, 320, 384, 384};
 		ClearRect(vireio::RenderPosition::Left, rec, D3DCOLOR_ARGB(255,255,0,0));
 	}
-
+	
 	// draw an indicator (colored rectangle) for each found rule
 	UINT xPos = 320;
 	auto itAddedConstants = m_addedVSConstants.begin();
@@ -123,14 +104,6 @@ HRESULT WINAPI DataGatherer::Present(CONST RECT* pSourceRect,CONST RECT* pDestRe
 
 		xPos+=20;
 		++itAddedConstants;
-	}
-
-	// reset all shader count data to zero
-	auto itRelevantShaders = m_vertexShaderCallCount.begin();
-	while (itRelevantShaders != m_vertexShaderCallCount.end())
-	{
-		itRelevantShaders->second = 0;
-		++itRelevantShaders;
 	}
 
 	return D3DProxyDevice::Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
@@ -286,6 +259,7 @@ HRESULT WINAPI DataGatherer::CreateVertexShader(CONST DWORD* pFunction,IDirect3D
 							ShaderConstant sc;
 							sc.hash = hash;
 							sc.desc = D3DXCONSTANT_DESC(pConstantDesc[j]);
+							sc.name = std::string(pConstantDesc[j].Name);
 							sc.transposed = false;
 							m_relevantVSConstants.push_back(sc);
 					}
@@ -381,11 +355,11 @@ HRESULT WINAPI DataGatherer::SetVertexShaderConstantF(UINT StartRegister,CONST f
 				// (we do that in the analyze() method)
 				D3DXMATRIX matrix = D3DXMATRIX(pConstantData+((itShaderConstants->desc.RegisterIndex-StartRegister)*4*sizeof(float)));
 
-				// [14] for row matrix ??
-				if ((vireio::AlmostSame(matrix[14], 1.0f, 0.00001f)) || (vireio::AlmostSame(matrix[14], -1.0f, 0.00001f)))
-					itShaderConstants->transposed = true;
-				else 
+				// [12] for column matrix ??
+				if ((vireio::AlmostSame(matrix[12], 1.0f, 0.00001f)) || (vireio::AlmostSame(matrix[12], -1.0f, 0.00001f)))
 					itShaderConstants->transposed = false;
+				else 
+					itShaderConstants->transposed = true;
 			}
 		}
 		++itShaderConstants;
@@ -433,8 +407,6 @@ void DataGatherer::HandleControls()
 ***/
 void DataGatherer::Analyze()
 {
-	OutputDebugString("Game Analysis started...");
-
 	UINT mostFrequentedShaderHash = 0;
 	UINT calls = 0;
 
@@ -446,12 +418,12 @@ void DataGatherer::Analyze()
 		for (int i = 0; i < MATRIX_NAMES; i++)
 		{
 			// test if assumption is found in constant name
-			if (strstr(itShaderConstants->desc.Name, m_wvpMatrixConstantNames[i].c_str()) != 0)
+			if (strstr(itShaderConstants->name.c_str(), m_wvpMatrixConstantNames[i].c_str()) != 0)
 			{
 				// test for "to-be-avoided" assumptions
 				for (int j = 0; j < AVOID_SUBSTRINGS; j++)
 				{
-					if (strstr(itShaderConstants->desc.Name, m_wvpMatrixAvoidedSubstrings[j].c_str()) != 0)
+					if (strstr(itShaderConstants->name.c_str(), m_wvpMatrixAvoidedSubstrings[j].c_str()) != 0)
 					{
 						// break loop
 						i = MATRIX_NAMES;
@@ -469,7 +441,7 @@ void DataGatherer::Analyze()
 						if ((itRelevantShaders->first == itShaderConstants->hash) && (itRelevantShaders->second > 0))
 						{
 							// add this rule !!!!
-							if (addRule(itShaderConstants->desc.Name, true, itShaderConstants->desc.RegisterIndex, itShaderConstants->desc.Class, 1, itShaderConstants->transposed))
+							if (addRule(itShaderConstants->name, true, itShaderConstants->desc.RegisterIndex, itShaderConstants->desc.Class, 2, itShaderConstants->transposed))
 								m_addedVSConstants.push_back(*itShaderConstants);
 
 							// output debug data
@@ -505,6 +477,12 @@ void DataGatherer::Analyze()
 					i = MATRIX_NAMES;
 				}
 			}
+			else
+				if (itShaderConstants->desc.RegisterIndex == 128)
+				{
+					OutputDebugString(itShaderConstants->name.c_str());
+					OutputDebugString(m_wvpMatrixConstantNames[i].c_str());
+				}
 		}
 
 		++itShaderConstants;
@@ -512,6 +490,7 @@ void DataGatherer::Analyze()
 
 	// get most frequented shader
 	// TODO ... if still no rules present take the first matrix of the most frequented shader
+	// maybe we need that for very weird shader constant names
 	auto itRelevantShaders = m_vertexShaderCallCount.begin();
 	while (itRelevantShaders != m_vertexShaderCallCount.end())
 	{

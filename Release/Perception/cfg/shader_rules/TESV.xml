@@ -1,15 +1,17 @@
 <?xml version="1.0"?>
 <shaderConfig>
 	<rules>
-		<rule id="1" constantType="MatrixR" modToApply="1" startReg="0" transpose="true" />
-		<rule id="2" constantType="MatrixC" modToApply="2" startReg="0" transpose="true" />
-		<rule id="3" constantType="MatrixR" modToApply="1" startReg="128" transpose="true" />
-		<rule id="4" constantType="MatrixR" modToApply="1" startReg="180" transpose="true" />
+		<rule constantName="WorldViewProj" partialName="true" id="1" constantType="MatrixR" modToApply="2" startReg="0" transpose="true" />
+		<rule constantName="mvp" partialName="true" id="2" constantType="MatrixC" modToApply="2" startReg="0" transpose="true" />
+		<rule constantName="WorldViewProj" partialName="true" id="3" constantType="MatrixR" modToApply="2" startReg="128" transpose="true" />
+		<rule constantName="WorldViewProj" partialName="true" id="4" constantType="MatrixR" modToApply="2" startReg="180" transpose="true" />
+		<rule constantName="ModelViewProj" partialName="true" id="5" constantType="MatrixR" modToApply="2" startReg="0" transpose="true" />
 	</rules>
 	<defaultRuleIDs>
 		<ruleID id="1" />
 		<ruleID id="2" />
 		<ruleID id="3" />
 		<ruleID id="4" />
+		<ruleID id="5" />
 	</defaultRuleIDs>
 </shaderConfig>

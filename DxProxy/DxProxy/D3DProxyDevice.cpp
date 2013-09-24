@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "MotionTrackerFactory.h"
 #include <typeinfo>
 #include <assert.h>
+#include <comdef.h>
 
 #ifdef _DEBUG
 #include "DxErr.h"
@@ -38,6 +39,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define PI 3.141592654
 #define RADIANS_TO_DEGREES(rad) ((float) rad * (float) (180.0 / PI))
+
+#define OUTPUT_HRESULT(hr) { _com_error err(hr); LPCTSTR errMsg = err.ErrorMessage(); OutputDebugString(errMsg); }
 
 /**
 * Clears a vertical line on the current render targets.
@@ -241,7 +244,7 @@ HRESULT WINAPI D3DProxyDevice::GetSwapChain(UINT iSwapChain,IDirect3DSwapChain9*
 * @see OnCreateOrRestore()
 ***/
 HRESULT WINAPI D3DProxyDevice::Reset(D3DPRESENT_PARAMETERS* pPresentationParameters)
-{	
+{
 	if(stereoView)
 		stereoView->ReleaseEverything();
 
@@ -614,7 +617,7 @@ HRESULT WINAPI D3DProxyDevice::GetRenderTargetData(IDirect3DSurface9* pRenderTar
 * @see D3D9ProxySwapChain
 ***/
 HRESULT WINAPI D3DProxyDevice::GetFrontBufferData(UINT iSwapChain, IDirect3DSurface9* pDestSurface)
-{ 
+{
 	HRESULT result;
 	try {
 		result = m_activeSwapChains.at(iSwapChain)->GetFrontBufferData(pDestSurface);
@@ -672,7 +675,7 @@ HRESULT WINAPI D3DProxyDevice::StretchRect(IDirect3DSurface9* pSourceSurface,CON
 * @see switchDrawingSide()
 ***/
 HRESULT WINAPI D3DProxyDevice::ColorFill(IDirect3DSurface9* pSurface,CONST RECT* pRect,D3DCOLOR color)
-{	
+{
 	HRESULT result;
 	if (SUCCEEDED(result = BaseDirect3DDevice9::ColorFill(pSurface, pRect, color))) {
 		if (switchDrawingSide())
@@ -814,7 +817,7 @@ HRESULT WINAPI D3DProxyDevice::SetDepthStencilSurface(IDirect3DSurface9* pNewZSt
 * Provides the active proxy (wrapped) depth stencil.
 ***/
 HRESULT WINAPI D3DProxyDevice::GetDepthStencilSurface(IDirect3DSurface9** ppZStencilSurface)
-{	
+{
 	if (!m_pActiveStereoDepthStencil)
 		return D3DERR_NOTFOUND;
 
@@ -862,7 +865,7 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 * SHOCT called here for source engine games.
 ***/
 HRESULT WINAPI D3DProxyDevice::EndScene()
-{	
+{
 	if((stereoView->game_type == D3DProxyDevice::SOURCE_L4D) || (stereoView->game_type == D3DProxyDevice::ADVANCED_SKYRIM))
 	{
 		if ((SHOCT_mode>=1) && (SHOCT_mode<=2))
@@ -1182,7 +1185,7 @@ HRESULT WINAPI D3DProxyDevice::GetTexture(DWORD Stage,IDirect3DBaseTexture9** pp
 * @see vireio::UnWrapTexture() 
 ***/
 HRESULT WINAPI D3DProxyDevice::SetTexture(DWORD Stage,IDirect3DBaseTexture9* pTexture)
-{	
+{
 	HRESULT result;
 	if (pTexture) {
 
