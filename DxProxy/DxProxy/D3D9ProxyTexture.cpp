@@ -70,6 +70,7 @@ HRESULT WINAPI D3D9ProxyTexture::QueryInterface(REFIID riid, LPVOID* ppv)
 	IF_GUID(riid,0x85c31227,0x3de5,0x4f00,0x9b,0x3a,0xf1,0x1a)
 	{	
 		*ppv=(LPVOID)this;
+		this->AddRef();
 		return S_OK;
 	}
 
