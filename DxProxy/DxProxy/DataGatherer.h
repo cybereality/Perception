@@ -48,6 +48,7 @@ public:
 	virtual HRESULT WINAPI SetVertexShader(IDirect3DVertexShader9* pShader);
 	virtual HRESULT WINAPI SetVertexShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
 	virtual HRESULT WINAPI CreatePixelShader(CONST DWORD* pFunction,IDirect3DPixelShader9** ppShader);
+	virtual HRESULT WINAPI SetPixelShader(IDirect3DPixelShader9* pShader);
 
 	/*** DataGatherer public methods ***/
 	virtual void Init(ProxyHelper::ProxyConfig& cfg);

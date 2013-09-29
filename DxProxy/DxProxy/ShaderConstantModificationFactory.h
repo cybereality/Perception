@@ -29,6 +29,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "MatrixDoNothing.h"
 #include "MatrixHudSquash.h"
 #include "MatrixOrthoSquash.h"
+#include "MatrixSurfaceRefractionTransform.h"
+#include "MatrixGatheredOrhoSquash.h"
 
 /**
 * Shader constant modification helper class.
@@ -54,7 +56,9 @@ public:
 		MatSimpleTranslate = 1,            /**< Default modification is simple translate. **/
 		MatOrthographicSquash = 2,         /**< Squashes matrix if orthographic, otherwise simple translate. **/
 		MatSimpleTranslateIgnoreOrtho = 3, /**< Modification to ignore orthographic matrices. **/
-		MatHudSquash = 4                   /**< Modification to squash the head-up display(HUD). **/
+		MatHudSquash = 4,                  /**< Modification to squash the head-up display(HUD). **/
+		MatSurfaceRefractionTransform = 5, /**< Modification to fix surface refraction in pixel shaders. **/
+		MatGatheredOrthographicSquash = 6, /**< Squashes matrix if orthographic, otherwise simple translate. Result will be gathered to be used in other modifications.**/
 	};
 
 	/**
@@ -107,12 +111,18 @@ public:
 
 		case MatOrthographicSquash:
 			return std::make_shared<MatrixOrthoSquash>(mod, adjustmentMatricies, transpose);
-			
+
 		case MatSimpleTranslateIgnoreOrtho:
 			return std::make_shared<MatrixIgnoreOrtho>(mod, adjustmentMatricies, transpose);
 
 		case MatHudSquash:
 			return std::make_shared<MatrixHudSquash>(mod, adjustmentMatricies, transpose);
+
+		case MatSurfaceRefractionTransform:
+			return std::make_shared<MatrixSurfaceRefractionTransform>(mod, adjustmentMatricies, transpose);
+
+		case MatGatheredOrthographicSquash:
+			return std::make_shared<MatrixGatheredOrthoSquash>(mod, adjustmentMatricies, transpose);
 
 		default:
 			OutputDebugString("Nonexistant matrix modification\n");

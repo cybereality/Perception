@@ -48,6 +48,28 @@ uint32_t ShaderHash(LPDIRECT3DVERTEXSHADER9 pShader)
 }
 
 /**
+* Simple helper to get the hash of a shader.
+* @param pShader The input vertex shader.
+* @return The hash code of the shader.
+***/
+uint32_t ShaderHash(LPDIRECT3DPIXELSHADER9 pShader)
+{
+	if (!pShader) return 0;
+
+	BYTE* pData = NULL;
+	UINT pSizeOfData;
+	pShader->GetFunction(NULL, &pSizeOfData);
+
+	pData = new BYTE[pSizeOfData];
+	pShader->GetFunction(pData, &pSizeOfData);
+
+	uint32_t hash = 0;
+	MurmurHash3_x86_32(pData, pSizeOfData, VIREIO_SEED, &hash);
+
+	return hash;
+}
+
+/**
 * Constructor, opens the dump file.
 * @param pDevice Imbed actual device.
 * @param pCreatedBy Pointer to the object that created the device.
@@ -88,12 +110,12 @@ HRESULT WINAPI DataGatherer::Present(CONST RECT* pSourceRect,CONST RECT* pDestRe
 		// analyze the first time
 		Analyze();
 		m_startAnalyzingTool = false;
-		
+
 		// draw a rectangle to show beeing in analyze mode
 		D3DRECT rec = {320, 320, 384, 384};
 		ClearRect(vireio::RenderPosition::Left, rec, D3DCOLOR_ARGB(255,255,0,0));
 	}
-	
+
 	// draw an indicator (colored rectangle) for each found rule
 	UINT xPos = 320;
 	auto itAddedConstants = m_addedVSConstants.begin();
@@ -306,6 +328,10 @@ HRESULT WINAPI DataGatherer::SetVertexShader(IDirect3DVertexShader9* pShader)
 	// set the current vertex shader hash code for the call counter
 	m_currentVertexShaderHash = ShaderHash(pShader);
 
+	char buf[32];
+	sprintf_s(buf,"Set Vertex Shader: %u", m_currentVertexShaderHash);
+	OutputDebugString(buf);
+
 	return D3DProxyDevice::SetVertexShader(pShader);
 }
 
@@ -369,6 +395,9 @@ HRESULT WINAPI DataGatherer::SetVertexShaderConstantF(UINT StartRegister,CONST f
 	return D3DProxyDevice::SetVertexShaderConstantF(StartRegister, pConstantData, Vector4fCount);
 }
 
+/**
+*
+***/
 HRESULT WINAPI DataGatherer::CreatePixelShader(CONST DWORD* pFunction,IDirect3DPixelShader9** ppShader)
 {
 	// create proxy vertex shader
@@ -484,6 +513,23 @@ HRESULT WINAPI DataGatherer::CreatePixelShader(CONST DWORD* pFunction,IDirect3DP
 	}
 
 	return creationResult;
+}
+
+/**
+* Sets the shader and the outputs current shader hash for debug reasons.
+***/
+HRESULT WINAPI DataGatherer::SetPixelShader(IDirect3DPixelShader9* pShader)
+{
+	// set the current vertex shader hash code for the call counter
+	uint32_t currentPixelShaderHash = ShaderHash(pShader);
+
+	char buf[32];
+	sprintf_s(buf,"Cur Vertex Shader: %u", m_currentVertexShaderHash);
+	OutputDebugString(buf);
+	sprintf_s(buf,"Set Pixel Shader: %u", currentPixelShaderHash);
+	OutputDebugString(buf);
+
+	return D3DProxyDevice::SetPixelShader(pShader);
 }
 
 /**

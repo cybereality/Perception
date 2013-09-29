@@ -6,6 +6,8 @@
 		<rule constantName="WorldViewProj" partialName="true" id="3" constantType="MatrixR" modToApply="2" startReg="128" transpose="true" />
 		<rule constantName="WorldViewProj" partialName="true" id="4" constantType="MatrixR" modToApply="2" startReg="180" transpose="true" />
 		<rule constantName="ModelViewProj" partialName="true" id="5" constantType="MatrixR" modToApply="2" startReg="0" transpose="true" />
+    <rule constantName="ModelViewProj" partialName="true" id="6" constantType="MatrixR" modToApply="6" startReg="0" transpose="true" />
+    <rule constantName="TextureProj" partialName="true" id="7" constantType="MatrixR" modToApply="5" startReg="0" transpose="true" />
 	</rules>
 	<defaultRuleIDs>
 		<ruleID id="1" />
@@ -14,4 +16,16 @@
 		<ruleID id="4" />
 		<ruleID id="5" />
 	</defaultRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="2316301020">
+    <ruleID id="6" />
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="338128279">
+    <ruleID id="6" />
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="3584763826">
+    <ruleID id="7" />
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="462145519">
+    <ruleID id="7" />
+  </shaderSpecificRuleIDs>
 </shaderConfig>

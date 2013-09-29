@@ -56,7 +56,10 @@ public:
 	D3DXMATRIX    LeftShiftProjection();
 	D3DXMATRIX    RightShiftProjection();
 	D3DXMATRIX    Projection();
-	D3DXMATRIX    ProjectionInverse();	
+	D3DXMATRIX    ProjectionInverse();
+	D3DXMATRIX    GatheredMatrixLeft();
+	D3DXMATRIX    GatheredMatrixRight();
+	void          GatherMatrix(D3DXMATRIX& matrixLeft, D3DXMATRIX& matrixRight);
 	float         ChangeWorldScale(float toAdd);
 	float         ChangeConvergence(float toAdd);
 	void          ResetWorldScale();
@@ -128,6 +131,14 @@ private:
 	* Right view projection transform matrix.
 	***/
 	D3DXMATRIX matViewProjTransformRight;
+	/**
+	* Gathered matrix to be used in gathered modifications.
+	***/
+	D3DXMATRIX matGatheredLeft;
+	/**
+	* Gathered matrix to be used in gathered modifications.
+	***/
+	D3DXMATRIX matGatheredRight;
 	/**
 	* Head mounted display info.
 	***/

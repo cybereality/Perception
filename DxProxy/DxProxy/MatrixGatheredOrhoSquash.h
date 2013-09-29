@@ -1,6 +1,7 @@
 /********************************************************************
 Vireio Perception: Open-Source Stereoscopic 3D Driver
 Copyright (C) 2013 Chris Drain
+Modifications Copyright (C) 2013 Denis Reischl
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -16,29 +17,38 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#ifndef SHADERMATRIXMODIFICATION_H_INCLUDED
-#define SHADERMATRIXMODIFICATION_H_INCLUDED
-
+#ifndef MATRIXGATHERORTHOSQUASH_H_INCLUDED
+#define MATRIXGATHERORTHOSQUASH_H_INCLUDED
+/**
+* @file MatrixOrthoSquash.h
+* Contains shader modification to squash orthographic matrices and gather the result.
+*/
 
 #include "d3d9.h"
 #include "d3dx9.h"
 #include "ShaderConstantModification.h"
 #include "Vireio.h"
+#include "ShaderMatrixModification.h"
 
 /**
-* Shader matrix modification parent class.
-* These classes contain the shader modification rules and are called by ShaderRegisters.
-* Here, it is the most common way of modification, simple translation. Override for specific modification rules.
-* @see ShaderRegisters
+* Squishes the matrix if orthographical, otherwise simple modification.
 */
-class ShaderMatrixModification : public ShaderConstantModification<float>
+class MatrixGatheredOrthoSquash : public ShaderMatrixModification
 {
 public:
-	ShaderMatrixModification(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatricies, bool transpose) : 
-		ShaderConstantModification(modID, adjustmentMatricies),
-		m_bTranspose(transpose)
-		{};
-	
+	/**
+	*  Constructor, sets attributes and such.
+	* @param modID The id for this matrix modification.
+	* @param adjustmentMatricies The matricies to be adjusted
+	* @param transpose Decides if the matrices should be transposed (aka: have rows and columns interchanged)
+	*/
+	MatrixGatheredOrthoSquash(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatricies, bool transpose) 
+		: ShaderMatrixModification(modID, adjustmentMatricies, transpose) 
+	{
+		// should this be hard coded?  Seems a bit fishy... - Josh
+		D3DXMatrixScaling(&squash, 0.625f, 0.625f, 1);
+	};
+
 	/**
 	* Applies modification to registers.
 	* This method should not generally be overridden by subclasses (if it is the overriding method
@@ -81,40 +91,34 @@ public:
 			// assign to output
 			outLeft->assign(&tempLeft[0], &tempLeft[0] + outLeft->size());
 			outRight->assign(&tempRight[0], &tempRight[0] + outRight->size());
+
+			// gather matrix
+			m_spAdjustmentMatrices->GatherMatrix(tempLeft, tempRight);
 		}
 	}
 
-
-protected:
 	/**
-	* Default modification is simple translate. Override to do actual modification. 
-	* @param in [in] Modification matrix to be multiplied by adjustment matrix (left/right).
-	* @param outLeft [in, out] Left transform matrix.
-	* @param outRight [in, out] Right transform matrix.
+	* Matrix modification does multiply: translation * squash.
+	* Does the matrix squash and outputs the results.  Does only affect HUD (or GUI).
+	* @param in The matrix to be multiply by the adjustmentMatricies.
+	* @param[out] outLeft The resulting left side matrix
+	* @param[out] outRight The resulting right side matrix
 	***/
-	virtual void DoMatrixModification(D3DXMATRIX in, D3DXMATRIX& outLeft, D3DXMATRIX& outright)
+	virtual void DoMatrixModification(D3DXMATRIX in, D3DXMATRIX& outLeft, D3DXMATRIX& outRight)
 	{
-		outLeft = in * m_spAdjustmentMatrices->LeftAdjustmentMatrix();
-		outright = in * m_spAdjustmentMatrices->RightAdjustmentMatrix();
-	}
+		if (vireio::AlmostSame(in[15], 1.0f, 0.00001f)) {
+			outLeft = in * m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->LeftShiftProjection() * squash * m_spAdjustmentMatrices->Projection();
+			outRight = in * m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->RightShiftProjection() * squash * m_spAdjustmentMatrices->Projection();
+		}
+		else {
+			ShaderMatrixModification::DoMatrixModification(in, outLeft, outRight);
+		}
+	};
 
+private:
 	/**
-	* Override to provide condition underwhich this mod should not be applied.
-	* Modification will always perform simple copy of in to left and right if this returns true.
-	* If false then modification will be applied.
-	* Available so ortho check can be done without performing any uneccessary transposes (and 
-	* generalised to this method in case other cases become apparent).
-	* Default is to always apply.
-	* @param in Matrix to test wether it should be applied.
-	***/
-	virtual bool DoNotApply(D3DXMATRIX in)
-	{
-		return false;
-	}
-
-	/**
-	* True if matrix is to be transposed before and after the modification is done.
-	***/
-	bool m_bTranspose;
+	* Squash scaling matrix, obtained by the D3DXMatrixScaling.
+	*/
+	D3DXMATRIX squash;
 };
 #endif

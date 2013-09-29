@@ -278,19 +278,6 @@ void ShaderRegisters::SetFromStateBlockData(std::map<UINT, D3DXVECTOR4> * stored
 ***/
 void ShaderRegisters::SetFromStateBlockData(std::vector<float> * storedVSRegisters, std::vector<float> *storedPSRegisters)
 {
-	if (storedPSRegisters)
-	{
-		// Full register capture should always match the size of the existing register set as size is fixed and register was captured from this
-		assert(storedPSRegisters->size() == m_psRegistersF.size());
-
-		std::copy(storedPSRegisters->begin(), storedPSRegisters->end(), m_psRegistersF.begin());
-
-		// Data should match registers that are already on device (unless it's stereo in which case it might not, that is handled next)
-		m_dirtyPSRegistersF.clear();
-
-		MarkAllPSStereoConstantsDirty();
-	}
-
 	if (storedVSRegisters)
 	{
 		// Full register capture should always match the size of the existing register set as size is fixed and register was captured from this
@@ -302,6 +289,19 @@ void ShaderRegisters::SetFromStateBlockData(std::vector<float> * storedVSRegiste
 		m_dirtyVSRegistersF.clear();
 
 		MarkAllVSStereoConstantsDirty();
+	}
+
+	if (storedPSRegisters)
+	{
+		// Full register capture should always match the size of the existing register set as size is fixed and register was captured from this
+		assert(storedPSRegisters->size() == m_psRegistersF.size());
+
+		std::copy(storedPSRegisters->begin(), storedPSRegisters->end(), m_psRegistersF.begin());
+
+		// Data should match registers that are already on device (unless it's stereo in which case it might not, that is handled next)
+		m_dirtyPSRegistersF.clear();
+
+		MarkAllPSStereoConstantsDirty();
 	}
 }
 
@@ -352,47 +352,6 @@ bool ShaderRegisters::AnyDirtyPS(UINT start, UINT count)
 ***/
 void ShaderRegisters::ApplyAllDirty(vireio::RenderPosition currentSide) 
 {	
-	// pixel shader
-	if (m_dirtyPSRegistersF.size() > 0)
-	{
-		if (m_pActivePixelShader) {
-			ApplyStereoConstantsPS(currentSide, true);
-		}
-
-		// Apply all remaining dirty registers (should just be non-stereo that remain dirty) to device
-		auto it = m_dirtyPSRegistersF.begin();
-
-		if (it != m_dirtyPSRegistersF.end()) {
-
-			int startReg = *it; // can't dererefence this if it might be end
-			int lastReg = startReg;
-
-			while (it != m_dirtyPSRegistersF.end()) {
-
-
-				auto itNext = std::next(it);
-				if ((itNext != m_dirtyPSRegistersF.end()) && (*itNext == lastReg + 1)) {
-					// skip through until we reach the end of a continuous series of dirty registers
-					lastReg = *itNext;
-				}
-				else {
-					// set this series of registers
-					m_pActualDevice->SetPixelShaderConstantF(startReg, &m_psRegistersF[RegisterIndex(startReg)], lastReg - startReg + 1);
-
-					// If there are more dirty registers left the next register will be the new startReg
-					if (itNext != m_dirtyPSRegistersF.end()) {
-						startReg = *itNext;
-						lastReg = startReg;
-					}
-				}
-
-				++it;
-			}
-		}
-
-		m_dirtyPSRegistersF.clear();
-	}
-
 	// vertex shader 
 	if (m_dirtyVSRegistersF.size() > 0)
 	{
@@ -434,6 +393,47 @@ void ShaderRegisters::ApplyAllDirty(vireio::RenderPosition currentSide)
 
 		m_dirtyVSRegistersF.clear();
 	}
+
+	// pixel shader
+	if (m_dirtyPSRegistersF.size() > 0)
+	{
+		if (m_pActivePixelShader) {
+			ApplyStereoConstantsPS(currentSide, true);
+		}
+
+		// Apply all remaining dirty registers (should just be non-stereo that remain dirty) to device
+		auto it = m_dirtyPSRegistersF.begin();
+
+		if (it != m_dirtyPSRegistersF.end()) {
+
+			int startReg = *it; // can't dererefence this if it might be end
+			int lastReg = startReg;
+
+			while (it != m_dirtyPSRegistersF.end()) {
+
+
+				auto itNext = std::next(it);
+				if ((itNext != m_dirtyPSRegistersF.end()) && (*itNext == lastReg + 1)) {
+					// skip through until we reach the end of a continuous series of dirty registers
+					lastReg = *itNext;
+				}
+				else {
+					// set this series of registers
+					m_pActualDevice->SetPixelShaderConstantF(startReg, &m_psRegistersF[RegisterIndex(startReg)], lastReg - startReg + 1);
+
+					// If there are more dirty registers left the next register will be the new startReg
+					if (itNext != m_dirtyPSRegistersF.end()) {
+						startReg = *itNext;
+						lastReg = startReg;
+					}
+				}
+
+				++it;
+			}
+		}
+
+		m_dirtyPSRegistersF.clear();
+	}
 }
 
 /**
@@ -442,8 +442,8 @@ void ShaderRegisters::ApplyAllDirty(vireio::RenderPosition currentSide)
 ***/
 void ShaderRegisters::ApplyAllStereoConstants(vireio::RenderPosition currentSide)
 {
-	ApplyStereoConstantsPS(currentSide, false);
 	ApplyStereoConstantsVS(currentSide, false);
+	ApplyStereoConstantsPS(currentSide, false);
 }
 
 /**

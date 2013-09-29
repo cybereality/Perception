@@ -50,6 +50,8 @@ ViewAdjustment::ViewAdjustment(HMDisplayInfo &displayInfo, float metersToWorldUn
 	D3DXMatrixIdentity(&transformRight);
 	D3DXMatrixIdentity(&matViewProjTransformRight);
 	D3DXMatrixIdentity(&matViewProjTransformLeft);
+	D3DXMatrixIdentity(&matGatheredLeft);
+	D3DXMatrixIdentity(&matGatheredRight);
 
 	UpdateProjectionMatrices(displayInfo.screenAspectRatio);
 	D3DXMatrixIdentity(&rollMatrix);
@@ -105,7 +107,7 @@ void ViewAdjustment::UpdateProjectionMatrices(float aspectRatio)
 
 	D3DXMatrixPerspectiveOffCenterLH(&matProjection, l, r, b, t, n, f);
 	D3DXMatrixInverse(&matProjectionInv, 0, &matProjection);
-		
+
 	// convergence frustum adjustment, based on NVidia explanations
 	//
 	// It is evident that the ratio of frustum shift to the near clipping plane is equal to the ratio of 
@@ -244,6 +246,31 @@ D3DXMATRIX ViewAdjustment::Projection()
 D3DXMATRIX ViewAdjustment::ProjectionInverse()
 {
 	return matProjectionInv;
+}
+
+/**
+* Returns the current left gathered matrix.
+***/
+D3DXMATRIX ViewAdjustment::GatheredMatrixLeft()
+{OutputDebugString("GatheredMatrixLeft()");
+	return matGatheredLeft;
+}
+
+/**
+* Returns the current right gathered matrix.
+***/
+D3DXMATRIX ViewAdjustment::GatheredMatrixRight()
+{
+	return matGatheredRight;
+}
+
+/**
+* Gathers a matrix to be used in modifications.
+***/
+void ViewAdjustment::GatherMatrix(D3DXMATRIX& matrixLeft, D3DXMATRIX& matrixRight)
+{OutputDebugString("GatherMatrix");
+	matGatheredLeft = D3DXMATRIX(matrixLeft);
+	matGatheredRight = D3DMATRIX(matrixRight);
 }
 
 /**
