@@ -42,6 +42,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define OUTPUT_HRESULT(hr) { _com_error err(hr); LPCTSTR errMsg = err.ErrorMessage(); OutputDebugString(errMsg); }
 
+#define MAX_PIXEL_SHADER_CONST_2_0 32
+#define MAX_PIXEL_SHADER_CONST_2_X 32
+#define MAX_PIXEL_SHADER_CONST_3_0 224
+
 /**
 * Clears a vertical line on the current render targets.
 * @param Device_Interface The actual D3D device interface.
@@ -117,7 +121,14 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	m_pCurrentView = &m_leftView;
 	m_pCurrentProjection = &m_leftProjection;
 
-	m_spManagedShaderRegisters = std::make_shared<ShaderRegisters>(capabilities.MaxVertexShaderConst, pDevice);
+	// get pixel shader max constants
+	auto major_ps=D3DSHADER_VERSION_MAJOR(capabilities.PixelShaderVersion);
+	auto minor_ps=D3DSHADER_VERSION_MINOR(capabilities.PixelShaderVersion);
+	DWORD MaxPixelShaderConst = MAX_PIXEL_SHADER_CONST_2_0;
+	if ((major_ps>=2) && (minor_ps>0)) MaxPixelShaderConst = MAX_PIXEL_SHADER_CONST_2_X;
+	if ((major_ps>=3) && (minor_ps>=0)) MaxPixelShaderConst = MAX_PIXEL_SHADER_CONST_3_0;
+
+	m_spManagedShaderRegisters = std::make_shared<ShaderRegisters>(MaxPixelShaderConst, capabilities.MaxVertexShaderConst, pDevice);
 
 	m_pActiveStereoDepthStencil = NULL;
 	m_pActiveIndicies = NULL;
@@ -1492,7 +1503,7 @@ HRESULT WINAPI D3DProxyDevice::SetVertexShaderConstantF(UINT StartRegister,CONST
 		result = m_pCapturingStateTo->SelectAndCaptureStateVSConst(StartRegister, pConstantData, Vector4fCount);
 	}
 	else { 
-		result = m_spManagedShaderRegisters->SetConstantRegistersF(StartRegister, pConstantData, Vector4fCount);
+		result = m_spManagedShaderRegisters->SetVertexShaderConstantF(StartRegister, pConstantData, Vector4fCount);
 	}
 
 	return result;
@@ -1505,7 +1516,7 @@ HRESULT WINAPI D3DProxyDevice::SetVertexShaderConstantF(UINT StartRegister,CONST
 ***/
 HRESULT WINAPI D3DProxyDevice::GetVertexShaderConstantF(UINT StartRegister,float* pData,UINT Vector4fCount)
 {
-	return m_spManagedShaderRegisters->GetConstantRegistersF(StartRegister, pData, Vector4fCount);
+	return m_spManagedShaderRegisters->GetVertexShaderConstantF(StartRegister, pData, Vector4fCount);
 }
 
 /**
@@ -1653,8 +1664,9 @@ HRESULT WINAPI D3DProxyDevice::CreatePixelShader(CONST DWORD* pFunction,IDirect3
 	IDirect3DPixelShader9* pActualPShader = NULL;
 	HRESULT creationResult = BaseDirect3DDevice9::CreatePixelShader(pFunction, &pActualPShader);
 
-	if (SUCCEEDED(creationResult))
-		*ppShader = new BaseDirect3DPixelShader9(pActualPShader, this);
+	if (SUCCEEDED(creationResult)) {
+		*ppShader = new D3D9ProxyPixelShader(pActualPShader, this, m_pGameHandler->GetShaderModificationRepository());
+	}
 
 	return creationResult;
 }
@@ -1665,7 +1677,7 @@ HRESULT WINAPI D3DProxyDevice::CreatePixelShader(CONST DWORD* pFunction,IDirect3
 ***/
 HRESULT WINAPI D3DProxyDevice::SetPixelShader(IDirect3DPixelShader9* pShader)
 {
-	BaseDirect3DPixelShader9* pWrappedPShaderData = static_cast<BaseDirect3DPixelShader9*>(pShader);
+	D3D9ProxyPixelShader* pWrappedPShaderData = static_cast<D3D9ProxyPixelShader*>(pShader);
 
 	// Update actual pixel shader
 	HRESULT result;
@@ -1691,6 +1703,8 @@ HRESULT WINAPI D3DProxyDevice::SetPixelShader(IDirect3DPixelShader9* pShader)
 			if (m_pActivePixelShader) {
 				m_pActivePixelShader->AddRef();
 			}
+
+			m_spManagedShaderRegisters->ActivePixelShaderChanged(m_pActivePixelShader);
 		}
 	}
 
@@ -1708,6 +1722,35 @@ HRESULT WINAPI D3DProxyDevice::GetPixelShader(IDirect3DPixelShader9** ppShader)
 	*ppShader = m_pActivePixelShader;
 
 	return D3D_OK;
+}
+
+/**
+* Sets shader constants either at stored proxy state block or in managed shader register class.
+* @see D3D9ProxyStateBlock
+* @see ShaderRegisters
+***/
+HRESULT WINAPI D3DProxyDevice::SetPixelShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount)
+{
+	HRESULT result = D3DERR_INVALIDCALL;
+
+	if (m_pCapturingStateTo) {
+		result = m_pCapturingStateTo->SelectAndCaptureStatePSConst(StartRegister, pConstantData, Vector4fCount);
+	}
+	else { 
+		result = m_spManagedShaderRegisters->SetPixelShaderConstantF(StartRegister, pConstantData, Vector4fCount);
+	}
+
+	return result;
+}
+
+/**
+* Provides constant registers from managed shader register class.
+* @see ShaderRegisters
+* @see ShaderRegisters::GetPixelShaderConstantF()
+***/
+HRESULT WINAPI D3DProxyDevice::GetPixelShaderConstantF(UINT StartRegister,float* pData,UINT Vector4fCount)
+{
+	return m_spManagedShaderRegisters->GetPixelShaderConstantF(StartRegister, pData, Vector4fCount);
 }
 
 /**

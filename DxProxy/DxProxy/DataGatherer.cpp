@@ -53,13 +53,14 @@ uint32_t ShaderHash(LPDIRECT3DVERTEXSHADER9 pShader)
 * @param pCreatedBy Pointer to the object that created the device.
 ***/
 DataGatherer::DataGatherer(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy):D3DProxyDevice(pDevice, pCreatedBy),
-	m_recordedShaders(),
+	m_recordedVShaders(),
+	m_recordedPShaders(),
 	m_startAnalyzingTool(false),
 	m_analyzingFrameCounter(0)
 {
-	m_shaderDumpFile.open("vertexShaderDump.csv", std::ios::out);
+	m_shaderDumpFile.open("shaderDump.csv", std::ios::out);
 
-	m_shaderDumpFile << "Shader Hash,Constant Name,ConstantType,Start Register,Register Count" << std::endl;
+	m_shaderDumpFile << "Shader Hash,Constant Name,ConstantType,Start Register,Register Count,Vertex/Pixel Shader" << std::endl;
 
 	// create matrix name array 
 	static std::string names[] = { "ViewProj", "viewproj", "viewProj", "wvp", "mvp", "WVP", "MVP", "wvP", "mvP", "matFinal", "matrixFinal", "MatrixFinal", "FinalMatrix", "finalMatrix" };
@@ -192,7 +193,7 @@ HRESULT WINAPI DataGatherer::CreateVertexShader(CONST DWORD* pFunction,IDirect3D
 		// No idea what happens if the same vertex shader is created twice. Pointer to the same shader or two
 		// separate instances? guessing separate in which case m_recordedShader as is is pointless. 
 		// TODO Replace pointer check with check on hash of shader data. (and print hash with data)
-		if (m_recordedShaders.insert(pActualShader).second && m_shaderDumpFile.is_open()) {
+		if (m_recordedVShaders.insert(pActualShader).second && m_shaderDumpFile.is_open()) {
 
 			// insertion succeeded - record shader details.
 			LPD3DXCONSTANTTABLE pConstantTable = NULL;
@@ -251,7 +252,7 @@ HRESULT WINAPI DataGatherer::CreateVertexShader(CONST DWORD* pFunction,IDirect3D
 							}
 
 							m_shaderDumpFile << "," << pConstantDesc[j].RegisterIndex;
-							m_shaderDumpFile << "," << pConstantDesc[j].RegisterCount << std::endl;
+							m_shaderDumpFile << "," << pConstantDesc[j].RegisterCount << ",VS" << std::endl;
 
 							dataFound = true;
 
@@ -366,6 +367,123 @@ HRESULT WINAPI DataGatherer::SetVertexShaderConstantF(UINT StartRegister,CONST f
 	}
 
 	return D3DProxyDevice::SetVertexShaderConstantF(StartRegister, pConstantData, Vector4fCount);
+}
+
+HRESULT WINAPI DataGatherer::CreatePixelShader(CONST DWORD* pFunction,IDirect3DPixelShader9** ppShader)
+{
+	// create proxy vertex shader
+	HRESULT creationResult = D3DProxyDevice::CreatePixelShader(pFunction, ppShader);
+
+	if (SUCCEEDED(creationResult)) {
+		BaseDirect3DPixelShader9* pWrappedShader = static_cast<BaseDirect3DPixelShader9*>(*ppShader);
+		IDirect3DPixelShader9* pActualShader = pWrappedShader->getActual();
+
+		// No idea what happens if the same vertex shader is created twice. Pointer to the same shader or two
+		// separate instances? guessing separate in which case m_recordedShader as is is pointless. 
+		// TODO Replace pointer check with check on hash of shader data. (and print hash with data)
+		if (m_recordedPShaders.insert(pActualShader).second && m_shaderDumpFile.is_open()) {
+
+			// insertion succeeded - record shader details.
+			LPD3DXCONSTANTTABLE pConstantTable = NULL;
+
+			BYTE* pData = NULL;
+			UINT pSizeOfData;
+			pActualShader->GetFunction(NULL, &pSizeOfData);
+
+			pData = new BYTE[pSizeOfData];
+			pActualShader->GetFunction(pData, &pSizeOfData);
+
+			uint32_t hash = 0;
+			MurmurHash3_x86_32(pData, pSizeOfData, VIREIO_SEED, &hash); 
+
+			D3DXGetShaderConstantTable(reinterpret_cast<DWORD*>(pData), &pConstantTable);
+
+			if(pConstantTable == NULL) 
+				return creationResult;
+
+			D3DXCONSTANTTABLE_DESC pDesc;
+			pConstantTable->GetDesc(&pDesc);
+
+			D3DXCONSTANT_DESC pConstantDesc[512];
+			UINT pConstantNum = 512;
+
+			for(UINT i = 0; i < pDesc.Constants; i++)
+			{
+				D3DXHANDLE handle = pConstantTable->GetConstant(NULL,i);
+				if(handle == NULL) continue;
+
+				pConstantTable->GetConstantDesc(handle, pConstantDesc, &pConstantNum);
+				if (pConstantNum >= 512) {
+					OutputDebugString("Need larger constant description buffer");
+				}
+
+				// if data found, add to vertex shader call count map
+				bool dataFound = false;
+
+				// loop through constants, output relevant data
+				for(UINT j = 0; j < pConstantNum; j++)
+				{
+					if ((pConstantDesc[j].RegisterSet == D3DXRS_FLOAT4) &&
+						((pConstantDesc[j].Class == D3DXPC_VECTOR) || (pConstantDesc[j].Class == D3DXPC_MATRIX_ROWS) || (pConstantDesc[j].Class == D3DXPC_MATRIX_COLUMNS))  ) {
+
+							m_shaderDumpFile << hash;
+							m_shaderDumpFile << "," << pConstantDesc[j].Name;
+
+							if (pConstantDesc[j].Class == D3DXPC_VECTOR) {
+								m_shaderDumpFile << ",Vector";
+							}
+							else if (pConstantDesc[j].Class == D3DXPC_MATRIX_ROWS) {
+								m_shaderDumpFile << ",MatrixR";
+							}
+							else if (pConstantDesc[j].Class == D3DXPC_MATRIX_COLUMNS) {
+								m_shaderDumpFile << ",MatrixC";
+							}
+
+							m_shaderDumpFile << "," << pConstantDesc[j].RegisterIndex;
+							m_shaderDumpFile << "," << pConstantDesc[j].RegisterCount << ",PS" << std::endl;
+
+							dataFound = true;
+
+							// add constant to relevant constant vector
+							ShaderConstant sc;
+							sc.hash = hash;
+							sc.desc = D3DXCONSTANT_DESC(pConstantDesc[j]);
+							sc.name = std::string(pConstantDesc[j].Name);
+							sc.transposed = false;
+							m_relevantVSConstants.push_back(sc);
+					}
+				}
+
+				// shader contains relevant data, so add to call count map
+				if (dataFound)
+					m_vertexShaderCallCount.insert(std::pair<UINT, UINT>(hash, 0));
+			}
+
+#ifdef _DEBUG
+			// optionally, output shader code to "PS(hash).txt"
+			char buf[32]; ZeroMemory(&buf[0],32);
+			sprintf_s(buf, "PS%u.txt", hash);
+			std::ofstream oLogFile(buf,std::ios::ate);
+
+			if (oLogFile.is_open())
+			{
+				LPD3DXBUFFER bOut; 
+				D3DXDisassembleShader(reinterpret_cast<DWORD*>(pData),NULL,NULL,&bOut); 
+				oLogFile << static_cast<char*>(bOut->GetBufferPointer()) << std::endl;
+				oLogFile << std::endl << std::endl;
+				oLogFile << "// Shader Creator: " << pDesc.Creator << std::endl;
+				oLogFile << "// Shader Version: " << pDesc.Version << std::endl;
+				oLogFile << "// Shader Hash   : " << hash << std::endl;
+			}
+#endif
+
+			_SAFE_RELEASE(pConstantTable);
+			if (pData) delete[] pData;
+		}
+		// else shader already recorded
+	}
+
+	return creationResult;
 }
 
 /**

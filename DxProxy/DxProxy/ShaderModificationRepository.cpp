@@ -176,7 +176,7 @@ bool ShaderModificationRepository::SaveRules(std::string rulesPath)
 		while (itModificationRules != m_AllModificationRules.end())
 		{
 			pugi::xml_node xmlRule = xmlRules.append_child("rule");
-			
+
 			// set attributes
 			xmlRule.append_attribute("constantName") = itModificationRules->second.m_constantName.c_str();
 			xmlRule.append_attribute("partialName") = itModificationRules->second.m_allowPartialNameMatch;
@@ -232,7 +232,7 @@ bool ShaderModificationRepository::AddRule(std::string constantName, bool allowP
 
 		++itModificationRules;
 	}
-	
+
 	// add if rule is not present
 	if (!rulePresent)
 	{
@@ -242,6 +242,169 @@ bool ShaderModificationRepository::AddRule(std::string constantName, bool allowP
 	}
 
 	return (!rulePresent);
+}
+
+/**
+* Returns a collection of modified constants for the specified shader. 
+* (may be an empty collection if no modifications apply)
+* <StrartRegister, StereoShaderConstant<float>>
+*
+* Hash the shader and load modification rules:
+* If rules for this specific shader use those else use default rules.
+*
+* For each shader constant:
+* Check if constant matches a rule (name and/or index). If it does create a stereoshaderconstant 
+* based on rule and add to map of stereoshaderconstants to return.
+*
+* @param pActualPixelShader The actual (not wrapped) pixel shader.
+* @return Collection of stereoshaderconstants for this shader (empty collection if no modifications).
+***/
+std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetModifiedConstantsF(IDirect3DPixelShader9* pActualPixelShader)
+{
+	// All rules are assumed to be valid. Validation of rules should be done when rules are loaded/created
+	std::vector<ConstantModificationRule*> rulesToApply;
+	std::map<UINT, StereoShaderConstant<float>> result;
+
+	// Hash the shader and load modification rules
+	BYTE *pData = NULL;
+	UINT pSizeOfData;
+
+	pActualPixelShader->GetFunction(NULL, &pSizeOfData);
+	pData = new BYTE[pSizeOfData];
+	pActualPixelShader->GetFunction(pData,&pSizeOfData);
+
+	uint32_t hash;
+	MurmurHash3_x86_32(pData, pSizeOfData, VIREIO_SEED, &hash);
+
+	if (m_shaderSpecificModificationRuleIDs.count(hash) == 1) {
+
+		// There are specific modification rules to use with this shader
+		auto itRules = m_shaderSpecificModificationRuleIDs[hash].begin();
+		while (itRules != m_shaderSpecificModificationRuleIDs[hash].end()) {
+			rulesToApply.push_back(&(m_AllModificationRules[*itRules]));
+			++itRules;
+		}
+	}
+	else {
+
+		// No specific rules, use general rules
+		auto itRules = m_defaultModificationRuleIDs.begin();
+		while (itRules != m_defaultModificationRuleIDs.end()) {
+			rulesToApply.push_back(&(m_AllModificationRules[*itRules]));
+			++itRules;
+		}
+	}
+
+	// Load the constant descriptions for this shader and create StereoShaderConstants as the applicable rules require them.
+	LPD3DXCONSTANTTABLE pConstantTable = NULL;
+
+	D3DXGetShaderConstantTable(reinterpret_cast<DWORD*>(pData), &pConstantTable);
+
+	if(pConstantTable) {
+
+		D3DXCONSTANTTABLE_DESC pDesc;
+		pConstantTable->GetDesc(&pDesc);
+
+		D3DXCONSTANT_DESC pConstantDesc[64];
+
+		for(UINT i = 0; i < pDesc.Constants; i++)
+		{
+			D3DXHANDLE handle = pConstantTable->GetConstant(NULL,i);
+			if(handle == NULL) continue;
+
+			UINT pConstantNum = 64;
+			pConstantTable->GetConstantDesc(handle, pConstantDesc, &pConstantNum);
+			if (pConstantNum >= 64) {
+				OutputDebugString("ShaderModificationRepository::GetModifiedConstantsF - Need larger constant description buffer");
+			}
+
+
+			for(UINT j = 0; j < pConstantNum; j++)
+			{
+				// We are only modifying selected float vectors/matricies.
+				if (pConstantDesc[j].RegisterSet != D3DXRS_FLOAT4)
+					continue;
+
+				if ( ((pConstantDesc[j].Class == D3DXPC_VECTOR) && (pConstantDesc[j].RegisterCount == 1))
+					|| (((pConstantDesc[j].Class == D3DXPC_MATRIX_ROWS) || (pConstantDesc[j].Class == D3DXPC_MATRIX_COLUMNS)) && (pConstantDesc[j].RegisterCount == 4)) ) {
+						// Check if any rules match this constant
+						auto itRules = rulesToApply.begin();
+						while (itRules != rulesToApply.end()) {
+
+							// Type match
+							if ((*itRules)->m_constantType == pConstantDesc[j].Class) {
+								// name match required
+								if ((*itRules)->m_constantName.size() > 0) {
+									bool nameMatch = false;
+									if ((*itRules)->m_allowPartialNameMatch) {
+										nameMatch = std::strstr(pConstantDesc[j].Name, (*itRules)->m_constantName.c_str()) != NULL;
+
+										/*if (nameMatch) {
+											OutputDebugString("Match\n");
+										}
+										else {
+											OutputDebugString("No Match\n");
+										}*/
+									}
+									else {
+										nameMatch = (*itRules)->m_constantName.compare(pConstantDesc[j].Name) == 0;
+
+										//OutputDebugString("Full name match only\n");
+									}
+
+									if (!nameMatch) {
+										// no match
+										++itRules;
+										continue;
+									}
+								}
+
+								// register match required
+								if ((*itRules)->m_startRegIndex != UINT_MAX) {
+									if ((*itRules)->m_startRegIndex != pConstantDesc[j].RegisterIndex) {
+										// no match
+										++itRules;
+										continue;
+									}
+								}
+
+#ifdef _DEBUG
+								// output shader constant + index 
+								switch(pConstantDesc[j].Class)
+								{
+								case D3DXPC_VECTOR:
+									OutputDebugString("D3DXPC_VECTOR");
+									break;
+								case D3DXPC_MATRIX_ROWS:
+									OutputDebugString("D3DXPC_MATRIX_ROWS");
+									break;
+								case D3DXPC_MATRIX_COLUMNS:
+									OutputDebugString("D3DXPC_MATRIX_COLUMNS");
+									break;
+								}
+								char buf[32];
+								sprintf_s(buf,"Register Index: %d", pConstantDesc[j].RegisterIndex);
+								OutputDebugString(buf);
+#endif
+
+								// Create StereoShaderConstant<float> and add to result
+								result.insert(std::pair<UINT, StereoShaderConstant<>>(pConstantDesc[j].RegisterIndex, CreateStereoConstantFrom(*itRules, pConstantDesc[j].RegisterIndex, pConstantDesc[j].RegisterCount)));
+
+								// only the first matching rule is applied to a constant
+								break;
+							}
+
+							++itRules;
+						}
+				}	
+			}
+		}
+	}
+
+	_SAFE_RELEASE(pConstantTable);
+	if (pData) delete[] pData;
+
+	return result;
 }
 
 /**

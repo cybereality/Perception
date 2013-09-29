@@ -17,31 +17,31 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#include "D3D9ProxyVertexShader.h"
+#include "D3D9ProxyPixelShader.h"
 
 /**
 * Constructor.
 * @param pModLoader Can be NULL (no modifications in this game profile).
 ***/
-D3D9ProxyVertexShader::D3D9ProxyVertexShader(IDirect3DVertexShader9* pActualVertexShader, D3DProxyDevice *pOwningDevice, ShaderModificationRepository* pModLoader) :
-	BaseDirect3DVertexShader9(pActualVertexShader, pOwningDevice),
+D3D9ProxyPixelShader::D3D9ProxyPixelShader(IDirect3DPixelShader9* pActualPixelShader, D3DProxyDevice *pOwningDevice, ShaderModificationRepository* pModLoader) :
+	BaseDirect3DPixelShader9(pActualPixelShader, pOwningDevice),
 	m_pActualDevice(pOwningDevice->getActual()),
 	m_modifiedConstants()
 {
 	if (pModLoader)
-		m_modifiedConstants = pModLoader->GetModifiedConstantsF(pActualVertexShader);
+		m_modifiedConstants = pModLoader->GetModifiedConstantsF(pActualPixelShader);
 }
 
 /**
 * Empty destructor.
 ***/
-D3D9ProxyVertexShader::~D3D9ProxyVertexShader()
+D3D9ProxyPixelShader::~D3D9ProxyPixelShader()
 {}
 
 /**
 * Returns modified constants pointer.
 ***/
-std::map<UINT, StereoShaderConstant<float>>* D3D9ProxyVertexShader::ModifiedConstants()
+std::map<UINT, StereoShaderConstant<float>>* D3D9ProxyPixelShader::ModifiedConstants()
 {
 	return &m_modifiedConstants;
 }

@@ -27,10 +27,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
 * Data gatherer class, outputs relevant shader data to dump file (.csv format) .
-* Outputs Shader Hash,Constant Name,ConstantType,Start Register,Register Count to "vertexShaderDump.csv".
+* Outputs Shader Hash,Constant Name,ConstantType,Start Register,Register Count to "shaderDump.csv".
 * Used ".csv" file format to easily open and sort using OpenOffice (for example). These informations let 
 * you create new shader rules.
-* (if compiled to debug, it outputs shader code to "VS(hash).txt")
+* (if compiled to debug, it outputs shader code to "VS(hash).txt" or "PS(hash).txt")
 */
 class DataGatherer : public D3DProxyDevice
 {
@@ -47,6 +47,7 @@ public:
 	virtual HRESULT WINAPI CreateVertexShader(CONST DWORD* pFunction,IDirect3DVertexShader9** ppShader);
 	virtual HRESULT WINAPI SetVertexShader(IDirect3DVertexShader9* pShader);
 	virtual HRESULT WINAPI SetVertexShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
+	virtual HRESULT WINAPI CreatePixelShader(CONST DWORD* pFunction,IDirect3DPixelShader9** ppShader);
 
 	/*** DataGatherer public methods ***/
 	virtual void Init(ProxyHelper::ProxyConfig& cfg);
@@ -91,9 +92,13 @@ private:
 	***/
 	UINT m_analyzingFrameCounter;
 	/**
+	* Set of recorded vertex shaders, to avoid double output.
+	***/
+	std::unordered_set<IDirect3DVertexShader9*> m_recordedVShaders;
+	/**
 	* Set of recorded shaders, to avoid double output.
 	***/
-	std::unordered_set<IDirect3DVertexShader9*> m_recordedShaders;
+	std::unordered_set<IDirect3DPixelShader9*> m_recordedPShaders;
 	/**
 	* The shader dump file (.csv format).
 	***/

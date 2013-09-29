@@ -41,8 +41,11 @@ D3D9ProxyStateBlock::D3D9ProxyStateBlock(IDirect3DStateBlock9* pActualStateBlock
 	m_selectedStates(),
 	m_selectedTextureSamplers(),
 	m_selectedVertexStreams(),
-	m_storedSelectedRegistersF(),
-	m_storedAllRegistersF(),
+	m_storedSelectedPSRegistersF(),
+	m_storedAllPSRegistersF(),
+	m_selectedPixelConstantRegistersF(),
+	m_storedSelectedVSRegistersF(),
+	m_storedAllVSRegistersF(),
 	m_selectedVertexConstantRegistersF()
 {
 	assert (pOwningDevice != NULL);
@@ -114,6 +117,7 @@ D3D9ProxyStateBlock::~D3D9ProxyStateBlock()
 	m_selectedStates.clear();
 	m_selectedTextureSamplers.clear();
 	m_selectedVertexStreams.clear();
+	m_selectedPixelConstantRegistersF.clear();
 	m_selectedVertexConstantRegistersF.clear();
 
 	m_pWrappedDevice->Release();
@@ -215,30 +219,34 @@ HRESULT WINAPI D3D9ProxyStateBlock::Apply()
 
 
 
-		// VertexShader constants
+		// Shader constants
 		switch (m_eCaptureMode) 
 		{			
 		case Cap_Type_Selected:
 
-			if (m_selectedStates.count(VertexShader) == 1) {
-				m_pWrappedDevice->m_spManagedShaderRegisters->SetFromStateBlockData(&m_storedSelectedRegistersF, m_pStoredVertexShader);
-			}
-			else {
-				m_pWrappedDevice->m_spManagedShaderRegisters->SetFromStateBlockData(&m_storedSelectedRegistersF);
-			}
+			if (m_selectedStates.count(VertexShader) == 1) 
+				m_pWrappedDevice->m_spManagedShaderRegisters->SetFromStateBlockVertexShader(m_pStoredVertexShader);
+			if (m_selectedStates.count(PixelShader) == 1)
+				m_pWrappedDevice->m_spManagedShaderRegisters->SetFromStateBlockPixelShader(m_pStoredPixelShader);
 
+			m_pWrappedDevice->m_spManagedShaderRegisters->SetFromStateBlockData(&m_storedSelectedVSRegistersF, &m_storedSelectedPSRegistersF);
 			break;
 
 		case Cap_Type_Full:
+			m_pWrappedDevice->m_spManagedShaderRegisters->SetFromStateBlockVertexShader(m_pStoredVertexShader);
+			m_pWrappedDevice->m_spManagedShaderRegisters->SetFromStateBlockPixelShader(m_pStoredPixelShader);
+			m_pWrappedDevice->m_spManagedShaderRegisters->SetFromStateBlockData(&m_storedAllVSRegistersF, &m_storedAllPSRegistersF);
+			break;
+
 		case Cap_Type_Vertex:
-
-			m_pWrappedDevice->m_spManagedShaderRegisters->SetFromStateBlockData(&m_storedAllRegistersF, m_pStoredVertexShader);
-
+			m_pWrappedDevice->m_spManagedShaderRegisters->SetFromStateBlockVertexShader(m_pStoredVertexShader);
+			m_pWrappedDevice->m_spManagedShaderRegisters->SetFromStateBlockData(&m_storedAllVSRegistersF, NULL);
 			break;
 
 		case Cap_Type_Pixel:
 		default:
-			// do nothing
+			m_pWrappedDevice->m_spManagedShaderRegisters->SetFromStateBlockPixelShader(m_pStoredPixelShader);
+			m_pWrappedDevice->m_spManagedShaderRegisters->SetFromStateBlockData(NULL, &m_storedAllPSRegistersF);
 			break;
 		}
 
@@ -382,7 +390,7 @@ void D3D9ProxyStateBlock::SelectAndCaptureProjectionTransform(D3DXMATRIX left, D
 * @param pWrappedPixelShader The wrapped pixel shader to be captured.
 * @see D3D9ProxyStateBlock::CaptureableState
 ***/
-void D3D9ProxyStateBlock::SelectAndCaptureState(BaseDirect3DPixelShader9* pWrappedPixelShader)
+void D3D9ProxyStateBlock::SelectAndCaptureState(D3D9ProxyPixelShader* pWrappedPixelShader)
 {
 	assert(m_eCaptureMode == Cap_Type_Selected);
 	assert (m_pWrappedDevice->m_bInBeginEndStateBlock);
@@ -518,7 +526,7 @@ void D3D9ProxyStateBlock::SelectAndCaptureState(UINT StreamNumber, BaseDirect3DV
 * If this proves to be untrue then int and bool containers will need adding throughout this class.
 * @see D3DProxyDevice::SetVertexShaderConstantF()
 ***/
-HRESULT WINAPI  D3D9ProxyStateBlock::SelectAndCaptureStateVSConst(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount)
+HRESULT WINAPI D3D9ProxyStateBlock::SelectAndCaptureStateVSConst(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount)
 {
 	assert(m_eCaptureMode == Cap_Type_Selected);
 	assert (m_pWrappedDevice->m_bInBeginEndStateBlock);
@@ -532,7 +540,35 @@ HRESULT WINAPI  D3D9ProxyStateBlock::SelectAndCaptureStateVSConst(UINT StartRegi
 		// Mark these registers as being tracked and save them
 		for (UINT i = StartRegister; i < (StartRegister + Vector4fCount); i++) {
 			m_selectedVertexConstantRegistersF.insert(i);
-			m_storedSelectedRegistersF.insert(std::pair<UINT, D3DXVECTOR4>(i, pConstantData));
+			m_storedSelectedVSRegistersF.insert(std::pair<UINT, D3DXVECTOR4>(i, pConstantData));
+		}
+	}
+
+	return result;
+}
+
+/** 
+* Adds registers to selected pixel constant registers and captures the constant data.
+* Use these methods when the respective methods on the device are called between Start/End StateBlock.
+* Assumption: Only float registers will need to be stereo. 
+* If this proves to be untrue then int and bool containers will need adding throughout this class.
+* @see D3DProxyDevice::SetPixelShaderConstantF()
+***/
+HRESULT WINAPI D3D9ProxyStateBlock::SelectAndCaptureStatePSConst(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount)
+{
+	assert(m_eCaptureMode == Cap_Type_Selected);
+	assert (m_pWrappedDevice->m_bInBeginEndStateBlock);
+	assert (!m_pActualStateBlock);
+
+	// The assumption here is that most registers won't need to be stereo so we set them all on the actual device imiediately and overwrite the stereo ones 
+	// when we Apply. (if there are any). This Simplifies "Apply" when this block is applied later.
+	HRESULT result = m_pOwningDevice->SetPixelShaderConstantF(StartRegister, pConstantData, Vector4fCount);
+
+	if (SUCCEEDED(result)) {
+		// Mark these registers as being tracked and save them
+		for (UINT i = StartRegister; i < (StartRegister + Vector4fCount); i++) {
+			m_selectedPixelConstantRegistersF.insert(i);
+			m_storedSelectedPSRegistersF.insert(std::pair<UINT, D3DXVECTOR4>(i, pConstantData));
 		}
 	}
 
@@ -621,22 +657,24 @@ void D3D9ProxyStateBlock::CaptureSelectedFromProxyDevice()
 
 
 			// Vertex Shader constants
-			m_storedAllRegistersF = m_pWrappedDevice->m_spManagedShaderRegisters->GetAllConstantRegistersF();
-
+			m_storedAllVSRegistersF = m_pWrappedDevice->m_spManagedShaderRegisters->GetAllVSConstantRegistersF();
+			// Pixel Shader constants
+			m_storedAllPSRegistersF = m_pWrappedDevice->m_spManagedShaderRegisters->GetAllPSConstantRegistersF();
 			break;
 		}
 
 	case Cap_Type_Vertex:
 		{
 			// Vertex Shader constants
-			m_storedAllRegistersF = m_pWrappedDevice->m_spManagedShaderRegisters->GetAllConstantRegistersF();
+			m_storedAllVSRegistersF = m_pWrappedDevice->m_spManagedShaderRegisters->GetAllVSConstantRegistersF();
 
 			break;
 		}
 
 	case Cap_Type_Pixel:
 		{
-			// No indexed pixel shader states need to be handled by the proxy.
+			// Pixel Shader constants
+			m_storedAllPSRegistersF = m_pWrappedDevice->m_spManagedShaderRegisters->GetAllPSConstantRegistersF();
 			break;
 		}
 
@@ -689,11 +727,22 @@ void D3D9ProxyStateBlock::CaptureSelectedFromProxyDevice()
 			auto itSelectedVertexConstants = m_selectedVertexConstantRegistersF.begin();
 			while (itSelectedVertexConstants != m_selectedVertexConstantRegistersF.end()) {
 
-				m_pWrappedDevice->m_spManagedShaderRegisters->GetConstantRegistersF(*itSelectedVertexConstants, currentRegister, 1);
+				m_pWrappedDevice->m_spManagedShaderRegisters->GetVertexShaderConstantF(*itSelectedVertexConstants, currentRegister, 1);
 
-				m_storedSelectedRegistersF.insert(std::pair<UINT, D3DXVECTOR4>(*itSelectedVertexConstants, currentRegister));
+				m_storedSelectedVSRegistersF.insert(std::pair<UINT, D3DXVECTOR4>(*itSelectedVertexConstants, currentRegister));
 
 				++itSelectedVertexConstants;
+			}
+
+			// Pixel Shader constants
+			auto itSelectedPixelConstants = m_selectedPixelConstantRegistersF.begin();
+			while (itSelectedPixelConstants != m_selectedPixelConstantRegistersF.end()) {
+
+				m_pWrappedDevice->m_spManagedShaderRegisters->GetPixelShaderConstantF(*itSelectedPixelConstants, currentRegister, 1);
+
+				m_storedSelectedPSRegistersF.insert(std::pair<UINT, D3DXVECTOR4>(*itSelectedPixelConstants, currentRegister));
+
+				++itSelectedPixelConstants;
 			}
 
 			break;
@@ -812,9 +861,12 @@ void D3D9ProxyStateBlock::ClearCapturedData()
 	}
 	m_storedVertexBuffers.clear();
 
-	m_storedSelectedRegistersF.clear();
-	m_storedAllRegistersF.clear();
-	
+	m_storedSelectedVSRegistersF.clear();
+	m_storedAllVSRegistersF.clear();
+
+	m_storedSelectedPSRegistersF.clear();
+	m_storedAllPSRegistersF.clear();
+
 	if (m_pStoredIndicies) {
 		m_pStoredIndicies->Release();
 		m_pStoredIndicies = NULL;

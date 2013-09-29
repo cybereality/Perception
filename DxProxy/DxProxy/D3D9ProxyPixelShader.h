@@ -17,15 +17,15 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#ifndef D3D9PROXYVERTEXSHADER_H_INCLUDED
-#define D3D9PROXYVERTEXSHADER_H_INCLUDED
+#ifndef D3D9PROXYPIXELSHADER_H_INCLUDED
+#define D3D9PROXYPIXELSHADER_H_INCLUDED
 
 #include <d3d9.h>
 #include <memory>
 #include <unordered_map>
 #include <vector>
 #include <algorithm>
-#include "Direct3DVertexShader9.h"
+#include "Direct3DPixelShader9.h"
 #include "Direct3DDevice9.h"
 #include "ShaderRegisters.h"
 #include "D3DProxyDevice.h"
@@ -36,16 +36,16 @@ class D3DProxyDevice;
 class ShaderModificationRepository;
 
 /**
-*  Direct 3D proxy vertex shader class.
-*  Overwrites BaseDirect3DVertexShader9 and handles modified constants.
+*  Direct 3D proxy pixel shader class.
+*  Overwrites BaseDirect3DPixelShader9 and handles modified constants.
 */
-class D3D9ProxyVertexShader : public BaseDirect3DVertexShader9
+class D3D9ProxyPixelShader : public BaseDirect3DPixelShader9
 {
 public:	
-	D3D9ProxyVertexShader(IDirect3DVertexShader9* pActualVertexShader, D3DProxyDevice* pOwningDevice, ShaderModificationRepository* pModLoader);
-	virtual ~D3D9ProxyVertexShader();
+	D3D9ProxyPixelShader(IDirect3DPixelShader9* pActualPixelShader, D3DProxyDevice* pOwningDevice, ShaderModificationRepository* pModLoader);
+	virtual ~D3D9ProxyPixelShader();
 
-	/*** D3D9ProxyVertexShader public methods ***/
+	/*** D3D9ProxyPixelShader public methods ***/
 	std::map<UINT, StereoShaderConstant<>>* ModifiedConstants();
 protected:
 	/**

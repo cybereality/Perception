@@ -28,6 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <map>
 #include "Direct3DVertexBuffer9.h"
 #include "Direct3DIndexBuffer9.h"
+#include "D3D9ProxyPixelShader.h"
 #include "D3D9ProxyVertexShader.h"
 #include "Direct3DPixelShader9.h"
 #include "Direct3DVertexDeclaration9.h"
@@ -35,6 +36,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 class BaseDirect3DStateBlock9;
 class D3DProxyDevice;
+class D3D9ProxyPixelShader;
 class D3D9ProxyVertexShader;
 
 /**
@@ -91,7 +93,7 @@ public:
 		Cap_Type_Selected = 4,                    /**< Proxy type : Selected - used for proxy device class intern state block. @see m_pCapturingStateTo @see D3D9ProxyDevice::BeginStateBlock() **/
 		Cap_Type_FORCE_DWORD   = 0x7fffffff       /**< D3DSTATEBLOCKTYPE::D3DSBT_FORCE_DWORD **/
 	};
-	
+
 	/**
 	* In this context states to capture are any state that a proxy needs to track extra information for
 	* beyond the underlying StateBlocks normal capture. 
@@ -116,7 +118,7 @@ public:
 		VertexBuffer = 2,				/**< needs to track which stream **/
 		VertexShaderConstantsF = 3,		/**< StereoShaderConstants only, leave the rest to the actual state block **/
 	};
-		
+
 	D3D9ProxyStateBlock(IDirect3DStateBlock9* pActualStateBlock, D3DProxyDevice* pOwningDevice, CaptureType type, bool isSideLeft);
 	virtual ~D3D9ProxyStateBlock();
 
@@ -129,12 +131,13 @@ public:
 	void           SelectAndCaptureState(D3DVIEWPORT9 viewport);
 	void           SelectAndCaptureViewTransform(D3DXMATRIX left, D3DXMATRIX right);
 	void           SelectAndCaptureProjectionTransform(D3DXMATRIX left, D3DXMATRIX right);
-	void           SelectAndCaptureState(BaseDirect3DPixelShader9* pWrappedPixelShader);
+	void           SelectAndCaptureState(D3D9ProxyPixelShader* pWrappedPixelShader);
 	void           SelectAndCaptureState(D3D9ProxyVertexShader* pWrappedVertexShader);
 	void           SelectAndCaptureState(BaseDirect3DVertexDeclaration9* pWrappedVertexDeclaration);
 	void           SelectAndCaptureState(DWORD Stage, IDirect3DBaseTexture9* pWrappedTexture);
 	void           SelectAndCaptureState(UINT StreamNumber, BaseDirect3DVertexBuffer9* pWrappedStreamData);
 	HRESULT WINAPI SelectAndCaptureStateVSConst(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
+	HRESULT WINAPI SelectAndCaptureStatePSConst(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
 	void           EndStateBlock(IDirect3DStateBlock9* pActualStateBlock);
 	//void         ClearSelected(UINT StartRegister);
 
@@ -185,6 +188,10 @@ private:
 	***/
 	std::unordered_set<UINT> m_selectedVertexConstantRegistersF;
 	/**
+	* Selected States to capture are only relevant if CaptureType is Cap_Type_Selected.
+	***/
+	std::unordered_set<UINT> m_selectedPixelConstantRegistersF;
+	/**
 	* General States - Textures in samplers (standard, vertex and displacement).
 	***/
 	std::unordered_map<DWORD, IDirect3DBaseTexture9*> m_storedTextureStages;
@@ -230,16 +237,26 @@ private:
 	* Vertex Shader States -  Shader registers 
 	* Use this when using Cap_Type_Selected.
 	**/
-	std::map<UINT, D3DXVECTOR4> m_storedSelectedRegistersF;
+	std::map<UINT, D3DXVECTOR4> m_storedSelectedVSRegistersF;
 	/**
 	* Vertex Shader States -  Shader registers 
 	* Use this to copy everything when needed with other modes.
 	**/
-	std::vector<float> m_storedAllRegistersF;
+	std::vector<float> m_storedAllVSRegistersF;
 	/**
 	* Pixel Shader State - Stored pixel shader.
 	***/
-	BaseDirect3DPixelShader9* m_pStoredPixelShader;
+	D3D9ProxyPixelShader* m_pStoredPixelShader;
+	/**
+	* Pixel Shader States -  Shader registers 
+	* Use this when using Cap_Type_Selected.
+	**/
+	std::map<UINT, D3DXVECTOR4> m_storedSelectedPSRegistersF;
+	/**
+	* Pixel Shader States -  Shader registers 
+	* Use this to copy everything when needed with other modes.
+	**/
+	std::vector<float> m_storedAllPSRegistersF;
 	/**
 	* Pointer to wrapped device - quick solution (TODO) 
 	* Had issues when the type of the device in the base class was the wrapped type rather than the 

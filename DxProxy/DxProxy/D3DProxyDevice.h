@@ -28,6 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "D3D9ProxyStateBlock.h"
 #include "D3D9ProxySwapChain.h"
 #include "D3D9ProxyVertexShader.h"
+#include "D3D9ProxyPixelShader.h"
 
 #include "Direct3DVertexBuffer9.h"
 #include "Direct3DIndexBuffer9.h"
@@ -130,6 +131,8 @@ public:
 	virtual HRESULT WINAPI CreatePixelShader(CONST DWORD* pFunction,IDirect3DPixelShader9** ppShader);
 	virtual HRESULT WINAPI SetPixelShader(IDirect3DPixelShader9* pShader);
 	virtual HRESULT WINAPI GetPixelShader(IDirect3DPixelShader9** ppShader);
+	virtual HRESULT WINAPI SetPixelShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
+	virtual HRESULT WINAPI GetPixelShaderConstantF(UINT StartRegister,float* pData, UINT Vector4fCount);
 	virtual HRESULT WINAPI DrawRectPatch(UINT Handle,CONST float* pNumSegs,CONST D3DRECTPATCH_INFO* pRectPatchInfo);
 	virtual HRESULT WINAPI DrawTriPatch(UINT Handle,CONST float* pNumSegs,CONST D3DTRIPATCH_INFO* pTriPatchInfo);
 	virtual HRESULT WINAPI CreateQuery(D3DQUERYTYPE Type,IDirect3DQuery9** ppQuery);
@@ -270,7 +273,11 @@ protected:
 	**/
 	D3DXMATRIX* m_pCurrentMatViewTransform;
 	/**
-	* Active proxy vertex shader.
+	* Active stored proxy pixel shader.
+	**/
+	D3D9ProxyPixelShader* m_pActivePixelShader;
+	/**
+	* Active stored proxy vertex shader.
 	**/
 	D3D9ProxyVertexShader* m_pActiveVertexShader;
 	/**
@@ -323,10 +330,6 @@ private:
 	* Active stored index buffer.
 	**/
 	BaseDirect3DIndexBuffer9* m_pActiveIndicies;
-	/**
-	* Active stored pixel shader.
-	**/
-	BaseDirect3DPixelShader9* m_pActivePixelShader;
 	/**
 	* Active stored vertex declaration.
 	**/
