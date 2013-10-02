@@ -190,6 +190,9 @@
     <ClCompile Include="ViewAdjustment.cpp">
       <Filter>Direct3D9Vireio</Filter>
     </ClCompile>
+    <ClCompile Include="D3D9ProxyPixelShader.cpp">
+      <Filter>Direct3D9Vireio</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Exports.def">
@@ -399,6 +402,18 @@
     <ClInclude Include="MatrixHudSquash.h">
       <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
     </ClInclude>
+    <ClInclude Include="MatrixOrthoSquash.h">
+      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
+    </ClInclude>
+    <ClInclude Include="D3D9ProxyPixelShader.h">
+      <Filter>Direct3D9Vireio</Filter>
+    </ClInclude>
+    <ClInclude Include="MatrixGatheredOrhoSquash.h">
+      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
+    </ClInclude>
+    <ClInclude Include="MatrixSurfaceRefractionTransform.h">
+      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\Release\Perception\cfg\profiles.xml">
@@ -452,5 +467,10 @@
     <CustomBuild Include="..\..\Release\Perception\cfg\users.xml">
       <Filter>cfg</Filter>
     </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="..\..\Release\Perception\cfg\shader_rules\TESV.xml">
+      <Filter>cfg\shader_rules</Filter>
+    </Xml>
   </ItemGroup>
 </Project>

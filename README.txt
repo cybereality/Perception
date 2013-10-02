@@ -4,8 +4,8 @@
 
 BUILD INSTRUCTIONS:
 ---------------------------------
-Created using Visual C++ 2010 Express (may work with newer versions) on Windows 7 64-bit.
-http://www.microsoft.com/visualstudio/eng/downloads#d-2010-express 
+Created using Visual C++ 2012 Express for Windows Desktop on Windows 8 64-bit.
+http://www.microsoft.com/visualstudio/deu/products/visual-studio-express-for-windows-desktop 
 
 Built using the Microsoft DirectX SDK (June 2010) (may work with newer versions).
 http://www.microsoft.com/en-au/download/details.aspx?id=6812
@@ -33,8 +33,9 @@ When you want to publish it, just build in Release mode and zip the contents of 
 But be careful because when running in Release mode, changing the separation, convergence or other settings in game will affect the files you will release.
 The Debug folder is automatically created from the files in the Release folder whenever you compile in Debug mode. 
 
-If you want to view the debug prints from hooking the game, download and run DebugView. 
+If you want to view the debug prints from hooking the game, download and run DebugView or TraceSpy. 
 http://technet.microsoft.com/en-au/sysinternals/bb896647.aspx
+http://tracespy.codeplex.com/
 Sometimes DebugView becomes unresponsive, in which case just continue what you were doing and look at it later.
 
 It makes sense to work with the DxProxy project mainly. The DxProxy project is the main meat of the application. Basically what it does is it proxies DirectX so the game loads this modified "d3d9.dll" file instead of the real "d3d9.dll". Mostly all the functions are just dumb pass-throughs, but a few key functions are modified. This allows us to alter a few things, like the view-projection matrix (which is modified to fake a 3D camera), or the present call (where we display a new 3D image). 
