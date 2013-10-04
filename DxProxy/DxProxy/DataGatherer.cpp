@@ -128,7 +128,7 @@ HRESULT WINAPI DataGatherer::Present(CONST RECT* pSourceRect,CONST RECT* pDestRe
 		xPos+=20;
 		++itAddedConstants;
 	}
-
+	
 	return D3DProxyDevice::Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
 }
 
@@ -316,7 +316,7 @@ HRESULT WINAPI DataGatherer::CreateVertexShader(CONST DWORD* pFunction,IDirect3D
 		}
 		// else shader already recorded
 	}
-
+	
 	return creationResult;
 }
 
@@ -328,9 +328,11 @@ HRESULT WINAPI DataGatherer::SetVertexShader(IDirect3DVertexShader9* pShader)
 	// set the current vertex shader hash code for the call counter
 	m_currentVertexShaderHash = ShaderHash(pShader);
 
-	char buf[32];
-	sprintf_s(buf,"Set Vertex Shader: %u", m_currentVertexShaderHash);
-	OutputDebugString(buf);
+#ifdef _DEBUG
+	//char buf[32];
+	//sprintf_s(buf,"Set Vertex Shader: %u", m_currentVertexShaderHash);
+	//OutputDebugString(buf);
+#endif
 
 	return D3DProxyDevice::SetVertexShader(pShader);
 }
@@ -355,9 +357,9 @@ HRESULT WINAPI DataGatherer::SetVertexShaderConstantF(UINT StartRegister,CONST f
 		// is a constant of current shader ?
 		// start register ? 
 		if ((itShaderConstants->hash == m_currentVertexShaderHash) &&
-			(itShaderConstants->desc.RegisterIndex < (StartRegister+(Vector4fCount*4))) &&
+			(itShaderConstants->desc.RegisterIndex < (StartRegister+Vector4fCount)) &&
 			(itShaderConstants->desc.RegisterIndex >= StartRegister))
-		{		
+		{	
 			// is a matrix ?
 			if (itShaderConstants->desc.Class == D3DXPARAMETER_CLASS::D3DXPC_MATRIX_ROWS)
 			{
@@ -391,7 +393,7 @@ HRESULT WINAPI DataGatherer::SetVertexShaderConstantF(UINT StartRegister,CONST f
 		}
 		++itShaderConstants;
 	}
-
+	
 	return D3DProxyDevice::SetVertexShaderConstantF(StartRegister, pConstantData, Vector4fCount);
 }
 
@@ -523,11 +525,13 @@ HRESULT WINAPI DataGatherer::SetPixelShader(IDirect3DPixelShader9* pShader)
 	// set the current vertex shader hash code for the call counter
 	uint32_t currentPixelShaderHash = ShaderHash(pShader);
 
+#ifdef _DEBUG
 	char buf[32];
 	sprintf_s(buf,"Cur Vertex Shader: %u", m_currentVertexShaderHash);
 	OutputDebugString(buf);
 	sprintf_s(buf,"Set Pixel Shader: %u", currentPixelShaderHash);
 	OutputDebugString(buf);
+#endif
 
 	return D3DProxyDevice::SetPixelShader(pShader);
 }

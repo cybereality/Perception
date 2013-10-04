@@ -182,7 +182,7 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 	// Problem: Using StateBlock to save and restore causes the world in HL2 to scale up and down constantly
 	// This only effects HL2 (but all source games are using the l4d profile).
 	// Possbile fix: Use a more discriminant stateblock to save only what is being modified
-	if(game_type == D3DProxyDevice::SOURCE_L4D)
+	if((game_type == D3DProxyDevice::SOURCE_L4D) || (game_type == D3DProxyDevice::DATA_GATHERER_SOURCE))
 	{
 		SaveState();
 	}
@@ -249,7 +249,7 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 	}
 	
 	// TODO figure out HL2 problem. This is a workaround for now
-	if(game_type == D3DProxyDevice::SOURCE_L4D)
+	if((game_type == D3DProxyDevice::SOURCE_L4D) || (game_type == D3DProxyDevice::DATA_GATHERER_SOURCE))
 	{
 		RestoreState();
 	}
@@ -493,7 +493,7 @@ void StereoView::SetState()
 	
 	//m_pActualDevice->SetRenderState(D3DRS_SRGBWRITEENABLE, 0);  // will cause visual errors in HL2
 	
-	if(game_type == D3DProxyDevice::SOURCE_L4D)
+	if((game_type == D3DProxyDevice::SOURCE_L4D) || (game_type == D3DProxyDevice::DATA_GATHERER_SOURCE))
 	{
 		m_pActualDevice->SetSamplerState(0, D3DSAMP_SRGBTEXTURE, ssSrgb);
 		m_pActualDevice->SetSamplerState(1, D3DSAMP_SRGBTEXTURE, ssSrgb);

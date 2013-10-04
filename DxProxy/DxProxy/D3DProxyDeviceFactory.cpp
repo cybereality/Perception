@@ -36,6 +36,7 @@ D3DProxyDevice* D3DProxyDeviceFactory::Get(ProxyHelper::ProxyConfig& config, IDi
 	switch(config.game_type)
 	{
 	case D3DProxyDevice::DATA_GATHERER:
+	case D3DProxyDevice::DATA_GATHERER_SOURCE:
 		newDev = new DataGatherer(dev, pCreatedBy);
 		break;
 	default:

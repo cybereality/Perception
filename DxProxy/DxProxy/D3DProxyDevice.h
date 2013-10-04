@@ -159,6 +159,7 @@ public:
 		MONO = 0,                  /**< largely unused, to be determined if we should keep them !! */
 		FIXED = 10,                /**< largely unused, to be determined if we should keep them !! */
 		DATA_GATHERER = 11,        /**< largely unused, to be determined if we should keep them !! */
+		DATA_GATHERER_SOURCE = 12, /**< largely unused, to be determined if we should keep them !! */
 		SOURCE = 100,              /**< largely unused, to be determined if we should keep them !! */
 		SOURCE_L4D = 101,          /**< SOURCE_L4D is used in StereoView to change behaviour of state save/load to prevent issues in hl2 (and probably other source games) */
 		UNREAL = 200,              /**< largely unused, to be determined if we should keep them !! */

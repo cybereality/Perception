@@ -318,7 +318,7 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 	m_isFirstBeginSceneOfFrame = true; // TODO this can break if device present is followed by present on another swap chain... or not work well anyway
 
 	// SHOCT called here (if not source engine)
-	if((stereoView->game_type != D3DProxyDevice::SOURCE_L4D) && (stereoView->game_type != D3DProxyDevice::ADVANCED_SKYRIM))
+	if((stereoView->game_type != D3DProxyDevice::SOURCE_L4D) && (stereoView->game_type != D3DProxyDevice::DATA_GATHERER_SOURCE) && (stereoView->game_type != D3DProxyDevice::ADVANCED_SKYRIM))
 	{
 		if ((SHOCT_mode>=1) && (SHOCT_mode<=2))
 			DrawSHOCT();
@@ -877,7 +877,7 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 ***/
 HRESULT WINAPI D3DProxyDevice::EndScene()
 {
-	if((stereoView->game_type == D3DProxyDevice::SOURCE_L4D) || (stereoView->game_type == D3DProxyDevice::ADVANCED_SKYRIM))
+	if((stereoView->game_type == D3DProxyDevice::SOURCE_L4D) || (stereoView->game_type != D3DProxyDevice::DATA_GATHERER_SOURCE) || (stereoView->game_type == D3DProxyDevice::ADVANCED_SKYRIM))
 	{
 		if ((SHOCT_mode>=1) && (SHOCT_mode<=2))
 			DrawSHOCT();
