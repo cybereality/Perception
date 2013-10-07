@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <typeinfo>
 #include <assert.h>
 #include <comdef.h>
+#include <tchar.h>
 
 #ifdef _DEBUG
 #include "DxErr.h"
@@ -47,45 +48,30 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MAX_PIXEL_SHADER_CONST_3_0 224
 
 /**
-* Clears a vertical line on the current render targets.
-* @param Device_Interface The actual D3D device interface.
-* @param x1 Left X-pixel-coordinate of the line.
-* @param y1 Upper Y-pixel-coordinate of the line.
-* @param x2 Right X-pixel-coordinate of the line.
-* @param y2 Lower Y-pixel-coordinate of the line.
-* @param bw Pixel amount (*2) to be added to the line width.
-* @param Color D3D color of the line.
+* Returns the mouse wheel scroll lines.
 ***/
-void ClearVLine(LPDIRECT3DDEVICE9 Device_Interface,int x1,int y1,int x2,int y2,int bw,D3DCOLOR Color)
+UINT GetMouseScrollLines()
 {
-	D3DRECT rec;
-	rec.x1 = x1-bw;
-	rec.y1 = y1;
-	rec.x2 = x2+bw;
-	rec.y2 = y2;
+	int nScrollLines = 3;
+	HKEY hKey;
 
-	Device_Interface->Clear(1,&rec,D3DCLEAR_TARGET,Color,0,0);
-}
+	if (RegOpenKeyEx(HKEY_CURRENT_USER,  _T("Control Panel\\Desktop"),
+		0, KEY_QUERY_VALUE, &hKey) == ERROR_SUCCESS)
+	{
+		TCHAR szData[128];
+		DWORD dwKeyDataType;
+		DWORD dwDataBufSize = sizeof(szData);
 
-/**
-* Clears a horizontal line on the current render targets.
-* @param Device_Interface The actual D3D device interface.
-* @param x1 Left X-pixel-coordinate of the line.
-* @param y1 Upper Y-pixel-coordinate of the line.
-* @param x2 Right X-pixel-coordinate of the line.
-* @param y2 Lower Y-pixel-coordinate of the line.
-* @param bw Pixel amount (*2) to be added to the line height.
-* @param Color D3D color of the line.
-***/
-void ClearHLine(LPDIRECT3DDEVICE9 Device_Interface,int x1,int y1,int x2,int y2,int bw,D3DCOLOR Color)
-{
-	D3DRECT rec;
-	rec.x1 = x1;
-	rec.y1 = y1-bw;
-	rec.x2 = x2;
-	rec.y2 = y2+bw;
+		if (RegQueryValueEx(hKey, _T("WheelScrollLines"), NULL, &dwKeyDataType,
+			(LPBYTE) &szData, &dwDataBufSize) == ERROR_SUCCESS)
+		{
+			nScrollLines = _tcstoul(szData, NULL, 10);
+		}
 
-	Device_Interface->Clear(1,&rec,D3DCLEAR_TARGET,Color,0,0);
+		RegCloseKey(hKey);
+	}
+
+	return nScrollLines;
 }
 
 /**
@@ -150,7 +136,7 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	pitch_mode = 0;
 	translation_mode = 0;
 	trackingOn = true;
-	SHOCT_mode = 0;
+	BRASSA_mode = BRASSA_Modes::INACTIVE;
 
 	keyWait = false;
 }
@@ -320,8 +306,8 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 	// SHOCT called here (if not source engine)
 	if((stereoView->game_type != D3DProxyDevice::SOURCE_L4D) && (stereoView->game_type != D3DProxyDevice::DATA_GATHERER_SOURCE) && (stereoView->game_type != D3DProxyDevice::ADVANCED_SKYRIM))
 	{
-		if ((SHOCT_mode>=1) && (SHOCT_mode<=2))
-			DrawSHOCT();
+		if ((BRASSA_mode>=BRASSA_Modes::MAINMENU) && (BRASSA_mode<=BRASSA_Modes::CONVERGENCE_CALIBRATION))
+			BRASSA();
 	}
 
 	return BaseDirect3DDevice9::Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
@@ -879,8 +865,8 @@ HRESULT WINAPI D3DProxyDevice::EndScene()
 {
 	if((stereoView->game_type == D3DProxyDevice::SOURCE_L4D) || (stereoView->game_type != D3DProxyDevice::DATA_GATHERER_SOURCE) || (stereoView->game_type == D3DProxyDevice::ADVANCED_SKYRIM))
 	{
-		if ((SHOCT_mode>=1) && (SHOCT_mode<=2))
-			DrawSHOCT();
+		if ((BRASSA_mode>=1) && (BRASSA_mode<=2))
+			BRASSA();
 	}
 	return BaseDirect3DDevice9::EndScene();
 }
@@ -1880,11 +1866,12 @@ void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 }
 
 /**
-* Creates HUD font.
+* Creates HUD according to viewport height.
 ***/
-void D3DProxyDevice::SetupText()
+void D3DProxyDevice::SetupHUD()
 {
-	D3DXCreateFont( this, 22, 0, FW_BOLD, 4, FALSE, DEFAULT_CHARSET, OUT_TT_ONLY_PRECIS, ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_DONTCARE, "Arial", &hudFont );
+	D3DXCreateFont( this, 32, 0, FW_BOLD, 4, FALSE, DEFAULT_CHARSET, OUT_TT_ONLY_PRECIS, ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_DONTCARE, "Arial", &hudFont );
+	D3DXCreateSprite(this, &hudMainMenu);
 }
 
 /**
@@ -1959,17 +1946,10 @@ void D3DProxyDevice::HandleControls()
 		{
 			if(keyWaitCount <= 0)
 			{
-				SHOCT_mode++;
-				SHOCT_mode %= 3;
-				if(SHOCT_mode == 0){//off
-					trackingOn = true;
-				}
-				if(SHOCT_mode == 1){// seperation
-					trackingOn = false;
-				}
-				if(SHOCT_mode == 2){// convergence
-					trackingOn = false;
-				}
+				if (BRASSA_mode == BRASSA_Modes::INACTIVE)
+					BRASSA_mode = BRASSA_Modes::MAINMENU;
+				else 
+					BRASSA_mode = BRASSA_Modes::INACTIVE;
 				keyWaitCount = 50;
 			}
 
@@ -2012,17 +1992,10 @@ void D3DProxyDevice::HandleControls()
 		{
 			if(keyWaitCount <= 0)
 			{
-				SHOCT_mode++;
-				SHOCT_mode %= 3;
-				if(SHOCT_mode == 0){//off
-					trackingOn = true;
-				}
-				if(SHOCT_mode == 1){// seperation
-					trackingOn = false;
-				}
-				if(SHOCT_mode == 2){// convergence
-					trackingOn = false;
-				}
+				if (BRASSA_mode == BRASSA_Modes::INACTIVE)
+					BRASSA_mode = BRASSA_Modes::MAINMENU;
+				else 
+					BRASSA_mode = BRASSA_Modes::INACTIVE;
 				keyWaitCount = 50;
 			}
 			anyKeyPressed = true;
@@ -2372,7 +2345,7 @@ void D3DProxyDevice::OnCreateOrRestore()
 	}
 
 
-	SetupText();
+	SetupHUD();
 
 	stereoView->Init(getActual());
 
@@ -2561,11 +2534,348 @@ void D3DProxyDevice::ClearRect(vireio::RenderPosition renderPosition, D3DRECT re
 }
 
 /**
+* Simple helper to clear an empty rectangle or border using the specified color.
+* @param renderPosition Left or Right render target to be used.
+* @param rect The rectangle in pixel space to be cleared.
+* @param color The direct 3d color to be used.
+* @param bw The border width.
+***/
+void D3DProxyDevice::ClearEmptyRect(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color, int bw)
+{
+	// helper rectangle
+	D3DRECT rect0 = D3DRECT(rect);
+
+	setDrawingSide(renderPosition);
+
+	rect0.y2 = rect.y1 + bw;
+	BaseDirect3DDevice9::Clear(1, &rect0, D3DCLEAR_TARGET, color, 0, 0);
+
+	rect0.y1 = rect.y2 - bw;
+	rect0.y2 = rect.y2;
+	BaseDirect3DDevice9::Clear(1, &rect0, D3DCLEAR_TARGET, color, 0, 0);
+
+	rect0.y1 = rect.y1;
+	rect0.x2 = rect.x1 + bw;
+	BaseDirect3DDevice9::Clear(1, &rect0, D3DCLEAR_TARGET, color, 0, 0);
+
+	rect0.x1 = rect.x2 - bw;
+	rect0.x2 = rect.x2;
+	BaseDirect3DDevice9::Clear(1, &rect0, D3DCLEAR_TARGET, color, 0, 0);
+}
+
+/**
+* 
+***/
+void D3DProxyDevice::BRASSA()
+{
+	switch (BRASSA_mode)
+	{
+	case D3DProxyDevice::MAINMENU:
+		BRASSA_MainMenu();
+		break;
+	case D3DProxyDevice::WORLD_SCALE_CALIBRATION:
+		BRASSA_WorldScale();
+		break;
+	case D3DProxyDevice::CONVERGENCE_CALIBRATION:
+		BRASSA_Convergence();
+		break;
+	}
+	/////// hud text
+	//if(hudFont){
+
+	//	// watch HMDInfo::LeftLensCenterAsPercentage() for this formular
+	//	// TODO !! setup HMDInfo::physicalLensSeparation to match the configured IPD (is currently default
+	//	// IPD = 0.064f)
+	//	float LeftLensCenterAsPercentage = ((m_spShaderViewAdjustment->HMDInfo().physicalScreenSize.first / 2.0f) - 
+	//		(/*m_spShaderViewAdjustment->HMDInfo().physicalLensSeparation*/config.ipd  / 2.0f)) / 
+	//		(m_spShaderViewAdjustment->HMDInfo().physicalScreenSize.first);
+
+	//	// should be the right formular, note to ADD lens center offset 
+	//	float ScreenCenterAsPercentage = LeftLensCenterAsPercentage + m_spShaderViewAdjustment->HMDInfo().lensXCenterOffset;
+
+	//	char vcString[512];
+	//	int width = stereoView->viewport.Width;
+	//	int height = stereoView->viewport.Height;
+
+	//	float horWidth = 0.15f;
+	//	int beg = (int)(width*(1.0f-horWidth)/2.0) + (int)(ScreenCenterAsPercentage * width * 0.25f);
+	//	int end = (int)(width*(0.5f+(horWidth/2.0f))) + (int)(ScreenCenterAsPercentage * width * 0.25f);
+
+	//	int hashTop = (int)(height * 0.48f);
+	//	int hashBottom = (int)(height * 0.52f);
+
+	//	RECT rec2 = {(int)(width*0.27f), (int)(height*0.3f),width,height};
+	//	sprintf_s(vcString, 512, "Schneider-Hicks Optical Calibration Tool (S.H.O.C.T.).\n");
+	//	hudFont->DrawText(NULL, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));
+
+	//	// Seperation mode (= world scale mode)
+	//	if(BRASSA_mode == 1)
+	//	{
+	//		// draw left line (using BaseDirect3DDevice9, since otherwise we have two lines)
+	//		D3DRECT rec4 = {(int)(width/2 + ((centerlineR+LeftLensCenterAsPercentage) * width * 0.25f))-1, 0,
+	//			(int)(width/2 + ((centerlineR+LeftLensCenterAsPercentage) * width * 0.25f))+1,height};
+	//		if (!config.swap_eyes)
+	//			ClearRect(vireio::RenderPosition::Left, rec4, D3DCOLOR_ARGB(255,255,0,0));
+	//		else
+	//			ClearRect(vireio::RenderPosition::Right, rec4, D3DCOLOR_ARGB(255,255,0,0));
+
+	//		// draw right line (using BaseDirect3DDevice9, since otherwise we have two lines)
+	//		D3DRECT rec3 = {(int)(width/2 + ((centerlineL-LeftLensCenterAsPercentage) * width * 0.25f))-1, 0,
+	//			(int)(width/2 + ((centerlineL-LeftLensCenterAsPercentage) * width * 0.25f))+1,height};
+	//		if (!config.swap_eyes)
+	//			ClearRect(vireio::RenderPosition::Right, rec3, D3DCOLOR_ARGB(255,255,0,0));
+	//		else
+	//			ClearRect(vireio::RenderPosition::Left, rec3, D3DCOLOR_ARGB(255,255,0,0));
+	//	}
+	//	// Convergence mode
+	//	if(BRASSA_mode == 2)
+	//	{
+	//		//screen center line
+
+	//		// draw right line (using BaseDirect3DDevice9, since otherwise we have two lines)
+	//		D3DRECT rec3 = {(int)(width/2 + (-ScreenCenterAsPercentage * width * 0.25f))-1, 0,
+	//			(int)(width/2 + (-ScreenCenterAsPercentage * width * 0.25f))+1,height};
+	//		if (!config.swap_eyes)
+	//			ClearRect(vireio::RenderPosition::Right, rec3, D3DCOLOR_ARGB(255,0,0,255));
+	//		else
+	//			ClearRect(vireio::RenderPosition::Left, rec3, D3DCOLOR_ARGB(255,0,0,255));
+
+	//		// draw left line (using BaseDirect3DDevice9, since otherwise we have two lines)
+	//		D3DRECT rec4 = {(int)(width/2 + (ScreenCenterAsPercentage * width * 0.25f))-1, 0,
+	//			(int)(width/2 + (ScreenCenterAsPercentage * width * 0.25f))+1,height};
+	//		if (!config.swap_eyes)
+	//			ClearRect(vireio::RenderPosition::Left, rec4, D3DCOLOR_ARGB(255,0,0,255));
+	//		else
+	//			ClearRect(vireio::RenderPosition::Right, rec4, D3DCOLOR_ARGB(255,0,0,255));
+
+	//		// horizontal line
+	//		D3DRECT rec5 = {beg, (height/2)-1, end, (height/2)+1 };
+	//		if (!config.swap_eyes)
+	//			ClearRect(vireio::RenderPosition::Left, rec5, D3DCOLOR_ARGB(255,0,0,255));
+	//		else
+	//			ClearRect(vireio::RenderPosition::Right, rec5, D3DCOLOR_ARGB(255,0,0,255));
+
+	//		// hash lines
+	//		int hashNum = 10;
+	//		float hashSpace = horWidth*width / (float)hashNum;
+	//		for(int i=0; i<=hashNum; i++) {
+	//			D3DRECT rec5 = {beg+(int)(i*hashSpace)-1, hashTop, beg+(int)(i*hashSpace)+1, hashBottom};
+	//			if (!config.swap_eyes)
+	//				ClearRect(vireio::RenderPosition::Left, rec5, D3DCOLOR_ARGB(255,255,255,0));
+	//			else
+	//				ClearRect(vireio::RenderPosition::Right, rec5, D3DCOLOR_ARGB(255,255,255,0));
+	//		}
+
+	//		/*RECT rec2 = {(int)(width*0.37f), (int)(height*0.525f), width, height};
+	//		sprintf_s(vcString, 512, "Positive Parallax");
+	//		hudFont->DrawText(NULL, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));
+
+	//		rec2.left = (int)(width *0.52f);
+	//		sprintf_s(vcString, 512, "Negative Parallax");
+	//		hudFont->DrawText(NULL, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));*/
+
+	//		// draw description
+	//		RECT rec7 = {(int)(width*0.37f), (int)(height*0.59f), width, height};
+	//		sprintf_s(vcString, 512, "Walk up as close as possible to a 90 degree\n vertical object, and align this line with its edge.\n Good examples include a wall, corner, a table corner,\n a squared post, etc.");
+	//		hudFont->DrawText(NULL, vcString, -1, &rec7, 0, D3DCOLOR_ARGB(255,255,255,255));
+	//	}
+
+	//	rec2.left = (int)(width*0.35f);
+	//	rec2.top = (int)(height*0.33f);
+	//	if(BRASSA_mode == 1)
+	//		sprintf_s(vcString, 512, "Separation");
+	//	if(BRASSA_mode == 2)
+	//		sprintf_s(vcString, 512, "Convergence");
+	//	hudFont->DrawText(NULL, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));
+	//}
+}
+
+/**
+* BRASSA Main Menu method.
+***/
+void D3DProxyDevice::BRASSA_MainMenu()
+{
+	int width = stereoView->viewport.Width;
+	int height = stereoView->viewport.Height;
+	const float menuTop = height*0.315f;
+	const float menuEntryHeight = 0.037f;
+	static float velocity = 0.0f;
+	static float borderHeight = menuTop;
+	static int menuEntry = 0;
+
+	// handle border velocity
+	velocity*=0.95f;
+	if ((velocity<0.005f) && (velocity>-0.005f))
+		velocity = 0.0f;
+	if ((KEY_DOWN(VK_UP)) && (velocity==0.0f))
+		velocity-=2.0f;
+	if ((KEY_DOWN(VK_DOWN)) && (velocity==0.0f))
+		velocity+=2.0f;
+	borderHeight += velocity;
+	if (borderHeight<menuTop)
+	{
+		borderHeight = menuTop;
+		velocity=0.0f;
+	}
+
+	// get menu entry id
+	if (KEY_DOWN(VK_RETURN))
+	{
+		if (borderHeight > (menuTop+menuEntryHeight-0.01f))
+			BRASSA_mode = BRASSA_Modes::CONVERGENCE_CALIBRATION;
+		else if (borderHeight > (menuTop+2*menuEntryHeight-0.01f))
+			BRASSA_mode = BRASSA_Modes::INACTIVE;
+		else BRASSA_mode = BRASSA_Modes::WORLD_SCALE_CALIBRATION;
+	}
+
+	if (hudFont)
+	{
+		D3DRECT rect;
+
+		rect.x1 = (int)(width*0.335f); rect.x2 = (int)(width*0.525f); rect.y1 = (int)borderHeight; rect.y2 = (int)(borderHeight+height*0.04f);
+		ClearEmptyRect(vireio::RenderPosition::Left, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
+
+		RECT rect1;
+		rect1.left = 550;
+		rect1.right = 1920;
+		rect1.top = 300;
+		rect1.bottom = 1080;
+		hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
+
+		float fScaleX = ((float)stereoView->viewport.Width / (float)rect1.right);
+		float fScaleY = ((float)stereoView->viewport.Height / (float)rect1.bottom);
+
+		D3DXMATRIX matScale;
+		D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
+		hudMainMenu->SetTransform(&matScale);
+
+		hudFont->DrawText(hudMainMenu, "Brown Reischl and Schneider Settings Analyzer (B.R.A.S.S.A.).\n", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 45; rect1.left += 250;
+		hudFont->DrawText(hudMainMenu, "World-Scale Calibration\n", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
+		hudFont->DrawText(hudMainMenu, "Convergence Calibration\n", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
+		hudFont->DrawText(hudMainMenu, "Back to Game\n", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
+
+		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
+		hudMainMenu->Draw(NULL, &rect1, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));  
+		hudMainMenu->End();
+	}
+}
+
+/**
+*
+***/
+void D3DProxyDevice::BRASSA_WorldScale()
+{
+	if(hudFont){
+
+		hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
+
+		// standard hud size, will be scaled later to actual viewport
+		char vcString[512];
+		int width = 1920;
+		int height = 1080;
+
+		float fScaleX = ((float)stereoView->viewport.Width / (float)width);
+		float fScaleY = ((float)stereoView->viewport.Height / (float)height);
+
+		D3DXMATRIX matScale;
+		D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
+		hudMainMenu->SetTransform(&matScale);
+
+		// watch HMDInfo::LeftLensCenterAsPercentage() for this formular
+		// TODO !! setup HMDInfo::physicalLensSeparation to match the configured IPD (is currently default
+		// IPD = 0.064f)
+		float LeftLensCenterAsPercentage = ((m_spShaderViewAdjustment->HMDInfo().physicalScreenSize.first / 2.0f) - 
+			(/*m_spShaderViewAdjustment->HMDInfo().physicalLensSeparation*/config.ipd  / 2.0f)) / 
+			(m_spShaderViewAdjustment->HMDInfo().physicalScreenSize.first);
+
+		// should be the right formular, note to ADD lens center offset :
+		// float ScreenCenterAsPercentage = LeftLensCenterAsPercentage + m_spShaderViewAdjustment->HMDInfo().lensXCenterOffset;
+		float BlueLineCenterAsPercentage = LeftLensCenterAsPercentage + m_spShaderViewAdjustment->HMDInfo().lensXCenterOffset * 0.02f;
+
+		float horWidth = 0.15f;
+		int beg = (int)(stereoView->viewport.Width*(1.0f-horWidth)/2.0) + (int)(BlueLineCenterAsPercentage * stereoView->viewport.Width * 0.25f);
+		int end = (int)(stereoView->viewport.Width*(0.5f+(horWidth/2.0f))) + (int)(BlueLineCenterAsPercentage * stereoView->viewport.Width * 0.25f);
+
+		int hashTop = (int)(stereoView->viewport.Height  * 0.48f);
+		int hashBottom = (int)(stereoView->viewport.Height  * 0.52f);
+
+		RECT rec2 = {(int)(width*0.27f), (int)(height*0.3f),width,height};
+		sprintf_s(vcString, 512, "Brown Reischl and Schneider Settings Analyzer (B.R.A.S.S.A.).\n");
+		hudFont->DrawText(hudMainMenu, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));
+
+		// draw right line (using BaseDirect3DDevice9, since otherwise we have two lines)
+		D3DRECT rec3 = {(int)(stereoView->viewport.Width/2 + (-BlueLineCenterAsPercentage * stereoView->viewport.Width * 0.25f))-1, 0,
+			(int)(stereoView->viewport.Width/2 + (-BlueLineCenterAsPercentage * stereoView->viewport.Width * 0.25f))+1,stereoView->viewport.Height };
+		if (!config.swap_eyes)
+			ClearRect(vireio::RenderPosition::Right, rec3, D3DCOLOR_ARGB(255,0,0,255));
+		else
+			ClearRect(vireio::RenderPosition::Left, rec3, D3DCOLOR_ARGB(255,0,0,255));
+
+		// draw left line (using BaseDirect3DDevice9, since otherwise we have two lines)
+		D3DRECT rec4 = {(int)(stereoView->viewport.Width/2 + (BlueLineCenterAsPercentage * stereoView->viewport.Width * 0.25f))-1, 0,
+			(int)(stereoView->viewport.Width/2 + (BlueLineCenterAsPercentage * stereoView->viewport.Width * 0.25f))+1,stereoView->viewport.Height };
+		if (!config.swap_eyes)
+			ClearRect(vireio::RenderPosition::Left, rec4, D3DCOLOR_ARGB(255,0,0,255));
+		else
+			ClearRect(vireio::RenderPosition::Right, rec4, D3DCOLOR_ARGB(255,0,0,255));
+
+		// horizontal line
+		D3DRECT rec5 = {beg, (stereoView->viewport.Height /2)-1, end, (stereoView->viewport.Height /2)+1 };
+		if (!config.swap_eyes)
+			ClearRect(vireio::RenderPosition::Left, rec5, D3DCOLOR_ARGB(255,0,0,255));
+		else
+			ClearRect(vireio::RenderPosition::Right, rec5, D3DCOLOR_ARGB(255,0,0,255));
+
+		// hash lines
+		int hashNum = 10;
+		float hashSpace = horWidth*stereoView->viewport.Width / (float)hashNum;
+		for(int i=0; i<=hashNum; i++) {
+			D3DRECT rec5 = {beg+(int)(i*hashSpace)-1, hashTop, beg+(int)(i*hashSpace)+1, hashBottom};
+			if (!config.swap_eyes)
+				ClearRect(vireio::RenderPosition::Left, rec5, D3DCOLOR_ARGB(255,255,255,0));
+			else
+				ClearRect(vireio::RenderPosition::Right, rec5, D3DCOLOR_ARGB(255,255,255,0));
+		}
+
+		// draw description
+		RECT rec7 = {(int)(width*0.37f), (int)(height*0.59f), width, height};
+		sprintf_s(vcString, 512, "Walk up as close as possible to a 90 degree\n vertical object and align this line with its edge.\n  Good examples include a wall corner, a table corner,\n a square post, etc.  Now take the HMD off, and don't move!");
+		hudFont->DrawText(hudMainMenu, vcString, -1, &rec7, 0, D3DCOLOR_ARGB(255,255,255,255));
+
+		rec2.left = (int)(width*0.35f);
+		rec2.top = (int)(height*0.33f);
+
+		sprintf_s(vcString, 512, "World-Scale Calibration");
+		hudFont->DrawText(hudMainMenu, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));
+
+		RECT rect1;
+		rect1.left = 0;
+		rect1.right = 1920;
+		rect1.top = 0;
+		rect1.bottom = 1080;
+		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
+		hudMainMenu->Draw(NULL, &rect1, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));  
+		hudMainMenu->End();
+	}
+}
+
+/**
+*
+***/
+void D3DProxyDevice::BRASSA_Convergence()
+{
+}
+
+/**
 * Releases HUD font, shader registers, render targets, texture stages, vertex buffers, depth stencils, indices, shaders, declarations.
 ***/
 void D3DProxyDevice::ReleaseEverything()
 {
-	// Fonts and any othe D3DX interfaces should be released first.
+	// Fonts and any other D3DX interfaces should be released first.
 	// They frequently hold stateblocks which are holding further references to other resources.
 	if(hudFont) {
 		hudFont->Release();
@@ -2633,121 +2943,6 @@ void D3DProxyDevice::ReleaseEverything()
 	if (m_pActiveVertexDeclaration) {
 		m_pActiveVertexDeclaration->Release();
 		m_pActiveVertexDeclaration = NULL;
-	}
-}
-
-/**
-* Draw the Schneider-Hicks Optical Calibration Tool.
-***/
-void D3DProxyDevice::DrawSHOCT()
-{
-	///// hud text
-	if(hudFont){
-
-		// watch HMDInfo::LeftLensCenterAsPercentage() for this formular
-		// TODO !! setup HMDInfo::physicalLensSeparation to match the configured IPD (is currently default
-		// IPD = 0.064f)
-		float LeftLensCenterAsPercentage = ((m_spShaderViewAdjustment->HMDInfo().physicalScreenSize.first / 2.0f) - 
-			(/*m_spShaderViewAdjustment->HMDInfo().physicalLensSeparation*/config.ipd  / 2.0f)) / 
-			(m_spShaderViewAdjustment->HMDInfo().physicalScreenSize.first);
-
-		// should be the right formular, note to ADD lens center offset 
-		float ScreenCenterAsPercentage = LeftLensCenterAsPercentage + m_spShaderViewAdjustment->HMDInfo().lensXCenterOffset;
-
-		char vcString[512];
-		int width = stereoView->viewport.Width;
-		int height = stereoView->viewport.Height;
-
-		float horWidth = 0.15f;
-		int beg = (int)(width*(1.0f-horWidth)/2.0) + (int)(ScreenCenterAsPercentage * width * 0.25f);
-		int end = (int)(width*(0.5f+(horWidth/2.0f))) + (int)(ScreenCenterAsPercentage * width * 0.25f);
-
-		int hashTop = (int)(height * 0.48f);
-		int hashBottom = (int)(height * 0.52f);
-
-		RECT rec2 = {(int)(width*0.27f), (int)(height*0.3f),width,height};
-		sprintf_s(vcString, 512, "Schneider-Hicks Optical Calibration Tool (S.H.O.C.T.).\n");
-		hudFont->DrawText(NULL, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));
-
-		// Seperation mode (= world scale mode)
-		if(SHOCT_mode == 1)
-		{
-			// draw left line (using BaseDirect3DDevice9, since otherwise we have two lines)
-			D3DRECT rec4 = {(int)(width/2 + ((centerlineR+LeftLensCenterAsPercentage) * width * 0.25f))-1, 0,
-				(int)(width/2 + ((centerlineR+LeftLensCenterAsPercentage) * width * 0.25f))+1,height};
-			if (!config.swap_eyes)
-				ClearRect(vireio::RenderPosition::Left, rec4, D3DCOLOR_ARGB(255,255,0,0));
-			else
-				ClearRect(vireio::RenderPosition::Right, rec4, D3DCOLOR_ARGB(255,255,0,0));
-
-			// draw right line (using BaseDirect3DDevice9, since otherwise we have two lines)
-			D3DRECT rec3 = {(int)(width/2 + ((centerlineL-LeftLensCenterAsPercentage) * width * 0.25f))-1, 0,
-				(int)(width/2 + ((centerlineL-LeftLensCenterAsPercentage) * width * 0.25f))+1,height};
-			if (!config.swap_eyes)
-				ClearRect(vireio::RenderPosition::Right, rec3, D3DCOLOR_ARGB(255,255,0,0));
-			else
-				ClearRect(vireio::RenderPosition::Left, rec3, D3DCOLOR_ARGB(255,255,0,0));
-		}
-		// Convergence mode
-		if(SHOCT_mode == 2)
-		{
-			//screen center line
-
-			// draw right line (using BaseDirect3DDevice9, since otherwise we have two lines)
-			D3DRECT rec3 = {(int)(width/2 + (-ScreenCenterAsPercentage * width * 0.25f))-1, 0,
-				(int)(width/2 + (-ScreenCenterAsPercentage * width * 0.25f))+1,height};
-			if (!config.swap_eyes)
-				ClearRect(vireio::RenderPosition::Right, rec3, D3DCOLOR_ARGB(255,0,0,255));
-			else
-				ClearRect(vireio::RenderPosition::Left, rec3, D3DCOLOR_ARGB(255,0,0,255));
-
-			// draw left line (using BaseDirect3DDevice9, since otherwise we have two lines)
-			D3DRECT rec4 = {(int)(width/2 + (ScreenCenterAsPercentage * width * 0.25f))-1, 0,
-				(int)(width/2 + (ScreenCenterAsPercentage * width * 0.25f))+1,height};
-			if (!config.swap_eyes)
-				ClearRect(vireio::RenderPosition::Left, rec4, D3DCOLOR_ARGB(255,0,0,255));
-			else
-				ClearRect(vireio::RenderPosition::Right, rec4, D3DCOLOR_ARGB(255,0,0,255));
-
-			// horizontal line
-			D3DRECT rec5 = {beg, (height/2)-1, end, (height/2)+1 };
-			if (!config.swap_eyes)
-				ClearRect(vireio::RenderPosition::Left, rec5, D3DCOLOR_ARGB(255,0,0,255));
-			else
-				ClearRect(vireio::RenderPosition::Right, rec5, D3DCOLOR_ARGB(255,0,0,255));
-
-			// hash lines
-			int hashNum = 10;
-			float hashSpace = horWidth*width / (float)hashNum;
-			for(int i=0; i<=hashNum; i++) {
-				D3DRECT rec5 = {beg+(int)(i*hashSpace)-1, hashTop, beg+(int)(i*hashSpace)+1, hashBottom};
-				if (!config.swap_eyes)
-					ClearRect(vireio::RenderPosition::Left, rec5, D3DCOLOR_ARGB(255,255,255,0));
-				else
-					ClearRect(vireio::RenderPosition::Right, rec5, D3DCOLOR_ARGB(255,255,255,0));
-			}
-
-			/*RECT rec2 = {(int)(width*0.37f), (int)(height*0.525f), width, height};
-			sprintf_s(vcString, 512, "Positive Parallax");
-			hudFont->DrawText(NULL, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));
-
-			rec2.left = (int)(width *0.52f);
-			sprintf_s(vcString, 512, "Negative Parallax");
-			hudFont->DrawText(NULL, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));*/
-
-			// draw description
-			RECT rec7 = {(int)(width*0.37f), (int)(height*0.59f), width, height};
-			sprintf_s(vcString, 512, "Walk up as close as possible to a 90 degree\n vertical object, and align this line with its edge.\n Good examples include a wall, corner, a table corner,\n a squared post, etc.");
-			hudFont->DrawText(NULL, vcString, -1, &rec7, 0, D3DCOLOR_ARGB(255,255,255,255));
-		}
-
-		rec2.left = (int)(width*0.35f);
-		rec2.top = (int)(height*0.33f);
-		if(SHOCT_mode == 1)
-			sprintf_s(vcString, 512, "Separation");
-		if(SHOCT_mode == 2)
-			sprintf_s(vcString, 512, "Convergence");
-		hudFont->DrawText(NULL, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));
 	}
 }
 

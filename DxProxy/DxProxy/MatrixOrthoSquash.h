@@ -47,6 +47,13 @@ public:
 	{
 		// should this be hard coded?  Seems a bit fishy... - Josh
 		D3DXMatrixScaling(&squash, 0.625f, 0.625f, 1);
+
+		// hudDistance
+		D3DXMatrixTranslation(&hudDistance, 0, 0, 1);
+
+		// hudScale
+		float scalarHUDScale = 3.1f;
+		D3DXMatrixScaling(&hudScale, scalarHUDScale, scalarHUDScale, 1);
 	};
 
 	/**
@@ -59,8 +66,32 @@ public:
 	virtual void DoMatrixModification(D3DXMATRIX in, D3DXMATRIX& outLeft, D3DXMATRIX& outright)
 	{
 		if (vireio::AlmostSame(in[15], 1.0f, 0.00001f)) {
-			outLeft = in * m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->LeftShiftProjection() * squash * m_spAdjustmentMatrices->Projection();
-			outright = in * m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->RightShiftProjection() * squash * m_spAdjustmentMatrices->Projection();
+			// TODO !! do that more simple
+			float transX = in(3, 0);
+			float transY = in(3, 1);
+			float transZ = in(3, 2);
+			
+			float scaleX = in(0, 0);
+			float scaleY = in(1, 1);
+			float scaleZ = in(2, 2);
+			
+			float allAbs = abs(transX)+abs(transY)+abs(transZ)+abs(scaleX)+abs(scaleY)+abs(scaleZ);
+			
+			if (allAbs > 3.1f)
+			{
+				// Reproject ortho projected hud elements using perspective. These matricies will be useless if hud mode is separation adjustment of diatanec rather than actual distance
+				D3DXMATRIX orthoToPersViewProjTransformLeft  = m_spAdjustmentMatrices->ProjectionInverse() * hudScale * m_spAdjustmentMatrices->LeftViewTransform() * hudDistance *  m_spAdjustmentMatrices->Projection() * m_spAdjustmentMatrices->LeftShiftProjection();
+				D3DXMATRIX orthoToPersViewProjTransformRight = m_spAdjustmentMatrices->ProjectionInverse() * hudScale * m_spAdjustmentMatrices->RightViewTransform() * hudDistance * m_spAdjustmentMatrices->Projection() * m_spAdjustmentMatrices->RightShiftProjection();
+				outLeft = in * orthoToPersViewProjTransformLeft;
+				outright = in * orthoToPersViewProjTransformRight;
+			}
+			else
+			{
+				// simple squash
+				outLeft = in * m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->LeftShiftProjection() * squash * m_spAdjustmentMatrices->Projection();
+				outright = in * m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->RightShiftProjection() * squash * m_spAdjustmentMatrices->Projection();
+			}
+
 		}
 		else {
 			ShaderMatrixModification::DoMatrixModification(in, outLeft, outright);
@@ -72,5 +103,7 @@ private:
 	* Squash scaling matrix, obtained by the D3DXMatrixScaling.
 	*/
 	D3DXMATRIX squash;
+	D3DXMATRIX hudDistance;
+	D3DXMATRIX hudScale;
 };
 #endif

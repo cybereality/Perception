@@ -136,11 +136,11 @@ public:
 	virtual HRESULT WINAPI DrawRectPatch(UINT Handle,CONST float* pNumSegs,CONST D3DRECTPATCH_INFO* pRectPatchInfo);
 	virtual HRESULT WINAPI DrawTriPatch(UINT Handle,CONST float* pNumSegs,CONST D3DTRIPATCH_INFO* pTriPatchInfo);
 	virtual HRESULT WINAPI CreateQuery(D3DQUERYTYPE Type,IDirect3DQuery9** ppQuery);
-	
+
 	/*** D3DProxyDevice public methods ***/
 	HRESULT WINAPI CreateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample, DWORD MultisampleQuality,BOOL Lockable,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle, bool isBackBufferOfPrimarySwapChain);
 	virtual void   Init(ProxyHelper::ProxyConfig& cfg);
-	void           SetupText();
+	void           SetupHUD();
 	virtual void   HandleControls(void);
 	void           HandleTracking(void);
 
@@ -175,6 +175,18 @@ public:
 		ADVANCED = 600,            /**< largely unused, to be determined if we should keep them !! */
 		ADVANCED_SKYRIM = 601,     /**< largely unused, to be determined if we should keep them !! */
 		LFS = 700                  /**< largely unused, to be determined if we should keep them !! */
+	};
+
+	/**
+	* Mode of the calibration utility.
+	*
+	***/
+	enum BRASSA_Modes
+	{
+		INACTIVE = 0,
+		MAINMENU,
+		WORLD_SCALE_CALIBRATION,
+		CONVERGENCE_CALIBRATION
 	};
 
 	/**
@@ -230,7 +242,7 @@ public:
 	/**
 	* Schneider-Hicks Optical Calibration Tool GUI mode.
 	**/
-	int SHOCT_mode;
+	BRASSA_Modes BRASSA_mode;
 	/**
 	* Schneider-Hicks Optical Calibration Tool center of right line.
 	**/
@@ -264,6 +276,7 @@ protected:
 	bool         addRule(std::string constantName, bool allowPartialNameMatch, UINT startRegIndex, D3DXPARAMETER_CLASS constantType, UINT operationToApply, bool transpose);
 	void         saveShaderRules();
 	void         ClearRect(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color);
+	void         ClearEmptyRect(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color, int bw);
 
 	/**
 	* Current drawing side, only changed in setDrawingSide().
@@ -289,11 +302,14 @@ protected:
 private:
 	/*** D3DProxyDevice private methods ***/
 	void    ReleaseEverything();
-	void    DrawSHOCT();
+	void    BRASSA();
+	void    BRASSA_MainMenu();
+	void    BRASSA_WorldScale();
+	void    BRASSA_Convergence();
 	bool    isViewportDefaultForMainRT(CONST D3DVIEWPORT9* pViewport);
 	HRESULT SetStereoViewTransform(D3DXMATRIX pLeftMatrix, D3DXMATRIX pRightMatrix, bool apply);
 	HRESULT SetStereoProjectionTransform(D3DXMATRIX pLeftMatrix, D3DXMATRIX pRightMatrix, bool apply);
-		
+
 	/**
 	* The game handler.
 	* @see GameHandler
@@ -411,6 +427,10 @@ private:
 	* True to avoid key input due to repeat rate.
 	**/
 	bool keyWait;
+	/**
+	* Main menu sprite.
+	***/
+	LPD3DXSPRITE hudMainMenu;
 };
 
 #endif
