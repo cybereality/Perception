@@ -2,12 +2,32 @@
 <shaderConfig>
 	<rules>
 		<rule constantName="ModelViewProj" partialName="true" id="1" constantType="MatrixR" modToApply="1" startReg="0" transpose="true" />
-		<rule constantName="SkinModelViewProj" partialName="true" id="2" constantType="MatrixR" modToApply="1" startReg="1" transpose="false" />
-		<rule constantName="ModelViewProj" partialName="true" id="3" constantType="Vector" modToApply="1" startReg="44" transpose="false" />
+		<rule constantName="SkinModelViewProj" partialName="true" id="2" constantType="MatrixR" modToApply="1" startReg="1" transpose="true" />
+		<rule constantName="SkinModelViewProj" partialName="true" id="3" constantType="MatrixR" modToApply="1" startReg="4" transpose="true" />
+		<rule constantName="SkinModelViewProj" partialName="true" id="4" constantType="MatrixR" modToApply="1" startReg="20" transpose="true" />
+		<rule constantName="ModelViewProj" partialName="true" id="5" constantType="Vector" modToApply="1" startReg="44" transpose="false" />
+		<rule constantName="WorldViewProj" partialName="true" id="6" constantType="MatrixR" modToApply="1" startReg="0" transpose="true" />
+		<rule constantName="WorldViewTranspose" partialName="true" id="7" constantType="MatrixR" modToApply="1" startReg="4" transpose="true" />
+		<rule constantName="EyePosition" partialName="true" id="8" constantType="Vector" modToApply="1" startReg="7" transpose="false" />
+		<rule constantName="EyePosition" partialName="true" id="9" constantType="Vector" modToApply="1" startReg="8" transpose="false" />
+		<rule constantName="EyePosition" partialName="true" id="10" constantType="Vector" modToApply="1" startReg="16" transpose="false" />
+		<rule constantName="ModelViewProj" partialName="true" id="11" constantType="MatrixR" modToApply="1" startReg="9" transpose="true" />
+		<rule constantName="ModelViewProj" partialName="true" id="12" constantType="MatrixR" modToApply="2" startReg="0" transpose="true" />
 	</rules>
 	<defaultRuleIDs>
 		<ruleID id="1" />
 		<ruleID id="2" />
 		<ruleID id="3" />
+		<ruleID id="4" />
+		<ruleID id="5" />
+		<ruleID id="6" />
+		<ruleID id="7" />
+		<ruleID id="8" />
+		<ruleID id="9" />
+		<ruleID id="10" />
+    		<ruleID id="11" />
 	</defaultRuleIDs>
+	<shaderSpecificRuleIDs shaderHash="70962678">
+    		<ruleID id="12" />
+  	</shaderSpecificRuleIDs>
 </shaderConfig>
