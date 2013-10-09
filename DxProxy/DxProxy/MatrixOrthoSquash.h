@@ -37,27 +37,17 @@ class MatrixOrthoSquash : public ShaderMatrixModification
 {
 public:
 	/**
-	*  Constructor, sets attributes and such.
+	* Constructor, sets attributes and such.
 	* @param modID The id for this matrix modification.
 	* @param adjustmentMatricies The matricies to be adjusted
 	* @param transpose Decides if the matrices should be transposed (aka: have rows and columns interchanged)
 	*/
 	MatrixOrthoSquash(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatricies, bool transpose) 
 		: ShaderMatrixModification(modID, adjustmentMatricies, transpose) 
-	{
-		// should this be hard coded?  Seems a bit fishy... - Josh
-		D3DXMatrixScaling(&squash, 0.625f, 0.625f, 1);
-
-		// hudDistance
-		D3DXMatrixTranslation(&hudDistance, 0, 0, 1);
-
-		// hudScale
-		float scalarHUDScale = 3.1f;
-		D3DXMatrixScaling(&hudScale, scalarHUDScale, scalarHUDScale, 1);
-	};
+	{};
 
 	/**
-	* Matrix modification does multiply: translation * squash.
+	* Matrix modification does multiply: shiftprojection * squash (for GUI), scale * transform * distance (for HUD).
 	* Does the matrix squash and outputs the results.  Does only affect HUD (or GUI).
 	* @param in The matrix to be multiply by the adjustmentMatricies.
 	* @param[out] outLeft The resulting left side matrix
@@ -66,30 +56,34 @@ public:
 	virtual void DoMatrixModification(D3DXMATRIX in, D3DXMATRIX& outLeft, D3DXMATRIX& outright)
 	{
 		if (vireio::AlmostSame(in[15], 1.0f, 0.00001f)) {
-			// TODO !! do that more simple
-			float transX = in(3, 0);
-			float transY = in(3, 1);
-			float transZ = in(3, 2);
-			
-			float scaleX = in(0, 0);
-			float scaleY = in(1, 1);
-			float scaleZ = in(2, 2);
-			
-			float allAbs = abs(transX)+abs(transY)+abs(transZ)+abs(scaleX)+abs(scaleY)+abs(scaleZ);
-			
-			if (allAbs > 3.1f)
+
+			// add all translation and scale matrix entries 
+			// (for the GUI this should be 3.0f, for the HUD above)
+			float allAbs = abs(in(3, 0)); // transX
+			allAbs += abs(in(3, 1)); // transY
+			allAbs += abs(in(3, 2)); // transZ
+
+			allAbs += abs(in(0, 0)); // scaleX
+			allAbs += abs(in(1, 1)); // scaleY
+			allAbs += abs(in(2, 2)); // scaleZ
+
+			// TODO !! compute these two following matrices in the ViewAdjustment class :
+
+			// HUD
+			if (allAbs > 3.0f)
 			{
-				// Reproject ortho projected hud elements using perspective. These matricies will be useless if hud mode is separation adjustment of diatanec rather than actual distance
-				D3DXMATRIX orthoToPersViewProjTransformLeft  = m_spAdjustmentMatrices->ProjectionInverse() * hudScale * m_spAdjustmentMatrices->LeftViewTransform() * hudDistance *  m_spAdjustmentMatrices->Projection() * m_spAdjustmentMatrices->LeftShiftProjection();
-				D3DXMATRIX orthoToPersViewProjTransformRight = m_spAdjustmentMatrices->ProjectionInverse() * hudScale * m_spAdjustmentMatrices->RightViewTransform() * hudDistance * m_spAdjustmentMatrices->Projection() * m_spAdjustmentMatrices->RightShiftProjection();
+				// Reproject ortho projected hud elements using perspective. 
+				// These matrices will be useless if hud mode is separation adjustment of distance rather than actual distance
+				D3DXMATRIX orthoToPersViewProjTransformLeft  = m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->HUDScale() * m_spAdjustmentMatrices->LeftViewTransform() * m_spAdjustmentMatrices->HUDDistance() *  m_spAdjustmentMatrices->Projection() * m_spAdjustmentMatrices->LeftShiftProjection();
+				D3DXMATRIX orthoToPersViewProjTransformRight = m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->HUDScale() * m_spAdjustmentMatrices->RightViewTransform() * m_spAdjustmentMatrices->HUDDistance() * m_spAdjustmentMatrices->Projection() * m_spAdjustmentMatrices->RightShiftProjection();
 				outLeft = in * orthoToPersViewProjTransformLeft;
 				outright = in * orthoToPersViewProjTransformRight;
 			}
-			else
+			else // GUI
 			{
 				// simple squash
-				outLeft = in * m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->LeftShiftProjection() * squash * m_spAdjustmentMatrices->Projection();
-				outright = in * m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->RightShiftProjection() * squash * m_spAdjustmentMatrices->Projection();
+				outLeft = in * m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->LeftShiftProjection() * m_spAdjustmentMatrices->Squash() * m_spAdjustmentMatrices->Projection();
+				outright = in * m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->RightShiftProjection() * m_spAdjustmentMatrices->Squash() * m_spAdjustmentMatrices->Projection();
 			}
 
 		}
@@ -97,13 +91,5 @@ public:
 			ShaderMatrixModification::DoMatrixModification(in, outLeft, outright);
 		}
 	};
-
-private:
-	/**
-	* Squash scaling matrix, obtained by the D3DXMatrixScaling.
-	*/
-	D3DXMATRIX squash;
-	D3DXMATRIX hudDistance;
-	D3DXMATRIX hudScale;
 };
 #endif

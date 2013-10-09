@@ -57,11 +57,17 @@ public:
 	D3DXMATRIX    RightShiftProjection();
 	D3DXMATRIX    Projection();
 	D3DXMATRIX    ProjectionInverse();
+	D3DXMATRIX    Squash();
+	D3DXMATRIX    HUDDistance();
+	D3DXMATRIX    HUDScale();
 	D3DXMATRIX    GatheredMatrixLeft();
 	D3DXMATRIX    GatheredMatrixRight();
 	void          GatherMatrix(D3DXMATRIX& matrixLeft, D3DXMATRIX& matrixRight);
 	float         ChangeWorldScale(float toAdd);
 	float         ChangeConvergence(float toAdd);
+	void          ChangeSquash(float newSquash);
+	void          ChangeHudDistance(float newHudDistance);
+	void          ChangeHUDScale(float newHudScale);
 	void          ResetWorldScale();
 	void          ResetConvergence();	
 	float         Convergence();
@@ -140,6 +146,18 @@ private:
 	***/
 	D3DXMATRIX matGatheredRight;
 	/**
+	* Squash scaling matrix, to be used in HUD/GUI scaling matrices.
+	***/
+	D3DXMATRIX matSquash;
+	/**
+	* HUD distance matrix, to be used in HUD scaling matrices.
+	***/
+	D3DXMATRIX matHudDistance;
+	/**
+	* HUD scale matrix, to be used in HUD scaling matrices. 
+	***/
+	D3DXMATRIX matHudScale;
+	/**
 	* Head mounted display info.
 	***/
 	HMDisplayInfo hmdInfo;
@@ -165,5 +183,18 @@ private:
 	* The current way to render stereo. Matches StereoView::StereoTypes.
 	***/
 	int stereoType;
+	/**
+	* The amount of squashing GUI shader constants.
+	* 1.0 == full render
+	***/
+	float squash;
+	/**
+	* The distance of the HUD.
+	***/
+	float hudDistance;
+	/**
+	* The scale of the HUD.
+	***/
+	float hudScale;
 };
 #endif

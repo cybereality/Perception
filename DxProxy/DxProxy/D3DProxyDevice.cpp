@@ -136,7 +136,12 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	pitch_mode = 0;
 	translation_mode = 0;
 	trackingOn = true;
+
 	BRASSA_mode = BRASSA_Modes::INACTIVE;
+	borderTopHeight = 0.0f;
+	menuVelocity = D3DXVECTOR2(0.0f, 0.0f);
+	hudScaleMode = HUD_Scale_Modes::HUD_DEFAULT;
+	guiScaleMode = GUI_Scale_Modes::GUI_DEFAULT;
 
 	keyWait = false;
 }
@@ -303,13 +308,28 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 
 	m_isFirstBeginSceneOfFrame = true; // TODO this can break if device present is followed by present on another swap chain... or not work well anyway
 
-	// SHOCT called here (if not source engine)
+	// BRASSA called here (if not source engine)
 	if((stereoView->game_type != D3DProxyDevice::SOURCE_L4D) && (stereoView->game_type != D3DProxyDevice::DATA_GATHERER_SOURCE) && (stereoView->game_type != D3DProxyDevice::ADVANCED_SKYRIM))
 	{
-		if ((BRASSA_mode>=BRASSA_Modes::MAINMENU) && (BRASSA_mode<=BRASSA_Modes::CONVERGENCE_CALIBRATION))
+		if ((BRASSA_mode>=BRASSA_Modes::MAINMENU) && (BRASSA_mode<=BRASSA_Modes::CONVERGENCE_ADJUSTMENT))
 			BRASSA();
 	}
 
+	// BRASSA menu border velocity updated here
+	// Arrow up/down need to be done here !!
+	if (BRASSA_mode != BRASSA_Modes::INACTIVE)
+	{
+		float fScaleY = ((float)stereoView->viewport.Height / (float)1080.0f);
+		menuVelocity*=0.76f;
+		if ((menuVelocity.y<0.5f) && (menuVelocity.y>-0.5f) &&
+			(menuVelocity.x<0.5f) && (menuVelocity.x>-0.5f))
+			menuVelocity = D3DXVECTOR2(0.0f, 0.0f);
+		if ((KEY_DOWN(VK_UP)) && (menuVelocity.y==0.0f))
+			menuVelocity.y-=10.0f;
+		if ((KEY_DOWN(VK_DOWN)) && (menuVelocity.y==0.0f))
+			menuVelocity.y+=10.0f;
+		borderTopHeight += menuVelocity.y*fScaleY;
+	}
 	return BaseDirect3DDevice9::Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
 }
 
@@ -859,7 +879,7 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 }
 
 /**
-* SHOCT called here for source engine games.
+* BRASSA called here for source engine games.
 ***/
 HRESULT WINAPI D3DProxyDevice::EndScene()
 {
@@ -1875,7 +1895,7 @@ void D3DProxyDevice::SetupHUD()
 }
 
 /**
-* Keyboard input handling, SHOCT and other options currently in semicolon.
+* Keyboard input handling, BRASSA called here.
 ***/
 void D3DProxyDevice::HandleControls()
 {
@@ -1911,36 +1931,36 @@ void D3DProxyDevice::HandleControls()
 		//	anyKeyPressed = true;
 		//}
 
-		//////////  SHOCT non numpad
-		if(KEY_DOWN(0x4F))// VK_KEY_O
-		{
-			centerlineL  -= keySpeed/2.0f;
-			saveWaitCount = 500;
-			doSaveNext = true;
-			anyKeyPressed = true;
-		}
-		if(KEY_DOWN(0x50))// VK_KEY_P
-		{
-			centerlineL  += keySpeed/2.0f;
-			saveWaitCount = 500;
-			doSaveNext = true;
-			anyKeyPressed = true;
-		}
+		////////////  SHOCT non numpad
+		//if(KEY_DOWN(0x4F))// VK_KEY_O
+		//{
+		//	centerlineL  -= keySpeed/2.0f;
+		//	saveWaitCount = 500;
+		//	doSaveNext = true;
+		//	anyKeyPressed = true;
+		//}
+		//if(KEY_DOWN(0x50))// VK_KEY_P
+		//{
+		//	centerlineL  += keySpeed/2.0f;
+		//	saveWaitCount = 500;
+		//	doSaveNext = true;
+		//	anyKeyPressed = true;
+		//}
 
-		if(KEY_DOWN(0x4B))//VK_KEY_K
-		{
-			centerlineR  -= keySpeed/2.0f;
-			saveWaitCount = 500;
-			doSaveNext = true;
-			anyKeyPressed = true;
-		}
-		if(KEY_DOWN(0x4C))//VK_KEY_L
-		{
-			centerlineR  += keySpeed/2.0f;
-			saveWaitCount = 500;
-			doSaveNext = true;
-			anyKeyPressed = true;
-		}
+		//if(KEY_DOWN(0x4B))//VK_KEY_K
+		//{
+		//	centerlineR  -= keySpeed/2.0f;
+		//	saveWaitCount = 500;
+		//	doSaveNext = true;
+		//	anyKeyPressed = true;
+		//}
+		//if(KEY_DOWN(0x4C))//VK_KEY_L
+		//{
+		//	centerlineR  += keySpeed/2.0f;
+		//	saveWaitCount = 500;
+		//	doSaveNext = true;
+		//	anyKeyPressed = true;
+		//}
 
 		if(KEY_DOWN(0x49) && KEY_DOWN(VK_CONTROL))//VK_KEY_I		// Schneider-Hicks VR Calibration Tool
 		{
@@ -1957,36 +1977,36 @@ void D3DProxyDevice::HandleControls()
 		}
 		//////////
 
-		//////////  SHOCT numpad
-		if(KEY_DOWN(VK_NUMPAD1))
-		{
-			centerlineL  -= keySpeed/2.0f;
-			saveWaitCount = 500;
-			doSaveNext = true;
-			anyKeyPressed = true;
-		}
-		if(KEY_DOWN(VK_NUMPAD2))
-		{
-			centerlineL  += keySpeed/2.0f;
-			saveWaitCount = 500;
-			doSaveNext = true;
-			anyKeyPressed = true;
-		}
+		////////////  SHOCT numpad
+		//if(KEY_DOWN(VK_NUMPAD1))
+		//{
+		//	centerlineL  -= keySpeed/2.0f;
+		//	saveWaitCount = 500;
+		//	doSaveNext = true;
+		//	anyKeyPressed = true;
+		//}
+		//if(KEY_DOWN(VK_NUMPAD2))
+		//{
+		//	centerlineL  += keySpeed/2.0f;
+		//	saveWaitCount = 500;
+		//	doSaveNext = true;
+		//	anyKeyPressed = true;
+		//}
 
-		if(KEY_DOWN(VK_NUMPAD4))
-		{
-			centerlineR  -= keySpeed/2.0f;
-			saveWaitCount = 500;
-			doSaveNext = true;
-			anyKeyPressed = true;
-		}
-		if(KEY_DOWN(VK_NUMPAD5))
-		{
-			centerlineR  += keySpeed/2.0f;
-			saveWaitCount = 500;
-			doSaveNext = true;
-			anyKeyPressed = true;
-		}
+		//if(KEY_DOWN(VK_NUMPAD4))
+		//{
+		//	centerlineR  -= keySpeed/2.0f;
+		//	saveWaitCount = 500;
+		//	doSaveNext = true;
+		//	anyKeyPressed = true;
+		//}
+		//if(KEY_DOWN(VK_NUMPAD5))
+		//{
+		//	centerlineR  += keySpeed/2.0f;
+		//	saveWaitCount = 500;
+		//	doSaveNext = true;
+		//	anyKeyPressed = true;
+		//}
 
 		if(KEY_DOWN(VK_MULTIPLY) && KEY_DOWN(VK_SHIFT))		// Schneider-Hicks VR Calibration Tool
 		{
@@ -2292,7 +2312,7 @@ void D3DProxyDevice::HandleTracking()
 * The only resources used like this are going to be extra resources that are used by the proxy and are not
 * part of the actual calling application. 
 * 
-* Examples in D3DProxyDevice: The Font used in the SHOCT overlay and the stereo buffer.
+* Examples in D3DProxyDevice: The Font used in the BRASSA overlay and the stereo buffer.
 * 
 * Example of something you wouldn't create here:
 * Render targets in the m_activeRenderTargets collection. They need to be released to successfully Reset
@@ -2564,6 +2584,64 @@ void D3DProxyDevice::ClearEmptyRect(vireio::RenderPosition renderPosition, D3DRE
 }
 
 /**
+* Changes the HUD scale mode - also changes new scale in view adjustment class.
+***/
+void D3DProxyDevice::ChangeHUDScaleMode(HUD_Scale_Modes newMode)
+{
+	if (newMode >= HUD_Scale_Modes::HUD_ENUM_RANGE)
+		return;
+
+	hudScaleMode = newMode;
+
+	switch(hudScaleMode)
+	{
+	case HUD_Scale_Modes::HUD_DEFAULT:
+		m_spShaderViewAdjustment->ChangeHudDistance(0.5f);
+		m_spShaderViewAdjustment->ChangeHUDScale(2.0f);
+		break;
+	case HUD_Scale_Modes::HUD_SMALL:
+		m_spShaderViewAdjustment->ChangeHudDistance(1.0f);
+		m_spShaderViewAdjustment->ChangeHUDScale(3.1f);
+		break;
+	case HUD_Scale_Modes::HUD_LARGE:
+		m_spShaderViewAdjustment->ChangeHudDistance(0.3f);
+		m_spShaderViewAdjustment->ChangeHUDScale(1.5f);
+		break;
+	case HUD_Scale_Modes::HUD_FULL:
+		m_spShaderViewAdjustment->ChangeHudDistance(0.0f);
+		m_spShaderViewAdjustment->ChangeHUDScale(1.0f);
+		break;
+	}
+}
+
+/**
+* Changes the GUI scale mode - also changes new scale in view adjustment class.
+***/
+void D3DProxyDevice::ChangeGUIScaleMode(GUI_Scale_Modes newMode)
+{
+	if (newMode >= GUI_Scale_Modes::GUI_ENUM_RANGE)
+		return;
+
+	guiScaleMode = newMode;
+
+	switch(guiScaleMode)
+	{
+	case GUI_Scale_Modes::GUI_DEFAULT:
+		m_spShaderViewAdjustment->ChangeSquash(0.625f);
+		break;
+	case GUI_Scale_Modes::GUI_SMALL:
+		m_spShaderViewAdjustment->ChangeSquash(0.5f);
+		break;
+	case GUI_Scale_Modes::GUI_LARGE:
+		m_spShaderViewAdjustment->ChangeSquash(0.85f);
+		break;
+	case GUI_Scale_Modes::GUI_FULL:
+		m_spShaderViewAdjustment->ChangeSquash(1.0f);
+		break;
+	}
+}
+
+/**
 * 
 ***/
 void D3DProxyDevice::BRASSA()
@@ -2576,7 +2654,7 @@ void D3DProxyDevice::BRASSA()
 	case D3DProxyDevice::WORLD_SCALE_CALIBRATION:
 		BRASSA_WorldScale();
 		break;
-	case D3DProxyDevice::CONVERGENCE_CALIBRATION:
+	case D3DProxyDevice::CONVERGENCE_ADJUSTMENT:
 		BRASSA_Convergence();
 		break;
 	}
@@ -2697,66 +2775,153 @@ void D3DProxyDevice::BRASSA_MainMenu()
 {
 	int width = stereoView->viewport.Width;
 	int height = stereoView->viewport.Height;
-	const float menuTop = height*0.315f;
-	const float menuEntryHeight = 0.037f;
-	static float velocity = 0.0f;
-	static float borderHeight = menuTop;
-	static int menuEntry = 0;
+	float menuTop = height*0.315f;
+	float menuEntryHeight = height*0.037f;
+	UINT menuEntryCount = 7;
+	if ((config.game_type == 11) || (config.game_type == 12)) menuEntryCount++;
 
-	// handle border velocity
-	velocity*=0.95f;
-	if ((velocity<0.005f) && (velocity>-0.005f))
-		velocity = 0.0f;
-	if ((KEY_DOWN(VK_UP)) && (velocity==0.0f))
-		velocity-=2.0f;
-	if ((KEY_DOWN(VK_DOWN)) && (velocity==0.0f))
-		velocity+=2.0f;
-	borderHeight += velocity;
-	if (borderHeight<menuTop)
+	RECT rect1;
+	rect1.left = 0;
+	rect1.right = 1920;
+	rect1.top = 0;
+	rect1.bottom = 1080;
+
+	float fScaleX = ((float)stereoView->viewport.Width / (float)rect1.right);
+	float fScaleY = ((float)stereoView->viewport.Height / (float)rect1.bottom);
+
+	// handle border height
+	if (borderTopHeight<menuTop)
 	{
-		borderHeight = menuTop;
-		velocity=0.0f;
+		borderTopHeight = menuTop;
+		menuVelocity.y=0.0f;
+	}
+	if (borderTopHeight>(menuTop+(menuEntryHeight*(float)(menuEntryCount-1))))
+	{
+		borderTopHeight = menuTop+menuEntryHeight*(float)(menuEntryCount-1);
+		menuVelocity.y=0.0f;
 	}
 
 	// get menu entry id
+	float entry = (borderTopHeight-menuTop+(menuEntryHeight/3.0f))/menuEntryHeight;
+	UINT entryID = (UINT)entry;
+	if (entryID >= menuEntryCount)
+		OutputDebugString("Error in BRASSA menu programming !");
+
 	if (KEY_DOWN(VK_RETURN))
 	{
-		if (borderHeight > (menuTop+menuEntryHeight-0.01f))
-			BRASSA_mode = BRASSA_Modes::CONVERGENCE_CALIBRATION;
-		else if (borderHeight > (menuTop+2*menuEntryHeight-0.01f))
-			BRASSA_mode = BRASSA_Modes::INACTIVE;
-		else BRASSA_mode = BRASSA_Modes::WORLD_SCALE_CALIBRATION;
+		/*if (borderTopHeight > (menuTop+menuEntryHeight-0.01f))
+		BRASSA_mode = BRASSA_Modes::CONVERGENCE_ADJUSTMENT;
+		else if (borderTopHeight > (menuTop+2*menuEntryHeight-0.01f))
+		BRASSA_mode = BRASSA_Modes::INACTIVE;
+		else BRASSA_mode = BRASSA_Modes::WORLD_SCALE_CALIBRATION;*/
 	}
 
+	if (KEY_DOWN(VK_LEFT))
+	{
+		// TODO !! do this more elegant
+		int dummy = 0;
+		if ((config.game_type == 11) || (config.game_type == 12))
+			dummy = 1;
+
+		if ((entryID == 4+dummy) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		{
+			if (hudScaleMode > HUD_Scale_Modes::HUD_DEFAULT)
+				ChangeHUDScaleMode((HUD_Scale_Modes)(hudScaleMode-1));
+			menuVelocity.x-=10.0f;
+		}
+
+		if ((entryID == 5+dummy) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		{
+			if (guiScaleMode > GUI_Scale_Modes::GUI_DEFAULT)
+				ChangeGUIScaleMode((GUI_Scale_Modes)(guiScaleMode-1));
+			menuVelocity.x-=10.0f;
+		}
+	}
+
+	if (KEY_DOWN(VK_RIGHT))
+	{
+		// TODO !! do this more elegant
+		int dummy = 0;
+		if ((config.game_type == 11) || (config.game_type == 12))
+			dummy = 1;
+
+		if ((entryID == 4+dummy) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		{
+			if (hudScaleMode < HUD_Scale_Modes::HUD_ENUM_RANGE-1)
+				ChangeHUDScaleMode((HUD_Scale_Modes)(hudScaleMode+1));
+			menuVelocity.x+=10.0f;
+		}
+
+		if ((entryID == 5+dummy) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		{
+			if (guiScaleMode < GUI_Scale_Modes::GUI_ENUM_RANGE-1)
+				ChangeGUIScaleMode((GUI_Scale_Modes)(guiScaleMode+1));
+			menuVelocity.x+=10.0f;
+		}
+
+	}
+
+	// output menu
 	if (hudFont)
 	{
 		D3DRECT rect;
-
-		rect.x1 = (int)(width*0.335f); rect.x2 = (int)(width*0.525f); rect.y1 = (int)borderHeight; rect.y2 = (int)(borderHeight+height*0.04f);
+		rect.x1 = (int)(width*0.335f); rect.x2 = (int)(width*0.525f); rect.y1 = (int)borderTopHeight; rect.y2 = (int)(borderTopHeight+height*0.04f);
 		ClearEmptyRect(vireio::RenderPosition::Left, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
 
-		RECT rect1;
-		rect1.left = 550;
-		rect1.right = 1920;
-		rect1.top = 300;
-		rect1.bottom = 1080;
 		hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
-
-		float fScaleX = ((float)stereoView->viewport.Width / (float)rect1.right);
-		float fScaleY = ((float)stereoView->viewport.Height / (float)rect1.bottom);
 
 		D3DXMATRIX matScale;
 		D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
 		hudMainMenu->SetTransform(&matScale);
 
+		rect1.left = 550;
+		rect1.top = 300;
 		hudFont->DrawText(hudMainMenu, "Brown Reischl and Schneider Settings Analyzer (B.R.A.S.S.A.).\n", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		rect1.top += 45; rect1.left += 250;
+		if ((config.game_type == 11) || (config.game_type == 12))
+		{
+			hudFont->DrawText(hudMainMenu, "Activate BRASSA (Shader Analyzer)\n", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			rect1.top += 40;
+		}
 		hudFont->DrawText(hudMainMenu, "World-Scale Calibration\n", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		rect1.top += 40;
-		hudFont->DrawText(hudMainMenu, "Convergence Calibration\n", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		hudFont->DrawText(hudMainMenu, "Convergence Adjustment\n", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
+		hudFont->DrawText(hudMainMenu, "HUD Calibration\n", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
+		hudFont->DrawText(hudMainMenu, "GUI Calibration\n", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40; float hudQSHeight = (float)rect1.top * fScaleY;
+		hudFont->DrawText(hudMainMenu, "HUD Quick Setting : \n", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40; float guiQSHeight = (float)rect1.top * fScaleY;
+		hudFont->DrawText(hudMainMenu, "GUI Quick Setting : \n", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		rect1.top += 40;
 		hudFont->DrawText(hudMainMenu, "Back to Game\n", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		rect1.top += 40;
+
+		// draw HUD quick setting rectangles
+		rect.x1 = (int)(width*0.482f); rect.x2 = (int)(width*0.523f); rect.y1 = (int)hudQSHeight; rect.y2 = (int)(hudQSHeight+height*0.027f);
+		float selectionWidth = (rect.x2-rect.x1) / (float)HUD_Scale_Modes::HUD_ENUM_RANGE;
+		for (int i = 0; i < (int)HUD_Scale_Modes::HUD_ENUM_RANGE; i++)
+		{
+			rect.x2 = rect.x1+(int)selectionWidth;
+			if (i==(int)hudScaleMode)
+				ClearRect(vireio::RenderPosition::Left, rect, D3DCOLOR_ARGB(255, 128, 196, 128));
+			else
+				ClearRect(vireio::RenderPosition::Left, rect, D3DCOLOR_ARGB(255, 164, 128, 128));
+			rect.x1+=(int)selectionWidth;
+		}
+
+		// draw GUI quick setting rectangles
+		rect.x1 = (int)(width*0.482f); rect.x2 = (int)(width*0.523f); rect.y1 = (int)guiQSHeight; rect.y2 = (int)(guiQSHeight+height*0.027f);
+		selectionWidth = (rect.x2-rect.x1) / (float)GUI_Scale_Modes::GUI_ENUM_RANGE;
+		for (int i = 0; i < (int)GUI_Scale_Modes::GUI_ENUM_RANGE; i++)
+		{
+			rect.x2 = rect.x1+(int)selectionWidth;
+			if (i==(int)guiScaleMode)
+				ClearRect(vireio::RenderPosition::Left, rect, D3DCOLOR_ARGB(255, 128, 196, 128));
+			else
+				ClearRect(vireio::RenderPosition::Left, rect, D3DCOLOR_ARGB(255, 164, 128, 128));
+			rect.x1+=(int)selectionWidth;
+		}
 
 		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
 		hudMainMenu->Draw(NULL, &rect1, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));  

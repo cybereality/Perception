@@ -40,6 +40,10 @@ ViewAdjustment::ViewAdjustment(HMDisplayInfo &displayInfo, float metersToWorldUn
 	l = -0.5f;
 	r = 0.5f;
 
+	squash = 0.625f;
+	hudDistance = 1.0f;
+	hudScale = 3.1f;
+
 	D3DXMatrixIdentity(&matProjection);
 	D3DXMatrixIdentity(&matProjectionInv);
 	D3DXMatrixIdentity(&leftShiftProjection);
@@ -180,6 +184,17 @@ void ViewAdjustment::ComputeViewTransforms()
 
 	matViewProjTransformLeft = matProjectionInv * transformLeft * projectLeft;
 	matViewProjTransformRight = matProjectionInv * transformRight * projectRight;
+
+	// now, create HUD/GUI helper matrices
+
+	// squash
+	D3DXMatrixScaling(&matSquash, squash, squash, 1);
+
+	// hudDistance
+	D3DXMatrixTranslation(&matHudDistance, 0, 0, hudDistance);
+
+	// hudScale
+	D3DXMatrixScaling(&matHudScale, hudScale, hudScale, 1);
 }
 
 /**
@@ -249,10 +264,34 @@ D3DXMATRIX ViewAdjustment::ProjectionInverse()
 }
 
 /**
+* Returns the current projection inverse matrix.
+***/
+D3DXMATRIX ViewAdjustment::Squash()
+{
+	return matSquash;
+}
+
+/**
+* Returns the current projection inverse matrix.
+***/
+D3DXMATRIX ViewAdjustment::HUDDistance()
+{
+	return matHudDistance;
+}
+
+/**
+* Returns the current projection inverse matrix.
+***/
+D3DXMATRIX ViewAdjustment::HUDScale()
+{
+	return matHudScale;
+}
+
+/**
 * Returns the current left gathered matrix.
 ***/
 D3DXMATRIX ViewAdjustment::GatheredMatrixLeft()
-{OutputDebugString("GatheredMatrixLeft()");
+{
 	return matGatheredLeft;
 }
 
@@ -268,7 +307,7 @@ D3DXMATRIX ViewAdjustment::GatheredMatrixRight()
 * Gathers a matrix to be used in modifications.
 ***/
 void ViewAdjustment::GatherMatrix(D3DXMATRIX& matrixLeft, D3DXMATRIX& matrixRight)
-{OutputDebugString("GatherMatrix");
+{
 	matGatheredLeft = D3DXMATRIX(matrixLeft);
 	matGatheredRight = D3DMATRIX(matrixRight);
 }
@@ -296,6 +335,36 @@ float ViewAdjustment::ChangeConvergence(float toAdd)
 	vireio::clamp(&convergence, minConvergence, maxConvergence);
 
 	return convergence;
+}
+
+/**
+* Changes squash and updates matrix.
+***/
+void ViewAdjustment::ChangeSquash(float newSquash)
+{
+	squash = newSquash;
+
+	D3DXMatrixScaling(&matSquash, squash, squash, 1);
+}
+
+/**
+*
+***/
+void ViewAdjustment::ChangeHudDistance(float newHudDistance)
+{
+	hudDistance = newHudDistance;
+
+	D3DXMatrixTranslation(&matHudDistance, 0, 0, hudDistance);
+}
+
+/**
+*
+***/
+void ViewAdjustment::ChangeHUDScale(float newHudScale)
+{
+	hudScale = newHudScale;
+
+	D3DXMatrixScaling(&matHudScale, hudScale, hudScale, 1);
 }
 
 /**

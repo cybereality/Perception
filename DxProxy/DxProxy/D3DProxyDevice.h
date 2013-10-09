@@ -64,7 +64,6 @@ class GameHandler;
 /**
 * Direct 3D proxy device class. 
 * Basically this class hosts all proxy wrappers accordingly to the methods called by the game.
-* Much, much to do here (SHOCT for example...)
 */
 class D3DProxyDevice : public BaseDirect3DDevice9
 {
@@ -145,40 +144,35 @@ public:
 	void           HandleTracking(void);
 
 	/**
-	* These types are largely unused with the changes to game specific config.
-	* TODO Some changes are still needed before they can be removed. Data gathering should
-	* probably become part of a debug/diagnostic mode.
-	* TODO SOURCE_L4D is used in StereoView to change behaviour of state save/load to prevent
-	* issues in hl2 (and probably other source games)
-	*
-	* Update: No, we will still use these ProxyTypes to determine either to draw SHOCT in 
-	* EndScene() or in Present().
+	* Game Types.
+	* We use these ProxyTypes to determine either to draw BRASSA in EndScene() or in Present().
+	* Will be also used for any game- or engine-specific things.
 	***/
 	enum ProxyTypes
 	{
-		MONO = 0,                  /**< largely unused, to be determined if we should keep them !! */
-		FIXED = 10,                /**< largely unused, to be determined if we should keep them !! */
-		DATA_GATHERER = 11,        /**< largely unused, to be determined if we should keep them !! */
-		DATA_GATHERER_SOURCE = 12, /**< largely unused, to be determined if we should keep them !! */
-		SOURCE = 100,              /**< largely unused, to be determined if we should keep them !! */
+		MONO = 0,                  /**<  !! */
+		FIXED = 10,                /**<  !! */
+		DATA_GATHERER = 11,        /**<  !! */
+		DATA_GATHERER_SOURCE = 12, /**<  !! */
+		SOURCE = 100,              /**<  !! */
 		SOURCE_L4D = 101,          /**< SOURCE_L4D is used in StereoView to change behaviour of state save/load to prevent issues in hl2 (and probably other source games) */
-		UNREAL = 200,              /**< largely unused, to be determined if we should keep them !! */
-		UNREAL_MIRROR = 201,       /**< largely unused, to be determined if we should keep them !! */
-		UNREAL_UT3 = 202,          /**< largely unused, to be determined if we should keep them !! */
-		UNREAL_BIOSHOCK = 203,     /**< largely unused, to be determined if we should keep them !! */
-		EGO = 300,                 /**< largely unused, to be determined if we should keep them !! */
-		EGO_DIRT = 301,            /**< largely unused, to be determined if we should keep them !! */
-		REALV = 400,               /**< largely unused, to be determined if we should keep them !! */
-		REALV_ARMA = 401,          /**< largely unused, to be determined if we should keep them !! */
-		UNITY = 500,               /**< largely unused, to be determined if we should keep them !! */
-		UNITY_SLENDER = 501,       /**< largely unused, to be determined if we should keep them !! */
-		ADVANCED = 600,            /**< largely unused, to be determined if we should keep them !! */
-		ADVANCED_SKYRIM = 601,     /**< largely unused, to be determined if we should keep them !! */
-		LFS = 700                  /**< largely unused, to be determined if we should keep them !! */
+		UNREAL = 200,              /**<  !! */
+		UNREAL_MIRROR = 201,       /**<  !! */
+		UNREAL_UT3 = 202,          /**<  !! */
+		UNREAL_BIOSHOCK = 203,     /**<  !! */
+		EGO = 300,                 /**<  !! */
+		EGO_DIRT = 301,            /**<  !! */
+		REALV = 400,               /**<  !! */
+		REALV_ARMA = 401,          /**<  !! */
+		UNITY = 500,               /**<  !! */
+		UNITY_SLENDER = 501,       /**<  !! */
+		ADVANCED = 600,            /**<  !! */
+		ADVANCED_SKYRIM = 601,     /**<  !! */
+		LFS = 700                  /**<  !! */
 	};
 
 	/**
-	* Mode of the calibration utility.
+	* Mode of the BRASSA menu.
 	*
 	***/
 	enum BRASSA_Modes
@@ -186,7 +180,34 @@ public:
 		INACTIVE = 0,
 		MAINMENU,
 		WORLD_SCALE_CALIBRATION,
-		CONVERGENCE_CALIBRATION
+		CONVERGENCE_ADJUSTMENT,
+		SHADER_ANALYZER,
+		HUD_CALIBRATION,
+		GUI_CALIBRATION
+	};
+	/**
+	* HUD scale enumeration.
+	* ENUM_RANGE = range of the enum
+	***/
+	enum HUD_Scale_Modes
+	{
+		HUD_DEFAULT = 0,
+		HUD_SMALL = 1,
+		HUD_LARGE = 2,
+		HUD_FULL = 3,
+		HUD_ENUM_RANGE = 4
+	};
+	/**
+	* GUI scale enumeration.
+	* ENUM_RANGE = range of the enum
+	***/
+	enum GUI_Scale_Modes
+	{
+		GUI_DEFAULT = 0,
+		GUI_SMALL = 1,
+		GUI_LARGE = 2,
+		GUI_FULL = 3,
+		GUI_ENUM_RANGE = 4
 	};
 
 	/**
@@ -277,6 +298,8 @@ protected:
 	void         saveShaderRules();
 	void         ClearRect(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color);
 	void         ClearEmptyRect(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color, int bw);
+	void         ChangeHUDScaleMode(HUD_Scale_Modes newMode);
+	void         ChangeGUIScaleMode(GUI_Scale_Modes newMode);
 
 	/**
 	* Current drawing side, only changed in setDrawingSide().
@@ -431,6 +454,22 @@ private:
 	* Main menu sprite.
 	***/
 	LPD3DXSPRITE hudMainMenu;
+	/**
+	* Main menu velocity.
+	***/
+	D3DXVECTOR2 menuVelocity; 
+	/**
+	* Main menu border top height.
+	***/
+	float borderTopHeight;
+	/**
+	* Current HUD scale mode.
+	***/
+	HUD_Scale_Modes hudScaleMode;
+	/**
+	* Current GUI scale mode.
+	***/
+	GUI_Scale_Modes guiScaleMode;
 };
 
 #endif
