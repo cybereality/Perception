@@ -186,8 +186,8 @@ public:
 			"Vireio Perception", 
 			WS_OVERLAPPEDWINDOW & ~(WS_THICKFRAME | WS_MAXIMIZEBOX), 
 			//WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,   
-			(screen_width-482)/2, (screen_height-180)/2, 
-			482, 180,
+			(screen_width-585)/2, (screen_height-195)/2, 
+			585, 195,
 			NULL, NULL, instance_handle, NULL);
 		SetWindowLongPtr(window_handle, GWL_USERDATA, (LONG)this);  
 		GetClientRect(window_handle, &client_rectangle);
