@@ -313,6 +313,14 @@ void ViewAdjustment::GatherMatrix(D3DXMATRIX& matrixLeft, D3DXMATRIX& matrixRigh
 }
 
 /**
+* Returns the current world scale.
+***/
+float ViewAdjustment::WorldScale()
+{
+	return metersToWorldMultiplier;
+}
+
+/**
 * Modifies the world scale with its limits 0.01f and 1,000,000 (arbitrary limit).
 * NOTE: This should not be changed during normal usage, this is here to facilitate finding a reasonable scale.
 ***/

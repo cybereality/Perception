@@ -63,6 +63,7 @@ public:
 	D3DXMATRIX    GatheredMatrixLeft();
 	D3DXMATRIX    GatheredMatrixRight();
 	void          GatherMatrix(D3DXMATRIX& matrixLeft, D3DXMATRIX& matrixRight);
+	float         WorldScale();
 	float         ChangeWorldScale(float toAdd);
 	float         ChangeConvergence(float toAdd);
 	void          ChangeSquash(float newSquash);

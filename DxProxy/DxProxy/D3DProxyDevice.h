@@ -298,6 +298,9 @@ protected:
 	void         saveShaderRules();
 	void         ClearRect(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color);
 	void         ClearEmptyRect(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color, int bw);
+	void         DrawSelection(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color, int selectionIndex, int selectionRange);
+	void         DrawScrollbar(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color, float scroll, int scrollbarSize);
+	void         DrawTextShadowed(ID3DXFont* font, LPD3DXSPRITE sprite, LPCSTR lpchText, int cchText, LPRECT lprc, UINT format, D3DCOLOR color);
 	void         ChangeHUDScaleMode(HUD_Scale_Modes newMode);
 	void         ChangeGUIScaleMode(GUI_Scale_Modes newMode);
 
@@ -454,6 +457,10 @@ private:
 	* Main menu sprite.
 	***/
 	LPD3DXSPRITE hudMainMenu;
+	/**
+	* Main menu sprite.
+	***/
+	LPD3DXSPRITE hudTextBox;
 	/**
 	* Main menu velocity.
 	***/
