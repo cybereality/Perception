@@ -72,20 +72,34 @@ public:
 			// HUD
 			if (allAbs > 3.0f)
 			{
-				// Reproject ortho projected hud elements using perspective. 
-				// These matrices will be useless if hud mode is separation adjustment of distance rather than actual distance
-				D3DXMATRIX orthoToPersViewProjTransformLeft  = m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->HUDScale() * m_spAdjustmentMatrices->LeftViewTransform() * m_spAdjustmentMatrices->HUDDistance() *  m_spAdjustmentMatrices->Projection() * m_spAdjustmentMatrices->LeftShiftProjection();
-				D3DXMATRIX orthoToPersViewProjTransformRight = m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->HUDScale() * m_spAdjustmentMatrices->RightViewTransform() * m_spAdjustmentMatrices->HUDDistance() * m_spAdjustmentMatrices->Projection() * m_spAdjustmentMatrices->RightShiftProjection();
+				// separation -> distance translation
+				D3DXMATRIX orthoToPersViewProjTransformLeft  = m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->LeftHUD3DDepth() * m_spAdjustmentMatrices->LeftViewTransform() * m_spAdjustmentMatrices->HUDDistance() *  m_spAdjustmentMatrices->Projection() * m_spAdjustmentMatrices->LeftShiftProjection();
+				D3DXMATRIX orthoToPersViewProjTransformRight = m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->RightHUD3DDepth() * m_spAdjustmentMatrices->RightViewTransform() * m_spAdjustmentMatrices->HUDDistance() * m_spAdjustmentMatrices->Projection() * m_spAdjustmentMatrices->RightShiftProjection();
+
 				outLeft = in * orthoToPersViewProjTransformLeft;
 				outright = in * orthoToPersViewProjTransformRight;
 			}
 			else // GUI
 			{
-				// simple squash
-				outLeft = in * m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->LeftShiftProjection() * m_spAdjustmentMatrices->Squash() * m_spAdjustmentMatrices->Projection();
-				outright = in * m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->RightShiftProjection() * m_spAdjustmentMatrices->Squash() * m_spAdjustmentMatrices->Projection();
-			}
+				if (m_spAdjustmentMatrices->BulletLabyrinthMode())
+				{
+					D3DXMATRIX tempMatrix;
+					D3DXMatrixTranspose(&tempMatrix, &in);
+					tempMatrix = m_spAdjustmentMatrices->BulletLabyrinth() * tempMatrix;
+					D3DXMatrixTranspose(&tempMatrix, &tempMatrix);
 
+					outLeft = tempMatrix * m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->LeftGUI3DDepth() * m_spAdjustmentMatrices->LeftShiftProjection() * m_spAdjustmentMatrices->Squash() * m_spAdjustmentMatrices->Projection();
+					outright = tempMatrix * m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->RightGUI3DDepth() * m_spAdjustmentMatrices->RightShiftProjection() * m_spAdjustmentMatrices->Squash() * m_spAdjustmentMatrices->Projection();
+				
+					// SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
+				}
+				else
+				{
+					// simple squash
+					outLeft = in * m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->LeftGUI3DDepth() * m_spAdjustmentMatrices->LeftShiftProjection() * m_spAdjustmentMatrices->Squash() * m_spAdjustmentMatrices->Projection();
+					outright = in * m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->RightGUI3DDepth() * m_spAdjustmentMatrices->RightShiftProjection() * m_spAdjustmentMatrices->Squash() * m_spAdjustmentMatrices->Projection();
+				}
+			}
 		}
 		else {
 			ShaderMatrixModification::DoMatrixModification(in, outLeft, outright);

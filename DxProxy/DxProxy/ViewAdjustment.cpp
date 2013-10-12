@@ -26,7 +26,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ViewAdjustment::ViewAdjustment(HMDisplayInfo &displayInfo, float metersToWorldUnits, bool enableRoll) :
 	hmdInfo(displayInfo),
 	metersToWorldMultiplier(metersToWorldUnits),
-	rollEnabled(enableRoll)
+	rollEnabled(enableRoll),
+	bulletLabyrinth(false)
 {
 	// TODO : max, min convergence; arbitrary now
 	convergence = 0.0f;
@@ -40,9 +41,10 @@ ViewAdjustment::ViewAdjustment(HMDisplayInfo &displayInfo, float metersToWorldUn
 	l = -0.5f;
 	r = 0.5f;
 
-	squash = 0.625f;
-	hudDistance = 1.0f;
-	hudScale = 3.1f;
+	squash = 1.0f;
+	gui3DDepth = 0.0f;
+	hudDistance = 0.0f;
+	hud3DDepth = 0.0f;
 
 	D3DXMatrixIdentity(&matProjection);
 	D3DXMatrixIdentity(&matProjectionInv);
@@ -155,6 +157,17 @@ void ViewAdjustment::UpdateProjectionMatrices(float aspectRatio)
 }
 
 /**
+* Updates the current pitch and yaw head movement.
+***/
+void ViewAdjustment::UpdatePitchYaw(float pitch, float yaw)
+{
+	// bullet labyrinth matrix
+	/*float yawRad = D3DXToRadian(yaw);
+	float pitchRad = D3DXToRadian(pitch);*/
+	D3DXMatrixTranslation(&matBulletLabyrinth, -yaw, pitch, 0.0f);
+}
+
+/**
 * Updates the roll matrix, seems to be senseless right now, just calls D3DXMatrixRotationZ().
 * @param roll Angle of rotation, in radians.
 ***/
@@ -193,8 +206,11 @@ void ViewAdjustment::ComputeViewTransforms()
 	// hudDistance
 	D3DXMatrixTranslation(&matHudDistance, 0, 0, hudDistance);
 
-	// hudScale
-	D3DXMatrixScaling(&matHudScale, hudScale, hudScale, 1);
+	// hud3DDepth
+	D3DXMatrixTranslation(&matLeftHud3DDepth, hud3DDepth, 0, 0);
+	D3DXMatrixTranslation(&matRightHud3DDepth, -hud3DDepth, 0, 0);
+	D3DXMatrixTranslation(&matLeftGui3DDepth, gui3DDepth+SeparationIPDAdjustment(), 0, 0);
+	D3DXMatrixTranslation(&matRightGui3DDepth, -(gui3DDepth+SeparationIPDAdjustment()), 0, 0);
 }
 
 /**
@@ -280,11 +296,43 @@ D3DXMATRIX ViewAdjustment::HUDDistance()
 }
 
 /**
-* Returns the current projection inverse matrix.
+* Returns the current left HUD depth eye separation matrix.
 ***/
-D3DXMATRIX ViewAdjustment::HUDScale()
+D3DXMATRIX ViewAdjustment::LeftHUD3DDepth()
 {
-	return matHudScale;
+	return matLeftHud3DDepth;
+}
+
+/**
+* Returns the current left HUD depth eye separation matrix.
+***/
+D3DXMATRIX ViewAdjustment::RightHUD3DDepth()
+{
+	return matRightHud3DDepth;
+}
+
+/**
+* Returns the current left HUD depth eye separation matrix.
+***/
+D3DXMATRIX ViewAdjustment::LeftGUI3DDepth()
+{
+	return matLeftGui3DDepth;
+}
+
+/**
+* Returns the current left HUD depth eye separation matrix.
+***/
+D3DXMATRIX ViewAdjustment::RightGUI3DDepth()
+{
+	return matRightGui3DDepth;
+}
+
+/**
+* Returns the current bullet labyrinth matrix.
+***/
+D3DXMATRIX ViewAdjustment::BulletLabyrinth()
+{
+	return matBulletLabyrinth;
 }
 
 /**
@@ -346,9 +394,9 @@ float ViewAdjustment::ChangeConvergence(float toAdd)
 }
 
 /**
-* Changes squash and updates matrix.
+* Changes GUI squash and updates matrix.
 ***/
-void ViewAdjustment::ChangeSquash(float newSquash)
+void ViewAdjustment::ChangeGUISquash(float newSquash)
 {
 	squash = newSquash;
 
@@ -356,9 +404,20 @@ void ViewAdjustment::ChangeSquash(float newSquash)
 }
 
 /**
-*
+* Changes the GUI eye separation (=GUI 3D Depth) and updates matrices.
 ***/
-void ViewAdjustment::ChangeHudDistance(float newHudDistance)
+void ViewAdjustment::ChangeGUI3DDepth(float newGui3DDepth)
+{
+	gui3DDepth = newGui3DDepth;
+
+	D3DXMatrixTranslation(&matLeftGui3DDepth, gui3DDepth+SeparationIPDAdjustment(), 0, 0);
+	D3DXMatrixTranslation(&matRightGui3DDepth, -(gui3DDepth+SeparationIPDAdjustment()), 0, 0);
+}
+
+/**
+* Changes the distance of the HUD and updates matrix.
+***/
+void ViewAdjustment::ChangeHUDDistance(float newHudDistance)
 {
 	hudDistance = newHudDistance;
 
@@ -366,13 +425,30 @@ void ViewAdjustment::ChangeHudDistance(float newHudDistance)
 }
 
 /**
-*
+*  Changes the HUD eye separation (=HUD 3D Depth) and updates matrices.
 ***/
-void ViewAdjustment::ChangeHUDScale(float newHudScale)
+void ViewAdjustment::ChangeHUD3DDepth(float newHud3DDepth)
 {
-	hudScale = newHudScale;
+	hud3DDepth = newHud3DDepth;
 
-	D3DXMatrixScaling(&matHudScale, hudScale, hudScale, 1);
+	D3DXMatrixTranslation(&matLeftHud3DDepth, -hud3DDepth, 0, 0);
+	D3DXMatrixTranslation(&matRightHud3DDepth, hud3DDepth, 0, 0);
+}
+
+/**
+* Set to true if orthographical matrices should be rotated in a bullet labyrinth style.
+***/
+void ViewAdjustment::SetBulletLabyrinthMode(bool newMode)
+{
+	bulletLabyrinth = newMode;
+}
+
+/**
+* True if bullet-labyrinth mode is on.
+***/
+bool ViewAdjustment::BulletLabyrinthMode()
+{
+	return bulletLabyrinth;
 }
 
 /**
@@ -413,6 +489,15 @@ float ViewAdjustment::ConvergenceInWorldUnits()
 float ViewAdjustment::SeparationInWorldUnits() 
 { 
 	return  (ipd / 2.0f) * metersToWorldMultiplier; 
+}
+
+/**
+* Returns the separation IPD adjustment being used for GUI and HUD matrices.
+* (or whenever the eye separation is set manually)
+***/
+float ViewAdjustment::SeparationIPDAdjustment() 
+{ 
+	return  ((ipd-IPD_DEFAULT) / 2.0f) * metersToWorldMultiplier; 
 }
 
 /**

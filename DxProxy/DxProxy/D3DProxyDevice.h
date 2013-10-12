@@ -183,13 +183,14 @@ public:
 		CONVERGENCE_ADJUSTMENT,
 		SHADER_ANALYZER,
 		HUD_CALIBRATION,
-		GUI_CALIBRATION
+		GUI_CALIBRATION,
+		OVERALL_SETTINGS
 	};
 	/**
 	* HUD scale enumeration.
 	* ENUM_RANGE = range of the enum
 	***/
-	enum HUD_Scale_Modes
+	enum HUD_3D_Depth_Modes
 	{
 		HUD_DEFAULT = 0,
 		HUD_SMALL = 1,
@@ -201,7 +202,7 @@ public:
 	* GUI scale enumeration.
 	* ENUM_RANGE = range of the enum
 	***/
-	enum GUI_Scale_Modes
+	enum GUI_3D_Depth_Modes
 	{
 		GUI_DEFAULT = 0,
 		GUI_SMALL = 1,
@@ -301,8 +302,8 @@ protected:
 	void         DrawSelection(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color, int selectionIndex, int selectionRange);
 	void         DrawScrollbar(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color, float scroll, int scrollbarSize);
 	void         DrawTextShadowed(ID3DXFont* font, LPD3DXSPRITE sprite, LPCSTR lpchText, int cchText, LPRECT lprc, UINT format, D3DCOLOR color);
-	void         ChangeHUDScaleMode(HUD_Scale_Modes newMode);
-	void         ChangeGUIScaleMode(GUI_Scale_Modes newMode);
+	void         ChangeHUD3DDepthMode(HUD_3D_Depth_Modes newMode);
+	void         ChangeGUI3DDepthMode(GUI_3D_Depth_Modes newMode);
 
 	/**
 	* Current drawing side, only changed in setDrawingSide().
@@ -332,6 +333,9 @@ private:
 	void    BRASSA_MainMenu();
 	void    BRASSA_WorldScale();
 	void    BRASSA_Convergence();
+	void    BRASSA_HUD();
+	void    BRASSA_GUI();
+	void    BRASSA_Settings();
 	bool    isViewportDefaultForMainRT(CONST D3DVIEWPORT9* pViewport);
 	HRESULT SetStereoViewTransform(D3DXMATRIX pLeftMatrix, D3DXMATRIX pRightMatrix, bool apply);
 	HRESULT SetStereoProjectionTransform(D3DXMATRIX pLeftMatrix, D3DXMATRIX pRightMatrix, bool apply);
@@ -470,13 +474,54 @@ private:
 	***/
 	float borderTopHeight;
 	/**
-	* Current HUD scale mode.
+	* Current HUD 3D Depth mode.
 	***/
-	HUD_Scale_Modes hudScaleMode;
+	HUD_3D_Depth_Modes hud3DDepthMode;
 	/**
 	* Current GUI scale mode.
 	***/
-	GUI_Scale_Modes guiScaleMode;
+	GUI_3D_Depth_Modes gui3DDepthMode;
+	/**
+	* Old HUD 3D Depth mode, used to switch between 2 modes using hotkeys.
+	***/
+	HUD_3D_Depth_Modes oldHudMode;
+	/**
+	* Old GUI 3D Depth mode, used to switch between 2 modes using hotkeys.
+	***/
+	GUI_3D_Depth_Modes oldGuiMode;
+	/**
+	* Current HUD 3D Depth presets.
+	***/
+	float hud3DDepthPresets[4];
+	/**
+	* Current HUD distance presets.
+	***/
+	float hudDistancePresets[4];
+	/**
+	* Current GUI 3D Depth presets.
+	***/
+	float gui3DDepthPresets[4];
+	/**
+	* Current GUI squish presets.
+	***/
+	float guiSquishPresets[4];
+	/**
+	* Hotkey indices for the GUI.
+	***/
+	byte guiHotkeys[5];
+	/**
+	* Hotkey indices for the HUD.
+	***/
+	byte hudHotkeys[5];
+	/**
+	* True if BRASSA is waiting to catch a hotkey.
+	***/
+	bool hotkeyCatch;
+	/**
+	* Virtual keys name list.
+	* (used for BRASSA menu)
+	***/
+	std::string keyNameList[256];
 };
 
 #endif

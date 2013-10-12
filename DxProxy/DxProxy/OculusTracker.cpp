@@ -78,6 +78,11 @@ int OculusTracker::getOrientation(float* yaw, float* pitch, float* roll)
 	// all orientations are in degrees
 	hmdOrient = SFusion.GetOrientation();
 	hmdOrient.GetEulerAngles<Axis_Y, Axis_X, Axis_Z>(yaw, pitch, roll);
+
+	// set primary orientations
+	primaryYaw = *yaw;
+	primaryPitch = *pitch;
+	primaryRoll = *roll;
 	*yaw = -RadToDegree(*yaw);
 	*pitch = RadToDegree(*pitch);
 	*roll = -RadToDegree(*roll);

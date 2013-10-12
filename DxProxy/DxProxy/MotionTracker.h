@@ -50,6 +50,10 @@ public:
 	***/
 	float yaw, pitch, roll;
 	/**
+	* Orientation, as primary received from tracker.
+	***/
+	float primaryYaw, primaryPitch, primaryRoll;
+	/**
 	* Current yaw angle, in positive degrees, multiplied by yaw multiplier.
 	***/
 	float currentYaw;

@@ -140,8 +140,154 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	BRASSA_mode = BRASSA_Modes::INACTIVE;
 	borderTopHeight = 0.0f;
 	menuVelocity = D3DXVECTOR2(0.0f, 0.0f);
-	hudScaleMode = HUD_Scale_Modes::HUD_DEFAULT;
-	guiScaleMode = GUI_Scale_Modes::GUI_DEFAULT;
+	hud3DDepthMode = HUD_3D_Depth_Modes::HUD_DEFAULT;
+	gui3DDepthMode = GUI_3D_Depth_Modes::GUI_DEFAULT;
+	oldHudMode = HUD_3D_Depth_Modes::HUD_DEFAULT;
+	oldGuiMode = GUI_3D_Depth_Modes::GUI_DEFAULT;
+	hud3DDepthPresets[0] = 0.0f;
+	hud3DDepthPresets[1] = 0.0f;
+	hud3DDepthPresets[2] = 0.0f;
+	hud3DDepthPresets[3] = 0.0f;
+	hudDistancePresets[0] = 0.5f;
+	hudDistancePresets[1] = 0.9f;
+	hudDistancePresets[2] = 0.3f;
+	hudDistancePresets[3] = 0.0f;
+	gui3DDepthPresets[0] = 0.0f;
+	gui3DDepthPresets[1] = 0.0f;
+	gui3DDepthPresets[2] = 0.0f;
+	gui3DDepthPresets[3] = 0.0f;
+	guiSquishPresets[0] = 0.6f;
+	guiSquishPresets[1] = 0.5f;
+	guiSquishPresets[2] = 0.9f;
+	guiSquishPresets[3] = 1.0f;
+	ChangeHUD3DDepthMode(HUD_3D_Depth_Modes::HUD_DEFAULT);
+	ChangeGUI3DDepthMode(GUI_3D_Depth_Modes::GUI_DEFAULT);
+
+	hotkeyCatch = false;
+	for (int i = 0; i < 5; i++)
+	{
+		guiHotkeys[i] = 0;
+		hudHotkeys[i] = 0;
+	}
+
+#pragma region virtual keys name list
+	for (int i = 0; i < 256; i++)
+		keyNameList[i] = "-";
+	keyNameList[0x01] = "Left mouse button";
+	keyNameList[0x02] = "Right mouse button";
+	keyNameList[0x03] = "Control-break processing";
+	keyNameList[0x04] = "Middle mouse button (three-button mouse)";
+	keyNameList[0x08] = "BACKSPACE key";
+	keyNameList[0x09] = "TAB key";
+	keyNameList[0x0C] = "CLEAR key";
+	keyNameList[0x0D] = "ENTER key";
+	keyNameList[0x10] = "SHIFT key";
+	keyNameList[0x11] = "CTRL key";
+	keyNameList[0x12] = "ALT key";
+	keyNameList[0x13] = "PAUSE key";
+	keyNameList[0x14] = "CAPS LOCK key";
+	keyNameList[0x1B] = "ESC key";
+	keyNameList[0x20] = "SPACEBAR";
+	keyNameList[0x21] = "PAGE UP key";
+	keyNameList[0x22] = "PAGE DOWN key";
+	keyNameList[0x23] = "END key";
+	keyNameList[0x24] = "HOME key";
+	keyNameList[0x25] = "LEFT ARROW key";
+	keyNameList[0x26] = "UP ARROW key";
+	keyNameList[0x27] = "RIGHT ARROW key";
+	keyNameList[0x28] = "DOWN ARROW key";
+	keyNameList[0x29] = "SELECT key";
+	keyNameList[0x2A] = "PRINT key";
+	keyNameList[0x2B] = "EXECUTE key";
+	keyNameList[0x2C] = "PRINT SCREEN key";
+	keyNameList[0x2D] = "INS key";
+	keyNameList[0x2E] = "DEL key";
+	keyNameList[0x2F] = "HELP key";
+	keyNameList[0x30] = "0 key";
+	keyNameList[0x31] = "1 key";
+	keyNameList[0x32] = "2 key";
+	keyNameList[0x33] = "3 key";
+	keyNameList[0x34] = "4 key";
+	keyNameList[0x35] = "5 key";
+	keyNameList[0x36] = "6 key";
+	keyNameList[0x37] = "7 key";
+	keyNameList[0x38] = "8 key";
+	keyNameList[0x39] = "9 key";
+	keyNameList[0x41] = "A key";
+	keyNameList[0x42] = "B key";
+	keyNameList[0x43] = "C key";
+	keyNameList[0x44] = "D key";
+	keyNameList[0x45] = "E key";
+	keyNameList[0x46] = "F key";
+	keyNameList[0x47] = "G key";
+	keyNameList[0x48] = "H key";
+	keyNameList[0x49] = "I key";
+	keyNameList[0x4A] = "J key";
+	keyNameList[0x4B] = "K key";
+	keyNameList[0x4C] = "L key";
+	keyNameList[0x4D] = "M key";
+	keyNameList[0x4E] = "N key";
+	keyNameList[0x4F] = "O key";
+	keyNameList[0x50] = "P key";
+	keyNameList[0x51] = "Q key";
+	keyNameList[0x52] = "R key";
+	keyNameList[0x53] = "S key";
+	keyNameList[0x54] = "T key";
+	keyNameList[0x55] = "U key";
+	keyNameList[0x56] = "V key";
+	keyNameList[0x57] = "W key";
+	keyNameList[0x58] = "X key";
+	keyNameList[0x59] = "Y key";
+	keyNameList[0x5A] = "Z key";
+	keyNameList[0x60] = "Numeric keypad 0 key";
+	keyNameList[0x61] = "Numeric keypad 1 key";
+	keyNameList[0x62] = "Numeric keypad 2 key";
+	keyNameList[0x63] = "Numeric keypad 3 key";
+	keyNameList[0x64] = "Numeric keypad 4 key";
+	keyNameList[0x65] = "Numeric keypad 5 key";
+	keyNameList[0x66] = "Numeric keypad 6 key";
+	keyNameList[0x67] = "Numeric keypad 7 key";
+	keyNameList[0x68] = "Numeric keypad 8 key";
+	keyNameList[0x69] = "Numeric keypad 9 key";
+	keyNameList[0x6C] = "Separator key";
+	keyNameList[0x6D] = "Subtract key";
+	keyNameList[0x6E] = "Decimal key";
+	keyNameList[0x6F] = "Divide key";
+	keyNameList[0x70] = "F1 key";
+	keyNameList[0x71] = "F2 key";
+	keyNameList[0x72] = "F3 key";
+	keyNameList[0x73] = "F4 key";
+	keyNameList[0x74] = "F5 key";
+	keyNameList[0x75] = "F6 key";
+	keyNameList[0x76] = "F7 key";
+	keyNameList[0x77] = "F8 key";
+	keyNameList[0x78] = "F9 key";
+	keyNameList[0x79] = "F10 key";
+	keyNameList[0x7A] = "F11 key";
+	keyNameList[0x7B] = "F12 key";
+	keyNameList[0x7C] = "F13 key";
+	keyNameList[0x7D] = "F14 key";
+	keyNameList[0x7E] = "F15 key";
+	keyNameList[0x7F] = "F16 key";
+	keyNameList[0x80] = "F17 key";
+	keyNameList[0x81] = "F18 key";
+	keyNameList[0x82] = "F19 key";
+	keyNameList[0x83] = "F20 key";
+	keyNameList[0x84] = "F21 key";
+	keyNameList[0x85] = "F22 key";
+	keyNameList[0x86] = "F23 key";
+	keyNameList[0x87] = "F24 key";
+	keyNameList[0x90] = "NUM LOCK key";
+	keyNameList[0x91] = "SCROLL LOCK key";
+	keyNameList[0xA0] = "Left SHIFT key";
+	keyNameList[0xA1] = "Right SHIFT key";
+	keyNameList[0xA2] = "Left CONTROL key";
+	keyNameList[0xA3] = "Right CONTROL key";
+	keyNameList[0xA4] = "Left MENU key";
+	keyNameList[0xA5] = "Right MENU key";
+	keyNameList[0xFA] = "Play key";
+	keyNameList[0xFB] = "Zoom key";
+#pragma endregion
 
 	keyWait = false;
 }
@@ -311,19 +457,19 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 	// BRASSA called here (if not source engine)
 	if((stereoView->game_type != D3DProxyDevice::SOURCE_L4D) && (stereoView->game_type != D3DProxyDevice::DATA_GATHERER_SOURCE) && (stereoView->game_type != D3DProxyDevice::ADVANCED_SKYRIM))
 	{
-		if ((BRASSA_mode>=BRASSA_Modes::MAINMENU) && (BRASSA_mode<=BRASSA_Modes::CONVERGENCE_ADJUSTMENT))
+		if ((BRASSA_mode>=BRASSA_Modes::MAINMENU) && (BRASSA_mode<=BRASSA_Modes::GUI_CALIBRATION))
 			BRASSA();
 	}
 
 	// BRASSA menu border velocity updated here
 	// Arrow up/down need to be done here !!
+	menuVelocity*=0.76f;
+	if ((menuVelocity.y<0.5f) && (menuVelocity.y>-0.5f) &&
+		(menuVelocity.x<0.5f) && (menuVelocity.x>-0.5f))
+		menuVelocity = D3DXVECTOR2(0.0f, 0.0f);
 	if (BRASSA_mode != BRASSA_Modes::INACTIVE)
 	{
 		float fScaleY = ((float)stereoView->viewport.Height / (float)1080.0f);
-		menuVelocity*=0.76f;
-		if ((menuVelocity.y<0.5f) && (menuVelocity.y>-0.5f) &&
-			(menuVelocity.x<0.5f) && (menuVelocity.x>-0.5f))
-			menuVelocity = D3DXVECTOR2(0.0f, 0.0f);
 		if ((KEY_DOWN(VK_UP)) && (menuVelocity.y==0.0f))
 			menuVelocity.y-=10.0f;
 		if ((KEY_DOWN(VK_DOWN)) && (menuVelocity.y==0.0f))
@@ -869,6 +1015,7 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 		if (trackerInitialized && tracker->isAvailable() && m_spShaderViewAdjustment->RollEnabled()) {
 			m_spShaderViewAdjustment->UpdateRoll(tracker->currentRoll);
 		}
+		m_spShaderViewAdjustment->UpdatePitchYaw(tracker->primaryPitch, tracker->primaryYaw);
 
 		m_spShaderViewAdjustment->ComputeViewTransforms();
 
@@ -885,7 +1032,7 @@ HRESULT WINAPI D3DProxyDevice::EndScene()
 {
 	if((stereoView->game_type == D3DProxyDevice::SOURCE_L4D) || (stereoView->game_type != D3DProxyDevice::DATA_GATHERER_SOURCE) || (stereoView->game_type == D3DProxyDevice::ADVANCED_SKYRIM))
 	{
-		if ((BRASSA_mode>=1) && (BRASSA_mode<=2))
+		if ((BRASSA_mode>=BRASSA_Modes::MAINMENU) && (BRASSA_mode<=BRASSA_Modes::GUI_CALIBRATION))
 			BRASSA();
 	}
 	return BaseDirect3DDevice9::EndScene();
@@ -1270,7 +1417,6 @@ HRESULT WINAPI D3DProxyDevice::SetTexture(DWORD Stage,IDirect3DBaseTexture9* pTe
 HRESULT WINAPI D3DProxyDevice::DrawPrimitive(D3DPRIMITIVETYPE PrimitiveType,UINT StartVertex,UINT PrimitiveCount)
 {
 	m_spManagedShaderRegisters->ApplyAllDirty(m_currentRenderingSide);
-
 
 	HRESULT result;
 	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawPrimitive(PrimitiveType, StartVertex, PrimitiveCount))) {
@@ -1900,6 +2046,88 @@ void D3DProxyDevice::SetupHUD()
 ***/
 void D3DProxyDevice::HandleControls()
 {
+	// loop through hotkeys
+	bool hotkeyPressed = false;
+	for (int i = 0; i < 5; i++)
+	{
+		if ((KEY_DOWN(hudHotkeys[i])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		{
+			if (i==0)
+			{
+				HUD_3D_Depth_Modes newMode=(HUD_3D_Depth_Modes)(hud3DDepthMode+1);
+				if (newMode>=HUD_3D_Depth_Modes::HUD_ENUM_RANGE)
+					newMode=HUD_3D_Depth_Modes::HUD_DEFAULT;
+				{
+					oldHudMode = hud3DDepthMode;
+					ChangeHUD3DDepthMode(newMode);
+
+				}
+			}
+			else
+			{
+				if (hud3DDepthMode==(HUD_3D_Depth_Modes)(i-1))
+				{
+					if (KEY_DOWN(VK_RCONTROL))
+					{
+						oldHudMode = hud3DDepthMode;
+						ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)(i-1));
+					}
+					else
+					{
+						ChangeHUD3DDepthMode(oldHudMode);
+					}
+
+				}
+				else
+				{
+					oldHudMode = hud3DDepthMode;
+					ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)(i-1));
+				}
+			}
+			hotkeyPressed = true;
+		}
+		if ((KEY_DOWN(guiHotkeys[i])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		{
+			if (i==0)
+			{
+				GUI_3D_Depth_Modes newMode=(GUI_3D_Depth_Modes)(gui3DDepthMode+1);
+				if (newMode>=GUI_3D_Depth_Modes::GUI_ENUM_RANGE)
+					newMode=GUI_3D_Depth_Modes::GUI_DEFAULT;
+				{
+					oldGuiMode = gui3DDepthMode;
+					ChangeGUI3DDepthMode(newMode);
+				}
+			}
+			else
+			{
+				if (gui3DDepthMode==(GUI_3D_Depth_Modes)(i-1))
+				{
+					if (KEY_DOWN(VK_RCONTROL))
+					{
+						oldGuiMode = gui3DDepthMode;
+						ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)(i-1));
+					}
+					else
+					{
+						ChangeGUI3DDepthMode(oldGuiMode);
+					}
+
+				}
+				else
+				{
+					oldGuiMode = gui3DDepthMode;
+					ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)(i-1));
+				}
+			}
+			hotkeyPressed=true;
+		}
+	}
+	// avoid double input by using the menu velocity
+	if (hotkeyPressed)
+		menuVelocity.x+=10.0f;
+
+	///vvv OLD CODE
+
 	// helpers
 	bool anyKeyPressed = false;
 	float keySpeed = 0.001f;
@@ -2664,59 +2892,35 @@ void D3DProxyDevice::DrawTextShadowed(ID3DXFont* font, LPD3DXSPRITE sprite, LPCS
 /**
 * Changes the HUD scale mode - also changes new scale in view adjustment class.
 ***/
-void D3DProxyDevice::ChangeHUDScaleMode(HUD_Scale_Modes newMode)
+void D3DProxyDevice::ChangeHUD3DDepthMode(HUD_3D_Depth_Modes newMode)
 {
-	if (newMode >= HUD_Scale_Modes::HUD_ENUM_RANGE)
+	if (newMode >= HUD_3D_Depth_Modes::HUD_ENUM_RANGE)
 		return;
 
-	hudScaleMode = newMode;
+	hud3DDepthMode = newMode;
 
-	switch(hudScaleMode)
-	{
-	case HUD_Scale_Modes::HUD_DEFAULT:
-		m_spShaderViewAdjustment->ChangeHudDistance(0.5f);
-		m_spShaderViewAdjustment->ChangeHUDScale(2.0f);
-		break;
-	case HUD_Scale_Modes::HUD_SMALL:
-		m_spShaderViewAdjustment->ChangeHudDistance(1.0f);
-		m_spShaderViewAdjustment->ChangeHUDScale(3.1f);
-		break;
-	case HUD_Scale_Modes::HUD_LARGE:
-		m_spShaderViewAdjustment->ChangeHudDistance(0.3f);
-		m_spShaderViewAdjustment->ChangeHUDScale(1.5f);
-		break;
-	case HUD_Scale_Modes::HUD_FULL:
-		m_spShaderViewAdjustment->ChangeHudDistance(0.0f);
-		m_spShaderViewAdjustment->ChangeHUDScale(1.0f);
-		break;
-	}
+	m_spShaderViewAdjustment->ChangeHUDDistance(hudDistancePresets[(int)newMode]);
+	m_spShaderViewAdjustment->ChangeHUD3DDepth(hud3DDepthPresets[(int)newMode]);
 }
 
 /**
 * Changes the GUI scale mode - also changes new scale in view adjustment class.
 ***/
-void D3DProxyDevice::ChangeGUIScaleMode(GUI_Scale_Modes newMode)
+void D3DProxyDevice::ChangeGUI3DDepthMode(GUI_3D_Depth_Modes newMode)
 {
-	if (newMode >= GUI_Scale_Modes::GUI_ENUM_RANGE)
+	if (newMode >= GUI_3D_Depth_Modes::GUI_ENUM_RANGE)
 		return;
 
-	guiScaleMode = newMode;
+	gui3DDepthMode = newMode;
 
-	switch(guiScaleMode)
-	{
-	case GUI_Scale_Modes::GUI_DEFAULT:
-		m_spShaderViewAdjustment->ChangeSquash(0.625f);
-		break;
-	case GUI_Scale_Modes::GUI_SMALL:
-		m_spShaderViewAdjustment->ChangeSquash(0.5f);
-		break;
-	case GUI_Scale_Modes::GUI_LARGE:
-		m_spShaderViewAdjustment->ChangeSquash(0.85f);
-		break;
-	case GUI_Scale_Modes::GUI_FULL:
-		m_spShaderViewAdjustment->ChangeSquash(1.0f);
-		break;
-	}
+	m_spShaderViewAdjustment->ChangeGUISquash(guiSquishPresets[(int)newMode]);
+	m_spShaderViewAdjustment->ChangeGUI3DDepth(gui3DDepthPresets[(int)newMode]);
+
+
+	if (newMode == GUI_3D_Depth_Modes::GUI_FULL)
+		m_spShaderViewAdjustment->SetBulletLabyrinthMode(true);
+	else
+		m_spShaderViewAdjustment->SetBulletLabyrinthMode(false);
 }
 
 /**
@@ -2734,6 +2938,12 @@ void D3DProxyDevice::BRASSA()
 		break;
 	case D3DProxyDevice::CONVERGENCE_ADJUSTMENT:
 		BRASSA_Convergence();
+		break;
+	case D3DProxyDevice::HUD_CALIBRATION:
+		BRASSA_HUD();
+		break;
+	case D3DProxyDevice::GUI_CALIBRATION:
+		BRASSA_GUI();
 		break;
 	}
 	/////// hud text
@@ -2855,7 +3065,7 @@ void D3DProxyDevice::BRASSA_MainMenu()
 	int height = stereoView->viewport.Height;
 	float menuTop = height*0.32f;
 	float menuEntryHeight = height*0.037f;
-	UINT menuEntryCount = 7;
+	UINT menuEntryCount = 8;
 	if ((config.game_type == 11) || (config.game_type == 12)) menuEntryCount++;
 
 	RECT rect1;
@@ -2895,8 +3105,14 @@ void D3DProxyDevice::BRASSA_MainMenu()
 		// world scale
 		if (entryID == 1)
 			BRASSA_mode = BRASSA_Modes::WORLD_SCALE_CALIBRATION;
+		// hud calibration
+		if (entryID == 3)
+			BRASSA_mode = BRASSA_Modes::HUD_CALIBRATION;
+		// gui calibration
+		if (entryID == 4)
+			BRASSA_mode = BRASSA_Modes::GUI_CALIBRATION;
 		// back to game
-		if (entryID == 7)
+		if (entryID == 8)
 			BRASSA_mode = BRASSA_Modes::INACTIVE;
 	}
 
@@ -2905,16 +3121,16 @@ void D3DProxyDevice::BRASSA_MainMenu()
 		// change hud scale 
 		if ((entryID == 5) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
-			if (hudScaleMode > HUD_Scale_Modes::HUD_DEFAULT)
-				ChangeHUDScaleMode((HUD_Scale_Modes)(hudScaleMode-1));
+			if (hud3DDepthMode > HUD_3D_Depth_Modes::HUD_DEFAULT)
+				ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)(hud3DDepthMode-1));
 			menuVelocity.x-=10.0f;
 		}
 
 		// change gui scale
 		if ((entryID == 6) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
-			if (guiScaleMode > GUI_Scale_Modes::GUI_DEFAULT)
-				ChangeGUIScaleMode((GUI_Scale_Modes)(guiScaleMode-1));
+			if (gui3DDepthMode > GUI_3D_Depth_Modes::GUI_DEFAULT)
+				ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)(gui3DDepthMode-1));
 			menuVelocity.x-=10.0f;
 		}
 	}
@@ -2924,16 +3140,16 @@ void D3DProxyDevice::BRASSA_MainMenu()
 		// change hud scale 
 		if ((entryID == 5) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
-			if (hudScaleMode < HUD_Scale_Modes::HUD_ENUM_RANGE-1)
-				ChangeHUDScaleMode((HUD_Scale_Modes)(hudScaleMode+1));
+			if (hud3DDepthMode < HUD_3D_Depth_Modes::HUD_ENUM_RANGE-1)
+				ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)(hud3DDepthMode+1));
 			menuVelocity.x+=10.0f;
 		}
 
 		// change gui scale
 		if ((entryID == 6) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
-			if (guiScaleMode < GUI_Scale_Modes::GUI_ENUM_RANGE-1)
-				ChangeGUIScaleMode((GUI_Scale_Modes)(guiScaleMode+1));
+			if (gui3DDepthMode < GUI_3D_Depth_Modes::GUI_ENUM_RANGE-1)
+				ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)(gui3DDepthMode+1));
 			menuVelocity.x+=10.0f;
 		}
 
@@ -2981,21 +3197,23 @@ void D3DProxyDevice::BRASSA_MainMenu()
 		rect1.top += 40; float guiQSHeight = (float)rect1.top * fScaleY;
 		DrawTextShadowed(hudFont, hudMainMenu, "GUI Quick Setting : \n", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		rect1.top += 40;
+		DrawTextShadowed(hudFont, hudMainMenu, "Overall Settings\n", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
 		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game\n", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 
 		// draw HUD quick setting rectangles
 		rect.x1 = (int)(width*0.49f); rect.x2 = (int)(width*0.53f); rect.y1 = (int)hudQSHeight; rect.y2 = (int)(hudQSHeight+height*0.027f);
-		DrawSelection(vireio::RenderPosition::Left, rect, D3DCOLOR_ARGB(255, 128, 196, 128), (int)hudScaleMode, (int)HUD_Scale_Modes::HUD_ENUM_RANGE);
+		DrawSelection(vireio::RenderPosition::Left, rect, D3DCOLOR_ARGB(255, 128, 196, 128), (int)hud3DDepthMode, (int)HUD_3D_Depth_Modes::HUD_ENUM_RANGE);
 		rect.x1 += (int)((LeftLensCenterAsPercentage) * width * 0.5f);
 		rect.x2 += (int)((LeftLensCenterAsPercentage) * width * 0.5f);
-		DrawSelection(vireio::RenderPosition::Right, rect, D3DCOLOR_ARGB(255, 128, 196, 128), (int)hudScaleMode, (int)HUD_Scale_Modes::HUD_ENUM_RANGE);
+		DrawSelection(vireio::RenderPosition::Right, rect, D3DCOLOR_ARGB(255, 128, 196, 128), (int)hud3DDepthMode, (int)HUD_3D_Depth_Modes::HUD_ENUM_RANGE);
 
 		// draw GUI quick setting rectangles
 		rect.x1 = (int)(width*0.49f); rect.x2 = (int)(width*0.53f); rect.y1 = (int)guiQSHeight; rect.y2 = (int)(guiQSHeight+height*0.027f);
-		DrawSelection(vireio::RenderPosition::Left, rect, D3DCOLOR_ARGB(255, 128, 196, 128), (int)guiScaleMode, (int)GUI_Scale_Modes::GUI_ENUM_RANGE);
+		DrawSelection(vireio::RenderPosition::Left, rect, D3DCOLOR_ARGB(255, 128, 196, 128), (int)gui3DDepthMode, (int)GUI_3D_Depth_Modes::GUI_ENUM_RANGE);
 		rect.x1 += (int)((LeftLensCenterAsPercentage) * width * 0.5f);
 		rect.x2 += (int)((LeftLensCenterAsPercentage) * width * 0.5f);
-		DrawSelection(vireio::RenderPosition::Right, rect, D3DCOLOR_ARGB(255, 128, 196, 128), (int)guiScaleMode, (int)GUI_Scale_Modes::GUI_ENUM_RANGE);
+		DrawSelection(vireio::RenderPosition::Right, rect, D3DCOLOR_ARGB(255, 128, 196, 128), (int)gui3DDepthMode, (int)GUI_3D_Depth_Modes::GUI_ENUM_RANGE);
 
 		rect1.left = 0;
 		rect1.right = 1920;
@@ -3008,7 +3226,7 @@ void D3DProxyDevice::BRASSA_MainMenu()
 }
 
 /**
-*
+* BRASSA World Scale Calibration.
 ***/
 void D3DProxyDevice::BRASSA_WorldScale()
 {
@@ -3058,7 +3276,7 @@ void D3DProxyDevice::BRASSA_WorldScale()
 
 		m_spShaderViewAdjustment->ChangeWorldScale(seperationChange);
 		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
-		
+
 		menuVelocity.x+=2.0f;
 	}
 
@@ -3221,12 +3439,458 @@ void D3DProxyDevice::BRASSA_WorldScale()
 }
 
 /**
-*
+* BRASSA Convergence Adjustment.
 ***/
 void D3DProxyDevice::BRASSA_Convergence()
 {
 	if (KEY_DOWN(VK_ESCAPE))
 		BRASSA_mode = BRASSA_Modes::INACTIVE;
+}
+
+/**
+* BRASSA HUD Calibration.
+***/
+void D3DProxyDevice::BRASSA_HUD()
+{
+	if (KEY_DOWN(VK_ESCAPE))
+		BRASSA_mode = BRASSA_Modes::INACTIVE;
+	int width = stereoView->viewport.Width;
+	int height = stereoView->viewport.Height;
+	float menuTop = height*0.32f;
+	float menuEntryHeight = height*0.037f;
+	UINT menuEntryCount = 8;
+
+	RECT rect1;
+	rect1.left = 0;
+	rect1.right = 1920;
+	rect1.top = 0;
+	rect1.bottom = 1080;
+
+	float fScaleX = ((float)stereoView->viewport.Width / (float)rect1.right);
+	float fScaleY = ((float)stereoView->viewport.Height / (float)rect1.bottom);
+
+	// handle border height
+	if (borderTopHeight<menuTop)
+	{
+		borderTopHeight = menuTop;
+		menuVelocity.y=0.0f;
+	}
+	if (borderTopHeight>(menuTop+(menuEntryHeight*(float)(menuEntryCount-1))))
+	{
+		borderTopHeight = menuTop+menuEntryHeight*(float)(menuEntryCount-1);
+		menuVelocity.y=0.0f;
+	}
+
+	// get menu entry id
+	float entry = (borderTopHeight-menuTop+(menuEntryHeight/3.0f))/menuEntryHeight;
+	UINT entryID = (UINT)entry;
+	if (entryID >= menuEntryCount)
+		OutputDebugString("Error in BRASSA menu programming !");
+
+	if ((hotkeyCatch) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	{
+		for (int i = 0; i < 256; i++)
+			if (KEY_DOWN(i) && (keyNameList[i]!="-"))
+			{
+				hotkeyCatch = false;
+				int index = entryID-3;
+				if ((index >=0) && (index <=4))
+					hudHotkeys[index] = i;
+			}
+	}
+	else
+	{
+		if (KEY_DOWN(VK_ESCAPE))
+			BRASSA_mode = BRASSA_Modes::INACTIVE;
+
+		if (KEY_DOWN(VK_RETURN))
+		{
+			if ((entryID >= 3) && (entryID <= 7) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+			{
+				hotkeyCatch = true;
+				menuVelocity.x+=10;
+			}
+			//// back to game
+			//if (entryID == 7)
+			//	BRASSA_mode = BRASSA_Modes::INACTIVE;
+		}
+
+		if (KEY_DOWN(VK_LEFT))
+		{
+			if ((entryID == 0) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+			{
+				if (hud3DDepthMode > HUD_3D_Depth_Modes::HUD_DEFAULT)
+					ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)(hud3DDepthMode-1));
+				menuVelocity.x-=10.0f;
+			}
+
+			if ((entryID == 1) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+			{
+				hudDistancePresets[(int)hud3DDepthMode]-=0.01f;
+				ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)hud3DDepthMode);
+				menuVelocity.x-=2.0f;
+			}
+
+			if ((entryID == 2) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+			{
+				hud3DDepthPresets[(int)hud3DDepthMode]-=0.002f;
+				ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)hud3DDepthMode);
+				menuVelocity.x-=2.0f;
+			}
+		}
+
+		if (KEY_DOWN(VK_RIGHT))
+		{
+			// change hud scale
+			if ((entryID == 0) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+			{
+				if (hud3DDepthMode < HUD_3D_Depth_Modes::HUD_ENUM_RANGE-1)
+					ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)(hud3DDepthMode+1));
+				menuVelocity.x+=10.0f;
+			}
+
+			if ((entryID == 1) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+			{
+				hudDistancePresets[(int)hud3DDepthMode]+=0.01f;
+				ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)hud3DDepthMode);
+				menuVelocity.x+=2.0f;
+			}
+
+			if ((entryID == 2) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+			{
+				hud3DDepthPresets[(int)hud3DDepthMode]+=0.002f;
+				ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)hud3DDepthMode);
+				menuVelocity.x+=2.0f;
+			}
+		}
+	}
+	// output menu
+	if (hudFont)
+	{
+		float LeftLensCenterAsPercentage = ((m_spShaderViewAdjustment->HMDInfo().physicalScreenSize.first / 2.0f) - 
+			(config.ipd  / 2.0f)) / (m_spShaderViewAdjustment->HMDInfo().physicalScreenSize.first);
+
+		// draw border - total width due to shift correction
+		D3DRECT rect;
+		rect.x1 = (int)0; rect.x2 = (int)width; rect.y1 = (int)borderTopHeight; rect.y2 = (int)(borderTopHeight+height*0.04f);
+		ClearEmptyRect(vireio::RenderPosition::Left, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
+		ClearEmptyRect(vireio::RenderPosition::Right, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
+
+		hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
+
+		D3DXMATRIX matScale;
+		D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
+		hudMainMenu->SetTransform(&matScale);
+
+		rect1.left = 550;
+		rect1.top = 300;
+		DrawTextShadowed(hudFont, hudMainMenu, "Brown Reischl and Schneider Settings Analyzer (B.R.A.S.S.A.).\n", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect.x1 = 0; rect.x2 = width; rect.y1 = (int)(335*fScaleY); rect.y2 = (int)(340*fScaleY);
+		Clear(1, &rect, D3DCLEAR_TARGET, D3DCOLOR_ARGB(255,255,128,128), 0, 0);
+
+		rect1.top += 50;  rect1.left += 250; float hudQSHeight = (float)rect1.top * fScaleY;
+		switch (hud3DDepthMode)
+		{
+		case D3DProxyDevice::HUD_DEFAULT:
+			DrawTextShadowed(hudFont, hudMainMenu, "HUD : Default", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			break;
+		case D3DProxyDevice::HUD_SMALL:
+			DrawTextShadowed(hudFont, hudMainMenu, "HUD : Small", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			break;
+		case D3DProxyDevice::HUD_LARGE:
+			DrawTextShadowed(hudFont, hudMainMenu, "HUD : Large", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			break;
+		case D3DProxyDevice::HUD_FULL:
+			DrawTextShadowed(hudFont, hudMainMenu, "HUD : Full", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			break;
+		default:
+			break;
+		}
+		rect1.top += 40;
+		char vcString[128];
+		sprintf_s(vcString,"HUD Distance : %g", hudDistancePresets[(int)hud3DDepthMode]);
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
+		sprintf_s(vcString,"HUD's 3D Depth : %g", hud3DDepthPresets[(int)hud3DDepthMode]);
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
+		sprintf_s(vcString,"Hotkey >Switch< : ", hud3DDepthPresets[(int)hud3DDepthMode]);
+		std::string stdString = std::string(vcString);
+		stdString.append(keyNameList[hudHotkeys[0]]);
+		if ((hotkeyCatch) && (entryID==3))
+			stdString = "Press the desired key.";
+		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
+		sprintf_s(vcString,"Hotkey >Default< : ", hud3DDepthPresets[(int)hud3DDepthMode]);
+		stdString = std::string(vcString);
+		stdString.append(keyNameList[hudHotkeys[1]]);
+		if ((hotkeyCatch) && (entryID==4))
+			stdString = "Press the desired key.";
+		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
+		sprintf_s(vcString,"Hotkey >Small< : ", hud3DDepthPresets[(int)hud3DDepthMode]);
+		stdString = std::string(vcString);
+		stdString.append(keyNameList[hudHotkeys[2]]);
+		if ((hotkeyCatch) && (entryID==5))
+			stdString = "Press the desired key.";
+		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
+		sprintf_s(vcString,"Hotkey >Large< : ", hud3DDepthPresets[(int)hud3DDepthMode]);
+		stdString = std::string(vcString);
+		stdString.append(keyNameList[hudHotkeys[3]]);
+		if ((hotkeyCatch) && (entryID==6))
+			stdString = "Press the desired key.";
+		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
+		sprintf_s(vcString,"Hotkey >Full< : ", hud3DDepthPresets[(int)hud3DDepthMode]);
+		stdString = std::string(vcString);
+		stdString.append(keyNameList[hudHotkeys[4]]);
+		if ((hotkeyCatch) && (entryID==7))
+			stdString = "Press the desired key.";
+		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+
+		// draw HUD quick setting rectangles
+		rect.x1 = (int)(width*0.49f); rect.x2 = (int)(width*0.53f); rect.y1 = (int)hudQSHeight; rect.y2 = (int)(hudQSHeight+height*0.027f);
+		DrawSelection(vireio::RenderPosition::Left, rect, D3DCOLOR_ARGB(255, 128, 196, 128), (int)hud3DDepthMode, (int)HUD_3D_Depth_Modes::HUD_ENUM_RANGE);
+		rect.x1 += (int)((LeftLensCenterAsPercentage) * width * 0.5f);
+		rect.x2 += (int)((LeftLensCenterAsPercentage) * width * 0.5f);
+		DrawSelection(vireio::RenderPosition::Right, rect, D3DCOLOR_ARGB(255, 128, 196, 128), (int)hud3DDepthMode, (int)HUD_3D_Depth_Modes::HUD_ENUM_RANGE);
+
+		rect1.left = 0;
+		rect1.right = 1920;
+		rect1.top = 0;
+		rect1.bottom = 1080;
+		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
+		hudMainMenu->Draw(NULL, &rect1, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));
+		hudMainMenu->End();
+	}
+}
+
+/**
+* BRASSA GUI Calibration.
+***/
+void D3DProxyDevice::BRASSA_GUI()
+{
+	if (KEY_DOWN(VK_ESCAPE))
+		BRASSA_mode = BRASSA_Modes::INACTIVE;
+	int width = stereoView->viewport.Width;
+	int height = stereoView->viewport.Height;
+	float menuTop = height*0.32f;
+	float menuEntryHeight = height*0.037f;
+	UINT menuEntryCount = 8;
+
+	RECT rect1;
+	rect1.left = 0;
+	rect1.right = 1920;
+	rect1.top = 0;
+	rect1.bottom = 1080;
+
+	float fScaleX = ((float)stereoView->viewport.Width / (float)rect1.right);
+	float fScaleY = ((float)stereoView->viewport.Height / (float)rect1.bottom);
+
+	// handle border height
+	if (borderTopHeight<menuTop)
+	{
+		borderTopHeight = menuTop;
+		menuVelocity.y=0.0f;
+	}
+	if (borderTopHeight>(menuTop+(menuEntryHeight*(float)(menuEntryCount-1))))
+	{
+		borderTopHeight = menuTop+menuEntryHeight*(float)(menuEntryCount-1);
+		menuVelocity.y=0.0f;
+	}
+
+	// get menu entry id
+	float entry = (borderTopHeight-menuTop+(menuEntryHeight/3.0f))/menuEntryHeight;
+	UINT entryID = (UINT)entry;
+	if (entryID >= menuEntryCount)
+		OutputDebugString("Error in BRASSA menu programming !");
+
+	if ((hotkeyCatch) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	{
+		for (int i = 0; i < 256; i++)
+			if (KEY_DOWN(i) && (keyNameList[i]!="-"))
+			{
+				hotkeyCatch = false;
+				int index = entryID-3;
+				if ((index >=0) && (index <=4))
+					guiHotkeys[index] = i;
+			}
+	}
+	else
+	{
+		if (KEY_DOWN(VK_ESCAPE))
+			BRASSA_mode = BRASSA_Modes::INACTIVE;
+
+		if (KEY_DOWN(VK_RETURN))
+		{
+			if ((entryID >= 3) && (entryID <= 7) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+			{
+				hotkeyCatch = true;
+				menuVelocity.x+=10;
+			}
+			//// back to game
+			//if (entryID == 7)
+			//	BRASSA_mode = BRASSA_Modes::INACTIVE;
+		}
+
+		if (KEY_DOWN(VK_LEFT))
+		{
+			if ((entryID == 0) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+			{
+				if (gui3DDepthMode > GUI_3D_Depth_Modes::GUI_DEFAULT)
+					ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)(gui3DDepthMode-1));
+				menuVelocity.x-=10.0f;
+			}
+
+			if ((entryID == 1) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+			{
+				guiSquishPresets[(int)gui3DDepthMode]-=0.01f;
+				ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)gui3DDepthMode);
+				menuVelocity.x-=2.0f;
+			}
+
+			if ((entryID == 2) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+			{
+				gui3DDepthPresets[(int)gui3DDepthMode]-=0.002f;
+				ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)gui3DDepthMode);
+				menuVelocity.x-=2.0f;
+			}
+		}
+
+		if (KEY_DOWN(VK_RIGHT))
+		{
+			// change gui scale
+			if ((entryID == 0) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+			{
+				if (gui3DDepthMode < GUI_3D_Depth_Modes::GUI_ENUM_RANGE-1)
+					ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)(gui3DDepthMode+1));
+				menuVelocity.x+=10.0f;
+			}
+
+			if ((entryID == 1) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+			{
+				guiSquishPresets[(int)gui3DDepthMode]+=0.01f;
+				ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)gui3DDepthMode);
+				menuVelocity.x+=2.0f;
+			}
+
+			if ((entryID == 2) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+			{
+				gui3DDepthPresets[(int)gui3DDepthMode]+=0.002f;
+				ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)gui3DDepthMode);
+				menuVelocity.x+=2.0f;
+			}
+		}
+	}
+	// output menu
+	if (hudFont)
+	{
+		float LeftLensCenterAsPercentage = ((m_spShaderViewAdjustment->HMDInfo().physicalScreenSize.first / 2.0f) - 
+			(config.ipd  / 2.0f)) / (m_spShaderViewAdjustment->HMDInfo().physicalScreenSize.first);
+
+		// draw border - total width due to shift correction
+		D3DRECT rect;
+		rect.x1 = (int)0; rect.x2 = (int)width; rect.y1 = (int)borderTopHeight; rect.y2 = (int)(borderTopHeight+height*0.04f);
+		ClearEmptyRect(vireio::RenderPosition::Left, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
+		ClearEmptyRect(vireio::RenderPosition::Right, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
+
+		hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
+
+		D3DXMATRIX matScale;
+		D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
+		hudMainMenu->SetTransform(&matScale);
+
+		rect1.left = 550;
+		rect1.top = 300;
+		DrawTextShadowed(hudFont, hudMainMenu, "Brown Reischl and Schneider Settings Analyzer (B.R.A.S.S.A.).\n", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect.x1 = 0; rect.x2 = width; rect.y1 = (int)(335*fScaleY); rect.y2 = (int)(340*fScaleY);
+		Clear(1, &rect, D3DCLEAR_TARGET, D3DCOLOR_ARGB(255,255,128,128), 0, 0);
+
+		rect1.top += 50;  rect1.left += 250; float guiQSHeight = (float)rect1.top * fScaleY;
+		switch (gui3DDepthMode)
+		{
+		case D3DProxyDevice::GUI_DEFAULT:
+			DrawTextShadowed(hudFont, hudMainMenu, "GUI : Default", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			break;
+		case D3DProxyDevice::GUI_SMALL:
+			DrawTextShadowed(hudFont, hudMainMenu, "GUI : Small", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			break;
+		case D3DProxyDevice::GUI_LARGE:
+			DrawTextShadowed(hudFont, hudMainMenu, "GUI : Large", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			break;
+		case D3DProxyDevice::GUI_FULL:
+			DrawTextShadowed(hudFont, hudMainMenu, "GUI : Full", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			break;
+		default:
+			break;
+		}
+		rect1.top += 40;
+		char vcString[128];
+		sprintf_s(vcString,"GUI Size : %g", guiSquishPresets[(int)gui3DDepthMode]);
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
+		sprintf_s(vcString,"GUI's 3D Depth : %g", gui3DDepthPresets[(int)gui3DDepthMode]);
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
+		sprintf_s(vcString,"Hotkey >Switch< : ", hud3DDepthPresets[(int)hud3DDepthMode]);
+		std::string stdString = std::string(vcString);
+		stdString.append(keyNameList[guiHotkeys[0]]);
+		if ((hotkeyCatch) && (entryID==3))
+			stdString = "Press the desired key.";
+		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
+		sprintf_s(vcString,"Hotkey >Default< : ", hud3DDepthPresets[(int)hud3DDepthMode]);
+		stdString = std::string(vcString);
+		stdString.append(keyNameList[guiHotkeys[1]]);
+		if ((hotkeyCatch) && (entryID==4))
+			stdString = "Press the desired key.";
+		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
+		sprintf_s(vcString,"Hotkey >Small< : ", hud3DDepthPresets[(int)hud3DDepthMode]);
+		stdString = std::string(vcString);
+		stdString.append(keyNameList[guiHotkeys[2]]);
+		if ((hotkeyCatch) && (entryID==5))
+			stdString = "Press the desired key.";
+		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
+		sprintf_s(vcString,"Hotkey >Large< : ", hud3DDepthPresets[(int)hud3DDepthMode]);
+		stdString = std::string(vcString);
+		stdString.append(keyNameList[guiHotkeys[3]]);
+		if ((hotkeyCatch) && (entryID==6))
+			stdString = "Press the desired key.";
+		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
+		sprintf_s(vcString,"Hotkey >Full< : ", hud3DDepthPresets[(int)hud3DDepthMode]);
+		stdString = std::string(vcString);
+		stdString.append(keyNameList[guiHotkeys[4]]);
+		if ((hotkeyCatch) && (entryID==7))
+			stdString = "Press the desired key.";
+		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+
+		// draw GUI quick setting rectangles
+		rect.x1 = (int)(width*0.49f); rect.x2 = (int)(width*0.53f); rect.y1 = (int)guiQSHeight; rect.y2 = (int)(guiQSHeight+height*0.027f);
+		DrawSelection(vireio::RenderPosition::Left, rect, D3DCOLOR_ARGB(255, 128, 196, 128), (int)gui3DDepthMode, (int)GUI_3D_Depth_Modes::GUI_ENUM_RANGE);
+		rect.x1 += (int)((LeftLensCenterAsPercentage) * width * 0.5f);
+		rect.x2 += (int)((LeftLensCenterAsPercentage) * width * 0.5f);
+		DrawSelection(vireio::RenderPosition::Right, rect, D3DCOLOR_ARGB(255, 128, 196, 128), (int)gui3DDepthMode, (int)GUI_3D_Depth_Modes::GUI_ENUM_RANGE);
+
+		rect1.left = 0;
+		rect1.right = 1920;
+		rect1.top = 0;
+		rect1.bottom = 1080;
+		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
+		hudMainMenu->Draw(NULL, &rect1, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));
+		hudMainMenu->End();
+	}
+}
+
+/**
+* BRASSA Settings.
+***/
+void D3DProxyDevice::BRASSA_Settings()
+{
+
 }
 
 /**

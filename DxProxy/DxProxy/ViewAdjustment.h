@@ -47,6 +47,7 @@ public:
 	void          Load(ProxyHelper::ProxyConfig& cfg);
 	void          Save(ProxyHelper::ProxyConfig& cfg);
 	void          UpdateProjectionMatrices(float aspectRatio);
+	void          UpdatePitchYaw(float pitch, float yaw);
 	void          UpdateRoll(float roll);
 	void          ComputeViewTransforms(); 
 	D3DXMATRIX    LeftAdjustmentMatrix();
@@ -59,21 +60,29 @@ public:
 	D3DXMATRIX    ProjectionInverse();
 	D3DXMATRIX    Squash();
 	D3DXMATRIX    HUDDistance();
-	D3DXMATRIX    HUDScale();
+	D3DXMATRIX    LeftHUD3DDepth();
+	D3DXMATRIX    RightHUD3DDepth();
+	D3DXMATRIX    LeftGUI3DDepth();
+	D3DXMATRIX    RightGUI3DDepth();
+	D3DXMATRIX    BulletLabyrinth();
 	D3DXMATRIX    GatheredMatrixLeft();
 	D3DXMATRIX    GatheredMatrixRight();
 	void          GatherMatrix(D3DXMATRIX& matrixLeft, D3DXMATRIX& matrixRight);
 	float         WorldScale();
 	float         ChangeWorldScale(float toAdd);
 	float         ChangeConvergence(float toAdd);
-	void          ChangeSquash(float newSquash);
-	void          ChangeHudDistance(float newHudDistance);
-	void          ChangeHUDScale(float newHudScale);
+	void          ChangeGUISquash(float newSquash);
+	void          ChangeGUI3DDepth(float newGui3DDepth);
+	void          ChangeHUDDistance(float newHudDistance);
+	void          ChangeHUD3DDepth(float newHud3DDepth);
+	void          SetBulletLabyrinthMode(bool newMode);
+	bool          BulletLabyrinthMode();
 	void          ResetWorldScale();
 	void          ResetConvergence();	
 	float         Convergence();
 	float         ConvergenceInWorldUnits();
 	float         SeparationInWorldUnits();
+	float         SeparationIPDAdjustment();
 	bool          RollEnabled();
 	HMDisplayInfo HMDInfo();	
 	
@@ -155,9 +164,25 @@ private:
 	***/
 	D3DXMATRIX matHudDistance;
 	/**
-	* HUD scale matrix, to be used in HUD scaling matrices. 
+	* HUD 3d depth matrix, to be used in HUD separation matrices. 
 	***/
-	D3DXMATRIX matHudScale;
+	D3DXMATRIX matLeftHud3DDepth;
+	/**
+	* HUD 3d depth matrix, to be used in HUD separation matrices. 
+	***/
+	D3DXMATRIX matRightHud3DDepth;
+	/**
+	* HUD 3d depth matrix, to be used in HUD separation matrices. 
+	***/
+	D3DXMATRIX matLeftGui3DDepth;
+	/**
+	* HUD 3d depth matrix, to be used in HUD separation matrices. 
+	***/
+	D3DXMATRIX matRightGui3DDepth;
+	/**
+	* Bullet labyrinth matrix.
+	***/
+	D3DXMATRIX matBulletLabyrinth;
 	/**
 	* Head mounted display info.
 	***/
@@ -190,12 +215,21 @@ private:
 	***/
 	float squash;
 	/**
+	* The 3d depth of the GUI.
+	***/
+	float gui3DDepth;
+	/**
 	* The distance of the HUD.
 	***/
 	float hudDistance;
 	/**
-	* The scale of the HUD.
+	* The 3d depth of the HUD.
 	***/
-	float hudScale;
+	float hud3DDepth;
+	/**
+	* True if "bullet-labyrinth-style" GUI/HUD rotation is active.
+	***/
+	bool bulletLabyrinth;
+
 };
 #endif
