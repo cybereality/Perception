@@ -1,7 +1,8 @@
 /********************************************************************
 Vireio Perception: Open-Source Stereoscopic 3D Driver
 Copyright (C) 2012 Andres Hernandez
-Modifications Copyright (C) 2013 Chris Drain, Denis Reischl
+Modifications Copyright (C) 2013 Chris Drain, Denis Reischl, Neil Schneider
+  and Joshua Brown
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -3546,6 +3547,17 @@ void D3DProxyDevice::BRASSA_HUD()
 			//	BRASSA_mode = BRASSA_Modes::INACTIVE;
 		}
 
+		if (KEY_DOWN(VK_BACK))
+		{
+			if ((entryID >= 3) && (entryID <= 7) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+			{
+				int index = entryID-3;
+				if ((index >=0) && (index <=4))
+					hudHotkeys[index] = 0;
+				menuVelocity.x+=10;
+			}
+		}
+
 		if (KEY_DOWN(VK_LEFT))
 		{
 			if ((entryID == 0) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
@@ -3679,6 +3691,14 @@ void D3DProxyDevice::BRASSA_HUD()
 		if ((hotkeyCatch) && (entryID==7))
 			stdString = "Press the desired key.";
 		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
+		DrawTextShadowed(hudFont, hudMainMenu, "Save current configuration", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
+		DrawTextShadowed(hudFont, hudMainMenu, "Reload configuration", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
+		DrawTextShadowed(hudFont, hudMainMenu, "Back to BRASSA Menu", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
+		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 
 		// draw HUD quick setting rectangles
 		rect.x1 = (int)(width*0.49f); rect.x2 = (int)(width*0.53f); rect.y1 = (int)hudQSHeight; rect.y2 = (int)(hudQSHeight+height*0.027f);
