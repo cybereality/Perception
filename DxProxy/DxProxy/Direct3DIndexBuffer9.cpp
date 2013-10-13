@@ -1,6 +1,7 @@
 /********************************************************************
 Vireio Perception: Open-Source Stereoscopic 3D Driver
-Copyright (C) 2013 Chris Drain
+Copyright (C) 2012 Andres Hernandez
+Modifications Copyright (C) 2013 Chris Drain, Denis Reischl
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by

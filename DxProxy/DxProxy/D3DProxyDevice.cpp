@@ -1,7 +1,7 @@
 /********************************************************************
 Vireio Perception: Open-Source Stereoscopic 3D Driver
 Copyright (C) 2012 Andres Hernandez
-Modifications Copyright (C) 2013 Chris Drain
+Modifications Copyright (C) 2013 Chris Drain, Denis Reischl
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -3100,20 +3100,32 @@ void D3DProxyDevice::BRASSA_MainMenu()
 	if (KEY_DOWN(VK_ESCAPE))
 		BRASSA_mode = BRASSA_Modes::INACTIVE;
 
-	if (KEY_DOWN(VK_RETURN))
+	if ((KEY_DOWN(VK_RETURN)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		// world scale
 		if (entryID == 1)
+		{
 			BRASSA_mode = BRASSA_Modes::WORLD_SCALE_CALIBRATION;
+			menuVelocity.x+=10.0f;
+		}
 		// hud calibration
 		if (entryID == 3)
+		{
 			BRASSA_mode = BRASSA_Modes::HUD_CALIBRATION;
+			menuVelocity.x+=10.0f;
+		}
 		// gui calibration
 		if (entryID == 4)
+		{
 			BRASSA_mode = BRASSA_Modes::GUI_CALIBRATION;
+			menuVelocity.x+=10.0f;
+		}
 		// back to game
 		if (entryID == 8)
+		{
 			BRASSA_mode = BRASSA_Modes::INACTIVE;
+			menuVelocity.x+=10.0f;
+		}	
 	}
 
 	if (KEY_DOWN(VK_LEFT))
@@ -3369,29 +3381,48 @@ void D3DProxyDevice::BRASSA_WorldScale()
 		// 1 Game Unit = X Meters
 		RECT rec10 = {(int)(width*0.40f), (int)(height*0.58f),width,height};
 		DrawTextShadowed(hudFont, hudMainMenu, "<- calibrate using Arrow Keys ->", -1, &rec10, 0, D3DCOLOR_ARGB(255,255,255,255));
-		rec10.top+=35;
+		//Column 1:
+		//1 Game Unit = X Meters
+		//1 Game Unit = X Centimeters
+		//1 Game Unit = X Feet
+		//1 Game Unit = X Inches
+		//Column 2:
+		//1 Meter = X Game Units
+		//1 Centimeter = X Game Units
+		//1 Foot = X Game Units
+		//1 Inch = X Game Units
+		rec10.top = (int)(height*0.42f); rec10.left = (int)(width*0.25f);
 		float meters = 1 / m_spShaderViewAdjustment->WorldScale();
 		sprintf_s(vcString,"1 Game Unit = %g Meters", meters);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, D3DCOLOR_ARGB(255,255,255,255));
-		rec10.top+=35;
-		sprintf_s(vcString,"1 Meter     = %g Game Units", m_spShaderViewAdjustment->WorldScale());
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, D3DCOLOR_ARGB(255,255,255,255));
-		rec10.top+=35;
-		float feet = meters * 3.2808399f;
-		sprintf_s(vcString,"1 Game Unit = %g Feet", feet);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, D3DCOLOR_ARGB(255,255,255,255));
-		rec10.top+=35;
-		float gameUnitsToFoot = m_spShaderViewAdjustment->WorldScale() / 3.2808399f;
-		sprintf_s(vcString,"1 Foot      = %g Game Units", gameUnitsToFoot);
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, D3DCOLOR_ARGB(255,255,255,255));
 		rec10.top+=35;
 		float centimeters = meters * 100.0f;
 		sprintf_s(vcString,"1 Game Unit = %g Centimeters", centimeters);
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, D3DCOLOR_ARGB(255,255,255,255));
 		rec10.top+=35;
+		float feet = meters * 3.2808399f;
+		sprintf_s(vcString,"1 Game Unit = %g Feet", feet);
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, D3DCOLOR_ARGB(255,255,255,255));
+		rec10.top+=35;
 		float inches = feet / 12.0f;
 		sprintf_s(vcString,"1 Game Unit = %g Inches", inches);
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, D3DCOLOR_ARGB(255,255,255,255));
+
+		RECT rec11 = {(int)(width*0.55f), (int)(height*0.42f),width,height};
+		sprintf_s(vcString,"1 Meter      = %g Game Units", m_spShaderViewAdjustment->WorldScale());
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec11, 0, D3DCOLOR_ARGB(255,255,255,255));
+		rec11.top+=35;
+		float gameUnitsToCentimeter =  m_spShaderViewAdjustment->WorldScale() / 100.0f;
+		sprintf_s(vcString,"1 Centimeter = %g Game Units", gameUnitsToCentimeter);
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec11, 0, D3DCOLOR_ARGB(255,255,255,255));
+		rec11.top+=35;
+		float gameUnitsToFoot = m_spShaderViewAdjustment->WorldScale() / 3.2808399f;
+		sprintf_s(vcString,"1 Foot       = %g Game Units", gameUnitsToFoot);
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec11, 0, D3DCOLOR_ARGB(255,255,255,255));
+		rec11.top+=35;
+		float gameUnitsToInches = m_spShaderViewAdjustment->WorldScale() / 39.3700787f;
+		sprintf_s(vcString,"1 Inch       = %g Game Units", gameUnitsToInches);
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec11, 0, D3DCOLOR_ARGB(255,255,255,255));
 
 		RECT rect1;
 		rect1.left = 0;
