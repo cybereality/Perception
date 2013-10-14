@@ -402,6 +402,322 @@ bool ProxyHelper::SaveConfig(ProxyConfig& cfg)
 }
 
 /**
+* Loads the game configuration for the target process specified in the registry (targetExe).
+* @param config Returned game configuration.
+* @param oculusProfile Returned Oculus Player Profile.
+***/
+bool ProxyHelper::LoadHUDConfig(ProxyConfig& config)
+{
+	bool fileFound = false;
+
+	// get the target exe
+	GetTargetExe();
+	OutputDebugString("Got target exe as: ");
+	OutputDebugString(targetExe);
+	OutputDebugString("\n");
+
+	// get the profile
+	bool profileFound = false;
+	char profilePath[512];
+	GetPath(profilePath, "cfg\\profiles.xml");
+	OutputDebugString(profilePath);
+	OutputDebugString("\n");
+
+	xml_document docProfiles;
+	xml_parse_result resultProfiles = docProfiles.load_file(profilePath);
+	xml_node profile;
+	xml_node gameProfile;
+
+	if(resultProfiles.status == status_ok)
+	{
+		xml_node xml_profiles = docProfiles.child("profiles");
+
+		for (xml_node profile = xml_profiles.child("profile"); profile; profile = profile.next_sibling("profile"))
+		{
+			if(strcmp(targetExe, profile.attribute("game_exe").value()) == 0)
+			{
+				OutputDebugString("Load the specific profile!!!\n");
+				gameProfile = profile;
+				profileFound = true;
+				break;
+			}
+		}
+	}
+	
+	if(resultProfiles.status == status_ok && profileFound && gameProfile)
+	{
+		config.hud3DDepthMode = gameProfile.attribute("hud_3D_depth_mode").as_int();
+
+		config.hud3DDepthPresets[0] = gameProfile.attribute("hud_3D_depth_1").as_float(0.0f);
+		config.hud3DDepthPresets[1] = gameProfile.attribute("hud_3D_depth_2").as_float(0.0f);
+		config.hud3DDepthPresets[2] = gameProfile.attribute("hud_3D_depth_3").as_float(0.0f);
+		config.hud3DDepthPresets[3] = gameProfile.attribute("hud_3D_depth_4").as_float(0.0f);
+
+		config.hudDistancePresets[0] = gameProfile.attribute("hud_distance_1").as_float(0.5f);
+		config.hudDistancePresets[1] = gameProfile.attribute("hud_distance_2").as_float(0.9f);
+		config.hudDistancePresets[2] = gameProfile.attribute("hud_distance_3").as_float(0.3f);
+		config.hudDistancePresets[3] = gameProfile.attribute("hud_distance_4").as_float(0.0f);
+
+		config.hudHotkeys[0] = (byte)gameProfile.attribute("hud_key_swap").as_int(0);
+		config.hudHotkeys[1] = (byte)gameProfile.attribute("hud_key_default").as_int(0);
+		config.hudHotkeys[2] = (byte)gameProfile.attribute("hud_key_small").as_int(0);
+		config.hudHotkeys[3] = (byte)gameProfile.attribute("hud_key_large").as_int(0);
+		config.hudHotkeys[4] = (byte)gameProfile.attribute("hud_key_full").as_int(0);
+	}
+	return fileFound && profileFound;
+}
+
+/**
+* Saves a game configuration.
+* @param cfg The game configuration to be saved.
+***/
+bool ProxyHelper::SaveHUDConfig(ProxyConfig& config)
+{
+	// get the target exe
+	GetTargetExe();
+	OutputDebugString("Got target exe as: ");
+	OutputDebugString(targetExe);
+	OutputDebugString("\n");
+
+	// get the profile
+	bool profileFound = false;
+	bool profileSaved = false;
+	char profilePath[512];
+	GetPath(profilePath, "cfg\\profiles.xml");
+	OutputDebugString(profilePath);
+	OutputDebugString("\n");
+
+	xml_document docProfiles;
+	xml_parse_result resultProfiles = docProfiles.load_file(profilePath);
+	xml_node profile;
+	xml_node gameProfile;
+
+	if(resultProfiles.status == status_ok)
+	{
+		xml_node xml_profiles = docProfiles.child("profiles");
+
+		for (xml_node profile = xml_profiles.child("profile"); profile; profile = profile.next_sibling("profile"))
+		{
+			if(strcmp(targetExe, profile.attribute("game_exe").value()) == 0)
+			{
+				OutputDebugString("Load the specific profile!!!\n");
+				gameProfile = profile;
+				profileFound = true;
+				break;
+			}
+		}
+	}
+
+	if(resultProfiles.status == status_ok && profileFound && gameProfile)
+	{
+		// shader mod rules attribute present ? otherwise insert
+		if (strcmp(gameProfile.attribute("roll_multiplier").next_attribute().name(), "hud_3D_depth_mode") == 0)
+		{
+			gameProfile.attribute("hud_3D_depth_mode") = config.hud3DDepthMode;
+
+			gameProfile.attribute("hud_3D_depth_1") = config.hud3DDepthPresets[0];
+			gameProfile.attribute("hud_3D_depth_2") = config.hud3DDepthPresets[1];
+			gameProfile.attribute("hud_3D_depth_3") = config.hud3DDepthPresets[2];
+			gameProfile.attribute("hud_3D_depth_4") = config.hud3DDepthPresets[3];
+
+			gameProfile.attribute("hud_distance_1")= config.hudDistancePresets[0];
+			gameProfile.attribute("hud_distance_2")= config.hudDistancePresets[1];
+			gameProfile.attribute("hud_distance_3")= config.hudDistancePresets[2];
+			gameProfile.attribute("hud_distance_4")= config.hudDistancePresets[3];
+
+			gameProfile.attribute("hud_key_swap") = config.hudHotkeys[0];
+			gameProfile.attribute("hud_key_default") = config.hudHotkeys[1];
+			gameProfile.attribute("hud_key_small") = config.hudHotkeys[2];
+			gameProfile.attribute("hud_key_large") = config.hudHotkeys[3];
+			gameProfile.attribute("hud_key_full") = config.hudHotkeys[4];
+		}
+		else
+		{
+			gameProfile.insert_attribute_after("hud_key_full", gameProfile.attribute("roll_multiplier")) = config.hudHotkeys[4];
+			gameProfile.insert_attribute_after("hud_key_large", gameProfile.attribute("roll_multiplier")) = config.hudHotkeys[3];
+			gameProfile.insert_attribute_after("hud_key_small", gameProfile.attribute("roll_multiplier")) = config.hudHotkeys[2];
+			gameProfile.insert_attribute_after("hud_key_default", gameProfile.attribute("roll_multiplier")) = config.hudHotkeys[1];
+			gameProfile.insert_attribute_after("hud_key_swap", gameProfile.attribute("roll_multiplier")) = config.hudHotkeys[0];
+
+			gameProfile.insert_attribute_after("hud_distance_4", gameProfile.attribute("roll_multiplier"))= config.hudDistancePresets[3];
+			gameProfile.insert_attribute_after("hud_distance_3", gameProfile.attribute("roll_multiplier"))= config.hudDistancePresets[2];
+			gameProfile.insert_attribute_after("hud_distance_2", gameProfile.attribute("roll_multiplier"))= config.hudDistancePresets[1];
+			gameProfile.insert_attribute_after("hud_distance_1", gameProfile.attribute("roll_multiplier"))= config.hudDistancePresets[0];
+
+			gameProfile.insert_attribute_after("hud_3D_depth_4", gameProfile.attribute("roll_multiplier")) = config.hud3DDepthPresets[3];
+			gameProfile.insert_attribute_after("hud_3D_depth_3", gameProfile.attribute("roll_multiplier")) = config.hud3DDepthPresets[2];
+			gameProfile.insert_attribute_after("hud_3D_depth_2", gameProfile.attribute("roll_multiplier")) = config.hud3DDepthPresets[1];
+			gameProfile.insert_attribute_after("hud_3D_depth_1", gameProfile.attribute("roll_multiplier")) = config.hud3DDepthPresets[0];
+
+			gameProfile.insert_attribute_after("hud_3D_depth_mode", gameProfile.attribute("roll_multiplier")) = config.hud3DDepthMode;
+		}
+		docProfiles.save_file(profilePath);
+
+		profileSaved = true;
+	}
+
+	return profileSaved;
+}
+
+/**
+* Loads the game configuration for the target process specified in the registry (targetExe).
+* @param config Returned game configuration.
+* @param oculusProfile Returned Oculus Player Profile.
+***/
+bool ProxyHelper::LoadGUIConfig(ProxyConfig& config)
+{
+	bool fileFound = false;
+
+	// get the target exe
+	GetTargetExe();
+	OutputDebugString("Got target exe as: ");
+	OutputDebugString(targetExe);
+	OutputDebugString("\n");
+
+	// get the profile
+	bool profileFound = false;
+	char profilePath[512];
+	GetPath(profilePath, "cfg\\profiles.xml");
+	OutputDebugString(profilePath);
+	OutputDebugString("\n");
+
+	xml_document docProfiles;
+	xml_parse_result resultProfiles = docProfiles.load_file(profilePath);
+	xml_node profile;
+	xml_node gameProfile;
+
+	if(resultProfiles.status == status_ok)
+	{
+		xml_node xml_profiles = docProfiles.child("profiles");
+
+		for (xml_node profile = xml_profiles.child("profile"); profile; profile = profile.next_sibling("profile"))
+		{
+			if(strcmp(targetExe, profile.attribute("game_exe").value()) == 0)
+			{
+				OutputDebugString("Load the specific profile!!!\n");
+				gameProfile = profile;
+				profileFound = true;
+				break;
+			}
+		}
+	}
+	
+	if(resultProfiles.status == status_ok && profileFound && gameProfile)
+	{
+		config.gui3DDepthMode = gameProfile.attribute("gui_3D_depth_mode").as_int();
+
+		config.gui3DDepthPresets[0] = gameProfile.attribute("gui_3D_depth_1").as_float(0.0f);
+		config.gui3DDepthPresets[1] = gameProfile.attribute("gui_3D_depth_2").as_float(0.0f);
+		config.gui3DDepthPresets[2] = gameProfile.attribute("gui_3D_depth_3").as_float(0.0f);
+		config.gui3DDepthPresets[3] = gameProfile.attribute("gui_3D_depth_4").as_float(0.0f);
+
+		config.guiSquishPresets[0] = gameProfile.attribute("gui_size_1").as_float(0.6f);
+		config.guiSquishPresets[1] = gameProfile.attribute("gui_size_2").as_float(0.5f);
+		config.guiSquishPresets[2] = gameProfile.attribute("gui_size_3").as_float(0.9f);
+		config.guiSquishPresets[3] = gameProfile.attribute("gui_size_4").as_float(1.0f);
+
+		config.guiHotkeys[0] = (byte)gameProfile.attribute("gui_key_swap").as_int(0);
+		config.guiHotkeys[1] = (byte)gameProfile.attribute("gui_key_default").as_int(0);
+		config.guiHotkeys[2] = (byte)gameProfile.attribute("gui_key_small").as_int(0);
+		config.guiHotkeys[3] = (byte)gameProfile.attribute("gui_key_large").as_int(0);
+		config.guiHotkeys[4] = (byte)gameProfile.attribute("gui_key_full").as_int(0);
+	}
+	return fileFound && profileFound;
+}
+
+/**
+* Saves a game configuration.
+* @param cfg The game configuration to be saved.
+***/
+bool ProxyHelper::SaveGUIConfig(ProxyConfig& config)
+{
+	// get the target exe
+	GetTargetExe();
+	OutputDebugString("Got target exe as: ");
+	OutputDebugString(targetExe);
+	OutputDebugString("\n");
+
+	// get the profile
+	bool profileFound = false;
+	bool profileSaved = false;
+	char profilePath[512];
+	GetPath(profilePath, "cfg\\profiles.xml");
+	OutputDebugString(profilePath);
+	OutputDebugString("\n");
+
+	xml_document docProfiles;
+	xml_parse_result resultProfiles = docProfiles.load_file(profilePath);
+	xml_node profile;
+	xml_node gameProfile;
+
+	if(resultProfiles.status == status_ok)
+	{
+		xml_node xml_profiles = docProfiles.child("profiles");
+
+		for (xml_node profile = xml_profiles.child("profile"); profile; profile = profile.next_sibling("profile"))
+		{
+			if(strcmp(targetExe, profile.attribute("game_exe").value()) == 0)
+			{
+				OutputDebugString("Load the specific profile!!!\n");
+				gameProfile = profile;
+				profileFound = true;
+				break;
+			}
+		}
+	}
+
+	if(resultProfiles.status == status_ok && profileFound && gameProfile)
+	{
+		// shader mod rules attribute present ? otherwise insert
+		if (strcmp(gameProfile.attribute("hud_key_full").next_attribute().name(), "gui_3D_depth_mode") == 0)
+		{
+			gameProfile.attribute("gui_3D_depth_mode") = config.gui3DDepthMode;
+
+			gameProfile.attribute("gui_3D_depth_1") = config.gui3DDepthPresets[0];
+			gameProfile.attribute("gui_3D_depth_2") = config.gui3DDepthPresets[1];
+			gameProfile.attribute("gui_3D_depth_3") = config.gui3DDepthPresets[2];
+			gameProfile.attribute("gui_3D_depth_4") = config.gui3DDepthPresets[3];
+
+			gameProfile.attribute("gui_size_1")= config.guiSquishPresets[0];
+			gameProfile.attribute("gui_size_2")= config.guiSquishPresets[1];
+			gameProfile.attribute("gui_size_3")= config.guiSquishPresets[2];
+			gameProfile.attribute("gui_size_4")= config.guiSquishPresets[3];
+
+			gameProfile.attribute("gui_key_swap") = config.guiHotkeys[0];
+			gameProfile.attribute("gui_key_default") = config.guiHotkeys[1];
+			gameProfile.attribute("gui_key_small") = config.guiHotkeys[2];
+			gameProfile.attribute("gui_key_large") = config.guiHotkeys[3];
+			gameProfile.attribute("gui_key_full") = config.guiHotkeys[4];
+		}
+		else
+		{
+			gameProfile.insert_attribute_after("gui_key_full", gameProfile.attribute("hud_key_full")) = config.guiHotkeys[4];
+			gameProfile.insert_attribute_after("gui_key_large", gameProfile.attribute("hud_key_full")) = config.guiHotkeys[3];
+			gameProfile.insert_attribute_after("gui_key_small", gameProfile.attribute("hud_key_full")) = config.guiHotkeys[2];
+			gameProfile.insert_attribute_after("gui_key_default", gameProfile.attribute("hud_key_full")) = config.guiHotkeys[1];
+			gameProfile.insert_attribute_after("gui_key_swap", gameProfile.attribute("hud_key_full")) = config.guiHotkeys[0];
+
+			gameProfile.insert_attribute_after("gui_size_4", gameProfile.attribute("hud_key_full"))= config.guiSquishPresets[3];
+			gameProfile.insert_attribute_after("gui_size_3", gameProfile.attribute("hud_key_full"))= config.guiSquishPresets[2];
+			gameProfile.insert_attribute_after("gui_size_2", gameProfile.attribute("hud_key_full"))= config.guiSquishPresets[1];
+			gameProfile.insert_attribute_after("gui_size_1", gameProfile.attribute("hud_key_full"))= config.guiSquishPresets[0];
+
+			gameProfile.insert_attribute_after("gui_3D_depth_4", gameProfile.attribute("hud_key_full")) = config.gui3DDepthPresets[3];
+			gameProfile.insert_attribute_after("gui_3D_depth_3", gameProfile.attribute("hud_key_full")) = config.gui3DDepthPresets[2];
+			gameProfile.insert_attribute_after("gui_3D_depth_2", gameProfile.attribute("hud_key_full")) = config.gui3DDepthPresets[1];
+			gameProfile.insert_attribute_after("gui_3D_depth_1", gameProfile.attribute("hud_key_full")) = config.gui3DDepthPresets[0];
+
+			gameProfile.insert_attribute_after("gui_3D_depth_mode", gameProfile.attribute("hud_key_full")) = config.gui3DDepthMode;
+		}
+		docProfiles.save_file(profilePath);
+
+		profileSaved = true;
+	}
+
+	return profileSaved;
+}
+
+/**
 * Saves the global Vireio Perception configuration (stereo mode and aspect multiplier).
 * @param mode The chosen stereo mode option.
 * @param aspect The aspect multiplier.

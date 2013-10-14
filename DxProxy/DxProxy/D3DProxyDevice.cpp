@@ -2,7 +2,7 @@
 Vireio Perception: Open-Source Stereoscopic 3D Driver
 Copyright (C) 2012 Andres Hernandez
 Modifications Copyright (C) 2013 Chris Drain, Denis Reischl, Neil Schneider
-  and Joshua Brown
+and Joshua Brown
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -82,8 +82,7 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	m_activeRenderTargets (1, NULL),
 	m_activeTextureStages(),
 	m_activeVertexBuffers(),
-	m_activeSwapChains(),
-	m_keyRepeatRate(0.1f) // 100ms
+	m_activeSwapChains()
 {
 	OutputDebugString("D3D ProxyDev Created\n");
 
@@ -290,7 +289,7 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	keyNameList[0xFB] = "Zoom key";
 #pragma endregion
 
-	keyWait = false;
+	screenshot = (int)false;
 }
 
 /**
@@ -458,7 +457,7 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 	// BRASSA called here (if not source engine)
 	if((stereoView->game_type != D3DProxyDevice::SOURCE_L4D) && (stereoView->game_type != D3DProxyDevice::DATA_GATHERER_SOURCE) && (stereoView->game_type != D3DProxyDevice::ADVANCED_SKYRIM))
 	{
-		if ((BRASSA_mode>=BRASSA_Modes::MAINMENU) && (BRASSA_mode<=BRASSA_Modes::GUI_CALIBRATION))
+		if ((BRASSA_mode>=BRASSA_Modes::MAINMENU) && (BRASSA_mode<BRASSA_Modes::BRASSA_ENUM_RANGE))
 			BRASSA();
 	}
 
@@ -1000,15 +999,19 @@ HRESULT WINAPI D3DProxyDevice::GetDepthStencilSurface(IDirect3DSurface9** ppZSte
 HRESULT WINAPI D3DProxyDevice::BeginScene()
 {
 	if (m_isFirstBeginSceneOfFrame) {
-		if(saveDebugFile)
+
+		// save screenshot before first clear() is called
+		if (screenshot>0)
 		{
-			debugFile.open("d3d9_debug.txt", std::ios::out);
+			if (screenshot==1)
+				stereoView->SaveScreen();
+			screenshot--;
 		}
 
-
+		// TODO ? move this to Present() ?
+		// mouse emulation ?
 		HandleControls();
-		HandleTracking(); // TODO Do this as late in frame as possible (Present)? Because input for this frame would already have been handled here so 
-		// injection of any mouse manipulation ?
+		HandleTracking(); 
 
 		// TODO Doing this now gives very current roll to frame. But should it be done with handle tracking to keep latency similar?
 		// How much latency does mouse enulation cause? Probably want direct roll manipulation and mouse emulation to occur with same delay
@@ -1033,7 +1036,7 @@ HRESULT WINAPI D3DProxyDevice::EndScene()
 {
 	if((stereoView->game_type == D3DProxyDevice::SOURCE_L4D) || (stereoView->game_type != D3DProxyDevice::DATA_GATHERER_SOURCE) || (stereoView->game_type == D3DProxyDevice::ADVANCED_SKYRIM))
 	{
-		if ((BRASSA_mode>=BRASSA_Modes::MAINMENU) && (BRASSA_mode<=BRASSA_Modes::GUI_CALIBRATION))
+		if ((BRASSA_mode>=BRASSA_Modes::MAINMENU) && (BRASSA_mode<BRASSA_Modes::BRASSA_ENUM_RANGE))
 			BRASSA();
 	}
 	return BaseDirect3DDevice9::EndScene();
@@ -2016,7 +2019,6 @@ void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 	config = cfg;
 
 	eyeShutter = 1;
-	saveDebugFile = false;
 	trackerInitialized = false;
 
 	char buf[64];
@@ -2028,6 +2030,26 @@ void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 	m_spShaderViewAdjustment->Load(config);
 	m_pGameHandler->Load(config, m_spShaderViewAdjustment);
 	stereoView = StereoViewFactory::Get(config, m_spShaderViewAdjustment->HMDInfo());
+
+	// HUD
+	ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)config.hud3DDepthMode);
+	for (int i = 0; i < 4; i++)
+	{
+		hud3DDepthPresets[i] = config.hud3DDepthPresets[i];
+		hudDistancePresets[i] = config.hudDistancePresets[i];
+		hudHotkeys[i] = config.hudHotkeys[i];
+	}
+	hudHotkeys[4] = config.hudHotkeys[4];
+
+	// GUI
+	ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)config.gui3DDepthMode);
+	for (int i = 0; i < 4; i++)
+	{
+		gui3DDepthPresets[i] = config.gui3DDepthPresets[i];
+		guiSquishPresets[i] = config.guiSquishPresets[i];
+		guiHotkeys[i] = config.guiHotkeys[i];
+	}
+	guiHotkeys[4] = config.guiHotkeys[4];
 
 	OnCreateOrRestore();
 }
@@ -2127,392 +2149,50 @@ void D3DProxyDevice::HandleControls()
 	if (hotkeyPressed)
 		menuVelocity.x+=10.0f;
 
-	///vvv OLD CODE
-
-	// helpers
-	bool anyKeyPressed = false;
-	float keySpeed = 0.001f;
-	/*float seperationChange = 0.05f; */
-	float convergenceChange = 0.05f;
-	float mouseSpeed = 0.25f;
-	float rollSpeed = 0.01f;
-
-	// static helpers
-	static int keyWaitCount = 0;
-	static int saveWaitCount = 0; 
-	keyWaitCount--;
-	saveWaitCount--;
-	static bool doSaveNext = false;
-
-	if (!keyWait) {
-
-		// TODO !! is that possible in the new architecture ?
-		//if(KEY_DOWN(VK_NUMPAD0))		// turn on/off stereo3D
-		//{
-		//	if(keyWaitCount <= 0)
-		//	{
-		//		if(stereoView->stereoEnabled)
-		//			stereoView->stereoEnabled = false;
-		//		else
-		//			stereoView->stereoEnabled = true;
-		//		keyWaitCount = 50;
-		//	}
-
-		//	anyKeyPressed = true;
-		//}
-
-		////////////  SHOCT non numpad
-		//if(KEY_DOWN(0x4F))// VK_KEY_O
-		//{
-		//	centerlineL  -= keySpeed/2.0f;
-		//	saveWaitCount = 500;
-		//	doSaveNext = true;
-		//	anyKeyPressed = true;
-		//}
-		//if(KEY_DOWN(0x50))// VK_KEY_P
-		//{
-		//	centerlineL  += keySpeed/2.0f;
-		//	saveWaitCount = 500;
-		//	doSaveNext = true;
-		//	anyKeyPressed = true;
-		//}
-
-		//if(KEY_DOWN(0x4B))//VK_KEY_K
-		//{
-		//	centerlineR  -= keySpeed/2.0f;
-		//	saveWaitCount = 500;
-		//	doSaveNext = true;
-		//	anyKeyPressed = true;
-		//}
-		//if(KEY_DOWN(0x4C))//VK_KEY_L
-		//{
-		//	centerlineR  += keySpeed/2.0f;
-		//	saveWaitCount = 500;
-		//	doSaveNext = true;
-		//	anyKeyPressed = true;
-		//}
-
-		if(KEY_DOWN(0x49) && KEY_DOWN(VK_CONTROL))//VK_KEY_I		// Schneider-Hicks VR Calibration Tool
+	// open BRASSA - <CTRL>+<T>
+	if(KEY_DOWN(0x54) && KEY_DOWN(VK_CONTROL) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	{
+		if (BRASSA_mode == BRASSA_Modes::INACTIVE)
 		{
-			if(keyWaitCount <= 0)
-			{
-				if (BRASSA_mode == BRASSA_Modes::INACTIVE)
-				{
-					borderTopHeight = 0.0f;
-					BRASSA_mode = BRASSA_Modes::MAINMENU;
-				}
-				else 
-					BRASSA_mode = BRASSA_Modes::INACTIVE;
-				keyWaitCount = 50;
-			}
-
-			anyKeyPressed = true;
+			borderTopHeight = 0.0f;
+			BRASSA_mode = BRASSA_Modes::MAINMENU;
 		}
-		//////////
-
-		////////////  SHOCT numpad
-		//if(KEY_DOWN(VK_NUMPAD1))
-		//{
-		//	centerlineL  -= keySpeed/2.0f;
-		//	saveWaitCount = 500;
-		//	doSaveNext = true;
-		//	anyKeyPressed = true;
-		//}
-		//if(KEY_DOWN(VK_NUMPAD2))
-		//{
-		//	centerlineL  += keySpeed/2.0f;
-		//	saveWaitCount = 500;
-		//	doSaveNext = true;
-		//	anyKeyPressed = true;
-		//}
-
-		//if(KEY_DOWN(VK_NUMPAD4))
-		//{
-		//	centerlineR  -= keySpeed/2.0f;
-		//	saveWaitCount = 500;
-		//	doSaveNext = true;
-		//	anyKeyPressed = true;
-		//}
-		//if(KEY_DOWN(VK_NUMPAD5))
-		//{
-		//	centerlineR  += keySpeed/2.0f;
-		//	saveWaitCount = 500;
-		//	doSaveNext = true;
-		//	anyKeyPressed = true;
-		//}
-
-		if(KEY_DOWN(VK_MULTIPLY) && KEY_DOWN(VK_SHIFT))		// Schneider-Hicks VR Calibration Tool
+		else
 		{
-			if(keyWaitCount <= 0)
-			{
-				if (BRASSA_mode == BRASSA_Modes::INACTIVE)
-				{
-					borderTopHeight = 0.0f;
-					BRASSA_mode = BRASSA_Modes::MAINMENU;
-				}
-				else
-					BRASSA_mode = BRASSA_Modes::INACTIVE;
-				keyWaitCount = 50;
-			}
-			anyKeyPressed = true;
-		}
-		//////////////////////////////////////////////////////////////////////////////////////////////
-
-		/**
-		* F1 : Screenshot
-		***/
-		if(KEY_DOWN(VK_F1))
-		{
-			if(stereoView->initialized)
-			{
-				stereoView->SaveScreen();
-			}
-			anyKeyPressed = true;
+			BRASSA_mode = BRASSA_Modes::INACTIVE;
+			ProxyHelper* helper = new ProxyHelper();
+			config.roll_multiplier = tracker->multiplierRoll;
+			config.yaw_multiplier = tracker->multiplierYaw;
+			config.pitch_multiplier = tracker->multiplierPitch;
+			config.swap_eyes = stereoView->swapEyes;
+			m_spShaderViewAdjustment->Save(config);
+			helper->SaveConfig(config);
 		}
 
-		///**
-		//* F2 : Decrease world scale (hold CTRL to lower speed, SHIFT to speed up)
-		//***/
-		//if(KEY_DOWN(VK_F2))
-		//{
-		//	if(KEY_DOWN(VK_CONTROL)) {
-		//		seperationChange /= 10.0f;
-		//	}
-		//	else if(KEY_DOWN(VK_SHIFT)) {
-		//		seperationChange *= 10.0f;
-		//	} 
-
-		//	m_spShaderViewAdjustment->ChangeWorldScale(-seperationChange);
-		//	m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
-
-		//	saveWaitCount = 500;
-		//	doSaveNext = true;
-		//	anyKeyPressed = true;
-		//}
-
-		///**
-		//* F3 : Increase world scale (hold CTRL to lower speed, SHIFT to speed up)
-		//***/
-		//if(KEY_DOWN(VK_F3))
-		//{
-		//	if(KEY_DOWN(VK_CONTROL)) {
-		//		seperationChange /= 10.0f;
-		//	}
-		//	else if(KEY_DOWN(VK_SHIFT))
-		//	{
-		//		seperationChange *= 10.0f;
-		//	}
-
-		//	m_spShaderViewAdjustment->ChangeWorldScale(seperationChange);
-		//	m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
-
-		//	saveWaitCount = 500;
-		//	doSaveNext = true;
-		//	anyKeyPressed = true;
-		//}
-
-		/**
-		* F4 : Decrease convergence (hold CTRL to lower speed, SHIFT to speed up)
-		* ALT-F4 : Decrease Oculus Rift distortion scale.
-		***/
-		if(KEY_DOWN(VK_F4))
-		{
-			if(KEY_DOWN(VK_LMENU))
-			{
-				this->stereoView->DistortionScale -= keySpeed*10;
-				this->stereoView->PostReset();
-			} 
-			else 
-			{
-				if(KEY_DOWN(VK_CONTROL)) {
-					convergenceChange /= 10.0f;
-				}
-				else if(KEY_DOWN(VK_SHIFT)) {
-					convergenceChange *= 10.0f;
-				} 
-
-				m_spShaderViewAdjustment->ChangeConvergence(-convergenceChange);
-				m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
-			}
-
-			saveWaitCount = 500;
-			doSaveNext = true;
-			anyKeyPressed = true;
-		}
-
-		/**
-		* F5 : Increase convergence (hold CTRL to lower speed, SHIFT to speed up)
-		* ALT-F5 : Increase Oculus Rift distortion scale
-		***/
-		if(KEY_DOWN(VK_F5))
-		{
-			if(KEY_DOWN(VK_LMENU))
-			{
-				this->stereoView->DistortionScale += keySpeed*10;
-				this->stereoView->PostReset();
-			} 
-			else 
-			{
-				if(KEY_DOWN(VK_CONTROL)) {
-					convergenceChange /= 10.0f;
-				}
-				else if(KEY_DOWN(VK_SHIFT)) {
-					convergenceChange *= 10.0f;
-				} 
-
-				m_spShaderViewAdjustment->ChangeConvergence(convergenceChange);
-				m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
-			}
-
-			saveWaitCount = 500;
-			doSaveNext = true;
-			anyKeyPressed = true;
-		}
-
-		/**
-		* F6 : Swap eye output
-		* SHIFT-F6 : Reset world scale, convergence and tracker multipliers
-		* ALT-F6 : Reset distortion scale
-		***/
-		if(KEY_DOWN(VK_F6))
-		{
-			if(KEY_DOWN(VK_LMENU))
-			{				
-				this->stereoView->DistortionScale = 0.0f;
-				this->stereoView->PostReset();
-			}
-			else if(KEY_DOWN(VK_SHIFT))
-			{
-				m_spShaderViewAdjustment->ResetConvergence();
-				m_spShaderViewAdjustment->ResetWorldScale();
-				m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
-
-				tracker->multiplierYaw = 25.0f;
-				tracker->multiplierPitch = 25.0f;
-				tracker->multiplierRoll = 1.0f;
-
-				saveWaitCount = 500;
-				doSaveNext = true;
-			}
-			else if(keyWaitCount <= 0)
-			{
-				stereoView->swapEyes = !stereoView->swapEyes;
-				keyWaitCount = 200;
-				saveWaitCount = 500;
-				doSaveNext = true;
-			}
-			anyKeyPressed = true;
-		}
-
-		// TODO !! matrix index ?? not used in old version either
-		/*if(KEY_DOWN(VK_F7) && keyWaitCount <= 0)
-		{
-		matrixIndex++;
-		if(matrixIndex > 15) 
-		{
-		matrixIndex = 0;
-		}
-		keyWaitCount = 200;
-		anyKeyPressed = true;
-		}*/
-
-		/**
-		* F8 : Decrease tracker yaw multiplier
-		* SHIFT-F8 : Decrease tracker pitch multiplier
-		* CTRL-F8 : Decrease tracker roll multiplier
-		***/
-		if(KEY_DOWN(VK_F8))
-		{
-			if(KEY_DOWN(VK_SHIFT))
-			{
-				if(trackerInitialized && tracker->isAvailable())
-					tracker->multiplierPitch -= mouseSpeed;
-			}  
-			else if(KEY_DOWN(VK_CONTROL))
-			{
-				if(trackerInitialized && tracker->isAvailable())
-					tracker->multiplierRoll -= rollSpeed;
-			}  
-			else 
-			{
-				if(trackerInitialized && tracker->isAvailable())
-					tracker->multiplierYaw -= mouseSpeed;
-			}
-
-			saveWaitCount = 500;
-			doSaveNext = true;
-			anyKeyPressed = true;
-		}
-
-		/**
-		* F9 : Increase tracker yaw multiplier
-		* SHIFT-F9 : Increase tracker pitch multiplier
-		* CTRL-F9 : Increase tracker roll multiplier
-		***/
-		if(KEY_DOWN(VK_F9))
-		{
-			if(KEY_DOWN(VK_SHIFT))
-			{
-				if(trackerInitialized && tracker->isAvailable())
-					tracker->multiplierPitch += mouseSpeed;
-			}  
-			else if(KEY_DOWN(VK_CONTROL))
-			{
-				if(trackerInitialized && tracker->isAvailable())
-					tracker->multiplierRoll += rollSpeed;
-			}  
-			else 
-			{
-				if(trackerInitialized && tracker->isAvailable())
-					tracker->multiplierYaw += mouseSpeed;
-			}
-
-			saveWaitCount = 500;
-			doSaveNext = true;
-			anyKeyPressed = true;
-		}
-
-		if (anyKeyPressed) {
-			startTime = clock();
-			keyWait = true;
-		}
-	}
-	else {
-		// handle key repeat rate
-		float elapseTimeSinceLastHandledKey = (float)(clock() - startTime) / CLOCKS_PER_SEC;
-		if (elapseTimeSinceLastHandledKey >= m_keyRepeatRate) {
-			keyWait = false;
-		}		
+		menuVelocity.x+=10.0f;
 	}
 
-	if(saveDebugFile)
+	// open BRASSA - <SHIFT>+<*>
+	if(KEY_DOWN(VK_MULTIPLY) && KEY_DOWN(VK_SHIFT) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))		
 	{
-		debugFile.close();
-	}
-	saveDebugFile = false;
+		if (BRASSA_mode == BRASSA_Modes::INACTIVE)
+		{
+			borderTopHeight = 0.0f;
+			BRASSA_mode = BRASSA_Modes::MAINMENU;
+		}
+		else
+		{
+			BRASSA_mode = BRASSA_Modes::INACTIVE;
+			ProxyHelper* helper = new ProxyHelper();
+			config.roll_multiplier = tracker->multiplierRoll;
+			config.yaw_multiplier = tracker->multiplierYaw;
+			config.pitch_multiplier = tracker->multiplierPitch;
+			config.swap_eyes = stereoView->swapEyes;
+			m_spShaderViewAdjustment->Save(config);
+			helper->SaveConfig(config);
+		}
 
-	/*if(KEY_DOWN(VK_F12) && keyWaitCount <= 0)
-	{
-	// uncomment to save text debug file
-	//saveDebugFile = true;
-	keyWaitCount = 200;
-	anyKeyPressed = true;
-	}*/
-
-	if(doSaveNext && saveWaitCount < 0)
-	{
-		doSaveNext = false;
-		ProxyHelper* helper = new ProxyHelper();
-
-		config.roll_multiplier = tracker->multiplierRoll;
-		config.yaw_multiplier = tracker->multiplierYaw;
-		config.pitch_multiplier = tracker->multiplierPitch;
-		config.swap_eyes = stereoView->swapEyes;
-		m_spShaderViewAdjustment->Save(config);
-
-		helper->SaveConfig(config);
-
-		delete helper;
+		menuVelocity.x+=10.0f;
 	}
 }
 
@@ -2946,6 +2626,9 @@ void D3DProxyDevice::BRASSA()
 	case D3DProxyDevice::GUI_CALIBRATION:
 		BRASSA_GUI();
 		break;
+	case D3DProxyDevice::OVERALL_SETTINGS:
+		BRASSA_Settings();
+		break;
 	}
 	/////// hud text
 	//if(hudFont){
@@ -3098,8 +2781,20 @@ void D3DProxyDevice::BRASSA_MainMenu()
 	if ((config.game_type != 11) || (config.game_type != 12))
 		entryID++;
 
+	/**
+	* ESCAPE : Set BRASSA inactive and save the configuration.
+	***/
 	if (KEY_DOWN(VK_ESCAPE))
+	{
 		BRASSA_mode = BRASSA_Modes::INACTIVE;
+		ProxyHelper* helper = new ProxyHelper();
+		config.roll_multiplier = tracker->multiplierRoll;
+		config.yaw_multiplier = tracker->multiplierYaw;
+		config.pitch_multiplier = tracker->multiplierPitch;
+		config.swap_eyes = stereoView->swapEyes;
+		m_spShaderViewAdjustment->Save(config);
+		helper->SaveConfig(config);
+	}
 
 	if ((KEY_DOWN(VK_RETURN)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
@@ -3121,12 +2816,24 @@ void D3DProxyDevice::BRASSA_MainMenu()
 			BRASSA_mode = BRASSA_Modes::GUI_CALIBRATION;
 			menuVelocity.x+=10.0f;
 		}
+		// overall settings
+		if (entryID == 7)
+		{
+			BRASSA_mode = BRASSA_Modes::OVERALL_SETTINGS;
+			menuVelocity.x+=10.0f;
+		}	
 		// back to game
 		if (entryID == 8)
 		{
 			BRASSA_mode = BRASSA_Modes::INACTIVE;
-			menuVelocity.x+=10.0f;
-		}	
+			ProxyHelper* helper = new ProxyHelper();
+			config.roll_multiplier = tracker->multiplierRoll;
+			config.yaw_multiplier = tracker->multiplierYaw;
+			config.pitch_multiplier = tracker->multiplierPitch;
+			config.swap_eyes = stereoView->swapEyes;
+			m_spShaderViewAdjustment->Save(config);
+			helper->SaveConfig(config);
+		}
 	}
 
 	if (KEY_DOWN(VK_LEFT))
@@ -3252,6 +2959,10 @@ void D3DProxyDevice::BRASSA_WorldScale()
 	{
 		BRASSA_mode = BRASSA_Modes::INACTIVE;
 		ProxyHelper* helper = new ProxyHelper();
+		config.roll_multiplier = tracker->multiplierRoll;
+		config.yaw_multiplier = tracker->multiplierYaw;
+		config.pitch_multiplier = tracker->multiplierPitch;
+		config.swap_eyes = stereoView->swapEyes;
 		m_spShaderViewAdjustment->Save(config);
 		helper->SaveConfig(config);
 	}
@@ -3475,8 +3186,22 @@ void D3DProxyDevice::BRASSA_WorldScale()
 ***/
 void D3DProxyDevice::BRASSA_Convergence()
 {
+	/**
+	* ESCAPE : Set BRASSA inactive and save the configuration.
+	***/
 	if (KEY_DOWN(VK_ESCAPE))
+	{
 		BRASSA_mode = BRASSA_Modes::INACTIVE;
+		ProxyHelper* helper = new ProxyHelper();
+		config.roll_multiplier = tracker->multiplierRoll;
+		config.yaw_multiplier = tracker->multiplierYaw;
+		config.pitch_multiplier = tracker->multiplierPitch;
+		config.swap_eyes = stereoView->swapEyes;
+		m_spShaderViewAdjustment->Save(config);
+		helper->SaveConfig(config);
+	}
+	//		m_spShaderViewAdjustment->ChangeConvergence(-convergenceChange);
+	//		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
 }
 
 /**
@@ -3484,13 +3209,11 @@ void D3DProxyDevice::BRASSA_Convergence()
 ***/
 void D3DProxyDevice::BRASSA_HUD()
 {
-	if (KEY_DOWN(VK_ESCAPE))
-		BRASSA_mode = BRASSA_Modes::INACTIVE;
 	int width = stereoView->viewport.Width;
 	int height = stereoView->viewport.Height;
 	float menuTop = height*0.32f;
 	float menuEntryHeight = height*0.037f;
-	UINT menuEntryCount = 8;
+	UINT menuEntryCount = 12;
 
 	RECT rect1;
 	rect1.left = 0;
@@ -3535,16 +3258,50 @@ void D3DProxyDevice::BRASSA_HUD()
 		if (KEY_DOWN(VK_ESCAPE))
 			BRASSA_mode = BRASSA_Modes::INACTIVE;
 
-		if (KEY_DOWN(VK_RETURN))
+		if ((KEY_DOWN(VK_RETURN)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
 			if ((entryID >= 3) && (entryID <= 7) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 			{
 				hotkeyCatch = true;
 				menuVelocity.x+=10;
 			}
-			//// back to game
-			//if (entryID == 7)
-			//	BRASSA_mode = BRASSA_Modes::INACTIVE;
+			// save
+			if (entryID == 8)
+			{
+				ProxyHelper* helper = new ProxyHelper();
+				config.hud3DDepthMode = (int)hud3DDepthMode;
+				for (int i = 0; i < 4; i++)
+				{
+					config.hud3DDepthPresets[i] = hud3DDepthPresets[i];
+					config.hudDistancePresets[i] = hudDistancePresets[i];
+					config.hudHotkeys[i] = hudHotkeys[i];
+				}
+				config.hudHotkeys[4] = hudHotkeys[4];
+				helper->SaveHUDConfig(config);
+			}
+			// reload
+			if (entryID == 9)
+			{
+				ProxyHelper* helper = new ProxyHelper();
+				helper->LoadHUDConfig(config);
+				ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)config.hud3DDepthMode);
+				for (int i = 0; i < 4; i++)
+				{
+					hud3DDepthPresets[i] = config.hud3DDepthPresets[i];
+					hudDistancePresets[i] = config.hudDistancePresets[i];
+					hudHotkeys[i] = config.hudHotkeys[i];
+				}
+				hudHotkeys[4] = config.hudHotkeys[4];
+			}
+			// back to main menu
+			if (entryID == 10)
+			{
+				BRASSA_mode = BRASSA_Modes::MAINMENU;
+				menuVelocity.x+=10.0f;
+			}
+			// back to game
+			if (entryID == 11)
+				BRASSA_mode = BRASSA_Modes::INACTIVE;
 		}
 
 		if (KEY_DOWN(VK_BACK))
@@ -3722,13 +3479,11 @@ void D3DProxyDevice::BRASSA_HUD()
 ***/
 void D3DProxyDevice::BRASSA_GUI()
 {
-	if (KEY_DOWN(VK_ESCAPE))
-		BRASSA_mode = BRASSA_Modes::INACTIVE;
 	int width = stereoView->viewport.Width;
 	int height = stereoView->viewport.Height;
 	float menuTop = height*0.32f;
 	float menuEntryHeight = height*0.037f;
-	UINT menuEntryCount = 8;
+	UINT menuEntryCount = 12;
 
 	RECT rect1;
 	rect1.left = 0;
@@ -3773,16 +3528,61 @@ void D3DProxyDevice::BRASSA_GUI()
 		if (KEY_DOWN(VK_ESCAPE))
 			BRASSA_mode = BRASSA_Modes::INACTIVE;
 
-		if (KEY_DOWN(VK_RETURN))
+		if ((KEY_DOWN(VK_RETURN)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
 			if ((entryID >= 3) && (entryID <= 7) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 			{
 				hotkeyCatch = true;
 				menuVelocity.x+=10;
 			}
-			//// back to game
-			//if (entryID == 7)
-			//	BRASSA_mode = BRASSA_Modes::INACTIVE;
+			// save
+			if (entryID == 8)
+			{
+				ProxyHelper* helper = new ProxyHelper();
+				config.gui3DDepthMode = (int)gui3DDepthMode;
+				for (int i = 0; i < 4; i++)
+				{
+					config.gui3DDepthPresets[i] = gui3DDepthPresets[i];
+					config.guiSquishPresets[i] = guiSquishPresets[i];
+					config.guiHotkeys[i] = guiHotkeys[i];
+				}
+				config.guiHotkeys[4] = guiHotkeys[4];
+				helper->SaveGUIConfig(config);
+			}
+			// reload
+			if (entryID == 9)
+			{
+				ProxyHelper* helper = new ProxyHelper();
+				helper->LoadGUIConfig(config);
+				ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)config.gui3DDepthMode);
+				for (int i = 0; i < 4; i++)
+				{
+					gui3DDepthPresets[i] = config.gui3DDepthPresets[i];
+					guiSquishPresets[i] = config.guiSquishPresets[i];
+					guiHotkeys[i] = config.guiHotkeys[i];
+				}
+				guiHotkeys[4] = config.guiHotkeys[4];
+			}
+			// back to main menu
+			if (entryID == 10)
+			{
+				BRASSA_mode = BRASSA_Modes::MAINMENU;
+				menuVelocity.x+=10.0f;
+			}
+			// back to game
+			if (entryID == 11)
+				BRASSA_mode = BRASSA_Modes::INACTIVE;
+		}
+
+		if (KEY_DOWN(VK_BACK))
+		{
+			if ((entryID >= 3) && (entryID <= 7) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+			{
+				int index = entryID-3;
+				if ((index >=0) && (index <=4))
+					guiHotkeys[index] = 0;
+				menuVelocity.x+=10;
+			}
 		}
 
 		if (KEY_DOWN(VK_LEFT))
@@ -3918,6 +3718,14 @@ void D3DProxyDevice::BRASSA_GUI()
 		if ((hotkeyCatch) && (entryID==7))
 			stdString = "Press the desired key.";
 		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
+		DrawTextShadowed(hudFont, hudMainMenu, "Save current configuration", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
+		DrawTextShadowed(hudFont, hudMainMenu, "Reload configuration", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
+		DrawTextShadowed(hudFont, hudMainMenu, "Back to BRASSA Menu", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
+		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 
 		// draw GUI quick setting rectangles
 		rect.x1 = (int)(width*0.49f); rect.x2 = (int)(width*0.53f); rect.y1 = (int)guiQSHeight; rect.y2 = (int)(guiQSHeight+height*0.027f);
@@ -3941,6 +3749,242 @@ void D3DProxyDevice::BRASSA_GUI()
 ***/
 void D3DProxyDevice::BRASSA_Settings()
 {
+	int width = stereoView->viewport.Width;
+	int height = stereoView->viewport.Height;
+	float menuTop = height*0.32f;
+	float menuEntryHeight = height*0.037f;
+	UINT menuEntryCount = 9;
+
+	RECT rect1;
+	rect1.left = 0;
+	rect1.right = 1920;
+	rect1.top = 0;
+	rect1.bottom = 1080;
+
+	float fScaleX = ((float)stereoView->viewport.Width / (float)rect1.right);
+	float fScaleY = ((float)stereoView->viewport.Height / (float)rect1.bottom);
+
+	// handle border height
+	if (borderTopHeight<menuTop)
+	{
+		borderTopHeight = menuTop;
+		menuVelocity.y=0.0f;
+	}
+	if (borderTopHeight>(menuTop+(menuEntryHeight*(float)(menuEntryCount-1))))
+	{
+		borderTopHeight = menuTop+menuEntryHeight*(float)(menuEntryCount-1);
+		menuVelocity.y=0.0f;
+	}
+
+	// get menu entry id
+	float entry = (borderTopHeight-menuTop+(menuEntryHeight/3.0f))/menuEntryHeight;
+	UINT entryID = (UINT)entry;
+	if (entryID >= menuEntryCount)
+		OutputDebugString("Error in BRASSA menu programming !");
+
+	/**
+	* ESCAPE : Set BRASSA inactive and save the configuration.
+	***/
+	if (KEY_DOWN(VK_ESCAPE))
+	{
+		BRASSA_mode = BRASSA_Modes::INACTIVE;
+		ProxyHelper* helper = new ProxyHelper();
+		config.roll_multiplier = tracker->multiplierRoll;
+		config.yaw_multiplier = tracker->multiplierYaw;
+		config.pitch_multiplier = tracker->multiplierPitch;
+		config.swap_eyes = stereoView->swapEyes;
+		m_spShaderViewAdjustment->Save(config);
+		helper->SaveConfig(config);
+	}
+
+	if ((KEY_DOWN(VK_RETURN)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	{
+		// swap eyes
+		if (entryID == 0)
+		{
+			stereoView->swapEyes = !stereoView->swapEyes;
+			menuVelocity.x += 10.0f;
+		}
+		// screenshot
+		if (entryID == 2)
+		{
+			// render 3 frames to get screenshots without BRASSA
+			screenshot = 3;
+			BRASSA_mode = BRASSA_Modes::INACTIVE;
+		}
+		// reset multipliers
+		if (entryID == 6)
+		{
+			tracker->multiplierYaw = 25.0f;
+			tracker->multiplierPitch = 25.0f;
+			tracker->multiplierRoll = 1.0f;
+			menuVelocity.x += 10.0f;
+		}
+		// back to main menu
+		if (entryID == 7)
+		{
+			BRASSA_mode = BRASSA_Modes::MAINMENU;
+			menuVelocity.x+=10.0f;
+		}
+		// back to game
+		if (entryID == 8)
+		{
+			BRASSA_mode = BRASSA_Modes::INACTIVE;
+			ProxyHelper* helper = new ProxyHelper();
+			config.roll_multiplier = tracker->multiplierRoll;
+			config.yaw_multiplier = tracker->multiplierYaw;
+			config.pitch_multiplier = tracker->multiplierPitch;
+			config.swap_eyes = stereoView->swapEyes;
+			m_spShaderViewAdjustment->Save(config);
+			helper->SaveConfig(config);
+		}
+	}
+
+	if (KEY_DOWN(VK_BACK) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	{
+		// distortion
+		if (entryID == 1)
+		{
+			this->stereoView->DistortionScale = 0.0f;
+			this->stereoView->PostReset();
+			menuVelocity.x += 2.0f;
+		}
+	}
+
+	if (KEY_DOWN(VK_LEFT) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	{
+		// swap eyes
+		if (entryID == 0)
+		{
+			stereoView->swapEyes = false;
+			menuVelocity.x-=10.0f;
+		}
+		// distortion
+		if (entryID == 1)
+		{
+			this->stereoView->DistortionScale -= 0.01f;
+			this->stereoView->PostReset();
+			menuVelocity.x -= 2.0f;
+		}
+		// yaw multiplier
+		if (entryID == 3)
+		{
+			tracker->multiplierYaw -= 0.5f;
+			menuVelocity.x -= 2.0f;
+		}
+		// pitch multiplier
+		if (entryID == 4)
+		{
+			tracker->multiplierPitch -= 0.5f;
+			menuVelocity.x -= 2.0f;
+		}
+		// roll multiplier
+		if (entryID == 5)
+		{
+			tracker->multiplierRoll -= 0.05f;
+			menuVelocity.x -= 2.0f;
+		}
+	}
+
+	if (KEY_DOWN(VK_RIGHT) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	{
+		// swap eyes
+		if (entryID == 0)
+		{
+			stereoView->swapEyes = true;
+			menuVelocity.x-=10.0f;
+		}
+		// distortion
+		if (entryID == 1)
+		{
+			this->stereoView->DistortionScale += 0.01f;
+			this->stereoView->PostReset();
+			menuVelocity.x += 2.0f;
+		}
+		// yaw multiplier
+		if (entryID == 3)
+		{
+			tracker->multiplierYaw += 0.5f;
+			menuVelocity.x += 2.0f;
+		}
+		// pitch multiplier
+		if (entryID == 4)
+		{
+			tracker->multiplierPitch += 0.5f;
+			menuVelocity.x += 2.0f;
+		}
+		// roll multiplier
+		if (entryID == 5)
+		{
+			tracker->multiplierRoll += 0.05f;
+			menuVelocity.x += 2.0f;
+		}
+	}
+
+	// output menu
+	if (hudFont)
+	{
+		float LeftLensCenterAsPercentage = ((m_spShaderViewAdjustment->HMDInfo().physicalScreenSize.first / 2.0f) - 
+			(config.ipd  / 2.0f)) / (m_spShaderViewAdjustment->HMDInfo().physicalScreenSize.first);
+
+		// draw border - total width due to shift correction
+		D3DRECT rect;
+		rect.x1 = (int)0; rect.x2 = (int)width; rect.y1 = (int)borderTopHeight; rect.y2 = (int)(borderTopHeight+height*0.04f);
+		ClearEmptyRect(vireio::RenderPosition::Left, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
+		ClearEmptyRect(vireio::RenderPosition::Right, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
+
+		hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
+
+		D3DXMATRIX matScale;
+		D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
+		hudMainMenu->SetTransform(&matScale);
+
+		rect1.left = 550;
+		rect1.top = 300;
+		DrawTextShadowed(hudFont, hudMainMenu, "Brown Reischl and Schneider Settings Analyzer (B.R.A.S.S.A.).\n", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect.x1 = 0; rect.x2 = width; rect.y1 = (int)(335*fScaleY); rect.y2 = (int)(340*fScaleY);
+		Clear(1, &rect, D3DCLEAR_TARGET, D3DCOLOR_ARGB(255,255,128,128), 0, 0);
+
+		rect1.top += 50;  rect1.left += 250; float guiQSHeight = (float)rect1.top * fScaleY;
+		switch (stereoView->swapEyes)
+		{
+		case true:
+			DrawTextShadowed(hudFont, hudMainMenu, "Swap Eyes : true", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			break;
+		case false:
+			DrawTextShadowed(hudFont, hudMainMenu, "Swap Eyes : false", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			break;
+		}
+		rect1.top += 40;
+		char vcString[128];
+		sprintf_s(vcString,"Distortion Scale : %g", this->stereoView->DistortionScale);
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
+		DrawTextShadowed(hudFont, hudMainMenu, "Stereo Screenshots", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
+		sprintf_s(vcString,"Yaw multiplier : %g", tracker->multiplierYaw);
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
+		sprintf_s(vcString,"Pitch multiplier : %g", tracker->multiplierPitch);
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
+		sprintf_s(vcString,"Roll multiplier : %g", tracker->multiplierRoll);
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
+		DrawTextShadowed(hudFont, hudMainMenu, "Reset multipliers", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
+		DrawTextShadowed(hudFont, hudMainMenu, "Back to BRASSA Menu", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
+		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+
+		rect1.left = 0;
+		rect1.right = 1920;
+		rect1.top = 0;
+		rect1.bottom = 1080;
+		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
+		hudMainMenu->Draw(NULL, &rect1, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));
+		hudMainMenu->End();
+	}
 
 }
 

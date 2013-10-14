@@ -35,7 +35,7 @@ class __declspec(dllexport) ProxyHelper
 {
 public:
 	ProxyHelper();
-	
+
 	/**
 	* Game configuration structure.
 	* All game-specific information + IPD + swap_eyes + stereo_mode + tracker_mode.
@@ -55,6 +55,14 @@ public:
 		std::string shaderRulePath;        /**< Full path of shader rules for this game. */
 		float       ipd;                   /**< IPD, which stands for interpupillary distance (distance between your pupils - in meters...default = 0.064). Also called the interocular distance (or just Interocular). */
 		float       convergence;           /**< Convergence or Neutral Point distance, in meters. */
+		int         hud3DDepthMode;        /**< Current HUD mode. */
+		int         gui3DDepthMode;        /**< Current GUI mode. */
+		float       hud3DDepthPresets[4];  /**< HUD 3D Depth presets.*/
+		float       hudDistancePresets[4]; /**< HUD Distance presets.*/
+		float       gui3DDepthPresets[4];  /**< GUI 3D Depth presets.*/
+		float       guiSquishPresets[4];   /**< GUI Size presets.*/
+		byte        hudHotkeys[5];         /**< HUD Hotkeys.*/
+		byte        guiHotkeys[5];         /**< GUI Hotkeys.*/
 	};
 
 	/**
@@ -78,6 +86,10 @@ public:
 	bool  GetConfig(int& mode, int& mode2);
 	bool  LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile);	
 	bool  SaveConfig(ProxyConfig& config);
+	bool  LoadHUDConfig(ProxyConfig& config);	
+	bool  SaveHUDConfig(ProxyConfig& config);
+	bool  LoadGUIConfig(ProxyConfig& config);	
+	bool  SaveGUIConfig(ProxyConfig& config);
 	bool  SaveConfig(int mode = -1, float aspect = -1.0f);
 	bool  SaveConfig2(int mode = -1);
 	bool  LoadUserConfig(ProxyConfig& config, OculusProfile& oculusProfile);

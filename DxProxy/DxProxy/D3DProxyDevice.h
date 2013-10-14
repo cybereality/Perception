@@ -184,7 +184,8 @@ public:
 		SHADER_ANALYZER,
 		HUD_CALIBRATION,
 		GUI_CALIBRATION,
-		OVERALL_SETTINGS
+		OVERALL_SETTINGS,
+		BRASSA_ENUM_RANGE
 	};
 	/**
 	* HUD scale enumeration.
@@ -243,14 +244,6 @@ public:
 	* Currently not used aspect ratio.
 	**/
 	float aspectRatio;	
-	/**
-	* Debug file helper, true to open debug file.
-	**/
-	bool saveDebugFile;
-	/**
-	* Debug file, no data output a priori.
-	**/
-	std::ofstream debugFile;
 	/**
 	* The chosen stereo renderer.
 	* @see StereoView
@@ -446,18 +439,6 @@ private:
 	**/
 	D3DXMATRIX* m_pCurrentProjection;
 	/**
-	* Time, in seconds, for keyboard input repeat.
-	**/
-	const float m_keyRepeatRate;
-	/**
-	* Time stamp set by last keyboard input.
-	**/
-	clock_t startTime;
-	/**
-	* True to avoid key input due to repeat rate.
-	**/
-	bool keyWait;
-	/**
 	* Main menu sprite.
 	***/
 	LPD3DXSPRITE hudMainMenu;
@@ -522,6 +503,10 @@ private:
 	* (used for BRASSA menu)
 	***/
 	std::string keyNameList[256];
+	/**
+	* True if screenshot is taken next frame.
+	***/
+	int screenshot;
 };
 
 #endif

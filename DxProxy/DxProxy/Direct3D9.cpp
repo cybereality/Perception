@@ -90,7 +90,7 @@ UINT BaseDirect3D9::GetAdapterCount()
 * Base GetAdapterIdentifier functionality.
 ***/
 HRESULT WINAPI BaseDirect3D9::GetAdapterIdentifier(UINT Adapter, DWORD Flags,
-	D3DADAPTER_IDENTIFIER9* pIdentifier)
+												   D3DADAPTER_IDENTIFIER9* pIdentifier)
 {
 	return m_pD3D->GetAdapterIdentifier(Adapter, Flags, pIdentifier);
 }
@@ -107,7 +107,7 @@ UINT WINAPI BaseDirect3D9::GetAdapterModeCount(UINT Adapter, D3DFORMAT Format)
 * Base EnumAdapterModes functionality.
 ***/
 HRESULT WINAPI BaseDirect3D9::EnumAdapterModes(UINT Adapter, D3DFORMAT Format, UINT Mode,
-	D3DDISPLAYMODE* pMode)
+											   D3DDISPLAYMODE* pMode)
 {
 	return m_pD3D->EnumAdapterModes(Adapter, Format, Mode, pMode);
 }
@@ -124,7 +124,7 @@ HRESULT WINAPI BaseDirect3D9::GetAdapterDisplayMode(UINT Adapter, D3DDISPLAYMODE
 * Base CheckDeviceType functionality.
 ***/
 HRESULT WINAPI BaseDirect3D9::CheckDeviceType(UINT Adapter, D3DDEVTYPE DevType,
-	D3DFORMAT AdapterFormat, D3DFORMAT BackBufferFormat, BOOL bWindowed)
+											  D3DFORMAT AdapterFormat, D3DFORMAT BackBufferFormat, BOOL bWindowed)
 {
 	return m_pD3D->CheckDeviceType(Adapter, DevType, AdapterFormat, BackBufferFormat, bWindowed);
 }
@@ -133,7 +133,7 @@ HRESULT WINAPI BaseDirect3D9::CheckDeviceType(UINT Adapter, D3DDEVTYPE DevType,
 * Base CheckDeviceFormat functionality.
 ***/
 HRESULT WINAPI BaseDirect3D9::CheckDeviceFormat(UINT Adapter, D3DDEVTYPE DeviceType,
-	D3DFORMAT AdapterFormat, DWORD Usage, D3DRESOURCETYPE RType, D3DFORMAT CheckFormat)
+												D3DFORMAT AdapterFormat, DWORD Usage, D3DRESOURCETYPE RType, D3DFORMAT CheckFormat)
 {
 	return m_pD3D->CheckDeviceFormat(Adapter, DeviceType, AdapterFormat, Usage, RType,
 		CheckFormat);
@@ -143,8 +143,8 @@ HRESULT WINAPI BaseDirect3D9::CheckDeviceFormat(UINT Adapter, D3DDEVTYPE DeviceT
 * Base CheckDeviceMultiSampleType functionality.
 ***/
 HRESULT WINAPI BaseDirect3D9::CheckDeviceMultiSampleType(UINT Adapter, D3DDEVTYPE DeviceType,
-	D3DFORMAT SurfaceFormat, BOOL Windowed, D3DMULTISAMPLE_TYPE MultiSampleType,
-	DWORD* pQualityLevels)
+														 D3DFORMAT SurfaceFormat, BOOL Windowed, D3DMULTISAMPLE_TYPE MultiSampleType,
+														 DWORD* pQualityLevels)
 {
 	return m_pD3D->CheckDeviceMultiSampleType(Adapter, DeviceType, SurfaceFormat, Windowed,
 		MultiSampleType, pQualityLevels);
@@ -154,7 +154,7 @@ HRESULT WINAPI BaseDirect3D9::CheckDeviceMultiSampleType(UINT Adapter, D3DDEVTYP
 * Base CheckDepthStencilMatch functionality.
 ***/
 HRESULT WINAPI BaseDirect3D9::CheckDepthStencilMatch(UINT Adapter, D3DDEVTYPE DeviceType,
-	D3DFORMAT AdapterFormat, D3DFORMAT RenderTargetFormat, D3DFORMAT DepthStencilFormat)
+													 D3DFORMAT AdapterFormat, D3DFORMAT RenderTargetFormat, D3DFORMAT DepthStencilFormat)
 {
 	return m_pD3D->CheckDepthStencilMatch(Adapter, DeviceType, AdapterFormat, RenderTargetFormat,
 		DepthStencilFormat);
@@ -164,7 +164,7 @@ HRESULT WINAPI BaseDirect3D9::CheckDepthStencilMatch(UINT Adapter, D3DDEVTYPE De
 * Base CheckDeviceFormatConversion functionality.
 ***/
 HRESULT WINAPI BaseDirect3D9::CheckDeviceFormatConversion(UINT Adapter, D3DDEVTYPE DeviceType,
-	D3DFORMAT SourceFormat, D3DFORMAT TargetFormat)
+														  D3DFORMAT SourceFormat, D3DFORMAT TargetFormat)
 {
 	return m_pD3D->CheckDeviceFormatConversion(Adapter, DeviceType, SourceFormat, TargetFormat);
 }
@@ -192,8 +192,8 @@ HMONITOR WINAPI BaseDirect3D9::GetAdapterMonitor(UINT Adapter)
 * device proxy calling D3DProxyDeviceFactory::Get().
 ***/
 HRESULT WINAPI BaseDirect3D9::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, HWND hFocusWindow,
-	DWORD BehaviorFlags, D3DPRESENT_PARAMETERS* pPresentationParameters,
-	IDirect3DDevice9** ppReturnedDeviceInterface)
+										   DWORD BehaviorFlags, D3DPRESENT_PARAMETERS* pPresentationParameters,
+										   IDirect3DDevice9** ppReturnedDeviceInterface)
 {
 	// Create real interface
 	HRESULT hResult = m_pD3D->CreateDevice(Adapter, DeviceType, hFocusWindow, BehaviorFlags,
@@ -215,6 +215,10 @@ HRESULT WINAPI BaseDirect3D9::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, 
 		OutputDebugString("[ERR] Config loading failed, config could not be loaded. Returning normal D3DDevice. Vireio will not be active.\n");
 		return hResult;
 	}
+
+	// load HUD/GUI settings
+	helper.LoadHUDConfig(cfg);
+	helper.LoadGUIConfig(cfg);
 
 	OutputDebugString("[OK] Config loading - OK\n");
 
