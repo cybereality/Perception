@@ -2,7 +2,7 @@
 Vireio Perception: Open-Source Stereoscopic 3D Driver
 Copyright (C) 2012 Andres Hernandez
 Modifications Copyright (C) 2013 Chris Drain, Denis Reischl, Neil Schneider 
-  and Joshua Brown 
+and Joshua Brown 
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -64,6 +64,8 @@ public:
 	D3DXMATRIX    HUDDistance();
 	D3DXMATRIX    LeftHUD3DDepth();
 	D3DXMATRIX    RightHUD3DDepth();
+	D3DXMATRIX    LeftHUD3DDepthShifted();
+	D3DXMATRIX    RightHUD3DDepthShifted();
 	D3DXMATRIX    LeftGUI3DDepth();
 	D3DXMATRIX    RightGUI3DDepth();
 	D3DXMATRIX    BulletLabyrinth();
@@ -87,7 +89,7 @@ public:
 	float         SeparationIPDAdjustment();
 	bool          RollEnabled();
 	HMDisplayInfo HMDInfo();	
-	
+
 private:
 	/*** Projection Matrix variables ***/
 	float n;	/**< Minimum z-value of the view volume. */
@@ -173,6 +175,14 @@ private:
 	* HUD 3d depth matrix, to be used in HUD separation matrices. 
 	***/
 	D3DXMATRIX matRightHud3DDepth;
+	/**
+	* HUD 3d depth matrix, to be used in HUD separation matrices. 
+	***/
+	D3DXMATRIX matLeftHud3DDepthShifted;
+	/**
+	* HUD 3d depth matrix, to be used in HUD separation matrices. 
+	***/
+	D3DXMATRIX matRightHud3DDepthShifted;
 	/**
 	* HUD 3d depth matrix, to be used in HUD separation matrices. 
 	***/

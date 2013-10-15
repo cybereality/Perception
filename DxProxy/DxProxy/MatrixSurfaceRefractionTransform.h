@@ -93,39 +93,6 @@ public:
 		}
 	}
 
-	///**
-	//* Matrix modification does multiply: translation * squash.
-	//* Does the matrix squash and outputs the results.  Does only affect HUD (or GUI).
-	//* @param in The matrix to be multiply by the adjustmentMatricies.
-	//* @param[out] outLeft The resulting left side matrix
-	//* @param[out] outRight The resulting right side matrix
-	//***/
-	//virtual void DoMatrixModification(D3DXMATRIX in, D3DXMATRIX& outLeft, D3DXMATRIX& outright)
-	//{
-	//	//// get a new texture projection matrix by the 
-	//	//// already rotated worldViewProjection matrix
-	//	//tpMatrix = wvpMatrix;
-
-	//	//// transform screen to texture space
-	//	//D3DXMatrixTranspose(&tpMatrix, &tpMatrix);
-	//	//D3DXMATRIX translateUV;
-	//	//D3DXMatrixTranslation(&translateUV, 0.5f, 0.5f, 0.5f); 
-	//	//D3DXMATRIX scaleUV;
-	//	//D3DXMatrixScaling(&scaleUV, 0.5f, 0.5f, 0.0f);
-	//	//tpMatrix=tpMatrix*scaleUV*translateUV;
-	//	//D3DXMatrixTranspose(&tpMatrix, &tpMatrix);
-
-	//	/*if (vireio::AlmostSame(in[15], 1.0f, 0.00001f)) {
-	//	outLeft = in * m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->LeftShiftProjection() * squash * m_spAdjustmentMatrices->Projection();
-	//	outright = in * m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->RightShiftProjection() * squash * m_spAdjustmentMatrices->Projection();
-	//	}
-	//	else {
-	//	ShaderMatrixModification::DoMatrixModification(in, outLeft, outright);
-	//	}*/
-	//	outLeft = m_spAdjustmentMatrices->GatheredMatrixLeft() * scaleUV * translateUV;
-	//	outright = m_spAdjustmentMatrices->GatheredMatrixRight() * scaleUV * translateUV;
-	//};
-
 private:
 	/**
 	* Matrix used to translate the surface refraction texture UVs.

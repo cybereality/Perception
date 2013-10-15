@@ -173,6 +173,8 @@
     <ClInclude Include="MatrixGatheredOrhoSquash.h" />
     <ClInclude Include="MatrixHudSquash.h" />
     <ClInclude Include="MatrixOrthoSquash.h" />
+    <ClInclude Include="MatrixOrthoSquashHud.h" />
+    <ClInclude Include="MatrixOrthoSquashShifted.h" />
     <ClInclude Include="MatrixSurfaceRefractionTransform.h" />
     <ClInclude Include="ShaderMatrixModification.h" />
     <ClInclude Include="MatrixIgnoreOrtho.h" />

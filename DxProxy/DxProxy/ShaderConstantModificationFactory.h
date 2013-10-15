@@ -2,7 +2,7 @@
 Vireio Perception: Open-Source Stereoscopic 3D Driver
 Copyright (C) 2012 Andres Hernandez
 Modifications Copyright (C) 2013 Chris Drain, Denis Reischl, Neil Schneider 
-  and Joshua Brown 
+and Joshua Brown 
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -31,6 +31,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "MatrixDoNothing.h"
 #include "MatrixHudSquash.h"
 #include "MatrixOrthoSquash.h"
+#include "MatrixOrthoSquashHud.h"
+#include "MatrixOrthoSquashShifted.h"
 #include "MatrixSurfaceRefractionTransform.h"
 #include "MatrixGatheredOrhoSquash.h"
 
@@ -61,6 +63,8 @@ public:
 		MatHudSquash = 4,                  /**< Modification to squash the head-up display(HUD). **/
 		MatSurfaceRefractionTransform = 5, /**< Modification to fix surface refraction in pixel shaders. **/
 		MatGatheredOrthographicSquash = 6, /**< Squashes matrix if orthographic, otherwise simple translate. Result will be gathered to be used in other modifications.**/
+		MatOrthographicSquashShifted = 7,  /**< Squashes matrix if orthographic, otherwise simple translate - shift accordingly. **/
+		MatOrthographicSquashHud = 8       /**< Squashes matrix if orthographic, otherwise simple translate - matrices treated as beeing for HUD. **/
 	};
 
 	/**
@@ -125,6 +129,12 @@ public:
 
 		case MatGatheredOrthographicSquash:
 			return std::make_shared<MatrixGatheredOrthoSquash>(mod, adjustmentMatricies, transpose);
+
+		case MatOrthographicSquashShifted:
+			return std::make_shared<MatrixOrthoSquashShifted>(mod, adjustmentMatricies, transpose);
+
+		case MatOrthographicSquashHud:
+			return std::make_shared<MatrixOrthoSquashHud>(mod, adjustmentMatricies, transpose);
 
 		default:
 			OutputDebugString("Nonexistant matrix modification\n");

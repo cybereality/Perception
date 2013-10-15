@@ -211,6 +211,9 @@ void ViewAdjustment::ComputeViewTransforms()
 	// hud3DDepth
 	D3DXMatrixTranslation(&matLeftHud3DDepth, hud3DDepth, 0, 0);
 	D3DXMatrixTranslation(&matRightHud3DDepth, -hud3DDepth, 0, 0);
+	float additionalSeparation = (1.5f-hudDistance)*hmdInfo.lensXCenterOffset;
+	D3DXMatrixTranslation(&matLeftHud3DDepthShifted, hud3DDepth+additionalSeparation, 0, 0);
+	D3DXMatrixTranslation(&matRightHud3DDepthShifted, -hud3DDepth-additionalSeparation, 0, 0);
 	D3DXMatrixTranslation(&matLeftGui3DDepth, gui3DDepth+SeparationIPDAdjustment(), 0, 0);
 	D3DXMatrixTranslation(&matRightGui3DDepth, -(gui3DDepth+SeparationIPDAdjustment()), 0, 0);
 }
@@ -311,6 +314,22 @@ D3DXMATRIX ViewAdjustment::LeftHUD3DDepth()
 D3DXMATRIX ViewAdjustment::RightHUD3DDepth()
 {
 	return matRightHud3DDepth;
+}
+
+/**
+* Returns the current left HUD depth eye separation matrix shifted.
+***/
+D3DXMATRIX ViewAdjustment::LeftHUD3DDepthShifted()
+{
+	return matLeftHud3DDepthShifted;
+}
+
+/**
+* Returns the current left HUD depth eye separation matrix shifted.
+***/
+D3DXMATRIX ViewAdjustment::RightHUD3DDepthShifted()
+{
+	return matRightHud3DDepthShifted;
 }
 
 /**
@@ -435,6 +454,9 @@ void ViewAdjustment::ChangeHUD3DDepth(float newHud3DDepth)
 
 	D3DXMatrixTranslation(&matLeftHud3DDepth, -hud3DDepth, 0, 0);
 	D3DXMatrixTranslation(&matRightHud3DDepth, hud3DDepth, 0, 0);
+	float additionalSeparation = (1.5f-hudDistance)*hmdInfo.lensXCenterOffset;
+	D3DXMatrixTranslation(&matLeftHud3DDepthShifted, hud3DDepth+additionalSeparation, 0, 0);
+	D3DXMatrixTranslation(&matRightHud3DDepthShifted, -hud3DDepth-additionalSeparation, 0, 0);
 }
 
 /**

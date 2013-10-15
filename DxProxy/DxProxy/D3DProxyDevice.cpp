@@ -2032,7 +2032,6 @@ void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 	stereoView = StereoViewFactory::Get(config, m_spShaderViewAdjustment->HMDInfo());
 
 	// HUD
-	ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)config.hud3DDepthMode);
 	for (int i = 0; i < 4; i++)
 	{
 		hud3DDepthPresets[i] = config.hud3DDepthPresets[i];
@@ -2040,9 +2039,9 @@ void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 		hudHotkeys[i] = config.hudHotkeys[i];
 	}
 	hudHotkeys[4] = config.hudHotkeys[4];
+	ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)config.hud3DDepthMode);
 
 	// GUI
-	ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)config.gui3DDepthMode);
 	for (int i = 0; i < 4; i++)
 	{
 		gui3DDepthPresets[i] = config.gui3DDepthPresets[i];
@@ -2050,6 +2049,7 @@ void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 		guiHotkeys[i] = config.guiHotkeys[i];
 	}
 	guiHotkeys[4] = config.guiHotkeys[4];
+	ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)config.gui3DDepthMode);
 
 	OnCreateOrRestore();
 }
@@ -2630,114 +2630,6 @@ void D3DProxyDevice::BRASSA()
 		BRASSA_Settings();
 		break;
 	}
-	/////// hud text
-	//if(hudFont){
-
-	//	// watch HMDInfo::LeftLensCenterAsPercentage() for this formular
-	//	// TODO !! setup HMDInfo::physicalLensSeparation to match the configured IPD (is currently default
-	//	// IPD = 0.064f)
-	//	float LeftLensCenterAsPercentage = ((m_spShaderViewAdjustment->HMDInfo().physicalScreenSize.first / 2.0f) - 
-	//		(/*m_spShaderViewAdjustment->HMDInfo().physicalLensSeparation*/config.ipd  / 2.0f)) / 
-	//		(m_spShaderViewAdjustment->HMDInfo().physicalScreenSize.first);
-
-	//	// should be the right formular, note to ADD lens center offset 
-	//	float ScreenCenterAsPercentage = LeftLensCenterAsPercentage + m_spShaderViewAdjustment->HMDInfo().lensXCenterOffset;
-
-	//	char vcString[512];
-	//	int width = stereoView->viewport.Width;
-	//	int height = stereoView->viewport.Height;
-
-	//	float horWidth = 0.15f;
-	//	int beg = (int)(width*(1.0f-horWidth)/2.0) + (int)(ScreenCenterAsPercentage * width * 0.25f);
-	//	int end = (int)(width*(0.5f+(horWidth/2.0f))) + (int)(ScreenCenterAsPercentage * width * 0.25f);
-
-	//	int hashTop = (int)(height * 0.48f);
-	//	int hashBottom = (int)(height * 0.52f);
-
-	//	RECT rec2 = {(int)(width*0.27f), (int)(height*0.3f),width,height};
-	//	sprintf_s(vcString, 512, "Schneider-Hicks Optical Calibration Tool (S.H.O.C.T.).\n");
-	//	hudFont->DrawText(NULL, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));
-
-	//	// Seperation mode (= world scale mode)
-	//	if(BRASSA_mode == 1)
-	//	{
-	//		// draw left line (using BaseDirect3DDevice9, since otherwise we have two lines)
-	//		D3DRECT rec4 = {(int)(width/2 + ((centerlineR+LeftLensCenterAsPercentage) * width * 0.25f))-1, 0,
-	//			(int)(width/2 + ((centerlineR+LeftLensCenterAsPercentage) * width * 0.25f))+1,height};
-	//		if (!config.swap_eyes)
-	//			ClearRect(vireio::RenderPosition::Left, rec4, D3DCOLOR_ARGB(255,255,0,0));
-	//		else
-	//			ClearRect(vireio::RenderPosition::Right, rec4, D3DCOLOR_ARGB(255,255,0,0));
-
-	//		// draw right line (using BaseDirect3DDevice9, since otherwise we have two lines)
-	//		D3DRECT rec3 = {(int)(width/2 + ((centerlineL-LeftLensCenterAsPercentage) * width * 0.25f))-1, 0,
-	//			(int)(width/2 + ((centerlineL-LeftLensCenterAsPercentage) * width * 0.25f))+1,height};
-	//		if (!config.swap_eyes)
-	//			ClearRect(vireio::RenderPosition::Right, rec3, D3DCOLOR_ARGB(255,255,0,0));
-	//		else
-	//			ClearRect(vireio::RenderPosition::Left, rec3, D3DCOLOR_ARGB(255,255,0,0));
-	//	}
-	//	// Convergence mode
-	//	if(BRASSA_mode == 2)
-	//	{
-	//		//screen center line
-
-	//		// draw right line (using BaseDirect3DDevice9, since otherwise we have two lines)
-	//		D3DRECT rec3 = {(int)(width/2 + (-ScreenCenterAsPercentage * width * 0.25f))-1, 0,
-	//			(int)(width/2 + (-ScreenCenterAsPercentage * width * 0.25f))+1,height};
-	//		if (!config.swap_eyes)
-	//			ClearRect(vireio::RenderPosition::Right, rec3, D3DCOLOR_ARGB(255,0,0,255));
-	//		else
-	//			ClearRect(vireio::RenderPosition::Left, rec3, D3DCOLOR_ARGB(255,0,0,255));
-
-	//		// draw left line (using BaseDirect3DDevice9, since otherwise we have two lines)
-	//		D3DRECT rec4 = {(int)(width/2 + (ScreenCenterAsPercentage * width * 0.25f))-1, 0,
-	//			(int)(width/2 + (ScreenCenterAsPercentage * width * 0.25f))+1,height};
-	//		if (!config.swap_eyes)
-	//			ClearRect(vireio::RenderPosition::Left, rec4, D3DCOLOR_ARGB(255,0,0,255));
-	//		else
-	//			ClearRect(vireio::RenderPosition::Right, rec4, D3DCOLOR_ARGB(255,0,0,255));
-
-	//		// horizontal line
-	//		D3DRECT rec5 = {beg, (height/2)-1, end, (height/2)+1 };
-	//		if (!config.swap_eyes)
-	//			ClearRect(vireio::RenderPosition::Left, rec5, D3DCOLOR_ARGB(255,0,0,255));
-	//		else
-	//			ClearRect(vireio::RenderPosition::Right, rec5, D3DCOLOR_ARGB(255,0,0,255));
-
-	//		// hash lines
-	//		int hashNum = 10;
-	//		float hashSpace = horWidth*width / (float)hashNum;
-	//		for(int i=0; i<=hashNum; i++) {
-	//			D3DRECT rec5 = {beg+(int)(i*hashSpace)-1, hashTop, beg+(int)(i*hashSpace)+1, hashBottom};
-	//			if (!config.swap_eyes)
-	//				ClearRect(vireio::RenderPosition::Left, rec5, D3DCOLOR_ARGB(255,255,255,0));
-	//			else
-	//				ClearRect(vireio::RenderPosition::Right, rec5, D3DCOLOR_ARGB(255,255,255,0));
-	//		}
-
-	//		/*RECT rec2 = {(int)(width*0.37f), (int)(height*0.525f), width, height};
-	//		sprintf_s(vcString, 512, "Positive Parallax");
-	//		hudFont->DrawText(NULL, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));
-
-	//		rec2.left = (int)(width *0.52f);
-	//		sprintf_s(vcString, 512, "Negative Parallax");
-	//		hudFont->DrawText(NULL, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));*/
-
-	//		// draw description
-	//		RECT rec7 = {(int)(width*0.37f), (int)(height*0.59f), width, height};
-	//		sprintf_s(vcString, 512, "Walk up as close as possible to a 90 degree\n vertical object, and align this line with its edge.\n Good examples include a wall, corner, a table corner,\n a squared post, etc.");
-	//		hudFont->DrawText(NULL, vcString, -1, &rec7, 0, D3DCOLOR_ARGB(255,255,255,255));
-	//	}
-
-	//	rec2.left = (int)(width*0.35f);
-	//	rec2.top = (int)(height*0.33f);
-	//	if(BRASSA_mode == 1)
-	//		sprintf_s(vcString, 512, "Separation");
-	//	if(BRASSA_mode == 2)
-	//		sprintf_s(vcString, 512, "Convergence");
-	//	hudFont->DrawText(NULL, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));
-	//}
 }
 
 /**
@@ -2802,6 +2694,12 @@ void D3DProxyDevice::BRASSA_MainMenu()
 		if (entryID == 1)
 		{
 			BRASSA_mode = BRASSA_Modes::WORLD_SCALE_CALIBRATION;
+			menuVelocity.x+=10.0f;
+		}
+		// hud calibration
+		if (entryID == 2)
+		{
+			BRASSA_mode = BRASSA_Modes::CONVERGENCE_ADJUSTMENT;
 			menuVelocity.x+=10.0f;
 		}
 		// hud calibration
@@ -3091,7 +2989,7 @@ void D3DProxyDevice::BRASSA_WorldScale()
 		// output game untis
 		// 1 Game Unit = X Feet
 		// 1 Game Unit = X Meters
-		RECT rec10 = {(int)(width*0.40f), (int)(height*0.58f),width,height};
+		RECT rec10 = {(int)(width*0.40f), (int)(height*0.57f),width,height};
 		DrawTextShadowed(hudFont, hudMainMenu, "<- calibrate using Arrow Keys ->", -1, &rec10, 0, D3DCOLOR_ARGB(255,255,255,255));
 		//Column 1:
 		//1 Game Unit = X Meters
@@ -3103,29 +3001,29 @@ void D3DProxyDevice::BRASSA_WorldScale()
 		//1 Centimeter = X Game Units
 		//1 Foot = X Game Units
 		//1 Inch = X Game Units
-		rec10.top = (int)(height*0.42f); rec10.left = (int)(width*0.25f);
+		rec10.top = (int)(height*0.6f); rec10.left = (int)(width*0.28f);
 		float meters = 1 / m_spShaderViewAdjustment->WorldScale();
 		sprintf_s(vcString,"1 Game Unit = %g Meters", meters);
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, D3DCOLOR_ARGB(255,255,255,255));
 		rec10.top+=35;
 		float centimeters = meters * 100.0f;
-		sprintf_s(vcString,"1 Game Unit = %g Centimeters", centimeters);
+		sprintf_s(vcString,"1 Game Unit = %g CM", centimeters);
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, D3DCOLOR_ARGB(255,255,255,255));
 		rec10.top+=35;
 		float feet = meters * 3.2808399f;
 		sprintf_s(vcString,"1 Game Unit = %g Feet", feet);
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, D3DCOLOR_ARGB(255,255,255,255));
 		rec10.top+=35;
-		float inches = feet / 12.0f;
-		sprintf_s(vcString,"1 Game Unit = %g Inches", inches);
+		float inches = feet * 12.0f;
+		sprintf_s(vcString,"1 Game Unit = %g In.", inches);
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, D3DCOLOR_ARGB(255,255,255,255));
 
-		RECT rec11 = {(int)(width*0.55f), (int)(height*0.42f),width,height};
+		RECT rec11 = {(int)(width*0.52f), (int)(height*0.6f),width,height};
 		sprintf_s(vcString,"1 Meter      = %g Game Units", m_spShaderViewAdjustment->WorldScale());
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec11, 0, D3DCOLOR_ARGB(255,255,255,255));
 		rec11.top+=35;
 		float gameUnitsToCentimeter =  m_spShaderViewAdjustment->WorldScale() / 100.0f;
-		sprintf_s(vcString,"1 Centimeter = %g Game Units", gameUnitsToCentimeter);
+		sprintf_s(vcString,"1 CM         = %g Game Units", gameUnitsToCentimeter);
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec11, 0, D3DCOLOR_ARGB(255,255,255,255));
 		rec11.top+=35;
 		float gameUnitsToFoot = m_spShaderViewAdjustment->WorldScale() / 3.2808399f;
@@ -3186,6 +3084,8 @@ void D3DProxyDevice::BRASSA_WorldScale()
 ***/
 void D3DProxyDevice::BRASSA_Convergence()
 {
+	float convergenceChange = 0.05f;
+
 	/**
 	* ESCAPE : Set BRASSA inactive and save the configuration.
 	***/
@@ -3200,8 +3100,189 @@ void D3DProxyDevice::BRASSA_Convergence()
 		m_spShaderViewAdjustment->Save(config);
 		helper->SaveConfig(config);
 	}
-	//		m_spShaderViewAdjustment->ChangeConvergence(-convergenceChange);
-	//		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
+	
+	/**
+	* LEFT : Decrease convergence (hold CTRL to lower speed, SHIFT to speed up)
+	***/
+	if((KEY_DOWN(VK_LEFT)) && (menuVelocity.x == 0.0f))
+	{
+		if(KEY_DOWN(VK_CONTROL)) {
+			convergenceChange /= 10.0f;
+		}
+		else if(KEY_DOWN(VK_SHIFT)) {
+			convergenceChange *= 10.0f;
+		} 
+
+		m_spShaderViewAdjustment->ChangeConvergence(-convergenceChange);
+		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
+
+		menuVelocity.x+=2.0f;
+	}
+
+	/**
+	* RIGHT : Increase convergence (hold CTRL to lower speed, SHIFT to speed up)
+	***/
+	if((KEY_DOWN(VK_RIGHT)) && (menuVelocity.x == 0.0f))
+	{
+		if(KEY_DOWN(VK_CONTROL)) {
+			convergenceChange /= 10.0f;
+		}
+		else if(KEY_DOWN(VK_SHIFT))
+		{
+			convergenceChange *= 10.0f;
+		}
+
+		m_spShaderViewAdjustment->ChangeConvergence(convergenceChange);
+		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
+
+		menuVelocity.x+=2.0f;
+	}
+
+	// handle border height (=scrollbar scroll height)
+	if (borderTopHeight<-64.0f)
+		borderTopHeight = -64.0f;
+	if (borderTopHeight>365.0f)
+		borderTopHeight = 365.0f;
+
+	if(hudFont){
+
+		hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
+
+		// standard hud size, will be scaled later to actual viewport
+		char vcString[1024];
+		int width = 1920;
+		int height = 1080;
+
+		float fScaleX = ((float)stereoView->viewport.Width / (float)width);
+		float fScaleY = ((float)stereoView->viewport.Height / (float)height);
+
+		D3DXMATRIX matScale;
+		D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
+		hudMainMenu->SetTransform(&matScale);
+
+		// watch HMDInfo::LeftLensCenterAsPercentage() for this formular
+		// TODO !! setup HMDInfo::physicalLensSeparation to match the configured IPD (is currently default
+		// IPD = 0.064f)
+		float LeftLensCenterAsPercentage = ((m_spShaderViewAdjustment->HMDInfo().physicalScreenSize.first / 2.0f) - 
+			(/*m_spShaderViewAdjustment->HMDInfo().physicalLensSeparation*/config.ipd  / 2.0f)) / 
+			(m_spShaderViewAdjustment->HMDInfo().physicalScreenSize.first);
+
+		// should be the right formular, note to ADD lens center offset :
+		// float ScreenCenterAsPercentage = LeftLensCenterAsPercentage + m_spShaderViewAdjustment->HMDInfo().lensXCenterOffset;
+		// 0.2f = valuation
+		float BlueLineCenterAsPercentage = LeftLensCenterAsPercentage + m_spShaderViewAdjustment->HMDInfo().lensXCenterOffset * 0.2f;
+
+		float horWidth = 0.15f;
+		int beg = (int)(stereoView->viewport.Width*(1.0f-horWidth)/2.0) + (int)(BlueLineCenterAsPercentage * stereoView->viewport.Width * 0.25f);
+		int end = (int)(stereoView->viewport.Width*(0.5f+(horWidth/2.0f))) + (int)(BlueLineCenterAsPercentage * stereoView->viewport.Width * 0.25f);
+
+		int hashTop = (int)(stereoView->viewport.Height  * 0.48f);
+		int hashBottom = (int)(stereoView->viewport.Height  * 0.52f);
+
+		RECT rec2 = {(int)(width*0.27f), (int)(height*0.8f),width,height};
+		sprintf_s(vcString, 1024, "Brown Reischl and Schneider Settings Analyzer (B.R.A.S.S.A.).\n");
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));
+
+		// draw right line (using BaseDirect3DDevice9, since otherwise we have two lines)
+		D3DRECT rec3 = {(int)(stereoView->viewport.Width/2 + (-BlueLineCenterAsPercentage * stereoView->viewport.Width * 0.25f))-1, 0,
+			(int)(stereoView->viewport.Width/2 + (-BlueLineCenterAsPercentage * stereoView->viewport.Width * 0.25f))+1,stereoView->viewport.Height };
+		if (!config.swap_eyes)
+			ClearRect(vireio::RenderPosition::Right, rec3, D3DCOLOR_ARGB(255,0,0,255));
+		else
+			ClearRect(vireio::RenderPosition::Left, rec3, D3DCOLOR_ARGB(255,0,0,255));
+
+		// draw left line (using BaseDirect3DDevice9, since otherwise we have two lines)
+		D3DRECT rec4 = {(int)(stereoView->viewport.Width/2 + (BlueLineCenterAsPercentage * stereoView->viewport.Width * 0.25f))-1, 0,
+			(int)(stereoView->viewport.Width/2 + (BlueLineCenterAsPercentage * stereoView->viewport.Width * 0.25f))+1,stereoView->viewport.Height };
+		if (!config.swap_eyes)
+			ClearRect(vireio::RenderPosition::Left, rec4, D3DCOLOR_ARGB(255,0,0,255));
+		else
+			ClearRect(vireio::RenderPosition::Right, rec4, D3DCOLOR_ARGB(255,0,0,255));
+
+		// horizontal line
+		D3DRECT rec5 = {beg, (stereoView->viewport.Height /2)-1, end, (stereoView->viewport.Height /2)+1 };
+		if (!config.swap_eyes)
+			ClearRect(vireio::RenderPosition::Left, rec5, D3DCOLOR_ARGB(255,0,0,255));
+		else
+			ClearRect(vireio::RenderPosition::Right, rec5, D3DCOLOR_ARGB(255,0,0,255));
+
+		// hash lines
+		int hashNum = 10;
+		float hashSpace = horWidth*stereoView->viewport.Width / (float)hashNum;
+		for(int i=0; i<=hashNum; i++) {
+			D3DRECT rec5 = {beg+(int)(i*hashSpace)-1, hashTop, beg+(int)(i*hashSpace)+1, hashBottom};
+			if (!config.swap_eyes)
+				ClearRect(vireio::RenderPosition::Left, rec5, D3DCOLOR_ARGB(255,255,255,0));
+			else
+				ClearRect(vireio::RenderPosition::Right, rec5, D3DCOLOR_ARGB(255,255,255,0));
+		}
+
+		rec2.left = (int)(width*0.35f);
+		rec2.top = (int)(height*0.83f);
+		sprintf_s(vcString, 1024, "Convergence Adjustment");
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));
+
+		// output convergence
+		RECT rec10 = {(int)(width*0.40f), (int)(height*0.57f),width,height};
+		DrawTextShadowed(hudFont, hudMainMenu, "<- calibrate using Arrow Keys ->", -1, &rec10, 0, D3DCOLOR_ARGB(255,255,255,255));
+		// Convergence Screen = X Meters = X Feet
+		rec10.top = (int)(height*0.6f); rec10.left = (int)(width*0.385f);
+		float meters = m_spShaderViewAdjustment->Convergence();
+		sprintf_s(vcString,"Convergence Screen = %g Meters", meters);
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, D3DCOLOR_ARGB(255,255,255,255));
+		rec10.top+=35;
+		float centimeters = meters * 100.0f;
+		sprintf_s(vcString,"Convergence Screen = %g CM", centimeters);
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, D3DCOLOR_ARGB(255,255,255,255));
+		rec10.top+=35;
+		float feet = meters * 3.2808399f;
+		sprintf_s(vcString,"Convergence Screen = %g Feet", feet);
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, D3DCOLOR_ARGB(255,255,255,255));
+		rec10.top+=35;
+		float inches = feet * 12.0f;
+		sprintf_s(vcString,"Convergence Screen = %g Inches", inches);
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, D3DCOLOR_ARGB(255,255,255,255));
+
+		RECT rect1;
+		rect1.left = 0;
+		rect1.right = 1920;
+		rect1.top = 0;
+		rect1.bottom = 1080;
+		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
+		hudMainMenu->Draw(NULL, &rect1, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));  
+		hudMainMenu->End();
+
+		// draw description text box
+		hudTextBox->Begin(D3DXSPRITE_ALPHABLEND);
+		hudTextBox->SetTransform(&matScale);
+		RECT rec8 = {620, (int)(borderTopHeight), 1300, 400};
+		sprintf_s(vcString, 1024,
+			"Note that the Convergence Screens distance\n"
+			"is measured in physical meters and should\n"
+			"only be adjusted to match Your personal\n"
+			"depth cognition after You calibrated the\n"
+			"World Scale accordingly.\n"
+			"In the right eye view, walk up as close as\n"
+			"possible to a 90 degree vertical object and\n"
+			"align the BLUE vertical line with its edge.\n"
+			"Good examples include a wall corner, a table\n"
+			"corner, a square post, etc.\n"
+			);
+		DrawTextShadowed(hudFont, hudTextBox, vcString, -1, &rec8, 0, D3DCOLOR_ARGB(255,255,255,255));
+		hudTextBox->Draw(NULL, &rec8, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));
+
+		// draw description box scroll bar
+		float scroll = (429.0f-borderTopHeight-64.0f)/429.0f;
+		D3DRECT rec9 = {(int)(1300*fScaleX), 0, (int)(1320*fScaleX), (int)(400*fScaleY)};
+		rec9.x1 -= (int)(LeftLensCenterAsPercentage * width * 0.25f * fScaleX);
+		rec9.x2 -= (int)(LeftLensCenterAsPercentage * width * 0.25f * fScaleX);
+		DrawScrollbar(vireio::RenderPosition::Left, rec9, D3DCOLOR_ARGB(255, 128, 196, 128), scroll, (int)(20*fScaleY));
+		rec9.x1 += (int)(LeftLensCenterAsPercentage * width * 0.5f * fScaleX);
+		rec9.x2 += (int)(LeftLensCenterAsPercentage * width * 0.5f * fScaleX);
+		DrawScrollbar(vireio::RenderPosition::Right, rec9, D3DCOLOR_ARGB(255, 128, 196, 128), scroll, (int)(20*fScaleY));
+
+		hudTextBox->End();
+	}
 }
 
 /**
@@ -3284,7 +3365,6 @@ void D3DProxyDevice::BRASSA_HUD()
 			{
 				ProxyHelper* helper = new ProxyHelper();
 				helper->LoadHUDConfig(config);
-				ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)config.hud3DDepthMode);
 				for (int i = 0; i < 4; i++)
 				{
 					hud3DDepthPresets[i] = config.hud3DDepthPresets[i];
@@ -3292,6 +3372,7 @@ void D3DProxyDevice::BRASSA_HUD()
 					hudHotkeys[i] = config.hudHotkeys[i];
 				}
 				hudHotkeys[4] = config.hudHotkeys[4];
+				ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)config.hud3DDepthMode);
 			}
 			// back to main menu
 			if (entryID == 10)
@@ -3554,7 +3635,6 @@ void D3DProxyDevice::BRASSA_GUI()
 			{
 				ProxyHelper* helper = new ProxyHelper();
 				helper->LoadGUIConfig(config);
-				ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)config.gui3DDepthMode);
 				for (int i = 0; i < 4; i++)
 				{
 					gui3DDepthPresets[i] = config.gui3DDepthPresets[i];
@@ -3562,6 +3642,7 @@ void D3DProxyDevice::BRASSA_GUI()
 					guiHotkeys[i] = config.guiHotkeys[i];
 				}
 				guiHotkeys[4] = config.guiHotkeys[4];
+				ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)config.gui3DDepthMode);
 			}
 			// back to main menu
 			if (entryID == 10)
