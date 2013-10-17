@@ -131,8 +131,9 @@ bool GameHandler::ShouldDuplicateDepthStencilSurface(UINT Width,UINT Height,D3DF
 ***/
 bool GameHandler::ShouldDuplicateTexture(UINT Width,UINT Height,UINT Levels,DWORD Usage, D3DFORMAT Format,D3DPOOL Pool)
 {
-	//TODO implementation
-	// IF render target then check render target rules?
+	// other render target rules?
+	if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
+		return true;
 	return IS_RENDER_TARGET(Usage);
 }
 
