@@ -173,6 +173,14 @@ private:
 	* Internal reference counter. 
 	***/
 	ULONG m_nRefCount;
+#ifdef _EXPORT_LOGFILE
+	/**
+	* The log file (.txt format).
+	* Outputs D3D device history.
+	* (define _EXPORT_LOGFILE to use this)
+	***/
+	std::ofstream m_logFile;
+#endif
 };
 
 #endif
