@@ -17,6 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
 #include "D3DProxyDeviceFactory.h"
+#include "D3DProxyDeviceDebug.h"
 #include "D3DProxyDeviceEgo.h"
 #include "D3DProxyDeviceAdv.h"
 #include "DataGatherer.h"
@@ -38,6 +39,9 @@ D3DProxyDevice* D3DProxyDeviceFactory::Get(ProxyHelper::ProxyConfig& config, IDi
 	case D3DProxyDevice::DATA_GATHERER:
 	case D3DProxyDevice::DATA_GATHERER_SOURCE:
 		newDev = new DataGatherer(dev, pCreatedBy);
+		break;
+	case D3DProxyDevice::DEBUG_LOG_FILE:
+		newDev = new D3DProxyDeviceDebug(dev, pCreatedBy);
 		break;
 	default:
 		newDev = new D3DProxyDevice(dev, pCreatedBy);

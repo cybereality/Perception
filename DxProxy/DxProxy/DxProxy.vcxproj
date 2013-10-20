@@ -117,11 +117,14 @@
     <ClCompile Include="D3D9ProxyStateBlock.cpp" />
     <ClCompile Include="D3DProxyDevice.cpp" />
     <ClCompile Include="D3DProxyDeviceAdv.cpp" />
+    <ClCompile Include="D3DProxyDeviceDebug.cpp" />
     <ClCompile Include="D3DProxyDeviceEgo.cpp" />
     <ClCompile Include="D3DProxyDeviceFactory.cpp" />
     <ClCompile Include="D3D9ProxySurface.cpp" />
     <ClCompile Include="Direct3D9.cpp" />
+    <ClCompile Include="Direct3D9Ex.cpp" />
     <ClCompile Include="Direct3DCubeTexture9.cpp" />
+    <ClCompile Include="Direct3DDevice9Ex.cpp" />
     <ClCompile Include="Direct3DIndexBuffer9.cpp" />
     <ClCompile Include="Direct3DPixelShader9.cpp" />
     <ClCompile Include="Direct3DQuery9.cpp" />
@@ -166,7 +169,10 @@
     <ClInclude Include="D3D9ProxyVolume.h" />
     <ClInclude Include="D3D9ProxyVolumeTexture.h" />
     <ClInclude Include="D3D9ProxyStateBlock.h" />
+    <ClInclude Include="D3DProxyDeviceDebug.h" />
     <ClInclude Include="DataGatherer.h" />
+    <ClInclude Include="Direct3D9Ex.h" />
+    <ClInclude Include="Direct3DDevice9Ex.h" />
     <ClInclude Include="GameHandler.h" />
     <ClInclude Include="HMDisplayInfo.h" />
     <ClInclude Include="MatrixDoNothing.h" />

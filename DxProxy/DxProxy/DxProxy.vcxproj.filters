@@ -193,6 +193,15 @@
     <ClCompile Include="D3D9ProxyPixelShader.cpp">
       <Filter>Direct3D9Vireio</Filter>
     </ClCompile>
+    <ClCompile Include="Direct3D9Ex.cpp">
+      <Filter>Direct3D9</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3DDevice9Ex.cpp">
+      <Filter>Direct3D9</Filter>
+    </ClCompile>
+    <ClCompile Include="D3DProxyDeviceDebug.cpp">
+      <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Exports.def">
@@ -419,6 +428,15 @@
     </ClInclude>
     <ClInclude Include="MatrixOrthoSquashShifted.h">
       <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3D9Ex.h">
+      <Filter>Direct3D9</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3DDevice9Ex.h">
+      <Filter>Direct3D9</Filter>
+    </ClInclude>
+    <ClInclude Include="D3DProxyDeviceDebug.h">
+      <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

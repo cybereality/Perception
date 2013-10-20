@@ -73,6 +73,9 @@ public:
 
 	friend class D3D9ProxyStateBlock;
 
+	/*** IUnknown methods ***/
+	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv);
+
 	/*** IDirect3DDevice9 methods ***/
 	virtual HRESULT WINAPI TestCooperativeLevel();
 	virtual HRESULT WINAPI SetCursorProperties(UINT XHotSpot,UINT YHotSpot,IDirect3DSurface9* pCursorBitmap);
@@ -168,7 +171,8 @@ public:
 		UNITY_SLENDER = 501,       /**<  !! */
 		ADVANCED = 600,            /**<  !! */
 		ADVANCED_SKYRIM = 601,     /**<  !! */
-		LFS = 700                  /**<  !! */
+		LFS = 700,                 /**<  !! */
+		DEBUG_LOG_FILE = 99999     /**< Debug log file output game type. For development causes. Do not use since slows down game extremely. */
 	};
 
 	/**
