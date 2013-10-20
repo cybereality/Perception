@@ -489,9 +489,9 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 	if (BRASSA_mode != BRASSA_Modes::INACTIVE)
 	{
 		float fScaleY = ((float)stereoView->viewport.Height / (float)1080.0f);
-		if ((KEY_DOWN(VK_UP)) && (menuVelocity.y==0.0f))
+		if ((KEY_DOWN(VK_UP) || KEY_DOWN(0x49)) && (menuVelocity.y==0.0f))
 			menuVelocity.y-=10.0f;
-		if ((KEY_DOWN(VK_DOWN)) && (menuVelocity.y==0.0f))
+		if ((KEY_DOWN(VK_DOWN) || KEY_DOWN(0x4B)) && (menuVelocity.y==0.0f))
 			menuVelocity.y+=10.0f;
 		borderTopHeight += menuVelocity.y*fScaleY;
 	}
@@ -2753,7 +2753,7 @@ void D3DProxyDevice::BRASSA_MainMenu()
 		}
 	}
 
-	if (KEY_DOWN(VK_LEFT))
+	if (KEY_DOWN(VK_RIGHT) || KEY_DOWN(0x4A))
 	{
 		// change hud scale 
 		if ((entryID == 5) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
@@ -2772,7 +2772,7 @@ void D3DProxyDevice::BRASSA_MainMenu()
 		}
 	}
 
-	if (KEY_DOWN(VK_RIGHT))
+	if (KEY_DOWN(VK_RIGHT) || KEY_DOWN(0x4C))
 	{
 		// change hud scale 
 		if ((entryID == 5) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
@@ -2887,7 +2887,7 @@ void D3DProxyDevice::BRASSA_WorldScale()
 	/**
 	* LEFT : Decrease world scale (hold CTRL to lower speed, SHIFT to speed up)
 	***/
-	if((KEY_DOWN(VK_LEFT)) && (menuVelocity.x == 0.0f))
+	if((KEY_DOWN(VK_LEFT) || KEY_DOWN(0x4A)) && (menuVelocity.x == 0.0f))
 	{
 		if(KEY_DOWN(VK_CONTROL)) {
 			seperationChange /= 10.0f;
@@ -2905,7 +2905,7 @@ void D3DProxyDevice::BRASSA_WorldScale()
 	/**
 	* RIGHT : Increase world scale (hold CTRL to lower speed, SHIFT to speed up)
 	***/
-	if((KEY_DOWN(VK_RIGHT)) && (menuVelocity.x == 0.0f))
+	if((KEY_DOWN(VK_RIGHT) || KEY_DOWN(0x4C)) && (menuVelocity.x == 0.0f))
 	{
 		if(KEY_DOWN(VK_CONTROL)) {
 			seperationChange /= 10.0f;
@@ -3123,7 +3123,7 @@ void D3DProxyDevice::BRASSA_Convergence()
 	/**
 	* LEFT : Decrease convergence (hold CTRL to lower speed, SHIFT to speed up)
 	***/
-	if((KEY_DOWN(VK_LEFT)) && (menuVelocity.x == 0.0f))
+	if((KEY_DOWN(VK_LEFT) || KEY_DOWN(0x4A)) && (menuVelocity.x == 0.0f))
 	{
 		if(KEY_DOWN(VK_CONTROL)) {
 			convergenceChange /= 10.0f;
@@ -3141,7 +3141,7 @@ void D3DProxyDevice::BRASSA_Convergence()
 	/**
 	* RIGHT : Increase convergence (hold CTRL to lower speed, SHIFT to speed up)
 	***/
-	if((KEY_DOWN(VK_RIGHT)) && (menuVelocity.x == 0.0f))
+	if((KEY_DOWN(VK_RIGHT) || KEY_DOWN(0x4C)) && (menuVelocity.x == 0.0f))
 	{
 		if(KEY_DOWN(VK_CONTROL)) {
 			convergenceChange /= 10.0f;
@@ -3415,7 +3415,7 @@ void D3DProxyDevice::BRASSA_HUD()
 			}
 		}
 
-		if (KEY_DOWN(VK_LEFT))
+		if (KEY_DOWN(VK_RIGHT) || KEY_DOWN(0x4A))
 		{
 			if ((entryID == 0) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 			{
@@ -3439,7 +3439,7 @@ void D3DProxyDevice::BRASSA_HUD()
 			}
 		}
 
-		if (KEY_DOWN(VK_RIGHT))
+		if (KEY_DOWN(VK_RIGHT) || KEY_DOWN(0x4C))
 		{
 			// change hud scale
 			if ((entryID == 0) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
@@ -3685,7 +3685,7 @@ void D3DProxyDevice::BRASSA_GUI()
 			}
 		}
 
-		if (KEY_DOWN(VK_LEFT))
+		if (KEY_DOWN(VK_RIGHT) || KEY_DOWN(0x4A))
 		{
 			if ((entryID == 0) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 			{
@@ -3709,7 +3709,7 @@ void D3DProxyDevice::BRASSA_GUI()
 			}
 		}
 
-		if (KEY_DOWN(VK_RIGHT))
+		if (KEY_DOWN(VK_RIGHT) || KEY_DOWN(0x4C))
 		{
 			// change gui scale
 			if ((entryID == 0) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
@@ -3951,7 +3951,7 @@ void D3DProxyDevice::BRASSA_Settings()
 		}
 	}
 
-	if (KEY_DOWN(VK_LEFT) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	if ((KEY_DOWN(VK_RIGHT) || KEY_DOWN(0x4A)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		// swap eyes
 		if (entryID == 0)
@@ -3986,7 +3986,7 @@ void D3DProxyDevice::BRASSA_Settings()
 		}
 	}
 
-	if (KEY_DOWN(VK_RIGHT) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	if ((KEY_DOWN(VK_RIGHT) || KEY_DOWN(0x4C)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		// swap eyes
 		if (entryID == 0)

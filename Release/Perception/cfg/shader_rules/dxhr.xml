@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<shaderConfig>
+	<rules>
+		<rule constantName="m_WVP" partialName="true" id="1" constantType="MatrixR" modToApply="2" startReg="5" transpose="true" />
+		<rule constantName="m_VP" partialName="true" id="2" constantType="MatrixR" modToApply="2" startReg="0" transpose="true" />
+		<rule constantName="m_WVP" partialName="true" id="3" constantType="MatrixR" modToApply="2" startReg="0" transpose="true" />
+		<rule constantName="m_WVP" partialName="true" id="4" constantType="MatrixR" modToApply="2" startReg="8" transpose="true" />
+		<rule constantName="m_P" partialName="true" id="5" constantType="MatrixR" modToApply="2" startReg="0" transpose="true" />
+		<rule constantName="m_P" partialName="true" id="6" constantType="MatrixR" modToApply="2" startReg="240" transpose="true" />
+		<rule constantName="m_screen" partialName="true" id="7" constantType="MatrixR" modToApply="7" startReg="0" transpose="true" />
+		<rule constantName="m_shadow" partialName="true" id="8" constantType="MatrixR" modToApply="0" startReg="0" transpose="true" />
+		<rule constantName="sun_shadow_near" partialName="true" id="9" constantType="MatrixR" modToApply="0" startReg="0" transpose="true" />
+		<rule constantName="sun_shadow_far" partialName="true" id="10" constantType="MatrixR" modToApply="0" startReg="4" transpose="true" />
+	</rules>
+	<defaultRuleIDs>
+		<ruleID id="1" />
+		<ruleID id="2" />
+		<ruleID id="3" />
+		<ruleID id="4" />
+		<ruleID id="5" />
+		<ruleID id="6" />
+		<ruleID id="7" />
+		<ruleID id="8" />
+		<ruleID id="9" />
+		<ruleID id="10" />
+	</defaultRuleIDs>
+</shaderConfig>
