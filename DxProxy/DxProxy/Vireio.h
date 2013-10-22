@@ -5,6 +5,7 @@ Copyright (C) 2012 Andres Hernandez
 File <Vireio.h> and
 Namespace <vireio> :
 Copyright (C) 2012 Andres Hernandez
+Modifications Copyright (C) 2013 Chris Drain
 
 Vireio Perception Version History:
 v1.0.0 2012 by Andres Hernandez
