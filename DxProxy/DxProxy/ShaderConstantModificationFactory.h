@@ -33,17 +33,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <memory>
 #include "d3d9.h"
 #include "d3dx9.h"
-#include "Vector4SimpleTranslate.h"
 #include "ShaderConstantModification.h"
 #include "ShaderMatrixModification.h"
+#include "Vector4SimpleTranslate.h"
+#include "Vector4EyeShiftUnity.h"
 #include "MatrixIgnoreOrtho.h"
 #include "MatrixDoNothing.h"
-#include "MatrixHudSquash.h"
+#include "MatrixHudSlide.h"
+#include "MatrixGuiSquash.h"
 #include "MatrixOrthoSquash.h"
 #include "MatrixOrthoSquashHud.h"
 #include "MatrixOrthoSquashShifted.h"
 #include "MatrixSurfaceRefractionTransform.h"
 #include "MatrixGatheredOrhoSquash.h"
+#include "MatrixConvOffsetAdjustment.h"
+#include "MatrixRollOnly.h"
+#include "MatrixRollOnlyNegative.h"
+#include "MatrixRollOnlyHalf.h"
 
 /**
 * Shader constant modification helper class.
@@ -58,7 +64,8 @@ public:
 	enum Vector4ModificationTypes
 	{
 		Vec4DoNothing = 0,                 /**< Simple modification that does not apply anything. **/
-		Vec4SimpleTranslate = 1            /**< Default modification is simple translate. **/
+		Vec4SimpleTranslate = 1,           /**< Default modification is simple translate. **/
+		Vec4EyeShiftUnity = 2              /**< **/
 	};
 	/**
 	* Matrix modification identifiers.
@@ -68,31 +75,38 @@ public:
 		MatDoNothing = 0,                  /**< Simple modification that does not apply anything. **/
 		MatSimpleTranslate = 1,            /**< Default modification is simple translate. **/
 		MatOrthographicSquash = 2,         /**< Squashes matrix if orthographic, otherwise simple translate. **/
-		MatSimpleTranslateIgnoreOrtho = 3, /**< Modification to ignore orthographic matrices. **/
-		MatHudSquash = 4,                  /**< Modification to squash the head-up display(HUD). **/
+		MatHudSlide = 3,                   /**< Modification to slide the head up display (HUD) into the head mounted display (HMD) output.  **/
+		MatGuiSquash = 4,                  /**< Modification to squash the graphical user interface (GUI). **/
 		MatSurfaceRefractionTransform = 5, /**< Modification to fix surface refraction in pixel shaders. **/
 		MatGatheredOrthographicSquash = 6, /**< Squashes matrix if orthographic, otherwise simple translate. Result will be gathered to be used in other modifications.**/
 		MatOrthographicSquashShifted = 7,  /**< Squashes matrix if orthographic, otherwise simple translate - shift accordingly. **/
-		MatOrthographicSquashHud = 8       /**< Squashes matrix if orthographic, otherwise simple translate - matrices treated as beeing for HUD. **/
+		MatOrthographicSquashHud = 8,      /**< Squashes matrix if orthographic, otherwise simple translate - matrices treated as beeing for HUD. **/
+		MatConvergenceOffset = 9,          /**< Fixes far away objects using the convergence offset. **/
+		MatSimpleTranslateIgnoreOrtho = 10,/**< Modification to ignore orthographic matrices. **/
+		MatRollOnly = 11,                  /**< Modification applies only the head roll. **/
+		MatRollOnlyNegative = 12,          /**< Modification applies only the head roll. (negative)**/
+		MatRollOnlyHalf = 13,              /**< Modification applies only the head roll. (half roll)**/
 	};
 
 	/**
 	* Calls twin function.
 	***/
-	static std::shared_ptr<ShaderConstantModification<>> CreateVector4Modification(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatricies)
+	static std::shared_ptr<ShaderConstantModification<>> CreateVector4Modification(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatrices)
 	{
-		return CreateVector4Modification(static_cast<Vector4ModificationTypes>(modID), adjustmentMatricies);
+		return CreateVector4Modification(static_cast<Vector4ModificationTypes>(modID), adjustmentMatrices);
 	}
 	/**
 	* Creates Vector4 modification.
 	* @see Vector4SimpleTranslate
 	***/
-	static std::shared_ptr<ShaderConstantModification<>> CreateVector4Modification(Vector4ModificationTypes mod, std::shared_ptr<ViewAdjustment> adjustmentMatricies)
+	static std::shared_ptr<ShaderConstantModification<>> CreateVector4Modification(Vector4ModificationTypes mod, std::shared_ptr<ViewAdjustment> adjustmentMatrices)
 	{
 		switch (mod)
 		{
 		case Vec4SimpleTranslate:
-			return std::make_shared<Vector4SimpleTranslate>(mod, adjustmentMatricies);
+			return std::make_shared<Vector4SimpleTranslate>(mod, adjustmentMatrices);
+		case Vec4EyeShiftUnity:
+			return std::make_shared<Vector4EyeShiftUnity>(mod, adjustmentMatrices);
 
 		default:
 			OutputDebugString("Nonexistant Vec4 modification\n");
@@ -103,47 +117,62 @@ public:
 	/**
 	* Calls twin function.
 	***/
-	static std::shared_ptr<ShaderConstantModification<>> CreateMatrixModification(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatricies, bool transpose) 
+	static std::shared_ptr<ShaderConstantModification<>> CreateMatrixModification(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatrices, bool transpose) 
 	{
-		return CreateMatrixModification(static_cast<MatrixModificationTypes>(modID), adjustmentMatricies, transpose);
+		return CreateMatrixModification(static_cast<MatrixModificationTypes>(modID), adjustmentMatrices, transpose);
 	}
 	/**
 	* Creates matrix modification.
 	* @see MatrixDoNothing
 	* @see ShaderMatrixModification
 	* @see MatrixIgnoreOrtho
-	* @see MatrixHudSquash
+	* @see MatrixGuiSquash
 	***/
-	static std::shared_ptr<ShaderConstantModification<>> CreateMatrixModification(MatrixModificationTypes mod, std::shared_ptr<ViewAdjustment> adjustmentMatricies, bool transpose)
+	static std::shared_ptr<ShaderConstantModification<>> CreateMatrixModification(MatrixModificationTypes mod, std::shared_ptr<ViewAdjustment> adjustmentMatrices, bool transpose)
 	{
 		switch (mod)
 		{
 		case MatDoNothing:
-			return std::make_shared<MatrixDoNothing>(mod, adjustmentMatricies);
+			return std::make_shared<MatrixDoNothing>(mod, adjustmentMatrices);
 
 		case MatSimpleTranslate:
-			return std::make_shared<ShaderMatrixModification>(mod, adjustmentMatricies, transpose);
+			return std::make_shared<ShaderMatrixModification>(mod, adjustmentMatrices, transpose);
 
 		case MatOrthographicSquash:
-			return std::make_shared<MatrixOrthoSquash>(mod, adjustmentMatricies, transpose);
+			return std::make_shared<MatrixOrthoSquash>(mod, adjustmentMatrices, transpose);
 
-		case MatSimpleTranslateIgnoreOrtho:
-			return std::make_shared<MatrixIgnoreOrtho>(mod, adjustmentMatricies, transpose);
+		case MatHudSlide:
+			return std::make_shared<MatrixHudSlide>(mod, adjustmentMatrices, transpose);
 
-		case MatHudSquash:
-			return std::make_shared<MatrixHudSquash>(mod, adjustmentMatricies, transpose);
+		case MatGuiSquash:
+			return std::make_shared<MatrixGuiSquash>(mod, adjustmentMatrices, transpose);
 
 		case MatSurfaceRefractionTransform:
-			return std::make_shared<MatrixSurfaceRefractionTransform>(mod, adjustmentMatricies, transpose);
+			return std::make_shared<MatrixSurfaceRefractionTransform>(mod, adjustmentMatrices, transpose);
 
 		case MatGatheredOrthographicSquash:
-			return std::make_shared<MatrixGatheredOrthoSquash>(mod, adjustmentMatricies, transpose);
+			return std::make_shared<MatrixGatheredOrthoSquash>(mod, adjustmentMatrices, transpose);
 
 		case MatOrthographicSquashShifted:
-			return std::make_shared<MatrixOrthoSquashShifted>(mod, adjustmentMatricies, transpose);
+			return std::make_shared<MatrixOrthoSquashShifted>(mod, adjustmentMatrices, transpose);
 
 		case MatOrthographicSquashHud:
-			return std::make_shared<MatrixOrthoSquashHud>(mod, adjustmentMatricies, transpose);
+			return std::make_shared<MatrixOrthoSquashHud>(mod, adjustmentMatrices, transpose);
+
+		case MatConvergenceOffset:
+			return std::make_shared<MatrixConvOffsetAdjustment>(mod, adjustmentMatrices, transpose);
+
+		case MatSimpleTranslateIgnoreOrtho:
+			return std::make_shared<MatrixIgnoreOrtho>(mod, adjustmentMatrices, transpose);
+
+		case MatRollOnly:
+			return std::make_shared<MatrixRollOnly>(mod, adjustmentMatrices, transpose);
+
+		case MatRollOnlyNegative:
+			return std::make_shared<MatrixRollOnlyNegative>(mod, adjustmentMatrices, transpose);
+
+		case MatRollOnlyHalf:
+			return std::make_shared<MatrixRollOnlyHalf>(mod, adjustmentMatrices, transpose);
 
 		default:
 			OutputDebugString("Nonexistant matrix modification\n");

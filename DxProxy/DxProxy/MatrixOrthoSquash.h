@@ -49,17 +49,17 @@ public:
 	/**
 	* Constructor, sets attributes and such.
 	* @param modID The id for this matrix modification.
-	* @param adjustmentMatricies The matricies to be adjusted
+	* @param adjustmentMatrices The matricies to be adjusted
 	* @param transpose Decides if the matrices should be transposed (aka: have rows and columns interchanged)
 	*/
-	MatrixOrthoSquash(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatricies, bool transpose) 
-		: ShaderMatrixModification(modID, adjustmentMatricies, transpose) 
+	MatrixOrthoSquash(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatrices, bool transpose) 
+		: ShaderMatrixModification(modID, adjustmentMatrices, transpose) 
 	{};
 
 	/**
 	* Matrix modification does multiply: shiftprojection * squash (for GUI), scale * transform * distance (for HUD).
 	* Does the matrix squash and outputs the results.  Does only affect HUD (or GUI).
-	* @param in The matrix to be multiply by the adjustmentMatricies.
+	* @param in The matrix to be multiply by the adjustmentMatrices.
 	* @param[out] outLeft The resulting left side matrix
 	* @param[out] outRight The resulting right side matrix
 	***/
@@ -77,17 +77,12 @@ public:
 			allAbs += abs(in(1, 1)); // scaleY
 			allAbs += abs(in(2, 2)); // scaleZ
 
-			// TODO !! compute these two following matrices in the ViewAdjustment class :
-
 			// HUD
 			if (allAbs > 3.0f)
 			{
 				// separation -> distance translation
-				D3DXMATRIX orthoToPersViewProjTransformLeft  = m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->LeftHUD3DDepth() * m_spAdjustmentMatrices->LeftViewTransform() * m_spAdjustmentMatrices->HUDDistance() *  m_spAdjustmentMatrices->Projection() * m_spAdjustmentMatrices->LeftShiftProjection();
-				D3DXMATRIX orthoToPersViewProjTransformRight = m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->RightHUD3DDepth() * m_spAdjustmentMatrices->RightViewTransform() * m_spAdjustmentMatrices->HUDDistance() * m_spAdjustmentMatrices->Projection() * m_spAdjustmentMatrices->RightShiftProjection();
-
-				outLeft = in * orthoToPersViewProjTransformLeft;
-				outright = in * orthoToPersViewProjTransformRight;
+				outLeft = in * m_spAdjustmentMatrices->LeftHUDMatrix();
+				outright = in * m_spAdjustmentMatrices->RightHUDMatrix();
 			}
 			else // GUI
 			{
@@ -98,16 +93,16 @@ public:
 					tempMatrix = m_spAdjustmentMatrices->BulletLabyrinth() * tempMatrix;
 					D3DXMatrixTranspose(&tempMatrix, &tempMatrix);
 
-					outLeft = tempMatrix * m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->LeftGUI3DDepth() * m_spAdjustmentMatrices->LeftShiftProjection() * m_spAdjustmentMatrices->Squash() * m_spAdjustmentMatrices->Projection();
-					outright = tempMatrix * m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->RightGUI3DDepth() * m_spAdjustmentMatrices->RightShiftProjection() * m_spAdjustmentMatrices->Squash() * m_spAdjustmentMatrices->Projection();
+					outLeft = tempMatrix * m_spAdjustmentMatrices->LeftGUIMatrix();
+					outright = tempMatrix * m_spAdjustmentMatrices->RightGUIMatrix();
 				
 					// SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
 				}
 				else
 				{
 					// simple squash
-					outLeft = in * m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->LeftGUI3DDepth() * m_spAdjustmentMatrices->LeftShiftProjection() * m_spAdjustmentMatrices->Squash() * m_spAdjustmentMatrices->Projection();
-					outright = in * m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->RightGUI3DDepth() * m_spAdjustmentMatrices->RightShiftProjection() * m_spAdjustmentMatrices->Squash() * m_spAdjustmentMatrices->Projection();
+					outLeft = in *  m_spAdjustmentMatrices->LeftGUIMatrix();
+					outright = in * m_spAdjustmentMatrices->RightGUIMatrix();
 				}
 			}
 		}

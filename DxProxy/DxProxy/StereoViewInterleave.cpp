@@ -45,39 +45,13 @@ StereoViewInterleave::~StereoViewInterleave()
 }
 
 /**
-* Empty render function, to be new written for the new architecture.
-***/ 
-void StereoViewInterleave::Draw(D3D9ProxySurface* stereoCapableSurface)
+* Set class specific effect values
+***/
+void StereoViewInterleave::SetViewEffectInitialValues()
 {
-	// TODO modify to match new drawing method
-	// old code:
-	/*SaveState();
-	SetState();
-
-	m_pActualDevice->SetFVF(D3DFVF_TEXVERTEX);
-
-	m_pActualDevice->SetTexture(0, leftTexture);
-	m_pActualDevice->SetTexture(1, rightTexture);
-	m_pActualDevice->SetStreamSource(0, screenVertexBuffer, 0, sizeof(TEXVERTEX));
-
-	UINT iPass, cPasses;
-
 	D3DXHANDLE viewWidth = viewEffect->GetParameterByName(0, "viewWidth");
 	D3DXHANDLE viewHeight = viewEffect->GetParameterByName(0, "viewHeight");
-	
+
 	viewEffect->SetInt(viewWidth, viewport.Width);
 	viewEffect->SetInt(viewHeight, viewport.Height);
-
-	viewEffect->SetTechnique("ViewShader");
-	viewEffect->Begin(&cPasses, 0);
-
-	for(iPass = 0; iPass < cPasses; iPass++)
-	{
-		viewEffect->BeginPass(iPass);
-		m_pActualDevice->DrawPrimitive(D3DPT_TRIANGLEFAN, 0, 2);
-		viewEffect->EndPass();
-	}
-	viewEffect->End();
-
-	RestoreState();*/
-}
+} 

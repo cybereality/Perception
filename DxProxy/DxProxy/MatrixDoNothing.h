@@ -49,10 +49,10 @@ public:
 	/**
 	* Just sets the class values that correspond to the parameters. 
 	* @param modID The modification ID
-	* @param adjustmentMatricies The matricies to do the adjustments to.
+	* @param adjustmentMatrices The matricies to do the adjustments to.
 	***/
-	MatrixDoNothing(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatricies) : 
-		ShaderMatrixModification(modID, adjustmentMatricies, false) {};
+	MatrixDoNothing(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatrices) : 
+		ShaderMatrixModification(modID, adjustmentMatrices, false) {};
 
 	/**
 	* Simply returns True.

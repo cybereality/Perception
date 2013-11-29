@@ -59,19 +59,24 @@ ViewAdjustment::ViewAdjustment(HMDisplayInfo &displayInfo, float metersToWorldUn
 
 	D3DXMatrixIdentity(&matProjection);
 	D3DXMatrixIdentity(&matProjectionInv);
-	D3DXMatrixIdentity(&leftShiftProjection);
-	D3DXMatrixIdentity(&rightShiftProjection);
 	D3DXMatrixIdentity(&projectLeft);
 	D3DXMatrixIdentity(&projectRight);
 	D3DXMatrixIdentity(&transformLeft);
 	D3DXMatrixIdentity(&transformRight);
+	D3DXMatrixIdentity(&matViewProjRight);
+	D3DXMatrixIdentity(&matViewProjLeft);
 	D3DXMatrixIdentity(&matViewProjTransformRight);
 	D3DXMatrixIdentity(&matViewProjTransformLeft);
+	D3DXMatrixIdentity(&matHudLeft);
+	D3DXMatrixIdentity(&matHudRight);
+	D3DXMatrixIdentity(&matGuiLeft);
+	D3DXMatrixIdentity(&matGuiRight);
 	D3DXMatrixIdentity(&matGatheredLeft);
 	D3DXMatrixIdentity(&matGatheredRight);
 
 	UpdateProjectionMatrices(displayInfo.screenAspectRatio);
 	D3DXMatrixIdentity(&rollMatrix);
+	D3DXMatrixIdentity(&rollMatrixNegative);
 	ComputeViewTransforms();
 }
 
@@ -125,6 +130,22 @@ void ViewAdjustment::UpdateProjectionMatrices(float aspectRatio)
 	D3DXMatrixPerspectiveOffCenterLH(&matProjection, l, r, b, t, n, f);
 	D3DXMatrixInverse(&matProjectionInv, 0, &matProjection);
 
+	// ALL stated in meters here ! screen size = horizontal size
+	float nearClippingPlaneDistance = hmdInfo.eyeToScreenDistance; 
+	float physicalScreenSizeInMeters = hmdInfo.physicalScreenSize.first / 2; 
+
+	// if not HMD, set values to fullscreen defaults
+	if ((stereoType != 26) && // != StereoView::StereoTypes::OCULUS_RIFT
+		(stereoType != 27) && // != StereoView::StereoTypes::OCULUS_RIFT_CROPPED
+		(stereoType != 25))   // != StereoView::StereoTypes::DIY_RIFT))
+	{
+		// assumption here :
+		// end user is placed 1 meter away from screen
+		// end user screen is 1 meter in horizontal size
+		nearClippingPlaneDistance = 1;
+		physicalScreenSizeInMeters = 1;
+	}
+
 	// convergence frustum adjustment, based on NVidia explanations
 	//
 	// It is evident that the ratio of frustum shift to the near clipping plane is equal to the ratio of 
@@ -134,13 +155,10 @@ void ViewAdjustment::UpdateProjectionMatrices(float aspectRatio)
 	//
 	// (near clipping plane distance = physical screen distance)
 	// (convergence = virtual screen distance)
-	// ALL stated in meters here !
-	const float nearClippingPlaneDistance = 1; // < TODO !! Assumption here : near clipping plane distance = 1 meter 
 	if (convergence <= nearClippingPlaneDistance) convergence = nearClippingPlaneDistance + 0.001f;
 	float frustumAsymmetryInMeters = ((ipd/2) * nearClippingPlaneDistance) / convergence;
 
 	// divide the frustum asymmetry by the assumed physical size of the physical screen
-	const float physicalScreenSizeInMeters = 1; // < TODO !! Assumption here : physical screen size = 1 meter
 	float frustumAsymmetryLeftInMeters = (frustumAsymmetryInMeters * LEFT_CONSTANT) / physicalScreenSizeInMeters;
 	float frustumAsymmetryRightInMeters = (frustumAsymmetryInMeters * RIGHT_CONSTANT) / physicalScreenSizeInMeters;
 
@@ -153,18 +171,6 @@ void ViewAdjustment::UpdateProjectionMatrices(float aspectRatio)
 	// now, create the re-projection matrices for both eyes using this frustum asymmetry
 	D3DXMatrixPerspectiveOffCenterLH(&projectLeft, l+frustumAsymmetryLeft, r+frustumAsymmetryLeft, b, t, n, f);
 	D3DXMatrixPerspectiveOffCenterLH(&projectRight, l+frustumAsymmetryRight, r+frustumAsymmetryRight, b, t, n, f);
-
-	// Based on Rift docs way.
-	if ((stereoType == 26) || // = StereoView::StereoTypes::OCULUS_RIFT
-		(stereoType == 27) || // = StereoView::StereoTypes::OCULUS_RIFT_CROPPED
-		(stereoType == 25))   // = StereoView::StereoTypes::DIY_RIFT))
-	{
-		// The lensXCenterOffset is in the same -1 to 1 space as the perspective so shift by that amount to move projection in line with the lenses
-		D3DXMatrixTranslation(&leftShiftProjection, hmdInfo.lensXCenterOffset * LEFT_CONSTANT, 0, 0);
-		D3DXMatrixTranslation(&rightShiftProjection, hmdInfo.lensXCenterOffset * RIGHT_CONSTANT, 0, 0);
-		projectLeft *= leftShiftProjection;
-		projectRight *= rightShiftProjection;
-	}	
 }
 
 /**
@@ -173,8 +179,6 @@ void ViewAdjustment::UpdateProjectionMatrices(float aspectRatio)
 void ViewAdjustment::UpdatePitchYaw(float pitch, float yaw)
 {
 	// bullet labyrinth matrix
-	/*float yawRad = D3DXToRadian(yaw);
-	float pitchRad = D3DXToRadian(pitch);*/
 	D3DXMatrixTranslation(&matBulletLabyrinth, -yaw, pitch, 0.0f);
 }
 
@@ -186,6 +190,8 @@ void ViewAdjustment::UpdateRoll(float roll)
 {
 	D3DXMatrixIdentity(&rollMatrix);
 	D3DXMatrixRotationZ(&rollMatrix, roll);
+	D3DXMatrixRotationZ(&rollMatrixNegative, -roll);
+	D3DXMatrixRotationZ(&rollMatrixHalf, roll * 0.5f);
 }
 
 /**
@@ -196,20 +202,41 @@ void ViewAdjustment::UpdateRoll(float roll)
 ***/
 void ViewAdjustment::ComputeViewTransforms()
 {
-	// if (HMD)
+	// separation settings are overall (HMD and desktop), since they are based on physical IPD
 	D3DXMatrixTranslation(&transformLeft, SeparationInWorldUnits() * LEFT_CONSTANT, 0, 0);
 	D3DXMatrixTranslation(&transformRight, SeparationInWorldUnits() * RIGHT_CONSTANT, 0, 0);
-	// else if desktop screen {}
 
 	if (rollEnabled) {
 		D3DXMatrixMultiply(&transformLeft, &rollMatrix, &transformLeft);
 		D3DXMatrixMultiply(&transformRight, &rollMatrix, &transformRight);
+
+		// projection 
+		matViewProjLeft = matProjectionInv * rollMatrix * projectLeft;
+		matViewProjRight = matProjectionInv * rollMatrix * projectRight;
+	}
+	else
+	{
+		// projection 
+		matViewProjLeft = matProjectionInv * projectLeft;
+		matViewProjRight = matProjectionInv * projectRight;
 	}
 
+	// projection transform
 	matViewProjTransformLeft = matProjectionInv * transformLeft * projectLeft;
 	matViewProjTransformRight = matProjectionInv * transformRight * projectRight;
 
 	// now, create HUD/GUI helper matrices
+
+	// if not HMD, set HUD/GUI to fullscreen
+	if ((stereoType != 26) && // != StereoView::StereoTypes::OCULUS_RIFT
+		(stereoType != 27) && // != StereoView::StereoTypes::OCULUS_RIFT_CROPPED
+		(stereoType != 25))   // != StereoView::StereoTypes::DIY_RIFT))
+	{
+		squash = 1.0f;
+		gui3DDepth = 0.0f;
+		hudDistance = 0.0f;
+		hud3DDepth = 0.0f;
+	}
 
 	// squash
 	D3DXMatrixScaling(&matSquash, squash, squash, 1);
@@ -225,6 +252,12 @@ void ViewAdjustment::ComputeViewTransforms()
 	D3DXMatrixTranslation(&matRightHud3DDepthShifted, -hud3DDepth-additionalSeparation, 0, 0);
 	D3DXMatrixTranslation(&matLeftGui3DDepth, gui3DDepth+SeparationIPDAdjustment(), 0, 0);
 	D3DXMatrixTranslation(&matRightGui3DDepth, -(gui3DDepth+SeparationIPDAdjustment()), 0, 0);
+
+	// gui/hud matrices
+	matHudLeft = matProjectionInv * matLeftHud3DDepth * transformLeft * matHudDistance *  projectLeft;
+	matHudRight = matProjectionInv * matRightHud3DDepth * transformRight * matHudDistance * projectRight;
+	matGuiLeft =  matProjectionInv * matLeftGui3DDepth * matSquash * projectLeft;
+	matGuiRight = matProjectionInv * matRightGui3DDepth * matSquash * projectRight;
 }
 
 /**
@@ -244,6 +277,22 @@ D3DXMATRIX ViewAdjustment::RightAdjustmentMatrix()
 }
 
 /**
+* Returns the left matrix used to roll (if roll enabled) and shift view for ipd (without transform).
+***/
+D3DXMATRIX ViewAdjustment::LeftView()
+{
+	return matViewProjLeft;
+}
+
+/**
+* Returns the right matrix used to roll (if roll enabled) and shift view for ipd (without transform).
+***/
+D3DXMATRIX ViewAdjustment::RightView()
+{
+	return matViewProjRight;
+}
+
+/**
 * Returns the left matrix used to roll (if roll enabled) and shift view for ipd.
 ***/
 D3DXMATRIX ViewAdjustment::LeftViewTransform()
@@ -260,24 +309,6 @@ D3DXMATRIX ViewAdjustment::RightViewTransform()
 }
 
 /**
-* Returns the left shifted projection.
-* (projection * This shift = left/right shifted projection)
-***/
-D3DXMATRIX ViewAdjustment::LeftShiftProjection()
-{
-	return leftShiftProjection;
-}
-
-/**
-* Returns the right shifted projection.
-* (projection * This shift = left/right shifted projection) 
-***/
-D3DXMATRIX ViewAdjustment::RightShiftProjection()
-{
-	return rightShiftProjection;
-}
-
-/**
 * Return the current projection matrix.
 ***/
 D3DXMATRIX ViewAdjustment::Projection()
@@ -291,6 +322,62 @@ D3DXMATRIX ViewAdjustment::Projection()
 D3DXMATRIX ViewAdjustment::ProjectionInverse()
 {
 	return matProjectionInv;
+}
+
+/**
+* Returns the current roll matrix.
+***/
+D3DXMATRIX ViewAdjustment::RollMatrix()
+{
+	return rollMatrix;
+}
+
+/**
+* Returns the current roll matrix.
+***/
+D3DXMATRIX ViewAdjustment::RollMatrixNegative()
+{
+	return rollMatrixNegative;
+}
+
+/**
+* Returns the current roll matrix. (half roll)
+***/
+D3DXMATRIX ViewAdjustment::RollMatrixHalf()
+{
+	return rollMatrixHalf;
+}
+
+/**
+* Returns the current right GUI matrix.
+***/
+D3DXMATRIX ViewAdjustment::LeftHUDMatrix()
+{
+	return matHudLeft;
+}
+
+/**
+* Returns the current right GUI matrix.
+***/
+D3DXMATRIX ViewAdjustment::RightHUDMatrix()
+{
+	return matHudRight;
+}
+
+/**
+* Returns the current right GUI matrix.
+***/
+D3DXMATRIX ViewAdjustment::LeftGUIMatrix()
+{
+	return matGuiLeft;
+}
+
+/**
+* Returns the current right GUI matrix.
+***/
+D3DXMATRIX ViewAdjustment::RightGUIMatrix()
+{
+	return matGuiRight;
 }
 
 /**
@@ -399,14 +486,14 @@ float ViewAdjustment::WorldScale()
 }
 
 /**
-* Modifies the world scale with its limits 0.01f and 1,000,000 (arbitrary limit).
+* Modifies the world scale with its limits 0.000001f and 1,000,000 (arbitrary limit).
 * NOTE: This should not be changed during normal usage, this is here to facilitate finding a reasonable scale.
 ***/
 float ViewAdjustment::ChangeWorldScale(float toAdd)
 {
 	metersToWorldMultiplier+= toAdd;
 
-	vireio::clamp(&metersToWorldMultiplier, 0.0001f, 1000000.0f);
+	vireio::clamp(&metersToWorldMultiplier, 0.000001f, 1000000.0f);
 
 	return metersToWorldMultiplier;
 }

@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<shaderConfig>
+	<rules>
+		<rule constantName="g_VS_ViewProjMatr" partialName="true" id="5" constantType="MatrixR" modToApply="1" startReg="36" transpose="false" />
+		<rule constantName="mProjection" partialName="true" id="6" constantType="MatrixR" modToApply="1" startReg="12" transpose="false" />
+		<rule constantName="mProjection" partialName="true" id="7" constantType="MatrixR" modToApply="1" startReg="14" transpose="false" />
+	</rules>
+	<defaultRuleIDs>
+		<ruleID id="1" />
+		<ruleID id="2" />
+		<ruleID id="3" />
+		<ruleID id="4" />
+		<ruleID id="5" />
+		<ruleID id="6" />
+		<ruleID id="7" />
+	</defaultRuleIDs>
+</shaderConfig>

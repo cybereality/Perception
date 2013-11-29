@@ -45,7 +45,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class MatrixIgnoreOrtho : public ShaderMatrixModification
 {
 public:
-	MatrixIgnoreOrtho(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatricies, bool transpose) : ShaderMatrixModification(modID, adjustmentMatricies, transpose) {};
+	MatrixIgnoreOrtho(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatrices, bool transpose) : ShaderMatrixModification(modID, adjustmentMatrices, transpose) {};
 
 	/**
 	* Don't apply if matrix is orthographic.

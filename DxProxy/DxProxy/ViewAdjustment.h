@@ -62,13 +62,20 @@ public:
 	void          UpdateRoll(float roll);
 	void          ComputeViewTransforms(); 
 	D3DXMATRIX    LeftAdjustmentMatrix();
-	D3DXMATRIX    RightAdjustmentMatrix();	
+	D3DXMATRIX    RightAdjustmentMatrix();
+	D3DXMATRIX    LeftView();
+	D3DXMATRIX    RightView();	
 	D3DXMATRIX    LeftViewTransform();
 	D3DXMATRIX    RightViewTransform();	
-	D3DXMATRIX    LeftShiftProjection();
-	D3DXMATRIX    RightShiftProjection();
 	D3DXMATRIX    Projection();
 	D3DXMATRIX    ProjectionInverse();
+	D3DXMATRIX    RollMatrix();
+	D3DXMATRIX    RollMatrixNegative();
+	D3DXMATRIX    RollMatrixHalf();
+	D3DXMATRIX    LeftHUDMatrix();
+	D3DXMATRIX    RightHUDMatrix();
+	D3DXMATRIX    LeftGUIMatrix();
+	D3DXMATRIX    RightGUIMatrix();
 	D3DXMATRIX    Squash();
 	D3DXMATRIX    HUDDistance();
 	D3DXMATRIX    LeftHUD3DDepth();
@@ -125,14 +132,6 @@ private:
 	***/
 	D3DXMATRIX matProjectionInv;
 	/**
-	* The translation applied to projection to shift it left/right to get project(Left/Right).
-	***/
-	D3DXMATRIX leftShiftProjection;
-	/**
-	* The translation applied to projection to shift it left/right to get project(Left/Right).
-	***/
-	D3DXMATRIX rightShiftProjection;
-	/**
 	* The shifted left projection matrix.
 	***/
 	D3DXMATRIX projectLeft;
@@ -145,6 +144,14 @@ private:
 	***/
 	D3DXMATRIX rollMatrix;
 	/**
+	* The head roll matrix. (negative)
+	***/
+	D3DXMATRIX rollMatrixNegative;
+	/**
+	* The head roll matrix. (half roll)
+	***/
+	D3DXMATRIX rollMatrixHalf;
+	/**
 	* Left matrix used to roll (if roll enabled) and shift view for ipd.
 	***/
 	D3DXMATRIX transformLeft;
@@ -152,6 +159,14 @@ private:
 	* Right matrix used to roll (if roll enabled) and shift view for ipd.
 	***/
 	D3DXMATRIX transformRight;
+	/**
+	* Left view projection matrix.
+	***/
+	D3DXMATRIX matViewProjLeft;
+	/**
+	* Right view projection matrix.
+	***/
+	D3DXMATRIX matViewProjRight;
 	/**
 	* Left view projection transform matrix.
 	***/
@@ -168,6 +183,22 @@ private:
 	* Gathered matrix to be used in gathered modifications.
 	***/
 	D3DXMATRIX matGatheredRight;
+	/**
+	* Left HUD matrix.
+	***/
+	D3DXMATRIX matHudLeft;
+	/**
+	* Right HUD matrix
+	***/
+	D3DXMATRIX matHudRight;
+	/**
+	* Left GUI matrix.
+	***/
+	D3DXMATRIX matGuiLeft;
+	/**
+	* Right GUI matrix.
+	***/
+	D3DXMATRIX matGuiRight;
 	/**
 	* Squash scaling matrix, to be used in HUD/GUI scaling matrices.
 	***/

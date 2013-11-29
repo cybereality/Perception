@@ -31,11 +31,17 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 
 	if(newPos.x < 0.5f) {
 		tc = HmdWarp(newPos);
+
+		tc.x = (tc.x - ((LensCenter.x-0.25f) * 2.0f));  //offset for the lens
+
 		tColor = tex2D(TexMap0, tc);
 	} 
 	else {
 		newPos.x = (1.0f - newPos.x);	// mirror
 		tc = HmdWarp(newPos);
+
+		tc.x = (tc.x - ((LensCenter.x-0.25f) * 2.0f));  //offset for the lens 
+
 		tc.x = 1.0f - tc.x;		// unmirror
 		
 		tColor = tex2D(TexMap1, tc);

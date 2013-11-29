@@ -45,8 +45,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class ShaderMatrixModification : public ShaderConstantModification<float>
 {
 public:
-	ShaderMatrixModification(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatricies, bool transpose) : 
-		ShaderConstantModification(modID, adjustmentMatricies),
+	ShaderMatrixModification(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatrices, bool transpose) : 
+		ShaderConstantModification(modID, adjustmentMatrices),
 		m_bTranspose(transpose)
 		{};
 	

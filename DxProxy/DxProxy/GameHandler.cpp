@@ -174,6 +174,34 @@ bool GameHandler::AddRule(std::shared_ptr<ViewAdjustment> spShaderViewAdjustment
 }
 
 /**
+* Modifies a default rule in a shader modification repository.
+* @return True if rule was modified, false if rule not present.
+***/
+bool GameHandler::ModifyRule(std::shared_ptr<ViewAdjustment> spShaderViewAdjustments, std::string constantName, UINT operationToApply, bool transpose)
+{
+	// repository present ?
+	if (!m_ShaderModificationRepository)
+		m_ShaderModificationRepository = new ShaderModificationRepository(spShaderViewAdjustments);
+
+	// get unique id and add rule
+	return m_ShaderModificationRepository->ModifyRule(constantName, operationToApply, transpose);
+}
+
+/**
+* Delete a default rule in a shader modification repository.
+* @return True if rule was deleted, false if rule not present.
+***/
+bool GameHandler::DeleteRule(std::shared_ptr<ViewAdjustment> spShaderViewAdjustments, std::string constantName)
+{
+	// repository present ?
+	if (!m_ShaderModificationRepository)
+		m_ShaderModificationRepository = new ShaderModificationRepository(spShaderViewAdjustments);
+
+	// get unique id and add rule
+	return m_ShaderModificationRepository->DeleteRule(constantName);
+}
+
+/**
 * Returns the shader modification repository for the handled game.
 ***/
 ShaderModificationRepository* GameHandler::GetShaderModificationRepository()

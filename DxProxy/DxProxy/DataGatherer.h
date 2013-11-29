@@ -48,9 +48,10 @@ class DataGatherer : public D3DProxyDevice
 public:
 	DataGatherer(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy);
 	virtual ~DataGatherer();
-		
+
 	/*** IDirect3DDevice9 methods ***/
 	virtual HRESULT WINAPI Present(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion);
+	virtual HRESULT WINAPI BeginScene();
 	virtual HRESULT WINAPI DrawPrimitive(D3DPRIMITIVETYPE PrimitiveType,UINT StartVertex,UINT PrimitiveCount);
 	virtual HRESULT WINAPI DrawIndexedPrimitive(D3DPRIMITIVETYPE PrimitiveType,INT BaseVertexIndex,UINT MinVertexIndex,UINT NumVertices,UINT startIndex,UINT primCount);
 	virtual HRESULT WINAPI DrawPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType,UINT PrimitiveCount,CONST void* pVertexStreamZeroData,UINT VertexStreamZeroStride);
@@ -63,11 +64,18 @@ public:
 
 	/*** DataGatherer public methods ***/
 	virtual void Init(ProxyHelper::ProxyConfig& cfg);
-	virtual void HandleControls();
+
+protected:
+	/*** DataGatherer protected methods ***/
+	virtual void BRASSA_ShaderSubMenu();
+	virtual void BRASSA_ChangeRules();
+	virtual void BRASSA_PickRules();
+	virtual void BRASSA_ShowActiveShaders();
 
 private:
 	/*** DataGatherer private methods ***/
 	void Analyze();
+	void GetCurrentShaderRules(bool allStartRegisters);
 
 	/**
 	* Describes a shader constant.
@@ -77,8 +85,19 @@ private:
 		std::string name;
 		UINT hash;              /**< The shader hash. */
 		D3DXCONSTANT_DESC desc; /**< The constant description. */
-		bool transposed;        /**< True if this constant is a transposed matrix. */
+		bool nodeOpen;          /**< True if menu node open for that constant. */
+		bool hasRule;           /**< True if shader rule present for that constant. */
+		bool isTransposed;      /**< True if shader rule present for that constant. */
+		std::string ruleName;   /**< The name of the associated rule. */
 	};
+	/**
+	* True if analyzing will output transposed shader rules.
+	***/
+	bool m_bTransposedRules;
+	/**
+	* True if analyzer tests for transposed matrices.
+	***/
+	bool m_bTestForTransposed;
 	/**
 	* Vector of all relevant vertex shader constants.
 	***/
@@ -87,6 +106,44 @@ private:
 	* Vector of all added vertex shader constants (rules).
 	***/
 	std::vector<ShaderConstant> m_addedVSConstants;
+	/**
+	* Vector of all relevant vertex shader constants, each name only once.
+	***/
+	std::vector<ShaderConstant> m_relevantVSConstantNames;
+	/**
+	* Vector of all active vertex shader hash codes.
+	***/
+	std::vector<uint32_t> m_activeVShaders;
+	/**
+	* Vector of all active pixel shader hash codes.
+	***/
+	std::vector<uint32_t> m_activePShaders;
+	/**
+	* Vector of all active vertex shader hash codes (last frame).
+	***/
+	std::vector<uint32_t> m_activeVShadersLastFrame;
+	/**
+	* Vector of all active pixel shader hash codes (last frame).
+	***/
+	std::vector<uint32_t> m_activePShadersLastFrame;
+	/**
+	* Vector of all excluded vertex shader hash codes.
+	* Vertex shaders are excluded from being drawn.
+	***/
+	std::vector<uint32_t> m_excludedVShaders;
+	/**
+	* Vector of all excluded pixel shader hash codes.
+	* Pixel shaders are excluded from being drawn.
+	***/
+	std::vector<uint32_t> m_excludedPShaders;
+	/**
+	* True if Draw() calls should be skipped currently.
+	***/
+	bool m_bAvoidDraw;
+	/**
+	* Pixel shader helper for m_bAvoidDraw.
+	***/
+	bool m_bAvoidDrawPS;
 	/**
 	* Array of possible world-view-projection matrix shader constant names.
 	***/
@@ -112,17 +169,21 @@ private:
 	***/
 	std::unordered_set<IDirect3DPixelShader9*> m_recordedPShaders;
 	/**
+	* Set of recorded vertex shaders, to avoid double debug log output.
+	***/
+	std::unordered_set<IDirect3DVertexShader9*> m_recordedSetVShaders;
+	/**
 	* The shader dump file (.csv format).
 	***/
 	std::ofstream m_shaderDumpFile;
 	/**
-	* Counts the per-frame calls for each vertex shader.
-	***/
-	std::map<UINT, UINT> m_vertexShaderCallCount;
-	/**
 	* The hash code of the vertex shader currently set.
 	***/
 	uint32_t m_currentVertexShaderHash;
+	/**
+	* True if data gatherer should output (ALL!) shader code.
+	***/
+	bool m_bOutputShaderCode;
 };
 
 #endif

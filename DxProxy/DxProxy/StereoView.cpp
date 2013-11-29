@@ -56,16 +56,16 @@ StereoView::StereoView(ProxyHelper::ProxyConfig& config)
 	game_type = config.game_type;
 	stereo_mode = config.stereo_mode;
 	swapEyes = config.swap_eyes;
-	
+
 	// set all member pointers to NULL to prevent uninitialized objects being used
 	m_pActualDevice = NULL;
 	backBuffer = NULL;
 	leftTexture = NULL;
 	rightTexture = NULL;
-	
+
 	leftSurface = NULL;
 	rightSurface = NULL;
-	
+
 	screenVertexBuffer = NULL;
 	lastVertexShader = NULL;
 	lastPixelShader = NULL;
@@ -76,6 +76,51 @@ StereoView::StereoView(ProxyHelper::ProxyConfig& config)
 	lastRenderTarget1 = NULL;
 	viewEffect = NULL;
 	sb = NULL;
+
+	// set behavior accordingly to game type
+	int gameType = config.game_type;
+	if (gameType>10000) gameType-=10000;
+	switch(gameType)
+	{
+	case D3DProxyDevice::FIXED:
+		howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;
+		break;
+	case D3DProxyDevice::SOURCE:
+	case D3DProxyDevice::SOURCE_L4D:
+		howToSaveRenderStates = HowToSaveRenderStates::SELECTED_STATES_MANUALLY;
+		break;
+	case D3DProxyDevice::UNREAL:
+	case D3DProxyDevice::UNREAL_MIRROR:
+	case D3DProxyDevice::UNREAL_UT3:
+	case D3DProxyDevice::UNREAL_BIOSHOCK:
+		howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;
+		break;
+	case D3DProxyDevice::EGO:
+	case D3DProxyDevice::EGO_DIRT:
+		howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;
+		break;
+	case D3DProxyDevice::REALV:
+	case D3DProxyDevice::REALV_ARMA:
+		howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;
+		break;
+	case D3DProxyDevice::UNITY:
+	case D3DProxyDevice::UNITY_SLENDER:
+		howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;
+		break;
+	case D3DProxyDevice::GAMEBRYO:
+	case D3DProxyDevice::GAMEBRYO_SKYRIM:
+		howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;
+		break;
+	case D3DProxyDevice::LFS:
+		howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;
+		break;
+	case D3DProxyDevice::CDC:
+		howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;
+		break;
+	default:
+		howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;
+		break;
+	}
 }
 
 /**
@@ -93,12 +138,12 @@ StereoView::~StereoView()
 void StereoView::Init(IDirect3DDevice9* pActualDevice)
 {
 	OutputDebugString("SteroView Init\n");
-	
+
 	if (initialized) {
 		OutputDebugString("SteroView already Init'd\n");
 		return;
 	}
-	
+
 	m_pActualDevice = pActualDevice;
 
 	InitShaderEffects();
@@ -122,7 +167,7 @@ void StereoView::ReleaseEverything()
 	if(backBuffer)
 		releaseCheck("backBuffer", backBuffer->Release());	
 	backBuffer = NULL;
-	
+
 	if(leftTexture)
 		releaseCheck("leftTexture", leftTexture->Release());
 	leftTexture = NULL;
@@ -130,7 +175,7 @@ void StereoView::ReleaseEverything()
 	if(rightTexture)
 		releaseCheck("rightTexture", rightTexture->Release());
 	rightTexture = NULL;
-	
+
 	if(leftSurface)
 		releaseCheck("leftSurface", leftSurface->Release());
 	leftSurface = NULL;
@@ -138,7 +183,7 @@ void StereoView::ReleaseEverything()
 	if(rightSurface)
 		releaseCheck("rightSurface", rightSurface->Release());
 	rightSurface = NULL;
-	
+
 	if(lastVertexShader)
 		releaseCheck("lastVertexShader", lastVertexShader->Release());
 	lastVertexShader = NULL;
@@ -168,7 +213,7 @@ void StereoView::ReleaseEverything()
 	lastRenderTarget1 = NULL;
 
 	viewEffect->OnLostDevice();
-	
+
 	initialized = false;
 }
 
@@ -189,21 +234,24 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 	else
 		m_pActualDevice->StretchRect(leftImage, NULL, rightSurface, NULL, D3DTEXF_NONE);
 
-	// TODO figure out HL2 problem. This is a workaround for now
-	// Problem: Using StateBlock to save and restore causes the world in HL2 to scale up and down constantly
-	// This only effects HL2 (but all source games are using the l4d profile).
-	// Possbile fix: Use a more discriminant stateblock to save only what is being modified
-	if((game_type == D3DProxyDevice::SOURCE_L4D) || (game_type == D3DProxyDevice::DATA_GATHERER_SOURCE))
+	// how to save (backup) render states ?
+	switch(howToSaveRenderStates)
 	{
-		SaveState();
-	}
-	else {
+	case HowToSaveRenderStates::STATE_BLOCK:
 		m_pActualDevice->CreateStateBlock(D3DSBT_ALL, &sb);
+		break;
+	case HowToSaveRenderStates::SELECTED_STATES_MANUALLY:
+		SaveState();
+		break;
+	case HowToSaveRenderStates::ALL_STATES_MANUALLY:
+		SaveAllRenderStates(m_pActualDevice);
+		SetAllRenderStatesDefault(m_pActualDevice);
+		break;
 	}
-	
+
 	// set states for fullscreen render
 	SetState();
-	
+
 	// all render settings start here
 	m_pActualDevice->SetFVF(D3DFVF_TEXVERTEX);
 
@@ -218,7 +266,7 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 		m_pActualDevice->SetTexture(0, rightTexture);
 		m_pActualDevice->SetTexture(1, leftTexture);
 	}
-	
+
 	if (FAILED(m_pActualDevice->SetRenderTarget(0, backBuffer))) {
 		OutputDebugString("SetRenderTarget backbuffer failed\n");
 	}
@@ -228,13 +276,13 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 	}
 
 	UINT iPass, cPasses;
-	
+
 	if (FAILED(viewEffect->SetTechnique("ViewShader"))) {
 		OutputDebugString("SetTechnique failed\n");
 	}
-	
+
 	SetViewEffectInitialValues();
-	
+
 	// now, render
 	if (FAILED(viewEffect->Begin(&cPasses, 0))) {
 		OutputDebugString("Begin failed\n");
@@ -258,17 +306,22 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 	if (FAILED(viewEffect->End())) {
 		OutputDebugString("End failed\n");
 	}
-	
-	// TODO figure out HL2 problem. This is a workaround for now
-	if((game_type == D3DProxyDevice::SOURCE_L4D) || (game_type == D3DProxyDevice::DATA_GATHERER_SOURCE))
+
+	// how to restore render states ?
+	switch(howToSaveRenderStates)
 	{
-		RestoreState();
-	}
-	else {
+	case HowToSaveRenderStates::STATE_BLOCK:
 		// apply stored render states
 		sb->Apply();
 		sb->Release();
 		sb = NULL;
+		break;
+	case HowToSaveRenderStates::SELECTED_STATES_MANUALLY:
+		RestoreState();
+		break;
+	case HowToSaveRenderStates::ALL_STATES_MANUALLY:
+		RestoreAllRenderStates(m_pActualDevice);
+		break;
 	}
 }
 
@@ -286,7 +339,7 @@ void StereoView::SaveScreen()
 	wsprintf(fileNameLeft, "%d_left.bmp", screenCount);
 	char fileNameRight[32];
 	wsprintf(fileNameRight, "%d_right.bmp", screenCount);
-	
+
 #ifdef _DEBUG
 	OutputDebugString(fileName);
 	OutputDebugString("\n");
@@ -316,7 +369,7 @@ void StereoView::InitTextureBuffers()
 	D3DSURFACE_DESC pDesc = D3DSURFACE_DESC();
 	m_pActualDevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &backBuffer);
 	backBuffer->GetDesc(&pDesc);
-	
+
 #ifdef _DEBUG
 	char buf[32];
 	LPCSTR psz = NULL;
@@ -325,7 +378,7 @@ void StereoView::InitTextureBuffers()
 	psz = buf;
 	OutputDebugString(psz);
 	OutputDebugString("\n");
-	
+
 	wsprintf(buf,"backbuffer width: %d",pDesc.Width);
 	psz = buf;
 	OutputDebugString(psz);
@@ -345,9 +398,9 @@ void StereoView::InitTextureBuffers()
 void StereoView::InitVertexBuffers()
 {
 	OutputDebugString("SteroView initVertexBuffers\n");
-	
+
 	m_pActualDevice->CreateVertexBuffer(sizeof(TEXVERTEX) * 4, NULL,
-        D3DFVF_TEXVERTEX, D3DPOOL_MANAGED, &screenVertexBuffer, NULL);
+		D3DFVF_TEXVERTEX, D3DPOOL_MANAGED, &screenVertexBuffer, NULL);
 
 	TEXVERTEX* vertices;
 
@@ -360,7 +413,7 @@ void StereoView::InitVertexBuffers()
 	rDest->right = int(viewport.Width*scale);
 	rDest->top = 0;
 	rDest->bottom = int(viewport.Height*scale);
-	
+
 	//Setup vertices
 	vertices[0].x = (float) rDest->left - 0.5f;
 	vertices[0].y = (float) rDest->top - 0.5f;
@@ -368,7 +421,7 @@ void StereoView::InitVertexBuffers()
 	vertices[0].rhw = 1.0f;
 	vertices[0].u = 0.0f;
 	vertices[0].v = 0.0f;
-	
+
 	vertices[1].x = (float) rDest->right - 0.5f;
 	vertices[1].y = (float) rDest->top - 0.5f;
 	vertices[1].z = 0.0f;
@@ -496,24 +549,16 @@ void StereoView::SetState()
 	m_pActualDevice->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_SELECTARG1);
 	m_pActualDevice->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_CONSTANT);
 	m_pActualDevice->SetTextureStageState(0, D3DTSS_CONSTANT, 0xffffffff);
-	
+
 	m_pActualDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
 	m_pActualDevice->SetRenderState(D3DRS_ZENABLE, D3DZB_FALSE);
 	m_pActualDevice->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
 	m_pActualDevice->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);  
-	
+
 	//m_pActualDevice->SetRenderState(D3DRS_SRGBWRITEENABLE, 0);  // will cause visual errors in HL2
-	
-	if((game_type == D3DProxyDevice::SOURCE_L4D) || (game_type == D3DProxyDevice::DATA_GATHERER_SOURCE))
-	{
-		m_pActualDevice->SetSamplerState(0, D3DSAMP_SRGBTEXTURE, ssSrgb);
-		m_pActualDevice->SetSamplerState(1, D3DSAMP_SRGBTEXTURE, ssSrgb);
-	}
-	else 
-	{
-		m_pActualDevice->SetSamplerState(0, D3DSAMP_SRGBTEXTURE, 0);
-		m_pActualDevice->SetSamplerState(1, D3DSAMP_SRGBTEXTURE, 0);
-	}
+
+	m_pActualDevice->SetSamplerState(0, D3DSAMP_SRGBTEXTURE, ssSrgb);
+	m_pActualDevice->SetSamplerState(1, D3DSAMP_SRGBTEXTURE, ssSrgb);
 
 	m_pActualDevice->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
 	m_pActualDevice->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);

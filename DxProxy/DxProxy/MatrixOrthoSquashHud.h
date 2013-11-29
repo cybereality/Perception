@@ -50,17 +50,17 @@ public:
 	/**
 	* Constructor, sets attributes and such.
 	* @param modID The id for this matrix modification.
-	* @param adjustmentMatricies The matricies to be adjusted
+	* @param adjustmentMatrices The matricies to be adjusted
 	* @param transpose Decides if the matrices should be transposed (aka: have rows and columns interchanged)
 	*/
-	MatrixOrthoSquashHud(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatricies, bool transpose) 
-		: ShaderMatrixModification(modID, adjustmentMatricies, transpose) 
+	MatrixOrthoSquashHud(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatrices, bool transpose) 
+		: ShaderMatrixModification(modID, adjustmentMatrices, transpose) 
 	{};
 
 	/**
 	* Matrix modification does multiply: shiftprojection * squash (for GUI), scale * transform * distance (for HUD).
 	* Does the matrix squash and outputs the results.  Does only affect HUD (or GUI).
-	* @param in The matrix to be multiply by the adjustmentMatricies.
+	* @param in The matrix to be multiply by the adjustmentMatrices.
 	* @param[out] outLeft The resulting left side matrix
 	* @param[out] outRight The resulting right side matrix
 	***/
@@ -70,11 +70,8 @@ public:
 
 			// HUD
 			// separation -> distance translation
-			D3DXMATRIX orthoToPersViewProjTransformLeft  = m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->LeftHUD3DDepth() * m_spAdjustmentMatrices->LeftViewTransform() * m_spAdjustmentMatrices->HUDDistance() *  m_spAdjustmentMatrices->Projection() * m_spAdjustmentMatrices->LeftShiftProjection();
-			D3DXMATRIX orthoToPersViewProjTransformRight = m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->RightHUD3DDepth() * m_spAdjustmentMatrices->RightViewTransform() * m_spAdjustmentMatrices->HUDDistance() * m_spAdjustmentMatrices->Projection() * m_spAdjustmentMatrices->RightShiftProjection();
-
-			outLeft = in * orthoToPersViewProjTransformLeft;
-			outright = in * orthoToPersViewProjTransformRight;
+			outLeft = in * m_spAdjustmentMatrices->LeftHUDMatrix();
+			outright = in * m_spAdjustmentMatrices->RightHUDMatrix();
 
 		}
 		else {

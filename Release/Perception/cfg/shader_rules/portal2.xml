@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<shaderConfig>
+	<rules>
+		<rule constantName="cViewProj" partialName="true" id="1" constantType="MatrixC" modToApply="2" startReg="8" transpose="false" />
+		<rule constantName="cViewProj" partialName="true" id="2" constantType="MatrixC" modToApply="2" startReg="8" transpose="true" />
+	</rules>
+	<defaultRuleIDs>
+		<ruleID id="1" />
+		<ruleID id="2" />
+	</defaultRuleIDs>
+</shaderConfig>

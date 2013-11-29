@@ -119,7 +119,7 @@ void MotionTracker::updateOrientation()
 			// Set limits.
 			if(fabs(deltaYaw) > 100.0f) deltaYaw = 0.0f;
 			if(fabs(deltaPitch) > 100.0f) deltaPitch = 0.0f;
-			
+
 			// Pass to mouse data (long integer).
 			mouseData.mi.dx = (long)(deltaYaw);
 			mouseData.mi.dy = (long)(deltaPitch);
@@ -127,12 +127,13 @@ void MotionTracker::updateOrientation()
 			// Keep fractional difference in the delta so it's added to the next update.
 			deltaYaw -= (float)mouseData.mi.dx;
 			deltaPitch -= (float)mouseData.mi.dy;
-		
+
 #ifdef _DEBUG
 			//OutputDebugString("Motion Tracker SendInput\n");
 #endif
 			// Send to mouse input.
-			SendInput(1, &mouseData, sizeof(INPUT));
+			if (mouseEmulation)
+				SendInput(1, &mouseData, sizeof(INPUT));
 		}
 
 		// Set current data.
@@ -165,4 +166,13 @@ void MotionTracker::setMultipliers(float yaw, float pitch, float roll)
 	currentYaw = 0.0f;
 	currentPitch = 0.0f;
 	currentRoll = 0.0f;
+}
+
+/**
+* Set mouse emulation.
+* @param emulateMouse True if mouse emulation is on.
+***/
+void MotionTracker::setMouseEmulation(bool emulateMouse)
+{
+	mouseEmulation = emulateMouse;
 }

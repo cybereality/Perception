@@ -27,8 +27,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#ifndef ShaderModificationRepository_H_INCLUDED
-#define ShaderModificationRepository_H_INCLUDED
+#ifndef SHADERMODIFICATIONREPOSITORY_H_INCLUDED
+#define SHADERMODIFICATIONREPOSITORY_H_INCLUDED
 
 #include <d3d9.h>
 #include <d3dx9.h>
@@ -54,16 +54,20 @@ class ViewAdjustment;
 class ShaderModificationRepository
 {
 public:
-	ShaderModificationRepository(std::shared_ptr<ViewAdjustment> adjustmentMatricies); 
+	ShaderModificationRepository(std::shared_ptr<ViewAdjustment> adjustmentMatrices); 
 	virtual ~ShaderModificationRepository();
 
 	/*** ShaderModificationRepository public methods ***/
 	bool                                        LoadRules(std::string rulesPath);
 	bool                                        SaveRules(std::string rulesPath);
 	bool                                        AddRule(std::string constantName, bool allowPartialNameMatch, UINT startRegIndex, D3DXPARAMETER_CLASS constantType, UINT operationToApply, UINT modificationRuleID, bool transpose);
+	bool                                        ModifyRule(std::string constantName, UINT operationToApply, bool transpose);
+	bool                                        DeleteRule(std::string constantName);
 	std::map<UINT, StereoShaderConstant<float>> GetModifiedConstantsF(IDirect3DPixelShader9* pActualPixelShader);
 	std::map<UINT, StereoShaderConstant<float>> GetModifiedConstantsF(IDirect3DVertexShader9* pActualVertexShader);
+	bool										SquishViewportForShader(IDirect3DVertexShader9* pActualVertexShader);
 	UINT                                        GetUniqueRuleID();
+	bool                                        ConstantHasRule(std::string constantName, std::string& constantRule, UINT& operation, bool& isTransposed);
 
 private:
 	/**
@@ -213,5 +217,9 @@ private:
 	* <Shader hash, vector<Modification Rule ID>>
 	***/
 	std::unordered_map<uint32_t, std::vector<UINT>> m_shaderSpecificModificationRuleIDs;
+	/**
+	* Vector of shader hash identifiers of shaders to squash the viewport.
+	***/
+	std::vector<uint32_t> m_shaderViewportSquashIDs;
 };
 #endif

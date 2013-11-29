@@ -52,6 +52,7 @@ public:
 	virtual void updateOrientation();
 	virtual bool isAvailable();
 	virtual void setMultipliers(float yaw, float pitch, float roll);
+	virtual void setMouseEmulation(bool emulateMouse);
 
 	/*** MotionTracker public methods ***/
 	bool isEqual(float a, float b){ return abs(a-b) < 0.001; };
@@ -112,6 +113,12 @@ public:
 		SHAREDMEMTRACK = 30,  /**< Shared memory tracking. */
 		OCULUSTRACK = 40      /**< Oculus Rift tracking. */
 	};
+
+protected:
+	/**
+	* True if mouse emulation is on.
+	***/
+	bool mouseEmulation;
 };
 
 #endif

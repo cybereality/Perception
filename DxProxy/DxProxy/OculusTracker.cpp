@@ -65,7 +65,7 @@ int OculusTracker::init()
 	pManager = *DeviceManager::Create();
 	pHMD = *pManager->EnumerateDevices<HMDDevice>().CreateDevice();
 	pSensor = *pHMD->GetSensor();
-		
+
 	if (pSensor)
 		SFusion.AttachToSensor(pSensor);
 
@@ -131,16 +131,17 @@ void OculusTracker::updateOrientation()
 		// Pass to mouse data (long integer).
 		mouseData.mi.dx = (long)(deltaYaw*multiplierYaw);
 		mouseData.mi.dy = (long)(deltaPitch*multiplierPitch);
-		
+
 		// Keep fractional difference in the delta so it's added to the next update.
 		deltaYaw -= ((float)mouseData.mi.dx)/multiplierYaw;
 		deltaPitch -= ((float)mouseData.mi.dy)/multiplierPitch;
-		
+
 #ifdef _DEBUG
 		OutputDebugString("Motion Tracker SendInput\n");
 #endif
 		// Send to mouse input.
-		SendInput(1, &mouseData, sizeof(INPUT));
+		if (mouseEmulation)
+			SendInput(1, &mouseData, sizeof(INPUT));
 
 		// Set current data.
 		currentYaw = yaw;

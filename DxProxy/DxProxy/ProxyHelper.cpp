@@ -270,6 +270,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 	config.convergence = 0.0f;
 	config.swap_eyes = false;
 	config.aspect_multiplier = 1.0f;
+	config.VRboostMinShaderCount = 0;
 
 	// load the base dir for the app
 	GetBaseDir();
@@ -345,6 +346,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 		OutputDebugString(psz);
 		OutputDebugString("\n");
 
+		config.VRboostMinShaderCount = gameProfile.attribute("minVRboostShaderCount").as_uint(0);
 		config.convergence = gameProfile.attribute("convergence").as_float(0.0f);
 		config.swap_eyes = gameProfile.attribute("swap_eyes").as_bool();
 		config.yaw_multiplier = gameProfile.attribute("yaw_multiplier").as_float(25.0f);
@@ -355,7 +357,10 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 		if(config.pitch_multiplier == 0.0f) config.pitch_multiplier = 25.0f;
 		if(config.roll_multiplier == 0.0f) config.roll_multiplier = 1.0f;
 
-		// get file name
+		// set process name
+		config.game_exe = std::string(gameProfile.attribute("game_exe").as_string(""));
+
+		// get shader rules file name
 		std::string shaderRulesFileName = gameProfile.attribute("shaderModRules").as_string("");
 
 		if (!shaderRulesFileName.empty()) {
@@ -365,6 +370,18 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 		}
 		else {
 			config.shaderRulePath = "";
+		}
+
+		// get memory rules file name
+		std::string VRboostRulesFileName = gameProfile.attribute("VRboostRules").as_string("");
+
+		if (!VRboostRulesFileName.empty()) {
+			std::stringstream sstm;
+			sstm << GetBaseDir() << "cfg\\VRboost_rules\\" << VRboostRulesFileName;
+			config.VRboostPath = sstm.str();
+		}
+		else {
+			config.VRboostPath = "";
 		}
 
 		config.rollEnabled = gameProfile.attribute("rollEnabled").as_bool(false);
@@ -408,7 +425,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 ***/
 bool ProxyHelper::SaveConfig(ProxyConfig& cfg)
 {
-	SaveProfile(cfg.shaderRulePath, cfg.convergence, cfg.swap_eyes, cfg.yaw_multiplier, cfg.pitch_multiplier, cfg.roll_multiplier, cfg.worldScaleFactor);
+	SaveProfile(cfg.shaderRulePath, cfg.VRboostPath, cfg.convergence, cfg.swap_eyes, cfg.yaw_multiplier, cfg.pitch_multiplier, cfg.roll_multiplier, cfg.worldScaleFactor, cfg.VRboostMinShaderCount);
 	return SaveUserConfig(cfg.ipd);
 }
 
@@ -454,7 +471,7 @@ bool ProxyHelper::LoadHUDConfig(ProxyConfig& config)
 			}
 		}
 	}
-	
+
 	if(resultProfiles.status == status_ok && profileFound && gameProfile)
 	{
 		config.hud3DDepthMode = gameProfile.attribute("hud_3D_depth_mode").as_int();
@@ -612,7 +629,7 @@ bool ProxyHelper::LoadGUIConfig(ProxyConfig& config)
 			}
 		}
 	}
-	
+
 	if(resultProfiles.status == status_ok && profileFound && gameProfile)
 	{
 		config.gui3DDepthMode = gameProfile.attribute("gui_3D_depth_mode").as_int();
@@ -1063,7 +1080,7 @@ bool ProxyHelper::GetProfile(char* name, ProxyConfig& config) // TODO !!! fill c
 * @param roll Roll tracking multiplier.
 * @param worldScale Game world scaling.
 ***/
-bool ProxyHelper::SaveProfile(std::string shaderRulePath, float convergence, bool swap, float yaw, float pitch, float roll, float worldScale)
+bool ProxyHelper::SaveProfile(std::string shaderRulePath, std::string VRboostRulePath, float convergence, bool swap, float yaw, float pitch, float roll, float worldScale, int minVRboostShaderCount)
 {
 	// get the target exe
 	GetTargetExe();
@@ -1104,7 +1121,7 @@ bool ProxyHelper::SaveProfile(std::string shaderRulePath, float convergence, boo
 	{
 		OutputDebugString("Save the settings to profile!!!\n");
 
-		// get filename
+		// get shader mod rules filename
 		auto lastBackSlash = shaderRulePath.find_last_of("\\");
 		std::string fileName;
 		if (lastBackSlash!=std::string::npos)
@@ -1118,7 +1135,21 @@ bool ProxyHelper::SaveProfile(std::string shaderRulePath, float convergence, boo
 		else
 			gameProfile.insert_attribute_after("shaderModRules", gameProfile.attribute("game_exe")) = fileName.c_str();
 
+		// get VRboost rules filename
+		lastBackSlash = VRboostRulePath.find_last_of("\\");
+		if (lastBackSlash!=std::string::npos)
+			fileName = VRboostRulePath.substr(lastBackSlash+1, VRboostRulePath.size()-(lastBackSlash+1));
+		else
+			fileName = VRboostRulePath;
+
+		// VRboost rules attribute present ? otherwise insert
+		if (strcmp(gameProfile.attribute("shaderModRules").next_attribute().name(), "VRboostRules") == 0)
+			gameProfile.attribute("VRboostRules") = fileName.c_str();
+		else
+			gameProfile.insert_attribute_after("VRboostRules", gameProfile.attribute("shaderModRules")) = fileName.c_str();
+
 		// change other attributes
+		gameProfile.attribute("minVRboostShaderCount") = minVRboostShaderCount;
 		gameProfile.attribute("convergence") = convergence;
 		gameProfile.attribute("swap_eyes") = swap;
 		gameProfile.attribute("yaw_multiplier") = yaw;

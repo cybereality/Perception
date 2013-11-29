@@ -157,6 +157,7 @@ public:
 	void           SetupHUD();
 	virtual void   HandleControls(void);
 	void           HandleTracking(void);
+	void           HandleUpdateExtern();
 
 	/**
 	* Game Types.
@@ -166,27 +167,25 @@ public:
 	enum ProxyTypes
 	{
 		MONO = 0,                  /**<  !! */
-		FIXED = 10,                /**<  !! */
-		DATA_GATHERER = 11,        /**<  !! */
-		DATA_GATHERER_SOURCE = 12, /**<  !! */
-		SOURCE = 100,              /**<  !! */
-		SOURCE_L4D = 101,          /**< SOURCE_L4D is used in StereoView to change behaviour of state save/load to prevent issues in hl2 (and probably other source games) */
-		UNREAL = 200,              /**<  !! */
+		FIXED = 10,                /**< Default driver behavior. */
+		SOURCE = 100,              /**< Source is a 3D video game engine developed by Valve Corporation. */
+		SOURCE_L4D = 101,          /**<  !! */
+		UNREAL = 200,              /**< The Unreal Engine is a game engine developed by Epic Games, first illustrated in the 1998 first-person shooter game Unreal. */
 		UNREAL_MIRROR = 201,       /**<  !! */
 		UNREAL_UT3 = 202,          /**<  !! */
 		UNREAL_BIOSHOCK = 203,     /**<  !! */
-		EGO = 300,                 /**<  !! */
+		EGO = 300,                 /**< Ego Game Technology Engine (more commonly referred to as Ego Engine or EGO, stylised ego) is a video game engine developed by Codemasters. */
 		EGO_DIRT = 301,            /**<  !! */
-		REALV = 400,               /**<  !! */
+		REALV = 400,               /**< Real Virtuality is a proprietary computer game engine developed by Bohemia Interactive (BI), originally called Poseidon. */
 		REALV_ARMA = 401,          /**<  !! */
-		UNITY = 500,               /**<  !! */
+		UNITY = 500,               /**< Unity is a cross-platform game engine with a built-in IDE developed by Unity Technologies. */
 		UNITY_SLENDER = 501,       /**<  !! */
-		ADVANCED = 600,            /**<  !! */
-		ADVANCED_SKYRIM = 601,     /**<  !! */
-		LFS = 700,                 /**<  !! */
+		GAMEBRYO = 600,            /**< Gamebryo 3D and LightSpeed engines are owned by Gamebase Co., Ltd. and Gamebase USA and have been used by several video game developers. */
+		GAMEBRYO_SKYRIM = 601,     /**< Skyrim’s Creation Engine still has at least some Gamebryo in it. */
+		LFS = 700,                 /**< Live for Speed (LFS) is a racing simulator developed by a three person team comprising Scawen Roberts, Eric Bailey, and Victor van Vlaardingen. */
+		CDC = 800,                 /**< Proprietary game engine developed by Crystal Dynamics. */
 		DEBUG_LOG_FILE = 99999     /**< Debug log file output game type. For development causes. Do not use since slows down game extremely. */
 	};
-
 	/**
 	* Mode of the BRASSA menu.
 	*
@@ -194,13 +193,17 @@ public:
 	enum BRASSA_Modes
 	{
 		INACTIVE = 0,
-		MAINMENU,
+		MAINMENU = 1,
 		WORLD_SCALE_CALIBRATION,
 		CONVERGENCE_ADJUSTMENT,
 		SHADER_ANALYZER,
 		HUD_CALIBRATION,
 		GUI_CALIBRATION,
 		OVERALL_SETTINGS,
+		BRASSA_SHADER_ANALYZER_SUBMENU,
+		CHANGE_RULES_SCREEN,
+		PICK_RULES_SCREEN,
+		SHOW_SHADERS_SCREEN,
 		BRASSA_ENUM_RANGE
 	};
 	/**
@@ -227,11 +230,54 @@ public:
 		GUI_FULL = 3,
 		GUI_ENUM_RANGE = 4
 	};
+	/**
+	* Float modification identifiers. 
+	***/
+	enum FloatModificationTypes
+	{
+		FloatDoNothing = 0,               /**< Simple modification that does not apply anything. **/
+		FloatSimpleApply = 1,             /**< Simply applies the input float to the destination. **/
+		FloatSimpleNegativeApply = 2,     /**< Simply applies the negative input float to the destination. **/
+		FloatScale = 3,                   /**< Applies a scaled float. */
+		FloatToDoubleScale = 4,           /**< Inputs a float and applies a scaled double. */
+		FloatToBoolScale = 5,             /**< Inputs a float and applies a scaled bool. */
+		FloatToByteScale = 6,             /**< Inputs a float and applies a scaled byte. */
+		FloatToShortScale = 7,            /**< Inputs a float and applies a scaled short. */
+		FloatToWordScale = 8,             /**< Inputs a float and applies a scaled WORD. */
+		FloatToIntegerScale = 9,          /**< Inputs a float and applies a scaled int. */
+		FloatToDWordScale = 10,           /**< Inputs a float and applies a scaled DWORD. */
+		FloatToLongScale = 11,            /**< Inputs a float and applies a scaled long. */
+		FloatToQWordScale = 12,           /**< Inputs a float and applies a scaled double. */
+		FloatGaussianCompass = 100,       /**< Applies the input float to a gaussian compass calculatian and incorporates prior rotation angle. **/
+		FloatUnrealCompass = 101,         /**< Applies the input float to a UNREAL engine rotator compass calculatian and incorporates prior rotation angle. **/
+		FloatUnrealAxis = 201,            /**< Applies the input float to a UNREAL engine rotator axis. **/
+	};
+	/**
+	* VRboost axis table.
+	* Here, we set indices for the to-be-assigned VRboost input register.
+	***/
+	enum VRboostAxis
+	{
+		TrackerYaw = 0,                  /**< This index is reserved for Tracker->primaryYaw. **/
+		TrackerPitch = 1,                /**< This index is reserved for Tracker->primaryPitch. **/
+		TrackerRoll = 2,                 /**< This index is reserved for Tracker->primaryRoll. **/
+		Zero = 3,                        /**< This index is reserved for constant 0 output. **/
+		One = 4,                         /**< This index is reserved for constant 1 output. **/
+		// 5..11       reserved for future tracker use
+		// 12..23      reserved for future input device use
+		// 255         maximum VRboost axis index
+	};
 
 	/**
 	* Game-specific proxy configuration.
 	**/
 	ProxyHelper::ProxyConfig config;
+	/**
+	* True if VRboost memory rules are saved.
+	* Delete this when VRboost rule creation tool is out.
+	* Used only if rules are created here in code.
+	***/
+	bool VRboostRulesSaved;
 	/**
 	* Currently not used.
 	***/
@@ -287,9 +333,9 @@ public:
 	**/
 	ID3DXFont *hudFont;
 	/**
-	* Currently not used time.
+	* Timestamp used to adjust the menu velocity independent of game speed.
 	**/
-	time_t lastInputTime;	
+	float menuTime;	
 	/**
 	* True if head tracking initialized.
 	**/
@@ -305,6 +351,8 @@ protected:
 	virtual bool setDrawingSide(vireio::RenderPosition side);
 	bool         switchDrawingSide();
 	bool         addRule(std::string constantName, bool allowPartialNameMatch, UINT startRegIndex, D3DXPARAMETER_CLASS constantType, UINT operationToApply, bool transpose);
+	bool         modifyRule(std::string constantName, UINT operationToApply, bool transpose);
+	bool         deleteRule(std::string constantName);
 	void         saveShaderRules();
 	void         ClearRect(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color);
 	void         ClearEmptyRect(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color, int bw);
@@ -313,7 +361,16 @@ protected:
 	void         DrawTextShadowed(ID3DXFont* font, LPD3DXSPRITE sprite, LPCSTR lpchText, int cchText, LPRECT lprc, UINT format, D3DCOLOR color);
 	void         ChangeHUD3DDepthMode(HUD_3D_Depth_Modes newMode);
 	void         ChangeGUI3DDepthMode(GUI_3D_Depth_Modes newMode);
+	virtual void BRASSA_ShaderSubMenu(){}
+	virtual void BRASSA_ChangeRules(){}
+	virtual void BRASSA_PickRules(){}
+	virtual void BRASSA_ShowActiveShaders(){}
 
+	/**
+	* The game handler.
+	* @see GameHandler
+	**/
+	GameHandler* m_pGameHandler;
 	/**
 	* Current drawing side, only changed in setDrawingSide().
 	**/
@@ -334,10 +391,79 @@ protected:
 	* Proxy state block to capture various states.
 	**/
 	D3D9ProxyStateBlock* m_pCapturingStateTo;
+	/**
+	* Main menu sprite.
+	***/
+	LPD3DXSPRITE hudMainMenu;
+	/**
+	* Main menu sprite.
+	***/
+	LPD3DXSPRITE hudTextBox;
+	/**
+	* Main menu velocity.
+	***/
+	D3DXVECTOR2 menuVelocity; 
+	/**
+	* Main menu border top height.
+	***/
+	float borderTopHeight;
+	/**
+	* Main menu top height for scrolling menues.
+	***/
+	float menuTopHeight;
+	/**
+	* True if BeginScene() is called the first time this frame.
+	* @see BeginScene()
+	**/
+	bool m_isFirstBeginSceneOfFrame;
+	/**
+	* True if mouse emulation head tracking forced.
+	**/
+	bool m_bForceMouseEmulation;
+	/**
+	* Counts the current vertex shader set calls.
+	* Used for VRboost security.
+	***/
+	UINT m_VertexShaderCount;
+	/**
+	* Counts the current vertex shader set calls (last frame).
+	* Used for VRboost security.
+	***/
+	UINT m_VertexShaderCountLastFrame;
+	/**
+	* Vector contains all possible game projection x scale values.
+	* Filled only if BRASSA_mode == WorldScale and SetTransform(>projection<) called by the game.
+	***/
+	std::vector<float> m_gameXScaleUnits;
+	/**
+	* Struct commands device behavior.
+	***/
+	struct DeviceBehavior
+	{
+		/**
+		* Determines when to render the brassa menu for that game profile.
+		***/
+		enum WhenToDo
+		{
+			PRESENT,
+			BEGIN_SCENE,
+			FIRST_BEGIN_SCENE,
+			END_SCENE,
+		};
+
+		/**
+		* Determines when to render the brassa menu for that game profile.
+		***/
+		WhenToDo whenToRenderBRASSA;
+		/**
+		* Determines when to handle head tracking for that game profile.
+		***/
+		WhenToDo whenToHandleHeadTracking;
+
+	} m_deviceBehavior;
 
 private:
 	/*** D3DProxyDevice private methods ***/
-	void    ReleaseEverything();
 	void    BRASSA();
 	void    BRASSA_MainMenu();
 	void    BRASSA_WorldScale();
@@ -345,15 +471,49 @@ private:
 	void    BRASSA_HUD();
 	void    BRASSA_GUI();
 	void    BRASSA_Settings();
+	void    BRASSA_UpdateBorder();
+	void    ReleaseEverything();
 	bool    isViewportDefaultForMainRT(CONST D3DVIEWPORT9* pViewport);
 	HRESULT SetStereoViewTransform(D3DXMATRIX pLeftMatrix, D3DXMATRIX pRightMatrix, bool apply);
 	HRESULT SetStereoProjectionTransform(D3DXMATRIX pLeftMatrix, D3DXMATRIX pRightMatrix, bool apply);
+	void    SetGUIViewport();
+
+	/*** VRboost function pointer typedefs ***/
+	typedef HRESULT (WINAPI *LPVRBOOST_LoadMemoryRules)(std::string processName, std::string rulesPath);
+	typedef HRESULT (WINAPI *LPVRBOOST_SaveMemoryRules)(std::string rulesPath);
+	typedef HRESULT (WINAPI *LPVRBOOST_CreateFloatMemoryRule)(DWORD ruleType, UINT axisIndex, D3DXVECTOR4 constantVector, DWORD pointerAddress, DWORD* offsets, DWORD minValue, DWORD maxValue, DWORD comparisationPointer1, DWORD* comparisationOffsets1, int pointerDifference1, DWORD comparisationPointer2, DWORD* comparisationOffsets2, int pointerDifference2);
+	typedef HRESULT (WINAPI *LPVRBOOST_SetProcess)(std::string processName, std::string moduleName);
+	typedef HRESULT (WINAPI *LPVRBOOST_ReleaseAllMemoryRules)( void );
+	typedef HRESULT (WINAPI *LPVRBOOST_ApplyMemoryRules)(UINT axisNumber, float** axis);
 
 	/**
-	* The game handler.
-	* @see GameHandler
-	**/
-	GameHandler* m_pGameHandler;
+	* VRboost pointer function to load memory rules for a process.
+	***/
+	LPVRBOOST_LoadMemoryRules m_pVRboost_LoadMemoryRules;
+	/**
+	* VRboost pointer function to load memory rules for a process.
+	***/
+	LPVRBOOST_SaveMemoryRules m_pVRboost_SaveMemoryRules;
+	/**
+	* VRboost pointer function to create a float memory rule.
+	***/
+	LPVRBOOST_CreateFloatMemoryRule m_pVRboost_CreateFloatMemoryRule;
+	/**
+	* VRboost pointer function to load memory rules for a process.
+	***/
+	LPVRBOOST_SetProcess m_pVRboost_SetProcess;
+	/**
+	* VRboost pointer function to release all memory rules.
+	***/
+	LPVRBOOST_ReleaseAllMemoryRules m_pVRboost_ReleaseAllMemoryRules;
+	/**
+	* VRboost pointer function to apply memory rules to process memory.
+	***/
+	LPVRBOOST_ApplyMemoryRules m_pVRboost_ApplyMemoryRules;
+	/**
+	* Handle to VRboost library.
+	***/
+	HMODULE hmVRboost;
 	/**
 	* Managed shader register class.
 	* @see ShaderRegisters
@@ -368,16 +528,23 @@ private:
 	* True if active viewport is the default one.
 	* @see isViewportDefaultForMainRT()
 	**/
-	bool m_bActiveViewportIsDefault;	
+	bool m_bActiveViewportIsDefault;
 	/**
-	* True if BeginScene() is called the first time this frame.
-	* @see BeginScene()
+	* True if viewport is currently squished.
+	***/
+	bool m_bViewportIsSquished;
+	/**
+	* True if VRboost rules are present.
 	**/
-	bool m_isFirstBeginSceneOfFrame;
+	bool m_VRboostRulesPresent;
 	/**
 	* Last viewport backup.
 	**/
 	D3DVIEWPORT9 m_LastViewportSet;
+	/**
+	* The squished viewport.
+	***/
+	D3DVIEWPORT9 m_ViewportIfSquished;
 	/**
 	* Active stored proxy depth stencil.
 	**/
@@ -454,22 +621,6 @@ private:
 	* Either the left or right projection, depending on active render side.	
 	**/
 	D3DXMATRIX* m_pCurrentProjection;
-	/**
-	* Main menu sprite.
-	***/
-	LPD3DXSPRITE hudMainMenu;
-	/**
-	* Main menu sprite.
-	***/
-	LPD3DXSPRITE hudTextBox;
-	/**
-	* Main menu velocity.
-	***/
-	D3DXVECTOR2 menuVelocity; 
-	/**
-	* Main menu border top height.
-	***/
-	float borderTopHeight;
 	/**
 	* Current HUD 3D Depth mode.
 	***/

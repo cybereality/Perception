@@ -32,9 +32,6 @@
     <Filter Include="Direct3D9Vireio\Direct3DDevice9">
       <UniqueIdentifier>{4ef859f6-c511-4db2-b101-b5a4fca35325}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Direct3D9Vireio\Direct3DTextures">
-      <UniqueIdentifier>{7c1b5925-d5df-4200-b704-5db49ccbcd35}</UniqueIdentifier>
-    </Filter>
     <Filter Include="MurmurHash3">
       <UniqueIdentifier>{ce4cba8f-29ab-44a7-9545-c1859fe4213e}</UniqueIdentifier>
     </Filter>
@@ -43,6 +40,9 @@
     </Filter>
     <Filter Include="cfg\shader_rules">
       <UniqueIdentifier>{001cd5d3-206b-4679-9b96-8e7a1aacf08f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Direct3D9Vireio\Direct3DTextures">
+      <UniqueIdentifier>{7c1b5925-d5df-4200-b704-5db49ccbcd35}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -408,9 +408,6 @@
       <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
     </ClInclude>
     <ClInclude Include="HMDisplayInfo.h" />
-    <ClInclude Include="MatrixHudSquash.h">
-      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
-    </ClInclude>
     <ClInclude Include="MatrixOrthoSquash.h">
       <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
     </ClInclude>
@@ -437,6 +434,27 @@
     </ClInclude>
     <ClInclude Include="D3DProxyDeviceDebug.h">
       <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
+    </ClInclude>
+    <ClInclude Include="Vector4EyeShiftUnity.h">
+      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
+    </ClInclude>
+    <ClInclude Include="MatrixConvOffsetAdjustment.h">
+      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
+    </ClInclude>
+    <ClInclude Include="MatrixGuiSquash.h">
+      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
+    </ClInclude>
+    <ClInclude Include="MatrixHudSlide.h">
+      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
+    </ClInclude>
+    <ClInclude Include="MatrixRollOnly.h">
+      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
+    </ClInclude>
+    <ClInclude Include="MatrixRollOnlyNegative.h">
+      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
+    </ClInclude>
+    <ClInclude Include="MatrixRollOnlyHalf.h">
+      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -126,6 +126,9 @@ HRESULT WINAPI D3D9ProxySwapChain::Present(CONST RECT* pSourceRect, CONST RECT* 
 		OutputDebugString("Present: No primary swap chain found. (Present probably called before device has been reset)");
 	}
 
+	// call proxy device present update
+	pD3DProxyDev->HandleUpdateExtern();
+
 	return m_pActualSwapChain->Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion, dwFlags);
 }
 

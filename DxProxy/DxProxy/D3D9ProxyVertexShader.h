@@ -57,6 +57,8 @@ public:
 
 	/*** D3D9ProxyVertexShader public methods ***/
 	std::map<UINT, StereoShaderConstant<>>* ModifiedConstants();
+	bool                                    SquishViewport();
+
 protected:
 	/**
 	* Currently not used actual owning device.
@@ -68,5 +70,9 @@ protected:
 	* @see StereoShaderConstant
 	***/
 	std::map<UINT, StereoShaderConstant<>> m_modifiedConstants;
+	/**
+	* True if viewport should be squished (seen as GUI) if this shader is set.
+	***/
+	bool m_bSquishViewport;
 };
 #endif

@@ -183,7 +183,7 @@ BOOL APIENTRY DllMain( HINSTANCE hModule, DWORD fdwReason, LPVOID lpReserved )
 // This segment must be defined as SHARED in the .DEF
 #pragma data_seg (".HookSection")		
 // Shared instance for all processes.
-HHOOK hHook = NULL;	
+HHOOK hHook = NULL;
 #pragma data_seg ()
 
 HIJACKDLL_API LRESULT CALLBACK HookProc(int nCode, WPARAM wParam, LPARAM lParam) 
@@ -194,7 +194,7 @@ HIJACKDLL_API LRESULT CALLBACK HookProc(int nCode, WPARAM wParam, LPARAM lParam)
 HIJACKDLL_API void InstallHook()
 {
 	OutputDebugString( "HIJACKDLL hook installed.\n" );
-	hHook = SetWindowsHookEx( WH_CBT, HookProc, hDLL, 0 ); 
+	hHook = SetWindowsHookEx( WH_CBT, HookProc, hDLL, 0 );
 }
 
 HIJACKDLL_API void RemoveHook()

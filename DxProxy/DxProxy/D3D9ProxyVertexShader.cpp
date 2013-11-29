@@ -40,6 +40,8 @@ D3D9ProxyVertexShader::D3D9ProxyVertexShader(IDirect3DVertexShader9* pActualVert
 {
 	if (pModLoader)
 		m_modifiedConstants = pModLoader->GetModifiedConstantsF(pActualVertexShader);
+
+	m_bSquishViewport = pModLoader->SquishViewportForShader(pActualVertexShader);
 }
 
 /**
@@ -54,4 +56,12 @@ D3D9ProxyVertexShader::~D3D9ProxyVertexShader()
 std::map<UINT, StereoShaderConstant<float>>* D3D9ProxyVertexShader::ModifiedConstants()
 {
 	return &m_modifiedConstants;
+}
+
+/**
+* Returns true if viewport is to be squished for that shader.
+***/
+bool D3D9ProxyVertexShader::SquishViewport()
+{
+	return m_bSquishViewport;
 }

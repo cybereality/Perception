@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<shaderConfig>
+  <rules>
+    <rule constantName="worldViewProj" partialName="true" id="1" constantType="MatrixC" modToApply="2" startReg="0" transpose="true" />
+    <rule constantName="worldViewProj" partialName="true" id="2" constantType="MatrixC" modToApply="2" startReg="5" transpose="true" />
+    <rule constantName="worldViewProj" partialName="true" id="3" constantType="MatrixC" modToApply="2" startReg="40" transpose="true" />
+    <rule constantName="screenToWorld" partialName="true" id="4" constantType="MatrixR" modToApply="0" startReg="12" transpose="false" />
+    <rule constantName="screenToWorld" partialName="true" id="5" constantType="MatrixR" modToApply="0" startReg="15" transpose="false" />
+    <rule constantName="screenToWorld" partialName="true" id="6" constantType="MatrixR" modToApply="0" startReg="18" transpose="false" />
+    <rule constantName="screenToWorld" partialName="true" id="7" constantType="MatrixR" modToApply="0" startReg="21" transpose="false" />
+    <rule constantName="screenToWorld" partialName="true" id="8" constantType="MatrixR" modToApply="0" startReg="6" transpose="false" />
+    <rule constantName="screenToWorld" partialName="true" id="9" constantType="MatrixR" modToApply="0" startReg="9" transpose="false" />
+  </rules>
+  <defaultRuleIDs>
+    <ruleID id="1" />
+    <ruleID id="2" />
+    <ruleID id="3" />
+    <ruleID id="4" />
+    <ruleID id="5" />
+    <ruleID id="6" />
+    <ruleID id="7" />
+    <ruleID id="8" />
+    <ruleID id="9" />
+  </defaultRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="150818656" squishViewport="true"></shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="2180027923" squishViewport="true"></shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="1851111157" squishViewport="true"></shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="2207473808" squishViewport="true"></shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="1861111157" squishViewport="true"></shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="443032467">
+    <ruleID id="1" />
+    <ruleID id="2" />
+    <ruleID id="3" />
+  </shaderSpecificRuleIDs>
+</shaderConfig>

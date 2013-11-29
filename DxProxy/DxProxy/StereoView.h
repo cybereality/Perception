@@ -126,7 +126,7 @@ protected:
 	virtual void SaveAllRenderStates(LPDIRECT3DDEVICE9 pDevice);
 	virtual void SetAllRenderStatesDefault(LPDIRECT3DDEVICE9 pDevice);
 	virtual void RestoreAllRenderStates(LPDIRECT3DDEVICE9 pDevice);
-	
+
 	/**
 	* The actual, unwrapped Direct3D Device. 
 	* Class cannot be initialized with wrapped device.
@@ -205,28 +205,37 @@ protected:
 	* Map of the shader effect file names.
 	***/
 	std::map<int, std::string> shaderEffect;
-	DWORD tssColorOp;            /**< Various states, to be deleted when we figured out HL2 problem. This is a workaround for now. */
-	DWORD tssColorArg1;          /**< Various states, to be deleted when we figured out HL2 problem. This is a workaround for now. */
-	DWORD tssAlphaOp;            /**< Various states, to be deleted when we figured out HL2 problem. This is a workaround for now. */
-	DWORD tssAlphaArg1;          /**< Various states, to be deleted when we figured out HL2 problem. This is a workaround for now. */
-	DWORD tssConstant;           /**< Various states, to be deleted when we figured out HL2 problem. This is a workaround for now. */
-	DWORD rsAlphaEnable;         /**< Various states, to be deleted when we figured out HL2 problem. This is a workaround for now. */
-	DWORD rsZEnable;             /**< Various states, to be deleted when we figured out HL2 problem. This is a workaround for now. */
-	DWORD rsZWriteEnable;        /**< Various states, to be deleted when we figured out HL2 problem. This is a workaround for now. */
-	DWORD rsDepthBias;           /**< Various states, to be deleted when we figured out HL2 problem. This is a workaround for now. */
-	DWORD rsSlopeScaleDepthBias; /**< Various states, to be deleted when we figured out HL2 problem. This is a workaround for now. */
-	DWORD rsSrgbEnable;          /**< Various states, to be deleted when we figured out HL2 problem. This is a workaround for now. */
-	DWORD ssSrgb;                /**< Various states, to be deleted when we figured out HL2 problem. This is a workaround for now. */  
-	DWORD ssSrgb1;               /**< Various states, to be deleted when we figured out HL2 problem. This is a workaround for now. */
-	DWORD ssAddressU;            /**< Various states, to be deleted when we figured out HL2 problem. This is a workaround for now. */
-	DWORD ssAddressV;            /**< Various states, to be deleted when we figured out HL2 problem. This is a workaround for now. */
-	DWORD ssAddressW;            /**< Various states, to be deleted when we figured out HL2 problem. This is a workaround for now. */
-	DWORD ssMag0;                /**< Various states, to be deleted when we figured out HL2 problem. This is a workaround for now. */
-	DWORD ssMag1;                /**< Various states, to be deleted when we figured out HL2 problem. This is a workaround for now. */
-	DWORD ssMin0;                /**< Various states, to be deleted when we figured out HL2 problem. This is a workaround for now. */
-	DWORD ssMin1;                /**< Various states, to be deleted when we figured out HL2 problem. This is a workaround for now. */
-	DWORD ssMip0;                /**< Various states, to be deleted when we figured out HL2 problem. This is a workaround for now. */
-	DWORD ssMip1;                /**< Various states, to be deleted when we figured out HL2 problem. This is a workaround for now. */
+	DWORD tssColorOp;            /**< Various states. */
+	DWORD tssColorArg1;          /**< Various states. */
+	DWORD tssAlphaOp;            /**< Various states. */
+	DWORD tssAlphaArg1;          /**< Various states. */
+	DWORD tssConstant;           /**< Various states. */
+	DWORD rsAlphaEnable;         /**< Various states. */
+	DWORD rsZEnable;             /**< Various states. */
+	DWORD rsZWriteEnable;        /**< Various states. */
+	DWORD rsDepthBias;           /**< Various states. */
+	DWORD rsSlopeScaleDepthBias; /**< Various states. */
+	DWORD rsSrgbEnable;          /**< Various states. */
+	DWORD ssSrgb;                /**< Various states. */  
+	DWORD ssSrgb1;               /**< Various states. */
+	DWORD ssAddressU;            /**< Various states. */
+	DWORD ssAddressV;            /**< Various states. */
+	DWORD ssAddressW;            /**< Various states. */
+	DWORD ssMag0;                /**< Various states. */
+	DWORD ssMag1;                /**< Various states. */
+	DWORD ssMin0;                /**< Various states. */
+	DWORD ssMin1;                /**< Various states. */
+	DWORD ssMip0;                /**< Various states. */
+	DWORD ssMip1;                /**< Various states. */
+	/**
+	* Determines how to save render states for stereo view output.
+	***/
+	enum HowToSaveRenderStates
+	{
+		STATE_BLOCK,
+		SELECTED_STATES_MANUALLY,
+		ALL_STATES_MANUALLY,
+	} howToSaveRenderStates;
 };
 
 /**

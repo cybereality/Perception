@@ -99,7 +99,7 @@ bool ShaderModificationRepository::LoadRules(std::string rulesPath)
 	else {
 		for (pugi::xml_node rule = xmlRules.child("rule"); rule; rule = rule.next_sibling("rule")) {
 
-			ConstantModificationRule newRule;
+			static ConstantModificationRule newRule;
 
 			newRule.m_constantName = rule.attribute("constantName").as_string();
 			newRule.m_constantType = ConstantModificationRule::ConstantTypeFrom(rule.attribute("constantType").as_string());
@@ -136,6 +136,11 @@ bool ShaderModificationRepository::LoadRules(std::string rulesPath)
 				continue;
 			}
 
+			bool squishViewport = shader.attribute("squishViewport").as_bool(false);
+
+			if (squishViewport)
+				m_shaderViewportSquashIDs.push_back(hash);
+
 			std::vector<UINT> shaderRules;
 
 			for (pugi::xml_node ruleId = shader.child("ruleID"); ruleId; ruleId = ruleId.next_sibling("ruleID")) {
@@ -145,6 +150,7 @@ bool ShaderModificationRepository::LoadRules(std::string rulesPath)
 			if (!(m_shaderSpecificModificationRuleIDs.insert(std::pair<uint32_t, std::vector<UINT>>(hash, shaderRules)).second)) {
 				OutputDebugString("Two sets of rules found with the same 'shaderHash'. Only the first will be applied.\n"); 
 			}
+
 		}
 	}
 
@@ -217,6 +223,35 @@ bool ShaderModificationRepository::SaveRules(std::string rulesPath)
 		else {
 			OutputDebugString("No default rules found, pugi xml error.\n");
 		}
+
+		// Shader specific rules (optional)
+		auto itSpecificRules = m_shaderSpecificModificationRuleIDs.begin();
+		while (itSpecificRules != m_shaderSpecificModificationRuleIDs.end())
+		{
+			// create shader node
+			pugi::xml_node shader = xmlShaderConfig.append_child("shaderSpecificRuleIDs");
+
+			// append hash attribute
+			uint32_t hash = itSpecificRules->first;
+			shader.append_attribute("shaderHash") = hash;
+
+			// viewport squish for that shader ?
+			if(std::find(m_shaderViewportSquashIDs.begin(), m_shaderViewportSquashIDs.end(), hash)!=m_shaderViewportSquashIDs.end()){
+				// set id attribute
+				shader.append_attribute("squishViewport") = true;
+			}
+
+			// save ids
+			std::vector<UINT> shaderRules = itSpecificRules->second;
+			auto itRules = shaderRules.begin();
+			while (itRules != shaderRules.end())
+			{
+				pugi::xml_node ruleID = shader.append_child("ruleID");
+				ruleID.append_attribute("id") = *itRules;
+				++itRules;
+			}
+			++itSpecificRules;
+		}
 	}
 
 	// return saving xml file
@@ -249,10 +284,67 @@ bool ShaderModificationRepository::AddRule(std::string constantName, bool allowP
 	{
 		OutputDebugString("rule not present...add");
 		m_defaultModificationRuleIDs.push_back(modificationRuleID);
-		m_AllModificationRules.insert(std::make_pair<UINT, ConstantModificationRule>((UINT)int(modificationRuleID), (ShaderModificationRepository::ConstantModificationRule)ConstantModificationRule(std::string(constantName), allowPartialNameMatch, startRegIndex, constantType, operationToApply, modificationRuleID, transpose)));
+		static ConstantModificationRule newRule;
+
+		newRule.m_constantName = std::string(constantName);
+		newRule.m_constantType = constantType;
+		newRule.m_modificationRuleID = modificationRuleID;
+		newRule.m_operationToApply = operationToApply;
+		newRule.m_startRegIndex = startRegIndex;
+		newRule.m_allowPartialNameMatch = allowPartialNameMatch;
+		newRule.m_transpose = transpose;
+
+		if (!(m_AllModificationRules.insert(std::make_pair<UINT, ConstantModificationRule>((UINT)int(newRule.m_modificationRuleID), (ShaderModificationRepository::ConstantModificationRule)newRule)).second)) {
+			OutputDebugString("Two rules found with the same 'id'. Only the first will be applied.\n"); 
+		}
 	}
 
 	return (!rulePresent);
+}
+
+/**
+* Adds a default shader rule specified by parameters if that rule is not already present.
+* @return True if rule was present an modified, false if rule not present.
+***/
+bool ShaderModificationRepository::ModifyRule(std::string constantName, UINT operationToApply, bool transpose)
+{
+	bool rulePresent = false;
+	auto itModificationRules = m_AllModificationRules.begin();
+	while (itModificationRules != m_AllModificationRules.end())
+	{
+		if (constantName.compare(itModificationRules->second.m_constantName) == 0) 
+		{
+			itModificationRules->second.m_operationToApply = operationToApply;
+			itModificationRules->second.m_transpose = transpose;
+			rulePresent = true;
+		}
+		++itModificationRules;
+	}
+
+	return rulePresent;
+}
+
+/**
+* Deletes all rules that share this constant name.
+* @return True if rule was deleted, false if rule not present.
+***/
+bool ShaderModificationRepository::DeleteRule(std::string constantName)
+{
+	bool rulePresent = false;
+	auto itModificationRules = m_AllModificationRules.begin();
+	while (itModificationRules != m_AllModificationRules.end())
+	{
+		if (constantName.compare(itModificationRules->second.m_constantName) == 0) 
+		{
+			m_AllModificationRules.erase(itModificationRules);
+			itModificationRules = m_AllModificationRules.begin();
+			rulePresent = true;
+		}
+		else
+			++itModificationRules;
+	}
+
+	return rulePresent;
 }
 
 /**
@@ -351,10 +443,10 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 										nameMatch = std::strstr(pConstantDesc[j].Name, (*itRules)->m_constantName.c_str()) != NULL;
 
 										/*if (nameMatch) {
-											OutputDebugString("Match\n");
+										OutputDebugString("Match\n");
 										}
 										else {
-											OutputDebugString("No Match\n");
+										OutputDebugString("No Match\n");
 										}*/
 									}
 									else {
@@ -584,6 +676,34 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 }
 
 /**
+* Returns true if viewport should be squished for this shader.
+***/
+bool ShaderModificationRepository::SquishViewportForShader(IDirect3DVertexShader9* pActualVertexShader)
+{
+	// Hash the shader
+	BYTE *pData = NULL;
+	UINT pSizeOfData;
+
+	pActualVertexShader->GetFunction(NULL, &pSizeOfData);
+	pData = new BYTE[pSizeOfData];
+	pActualVertexShader->GetFunction(pData,&pSizeOfData);
+
+	uint32_t hash;
+	MurmurHash3_x86_32(pData, pSizeOfData, VIREIO_SEED, &hash);
+
+	// find hash
+	auto i = std::find(m_shaderViewportSquashIDs.begin(), m_shaderViewportSquashIDs.end(), hash);
+
+	// found
+	if (i != m_shaderViewportSquashIDs.end()) {
+		return true;
+	} 
+
+	return false;
+}
+
+
+/**
 * Returns a unique identifier for a new shader rule.
 ***/
 UINT ShaderModificationRepository::GetUniqueRuleID()
@@ -597,6 +717,78 @@ UINT ShaderModificationRepository::GetUniqueRuleID()
 	}
 
 	return result;
+}
+
+/**
+* True if the constant name has a rule applied, returns string name of the rule.
+* (does not ask for a start register or so)
+* @param constantName [in] The name of the constant.
+* @param constantRule [out] The name of the rule to be returned.
+***/
+bool ShaderModificationRepository::ConstantHasRule(std::string constantName, std::string& constantRule, UINT& operation, bool& isTransposed)
+{
+	auto iRules = m_AllModificationRules.begin();
+	while (iRules !=m_AllModificationRules.end())
+	{
+		if (iRules->second.m_constantName.compare(constantName) == 0)
+		{
+			// put this to factory ?
+			// get the string name of the rule
+			switch (iRules->second.m_constantType)
+			{
+			case D3DXPC_VECTOR:
+				if (iRules->second.m_operationToApply == ShaderConstantModificationFactory::Vec4DoNothing)
+					constantRule = "Vec4DoNothing";
+				else if (iRules->second.m_operationToApply == ShaderConstantModificationFactory::Vec4SimpleTranslate)
+					constantRule = "Vec4SimpleTranslate";
+				else if (iRules->second.m_operationToApply == ShaderConstantModificationFactory::Vec4EyeShiftUnity)
+					constantRule = "Vec4EyeShiftUnity";
+				break;
+
+			case D3DXPC_MATRIX_ROWS:
+			case D3DXPC_MATRIX_COLUMNS:
+				if (iRules->second.m_operationToApply == ShaderConstantModificationFactory::MatDoNothing)
+					constantRule = "MatDoNothing";
+				else if (iRules->second.m_operationToApply == ShaderConstantModificationFactory::MatSimpleTranslate)
+					constantRule = "MatSimpleTranslate";
+				else if (iRules->second.m_operationToApply == ShaderConstantModificationFactory::MatOrthographicSquash)
+					constantRule = "MatOrthographicSquash";
+				else if (iRules->second.m_operationToApply == ShaderConstantModificationFactory::MatHudSlide)
+					constantRule = "MatHudSlide";
+				else if (iRules->second.m_operationToApply == ShaderConstantModificationFactory::MatGuiSquash)
+					constantRule = "MatGuiSquash";
+				else if (iRules->second.m_operationToApply == ShaderConstantModificationFactory::MatSurfaceRefractionTransform)
+					constantRule = "MatSurfaceRefractionTransform";
+				else if (iRules->second.m_operationToApply == ShaderConstantModificationFactory::MatGatheredOrthographicSquash)
+					constantRule = "MatGatheredOrthographicSquash";
+				else if (iRules->second.m_operationToApply == ShaderConstantModificationFactory::MatOrthographicSquashShifted)
+					constantRule = "MatOrthographicSquashShifted";
+				else if (iRules->second.m_operationToApply == ShaderConstantModificationFactory::MatOrthographicSquashHud)
+					constantRule = "MatOrthographicSquashHud";				
+				else if (iRules->second.m_operationToApply == ShaderConstantModificationFactory::MatConvergenceOffset)
+					constantRule = "MatConvergenceOffset";				
+				else if (iRules->second.m_operationToApply == ShaderConstantModificationFactory::MatSimpleTranslateIgnoreOrtho)
+					constantRule = "MatSimpleTranslateIgnoreOrtho";
+				else if (iRules->second.m_operationToApply == ShaderConstantModificationFactory::MatRollOnly)
+					constantRule = "MatRollOnly";
+				else if (iRules->second.m_operationToApply == ShaderConstantModificationFactory::MatRollOnlyNegative)
+					constantRule = "MatRollOnlyNegative";
+				else if (iRules->second.m_operationToApply == ShaderConstantModificationFactory::MatRollOnlyHalf)
+					constantRule = "MatRollOnlyHalf";
+				break;
+
+			default:
+				throw 69; // unhandled type
+				break;
+			}
+			isTransposed = iRules->second.m_transpose;
+			operation = iRules->second.m_operationToApply;
+			return true;
+		}
+
+		++iRules;
+	}
+	return false;
 }
 
 /**

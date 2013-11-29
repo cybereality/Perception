@@ -1,0 +1,18 @@
+﻿Der Buildvorgang wurde am 29.11.2013 13:10:02 gestartet.
+     1>Projekt "C:\Users\Denis\Documents\GitHub\Perception\VRboostReferee\VRboostReferee.vcxproj" auf Knoten "3", Rebuild Ziel(e).
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\CL.exe /c /I"C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\\Include" /I\Include /Zi /nologo /W3 /WX- /O2 /Oi /Oy- /GL /D WIN32 /D NDEBUG /D _CONSOLE /D _MBCS /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Release\\" /Fd"Release\vc110.pdb" /Gd /TP /analyze- /errorReport:prompt ..\DxProxy\DxProxy\pugixml.cpp VRboostReferee.cpp
+         pugixml.cpp
+         VRboostReferee.cpp
+     1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V110\Microsoft.CppBuild.targets(1137,5): warning MSB8012: TargetPath(C:\Users\Denis\Documents\GitHub\Perception\VRboostReferee\Release\VRboostReferee.exe) does not match the Linker's OutputFile property value (C:\Users\Denis\Documents\GitHub\Perception\Release\Perception\cfg\VRboost_rules\VRboostReferee.exe). This may cause your project to build incorrectly. To correct this, please make sure that $(OutDir), $(TargetName) and $(TargetExt) property values match the value specified in %(Link.OutputFile).
+       Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Denis\Documents\GitHub\Perception\Release\Perception\cfg\VRboost_rules\VRboostReferee.exe" /INCREMENTAL:NO /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"Release\VRboostReferee.pdb" /SUBSYSTEM:CONSOLE /OPT:REF /OPT:ICF /LTCG /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"Release\VRboostReferee.lib" /MACHINE:X86 /SAFESEH Release\pugixml.obj
+         Release\VRboostReferee.obj
+         Code wird generiert.
+         Codegenerierung ist abgeschlossen.
+         VRboostReferee.vcxproj -> C:\Users\Denis\Documents\GitHub\Perception\VRboostReferee\Release\VRboostReferee.exe
+     1>Die Erstellung des Projekts "C:\Users\Denis\Documents\GitHub\Perception\VRboostReferee\VRboostReferee.vcxproj" ist abgeschlossen, Rebuild Ziel(e).
+
+Build erfolgreich.
+
+Verstrichene Zeit 00:00:04.39

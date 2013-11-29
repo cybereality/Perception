@@ -51,7 +51,7 @@ public:
 	* Game configuration structure.
 	* All game-specific information + IPD + swap_eyes + stereo_mode + tracker_mode.
 	***/
-	struct ProxyConfig // TODO !! add convergence ?
+	struct ProxyConfig 
 	{
 		int         game_type;             /**< Game type enumeration. Matching D3DProxyDevice::ProxyTypes. */
 		int         stereo_mode;           /**< Stereo render mode enumeration. Matching StereoView::StereoTypes. */
@@ -63,7 +63,10 @@ public:
 		float       roll_multiplier;       /**< Game-specific tracking multiplier (roll). */
 		float       worldScaleFactor;      /**< Value the eye seperation is to be multiplied with. (mm * worldScaleFactor = mm in game units). */
 		bool        rollEnabled;           /**< True if headtracking-roll is to be enabled. */
+		std::string game_exe;              /**< Process name, to be used in VRboost. */
 		std::string shaderRulePath;        /**< Full path of shader rules for this game. */
+		std::string VRboostPath;           /**< Full path of VRboost rules for this game. */
+		UINT        VRboostMinShaderCount; /**< Minimum Vertex Shader Count to apply VRboost (security) */
 		float       ipd;                   /**< IPD, which stands for interpupillary distance (distance between your pupils - in meters...default = 0.064). Also called the interocular distance (or just Interocular). */
 		float       convergence;           /**< Convergence or Neutral Point distance, in meters. */
 		int         hud3DDepthMode;        /**< Current HUD mode. */
@@ -107,7 +110,7 @@ public:
 	bool  SaveUserConfig(float ipd = IPD_DEFAULT);
 	bool  HasProfile(char* name);
 	bool  GetProfile(char* name, ProxyConfig& config);
-	bool  SaveProfile(std::string shaderRulePath = "", float convergence = 0.0f, bool swap_eyes = false, float yaw = 25.0f, float pitch = 25.0f, float roll = 1.0f, float worldScale = 1.0f);
+	bool  SaveProfile(std::string shaderRulePath = "", std::string VRboostRulePath = "", float convergence = 0.0f, bool swap_eyes = false, float yaw = 25.0f, float pitch = 25.0f, float roll = 1.0f, float worldScale = 1.0f, int minVRboostShaderCount = 0);
 
 	/**
 	* True if base directory path loaded.

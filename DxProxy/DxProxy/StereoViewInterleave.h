@@ -41,8 +41,9 @@ public:
 	StereoViewInterleave(ProxyHelper::ProxyConfig& config);
 	~StereoViewInterleave();
 
-	/*** StereoViewInterleave public methods ***/
-	virtual void Draw(D3D9ProxySurface* stereoCapableSurface);
+protected:
+	/*** StereoViewInterleave protected methods ***/
+	virtual void SetViewEffectInitialValues();
 };
 
 #endif

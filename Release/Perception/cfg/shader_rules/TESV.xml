@@ -1,21 +1,27 @@
-<?xml version="1.0"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <shaderConfig>
-	<rules>
-		<rule constantName="WorldViewProj" partialName="true" id="1" constantType="MatrixR" modToApply="7" startReg="0" transpose="true" />
-		<rule constantName="mvp" partialName="true" id="2" constantType="MatrixC" modToApply="7" startReg="0" transpose="true" />
-		<rule constantName="WorldViewProj" partialName="true" id="3" constantType="MatrixR" modToApply="7" startReg="128" transpose="true" />
-		<rule constantName="WorldViewProj" partialName="true" id="4" constantType="MatrixR" modToApply="7" startReg="180" transpose="true" />
-		<rule constantName="ModelViewProj" partialName="true" id="5" constantType="MatrixR" modToApply="7" startReg="0" transpose="true" />
+  <rules>
+    <rule constantName="WorldViewProj" partialName="true" id="1" constantType="MatrixR" modToApply="7" startReg="0" transpose="true" />
+    <rule constantName="mvp" partialName="true" id="2" constantType="MatrixC" modToApply="7" startReg="0" transpose="true" />
+    <rule constantName="WorldViewProj" partialName="true" id="3" constantType="MatrixR" modToApply="7" startReg="128" transpose="true" />
+    <rule constantName="WorldViewProj" partialName="true" id="4" constantType="MatrixR" modToApply="7" startReg="180" transpose="true" />
+    <rule constantName="ModelViewProj" partialName="true" id="5" constantType="MatrixR" modToApply="7" startReg="0" transpose="true" />
     <rule constantName="ModelViewProj" partialName="true" id="6" constantType="MatrixR" modToApply="6" startReg="0" transpose="true" />
     <rule constantName="TextureProj" partialName="true" id="7" constantType="MatrixR" modToApply="5" startReg="0" transpose="true" />
-	</rules>
-	<defaultRuleIDs>
-		<ruleID id="1" />
-		<ruleID id="2" />
-		<ruleID id="3" />
-		<ruleID id="4" />
-		<ruleID id="5" />
-	</defaultRuleIDs>
+    <rule constantName="WorldViewProj" partialName="true" id="8" constantType="MatrixR" modToApply="9" startReg="0" transpose="true" />
+    <rule constantName="WorldViewProj" partialName="true" id="9" constantType="MatrixR" modToApply="9" startReg="180" transpose="true" />
+    <rule constantName="WorldViewProj" partialName="true" id="10" constantType="MatrixR" modToApply="11" startReg="0" transpose="true" />
+    <rule constantName="WorldViewProj" partialName="true" id="11" constantType="MatrixR" modToApply="11" startReg="180" transpose="true" />
+    <rule constantName="WorldViewProj" partialName="true" id="12" constantType="MatrixR" modToApply="0" startReg="0" transpose="true" />
+    <rule constantName="WorldViewProj" partialName="true" id="13" constantType="MatrixR" modToApply="0" startReg="180" transpose="true" />
+  </rules>
+  <defaultRuleIDs>
+    <ruleID id="1" />
+    <ruleID id="2" />
+    <ruleID id="3" />
+    <ruleID id="4" />
+    <ruleID id="5" />
+  </defaultRuleIDs>
   <shaderSpecificRuleIDs shaderHash="2316301020">
     <ruleID id="6" />
   </shaderSpecificRuleIDs>
@@ -28,4 +34,59 @@
   <shaderSpecificRuleIDs shaderHash="462145519">
     <ruleID id="7" />
   </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="2880869292">
+    <ruleID id="7" />
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="1804716609">
+    <ruleID id="7" />
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="1851963494">
+    <ruleID id="8" />
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="3047518823">
+    <ruleID id="8" />
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="2431438006">
+    <ruleID id="8" />
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="3582244086">
+    <ruleID id="8" />
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="3994929422">
+    <ruleID id="8" />
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="4109403606">
+    <ruleID id="8" />
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="9123333">
+    <ruleID id="9" />
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="253144833">
+    <ruleID id="12" />SHADOW SHADER ! NO MODIFICATION, JUST ROLL</shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="311972612">
+    <ruleID id="12" />SHADOW SHADER ! NO MODIFICATION, JUST ROLL</shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="717279834">
+    <ruleID id="12" />SHADOW SHADER ! NO MODIFICATION, JUST ROLL</shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="752610056">
+    <ruleID id="10" />SHADOW SHADER ! NO MODIFICATION, JUST ROLL</shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="1023935469">
+    <ruleID id="10" />SHADOW SHADER ! NO MODIFICATION, JUST ROLL</shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="2937704700">
+    <ruleID id="10" />SHADOW SHADER ! NO MODIFICATION, JUST ROLL</shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="3328280590">
+    <ruleID id="10" />SHADOW SHADER ! NO MODIFICATION, JUST ROLL</shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="2818948964">
+    <ruleID id="12" />SHADOW SHADER ! NO MODIFICATION, JUST ROLL</shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="1475371883">
+    <ruleID id="12" />SHADOW SHADER ! NO MODIFICATION, JUST ROLL</shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="43392215">
+    <ruleID id="13" />SHADOW SHADER ! NO MODIFICATION, JUST ROLL</shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="577023959">
+    <ruleID id="13" />SHADOW SHADER ! NO MODIFICATION, JUST ROLL</shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="996284032">
+    <ruleID id="12" />SHADOW SHADER ! NO MODIFICATION, JUST ROLL</shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="3228632850">
+    <ruleID id="13" />SHADOW SHADER ! NO MODIFICATION, JUST ROLL</shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="1818018526">
+    <ruleID id="13" />SHADOW SHADER ! NO MODIFICATION, JUST ROLL</shaderSpecificRuleIDs>
 </shaderConfig>
