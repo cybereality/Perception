@@ -2315,7 +2315,7 @@ void D3DProxyDevice::HandleControls()
 		menuVelocity.x+=2.0f;
 
 	// open BRASSA - <CTRL>+<T>
-	if(KEY_DOWN(0x54) && KEY_DOWN(VK_LCONTROL) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	if(KEY_DOWN(0x51) && KEY_DOWN(VK_LCONTROL) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		if (BRASSA_mode == BRASSA_Modes::INACTIVE)
 		{
