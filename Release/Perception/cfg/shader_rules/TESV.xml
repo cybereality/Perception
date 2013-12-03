@@ -63,9 +63,9 @@
     <ruleID id="9" />
   </shaderSpecificRuleIDs>
   <shaderSpecificRuleIDs shaderHash="253144833">
-    <ruleID id="12" />SHADOW SHADER ! NO MODIFICATION, JUST ROLL</shaderSpecificRuleIDs>
+    <ruleID id="12" />SHADOW SHADER ! NO MODIFICATION !</shaderSpecificRuleIDs>
   <shaderSpecificRuleIDs shaderHash="311972612">
-    <ruleID id="12" />SHADOW SHADER ! NO MODIFICATION, JUST ROLL</shaderSpecificRuleIDs>
+    <ruleID id="12" />SHADOW SHADER ! NO MODIFICATION !</shaderSpecificRuleIDs>
   <shaderSpecificRuleIDs shaderHash="752610056">
     <ruleID id="10" />SHADOW SHADER ! NO MODIFICATION, JUST ROLL</shaderSpecificRuleIDs>
   <shaderSpecificRuleIDs shaderHash="1023935469">
@@ -75,20 +75,33 @@
   <shaderSpecificRuleIDs shaderHash="3328280590">
     <ruleID id="10" />SHADOW SHADER ! NO MODIFICATION, JUST ROLL</shaderSpecificRuleIDs>
   <shaderSpecificRuleIDs shaderHash="2818948964">
-    <ruleID id="12" />SHADOW SHADER ! NO MODIFICATION, JUST ROLL</shaderSpecificRuleIDs>
+    <ruleID id="12" />SHADOW SHADER ! NO MODIFICATION !</shaderSpecificRuleIDs>
   <shaderSpecificRuleIDs shaderHash="1475371883">
-    <ruleID id="12" />SHADOW SHADER ! NO MODIFICATION, JUST ROLL</shaderSpecificRuleIDs>
+    <ruleID id="12" />SHADOW SHADER ! NO MODIFICATION !</shaderSpecificRuleIDs>
   <shaderSpecificRuleIDs shaderHash="43392215">
-    <ruleID id="13" />SHADOW SHADER ! NO MODIFICATION, JUST ROLL</shaderSpecificRuleIDs>
+    <ruleID id="13" />SHADOW SHADER ! NO MODIFICATION !</shaderSpecificRuleIDs>
   <shaderSpecificRuleIDs shaderHash="577023959">
-    <ruleID id="13" />SHADOW SHADER ! NO MODIFICATION, JUST ROLL</shaderSpecificRuleIDs>
+    <ruleID id="13" />SHADOW SHADER ! NO MODIFICATION !</shaderSpecificRuleIDs>
   <shaderSpecificRuleIDs shaderHash="996284032">
-    <ruleID id="12" />SHADOW SHADER ! NO MODIFICATION, JUST ROLL</shaderSpecificRuleIDs>
+    <ruleID id="12" />SHADOW SHADER ! NO MODIFICATION !</shaderSpecificRuleIDs>
   <shaderSpecificRuleIDs shaderHash="3228632850">
-    <ruleID id="13" />SHADOW SHADER ! NO MODIFICATION, JUST ROLL</shaderSpecificRuleIDs>
+    <ruleID id="13" />SHADOW SHADER ! NO MODIFICATION !</shaderSpecificRuleIDs>
   <shaderSpecificRuleIDs shaderHash="1818018526">
-    <ruleID id="13" />SHADOW SHADER ! NO MODIFICATION, JUST ROLL</shaderSpecificRuleIDs>
+    <ruleID id="13" />SHADOW SHADER ! NO MODIFICATION !</shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="174026321">
+    <ruleID id="13" />SHADOW SHADER ! NO MODIFICATION !</shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="495206152">
+    <ruleID id="11" />SHADOW SHADER ! NO MODIFICATION, JUST ROLL</shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="2291231027">
+    <ruleID id="12" />SHADOW SHADER ! NO MODIFICATION !</shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="3325411395">
+    <ruleID id="12" />SHADOW SHADER ! NO MODIFICATION !</shaderSpecificRuleIDs>
   <shaderSpecificRuleIDs shaderHash="2651859175">
-    <ruleID id="14" />
-  </shaderSpecificRuleIDs>
+    <ruleID id="14" />MIST FIX !</shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="3230145213">
+    <ruleID id="13" />SHADOW SHADER ! NO MODIFICATION !</shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="1068286076">
+    <ruleID id="12" />SHADOW SHADER ! NO MODIFICATION !</shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="2487947601">
+    <ruleID id="13" />SHADOW SHADER ! NO MODIFICATION !</shaderSpecificRuleIDs>
 </shaderConfig>
