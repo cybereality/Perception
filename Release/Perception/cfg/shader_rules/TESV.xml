@@ -10,8 +10,8 @@
     <rule constantName="TextureProj" partialName="true" id="7" constantType="MatrixR" modToApply="5" startReg="0" transpose="true" />
     <rule constantName="WorldViewProj" partialName="true" id="8" constantType="MatrixR" modToApply="9" startReg="0" transpose="true" />
     <rule constantName="WorldViewProj" partialName="true" id="9" constantType="MatrixR" modToApply="9" startReg="180" transpose="true" />
-    <rule constantName="WorldViewProj" partialName="true" id="10" constantType="MatrixR" modToApply="11" startReg="0" transpose="true" />
-    <rule constantName="WorldViewProj" partialName="true" id="11" constantType="MatrixR" modToApply="11" startReg="180" transpose="true" />
+    <rule constantName="WorldViewProj" partialName="true" id="10" constantType="MatrixR" modToApply="1" startReg="0" transpose="true" />
+    <rule constantName="WorldViewProj" partialName="true" id="11" constantType="MatrixR" modToApply="1" startReg="180" transpose="true" />
     <rule constantName="WorldViewProj" partialName="true" id="12" constantType="MatrixR" modToApply="0" startReg="0" transpose="true" />
     <rule constantName="WorldViewProj" partialName="true" id="13" constantType="MatrixR" modToApply="0" startReg="180" transpose="true" />
     <rule constantName="WorldViewProj" partialName="true" id="14" constantType="MatrixR" modToApply="14" startReg="0" transpose="true" />
