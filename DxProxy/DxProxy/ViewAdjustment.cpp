@@ -67,6 +67,8 @@ ViewAdjustment::ViewAdjustment(HMDisplayInfo &displayInfo, float metersToWorldUn
 	D3DXMatrixIdentity(&matViewProjLeft);
 	D3DXMatrixIdentity(&matViewProjTransformRight);
 	D3DXMatrixIdentity(&matViewProjTransformLeft);
+	D3DXMatrixIdentity(&matViewProjTransformRightNoRoll);
+	D3DXMatrixIdentity(&matViewProjTransformLeftNoRoll);
 	D3DXMatrixIdentity(&matHudLeft);
 	D3DXMatrixIdentity(&matHudRight);
 	D3DXMatrixIdentity(&matGuiLeft);
@@ -206,6 +208,11 @@ void ViewAdjustment::ComputeViewTransforms()
 	D3DXMatrixTranslation(&transformLeft, SeparationInWorldUnits() * LEFT_CONSTANT, 0, 0);
 	D3DXMatrixTranslation(&transformRight, SeparationInWorldUnits() * RIGHT_CONSTANT, 0, 0);
 
+	// projection transform, no roll
+	matViewProjTransformLeftNoRoll = matProjectionInv * transformLeft * projectLeft;
+	matViewProjTransformRightNoRoll = matProjectionInv * transformRight * projectRight;
+
+	// head roll
 	if (rollEnabled) {
 		D3DXMatrixMultiply(&transformLeft, &rollMatrix, &transformLeft);
 		D3DXMatrixMultiply(&transformRight, &rollMatrix, &transformRight);
@@ -274,6 +281,22 @@ D3DXMATRIX ViewAdjustment::LeftAdjustmentMatrix()
 D3DXMATRIX ViewAdjustment::RightAdjustmentMatrix()
 {
 	return matViewProjTransformRight;
+}
+
+/**
+* Returns the left view projection transform matrix without head roll.
+***/
+D3DXMATRIX ViewAdjustment::LeftAdjustmentMatrixNoRoll()
+{
+	return matViewProjTransformLeftNoRoll;
+}
+
+/**
+* Returns the right view projection transform matrix without head roll.
+***/
+D3DXMATRIX ViewAdjustment::RightAdjustmentMatrixNoRoll()
+{
+	return matViewProjTransformRightNoRoll;
 }
 
 /**

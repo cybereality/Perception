@@ -775,6 +775,8 @@ bool ShaderModificationRepository::ConstantHasRule(std::string constantName, std
 					constantRule = "MatRollOnlyNegative";
 				else if (iRules->second.m_operationToApply == ShaderConstantModificationFactory::MatRollOnlyHalf)
 					constantRule = "MatRollOnlyHalf";
+				else if (iRules->second.m_operationToApply == ShaderConstantModificationFactory::MatNoRoll)
+					constantRule = "MatNoRoll";
 				break;
 
 			default:

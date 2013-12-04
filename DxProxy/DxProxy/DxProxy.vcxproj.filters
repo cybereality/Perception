@@ -456,6 +456,9 @@
     <ClInclude Include="MatrixRollOnlyHalf.h">
       <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
     </ClInclude>
+    <ClInclude Include="MatrixNoRoll.h">
+      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\Release\Perception\cfg\profiles.xml">

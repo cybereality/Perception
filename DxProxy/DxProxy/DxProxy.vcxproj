@@ -179,6 +179,7 @@
     <ClInclude Include="MatrixGatheredOrhoSquash.h" />
     <ClInclude Include="MatrixGuiSquash.h" />
     <ClInclude Include="MatrixHudSlide.h" />
+    <ClInclude Include="MatrixNoRoll.h" />
     <ClInclude Include="MatrixOrthoSquash.h" />
     <ClInclude Include="MatrixOrthoSquashHud.h" />
     <ClInclude Include="MatrixOrthoSquashShifted.h" />
@@ -356,7 +357,9 @@
     <None Include="SideBySideRiftPartialCrop.fx" />
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="..\..\Release\Perception\cfg\shader_rules\TESV.xml" />
+    <Xml Include="..\..\Release\Perception\cfg\shader_rules\TESV.xml">
+      <SubType>Designer</SubType>
+    </Xml>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

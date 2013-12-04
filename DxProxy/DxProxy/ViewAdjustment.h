@@ -63,6 +63,8 @@ public:
 	void          ComputeViewTransforms(); 
 	D3DXMATRIX    LeftAdjustmentMatrix();
 	D3DXMATRIX    RightAdjustmentMatrix();
+	D3DXMATRIX    LeftAdjustmentMatrixNoRoll();
+	D3DXMATRIX    RightAdjustmentMatrixNoRoll();
 	D3DXMATRIX    LeftView();
 	D3DXMATRIX    RightView();	
 	D3DXMATRIX    LeftViewTransform();
@@ -175,6 +177,14 @@ private:
 	* Right view projection transform matrix.
 	***/
 	D3DXMATRIX matViewProjTransformRight;
+	/**
+	* Left view projection transform matrix.
+	***/
+	D3DXMATRIX matViewProjTransformLeftNoRoll;
+	/**
+	* Right view projection transform matrix.
+	***/
+	D3DXMATRIX matViewProjTransformRightNoRoll;
 	/**
 	* Gathered matrix to be used in gathered modifications.
 	***/
