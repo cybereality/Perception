@@ -142,6 +142,7 @@
     <ClCompile Include="FreeTrackTracker.cpp" />
     <ClCompile Include="GameHandler.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="MatrixNoShowModification.cpp" />
     <ClCompile Include="MotionTracker.cpp" />
     <ClCompile Include="MotionTrackerFactory.cpp" />
     <ClCompile Include="MurmurHash3.cpp" />
@@ -180,6 +181,7 @@
     <ClInclude Include="MatrixGuiSquash.h" />
     <ClInclude Include="MatrixHudSlide.h" />
     <ClInclude Include="MatrixNoRoll.h" />
+    <ClInclude Include="MatrixNoShowModification.h" />
     <ClInclude Include="MatrixOrthoSquash.h" />
     <ClInclude Include="MatrixOrthoSquashHud.h" />
     <ClInclude Include="MatrixOrthoSquashShifted.h" />
@@ -337,11 +339,15 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\cfg\%(filename).xml;%(Outputs)</Outputs>
       <SubType>Designer</SubType>
     </CustomBuild>
-    <None Include="..\..\Release\Perception\cfg\shader_rules\borderlands2.xml" />
+    <None Include="..\..\Release\Perception\cfg\shader_rules\borderlands2.xml">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="..\..\Release\Perception\cfg\shader_rules\ego.xml">
       <SubType>Designer</SubType>
     </None>
-    <None Include="..\..\Release\Perception\cfg\shader_rules\example.xml" />
+    <None Include="..\..\Release\Perception\cfg\shader_rules\example.xml">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="..\..\Release\Perception\cfg\shader_rules\omd2.xml">
       <SubType>Designer</SubType>
     </None>
@@ -352,7 +358,9 @@
     <None Include="..\..\Release\Perception\cfg\shader_rules\source.xml">
       <SubType>Designer</SubType>
     </None>
-    <None Include="..\..\Release\Perception\cfg\shader_rules\unreal.xml" />
+    <None Include="..\..\Release\Perception\cfg\shader_rules\unreal.xml">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="Exports.def" />
     <None Include="SideBySideRiftPartialCrop.fx" />
   </ItemGroup>

@@ -656,6 +656,7 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 #endif
 
 								// Create StereoShaderConstant<float> and add to result
+
 								result.insert(std::pair<UINT, StereoShaderConstant<>>(pConstantDesc[j].RegisterIndex, CreateStereoConstantFrom(*itRules, pConstantDesc[j].RegisterIndex, pConstantDesc[j].RegisterCount)));
 
 								// only the first matching rule is applied to a constant

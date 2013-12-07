@@ -52,7 +52,7 @@ public:
 	* @param adjustmentMatrices The matricies to do the adjustments to.
 	***/
 	MatrixDoNothing(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatrices) : 
-		ShaderMatrixModification(modID, adjustmentMatrices, false) {};
+		ShaderMatrixModification(modID, adjustmentMatrices, false) { };
 
 	/**
 	* Simply returns True.

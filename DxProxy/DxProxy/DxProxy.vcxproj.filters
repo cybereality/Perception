@@ -202,6 +202,9 @@
     <ClCompile Include="D3DProxyDeviceDebug.cpp">
       <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
     </ClCompile>
+    <ClCompile Include="MatrixNoShowModification.cpp">
+      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Exports.def">
@@ -457,6 +460,9 @@
       <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
     </ClInclude>
     <ClInclude Include="MatrixNoRoll.h">
+      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
+    </ClInclude>
+    <ClInclude Include="MatrixNoShowModification.h">
       <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
     </ClInclude>
   </ItemGroup>

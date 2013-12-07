@@ -51,6 +51,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "MatrixRollOnlyNegative.h"
 #include "MatrixRollOnlyHalf.h"
 #include "MatrixNoRoll.h"
+#include "MatrixNoShowModification.h"
 
 /**
 * Shader constant modification helper class.
@@ -88,6 +89,7 @@ public:
 		MatRollOnlyNegative = 12,          /**< Modification applies only the head roll. (negative)**/
 		MatRollOnlyHalf = 13,              /**< Modification applies only the head roll. (half roll)**/
 		MatNoRoll = 14,                    /**< Default modification without head roll. **/
+		MatNoShow = 15					   /**< Causes shader to not be displayed. **/
 	};
 
 	/**
@@ -178,6 +180,8 @@ public:
 
 		case MatNoRoll:
 			return std::make_shared<MatrixNoRoll>(mod, adjustmentMatrices, transpose);
+		case MatNoShow:
+			return std::make_shared<MatrixNoShowModification>(mod, adjustmentMatrices, transpose);
 
 		default:
 			OutputDebugString("Nonexistant matrix modification\n");
