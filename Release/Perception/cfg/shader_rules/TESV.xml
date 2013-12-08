@@ -94,21 +94,19 @@
   <shaderSpecificRuleIDs shaderHash="2487947601">
     <ruleID id="13" />SHADOW SHADER ! NO MODIFICATION !</shaderSpecificRuleIDs>
   <shaderSpecificRuleIDs shaderHash="717279834">
-    <ruleID id="12" />SHADOW SHADER ! NO MODIFICATION !</shaderSpecificRuleIDs>
+    <ruleID id="10" />SHADOW SHADER ! SIMPLE MODIFICATION !</shaderSpecificRuleIDs>
   <shaderSpecificRuleIDs shaderHash="4181114023">
-    <ruleID id="12" />SHADOW SHADER ! NO MODIFICATION !</shaderSpecificRuleIDs>
+    <ruleID id="10" />SHADOW SHADER ! SIMPLE MODIFICATION !</shaderSpecificRuleIDs>
   <shaderSpecificRuleIDs shaderHash="2956448341">
-    <ruleID id="12" />SHADOW SHADER ! NO MODIFICATION !</shaderSpecificRuleIDs>
+    <ruleID id="10" />SHADOW SHADER ! SIMPLE MODIFICATION !</shaderSpecificRuleIDs>
   <shaderSpecificRuleIDs shaderHash="4086638634">
-    <ruleID id="13" />SHADOW SHADER ! NO MODIFICATION !</shaderSpecificRuleIDs>
+    <ruleID id="11" />SHADOW SHADER ! SIMPLE MODIFICATION !</shaderSpecificRuleIDs>
   <shaderSpecificRuleIDs shaderHash="3958603502">
-    <ruleID id="13" />SHADOW SHADER ! NO MODIFICATION !</shaderSpecificRuleIDs>
+    <ruleID id="11" />SHADOW SHADER ! SIMPLE MODIFICATION !</shaderSpecificRuleIDs>
   <shaderSpecificRuleIDs shaderHash="2386739519">
     <ruleID id="11" />SHADOW SHADER ! SIMPLE MODIFICATION ! ALSO DRAWS HANDS !!!</shaderSpecificRuleIDs>
   <shaderSpecificRuleIDs shaderHash="3685386228">
     <ruleID id="11" />HANDS/ARMS SHADER ! SIMPLE MODIFICATION !</shaderSpecificRuleIDs>
   <shaderSpecificRuleIDs shaderHash="186708600">
-    <ruleID id="10" />SHADOW SHADER ! SIMPLE MODIFICATION ! (DOES THAT WORK ??)</shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="717279834">
-    <ruleID id="14" />SHADOW SHADER ! MODIFICATION WITHOUT HEAD ROLL ! (IS THERE ANOTHER SOLUTION ??)</shaderSpecificRuleIDs>
+    <ruleID id="10" />SHADOW SHADER ! SIMPLE MODIFICATION !</shaderSpecificRuleIDs>
 </shaderConfig>
