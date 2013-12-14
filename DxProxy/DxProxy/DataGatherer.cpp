@@ -54,7 +54,7 @@ uint32_t ShaderHash(LPDIRECT3DVERTEXSHADER9 pShader)
 
 	uint32_t hash = 0;
 	MurmurHash3_x86_32(pData, pSizeOfData, VIREIO_SEED, &hash);
-
+	delete[] pData;
 	return hash;
 }
 
@@ -76,7 +76,7 @@ uint32_t ShaderHash(LPDIRECT3DPIXELSHADER9 pShader)
 
 	uint32_t hash = 0;
 	MurmurHash3_x86_32(pData, pSizeOfData, VIREIO_SEED, &hash);
-
+	delete[] pData;
 	return hash;
 }
 
