@@ -2415,13 +2415,16 @@ void D3DProxyDevice::HandleTracking()
 		bool createNSave = false;
 		
 		// apply VRboost memory rules if present
-		float axis[3];
+		float axis[40];
 		axis[VRboostAxis::TrackerYaw] = tracker->primaryYaw;
 		axis[VRboostAxis::TrackerPitch] = tracker->primaryPitch;
 		axis[VRboostAxis::TrackerRoll] = tracker->primaryRoll;
 		axis[VRboostAxis::Zero] = 0.0f;
 		axis[VRboostAxis::One] = 1.0f;
-		if (m_pVRboost_ApplyMemoryRules(3, (float**)&axis) != S_OK)
+		// test... apply constant FOV
+		axis[24] = 90.0f; // World FOV
+		axis[25] = 120.0f; // Player FOV
+		if (m_pVRboost_ApplyMemoryRules(40, (float**)&axis) != S_OK)
 		{
 			if (!createNSave)
 			{
@@ -2486,7 +2489,27 @@ void D3DProxyDevice::HandleTracking()
 
 						// create skyrim shader rules here
 						m_pVRboost_CreateFloatMemoryRule((DWORD)FloatSimpleNegativeApply, (UINT)TrackerPitch, D3DXVECTOR4(), 0xF1063C, offsets, 0x12000000, 0x13000000, 0xF1063C, cOffsets1, 2, 0xF1063C, cOffsets2, 2);
-					}	
+					}
+					// create offsets : World FOV
+					{
+						// First offset is the number of used offsets
+						DWORD offsets[] = { 0, 0x00, 0x00, 0x00, 0x00, 0x00 };
+						DWORD cOffsets1[] = { 0, 0x00, 0x00, 0x00, 0x00, 0x00 };
+						DWORD cOffsets2[] = { 0, 0x00, 0x00, 0x00, 0x00, 0x00 };
+
+						// create skyrim shader rules here
+						m_pVRboost_CreateFloatMemoryRule((DWORD)FloatSimpleApply, (UINT)24, D3DXVECTOR4(), 0x1739A4C, offsets, 0x00000000, 0x13000000, 0x1739A4C, cOffsets1, 0, 0x1739A4C, cOffsets2, 0);
+					}
+					// create offsets : Player FOV
+					{
+						// First offset is the number of used offsets
+						DWORD offsets[] = { 0, 0x00, 0x00, 0x00, 0x00, 0x00 };
+						DWORD cOffsets1[] = { 0, 0x00, 0x00, 0x00, 0x00, 0x00 };
+						DWORD cOffsets2[] = { 0, 0x00, 0x00, 0x00, 0x00, 0x00 };
+
+						// create skyrim shader rules here
+						m_pVRboost_CreateFloatMemoryRule((DWORD)FloatSimpleApply, (UINT)25, D3DXVECTOR4(), 0x1739A50, offsets, 0x00000000, 0x13000000, 0x1739A50, cOffsets1, 0, 0x1739A50, cOffsets2, 0);
+					}
 				}
 #pragma endregion
 			}
