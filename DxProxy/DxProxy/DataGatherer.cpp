@@ -201,6 +201,7 @@ DataGatherer::DataGatherer(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy)
 DataGatherer::~DataGatherer()
 {
 	m_shaderDumpFile.close();
+	delete [] m_wvpMatrixConstantNames;
 }
 
 /**

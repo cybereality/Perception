@@ -692,6 +692,8 @@ bool ShaderModificationRepository::SquishViewportForShader(IDirect3DVertexShader
 	uint32_t hash;
 	MurmurHash3_x86_32(pData, pSizeOfData, VIREIO_SEED, &hash);
 
+	delete[] pData;
+
 	// find hash
 	auto i = std::find(m_shaderViewportSquashIDs.begin(), m_shaderViewportSquashIDs.end(), hash);
 
@@ -702,7 +704,6 @@ bool ShaderModificationRepository::SquishViewportForShader(IDirect3DVertexShader
 
 	return false;
 }
-
 
 /**
 * Returns a unique identifier for a new shader rule.

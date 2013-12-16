@@ -1420,6 +1420,7 @@ HRESULT WINAPI D3DProxyDevice::EndStateBlock(IDirect3DStateBlock9** ppSB)
 	}
 	else {
 		m_pCapturingStateTo->Release();
+		if (m_pCapturingStateTo) delete m_pCapturingStateTo;
 	}
 
 	m_pCapturingStateTo = NULL;
@@ -2332,6 +2333,7 @@ void D3DProxyDevice::HandleControls()
 			config.swap_eyes = stereoView->swapEyes;
 			m_spShaderViewAdjustment->Save(config);
 			helper->SaveConfig(config);
+			delete helper;
 		}
 
 		menuVelocity.x+=2.0f;
@@ -2355,6 +2357,7 @@ void D3DProxyDevice::HandleControls()
 			config.swap_eyes = stereoView->swapEyes;
 			m_spShaderViewAdjustment->Save(config);
 			helper->SaveConfig(config);
+			delete helper;
 		}
 
 		menuVelocity.x+=2.0f;
@@ -3040,6 +3043,7 @@ void D3DProxyDevice::BRASSA_MainMenu()
 		config.swap_eyes = stereoView->swapEyes;
 		m_spShaderViewAdjustment->Save(config);
 		helper->SaveConfig(config);
+		delete helper;
 	}
 
 	if ((KEY_DOWN(VK_RETURN) || KEY_DOWN(VK_RSHIFT)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
@@ -3091,6 +3095,7 @@ void D3DProxyDevice::BRASSA_MainMenu()
 			config.swap_eyes = stereoView->swapEyes;
 			m_spShaderViewAdjustment->Save(config);
 			helper->SaveConfig(config);
+			delete helper;
 		}
 	}
 
@@ -3241,6 +3246,7 @@ void D3DProxyDevice::BRASSA_WorldScale()
 		config.swap_eyes = stereoView->swapEyes;
 		m_spShaderViewAdjustment->Save(config);
 		helper->SaveConfig(config);
+		delete helper;
 	}
 
 	/**
@@ -3492,6 +3498,7 @@ void D3DProxyDevice::BRASSA_Convergence()
 		config.swap_eyes = stereoView->swapEyes;
 		m_spShaderViewAdjustment->Save(config);
 		helper->SaveConfig(config);
+		delete helper;
 	}
 
 	/**
@@ -3743,12 +3750,14 @@ void D3DProxyDevice::BRASSA_HUD()
 				}
 				config.hudHotkeys[4] = hudHotkeys[4];
 				helper->SaveHUDConfig(config);
+				delete helper;
 			}
 			// reload
 			if (entryID == 9)
 			{
 				ProxyHelper* helper = new ProxyHelper();
 				helper->LoadHUDConfig(config);
+				delete helper;
 				for (int i = 0; i < 4; i++)
 				{
 					hud3DDepthPresets[i] = config.hud3DDepthPresets[i];
@@ -4015,12 +4024,14 @@ void D3DProxyDevice::BRASSA_GUI()
 				}
 				config.guiHotkeys[4] = guiHotkeys[4];
 				helper->SaveGUIConfig(config);
+				delete helper;
 			}
 			// reload
 			if (entryID == 9)
 			{
 				ProxyHelper* helper = new ProxyHelper();
 				helper->LoadGUIConfig(config);
+				delete helper;
 				for (int i = 0; i < 4; i++)
 				{
 					gui3DDepthPresets[i] = config.gui3DDepthPresets[i];
@@ -4264,6 +4275,7 @@ void D3DProxyDevice::BRASSA_Settings()
 		config.swap_eyes = stereoView->swapEyes;
 		m_spShaderViewAdjustment->Save(config);
 		helper->SaveConfig(config);
+		delete helper;
 	}
 
 	if ((KEY_DOWN(VK_RETURN) || KEY_DOWN(VK_RSHIFT)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
@@ -4325,6 +4337,7 @@ void D3DProxyDevice::BRASSA_Settings()
 			config.swap_eyes = stereoView->swapEyes;
 			m_spShaderViewAdjustment->Save(config);
 			helper->SaveConfig(config);
+			delete helper;
 		}
 	}
 
