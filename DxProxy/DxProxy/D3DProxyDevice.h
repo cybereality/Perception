@@ -31,6 +31,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef D3DPROXYDEVICE_H_INCLUDED
 #define D3DPROXYDEVICE_H_INCLUDED
 
+#define MAX_VRBOOST_VALUES 256
+
 #include "Direct3DDevice9.h"
 
 #include "D3D9ProxySurface.h"
@@ -200,6 +202,7 @@ public:
 		HUD_CALIBRATION,
 		GUI_CALIBRATION,
 		OVERALL_SETTINGS,
+		VRBOOST_VALUES,
 		BRASSA_SHADER_ANALYZER_SUBMENU,
 		CHANGE_RULES_SCREEN,
 		PICK_RULES_SCREEN,
@@ -263,8 +266,20 @@ public:
 		TrackerRoll = 2,                 /**< This index is reserved for Tracker->primaryRoll. **/
 		Zero = 3,                        /**< This index is reserved for constant 0 output. **/
 		One = 4,                         /**< This index is reserved for constant 1 output. **/
-		// 5..11       reserved for future tracker use
-		// 12..23      reserved for future input device use
+		// 5..11                              reserved for future tracker use
+		// 12..23                             reserved for future input device use
+		WorldFOV = 24,                   /**< Game-specific global FOV setting. **/
+		PlayerFOV = 25,                  /**< Game-specific player surroundings FOV setting. **/
+		FarPlaneFOV = 26,                /**< Game-specific FOV setting for the most distant objects. **/ 
+		CameraTranslateX = 27,           /**< Translates the camera along the X-Axis. **/
+		CameraTranslateY = 28,           /**< Translates the camera along the Y-Axis. **/
+		CameraTranslateZ = 29,           /**< Translates the camera along the Z-Axis. **/
+		CameraDistance = 30,             /**< Changes the distance of the camera. **/
+		CameraZoom = 31,                 /**< Changes the cameras zoom. **/
+		CameraHorizonAdjustment = 32,    /**< Adjusts the cameras X axis rotation to match the horizon. **/
+		ConstantValue1 = 33,             /**< Game-specific constant value 1. **/
+		ConstantValue2 = 34,             /**< Game-specific constant value 2. **/
+		ConstantValue3 = 35,             /**< Game-specific constant value 3. **/
 		// 255         maximum VRboost axis index
 	};
 
@@ -272,6 +287,11 @@ public:
 	* Game-specific proxy configuration.
 	**/
 	ProxyHelper::ProxyConfig config;
+	/**
+	* VRBoost values. 
+	* Set to public for future use in input device classes.
+	***/
+	float VRBoostValue[MAX_VRBOOST_VALUES];
 	/**
 	* True if VRboost memory rules are saved.
 	* Delete this when VRboost rule creation tool is out.
@@ -471,6 +491,7 @@ private:
 	void    BRASSA_HUD();
 	void    BRASSA_GUI();
 	void    BRASSA_Settings();
+	void    BRASSA_VRBoostValues();
 	void    BRASSA_UpdateBorder();
 	void    ReleaseEverything();
 	bool    isViewportDefaultForMainRT(CONST D3DVIEWPORT9* pViewport);

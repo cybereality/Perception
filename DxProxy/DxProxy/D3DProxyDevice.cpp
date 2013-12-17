@@ -339,6 +339,14 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	m_bForceMouseEmulation = false;
 	m_VertexShaderCount = 0;
 	m_VertexShaderCountLastFrame = 0;
+
+	// set common default VRBoost values
+	ZeroMemory(&VRBoostValue[0], MAX_VRBOOST_VALUES*sizeof(float));
+	VRBoostValue[VRboostAxis::Zero] = 0.0f;
+	VRBoostValue[VRboostAxis::One] = 1.0f;
+	VRBoostValue[VRboostAxis::WorldFOV] = 95.0f;
+	VRBoostValue[VRboostAxis::PlayerFOV] = 125.0f;
+	VRBoostValue[VRboostAxis::FarPlaneFOV] = 95.0f;
 }
 
 /**
@@ -2162,6 +2170,20 @@ void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 	guiHotkeys[4] = config.guiHotkeys[4];
 	ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)config.gui3DDepthMode);
 
+	// VRBoost
+	VRBoostValue[VRboostAxis::WorldFOV] = config.WorldFOV;
+	VRBoostValue[VRboostAxis::PlayerFOV] = config.PlayerFOV;
+	VRBoostValue[VRboostAxis::FarPlaneFOV] = config.FarPlaneFOV;
+	VRBoostValue[VRboostAxis::CameraTranslateX] = config.CameraTranslateX;
+	VRBoostValue[VRboostAxis::CameraTranslateY] = config.CameraTranslateY;
+	VRBoostValue[VRboostAxis::CameraTranslateZ] = config.CameraTranslateZ;
+	VRBoostValue[VRboostAxis::CameraDistance] = config.CameraDistance;
+	VRBoostValue[VRboostAxis::CameraZoom] = config.CameraZoom;
+	VRBoostValue[VRboostAxis::CameraHorizonAdjustment] = config.CameraHorizonAdjustment;
+	VRBoostValue[VRboostAxis::ConstantValue1] = config.ConstantValue1;
+	VRBoostValue[VRboostAxis::ConstantValue2] = config.ConstantValue2;
+	VRBoostValue[VRboostAxis::ConstantValue3] = config.ConstantValue3;
+
 	OnCreateOrRestore();
 
 	// set behavior accordingly to game type
@@ -2413,18 +2435,12 @@ void D3DProxyDevice::HandleTracking()
 	{
 		// development bool
 		bool createNSave = false;
-		
+
 		// apply VRboost memory rules if present
-		float axis[40];
-		axis[VRboostAxis::TrackerYaw] = tracker->primaryYaw;
-		axis[VRboostAxis::TrackerPitch] = tracker->primaryPitch;
-		axis[VRboostAxis::TrackerRoll] = tracker->primaryRoll;
-		axis[VRboostAxis::Zero] = 0.0f;
-		axis[VRboostAxis::One] = 1.0f;
-		// test... apply constant FOV
-		axis[24] = 90.0f; // World FOV
-		axis[25] = 120.0f; // Player FOV
-		if (m_pVRboost_ApplyMemoryRules(40, (float**)&axis) != S_OK)
+		VRBoostValue[VRboostAxis::TrackerYaw] = tracker->primaryYaw;
+		VRBoostValue[VRboostAxis::TrackerPitch] = tracker->primaryPitch;
+		VRBoostValue[VRboostAxis::TrackerRoll] = tracker->primaryRoll;
+		if (m_pVRboost_ApplyMemoryRules(MAX_VRBOOST_VALUES, (float**)&VRBoostValue) != S_OK)
 		{
 			if (!createNSave)
 			{
@@ -2995,6 +3011,9 @@ void D3DProxyDevice::BRASSA()
 	case D3DProxyDevice::OVERALL_SETTINGS:
 		BRASSA_Settings();
 		break;
+	case D3DProxyDevice::VRBOOST_VALUES:
+		BRASSA_VRBoostValues();
+		break;
 	case D3DProxyDevice::BRASSA_SHADER_ANALYZER_SUBMENU:
 		BRASSA_ShaderSubMenu();
 		break;
@@ -3020,7 +3039,7 @@ void D3DProxyDevice::BRASSA_MainMenu()
 
 	float menuTop = viewportHeight*0.32f;
 	float menuEntryHeight = viewportHeight*0.037f;
-	UINT menuEntryCount = 8;
+	UINT menuEntryCount = 9;
 	if (config.game_type > 10000) menuEntryCount++;
 
 	RECT rect1;
@@ -3107,8 +3126,14 @@ void D3DProxyDevice::BRASSA_MainMenu()
 			BRASSA_mode = BRASSA_Modes::OVERALL_SETTINGS;
 			menuVelocity.x+=2.0f;
 		}	
-		// back to game
+		// overall settings
 		if (entryID == 8)
+		{
+			BRASSA_mode = BRASSA_Modes::VRBOOST_VALUES;
+			menuVelocity.x+=2.0f;
+		}	
+		// back to game
+		if (entryID == 9)
 		{
 			BRASSA_mode = BRASSA_Modes::INACTIVE;
 			ProxyHelper* helper = new ProxyHelper();
@@ -3206,6 +3231,8 @@ void D3DProxyDevice::BRASSA_MainMenu()
 		DrawTextShadowed(hudFont, hudMainMenu, "GUI Quick Setting : \n", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		rect1.top += 40;
 		DrawTextShadowed(hudFont, hudMainMenu, "Overall Settings\n", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
+		DrawTextShadowed(hudFont, hudMainMenu, "VRBoost Values\n", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		rect1.top += 40;
 		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game\n", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 
@@ -4537,6 +4564,197 @@ void D3DProxyDevice::BRASSA_Settings()
 		rect1.top += 70;
 		sprintf_s(vcString,"(current VShader Count : %u)", m_VertexShaderCountLastFrame);
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rect1, 0, D3DCOLOR_ARGB(255, 128, 255, 128));
+
+		rect1.left = 0;
+		rect1.right = 1920;
+		rect1.top = 0;
+		rect1.bottom = 1080;
+		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
+		hudMainMenu->Draw(NULL, &rect1, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));
+		hudMainMenu->End();
+	}
+}
+
+/**
+* VRBoost constant value sub-menu.
+***/
+void D3DProxyDevice::BRASSA_VRBoostValues()
+{
+	int viewportWidth = stereoView->viewport.Width;
+	int viewportHeight = stereoView->viewport.Height;
+
+	float menuTop = viewportHeight*0.32f;
+	float menuEntryHeight = viewportHeight*0.037f;
+	UINT menuEntryCount = 14;
+
+	RECT rect1;
+	rect1.left = 0;
+	rect1.right = 1920;
+	rect1.top = 0;
+	rect1.bottom = 1080;
+
+	float fScaleX = ((float)viewportWidth / (float)rect1.right);
+	float fScaleY = ((float)viewportHeight / (float)rect1.bottom);
+
+	// handle border height
+	if (borderTopHeight<menuTop)
+	{
+		borderTopHeight = menuTop;
+		menuVelocity.y=0.0f;
+	}
+	if (borderTopHeight>(menuTop+(menuEntryHeight*(float)(menuEntryCount-1))))
+	{
+		borderTopHeight = menuTop+menuEntryHeight*(float)(menuEntryCount-1);
+		menuVelocity.y=0.0f;
+	}
+
+	// get menu entry id
+	float entry = (borderTopHeight-menuTop+(menuEntryHeight/3.0f))/menuEntryHeight;
+	UINT entryID = (UINT)entry;
+	UINT borderSelection = (UINT)entry;
+	if (entryID >= menuEntryCount)
+		OutputDebugString("Error in BRASSA menu programming !");
+
+	/**
+	* ESCAPE : Set BRASSA inactive and save the configuration.
+	***/
+	if (KEY_DOWN(VK_ESCAPE))
+	{
+		BRASSA_mode = BRASSA_Modes::INACTIVE;
+		ProxyHelper* helper = new ProxyHelper();
+		config.WorldFOV = VRBoostValue[VRboostAxis::WorldFOV];
+		config.PlayerFOV = VRBoostValue[VRboostAxis::PlayerFOV];
+		config.FarPlaneFOV = VRBoostValue[VRboostAxis::FarPlaneFOV];
+		config.CameraTranslateX = VRBoostValue[VRboostAxis::CameraTranslateX];
+		config.CameraTranslateY = VRBoostValue[VRboostAxis::CameraTranslateY];
+		config.CameraTranslateZ = VRBoostValue[VRboostAxis::CameraTranslateZ];
+		config.CameraDistance = VRBoostValue[VRboostAxis::CameraDistance];
+		config.CameraZoom = VRBoostValue[VRboostAxis::CameraZoom];
+		config.CameraHorizonAdjustment = VRBoostValue[VRboostAxis::CameraHorizonAdjustment];
+		config.ConstantValue1 = VRBoostValue[VRboostAxis::ConstantValue1];
+		config.ConstantValue2 = VRBoostValue[VRboostAxis::ConstantValue2];
+		config.ConstantValue3 = VRBoostValue[VRboostAxis::ConstantValue3];
+		helper->SaveConfig(config);
+		delete helper;
+	}
+
+	if ((KEY_DOWN(VK_RETURN) || KEY_DOWN(VK_RSHIFT)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	{
+		// back to main menu
+		if (entryID == 12)
+		{
+			BRASSA_mode = BRASSA_Modes::MAINMENU;
+			menuVelocity.x+=2.0f;
+		}
+		// back to game
+		if (entryID == 13)
+		{
+			BRASSA_mode = BRASSA_Modes::INACTIVE;
+			ProxyHelper* helper = new ProxyHelper();
+			config.WorldFOV = VRBoostValue[VRboostAxis::WorldFOV];
+			config.PlayerFOV = VRBoostValue[VRboostAxis::PlayerFOV];
+			config.FarPlaneFOV = VRBoostValue[VRboostAxis::FarPlaneFOV];
+			config.CameraTranslateX = VRBoostValue[VRboostAxis::CameraTranslateX];
+			config.CameraTranslateY = VRBoostValue[VRboostAxis::CameraTranslateY];
+			config.CameraTranslateZ = VRBoostValue[VRboostAxis::CameraTranslateZ];
+			config.CameraDistance = VRBoostValue[VRboostAxis::CameraDistance];
+			config.CameraZoom = VRBoostValue[VRboostAxis::CameraZoom];
+			config.CameraHorizonAdjustment = VRBoostValue[VRboostAxis::CameraHorizonAdjustment];
+			config.ConstantValue1 = VRBoostValue[VRboostAxis::ConstantValue1];
+			config.ConstantValue2 = VRBoostValue[VRboostAxis::ConstantValue2];
+			config.ConstantValue3 = VRBoostValue[VRboostAxis::ConstantValue3];
+			helper->SaveConfig(config);
+			delete helper;
+		}
+	}
+
+	if ((KEY_DOWN(VK_LEFT) || KEY_DOWN(0x4A)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	{
+		// change value
+		if ((entryID >= 0) && (entryID <=11))
+		{
+			VRBoostValue[24+entryID] -= 0.1f;
+			menuVelocity.x-=0.1f;
+		}
+	}
+
+	if ((KEY_DOWN(VK_RIGHT) || KEY_DOWN(0x4C)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	{
+		// change value
+		if ((entryID >= 0) && (entryID <=11))
+		{
+			VRBoostValue[24+entryID] += 0.1f;
+			menuVelocity.x+=0.1f;
+		}
+	}
+
+	// output menu
+	if (hudFont)
+	{
+		// adjust border
+		float borderDrawingHeight = borderTopHeight;
+		if (menuVelocity.y == 0.0f)
+			borderTopHeight = menuTop+menuEntryHeight*(float)borderSelection;
+
+		// draw border - total width due to shift correction
+		D3DRECT rect;
+		rect.x1 = (int)0; rect.x2 = (int)viewportWidth; rect.y1 = (int)borderTopHeight; rect.y2 = (int)(borderTopHeight+viewportHeight*0.04f);
+		ClearEmptyRect(vireio::RenderPosition::Left, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
+		ClearEmptyRect(vireio::RenderPosition::Right, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
+
+		hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
+
+		D3DXMATRIX matScale;
+		D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
+		hudMainMenu->SetTransform(&matScale);
+
+		rect1.left = 550;
+		rect1.top = 300;
+		DrawTextShadowed(hudFont, hudMainMenu, "Brown Reischl and Schneider Settings Analyzer (B.R.A.S.S.A.).\n", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect.x1 = 0; rect.x2 = viewportWidth; rect.y1 = (int)(335*fScaleY); rect.y2 = (int)(340*fScaleY);
+		Clear(1, &rect, D3DCLEAR_TARGET, D3DCOLOR_ARGB(255,255,128,128), 0, 0);
+
+		rect1.top += 50;  rect1.left += 250; float guiQSHeight = (float)rect1.top * fScaleY;
+		char vcString[128];
+		sprintf_s(vcString,"World FOV : %g", VRBoostValue[24]);
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
+		sprintf_s(vcString,"Player FOV : %g", VRBoostValue[25]);
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
+		sprintf_s(vcString,"Far Plane FOV : %g", VRBoostValue[26]);
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
+		sprintf_s(vcString,"Camera Translate X : %g", VRBoostValue[27]);
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
+		sprintf_s(vcString,"Camera Translate Y : %g", VRBoostValue[28]);
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
+		sprintf_s(vcString,"Camera Translate Z : %g", VRBoostValue[29]);
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
+		sprintf_s(vcString,"Camera Distance : %g", VRBoostValue[30]);
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
+		sprintf_s(vcString,"Camera Zoom : %g", VRBoostValue[31]);
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
+		sprintf_s(vcString,"Camera Horizon Adjustment : %g", VRBoostValue[32]);
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
+		sprintf_s(vcString,"Constant Value 1 : %g", VRBoostValue[33]);
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
+		sprintf_s(vcString,"Constant Value 2 : %g", VRBoostValue[34]);
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
+		sprintf_s(vcString,"Constant Value 2 : %g", VRBoostValue[35]);
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
+		DrawTextShadowed(hudFont, hudMainMenu, "Back to BRASSA Menu", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
+		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 
 		rect1.left = 0;
 		rect1.right = 1920;

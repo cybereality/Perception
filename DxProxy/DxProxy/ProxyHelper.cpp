@@ -414,6 +414,10 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 		}
 	}
 
+	LoadHUDConfig(config);
+	LoadGUIConfig(config);
+	LoadVRBoostValues(config);
+
 	LoadUserConfig(config, oculusProfile);
 
 	return fileFound && profileFound;
@@ -426,6 +430,9 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 bool ProxyHelper::SaveConfig(ProxyConfig& cfg)
 {
 	SaveProfile(cfg.shaderRulePath, cfg.VRboostPath, cfg.convergence, cfg.swap_eyes, cfg.yaw_multiplier, cfg.pitch_multiplier, cfg.roll_multiplier, cfg.worldScaleFactor, cfg.VRboostMinShaderCount);
+	SaveHUDConfig(cfg);
+	SaveGUIConfig(cfg);
+	SaveVRBoostValues(cfg);
 	return SaveUserConfig(cfg.ipd);
 }
 
@@ -497,7 +504,7 @@ bool ProxyHelper::LoadHUDConfig(ProxyConfig& config)
 
 /**
 * Saves a game configuration.
-* @param cfg The game configuration to be saved.
+* @param config The game configuration to be saved.
 ***/
 bool ProxyHelper::SaveHUDConfig(ProxyConfig& config)
 {
@@ -655,7 +662,7 @@ bool ProxyHelper::LoadGUIConfig(ProxyConfig& config)
 
 /**
 * Saves a game configuration.
-* @param cfg The game configuration to be saved.
+* @param config The game configuration to be saved.
 ***/
 bool ProxyHelper::SaveGUIConfig(ProxyConfig& config)
 {
@@ -736,6 +743,153 @@ bool ProxyHelper::SaveGUIConfig(ProxyConfig& config)
 			gameProfile.insert_attribute_after("gui_3D_depth_1", gameProfile.attribute("hud_key_full")) = config.gui3DDepthPresets[0];
 
 			gameProfile.insert_attribute_after("gui_3D_depth_mode", gameProfile.attribute("hud_key_full")) = config.gui3DDepthMode;
+		}
+		docProfiles.save_file(profilePath);
+
+		profileSaved = true;
+	}
+
+	return profileSaved;
+}
+
+/**
+*
+***/
+bool ProxyHelper::LoadVRBoostValues(ProxyConfig& config)
+{
+	bool fileFound = false;
+
+	// get the target exe
+	GetTargetExe();
+	OutputDebugString("Got target exe as: ");
+	OutputDebugString(targetExe);
+	OutputDebugString("\n");
+
+	// get the profile
+	bool profileFound = false;
+	char profilePath[512];
+	GetPath(profilePath, "cfg\\profiles.xml");
+	OutputDebugString(profilePath);
+	OutputDebugString("\n");
+
+	xml_document docProfiles;
+	xml_parse_result resultProfiles = docProfiles.load_file(profilePath);
+	xml_node profile;
+	xml_node gameProfile;
+
+	if(resultProfiles.status == status_ok)
+	{
+		xml_node xml_profiles = docProfiles.child("profiles");
+
+		for (xml_node profile = xml_profiles.child("profile"); profile; profile = profile.next_sibling("profile"))
+		{
+			if(strcmp(targetExe, profile.attribute("game_exe").value()) == 0)
+			{
+				OutputDebugString("Load the specific profile!!!\n");
+				gameProfile = profile;
+				profileFound = true;
+				break;
+			}
+		}
+	}
+
+	if(resultProfiles.status == status_ok && profileFound && gameProfile)
+	{
+		config.WorldFOV = gameProfile.attribute("WorldFOV").as_float(95.0f);
+		config.PlayerFOV = gameProfile.attribute("PlayerFOV").as_float(125.0f);
+		config.FarPlaneFOV = gameProfile.attribute("FarPlaneFOV").as_float(95.0f);
+		config.CameraTranslateX = gameProfile.attribute("CameraTranslateX").as_float(0.0f);
+		config.CameraTranslateY = gameProfile.attribute("CameraTranslateY").as_float(0.0f);
+		config.CameraTranslateZ = gameProfile.attribute("CameraTranslateZ").as_float(0.0f);
+		config.CameraDistance = gameProfile.attribute("CameraDistance").as_float(0.0f);
+		config.CameraZoom = gameProfile.attribute("CameraZoom").as_float(0.0f);
+		config.CameraHorizonAdjustment = gameProfile.attribute("CameraHorizonAdjustment").as_float(0.0f);
+		config.ConstantValue1 = gameProfile.attribute("ConstantValue1").as_float(0.0f);
+		config.ConstantValue2 = gameProfile.attribute("ConstantValue2").as_float(0.0f);
+		config.ConstantValue3 = gameProfile.attribute("ConstantValue3").as_float(0.0f);
+	}
+	return fileFound && profileFound;
+}
+
+/**
+* Saves a game configuration.
+* @param config The game configuration to be saved.
+***/
+bool ProxyHelper::SaveVRBoostValues(ProxyConfig& config)
+{
+	// get the target exe
+	GetTargetExe();
+	OutputDebugString("Got target exe as: ");
+	OutputDebugString(targetExe);
+	OutputDebugString("\n");
+
+	// get the profile
+	bool profileFound = false;
+	bool profileSaved = false;
+	char profilePath[512];
+	GetPath(profilePath, "cfg\\profiles.xml");
+	OutputDebugString(profilePath);
+	OutputDebugString("\n");
+
+	xml_document docProfiles;
+	xml_parse_result resultProfiles = docProfiles.load_file(profilePath);
+	xml_node profile;
+	xml_node gameProfile;
+
+	if(resultProfiles.status == status_ok)
+	{
+		xml_node xml_profiles = docProfiles.child("profiles");
+
+		for (xml_node profile = xml_profiles.child("profile"); profile; profile = profile.next_sibling("profile"))
+		{
+			if(strcmp(targetExe, profile.attribute("game_exe").value()) == 0)
+			{
+				OutputDebugString("Load the specific profile!!!\n");
+				gameProfile = profile;
+				profileFound = true;
+				break;
+			}
+		}
+	}
+
+	if(resultProfiles.status == status_ok && profileFound && gameProfile)
+	{
+		// shader mod rules attribute present ? otherwise insert
+		if (strcmp(gameProfile.attribute("gui_key_full").next_attribute().name(), "WorldFOV") == 0)
+		{
+			gameProfile.attribute("WorldFOV") = config.WorldFOV;
+			gameProfile.attribute("PlayerFOV") = config.PlayerFOV;
+			gameProfile.attribute("FarPlaneFOV") = config.FarPlaneFOV;
+
+			gameProfile.attribute("CameraTranslateX") = config.CameraTranslateX;
+			gameProfile.attribute("CameraTranslateY") = config.CameraTranslateY;
+			gameProfile.attribute("CameraTranslateZ")= config.CameraTranslateZ;
+
+			gameProfile.attribute("CameraDistance")= config.CameraDistance;
+			gameProfile.attribute("CameraZoom")= config.CameraZoom;
+			gameProfile.attribute("CameraHorizonAdjustment")= config.CameraHorizonAdjustment;
+
+			gameProfile.attribute("ConstantValue1") = config.ConstantValue1;
+			gameProfile.attribute("ConstantValue2") = config.ConstantValue2;
+			gameProfile.attribute("ConstantValue3") = config.ConstantValue3;
+		}
+		else
+		{
+			gameProfile.insert_attribute_after("ConstantValue3", gameProfile.attribute("gui_key_full")) = config.ConstantValue3;
+			gameProfile.insert_attribute_after("ConstantValue2", gameProfile.attribute("gui_key_full")) = config.ConstantValue2;
+			gameProfile.insert_attribute_after("ConstantValue1", gameProfile.attribute("gui_key_full")) = config.ConstantValue1;
+
+			gameProfile.insert_attribute_after("CameraHorizonAdjustment", gameProfile.attribute("gui_key_full"))= config.CameraHorizonAdjustment;
+			gameProfile.insert_attribute_after("CameraZoom", gameProfile.attribute("gui_key_full"))= config.CameraZoom;
+			gameProfile.insert_attribute_after("CameraDistance", gameProfile.attribute("gui_key_full"))= config.CameraDistance;
+
+			gameProfile.insert_attribute_after("CameraTranslateZ", gameProfile.attribute("gui_key_full"))= config.CameraTranslateZ;
+			gameProfile.insert_attribute_after("CameraTranslateY", gameProfile.attribute("gui_key_full")) = config.CameraTranslateY;
+			gameProfile.insert_attribute_after("CameraTranslateX", gameProfile.attribute("gui_key_full")) = config.CameraTranslateX;
+
+			gameProfile.insert_attribute_after("FarPlaneFOV", gameProfile.attribute("gui_key_full")) = config.FarPlaneFOV;
+			gameProfile.insert_attribute_after("PlayerFOV", gameProfile.attribute("gui_key_full")) = config.PlayerFOV;
+			gameProfile.insert_attribute_after("WorldFOV", gameProfile.attribute("gui_key_full")) = config.WorldFOV;			
 		}
 		docProfiles.save_file(profilePath);
 

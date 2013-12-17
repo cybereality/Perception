@@ -201,10 +201,6 @@ HRESULT WINAPI BaseDirect3D9Ex::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType
 		return hResult;
 	}
 
-	// load HUD/GUI settings
-	helper.LoadHUDConfig(cfg);
-	helper.LoadGUIConfig(cfg);
-
 	OutputDebugString("[OK] Config loading - OK\n");
 
 	if(cfg.stereo_mode == StereoView::DISABLED) {
