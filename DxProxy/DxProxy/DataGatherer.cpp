@@ -1565,6 +1565,8 @@ void DataGatherer::Analyze()
 ***/
 void DataGatherer::GetCurrentShaderRules(bool allStartRegisters)
 {
+	ShaderModificationRepository* pModRep = m_pGameHandler->GetShaderModificationRepository();
+
 	// clear name vector, loop through constants
 	m_relevantVSConstantNames.clear();
 	auto itShaderConstants = m_relevantVSConstants.begin();
@@ -1590,11 +1592,13 @@ void DataGatherer::GetCurrentShaderRules(bool allStartRegisters)
 			// is a rule already applied to that constant name ?
 			itShaderConstants->nodeOpen = false;
 			UINT operation = 0;
-			itShaderConstants->hasRule = m_pGameHandler->GetShaderModificationRepository()->ConstantHasRule(itShaderConstants->name, itShaderConstants->ruleName, operation, itShaderConstants->isTransposed);
+			if (pModRep)
+				itShaderConstants->hasRule = pModRep->ConstantHasRule(itShaderConstants->name, itShaderConstants->ruleName, operation, itShaderConstants->isTransposed);
+			else
+				itShaderConstants->hasRule = false;
 			m_relevantVSConstantNames.push_back(*itShaderConstants);
 		}
 
 		++itShaderConstants;
 	}
-
 }
