@@ -2411,7 +2411,7 @@ void D3DProxyDevice::HandleTracking()
 		OutputDebugString("Try to init Tracker\n");
 		tracker = MotionTrackerFactory::Get(config);
 		tracker->setMultipliers(config.yaw_multiplier, config.pitch_multiplier, config.roll_multiplier);
-		tracker->setMouseEmulation(!m_VRboostRulesPresent);
+		tracker->setMouseEmulation((!m_VRboostRulesPresent) || (hmVRboost==NULL));
 		trackerInitialized = true;
 	}
 
