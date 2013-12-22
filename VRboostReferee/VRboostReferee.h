@@ -76,10 +76,23 @@ enum VRboostAxis
 	TrackerRoll = 2,                 /**< This index is reserved for Tracker->primaryRoll. **/
 	Zero = 3,                        /**< This index is reserved for constant 0 output. **/
 	One = 4,                         /**< This index is reserved for constant 1 output. **/
-	// 5..11       reserved for future tracker use
-	// 12..23      reserved for future input device use
+	// 5..11                              reserved for future tracker use
+	// 12..23                             reserved for future input device use
+	WorldFOV = 24,                   /**< Game-specific global FOV setting. **/
+	PlayerFOV = 25,                  /**< Game-specific player surroundings FOV setting. **/
+	FarPlaneFOV = 26,                /**< Game-specific FOV setting for the most distant objects. **/ 
+	CameraTranslateX = 27,           /**< Translates the camera along the X-Axis. **/
+	CameraTranslateY = 28,           /**< Translates the camera along the Y-Axis. **/
+	CameraTranslateZ = 29,           /**< Translates the camera along the Z-Axis. **/
+	CameraDistance = 30,             /**< Changes the distance of the camera. **/
+	CameraZoom = 31,                 /**< Changes the cameras zoom. **/
+	CameraHorizonAdjustment = 32,    /**< Adjusts the cameras X axis rotation to match the horizon. **/
+	ConstantValue1 = 33,             /**< Game-specific constant value 1. **/
+	ConstantValue2 = 34,             /**< Game-specific constant value 2. **/
+	ConstantValue3 = 35,             /**< Game-specific constant value 3. **/
 	// 255         maximum VRboost axis index
 };
+
 
 /*** VRboost function pointer typedefs ***/
 typedef HRESULT (WINAPI *LPVRBOOST_LoadMemoryRules)(std::string processName, std::string rulesPath);

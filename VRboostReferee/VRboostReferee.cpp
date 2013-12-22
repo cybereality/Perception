@@ -32,7 +32,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 using namespace pugi;
 
 
-
 /**
 * Returns the enumeration value of the string rule, -1 if not found.
 ***/
@@ -73,8 +72,21 @@ int VRboost_Axis(std::string axisName)
 	else if (axisName.find("TrackerRoll") != std::string::npos) return VRboostAxis::TrackerRoll;
 	else if (axisName.find("Zero") != std::string::npos) return VRboostAxis::Zero;
 	else if (axisName.find("One") != std::string::npos) return VRboostAxis::One;
+	else if (axisName.find("WorldFOV") != std::string::npos) return VRboostAxis::WorldFOV;
+	else if (axisName.find("PlayerFOV") != std::string::npos) return VRboostAxis::PlayerFOV;
+	else if (axisName.find("FarPlaneFOV") != std::string::npos) return VRboostAxis::FarPlaneFOV;
+	else if (axisName.find("CameraTranslateX") != std::string::npos) return VRboostAxis::CameraTranslateX;
+	else if (axisName.find("CameraTranslateY") != std::string::npos) return VRboostAxis::CameraTranslateY;
+	else if (axisName.find("CameraTranslateZ") != std::string::npos) return VRboostAxis::CameraTranslateZ;
+	else if (axisName.find("CameraDistance") != std::string::npos) return VRboostAxis::CameraDistance;
+	else if (axisName.find("CameraZoom") != std::string::npos) return VRboostAxis::CameraZoom;
+	else if (axisName.find("CameraHorizonAdjustment") != std::string::npos) return VRboostAxis::CameraHorizonAdjustment;
+	else if (axisName.find("ConstantValue1") != std::string::npos) return VRboostAxis::ConstantValue1;
+	else if (axisName.find("ConstantValue2") != std::string::npos) return VRboostAxis::ConstantValue2;
+	else if (axisName.find("ConstantValue3") != std::string::npos) return VRboostAxis::ConstantValue3;
 	else return -1;
 }
+
 /**
 * Project template for a simple tool to create VRboost rules
 ***/

@@ -1,5 +1,5 @@
-﻿Der Buildvorgang wurde am 29.11.2013 13:10:02 gestartet.
-     1>Projekt "C:\Users\Denis\Documents\GitHub\Perception\VRboostReferee\VRboostReferee.vcxproj" auf Knoten "3", Rebuild Ziel(e).
+﻿Der Buildvorgang wurde am 22.12.2013 13:15:33 gestartet.
+     1>Projekt "C:\Users\Denis\Documents\GitHub\Perception\VRboostReferee\VRboostReferee.vcxproj" auf Knoten "2", Rebuild Ziel(e).
      1>ClCompile:
          C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\CL.exe /c /I"C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\\Include" /I\Include /Zi /nologo /W3 /WX- /O2 /Oi /Oy- /GL /D WIN32 /D NDEBUG /D _CONSOLE /D _MBCS /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Release\\" /Fd"Release\vc110.pdb" /Gd /TP /analyze- /errorReport:prompt ..\DxProxy\DxProxy\pugixml.cpp VRboostReferee.cpp
          pugixml.cpp
@@ -15,4 +15,4 @@
 
 Build erfolgreich.
 
-Verstrichene Zeit 00:00:04.39
+Verstrichene Zeit 00:00:05.13
