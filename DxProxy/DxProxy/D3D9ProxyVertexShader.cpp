@@ -43,6 +43,7 @@ D3D9ProxyVertexShader::D3D9ProxyVertexShader(IDirect3DVertexShader9* pActualVert
 		m_modifiedConstants = pModLoader->GetModifiedConstantsF(pActualVertexShader);
 		m_bSquishViewport = pModLoader->SquishViewportForShader(pActualVertexShader);
 	}
+	else m_bSquishViewport = false;
 }
 
 /**
