@@ -271,6 +271,8 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 	config.swap_eyes = false;
 	config.aspect_multiplier = 1.0f;
 	config.VRboostMinShaderCount = 0;
+	config.DistortionScale = 0.0f;
+	
 
 	// load the base dir for the app
 	GetBaseDir();
@@ -352,6 +354,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 		config.yaw_multiplier = gameProfile.attribute("yaw_multiplier").as_float(25.0f);
 		config.pitch_multiplier = gameProfile.attribute("pitch_multiplier").as_float(25.0f);
 		config.roll_multiplier = gameProfile.attribute("roll_multiplier").as_float(1.0f);
+		config.DistortionScale = gameProfile.attribute("distortion_scale").as_float();
 
 		if(config.yaw_multiplier == 0.0f) config.yaw_multiplier = 25.0f;
 		if(config.pitch_multiplier == 0.0f) config.pitch_multiplier = 25.0f;
@@ -429,7 +432,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 ***/
 bool ProxyHelper::SaveConfig(ProxyConfig& cfg)
 {
-	SaveProfile(cfg.shaderRulePath, cfg.VRboostPath, cfg.convergence, cfg.swap_eyes, cfg.yaw_multiplier, cfg.pitch_multiplier, cfg.roll_multiplier, cfg.worldScaleFactor, cfg.VRboostMinShaderCount);
+	SaveProfile(cfg.shaderRulePath, cfg.VRboostPath, cfg.convergence, cfg.swap_eyes, cfg.yaw_multiplier, cfg.pitch_multiplier, cfg.roll_multiplier, cfg.worldScaleFactor, cfg.VRboostMinShaderCount, cfg.DistortionScale);
 	SaveHUDConfig(cfg);
 	SaveGUIConfig(cfg);
 	SaveVRBoostValues(cfg);
@@ -1233,8 +1236,9 @@ bool ProxyHelper::GetProfile(char* name, ProxyConfig& config) // TODO !!! fill c
 * @param pitch Pitch tracking multiplier.
 * @param roll Roll tracking multiplier.
 * @param worldScale Game world scaling.
+* @param distortionScale The scale to apply to the distortion
 ***/
-bool ProxyHelper::SaveProfile(std::string shaderRulePath, std::string VRboostRulePath, float convergence, bool swap, float yaw, float pitch, float roll, float worldScale, int minVRboostShaderCount)
+bool ProxyHelper::SaveProfile(std::string shaderRulePath, std::string VRboostRulePath, float convergence, bool swap, float yaw, float pitch, float roll, float worldScale, int minVRboostShaderCount, float distortionScale)
 {
 	// get the target exe
 	GetTargetExe();
@@ -1310,6 +1314,7 @@ bool ProxyHelper::SaveProfile(std::string shaderRulePath, std::string VRboostRul
 		gameProfile.attribute("pitch_multiplier") = pitch;
 		gameProfile.attribute("roll_multiplier") = roll;
 		gameProfile.attribute("worldScaleFactor") = worldScale;
+		gameProfile.attribute("distortion_scale") = distortionScale;
 		docProfiles.save_file(profilePath);
 
 		profileSaved = true;

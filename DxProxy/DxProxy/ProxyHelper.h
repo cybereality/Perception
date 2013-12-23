@@ -89,6 +89,7 @@ public:
 		float       ConstantValue1;             /**< Game-specific constant value 1. **/
 		float       ConstantValue2;             /**< Game-specific constant value 2. **/
 		float       ConstantValue3;             /**< Game-specific constant value 3. **/
+		float		DistortionScale;			/**< The scale to apply distortion. **/
 	};
 
 	/**
@@ -124,7 +125,7 @@ public:
 	bool  SaveUserConfig(float ipd = IPD_DEFAULT);
 	bool  HasProfile(char* name);
 	bool  GetProfile(char* name, ProxyConfig& config);
-	bool  SaveProfile(std::string shaderRulePath = "", std::string VRboostRulePath = "", float convergence = 0.0f, bool swap_eyes = false, float yaw = 25.0f, float pitch = 25.0f, float roll = 1.0f, float worldScale = 1.0f, int minVRboostShaderCount = 0);
+	bool  SaveProfile(std::string shaderRulePath = "", std::string VRboostRulePath = "", float convergence = 0.0f, bool swap_eyes = false, float yaw = 25.0f, float pitch = 25.0f, float roll = 1.0f, float worldScale = 1.0f, int minVRboostShaderCount = 0, float distortionScale = 0.0f);
 
 	/**
 	* True if base directory path loaded.

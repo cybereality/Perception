@@ -2149,6 +2149,7 @@ void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 	m_spShaderViewAdjustment->Load(config);
 	m_pGameHandler->Load(config, m_spShaderViewAdjustment);
 	stereoView = StereoViewFactory::Get(config, m_spShaderViewAdjustment->HMDInfo());
+	stereoView->DistortionScale = cfg.DistortionScale;
 
 	// HUD
 	for (int i = 0; i < 4; i++)
@@ -3126,7 +3127,7 @@ void D3DProxyDevice::BRASSA_MainMenu()
 			BRASSA_mode = BRASSA_Modes::OVERALL_SETTINGS;
 			menuVelocity.x+=2.0f;
 		}	
-		// overall settings
+		// vrboost settings
 		if (entryID == 8)
 		{
 			BRASSA_mode = BRASSA_Modes::VRBOOST_VALUES;
@@ -4323,6 +4324,7 @@ void D3DProxyDevice::BRASSA_Settings()
 		config.yaw_multiplier = tracker->multiplierYaw;
 		config.pitch_multiplier = tracker->multiplierPitch;
 		config.swap_eyes = stereoView->swapEyes;
+		config.DistortionScale = stereoView->DistortionScale;
 		m_spShaderViewAdjustment->Save(config);
 		helper->SaveConfig(config);
 		delete helper;
@@ -4385,6 +4387,7 @@ void D3DProxyDevice::BRASSA_Settings()
 			config.yaw_multiplier = tracker->multiplierYaw;
 			config.pitch_multiplier = tracker->multiplierPitch;
 			config.swap_eyes = stereoView->swapEyes;
+			config.DistortionScale = stereoView->DistortionScale;
 			m_spShaderViewAdjustment->Save(config);
 			helper->SaveConfig(config);
 			delete helper;
