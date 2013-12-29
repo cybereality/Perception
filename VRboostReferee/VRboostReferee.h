@@ -63,6 +63,7 @@ enum FloatModificationTypes
 	FloatGaussianCompass = 100,       /**< Applies the input float to a gaussian compass calculatian and incorporates prior rotation angle. **/
 	FloatUnrealCompass = 101,         /**< Applies the input float to a UNREAL engine rotator compass calculatian and incorporates prior rotation angle. **/
 	FloatUnrealAxis = 201,            /**< Applies the input float to a UNREAL engine rotator axis. **/
+	FloatUnrealNegativeAxis = 202,    /**< Applies the input float to a negative UNREAL engine rotator axis. **/
 };
 
 /**

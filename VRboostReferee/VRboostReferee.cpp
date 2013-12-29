@@ -59,6 +59,7 @@ int VRboost_RuleType(std::string ruleName)
 	else if (ruleName.find("FloatGaussianCompass") != std::string::npos) return FloatModificationTypes::FloatGaussianCompass;
 	else if (ruleName.find("FloatUnrealCompass") != std::string::npos) return FloatModificationTypes::FloatUnrealCompass;
 	else if (ruleName.find("FloatUnrealAxis") != std::string::npos) return FloatModificationTypes::FloatUnrealAxis;
+	else if (ruleName.find("FloatUnrealNegativeAxis") != std::string::npos) return FloatModificationTypes::FloatUnrealNegativeAxis;
 	else return -1;
 }
 
