@@ -175,6 +175,8 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	m_isFirstBeginSceneOfFrame = true;
 	menuTime = (float)GetTickCount()/1000.0f;
 
+	ZeroMemory(&m_configBackup, sizeof(m_configBackup));
+
 	yaw_mode = 0;
 	pitch_mode = 0;
 	translation_mode = 0;
@@ -2135,7 +2137,9 @@ void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 {
 	OutputDebugString("D3D ProxyDev Init\n");
 
+	// get config and backup it
 	config = cfg;
+	memcpy(&m_configBackup, &cfg, sizeof(ProxyHelper::ProxyConfig));
 
 	eyeShutter = 1;
 	trackerInitialized = false;
@@ -2146,101 +2150,14 @@ void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 	psz = buf;
 	OutputDebugString(psz);
 
+	// first time configuration
 	m_spShaderViewAdjustment->Load(config);
 	m_pGameHandler->Load(config, m_spShaderViewAdjustment);
 	stereoView = StereoViewFactory::Get(config, m_spShaderViewAdjustment->HMDInfo());
-	stereoView->DistortionScale = cfg.DistortionScale;
+	stereoView->DistortionScale = config.DistortionScale;
 
-	// HUD
-	for (int i = 0; i < 4; i++)
-	{
-		hud3DDepthPresets[i] = config.hud3DDepthPresets[i];
-		hudDistancePresets[i] = config.hudDistancePresets[i];
-		hudHotkeys[i] = config.hudHotkeys[i];
-	}
-	hudHotkeys[4] = config.hudHotkeys[4];
-	ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)config.hud3DDepthMode);
-
-	// GUI
-	for (int i = 0; i < 4; i++)
-	{
-		gui3DDepthPresets[i] = config.gui3DDepthPresets[i];
-		guiSquishPresets[i] = config.guiSquishPresets[i];
-		guiHotkeys[i] = config.guiHotkeys[i];
-	}
-	guiHotkeys[4] = config.guiHotkeys[4];
-	ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)config.gui3DDepthMode);
-
-	// VRBoost
-	VRBoostValue[VRboostAxis::WorldFOV] = config.WorldFOV;
-	VRBoostValue[VRboostAxis::PlayerFOV] = config.PlayerFOV;
-	VRBoostValue[VRboostAxis::FarPlaneFOV] = config.FarPlaneFOV;
-	VRBoostValue[VRboostAxis::CameraTranslateX] = config.CameraTranslateX;
-	VRBoostValue[VRboostAxis::CameraTranslateY] = config.CameraTranslateY;
-	VRBoostValue[VRboostAxis::CameraTranslateZ] = config.CameraTranslateZ;
-	VRBoostValue[VRboostAxis::CameraDistance] = config.CameraDistance;
-	VRBoostValue[VRboostAxis::CameraZoom] = config.CameraZoom;
-	VRBoostValue[VRboostAxis::CameraHorizonAdjustment] = config.CameraHorizonAdjustment;
-	VRBoostValue[VRboostAxis::ConstantValue1] = config.ConstantValue1;
-	VRBoostValue[VRboostAxis::ConstantValue2] = config.ConstantValue2;
-	VRBoostValue[VRboostAxis::ConstantValue3] = config.ConstantValue3;
-
+	BRASSA_UpdateDeviceSettings();
 	OnCreateOrRestore();
-
-	// set behavior accordingly to game type
-	int gameType = config.game_type;
-	if (gameType>10000) gameType-=10000;
-	switch(gameType)
-	{
-	case D3DProxyDevice::FIXED:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		m_deviceBehavior.whenToRenderBRASSA = DeviceBehavior::WhenToDo::PRESENT;
-		break;
-	case D3DProxyDevice::SOURCE:
-	case D3DProxyDevice::SOURCE_L4D:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::END_SCENE;
-		m_deviceBehavior.whenToRenderBRASSA = DeviceBehavior::WhenToDo::END_SCENE;
-		break;
-	case D3DProxyDevice::UNREAL:
-	case D3DProxyDevice::UNREAL_MIRROR:
-	case D3DProxyDevice::UNREAL_UT3:
-	case D3DProxyDevice::UNREAL_BIOSHOCK:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::END_SCENE;
-		m_deviceBehavior.whenToRenderBRASSA = DeviceBehavior::WhenToDo::END_SCENE;
-		break;
-	case D3DProxyDevice::EGO:
-	case D3DProxyDevice::EGO_DIRT:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		m_deviceBehavior.whenToRenderBRASSA = DeviceBehavior::WhenToDo::END_SCENE;
-		break;
-	case D3DProxyDevice::REALV:
-	case D3DProxyDevice::REALV_ARMA:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		m_deviceBehavior.whenToRenderBRASSA = DeviceBehavior::WhenToDo::END_SCENE;
-		break;
-	case D3DProxyDevice::UNITY:
-	case D3DProxyDevice::UNITY_SLENDER:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		m_deviceBehavior.whenToRenderBRASSA = DeviceBehavior::WhenToDo::END_SCENE;
-		break;
-	case D3DProxyDevice::GAMEBRYO:
-	case D3DProxyDevice::GAMEBRYO_SKYRIM:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		m_deviceBehavior.whenToRenderBRASSA = DeviceBehavior::WhenToDo::END_SCENE;
-		break;
-	case D3DProxyDevice::LFS:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		m_deviceBehavior.whenToRenderBRASSA = DeviceBehavior::WhenToDo::END_SCENE;
-		break;
-	case D3DProxyDevice::CDC:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::END_SCENE;
-		m_deviceBehavior.whenToRenderBRASSA = DeviceBehavior::WhenToDo::END_SCENE;
-		break;
-	default:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		m_deviceBehavior.whenToRenderBRASSA = DeviceBehavior::WhenToDo::PRESENT;
-		break;
-	}
 }
 
 /**
@@ -2349,14 +2266,7 @@ void D3DProxyDevice::HandleControls()
 		else
 		{
 			BRASSA_mode = BRASSA_Modes::INACTIVE;
-			ProxyHelper* helper = new ProxyHelper();
-			config.roll_multiplier = tracker->multiplierRoll;
-			config.yaw_multiplier = tracker->multiplierYaw;
-			config.pitch_multiplier = tracker->multiplierPitch;
-			config.swap_eyes = stereoView->swapEyes;
-			m_spShaderViewAdjustment->Save(config);
-			helper->SaveConfig(config);
-			delete helper;
+			BRASSA_UpdateConfigSettings();
 		}
 
 		menuVelocity.x+=2.0f;
@@ -2373,14 +2283,7 @@ void D3DProxyDevice::HandleControls()
 		else
 		{
 			BRASSA_mode = BRASSA_Modes::INACTIVE;
-			ProxyHelper* helper = new ProxyHelper();
-			config.roll_multiplier = tracker->multiplierRoll;
-			config.yaw_multiplier = tracker->multiplierYaw;
-			config.pitch_multiplier = tracker->multiplierPitch;
-			config.swap_eyes = stereoView->swapEyes;
-			m_spShaderViewAdjustment->Save(config);
-			helper->SaveConfig(config);
-			delete helper;
+			BRASSA_UpdateConfigSettings();
 		}
 
 		menuVelocity.x+=2.0f;
@@ -3040,7 +2943,7 @@ void D3DProxyDevice::BRASSA_MainMenu()
 
 	float menuTop = viewportHeight*0.32f;
 	float menuEntryHeight = viewportHeight*0.037f;
-	UINT menuEntryCount = 9;
+	UINT menuEntryCount = 11;
 	if (config.game_type > 10000) menuEntryCount++;
 
 	RECT rect1;
@@ -3079,14 +2982,7 @@ void D3DProxyDevice::BRASSA_MainMenu()
 	if (KEY_DOWN(VK_ESCAPE))
 	{
 		BRASSA_mode = BRASSA_Modes::INACTIVE;
-		ProxyHelper* helper = new ProxyHelper();
-		config.roll_multiplier = tracker->multiplierRoll;
-		config.yaw_multiplier = tracker->multiplierYaw;
-		config.pitch_multiplier = tracker->multiplierPitch;
-		config.swap_eyes = stereoView->swapEyes;
-		m_spShaderViewAdjustment->Save(config);
-		helper->SaveConfig(config);
-		delete helper;
+		BRASSA_UpdateConfigSettings();
 	}
 
 	if ((KEY_DOWN(VK_RETURN) || KEY_DOWN(VK_RSHIFT)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
@@ -3132,19 +3028,27 @@ void D3DProxyDevice::BRASSA_MainMenu()
 		{
 			BRASSA_mode = BRASSA_Modes::VRBOOST_VALUES;
 			menuVelocity.x+=2.0f;
-		}	
-		// back to game
+		}
+		// restore configuration
 		if (entryID == 9)
 		{
+			// first, backup all strings
+			std::string game_exe = std::string(config.game_exe);
+			std::string shaderRulePath = std::string(config.shaderRulePath);
+			std::string VRboostPath = std::string(config.VRboostPath);
+			memcpy(&config, &m_configBackup, sizeof(ProxyHelper::ProxyConfig));
+			config.game_exe = std::string(game_exe);
+			config.shaderRulePath = std::string(shaderRulePath);
+			config.VRboostPath = std::string(VRboostPath);
+			BRASSA_UpdateDeviceSettings();
+			BRASSA_UpdateConfigSettings();
+			menuVelocity.x+=10.0f;
+		}	
+		// back to game
+		if (entryID == 10)
+		{
 			BRASSA_mode = BRASSA_Modes::INACTIVE;
-			ProxyHelper* helper = new ProxyHelper();
-			config.roll_multiplier = tracker->multiplierRoll;
-			config.yaw_multiplier = tracker->multiplierYaw;
-			config.pitch_multiplier = tracker->multiplierPitch;
-			config.swap_eyes = stereoView->swapEyes;
-			m_spShaderViewAdjustment->Save(config);
-			helper->SaveConfig(config);
-			delete helper;
+			BRASSA_UpdateConfigSettings();
 		}
 	}
 
@@ -3235,6 +3139,8 @@ void D3DProxyDevice::BRASSA_MainMenu()
 		rect1.top += 40;
 		DrawTextShadowed(hudFont, hudMainMenu, "VRBoost Values\n", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		rect1.top += 40;
+		DrawTextShadowed(hudFont, hudMainMenu, "Restore Configuration\n", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect1.top += 40;
 		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game\n", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 
 		// draw HUD quick setting rectangles
@@ -3290,14 +3196,7 @@ void D3DProxyDevice::BRASSA_WorldScale()
 	if (KEY_DOWN(VK_ESCAPE))
 	{
 		BRASSA_mode = BRASSA_Modes::INACTIVE;
-		ProxyHelper* helper = new ProxyHelper();
-		config.roll_multiplier = tracker->multiplierRoll;
-		config.yaw_multiplier = tracker->multiplierYaw;
-		config.pitch_multiplier = tracker->multiplierPitch;
-		config.swap_eyes = stereoView->swapEyes;
-		m_spShaderViewAdjustment->Save(config);
-		helper->SaveConfig(config);
-		delete helper;
+		BRASSA_UpdateConfigSettings();
 	}
 
 	/**
@@ -3542,14 +3441,7 @@ void D3DProxyDevice::BRASSA_Convergence()
 	if (KEY_DOWN(VK_ESCAPE))
 	{
 		BRASSA_mode = BRASSA_Modes::INACTIVE;
-		ProxyHelper* helper = new ProxyHelper();
-		config.roll_multiplier = tracker->multiplierRoll;
-		config.yaw_multiplier = tracker->multiplierYaw;
-		config.pitch_multiplier = tracker->multiplierPitch;
-		config.swap_eyes = stereoView->swapEyes;
-		m_spShaderViewAdjustment->Save(config);
-		helper->SaveConfig(config);
-		delete helper;
+		BRASSA_UpdateConfigSettings();
 	}
 
 	/**
@@ -3735,7 +3627,7 @@ void D3DProxyDevice::BRASSA_HUD()
 
 	float menuTop = viewportHeight*0.32f;
 	float menuEntryHeight = viewportHeight*0.037f;
-	UINT menuEntryCount = 12;
+	UINT menuEntryCount = 10;
 
 	RECT rect1;
 	rect1.left = 0;
@@ -3779,7 +3671,10 @@ void D3DProxyDevice::BRASSA_HUD()
 	else
 	{
 		if (KEY_DOWN(VK_ESCAPE))
+		{
 			BRASSA_mode = BRASSA_Modes::INACTIVE;
+			BRASSA_UpdateConfigSettings();
+		}
 
 		if ((KEY_DOWN(VK_RETURN) || KEY_DOWN(VK_RSHIFT)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
@@ -3788,45 +3683,19 @@ void D3DProxyDevice::BRASSA_HUD()
 				hotkeyCatch = true;
 				menuVelocity.x+=2.0f;
 			}
-			// save
+			// back to main menu
 			if (entryID == 8)
 			{
-				ProxyHelper* helper = new ProxyHelper();
-				config.hud3DDepthMode = (int)hud3DDepthMode;
-				for (int i = 0; i < 4; i++)
-				{
-					config.hud3DDepthPresets[i] = hud3DDepthPresets[i];
-					config.hudDistancePresets[i] = hudDistancePresets[i];
-					config.hudHotkeys[i] = hudHotkeys[i];
-				}
-				config.hudHotkeys[4] = hudHotkeys[4];
-				helper->SaveHUDConfig(config);
-				delete helper;
-			}
-			// reload
-			if (entryID == 9)
-			{
-				ProxyHelper* helper = new ProxyHelper();
-				helper->LoadHUDConfig(config);
-				delete helper;
-				for (int i = 0; i < 4; i++)
-				{
-					hud3DDepthPresets[i] = config.hud3DDepthPresets[i];
-					hudDistancePresets[i] = config.hudDistancePresets[i];
-					hudHotkeys[i] = config.hudHotkeys[i];
-				}
-				hudHotkeys[4] = config.hudHotkeys[4];
-				ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)config.hud3DDepthMode);
-			}
-			// back to main menu
-			if (entryID == 10)
-			{
 				BRASSA_mode = BRASSA_Modes::MAINMENU;
+				BRASSA_UpdateConfigSettings();
 				menuVelocity.x+=2.0f;
 			}
 			// back to game
-			if (entryID == 11)
+			if (entryID == 9)
+			{
 				BRASSA_mode = BRASSA_Modes::INACTIVE;
+				BRASSA_UpdateConfigSettings();
+			}
 		}
 
 		if (KEY_DOWN(VK_BACK))
@@ -3976,10 +3845,6 @@ void D3DProxyDevice::BRASSA_HUD()
 			stdString = "Press the desired key.";
 		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		rect1.top += 40;
-		DrawTextShadowed(hudFont, hudMainMenu, "Save current configuration", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		rect1.top += 40;
-		DrawTextShadowed(hudFont, hudMainMenu, "Reload configuration", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		rect1.top += 40;
 		DrawTextShadowed(hudFont, hudMainMenu, "Back to BRASSA Menu", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		rect1.top += 40;
 		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
@@ -4009,7 +3874,7 @@ void D3DProxyDevice::BRASSA_GUI()
 
 	float menuTop = viewportHeight*0.32f;
 	float menuEntryHeight = viewportHeight*0.037f;
-	UINT menuEntryCount = 12;
+	UINT menuEntryCount = 10;
 
 	RECT rect1;
 	rect1.left = 0;
@@ -4053,7 +3918,10 @@ void D3DProxyDevice::BRASSA_GUI()
 	else
 	{
 		if (KEY_DOWN(VK_ESCAPE))
+		{
 			BRASSA_mode = BRASSA_Modes::INACTIVE;
+			BRASSA_UpdateConfigSettings();
+		}
 
 		if ((KEY_DOWN(VK_RETURN) || KEY_DOWN(VK_RSHIFT)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
@@ -4062,45 +3930,18 @@ void D3DProxyDevice::BRASSA_GUI()
 				hotkeyCatch = true;
 				menuVelocity.x+=2.0f;
 			}
-			// save
-			if (entryID == 8)
-			{
-				ProxyHelper* helper = new ProxyHelper();
-				config.gui3DDepthMode = (int)gui3DDepthMode;
-				for (int i = 0; i < 4; i++)
-				{
-					config.gui3DDepthPresets[i] = gui3DDepthPresets[i];
-					config.guiSquishPresets[i] = guiSquishPresets[i];
-					config.guiHotkeys[i] = guiHotkeys[i];
-				}
-				config.guiHotkeys[4] = guiHotkeys[4];
-				helper->SaveGUIConfig(config);
-				delete helper;
-			}
-			// reload
-			if (entryID == 9)
-			{
-				ProxyHelper* helper = new ProxyHelper();
-				helper->LoadGUIConfig(config);
-				delete helper;
-				for (int i = 0; i < 4; i++)
-				{
-					gui3DDepthPresets[i] = config.gui3DDepthPresets[i];
-					guiSquishPresets[i] = config.guiSquishPresets[i];
-					guiHotkeys[i] = config.guiHotkeys[i];
-				}
-				guiHotkeys[4] = config.guiHotkeys[4];
-				ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)config.gui3DDepthMode);
-			}
 			// back to main menu
-			if (entryID == 10)
+			if (entryID == 8)
 			{
 				BRASSA_mode = BRASSA_Modes::MAINMENU;
 				menuVelocity.x+=2.0f;
 			}
 			// back to game
-			if (entryID == 11)
+			if (entryID == 9)
+			{
 				BRASSA_mode = BRASSA_Modes::INACTIVE;
+				BRASSA_UpdateConfigSettings();
+			}
 		}
 
 		if (KEY_DOWN(VK_BACK))
@@ -4250,10 +4091,6 @@ void D3DProxyDevice::BRASSA_GUI()
 			stdString = "Press the desired key.";
 		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		rect1.top += 40;
-		DrawTextShadowed(hudFont, hudMainMenu, "Save current configuration", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		rect1.top += 40;
-		DrawTextShadowed(hudFont, hudMainMenu, "Reload configuration", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		rect1.top += 40;
 		DrawTextShadowed(hudFont, hudMainMenu, "Back to BRASSA Menu", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		rect1.top += 40;
 		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
@@ -4319,15 +4156,7 @@ void D3DProxyDevice::BRASSA_Settings()
 	if (KEY_DOWN(VK_ESCAPE))
 	{
 		BRASSA_mode = BRASSA_Modes::INACTIVE;
-		ProxyHelper* helper = new ProxyHelper();
-		config.roll_multiplier = tracker->multiplierRoll;
-		config.yaw_multiplier = tracker->multiplierYaw;
-		config.pitch_multiplier = tracker->multiplierPitch;
-		config.swap_eyes = stereoView->swapEyes;
-		config.DistortionScale = stereoView->DistortionScale;
-		m_spShaderViewAdjustment->Save(config);
-		helper->SaveConfig(config);
-		delete helper;
+		BRASSA_UpdateConfigSettings();
 	}
 
 	if ((KEY_DOWN(VK_RETURN) || KEY_DOWN(VK_RSHIFT)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
@@ -4376,21 +4205,14 @@ void D3DProxyDevice::BRASSA_Settings()
 		if (entryID == 9)
 		{
 			BRASSA_mode = BRASSA_Modes::MAINMENU;
+			BRASSA_UpdateConfigSettings();
 			menuVelocity.x+=2.0f;
 		}
 		// back to game
 		if (entryID == 10)
 		{
 			BRASSA_mode = BRASSA_Modes::INACTIVE;
-			ProxyHelper* helper = new ProxyHelper();
-			config.roll_multiplier = tracker->multiplierRoll;
-			config.yaw_multiplier = tracker->multiplierYaw;
-			config.pitch_multiplier = tracker->multiplierPitch;
-			config.swap_eyes = stereoView->swapEyes;
-			config.DistortionScale = stereoView->DistortionScale;
-			m_spShaderViewAdjustment->Save(config);
-			helper->SaveConfig(config);
-			delete helper;
+			BRASSA_UpdateConfigSettings();
 		}
 	}
 
@@ -4624,21 +4446,7 @@ void D3DProxyDevice::BRASSA_VRBoostValues()
 	if (KEY_DOWN(VK_ESCAPE))
 	{
 		BRASSA_mode = BRASSA_Modes::INACTIVE;
-		ProxyHelper* helper = new ProxyHelper();
-		config.WorldFOV = VRBoostValue[VRboostAxis::WorldFOV];
-		config.PlayerFOV = VRBoostValue[VRboostAxis::PlayerFOV];
-		config.FarPlaneFOV = VRBoostValue[VRboostAxis::FarPlaneFOV];
-		config.CameraTranslateX = VRBoostValue[VRboostAxis::CameraTranslateX];
-		config.CameraTranslateY = VRBoostValue[VRboostAxis::CameraTranslateY];
-		config.CameraTranslateZ = VRBoostValue[VRboostAxis::CameraTranslateZ];
-		config.CameraDistance = VRBoostValue[VRboostAxis::CameraDistance];
-		config.CameraZoom = VRBoostValue[VRboostAxis::CameraZoom];
-		config.CameraHorizonAdjustment = VRBoostValue[VRboostAxis::CameraHorizonAdjustment];
-		config.ConstantValue1 = VRBoostValue[VRboostAxis::ConstantValue1];
-		config.ConstantValue2 = VRBoostValue[VRboostAxis::ConstantValue2];
-		config.ConstantValue3 = VRBoostValue[VRboostAxis::ConstantValue3];
-		helper->SaveConfig(config);
-		delete helper;
+		BRASSA_UpdateConfigSettings();
 	}
 
 	if ((KEY_DOWN(VK_RETURN) || KEY_DOWN(VK_RSHIFT)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
@@ -4653,21 +4461,7 @@ void D3DProxyDevice::BRASSA_VRBoostValues()
 		if (entryID == 13)
 		{
 			BRASSA_mode = BRASSA_Modes::INACTIVE;
-			ProxyHelper* helper = new ProxyHelper();
-			config.WorldFOV = VRBoostValue[VRboostAxis::WorldFOV];
-			config.PlayerFOV = VRBoostValue[VRboostAxis::PlayerFOV];
-			config.FarPlaneFOV = VRBoostValue[VRboostAxis::FarPlaneFOV];
-			config.CameraTranslateX = VRBoostValue[VRboostAxis::CameraTranslateX];
-			config.CameraTranslateY = VRBoostValue[VRboostAxis::CameraTranslateY];
-			config.CameraTranslateZ = VRBoostValue[VRboostAxis::CameraTranslateZ];
-			config.CameraDistance = VRBoostValue[VRboostAxis::CameraDistance];
-			config.CameraZoom = VRBoostValue[VRboostAxis::CameraZoom];
-			config.CameraHorizonAdjustment = VRBoostValue[VRboostAxis::CameraHorizonAdjustment];
-			config.ConstantValue1 = VRBoostValue[VRboostAxis::ConstantValue1];
-			config.ConstantValue2 = VRBoostValue[VRboostAxis::ConstantValue2];
-			config.ConstantValue3 = VRBoostValue[VRboostAxis::ConstantValue3];
-			helper->SaveConfig(config);
-			delete helper;
+			BRASSA_UpdateConfigSettings();
 		}
 	}
 
@@ -4823,6 +4617,153 @@ void D3DProxyDevice::BRASSA_UpdateBorder()
 		if ((KEY_DOWN(VK_NEXT) ||KEY_DOWN(0x4F)) && (menuVelocity.y==0.0f))
 			menuVelocity.y=15.0f;
 		borderTopHeight += menuVelocity.y*fScaleY*timeScale;
+	}
+}
+
+/**
+* Updates the current config based on the current device settings.
+***/
+void D3DProxyDevice::BRASSA_UpdateConfigSettings()
+{
+	ProxyHelper* helper = new ProxyHelper();
+
+	config.roll_multiplier = tracker->multiplierRoll;
+	config.yaw_multiplier = tracker->multiplierYaw;
+	config.pitch_multiplier = tracker->multiplierPitch;
+	config.swap_eyes = stereoView->swapEyes;
+	config.DistortionScale = stereoView->DistortionScale;
+
+	config.hud3DDepthMode = (int)hud3DDepthMode;
+	for (int i = 0; i < 4; i++)
+	{
+		config.hud3DDepthPresets[i] = hud3DDepthPresets[i];
+		config.hudDistancePresets[i] = hudDistancePresets[i];
+		config.hudHotkeys[i] = hudHotkeys[i];
+	}
+	config.hudHotkeys[4] = hudHotkeys[4];
+
+	config.gui3DDepthMode = (int)gui3DDepthMode;
+	for (int i = 0; i < 4; i++)
+	{
+		config.gui3DDepthPresets[i] = gui3DDepthPresets[i];
+		config.guiSquishPresets[i] = guiSquishPresets[i];
+		config.guiHotkeys[i] = guiHotkeys[i];
+	}
+	config.guiHotkeys[4] = guiHotkeys[4];
+
+	config.WorldFOV = VRBoostValue[VRboostAxis::WorldFOV];
+	config.PlayerFOV = VRBoostValue[VRboostAxis::PlayerFOV];
+	config.FarPlaneFOV = VRBoostValue[VRboostAxis::FarPlaneFOV];
+	config.CameraTranslateX = VRBoostValue[VRboostAxis::CameraTranslateX];
+	config.CameraTranslateY = VRBoostValue[VRboostAxis::CameraTranslateY];
+	config.CameraTranslateZ = VRBoostValue[VRboostAxis::CameraTranslateZ];
+	config.CameraDistance = VRBoostValue[VRboostAxis::CameraDistance];
+	config.CameraZoom = VRBoostValue[VRboostAxis::CameraZoom];
+	config.CameraHorizonAdjustment = VRBoostValue[VRboostAxis::CameraHorizonAdjustment];
+	config.ConstantValue1 = VRBoostValue[VRboostAxis::ConstantValue1];
+	config.ConstantValue2 = VRBoostValue[VRboostAxis::ConstantValue2];
+	config.ConstantValue3 = VRBoostValue[VRboostAxis::ConstantValue3];
+
+	m_spShaderViewAdjustment->Save(config);
+	helper->SaveConfig(config);
+	delete helper;
+}
+
+/**
+* Updates all device settings read from the current config.
+***/
+void D3DProxyDevice::BRASSA_UpdateDeviceSettings()
+{
+	m_spShaderViewAdjustment->Load(config);
+	stereoView->DistortionScale = config.DistortionScale;
+
+	// HUD
+	for (int i = 0; i < 4; i++)
+	{
+		hud3DDepthPresets[i] = config.hud3DDepthPresets[i];
+		hudDistancePresets[i] = config.hudDistancePresets[i];
+		hudHotkeys[i] = config.hudHotkeys[i];
+	}
+	hudHotkeys[4] = config.hudHotkeys[4];
+	ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)config.hud3DDepthMode);
+
+	// GUI
+	for (int i = 0; i < 4; i++)
+	{
+		gui3DDepthPresets[i] = config.gui3DDepthPresets[i];
+		guiSquishPresets[i] = config.guiSquishPresets[i];
+		guiHotkeys[i] = config.guiHotkeys[i];
+	}
+	guiHotkeys[4] = config.guiHotkeys[4];
+	ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)config.gui3DDepthMode);
+
+	// VRBoost
+	VRBoostValue[VRboostAxis::WorldFOV] = config.WorldFOV;
+	VRBoostValue[VRboostAxis::PlayerFOV] = config.PlayerFOV;
+	VRBoostValue[VRboostAxis::FarPlaneFOV] = config.FarPlaneFOV;
+	VRBoostValue[VRboostAxis::CameraTranslateX] = config.CameraTranslateX;
+	VRBoostValue[VRboostAxis::CameraTranslateY] = config.CameraTranslateY;
+	VRBoostValue[VRboostAxis::CameraTranslateZ] = config.CameraTranslateZ;
+	VRBoostValue[VRboostAxis::CameraDistance] = config.CameraDistance;
+	VRBoostValue[VRboostAxis::CameraZoom] = config.CameraZoom;
+	VRBoostValue[VRboostAxis::CameraHorizonAdjustment] = config.CameraHorizonAdjustment;
+	VRBoostValue[VRboostAxis::ConstantValue1] = config.ConstantValue1;
+	VRBoostValue[VRboostAxis::ConstantValue2] = config.ConstantValue2;
+	VRBoostValue[VRboostAxis::ConstantValue3] = config.ConstantValue3;
+
+	// set behavior accordingly to game type
+	int gameType = config.game_type;
+	if (gameType>10000) gameType-=10000;
+	switch(gameType)
+	{
+	case D3DProxyDevice::FIXED:
+		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
+		m_deviceBehavior.whenToRenderBRASSA = DeviceBehavior::WhenToDo::PRESENT;
+		break;
+	case D3DProxyDevice::SOURCE:
+	case D3DProxyDevice::SOURCE_L4D:
+		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::END_SCENE;
+		m_deviceBehavior.whenToRenderBRASSA = DeviceBehavior::WhenToDo::END_SCENE;
+		break;
+	case D3DProxyDevice::UNREAL:
+	case D3DProxyDevice::UNREAL_MIRROR:
+	case D3DProxyDevice::UNREAL_UT3:
+	case D3DProxyDevice::UNREAL_BIOSHOCK:
+		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::END_SCENE;
+		m_deviceBehavior.whenToRenderBRASSA = DeviceBehavior::WhenToDo::END_SCENE;
+		break;
+	case D3DProxyDevice::EGO:
+	case D3DProxyDevice::EGO_DIRT:
+		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
+		m_deviceBehavior.whenToRenderBRASSA = DeviceBehavior::WhenToDo::END_SCENE;
+		break;
+	case D3DProxyDevice::REALV:
+	case D3DProxyDevice::REALV_ARMA:
+		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
+		m_deviceBehavior.whenToRenderBRASSA = DeviceBehavior::WhenToDo::END_SCENE;
+		break;
+	case D3DProxyDevice::UNITY:
+	case D3DProxyDevice::UNITY_SLENDER:
+		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
+		m_deviceBehavior.whenToRenderBRASSA = DeviceBehavior::WhenToDo::END_SCENE;
+		break;
+	case D3DProxyDevice::GAMEBRYO:
+	case D3DProxyDevice::GAMEBRYO_SKYRIM:
+		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
+		m_deviceBehavior.whenToRenderBRASSA = DeviceBehavior::WhenToDo::END_SCENE;
+		break;
+	case D3DProxyDevice::LFS:
+		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
+		m_deviceBehavior.whenToRenderBRASSA = DeviceBehavior::WhenToDo::END_SCENE;
+		break;
+	case D3DProxyDevice::CDC:
+		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::END_SCENE;
+		m_deviceBehavior.whenToRenderBRASSA = DeviceBehavior::WhenToDo::END_SCENE;
+		break;
+	default:
+		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
+		m_deviceBehavior.whenToRenderBRASSA = DeviceBehavior::WhenToDo::PRESENT;
+		break;
 	}
 }
 

@@ -227,7 +227,7 @@ void ProxyHelper::GetTargetPath(char* newFolder, char* path)
 * @param mode Stereo mode returned.
 * @param mode2 Tracker mode returned.
 ***/
-bool ProxyHelper::GetConfig(int& mode, int& mode2)
+bool ProxyHelper::LoadUserConfig(int& mode, int& mode2)
 {
 	// load the base dir for the app
 	GetBaseDir();
@@ -255,659 +255,11 @@ bool ProxyHelper::GetConfig(int& mode, int& mode2)
 }
 
 /**
-* Loads the game configuration for the target process specified in the registry (targetExe).
-* @param config Returned game configuration.
-* @param oculusProfile Returned Oculus Player Profile.
-***/
-bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
-{
-	bool fileFound = false;
-
-	// set defaults
-	config.game_type = 0;
-	config.stereo_mode = 0;
-	config.tracker_mode = 0;
-	config.convergence = 0.0f;
-	config.swap_eyes = false;
-	config.aspect_multiplier = 1.0f;
-	config.VRboostMinShaderCount = 0;
-	config.DistortionScale = 0.0f;
-	
-
-	// load the base dir for the app
-	GetBaseDir();
-	OutputDebugString("Got base dir as: ");
-	OutputDebugString(baseDir);
-	OutputDebugString("\n");
-
-	// get global config
-	char configPath[512];
-	GetPath(configPath, "cfg\\config.xml");
-	OutputDebugString(configPath);
-	OutputDebugString("\n");
-
-	xml_document docConfig;
-	xml_parse_result resultConfig = docConfig.load_file(configPath);
-
-	if(resultConfig.status == status_ok)
-	{
-		xml_node xml_config = docConfig.child("config");
-
-		config.stereo_mode = xml_config.attribute("stereo_mode").as_int();
-		config.aspect_multiplier = xml_config.attribute("aspect_multiplier").as_float();
-		config.tracker_mode = xml_config.attribute("tracker_mode").as_int();
-
-		fileFound = true;
-	}
-
-
-	// get the target exe
-	GetTargetExe();
-	OutputDebugString("Got target exe as: ");
-	OutputDebugString(targetExe);
-	OutputDebugString("\n");
-
-	// get the profile
-	bool profileFound = false;
-	char profilePath[512];
-	GetPath(profilePath, "cfg\\profiles.xml");
-	OutputDebugString(profilePath);
-	OutputDebugString("\n");
-
-	xml_document docProfiles;
-	xml_parse_result resultProfiles = docProfiles.load_file(profilePath);
-	xml_node profile;
-	xml_node gameProfile;
-
-	if(resultProfiles.status == status_ok)
-	{
-		xml_node xml_profiles = docProfiles.child("profiles");
-
-		for (xml_node profile = xml_profiles.child("profile"); profile; profile = profile.next_sibling("profile"))
-		{
-			if(strcmp(targetExe, profile.attribute("game_exe").value()) == 0)
-			{
-				OutputDebugString("Load the specific profile!!!\n");
-				gameProfile = profile;
-				profileFound = true;
-				break;
-			}
-		}
-	}
-
-	if(resultProfiles.status == status_ok && profileFound && gameProfile)
-	{
-		OutputDebugString("Set the config to profile!!!\n");
-		config.game_type = gameProfile.attribute("game_type").as_int();
-
-		char buf[32];
-		LPCSTR psz = NULL;
-
-		wsprintf(buf,"gameType: %d", gameProfile.attribute("game_type").as_int());
-		psz = buf;
-		OutputDebugString(psz);
-		OutputDebugString("\n");
-
-		config.VRboostMinShaderCount = gameProfile.attribute("minVRboostShaderCount").as_uint(0);
-		config.convergence = gameProfile.attribute("convergence").as_float(0.0f);
-		config.swap_eyes = gameProfile.attribute("swap_eyes").as_bool();
-		config.yaw_multiplier = gameProfile.attribute("yaw_multiplier").as_float(25.0f);
-		config.pitch_multiplier = gameProfile.attribute("pitch_multiplier").as_float(25.0f);
-		config.roll_multiplier = gameProfile.attribute("roll_multiplier").as_float(1.0f);
-		config.DistortionScale = gameProfile.attribute("distortion_scale").as_float();
-
-		if(config.yaw_multiplier == 0.0f) config.yaw_multiplier = 25.0f;
-		if(config.pitch_multiplier == 0.0f) config.pitch_multiplier = 25.0f;
-		if(config.roll_multiplier == 0.0f) config.roll_multiplier = 1.0f;
-
-		// set process name
-		config.game_exe = std::string(gameProfile.attribute("game_exe").as_string(""));
-
-		// get shader rules file name
-		std::string shaderRulesFileName = gameProfile.attribute("shaderModRules").as_string("");
-
-		if (!shaderRulesFileName.empty()) {
-			std::stringstream sstm;
-			sstm << GetBaseDir() << "cfg\\shader_rules\\" << shaderRulesFileName;
-			config.shaderRulePath = sstm.str();
-		}
-		else {
-			config.shaderRulePath = "";
-		}
-
-		// get memory rules file name
-		std::string VRboostRulesFileName = gameProfile.attribute("VRboostRules").as_string("");
-
-		if (!VRboostRulesFileName.empty()) {
-			std::stringstream sstm;
-			sstm << GetBaseDir() << "cfg\\VRboost_rules\\" << VRboostRulesFileName;
-			config.VRboostPath = sstm.str();
-		}
-		else {
-			config.VRboostPath = "";
-		}
-
-		config.rollEnabled = gameProfile.attribute("rollEnabled").as_bool(false);
-		config.worldScaleFactor = gameProfile.attribute("worldScaleFactor").as_float(1.0f);
-
-		// copy game dlls
-		bool copyDlls = gameProfile.attribute("copyDlls").as_bool();
-		if (copyDlls)
-		{
-			// d3d9.dll
-			char sourcePath[512];
-			GetPath(sourcePath, "bin\\d3d9.dll");
-			char destPath[512];
-			GetTargetPath(destPath, "d3d9.dll");
-
-			std::stringstream sstm;
-			sstm << "copy " << sourcePath << " " << destPath;
-			system(sstm.str().c_str());
-			OutputDebugString(sstm.str().c_str());
-
-			// libfreespace.dll
-			GetPath(sourcePath, "bin\\libfreespace.dll");
-			GetTargetPath(destPath, "libfreespace.dll");
-
-			std::stringstream sstm1;
-			sstm1 << "copy " << sourcePath << " " << destPath;
-			system(sstm1.str().c_str());
-			OutputDebugString(sstm1.str().c_str());
-
-		}
-	}
-
-	LoadHUDConfig(config);
-	LoadGUIConfig(config);
-	LoadVRBoostValues(config);
-
-	LoadUserConfig(config, oculusProfile);
-
-	return fileFound && profileFound;
-}
-
-/**
-* Saves a game configuration.
-* @param cfg The game configuration to be saved.
-***/
-bool ProxyHelper::SaveConfig(ProxyConfig& cfg)
-{
-	SaveProfile(cfg.shaderRulePath, cfg.VRboostPath, cfg.convergence, cfg.swap_eyes, cfg.yaw_multiplier, cfg.pitch_multiplier, cfg.roll_multiplier, cfg.worldScaleFactor, cfg.VRboostMinShaderCount, cfg.DistortionScale);
-	SaveHUDConfig(cfg);
-	SaveGUIConfig(cfg);
-	SaveVRBoostValues(cfg);
-	return SaveUserConfig(cfg.ipd);
-}
-
-/**
-* Loads the game configuration for the target process specified in the registry (targetExe).
-* @param config Returned game configuration.
-* @param oculusProfile Returned Oculus Player Profile.
-***/
-bool ProxyHelper::LoadHUDConfig(ProxyConfig& config)
-{
-	bool fileFound = false;
-
-	// get the target exe
-	GetTargetExe();
-	OutputDebugString("Got target exe as: ");
-	OutputDebugString(targetExe);
-	OutputDebugString("\n");
-
-	// get the profile
-	bool profileFound = false;
-	char profilePath[512];
-	GetPath(profilePath, "cfg\\profiles.xml");
-	OutputDebugString(profilePath);
-	OutputDebugString("\n");
-
-	xml_document docProfiles;
-	xml_parse_result resultProfiles = docProfiles.load_file(profilePath);
-	xml_node profile;
-	xml_node gameProfile;
-
-	if(resultProfiles.status == status_ok)
-	{
-		xml_node xml_profiles = docProfiles.child("profiles");
-
-		for (xml_node profile = xml_profiles.child("profile"); profile; profile = profile.next_sibling("profile"))
-		{
-			if(strcmp(targetExe, profile.attribute("game_exe").value()) == 0)
-			{
-				OutputDebugString("Load the specific profile!!!\n");
-				gameProfile = profile;
-				profileFound = true;
-				break;
-			}
-		}
-	}
-
-	if(resultProfiles.status == status_ok && profileFound && gameProfile)
-	{
-		config.hud3DDepthMode = gameProfile.attribute("hud_3D_depth_mode").as_int();
-
-		config.hud3DDepthPresets[0] = gameProfile.attribute("hud_3D_depth_1").as_float(0.0f);
-		config.hud3DDepthPresets[1] = gameProfile.attribute("hud_3D_depth_2").as_float(0.0f);
-		config.hud3DDepthPresets[2] = gameProfile.attribute("hud_3D_depth_3").as_float(0.0f);
-		config.hud3DDepthPresets[3] = gameProfile.attribute("hud_3D_depth_4").as_float(0.0f);
-
-		config.hudDistancePresets[0] = gameProfile.attribute("hud_distance_1").as_float(0.5f);
-		config.hudDistancePresets[1] = gameProfile.attribute("hud_distance_2").as_float(0.9f);
-		config.hudDistancePresets[2] = gameProfile.attribute("hud_distance_3").as_float(0.3f);
-		config.hudDistancePresets[3] = gameProfile.attribute("hud_distance_4").as_float(0.0f);
-
-		config.hudHotkeys[0] = (byte)gameProfile.attribute("hud_key_swap").as_int(0);
-		config.hudHotkeys[1] = (byte)gameProfile.attribute("hud_key_default").as_int(0);
-		config.hudHotkeys[2] = (byte)gameProfile.attribute("hud_key_small").as_int(0);
-		config.hudHotkeys[3] = (byte)gameProfile.attribute("hud_key_large").as_int(0);
-		config.hudHotkeys[4] = (byte)gameProfile.attribute("hud_key_full").as_int(0);
-	}
-	return fileFound && profileFound;
-}
-
-/**
-* Saves a game configuration.
-* @param config The game configuration to be saved.
-***/
-bool ProxyHelper::SaveHUDConfig(ProxyConfig& config)
-{
-	// get the target exe
-	GetTargetExe();
-	OutputDebugString("Got target exe as: ");
-	OutputDebugString(targetExe);
-	OutputDebugString("\n");
-
-	// get the profile
-	bool profileFound = false;
-	bool profileSaved = false;
-	char profilePath[512];
-	GetPath(profilePath, "cfg\\profiles.xml");
-	OutputDebugString(profilePath);
-	OutputDebugString("\n");
-
-	xml_document docProfiles;
-	xml_parse_result resultProfiles = docProfiles.load_file(profilePath);
-	xml_node profile;
-	xml_node gameProfile;
-
-	if(resultProfiles.status == status_ok)
-	{
-		xml_node xml_profiles = docProfiles.child("profiles");
-
-		for (xml_node profile = xml_profiles.child("profile"); profile; profile = profile.next_sibling("profile"))
-		{
-			if(strcmp(targetExe, profile.attribute("game_exe").value()) == 0)
-			{
-				OutputDebugString("Load the specific profile!!!\n");
-				gameProfile = profile;
-				profileFound = true;
-				break;
-			}
-		}
-	}
-
-	if(resultProfiles.status == status_ok && profileFound && gameProfile)
-	{
-		// shader mod rules attribute present ? otherwise insert
-		if (strcmp(gameProfile.attribute("roll_multiplier").next_attribute().name(), "hud_3D_depth_mode") == 0)
-		{
-			gameProfile.attribute("hud_3D_depth_mode") = config.hud3DDepthMode;
-
-			gameProfile.attribute("hud_3D_depth_1") = config.hud3DDepthPresets[0];
-			gameProfile.attribute("hud_3D_depth_2") = config.hud3DDepthPresets[1];
-			gameProfile.attribute("hud_3D_depth_3") = config.hud3DDepthPresets[2];
-			gameProfile.attribute("hud_3D_depth_4") = config.hud3DDepthPresets[3];
-
-			gameProfile.attribute("hud_distance_1")= config.hudDistancePresets[0];
-			gameProfile.attribute("hud_distance_2")= config.hudDistancePresets[1];
-			gameProfile.attribute("hud_distance_3")= config.hudDistancePresets[2];
-			gameProfile.attribute("hud_distance_4")= config.hudDistancePresets[3];
-
-			gameProfile.attribute("hud_key_swap") = config.hudHotkeys[0];
-			gameProfile.attribute("hud_key_default") = config.hudHotkeys[1];
-			gameProfile.attribute("hud_key_small") = config.hudHotkeys[2];
-			gameProfile.attribute("hud_key_large") = config.hudHotkeys[3];
-			gameProfile.attribute("hud_key_full") = config.hudHotkeys[4];
-		}
-		else
-		{
-			gameProfile.insert_attribute_after("hud_key_full", gameProfile.attribute("roll_multiplier")) = config.hudHotkeys[4];
-			gameProfile.insert_attribute_after("hud_key_large", gameProfile.attribute("roll_multiplier")) = config.hudHotkeys[3];
-			gameProfile.insert_attribute_after("hud_key_small", gameProfile.attribute("roll_multiplier")) = config.hudHotkeys[2];
-			gameProfile.insert_attribute_after("hud_key_default", gameProfile.attribute("roll_multiplier")) = config.hudHotkeys[1];
-			gameProfile.insert_attribute_after("hud_key_swap", gameProfile.attribute("roll_multiplier")) = config.hudHotkeys[0];
-
-			gameProfile.insert_attribute_after("hud_distance_4", gameProfile.attribute("roll_multiplier"))= config.hudDistancePresets[3];
-			gameProfile.insert_attribute_after("hud_distance_3", gameProfile.attribute("roll_multiplier"))= config.hudDistancePresets[2];
-			gameProfile.insert_attribute_after("hud_distance_2", gameProfile.attribute("roll_multiplier"))= config.hudDistancePresets[1];
-			gameProfile.insert_attribute_after("hud_distance_1", gameProfile.attribute("roll_multiplier"))= config.hudDistancePresets[0];
-
-			gameProfile.insert_attribute_after("hud_3D_depth_4", gameProfile.attribute("roll_multiplier")) = config.hud3DDepthPresets[3];
-			gameProfile.insert_attribute_after("hud_3D_depth_3", gameProfile.attribute("roll_multiplier")) = config.hud3DDepthPresets[2];
-			gameProfile.insert_attribute_after("hud_3D_depth_2", gameProfile.attribute("roll_multiplier")) = config.hud3DDepthPresets[1];
-			gameProfile.insert_attribute_after("hud_3D_depth_1", gameProfile.attribute("roll_multiplier")) = config.hud3DDepthPresets[0];
-
-			gameProfile.insert_attribute_after("hud_3D_depth_mode", gameProfile.attribute("roll_multiplier")) = config.hud3DDepthMode;
-		}
-		docProfiles.save_file(profilePath);
-
-		profileSaved = true;
-	}
-
-	return profileSaved;
-}
-
-/**
-* Loads the game configuration for the target process specified in the registry (targetExe).
-* @param config Returned game configuration.
-* @param oculusProfile Returned Oculus Player Profile.
-***/
-bool ProxyHelper::LoadGUIConfig(ProxyConfig& config)
-{
-	bool fileFound = false;
-
-	// get the target exe
-	GetTargetExe();
-	OutputDebugString("Got target exe as: ");
-	OutputDebugString(targetExe);
-	OutputDebugString("\n");
-
-	// get the profile
-	bool profileFound = false;
-	char profilePath[512];
-	GetPath(profilePath, "cfg\\profiles.xml");
-	OutputDebugString(profilePath);
-	OutputDebugString("\n");
-
-	xml_document docProfiles;
-	xml_parse_result resultProfiles = docProfiles.load_file(profilePath);
-	xml_node profile;
-	xml_node gameProfile;
-
-	if(resultProfiles.status == status_ok)
-	{
-		xml_node xml_profiles = docProfiles.child("profiles");
-
-		for (xml_node profile = xml_profiles.child("profile"); profile; profile = profile.next_sibling("profile"))
-		{
-			if(strcmp(targetExe, profile.attribute("game_exe").value()) == 0)
-			{
-				OutputDebugString("Load the specific profile!!!\n");
-				gameProfile = profile;
-				profileFound = true;
-				break;
-			}
-		}
-	}
-
-	if(resultProfiles.status == status_ok && profileFound && gameProfile)
-	{
-		config.gui3DDepthMode = gameProfile.attribute("gui_3D_depth_mode").as_int();
-
-		config.gui3DDepthPresets[0] = gameProfile.attribute("gui_3D_depth_1").as_float(0.0f);
-		config.gui3DDepthPresets[1] = gameProfile.attribute("gui_3D_depth_2").as_float(0.0f);
-		config.gui3DDepthPresets[2] = gameProfile.attribute("gui_3D_depth_3").as_float(0.0f);
-		config.gui3DDepthPresets[3] = gameProfile.attribute("gui_3D_depth_4").as_float(0.0f);
-
-		config.guiSquishPresets[0] = gameProfile.attribute("gui_size_1").as_float(0.6f);
-		config.guiSquishPresets[1] = gameProfile.attribute("gui_size_2").as_float(0.5f);
-		config.guiSquishPresets[2] = gameProfile.attribute("gui_size_3").as_float(0.9f);
-		config.guiSquishPresets[3] = gameProfile.attribute("gui_size_4").as_float(1.0f);
-
-		config.guiHotkeys[0] = (byte)gameProfile.attribute("gui_key_swap").as_int(0);
-		config.guiHotkeys[1] = (byte)gameProfile.attribute("gui_key_default").as_int(0);
-		config.guiHotkeys[2] = (byte)gameProfile.attribute("gui_key_small").as_int(0);
-		config.guiHotkeys[3] = (byte)gameProfile.attribute("gui_key_large").as_int(0);
-		config.guiHotkeys[4] = (byte)gameProfile.attribute("gui_key_full").as_int(0);
-	}
-	return fileFound && profileFound;
-}
-
-/**
-* Saves a game configuration.
-* @param config The game configuration to be saved.
-***/
-bool ProxyHelper::SaveGUIConfig(ProxyConfig& config)
-{
-	// get the target exe
-	GetTargetExe();
-	OutputDebugString("Got target exe as: ");
-	OutputDebugString(targetExe);
-	OutputDebugString("\n");
-
-	// get the profile
-	bool profileFound = false;
-	bool profileSaved = false;
-	char profilePath[512];
-	GetPath(profilePath, "cfg\\profiles.xml");
-	OutputDebugString(profilePath);
-	OutputDebugString("\n");
-
-	xml_document docProfiles;
-	xml_parse_result resultProfiles = docProfiles.load_file(profilePath);
-	xml_node profile;
-	xml_node gameProfile;
-
-	if(resultProfiles.status == status_ok)
-	{
-		xml_node xml_profiles = docProfiles.child("profiles");
-
-		for (xml_node profile = xml_profiles.child("profile"); profile; profile = profile.next_sibling("profile"))
-		{
-			if(strcmp(targetExe, profile.attribute("game_exe").value()) == 0)
-			{
-				OutputDebugString("Load the specific profile!!!\n");
-				gameProfile = profile;
-				profileFound = true;
-				break;
-			}
-		}
-	}
-
-	if(resultProfiles.status == status_ok && profileFound && gameProfile)
-	{
-		// shader mod rules attribute present ? otherwise insert
-		if (strcmp(gameProfile.attribute("hud_key_full").next_attribute().name(), "gui_3D_depth_mode") == 0)
-		{
-			gameProfile.attribute("gui_3D_depth_mode") = config.gui3DDepthMode;
-
-			gameProfile.attribute("gui_3D_depth_1") = config.gui3DDepthPresets[0];
-			gameProfile.attribute("gui_3D_depth_2") = config.gui3DDepthPresets[1];
-			gameProfile.attribute("gui_3D_depth_3") = config.gui3DDepthPresets[2];
-			gameProfile.attribute("gui_3D_depth_4") = config.gui3DDepthPresets[3];
-
-			gameProfile.attribute("gui_size_1")= config.guiSquishPresets[0];
-			gameProfile.attribute("gui_size_2")= config.guiSquishPresets[1];
-			gameProfile.attribute("gui_size_3")= config.guiSquishPresets[2];
-			gameProfile.attribute("gui_size_4")= config.guiSquishPresets[3];
-
-			gameProfile.attribute("gui_key_swap") = config.guiHotkeys[0];
-			gameProfile.attribute("gui_key_default") = config.guiHotkeys[1];
-			gameProfile.attribute("gui_key_small") = config.guiHotkeys[2];
-			gameProfile.attribute("gui_key_large") = config.guiHotkeys[3];
-			gameProfile.attribute("gui_key_full") = config.guiHotkeys[4];
-		}
-		else
-		{
-			gameProfile.insert_attribute_after("gui_key_full", gameProfile.attribute("hud_key_full")) = config.guiHotkeys[4];
-			gameProfile.insert_attribute_after("gui_key_large", gameProfile.attribute("hud_key_full")) = config.guiHotkeys[3];
-			gameProfile.insert_attribute_after("gui_key_small", gameProfile.attribute("hud_key_full")) = config.guiHotkeys[2];
-			gameProfile.insert_attribute_after("gui_key_default", gameProfile.attribute("hud_key_full")) = config.guiHotkeys[1];
-			gameProfile.insert_attribute_after("gui_key_swap", gameProfile.attribute("hud_key_full")) = config.guiHotkeys[0];
-
-			gameProfile.insert_attribute_after("gui_size_4", gameProfile.attribute("hud_key_full"))= config.guiSquishPresets[3];
-			gameProfile.insert_attribute_after("gui_size_3", gameProfile.attribute("hud_key_full"))= config.guiSquishPresets[2];
-			gameProfile.insert_attribute_after("gui_size_2", gameProfile.attribute("hud_key_full"))= config.guiSquishPresets[1];
-			gameProfile.insert_attribute_after("gui_size_1", gameProfile.attribute("hud_key_full"))= config.guiSquishPresets[0];
-
-			gameProfile.insert_attribute_after("gui_3D_depth_4", gameProfile.attribute("hud_key_full")) = config.gui3DDepthPresets[3];
-			gameProfile.insert_attribute_after("gui_3D_depth_3", gameProfile.attribute("hud_key_full")) = config.gui3DDepthPresets[2];
-			gameProfile.insert_attribute_after("gui_3D_depth_2", gameProfile.attribute("hud_key_full")) = config.gui3DDepthPresets[1];
-			gameProfile.insert_attribute_after("gui_3D_depth_1", gameProfile.attribute("hud_key_full")) = config.gui3DDepthPresets[0];
-
-			gameProfile.insert_attribute_after("gui_3D_depth_mode", gameProfile.attribute("hud_key_full")) = config.gui3DDepthMode;
-		}
-		docProfiles.save_file(profilePath);
-
-		profileSaved = true;
-	}
-
-	return profileSaved;
-}
-
-/**
-*
-***/
-bool ProxyHelper::LoadVRBoostValues(ProxyConfig& config)
-{
-	bool fileFound = false;
-
-	// get the target exe
-	GetTargetExe();
-	OutputDebugString("Got target exe as: ");
-	OutputDebugString(targetExe);
-	OutputDebugString("\n");
-
-	// get the profile
-	bool profileFound = false;
-	char profilePath[512];
-	GetPath(profilePath, "cfg\\profiles.xml");
-	OutputDebugString(profilePath);
-	OutputDebugString("\n");
-
-	xml_document docProfiles;
-	xml_parse_result resultProfiles = docProfiles.load_file(profilePath);
-	xml_node profile;
-	xml_node gameProfile;
-
-	if(resultProfiles.status == status_ok)
-	{
-		xml_node xml_profiles = docProfiles.child("profiles");
-
-		for (xml_node profile = xml_profiles.child("profile"); profile; profile = profile.next_sibling("profile"))
-		{
-			if(strcmp(targetExe, profile.attribute("game_exe").value()) == 0)
-			{
-				OutputDebugString("Load the specific profile!!!\n");
-				gameProfile = profile;
-				profileFound = true;
-				break;
-			}
-		}
-	}
-
-	if(resultProfiles.status == status_ok && profileFound && gameProfile)
-	{
-		config.WorldFOV = gameProfile.attribute("WorldFOV").as_float(95.0f);
-		config.PlayerFOV = gameProfile.attribute("PlayerFOV").as_float(125.0f);
-		config.FarPlaneFOV = gameProfile.attribute("FarPlaneFOV").as_float(95.0f);
-		config.CameraTranslateX = gameProfile.attribute("CameraTranslateX").as_float(0.0f);
-		config.CameraTranslateY = gameProfile.attribute("CameraTranslateY").as_float(0.0f);
-		config.CameraTranslateZ = gameProfile.attribute("CameraTranslateZ").as_float(0.0f);
-		config.CameraDistance = gameProfile.attribute("CameraDistance").as_float(0.0f);
-		config.CameraZoom = gameProfile.attribute("CameraZoom").as_float(0.0f);
-		config.CameraHorizonAdjustment = gameProfile.attribute("CameraHorizonAdjustment").as_float(0.0f);
-		config.ConstantValue1 = gameProfile.attribute("ConstantValue1").as_float(0.0f);
-		config.ConstantValue2 = gameProfile.attribute("ConstantValue2").as_float(0.0f);
-		config.ConstantValue3 = gameProfile.attribute("ConstantValue3").as_float(0.0f);
-	}
-	return fileFound && profileFound;
-}
-
-/**
-* Saves a game configuration.
-* @param config The game configuration to be saved.
-***/
-bool ProxyHelper::SaveVRBoostValues(ProxyConfig& config)
-{
-	// get the target exe
-	GetTargetExe();
-	OutputDebugString("Got target exe as: ");
-	OutputDebugString(targetExe);
-	OutputDebugString("\n");
-
-	// get the profile
-	bool profileFound = false;
-	bool profileSaved = false;
-	char profilePath[512];
-	GetPath(profilePath, "cfg\\profiles.xml");
-	OutputDebugString(profilePath);
-	OutputDebugString("\n");
-
-	xml_document docProfiles;
-	xml_parse_result resultProfiles = docProfiles.load_file(profilePath);
-	xml_node profile;
-	xml_node gameProfile;
-
-	if(resultProfiles.status == status_ok)
-	{
-		xml_node xml_profiles = docProfiles.child("profiles");
-
-		for (xml_node profile = xml_profiles.child("profile"); profile; profile = profile.next_sibling("profile"))
-		{
-			if(strcmp(targetExe, profile.attribute("game_exe").value()) == 0)
-			{
-				OutputDebugString("Load the specific profile!!!\n");
-				gameProfile = profile;
-				profileFound = true;
-				break;
-			}
-		}
-	}
-
-	if(resultProfiles.status == status_ok && profileFound && gameProfile)
-	{
-		// shader mod rules attribute present ? otherwise insert
-		if (strcmp(gameProfile.attribute("gui_key_full").next_attribute().name(), "WorldFOV") == 0)
-		{
-			gameProfile.attribute("WorldFOV") = config.WorldFOV;
-			gameProfile.attribute("PlayerFOV") = config.PlayerFOV;
-			gameProfile.attribute("FarPlaneFOV") = config.FarPlaneFOV;
-
-			gameProfile.attribute("CameraTranslateX") = config.CameraTranslateX;
-			gameProfile.attribute("CameraTranslateY") = config.CameraTranslateY;
-			gameProfile.attribute("CameraTranslateZ")= config.CameraTranslateZ;
-
-			gameProfile.attribute("CameraDistance")= config.CameraDistance;
-			gameProfile.attribute("CameraZoom")= config.CameraZoom;
-			gameProfile.attribute("CameraHorizonAdjustment")= config.CameraHorizonAdjustment;
-
-			gameProfile.attribute("ConstantValue1") = config.ConstantValue1;
-			gameProfile.attribute("ConstantValue2") = config.ConstantValue2;
-			gameProfile.attribute("ConstantValue3") = config.ConstantValue3;
-		}
-		else
-		{
-			gameProfile.insert_attribute_after("ConstantValue3", gameProfile.attribute("gui_key_full")) = config.ConstantValue3;
-			gameProfile.insert_attribute_after("ConstantValue2", gameProfile.attribute("gui_key_full")) = config.ConstantValue2;
-			gameProfile.insert_attribute_after("ConstantValue1", gameProfile.attribute("gui_key_full")) = config.ConstantValue1;
-
-			gameProfile.insert_attribute_after("CameraHorizonAdjustment", gameProfile.attribute("gui_key_full"))= config.CameraHorizonAdjustment;
-			gameProfile.insert_attribute_after("CameraZoom", gameProfile.attribute("gui_key_full"))= config.CameraZoom;
-			gameProfile.insert_attribute_after("CameraDistance", gameProfile.attribute("gui_key_full"))= config.CameraDistance;
-
-			gameProfile.insert_attribute_after("CameraTranslateZ", gameProfile.attribute("gui_key_full"))= config.CameraTranslateZ;
-			gameProfile.insert_attribute_after("CameraTranslateY", gameProfile.attribute("gui_key_full")) = config.CameraTranslateY;
-			gameProfile.insert_attribute_after("CameraTranslateX", gameProfile.attribute("gui_key_full")) = config.CameraTranslateX;
-
-			gameProfile.insert_attribute_after("FarPlaneFOV", gameProfile.attribute("gui_key_full")) = config.FarPlaneFOV;
-			gameProfile.insert_attribute_after("PlayerFOV", gameProfile.attribute("gui_key_full")) = config.PlayerFOV;
-			gameProfile.insert_attribute_after("WorldFOV", gameProfile.attribute("gui_key_full")) = config.WorldFOV;			
-		}
-		docProfiles.save_file(profilePath);
-
-		profileSaved = true;
-	}
-
-	return profileSaved;
-}
-
-/**
 * Saves the global Vireio Perception configuration (stereo mode and aspect multiplier).
 * @param mode The chosen stereo mode option.
 * @param aspect The aspect multiplier.
 ***/
-bool ProxyHelper::SaveConfig(int mode, float aspect)
+bool ProxyHelper::SaveUserConfig(int mode, float aspect)
 {
 	// load the base dir for the app
 	GetBaseDir();
@@ -929,39 +281,6 @@ bool ProxyHelper::SaveConfig(int mode, float aspect)
 			xml_config.attribute("stereo_mode") = mode;
 		if(aspect >= 0.0f)
 			xml_config.attribute("aspect_multiplier") = aspect;
-
-		docConfig.save_file(configPath);
-
-		return true;
-	}
-
-	return false;
-}
-
-/**
-* Saves the global Vireio Perception configuration (only tracking mode).
-* @param mode The chosen tracking mode option.
-***/
-bool ProxyHelper::SaveConfig2(int mode)
-{
-	// load the base dir for the app
-	GetBaseDir();
-	OutputDebugString(baseDir);
-	OutputDebugString("\n");
-
-	// get global config
-	char configPath[512];
-	GetPath(configPath, "cfg\\config.xml");
-
-	xml_document docConfig;
-	xml_parse_result resultConfig = docConfig.load_file(configPath);
-
-	if(resultConfig.status == status_ok)
-	{
-		xml_node xml_config = docConfig.child("config");
-
-		if(mode >= 0)
-			xml_config.attribute("tracker_mode") = mode;
 
 		docConfig.save_file(configPath);
 
@@ -1160,6 +479,596 @@ bool ProxyHelper::SaveUserConfig(float ipd)
 }
 
 /**
+* Saves the global Vireio Perception configuration (only tracking mode).
+* @param mode The chosen tracking mode option.
+***/
+bool ProxyHelper::SaveTrackerMode(int mode)
+{
+	// load the base dir for the app
+	GetBaseDir();
+	OutputDebugString(baseDir);
+	OutputDebugString("\n");
+
+	// get global config
+	char configPath[512];
+	GetPath(configPath, "cfg\\config.xml");
+
+	xml_document docConfig;
+	xml_parse_result resultConfig = docConfig.load_file(configPath);
+
+	if(resultConfig.status == status_ok)
+	{
+		xml_node xml_config = docConfig.child("config");
+
+		if(mode >= 0)
+			xml_config.attribute("tracker_mode") = mode;
+
+		docConfig.save_file(configPath);
+
+		return true;
+	}
+
+	return false;
+}
+
+/**
+* Loads the game configuration for the target process specified in the registry (targetExe).
+* @param config Returned game configuration.
+* @param oculusProfile Returned Oculus Player Profile.
+***/
+bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
+{
+	bool fileFound = false;
+
+	// set defaults
+	config.game_type = 0;
+	config.stereo_mode = 0;
+	config.tracker_mode = 0;
+	config.convergence = 0.0f;
+	config.swap_eyes = false;
+	config.aspect_multiplier = 1.0f;
+	config.VRboostMinShaderCount = 0;
+	config.DistortionScale = 0.0f;
+
+
+	// load the base dir for the app
+	GetBaseDir();
+	OutputDebugString("Got base dir as: ");
+	OutputDebugString(baseDir);
+	OutputDebugString("\n");
+
+	// get global config
+	char configPath[512];
+	GetPath(configPath, "cfg\\config.xml");
+	OutputDebugString(configPath);
+	OutputDebugString("\n");
+
+	xml_document docConfig;
+	xml_parse_result resultConfig = docConfig.load_file(configPath);
+
+	if(resultConfig.status == status_ok)
+	{
+		xml_node xml_config = docConfig.child("config");
+
+		config.stereo_mode = xml_config.attribute("stereo_mode").as_int();
+		config.aspect_multiplier = xml_config.attribute("aspect_multiplier").as_float();
+		config.tracker_mode = xml_config.attribute("tracker_mode").as_int();
+
+		fileFound = true;
+	}
+
+
+	// get the target exe
+	GetTargetExe();
+	OutputDebugString("Got target exe as: ");
+	OutputDebugString(targetExe);
+	OutputDebugString("\n");
+
+	// get the profile
+	bool profileFound = false;
+	char profilePath[512];
+	GetPath(profilePath, "cfg\\profiles.xml");
+	OutputDebugString(profilePath);
+	OutputDebugString("\n");
+
+	xml_document docProfiles;
+	xml_parse_result resultProfiles = docProfiles.load_file(profilePath);
+	xml_node profile;
+	xml_node gameProfile;
+
+	if(resultProfiles.status == status_ok)
+	{
+		xml_node xml_profiles = docProfiles.child("profiles");
+
+		for (xml_node profile = xml_profiles.child("profile"); profile; profile = profile.next_sibling("profile"))
+		{
+			// first, convert to lowercase
+			unsigned int i = 0;
+			while (targetExe[i])
+			{
+				targetExe[i] = (char)tolower((int)targetExe[i]);
+				i++;
+			}
+			std::string profileProcess = profile.attribute("game_exe").as_string();
+			for (i = 0; i < profileProcess.length(); ++i)
+			{
+				profileProcess[i] = (char)tolower((int)profileProcess[i]);
+			}
+			// profile found ?
+			if(strcmp(targetExe, profileProcess.c_str()) == 0)
+			{
+				OutputDebugString("Load the specific profile!!!\n");
+				gameProfile = profile;
+				profileFound = true;
+				break;
+			}
+		}
+	}
+
+	if(resultProfiles.status == status_ok && profileFound && gameProfile)
+	{
+		OutputDebugString("Set the config to profile!!!\n");
+		config.game_type = gameProfile.attribute("game_type").as_int();
+
+		char buf[32];
+		LPCSTR psz = NULL;
+
+		wsprintf(buf,"gameType: %d", gameProfile.attribute("game_type").as_int());
+		psz = buf;
+		OutputDebugString(psz);
+		OutputDebugString("\n");
+
+		config.VRboostMinShaderCount = gameProfile.attribute("minVRboostShaderCount").as_uint(0);
+		config.convergence = gameProfile.attribute("convergence").as_float(0.0f);
+		config.swap_eyes = gameProfile.attribute("swap_eyes").as_bool();
+		config.yaw_multiplier = gameProfile.attribute("yaw_multiplier").as_float(25.0f);
+		config.pitch_multiplier = gameProfile.attribute("pitch_multiplier").as_float(25.0f);
+		config.roll_multiplier = gameProfile.attribute("roll_multiplier").as_float(1.0f);
+		config.DistortionScale = gameProfile.attribute("distortion_scale").as_float(0.0f);
+
+		if(config.yaw_multiplier == 0.0f) config.yaw_multiplier = 25.0f;
+		if(config.pitch_multiplier == 0.0f) config.pitch_multiplier = 25.0f;
+		if(config.roll_multiplier == 0.0f) config.roll_multiplier = 1.0f;
+
+		// set process name
+		config.game_exe = std::string(gameProfile.attribute("game_exe").as_string(""));
+
+		// get hud config
+		config.hud3DDepthMode = gameProfile.attribute("hud_3D_depth_mode").as_int();
+
+		config.hud3DDepthPresets[0] = gameProfile.attribute("hud_3D_depth_1").as_float(0.0f);
+		config.hud3DDepthPresets[1] = gameProfile.attribute("hud_3D_depth_2").as_float(0.0f);
+		config.hud3DDepthPresets[2] = gameProfile.attribute("hud_3D_depth_3").as_float(0.0f);
+		config.hud3DDepthPresets[3] = gameProfile.attribute("hud_3D_depth_4").as_float(0.0f);
+
+		config.hudDistancePresets[0] = gameProfile.attribute("hud_distance_1").as_float(0.5f);
+		config.hudDistancePresets[1] = gameProfile.attribute("hud_distance_2").as_float(0.9f);
+		config.hudDistancePresets[2] = gameProfile.attribute("hud_distance_3").as_float(0.3f);
+		config.hudDistancePresets[3] = gameProfile.attribute("hud_distance_4").as_float(0.0f);
+
+		config.hudHotkeys[0] = (byte)gameProfile.attribute("hud_key_swap").as_int(0);
+		config.hudHotkeys[1] = (byte)gameProfile.attribute("hud_key_default").as_int(0);
+		config.hudHotkeys[2] = (byte)gameProfile.attribute("hud_key_small").as_int(0);
+		config.hudHotkeys[3] = (byte)gameProfile.attribute("hud_key_large").as_int(0);
+		config.hudHotkeys[4] = (byte)gameProfile.attribute("hud_key_full").as_int(0);
+
+		// get gui config
+		config.gui3DDepthMode = gameProfile.attribute("gui_3D_depth_mode").as_int();
+
+		config.gui3DDepthPresets[0] = gameProfile.attribute("gui_3D_depth_1").as_float(0.0f);
+		config.gui3DDepthPresets[1] = gameProfile.attribute("gui_3D_depth_2").as_float(0.0f);
+		config.gui3DDepthPresets[2] = gameProfile.attribute("gui_3D_depth_3").as_float(0.0f);
+		config.gui3DDepthPresets[3] = gameProfile.attribute("gui_3D_depth_4").as_float(0.0f);
+
+		config.guiSquishPresets[0] = gameProfile.attribute("gui_size_1").as_float(0.6f);
+		config.guiSquishPresets[1] = gameProfile.attribute("gui_size_2").as_float(0.5f);
+		config.guiSquishPresets[2] = gameProfile.attribute("gui_size_3").as_float(0.9f);
+		config.guiSquishPresets[3] = gameProfile.attribute("gui_size_4").as_float(1.0f);
+
+		config.guiHotkeys[0] = (byte)gameProfile.attribute("gui_key_swap").as_int(0);
+		config.guiHotkeys[1] = (byte)gameProfile.attribute("gui_key_default").as_int(0);
+		config.guiHotkeys[2] = (byte)gameProfile.attribute("gui_key_small").as_int(0);
+		config.guiHotkeys[3] = (byte)gameProfile.attribute("gui_key_large").as_int(0);
+		config.guiHotkeys[4] = (byte)gameProfile.attribute("gui_key_full").as_int(0);
+
+		// get VRBoost settings
+		config.WorldFOV = gameProfile.attribute("WorldFOV").as_float(95.0f);
+		config.PlayerFOV = gameProfile.attribute("PlayerFOV").as_float(125.0f);
+		config.FarPlaneFOV = gameProfile.attribute("FarPlaneFOV").as_float(95.0f);
+		config.CameraTranslateX = gameProfile.attribute("CameraTranslateX").as_float(0.0f);
+		config.CameraTranslateY = gameProfile.attribute("CameraTranslateY").as_float(0.0f);
+		config.CameraTranslateZ = gameProfile.attribute("CameraTranslateZ").as_float(0.0f);
+		config.CameraDistance = gameProfile.attribute("CameraDistance").as_float(0.0f);
+		config.CameraZoom = gameProfile.attribute("CameraZoom").as_float(0.0f);
+		config.CameraHorizonAdjustment = gameProfile.attribute("CameraHorizonAdjustment").as_float(0.0f);
+		config.ConstantValue1 = gameProfile.attribute("ConstantValue1").as_float(0.0f);
+		config.ConstantValue2 = gameProfile.attribute("ConstantValue2").as_float(0.0f);
+		config.ConstantValue3 = gameProfile.attribute("ConstantValue3").as_float(0.0f);
+
+		// get shader rules file name
+		std::string shaderRulesFileName = gameProfile.attribute("shaderModRules").as_string("");
+
+		if (!shaderRulesFileName.empty()) {
+			std::stringstream sstm;
+			sstm << GetBaseDir() << "cfg\\shader_rules\\" << shaderRulesFileName;
+			config.shaderRulePath = sstm.str();
+		}
+		else {
+			config.shaderRulePath = "";
+		}
+
+		// get memory rules file name
+		std::string VRboostRulesFileName = gameProfile.attribute("VRboostRules").as_string("");
+
+		if (!VRboostRulesFileName.empty()) {
+			std::stringstream sstm;
+			sstm << GetBaseDir() << "cfg\\VRboost_rules\\" << VRboostRulesFileName;
+			config.VRboostPath = sstm.str();
+		}
+		else {
+			config.VRboostPath = "";
+		}
+
+		config.rollEnabled = gameProfile.attribute("rollEnabled").as_bool(false);
+		config.worldScaleFactor = gameProfile.attribute("worldScaleFactor").as_float(1.0f);
+
+		// copy game dlls
+		bool copyDlls = gameProfile.attribute("copyDlls").as_bool(false);
+		if (copyDlls)
+		{
+			// d3d9.dll
+			char sourcePath[512];
+			GetPath(sourcePath, "bin\\d3d9.dll");
+			char destPath[512];
+			GetTargetPath(destPath, "d3d9.dll");
+
+			std::stringstream sstm;
+			sstm << "copy " << sourcePath << " " << destPath;
+			system(sstm.str().c_str());
+			OutputDebugString(sstm.str().c_str());
+
+			// libfreespace.dll
+			GetPath(sourcePath, "bin\\libfreespace.dll");
+			GetTargetPath(destPath, "libfreespace.dll");
+
+			std::stringstream sstm1;
+			sstm1 << "copy " << sourcePath << " " << destPath;
+			system(sstm1.str().c_str());
+			OutputDebugString(sstm1.str().c_str());
+
+		}
+	}
+
+	/*LoadHUDConfig(config);
+	LoadGUIConfig(config);
+	LoadVRBoostValues(config);*/
+
+	LoadUserConfig(config, oculusProfile);
+
+	return fileFound && profileFound;
+}
+
+/**
+* Saves a game configuration.
+* @param cfg The game configuration to be saved.
+***/
+bool ProxyHelper::SaveConfig(ProxyConfig& config)
+{
+	// get the target exe
+	GetTargetExe();
+	OutputDebugString("Got target exe as: ");
+	OutputDebugString(targetExe);
+	OutputDebugString("\n");
+
+	// get the profile
+	bool profileFound = false;
+	bool profileSaved = false;
+	char profilePath[512];
+	GetPath(profilePath, "cfg\\profiles.xml");
+	OutputDebugString(profilePath);
+	OutputDebugString("\n");
+
+	xml_document docProfiles;
+	xml_parse_result resultProfiles = docProfiles.load_file(profilePath);
+	xml_node profile;
+	xml_node gameProfile;
+
+	if(resultProfiles.status == status_ok)
+	{
+		xml_node xml_profiles = docProfiles.child("profiles");
+
+		for (xml_node profile = xml_profiles.child("profile"); profile; profile = profile.next_sibling("profile"))
+		{
+			// first, convert to lowercase
+			unsigned int i = 0;
+			while (targetExe[i])
+			{
+				targetExe[i] = (char)tolower((int)targetExe[i]);
+				i++;
+			}
+			std::string profileProcess = profile.attribute("game_exe").as_string();
+			for (i = 0; i < profileProcess.length(); ++i)
+			{
+				profileProcess[i] = (char)tolower((int)profileProcess[i]);
+			}
+			// profile found ?
+			if(strcmp(targetExe, profileProcess.c_str()) == 0)
+			{
+				OutputDebugString("Load the specific profile!!!\n");
+				gameProfile = profile;
+				profileFound = true;
+				break;
+			}
+		}
+	}
+
+	if(resultProfiles.status == status_ok && profileFound && gameProfile)
+	{
+		OutputDebugString("Save the settings to profile!!!\n");
+
+		// get shader mod rules filename
+		auto lastBackSlash = config.shaderRulePath.find_last_of("\\");
+		std::string fileName;
+		if (lastBackSlash!=std::string::npos)
+			fileName = config.shaderRulePath.substr(lastBackSlash+1, config.shaderRulePath.size()-(lastBackSlash+1));
+		else
+			fileName = config.shaderRulePath;
+
+		// shader mod rules attribute present ? otherwise insert
+		if (strcmp(gameProfile.attribute("game_exe").next_attribute().name(), "shaderModRules") == 0)
+			gameProfile.attribute("shaderModRules") = fileName.c_str();
+		else
+		{
+			gameProfile.remove_attribute("shaderModRules");
+			gameProfile.insert_attribute_after("shaderModRules", gameProfile.attribute("game_exe")) = fileName.c_str();
+		}
+
+		// get VRboost rules filename
+		lastBackSlash = config.VRboostPath.find_last_of("\\");
+		if (lastBackSlash!=std::string::npos)
+			fileName = config.VRboostPath.substr(lastBackSlash+1, config.VRboostPath.size()-(lastBackSlash+1));
+		else
+			fileName = config.VRboostPath;
+
+		// VRboost rules attribute present ? otherwise insert
+		if (strcmp(gameProfile.attribute("shaderModRules").next_attribute().name(), "VRboostRules") == 0)
+			gameProfile.attribute("VRboostRules") = fileName.c_str();
+		else
+		{
+			gameProfile.remove_attribute("shaderModRules");
+			gameProfile.insert_attribute_after("VRboostRules", gameProfile.attribute("shaderModRules")) = fileName.c_str();
+		}
+
+		// change other attributes
+		if (strcmp(gameProfile.attribute("VRboostRules").next_attribute().name(), "minVRboostShaderCount") == 0)
+			gameProfile.attribute("minVRboostShaderCount") = config.VRboostMinShaderCount;
+		else
+		{
+			gameProfile.remove_attribute("minVRboostShaderCount");
+			gameProfile.insert_attribute_after("minVRboostShaderCount", gameProfile.attribute("VRboostRules")) = config.VRboostMinShaderCount;
+		}
+		if (strcmp(gameProfile.attribute("minVRboostShaderCount").next_attribute().name(), "game_type") == 0)
+			gameProfile.attribute("game_type") = config.game_type;
+		else
+		{
+			gameProfile.remove_attribute("game_type");
+			gameProfile.insert_attribute_after("game_type", gameProfile.attribute("minVRboostShaderCount")) = config.game_type;
+		}
+		if (strcmp(gameProfile.attribute("game_type").next_attribute().name(), "rollEnabled") == 0)
+			gameProfile.attribute("rollEnabled") = config.rollEnabled;
+		else
+		{
+			gameProfile.remove_attribute("rollEnabled");
+			gameProfile.insert_attribute_after("rollEnabled", gameProfile.attribute("game_type")) = config.rollEnabled;
+		}
+		if (strcmp(gameProfile.attribute("rollEnabled").next_attribute().name(), "worldScaleFactor") == 0)
+			gameProfile.attribute("worldScaleFactor") = config.worldScaleFactor;
+		else
+		{
+			gameProfile.remove_attribute("worldScaleFactor");
+			gameProfile.insert_attribute_after("worldScaleFactor", gameProfile.attribute("rollEnabled")) = config.worldScaleFactor;
+		}
+		if (strcmp(gameProfile.attribute("worldScaleFactor").next_attribute().name(), "convergence") == 0)
+			gameProfile.attribute("convergence") = config.convergence;
+		else
+		{
+			gameProfile.remove_attribute("convergence");
+			gameProfile.insert_attribute_after("convergence", gameProfile.attribute("worldScaleFactor")) = config.convergence;
+		}
+		if (strcmp(gameProfile.attribute("convergence").next_attribute().name(), "swap_eyes") == 0)
+			gameProfile.attribute("swap_eyes") = config.swap_eyes;
+		else
+		{
+			gameProfile.remove_attribute("swap_eyes");
+			gameProfile.insert_attribute_after("swap_eyes", gameProfile.attribute("convergence")) = config.swap_eyes;
+		}
+		if (strcmp(gameProfile.attribute("swap_eyes").next_attribute().name(), "yaw_multiplier") == 0)
+			gameProfile.attribute("yaw_multiplier") = config.yaw_multiplier;
+		else
+		{
+			gameProfile.remove_attribute("yaw_multiplier");
+			gameProfile.insert_attribute_after("yaw_multiplier", gameProfile.attribute("swap_eyes")) = config.yaw_multiplier;
+		}
+		if (strcmp(gameProfile.attribute("yaw_multiplier").next_attribute().name(), "pitch_multiplier") == 0)
+			gameProfile.attribute("pitch_multiplier") = config.pitch_multiplier;
+		else
+		{
+			gameProfile.remove_attribute("pitch_multiplier");
+			gameProfile.insert_attribute_after("pitch_multiplier", gameProfile.attribute("yaw_multiplier")) = config.pitch_multiplier;
+		}
+		if (strcmp(gameProfile.attribute("pitch_multiplier").next_attribute().name(), "roll_multiplier") == 0)
+			gameProfile.attribute("roll_multiplier") = config.roll_multiplier;
+		else
+		{
+			gameProfile.remove_attribute("roll_multiplier");
+			gameProfile.insert_attribute_after("roll_multiplier", gameProfile.attribute("pitch_multiplier")) = config.roll_multiplier;
+		}
+		if (strcmp(gameProfile.attribute("roll_multiplier").next_attribute().name(), "distortion_scale") == 0)
+			gameProfile.attribute("distortion_scale") = config.DistortionScale;
+		else
+		{
+			gameProfile.remove_attribute("distortion_scale");
+			gameProfile.insert_attribute_after("distortion_scale", gameProfile.attribute("roll_multiplier")) = config.DistortionScale;
+		}
+
+		// shader mod rules attribute present ? otherwise insert
+		if (strcmp(gameProfile.attribute("distortion_scale").next_attribute().name(), "hud_3D_depth_mode") == 0)
+		{
+			gameProfile.attribute("hud_3D_depth_mode") = config.hud3DDepthMode;
+
+			gameProfile.attribute("hud_3D_depth_1") = config.hud3DDepthPresets[0];
+			gameProfile.attribute("hud_3D_depth_2") = config.hud3DDepthPresets[1];
+			gameProfile.attribute("hud_3D_depth_3") = config.hud3DDepthPresets[2];
+			gameProfile.attribute("hud_3D_depth_4") = config.hud3DDepthPresets[3];
+
+			gameProfile.attribute("hud_distance_1")= config.hudDistancePresets[0];
+			gameProfile.attribute("hud_distance_2")= config.hudDistancePresets[1];
+			gameProfile.attribute("hud_distance_3")= config.hudDistancePresets[2];
+			gameProfile.attribute("hud_distance_4")= config.hudDistancePresets[3];
+
+			gameProfile.attribute("hud_key_swap") = config.hudHotkeys[0];
+			gameProfile.attribute("hud_key_default") = config.hudHotkeys[1];
+			gameProfile.attribute("hud_key_small") = config.hudHotkeys[2];
+			gameProfile.attribute("hud_key_large") = config.hudHotkeys[3];
+			gameProfile.attribute("hud_key_full") = config.hudHotkeys[4];
+		}
+		else
+		{
+			gameProfile.remove_attribute("hud_3D_depth_mode"); 
+			gameProfile.remove_attribute("hud_3D_depth_1"); gameProfile.remove_attribute("hud_3D_depth_2");
+			gameProfile.remove_attribute("hud_3D_depth_3"); gameProfile.remove_attribute("hud_3D_depth_4"); 
+			gameProfile.remove_attribute("hud_distance_1"); gameProfile.remove_attribute("hud_distance_2"); 
+			gameProfile.remove_attribute("hud_distance_3"); gameProfile.remove_attribute("hud_distance_4");
+			gameProfile.remove_attribute("hud_key_swap"); gameProfile.remove_attribute("hud_key_default"); 
+			gameProfile.remove_attribute("hud_key_small"); gameProfile.remove_attribute("hud_key_large"); 
+			gameProfile.remove_attribute("hud_key_full"); 
+
+			gameProfile.insert_attribute_after("hud_key_full", gameProfile.attribute("distortion_scale")) = config.hudHotkeys[4];
+			gameProfile.insert_attribute_after("hud_key_large", gameProfile.attribute("distortion_scale")) = config.hudHotkeys[3];
+			gameProfile.insert_attribute_after("hud_key_small", gameProfile.attribute("distortion_scale")) = config.hudHotkeys[2];
+			gameProfile.insert_attribute_after("hud_key_default", gameProfile.attribute("distortion_scale")) = config.hudHotkeys[1];
+			gameProfile.insert_attribute_after("hud_key_swap", gameProfile.attribute("distortion_scale")) = config.hudHotkeys[0];
+
+			gameProfile.insert_attribute_after("hud_distance_4", gameProfile.attribute("distortion_scale"))= config.hudDistancePresets[3];
+			gameProfile.insert_attribute_after("hud_distance_3", gameProfile.attribute("distortion_scale"))= config.hudDistancePresets[2];
+			gameProfile.insert_attribute_after("hud_distance_2", gameProfile.attribute("distortion_scale"))= config.hudDistancePresets[1];
+			gameProfile.insert_attribute_after("hud_distance_1", gameProfile.attribute("distortion_scale"))= config.hudDistancePresets[0];
+
+			gameProfile.insert_attribute_after("hud_3D_depth_4", gameProfile.attribute("distortion_scale")) = config.hud3DDepthPresets[3];
+			gameProfile.insert_attribute_after("hud_3D_depth_3", gameProfile.attribute("distortion_scale")) = config.hud3DDepthPresets[2];
+			gameProfile.insert_attribute_after("hud_3D_depth_2", gameProfile.attribute("distortion_scale")) = config.hud3DDepthPresets[1];
+			gameProfile.insert_attribute_after("hud_3D_depth_1", gameProfile.attribute("distortion_scale")) = config.hud3DDepthPresets[0];
+
+			gameProfile.insert_attribute_after("hud_3D_depth_mode", gameProfile.attribute("distortion_scale")) = config.hud3DDepthMode;
+		}
+
+		// shader mod rules attribute present ? otherwise insert
+		if (strcmp(gameProfile.attribute("hud_key_full").next_attribute().name(), "gui_3D_depth_mode") == 0)
+		{
+			gameProfile.attribute("gui_3D_depth_mode") = config.gui3DDepthMode;
+
+			gameProfile.attribute("gui_3D_depth_1") = config.gui3DDepthPresets[0];
+			gameProfile.attribute("gui_3D_depth_2") = config.gui3DDepthPresets[1];
+			gameProfile.attribute("gui_3D_depth_3") = config.gui3DDepthPresets[2];
+			gameProfile.attribute("gui_3D_depth_4") = config.gui3DDepthPresets[3];
+
+			gameProfile.attribute("gui_size_1")= config.guiSquishPresets[0];
+			gameProfile.attribute("gui_size_2")= config.guiSquishPresets[1];
+			gameProfile.attribute("gui_size_3")= config.guiSquishPresets[2];
+			gameProfile.attribute("gui_size_4")= config.guiSquishPresets[3];
+
+			gameProfile.attribute("gui_key_swap") = config.guiHotkeys[0];
+			gameProfile.attribute("gui_key_default") = config.guiHotkeys[1];
+			gameProfile.attribute("gui_key_small") = config.guiHotkeys[2];
+			gameProfile.attribute("gui_key_large") = config.guiHotkeys[3];
+			gameProfile.attribute("gui_key_full") = config.guiHotkeys[4];
+		}
+		else
+		{
+			gameProfile.remove_attribute("gui_3D_depth_mode"); 
+			gameProfile.remove_attribute("gui_3D_depth_1"); gameProfile.remove_attribute("gui_3D_depth_2");
+			gameProfile.remove_attribute("gui_3D_depth_3"); gameProfile.remove_attribute("gui_3D_depth_4"); 
+			gameProfile.remove_attribute("gui_size_1"); gameProfile.remove_attribute("gui_size_2"); 
+			gameProfile.remove_attribute("gui_size_3"); gameProfile.remove_attribute("gui_size_4");
+			gameProfile.remove_attribute("gui_key_swap"); gameProfile.remove_attribute("gui_key_default"); 
+			gameProfile.remove_attribute("gui_key_small"); gameProfile.remove_attribute("gui_key_large"); 
+			gameProfile.remove_attribute("gui_key_full"); 
+
+			gameProfile.insert_attribute_after("gui_key_full", gameProfile.attribute("hud_key_full")) = config.guiHotkeys[4];
+			gameProfile.insert_attribute_after("gui_key_large", gameProfile.attribute("hud_key_full")) = config.guiHotkeys[3];
+			gameProfile.insert_attribute_after("gui_key_small", gameProfile.attribute("hud_key_full")) = config.guiHotkeys[2];
+			gameProfile.insert_attribute_after("gui_key_default", gameProfile.attribute("hud_key_full")) = config.guiHotkeys[1];
+			gameProfile.insert_attribute_after("gui_key_swap", gameProfile.attribute("hud_key_full")) = config.guiHotkeys[0];
+
+			gameProfile.insert_attribute_after("gui_size_4", gameProfile.attribute("hud_key_full"))= config.guiSquishPresets[3];
+			gameProfile.insert_attribute_after("gui_size_3", gameProfile.attribute("hud_key_full"))= config.guiSquishPresets[2];
+			gameProfile.insert_attribute_after("gui_size_2", gameProfile.attribute("hud_key_full"))= config.guiSquishPresets[1];
+			gameProfile.insert_attribute_after("gui_size_1", gameProfile.attribute("hud_key_full"))= config.guiSquishPresets[0];
+
+			gameProfile.insert_attribute_after("gui_3D_depth_4", gameProfile.attribute("hud_key_full")) = config.gui3DDepthPresets[3];
+			gameProfile.insert_attribute_after("gui_3D_depth_3", gameProfile.attribute("hud_key_full")) = config.gui3DDepthPresets[2];
+			gameProfile.insert_attribute_after("gui_3D_depth_2", gameProfile.attribute("hud_key_full")) = config.gui3DDepthPresets[1];
+			gameProfile.insert_attribute_after("gui_3D_depth_1", gameProfile.attribute("hud_key_full")) = config.gui3DDepthPresets[0];
+
+			gameProfile.insert_attribute_after("gui_3D_depth_mode", gameProfile.attribute("hud_key_full")) = config.gui3DDepthMode;
+		}
+
+		// shader mod rules attribute present ? otherwise insert
+		if (strcmp(gameProfile.attribute("gui_key_full").next_attribute().name(), "WorldFOV") == 0)
+		{
+			gameProfile.attribute("WorldFOV") = config.WorldFOV;
+			gameProfile.attribute("PlayerFOV") = config.PlayerFOV;
+			gameProfile.attribute("FarPlaneFOV") = config.FarPlaneFOV;
+
+			gameProfile.attribute("CameraTranslateX") = config.CameraTranslateX;
+			gameProfile.attribute("CameraTranslateY") = config.CameraTranslateY;
+			gameProfile.attribute("CameraTranslateZ")= config.CameraTranslateZ;
+
+			gameProfile.attribute("CameraDistance")= config.CameraDistance;
+			gameProfile.attribute("CameraZoom")= config.CameraZoom;
+			gameProfile.attribute("CameraHorizonAdjustment")= config.CameraHorizonAdjustment;
+
+			gameProfile.attribute("ConstantValue1") = config.ConstantValue1;
+			gameProfile.attribute("ConstantValue2") = config.ConstantValue2;
+			gameProfile.attribute("ConstantValue3") = config.ConstantValue3;
+		}
+		else
+		{
+			gameProfile.remove_attribute("WorldFOV"); gameProfile.remove_attribute("PlayerFOV"); 
+			gameProfile.remove_attribute("FarPlaneFOV"); 
+			gameProfile.remove_attribute("CameraTranslateX"); gameProfile.remove_attribute("CameraTranslateY"); 
+			gameProfile.remove_attribute("CameraTranslateZ"); 
+			gameProfile.remove_attribute("CameraDistance"); gameProfile.remove_attribute("CameraZoom"); 
+			gameProfile.remove_attribute("CameraHorizonAdjustment"); 
+			gameProfile.remove_attribute("ConstantValue1"); gameProfile.remove_attribute("ConstantValue2"); 
+			gameProfile.remove_attribute("ConstantValue3"); 
+
+			gameProfile.insert_attribute_after("ConstantValue3", gameProfile.attribute("gui_key_full")) = config.ConstantValue3;
+			gameProfile.insert_attribute_after("ConstantValue2", gameProfile.attribute("gui_key_full")) = config.ConstantValue2;
+			gameProfile.insert_attribute_after("ConstantValue1", gameProfile.attribute("gui_key_full")) = config.ConstantValue1;
+
+			gameProfile.insert_attribute_after("CameraHorizonAdjustment", gameProfile.attribute("gui_key_full"))= config.CameraHorizonAdjustment;
+			gameProfile.insert_attribute_after("CameraZoom", gameProfile.attribute("gui_key_full"))= config.CameraZoom;
+			gameProfile.insert_attribute_after("CameraDistance", gameProfile.attribute("gui_key_full"))= config.CameraDistance;
+
+			gameProfile.insert_attribute_after("CameraTranslateZ", gameProfile.attribute("gui_key_full"))= config.CameraTranslateZ;
+			gameProfile.insert_attribute_after("CameraTranslateY", gameProfile.attribute("gui_key_full")) = config.CameraTranslateY;
+			gameProfile.insert_attribute_after("CameraTranslateX", gameProfile.attribute("gui_key_full")) = config.CameraTranslateX;
+
+			gameProfile.insert_attribute_after("FarPlaneFOV", gameProfile.attribute("gui_key_full")) = config.FarPlaneFOV;
+			gameProfile.insert_attribute_after("PlayerFOV", gameProfile.attribute("gui_key_full")) = config.PlayerFOV;
+			gameProfile.insert_attribute_after("WorldFOV", gameProfile.attribute("gui_key_full")) = config.WorldFOV;			
+		}
+
+		docProfiles.save_file(profilePath);
+
+		profileSaved = true;
+	}
+
+	return (profileSaved || SaveUserConfig(config.ipd));
+}
+
+/**
 * True if process has a configuration profile.
 * @param name The exe process name.
 ***/
@@ -1225,100 +1134,4 @@ bool ProxyHelper::GetProfile(char* name, ProxyConfig& config) // TODO !!! fill c
 	}
 
 	return profileFound;
-}
-
-/**
-* Currently incomplete save game profile function.
-* @param shaderRulePath Path to the shader rules xml file.
-* @param convergence Convergence adjustment, in meters.
-* @param swap True to swap eye output.
-* @param yaw Yaw tracking multiplier.
-* @param pitch Pitch tracking multiplier.
-* @param roll Roll tracking multiplier.
-* @param worldScale Game world scaling.
-* @param distortionScale The scale to apply to the distortion
-***/
-bool ProxyHelper::SaveProfile(std::string shaderRulePath, std::string VRboostRulePath, float convergence, bool swap, float yaw, float pitch, float roll, float worldScale, int minVRboostShaderCount, float distortionScale)
-{
-	// get the target exe
-	GetTargetExe();
-	OutputDebugString("Got target exe as: ");
-	OutputDebugString(targetExe);
-	OutputDebugString("\n");
-
-	// get the profile
-	bool profileFound = false;
-	bool profileSaved = false;
-	char profilePath[512];
-	GetPath(profilePath, "cfg\\profiles.xml");
-	OutputDebugString(profilePath);
-	OutputDebugString("\n");
-
-	xml_document docProfiles;
-	xml_parse_result resultProfiles = docProfiles.load_file(profilePath);
-	xml_node profile;
-	xml_node gameProfile;
-
-	if(resultProfiles.status == status_ok)
-	{
-		xml_node xml_profiles = docProfiles.child("profiles");
-
-		for (xml_node profile = xml_profiles.child("profile"); profile; profile = profile.next_sibling("profile"))
-		{
-			if(strcmp(targetExe, profile.attribute("game_exe").value()) == 0)
-			{
-				OutputDebugString("Load the specific profile!!!\n");
-				gameProfile = profile;
-				profileFound = true;
-				break;
-			}
-		}
-	}
-
-	if(resultProfiles.status == status_ok && profileFound && gameProfile)
-	{
-		OutputDebugString("Save the settings to profile!!!\n");
-
-		// get shader mod rules filename
-		auto lastBackSlash = shaderRulePath.find_last_of("\\");
-		std::string fileName;
-		if (lastBackSlash!=std::string::npos)
-			fileName = shaderRulePath.substr(lastBackSlash+1, shaderRulePath.size()-(lastBackSlash+1));
-		else
-			fileName = shaderRulePath;
-
-		// shader mod rules attribute present ? otherwise insert
-		if (strcmp(gameProfile.attribute("game_exe").next_attribute().name(), "shaderModRules") == 0)
-			gameProfile.attribute("shaderModRules") = fileName.c_str();
-		else
-			gameProfile.insert_attribute_after("shaderModRules", gameProfile.attribute("game_exe")) = fileName.c_str();
-
-		// get VRboost rules filename
-		lastBackSlash = VRboostRulePath.find_last_of("\\");
-		if (lastBackSlash!=std::string::npos)
-			fileName = VRboostRulePath.substr(lastBackSlash+1, VRboostRulePath.size()-(lastBackSlash+1));
-		else
-			fileName = VRboostRulePath;
-
-		// VRboost rules attribute present ? otherwise insert
-		if (strcmp(gameProfile.attribute("shaderModRules").next_attribute().name(), "VRboostRules") == 0)
-			gameProfile.attribute("VRboostRules") = fileName.c_str();
-		else
-			gameProfile.insert_attribute_after("VRboostRules", gameProfile.attribute("shaderModRules")) = fileName.c_str();
-
-		// change other attributes
-		gameProfile.attribute("minVRboostShaderCount") = minVRboostShaderCount;
-		gameProfile.attribute("convergence") = convergence;
-		gameProfile.attribute("swap_eyes") = swap;
-		gameProfile.attribute("yaw_multiplier") = yaw;
-		gameProfile.attribute("pitch_multiplier") = pitch;
-		gameProfile.attribute("roll_multiplier") = roll;
-		gameProfile.attribute("worldScaleFactor") = worldScale;
-		gameProfile.attribute("distortion_scale") = distortionScale;
-		docProfiles.save_file(profilePath);
-
-		profileSaved = true;
-	}
-
-	return profileSaved;
 }

@@ -53,29 +53,27 @@ public:
 	***/
 	struct ProxyConfig 
 	{
-		int         game_type;                  /**< Game type enumeration. Matching D3DProxyDevice::ProxyTypes. */
-		int         stereo_mode;                /**< Stereo render mode enumeration. Matching StereoView::StereoTypes. */
-		int         tracker_mode;               /**< Tracking mode enumeration. Matching MotionTracker::TrackingTypes. */
-		float       aspect_multiplier;          /**< Currently unused aspect multiplier. Aspect multiplier allows adjusting aspect ratio consistently for Stereo/NoStereo. */
-		bool        swap_eyes;                  /**< Option to swap the eye output for different 3D systems. */
-		float       yaw_multiplier;             /**< Game-specific tracking multiplier (yaw). */
-		float       pitch_multiplier;           /**< Game-specific tracking multiplier (pitch). */
-		float       roll_multiplier;            /**< Game-specific tracking multiplier (roll). */
-		float       worldScaleFactor;           /**< Value the eye seperation is to be multiplied with. (mm * worldScaleFactor = mm in game units). */
-		bool        rollEnabled;                /**< True if headtracking-roll is to be enabled. */
+		/** game configuration **/
 		std::string game_exe;                   /**< Process name, to be used in VRboost. */
 		std::string shaderRulePath;             /**< Full path of shader rules for this game. */
 		std::string VRboostPath;                /**< Full path of VRboost rules for this game. */
 		UINT        VRboostMinShaderCount;      /**< Minimum Vertex Shader Count to apply VRboost (security) */
-		float       ipd;                        /**< IPD, which stands for interpupillary distance (distance between your pupils - in meters...default = 0.064). Also called the interocular distance (or just Interocular). */
+		int         game_type;                  /**< Game type enumeration. Matching D3DProxyDevice::ProxyTypes. */
+		bool        rollEnabled;                /**< True if headtracking-roll is to be enabled. */
+		float       worldScaleFactor;           /**< Value the eye seperation is to be multiplied with. (mm * worldScaleFactor = mm in game units). */
 		float       convergence;                /**< Convergence or Neutral Point distance, in meters. */
+		bool        swap_eyes;                  /**< Option to swap the eye output for different 3D systems. */
+		float       yaw_multiplier;             /**< Game-specific tracking multiplier (yaw). */
+		float       pitch_multiplier;           /**< Game-specific tracking multiplier (pitch). */
+		float       roll_multiplier;            /**< Game-specific tracking multiplier (roll). */
+		float		DistortionScale;			/**< The scale to apply distortion. **/
 		int         hud3DDepthMode;             /**< Current HUD mode. */
-		int         gui3DDepthMode;             /**< Current GUI mode. */
 		float       hud3DDepthPresets[4];       /**< HUD 3D Depth presets.*/
 		float       hudDistancePresets[4];      /**< HUD Distance presets.*/
+		byte        hudHotkeys[5];              /**< HUD Hotkeys.*/
+		int         gui3DDepthMode;             /**< Current GUI mode. */
 		float       gui3DDepthPresets[4];       /**< GUI 3D Depth presets.*/
 		float       guiSquishPresets[4];        /**< GUI Size presets.*/
-		byte        hudHotkeys[5];              /**< HUD Hotkeys.*/
 		byte        guiHotkeys[5];              /**< GUI Hotkeys.*/
 		float       WorldFOV;                   /**< Game-specific global FOV setting. **/
 		float       PlayerFOV;                  /**< Game-specific player surroundings FOV setting. **/
@@ -89,7 +87,12 @@ public:
 		float       ConstantValue1;             /**< Game-specific constant value 1. **/
 		float       ConstantValue2;             /**< Game-specific constant value 2. **/
 		float       ConstantValue3;             /**< Game-specific constant value 3. **/
-		float		DistortionScale;			/**< The scale to apply distortion. **/
+		
+		/** general settings **/
+		int         stereo_mode;                /**< Stereo render mode enumeration. Matching StereoView::StereoTypes. */
+		int         tracker_mode;               /**< Tracking mode enumeration. Matching MotionTracker::TrackingTypes. */
+		float       ipd;                        /**< IPD, which stands for interpupillary distance (distance between your pupils - in meters...default = 0.064). Also called the interocular distance (or just Interocular). */
+		float       aspect_multiplier;          /**< Currently unused aspect multiplier. Aspect multiplier allows adjusting aspect ratio consistently for Stereo/NoStereo. */
 	};
 
 	/**
@@ -110,22 +113,15 @@ public:
 	char* GetTargetExe();
 	void  GetPath(char* newFolder, char* path);
 	void  GetTargetPath(char* newFolder, char* path);
-	bool  GetConfig(int& mode, int& mode2);
-	bool  LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile);	
-	bool  SaveConfig(ProxyConfig& config);
-	bool  LoadHUDConfig(ProxyConfig& config);	
-	bool  SaveHUDConfig(ProxyConfig& config);
-	bool  LoadGUIConfig(ProxyConfig& config);	
-	bool  SaveGUIConfig(ProxyConfig& config);
-	bool  LoadVRBoostValues(ProxyConfig& config);	
-	bool  SaveVRBoostValues(ProxyConfig& config);
-	bool  SaveConfig(int mode = -1, float aspect = -1.0f);
-	bool  SaveConfig2(int mode = -1);
+	bool  LoadUserConfig(int& mode, int& mode2);
+	bool  SaveUserConfig(int mode = -1, float aspect = -1.0f);
 	bool  LoadUserConfig(ProxyConfig& config, OculusProfile& oculusProfile);
 	bool  SaveUserConfig(float ipd = IPD_DEFAULT);
+	bool  SaveTrackerMode(int mode = -1);
+	bool  LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile);	
+	bool  SaveConfig(ProxyConfig& config);
 	bool  HasProfile(char* name);
 	bool  GetProfile(char* name, ProxyConfig& config);
-	bool  SaveProfile(std::string shaderRulePath = "", std::string VRboostRulePath = "", float convergence = 0.0f, bool swap_eyes = false, float yaw = 25.0f, float pitch = 25.0f, float roll = 1.0f, float worldScale = 1.0f, int minVRboostShaderCount = 0, float distortionScale = 0.0f);
 
 	/**
 	* True if base directory path loaded.

@@ -120,7 +120,7 @@ public:
 			ProxyHelper helper = ProxyHelper();
 			int mode = atoi(s);
 			float aspect = mode == 25 ? 0.5f : 1.0f;
-			helper.SaveConfig(mode, aspect);
+			helper.SaveUserConfig(mode, aspect);
 		}
 	}
 	void new_selection2() {
@@ -134,7 +134,7 @@ public:
 			// save the tracker mode to xml file
 			ProxyHelper helper = ProxyHelper();
 			int mode = atoi(s);
-			helper.SaveConfig2(mode);
+			helper.SaveTrackerMode(mode);
 		}
 	}
 
@@ -370,7 +370,7 @@ int WINAPI wWinMain(HINSTANCE instance_handle, HINSTANCE, LPWSTR, INT) {
 	int mode;
 	int mode2;
 	ProxyHelper helper = ProxyHelper();
-	helper.GetConfig(mode, mode2);
+	helper.LoadUserConfig(mode, mode2);
 
 	SendMessage(main_window.combobox->combobox_handle, CB_SETCURSEL, stereoModes[mode], 0);
 	SendMessage(main_window.combobox2->combobox_handle, CB_SETCURSEL, trackerModes[mode2], 0);

@@ -493,6 +493,8 @@ private:
 	void    BRASSA_Settings();
 	void    BRASSA_VRBoostValues();
 	void    BRASSA_UpdateBorder();
+	void    BRASSA_UpdateConfigSettings();
+	void    BRASSA_UpdateDeviceSettings();
 	void    ReleaseEverything();
 	bool    isViewportDefaultForMainRT(CONST D3DVIEWPORT9* pViewport);
 	HRESULT SetStereoViewTransform(D3DXMATRIX pLeftMatrix, D3DXMATRIX pRightMatrix, bool apply);
@@ -642,6 +644,10 @@ private:
 	* Either the left or right projection, depending on active render side.	
 	**/
 	D3DXMATRIX* m_pCurrentProjection;
+	/**
+	* Backup of the current game profile.
+	***/
+	ProxyHelper::ProxyConfig m_configBackup;
 	/**
 	* Current HUD 3D Depth mode.
 	***/
