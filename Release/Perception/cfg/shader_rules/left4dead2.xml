@@ -5,6 +5,7 @@
     <rule id="2" constantType="MatrixC" modToApply="8" startReg="8" transpose="true" />
     <rule id="3" constantType="MatrixC" modToApply="8" startReg="51" transpose="true" />
     <rule id="4" constantType="Vector" modToApply="1" startReg="2" />
+	<rule id="6" constantType="MatrixC" modToApply="15" startReg="8" transpose="true" />
   </rules>
   <defaultRuleIDs>
     <ruleID id="1" />
@@ -17,5 +18,19 @@
   </shaderSpecificRuleIDs>
   <shaderSpecificRuleIDs shaderHash="2909081192" squishViewport="true"></shaderSpecificRuleIDs>
   <shaderSpecificRuleIDs shaderHash="3141609077" squishViewport="true"></shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="3482179733" squishViewport="true"></shaderSpecificRuleIDs>
-</shaderConfig>
+  <shaderSpecificRuleIDs shaderHash="3482179733" >
+ 	 <ruleID id="1" />
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="1922199043" >
+ 	 <ruleID id="1" />
+  </shaderSpecificRuleIDs>
+    <shaderSpecificRuleIDs shaderHash="973208371" >
+ 	 <ruleID id="1" /> <!--THIS BREAKS A POLE/SHADOW THING -->
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="719017533">
+    <ruleID id="6" />
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="3546995421">
+    <ruleID id="6" />
+  </shaderSpecificRuleIDs>  
+  </shaderConfig> 
