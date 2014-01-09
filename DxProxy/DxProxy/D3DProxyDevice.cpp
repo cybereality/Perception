@@ -3804,10 +3804,10 @@ void D3DProxyDevice::BRASSA_HUD()
 		}
 		rect1.top += 40;
 		char vcString[128];
-		sprintf_s(vcString,"HUD Distance : %g", hudDistancePresets[(int)hud3DDepthMode]);
+		sprintf_s(vcString,"HUD Distance : %g", RoundBrassaValue(hudDistancePresets[(int)hud3DDepthMode]));
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		rect1.top += 40;
-		sprintf_s(vcString,"HUD's 3D Depth : %g", hud3DDepthPresets[(int)hud3DDepthMode]);
+		sprintf_s(vcString,"HUD's 3D Depth : %g", RoundBrassaValue(hud3DDepthPresets[(int)hud3DDepthMode]));
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		rect1.top += 40;
 		sprintf_s(vcString,"Hotkey >Switch< : ", hud3DDepthPresets[(int)hud3DDepthMode]);
@@ -4050,10 +4050,10 @@ void D3DProxyDevice::BRASSA_GUI()
 		}
 		rect1.top += 40;
 		char vcString[128];
-		sprintf_s(vcString,"GUI Size : %g", guiSquishPresets[(int)gui3DDepthMode]);
+		sprintf_s(vcString,"GUI Size : %g", RoundBrassaValue(guiSquishPresets[(int)gui3DDepthMode]));
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		rect1.top += 40;
-		sprintf_s(vcString,"GUI's 3D Depth : %g", gui3DDepthPresets[(int)gui3DDepthMode]);
+		sprintf_s(vcString,"GUI's 3D Depth : %g", RoundBrassaValue(gui3DDepthPresets[(int)gui3DDepthMode]));
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		rect1.top += 40;
 		sprintf_s(vcString,"Hotkey >Switch< : ", hud3DDepthPresets[(int)hud3DDepthMode]);
@@ -4355,18 +4355,18 @@ void D3DProxyDevice::BRASSA_Settings()
 		}
 		rect1.top += 40;
 		char vcString[128];
-		sprintf_s(vcString,"Distortion Scale : %g", this->stereoView->DistortionScale);
+		sprintf_s(vcString,"Distortion Scale : %g", RoundBrassaValue(this->stereoView->DistortionScale));
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		rect1.top += 40;
 		DrawTextShadowed(hudFont, hudMainMenu, "Stereo Screenshots", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		rect1.top += 40;
-		sprintf_s(vcString,"Yaw multiplier : %g", tracker->multiplierYaw);
+		sprintf_s(vcString,"Yaw multiplier : %g", RoundBrassaValue(tracker->multiplierYaw));
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		rect1.top += 40;
-		sprintf_s(vcString,"Pitch multiplier : %g", tracker->multiplierPitch);
+		sprintf_s(vcString,"Pitch multiplier : %g", RoundBrassaValue(tracker->multiplierPitch));
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		rect1.top += 40;
-		sprintf_s(vcString,"Roll multiplier : %g", tracker->multiplierRoll);
+		sprintf_s(vcString,"Roll multiplier : %g", RoundBrassaValue(tracker->multiplierRoll));
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		rect1.top += 40;
 		DrawTextShadowed(hudFont, hudMainMenu, "Reset multipliers", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
@@ -4513,40 +4513,40 @@ void D3DProxyDevice::BRASSA_VRBoostValues()
 
 		rect1.top += 50;  rect1.left += 250; float guiQSHeight = (float)rect1.top * fScaleY;
 		char vcString[128];
-		sprintf_s(vcString,"World FOV : %g", VRBoostValue[24]);
+		sprintf_s(vcString,"World FOV : %g", RoundBrassaValue(VRBoostValue[24]));
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		rect1.top += 40;
-		sprintf_s(vcString,"Player FOV : %g", VRBoostValue[25]);
+		sprintf_s(vcString,"Player FOV : %g", RoundBrassaValue(VRBoostValue[25]));
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		rect1.top += 40;
-		sprintf_s(vcString,"Far Plane FOV : %g", VRBoostValue[26]);
+		sprintf_s(vcString,"Far Plane FOV : %g", RoundBrassaValue(VRBoostValue[26]));
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		rect1.top += 40;
-		sprintf_s(vcString,"Camera Translate X : %g", VRBoostValue[27]);
+		sprintf_s(vcString,"Camera Translate X : %g", RoundBrassaValue(VRBoostValue[27]));
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		rect1.top += 40;
-		sprintf_s(vcString,"Camera Translate Y : %g", VRBoostValue[28]);
+		sprintf_s(vcString,"Camera Translate Y : %g", RoundBrassaValue(VRBoostValue[28]));
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		rect1.top += 40;
-		sprintf_s(vcString,"Camera Translate Z : %g", VRBoostValue[29]);
+		sprintf_s(vcString,"Camera Translate Z : %g", RoundBrassaValue(VRBoostValue[29]));
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		rect1.top += 40;
-		sprintf_s(vcString,"Camera Distance : %g", VRBoostValue[30]);
+		sprintf_s(vcString,"Camera Distance : %g", RoundBrassaValue(VRBoostValue[30]));
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		rect1.top += 40;
-		sprintf_s(vcString,"Camera Zoom : %g", VRBoostValue[31]);
+		sprintf_s(vcString,"Camera Zoom : %g", RoundBrassaValue(VRBoostValue[31]));
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		rect1.top += 40;
-		sprintf_s(vcString,"Camera Horizon Adjustment : %g", VRBoostValue[32]);
+		sprintf_s(vcString,"Camera Horizon Adjustment : %g", RoundBrassaValue(VRBoostValue[32]));
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		rect1.top += 40;
-		sprintf_s(vcString,"Constant Value 1 : %g", VRBoostValue[33]);
+		sprintf_s(vcString,"Constant Value 1 : %g", RoundBrassaValue(VRBoostValue[33]));
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		rect1.top += 40;
-		sprintf_s(vcString,"Constant Value 2 : %g", VRBoostValue[34]);
+		sprintf_s(vcString,"Constant Value 2 : %g", RoundBrassaValue(VRBoostValue[34]));
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		rect1.top += 40;
-		sprintf_s(vcString,"Constant Value 2 : %g", VRBoostValue[35]);
+		sprintf_s(vcString,"Constant Value 2 : %g", RoundBrassaValue(VRBoostValue[35]));
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		rect1.top += 40;
 		DrawTextShadowed(hudFont, hudMainMenu, "Back to BRASSA Menu", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
@@ -4967,4 +4967,12 @@ void D3DProxyDevice::SetGUIViewport()
 	// set viewport
 	m_bViewportIsSquished = true;
 	BaseDirect3DDevice9::SetViewport(&m_ViewportIfSquished);
+}
+
+/**
+ * Rounds the floats to make them more display friendly
+ **/
+float D3DProxyDevice::RoundBrassaValue(float val)
+{
+	return (float)floor(val * 1000.0f + 0.5f) / 1000.0f;
 }
