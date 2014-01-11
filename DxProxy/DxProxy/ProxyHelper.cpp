@@ -835,7 +835,7 @@ bool ProxyHelper::SaveConfig(ProxyConfig& config)
 			gameProfile.attribute("VRboostRules") = fileName.c_str();
 		else
 		{
-			gameProfile.remove_attribute("shaderModRules");
+			gameProfile.remove_attribute("VRboostRules");
 			gameProfile.insert_attribute_after("VRboostRules", gameProfile.attribute("shaderModRules")) = fileName.c_str();
 		}
 
