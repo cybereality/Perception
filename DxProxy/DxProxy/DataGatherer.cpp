@@ -29,7 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "DataGatherer.h"
 
-#define KEY_DOWN(vk_code) ((GetAsyncKeyState(vk_code) & 0x8000) ? 1 : 0)
+#define KEY_DOWN(vk_code) (((GetAsyncKeyState(vk_code) & 0x8000) ? 1 : 0) || ((vk_code >= 0xD0) && (vk_code<=0xDF) && (m_xButtons[vk_code%0x10])))
 #define KEY_UP(vk_code) ((GetAsyncKeyState(vk_code) & 0x8000) ? 0 : 1)
 
 #define MATRIX_NAMES 17
@@ -704,16 +704,28 @@ void DataGatherer::BRASSA_ShaderSubMenu()
 	float fScaleX = ((float)viewportWidth / (float)rect1.right);
 	float fScaleY = ((float)viewportHeight / (float)rect1.bottom);
 
+	// set menu entry attraction
+	menuAttraction.y = ((borderTopHeight-menuTop)/menuEntryHeight);
+	menuAttraction.y -= (float)((UINT)menuAttraction.y);
+	menuAttraction.y -= 0.5f;
+	menuAttraction.y *= 2.0f;
+	if ((menuVelocity.y>0.0f) && (menuAttraction.y<0.0f)) menuAttraction.y = 0.0f;
+	if ((menuVelocity.y<0.0f) && (menuAttraction.y>0.0f)) menuAttraction.y = 0.0f;
+
+
 	// handle border height
 	if (borderTopHeight<menuTop)
 	{
 		borderTopHeight = menuTop;
 		menuVelocity.y=0.0f;
+		menuAttraction.y=0.0f;
+
 	}
 	if (borderTopHeight>(menuTop+(menuEntryHeight*(float)(menuEntryCount-1))))
 	{
 		borderTopHeight = menuTop+menuEntryHeight*(float)(menuEntryCount-1);
 		menuVelocity.y=0.0f;
+		menuAttraction.y=0.0f;
 	}
 
 	// get menu entry id
@@ -730,7 +742,7 @@ void DataGatherer::BRASSA_ShaderSubMenu()
 		BRASSA_mode = BRASSA_Modes::INACTIVE;
 	}
 
-	if ((KEY_DOWN(VK_RETURN) || KEY_DOWN(VK_RSHIFT)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	if ((KEY_DOWN(VK_RETURN) || KEY_DOWN(VK_RSHIFT) || (m_xButtons[0x0c])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		// 
 		if (entryID == 0)
@@ -929,16 +941,28 @@ void DataGatherer::BRASSA_ChangeRules()
 		++itShaderConstants;
 	}
 
+	// set menu entry attraction
+	menuAttraction.y = ((borderTopHeight-menuTop)/menuEntryHeight);
+	menuAttraction.y -= (float)((UINT)menuAttraction.y);
+	menuAttraction.y -= 0.5f;
+	menuAttraction.y *= 2.0f;
+	if ((menuVelocity.y>0.0f) && (menuAttraction.y<0.0f)) menuAttraction.y = 0.0f;
+	if ((menuVelocity.y<0.0f) && (menuAttraction.y>0.0f)) menuAttraction.y = 0.0f;
+
+
 	// handle border height
 	if (borderTopHeight<menuTop)
 	{
 		borderTopHeight = menuTop;
 		menuVelocity.y=0.0f;
+		menuAttraction.y=0.0f;
+
 	}
 	if (borderTopHeight>(menuTop+(menuEntryHeight*(float)(menuEntryCount-1))))
 	{
 		borderTopHeight = menuTop+menuEntryHeight*(float)(menuEntryCount-1);
 		menuVelocity.y=0.0f;
+		menuAttraction.y=0.0f;
 	}
 
 	// get menu entry id
@@ -955,7 +979,7 @@ void DataGatherer::BRASSA_ChangeRules()
 		BRASSA_mode = BRASSA_Modes::INACTIVE;
 	}
 
-	if ((KEY_DOWN(VK_RETURN) || KEY_DOWN(VK_RSHIFT)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	if ((KEY_DOWN(VK_RETURN) || KEY_DOWN(VK_RSHIFT) || (m_xButtons[0x0c])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		// switch shader rule node
 		if ((entryID >= 0) && (entryID < menuEntryCount-2) && (menuEntryCount>2))
@@ -1092,7 +1116,7 @@ void DataGatherer::BRASSA_ChangeRules()
 		}
 	}
 
-	if ((KEY_DOWN(VK_LEFT) || KEY_DOWN(0x4A)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	if ((KEY_DOWN(VK_LEFT) || KEY_DOWN(0x4A) || (m_xInputState.Gamepad.sThumbLX<-8192)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		// switch shader rule node
 		if ((entryID >= 0) && (entryID < menuEntryCount-2) && (menuEntryCount>2))
@@ -1137,7 +1161,7 @@ void DataGatherer::BRASSA_ChangeRules()
 		menuVelocity.x+=2.0f;
 	}
 
-	if ((KEY_DOWN(VK_RIGHT) || KEY_DOWN(0x4C)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	if ((KEY_DOWN(VK_RIGHT) || KEY_DOWN(0x4C) || (m_xInputState.Gamepad.sThumbLX>8192)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		// switch shader rule node
 		if ((entryID >= 0) && (entryID < menuEntryCount-2) && (menuEntryCount>2))
@@ -1330,16 +1354,28 @@ void DataGatherer::BRASSA_ShowActiveShaders()
 		++itPShaderHash;
 	}
 
+	// set menu entry attraction
+	menuAttraction.y = ((borderTopHeight-menuTop)/menuEntryHeight);
+	menuAttraction.y -= (float)((UINT)menuAttraction.y);
+	menuAttraction.y -= 0.5f;
+	menuAttraction.y *= 2.0f;
+	if ((menuVelocity.y>0.0f) && (menuAttraction.y<0.0f)) menuAttraction.y = 0.0f;
+	if ((menuVelocity.y<0.0f) && (menuAttraction.y>0.0f)) menuAttraction.y = 0.0f;
+
+
 	// handle border height
 	if (borderTopHeight<menuTop)
 	{
 		borderTopHeight = menuTop;
 		menuVelocity.y=0.0f;
+		menuAttraction.y=0.0f;
+
 	}
 	if (borderTopHeight>(menuTop+(menuEntryHeight*(float)(menuEntryCount-1))))
 	{
 		borderTopHeight = menuTop+menuEntryHeight*(float)(menuEntryCount-1);
 		menuVelocity.y=0.0f;
+		menuAttraction.y=0.0f;
 	}
 
 	// get menu entry id
@@ -1356,7 +1392,7 @@ void DataGatherer::BRASSA_ShowActiveShaders()
 		BRASSA_mode = BRASSA_Modes::INACTIVE;
 	}
 
-	if ((KEY_DOWN(VK_RETURN) || KEY_DOWN(VK_RSHIFT)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	if ((KEY_DOWN(VK_RETURN) || KEY_DOWN(VK_RSHIFT) || (m_xButtons[0x0c])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		// switch shader node (drawn/not-drawn)
 		if ((entryID >= 0) && (entryID < menuEntryCount-2) && (menuEntryCount>2))

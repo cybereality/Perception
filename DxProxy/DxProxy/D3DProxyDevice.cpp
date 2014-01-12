@@ -43,7 +43,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma comment(lib, "d3dx9.lib")
 
-#define KEY_DOWN(vk_code) ((GetAsyncKeyState(vk_code) & 0x8000) ? 1 : 0)
+#define KEY_DOWN(vk_code) (((GetAsyncKeyState(vk_code) & 0x8000) ? 1 : 0) || ((vk_code >= 0xD0) && (vk_code<=0xDF) && (m_xButtons[vk_code%0x10])))
 #define KEY_UP(vk_code) ((GetAsyncKeyState(vk_code) & 0x8000) ? 0 : 1)
 
 #define SMALL_FLOAT 0.001f
@@ -186,6 +186,7 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	borderTopHeight = 0.0f;
 	menuTopHeight = 0.0f;
 	menuVelocity = D3DXVECTOR2(0.0f, 0.0f);
+	menuAttraction = D3DXVECTOR2(0.0f, 0.0f);
 	hud3DDepthMode = HUD_3D_Depth_Modes::HUD_DEFAULT;
 	gui3DDepthMode = GUI_3D_Depth_Modes::GUI_DEFAULT;
 	oldHudMode = HUD_3D_Depth_Modes::HUD_DEFAULT;
@@ -215,6 +216,8 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 		guiHotkeys[i] = 0;
 		hudHotkeys[i] = 0;
 	}
+	for (int i = 0; i < 16; i++)
+		m_xButtons[i] = false;
 
 #pragma region virtual keys name list
 	for (int i = 0; i < 256; i++)
@@ -331,6 +334,22 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	keyNameList[0xA3] = "Right CONTROL key";
 	keyNameList[0xA4] = "Left MENU key";
 	keyNameList[0xA5] = "Right MENU key";
+	/// XInput hotkeys from 0xD0 to 0xDF
+	keyNameList[0xD0] = "DPAD UP";
+	keyNameList[0xD1] = "DPAD DOWN";
+	keyNameList[0xD2] = "DPAD LEFT";
+	keyNameList[0xD3] = "DPAD RIGHT";
+	keyNameList[0xD4] = "START";
+	keyNameList[0xD5] = "BACK";
+	keyNameList[0xD6] = "LEFT THUMB";
+	keyNameList[0xD7] = "RIGHT THUMB";
+	keyNameList[0xD8] = "LEFT SHOULDER";
+	keyNameList[0xD9] = "RIGHT SHOULDER";
+	keyNameList[0xDC] = "Button A";
+	keyNameList[0xDD] = "Button B";
+	keyNameList[0xDE] = "Button X";
+	keyNameList[0xDF] = "Button Y";
+	/// end of XInput hotkeys
 	keyNameList[0xFA] = "Play key";
 	keyNameList[0xFB] = "Zoom key";
 #pragma endregion
@@ -2176,7 +2195,23 @@ void D3DProxyDevice::SetupHUD()
 * Keyboard input handling, BRASSA called here.
 ***/
 void D3DProxyDevice::HandleControls()
-{	
+{
+	// Zeroise the XInput state
+	ZeroMemory(&m_xInputState, sizeof(XINPUT_STATE));
+
+	// Get the XInput state
+	DWORD Result = XInputGetState(NULL, &m_xInputState);
+
+	if(Result == ERROR_SUCCESS)
+	{
+		// set buttons by flags
+		for(DWORD i = 0; i < 16; ++i) 
+			if((m_xInputState.Gamepad.wButtons >> i) & 1) 
+				m_xButtons[i] = true;
+			else 
+				m_xButtons[i] = false;
+	}
+
 	// loop through hotkeys
 	bool hotkeyPressed = false;
 	for (int i = 0; i < 5; i++)
@@ -2945,7 +2980,7 @@ void D3DProxyDevice::BRASSA_MainMenu()
 
 	float menuTop = viewportHeight*0.32f;
 	float menuEntryHeight = viewportHeight*0.037f;
-	UINT menuEntryCount = 11;
+	UINT menuEntryCount = 10;
 	if (config.game_type > 10000) menuEntryCount++;
 
 	RECT rect1;
@@ -2957,21 +2992,35 @@ void D3DProxyDevice::BRASSA_MainMenu()
 	float fScaleX = ((float)viewportWidth / (float)rect1.right);
 	float fScaleY = ((float)viewportHeight / (float)rect1.bottom);
 
+	// set menu entry attraction
+	menuAttraction.y = ((borderTopHeight-menuTop)/menuEntryHeight);
+	menuAttraction.y -= (float)((UINT)menuAttraction.y);
+	menuAttraction.y -= 0.5f;
+	menuAttraction.y *= 2.0f;
+	if ((menuVelocity.y>0.0f) && (menuAttraction.y<0.0f)) menuAttraction.y = 0.0f;
+	if ((menuVelocity.y<0.0f) && (menuAttraction.y>0.0f)) menuAttraction.y = 0.0f;
+
+
 	// handle border height
 	if (borderTopHeight<menuTop)
 	{
 		borderTopHeight = menuTop;
 		menuVelocity.y=0.0f;
+		menuAttraction.y=0.0f;
+
 	}
 	if (borderTopHeight>(menuTop+(menuEntryHeight*(float)(menuEntryCount-1))))
 	{
 		borderTopHeight = menuTop+menuEntryHeight*(float)(menuEntryCount-1);
 		menuVelocity.y=0.0f;
+		menuAttraction.y=0.0f;
 	}
 
 	// get menu entry id
 	float entry = (borderTopHeight-menuTop+(menuEntryHeight/3.0f))/menuEntryHeight;
 	UINT entryID = (UINT)entry;
+
+	// test the entry id
 	UINT borderSelection = (UINT)entry;
 	if (entryID >= menuEntryCount)
 		OutputDebugString("Error in BRASSA menu programming !");
@@ -2987,7 +3036,7 @@ void D3DProxyDevice::BRASSA_MainMenu()
 		BRASSA_UpdateConfigSettings();
 	}
 
-	if ((KEY_DOWN(VK_RETURN) || KEY_DOWN(VK_RSHIFT)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	if ((KEY_DOWN(VK_RETURN) || KEY_DOWN(VK_RSHIFT) || (m_xButtons[0x0c])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		// brassa shader analyzer sub menu
 		if (entryID == 0)
@@ -3054,7 +3103,7 @@ void D3DProxyDevice::BRASSA_MainMenu()
 		}
 	}
 
-	if (KEY_DOWN(VK_LEFT) || KEY_DOWN(0x4A))
+	if (KEY_DOWN(VK_LEFT) || KEY_DOWN(0x4A) || (m_xInputState.Gamepad.sThumbLX<-8192))
 	{
 		// change hud scale 
 		if ((entryID == 5) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
@@ -3073,7 +3122,7 @@ void D3DProxyDevice::BRASSA_MainMenu()
 		}
 	}
 
-	if (KEY_DOWN(VK_RIGHT) || KEY_DOWN(0x4C))
+	if (KEY_DOWN(VK_RIGHT) || KEY_DOWN(0x4C) || (m_xInputState.Gamepad.sThumbLX>8192))
 	{
 		// change hud scale 
 		if ((entryID == 5) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
@@ -3098,7 +3147,7 @@ void D3DProxyDevice::BRASSA_MainMenu()
 	{
 		// adjust border
 		float borderDrawingHeight = borderTopHeight;
-		if (menuVelocity.y == 0.0f)
+		if ((menuVelocity.y < 1.0f) && (menuVelocity.y > -1.0f))
 			borderTopHeight = menuTop+menuEntryHeight*(float)borderSelection;
 
 		// draw border - total width due to shift correction
@@ -3177,7 +3226,7 @@ void D3DProxyDevice::BRASSA_WorldScale()
 	std::sort (m_gameXScaleUnits.begin(), m_gameXScaleUnits.end());
 
 	// enter ? rshift ? increase gameXScaleUnitIndex
-	if ((KEY_DOWN(VK_RETURN) || KEY_DOWN(VK_RSHIFT)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	if ((KEY_DOWN(VK_RETURN) || KEY_DOWN(VK_RSHIFT) || (m_xButtons[0x0c])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		if (KEY_DOWN(VK_LSHIFT))
 		{
@@ -3204,7 +3253,7 @@ void D3DProxyDevice::BRASSA_WorldScale()
 	/**
 	* LEFT : Decrease world scale (hold CTRL to lower speed, SHIFT to speed up)
 	***/
-	if((KEY_DOWN(VK_LEFT) || KEY_DOWN(0x4A)) && (menuVelocity.x == 0.0f))
+	if((KEY_DOWN(VK_LEFT) || KEY_DOWN(0x4A) || (m_xInputState.Gamepad.sThumbLX<-8192)) && (menuVelocity.x == 0.0f))
 	{
 		if(KEY_DOWN(VK_LCONTROL)) {
 			separationChange /= 10.0f;
@@ -3217,7 +3266,10 @@ void D3DProxyDevice::BRASSA_WorldScale()
 			separationChange /= 500.0f;
 		}
 
-		m_spShaderViewAdjustment->ChangeWorldScale(-separationChange);
+		if (m_xInputState.Gamepad.sThumbLX != 0)
+			m_spShaderViewAdjustment->ChangeWorldScale(separationChange * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f));
+		else
+			m_spShaderViewAdjustment->ChangeWorldScale(-separationChange);
 		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
 
 		menuVelocity.x+=0.7f;
@@ -3226,7 +3278,7 @@ void D3DProxyDevice::BRASSA_WorldScale()
 	/**
 	* RIGHT : Increase world scale (hold CTRL to lower speed, SHIFT to speed up)
 	***/
-	if((KEY_DOWN(VK_RIGHT) || KEY_DOWN(0x4C)) && (menuVelocity.x == 0.0f))
+	if((KEY_DOWN(VK_RIGHT) || KEY_DOWN(0x4C) || (m_xInputState.Gamepad.sThumbLX>8192)) && (menuVelocity.x == 0.0f))
 	{
 		if(KEY_DOWN(VK_LCONTROL)) {
 			separationChange /= 10.0f;
@@ -3240,7 +3292,10 @@ void D3DProxyDevice::BRASSA_WorldScale()
 			separationChange /= 500.0f;
 		}
 
-		m_spShaderViewAdjustment->ChangeWorldScale(separationChange);
+		if (m_xInputState.Gamepad.sThumbLX != 0)
+			m_spShaderViewAdjustment->ChangeWorldScale(separationChange * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f));
+		else
+			m_spShaderViewAdjustment->ChangeWorldScale(separationChange);
 		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
 
 		menuVelocity.x+=0.7f;
@@ -3449,7 +3504,7 @@ void D3DProxyDevice::BRASSA_Convergence()
 	/**
 	* LEFT : Decrease convergence (hold CTRL to lower speed, SHIFT to speed up)
 	***/
-	if((KEY_DOWN(VK_LEFT) || KEY_DOWN(0x4A)) && (menuVelocity.x == 0.0f))
+	if((KEY_DOWN(VK_LEFT) || KEY_DOWN(0x4A) || (m_xInputState.Gamepad.sThumbLX<-8192)) && (menuVelocity.x == 0.0f))
 	{
 		if(KEY_DOWN(VK_LCONTROL)) {
 			convergenceChange /= 10.0f;
@@ -3458,7 +3513,10 @@ void D3DProxyDevice::BRASSA_Convergence()
 			convergenceChange *= 10.0f;
 		} 
 
-		m_spShaderViewAdjustment->ChangeConvergence(-convergenceChange);
+		if (m_xInputState.Gamepad.sThumbLX != 0)
+			m_spShaderViewAdjustment->ChangeConvergence(convergenceChange * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f));
+		else
+			m_spShaderViewAdjustment->ChangeConvergence(-convergenceChange);
 		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
 
 		menuVelocity.x+=0.7f;
@@ -3467,7 +3525,7 @@ void D3DProxyDevice::BRASSA_Convergence()
 	/**
 	* RIGHT : Increase convergence (hold CTRL to lower speed, SHIFT to speed up)
 	***/
-	if((KEY_DOWN(VK_RIGHT) || KEY_DOWN(0x4C)) && (menuVelocity.x == 0.0f))
+	if((KEY_DOWN(VK_RIGHT) || KEY_DOWN(0x4C) || (m_xInputState.Gamepad.sThumbLX>8192)) && (menuVelocity.x == 0.0f))
 	{
 		if(KEY_DOWN(VK_LCONTROL)) {
 			convergenceChange /= 10.0f;
@@ -3477,7 +3535,10 @@ void D3DProxyDevice::BRASSA_Convergence()
 			convergenceChange *= 10.0f;
 		}
 
-		m_spShaderViewAdjustment->ChangeConvergence(convergenceChange);
+		if (m_xInputState.Gamepad.sThumbLX != 0)
+			m_spShaderViewAdjustment->ChangeConvergence(convergenceChange * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f));
+		else
+			m_spShaderViewAdjustment->ChangeConvergence(convergenceChange);
 		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
 
 		menuVelocity.x+=0.7f;
@@ -3640,16 +3701,28 @@ void D3DProxyDevice::BRASSA_HUD()
 	float fScaleX = ((float)viewportWidth / (float)rect1.right);
 	float fScaleY = ((float)viewportHeight / (float)rect1.bottom);
 
+	// set menu entry attraction
+	menuAttraction.y = ((borderTopHeight-menuTop)/menuEntryHeight);
+	menuAttraction.y -= (float)((UINT)menuAttraction.y);
+	menuAttraction.y -= 0.5f;
+	menuAttraction.y *= 2.0f;
+	if ((menuVelocity.y>0.0f) && (menuAttraction.y<0.0f)) menuAttraction.y = 0.0f;
+	if ((menuVelocity.y<0.0f) && (menuAttraction.y>0.0f)) menuAttraction.y = 0.0f;
+
+
 	// handle border height
 	if (borderTopHeight<menuTop)
 	{
 		borderTopHeight = menuTop;
 		menuVelocity.y=0.0f;
+		menuAttraction.y=0.0f;
+
 	}
 	if (borderTopHeight>(menuTop+(menuEntryHeight*(float)(menuEntryCount-1))))
 	{
 		borderTopHeight = menuTop+menuEntryHeight*(float)(menuEntryCount-1);
 		menuVelocity.y=0.0f;
+		menuAttraction.y=0.0f;
 	}
 
 	// get menu entry id
@@ -3678,7 +3751,7 @@ void D3DProxyDevice::BRASSA_HUD()
 			BRASSA_UpdateConfigSettings();
 		}
 
-		if ((KEY_DOWN(VK_RETURN) || KEY_DOWN(VK_RSHIFT)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		if ((KEY_DOWN(VK_RETURN) || KEY_DOWN(VK_RSHIFT) || (m_xButtons[0x0c])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
 			if ((entryID >= 3) && (entryID <= 7) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 			{
@@ -3711,7 +3784,7 @@ void D3DProxyDevice::BRASSA_HUD()
 			}
 		}
 
-		if (KEY_DOWN(VK_LEFT) || KEY_DOWN(0x4A))
+		if (KEY_DOWN(VK_LEFT) || KEY_DOWN(0x4A) || (m_xInputState.Gamepad.sThumbLX<-8192))
 		{
 			if ((entryID == 0) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 			{
@@ -3722,20 +3795,26 @@ void D3DProxyDevice::BRASSA_HUD()
 
 			if ((entryID == 1) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 			{
-				hudDistancePresets[(int)hud3DDepthMode]-=0.01f;
+				if (m_xInputState.Gamepad.sThumbLX != 0)
+					hudDistancePresets[(int)hud3DDepthMode]+=0.01f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
+				else
+					hudDistancePresets[(int)hud3DDepthMode]-=0.01f;
 				ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)hud3DDepthMode);
 				menuVelocity.x-=0.7f;
 			}
 
 			if ((entryID == 2) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 			{
-				hud3DDepthPresets[(int)hud3DDepthMode]-=0.002f;
+				if (m_xInputState.Gamepad.sThumbLX != 0)
+					hud3DDepthPresets[(int)hud3DDepthMode]+=0.002f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
+				else
+					hud3DDepthPresets[(int)hud3DDepthMode]-=0.002f;
 				ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)hud3DDepthMode);
 				menuVelocity.x-=0.7f;
 			}
 		}
 
-		if (KEY_DOWN(VK_RIGHT) || KEY_DOWN(0x4C))
+		if (KEY_DOWN(VK_RIGHT) || KEY_DOWN(0x4C) || (m_xInputState.Gamepad.sThumbLX>8192))
 		{
 			// change hud scale
 			if ((entryID == 0) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
@@ -3747,14 +3826,20 @@ void D3DProxyDevice::BRASSA_HUD()
 
 			if ((entryID == 1) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 			{
-				hudDistancePresets[(int)hud3DDepthMode]+=0.01f;
+				if (m_xInputState.Gamepad.sThumbLX != 0)
+					hudDistancePresets[(int)hud3DDepthMode]+=0.01f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
+				else
+					hudDistancePresets[(int)hud3DDepthMode]+=0.01f;
 				ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)hud3DDepthMode);
 				menuVelocity.x+=0.7f;
 			}
 
 			if ((entryID == 2) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 			{
-				hud3DDepthPresets[(int)hud3DDepthMode]+=0.002f;
+				if (m_xInputState.Gamepad.sThumbLX != 0)
+					hud3DDepthPresets[(int)hud3DDepthMode]+=0.002f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
+				else
+					hud3DDepthPresets[(int)hud3DDepthMode]+=0.002f;
 				ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)hud3DDepthMode);
 				menuVelocity.x+=0.7f;
 			}
@@ -3765,7 +3850,7 @@ void D3DProxyDevice::BRASSA_HUD()
 	{
 		// adjust border
 		float borderDrawingHeight = borderTopHeight;
-		if (menuVelocity.y == 0.0f)
+		if ((menuVelocity.y < 1.0f) && (menuVelocity.y > -1.0f))
 			borderTopHeight = menuTop+menuEntryHeight*(float)borderSelection;
 
 		// draw border - total width due to shift correction
@@ -3887,16 +3972,28 @@ void D3DProxyDevice::BRASSA_GUI()
 	float fScaleX = ((float)viewportWidth / (float)rect1.right);
 	float fScaleY = ((float)viewportHeight / (float)rect1.bottom);
 
+	// set menu entry attraction
+	menuAttraction.y = ((borderTopHeight-menuTop)/menuEntryHeight);
+	menuAttraction.y -= (float)((UINT)menuAttraction.y);
+	menuAttraction.y -= 0.5f;
+	menuAttraction.y *= 2.0f;
+	if ((menuVelocity.y>0.0f) && (menuAttraction.y<0.0f)) menuAttraction.y = 0.0f;
+	if ((menuVelocity.y<0.0f) && (menuAttraction.y>0.0f)) menuAttraction.y = 0.0f;
+
+
 	// handle border height
 	if (borderTopHeight<menuTop)
 	{
 		borderTopHeight = menuTop;
 		menuVelocity.y=0.0f;
+		menuAttraction.y=0.0f;
+
 	}
 	if (borderTopHeight>(menuTop+(menuEntryHeight*(float)(menuEntryCount-1))))
 	{
 		borderTopHeight = menuTop+menuEntryHeight*(float)(menuEntryCount-1);
 		menuVelocity.y=0.0f;
+		menuAttraction.y=0.0f;
 	}
 
 	// get menu entry id
@@ -3925,7 +4022,7 @@ void D3DProxyDevice::BRASSA_GUI()
 			BRASSA_UpdateConfigSettings();
 		}
 
-		if ((KEY_DOWN(VK_RETURN) || KEY_DOWN(VK_RSHIFT)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		if ((KEY_DOWN(VK_RETURN) || KEY_DOWN(VK_RSHIFT) || (m_xButtons[0x0c])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
 			if ((entryID >= 3) && (entryID <= 7) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 			{
@@ -3957,7 +4054,7 @@ void D3DProxyDevice::BRASSA_GUI()
 			}
 		}
 
-		if (KEY_DOWN(VK_LEFT) || KEY_DOWN(0x4A))
+		if (KEY_DOWN(VK_LEFT) || KEY_DOWN(0x4A) || (m_xInputState.Gamepad.sThumbLX<-8192))
 		{
 			if ((entryID == 0) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 			{
@@ -3968,20 +4065,26 @@ void D3DProxyDevice::BRASSA_GUI()
 
 			if ((entryID == 1) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 			{
-				guiSquishPresets[(int)gui3DDepthMode]-=0.01f;
+				if (m_xInputState.Gamepad.sThumbLX != 0)
+					guiSquishPresets[(int)gui3DDepthMode]+=0.01f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
+				else
+					guiSquishPresets[(int)gui3DDepthMode]-=0.01f;
 				ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)gui3DDepthMode);
 				menuVelocity.x-=0.7f;
 			}
 
 			if ((entryID == 2) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 			{
-				gui3DDepthPresets[(int)gui3DDepthMode]-=0.002f;
+				if (m_xInputState.Gamepad.sThumbLX != 0)
+					gui3DDepthPresets[(int)gui3DDepthMode]+=0.002f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
+				else
+					gui3DDepthPresets[(int)gui3DDepthMode]-=0.002f;
 				ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)gui3DDepthMode);
 				menuVelocity.x-=0.7f;
 			}
 		}
 
-		if (KEY_DOWN(VK_RIGHT) || KEY_DOWN(0x4C))
+		if (KEY_DOWN(VK_RIGHT) || KEY_DOWN(0x4C) || (m_xInputState.Gamepad.sThumbLX>8192))
 		{
 			// change gui scale
 			if ((entryID == 0) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
@@ -3993,14 +4096,20 @@ void D3DProxyDevice::BRASSA_GUI()
 
 			if ((entryID == 1) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 			{
-				guiSquishPresets[(int)gui3DDepthMode]+=0.01f;
+				if (m_xInputState.Gamepad.sThumbLX != 0)
+					guiSquishPresets[(int)gui3DDepthMode]+=0.01f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
+				else
+					guiSquishPresets[(int)gui3DDepthMode]+=0.01f;
 				ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)gui3DDepthMode);
 				menuVelocity.x+=0.7f;
 			}
 
 			if ((entryID == 2) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 			{
-				gui3DDepthPresets[(int)gui3DDepthMode]+=0.002f;
+				if (m_xInputState.Gamepad.sThumbLX != 0)
+					gui3DDepthPresets[(int)gui3DDepthMode]+=0.002f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
+				else
+					gui3DDepthPresets[(int)gui3DDepthMode]+=0.002f;
 				ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)gui3DDepthMode);
 				menuVelocity.x+=0.5;
 			}
@@ -4011,7 +4120,7 @@ void D3DProxyDevice::BRASSA_GUI()
 	{
 		// adjust border
 		float borderDrawingHeight = borderTopHeight;
-		if (menuVelocity.y == 0.0f)
+		if ((menuVelocity.y < 1.0f) && (menuVelocity.y > -1.0f))
 			borderTopHeight = menuTop+menuEntryHeight*(float)borderSelection;
 
 		// draw border - total width due to shift correction
@@ -4133,16 +4242,28 @@ void D3DProxyDevice::BRASSA_Settings()
 	float fScaleX = ((float)viewportWidth / (float)rect1.right);
 	float fScaleY = ((float)viewportHeight / (float)rect1.bottom);
 
+	// set menu entry attraction
+	menuAttraction.y = ((borderTopHeight-menuTop)/menuEntryHeight);
+	menuAttraction.y -= (float)((UINT)menuAttraction.y);
+	menuAttraction.y -= 0.5f;
+	menuAttraction.y *= 2.0f;
+	if ((menuVelocity.y>0.0f) && (menuAttraction.y<0.0f)) menuAttraction.y = 0.0f;
+	if ((menuVelocity.y<0.0f) && (menuAttraction.y>0.0f)) menuAttraction.y = 0.0f;
+
+
 	// handle border height
 	if (borderTopHeight<menuTop)
 	{
 		borderTopHeight = menuTop;
 		menuVelocity.y=0.0f;
+		menuAttraction.y=0.0f;
+
 	}
 	if (borderTopHeight>(menuTop+(menuEntryHeight*(float)(menuEntryCount-1))))
 	{
 		borderTopHeight = menuTop+menuEntryHeight*(float)(menuEntryCount-1);
 		menuVelocity.y=0.0f;
+		menuAttraction.y=0.0f;
 	}
 
 	// get menu entry id
@@ -4161,7 +4282,7 @@ void D3DProxyDevice::BRASSA_Settings()
 		BRASSA_UpdateConfigSettings();
 	}
 
-	if ((KEY_DOWN(VK_RETURN) || KEY_DOWN(VK_RSHIFT)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	if ((KEY_DOWN(VK_RETURN) || KEY_DOWN(VK_RSHIFT) || (m_xButtons[0x0c])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		// swap eyes
 		if (entryID == 0)
@@ -4229,7 +4350,7 @@ void D3DProxyDevice::BRASSA_Settings()
 		}
 	}
 
-	if ((KEY_DOWN(VK_LEFT) || KEY_DOWN(0x4A)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	if ((KEY_DOWN(VK_LEFT) || KEY_DOWN(0x4A) || (m_xInputState.Gamepad.sThumbLX<-8192)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		// swap eyes
 		if (entryID == 0)
@@ -4240,26 +4361,38 @@ void D3DProxyDevice::BRASSA_Settings()
 		// distortion
 		if (entryID == 1)
 		{
-			this->stereoView->DistortionScale -= 0.01f;
+			if (m_xInputState.Gamepad.sThumbLX != 0)
+				this->stereoView->DistortionScale += 0.01f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
+			else
+				this->stereoView->DistortionScale -= 0.01f;
 			this->stereoView->PostReset();
 			menuVelocity.x -= 0.7f;
 		}
 		// yaw multiplier
 		if (entryID == 3)
 		{
-			tracker->multiplierYaw -= 0.5f;
+			if (m_xInputState.Gamepad.sThumbLX != 0)
+				tracker->multiplierYaw += 0.5f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
+			else
+				tracker->multiplierYaw -= 0.5f;
 			menuVelocity.x -= 0.7f;
 		}
 		// pitch multiplier
 		if (entryID == 4)
 		{
-			tracker->multiplierPitch -= 0.5f;
+			if (m_xInputState.Gamepad.sThumbLX != 0)
+				tracker->multiplierPitch += 0.5f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
+			else
+				tracker->multiplierPitch -= 0.5f;
 			menuVelocity.x -= 0.7f;
 		}
 		// roll multiplier
 		if (entryID == 5)
 		{
-			tracker->multiplierRoll -= 0.05f;
+			if (m_xInputState.Gamepad.sThumbLX != 0)
+				tracker->multiplierRoll += 0.05f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
+			else
+				tracker->multiplierRoll -= 0.05f;
 			menuVelocity.x -= 0.7f;
 		}
 		// mouse emulation
@@ -4274,7 +4407,7 @@ void D3DProxyDevice::BRASSA_Settings()
 		}
 	}
 
-	if ((KEY_DOWN(VK_RIGHT) || KEY_DOWN(0x4C)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	if ((KEY_DOWN(VK_RIGHT) || KEY_DOWN(0x4C) || (m_xInputState.Gamepad.sThumbLX>8192)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		// swap eyes
 		if (entryID == 0)
@@ -4285,26 +4418,38 @@ void D3DProxyDevice::BRASSA_Settings()
 		// distortion
 		if (entryID == 1)
 		{
-			this->stereoView->DistortionScale += 0.01f;
+			if (m_xInputState.Gamepad.sThumbLX != 0)
+				this->stereoView->DistortionScale += 0.01f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
+			else
+				this->stereoView->DistortionScale += 0.01f;
 			this->stereoView->PostReset();
 			menuVelocity.x += 0.7f;
 		}
 		// yaw multiplier
 		if (entryID == 3)
 		{
-			tracker->multiplierYaw += 0.5f;
+			if (m_xInputState.Gamepad.sThumbLX != 0)
+				tracker->multiplierYaw += 0.5f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
+			else
+				tracker->multiplierYaw += 0.5f;
 			menuVelocity.x += 0.7f;
 		}
 		// pitch multiplier
 		if (entryID == 4)
 		{
-			tracker->multiplierPitch += 0.5f;
+			if (m_xInputState.Gamepad.sThumbLX != 0)
+				tracker->multiplierPitch += 0.5f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
+			else
+				tracker->multiplierPitch += 0.5f;
 			menuVelocity.x += 0.7f;
 		}
 		// roll multiplier
 		if (entryID == 5)
 		{
-			tracker->multiplierRoll += 0.05f;
+			if (m_xInputState.Gamepad.sThumbLX != 0)
+				tracker->multiplierRoll += 0.05f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
+			else
+				tracker->multiplierRoll += 0.05f;
 			menuVelocity.x += 0.7f;
 		}
 		// mouse emulation
@@ -4324,7 +4469,7 @@ void D3DProxyDevice::BRASSA_Settings()
 	{
 		// adjust border
 		float borderDrawingHeight = borderTopHeight;
-		if (menuVelocity.y == 0.0f)
+		if ((menuVelocity.y < 1.0f) && (menuVelocity.y > -1.0f))
 			borderTopHeight = menuTop+menuEntryHeight*(float)borderSelection;
 
 		// draw border - total width due to shift correction
@@ -4423,16 +4568,28 @@ void D3DProxyDevice::BRASSA_VRBoostValues()
 	float fScaleX = ((float)viewportWidth / (float)rect1.right);
 	float fScaleY = ((float)viewportHeight / (float)rect1.bottom);
 
+	// set menu entry attraction
+	menuAttraction.y = ((borderTopHeight-menuTop)/menuEntryHeight);
+	menuAttraction.y -= (float)((UINT)menuAttraction.y);
+	menuAttraction.y -= 0.5f;
+	menuAttraction.y *= 2.0f;
+	if ((menuVelocity.y>0.0f) && (menuAttraction.y<0.0f)) menuAttraction.y = 0.0f;
+	if ((menuVelocity.y<0.0f) && (menuAttraction.y>0.0f)) menuAttraction.y = 0.0f;
+
+
 	// handle border height
 	if (borderTopHeight<menuTop)
 	{
 		borderTopHeight = menuTop;
 		menuVelocity.y=0.0f;
+		menuAttraction.y=0.0f;
+
 	}
 	if (borderTopHeight>(menuTop+(menuEntryHeight*(float)(menuEntryCount-1))))
 	{
 		borderTopHeight = menuTop+menuEntryHeight*(float)(menuEntryCount-1);
 		menuVelocity.y=0.0f;
+		menuAttraction.y=0.0f;
 	}
 
 	// get menu entry id
@@ -4451,7 +4608,7 @@ void D3DProxyDevice::BRASSA_VRBoostValues()
 		BRASSA_UpdateConfigSettings();
 	}
 
-	if ((KEY_DOWN(VK_RETURN) || KEY_DOWN(VK_RSHIFT)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	if ((KEY_DOWN(VK_RETURN) || KEY_DOWN(VK_RSHIFT) || (m_xButtons[0x0c])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		// back to main menu
 		if (entryID == 12)
@@ -4467,22 +4624,28 @@ void D3DProxyDevice::BRASSA_VRBoostValues()
 		}
 	}
 
-	if ((KEY_DOWN(VK_LEFT) || KEY_DOWN(0x4A)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	if ((KEY_DOWN(VK_LEFT) || KEY_DOWN(0x4A) || (m_xInputState.Gamepad.sThumbLX<-8192)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		// change value
 		if ((entryID >= 0) && (entryID <=11))
 		{
-			VRBoostValue[24+entryID] -= 0.1f;
+			if (m_xInputState.Gamepad.sThumbLX != 0)
+				VRBoostValue[24+entryID] += 0.1f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
+			else
+				VRBoostValue[24+entryID] -= 0.1f;
 			menuVelocity.x-=0.1f;
 		}
 	}
 
-	if ((KEY_DOWN(VK_RIGHT) || KEY_DOWN(0x4C)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	if ((KEY_DOWN(VK_RIGHT) || KEY_DOWN(0x4C) || (m_xInputState.Gamepad.sThumbLX>8192)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		// change value
 		if ((entryID >= 0) && (entryID <=11))
 		{
-			VRBoostValue[24+entryID] += 0.1f;
+			if (m_xInputState.Gamepad.sThumbLX != 0)
+				VRBoostValue[24+entryID] += 0.1f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
+			else
+				VRBoostValue[24+entryID] += 0.1f;
 			menuVelocity.x+=0.1f;
 		}
 	}
@@ -4492,7 +4655,7 @@ void D3DProxyDevice::BRASSA_VRBoostValues()
 	{
 		// adjust border
 		float borderDrawingHeight = borderTopHeight;
-		if (menuVelocity.y == 0.0f)
+		if ((menuVelocity.y < 1.0f) && (menuVelocity.y > -1.0f))
 			borderTopHeight = menuTop+menuEntryHeight*(float)borderSelection;
 
 		// draw border - total width due to shift correction
@@ -4599,7 +4762,7 @@ void D3DProxyDevice::BRASSA_UpdateBorder()
 		menuVelocity*=1.0f-diminution;
 
 		// set velocity to zero in case of low velocity
-		if ((menuVelocity.y<0.7f) && (menuVelocity.y>-0.7f) &&
+		if ((menuVelocity.y<0.9f) && (menuVelocity.y>-0.9f) &&
 			(menuVelocity.x<0.7f) && (menuVelocity.x>-0.7f))
 			menuVelocity = D3DXVECTOR2(0.0f, 0.0f);
 	}
@@ -4610,15 +4773,15 @@ void D3DProxyDevice::BRASSA_UpdateBorder()
 		int viewportHeight = stereoView->viewport.Height;
 
 		float fScaleY = ((float)viewportHeight / (float)1080.0f);
-		if ((KEY_DOWN(VK_UP) || KEY_DOWN(0x49)) && (menuVelocity.y==0.0f))
-			menuVelocity.y=-3.0f;
-		if ((KEY_DOWN(VK_DOWN) || KEY_DOWN(0x4B)) && (menuVelocity.y==0.0f))
-			menuVelocity.y=3.0f;
+		if ((KEY_DOWN(VK_UP) || KEY_DOWN(0x49) || (m_xInputState.Gamepad.sThumbLY>8192)) && (menuVelocity.y==0.0f))
+			menuVelocity.y=-2.7f;
+		if ((KEY_DOWN(VK_DOWN) || KEY_DOWN(0x4B) || (m_xInputState.Gamepad.sThumbLY<-8192)) && (menuVelocity.y==0.0f))
+			menuVelocity.y=2.7f;
 		if ((KEY_DOWN(VK_PRIOR) || KEY_DOWN(0x55)) && (menuVelocity.y==0.0f))
 			menuVelocity.y=-15.0f;
 		if ((KEY_DOWN(VK_NEXT) ||KEY_DOWN(0x4F)) && (menuVelocity.y==0.0f))
 			menuVelocity.y=15.0f;
-		borderTopHeight += menuVelocity.y*fScaleY*timeScale;
+		borderTopHeight += (menuVelocity.y+menuAttraction.y)*fScaleY*timeScale;
 	}
 }
 

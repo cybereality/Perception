@@ -55,6 +55,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "StereoView.h"
 #include "MotionTracker.h"
 #include <d3dx9.h>
+#include <XInput.h>
 #include <stdio.h>
 #include <iostream>
 #include <fstream>
@@ -361,9 +362,13 @@ public:
 	**/
 	bool trackerInitialized;
 	/**
-	* Currently not used.
+	* XInput controller state.
 	**/
-	bool *m_keys;
+	XINPUT_STATE m_xInputState;
+	/**
+	* XInput controller buttons.
+	***/
+	bool m_xButtons[16];
 
 protected:
 	/*** D3DProxyDevice protected methods ***/
@@ -422,7 +427,11 @@ protected:
 	/**
 	* Main menu velocity.
 	***/
-	D3DXVECTOR2 menuVelocity; 
+	D3DXVECTOR2 menuVelocity;
+	/**
+	* Main menu affection.
+	***/
+	D3DXVECTOR2 menuAttraction;
 	/**
 	* Main menu border top height.
 	***/
