@@ -1079,8 +1079,9 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 		// avoid squished viewport in case of brassa menu beeing drawn
 		if ((m_bViewportIsSquished) && (BRASSA_mode>=BRASSA_Modes::MAINMENU) && (BRASSA_mode<BRASSA_Modes::BRASSA_ENUM_RANGE))
 		{
+			if (m_bViewportIsSquished)
+				BaseDirect3DDevice9::SetViewport(&m_LastViewportSet);
 			m_bViewportIsSquished = false;
-			BaseDirect3DDevice9::SetViewport(&m_LastViewportSet);
 		}
 
 		// handle controls 
@@ -1744,8 +1745,9 @@ HRESULT WINAPI D3DProxyDevice::SetVertexShader(IDirect3DVertexShader9* pShader)
 			SetGUIViewport();
 		else
 		{
+			if (m_bViewportIsSquished)
+				BaseDirect3DDevice9::SetViewport(&m_LastViewportSet);
 			m_bViewportIsSquished = false;
-			BaseDirect3DDevice9::SetViewport(&m_LastViewportSet);
 		}
 	}
 
@@ -4970,8 +4972,8 @@ void D3DProxyDevice::SetGUIViewport()
 }
 
 /**
- * Rounds the floats to make them more display friendly
- **/
+* Rounds the floats to make them more display friendly
+**/
 float D3DProxyDevice::RoundBrassaValue(float val)
 {
 	return (float)floor(val * 1000.0f + 0.5f) / 1000.0f;
