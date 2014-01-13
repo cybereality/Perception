@@ -32,6 +32,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define D3DPROXYDEVICE_H_INCLUDED
 
 #define MAX_VRBOOST_VALUES 256
+#define BRASSA_PIXEL_WIDTH 1920
+#define BRASSA_PIXEL_HEIGHT 1080
 
 #include "Direct3DDevice9.h"
 
@@ -386,6 +388,7 @@ protected:
 	void         DrawTextShadowed(ID3DXFont* font, LPD3DXSPRITE sprite, LPCSTR lpchText, int cchText, LPRECT lprc, UINT format, D3DCOLOR color);
 	void         ChangeHUD3DDepthMode(HUD_3D_Depth_Modes newMode);
 	void         ChangeGUI3DDepthMode(GUI_3D_Depth_Modes newMode);
+	void         BRASSA_NewFrame(UINT &entryID, UINT menuEntryCount);
 	virtual void BRASSA_ShaderSubMenu(){}
 	virtual void BRASSA_ChangeRules(){}
 	virtual void BRASSA_PickRules(){}
@@ -440,6 +443,37 @@ protected:
 	* Main menu top height for scrolling menues.
 	***/
 	float menuTopHeight;
+	/**
+	* BRASSA menu value.
+	***/
+	int viewportWidth;
+	/**
+	* BRASSA menu value.
+	***/
+	int viewportHeight;
+	/**
+	* BRASSA menu value.
+	***/
+	float menuTop;
+	/**
+	* BRASSA menu value.
+	* Menu entry height, in pixels.
+	***/
+	float menuEntryHeight;
+	/**
+	* BRASSA menu helper rectangle.
+	***/
+	RECT menuHelperRect;
+	/**
+	* BRASSA menu value.
+	* Scales BRASSA menu to current resolution.
+	***/
+	float fScaleX;
+	/**
+	* BRASSA menu value.
+	* Scales BRASSA menu to current resolution.
+	***/
+	float fScaleY;
 	/**
 	* True if BeginScene() is called the first time this frame.
 	* @see BeginScene()

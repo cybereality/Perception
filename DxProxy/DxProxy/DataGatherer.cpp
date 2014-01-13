@@ -688,51 +688,13 @@ void DataGatherer::Init(ProxyHelper::ProxyConfig& cfg)
 ***/
 void DataGatherer::BRASSA_ShaderSubMenu()
 {
-	int viewportWidth = stereoView->viewport.Width;
-	int viewportHeight = stereoView->viewport.Height;
+	UINT menuEntryCount = 6;
 
-	float menuTop = viewportHeight*0.32f;
-	float menuEntryHeight = viewportHeight*0.037f;
-	UINT menuEntryCount = 8;
-
-	RECT rect1;
-	rect1.left = 0;
-	rect1.right = 1920;
-	rect1.top = 0;
-	rect1.bottom = 1080;
-
-	float fScaleX = ((float)viewportWidth / (float)rect1.right);
-	float fScaleY = ((float)viewportHeight / (float)rect1.bottom);
-
-	// set menu entry attraction
-	menuAttraction.y = ((borderTopHeight-menuTop)/menuEntryHeight);
-	menuAttraction.y -= (float)((UINT)menuAttraction.y);
-	menuAttraction.y -= 0.5f;
-	menuAttraction.y *= 2.0f;
-	if ((menuVelocity.y>0.0f) && (menuAttraction.y<0.0f)) menuAttraction.y = 0.0f;
-	if ((menuVelocity.y<0.0f) && (menuAttraction.y>0.0f)) menuAttraction.y = 0.0f;
-
-
-	// handle border height
-	if (borderTopHeight<menuTop)
-	{
-		borderTopHeight = menuTop;
-		menuVelocity.y=0.0f;
-		menuAttraction.y=0.0f;
-
-	}
-	if (borderTopHeight>(menuTop+(menuEntryHeight*(float)(menuEntryCount-1))))
-	{
-		borderTopHeight = menuTop+menuEntryHeight*(float)(menuEntryCount-1);
-		menuVelocity.y=0.0f;
-		menuAttraction.y=0.0f;
-	}
-
-	// get menu entry id
-	float entry = (borderTopHeight-menuTop+(menuEntryHeight/3.0f))/menuEntryHeight;
-	UINT entryID = (UINT)entry;
-	if (entryID >= menuEntryCount)
-		OutputDebugString("Error in BRASSA menu programming !");
+	menuHelperRect.left = 0;
+	menuHelperRect.top = 0;
+	
+	UINT entryID;
+	BRASSA_NewFrame(entryID, menuEntryCount);
 
 	/**
 	* ESCAPE : Set BRASSA inactive and save the configuration.
@@ -831,33 +793,32 @@ void DataGatherer::BRASSA_ShaderSubMenu()
 		D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
 		hudMainMenu->SetTransform(&matScale);
 
-		rect1.left = 550;
-		rect1.top = 300;
-		D3DProxyDevice::DrawTextShadowed(hudFont, hudMainMenu, "Brown Reischl and Schneider Settings Analyzer (B.R.A.S.S.A.).\n", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		menuHelperRect.left = 550;
+		menuHelperRect.top = 300;
+		D3DProxyDevice::DrawTextShadowed(hudFont, hudMainMenu, "Brown Reischl and Schneider Settings Analyzer (B.R.A.S.S.A.).\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		rect.x1 = 0; rect.x2 = viewportWidth; rect.y1 = (int)(335*fScaleY); rect.y2 = (int)(340*fScaleY);
 		Clear(1, &rect, D3DCLEAR_TARGET, D3DCOLOR_ARGB(255,255,128,128), 0, 0);
 
-		rect1.top += 50;  rect1.left += 250; float guiQSHeight = (float)rect1.top * fScaleY;
-		DrawTextShadowed(hudFont, hudMainMenu, "Create new Shader Rules", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		rect1.top += 40;
-		DrawTextShadowed(hudFont, hudMainMenu, "Change current Shader Rules", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		/*rect1.top += 40;
-		DrawTextShadowed(hudFont, hudMainMenu, "Pick Rules by active Shaders", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));*/
-		rect1.top += 40;
-		DrawTextShadowed(hudFont, hudMainMenu, "Show and exclude active Shaders", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		rect1.top += 40;
-		DrawTextShadowed(hudFont, hudMainMenu, "Save Shader Rules", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		rect1.top += 40;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to BRASSA Menu", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		rect1.top += 40;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		menuHelperRect.top += 50;  menuHelperRect.left += 250; float guiQSHeight = (float)menuHelperRect.top * fScaleY;
+		DrawTextShadowed(hudFont, hudMainMenu, "Create new Shader Rules", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		menuHelperRect.top += 40;
+		DrawTextShadowed(hudFont, hudMainMenu, "Change current Shader Rules", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		/*menuHelperRect.top += 40;
+		DrawTextShadowed(hudFont, hudMainMenu, "Pick Rules by active Shaders", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));*/
+		menuHelperRect.top += 40;
+		DrawTextShadowed(hudFont, hudMainMenu, "Show and exclude active Shaders", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		menuHelperRect.top += 40;
+		DrawTextShadowed(hudFont, hudMainMenu, "Save Shader Rules", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		menuHelperRect.top += 40;
+		DrawTextShadowed(hudFont, hudMainMenu, "Back to BRASSA Menu", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		menuHelperRect.top += 40;
+		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 
-		rect1.left = 0;
-		rect1.right = 1920;
-		rect1.top = 0;
-		rect1.bottom = 1080;
+		menuHelperRect.left = 0;
+		menuHelperRect.top = 0;
+		
 		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
-		hudMainMenu->Draw(NULL, &rect1, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));
+		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));
 		hudMainMenu->End();
 	}
 }
@@ -867,20 +828,8 @@ void DataGatherer::BRASSA_ShaderSubMenu()
 ***/
 void DataGatherer::BRASSA_ChangeRules()
 {
-	int viewportWidth = stereoView->viewport.Width;
-	int viewportHeight = stereoView->viewport.Height;
-
-	float menuTop = viewportHeight*0.32f;
-	float menuEntryHeight = viewportHeight*0.037f;
-
-	RECT rect1;
-	rect1.left = 0;
-	rect1.right = 1920;
-	rect1.top = 0;
-	rect1.bottom = 1080;
-
-	float fScaleX = ((float)viewportWidth / (float)rect1.right);
-	float fScaleY = ((float)viewportHeight / (float)rect1.bottom);
+	menuHelperRect.left = 0;
+	menuHelperRect.top = 0;
 
 	UINT menuEntryCount = 2;
 	UINT constantIndex = 0;
@@ -941,35 +890,9 @@ void DataGatherer::BRASSA_ChangeRules()
 		++itShaderConstants;
 	}
 
-	// set menu entry attraction
-	menuAttraction.y = ((borderTopHeight-menuTop)/menuEntryHeight);
-	menuAttraction.y -= (float)((UINT)menuAttraction.y);
-	menuAttraction.y -= 0.5f;
-	menuAttraction.y *= 2.0f;
-	if ((menuVelocity.y>0.0f) && (menuAttraction.y<0.0f)) menuAttraction.y = 0.0f;
-	if ((menuVelocity.y<0.0f) && (menuAttraction.y>0.0f)) menuAttraction.y = 0.0f;
-
-
-	// handle border height
-	if (borderTopHeight<menuTop)
-	{
-		borderTopHeight = menuTop;
-		menuVelocity.y=0.0f;
-		menuAttraction.y=0.0f;
-
-	}
-	if (borderTopHeight>(menuTop+(menuEntryHeight*(float)(menuEntryCount-1))))
-	{
-		borderTopHeight = menuTop+menuEntryHeight*(float)(menuEntryCount-1);
-		menuVelocity.y=0.0f;
-		menuAttraction.y=0.0f;
-	}
-
-	// get menu entry id
-	float entry = (borderTopHeight-menuTop+(menuEntryHeight/3.0f))/menuEntryHeight;
-	UINT entryID = (UINT)entry;
-	if (entryID >= menuEntryCount)
-		OutputDebugString("Error in BRASSA menu programming !");
+	UINT entryID;
+	BRASSA_NewFrame(entryID, menuEntryCount);
+	UINT borderSelection = entryID;
 
 	/**
 	* ESCAPE : Set BRASSA inactive and save the configuration.
@@ -1250,28 +1173,27 @@ void DataGatherer::BRASSA_ChangeRules()
 		D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
 		hudMainMenu->SetTransform(&matScale);
 
-		float guiQSHeight = (float)rect1.top * fScaleY;
-		rect1.left = 800; rect1.top = 350;
-		rect1.top += (int)(menuTopHeight / fScaleY);
+		float guiQSHeight = (float)menuHelperRect.top * fScaleY;
+		menuHelperRect.left = 800; menuHelperRect.top = 350;
+		menuHelperRect.top += (int)(menuTopHeight / fScaleY);
 		for (UINT i = 0; i < menuEntryCount-2; i++)
 		{
 			if (menuColor[i])
-				DrawTextShadowed(hudFont, hudMainMenu, menuEntries[i].c_str(), -1, &rect1, 0, D3DCOLOR_ARGB(255, 64, 255, 64));
+				DrawTextShadowed(hudFont, hudMainMenu, menuEntries[i].c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 64, 255, 64));
 			else	
-				DrawTextShadowed(hudFont, hudMainMenu, menuEntries[i].c_str(), -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+				DrawTextShadowed(hudFont, hudMainMenu, menuEntries[i].c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 
-			rect1.top += 40;
+			menuHelperRect.top += 40;
 		}
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to BRASSA Menu", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		rect1.top += 40;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "Back to BRASSA Menu", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		menuHelperRect.top += 40;
+		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 
-		rect1.left = 0;
-		rect1.right = 1920;
-		rect1.top = 0;
-		rect1.bottom = 1080;
+		menuHelperRect.left = 0;
+		menuHelperRect.top = 0;
+		
 		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
-		hudMainMenu->Draw(NULL, &rect1, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));
+		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));
 		hudMainMenu->End();
 	}
 }
@@ -1294,21 +1216,9 @@ void DataGatherer::BRASSA_ShowActiveShaders()
 	// sort the pixel shader vector
 	std::sort (m_activePShadersLastFrame.begin(), m_activePShadersLastFrame.end());
 
-	int viewportWidth = stereoView->viewport.Width;
-	int viewportHeight = stereoView->viewport.Height;
-
-	float menuTop = viewportHeight*0.32f;
-	float menuEntryHeight = viewportHeight*0.037f;
-
-	RECT rect1;
-	rect1.left = 0;
-	rect1.right = 1920;
-	rect1.top = 0;
-	rect1.bottom = 1080;
-
-	float fScaleX = ((float)viewportWidth / (float)rect1.right);
-	float fScaleY = ((float)viewportHeight / (float)rect1.bottom);
-
+	menuHelperRect.left = 0;
+	menuHelperRect.top = 0;
+	
 	UINT menuEntryCount = 2;
 	std::vector<std::string> menuEntries;
 	std::vector<bool> menuColor;
@@ -1354,35 +1264,9 @@ void DataGatherer::BRASSA_ShowActiveShaders()
 		++itPShaderHash;
 	}
 
-	// set menu entry attraction
-	menuAttraction.y = ((borderTopHeight-menuTop)/menuEntryHeight);
-	menuAttraction.y -= (float)((UINT)menuAttraction.y);
-	menuAttraction.y -= 0.5f;
-	menuAttraction.y *= 2.0f;
-	if ((menuVelocity.y>0.0f) && (menuAttraction.y<0.0f)) menuAttraction.y = 0.0f;
-	if ((menuVelocity.y<0.0f) && (menuAttraction.y>0.0f)) menuAttraction.y = 0.0f;
-
-
-	// handle border height
-	if (borderTopHeight<menuTop)
-	{
-		borderTopHeight = menuTop;
-		menuVelocity.y=0.0f;
-		menuAttraction.y=0.0f;
-
-	}
-	if (borderTopHeight>(menuTop+(menuEntryHeight*(float)(menuEntryCount-1))))
-	{
-		borderTopHeight = menuTop+menuEntryHeight*(float)(menuEntryCount-1);
-		menuVelocity.y=0.0f;
-		menuAttraction.y=0.0f;
-	}
-
-	// get menu entry id
-	float entry = (borderTopHeight-menuTop+(menuEntryHeight/3.0f))/menuEntryHeight;
-	UINT entryID = (UINT)entry;
-	if (entryID >= menuEntryCount)
-		OutputDebugString("Error in BRASSA menu programming !");
+	UINT entryID;
+	BRASSA_NewFrame(entryID, menuEntryCount);
+	UINT borderSelection = entryID;
 
 	/**
 	* ESCAPE : Set BRASSA inactive and save the configuration.
@@ -1475,28 +1359,27 @@ void DataGatherer::BRASSA_ShowActiveShaders()
 		D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
 		hudMainMenu->SetTransform(&matScale);
 
-		float guiQSHeight = (float)rect1.top * fScaleY;
-		rect1.left = 800; rect1.top = 350;
-		rect1.top += (int)(menuTopHeight / fScaleY);
+		float guiQSHeight = (float)menuHelperRect.top * fScaleY;
+		menuHelperRect.left = 800; menuHelperRect.top = 350;
+		menuHelperRect.top += (int)(menuTopHeight / fScaleY);
 		for (UINT i = 0; i < menuEntryCount-2; i++)
 		{
 			if (menuColor[i])
-				DrawTextShadowed(hudFont, hudMainMenu, menuEntries[i].c_str(), -1, &rect1, 0, D3DCOLOR_ARGB(255, 64, 255, 64));
+				DrawTextShadowed(hudFont, hudMainMenu, menuEntries[i].c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 64, 255, 64));
 			else	
-				DrawTextShadowed(hudFont, hudMainMenu, menuEntries[i].c_str(), -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+				DrawTextShadowed(hudFont, hudMainMenu, menuEntries[i].c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 
-			rect1.top += 40;
+			menuHelperRect.top += 40;
 		}
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to BRASSA Menu", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		rect1.top += 40;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &rect1, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "Back to BRASSA Menu", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		menuHelperRect.top += 40;
+		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 
-		rect1.left = 0;
-		rect1.right = 1920;
-		rect1.top = 0;
-		rect1.bottom = 1080;
+		menuHelperRect.left = 0;
+		menuHelperRect.top = 0;
+		
 		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
-		hudMainMenu->Draw(NULL, &rect1, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));
+		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));
 		hudMainMenu->End();
 	}
 }
