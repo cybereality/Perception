@@ -528,6 +528,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 	config.swap_eyes = false;
 	config.aspect_multiplier = 1.0f;
 	config.VRboostMinShaderCount = 0;
+	config.VRboostMaxShaderCount = 999999;
 	config.DistortionScale = 0.0f;
 
 
@@ -619,6 +620,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 		OutputDebugString("\n");
 
 		config.VRboostMinShaderCount = gameProfile.attribute("minVRboostShaderCount").as_uint(0);
+		config.VRboostMaxShaderCount = gameProfile.attribute("maxVRboostShaderCount").as_uint(999999);
 		config.convergence = gameProfile.attribute("convergence").as_float(0.0f);
 		config.swap_eyes = gameProfile.attribute("swap_eyes").as_bool();
 		config.yaw_multiplier = gameProfile.attribute("yaw_multiplier").as_float(25.0f);
@@ -671,7 +673,8 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 		config.guiHotkeys[3] = (byte)gameProfile.attribute("gui_key_large").as_int(0);
 		config.guiHotkeys[4] = (byte)gameProfile.attribute("gui_key_full").as_int(0);
 
-		// get VRBoost settings
+		// get VRBoost reset hotkey and settings
+		config.VRBoostResetHotkey = (byte)gameProfile.attribute("VRBoost_key_reset").as_int(0);
 		config.WorldFOV = gameProfile.attribute("WorldFOV").as_float(95.0f);
 		config.PlayerFOV = gameProfile.attribute("PlayerFOV").as_float(125.0f);
 		config.FarPlaneFOV = gameProfile.attribute("FarPlaneFOV").as_float(95.0f);
@@ -847,12 +850,19 @@ bool ProxyHelper::SaveConfig(ProxyConfig& config)
 			gameProfile.remove_attribute("minVRboostShaderCount");
 			gameProfile.insert_attribute_after("minVRboostShaderCount", gameProfile.attribute("VRboostRules")) = config.VRboostMinShaderCount;
 		}
-		if (strcmp(gameProfile.attribute("minVRboostShaderCount").next_attribute().name(), "game_type") == 0)
+		if (strcmp(gameProfile.attribute("minVRboostShaderCount").next_attribute().name(), "maxVRboostShaderCount") == 0)
+			gameProfile.attribute("maxVRboostShaderCount") = config.VRboostMaxShaderCount;
+		else
+		{
+			gameProfile.remove_attribute("maxVRboostShaderCount");
+			gameProfile.insert_attribute_after("maxVRboostShaderCount", gameProfile.attribute("minVRboostShaderCount")) = config.VRboostMaxShaderCount;
+		}
+		if (strcmp(gameProfile.attribute("maxVRboostShaderCount").next_attribute().name(), "game_type") == 0)
 			gameProfile.attribute("game_type") = config.game_type;
 		else
 		{
 			gameProfile.remove_attribute("game_type");
-			gameProfile.insert_attribute_after("game_type", gameProfile.attribute("minVRboostShaderCount")) = config.game_type;
+			gameProfile.insert_attribute_after("game_type", gameProfile.attribute("maxVRboostShaderCount")) = config.game_type;
 		}
 		if (strcmp(gameProfile.attribute("game_type").next_attribute().name(), "rollEnabled") == 0)
 			gameProfile.attribute("rollEnabled") = config.rollEnabled;
@@ -1013,8 +1023,16 @@ bool ProxyHelper::SaveConfig(ProxyConfig& config)
 			gameProfile.insert_attribute_after("gui_3D_depth_mode", gameProfile.attribute("hud_key_full")) = config.gui3DDepthMode;
 		}
 
+		if (strcmp(gameProfile.attribute("gui_key_full").next_attribute().name(), "VRBoost_key_reset") == 0)
+			gameProfile.attribute("VRBoost_key_reset") = config.VRBoostResetHotkey;
+		else
+		{
+			gameProfile.remove_attribute("VRBoost_key_reset");
+			gameProfile.insert_attribute_after("VRBoost_key_reset", gameProfile.attribute("gui_key_full")) = config.VRBoostResetHotkey;
+		}
+
 		// shader mod rules attribute present ? otherwise insert
-		if (strcmp(gameProfile.attribute("gui_key_full").next_attribute().name(), "WorldFOV") == 0)
+		if (strcmp(gameProfile.attribute("VRBoost_key_reset").next_attribute().name(), "WorldFOV") == 0)
 		{
 			gameProfile.attribute("WorldFOV") = config.WorldFOV;
 			gameProfile.attribute("PlayerFOV") = config.PlayerFOV;
@@ -1043,21 +1061,21 @@ bool ProxyHelper::SaveConfig(ProxyConfig& config)
 			gameProfile.remove_attribute("ConstantValue1"); gameProfile.remove_attribute("ConstantValue2"); 
 			gameProfile.remove_attribute("ConstantValue3"); 
 
-			gameProfile.insert_attribute_after("ConstantValue3", gameProfile.attribute("gui_key_full")) = config.ConstantValue3;
-			gameProfile.insert_attribute_after("ConstantValue2", gameProfile.attribute("gui_key_full")) = config.ConstantValue2;
-			gameProfile.insert_attribute_after("ConstantValue1", gameProfile.attribute("gui_key_full")) = config.ConstantValue1;
+			gameProfile.insert_attribute_after("ConstantValue3", gameProfile.attribute("VRBoost_key_reset")) = config.ConstantValue3;
+			gameProfile.insert_attribute_after("ConstantValue2", gameProfile.attribute("VRBoost_key_reset")) = config.ConstantValue2;
+			gameProfile.insert_attribute_after("ConstantValue1", gameProfile.attribute("VRBoost_key_reset")) = config.ConstantValue1;
 
-			gameProfile.insert_attribute_after("CameraHorizonAdjustment", gameProfile.attribute("gui_key_full"))= config.CameraHorizonAdjustment;
-			gameProfile.insert_attribute_after("CameraZoom", gameProfile.attribute("gui_key_full"))= config.CameraZoom;
-			gameProfile.insert_attribute_after("CameraDistance", gameProfile.attribute("gui_key_full"))= config.CameraDistance;
+			gameProfile.insert_attribute_after("CameraHorizonAdjustment", gameProfile.attribute("VRBoost_key_reset"))= config.CameraHorizonAdjustment;
+			gameProfile.insert_attribute_after("CameraZoom", gameProfile.attribute("VRBoost_key_reset"))= config.CameraZoom;
+			gameProfile.insert_attribute_after("CameraDistance", gameProfile.attribute("VRBoost_key_reset"))= config.CameraDistance;
 
-			gameProfile.insert_attribute_after("CameraTranslateZ", gameProfile.attribute("gui_key_full"))= config.CameraTranslateZ;
-			gameProfile.insert_attribute_after("CameraTranslateY", gameProfile.attribute("gui_key_full")) = config.CameraTranslateY;
-			gameProfile.insert_attribute_after("CameraTranslateX", gameProfile.attribute("gui_key_full")) = config.CameraTranslateX;
+			gameProfile.insert_attribute_after("CameraTranslateZ", gameProfile.attribute("VRBoost_key_reset"))= config.CameraTranslateZ;
+			gameProfile.insert_attribute_after("CameraTranslateY", gameProfile.attribute("VRBoost_key_reset")) = config.CameraTranslateY;
+			gameProfile.insert_attribute_after("CameraTranslateX", gameProfile.attribute("VRBoost_key_reset")) = config.CameraTranslateX;
 
-			gameProfile.insert_attribute_after("FarPlaneFOV", gameProfile.attribute("gui_key_full")) = config.FarPlaneFOV;
-			gameProfile.insert_attribute_after("PlayerFOV", gameProfile.attribute("gui_key_full")) = config.PlayerFOV;
-			gameProfile.insert_attribute_after("WorldFOV", gameProfile.attribute("gui_key_full")) = config.WorldFOV;			
+			gameProfile.insert_attribute_after("FarPlaneFOV", gameProfile.attribute("VRBoost_key_reset")) = config.FarPlaneFOV;
+			gameProfile.insert_attribute_after("PlayerFOV", gameProfile.attribute("VRBoost_key_reset")) = config.PlayerFOV;
+			gameProfile.insert_attribute_after("WorldFOV", gameProfile.attribute("VRBoost_key_reset")) = config.WorldFOV;			
 		}
 
 		docProfiles.save_file(profilePath);

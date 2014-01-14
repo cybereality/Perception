@@ -733,6 +733,10 @@ private:
 	***/
 	byte hudHotkeys[5];
 	/**
+	* Hotkey for VRBoost reset.
+	***/
+	byte resetVRBoostHotkey;
+	/**
 	* True if BRASSA is waiting to catch a hotkey.
 	***/
 	bool hotkeyCatch;

@@ -211,6 +211,7 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	ChangeGUI3DDepthMode(GUI_3D_Depth_Modes::GUI_DEFAULT);
 
 	hotkeyCatch = false;
+	resetVRBoostHotkey = 0;
 	for (int i = 0; i < 5; i++)
 	{
 		guiHotkeys[i] = 0;
@@ -2288,6 +2289,12 @@ void D3DProxyDevice::HandleControls()
 			hotkeyPressed=true;
 		}
 	}
+	// test VRBoost reset hotkey
+	if (KEY_DOWN(resetVRBoostHotkey))
+	{
+		if (hmVRboost!=NULL)
+			m_pVRboost_ReleaseAllMemoryRules();
+	}
 	// avoid double input by using the menu velocity
 	if (hotkeyPressed)
 		menuVelocity.x+=2.0f;
@@ -2372,7 +2379,9 @@ void D3DProxyDevice::HandleTracking()
 	m_isFirstBeginSceneOfFrame = false;
 
 	// update vrboost, if present, tracker available and shader count higher than the minimum
-	if ((!m_bForceMouseEmulation) && (hmVRboost) && (m_VRboostRulesPresent) && (tracker->isAvailable()) && (m_VertexShaderCountLastFrame>(UINT)config.VRboostMinShaderCount))
+	if ((!m_bForceMouseEmulation) && (hmVRboost) && (m_VRboostRulesPresent) && (tracker->isAvailable())
+		&& (m_VertexShaderCountLastFrame>(UINT)config.VRboostMinShaderCount) 
+		&& (m_VertexShaderCountLastFrame<(UINT)config.VRboostMaxShaderCount) )
 	{
 		// development bool
 		bool createNSave = false;
@@ -3032,7 +3041,7 @@ void D3DProxyDevice::BRASSA_MainMenu()
 
 	menuHelperRect.left = 0;
 	menuHelperRect.top = 0;
-	
+
 	UINT entryID;
 	BRASSA_NewFrame(entryID, menuEntryCount);
 	UINT borderSelection = entryID;
@@ -3218,7 +3227,7 @@ void D3DProxyDevice::BRASSA_MainMenu()
 
 		menuHelperRect.left = 0;
 		menuHelperRect.top = 0;
-		
+
 		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
 		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));
 		hudMainMenu->End();
@@ -3458,7 +3467,7 @@ void D3DProxyDevice::BRASSA_WorldScale()
 
 		menuHelperRect.left = 0;
 		menuHelperRect.top = 0;
-		
+
 		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
 		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));  
 		hudMainMenu->End();
@@ -3655,7 +3664,7 @@ void D3DProxyDevice::BRASSA_Convergence()
 
 		menuHelperRect.left = 0;
 		menuHelperRect.top = 0;
-		
+
 		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
 		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));  
 		hudMainMenu->End();
@@ -3698,7 +3707,7 @@ void D3DProxyDevice::BRASSA_HUD()
 
 	menuHelperRect.left = 0;
 	menuHelperRect.top = 0;
-	
+
 	UINT entryID;
 	BRASSA_NewFrame(entryID, menuEntryCount);
 	UINT borderSelection = entryID;
@@ -3711,7 +3720,7 @@ void D3DProxyDevice::BRASSA_HUD()
 				hotkeyCatch = false;
 				int index = entryID-3;
 				if ((index >=0) && (index <=4))
-					hudHotkeys[index] = i;
+					hudHotkeys[index] = (byte)i;
 			}
 	}
 	else
@@ -3868,35 +3877,35 @@ void D3DProxyDevice::BRASSA_HUD()
 		sprintf_s(vcString,"HUD's 3D Depth : %g", RoundBrassaValue(hud3DDepthPresets[(int)hud3DDepthMode]));
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += 40;
-		sprintf_s(vcString,"Hotkey >Switch< : ", hud3DDepthPresets[(int)hud3DDepthMode]);
+		sprintf_s(vcString,"Hotkey >Switch< : ");
 		std::string stdString = std::string(vcString);
 		stdString.append(keyNameList[hudHotkeys[0]]);
 		if ((hotkeyCatch) && (entryID==3))
 			stdString = "Press the desired key.";
 		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += 40;
-		sprintf_s(vcString,"Hotkey >Default< : ", hud3DDepthPresets[(int)hud3DDepthMode]);
+		sprintf_s(vcString,"Hotkey >Default< : ");
 		stdString = std::string(vcString);
 		stdString.append(keyNameList[hudHotkeys[1]]);
 		if ((hotkeyCatch) && (entryID==4))
 			stdString = "Press the desired key.";
 		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += 40;
-		sprintf_s(vcString,"Hotkey >Small< : ", hud3DDepthPresets[(int)hud3DDepthMode]);
+		sprintf_s(vcString,"Hotkey >Small< : ");
 		stdString = std::string(vcString);
 		stdString.append(keyNameList[hudHotkeys[2]]);
 		if ((hotkeyCatch) && (entryID==5))
 			stdString = "Press the desired key.";
 		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += 40;
-		sprintf_s(vcString,"Hotkey >Large< : ", hud3DDepthPresets[(int)hud3DDepthMode]);
+		sprintf_s(vcString,"Hotkey >Large< : ");
 		stdString = std::string(vcString);
 		stdString.append(keyNameList[hudHotkeys[3]]);
 		if ((hotkeyCatch) && (entryID==6))
 			stdString = "Press the desired key.";
 		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += 40;
-		sprintf_s(vcString,"Hotkey >Full< : ", hud3DDepthPresets[(int)hud3DDepthMode]);
+		sprintf_s(vcString,"Hotkey >Full< : ");
 		stdString = std::string(vcString);
 		stdString.append(keyNameList[hudHotkeys[4]]);
 		if ((hotkeyCatch) && (entryID==7))
@@ -3914,7 +3923,7 @@ void D3DProxyDevice::BRASSA_HUD()
 
 		menuHelperRect.left = 0;
 		menuHelperRect.top = 0;
-		
+
 		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
 		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));
 		hudMainMenu->End();
@@ -3943,7 +3952,7 @@ void D3DProxyDevice::BRASSA_GUI()
 				hotkeyCatch = false;
 				int index = entryID-3;
 				if ((index >=0) && (index <=4))
-					guiHotkeys[index] = i;
+					guiHotkeys[index] = (byte)i;
 			}
 	}
 	else
@@ -4099,35 +4108,35 @@ void D3DProxyDevice::BRASSA_GUI()
 		sprintf_s(vcString,"GUI's 3D Depth : %g", RoundBrassaValue(gui3DDepthPresets[(int)gui3DDepthMode]));
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += 40;
-		sprintf_s(vcString,"Hotkey >Switch< : ", hud3DDepthPresets[(int)hud3DDepthMode]);
+		sprintf_s(vcString,"Hotkey >Switch< : ");
 		std::string stdString = std::string(vcString);
 		stdString.append(keyNameList[guiHotkeys[0]]);
 		if ((hotkeyCatch) && (entryID==3))
 			stdString = "Press the desired key.";
 		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += 40;
-		sprintf_s(vcString,"Hotkey >Default< : ", hud3DDepthPresets[(int)hud3DDepthMode]);
+		sprintf_s(vcString,"Hotkey >Default< : ");
 		stdString = std::string(vcString);
 		stdString.append(keyNameList[guiHotkeys[1]]);
 		if ((hotkeyCatch) && (entryID==4))
 			stdString = "Press the desired key.";
 		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += 40;
-		sprintf_s(vcString,"Hotkey >Small< : ", hud3DDepthPresets[(int)hud3DDepthMode]);
+		sprintf_s(vcString,"Hotkey >Small< : ");
 		stdString = std::string(vcString);
 		stdString.append(keyNameList[guiHotkeys[2]]);
 		if ((hotkeyCatch) && (entryID==5))
 			stdString = "Press the desired key.";
 		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += 40;
-		sprintf_s(vcString,"Hotkey >Large< : ", hud3DDepthPresets[(int)hud3DDepthMode]);
+		sprintf_s(vcString,"Hotkey >Large< : ");
 		stdString = std::string(vcString);
 		stdString.append(keyNameList[guiHotkeys[3]]);
 		if ((hotkeyCatch) && (entryID==6))
 			stdString = "Press the desired key.";
 		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += 40;
-		sprintf_s(vcString,"Hotkey >Full< : ", hud3DDepthPresets[(int)hud3DDepthMode]);
+		sprintf_s(vcString,"Hotkey >Full< : ");
 		stdString = std::string(vcString);
 		stdString.append(keyNameList[guiHotkeys[4]]);
 		if ((hotkeyCatch) && (entryID==7))
@@ -4145,7 +4154,7 @@ void D3DProxyDevice::BRASSA_GUI()
 
 		menuHelperRect.left = 0;
 		menuHelperRect.top = 0;
-		
+
 		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
 		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));
 		hudMainMenu->End();
@@ -4157,7 +4166,7 @@ void D3DProxyDevice::BRASSA_GUI()
 ***/
 void D3DProxyDevice::BRASSA_Settings()
 {
-	UINT menuEntryCount = 11;
+	UINT menuEntryCount = 12;
 
 	menuHelperRect.left = 0;
 	menuHelperRect.top = 0;
@@ -4166,197 +4175,231 @@ void D3DProxyDevice::BRASSA_Settings()
 	BRASSA_NewFrame(entryID, menuEntryCount);
 	UINT borderSelection = entryID;
 
-	/**
-	* ESCAPE : Set BRASSA inactive and save the configuration.
-	***/
-	if (KEY_DOWN(VK_ESCAPE))
+	if ((hotkeyCatch) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
-		BRASSA_mode = BRASSA_Modes::INACTIVE;
-		BRASSA_UpdateConfigSettings();
+		for (int i = 0; i < 256; i++)
+			if (KEY_DOWN(i) && (keyNameList[i]!="-"))
+			{
+				hotkeyCatch = false;
+				resetVRBoostHotkey = (byte)i;
+			}
 	}
-
-	if ((KEY_DOWN(VK_RETURN) || KEY_DOWN(VK_RSHIFT) || (m_xButtons[0x0c])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	else
 	{
-		// swap eyes
-		if (entryID == 0)
-		{
-			stereoView->swapEyes = !stereoView->swapEyes;
-			menuVelocity.x += 4.0f;
-		}
-		// screenshot
-		if (entryID == 2)
-		{
-			// render 3 frames to get screenshots without BRASSA
-			screenshot = 3;
-			BRASSA_mode = BRASSA_Modes::INACTIVE;
-		}
-		// reset multipliers
-		if (entryID == 6)
-		{
-			tracker->multiplierYaw = 25.0f;
-			tracker->multiplierPitch = 25.0f;
-			tracker->multiplierRoll = 1.0f;
-			menuVelocity.x += 4.0f;
-		}
-		// force mouse emulation
-		if (entryID == 7)
-		{
-			m_bForceMouseEmulation = !m_bForceMouseEmulation;
-
-			if ((m_bForceMouseEmulation) && trackerInitialized && tracker->isAvailable())
-				tracker->setMouseEmulation(true);
-
-			if ((!m_bForceMouseEmulation) && (hmVRboost) && (m_VRboostRulesPresent) && trackerInitialized && tracker->isAvailable())
-				tracker->setMouseEmulation(false);
-
-			menuVelocity.x += 4.0f;
-		}
-		// reset VRboost
-		if (entryID == 8)
-		{
-			if (hmVRboost!=NULL)
-				m_pVRboost_ReleaseAllMemoryRules();
-		}
-		// back to main menu
-		if (entryID == 9)
-		{
-			BRASSA_mode = BRASSA_Modes::MAINMENU;
-			BRASSA_UpdateConfigSettings();
-			menuVelocity.x+=2.0f;
-		}
-		// back to game
-		if (entryID == 10)
+		/**
+		* ESCAPE : Set BRASSA inactive and save the configuration.
+		***/
+		if (KEY_DOWN(VK_ESCAPE))
 		{
 			BRASSA_mode = BRASSA_Modes::INACTIVE;
 			BRASSA_UpdateConfigSettings();
 		}
+
+		if ((KEY_DOWN(VK_RETURN) || KEY_DOWN(VK_RSHIFT) || (m_xButtons[0x0c])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		{
+			// swap eyes
+			if (entryID == 0)
+			{
+				stereoView->swapEyes = !stereoView->swapEyes;
+				menuVelocity.x += 4.0f;
+			}
+			// screenshot
+			if (entryID == 2)
+			{
+				// render 3 frames to get screenshots without BRASSA
+				screenshot = 3;
+				BRASSA_mode = BRASSA_Modes::INACTIVE;
+			}
+			// reset multipliers
+			if (entryID == 6)
+			{
+				tracker->multiplierYaw = 25.0f;
+				tracker->multiplierPitch = 25.0f;
+				tracker->multiplierRoll = 1.0f;
+				menuVelocity.x += 4.0f;
+			}
+			// force mouse emulation
+			if (entryID == 7)
+			{
+				m_bForceMouseEmulation = !m_bForceMouseEmulation;
+
+				if ((m_bForceMouseEmulation) && trackerInitialized && tracker->isAvailable())
+					tracker->setMouseEmulation(true);
+
+				if ((!m_bForceMouseEmulation) && (hmVRboost) && (m_VRboostRulesPresent) && trackerInitialized && tracker->isAvailable())
+					tracker->setMouseEmulation(false);
+
+				menuVelocity.x += 4.0f;
+			}
+			// reset VRBoost
+			if (entryID == 8)
+			{
+				if (hmVRboost!=NULL)
+					m_pVRboost_ReleaseAllMemoryRules();
+			}
+			// VRBoost hotkey
+			if (entryID == 9)
+			{
+				hotkeyCatch = true;
+				menuVelocity.x+=2.0f;
+			}
+			// back to main menu
+			if (entryID == 10)
+			{
+				BRASSA_mode = BRASSA_Modes::MAINMENU;
+				BRASSA_UpdateConfigSettings();
+				menuVelocity.x+=2.0f;
+			}
+			// back to game
+			if (entryID == 11)
+			{
+				BRASSA_mode = BRASSA_Modes::INACTIVE;
+				BRASSA_UpdateConfigSettings();
+			}
+		}
+
+		if (KEY_DOWN(VK_BACK))
+		{
+			if ((entryID >= 3) && (entryID <= 7) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+			{
+				int index = entryID-3;
+				if ((index >=0) && (index <=4))
+					guiHotkeys[index] = 0;
+				menuVelocity.x+=2.0f;
+			}
+		}
+
+		if (KEY_DOWN(VK_BACK) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		{
+			// distortion
+			if (entryID == 1)
+			{
+				this->stereoView->DistortionScale = 0.0f;
+				this->stereoView->PostReset();
+				menuVelocity.x += 0.7f;
+			}
+			// reset hotkey
+			if (entryID == 9)
+			{
+				resetVRBoostHotkey = 0;
+				menuVelocity.x+=2.0f;
+			}
+		}
+
+		if ((KEY_DOWN(VK_LEFT) || KEY_DOWN(0x4A) || (m_xInputState.Gamepad.sThumbLX<-8192)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		{
+			// swap eyes
+			if (entryID == 0)
+			{
+				stereoView->swapEyes = false;
+				menuVelocity.x-=2.0f;
+			}
+			// distortion
+			if (entryID == 1)
+			{
+				if (m_xInputState.Gamepad.sThumbLX != 0)
+					this->stereoView->DistortionScale += 0.01f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
+				else
+					this->stereoView->DistortionScale -= 0.01f;
+				this->stereoView->PostReset();
+				menuVelocity.x -= 0.7f;
+			}
+			// yaw multiplier
+			if (entryID == 3)
+			{
+				if (m_xInputState.Gamepad.sThumbLX != 0)
+					tracker->multiplierYaw += 0.5f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
+				else
+					tracker->multiplierYaw -= 0.5f;
+				menuVelocity.x -= 0.7f;
+			}
+			// pitch multiplier
+			if (entryID == 4)
+			{
+				if (m_xInputState.Gamepad.sThumbLX != 0)
+					tracker->multiplierPitch += 0.5f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
+				else
+					tracker->multiplierPitch -= 0.5f;
+				menuVelocity.x -= 0.7f;
+			}
+			// roll multiplier
+			if (entryID == 5)
+			{
+				if (m_xInputState.Gamepad.sThumbLX != 0)
+					tracker->multiplierRoll += 0.05f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
+				else
+					tracker->multiplierRoll -= 0.05f;
+				menuVelocity.x -= 0.7f;
+			}
+			// mouse emulation
+			if (entryID == 7)
+			{
+				m_bForceMouseEmulation = false;
+
+				if ((hmVRboost) && (m_VRboostRulesPresent) && trackerInitialized && tracker->isAvailable())
+					tracker->setMouseEmulation(false);
+
+				menuVelocity.x-=2.0f;
+			}
+		}
+
+		if ((KEY_DOWN(VK_RIGHT) || KEY_DOWN(0x4C) || (m_xInputState.Gamepad.sThumbLX>8192)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		{
+			// swap eyes
+			if (entryID == 0)
+			{
+				stereoView->swapEyes = true;
+				menuVelocity.x-=2.0f;
+			}
+			// distortion
+			if (entryID == 1)
+			{
+				if (m_xInputState.Gamepad.sThumbLX != 0)
+					this->stereoView->DistortionScale += 0.01f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
+				else
+					this->stereoView->DistortionScale += 0.01f;
+				this->stereoView->PostReset();
+				menuVelocity.x += 0.7f;
+			}
+			// yaw multiplier
+			if (entryID == 3)
+			{
+				if (m_xInputState.Gamepad.sThumbLX != 0)
+					tracker->multiplierYaw += 0.5f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
+				else
+					tracker->multiplierYaw += 0.5f;
+				menuVelocity.x += 0.7f;
+			}
+			// pitch multiplier
+			if (entryID == 4)
+			{
+				if (m_xInputState.Gamepad.sThumbLX != 0)
+					tracker->multiplierPitch += 0.5f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
+				else
+					tracker->multiplierPitch += 0.5f;
+				menuVelocity.x += 0.7f;
+			}
+			// roll multiplier
+			if (entryID == 5)
+			{
+				if (m_xInputState.Gamepad.sThumbLX != 0)
+					tracker->multiplierRoll += 0.05f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
+				else
+					tracker->multiplierRoll += 0.05f;
+				menuVelocity.x += 0.7f;
+			}
+			// mouse emulation
+			if (entryID == 7)
+			{
+				m_bForceMouseEmulation = true;
+
+				if(trackerInitialized && tracker->isAvailable())
+					tracker->setMouseEmulation(true);
+
+				menuVelocity.x-=2.0f;
+			}
+		}
 	}
-
-	if (KEY_DOWN(VK_BACK) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-	{
-		// distortion
-		if (entryID == 1)
-		{
-			this->stereoView->DistortionScale = 0.0f;
-			this->stereoView->PostReset();
-			menuVelocity.x += 0.7f;
-		}
-	}
-
-	if ((KEY_DOWN(VK_LEFT) || KEY_DOWN(0x4A) || (m_xInputState.Gamepad.sThumbLX<-8192)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-	{
-		// swap eyes
-		if (entryID == 0)
-		{
-			stereoView->swapEyes = false;
-			menuVelocity.x-=2.0f;
-		}
-		// distortion
-		if (entryID == 1)
-		{
-			if (m_xInputState.Gamepad.sThumbLX != 0)
-				this->stereoView->DistortionScale += 0.01f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
-			else
-				this->stereoView->DistortionScale -= 0.01f;
-			this->stereoView->PostReset();
-			menuVelocity.x -= 0.7f;
-		}
-		// yaw multiplier
-		if (entryID == 3)
-		{
-			if (m_xInputState.Gamepad.sThumbLX != 0)
-				tracker->multiplierYaw += 0.5f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
-			else
-				tracker->multiplierYaw -= 0.5f;
-			menuVelocity.x -= 0.7f;
-		}
-		// pitch multiplier
-		if (entryID == 4)
-		{
-			if (m_xInputState.Gamepad.sThumbLX != 0)
-				tracker->multiplierPitch += 0.5f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
-			else
-				tracker->multiplierPitch -= 0.5f;
-			menuVelocity.x -= 0.7f;
-		}
-		// roll multiplier
-		if (entryID == 5)
-		{
-			if (m_xInputState.Gamepad.sThumbLX != 0)
-				tracker->multiplierRoll += 0.05f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
-			else
-				tracker->multiplierRoll -= 0.05f;
-			menuVelocity.x -= 0.7f;
-		}
-		// mouse emulation
-		if (entryID == 7)
-		{
-			m_bForceMouseEmulation = false;
-
-			if ((hmVRboost) && (m_VRboostRulesPresent) && trackerInitialized && tracker->isAvailable())
-				tracker->setMouseEmulation(false);
-
-			menuVelocity.x-=2.0f;
-		}
-	}
-
-	if ((KEY_DOWN(VK_RIGHT) || KEY_DOWN(0x4C) || (m_xInputState.Gamepad.sThumbLX>8192)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-	{
-		// swap eyes
-		if (entryID == 0)
-		{
-			stereoView->swapEyes = true;
-			menuVelocity.x-=2.0f;
-		}
-		// distortion
-		if (entryID == 1)
-		{
-			if (m_xInputState.Gamepad.sThumbLX != 0)
-				this->stereoView->DistortionScale += 0.01f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
-			else
-				this->stereoView->DistortionScale += 0.01f;
-			this->stereoView->PostReset();
-			menuVelocity.x += 0.7f;
-		}
-		// yaw multiplier
-		if (entryID == 3)
-		{
-			if (m_xInputState.Gamepad.sThumbLX != 0)
-				tracker->multiplierYaw += 0.5f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
-			else
-				tracker->multiplierYaw += 0.5f;
-			menuVelocity.x += 0.7f;
-		}
-		// pitch multiplier
-		if (entryID == 4)
-		{
-			if (m_xInputState.Gamepad.sThumbLX != 0)
-				tracker->multiplierPitch += 0.5f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
-			else
-				tracker->multiplierPitch += 0.5f;
-			menuVelocity.x += 0.7f;
-		}
-		// roll multiplier
-		if (entryID == 5)
-		{
-			if (m_xInputState.Gamepad.sThumbLX != 0)
-				tracker->multiplierRoll += 0.05f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
-			else
-				tracker->multiplierRoll += 0.05f;
-			menuVelocity.x += 0.7f;
-		}
-		// mouse emulation
-		if (entryID == 7)
-		{
-			m_bForceMouseEmulation = true;
-
-			if(trackerInitialized && tracker->isAvailable())
-				tracker->setMouseEmulation(true);
-
-			menuVelocity.x-=2.0f;
-		}
-	}
-
 	// output menu
 	if (hudFont)
 	{
@@ -4421,7 +4464,14 @@ void D3DProxyDevice::BRASSA_Settings()
 			break;
 		}
 		menuHelperRect.top += 40;
-		DrawTextShadowed(hudFont, hudMainMenu, "Reset VRboost", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "Reset VRBoost", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		menuHelperRect.top += 40;
+		sprintf_s(vcString,"Hotkey >Reset VRBoost< : ");
+		std::string stdString = std::string(vcString);
+		stdString.append(keyNameList[resetVRBoostHotkey]);
+		if ((hotkeyCatch) && (entryID==9))
+			stdString = "Press the desired key.";
+		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += 40;
 		DrawTextShadowed(hudFont, hudMainMenu, "Back to BRASSA Menu", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += 40;
@@ -4432,7 +4482,7 @@ void D3DProxyDevice::BRASSA_Settings()
 
 		menuHelperRect.left = 0;
 		menuHelperRect.top = 0;
-		
+
 		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
 		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));
 		hudMainMenu->End();
@@ -4445,10 +4495,10 @@ void D3DProxyDevice::BRASSA_Settings()
 void D3DProxyDevice::BRASSA_VRBoostValues()
 {
 	UINT menuEntryCount = 14;
-	
+
 	menuHelperRect.left = 0;
 	menuHelperRect.top = 0;
-	
+
 	UINT entryID;
 	BRASSA_NewFrame(entryID, menuEntryCount);
 	UINT borderSelection = entryID;
@@ -4574,7 +4624,7 @@ void D3DProxyDevice::BRASSA_VRBoostValues()
 
 		menuHelperRect.left = 0;
 		menuHelperRect.top = 0;
-		
+
 		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
 		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));
 		hudMainMenu->End();
@@ -4669,6 +4719,7 @@ void D3DProxyDevice::BRASSA_UpdateConfigSettings()
 	}
 	config.guiHotkeys[4] = guiHotkeys[4];
 
+	config.VRBoostResetHotkey = resetVRBoostHotkey;
 	config.WorldFOV = VRBoostValue[VRboostAxis::WorldFOV];
 	config.PlayerFOV = VRBoostValue[VRboostAxis::PlayerFOV];
 	config.FarPlaneFOV = VRBoostValue[VRboostAxis::FarPlaneFOV];
@@ -4716,6 +4767,7 @@ void D3DProxyDevice::BRASSA_UpdateDeviceSettings()
 	ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)config.gui3DDepthMode);
 
 	// VRBoost
+	resetVRBoostHotkey = config.VRBoostResetHotkey;
 	VRBoostValue[VRboostAxis::WorldFOV] = config.WorldFOV;
 	VRBoostValue[VRboostAxis::PlayerFOV] = config.PlayerFOV;
 	VRBoostValue[VRboostAxis::FarPlaneFOV] = config.FarPlaneFOV;

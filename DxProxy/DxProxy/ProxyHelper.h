@@ -58,6 +58,7 @@ public:
 		std::string shaderRulePath;             /**< Full path of shader rules for this game. */
 		std::string VRboostPath;                /**< Full path of VRboost rules for this game. */
 		UINT        VRboostMinShaderCount;      /**< Minimum Vertex Shader Count to apply VRboost (security) */
+		UINT        VRboostMaxShaderCount;      /**< Maximum Vertex Shader Count to apply VRboost (security) */
 		int         game_type;                  /**< Game type enumeration. Matching D3DProxyDevice::ProxyTypes. */
 		bool        rollEnabled;                /**< True if headtracking-roll is to be enabled. */
 		float       worldScaleFactor;           /**< Value the eye seperation is to be multiplied with. (mm * worldScaleFactor = mm in game units). */
@@ -75,6 +76,7 @@ public:
 		float       gui3DDepthPresets[4];       /**< GUI 3D Depth presets.*/
 		float       guiSquishPresets[4];        /**< GUI Size presets.*/
 		byte        guiHotkeys[5];              /**< GUI Hotkeys.*/
+		byte        VRBoostResetHotkey;         /**< Hotkey option to reset VRBoost. */
 		float       WorldFOV;                   /**< Game-specific global FOV setting. **/
 		float       PlayerFOV;                  /**< Game-specific player surroundings FOV setting. **/
 		float       FarPlaneFOV;                /**< Game-specific FOV setting for the most distant objects. **/ 
