@@ -76,5 +76,9 @@ private:
 	* The shader modification repository for the handled game.
 	***/
 	ShaderModificationRepository* m_ShaderModificationRepository;
+	/**
+	* The game type as loaded by the configuration.
+	***/
+	int m_gameType;
 };
 #endif
