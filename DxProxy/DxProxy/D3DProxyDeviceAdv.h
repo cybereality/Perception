@@ -5,6 +5,7 @@ Copyright (C) 2012 Andres Hernandez
 File <D3DProxyDeviceAdv.h> and
 Class <D3DProxyDeviceAdv> :
 Copyright (C) 2012 Andres Hernandez
+Modifications (C) 2014 Denis Reischl
 
 Vireio Perception Version History:
 v1.0.0 2012 by Andres Hernandez
@@ -30,5 +31,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef D3DPROXYDEVICEADV_H_INCLUDED
 #define D3DPROXYDEVICEADV_H_INCLUDED
 
+#include "Direct3DDevice9.h"
+#include "D3DProxyDevice.h"
+#include "ProxyHelper.h"
+
+/**
+* Proxy device class for Gamebryo games, to avoid GUI flaws.
+*/
+class D3DProxyDeviceAdv : public D3DProxyDevice
+{
+public:
+	D3DProxyDeviceAdv(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy);
+	virtual ~D3DProxyDeviceAdv();
+
+	/*** IDirect3DDevice9 methods ***/
+	virtual HRESULT WINAPI DrawPrimitive(D3DPRIMITIVETYPE PrimitiveType,UINT StartVertex,UINT PrimitiveCount);
+	virtual HRESULT WINAPI DrawIndexedPrimitive(D3DPRIMITIVETYPE PrimitiveType,INT BaseVertexIndex,UINT MinVertexIndex,UINT NumVertices,UINT startIndex,UINT primCount);
+	virtual HRESULT WINAPI DrawPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType,UINT PrimitiveCount,CONST void* pVertexStreamZeroData,UINT VertexStreamZeroStride);
+	virtual HRESULT WINAPI DrawIndexedPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType,UINT MinVertexIndex,UINT NumVertices,UINT PrimitiveCount,CONST void* pIndexData,D3DFORMAT IndexDataFormat,CONST void* pVertexStreamZeroData,UINT VertexStreamZeroStride);
+
+};
 
 #endif

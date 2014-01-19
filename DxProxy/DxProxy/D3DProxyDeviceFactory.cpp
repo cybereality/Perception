@@ -46,11 +46,13 @@ D3DProxyDevice* D3DProxyDeviceFactory::Get(ProxyHelper::ProxyConfig& config, IDi
 	D3DProxyDevice* newDev = NULL;
 
 	// if game profile = game type + 10000 -> return DataGatherer (=shader analyzer)
-	if (config.game_type == D3DProxyDevice::DEBUG_LOG_FILE)
+	if (config.game_type == D3DProxyDevice::GAMEBRYO)
+		newDev = new D3DProxyDeviceAdv(dev, pCreatedBy);
+	else if (config.game_type == D3DProxyDevice::DEBUG_LOG_FILE)
 		newDev = new D3DProxyDeviceDebug(dev, pCreatedBy);
 	else if (config.game_type > 10000)
 		newDev = new DataGatherer(dev, pCreatedBy);
-	else
+	else 
 		newDev = new D3DProxyDevice(dev, pCreatedBy);
 
 	newDev->Init(config);

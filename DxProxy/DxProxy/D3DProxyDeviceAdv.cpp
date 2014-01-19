@@ -5,6 +5,7 @@ Copyright (C) 2012 Andres Hernandez
 File <D3DProxyDeviceAdv.cpp> and
 Class <D3DProxyDeviceAdv> :
 Copyright (C) 2012 Andres Hernandez
+Modifications (C) 2014 Denis Reischl
 
 Vireio Perception Version History:
 v1.0.0 2012 by Andres Hernandez
@@ -29,71 +30,56 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "D3DProxyDeviceAdv.h"
 
+/**
+* Constructor.
+* @param pDevice Imbed actual device.
+* @param pCreatedBy Pointer to the object that created the device.
+***/
+D3DProxyDeviceAdv::D3DProxyDeviceAdv(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy) : D3DProxyDevice(pDevice, pCreatedBy)
+{ }
 
-//
-//void transformIndividualFloat(IDirect3DDevice9 *pD3Ddev, int startRegister, D3DProxyDeviceAdv* proxyDev) 
-//{
-//	float pConstantData[4];
-//	pD3Ddev->GetVertexShaderConstantF(startRegister, pConstantData, 1);
-//	pConstantData[0] += proxyDev->separation*proxyDev->eyeShutter*100.0f+proxyDev->offset;
-//	pD3Ddev->SetVertexShaderConstantF(startRegister, pConstantData, 1);
-//	memset(&dirtyRegisters[startRegister], 0, sizeof(boolean));
-//}
-//
-//void transformRowMajor4by4(IDirect3DDevice9 *pD3Ddev, int startRegister, D3DProxyDeviceAdv* proxyDev) 
-//{
-//	float pConstantData[16];
-//	pD3Ddev->GetVertexShaderConstantF(startRegister, pConstantData, 4);
-//	D3DXMATRIX original = D3DXMATRIX(pConstantData);
-//	D3DXMATRIX transposed;
-//	D3DXMatrixTranspose(&transposed, &original);
-//	proxyDev->adjustEyeOffsetAndViewFrustum(original, transposed);
-//	D3DXMatrixTranspose(&transposed, &original);
-//	pD3Ddev->SetVertexShaderConstantF(startRegister, transposed,4);
-//	memset(&dirtyRegisters[startRegister], 0, sizeof(boolean)*4);
-//}
-//
-//void transform4by4(IDirect3DDevice9 *pD3Ddev, int startRegister, D3DProxyDeviceAdv* proxyDev) 
-//{
-//	float pConstantData[16];
-//	pD3Ddev->GetVertexShaderConstantF(startRegister, pConstantData, 4);
-//	D3DXMATRIX inMatrix = D3DXMATRIX(pConstantData);
-//	if(inMatrix._41 == 0.0f) return; //Mirror's Edge compat. hack (otherwise you get weird squares)
-//	D3DXMATRIX outMatrix;
-//	proxyDev->adjustEyeOffsetAndViewFrustum(outMatrix, inMatrix);
-//	pD3Ddev->SetVertexShaderConstantF(startRegister, outMatrix,4);
-//	memset(&dirtyRegisters[startRegister], 0, sizeof(boolean)*4);
-//}
-//
-//
-//void D3DProxyDeviceAdv::parse4by4Matrices(D3DXCONSTANT_DESC &desc)
-//{
-//	if(desc.Name == NULL) return;
-//	if(!strstr(desc.Name, "proj") && !strstr(desc.Name, "Proj"))return;
-//	if(desc.RegisterCount != 4) return;
-//	TargetMatrix tm;
-//	tm.startRegister = desc.RegisterIndex;
-//	tm.transformationFunc = (desc.Class == 2) ? &transformRowMajor4by4 : &transform4by4;
-//	targetMatrices.push_back(tm);
-//}
-//
-//void D3DProxyDeviceAdv::parseIndividualFloats(D3DXCONSTANT_DESC &desc)
-//{
-//	if(desc.Name == NULL) return;
-//	if(!strstr(desc.Name, "EyePos")) return;
-//	if(desc.RegisterCount != 1) return;
-//	TargetMatrix tm;
-//	tm.startRegister = desc.RegisterIndex;
-//	tm.transformationFunc = &transformIndividualFloat;
-//	targetMatrices.push_back(tm);
-//}
-//
-//void D3DProxyDeviceAdv::findWeirdMirrorsEdgeShader(UINT pSizeOfData)
-//{	
-//	if(pSizeOfData != 172) return;
-//	TargetMatrix tm;
-//	tm.startRegister = 0;
-//
-//	tm.transformationFunc = &transform4by4;
-//	targetMatrices.push_back(tm);
-//}
+/**
+* Destructor.
+***/
+D3DProxyDeviceAdv::~D3DProxyDeviceAdv()
+{ }
+
+/**
+* Set scissor test render state to false before draw.
+***/
+HRESULT WINAPI D3DProxyDeviceAdv::DrawPrimitive(D3DPRIMITIVETYPE PrimitiveType,UINT StartVertex,UINT PrimitiveCount)
+{
+	SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
+
+	return D3DProxyDevice::DrawPrimitive(PrimitiveType, StartVertex, PrimitiveCount);
+}
+
+/**
+* Set scissor test render state to false before draw.
+***/
+HRESULT WINAPI D3DProxyDeviceAdv::DrawIndexedPrimitive(D3DPRIMITIVETYPE PrimitiveType,INT BaseVertexIndex,UINT MinVertexIndex,UINT NumVertices,UINT startIndex,UINT primCount)
+{
+	SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
+
+	return D3DProxyDevice::DrawIndexedPrimitive(PrimitiveType, BaseVertexIndex, MinVertexIndex, NumVertices, startIndex, primCount);
+}
+
+/**
+* Set scissor test render state to false before draw.
+***/
+HRESULT WINAPI D3DProxyDeviceAdv::DrawPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType,UINT PrimitiveCount,CONST void* pVertexStreamZeroData,UINT VertexStreamZeroStride)
+{
+	SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
+
+	return D3DProxyDevice::DrawPrimitiveUP(PrimitiveType, PrimitiveCount, pVertexStreamZeroData, VertexStreamZeroStride);
+}
+
+/**
+* Set scissor test render state to false before draw.
+***/
+HRESULT WINAPI D3DProxyDeviceAdv::DrawIndexedPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType,UINT MinVertexIndex,UINT NumVertices,UINT PrimitiveCount,CONST void* pIndexData,D3DFORMAT IndexDataFormat,CONST void* pVertexStreamZeroData,UINT VertexStreamZeroStride)
+{
+	SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
+
+	return D3DProxyDevice::DrawIndexedPrimitiveUP(PrimitiveType, MinVertexIndex, NumVertices, PrimitiveCount, pIndexData, IndexDataFormat, pVertexStreamZeroData, VertexStreamZeroStride);
+}

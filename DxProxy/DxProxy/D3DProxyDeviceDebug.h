@@ -35,7 +35,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ProxyHelper.h"
 
 /**
-* 
+* Class to output a debug log file.
 */
 class D3DProxyDeviceDebug : public D3DProxyDevice
 {
@@ -111,13 +111,9 @@ public:
 	virtual HRESULT WINAPI DrawTriPatch(UINT Handle,CONST float* pNumSegs,CONST D3DTRIPATCH_INFO* pTriPatchInfo);
 	virtual HRESULT WINAPI CreateQuery(D3DQUERYTYPE Type,IDirect3DQuery9** ppQuery);
 
-	///*** DataGatherer public methods ***/
-	//virtual void Init(ProxyHelper::ProxyConfig& cfg);
-	//virtual void HandleControls();
-
 private:
 	/**
-	* The shader dump file (.csv format).
+	* The debug log file.
 	***/
 	std::ofstream m_logFile;
 };
