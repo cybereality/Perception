@@ -1983,7 +1983,11 @@ HRESULT WINAPI D3DProxyDevice::SetPixelShader(IDirect3DPixelShader9* pShader)
 	if (pWrappedPShaderData)
 		result = BaseDirect3DDevice9::SetPixelShader(pWrappedPShaderData->getActual());
 	else
+	{
+		OutputDebugString("Pixel Shader not wrapped !");
 		result = BaseDirect3DDevice9::SetPixelShader(NULL);
+		return result;
+	}
 
 	// Update stored proxy pixel shader
 	if (SUCCEEDED(result)) {

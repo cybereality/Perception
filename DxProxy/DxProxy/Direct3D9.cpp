@@ -207,6 +207,42 @@ HRESULT WINAPI BaseDirect3D9::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, 
 	char buf[64];
 	sprintf_s(buf, "Number of back buffers = %d\n", pPresentationParameters->BackBufferCount);
 	OutputDebugString(buf);
+	sprintf_s(buf, "Format of back buffers = %x\n", pPresentationParameters->BackBufferFormat);
+	OutputDebugString(buf);
+
+	// for debug reasons, output the d3dswapeffect parameter
+	switch (pPresentationParameters->SwapEffect)
+	{
+	case D3DSWAPEFFECT::D3DSWAPEFFECT_COPY:
+		OutputDebugString("D3DSWAPEFFECT_COPY");
+		break;
+	case D3DSWAPEFFECT::D3DSWAPEFFECT_DISCARD:
+		OutputDebugString("D3DSWAPEFFECT_DISCARD");
+		break;
+	case D3DSWAPEFFECT::D3DSWAPEFFECT_FLIP:
+		OutputDebugString("D3DSWAPEFFECT_FLIP");
+		break;
+	case D3DSWAPEFFECT::D3DSWAPEFFECT_FLIPEX:
+		OutputDebugString("D3DSWAPEFFECT_FLIPEX");
+		break;
+	case D3DSWAPEFFECT::D3DSWAPEFFECT_OVERLAY:
+		OutputDebugString("D3DSWAPEFFECT_OVERLAY");
+		break;
+	default:
+		char buf[256];
+		sprintf_s(buf, 256, "D3DPRESENT_PARAMETERS::SwapEffect %x", pPresentationParameters->SwapEffect);
+		OutputDebugString(buf);
+		break;
+	}
+
+	// if no back buffer present (=D3DFMT_UNKNOWN), return base device - TODO !!! 
+	// DOES NOT WORK since the shaders will not be wrapped by the base device
+	// create a special device for that.....
+	/*if ((pPresentationParameters->BackBufferCount == 0) && (pPresentationParameters->BackBufferFormat == D3DFORMAT::D3DFMT_UNKNOWN))
+	{
+		*ppReturnedDeviceInterface = new BaseDirect3DDevice9(*ppReturnedDeviceInterface, this);
+		return hResult;
+	}*/
 
 	// load configuration file
 	ProxyHelper helper = ProxyHelper();
