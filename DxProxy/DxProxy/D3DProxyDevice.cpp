@@ -211,7 +211,7 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	ChangeGUI3DDepthMode(GUI_3D_Depth_Modes::GUI_DEFAULT);
 
 	hotkeyCatch = false;
-	resetVRBoostHotkey = 0;
+	toggleVRBoostHotkey = 0;
 	for (int i = 0; i < 5; i++)
 	{
 		guiHotkeys[i] = 0;
@@ -356,9 +356,10 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 #pragma endregion
 
 	screenshot = (int)false;
-	VRboostRulesSaved = false; // TODO !! delete
 	m_VRboostRulesPresent = false;
 	m_bForceMouseEmulation = false;
+	m_bVRBoostToggle = true;
+	m_fVRBoostIndicator = 0.0f;
 	m_VertexShaderCount = 0;
 	m_VertexShaderCountLastFrame = 0;
 
@@ -1113,6 +1114,8 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 		{
 			if ((BRASSA_mode>=BRASSA_Modes::MAINMENU) && (BRASSA_mode<BRASSA_Modes::BRASSA_ENUM_RANGE))
 				BRASSA();
+			else
+				BRASSA_AdditionalOutput();
 		}
 
 		// handle controls
@@ -1132,6 +1135,8 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 		{
 			if ((BRASSA_mode>=BRASSA_Modes::MAINMENU) && (BRASSA_mode<BRASSA_Modes::BRASSA_ENUM_RANGE))
 				BRASSA();
+			else
+				BRASSA_AdditionalOutput();
 		}
 	}
 
@@ -1152,6 +1157,8 @@ HRESULT WINAPI D3DProxyDevice::EndScene()
 	{
 		if ((BRASSA_mode>=BRASSA_Modes::MAINMENU) && (BRASSA_mode<BRASSA_Modes::BRASSA_ENUM_RANGE))
 			BRASSA();
+		else
+			BRASSA_AdditionalOutput();
 	}
 	return BaseDirect3DDevice9::EndScene();
 }
@@ -2294,10 +2301,19 @@ void D3DProxyDevice::HandleControls()
 		}
 	}
 	// test VRBoost reset hotkey
-	if (KEY_DOWN(resetVRBoostHotkey))
+	if (KEY_DOWN(toggleVRBoostHotkey) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		if (hmVRboost!=NULL)
+		{
 			m_pVRboost_ReleaseAllMemoryRules();
+			m_bVRBoostToggle = !m_bVRBoostToggle;
+			if (trackerInitialized) tracker->reset();
+
+			// set the indicator to be drawn
+			m_fVRBoostIndicator = 1.0f;
+
+			menuVelocity.x += 4.0f;
+		}
 	}
 	// avoid double input by using the menu velocity
 	if (hotkeyPressed)
@@ -2383,7 +2399,7 @@ void D3DProxyDevice::HandleTracking()
 	m_isFirstBeginSceneOfFrame = false;
 
 	// update vrboost, if present, tracker available and shader count higher than the minimum
-	if ((!m_bForceMouseEmulation) && (hmVRboost) && (m_VRboostRulesPresent) && (tracker->isAvailable())
+	if ((!m_bForceMouseEmulation) && (hmVRboost) && (m_VRboostRulesPresent) && (tracker->isAvailable()) && (m_bVRBoostToggle)
 		&& (m_VertexShaderCountLastFrame>(UINT)config.VRboostMinShaderCount) 
 		&& (m_VertexShaderCountLastFrame<(UINT)config.VRboostMaxShaderCount) )
 	{
@@ -2402,124 +2418,6 @@ void D3DProxyDevice::HandleTracking()
 				if (config.VRboostPath != "")
 					m_pVRboost_LoadMemoryRules(config.game_exe, config.VRboostPath);
 			}
-			else
-			{
-				// EXAMPLE : Create shader rules
-				m_pVRboost_ReleaseAllMemoryRules();
-#pragma region BioShock
-
-				// BioShock
-				if (config.game_exe == "bioshock.exe")
-				{
-					m_pVRboost_SetProcess(config.game_exe, config.game_exe);
-
-					// create offsets : yaw
-					{
-						// First offset is the number of used offsets
-						DWORD offsets[] = { 3, 0x494, 0x58, 0x1d0, 0x00, 0x00};
-						DWORD cOffsets1[] = { 3, 0x628, 0x58, 0x1d0, 0x00, 0x00};
-						DWORD cOffsets2[] = { 3, 0x738, 0x58, 0x1d0, 0x00, 0x00};
-
-						// create skyrim shader rules here
-						m_pVRboost_CreateFloatMemoryRule((DWORD)FloatUnrealCompass, (UINT)TrackerYaw, D3DXVECTOR4(), 0x0034BC, offsets, 0x01000000, 0x2A000000, 0x00057B20, cOffsets1, 0, 0x000057C30, cOffsets2, 0);
-					}
-					// create offsets : pitch
-					{
-						DWORD offsets[] = { 3, 0x4, 0x28, 0x1cc, 0x0, 0x0};
-						DWORD cOffsets1[] = { 3, 0x4, 0x4c, 0x1cc, 0x0, 0x0};
-						DWORD cOffsets2[] = { 3, 0x4, 0x50, 0x1cc, 0x0, 0x0};
-
-						// create skyrim shader rules here
-						m_pVRboost_CreateFloatMemoryRule((DWORD)FloatUnrealAxis, (UINT)TrackerPitch, D3DXVECTOR4(), 0x004D15AC, offsets, 0x01000000, 0x2A000000, 0x004D15AC, cOffsets1, 0, 0x004D15AC, cOffsets2, 0);
-					}
-				}
-#pragma endregion
-#pragma region The Elder Scrolls V : Skyrim
-
-				// The Elder Scrolls V : Skyrim
-				if (config.game_exe == "TESV.exe")
-				{
-					m_pVRboost_SetProcess(config.game_exe, config.game_exe);
-
-					// create offsets : yaw
-					{
-						DWORD offsets[] = { 5, 0xBC, 0x2C, 0x68, 0x04, 0x30};
-						DWORD cOffsets1[] = { 1, 0x1C, 0x00, 0x00, 0x00, 0x00 };
-						DWORD cOffsets2[] = { 5, 0xD0, 0x2C, 0x68, 0x04, 0x30 };
-
-						// create skyrim shader rules here
-						m_pVRboost_CreateFloatMemoryRule((DWORD)FloatGaussianCompass, (UINT)TrackerYaw, D3DXVECTOR4(), 0xF1063C, offsets, 0x12000000, 0x13000000, 0xF1063C, cOffsets1, 0, 0xF10588, cOffsets2, 0);
-					}
-					// create offsets : pitch
-					{
-						// First offset is the number of used offsets
-						DWORD offsets[] = { 1, 0x14, 0x00, 0x00, 0x00, 0x00 };
-						DWORD cOffsets1[] = { 5, 0xBC, 0x2C, 0x68, 0x04, 0x30};
-						DWORD cOffsets2[] = { 1, 0x1C, 0x00, 0x00, 0x00, 0x00 };
-
-						// create skyrim shader rules here
-						m_pVRboost_CreateFloatMemoryRule((DWORD)FloatSimpleNegativeApply, (UINT)TrackerPitch, D3DXVECTOR4(), 0xF1063C, offsets, 0x12000000, 0x13000000, 0xF1063C, cOffsets1, 2, 0xF1063C, cOffsets2, 2);
-					}
-					// create offsets : World FOV
-					{
-						// First offset is the number of used offsets
-						DWORD offsets[] = { 0, 0x00, 0x00, 0x00, 0x00, 0x00 };
-						DWORD cOffsets1[] = { 0, 0x00, 0x00, 0x00, 0x00, 0x00 };
-						DWORD cOffsets2[] = { 0, 0x00, 0x00, 0x00, 0x00, 0x00 };
-
-						// create skyrim shader rules here
-						m_pVRboost_CreateFloatMemoryRule((DWORD)FloatSimpleApply, (UINT)24, D3DXVECTOR4(), 0x1739A4C, offsets, 0x00000000, 0x13000000, 0x1739A4C, cOffsets1, 0, 0x1739A4C, cOffsets2, 0);
-					}
-					// create offsets : Player FOV
-					{
-						// First offset is the number of used offsets
-						DWORD offsets[] = { 0, 0x00, 0x00, 0x00, 0x00, 0x00 };
-						DWORD cOffsets1[] = { 0, 0x00, 0x00, 0x00, 0x00, 0x00 };
-						DWORD cOffsets2[] = { 0, 0x00, 0x00, 0x00, 0x00, 0x00 };
-
-						// create skyrim shader rules here
-						m_pVRboost_CreateFloatMemoryRule((DWORD)FloatSimpleApply, (UINT)25, D3DXVECTOR4(), 0x1739A50, offsets, 0x00000000, 0x13000000, 0x1739A50, cOffsets1, 0, 0x1739A50, cOffsets2, 0);
-					}
-				}
-#pragma endregion
-			}
-		}
-		else
-		{
-#pragma region Save VRboost rules
-			// EXAMPLE : Save VRboost rules
-			if ((createNSave) && (!VRboostRulesSaved))
-			{
-				// save data
-				ProxyHelper* helper = new ProxyHelper();
-
-				// get filename by target exe name
-				std::string VRboostFilename = config.game_exe;
-				auto ext = VRboostFilename.find("exe");
-				if (ext!=std::string::npos)
-				{
-					VRboostFilename.replace(ext,3,"MTB");
-					VRboostFilename += "S";
-				}
-				else
-					VRboostFilename = "default.MTBS";
-
-				// ... and add path, delete proxy helper
-				std::stringstream sstm;
-				sstm << helper->GetBaseDir() << "cfg\\VRboost_rules\\" << VRboostFilename;
-				config.VRboostPath = sstm.str();
-
-				// save config
-				helper->SaveConfig(config);
-				delete helper;
-
-				// save VRboost rules
-				m_pVRboost_SaveMemoryRules(config.VRboostPath);
-
-				// set saved to true
-				VRboostRulesSaved = true;
-			}
-#pragma endregion
 		}
 	}
 }
@@ -4185,7 +4083,7 @@ void D3DProxyDevice::BRASSA_Settings()
 			if (KEY_DOWN(i) && (keyNameList[i]!="-"))
 			{
 				hotkeyCatch = false;
-				resetVRBoostHotkey = (byte)i;
+				toggleVRBoostHotkey = (byte)i;
 			}
 	}
 	else
@@ -4235,11 +4133,16 @@ void D3DProxyDevice::BRASSA_Settings()
 
 				menuVelocity.x += 4.0f;
 			}
-			// reset VRBoost
+			// Toggle VRBoost
 			if (entryID == 8)
 			{
 				if (hmVRboost!=NULL)
+				{
 					m_pVRboost_ReleaseAllMemoryRules();
+					m_bVRBoostToggle = !m_bVRBoostToggle;
+					if (trackerInitialized) tracker->reset();
+					menuVelocity.x+=2.0f;
+				}
 			}
 			// VRBoost hotkey
 			if (entryID == 9)
@@ -4285,7 +4188,7 @@ void D3DProxyDevice::BRASSA_Settings()
 			// reset hotkey
 			if (entryID == 9)
 			{
-				resetVRBoostHotkey = 0;
+				toggleVRBoostHotkey = 0;
 				menuVelocity.x+=2.0f;
 			}
 		}
@@ -4468,11 +4371,19 @@ void D3DProxyDevice::BRASSA_Settings()
 			break;
 		}
 		menuHelperRect.top += 40;
-		DrawTextShadowed(hudFont, hudMainMenu, "Reset VRBoost", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		switch (m_bVRBoostToggle)
+		{
+		case true:
+			DrawTextShadowed(hudFont, hudMainMenu, "Toggle VRBoost : On", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 64, 255, 64));
+			break;
+		case false:
+			DrawTextShadowed(hudFont, hudMainMenu, "Toggle VRBoost : Off", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 128, 128));
+			break;
+		}
 		menuHelperRect.top += 40;
-		sprintf_s(vcString,"Hotkey >Reset VRBoost< : ");
+		sprintf_s(vcString,"Hotkey >Toggle VRBoost< : ");
 		std::string stdString = std::string(vcString);
-		stdString.append(keyNameList[resetVRBoostHotkey]);
+		stdString.append(keyNameList[toggleVRBoostHotkey]);
 		if ((hotkeyCatch) && (entryID==9))
 			stdString = "Press the desired key.";
 		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
@@ -4650,15 +4561,17 @@ void D3DProxyDevice::BRASSA_UpdateBorder()
 	{
 		if ((BRASSA_mode>=BRASSA_Modes::MAINMENU) && (BRASSA_mode<BRASSA_Modes::BRASSA_ENUM_RANGE))
 			BRASSA();
+		else
+			BRASSA_AdditionalOutput();
 	}
 
 	// first, calculate a time scale to adjust the menu speed for the frame speed of the game
 	float timeStamp;
 	timeStamp = (float)GetTickCount()/1000.0f;
-	float seconds = timeStamp-menuTime;
+	menuSeconds = timeStamp-menuTime;
 	menuTime = timeStamp;
 	// tested having about 50 fps, so menu velocity is based on that
-	float timeScale = (float)seconds*50;
+	float timeScale = (float)menuSeconds*50;
 
 	// menu velocity present ? in case calculate diminution of the velocity
 	if (menuVelocity != D3DXVECTOR2(0.0f, 0.0f))
@@ -4723,7 +4636,7 @@ void D3DProxyDevice::BRASSA_UpdateConfigSettings()
 	}
 	config.guiHotkeys[4] = guiHotkeys[4];
 
-	config.VRBoostResetHotkey = resetVRBoostHotkey;
+	config.VRBoostResetHotkey = toggleVRBoostHotkey;
 	config.WorldFOV = VRBoostValue[VRboostAxis::WorldFOV];
 	config.PlayerFOV = VRBoostValue[VRboostAxis::PlayerFOV];
 	config.FarPlaneFOV = VRBoostValue[VRboostAxis::FarPlaneFOV];
@@ -4771,7 +4684,7 @@ void D3DProxyDevice::BRASSA_UpdateDeviceSettings()
 	ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)config.gui3DDepthMode);
 
 	// VRBoost
-	resetVRBoostHotkey = config.VRBoostResetHotkey;
+	toggleVRBoostHotkey = config.VRBoostResetHotkey;
 	VRBoostValue[VRboostAxis::WorldFOV] = config.WorldFOV;
 	VRBoostValue[VRboostAxis::PlayerFOV] = config.PlayerFOV;
 	VRBoostValue[VRboostAxis::FarPlaneFOV] = config.FarPlaneFOV;
@@ -4838,6 +4751,27 @@ void D3DProxyDevice::BRASSA_UpdateDeviceSettings()
 		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
 		m_deviceBehavior.whenToRenderBRASSA = DeviceBehavior::WhenToDo::PRESENT;
 		break;
+	}
+}
+
+/**
+* Additional output when menu is not drawn.
+***/
+void D3DProxyDevice::BRASSA_AdditionalOutput()
+{
+	// draw vrboost toggle indicator
+	if (m_fVRBoostIndicator>0.0f)
+	{
+		D3DRECT rec;
+		rec.x1 = (int)(viewportWidth*(0.5f-(m_fVRBoostIndicator*0.05f))); rec.x2 = (int)(viewportWidth*(0.5f+(m_fVRBoostIndicator*0.05f))); 
+		rec.y1 = (int)(viewportHeight*(0.4f-(m_fVRBoostIndicator*0.05f))); rec.y2 = (int)(viewportHeight*(0.4f+(m_fVRBoostIndicator*0.05f)));
+		if (m_bVRBoostToggle)
+			ClearRect(vireio::RenderPosition::Left, rec, D3DCOLOR_ARGB(255,64,255,64));
+		else
+			ClearRect(vireio::RenderPosition::Left, rec, D3DCOLOR_ARGB(255,255,128,128));
+
+		// update the indicator float
+		m_fVRBoostIndicator-=menuSeconds;
 	}
 }
 

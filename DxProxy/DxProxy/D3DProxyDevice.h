@@ -296,12 +296,6 @@ public:
 	***/
 	float VRBoostValue[MAX_VRBOOST_VALUES];
 	/**
-	* True if VRboost memory rules are saved.
-	* Delete this when VRboost rule creation tool is out.
-	* Used only if rules are created here in code.
-	***/
-	bool VRboostRulesSaved;
-	/**
 	* Currently not used.
 	***/
 	float* currentMatrix;
@@ -358,7 +352,11 @@ public:
 	/**
 	* Timestamp used to adjust the menu velocity independent of game speed.
 	**/
-	float menuTime;	
+	float menuTime;
+	/**
+	* Timespan of every frame (in seconds).
+	***/
+	float menuSeconds;
 	/**
 	* True if head tracking initialized.
 	**/
@@ -484,6 +482,14 @@ protected:
 	**/
 	bool m_bForceMouseEmulation;
 	/**
+	* True if VRBoost is on.
+	**/
+	bool m_bVRBoostToggle;
+	/**
+	* Timespan the VRBoost indicator should be drawn.
+	**/
+	float m_fVRBoostIndicator;
+	/**
 	* Counts the current vertex shader set calls.
 	* Used for VRboost security.
 	***/
@@ -538,6 +544,7 @@ private:
 	void    BRASSA_UpdateBorder();
 	void    BRASSA_UpdateConfigSettings();
 	void    BRASSA_UpdateDeviceSettings();
+	void    BRASSA_AdditionalOutput();
 	void    ReleaseEverything();
 	bool    isViewportDefaultForMainRT(CONST D3DVIEWPORT9* pViewport);
 	HRESULT SetStereoViewTransform(D3DXMATRIX pLeftMatrix, D3DXMATRIX pRightMatrix, bool apply);
@@ -733,9 +740,9 @@ private:
 	***/
 	byte hudHotkeys[5];
 	/**
-	* Hotkey for VRBoost reset.
+	* Hotkey for VRBoost toggle.
 	***/
-	byte resetVRBoostHotkey;
+	byte toggleVRBoostHotkey;
 	/**
 	* True if BRASSA is waiting to catch a hotkey.
 	***/

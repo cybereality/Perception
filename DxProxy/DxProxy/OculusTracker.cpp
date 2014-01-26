@@ -73,6 +73,16 @@ int OculusTracker::init()
 }
 
 /**
+* Oculus reset.
+* Resets the orientation.
+***/
+void OculusTracker::reset()
+{
+	if (pSensor)
+		SFusion.Reset();
+}
+
+/**
 * Retrieve Oculus tracker orientation.
 * Reads device input and returns orientation (yaw and roll negated). All Orientations are in degrees.
 * Roll gets converted back to radians in updateOrientation.

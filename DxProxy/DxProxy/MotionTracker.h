@@ -48,6 +48,7 @@ public:
 
 	/*** MotionTracker virtual public methods ***/
 	virtual int  init();
+	virtual void reset() {}
 	virtual int  getOrientation(float* yaw, float* pitch, float* roll);
 	virtual void updateOrientation();
 	virtual bool isAvailable();
