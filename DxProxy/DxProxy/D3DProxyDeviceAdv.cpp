@@ -59,8 +59,8 @@ HRESULT WINAPI D3DProxyDeviceAdv::DrawPrimitive(D3DPRIMITIVETYPE PrimitiveType,U
 ***/
 HRESULT WINAPI D3DProxyDeviceAdv::DrawIndexedPrimitive(D3DPRIMITIVETYPE PrimitiveType,INT BaseVertexIndex,UINT MinVertexIndex,UINT NumVertices,UINT startIndex,UINT primCount)
 {
+	if (NumVertices==4) setDrawingSide(vireio::Left);
 	SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
-
 	return D3DProxyDevice::DrawIndexedPrimitive(PrimitiveType, BaseVertexIndex, MinVertexIndex, NumVertices, startIndex, primCount);
 }
 
