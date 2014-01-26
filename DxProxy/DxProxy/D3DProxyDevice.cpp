@@ -1991,7 +1991,6 @@ HRESULT WINAPI D3DProxyDevice::SetPixelShader(IDirect3DPixelShader9* pShader)
 		result = BaseDirect3DDevice9::SetPixelShader(pWrappedPShaderData->getActual());
 	else
 	{
-		OutputDebugString("Pixel Shader not wrapped !");
 		result = BaseDirect3DDevice9::SetPixelShader(NULL);
 		return result;
 	}
