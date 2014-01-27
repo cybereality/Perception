@@ -340,6 +340,14 @@ map<int, int> trackerModes;
 
 int WINAPI wWinMain(HINSTANCE instance_handle, HINSTANCE, LPWSTR, INT) {  
 
+	// avoid double driver window
+	HWND window = FindWindow( "perception", "Vireio Perception");
+    if( window != 0 )
+    {
+		OutputDebugString("Vireio Perception is already present !");
+		return 0;
+    }
+
 	InitConfig();
 	InitModes();
 	InstallHook();
