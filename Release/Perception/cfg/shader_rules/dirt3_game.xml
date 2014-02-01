@@ -12,6 +12,10 @@
     <rule constantName="prevViewProj" partialName="true" id="8" constantType="MatrixC" modToApply="2" startReg="48" transpose="false" />
     <rule constantName="previousViewProj" partialName="true" id="10" constantType="MatrixC" modToApply="2" startReg="44" transpose="false" />
     <rule constantName="ModelViewProj" partialName="true" id="11" constantType="MatrixC" modToApply="2" startReg="40" transpose="false" />
+    <rule constantName="viewProjection" partialName="true" id="12" constantType="MatrixC" modToApply="9" startReg="4" transpose="false" />
+    <rule constantName="prevViewProj" partialName="true" id="13" constantType="MatrixC" modToApply="0" startReg="190" transpose="false" />
+    <rule constantName="modelViewProj" partialName="true" id="14" constantType="MatrixC" modToApply="0" startReg="44" transpose="false" />
+    <rule constantName="prevViewProj" partialName="true" id="15" constantType="MatrixC" modToApply="0" startReg="40" transpose="false" />
   </rules>
   <defaultRuleIDs>
     <ruleID id="1" />
@@ -26,4 +30,20 @@
     <ruleID id="10" />
     <ruleID id="11" />
   </defaultRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="546953470">
+    <ruleID id="12" />
+    <!--Shadow fix - null modification except convergence offset-->
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="2012477273">
+    <ruleID id="12"></ruleID>
+    <!--Shadow fix - null modification except convergence offset-->
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="2701027064">
+    <ruleID id="12"></ruleID>
+    <!--Shadow fix - null modification except convergence offset-->
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="2943538595">
+    <ruleID id="12"></ruleID>
+    <!--Shadow fix - null modification except convergence offset-->
+  </shaderSpecificRuleIDs>
 </shaderConfig>
