@@ -154,16 +154,10 @@ bool GameHandler::ShouldDuplicateRenderTarget(UINT Width, UINT Height, D3DFORMAT
 		return Width != Height;
 
 	case D3DProxyDevice::ProxyTypes::EGO:
-		if (isSwapChainBackBuffer) {
-			return true;
-		}
-		return (Width != Height) && (Width >= 1680);  
+		return true;  
 
 	case D3DProxyDevice::ProxyTypes::EGO_DIRT:
-		if (isSwapChainBackBuffer) {
-			return true;
-		}
-		return (Width != Height) && (Width >= 1680);  
+		return true; 
 
 	case D3DProxyDevice::ProxyTypes::REALV:
 		// NOT TESTED NOW !
@@ -231,10 +225,10 @@ bool GameHandler::ShouldDuplicateDepthStencilSurface(UINT Width,UINT Height,D3DF
 		return Width != Height;
 
 	case D3DProxyDevice::ProxyTypes::EGO:
-		return (Width != Height) && (Width >= 1680); 
+		return true;
 
 	case D3DProxyDevice::ProxyTypes::EGO_DIRT:
-		return (Width != Height) && (Width >= 1680); 
+		return true;
 
 	case D3DProxyDevice::ProxyTypes::REALV:
 		// NOT TESTED NOW !
@@ -316,12 +310,12 @@ bool GameHandler::ShouldDuplicateTexture(UINT Width,UINT Height,UINT Levels,DWOR
 	case D3DProxyDevice::ProxyTypes::EGO:
 		if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
 			return true;
-		return IS_RENDER_TARGET(Usage) && ((Width != Height) && (Width >= 1680) && (Format != 21)); 
+		return IS_RENDER_TARGET(Usage);
 
 	case D3DProxyDevice::ProxyTypes::EGO_DIRT:
 		if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
 			return true;
-		return IS_RENDER_TARGET(Usage) && ((Width != Height) && (Width >= 1680) && (Format != 21));
+		return IS_RENDER_TARGET(Usage);
 
 	case D3DProxyDevice::ProxyTypes::REALV:
 		// NOT TESTED NOW !
