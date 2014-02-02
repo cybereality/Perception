@@ -17,6 +17,7 @@
     <rule constantName="viewProjection" partialName="true" id="14" constantType="MatrixC" modToApply="0" startReg="4" transpose="false" />
     <rule constantName="modelViewProj" partialName="true" id="15" constantType="MatrixC" modToApply="0" startReg="40" transpose="false" />
     <rule constantName="modelViewProj" partialName="true" id="16" constantType="MatrixC" modToApply="9" startReg="40" transpose="false" />
+    <rule constantName="viewProjection" partialName="true" id="17" constantType="MatrixC" modToApply="15" startReg="4" transpose="false" />
   </rules>
   <defaultRuleIDs>
     <ruleID id="1" />
@@ -70,5 +71,9 @@
   <shaderSpecificRuleIDs shaderHash="3064525722">
     <ruleID id="13"></ruleID>
     <!--Shadow fix - simple modification -->
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="443001738">
+    <ruleID id="17"></ruleID>
+    <!--remove black bars - disable shader-->
   </shaderSpecificRuleIDs>
 </shaderConfig>
