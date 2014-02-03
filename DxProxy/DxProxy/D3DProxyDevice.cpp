@@ -2187,6 +2187,7 @@ void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 	m_pGameHandler->Load(config, m_spShaderViewAdjustment);
 	stereoView = StereoViewFactory::Get(config, m_spShaderViewAdjustment->HMDInfo());
 	stereoView->DistortionScale = config.DistortionScale;
+	m_maxDistortionScale = config.DistortionScale;
 
 	BRASSA_UpdateDeviceSettings();
 	OnCreateOrRestore();
@@ -2351,6 +2352,31 @@ void D3DProxyDevice::HandleControls()
 
 		menuVelocity.x+=2.0f;
 	}
+
+	//Change Distortion Scale CTRL + + / -
+	if(KEY_DOWN(VK_LCONTROL) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	{
+		if(config.DistortionScale > 0.00f)
+		{
+			m_maxDistortionScale = config.DistortionScale;
+		}
+		if(KEY_DOWN(VK_ADD))
+		{
+			if(this->stereoView->DistortionScale < m_maxDistortionScale)
+			{
+				this->stereoView->DistortionScale += 0.05f;
+				this->stereoView->PostReset();										
+			}
+		}
+		else if(KEY_DOWN(VK_SUBTRACT))
+		{
+			if(this->stereoView->DistortionScale > -1.0f)
+			{
+				this->stereoView->DistortionScale -= 0.05f;
+				this->stereoView->PostReset();				
+			}
+		}		
+	}	
 
 	// screenshot - <RCONTROL>+<*>
 	if(KEY_DOWN(VK_MULTIPLY) && KEY_DOWN(VK_RCONTROL) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))		

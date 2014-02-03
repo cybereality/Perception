@@ -491,6 +491,10 @@ protected:
 	**/
 	float m_fVRBoostIndicator;
 	/**
+	* Maximum Distortion Scale the Quicklinks will zoom to
+	**/
+	float m_maxDistortionScale;
+	/**
 	* Counts the current vertex shader set calls.
 	* Used for VRboost security.
 	***/
