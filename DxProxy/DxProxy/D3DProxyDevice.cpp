@@ -2217,7 +2217,7 @@ void D3DProxyDevice::HandleControls()
 	if(Result == ERROR_SUCCESS)
 	{
 		// set buttons by flags
-		for(DWORD i = 0; i < 16; ++i) 
+		for(DWORD i = 0; i < 16; i++) 
 			if((m_xInputState.Gamepad.wButtons >> i) & 1) 
 				m_xButtons[i] = true;
 			else 
@@ -2319,7 +2319,7 @@ void D3DProxyDevice::HandleControls()
 	if (hotkeyPressed)
 		menuVelocity.x+=2.0f;
 
-	// open BRASSA - <CTRL>+<T>
+	// open BRASSA - <CTRL>+<Q>
 	if(KEY_DOWN(0x51) && KEY_DOWN(VK_LCONTROL) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		if (BRASSA_mode == BRASSA_Modes::INACTIVE)
