@@ -2217,7 +2217,7 @@ void D3DProxyDevice::HandleControls()
 	if(Result == ERROR_SUCCESS)
 	{
 		// set buttons by flags
-		for(DWORD i = 0; i < 16; ++i) 
+		for(DWORD i = 0; i < 16; i++) 
 			if((m_xInputState.Gamepad.wButtons >> i) & 1) 
 				m_xButtons[i] = true;
 			else 
