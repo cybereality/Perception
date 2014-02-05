@@ -84,6 +84,7 @@
   <ItemGroup>
     <ClInclude Include="..\DxProxy\DxProxy\pugiconfig.hpp" />
     <ClInclude Include="..\DxProxy\DxProxy\pugixml.hpp" />
+    <ClInclude Include="VRBoostEnums.h" />
     <ClInclude Include="VRboostReferee.h" />
   </ItemGroup>
   <ItemGroup>

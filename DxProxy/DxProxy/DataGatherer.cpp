@@ -29,9 +29,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "DataGatherer.h"
 
-#define KEY_DOWN(vk_code) (((GetAsyncKeyState(vk_code) & 0x8000) ? 1 : 0) || ((vk_code >= 0xD0) && (vk_code<=0xDF) && (m_xButtons[vk_code%0x10])))
-#define KEY_UP(vk_code) ((GetAsyncKeyState(vk_code) & 0x8000) ? 0 : 1)
-
 #define MATRIX_NAMES 17
 #define AVOID_SUBSTRINGS 2
 #define ANALYZE_FRAMES 500
@@ -699,12 +696,12 @@ void DataGatherer::BRASSA_ShaderSubMenu()
 	/**
 	* ESCAPE : Set BRASSA inactive and save the configuration.
 	***/
-	if (KEY_DOWN(VK_ESCAPE))
+	if (controls.Key_Down(VK_ESCAPE))
 	{
 		BRASSA_mode = BRASSA_Modes::INACTIVE;
 	}
 
-	if ((KEY_DOWN(VK_RETURN) || KEY_DOWN(VK_RSHIFT) || (m_xButtons[0x0c])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	if ((controls.Key_Down(VK_RETURN) || controls.Key_Down(VK_RSHIFT) || (controls.xButtonsStatus[0x0c])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		// 
 		if (entryID == 0)
@@ -897,12 +894,12 @@ void DataGatherer::BRASSA_ChangeRules()
 	/**
 	* ESCAPE : Set BRASSA inactive and save the configuration.
 	***/
-	if (KEY_DOWN(VK_ESCAPE))
+	if (controls.Key_Down(VK_ESCAPE))
 	{
 		BRASSA_mode = BRASSA_Modes::INACTIVE;
 	}
 
-	if ((KEY_DOWN(VK_RETURN) || KEY_DOWN(VK_RSHIFT) || (m_xButtons[0x0c])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	if ((controls.Key_Down(VK_RETURN) || controls.Key_Down(VK_RSHIFT) || (controls.xButtonsStatus[0x0c])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		// switch shader rule node
 		if ((entryID >= 0) && (entryID < menuEntryCount-2) && (menuEntryCount>2))
@@ -1039,7 +1036,7 @@ void DataGatherer::BRASSA_ChangeRules()
 		}
 	}
 
-	if ((KEY_DOWN(VK_LEFT) || KEY_DOWN(0x4A) || (m_xInputState.Gamepad.sThumbLX<-8192)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	if ((controls.Key_Down(VK_LEFT) || controls.Key_Down(0x4A) || (controls.xInputState.Gamepad.sThumbLX<-8192)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		// switch shader rule node
 		if ((entryID >= 0) && (entryID < menuEntryCount-2) && (menuEntryCount>2))
@@ -1084,7 +1081,7 @@ void DataGatherer::BRASSA_ChangeRules()
 		menuVelocity.x+=2.0f;
 	}
 
-	if ((KEY_DOWN(VK_RIGHT) || KEY_DOWN(0x4C) || (m_xInputState.Gamepad.sThumbLX>8192)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	if ((controls.Key_Down(VK_RIGHT) || controls.Key_Down(0x4C) || (controls.xInputState.Gamepad.sThumbLX>8192)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		// switch shader rule node
 		if ((entryID >= 0) && (entryID < menuEntryCount-2) && (menuEntryCount>2))
@@ -1271,12 +1268,12 @@ void DataGatherer::BRASSA_ShowActiveShaders()
 	/**
 	* ESCAPE : Set BRASSA inactive and save the configuration.
 	***/
-	if (KEY_DOWN(VK_ESCAPE))
+	if (controls.Key_Down(VK_ESCAPE))
 	{
 		BRASSA_mode = BRASSA_Modes::INACTIVE;
 	}
 
-	if ((KEY_DOWN(VK_RETURN) || KEY_DOWN(VK_RSHIFT) || (m_xButtons[0x0c])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	if ((controls.Key_Down(VK_RETURN) || controls.Key_Down(VK_RSHIFT) || (controls.xButtonsStatus[0x0c])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		// switch shader node (drawn/not-drawn)
 		if ((entryID >= 0) && (entryID < menuEntryCount-2) && (menuEntryCount>2))

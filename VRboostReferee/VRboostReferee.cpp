@@ -30,7 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "VRboostReferee.h"
 
 using namespace pugi;
-
+using namespace VRBoost;
 
 /**
 * Returns the enumeration value of the string rule, -1 if not found.

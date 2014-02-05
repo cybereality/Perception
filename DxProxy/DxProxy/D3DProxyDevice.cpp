@@ -43,9 +43,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma comment(lib, "d3dx9.lib")
 
-#define KEY_DOWN(vk_code) (((GetAsyncKeyState(vk_code) & 0x8000) ? 1 : 0) || ((vk_code >= 0xD0) && (vk_code<=0xDF) && (m_xButtons[vk_code%0x10])))
-#define KEY_UP(vk_code) ((GetAsyncKeyState(vk_code) & 0x8000) ? 0 : 1)
-
 #define SMALL_FLOAT 0.001f
 #define	SLIGHTLY_LESS_THAN_ONE 0.999f
 
@@ -58,11 +55,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MAX_PIXEL_SHADER_CONST_2_X 32
 #define MAX_PIXEL_SHADER_CONST_3_0 224
 
+using namespace VRBoost;
+
 /**
 * Returns the mouse wheel scroll lines.
 ***/
 UINT GetMouseScrollLines()
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called GetMouseScrollLines");
+	#endif
 	int nScrollLines = 3;
 	HKEY hKey;
 
@@ -93,43 +95,17 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	m_activeTextureStages(),
 	m_activeVertexBuffers(),
 	m_activeSwapChains(),
-	m_gameXScaleUnits()
+	m_gameXScaleUnits(),
+	controls()
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3DProxyDevice");
+	#endif
 	OutputDebugString("D3D ProxyDev Created\n");
-
-	// explicit VRboost dll import
-	hmVRboost = LoadLibrary("VRboost.dll");
-
-	// get VRboost methods
-	if (hmVRboost != NULL)
-	{
-		// get methods explicit
-		m_pVRboost_LoadMemoryRules = (LPVRBOOST_LoadMemoryRules)GetProcAddress(hmVRboost, "VRboost_LoadMemoryRules");
-		m_pVRboost_SaveMemoryRules = (LPVRBOOST_SaveMemoryRules)GetProcAddress(hmVRboost, "VRboost_SaveMemoryRules");
-		m_pVRboost_CreateFloatMemoryRule = (LPVRBOOST_CreateFloatMemoryRule)GetProcAddress(hmVRboost, "VRboost_CreateFloatMemoryRule");
-		m_pVRboost_SetProcess = (LPVRBOOST_SetProcess)GetProcAddress(hmVRboost, "VRboost_SetProcess");
-		m_pVRboost_ReleaseAllMemoryRules = (LPVRBOOST_ReleaseAllMemoryRules)GetProcAddress(hmVRboost, "VRboost_ReleaseAllMemoryRules");
-		m_pVRboost_ApplyMemoryRules = (LPVRBOOST_ApplyMemoryRules)GetProcAddress(hmVRboost, "VRboost_ApplyMemoryRules");
-		if ((!m_pVRboost_LoadMemoryRules) || 
-			(!m_pVRboost_SaveMemoryRules) || 
-			(!m_pVRboost_CreateFloatMemoryRule) || 
-			(!m_pVRboost_SetProcess) || 
-			(!m_pVRboost_ReleaseAllMemoryRules) || 
-			(!m_pVRboost_ApplyMemoryRules))
-		{
-			hmVRboost = NULL;
-			FreeLibrary(hmVRboost);
-		}
-		else
-		{
-			OutputDebugString("Success loading VRboost methods.");
-		}
-	}
-
+	InitVRBoost();
 	// rift info
 	HMDisplayInfo defaultInfo; 
 	m_spShaderViewAdjustment = std::make_shared<ViewAdjustment>(defaultInfo, 1.0f, false);
-
 	m_pGameHandler = new GameHandler();
 
 	// Check the maximum number of supported render targets
@@ -155,221 +131,24 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	if ((major_ps>=2) && (minor_ps>0)) MaxPixelShaderConst = MAX_PIXEL_SHADER_CONST_2_X;
 	if ((major_ps>=3) && (minor_ps>=0)) MaxPixelShaderConst = MAX_PIXEL_SHADER_CONST_3_0;
 
-	m_spManagedShaderRegisters = std::make_shared<ShaderRegisters>(MaxPixelShaderConst, capabilities.MaxVertexShaderConst, pDevice);
-
+	m_spManagedShaderRegisters = std::make_shared<ShaderRegisters>(MaxPixelShaderConst, capabilities.MaxVertexShaderConst, pDevice);	
 	m_pActiveStereoDepthStencil = NULL;
 	m_pActiveIndicies = NULL;
 	m_pActivePixelShader = NULL;
 	m_pActiveVertexShader = NULL;
 	m_pActiveVertexDeclaration = NULL;
-	hudFont = NULL;
 	m_bActiveViewportIsDefault = true;
 	m_bViewportIsSquished = false;
-
 	m_bViewTransformSet = false;
 	m_bProjectionTransformSet = false;
-
 	m_bInBeginEndStateBlock = false;
 	m_pCapturingStateTo = NULL;
-
 	m_isFirstBeginSceneOfFrame = true;
-	menuTime = (float)GetTickCount()/1000.0f;
-
-	ZeroMemory(&m_configBackup, sizeof(m_configBackup));
-
 	yaw_mode = 0;
 	pitch_mode = 0;
 	translation_mode = 0;
 	trackingOn = true;
-
-	BRASSA_mode = BRASSA_Modes::INACTIVE;
-	borderTopHeight = 0.0f;
-	menuTopHeight = 0.0f;
-	menuVelocity = D3DXVECTOR2(0.0f, 0.0f);
-	menuAttraction = D3DXVECTOR2(0.0f, 0.0f);
-	hud3DDepthMode = HUD_3D_Depth_Modes::HUD_DEFAULT;
-	gui3DDepthMode = GUI_3D_Depth_Modes::GUI_DEFAULT;
-	oldHudMode = HUD_3D_Depth_Modes::HUD_DEFAULT;
-	oldGuiMode = GUI_3D_Depth_Modes::GUI_DEFAULT;
-	hud3DDepthPresets[0] = 0.0f;
-	hud3DDepthPresets[1] = 0.0f;
-	hud3DDepthPresets[2] = 0.0f;
-	hud3DDepthPresets[3] = 0.0f;
-	hudDistancePresets[0] = 0.5f;
-	hudDistancePresets[1] = 0.9f;
-	hudDistancePresets[2] = 0.3f;
-	hudDistancePresets[3] = 0.0f;
-	gui3DDepthPresets[0] = 0.0f;
-	gui3DDepthPresets[1] = 0.0f;
-	gui3DDepthPresets[2] = 0.0f;
-	gui3DDepthPresets[3] = 0.0f;
-	guiSquishPresets[0] = 0.6f;
-	guiSquishPresets[1] = 0.5f;
-	guiSquishPresets[2] = 0.9f;
-	guiSquishPresets[3] = 1.0f;
-	ChangeHUD3DDepthMode(HUD_3D_Depth_Modes::HUD_DEFAULT);
-	ChangeGUI3DDepthMode(GUI_3D_Depth_Modes::GUI_DEFAULT);
-
-	hotkeyCatch = false;
-	toggleVRBoostHotkey = 0;
-	for (int i = 0; i < 5; i++)
-	{
-		guiHotkeys[i] = 0;
-		hudHotkeys[i] = 0;
-	}
-	for (int i = 0; i < 16; i++)
-		m_xButtons[i] = false;
-
-#pragma region virtual keys name list
-	for (int i = 0; i < 256; i++)
-		keyNameList[i] = "-";
-	keyNameList[0x01] = "Left mouse button";
-	keyNameList[0x02] = "Right mouse button";
-	keyNameList[0x03] = "Control-break processing";
-	keyNameList[0x04] = "Middle mouse button (three-button mouse)";
-	keyNameList[0x08] = "BACKSPACE key";
-	keyNameList[0x09] = "TAB key";
-	keyNameList[0x0C] = "CLEAR key";
-	keyNameList[0x0D] = "ENTER key";
-	keyNameList[0x10] = "SHIFT key";
-	keyNameList[0x11] = "CTRL key";
-	keyNameList[0x12] = "ALT key";
-	keyNameList[0x13] = "PAUSE key";
-	keyNameList[0x14] = "CAPS LOCK key";
-	keyNameList[0x1B] = "ESC key";
-	keyNameList[0x20] = "SPACEBAR";
-	keyNameList[0x21] = "PAGE UP key";
-	keyNameList[0x22] = "PAGE DOWN key";
-	keyNameList[0x23] = "END key";
-	keyNameList[0x24] = "HOME key";
-	keyNameList[0x25] = "LEFT ARROW key";
-	keyNameList[0x26] = "UP ARROW key";
-	keyNameList[0x27] = "RIGHT ARROW key";
-	keyNameList[0x28] = "DOWN ARROW key";
-	keyNameList[0x29] = "SELECT key";
-	keyNameList[0x2A] = "PRINT key";
-	keyNameList[0x2B] = "EXECUTE key";
-	keyNameList[0x2C] = "PRINT SCREEN key";
-	keyNameList[0x2D] = "INS key";
-	keyNameList[0x2E] = "DEL key";
-	keyNameList[0x2F] = "HELP key";
-	keyNameList[0x30] = "0 key";
-	keyNameList[0x31] = "1 key";
-	keyNameList[0x32] = "2 key";
-	keyNameList[0x33] = "3 key";
-	keyNameList[0x34] = "4 key";
-	keyNameList[0x35] = "5 key";
-	keyNameList[0x36] = "6 key";
-	keyNameList[0x37] = "7 key";
-	keyNameList[0x38] = "8 key";
-	keyNameList[0x39] = "9 key";
-	keyNameList[0x41] = "A key";
-	keyNameList[0x42] = "B key";
-	keyNameList[0x43] = "C key";
-	keyNameList[0x44] = "D key";
-	keyNameList[0x45] = "E key";
-	keyNameList[0x46] = "F key";
-	keyNameList[0x47] = "G key";
-	keyNameList[0x48] = "H key";
-	keyNameList[0x49] = "I key";
-	keyNameList[0x4A] = "J key";
-	keyNameList[0x4B] = "K key";
-	keyNameList[0x4C] = "L key";
-	keyNameList[0x4D] = "M key";
-	keyNameList[0x4E] = "N key";
-	keyNameList[0x4F] = "O key";
-	keyNameList[0x50] = "P key";
-	keyNameList[0x51] = "Q key";
-	keyNameList[0x52] = "R key";
-	keyNameList[0x53] = "S key";
-	keyNameList[0x54] = "T key";
-	keyNameList[0x55] = "U key";
-	keyNameList[0x56] = "V key";
-	keyNameList[0x57] = "W key";
-	keyNameList[0x58] = "X key";
-	keyNameList[0x59] = "Y key";
-	keyNameList[0x5A] = "Z key";
-	keyNameList[0x60] = "Numeric keypad 0 key";
-	keyNameList[0x61] = "Numeric keypad 1 key";
-	keyNameList[0x62] = "Numeric keypad 2 key";
-	keyNameList[0x63] = "Numeric keypad 3 key";
-	keyNameList[0x64] = "Numeric keypad 4 key";
-	keyNameList[0x65] = "Numeric keypad 5 key";
-	keyNameList[0x66] = "Numeric keypad 6 key";
-	keyNameList[0x67] = "Numeric keypad 7 key";
-	keyNameList[0x68] = "Numeric keypad 8 key";
-	keyNameList[0x69] = "Numeric keypad 9 key";
-	keyNameList[0x6C] = "Separator key";
-	keyNameList[0x6D] = "Subtract key";
-	keyNameList[0x6E] = "Decimal key";
-	keyNameList[0x6F] = "Divide key";
-	keyNameList[0x70] = "F1 key";
-	keyNameList[0x71] = "F2 key";
-	keyNameList[0x72] = "F3 key";
-	keyNameList[0x73] = "F4 key";
-	keyNameList[0x74] = "F5 key";
-	keyNameList[0x75] = "F6 key";
-	keyNameList[0x76] = "F7 key";
-	keyNameList[0x77] = "F8 key";
-	keyNameList[0x78] = "F9 key";
-	keyNameList[0x79] = "F10 key";
-	keyNameList[0x7A] = "F11 key";
-	keyNameList[0x7B] = "F12 key";
-	keyNameList[0x7C] = "F13 key";
-	keyNameList[0x7D] = "F14 key";
-	keyNameList[0x7E] = "F15 key";
-	keyNameList[0x7F] = "F16 key";
-	keyNameList[0x80] = "F17 key";
-	keyNameList[0x81] = "F18 key";
-	keyNameList[0x82] = "F19 key";
-	keyNameList[0x83] = "F20 key";
-	keyNameList[0x84] = "F21 key";
-	keyNameList[0x85] = "F22 key";
-	keyNameList[0x86] = "F23 key";
-	keyNameList[0x87] = "F24 key";
-	keyNameList[0x90] = "NUM LOCK key";
-	keyNameList[0x91] = "SCROLL LOCK key";
-	keyNameList[0xA0] = "Left SHIFT key";
-	keyNameList[0xA1] = "Right SHIFT key";
-	keyNameList[0xA2] = "Left CONTROL key";
-	keyNameList[0xA3] = "Right CONTROL key";
-	keyNameList[0xA4] = "Left MENU key";
-	keyNameList[0xA5] = "Right MENU key";
-	/// XInput hotkeys from 0xD0 to 0xDF
-	keyNameList[0xD0] = "DPAD UP";
-	keyNameList[0xD1] = "DPAD DOWN";
-	keyNameList[0xD2] = "DPAD LEFT";
-	keyNameList[0xD3] = "DPAD RIGHT";
-	keyNameList[0xD4] = "START";
-	keyNameList[0xD5] = "BACK";
-	keyNameList[0xD6] = "LEFT THUMB";
-	keyNameList[0xD7] = "RIGHT THUMB";
-	keyNameList[0xD8] = "LEFT SHOULDER";
-	keyNameList[0xD9] = "RIGHT SHOULDER";
-	keyNameList[0xDC] = "Button A";
-	keyNameList[0xDD] = "Button B";
-	keyNameList[0xDE] = "Button X";
-	keyNameList[0xDF] = "Button Y";
-	/// end of XInput hotkeys
-	keyNameList[0xFA] = "Play key";
-	keyNameList[0xFB] = "Zoom key";
-#pragma endregion
-
-	screenshot = (int)false;
-	m_VRboostRulesPresent = false;
-	m_bForceMouseEmulation = false;
-	m_bVRBoostToggle = true;
-	m_fVRBoostIndicator = 0.0f;
-	m_VertexShaderCount = 0;
-	m_VertexShaderCountLastFrame = 0;
-
-	// set common default VRBoost values
-	ZeroMemory(&VRBoostValue[0], MAX_VRBOOST_VALUES*sizeof(float));
-	VRBoostValue[VRboostAxis::Zero] = 0.0f;
-	VRBoostValue[VRboostAxis::One] = 1.0f;
-	VRBoostValue[VRboostAxis::WorldFOV] = 95.0f;
-	VRBoostValue[VRboostAxis::PlayerFOV] = 125.0f;
-	VRBoostValue[VRboostAxis::FarPlaneFOV] = 95.0f;
+	InitBrassa();
 }
 
 /**
@@ -378,6 +157,10 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 ***/
 D3DProxyDevice::~D3DProxyDevice()
 {
+
+	#ifdef SHOW_CALLS
+		OutputDebugString("called ~D3DProxyDevice");
+	#endif
 	ReleaseEverything();
 
 	m_spShaderViewAdjustment.reset();
@@ -406,6 +189,9 @@ D3DProxyDevice::~D3DProxyDevice()
 ***/
 HRESULT WINAPI D3DProxyDevice::QueryInterface(REFIID riid, LPVOID* ppv)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called QueryInterface");
+	#endif
 	//DEFINE_GUID(IID_IDirect3DDevice9Ex, 0xb18b10ce, 0x2649, 0x405a, 0x87, 0xf, 0x95, 0xf7, 0x77, 0xd4, 0x31, 0x3a);
 	IF_GUID(riid,0xb18b10ce,0x2649,0x405a,0x87,0xf,0x95,0xf7,0x77,0xd4,0x31,0x3a)
 	{
@@ -424,15 +210,11 @@ HRESULT WINAPI D3DProxyDevice::QueryInterface(REFIID riid, LPVOID* ppv)
 ***/
 HRESULT WINAPI D3DProxyDevice::TestCooperativeLevel()
 {
-	HRESULT result = BaseDirect3DDevice9::TestCooperativeLevel();
-
-	if( result == D3DERR_DEVICENOTRESET ) {
-
-		// The calling application will start releasing resources after TestCooperativeLevel returns D3DERR_DEVICENOTRESET.
-
-	}
-
-	return result;
+	#ifdef SHOW_CALLS
+		OutputDebugString("called TestCooperativeLevel");
+	#endif
+	return BaseDirect3DDevice9::TestCooperativeLevel();
+	// The calling application will start releasing resources after TestCooperativeLevel returns D3DERR_DEVICENOTRESET.
 }
 
 /**
@@ -440,6 +222,9 @@ HRESULT WINAPI D3DProxyDevice::TestCooperativeLevel()
 ***/
 HRESULT WINAPI D3DProxyDevice::SetCursorProperties(UINT XHotSpot, UINT YHotSpot, IDirect3DSurface9* pCursorBitmap)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called SetCursorProperties");
+	#endif
 	if (!pCursorBitmap)
 		return BaseDirect3DDevice9::SetCursorProperties(XHotSpot, YHotSpot, NULL);
 
@@ -448,10 +233,13 @@ HRESULT WINAPI D3DProxyDevice::SetCursorProperties(UINT XHotSpot, UINT YHotSpot,
 
 /**
 * Creates a proxy (or wrapped) swap chain.
-* @param pSwapChain [in, ou] Proxy (wrapped) swap chain to be returned.
+* @param pSwapChain [in, out] Proxy (wrapped) swap chain to be returned.
 ***/
 HRESULT WINAPI D3DProxyDevice::CreateAdditionalSwapChain(D3DPRESENT_PARAMETERS* pPresentationParameters,IDirect3DSwapChain9** pSwapChain)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called CreateAdditionalSwapChain");
+	#endif
 	IDirect3DSwapChain9* pActualSwapChain;
 	HRESULT result = BaseDirect3DDevice9::CreateAdditionalSwapChain(pPresentationParameters, &pActualSwapChain);
 
@@ -471,6 +259,9 @@ HRESULT WINAPI D3DProxyDevice::CreateAdditionalSwapChain(D3DPRESENT_PARAMETERS* 
 ***/
 HRESULT WINAPI D3DProxyDevice::GetSwapChain(UINT iSwapChain,IDirect3DSwapChain9** pSwapChain)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called GetSwapChain");
+	#endif
 	try {
 		*pSwapChain = m_activeSwapChains.at(iSwapChain); 
 		//Device->GetSwapChain increases ref count on the chain (docs don't say this)
@@ -494,6 +285,9 @@ HRESULT WINAPI D3DProxyDevice::GetSwapChain(UINT iSwapChain,IDirect3DSwapChain9*
 ***/
 HRESULT WINAPI D3DProxyDevice::Reset(D3DPRESENT_PARAMETERS* pPresentationParameters)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called Reset");
+	#endif
 	if(stereoView)
 		stereoView->ReleaseEverything();
 
@@ -539,6 +333,9 @@ HRESULT WINAPI D3DProxyDevice::Reset(D3DPRESENT_PARAMETERS* pPresentationParamet
 ***/
 HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called Present");
+	#endif
 	IDirect3DSurface9* pWrappedBackBuffer;
 
 	try {
@@ -567,9 +364,12 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 ***/
 HRESULT WINAPI D3DProxyDevice::GetBackBuffer(UINT iSwapChain,UINT iBackBuffer,D3DBACKBUFFER_TYPE Type,IDirect3DSurface9** ppBackBuffer)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called GetBackBuffer");
+	#endif
 	HRESULT result;
 	try {
-		result = m_activeSwapChains.at(iSwapChain)->GetBackBuffer(iBackBuffer, D3DBACKBUFFER_TYPE_MONO, ppBackBuffer);
+		result = m_activeSwapChains.at(iSwapChain)->GetBackBuffer(iBackBuffer, Type, ppBackBuffer);
 		// ref count increase happens in the swapchain GetBackBuffer so we don't add another ref here as we are just passing the value through
 	}
 	catch (std::out_of_range) {
@@ -588,6 +388,9 @@ HRESULT WINAPI D3DProxyDevice::GetBackBuffer(UINT iSwapChain,UINT iBackBuffer,D3
 ***/
 HRESULT WINAPI D3DProxyDevice::CreateTexture(UINT Width,UINT Height,UINT Levels,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool,IDirect3DTexture9** ppTexture,HANDLE* pSharedHandle)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called CreateTexture");
+	#endif
 	HRESULT creationResult;
 	IDirect3DTexture9* pLeftTexture = NULL;
 	IDirect3DTexture9* pRightTexture = NULL;	
@@ -621,6 +424,9 @@ HRESULT WINAPI D3DProxyDevice::CreateTexture(UINT Width,UINT Height,UINT Levels,
 ***/	
 HRESULT WINAPI D3DProxyDevice::CreateVolumeTexture(UINT Width,UINT Height,UINT Depth,UINT Levels,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool,IDirect3DVolumeTexture9** ppVolumeTexture,HANDLE* pSharedHandle)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called CreateVolumeTexture");
+	#endif
 	IDirect3DVolumeTexture9* pActualTexture = NULL;
 	HRESULT creationResult = BaseDirect3DDevice9::CreateVolumeTexture(Width, Height, Depth, Levels, Usage, Format, Pool, &pActualTexture, pSharedHandle);
 
@@ -638,6 +444,9 @@ HRESULT WINAPI D3DProxyDevice::CreateVolumeTexture(UINT Width,UINT Height,UINT D
 ***/
 HRESULT WINAPI D3DProxyDevice::CreateCubeTexture(UINT EdgeLength, UINT Levels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool, IDirect3DCubeTexture9** ppCubeTexture, HANDLE* pSharedHandle)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called CreateCubeTexture");
+	#endif
 	HRESULT creationResult;
 	IDirect3DCubeTexture9* pLeftCubeTexture = NULL;
 	IDirect3DCubeTexture9* pRightCubeTexture = NULL;	
@@ -670,6 +479,9 @@ HRESULT WINAPI D3DProxyDevice::CreateCubeTexture(UINT EdgeLength, UINT Levels, D
 ***/
 HRESULT WINAPI D3DProxyDevice::CreateVertexBuffer(UINT Length, DWORD Usage, DWORD FVF, D3DPOOL Pool, IDirect3DVertexBuffer9** ppVertexBuffer, HANDLE* pSharedHandle)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called CreateVertexBuffer");
+	#endif
 	IDirect3DVertexBuffer9* pActualBuffer = NULL;
 	HRESULT creationResult = BaseDirect3DDevice9::CreateVertexBuffer(Length, Usage, FVF, Pool, &pActualBuffer, pSharedHandle);
 
@@ -685,6 +497,9 @@ HRESULT WINAPI D3DProxyDevice::CreateVertexBuffer(UINT Length, DWORD Usage, DWOR
 ***/
 HRESULT WINAPI D3DProxyDevice::CreateIndexBuffer(UINT Length,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool,IDirect3DIndexBuffer9** ppIndexBuffer,HANDLE* pSharedHandle)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called CreateIndexBuffer");
+	#endif
 	IDirect3DIndexBuffer9* pActualBuffer = NULL;
 	HRESULT creationResult = BaseDirect3DDevice9::CreateIndexBuffer(Length, Usage, Format, Pool, &pActualBuffer, pSharedHandle);
 
@@ -702,6 +517,9 @@ HRESULT WINAPI D3DProxyDevice::CreateIndexBuffer(UINT Length,DWORD Usage,D3DFORM
 HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample,
 												  DWORD MultisampleQuality,BOOL Lockable,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called CreateRenderTarget");
+	#endif
 	// call public overloaded function
 	return CreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, ppSurface, pSharedHandle, false);
 }
@@ -714,6 +532,9 @@ HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFO
 ***/
 HRESULT WINAPI D3DProxyDevice::CreateDepthStencilSurface(UINT Width,UINT Height,D3DFORMAT Format,D3DMULTISAMPLE_TYPE MultiSample,DWORD MultisampleQuality,BOOL Discard,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called CreateDepthStencilSurface");
+	#endif
 	IDirect3DSurface9* pDepthStencilSurfaceLeft = NULL;
 	IDirect3DSurface9* pDepthStencilSurfaceRight = NULL;
 	HRESULT creationResult;
@@ -746,6 +567,9 @@ HRESULT WINAPI D3DProxyDevice::CreateDepthStencilSurface(UINT Width,UINT Height,
 ***/
 HRESULT WINAPI D3DProxyDevice::UpdateSurface(IDirect3DSurface9* pSourceSurface,CONST RECT* pSourceRect,IDirect3DSurface9* pDestinationSurface,CONST POINT* pDestPoint)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called UpdateSurface");
+	#endif
 	if (!pSourceSurface || !pDestinationSurface)
 		return D3DERR_INVALIDCALL;
 
@@ -784,6 +608,9 @@ HRESULT WINAPI D3DProxyDevice::UpdateSurface(IDirect3DSurface9* pSourceSurface,C
 ***/
 HRESULT WINAPI D3DProxyDevice::UpdateTexture(IDirect3DBaseTexture9* pSourceTexture,IDirect3DBaseTexture9* pDestinationTexture)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called UpdateTexture");
+	#endif
 	if (!pSourceTexture || !pDestinationTexture)
 		return D3DERR_INVALIDCALL;
 
@@ -824,6 +651,9 @@ HRESULT WINAPI D3DProxyDevice::UpdateTexture(IDirect3DBaseTexture9* pSourceTextu
 ***/
 HRESULT WINAPI D3DProxyDevice::GetRenderTargetData(IDirect3DSurface9* pRenderTarget,IDirect3DSurface9* pDestSurface)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called GetRenderTarget");
+	#endif
 	if ((pDestSurface == NULL) || (pRenderTarget == NULL))
 		return D3DERR_INVALIDCALL;
 
@@ -864,6 +694,9 @@ HRESULT WINAPI D3DProxyDevice::GetRenderTargetData(IDirect3DSurface9* pRenderTar
 ***/
 HRESULT WINAPI D3DProxyDevice::GetFrontBufferData(UINT iSwapChain, IDirect3DSurface9* pDestSurface)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called GetFrontBufferData");
+	#endif
 	HRESULT result;
 	try {
 		result = m_activeSwapChains.at(iSwapChain)->GetFrontBufferData(pDestSurface);
@@ -882,6 +715,9 @@ HRESULT WINAPI D3DProxyDevice::GetFrontBufferData(UINT iSwapChain, IDirect3DSurf
 ***/
 HRESULT WINAPI D3DProxyDevice::StretchRect(IDirect3DSurface9* pSourceSurface,CONST RECT* pSourceRect,IDirect3DSurface9* pDestSurface,CONST RECT* pDestRect,D3DTEXTUREFILTERTYPE Filter)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called StretchRect");
+	#endif
 	if (!pSourceSurface || !pDestSurface)
 		return D3DERR_INVALIDCALL;
 
@@ -922,6 +758,9 @@ HRESULT WINAPI D3DProxyDevice::StretchRect(IDirect3DSurface9* pSourceSurface,CON
 ***/
 HRESULT WINAPI D3DProxyDevice::ColorFill(IDirect3DSurface9* pSurface,CONST RECT* pRect,D3DCOLOR color)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called ColorFill");
+	#endif
 	HRESULT result;
 
 	D3D9ProxySurface* pDerivedSurface = static_cast<D3D9ProxySurface*> (pSurface);
@@ -945,6 +784,9 @@ HRESULT WINAPI D3DProxyDevice::ColorFill(IDirect3DSurface9* pSurface,CONST RECT*
 **/
 HRESULT WINAPI D3DProxyDevice::CreateOffscreenPlainSurface(UINT Width,UINT Height,D3DFORMAT Format,D3DPOOL Pool,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle)
 {	
+	#ifdef SHOW_CALLS
+		OutputDebugString("called CreateOffscreenPlainSurface");
+	#endif
 	IDirect3DSurface9* pActualSurface = NULL;
 	HRESULT creationResult = BaseDirect3DDevice9::CreateOffscreenPlainSurface(Width, Height, Format, Pool, &pActualSurface, pSharedHandle);
 
@@ -960,6 +802,9 @@ HRESULT WINAPI D3DProxyDevice::CreateOffscreenPlainSurface(UINT Width,UINT Heigh
 ***/
 HRESULT WINAPI D3DProxyDevice::SetRenderTarget(DWORD RenderTargetIndex, IDirect3DSurface9* pRenderTarget)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called SetRenderTarget");
+	#endif
 	D3D9ProxySurface* newRenderTarget = static_cast<D3D9ProxySurface*>(pRenderTarget);
 
 #ifdef _DEBUG
@@ -1014,6 +859,9 @@ HRESULT WINAPI D3DProxyDevice::SetRenderTarget(DWORD RenderTargetIndex, IDirect3
 ***/
 HRESULT WINAPI D3DProxyDevice::GetRenderTarget(DWORD RenderTargetIndex,IDirect3DSurface9** ppRenderTarget)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called GetRenderTarget");
+	#endif
 	if ((RenderTargetIndex >= m_activeRenderTargets.capacity()) || (RenderTargetIndex < 0)) {
 		return D3DERR_INVALIDCALL;
 	}
@@ -1034,6 +882,9 @@ HRESULT WINAPI D3DProxyDevice::GetRenderTarget(DWORD RenderTargetIndex,IDirect3D
 ***/
 HRESULT WINAPI D3DProxyDevice::SetDepthStencilSurface(IDirect3DSurface9* pNewZStencil)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called SetDepthStencilSurface");
+	#endif
 	D3D9ProxySurface* pNewDepthStencil = static_cast<D3D9ProxySurface*>(pNewZStencil);
 
 	IDirect3DSurface9* pActualStencilForCurrentSide = NULL;
@@ -1067,6 +918,9 @@ HRESULT WINAPI D3DProxyDevice::SetDepthStencilSurface(IDirect3DSurface9* pNewZSt
 ***/
 HRESULT WINAPI D3DProxyDevice::GetDepthStencilSurface(IDirect3DSurface9** ppZStencilSurface)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called GetDepthStencilSurface");
+	#endif
 	if (!m_pActiveStereoDepthStencil)
 		return D3DERR_NOTFOUND;
 
@@ -1077,13 +931,15 @@ HRESULT WINAPI D3DProxyDevice::GetDepthStencilSurface(IDirect3DSurface9** ppZSte
 }
 
 /**
-* Updates tracker, handles controls if this the first scene of the frame.
-* TODO !! handle tracking is currently done here - Do this as late in frame as possible (Present)? 
+* Updates tracker if device says it should.  Handles controls if this is the first scene of the frame.
 * Because input for this frame would already have been handled here so injection of any mouse 
 * manipulation ?
 ***/
 HRESULT WINAPI D3DProxyDevice::BeginScene()
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called BeginScene");
+	#endif
 	if (m_isFirstBeginSceneOfFrame) {
 
 		// save screenshot before first clear() is called
@@ -1097,7 +953,7 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 		// set last frame vertex shader count
 		m_VertexShaderCountLastFrame = m_VertexShaderCount;
 
-		// avoid squished viewport in case of brassa menu beeing drawn
+		// avoid squished viewport in case of brassa menu being drawn
 		if ((m_bViewportIsSquished) && (BRASSA_mode>=BRASSA_Modes::MAINMENU) && (BRASSA_mode<BRASSA_Modes::BRASSA_ENUM_RANGE))
 		{
 			if (m_bViewportIsSquished)
@@ -1148,6 +1004,9 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 ***/
 HRESULT WINAPI D3DProxyDevice::EndScene()
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called EndScene");
+	#endif
 	// handle controls 
 	if (m_deviceBehavior.whenToHandleHeadTracking == DeviceBehavior::WhenToDo::END_SCENE) 
 		HandleTracking();
@@ -1168,7 +1027,9 @@ HRESULT WINAPI D3DProxyDevice::EndScene()
 ***/
 HRESULT WINAPI D3DProxyDevice::Clear(DWORD Count,CONST D3DRECT* pRects,DWORD Flags,D3DCOLOR Color,float Z,DWORD Stencil)
 {
-
+	#ifdef SHOW_CALLS
+		OutputDebugString("called Clear");
+	#endif
 	HRESULT result;
 	if (SUCCEEDED(result = BaseDirect3DDevice9::Clear(Count, pRects, Flags, Color, Z, Stencil))) {
 		if (switchDrawingSide()) {
@@ -1177,12 +1038,12 @@ HRESULT WINAPI D3DProxyDevice::Clear(DWORD Count,CONST D3DRECT* pRects,DWORD Fla
 			if (FAILED(hr = BaseDirect3DDevice9::Clear(Count, pRects, Flags, Color, Z, Stencil))) {
 
 #ifdef _DEBUG
-				/*char buf[256];
+				char buf[256];
 				sprintf_s(buf, "Error: %s error description: %s\n",
 				DXGetErrorString(hr), DXGetErrorDescription(hr));
 
 				OutputDebugString(buf);
-				OutputDebugString("Clear failed\n");*/
+				OutputDebugString("Clear failed\n");
 
 #endif
 
@@ -1199,6 +1060,9 @@ HRESULT WINAPI D3DProxyDevice::Clear(DWORD Count,CONST D3DRECT* pRects,DWORD Fla
 ***/
 HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D3DMATRIX* pMatrix)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called SetTransform");
+	#endif
 	if(State == D3DTS_VIEW)
 	{
 		D3DXMATRIX tempLeft;
@@ -1344,6 +1208,9 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 ***/
 HRESULT WINAPI D3DProxyDevice::MultiplyTransform(D3DTRANSFORMSTATETYPE State,CONST D3DMATRIX* pMatrix)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called MultiplyTransform");
+	#endif
 	OutputDebugString(__FUNCTION__); 
 	OutputDebugString("\n"); 
 	OutputDebugString("Not implemented - Fix Me! (if i need fixing)\n"); 
@@ -1361,6 +1228,9 @@ HRESULT WINAPI D3DProxyDevice::MultiplyTransform(D3DTRANSFORMSTATETYPE State,CON
 ***/
 HRESULT WINAPI D3DProxyDevice::SetViewport(CONST D3DVIEWPORT9* pViewport)
 {	
+	#ifdef SHOW_CALLS
+		OutputDebugString("called SetViewport");
+	#endif
 	HRESULT result = BaseDirect3DDevice9::SetViewport(pViewport);
 
 	if (SUCCEEDED(result)) {
@@ -1388,6 +1258,9 @@ HRESULT WINAPI D3DProxyDevice::SetViewport(CONST D3DVIEWPORT9* pViewport)
 ***/
 HRESULT WINAPI D3DProxyDevice::CreateStateBlock(D3DSTATEBLOCKTYPE Type,IDirect3DStateBlock9** ppSB)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called CreateStateBlock");
+	#endif
 	IDirect3DStateBlock9* pActualStateBlock = NULL;
 	HRESULT creationResult = BaseDirect3DDevice9::CreateStateBlock(Type, &pActualStateBlock);
 
@@ -1433,6 +1306,9 @@ HRESULT WINAPI D3DProxyDevice::CreateStateBlock(D3DSTATEBLOCKTYPE Type,IDirect3D
 ***/
 HRESULT WINAPI D3DProxyDevice::BeginStateBlock()
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called BeginStateBlock");
+	#endif
 	HRESULT result;
 	if (SUCCEEDED(result = BaseDirect3DDevice9::BeginStateBlock())) {
 		m_bInBeginEndStateBlock = true;
@@ -1449,6 +1325,9 @@ HRESULT WINAPI D3DProxyDevice::BeginStateBlock()
 ***/
 HRESULT WINAPI D3DProxyDevice::EndStateBlock(IDirect3DStateBlock9** ppSB)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called ppSB");
+	#endif
 	IDirect3DStateBlock9* pActualStateBlock = NULL;
 	HRESULT creationResult = BaseDirect3DDevice9::EndStateBlock(&pActualStateBlock);
 
@@ -1473,6 +1352,9 @@ HRESULT WINAPI D3DProxyDevice::EndStateBlock(IDirect3DStateBlock9** ppSB)
 ***/
 HRESULT WINAPI D3DProxyDevice::GetTexture(DWORD Stage,IDirect3DBaseTexture9** ppTexture)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called GetTexture");
+	#endif
 	if (m_activeTextureStages.count(Stage) != 1)
 		return D3DERR_INVALIDCALL;
 	else {
@@ -1491,6 +1373,9 @@ HRESULT WINAPI D3DProxyDevice::GetTexture(DWORD Stage,IDirect3DBaseTexture9** pp
 ***/
 HRESULT WINAPI D3DProxyDevice::SetTexture(DWORD Stage,IDirect3DBaseTexture9* pTexture)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called SetTexture");
+	#endif
 	HRESULT result;
 	if (pTexture) {
 
@@ -1557,6 +1442,9 @@ HRESULT WINAPI D3DProxyDevice::SetTexture(DWORD Stage,IDirect3DBaseTexture9* pTe
 ***/
 HRESULT WINAPI D3DProxyDevice::DrawPrimitive(D3DPRIMITIVETYPE PrimitiveType,UINT StartVertex,UINT PrimitiveCount)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called DrawPrimitive");
+	#endif
 	m_spManagedShaderRegisters->ApplyAllDirty(m_currentRenderingSide);
 
 	HRESULT result;
@@ -1574,6 +1462,9 @@ HRESULT WINAPI D3DProxyDevice::DrawPrimitive(D3DPRIMITIVETYPE PrimitiveType,UINT
 ***/
 HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitive(D3DPRIMITIVETYPE PrimitiveType,INT BaseVertexIndex,UINT MinVertexIndex,UINT NumVertices,UINT startIndex,UINT primCount)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called DrawIndexedPrimitive");
+	#endif
 	m_spManagedShaderRegisters->ApplyAllDirty(m_currentRenderingSide);
 
 	HRESULT result;
@@ -1594,6 +1485,9 @@ HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitive(D3DPRIMITIVETYPE PrimitiveTy
 ***/
 HRESULT WINAPI D3DProxyDevice::DrawPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType,UINT PrimitiveCount,CONST void* pVertexStreamZeroData,UINT VertexStreamZeroStride)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called DrawPrimitiveUP");
+	#endif
 	m_spManagedShaderRegisters->ApplyAllDirty(m_currentRenderingSide);
 
 	HRESULT result;
@@ -1611,6 +1505,9 @@ HRESULT WINAPI D3DProxyDevice::DrawPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType,UI
 ***/
 HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType,UINT MinVertexIndex,UINT NumVertices,UINT PrimitiveCount,CONST void* pIndexData,D3DFORMAT IndexDataFormat,CONST void* pVertexStreamZeroData,UINT VertexStreamZeroStride)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called DrawIndexedPrimitiveUP");
+	#endif
 	m_spManagedShaderRegisters->ApplyAllDirty(m_currentRenderingSide);
 
 	HRESULT result;
@@ -1627,6 +1524,9 @@ HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitiveUP(D3DPRIMITIVETYPE Primitive
 ***/
 HRESULT WINAPI D3DProxyDevice::ProcessVertices(UINT SrcStartIndex,UINT DestIndex,UINT VertexCount,IDirect3DVertexBuffer9* pDestBuffer,IDirect3DVertexDeclaration9* pVertexDecl,DWORD Flags)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called ProcessVertices");
+	#endif
 	if (!pDestBuffer)
 		return D3DERR_INVALIDCALL;
 
@@ -1652,6 +1552,9 @@ HRESULT WINAPI D3DProxyDevice::ProcessVertices(UINT SrcStartIndex,UINT DestIndex
 ***/
 HRESULT WINAPI D3DProxyDevice::CreateVertexDeclaration(CONST D3DVERTEXELEMENT9* pVertexElements,IDirect3DVertexDeclaration9** ppDecl)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called CreateVertexDeclaration");
+	#endif
 	IDirect3DVertexDeclaration9* pActualVertexDeclaration = NULL;
 	HRESULT creationResult = BaseDirect3DDevice9::CreateVertexDeclaration(pVertexElements, &pActualVertexDeclaration );
 
@@ -1668,6 +1571,9 @@ HRESULT WINAPI D3DProxyDevice::CreateVertexDeclaration(CONST D3DVERTEXELEMENT9* 
 ***/
 HRESULT WINAPI D3DProxyDevice::SetVertexDeclaration(IDirect3DVertexDeclaration9* pDecl)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called SetVertexDeclaration");
+	#endif
 	BaseDirect3DVertexDeclaration9* pWrappedVDeclarationData = static_cast<BaseDirect3DVertexDeclaration9*>(pDecl);
 
 	// Update actual Vertex Declaration
@@ -1705,8 +1611,13 @@ HRESULT WINAPI D3DProxyDevice::SetVertexDeclaration(IDirect3DVertexDeclaration9*
 ***/
 HRESULT WINAPI D3DProxyDevice::GetVertexDeclaration(IDirect3DVertexDeclaration9** ppDecl)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called GetVertexDelcaration");
+	#endif
 	if (!m_pActiveVertexDeclaration) 
-		return D3DERR_INVALIDCALL; // TODO check this is the response if no declaration set
+		// TODO check this is the response if no declaration set
+		//In Response to TODO:  JB, Jan 12. I believe it crashes most times this happens, tested by simply nulling out the ppDecl pointer and passing it into the base d3d method
+		return D3DERR_INVALIDCALL; 
 
 	*ppDecl = m_pActiveVertexDeclaration;
 
@@ -1720,6 +1631,9 @@ HRESULT WINAPI D3DProxyDevice::GetVertexDeclaration(IDirect3DVertexDeclaration9*
 ***/
 HRESULT WINAPI D3DProxyDevice::CreateVertexShader(CONST DWORD* pFunction,IDirect3DVertexShader9** ppShader)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called CreateVertexShader");
+	#endif
 	IDirect3DVertexShader9* pActualVShader = NULL;
 	HRESULT creationResult = BaseDirect3DDevice9::CreateVertexShader(pFunction, &pActualVShader);
 
@@ -1736,6 +1650,9 @@ HRESULT WINAPI D3DProxyDevice::CreateVertexShader(CONST DWORD* pFunction,IDirect
 ***/
 HRESULT WINAPI D3DProxyDevice::SetVertexShader(IDirect3DVertexShader9* pShader)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called SetVertexSHader");
+	#endif
 	D3D9ProxyVertexShader* pWrappedVShaderData = static_cast<D3D9ProxyVertexShader*>(pShader);
 
 	// Update actual Vertex shader
@@ -1784,10 +1701,13 @@ HRESULT WINAPI D3DProxyDevice::SetVertexShader(IDirect3DVertexShader9* pShader)
 }
 
 /**
-* Returns the stored proxy vertex shader.
+* Returns the stored and active proxy vertex shader.
 ***/
 HRESULT WINAPI D3DProxyDevice::GetVertexShader(IDirect3DVertexShader9** ppShader)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called GetVertexShader");
+	#endif
 	if (!m_pActiveVertexShader)
 		return D3DERR_INVALIDCALL;
 
@@ -1803,6 +1723,9 @@ HRESULT WINAPI D3DProxyDevice::GetVertexShader(IDirect3DVertexShader9** ppShader
 ***/
 HRESULT WINAPI D3DProxyDevice::SetVertexShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called SEtVertexShadewrConstantF");
+	#endif
 	HRESULT result = D3DERR_INVALIDCALL;
 
 	if (m_pCapturingStateTo) {
@@ -1822,6 +1745,9 @@ HRESULT WINAPI D3DProxyDevice::SetVertexShaderConstantF(UINT StartRegister,CONST
 ***/
 HRESULT WINAPI D3DProxyDevice::GetVertexShaderConstantF(UINT StartRegister,float* pData,UINT Vector4fCount)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called GetVertexShaderConstantF");
+	#endif
 	return m_spManagedShaderRegisters->GetVertexShaderConstantF(StartRegister, pData, Vector4fCount);
 }
 
@@ -1832,6 +1758,9 @@ HRESULT WINAPI D3DProxyDevice::GetVertexShaderConstantF(UINT StartRegister,float
 ***/
 HRESULT WINAPI D3DProxyDevice::SetStreamSource(UINT StreamNumber, IDirect3DVertexBuffer9* pStreamData, UINT OffsetInBytes, UINT Stride)
 {	
+	#ifdef SHOW_CALLS
+		OutputDebugString("called SetStreamSource");
+	#endif
 	BaseDirect3DVertexBuffer9* pCastStreamData = static_cast<BaseDirect3DVertexBuffer9*>(pStreamData);
 	HRESULT result;
 	if (pStreamData) {		
@@ -1892,6 +1821,9 @@ HRESULT WINAPI D3DProxyDevice::SetStreamSource(UINT StreamNumber, IDirect3DVerte
 ***/
 HRESULT WINAPI D3DProxyDevice::GetStreamSource(UINT StreamNumber, IDirect3DVertexBuffer9** ppStreamData,UINT* pOffsetInBytes,UINT* pStride)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called GetSTreamSource");
+	#endif
 	// This whole methods implementation is highly questionable. Not sure exactly how GetStreamSource works
 	HRESULT result = D3DERR_INVALIDCALL;
 
@@ -1917,6 +1849,9 @@ HRESULT WINAPI D3DProxyDevice::GetStreamSource(UINT StreamNumber, IDirect3DVerte
 ***/
 HRESULT WINAPI D3DProxyDevice::SetIndices(IDirect3DIndexBuffer9* pIndexData)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called SetIndices");
+	#endif
 	BaseDirect3DIndexBuffer9* pWrappedNewIndexData = static_cast<BaseDirect3DIndexBuffer9*>(pIndexData);
 
 	// Update actual index buffer
@@ -1953,6 +1888,9 @@ HRESULT WINAPI D3DProxyDevice::SetIndices(IDirect3DIndexBuffer9* pIndexData)
 ***/
 HRESULT WINAPI D3DProxyDevice::GetIndices(IDirect3DIndexBuffer9** ppIndexData)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called GetIndices");
+	#endif
 	if (!m_pActiveIndicies)
 		return D3DERR_INVALIDCALL;
 
@@ -1967,6 +1905,9 @@ HRESULT WINAPI D3DProxyDevice::GetIndices(IDirect3DIndexBuffer9** ppIndexData)
 ***/
 HRESULT WINAPI D3DProxyDevice::CreatePixelShader(CONST DWORD* pFunction,IDirect3DPixelShader9** ppShader)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called CreatePixelSHader");
+	#endif
 	IDirect3DPixelShader9* pActualPShader = NULL;
 	HRESULT creationResult = BaseDirect3DDevice9::CreatePixelShader(pFunction, &pActualPShader);
 
@@ -1983,6 +1924,9 @@ HRESULT WINAPI D3DProxyDevice::CreatePixelShader(CONST DWORD* pFunction,IDirect3
 ***/
 HRESULT WINAPI D3DProxyDevice::SetPixelShader(IDirect3DPixelShader9* pShader)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called SetPixelShader");
+	#endif
 	D3D9ProxyPixelShader* pWrappedPShaderData = static_cast<D3D9ProxyPixelShader*>(pShader);
 
 	// Update actual pixel shader
@@ -2025,6 +1969,9 @@ HRESULT WINAPI D3DProxyDevice::SetPixelShader(IDirect3DPixelShader9* pShader)
 ***/
 HRESULT WINAPI D3DProxyDevice::GetPixelShader(IDirect3DPixelShader9** ppShader)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called GetPixelSHader");
+	#endif
 	if (!m_pActivePixelShader)
 		return D3DERR_INVALIDCALL;
 
@@ -2040,6 +1987,9 @@ HRESULT WINAPI D3DProxyDevice::GetPixelShader(IDirect3DPixelShader9** ppShader)
 ***/
 HRESULT WINAPI D3DProxyDevice::SetPixelShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called SetPixelShaderConstantF");
+	#endif
 	HRESULT result = D3DERR_INVALIDCALL;
 
 	if (m_pCapturingStateTo) {
@@ -2059,6 +2009,9 @@ HRESULT WINAPI D3DProxyDevice::SetPixelShaderConstantF(UINT StartRegister,CONST 
 ***/
 HRESULT WINAPI D3DProxyDevice::GetPixelShaderConstantF(UINT StartRegister,float* pData,UINT Vector4fCount)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called GetPixelSHaderConstantF");
+	#endif
 	return m_spManagedShaderRegisters->GetPixelShaderConstantF(StartRegister, pData, Vector4fCount);
 }
 
@@ -2068,6 +2021,9 @@ HRESULT WINAPI D3DProxyDevice::GetPixelShaderConstantF(UINT StartRegister,float*
 ***/
 HRESULT WINAPI D3DProxyDevice::DrawRectPatch(UINT Handle,CONST float* pNumSegs,CONST D3DRECTPATCH_INFO* pRectPatchInfo)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called DrawRectPatch");
+	#endif
 	m_spManagedShaderRegisters->ApplyAllDirty(m_currentRenderingSide);
 
 	HRESULT result;
@@ -2085,6 +2041,9 @@ HRESULT WINAPI D3DProxyDevice::DrawRectPatch(UINT Handle,CONST float* pNumSegs,C
 ***/
 HRESULT WINAPI D3DProxyDevice::DrawTriPatch(UINT Handle,CONST float* pNumSegs,CONST D3DTRIPATCH_INFO* pTriPatchInfo)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called DrawTriPatch");
+	#endif
 	m_spManagedShaderRegisters->ApplyAllDirty(m_currentRenderingSide);
 
 	HRESULT result;
@@ -2101,6 +2060,9 @@ HRESULT WINAPI D3DProxyDevice::DrawTriPatch(UINT Handle,CONST float* pNumSegs,CO
 ***/
 HRESULT WINAPI D3DProxyDevice::CreateQuery(D3DQUERYTYPE Type,IDirect3DQuery9** ppQuery)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called CreateQuery");
+	#endif
 	// this seems a weird response to me but it's what the actual device does.
 	if (!ppQuery)
 		return D3D_OK;
@@ -2125,7 +2087,9 @@ HRESULT WINAPI D3DProxyDevice::CreateQuery(D3DQUERYTYPE Type,IDirect3DQuery9** p
 HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample,
 												  DWORD MultisampleQuality,BOOL Lockable,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle, bool isSwapChainBackBuffer)
 {
-
+	#ifdef SHOW_CALLS
+		OutputDebugString("called CreateRenderTarget");
+	#endif
 	IDirect3DSurface9* pLeftRenderTarget = NULL;
 	IDirect3DSurface9* pRightRenderTarget = NULL;
 	HRESULT creationResult;
@@ -2167,6 +2131,9 @@ HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFO
 ***/
 void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called Init");
+	#endif
 	OutputDebugString("D3D ProxyDev Init\n");
 
 	// get config and backup it
@@ -2197,6 +2164,9 @@ void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 ***/
 void D3DProxyDevice::SetupHUD()
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called SetupHUD");
+	#endif
 	D3DXCreateFont( this, 32, 0, FW_BOLD, 4, FALSE, DEFAULT_CHARSET, OUT_TT_ONLY_PRECIS, ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_DONTCARE, "Arial", &hudFont );
 	D3DXCreateSprite(this, &hudMainMenu);
 	D3DXCreateSprite(this, &hudTextBox);
@@ -2207,27 +2177,16 @@ void D3DProxyDevice::SetupHUD()
 ***/
 void D3DProxyDevice::HandleControls()
 {
-	// Zeroise the XInput state
-	ZeroMemory(&m_xInputState, sizeof(XINPUT_STATE));
-
-	// Get the XInput state
-	DWORD Result = XInputGetState(NULL, &m_xInputState);
-
-	if(Result == ERROR_SUCCESS)
-	{
-		// set buttons by flags
-		for(DWORD i = 0; i < 16; ++i) 
-			if((m_xInputState.Gamepad.wButtons >> i) & 1) 
-				m_xButtons[i] = true;
-			else 
-				m_xButtons[i] = false;
-	}
+	#ifdef SHOW_CALLS
+		OutputDebugString("called HandleControls");
+	#endif
+	controls.UpdateXInputs();
 
 	// loop through hotkeys
 	bool hotkeyPressed = false;
 	for (int i = 0; i < 5; i++)
 	{
-		if ((KEY_DOWN(hudHotkeys[i])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		if ((controls.Key_Down(hudHotkeys[i])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
 			if (i==0)
 			{
@@ -2244,7 +2203,7 @@ void D3DProxyDevice::HandleControls()
 			{
 				if (hud3DDepthMode==(HUD_3D_Depth_Modes)(i-1))
 				{
-					if (KEY_DOWN(VK_RCONTROL))
+					if (controls.Key_Down(VK_RCONTROL))
 					{
 						oldHudMode = hud3DDepthMode;
 						ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)(i-1));
@@ -2263,7 +2222,7 @@ void D3DProxyDevice::HandleControls()
 			}
 			hotkeyPressed = true;
 		}
-		if ((KEY_DOWN(guiHotkeys[i])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		if ((controls.Key_Down(guiHotkeys[i])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
 			if (i==0)
 			{
@@ -2279,7 +2238,7 @@ void D3DProxyDevice::HandleControls()
 			{
 				if (gui3DDepthMode==(GUI_3D_Depth_Modes)(i-1))
 				{
-					if (KEY_DOWN(VK_RCONTROL))
+					if (controls.Key_Down(VK_RCONTROL))
 					{
 						oldGuiMode = gui3DDepthMode;
 						ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)(i-1));
@@ -2300,7 +2259,7 @@ void D3DProxyDevice::HandleControls()
 		}
 	}
 	// test VRBoost reset hotkey
-	if (KEY_DOWN(toggleVRBoostHotkey) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	if (controls.Key_Down(toggleVRBoostHotkey) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		if (hmVRboost!=NULL)
 		{
@@ -2319,7 +2278,7 @@ void D3DProxyDevice::HandleControls()
 		menuVelocity.x+=2.0f;
 
 	// open BRASSA - <CTRL>+<T>
-	if(KEY_DOWN(0x51) && KEY_DOWN(VK_LCONTROL) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	if(controls.Key_Down(0x51) && controls.Key_Down(VK_LCONTROL) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		if (BRASSA_mode == BRASSA_Modes::INACTIVE)
 		{
@@ -2336,7 +2295,7 @@ void D3DProxyDevice::HandleControls()
 	}
 
 	// open BRASSA - <LSHIFT>+<*>
-	if(KEY_DOWN(VK_MULTIPLY) && KEY_DOWN(VK_LSHIFT) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))		
+	if(controls.Key_Down(VK_MULTIPLY) && controls.Key_Down(VK_LSHIFT) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))		
 	{
 		if (BRASSA_mode == BRASSA_Modes::INACTIVE)
 		{
@@ -2353,7 +2312,7 @@ void D3DProxyDevice::HandleControls()
 	}
 
 	// screenshot - <RCONTROL>+<*>
-	if(KEY_DOWN(VK_MULTIPLY) && KEY_DOWN(VK_RCONTROL) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))		
+	if(controls.Key_Down(VK_MULTIPLY) && controls.Key_Down(VK_RCONTROL) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))		
 	{
 		// render 3 frames to get screenshots without BRASSA
 		screenshot = 3;
@@ -2366,32 +2325,29 @@ void D3DProxyDevice::HandleControls()
 ***/
 void D3DProxyDevice::HandleTracking()
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called HandleTracking");
+	#endif
 	if(!trackingOn){
 		tracker->currentRoll = 0;
 		return;
 	}
 	if(!trackerInitialized)
 	{
-		// VRboost rules present ?
-		if (config.VRboostPath != "") m_VRboostRulesPresent = true; else m_VRboostRulesPresent = false;
-
-		OutputDebugString("Try to init Tracker\n");
-		tracker = MotionTrackerFactory::Get(config);
-		tracker->setMultipliers(config.yaw_multiplier, config.pitch_multiplier, config.roll_multiplier);
-		tracker->setMouseEmulation((!m_VRboostRulesPresent) || (hmVRboost==NULL));
-		trackerInitialized = true;
+		InitTracker();
 	}
 
 	if(trackerInitialized && tracker->isAvailable())
 	{
 		tracker->updateOrientation();
+		// update view adjustment class
+		if (trackerInitialized && tracker->isAvailable() && m_spShaderViewAdjustment->RollEnabled()) {
+			m_spShaderViewAdjustment->UpdateRoll(tracker->currentRoll);
+		}
+		m_spShaderViewAdjustment->UpdatePitchYaw(tracker->primaryPitch, tracker->primaryYaw);
 	}
 
-	// update view adjustment class
-	if (trackerInitialized && tracker->isAvailable() && m_spShaderViewAdjustment->RollEnabled()) {
-		m_spShaderViewAdjustment->UpdateRoll(tracker->currentRoll);
-	}
-	m_spShaderViewAdjustment->UpdatePitchYaw(tracker->primaryPitch, tracker->primaryYaw);
+	
 
 	m_spShaderViewAdjustment->ComputeViewTransforms();
 
@@ -2426,6 +2382,9 @@ void D3DProxyDevice::HandleTracking()
 ***/
 void D3DProxyDevice::HandleUpdateExtern()
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called HandleUpdateExtern");
+	#endif
 	m_isFirstBeginSceneOfFrame = true;
 
 	BRASSA_UpdateBorder();
@@ -2452,6 +2411,9 @@ void D3DProxyDevice::HandleUpdateExtern()
 ***/
 void D3DProxyDevice::OnCreateOrRestore()
 {	
+	#ifdef SHOW_CALLS
+		OutputDebugString("called OnCreateOrRestore");
+	#endif
 	m_currentRenderingSide = vireio::Left;
 	m_pCurrentMatViewTransform = &m_spShaderViewAdjustment->LeftAdjustmentMatrix();
 	m_pCurrentView = &m_leftView;
@@ -2528,6 +2490,9 @@ void D3DProxyDevice::OnCreateOrRestore()
 ***/
 bool D3DProxyDevice::setDrawingSide(vireio::RenderPosition side)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called SetDrawingSide");
+	#endif
 	// Already on the correct eye
 	if (side == m_currentRenderingSide) {
 		return true;
@@ -2651,6 +2616,9 @@ bool D3DProxyDevice::setDrawingSide(vireio::RenderPosition side)
 ***/
 bool D3DProxyDevice::switchDrawingSide()
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called SwitchDrawingSide");
+	#endif
 	bool switched = false;
 
 	if (m_currentRenderingSide == vireio::Left) {
@@ -2672,6 +2640,9 @@ bool D3DProxyDevice::switchDrawingSide()
 ***/
 bool D3DProxyDevice::addRule(std::string constantName, bool allowPartialNameMatch, UINT startRegIndex, D3DXPARAMETER_CLASS constantType, UINT operationToApply, bool transpose)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called AddRule");
+	#endif
 	return m_pGameHandler->AddRule(m_spShaderViewAdjustment, constantName, allowPartialNameMatch, startRegIndex, constantType, operationToApply, transpose);
 }
 
@@ -2681,6 +2652,9 @@ bool D3DProxyDevice::addRule(std::string constantName, bool allowPartialNameMatc
 ***/
 bool D3DProxyDevice::modifyRule(std::string constantName, UINT operationToApply, bool transpose)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called ModifyRule");
+	#endif
 	return m_pGameHandler->ModifyRule(m_spShaderViewAdjustment, constantName, operationToApply, transpose);
 }
 
@@ -2690,6 +2664,9 @@ bool D3DProxyDevice::modifyRule(std::string constantName, UINT operationToApply,
 ***/
 bool D3DProxyDevice::deleteRule(std::string constantName)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called DeleteRule");
+	#endif
 	return m_pGameHandler->DeleteRule(m_spShaderViewAdjustment, constantName);
 }
 
@@ -2698,6 +2675,9 @@ bool D3DProxyDevice::deleteRule(std::string constantName)
 ***/
 void D3DProxyDevice::saveShaderRules()
 { 
+	#ifdef SHOW_CALLS
+		OutputDebugString("called SaveShaderRules");
+	#endif
 	m_pGameHandler->Save(config, m_spShaderViewAdjustment);
 
 	ProxyHelper* helper = new ProxyHelper();
@@ -2713,6 +2693,9 @@ void D3DProxyDevice::saveShaderRules()
 ***/
 void D3DProxyDevice::ClearRect(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called ClearRect");
+	#endif
 	setDrawingSide(renderPosition);
 	BaseDirect3DDevice9::Clear(1, &rect, D3DCLEAR_TARGET, color, 0, 0);
 }
@@ -2726,6 +2709,9 @@ void D3DProxyDevice::ClearRect(vireio::RenderPosition renderPosition, D3DRECT re
 ***/
 void D3DProxyDevice::ClearEmptyRect(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color, int bw)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called ClearEMptyRect");
+	#endif
 	// helper rectangle
 	D3DRECT rect0 = D3DRECT(rect);
 
@@ -2757,6 +2743,9 @@ void D3DProxyDevice::ClearEmptyRect(vireio::RenderPosition renderPosition, D3DRE
 ***/
 void D3DProxyDevice::DrawSelection(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color, int selectionIndex, int selectionRange)
 {	
+	#ifdef SHOW_CALLS
+		OutputDebugString("called DrawSelection");
+	#endif
 	// get width of each selection
 	float selectionWidth = (rect.x2-rect.x1) / (float)selectionRange;
 
@@ -2787,6 +2776,9 @@ void D3DProxyDevice::DrawSelection(vireio::RenderPosition renderPosition, D3DREC
 ***/
 void D3DProxyDevice::DrawScrollbar(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color, float scroll, int scrollbarSize)
 {	
+	#ifdef SHOW_CALLS
+		OutputDebugString("called DrawScrollbar");
+	#endif
 	if (scroll<0.0f) scroll=0.0f;
 	if (scroll>1.0f) scroll=1.0f;
 
@@ -2812,6 +2804,9 @@ void D3DProxyDevice::DrawScrollbar(vireio::RenderPosition renderPosition, D3DREC
 ***/
 void D3DProxyDevice::DrawTextShadowed(ID3DXFont* font, LPD3DXSPRITE sprite, LPCSTR lpchText, int cchText, LPRECT lprc, UINT format, D3DCOLOR color)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called DrawTextShadowed");
+	#endif
 	lprc->left+=2; lprc->right+=2; lprc->top+=2; lprc->bottom+=2;
 	font->DrawText(sprite, lpchText, -1, lprc, format, D3DCOLOR_ARGB(255, 64, 64, 64));
 	lprc->left-=2; lprc->right-=2; lprc->top-=2; lprc->bottom-=2;
@@ -2823,6 +2818,9 @@ void D3DProxyDevice::DrawTextShadowed(ID3DXFont* font, LPD3DXSPRITE sprite, LPCS
 ***/
 void D3DProxyDevice::ChangeHUD3DDepthMode(HUD_3D_Depth_Modes newMode)
 {
+#ifdef SHOW_CALLS
+	OutputDebugString("called ChangeHUD3DDepthMode");
+#endif
 	if (newMode >= HUD_3D_Depth_Modes::HUD_ENUM_RANGE)
 		return;
 
@@ -2837,6 +2835,9 @@ void D3DProxyDevice::ChangeHUD3DDepthMode(HUD_3D_Depth_Modes newMode)
 ***/
 void D3DProxyDevice::ChangeGUI3DDepthMode(GUI_3D_Depth_Modes newMode)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called ChangeGUI3DDepthMode");
+	#endif
 	if (newMode >= GUI_3D_Depth_Modes::GUI_ENUM_RANGE)
 		return;
 
@@ -2859,6 +2860,9 @@ void D3DProxyDevice::ChangeGUI3DDepthMode(GUI_3D_Depth_Modes newMode)
 ***/
 void D3DProxyDevice::BRASSA_NewFrame(UINT &entryID, UINT menuEntryCount)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called BRASSA_NewFrame");
+	#endif
 	// set menu entry attraction
 	menuAttraction.y = ((borderTopHeight-menuTop)/menuEntryHeight);
 	menuAttraction.y -= (float)((UINT)menuAttraction.y);
@@ -2894,6 +2898,9 @@ void D3DProxyDevice::BRASSA_NewFrame(UINT &entryID, UINT menuEntryCount)
 ***/
 void D3DProxyDevice::BRASSA()
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called BRASSA");
+	#endif
 	switch (BRASSA_mode)
 	{
 	case D3DProxyDevice::MAINMENU:
@@ -2937,6 +2944,9 @@ void D3DProxyDevice::BRASSA()
 ***/
 void D3DProxyDevice::BRASSA_MainMenu()
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called BRASSA_MainMenu");
+	#endif
 	UINT menuEntryCount = 10;
 	if (config.game_type > 10000) menuEntryCount++;
 
@@ -2952,13 +2962,13 @@ void D3DProxyDevice::BRASSA_MainMenu()
 	/**
 	* ESCAPE : Set BRASSA inactive and save the configuration.
 	***/
-	if (KEY_DOWN(VK_ESCAPE))
+	if (controls.Key_Down(VK_ESCAPE))
 	{
 		BRASSA_mode = BRASSA_Modes::INACTIVE;
 		BRASSA_UpdateConfigSettings();
 	}
 
-	if ((KEY_DOWN(VK_RETURN) || KEY_DOWN(VK_RSHIFT) || (m_xButtons[0x0c])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	if ((controls.Key_Down(VK_RETURN) || controls.Key_Down(VK_RSHIFT) || (controls.xButtonsStatus[0x0c])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		// brassa shader analyzer sub menu
 		if (entryID == 0)
@@ -3025,7 +3035,7 @@ void D3DProxyDevice::BRASSA_MainMenu()
 		}
 	}
 
-	if (KEY_DOWN(VK_LEFT) || KEY_DOWN(0x4A) || (m_xInputState.Gamepad.sThumbLX<-8192))
+	if (controls.Key_Down(VK_LEFT) || controls.Key_Down(0x4A) || (controls.xInputState.Gamepad.sThumbLX<-8192))
 	{
 		// change hud scale 
 		if ((entryID == 5) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
@@ -3044,7 +3054,7 @@ void D3DProxyDevice::BRASSA_MainMenu()
 		}
 	}
 
-	if (KEY_DOWN(VK_RIGHT) || KEY_DOWN(0x4C) || (m_xInputState.Gamepad.sThumbLX>8192))
+	if (controls.Key_Down(VK_RIGHT) || controls.Key_Down(0x4C) || (controls.xInputState.Gamepad.sThumbLX>8192))
 	{
 		// change hud scale 
 		if ((entryID == 5) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
@@ -3140,6 +3150,9 @@ void D3DProxyDevice::BRASSA_MainMenu()
 ***/
 void D3DProxyDevice::BRASSA_WorldScale()
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called BRASSA_WorldScale");
+	#endif
 	// base values
 	float separationChange = 0.005f;
 	static UINT gameXScaleUnitIndex = 0;
@@ -3153,9 +3166,9 @@ void D3DProxyDevice::BRASSA_WorldScale()
 	std::sort (m_gameXScaleUnits.begin(), m_gameXScaleUnits.end());
 
 	// enter ? rshift ? increase gameXScaleUnitIndex
-	if ((KEY_DOWN(VK_RETURN) || KEY_DOWN(VK_RSHIFT) || (m_xButtons[0x0c])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	if ((controls.Key_Down(VK_RETURN) || controls.Key_Down(VK_RSHIFT) || (controls.xButtonsStatus[0x0c])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
-		if (KEY_DOWN(VK_LSHIFT))
+		if (controls.Key_Down(VK_LSHIFT))
 		{
 			if (gameXScaleUnitIndex>0) --gameXScaleUnitIndex;
 		}
@@ -3171,7 +3184,7 @@ void D3DProxyDevice::BRASSA_WorldScale()
 	/**
 	* ESCAPE : Set BRASSA inactive and save the configuration.
 	***/
-	if (KEY_DOWN(VK_ESCAPE))
+	if (controls.Key_Down(VK_ESCAPE))
 	{
 		BRASSA_mode = BRASSA_Modes::INACTIVE;
 		BRASSA_UpdateConfigSettings();
@@ -3180,21 +3193,21 @@ void D3DProxyDevice::BRASSA_WorldScale()
 	/**
 	* LEFT : Decrease world scale (hold CTRL to lower speed, SHIFT to speed up)
 	***/
-	if((KEY_DOWN(VK_LEFT) || KEY_DOWN(0x4A) || (m_xInputState.Gamepad.sThumbLX<-8192)) && (menuVelocity.x == 0.0f))
+	if((controls.Key_Down(VK_LEFT) || controls.Key_Down(0x4A) || (controls.xInputState.Gamepad.sThumbLX<-8192)) && (menuVelocity.x == 0.0f))
 	{
-		if(KEY_DOWN(VK_LCONTROL)) {
+		if(controls.Key_Down(VK_LCONTROL)) {
 			separationChange /= 10.0f;
 		}
-		else if(KEY_DOWN(VK_LSHIFT)) {
+		else if(controls.Key_Down(VK_LSHIFT)) {
 			separationChange *= 10.0f;
 		} 
-		else if(KEY_DOWN(VK_MENU))
+		else if(controls.Key_Down(VK_MENU))
 		{
 			separationChange /= 500.0f;
 		}
 
-		if (m_xInputState.Gamepad.sThumbLX != 0)
-			m_spShaderViewAdjustment->ChangeWorldScale(separationChange * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f));
+		if (controls.xInputState.Gamepad.sThumbLX != 0)
+			m_spShaderViewAdjustment->ChangeWorldScale(separationChange * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f));
 		else
 			m_spShaderViewAdjustment->ChangeWorldScale(-separationChange);
 		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
@@ -3205,22 +3218,22 @@ void D3DProxyDevice::BRASSA_WorldScale()
 	/**
 	* RIGHT : Increase world scale (hold CTRL to lower speed, SHIFT to speed up)
 	***/
-	if((KEY_DOWN(VK_RIGHT) || KEY_DOWN(0x4C) || (m_xInputState.Gamepad.sThumbLX>8192)) && (menuVelocity.x == 0.0f))
+	if((controls.Key_Down(VK_RIGHT) || controls.Key_Down(0x4C) || (controls.xInputState.Gamepad.sThumbLX>8192)) && (menuVelocity.x == 0.0f))
 	{
-		if(KEY_DOWN(VK_LCONTROL)) {
+		if(controls.Key_Down(VK_LCONTROL)) {
 			separationChange /= 10.0f;
 		}
-		else if(KEY_DOWN(VK_LSHIFT))
+		else if(controls.Key_Down(VK_LSHIFT))
 		{
 			separationChange *= 10.0f;
 		}
-		else if(KEY_DOWN(VK_MENU))
+		else if(controls.Key_Down(VK_MENU))
 		{
 			separationChange /= 500.0f;
 		}
 
-		if (m_xInputState.Gamepad.sThumbLX != 0)
-			m_spShaderViewAdjustment->ChangeWorldScale(separationChange * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f));
+		if (controls.xInputState.Gamepad.sThumbLX != 0)
+			m_spShaderViewAdjustment->ChangeWorldScale(separationChange * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f));
 		else
 			m_spShaderViewAdjustment->ChangeWorldScale(separationChange);
 		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
@@ -3410,6 +3423,9 @@ void D3DProxyDevice::BRASSA_WorldScale()
 ***/
 void D3DProxyDevice::BRASSA_Convergence()
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called BRASSA_Convergence");
+	#endif
 	// base values
 	float convergenceChange = 0.05f;
 
@@ -3421,7 +3437,7 @@ void D3DProxyDevice::BRASSA_Convergence()
 	/**
 	* ESCAPE : Set BRASSA inactive and save the configuration.
 	***/
-	if (KEY_DOWN(VK_ESCAPE))
+	if (controls.Key_Down(VK_ESCAPE))
 	{
 		BRASSA_mode = BRASSA_Modes::INACTIVE;
 		BRASSA_UpdateConfigSettings();
@@ -3430,17 +3446,17 @@ void D3DProxyDevice::BRASSA_Convergence()
 	/**
 	* LEFT : Decrease convergence (hold CTRL to lower speed, SHIFT to speed up)
 	***/
-	if((KEY_DOWN(VK_LEFT) || KEY_DOWN(0x4A) || (m_xInputState.Gamepad.sThumbLX<-8192)) && (menuVelocity.x == 0.0f))
+	if((controls.Key_Down(VK_LEFT) || controls.Key_Down(0x4A) || (controls.xInputState.Gamepad.sThumbLX<-8192)) && (menuVelocity.x == 0.0f))
 	{
-		if(KEY_DOWN(VK_LCONTROL)) {
+		if(controls.Key_Down(VK_LCONTROL)) {
 			convergenceChange /= 10.0f;
 		}
-		else if(KEY_DOWN(VK_LSHIFT)) {
+		else if(controls.Key_Down(VK_LSHIFT)) {
 			convergenceChange *= 10.0f;
 		} 
 
-		if (m_xInputState.Gamepad.sThumbLX != 0)
-			m_spShaderViewAdjustment->ChangeConvergence(convergenceChange * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f));
+		if (controls.xInputState.Gamepad.sThumbLX != 0)
+			m_spShaderViewAdjustment->ChangeConvergence(convergenceChange * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f));
 		else
 			m_spShaderViewAdjustment->ChangeConvergence(-convergenceChange);
 		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
@@ -3451,18 +3467,18 @@ void D3DProxyDevice::BRASSA_Convergence()
 	/**
 	* RIGHT : Increase convergence (hold CTRL to lower speed, SHIFT to speed up)
 	***/
-	if((KEY_DOWN(VK_RIGHT) || KEY_DOWN(0x4C) || (m_xInputState.Gamepad.sThumbLX>8192)) && (menuVelocity.x == 0.0f))
+	if((controls.Key_Down(VK_RIGHT) || controls.Key_Down(0x4C) || (controls.xInputState.Gamepad.sThumbLX>8192)) && (menuVelocity.x == 0.0f))
 	{
-		if(KEY_DOWN(VK_LCONTROL)) {
+		if(controls.Key_Down(VK_LCONTROL)) {
 			convergenceChange /= 10.0f;
 		}
-		else if(KEY_DOWN(VK_LSHIFT))
+		else if(controls.Key_Down(VK_LSHIFT))
 		{
 			convergenceChange *= 10.0f;
 		}
 
-		if (m_xInputState.Gamepad.sThumbLX != 0)
-			m_spShaderViewAdjustment->ChangeConvergence(convergenceChange * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f));
+		if (controls.xInputState.Gamepad.sThumbLX != 0)
+			m_spShaderViewAdjustment->ChangeConvergence(convergenceChange * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f));
 		else
 			m_spShaderViewAdjustment->ChangeConvergence(convergenceChange);
 		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
@@ -3604,6 +3620,9 @@ void D3DProxyDevice::BRASSA_Convergence()
 ***/
 void D3DProxyDevice::BRASSA_HUD()
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called BRASSA_HUD");
+	#endif
 	UINT menuEntryCount = 10;
 
 	menuHelperRect.left = 0;
@@ -3616,7 +3635,7 @@ void D3DProxyDevice::BRASSA_HUD()
 	if ((hotkeyCatch) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		for (int i = 0; i < 256; i++)
-			if (KEY_DOWN(i) && (keyNameList[i]!="-"))
+			if (controls.Key_Down(i) && controls.GetKeyName(i)!="-")
 			{
 				hotkeyCatch = false;
 				int index = entryID-3;
@@ -3626,13 +3645,13 @@ void D3DProxyDevice::BRASSA_HUD()
 	}
 	else
 	{
-		if (KEY_DOWN(VK_ESCAPE))
+		if (controls.Key_Down(VK_ESCAPE))
 		{
 			BRASSA_mode = BRASSA_Modes::INACTIVE;
 			BRASSA_UpdateConfigSettings();
 		}
 
-		if ((KEY_DOWN(VK_RETURN) || KEY_DOWN(VK_RSHIFT) || (m_xButtons[0x0c])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		if ((controls.Key_Down(VK_RETURN) || controls.Key_Down(VK_RSHIFT) || (controls.xButtonsStatus[0x0c])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
 			if ((entryID >= 3) && (entryID <= 7) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 			{
@@ -3654,7 +3673,7 @@ void D3DProxyDevice::BRASSA_HUD()
 			}
 		}
 
-		if (KEY_DOWN(VK_BACK))
+		if (controls.Key_Down(VK_BACK))
 		{
 			if ((entryID >= 3) && (entryID <= 7) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 			{
@@ -3665,7 +3684,7 @@ void D3DProxyDevice::BRASSA_HUD()
 			}
 		}
 
-		if (KEY_DOWN(VK_LEFT) || KEY_DOWN(0x4A) || (m_xInputState.Gamepad.sThumbLX<-8192))
+		if (controls.Key_Down(VK_LEFT) || controls.Key_Down(0x4A) || (controls.xInputState.Gamepad.sThumbLX<-8192))
 		{
 			if ((entryID == 0) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 			{
@@ -3676,8 +3695,8 @@ void D3DProxyDevice::BRASSA_HUD()
 
 			if ((entryID == 1) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 			{
-				if (m_xInputState.Gamepad.sThumbLX != 0)
-					hudDistancePresets[(int)hud3DDepthMode]+=0.01f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
+				if (controls.xInputState.Gamepad.sThumbLX != 0)
+					hudDistancePresets[(int)hud3DDepthMode]+=0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 				else
 					hudDistancePresets[(int)hud3DDepthMode]-=0.01f;
 				ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)hud3DDepthMode);
@@ -3686,8 +3705,8 @@ void D3DProxyDevice::BRASSA_HUD()
 
 			if ((entryID == 2) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 			{
-				if (m_xInputState.Gamepad.sThumbLX != 0)
-					hud3DDepthPresets[(int)hud3DDepthMode]+=0.002f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
+				if (controls.xInputState.Gamepad.sThumbLX != 0)
+					hud3DDepthPresets[(int)hud3DDepthMode]+=0.002f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 				else
 					hud3DDepthPresets[(int)hud3DDepthMode]-=0.002f;
 				ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)hud3DDepthMode);
@@ -3695,7 +3714,7 @@ void D3DProxyDevice::BRASSA_HUD()
 			}
 		}
 
-		if (KEY_DOWN(VK_RIGHT) || KEY_DOWN(0x4C) || (m_xInputState.Gamepad.sThumbLX>8192))
+		if (controls.Key_Down(VK_RIGHT) || controls.Key_Down(0x4C) || (controls.xInputState.Gamepad.sThumbLX>8192))
 		{
 			// change hud scale
 			if ((entryID == 0) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
@@ -3707,8 +3726,8 @@ void D3DProxyDevice::BRASSA_HUD()
 
 			if ((entryID == 1) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 			{
-				if (m_xInputState.Gamepad.sThumbLX != 0)
-					hudDistancePresets[(int)hud3DDepthMode]+=0.01f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
+				if (controls.xInputState.Gamepad.sThumbLX != 0)
+					hudDistancePresets[(int)hud3DDepthMode]+=0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 				else
 					hudDistancePresets[(int)hud3DDepthMode]+=0.01f;
 				ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)hud3DDepthMode);
@@ -3717,8 +3736,8 @@ void D3DProxyDevice::BRASSA_HUD()
 
 			if ((entryID == 2) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 			{
-				if (m_xInputState.Gamepad.sThumbLX != 0)
-					hud3DDepthPresets[(int)hud3DDepthMode]+=0.002f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
+				if (controls.xInputState.Gamepad.sThumbLX != 0)
+					hud3DDepthPresets[(int)hud3DDepthMode]+=0.002f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 				else
 					hud3DDepthPresets[(int)hud3DDepthMode]+=0.002f;
 				ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)hud3DDepthMode);
@@ -3780,35 +3799,35 @@ void D3DProxyDevice::BRASSA_HUD()
 		menuHelperRect.top += 40;
 		sprintf_s(vcString,"Hotkey >Switch< : ");
 		std::string stdString = std::string(vcString);
-		stdString.append(keyNameList[hudHotkeys[0]]);
+		stdString.append(controls.GetKeyName(hudHotkeys[0]));
 		if ((hotkeyCatch) && (entryID==3))
 			stdString = "Press the desired key.";
 		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += 40;
 		sprintf_s(vcString,"Hotkey >Default< : ");
 		stdString = std::string(vcString);
-		stdString.append(keyNameList[hudHotkeys[1]]);
+		stdString.append(controls.GetKeyName(hudHotkeys[1]));
 		if ((hotkeyCatch) && (entryID==4))
 			stdString = "Press the desired key.";
 		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += 40;
 		sprintf_s(vcString,"Hotkey >Small< : ");
 		stdString = std::string(vcString);
-		stdString.append(keyNameList[hudHotkeys[2]]);
+		stdString.append(controls.GetKeyName(hudHotkeys[2]));
 		if ((hotkeyCatch) && (entryID==5))
 			stdString = "Press the desired key.";
 		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += 40;
 		sprintf_s(vcString,"Hotkey >Large< : ");
 		stdString = std::string(vcString);
-		stdString.append(keyNameList[hudHotkeys[3]]);
+		stdString.append(controls.GetKeyName(hudHotkeys[3]));
 		if ((hotkeyCatch) && (entryID==6))
 			stdString = "Press the desired key.";
 		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += 40;
 		sprintf_s(vcString,"Hotkey >Full< : ");
 		stdString = std::string(vcString);
-		stdString.append(keyNameList[hudHotkeys[4]]);
+		stdString.append(controls.GetKeyName(hudHotkeys[4]));
 		if ((hotkeyCatch) && (entryID==7))
 			stdString = "Press the desired key.";
 		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
@@ -3836,6 +3855,9 @@ void D3DProxyDevice::BRASSA_HUD()
 ***/
 void D3DProxyDevice::BRASSA_GUI()
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called BRASSA_GUI");
+	#endif
 	UINT menuEntryCount = 10;
 
 	menuHelperRect.left = 0;
@@ -3848,7 +3870,7 @@ void D3DProxyDevice::BRASSA_GUI()
 	if ((hotkeyCatch) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		for (int i = 0; i < 256; i++)
-			if (KEY_DOWN(i) && (keyNameList[i]!="-"))
+			if (controls.Key_Down(i) && controls.GetKeyName(i)!="-")
 			{
 				hotkeyCatch = false;
 				int index = entryID-3;
@@ -3858,13 +3880,13 @@ void D3DProxyDevice::BRASSA_GUI()
 	}
 	else
 	{
-		if (KEY_DOWN(VK_ESCAPE))
+		if (controls.Key_Down(VK_ESCAPE))
 		{
 			BRASSA_mode = BRASSA_Modes::INACTIVE;
 			BRASSA_UpdateConfigSettings();
 		}
 
-		if ((KEY_DOWN(VK_RETURN) || KEY_DOWN(VK_RSHIFT) || (m_xButtons[0x0c])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		if ((controls.Key_Down(VK_RETURN) || controls.Key_Down(VK_RSHIFT) || (controls.xButtonsStatus[0x0c])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
 			if ((entryID >= 3) && (entryID <= 7) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 			{
@@ -3885,7 +3907,7 @@ void D3DProxyDevice::BRASSA_GUI()
 			}
 		}
 
-		if (KEY_DOWN(VK_BACK))
+		if (controls.Key_Down(VK_BACK))
 		{
 			if ((entryID >= 3) && (entryID <= 7) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 			{
@@ -3896,7 +3918,7 @@ void D3DProxyDevice::BRASSA_GUI()
 			}
 		}
 
-		if (KEY_DOWN(VK_LEFT) || KEY_DOWN(0x4A) || (m_xInputState.Gamepad.sThumbLX<-8192))
+		if (controls.Key_Down(VK_LEFT) || controls.Key_Down(0x4A) || (controls.xInputState.Gamepad.sThumbLX<-8192))
 		{
 			if ((entryID == 0) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 			{
@@ -3907,8 +3929,8 @@ void D3DProxyDevice::BRASSA_GUI()
 
 			if ((entryID == 1) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 			{
-				if (m_xInputState.Gamepad.sThumbLX != 0)
-					guiSquishPresets[(int)gui3DDepthMode]+=0.01f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
+				if (controls.xInputState.Gamepad.sThumbLX != 0)
+					guiSquishPresets[(int)gui3DDepthMode]+=0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 				else
 					guiSquishPresets[(int)gui3DDepthMode]-=0.01f;
 				ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)gui3DDepthMode);
@@ -3917,8 +3939,8 @@ void D3DProxyDevice::BRASSA_GUI()
 
 			if ((entryID == 2) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 			{
-				if (m_xInputState.Gamepad.sThumbLX != 0)
-					gui3DDepthPresets[(int)gui3DDepthMode]+=0.002f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
+				if (controls.xInputState.Gamepad.sThumbLX != 0)
+					gui3DDepthPresets[(int)gui3DDepthMode]+=0.002f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 				else
 					gui3DDepthPresets[(int)gui3DDepthMode]-=0.002f;
 				ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)gui3DDepthMode);
@@ -3926,7 +3948,7 @@ void D3DProxyDevice::BRASSA_GUI()
 			}
 		}
 
-		if (KEY_DOWN(VK_RIGHT) || KEY_DOWN(0x4C) || (m_xInputState.Gamepad.sThumbLX>8192))
+		if (controls.Key_Down(VK_RIGHT) || controls.Key_Down(0x4C) || (controls.xInputState.Gamepad.sThumbLX>8192))
 		{
 			// change gui scale
 			if ((entryID == 0) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
@@ -3938,8 +3960,8 @@ void D3DProxyDevice::BRASSA_GUI()
 
 			if ((entryID == 1) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 			{
-				if (m_xInputState.Gamepad.sThumbLX != 0)
-					guiSquishPresets[(int)gui3DDepthMode]+=0.01f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
+				if (controls.xInputState.Gamepad.sThumbLX != 0)
+					guiSquishPresets[(int)gui3DDepthMode]+=0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 				else
 					guiSquishPresets[(int)gui3DDepthMode]+=0.01f;
 				ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)gui3DDepthMode);
@@ -3948,8 +3970,8 @@ void D3DProxyDevice::BRASSA_GUI()
 
 			if ((entryID == 2) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 			{
-				if (m_xInputState.Gamepad.sThumbLX != 0)
-					gui3DDepthPresets[(int)gui3DDepthMode]+=0.002f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
+				if (controls.xInputState.Gamepad.sThumbLX != 0)
+					gui3DDepthPresets[(int)gui3DDepthMode]+=0.002f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 				else
 					gui3DDepthPresets[(int)gui3DDepthMode]+=0.002f;
 				ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)gui3DDepthMode);
@@ -4011,35 +4033,35 @@ void D3DProxyDevice::BRASSA_GUI()
 		menuHelperRect.top += 40;
 		sprintf_s(vcString,"Hotkey >Switch< : ");
 		std::string stdString = std::string(vcString);
-		stdString.append(keyNameList[guiHotkeys[0]]);
+		stdString.append(controls.GetKeyName(guiHotkeys[0]));
 		if ((hotkeyCatch) && (entryID==3))
 			stdString = "Press the desired key.";
 		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += 40;
 		sprintf_s(vcString,"Hotkey >Default< : ");
 		stdString = std::string(vcString);
-		stdString.append(keyNameList[guiHotkeys[1]]);
+		stdString.append(controls.GetKeyName(guiHotkeys[1]));
 		if ((hotkeyCatch) && (entryID==4))
 			stdString = "Press the desired key.";
 		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += 40;
 		sprintf_s(vcString,"Hotkey >Small< : ");
 		stdString = std::string(vcString);
-		stdString.append(keyNameList[guiHotkeys[2]]);
+		stdString.append(controls.GetKeyName(guiHotkeys[2]));
 		if ((hotkeyCatch) && (entryID==5))
 			stdString = "Press the desired key.";
 		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += 40;
 		sprintf_s(vcString,"Hotkey >Large< : ");
 		stdString = std::string(vcString);
-		stdString.append(keyNameList[guiHotkeys[3]]);
+		stdString.append(controls.GetKeyName(guiHotkeys[3]));
 		if ((hotkeyCatch) && (entryID==6))
 			stdString = "Press the desired key.";
 		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += 40;
 		sprintf_s(vcString,"Hotkey >Full< : ");
 		stdString = std::string(vcString);
-		stdString.append(keyNameList[guiHotkeys[4]]);
+		stdString.append(controls.GetKeyName(guiHotkeys[4]));
 		if ((hotkeyCatch) && (entryID==7))
 			stdString = "Press the desired key.";
 		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
@@ -4067,6 +4089,9 @@ void D3DProxyDevice::BRASSA_GUI()
 ***/
 void D3DProxyDevice::BRASSA_Settings()
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called BRASA_Settings");
+	#endif
 	UINT menuEntryCount = 12;
 
 	menuHelperRect.left = 0;
@@ -4079,7 +4104,7 @@ void D3DProxyDevice::BRASSA_Settings()
 	if ((hotkeyCatch) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		for (int i = 0; i < 256; i++)
-			if (KEY_DOWN(i) && (keyNameList[i]!="-"))
+			if (controls.Key_Down(i) && controls.GetKeyName(i)!="-")
 			{
 				hotkeyCatch = false;
 				toggleVRBoostHotkey = (byte)i;
@@ -4090,13 +4115,13 @@ void D3DProxyDevice::BRASSA_Settings()
 		/**
 		* ESCAPE : Set BRASSA inactive and save the configuration.
 		***/
-		if (KEY_DOWN(VK_ESCAPE))
+		if (controls.Key_Down(VK_ESCAPE))
 		{
 			BRASSA_mode = BRASSA_Modes::INACTIVE;
 			BRASSA_UpdateConfigSettings();
 		}
 
-		if ((KEY_DOWN(VK_RETURN) || KEY_DOWN(VK_RSHIFT) || (m_xButtons[0x0c])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		if ((controls.Key_Down(VK_RETURN) || controls.Key_Down(VK_RSHIFT) || (controls.xButtonsStatus[0x0c])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
 			// swap eyes
 			if (entryID == 0)
@@ -4164,7 +4189,7 @@ void D3DProxyDevice::BRASSA_Settings()
 			}
 		}
 
-		if (KEY_DOWN(VK_BACK))
+		if (controls.Key_Down(VK_BACK))
 		{
 			if ((entryID >= 3) && (entryID <= 7) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 			{
@@ -4175,7 +4200,7 @@ void D3DProxyDevice::BRASSA_Settings()
 			}
 		}
 
-		if (KEY_DOWN(VK_BACK) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		if (controls.Key_Down(VK_BACK) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
 			// distortion
 			if (entryID == 1)
@@ -4192,7 +4217,7 @@ void D3DProxyDevice::BRASSA_Settings()
 			}
 		}
 
-		if ((KEY_DOWN(VK_LEFT) || KEY_DOWN(0x4A) || (m_xInputState.Gamepad.sThumbLX<-8192)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		if ((controls.Key_Down(VK_LEFT) || controls.Key_Down(0x4A) || (controls.xInputState.Gamepad.sThumbLX<-8192)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
 			// swap eyes
 			if (entryID == 0)
@@ -4203,8 +4228,8 @@ void D3DProxyDevice::BRASSA_Settings()
 			// distortion
 			if (entryID == 1)
 			{
-				if (m_xInputState.Gamepad.sThumbLX != 0)
-					this->stereoView->DistortionScale += 0.01f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
+				if (controls.xInputState.Gamepad.sThumbLX != 0)
+					this->stereoView->DistortionScale += 0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 				else
 					this->stereoView->DistortionScale -= 0.01f;
 				this->stereoView->PostReset();
@@ -4213,8 +4238,8 @@ void D3DProxyDevice::BRASSA_Settings()
 			// yaw multiplier
 			if (entryID == 3)
 			{
-				if (m_xInputState.Gamepad.sThumbLX != 0)
-					tracker->multiplierYaw += 0.5f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
+				if (controls.xInputState.Gamepad.sThumbLX != 0)
+					tracker->multiplierYaw += 0.5f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 				else
 					tracker->multiplierYaw -= 0.5f;
 				menuVelocity.x -= 0.7f;
@@ -4222,8 +4247,8 @@ void D3DProxyDevice::BRASSA_Settings()
 			// pitch multiplier
 			if (entryID == 4)
 			{
-				if (m_xInputState.Gamepad.sThumbLX != 0)
-					tracker->multiplierPitch += 0.5f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
+				if (controls.xInputState.Gamepad.sThumbLX != 0)
+					tracker->multiplierPitch += 0.5f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 				else
 					tracker->multiplierPitch -= 0.5f;
 				menuVelocity.x -= 0.7f;
@@ -4231,8 +4256,8 @@ void D3DProxyDevice::BRASSA_Settings()
 			// roll multiplier
 			if (entryID == 5)
 			{
-				if (m_xInputState.Gamepad.sThumbLX != 0)
-					tracker->multiplierRoll += 0.05f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
+				if (controls.xInputState.Gamepad.sThumbLX != 0)
+					tracker->multiplierRoll += 0.05f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 				else
 					tracker->multiplierRoll -= 0.05f;
 				menuVelocity.x -= 0.7f;
@@ -4249,7 +4274,7 @@ void D3DProxyDevice::BRASSA_Settings()
 			}
 		}
 
-		if ((KEY_DOWN(VK_RIGHT) || KEY_DOWN(0x4C) || (m_xInputState.Gamepad.sThumbLX>8192)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		if ((controls.Key_Down(VK_RIGHT) || controls.Key_Down(0x4C) || (controls.xInputState.Gamepad.sThumbLX>8192)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
 			// swap eyes
 			if (entryID == 0)
@@ -4260,8 +4285,8 @@ void D3DProxyDevice::BRASSA_Settings()
 			// distortion
 			if (entryID == 1)
 			{
-				if (m_xInputState.Gamepad.sThumbLX != 0)
-					this->stereoView->DistortionScale += 0.01f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
+				if (controls.xInputState.Gamepad.sThumbLX != 0)
+					this->stereoView->DistortionScale += 0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 				else
 					this->stereoView->DistortionScale += 0.01f;
 				this->stereoView->PostReset();
@@ -4270,8 +4295,8 @@ void D3DProxyDevice::BRASSA_Settings()
 			// yaw multiplier
 			if (entryID == 3)
 			{
-				if (m_xInputState.Gamepad.sThumbLX != 0)
-					tracker->multiplierYaw += 0.5f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
+				if (controls.xInputState.Gamepad.sThumbLX != 0)
+					tracker->multiplierYaw += 0.5f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 				else
 					tracker->multiplierYaw += 0.5f;
 				menuVelocity.x += 0.7f;
@@ -4279,8 +4304,8 @@ void D3DProxyDevice::BRASSA_Settings()
 			// pitch multiplier
 			if (entryID == 4)
 			{
-				if (m_xInputState.Gamepad.sThumbLX != 0)
-					tracker->multiplierPitch += 0.5f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
+				if (controls.xInputState.Gamepad.sThumbLX != 0)
+					tracker->multiplierPitch += 0.5f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 				else
 					tracker->multiplierPitch += 0.5f;
 				menuVelocity.x += 0.7f;
@@ -4288,8 +4313,8 @@ void D3DProxyDevice::BRASSA_Settings()
 			// roll multiplier
 			if (entryID == 5)
 			{
-				if (m_xInputState.Gamepad.sThumbLX != 0)
-					tracker->multiplierRoll += 0.05f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
+				if (controls.xInputState.Gamepad.sThumbLX != 0)
+					tracker->multiplierRoll += 0.05f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 				else
 					tracker->multiplierRoll += 0.05f;
 				menuVelocity.x += 0.7f;
@@ -4382,7 +4407,7 @@ void D3DProxyDevice::BRASSA_Settings()
 		menuHelperRect.top += 40;
 		sprintf_s(vcString,"Hotkey >Toggle VRBoost< : ");
 		std::string stdString = std::string(vcString);
-		stdString.append(keyNameList[toggleVRBoostHotkey]);
+		stdString.append(controls.GetKeyName(toggleVRBoostHotkey));
 		if ((hotkeyCatch) && (entryID==9))
 			stdString = "Press the desired key.";
 		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
@@ -4408,6 +4433,9 @@ void D3DProxyDevice::BRASSA_Settings()
 ***/
 void D3DProxyDevice::BRASSA_VRBoostValues()
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called BRASSA_VRBoostValues");
+	#endif
 	UINT menuEntryCount = 14;
 
 	menuHelperRect.left = 0;
@@ -4420,13 +4448,13 @@ void D3DProxyDevice::BRASSA_VRBoostValues()
 	/**
 	* ESCAPE : Set BRASSA inactive and save the configuration.
 	***/
-	if (KEY_DOWN(VK_ESCAPE))
+	if (controls.Key_Down(VK_ESCAPE))
 	{
 		BRASSA_mode = BRASSA_Modes::INACTIVE;
 		BRASSA_UpdateConfigSettings();
 	}
 
-	if ((KEY_DOWN(VK_RETURN) || KEY_DOWN(VK_RSHIFT) || (m_xButtons[0x0c])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	if ((controls.Key_Down(VK_RETURN) || controls.Key_Down(VK_RSHIFT) || (controls.xButtonsStatus[0x0c])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		// back to main menu
 		if (entryID == 12)
@@ -4442,26 +4470,26 @@ void D3DProxyDevice::BRASSA_VRBoostValues()
 		}
 	}
 
-	if ((KEY_DOWN(VK_LEFT) || KEY_DOWN(0x4A) || (m_xInputState.Gamepad.sThumbLX<-8192)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	if ((controls.Key_Down(VK_LEFT) || controls.Key_Down(0x4A) || (controls.xInputState.Gamepad.sThumbLX<-8192)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		// change value
 		if ((entryID >= 0) && (entryID <=11))
 		{
-			if (m_xInputState.Gamepad.sThumbLX != 0)
-				VRBoostValue[24+entryID] += 0.1f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
+			if (controls.xInputState.Gamepad.sThumbLX != 0)
+				VRBoostValue[24+entryID] += 0.1f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 			else
 				VRBoostValue[24+entryID] -= 0.1f;
 			menuVelocity.x-=0.1f;
 		}
 	}
 
-	if ((KEY_DOWN(VK_RIGHT) || KEY_DOWN(0x4C) || (m_xInputState.Gamepad.sThumbLX>8192)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	if ((controls.Key_Down(VK_RIGHT) || controls.Key_Down(0x4C) || (controls.xInputState.Gamepad.sThumbLX>8192)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		// change value
 		if ((entryID >= 0) && (entryID <=11))
 		{
-			if (m_xInputState.Gamepad.sThumbLX != 0)
-				VRBoostValue[24+entryID] += 0.1f * (((float)m_xInputState.Gamepad.sThumbLX)/32768.0f);
+			if (controls.xInputState.Gamepad.sThumbLX != 0)
+				VRBoostValue[24+entryID] += 0.1f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 			else
 				VRBoostValue[24+entryID] += 0.1f;
 			menuVelocity.x+=0.1f;
@@ -4551,6 +4579,9 @@ void D3DProxyDevice::BRASSA_VRBoostValues()
 ***/
 void D3DProxyDevice::BRASSA_UpdateBorder()
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called BRASSA_UpdateBorder");
+	#endif
 	// handle controls 
 	if (m_deviceBehavior.whenToHandleHeadTracking == DeviceBehavior::PRESENT)
 		HandleTracking();
@@ -4592,13 +4623,13 @@ void D3DProxyDevice::BRASSA_UpdateBorder()
 		int viewportHeight = stereoView->viewport.Height;
 
 		float fScaleY = ((float)viewportHeight / (float)1080.0f);
-		if ((KEY_DOWN(VK_UP) || KEY_DOWN(0x49) || (m_xInputState.Gamepad.sThumbLY>8192)) && (menuVelocity.y==0.0f))
+		if ((controls.Key_Down(VK_UP) || controls.Key_Down(0x49) || (controls.xInputState.Gamepad.sThumbLY>8192)) && (menuVelocity.y==0.0f))
 			menuVelocity.y=-2.7f;
-		if ((KEY_DOWN(VK_DOWN) || KEY_DOWN(0x4B) || (m_xInputState.Gamepad.sThumbLY<-8192)) && (menuVelocity.y==0.0f))
+		if ((controls.Key_Down(VK_DOWN) || controls.Key_Down(0x4B) || (controls.xInputState.Gamepad.sThumbLY<-8192)) && (menuVelocity.y==0.0f))
 			menuVelocity.y=2.7f;
-		if ((KEY_DOWN(VK_PRIOR) || KEY_DOWN(0x55)) && (menuVelocity.y==0.0f))
+		if ((controls.Key_Down(VK_PRIOR) || controls.Key_Down(0x55)) && (menuVelocity.y==0.0f))
 			menuVelocity.y=-15.0f;
-		if ((KEY_DOWN(VK_NEXT) ||KEY_DOWN(0x4F)) && (menuVelocity.y==0.0f))
+		if ((controls.Key_Down(VK_NEXT) ||controls.Key_Down(0x4F)) && (menuVelocity.y==0.0f))
 			menuVelocity.y=15.0f;
 		borderTopHeight += (menuVelocity.y+menuAttraction.y)*fScaleY*timeScale;
 	}
@@ -4609,6 +4640,9 @@ void D3DProxyDevice::BRASSA_UpdateBorder()
 ***/
 void D3DProxyDevice::BRASSA_UpdateConfigSettings()
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called BRASSA_UpdateConfigSettings");
+	#endif
 	ProxyHelper* helper = new ProxyHelper();
 
 	config.roll_multiplier = tracker->multiplierRoll;
@@ -4659,6 +4693,9 @@ void D3DProxyDevice::BRASSA_UpdateConfigSettings()
 ***/
 void D3DProxyDevice::BRASSA_UpdateDeviceSettings()
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called BRASSA_UpdateDeviceSettings");
+	#endif
 	m_spShaderViewAdjustment->Load(config);
 	stereoView->DistortionScale = config.DistortionScale;
 
@@ -4758,6 +4795,9 @@ void D3DProxyDevice::BRASSA_UpdateDeviceSettings()
 ***/
 void D3DProxyDevice::BRASSA_AdditionalOutput()
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called BRASSA_AdditionalOutput");
+	#endif
 	// draw vrboost toggle indicator
 	if (m_fVRBoostIndicator>0.0f)
 	{
@@ -4779,6 +4819,9 @@ void D3DProxyDevice::BRASSA_AdditionalOutput()
 ***/
 void D3DProxyDevice::ReleaseEverything()
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called ReleaseEverything");
+	#endif
 	// Fonts and any other D3DX interfaces should be released first.
 	// They frequently hold stateblocks which are holding further references to other resources.
 	if(hudFont) {
@@ -4849,13 +4892,15 @@ void D3DProxyDevice::ReleaseEverything()
 		m_pActiveVertexDeclaration = NULL;
 	}
 }
-
 /**
 * Comparison made against active primary render target.
 *
 ***/
 bool D3DProxyDevice::isViewportDefaultForMainRT(CONST D3DVIEWPORT9* pViewport)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called isViewportDefaultForMainRT");
+	#endif
 	D3D9ProxySurface* pPrimaryRenderTarget = m_activeRenderTargets[0];
 	D3DSURFACE_DESC pRTDesc;
 	pPrimaryRenderTarget->GetDesc(&pRTDesc);
@@ -4873,6 +4918,9 @@ bool D3DProxyDevice::isViewportDefaultForMainRT(CONST D3DVIEWPORT9* pViewport)
 ***/
 HRESULT D3DProxyDevice::SetStereoViewTransform(D3DXMATRIX pLeftMatrix, D3DXMATRIX pRightMatrix, bool apply)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called SetStereoViewTransform");
+	#endif
 	if (D3DXMatrixIsIdentity(&pLeftMatrix) && D3DXMatrixIsIdentity(&pRightMatrix)) {
 		m_bViewTransformSet = false;
 	}
@@ -4905,6 +4953,9 @@ HRESULT D3DProxyDevice::SetStereoViewTransform(D3DXMATRIX pLeftMatrix, D3DXMATRI
 ***/
 HRESULT D3DProxyDevice::SetStereoProjectionTransform(D3DXMATRIX pLeftMatrix, D3DXMATRIX pRightMatrix, bool apply)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called SetStereoProjectionTransform");
+	#endif
 	if (D3DXMatrixIsIdentity(&pLeftMatrix) && D3DXMatrixIsIdentity(&pRightMatrix)) {
 		m_bProjectionTransformSet = false;
 	}
@@ -4933,6 +4984,9 @@ HRESULT D3DProxyDevice::SetStereoProjectionTransform(D3DXMATRIX pLeftMatrix, D3D
 ***/
 void D3DProxyDevice::SetGUIViewport()
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called SetGUIViewport");
+	#endif
 	// do not squish the viewport in case brassa menu is open
 	if ((BRASSA_mode>=BRASSA_Modes::MAINMENU) && (BRASSA_mode<BRASSA_Modes::BRASSA_ENUM_RANGE))
 		return;
@@ -4981,5 +5035,143 @@ void D3DProxyDevice::SetGUIViewport()
 **/
 float D3DProxyDevice::RoundBrassaValue(float val)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called RoundBrassaValue");
+	#endif
 	return (float)floor(val * 1000.0f + 0.5f) / 1000.0f;
 }
+
+bool D3DProxyDevice::InitVRBoost()
+{
+	#ifdef SHOW_CALLS
+		OutputDebugString("called InitVRBoost");
+	#endif
+	bool initSuccess = false;
+	// explicit VRboost dll import
+	hmVRboost = LoadLibrary("VRboost.dll");
+
+	// get VRboost methods
+	if (hmVRboost != NULL)
+	{
+		// get methods explicit
+		m_pVRboost_LoadMemoryRules = (LPVRBOOST_LoadMemoryRules)GetProcAddress(hmVRboost, "VRboost_LoadMemoryRules");
+		m_pVRboost_SaveMemoryRules = (LPVRBOOST_SaveMemoryRules)GetProcAddress(hmVRboost, "VRboost_SaveMemoryRules");
+		m_pVRboost_CreateFloatMemoryRule = (LPVRBOOST_CreateFloatMemoryRule)GetProcAddress(hmVRboost, "VRboost_CreateFloatMemoryRule");
+		m_pVRboost_SetProcess = (LPVRBOOST_SetProcess)GetProcAddress(hmVRboost, "VRboost_SetProcess");
+		m_pVRboost_ReleaseAllMemoryRules = (LPVRBOOST_ReleaseAllMemoryRules)GetProcAddress(hmVRboost, "VRboost_ReleaseAllMemoryRules");
+		m_pVRboost_ApplyMemoryRules = (LPVRBOOST_ApplyMemoryRules)GetProcAddress(hmVRboost, "VRboost_ApplyMemoryRules");
+		if ((!m_pVRboost_LoadMemoryRules) || 
+			(!m_pVRboost_SaveMemoryRules) || 
+			(!m_pVRboost_CreateFloatMemoryRule) || 
+			(!m_pVRboost_SetProcess) || 
+			(!m_pVRboost_ReleaseAllMemoryRules) || 
+			(!m_pVRboost_ApplyMemoryRules))
+		{
+			hmVRboost = NULL;
+			m_bForceMouseEmulation = false;
+			FreeLibrary(hmVRboost);
+		}
+		else
+		{
+			initSuccess = true;
+			m_bForceMouseEmulation = true;
+			OutputDebugString("Success loading VRboost methods.");
+		}
+
+		m_VRboostRulesPresent = false;
+		m_VertexShaderCount = 0;
+		m_VertexShaderCountLastFrame = 0;
+
+		// set common default VRBoost values
+		ZeroMemory(&VRBoostValue[0], MAX_VRBOOST_VALUES*sizeof(float));
+		VRBoostValue[VRboostAxis::Zero] = 0.0f;
+		VRBoostValue[VRboostAxis::One] = 1.0f;
+		VRBoostValue[VRboostAxis::WorldFOV] = 95.0f;
+		VRBoostValue[VRboostAxis::PlayerFOV] = 125.0f;
+		VRBoostValue[VRboostAxis::FarPlaneFOV] = 95.0f;
+	}
+	else
+	{
+		initSuccess = false;
+	}
+	return initSuccess;
+}
+
+bool D3DProxyDevice::InitBrassa()
+{
+	#ifdef SHOW_CALLS
+		OutputDebugString("called InitBrassa");
+	#endif
+	hudFont = NULL;
+	menuTime = (float)GetTickCount()/1000.0f;
+	ZeroMemory(&m_configBackup, sizeof(m_configBackup));
+	screenshot = (int)false;
+	m_bForceMouseEmulation = false;
+	m_bVRBoostToggle = true;
+	m_fVRBoostIndicator = 0.0f;
+	BRASSA_mode = BRASSA_Modes::INACTIVE;
+	borderTopHeight = 0.0f;
+	menuTopHeight = 0.0f;
+	menuVelocity = D3DXVECTOR2(0.0f, 0.0f);
+	menuAttraction = D3DXVECTOR2(0.0f, 0.0f);
+	hud3DDepthMode = HUD_3D_Depth_Modes::HUD_DEFAULT;
+	gui3DDepthMode = GUI_3D_Depth_Modes::GUI_DEFAULT;
+	oldHudMode = HUD_3D_Depth_Modes::HUD_DEFAULT;
+	oldGuiMode = GUI_3D_Depth_Modes::GUI_DEFAULT;
+	hud3DDepthPresets[0] = 0.0f;
+	hud3DDepthPresets[1] = 0.0f;
+	hud3DDepthPresets[2] = 0.0f;
+	hud3DDepthPresets[3] = 0.0f;
+	hudDistancePresets[0] = 0.5f;
+	hudDistancePresets[1] = 0.9f;
+	hudDistancePresets[2] = 0.3f;
+	hudDistancePresets[3] = 0.0f;
+	gui3DDepthPresets[0] = 0.0f;
+	gui3DDepthPresets[1] = 0.0f;
+	gui3DDepthPresets[2] = 0.0f;
+	gui3DDepthPresets[3] = 0.0f;
+	guiSquishPresets[0] = 0.6f;
+	guiSquishPresets[1] = 0.5f;
+	guiSquishPresets[2] = 0.9f;
+	guiSquishPresets[3] = 1.0f;
+	ChangeHUD3DDepthMode(HUD_3D_Depth_Modes::HUD_DEFAULT);
+	ChangeGUI3DDepthMode(GUI_3D_Depth_Modes::GUI_DEFAULT);
+
+	hotkeyCatch = false;
+	toggleVRBoostHotkey = 0;
+	for (int i = 0; i < 5; i++)
+	{
+		guiHotkeys[i] = 0;
+		hudHotkeys[i] = 0;
+	}
+	for (int i = 0; i < 16; i++)
+		controls.xButtonsStatus[i] = false;
+	return true;
+}
+
+/*
+  * Initializes the tracker, setting the tracker initialized status.
+  * @return true if tracker was initialized, false otherwise
+  */
+ bool D3DProxyDevice::InitTracker()
+ {
+	#ifdef SHOW_CALLS
+		 OutputDebugString("called InitTracker");
+	#endif
+ 	// VRboost rules present ?
+ 	if (config.VRboostPath != "") m_VRboostRulesPresent = true; else m_VRboostRulesPresent = false;
+ 
+ 	OutputDebugString("Try to init Tracker\n");
+ 	tracker = MotionTrackerFactory::Get(config);
+ 	if (tracker)
+ 	{
+ 		tracker->setMultipliers(config.yaw_multiplier, config.pitch_multiplier, config.roll_multiplier);
+ 		tracker->setMouseEmulation((!m_VRboostRulesPresent) || (hmVRboost==NULL));
+ 		trackerInitialized = true;
+ 	}
+ 	else
+ 	{
+ 		trackerInitialized = false;		
+ 	}
+ 	return trackerInitialized;
+ }

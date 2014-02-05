@@ -208,6 +208,7 @@
     <ClCompile Include="D3DProxyDeviceEgo.cpp">
       <Filter>Direct3D9Vireio\Direct3DDevice9\DeviceTypes</Filter>
     </ClCompile>
+    <ClCompile Include="InputControls.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Exports.def">
@@ -309,9 +310,6 @@
       <Filter>Direct3D9Vireio</Filter>
     </ClInclude>
     <ClInclude Include="Direct3DCubeTexture9.h">
-      <Filter>Direct3D9</Filter>
-    </ClInclude>
-    <ClInclude Include="Direct3DVolumeTexture9.h">
       <Filter>Direct3D9</Filter>
     </ClInclude>
     <ClInclude Include="Direct3DVolume9.h">
@@ -467,6 +465,10 @@
     </ClInclude>
     <ClInclude Include="D3DProxyDeviceEgo.h">
       <Filter>Direct3D9Vireio\Direct3DDevice9\DeviceTypes</Filter>
+    </ClInclude>
+    <ClInclude Include="InputControls.h" />
+    <ClInclude Include="Direct3DVolumeTexture9.h">
+      <Filter>Direct3D9Vireio</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

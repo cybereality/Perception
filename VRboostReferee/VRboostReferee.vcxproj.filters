@@ -27,6 +27,9 @@
     <ClInclude Include="..\DxProxy\DxProxy\pugixml.hpp">
       <Filter>XML</Filter>
     </ClInclude>
+    <ClInclude Include="VRBoostEnums.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="VRboostReferee.cpp">
