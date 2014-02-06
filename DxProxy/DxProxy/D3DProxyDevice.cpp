@@ -4752,6 +4752,7 @@ void D3DProxyDevice::BRASSA_UpdateDeviceSettings()
 	case D3DProxyDevice::UNREAL_MIRROR:
 	case D3DProxyDevice::UNREAL_UT3:
 	case D3DProxyDevice::UNREAL_BIOSHOCK:
+	case D3DProxyDevice::UNREAL_BORDERLANDS:
 		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::END_SCENE;
 		m_deviceBehavior.whenToRenderBRASSA = DeviceBehavior::WhenToDo::END_SCENE;
 		break;
