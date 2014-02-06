@@ -3233,7 +3233,7 @@ void D3DProxyDevice::BRASSA_WorldScale()
 			separationChange /= 500.0f;
 		}
 
-		if (controls.xInputState.Gamepad.sThumbLX != 0)
+		if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
 			m_spShaderViewAdjustment->ChangeWorldScale(separationChange * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f));
 		else
 			m_spShaderViewAdjustment->ChangeWorldScale(-separationChange);
@@ -3259,7 +3259,7 @@ void D3DProxyDevice::BRASSA_WorldScale()
 			separationChange /= 500.0f;
 		}
 
-		if (controls.xInputState.Gamepad.sThumbLX != 0)
+		if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down(0x4C))
 			m_spShaderViewAdjustment->ChangeWorldScale(separationChange * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f));
 		else
 			m_spShaderViewAdjustment->ChangeWorldScale(separationChange);
@@ -3482,7 +3482,7 @@ void D3DProxyDevice::BRASSA_Convergence()
 			convergenceChange *= 10.0f;
 		} 
 
-		if (controls.xInputState.Gamepad.sThumbLX != 0)
+		if (controls.xInputState.Gamepad.sThumbLX != 0  && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
 			m_spShaderViewAdjustment->ChangeConvergence(convergenceChange * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f));
 		else
 			m_spShaderViewAdjustment->ChangeConvergence(-convergenceChange);
@@ -3504,7 +3504,7 @@ void D3DProxyDevice::BRASSA_Convergence()
 			convergenceChange *= 10.0f;
 		}
 
-		if (controls.xInputState.Gamepad.sThumbLX != 0)
+		if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4C))
 			m_spShaderViewAdjustment->ChangeConvergence(convergenceChange * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f));
 		else
 			m_spShaderViewAdjustment->ChangeConvergence(convergenceChange);
@@ -3722,7 +3722,7 @@ void D3DProxyDevice::BRASSA_HUD()
 
 			if ((entryID == 1) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0)
+				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
 					hudDistancePresets[(int)hud3DDepthMode]+=0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 				else
 					hudDistancePresets[(int)hud3DDepthMode]-=0.01f;
@@ -3732,7 +3732,7 @@ void D3DProxyDevice::BRASSA_HUD()
 
 			if ((entryID == 2) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0)
+				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
 					hud3DDepthPresets[(int)hud3DDepthMode]+=0.002f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 				else
 					hud3DDepthPresets[(int)hud3DDepthMode]-=0.002f;
@@ -3753,7 +3753,7 @@ void D3DProxyDevice::BRASSA_HUD()
 
 			if ((entryID == 1) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0)
+				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down(0x4C))
 					hudDistancePresets[(int)hud3DDepthMode]+=0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 				else
 					hudDistancePresets[(int)hud3DDepthMode]+=0.01f;
@@ -3763,7 +3763,7 @@ void D3DProxyDevice::BRASSA_HUD()
 
 			if ((entryID == 2) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0)
+				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down(0x4C))
 					hud3DDepthPresets[(int)hud3DDepthMode]+=0.002f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 				else
 					hud3DDepthPresets[(int)hud3DDepthMode]+=0.002f;
@@ -3956,7 +3956,7 @@ void D3DProxyDevice::BRASSA_GUI()
 
 			if ((entryID == 1) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0)
+				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
 					guiSquishPresets[(int)gui3DDepthMode]+=0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 				else
 					guiSquishPresets[(int)gui3DDepthMode]-=0.01f;
@@ -3966,7 +3966,7 @@ void D3DProxyDevice::BRASSA_GUI()
 
 			if ((entryID == 2) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0)
+				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
 					gui3DDepthPresets[(int)gui3DDepthMode]+=0.002f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 				else
 					gui3DDepthPresets[(int)gui3DDepthMode]-=0.002f;
@@ -3987,7 +3987,7 @@ void D3DProxyDevice::BRASSA_GUI()
 
 			if ((entryID == 1) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0)
+				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down(0x4C))
 					guiSquishPresets[(int)gui3DDepthMode]+=0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 				else
 					guiSquishPresets[(int)gui3DDepthMode]+=0.01f;
@@ -3997,7 +3997,7 @@ void D3DProxyDevice::BRASSA_GUI()
 
 			if ((entryID == 2) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0)
+				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down(0x4C))
 					gui3DDepthPresets[(int)gui3DDepthMode]+=0.002f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 				else
 					gui3DDepthPresets[(int)gui3DDepthMode]+=0.002f;
@@ -4255,7 +4255,7 @@ void D3DProxyDevice::BRASSA_Settings()
 			// distortion
 			if (entryID == 1)
 			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0)
+				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
 					this->stereoView->DistortionScale += 0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 				else
 					this->stereoView->DistortionScale -= 0.01f;
@@ -4265,7 +4265,7 @@ void D3DProxyDevice::BRASSA_Settings()
 			// yaw multiplier
 			if (entryID == 3)
 			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0)
+				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
 					tracker->multiplierYaw += 0.5f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 				else
 					tracker->multiplierYaw -= 0.5f;
@@ -4274,7 +4274,7 @@ void D3DProxyDevice::BRASSA_Settings()
 			// pitch multiplier
 			if (entryID == 4)
 			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0)
+				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
 					tracker->multiplierPitch += 0.5f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 				else
 					tracker->multiplierPitch -= 0.5f;
@@ -4283,7 +4283,7 @@ void D3DProxyDevice::BRASSA_Settings()
 			// roll multiplier
 			if (entryID == 5)
 			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0)
+				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
 					tracker->multiplierRoll += 0.05f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 				else
 					tracker->multiplierRoll -= 0.05f;
@@ -4312,7 +4312,7 @@ void D3DProxyDevice::BRASSA_Settings()
 			// distortion
 			if (entryID == 1)
 			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0)
+				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down(0x4C))
 					this->stereoView->DistortionScale += 0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 				else
 					this->stereoView->DistortionScale += 0.01f;
@@ -4322,7 +4322,7 @@ void D3DProxyDevice::BRASSA_Settings()
 			// yaw multiplier
 			if (entryID == 3)
 			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0)
+				if (controls.xInputState.Gamepad.sThumbLX != 0  && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down(0x4C))
 					tracker->multiplierYaw += 0.5f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 				else
 					tracker->multiplierYaw += 0.5f;
@@ -4331,7 +4331,7 @@ void D3DProxyDevice::BRASSA_Settings()
 			// pitch multiplier
 			if (entryID == 4)
 			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0)
+				if (controls.xInputState.Gamepad.sThumbLX != 0  && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down(0x4C))
 					tracker->multiplierPitch += 0.5f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 				else
 					tracker->multiplierPitch += 0.5f;
@@ -4340,7 +4340,7 @@ void D3DProxyDevice::BRASSA_Settings()
 			// roll multiplier
 			if (entryID == 5)
 			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0)
+				if (controls.xInputState.Gamepad.sThumbLX != 0  && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down(0x4C))
 					tracker->multiplierRoll += 0.05f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 				else
 					tracker->multiplierRoll += 0.05f;
@@ -4502,7 +4502,7 @@ void D3DProxyDevice::BRASSA_VRBoostValues()
 		// change value
 		if ((entryID >= 0) && (entryID <=11))
 		{
-			if (controls.xInputState.Gamepad.sThumbLX != 0)
+			if (controls.xInputState.Gamepad.sThumbLX != 0  && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
 				VRBoostValue[24+entryID] += 0.1f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 			else
 				VRBoostValue[24+entryID] -= 0.1f;
@@ -4515,7 +4515,7 @@ void D3DProxyDevice::BRASSA_VRBoostValues()
 		// change value
 		if ((entryID >= 0) && (entryID <=11))
 		{
-			if (controls.xInputState.Gamepad.sThumbLX != 0)
+			if (controls.xInputState.Gamepad.sThumbLX != 0  && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down(0x4C))
 				VRBoostValue[24+entryID] += 0.1f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 			else
 				VRBoostValue[24+entryID] += 0.1f;

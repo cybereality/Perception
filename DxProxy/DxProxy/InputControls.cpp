@@ -22,7 +22,7 @@ void InputControls::UpdateXInputs()
 	if(Result == ERROR_SUCCESS)
 	{
 		// set buttons by flags
-		for(DWORD i = 0; i < 16;   i) 
+		for(DWORD i = 0; i < 16;   ++i) 
 			if((xInputState.Gamepad.wButtons >> i) & 1) 
 				xButtonsStatus[i] = true;
 			else 
