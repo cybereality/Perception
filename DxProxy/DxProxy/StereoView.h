@@ -235,6 +235,7 @@ protected:
 		STATE_BLOCK,
 		SELECTED_STATES_MANUALLY,
 		ALL_STATES_MANUALLY,
+		DO_NOT_SAVE_AND_RESTORE,
 	} howToSaveRenderStates;
 };
 

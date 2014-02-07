@@ -153,6 +153,12 @@ bool GameHandler::ShouldDuplicateRenderTarget(UINT Width, UINT Height, D3DFORMAT
 		}
 		return Width != Height;
 
+	case D3DProxyDevice::ProxyTypes::UNREAL_BORDERLANDS:
+		if (isSwapChainBackBuffer) {
+			return true;
+		}
+		return Width != Height;
+
 	case D3DProxyDevice::ProxyTypes::EGO:
 		return true;  
 
@@ -222,6 +228,9 @@ bool GameHandler::ShouldDuplicateDepthStencilSurface(UINT Width,UINT Height,D3DF
 		return Width != Height;
 
 	case D3DProxyDevice::ProxyTypes::UNREAL_BIOSHOCK:
+		return Width != Height;
+
+	case D3DProxyDevice::ProxyTypes::UNREAL_BORDERLANDS:
 		return Width != Height;
 
 	case D3DProxyDevice::ProxyTypes::EGO:
@@ -303,6 +312,11 @@ bool GameHandler::ShouldDuplicateTexture(UINT Width,UINT Height,UINT Levels,DWOR
 		return IS_RENDER_TARGET(Usage) && (Width != Height);
 
 	case D3DProxyDevice::ProxyTypes::UNREAL_BIOSHOCK:
+		if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
+			return true;
+		return IS_RENDER_TARGET(Usage) && (Width != Height);
+
+	case D3DProxyDevice::ProxyTypes::UNREAL_BORDERLANDS:
 		if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
 			return true;
 		return IS_RENDER_TARGET(Usage) && (Width != Height);
@@ -398,6 +412,9 @@ bool GameHandler::ShouldDuplicateCubeTexture(UINT EdgeLength, UINT Levels, DWORD
 		return false;
 
 	case D3DProxyDevice::ProxyTypes::UNREAL_BIOSHOCK:
+		return false;
+
+	case D3DProxyDevice::ProxyTypes::UNREAL_BORDERLANDS:
 		return false;
 
 	case D3DProxyDevice::ProxyTypes::EGO:

@@ -95,6 +95,9 @@ StereoView::StereoView(ProxyHelper::ProxyConfig& config)
 	case D3DProxyDevice::UNREAL_BIOSHOCK:
 		howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;
 		break;
+	case D3DProxyDevice::UNREAL_BORDERLANDS:
+		howToSaveRenderStates = HowToSaveRenderStates::DO_NOT_SAVE_AND_RESTORE;
+		break;
 	case D3DProxyDevice::EGO:
 	case D3DProxyDevice::EGO_DIRT:
 		howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;
@@ -247,6 +250,8 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 		SaveAllRenderStates(m_pActualDevice);
 		SetAllRenderStatesDefault(m_pActualDevice);
 		break;
+	case HowToSaveRenderStates::DO_NOT_SAVE_AND_RESTORE:
+		break;
 	}
 
 	// set states for fullscreen render
@@ -321,6 +326,8 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 		break;
 	case HowToSaveRenderStates::ALL_STATES_MANUALLY:
 		RestoreAllRenderStates(m_pActualDevice);
+		break;
+	case HowToSaveRenderStates::DO_NOT_SAVE_AND_RESTORE:
 		break;
 	}
 }
