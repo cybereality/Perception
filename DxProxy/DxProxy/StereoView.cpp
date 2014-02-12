@@ -510,6 +510,7 @@ void StereoView::SaveState()
 
 	m_pActualDevice->GetSamplerState(0, D3DSAMP_SRGBTEXTURE, &ssSrgb);
 	m_pActualDevice->GetSamplerState(1, D3DSAMP_SRGBTEXTURE, &ssSrgb1);
+	
 	m_pActualDevice->GetSamplerState(0, D3DSAMP_ADDRESSU, &ssAddressU);
 	m_pActualDevice->GetSamplerState(0, D3DSAMP_ADDRESSV, &ssAddressV);
 	m_pActualDevice->GetSamplerState(0, D3DSAMP_ADDRESSW, &ssAddressW);
@@ -564,8 +565,18 @@ void StereoView::SetState()
 
 	//m_pActualDevice->SetRenderState(D3DRS_SRGBWRITEENABLE, 0);  // will cause visual errors in HL2
 
-	m_pActualDevice->SetSamplerState(0, D3DSAMP_SRGBTEXTURE, ssSrgb);
-	m_pActualDevice->SetSamplerState(1, D3DSAMP_SRGBTEXTURE, ssSrgb);
+	if(game_type == D3DProxyDevice::SOURCE_L4D)
+	{
+		m_pActualDevice->SetSamplerState(0, D3DSAMP_SRGBTEXTURE, ssSrgb);
+		m_pActualDevice->SetSamplerState(1, D3DSAMP_SRGBTEXTURE, ssSrgb);
+	}
+	else
+	{
+		//Borderlands Dark Eye FIX
+		m_pActualDevice->SetSamplerState(0, D3DSAMP_SRGBTEXTURE, 0);
+		m_pActualDevice->SetSamplerState(1, D3DSAMP_SRGBTEXTURE, 0);
+	}
+	
 
 	m_pActualDevice->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
 	m_pActualDevice->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
