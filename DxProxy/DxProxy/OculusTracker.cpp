@@ -35,10 +35,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***/ 
 OculusTracker::OculusTracker()
 {
-	OutputDebugString("Motion Tracker Created\n");
-	pManager = NULL;
-	pHMD = NULL;
-	pSensor = NULL;
 	init();
 }
 
@@ -50,6 +46,8 @@ OculusTracker::~OculusTracker()
 {
 	pSensor.Clear();
 	pManager.Clear();
+	if (SFusion)
+		delete SFusion;
 	System::Destroy(); // shutdown LibOVR 
 }
 
@@ -59,16 +57,23 @@ OculusTracker::~OculusTracker()
 ***/
 int OculusTracker::init()
 {
-	OutputDebugString("OculusTracker Init\n");
-
 	System::Init(); // start LibOVR
 	pManager = *DeviceManager::Create();
 	pHMD = *pManager->EnumerateDevices<HMDDevice>().CreateDevice();
+	if (!pHMD)
+	{
+		OutputDebugString("No OculusTracker found");
+		return -1;
+	}
 	pSensor = *pHMD->GetSensor();
-
+	if (SFusion)
+	{
+		delete SFusion;
+	}
+	SFusion = new SensorFusion();
 	if (pSensor)
-		SFusion.AttachToSensor(pSensor);
-
+		SFusion->AttachToSensor(pSensor);
+	OutputDebugString("oculus tracker initted");
 	return 0;
 }
 
@@ -79,7 +84,7 @@ int OculusTracker::init()
 void OculusTracker::reset()
 {
 	if (pSensor)
-		SFusion.Reset();
+		SFusion->Reset();
 }
 
 /**
@@ -93,11 +98,11 @@ int OculusTracker::getOrientation(float* yaw, float* pitch, float* roll)
 	OutputDebugString("OculusTracker getOrient\n");
 #endif
 
-	if(SFusion.IsAttachedToSensor() == false)
+	if(SFusion->IsAttachedToSensor() == false)
 		return 1;						// error no sensor
 
 	// all orientations are in degrees
-	hmdOrient = SFusion.GetOrientation();
+	hmdOrient = SFusion->GetOrientation();
 	hmdOrient.GetEulerAngles<Axis_Y, Axis_X, Axis_Z>(yaw, pitch, roll);
 
 	// set primary orientations
@@ -166,5 +171,5 @@ void OculusTracker::updateOrientation()
 ***/
 bool OculusTracker::isAvailable()
 {
-	return SFusion.IsAttachedToSensor();
+	return SFusion->IsAttachedToSensor();
 }

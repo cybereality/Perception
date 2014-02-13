@@ -79,7 +79,9 @@ private:
 	* Oculus sensor fusion.
 	* Retrieves tracking data.
 	***/
-    SensorFusion SFusion;
+    // TODO: fix this so it is using unique_ptr from the std memory class.  Typedef conflicts with freespace tracker prevent including memory right now...  
+	//std::unique_ptr<SensorFusion> SFusion;
+	SensorFusion* SFusion;
 	/**
 	* Oculus orientation quaternion.
 	***/
