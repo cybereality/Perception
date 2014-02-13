@@ -287,7 +287,7 @@ public:
 	* The chosen motion tracker.
 	* @see MotionTracker
 	**/
-	MotionTracker* tracker;
+	std::unique_ptr<MotionTracker> tracker;
 	/**
 	* Schneider-Hicks Optical Calibration Tool GUI mode.
 	**/

@@ -5190,7 +5190,7 @@ bool D3DProxyDevice::InitBrassa()
  	if (config.VRboostPath != "") m_VRboostRulesPresent = true; else m_VRboostRulesPresent = false;
  
  	OutputDebugString("Try to init Tracker\n");
- 	tracker = MotionTrackerFactory::Get(config);
+ 	tracker.reset(MotionTrackerFactory::Get(config));
  	if (tracker)
  	{
  		tracker->setMultipliers(config.yaw_multiplier, config.pitch_multiplier, config.roll_multiplier);
