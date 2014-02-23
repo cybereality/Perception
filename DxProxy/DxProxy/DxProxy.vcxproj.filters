@@ -209,6 +209,7 @@
       <Filter>Direct3D9Vireio\Direct3DDevice9\DeviceTypes</Filter>
     </ClCompile>
     <ClCompile Include="InputControls.cpp" />
+    <ClCompile Include="DirectInput.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Exports.def">
@@ -470,6 +471,7 @@
     <ClInclude Include="Direct3DVolumeTexture9.h">
       <Filter>Direct3D9Vireio</Filter>
     </ClInclude>
+    <ClInclude Include="DirectInput.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\Release\Perception\cfg\profiles.xml">

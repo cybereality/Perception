@@ -95,7 +95,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <ModuleDefinitionFile>Exports.def</ModuleDefinitionFile>
       <AdditionalLibraryDirectories>$(DXSDK_DIR)\Lib\x86;$(DX)\Lib\x86;$(FREESPACE)\lib;..\..\LibOVR\Lib\Win32</AdditionalLibraryDirectories>
-      <AdditionalDependencies>xinput.lib;libfreespace.lib;libovr.lib;Winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dxguid.lib;dinput8.lib;xinput.lib;libfreespace.lib;libovr.lib;Winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(SolutionDir)$(Configuration)\Perception\bin\$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <PostBuildEvent>
@@ -138,6 +138,7 @@
     <ClCompile Include="Direct3DVertexShader9.cpp" />
     <ClCompile Include="Direct3DVolume9.cpp" />
     <ClCompile Include="Direct3DVolumeTexture9.cpp" />
+    <ClCompile Include="DirectInput.cpp" />
     <ClCompile Include="FreeSpaceTracker.cpp" />
     <ClCompile Include="FreeTrackTracker.cpp" />
     <ClCompile Include="GameHandler.cpp" />
@@ -175,6 +176,7 @@
     <ClInclude Include="DataGatherer.h" />
     <ClInclude Include="Direct3D9Ex.h" />
     <ClInclude Include="Direct3DDevice9Ex.h" />
+    <ClInclude Include="DirectInput.h" />
     <ClInclude Include="GameHandler.h" />
     <ClInclude Include="HMDisplayInfo.h" />
     <ClInclude Include="InputControls.h" />

@@ -72,6 +72,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ViewAdjustment.h"
 #include "InputControls.h"
 #include "VRBoostEnums.h"
+#include "DirectInput.h"
 
 #define _SAFE_RELEASE(x) if(x) { x->Release(); x = NULL; } 
 // Define SHOW_CALLS to have each method output a debug string when it is invoked
@@ -317,6 +318,7 @@ public:
 	**/
 	bool trackerInitialized;
 	InputControls controls;
+	DirectInput dinput;
 
 protected:
 	/*** D3DProxyDevice protected methods ***/

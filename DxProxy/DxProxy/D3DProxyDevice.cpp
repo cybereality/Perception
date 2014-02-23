@@ -96,7 +96,8 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	m_activeVertexBuffers(),
 	m_activeSwapChains(),
 	m_gameXScaleUnits(),
-	controls()
+	controls(),
+	dinput()
 {
 	#ifdef SHOW_CALLS
 		OutputDebugString("called D3DProxyDevice");
@@ -149,6 +150,12 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	translation_mode = 0;
 	trackingOn = true;
 	InitBrassa();
+	//Create Direct Input Mouse Device
+	bool directInputActivated = dinput.Init(GetModuleHandle(NULL), ::GetActiveWindow());
+	if(directInputActivated)
+	{		
+		dinput.Activate();		
+	}	
 }
 
 /**
@@ -940,7 +947,8 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 	#ifdef SHOW_CALLS
 		OutputDebugString("called BeginScene");
 	#endif
-	if (m_isFirstBeginSceneOfFrame) {
+	
+		if (m_isFirstBeginSceneOfFrame) {
 
 		// save screenshot before first clear() is called
 		if (screenshot>0)
@@ -995,6 +1003,8 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 				BRASSA_AdditionalOutput();
 		}
 	}
+
+	
 
 	return BaseDirect3DDevice9::BeginScene();
 }
@@ -2312,6 +2322,28 @@ void D3DProxyDevice::HandleControls()
 		menuVelocity.x+=2.0f;
 	}
 
+	//Mouse Wheel Scroll
+	if(controls.Key_Down(VK_LCONTROL))
+	{
+		int _wheel = dinput.GetWheel();
+		if(_wheel < 0)
+		{
+			if(this->stereoView->DistortionScale > -1.0f)
+			{
+				this->stereoView->DistortionScale -= 0.05f;
+				this->stereoView->PostReset();				
+			}
+		}
+		else if(_wheel > 0)
+		{
+			if(this->stereoView->DistortionScale < m_maxDistortionScale)
+				{
+					this->stereoView->DistortionScale += 0.05f;
+					this->stereoView->PostReset();										
+				}
+		}
+	}
+	
 	//Change Distortion Scale CTRL + + / -
 	if(controls.Key_Down(VK_LCONTROL) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
@@ -2323,16 +2355,16 @@ void D3DProxyDevice::HandleControls()
 		{
 			if(this->stereoView->DistortionScale < m_maxDistortionScale)
 			{
-				this->stereoView->DistortionScale += 0.05f;
+				this->stereoView->DistortionScale = m_maxDistortionScale;
 				this->stereoView->PostReset();										
 			}
 		}
 		else if(controls.Key_Down(VK_SUBTRACT))
 		{
-			if(this->stereoView->DistortionScale > -1.0f)
+			if(this->stereoView->DistortionScale != -1.0f)
 			{
-				this->stereoView->DistortionScale -= 0.05f;
-				this->stereoView->PostReset();				
+				this->stereoView->DistortionScale = -1.0f;
+				this->stereoView->PostReset();							
 			}
 		}		
 	}	
@@ -4840,6 +4872,8 @@ void D3DProxyDevice::BRASSA_AdditionalOutput()
 		// update the indicator float
 		m_fVRBoostIndicator-=menuSeconds;
 	}
+
+	
 }
 
 /**
@@ -5015,9 +5049,10 @@ void D3DProxyDevice::SetGUIViewport()
 	#ifdef SHOW_CALLS
 		OutputDebugString("called SetGUIViewport");
 	#endif
-	// do not squish the viewport in case brassa menu is open
-	if ((BRASSA_mode>=BRASSA_Modes::MAINMENU) && (BRASSA_mode<BRASSA_Modes::BRASSA_ENUM_RANGE))
-		return;
+	
+	// do not squish the viewport in case brassa menu is open - GBCODE Why?
+	//if ((BRASSA_mode>=BRASSA_Modes::MAINMENU) && (BRASSA_mode<BRASSA_Modes::BRASSA_ENUM_RANGE))
+	//	return;
 
 	D3DXMATRIX mLeftShift;
 	D3DXMATRIX mRightShift;
@@ -5174,6 +5209,8 @@ bool D3DProxyDevice::InitBrassa()
 	}
 	for (int i = 0; i < 16; i++)
 		controls.xButtonsStatus[i] = false;
+	
+	
 	return true;
 }
 
