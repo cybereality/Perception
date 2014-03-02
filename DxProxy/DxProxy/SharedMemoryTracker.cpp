@@ -84,10 +84,15 @@ int SharedMemoryTracker::getOrientation(float* yaw, float* pitch, float* roll)
 	if(pTrackBuf == NULL)
 		return 1;						// error no buffer
 
-	// all orintations are in degrees
-	*yaw = pTrackBuf->Yaw;
-	*pitch = pTrackBuf->Pitch;
-	*roll = pTrackBuf->Roll;
+	//Initial values should now be in radians to match OVR and VRBoost requirements
+	primaryYaw = pTrackBuf->Yaw;
+	primaryPitch = pTrackBuf->Pitch;
+	primaryRoll = pTrackBuf->Roll;
+	// Then converted to Degrees
+	*yaw = -RADIANS_TO_DEGREES(pTrackBuf->Yaw);
+	*pitch = RADIANS_TO_DEGREES(pTrackBuf->Pitch);
+	*roll = -RADIANS_TO_DEGREES(pTrackBuf->Roll);
+
 
 	return 0; 
 }
