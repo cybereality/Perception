@@ -29,7 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <string>
-#include "hijackdll.h"
+#include "Injector.h"
 #include <CommCtrl.h> 
 #include <ctime>  
 #include <cstdlib>  
@@ -350,7 +350,15 @@ int WINAPI wWinMain(HINSTANCE instance_handle, HINSTANCE, LPWSTR, INT) {
 
 	InitConfig();
 	InitModes();
-	InstallHook();
+	Injector::ProcessNamesToInject.push_back(TEXT("dearesther.exe"));
+	Injector::DepsAndPathsForInjection.emplace(TEXT("d3d9.dll"), TEXT("d3d9.dll"));
+	if (!Injector::InstallHook())
+	{
+		std::ostringstream os;
+		os << "ERROR: ";
+		os << GetLastError();
+		OutputDebugString(os.str().c_str());
+	}
 
 	frame_window main_window("perception");
 	main_window.add_item("Disabled\t0");
@@ -385,7 +393,7 @@ int WINAPI wWinMain(HINSTANCE instance_handle, HINSTANCE, LPWSTR, INT) {
 
 	main_window.run();
 
-	RemoveHook();
+	Injector::RemoveHook();
 
 	return 0;   
 }

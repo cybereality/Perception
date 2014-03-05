@@ -32,6 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <windows.h>
 #include <d3d9.h>
 #include <stdio.h>
+#include "easyhook.h"
 
 // Function pointer trypedefs
 typedef IDirect3D9* (WINAPI *LPDirect3DCreate9)(UINT nSDKVersion);
@@ -165,4 +166,10 @@ void Log(const char* szFormat, ...)
 	} else {
 		OutputDebugString("Couldn't open log file for writing.\n");
 	}
+}
+
+//DON'T TOUCH
+__declspec(dllexport) void NativeInjectionEntryPoint(REMOTE_ENTRY_INFO* InRemoteInfo)
+{ 
+	return;
 }
