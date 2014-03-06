@@ -57,22 +57,30 @@ OculusTracker::~OculusTracker()
 ***/
 int OculusTracker::init()
 {
+	OutputDebugString("OculusTracker Start");
 	System::Init(); // start LibOVR
+	OutputDebugString("OculusTracker Initialized");
 	pManager = *DeviceManager::Create();
+	OutputDebugString("PManager Created");
 	pHMD = *pManager->EnumerateDevices<HMDDevice>().CreateDevice();
+	OutputDebugString("Created Device");
 	if (!pHMD)
 	{
 		OutputDebugString("No OculusTracker found");
 		return -1;
 	}
+	OutputDebugString("Starting PSensor");
 	pSensor = *pHMD->GetSensor();
 	if (SFusion)
 	{
-		delete SFusion;
+		OutputDebugString("Deleting Sensor Fusion");
+		SFusion = NULL;
 	}
+	OutputDebugString("Starting Sensor Fusion");
 	SFusion = new SensorFusion();
 	if (pSensor)
 		SFusion->AttachToSensor(pSensor);
+
 	OutputDebugString("oculus tracker initted");
 	return 0;
 }
