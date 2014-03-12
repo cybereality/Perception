@@ -29,6 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <shlwapi.h>
+#include <stdlib.h>
 #include <d3d9.h>
 #include <d3dx9.h>
 #include "hijackdll.h"
@@ -47,7 +48,6 @@ LPCWSTR realDllW = L"D3D9.DLL";
 LPCSTR proxyDll = NULL;
 LPCWSTR proxyDllW = NULL;
 LPCSTR dllDir = NULL;
-
 HINSTANCE hDLL;
 
 typedef HMODULE (WINAPI *LoadLibraryExW_Type)(LPCWSTR lpFileName, HANDLE hFile, DWORD dwFlags);   
@@ -134,6 +134,7 @@ IDirect3D9* WINAPI MyDirect3DCreate9(UINT sdk_version)
 // CBT Hook-style injection.
 BOOL APIENTRY DllMain( HINSTANCE hModule, DWORD fdwReason, LPVOID lpReserved )
 {
+	OutputDebugString("IN DLL MAIN");
 	if (fdwReason == DLL_PROCESS_ATTACH)  // When initializing....
 	{
 		hDLL = hModule;
@@ -188,6 +189,8 @@ HHOOK hHook = NULL;
 
 HIJACKDLL_API LRESULT CALLBACK HookProc(int nCode, WPARAM wParam, LPARAM lParam) 
 {
+	TCHAR buf[sizeof(int)];
+	OutputDebugString(_itoa(nCode, buf, 10));
 	return CallNextHookEx(hHook, nCode, wParam, lParam); 
 }
 

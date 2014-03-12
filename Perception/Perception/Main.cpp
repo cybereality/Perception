@@ -350,9 +350,11 @@ int WINAPI wWinMain(HINSTANCE instance_handle, HINSTANCE, LPWSTR, INT) {
 
 	InitConfig();
 	InitModes();
-	Injector::ProcessNamesToInject.push_back(TEXT("dearesther.exe"));
-	Injector::DepsAndPathsForInjection.emplace(TEXT("d3d9.dll"), TEXT("d3d9.dll"));
-	if (!Injector::InstallHook())
+	std::vector<Injector::String> vec;
+	std::map<Injector::String, Injector::String> map;
+	vec.push_back(TEXT("dearesther.exe"));
+	map.emplace(TEXT("d3d9.dll"), TEXT("d3d9.dll"));
+	if (!Injector::InstallHook(vec, map))
 	{
 		std::ostringstream os;
 		os << "ERROR: ";
@@ -394,7 +396,6 @@ int WINAPI wWinMain(HINSTANCE instance_handle, HINSTANCE, LPWSTR, INT) {
 	main_window.run();
 
 	Injector::RemoveHook();
-
 	return 0;   
 }
 

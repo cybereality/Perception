@@ -1,6 +1,6 @@
-#include<vector>
 #include<string>
 #include <map>
+#include<vector>
 
 namespace Injector
 {
@@ -10,9 +10,6 @@ namespace Injector
 		typedef std::wstring String; 
 	#endif
 
-	std::vector<String> ProcessNamesToInject;
-	std::map<String, String> DepsAndPathsForInjection;
-
-	__declspec(dllexport) bool InstallHook();
+	__declspec(dllexport) bool InstallHook(std::vector<String>& ProcessNamesToInject, std::map<String, String>& DepsAndPathsForInjection);
 	__declspec(dllexport) bool RemoveHook();
 }
