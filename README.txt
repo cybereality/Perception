@@ -14,7 +14,7 @@ Download libfreespace (libfreespace-0.6rc0-win32-vs2010.zip) from here:
 http://libfreespace.hillcrestlabs.com/content/download 
 Extract it to a folder
 
-Download Oculus SDK v0.1.5 from
+Download Oculus SDK v0.2.5c from
 https://developer.oculusvr.com/
 Extract and copy LibOVR to project directory.
 
