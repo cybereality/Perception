@@ -35,8 +35,9 @@ namespace
 	String GetProcessBaseName(DWORD pid, HANDLE hProcess = NULL)
 	{
 		if (NULL == hProcess)
+		{
 			hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, pid);
-
+		}
 		if (NULL == hProcess)
 			return TEXT("");
 
@@ -54,8 +55,9 @@ namespace
 
 	DWORD GetProcessIDByBaseName(std::string processName)
 	{
-		DWORD pids[1024];
+		DWORD pids[BUFFER_SIZE];
 		DWORD pidsListSize;
+		char id[BUFFER_SIZE];
 
 		if (!EnumProcesses(pids, sizeof(pids), &pidsListSize))
 			return -1;
@@ -64,7 +66,9 @@ namespace
 		for (unsigned int i = 0; i < numOfProcesses; ++i)
 		{
 			if (processName == GetProcessBaseName(pids[i]))
+			{
 				return pids[i];
+			}
 		}
 		return NULL;
 	}
@@ -124,11 +128,11 @@ namespace
 		// dependency PAIR SEPARATOR path ITEM SEPARATOR dependency...
 		String mainElem, secondaryElem;
 		bool collectingPair;
-		for (int i = 0; i < sizeof(*pBuf) / sizeof(TCHAR); ++i)
+		for (int i = 0; i < strlen(pBuf); ++i)
 		{
 			if (pBuf[i] == PAIR_SEPARATOR)
 			{
-					collectingPair = true;
+				collectingPair = true;
 			}
 			else if (pBuf[i] == ITEM_SEPARATOR) 
 			{
@@ -157,6 +161,8 @@ namespace
 		outputstr << "buffer contents: " << pBuf;
 		OutputDebugString(outputstr.str().c_str());
 		UnmapViewOfFile(pBuf);
+		CloseHandle(mappedFileHandle);
+		mappedFileHandle = NULL;
 		return true;
 	}
 
@@ -188,7 +194,8 @@ namespace
 			{
 				OutputDebugString("Getting Process ID");
 				pid = GetProcessIDByBaseName(elem);
-				if (pid)
+				if (pid != NULL)
+				{
 					for (auto pairElem : depsAndPathsForInjection)
 					{	
 						OutputDebugString("Going through dependencies");
@@ -210,10 +217,14 @@ namespace
 							}
 						}
 					}
+				}
 			}
 			if (easyHook)
+			{
 				FreeLibrary(easyHook);
+			}
 		}
+		return true;
 		
 	}
 
@@ -227,18 +238,16 @@ namespace
 		String serializedData;
 		for (String elem : processNamesToInject)
 		{
-			OutputDebugString("Inf foreach for pids");
 			serializedData.append(elem + ITEM_SEPARATOR);
 		}
 		for (auto mapElem : depsAndPathsForInjection)
 		{
-			OutputDebugString("In for for map");
 			serializedData.append(mapElem.first + PAIR_SEPARATOR + mapElem.second + ITEM_SEPARATOR);
 		}
 		std::ostringstream blah;
 		blah << "blah = " << serializedData;
 		OutputDebugString(blah.str().c_str());
-		CopyMemory((PVOID)mappedFileView, serializedData.c_str(), sizeof(serializedData.c_str()));
+		CopyMemory((PVOID)mappedFileView, serializedData.c_str(), strlen(serializedData.c_str()) * sizeof(char));
 	}
 }
 // I don't actually think this needs to be exported
@@ -270,6 +279,7 @@ __declspec(dllexport) bool Injector::InstallHook(std::vector<String>& pprocessNa
 	SaveInjectionData(pBuf);
 	UnmapViewOfFile(pBuf);
 	OutputDebugString("Saved and unmapped");
+	CloseHandle(mappedFileHandle);
 	std::ostringstream blah;
 	blah << "ERROR STATUS: " << GetLastError();
 	OutputDebugString(blah.str().c_str());
@@ -285,7 +295,6 @@ __declspec(dllexport) bool Injector::InstallHook(std::vector<String>& pprocessNa
 
 __declspec(dllexport) bool Injector::RemoveHook()
 {
-	CloseHandle(mappedFileHandle);
 	if (hookHandle == NULL)
 	{
 		SetLastError(0x00000015);	
