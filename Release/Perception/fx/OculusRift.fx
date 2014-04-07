@@ -53,9 +53,6 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
   float4 tcGreen1;
   float4 tcBlue1;
 
-  // center of each subpixel; due to the screendoor "screen"
-  // inbetween them we use steps
-  // of .25 rather than .33
   float subpixelShiftR = -0.33333/1280.0f;
   float subpixelShiftB = 0.33333/1280.0f;
 
