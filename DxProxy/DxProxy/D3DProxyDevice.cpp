@@ -2164,6 +2164,7 @@ void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 	m_pGameHandler->Load(config, m_spShaderViewAdjustment);
 	stereoView = StereoViewFactory::Get(config, m_spShaderViewAdjustment->HMDInfo());
 	stereoView->YOffset = config.YOffset;
+	stereoView->IPDOffset = config.IPDOffset;
 	stereoView->DistortionScale = config.DistortionScale;
 	m_maxDistortionScale = config.DistortionScale;
 
@@ -2342,6 +2343,25 @@ void D3DProxyDevice::HandleControls()
 				if(this->stereoView->YOffset < 0.1f)
 				{
 					this->stereoView->YOffset += 0.005f;
+					this->stereoView->PostReset();										
+				}
+ 			}
+ 		}
+		else if(controls.Key_Down(VK_LSHIFT))
+ 		{			
+			if(_wheel < 0)
+			{
+				if(this->stereoView->IPDOffset > -0.1f)
+				{
+					this->stereoView->IPDOffset -= 0.005f;
+					this->stereoView->PostReset();				
+				}
+			}
+			else if(_wheel > 0)
+			{
+				if(this->stereoView->IPDOffset < 0.1f)
+				{
+					this->stereoView->IPDOffset += 0.005f;
 					this->stereoView->PostReset();										
 				}
  			}
@@ -4174,7 +4194,7 @@ void D3DProxyDevice::BRASSA_Settings()
 	#ifdef SHOW_CALLS
 		OutputDebugString("called BRASA_Settings");
 	#endif
-	UINT menuEntryCount = 13;
+	UINT menuEntryCount = 14;
 
 	menuHelperRect.left = 0;
 	menuHelperRect.top = 0;
@@ -4212,14 +4232,14 @@ void D3DProxyDevice::BRASSA_Settings()
 				menuVelocity.x += 4.0f;
 			}
 			// screenshot
-			if (entryID == 3)
+			if (entryID == 4)
 			{
 				// render 3 frames to get screenshots without BRASSA
 				screenshot = 3;
 				BRASSA_mode = BRASSA_Modes::INACTIVE;
 			}
 			// reset multipliers
-			if (entryID == 7)
+			if (entryID == 8)
 			{
 				tracker->multiplierYaw = 25.0f;
 				tracker->multiplierPitch = 25.0f;
@@ -4227,7 +4247,7 @@ void D3DProxyDevice::BRASSA_Settings()
 				menuVelocity.x += 4.0f;
 			}
 			// force mouse emulation
-			if (entryID == 8)
+			if (entryID == 9)
 			{
 				m_bForceMouseEmulation = !m_bForceMouseEmulation;
 
@@ -4240,7 +4260,7 @@ void D3DProxyDevice::BRASSA_Settings()
 				menuVelocity.x += 4.0f;
 			}
 			// Toggle VRBoost
-			if (entryID == 9)
+			if (entryID == 10)
 			{
 				if (hmVRboost!=NULL)
 				{
@@ -4251,20 +4271,20 @@ void D3DProxyDevice::BRASSA_Settings()
 				}
 			}
 			// VRBoost hotkey
-			if (entryID == 10)
+			if (entryID == 11)
 			{
 				hotkeyCatch = true;
 				menuVelocity.x+=2.0f;
 			}
 			// back to main menu
-			if (entryID == 11)
+			if (entryID == 12)
 			{
 				BRASSA_mode = BRASSA_Modes::MAINMENU;
 				BRASSA_UpdateConfigSettings();
 				menuVelocity.x+=2.0f;
 			}
 			// back to game
-			if (entryID == 12)
+			if (entryID == 13)
 			{
 				BRASSA_mode = BRASSA_Modes::INACTIVE;
 				BRASSA_UpdateConfigSettings();
@@ -4284,15 +4304,22 @@ void D3DProxyDevice::BRASSA_Settings()
 
 		if (controls.Key_Down(VK_BACK) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
-			//y offset
+			
 			if (entryID == 1)
+ 			{
+				this->stereoView->IPDOffset = 0.0f;
+				this->stereoView->PostReset();
+				menuVelocity.x += 0.7f;
+			}
+			//y offset
+			if (entryID == 2)
  			{
 				this->stereoView->YOffset = 0.0f;
 				this->stereoView->PostReset();
 				menuVelocity.x += 0.7f;
 			}
 			// distortion
-			if (entryID == 2)
+			if (entryID == 3)
 			{
 				this->stereoView->DistortionScale = 0.0f;
 				this->stereoView->PostReset();
@@ -4314,8 +4341,24 @@ void D3DProxyDevice::BRASSA_Settings()
 				stereoView->swapEyes = !stereoView->swapEyes;
 				menuVelocity.x-=2.0f;
 			}
-			// y-offset
+			// ipd-offset
  			if (entryID == 1)
+ 			{
+ 				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
+				{
+					if (this->stereoView->IPDOffset > 0.1f)
+						this->stereoView->IPDOffset -= 0.001f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
+				}
+				else
+				{
+					if (this->stereoView->IPDOffset > -0.1f)
+						this->stereoView->IPDOffset -= 0.001f;
+				}
+				this->stereoView->PostReset();
+				menuVelocity.x -= 0.7f;
+			}
+			// y-offset
+ 			if (entryID == 2)
  			{
  				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
 				{
@@ -4331,7 +4374,7 @@ void D3DProxyDevice::BRASSA_Settings()
 				menuVelocity.x -= 0.7f;
 			}
 			// distortion
-			if (entryID == 2)
+			if (entryID == 3)
 			{
 				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
 					this->stereoView->DistortionScale -= 0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
@@ -4341,7 +4384,7 @@ void D3DProxyDevice::BRASSA_Settings()
 				menuVelocity.x -= 0.7f;
 			}
 			// yaw multiplier
-			if (entryID == 4)
+			if (entryID == 5)
 			{
 				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
 					tracker->multiplierYaw += 0.5f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
@@ -4350,7 +4393,7 @@ void D3DProxyDevice::BRASSA_Settings()
 				menuVelocity.x -= 0.7f;
 			}
 			// pitch multiplier
-			if (entryID == 5)
+			if (entryID == 6)
 			{
 				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
 					tracker->multiplierPitch += 0.5f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
@@ -4359,7 +4402,7 @@ void D3DProxyDevice::BRASSA_Settings()
 				menuVelocity.x -= 0.7f;
 			}
 			// roll multiplier
-			if (entryID == 6)
+			if (entryID == 7)
 			{
 				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
 					tracker->multiplierRoll += 0.05f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
@@ -4368,7 +4411,7 @@ void D3DProxyDevice::BRASSA_Settings()
 				menuVelocity.x -= 0.7f;
 			}
 			// mouse emulation
-			if (entryID == 8)
+			if (entryID == 9)
 			{
 				m_bForceMouseEmulation = false;
 
@@ -4387,8 +4430,24 @@ void D3DProxyDevice::BRASSA_Settings()
 				stereoView->swapEyes = !stereoView->swapEyes;
 				menuVelocity.x-=2.0f;
 			}
-			// y-offset
+			// ipd-offset
  			if (entryID == 1)
+ 			{
+ 				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down(0x4C))
+				{
+					if (this->stereoView->IPDOffset < 0.1f)
+						this->stereoView->IPDOffset += 0.001f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
+				}
+				else
+				{
+					if (this->stereoView->IPDOffset < 0.1f)
+						this->stereoView->IPDOffset += 0.001f;
+				}
+				this->stereoView->PostReset();
+				menuVelocity.x += 0.7f;
+			}
+			// y-offset
+ 			if (entryID == 2)
  			{
  				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down(0x4C))
 				{
@@ -4404,7 +4463,7 @@ void D3DProxyDevice::BRASSA_Settings()
 				menuVelocity.x += 0.7f;
 			}
 			// distortion
-			if (entryID == 2)
+			if (entryID == 3)
 			{
 				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down(0x4C))
 					this->stereoView->DistortionScale += 0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
@@ -4414,7 +4473,7 @@ void D3DProxyDevice::BRASSA_Settings()
 				menuVelocity.x += 0.7f;
 			}
 			// yaw multiplier
-			if (entryID == 4)
+			if (entryID == 5)
 			{
 				if (controls.xInputState.Gamepad.sThumbLX != 0  && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down(0x4C))
 					tracker->multiplierYaw += 0.5f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
@@ -4423,7 +4482,7 @@ void D3DProxyDevice::BRASSA_Settings()
 				menuVelocity.x += 0.7f;
 			}
 			// pitch multiplier
-			if (entryID == 5)
+			if (entryID == 6)
 			{
 				if (controls.xInputState.Gamepad.sThumbLX != 0  && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down(0x4C))
 					tracker->multiplierPitch += 0.5f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
@@ -4432,7 +4491,7 @@ void D3DProxyDevice::BRASSA_Settings()
 				menuVelocity.x += 0.7f;
 			}
 			// roll multiplier
-			if (entryID == 6)
+			if (entryID == 7)
 			{
 				if (controls.xInputState.Gamepad.sThumbLX != 0  && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down(0x4C))
 					tracker->multiplierRoll += 0.05f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
@@ -4441,7 +4500,7 @@ void D3DProxyDevice::BRASSA_Settings()
 				menuVelocity.x += 0.7f;
 			}
 			// mouse emulation
-			if (entryID == 8)
+			if (entryID == 9)
 			{
 				m_bForceMouseEmulation = true;
 
@@ -4490,6 +4549,9 @@ void D3DProxyDevice::BRASSA_Settings()
 		}
 		menuHelperRect.top += 40;
 		char vcString[128];
+		sprintf_s(vcString,"IPD-Offset : %1.3f", RoundBrassaValue(this->stereoView->IPDOffset));
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		menuHelperRect.top += 40;
 		sprintf_s(vcString,"Y-Offset : %1.3f", RoundBrassaValue(this->stereoView->YOffset));
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += 40;
@@ -4532,7 +4594,7 @@ void D3DProxyDevice::BRASSA_Settings()
 		sprintf_s(vcString,"Hotkey >Toggle VRBoost< : ");
 		std::string stdString = std::string(vcString);
 		stdString.append(controls.GetKeyName(toggleVRBoostHotkey));
-		if ((hotkeyCatch) && (entryID==10))
+		if ((hotkeyCatch) && (entryID==11))
 			stdString = "Press the desired key.";
 		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += 40;
@@ -4773,6 +4835,7 @@ void D3DProxyDevice::BRASSA_UpdateConfigSettings()
 	config.yaw_multiplier = tracker->multiplierYaw;
 	config.pitch_multiplier = tracker->multiplierPitch;
 	config.YOffset = stereoView->YOffset;
+	config.IPDOffset = stereoView->IPDOffset;
 	config.swap_eyes = stereoView->swapEyes;
 	config.DistortionScale = stereoView->DistortionScale;
 

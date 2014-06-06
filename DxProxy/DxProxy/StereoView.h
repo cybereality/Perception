@@ -116,6 +116,10 @@ public:
 	* Should be used by OculusRiftView and D3DProxyDevice.
 	***/
 	float YOffset;	
+	/**
+	* Should be used by OculusRiftView and D3DProxyDevice.
+	***/
+	float IPDOffset;	
 
 protected:
 	/*** StereoView protected methods ***/

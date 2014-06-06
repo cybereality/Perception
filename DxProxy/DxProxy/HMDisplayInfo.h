@@ -81,6 +81,8 @@ public:
 		lensXCenterOffset = 4.0f * physicalOffset / physicalScreenSize.first; 
 		//0 to 1
 		lensYCenterOffset = 0.5f;
+		//-1 to 1
+		lensIPDCenterOffset = 0.0f;
 
 		// This scaling will ensure the source image is sampled so that the left edge of the left half of the screen is just reached
 		// by the image. -1 is the left edge of the -1 to 1 range and it is adjusted for the lens center offset (note that this needs
@@ -138,6 +140,11 @@ public:
 	* the screen on Y axis
 	***/
 	float lensYCenterOffset;
+	/**
+	* The distance in a -1 to 1 range that offsets the center of each lens is from the center of each half of
+	* the screen on X axis
+	***/
+	float lensIPDCenterOffset;
 	/**
 	* From Rift docs on distortion : uvResult = uvInput * (K0 + K1 * uvLength^2 + K2 * uvLength^4).
 	***/
