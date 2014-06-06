@@ -68,6 +68,7 @@ public:
 		float       pitch_multiplier;           /**< Game-specific tracking multiplier (pitch). */
 		float       roll_multiplier;            /**< Game-specific tracking multiplier (roll). */
 		float		DistortionScale;			/**< The scale to apply distortion. **/
+		float		YOffset;					/**< The Y offset from the centre of the screen on the Y-axis **/
 		int         hud3DDepthMode;             /**< Current HUD mode. */
 		float       hud3DDepthPresets[4];       /**< HUD 3D Depth presets.*/
 		float       hudDistancePresets[4];      /**< HUD Distance presets.*/

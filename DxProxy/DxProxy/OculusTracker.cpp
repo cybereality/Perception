@@ -82,6 +82,31 @@ int OculusTracker::init()
 		SFusion->AttachToSensor(pSensor);
 
 	OutputDebugString("oculus tracker initted");
+	
+	OutputDebugString("Get DistortionK Values");
+	OVR::HMDInfo hmdInfo;
+	OVR::Util::Render::StereoConfig stereoConfig;
+	pHMD->GetDeviceInfo(&hmdInfo);
+    stereoConfig.SetHMDInfo(hmdInfo);
+	TCHAR s[256];
+	sprintf_s(s, ("Method Test  =  %f "), 0.01548f);
+	OutputDebugString(s);
+	sprintf_s(s, ("Distortion 0 =  %f "), stereoConfig.GetDistortionK(0));
+	OutputDebugString(s);
+	sprintf_s(s, ("Distortion 1 =  %f "), stereoConfig.GetDistortionK(1));
+	OutputDebugString(s);
+	sprintf_s(s, ("Distortion 2 =  %f "), stereoConfig.GetDistortionK(2));
+	OutputDebugString(s);
+	sprintf_s(s, ("Distortion 3 =  %f "), stereoConfig.GetDistortionK(3));
+	OutputDebugString(s);
+	sprintf_s(s, ("Distortion Scale =  %f "), stereoConfig.GetDistortionScale());
+	OutputDebugString(s);
+	OVR::Util::Render::Viewport vp;
+	vp = stereoConfig.GetFullViewport();
+	sprintf_s(s, ("Viewport H =  %i "), vp.h);
+	OutputDebugString(s);
+	sprintf_s(s, ("Viewport W =  %i "), vp.w);
+	OutputDebugString(s);
 	return 0;
 }
 

@@ -50,25 +50,37 @@ public:
 	* All rift values from OVR_Win32_HMDDevice.cpp in LibOVR
 	* Default constructing with Rift DK1 values.
 	***/
-	HMDisplayInfo() :
-		resolution(std::make_pair<UINT, UINT>(1280, 800)), // Rift dev kit 
+	/*HMDisplayInfo() :
+		resolution(std::make_pair<UINT, UINT>(1920, 1080)), // Rift dev kit 
 		screenAspectRatio((float)resolution.first / (float)resolution.second),
 		halfScreenAspectRatio(((float)resolution.first * 0.5f) / (float)resolution.second),
 		physicalScreenSize(std::make_pair<float, float>(0.14976f, 0.0935f)), // Rift dev kit 
 		eyeToScreenDistance(0.041f), // Rift dev kit
 		physicalLensSeparation(0.064f), // Rift dev kit 
 		distortionCoefficients()
+	{*/
+	//1.18644 
+	HMDisplayInfo() :
+		resolution(std::make_pair<UINT, UINT>(1920, 1080)), // RiftUp
+		screenAspectRatio((float)resolution.first / (float)resolution.second),
+		halfScreenAspectRatio(((float)resolution.first * 0.5f) / (float)resolution.second),
+		physicalScreenSize(std::make_pair<float, float>(0.1296f, 0.0729f)), // RiftUp!
+		eyeToScreenDistance(0.041f), // Rift dev kit
+		physicalLensSeparation(0.064f), // Rift dev kit 
+		distortionCoefficients()
 	{
 		// Rift dev kit 
 		distortionCoefficients[0] = 1.0f;
-		distortionCoefficients[1] = 0.22f;
-		distortionCoefficients[2] = 0.24f;
+		distortionCoefficients[1] = 0.18f;
+		distortionCoefficients[2] = 0.115f;
 		distortionCoefficients[3] = 0.0f;
 
 		float physicalViewCenter = physicalScreenSize.first * 0.25f; 
 		float physicalOffset = physicalViewCenter - physicalLensSeparation * 0.5f;	
 		// Range at this point would be -0.25 to 0.25 units. So multiply the last step by 4 to get the offset in a -1 to 1  range
 		lensXCenterOffset = 4.0f * physicalOffset / physicalScreenSize.first; 
+		//0 to 1
+		lensYCenterOffset = 0.5f;
 
 		// This scaling will ensure the source image is sampled so that the left edge of the left half of the screen is just reached
 		// by the image. -1 is the left edge of the -1 to 1 range and it is adjusted for the lens center offset (note that this needs
@@ -121,6 +133,11 @@ public:
 	* -1 being the far left edge of the screen half and +1 being the far right of the screen half.
 	***/
 	float lensXCenterOffset;
+	/**
+	* The distance in a 0 to 1 range that the center of each lens is from the center of each half of
+	* the screen on Y axis
+	***/
+	float lensYCenterOffset;
 	/**
 	* From Rift docs on distortion : uvResult = uvInput * (K0 + K1 * uvLength^2 + K2 * uvLength^4).
 	***/

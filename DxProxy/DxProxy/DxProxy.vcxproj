@@ -95,7 +95,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <ModuleDefinitionFile>Exports.def</ModuleDefinitionFile>
       <AdditionalLibraryDirectories>$(DXSDK_DIR)\Lib\x86;$(DX)\Lib\x86;$(FREESPACE)\lib;..\..\LibOVR\Lib\Win32</AdditionalLibraryDirectories>
-      <AdditionalDependencies>dxguid.lib;dinput8.lib;xinput.lib;libfreespace.lib;libovr.lib;Winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dxerr.lib;dxguid.lib;dinput8.lib;xinput.lib;libfreespace.lib;libovr.lib;Winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(SolutionDir)$(Configuration)\Perception\bin\$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <PostBuildEvent>
