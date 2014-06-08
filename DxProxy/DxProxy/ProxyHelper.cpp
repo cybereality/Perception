@@ -530,6 +530,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 	config.VRboostMinShaderCount = 0;
 	config.VRboostMaxShaderCount = 999999;
 	config.DistortionScale = 0.0f;
+	config.YOffset = 0.0f;
 
 
 	// load the base dir for the app
@@ -627,6 +628,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 		config.pitch_multiplier = gameProfile.attribute("pitch_multiplier").as_float(25.0f);
 		config.roll_multiplier = gameProfile.attribute("roll_multiplier").as_float(1.0f);
 		config.DistortionScale = gameProfile.attribute("distortion_scale").as_float(0.0f);
+		config.YOffset = gameProfile.attribute("y_offset").as_float(0.0f);
 
 		if(config.yaw_multiplier == 0.0f) config.yaw_multiplier = 25.0f;
 		if(config.pitch_multiplier == 0.0f) config.pitch_multiplier = 25.0f;
@@ -892,12 +894,19 @@ bool ProxyHelper::SaveConfig(ProxyConfig& config)
 			gameProfile.remove_attribute("swap_eyes");
 			gameProfile.insert_attribute_after("swap_eyes", gameProfile.attribute("convergence")) = config.swap_eyes;
 		}
-		if (strcmp(gameProfile.attribute("swap_eyes").next_attribute().name(), "yaw_multiplier") == 0)
+		if (strcmp(gameProfile.attribute("swap_eyes").next_attribute().name(), "y_offset") == 0)
+			gameProfile.attribute("y_offset") = config.YOffset;
+		else
+		{
+			gameProfile.remove_attribute("y_offset");
+			gameProfile.insert_attribute_after("y_offset", gameProfile.attribute("swap_eyes")) = config.YOffset;
+		}
+		if (strcmp(gameProfile.attribute("y_offset").next_attribute().name(), "yaw_multiplier") == 0)
 			gameProfile.attribute("yaw_multiplier") = config.yaw_multiplier;
 		else
 		{
 			gameProfile.remove_attribute("yaw_multiplier");
-			gameProfile.insert_attribute_after("yaw_multiplier", gameProfile.attribute("swap_eyes")) = config.yaw_multiplier;
+			gameProfile.insert_attribute_after("yaw_multiplier", gameProfile.attribute("y_offset")) = config.yaw_multiplier;
 		}
 		if (strcmp(gameProfile.attribute("yaw_multiplier").next_attribute().name(), "pitch_multiplier") == 0)
 			gameProfile.attribute("pitch_multiplier") = config.pitch_multiplier;

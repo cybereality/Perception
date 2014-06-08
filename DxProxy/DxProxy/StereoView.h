@@ -112,6 +112,10 @@ public:
 	* Should be used by OculusRiftView and D3DProxyDevice.
 	***/
 	float DistortionScale;	
+	/**
+	* Should be used by OculusRiftView and D3DProxyDevice.
+	***/
+	float YOffset;	
 
 protected:
 	/*** StereoView protected methods ***/

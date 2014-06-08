@@ -26,7 +26,8 @@ float2 HmdWarp(float2 in01, float2 in02)
 
   theta1 = (Scale * theta1) + LensCenter;
 
-  theta1.x = (theta1.x - ((LensCenter.x-0.25f)));
+  theta1.x = theta1.x - (LensCenter.x-0.25f);
+  theta1.y = theta1.y - (LensCenter.y-0.5f);
 
   // We're sampling from the full texture not a half texture like in libovr
   theta1.x *= 2.0f;

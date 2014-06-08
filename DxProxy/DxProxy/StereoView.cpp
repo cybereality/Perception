@@ -53,6 +53,7 @@ StereoView::StereoView(ProxyHelper::ProxyConfig& config)
 	OutputDebugString("Created SteroView\n");
 	initialized = false;
 	DistortionScale = 0.0f;
+	YOffset = config.YOffset;
 	game_type = config.game_type;
 	stereo_mode = config.stereo_mode;
 	swapEyes = config.swap_eyes;

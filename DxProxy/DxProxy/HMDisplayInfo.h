@@ -70,6 +70,9 @@ public:
 		// Range at this point would be -0.25 to 0.25 units. So multiply the last step by 4 to get the offset in a -1 to 1  range
 		lensXCenterOffset = 4.0f * physicalOffset / physicalScreenSize.first; 
 
+		//0 to 1
+		lensYCenterOffset = 0.5f;
+
 		// This scaling will ensure the source image is sampled so that the left edge of the left half of the screen is just reached
 		// by the image. -1 is the left edge of the -1 to 1 range and it is adjusted for the lens center offset (note that this needs
 		// adjusting if the lens is also offset vertically, See: StereoConfig::updateDistortionOffsetAndScale in LibOVR for an example
@@ -121,6 +124,11 @@ public:
 	* -1 being the far left edge of the screen half and +1 being the far right of the screen half.
 	***/
 	float lensXCenterOffset;
+	/**
+	* The distance in a 0 to 1 range that the center of each lens is from the center of each half of
+	* the screen on Y axis
+	***/
+	float lensYCenterOffset;
 	/**
 	* From Rift docs on distortion : uvResult = uvInput * (K0 + K1 * uvLength^2 + K2 * uvLength^4).
 	***/
