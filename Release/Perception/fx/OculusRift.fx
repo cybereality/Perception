@@ -8,6 +8,7 @@ float2 Scale;
 float2 ScaleIn;
 float4 HmdWarpParam;
 
+
 // Warp operates on left view, for right, mirror x texture coord
 // before and after calling.  in02 contains the chromatic aberration
 // correction coefficients.
@@ -35,47 +36,89 @@ float2 HmdWarp(float2 in01, float2 in02)
   return theta1;
 }
 
+float4 HorizSuperSampledWarp(float2 in01, float2 in02)
+{
+  float2 output_tc1 = HmdWarp(in01 + float2(-.0666666/1280.0f, 0.0f), in02);
+  float2 output_tc2 = HmdWarp(in01 + float2( .0666666/1280.0f, 0.0f), in02);
+
+  return float4(output_tc1.x, output_tc1.y, output_tc2.x, output_tc2.y);
+}
+
 float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 {
   float2 newPos = Tex;
-  float2 tcRed;
-  float2 tcGreen;
-  float2 tcBlue;
+  float4 tcRed0;
+  float4 tcGreen0;
+  float4 tcBlue0;
+  float4 tcRed1;
+  float4 tcGreen1;
+  float4 tcBlue1;
+
+  float subpixelShiftR = -0.33333/1280.0f;
+  float subpixelShiftB = 0.33333/1280.0f;
+
   float3 outColor;
 
   if (Tex.x > 0.5f) {
     // mirror to get the right-eye distortion
-    newPos.x = 1.0f - newPos;
+    newPos.x = 1.0f - newPos.x;
+    // subpixel alignment isn't symmetric under mirroring
+    subpixelShiftR = 0.33333/1280.0f;
+    subpixelShiftB = -0.33333/1280.0f;
   }
-
 
   // TODO chromaberr params hardcoded for DK1 with A-cup lenses; need to pass in
   // from SDK.
-  tcBlue = HmdWarp(newPos, float2(1.014, 0.0f));
+  tcBlue0 = HorizSuperSampledWarp(newPos + float2(subpixelShiftB, -0.066666/800.0f), float2(1.010, 0.002f));
+  tcBlue1 = HorizSuperSampledWarp(newPos + float2(subpixelShiftB,  0.066666/800.0f), float2(1.010, 0.002f));
 
   // Clamp on blue, because we expand the blue channel outward the most.
   // Symmetry makes this ok to do before any unmirroring.
-  if (any(clamp(tcBlue, float2(0.0,0.0), float2(1.0, 1.0)) - tcBlue))
+  if (any(clamp(tcBlue0.xy, float2(0.0,0.0), float2(1.0, 1.0)) - tcBlue0.xy))
     return 0;
 
-  tcRed = HmdWarp(newPos, float2(0.996f, -.004f));
-  tcGreen = HmdWarp(newPos, float2(1.0f, 0.0f));
+  tcRed0   = HorizSuperSampledWarp(newPos + float2(subpixelShiftR, -0.25f/800.0f), float2(0.998f, -.005f));
+  tcRed1   = HorizSuperSampledWarp(newPos + float2(subpixelShiftR,  0.25f/800.0f), float2(0.998f, -.005f));
+  tcGreen0 = HorizSuperSampledWarp(newPos + float2(0.0, -0.25f/800.0f), float2(1.0f, 0.0f));
+  tcGreen1 = HorizSuperSampledWarp(newPos + float2(0.0,  0.25f/800.0f), float2(1.0f, 0.0f));
 
 
   if (Tex.x > 0.5f) {
     // unmirror the right-eye coords
-    tcRed.x = 1 - tcRed.x;
-    tcGreen.x = 1 - tcGreen.x;
-    tcBlue.x = 1 - tcBlue.x;
+    tcRed0.x = 1 - tcRed0.x;
+    tcRed0.z = 1 - tcRed0.z;
+    tcGreen0.x = 1 - tcGreen0.x;
+    tcGreen0.z = 1 - tcGreen0.z;
+    tcBlue0.x = 1 - tcBlue0.x;
+    tcBlue0.z = 1 - tcBlue0.z;
 
-    outColor.r = tex2D(TexMap1, tcRed).r;
-    outColor.g = tex2D(TexMap1, tcGreen).g;
-    outColor.b = tex2D(TexMap1, tcBlue).b;
+    tcRed1.x = 1 - tcRed1.x;
+    tcRed1.z = 1 - tcRed1.z;
+    tcGreen1.x = 1 - tcGreen1.x;
+    tcGreen1.z = 1 - tcGreen1.z;
+    tcBlue1.x = 1 - tcBlue1.x;
+    tcBlue1.z = 1 - tcBlue1.z;
+
+    outColor.r =  (tex2D(TexMap1,   tcRed0.xy).r + tex2D(TexMap1,   tcRed0.zw).r);
+    outColor.r += (tex2D(TexMap1,   tcRed1.xy).r + tex2D(TexMap1,   tcRed1.zw).r);
+    outColor.r /= 4.0f; // 4 samples
+    outColor.g =  (tex2D(TexMap1, tcGreen0.xy).g + tex2D(TexMap1, tcGreen0.zw).g);
+    outColor.g += (tex2D(TexMap1, tcGreen1.xy).g + tex2D(TexMap1, tcGreen1.zw).g);
+    outColor.g /= 4.0f; // 4 samples
+    outColor.b =  (tex2D(TexMap1,  tcBlue0.xy).b + tex2D(TexMap1,  tcBlue0.zw).b);
+    outColor.b +=  (tex2D(TexMap1,  tcBlue1.xy).b + tex2D(TexMap1,  tcBlue1.zw).b);
+    outColor.b /= 4.0f; // 4 samples
   }
   else {
-    outColor.r = tex2D(TexMap0, tcRed).r;
-    outColor.g = tex2D(TexMap0, tcGreen).g;
-    outColor.b = tex2D(TexMap0, tcBlue).b;
+    outColor.r =  (tex2D(TexMap0,   tcRed0.xy).r + tex2D(TexMap0,   tcRed0.zw).r);
+    outColor.r += (tex2D(TexMap0,   tcRed1.xy).r + tex2D(TexMap0,   tcRed1.zw).r);
+    outColor.r /= 4.0f; // 4 samples
+    outColor.g =  (tex2D(TexMap0, tcGreen0.xy).g + tex2D(TexMap0, tcGreen0.zw).g);
+    outColor.g += (tex2D(TexMap0, tcGreen1.xy).g + tex2D(TexMap0, tcGreen1.zw).g);
+    outColor.g /= 4.0f; // 4 samples
+    outColor.b =  (tex2D(TexMap0,  tcBlue0.xy).b + tex2D(TexMap0,  tcBlue0.zw).b);
+    outColor.b +=  (tex2D(TexMap0,  tcBlue1.xy).b + tex2D(TexMap0,  tcBlue1.zw).b);
+    outColor.b /= 4.0f; // 4 samples
   }
 
   return float4(outColor.r, outColor.g, outColor.b, 1.0f);
@@ -86,6 +129,8 @@ technique ViewShader
   pass P0
   {
     VertexShader = null;
-    PixelShader  = compile ps_2_0 SBSRift();
+    PixelShader  = compile ps_3_0 SBSRift();
   }
 }
+
+
