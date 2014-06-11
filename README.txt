@@ -4,14 +4,15 @@
 
 BUILD INSTRUCTIONS:
 ---------------------------------
-Created using Visual C++ 2012 Express for Windows Desktop on Windows 8 64-bit.
-http://www.microsoft.com/visualstudio/deu/products/visual-studio-express-for-windows-desktop 
+Created using Visual C++ 2012 Express for Windows Desktop on Windows 8 64-bit. 
+(Windows 8.1 users cant use the online installer, please use the ISO file instead)
+http://www.microsoft.com/en-us/download/confirmation.aspx?id=34673 
 
 Built using the Microsoft DirectX SDK (June 2010) (may work with newer versions).
 http://www.microsoft.com/en-au/download/details.aspx?id=6812
 
 Download libfreespace (libfreespace-0.6rc0-win32-vs2010.zip) from here:
-http://libfreespace.hillcrestlabs.com/content/download 
+https://launchpad.net/libfreespace/+download
 Extract it to a folder
 
 Download Oculus SDK v0.2.5c from
