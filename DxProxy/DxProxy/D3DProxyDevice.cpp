@@ -32,6 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "D3D9ProxySurface.h"
 #include "StereoViewFactory.h"
 #include "MotionTrackerFactory.h"
+#include "HMDisplayInfoFactory.h"
 #include <typeinfo>
 #include <assert.h>
 #include <comdef.h>
@@ -104,9 +105,18 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	#endif
 	OutputDebugString("D3D ProxyDev Created\n");
 	InitVRBoost();
+
 	// rift info
-	HMDisplayInfo defaultInfo; 
-	m_spShaderViewAdjustment = std::make_shared<ViewAdjustment>(defaultInfo, 1.0f, false);
+	int mode;
+	int mode2;
+	ProxyHelper helper = ProxyHelper();
+	helper.LoadUserConfig(mode, mode2);
+
+	HMDisplayInfo *hmdInfo = HMDisplayInfoFactory::CreateHMDisplayInfo(static_cast<StereoView::StereoTypes>(mode)); 
+	OutputDebugString(("Created HMD Info for: " + hmdInfo->GetHMDName()).c_str());
+
+
+	m_spShaderViewAdjustment = std::make_shared<ViewAdjustment>(hmdInfo, 1.0f, false);
 	m_pGameHandler = new GameHandler();
 
 	// Check the maximum number of supported render targets
@@ -2329,7 +2339,7 @@ void D3DProxyDevice::HandleControls()
 	{
 		int _wheel = dinput.GetWheel();
 		if(controls.Key_Down(VK_TAB))
- 		{			
+		{
 			if(_wheel < 0)
 			{
 				if(this->stereoView->YOffset > -0.1f)
@@ -2345,8 +2355,8 @@ void D3DProxyDevice::HandleControls()
 					this->stereoView->YOffset += 0.005f;
 					this->stereoView->PostReset();										
 				}
- 			}
- 		}
+			}
+		}
 		else if(controls.Key_Down(VK_LSHIFT))
  		{			
 			if(_wheel < 0)
@@ -2374,7 +2384,7 @@ void D3DProxyDevice::HandleControls()
 				{
 					this->stereoView->DistortionScale -= 0.05f;
 					this->stereoView->PostReset();				
- 				}
+				}
 			}
 			else if(_wheel > 0)
 			{
@@ -3363,7 +3373,7 @@ void D3DProxyDevice::BRASSA_WorldScale()
 		hudMainMenu->SetTransform(&matScale);
 
 		// arbitrary formular... TODO !! find a more nifty solution
-		float BlueLineCenterAsPercentage = m_spShaderViewAdjustment->HMDInfo().lensXCenterOffset * 0.2f;
+		float BlueLineCenterAsPercentage = m_spShaderViewAdjustment->HMDInfo()->GetLensXCenterOffset() * 0.2f;
 
 		float horWidth = 0.15f;
 		int beg = (int)(viewportWidth*(1.0f-horWidth)/2.0) + (int)(BlueLineCenterAsPercentage * viewportWidth * 0.25f);
@@ -3608,7 +3618,7 @@ void D3DProxyDevice::BRASSA_Convergence()
 		hudMainMenu->SetTransform(&matScale);
 
 		// arbitrary formular... TODO !! find a more nifty solution
-		float BlueLineCenterAsPercentage = m_spShaderViewAdjustment->HMDInfo().lensXCenterOffset * 0.2f;
+		float BlueLineCenterAsPercentage = m_spShaderViewAdjustment->HMDInfo()->GetLensXCenterOffset() * 0.2f;
 
 		float horWidth = 0.15f;
 		int beg = (int)(viewportWidth*(1.0f-horWidth)/2.0) + (int)(BlueLineCenterAsPercentage * viewportWidth * 0.25f);

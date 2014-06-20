@@ -37,8 +37,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 /**
-* Predefined head mounted display info.
-* Default constructing with Rift DK1 values.
+* HMDisplayInfo abstract base class
 ***/
 struct HMDisplayInfo
 {
@@ -50,110 +49,99 @@ public:
 	* All rift values from OVR_Win32_HMDDevice.cpp in LibOVR
 	* Default constructing with Rift DK1 values.
 	***/
-	/*HMDisplayInfo() :
-		resolution(std::make_pair<UINT, UINT>(1920, 1080)), // Rift dev kit 
-		screenAspectRatio((float)resolution.first / (float)resolution.second),
-		halfScreenAspectRatio(((float)resolution.first * 0.5f) / (float)resolution.second),
-		physicalScreenSize(std::make_pair<float, float>(0.14976f, 0.0935f)), // Rift dev kit 
-		eyeToScreenDistance(0.041f), // Rift dev kit
-		physicalLensSeparation(0.064f), // Rift dev kit 
-		distortionCoefficients()
-	{*/
-	//1.18644 
-	HMDisplayInfo() :
-		resolution(std::make_pair<UINT, UINT>(1920, 1080)), // RiftUp
-		screenAspectRatio((float)resolution.first / (float)resolution.second),
-		halfScreenAspectRatio(((float)resolution.first * 0.5f) / (float)resolution.second),
-		physicalScreenSize(std::make_pair<float, float>(0.1296f, 0.0729f)), // RiftUp!
-		eyeToScreenDistance(0.041f), // Rift dev kit
-		physicalLensSeparation(0.064f), // Rift dev kit 
-		distortionCoefficients()
+	HMDisplayInfo()
 	{
-		// Rift dev kit 
-		distortionCoefficients[0] = 1.0f;
-		distortionCoefficients[1] = 0.18f;
-		distortionCoefficients[2] = 0.115f;
+		distortionCoefficients[0] = 0.0f;
+		distortionCoefficients[1] = 0.0f;
+		distortionCoefficients[2] = 0.0f;
 		distortionCoefficients[3] = 0.0f;
-
-		float physicalViewCenter = physicalScreenSize.first * 0.25f; 
-		float physicalOffset = physicalViewCenter - physicalLensSeparation * 0.5f;	
-		// Range at this point would be -0.25 to 0.25 units. So multiply the last step by 4 to get the offset in a -1 to 1  range
-		lensXCenterOffset = 4.0f * physicalOffset / physicalScreenSize.first; 
-		//0 to 1
-		lensYCenterOffset = 0.5f;
-		//-1 to 1
-		lensIPDCenterOffset = 0.0f;
-
-		// This scaling will ensure the source image is sampled so that the left edge of the left half of the screen is just reached
-		// by the image. -1 is the left edge of the -1 to 1 range and it is adjusted for the lens center offset (note that this needs
-		// adjusting if the lens is also offset vertically, See: StereoConfig::updateDistortionOffsetAndScale in LibOVR for an example
-		// of how to do this)
-		scaleToFillHorizontal = Distort(-1 - lensXCenterOffset) / (-1 - lensXCenterOffset);
-
-		std::stringstream sstm;
-		sstm << "scaleToFillHorizontal: " << scaleToFillHorizontal << std::endl;
-		OutputDebugString(sstm.str().c_str());
 	}
 
-	/**
-	* Left lens center as percentage of the physical screen size.
-	***/
-	float LeftLensCenterAsPercentage()
-	{
-		return ((physicalScreenSize.first / 2.0f) - (physicalLensSeparation / 2.0f)) / (physicalScreenSize.first);
-	}
+	virtual std::string GetHMDName() = 0;
+
+
 #pragma warning( pop )
 	/**
 	* Screen resolution, in pixels.
 	* <horizontal, vertical>
 	***/
-	std::pair<UINT, UINT>  resolution;
+	virtual std::pair<UINT, UINT>  GetResolution() = 0;
+
 	/**
 	* Screen aspect ratio, computed using resolution.
 	***/
-	float screenAspectRatio;
+	virtual float GetScreenAspectRatio()
+	{
+		std::pair<UINT, UINT>resolution = GetResolution();
+		return (float)resolution.first / (float)resolution.second;
+	}
+
 	/**
 	* Half screen aspect ratio, computed using resolution (half width) .
 	***/
-	float halfScreenAspectRatio;
+	virtual float GetHalfScreenAspectRatio()
+	{
+		std::pair<UINT, UINT>resolution = GetResolution();
+		return ((float)resolution.first * 0.5f) / (float)resolution.second;
+	}
+
 	/**
 	* Physical characteristics are in meters.
 	* <horizontal, vertical> 
 	***/
-	std::pair<float, float> physicalScreenSize;
+	virtual std::pair<float, float> GetPhysicalScreenSize() = 0;
+
 	/**
 	* Currently constant eye to screen distance (according to rift dev kit 1)
 	***/
-	float eyeToScreenDistance;
+	virtual float GetEyeToScreenDistance() = 0;
+
 	/**
 	* Physical lens seperation (currently constant rift dev kit 1 value=default ipd 0.064f).
 	***/
-	float physicalLensSeparation;
+	virtual float GetPhysicalLensSeparation() = 0;
+
+
 	/**
 	* The distance in a -1 to 1 range that the center of each lens is from the center of each half of
 	* the screen (center of a screen half is 0,0).
 	* -1 being the far left edge of the screen half and +1 being the far right of the screen half.
 	***/
-	float lensXCenterOffset;
+	virtual float GetLensXCenterOffset()
+	{
+		std::pair<float, float>physicalScreenSize = GetPhysicalScreenSize();
+		float physicalViewCenter = physicalScreenSize.first * 0.25f; 
+		float physicalOffset = physicalViewCenter - GetPhysicalLensSeparation() * 0.5f;	
+		// Range at this point would be -0.25 to 0.25 units. So multiply the last step by 4 to get the offset in a -1 to 1  range
+		return 4.0f * physicalOffset / physicalScreenSize.first;
+	}
+
 	/**
 	* The distance in a 0 to 1 range that the center of each lens is from the center of each half of
 	* the screen on Y axis
 	***/
-	float lensYCenterOffset;
+	virtual float GetLensYCenterOffset() = 0;
+
 	/**
 	* The distance in a -1 to 1 range that offsets the center of each lens is from the center of each half of
 	* the screen on X axis
 	***/
-	float lensIPDCenterOffset;
+	virtual float GetLensIPDCenterOffset() = 0;
+
 	/**
 	* From Rift docs on distortion : uvResult = uvInput * (K0 + K1 * uvLength^2 + K2 * uvLength^4).
 	***/
-	float distortionCoefficients[4];
+	virtual float* GetDistortionCoefficients() = 0;
+
 	/**
 	* Scaling value, used to fill shader constants.
 	* @see OculusRiftView::CalculateShaderVariables()
 	***/
-	float scaleToFillHorizontal;
+	virtual float GetScaleToFillHorizontal()
+	{
+		return Distort(-1 - GetLensXCenterOffset()) / (-1 - GetLensXCenterOffset());
+	}
+
 	/**
 	* This distortion must match that being used in the shader (the distortion, not including the scaling 
 	* that is included in the shader).
@@ -161,8 +149,11 @@ public:
 	virtual float Distort(float radius)
 	{
 		float radiusSqared = radius * radius;
-		return radius * (distortionCoefficients[0] + distortionCoefficients[1] * radiusSqared + distortionCoefficients[2] * 
-			radiusSqared * radiusSqared + distortionCoefficients[3] * radiusSqared * radiusSqared * radiusSqared);
+		return radius * (GetDistortionCoefficients()[0] + GetDistortionCoefficients()[1] * radiusSqared + GetDistortionCoefficients()[2] * 
+			radiusSqared * radiusSqared + GetDistortionCoefficients()[3] * radiusSqared * radiusSqared * radiusSqared);
 	}
+
+protected:
+	float distortionCoefficients[4];
 };
 #endif

@@ -47,6 +47,9 @@
     <Filter Include="Direct3D9Vireio\Direct3DDevice9\DeviceTypes">
       <UniqueIdentifier>{fa32ac49-1b14-4e92-9292-f34084276e41}</UniqueIdentifier>
     </Filter>
+    <Filter Include="HMDisplayInfo">
+      <UniqueIdentifier>{a6984bac-c136-41ca-be60-21017e230f65}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -210,6 +213,9 @@
     </ClCompile>
     <ClCompile Include="InputControls.cpp" />
     <ClCompile Include="DirectInput.cpp" />
+    <ClCompile Include="HMDisplayInfoFactory.cpp">
+      <Filter>HMDisplayInfo</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Exports.def">
@@ -406,7 +412,6 @@
     <ClInclude Include="MatrixIgnoreOrtho.h">
       <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
     </ClInclude>
-    <ClInclude Include="HMDisplayInfo.h" />
     <ClInclude Include="MatrixOrthoSquash.h">
       <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
     </ClInclude>
@@ -472,6 +477,18 @@
       <Filter>Direct3D9Vireio</Filter>
     </ClInclude>
     <ClInclude Include="DirectInput.h" />
+    <ClInclude Include="HMDisplayInfo.h">
+      <Filter>HMDisplayInfo</Filter>
+    </ClInclude>
+    <ClInclude Include="HMDisplayInfo_DK1.h">
+      <Filter>HMDisplayInfo</Filter>
+    </ClInclude>
+    <ClInclude Include="HMDisplayInfo_RiftUp.h">
+      <Filter>HMDisplayInfo</Filter>
+    </ClInclude>
+    <ClInclude Include="HMDisplayInfoFactory.h">
+      <Filter>HMDisplayInfo</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\Release\Perception\cfg\profiles.xml">

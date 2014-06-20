@@ -142,6 +142,7 @@
     <ClCompile Include="FreeSpaceTracker.cpp" />
     <ClCompile Include="FreeTrackTracker.cpp" />
     <ClCompile Include="GameHandler.cpp" />
+    <ClCompile Include="HMDisplayInfoFactory.cpp" />
     <ClCompile Include="InputControls.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MatrixNoShowModification.cpp" />
@@ -179,6 +180,9 @@
     <ClInclude Include="DirectInput.h" />
     <ClInclude Include="GameHandler.h" />
     <ClInclude Include="HMDisplayInfo.h" />
+    <ClInclude Include="HMDisplayInfoFactory.h" />
+    <ClInclude Include="HMDisplayInfo_DK1.h" />
+    <ClInclude Include="HMDisplayInfo_RiftUp.h" />
     <ClInclude Include="InputControls.h" />
     <ClInclude Include="MatrixDoNothing.h" />
     <ClInclude Include="MatrixGatheredOrhoSquash.h" />
