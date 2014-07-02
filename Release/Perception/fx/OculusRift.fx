@@ -8,7 +8,6 @@ float2 Scale;
 float2 ScaleIn;
 float4 HmdWarpParam;
 
-
 // Warp operates on left view, for right, mirror x texture coord
 // before and after calling.  in02 contains the chromatic aberration
 // correction coefficients.
@@ -26,7 +25,6 @@ float2 HmdWarp(float2 in01, float2 in02)
                      HmdWarpParam.w * rSq * rSq * rSq);
 
   theta1 = (Scale * theta1) + LensCenter;
-
   theta1.x = theta1.x - (LensCenter.x-0.25f);
   theta1.y = theta1.y - (LensCenter.y-0.5f);
 
@@ -83,6 +81,7 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
   tcGreen1 = HorizSuperSampledWarp(newPos + float2(0.0,  0.25f/800.0f), float2(1.0f, 0.0f));
 
 
+
   if (Tex.x > 0.5f) {
     // unmirror the right-eye coords
     tcRed0.x = 1 - tcRed0.x;
@@ -132,5 +131,3 @@ technique ViewShader
     PixelShader  = compile ps_3_0 SBSRift();
   }
 }
-
-

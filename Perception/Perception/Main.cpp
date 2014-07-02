@@ -354,9 +354,6 @@ int WINAPI wWinMain(HINSTANCE instance_handle, HINSTANCE, LPWSTR, INT) {
 
 	frame_window main_window("perception");
 	main_window.add_item("Disabled\t0");
-	main_window.add_item("DIY Rift\t25");
-	main_window.add_item("Oculus Rift\t26");
-	main_window.add_item("Oculus Rift Cropped\t27");
 	main_window.add_item("Side by Side\t20");
 	main_window.add_item("Over Under\t30");
 	main_window.add_item("Horizontal Interleave\t40");
@@ -368,6 +365,14 @@ int WINAPI wWinMain(HINSTANCE instance_handle, HINSTANCE, LPWSTR, INT) {
 	main_window.add_item("Anaglyph (Yellow/Blue) B+W\t6");
 	main_window.add_item("Anaglyph (Green/Magenta)\t10");
 	main_window.add_item("Anaglyph (Green/Magenta) B+W\t11");
+	main_window.add_item("DIY Rift\t100");
+	main_window.add_item("Oculus Rift DK1\t110");
+	main_window.add_item("Oculus Rift DK1 Cropped\t111");
+	main_window.add_item("RiftUp!\t112");
+//	main_window.add_item("Oculus Rift DK2\t120");
+//	main_window.add_item("Oculus Rift DK2 Cropped\t121");
+//	main_window.add_item("Oculus Rift CV1\t130");
+//	main_window.add_item("Oculus Rift CV1 Cropped\t131");
 
 	main_window.add_item2("No Tracking\t0");
 	main_window.add_item2("Hillcrest Labs\t10");
@@ -440,27 +445,30 @@ bool InitConfig(void)
 
 bool InitModes()
 {
-	stereoModes[0] = 0;
-	stereoModes[1] = 9;
-	stereoModes[2] = 10;
-	stereoModes[5] = 11;
-	stereoModes[6] = 12;
-	stereoModes[10] = 13;
-	stereoModes[11] = 14;
-	stereoModes[20] = 4;
-	stereoModes[25] = 1;
-	stereoModes[26] = 2;
-	stereoModes[27] = 3;
-	stereoModes[30] = 5;
-	stereoModes[40] = 6;
-	stereoModes[50] = 7;
-	stereoModes[60] = 8;
+	int comboPos = 0;
+	stereoModes[0] = comboPos++;
+	stereoModes[20] = comboPos++;
+	stereoModes[30] = comboPos++;
+	stereoModes[40] = comboPos++;
+	stereoModes[50] = comboPos++;
+	stereoModes[60] = comboPos++;
+	stereoModes[1] = comboPos++;
+	stereoModes[2] = comboPos++;
+	stereoModes[5] = comboPos++;
+	stereoModes[6] = comboPos++;
+	stereoModes[10] = comboPos++;
+	stereoModes[11] = comboPos++;
+	stereoModes[100] = comboPos++;
+	stereoModes[110] = comboPos++;
+	stereoModes[111] = comboPos++;
+	stereoModes[112] = comboPos++;
 
-	trackerModes[0] = 0;
-	trackerModes[10] = 1;
-	trackerModes[20] = 2;
-	trackerModes[30] = 3;
-	trackerModes[40] = 4;
+	comboPos = 0;
+	trackerModes[0] = comboPos++;
+	trackerModes[10] = comboPos++;
+	trackerModes[20] = comboPos++;
+	trackerModes[30] = comboPos++;
+	trackerModes[40] = comboPos++;
 
 	return true;
 }

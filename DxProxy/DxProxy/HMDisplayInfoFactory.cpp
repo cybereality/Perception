@@ -2,9 +2,10 @@
 Vireio Perception: Open-Source Stereoscopic 3D Driver
 Copyright (C) 2012 Andres Hernandez
 
-File <StereoViewFactory.cpp> and
-Class <StereoViewFactory> :
+File <OculusRiftView.cpp> and
+Class <OculusRiftView> :
 Copyright (C) 2012 Andres Hernandez
+Modifications Copyright (C) 2013 Chris Drain
 
 Vireio Perception Version History:
 v1.0.0 2012 by Andres Hernandez
@@ -27,43 +28,44 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#include "StereoViewFactory.h"
-#include "StereoViewInterleave.h"
-#include "OculusRiftView.h"
+#include "HMDisplayInfoFactory.h"
 
-/**
-*  Get stereo view. 
-*  Creates the currently selected stereo view class pointer.
-***/
-StereoView* StereoViewFactory::Get(ProxyHelper::ProxyConfig& config, HMDisplayInfo *hmd)
+#include "HMDisplayInfo.h"
+#include "HMDisplayInfo_DK1.h"
+#include "HMDisplayInfo_RiftUp.h"
+
+
+HMDisplayInfo* HMDisplayInfoFactory::CreateHMDisplayInfo(StereoView::StereoTypes stereoType)
 {
-	switch(config.stereo_mode)
+	switch(stereoType)
 	{
+	//Basically, everything uses the "default", which is the DK1 variant
 	case StereoView::ANAGLYPH_RED_CYAN:
 	case StereoView::ANAGLYPH_RED_CYAN_GRAY:
 	case StereoView::ANAGLYPH_YELLOW_BLUE:
 	case StereoView::ANAGLYPH_YELLOW_BLUE_GRAY:
 	case StereoView::ANAGLYPH_GREEN_MAGENTA:
 	case StereoView::ANAGLYPH_GREEN_MAGENTA_GRAY:
-	case StereoView::SIDE_BY_SIDE:
-	case StereoView::DIY_RIFT:
-	case StereoView::OVER_UNDER:
-		return new StereoView(config);
-		break;
-	case StereoView::RIFTUP:
-	case StereoView::OCULUS_RIFT_DK1:
-	case StereoView::OCULUS_RIFT_DK1_CROPPED:
-	case StereoView::OCULUS_RIFT_DK2:
-	case StereoView::OCULUS_RIFT_DK2_CROPPED:
-		return new OculusRiftView(config, hmd);
-		break;
 	case StereoView::INTERLEAVE_HORZ:
 	case StereoView::INTERLEAVE_VERT:
 	case StereoView::CHECKERBOARD:
-		return new StereoViewInterleave(config);
+	case StereoView::SIDE_BY_SIDE:
+	case StereoView::DIY_RIFT:
+	case StereoView::OVER_UNDER:
+	case StereoView::OCULUS_RIFT_DK1:
+	case StereoView::OCULUS_RIFT_DK1_CROPPED:
+		return new HMDisplayInfo_DK1();
 		break;
+	case StereoView::RIFTUP:
+		return new HMDisplayInfo_RiftUp();
+		break;
+//	case StereoView::OCULUS_RIFT_DK2:
+//	case StereoView::OCULUS_RIFT_DK2_CROPPED:
+//		return new HMDisplayInfo_DK2();
+//		break;	
 	default:
-		return new StereoView(config);
+		return new HMDisplayInfo_DK1();
 		break;
 	}
 }
+

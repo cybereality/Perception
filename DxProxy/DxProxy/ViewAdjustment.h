@@ -51,7 +51,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class ViewAdjustment
 {
 public:	
-	ViewAdjustment(HMDisplayInfo &hmdInfo, float metersToWorldUnits, bool enableRoll);
+	ViewAdjustment(HMDisplayInfo *hmdInfo, float metersToWorldUnits, bool enableRoll);
 	virtual ~ViewAdjustment();
 
 	/*** ViewAdjustment public methods ***/
@@ -106,7 +106,7 @@ public:
 	float         SeparationInWorldUnits();
 	float         SeparationIPDAdjustment();
 	bool          RollEnabled();
-	HMDisplayInfo HMDInfo();	
+	HMDisplayInfo* HMDInfo();	
 
 private:
 	/*** Projection Matrix variables ***/
@@ -248,7 +248,7 @@ private:
 	/**
 	* Head mounted display info.
 	***/
-	HMDisplayInfo hmdInfo;
+	HMDisplayInfo* hmdInfo;
 	/**
 	* True if head roll enabled.
 	***/
