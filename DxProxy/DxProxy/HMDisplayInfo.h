@@ -128,10 +128,10 @@ public:
 	virtual float GetLensIPDCenterOffset() = 0;
 
 	/**
-	* The distance in a 0 to 1 range that the center of each lens is from the center of each half of
-	* the screen on Y axis
+	* The minimum distortion scale allowed, varies between headsets (-1.0 is fine for DK1, whereas -0.5 is better for RiftUp)
 	***/
-	float lensYCenterOffset;
+	virtual float GetMinDistortionScale() = 0;
+
 	/**
 	* From Rift docs on distortion : uvResult = uvInput * (K0 + K1 * uvLength^2 + K2 * uvLength^4).
 	***/

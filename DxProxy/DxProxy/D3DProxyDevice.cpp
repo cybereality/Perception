@@ -2176,7 +2176,6 @@ void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 	stereoView->YOffset = config.YOffset;
 	stereoView->IPDOffset = config.IPDOffset;
 	stereoView->DistortionScale = config.DistortionScale;
-	stereoView->YOffset = config.YOffset;
 	m_maxDistortionScale = config.DistortionScale;
 
 	BRASSA_UpdateDeviceSettings();
@@ -2392,7 +2391,7 @@ void D3DProxyDevice::HandleControls()
 		{
 			if(_wheel < 0)
 			{
-				if(this->stereoView->DistortionScale > -1.0f)
+				if(this->stereoView->DistortionScale > m_spShaderViewAdjustment->HMDInfo()->GetMinDistortionScale())
 				{
 					this->stereoView->DistortionScale -= 0.05f;
 					this->stereoView->PostReset();				
@@ -2426,9 +2425,9 @@ void D3DProxyDevice::HandleControls()
 		}
 		else if(controls.Key_Down(VK_SUBTRACT))
 		{
-			if(this->stereoView->DistortionScale != -1.0f)
+			if(this->stereoView->DistortionScale != m_spShaderViewAdjustment->HMDInfo()->GetMinDistortionScale())
 			{
-				this->stereoView->DistortionScale = -1.0f;
+				this->stereoView->DistortionScale = m_spShaderViewAdjustment->HMDInfo()->GetMinDistortionScale();
 				this->stereoView->PostReset();							
 			}
 		}		
@@ -4346,13 +4345,6 @@ void D3DProxyDevice::BRASSA_Settings()
 			// distortion
 			if (entryID == 3)
 			{
-				this->stereoView->YOffset = 0.0f;
-				this->stereoView->PostReset();
-				menuVelocity.x += 0.7f;
-			}
-			// distortion
-			if (entryID == 2)
-			{
 				this->stereoView->DistortionScale = 0.0f;
 				this->stereoView->PostReset();
 				menuVelocity.x += 0.7f;
@@ -4494,24 +4486,7 @@ void D3DProxyDevice::BRASSA_Settings()
 				this->stereoView->PostReset();
 				menuVelocity.x += 0.7f;
 			}
-			// distortion
 			if (entryID == 3)
-			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down(0x4C))
-				{
-					if (this->stereoView->YOffset < 0.1f)
-						this->stereoView->YOffset += 0.001f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-				}
-				else
-				{
-					if (this->stereoView->YOffset < 0.1f)
-						this->stereoView->YOffset += 0.001f;
-				}
-				this->stereoView->PostReset();
-				menuVelocity.x += 0.7f;
-			}
-			// distortion
-			if (entryID == 2)
 			{
 				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down(0x4C))
 					this->stereoView->DistortionScale += 0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);

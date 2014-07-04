@@ -124,6 +124,14 @@ public:
 	}
 
 	/**
+	* The minimum distortion scale allowed, varies between headsets (-1.0 is fine for DK1, whereas -0.5 is better for RiftUp)
+	***/
+	virtual float GetMinDistortionScale()
+	{
+		return -1.0;
+	}
+
+	/**
 	* From Rift docs on distortion : uvResult = uvInput * (K0 + K1 * uvLength^2 + K2 * uvLength^4).
 	***/
 	virtual float* GetDistortionCoefficients()
