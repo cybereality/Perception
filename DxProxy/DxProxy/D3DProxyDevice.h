@@ -432,6 +432,10 @@ protected:
 	**/
 	bool m_bForceMouseEmulation;
 	/**
+	* Toggle VR Mouse
+	**/
+	bool m_bShowVRMouse;
+	/**
 	* True if VRBoost is on.
 	**/
 	bool m_bVRBoostToggle;

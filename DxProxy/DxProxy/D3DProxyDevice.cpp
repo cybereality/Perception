@@ -2297,6 +2297,17 @@ void D3DProxyDevice::HandleControls()
 			menuVelocity.x += 4.0f;
 		}
 	}
+
+	// toggle VR Mouse
+	if (controls.Key_Down(VK_LCONTROL) && controls.Key_Down(VK_NUMPAD0) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	{
+		if (m_bShowVRMouse)
+			m_bShowVRMouse = false;
+		else
+			m_bShowVRMouse = true;
+		menuVelocity.x += 4.0f;		
+	}
+
 	// avoid double input by using the menu velocity
 	if (hotkeyPressed)
 		menuVelocity.x+=2.0f;
@@ -5039,22 +5050,53 @@ void D3DProxyDevice::BRASSA_AdditionalOutput()
 	}
 
 	//GBCODE - Test VR Mouse Positioning
-	/*POINT pt;   
-	GetCursorPos(&pt); 
-	D3DRECT rec2;	
-	rec2.x1 = (int)-5 + ((pt.x * guiSquishPresets[(int)gui3DDepthMode]) + (((1 - guiSquishPresets[(int)gui3DDepthMode]) / 2) * viewportWidth)); 
-	rec2.x2 = (int)	5 + ((pt.x * guiSquishPresets[(int)gui3DDepthMode]) + (((1 - guiSquishPresets[(int)gui3DDepthMode]) / 2) * viewportWidth)); 
-	rec2.y1 = (int)-5 + ((pt.y * guiSquishPresets[(int)gui3DDepthMode]) + (((1 - guiSquishPresets[(int)gui3DDepthMode]) / 2) * viewportHeight)); 
-	rec2.y2 = (int) 5 + ((pt.y * guiSquishPresets[(int)gui3DDepthMode]) + (((1 - guiSquishPresets[(int)gui3DDepthMode]) / 2) * viewportHeight)); 	
-	
-	ClearRect(vireio::RenderPosition::Left, rec2, D3DCOLOR_ARGB(255,255,255,255));
-	ClearRect(vireio::RenderPosition::Right, rec2, D3DCOLOR_ARGB(255,255,255,255));
-	rec2.x1 += 2;
-	rec2.x2 -= 2;
-	rec2.y1 += 2;
-	rec2.y2 -= 2;
-	ClearRect(vireio::RenderPosition::Left, rec2, D3DCOLOR_ARGB(0,0,0,0));
-	ClearRect(vireio::RenderPosition::Right, rec2, D3DCOLOR_ARGB(0,0,0,0));	*/
+	if (m_bShowVRMouse)
+	{
+		POINT pt;   
+		GetCursorPos(&pt); 
+		D3DRECT rec2;	
+		D3DRECT rec2hud;	
+		rec2.x1 = (int)-5 + ((pt.x * guiSquishPresets[(int)gui3DDepthMode]) + (((1 - guiSquishPresets[(int)gui3DDepthMode]) / 2) * viewportWidth)); 
+		rec2.x2 = rec2.x1 + 10; 
+		rec2.y1 = (int)-5 + ((pt.y * guiSquishPresets[(int)gui3DDepthMode]) + (((1 - guiSquishPresets[(int)gui3DDepthMode]) / 2) * viewportHeight)); 
+		rec2.y2 = rec2.y1 + 10; 	
+		
+		ClearRect(vireio::RenderPosition::Left, rec2, D3DCOLOR_ARGB(255,255,255,255));
+		ClearRect(vireio::RenderPosition::Right, rec2, D3DCOLOR_ARGB(255,255,255,255));
+		rec2.x1 += 2;
+		rec2.x2 -= 2;
+		rec2.y1 += 2;
+		rec2.y2 -= 2;
+		ClearRect(vireio::RenderPosition::Left, rec2, D3DCOLOR_ARGB(0,0,0,0));
+		ClearRect(vireio::RenderPosition::Right, rec2, D3DCOLOR_ARGB(0,0,0,0));	
+		/*
+		//Hud Depth = 0 = Full Size 0.5 = Half Size
+		/*rec2hud.x1 = (int)-5 + (hudDistancePresets[(int)hud3DDepthMode]) * viewportWidth)) + (pt.x * (1 - hudDistancePresets[(int)hud3DDepthMode]));
+		rec2hud.x2 = rec2hud.x1 + 10;		
+		rec2hud.y1 = (int)-5 + (hudDistancePresets[(int)hud3DDepthMode]) * viewportHeight)) + (pt.y * (1 - hudDistancePresets[(int)hud3DDepthMode]));
+		rec2hud.y2 = rec2hud.y1 + 10;
+		
+		rec2hud.x1 = (int)-5 + ((pt.x * (1 - hudDistancePresets[(int)hud3DDepthMode])) + (((hudDistancePresets[(int)hud3DDepthMode]) / 2) * viewportWidth)); 
+		rec2hud.x2 = rec2hud.x1 + 10; 
+		rec2hud.y1 = (int)-5 + ((pt.y * (1 - hudDistancePresets[(int)hud3DDepthMode])) + (((hudDistancePresets[(int)hud3DDepthMode]) / 2) * viewportHeight)); 
+		rec2hud.y2 = rec2hud.y1 + 10; 	
+		ClearRect(vireio::RenderPosition::Left, rec2hud, D3DCOLOR_ARGB(255,255,255,255));
+		ClearRect(vireio::RenderPosition::Right, rec2hud, D3DCOLOR_ARGB(255,255,255,255));
+
+		rec2hud.x1 = 0;
+		rec2hud.x2 = (viewportWidth / 2) * (hudDistancePresets[(int)hud3DDepthMode]) + 200;		
+		rec2hud.y1 = 0;
+		rec2hud.y2 = (viewportHeight / 2) * (hudDistancePresets[(int)hud3DDepthMode]) + 200;
+		ClearRect(vireio::RenderPosition::Left, rec2hud, D3DCOLOR_ARGB(255,255,255,255));
+		//ClearRect(vireio::RenderPosition::Right, rec2hud, D3DCOLOR_ARGB(255,255,255,255));
+
+		rec2hud.x1 = viewportWidth - ((hudDistancePresets[(int)hud3DDepthMode]) * viewportWidth);
+		rec2hud.x2 = rec2hud.x1 + 10;		
+		rec2hud.y1 = viewportHeight - ((hudDistancePresets[(int)hud3DDepthMode]) * viewportHeight);
+		rec2hud.y2 = rec2hud.y1 + 10;
+		ClearRect(vireio::RenderPosition::Left, rec2hud, D3DCOLOR_ARGB(255,255,255,255));
+		ClearRect(vireio::RenderPosition::Right, rec2hud, D3DCOLOR_ARGB(255,255,255,255));*/
+	}
 	
 	// do not squish the viewport in case brassa menu is open - GBCODE - Why? Test on supported games. 
 	//if ((BRASSA_mode>=BRASSA_Modes::MAINMENU) && (BRASSA_mode<BRASSA_Modes::BRASSA_ENUM_RANGE))
@@ -5358,6 +5400,7 @@ bool D3DProxyDevice::InitBrassa()
 	screenshot = (int)false;
 	m_bForceMouseEmulation = false;
 	m_bVRBoostToggle = true;
+	m_bShowVRMouse = false;
 	m_fVRBoostIndicator = 0.0f;
 	BRASSA_mode = BRASSA_Modes::INACTIVE;
 	borderTopHeight = 0.0f;
