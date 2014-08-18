@@ -531,7 +531,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 	config.VRboostMaxShaderCount = 999999;
 	config.DistortionScale = 0.0f;
 	config.YOffset = 0.0f;
-
+	config.IPDOffset = 0.0f;
 
 	// load the base dir for the app
 	GetBaseDir();
@@ -629,6 +629,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 		config.roll_multiplier = gameProfile.attribute("roll_multiplier").as_float(1.0f);
 		config.DistortionScale = gameProfile.attribute("distortion_scale").as_float(0.0f);
 		config.YOffset = gameProfile.attribute("y_offset").as_float(0.0f);
+		config.IPDOffset = gameProfile.attribute("ipd_offset").as_float(0.0f);
 
 		if(config.yaw_multiplier == 0.0f) config.yaw_multiplier = 25.0f;
 		if(config.pitch_multiplier == 0.0f) config.pitch_multiplier = 25.0f;
@@ -894,14 +895,22 @@ bool ProxyHelper::SaveConfig(ProxyConfig& config)
 			gameProfile.remove_attribute("swap_eyes");
 			gameProfile.insert_attribute_after("swap_eyes", gameProfile.attribute("convergence")) = config.swap_eyes;
 		}
-		if (strcmp(gameProfile.attribute("swap_eyes").next_attribute().name(), "y_offset") == 0)
+
+		if (strcmp(gameProfile.attribute("swap_eyes").next_attribute().name(), "ipd_offset") == 0)
+			gameProfile.attribute("ipd_offset") = config.IPDOffset;
+		else
+		{
+			gameProfile.remove_attribute("ipd_offset");
+			gameProfile.insert_attribute_after("ipd_offset", gameProfile.attribute("swap_eyes")) = config.YOffset;
+		}
+		if (strcmp(gameProfile.attribute("ipd_offset").next_attribute().name(), "y_offset") == 0)
 			gameProfile.attribute("y_offset") = config.YOffset;
 		else
 		{
 			gameProfile.remove_attribute("y_offset");
-			gameProfile.insert_attribute_after("y_offset", gameProfile.attribute("swap_eyes")) = config.YOffset;
+			gameProfile.insert_attribute_after("y_offset", gameProfile.attribute("ipd_offset")) = config.YOffset;
 		}
-		if (strcmp(gameProfile.attribute("y_offset").next_attribute().name(), "yaw_multiplier") == 0)
+		if (strcmp(gameProfile.attribute("swap_eyes").next_attribute().name(), "yaw_multiplier") == 0)
 			gameProfile.attribute("yaw_multiplier") = config.yaw_multiplier;
 		else
 		{

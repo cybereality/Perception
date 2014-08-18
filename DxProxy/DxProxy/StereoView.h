@@ -68,13 +68,22 @@ public:
 		ANAGLYPH_GREEN_MAGENTA = 10,        /**< Anaglyph render in complementary colors green, magenta. */
 		ANAGLYPH_GREEN_MAGENTA_GRAY = 11,   /**< Gray anaglyph render in complementary colors red,cyan. */
 		SIDE_BY_SIDE = 20,                  /**< Left and right image. */
-		DIY_RIFT = 25,                      /**< For do-it-yourself Oculus Rift kits. */
-		OCULUS_RIFT = 26,                   /**< Standard Oculus Rift render method. */
-		OCULUS_RIFT_CROPPED = 27,           /**< Cropped Oculus Rift render method. */
 		OVER_UNDER = 30,                    /**< Upper and lower image. */
 		INTERLEAVE_HORZ = 40,               /**< Horizontally interleaved for polarized 3D systems. */
 		INTERLEAVE_VERT = 50,               /**< Vertically interleaved for polarized 3D systems. */
-		CHECKERBOARD = 60                   /**< Checkerboard for 3D Digital Light Processing Displays. */
+		CHECKERBOARD = 60,                  /**< Checkerboard for 3D Digital Light Processing Displays. */
+
+		//Reserve numbers over 100 for HMDs as many more could be added in the future
+		DIY_RIFT = 100,                      /**< For do-it-yourself Oculus Rift kits. */
+		OCULUS_RIFT_DK1 = 110,               /**< Standard Oculus Rift DK1 render method. */
+		OCULUS_RIFT_DK1_CROPPED = 111,       /**< Cropped Oculus Rift DK1 render method. */
+		RIFTUP = 112,					    /**< RiftUp! upgrade for the Oculus Rift DK1 */
+		OCULUS_RIFT_DK2 = 120,               /**< Standard Oculus Rift DK2 render method. */
+		OCULUS_RIFT_DK2_CROPPED = 121,        /**< Cropped Oculus Rift DK2 render method. */
+
+		//Currently no support for the following, simply placeholders
+		OCULUS_RIFT_CV1 = 130,               /**< Standard Oculus Rift DK2 render method. */
+		OCULUS_RIFT_CV1_CROPPED = 131        /**< Cropped Oculus Rift DK2 render method. */
 	};
 	/**
 	* Left and right enumeration.
@@ -116,6 +125,11 @@ public:
 	* Should be used by OculusRiftView and D3DProxyDevice.
 	***/
 	float YOffset;	
+	/**
+	* Should be used by OculusRiftView and D3DProxyDevice.
+	***/
+	float IPDOffset;	
+
 
 protected:
 	/*** StereoView protected methods ***/

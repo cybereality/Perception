@@ -2,9 +2,9 @@
 Vireio Perception: Open-Source Stereoscopic 3D Driver
 Copyright (C) 2012 Andres Hernandez
 
-File <StereoViewFactory.h> and
-Class <StereoViewFactory> :
-Copyright (C) 2012 Andres Hernandez
+File <HMDisplayInfo.h> and
+Structure <HMDisplayInfo> :
+Copyright (C) 2013 Chris Drain
 
 Vireio Perception Version History:
 v1.0.0 2012 by Andres Hernandez
@@ -27,20 +27,22 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#ifndef STEREOVIEWFACTORY_H_INCLUDED
-#define STEREOVIEWFACTORY_H_INCLUDED
+#ifndef HMDISPLAYINFOFACTORY_H_INCLUDED
+#define HMDISPLAYINFOFACTORY_H_INCLUDED
 
-#include "ProxyHelper.h"
+#include "HMDisplayInfo.h"
 #include "StereoView.h"
 
 /**
-*  Stereo view factory class. 
-*  Class to retrieve the currently selected stereo view.
-*/
-class StereoViewFactory
+*  HMDisplayInfo Factory Class
+*  Creates the appropriate HMDisplayInfo for the Stereo Type provided
+***/
+class HMDisplayInfoFactory
 {
+private:
+	HMDisplayInfoFactory(){}
 public:
-	/*** StereoViewFactory public methods ***/
-	static StereoView* Get(ProxyHelper::ProxyConfig& config, HMDisplayInfo *hmd);
+	static HMDisplayInfo* CreateHMDisplayInfo(StereoView::StereoTypes stereoType);
 };
-#endif
+
+#endif //HMDISPLAYINFOFACTORY_H_INCLUDED
