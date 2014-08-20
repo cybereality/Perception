@@ -59,6 +59,7 @@ public:
 		std::string VRboostPath;                /**< Full path of VRboost rules for this game. */
 		UINT        VRboostMinShaderCount;      /**< Minimum Vertex Shader Count to apply VRboost (security) */
 		UINT        VRboostMaxShaderCount;      /**< Maximum Vertex Shader Count to apply VRboost (security) */
+		bool		isAPIHookable;				/**< Whether this game type works by injection, or if DLLs need ot be copied to game directory */
 		int         game_type;                  /**< Game type enumeration. Matching D3DProxyDevice::ProxyTypes. */
 		bool        rollEnabled;                /**< True if headtracking-roll is to be enabled. */
 		float       worldScaleFactor;           /**< Value the eye seperation is to be multiplied with. (mm * worldScaleFactor = mm in game units). */
@@ -125,6 +126,7 @@ public:
 	bool  LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile);	
 	bool  SaveConfig(ProxyConfig& config);
 	bool  HasProfile(char* name);
+	bool  isAPIHookable(char* name);
 	bool  GetProfile(char* name, ProxyConfig& config);
 
 	/**

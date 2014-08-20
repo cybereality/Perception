@@ -159,20 +159,24 @@ BOOL APIENTRY DllMain( HINSTANCE hModule, DWORD fdwReason, LPVOID lpReserved )
 
 		if (helper.HasProfile(targetExe))
 		{
-			if (HookAPICalls(&D3DHook))
+			if (helper.isAPIHookable(targetExe))
 			{
-				OutputDebugString("HookAPICalls(D3D): TRUE\n");
-			} 
-			else if(HookAPICalls(&KernelHook))
-			{	
-				OutputDebugString("HookAPICalls(Kernel): TRUE\n");
-			} 
-			else 
-			{
-				OutputDebugString("HookAPICalls(Both): FALSE\n");
+				if (HookAPICalls(&D3DHook))
+				{
+					OutputDebugString("HookAPICalls(D3D): TRUE\n");
+				} 
+				else if(HookAPICalls(&KernelHook))
+				{	
+					OutputDebugString("HookAPICalls(Kernel): TRUE\n");
+				} 
+				else 
+				{
+					OutputDebugString("HookAPICalls(Both): FALSE\n");
+				}
+
+				SetDllDirectory(dllDir);
 			}
 
-			SetDllDirectory(dllDir);
 			SaveExeName(targetExe, (char*)targetPathString.c_str());
 		}
 	}
