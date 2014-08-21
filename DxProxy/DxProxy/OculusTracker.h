@@ -64,6 +64,7 @@ public:
 
 	void BeginFrame();
 	void EndFrame();
+	void WaitTillTime();
 
 private:
 

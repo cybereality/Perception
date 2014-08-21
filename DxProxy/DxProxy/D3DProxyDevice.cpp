@@ -353,6 +353,9 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 	#ifdef SHOW_CALLS
 		OutputDebugString("called Present");
 	#endif
+
+	tracker->BeginFrame();
+
 	IDirect3DSurface9* pWrappedBackBuffer;
 
 	try {
@@ -373,7 +376,11 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 
 	BRASSA_UpdateBorder();
 
-	return BaseDirect3DDevice9::Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
+	HRESULT res =  BaseDirect3DDevice9::Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
+
+	tracker->EndFrame();
+
+	return res;
 }
 
 /**
@@ -2494,7 +2501,10 @@ void D3DProxyDevice::HandleTracking()
 			{
 				// load VRboost rules
 				if (config.VRboostPath != "")
+				{
+					OutputDebugString(std::string("config.VRboostPath: " + config.VRboostPath).c_str());
 					m_pVRboost_LoadMemoryRules(config.game_exe, config.VRboostPath);
+				}
 			}
 		}
 	}
@@ -5030,7 +5040,7 @@ void D3DProxyDevice::BRASSA_AdditionalOutput()
 		POINT pt;   
 		GetCursorPos(&pt); 
 		D3DRECT rec2;	
-		D3DRECT rec2hud;	
+		//D3DRECT rec2hud;	
 		rec2.x1 = (int)-5 + ((pt.x * guiSquishPresets[(int)gui3DDepthMode]) + (((1 - guiSquishPresets[(int)gui3DDepthMode]) / 2) * viewportWidth)); 
 		rec2.x2 = rec2.x1 + 10; 
 		rec2.y1 = (int)-5 + ((pt.y * guiSquishPresets[(int)gui3DDepthMode]) + (((1 - guiSquishPresets[(int)gui3DDepthMode]) / 2) * viewportHeight)); 

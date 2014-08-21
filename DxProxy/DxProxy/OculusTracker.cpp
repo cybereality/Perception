@@ -73,17 +73,8 @@ int OculusTracker::init()
 		pHMD=ovrHmd_Create(0);
 	}
 
-	// rift info that user selectable
-	int mode;
-	int mode2;
-	ProxyHelper helper = ProxyHelper();
-	helper.LoadUserConfig(mode, mode2);
 
-	unsigned int trackingCaps = ovrTrackingCap_Orientation | ovrTrackingCap_MagYawCorrection;
-
-	if (mode > 	StereoView::OCULUS_RIFT_DK2)
-		trackingCaps |= ovrTrackingCap_Position;
- 
+	unsigned int trackingCaps = ovrTrackingCap_Orientation | ovrTrackingCap_MagYawCorrection | ovrTrackingCap_Position;
 	ovrBool success = ovrHmd_ConfigureTracking(pHMD, trackingCaps, 0);
 
 	if (!success)
@@ -114,9 +105,15 @@ void OculusTracker::BeginFrame()
 	}
 }
 
+void OculusTracker::WaitTillTime()
+{
+	if (started){
+		ovr_WaitTillTime(FrameRef.TimewarpPointSeconds);
+	}
+}
+
 void OculusTracker::EndFrame()
 {
-	//return;
 	if (started){
 			ovrHmd_EndFrameTiming(pHMD);
 	}
@@ -160,8 +157,6 @@ void OculusTracker::updateOrientation()
 	OutputDebugString("OculusTracker updateOrientation\n");
 #endif
 
-	BeginFrame();
-
 	// Get orientation from Oculus tracker.
 	if(getOrientation(&yaw, &pitch, &roll) == 0)
 	{
@@ -199,8 +194,6 @@ void OculusTracker::updateOrientation()
 		currentPitch = pitch;
 		currentRoll = (float)( roll * (PI/180.0) * multiplierRoll);	// convert from deg to radians then apply mutiplier
 	}
-	
-	EndFrame();
 }
 
 /**

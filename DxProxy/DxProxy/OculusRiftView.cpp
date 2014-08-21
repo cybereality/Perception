@@ -92,12 +92,12 @@ void OculusRiftView::CalculateShaderVariables()
 ***/ 
 void OculusRiftView::InitShaderEffects()
 {
-	//Currently, RiftUp and DK1 share the same shader effects
+	//Currently, RiftUp DK1 and DK2 share the same shader effects
 	shaderEffect[RIFTUP] = "OculusRift.fx";
 	shaderEffect[OCULUS_RIFT_DK1] = "OculusRift.fx";
 	shaderEffect[OCULUS_RIFT_DK1_CROPPED] = "OculusRiftCropped.fx";
-	shaderEffect[OCULUS_RIFT_DK2] = "OculusRiftDK2.fx";
-	shaderEffect[OCULUS_RIFT_DK2_CROPPED] = "OculusRiftDK2.fx";
+	shaderEffect[OCULUS_RIFT_DK2] = "OculusRift.fx";
+	shaderEffect[OCULUS_RIFT_DK2_CROPPED] = "OculusRift.fx";
 
 	char viewPath[512];
 	ProxyHelper helper = ProxyHelper();
