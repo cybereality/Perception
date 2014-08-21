@@ -96,6 +96,8 @@ void OculusRiftView::InitShaderEffects()
 	shaderEffect[RIFTUP] = "OculusRift.fx";
 	shaderEffect[OCULUS_RIFT_DK1] = "OculusRift.fx";
 	shaderEffect[OCULUS_RIFT_DK1_CROPPED] = "OculusRiftCropped.fx";
+	shaderEffect[OCULUS_RIFT_DK2] = "OculusRiftDK2.fx";
+	shaderEffect[OCULUS_RIFT_DK2_CROPPED] = "OculusRiftDK2.fx";
 
 	char viewPath[512];
 	ProxyHelper helper = ProxyHelper();

@@ -32,6 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "HMDisplayInfo.h"
 #include "HMDisplayInfo_DK1.h"
+#include "HMDisplayInfo_DK2.h"
 #include "HMDisplayInfo_RiftUp.h"
 
 
@@ -59,10 +60,10 @@ HMDisplayInfo* HMDisplayInfoFactory::CreateHMDisplayInfo(StereoView::StereoTypes
 	case StereoView::RIFTUP:
 		return new HMDisplayInfo_RiftUp();
 		break;
-//	case StereoView::OCULUS_RIFT_DK2:
-//	case StereoView::OCULUS_RIFT_DK2_CROPPED:
-//		return new HMDisplayInfo_DK2();
-//		break;	
+	case StereoView::OCULUS_RIFT_DK2:
+	case StereoView::OCULUS_RIFT_DK2_CROPPED:
+		return new HMDisplayInfo_DK2();
+		break;	
 	default:
 		return new HMDisplayInfo_DK1();
 		break;
