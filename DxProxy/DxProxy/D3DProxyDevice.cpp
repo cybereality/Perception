@@ -354,8 +354,6 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 		OutputDebugString("called Present");
 	#endif
 
-	tracker->BeginFrame();
-
 	IDirect3DSurface9* pWrappedBackBuffer;
 
 	try {
@@ -376,11 +374,7 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 
 	BRASSA_UpdateBorder();
 
-	HRESULT res =  BaseDirect3DDevice9::Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
-
-	tracker->EndFrame();
-
-	return res;
+	return BaseDirect3DDevice9::Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
 }
 
 /**
@@ -965,7 +959,10 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 		OutputDebugString("called BeginScene");
 	#endif
 	
-		if (m_isFirstBeginSceneOfFrame) {
+	if (trackerInitialized)
+		tracker->BeginFrame();
+
+	if (m_isFirstBeginSceneOfFrame) {
 
 		// save screenshot before first clear() is called
 		if (screenshot>0)
@@ -1046,6 +1043,10 @@ HRESULT WINAPI D3DProxyDevice::EndScene()
 		else
 			BRASSA_AdditionalOutput();
 	}
+
+	if (trackerInitialized)
+		tracker->EndFrame();
+
 	return BaseDirect3DDevice9::EndScene();
 }
 
