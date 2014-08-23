@@ -621,7 +621,6 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 		OutputDebugString(psz);
 		OutputDebugString("\n");
 
-		config.isAPIHookable = gameProfile.attribute("is_api_hookable").as_bool(true);
 		config.VRboostMinShaderCount = gameProfile.attribute("minVRboostShaderCount").as_uint(0);
 		config.VRboostMaxShaderCount = gameProfile.attribute("maxVRboostShaderCount").as_uint(999999);
 		config.convergence = gameProfile.attribute("convergence").as_float(0.0f);
@@ -822,21 +821,13 @@ bool ProxyHelper::SaveConfig(ProxyConfig& config)
 		else
 			fileName = config.shaderRulePath;
 
-		if (strcmp(gameProfile.attribute("game_exe").next_attribute().name(), "is_api_hookable") == 0)
-			gameProfile.attribute("is_api_hookable") = config.isAPIHookable;
-		else
-		{
-			gameProfile.remove_attribute("is_api_hookable");
-			gameProfile.insert_attribute_after("is_api_hookable", gameProfile.attribute("game_exe")) = config.isAPIHookable;
-		}
-
 		// shader mod rules attribute present ? otherwise insert
-		if (strcmp(gameProfile.attribute("is_api_hookable").next_attribute().name(), "shaderModRules") == 0)
+		if (strcmp(gameProfile.attribute("game_exe").next_attribute().name(), "shaderModRules") == 0)
 			gameProfile.attribute("shaderModRules") = fileName.c_str();
 		else
 		{
 			gameProfile.remove_attribute("shaderModRules");
-			gameProfile.insert_attribute_after("shaderModRules", gameProfile.attribute("is_api_hookable")) = fileName.c_str();
+			gameProfile.insert_attribute_after("shaderModRules", gameProfile.attribute("game_exe")) = fileName.c_str();
 		}
 
 		// get VRboost rules filename
@@ -1145,38 +1136,6 @@ bool ProxyHelper::HasProfile(char* name)
 	}
 
 	return profileFound;
-}
-
-/**
-* True if process uses DLL injection like SkyRim or false if DLLs need to be copied to game folder.
-* @param name The exe process name.
-***/
-bool ProxyHelper::isAPIHookable(char* name)
-{
-	// get the profile
-	bool profileFound = false;
-	char profilePath[512];
-	GetPath(profilePath, "cfg\\profiles.xml");
-
-	xml_document docProfiles;
-	xml_parse_result resultProfiles = docProfiles.load_file(profilePath);
-	xml_node profile;
-
-	if(resultProfiles.status == status_ok)
-	{
-		xml_node xml_profiles = docProfiles.child("profiles");
-
-		for (xml_node profile = xml_profiles.child("profile"); profile; profile = profile.next_sibling("profile"))
-		{
-			if(strcmp(name, profile.attribute("game_exe").value()) == 0)
-			{
-				return profile.attribute("is_api_hookable").as_bool(true);
-			}
-		}
-	}
-
-	//default to true
-	return true;
 }
 
 /**
