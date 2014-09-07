@@ -7,6 +7,7 @@ float2 LensCenter;
 float2 Scale;
 float2 ScaleIn;
 float4 HmdWarpParam;
+float ViewportXOffset;
 
 // Warp operates on left view, for right, mirror x texture coord
 // before and after calling.  in02 contains the chromatic aberration
@@ -59,7 +60,7 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 
   if (Tex.x > 0.5f) {
     // mirror to get the right-eye distortion
-    newPos.x = 1.0f - newPos.x;
+    newPos.x = 1.0f - newPos.x + (ViewportXOffset * 2);
     // subpixel alignment isn't symmetric under mirroring
     subpixelShiftR = 0.33333/1280.0f;
     subpixelShiftB = -0.33333/1280.0f;
