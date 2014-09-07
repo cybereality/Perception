@@ -2172,6 +2172,9 @@ void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 
 	eyeShutter = 1;
 	trackerInitialized = false;
+	m_bfloatingMenu = false;
+	m_bfloatingScreen = false;
+	m_bSurpressHeadtracking = false;
 
 	char buf[64];
 	LPCSTR psz = NULL;
@@ -2325,10 +2328,50 @@ void D3DProxyDevice::HandleControls()
 		else
 		{
 			m_bfloatingMenu = true;
-			m_fFloatingPitch = tracker->primaryPitch;
-			m_fFloatingYaw = tracker->primaryYaw;			
+			if(trackingOn && trackerInitialized)
+			{
+				m_fFloatingPitch = tracker->primaryPitch;
+				m_fFloatingYaw = tracker->primaryYaw;			
+			}
 		}
 		menuVelocity.x += 4.0f;		
+	}
+
+	//Floaty Screen
+	if (controls.Key_Down(VK_LCONTROL) && controls.Key_Down(VK_NUMPAD2) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	{
+		if (m_bfloatingScreen)
+		{
+			m_bfloatingScreen = false;
+			m_bSurpressHeadtracking = false;
+			//TODO Change this back to initial
+			this->stereoView->YOffset = 0;
+			this->stereoView->XOffset = 0;
+			this->stereoView->PostReset();	
+		}
+		else
+		{
+			m_bfloatingScreen = true;
+			m_bSurpressHeadtracking = true;
+			if(trackingOn && trackerInitialized)
+			{
+				m_fFloatingScreenPitch = tracker->primaryPitch;
+				m_fFloatingScreenYaw = tracker->primaryYaw;			
+			}
+		}
+		menuVelocity.x += 4.0f;		
+	}
+	if(m_bfloatingScreen)
+	{
+		float screenFloatMultiplier = 0.5;
+		if(trackingOn && trackerInitialized)
+		{
+			this->stereoView->YOffset = (m_fFloatingScreenPitch - tracker->primaryPitch) * screenFloatMultiplier;
+			this->stereoView->XOffset = (m_fFloatingScreenYaw - tracker->primaryYaw) * screenFloatMultiplier;
+			this->stereoView->PostReset();
+		}
+		//m_ViewportIfSquished.X = (int)(vOut.x+centerX-(((m_fFloatingYaw - tracker->primaryYaw) * floatMultiplier) * (180 / PI)));
+		//m_ViewportIfSquished.Y = (int)(vOut.y+centerY-(((m_fFloatingPitch - tracker->primaryPitch) * floatMultiplier) * (180 / PI)));
 	}
 
 	// avoid double input by using the menu velocity
@@ -2499,7 +2542,7 @@ void D3DProxyDevice::HandleTracking()
 	m_isFirstBeginSceneOfFrame = false;
 
 	// update vrboost, if present, tracker available and shader count higher than the minimum
-	if ((!m_bForceMouseEmulation) && (hmVRboost) && (m_VRboostRulesPresent) && (tracker->isAvailable()) && (m_bVRBoostToggle)
+	if ((!m_bSurpressHeadtracking) && (!m_bForceMouseEmulation) && (hmVRboost) && (m_VRboostRulesPresent) && (tracker->isAvailable()) && (m_bVRBoostToggle)
 		&& (m_VertexShaderCountLastFrame>(UINT)config.VRboostMinShaderCount) 
 		&& (m_VertexShaderCountLastFrame<(UINT)config.VRboostMaxShaderCount) )
 	{
@@ -4300,7 +4343,7 @@ void D3DProxyDevice::BRASSA_Settings()
 			{
 				m_bForceMouseEmulation = !m_bForceMouseEmulation;
 
-				if ((m_bForceMouseEmulation) && trackerInitialized && tracker->isAvailable())
+				if ((m_bForceMouseEmulation) && trackerInitialized && tracker->isAvailable() && (!m_bSurpressHeadtracking))
 					tracker->setMouseEmulation(true);
 
 				if ((!m_bForceMouseEmulation) && (hmVRboost) && (m_VRboostRulesPresent) && trackerInitialized && tracker->isAvailable())

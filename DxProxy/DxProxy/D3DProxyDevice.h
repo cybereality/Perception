@@ -323,6 +323,13 @@ public:
 	bool m_bfloatingMenu;
 	float m_fFloatingPitch;
 	float m_fFloatingYaw;
+	/**
+	* floating screen activated
+	**/
+	bool m_bfloatingScreen;
+	float m_fFloatingScreenPitch;
+	float m_fFloatingScreenYaw;
+	bool m_bSurpressHeadtracking;
 	InputControls controls;
 	DirectInput dinput;
 

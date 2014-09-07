@@ -382,6 +382,11 @@
       <SubType>Designer</SubType>
     </Xml>
   </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\Release\Perception\fx\OculusRiftDK2.fx">
+      <FileType>Document</FileType>
+    </CustomBuild>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
