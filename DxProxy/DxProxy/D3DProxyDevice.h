@@ -317,6 +317,12 @@ public:
 	* True if head tracking initialized.
 	**/
 	bool trackerInitialized;
+	/**
+	* True floating GUI mode activated + Reset Values
+	**/
+	bool m_bfloatingMenu;
+	float m_fFloatingPitch;
+	float m_fFloatingYaw;
 	InputControls controls;
 	DirectInput dinput;
 

@@ -1273,8 +1273,10 @@ HRESULT WINAPI D3DProxyDevice::SetViewport(CONST D3DVIEWPORT9* pViewport)
 		}
 	}
 
+	
 	if (m_bViewportIsSquished)
 		SetGUIViewport();
+	
 	return result;
 }
 
@@ -2315,6 +2317,20 @@ void D3DProxyDevice::HandleControls()
 		menuVelocity.x += 4.0f;		
 	}
 
+	// floaty menus
+	if (controls.Key_Down(VK_LCONTROL) && controls.Key_Down(VK_NUMPAD1) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	{
+		if (m_bfloatingMenu)
+			m_bfloatingMenu = false;
+		else
+		{
+			m_bfloatingMenu = true;
+			m_fFloatingPitch = tracker->primaryPitch;
+			m_fFloatingYaw = tracker->primaryYaw;			
+		}
+		menuVelocity.x += 4.0f;		
+	}
+
 	// avoid double input by using the menu velocity
 	if (hotkeyPressed)
 		menuVelocity.x+=2.0f;
@@ -2477,9 +2493,7 @@ void D3DProxyDevice::HandleTracking()
 		}
 		m_spShaderViewAdjustment->UpdatePitchYaw(tracker->primaryPitch, tracker->primaryYaw);
 	}
-
 	
-
 	m_spShaderViewAdjustment->ComputeViewTransforms();
 
 	m_isFirstBeginSceneOfFrame = false;
@@ -5291,15 +5305,30 @@ void D3DProxyDevice::SetGUIViewport()
 	D3DXVECTOR3 vIn = D3DXVECTOR3((FLOAT)stereoView->viewport.X-centerX, (FLOAT)stereoView->viewport.Y-centerY,1);
 	D3DXVECTOR4 vOut = D3DXVECTOR4();
 	D3DXVec3Transform(&vOut,&vIn, &mVPSquash);
-	m_ViewportIfSquished.X = (int)(vOut.x+centerX);
-	m_ViewportIfSquished.Y = (int)(vOut.y+centerY);
+	float floatMultiplier = 4;
+	int originalX = (int)(vOut.x+centerX);
+	int originalY = (int)(vOut.y+centerY);
+	if(m_bfloatingMenu && trackingOn && trackerInitialized)
+	{
+		/*char buf[64];
+		LPCSTR psz = NULL;
+		sprintf_s(buf, "yaw: %f, pitch: %f\n", tracker->primaryYaw, tracker->primaryPitch);
+		psz = buf;*/		
+		m_ViewportIfSquished.X = (int)(vOut.x+centerX-(((m_fFloatingYaw - tracker->primaryYaw) * floatMultiplier) * (180 / PI)));
+		m_ViewportIfSquished.Y = (int)(vOut.y+centerY-(((m_fFloatingPitch - tracker->primaryPitch) * floatMultiplier) * (180 / PI)));
+	}
+	else
+	{
+		m_ViewportIfSquished.X = (int)(vOut.x+centerX);
+		m_ViewportIfSquished.Y = (int)(vOut.y+centerY);
+	}
 
 	// get right/bottom viewport sides
 	vIn = D3DXVECTOR3((FLOAT)(stereoView->viewport.Width+stereoView->viewport.X)-centerX, (FLOAT)(stereoView->viewport.Height+stereoView->viewport.Y)-centerY,1);
 	vOut = D3DXVECTOR4();
 	D3DXVec3Transform(&vOut,&vIn, &mVPSquash);
-	m_ViewportIfSquished.Width = (int)(vOut.x+centerX) - m_ViewportIfSquished.X;
-	m_ViewportIfSquished.Height = (int)(vOut.y+centerY) - m_ViewportIfSquished.Y;
+	m_ViewportIfSquished.Width = (int)(vOut.x+centerX) - originalX;
+	m_ViewportIfSquished.Height = (int)(vOut.y+centerY) - originalY;
 
 	// set viewport
 	m_bViewportIsSquished = true;
