@@ -28,6 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
 #include "OculusTracker.h"
+#include "HMDisplayInfoFactory.h"
 
 /**
 * Constructor.
@@ -35,6 +36,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***/ 
 OculusTracker::OculusTracker()
 {
+	started = false;
 	init();
 }
 
@@ -44,11 +46,8 @@ OculusTracker::OculusTracker()
 ***/
 OculusTracker::~OculusTracker()
 {
-	pSensor.Clear();
-	pManager.Clear();
-	if (SFusion)
-		delete SFusion;
-	System::Destroy(); // shutdown LibOVR 
+	ovrHmd_Destroy(pHMD);
+	ovr_Shutdown();
 }
 
 /**
@@ -58,55 +57,35 @@ OculusTracker::~OculusTracker()
 int OculusTracker::init()
 {
 	OutputDebugString("OculusTracker Start");
-	System::Init(); // start LibOVR
-	OutputDebugString("OculusTracker Initialized");
-	pManager = *DeviceManager::Create();
-	OutputDebugString("PManager Created");
-	pHMD = *pManager->EnumerateDevices<HMDDevice>().CreateDevice();
-	OutputDebugString("Created Device");
-	if (!pHMD)
+	ovrBool res = ovr_Initialize(); // start LibOVR
+
+	if (res)
+		OutputDebugString("OculusTracker Initialized");
+	 
+	int detected = ovrHmd_Detect();
+	if (detected == 0)
 	{
-		OutputDebugString("No OculusTracker found");
+		OutputDebugString("No HMD detected, use a dummy DK1");
+		pHMD=ovrHmd_CreateDebug(ovrHmd_DK1);
+	}
+	else
+	{
+		pHMD=ovrHmd_Create(0);
+	}
+
+
+	unsigned int trackingCaps = ovrTrackingCap_Orientation | ovrTrackingCap_MagYawCorrection | ovrTrackingCap_Position;
+	ovrBool success = ovrHmd_ConfigureTracking(pHMD, trackingCaps, 0);
+
+	if (!success)
+	{
+		OutputDebugString("oculus tracker failed to initialise");
 		return -1;
 	}
-	OutputDebugString("Starting PSensor");
-	pSensor = *pHMD->GetSensor();
-	if (SFusion)
-	{
-		OutputDebugString("Deleting Sensor Fusion");
-		SFusion = NULL;
-	}
-	OutputDebugString("Starting Sensor Fusion");
-	SFusion = new SensorFusion();
-	if (pSensor)
-		SFusion->AttachToSensor(pSensor);
 
 	OutputDebugString("oculus tracker initted");
+	started = true;
 	
-	OutputDebugString("Get DistortionK Values");
-	OVR::HMDInfo hmdInfo;
-	OVR::Util::Render::StereoConfig stereoConfig;
-	pHMD->GetDeviceInfo(&hmdInfo);
-    stereoConfig.SetHMDInfo(hmdInfo);
-	TCHAR s[256];
-	sprintf_s(s, ("Method Test  =  %f "), 0.01548f);
-	OutputDebugString(s);
-	sprintf_s(s, ("Distortion 0 =  %f "), stereoConfig.GetDistortionK(0));
-	OutputDebugString(s);
-	sprintf_s(s, ("Distortion 1 =  %f "), stereoConfig.GetDistortionK(1));
-	OutputDebugString(s);
-	sprintf_s(s, ("Distortion 2 =  %f "), stereoConfig.GetDistortionK(2));
-	OutputDebugString(s);
-	sprintf_s(s, ("Distortion 3 =  %f "), stereoConfig.GetDistortionK(3));
-	OutputDebugString(s);
-	sprintf_s(s, ("Distortion Scale =  %f "), stereoConfig.GetDistortionScale());
-	OutputDebugString(s);
-	OVR::Util::Render::Viewport vp;
-	vp = stereoConfig.GetFullViewport();
-	sprintf_s(s, ("Viewport H =  %i "), vp.h);
-	OutputDebugString(s);
-	sprintf_s(s, ("Viewport W =  %i "), vp.w);
-	OutputDebugString(s);
 	return 0;
 }
 
@@ -116,8 +95,28 @@ int OculusTracker::init()
 ***/
 void OculusTracker::reset()
 {
-	if (pSensor)
-		SFusion->Reset();
+}
+
+void OculusTracker::BeginFrame()
+{
+	//return;
+	if (started){
+		FrameRef=ovrHmd_BeginFrameTiming(pHMD,0);
+	}
+}
+
+void OculusTracker::WaitTillTime()
+{
+	if (started){
+		ovr_WaitTillTime(FrameRef.TimewarpPointSeconds);
+	}
+}
+
+void OculusTracker::EndFrame()
+{
+	if (started){
+			ovrHmd_EndFrameTiming(pHMD);
+	}
 }
 
 /**
@@ -131,12 +130,11 @@ int OculusTracker::getOrientation(float* yaw, float* pitch, float* roll)
 	OutputDebugString("OculusTracker getOrient\n");
 #endif
 
-	if(SFusion->IsAttachedToSensor() == false)
-		return 1;						// error no sensor
-
-	// all orientations are in degrees
-	hmdOrient = SFusion->GetOrientation();
-	hmdOrient.GetEulerAngles<Axis_Y, Axis_X, Axis_Z>(yaw, pitch, roll);
+	ovrTrackingState ts = ovrHmd_GetTrackingState(pHMD,FrameRef.ScanoutMidpointSeconds);
+	
+	Quatf hmdOrient=ts.HeadPose.ThePose.Orientation;
+	hmdOrient.GetEulerAngles<Axis_Y,Axis_X,Axis_Z>(yaw, pitch, roll);
+	
 
 	// set primary orientations
 	primaryYaw = *yaw;
@@ -204,5 +202,5 @@ void OculusTracker::updateOrientation()
 ***/
 bool OculusTracker::isAvailable()
 {
-	return SFusion->IsAttachedToSensor();
+	return started;
 }

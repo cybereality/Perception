@@ -52,6 +52,7 @@ void OculusRiftView::SetViewEffectInitialValues()
 	viewEffect->SetFloatArray("Scale", Scale, 2);
 	viewEffect->SetFloatArray("ScaleIn", ScaleIn, 2);
 	viewEffect->SetFloatArray("HmdWarpParam", hmdInfo->GetDistortionCoefficients(), 4);
+	viewEffect->SetFloat("ViewportXOffset", -XOffset);
 }
 
 /**
@@ -61,11 +62,13 @@ void OculusRiftView::CalculateShaderVariables()
 {
 	// Center of half screen is 0.25 in x (halfscreen x input in 0 to 0.5 range)
 	// Lens offset is in a -1 to 1 range. Using in shader with a 0 to 0.5 range so use 25% of the value.
-	LensCenter[0] = 0.25f + (hmdInfo->GetLensXCenterOffset() * 0.25f) - (hmdInfo->GetLensIPDCenterOffset() - IPDOffset);
+	LensCenter[0] = 0.25f + (hmdInfo->GetLensXCenterOffset() * 0.25f) - (hmdInfo->GetLensIPDCenterOffset() - IPDOffset) - XOffset;
 
 	// Center of halfscreen range is 0.5 in y (halfscreen y input in 0 to 1 range)
 	LensCenter[1] = hmdInfo->GetLensYCenterOffset() - YOffset; 
 	
+	ViewportXOffset = XOffset;
+
 	D3DSURFACE_DESC eyeTextureDescriptor;
 	leftSurface->GetDesc(&eyeTextureDescriptor);
 
@@ -79,7 +82,7 @@ void OculusRiftView::CalculateShaderVariables()
 	// y is changed from 0 to 1 to 0 to 2 and scaled to account for aspect ratio
 	ScaleIn[1] = 2.0f / (inputTextureAspectRatio * 0.5f); // 1/2 aspect ratio for differing input ranges
 	
-	float scaleFactor = 1.0f / (hmdInfo->GetScaleToFillHorizontal() + DistortionScale );
+	float scaleFactor = (1.0f / (hmdInfo->GetScaleToFillHorizontal() + DistortionScale));
 
 	// Scale from 0 to 2 to 0 to 1  for x and y 
 	// Then use scaleFactor to fill horizontal space in line with the lens and adjust for aspect ratio for y.
@@ -92,10 +95,12 @@ void OculusRiftView::CalculateShaderVariables()
 ***/ 
 void OculusRiftView::InitShaderEffects()
 {
-	//Currently, RiftUp and DK1 share the same shader effects
+	//Currently, RiftUp DK1 and DK2 share the same shader effects
 	shaderEffect[RIFTUP] = "OculusRift.fx";
 	shaderEffect[OCULUS_RIFT_DK1] = "OculusRift.fx";
 	shaderEffect[OCULUS_RIFT_DK1_CROPPED] = "OculusRiftCropped.fx";
+	shaderEffect[OCULUS_RIFT_DK2] = "OculusRiftDK2.fx";
+	shaderEffect[OCULUS_RIFT_DK2_CROPPED] = "OculusRiftDK2Cropped.fx";
 
 	char viewPath[512];
 	ProxyHelper helper = ProxyHelper();

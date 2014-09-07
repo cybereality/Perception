@@ -43,12 +43,16 @@
     <LinkIncremental>true</LinkIncremental>
     <TargetName>d3d9</TargetName>
     <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
+    <IncludePath>$(WIN_DDK_DIR)inc\atl71;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSDK_IncludePath);</IncludePath>
+    <LibraryPath>$(WIN_DDK_DIR)\lib\ATL\i386;$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSDK_LibraryPath_x86);</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <TargetName>d3d9</TargetName>
     <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
     <OutDir>$(IntDir)</OutDir>
+    <IncludePath>$(WIN_DDK_DIR)inc\atl71;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSDK_IncludePath);</IncludePath>
+    <LibraryPath>$(WIN_DDK_DIR)\lib\ATL\i386;$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSDK_LibraryPath_x86);</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -63,8 +67,8 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ModuleDefinitionFile>Exports.def</ModuleDefinitionFile>
-      <AdditionalLibraryDirectories>$(DXSDK_DIR)\Lib\x86;$(DX)\Lib\x86;$(FREESPACE)\lib;..\..\LibOVR\Lib\Win32</AdditionalLibraryDirectories>
-      <AdditionalDependencies>dxguid.lib;dinput8.lib;xinput.lib;libfreespace.lib;libovr.lib;Winmm.lib;DxErr.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(DXSDK_DIR)\Lib\x86;$(DX)\Lib\x86;$(FREESPACE)\lib;..\..\LibOVR\Lib\Win32\VS2012</AdditionalLibraryDirectories>
+      <AdditionalDependencies>ws2_32.lib;dxerr.lib;dxguid.lib;dinput8.lib;xinput.lib;libfreespace.lib;libovr.lib;Winmm.lib;DxErr.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(SolutionDir)$(Configuration)\Perception\bin\$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <PostBuildEvent>
@@ -94,8 +98,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <ModuleDefinitionFile>Exports.def</ModuleDefinitionFile>
-      <AdditionalLibraryDirectories>$(DXSDK_DIR)\Lib\x86;$(DX)\Lib\x86;$(FREESPACE)\lib;..\..\LibOVR\Lib\Win32</AdditionalLibraryDirectories>
-      <AdditionalDependencies>dxerr.lib;dxguid.lib;dinput8.lib;xinput.lib;libfreespace.lib;libovr.lib;Winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(DXSDK_DIR)\Lib\x86;$(DX)\Lib\x86;$(FREESPACE)\lib;..\..\LibOVR\Lib\Win32\VS2012</AdditionalLibraryDirectories>
+      <AdditionalDependencies>ws2_32.lib;dxerr.lib;dxguid.lib;dinput8.lib;xinput.lib;libfreespace.lib;libovr.lib;Winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(SolutionDir)$(Configuration)\Perception\bin\$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <PostBuildEvent>
@@ -182,6 +186,7 @@
     <ClInclude Include="HMDisplayInfo.h" />
     <ClInclude Include="HMDisplayInfoFactory.h" />
     <ClInclude Include="HMDisplayInfo_DK1.h" />
+    <ClInclude Include="HMDisplayInfo_DK2.h" />
     <ClInclude Include="HMDisplayInfo_RiftUp.h" />
     <ClInclude Include="InputControls.h" />
     <ClInclude Include="MatrixDoNothing.h" />
@@ -376,6 +381,11 @@
     <Xml Include="..\..\Release\Perception\cfg\shader_rules\TESV.xml">
       <SubType>Designer</SubType>
     </Xml>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\Release\Perception\fx\OculusRiftDK2.fx">
+      <FileType>Document</FileType>
+    </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

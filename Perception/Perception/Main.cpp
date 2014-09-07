@@ -369,8 +369,8 @@ int WINAPI wWinMain(HINSTANCE instance_handle, HINSTANCE, LPWSTR, INT) {
 	main_window.add_item("Oculus Rift DK1\t110");
 	main_window.add_item("Oculus Rift DK1 Cropped\t111");
 	main_window.add_item("RiftUp!\t112");
-//	main_window.add_item("Oculus Rift DK2\t120");
-//	main_window.add_item("Oculus Rift DK2 Cropped\t121");
+	main_window.add_item("Oculus Rift DK2\t120");
+	main_window.add_item("Oculus Rift DK2 Cropped\t121");
 //	main_window.add_item("Oculus Rift CV1\t130");
 //	main_window.add_item("Oculus Rift CV1 Cropped\t131");
 
@@ -462,6 +462,8 @@ bool InitModes()
 	stereoModes[110] = comboPos++;
 	stereoModes[111] = comboPos++;
 	stereoModes[112] = comboPos++;
+	stereoModes[120] = comboPos++;
+	stereoModes[121] = comboPos++;
 
 	comboPos = 0;
 	trackerModes[0] = comboPos++;
