@@ -51,11 +51,13 @@
     <None Include="icons\app.ico">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="..\..\Release\Perception\README.txt" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\Release\Perception\img\logo.bmp">
       <Filter>img</Filter>
     </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\..\README.txt" />
   </ItemGroup>
 </Project>

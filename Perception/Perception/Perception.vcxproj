@@ -128,8 +128,10 @@
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Copying image file from Release to $(Configuration)</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\img\%(filename).bmp</Outputs>
     </CustomBuild>
-    <None Include="..\..\Release\Perception\README.txt" />
     <None Include="icons\app.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\..\README.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -54,6 +54,9 @@ public:
 	virtual bool isAvailable();
 	virtual void setMultipliers(float yaw, float pitch, float roll);
 	virtual void setMouseEmulation(bool emulateMouse);
+	virtual void BeginFrame() {}
+	virtual void WaitTillTime() {}
+	virtual void EndFrame() {}
 
 	/*** MotionTracker public methods ***/
 	bool isEqual(float a, float b){ return abs(a-b) < 0.001; };
