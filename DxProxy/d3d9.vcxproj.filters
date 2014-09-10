@@ -17,9 +17,6 @@
     <Filter Include="XML">
       <UniqueIdentifier>{10a1970f-9ec7-4424-9ce2-46eb37af1590}</UniqueIdentifier>
     </Filter>
-    <Filter Include="cfg">
-      <UniqueIdentifier>{35b7e701-018e-4b6a-816b-bb90e55959c8}</UniqueIdentifier>
-    </Filter>
     <Filter Include="fx">
       <UniqueIdentifier>{6f7e6df9-0c4f-45c2-a4de-a22f8771da08}</UniqueIdentifier>
     </Filter>
@@ -37,9 +34,6 @@
     </Filter>
     <Filter Include="Direct3D9Vireio\ShaderConstantModification">
       <UniqueIdentifier>{084bd177-106f-45e6-a3bf-8f38a1279b73}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="cfg\shader_rules">
-      <UniqueIdentifier>{001cd5d3-206b-4679-9b96-8e7a1aacf08f}</UniqueIdentifier>
     </Filter>
     <Filter Include="Direct3D9Vireio\Direct3DTextures">
       <UniqueIdentifier>{7c1b5925-d5df-4200-b704-5db49ccbcd35}</UniqueIdentifier>
@@ -62,13 +56,7 @@
     <ClCompile Include="ProxyHelper.cpp">
       <Filter>Proxy</Filter>
     </ClCompile>
-    <ClCompile Include="StereoViewFactory.cpp">
-      <Filter>Stereo</Filter>
-    </ClCompile>
     <ClCompile Include="StereoView.cpp">
-      <Filter>Stereo</Filter>
-    </ClCompile>
-    <ClCompile Include="StereoViewInterleave.cpp">
       <Filter>Stereo</Filter>
     </ClCompile>
     <ClCompile Include="FreeSpaceTracker.cpp">
@@ -91,9 +79,6 @@
     </ClCompile>
     <ClCompile Include="OculusTracker.cpp">
       <Filter>Tracking</Filter>
-    </ClCompile>
-    <ClCompile Include="OculusRiftView.cpp">
-      <Filter>Stereo</Filter>
     </ClCompile>
     <ClCompile Include="D3DProxyDevice.cpp">
       <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
@@ -217,9 +202,6 @@
     </ClCompile>
     <ClCompile Include="InputControls.cpp" />
     <ClCompile Include="DirectInput.cpp" />
-    <ClCompile Include="HMDisplayInfoFactory.cpp">
-      <Filter>HMDisplayInfo</Filter>
-    </ClCompile>
     <ClCompile Include="Streaming\Streamer-net-udp.cpp">
       <Filter>Streaming</Filter>
     </ClCompile>
@@ -229,34 +211,13 @@
     <ClCompile Include="Streaming\Streamer.cpp">
       <Filter>Streaming</Filter>
     </ClCompile>
+    <ClCompile Include="StereoMode.cpp">
+      <Filter>Stereo</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="SideBySideRiftPartialCrop.fx">
       <Filter>fx</Filter>
-    </None>
-    <None Include="..\..\Release\Perception\cfg\shader_rules\source.xml">
-      <Filter>cfg\shader_rules</Filter>
-    </None>
-    <None Include="..\..\Release\Perception\cfg\shader_rules\example.xml">
-      <Filter>cfg\shader_rules</Filter>
-    </None>
-    <None Include="..\..\Release\Perception\cfg\shader_rules\ego.xml">
-      <Filter>cfg\shader_rules</Filter>
-    </None>
-    <None Include="..\..\Release\Perception\cfg\shader_rules\unreal.xml">
-      <Filter>cfg\shader_rules</Filter>
-    </None>
-    <None Include="..\..\Release\Perception\cfg\shader_rules\rfactor.xml">
-      <Filter>cfg\shader_rules</Filter>
-    </None>
-    <None Include="..\..\Release\Perception\cfg\shader_rules\borderlands2.xml">
-      <Filter>cfg\shader_rules</Filter>
-    </None>
-    <None Include="..\..\Release\Perception\cfg\shader_rules\omd2.xml">
-      <Filter>cfg\shader_rules</Filter>
-    </None>
-    <None Include="..\..\Release\Perception\cfg\shader_rules\serious3.xml">
-      <Filter>cfg\shader_rules</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -267,12 +228,6 @@
       <Filter>Proxy</Filter>
     </ClInclude>
     <ClInclude Include="StereoView.h">
-      <Filter>Stereo</Filter>
-    </ClInclude>
-    <ClInclude Include="StereoViewFactory.h">
-      <Filter>Stereo</Filter>
-    </ClInclude>
-    <ClInclude Include="StereoViewInterleave.h">
       <Filter>Stereo</Filter>
     </ClInclude>
     <ClInclude Include="FreeSpaceTracker.h">
@@ -298,9 +253,6 @@
     </ClInclude>
     <ClInclude Include="OculusTracker.h">
       <Filter>Tracking</Filter>
-    </ClInclude>
-    <ClInclude Include="OculusRiftView.h">
-      <Filter>Stereo</Filter>
     </ClInclude>
     <ClInclude Include="D3DProxyDevice.h">
       <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
@@ -487,32 +439,14 @@
       <Filter>Direct3D9Vireio</Filter>
     </ClInclude>
     <ClInclude Include="DirectInput.h" />
-    <ClInclude Include="HMDisplayInfo.h">
-      <Filter>HMDisplayInfo</Filter>
-    </ClInclude>
-    <ClInclude Include="HMDisplayInfo_DK1.h">
-      <Filter>HMDisplayInfo</Filter>
-    </ClInclude>
-    <ClInclude Include="HMDisplayInfo_RiftUp.h">
-      <Filter>HMDisplayInfo</Filter>
-    </ClInclude>
-    <ClInclude Include="HMDisplayInfoFactory.h">
-      <Filter>HMDisplayInfo</Filter>
-    </ClInclude>
     <ClInclude Include="Streaming\Streamer.h">
       <Filter>Streaming</Filter>
     </ClInclude>
-    <ClInclude Include="HMDisplayInfo_DK2.h">
-      <Filter>HMDisplayInfo</Filter>
+    <ClInclude Include="StereoMode.h">
+      <Filter>Stereo</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="..\..\Release\Perception\cfg\profiles.xml">
-      <Filter>cfg</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Release\Perception\cfg\config.xml">
-      <Filter>cfg</Filter>
-    </CustomBuild>
     <CustomBuild Include="..\..\Release\Perception\fx\SideBySide.fx">
       <Filter>fx</Filter>
     </CustomBuild>
@@ -555,13 +489,5 @@
     <CustomBuild Include="..\..\Release\Perception\fx\OculusRiftCropped.fx">
       <Filter>fx</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\..\Release\Perception\cfg\users.xml">
-      <Filter>cfg</Filter>
-    </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
-    <Xml Include="..\..\Release\Perception\cfg\shader_rules\TESV.xml">
-      <Filter>cfg\shader_rules</Filter>
-    </Xml>
   </ItemGroup>
 </Project>

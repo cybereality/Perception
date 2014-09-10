@@ -28,7 +28,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
 #include "OculusTracker.h"
-#include "HMDisplayInfoFactory.h"
 
 /**
 * Constructor.

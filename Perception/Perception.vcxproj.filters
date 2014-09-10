@@ -27,6 +27,9 @@
     <ClCompile Include="..\DxProxy\pugixml.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\DxProxy\StereoMode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Resource.h">
@@ -41,6 +44,9 @@
     <ClInclude Include="..\DxProxy\pugixml.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\DxProxy\StereoMode.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="app.rc">
@@ -48,7 +54,7 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="icons\app.ico">
+    <None Include="app.ico">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
@@ -56,8 +62,5 @@
     <CustomBuild Include="..\data\img\logo.bmp">
       <Filter>Resource Files</Filter>
     </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="..\..\README.txt" />
   </ItemGroup>
 </Project>

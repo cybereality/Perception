@@ -30,9 +30,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "D3DProxyDevice.h"
 #include "D3D9ProxySurface.h"
-#include "StereoViewFactory.h"
 #include "MotionTrackerFactory.h"
-#include "HMDisplayInfoFactory.h"
+#include "StereoMode.h"
 #include <typeinfo>
 #include <assert.h>
 #include <comdef.h>
@@ -112,8 +111,8 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	ProxyHelper helper = ProxyHelper();
 	helper.LoadUserConfig(mode, mode2);
 
-	HMDisplayInfo *hmdInfo = HMDisplayInfoFactory::CreateHMDisplayInfo(static_cast<StereoView::StereoTypes>(mode)); 
-	OutputDebugString(("Created HMD Info for: " + hmdInfo->GetHMDName()).c_str());
+	StereoMode *hmdInfo = FindStereoMode(mode); 
+	OutputDebugString(("Created HMD Info for: " + hmdInfo->name).c_str());
 
 
 	m_spShaderViewAdjustment = std::make_shared<ViewAdjustment>(hmdInfo, 1.0f, false);
@@ -2185,7 +2184,7 @@ void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 	// first time configuration
 	m_spShaderViewAdjustment->Load(config);
 	m_pGameHandler->Load(config, m_spShaderViewAdjustment);
-	stereoView = StereoViewFactory::Get(config, m_spShaderViewAdjustment->HMDInfo());
+	stereoView = new StereoView( config , m_spShaderViewAdjustment->HMDInfo() );
 	stereoView->YOffset = config.YOffset;
 	stereoView->IPDOffset = config.IPDOffset;
 	stereoView->DistortionScale = config.DistortionScale;
@@ -2458,7 +2457,7 @@ void D3DProxyDevice::HandleControls()
 		{
 			if(_wheel < 0)
 			{
-				if(this->stereoView->DistortionScale > m_spShaderViewAdjustment->HMDInfo()->GetMinDistortionScale())
+				if(this->stereoView->DistortionScale > m_spShaderViewAdjustment->HMDInfo()->minDistortionScale)
 				{
 					this->stereoView->DistortionScale -= 0.05f;
 					this->stereoView->PostReset();				
@@ -2492,9 +2491,9 @@ void D3DProxyDevice::HandleControls()
 		}
 		else if(controls.Key_Down(VK_SUBTRACT))
 		{
-			if(this->stereoView->DistortionScale != m_spShaderViewAdjustment->HMDInfo()->GetMinDistortionScale())
+			if(this->stereoView->DistortionScale != m_spShaderViewAdjustment->HMDInfo()->minDistortionScale)
 			{
-				this->stereoView->DistortionScale = m_spShaderViewAdjustment->HMDInfo()->GetMinDistortionScale();
+				this->stereoView->DistortionScale = m_spShaderViewAdjustment->HMDInfo()->minDistortionScale;
 				this->stereoView->PostReset();							
 			}
 		}		
@@ -3452,7 +3451,7 @@ void D3DProxyDevice::BRASSA_WorldScale()
 		hudMainMenu->SetTransform(&matScale);
 
 		// arbitrary formular... TODO !! find a more nifty solution
-		float BlueLineCenterAsPercentage = m_spShaderViewAdjustment->HMDInfo()->GetLensXCenterOffset() * 0.2f;
+		float BlueLineCenterAsPercentage = m_spShaderViewAdjustment->HMDInfo()->lensXCenterOffset * 0.2f;
 
 		float horWidth = 0.15f;
 		int beg = (int)(viewportWidth*(1.0f-horWidth)/2.0) + (int)(BlueLineCenterAsPercentage * viewportWidth * 0.25f);
@@ -3697,7 +3696,7 @@ void D3DProxyDevice::BRASSA_Convergence()
 		hudMainMenu->SetTransform(&matScale);
 
 		// arbitrary formular... TODO !! find a more nifty solution
-		float BlueLineCenterAsPercentage = m_spShaderViewAdjustment->HMDInfo()->GetLensXCenterOffset() * 0.2f;
+		float BlueLineCenterAsPercentage = m_spShaderViewAdjustment->HMDInfo()->lensXCenterOffset * 0.2f;
 
 		float horWidth = 0.15f;
 		int beg = (int)(viewportWidth*(1.0f-horWidth)/2.0) + (int)(BlueLineCenterAsPercentage * viewportWidth * 0.25f);

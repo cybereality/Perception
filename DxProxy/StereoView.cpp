@@ -48,7 +48,7 @@ inline void releaseCheck(char* object, int newRefCount)
 * Constructor.
 * Sets game configuration data. Sets all member pointers to NULL to prevent uninitialized objects being used.
 ***/ 
-StereoView::StereoView(ProxyHelper::ProxyConfig& config)	
+StereoView::StereoView(ProxyHelper::ProxyConfig& config , StereoMode *hmd )	: hmdInfo(hmd)
 {
 	OutputDebugString("Created SteroView\n");
 	initialized = false;
@@ -466,39 +466,73 @@ void StereoView::InitVertexBuffers()
 ***/
 void StereoView::InitShaderEffects()
 {
-	shaderEffect[ANAGLYPH_RED_CYAN] = "AnaglyphRedCyan.fx";
-	shaderEffect[ANAGLYPH_RED_CYAN_GRAY] = "AnaglyphRedCyanGray.fx";
-	shaderEffect[ANAGLYPH_YELLOW_BLUE] = "AnaglyphYellowBlue.fx";
-	shaderEffect[ANAGLYPH_YELLOW_BLUE_GRAY] = "AnaglyphYellowBlueGray.fx";
-	shaderEffect[ANAGLYPH_GREEN_MAGENTA] = "AnaglyphGreenMagenta.fx";
-	shaderEffect[ANAGLYPH_GREEN_MAGENTA_GRAY] = "AnaglyphGreenMagentaGray.fx";
-	shaderEffect[SIDE_BY_SIDE] = "SideBySide.fx";
-	shaderEffect[DIY_RIFT] = "SideBySideRift.fx";
-	shaderEffect[OVER_UNDER] = "OverUnder.fx";
-	shaderEffect[INTERLEAVE_HORZ] = "InterleaveHorz.fx";
-	shaderEffect[INTERLEAVE_VERT] = "InterleaveVert.fx";
-	shaderEffect[CHECKERBOARD] = "Checkerboard.fx";
-
 	char viewPath[512];
 	ProxyHelper helper = ProxyHelper();
-	helper.GetPath(viewPath, "fx\\");
+	ProxyHelper().GetPath(viewPath, "fx\\");
 
-	strcat_s(viewPath, 512, shaderEffect[stereo_mode].c_str());
+	strcat_s(viewPath, 512, hmdInfo->shader.c_str() );
 
 	if (FAILED(D3DXCreateEffectFromFile(m_pActualDevice, viewPath, NULL, NULL, D3DXFX_DONOTSAVESTATE, NULL, &viewEffect, NULL))) {
 		OutputDebugString("Effect creation failed\n");
 	}
 }
 
-/**
-* Empty in parent class.
-***/
-void StereoView::SetViewEffectInitialValues() {} 
+
 
 /**
-* Empty in parent class.
+* Update all vertex shader constants.
 ***/
-void StereoView::CalculateShaderVariables() {} 
+void StereoView::SetViewEffectInitialValues() {
+	viewEffect->SetInt       ( "viewWidth"       , viewport.Width );
+	viewEffect->SetInt       ( "viewHeight"      , viewport.Height );
+	viewEffect->SetFloatArray( "LensCenter"      , LensCenter , 2 );
+	viewEffect->SetFloatArray( "Scale"           , Scale , 2);
+	viewEffect->SetFloatArray( "ScaleIn"         , ScaleIn , 2);
+	viewEffect->SetFloatArray( "HmdWarpParam"    , hmdInfo->distortionCoefficients , 4 );
+	viewEffect->SetFloat     ( "ViewportXOffset" , -XOffset );
+} 
+
+
+/**
+* Calculate all vertex shader constants.
+***/ 
+void StereoView::CalculateShaderVariables() {
+	// Center of half screen is 0.25 in x (halfscreen x input in 0 to 0.5 range)
+	// Lens offset is in a -1 to 1 range. Using in shader with a 0 to 0.5 range so use 25% of the value.
+	LensCenter[0] = 0.25f + (hmdInfo->lensXCenterOffset * 0.25f) - (hmdInfo->lensIPDCenterOffset - IPDOffset) - XOffset;
+
+	// Center of halfscreen range is 0.5 in y (halfscreen y input in 0 to 1 range)
+	LensCenter[1] = hmdInfo->lensYCenterOffset - YOffset; 
+
+	
+	
+	ViewportXOffset = XOffset;
+
+	D3DSURFACE_DESC eyeTextureDescriptor;
+	leftSurface->GetDesc(&eyeTextureDescriptor);
+
+	float inputTextureAspectRatio = (float)eyeTextureDescriptor.Width / (float)eyeTextureDescriptor.Height;
+	
+	// Note: The range is shifted using the LensCenter in the shader before the scale is applied so you actually end up with a -1 to 1 range
+	// in the distortion function rather than the 0 to 2 I mention below.
+	// Input texture scaling to sample the 0 to 0.5 x range of the half screen area in the correct aspect ratio in the distortion function
+	// x is changed from 0 to 0.5 to 0 to 2.
+	ScaleIn[0] = 4.0f;
+	// y is changed from 0 to 1 to 0 to 2 and scaled to account for aspect ratio
+	ScaleIn[1] = 2.0f / (inputTextureAspectRatio * 0.5f); // 1/2 aspect ratio for differing input ranges
+	
+	float scaleFactor = (1.0f / (hmdInfo->scaleToFillHorizontal + DistortionScale));
+
+	// Scale from 0 to 2 to 0 to 1  for x and y 
+	// Then use scaleFactor to fill horizontal space in line with the lens and adjust for aspect ratio for y.
+	Scale[0] = (1.0f / 4.0f) * scaleFactor;
+	Scale[1] = (1.0f / 2.0f) * scaleFactor * inputTextureAspectRatio;
+
+	printf("%f %f\n",Scale[0] ,Scale[1] );
+} 
+
+
+
 
 /**
 * Workaround for Half Life 2 for now.

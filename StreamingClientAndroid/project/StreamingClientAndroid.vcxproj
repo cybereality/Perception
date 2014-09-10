@@ -28,7 +28,9 @@
   </ItemGroup>
   <ItemGroup>
     <Xml Include="..\AndroidManifest.xml" />
-    <Xml Include="..\build.xml" />
+    <Xml Include="..\build.xml">
+      <SubType>Designer</SubType>
+    </Xml>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{135593D4-4A31-4571-B7B3-5A8BE4E66A28}</ProjectGuid>

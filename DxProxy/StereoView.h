@@ -37,6 +37,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <map>
 #include <string.h>
 #include <assert.h>
+#include "StereoMode.h"
 
 
 class Streamer;
@@ -49,7 +50,7 @@ class Streamer;
 class StereoView
 {
 public:
-	StereoView(ProxyHelper::ProxyConfig& config);
+	StereoView(ProxyHelper::ProxyConfig& config , StereoMode *hmd );
 	virtual ~StereoView();
 
 	/*** StereoView public methods ***/
@@ -137,6 +138,31 @@ public:
 	* Offset the IPD
 	***/
 	float IPDOffset;	
+
+
+	/**
+	* Lens center position, Oculus Rift vertex shader constant.
+	***/
+	float LensCenter[2];
+	/**
+	* XOffset
+	***/
+	float ViewportXOffset;
+	/**
+	* Scales image, Oculus Rift vertex shader constant.
+	***/
+	float Scale[2];
+	/**
+	* Maps texture coordinates, Oculus Rift vertex shader constant.
+	* ScaleIn maps texture coordinates to Scales to ([-1, 1]), although top/bottom will be larger 
+	* due to aspect ratio.
+	***/
+	float ScaleIn[2];
+	/**
+	* Predefined Oculus Rift Head Mounted Display info.
+	* Contains distortionCoefficients, needed as vertex shader constants
+	***/
+	StereoMode *hmdInfo;
 
 	/**
 	* The streamer.
@@ -233,10 +259,7 @@ protected:
 	* View effect according to the stereo mode preset in stereo_mode.
 	***/
 	ID3DXEffect* viewEffect;
-	/**
-	* Map of the shader effect file names.
-	***/
-	std::map<int, std::string> shaderEffect;
+
 	DWORD tssColorOp;            /**< Various states. */
 	DWORD tssColorArg1;          /**< Various states. */
 	DWORD tssAlphaOp;            /**< Various states. */

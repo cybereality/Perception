@@ -34,7 +34,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * Constructor.
 * Sets class constants, identity matrices and a projection matrix.
 ***/
-ViewAdjustment::ViewAdjustment(HMDisplayInfo *displayInfo, float metersToWorldUnits, bool enableRoll) :
+ViewAdjustment::ViewAdjustment(StereoMode *displayInfo, float metersToWorldUnits, bool enableRoll) :
 	hmdInfo(displayInfo),
 	metersToWorldMultiplier(metersToWorldUnits),
 	rollEnabled(enableRoll),
@@ -76,7 +76,7 @@ ViewAdjustment::ViewAdjustment(HMDisplayInfo *displayInfo, float metersToWorldUn
 	D3DXMatrixIdentity(&matGatheredLeft);
 	D3DXMatrixIdentity(&matGatheredRight);
 
-	UpdateProjectionMatrices(displayInfo->GetScreenAspectRatio());
+	UpdateProjectionMatrices(displayInfo->screenAspectRatio);
 	D3DXMatrixIdentity(&rollMatrix);
 	D3DXMatrixIdentity(&rollMatrixNegative);
 	ComputeViewTransforms();
@@ -133,8 +133,8 @@ void ViewAdjustment::UpdateProjectionMatrices(float aspectRatio)
 	D3DXMatrixInverse(&matProjectionInv, 0, &matProjection);
 
 	// ALL stated in meters here ! screen size = horizontal size
-	float nearClippingPlaneDistance = hmdInfo->GetEyeToScreenDistance(); 
-	float physicalScreenSizeInMeters = hmdInfo->GetPhysicalScreenSize().first / 2; 
+	float nearClippingPlaneDistance = hmdInfo->eyeToScreenDistance; 
+	float physicalScreenSizeInMeters = hmdInfo->physicalWidth / 2; 
 
 	// if not HMD, set values to fullscreen defaults
 	if (stereoType <100)   //stereo type > 100 reserved specifically for HMDs
@@ -250,7 +250,7 @@ void ViewAdjustment::ComputeViewTransforms()
 	// hud3DDepth
 	D3DXMatrixTranslation(&matLeftHud3DDepth, hud3DDepth, 0, 0);
 	D3DXMatrixTranslation(&matRightHud3DDepth, -hud3DDepth, 0, 0);
-	float additionalSeparation = (1.5f-hudDistance)*hmdInfo->GetLensXCenterOffset();
+	float additionalSeparation = (1.5f-hudDistance)*hmdInfo->lensXCenterOffset;
 	D3DXMatrixTranslation(&matLeftHud3DDepthShifted, hud3DDepth+additionalSeparation, 0, 0);
 	D3DXMatrixTranslation(&matRightHud3DDepthShifted, -hud3DDepth-additionalSeparation, 0, 0);
 	D3DXMatrixTranslation(&matLeftGui3DDepth, gui3DDepth+SeparationIPDAdjustment(), 0, 0);
@@ -569,7 +569,7 @@ void ViewAdjustment::ChangeHUD3DDepth(float newHud3DDepth)
 
 	D3DXMatrixTranslation(&matLeftHud3DDepth, -hud3DDepth, 0, 0);
 	D3DXMatrixTranslation(&matRightHud3DDepth, hud3DDepth, 0, 0);
-	float additionalSeparation = (1.5f-hudDistance)*hmdInfo->GetLensXCenterOffset();
+	float additionalSeparation = (1.5f-hudDistance)*hmdInfo->lensXCenterOffset;
 	D3DXMatrixTranslation(&matLeftHud3DDepthShifted, hud3DDepth+additionalSeparation, 0, 0);
 	D3DXMatrixTranslation(&matRightHud3DDepthShifted, -hud3DDepth-additionalSeparation, 0, 0);
 }
@@ -650,7 +650,7 @@ bool ViewAdjustment::RollEnabled()
 /**
 * Returns the head mounted display info.
 ***/
-HMDisplayInfo* ViewAdjustment::HMDInfo()
+StereoMode* ViewAdjustment::HMDInfo()
 {
 	return hmdInfo;
 }
