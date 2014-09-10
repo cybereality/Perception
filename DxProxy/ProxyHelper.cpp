@@ -522,6 +522,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 
 	// set defaults
 	config.game_type = 0;
+	config.isAPIHookable = true;
 	config.stereo_mode = 0;
 	config.tracker_mode = 0;
 	config.convergence = 0.0f;

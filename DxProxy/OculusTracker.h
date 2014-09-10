@@ -62,30 +62,23 @@ public:
 	void updateOrientation();
 	bool isAvailable();	
 
+	void BeginFrame();
+	void EndFrame();
+	void WaitTillTime();
+
 private:
-	/**
-	* Oculus device manager.
-	***/
-    Ptr<DeviceManager> pManager;
+
 	/**
 	* Oculus head mounted display device.
 	***/
-    Ptr<HMDDevice> pHMD;
+    ovrHmd pHMD;
+
 	/**
-	* Oculus sensor device.
-	***/
-    Ptr<SensorDevice> pSensor;
-	/**
-	* Oculus sensor fusion.
-	* Retrieves tracking data.
-	***/
-    // TODO: fix this so it is using unique_ptr from the std memory class.  Typedef conflicts with freespace tracker prevent including memory right now...  
-	//std::unique_ptr<SensorFusion> SFusion;
-	SensorFusion* SFusion;
-	/**
-	* Oculus orientation quaternion.
-	***/
-	Quatf hmdOrient;
+	* Whether tracking has started
+	*/
+	bool started;
+
+	ovrFrameTiming FrameRef;
  };
 
 #endif

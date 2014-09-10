@@ -126,11 +126,15 @@ public:
 	***/
 	float DistortionScale;	
 	/**
-	* Should be used by OculusRiftView and D3DProxyDevice.
+	* Offset the screen vertically
 	***/
 	float YOffset;	
 	/**
-	* Should be used by OculusRiftView and D3DProxyDevice.
+	* Offset the screen horizontally
+	***/
+	float XOffset;	
+	/**
+	* Offset the IPD
 	***/
 	float IPDOffset;	
 

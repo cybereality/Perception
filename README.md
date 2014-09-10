@@ -1,28 +1,31 @@
 #VIREIO PERCEPTION
 
-
-
 ####BUILD INSTRUCTIONS:
 
-Created using [Visual C++ 2012 Express for Windows Desktop](http://www.microsoft.com/en-us/download/details.aspx?id=34673 "Microsoft") on Windows 8 64-bit.
+Created using [Visual C++ 2012 Express for Windows Desktop](http://www.microsoft.com/en-us/download/details.aspx?id=34673 "Microsoft") on Windows 8 64-bit.  
 (Windows 8.1 users cant use the online installer, please use the ISO file instead)
 
 Built using the [Microsoft DirectX SDK (June 2010)](http://www.microsoft.com/en-au/download/details.aspx?id=6812 "Microsoft") (may work with newer versions).
 
-Download libfreespace [libfreespace-0.6rc0-win32-vs2010.zip](https://launchpad.net/libfreespace/+download)
+Download libfreespace [libfreespace-0.6rc0-win32-vs2010.zip](https://launchpad.net/libfreespace/+download)  
 Extract it to a folder
 
-Download Oculus SDK v0.2.5c from: [developer.oculusvr.com](https://developer.oculusvr.com/ "Developer Oculus")
+Download [Windows Driver Development Kit 7.1.0](http://www.microsoft.com/en-gb/download/details.aspx?id=11800)  
+Install to a suitable folder, no need to install all the samples or documentation, it is only required for the ATL header files and libraries
+
+Download Oculus SDK v0.4.2 from
+https://developer.oculusvr.com/
+
 Extract and copy LibOVR to project directory.
 
 1. Click Start, Control Panel, System (in System and Security), Advanced System Settings, Environment Variables
-Create environment variables:
+Create environment variables:   
     * FREESPACE : The folder for libfreespace (Hillcrest Labs SDK).
     * DXSDK_DIR : Your DirectX SDK folder (already set automatically by the June 2010 DirectX SDK)
+    * WIN_DDK_DIR: The folder you installed the Windows Driver Development Kit to
 2. Open the VireioPerception.sln solution file. It contains all the projects with their dependencies set correctly. 
 3. Choose either Debug or Release. 
-4. Either Run or Build the solution.
-5. It should just work. 
+4. Either Run or Build the solution. It should just work.  
 (There should be only two compiler warnings about the output directories not being the same as the target directory. That's deliberate.)
 
 When you want to publish it, just build in Release mode and zip the contents of the Release folder. 

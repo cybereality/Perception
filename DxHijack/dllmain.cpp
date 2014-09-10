@@ -131,6 +131,16 @@ IDirect3D9* WINAPI MyDirect3DCreate9(UINT sdk_version)
 	return d3d ? new BaseDirect3D9(d3d) : 0;
 }
 
+bool fileExists(std::string file)
+{
+   WIN32_FIND_DATA FindFileData;
+   HANDLE handle = FindFirstFile(file.c_str(), &FindFileData) ;
+   bool found = handle != INVALID_HANDLE_VALUE;
+   if(found) 
+       FindClose(handle);
+   return found;
+}
+
 // CBT Hook-style injection.
 BOOL APIENTRY DllMain( HINSTANCE hModule, DWORD fdwReason, LPVOID lpReserved )
 {
@@ -159,20 +169,31 @@ BOOL APIENTRY DllMain( HINSTANCE hModule, DWORD fdwReason, LPVOID lpReserved )
 
 		if (helper.HasProfile(targetExe))
 		{
-			if (HookAPICalls(&D3DHook))
+			//Need to check that the d3d9.dll is actually in the game folder - If it is, then we don't need to hook API calls
+			//using the methods below as d3d9 will just be loaded by the game's executable
+			if (!fileExists(targetPathString + "D3D9.dll"))
 			{
-				OutputDebugString("HookAPICalls(D3D): TRUE\n");
-			} 
-			else if(HookAPICalls(&KernelHook))
-			{	
-				OutputDebugString("HookAPICalls(Kernel): TRUE\n");
-			} 
-			else 
+				if (HookAPICalls(&D3DHook))
+				{
+					OutputDebugString("HookAPICalls(D3D): TRUE\n");
+				} 
+				else if(HookAPICalls(&KernelHook))
+				{	
+					OutputDebugString("HookAPICalls(Kernel): TRUE\n");
+				} 
+				else 
+				{
+					OutputDebugString("HookAPICalls(Both): FALSE\n");
+				}
+
+				SetDllDirectory(dllDir);
+			}
+			else
 			{
-				OutputDebugString("HookAPICalls(Both): FALSE\n");
+				OutputDebugString(std::string("D3D9.dll found in game directory (" + targetPathString + ") - Bypassing API injection").c_str());
 			}
 
-			SetDllDirectory(dllDir);
+
 			SaveExeName(targetExe, (char*)targetPathString.c_str());
 		}
 	}

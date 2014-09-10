@@ -28,7 +28,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
 #include "MotionTrackerFactory.h"
+
+//HACK - Have to do this to stop certain types that are redefined by OVR_Types.h from causing an issue
+#ifdef _WIN32
+#undef _WIN32
 #include "FreeSpaceTracker.h"
+#define  _WIN32
+#else
+#include "FreeSpaceTracker.h"
+#endif
+
 #include "FreeTrackTracker.h"
 #include "SharedMemoryTracker.h"
 #include "OculusTracker.h"

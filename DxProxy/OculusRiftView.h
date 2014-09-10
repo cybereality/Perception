@@ -53,6 +53,10 @@ private:
 	***/
 	float LensCenter[2];
 	/**
+	* XOffset
+	***/
+	float ViewportXOffset;
+	/**
 	* Scales image, Oculus Rift vertex shader constant.
 	***/
 	float Scale[2];

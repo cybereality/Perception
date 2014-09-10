@@ -353,6 +353,7 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 	#ifdef SHOW_CALLS
 		OutputDebugString("called Present");
 	#endif
+
 	IDirect3DSurface9* pWrappedBackBuffer;
 
 	try {
@@ -958,7 +959,10 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 		OutputDebugString("called BeginScene");
 	#endif
 	
-		if (m_isFirstBeginSceneOfFrame) {
+	if (trackerInitialized)
+		tracker->BeginFrame();
+
+	if (m_isFirstBeginSceneOfFrame) {
 
 		// save screenshot before first clear() is called
 		if (screenshot>0)
@@ -1039,6 +1043,10 @@ HRESULT WINAPI D3DProxyDevice::EndScene()
 		else
 			BRASSA_AdditionalOutput();
 	}
+
+	if (trackerInitialized)
+		tracker->EndFrame();
+
 	return BaseDirect3DDevice9::EndScene();
 }
 
@@ -1265,8 +1273,10 @@ HRESULT WINAPI D3DProxyDevice::SetViewport(CONST D3DVIEWPORT9* pViewport)
 		}
 	}
 
+	
 	if (m_bViewportIsSquished)
 		SetGUIViewport();
+	
 	return result;
 }
 
@@ -2162,6 +2172,9 @@ void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 
 	eyeShutter = 1;
 	trackerInitialized = false;
+	m_bfloatingMenu = false;
+	m_bfloatingScreen = false;
+	m_bSurpressHeadtracking = false;
 
 	char buf[64];
 	LPCSTR psz = NULL;
@@ -2305,6 +2318,60 @@ void D3DProxyDevice::HandleControls()
 		else
 			m_bShowVRMouse = true;
 		menuVelocity.x += 4.0f;		
+	}
+
+	// floaty menus
+	if (controls.Key_Down(VK_LCONTROL) && controls.Key_Down(VK_NUMPAD1) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	{
+		if (m_bfloatingMenu)
+			m_bfloatingMenu = false;
+		else
+		{
+			m_bfloatingMenu = true;
+			if(trackingOn && trackerInitialized)
+			{
+				m_fFloatingPitch = tracker->primaryPitch;
+				m_fFloatingYaw = tracker->primaryYaw;			
+			}
+		}
+		menuVelocity.x += 4.0f;		
+	}
+
+	//Floaty Screen
+	if (controls.Key_Down(VK_LCONTROL) && controls.Key_Down(VK_NUMPAD2) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	{
+		if (m_bfloatingScreen)
+		{
+			m_bfloatingScreen = false;
+			m_bSurpressHeadtracking = false;
+			//TODO Change this back to initial
+			this->stereoView->YOffset = 0;
+			this->stereoView->XOffset = 0;
+			this->stereoView->PostReset();	
+		}
+		else
+		{
+			m_bfloatingScreen = true;
+			m_bSurpressHeadtracking = true;
+			if(trackingOn && trackerInitialized)
+			{
+				m_fFloatingScreenPitch = tracker->primaryPitch;
+				m_fFloatingScreenYaw = tracker->primaryYaw;			
+			}
+		}
+		menuVelocity.x += 4.0f;		
+	}
+	if(m_bfloatingScreen)
+	{
+		float screenFloatMultiplier = 0.5;
+		if(trackingOn && trackerInitialized)
+		{
+			this->stereoView->YOffset = (m_fFloatingScreenPitch - tracker->primaryPitch) * screenFloatMultiplier;
+			this->stereoView->XOffset = (m_fFloatingScreenYaw - tracker->primaryYaw) * screenFloatMultiplier;
+			this->stereoView->PostReset();
+		}
+		//m_ViewportIfSquished.X = (int)(vOut.x+centerX-(((m_fFloatingYaw - tracker->primaryYaw) * floatMultiplier) * (180 / PI)));
+		//m_ViewportIfSquished.Y = (int)(vOut.y+centerY-(((m_fFloatingPitch - tracker->primaryPitch) * floatMultiplier) * (180 / PI)));
 	}
 
 	// avoid double input by using the menu velocity
@@ -2469,15 +2536,13 @@ void D3DProxyDevice::HandleTracking()
 		}
 		m_spShaderViewAdjustment->UpdatePitchYaw(tracker->primaryPitch, tracker->primaryYaw);
 	}
-
 	
-
 	m_spShaderViewAdjustment->ComputeViewTransforms();
 
 	m_isFirstBeginSceneOfFrame = false;
 
 	// update vrboost, if present, tracker available and shader count higher than the minimum
-	if ((!m_bForceMouseEmulation) && (hmVRboost) && (m_VRboostRulesPresent) && (tracker->isAvailable()) && (m_bVRBoostToggle)
+	if ((!m_bSurpressHeadtracking) && (!m_bForceMouseEmulation) && (hmVRboost) && (m_VRboostRulesPresent) && (tracker->isAvailable()) && (m_bVRBoostToggle)
 		&& (m_VertexShaderCountLastFrame>(UINT)config.VRboostMinShaderCount) 
 		&& (m_VertexShaderCountLastFrame<(UINT)config.VRboostMaxShaderCount) )
 	{
@@ -2494,7 +2559,10 @@ void D3DProxyDevice::HandleTracking()
 			{
 				// load VRboost rules
 				if (config.VRboostPath != "")
+				{
+					OutputDebugString(std::string("config.VRboostPath: " + config.VRboostPath).c_str());
 					m_pVRboost_LoadMemoryRules(config.game_exe, config.VRboostPath);
+				}
 			}
 		}
 	}
@@ -4275,7 +4343,7 @@ void D3DProxyDevice::BRASSA_Settings()
 			{
 				m_bForceMouseEmulation = !m_bForceMouseEmulation;
 
-				if ((m_bForceMouseEmulation) && trackerInitialized && tracker->isAvailable())
+				if ((m_bForceMouseEmulation) && trackerInitialized && tracker->isAvailable() && (!m_bSurpressHeadtracking))
 					tracker->setMouseEmulation(true);
 
 				if ((!m_bForceMouseEmulation) && (hmVRboost) && (m_VRboostRulesPresent) && trackerInitialized && tracker->isAvailable())
@@ -5030,7 +5098,7 @@ void D3DProxyDevice::BRASSA_AdditionalOutput()
 		POINT pt;   
 		GetCursorPos(&pt); 
 		D3DRECT rec2;	
-		D3DRECT rec2hud;	
+		//D3DRECT rec2hud;	
 		rec2.x1 = (int)-5 + ((pt.x * guiSquishPresets[(int)gui3DDepthMode]) + (((1 - guiSquishPresets[(int)gui3DDepthMode]) / 2) * viewportWidth)); 
 		rec2.x2 = rec2.x1 + 10; 
 		rec2.y1 = (int)-5 + ((pt.y * guiSquishPresets[(int)gui3DDepthMode]) + (((1 - guiSquishPresets[(int)gui3DDepthMode]) / 2) * viewportHeight)); 
@@ -5280,15 +5348,30 @@ void D3DProxyDevice::SetGUIViewport()
 	D3DXVECTOR3 vIn = D3DXVECTOR3((FLOAT)stereoView->viewport.X-centerX, (FLOAT)stereoView->viewport.Y-centerY,1);
 	D3DXVECTOR4 vOut = D3DXVECTOR4();
 	D3DXVec3Transform(&vOut,&vIn, &mVPSquash);
-	m_ViewportIfSquished.X = (int)(vOut.x+centerX);
-	m_ViewportIfSquished.Y = (int)(vOut.y+centerY);
+	float floatMultiplier = 4;
+	int originalX = (int)(vOut.x+centerX);
+	int originalY = (int)(vOut.y+centerY);
+	if(m_bfloatingMenu && trackingOn && trackerInitialized)
+	{
+		/*char buf[64];
+		LPCSTR psz = NULL;
+		sprintf_s(buf, "yaw: %f, pitch: %f\n", tracker->primaryYaw, tracker->primaryPitch);
+		psz = buf;*/		
+		m_ViewportIfSquished.X = (int)(vOut.x+centerX-(((m_fFloatingYaw - tracker->primaryYaw) * floatMultiplier) * (180 / PI)));
+		m_ViewportIfSquished.Y = (int)(vOut.y+centerY-(((m_fFloatingPitch - tracker->primaryPitch) * floatMultiplier) * (180 / PI)));
+	}
+	else
+	{
+		m_ViewportIfSquished.X = (int)(vOut.x+centerX);
+		m_ViewportIfSquished.Y = (int)(vOut.y+centerY);
+	}
 
 	// get right/bottom viewport sides
 	vIn = D3DXVECTOR3((FLOAT)(stereoView->viewport.Width+stereoView->viewport.X)-centerX, (FLOAT)(stereoView->viewport.Height+stereoView->viewport.Y)-centerY,1);
 	vOut = D3DXVECTOR4();
 	D3DXVec3Transform(&vOut,&vIn, &mVPSquash);
-	m_ViewportIfSquished.Width = (int)(vOut.x+centerX) - m_ViewportIfSquished.X;
-	m_ViewportIfSquished.Height = (int)(vOut.y+centerY) - m_ViewportIfSquished.Y;
+	m_ViewportIfSquished.Width = (int)(vOut.x+centerX) - originalX;
+	m_ViewportIfSquished.Height = (int)(vOut.y+centerY) - originalY;
 
 	// set viewport
 	m_bViewportIsSquished = true;

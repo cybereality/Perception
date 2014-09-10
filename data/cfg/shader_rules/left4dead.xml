@@ -6,7 +6,7 @@
     <rule id="3" constantType="MatrixC" modToApply="8" startReg="51" transpose="true" />
     <rule id="4" constantType="Vector" modToApply="1" startReg="2" />
     <rule id="5" constantType="MatrixC" modToApply="0" startReg="8" transpose="true" />
-	<rule id="6" constantType="MatrixC" modToApply="15" startReg="8" transpose="true" />
+	 <rule id="6" constantType="MatrixC" modToApply="15" startReg="8" transpose="true" />
   </rules>
   <defaultRuleIDs>
     <ruleID id="1" />
