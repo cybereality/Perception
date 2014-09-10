@@ -133,3 +133,7 @@ pip-log.txt
 .DS_Store
 LibOVR
 *.rar
+
+StreamingClientAndroid/bin/*
+StreamingClientAndroid/libs/*
+StreamingClientAndroid/obj/*

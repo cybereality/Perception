@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="NativeActivity" default="help">
+
+    <property file="local.properties" />
+    <property environment="env" />
+
+    <loadproperties srcFile="project.properties" />
+
+    <import file="custom_rules.xml" optional="true" />
+
+    <!-- version-tag: 1 -->
+    <import file="${sdk.dir}/tools/ant/build.xml" />
+</project>

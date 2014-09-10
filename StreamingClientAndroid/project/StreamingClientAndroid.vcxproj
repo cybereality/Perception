@@ -1,0 +1,86 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\jni\common.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\jni\decoder.cpp" />
+    <ClCompile Include="..\jni\main - Copy.cpp" />
+    <ClCompile Include="..\jni\main.cpp" />
+    <ClCompile Include="..\jni\network.cpp" />
+    <ClCompile Include="..\jni\sensor.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\jni\Android.mk" />
+    <None Include="..\jni\Application.mk" />
+    <None Include="..\local.properties" />
+    <None Include="..\project.properties" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="..\AndroidManifest.xml" />
+    <Xml Include="..\build.xml" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{135593D4-4A31-4571-B7B3-5A8BE4E66A28}</ProjectGuid>
+    <Keyword>MakeFileProj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v110</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v110</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <NMakeOutput>StreamingClientAndroid.exe</NMakeOutput>
+    <NMakePreprocessorDefinitions>WIN32;_DEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <NMakeOutput>
+    </NMakeOutput>
+    <NMakePreprocessorDefinitions>__ARMEB__=1</NMakePreprocessorDefinitions>
+    <NMakeBuildCommandLine>set JAVA_HOME=C:\Program Files (x86)\Java\jdk1.7.0_55
+set ANDROID_HOME=C:\Dev\android\sdk
+
+cd ..
+cmd /c C:/Dev/android/ndk/ndk-build.cmd
+cmd /c C:/Dev/android/ant/bin/ant.bat debug
+cmd /c C:/Dev/android/ant/bin/ant.bat installd
+C:/Dev/android/sdk/platform-tools/adb.exe shell am start -n com.example.native_activity/android.app.NativeActivity</NMakeBuildCommandLine>
+    <NMakeIncludeSearchPath>C:/Dev/android/ndk/platforms/android-19/arch-arm/usr/include;C:/Dev/android/ndk/toolchains/arm-linux-androideabi-4.8/prebuilt/windows/lib/gcc/arm-linux-androideabi/4.8/include;C:/Dev/android/ndk/sources/android/native_app_glue;D:/Dev/android/source/platform/platform/frameworks/base/include;D:/Dev/android/source/platform/platform/frameworks/base/include/media;D:/Dev/android/source/platform/platform/frameworks/base/include/media/stagefright;D:/Dev/android/source/platform/platform/frameworks/base/include/media/stagefright/openmax;D:/Dev/android/source/platform/platform/system/core/include;D:/Dev/android/source/platform/platform/hardware/libhardware/include</NMakeIncludeSearchPath>
+    <OutDir>.\</OutDir>
+    <IntDir>.\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <BuildLog>
+      <Path />
+    </BuildLog>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

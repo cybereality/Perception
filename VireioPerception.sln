@@ -9,6 +9,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hijackdll", "DxHijack\hijac
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Perception", "Perception\Perception.vcxproj", "{4941495B-2BB1-4A79-BDC9-09635D57F93C}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "StreamingClientAndroid", "StreamingClientAndroid\project\StreamingClientAndroid.vcxproj", "{135593D4-4A31-4571-B7B3-5A8BE4E66A28}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -31,6 +33,10 @@ Global
 		{4941495B-2BB1-4A79-BDC9-09635D57F93C}.Debug|Win32.Build.0 = Debug|Win32
 		{4941495B-2BB1-4A79-BDC9-09635D57F93C}.Release|Win32.ActiveCfg = Release|Win32
 		{4941495B-2BB1-4A79-BDC9-09635D57F93C}.Release|Win32.Build.0 = Release|Win32
+		{135593D4-4A31-4571-B7B3-5A8BE4E66A28}.Debug|Win32.ActiveCfg = Debug|Win32
+		{135593D4-4A31-4571-B7B3-5A8BE4E66A28}.Debug|Win32.Build.0 = Debug|Win32
+		{135593D4-4A31-4571-B7B3-5A8BE4E66A28}.Release|Win32.ActiveCfg = Release|Win32
+		{135593D4-4A31-4571-B7B3-5A8BE4E66A28}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\jni\decoder.cpp">
+      <Filter>jni</Filter>
+    </ClCompile>
+    <ClCompile Include="..\jni\main - Copy.cpp">
+      <Filter>jni</Filter>
+    </ClCompile>
+    <ClCompile Include="..\jni\main.cpp">
+      <Filter>jni</Filter>
+    </ClCompile>
+    <ClCompile Include="..\jni\network.cpp">
+      <Filter>jni</Filter>
+    </ClCompile>
+    <ClCompile Include="..\jni\sensor.cpp">
+      <Filter>jni</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\jni\Android.mk">
+      <Filter>jni</Filter>
+    </None>
+    <None Include="..\jni\Application.mk">
+      <Filter>jni</Filter>
+    </None>
+    <None Include="..\local.properties" />
+    <None Include="..\project.properties" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="jni">
+      <UniqueIdentifier>{cfaff85b-48de-4897-8244-c3b35e170806}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\jni\common.h">
+      <Filter>jni</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="..\AndroidManifest.xml" />
+    <Xml Include="..\build.xml" />
+  </ItemGroup>
+</Project>
