@@ -60,7 +60,9 @@ public:
 	void          UpdateProjectionMatrices(float aspectRatio);
 	void          UpdatePitchYaw(float pitch, float yaw);
 	void          UpdateRoll(float roll);
+	void		  UpdatePosition(float yaw, float pitch, float roll, float xPosition = 0.0f, float yPosition = 0.0f, float zPosition = 0.0f);
 	void          ComputeViewTransforms(); 
+	D3DXMATRIX    PositionMatrix();
 	D3DXMATRIX    LeftAdjustmentMatrix();
 	D3DXMATRIX    RightAdjustmentMatrix();
 	D3DXMATRIX    LeftAdjustmentMatrixNoRoll();
@@ -117,6 +119,8 @@ private:
 	float t;	/**< Minimum y-value of the view volume. */
 	float b;	/**< Maximum y-value of the view volume. */
 
+	D3DXVECTOR3 positionTransformVec;
+
 	/**
 	* Constant minimum convergence.
 	***/
@@ -125,6 +129,10 @@ private:
 	* Constant maximum convergence.
 	***/
 	float maxConvergence;
+	/**
+	* Positional translation matrix
+	**/
+	D3DXMATRIX matPosition;
 	/**
 	* Projection matrix.
 	***/

@@ -548,6 +548,9 @@
     <CustomBuild Include="..\..\Release\Perception\fx\OculusRiftDK2.fx">
       <Filter>fx</Filter>
     </CustomBuild>
+    <CustomBuild Include="..\..\Release\Perception\fx\RiftUp.fx">
+      <Filter>fx</Filter>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <Xml Include="..\..\Release\Perception\cfg\shader_rules\TESV.xml">
