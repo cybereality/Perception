@@ -28,7 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
 #include "StereoView.h"
-
+#include <Streamer.h>
 /**
 * Tiny debug helper.
 * Outputs debug info if object reference counter is not zero when release.
@@ -126,6 +126,8 @@ StereoView::StereoView(ProxyHelper::ProxyConfig& config)
 		howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;
 		break;
 	}
+
+	m_pStreamer = new Streamer( config );
 }
 
 /**
@@ -134,6 +136,7 @@ StereoView::StereoView(ProxyHelper::ProxyConfig& config)
 StereoView::~StereoView()
 {
 	OutputDebugString("Destroyed SteroView\n");
+	delete m_pStreamer;
 }
 
 /**
@@ -313,6 +316,8 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 	if (FAILED(viewEffect->End())) {
 		OutputDebugString("End failed\n");
 	}
+
+	m_pStreamer->send( m_pActualDevice );
 
 	// how to restore render states ?
 	switch(howToSaveRenderStates)

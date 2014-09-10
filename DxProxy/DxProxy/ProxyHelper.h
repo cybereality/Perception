@@ -97,6 +97,17 @@ public:
 		int         tracker_mode;               /**< Tracking mode enumeration. Matching MotionTracker::TrackingTypes. */
 		float       ipd;                        /**< IPD, which stands for interpupillary distance (distance between your pupils - in meters...default = 0.064). Also called the interocular distance (or just Interocular). */
 		float       aspect_multiplier;          /**< Currently unused aspect multiplier. Aspect multiplier allows adjusting aspect ratio consistently for Stereo/NoStereo. */
+
+
+		/** streaming settings **/
+		bool         streaming_enable;
+		std::string  streaming_protocol;
+		std::string  streaming_host;
+		int          streaming_port;
+		std::string  streaming_codec;
+		int          streaming_bitrate;
+		
+		
 	};
 
 	/**

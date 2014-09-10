@@ -38,6 +38,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include <assert.h>
 
+
+class Streamer;
+
+
 /**
 * Stereo-view render class.
 * Basic class to render in stereo.
@@ -129,6 +133,12 @@ public:
 	* Should be used by OculusRiftView and D3DProxyDevice.
 	***/
 	float IPDOffset;	
+
+	/**
+	* The streamer.
+	* @see Streamer
+	**/
+	Streamer* m_pStreamer;
 
 
 protected:

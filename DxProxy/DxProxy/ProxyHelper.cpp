@@ -556,6 +556,15 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 		config.aspect_multiplier = xml_config.attribute("aspect_multiplier").as_float();
 		config.tracker_mode = xml_config.attribute("tracker_mode").as_int();
 
+		
+		xml_node xml_streaming = xml_config.child("streaming");
+		config.streaming_enable  = xml_streaming.attribute("enable"  ).as_bool  ();
+		config.streaming_protocol= xml_streaming.attribute("protocol").as_string();
+		config.streaming_host    = xml_streaming.attribute("host"    ).as_string();
+		config.streaming_port    = xml_streaming.attribute("port"    ).as_int   ();
+		config.streaming_codec   = xml_streaming.attribute("codec"   ).as_string();
+		config.streaming_bitrate = xml_streaming.attribute("bitrate" ).as_int   () * 1024;
+
 		fileFound = true;
 	}
 

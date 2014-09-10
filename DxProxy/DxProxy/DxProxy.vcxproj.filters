@@ -50,6 +50,10 @@
     <Filter Include="HMDisplayInfo">
       <UniqueIdentifier>{a6984bac-c136-41ca-be60-21017e230f65}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Streaming">
+      <UniqueIdentifier>{5c31bd28-23d0-455d-a90b-438334ba309b}</UniqueIdentifier>
+      <Extensions>Streaming\*</Extensions>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -215,6 +219,15 @@
     <ClCompile Include="DirectInput.cpp" />
     <ClCompile Include="HMDisplayInfoFactory.cpp">
       <Filter>HMDisplayInfo</Filter>
+    </ClCompile>
+    <ClCompile Include="Streaming\Streamer-net-udp.cpp">
+      <Filter>Streaming</Filter>
+    </ClCompile>
+    <ClCompile Include="Streaming\Streamer-enc-ffmpeg.cpp">
+      <Filter>Streaming</Filter>
+    </ClCompile>
+    <ClCompile Include="Streaming\Streamer.cpp">
+      <Filter>Streaming</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -488,6 +501,9 @@
     </ClInclude>
     <ClInclude Include="HMDisplayInfoFactory.h">
       <Filter>HMDisplayInfo</Filter>
+    </ClInclude>
+    <ClInclude Include="Streaming\Streamer.h">
+      <Filter>Streaming</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
