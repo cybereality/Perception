@@ -2547,10 +2547,9 @@ void D3DProxyDevice::HandleTracking()
 
 		m_spShaderViewAdjustment->UpdatePitchYaw(tracker->primaryPitch, tracker->primaryYaw);
 		m_spShaderViewAdjustment->UpdatePosition(tracker->primaryYaw, tracker->primaryPitch, tracker->primaryRoll,
-			//Camera translations are measured in cm in "world units"
-			VRBoostValue[VRboostAxis::CameraTranslateX] / 100.0f + tracker->primaryX, 
-			VRBoostValue[VRboostAxis::CameraTranslateY] / 100.0f + tracker->primaryY,
-			VRBoostValue[VRboostAxis::CameraTranslateZ] / 100.0f + tracker->primaryZ);
+			VRBoostValue[VRboostAxis::CameraTranslateX] / 20.0f + tracker->primaryX, 
+			VRBoostValue[VRboostAxis::CameraTranslateY] / 20.0f + tracker->primaryY,
+			VRBoostValue[VRboostAxis::CameraTranslateZ] / 20.0f + tracker->primaryZ);
 	}
 		
 	m_spShaderViewAdjustment->ComputeViewTransforms();
