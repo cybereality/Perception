@@ -133,6 +133,7 @@
     <ClInclude Include="HMDisplayInfo.h" />
     <ClInclude Include="HMDisplayInfoFactory.h" />
     <ClInclude Include="HMDisplayInfo_DK1.h" />
+    <ClInclude Include="HMDisplayInfo_DK2.h" />
     <ClInclude Include="HMDisplayInfo_RiftUp.h" />
     <ClInclude Include="InputControls.h" />
     <ClInclude Include="MatrixDoNothing.h" />
@@ -255,7 +256,6 @@
     <Xml Include="..\..\Release\Perception\cfg\shader_rules\TESV.xml">
     </Xml>
   </ItemGroup>
-  
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

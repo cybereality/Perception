@@ -8,12 +8,12 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <Link>
-      <AdditionalLibraryDirectories>$(DXSDK_DIR)\Lib\x86;$(FREESPACE)\lib;$(FFMPEG)\lib;$(LIBOVR)\Lib\Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(DXSDK_DIR)\Lib\x86;$(FREESPACE)\lib;$(FFMPEG)\lib;$(LIBOVR)\Lib\Win32\VS2012;$(WIN_DDK_DIR)\lib\ATL\i386;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>avcodec.lib;avformat.lib;avutil.lib;swscale.lib;ws2_32.lib;dxerr.lib;dxguid.lib;dinput8.lib;xinput.lib;libfreespace.lib;libovr.lib;Winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(DXSDK_DIR)\Include;$(FREESPACE)\include;$(LIBOVR)\Include;$(FFMPEG)\include;$(SolutionDir)\VRboostReferee;$(SolutionDir)\DxProxy;$(SolutionDir)\DxProxy\Streaming;$(SolutionDir)\DxHijack;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(DXSDK_DIR)\Include;$(FREESPACE)\include;$(LIBOVR)\Include;$(FFMPEG)\include;$(SolutionDir)\VRboostReferee;$(SolutionDir)\DxProxy;$(SolutionDir)\DxProxy\Streaming;$(SolutionDir)\DxHijack;$(WIN_DDK_DIR)inc\atl71;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DebugInformationFormat />
       <WarningLevel />

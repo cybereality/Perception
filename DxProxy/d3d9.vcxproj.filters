@@ -502,6 +502,9 @@
     <ClInclude Include="Streaming\Streamer.h">
       <Filter>Streaming</Filter>
     </ClInclude>
+    <ClInclude Include="HMDisplayInfo_DK2.h">
+      <Filter>HMDisplayInfo</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\Release\Perception\cfg\profiles.xml">
