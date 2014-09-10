@@ -58,8 +58,8 @@ public:
 	/*** OculusTracker public methods ***/
 	int  init();
 	void reset();
-	int  getOrientation(float* yaw, float* pitch, float* roll);
-	void updateOrientation();
+	int  getOrientationAndPosition(float* yaw, float* pitch, float* roll, float* x, float* y, float* z);
+	void updateOrientationAndPosition();
 	bool isAvailable();	
 
 	void BeginFrame();
@@ -74,9 +74,9 @@ private:
     ovrHmd pHMD;
 
 	/**
-	* Whether tracking has started
+	* Whether tracking has initialised
 	*/
-	bool started;
+	bool initialised;
 
 	ovrFrameTiming FrameRef;
  };

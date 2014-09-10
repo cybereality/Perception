@@ -2527,16 +2527,23 @@ void D3DProxyDevice::HandleTracking()
 		InitTracker();
 	}
 
+	float xPos=0, yPos=0, zPos=0;
+	float yaw=0, pitch=0, roll=0;
+
 	if(trackerInitialized && tracker->isAvailable())
 	{
-		tracker->updateOrientation();
+		tracker->updateOrientationAndPosition();
 		// update view adjustment class
 		if (trackerInitialized && tracker->isAvailable() && m_spShaderViewAdjustment->RollEnabled()) {
 			m_spShaderViewAdjustment->UpdateRoll(tracker->currentRoll);
 		}
 		m_spShaderViewAdjustment->UpdatePitchYaw(tracker->primaryPitch, tracker->primaryYaw);
+		m_spShaderViewAdjustment->UpdatePosition(tracker->primaryYaw, tracker->primaryPitch, tracker->primaryRoll,
+			VRBoostValue[VRboostAxis::CameraTranslateX] / 10.0f + tracker->primaryX, 
+			VRBoostValue[VRboostAxis::CameraTranslateY] / 10.0f + tracker->primaryY,
+			VRBoostValue[VRboostAxis::CameraTranslateZ] / 10.0f + tracker->primaryZ);
 	}
-	
+		
 	m_spShaderViewAdjustment->ComputeViewTransforms();
 
 	m_isFirstBeginSceneOfFrame = false;
@@ -4773,6 +4780,15 @@ void D3DProxyDevice::BRASSA_VRBoostValues()
 		}
 	}
 
+	if (controls.Key_Down(VK_DELETE) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	{
+		// change value
+		if ((entryID >= 0) && (entryID <=11))
+		{
+			VRBoostValue[24+entryID] = 0.0f;
+		}
+	}
+	
 	// output menu
 	if (hudFont)
 	{

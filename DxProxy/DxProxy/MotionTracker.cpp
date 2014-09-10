@@ -77,10 +77,10 @@ int MotionTracker::init()
 }
 
 /**
-* Tracker specific orientation update.
+* Tracker specific orientation/position update.
 * returns -1 in base class.
 ***/
-int MotionTracker::getOrientation(float* yaw, float* pitch, float* roll) 
+int  MotionTracker::getOrientationAndPosition(float* yaw, float* pitch, float* roll, float* x, float* y, float* z)
 {
 #ifdef _DEBUG
 	OutputDebugString("Motion Tracker getOrient\n");
@@ -88,17 +88,18 @@ int MotionTracker::getOrientation(float* yaw, float* pitch, float* roll)
 	return -1;
 }
 
+
 /**
-* Update tracker orientation.
-* Updates tracker orientation and passes it to game mouse input accordingly.
+* Update tracker orientation and position (if available).
+* Updates tracker orientation and position (if available) and passes it to game mouse input accordingly.
 ***/
-void MotionTracker::updateOrientation()
+void MotionTracker::updateOrientationAndPosition()
 {
 #ifdef _DEBUG
-	OutputDebugString("Motion Tracker updateOrientation\n");
+	OutputDebugString("Motion Tracker updateOrientationAndPosition\n");
 #endif
 	// Get orientation from derived tracker.
-	if(getOrientation(&yaw, &pitch, &roll) == 0)
+	if(getOrientationAndPosition(&yaw, &pitch, &roll, &x, &y, &z) == 0)
 	{
 #ifdef _DEBUG
 		OutputDebugString("Motion Tracker getOrientation == 0\n");
@@ -140,7 +141,11 @@ void MotionTracker::updateOrientation()
 		currentYaw = yaw;
 		currentPitch = pitch;
 		currentRoll = roll*multiplierRoll;
+		currentX = x;
+		currentY = y;
+		currentZ = z;
 	}
+
 }
 
 /**

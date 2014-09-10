@@ -58,6 +58,7 @@ ViewAdjustment::ViewAdjustment(HMDisplayInfo *displayInfo, float metersToWorldUn
 	hud3DDepth = 0.0f;
 
 	D3DXMatrixIdentity(&matProjection);
+	D3DXMatrixIdentity(&matPosition);
 	D3DXMatrixIdentity(&matProjectionInv);
 	D3DXMatrixIdentity(&projectLeft);
 	D3DXMatrixIdentity(&projectRight);
@@ -195,6 +196,26 @@ void ViewAdjustment::UpdateRoll(float roll)
 }
 
 /**
+* Updates the position matrix
+***/
+void ViewAdjustment::UpdatePosition(float yaw, float pitch, float roll, float xPosition, float yPosition, float zPosition)
+{
+	D3DXMATRIX rotationMatrix;
+	D3DXMatrixIdentity(&rotationMatrix);
+	D3DXMatrixRotationYawPitchRoll(&rotationMatrix, yaw, pitch, roll);
+	//D3DXMATRIX rotationMatrixInv;
+	//D3DXMatrixInverse(&rotationMatrixInv, NULL, &rotationMatrix);
+
+	//D3DXVECTOR3 vec(xPosition * WorldScale(), yPosition * WorldScale(), zPosition * WorldScale());
+	//D3DXVECTOR3 positionTransformVec;
+	//D3DXVec3TransformCoord(&positionTransformVec, &vec, &rotationMatrix);
+	//D3DXMatrixTranslation(&matPosition, positionTransformVec.x, positionTransformVec.y, positionTransformVec.z);
+	D3DXMatrixTranslation(&matPosition, xPosition, yPosition, zPosition);
+
+	D3DXMatrixMultiply(&matPosition, &rotationMatrix, &matPosition);
+}
+
+/**
 * Gets the view-projection transform matrices left and right.
 * Unprojects, shifts view position left/right (using same matricies as (Left/Right)ViewRollAndShift)
 * and reprojects using left/right projection.
@@ -202,14 +223,16 @@ void ViewAdjustment::UpdateRoll(float roll)
 ***/
 void ViewAdjustment::ComputeViewTransforms()
 {
+
+
 	// separation settings are overall (HMD and desktop), since they are based on physical IPD
 	D3DXMatrixTranslation(&transformLeft, SeparationInWorldUnits() * LEFT_CONSTANT, 0, 0);
 	D3DXMatrixTranslation(&transformRight, SeparationInWorldUnits() * RIGHT_CONSTANT, 0, 0);
-
+	
 	// projection transform, no roll
 	matViewProjTransformLeftNoRoll = matProjectionInv * transformLeft * projectLeft;
 	matViewProjTransformRightNoRoll = matProjectionInv * transformRight * projectRight;
-
+	
 	// head roll
 	if (rollEnabled) {
 		D3DXMatrixMultiply(&transformLeft, &rollMatrix, &transformLeft);
@@ -261,6 +284,11 @@ void ViewAdjustment::ComputeViewTransforms()
 	matHudRight = matProjectionInv * matRightHud3DDepth * transformRight * matHudDistance * projectRight;
 	matGuiLeft =  matProjectionInv * matLeftGui3DDepth * matSquash * projectLeft;
 	matGuiRight = matProjectionInv * matRightGui3DDepth * matSquash * projectRight;
+}
+
+D3DXMATRIX  ViewAdjustment::PositionMatrix()
+{
+	return matPosition;
 }
 
 /**

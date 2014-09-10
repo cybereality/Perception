@@ -37,8 +37,8 @@ float2 HmdWarp(float2 in01, float2 in02)
 
 float4 HorizSuperSampledWarp(float2 in01, float2 in02)
 {
-  float2 output_tc1 = HmdWarp(in01 + float2(-.0666666/1280.0f, 0.0f), in02);
-  float2 output_tc2 = HmdWarp(in01 + float2( .0666666/1280.0f, 0.0f), in02);
+  float2 output_tc1 = HmdWarp(in01 + float2(-.0666666/1920.0f, 0.0f), in02);
+  float2 output_tc2 = HmdWarp(in01 + float2( .0666666/1920.0f, 0.0f), in02);
 
   return float4(output_tc1.x, output_tc1.y, output_tc2.x, output_tc2.y);
 }
@@ -53,8 +53,8 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
   float4 tcGreen1;
   float4 tcBlue1;
 
-  float subpixelShiftR = -0.33333/1280.0f;
-  float subpixelShiftB = 0.33333/1280.0f;
+  float subpixelShiftR = -0.33333/1920.0f;
+  float subpixelShiftB = 0.33333/1920.0f;
 
   float3 outColor;
 
@@ -63,24 +63,24 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
     //newPos.x = 1.0f - newPos.x;
 	  newPos.x = 1.0f - newPos.x + (ViewportXOffset * 2);
     // subpixel alignment isn't symmetric under mirroring
-    subpixelShiftR = 0.33333/1280.0f;
-    subpixelShiftB = -0.33333/1280.0f;
+    subpixelShiftR = 0.33333/1920.0f;
+    subpixelShiftB = -0.33333/1920.0f;
   }
 
-  // TODO chromaberr params hardcoded for DK1 with A-cup lenses; need to pass in
+  // TODO chromaberr params hardcoded for DK2 with A-cup lenses; need to pass in
   // from SDK.
-  tcBlue0 = HorizSuperSampledWarp(newPos + float2(subpixelShiftB, -0.066666/800.0f), float2(1.010, 0.002f));
-  tcBlue1 = HorizSuperSampledWarp(newPos + float2(subpixelShiftB,  0.066666/800.0f), float2(1.010, 0.002f));
+  tcBlue0 = HorizSuperSampledWarp(newPos + float2(subpixelShiftB, -0.066666/1080.0f), float2(1.010, 0.002f));
+  tcBlue1 = HorizSuperSampledWarp(newPos + float2(subpixelShiftB,  0.066666/1080.0f), float2(1.010, 0.002f));
 
   // Clamp on blue, because we expand the blue channel outward the most.
   // Symmetry makes this ok to do before any unmirroring.
   if (any(clamp(tcBlue0.xy, float2(0.0,0.0), float2(1.0, 1.0)) - tcBlue0.xy))
     return 0;
 
-  tcRed0   = HorizSuperSampledWarp(newPos + float2(subpixelShiftR, -0.25f/800.0f), float2(0.998f, -.005f));
-  tcRed1   = HorizSuperSampledWarp(newPos + float2(subpixelShiftR,  0.25f/800.0f), float2(0.998f, -.005f));
-  tcGreen0 = HorizSuperSampledWarp(newPos + float2(0.0, -0.25f/800.0f), float2(1.0f, 0.0f));
-  tcGreen1 = HorizSuperSampledWarp(newPos + float2(0.0,  0.25f/800.0f), float2(1.0f, 0.0f));
+  tcRed0   = HorizSuperSampledWarp(newPos + float2(subpixelShiftR, -0.25f/1080.0f), float2(0.998f, -.005f));
+  tcRed1   = HorizSuperSampledWarp(newPos + float2(subpixelShiftR,  0.25f/1080.0f), float2(0.998f, -.005f));
+  tcGreen0 = HorizSuperSampledWarp(newPos + float2(0.0, -0.25f/1080.0f), float2(1.0f, 0.0f));
+  tcGreen1 = HorizSuperSampledWarp(newPos + float2(0.0,  0.25f/1080.0f), float2(1.0f, 0.0f));
 
 
 
