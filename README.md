@@ -1,36 +1,59 @@
 #VIREIO PERCEPTION
 
+####Requirements
+
+1. Created using Visual C++ 2012 Express for Windows Desktop on Windows 8 64-bit.
+   http://www.microsoft.com/en-us/download/details.aspx?id=34673 "Microsoft"
+   Windows 8.1 users cant use the online installer, please use the ISO file instead.
+
+2. Built using the Microsoft DirectX SDK June 2010 (may work with newer versions)
+   http://www.microsoft.com/en-au/download/details.aspx?id=6812
+
+3. Download libfreespace-0.6rc0-win32-vs2010.zip from
+   https://launchpad.net/libfreespace/+download
+   Extract it to a folder
+
+4. Download Windows Driver Development Kit 7.1.0 from
+   http://www.microsoft.com/en-gb/download/details.aspx?id=11800
+   Install to a suitable folder, no need to install all the samples or documentation, it is only required for the ATL header files and libraries
+
+5. Download Oculus SDK v0.4.2 from
+   https://developer.oculusvr.com/
+   Install it to a folder
+
+6. Download and extract FFMPEG Shared build (32 bit) from
+   http://ffmpeg.zeranoe.com/builds/
+   Extract it to a folder
+
+   
 ####BUILD INSTRUCTIONS:
 
-Created using [Visual C++ 2012 Express for Windows Desktop](http://www.microsoft.com/en-us/download/details.aspx?id=34673 "Microsoft") on Windows 8 64-bit.  
-(Windows 8.1 users cant use the online installer, please use the ISO file instead)
+1. Set environment variables (Click Start, Control Panel, System (in System and Security), Advanced System Settings, Environment Variables):
+    * FREESPACE   : The folder for libfreespace (Hillcrest Labs SDK).
+    * DXSDK_DIR   : The folder for DirectX SDK (already set automatically by the June 2010 DirectX SDK)
+    * WIN_DDK_DIR : The folder you installed the Windows Driver Development Kit to
+	* FFMPEG      : The folder you installed the FFMPEG library
+	* LIBOVR      : The "LibOVR" folder of Oculus SDK library
 
-Built using the [Microsoft DirectX SDK (June 2010)](http://www.microsoft.com/en-au/download/details.aspx?id=6812 "Microsoft") (may work with newer versions).
+2. Create "Vireio/Perception" folder (output folder) in Program Files with full permissions for current user
+   or change "OutDir" value in file "VireioPerception.props" to any suitable folder.
+   To change permissions of folder, open it's properties, go to "Security" tab,
+   click "Advanced", click "Change permissions", click "Disable inheritance",
+   select "Remove all inherited permissions...", check "Replace all child ...", click "Add",
+   click "Select principal", type "Users", click "OK", check "Full controll", click "OK",
+   click "OK", click "Yes", click "OK".
 
-Download libfreespace [libfreespace-0.6rc0-win32-vs2010.zip](https://launchpad.net/libfreespace/+download)  
-Extract it to a folder
+3. Copy contents of "data" folder to created folder.
 
-Download [Windows Driver Development Kit 7.1.0](http://www.microsoft.com/en-gb/download/details.aspx?id=11800)  
-Install to a suitable folder, no need to install all the samples or documentation, it is only required for the ATL header files and libraries
+4. Open the VireioPerception.sln solution file. It contains all the projects with their dependencies set correctly. 
 
-Download Oculus SDK v0.4.2 from
-https://developer.oculusvr.com/
+5. Choose either Debug or Release. 
 
-Extract and copy LibOVR to project directory.
+6. Either Run or Build the solution. It should just work.
 
-1. Click Start, Control Panel, System (in System and Security), Advanced System Settings, Environment Variables
-Create environment variables:   
-    * FREESPACE : The folder for libfreespace (Hillcrest Labs SDK).
-    * DXSDK_DIR : Your DirectX SDK folder (already set automatically by the June 2010 DirectX SDK)
-    * WIN_DDK_DIR: The folder you installed the Windows Driver Development Kit to
-2. Open the VireioPerception.sln solution file. It contains all the projects with their dependencies set correctly. 
-3. Choose either Debug or Release. 
-4. Either Run or Build the solution. It should just work.  
-(There should be only two compiler warnings about the output directories not being the same as the target directory. That's deliberate.)
+7. Copy contents of "data" folder to output folder.
 
-When you want to publish it, just build in Release mode and zip the contents of the Release folder. 
-But be careful because when running in Release mode, changing the separation, convergence or other settings in game will affect the files you will release.
-The Debug folder is automatically created from the files in the Release folder whenever you compile in Debug mode. 
+When you want to publish it, build in Release mode, remove *.lib, *.pdb, *.exp files from output folder (look in "bin" and "cfg/VRboost_rules" directories).
 
 If you want to view the debug prints from hooking the game, download and run [DebugView](http://technet.microsoft.com/en-au/sysinternals/bb896647.aspx) or [TraceSpy](http://tracespy.codeplex.com/). 
 Sometimes DebugView becomes unresponsive, in which case just continue what you were doing and look at it later.

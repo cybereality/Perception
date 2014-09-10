@@ -3,7 +3,7 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
-    <OutDir>C:\Program Files (x86)\Vireio\Perception\bin\</OutDir>
+    <OutDir>$(ProgramFiles)\Vireio\Perception\bin\</OutDir>
     <IntDir>$(TEMP)\projects\$(ProjectName)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
