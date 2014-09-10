@@ -231,9 +231,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Exports.def">
-      <Filter>Main</Filter>
-    </None>
     <None Include="SideBySideRiftPartialCrop.fx">
       <Filter>fx</Filter>
     </None>

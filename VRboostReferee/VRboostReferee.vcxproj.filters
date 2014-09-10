@@ -21,13 +21,13 @@
     <ClInclude Include="VRboostReferee.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="..\DxProxy\DxProxy\pugiconfig.hpp">
-      <Filter>XML</Filter>
-    </ClInclude>
-    <ClInclude Include="..\DxProxy\DxProxy\pugixml.hpp">
-      <Filter>XML</Filter>
-    </ClInclude>
     <ClInclude Include="VRBoostEnums.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DxProxy\pugiconfig.hpp">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DxProxy\pugixml.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>
@@ -35,8 +35,8 @@
     <ClCompile Include="VRboostReferee.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="..\DxProxy\DxProxy\pugixml.cpp">
-      <Filter>XML</Filter>
+    <ClCompile Include="..\DxProxy\pugixml.cpp">
+      <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
