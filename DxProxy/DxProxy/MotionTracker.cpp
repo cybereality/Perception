@@ -65,6 +65,13 @@ int MotionTracker::init()
 	multiplierPitch = 25.0f;
 	multiplierRoll = 1.0f;
 
+	offsetYaw = 0.0f;
+	offsetPitch = 0.0f;
+	offsetRoll = 0.0f;
+	offsetX = 0.0f;
+	offsetY = 0.0f;
+	offsetZ = 0.0f;
+
 	mouseData.type = INPUT_MOUSE;
 	mouseData.mi.dx = 0;
 	mouseData.mi.dy = 0;
@@ -141,9 +148,6 @@ void MotionTracker::updateOrientationAndPosition()
 		currentYaw = yaw;
 		currentPitch = pitch;
 		currentRoll = roll*multiplierRoll;
-		currentX = x;
-		currentY = y;
-		currentZ = z;
 	}
 
 }

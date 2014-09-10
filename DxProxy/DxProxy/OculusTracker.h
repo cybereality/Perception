@@ -57,7 +57,7 @@ public:
 
 	/*** OculusTracker public methods ***/
 	int  init();
-	void reset();
+	void resetOrientationAndPosition();
 	int  getOrientationAndPosition(float* yaw, float* pitch, float* roll, float* x, float* y, float* z);
 	void updateOrientationAndPosition();
 	bool isAvailable();	

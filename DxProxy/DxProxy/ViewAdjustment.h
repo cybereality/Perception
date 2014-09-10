@@ -119,6 +119,8 @@ private:
 	float t;	/**< Minimum y-value of the view volume. */
 	float b;	/**< Maximum y-value of the view volume. */
 
+	D3DXVECTOR3 positionTransformVec;
+
 	/**
 	* Constant minimum convergence.
 	***/

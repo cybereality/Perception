@@ -30,6 +30,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "ViewAdjustment.h"
 
+#define PI 3.141592654
+
 /**
 * Constructor.
 * Sets class constants, identity matrices and a projection matrix.
@@ -200,19 +202,28 @@ void ViewAdjustment::UpdateRoll(float roll)
 ***/
 void ViewAdjustment::UpdatePosition(float yaw, float pitch, float roll, float xPosition, float yPosition, float zPosition)
 {
-	D3DXMATRIX rotationMatrix;
-	D3DXMatrixIdentity(&rotationMatrix);
-	D3DXMatrixRotationYawPitchRoll(&rotationMatrix, yaw, pitch, roll);
-	//D3DXMATRIX rotationMatrixInv;
-	//D3DXMatrixInverse(&rotationMatrixInv, NULL, &rotationMatrix);
+	D3DXMATRIX rotationMatrixPitch;
+	D3DXMATRIX rotationMatrixYaw;
+	D3DXMATRIX rotationMatrixRoll;
 
-	//D3DXVECTOR3 vec(xPosition * WorldScale(), yPosition * WorldScale(), zPosition * WorldScale());
-	//D3DXVECTOR3 positionTransformVec;
-	//D3DXVec3TransformCoord(&positionTransformVec, &vec, &rotationMatrix);
-	//D3DXMatrixTranslation(&matPosition, positionTransformVec.x, positionTransformVec.y, positionTransformVec.z);
-	D3DXMatrixTranslation(&matPosition, xPosition, yPosition, zPosition);
+	D3DXMatrixRotationX(&rotationMatrixPitch, pitch);
+	D3DXMatrixRotationY(&rotationMatrixYaw, yaw);
+	D3DXMatrixRotationZ(&rotationMatrixRoll, roll);
 
-	D3DXMatrixMultiply(&matPosition, &rotationMatrix, &matPosition);
+	//Need to invert X and Y
+	D3DXVECTOR3 vec(-1.0f * xPosition * WorldScale() * (PI/2), -1.0f * yPosition * WorldScale(), zPosition * WorldScale());
+
+	D3DXMATRIX rotationMatrixPitchYaw;
+	D3DXMatrixIdentity(&rotationMatrixPitchYaw);
+	D3DXMatrixMultiply(&rotationMatrixPitchYaw, &rotationMatrixPitch, &rotationMatrixYaw);
+
+	D3DXVec3TransformNormal(&positionTransformVec, &vec, &rotationMatrixPitchYaw);
+
+	if (rollEnabled)
+		D3DXVec3TransformNormal(&positionTransformVec, &positionTransformVec, &rotationMatrixRoll);
+	
+	D3DXMatrixTranslation(&matPosition, positionTransformVec.x, positionTransformVec.y, positionTransformVec.z / PI);
+
 }
 
 /**
