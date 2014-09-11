@@ -628,6 +628,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 		config.yaw_multiplier = gameProfile.attribute("yaw_multiplier").as_float(25.0f);
 		config.pitch_multiplier = gameProfile.attribute("pitch_multiplier").as_float(25.0f);
 		config.roll_multiplier = gameProfile.attribute("roll_multiplier").as_float(1.0f);
+		config.position_multiplier = gameProfile.attribute("position_multiplier").as_float(1.0f);
 		config.DistortionScale = gameProfile.attribute("distortion_scale").as_float(0.0f);
 		config.YOffset = gameProfile.attribute("y_offset").as_float(0.0f);
 		config.IPDOffset = gameProfile.attribute("ipd_offset").as_float(0.0f);
@@ -635,6 +636,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 		if(config.yaw_multiplier == 0.0f) config.yaw_multiplier = 25.0f;
 		if(config.pitch_multiplier == 0.0f) config.pitch_multiplier = 25.0f;
 		if(config.roll_multiplier == 0.0f) config.roll_multiplier = 1.0f;
+		if(config.position_multiplier == 0.0f) config.position_multiplier = 1.0f;
 
 		// set process name
 		config.game_exe = std::string(gameProfile.attribute("game_exe").as_string(""));
@@ -932,12 +934,19 @@ bool ProxyHelper::SaveConfig(ProxyConfig& config)
 			gameProfile.remove_attribute("roll_multiplier");
 			gameProfile.insert_attribute_after("roll_multiplier", gameProfile.attribute("pitch_multiplier")) = config.roll_multiplier;
 		}
-		if (strcmp(gameProfile.attribute("roll_multiplier").next_attribute().name(), "distortion_scale") == 0)
+		if (strcmp(gameProfile.attribute("roll_multiplier").next_attribute().name(), "position_multiplier") == 0)
+			gameProfile.attribute("position_multiplier") = config.position_multiplier;
+		else
+		{
+			gameProfile.remove_attribute("position_multiplier");
+			gameProfile.insert_attribute_after("position_multiplier", gameProfile.attribute("distortion_scale")) = config.position_multiplier;
+		}
+		if (strcmp(gameProfile.attribute("position_multiplier").next_attribute().name(), "distortion_scale") == 0)
 			gameProfile.attribute("distortion_scale") = config.DistortionScale;
 		else
 		{
 			gameProfile.remove_attribute("distortion_scale");
-			gameProfile.insert_attribute_after("distortion_scale", gameProfile.attribute("roll_multiplier")) = config.DistortionScale;
+			gameProfile.insert_attribute_after("distortion_scale", gameProfile.attribute("position_multiplier")) = config.DistortionScale;
 		}
 
 		// shader mod rules attribute present ? otherwise insert

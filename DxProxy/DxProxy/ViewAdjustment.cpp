@@ -200,7 +200,7 @@ void ViewAdjustment::UpdateRoll(float roll)
 /**
 * Updates the position matrix
 ***/
-void ViewAdjustment::UpdatePosition(float yaw, float pitch, float roll, float xPosition, float yPosition, float zPosition)
+void ViewAdjustment::UpdatePosition(float yaw, float pitch, float roll, float xPosition, float yPosition, float zPosition, float scaler)
 {
 	D3DXMATRIX rotationMatrixPitch;
 	D3DXMATRIX rotationMatrixYaw;
@@ -211,19 +211,24 @@ void ViewAdjustment::UpdatePosition(float yaw, float pitch, float roll, float xP
 	D3DXMatrixRotationZ(&rotationMatrixRoll, roll);
 
 	//Need to invert X and Y
-	D3DXVECTOR3 vec(-1.0f * xPosition * WorldScale() * (PI/2), -1.0f * yPosition * WorldScale(), zPosition * WorldScale());
+	D3DXVECTOR3 vec(xPosition, yPosition, zPosition);
+
+	D3DXMATRIX scaling;
+	D3DXMatrixScaling(&scaling, -1.0f * WorldScale() * (PI/2) * scaler, 
+		-1.0f * WorldScale() * scaler, 
+		WorldScale() * scaler);
+	D3DXVec3TransformNormal(&positionTransformVec, &vec, &scaling);
 
 	D3DXMATRIX rotationMatrixPitchYaw;
 	D3DXMatrixIdentity(&rotationMatrixPitchYaw);
 	D3DXMatrixMultiply(&rotationMatrixPitchYaw, &rotationMatrixPitch, &rotationMatrixYaw);
 
-	D3DXVec3TransformNormal(&positionTransformVec, &vec, &rotationMatrixPitchYaw);
+	D3DXVec3TransformNormal(&positionTransformVec, &positionTransformVec, &rotationMatrixPitchYaw);
 
 	if (rollEnabled)
 		D3DXVec3TransformNormal(&positionTransformVec, &positionTransformVec, &rotationMatrixRoll);
 	
 	D3DXMatrixTranslation(&matPosition, positionTransformVec.x, positionTransformVec.y, positionTransformVec.z / PI);
-
 }
 
 /**

@@ -68,6 +68,7 @@ public:
 		float       yaw_multiplier;             /**< Game-specific tracking multiplier (yaw). */
 		float       pitch_multiplier;           /**< Game-specific tracking multiplier (pitch). */
 		float       roll_multiplier;            /**< Game-specific tracking multiplier (roll). */
+		float		position_multiplier;		/**< Game-specific position multiplier (for X, Y and Z). */
 		float		DistortionScale;			/**< The scale to apply distortion. **/
 		float		YOffset;					/**< The Y offset from the centre of the screen on the Y-axis **/
 		float		IPDOffset;					/**< The IPD offset from the centre of the screen on the X-axis **/

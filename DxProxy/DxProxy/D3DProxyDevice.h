@@ -211,6 +211,7 @@ public:
 		GUI_CALIBRATION,
 		OVERALL_SETTINGS,
 		VRBOOST_VALUES,
+		POS_TRACKING_SETTINGS,
 		BRASSA_SHADER_ANALYZER_SUBMENU,
 		CHANGE_RULES_SCREEN,
 		PICK_RULES_SCREEN,
@@ -306,6 +307,10 @@ public:
 	**/
 	ID3DXFont *hudFont;
 	/**
+	* HUD font to be used for popup items.
+	**/
+	ID3DXFont *popupFont;
+	/**
 	* Timestamp used to adjust the menu velocity independent of game speed.
 	**/
 	float menuTime;
@@ -355,6 +360,44 @@ protected:
 	virtual void BRASSA_PickRules(){}
 	virtual void BRASSA_ShowActiveShaders(){}
 
+	enum VireioPopupType
+	{
+		VPT_NONE,
+		VPT_NO_HMD_DETECTED,
+		VPT_VRBOOST_FAILURE,
+		VPT_POSITION_TRACKING_FAIL,
+		VPT_CALIBRATE_HMD,
+		VPT_STATS
+	};
+
+	struct VireioPopup
+	{
+		VireioPopup()
+		{
+			popupType = VPT_NONE;
+			popupDuration = -1;
+			memset(line1, 0, 256);
+			memset(line2, 0, 256);
+			memset(line3, 0, 256);
+			memset(line4, 0, 256);
+
+		}
+
+		VireioPopupType popupType;
+		int popupDuration;
+		char line1[256];
+		char line2[256];
+		char line3[256];
+		char line4[256];
+	};
+
+	VireioPopup activePopup;
+
+	/** Pop-up functionality */
+	void DisplayCurrentPopup();
+	void ShowPopup(VireioPopup &popup);
+	void DismissPopup(VireioPopupType popupType);
+
 	/**
 	* The game handler.
 	* @see GameHandler
@@ -384,6 +427,10 @@ protected:
 	* Main menu sprite.
 	***/
 	LPD3DXSPRITE hudMainMenu;
+	/**
+	* Popup sprite.
+	***/
+	LPD3DXSPRITE popupMessage;
 	/**
 	* Main menu sprite.
 	***/
@@ -453,6 +500,10 @@ protected:
 	**/
 	bool m_bVRBoostToggle;
 	/**
+	* True if positional tracking should be used
+	*/
+	bool m_bPosTrackingToggle;
+	/**
 	* Timespan the VRBoost indicator should be drawn.
 	**/
 	float m_fVRBoostIndicator;
@@ -512,6 +563,7 @@ private:
 	void    BRASSA_GUI();
 	void    BRASSA_Settings();
 	void    BRASSA_VRBoostValues();
+	void	BRASSA_PosTracking();
 	void    BRASSA_UpdateBorder();
 	void    BRASSA_UpdateConfigSettings();
 	void    BRASSA_UpdateDeviceSettings();
