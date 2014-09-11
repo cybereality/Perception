@@ -41,9 +41,6 @@
     <Filter Include="Direct3D9Vireio\Direct3DDevice9\DeviceTypes">
       <UniqueIdentifier>{fa32ac49-1b14-4e92-9292-f34084276e41}</UniqueIdentifier>
     </Filter>
-    <Filter Include="HMDisplayInfo">
-      <UniqueIdentifier>{a6984bac-c136-41ca-be60-21017e230f65}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Streaming">
       <UniqueIdentifier>{5c31bd28-23d0-455d-a90b-438334ba309b}</UniqueIdentifier>
       <Extensions>Streaming\*</Extensions>
@@ -89,26 +86,8 @@
     <ClCompile Include="Direct3D9.cpp">
       <Filter>Direct3D9</Filter>
     </ClCompile>
-    <ClCompile Include="Direct3DDevice9.cpp">
-      <Filter>Direct3D9</Filter>
-    </ClCompile>
-    <ClCompile Include="Direct3DSurface9.cpp">
-      <Filter>Direct3D9</Filter>
-    </ClCompile>
-    <ClCompile Include="Direct3DTexture9.cpp">
-      <Filter>Direct3D9</Filter>
-    </ClCompile>
     <ClCompile Include="D3D9ProxyTexture.cpp">
       <Filter>Direct3D9Vireio\Direct3DTextures</Filter>
-    </ClCompile>
-    <ClCompile Include="Direct3DCubeTexture9.cpp">
-      <Filter>Direct3D9</Filter>
-    </ClCompile>
-    <ClCompile Include="Direct3DVolumeTexture9.cpp">
-      <Filter>Direct3D9</Filter>
-    </ClCompile>
-    <ClCompile Include="Direct3DVolume9.cpp">
-      <Filter>Direct3D9</Filter>
     </ClCompile>
     <ClCompile Include="D3D9ProxyVolume.cpp">
       <Filter>Direct3D9Vireio</Filter>
@@ -118,30 +97,6 @@
     </ClCompile>
     <ClCompile Include="D3D9ProxyVolumeTexture.cpp">
       <Filter>Direct3D9Vireio\Direct3DTextures</Filter>
-    </ClCompile>
-    <ClCompile Include="Direct3DVertexShader9.cpp">
-      <Filter>Direct3D9</Filter>
-    </ClCompile>
-    <ClCompile Include="Direct3DPixelShader9.cpp">
-      <Filter>Direct3D9</Filter>
-    </ClCompile>
-    <ClCompile Include="Direct3DVertexDeclaration9.cpp">
-      <Filter>Direct3D9</Filter>
-    </ClCompile>
-    <ClCompile Include="Direct3DStateBlock9.cpp">
-      <Filter>Direct3D9</Filter>
-    </ClCompile>
-    <ClCompile Include="Direct3DVertexBuffer9.cpp">
-      <Filter>Direct3D9</Filter>
-    </ClCompile>
-    <ClCompile Include="Direct3DIndexBuffer9.cpp">
-      <Filter>Direct3D9</Filter>
-    </ClCompile>
-    <ClCompile Include="Direct3DQuery9.cpp">
-      <Filter>Direct3D9</Filter>
-    </ClCompile>
-    <ClCompile Include="Direct3DSwapChain9.cpp">
-      <Filter>Direct3D9</Filter>
     </ClCompile>
     <ClCompile Include="D3D9ProxySwapChain.cpp">
       <Filter>Direct3D9Vireio</Filter>
@@ -185,9 +140,6 @@
     <ClCompile Include="Direct3D9Ex.cpp">
       <Filter>Direct3D9</Filter>
     </ClCompile>
-    <ClCompile Include="Direct3DDevice9Ex.cpp">
-      <Filter>Direct3D9</Filter>
-    </ClCompile>
     <ClCompile Include="MatrixNoShowModification.cpp">
       <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
     </ClCompile>
@@ -214,16 +166,47 @@
     <ClCompile Include="StereoMode.cpp">
       <Filter>Stereo</Filter>
     </ClCompile>
+    <ClCompile Include="Direct3DDevice9.cpp">
+      <Filter>Direct3D9</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3DDevice9Ex.cpp">
+      <Filter>Direct3D9</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3DIndexBuffer9.cpp">
+      <Filter>Direct3D9</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3DQuery9.cpp">
+      <Filter>Direct3D9</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3DStateBlock9.cpp">
+      <Filter>Direct3D9</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3DSurface9.cpp">
+      <Filter>Direct3D9</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3DSwapChain9.cpp">
+      <Filter>Direct3D9</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3DTexture9.cpp">
+      <Filter>Direct3D9</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3DVertexBuffer9.cpp">
+      <Filter>Direct3D9</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3DVertexDeclaration9.cpp">
+      <Filter>Direct3D9</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3DVertexShader9.cpp">
+      <Filter>Direct3D9</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3DVolumeTexture9.cpp">
+      <Filter>Direct3D9</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3DVolume9.cpp">
+      <Filter>Direct3D9</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="SideBySideRiftPartialCrop.fx">
-      <Filter>fx</Filter>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Main.h">
-      <Filter>Main</Filter>
-    </ClInclude>
     <ClInclude Include="ProxyHelper.h">
       <Filter>Proxy</Filter>
     </ClInclude>
@@ -263,26 +246,11 @@
     <ClInclude Include="Direct3D9.h">
       <Filter>Direct3D9</Filter>
     </ClInclude>
-    <ClInclude Include="Direct3DDevice9.h">
-      <Filter>Direct3D9</Filter>
-    </ClInclude>
-    <ClInclude Include="Direct3DSurface9.h">
-      <Filter>Direct3D9</Filter>
-    </ClInclude>
-    <ClInclude Include="Direct3DTexture9.h">
-      <Filter>Direct3D9</Filter>
-    </ClInclude>
     <ClInclude Include="D3D9ProxyTexture.h">
       <Filter>Direct3D9Vireio\Direct3DTextures</Filter>
     </ClInclude>
     <ClInclude Include="IStereoCapableWrapper.h">
       <Filter>Direct3D9Vireio</Filter>
-    </ClInclude>
-    <ClInclude Include="Direct3DCubeTexture9.h">
-      <Filter>Direct3D9</Filter>
-    </ClInclude>
-    <ClInclude Include="Direct3DVolume9.h">
-      <Filter>Direct3D9</Filter>
     </ClInclude>
     <ClInclude Include="D3D9ProxyVolume.h">
       <Filter>Direct3D9Vireio</Filter>
@@ -292,30 +260,6 @@
     </ClInclude>
     <ClInclude Include="D3D9ProxyVolumeTexture.h">
       <Filter>Direct3D9Vireio\Direct3DTextures</Filter>
-    </ClInclude>
-    <ClInclude Include="Direct3DVertexShader9.h">
-      <Filter>Direct3D9</Filter>
-    </ClInclude>
-    <ClInclude Include="Direct3DPixelShader9.h">
-      <Filter>Direct3D9</Filter>
-    </ClInclude>
-    <ClInclude Include="Direct3DVertexDeclaration9.h">
-      <Filter>Direct3D9</Filter>
-    </ClInclude>
-    <ClInclude Include="Direct3DStateBlock9.h">
-      <Filter>Direct3D9</Filter>
-    </ClInclude>
-    <ClInclude Include="Direct3DVertexBuffer9.h">
-      <Filter>Direct3D9</Filter>
-    </ClInclude>
-    <ClInclude Include="Direct3DIndexBuffer9.h">
-      <Filter>Direct3D9</Filter>
-    </ClInclude>
-    <ClInclude Include="Direct3DQuery9.h">
-      <Filter>Direct3D9</Filter>
-    </ClInclude>
-    <ClInclude Include="Direct3DSwapChain9.h">
-      <Filter>Direct3D9</Filter>
     </ClInclude>
     <ClInclude Include="D3D9ProxySwapChain.h">
       <Filter>Direct3D9Vireio</Filter>
@@ -395,9 +339,6 @@
     <ClInclude Include="Direct3D9Ex.h">
       <Filter>Direct3D9</Filter>
     </ClInclude>
-    <ClInclude Include="Direct3DDevice9Ex.h">
-      <Filter>Direct3D9</Filter>
-    </ClInclude>
     <ClInclude Include="Vector4EyeShiftUnity.h">
       <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
     </ClInclude>
@@ -445,49 +386,91 @@
     <ClInclude Include="StereoMode.h">
       <Filter>Stereo</Filter>
     </ClInclude>
+    <ClInclude Include="Direct3DDevice9.h">
+      <Filter>Direct3D9</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3DDevice9Ex.h">
+      <Filter>Direct3D9</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3DIndexBuffer9.h">
+      <Filter>Direct3D9</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3DQuery9.h">
+      <Filter>Direct3D9</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3DStateBlock9.h">
+      <Filter>Direct3D9</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3DSurface9.h">
+      <Filter>Direct3D9</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3DSwapChain9.h">
+      <Filter>Direct3D9</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3DTexture9.h">
+      <Filter>Direct3D9</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3DVertexBuffer9.h">
+      <Filter>Direct3D9</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3DVertexDeclaration9.h">
+      <Filter>Direct3D9</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3DVertexShader9.h">
+      <Filter>Direct3D9</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3DVolume9.h">
+      <Filter>Direct3D9</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="..\..\Release\Perception\fx\SideBySide.fx">
+    <None Include="..\data\fx\AnaglyphGreenMagenta.fx">
       <Filter>fx</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Release\Perception\fx\OverUnder.fx">
+    </None>
+    <None Include="..\data\fx\AnaglyphGreenMagentaGray.fx">
       <Filter>fx</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Release\Perception\fx\InterleaveVert.fx">
+    </None>
+    <None Include="..\data\fx\AnaglyphRedCyan.fx">
       <Filter>fx</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Release\Perception\fx\InterleaveHorz.fx">
+    </None>
+    <None Include="..\data\fx\AnaglyphRedCyanGray.fx">
       <Filter>fx</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Release\Perception\fx\Checkerboard.fx">
+    </None>
+    <None Include="..\data\fx\AnaglyphYellowBlue.fx">
       <Filter>fx</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Release\Perception\fx\AnaglyphYellowBlueGray.fx">
+    </None>
+    <None Include="..\data\fx\AnaglyphYellowBlueGray.fx">
       <Filter>fx</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Release\Perception\fx\AnaglyphYellowBlue.fx">
+    </None>
+    <None Include="..\data\fx\Checkerboard.fx">
       <Filter>fx</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Release\Perception\fx\AnaglyphRedCyanGray.fx">
+    </None>
+    <None Include="..\data\fx\InterleaveHorz.fx">
       <Filter>fx</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Release\Perception\fx\AnaglyphRedCyan.fx">
+    </None>
+    <None Include="..\data\fx\InterleaveVert.fx">
       <Filter>fx</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Release\Perception\fx\AnaglyphGreenMagentaGray.fx">
+    </None>
+    <None Include="..\data\fx\OculusRift.fx">
       <Filter>fx</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Release\Perception\fx\SideBySideRift.fx">
+    </None>
+    <None Include="..\data\fx\OculusRiftCropped.fx">
       <Filter>fx</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Release\Perception\fx\AnaglyphGreenMagenta.fx">
+    </None>
+    <None Include="..\data\fx\OculusRiftDK2.fx">
       <Filter>fx</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Release\Perception\fx\OculusRift.fx">
+    </None>
+    <None Include="..\data\fx\OculusRiftOld.fx">
       <Filter>fx</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Release\Perception\fx\OculusRiftCropped.fx">
+    </None>
+    <None Include="..\data\fx\OverUnder.fx">
       <Filter>fx</Filter>
-    </CustomBuild>
+    </None>
+    <None Include="..\data\fx\SideBySide.fx">
+      <Filter>fx</Filter>
+    </None>
+    <None Include="..\data\fx\SideBySideRift.fx">
+      <Filter>fx</Filter>
+    </None>
   </ItemGroup>
 </Project>

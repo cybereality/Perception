@@ -41,7 +41,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Direct3DIndexBuffer9.h"
 #include "D3D9ProxyPixelShader.h"
 #include "D3D9ProxyVertexShader.h"
-#include "Direct3DPixelShader9.h"
 #include "Direct3DVertexDeclaration9.h"
 #include "StereoShaderConstant.h"
 

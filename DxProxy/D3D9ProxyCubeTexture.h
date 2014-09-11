@@ -27,16 +27,15 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#ifndef D3D9PROXYCUBETEXTURE_H_INCLUDED
-#define D3D9PROXYCUBETEXTURE_H_INCLUDED
+#pragma once
 
 #include <d3d9.h>
 #include <unordered_map>
-#include "Direct3DCubeTexture9.h"
 #include "D3D9ProxySurface.h"
 #include "IStereoCapableWrapper.h"
 #include <functional>
 #include <utility>
+#include <assert.h>
 
 /**
 * Pair to use as key for storing surface levels.
@@ -57,26 +56,38 @@ struct hash_CubeSurfaceKey {
 *  Direct 3D proxy Cube Texture class. 
 *  Overwrites BaseDirect3DCubeTexture9 and imbeds the wrapped surface levels.
 */
-class D3D9ProxyCubeTexture : public BaseDirect3DCubeTexture9, public IStereoCapableWrapper<IDirect3DCubeTexture9>
+class D3D9ProxyCubeTexture : public IDirect3DCubeTexture9, public IStereoCapableWrapper<IDirect3DCubeTexture9>
 {
 public:
 	D3D9ProxyCubeTexture(IDirect3DCubeTexture9* pActualTextureLeft, IDirect3DCubeTexture9* pActualTextureRight, BaseDirect3DDevice9* pOwningDevice);
 	virtual ~D3D9ProxyCubeTexture();	
-	
+
+	/*** IUnknown methods ***/
+	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv);
+	virtual ULONG	WINAPI AddRef();
+	virtual ULONG	WINAPI Release();
+		
 	/*** IDirect3DBaseTexture9 methods ***/
-	virtual HRESULT WINAPI GetDevice(IDirect3DDevice9** ppDevice);	
-	virtual HRESULT WINAPI SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags);
-	virtual HRESULT WINAPI FreePrivateData(REFGUID refguid);
-	virtual DWORD   WINAPI SetPriority(DWORD PriorityNew);
-	virtual void    WINAPI PreLoad();
-	virtual DWORD   WINAPI SetLOD(DWORD LODNew);
-	virtual HRESULT WINAPI SetAutoGenFilterType(D3DTEXTUREFILTERTYPE FilterType);
-	virtual void    WINAPI GenerateMipSubLevels();
-	virtual HRESULT WINAPI GetCubeMapSurface(D3DCUBEMAP_FACES FaceType, UINT Level, IDirect3DSurface9** ppCubeMapSurface);
-    virtual HRESULT WINAPI LockRect(D3DCUBEMAP_FACES FaceType, UINT Level, D3DLOCKED_RECT* pLockedRect, CONST RECT* pRect, DWORD Flags);
-	virtual HRESULT WINAPI UnlockRect(D3DCUBEMAP_FACES FaceType, UINT Level);
-	virtual HRESULT WINAPI AddDirtyRect(D3DCUBEMAP_FACES FaceType, CONST RECT* pDirtyRect);
-	
+	virtual HRESULT              WINAPI GetDevice(IDirect3DDevice9** ppDevice);
+	virtual HRESULT              WINAPI SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags);
+	virtual HRESULT              WINAPI GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData);
+	virtual HRESULT              WINAPI FreePrivateData(REFGUID refguid);
+	virtual DWORD                WINAPI SetPriority(DWORD PriorityNew);
+	virtual DWORD                WINAPI GetPriority();
+	virtual void                 WINAPI PreLoad();
+	virtual D3DRESOURCETYPE      WINAPI GetType();
+	virtual DWORD                WINAPI SetLOD(DWORD LODNew);
+	virtual DWORD                WINAPI GetLOD();
+	virtual DWORD                WINAPI GetLevelCount();
+	virtual HRESULT              WINAPI SetAutoGenFilterType(D3DTEXTUREFILTERTYPE FilterType);
+	virtual D3DTEXTUREFILTERTYPE WINAPI GetAutoGenFilterType();
+    virtual void                 WINAPI GenerateMipSubLevels();
+	virtual HRESULT              WINAPI GetLevelDesc(UINT Level, D3DSURFACE_DESC *pDesc);
+	virtual HRESULT              WINAPI GetCubeMapSurface(D3DCUBEMAP_FACES FaceType, UINT Level, IDirect3DSurface9** ppCubeMapSurface);
+    virtual HRESULT              WINAPI LockRect(D3DCUBEMAP_FACES FaceType, UINT Level, D3DLOCKED_RECT* pLockedRect, CONST RECT* pRect, DWORD Flags);
+	virtual HRESULT              WINAPI UnlockRect(D3DCUBEMAP_FACES FaceType, UINT Level);
+	virtual HRESULT              WINAPI AddDirtyRect(D3DCUBEMAP_FACES FaceType, CONST RECT* pDirtyRect);
+
 	// IStereoCapableWrapper	
 	virtual IDirect3DCubeTexture9* getActualMono();
 	virtual IDirect3DCubeTexture9* getActualLeft();
@@ -97,5 +108,16 @@ protected:
 	* The actual right cube texture embedded. 
 	***/
 	IDirect3DCubeTexture9* const m_pActualTextureRight;
+
+	/**
+	* The actual texture embedded. 
+	***/
+	IDirect3DCubeTexture9* const m_pActualTexture;
+
+private:
+	/**
+	* Internal reference counter. 
+	***/
+	ULONG m_nRefCount;
 };
-#endif
+

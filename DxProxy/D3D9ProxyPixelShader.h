@@ -35,7 +35,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <unordered_map>
 #include <vector>
 #include <algorithm>
-#include "Direct3DPixelShader9.h"
 #include "Direct3DDevice9.h"
 #include "ShaderRegisters.h"
 #include "D3DProxyDevice.h"
@@ -49,15 +48,41 @@ class ShaderModificationRepository;
 *  Direct 3D proxy pixel shader class.
 *  Overwrites BaseDirect3DPixelShader9 and handles modified constants.
 */
-class D3D9ProxyPixelShader : public BaseDirect3DPixelShader9
+class D3D9ProxyPixelShader : public IDirect3DPixelShader9
 {
 public:	
 	D3D9ProxyPixelShader(IDirect3DPixelShader9* pActualPixelShader, D3DProxyDevice* pOwningDevice, ShaderModificationRepository* pModLoader);
 	virtual ~D3D9ProxyPixelShader();
 
+	/*** IUnknown methods ***/
+	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv);
+	virtual ULONG   WINAPI AddRef();
+	virtual ULONG   WINAPI Release();
+	
+	/*** IDirect3DPixelShader9 methods ***/
+	virtual HRESULT WINAPI GetDevice(IDirect3DDevice9 **ppDevice);
+	virtual HRESULT WINAPI GetFunction(void *pDate, UINT *pSizeOfData);
+
+	/*** BaseDirect3DPixelShader9 methods ***/
+	IDirect3DPixelShader9* getActual();
+
+
 	/*** D3D9ProxyPixelShader public methods ***/
 	std::map<UINT, StereoShaderConstant<>>* ModifiedConstants();
+
 protected:
+	/**
+	* The actual pixel shader embedded. 
+	***/
+	IDirect3DPixelShader9* const m_pActualPixelShader;
+	/**
+	* Pointer to the D3D device that owns the shader. 
+	***/
+	IDirect3DDevice9* m_pOwningDevice;
+	/**
+	* Internal reference counter. 
+	***/
+	ULONG m_nRefCount;
 	/**
 	* Currently not used actual owning device.
 	***/
