@@ -28,7 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define _CRT_SECURE_NO_WARNINGS
 #include "Main.h"
-#include "Direct3D9.h"
+#include "D3D9ProxyDirect3D.h"
 #include <windows.h>
 #include <d3d9.h>
 #include <stdio.h>
@@ -105,7 +105,7 @@ IDirect3D9* WINAPI Direct3DCreate9(UINT nSDKVersion)
 		return NULL;
 
 	// Create and return proxy interface
-	BaseDirect3D9* pWrapper = new BaseDirect3D9(pD3D);
+	D3D9ProxyDirect3D* pWrapper = new D3D9ProxyDirect3D(pD3D);
 
 	return pWrapper;
 }

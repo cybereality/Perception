@@ -39,7 +39,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class D3DProxyDeviceDebug : public D3DProxyDevice
 {
 public:
-	D3DProxyDeviceDebug(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy);
+	D3DProxyDeviceDebug(IDirect3DDevice9* pDevice, D3D9ProxyDirect3D* pCreatedBy);
 	virtual ~D3DProxyDeviceDebug();
 
 	/*** IUnknown methods ***/

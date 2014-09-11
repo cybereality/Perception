@@ -2,8 +2,8 @@
 Vireio Perception: Open-Source Stereoscopic 3D Driver
 Copyright (C) 2012 Andres Hernandez
 
-File <Direct3DIndexBuffer9.h> and
-Class <BaseDirect3DIndexBuffer9> :
+File <Direct3DQuery9.h> and
+Class <D3D9ProxyQuery> :
 Copyright (C) 2013 Chris Drain
 
 Vireio Perception Version History:
@@ -27,50 +27,41 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#ifndef DIRECT3DINDEXBUFFER9_H_INCLUDED
-#define DIRECT3DINDEXBUFFER9_H_INCLUDED
+#ifndef DIRECT3DQUERY9_H_INCLUDED
+#define DIRECT3DQUERY9_H_INCLUDED
 
 #include <d3d9.h>
 #include "D3DProxyDevice.h"
 
 /**
-*  Direct 3D index buffer class. 
-*  Overwrites IDirect3DIndexBuffer9 and imbeds the actual index buffer.
+*  Direct 3D query class. 
+*  Overwrites IDirect3DQuery9 and imbeds the actual query.
 */
-class BaseDirect3DIndexBuffer9 : public IDirect3DIndexBuffer9
+class D3D9ProxyQuery : public IDirect3DQuery9
 {
 public:
-	BaseDirect3DIndexBuffer9(IDirect3DIndexBuffer9* pActualIndexBuffer, IDirect3DDevice9* pOwningDevice);
-	virtual ~BaseDirect3DIndexBuffer9();
+	D3D9ProxyQuery(IDirect3DQuery9* pActualQuery, IDirect3DDevice9* pOwningDevice);
+	virtual ~D3D9ProxyQuery();
 
 	/*** IUnknown methods ***/
 	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv);
 	virtual ULONG   WINAPI AddRef();
 	virtual ULONG   WINAPI Release();
 
-	/*** IDirect3DResource9 methods ***/
-	virtual HRESULT         WINAPI GetDevice(IDirect3DDevice9** ppDevice);
-	virtual HRESULT         WINAPI SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags);
-	virtual HRESULT         WINAPI GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData);
-	virtual HRESULT	        WINAPI FreePrivateData(REFGUID refguid);
-	virtual DWORD           WINAPI SetPriority(DWORD PriorityNew);
-	virtual DWORD           WINAPI GetPriority();
-	virtual void            WINAPI PreLoad();
-	virtual D3DRESOURCETYPE WINAPI GetType();
-	virtual HRESULT         WINAPI Lock(UINT OffsetToLock, UINT SizeToLock, VOID **ppbData, DWORD Flags);
-	virtual HRESULT         WINAPI Unlock();
-	virtual HRESULT         WINAPI GetDesc(D3DINDEXBUFFER_DESC *pDesc);
-
-	/*** BaseDirect3DIndexBuffer9 methods ***/
-	IDirect3DIndexBuffer9* getActual();
+	/*** IDirect3DQuery9 methods ***/
+	virtual D3DQUERYTYPE WINAPI GetType();
+	virtual HRESULT	     WINAPI GetDevice(IDirect3DDevice9** ppDevice);
+    virtual DWORD        WINAPI GetDataSize();
+    virtual HRESULT      WINAPI Issue(DWORD dwIssueFlags);
+    virtual HRESULT      WINAPI GetData(void* pData, DWORD dwSize, DWORD dwGetDataFlags);
 
 protected:
 	/**
-	* The actual index buffer embedded. 
+	* The actual query embedded. 
 	***/
-	IDirect3DIndexBuffer9* const m_pActualIndexBuffer;
+	IDirect3DQuery9* const m_pActualQuery;
 	/**
-	* Pointer to the D3D device that owns the buffer. 
+	* Pointer to the D3D device that owns the query. 
 	***/
 	IDirect3DDevice9* m_pOwningDevice;
 	/**
@@ -78,5 +69,4 @@ protected:
 	***/
 	ULONG m_nRefCount;
 };
-
 #endif

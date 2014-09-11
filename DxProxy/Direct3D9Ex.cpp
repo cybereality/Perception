@@ -3,7 +3,7 @@ Vireio Perception: Open-Source Stereoscopic 3D Driver
 Copyright (C) 2012 Andres Hernandez
 
 File <Direct3D9Ex.cpp> and
-Class <BaseDirect3D9Ex> :
+Class <D3D9ProxyDirect3DEx> :
 Copyright (C) 2013 Denis Reischl
 
 Vireio Perception Version History:
@@ -36,7 +36,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * Constructor. 
 * @param pD3D Imbed actual Direct3D object. 
 ***/
-BaseDirect3D9Ex::BaseDirect3D9Ex(IDirect3D9Ex* pD3DEx) :
+D3D9ProxyDirect3DEx::D3D9ProxyDirect3DEx(IDirect3D9Ex* pD3DEx) :
 	m_pD3DEx(pD3DEx),
 	m_nRefCount(1)
 {
@@ -46,7 +46,7 @@ BaseDirect3D9Ex::BaseDirect3D9Ex(IDirect3D9Ex* pD3DEx) :
 * Destructor. 
 * Releases embedded object m_pD3DEx. 
 ***/
-BaseDirect3D9Ex::~BaseDirect3D9Ex()
+D3D9ProxyDirect3DEx::~D3D9ProxyDirect3DEx()
 {
 	if(m_pD3DEx)
 		m_pD3DEx->Release();
@@ -55,7 +55,7 @@ BaseDirect3D9Ex::~BaseDirect3D9Ex()
 /**
 * Base QueryInterface functionality. 
 ***/
-HRESULT WINAPI BaseDirect3D9Ex::QueryInterface(REFIID riid, LPVOID* ppv)
+HRESULT WINAPI D3D9ProxyDirect3DEx::QueryInterface(REFIID riid, LPVOID* ppv)
 {
 	return m_pD3DEx->QueryInterface(riid, ppv);
 }
@@ -63,7 +63,7 @@ HRESULT WINAPI BaseDirect3D9Ex::QueryInterface(REFIID riid, LPVOID* ppv)
 /**
 * Base AddRef functionality.
 ***/
-ULONG WINAPI BaseDirect3D9Ex::AddRef()
+ULONG WINAPI D3D9ProxyDirect3DEx::AddRef()
 {
 	return ++m_nRefCount;
 }
@@ -71,7 +71,7 @@ ULONG WINAPI BaseDirect3D9Ex::AddRef()
 /**
 * Base Release functionality.
 ***/
-ULONG WINAPI BaseDirect3D9Ex::Release()
+ULONG WINAPI D3D9ProxyDirect3DEx::Release()
 {
 	if(--m_nRefCount == 0)
 	{
@@ -84,7 +84,7 @@ ULONG WINAPI BaseDirect3D9Ex::Release()
 /**
 * Base GetAdapterCount functionality.
 ***/
-UINT BaseDirect3D9Ex::GetAdapterCount()
+UINT D3D9ProxyDirect3DEx::GetAdapterCount()
 {
 	return m_pD3DEx->GetAdapterCount();
 }
@@ -92,7 +92,7 @@ UINT BaseDirect3D9Ex::GetAdapterCount()
 /**
 * Base GetAdapterIdentifier functionality.
 ***/
-HRESULT WINAPI BaseDirect3D9Ex::GetAdapterIdentifier(UINT Adapter, DWORD Flags,D3DADAPTER_IDENTIFIER9* pIdentifier)
+HRESULT WINAPI D3D9ProxyDirect3DEx::GetAdapterIdentifier(UINT Adapter, DWORD Flags,D3DADAPTER_IDENTIFIER9* pIdentifier)
 {
 	return m_pD3DEx->GetAdapterIdentifier(Adapter, Flags, pIdentifier);
 }
@@ -100,7 +100,7 @@ HRESULT WINAPI BaseDirect3D9Ex::GetAdapterIdentifier(UINT Adapter, DWORD Flags,D
 /**
 * Base GetAdapterModeCount functionality.
 ***/
-UINT WINAPI BaseDirect3D9Ex::GetAdapterModeCount(UINT Adapter, D3DFORMAT Format)
+UINT WINAPI D3D9ProxyDirect3DEx::GetAdapterModeCount(UINT Adapter, D3DFORMAT Format)
 {
 	return m_pD3DEx->GetAdapterModeCount(Adapter, Format);
 }
@@ -108,7 +108,7 @@ UINT WINAPI BaseDirect3D9Ex::GetAdapterModeCount(UINT Adapter, D3DFORMAT Format)
 /**
 * Base GetAdapterDisplayMode functionality.
 ***/
-HRESULT WINAPI BaseDirect3D9Ex::GetAdapterDisplayMode(UINT Adapter, D3DDISPLAYMODE* pMode)
+HRESULT WINAPI D3D9ProxyDirect3DEx::GetAdapterDisplayMode(UINT Adapter, D3DDISPLAYMODE* pMode)
 {
 	return m_pD3DEx->GetAdapterDisplayMode(Adapter, pMode);
 }
@@ -116,7 +116,7 @@ HRESULT WINAPI BaseDirect3D9Ex::GetAdapterDisplayMode(UINT Adapter, D3DDISPLAYMO
 /**
 * Base CheckDeviceType functionality.
 ***/
-HRESULT WINAPI BaseDirect3D9Ex::CheckDeviceType(UINT Adapter, D3DDEVTYPE DevType,D3DFORMAT AdapterFormat, D3DFORMAT BackBufferFormat, BOOL bWindowed)
+HRESULT WINAPI D3D9ProxyDirect3DEx::CheckDeviceType(UINT Adapter, D3DDEVTYPE DevType,D3DFORMAT AdapterFormat, D3DFORMAT BackBufferFormat, BOOL bWindowed)
 {
 	return m_pD3DEx->CheckDeviceType(Adapter, DevType, AdapterFormat, BackBufferFormat, bWindowed);
 }
@@ -124,7 +124,7 @@ HRESULT WINAPI BaseDirect3D9Ex::CheckDeviceType(UINT Adapter, D3DDEVTYPE DevType
 /**
 * Base CheckDeviceFormat functionality.
 ***/
-HRESULT WINAPI BaseDirect3D9Ex::CheckDeviceFormat(UINT Adapter, D3DDEVTYPE DeviceType,D3DFORMAT AdapterFormat, DWORD Usage, D3DRESOURCETYPE RType, D3DFORMAT CheckFormat)
+HRESULT WINAPI D3D9ProxyDirect3DEx::CheckDeviceFormat(UINT Adapter, D3DDEVTYPE DeviceType,D3DFORMAT AdapterFormat, DWORD Usage, D3DRESOURCETYPE RType, D3DFORMAT CheckFormat)
 {
 	return m_pD3DEx->CheckDeviceFormat(Adapter, DeviceType, AdapterFormat, Usage, RType,
 		CheckFormat);
@@ -133,7 +133,7 @@ HRESULT WINAPI BaseDirect3D9Ex::CheckDeviceFormat(UINT Adapter, D3DDEVTYPE Devic
 /**
 * Base CheckDeviceMultiSampleType functionality.
 ***/
-HRESULT WINAPI BaseDirect3D9Ex::CheckDeviceMultiSampleType(UINT Adapter, D3DDEVTYPE DeviceType,D3DFORMAT SurfaceFormat, BOOL Windowed, D3DMULTISAMPLE_TYPE MultiSampleType,DWORD* pQualityLevels)
+HRESULT WINAPI D3D9ProxyDirect3DEx::CheckDeviceMultiSampleType(UINT Adapter, D3DDEVTYPE DeviceType,D3DFORMAT SurfaceFormat, BOOL Windowed, D3DMULTISAMPLE_TYPE MultiSampleType,DWORD* pQualityLevels)
 {
 	return m_pD3DEx->CheckDeviceMultiSampleType(Adapter, DeviceType, SurfaceFormat, Windowed,
 		MultiSampleType, pQualityLevels);
@@ -142,7 +142,7 @@ HRESULT WINAPI BaseDirect3D9Ex::CheckDeviceMultiSampleType(UINT Adapter, D3DDEVT
 /**
 * Base CheckDepthStencilMatch functionality.
 ***/
-HRESULT WINAPI BaseDirect3D9Ex::CheckDepthStencilMatch(UINT Adapter, D3DDEVTYPE DeviceType,D3DFORMAT AdapterFormat, D3DFORMAT RenderTargetFormat, D3DFORMAT DepthStencilFormat)
+HRESULT WINAPI D3D9ProxyDirect3DEx::CheckDepthStencilMatch(UINT Adapter, D3DDEVTYPE DeviceType,D3DFORMAT AdapterFormat, D3DFORMAT RenderTargetFormat, D3DFORMAT DepthStencilFormat)
 {
 	return m_pD3DEx->CheckDepthStencilMatch(Adapter, DeviceType, AdapterFormat, RenderTargetFormat,
 		DepthStencilFormat);
@@ -151,7 +151,7 @@ HRESULT WINAPI BaseDirect3D9Ex::CheckDepthStencilMatch(UINT Adapter, D3DDEVTYPE 
 /**
 * Base CheckDeviceFormatConversion functionality.
 ***/
-HRESULT WINAPI BaseDirect3D9Ex::CheckDeviceFormatConversion(UINT Adapter, D3DDEVTYPE DeviceType,D3DFORMAT SourceFormat, D3DFORMAT TargetFormat)
+HRESULT WINAPI D3D9ProxyDirect3DEx::CheckDeviceFormatConversion(UINT Adapter, D3DDEVTYPE DeviceType,D3DFORMAT SourceFormat, D3DFORMAT TargetFormat)
 {
 	return m_pD3DEx->CheckDeviceFormatConversion(Adapter, DeviceType, SourceFormat, TargetFormat);
 }
@@ -159,7 +159,7 @@ HRESULT WINAPI BaseDirect3D9Ex::CheckDeviceFormatConversion(UINT Adapter, D3DDEV
 /**
 * Base GetDeviceCaps functionality.
 ***/
-HRESULT WINAPI BaseDirect3D9Ex::GetDeviceCaps(UINT Adapter, D3DDEVTYPE DeviceType, D3DCAPS9* pCaps)
+HRESULT WINAPI D3D9ProxyDirect3DEx::GetDeviceCaps(UINT Adapter, D3DDEVTYPE DeviceType, D3DCAPS9* pCaps)
 {	
 	return m_pD3DEx->GetDeviceCaps(Adapter, DeviceType, pCaps);
 }
@@ -167,7 +167,7 @@ HRESULT WINAPI BaseDirect3D9Ex::GetDeviceCaps(UINT Adapter, D3DDEVTYPE DeviceTyp
 /**
 * Base GetAdapterMonitor functionality.
 ***/
-HMONITOR WINAPI BaseDirect3D9Ex::GetAdapterMonitor(UINT Adapter)
+HMONITOR WINAPI D3D9ProxyDirect3DEx::GetAdapterMonitor(UINT Adapter)
 {
 	return m_pD3DEx->GetAdapterMonitor(Adapter);
 }
@@ -178,7 +178,7 @@ HMONITOR WINAPI BaseDirect3D9Ex::GetAdapterMonitor(UINT Adapter)
 * calling the ProxyHelper class. Last it creates and returns the
 * device proxy calling D3DProxyDeviceFactory::Get().
 ***/
-HRESULT WINAPI BaseDirect3D9Ex::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, HWND hFocusWindow,DWORD BehaviorFlags, D3DPRESENT_PARAMETERS* pPresentationParameters,IDirect3DDevice9** ppReturnedDeviceInterface)
+HRESULT WINAPI D3D9ProxyDirect3DEx::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, HWND hFocusWindow,DWORD BehaviorFlags, D3DPRESENT_PARAMETERS* pPresentationParameters,IDirect3DDevice9** ppReturnedDeviceInterface)
 {
 	// Create real interface
 	HRESULT hResult = m_pD3DEx->CreateDevice(Adapter, DeviceType, hFocusWindow, BehaviorFlags,
@@ -229,7 +229,7 @@ HRESULT WINAPI BaseDirect3D9Ex::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType
 /**
 * Base GetAdapterModeCountEx functionality.
 ***/
-UINT WINAPI BaseDirect3D9Ex::GetAdapterModeCountEx(UINT Adapter,CONST D3DDISPLAYMODEFILTER* pFilter )
+UINT WINAPI D3D9ProxyDirect3DEx::GetAdapterModeCountEx(UINT Adapter,CONST D3DDISPLAYMODEFILTER* pFilter )
 {
 	return m_pD3DEx->GetAdapterModeCountEx(Adapter, pFilter);
 }
@@ -237,7 +237,7 @@ UINT WINAPI BaseDirect3D9Ex::GetAdapterModeCountEx(UINT Adapter,CONST D3DDISPLAY
 /**
 * Base EnumAdapterModesEx functionality.
 ***/
-HRESULT WINAPI BaseDirect3D9Ex::EnumAdapterModesEx(UINT Adapter,CONST D3DDISPLAYMODEFILTER* pFilter,UINT Mode,D3DDISPLAYMODEEX* pMode)
+HRESULT WINAPI D3D9ProxyDirect3DEx::EnumAdapterModesEx(UINT Adapter,CONST D3DDISPLAYMODEFILTER* pFilter,UINT Mode,D3DDISPLAYMODEEX* pMode)
 {	
 	return m_pD3DEx->EnumAdapterModesEx(Adapter, pFilter, Mode, pMode);
 }
@@ -245,7 +245,7 @@ HRESULT WINAPI BaseDirect3D9Ex::EnumAdapterModesEx(UINT Adapter,CONST D3DDISPLAY
 /**
 * Base GetAdapterDisplayModeEx functionality.
 ***/
-HRESULT WINAPI BaseDirect3D9Ex::GetAdapterDisplayModeEx(UINT Adapter,D3DDISPLAYMODEEX* pMode,D3DDISPLAYROTATION* pRotation)
+HRESULT WINAPI D3D9ProxyDirect3DEx::GetAdapterDisplayModeEx(UINT Adapter,D3DDISPLAYMODEEX* pMode,D3DDISPLAYROTATION* pRotation)
 {	
 	return m_pD3DEx->GetAdapterDisplayModeEx(Adapter, pMode, pRotation);
 }
@@ -253,7 +253,7 @@ HRESULT WINAPI BaseDirect3D9Ex::GetAdapterDisplayModeEx(UINT Adapter,D3DDISPLAYM
 /**
 * Base CreateDeviceEx functionality.
 ***/
-HRESULT WINAPI BaseDirect3D9Ex::CreateDeviceEx(UINT Adapter,D3DDEVTYPE DeviceType,HWND hFocusWindow,DWORD BehaviorFlags,D3DPRESENT_PARAMETERS* pPresentationParameters,D3DDISPLAYMODEEX* pFullscreenDisplayMode,IDirect3DDevice9Ex** ppReturnedDeviceInterface)
+HRESULT WINAPI D3D9ProxyDirect3DEx::CreateDeviceEx(UINT Adapter,D3DDEVTYPE DeviceType,HWND hFocusWindow,DWORD BehaviorFlags,D3DPRESENT_PARAMETERS* pPresentationParameters,D3DDISPLAYMODEEX* pFullscreenDisplayMode,IDirect3DDevice9Ex** ppReturnedDeviceInterface)
 {	
 	return m_pD3DEx->CreateDeviceEx( Adapter, DeviceType, hFocusWindow, BehaviorFlags, pPresentationParameters, pFullscreenDisplayMode, ppReturnedDeviceInterface);
 }
@@ -261,7 +261,7 @@ HRESULT WINAPI BaseDirect3D9Ex::CreateDeviceEx(UINT Adapter,D3DDEVTYPE DeviceTyp
 /**
 * Base GetAdapterLUID functionality.
 ***/
-HRESULT WINAPI BaseDirect3D9Ex::GetAdapterLUID(UINT Adapter,LUID * pLUID)
+HRESULT WINAPI D3D9ProxyDirect3DEx::GetAdapterLUID(UINT Adapter,LUID * pLUID)
 {	
 	return m_pD3DEx->GetAdapterLUID(Adapter, pLUID);
 }

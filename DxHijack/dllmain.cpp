@@ -33,7 +33,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <d3dx9.h>
 #include "hijackdll.h"
 #include "apihijack.h"
-#include "Direct3D9.h"
+#include "D3D9ProxyDirect3D.h"
 #include <string>
 
 // Text buffer for sprintf
@@ -128,7 +128,7 @@ IDirect3D9* WINAPI MyDirect3DCreate9(UINT sdk_version)
 	Direct3DCreate9_t old_func = (Direct3DCreate9_t) D3DHook.Functions[D3DFN_Direct3DCreate9].OrigFn;
 	IDirect3D9* d3d = old_func(sdk_version);
 
-	return d3d ? new BaseDirect3D9(d3d) : 0;
+	return d3d ? new D3D9ProxyDirect3D(d3d) : 0;
 }
 
 bool fileExists(std::string file)

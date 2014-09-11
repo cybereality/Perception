@@ -3,7 +3,7 @@ Vireio Perception: Open-Source Stereoscopic 3D Driver
 Copyright (C) 2012 Andres Hernandez
 
 File <Direct3DDevice9Ex.cpp> and
-Class <BaseDirect3DDevice9Ex> :
+Class <D3D9ProxyDeviceEx> :
 Copyright (C) 2013 Denis Reischl
 
 Vireio Perception Version History:
@@ -35,7 +35,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * @param pDevice Imbed actual device. 
 * @param pCreatedBy Pointer to the object that created the device. 
 ***/
-BaseDirect3DDevice9Ex::BaseDirect3DDevice9Ex(IDirect3DDevice9Ex* pDevice, BaseDirect3D9* pCreatedBy) :
+D3D9ProxyDeviceEx::D3D9ProxyDeviceEx(IDirect3DDevice9Ex* pDevice, D3D9ProxyDirect3D* pCreatedBy) :
 	m_pDeviceEx(pDevice),
 	m_pCreatedBy(pCreatedBy),
 	m_nRefCount(1)
@@ -49,7 +49,7 @@ BaseDirect3DDevice9Ex::BaseDirect3DDevice9Ex(IDirect3DDevice9Ex* pDevice, BaseDi
 * Destructor. 
 * Releases embedded device. 
 ***/
-BaseDirect3DDevice9Ex::~BaseDirect3DDevice9Ex()
+D3D9ProxyDeviceEx::~D3D9ProxyDeviceEx()
 {
 
 #ifdef _EXPORT_LOGFILE
@@ -63,7 +63,7 @@ BaseDirect3DDevice9Ex::~BaseDirect3DDevice9Ex()
 /**
 * Base QueryInterface functionality. 
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::QueryInterface(REFIID riid, LPVOID* ppv)
+HRESULT WINAPI D3D9ProxyDeviceEx::QueryInterface(REFIID riid, LPVOID* ppv)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "QueryInterface" << std::endl;
@@ -75,7 +75,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::QueryInterface(REFIID riid, LPVOID* ppv)
 /**
 * Base AddRef functionality.
 ***/
-ULONG WINAPI BaseDirect3DDevice9Ex::AddRef()
+ULONG WINAPI D3D9ProxyDeviceEx::AddRef()
 {	 
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "AddRef" << std::endl;
@@ -87,7 +87,7 @@ ULONG WINAPI BaseDirect3DDevice9Ex::AddRef()
 /**
 * Base Release functionality.
 ***/
-ULONG WINAPI BaseDirect3DDevice9Ex::Release()
+ULONG WINAPI D3D9ProxyDeviceEx::Release()
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "Release" << std::endl;
@@ -105,7 +105,7 @@ ULONG WINAPI BaseDirect3DDevice9Ex::Release()
 /**
 * Base TestCooperativeLevel functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::TestCooperativeLevel()
+HRESULT WINAPI D3D9ProxyDeviceEx::TestCooperativeLevel()
 {	 
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "TestCooperativeLevel" << std::endl;
@@ -117,7 +117,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::TestCooperativeLevel()
 /**
 * Base GetAvailableTextureMem functionality.
 ***/
-UINT WINAPI BaseDirect3DDevice9Ex::GetAvailableTextureMem()
+UINT WINAPI D3D9ProxyDeviceEx::GetAvailableTextureMem()
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "GetAvailableTextureMem" << std::endl;
@@ -129,7 +129,7 @@ UINT WINAPI BaseDirect3DDevice9Ex::GetAvailableTextureMem()
 /**
 * Base EvictManagedResources functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::EvictManagedResources()
+HRESULT WINAPI D3D9ProxyDeviceEx::EvictManagedResources()
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "EvictManagedResources" << std::endl;
@@ -141,7 +141,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::EvictManagedResources()
 /**
 * Base GetDirect3D functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::GetDirect3D(IDirect3D9** ppD3D9)
+HRESULT WINAPI D3D9ProxyDeviceEx::GetDirect3D(IDirect3D9** ppD3D9)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "GetDirect3D" << std::endl;
@@ -159,7 +159,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::GetDirect3D(IDirect3D9** ppD3D9)
 /**
 * Base GetDeviceCaps functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::GetDeviceCaps(D3DCAPS9* pCaps)
+HRESULT WINAPI D3D9ProxyDeviceEx::GetDeviceCaps(D3DCAPS9* pCaps)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "GetDeviceCaps" << std::endl;
@@ -171,7 +171,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::GetDeviceCaps(D3DCAPS9* pCaps)
 /**
 * Base GetDisplayMode functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::GetDisplayMode(UINT iSwapChain,D3DDISPLAYMODE* pMode)
+HRESULT WINAPI D3D9ProxyDeviceEx::GetDisplayMode(UINT iSwapChain,D3DDISPLAYMODE* pMode)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "GetDisplayMode" << std::endl;
@@ -183,7 +183,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::GetDisplayMode(UINT iSwapChain,D3DDISPLAYM
 /**
 * Base GetCreationParameters functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::GetCreationParameters(D3DDEVICE_CREATION_PARAMETERS *pParameters)
+HRESULT WINAPI D3D9ProxyDeviceEx::GetCreationParameters(D3DDEVICE_CREATION_PARAMETERS *pParameters)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "GetCreationParameters" << std::endl;
@@ -195,7 +195,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::GetCreationParameters(D3DDEVICE_CREATION_P
 /**
 * Base SetCursorProperties functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::SetCursorProperties(UINT XHotSpot,UINT YHotSpot,IDirect3DSurface9* pCursorBitmap)
+HRESULT WINAPI D3D9ProxyDeviceEx::SetCursorProperties(UINT XHotSpot,UINT YHotSpot,IDirect3DSurface9* pCursorBitmap)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "SetCursorProperties" << std::endl;
@@ -207,7 +207,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::SetCursorProperties(UINT XHotSpot,UINT YHo
 /**
 * Base SetCursorPosition functionality.
 ***/
-void WINAPI BaseDirect3DDevice9Ex::SetCursorPosition(int X,int Y,DWORD Flags)
+void WINAPI D3D9ProxyDeviceEx::SetCursorPosition(int X,int Y,DWORD Flags)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "SetCursorPosition" << std::endl;
@@ -219,7 +219,7 @@ void WINAPI BaseDirect3DDevice9Ex::SetCursorPosition(int X,int Y,DWORD Flags)
 /**
 * Base ShowCursor functionality.
 ***/
-BOOL WINAPI BaseDirect3DDevice9Ex::ShowCursor(BOOL bShow)
+BOOL WINAPI D3D9ProxyDeviceEx::ShowCursor(BOOL bShow)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "ShowCursor" << std::endl;
@@ -231,7 +231,7 @@ BOOL WINAPI BaseDirect3DDevice9Ex::ShowCursor(BOOL bShow)
 /**
 * Base CreateAdditionalSwapChain functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::CreateAdditionalSwapChain(D3DPRESENT_PARAMETERS* pPresentationParameters,IDirect3DSwapChain9** pSwapChain)
+HRESULT WINAPI D3D9ProxyDeviceEx::CreateAdditionalSwapChain(D3DPRESENT_PARAMETERS* pPresentationParameters,IDirect3DSwapChain9** pSwapChain)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "CreateAdditionalSwapChain" << std::endl;
@@ -243,7 +243,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::CreateAdditionalSwapChain(D3DPRESENT_PARAM
 /**
 * Base GetSwapChain functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::GetSwapChain(UINT iSwapChain,IDirect3DSwapChain9** pSwapChain)
+HRESULT WINAPI D3D9ProxyDeviceEx::GetSwapChain(UINT iSwapChain,IDirect3DSwapChain9** pSwapChain)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "GetSwapChain" << std::endl;
@@ -255,7 +255,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::GetSwapChain(UINT iSwapChain,IDirect3DSwap
 /**
 * Base GetNumberOfSwapChains functionality.
 ***/
-UINT WINAPI BaseDirect3DDevice9Ex::GetNumberOfSwapChains()
+UINT WINAPI D3D9ProxyDeviceEx::GetNumberOfSwapChains()
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "GetNumberOfSwapChains" << std::endl;
@@ -267,7 +267,7 @@ UINT WINAPI BaseDirect3DDevice9Ex::GetNumberOfSwapChains()
 /**
 * Base Reset functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::Reset(D3DPRESENT_PARAMETERS* pPresentationParameters)
+HRESULT WINAPI D3D9ProxyDeviceEx::Reset(D3DPRESENT_PARAMETERS* pPresentationParameters)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "Reset" << std::endl;
@@ -279,7 +279,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::Reset(D3DPRESENT_PARAMETERS* pPresentation
 /**
 * Base Present functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::Present(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion)
+HRESULT WINAPI D3D9ProxyDeviceEx::Present(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "Present" << std::endl;
@@ -291,7 +291,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::Present(CONST RECT* pSourceRect,CONST RECT
 /**
 * Base GetBackBuffer functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::GetBackBuffer(UINT iSwapChain,UINT iBackBuffer,D3DBACKBUFFER_TYPE Type,IDirect3DSurface9** ppBackBuffer)
+HRESULT WINAPI D3D9ProxyDeviceEx::GetBackBuffer(UINT iSwapChain,UINT iBackBuffer,D3DBACKBUFFER_TYPE Type,IDirect3DSurface9** ppBackBuffer)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "GetBackBuffer" << std::endl;
@@ -303,7 +303,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::GetBackBuffer(UINT iSwapChain,UINT iBackBu
 /**
 * Base GetRasterStatus functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::GetRasterStatus(UINT iSwapChain,D3DRASTER_STATUS* pRasterStatus)
+HRESULT WINAPI D3D9ProxyDeviceEx::GetRasterStatus(UINT iSwapChain,D3DRASTER_STATUS* pRasterStatus)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "GetRasterStatus" << std::endl;
@@ -315,7 +315,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::GetRasterStatus(UINT iSwapChain,D3DRASTER_
 /**
 * Base SetDialogBoxMode functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::SetDialogBoxMode(BOOL bEnableDialogs)
+HRESULT WINAPI D3D9ProxyDeviceEx::SetDialogBoxMode(BOOL bEnableDialogs)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "SetDialogBoxMode" << std::endl;
@@ -327,7 +327,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::SetDialogBoxMode(BOOL bEnableDialogs)
 /**
 * Base SetGammaRamp functionality.
 ***/
-void WINAPI BaseDirect3DDevice9Ex::SetGammaRamp(UINT iSwapChain,DWORD Flags,CONST D3DGAMMARAMP* pRamp)
+void WINAPI D3D9ProxyDeviceEx::SetGammaRamp(UINT iSwapChain,DWORD Flags,CONST D3DGAMMARAMP* pRamp)
 {	
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "SetGammaRamp" << std::endl;
@@ -339,7 +339,7 @@ void WINAPI BaseDirect3DDevice9Ex::SetGammaRamp(UINT iSwapChain,DWORD Flags,CONS
 /**
 * Base GetGammaRamp functionality.
 ***/
-void WINAPI BaseDirect3DDevice9Ex::GetGammaRamp(UINT iSwapChain,D3DGAMMARAMP* pRamp)
+void WINAPI D3D9ProxyDeviceEx::GetGammaRamp(UINT iSwapChain,D3DGAMMARAMP* pRamp)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "GetGammaRamp" << std::endl;
@@ -351,7 +351,7 @@ void WINAPI BaseDirect3DDevice9Ex::GetGammaRamp(UINT iSwapChain,D3DGAMMARAMP* pR
 /**
 * Base CreateTexture functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::CreateTexture(UINT Width,UINT Height,UINT Levels,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool,IDirect3DTexture9** ppTexture,HANDLE* pSharedHandle)
+HRESULT WINAPI D3D9ProxyDeviceEx::CreateTexture(UINT Width,UINT Height,UINT Levels,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool,IDirect3DTexture9** ppTexture,HANDLE* pSharedHandle)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "CreateTexture" << std::endl;
@@ -363,7 +363,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::CreateTexture(UINT Width,UINT Height,UINT 
 /**
 * Base CreateVolumeTexture functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::CreateVolumeTexture(UINT Width,UINT Height,UINT Depth,UINT Levels,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool,IDirect3DVolumeTexture9** ppVolumeTexture,HANDLE* pSharedHandle)
+HRESULT WINAPI D3D9ProxyDeviceEx::CreateVolumeTexture(UINT Width,UINT Height,UINT Depth,UINT Levels,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool,IDirect3DVolumeTexture9** ppVolumeTexture,HANDLE* pSharedHandle)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "CreateVolumeTexture" << std::endl;
@@ -375,7 +375,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::CreateVolumeTexture(UINT Width,UINT Height
 /**
 * Base CreateCubeTexture functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::CreateCubeTexture(UINT EdgeLength,UINT Levels,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool,IDirect3DCubeTexture9** ppCubeTexture,HANDLE* pSharedHandle)
+HRESULT WINAPI D3D9ProxyDeviceEx::CreateCubeTexture(UINT EdgeLength,UINT Levels,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool,IDirect3DCubeTexture9** ppCubeTexture,HANDLE* pSharedHandle)
 {	
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "CreateCubeTexture" << std::endl;
@@ -387,7 +387,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::CreateCubeTexture(UINT EdgeLength,UINT Lev
 /**
 * Base CreateVertexBuffer functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::CreateVertexBuffer(UINT Length,DWORD Usage,DWORD FVF,D3DPOOL Pool,IDirect3DVertexBuffer9** ppVertexBuffer,HANDLE* pSharedHandle)
+HRESULT WINAPI D3D9ProxyDeviceEx::CreateVertexBuffer(UINT Length,DWORD Usage,DWORD FVF,D3DPOOL Pool,IDirect3DVertexBuffer9** ppVertexBuffer,HANDLE* pSharedHandle)
 {	
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "CreateVertexBuffer" << std::endl;
@@ -399,7 +399,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::CreateVertexBuffer(UINT Length,DWORD Usage
 /**
 * Base CreateIndexBuffer functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::CreateIndexBuffer(UINT Length,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool,IDirect3DIndexBuffer9** ppIndexBuffer,HANDLE* pSharedHandle)
+HRESULT WINAPI D3D9ProxyDeviceEx::CreateIndexBuffer(UINT Length,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool,IDirect3DIndexBuffer9** ppIndexBuffer,HANDLE* pSharedHandle)
 {	
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "CreateIndexBuffer" << std::endl;
@@ -411,7 +411,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::CreateIndexBuffer(UINT Length,DWORD Usage,
 /**
 * Base CreateRenderTarget functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::CreateRenderTarget(UINT Width,UINT Height,D3DFORMAT Format,D3DMULTISAMPLE_TYPE MultiSample,DWORD MultisampleQuality,BOOL Lockable,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle)
+HRESULT WINAPI D3D9ProxyDeviceEx::CreateRenderTarget(UINT Width,UINT Height,D3DFORMAT Format,D3DMULTISAMPLE_TYPE MultiSample,DWORD MultisampleQuality,BOOL Lockable,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "CreateRenderTarget" << std::endl;
@@ -423,7 +423,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::CreateRenderTarget(UINT Width,UINT Height,
 /**
 * Base CreateDepthStencilSurface functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::CreateDepthStencilSurface(UINT Width,UINT Height,D3DFORMAT Format,D3DMULTISAMPLE_TYPE MultiSample,DWORD MultisampleQuality,BOOL Discard,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle)
+HRESULT WINAPI D3D9ProxyDeviceEx::CreateDepthStencilSurface(UINT Width,UINT Height,D3DFORMAT Format,D3DMULTISAMPLE_TYPE MultiSample,DWORD MultisampleQuality,BOOL Discard,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "CreateDepthStencilSurface" << std::endl;
@@ -435,7 +435,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::CreateDepthStencilSurface(UINT Width,UINT 
 /**
 * Base UpdateSurface functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::UpdateSurface(IDirect3DSurface9* pSourceSurface,CONST RECT* pSourceRect,IDirect3DSurface9* pDestinationSurface,CONST POINT* pDestPoint)
+HRESULT WINAPI D3D9ProxyDeviceEx::UpdateSurface(IDirect3DSurface9* pSourceSurface,CONST RECT* pSourceRect,IDirect3DSurface9* pDestinationSurface,CONST POINT* pDestPoint)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "UpdateSurface" << std::endl;
@@ -447,7 +447,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::UpdateSurface(IDirect3DSurface9* pSourceSu
 /**
 * Base UpdateTexture functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::UpdateTexture(IDirect3DBaseTexture9* pSourceTexture,IDirect3DBaseTexture9* pDestinationTexture)
+HRESULT WINAPI D3D9ProxyDeviceEx::UpdateTexture(IDirect3DBaseTexture9* pSourceTexture,IDirect3DBaseTexture9* pDestinationTexture)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "UpdateTexture" << std::endl;
@@ -459,7 +459,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::UpdateTexture(IDirect3DBaseTexture9* pSour
 /**
 * Base GetRenderTargetData functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::GetRenderTargetData(IDirect3DSurface9* pRenderTarget,IDirect3DSurface9* pDestSurface)
+HRESULT WINAPI D3D9ProxyDeviceEx::GetRenderTargetData(IDirect3DSurface9* pRenderTarget,IDirect3DSurface9* pDestSurface)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "GetRenderTargetData" << std::endl;
@@ -471,7 +471,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::GetRenderTargetData(IDirect3DSurface9* pRe
 /**
 * Base GetFrontBufferData functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::GetFrontBufferData(UINT iSwapChain,IDirect3DSurface9* pDestSurface)
+HRESULT WINAPI D3D9ProxyDeviceEx::GetFrontBufferData(UINT iSwapChain,IDirect3DSurface9* pDestSurface)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "GetFrontBufferData" << std::endl;
@@ -483,7 +483,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::GetFrontBufferData(UINT iSwapChain,IDirect
 /**
 * Base StretchRect functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::StretchRect(IDirect3DSurface9* pSourceSurface,CONST RECT* pSourceRect,IDirect3DSurface9* pDestSurface,CONST RECT* pDestRect,D3DTEXTUREFILTERTYPE Filter)
+HRESULT WINAPI D3D9ProxyDeviceEx::StretchRect(IDirect3DSurface9* pSourceSurface,CONST RECT* pSourceRect,IDirect3DSurface9* pDestSurface,CONST RECT* pDestRect,D3DTEXTUREFILTERTYPE Filter)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "StretchRect" << std::endl;
@@ -495,7 +495,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::StretchRect(IDirect3DSurface9* pSourceSurf
 /**
 * Base ColorFill functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::ColorFill(IDirect3DSurface9* pSurface,CONST RECT* pRect,D3DCOLOR color)
+HRESULT WINAPI D3D9ProxyDeviceEx::ColorFill(IDirect3DSurface9* pSurface,CONST RECT* pRect,D3DCOLOR color)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "ColorFill" << std::endl;
@@ -507,7 +507,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::ColorFill(IDirect3DSurface9* pSurface,CONS
 /**
 * Base CreateOffscreenPlainSurface functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::CreateOffscreenPlainSurface(UINT Width,UINT Height,D3DFORMAT Format,D3DPOOL Pool,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle)
+HRESULT WINAPI D3D9ProxyDeviceEx::CreateOffscreenPlainSurface(UINT Width,UINT Height,D3DFORMAT Format,D3DPOOL Pool,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "CreateOffscreenPlainSurface" << std::endl;
@@ -519,7 +519,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::CreateOffscreenPlainSurface(UINT Width,UIN
 /**
 * Base SetRenderTarget functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::SetRenderTarget(DWORD RenderTargetIndex,IDirect3DSurface9* pRenderTarget)
+HRESULT WINAPI D3D9ProxyDeviceEx::SetRenderTarget(DWORD RenderTargetIndex,IDirect3DSurface9* pRenderTarget)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "SetRenderTarget" << std::endl;
@@ -531,7 +531,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::SetRenderTarget(DWORD RenderTargetIndex,ID
 /**
 * Base GetRenderTarget functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::GetRenderTarget(DWORD RenderTargetIndex,IDirect3DSurface9** ppRenderTarget)
+HRESULT WINAPI D3D9ProxyDeviceEx::GetRenderTarget(DWORD RenderTargetIndex,IDirect3DSurface9** ppRenderTarget)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "GetRenderTarget" << std::endl;
@@ -543,7 +543,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::GetRenderTarget(DWORD RenderTargetIndex,ID
 /**
 * Base SetDepthStencilSurface functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::SetDepthStencilSurface(IDirect3DSurface9* pNewZStencil)
+HRESULT WINAPI D3D9ProxyDeviceEx::SetDepthStencilSurface(IDirect3DSurface9* pNewZStencil)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "SetDepthStencilSurface" << std::endl;
@@ -555,7 +555,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::SetDepthStencilSurface(IDirect3DSurface9* 
 /**
 * Base GetDepthStencilSurface functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::GetDepthStencilSurface(IDirect3DSurface9** ppZStencilSurface)
+HRESULT WINAPI D3D9ProxyDeviceEx::GetDepthStencilSurface(IDirect3DSurface9** ppZStencilSurface)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "GetDepthStencilSurface" << std::endl;
@@ -567,7 +567,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::GetDepthStencilSurface(IDirect3DSurface9**
 /**
 * Base BeginScene functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::BeginScene()
+HRESULT WINAPI D3D9ProxyDeviceEx::BeginScene()
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "BeginScene" << std::endl;
@@ -579,7 +579,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::BeginScene()
 /**
 * Base EndScene functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::EndScene()
+HRESULT WINAPI D3D9ProxyDeviceEx::EndScene()
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "EndScene" << std::endl;
@@ -591,7 +591,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::EndScene()
 /**
 * Base Clear functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::Clear(DWORD Count,CONST D3DRECT* pRects,DWORD Flags,D3DCOLOR Color,float Z,DWORD Stencil)
+HRESULT WINAPI D3D9ProxyDeviceEx::Clear(DWORD Count,CONST D3DRECT* pRects,DWORD Flags,D3DCOLOR Color,float Z,DWORD Stencil)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "Clear" << std::endl;
@@ -603,7 +603,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::Clear(DWORD Count,CONST D3DRECT* pRects,DW
 /**
 * Base SetTransform functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::SetTransform(D3DTRANSFORMSTATETYPE State,CONST D3DMATRIX* pMatrix)
+HRESULT WINAPI D3D9ProxyDeviceEx::SetTransform(D3DTRANSFORMSTATETYPE State,CONST D3DMATRIX* pMatrix)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "SetTransform" << std::endl;
@@ -615,7 +615,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::SetTransform(D3DTRANSFORMSTATETYPE State,C
 /**
 * Base GetTransform functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::GetTransform(D3DTRANSFORMSTATETYPE State,D3DMATRIX* pMatrix)
+HRESULT WINAPI D3D9ProxyDeviceEx::GetTransform(D3DTRANSFORMSTATETYPE State,D3DMATRIX* pMatrix)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "GetTransform" << std::endl;
@@ -627,7 +627,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::GetTransform(D3DTRANSFORMSTATETYPE State,D
 /**
 * Base MultiplyTransform functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::MultiplyTransform(D3DTRANSFORMSTATETYPE State,CONST D3DMATRIX* pMatrix)
+HRESULT WINAPI D3D9ProxyDeviceEx::MultiplyTransform(D3DTRANSFORMSTATETYPE State,CONST D3DMATRIX* pMatrix)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "MultiplyTransform" << std::endl;
@@ -639,7 +639,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::MultiplyTransform(D3DTRANSFORMSTATETYPE St
 /**
 * Base SetViewport functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::SetViewport(CONST D3DVIEWPORT9* pViewport)
+HRESULT WINAPI D3D9ProxyDeviceEx::SetViewport(CONST D3DVIEWPORT9* pViewport)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "SetViewport" << std::endl;
@@ -651,7 +651,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::SetViewport(CONST D3DVIEWPORT9* pViewport)
 /**
 * Base GetViewport functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::GetViewport(D3DVIEWPORT9* pViewport)
+HRESULT WINAPI D3D9ProxyDeviceEx::GetViewport(D3DVIEWPORT9* pViewport)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "GetViewport" << std::endl;
@@ -663,7 +663,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::GetViewport(D3DVIEWPORT9* pViewport)
 /**
 * Base SetMaterial functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::SetMaterial(CONST D3DMATERIAL9* pMaterial)
+HRESULT WINAPI D3D9ProxyDeviceEx::SetMaterial(CONST D3DMATERIAL9* pMaterial)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "SetMaterial" << std::endl;
@@ -675,7 +675,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::SetMaterial(CONST D3DMATERIAL9* pMaterial)
 /**
 * Base GetMaterial functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::GetMaterial(D3DMATERIAL9* pMaterial)
+HRESULT WINAPI D3D9ProxyDeviceEx::GetMaterial(D3DMATERIAL9* pMaterial)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "GetMaterial" << std::endl;
@@ -687,7 +687,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::GetMaterial(D3DMATERIAL9* pMaterial)
 /**
 * Base SetLight functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::SetLight(DWORD Index,CONST D3DLIGHT9* pLight)
+HRESULT WINAPI D3D9ProxyDeviceEx::SetLight(DWORD Index,CONST D3DLIGHT9* pLight)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "SetLight" << std::endl;
@@ -699,7 +699,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::SetLight(DWORD Index,CONST D3DLIGHT9* pLig
 /**
 * Base GetLight functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::GetLight(DWORD Index,D3DLIGHT9* pLight)
+HRESULT WINAPI D3D9ProxyDeviceEx::GetLight(DWORD Index,D3DLIGHT9* pLight)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "GetLight" << std::endl;
@@ -711,7 +711,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::GetLight(DWORD Index,D3DLIGHT9* pLight)
 /**
 * Base LightEnable functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::LightEnable(DWORD Index,BOOL Enable)
+HRESULT WINAPI D3D9ProxyDeviceEx::LightEnable(DWORD Index,BOOL Enable)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "LightEnable" << std::endl;
@@ -723,7 +723,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::LightEnable(DWORD Index,BOOL Enable)
 /**
 * Base GetLightEnable functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::GetLightEnable(DWORD Index,BOOL* pEnable)
+HRESULT WINAPI D3D9ProxyDeviceEx::GetLightEnable(DWORD Index,BOOL* pEnable)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "GetLightEnable" << std::endl;
@@ -735,7 +735,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::GetLightEnable(DWORD Index,BOOL* pEnable)
 /**
 * Base SetClipPlane functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::SetClipPlane(DWORD Index,CONST float* pPlane)
+HRESULT WINAPI D3D9ProxyDeviceEx::SetClipPlane(DWORD Index,CONST float* pPlane)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "SetClipPlane" << std::endl;
@@ -747,7 +747,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::SetClipPlane(DWORD Index,CONST float* pPla
 /**
 * Base GetClipPlane functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::GetClipPlane(DWORD Index,float* pPlane)
+HRESULT WINAPI D3D9ProxyDeviceEx::GetClipPlane(DWORD Index,float* pPlane)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "GetClipPlane" << std::endl;
@@ -759,7 +759,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::GetClipPlane(DWORD Index,float* pPlane)
 /**
 * Base SetRenderState functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::SetRenderState(D3DRENDERSTATETYPE State,DWORD Value)
+HRESULT WINAPI D3D9ProxyDeviceEx::SetRenderState(D3DRENDERSTATETYPE State,DWORD Value)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "SetRenderState" << std::endl;
@@ -771,7 +771,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::SetRenderState(D3DRENDERSTATETYPE State,DW
 /**
 * Base GetRenderState functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::GetRenderState(D3DRENDERSTATETYPE State,DWORD* pValue)
+HRESULT WINAPI D3D9ProxyDeviceEx::GetRenderState(D3DRENDERSTATETYPE State,DWORD* pValue)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "GetRenderState" << std::endl;
@@ -783,7 +783,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::GetRenderState(D3DRENDERSTATETYPE State,DW
 /**
 * Base CreateStateBlock functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::CreateStateBlock(D3DSTATEBLOCKTYPE Type,IDirect3DStateBlock9** ppSB)
+HRESULT WINAPI D3D9ProxyDeviceEx::CreateStateBlock(D3DSTATEBLOCKTYPE Type,IDirect3DStateBlock9** ppSB)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "CreateStateBlock" << std::endl;
@@ -795,7 +795,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::CreateStateBlock(D3DSTATEBLOCKTYPE Type,ID
 /**
 * Base BeginStateBlock functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::BeginStateBlock()
+HRESULT WINAPI D3D9ProxyDeviceEx::BeginStateBlock()
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "BeginStateBlock" << std::endl;
@@ -807,7 +807,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::BeginStateBlock()
 /**
 * Base EndStateBlock functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::EndStateBlock(IDirect3DStateBlock9** ppSB)
+HRESULT WINAPI D3D9ProxyDeviceEx::EndStateBlock(IDirect3DStateBlock9** ppSB)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "EndStateBlock" << std::endl;
@@ -819,7 +819,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::EndStateBlock(IDirect3DStateBlock9** ppSB)
 /**
 * Base SetClipStatus functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::SetClipStatus(CONST D3DCLIPSTATUS9* pClipStatus)
+HRESULT WINAPI D3D9ProxyDeviceEx::SetClipStatus(CONST D3DCLIPSTATUS9* pClipStatus)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "SetClipStatus" << std::endl;
@@ -831,7 +831,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::SetClipStatus(CONST D3DCLIPSTATUS9* pClipS
 /**
 * Base GetClipStatus functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::GetClipStatus(D3DCLIPSTATUS9* pClipStatus)
+HRESULT WINAPI D3D9ProxyDeviceEx::GetClipStatus(D3DCLIPSTATUS9* pClipStatus)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "GetClipStatus" << std::endl;
@@ -843,7 +843,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::GetClipStatus(D3DCLIPSTATUS9* pClipStatus)
 /**
 * Base GetTexture functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::GetTexture(DWORD Stage,IDirect3DBaseTexture9** ppTexture)
+HRESULT WINAPI D3D9ProxyDeviceEx::GetTexture(DWORD Stage,IDirect3DBaseTexture9** ppTexture)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "GetTexture" << std::endl;
@@ -855,7 +855,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::GetTexture(DWORD Stage,IDirect3DBaseTextur
 /**
 * Base SetTexture functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::SetTexture(DWORD Stage,IDirect3DBaseTexture9* pTexture)
+HRESULT WINAPI D3D9ProxyDeviceEx::SetTexture(DWORD Stage,IDirect3DBaseTexture9* pTexture)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "SetTexture" << std::endl;
@@ -867,7 +867,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::SetTexture(DWORD Stage,IDirect3DBaseTextur
 /**
 * Base GetTextureStageState functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::GetTextureStageState(DWORD Stage,D3DTEXTURESTAGESTATETYPE Type,DWORD* pValue)
+HRESULT WINAPI D3D9ProxyDeviceEx::GetTextureStageState(DWORD Stage,D3DTEXTURESTAGESTATETYPE Type,DWORD* pValue)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "GetTextureStageState" << std::endl;
@@ -879,7 +879,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::GetTextureStageState(DWORD Stage,D3DTEXTUR
 /**
 * Base SetTextureStageState functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::SetTextureStageState(DWORD Stage,D3DTEXTURESTAGESTATETYPE Type,DWORD Value)
+HRESULT WINAPI D3D9ProxyDeviceEx::SetTextureStageState(DWORD Stage,D3DTEXTURESTAGESTATETYPE Type,DWORD Value)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "SetTextureStageState" << std::endl;
@@ -891,7 +891,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::SetTextureStageState(DWORD Stage,D3DTEXTUR
 /**
 * Base GetSamplerState functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::GetSamplerState(DWORD Sampler,D3DSAMPLERSTATETYPE Type,DWORD* pValue)
+HRESULT WINAPI D3D9ProxyDeviceEx::GetSamplerState(DWORD Sampler,D3DSAMPLERSTATETYPE Type,DWORD* pValue)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "GetSamplerState" << std::endl;
@@ -903,7 +903,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::GetSamplerState(DWORD Sampler,D3DSAMPLERST
 /**
 * Base SetSamplerState functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::SetSamplerState(DWORD Sampler,D3DSAMPLERSTATETYPE Type,DWORD Value)
+HRESULT WINAPI D3D9ProxyDeviceEx::SetSamplerState(DWORD Sampler,D3DSAMPLERSTATETYPE Type,DWORD Value)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "SetSamplerState" << std::endl;
@@ -915,7 +915,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::SetSamplerState(DWORD Sampler,D3DSAMPLERST
 /**
 * Base ValidateDevice functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::ValidateDevice(DWORD* pNumPasses)
+HRESULT WINAPI D3D9ProxyDeviceEx::ValidateDevice(DWORD* pNumPasses)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "ValidateDevice" << std::endl;
@@ -927,7 +927,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::ValidateDevice(DWORD* pNumPasses)
 /**
 * Base SetPaletteEntries functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::SetPaletteEntries(UINT PaletteNumber,CONST PALETTEENTRY* pEntries)
+HRESULT WINAPI D3D9ProxyDeviceEx::SetPaletteEntries(UINT PaletteNumber,CONST PALETTEENTRY* pEntries)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "SetPaletteEntries" << std::endl;
@@ -939,7 +939,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::SetPaletteEntries(UINT PaletteNumber,CONST
 /**
 * Base GetPaletteEntries functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::GetPaletteEntries(UINT PaletteNumber,PALETTEENTRY* pEntries)
+HRESULT WINAPI D3D9ProxyDeviceEx::GetPaletteEntries(UINT PaletteNumber,PALETTEENTRY* pEntries)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "GetPaletteEntries" << std::endl;
@@ -951,7 +951,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::GetPaletteEntries(UINT PaletteNumber,PALET
 /**
 * Base SetCurrentTexturePalette functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::SetCurrentTexturePalette(UINT PaletteNumber)
+HRESULT WINAPI D3D9ProxyDeviceEx::SetCurrentTexturePalette(UINT PaletteNumber)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "SetCurrentTexturePalette" << std::endl;
@@ -963,7 +963,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::SetCurrentTexturePalette(UINT PaletteNumbe
 /**
 * Base GetCurrentTexturePalette functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::GetCurrentTexturePalette(UINT *PaletteNumber)
+HRESULT WINAPI D3D9ProxyDeviceEx::GetCurrentTexturePalette(UINT *PaletteNumber)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "GetCurrentTexturePalette" << std::endl;
@@ -975,7 +975,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::GetCurrentTexturePalette(UINT *PaletteNumb
 /**
 * Base SetScissorRect functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::SetScissorRect(CONST RECT* pRect)
+HRESULT WINAPI D3D9ProxyDeviceEx::SetScissorRect(CONST RECT* pRect)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "SetScissorRect" << std::endl;
@@ -987,7 +987,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::SetScissorRect(CONST RECT* pRect)
 /**
 * Base GetScissorRect functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::GetScissorRect(RECT* pRect)
+HRESULT WINAPI D3D9ProxyDeviceEx::GetScissorRect(RECT* pRect)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "GetScissorRect" << std::endl;
@@ -999,7 +999,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::GetScissorRect(RECT* pRect)
 /**
 * Base SetSoftwareVertexProcessing functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::SetSoftwareVertexProcessing(BOOL bSoftware)
+HRESULT WINAPI D3D9ProxyDeviceEx::SetSoftwareVertexProcessing(BOOL bSoftware)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "SetSoftwareVertexProcessing" << std::endl;
@@ -1011,7 +1011,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::SetSoftwareVertexProcessing(BOOL bSoftware
 /**
 * Base GetSoftwareVertexProcessing functionality.
 ***/
-BOOL WINAPI BaseDirect3DDevice9Ex::GetSoftwareVertexProcessing()
+BOOL WINAPI D3D9ProxyDeviceEx::GetSoftwareVertexProcessing()
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "GetSoftwareVertexProcessing" << std::endl;
@@ -1023,7 +1023,7 @@ BOOL WINAPI BaseDirect3DDevice9Ex::GetSoftwareVertexProcessing()
 /**
 * Base SetNPatchMode functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::SetNPatchMode(float nSegments)
+HRESULT WINAPI D3D9ProxyDeviceEx::SetNPatchMode(float nSegments)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "SetNPatchMode" << std::endl;
@@ -1035,7 +1035,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::SetNPatchMode(float nSegments)
 /**
 * Base GetNPatchMode functionality.
 ***/
-float WINAPI BaseDirect3DDevice9Ex::GetNPatchMode()
+float WINAPI D3D9ProxyDeviceEx::GetNPatchMode()
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "GetNPatchMode" << std::endl;
@@ -1047,7 +1047,7 @@ float WINAPI BaseDirect3DDevice9Ex::GetNPatchMode()
 /**
 * Base DrawPrimitive functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::DrawPrimitive(D3DPRIMITIVETYPE PrimitiveType,UINT StartVertex,UINT PrimitiveCount)
+HRESULT WINAPI D3D9ProxyDeviceEx::DrawPrimitive(D3DPRIMITIVETYPE PrimitiveType,UINT StartVertex,UINT PrimitiveCount)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "DrawPrimitive" << std::endl;
@@ -1059,7 +1059,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::DrawPrimitive(D3DPRIMITIVETYPE PrimitiveTy
 /**
 * Base DrawIndexedPrimitive functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::DrawIndexedPrimitive(D3DPRIMITIVETYPE PrimitiveType,INT BaseVertexIndex,UINT MinVertexIndex,UINT NumVertices,UINT startIndex,UINT primCount)
+HRESULT WINAPI D3D9ProxyDeviceEx::DrawIndexedPrimitive(D3DPRIMITIVETYPE PrimitiveType,INT BaseVertexIndex,UINT MinVertexIndex,UINT NumVertices,UINT startIndex,UINT primCount)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "DrawIndexedPrimitive" << std::endl;
@@ -1071,7 +1071,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::DrawIndexedPrimitive(D3DPRIMITIVETYPE Prim
 /**
 * Base DrawPrimitiveUP functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::DrawPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType,UINT PrimitiveCount,CONST void* pVertexStreamZeroData,UINT VertexStreamZeroStride)
+HRESULT WINAPI D3D9ProxyDeviceEx::DrawPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType,UINT PrimitiveCount,CONST void* pVertexStreamZeroData,UINT VertexStreamZeroStride)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "DrawPrimitiveUP" << std::endl;
@@ -1083,7 +1083,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::DrawPrimitiveUP(D3DPRIMITIVETYPE Primitive
 /**
 * Base DrawIndexedPrimitiveUP functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::DrawIndexedPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType,UINT MinVertexIndex,UINT NumVertices,UINT PrimitiveCount,CONST void* pIndexData,D3DFORMAT IndexDataFormat,CONST void* pVertexStreamZeroData,UINT VertexStreamZeroStride)
+HRESULT WINAPI D3D9ProxyDeviceEx::DrawIndexedPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType,UINT MinVertexIndex,UINT NumVertices,UINT PrimitiveCount,CONST void* pIndexData,D3DFORMAT IndexDataFormat,CONST void* pVertexStreamZeroData,UINT VertexStreamZeroStride)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "DrawIndexedPrimitiveUP" << std::endl;
@@ -1095,7 +1095,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::DrawIndexedPrimitiveUP(D3DPRIMITIVETYPE Pr
 /**
 * Base ProcessVertices functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::ProcessVertices(UINT SrcStartIndex,UINT DestIndex,UINT VertexCount,IDirect3DVertexBuffer9* pDestBuffer,IDirect3DVertexDeclaration9* pVertexDecl,DWORD Flags)
+HRESULT WINAPI D3D9ProxyDeviceEx::ProcessVertices(UINT SrcStartIndex,UINT DestIndex,UINT VertexCount,IDirect3DVertexBuffer9* pDestBuffer,IDirect3DVertexDeclaration9* pVertexDecl,DWORD Flags)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "ProcessVertices" << std::endl;
@@ -1107,7 +1107,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::ProcessVertices(UINT SrcStartIndex,UINT De
 /**
 * Base CreateVertexDeclaration functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::CreateVertexDeclaration(CONST D3DVERTEXELEMENT9* pVertexElements,IDirect3DVertexDeclaration9** ppDecl)
+HRESULT WINAPI D3D9ProxyDeviceEx::CreateVertexDeclaration(CONST D3DVERTEXELEMENT9* pVertexElements,IDirect3DVertexDeclaration9** ppDecl)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "CreateVertexDeclaration" << std::endl;
@@ -1119,7 +1119,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::CreateVertexDeclaration(CONST D3DVERTEXELE
 /**
 * Base SetVertexDeclaration functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::SetVertexDeclaration(IDirect3DVertexDeclaration9* pDecl)
+HRESULT WINAPI D3D9ProxyDeviceEx::SetVertexDeclaration(IDirect3DVertexDeclaration9* pDecl)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "SetVertexDeclaration" << std::endl;
@@ -1131,7 +1131,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::SetVertexDeclaration(IDirect3DVertexDeclar
 /**
 * Base GetVertexDeclaration functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::GetVertexDeclaration(IDirect3DVertexDeclaration9** ppDecl)
+HRESULT WINAPI D3D9ProxyDeviceEx::GetVertexDeclaration(IDirect3DVertexDeclaration9** ppDecl)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "GetVertexDeclaration" << std::endl;
@@ -1143,7 +1143,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::GetVertexDeclaration(IDirect3DVertexDeclar
 /**
 * Base SetFVF functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::SetFVF(DWORD FVF)
+HRESULT WINAPI D3D9ProxyDeviceEx::SetFVF(DWORD FVF)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "SetFVF" << std::endl;
@@ -1155,7 +1155,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::SetFVF(DWORD FVF)
 /**
 * Base GetFVF functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::GetFVF(DWORD* pFVF)
+HRESULT WINAPI D3D9ProxyDeviceEx::GetFVF(DWORD* pFVF)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "GetFVF" << std::endl;
@@ -1167,7 +1167,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::GetFVF(DWORD* pFVF)
 /**
 * Base CreateVertexShader functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::CreateVertexShader(CONST DWORD* pFunction,IDirect3DVertexShader9** ppShader)
+HRESULT WINAPI D3D9ProxyDeviceEx::CreateVertexShader(CONST DWORD* pFunction,IDirect3DVertexShader9** ppShader)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "CreateVertexShader" << std::endl;
@@ -1179,7 +1179,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::CreateVertexShader(CONST DWORD* pFunction,
 /**
 * Base SetVertexShader functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::SetVertexShader(IDirect3DVertexShader9* pShader)
+HRESULT WINAPI D3D9ProxyDeviceEx::SetVertexShader(IDirect3DVertexShader9* pShader)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "SetVertexShader" << std::endl;
@@ -1191,7 +1191,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::SetVertexShader(IDirect3DVertexShader9* pS
 /**
 * Base GetVertexShader functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::GetVertexShader(IDirect3DVertexShader9** ppShader)
+HRESULT WINAPI D3D9ProxyDeviceEx::GetVertexShader(IDirect3DVertexShader9** ppShader)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "GetVertexShader" << std::endl;
@@ -1203,7 +1203,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::GetVertexShader(IDirect3DVertexShader9** p
 /**
 * Base SetVertexShaderConstantF functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::SetVertexShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount)
+HRESULT WINAPI D3D9ProxyDeviceEx::SetVertexShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "SetVertexShaderConstantF" << std::endl;
@@ -1215,7 +1215,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::SetVertexShaderConstantF(UINT StartRegiste
 /**
 * Base GetVertexShaderConstantF functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::GetVertexShaderConstantF(UINT StartRegister,float* pConstantData,UINT Vector4fCount)
+HRESULT WINAPI D3D9ProxyDeviceEx::GetVertexShaderConstantF(UINT StartRegister,float* pConstantData,UINT Vector4fCount)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "GetVertexShaderConstantF" << std::endl;
@@ -1227,7 +1227,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::GetVertexShaderConstantF(UINT StartRegiste
 /**
 * Base SetVertexShaderConstantI functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::SetVertexShaderConstantI(UINT StartRegister,CONST int* pConstantData,UINT Vector4iCount)
+HRESULT WINAPI D3D9ProxyDeviceEx::SetVertexShaderConstantI(UINT StartRegister,CONST int* pConstantData,UINT Vector4iCount)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "SetVertexShaderConstantI" << std::endl;
@@ -1239,7 +1239,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::SetVertexShaderConstantI(UINT StartRegiste
 /**
 * Base GetVertexShaderConstantI functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::GetVertexShaderConstantI(UINT StartRegister,int* pConstantData,UINT Vector4iCount)
+HRESULT WINAPI D3D9ProxyDeviceEx::GetVertexShaderConstantI(UINT StartRegister,int* pConstantData,UINT Vector4iCount)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "GetVertexShaderConstantI" << std::endl;
@@ -1251,7 +1251,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::GetVertexShaderConstantI(UINT StartRegiste
 /**
 * Base SetVertexShaderConstantB functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::SetVertexShaderConstantB(UINT StartRegister,CONST BOOL* pConstantData,UINT  BoolCount)
+HRESULT WINAPI D3D9ProxyDeviceEx::SetVertexShaderConstantB(UINT StartRegister,CONST BOOL* pConstantData,UINT  BoolCount)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "SetVertexShaderConstantB" << std::endl;
@@ -1263,7 +1263,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::SetVertexShaderConstantB(UINT StartRegiste
 /**
 * Base GetVertexShaderConstantB functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::GetVertexShaderConstantB(UINT StartRegister,BOOL* pConstantData,UINT BoolCount)
+HRESULT WINAPI D3D9ProxyDeviceEx::GetVertexShaderConstantB(UINT StartRegister,BOOL* pConstantData,UINT BoolCount)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "GetVertexShaderConstantB" << std::endl;
@@ -1275,7 +1275,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::GetVertexShaderConstantB(UINT StartRegiste
 /**
 * Base SetStreamSource functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::SetStreamSource(UINT StreamNumber,IDirect3DVertexBuffer9* pStreamData,UINT OffsetInBytes,UINT Stride)
+HRESULT WINAPI D3D9ProxyDeviceEx::SetStreamSource(UINT StreamNumber,IDirect3DVertexBuffer9* pStreamData,UINT OffsetInBytes,UINT Stride)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "SetStreamSource" << std::endl;
@@ -1287,7 +1287,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::SetStreamSource(UINT StreamNumber,IDirect3
 /**
 * Base GetStreamSource functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::GetStreamSource(UINT StreamNumber,IDirect3DVertexBuffer9** ppStreamData,UINT* pOffsetInBytes,UINT* pStride)
+HRESULT WINAPI D3D9ProxyDeviceEx::GetStreamSource(UINT StreamNumber,IDirect3DVertexBuffer9** ppStreamData,UINT* pOffsetInBytes,UINT* pStride)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "GetStreamSource" << std::endl;
@@ -1299,7 +1299,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::GetStreamSource(UINT StreamNumber,IDirect3
 /**
 * Base SetStreamSourceFreq functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::SetStreamSourceFreq(UINT StreamNumber,UINT Setting)
+HRESULT WINAPI D3D9ProxyDeviceEx::SetStreamSourceFreq(UINT StreamNumber,UINT Setting)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "SetStreamSourceFreq" << std::endl;
@@ -1311,7 +1311,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::SetStreamSourceFreq(UINT StreamNumber,UINT
 /**
 * Base GetStreamSourceFreq functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::GetStreamSourceFreq(UINT StreamNumber,UINT* pSetting)
+HRESULT WINAPI D3D9ProxyDeviceEx::GetStreamSourceFreq(UINT StreamNumber,UINT* pSetting)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "GetStreamSourceFreq" << std::endl;
@@ -1323,7 +1323,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::GetStreamSourceFreq(UINT StreamNumber,UINT
 /**
 * Base SetIndices functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::SetIndices(IDirect3DIndexBuffer9* pIndexData)
+HRESULT WINAPI D3D9ProxyDeviceEx::SetIndices(IDirect3DIndexBuffer9* pIndexData)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "SetIndices" << std::endl;
@@ -1335,7 +1335,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::SetIndices(IDirect3DIndexBuffer9* pIndexDa
 /**
 * Base GetIndices functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::GetIndices(IDirect3DIndexBuffer9** ppIndexData)
+HRESULT WINAPI D3D9ProxyDeviceEx::GetIndices(IDirect3DIndexBuffer9** ppIndexData)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "GetIndices" << std::endl;
@@ -1347,7 +1347,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::GetIndices(IDirect3DIndexBuffer9** ppIndex
 /**
 * Base CreatePixelShader functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::CreatePixelShader(CONST DWORD* pFunction,IDirect3DPixelShader9** ppShader)
+HRESULT WINAPI D3D9ProxyDeviceEx::CreatePixelShader(CONST DWORD* pFunction,IDirect3DPixelShader9** ppShader)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "CreatePixelShader" << std::endl;
@@ -1359,7 +1359,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::CreatePixelShader(CONST DWORD* pFunction,I
 /**
 * Base SetPixelShader functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::SetPixelShader(IDirect3DPixelShader9* pShader)
+HRESULT WINAPI D3D9ProxyDeviceEx::SetPixelShader(IDirect3DPixelShader9* pShader)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "SetPixelShader" << std::endl;
@@ -1371,7 +1371,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::SetPixelShader(IDirect3DPixelShader9* pSha
 /**
 * Base GetPixelShader functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::GetPixelShader(IDirect3DPixelShader9** ppShader)
+HRESULT WINAPI D3D9ProxyDeviceEx::GetPixelShader(IDirect3DPixelShader9** ppShader)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "GetPixelShader" << std::endl;
@@ -1383,7 +1383,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::GetPixelShader(IDirect3DPixelShader9** ppS
 /**
 * Base SetPixelShaderConstantF functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::SetPixelShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount)
+HRESULT WINAPI D3D9ProxyDeviceEx::SetPixelShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "SetPixelShaderConstantF" << std::endl;
@@ -1395,7 +1395,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::SetPixelShaderConstantF(UINT StartRegister
 /**
 * Base GetPixelShaderConstantF functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::GetPixelShaderConstantF(UINT StartRegister,float* pConstantData,UINT Vector4fCount)
+HRESULT WINAPI D3D9ProxyDeviceEx::GetPixelShaderConstantF(UINT StartRegister,float* pConstantData,UINT Vector4fCount)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "GetPixelShaderConstantF" << std::endl;
@@ -1407,7 +1407,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::GetPixelShaderConstantF(UINT StartRegister
 /**
 * Base SetPixelShaderConstantI functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::SetPixelShaderConstantI(UINT StartRegister,CONST int* pConstantData,UINT Vector4iCount)
+HRESULT WINAPI D3D9ProxyDeviceEx::SetPixelShaderConstantI(UINT StartRegister,CONST int* pConstantData,UINT Vector4iCount)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "SetPixelShaderConstantI" << std::endl;
@@ -1419,7 +1419,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::SetPixelShaderConstantI(UINT StartRegister
 /**
 * Base GetPixelShaderConstantI functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::GetPixelShaderConstantI(UINT StartRegister,int* pConstantData,UINT Vector4iCount)
+HRESULT WINAPI D3D9ProxyDeviceEx::GetPixelShaderConstantI(UINT StartRegister,int* pConstantData,UINT Vector4iCount)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "GetPixelShaderConstantI" << std::endl;
@@ -1431,7 +1431,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::GetPixelShaderConstantI(UINT StartRegister
 /**
 * Base SetPixelShaderConstantB functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::SetPixelShaderConstantB(UINT StartRegister,CONST BOOL* pConstantData,UINT  BoolCount)
+HRESULT WINAPI D3D9ProxyDeviceEx::SetPixelShaderConstantB(UINT StartRegister,CONST BOOL* pConstantData,UINT  BoolCount)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "SetPixelShaderConstantB" << std::endl;
@@ -1443,7 +1443,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::SetPixelShaderConstantB(UINT StartRegister
 /**
 * Base GetPixelShaderConstantB functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::GetPixelShaderConstantB(UINT StartRegister,BOOL* pConstantData,UINT BoolCount)
+HRESULT WINAPI D3D9ProxyDeviceEx::GetPixelShaderConstantB(UINT StartRegister,BOOL* pConstantData,UINT BoolCount)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "GetPixelShaderConstantB" << std::endl;
@@ -1455,7 +1455,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::GetPixelShaderConstantB(UINT StartRegister
 /**
 * Base DrawRectPatch functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::DrawRectPatch(UINT Handle,CONST float* pNumSegs,CONST D3DRECTPATCH_INFO* pRectPatchInfo)
+HRESULT WINAPI D3D9ProxyDeviceEx::DrawRectPatch(UINT Handle,CONST float* pNumSegs,CONST D3DRECTPATCH_INFO* pRectPatchInfo)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "DrawRectPatch" << std::endl;
@@ -1467,7 +1467,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::DrawRectPatch(UINT Handle,CONST float* pNu
 /**
 * Base DrawTriPatch functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::DrawTriPatch(UINT Handle,CONST float* pNumSegs,CONST D3DTRIPATCH_INFO* pTriPatchInfo)
+HRESULT WINAPI D3D9ProxyDeviceEx::DrawTriPatch(UINT Handle,CONST float* pNumSegs,CONST D3DTRIPATCH_INFO* pTriPatchInfo)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "DrawTriPatch" << std::endl;
@@ -1479,7 +1479,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::DrawTriPatch(UINT Handle,CONST float* pNum
 /**
 * Base DeletePatch functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::DeletePatch(UINT Handle)
+HRESULT WINAPI D3D9ProxyDeviceEx::DeletePatch(UINT Handle)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "DeletePatch" << std::endl;
@@ -1491,7 +1491,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::DeletePatch(UINT Handle)
 /**
 * Base CreateQuery functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::CreateQuery(D3DQUERYTYPE Type,IDirect3DQuery9** ppQuery)
+HRESULT WINAPI D3D9ProxyDeviceEx::CreateQuery(D3DQUERYTYPE Type,IDirect3DQuery9** ppQuery)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "CreateQuery" << std::endl;
@@ -1503,7 +1503,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::CreateQuery(D3DQUERYTYPE Type,IDirect3DQue
 /**
 * Base SetConvolutionMonoKernel functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::SetConvolutionMonoKernel(UINT width,UINT height,float* rows,float* columns)
+HRESULT WINAPI D3D9ProxyDeviceEx::SetConvolutionMonoKernel(UINT width,UINT height,float* rows,float* columns)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "SetConvolutionMonoKernel" << std::endl;
@@ -1515,7 +1515,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::SetConvolutionMonoKernel(UINT width,UINT h
 /**
 * Base ComposeRects functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::ComposeRects(IDirect3DSurface9* pSrc,IDirect3DSurface9* pDst,IDirect3DVertexBuffer9* pSrcRectDescs,UINT NumRects,IDirect3DVertexBuffer9* pDstRectDescs,D3DCOMPOSERECTSOP Operation,int Xoffset,int Yoffset)
+HRESULT WINAPI D3D9ProxyDeviceEx::ComposeRects(IDirect3DSurface9* pSrc,IDirect3DSurface9* pDst,IDirect3DVertexBuffer9* pSrcRectDescs,UINT NumRects,IDirect3DVertexBuffer9* pDstRectDescs,D3DCOMPOSERECTSOP Operation,int Xoffset,int Yoffset)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "ComposeRects" << std::endl;
@@ -1527,7 +1527,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::ComposeRects(IDirect3DSurface9* pSrc,IDire
 /**
 * Base PresentEx functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::PresentEx(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion,DWORD dwFlags)
+HRESULT WINAPI D3D9ProxyDeviceEx::PresentEx(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion,DWORD dwFlags)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "PresentEx" << std::endl;
@@ -1539,7 +1539,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::PresentEx(CONST RECT* pSourceRect,CONST RE
 /**
 * Base GetGPUThreadPriority functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::GetGPUThreadPriority(INT* pPriority)
+HRESULT WINAPI D3D9ProxyDeviceEx::GetGPUThreadPriority(INT* pPriority)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "GetGPUThreadPriority" << std::endl;
@@ -1551,7 +1551,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::GetGPUThreadPriority(INT* pPriority)
 /**
 * Base SetGPUThreadPriority functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::SetGPUThreadPriority(INT Priority)
+HRESULT WINAPI D3D9ProxyDeviceEx::SetGPUThreadPriority(INT Priority)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "SetGPUThreadPriority" << std::endl;
@@ -1563,7 +1563,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::SetGPUThreadPriority(INT Priority)
 /**
 * Base WaitForVBlank functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::WaitForVBlank(UINT iSwapChain)
+HRESULT WINAPI D3D9ProxyDeviceEx::WaitForVBlank(UINT iSwapChain)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "WaitForVBlank" << std::endl;
@@ -1575,7 +1575,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::WaitForVBlank(UINT iSwapChain)
 /**
 * Base CheckResourceResidency functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::CheckResourceResidency(IDirect3DResource9** pResourceArray,UINT32 NumResources)
+HRESULT WINAPI D3D9ProxyDeviceEx::CheckResourceResidency(IDirect3DResource9** pResourceArray,UINT32 NumResources)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "CheckResourceResidency" << std::endl;
@@ -1587,7 +1587,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::CheckResourceResidency(IDirect3DResource9*
 /**
 * Base SetMaximumFrameLatency functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::SetMaximumFrameLatency(UINT MaxLatency)
+HRESULT WINAPI D3D9ProxyDeviceEx::SetMaximumFrameLatency(UINT MaxLatency)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "SetMaximumFrameLatency" << std::endl;
@@ -1599,7 +1599,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::SetMaximumFrameLatency(UINT MaxLatency)
 /**
 * Base GetMaximumFrameLatency functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::GetMaximumFrameLatency(UINT* pMaxLatency)
+HRESULT WINAPI D3D9ProxyDeviceEx::GetMaximumFrameLatency(UINT* pMaxLatency)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "GetMaximumFrameLatency" << std::endl;
@@ -1611,7 +1611,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::GetMaximumFrameLatency(UINT* pMaxLatency)
 /**
 * Base CheckDeviceState functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::CheckDeviceState(HWND hDestinationWindow)
+HRESULT WINAPI D3D9ProxyDeviceEx::CheckDeviceState(HWND hDestinationWindow)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "CheckDeviceState" << std::endl;
@@ -1623,7 +1623,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::CheckDeviceState(HWND hDestinationWindow)
 /**
 * Base CreateRenderTargetEx functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::CreateRenderTargetEx(UINT Width,UINT Height,D3DFORMAT Format,D3DMULTISAMPLE_TYPE MultiSample,DWORD MultisampleQuality,BOOL Lockable,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle,DWORD Usage)
+HRESULT WINAPI D3D9ProxyDeviceEx::CreateRenderTargetEx(UINT Width,UINT Height,D3DFORMAT Format,D3DMULTISAMPLE_TYPE MultiSample,DWORD MultisampleQuality,BOOL Lockable,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle,DWORD Usage)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "CreateRenderTargetEx" << std::endl;
@@ -1635,7 +1635,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::CreateRenderTargetEx(UINT Width,UINT Heigh
 /**
 * Base CreateOffscreenPlainSurfaceEx functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::CreateOffscreenPlainSurfaceEx(UINT Width,UINT Height,D3DFORMAT Format,D3DPOOL Pool,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle,DWORD Usage)
+HRESULT WINAPI D3D9ProxyDeviceEx::CreateOffscreenPlainSurfaceEx(UINT Width,UINT Height,D3DFORMAT Format,D3DPOOL Pool,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle,DWORD Usage)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "CreateOffscreenPlainSurfaceEx" << std::endl;
@@ -1647,7 +1647,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::CreateOffscreenPlainSurfaceEx(UINT Width,U
 /**
 * Base CreateDepthStencilSurfaceEx functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::CreateDepthStencilSurfaceEx(UINT Width,UINT Height,D3DFORMAT Format,D3DMULTISAMPLE_TYPE MultiSample,DWORD MultisampleQuality,BOOL Discard,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle,DWORD Usage)
+HRESULT WINAPI D3D9ProxyDeviceEx::CreateDepthStencilSurfaceEx(UINT Width,UINT Height,D3DFORMAT Format,D3DMULTISAMPLE_TYPE MultiSample,DWORD MultisampleQuality,BOOL Discard,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle,DWORD Usage)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "CreateDepthStencilSurfaceEx" << std::endl;
@@ -1659,7 +1659,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::CreateDepthStencilSurfaceEx(UINT Width,UIN
 /**
 * Base ResetEx functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::ResetEx(D3DPRESENT_PARAMETERS* pPresentationParameters,D3DDISPLAYMODEEX *pFullscreenDisplayMode)
+HRESULT WINAPI D3D9ProxyDeviceEx::ResetEx(D3DPRESENT_PARAMETERS* pPresentationParameters,D3DDISPLAYMODEEX *pFullscreenDisplayMode)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "ResetEx" << std::endl;
@@ -1671,7 +1671,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::ResetEx(D3DPRESENT_PARAMETERS* pPresentati
 /**
 * Base GetDisplayModeEx functionality.
 ***/
-HRESULT WINAPI BaseDirect3DDevice9Ex::GetDisplayModeEx(UINT iSwapChain,D3DDISPLAYMODEEX* pMode,D3DDISPLAYROTATION* pRotation)
+HRESULT WINAPI D3D9ProxyDeviceEx::GetDisplayModeEx(UINT iSwapChain,D3DDISPLAYMODEEX* pMode,D3DDISPLAYROTATION* pRotation)
 {
 #ifdef _EXPORT_LOGFILE
 	m_logFile << "GetDisplayModeEx" << std::endl;
@@ -1683,7 +1683,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::GetDisplayModeEx(UINT iSwapChain,D3DDISPLA
 /**
 * Returns the actual embedded device pointer.
 ***/
-IDirect3DDevice9Ex* BaseDirect3DDevice9Ex::getActual()
+IDirect3DDevice9Ex* D3D9ProxyDeviceEx::getActual()
 {
 	return m_pDeviceEx;
 }

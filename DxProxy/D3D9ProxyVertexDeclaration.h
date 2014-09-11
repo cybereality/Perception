@@ -3,7 +3,7 @@ Vireio Perception: Open-Source Stereoscopic 3D Driver
 Copyright (C) 2012 Andres Hernandez
 
 File <Direct3DVertexDeclaration9.cpp> and
-Class <BaseDirect3DVertexDeclaration9> :
+Class <D3D9ProxyVertexDeclaration> :
 Copyright (C) 2013 Chris Drain
 
 Vireio Perception Version History:
@@ -37,11 +37,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 *  Direct 3D verex declaration class. 
 *  Overwrites IDirect3DVertexDeclaration9 and imbeds the actual vertex declaration.
 */
-class BaseDirect3DVertexDeclaration9 : public IDirect3DVertexDeclaration9
+class D3D9ProxyVertexDeclaration : public IDirect3DVertexDeclaration9
 {
 public:
-	BaseDirect3DVertexDeclaration9(IDirect3DVertexDeclaration9* pActualVertexDeclaration, IDirect3DDevice9* pOwningDevice);
-	virtual ~BaseDirect3DVertexDeclaration9();
+	D3D9ProxyVertexDeclaration(IDirect3DVertexDeclaration9* pActualVertexDeclaration, IDirect3DDevice9* pOwningDevice);
+	virtual ~D3D9ProxyVertexDeclaration();
 
 	/*** IUnknown methods ***/
 	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv);
@@ -52,7 +52,7 @@ public:
 	virtual HRESULT WINAPI GetDevice(IDirect3DDevice9 **ppDevice);
 	virtual HRESULT WINAPI GetDeclaration(D3DVERTEXELEMENT9 *pDecl, UINT *pNumElements);
 
-	/*** BaseDirect3DVertexDeclaration9 methods ***/
+	/*** D3D9ProxyVertexDeclaration methods ***/
 	IDirect3DVertexDeclaration9* getActual();
 
 protected:

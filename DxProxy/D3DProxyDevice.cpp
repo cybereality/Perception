@@ -90,7 +90,7 @@ UINT GetMouseScrollLines()
 /**
 * Constructor : creates game handler and sets various states.
 ***/
-D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy) :
+D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, D3D9ProxyDirect3D* pCreatedBy) :
 	m_pDevice(pDevice),
 	m_pCreatedBy(pCreatedBy),
 	m_nRefCount(1),
@@ -700,8 +700,8 @@ HRESULT WINAPI D3DProxyDevice::CreateCubeTexture(UINT EdgeLength, UINT Levels, D
 }
 
 /**
-* Creates base vertex buffer pointer (BaseDirect3DVertexBuffer9).
-* @see BaseDirect3DVertexBuffer9
+* Creates base vertex buffer pointer (D3D9ProxyVertexBuffer).
+* @see D3D9ProxyVertexBuffer
 ***/
 HRESULT WINAPI D3DProxyDevice::CreateVertexBuffer(UINT Length, DWORD Usage, DWORD FVF, D3DPOOL Pool, IDirect3DVertexBuffer9** ppVertexBuffer, HANDLE* pSharedHandle)
 {
@@ -712,14 +712,14 @@ HRESULT WINAPI D3DProxyDevice::CreateVertexBuffer(UINT Length, DWORD Usage, DWOR
 	HRESULT creationResult = m_pDevice->CreateVertexBuffer(Length, Usage, FVF, Pool, &pActualBuffer, pSharedHandle);
 
 	if (SUCCEEDED(creationResult))
-		*ppVertexBuffer = new BaseDirect3DVertexBuffer9(pActualBuffer, this);
+		*ppVertexBuffer = new D3D9ProxyVertexBuffer(pActualBuffer, this);
 
 	return creationResult;
 }
 
 /**
-* * Creates base index buffer pointer (BaseDirect3DIndexBuffer9).
-* @see BaseDirect3DIndexBuffer9
+* * Creates base index buffer pointer (D3D9ProxyIndexBuffer).
+* @see D3D9ProxyIndexBuffer
 ***/
 HRESULT WINAPI D3DProxyDevice::CreateIndexBuffer(UINT Length,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool,IDirect3DIndexBuffer9** ppIndexBuffer,HANDLE* pSharedHandle)
 {
@@ -730,7 +730,7 @@ HRESULT WINAPI D3DProxyDevice::CreateIndexBuffer(UINT Length,DWORD Usage,D3DFORM
 	HRESULT creationResult = m_pDevice->CreateIndexBuffer(Length, Usage, Format, Pool, &pActualBuffer, pSharedHandle);
 
 	if (SUCCEEDED(creationResult))
-		*ppIndexBuffer = new BaseDirect3DIndexBuffer9(pActualBuffer, this);
+		*ppIndexBuffer = new D3D9ProxyIndexBuffer(pActualBuffer, this);
 
 	return creationResult;
 }
@@ -2120,12 +2120,12 @@ HRESULT WINAPI D3DProxyDevice::ProcessVertices(UINT SrcStartIndex,UINT DestIndex
 
 	m_spManagedShaderRegisters->ApplyAllDirty(m_currentRenderingSide);
 
-	BaseDirect3DVertexBuffer9* pCastDestBuffer = static_cast<BaseDirect3DVertexBuffer9*>(pDestBuffer);
-	BaseDirect3DVertexDeclaration9* pCastVertexDeclaration = NULL;
+	D3D9ProxyVertexBuffer* pCastDestBuffer = static_cast<D3D9ProxyVertexBuffer*>(pDestBuffer);
+	D3D9ProxyVertexDeclaration* pCastVertexDeclaration = NULL;
 
 	HRESULT result;
 	if (pVertexDecl) {
-		pCastVertexDeclaration = static_cast<BaseDirect3DVertexDeclaration9*>(pVertexDecl);
+		pCastVertexDeclaration = static_cast<D3D9ProxyVertexDeclaration*>(pVertexDecl);
 		result = m_pDevice->ProcessVertices(SrcStartIndex, DestIndex, VertexCount, pCastDestBuffer->getActual(), pCastVertexDeclaration->getActual(), Flags);
 	}
 	else {
@@ -2136,7 +2136,7 @@ HRESULT WINAPI D3DProxyDevice::ProcessVertices(UINT SrcStartIndex,UINT DestIndex
 }
 
 /**
-* Creates base vertex declaration (BaseDirect3DVertexDeclaration9).
+* Creates base vertex declaration (D3D9ProxyVertexDeclaration).
 ***/
 HRESULT WINAPI D3DProxyDevice::CreateVertexDeclaration(CONST D3DVERTEXELEMENT9* pVertexElements,IDirect3DVertexDeclaration9** ppDecl)
 {
@@ -2147,7 +2147,7 @@ HRESULT WINAPI D3DProxyDevice::CreateVertexDeclaration(CONST D3DVERTEXELEMENT9* 
 	HRESULT creationResult = m_pDevice->CreateVertexDeclaration(pVertexElements, &pActualVertexDeclaration );
 
 	if (SUCCEEDED(creationResult))
-		*ppDecl = new BaseDirect3DVertexDeclaration9(pActualVertexDeclaration, this);
+		*ppDecl = new D3D9ProxyVertexDeclaration(pActualVertexDeclaration, this);
 
 	return creationResult;
 }
@@ -2162,7 +2162,7 @@ HRESULT WINAPI D3DProxyDevice::SetVertexDeclaration(IDirect3DVertexDeclaration9*
 	#ifdef SHOW_CALLS
 		OutputDebugString("called SetVertexDeclaration");
 	#endif
-	BaseDirect3DVertexDeclaration9* pWrappedVDeclarationData = static_cast<BaseDirect3DVertexDeclaration9*>(pDecl);
+	D3D9ProxyVertexDeclaration* pWrappedVDeclarationData = static_cast<D3D9ProxyVertexDeclaration*>(pDecl);
 
 	// Update actual Vertex Declaration
 	HRESULT result;
@@ -2423,7 +2423,7 @@ HRESULT WINAPI D3DProxyDevice::SetStreamSource(UINT StreamNumber, IDirect3DVerte
 	#ifdef SHOW_CALLS
 		OutputDebugString("called SetStreamSource");
 	#endif
-	BaseDirect3DVertexBuffer9* pCastStreamData = static_cast<BaseDirect3DVertexBuffer9*>(pStreamData);
+	D3D9ProxyVertexBuffer* pCastStreamData = static_cast<D3D9ProxyVertexBuffer*>(pStreamData);
 	HRESULT result;
 	if (pStreamData) {		
 		result = m_pDevice->SetStreamSource(StreamNumber, pCastStreamData->getActual(), OffsetInBytes, Stride);
@@ -2455,7 +2455,7 @@ HRESULT WINAPI D3DProxyDevice::SetStreamSource(UINT StreamNumber, IDirect3DVerte
 			}
 
 			// insert new vertex buffer
-			if(m_activeVertexBuffers.insert(std::pair<UINT, BaseDirect3DVertexBuffer9*>(StreamNumber, pCastStreamData)).second) {
+			if(m_activeVertexBuffers.insert(std::pair<UINT, D3D9ProxyVertexBuffer*>(StreamNumber, pCastStreamData)).second) {
 				//success
 				if (pStreamData)
 					pStreamData->AddRef();
@@ -2539,7 +2539,7 @@ HRESULT WINAPI D3DProxyDevice::SetIndices(IDirect3DIndexBuffer9* pIndexData)
 	#ifdef SHOW_CALLS
 		OutputDebugString("called SetIndices");
 	#endif
-	BaseDirect3DIndexBuffer9* pWrappedNewIndexData = static_cast<BaseDirect3DIndexBuffer9*>(pIndexData);
+	D3D9ProxyIndexBuffer* pWrappedNewIndexData = static_cast<D3D9ProxyIndexBuffer*>(pIndexData);
 
 	// Update actual index buffer
 	HRESULT result;
@@ -2821,7 +2821,7 @@ HRESULT WINAPI D3DProxyDevice::CreateQuery(D3DQUERYTYPE Type,IDirect3DQuery9** p
 	HRESULT creationResult = m_pDevice->CreateQuery(Type, &pActualQuery);
 
 	if (SUCCEEDED(creationResult)) {
-		*ppQuery = new BaseDirect3DQuery9(pActualQuery, this);
+		*ppQuery = new D3D9ProxyQuery(pActualQuery, this);
 	}
 
 	return creationResult;

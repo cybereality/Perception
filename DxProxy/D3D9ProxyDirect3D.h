@@ -3,7 +3,7 @@ Vireio Perception: Open-Source Stereoscopic 3D Driver
 Copyright (C) 2012 Andres Hernandez
 
 File <Direct3D9.h> and
-Class <BaseDirect3D9> :
+Class <D3D9ProxyDirect3D> :
 Copyright (C) 2012 Andres Hernandez
 
 Vireio Perception Version History:
@@ -38,11 +38,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 *  Direct 3D. 
 *  Overwrites IDirect3D9 and imbeds the actual D3D object pointer in m_pD3D.
 */
-class __declspec(dllexport) BaseDirect3D9 : public IDirect3D9
+class __declspec(dllexport) D3D9ProxyDirect3D : public IDirect3D9
 {
 public:
-	BaseDirect3D9(IDirect3D9* pD3D);
-	virtual ~BaseDirect3D9();
+	D3D9ProxyDirect3D(IDirect3D9* pD3D);
+	virtual ~D3D9ProxyDirect3D();
 
 	/*** IUnknown methods ***/
 	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv);

@@ -2,8 +2,8 @@
 Vireio Perception: Open-Source Stereoscopic 3D Driver
 Copyright (C) 2012 Andres Hernandez
 
-File <Direct3DVertexDeclaration9.cpp> and
-Class <BaseDirect3DVertexDeclaration9> :
+File <Direct3DQuery9.cpp> and
+Class <D3D9ProxyQuery> :
 Copyright (C) 2013 Chris Drain
 
 Vireio Perception Version History:
@@ -27,20 +27,20 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#include "Direct3DVertexDeclaration9.h"
+#include "D3D9ProxyQuery.h"
 #include <assert.h>
 
 /**
 * Constructor. 
-* @param pActualVertexDeclaration Imbed actual vertex declaration. 
-* @param pOwningDevice Pointer to the device that owns the declaration. 
+* @param pActualQuery Imbed actual query. 
+* @param pOwningDevice Pointer to the device that owns the query. 
 ***/
-BaseDirect3DVertexDeclaration9::BaseDirect3DVertexDeclaration9(IDirect3DVertexDeclaration9* pActualVertexDeclaration, IDirect3DDevice9 *pOwningDevice) :
-	m_pActualVertexDeclaration(pActualVertexDeclaration),
+D3D9ProxyQuery::D3D9ProxyQuery(IDirect3DQuery9* pActualQuery, IDirect3DDevice9* pOwningDevice) :
+	m_pActualQuery(pActualQuery),
 	m_pOwningDevice(pOwningDevice),
 	m_nRefCount(1)
 {
-	assert (pActualVertexDeclaration != NULL);
+	assert (pActualQuery != NULL);
 	assert (pOwningDevice != NULL);
 
 	pOwningDevice->AddRef();
@@ -48,29 +48,31 @@ BaseDirect3DVertexDeclaration9::BaseDirect3DVertexDeclaration9(IDirect3DVertexDe
 
 /**
 * Destructor. 
-* Releases embedded vertex declaration. 
+* Releases embedded query. 
 ***/
-BaseDirect3DVertexDeclaration9::~BaseDirect3DVertexDeclaration9()
+D3D9ProxyQuery::~D3D9ProxyQuery()
 {
-	if(m_pActualVertexDeclaration) 
-		m_pActualVertexDeclaration->Release();
+	if(m_pActualQuery) {
+		m_pActualQuery->Release();
+	}
 
-	if (m_pOwningDevice)
+	if (m_pOwningDevice) {
 		m_pOwningDevice->Release();
+	}
 }
 
 /**
 * Base QueryInterface functionality. 
 ***/
-HRESULT WINAPI BaseDirect3DVertexDeclaration9::QueryInterface(REFIID riid, LPVOID* ppv)
+HRESULT WINAPI D3D9ProxyQuery::QueryInterface(REFIID riid, LPVOID* ppv)
 {
-	return m_pActualVertexDeclaration->QueryInterface(riid, ppv);
+	return m_pActualQuery->QueryInterface(riid, ppv);
 }
 
 /**
 * Base AddRef functionality.
 ***/
-ULONG WINAPI BaseDirect3DVertexDeclaration9::AddRef()
+ULONG WINAPI D3D9ProxyQuery::AddRef()
 {
 	return ++m_nRefCount;
 }
@@ -78,7 +80,7 @@ ULONG WINAPI BaseDirect3DVertexDeclaration9::AddRef()
 /**
 * Base Release functionality.
 ***/
-ULONG WINAPI BaseDirect3DVertexDeclaration9::Release()
+ULONG WINAPI D3D9ProxyQuery::Release()
 {
 	if(--m_nRefCount == 0)
 	{
@@ -91,31 +93,45 @@ ULONG WINAPI BaseDirect3DVertexDeclaration9::Release()
 
 /**
 * Base GetDevice functionality.
-* TODO Test this. Docs don't have the notice that is usually there about a refcount increase
 ***/
-HRESULT WINAPI BaseDirect3DVertexDeclaration9::GetDevice(IDirect3DDevice9** ppDevice)
+HRESULT WINAPI D3D9ProxyQuery::GetDevice(IDirect3DDevice9** ppDevice)
 {
 	if (!m_pOwningDevice)
 		return D3DERR_INVALIDCALL;
 	else {
 		*ppDevice = m_pOwningDevice;
-		//m_pOwningDevice->AddRef(); //TODO Test this. Docs don't have the notice that is usually there about a refcount increase
 		return D3D_OK;
 	}
 }
 
 /**
-* Base GetDeclaration functionality.
+* Base GetType functionality.
 ***/
-HRESULT WINAPI BaseDirect3DVertexDeclaration9::GetDeclaration(D3DVERTEXELEMENT9 *pDecl, UINT *pNumElements)
+D3DQUERYTYPE WINAPI D3D9ProxyQuery::GetType()
 {
-	return m_pActualVertexDeclaration->GetDeclaration(pDecl, pNumElements);
+	return m_pActualQuery->GetType();
 }
 
 /**
-* Returns the actual embedded declaration pointer.
+* Base GetDataSize functionality.
 ***/
-IDirect3DVertexDeclaration9* BaseDirect3DVertexDeclaration9::getActual()
+DWORD WINAPI D3D9ProxyQuery::GetDataSize()
 {
-	return m_pActualVertexDeclaration;
+	return m_pActualQuery->GetDataSize();
+}
+
+/**
+* Base Issue functionality.
+***/
+HRESULT WINAPI D3D9ProxyQuery::Issue(DWORD dwIssueFlags)
+{
+	return m_pActualQuery->Issue(dwIssueFlags);
+}
+
+/**
+* Base GetData functionality.
+***/
+HRESULT WINAPI D3D9ProxyQuery::GetData(void* pData, DWORD dwSize, DWORD dwGetDataFlags)
+{
+	return m_pActualQuery->GetData(pData, dwSize, dwGetDataFlags);
 }

@@ -41,7 +41,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * @param pDevice The actual device pointer for the proxy constructor.
 * @param pCreatedBy Pointer to the object that created the device.
 ***/
-D3DProxyDevice* D3DProxyDeviceFactory::Get(ProxyHelper::ProxyConfig& config, IDirect3DDevice9* dev, BaseDirect3D9* pCreatedBy)
+D3DProxyDevice* D3DProxyDeviceFactory::Get(ProxyHelper::ProxyConfig& config, IDirect3DDevice9* dev, D3D9ProxyDirect3D* pCreatedBy)
 {
 	D3DProxyDevice* newDev = NULL;
 

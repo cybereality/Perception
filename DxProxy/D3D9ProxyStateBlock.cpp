@@ -295,7 +295,7 @@ HRESULT WINAPI D3D9ProxyStateBlock::Apply()
 				m_pWrappedDevice->m_activeVertexBuffers.erase(itVertexBuffer->first);
 			}
 
-			auto inserted = m_pWrappedDevice->m_activeVertexBuffers.insert(std::pair<UINT, BaseDirect3DVertexBuffer9*>(itVertexBuffer->first, itVertexBuffer->second));
+			auto inserted = m_pWrappedDevice->m_activeVertexBuffers.insert(std::pair<UINT, D3D9ProxyVertexBuffer*>(itVertexBuffer->first, itVertexBuffer->second));
 			// insert success and buffer not NULL
 			if (inserted.second && inserted.first->second) {
 				inserted.first->second->AddRef();
@@ -389,7 +389,7 @@ HRESULT WINAPI D3D9ProxyStateBlock::Apply()
 * @param pWrappedIndexBuffer The wrapped index buffer to be captured.
 * @see D3D9ProxyStateBlock::CaptureableState
 ***/
-void D3D9ProxyStateBlock::SelectAndCaptureState(BaseDirect3DIndexBuffer9* pWrappedIndexBuffer)
+void D3D9ProxyStateBlock::SelectAndCaptureState(D3D9ProxyIndexBuffer* pWrappedIndexBuffer)
 {
 	assert(m_eCaptureMode == Cap_Type_Selected);
 	assert (m_pWrappedDevice->m_bInBeginEndStateBlock);
@@ -527,7 +527,7 @@ void D3D9ProxyStateBlock::SelectAndCaptureState(D3D9ProxyVertexShader* pWrappedV
 * @param pWrappedVertexDeclaration The vertex declaration to be captured.
 * @see D3D9ProxyStateBlock::CaptureableState
 ***/
-void D3D9ProxyStateBlock::SelectAndCaptureState(BaseDirect3DVertexDeclaration9* pWrappedVertexDeclaration)
+void D3D9ProxyStateBlock::SelectAndCaptureState(D3D9ProxyVertexDeclaration* pWrappedVertexDeclaration)
 {
 	assert(m_eCaptureMode == Cap_Type_Selected);
 	assert (m_pWrappedDevice->m_bInBeginEndStateBlock);
@@ -583,7 +583,7 @@ void D3D9ProxyStateBlock::SelectAndCaptureState(DWORD Stage, IDirect3DBaseTextur
 * Use these methods when the respective methods on the device are called between Start/End StateBlock.
 * @param pWrappedStreamData The vertex buffer to be captured.
 ***/
-void D3D9ProxyStateBlock::SelectAndCaptureState(UINT StreamNumber, BaseDirect3DVertexBuffer9* pWrappedStreamData)
+void D3D9ProxyStateBlock::SelectAndCaptureState(UINT StreamNumber, D3D9ProxyVertexBuffer* pWrappedStreamData)
 {
 	assert(m_eCaptureMode == Cap_Type_Selected);
 	assert (m_pWrappedDevice->m_bInBeginEndStateBlock);
@@ -592,7 +592,7 @@ void D3D9ProxyStateBlock::SelectAndCaptureState(UINT StreamNumber, BaseDirect3DV
 	m_selectedVertexStreams.insert(StreamNumber);
 
 	if (m_storedVertexBuffers.count(StreamNumber) == 1) {
-		BaseDirect3DVertexBuffer9* pOldBuffer = m_storedVertexBuffers.at(StreamNumber);
+		D3D9ProxyVertexBuffer* pOldBuffer = m_storedVertexBuffers.at(StreamNumber);
 
 		if (pOldBuffer)
 			pOldBuffer->Release();
@@ -600,7 +600,7 @@ void D3D9ProxyStateBlock::SelectAndCaptureState(UINT StreamNumber, BaseDirect3DV
 		m_storedVertexBuffers.erase(StreamNumber);
 	}
 
-	if(m_storedVertexBuffers.insert(std::pair<DWORD, BaseDirect3DVertexBuffer9*>(StreamNumber, pWrappedStreamData)).second) {
+	if(m_storedVertexBuffers.insert(std::pair<DWORD, D3D9ProxyVertexBuffer*>(StreamNumber, pWrappedStreamData)).second) {
 		if (pWrappedStreamData)
 			pWrappedStreamData->AddRef();
 	}
@@ -794,7 +794,7 @@ void D3D9ProxyStateBlock::CaptureSelectedFromProxyDevice()
 
 				if (m_pWrappedDevice->m_activeVertexBuffers.count(*itSelectedVertexStreams) == 1) {
 
-					auto inserted = m_storedVertexBuffers.insert(std::pair<UINT, BaseDirect3DVertexBuffer9*>(*itSelectedVertexStreams, m_pWrappedDevice->m_activeVertexBuffers[*itSelectedVertexStreams]));
+					auto inserted = m_storedVertexBuffers.insert(std::pair<UINT, D3D9ProxyVertexBuffer*>(*itSelectedVertexStreams, m_pWrappedDevice->m_activeVertexBuffers[*itSelectedVertexStreams]));
 					// insert success and buffer is not NULL
 					if (inserted.second && inserted.first->second) {
 						inserted.first->second->AddRef();

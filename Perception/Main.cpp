@@ -70,9 +70,9 @@ public:
 			combobox_control * This = (combobox_control *)GetWindowLongPtr(hwnd, GWL_USERDATA);
 			return DefWindowProc(hwnd, message, wparam, lparam);
 	}
-	void add_item(char * string) {
+	void add_item(char * string , bool select ) {
 		int index = (int)SendMessage(combobox_handle, CB_INSERTSTRING, -1, (LPARAM)string);
-		if ( index == 0 ) {
+		if ( index == 0 || select ) {
 			SendMessage(combobox_handle, CB_SETCURSEL, index, 0);
 		}
 	}
@@ -326,12 +326,9 @@ public:
 		}   
 	} 
 
-	void add_item(char * string) {
-		combobox->add_item(string);
-	}
 
 	void add_item2(char * string) {
-		combobox2->add_item(string);
+		combobox2->add_item(string,false);
 	}
 };  
 
@@ -355,13 +352,6 @@ int WINAPI wWinMain(HINSTANCE instance_handle, HINSTANCE, LPWSTR, INT) {
 
 	frame_window main_window("perception");
 
-	for( StereoMode& m : GetStereoModes() ){
-		char tb[512];
-		_snprintf( tb , sizeof(tb) , "%s\t%d" , m.name.c_str() , m.type );
-		tb[511] = 0;
-
-		main_window.add_item( tb );
-	}
 
 
 	main_window.add_item2("No Tracking\t0");
@@ -375,7 +365,19 @@ int WINAPI wWinMain(HINSTANCE instance_handle, HINSTANCE, LPWSTR, INT) {
 	ProxyHelper helper = ProxyHelper();
 	helper.LoadUserConfig(mode, mode2);
 
-	SendMessage(main_window.combobox->combobox_handle, CB_SETCURSEL, mode, 0);
+
+	for( StereoMode& m : GetStereoModes() ){
+		
+		char tb[512];
+		_snprintf(tb, sizeof(tb), "%s\t%d", m.name.c_str(), m.type);
+		tb[511] = 0;
+
+
+		main_window.combobox->add_item( tb , (m.type == mode) );
+	}
+
+
+	
 	SendMessage(main_window.combobox2->combobox_handle, CB_SETCURSEL, trackerModes[mode2], 0);
 
 	main_window.run();

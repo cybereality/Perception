@@ -36,19 +36,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <unordered_set>
 #include <unordered_map>
 #include <map>
-#include "Direct3DVertexBuffer9.h"
-#include "Direct3DIndexBuffer9.h"
+#include "D3D9ProxyVertexBuffer.h"
+#include "D3D9ProxyIndexBuffer.h"
 #include "D3D9ProxyPixelShader.h"
 #include "D3D9ProxyVertexShader.h"
-#include "Direct3DVertexDeclaration9.h"
+#include "D3D9ProxyVertexDeclaration.h"
 #include "StereoShaderConstant.h"
 
 class BaseDirect3DStateBlock9;
 class D3DProxyDevice;
 class D3D9ProxyPixelShader;
 class D3D9ProxyVertexShader;
-class BaseDirect3DIndexBuffer9;
-class BaseDirect3DVertexDeclaration9;
+class D3D9ProxyIndexBuffer;
+class D3D9ProxyVertexDeclaration;
 /**
 * D3D proxy state block class - broker class for any device states.
 *
@@ -143,15 +143,15 @@ public:
 	virtual HRESULT WINAPI Apply();
 
 	/*** D3D9ProxyStateBlock public methods ***/ 
-	void           SelectAndCaptureState(BaseDirect3DIndexBuffer9* pWrappedIndexBuffer);
+	void           SelectAndCaptureState(D3D9ProxyIndexBuffer* pWrappedIndexBuffer);
 	void           SelectAndCaptureState(D3DVIEWPORT9 viewport);
 	void           SelectAndCaptureViewTransform(D3DXMATRIX left, D3DXMATRIX right);
 	void           SelectAndCaptureProjectionTransform(D3DXMATRIX left, D3DXMATRIX right);
 	void           SelectAndCaptureState(D3D9ProxyPixelShader* pWrappedPixelShader);
 	void           SelectAndCaptureState(D3D9ProxyVertexShader* pWrappedVertexShader);
-	void           SelectAndCaptureState(BaseDirect3DVertexDeclaration9* pWrappedVertexDeclaration);
+	void           SelectAndCaptureState(D3D9ProxyVertexDeclaration* pWrappedVertexDeclaration);
 	void           SelectAndCaptureState(DWORD Stage, IDirect3DBaseTexture9* pWrappedTexture);
-	void           SelectAndCaptureState(UINT StreamNumber, BaseDirect3DVertexBuffer9* pWrappedStreamData);
+	void           SelectAndCaptureState(UINT StreamNumber, D3D9ProxyVertexBuffer* pWrappedStreamData);
 	HRESULT WINAPI SelectAndCaptureStateVSConst(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
 	HRESULT WINAPI SelectAndCaptureStatePSConst(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
 	void           EndStateBlock(IDirect3DStateBlock9* pActualStateBlock);
@@ -214,11 +214,11 @@ private:
 	/**
 	* General States - Vertex Buffers.
 	***/
-	std::unordered_map<UINT, BaseDirect3DVertexBuffer9*> m_storedVertexBuffers;
+	std::unordered_map<UINT, D3D9ProxyVertexBuffer*> m_storedVertexBuffers;
 	/**
 	* General States - Index Buffer.
 	***/
-	BaseDirect3DIndexBuffer9* m_pStoredIndicies;	
+	D3D9ProxyIndexBuffer* m_pStoredIndicies;	
 	/**
 	* General States - Viewport.
 	* Viewport handled by actual device but need to update proxy device viewport state (update 
@@ -248,7 +248,7 @@ private:
 	/**
 	* Vertex Shader States - vertex declaration
 	***/
-	BaseDirect3DVertexDeclaration9* m_pStoredVertexDeclaration;
+	D3D9ProxyVertexDeclaration* m_pStoredVertexDeclaration;
 	/**
 	* Vertex Shader States -  Shader registers 
 	* Use this when using Cap_Type_Selected.

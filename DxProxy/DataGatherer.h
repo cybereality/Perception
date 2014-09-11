@@ -44,7 +44,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class DataGatherer : public D3DProxyDevice
 {
 public:
-	DataGatherer(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy);
+	DataGatherer(IDirect3DDevice9* pDevice, D3D9ProxyDirect3D* pCreatedBy);
 	virtual ~DataGatherer();
 
 	/*** IDirect3DDevice9 methods ***/

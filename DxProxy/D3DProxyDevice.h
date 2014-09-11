@@ -45,11 +45,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "D3D9ProxyVertexShader.h"
 #include "D3D9ProxyPixelShader.h"
 
-#include "Direct3D9.h"
-#include "Direct3DVertexBuffer9.h"
-#include "Direct3DIndexBuffer9.h"
-#include "Direct3DVertexDeclaration9.h"
-#include "Direct3DQuery9.h"
+#include "D3D9ProxyDirect3D.h"
+#include "D3D9ProxyVertexBuffer.h"
+#include "D3D9ProxyIndexBuffer.h"
+#include "D3D9ProxyVertexDeclaration.h"
+#include "D3D9ProxyQuery.h"
 
 #include "ProxyHelper.h"
 #include "StereoView.h"
@@ -87,7 +87,7 @@ class GameHandler;
 class D3DProxyDevice : public IDirect3DDevice9
 {
 public:
-	D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy);
+	D3DProxyDevice(IDirect3DDevice9* pDevice, D3D9ProxyDirect3D* pCreatedBy);
 	virtual ~D3DProxyDevice();
 
 	friend class D3D9ProxyStateBlock;
@@ -658,11 +658,11 @@ private:
 	/**
 	* Active stored index buffer.
 	**/
-	BaseDirect3DIndexBuffer9* m_pActiveIndicies;
+	D3D9ProxyIndexBuffer* m_pActiveIndicies;
 	/**
 	* Active stored vertex declaration.
 	**/
-	BaseDirect3DVertexDeclaration9* m_pActiveVertexDeclaration;
+	D3D9ProxyVertexDeclaration* m_pActiveVertexDeclaration;
 	/**
 	* Active stored proxy swap chains.
 	* The swap chains have to be released and then forcibly destroyed on reset or device destruction.
@@ -686,7 +686,7 @@ private:
 	/**
 	* Active stored vertex buffers.
 	**/
-	std::unordered_map<UINT, BaseDirect3DVertexBuffer9*> m_activeVertexBuffers;
+	std::unordered_map<UINT, D3D9ProxyVertexBuffer*> m_activeVertexBuffers;
 	/**
 	* True if BeginStateBlock() is called, false if EndStateBlock is called.
 	* @see BeginStateBlock()
@@ -796,7 +796,7 @@ private:
 	/**
 	* Pointer to the D3D object that created the device. 
 	***/
-	BaseDirect3D9* m_pCreatedBy;
+	D3D9ProxyDirect3D* m_pCreatedBy;
 	/**
 	* Internal reference counter. 
 	***/

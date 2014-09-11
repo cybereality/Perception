@@ -3,7 +3,7 @@ Vireio Perception: Open-Source Stereoscopic 3D Driver
 Copyright (C) 2012 Andres Hernandez
 
 File <Direct3DDevice9Ex.h> and
-Class <BaseDirect3DDevice9Ex> :
+Class <D3D9ProxyDeviceEx> :
 Copyright (C) 2013 Denis Reischl
 
 Vireio Perception Version History:
@@ -31,7 +31,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define DIRECT3DDEVICE9EX_H_INCLUDED
 
 #include <d3d9.h>
-#include "Direct3D9.h"
+#include "D3D9ProxyDirect3D.h"
 #include "Direct3D9Ex.h"
 
 /**
@@ -39,11 +39,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * Overwrites IDirect3DDevice9 and imbeds the actual device pointer.
 * IMPLEMENTED FOR FUTURE USE, NOT COMPLETE !!
 */
-class BaseDirect3DDevice9Ex : public IDirect3DDevice9Ex
+class D3D9ProxyDeviceEx : public IDirect3DDevice9Ex
 {
 public:
-	BaseDirect3DDevice9Ex(IDirect3DDevice9Ex* pDevice, BaseDirect3D9* pCreatedBy);
-	virtual ~BaseDirect3DDevice9Ex();
+	D3D9ProxyDeviceEx(IDirect3DDevice9Ex* pDevice, D3D9ProxyDirect3D* pCreatedBy);
+	virtual ~D3D9ProxyDeviceEx();
 
     /*** IUnknown methods ***/
     virtual HRESULT WINAPI QueryInterface(REFIID riid, void** ppvObj);
@@ -183,7 +183,7 @@ public:
     virtual HRESULT WINAPI ResetEx(D3DPRESENT_PARAMETERS* pPresentationParameters,D3DDISPLAYMODEEX *pFullscreenDisplayMode);
     virtual HRESULT WINAPI GetDisplayModeEx(UINT iSwapChain,D3DDISPLAYMODEEX* pMode,D3DDISPLAYROTATION* pRotation);
 	
-	/*** BaseDirect3DDevice9Ex methods ***/
+	/*** D3D9ProxyDeviceEx methods ***/
 	IDirect3DDevice9Ex* getActual();
 
 private:
@@ -196,7 +196,7 @@ private:
 	/**
 	* Pointer to the D3D object that created the device. 
 	***/
-	BaseDirect3D9* m_pCreatedBy;
+	D3D9ProxyDirect3D* m_pCreatedBy;
 	/**
 	* Internal reference counter. 
 	***/

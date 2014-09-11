@@ -83,9 +83,6 @@
     <ClCompile Include="D3DProxyDeviceFactory.cpp">
       <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
     </ClCompile>
-    <ClCompile Include="Direct3D9.cpp">
-      <Filter>Direct3D9</Filter>
-    </ClCompile>
     <ClCompile Include="D3D9ProxyTexture.cpp">
       <Filter>Direct3D9Vireio\Direct3DTextures</Filter>
     </ClCompile>
@@ -169,17 +166,20 @@
     <ClCompile Include="Direct3DDevice9Ex.cpp">
       <Filter>Direct3D9</Filter>
     </ClCompile>
-    <ClCompile Include="Direct3DIndexBuffer9.cpp">
-      <Filter>Direct3D9</Filter>
+    <ClCompile Include="D3D9ProxyDirect3D.cpp">
+      <Filter>Direct3D9Vireio</Filter>
     </ClCompile>
-    <ClCompile Include="Direct3DQuery9.cpp">
-      <Filter>Direct3D9</Filter>
+    <ClCompile Include="D3D9ProxyIndexBuffer.cpp">
+      <Filter>Direct3D9Vireio</Filter>
     </ClCompile>
-    <ClCompile Include="Direct3DVertexBuffer9.cpp">
-      <Filter>Direct3D9</Filter>
+    <ClCompile Include="D3D9ProxyQuery.cpp">
+      <Filter>Direct3D9Vireio</Filter>
     </ClCompile>
-    <ClCompile Include="Direct3DVertexDeclaration9.cpp">
-      <Filter>Direct3D9</Filter>
+    <ClCompile Include="D3D9ProxyVertexBuffer.cpp">
+      <Filter>Direct3D9Vireio</Filter>
+    </ClCompile>
+    <ClCompile Include="D3D9ProxyVertexDeclaration.cpp">
+      <Filter>Direct3D9Vireio</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -218,9 +218,6 @@
     </ClInclude>
     <ClInclude Include="D3DProxyDeviceFactory.h">
       <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
-    </ClInclude>
-    <ClInclude Include="Direct3D9.h">
-      <Filter>Direct3D9</Filter>
     </ClInclude>
     <ClInclude Include="D3D9ProxyTexture.h">
       <Filter>Direct3D9Vireio\Direct3DTextures</Filter>
@@ -362,17 +359,20 @@
     <ClInclude Include="Direct3DDevice9Ex.h">
       <Filter>Direct3D9</Filter>
     </ClInclude>
-    <ClInclude Include="Direct3DIndexBuffer9.h">
-      <Filter>Direct3D9</Filter>
+    <ClInclude Include="D3D9ProxyDirect3D.h">
+      <Filter>Direct3D9Vireio</Filter>
     </ClInclude>
-    <ClInclude Include="Direct3DQuery9.h">
-      <Filter>Direct3D9</Filter>
+    <ClInclude Include="D3D9ProxyIndexBuffer.h">
+      <Filter>Direct3D9Vireio</Filter>
     </ClInclude>
-    <ClInclude Include="Direct3DVertexBuffer9.h">
-      <Filter>Direct3D9</Filter>
+    <ClInclude Include="D3D9ProxyQuery.h">
+      <Filter>Direct3D9Vireio</Filter>
     </ClInclude>
-    <ClInclude Include="Direct3DVertexDeclaration9.h">
-      <Filter>Direct3D9</Filter>
+    <ClInclude Include="D3D9ProxyVertexBuffer.h">
+      <Filter>Direct3D9Vireio</Filter>
+    </ClInclude>
+    <ClInclude Include="D3D9ProxyVertexDeclaration.h">
+      <Filter>Direct3D9Vireio</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

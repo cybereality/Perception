@@ -83,7 +83,7 @@ uint32_t ShaderHash(LPDIRECT3DPIXELSHADER9 pShader)
 * @param pDevice Imbed actual device.
 * @param pCreatedBy Pointer to the object that created the device.
 ***/
-DataGatherer::DataGatherer(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy):D3DProxyDevice(pDevice, pCreatedBy),
+DataGatherer::DataGatherer(IDirect3DDevice9* pDevice, D3D9ProxyDirect3D* pCreatedBy):D3DProxyDevice(pDevice, pCreatedBy),
 	m_recordedVShaders(),
 	m_recordedPShaders(),
 	m_recordedSetVShaders(),

@@ -40,7 +40,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class D3DProxyDeviceAdv : public D3DProxyDevice
 {
 public:
-	D3DProxyDeviceAdv(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy);
+	D3DProxyDeviceAdv(IDirect3DDevice9* pDevice, D3D9ProxyDirect3D* pCreatedBy);
 	virtual ~D3DProxyDeviceAdv();
 
 	/*** IDirect3DDevice9 methods ***/
