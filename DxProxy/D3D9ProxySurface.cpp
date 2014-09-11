@@ -37,11 +37,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * container must delete this surface when the ref count reaches 0.
 ***/ 
 D3D9ProxySurface::D3D9ProxySurface(IDirect3DSurface9* pActualSurfaceLeft, IDirect3DSurface9* pActualSurfaceRight, BaseDirect3DDevice9* pOwningDevice, IUnknown* pWrappedContainer) :
-	BaseDirect3DSurface9(pActualSurfaceLeft),
+	m_pActualSurface(pActualSurfaceLeft),
 	m_pActualSurfaceRight(pActualSurfaceRight),
 	m_pOwningDevice(pOwningDevice),
-	m_pWrappedContainer(pWrappedContainer)
+	m_pWrappedContainer(pWrappedContainer) ,
+	m_nRefCount(1)
 {
+	assert (m_pActualSurface != NULL);
 	assert (pOwningDevice != NULL);
 
 
@@ -67,7 +69,21 @@ D3D9ProxySurface::~D3D9ProxySurface()
 
 	if (m_pActualSurfaceRight)
 		m_pActualSurfaceRight->Release();
+
+	if(m_pActualSurface) {
+		m_pActualSurface->Release();
+	}
 }
+
+
+/**
+* Base QueryInterface functionality. 
+***/
+HRESULT WINAPI D3D9ProxySurface::QueryInterface(REFIID riid, LPVOID* ppv)
+{
+	return m_pActualSurface->QueryInterface(riid, ppv);
+}
+
 
 /**
 * Behaviour determined through observing D3D with various test cases.
@@ -88,7 +104,7 @@ ULONG WINAPI D3D9ProxySurface::AddRef()
 	}
 	else {
 		// otherwise track references normally
-		return BaseDirect3DSurface9::AddRef();
+		return ++m_nRefCount;
 	}
 }
 
@@ -101,7 +117,13 @@ ULONG WINAPI D3D9ProxySurface::Release()
 		return m_pWrappedContainer->Release(); 
 	}
 	else {
-		return BaseDirect3DSurface9::Release();
+		if(--m_nRefCount == 0)
+		{
+			delete this;
+			return 0;
+		}
+
+		return m_nRefCount;
 	}
 }
 
@@ -136,6 +158,16 @@ HRESULT WINAPI D3D9ProxySurface::SetPrivateData(REFGUID refguid, CONST void* pDa
 	return m_pActualSurface->SetPrivateData(refguid, pData, SizeOfData, Flags);
 }
 
+
+/**
+* Base GetPrivateData functionality.
+***/
+HRESULT WINAPI D3D9ProxySurface::GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData)
+{
+	return m_pActualSurface->GetPrivateData(refguid, pData, pSizeOfData);
+}
+
+
 /**
 * Frees private data on both (left/right) surfaces.
 ***/
@@ -156,6 +188,39 @@ DWORD WINAPI D3D9ProxySurface::SetPriority(DWORD PriorityNew)
 		m_pActualSurfaceRight->SetPriority(PriorityNew);
 
 	return m_pActualSurface->SetPriority(PriorityNew);
+}
+
+/**
+* Base GetPriority functionality.
+***/
+DWORD WINAPI D3D9ProxySurface::GetPriority()
+{
+	return m_pActualSurface->GetPriority();
+}
+
+
+/**
+* Base GetType functionality.
+***/
+D3DRESOURCETYPE WINAPI D3D9ProxySurface::GetType()
+{
+	return m_pActualSurface->GetType();
+}
+
+/**
+* Base GetDesc functionality.
+***/
+HRESULT WINAPI D3D9ProxySurface::GetDesc(D3DSURFACE_DESC *pDesc)
+{
+	return m_pActualSurface->GetDesc(pDesc);
+}
+
+/**
+* Base GetDC functionality.
+***/
+HRESULT WINAPI D3D9ProxySurface::GetDC(HDC *phdc)
+{
+	return m_pActualSurface->GetDC(phdc);
 }
 
 /**
@@ -220,7 +285,7 @@ HRESULT WINAPI D3D9ProxySurface::LockRect(D3DLOCKED_RECT* pLockedRect, CONST REC
 	if (IsStereo())
 		m_pActualSurfaceRight->LockRect(pLockedRect, pRect, Flags);
 
-	return BaseDirect3DSurface9::LockRect(pLockedRect, pRect, Flags);
+	return m_pActualSurface->LockRect(pLockedRect, pRect, Flags);
 }
 
 /**
@@ -231,7 +296,7 @@ HRESULT WINAPI D3D9ProxySurface::UnlockRect()
 	if (IsStereo())
 		m_pActualSurfaceRight->UnlockRect();
 
-	return BaseDirect3DSurface9::UnlockRect();
+	return m_pActualSurface->UnlockRect();
 }
 
 /**
@@ -242,7 +307,7 @@ HRESULT WINAPI D3D9ProxySurface::ReleaseDC(HDC hdc)
 	if (IsStereo())
 		m_pActualSurfaceRight->ReleaseDC(hdc);
 
-	return BaseDirect3DSurface9::ReleaseDC(hdc);
+	return m_pActualSurface->ReleaseDC(hdc);
 }
 
 /**

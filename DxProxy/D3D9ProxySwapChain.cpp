@@ -48,9 +48,16 @@ void releaseCheckO(char* object, int newRefCount)
 * @see m_backBuffers
 ***/
 D3D9ProxySwapChain::D3D9ProxySwapChain(IDirect3DSwapChain9* pActualSwapChain, D3DProxyDevice* pWrappedOwningDevice, bool isAdditionalChain) : 
-		BaseDirect3DSwapChain9(pActualSwapChain, pWrappedOwningDevice, isAdditionalChain),
+		m_pActualSwapChain(pActualSwapChain),
+		m_pOwningDevice(pWrappedOwningDevice),
+		m_nRefCount(1),
+		m_bIsAdditionalChain(isAdditionalChain),
 		m_backBuffers()
 {
+	assert (pActualSwapChain != NULL);
+	assert (m_pOwningDevice != NULL);
+
+	m_pOwningDevice->AddRef();
 	// Get creation parameters for backbuffers.
 	D3DPRESENT_PARAMETERS params;
 	pActualSwapChain->GetPresentParameters(&params);
@@ -95,6 +102,56 @@ D3D9ProxySwapChain::~D3D9ProxySwapChain()
 	}
 
 	m_backBuffers.clear();
+
+	if(m_pActualSwapChain) 
+		m_pActualSwapChain->Release();
+
+	if (m_pOwningDevice)
+		m_pOwningDevice->Release();
+}
+
+
+
+/**
+* Base QueryInterface functionality. 
+***/
+HRESULT WINAPI D3D9ProxySwapChain::QueryInterface(REFIID riid, LPVOID* ppv)
+{
+	return m_pActualSwapChain->QueryInterface(riid, ppv);
+}
+
+/**
+* Base AddRef functionality.
+***/
+ULONG WINAPI D3D9ProxySwapChain::AddRef()
+{
+	return ++m_nRefCount;
+}
+
+/**
+* Releases only additional swap chains.
+* Primary swap chain isn't destroyed at ref count 0, stays alive. Other swap chains are destoyed if ref count reaches 0.
+* BUT backbuffers aren't destroyed at 0 either AND this applies to primary and additional chains.
+* So for additional chains we release the actual to destroy the actual. But we don't delete the proxy because it is
+* our container for the stereo backbuffers.
+* Because of this all swap chains have to be forcibly destroyed just before a reset.
+***/
+ULONG WINAPI D3D9ProxySwapChain::Release()
+{	
+	if (m_nRefCount > 0) { 
+		if(--m_nRefCount == 0)
+		{
+
+			if (m_bIsAdditionalChain) {
+				if(m_pActualSwapChain) 
+					m_pActualSwapChain->Release();
+
+				m_pActualSwapChain = NULL;
+			}
+		}
+	}
+
+	return m_nRefCount;
 }
 
 /**
@@ -174,4 +231,51 @@ HRESULT WINAPI D3D9ProxySwapChain::GetBackBuffer(UINT iBackBuffer, D3DBACKBUFFER
 	*ppBackBuffer = m_backBuffers[iBackBuffer];
 
 	return D3D_OK;
+}
+
+
+/**
+* Base functionality.
+***/
+HRESULT WINAPI D3D9ProxySwapChain::GetRasterStatus(D3DRASTER_STATUS* pRasterStatus)
+{
+	return m_pActualSwapChain->GetRasterStatus(pRasterStatus);
+}
+
+/**
+* Base GetDisplayMode functionality.
+***/
+HRESULT WINAPI D3D9ProxySwapChain::GetDisplayMode(D3DDISPLAYMODE* pMode)
+{
+	return m_pActualSwapChain->GetDisplayMode(pMode);
+}
+
+/**
+* Base GetDevice functionality.
+***/
+HRESULT WINAPI D3D9ProxySwapChain::GetDevice(IDirect3DDevice9** ppDevice)
+{
+	if (!m_pOwningDevice)
+		return D3DERR_INVALIDCALL;
+	else {
+		*ppDevice = m_pOwningDevice;
+		m_pOwningDevice->AddRef(); 
+		return D3D_OK;
+	}
+}
+
+/**
+* Base GetPresentParameters functionality.
+***/
+HRESULT WINAPI D3D9ProxySwapChain::GetPresentParameters(D3DPRESENT_PARAMETERS* pPresentationParameters)
+{
+	return m_pActualSwapChain->GetPresentParameters(pPresentationParameters);
+}
+
+/**
+* Simple "delete this" function.
+***/
+void D3D9ProxySwapChain::Destroy() 
+{
+	delete this;
 }

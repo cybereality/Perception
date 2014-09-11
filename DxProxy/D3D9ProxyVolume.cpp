@@ -38,11 +38,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * container must delete this volume when the ref count reaches 0.
 ***/ 
 D3D9ProxyVolume::D3D9ProxyVolume(IDirect3DVolume9* pActualVolume, BaseDirect3DDevice9* pOwningDevice, IUnknown* pWrappedContainer) :
-	BaseDirect3DVolume9(pActualVolume),
+	m_pActualVolume(pActualVolume),
+	m_nRefCount(1),
 	m_pOwningDevice(pOwningDevice),
 	m_pWrappedContainer(pWrappedContainer)
 {
 	assert (pOwningDevice != NULL);
+	assert (pActualVolume != NULL);
 
 
 	if (!pWrappedContainer)
@@ -64,7 +66,20 @@ D3D9ProxyVolume::~D3D9ProxyVolume()
 	if (!m_pWrappedContainer) { 
 		m_pOwningDevice->Release();
 	}	
+
+	if(m_pActualVolume) {
+		m_pActualVolume->Release();
+	}
 }
+
+/**
+* Base QueryInterface functionality. 
+***/
+HRESULT WINAPI D3D9ProxyVolume::QueryInterface(REFIID riid, LPVOID* ppv)
+{
+	return m_pActualVolume->QueryInterface(riid, ppv);
+}
+
 
 /**
 * Behaviour determined through observing D3D with various test cases.
@@ -85,7 +100,7 @@ ULONG WINAPI D3D9ProxyVolume::AddRef()
 	}
 	else {
 		// otherwise track references normally
-		return BaseDirect3DVolume9::AddRef();
+		return ++m_nRefCount;
 	}
 }
 
@@ -98,8 +113,39 @@ ULONG WINAPI D3D9ProxyVolume::Release()
 		return m_pWrappedContainer->Release(); 
 	}
 	else {
-		return BaseDirect3DVolume9::Release();
+		if(--m_nRefCount == 0)
+		{
+			delete this;
+			return 0;
+		}
+
+		return m_nRefCount;
 	}
+}
+
+
+/**
+* Base SetPrivateData functionality.
+***/
+HRESULT WINAPI D3D9ProxyVolume::SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags)
+{
+	return m_pActualVolume->SetPrivateData(refguid, pData, SizeOfData, Flags);
+}
+
+/**
+* Base GetPrivateData functionality.
+***/
+HRESULT WINAPI D3D9ProxyVolume::GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData)
+{
+	return m_pActualVolume->GetPrivateData(refguid, pData, pSizeOfData);
+}
+
+/**
+* Base FreePrivateData functionality.
+***/
+HRESULT WINAPI D3D9ProxyVolume::FreePrivateData(REFGUID refguid)
+{
+	return m_pActualVolume->FreePrivateData(refguid);
 }
 
 /**
@@ -121,6 +167,7 @@ HRESULT WINAPI D3D9ProxyVolume::GetDevice(IDirect3DDevice9** ppDevice)
 		return D3D_OK;
 	}
 }
+
 
 /**
 * Provides acces to parent object.
@@ -163,6 +210,36 @@ HRESULT WINAPI D3D9ProxyVolume::GetContainer(REFIID riid, LPVOID* ppContainer)
 		return D3DERR_INVALIDCALL;
 	}
 }
+
+
+/**
+* Base GetDesc functionality.
+***/
+HRESULT WINAPI D3D9ProxyVolume::GetDesc(D3DVOLUME_DESC *pDesc)
+{
+	return m_pActualVolume->GetDesc(pDesc);
+}
+
+/**
+* Base LockBox functionality.
+***/
+HRESULT WINAPI D3D9ProxyVolume::LockBox(D3DLOCKED_BOX *pLockedVolume, const D3DBOX *pBox, DWORD Flags)
+{
+	return m_pActualVolume->LockBox(pLockedVolume, pBox, Flags);
+}
+
+/**
+* Base UnlockBox functionality.
+***/
+HRESULT WINAPI D3D9ProxyVolume::UnlockBox()
+{
+	return m_pActualVolume->UnlockBox();
+}
+
+
+
+
+
 
 /**
 * Gets the actual (parent) volume.

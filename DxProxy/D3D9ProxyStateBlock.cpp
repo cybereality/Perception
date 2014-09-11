@@ -42,7 +42,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * @see CaptureSelectedFromProxyDevice()
 ***/
 D3D9ProxyStateBlock::D3D9ProxyStateBlock(IDirect3DStateBlock9* pActualStateBlock, D3DProxyDevice *pOwningDevice, CaptureType type, bool isSideLeft) :
-	BaseDirect3DStateBlock9(pActualStateBlock, pOwningDevice),
+	m_pActualStateBlock(pActualStateBlock),
+	m_pOwningDevice(pOwningDevice),
+	m_nRefCount(1),
 	m_pWrappedDevice(pOwningDevice),
 	m_eCaptureMode(type),
 	m_storedTextureStages(),
@@ -60,6 +62,7 @@ D3D9ProxyStateBlock::D3D9ProxyStateBlock(IDirect3DStateBlock9* pActualStateBlock
 	m_selectedVertexConstantRegistersF()
 {
 	assert (pOwningDevice != NULL);
+	pOwningDevice->AddRef();
 
 	if (!pActualStateBlock) {
 		assert(type == Cap_Type_Selected);
@@ -132,7 +135,68 @@ D3D9ProxyStateBlock::~D3D9ProxyStateBlock()
 	m_selectedVertexConstantRegistersF.clear();
 
 	m_pWrappedDevice->Release();
+
+	if(m_pActualStateBlock) 
+		m_pActualStateBlock->Release();
+
+	m_pOwningDevice->Release();
 }
+
+
+
+
+
+/**
+* Base QueryInterface functionality. 
+***/
+HRESULT WINAPI D3D9ProxyStateBlock::QueryInterface(REFIID riid, LPVOID* ppv)
+{
+	if (!m_pActualStateBlock) {
+		OutputDebugString("Proxy state block is missing actual state block.\n");
+		return D3DERR_INVALIDCALL;
+	}
+
+	return m_pActualStateBlock->QueryInterface(riid, ppv);
+}
+
+/**
+* Base AddRef functionality.
+***/
+ULONG WINAPI D3D9ProxyStateBlock::AddRef()
+{
+	return ++m_nRefCount;
+}
+
+/**
+* Base Release functionality.
+***/
+ULONG WINAPI D3D9ProxyStateBlock::Release()
+{
+	if(--m_nRefCount == 0)
+	{
+		delete this;
+		return 0;
+	}
+
+	return m_nRefCount;
+}
+
+/**
+* Base GetDevice functionality.
+* TODO D3D behaviour. Docs don't have the notice that is usually there about a refcount increase
+***/
+HRESULT WINAPI D3D9ProxyStateBlock::GetDevice(IDirect3DDevice9** ppDevice)
+{
+	if (!m_pOwningDevice)
+		return D3DERR_INVALIDCALL;
+	else {
+		*ppDevice = m_pOwningDevice;
+		//m_pOwningDevice->AddRef(); //TODO D3D behaviour. Docs don't have the notice that is usually there about a refcount increase
+		return D3D_OK;
+	}
+}
+
+
 
 /**
 * Calls super method and then CaptureSelectedFromProxyDevice().
@@ -140,7 +204,13 @@ D3D9ProxyStateBlock::~D3D9ProxyStateBlock()
 ***/
 HRESULT WINAPI D3D9ProxyStateBlock::Capture()
 {
-	HRESULT result = BaseDirect3DStateBlock9::Capture();
+
+	if (!m_pActualStateBlock) {
+		OutputDebugString("Proxy state block is missing actual state block.\n");
+		return D3DERR_INVALIDCALL;
+	}
+
+	HRESULT result = m_pActualStateBlock->Capture();
 
 	if (SUCCEEDED(result)) {
 		CaptureSelectedFromProxyDevice();
@@ -171,6 +241,12 @@ HRESULT WINAPI D3D9ProxyStateBlock::Capture()
 ***/
 HRESULT WINAPI D3D9ProxyStateBlock::Apply()
 {
+
+	if (!m_pActualStateBlock) {
+		OutputDebugString("Proxy state block is missing actual state block.\n");
+		return D3DERR_INVALIDCALL;
+	}
+
 	// assert that device isn't in the middle of a begin/end stateblock capture cycle because said situation is not accounted for 
 	// (probably an error in D3D but haven't tested to check)
 	assert (!m_pWrappedDevice->m_bInBeginEndStateBlock);
@@ -185,7 +261,7 @@ HRESULT WINAPI D3D9ProxyStateBlock::Apply()
 	}
 
 
-	HRESULT result = BaseDirect3DStateBlock9::Apply();
+	HRESULT result = m_pActualStateBlock->Apply();
 
 	if (SUCCEEDED(result)) {
 

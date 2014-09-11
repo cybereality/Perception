@@ -35,11 +35,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * @see D3D9ProxySurface::D3D9ProxySurface
 ***/
 D3D9ProxyVolumeTexture::D3D9ProxyVolumeTexture(IDirect3DVolumeTexture9* pActualVolumeTexture, BaseDirect3DDevice9* pOwningDevice) :
-	BaseDirect3DVolumeTexture9(pActualVolumeTexture),
+	m_pActualTexture(pActualVolumeTexture),
+	m_nRefCount(1),
 	m_wrappedVolumeLevels(),
 	m_pOwningDevice(pOwningDevice)
 {
 	assert (pOwningDevice != NULL);
+	assert (m_pActualTexture != NULL);
 
 	m_pOwningDevice->AddRef();
 }
@@ -61,7 +63,41 @@ D3D9ProxyVolumeTexture::~D3D9ProxyVolumeTexture()
 
 	if (m_pOwningDevice)
 		m_pOwningDevice->Release();
+	
+	if (m_pActualTexture)
+		m_pActualTexture->Release();
 }
+
+/**
+* Base QueryInterface functionality. 
+***/
+HRESULT WINAPI D3D9ProxyVolumeTexture::QueryInterface(REFIID riid, LPVOID* ppv)
+{
+	return m_pActualTexture->QueryInterface(riid, ppv);
+}
+
+/**
+* Base AddRef functionality.
+***/
+ULONG WINAPI D3D9ProxyVolumeTexture::AddRef()
+{
+	return ++m_nRefCount;
+}
+
+/**
+* Base Release functionality.
+***/
+ULONG WINAPI D3D9ProxyVolumeTexture::Release()
+{
+	if(--m_nRefCount == 0)
+	{
+		delete this;
+		return 0;
+	}
+
+	return m_nRefCount;
+}
+
 
 /**
 * GetDevice on the underlying IDirect3DVolumeTexture9 will return the device used to create it. 
@@ -81,6 +117,120 @@ HRESULT WINAPI D3D9ProxyVolumeTexture::GetDevice(IDirect3DDevice9** ppDevice)
 		m_pOwningDevice->AddRef();
 		return D3D_OK;
 	}
+}
+
+
+
+/**
+* Base SetPrivateData functionality. 
+***/
+HRESULT WINAPI D3D9ProxyVolumeTexture::SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags)
+{
+	return m_pActualTexture->SetPrivateData(refguid, pData, SizeOfData, Flags);
+}
+
+/**
+* Base GetPrivateData functionality. 
+***/
+HRESULT WINAPI D3D9ProxyVolumeTexture::GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData)
+{
+	return m_pActualTexture->GetPrivateData(refguid, pData, pSizeOfData);
+}
+
+/**
+* Base FreePrivateData functionality. 
+***/
+HRESULT WINAPI D3D9ProxyVolumeTexture::FreePrivateData(REFGUID refguid)
+{
+	return m_pActualTexture->FreePrivateData(refguid);
+}
+
+/**
+* Base SetPriority functionality. 
+***/
+DWORD WINAPI D3D9ProxyVolumeTexture::SetPriority(DWORD PriorityNew)
+{
+	return m_pActualTexture->SetPriority(PriorityNew);
+}
+
+/**
+* Base GetPriority functionality. 
+***/
+DWORD WINAPI D3D9ProxyVolumeTexture::GetPriority()
+{
+	return m_pActualTexture->GetPriority();
+}
+
+/**
+* Base PreLoad functionality. 
+***/
+void WINAPI D3D9ProxyVolumeTexture::PreLoad()
+{
+	return m_pActualTexture->PreLoad();
+}
+
+/**
+* Base GetType functionality. 
+***/
+D3DRESOURCETYPE WINAPI D3D9ProxyVolumeTexture::GetType()
+{
+	return m_pActualTexture->GetType();
+}
+
+/**
+* Base SetLOD functionality. 
+***/
+DWORD WINAPI D3D9ProxyVolumeTexture::SetLOD(DWORD LODNew)
+{
+	return m_pActualTexture->SetLOD(LODNew);
+}
+
+/**
+* Base GetLOD functionality. 
+***/
+DWORD WINAPI D3D9ProxyVolumeTexture::GetLOD()
+{
+	return m_pActualTexture->GetLOD();
+}
+
+/**
+* Base GetLevelCount functionality. 
+***/
+DWORD WINAPI D3D9ProxyVolumeTexture::GetLevelCount()
+{
+	return m_pActualTexture->GetLevelCount();
+}
+
+/**
+* Base SetAutoGenFilterType functionality. 
+***/
+HRESULT WINAPI D3D9ProxyVolumeTexture::SetAutoGenFilterType(D3DTEXTUREFILTERTYPE FilterType)
+{
+	return m_pActualTexture->SetAutoGenFilterType(FilterType);
+}
+
+/**
+* Base GetAutoGenFilterType functionality. 
+***/
+D3DTEXTUREFILTERTYPE WINAPI D3D9ProxyVolumeTexture::GetAutoGenFilterType()
+{
+	return m_pActualTexture->GetAutoGenFilterType();
+}
+
+/**
+* Base GenerateMipSubLevels functionality. 
+***/
+void WINAPI D3D9ProxyVolumeTexture::GenerateMipSubLevels()
+{
+	return m_pActualTexture->GenerateMipSubLevels();
+}
+
+/**
+* Base GetLevelDesc functionality. 
+***/
+HRESULT WINAPI D3D9ProxyVolumeTexture::GetLevelDesc(UINT Level, D3DVOLUME_DESC *pDesc)
+{
+	return m_pActualTexture->GetLevelDesc(Level, pDesc);
 }
 
 
@@ -142,6 +292,32 @@ HRESULT WINAPI D3D9ProxyVolumeTexture::GetVolumeLevel(UINT Level, IDirect3DVolum
 
 	return finalResult;
 }
+
+
+/**
+* Base LockBox functionality. 
+***/
+HRESULT WINAPI D3D9ProxyVolumeTexture::LockBox(UINT Level, D3DLOCKED_BOX *pLockedVolume, const D3DBOX *pBox, DWORD Flags)
+{
+	return m_pActualTexture->LockBox(Level, pLockedVolume, pBox, Flags);
+}
+	
+/**
+* Base UnlockBox functionality. 
+***/
+HRESULT WINAPI D3D9ProxyVolumeTexture::UnlockBox(UINT Level)
+{
+	return m_pActualTexture->UnlockBox(Level);
+}
+
+/**
+* Base AddDirtyBox functionality. 
+***/
+HRESULT WINAPI D3D9ProxyVolumeTexture::AddDirtyBox(const D3DBOX *pDirtyBox)
+{
+	return m_pActualTexture->AddDirtyBox(pDirtyBox);
+}
+
 
 /**
 * Returns the actual volume texture.

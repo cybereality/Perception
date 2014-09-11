@@ -48,7 +48,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Direct3DVertexBuffer9.h"
 #include "Direct3DIndexBuffer9.h"
-#include "Direct3DVertexShader9.h"
 #include "Direct3DVertexDeclaration9.h"
 #include "Direct3DQuery9.h"
 

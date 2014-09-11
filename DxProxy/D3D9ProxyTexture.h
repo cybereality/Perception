@@ -32,7 +32,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <d3d9.h>
 #include <unordered_map>
-#include "Direct3DTexture9.h"
 #include "D3D9ProxySurface.h"
 #include "IStereoCapableWrapper.h"
 
@@ -40,7 +39,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 *  Direct 3D proxy texture class. 
 *  Overwrites IDirect3DTexture9 and imbeds the additional right texture pointer.
 */
-class D3D9ProxyTexture : public BaseDirect3DTexture9, public IStereoCapableWrapper<IDirect3DTexture9>
+class D3D9ProxyTexture : public IDirect3DTexture9, public IStereoCapableWrapper<IDirect3DTexture9>
 {
 public:
 	D3D9ProxyTexture(IDirect3DTexture9* pActualTextureLeft, IDirect3DTexture9* pActualTextureRight, BaseDirect3DDevice9* pOwningDevice);
@@ -48,21 +47,30 @@ public:
 
 	/*** IUnknown methods ***/
 	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv);
-	
-	/*** IDirect3DBaseTexture9 methods ***/
-	virtual HRESULT WINAPI GetDevice(IDirect3DDevice9** ppDevice);	
-	virtual HRESULT WINAPI SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags);
-	virtual HRESULT WINAPI FreePrivateData(REFGUID refguid);
-	virtual DWORD   WINAPI SetPriority(DWORD PriorityNew);
-	virtual void    WINAPI PreLoad();
-	virtual DWORD   WINAPI SetLOD(DWORD LODNew);
-	virtual HRESULT WINAPI SetAutoGenFilterType(D3DTEXTUREFILTERTYPE FilterType);
-	virtual void    WINAPI GenerateMipSubLevels();
-	virtual HRESULT WINAPI GetSurfaceLevel(UINT Level, IDirect3DSurface9** ppSurfaceLevel); 
-	virtual HRESULT WINAPI LockRect(UINT Level, D3DLOCKED_RECT* pLockedRect, CONST RECT* pRect, DWORD Flags);
-	virtual HRESULT WINAPI UnlockRect(UINT Level);
-	virtual HRESULT WINAPI AddDirtyRect(CONST RECT* pDirtyRect);
+	virtual ULONG	WINAPI AddRef();
+	virtual ULONG	WINAPI Release();	
 
+	/*** IDirect3DBaseTexture9 methods ***/
+	virtual HRESULT              WINAPI GetDevice(IDirect3DDevice9** ppDevice);
+	virtual HRESULT              WINAPI SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags);
+	virtual HRESULT              WINAPI GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData);
+	virtual HRESULT              WINAPI FreePrivateData(REFGUID refguid);
+	virtual DWORD                WINAPI SetPriority(DWORD PriorityNew);
+	virtual DWORD                WINAPI GetPriority();
+	virtual void                 WINAPI PreLoad();
+	virtual D3DRESOURCETYPE      WINAPI GetType();
+	virtual DWORD                WINAPI SetLOD(DWORD LODNew);
+	virtual DWORD                WINAPI GetLOD();
+	virtual DWORD                WINAPI GetLevelCount();
+	virtual HRESULT              WINAPI SetAutoGenFilterType(D3DTEXTUREFILTERTYPE FilterType);
+	virtual D3DTEXTUREFILTERTYPE WINAPI GetAutoGenFilterType();
+	virtual void                 WINAPI GenerateMipSubLevels();
+	virtual HRESULT              WINAPI GetLevelDesc(UINT Level, D3DSURFACE_DESC *pDesc);
+	virtual HRESULT              WINAPI GetSurfaceLevel(UINT Level, IDirect3DSurface9** ppSurfaceLevel);
+	virtual HRESULT              WINAPI LockRect(UINT Level, D3DLOCKED_RECT* pLockedRect, CONST RECT* pRect, DWORD Flags);
+	virtual HRESULT              WINAPI UnlockRect(UINT Level);
+	virtual HRESULT              WINAPI AddDirtyRect(CONST RECT* pDirtyRect);
+	
 	/*** IStereoCapableWrapper methods ***/
 	virtual IDirect3DTexture9* getActualMono();
 	virtual IDirect3DTexture9* getActualLeft();
@@ -83,5 +91,16 @@ protected:
 	* The actual right texture embedded. 
 	***/
 	IDirect3DTexture9* const m_pActualTextureRight;
+
+	/**
+	* The actual texture embedded. 
+	***/
+	IDirect3DTexture9* const m_pActualTexture;
+
+private:
+	/**
+	* Internal reference counter. 
+	***/
+	ULONG m_nRefCount;
 };
 #endif

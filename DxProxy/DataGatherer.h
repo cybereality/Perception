@@ -34,7 +34,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "D3DProxyDevice.h"
 #include "ProxyHelper.h"
 #include "MurmurHash3.h"
-#include "Direct3DVertexShader9.h"
 
 /**
 * Data gatherer class, outputs relevant shader data to dump file (.csv format) .

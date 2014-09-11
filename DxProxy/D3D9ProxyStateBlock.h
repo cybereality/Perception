@@ -33,7 +33,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <d3d9.h>
 #include <d3dx9.h>
 #include "D3DProxyDevice.h"
-#include "Direct3DStateBlock9.h"
 #include <unordered_set>
 #include <unordered_map>
 #include <map>
@@ -89,7 +88,7 @@ class D3D9ProxyVertexShader;
 * Pixel shader constants TODO - if needed (if stereo'ified for some reason), otherwise leave these to 
 * the actual device.
 */
-class D3D9ProxyStateBlock : public BaseDirect3DStateBlock9
+class D3D9ProxyStateBlock : public IDirect3DStateBlock9
 {
 public:
 	/**
@@ -132,7 +131,13 @@ public:
 	D3D9ProxyStateBlock(IDirect3DStateBlock9* pActualStateBlock, D3DProxyDevice* pOwningDevice, CaptureType type, bool isSideLeft);
 	virtual ~D3D9ProxyStateBlock();
 
+	/*** IUnknown methods ***/
+	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv);
+	virtual ULONG   WINAPI AddRef();
+	virtual ULONG   WINAPI Release();
+
 	/*** IDirect3DStateBlock9 methods ***/
+	virtual HRESULT WINAPI GetDevice(IDirect3DDevice9 **ppDevice);
 	virtual HRESULT WINAPI Capture();
 	virtual HRESULT WINAPI Apply();
 
@@ -277,6 +282,20 @@ private:
 	* classs device should just be of the derived type.
 	***/
 	D3DProxyDevice* const m_pWrappedDevice;
+
+protected:
+	/**
+	* The actual state block embedded. 
+	***/
+	IDirect3DStateBlock9* m_pActualStateBlock;
+	/**
+	* Pointer to the D3D device that owns the block. 
+	***/
+	IDirect3DDevice9* const m_pOwningDevice;
+	/**
+	* Internal reference counter. 
+	***/
+	ULONG m_nRefCount;
 };
 #endif
 

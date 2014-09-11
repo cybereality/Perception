@@ -35,12 +35,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * @see D3D9ProxySurface::D3D9ProxySurface
 ***/
 D3D9ProxyTexture::D3D9ProxyTexture(IDirect3DTexture9* pActualTextureLeft, IDirect3DTexture9* pActualTextureRight, BaseDirect3DDevice9* pOwningDevice) :
-	BaseDirect3DTexture9(pActualTextureLeft),
+	m_pActualTexture(pActualTextureLeft),
+	m_nRefCount(1),
 	m_pActualTextureRight(pActualTextureRight),
 	m_wrappedSurfaceLevels(),
 	m_pOwningDevice(pOwningDevice)
 {
 	assert (pOwningDevice != NULL);
+	assert (m_pActualTexture != NULL);
 
 	m_pOwningDevice->AddRef();
 }
@@ -65,6 +67,9 @@ D3D9ProxyTexture::~D3D9ProxyTexture()
 
 	if (m_pOwningDevice)
 		m_pOwningDevice->Release();
+
+	if (m_pActualTexture)
+		m_pActualTexture->Release();
 }
 
 #define IF_GUID(riid,a,b,c,d,e,f,g) if ((riid.Data1==a)&&(riid.Data2==b)&&(riid.Data3==c)&&(riid.Data4[0]==d)&&(riid.Data4[1]==e)&&(riid.Data4[2]==f)&&(riid.Data4[3]==g))
@@ -91,6 +96,28 @@ HRESULT WINAPI D3D9ProxyTexture::QueryInterface(REFIID riid, LPVOID* ppv)
 		return this->GetSurfaceLevel(0,(IDirect3DSurface9**)ppv);
 	
 	return m_pActualTexture->QueryInterface(riid, ppv);
+}
+
+/**
+* Base AddRef functionality.
+***/
+ULONG WINAPI D3D9ProxyTexture::AddRef()
+{
+	return ++m_nRefCount;
+}
+
+/**
+* Base Release functionality.
+***/
+ULONG WINAPI D3D9ProxyTexture::Release()
+{
+	if(--m_nRefCount == 0)
+	{
+		delete this;
+		return 0;
+	}
+
+	return m_nRefCount;
 }
 
 /**
@@ -125,6 +152,14 @@ HRESULT WINAPI D3D9ProxyTexture::SetPrivateData(REFGUID refguid, CONST void* pDa
 }
 
 /**
+* Base GetPrivateData functionality. 
+***/
+HRESULT WINAPI D3D9ProxyTexture::GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData)
+{
+	return m_pActualTexture->GetPrivateData(refguid, pData, pSizeOfData);
+}
+
+/**
 * Frees private data on both (left/right) textures.
 ***/
 HRESULT WINAPI D3D9ProxyTexture::FreePrivateData(REFGUID refguid)
@@ -147,6 +182,15 @@ DWORD WINAPI D3D9ProxyTexture::SetPriority(DWORD PriorityNew)
 }
 
 /**
+* Base GetPriority functionality. 
+***/
+DWORD WINAPI D3D9ProxyTexture::GetPriority()
+{
+	return m_pActualTexture->GetPriority();
+}
+
+
+/**
 * Calls method on both (left/right) textures.
 ***/
 void WINAPI D3D9ProxyTexture::PreLoad()
@@ -155,6 +199,14 @@ void WINAPI D3D9ProxyTexture::PreLoad()
 		m_pActualTextureRight->PreLoad();
 
 	return m_pActualTexture->PreLoad();
+}
+
+/**
+* Base GetType functionality. 
+***/
+D3DRESOURCETYPE WINAPI D3D9ProxyTexture::GetType()
+{
+	return m_pActualTexture->GetType();
 }
 
 /**
@@ -169,6 +221,22 @@ DWORD WINAPI D3D9ProxyTexture::SetLOD(DWORD LODNew)
 }
 
 /**
+* Base GetLOD functionality. 
+***/
+DWORD WINAPI D3D9ProxyTexture::GetLOD()
+{
+	return m_pActualTexture->GetLOD();
+}
+
+/**
+* Base GetLevelCount functionality. 
+***/
+DWORD WINAPI D3D9ProxyTexture::GetLevelCount()
+{
+	return m_pActualTexture->GetLevelCount();
+}
+
+/**
 * Sets filter type on both (left/right) texture.
 ***/
 HRESULT WINAPI D3D9ProxyTexture::SetAutoGenFilterType(D3DTEXTUREFILTERTYPE FilterType)
@@ -177,6 +245,14 @@ HRESULT WINAPI D3D9ProxyTexture::SetAutoGenFilterType(D3DTEXTUREFILTERTYPE Filte
 		m_pActualTextureRight->SetAutoGenFilterType(FilterType);
 
 	return m_pActualTexture->SetAutoGenFilterType(FilterType);
+}
+
+/**
+* Base GetAutoGenFilterType functionality. 
+***/
+D3DTEXTUREFILTERTYPE WINAPI D3D9ProxyTexture::GetAutoGenFilterType()
+{
+	return m_pActualTexture->GetAutoGenFilterType();
 }
 
 /**
@@ -189,6 +265,15 @@ void WINAPI D3D9ProxyTexture::GenerateMipSubLevels()
 
 	return m_pActualTexture->GenerateMipSubLevels();
 }
+
+/**
+* Base GetLevelDesc functionality. 
+***/
+HRESULT WINAPI D3D9ProxyTexture::GetLevelDesc(UINT Level, D3DSURFACE_DESC *pDesc)
+{
+	return m_pActualTexture->GetLevelDesc(Level, pDesc);
+}
+
 
 /**
 * If proxy surface is already stored on this level, return this one, otherwise create it.

@@ -28,6 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
 #include "DataGatherer.h"
+#include "D3D9ProxyVertexShader.h"
 
 #define MATRIX_NAMES 17
 #define AVOID_SUBSTRINGS 2
@@ -306,7 +307,7 @@ HRESULT WINAPI DataGatherer::CreateVertexShader(CONST DWORD* pFunction,IDirect3D
 	HRESULT creationResult = D3DProxyDevice::CreateVertexShader(pFunction, ppShader);
 
 	if (SUCCEEDED(creationResult)) {
-		BaseDirect3DVertexShader9* pWrappedShader = static_cast<BaseDirect3DVertexShader9*>(*ppShader);
+		D3D9ProxyVertexShader* pWrappedShader = static_cast<D3D9ProxyVertexShader*>(*ppShader);
 		IDirect3DVertexShader9* pActualShader = pWrappedShader->getActual();
 
 		// No idea what happens if the same vertex shader is created twice. Pointer to the same shader or two
