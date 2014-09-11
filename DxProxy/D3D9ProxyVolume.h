@@ -31,8 +31,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define D3D9PROXYvOLUME_H_INCLUDED
 
 #include <d3d9.h>
-#include "Direct3DDevice9.h"
 #include <stdio.h>
+
+class D3DProxyDevice;
 
 
 /**
@@ -45,7 +46,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class D3D9ProxyVolume : public IDirect3DVolume9
 {
 public:
-	D3D9ProxyVolume(IDirect3DVolume9* pActualVolume, BaseDirect3DDevice9* pOwningDevice, IUnknown* pWrappedContainer);
+	D3D9ProxyVolume(IDirect3DVolume9* pActualVolume, D3DProxyDevice* pOwningDevice, IUnknown* pWrappedContainer);
 	virtual ~D3D9ProxyVolume();
 	
 	/*** IUnknown methods ***/
@@ -76,7 +77,7 @@ protected:
 	* The owning device.
 	* @see D3D9ProxySurface::m_pOwningDevice
 	***/
-	BaseDirect3DDevice9* const m_pOwningDevice;
+	D3DProxyDevice* const m_pOwningDevice;
 
 	/**
 	* The actual volume embedded. 

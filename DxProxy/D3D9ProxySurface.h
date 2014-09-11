@@ -31,11 +31,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define D3D9PROXYSURFACE_H_INCLUDED
 
 #include <d3d9.h>
-#include "Direct3DDevice9.h"
 #include "IStereoCapableWrapper.h"
 #include <stdio.h>
 
-
+class D3DProxyDevice;
 /**
 *  Direct 3D proxy surface class. 
 *  Overwrites wrapped surface class (BaseDirect3DSurface9) and imbeds additional right surface.
@@ -43,7 +42,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class D3D9ProxySurface : public IDirect3DSurface9, public IStereoCapableWrapper<IDirect3DSurface9>
 {
 public:
-	D3D9ProxySurface(IDirect3DSurface9* pActualSurfaceLeft, IDirect3DSurface9* pActualSurfaceRight, BaseDirect3DDevice9* pOwningDevice, IUnknown* pWrappedContainer);
+	D3D9ProxySurface(IDirect3DSurface9* pActualSurfaceLeft, IDirect3DSurface9* pActualSurfaceRight, D3DProxyDevice* pOwningDevice, IUnknown* pWrappedContainer);
 	virtual ~D3D9ProxySurface();
 
 	/*** IUnknown methods ***/
@@ -98,7 +97,7 @@ protected:
 	* IDirect3DResource9 or Direct3DISwapChain9 then cast the container to the appropriate interface 
 	* and the use GetDevice to fetch the device. 
 	***/
-	BaseDirect3DDevice9* const m_pOwningDevice;
+	D3DProxyDevice* const m_pOwningDevice;
 	/**
 	* Right surface. 
 	* NULL for surfaces that aren't being duplicated.

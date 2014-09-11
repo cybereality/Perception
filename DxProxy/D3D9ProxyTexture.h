@@ -35,6 +35,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "D3D9ProxySurface.h"
 #include "IStereoCapableWrapper.h"
 
+class D3DProxyDevice;
+
 /**
 *  Direct 3D proxy texture class. 
 *  Overwrites IDirect3DTexture9 and imbeds the additional right texture pointer.
@@ -42,7 +44,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class D3D9ProxyTexture : public IDirect3DTexture9, public IStereoCapableWrapper<IDirect3DTexture9>
 {
 public:
-	D3D9ProxyTexture(IDirect3DTexture9* pActualTextureLeft, IDirect3DTexture9* pActualTextureRight, BaseDirect3DDevice9* pOwningDevice);
+	D3D9ProxyTexture(IDirect3DTexture9* pActualTextureLeft, IDirect3DTexture9* pActualTextureRight, D3DProxyDevice* pOwningDevice);
 	virtual ~D3D9ProxyTexture();
 
 	/*** IUnknown methods ***/
@@ -86,7 +88,7 @@ protected:
 	* The owning device.
 	* @see D3D9ProxySurface::m_pOwningDevice
 	***/
-	BaseDirect3DDevice9* const m_pOwningDevice;
+	D3DProxyDevice* const m_pOwningDevice;
 	/**
 	* The actual right texture embedded. 
 	***/

@@ -73,7 +73,7 @@ protected:
 	/**
 	* Pointer to the D3D device that owns the swap chain. 
 	***/
-	BaseDirect3DDevice9* m_pOwningDevice;
+	D3DProxyDevice* m_pOwningDevice;
 	/**
 	* Bool to ensure only additional chains are destroyed on release.
 	***/

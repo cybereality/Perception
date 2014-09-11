@@ -31,7 +31,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define DIRECT3DINDEXBUFFER9_H_INCLUDED
 
 #include <d3d9.h>
-#include "Direct3DDevice9.h"
+#include "D3DProxyDevice.h"
 
 /**
 *  Direct 3D index buffer class. 

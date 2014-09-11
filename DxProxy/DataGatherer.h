@@ -30,7 +30,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef DATAGATHERER_H_INCLUDED
 #define DATAGATHERER_H_INCLUDED
 
-#include "Direct3DDevice9.h"
 #include "D3DProxyDevice.h"
 #include "ProxyHelper.h"
 #include "MurmurHash3.h"

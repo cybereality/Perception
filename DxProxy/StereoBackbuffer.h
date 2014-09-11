@@ -32,7 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <d3d9.h>
 #include "D3D9ProxySurface.h"
-#include "Direct3DDevice9.h"
+#include "D3DProxyDevice.h"
 #include "IStereoCapableWrapper.h"
 #include <stdio.h>
 
@@ -47,7 +47,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class StereoBackBuffer : public D3D9ProxySurface
 {
 public:
-	StereoBackBuffer(IDirect3DSurface9* pActualSurfaceLeft, IDirect3DSurface9* pActualSurfaceRight, BaseDirect3DDevice9* pOwningDevice);
+	StereoBackBuffer(IDirect3DSurface9* pActualSurfaceLeft, IDirect3DSurface9* pActualSurfaceRight, D3DProxyDevice* pOwningDevice);
 	virtual ~StereoBackBuffer();
 	
 	/*** StereoBackBuffer public methods ***/

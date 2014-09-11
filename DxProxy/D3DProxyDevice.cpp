@@ -90,7 +90,10 @@ UINT GetMouseScrollLines()
 /**
 * Constructor : creates game handler and sets various states.
 ***/
-D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy):BaseDirect3DDevice9(pDevice, pCreatedBy),
+D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy) :
+	m_pDevice(pDevice),
+	m_pCreatedBy(pCreatedBy),
+	m_nRefCount(1),
 	m_activeRenderTargets (1, NULL),
 	m_activeTextureStages(),
 	m_activeVertexBuffers(),
@@ -101,6 +104,9 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 {
 	#ifdef SHOW_CALLS
 		OutputDebugString("called D3DProxyDevice");
+	#endif
+	#ifdef _EXPORT_LOGFILE
+		m_logFile.open("logD3DDevice.txt", std::ios::out);
 	#endif
 	OutputDebugString("D3D ProxyDev Created\n");
 	InitVRBoost();
@@ -120,7 +126,7 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 
 	// Check the maximum number of supported render targets
 	D3DCAPS9 capabilities;
-	BaseDirect3DDevice9::GetDeviceCaps(&capabilities);
+	m_pDevice->GetDeviceCaps(&capabilities);
 	DWORD maxRenderTargets = capabilities.NumSimultaneousRTs;
 	m_activeRenderTargets.resize(maxRenderTargets, NULL);
 
@@ -197,6 +203,13 @@ D3DProxyDevice::~D3DProxyDevice()
 
 		it = m_activeSwapChains.erase(it);
 	}
+
+#ifdef _EXPORT_LOGFILE
+	m_logFile.close();
+#endif
+
+	if(m_pDevice)
+		m_pDevice->Release();
 }
 
 #define IF_GUID(riid,a,b,c,d,e,f,g,h,i,j,k) if ((riid.Data1==a)&&(riid.Data2==b)&&(riid.Data3==c)&&(riid.Data4[0]==d)&&(riid.Data4[1]==e)&&(riid.Data4[2]==f)&&(riid.Data4[3]==g)&&(riid.Data4[4]==h)&&(riid.Data4[5]==i)&&(riid.Data4[6]==j)&&(riid.Data4[7]==k))
@@ -218,7 +231,38 @@ HRESULT WINAPI D3DProxyDevice::QueryInterface(REFIID riid, LPVOID* ppv)
 		*ppv = NULL;
 		return E_NOINTERFACE;
 	}
-	return BaseDirect3DDevice9::QueryInterface(riid,ppv);
+	return m_pDevice->QueryInterface(riid,ppv);
+}
+
+
+/**
+* Base AddRef functionality.
+***/
+ULONG WINAPI D3DProxyDevice::AddRef()
+{	 
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "AddRef" << std::endl;
+#endif
+
+	return ++m_nRefCount;
+}
+
+/**
+* Base Release functionality.
+***/
+ULONG WINAPI D3DProxyDevice::Release()
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "Release" << std::endl;
+#endif
+
+	if(--m_nRefCount == 0)
+	{
+		delete this;
+		return 0;
+	}	
+
+	return m_nRefCount;
 }
 
 /**
@@ -229,8 +273,88 @@ HRESULT WINAPI D3DProxyDevice::TestCooperativeLevel()
 	#ifdef SHOW_CALLS
 		OutputDebugString("called TestCooperativeLevel");
 	#endif
-	return BaseDirect3DDevice9::TestCooperativeLevel();
+	return m_pDevice->TestCooperativeLevel();
 	// The calling application will start releasing resources after TestCooperativeLevel returns D3DERR_DEVICENOTRESET.
+}
+
+
+
+/**
+* Base GetAvailableTextureMem functionality.
+***/
+UINT WINAPI D3DProxyDevice::GetAvailableTextureMem()
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "GetAvailableTextureMem" << std::endl;
+#endif
+
+	return m_pDevice->GetAvailableTextureMem();
+}
+
+/**
+* Base EvictManagedResources functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::EvictManagedResources()
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "EvictManagedResources" << std::endl;
+#endif
+
+	return m_pDevice->EvictManagedResources();
+}
+
+/**
+* Base GetDirect3D functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::GetDirect3D(IDirect3D9** ppD3D9)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "GetDirect3D" << std::endl;
+#endif
+
+	if (!m_pCreatedBy)
+		return D3DERR_INVALIDCALL;
+	else {
+		*ppD3D9 = m_pCreatedBy;
+		m_pCreatedBy->AddRef();
+		return D3D_OK;
+	}
+}
+
+/**
+* Base GetDeviceCaps functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::GetDeviceCaps(D3DCAPS9* pCaps)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "GetDeviceCaps" << std::endl;
+#endif
+
+	return m_pDevice->GetDeviceCaps(pCaps);
+}
+
+/**
+* Base GetDisplayMode functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::GetDisplayMode(UINT iSwapChain,D3DDISPLAYMODE* pMode)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "GetDisplayMode" << std::endl;
+#endif
+
+	return m_pDevice->GetDisplayMode(iSwapChain, pMode);
+}
+
+/**
+* Base GetCreationParameters functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::GetCreationParameters(D3DDEVICE_CREATION_PARAMETERS *pParameters)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "GetCreationParameters" << std::endl;
+#endif
+
+	return m_pDevice->GetCreationParameters(pParameters);
 }
 
 /**
@@ -242,9 +366,33 @@ HRESULT WINAPI D3DProxyDevice::SetCursorProperties(UINT XHotSpot, UINT YHotSpot,
 		OutputDebugString("called SetCursorProperties");
 	#endif
 	if (!pCursorBitmap)
-		return BaseDirect3DDevice9::SetCursorProperties(XHotSpot, YHotSpot, NULL);
+		return m_pDevice->SetCursorProperties(XHotSpot, YHotSpot, NULL);
 
-	return BaseDirect3DDevice9::SetCursorProperties(XHotSpot, YHotSpot, static_cast<D3D9ProxySurface*>(pCursorBitmap)->getActualLeft());
+	return m_pDevice->SetCursorProperties(XHotSpot, YHotSpot, static_cast<D3D9ProxySurface*>(pCursorBitmap)->getActualLeft());
+}
+
+/**
+* Base SetCursorPosition functionality.
+***/
+void WINAPI D3DProxyDevice::SetCursorPosition(int X,int Y,DWORD Flags)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "SetCursorPosition" << std::endl;
+#endif
+
+	return m_pDevice->SetCursorPosition(X, Y, Flags);
+}
+
+/**
+* Base ShowCursor functionality.
+***/
+BOOL WINAPI D3DProxyDevice::ShowCursor(BOOL bShow)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "ShowCursor" << std::endl;
+#endif
+
+	return m_pDevice->ShowCursor(bShow);
 }
 
 /**
@@ -257,7 +405,7 @@ HRESULT WINAPI D3DProxyDevice::CreateAdditionalSwapChain(D3DPRESENT_PARAMETERS* 
 		OutputDebugString("called CreateAdditionalSwapChain");
 	#endif
 	IDirect3DSwapChain9* pActualSwapChain;
-	HRESULT result = BaseDirect3DDevice9::CreateAdditionalSwapChain(pPresentationParameters, &pActualSwapChain);
+	HRESULT result = m_pDevice->CreateAdditionalSwapChain(pPresentationParameters, &pActualSwapChain);
 
 	if (SUCCEEDED(result)) {
 		D3D9ProxySwapChain* wrappedSwapChain = new D3D9ProxySwapChain(pActualSwapChain, this, true);
@@ -292,6 +440,18 @@ HRESULT WINAPI D3DProxyDevice::GetSwapChain(UINT iSwapChain,IDirect3DSwapChain9*
 }
 
 /**
+* Base GetNumberOfSwapChains functionality.
+***/
+UINT WINAPI D3DProxyDevice::GetNumberOfSwapChains()
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "GetNumberOfSwapChains" << std::endl;
+#endif
+
+	return m_pDevice->GetNumberOfSwapChains();
+}
+
+/**
 * Calls release functions here and in stereo view class, releases swap chains and restores everything.
 * Subclasses which override this method must call through to super method at the end of the subclasses
 * implementation.
@@ -322,7 +482,7 @@ HRESULT WINAPI D3DProxyDevice::Reset(D3DPRESENT_PARAMETERS* pPresentationParamet
 		it = m_activeSwapChains.erase(it);
 	}
 
-	HRESULT hr = BaseDirect3DDevice9::Reset(pPresentationParameters);
+	HRESULT hr = m_pDevice->Reset(pPresentationParameters);
 
 	// if the device has been successfully reset we need to recreate any resources we created
 	if (hr == D3D_OK)  {
@@ -373,7 +533,7 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 
 	BRASSA_UpdateBorder();
 
-	return BaseDirect3DDevice9::Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
+	return m_pDevice->Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
 }
 
 /**
@@ -398,6 +558,55 @@ HRESULT WINAPI D3DProxyDevice::GetBackBuffer(UINT iSwapChain,UINT iBackBuffer,D3
 }
 
 /**
+* Base GetRasterStatus functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::GetRasterStatus(UINT iSwapChain,D3DRASTER_STATUS* pRasterStatus)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "GetRasterStatus" << std::endl;
+#endif
+
+	return m_pDevice->GetRasterStatus(iSwapChain, pRasterStatus);
+}
+
+/**
+* Base SetDialogBoxMode functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::SetDialogBoxMode(BOOL bEnableDialogs)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "SetDialogBoxMode" << std::endl;
+#endif
+
+	return m_pDevice->SetDialogBoxMode(bEnableDialogs);
+}
+
+/**
+* Base SetGammaRamp functionality.
+***/
+void WINAPI D3DProxyDevice::SetGammaRamp(UINT iSwapChain,DWORD Flags,CONST D3DGAMMARAMP* pRamp)
+{	
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "SetGammaRamp" << std::endl;
+#endif
+
+	return m_pDevice->SetGammaRamp(iSwapChain, Flags, pRamp);
+}
+
+/**
+* Base GetGammaRamp functionality.
+***/
+void WINAPI D3DProxyDevice::GetGammaRamp(UINT iSwapChain,D3DGAMMARAMP* pRamp)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "GetGammaRamp" << std::endl;
+#endif
+
+	return m_pDevice->GetGammaRamp(iSwapChain, pRamp);
+}
+
+
+/**
 * Creates a proxy (or wrapped) texture (D3DProxyTexture).
 * Texture to be created only gets both stereo textures if game handler agrees.
 * @see D3DProxyTexture
@@ -413,12 +622,12 @@ HRESULT WINAPI D3DProxyDevice::CreateTexture(UINT Width,UINT Height,UINT Levels,
 	IDirect3DTexture9* pRightTexture = NULL;	
 
 	// try and create left
-	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateTexture(Width, Height, Levels, Usage, Format, Pool, &pLeftTexture, pSharedHandle))) {
+	if (SUCCEEDED(creationResult = m_pDevice->CreateTexture(Width, Height, Levels, Usage, Format, Pool, &pLeftTexture, pSharedHandle))) {
 
 		// Does this Texture need duplicating?
 		if (m_pGameHandler->ShouldDuplicateTexture(Width, Height, Levels, Usage, Format, Pool)) {
 
-			if (FAILED(BaseDirect3DDevice9::CreateTexture(Width, Height, Levels, Usage, Format, Pool, &pRightTexture, pSharedHandle))) {
+			if (FAILED(m_pDevice->CreateTexture(Width, Height, Levels, Usage, Format, Pool, &pRightTexture, pSharedHandle))) {
 				OutputDebugString("Failed to create right eye texture while attempting to create stereo pair, falling back to mono\n");
 				pRightTexture = NULL;
 			}
@@ -445,7 +654,7 @@ HRESULT WINAPI D3DProxyDevice::CreateVolumeTexture(UINT Width,UINT Height,UINT D
 		OutputDebugString("called CreateVolumeTexture");
 	#endif
 	IDirect3DVolumeTexture9* pActualTexture = NULL;
-	HRESULT creationResult = BaseDirect3DDevice9::CreateVolumeTexture(Width, Height, Depth, Levels, Usage, Format, Pool, &pActualTexture, pSharedHandle);
+	HRESULT creationResult = m_pDevice->CreateVolumeTexture(Width, Height, Depth, Levels, Usage, Format, Pool, &pActualTexture, pSharedHandle);
 
 	if (SUCCEEDED(creationResult))
 		*ppVolumeTexture = new D3D9ProxyVolumeTexture(pActualTexture, this);
@@ -469,12 +678,12 @@ HRESULT WINAPI D3DProxyDevice::CreateCubeTexture(UINT EdgeLength, UINT Levels, D
 	IDirect3DCubeTexture9* pRightCubeTexture = NULL;	
 
 	// try and create left
-	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateCubeTexture(EdgeLength, Levels, Usage, Format, Pool, &pLeftCubeTexture, pSharedHandle))) {
+	if (SUCCEEDED(creationResult = m_pDevice->CreateCubeTexture(EdgeLength, Levels, Usage, Format, Pool, &pLeftCubeTexture, pSharedHandle))) {
 
 		// Does this Texture need duplicating?
 		if (m_pGameHandler->ShouldDuplicateCubeTexture(EdgeLength, Levels, Usage, Format, Pool)) {
 
-			if (FAILED(BaseDirect3DDevice9::CreateCubeTexture(EdgeLength, Levels, Usage, Format, Pool, &pRightCubeTexture, pSharedHandle))) {
+			if (FAILED(m_pDevice->CreateCubeTexture(EdgeLength, Levels, Usage, Format, Pool, &pRightCubeTexture, pSharedHandle))) {
 				OutputDebugString("Failed to create right eye texture while attempting to create stereo pair, falling back to mono\n");
 				pRightCubeTexture = NULL;
 			}
@@ -500,7 +709,7 @@ HRESULT WINAPI D3DProxyDevice::CreateVertexBuffer(UINT Length, DWORD Usage, DWOR
 		OutputDebugString("called CreateVertexBuffer");
 	#endif
 	IDirect3DVertexBuffer9* pActualBuffer = NULL;
-	HRESULT creationResult = BaseDirect3DDevice9::CreateVertexBuffer(Length, Usage, FVF, Pool, &pActualBuffer, pSharedHandle);
+	HRESULT creationResult = m_pDevice->CreateVertexBuffer(Length, Usage, FVF, Pool, &pActualBuffer, pSharedHandle);
 
 	if (SUCCEEDED(creationResult))
 		*ppVertexBuffer = new BaseDirect3DVertexBuffer9(pActualBuffer, this);
@@ -518,7 +727,7 @@ HRESULT WINAPI D3DProxyDevice::CreateIndexBuffer(UINT Length,DWORD Usage,D3DFORM
 		OutputDebugString("called CreateIndexBuffer");
 	#endif
 	IDirect3DIndexBuffer9* pActualBuffer = NULL;
-	HRESULT creationResult = BaseDirect3DDevice9::CreateIndexBuffer(Length, Usage, Format, Pool, &pActualBuffer, pSharedHandle);
+	HRESULT creationResult = m_pDevice->CreateIndexBuffer(Length, Usage, Format, Pool, &pActualBuffer, pSharedHandle);
 
 	if (SUCCEEDED(creationResult))
 		*ppIndexBuffer = new BaseDirect3DIndexBuffer9(pActualBuffer, this);
@@ -557,12 +766,12 @@ HRESULT WINAPI D3DProxyDevice::CreateDepthStencilSurface(UINT Width,UINT Height,
 	HRESULT creationResult;
 
 	// create left/mono
-	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateDepthStencilSurface(Width, Height, Format, MultiSample, MultisampleQuality, Discard, &pDepthStencilSurfaceLeft, pSharedHandle))) {
+	if (SUCCEEDED(creationResult = m_pDevice->CreateDepthStencilSurface(Width, Height, Format, MultiSample, MultisampleQuality, Discard, &pDepthStencilSurfaceLeft, pSharedHandle))) {
 
 		// TODO Should we always duplicated Depth stencils? I think yes, but there may be exceptions
 		if (m_pGameHandler->ShouldDuplicateDepthStencilSurface(Width, Height, Format, MultiSample, MultisampleQuality, Discard)) 
 		{
-			if (FAILED(BaseDirect3DDevice9::CreateDepthStencilSurface(Width, Height, Format, MultiSample, MultisampleQuality, Discard, &pDepthStencilSurfaceRight, pSharedHandle))) {
+			if (FAILED(m_pDevice->CreateDepthStencilSurface(Width, Height, Format, MultiSample, MultisampleQuality, Discard, &pDepthStencilSurfaceRight, pSharedHandle))) {
 				OutputDebugString("Failed to create right eye Depth Stencil Surface while attempting to create stereo pair, falling back to mono\n");
 				pDepthStencilSurfaceRight = NULL;
 			}
@@ -595,13 +804,13 @@ HRESULT WINAPI D3DProxyDevice::UpdateSurface(IDirect3DSurface9* pSourceSurface,C
 	IDirect3DSurface9* pDestSurfaceLeft = static_cast<D3D9ProxySurface*>(pDestinationSurface)->getActualLeft();
 	IDirect3DSurface9* pDestSurfaceRight = static_cast<D3D9ProxySurface*>(pDestinationSurface)->getActualRight();
 
-	HRESULT result = BaseDirect3DDevice9::UpdateSurface(pSourceSurfaceLeft, pSourceRect, pDestSurfaceLeft, pDestPoint);
+	HRESULT result = m_pDevice->UpdateSurface(pSourceSurfaceLeft, pSourceRect, pDestSurfaceLeft, pDestPoint);
 
 	if (SUCCEEDED(result)) {
 		if (!pSourceSurfaceRight && pDestSurfaceRight) {
 			//OutputDebugString("INFO: UpdateSurface - Source is not stereo, destination is stereo. Copying source to both sides of destination.\n");
 
-			if (FAILED(BaseDirect3DDevice9::UpdateSurface(pSourceSurfaceLeft, pSourceRect, pDestSurfaceRight, pDestPoint))) {
+			if (FAILED(m_pDevice->UpdateSurface(pSourceSurfaceLeft, pSourceRect, pDestSurfaceRight, pDestPoint))) {
 				OutputDebugString("ERROR: UpdateSurface - Failed to copy source left to destination right.\n");
 			}
 		} 
@@ -609,7 +818,7 @@ HRESULT WINAPI D3DProxyDevice::UpdateSurface(IDirect3DSurface9* pSourceSurface,C
 			//OutputDebugString("INFO: UpdateSurface - Source is stereo, destination is not stereo. Copied Left side only.\n");
 		}
 		else if (pSourceSurfaceRight && pDestSurfaceRight)	{
-			if (FAILED(BaseDirect3DDevice9::UpdateSurface(pSourceSurfaceRight, pSourceRect, pDestSurfaceRight, pDestPoint))) {
+			if (FAILED(m_pDevice->UpdateSurface(pSourceSurfaceRight, pSourceRect, pDestSurfaceRight, pDestPoint))) {
 				OutputDebugString("ERROR: UpdateSurface - Failed to copy source right to destination right.\n");
 			}
 		}
@@ -640,13 +849,13 @@ HRESULT WINAPI D3DProxyDevice::UpdateTexture(IDirect3DBaseTexture9* pSourceTextu
 	vireio::UnWrapTexture(pSourceTexture, &pSourceTextureLeft, &pSourceTextureRight);
 	vireio::UnWrapTexture(pDestinationTexture, &pDestTextureLeft, &pDestTextureRight);
 
-	HRESULT result = BaseDirect3DDevice9::UpdateTexture(pSourceTextureLeft, pDestTextureLeft);
+	HRESULT result = m_pDevice->UpdateTexture(pSourceTextureLeft, pDestTextureLeft);
 
 	if (SUCCEEDED(result)) {
 		if (!pSourceTextureRight && pDestTextureRight) {
 			//OutputDebugString("INFO: UpdateTexture - Source is not stereo, destination is stereo. Copying source to both sides of destination.\n");
 
-			if (FAILED(BaseDirect3DDevice9::UpdateTexture(pSourceTextureLeft, pDestTextureRight))) {
+			if (FAILED(m_pDevice->UpdateTexture(pSourceTextureLeft, pDestTextureRight))) {
 				OutputDebugString("ERROR: UpdateTexture - Failed to copy source left to destination right.\n");
 			}
 		} 
@@ -654,7 +863,7 @@ HRESULT WINAPI D3DProxyDevice::UpdateTexture(IDirect3DBaseTexture9* pSourceTextu
 			//OutputDebugString("INFO: UpdateTexture - Source is stereo, destination is not stereo. Copied Left side only.\n");
 		}
 		else if (pSourceTextureRight && pDestTextureRight)	{
-			if (FAILED(BaseDirect3DDevice9::UpdateTexture(pSourceTextureRight, pDestTextureRight))) {
+			if (FAILED(m_pDevice->UpdateTexture(pSourceTextureRight, pDestTextureRight))) {
 				OutputDebugString("ERROR: UpdateTexture - Failed to copy source right to destination right.\n");
 			}
 		}
@@ -682,13 +891,13 @@ HRESULT WINAPI D3DProxyDevice::GetRenderTargetData(IDirect3DSurface9* pRenderTar
 	IDirect3DSurface9* pDestSurfaceLeft = pWrappedDest->getActualLeft();
 	IDirect3DSurface9* pDestSurfaceRight = pWrappedDest->getActualRight();
 
-	HRESULT result = BaseDirect3DDevice9::GetRenderTargetData(pRenderTargetLeft, pDestSurfaceLeft);
+	HRESULT result = m_pDevice->GetRenderTargetData(pRenderTargetLeft, pDestSurfaceLeft);
 
 	if (SUCCEEDED(result)) {
 		if (!pRenderTargetRight && pDestSurfaceRight) {
 			//OutputDebugString("INFO: GetRenderTargetData - Source is not stereo, destination is stereo. Copying source to both sides of destination.\n");
 
-			if (FAILED(BaseDirect3DDevice9::GetRenderTargetData(pRenderTargetLeft, pDestSurfaceRight))) {
+			if (FAILED(m_pDevice->GetRenderTargetData(pRenderTargetLeft, pDestSurfaceRight))) {
 				OutputDebugString("ERROR: GetRenderTargetData - Failed to copy source left to destination right.\n");
 			}
 		} 
@@ -696,7 +905,7 @@ HRESULT WINAPI D3DProxyDevice::GetRenderTargetData(IDirect3DSurface9* pRenderTar
 			//OutputDebugString("INFO: GetRenderTargetData - Source is stereo, destination is not stereo. Copied Left side only.\n");
 		}
 		else if (pRenderTargetRight && pDestSurfaceRight)	{
-			if (FAILED(BaseDirect3DDevice9::GetRenderTargetData(pRenderTargetRight, pDestSurfaceRight))) {
+			if (FAILED(m_pDevice->GetRenderTargetData(pRenderTargetRight, pDestSurfaceRight))) {
 				OutputDebugString("ERROR: GetRenderTargetData - Failed to copy source right to destination right.\n");
 			}
 		}
@@ -746,13 +955,13 @@ HRESULT WINAPI D3DProxyDevice::StretchRect(IDirect3DSurface9* pSourceSurface,CON
 	IDirect3DSurface9* pDestSurfaceLeft = pWrappedDest->getActualLeft();
 	IDirect3DSurface9* pDestSurfaceRight = pWrappedDest->getActualRight();
 
-	HRESULT result = BaseDirect3DDevice9::StretchRect(pSourceSurfaceLeft, pSourceRect, pDestSurfaceLeft, pDestRect, Filter);
+	HRESULT result = m_pDevice->StretchRect(pSourceSurfaceLeft, pSourceRect, pDestSurfaceLeft, pDestRect, Filter);
 
 	if (SUCCEEDED(result)) {
 		if (!pSourceSurfaceRight && pDestSurfaceRight) {
 			//OutputDebugString("INFO: StretchRect - Source is not stereo, destination is stereo. Copying source to both sides of destination.\n");
 
-			if (FAILED(BaseDirect3DDevice9::StretchRect(pSourceSurfaceLeft, pSourceRect, pDestSurfaceRight, pDestRect, Filter))) {
+			if (FAILED(m_pDevice->StretchRect(pSourceSurfaceLeft, pSourceRect, pDestSurfaceRight, pDestRect, Filter))) {
 				OutputDebugString("ERROR: StretchRect - Failed to copy source left to destination right.\n");
 			}
 		} 
@@ -760,7 +969,7 @@ HRESULT WINAPI D3DProxyDevice::StretchRect(IDirect3DSurface9* pSourceSurface,CON
 			//OutputDebugString("INFO: StretchRect - Source is stereo, destination is not stereo. Copied Left side only.\n");
 		}
 		else if (pSourceSurfaceRight && pDestSurfaceRight)	{
-			if (FAILED(BaseDirect3DDevice9::StretchRect(pSourceSurfaceRight, pSourceRect, pDestSurfaceRight, pDestRect, Filter))) {
+			if (FAILED(m_pDevice->StretchRect(pSourceSurfaceRight, pSourceRect, pDestSurfaceRight, pDestRect, Filter))) {
 				OutputDebugString("ERROR: StretchRect - Failed to copy source right to destination right.\n");
 			}
 		}
@@ -781,10 +990,10 @@ HRESULT WINAPI D3DProxyDevice::ColorFill(IDirect3DSurface9* pSurface,CONST RECT*
 	HRESULT result;
 
 	D3D9ProxySurface* pDerivedSurface = static_cast<D3D9ProxySurface*> (pSurface);
-	if (SUCCEEDED(result = BaseDirect3DDevice9::ColorFill(pDerivedSurface->getActualLeft(), pRect, color)))
+	if (SUCCEEDED(result = m_pDevice->ColorFill(pDerivedSurface->getActualLeft(), pRect, color)))
 	{
 		if (pDerivedSurface->IsStereo())
-			BaseDirect3DDevice9::ColorFill(pDerivedSurface->getActualRight(), pRect, color);
+			m_pDevice->ColorFill(pDerivedSurface->getActualRight(), pRect, color);
 	}
 
 	return result;
@@ -805,7 +1014,7 @@ HRESULT WINAPI D3DProxyDevice::CreateOffscreenPlainSurface(UINT Width,UINT Heigh
 		OutputDebugString("called CreateOffscreenPlainSurface");
 	#endif
 	IDirect3DSurface9* pActualSurface = NULL;
-	HRESULT creationResult = BaseDirect3DDevice9::CreateOffscreenPlainSurface(Width, Height, Format, Pool, &pActualSurface, pSharedHandle);
+	HRESULT creationResult = m_pDevice->CreateOffscreenPlainSurface(Width, Height, Format, Pool, &pActualSurface, pSharedHandle);
 
 	if (SUCCEEDED(creationResult))
 		*ppSurface = new D3D9ProxySurface(pActualSurface, NULL, this, NULL);
@@ -840,16 +1049,16 @@ HRESULT WINAPI D3DProxyDevice::SetRenderTarget(DWORD RenderTargetIndex, IDirect3
 			result = D3DERR_INVALIDCALL; 
 		}		
 		else {
-			result = BaseDirect3DDevice9::SetRenderTarget(RenderTargetIndex, NULL);
+			result = m_pDevice->SetRenderTarget(RenderTargetIndex, NULL);
 		}
 	}
 	// Setting a render target
 	else {
 		if (m_currentRenderingSide == vireio::Left) {
-			result = BaseDirect3DDevice9::SetRenderTarget(RenderTargetIndex, newRenderTarget->getActualLeft());
+			result = m_pDevice->SetRenderTarget(RenderTargetIndex, newRenderTarget->getActualLeft());
 		}
 		else {
-			result = BaseDirect3DDevice9::SetRenderTarget(RenderTargetIndex, newRenderTarget->getActualRight());
+			result = m_pDevice->SetRenderTarget(RenderTargetIndex, newRenderTarget->getActualRight());
 		}
 	}
 
@@ -913,7 +1122,7 @@ HRESULT WINAPI D3DProxyDevice::SetDepthStencilSurface(IDirect3DSurface9* pNewZSt
 	}
 
 	// Update actual depth stencil
-	HRESULT result = BaseDirect3DDevice9::SetDepthStencilSurface(pActualStencilForCurrentSide);
+	HRESULT result = m_pDevice->SetDepthStencilSurface(pActualStencilForCurrentSide);
 
 	// Update stored proxy depth stencil
 	if (SUCCEEDED(result)) {
@@ -978,7 +1187,7 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 		if ((m_bViewportIsSquished) && (BRASSA_mode>=BRASSA_Modes::MAINMENU) && (BRASSA_mode<BRASSA_Modes::BRASSA_ENUM_RANGE))
 		{
 			if (m_bViewportIsSquished)
-				BaseDirect3DDevice9::SetViewport(&m_LastViewportSet);
+				m_pDevice->SetViewport(&m_LastViewportSet);
 			m_bViewportIsSquished = false;
 		}
 
@@ -1019,7 +1228,7 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 
 	
 
-	return BaseDirect3DDevice9::BeginScene();
+	return m_pDevice->BeginScene();
 }
 
 /**
@@ -1046,7 +1255,7 @@ HRESULT WINAPI D3DProxyDevice::EndScene()
 	if (trackerInitialized)
 		tracker->EndFrame();
 
-	return BaseDirect3DDevice9::EndScene();
+	return m_pDevice->EndScene();
 }
 
 /**
@@ -1058,11 +1267,11 @@ HRESULT WINAPI D3DProxyDevice::Clear(DWORD Count,CONST D3DRECT* pRects,DWORD Fla
 		OutputDebugString("called Clear");
 	#endif
 	HRESULT result;
-	if (SUCCEEDED(result = BaseDirect3DDevice9::Clear(Count, pRects, Flags, Color, Z, Stencil))) {
+	if (SUCCEEDED(result = m_pDevice->Clear(Count, pRects, Flags, Color, Z, Stencil))) {
 		if (switchDrawingSide()) {
 
 			HRESULT hr;
-			if (FAILED(hr = BaseDirect3DDevice9::Clear(Count, pRects, Flags, Color, Z, Stencil))) {
+			if (FAILED(hr = m_pDevice->Clear(Count, pRects, Flags, Color, Z, Stencil))) {
 
 #ifdef _DEBUG
 				char buf[256];
@@ -1147,7 +1356,7 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 			pViewToSet = m_pCurrentView;
 		}
 
-		return BaseDirect3DDevice9::SetTransform(State, pViewToSet);
+		return m_pDevice->SetTransform(State, pViewToSet);
 
 	}
 	else if(State == D3DTS_PROJECTION)
@@ -1224,10 +1433,22 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 			pProjectionToSet = m_pCurrentProjection;
 		}
 
-		return BaseDirect3DDevice9::SetTransform(State, pProjectionToSet);
+		return m_pDevice->SetTransform(State, pProjectionToSet);
 	}
 
-	return BaseDirect3DDevice9::SetTransform(State, pMatrix);
+	return m_pDevice->SetTransform(State, pMatrix);
+}
+
+/**
+* Base GetTransform functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::GetTransform(D3DTRANSFORMSTATETYPE State,D3DMATRIX* pMatrix)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "GetTransform" << std::endl;
+#endif
+
+	return m_pDevice->GetTransform(State, pMatrix);
 }
 
 /**
@@ -1242,7 +1463,7 @@ HRESULT WINAPI D3DProxyDevice::MultiplyTransform(D3DTRANSFORMSTATETYPE State,CON
 	OutputDebugString("\n"); 
 	OutputDebugString("Not implemented - Fix Me! (if i need fixing)\n"); 
 
-	return BaseDirect3DDevice9::MultiplyTransform(State, pMatrix);
+	return m_pDevice->MultiplyTransform(State, pMatrix);
 }
 
 /**
@@ -1258,7 +1479,7 @@ HRESULT WINAPI D3DProxyDevice::SetViewport(CONST D3DVIEWPORT9* pViewport)
 	#ifdef SHOW_CALLS
 		OutputDebugString("called SetViewport");
 	#endif
-	HRESULT result = BaseDirect3DDevice9::SetViewport(pViewport);
+	HRESULT result = m_pDevice->SetViewport(pViewport);
 
 	if (SUCCEEDED(result)) {
 
@@ -1279,6 +1500,138 @@ HRESULT WINAPI D3DProxyDevice::SetViewport(CONST D3DVIEWPORT9* pViewport)
 	return result;
 }
 
+
+/**
+* Base GetViewport functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::GetViewport(D3DVIEWPORT9* pViewport)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "GetViewport" << std::endl;
+#endif
+
+	return m_pDevice->GetViewport(pViewport);
+}
+/**
+* Base SetMaterial functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::SetMaterial(CONST D3DMATERIAL9* pMaterial)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "SetMaterial" << std::endl;
+#endif
+
+	return m_pDevice->SetMaterial(pMaterial);
+}
+
+/**
+* Base GetMaterial functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::GetMaterial(D3DMATERIAL9* pMaterial)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "GetMaterial" << std::endl;
+#endif
+
+	return m_pDevice->GetMaterial(pMaterial);
+}
+
+/**
+* Base SetLight functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::SetLight(DWORD Index,CONST D3DLIGHT9* pLight)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "SetLight" << std::endl;
+#endif
+
+	return m_pDevice->SetLight(Index, pLight);
+}
+
+/**
+* Base GetLight functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::GetLight(DWORD Index,D3DLIGHT9* pLight)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "GetLight" << std::endl;
+#endif
+
+	return m_pDevice->GetLight(Index, pLight);
+}
+
+/**
+* Base LightEnable functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::LightEnable(DWORD Index,BOOL Enable)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "LightEnable" << std::endl;
+#endif
+
+	return m_pDevice->LightEnable(Index, Enable);
+}
+
+/**
+* Base GetLightEnable functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::GetLightEnable(DWORD Index,BOOL* pEnable)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "GetLightEnable" << std::endl;
+#endif
+
+	return m_pDevice->GetLightEnable(Index, pEnable);
+}
+
+/**
+* Base SetClipPlane functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::SetClipPlane(DWORD Index,CONST float* pPlane)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "SetClipPlane" << std::endl;
+#endif
+
+	return m_pDevice->SetClipPlane(Index, pPlane);
+}
+
+/**
+* Base GetClipPlane functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::GetClipPlane(DWORD Index,float* pPlane)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "GetClipPlane" << std::endl;
+#endif
+
+	return m_pDevice->GetClipPlane(Index, pPlane);
+}
+
+/**
+* Base SetRenderState functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::SetRenderState(D3DRENDERSTATETYPE State,DWORD Value)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "SetRenderState" << std::endl;
+#endif
+
+	return m_pDevice->SetRenderState(State, Value);
+}
+
+/**
+* Base GetRenderState functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::GetRenderState(D3DRENDERSTATETYPE State,DWORD* pValue)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "GetRenderState" << std::endl;
+#endif
+
+	return m_pDevice->GetRenderState(State, pValue);
+}
+
 /**
 * Creates proxy state block.
 * Also, selects capture type option according to state block type.
@@ -1291,7 +1644,7 @@ HRESULT WINAPI D3DProxyDevice::CreateStateBlock(D3DSTATEBLOCKTYPE Type,IDirect3D
 		OutputDebugString("called CreateStateBlock");
 	#endif
 	IDirect3DStateBlock9* pActualStateBlock = NULL;
-	HRESULT creationResult = BaseDirect3DDevice9::CreateStateBlock(Type, &pActualStateBlock);
+	HRESULT creationResult = m_pDevice->CreateStateBlock(Type, &pActualStateBlock);
 
 	if (SUCCEEDED(creationResult)) {
 
@@ -1339,7 +1692,7 @@ HRESULT WINAPI D3DProxyDevice::BeginStateBlock()
 		OutputDebugString("called BeginStateBlock");
 	#endif
 	HRESULT result;
-	if (SUCCEEDED(result = BaseDirect3DDevice9::BeginStateBlock())) {
+	if (SUCCEEDED(result = m_pDevice->BeginStateBlock())) {
 		m_bInBeginEndStateBlock = true;
 		m_pCapturingStateTo = new D3D9ProxyStateBlock(NULL, this, D3D9ProxyStateBlock::Cap_Type_Selected, m_currentRenderingSide == vireio::Left);
 	}
@@ -1358,7 +1711,7 @@ HRESULT WINAPI D3DProxyDevice::EndStateBlock(IDirect3DStateBlock9** ppSB)
 		OutputDebugString("called ppSB");
 	#endif
 	IDirect3DStateBlock9* pActualStateBlock = NULL;
-	HRESULT creationResult = BaseDirect3DDevice9::EndStateBlock(&pActualStateBlock);
+	HRESULT creationResult = m_pDevice->EndStateBlock(&pActualStateBlock);
 
 	if (SUCCEEDED(creationResult)) {
 		m_pCapturingStateTo->EndStateBlock(pActualStateBlock);
@@ -1374,6 +1727,31 @@ HRESULT WINAPI D3DProxyDevice::EndStateBlock(IDirect3DStateBlock9** ppSB)
 
 	return creationResult;
 }
+
+/**
+* Base SetClipStatus functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::SetClipStatus(CONST D3DCLIPSTATUS9* pClipStatus)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "SetClipStatus" << std::endl;
+#endif
+
+	return m_pDevice->SetClipStatus(pClipStatus);
+}
+
+/**
+* Base GetClipStatus functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::GetClipStatus(D3DCLIPSTATUS9* pClipStatus)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "GetClipStatus" << std::endl;
+#endif
+
+	return m_pDevice->GetClipStatus(pClipStatus);
+}
+
 
 /**
 * Provides texture from stored active (mono) texture stages.
@@ -1415,13 +1793,13 @@ HRESULT WINAPI D3DProxyDevice::SetTexture(DWORD Stage,IDirect3DBaseTexture9* pTe
 
 		// Try and Update the actual devices textures
 		if ((pActualRightTexture == NULL) || (m_currentRenderingSide == vireio::Left)) // use left (mono) if not stereo or one left side
-			result = BaseDirect3DDevice9::SetTexture(Stage, pActualLeftTexture);
+			result = m_pDevice->SetTexture(Stage, pActualLeftTexture);
 		else
-			result = BaseDirect3DDevice9::SetTexture(Stage, pActualRightTexture);
+			result = m_pDevice->SetTexture(Stage, pActualRightTexture);
 
 	}
 	else {
-		result = BaseDirect3DDevice9::SetTexture(Stage, NULL);
+		result = m_pDevice->SetTexture(Stage, NULL);
 	}
 
 	// Update m_activeTextureStages if new texture was successfully set
@@ -1466,6 +1844,187 @@ HRESULT WINAPI D3DProxyDevice::SetTexture(DWORD Stage,IDirect3DBaseTexture9* pTe
 }
 
 /**
+* Base GetTextureStageState functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::GetTextureStageState(DWORD Stage,D3DTEXTURESTAGESTATETYPE Type,DWORD* pValue)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "GetTextureStageState" << std::endl;
+#endif
+
+	return m_pDevice->GetTextureStageState(Stage, Type, pValue);
+}
+
+/**
+* Base SetTextureStageState functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::SetTextureStageState(DWORD Stage,D3DTEXTURESTAGESTATETYPE Type,DWORD Value)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "SetTextureStageState" << std::endl;
+#endif
+
+	return m_pDevice->SetTextureStageState(Stage, Type, Value);
+}
+
+/**
+* Base GetSamplerState functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::GetSamplerState(DWORD Sampler,D3DSAMPLERSTATETYPE Type,DWORD* pValue)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "GetSamplerState" << std::endl;
+#endif
+
+	return m_pDevice->GetSamplerState(Sampler, Type, pValue);
+}
+
+/**
+* Base SetSamplerState functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::SetSamplerState(DWORD Sampler,D3DSAMPLERSTATETYPE Type,DWORD Value)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "SetSamplerState" << std::endl;
+#endif
+
+	return m_pDevice->SetSamplerState(Sampler, Type, Value);
+}
+
+/**
+* Base ValidateDevice functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::ValidateDevice(DWORD* pNumPasses)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "ValidateDevice" << std::endl;
+#endif
+
+	return m_pDevice->ValidateDevice(pNumPasses);
+}
+
+/**
+* Base SetPaletteEntries functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::SetPaletteEntries(UINT PaletteNumber,CONST PALETTEENTRY* pEntries)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "SetPaletteEntries" << std::endl;
+#endif
+
+	return m_pDevice->SetPaletteEntries(PaletteNumber, pEntries);
+}
+
+/**
+* Base GetPaletteEntries functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::GetPaletteEntries(UINT PaletteNumber,PALETTEENTRY* pEntries)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "GetPaletteEntries" << std::endl;
+#endif
+
+	return m_pDevice->GetPaletteEntries(PaletteNumber, pEntries);
+}
+
+/**
+* Base SetCurrentTexturePalette functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::SetCurrentTexturePalette(UINT PaletteNumber)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "SetCurrentTexturePalette" << std::endl;
+#endif
+
+	return m_pDevice->SetCurrentTexturePalette(PaletteNumber);
+}
+
+/**
+* Base GetCurrentTexturePalette functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::GetCurrentTexturePalette(UINT *PaletteNumber)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "GetCurrentTexturePalette" << std::endl;
+#endif
+
+	return m_pDevice->GetCurrentTexturePalette(PaletteNumber);
+}
+
+/**
+* Base SetScissorRect functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::SetScissorRect(CONST RECT* pRect)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "SetScissorRect" << std::endl;
+#endif
+
+	return m_pDevice->SetScissorRect(pRect);
+}
+
+/**
+* Base GetScissorRect functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::GetScissorRect(RECT* pRect)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "GetScissorRect" << std::endl;
+#endif
+
+	return m_pDevice->GetScissorRect(pRect);
+}
+
+/**
+* Base SetSoftwareVertexProcessing functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::SetSoftwareVertexProcessing(BOOL bSoftware)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "SetSoftwareVertexProcessing" << std::endl;
+#endif
+
+	return m_pDevice->SetSoftwareVertexProcessing(bSoftware);
+}
+
+/**
+* Base GetSoftwareVertexProcessing functionality.
+***/
+BOOL WINAPI D3DProxyDevice::GetSoftwareVertexProcessing()
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "GetSoftwareVertexProcessing" << std::endl;
+#endif
+
+	return m_pDevice->GetSoftwareVertexProcessing();
+}
+
+/**
+* Base SetNPatchMode functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::SetNPatchMode(float nSegments)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "SetNPatchMode" << std::endl;
+#endif
+
+	return m_pDevice->SetNPatchMode(nSegments);
+}
+
+/**
+* Base GetNPatchMode functionality.
+***/
+float WINAPI D3DProxyDevice::GetNPatchMode()
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "GetNPatchMode" << std::endl;
+#endif
+
+	return m_pDevice->GetNPatchMode();
+}
+
+
+/**
 * Applies all dirty shader registers, draws both stereo sides if switchDrawingSide() agrees.
 * @see switchDrawingSide()
 ***/
@@ -1477,9 +2036,9 @@ HRESULT WINAPI D3DProxyDevice::DrawPrimitive(D3DPRIMITIVETYPE PrimitiveType,UINT
 	m_spManagedShaderRegisters->ApplyAllDirty(m_currentRenderingSide);
 
 	HRESULT result;
-	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawPrimitive(PrimitiveType, StartVertex, PrimitiveCount))) {
+	if (SUCCEEDED(result = m_pDevice->DrawPrimitive(PrimitiveType, StartVertex, PrimitiveCount))) {
 		if (switchDrawingSide())
-			BaseDirect3DDevice9::DrawPrimitive(PrimitiveType, StartVertex, PrimitiveCount);
+			m_pDevice->DrawPrimitive(PrimitiveType, StartVertex, PrimitiveCount);
 	}
 
 	return result;
@@ -1497,9 +2056,9 @@ HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitive(D3DPRIMITIVETYPE PrimitiveTy
 	m_spManagedShaderRegisters->ApplyAllDirty(m_currentRenderingSide);
 
 	HRESULT result;
-	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawIndexedPrimitive(PrimitiveType, BaseVertexIndex, MinVertexIndex, NumVertices, startIndex, primCount))) {
+	if (SUCCEEDED(result = m_pDevice->DrawIndexedPrimitive(PrimitiveType, BaseVertexIndex, MinVertexIndex, NumVertices, startIndex, primCount))) {
 		if (switchDrawingSide()) {
-			HRESULT result2 = BaseDirect3DDevice9::DrawIndexedPrimitive(PrimitiveType, BaseVertexIndex, MinVertexIndex, NumVertices, startIndex, primCount);
+			HRESULT result2 = m_pDevice->DrawIndexedPrimitive(PrimitiveType, BaseVertexIndex, MinVertexIndex, NumVertices, startIndex, primCount);
 			if (result != result2)
 				OutputDebugString("moop\n");
 		}
@@ -1520,9 +2079,9 @@ HRESULT WINAPI D3DProxyDevice::DrawPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType,UI
 	m_spManagedShaderRegisters->ApplyAllDirty(m_currentRenderingSide);
 
 	HRESULT result;
-	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawPrimitiveUP(PrimitiveType, PrimitiveCount, pVertexStreamZeroData, VertexStreamZeroStride))) {
+	if (SUCCEEDED(result = m_pDevice->DrawPrimitiveUP(PrimitiveType, PrimitiveCount, pVertexStreamZeroData, VertexStreamZeroStride))) {
 		if (switchDrawingSide())
-			BaseDirect3DDevice9::DrawPrimitiveUP(PrimitiveType, PrimitiveCount, pVertexStreamZeroData, VertexStreamZeroStride);
+			m_pDevice->DrawPrimitiveUP(PrimitiveType, PrimitiveCount, pVertexStreamZeroData, VertexStreamZeroStride);
 	}
 
 	return result;
@@ -1540,9 +2099,9 @@ HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitiveUP(D3DPRIMITIVETYPE Primitive
 	m_spManagedShaderRegisters->ApplyAllDirty(m_currentRenderingSide);
 
 	HRESULT result;
-	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawIndexedPrimitiveUP(PrimitiveType, MinVertexIndex, NumVertices, PrimitiveCount, pIndexData, IndexDataFormat, pVertexStreamZeroData, VertexStreamZeroStride))) {
+	if (SUCCEEDED(result = m_pDevice->DrawIndexedPrimitiveUP(PrimitiveType, MinVertexIndex, NumVertices, PrimitiveCount, pIndexData, IndexDataFormat, pVertexStreamZeroData, VertexStreamZeroStride))) {
 		if (switchDrawingSide())
-			BaseDirect3DDevice9::DrawIndexedPrimitiveUP(PrimitiveType, MinVertexIndex, NumVertices, PrimitiveCount, pIndexData, IndexDataFormat, pVertexStreamZeroData, VertexStreamZeroStride);
+			m_pDevice->DrawIndexedPrimitiveUP(PrimitiveType, MinVertexIndex, NumVertices, PrimitiveCount, pIndexData, IndexDataFormat, pVertexStreamZeroData, VertexStreamZeroStride);
 	}
 
 	return result;
@@ -1567,10 +2126,10 @@ HRESULT WINAPI D3DProxyDevice::ProcessVertices(UINT SrcStartIndex,UINT DestIndex
 	HRESULT result;
 	if (pVertexDecl) {
 		pCastVertexDeclaration = static_cast<BaseDirect3DVertexDeclaration9*>(pVertexDecl);
-		result = BaseDirect3DDevice9::ProcessVertices(SrcStartIndex, DestIndex, VertexCount, pCastDestBuffer->getActual(), pCastVertexDeclaration->getActual(), Flags);
+		result = m_pDevice->ProcessVertices(SrcStartIndex, DestIndex, VertexCount, pCastDestBuffer->getActual(), pCastVertexDeclaration->getActual(), Flags);
 	}
 	else {
-		result = BaseDirect3DDevice9::ProcessVertices(SrcStartIndex, DestIndex, VertexCount, pCastDestBuffer->getActual(), NULL, Flags);
+		result = m_pDevice->ProcessVertices(SrcStartIndex, DestIndex, VertexCount, pCastDestBuffer->getActual(), NULL, Flags);
 	}
 
 	return result;
@@ -1585,7 +2144,7 @@ HRESULT WINAPI D3DProxyDevice::CreateVertexDeclaration(CONST D3DVERTEXELEMENT9* 
 		OutputDebugString("called CreateVertexDeclaration");
 	#endif
 	IDirect3DVertexDeclaration9* pActualVertexDeclaration = NULL;
-	HRESULT creationResult = BaseDirect3DDevice9::CreateVertexDeclaration(pVertexElements, &pActualVertexDeclaration );
+	HRESULT creationResult = m_pDevice->CreateVertexDeclaration(pVertexElements, &pActualVertexDeclaration );
 
 	if (SUCCEEDED(creationResult))
 		*ppDecl = new BaseDirect3DVertexDeclaration9(pActualVertexDeclaration, this);
@@ -1608,9 +2167,9 @@ HRESULT WINAPI D3DProxyDevice::SetVertexDeclaration(IDirect3DVertexDeclaration9*
 	// Update actual Vertex Declaration
 	HRESULT result;
 	if (pWrappedVDeclarationData)
-		result = BaseDirect3DDevice9::SetVertexDeclaration(pWrappedVDeclarationData->getActual());
+		result = m_pDevice->SetVertexDeclaration(pWrappedVDeclarationData->getActual());
 	else
-		result = BaseDirect3DDevice9::SetVertexDeclaration(NULL);
+		result = m_pDevice->SetVertexDeclaration(NULL);
 
 	// Update stored proxy Vertex Declaration
 	if (SUCCEEDED(result)) {
@@ -1654,6 +2213,30 @@ HRESULT WINAPI D3DProxyDevice::GetVertexDeclaration(IDirect3DVertexDeclaration9*
 }
 
 /**
+* Base SetFVF functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::SetFVF(DWORD FVF)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "SetFVF" << std::endl;
+#endif
+
+	return m_pDevice->SetFVF(FVF);
+}
+
+/**
+* Base GetFVF functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::GetFVF(DWORD* pFVF)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "GetFVF" << std::endl;
+#endif
+
+	return m_pDevice->GetFVF(pFVF);
+}
+
+/**
 * Creates proxy (wrapped) vertex shader.
 * @param ppShader [in, out] The created proxy vertex shader.
 * @see D3D9ProxyVertexShader
@@ -1664,7 +2247,7 @@ HRESULT WINAPI D3DProxyDevice::CreateVertexShader(CONST DWORD* pFunction,IDirect
 		OutputDebugString("called CreateVertexShader");
 	#endif
 	IDirect3DVertexShader9* pActualVShader = NULL;
-	HRESULT creationResult = BaseDirect3DDevice9::CreateVertexShader(pFunction, &pActualVShader);
+	HRESULT creationResult = m_pDevice->CreateVertexShader(pFunction, &pActualVShader);
 
 	if (SUCCEEDED(creationResult)) {
 		*ppShader = new D3D9ProxyVertexShader(pActualVShader, this, m_pGameHandler->GetShaderModificationRepository());
@@ -1687,9 +2270,9 @@ HRESULT WINAPI D3DProxyDevice::SetVertexShader(IDirect3DVertexShader9* pShader)
 	// Update actual Vertex shader
 	HRESULT result;
 	if (pWrappedVShaderData)
-		result = BaseDirect3DDevice9::SetVertexShader(pWrappedVShaderData->getActual());
+		result = m_pDevice->SetVertexShader(pWrappedVShaderData->getActual());
 	else
-		result = BaseDirect3DDevice9::SetVertexShader(NULL);
+		result = m_pDevice->SetVertexShader(NULL);
 
 	// Update stored proxy Vertex shader
 	if (SUCCEEDED(result)) {
@@ -1719,7 +2302,7 @@ HRESULT WINAPI D3DProxyDevice::SetVertexShader(IDirect3DVertexShader9* pShader)
 		else
 		{
 			if (m_bViewportIsSquished)
-				BaseDirect3DDevice9::SetViewport(&m_LastViewportSet);
+				m_pDevice->SetViewport(&m_LastViewportSet);
 			m_bViewportIsSquished = false;
 		}
 	}
@@ -1780,6 +2363,56 @@ HRESULT WINAPI D3DProxyDevice::GetVertexShaderConstantF(UINT StartRegister,float
 	return m_spManagedShaderRegisters->GetVertexShaderConstantF(StartRegister, pData, Vector4fCount);
 }
 
+
+/**
+* Base SetVertexShaderConstantI functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::SetVertexShaderConstantI(UINT StartRegister,CONST int* pConstantData,UINT Vector4iCount)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "SetVertexShaderConstantI" << std::endl;
+#endif
+
+	return m_pDevice->SetVertexShaderConstantI(StartRegister, pConstantData, Vector4iCount);
+}
+
+
+/**
+* Base GetVertexShaderConstantI functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::GetVertexShaderConstantI(UINT StartRegister,int* pConstantData,UINT Vector4iCount)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "GetVertexShaderConstantI" << std::endl;
+#endif
+
+	return m_pDevice->GetVertexShaderConstantI(StartRegister, pConstantData, Vector4iCount);
+}
+
+/**
+* Base SetVertexShaderConstantB functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::SetVertexShaderConstantB(UINT StartRegister,CONST BOOL* pConstantData,UINT  BoolCount)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "SetVertexShaderConstantB" << std::endl;
+#endif
+
+	return m_pDevice->SetVertexShaderConstantB(StartRegister, pConstantData, BoolCount);
+}
+
+/**
+* Base GetVertexShaderConstantB functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::GetVertexShaderConstantB(UINT StartRegister,BOOL* pConstantData,UINT BoolCount)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "GetVertexShaderConstantB" << std::endl;
+#endif
+
+	return m_pDevice->GetVertexShaderConstantB(StartRegister, pConstantData, BoolCount);
+}
+
 /**
 * Sets stream source and updates stored vertex buffers.
 * Also, it calls proxy state block to capture states.
@@ -1793,10 +2426,10 @@ HRESULT WINAPI D3DProxyDevice::SetStreamSource(UINT StreamNumber, IDirect3DVerte
 	BaseDirect3DVertexBuffer9* pCastStreamData = static_cast<BaseDirect3DVertexBuffer9*>(pStreamData);
 	HRESULT result;
 	if (pStreamData) {		
-		result = BaseDirect3DDevice9::SetStreamSource(StreamNumber, pCastStreamData->getActual(), OffsetInBytes, Stride);
+		result = m_pDevice->SetStreamSource(StreamNumber, pCastStreamData->getActual(), OffsetInBytes, Stride);
 	}
 	else {
-		result = BaseDirect3DDevice9::SetStreamSource(StreamNumber, NULL, OffsetInBytes, Stride);
+		result = m_pDevice->SetStreamSource(StreamNumber, NULL, OffsetInBytes, Stride);
 	}
 
 
@@ -1861,7 +2494,7 @@ HRESULT WINAPI D3DProxyDevice::GetStreamSource(UINT StreamNumber, IDirect3DVerte
 		//IDirect3DVertexBuffer9* pCurrentActual = m_activeVertexBuffers[StreamNumber]->getActual();
 
 		//IDirect3DVertexBuffer9* pActualResultBuffer = NULL;
-		//HRESULT result = BaseDirect3DDevice9::GetStreamSource(StreamNumber, &pCurrentActual, pOffsetInBytes, pStride);
+		//HRESULT result = m_pDevice->GetStreamSource(StreamNumber, &pCurrentActual, pOffsetInBytes, pStride);
 
 		*ppStreamData = m_activeVertexBuffers[StreamNumber];
 		if ((*ppStreamData))
@@ -1870,6 +2503,31 @@ HRESULT WINAPI D3DProxyDevice::GetStreamSource(UINT StreamNumber, IDirect3DVerte
 		result = D3D_OK;
 	}
 	return result;
+}
+
+
+/**
+* Base SetStreamSourceFreq functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::SetStreamSourceFreq(UINT StreamNumber,UINT Setting)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "SetStreamSourceFreq" << std::endl;
+#endif
+
+	return m_pDevice->SetStreamSourceFreq(StreamNumber, Setting);
+}
+
+/**
+* Base GetStreamSourceFreq functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::GetStreamSourceFreq(UINT StreamNumber,UINT* pSetting)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "GetStreamSourceFreq" << std::endl;
+#endif
+
+	return m_pDevice->GetStreamSourceFreq(StreamNumber, pSetting);
 }
 
 /**
@@ -1886,9 +2544,9 @@ HRESULT WINAPI D3DProxyDevice::SetIndices(IDirect3DIndexBuffer9* pIndexData)
 	// Update actual index buffer
 	HRESULT result;
 	if (pWrappedNewIndexData)
-		result = BaseDirect3DDevice9::SetIndices(pWrappedNewIndexData->getActual());
+		result = m_pDevice->SetIndices(pWrappedNewIndexData->getActual());
 	else
-		result = BaseDirect3DDevice9::SetIndices(NULL);
+		result = m_pDevice->SetIndices(NULL);
 
 	if (SUCCEEDED(result)) {
 
@@ -1938,7 +2596,7 @@ HRESULT WINAPI D3DProxyDevice::CreatePixelShader(CONST DWORD* pFunction,IDirect3
 		OutputDebugString("called CreatePixelSHader");
 	#endif
 	IDirect3DPixelShader9* pActualPShader = NULL;
-	HRESULT creationResult = BaseDirect3DDevice9::CreatePixelShader(pFunction, &pActualPShader);
+	HRESULT creationResult = m_pDevice->CreatePixelShader(pFunction, &pActualPShader);
 
 	if (SUCCEEDED(creationResult)) {
 		*ppShader = new D3D9ProxyPixelShader(pActualPShader, this, m_pGameHandler->GetShaderModificationRepository());
@@ -1961,10 +2619,10 @@ HRESULT WINAPI D3DProxyDevice::SetPixelShader(IDirect3DPixelShader9* pShader)
 	// Update actual pixel shader
 	HRESULT result;
 	if (pWrappedPShaderData)
-		result = BaseDirect3DDevice9::SetPixelShader(pWrappedPShaderData->getActual());
+		result = m_pDevice->SetPixelShader(pWrappedPShaderData->getActual());
 	else
 	{
-		result = BaseDirect3DDevice9::SetPixelShader(NULL);
+		result = m_pDevice->SetPixelShader(NULL);
 		return result;
 	}
 
@@ -2044,6 +2702,55 @@ HRESULT WINAPI D3DProxyDevice::GetPixelShaderConstantF(UINT StartRegister,float*
 	return m_spManagedShaderRegisters->GetPixelShaderConstantF(StartRegister, pData, Vector4fCount);
 }
 
+
+/**
+* Base SetPixelShaderConstantI functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::SetPixelShaderConstantI(UINT StartRegister,CONST int* pConstantData,UINT Vector4iCount)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "SetPixelShaderConstantI" << std::endl;
+#endif
+
+	return m_pDevice->SetPixelShaderConstantI(StartRegister, pConstantData, Vector4iCount);
+}
+
+/**
+* Base GetPixelShaderConstantI functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::GetPixelShaderConstantI(UINT StartRegister,int* pConstantData,UINT Vector4iCount)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "GetPixelShaderConstantI" << std::endl;
+#endif
+
+	return m_pDevice->GetPixelShaderConstantI(StartRegister, pConstantData, Vector4iCount);
+}
+
+/**
+* Base SetPixelShaderConstantB functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::SetPixelShaderConstantB(UINT StartRegister,CONST BOOL* pConstantData,UINT  BoolCount)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "SetPixelShaderConstantB" << std::endl;
+#endif
+
+	return m_pDevice->SetPixelShaderConstantB(StartRegister, pConstantData, BoolCount);
+}
+
+/**
+* Base GetPixelShaderConstantB functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::GetPixelShaderConstantB(UINT StartRegister,BOOL* pConstantData,UINT BoolCount)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "GetPixelShaderConstantB" << std::endl;
+#endif
+
+	return m_pDevice->GetPixelShaderConstantB(StartRegister, pConstantData, BoolCount);
+}
+
 /**
 * Applies all dirty registers, draws both stereo sides if switchDrawingSide() agrees.
 * @see switchDrawingSide()
@@ -2056,9 +2763,9 @@ HRESULT WINAPI D3DProxyDevice::DrawRectPatch(UINT Handle,CONST float* pNumSegs,C
 	m_spManagedShaderRegisters->ApplyAllDirty(m_currentRenderingSide);
 
 	HRESULT result;
-	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawRectPatch(Handle, pNumSegs, pRectPatchInfo))) {
+	if (SUCCEEDED(result = m_pDevice->DrawRectPatch(Handle, pNumSegs, pRectPatchInfo))) {
 		if (switchDrawingSide())
-			BaseDirect3DDevice9::DrawRectPatch(Handle, pNumSegs, pRectPatchInfo);
+			m_pDevice->DrawRectPatch(Handle, pNumSegs, pRectPatchInfo);
 	}
 
 	return result;
@@ -2076,13 +2783,27 @@ HRESULT WINAPI D3DProxyDevice::DrawTriPatch(UINT Handle,CONST float* pNumSegs,CO
 	m_spManagedShaderRegisters->ApplyAllDirty(m_currentRenderingSide);
 
 	HRESULT result;
-	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawTriPatch(Handle, pNumSegs, pTriPatchInfo))) {
+	if (SUCCEEDED(result = m_pDevice->DrawTriPatch(Handle, pNumSegs, pTriPatchInfo))) {
 		if (switchDrawingSide())
-			BaseDirect3DDevice9::DrawTriPatch(Handle, pNumSegs, pTriPatchInfo);
+			m_pDevice->DrawTriPatch(Handle, pNumSegs, pTriPatchInfo);
 	}
 
 	return result;
 }
+
+
+/**
+* Base DeletePatch functionality.
+***/
+HRESULT WINAPI D3DProxyDevice::DeletePatch(UINT Handle)
+{
+#ifdef _EXPORT_LOGFILE
+	m_logFile << "DeletePatch" << std::endl;
+#endif
+
+	return m_pDevice->DeletePatch(Handle);
+}
+
 
 /**
 * Base CreateQuery functionality.
@@ -2097,13 +2818,22 @@ HRESULT WINAPI D3DProxyDevice::CreateQuery(D3DQUERYTYPE Type,IDirect3DQuery9** p
 		return D3D_OK;
 
 	IDirect3DQuery9* pActualQuery = NULL;
-	HRESULT creationResult = BaseDirect3DDevice9::CreateQuery(Type, &pActualQuery);
+	HRESULT creationResult = m_pDevice->CreateQuery(Type, &pActualQuery);
 
 	if (SUCCEEDED(creationResult)) {
 		*ppQuery = new BaseDirect3DQuery9(pActualQuery, this);
 	}
 
 	return creationResult;
+}
+
+
+/**
+* Returns the actual embedded device pointer.
+***/
+IDirect3DDevice9* D3DProxyDevice::getActual()
+{
+	return m_pDevice;
 }
 
 /**
@@ -2124,14 +2854,14 @@ HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFO
 	HRESULT creationResult;
 
 	// create left/mono
-	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, &pLeftRenderTarget, pSharedHandle))) {
+	if (SUCCEEDED(creationResult = m_pDevice->CreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, &pLeftRenderTarget, pSharedHandle))) {
 
 		/* "If Needed" heuristic is the complicated part here.
 		Fixed heuristics (based on type, format, size, etc) + game specific overrides + isForcedMono + magic? */
 		// TODO Should we duplicate this Render Target? Replace "true" with heuristic
 		if (m_pGameHandler->ShouldDuplicateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, isSwapChainBackBuffer))
 		{
-			if (FAILED(BaseDirect3DDevice9::CreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, &pRightRenderTarget, pSharedHandle))) {
+			if (FAILED(m_pDevice->CreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, &pRightRenderTarget, pSharedHandle))) {
 				OutputDebugString("Failed to create right eye render target while attempting to create stereo pair, falling back to mono\n");
 				pRightRenderTarget = NULL;
 			}
@@ -2611,7 +3341,7 @@ void D3DProxyDevice::OnCreateOrRestore()
 
 	// Wrap the swap chain
 	IDirect3DSwapChain9* pActualPrimarySwapChain;
-	if (FAILED(BaseDirect3DDevice9::GetSwapChain(0, &pActualPrimarySwapChain))) {
+	if (FAILED(m_pDevice->GetSwapChain(0, &pActualPrimarySwapChain))) {
 		OutputDebugString("Failed to fetch swapchain.\n");
 		exit(1); 
 	}
@@ -2628,11 +3358,11 @@ void D3DProxyDevice::OnCreateOrRestore()
 	pWrappedBackBuffer = NULL;
 
 
-	BaseDirect3DDevice9::GetViewport(&m_LastViewportSet);
+	m_pDevice->GetViewport(&m_LastViewportSet);
 
 	// If there is an initial depth stencil
 	IDirect3DSurface9* pDepthStencil;
-	if (SUCCEEDED(BaseDirect3DDevice9::GetDepthStencilSurface(&pDepthStencil))) { 
+	if (SUCCEEDED(m_pDevice->GetDepthStencilSurface(&pDepthStencil))) { 
 
 		D3DSURFACE_DESC stencilDesc;
 		pDepthStencil->GetDesc(&stencilDesc);
@@ -2706,9 +3436,9 @@ bool D3DProxyDevice::setDrawingSide(vireio::RenderPosition side)
 		if ((pCurrentRT = m_activeRenderTargets[i]) != NULL) {
 
 			if (side == vireio::Left) 
-				result = BaseDirect3DDevice9::SetRenderTarget(i, pCurrentRT->getActualLeft()); 
+				result = m_pDevice->SetRenderTarget(i, pCurrentRT->getActualLeft()); 
 			else 
-				result = BaseDirect3DDevice9::SetRenderTarget(i, pCurrentRT->getActualRight());
+				result = m_pDevice->SetRenderTarget(i, pCurrentRT->getActualRight());
 
 			if (result != D3D_OK) {
 				OutputDebugString("Error trying to set one of the Render Targets while switching between active eyes for drawing.\n");
@@ -2721,7 +3451,7 @@ bool D3DProxyDevice::setDrawingSide(vireio::RenderPosition side)
 
 	// if a non-fullsurface viewport is active and a rendertarget changed we need to reapply the viewport
 	if (renderTargetChanged && !m_bActiveViewportIsDefault) {
-		BaseDirect3DDevice9::SetViewport(&m_LastViewportSet);
+		m_pDevice->SetViewport(&m_LastViewportSet);
 	}
 
 	if (m_bViewportIsSquished)
@@ -2730,9 +3460,9 @@ bool D3DProxyDevice::setDrawingSide(vireio::RenderPosition side)
 	// switch depth stencil to new side
 	if (m_pActiveStereoDepthStencil != NULL) { 
 		if (side == vireio::Left) 
-			result = BaseDirect3DDevice9::SetDepthStencilSurface(m_pActiveStereoDepthStencil->getActualLeft()); 
+			result = m_pDevice->SetDepthStencilSurface(m_pActiveStereoDepthStencil->getActualLeft()); 
 		else 
-			result = BaseDirect3DDevice9::SetDepthStencilSurface(m_pActiveStereoDepthStencil->getActualRight());
+			result = m_pDevice->SetDepthStencilSurface(m_pActiveStereoDepthStencil->getActualRight());
 	}
 
 	// switch textures to new side
@@ -2749,9 +3479,9 @@ bool D3DProxyDevice::setDrawingSide(vireio::RenderPosition side)
 			// if stereo texture
 			if (pActualRightTexture != NULL) { 
 				if (side == vireio::Left) 
-					result = BaseDirect3DDevice9::SetTexture(it->first, pActualLeftTexture); 
+					result = m_pDevice->SetTexture(it->first, pActualLeftTexture); 
 				else 
-					result = BaseDirect3DDevice9::SetTexture(it->first, pActualRightTexture);
+					result = m_pDevice->SetTexture(it->first, pActualRightTexture);
 			}
 			// else the texture is mono and doesn't need changing. It will always be set initially and then won't need changing
 
@@ -2770,7 +3500,7 @@ bool D3DProxyDevice::setDrawingSide(vireio::RenderPosition side)
 			m_pCurrentView = &m_rightView;
 		}
 
-		BaseDirect3DDevice9::SetTransform(D3DTS_VIEW, m_pCurrentView);
+		m_pDevice->SetTransform(D3DTS_VIEW, m_pCurrentView);
 	}
 
 	// update projection transform for new side 
@@ -2783,7 +3513,7 @@ bool D3DProxyDevice::setDrawingSide(vireio::RenderPosition side)
 			m_pCurrentProjection = &m_rightProjection;
 		}
 
-		BaseDirect3DDevice9::SetTransform(D3DTS_PROJECTION, m_pCurrentProjection);
+		m_pDevice->SetTransform(D3DTS_PROJECTION, m_pCurrentProjection);
 	}
 
 	// Updated computed view translation (used by several derived proxies - see: ComputeViewTranslation)
@@ -2887,7 +3617,7 @@ void D3DProxyDevice::ClearRect(vireio::RenderPosition renderPosition, D3DRECT re
 		OutputDebugString("called ClearRect");
 	#endif
 	setDrawingSide(renderPosition);
-	BaseDirect3DDevice9::Clear(1, &rect, D3DCLEAR_TARGET, color, 0, 0);
+	m_pDevice->Clear(1, &rect, D3DCLEAR_TARGET, color, 0, 0);
 }
 
 /**
@@ -2908,19 +3638,19 @@ void D3DProxyDevice::ClearEmptyRect(vireio::RenderPosition renderPosition, D3DRE
 	setDrawingSide(renderPosition);
 
 	rect0.y2 = rect.y1 + bw;
-	BaseDirect3DDevice9::Clear(1, &rect0, D3DCLEAR_TARGET, color, 0, 0);
+	m_pDevice->Clear(1, &rect0, D3DCLEAR_TARGET, color, 0, 0);
 
 	rect0.y1 = rect.y2 - bw;
 	rect0.y2 = rect.y2;
-	BaseDirect3DDevice9::Clear(1, &rect0, D3DCLEAR_TARGET, color, 0, 0);
+	m_pDevice->Clear(1, &rect0, D3DCLEAR_TARGET, color, 0, 0);
 
 	rect0.y1 = rect.y1;
 	rect0.x2 = rect.x1 + bw;
-	BaseDirect3DDevice9::Clear(1, &rect0, D3DCLEAR_TARGET, color, 0, 0);
+	m_pDevice->Clear(1, &rect0, D3DCLEAR_TARGET, color, 0, 0);
 
 	rect0.x1 = rect.x2 - bw;
 	rect0.x2 = rect.x2;
-	BaseDirect3DDevice9::Clear(1, &rect0, D3DCLEAR_TARGET, color, 0, 0);
+	m_pDevice->Clear(1, &rect0, D3DCLEAR_TARGET, color, 0, 0);
 }
 
 /**
@@ -5245,7 +5975,7 @@ bool D3DProxyDevice::isViewportDefaultForMainRT(CONST D3DVIEWPORT9* pViewport)
 * @param pLeftMatrix The left view matrix.
 * @param pRightMatrix The right view matrix.
 * @param apply True to apply calling SetTransform()
-* @see BaseDirect3DDevice9::SetTransform()
+* @see m_pDevice->SetTransform()
 ***/
 HRESULT D3DProxyDevice::SetStereoViewTransform(D3DXMATRIX pLeftMatrix, D3DXMATRIX pRightMatrix, bool apply)
 {
@@ -5270,7 +6000,7 @@ HRESULT D3DProxyDevice::SetStereoViewTransform(D3DXMATRIX pLeftMatrix, D3DXMATRI
 	}
 
 	if (apply)
-		return BaseDirect3DDevice9::SetTransform(D3DTS_VIEW, m_pCurrentView);
+		return m_pDevice->SetTransform(D3DTS_VIEW, m_pCurrentView);
 	else
 		return D3D_OK;
 }
@@ -5280,7 +6010,7 @@ HRESULT D3DProxyDevice::SetStereoViewTransform(D3DXMATRIX pLeftMatrix, D3DXMATRI
 * @param pLeftMatrix The left view matrix.
 * @param pRightMatrix The right view matrix.
 * @param apply True to apply calling SetTransform()
-* @see BaseDirect3DDevice9::SetTransform()
+* @see m_pDevice->SetTransform()
 ***/
 HRESULT D3DProxyDevice::SetStereoProjectionTransform(D3DXMATRIX pLeftMatrix, D3DXMATRIX pRightMatrix, bool apply)
 {
@@ -5305,7 +6035,7 @@ HRESULT D3DProxyDevice::SetStereoProjectionTransform(D3DXMATRIX pLeftMatrix, D3D
 	}
 
 	if (apply)
-		return BaseDirect3DDevice9::SetTransform(D3DTS_PROJECTION, m_pCurrentProjection);
+		return m_pDevice->SetTransform(D3DTS_PROJECTION, m_pCurrentProjection);
 	else
 		return D3D_OK;
 }
@@ -5337,7 +6067,7 @@ void D3DProxyDevice::SetGUIViewport()
 		mVPSquash = mRightShift * m_spShaderViewAdjustment->Squash();
 
 	// get viewport
-	BaseDirect3DDevice9::GetViewport(&m_ViewportIfSquished);
+	m_pDevice->GetViewport(&m_ViewportIfSquished);
 
 	// get screen center and translate it
 	float centerX = (((FLOAT)stereoView->viewport.Width-(FLOAT)stereoView->viewport.X)/2.0f);
@@ -5374,7 +6104,7 @@ void D3DProxyDevice::SetGUIViewport()
 
 	// set viewport
 	m_bViewportIsSquished = true;
-	BaseDirect3DDevice9::SetViewport(&m_ViewportIfSquished);
+	m_pDevice->SetViewport(&m_ViewportIfSquished);
 }
 
 /**

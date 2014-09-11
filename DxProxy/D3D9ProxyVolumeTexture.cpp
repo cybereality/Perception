@@ -27,14 +27,14 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#include "D3D9ProxyVolumeTexture.h"
 #include <assert.h>
+#include "D3DProxyDevice.h"
 
 /**
 * Constructor.
 * @see D3D9ProxySurface::D3D9ProxySurface
 ***/
-D3D9ProxyVolumeTexture::D3D9ProxyVolumeTexture(IDirect3DVolumeTexture9* pActualVolumeTexture, BaseDirect3DDevice9* pOwningDevice) :
+D3D9ProxyVolumeTexture::D3D9ProxyVolumeTexture(IDirect3DVolumeTexture9* pActualVolumeTexture, D3DProxyDevice* pOwningDevice) :
 	m_pActualTexture(pActualVolumeTexture),
 	m_nRefCount(1),
 	m_wrappedVolumeLevels(),

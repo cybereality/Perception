@@ -47,7 +47,8 @@ class BaseDirect3DStateBlock9;
 class D3DProxyDevice;
 class D3D9ProxyPixelShader;
 class D3D9ProxyVertexShader;
-
+class BaseDirect3DIndexBuffer9;
+class BaseDirect3DVertexDeclaration9;
 /**
 * D3D proxy state block class - broker class for any device states.
 *

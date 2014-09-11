@@ -54,6 +54,7 @@
       <ModuleDefinitionFile>Exports.def</ModuleDefinitionFile>
     </Link>
     <ClCompile />
+    <ClCompile />
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="D3D9ProxyCubeTexture.cpp" />
@@ -72,13 +73,11 @@
     <ClCompile Include="D3D9ProxySurface.cpp" />
     <ClCompile Include="Direct3D9.cpp" />
     <ClCompile Include="Direct3D9Ex.cpp" />
-    <ClCompile Include="Direct3DDevice9.cpp" />
     <ClCompile Include="Direct3DDevice9Ex.cpp" />
     <ClCompile Include="Direct3DIndexBuffer9.cpp" />
     <ClCompile Include="Direct3DQuery9.cpp" />
     <ClCompile Include="Direct3DVertexBuffer9.cpp" />
     <ClCompile Include="Direct3DVertexDeclaration9.cpp" />
-    <ClCompile Include="Direct3DVolumeTexture9.cpp" />
     <ClCompile Include="DirectInput.cpp" />
     <ClCompile Include="FreeSpaceTracker.cpp" />
     <ClCompile Include="FreeTrackTracker.cpp" />
@@ -117,7 +116,6 @@
     <ClInclude Include="D3DProxyDeviceDebug.h" />
     <ClInclude Include="DataGatherer.h" />
     <ClInclude Include="Direct3D9Ex.h" />
-    <ClInclude Include="Direct3DDevice9.h" />
     <ClInclude Include="Direct3DDevice9Ex.h" />
     <ClInclude Include="Direct3DIndexBuffer9.h" />
     <ClInclude Include="Direct3DQuery9.h" />
@@ -159,7 +157,6 @@
     <ClInclude Include="D3DProxyDeviceFactory.h" />
     <ClInclude Include="D3D9ProxySurface.h" />
     <ClInclude Include="Direct3D9.h" />
-    <ClInclude Include="Direct3DVolumeTexture9.h" />
     <ClInclude Include="FreeSpaceTracker.h" />
     <ClInclude Include="FreeTrackTracker.h" />
     <ClInclude Include="MotionTrackerFactory.h" />

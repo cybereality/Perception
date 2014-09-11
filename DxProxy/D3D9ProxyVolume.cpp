@@ -28,8 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
 #include <assert.h>
-#include "D3D9ProxyVolume.h"
-
+#include "D3DProxyDevice.h"
 
 /**
 * Constructor.
@@ -37,7 +36,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * and that count is managed by forwarding release and addref to the container. In this case the
 * container must delete this volume when the ref count reaches 0.
 ***/ 
-D3D9ProxyVolume::D3D9ProxyVolume(IDirect3DVolume9* pActualVolume, BaseDirect3DDevice9* pOwningDevice, IUnknown* pWrappedContainer) :
+D3D9ProxyVolume::D3D9ProxyVolume(IDirect3DVolume9* pActualVolume, D3DProxyDevice* pOwningDevice, IUnknown* pWrappedContainer) :
 	m_pActualVolume(pActualVolume),
 	m_nRefCount(1),
 	m_pOwningDevice(pOwningDevice),

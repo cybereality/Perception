@@ -41,7 +41,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class D3D9ProxyVolumeTexture : public IDirect3DVolumeTexture9
 {
 public:
-	D3D9ProxyVolumeTexture(IDirect3DVolumeTexture9* pActualVolumeTexture, BaseDirect3DDevice9* pOwningDevice);
+	D3D9ProxyVolumeTexture(IDirect3DVolumeTexture9* pActualVolumeTexture, D3DProxyDevice* pOwningDevice);
 	virtual ~D3D9ProxyVolumeTexture();
 		
 	//*** IUnknown methods ***/
@@ -82,7 +82,7 @@ protected:
 	* The owning device.
 	* @see D3D9ProxySurface::m_pOwningDevice
 	***/
-	BaseDirect3DDevice9* const m_pOwningDevice;
+	D3DProxyDevice* const m_pOwningDevice;
 
 	/**
 	* The actual texture embedded. 

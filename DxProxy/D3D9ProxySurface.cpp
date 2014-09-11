@@ -29,6 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <assert.h>
 #include "D3D9ProxySurface.h"
+#include "D3DProxyDevice.h"
 
 /**
 * Constructor.
@@ -36,7 +37,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * and that count is managed by forwarding release and addref to the container. In this case the
 * container must delete this surface when the ref count reaches 0.
 ***/ 
-D3D9ProxySurface::D3D9ProxySurface(IDirect3DSurface9* pActualSurfaceLeft, IDirect3DSurface9* pActualSurfaceRight, BaseDirect3DDevice9* pOwningDevice, IUnknown* pWrappedContainer) :
+D3D9ProxySurface::D3D9ProxySurface(IDirect3DSurface9* pActualSurfaceLeft, IDirect3DSurface9* pActualSurfaceRight, D3DProxyDevice* pOwningDevice, IUnknown* pWrappedContainer) :
 	m_pActualSurface(pActualSurfaceLeft),
 	m_pActualSurfaceRight(pActualSurfaceRight),
 	m_pOwningDevice(pOwningDevice),

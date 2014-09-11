@@ -59,7 +59,7 @@ struct hash_CubeSurfaceKey {
 class D3D9ProxyCubeTexture : public IDirect3DCubeTexture9, public IStereoCapableWrapper<IDirect3DCubeTexture9>
 {
 public:
-	D3D9ProxyCubeTexture(IDirect3DCubeTexture9* pActualTextureLeft, IDirect3DCubeTexture9* pActualTextureRight, BaseDirect3DDevice9* pOwningDevice);
+	D3D9ProxyCubeTexture(IDirect3DCubeTexture9* pActualTextureLeft, IDirect3DCubeTexture9* pActualTextureRight, D3DProxyDevice* pOwningDevice);
 	virtual ~D3D9ProxyCubeTexture();	
 
 	/*** IUnknown methods ***/
@@ -103,7 +103,7 @@ protected:
 	* The owning device.
 	* @see D3D9ProxySurface::m_pOwningDevice
 	***/
-	BaseDirect3DDevice9* const m_pOwningDevice;
+	D3DProxyDevice* const m_pOwningDevice;
 	/**
 	* The actual right cube texture embedded. 
 	***/

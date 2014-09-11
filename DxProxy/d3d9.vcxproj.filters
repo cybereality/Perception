@@ -166,9 +166,6 @@
     <ClCompile Include="StereoMode.cpp">
       <Filter>Stereo</Filter>
     </ClCompile>
-    <ClCompile Include="Direct3DDevice9.cpp">
-      <Filter>Direct3D9</Filter>
-    </ClCompile>
     <ClCompile Include="Direct3DDevice9Ex.cpp">
       <Filter>Direct3D9</Filter>
     </ClCompile>
@@ -182,9 +179,6 @@
       <Filter>Direct3D9</Filter>
     </ClCompile>
     <ClCompile Include="Direct3DVertexDeclaration9.cpp">
-      <Filter>Direct3D9</Filter>
-    </ClCompile>
-    <ClCompile Include="Direct3DVolumeTexture9.cpp">
       <Filter>Direct3D9</Filter>
     </ClCompile>
   </ItemGroup>
@@ -358,18 +352,12 @@
       <Filter>Direct3D9Vireio\Direct3DDevice9\DeviceTypes</Filter>
     </ClInclude>
     <ClInclude Include="InputControls.h" />
-    <ClInclude Include="Direct3DVolumeTexture9.h">
-      <Filter>Direct3D9Vireio</Filter>
-    </ClInclude>
     <ClInclude Include="DirectInput.h" />
     <ClInclude Include="Streaming\Streamer.h">
       <Filter>Streaming</Filter>
     </ClInclude>
     <ClInclude Include="StereoMode.h">
       <Filter>Stereo</Filter>
-    </ClInclude>
-    <ClInclude Include="Direct3DDevice9.h">
-      <Filter>Direct3D9</Filter>
     </ClInclude>
     <ClInclude Include="Direct3DDevice9Ex.h">
       <Filter>Direct3D9</Filter>

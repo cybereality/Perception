@@ -35,7 +35,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <unordered_map>
 #include <vector>
 #include <algorithm>
-#include "Direct3DDevice9.h"
+#include "D3DProxyDevice.h"
 #include "ShaderRegisters.h"
 #include "D3DProxyDevice.h"
 #include "ShaderModificationRepository.h"

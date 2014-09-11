@@ -31,7 +31,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef D3DPROXYDEVICEADV_H_INCLUDED
 #define D3DPROXYDEVICEADV_H_INCLUDED
 
-#include "Direct3DDevice9.h"
 #include "D3DProxyDevice.h"
 #include "ProxyHelper.h"
 

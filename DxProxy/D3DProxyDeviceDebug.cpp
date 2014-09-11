@@ -51,9 +51,9 @@ D3DProxyDeviceDebug::~D3DProxyDeviceDebug()
 /**
 * Function outputs log file information about method called and if failed.
 ***/
-HRESULT WINAPI D3DProxyDeviceDebug::QueryInterface(REFIID riid, LPVOID* ppv){m_logFile << "QueryInterface" <<std::endl; HRESULT hr = BaseDirect3DDevice9::QueryInterface(riid,ppv);if (hr!=S_OK) m_logFile << "ERROR" <<std::endl; return hr;}
-ULONG   WINAPI D3DProxyDeviceDebug::AddRef(){m_logFile << "AddRef" <<std::endl; return BaseDirect3DDevice9::AddRef();}
-ULONG   WINAPI D3DProxyDeviceDebug::Release(){m_logFile << "Release" <<std::endl; return BaseDirect3DDevice9::Release();}
+HRESULT WINAPI D3DProxyDeviceDebug::QueryInterface(REFIID riid, LPVOID* ppv){m_logFile << "QueryInterface" <<std::endl; HRESULT hr = D3DProxyDevice::QueryInterface(riid,ppv);if (hr!=S_OK) m_logFile << "ERROR" <<std::endl; return hr;}
+ULONG   WINAPI D3DProxyDeviceDebug::AddRef(){m_logFile << "AddRef" <<std::endl; return D3DProxyDevice::AddRef();}
+ULONG   WINAPI D3DProxyDeviceDebug::Release(){m_logFile << "Release" <<std::endl; return D3DProxyDevice::Release();}
 HRESULT WINAPI D3DProxyDeviceDebug::TestCooperativeLevel(){m_logFile << "TestCooperativeLevel" <<std::endl; HRESULT hr = D3DProxyDevice::TestCooperativeLevel();if (hr!=S_OK) m_logFile << "ERROR" <<std::endl; return hr;}
 HRESULT WINAPI D3DProxyDeviceDebug::SetCursorProperties(UINT XHotSpot,UINT YHotSpot,IDirect3DSurface9* pCursorBitmap){m_logFile << "SetCursorProperties" <<std::endl; HRESULT hr = D3DProxyDevice::SetCursorProperties(XHotSpot,YHotSpot,pCursorBitmap);if (hr!=S_OK) m_logFile << "ERROR" <<std::endl; return hr;}
 HRESULT WINAPI D3DProxyDeviceDebug::CreateAdditionalSwapChain(D3DPRESENT_PARAMETERS* pPresentationParameters,IDirect3DSwapChain9** pSwapChain){m_logFile << "CreateAdditionalSwapChain" <<std::endl; HRESULT hr = D3DProxyDevice::CreateAdditionalSwapChain(pPresentationParameters,pSwapChain);if (hr!=S_OK) m_logFile << "ERROR" <<std::endl; return hr;}

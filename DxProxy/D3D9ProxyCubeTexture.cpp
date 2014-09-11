@@ -28,13 +28,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
 #include "D3D9ProxyCubeTexture.h"
-
+#include "D3DProxyDevice.h"
 
 /**
 * Constructor.
 * @see D3D9ProxySurface::D3D9ProxySurface
 ***/
-D3D9ProxyCubeTexture::D3D9ProxyCubeTexture(IDirect3DCubeTexture9* pActualTextureLeft, IDirect3DCubeTexture9* pActualTextureRight, BaseDirect3DDevice9* pOwningDevice) :
+D3D9ProxyCubeTexture::D3D9ProxyCubeTexture(IDirect3DCubeTexture9* pActualTextureLeft, IDirect3DCubeTexture9* pActualTextureRight, D3DProxyDevice* pOwningDevice) :
 	m_pActualTexture(pActualTextureLeft),
 	m_nRefCount(1) ,
 	m_pActualTextureRight(pActualTextureRight),
