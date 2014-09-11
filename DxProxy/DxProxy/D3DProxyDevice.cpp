@@ -2310,8 +2310,8 @@ void D3DProxyDevice::HandleControls()
 		}
 	}
 
-	//Rset HMD Orientation+Position
-	if (controls.Key_Down(VK_F12) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	//Rset HMD Orientation+Position (CTRL + R)
+	if ((controls.Key_Down(VK_F12) || (controls.Key_Down(VK_LSHIFT) && controls.Key_Down(0x52))) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		tracker->resetOrientationAndPosition();
 		menuVelocity.x+=2.0f;
@@ -2345,7 +2345,7 @@ void D3DProxyDevice::HandleControls()
 	}
 
 	//Floaty Screen
-	if (controls.Key_Down(VK_LCONTROL) && controls.Key_Down(VK_NUMPAD2) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	if ((controls.Key_Down(VK_MBUTTON) || (controls.Key_Down(VK_LCONTROL) && controls.Key_Down(VK_NUMPAD2))) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		if (m_bfloatingScreen)
 		{
@@ -2547,9 +2547,9 @@ void D3DProxyDevice::HandleTracking()
 
 		m_spShaderViewAdjustment->UpdatePitchYaw(tracker->primaryPitch, tracker->primaryYaw);
 		m_spShaderViewAdjustment->UpdatePosition(tracker->primaryYaw, tracker->primaryPitch, tracker->primaryRoll,
-			VRBoostValue[VRboostAxis::CameraTranslateX] / 20.0f + tracker->primaryX, 
-			VRBoostValue[VRboostAxis::CameraTranslateY] / 20.0f + tracker->primaryY,
-			VRBoostValue[VRboostAxis::CameraTranslateZ] / 20.0f + tracker->primaryZ);
+			(VRBoostValue[VRboostAxis::CameraTranslateX] / 20.0f) + (tracker->primaryX / (config.worldScaleFactor/2)), 
+			(VRBoostValue[VRboostAxis::CameraTranslateY] / 20.0f) + (tracker->primaryY / (config.worldScaleFactor/2)),
+			(VRBoostValue[VRboostAxis::CameraTranslateZ] / 20.0f) + (tracker->primaryZ / (config.worldScaleFactor/2)));
 	}
 		
 	m_spShaderViewAdjustment->ComputeViewTransforms();
@@ -4684,7 +4684,7 @@ void D3DProxyDevice::BRASSA_Settings()
 		menuHelperRect.top += 40;
 		DrawTextShadowed(hudFont, hudMainMenu, "Reset Multipliers", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += 40;
-		DrawTextShadowed(hudFont, hudMainMenu, "Reset HMD Orientation (F12)", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "Reset HMD Orientation (CTRL + R)", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += 40;
 		switch (m_bForceMouseEmulation)
 		{
