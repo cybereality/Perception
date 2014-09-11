@@ -2301,13 +2301,20 @@ void D3DProxyDevice::HandleControls()
 		{
 			m_pVRboost_ReleaseAllMemoryRules();
 			m_bVRBoostToggle = !m_bVRBoostToggle;
-			if (trackerInitialized) tracker->reset();
+			if (trackerInitialized) tracker->resetOrientationAndPosition();
 
 			// set the indicator to be drawn
 			m_fVRBoostIndicator = 1.0f;
 
 			menuVelocity.x += 4.0f;
 		}
+	}
+
+	//Rset HMD Orientation+Position (CTRL + R)
+	if ((controls.Key_Down(VK_F12) || (controls.Key_Down(VK_LSHIFT) && controls.Key_Down(0x52))) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	{
+		tracker->resetOrientationAndPosition();
+		menuVelocity.x+=2.0f;
 	}
 
 	// toggle VR Mouse
@@ -2338,7 +2345,7 @@ void D3DProxyDevice::HandleControls()
 	}
 
 	//Floaty Screen
-	if (controls.Key_Down(VK_LCONTROL) && controls.Key_Down(VK_NUMPAD2) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	if ((controls.Key_Down(VK_MBUTTON) || (controls.Key_Down(VK_LCONTROL) && controls.Key_Down(VK_NUMPAD2))) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		if (m_bfloatingScreen)
 		{
@@ -2527,16 +2534,24 @@ void D3DProxyDevice::HandleTracking()
 		InitTracker();
 	}
 
+	float xPos=0, yPos=0, zPos=0;
+	float yaw=0, pitch=0, roll=0;
+
 	if(trackerInitialized && tracker->isAvailable())
 	{
-		tracker->updateOrientation();
+		tracker->updateOrientationAndPosition();
 		// update view adjustment class
 		if (trackerInitialized && tracker->isAvailable() && m_spShaderViewAdjustment->RollEnabled()) {
 			m_spShaderViewAdjustment->UpdateRoll(tracker->currentRoll);
 		}
+
 		m_spShaderViewAdjustment->UpdatePitchYaw(tracker->primaryPitch, tracker->primaryYaw);
+		m_spShaderViewAdjustment->UpdatePosition(tracker->primaryYaw, tracker->primaryPitch, tracker->primaryRoll,
+			(VRBoostValue[VRboostAxis::CameraTranslateX] / 20.0f) + (tracker->primaryX / (config.worldScaleFactor/2)), 
+			(VRBoostValue[VRboostAxis::CameraTranslateY] / 20.0f) + (tracker->primaryY / (config.worldScaleFactor/2)),
+			(VRBoostValue[VRboostAxis::CameraTranslateZ] / 20.0f) + (tracker->primaryZ / (config.worldScaleFactor/2)));
 	}
-	
+		
 	m_spShaderViewAdjustment->ComputeViewTransforms();
 
 	m_isFirstBeginSceneOfFrame = false;
@@ -4337,9 +4352,16 @@ void D3DProxyDevice::BRASSA_Settings()
 				tracker->multiplierRoll = 1.0f;
 				menuVelocity.x += 4.0f;
 			}
-			// force mouse emulation
 
+			// reset orientation
 			if (entryID == 9)
+			{
+				tracker->resetOrientationAndPosition();
+				menuVelocity.x += 4.0f;
+			}
+
+			// force mouse emulation
+			if (entryID == 10)
 			{
 				m_bForceMouseEmulation = !m_bForceMouseEmulation;
 
@@ -4352,31 +4374,31 @@ void D3DProxyDevice::BRASSA_Settings()
 				menuVelocity.x += 4.0f;
 			}
 			// Toggle VRBoost
-			if (entryID == 10)
+			if (entryID == 11)
 			{
 				if (hmVRboost!=NULL)
 				{
 					m_pVRboost_ReleaseAllMemoryRules();
 					m_bVRBoostToggle = !m_bVRBoostToggle;
-					if (trackerInitialized) tracker->reset();
+					if (trackerInitialized) tracker->resetOrientationAndPosition();
 					menuVelocity.x+=2.0f;
 				}
 			}
 			// VRBoost hotkey
-			if (entryID == 11)
+			if (entryID == 12)
 			{
 				hotkeyCatch = true;
 				menuVelocity.x+=2.0f;
 			}
 			// back to main menu
-			if (entryID == 12)
+			if (entryID == 13)
 			{
 				BRASSA_mode = BRASSA_Modes::MAINMENU;
 				BRASSA_UpdateConfigSettings();
 				menuVelocity.x+=2.0f;
 			}
 			// back to game
-			if (entryID == 13)
+			if (entryID == 14)
 			{
 				BRASSA_mode = BRASSA_Modes::INACTIVE;
 				BRASSA_UpdateConfigSettings();
@@ -4660,7 +4682,9 @@ void D3DProxyDevice::BRASSA_Settings()
 		sprintf_s(vcString,"Roll multiplier : %g", RoundBrassaValue(tracker->multiplierRoll));
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += 40;
-		DrawTextShadowed(hudFont, hudMainMenu, "Reset multipliers", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "Reset Multipliers", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		menuHelperRect.top += 40;
+		DrawTextShadowed(hudFont, hudMainMenu, "Reset HMD Orientation (CTRL + R)", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += 40;
 		switch (m_bForceMouseEmulation)
 		{
@@ -4773,6 +4797,15 @@ void D3DProxyDevice::BRASSA_VRBoostValues()
 		}
 	}
 
+	if (controls.Key_Down(VK_BACK) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	{
+		// change value
+		if ((entryID >= 3) && (entryID <=11))
+		{
+			VRBoostValue[24+entryID] = 0.0f;
+		}
+	}
+	
 	// output menu
 	if (hudFont)
 	{

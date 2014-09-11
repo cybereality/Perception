@@ -36,7 +36,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***/ 
 OculusTracker::OculusTracker()
 {
-	started = false;
+	initialised = false;
 	init();
 }
 
@@ -83,39 +83,69 @@ int OculusTracker::init()
 		return -1;
 	}
 
+	resetOrientationAndPosition();
+
 	OutputDebugString("oculus tracker initted");
-	started = true;
+	initialised = true;
 	
 	return 0;
-}
-
-/**
-* Oculus reset.
-* Resets the orientation.
-***/
-void OculusTracker::reset()
-{
 }
 
 void OculusTracker::BeginFrame()
 {
 	//return;
-	if (started){
+	if (initialised){
 		FrameRef=ovrHmd_BeginFrameTiming(pHMD,0);
 	}
 }
 
 void OculusTracker::WaitTillTime()
 {
-	if (started){
+	if (initialised){
 		ovr_WaitTillTime(FrameRef.TimewarpPointSeconds);
 	}
 }
 
 void OculusTracker::EndFrame()
 {
-	if (started){
+	if (initialised){
 			ovrHmd_EndFrameTiming(pHMD);
+	}
+}
+
+/**
+* Oculus reset.
+* Resets the orientation.
+***/
+void OculusTracker::resetOrientationAndPosition()
+{
+#ifdef _DEBUG
+	OutputDebugString("OculusTracker getOrient\n");
+#endif
+
+	offsetYaw = 0.0f;
+	offsetPitch = 0.0f;
+	offsetRoll = 0.0f;
+	offsetX = 0.0f;
+	offsetY = 0.0f;
+	offsetZ = 0.0f;
+
+	//Force OVR positional reset
+	ovrHmd_RecenterPose(pHMD);
+
+	ovrTrackingState ts = ovrHmd_GetTrackingState(pHMD,FrameRef.ScanoutMidpointSeconds);
+	
+	Quatf hmdOrient=ts.HeadPose.ThePose.Orientation;
+	hmdOrient.GetEulerAngles<Axis_Y,Axis_X,Axis_Z>(&offsetYaw, &offsetPitch, &offsetRoll);
+	
+	if (ts.StatusFlags & ovrStatus_PositionTracked)
+	{
+#ifdef _DEBUG
+	OutputDebugString("OculusTracker getPosition\n");
+#endif
+		offsetX = ts.HeadPose.ThePose.Position.x;
+		offsetY = ts.HeadPose.ThePose.Position.y;
+		offsetZ = ts.HeadPose.ThePose.Position.z;
 	}
 }
 
@@ -124,7 +154,7 @@ void OculusTracker::EndFrame()
 * Reads device input and returns orientation (yaw and roll negated). All Orientations are in degrees.
 * Roll gets converted back to radians in updateOrientation.
 ***/
-int OculusTracker::getOrientation(float* yaw, float* pitch, float* roll) 
+int OculusTracker::getOrientationAndPosition(float* yaw, float* pitch, float* roll, float* x, float* y, float* z) 
 {
 #ifdef _DEBUG
 	OutputDebugString("OculusTracker getOrient\n");
@@ -137,12 +167,25 @@ int OculusTracker::getOrientation(float* yaw, float* pitch, float* roll)
 	
 
 	// set primary orientations
-	primaryYaw = *yaw;
-	primaryPitch = *pitch;
-	primaryRoll = *roll;
-	*yaw = -RadToDegree(*yaw);
-	*pitch = RadToDegree(*pitch);
-	*roll = -RadToDegree(*roll);
+	primaryYaw = *yaw - offsetYaw;
+	primaryPitch = *pitch - offsetPitch;
+	primaryRoll = *roll - offsetRoll;
+	*yaw = -RadToDegree(*yaw - offsetYaw);
+	*pitch = RadToDegree(*pitch - offsetPitch);
+	*roll = -RadToDegree(*roll - offsetYaw);
+
+	if (ts.StatusFlags & ovrStatus_PositionTracked)
+	{
+#ifdef _DEBUG
+		OutputDebugString("OculusTracker getPosition\n");
+#endif
+		*x = ts.HeadPose.ThePose.Position.x - offsetX;
+		*y = ts.HeadPose.ThePose.Position.y - offsetY;
+		*z = ts.HeadPose.ThePose.Position.z - offsetZ;
+		primaryX = *x;
+		primaryY = *y;
+		primaryZ = *z;
+	}
 
 	return 0; 
 }
@@ -151,14 +194,14 @@ int OculusTracker::getOrientation(float* yaw, float* pitch, float* roll)
 * Update Oculus tracker orientation.
 * Updates tracker orientation and passes it to game mouse input accordingly.
 ***/
-void OculusTracker::updateOrientation()
+void OculusTracker::updateOrientationAndPosition()
 {
 #ifdef _DEBUG
 	OutputDebugString("OculusTracker updateOrientation\n");
 #endif
 
 	// Get orientation from Oculus tracker.
-	if(getOrientation(&yaw, &pitch, &roll) == 0)
+	if(getOrientationAndPosition(&yaw, &pitch, &roll, &x, &y, &z) == 0)
 	{
 		// Convert yaw, pitch to positive degrees
 		// (-180.0f...0.0f -> 180.0f....360.0f)
@@ -202,5 +245,5 @@ void OculusTracker::updateOrientation()
 ***/
 bool OculusTracker::isAvailable()
 {
-	return started;
+	return initialised;
 }

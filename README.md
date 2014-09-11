@@ -13,7 +13,7 @@ Extract it to a folder
 Download [Windows Driver Development Kit 7.1.0](http://www.microsoft.com/en-gb/download/details.aspx?id=11800)  
 Install to a suitable folder, no need to install all the samples or documentation, it is only required for the ATL header files and libraries
 
-Download Oculus SDK v0.4.1 from
+Download Oculus SDK v0.4.2 from
 https://developer.oculusvr.com/
 
 Extract and copy LibOVR to project directory.

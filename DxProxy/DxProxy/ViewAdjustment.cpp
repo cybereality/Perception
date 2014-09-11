@@ -30,6 +30,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "ViewAdjustment.h"
 
+#define PI 3.141592654
+
 /**
 * Constructor.
 * Sets class constants, identity matrices and a projection matrix.
@@ -58,6 +60,7 @@ ViewAdjustment::ViewAdjustment(HMDisplayInfo *displayInfo, float metersToWorldUn
 	hud3DDepth = 0.0f;
 
 	D3DXMatrixIdentity(&matProjection);
+	D3DXMatrixIdentity(&matPosition);
 	D3DXMatrixIdentity(&matProjectionInv);
 	D3DXMatrixIdentity(&projectLeft);
 	D3DXMatrixIdentity(&projectRight);
@@ -195,6 +198,35 @@ void ViewAdjustment::UpdateRoll(float roll)
 }
 
 /**
+* Updates the position matrix
+***/
+void ViewAdjustment::UpdatePosition(float yaw, float pitch, float roll, float xPosition, float yPosition, float zPosition)
+{
+	D3DXMATRIX rotationMatrixPitch;
+	D3DXMATRIX rotationMatrixYaw;
+	D3DXMATRIX rotationMatrixRoll;
+
+	D3DXMatrixRotationX(&rotationMatrixPitch, pitch);
+	D3DXMatrixRotationY(&rotationMatrixYaw, yaw);
+	D3DXMatrixRotationZ(&rotationMatrixRoll, roll);
+
+	//Need to invert X and Y
+	D3DXVECTOR3 vec(-1.0f * xPosition * WorldScale() * (PI/2), -1.0f * yPosition * WorldScale(), zPosition * WorldScale());
+
+	D3DXMATRIX rotationMatrixPitchYaw;
+	D3DXMatrixIdentity(&rotationMatrixPitchYaw);
+	D3DXMatrixMultiply(&rotationMatrixPitchYaw, &rotationMatrixPitch, &rotationMatrixYaw);
+
+	D3DXVec3TransformNormal(&positionTransformVec, &vec, &rotationMatrixPitchYaw);
+
+	if (rollEnabled)
+		D3DXVec3TransformNormal(&positionTransformVec, &positionTransformVec, &rotationMatrixRoll);
+	
+	D3DXMatrixTranslation(&matPosition, positionTransformVec.x, positionTransformVec.y, positionTransformVec.z / PI);
+
+}
+
+/**
 * Gets the view-projection transform matrices left and right.
 * Unprojects, shifts view position left/right (using same matricies as (Left/Right)ViewRollAndShift)
 * and reprojects using left/right projection.
@@ -202,14 +234,16 @@ void ViewAdjustment::UpdateRoll(float roll)
 ***/
 void ViewAdjustment::ComputeViewTransforms()
 {
+
+
 	// separation settings are overall (HMD and desktop), since they are based on physical IPD
 	D3DXMatrixTranslation(&transformLeft, SeparationInWorldUnits() * LEFT_CONSTANT, 0, 0);
 	D3DXMatrixTranslation(&transformRight, SeparationInWorldUnits() * RIGHT_CONSTANT, 0, 0);
-
+	
 	// projection transform, no roll
 	matViewProjTransformLeftNoRoll = matProjectionInv * transformLeft * projectLeft;
 	matViewProjTransformRightNoRoll = matProjectionInv * transformRight * projectRight;
-
+	
 	// head roll
 	if (rollEnabled) {
 		D3DXMatrixMultiply(&transformLeft, &rollMatrix, &transformLeft);
@@ -261,6 +295,11 @@ void ViewAdjustment::ComputeViewTransforms()
 	matHudRight = matProjectionInv * matRightHud3DDepth * transformRight * matHudDistance * projectRight;
 	matGuiLeft =  matProjectionInv * matLeftGui3DDepth * matSquash * projectLeft;
 	matGuiRight = matProjectionInv * matRightGui3DDepth * matSquash * projectRight;
+}
+
+D3DXMATRIX  ViewAdjustment::PositionMatrix()
+{
+	return matPosition;
 }
 
 /**

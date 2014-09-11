@@ -48,9 +48,9 @@ public:
 
 	/*** MotionTracker virtual public methods ***/
 	virtual int  init();
-	virtual void reset() {}
-	virtual int  getOrientation(float* yaw, float* pitch, float* roll);
-	virtual void updateOrientation();
+	virtual void resetOrientationAndPosition() {}
+	virtual int  getOrientationAndPosition(float* yaw, float* pitch, float* roll, float* x, float* y, float* z);
+	virtual void updateOrientationAndPosition();
 	virtual bool isAvailable();
 	virtual void setMultipliers(float yaw, float pitch, float roll);
 	virtual void setMouseEmulation(bool emulateMouse);
@@ -66,9 +66,17 @@ public:
 	***/
 	float yaw, pitch, roll;
 	/**
+	* Position, as received from tracker.
+	***/
+	float x, y, z;
+	/**
 	* Orientation, as primary received from tracker.
 	***/
 	float primaryYaw, primaryPitch, primaryRoll;
+	/**
+	* Positional, as primary received from tracker.
+	***/
+	float primaryX, primaryY, primaryZ;
 	/**
 	* Current yaw angle, in positive degrees, multiplied by yaw multiplier.
 	***/
@@ -105,6 +113,15 @@ public:
 	* Mouse data, to be passed to the game.
 	***/
 	INPUT mouseData;
+
+	/**
+	* Orientation offset, used to "reset" orientation
+	***/
+	float offsetYaw, offsetPitch, offsetRoll;
+	/**
+	* Positional offset, used to "reset" position
+	***/
+	float offsetX, offsetY, offsetZ;
 
 	/**
 	* Currently supported tracker types enumeration.
