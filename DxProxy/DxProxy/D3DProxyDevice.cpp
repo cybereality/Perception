@@ -961,8 +961,7 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 		OutputDebugString("called BeginScene");
 	#endif
 	
-	if (tracker)
-		tracker->BeginFrame();
+	tracker->BeginFrame();
 
 	if (m_isFirstBeginSceneOfFrame) {
 
@@ -1046,8 +1045,7 @@ HRESULT WINAPI D3DProxyDevice::EndScene()
 			BRASSA_AdditionalOutput();
 	}
 
-	if (tracker)
-		tracker->EndFrame();
+	tracker->EndFrame();
 
 	return BaseDirect3DDevice9::EndScene();
 }
