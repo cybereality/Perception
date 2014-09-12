@@ -52,7 +52,8 @@ void OculusRiftView::SetViewEffectInitialValues()
 	viewEffect->SetFloatArray("Scale", Scale, 2);
 	viewEffect->SetFloatArray("ScaleIn", ScaleIn, 2);
 	viewEffect->SetFloatArray("HmdWarpParam", hmdInfo->GetDistortionCoefficients(), 4);
-	viewEffect->SetFloat("ViewportXOffset", -XOffset);
+	viewEffect->SetFloat("ViewportXOffset", -ViewportXOffset);
+	viewEffect->SetFloat("ViewportYOffset", -ViewportYOffset);
 }
 
 /**
@@ -62,12 +63,13 @@ void OculusRiftView::CalculateShaderVariables()
 {
 	// Center of half screen is 0.25 in x (halfscreen x input in 0 to 0.5 range)
 	// Lens offset is in a -1 to 1 range. Using in shader with a 0 to 0.5 range so use 25% of the value.
-	LensCenter[0] = 0.25f + (hmdInfo->GetLensXCenterOffset() * 0.25f) - (hmdInfo->GetLensIPDCenterOffset() - IPDOffset) - XOffset;
+	LensCenter[0] = 0.25f + (hmdInfo->GetLensXCenterOffset() * 0.25f) - (hmdInfo->GetLensIPDCenterOffset() - IPDOffset);
 
 	// Center of halfscreen range is 0.5 in y (halfscreen y input in 0 to 1 range)
 	LensCenter[1] = hmdInfo->GetLensYCenterOffset() - YOffset; 
-	
+		
 	ViewportXOffset = XOffset;
+	ViewportYOffset = HeadYOffset;
 
 	D3DSURFACE_DESC eyeTextureDescriptor;
 	leftSurface->GetDesc(&eyeTextureDescriptor);

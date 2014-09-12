@@ -126,6 +126,10 @@ public:
 	***/
 	float YOffset;	
 	/**
+	* Floaty Screen Y Offset
+	***/
+	float HeadYOffset;	
+	/**
 	* Offset the screen horizontally
 	***/
 	float XOffset;	
