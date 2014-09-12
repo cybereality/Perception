@@ -231,7 +231,7 @@ void ViewAdjustment::UpdatePosition(float yaw, float pitch, float roll, float xP
 		D3DXVec3TransformNormal(&positionTransformVec, &positionTransformVec, &rotationMatrixRoll);
 
 	//Now apply game specific scaling for the X/Y/Z
-	D3DXVECTOR3 gameScaleVec((float)2, (float)2, (float)(1 / 4));
+	D3DXVECTOR3 gameScaleVec((float)PI/2, 1.0f, (float)(1 / PI));
 	D3DXMATRIX gamescalingmatrix;
 	D3DXMatrixScaling(&gamescalingmatrix, gameScaleVec.x, gameScaleVec.y, gameScaleVec.z);
 	D3DXVec3TransformNormal(&positionTransformVec, &positionTransformVec, &gamescalingmatrix);

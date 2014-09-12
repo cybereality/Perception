@@ -30,6 +30,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "OculusTracker.h"
 #include "HMDisplayInfoFactory.h"
 
+//#define SHOW_CALLS
+
 /**
 * Constructor.
 * Calls init function.
@@ -57,12 +59,12 @@ OculusTracker::~OculusTracker()
 void OculusTracker::init()
 {
 	OutputDebugString("OculusTracker Start");
+	status = MTS_INITIALISING;
 	ovrBool res = ovr_Initialize(); // start LibOVR
 
 	if (res)
 	{
 		OutputDebugString("OculusTracker Initialize");
-		status = MTS_INITIALISING;
 	}
 	else
 	{
@@ -98,6 +100,13 @@ void OculusTracker::init()
 	OutputDebugString("oculus tracker initted");
 	if (status == MTS_INITIALISING)
 		status = MTS_OK;
+
+#ifdef SHOW_CALLS
+	char buf[256];
+	sprintf_s(buf, "init: %i", (int)status);
+	OutputDebugString(buf);
+#endif 
+
 }
 
 void OculusTracker::BeginFrame()
@@ -131,7 +140,7 @@ void OculusTracker::EndFrame()
 ***/
 void OculusTracker::resetOrientationAndPosition()
 {
-#ifdef _DEBUG
+#ifdef SHOW_CALLS
 	OutputDebugString("OculusTracker resetOrientationAndPosition\n");
 #endif
 
@@ -147,13 +156,13 @@ void OculusTracker::resetOrientationAndPosition()
 
 	ovrTrackingState ts = ovrHmd_GetTrackingState(hmd,FrameRef.ScanoutMidpointSeconds);
 	
-	if (ts.StatusFlags & ovrStatus_OrientationTracked)
+	//if (ts.StatusFlags & ovrStatus_OrientationTracked)
 	{
 		Quatf hmdOrient=ts.HeadPose.ThePose.Orientation;
 		hmdOrient.GetEulerAngles<Axis_Y,Axis_X,Axis_Z>(&offsetYaw, &offsetPitch, &offsetRoll);
 	}
-	else
-		status = MTS_NOORIENTATION;
+	//else
+	//	status = MTS_NOORIENTATION;
 	
 	if (ts.StatusFlags & ovrStatus_PositionConnected)
 	{
@@ -166,6 +175,12 @@ void OculusTracker::resetOrientationAndPosition()
 		else
 			status = MTS_LOSTPOSITIONAL;
 	}
+
+#ifdef SHOW_CALLS
+	char buf[256];
+	sprintf_s(buf, "resetOrientationAndPosition: %i", (int)status);
+	OutputDebugString(buf);
+#endif 
 }
 
 /**
@@ -175,13 +190,13 @@ void OculusTracker::resetOrientationAndPosition()
 ***/
 int OculusTracker::getOrientationAndPosition(float* yaw, float* pitch, float* roll, float* x, float* y, float* z) 
 {
-#ifdef _DEBUG
+#ifdef SHOW_CALLS
 	OutputDebugString("OculusTracker getOrientationAndPosition\n");
 #endif
 
 	ovrTrackingState ts = ovrHmd_GetTrackingState(hmd,FrameRef.ScanoutMidpointSeconds);
 
-	if (ts.StatusFlags & ovrStatus_OrientationTracked)
+//	if (ts.StatusFlags & ovrStatus_OrientationTracked)
 	{
 		Quatf hmdOrient=ts.HeadPose.ThePose.Orientation;
 		hmdOrient.GetEulerAngles<Axis_Y,Axis_X,Axis_Z>(yaw, pitch, roll);
@@ -194,8 +209,10 @@ int OculusTracker::getOrientationAndPosition(float* yaw, float* pitch, float* ro
 		*pitch = RadToDegree(*pitch - offsetPitch);
 		*roll = -RadToDegree(*roll - offsetYaw);
 	}
-	else
-		status = MTS_NOORIENTATION;
+//	else
+//	{
+//		status = MTS_NOORIENTATION;
+//	}
 
 	if (ts.StatusFlags & ovrStatus_PositionConnected && status == MTS_OK)
 	{
@@ -212,7 +229,19 @@ int OculusTracker::getOrientationAndPosition(float* yaw, float* pitch, float* ro
 			status = MTS_LOSTPOSITIONAL;
 	}
 
-	return 0; 
+#ifdef SHOW_CALLS
+	char buffer[256]; 
+	sprintf_s(buffer, "Yaw: %.4f Pitch: %.4f Roll: %.4f", primaryYaw, primaryPitch, primaryRoll); 
+	OutputDebugString(buffer);
+	sprintf_s(buffer, "X: %.4f Y: %.4f Z: %.4f", x, y, z); 
+	OutputDebugString(buffer);
+
+	char buf[256];
+	sprintf_s(buf, "getOrientationAndPosition: %i", (int)status);
+	OutputDebugString(buf);
+#endif
+
+	return (int)status; 
 }
 
 /**
@@ -221,7 +250,7 @@ int OculusTracker::getOrientationAndPosition(float* yaw, float* pitch, float* ro
 ***/
 void OculusTracker::updateOrientationAndPosition()
 {
-#ifdef _DEBUG
+#ifdef SHOW_CALLS
 	OutputDebugString("OculusTracker updateOrientation\n");
 #endif
 
@@ -250,7 +279,7 @@ void OculusTracker::updateOrientationAndPosition()
 		deltaYaw -= ((float)mouseData.mi.dx)/multiplierYaw;
 		deltaPitch -= ((float)mouseData.mi.dy)/multiplierPitch;
 
-#ifdef _DEBUG
+#ifdef SHOW_CALLS
 		OutputDebugString("Motion Tracker SendInput\n");
 #endif
 		// Send to mouse input.

@@ -156,7 +156,8 @@ void MotionTracker::updateOrientationAndPosition()
 ***/
 MotionTrackerStatus MotionTracker::getStatus()
 {
-	return MTS_NOTINIT;
+	//Default tracker is just fine thanks
+	return MTS_OK;
 }
 
 /**
