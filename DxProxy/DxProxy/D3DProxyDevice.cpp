@@ -2186,6 +2186,7 @@ void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 	m_pGameHandler->Load(config, m_spShaderViewAdjustment);
 	stereoView = StereoViewFactory::Get(config, m_spShaderViewAdjustment->HMDInfo());
 	stereoView->YOffset = config.YOffset;
+	stereoView->HeadYOffset = 0;
 	stereoView->IPDOffset = config.IPDOffset;
 	stereoView->DistortionScale = config.DistortionScale;
 	m_maxDistortionScale = config.DistortionScale;
@@ -2313,14 +2314,14 @@ void D3DProxyDevice::HandleControls()
 	}
 
 	//Rset HMD Orientation+Position (CTRL + R)
-	if ((controls.Key_Down(VK_F12) || (controls.Key_Down(VK_LCONTROL) && controls.Key_Down(0x52))) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	if ((controls.Key_Down(VK_F12) || ((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down(0x52))) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		tracker->resetOrientationAndPosition();
 		menuVelocity.x+=2.0f;
 	}
 
 	//Toggle positional tracking (CTRL + P)
-	if ((controls.Key_Down(VK_F11) || (controls.Key_Down(VK_LCONTROL) && controls.Key_Down(0x50))) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	if ((controls.Key_Down(VK_F11) || ((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down(0x50))) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		m_bPosTrackingToggle = !m_bPosTrackingToggle;
 
@@ -2365,7 +2366,7 @@ void D3DProxyDevice::HandleControls()
 			m_bfloatingScreen = false;
 			m_bSurpressHeadtracking = false;
 			//TODO Change this back to initial
-			this->stereoView->YOffset = 0;
+			this->stereoView->HeadYOffset = 0;
 			this->stereoView->XOffset = 0;
 			this->stereoView->PostReset();	
 		}
@@ -2383,11 +2384,12 @@ void D3DProxyDevice::HandleControls()
 	}
 	if(m_bfloatingScreen)
 	{
-		float screenFloatMultiplier = 0.5;
+		float screenFloatMultiplierY = 0.75;
+		float screenFloatMultiplierX = 0.5;
 		if (tracker->getStatus() >= MTS_OK)
 		{
-			this->stereoView->YOffset = (m_fFloatingScreenPitch - tracker->primaryPitch) * screenFloatMultiplier;
-			this->stereoView->XOffset = (m_fFloatingScreenYaw - tracker->primaryYaw) * screenFloatMultiplier;
+			this->stereoView->HeadYOffset = (m_fFloatingScreenPitch - tracker->primaryPitch) * screenFloatMultiplierY;
+			this->stereoView->XOffset = (m_fFloatingScreenYaw - tracker->primaryYaw) * screenFloatMultiplierX;
 			this->stereoView->PostReset();
 		}
 		//m_ViewportIfSquished.X = (int)(vOut.x+centerX-(((m_fFloatingYaw - tracker->primaryYaw) * floatMultiplier) * (180 / PI)));

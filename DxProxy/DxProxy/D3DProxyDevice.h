@@ -324,6 +324,7 @@ public:
 	bool m_bfloatingMenu;
 	float m_fFloatingPitch;
 	float m_fFloatingYaw;
+	
 	/**
 	* floating screen activated
 	**/
