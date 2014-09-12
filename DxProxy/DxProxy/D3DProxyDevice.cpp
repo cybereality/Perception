@@ -2316,14 +2316,14 @@ void D3DProxyDevice::HandleControls()
 	}
 
 	//Rset HMD Orientation+Position (CTRL + R)
-	if ((controls.Key_Down(VK_F12) || (controls.Key_Down(VK_LCONTROL) && controls.Key_Down(0x52))) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	if ((controls.Key_Down(VK_F12) || ((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down(0x52))) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		tracker->resetOrientationAndPosition();
 		menuVelocity.x+=2.0f;
 	}
 
 	//Toggle positional tracking (CTRL + P)
-	if ((controls.Key_Down(VK_F11) || (controls.Key_Down(VK_LCONTROL) && controls.Key_Down(0x50))) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	if ((controls.Key_Down(VK_F11) || ((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down(0x50))) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		m_bPosTrackingToggle = !m_bPosTrackingToggle;
 
