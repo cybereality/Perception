@@ -196,6 +196,10 @@ void ViewAdjustment::UpdateRoll(float roll)
 	D3DXMatrixRotationZ(&rollMatrixNegative, -roll);
 	D3DXMatrixRotationZ(&rollMatrixHalf, roll * 0.5f);
 }
+void  ViewAdjustment::SetGameSpecificPositionalScaling(D3DXVECTOR3 scalingVec)
+{
+	gameScaleVec  = scalingVec;
+}
 
 /**
 * Updates the position matrix
@@ -213,11 +217,9 @@ void ViewAdjustment::UpdatePosition(float yaw, float pitch, float roll, float xP
 	//Need to invert X and Y
 	D3DXVECTOR3 vec(xPosition, yPosition, zPosition);
 
-	D3DXMATRIX scaling;
-	D3DXMatrixScaling(&scaling, -1.0f * WorldScale() * (PI/2) * scaler, 
-		-1.0f * WorldScale() * scaler, 
-		WorldScale() * scaler);
-	D3DXVec3TransformNormal(&positionTransformVec, &vec, &scaling);
+	D3DXMATRIX worldScale;
+	D3DXMatrixScaling(&worldScale, -1.0f * WorldScale() * scaler, -1.0f * WorldScale() * scaler, WorldScale() * scaler);
+	D3DXVec3TransformNormal(&positionTransformVec, &vec, &worldScale);
 
 	D3DXMATRIX rotationMatrixPitchYaw;
 	D3DXMatrixIdentity(&rotationMatrixPitchYaw);
@@ -227,8 +229,14 @@ void ViewAdjustment::UpdatePosition(float yaw, float pitch, float roll, float xP
 
 	if (rollEnabled)
 		D3DXVec3TransformNormal(&positionTransformVec, &positionTransformVec, &rotationMatrixRoll);
+
+	//Now apply game specific scaling for the X/Y/Z
+	D3DXVECTOR3 gameScaleVec((float)2, (float)2, (float)(1 / 4));
+	D3DXMATRIX gamescalingmatrix;
+	D3DXMatrixScaling(&gamescalingmatrix, gameScaleVec.x, gameScaleVec.y, gameScaleVec.z);
+	D3DXVec3TransformNormal(&positionTransformVec, &positionTransformVec, &gamescalingmatrix);
 	
-	D3DXMatrixTranslation(&matPosition, positionTransformVec.x, positionTransformVec.y, positionTransformVec.z / PI);
+	D3DXMatrixTranslation(&matPosition, positionTransformVec.x, positionTransformVec.y, positionTransformVec.z);
 }
 
 /**

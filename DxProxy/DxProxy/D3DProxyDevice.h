@@ -319,10 +319,6 @@ public:
 	***/
 	float menuSeconds;
 	/**
-	* True if head tracking initialized.
-	**/
-	bool trackerInitialized;
-	/**
 	* True floating GUI mode activated + Reset Values
 	**/
 	bool m_bfloatingMenu;

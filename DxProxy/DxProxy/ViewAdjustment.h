@@ -100,6 +100,7 @@ public:
 	void          ChangeHUDDistance(float newHudDistance);
 	void          ChangeHUD3DDepth(float newHud3DDepth);
 	void          SetBulletLabyrinthMode(bool newMode);
+	void		  SetGameSpecificPositionalScaling(D3DXVECTOR3 scalingVec);
 	bool          BulletLabyrinthMode();
 	void          ResetWorldScale();
 	void          ResetConvergence();	
@@ -253,6 +254,10 @@ private:
 	* Bullet labyrinth matrix.
 	***/
 	D3DXMATRIX matBulletLabyrinth;
+	/**
+	* Used to scale the positional movement, seems x/y/z are not equal
+	*/
+	D3DXVECTOR3 gameScaleVec;
 	/**
 	* Head mounted display info.
 	***/

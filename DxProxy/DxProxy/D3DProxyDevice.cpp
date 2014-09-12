@@ -961,8 +961,7 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 		OutputDebugString("called BeginScene");
 	#endif
 	
-	if (trackerInitialized)
-		tracker->BeginFrame();
+	tracker->BeginFrame();
 
 	if (m_isFirstBeginSceneOfFrame) {
 
@@ -1046,8 +1045,7 @@ HRESULT WINAPI D3DProxyDevice::EndScene()
 			BRASSA_AdditionalOutput();
 	}
 
-	if (trackerInitialized)
-		tracker->EndFrame();
+	tracker->EndFrame();
 
 	return BaseDirect3DDevice9::EndScene();
 }
@@ -2173,7 +2171,6 @@ void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 	memcpy(&m_configBackup, &cfg, sizeof(ProxyHelper::ProxyConfig));
 
 	eyeShutter = 1;
-	trackerInitialized = false;
 	m_bfloatingMenu = false;
 	m_bfloatingScreen = false;
 	m_bSurpressHeadtracking = false;
@@ -2305,7 +2302,8 @@ void D3DProxyDevice::HandleControls()
 		{
 			m_pVRboost_ReleaseAllMemoryRules();
 			m_bVRBoostToggle = !m_bVRBoostToggle;
-			if (trackerInitialized) tracker->resetOrientationAndPosition();
+			if (tracker->getStatus() > MTS_OK)
+				tracker->resetOrientationAndPosition();
 
 			// set the indicator to be drawn
 			m_fVRBoostIndicator = 1.0f;
@@ -2350,7 +2348,7 @@ void D3DProxyDevice::HandleControls()
 		else
 		{
 			m_bfloatingMenu = true;
-			if(trackingOn && trackerInitialized)
+			if (tracker->getStatus() >= MTS_OK)
 			{
 				m_fFloatingPitch = tracker->primaryPitch;
 				m_fFloatingYaw = tracker->primaryYaw;			
@@ -2375,7 +2373,7 @@ void D3DProxyDevice::HandleControls()
 		{
 			m_bfloatingScreen = true;
 			m_bSurpressHeadtracking = true;
-			if(trackingOn && trackerInitialized)
+			if (tracker->getStatus() >= MTS_OK)
 			{
 				m_fFloatingScreenPitch = tracker->primaryPitch;
 				m_fFloatingScreenYaw = tracker->primaryYaw;			
@@ -2386,7 +2384,7 @@ void D3DProxyDevice::HandleControls()
 	if(m_bfloatingScreen)
 	{
 		float screenFloatMultiplier = 0.5;
-		if(trackingOn && trackerInitialized)
+		if (tracker->getStatus() >= MTS_OK)
 		{
 			this->stereoView->YOffset = (m_fFloatingScreenPitch - tracker->primaryPitch) * screenFloatMultiplier;
 			this->stereoView->XOffset = (m_fFloatingScreenYaw - tracker->primaryYaw) * screenFloatMultiplier;
@@ -2540,36 +2538,70 @@ void D3DProxyDevice::HandleTracking()
 	#ifdef SHOW_CALLS
 		OutputDebugString("called HandleTracking");
 	#endif
-	if(!trackingOn){
-		tracker->currentRoll = 0;
-		return;
-	}
-	if(!trackerInitialized)
+
+	if(!tracker)
 	{
 		InitTracker();
+	}
+
+	if(!tracker || tracker->getStatus() < MTS_OK)
+	{
+		if (tracker)
+		{
+			//Populate with popups about the following
+			switch (tracker->getStatus())
+			{
+				case MTS_NOTINIT:
+				case MTS_INITIALISING:
+				case MTS_NOHMDDETECTED:
+				case MTS_INITFAIL:
+				case MTS_NOORIENTATION:
+				case MTS_DRIVERFAIL:
+					break;
+			}
+		}
+
+		tracker->currentRoll = 0;
+		return;
 	}
 
 	float xPos=0, yPos=0, zPos=0;
 	float yaw=0, pitch=0, roll=0;
 
-	if(trackerInitialized && tracker->isAvailable())
+	if(tracker->getStatus() >= MTS_OK)
 	{
 		tracker->updateOrientationAndPosition();
 
-		// update view adjustment class
-		if (trackerInitialized && tracker->isAvailable() && m_spShaderViewAdjustment->RollEnabled()) {
-			m_spShaderViewAdjustment->UpdateRoll(tracker->currentRoll);
+		switch (tracker->getStatus())
+		{
+		case MTS_OK:
+			//do nothing
+			break;
+		case MTS_LOSTPOSITIONAL:
+			//Show popup regarding lost positional tracking
+			break;
+		case MTS_CAMERAMALFUNCTION:
+			//Show camera malfunction warning
+			break;
 		}
 
-		m_spShaderViewAdjustment->UpdatePitchYaw(tracker->primaryPitch, tracker->primaryYaw);
-
-		if (m_bPosTrackingToggle)
+		// update view adjustment class
+		if (tracker->getStatus() >= MTS_OK)
 		{
-			m_spShaderViewAdjustment->UpdatePosition(tracker->primaryYaw, tracker->primaryPitch, tracker->primaryRoll,
-				(VRBoostValue[VRboostAxis::CameraTranslateX] / 20.0f) + tracker->primaryX, 
-				(VRBoostValue[VRboostAxis::CameraTranslateY] / 20.0f) + tracker->primaryY,
-				(VRBoostValue[VRboostAxis::CameraTranslateZ] / 20.0f) + tracker->primaryZ,
-				config.position_multiplier);
+			if (m_spShaderViewAdjustment->RollEnabled()) {
+				m_spShaderViewAdjustment->UpdateRoll(tracker->currentRoll);
+			}
+
+			m_spShaderViewAdjustment->UpdatePitchYaw(tracker->primaryPitch, tracker->primaryYaw);
+
+			if (m_bPosTrackingToggle && tracker->getStatus() != MTS_LOSTPOSITIONAL)
+			{
+				m_spShaderViewAdjustment->UpdatePosition(tracker->primaryYaw, tracker->primaryPitch, tracker->primaryRoll,
+					(VRBoostValue[VRboostAxis::CameraTranslateX] / 20.0f) + tracker->primaryX, 
+					(VRBoostValue[VRboostAxis::CameraTranslateY] / 20.0f) + tracker->primaryY,
+					(VRBoostValue[VRboostAxis::CameraTranslateZ] / 20.0f) + tracker->primaryZ,
+					config.position_multiplier);
+			}
 		}
 	}
 		
@@ -2578,7 +2610,7 @@ void D3DProxyDevice::HandleTracking()
 	m_isFirstBeginSceneOfFrame = false;
 
 	// update vrboost, if present, tracker available and shader count higher than the minimum
-	if ((!m_bSurpressHeadtracking) && (!m_bForceMouseEmulation) && (hmVRboost) && (m_VRboostRulesPresent) && (tracker->isAvailable()) && (m_bVRBoostToggle)
+	if ((!m_bSurpressHeadtracking) && (!m_bForceMouseEmulation) && (hmVRboost) && (m_VRboostRulesPresent) && (tracker->getStatus() >= MTS_OK) && (m_bVRBoostToggle)
 		&& (m_VertexShaderCountLastFrame>(UINT)config.VRboostMinShaderCount) 
 		&& (m_VertexShaderCountLastFrame<(UINT)config.VRboostMaxShaderCount) )
 	{
@@ -4409,10 +4441,10 @@ void D3DProxyDevice::BRASSA_Settings()
 			{
 				m_bForceMouseEmulation = !m_bForceMouseEmulation;
 
-				if ((m_bForceMouseEmulation) && trackerInitialized && tracker->isAvailable() && (!m_bSurpressHeadtracking))
+				if ((m_bForceMouseEmulation) && (tracker->getStatus() >= MTS_OK) && (!m_bSurpressHeadtracking))
 					tracker->setMouseEmulation(true);
 
-				if ((!m_bForceMouseEmulation) && (hmVRboost) && (m_VRboostRulesPresent) && trackerInitialized && tracker->isAvailable())
+				if ((!m_bForceMouseEmulation) && (hmVRboost) && (m_VRboostRulesPresent)  && (tracker->getStatus() >= MTS_OK))
 					tracker->setMouseEmulation(false);
 
 				menuVelocity.x += 4.0f;
@@ -4424,7 +4456,8 @@ void D3DProxyDevice::BRASSA_Settings()
 				{
 					m_pVRboost_ReleaseAllMemoryRules();
 					m_bVRBoostToggle = !m_bVRBoostToggle;
-					if (trackerInitialized) tracker->resetOrientationAndPosition();
+					if (tracker->getStatus() >= MTS_OK)
+						tracker->resetOrientationAndPosition();
 					menuVelocity.x+=2.0f;
 				}
 			}
@@ -4574,7 +4607,7 @@ void D3DProxyDevice::BRASSA_Settings()
 			{
 				m_bForceMouseEmulation = false;
 
-				if ((hmVRboost) && (m_VRboostRulesPresent) && trackerInitialized && tracker->isAvailable())
+				if ((hmVRboost) && (m_VRboostRulesPresent) && (tracker->getStatus() >= MTS_OK))
 					tracker->setMouseEmulation(false);
 
 				menuVelocity.x-=2.0f;
@@ -4660,10 +4693,11 @@ void D3DProxyDevice::BRASSA_Settings()
 			// mouse emulation
 			if (entryID == FORCE_MOUSE_EMU)
 			{
-				m_bForceMouseEmulation = true;
-
-				if(trackerInitialized && tracker->isAvailable())
+				if(tracker->getStatus() >= MTS_OK)
+				{
 					tracker->setMouseEmulation(true);
+					m_bForceMouseEmulation = true;
+				}
 
 				menuVelocity.x-=2.0f;
 			}
@@ -5644,7 +5678,7 @@ void D3DProxyDevice::SetGUIViewport()
 	float floatMultiplier = 4;
 	int originalX = (int)(vOut.x+centerX);
 	int originalY = (int)(vOut.y+centerY);
-	if(m_bfloatingMenu && trackingOn && trackerInitialized)
+	if(m_bfloatingMenu && (tracker->getStatus() >= MTS_OK))
 	{
 		/*char buf[64];
 		LPCSTR psz = NULL;
@@ -5810,18 +5844,15 @@ bool D3DProxyDevice::InitBrassa()
  
  	OutputDebugString("GB - Try to init Tracker\n");
  	tracker.reset(MotionTrackerFactory::Get(config));
-	OutputDebugString("Tracker Got\n");
- 	if (tracker)
+	if (tracker && tracker->getStatus() >= MTS_OK)
  	{
+		OutputDebugString("Tracker Got\n");
  		OutputDebugString("Setting Multipliers\n");
 		tracker->setMultipliers(config.yaw_multiplier, config.pitch_multiplier, config.roll_multiplier);
  		OutputDebugString("Setting Mouse EMu\n");
 		tracker->setMouseEmulation((!m_VRboostRulesPresent) || (hmVRboost==NULL));
- 		trackerInitialized = true;
+		return true;
  	}
- 	else
- 	{
- 		trackerInitialized = false;		
- 	}
- 	return trackerInitialized;
+
+ 	return false;
  }

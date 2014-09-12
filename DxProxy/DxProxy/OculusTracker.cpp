@@ -36,7 +36,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***/ 
 OculusTracker::OculusTracker()
 {
-	initialised = false;
+	status = MTS_NOTINIT;
 	init();
 }
 
@@ -46,7 +46,7 @@ OculusTracker::OculusTracker()
 ***/
 OculusTracker::~OculusTracker()
 {
-	ovrHmd_Destroy(pHMD);
+	ovrHmd_Destroy(hmd);
 	ovr_Shutdown();
 }
 
@@ -54,62 +54,74 @@ OculusTracker::~OculusTracker()
 * Oculus init.
 * Calls libOVR System::Init, gets device manager, hmd-device and sensor.
 ***/
-int OculusTracker::init()
+void OculusTracker::init()
 {
 	OutputDebugString("OculusTracker Start");
 	ovrBool res = ovr_Initialize(); // start LibOVR
 
 	if (res)
-		OutputDebugString("OculusTracker Initialized");
+	{
+		OutputDebugString("OculusTracker Initialize");
+		status = MTS_INITIALISING;
+	}
+	else
+	{
+		OutputDebugString("OculusTracker Initialize call failed");
+		status = MTS_DRIVERFAIL;
+		return;
+	}
 	 
 	int detected = ovrHmd_Detect();
 	if (detected == 0)
 	{
 		OutputDebugString("No HMD detected, use a dummy DK1");
-		pHMD=ovrHmd_CreateDebug(ovrHmd_DK1);
+		hmd=ovrHmd_CreateDebug(ovrHmd_DK1);
+		status = MTS_NOHMDDETECTED;
 	}
 	else
 	{
-		pHMD=ovrHmd_Create(0);
+		hmd=ovrHmd_Create(0);
 	}
 
 
 	unsigned int trackingCaps = ovrTrackingCap_Orientation | ovrTrackingCap_MagYawCorrection | ovrTrackingCap_Position;
-	ovrBool success = ovrHmd_ConfigureTracking(pHMD, trackingCaps, 0);
+	ovrBool success = ovrHmd_ConfigureTracking(hmd, trackingCaps, 0);
 
 	if (!success)
 	{
-		OutputDebugString("oculus tracker failed to initialise");
-		return -1;
+		OutputDebugString("oculus tracker failed to initialise tracking");
+		status = MTS_INITFAIL;
 	}
 
 	resetOrientationAndPosition();
 
 	OutputDebugString("oculus tracker initted");
-	initialised = true;
-	
-	return 0;
+	if (status == MTS_INITIALISING)
+		status = MTS_OK;
 }
 
 void OculusTracker::BeginFrame()
 {
 	//return;
-	if (initialised){
-		FrameRef=ovrHmd_BeginFrameTiming(pHMD,0);
+	if (status >= MTS_OK)
+	{
+		FrameRef=ovrHmd_BeginFrameTiming(hmd,0);
 	}
 }
 
 void OculusTracker::WaitTillTime()
 {
-	if (initialised){
+	if (status >= MTS_OK)
+	{
 		ovr_WaitTillTime(FrameRef.TimewarpPointSeconds);
 	}
 }
 
 void OculusTracker::EndFrame()
 {
-	if (initialised){
-			ovrHmd_EndFrameTiming(pHMD);
+	if (status >= MTS_OK)
+	{
+		ovrHmd_EndFrameTiming(hmd);
 	}
 }
 
@@ -120,7 +132,7 @@ void OculusTracker::EndFrame()
 void OculusTracker::resetOrientationAndPosition()
 {
 #ifdef _DEBUG
-	OutputDebugString("OculusTracker getOrient\n");
+	OutputDebugString("OculusTracker resetOrientationAndPosition\n");
 #endif
 
 	offsetYaw = 0.0f;
@@ -131,21 +143,28 @@ void OculusTracker::resetOrientationAndPosition()
 	offsetZ = 0.0f;
 
 	//Force OVR positional reset
-	ovrHmd_RecenterPose(pHMD);
+	ovrHmd_RecenterPose(hmd);
 
-	ovrTrackingState ts = ovrHmd_GetTrackingState(pHMD,FrameRef.ScanoutMidpointSeconds);
+	ovrTrackingState ts = ovrHmd_GetTrackingState(hmd,FrameRef.ScanoutMidpointSeconds);
 	
-	Quatf hmdOrient=ts.HeadPose.ThePose.Orientation;
-	hmdOrient.GetEulerAngles<Axis_Y,Axis_X,Axis_Z>(&offsetYaw, &offsetPitch, &offsetRoll);
-	
-	if (ts.StatusFlags & ovrStatus_PositionTracked)
+	if (ts.StatusFlags & ovrStatus_OrientationTracked)
 	{
-#ifdef _DEBUG
-	OutputDebugString("OculusTracker getPosition\n");
-#endif
-		offsetX = ts.HeadPose.ThePose.Position.x;
-		offsetY = ts.HeadPose.ThePose.Position.y;
-		offsetZ = ts.HeadPose.ThePose.Position.z;
+		Quatf hmdOrient=ts.HeadPose.ThePose.Orientation;
+		hmdOrient.GetEulerAngles<Axis_Y,Axis_X,Axis_Z>(&offsetYaw, &offsetPitch, &offsetRoll);
+	}
+	else
+		status = MTS_NOORIENTATION;
+	
+	if (ts.StatusFlags & ovrStatus_PositionConnected)
+	{
+		if (ts.StatusFlags & ovrStatus_PositionTracked)
+		{
+			offsetX = ts.HeadPose.ThePose.Position.x;
+			offsetY = ts.HeadPose.ThePose.Position.y;
+			offsetZ = ts.HeadPose.ThePose.Position.z;
+		}
+		else
+			status = MTS_LOSTPOSITIONAL;
 	}
 }
 
@@ -157,34 +176,40 @@ void OculusTracker::resetOrientationAndPosition()
 int OculusTracker::getOrientationAndPosition(float* yaw, float* pitch, float* roll, float* x, float* y, float* z) 
 {
 #ifdef _DEBUG
-	OutputDebugString("OculusTracker getOrient\n");
+	OutputDebugString("OculusTracker getOrientationAndPosition\n");
 #endif
 
-	ovrTrackingState ts = ovrHmd_GetTrackingState(pHMD,FrameRef.ScanoutMidpointSeconds);
-	
-	Quatf hmdOrient=ts.HeadPose.ThePose.Orientation;
-	hmdOrient.GetEulerAngles<Axis_Y,Axis_X,Axis_Z>(yaw, pitch, roll);
-	
+	ovrTrackingState ts = ovrHmd_GetTrackingState(hmd,FrameRef.ScanoutMidpointSeconds);
 
-	// set primary orientations
-	primaryYaw = *yaw - offsetYaw;
-	primaryPitch = *pitch - offsetPitch;
-	primaryRoll = *roll - offsetRoll;
-	*yaw = -RadToDegree(*yaw - offsetYaw);
-	*pitch = RadToDegree(*pitch - offsetPitch);
-	*roll = -RadToDegree(*roll - offsetYaw);
-
-	if (ts.StatusFlags & ovrStatus_PositionTracked)
+	if (ts.StatusFlags & ovrStatus_OrientationTracked)
 	{
-#ifdef _DEBUG
-		OutputDebugString("OculusTracker getPosition\n");
-#endif
-		*x = ts.HeadPose.ThePose.Position.x - offsetX;
-		*y = ts.HeadPose.ThePose.Position.y - offsetY;
-		*z = ts.HeadPose.ThePose.Position.z - offsetZ;
-		primaryX = *x;
-		primaryY = *y;
-		primaryZ = *z;
+		Quatf hmdOrient=ts.HeadPose.ThePose.Orientation;
+		hmdOrient.GetEulerAngles<Axis_Y,Axis_X,Axis_Z>(yaw, pitch, roll);
+
+		// set primary orientations
+		primaryYaw = *yaw - offsetYaw;
+		primaryPitch = *pitch - offsetPitch;
+		primaryRoll = *roll - offsetRoll;
+		*yaw = -RadToDegree(*yaw - offsetYaw);
+		*pitch = RadToDegree(*pitch - offsetPitch);
+		*roll = -RadToDegree(*roll - offsetYaw);
+	}
+	else
+		status = MTS_NOORIENTATION;
+
+	if (ts.StatusFlags & ovrStatus_PositionConnected && status == MTS_OK)
+	{
+		if (ts.StatusFlags & ovrStatus_PositionTracked)
+		{
+			*x = ts.HeadPose.ThePose.Position.x - offsetX;
+			*y = ts.HeadPose.ThePose.Position.y - offsetY;
+			*z = ts.HeadPose.ThePose.Position.z - offsetZ;
+			primaryX = *x;
+			primaryY = *y;
+			primaryZ = *z;
+		}
+		else
+			status = MTS_LOSTPOSITIONAL;
 	}
 
 	return 0; 
@@ -240,10 +265,9 @@ void OculusTracker::updateOrientationAndPosition()
 }
 
 /**
-* Is tracker selected and detected?
-* Returns libOVR SensorFusion::IsAttachedToSensor function result.
+* Returns oculus tracker status as Motion Tracker Status enum
 ***/
-bool OculusTracker::isAvailable()
+MotionTrackerStatus OculusTracker::getStatus()
 {
-	return initialised;
+	return status;
 }

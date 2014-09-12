@@ -64,11 +64,10 @@ SharedMemoryTracker::~SharedMemoryTracker(void)
 * FreeTrack Tracker init.
 * Calls openSharedMemory function.
 ***/
-int SharedMemoryTracker::init()
+void SharedMemoryTracker::init()
 {
 	OutputDebugString("Socket Tracker Init\n");
 	openSharedMemory();
-	return 0;
 }
 
 /**
@@ -150,9 +149,9 @@ void SharedMemoryTracker::updateOrientation()
 * Is tracker selected and detected?
 * Returns wether a tracker option is selected. Naturally returns true.
 ***/
-bool SharedMemoryTracker::isAvailable()
+MotionTrackerStatus SharedMemoryTracker::getStatus()
 {
-	return true;
+	return MTS_OK;
 }
 
 /**

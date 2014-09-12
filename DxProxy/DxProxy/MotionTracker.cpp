@@ -50,7 +50,7 @@ MotionTracker::~MotionTracker()
 * Motion Tracker init.
 * Resets tracker data.
 ***/
-int MotionTracker::init()
+void MotionTracker::init()
 {
 	OutputDebugString("Motion Tracker Init\n");
 
@@ -79,8 +79,6 @@ int MotionTracker::init()
 	mouseData.mi.dwFlags = MOUSEEVENTF_MOVE;
 	mouseData.mi.time = 0;
 	mouseData.mi.dwExtraInfo = 0;
-
-	return 0;
 }
 
 /**
@@ -156,9 +154,9 @@ void MotionTracker::updateOrientationAndPosition()
 * Is tracker selected and detected?
 * Returns wether a tracker option is selected. Naturally returns false in base class.
 ***/
-bool MotionTracker::isAvailable()
+MotionTrackerStatus MotionTracker::getStatus()
 {
-	return false;
+	return MTS_NOTINIT;
 }
 
 /**

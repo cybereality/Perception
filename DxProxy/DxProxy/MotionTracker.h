@@ -36,6 +36,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <math.h>
 #include <windows.h>
 
+enum MotionTrackerStatus
+{
+	MTS_NOTINIT = 1,
+	MTS_INITIALISING = 2,
+	MTS_NOHMDDETECTED = 4,
+	MTS_INITFAIL = 8,
+	MTS_NOORIENTATION = 16,
+	MTS_DRIVERFAIL = 32,
+	//Any status beyond this point means the HMD can be used
+	MTS_OK = 64,
+	MTS_CAMERAMALFUNCTION = 128,
+	MTS_LOSTPOSITIONAL = 256
+};
+
 /**
 *  Base motion tracker class. 
 *  Derive base functionality from this to any tracking class.
@@ -47,11 +61,11 @@ public:
 	virtual ~MotionTracker(void);
 
 	/*** MotionTracker virtual public methods ***/
-	virtual int  init();
+	virtual void init();
 	virtual void resetOrientationAndPosition() {}
 	virtual int  getOrientationAndPosition(float* yaw, float* pitch, float* roll, float* x, float* y, float* z);
 	virtual void updateOrientationAndPosition();
-	virtual bool isAvailable();
+	virtual MotionTrackerStatus getStatus();
 	virtual void setMultipliers(float yaw, float pitch, float roll);
 	virtual void setMouseEmulation(bool emulateMouse);
 	virtual void BeginFrame() {}

@@ -43,11 +43,11 @@ public:
 	~FreeSpaceTracker(void);
 
 	/*** FreeSpaceTracker public methods ***/
-	int  init();
+	void init();
 	void reset();
 	void destroy();
 	int  getOrientation(float* yaw, float* pitch, float* roll);
-	bool isAvailable();
+	MotionTrackerStatus getStatus();
 
 private:
 	/*** FreeSpaceTracker public methods ***/
