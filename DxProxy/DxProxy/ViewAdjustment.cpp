@@ -191,6 +191,10 @@ void ViewAdjustment::UpdatePitchYaw(float pitch, float yaw)
 ***/
 void ViewAdjustment::UpdateRoll(float roll)
 {
+	char buffer[256]; 
+	sprintf_s(buffer, "ViewAdjustment::UpdateRoll: %.4f", roll); 
+	OutputDebugString(buffer);
+
 	D3DXMatrixIdentity(&rollMatrix);
 	D3DXMatrixRotationZ(&rollMatrix, roll);
 	D3DXMatrixRotationZ(&rollMatrixNegative, -roll);
@@ -231,7 +235,7 @@ void ViewAdjustment::UpdatePosition(float yaw, float pitch, float roll, float xP
 		D3DXVec3TransformNormal(&positionTransformVec, &positionTransformVec, &rotationMatrixRoll);
 
 	//Now apply game specific scaling for the X/Y/Z
-	D3DXVECTOR3 gameScaleVec((float)PI/2, 1.0f, (float)(1 / PI));
+	D3DXVECTOR3 gameScaleVec(3.0f, 2.0f, 1.0f);
 	D3DXMATRIX gamescalingmatrix;
 	D3DXMatrixScaling(&gamescalingmatrix, gameScaleVec.x, gameScaleVec.y, gameScaleVec.z);
 	D3DXVec3TransformNormal(&positionTransformVec, &positionTransformVec, &gamescalingmatrix);

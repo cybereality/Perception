@@ -30,8 +30,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "OculusTracker.h"
 #include "HMDisplayInfoFactory.h"
 
-//#define SHOW_CALLS
-
 /**
 * Constructor.
 * Calls init function.
@@ -207,7 +205,7 @@ int OculusTracker::getOrientationAndPosition(float* yaw, float* pitch, float* ro
 		primaryRoll = *roll - offsetRoll;
 		*yaw = -RadToDegree(*yaw - offsetYaw);
 		*pitch = RadToDegree(*pitch - offsetPitch);
-		*roll = -RadToDegree(*roll - offsetYaw);
+		*roll = -RadToDegree(*roll - offsetRoll);
 	}
 //	else
 //	{
@@ -233,7 +231,7 @@ int OculusTracker::getOrientationAndPosition(float* yaw, float* pitch, float* ro
 	char buffer[256]; 
 	sprintf_s(buffer, "Yaw: %.4f Pitch: %.4f Roll: %.4f", primaryYaw, primaryPitch, primaryRoll); 
 	OutputDebugString(buffer);
-	sprintf_s(buffer, "X: %.4f Y: %.4f Z: %.4f", x, y, z); 
+	sprintf_s(buffer, "X: %.4f Y: %.4f Z: %.4f", primaryX, primaryY, primaryZ); 
 	OutputDebugString(buffer);
 
 	char buf[256];
@@ -255,7 +253,7 @@ void OculusTracker::updateOrientationAndPosition()
 #endif
 
 	// Get orientation from Oculus tracker.
-	if(getOrientationAndPosition(&yaw, &pitch, &roll, &x, &y, &z) == 0)
+	if (getOrientationAndPosition(&yaw, &pitch, &roll, &x, &y, &z) >= MTS_OK)
 	{
 		// Convert yaw, pitch to positive degrees
 		// (-180.0f...0.0f -> 180.0f....360.0f)
@@ -290,6 +288,13 @@ void OculusTracker::updateOrientationAndPosition()
 		currentYaw = yaw;
 		currentPitch = pitch;
 		currentRoll = (float)( roll * (PI/180.0) * multiplierRoll);	// convert from deg to radians then apply mutiplier
+#ifdef SHOW_CALLS
+	char buffer[256]; 
+	sprintf_s(buffer, "roll: %.4f multiplierRoll: %.4f", roll, multiplierRoll); 
+	OutputDebugString(buffer);
+	sprintf_s(buffer, "currentYaw: %.4f currentPitch: %.4f currentRoll: %.4f", currentYaw, currentPitch, currentRoll); 
+	OutputDebugString(buffer);
+#endif
 	}
 }
 
