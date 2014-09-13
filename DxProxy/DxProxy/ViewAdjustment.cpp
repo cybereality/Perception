@@ -216,7 +216,7 @@ void ViewAdjustment::UpdatePosition(float yaw, float pitch, float roll, float xP
 
 	D3DXMatrixRotationX(&rotationMatrixPitch, pitch);
 	D3DXMatrixRotationY(&rotationMatrixYaw, yaw);
-	D3DXMatrixRotationZ(&rotationMatrixRoll, roll);
+	D3DXMatrixRotationZ(&rotationMatrixRoll, -roll);
 
 	//Need to invert X and Y
 	D3DXVECTOR3 vec(xPosition, yPosition, zPosition);
