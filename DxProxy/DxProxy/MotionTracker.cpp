@@ -71,6 +71,9 @@ void MotionTracker::init()
 	offsetX = 0.0f;
 	offsetY = 0.0f;
 	offsetZ = 0.0f;
+	primaryX = 0;
+	primaryY = 0;
+	primaryZ = 0;
 
 	mouseData.type = INPUT_MOUSE;
 	mouseData.mi.dx = 0;
