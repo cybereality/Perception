@@ -2224,6 +2224,7 @@ void D3DProxyDevice::SetupHUD()
 		OutputDebugString("called SetupHUD");
 	#endif
 	D3DXCreateFont( this, 26, 0, FW_BOLD, 4, FALSE, DEFAULT_CHARSET, OUT_TT_ONLY_PRECIS, ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_DONTCARE, "Arial", &hudFont );
+	D3DXCreateFont( this, 32, 0, FW_BOLD, 4, FALSE, DEFAULT_CHARSET, OUT_TT_ONLY_PRECIS, ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_DONTCARE, "Courier New", &errorFont );
 	D3DXCreateSprite(this, &hudMainMenu);
 	D3DXCreateSprite(this, &hudTextBox);
 }
@@ -2360,8 +2361,9 @@ void D3DProxyDevice::HandleControls()
 		{
 			calibrate_tracker = false;
 			//Replace popup
-			VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1000);
+			VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 3000);
 			strcpy_s(popup.line3, "HMD Orientation and Position Calibrated");
+			strcpy_s(popup.line3, "Please repeat if required...");
 			ShowPopup(popup);
 		}
 		else
@@ -2655,7 +2657,7 @@ void D3DProxyDevice::HandleTracking()
 				case MTS_NOHMDDETECTED:
 					{
 						VireioPopup popup(VPT_NO_HMD_DETECTED, VPS_ERROR, 10000);
-						strcpy_s(popup.line3, "HMD NOT DETECTED");
+						strcpy_s(popup.line3, (std::string(10, ' ') + "HMD NOT DETECTED").c_str());
 						ShowPopup(popup);
 					}
 					break;
@@ -2703,7 +2705,7 @@ void D3DProxyDevice::HandleTracking()
 					strcpy_s(popup.line2, "Please Calibrate HMD/Tracker:");
 					strcpy_s(popup.line3, "     -  Sit comfortably with your head facing forwards");
 					strcpy_s(popup.line4, "     -  Press any of the following:");
-					strcpy_s(popup.line5, "        F12 / CTRL+R / LEFT SHIFT + R");
+					strcpy_s(popup.line5, "        F12 / CTRL+R / L-SHIFT + R");
 					ShowPopup(popup);
 				}
 			}
@@ -2726,7 +2728,7 @@ void D3DProxyDevice::HandleTracking()
 			{
 				//Show popup regarding lost positional tracking
 				VireioPopup popup(VPT_POSITION_TRACKING_LOST);
-				strcpy_s(popup.line3, "HMD POSITIONAL TRACKING LOST");
+				strcpy_s(popup.line5, "HMD POSITIONAL TRACKING LOST");
 				ShowPopup(popup);
 			}
 			break;
@@ -2757,7 +2759,8 @@ void D3DProxyDevice::HandleTracking()
 	m_isFirstBeginSceneOfFrame = false;
 
 	// update vrboost, if present, tracker available and shader count higher than the minimum
-	if ((!m_bSurpressHeadtracking) && (!m_bForceMouseEmulation) && (hmVRboost) && (m_VRboostRulesPresent) && (tracker->getStatus() >= MTS_OK) && (m_bVRBoostToggle)
+	if ((!m_bSurpressHeadtracking) && (!m_bForceMouseEmulation) && (hmVRboost) && (m_VRboostRulesPresent) 
+		&& (tracker->getStatus() >= MTS_OK) && (m_bVRBoostToggle)
 		&& (m_VertexShaderCountLastFrame>(UINT)config.VRboostMinShaderCount) 
 		&& (m_VertexShaderCountLastFrame<(UINT)config.VRboostMaxShaderCount) )
 	{
@@ -2795,11 +2798,23 @@ void D3DProxyDevice::HandleTracking()
 		VRBoostStatus.VRBoost_Active = false;
 	}
 
-	if (!m_bForceMouseEmulation && VRBoostStatus.VRBoost_Active && !VRBoostStatus.VRBoost_LoadRules && !VRBoostStatus.VRBoost_ApplyRules)
+	if (!m_bForceMouseEmulation && VRBoostStatus.VRBoost_Active)
 	{
-		VireioPopup popup(VPT_VRBOOST_FAILURE, VPS_ERROR);
-		strcpy_s(popup.line3, "VRBoost Failed & Mouse Emulation is not Enabled");
-		ShowPopup(popup);
+		if (!VRBoostStatus.VRBoost_LoadRules)
+		{
+			VireioPopup popup(VPT_VRBOOST_FAILURE, VPS_ERROR);
+			strcpy_s(popup.line3, "VRBoost LoadRules Failed & Mouse Emulation is not Enabled");
+			strcpy_s(popup.line4, "To Enable head tracking, turn on Mouse Emulation in BRASSA Settings");
+			ShowPopup(popup);
+		}
+		else if (!VRBoostStatus.VRBoost_ApplyRules)
+		{
+			VireioPopup popup(VPT_VRBOOST_FAILURE, VPS_ERROR);
+			strcpy_s(popup.line3, "VRBoost rules loaded but could not be applied");
+			strcpy_s(popup.line4, "Mouse Emulation is not Enabled,");
+			strcpy_s(popup.line5, "To Enable head tracking, turn on Mouse Emulation in BRASSA Settings");
+			ShowPopup(popup);
+		}
 	}
 }
 
@@ -5630,29 +5645,40 @@ void D3DProxyDevice::DisplayCurrentPopup()
 		}
 
 		D3DCOLOR popupColour;
+		ID3DXFont *pFont;
 		switch (activePopup.severity)
 		{
 			case VPS_TOAST:
-				popupColour = D3DCOLOR_ARGB(255, 255, 255, 255);
+				{
+					popupColour = D3DCOLOR_ARGB(255, 255, 255, 255);
+					pFont = hudFont;
+				}
 				break;
 			case VPS_INFO:
-				popupColour = D3DCOLOR_ARGB(255, 128, 255, 128);
+				{
+					popupColour = D3DCOLOR_ARGB(255, 128, 255, 128);
+					pFont = hudFont;
+				}
 				break;
 			case VPS_ERROR:
-				popupColour = D3DCOLOR_ARGB(255, 255, 0, 0);
+				{
+					popupColour = D3DCOLOR_ARGB(255, 255, 0, 0);
+					pFont = errorFont;
+				}
+				break;
 		}
 
 		menuHelperRect.left = 640;
 		menuHelperRect.top = 500;
-		DrawTextShadowed(hudFont, hudMainMenu, activePopup.line1, -1, &menuHelperRect, 0, popupColour);
+		DrawTextShadowed(pFont, hudMainMenu, activePopup.line1, -1, &menuHelperRect, 0, popupColour);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, activePopup.line2, -1, &menuHelperRect, 0, popupColour);
+		DrawTextShadowed(pFont, hudMainMenu, activePopup.line2, -1, &menuHelperRect, 0, popupColour);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, activePopup.line3, -1, &menuHelperRect, 0, popupColour);
+		DrawTextShadowed(pFont, hudMainMenu, activePopup.line3, -1, &menuHelperRect, 0, popupColour);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, activePopup.line4, -1, &menuHelperRect, 0, popupColour);
+		DrawTextShadowed(pFont, hudMainMenu, activePopup.line4, -1, &menuHelperRect, 0, popupColour);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, activePopup.line5, -1, &menuHelperRect, 0, popupColour);
+		DrawTextShadowed(pFont, hudMainMenu, activePopup.line5, -1, &menuHelperRect, 0, popupColour);
 
 		if (show_fps != FPS_NONE)
 		{

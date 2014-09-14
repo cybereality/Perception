@@ -307,6 +307,10 @@ public:
 	**/
 	ID3DXFont *hudFont;
 	/**
+	* HUD font to be used for error notifications.
+	**/
+	ID3DXFont *errorFont;	
+	/**
 	* Timestamp used to adjust the menu velocity independent of game speed.
 	**/
 	float menuTime;
