@@ -60,7 +60,9 @@ public:
 	void          UpdateProjectionMatrices(float aspectRatio);
 	void          UpdatePitchYaw(float pitch, float yaw);
 	void          UpdateRoll(float roll);
+	void		  UpdatePosition(float yaw, float pitch, float roll, float xPosition = 0.0f, float yPosition = 0.0f, float zPosition = 0.0f, float scaler = 1.0f);
 	void          ComputeViewTransforms(); 
+	D3DXMATRIX    PositionMatrix();
 	D3DXMATRIX    LeftAdjustmentMatrix();
 	D3DXMATRIX    RightAdjustmentMatrix();
 	D3DXMATRIX    LeftAdjustmentMatrixNoRoll();
@@ -98,6 +100,7 @@ public:
 	void          ChangeHUDDistance(float newHudDistance);
 	void          ChangeHUD3DDepth(float newHud3DDepth);
 	void          SetBulletLabyrinthMode(bool newMode);
+	void		  SetGameSpecificPositionalScaling(D3DXVECTOR3 scalingVec);
 	bool          BulletLabyrinthMode();
 	void          ResetWorldScale();
 	void          ResetConvergence();	
@@ -106,6 +109,7 @@ public:
 	float         SeparationInWorldUnits();
 	float         SeparationIPDAdjustment();
 	bool          RollEnabled();
+	int			  GetStereoType();
 	StereoMode* HMDInfo();	
 
 private:
@@ -117,6 +121,8 @@ private:
 	float t;	/**< Minimum y-value of the view volume. */
 	float b;	/**< Maximum y-value of the view volume. */
 
+	D3DXVECTOR3 positionTransformVec;
+
 	/**
 	* Constant minimum convergence.
 	***/
@@ -125,6 +131,10 @@ private:
 	* Constant maximum convergence.
 	***/
 	float maxConvergence;
+	/**
+	* Positional translation matrix
+	**/
+	D3DXMATRIX matPosition;
 	/**
 	* Projection matrix.
 	***/
@@ -245,6 +255,10 @@ private:
 	* Bullet labyrinth matrix.
 	***/
 	D3DXMATRIX matBulletLabyrinth;
+	/**
+	* Used to scale the positional movement, seems x/y/z are not equal
+	*/
+	D3DXVECTOR3 gameScaleVec;
 	/**
 	* Head mounted display info.
 	***/

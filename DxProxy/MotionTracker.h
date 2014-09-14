@@ -36,6 +36,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <math.h>
 #include <windows.h>
 
+enum MotionTrackerStatus
+{
+	MTS_NOTINIT,
+	MTS_INITIALISING,
+	MTS_NOHMDDETECTED,
+	MTS_INITFAIL,
+	MTS_DRIVERFAIL,
+	//Any status beyond this point means the HMD can be used (sort of..)
+	MTS_OK,
+	MTS_NOORIENTATION,
+	MTS_CAMERAMALFUNCTION,
+	MTS_LOSTPOSITIONAL
+};
+
 /**
 *  Base motion tracker class. 
 *  Derive base functionality from this to any tracking class.
@@ -47,16 +61,17 @@ public:
 	virtual ~MotionTracker(void);
 
 	/*** MotionTracker virtual public methods ***/
-	virtual int  init();
-	virtual void reset() {}
-	virtual int  getOrientation(float* yaw, float* pitch, float* roll);
-	virtual void updateOrientation();
-	virtual bool isAvailable();
+	virtual void init();
+	virtual void resetOrientationAndPosition() {}
+	virtual int  getOrientationAndPosition(float* yaw, float* pitch, float* roll, float* x, float* y, float* z);
+	virtual void updateOrientationAndPosition();
+	virtual MotionTrackerStatus getStatus();
 	virtual void setMultipliers(float yaw, float pitch, float roll);
 	virtual void setMouseEmulation(bool emulateMouse);
 	virtual void BeginFrame() {}
 	virtual void WaitTillTime() {}
 	virtual void EndFrame() {}
+	virtual char* GetTrackerDescription() {return "No Tracker";}
 
 	/*** MotionTracker public methods ***/
 	bool isEqual(float a, float b){ return abs(a-b) < 0.001; };
@@ -66,9 +81,17 @@ public:
 	***/
 	float yaw, pitch, roll;
 	/**
+	* Position, as received from tracker.
+	***/
+	float x, y, z;
+	/**
 	* Orientation, as primary received from tracker.
 	***/
 	float primaryYaw, primaryPitch, primaryRoll;
+	/**
+	* Positional, as primary received from tracker.
+	***/
+	float primaryX, primaryY, primaryZ;
 	/**
 	* Current yaw angle, in positive degrees, multiplied by yaw multiplier.
 	***/
@@ -105,6 +128,15 @@ public:
 	* Mouse data, to be passed to the game.
 	***/
 	INPUT mouseData;
+
+	/**
+	* Orientation offset, used to "reset" orientation
+	***/
+	float offsetYaw, offsetPitch, offsetRoll;
+	/**
+	* Positional offset, used to "reset" position
+	***/
+	float offsetX, offsetY, offsetZ;
 
 	/**
 	* Currently supported tracker types enumeration.

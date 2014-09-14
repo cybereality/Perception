@@ -44,11 +44,12 @@ public:
 	~FreeTrackTracker(void);
 
 	/*** FreeTrackTracker public methods ***/
-	int  init();
+	void init();
 	void reset();
 	void destroy();
-	int  getOrientation(float* yaw, float* pitch, float* roll);
-	bool isAvailable();
+	int  getOrientationAndPosition(float* yaw, float* pitch, float* roll, float* x, float* y, float* z);
+	MotionTrackerStatus getStatus();
+	virtual char* GetTrackerDescription() {return "FreeTrackTracker";}
 	
 private:
 	/**

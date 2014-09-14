@@ -53,7 +53,7 @@ FreeTrackTracker::~FreeTrackTracker(void)
 * FreeTrack Tracker init.
 * Loads FreeTrack library ("FreeTrackClient.dll") and gets FTGetData function pointer.
 ***/
-int FreeTrackTracker::init()
+void FreeTrackTracker::init()
 {
 	// zero variables for storing data
 	lastRoll = 0;
@@ -70,8 +70,6 @@ int FreeTrackTracker::init()
 	getData = (importGetData)GetProcAddress(hinstLib, "FTGetData");
 
 	OutputDebugString("FreeTrack Tracker Init\n");
-
-	return 0;
 }
 
 /**
@@ -96,7 +94,7 @@ void FreeTrackTracker::destroy()
 * Retrieve FreeTrack tracker orientation.
 * Reads device input and returns orientation negated.
 ***/
-int FreeTrackTracker::getOrientation(float* yaw, float* pitch, float* roll) 
+int FreeTrackTracker::getOrientationAndPosition(float* yaw, float* pitch, float* roll, float* x, float* y, float* z)
 {
 #ifdef _DEBUG
 	OutputDebugString("FreeTrack Tracker getOrient\n");
@@ -123,11 +121,11 @@ int FreeTrackTracker::getOrientation(float* yaw, float* pitch, float* roll)
 * Is tracker selected and detected?
 * Returns wether FreeTrack tracker option is selected. Returns true if FTGetData function pointer present.
 ***/
-bool FreeTrackTracker::isAvailable()
+MotionTrackerStatus FreeTrackTracker::getStatus()
 {
 	if (getData == NULL) {
-		return false;
+		return MTS_NOTINIT;
 	} else {
-		return true;
+		return MTS_OK;
 	}
 }

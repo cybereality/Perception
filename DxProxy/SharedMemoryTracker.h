@@ -63,10 +63,11 @@ public:
 	~SharedMemoryTracker(void);
 
 	/*** SharedMemoryTracker public methods ***/
-	int  init();
-	int  getOrientation(float* yaw, float* pitch, float* roll);
-	void updateOrientation();
-	bool isAvailable();
+	void init();
+	int  getOrientationAndPosition(float* yaw, float* pitch, float* roll, float* x, float* y, float* z);
+	void updateOrientationAndPosition();
+	MotionTrackerStatus getStatus();
+	char* GetTrackerDescription() {return "SharedMemoryTracker";}
 	
 private:
 	/*** SharedMemoryTracker private methods ***/

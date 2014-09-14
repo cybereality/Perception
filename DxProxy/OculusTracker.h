@@ -56,11 +56,12 @@ public:
 	virtual ~OculusTracker(void);
 
 	/*** OculusTracker public methods ***/
-	int  init();
-	void reset();
-	int  getOrientation(float* yaw, float* pitch, float* roll);
-	void updateOrientation();
-	bool isAvailable();	
+	void init();
+	void resetOrientationAndPosition();
+	int  getOrientationAndPosition(float* yaw, float* pitch, float* roll, float* x, float* y, float* z);
+	void updateOrientationAndPosition();
+	MotionTrackerStatus getStatus();	
+	virtual char* GetTrackerDescription();
 
 	void BeginFrame();
 	void EndFrame();
@@ -71,12 +72,17 @@ private:
 	/**
 	* Oculus head mounted display device.
 	***/
-    ovrHmd pHMD;
+    ovrHmd hmd;
 
 	/**
-	* Whether tracking has started
+	 * Stores the product name of the HMD
+	 */
+	char trackerDescription[256];
+
+	/**
+	* Whether tracking has initialised
 	*/
-	bool started;
+	MotionTrackerStatus status;
 
 	ovrFrameTiming FrameRef;
  };

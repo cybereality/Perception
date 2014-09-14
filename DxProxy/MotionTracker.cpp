@@ -50,13 +50,16 @@ MotionTracker::~MotionTracker()
 * Motion Tracker init.
 * Resets tracker data.
 ***/
-int MotionTracker::init()
+void MotionTracker::init()
 {
 	OutputDebugString("Motion Tracker Init\n");
 
 	currentYaw = 0.0f;
 	currentPitch = 0.0f;
 	currentRoll = 0.0f;
+	primaryYaw = 0.0f;
+	primaryPitch = 0.0f;
+	primaryRoll = 0.0f;
 
 	deltaYaw = 0.0f;
 	deltaPitch = 0.0f;
@@ -65,6 +68,16 @@ int MotionTracker::init()
 	multiplierPitch = 25.0f;
 	multiplierRoll = 1.0f;
 
+	offsetYaw = 0.0f;
+	offsetPitch = 0.0f;
+	offsetRoll = 0.0f;
+	offsetX = 0.0f;
+	offsetY = 0.0f;
+	offsetZ = 0.0f;
+	primaryX = 0;
+	primaryY = 0;
+	primaryZ = 0;
+
 	mouseData.type = INPUT_MOUSE;
 	mouseData.mi.dx = 0;
 	mouseData.mi.dy = 0;
@@ -72,15 +85,13 @@ int MotionTracker::init()
 	mouseData.mi.dwFlags = MOUSEEVENTF_MOVE;
 	mouseData.mi.time = 0;
 	mouseData.mi.dwExtraInfo = 0;
-
-	return 0;
 }
 
 /**
-* Tracker specific orientation update.
+* Tracker specific orientation/position update.
 * returns -1 in base class.
 ***/
-int MotionTracker::getOrientation(float* yaw, float* pitch, float* roll) 
+int  MotionTracker::getOrientationAndPosition(float* yaw, float* pitch, float* roll, float* x, float* y, float* z)
 {
 #ifdef _DEBUG
 	OutputDebugString("Motion Tracker getOrient\n");
@@ -88,17 +99,18 @@ int MotionTracker::getOrientation(float* yaw, float* pitch, float* roll)
 	return -1;
 }
 
+
 /**
-* Update tracker orientation.
-* Updates tracker orientation and passes it to game mouse input accordingly.
+* Update tracker orientation and position (if available).
+* Updates tracker orientation and position (if available) and passes it to game mouse input accordingly.
 ***/
-void MotionTracker::updateOrientation()
+void MotionTracker::updateOrientationAndPosition()
 {
 #ifdef _DEBUG
-	OutputDebugString("Motion Tracker updateOrientation\n");
+	OutputDebugString("Motion Tracker updateOrientationAndPosition\n");
 #endif
 	// Get orientation from derived tracker.
-	if(getOrientation(&yaw, &pitch, &roll) == 0)
+	if(getOrientationAndPosition(&yaw, &pitch, &roll, &x, &y, &z) == 0)
 	{
 #ifdef _DEBUG
 		OutputDebugString("Motion Tracker getOrientation == 0\n");
@@ -141,15 +153,17 @@ void MotionTracker::updateOrientation()
 		currentPitch = pitch;
 		currentRoll = roll*multiplierRoll;
 	}
+
 }
 
 /**
 * Is tracker selected and detected?
 * Returns wether a tracker option is selected. Naturally returns false in base class.
 ***/
-bool MotionTracker::isAvailable()
+MotionTrackerStatus MotionTracker::getStatus()
 {
-	return false;
+	//Default tracker is just fine thanks
+	return MTS_OK;
 }
 
 /**

@@ -56,15 +56,13 @@ FreeSpaceTracker::~FreeSpaceTracker(void)
 * Freespace Tracker init.
 * Calls connect function.
 ***/
-int FreeSpaceTracker::init()
+void FreeSpaceTracker::init()
 {
 	OutputDebugString("Free Tracker Init\n");
 	DeviceID = -1;
 	int err = connect();
 	if (err)
 		close();   // Shutdown on error
-
-	return err;
 }
 
 /**
@@ -191,7 +189,7 @@ void FreeSpaceTracker::destroy()
 * Retrieve freespace tracker orientation.
 * Reads device input and converts data from quaternion to Euler angles.
 ***/
-int FreeSpaceTracker::getOrientation(float* yaw, float* pitch, float* roll) 
+int FreeSpaceTracker::getOrientationAndPosition(float* yaw, float* pitch, float* roll, float* x, float* y, float* z)
 {
 #ifdef _DEBUG
 	OutputDebugString("Free Tracker getOrient\n");
@@ -264,7 +262,7 @@ int FreeSpaceTracker::getOrientation(float* yaw, float* pitch, float* roll)
 * Is tracker selected and detected?
 * Returns wether freespace tracker option is selected. Returns true if device ID present.
 ***/
-bool FreeSpaceTracker::isAvailable()
+MotionTrackerStatus FreeSpaceTracker::getStatus()
 {
-	return DeviceID >= 0;
+	return (DeviceID >= 0) ? MTS_OK : MTS_NOTINIT;
 }

@@ -4,6 +4,7 @@ sampler2D TexMap0;
 sampler2D TexMap1;
 
 float ViewportXOffset;
+float ViewportYOffset;
 float2 LensCenter;
 float2 Scale;
 float2 ScaleIn;
@@ -60,12 +61,11 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 
   if (Tex.x > 0.5f) {
     // mirror to get the right-eye distortion
-    //newPos.x = 1.0f - newPos.x;
-	  newPos.x = 1.0f - newPos.x + (ViewportXOffset * 2);
-    // subpixel alignment isn't symmetric under mirroring
+    newPos.x = 1.0f - newPos.x;
+	// subpixel alignment isn't symmetric under mirroring
     subpixelShiftR = 0.33333/1920.0f;
     subpixelShiftB = -0.33333/1920.0f;
-  }
+  }  
 
   // TODO chromaberr params hardcoded for DK2 with A-cup lenses; need to pass in
   // from SDK.
@@ -81,9 +81,7 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
   tcRed1   = HorizSuperSampledWarp(newPos + float2(subpixelShiftR,  0.25f/1080.0f), float2(0.998f, -.005f));
   tcGreen0 = HorizSuperSampledWarp(newPos + float2(0.0, -0.25f/1080.0f), float2(1.0f, 0.0f));
   tcGreen1 = HorizSuperSampledWarp(newPos + float2(0.0,  0.25f/1080.0f), float2(1.0f, 0.0f));
-
-
-
+  
   if (Tex.x > 0.5f) {
     // unmirror the right-eye coords
     tcRed0.x = 1 - tcRed0.x;
@@ -100,6 +98,35 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
     tcBlue1.x = 1 - tcBlue1.x;
     tcBlue1.z = 1 - tcBlue1.z;
 
+	tcRed0.x = tcRed0.x - ViewportXOffset;
+	tcGreen0.x = tcGreen0.x - ViewportXOffset;
+	tcBlue0.x = tcBlue0.x - ViewportXOffset;
+	tcRed1.x = tcRed1.x - ViewportXOffset;
+	tcGreen1.x = tcGreen1.x - ViewportXOffset;
+	tcBlue1.x = tcBlue1.x - ViewportXOffset;	
+	tcRed0.z = tcRed0.z - ViewportXOffset;
+	tcGreen0.z = tcGreen0.z - ViewportXOffset;
+	tcBlue0.z = tcBlue0.z - ViewportXOffset;
+	tcRed1.z = tcRed1.z - ViewportXOffset;
+	tcGreen1.z = tcGreen1.z - ViewportXOffset;
+	tcBlue1.z = tcBlue1.z - ViewportXOffset;
+	
+	tcRed0.y = tcRed0.y - ViewportYOffset;
+	tcGreen0.y = tcGreen0.y - ViewportYOffset;
+	tcBlue0.y = tcBlue0.y - ViewportYOffset;
+	tcRed1.y = tcRed1.y - ViewportYOffset;
+	tcGreen1.y = tcGreen1.y - ViewportYOffset;
+	tcBlue1.y = tcBlue1.y - ViewportYOffset;	
+	tcRed0.w = tcRed0.w - ViewportYOffset;
+	tcGreen0.w = tcGreen0.w - ViewportYOffset;
+	tcBlue0.w = tcBlue0.w - ViewportYOffset;
+	tcRed1.w = tcRed1.w - ViewportYOffset;
+	tcGreen1.w = tcGreen1.w - ViewportYOffset;
+	tcBlue1.w = tcBlue1.w - ViewportYOffset;
+
+	if(tcRed0.x < 0.0f || tcRed0.y < 0.0f)
+		return 0;
+
     outColor.r =  (tex2D(TexMap1,   tcRed0.xy).r + tex2D(TexMap1,   tcRed0.zw).r);
     outColor.r += (tex2D(TexMap1,   tcRed1.xy).r + tex2D(TexMap1,   tcRed1.zw).r);
     outColor.r /= 4.0f; // 4 samples
@@ -111,7 +138,38 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
     outColor.b /= 4.0f; // 4 samples
   }
   else {
-    outColor.r =  (tex2D(TexMap0,   tcRed0.xy).r + tex2D(TexMap0,   tcRed0.zw).r);
+	
+	tcRed0.x = tcRed0.x - ViewportXOffset;
+	tcGreen0.x = tcGreen0.x - ViewportXOffset;
+	tcBlue0.x = tcBlue0.x - ViewportXOffset;
+	tcRed1.x = tcRed1.x - ViewportXOffset;
+	tcGreen1.x = tcGreen1.x - ViewportXOffset;
+	tcBlue1.x = tcBlue1.x - ViewportXOffset;
+	
+	tcRed0.z = tcRed0.z - ViewportXOffset;
+	tcGreen0.z = tcGreen0.z - ViewportXOffset;
+	tcBlue0.z = tcBlue0.z - ViewportXOffset;
+	tcRed1.z = tcRed1.z - ViewportXOffset;
+	tcGreen1.z = tcGreen1.z - ViewportXOffset;
+	tcBlue1.z = tcBlue1.z - ViewportXOffset;
+
+	tcRed0.y = tcRed0.y - ViewportYOffset;
+	tcGreen0.y = tcGreen0.y - ViewportYOffset;
+	tcBlue0.y = tcBlue0.y - ViewportYOffset;
+	tcRed1.y = tcRed1.y - ViewportYOffset;
+	tcGreen1.y = tcGreen1.y - ViewportYOffset;
+	tcBlue1.y = tcBlue1.y - ViewportYOffset;	
+	tcRed0.w = tcRed0.w - ViewportYOffset;
+	tcGreen0.w = tcGreen0.w - ViewportYOffset;
+	tcBlue0.w = tcBlue0.w - ViewportYOffset;
+	tcRed1.w = tcRed1.w - ViewportYOffset;
+	tcGreen1.w = tcGreen1.w - ViewportYOffset;
+	tcBlue1.w = tcBlue1.w - ViewportYOffset;
+
+	if(tcRed0.x > 1.0f || tcRed0.y < 0.0f)
+		return 0;
+
+	outColor.r =  (tex2D(TexMap0,   tcRed0.xy).r + tex2D(TexMap0,   tcRed0.zw).r);
     outColor.r += (tex2D(TexMap0,   tcRed1.xy).r + tex2D(TexMap0,   tcRed1.zw).r);
     outColor.r /= 4.0f; // 4 samples
     outColor.g =  (tex2D(TexMap0, tcGreen0.xy).g + tex2D(TexMap0, tcGreen0.zw).g);

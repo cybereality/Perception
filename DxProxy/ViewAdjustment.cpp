@@ -30,6 +30,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "ViewAdjustment.h"
 
+#define PI 3.141592654
+
 /**
 * Constructor.
 * Sets class constants, identity matrices and a projection matrix.
@@ -58,6 +60,7 @@ ViewAdjustment::ViewAdjustment(StereoMode *displayInfo, float metersToWorldUnits
 	hud3DDepth = 0.0f;
 
 	D3DXMatrixIdentity(&matProjection);
+	D3DXMatrixIdentity(&matPosition);
 	D3DXMatrixIdentity(&matProjectionInv);
 	D3DXMatrixIdentity(&projectLeft);
 	D3DXMatrixIdentity(&projectRight);
@@ -114,6 +117,11 @@ void ViewAdjustment::Save(ProxyHelper::ProxyConfig& cfg)
 	//worldscale and ipd are not normally edited;
 	cfg.worldScaleFactor = metersToWorldMultiplier;
 	cfg.ipd = ipd;
+}
+
+int ViewAdjustment::GetStereoType()
+{
+	return stereoType;
 }
 
 /**
@@ -188,10 +196,56 @@ void ViewAdjustment::UpdatePitchYaw(float pitch, float yaw)
 ***/
 void ViewAdjustment::UpdateRoll(float roll)
 {
+	char buffer[256]; 
+	sprintf_s(buffer, "ViewAdjustment::UpdateRoll: %.4f", roll); 
+	OutputDebugString(buffer);
+
 	D3DXMatrixIdentity(&rollMatrix);
 	D3DXMatrixRotationZ(&rollMatrix, roll);
 	D3DXMatrixRotationZ(&rollMatrixNegative, -roll);
 	D3DXMatrixRotationZ(&rollMatrixHalf, roll * 0.5f);
+}
+void  ViewAdjustment::SetGameSpecificPositionalScaling(D3DXVECTOR3 scalingVec)
+{
+	gameScaleVec  = scalingVec;
+}
+
+/**
+* Updates the position matrix
+***/
+void ViewAdjustment::UpdatePosition(float yaw, float pitch, float roll, float xPosition, float yPosition, float zPosition, float scaler)
+{
+	D3DXMATRIX rotationMatrixPitch;
+	D3DXMATRIX rotationMatrixYaw;
+	D3DXMATRIX rotationMatrixRoll;
+
+	D3DXMatrixRotationX(&rotationMatrixPitch, pitch);
+	D3DXMatrixRotationY(&rotationMatrixYaw, yaw);
+	D3DXMatrixRotationZ(&rotationMatrixRoll, -roll);
+
+	//Need to invert X and Y
+	D3DXVECTOR3 vec(xPosition, yPosition, zPosition);
+
+	D3DXMATRIX worldScale;
+	D3DXMatrixScaling(&worldScale, -1.0f * WorldScale() * scaler, -1.0f * WorldScale() * scaler, WorldScale() * scaler);
+	D3DXVec3TransformNormal(&positionTransformVec, &vec, &worldScale);
+
+	D3DXMATRIX rotationMatrixPitchYaw;
+	D3DXMatrixIdentity(&rotationMatrixPitchYaw);
+	D3DXMatrixMultiply(&rotationMatrixPitchYaw, &rotationMatrixPitch, &rotationMatrixYaw);
+
+	D3DXVec3TransformNormal(&positionTransformVec, &positionTransformVec, &rotationMatrixPitchYaw);
+
+	if (rollEnabled)
+		D3DXVec3TransformNormal(&positionTransformVec, &positionTransformVec, &rotationMatrixRoll);
+
+	//Now apply game specific scaling for the X/Y/Z
+	D3DXVECTOR3 gameScaleVec(3.0f, 2.0f, 1.0f);
+	D3DXMATRIX gamescalingmatrix;
+	D3DXMatrixScaling(&gamescalingmatrix, gameScaleVec.x, gameScaleVec.y, gameScaleVec.z);
+	D3DXVec3TransformNormal(&positionTransformVec, &positionTransformVec, &gamescalingmatrix);
+	
+	D3DXMatrixTranslation(&matPosition, positionTransformVec.x, positionTransformVec.y, positionTransformVec.z);
 }
 
 /**
@@ -202,14 +256,16 @@ void ViewAdjustment::UpdateRoll(float roll)
 ***/
 void ViewAdjustment::ComputeViewTransforms()
 {
+
+
 	// separation settings are overall (HMD and desktop), since they are based on physical IPD
 	D3DXMatrixTranslation(&transformLeft, SeparationInWorldUnits() * LEFT_CONSTANT, 0, 0);
 	D3DXMatrixTranslation(&transformRight, SeparationInWorldUnits() * RIGHT_CONSTANT, 0, 0);
-
+	
 	// projection transform, no roll
 	matViewProjTransformLeftNoRoll = matProjectionInv * transformLeft * projectLeft;
 	matViewProjTransformRightNoRoll = matProjectionInv * transformRight * projectRight;
-
+	
 	// head roll
 	if (rollEnabled) {
 		D3DXMatrixMultiply(&transformLeft, &rollMatrix, &transformLeft);
@@ -261,6 +317,11 @@ void ViewAdjustment::ComputeViewTransforms()
 	matHudRight = matProjectionInv * matRightHud3DDepth * transformRight * matHudDistance * projectRight;
 	matGuiLeft =  matProjectionInv * matLeftGui3DDepth * matSquash * projectLeft;
 	matGuiRight = matProjectionInv * matRightGui3DDepth * matSquash * projectRight;
+}
+
+D3DXMATRIX  ViewAdjustment::PositionMatrix()
+{
+	return matPosition;
 }
 
 /**

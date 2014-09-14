@@ -64,18 +64,17 @@ SharedMemoryTracker::~SharedMemoryTracker(void)
 * FreeTrack Tracker init.
 * Calls openSharedMemory function.
 ***/
-int SharedMemoryTracker::init()
+void SharedMemoryTracker::init()
 {
 	OutputDebugString("Socket Tracker Init\n");
 	openSharedMemory();
-	return 0;
 }
 
 /**
 * Retrieve shared memory tracker orientation.
 * Reads and returns memory input.
 ***/
-int SharedMemoryTracker::getOrientation(float* yaw, float* pitch, float* roll) 
+int  SharedMemoryTracker::getOrientationAndPosition(float* yaw, float* pitch, float* roll, float* x, float* y, float* z)
 {
 #ifdef _DEBUG
 	OutputDebugString("Socket Tracker getOrient\n");
@@ -101,14 +100,14 @@ int SharedMemoryTracker::getOrientation(float* yaw, float* pitch, float* roll)
 * Update shared memory tracker orientation.
 * Updates tracker orientation and passes it to game mouse input accordingly.
 ***/
-void SharedMemoryTracker::updateOrientation()
+void SharedMemoryTracker::updateOrientationAndPosition()
 {
 #ifdef _DEBUG
 	OutputDebugString("Motion Tracker updateOrientation\n");
 #endif
 
 	// Get orientation from shared memory.
-	if(getOrientation(&yaw, &pitch, &roll) == 0)
+	if(getOrientationAndPosition(&yaw, &pitch, &roll, &x, &y, &z) == 0)
 	{
 		// Convert yaw, pitch to positive degrees.
 		// (-180.0f...0.0f -> 180.0f....360.0f)
@@ -150,9 +149,9 @@ void SharedMemoryTracker::updateOrientation()
 * Is tracker selected and detected?
 * Returns wether a tracker option is selected. Naturally returns true.
 ***/
-bool SharedMemoryTracker::isAvailable()
+MotionTrackerStatus SharedMemoryTracker::getStatus()
 {
-	return true;
+	return MTS_OK;
 }
 
 /**
