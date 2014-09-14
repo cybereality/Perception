@@ -152,6 +152,8 @@ public:
 	* XOffset
 	***/
 	float ViewportXOffset;
+	float ViewportYOffset;
+
 	/**
 	* Scales image, Oculus Rift vertex shader constant.
 	***/
