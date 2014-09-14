@@ -63,8 +63,8 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
     // mirror to get the right-eye distortion
     newPos.x = 1.0f - newPos.x;
 	// subpixel alignment isn't symmetric under mirroring
-    subpixelShiftR = 0.33333/1280.0f;
-    subpixelShiftB = -0.33333/1280.0f;
+    subpixelShiftR = 0.33333/1920.0f;
+    subpixelShiftB = -0.33333/1920.0f;
   }  
 
   // TODO chromaberr params hardcoded for DK2 with A-cup lenses; need to pass in
@@ -124,7 +124,7 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 	tcGreen1.w = tcGreen1.w - ViewportYOffset;
 	tcBlue1.w = tcBlue1.w - ViewportYOffset;
 
-	if(tcRed0.x < 0.0f || tcRed0.y < 0.0f)
+	if(tcRed0.x >= 1.0f || tcRed0.y <= 0.0f || tcRed0.x <= 0.0f || tcRed0.y >= 1.0f)
 		return 0;
 
     outColor.r =  (tex2D(TexMap1,   tcRed0.xy).r + tex2D(TexMap1,   tcRed0.zw).r);
@@ -166,7 +166,7 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 	tcGreen1.w = tcGreen1.w - ViewportYOffset;
 	tcBlue1.w = tcBlue1.w - ViewportYOffset;
 
-	if(tcRed0.x > 1.0f || tcRed0.y < 0.0f)
+	if(tcRed0.x >= 1.0f || tcRed0.y <= 0.0f || tcRed0.x <= 0.0f || tcRed0.y >= 1.0f)
 		return 0;
 
 	outColor.r =  (tex2D(TexMap0,   tcRed0.xy).r + tex2D(TexMap0,   tcRed0.zw).r);
