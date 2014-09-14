@@ -2224,7 +2224,7 @@ void D3DProxyDevice::SetupHUD()
 		OutputDebugString("called SetupHUD");
 	#endif
 	D3DXCreateFont( this, 26, 0, FW_BOLD, 4, FALSE, DEFAULT_CHARSET, OUT_TT_ONLY_PRECIS, ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_DONTCARE, "Arial", &hudFont );
-	D3DXCreateFont( this, 32, 0, FW_BOLD, 4, FALSE, DEFAULT_CHARSET, OUT_TT_ONLY_PRECIS, ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_DONTCARE, "Courier New", &errorFont );
+	D3DXCreateFont( this, 26, 0, FW_BOLD, 4, FALSE, DEFAULT_CHARSET, OUT_TT_ONLY_PRECIS, ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_DONTCARE, "Courier New", &errorFont );
 	D3DXCreateSprite(this, &hudMainMenu);
 	D3DXCreateSprite(this, &hudTextBox);
 }
@@ -2814,6 +2814,11 @@ void D3DProxyDevice::HandleTracking()
 			strcpy_s(popup.line4, "Mouse Emulation is not Enabled,");
 			strcpy_s(popup.line5, "To Enable head tracking, turn on Mouse Emulation in BRASSA Settings");
 			ShowPopup(popup);
+		}
+		else
+		{
+			//All is well
+			DismissPopup(VPT_VRBOOST_FAILURE);
 		}
 	}
 }
@@ -5627,7 +5632,7 @@ void D3DProxyDevice::DisplayCurrentPopup()
 			sprintf_s(activePopup.line1, "HMD Description: %s", tracker->GetTrackerDescription()); 
 			sprintf_s(activePopup.line2, "Yaw: %.3f Pitch: %.3f Roll: %.3f", tracker->primaryYaw, tracker->primaryPitch, tracker->primaryRoll); 
 			sprintf_s(activePopup.line3, "X: %.3f Y: %.3f Z: %.3f", tracker->primaryX, tracker->primaryY, tracker->primaryZ); 
-			sprintf_s(activePopup.line4, "VRBoost Active: %s     Rules Loaded: %s     Rules Applied: %s", 
+			sprintf_s(activePopup.line4, "VRBoost Active: %s     Rules Loaded: %s   Applied: %s", 
 				(VRBoostStatus.VRBoost_Active ? "TRUE" : "FALSE"), 
 				(VRBoostStatus.VRBoost_LoadRules ? "TRUE" : "FALSE"), 
 				(VRBoostStatus.VRBoost_ApplyRules ? "TRUE" : "FALSE"));
@@ -5684,7 +5689,7 @@ void D3DProxyDevice::DisplayCurrentPopup()
 		{
 			char buffer[256];
 			if (show_fps == FPS_COUNT)
-				sprintf_s(buffer, "FPS: %.1f", fps);
+				sprintf_s(buffer, "       FPS: %.1f", fps);
 			else if (show_fps == FPS_TIME)
 				sprintf_s(buffer, "Frame Time: %.2f ms", 1000.0f / fps);
 
