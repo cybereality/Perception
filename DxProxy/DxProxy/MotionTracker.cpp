@@ -57,6 +57,9 @@ void MotionTracker::init()
 	currentYaw = 0.0f;
 	currentPitch = 0.0f;
 	currentRoll = 0.0f;
+	primaryYaw = 0.0f;
+	primaryPitch = 0.0f;
+	primaryRoll = 0.0f;
 
 	deltaYaw = 0.0f;
 	deltaPitch = 0.0f;

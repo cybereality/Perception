@@ -61,6 +61,7 @@ public:
 	int  getOrientationAndPosition(float* yaw, float* pitch, float* roll, float* x, float* y, float* z);
 	void updateOrientationAndPosition();
 	MotionTrackerStatus getStatus();	
+	virtual char* GetTrackerDescription();
 
 	void BeginFrame();
 	void EndFrame();
@@ -72,6 +73,11 @@ private:
 	* Oculus head mounted display device.
 	***/
     ovrHmd hmd;
+
+	/**
+	 * Stores the product name of the HMD
+	 */
+	char trackerDescription[256];
 
 	/**
 	* Whether tracking has initialised

@@ -38,16 +38,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 enum MotionTrackerStatus
 {
-	MTS_NOTINIT = 1,
-	MTS_INITIALISING = 2,
-	MTS_NOHMDDETECTED = 4,
-	MTS_INITFAIL = 8,
-	MTS_NOORIENTATION = 16,
-	MTS_DRIVERFAIL = 32,
-	//Any status beyond this point means the HMD can be used
-	MTS_OK = 64,
-	MTS_CAMERAMALFUNCTION = 128,
-	MTS_LOSTPOSITIONAL = 256
+	MTS_NOTINIT,
+	MTS_INITIALISING,
+	MTS_NOHMDDETECTED,
+	MTS_INITFAIL,
+	MTS_DRIVERFAIL,
+	//Any status beyond this point means the HMD can be used (sort of..)
+	MTS_OK,
+	MTS_NOORIENTATION,
+	MTS_CAMERAMALFUNCTION,
+	MTS_LOSTPOSITIONAL
 };
 
 /**
@@ -71,6 +71,7 @@ public:
 	virtual void BeginFrame() {}
 	virtual void WaitTillTime() {}
 	virtual void EndFrame() {}
+	virtual char* GetTrackerDescription() {return "No Tracker";}
 
 	/*** MotionTracker public methods ***/
 	bool isEqual(float a, float b){ return abs(a-b) < 0.001; };

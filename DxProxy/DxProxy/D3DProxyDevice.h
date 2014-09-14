@@ -307,10 +307,6 @@ public:
 	**/
 	ID3DXFont *hudFont;
 	/**
-	* HUD font to be used for popup items.
-	**/
-	ID3DXFont *popupFont;
-	/**
 	* Timestamp used to adjust the menu velocity independent of game speed.
 	**/
 	float menuTime;
@@ -360,16 +356,61 @@ protected:
 	enum VireioPopupType
 	{
 		VPT_NONE,
+		//"splash screen" - shown when Vireio is first injected
+		VPT_SPLASH,
 		VPT_NO_HMD_DETECTED,
+		VPY_HMDINITFAIL,
 		VPT_VRBOOST_FAILURE,
-		VPT_POSITION_TRACKING_FAIL,
-		VPT_CALIBRATE_HMD,
-		VPT_STATS
+		VPT_POSITION_TRACKING_LOST,
+		VPT_NO_ORIENTATION,
+		//Notification that is only dismissed once user has "calibrated HMD/Tracker"
+		VPT_CALIBRATE_TRACKER,
+		VPT_STATS,
+		//Short notification, such as hot key toggles
+		VPT_NOTIFICATION
+	};
+
+	enum VireioPopupSeverity
+	{
+		//A toast is a notification that is only shown for a short time, triggered by a toggle for exmample
+		VPS_TOAST,
+		//Information
+		VPS_INFO,
+		//An issue has occurred
+		VPS_ERROR
 	};
 
 	struct VireioPopup
 	{
-		VireioPopup()
+		VireioPopup(VireioPopupType type, VireioPopupSeverity sev = VPS_INFO, long duration = -1) :
+			popupType(type),
+			severity(sev),
+			popupDuration(duration)
+		{
+			if (duration != -1)
+				setDuration(duration);
+
+			memset(line1, 0, 256);
+			memset(line2, 0, 256);
+			memset(line3, 0, 256);
+			memset(line4, 0, 256);
+			memset(line5, 0, 256);
+		}
+
+		void setDuration(long duration_ms)
+		{
+			popupDuration = (long)GetTickCount() + duration_ms;
+		}
+
+		bool expired()
+		{
+			if (popupDuration != -1 && 
+				((long)GetTickCount()) > popupDuration)
+				return true;
+			return false;
+		}
+
+		void reset()
 		{
 			popupType = VPT_NONE;
 			popupDuration = -1;
@@ -377,18 +418,31 @@ protected:
 			memset(line2, 0, 256);
 			memset(line3, 0, 256);
 			memset(line4, 0, 256);
-
+			memset(line5, 0, 256);
 		}
 
 		VireioPopupType popupType;
-		int popupDuration;
+		VireioPopupSeverity severity;
+		long popupDuration;
 		char line1[256];
 		char line2[256];
 		char line3[256];
 		char line4[256];
+		char line5[256];
 	};
 
 	VireioPopup activePopup;
+
+	/** Whether the Frames Per Second counter is being shown */
+	enum FPS_TYPE {
+		FPS_NONE,
+		FPS_COUNT,
+		FPS_TIME
+	};
+	FPS_TYPE show_fps;
+
+	/** Whether the calibrate tracker message is to be shown */
+	bool calibrate_tracker;
 
 	/** Pop-up functionality */
 	void DisplayCurrentPopup();
@@ -424,10 +478,6 @@ protected:
 	* Main menu sprite.
 	***/
 	LPD3DXSPRITE hudMainMenu;
-	/**
-	* Popup sprite.
-	***/
-	LPD3DXSPRITE popupMessage;
 	/**
 	* Main menu sprite.
 	***/
@@ -575,6 +625,10 @@ private:
 	bool	InitVRBoost();
 	bool	InitTracker();
 
+	//Calculate FPS, called every Present
+	float fps;
+	float CalcFPS();
+
 	/*** VRboost function pointer typedefs ***/
 	typedef HRESULT (WINAPI *LPVRBOOST_LoadMemoryRules)(std::string processName, std::string rulesPath);
 	typedef HRESULT (WINAPI *LPVRBOOST_SaveMemoryRules)(std::string rulesPath);
@@ -611,6 +665,14 @@ private:
 	* Handle to VRboost library.
 	***/
 	HMODULE hmVRboost;
+
+	struct 
+	{
+		bool VRBoost_Active;
+		bool VRBoost_LoadRules;
+		bool VRBoost_ApplyRules;
+	} VRBoostStatus;
+
 	/**
 	* Managed shader register class.
 	* @see ShaderRegisters

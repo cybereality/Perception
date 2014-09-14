@@ -77,10 +77,13 @@ void OculusTracker::init()
 		OutputDebugString("No HMD detected, use a dummy DK1");
 		hmd=ovrHmd_CreateDebug(ovrHmd_DK1);
 		status = MTS_NOHMDDETECTED;
+		strcpy_s(trackerDescription, "No HMD Detected");
+		return;
 	}
 	else
 	{
 		hmd=ovrHmd_Create(0);
+		strcpy_s(trackerDescription, hmd->ProductName);
 	}
 
 
@@ -106,6 +109,12 @@ void OculusTracker::init()
 #endif 
 
 }
+
+char* OculusTracker::GetTrackerDescription()
+{
+	return trackerDescription;
+}
+
 
 void OculusTracker::BeginFrame()
 {
@@ -154,13 +163,13 @@ void OculusTracker::resetOrientationAndPosition()
 
 	ovrTrackingState ts = ovrHmd_GetTrackingState(hmd,FrameRef.ScanoutMidpointSeconds);
 	
-	//if (ts.StatusFlags & ovrStatus_OrientationTracked)
+	if (ts.StatusFlags & ovrStatus_OrientationTracked)
 	{
 		Quatf hmdOrient=ts.HeadPose.ThePose.Orientation;
 		hmdOrient.GetEulerAngles<Axis_Y,Axis_X,Axis_Z>(&offsetYaw, &offsetPitch, &offsetRoll);
 	}
-	//else
-	//	status = MTS_NOORIENTATION;
+	else
+		status = MTS_NOORIENTATION;
 	
 	if (ts.StatusFlags & ovrStatus_PositionConnected)
 	{
@@ -194,7 +203,7 @@ int OculusTracker::getOrientationAndPosition(float* yaw, float* pitch, float* ro
 
 	ovrTrackingState ts = ovrHmd_GetTrackingState(hmd,FrameRef.ScanoutMidpointSeconds);
 
-//	if (ts.StatusFlags & ovrStatus_OrientationTracked)
+	if (ts.StatusFlags & ovrStatus_OrientationTracked)
 	{
 		Quatf hmdOrient=ts.HeadPose.ThePose.Orientation;
 		hmdOrient.GetEulerAngles<Axis_Y,Axis_X,Axis_Z>(yaw, pitch, roll);
@@ -206,15 +215,22 @@ int OculusTracker::getOrientationAndPosition(float* yaw, float* pitch, float* ro
 		*yaw = -RadToDegree(*yaw - offsetYaw);
 		*pitch = RadToDegree(*pitch - offsetPitch);
 		*roll = -RadToDegree(*roll - offsetRoll);
+		status = MTS_OK;
 	}
-//	else
-//	{
-//		status = MTS_NOORIENTATION;
-//	}
+	else
+		status = MTS_NOORIENTATION;
 
 	if (ts.StatusFlags & ovrStatus_PositionConnected && status == MTS_OK)
 	{
-		if (ts.StatusFlags & ovrStatus_PositionTracked)
+		if (!(ts.StatusFlags & ovrStatus_CameraPoseTracked))
+		{
+			//Camera still initialising/calibrating
+			//Should probably warn user if this doesn't get set after a period of time
+			static DWORD tick = GetTickCount();
+			if (((tick - GetTickCount()) / 1000) > 15)
+				status = MTS_CAMERAMALFUNCTION;
+		}
+		else if (ts.StatusFlags & ovrStatus_PositionTracked)
 		{
 			*x = ts.HeadPose.ThePose.Position.x - offsetX;
 			*y = ts.HeadPose.ThePose.Position.y - offsetY;
@@ -222,6 +238,7 @@ int OculusTracker::getOrientationAndPosition(float* yaw, float* pitch, float* ro
 			primaryX = *x;
 			primaryY = *y;
 			primaryZ = *z;
+			status = MTS_OK;
 		}
 		else
 			status = MTS_LOSTPOSITIONAL;

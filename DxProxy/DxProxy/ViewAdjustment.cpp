@@ -119,6 +119,11 @@ void ViewAdjustment::Save(ProxyHelper::ProxyConfig& cfg)
 	cfg.ipd = ipd;
 }
 
+int ViewAdjustment::GetStereoType()
+{
+	return stereoType;
+}
+
 /**
 * Updates left and right projection matrices.
 * Now, the convergence point is specified in real, physical meters, since the IPD is also specified

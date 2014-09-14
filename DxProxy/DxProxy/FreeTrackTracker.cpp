@@ -94,7 +94,7 @@ void FreeTrackTracker::destroy()
 * Retrieve FreeTrack tracker orientation.
 * Reads device input and returns orientation negated.
 ***/
-int FreeTrackTracker::getOrientation(float* yaw, float* pitch, float* roll) 
+int FreeTrackTracker::getOrientationAndPosition(float* yaw, float* pitch, float* roll, float* x, float* y, float* z)
 {
 #ifdef _DEBUG
 	OutputDebugString("FreeTrack Tracker getOrient\n");

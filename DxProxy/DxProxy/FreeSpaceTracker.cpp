@@ -189,7 +189,7 @@ void FreeSpaceTracker::destroy()
 * Retrieve freespace tracker orientation.
 * Reads device input and converts data from quaternion to Euler angles.
 ***/
-int FreeSpaceTracker::getOrientation(float* yaw, float* pitch, float* roll) 
+int FreeSpaceTracker::getOrientationAndPosition(float* yaw, float* pitch, float* roll, float* x, float* y, float* z)
 {
 #ifdef _DEBUG
 	OutputDebugString("Free Tracker getOrient\n");
