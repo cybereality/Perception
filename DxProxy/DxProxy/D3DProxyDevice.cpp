@@ -5488,6 +5488,7 @@ void D3DProxyDevice::BRASSA_UpdateDeviceSettings()
 		break;
 	case D3DProxyDevice::SOURCE:
 	case D3DProxyDevice::SOURCE_L4D:
+	case D3DProxyDevice::SOURCE_ESTER:
 		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::END_SCENE;
 		m_deviceBehavior.whenToRenderBRASSA = DeviceBehavior::WhenToDo::END_SCENE;
 		break;

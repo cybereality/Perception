@@ -179,6 +179,7 @@ public:
 		FIXED = 10,                /**< Default driver behavior. */
 		SOURCE = 100,              /**< Source is a 3D video game engine developed by Valve Corporation. */
 		SOURCE_L4D = 101,          /**<  !! */
+		SOURCE_ESTER = 102,          /**<  !! */
 		UNREAL = 200,              /**< The Unreal Engine is a game engine developed by Epic Games, first illustrated in the 1998 first-person shooter game Unreal. */
 		UNREAL_MIRROR = 201,       /**<  !! */
 		UNREAL_UT3 = 202,          /**<  !! */
