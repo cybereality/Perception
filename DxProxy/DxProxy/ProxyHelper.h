@@ -119,7 +119,7 @@ public:
 	char* GetTargetExe();
 	void  GetPath(char* newFolder, char* path);
 	void  GetTargetPath(char* newFolder, char* path);
-	bool  LoadUserConfig(int& mode, int& mode2);
+	bool  LoadUserConfig(int& mode, int& mode2, bool &notifications);
 	bool  SaveUserConfig(int mode = -1, float aspect = -1.0f);
 	bool  LoadUserConfig(ProxyConfig& config, OculusProfile& oculusProfile);
 	bool  SaveUserConfig(float ipd = IPD_DEFAULT);

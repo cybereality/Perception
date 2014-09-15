@@ -59,7 +59,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MAX_PIXEL_SHADER_CONST_2_X 32
 #define MAX_PIXEL_SHADER_CONST_3_0 224
 
-#define MENU_ITEM_SEPARATION  34
+#define MENU_ITEM_SEPARATION  40
 
 using namespace VRBoost;
 
@@ -118,7 +118,7 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	int mode;
 	int mode2;
 	ProxyHelper helper = ProxyHelper();
-	helper.LoadUserConfig(mode, mode2);
+	helper.LoadUserConfig(mode, mode2, showNotifications);
 
 	HMDisplayInfo *hmdInfo = HMDisplayInfoFactory::CreateHMDisplayInfo(static_cast<StereoView::StereoTypes>(mode)); 
 	OutputDebugString(("Created HMD Info for: " + hmdInfo->GetHMDName()).c_str());
@@ -2223,7 +2223,8 @@ void D3DProxyDevice::SetupHUD()
 	#ifdef SHOW_CALLS
 		OutputDebugString("called SetupHUD");
 	#endif
-	D3DXCreateFont( this, 26, 0, FW_BOLD, 4, FALSE, DEFAULT_CHARSET, OUT_TT_ONLY_PRECIS, ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_DONTCARE, "Arial", &hudFont );
+	D3DXCreateFont( this, 32, 0, FW_BOLD, 4, FALSE, DEFAULT_CHARSET, OUT_TT_ONLY_PRECIS, ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_DONTCARE, "Arial", &hudFont );
+	D3DXCreateFont( this, 24, 0, FW_BOLD, 4, FALSE, DEFAULT_CHARSET, OUT_TT_ONLY_PRECIS, ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_DONTCARE, "Arial", &popupFont );
 	D3DXCreateFont( this, 26, 0, FW_BOLD, 4, FALSE, DEFAULT_CHARSET, OUT_TT_ONLY_PRECIS, ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_DONTCARE, "Courier New", &errorFont );
 	D3DXCreateSprite(this, &hudMainMenu);
 	D3DXCreateSprite(this, &hudTextBox);
@@ -2912,7 +2913,7 @@ void D3DProxyDevice::OnCreateOrRestore()
 	viewportHeight = stereoView->viewport.Height;
 
 	menuTop = viewportHeight*0.32f;
-	menuEntryHeight = viewportHeight*0.031f;
+	menuEntryHeight = viewportHeight*0.037f;
 
 	fScaleX = ((float)viewportWidth / (float)BRASSA_PIXEL_WIDTH);
 	fScaleY = ((float)viewportHeight / (float)BRASSA_PIXEL_HEIGHT);
@@ -5615,7 +5616,9 @@ void D3DProxyDevice::BRASSA_AdditionalOutput()
 
 void D3DProxyDevice::DisplayCurrentPopup()
 {
-	if ((activePopup.popupType == VPT_NONE && show_fps == FPS_NONE) || BRASSA_mode != BRASSA_Modes::INACTIVE)
+	if ((activePopup.popupType == VPT_NONE && show_fps == FPS_NONE) || 
+		BRASSA_mode != BRASSA_Modes::INACTIVE ||
+		!showNotifications)
 		return;
 	
 	// output menu
@@ -5656,13 +5659,13 @@ void D3DProxyDevice::DisplayCurrentPopup()
 			case VPS_TOAST:
 				{
 					popupColour = D3DCOLOR_ARGB(255, 255, 255, 255);
-					pFont = hudFont;
+					pFont = popupFont;
 				}
 				break;
 			case VPS_INFO:
 				{
 					popupColour = D3DCOLOR_ARGB(255, 128, 255, 128);
-					pFont = hudFont;
+					pFont = popupFont;
 				}
 				break;
 			case VPS_ERROR:

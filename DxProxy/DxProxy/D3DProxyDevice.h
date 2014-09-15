@@ -311,6 +311,14 @@ public:
 	**/
 	ID3DXFont *errorFont;	
 	/**
+	* HUD font to be used for non-error notifications.
+	**/
+	ID3DXFont *popupFont;	
+	/**
+	* Whether notifications are shown for this user
+	**/
+	bool showNotifications;
+	/**
 	* Timestamp used to adjust the menu velocity independent of game speed.
 	**/
 	float menuTime;
