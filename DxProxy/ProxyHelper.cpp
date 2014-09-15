@@ -693,9 +693,15 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 		config.WorldFOV = gameProfile.attribute("WorldFOV").as_float(95.0f);
 		config.PlayerFOV = gameProfile.attribute("PlayerFOV").as_float(125.0f);
 		config.FarPlaneFOV = gameProfile.attribute("FarPlaneFOV").as_float(95.0f);
-		config.CameraTranslateX = gameProfile.attribute("CameraTranslateX").as_float(0.0f);
-		config.CameraTranslateY = gameProfile.attribute("CameraTranslateY").as_float(0.0f);
-		config.CameraTranslateZ = gameProfile.attribute("CameraTranslateZ").as_float(0.0f);
+
+		//SB: This will need to be changed back when the memory modification stuff is updated, but for now
+		//I am disabling the restore of the camera translation as it is causing confusion for a lot of people when
+		//the game starts and they are detached from their avatar, or worse the scene doesn't render at all
+		config.CameraTranslateX = 0.0f;//gameProfile.attribute("CameraTranslateX").as_float(0.0f);
+		config.CameraTranslateY = 0.0f;//gameProfile.attribute("CameraTranslateY").as_float(0.0f);
+		config.CameraTranslateZ = 0.0f;//gameProfile.attribute("CameraTranslateZ").as_float(0.0f);
+
+
 		config.CameraDistance = gameProfile.attribute("CameraDistance").as_float(0.0f);
 		config.CameraZoom = gameProfile.attribute("CameraZoom").as_float(0.0f);
 		config.CameraHorizonAdjustment = gameProfile.attribute("CameraHorizonAdjustment").as_float(0.0f);
