@@ -203,7 +203,7 @@ HRESULT WINAPI D3D9ProxyDirect3DEx::CreateDevice(UINT Adapter, D3DDEVTYPE Device
 
 	OutputDebugString("[OK] Config loading - OK\n");
 
-	if(cfg.stereo_mode == StereoView::DISABLED) {
+	if( cfg.stereo_mode == 0 ) {
 		OutputDebugString("[WARN] stereo_mode == disabled. Returning normal D3DDevice. Vireio will not be active.\n");
 		return hResult;
 	}

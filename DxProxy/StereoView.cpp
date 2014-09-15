@@ -57,7 +57,6 @@ StereoView::StereoView(ProxyHelper::ProxyConfig& config , StereoMode *hmd )	: hm
 	IPDOffset = config.IPDOffset;
 	XOffset = 0;
 	game_type = config.game_type;
-	stereo_mode = config.stereo_mode;
 	swapEyes = config.swap_eyes;
 
 	// set all member pointers to NULL to prevent uninitialized objects being used

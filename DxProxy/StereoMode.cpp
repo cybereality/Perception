@@ -4,8 +4,8 @@
 
 static std::list<StereoMode> g_stereo_modes;
 
-static void Add( int type , std::string name , std::string shader , StereoMode m ){
-	m.type   = type;
+static void Add( int uid , std::string name , std::string shader , StereoMode m ){
+	m.uid    = uid;
 	m.name   = name;
 	m.shader = shader;
 
@@ -76,35 +76,35 @@ std::list<StereoMode> GetStereoModes(){
 		dk1.lensIPDCenterOffset       = 0.0;
 		dk1.minDistortionScale        = -0.5;
 
-		Add( StereoView::DISABLED                    , "Disabled"                     , ""                            , dk1 );
-		Add( StereoView::ANAGLYPH_RED_CYAN           , "Anaglyph (Red/Cyan)"          , "AnaglyphRedCyan.fx"          , dk1 );
-		Add( StereoView::ANAGLYPH_RED_CYAN_GRAY      , "Anaglyph (Red/Cyan) B+W"      , "AnaglyphRedCyanGray.fx"      , dk1 );
-		Add( StereoView::ANAGLYPH_YELLOW_BLUE        , "Anaglyph (Yellow/Blue)"       , "AnaglyphYellowBlue.fx"       , dk1 );
-		Add( StereoView::ANAGLYPH_YELLOW_BLUE_GRAY   , "Anaglyph (Yellow/Blue) B+W"   , "AnaglyphYellowBlueGray.fx"   , dk1 );
-		Add( StereoView::ANAGLYPH_GREEN_MAGENTA      , "Anaglyph (Green/Magenta)"     , "AnaglyphGreenMagenta.fx"     , dk1 );
-		Add( StereoView::ANAGLYPH_GREEN_MAGENTA_GRAY , "Anaglyph (Green/Magenta) B+W" , "AnaglyphGreenMagentaGray.fx" , dk1 );
-		Add( StereoView::SIDE_BY_SIDE                , "Side by Side"                 , "SideBySide.fx"               , dk1 );
-		Add( StereoView::DIY_RIFT                    , "DIY Rift"                     , "SideBySideRift.fx"           , dk1 );
-		Add( StereoView::OVER_UNDER                  , "Over Under"                   , "OverUnder.fx"                , dk1 );
-		Add( StereoView::INTERLEAVE_HORZ             , "Horizontal Interleave"        , "InterleaveHorz.fx"           , dk1 );
-		Add( StereoView::INTERLEAVE_VERT             , "Vertical Interleave"          , "InterleaveVert.fx"           , dk1 );
-		Add( StereoView::CHECKERBOARD                , "Checkerboard"                 , "Checkerboard.fx"             , dk1 );
-		Add( StereoView::RIFTUP                      , "RiftUp!"                      , "OculusRift.fx"               , rfu );
-		Add( StereoView::OCULUS_RIFT_DK1             , "Oculus Rift DK1"              , "OculusRift.fx"               , dk1 );
-		Add( StereoView::OCULUS_RIFT_DK1_CROPPED     , "Oculus Rift DK1 Cropped"      , "OculusRiftCropped.fx"        , dk1 );
-		Add( StereoView::OCULUS_RIFT_DK2             , "Oculus Rift DK2"              , "OculusRiftDK2.fx"            , dk2 );
-		Add( StereoView::OCULUS_RIFT_DK2_CROPPED     , "Oculus Rift DK2 Cropped"      , "OculusRiftDK2Cropped.fx"     , dk2 );
+		Add( 0    , "Disabled"                     , ""                            , dk1 );
+		Add( 1001 , "Anaglyph (Red/Cyan)"          , "AnaglyphRedCyan.fx"          , dk1 );
+		Add( 1002 , "Anaglyph (Red/Cyan) B+W"      , "AnaglyphRedCyanGray.fx"      , dk1 );
+		Add( 1003 , "Anaglyph (Yellow/Blue)"       , "AnaglyphYellowBlue.fx"       , dk1 );
+		Add( 1004 , "Anaglyph (Yellow/Blue) B+W"   , "AnaglyphYellowBlueGray.fx"   , dk1 );
+		Add( 1005 , "Anaglyph (Green/Magenta)"     , "AnaglyphGreenMagenta.fx"     , dk1 );
+		Add( 1006 , "Anaglyph (Green/Magenta) B+W" , "AnaglyphGreenMagentaGray.fx" , dk1 );
+		Add( 2001 , "Side by Side"                 , "SideBySide.fx"               , dk1 );
+		Add( 2002 , "Over Under"                   , "OverUnder.fx"                , dk1 );
+		Add( 3001 , "Horizontal Interleave"        , "InterleaveHorz.fx"           , dk1 );
+		Add( 3002 , "Vertical Interleave"          , "InterleaveVert.fx"           , dk1 );
+		Add( 3003 , "Checkerboard"                 , "Checkerboard.fx"             , dk1 );
+		Add( 4001 , "DIY Rift"                     , "SideBySideRift.fx"           , dk1 );
+		Add( 4002 , "RiftUp!"                      , "OculusRift.fx"               , rfu );
+		Add( 4003 , "Oculus Rift DK1"              , "OculusRift.fx"               , dk1 );
+		Add( 4004 , "Oculus Rift DK1 Cropped"      , "OculusRiftCropped.fx"        , dk1 );
+		Add( 4005 , "Oculus Rift DK2"              , "OculusRiftDK2.fx"            , dk2 );
+		Add( 4006 , "Oculus Rift DK2 Cropped"      , "OculusRiftDK2Cropped.fx"     , dk2 );
 	}
 
 	return g_stereo_modes;
 }
 
 
-StereoMode* FindStereoMode( int type ){
+StereoMode* FindStereoMode( int uid ){
 	GetStereoModes();
 
 	for( StereoMode& m : g_stereo_modes ){
-		if( m.type == type ){
+		if( m.uid == uid ){
 			return &m;
 		}
 	}

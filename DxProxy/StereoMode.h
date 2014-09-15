@@ -3,7 +3,7 @@
 #include <list>
 
 struct StereoMode {
-	int          type;
+	int          uid;
 	std::string  name;
 	std::string  shader;
 	unsigned int resolutionWidth;
@@ -24,4 +24,4 @@ struct StereoMode {
 };
 
 std::list<StereoMode> GetStereoModes();
-StereoMode*           FindStereoMode( int type );
+StereoMode*           FindStereoMode( int uid );

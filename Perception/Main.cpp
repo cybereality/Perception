@@ -369,11 +369,11 @@ int WINAPI wWinMain(HINSTANCE instance_handle, HINSTANCE, LPWSTR, INT) {
 	for( StereoMode& m : GetStereoModes() ){
 		
 		char tb[512];
-		_snprintf(tb, sizeof(tb), "%s\t%d", m.name.c_str(), m.type);
+		_snprintf(tb, sizeof(tb), "%s\t%d", m.name.c_str(), m.uid );
 		tb[511] = 0;
 
 
-		main_window.combobox->add_item( tb , (m.type == mode) );
+		main_window.combobox->add_item( tb , (m.uid == mode) );
 	}
 
 
