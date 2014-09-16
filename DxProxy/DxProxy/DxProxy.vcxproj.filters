@@ -492,6 +492,7 @@
     <ClInclude Include="HMDisplayInfo_DK2.h">
       <Filter>HMDisplayInfo</Filter>
     </ClInclude>
+    <ClInclude Include="Version.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\Release\Perception\cfg\profiles.xml">

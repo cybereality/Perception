@@ -42,8 +42,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "DxErr.h"
 #endif
 
-//Defines the current version of Vireio, used for splash screen
-#define APP_VERSION	  "2.0.4 Alpha 2"
+#include "Version.h"
 
 #pragma comment(lib, "d3dx9.lib")
 
@@ -175,9 +174,12 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 		dinput.Activate();		
 	}	
 
+	std::string date(__DATE__);
+	std::string buildDate = date.substr(4, 2) + "-" + date.substr(0, 3) + "-" + date.substr(7, 4);
+
 	//Show a splash screen on startup
 	VireioPopup splashPopup(VPT_SPLASH, VPS_TOAST, 10000);
-	strcpy_s(splashPopup.line1, (std::string("Vireio Perception: Stereoscopic 3D Driver VERSION: ") + APP_VERSION).c_str());
+	strcpy_s(splashPopup.line1, (std::string("Vireio Perception: Stereoscopic 3D Driver VERSION: ") + APP_VERSION + " " + buildDate).c_str());
 	strcpy_s(splashPopup.line2, "This program is distributed in the hope that it will be useful,"); 
 	strcpy_s(splashPopup.line3, "but WITHOUT ANY WARRANTY; without even the implied warranty of "); 
 	strcpy_s(splashPopup.line4, "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.");
