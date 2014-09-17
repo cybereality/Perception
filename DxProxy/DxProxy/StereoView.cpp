@@ -90,10 +90,8 @@ StereoView::StereoView(ProxyHelper::ProxyConfig& config)
 		break;
 	case D3DProxyDevice::SOURCE:
 	case D3DProxyDevice::SOURCE_L4D:
-		howToSaveRenderStates = HowToSaveRenderStates::SELECTED_STATES_MANUALLY;
-		break;
 	case D3DProxyDevice::SOURCE_ESTER:
-		howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;
+		howToSaveRenderStates = HowToSaveRenderStates::SELECTED_STATES_MANUALLY;
 		break;
 	case D3DProxyDevice::UNREAL:
 	case D3DProxyDevice::UNREAL_MIRROR:

@@ -179,11 +179,12 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 
 	//Show a splash screen on startup
 	VireioPopup splashPopup(VPT_SPLASH, VPS_TOAST, 10000);
-	strcpy_s(splashPopup.line1, (std::string("Vireio Perception: Stereoscopic 3D Driver VERSION: ") + APP_VERSION + " " + buildDate).c_str());
-	strcpy_s(splashPopup.line2, "This program is distributed in the hope that it will be useful,"); 
-	strcpy_s(splashPopup.line3, "but WITHOUT ANY WARRANTY; without even the implied warranty of "); 
-	strcpy_s(splashPopup.line4, "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.");
-	strcpy_s(splashPopup.line5, "See the GNU LGPL: http://www.gnu.org/licenses/ for more details. ");
+	strcpy_s(splashPopup.line1, "Vireio Perception: Stereoscopic 3D Driver");
+	strcpy_s(splashPopup.line2, (std::string("Version: ") + APP_VERSION + "   Build Date: " + buildDate).c_str());
+	strcpy_s(splashPopup.line3, "This program is distributed in the hope that it will be useful,"); 
+	strcpy_s(splashPopup.line4, "but WITHOUT ANY WARRANTY; without even the implied warranty of "); 
+	strcpy_s(splashPopup.line5, "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.");
+	strcpy_s(splashPopup.line6, "See the GNU LGPL: http://www.gnu.org/licenses/ for more details. ");
 	ShowPopup(splashPopup);
 }
 
@@ -2806,16 +2807,18 @@ void D3DProxyDevice::HandleTracking()
 		if (!VRBoostStatus.VRBoost_LoadRules)
 		{
 			VireioPopup popup(VPT_VRBOOST_FAILURE, VPS_ERROR);
-			strcpy_s(popup.line3, "VRBoost LoadRules Failed & Mouse Emulation is not Enabled");
-			strcpy_s(popup.line4, "To Enable head tracking, turn on Mouse Emulation in BRASSA Settings");
+			strcpy_s(popup.line3, "VRBoost LoadRules Failed");
+			strcpy_s(popup.line4, "To Enable head tracking, turn on Force Mouse Emulation");
+			strcpy_s(popup.line5, "in BRASSA Settings");
 			ShowPopup(popup);
 		}
 		else if (!VRBoostStatus.VRBoost_ApplyRules)
 		{
 			VireioPopup popup(VPT_VRBOOST_FAILURE, VPS_ERROR);
-			strcpy_s(popup.line3, "VRBoost rules loaded but could not be applied");
-			strcpy_s(popup.line4, "Mouse Emulation is not Enabled,");
-			strcpy_s(popup.line5, "To Enable head tracking, turn on Mouse Emulation in BRASSA Settings");
+			strcpy_s(popup.line2, "VRBoost rules loaded but could not be applied");
+			strcpy_s(popup.line3, "Mouse Emulation is not Enabled,");
+			strcpy_s(popup.line4, "To Enable head tracking, turn on Force Mouse Emulation");
+			strcpy_s(popup.line5, "in BRASSA Settings");
 			ShowPopup(popup);
 		}
 		else
@@ -5690,6 +5693,8 @@ void D3DProxyDevice::DisplayCurrentPopup()
 		DrawTextShadowed(pFont, hudMainMenu, activePopup.line4, -1, &menuHelperRect, 0, popupColour);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		DrawTextShadowed(pFont, hudMainMenu, activePopup.line5, -1, &menuHelperRect, 0, popupColour);
+		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawTextShadowed(pFont, hudMainMenu, activePopup.line6, -1, &menuHelperRect, 0, popupColour);
 
 		if (show_fps != FPS_NONE)
 		{
