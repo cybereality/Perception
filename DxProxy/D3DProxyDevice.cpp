@@ -41,8 +41,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "DxErr.h"
 #endif
 
-//Defines the current version of Vireio, used for splash screen
-#define APP_VERSION	  "2.0.4 Alpha 2"
+#include "Version.h"
 
 #pragma comment(lib, "d3dx9.lib")
 
@@ -58,7 +57,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MAX_PIXEL_SHADER_CONST_2_X 32
 #define MAX_PIXEL_SHADER_CONST_3_0 224
 
-#define MENU_ITEM_SEPARATION  34
+#define MENU_ITEM_SEPARATION  40
 
 using namespace VRBoost;
 
@@ -123,7 +122,7 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, D3D9ProxyDirect3D* pCr
 	int mode;
 	int mode2;
 	ProxyHelper helper = ProxyHelper();
-	helper.LoadUserConfig(mode, mode2);
+	helper.LoadUserConfig(mode, mode2, showNotifications);
 
 	StereoMode *hmdInfo = FindStereoMode(mode); 
 	OutputDebugString(("Created HMD Info for: " + hmdInfo->name).c_str());
@@ -180,9 +179,12 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, D3D9ProxyDirect3D* pCr
 		dinput.Activate();		
 	}	
 
+	std::string date(__DATE__);
+	std::string buildDate = date.substr(4, 2) + "-" + date.substr(0, 3) + "-" + date.substr(7, 4);
+
 	//Show a splash screen on startup
 	VireioPopup splashPopup(VPT_SPLASH, VPS_TOAST, 10000);
-	strcpy_s(splashPopup.line1, (std::string("Vireio Perception: Stereoscopic 3D Driver VERSION: ") + APP_VERSION).c_str());
+	strcpy_s(splashPopup.line1, (std::string("Vireio Perception: Stereoscopic 3D Driver VERSION: ") + APP_VERSION + " " + buildDate).c_str());
 	strcpy_s(splashPopup.line2, "This program is distributed in the hope that it will be useful,"); 
 	strcpy_s(splashPopup.line3, "but WITHOUT ANY WARRANTY; without even the implied warranty of "); 
 	strcpy_s(splashPopup.line4, "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.");
@@ -2952,7 +2954,8 @@ void D3DProxyDevice::SetupHUD()
 	#ifdef SHOW_CALLS
 		OutputDebugString("called SetupHUD");
 	#endif
-	D3DXCreateFont( this, 26, 0, FW_BOLD, 4, FALSE, DEFAULT_CHARSET, OUT_TT_ONLY_PRECIS, ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_DONTCARE, "Arial", &hudFont );
+	D3DXCreateFont( this, 32, 0, FW_BOLD, 4, FALSE, DEFAULT_CHARSET, OUT_TT_ONLY_PRECIS, ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_DONTCARE, "Arial", &hudFont );
+	D3DXCreateFont( this, 24, 0, FW_BOLD, 4, FALSE, DEFAULT_CHARSET, OUT_TT_ONLY_PRECIS, ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_DONTCARE, "Arial", &popupFont );
 	D3DXCreateFont( this, 26, 0, FW_BOLD, 4, FALSE, DEFAULT_CHARSET, OUT_TT_ONLY_PRECIS, ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_DONTCARE, "Courier New", &errorFont );
 	D3DXCreateSprite(this, &hudMainMenu);
 	D3DXCreateSprite(this, &hudTextBox);
@@ -3641,7 +3644,7 @@ void D3DProxyDevice::OnCreateOrRestore()
 	viewportHeight = stereoView->viewport.Height;
 
 	menuTop = viewportHeight*0.32f;
-	menuEntryHeight = viewportHeight*0.031f;
+	menuEntryHeight = viewportHeight*0.037f;
 
 	fScaleX = ((float)viewportWidth / (float)BRASSA_PIXEL_WIDTH);
 	fScaleY = ((float)viewportHeight / (float)BRASSA_PIXEL_HEIGHT);
@@ -6216,6 +6219,7 @@ void D3DProxyDevice::BRASSA_UpdateDeviceSettings()
 		break;
 	case D3DProxyDevice::SOURCE:
 	case D3DProxyDevice::SOURCE_L4D:
+	case D3DProxyDevice::SOURCE_ESTER:
 		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::END_SCENE;
 		m_deviceBehavior.whenToRenderBRASSA = DeviceBehavior::WhenToDo::END_SCENE;
 		break;
@@ -6344,7 +6348,9 @@ void D3DProxyDevice::BRASSA_AdditionalOutput()
 
 void D3DProxyDevice::DisplayCurrentPopup()
 {
-	if ((activePopup.popupType == VPT_NONE && show_fps == FPS_NONE) || BRASSA_mode != BRASSA_Modes::INACTIVE)
+	if ((activePopup.popupType == VPT_NONE && show_fps == FPS_NONE) || 
+		BRASSA_mode != BRASSA_Modes::INACTIVE ||
+		!showNotifications)
 		return;
 	
 	// output menu
@@ -6385,13 +6391,13 @@ void D3DProxyDevice::DisplayCurrentPopup()
 			case VPS_TOAST:
 				{
 					popupColour = D3DCOLOR_ARGB(255, 255, 255, 255);
-					pFont = hudFont;
+					pFont = popupFont;
 				}
 				break;
 			case VPS_INFO:
 				{
 					popupColour = D3DCOLOR_ARGB(255, 128, 255, 128);
-					pFont = hudFont;
+					pFont = popupFont;
 				}
 				break;
 			case VPS_ERROR:

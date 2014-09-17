@@ -36,6 +36,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ProxyHelper.h"
 #include <map>
 #include "Resource.h"
+#include "Version.h"
 
 using namespace std;
 
@@ -103,8 +104,14 @@ public:
 			DeleteObject(back_brush);
 			SetBkColor(item->hDC, back_colour);
 			SetTextColor(item->hDC, RGB(0, 0, 0));
-		}            
+			}      
+		
+		HFONT font = CreateFont(0, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
+			DEFAULT_QUALITY, DEFAULT_PITCH, "Calibri");
+		HFONT oldFont = (HFONT)SelectObject(item->hDC, font);
 		DrawText(item->hDC, string, length, &item->rcItem, DT_LEFT|DT_SINGLELINE);
+		DeleteObject(SelectObject(item->hDC, oldFont));
+
 	}
 
 	void new_selection() {
@@ -244,6 +251,11 @@ public:
 
 					paint_device_context = BeginPaint(window_handle, &paint_structure);   
 					paint_dc = CreateCompatibleDC(paint_device_context);   
+
+					HFONT font = CreateFont(0, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
+						DEFAULT_QUALITY, DEFAULT_PITCH, "Calibri");
+					HFONT oldFont = (HFONT)SelectObject(paint_device_context, font);
+
 					GetClientRect(window_handle, &client_rect);   
 					int window_width = client_rect.right - client_rect.left;  
 					int window_height = client_rect.bottom - client_rect.top;  
@@ -262,13 +274,22 @@ public:
 					DeleteObject(bitmap);   
 
 					SelectObject(paint_dc, This->logo_bitmap);   
-					BitBlt(paint_device_context,0,0,600,140,paint_dc,0,0,SRCCOPY);
+					//BitBlt(paint_device_context,0,0,600,140,paint_dc,0,0,SRCCOPY);
+					StretchBlt(paint_device_context,0,0,565,68,paint_dc,0,0,470, 68, SRCCOPY);
+
+					std::string date(__DATE__);
+					std::string buildDate = date.substr(4, 2) + "-" + date.substr(0, 3) + "-" + date.substr(7, 4);
 
 					// Output user profile data
 					SetBkMode(paint_device_context, TRANSPARENT);
-					TextOut (paint_device_context,290,81,"Oculus Profile:",15);
-					TextOut (paint_device_context,290,101,oculusProfile.Name.c_str(),oculusProfile.Name.size());
+					TextOut (paint_device_context,290,78,"Version:",8);
+					TextOut (paint_device_context,420,78,std::string(APP_VERSION).c_str(),std::string(APP_VERSION).size());
+					TextOut (paint_device_context,290,101,"Build Date:",11);
+					TextOut (paint_device_context,420,101,buildDate.c_str(),buildDate.size());
+					TextOut (paint_device_context,290,124,"Oculus Profile:",15);
+					TextOut (paint_device_context,420,124,oculusProfile.Name.c_str(),oculusProfile.Name.size());
 
+					DeleteObject(SelectObject(paint_device_context, oldFont));
 					DeleteDC(paint_dc);   
 					EndPaint(window_handle, &paint_structure);   
 					return 0;   
@@ -350,6 +371,7 @@ int WINAPI wWinMain(HINSTANCE instance_handle, HINSTANCE, LPWSTR, INT) {
 	InitModes();
 	InstallHook();
 
+
 	frame_window main_window("perception");
 
 
@@ -362,8 +384,9 @@ int WINAPI wWinMain(HINSTANCE instance_handle, HINSTANCE, LPWSTR, INT) {
 
 	int mode;
 	int mode2;
+	bool notifications;
 	ProxyHelper helper = ProxyHelper();
-	helper.LoadUserConfig(mode, mode2);
+	helper.LoadUserConfig(mode, mode2, notifications);
 
 
 	for( StereoMode& m : GetStereoModes() ){
