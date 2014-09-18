@@ -109,6 +109,7 @@ public:
 	float         SeparationInWorldUnits();
 	float         SeparationIPDAdjustment();
 	bool          RollEnabled();
+	void          SetRollEnabled(bool rollEnabled);
 	int			  GetStereoType();
 	HMDisplayInfo* HMDInfo();	
 

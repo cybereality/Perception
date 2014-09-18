@@ -709,6 +709,11 @@ bool ViewAdjustment::RollEnabled()
 	return rollEnabled; 
 }
 
+void ViewAdjustment::SetRollEnabled(bool rollEnabled)
+{
+	this->rollEnabled = rollEnabled;
+}
+
 /**
 * Returns the head mounted display info.
 ***/

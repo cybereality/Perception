@@ -4568,6 +4568,7 @@ void D3DProxyDevice::BRASSA_Settings()
 		PITCH_MULT,
 		ROLL_MULT,
 		RESET_MULT,
+		ROLL_ENABLED,
 		FORCE_MOUSE_EMU,
 		TOGGLE_VRBOOST,
 		HOTKEY_VRBOOST,
@@ -4626,6 +4627,14 @@ void D3DProxyDevice::BRASSA_Settings()
 				tracker->multiplierYaw = 25.0f;
 				tracker->multiplierPitch = 25.0f;
 				tracker->multiplierRoll = 1.0f;
+				menuVelocity.x += 4.0f;
+			}
+
+			// force mouse emulation
+			if (entryID == ROLL_ENABLED)
+			{
+				config.rollEnabled = !config.rollEnabled;
+				m_spShaderViewAdjustment->SetRollEnabled(config.rollEnabled);
 				menuVelocity.x += 4.0f;
 			}
 
@@ -4926,10 +4935,10 @@ void D3DProxyDevice::BRASSA_Settings()
 		switch (stereoView->swapEyes)
 		{
 		case true:
-			DrawTextShadowed(hudFont, hudMainMenu, "Swap Eyes : true", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			DrawTextShadowed(hudFont, hudMainMenu, "Swap Eyes : True", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 			break;
 		case false:
-			DrawTextShadowed(hudFont, hudMainMenu, "Swap Eyes : false", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			DrawTextShadowed(hudFont, hudMainMenu, "Swap Eyes : False", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 			break;
 		}
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
@@ -4956,13 +4965,23 @@ void D3DProxyDevice::BRASSA_Settings()
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		DrawTextShadowed(hudFont, hudMainMenu, "Reset Multipliers", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		switch (m_spShaderViewAdjustment->RollEnabled())
+		{
+		case true:
+			DrawTextShadowed(hudFont, hudMainMenu, "Roll Enabled : True", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			break;
+		case false:
+			DrawTextShadowed(hudFont, hudMainMenu, "Roll Enabled : False", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			break;
+		}
+		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		switch (m_bForceMouseEmulation)
 		{
 		case true:
-			DrawTextShadowed(hudFont, hudMainMenu, "Force Mouse Emulation HT : true", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			DrawTextShadowed(hudFont, hudMainMenu, "Force Mouse Emulation HT : True", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 			break;
 		case false:
-			DrawTextShadowed(hudFont, hudMainMenu, "Force Mouse Emulation HT : false", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			DrawTextShadowed(hudFont, hudMainMenu, "Force Mouse Emulation HT : False", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 			break;
 		}
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
@@ -5141,10 +5160,10 @@ void D3DProxyDevice::BRASSA_PosTracking()
 		switch (m_bPosTrackingToggle)
 		{
 		case true:
-			DrawTextShadowed(hudFont, hudMainMenu, "Toggle Positional Tracking (CTRL + P) : On", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 64, 255, 64));
+			DrawTextShadowed(hudFont, hudMainMenu, "Positional Tracking (CTRL + P) : On", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 64, 255, 64));
 			break;
 		case false:
-			DrawTextShadowed(hudFont, hudMainMenu, "Toggle Positional Tracking (CTRL + P) : Off", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 128, 128));
+			DrawTextShadowed(hudFont, hudMainMenu, "Positional Tracking (CTRL + P) : Off", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 128, 128));
 			break;
 		}
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
@@ -5683,7 +5702,7 @@ void D3DProxyDevice::DisplayCurrentPopup()
 		}
 
 		menuHelperRect.left = 640;
-		menuHelperRect.top = 500;
+		menuHelperRect.top = 480;
 		DrawTextShadowed(pFont, hudMainMenu, activePopup.line1, -1, &menuHelperRect, 0, popupColour);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		DrawTextShadowed(pFont, hudMainMenu, activePopup.line2, -1, &menuHelperRect, 0, popupColour);
@@ -5704,9 +5723,10 @@ void D3DProxyDevice::DisplayCurrentPopup()
 			else if (show_fps == FPS_TIME)
 				sprintf_s(buffer, "Frame Time: %.2f ms", 1000.0f / fps);
 
+			D3DCOLOR colour = (fps <= 40) ? D3DCOLOR_ARGB(255, 255, 0, 0) : D3DCOLOR_ARGB(255, 255, 255, 255);;
 			menuHelperRect.left = 850;
 			menuHelperRect.top = 800;
-			DrawTextShadowed(hudFont, hudMainMenu, buffer, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			DrawTextShadowed(hudFont, hudMainMenu, buffer, -1, &menuHelperRect, 0, colour);
 		}
 
 		menuHelperRect.left = 0;
