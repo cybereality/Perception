@@ -28,6 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
 #include "ShaderModificationRepository.h"
+#include "pugixml.hpp"
 #include <assert.h>
 
 /**

@@ -1,5 +1,7 @@
 #VIREIO PERCEPTION
 
+![alt app screenshot](https://github.com/DreamNik/Perception/blob/new_gui/wiki/app_screenshot.png)
+
 ####Requirements
 
 1. Created using Visual C++ 2012 Express for Windows Desktop on Windows 8 64-bit.
@@ -25,15 +27,21 @@
    http://ffmpeg.zeranoe.com/builds/
    Extract it to a folder
 
-   
+7. Download and install Qt framework from
+   http://qt-project.org/downloads
+   Install Qt 5.x.x 32-bit VS 2012 version.
+
+
 ####BUILD INSTRUCTIONS:
 
 1. Set environment variables (Click Start, Control Panel, System (in System and Security), Advanced System Settings, Environment Variables):
     * FREESPACE   : The folder for libfreespace (Hillcrest Labs SDK).
     * DXSDK_DIR   : The folder for DirectX SDK (already set automatically by the June 2010 DirectX SDK)
     * WIN_DDK_DIR : The folder you installed the Windows Driver Development Kit to
-	* FFMPEG      : The folder you installed the FFMPEG library
-	* LIBOVR      : The "LibOVR" folder of Oculus SDK library
+    * FFMPEG      : The folder you installed the FFMPEG library
+    * LIBOVR      : The "LibOVR" folder of Oculus SDK library
+	* QTDIR       : The folder for Qt framework, which contains "bin" , "include" and "lib" directories. (usually resides in subfolder of "5.x" directory of install directory).
+	
 
 2. Create "Vireio/Perception" folder (output folder) in Program Files with full permissions for current user
    or change "OutDir" value in file "VireioPerception.props" to any suitable folder.
@@ -60,10 +68,10 @@ When you want to publish it, build in Release mode, remove *.lib, *.pdb, *.exp f
 If you want to view the debug prints from hooking the game, download and run [DebugView](http://technet.microsoft.com/en-au/sysinternals/bb896647.aspx "Microsoft") or [TraceSpy](http://tracespy.codeplex.com/). 
 Sometimes DebugView becomes unresponsive, in which case just continue what you were doing and look at it later.
 
-It makes sense to work with the DxProxy project mainly. The DxProxy project is the main meat of the application. Basically what it does is it proxies DirectX so the game loads this modified "d3d9.dll" file instead of the real "d3d9.dll". Mostly all the functions are just dumb pass-throughs, but a few key functions are modified. This allows us to alter a few things, like the view-projection matrix (which is modified to fake a 3D camera), or the present call (where we display a new 3D image). 
+The VireIO_Proxy project is the main meat of the application. Basically what it does is it provides wrapped DirectX interface. Mostly all the functions are just dumb pass-throughs, but a few key functions are modified. This allows us to alter a few things, like the view-projection matrix (which is modified to fake a 3D camera), or the present call (where we display a new 3D image). 
 
-The DxHijack project helps us to inject our modified dll into games, without having to place the proxy "d3d9.dll" file in the game folder (though some games don't work with this method, so we still have to copy the dll over as a last resort). 
+The VireIO_Hijack project redirects api calls to DirectX to wrapped VireIO_Proxy interface.
 
-The Perception project is the GUI interface for the app. You probably will not need to touch this unless you are adding new options to the menu (ie a new tracking device).
+The VireIO_Perception project is the GUI interface for the app. You probably will not need to touch this unless you are adding new options to the menu (ie a new tracking device).
 
 If you need help, please post on the Official Vireio Perception Forums on [MTBS3D.com](http://www.mtbs3d.com/phpBB/viewforum.php?f=141).

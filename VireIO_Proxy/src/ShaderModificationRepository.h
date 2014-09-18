@@ -44,7 +44,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ShaderConstantModification.h"
 #include "ShaderConstantModificationFactory.h"
 #include "ViewAdjustment.h"
-#include "pugixml.hpp"
 
 class ViewAdjustment;
 
