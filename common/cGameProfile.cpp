@@ -94,7 +94,7 @@ bool cGameProfile::load( QString path ){
 	CameraTranslateY = 0.0f;//gameProfile.attribute("CameraTranslateY").as_float(0.0f);
 	CameraTranslateZ = 0.0f;//gameProfile.attribute("CameraTranslateZ").as_float(0.0f);
 
-
+	return true;
 	// copy game dlls
 	//bool copyDlls = gameProfile.attribute("copyDlls").as_bool(false);
 	//if (copyDlls)

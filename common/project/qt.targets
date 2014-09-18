@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+	<ItemGroup>
+		<PropertyPageSchema Include="$(MSBuildThisFileDirectory)$(MSBuildThisFileName).xml" />
+		
+		<AvailableItemName Include="QT_UIC">
+			<Targets>QT_UIC</Targets>
+		</AvailableItemName>
+
+		<AvailableItemName Include="QT_MOC">
+			<Targets>QT_MOC</Targets>
+		</AvailableItemName>
+
+		<AvailableItemName Include="QT_RCC">
+			<Targets>QT_RCC</Targets>
+		</AvailableItemName>
+
+	</ItemGroup>
+
+	
+	
+	<Target Name="QT_UIC" BeforeTargets="ClCompile" Inputs="@(QT_UIC)" Outputs="@(QT_UIC->'$(IntDir)ui_%(Filename).h')">
+		<Message Text="UIC %(QT_UIC.Identity)" Importance="high" />
+		<Exec Command="$(QTDIR)\bin\uic.exe &quot;%(QT_UIC.FullPath)&quot; -o &quot;$(IntDir)ui_%(QT_UIC.Filename).h&quot;"/>
+		<WriteLinesToFile File="$(IntDir)qt.write.1.tlog" Lines="^%(QT_UIC.FullPath);$(IntDir)ui_%(QT_UIC.Filename).h" />
+	</Target>
+	
+	<Target Name="QT_MOC" BeforeTargets="ClCompile" Inputs="@(QT_MOC)" Outputs="@(QT_MOC->'$(IntDir)moc_%(Filename).cpp')">
+		<Message Text="MOC %(QT_MOC.Identity)" Importance="high" />
+		<Exec Command="$(QTDIR)\bin\moc.exe &quot;%(QT_MOC.FullPath)&quot; -o &quot;$(IntDir)moc_%(QT_MOC.Filename).cpp&quot;"/>
+		<WriteLinesToFile File="$(IntDir)qt.write.1.tlog" Lines="^%(QT_MOC.FullPath);$(IntDir)moc_%(QT_MOC.Filename).cpp" />
+		<ItemGroup>
+			<ClCompile Include="$(IntDir)moc_%(QT_MOC.Filename).cpp" />
+		</ItemGroup>
+	</Target>
+	
+	<Target Name="QT_RCC" BeforeTargets="ClCompile" Inputs="@(QT_RCC)" Outputs="@(QT_RCC->'$(IntDir)res_%(Filename).cpp')">
+		<Message Text="RCC %(QT_RCC.Identity)" Importance="high" />
+		<Exec Command="$(QTDIR)\bin\rcc.exe &quot;%(QT_RCC.FullPath)&quot; -o &quot;$(IntDir)res_%(QT_RCC.Filename).cpp&quot;"/>
+		<WriteLinesToFile File="$(IntDir)qt.write.1.tlog" Lines="^%(QT_RCC.FullPath);$(IntDir)res_%(QT_RCC.Filename).cpp" />
+		<ItemGroup>
+			<ClCompile Include="$(IntDir)res_%(QT_RCC.Filename).cpp" />
+		</ItemGroup>
+	</Target>
+
+</Project>

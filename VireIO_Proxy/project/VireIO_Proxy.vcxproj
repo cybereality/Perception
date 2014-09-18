@@ -1,0 +1,185 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{F0290832-C81F-4165-BA92-2A31FB20D7CD}</ProjectGuid>
+    <RootNamespace>VireIO_Proxy</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\common\project\paths.props" />
+    <Import Project="..\..\common\project\qt-lib.props" />
+    <Import Project="..\..\common\project\vireio.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\common\project\paths.props" />
+    <Import Project="..\..\common\project\qt-lib.props" />
+    <Import Project="..\..\common\project\vireio.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\common\cConfig.cpp" />
+    <ClCompile Include="..\..\common\cGame.cpp" />
+    <ClCompile Include="..\..\common\cGameProfile.cpp" />
+    <ClCompile Include="..\..\common\cPropsFile.cpp" />
+    <ClCompile Include="..\..\common\cSettings.cpp" />
+    <ClCompile Include="..\..\common\cStereoMode.cpp" />
+    <ClCompile Include="..\..\common\cUser.cpp" />
+    <ClCompile Include="..\..\common\hijack.cpp" />
+    <ClCompile Include="..\src\D3D9ProxyCubeTexture.cpp" />
+    <ClCompile Include="..\src\D3D9ProxyDeviceEx.cpp" />
+    <ClCompile Include="..\src\D3D9ProxyDirect3D.cpp" />
+    <ClCompile Include="..\src\D3D9ProxyDirect3DEx.cpp" />
+    <ClCompile Include="..\src\D3D9ProxyIndexBuffer.cpp" />
+    <ClCompile Include="..\src\D3D9ProxyPixelShader.cpp" />
+    <ClCompile Include="..\src\D3D9ProxyQuery.cpp" />
+    <ClCompile Include="..\src\D3D9ProxyStateBlock.cpp" />
+    <ClCompile Include="..\src\D3D9ProxySurface.cpp" />
+    <ClCompile Include="..\src\D3D9ProxySwapChain.cpp" />
+    <ClCompile Include="..\src\D3D9ProxyTexture.cpp" />
+    <ClCompile Include="..\src\D3D9ProxyVertexBuffer.cpp" />
+    <ClCompile Include="..\src\D3D9ProxyVertexDeclaration.cpp" />
+    <ClCompile Include="..\src\D3D9ProxyVertexShader.cpp" />
+    <ClCompile Include="..\src\D3D9ProxyVolume.cpp" />
+    <ClCompile Include="..\src\D3D9ProxyVolumeTexture.cpp" />
+    <ClCompile Include="..\src\D3DProxyDevice.cpp" />
+    <ClCompile Include="..\src\D3DProxyDeviceAdv.cpp" />
+    <ClCompile Include="..\src\D3DProxyDeviceDebug.cpp" />
+    <ClCompile Include="..\src\D3DProxyDeviceEgo.cpp" />
+    <ClCompile Include="..\src\D3DProxyDeviceFactory.cpp" />
+    <ClCompile Include="..\src\DataGatherer.cpp" />
+    <ClCompile Include="..\src\DirectInput.cpp" />
+    <ClCompile Include="..\src\FreeSpaceTracker.cpp" />
+    <ClCompile Include="..\src\FreeTrackTracker.cpp" />
+    <ClCompile Include="..\src\GameHandler.cpp" />
+    <ClCompile Include="..\src\InputControls.cpp" />
+    <ClCompile Include="..\src\Main.cpp" />
+    <ClCompile Include="..\src\MatrixNoShowModification.cpp" />
+    <ClCompile Include="..\src\MotionTracker.cpp" />
+    <ClCompile Include="..\src\MotionTrackerFactory.cpp" />
+    <ClCompile Include="..\src\MurmurHash3.cpp" />
+    <ClCompile Include="..\src\OculusTracker.cpp" />
+    <ClCompile Include="..\src\pugixml.cpp" />
+    <ClCompile Include="..\src\ShaderModificationRepository.cpp" />
+    <ClCompile Include="..\src\ShaderRegisters.cpp" />
+    <ClCompile Include="..\src\SharedMemoryTracker.cpp" />
+    <ClCompile Include="..\src\SocketTracker.cpp" />
+    <ClCompile Include="..\src\StereoBackbuffer.cpp" />
+    <ClCompile Include="..\src\StereoView.cpp" />
+    <ClCompile Include="..\src\Streaming\Streamer-enc-ffmpeg.cpp" />
+    <ClCompile Include="..\src\Streaming\Streamer-net-udp.cpp" />
+    <ClCompile Include="..\src\Streaming\Streamer.cpp" />
+    <ClCompile Include="..\src\ViewAdjustment.cpp" />
+    <ClCompile Include="..\src\Vireio.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\common\cConfig.h" />
+    <ClInclude Include="..\..\common\cGame.h" />
+    <ClInclude Include="..\..\common\cGameProfile.h" />
+    <ClInclude Include="..\..\common\cPropsFile.h" />
+    <ClInclude Include="..\..\common\cSettings.h" />
+    <ClInclude Include="..\..\common\cStereoMode.h" />
+    <ClInclude Include="..\..\common\cUser.h" />
+    <ClInclude Include="..\..\common\hijack.h" />
+    <ClInclude Include="..\..\common\VireIO.h" />
+    <ClInclude Include="..\src\D3D9ProxyCubeTexture.h" />
+    <ClInclude Include="..\src\D3D9ProxyDirect3D.h" />
+    <ClInclude Include="..\src\D3D9ProxyIndexBuffer.h" />
+    <ClInclude Include="..\src\D3D9ProxyPixelShader.h" />
+    <ClInclude Include="..\src\D3D9ProxyQuery.h" />
+    <ClInclude Include="..\src\D3D9ProxyStateBlock.h" />
+    <ClInclude Include="..\src\D3D9ProxySurface.h" />
+    <ClInclude Include="..\src\D3D9ProxySwapChain.h" />
+    <ClInclude Include="..\src\D3D9ProxyTexture.h" />
+    <ClInclude Include="..\src\D3D9ProxyVertexBuffer.h" />
+    <ClInclude Include="..\src\D3D9ProxyVertexDeclaration.h" />
+    <ClInclude Include="..\src\D3D9ProxyVertexShader.h" />
+    <ClInclude Include="..\src\D3D9ProxyVolume.h" />
+    <ClInclude Include="..\src\D3D9ProxyVolumeTexture.h" />
+    <ClInclude Include="..\src\D3DProxyDevice.h" />
+    <ClInclude Include="..\src\D3DProxyDeviceAdv.h" />
+    <ClInclude Include="..\src\D3DProxyDeviceDebug.h" />
+    <ClInclude Include="..\src\D3DProxyDeviceEgo.h" />
+    <ClInclude Include="..\src\D3DProxyDeviceFactory.h" />
+    <ClInclude Include="..\src\DataGatherer.h" />
+    <ClInclude Include="..\src\Direct3D9Ex.h" />
+    <ClInclude Include="..\src\Direct3DDevice9Ex.h" />
+    <ClInclude Include="..\src\DirectInput.h" />
+    <ClInclude Include="..\src\FreeSpaceTracker.h" />
+    <ClInclude Include="..\src\FreeTrackTracker.h" />
+    <ClInclude Include="..\src\GameHandler.h" />
+    <ClInclude Include="..\src\InputControls.h" />
+    <ClInclude Include="..\src\IStereoCapableWrapper.h" />
+    <ClInclude Include="..\src\MatrixConvOffsetAdjustment.h" />
+    <ClInclude Include="..\src\MatrixDoNothing.h" />
+    <ClInclude Include="..\src\MatrixGatheredOrhoSquash.h" />
+    <ClInclude Include="..\src\MatrixGuiSquash.h" />
+    <ClInclude Include="..\src\MatrixHudSlide.h" />
+    <ClInclude Include="..\src\MatrixHudSquash.h" />
+    <ClInclude Include="..\src\MatrixIgnoreOrtho.h" />
+    <ClInclude Include="..\src\MatrixNoRoll.h" />
+    <ClInclude Include="..\src\MatrixNoShowModification.h" />
+    <ClInclude Include="..\src\MatrixOrthoSquash.h" />
+    <ClInclude Include="..\src\MatrixOrthoSquashHud.h" />
+    <ClInclude Include="..\src\MatrixOrthoSquashShifted.h" />
+    <ClInclude Include="..\src\MatrixRollOnly.h" />
+    <ClInclude Include="..\src\MatrixRollOnlyHalf.h" />
+    <ClInclude Include="..\src\MatrixRollOnlyNegative.h" />
+    <ClInclude Include="..\src\MatrixSurfaceRefractionTransform.h" />
+    <ClInclude Include="..\src\MotionTracker.h" />
+    <ClInclude Include="..\src\MotionTrackerFactory.h" />
+    <ClInclude Include="..\src\MurmurHash3.h" />
+    <ClInclude Include="..\src\OculusTracker.h" />
+    <ClInclude Include="..\src\pugiconfig.hpp" />
+    <ClInclude Include="..\src\pugixml.hpp" />
+    <ClInclude Include="..\src\ShaderConstantModification.h" />
+    <ClInclude Include="..\src\ShaderConstantModificationFactory.h" />
+    <ClInclude Include="..\src\ShaderMatrixModification.h" />
+    <ClInclude Include="..\src\ShaderModificationRepository.h" />
+    <ClInclude Include="..\src\ShaderRegisters.h" />
+    <ClInclude Include="..\src\SharedMemoryTracker.h" />
+    <ClInclude Include="..\src\SocketTracker.h" />
+    <ClInclude Include="..\src\StereoBackbuffer.h" />
+    <ClInclude Include="..\src\StereoShaderConstant.h" />
+    <ClInclude Include="..\src\StereoView.h" />
+    <ClInclude Include="..\src\Streaming\inttypes.h" />
+    <ClInclude Include="..\src\Streaming\Streamer.h" />
+    <ClInclude Include="..\src\Vector4EyeShiftUnity.h" />
+    <ClInclude Include="..\src\Vector4SimpleTranslate.h" />
+    <ClInclude Include="..\src\Version.h" />
+    <ClInclude Include="..\src\ViewAdjustment.h" />
+    <ClInclude Include="..\src\Vireio.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

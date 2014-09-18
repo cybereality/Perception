@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<ImportGroup Label="PropertySheets" />
+  
+	<PropertyGroup>
+		<IncludePath>$(QTDIR)\include;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtNetwork;$(QTDIR)\include\QtOpengl;$(QTDIR)\include\QtPrintSupport;$(QTDIR)\include\QtXml;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtTest;$(QTDIR)\include\QtSerialPort;$(IntDir);$(IncludePath)</IncludePath>
+		<LibraryPath>$(QTDIR)\lib;$(LibraryPath)</LibraryPath>
+		<ExecutablePath>$(QTDIR)\bin;$(ExecutablePath)</ExecutablePath>
+	</PropertyGroup>
+  
+
+	<ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
+		<ClCompile>
+			<Optimization>Disabled</Optimization>
+			<RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+		</ClCompile>
+		<Link>
+			<AdditionalDependencies>Qt5Cored.lib;Qt5Guid.lib;Qt5Networkd.lib;Qt5Opengld.lib;Qt5PrintSupportd.lib;Qt5Xmld.lib;Qt5Webkitd.lib;Qt5WebKitWidgetsd.lib;Qt5Widgetsd.lib;Qt5Testd.lib;Qt5SerialPortd.lib;qtmaind.lib;%(AdditionalDependencies)</AdditionalDependencies>
+			<GenerateDebugInformation>true</GenerateDebugInformation>
+		</Link>
+	</ItemDefinitionGroup>
+
+	<ItemDefinitionGroup Condition="'$(Configuration)'=='Release'">
+		<Link>
+			<AdditionalDependencies>Qt5Core.lib;Qt5Gui.lib;Qt5Network.lib;Qt5Opengl.lib;Qt5PrintSupport.lib;Qt5Xml.lib;Qt5Webkit.lib;Qt5WebKitWidgets.lib;Qt5Widgets.lib;Qt5Test.lib;Qt5SerialPort.lib;qtmain.lib;%(AdditionalDependencies)</AdditionalDependencies>
+		</Link>
+	</ItemDefinitionGroup>
+</Project>

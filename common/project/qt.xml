@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ProjectSchemaDefinitions xmlns="http://schemas.microsoft.com/build/2009/properties">
+	
+	<ItemType      Name="QT_UIC" DisplayName="Qt form" />
+	<FileExtension Name="*.ui"   ContentType="QT_UIC" />
+	<ContentType   Name="QT_UIC" DisplayName="Qt form" ItemType="QT_UIC" />
+
+	<ItemType      Name="QT_MOC" DisplayName="Qt header" />
+	<FileExtension Name="*.h"    ContentType="QT_MOC" />
+	<ContentType   Name="QT_MOC" DisplayName="Qt header" ItemType="QT_MOC" />
+	
+	<ItemType      Name="QT_RCC" DisplayName="Qt resource" />
+	<FileExtension Name="*.qrc"    ContentType="QT_RCC" />
+	<ContentType   Name="QT_RCC" DisplayName="Qt resource" ItemType="QT_RCC" />
+	
+	
+</ProjectSchemaDefinitions>

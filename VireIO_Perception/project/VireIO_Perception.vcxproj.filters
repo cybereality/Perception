@@ -1,0 +1,85 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Form files">
+      <UniqueIdentifier>{3a1ca1e6-8b60-4a3f-93db-54fac55a250e}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\app_main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cMainWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\cConfig.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\cGame.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\cGameProfile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\cPropsFile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\cSettings.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\cStereoMode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\cUser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\hijack.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <QT_UIC Include="..\src\cMainWindow.ui">
+      <Filter>Form files</Filter>
+    </QT_UIC>
+  </ItemGroup>
+  <ItemGroup>
+    <QT_MOC Include="..\..\common\cConfig.h">
+      <Filter>Header Files</Filter>
+    </QT_MOC>
+    <QT_MOC Include="..\..\common\cGame.h">
+      <Filter>Header Files</Filter>
+    </QT_MOC>
+    <QT_MOC Include="..\..\common\cGameProfile.h">
+      <Filter>Header Files</Filter>
+    </QT_MOC>
+    <QT_MOC Include="..\..\common\cPropsFile.h">
+      <Filter>Header Files</Filter>
+    </QT_MOC>
+    <QT_MOC Include="..\..\common\cSettings.h">
+      <Filter>Header Files</Filter>
+    </QT_MOC>
+    <QT_MOC Include="..\..\common\cStereoMode.h">
+      <Filter>Header Files</Filter>
+    </QT_MOC>
+    <QT_MOC Include="..\..\common\cUser.h">
+      <Filter>Header Files</Filter>
+    </QT_MOC>
+    <QT_MOC Include="..\..\common\hijack.h">
+      <Filter>Header Files</Filter>
+    </QT_MOC>
+    <QT_MOC Include="..\..\common\VireIO.h">
+      <Filter>Header Files</Filter>
+    </QT_MOC>
+    <QT_MOC Include="..\src\cMainWindow.h">
+      <Filter>Header Files</Filter>
+    </QT_MOC>
+  </ItemGroup>
+</Project>
