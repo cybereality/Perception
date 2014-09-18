@@ -9,7 +9,7 @@ namespace{
 
 	IDirect3D9* (WINAPI* ORIG_Direct3DCreate9   )( unsigned int nSDKVersion );
 	HRESULT     (WINAPI* ORIG_Direct3DCreate9Ex )( unsigned int SDKVersion , IDirect3D9Ex **ppD3D );
-	IDirect3D9* (WINAPI* PROXY_Direct3DCreate9  )( IDirect3D9* base );
+	IDirect3D9* (*       PROXY_Direct3DCreate9  )( IDirect3D9* base );
 
 	IDirect3D9* WINAPI NEW_Direct3DCreate9( unsigned int nSDKVersion ){
 		printf("Create D3D\n");
@@ -21,7 +21,7 @@ namespace{
 		return PROXY_Direct3DCreate9( ORIG_Direct3DCreate9(nSDKVersion) );
 	}
 
-	HRESULT WINAPI NEW_Direct3DCreate9Ex( unsigned int SDKVersion , IDirect3D9Ex **ppD3D ){
+	HRESULT WINAPI NEW_Direct3DCreate9Ex( unsigned int , IDirect3D9Ex** ){
 		printf("Direct3D9Ex not supported!\n");
 		return -1;
 	}
@@ -30,10 +30,10 @@ namespace{
 
 
 
-BOOL APIENTRY DllMain( HINSTANCE hModule , DWORD fdwReason, LPVOID ){
+BOOL APIENTRY DllMain( HINSTANCE , DWORD fdwReason, LPVOID ){
 	if( fdwReason == DLL_PROCESS_ATTACH ){
 		AllocConsole();
-		freopen("CONOUT$", "w", stdout);
+		freopen("log.txt", "w", stdout);
 
 		vireio_hijack_hook_install();
 

@@ -90,6 +90,7 @@ static bool LoadDll()
 	return true;
 }
 
+
 IDirect3D9* WINAPI Direct3DCreate9(UINT nSDKVersion)
 {
 	// Log
@@ -110,7 +111,7 @@ IDirect3D9* WINAPI Direct3DCreate9(UINT nSDKVersion)
 	return pWrapper;
 }
 
-IDirect3D9* WINAPI ProxyDirect3DCreate9( IDirect3D9* base ) {
+extern "C" __declspec(dllexport) IDirect3D9* ProxyDirect3DCreate9( IDirect3D9* base ) {
 
 	// Load DLL
 	if( !LoadDll( ) )

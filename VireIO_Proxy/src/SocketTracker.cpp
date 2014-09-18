@@ -44,7 +44,7 @@ SocketTracker::~SocketTracker(void)
 	WSACleanup();
 }
 
-int SocketTracker::init()
+void SocketTracker::init()
 {
 	OutputDebugString("Socket Tracker Init\n");
 
@@ -59,16 +59,16 @@ int SocketTracker::init()
 	int result = WSAStartup(MAKEWORD(2, 2), &wsaData);		// starts Winsock version 2.2 and initializes wsaData
 
 	if(result != 0)											// Winsock failed to launch
-		return false;
+		return;
 	
 	if(wsaData.wVersion != MAKEWORD(2, 2))					// winsock is not version 2.2
 	{
 		WSACleanup();
-		return false;
+		return;
 	}
 
 	// change to support other ports
-	return ListenOnPort(DEFAULT_PORT);
+	ListenOnPort(DEFAULT_PORT);
 }
 
 
