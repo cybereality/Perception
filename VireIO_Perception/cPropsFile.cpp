@@ -1,13 +1,13 @@
-#include "loader.h"
+#include "cPropsFile.h"
 #include <qfile.h>
 
-IniMap LoadPropFile( const QString& path ){
-	IniMap ret;
+bool cPropsFile::load( const QString& path ){
+	this->clear();
 
 	QFile file( path );
 
 	if( !file.open(QFile::ReadOnly) ){
-		return ret;
+		return false;
 	}
 
 	while( !file.atEnd() ){
@@ -17,26 +17,26 @@ IniMap LoadPropFile( const QString& path ){
 		if( index >=0 ){
 			QString param = QString::fromUtf8( line.left( index     ).trimmed() );
 			QString value = QString::fromUtf8( line.mid ( index + 1 ).trimmed() );
-			ret[param] = value;
+			(*this)[param] = value;
 		}
 	}
 
-	return ret;
+	return true;
 }
 
 
 
-void SavePropFile( const QString& path , const IniMap& map ){
+bool cPropsFile::save( const QString& path ){
 
 	QFile file( path );
 
 	if( !file.open(QFile::WriteOnly) ){
-		return;
+		return false;
 	}
 
 	int align = 0;
 
-	for( QString& key : map.keys() ){
+	for( QString& key : keys() ){
 		if( key.size() > align ){
 			align = key.size();
 		}
@@ -44,9 +44,14 @@ void SavePropFile( const QString& path , const IniMap& map ){
 
 	align++;
 
-	for( QString& key : map.keys() ){
-		file.write( (key + QString().fill(' ',align - key.size()) + "=" + map[key] + "\r\n").toUtf8() );
+	QList<QString> sorted_keys = keys();
+	std::sort( sorted_keys.begin() , sorted_keys.end() );
+
+	for( QString& key : sorted_keys ){
+		file.write( (key + QString().fill(' ',align - key.size()) + "=" + (*this)[key] + "\r\n").toUtf8() );
 	}
 
 	file.close();
+
+	return true;
 }

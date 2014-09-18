@@ -1,6 +1,6 @@
 #include "cGame.h"
 #include "cGameProfile.h"
-#include "loader.h"
+#include "cPropsFile.h"
 #include "hijack.h"
 #include <qfileinfo.h>
 #include <qfileiconprovider.h>
@@ -40,23 +40,25 @@ QList<cGame*>& cGame::AllGames( ){
 
 
 void cGame::load( const QString& file ){
-	IniMap map = LoadPropFile( file );
-	profile  = cGameProfile::FindProfileByName( map["profile"] );
-	exe_path = map["exe"];
+	cPropsFile props;
+	if( props.load( file ) ){
+		profile  = cGameProfile::FindProfileByName( props["profile"] );
+		exe_path = props["exe"];
+	}
 }
 
 
 void cGame::save( ){
-	IniMap map;
-	map["profile"] = profile->name;
-	map["exe"    ] = exe_path;
+	cPropsFile props;
+	props["profile"] = profile->name;
+	props["exe"    ] = exe_path;
 
 	QString uid = exe_path;
 	uid.replace( ":"  , "_" );
 	uid.replace( "\\" , "_" );
 	uid.replace( "/"  , "_" );
 
-	SavePropFile( "../games/" + uid + ".ini" , map );
+	props.save( "../games/" + uid + ".ini" );
 }
 
 

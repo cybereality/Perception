@@ -20,8 +20,9 @@ SOURCES += \
     cGameProfile.cpp \
     cMainWindow.cpp \
     cGame.cpp \
-    loader.cpp \
-    app_main.cpp
+    app_main.cpp \
+    cSettings.cpp \
+    cPropsFile.cpp
 
 HEADERS  += \
     cMainWindow.h \
@@ -29,7 +30,8 @@ HEADERS  += \
     hijack.h \
     cGameProfile.h \
     cGame.h \
-    loader.h
+    cSettings.h \
+    cPropsFile.h
 
 FORMS    += \
     cMainWindow.ui

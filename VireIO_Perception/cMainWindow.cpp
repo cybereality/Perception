@@ -7,23 +7,7 @@
 #include <cStereoMode.h>
 #include "cGameProfile.h"
 #include "cGame.h"
-
-
-
-static void InitCombo( QSettings* set , QComboBox* cb ){
-	bool ok;
-	int value = set->value( cb->objectName() ).toInt(&ok);
-
-	if( ok ){
-		cb->setCurrentIndex( cb->findData(value) );
-	}else{
-		cb->setCurrentIndex( -1 );
-	}
-
-	QObject::connect( cb , (void(QComboBox::*)(int))&QComboBox::currentIndexChanged , [=]( int newIndex ){
-		set->setValue( cb->objectName() , cb->itemData(newIndex) );
-	});
-}
+#include "cSettings.h"
 
 
 cMainWindow::cMainWindow( ){
@@ -41,9 +25,6 @@ cMainWindow::cMainWindow( ){
 	ui.trackerMode->addItem( "Shared Memory Tracker" , 30 );
 	ui.trackerMode->addItem( "OculusTrack"           , 40 );
 
-	InitCombo( &settings , ui.stereoMode  );
-	InitCombo( &settings , ui.trackerMode );
-
 	cGameProfile::LoadProfiles();
 
 	cGame::LoadGames();
@@ -54,12 +35,46 @@ cMainWindow::cMainWindow( ){
 	ui.info->setText(
 		QString("Loaded %1 profiles.\nLoaded %2 games.").arg( cGameProfile::AllProfiles().count() ).arg( cGame::AllGames().count() )
 	);
+
+	LoadSettings();
 }
 
 
 cMainWindow::~cMainWindow( ){
 
 }
+
+
+
+void cMainWindow::LoadSettings(){
+	cSettings s;
+	s.load();
+
+	ui.stereoMode      ->setCurrentIndex( ui.stereoMode ->findData(s.stereoMode)  );
+	ui.trackerMode     ->setCurrentIndex( ui.trackerMode->findData(s.trackerMode) );
+
+	ui.streamingEnable ->setChecked     ( s.streamingEnable   );
+	ui.streamingAddress->setText        ( s.streamingAddress  );
+	ui.streamingPort   ->setValue       ( s.streamingPort     );
+	ui.streamingCodec  ->setCurrentText ( s.streamingCodec    );
+	ui.streamingBitrate->setValue       ( s.streamingBitrate  );
+
+}
+
+
+void cMainWindow::on_saveSettings_clicked(){
+	cSettings s;
+	s.stereoMode        = ui.stereoMode       ->currentData().toInt();
+	s.trackerMode       = ui.trackerMode      ->currentData().toInt();
+
+	s.streamingEnable   = ui.streamingEnable  ->isChecked();
+	s.streamingAddress  = ui.streamingAddress ->text();
+	s.streamingPort     = ui.streamingPort    ->value();
+	s.streamingCodec    = ui.streamingCodec   ->currentText();
+	s.streamingBitrate  = ui.streamingBitrate ->value();
+	s.save();
+}
+
 
 
 

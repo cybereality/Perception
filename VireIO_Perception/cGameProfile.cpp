@@ -1,5 +1,5 @@
 #include "cGameProfile.h"
-#include "loader.h"
+#include "cPropsFile.h"
 #include <qdom.h>
 #include <qfile.h>
 #include <qdir.h>
@@ -47,10 +47,11 @@ QList<cGameProfile*>& cGameProfile::AllProfiles( ){
 
 void cGameProfile::LoadProfiles( ){
 	for( QFileInfo& info : QDir( "../profiles").entryInfoList( QDir::Files ) ){
-		IniMap map = LoadPropFile( info.filePath() );
-
-		cGameProfile* profile = new cGameProfile;
-		profile->name = info.baseName();
-		profile->exe  = map["game_exe"];
+		cPropsFile props;
+		if( props.load( info.filePath() ) ){
+			cGameProfile* profile = new cGameProfile;
+			profile->name = info.baseName();
+			profile->exe  = props["game_exe"];
+		}
 	}
 }
