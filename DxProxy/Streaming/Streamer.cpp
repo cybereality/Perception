@@ -1,9 +1,6 @@
 #include "Streamer.h"
 
 Streamer::Streamer( ProxyHelper::ProxyConfig& c ){
-	AllocConsole();
-	freopen("CONOUT$", "w", stdout);
-
 	surf = 0;
 	cfg  = c;
 

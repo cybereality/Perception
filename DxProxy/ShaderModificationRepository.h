@@ -126,9 +126,9 @@ private:
 				return D3DXPC_VECTOR;
 			}
 			else {
-				OutputDebugString("Unknown or unsupported constant type: ");
-				OutputDebugString(type.c_str());
-				OutputDebugString("\n");
+				OutputDebugStringA("Unknown or unsupported constant type: ");
+				OutputDebugStringA(type.c_str());
+				OutputDebugStringA("\n");
 
 				return D3DXPC_FORCE_DWORD;
 			}

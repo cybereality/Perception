@@ -37,7 +37,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <map>
 #include <string.h>
 #include <assert.h>
-#include "StereoMode.h"
+#include "cStereoMode.h"
 
 
 class Streamer;
@@ -50,7 +50,7 @@ class Streamer;
 class StereoView
 {
 public:
-	StereoView(ProxyHelper::ProxyConfig& config , StereoMode *hmd );
+	StereoView(ProxyHelper::ProxyConfig& config , cStereoMode *hmd );
 	virtual ~StereoView();
 
 	/*** StereoView public methods ***/
@@ -131,7 +131,7 @@ public:
 	* Predefined Oculus Rift Head Mounted Display info.
 	* Contains distortionCoefficients, needed as vertex shader constants
 	***/
-	StereoMode *hmdInfo;
+	cStereoMode *hmdInfo;
 
 	/**
 	* The streamer.

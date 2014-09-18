@@ -1,4 +1,5 @@
 EXPORTS
+	ProxyDirect3DCreate9
 	Direct3DCreate9
 	D3DPERF_BeginEvent
 	D3DPERF_EndEvent

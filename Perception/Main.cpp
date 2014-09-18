@@ -355,7 +355,7 @@ public:
 
 map<int, int> stereoModes;
 map<int, int> trackerModes;
-#include <StereoMode.h>
+#include <cStereoMode.h>
 
 int WINAPI wWinMain(HINSTANCE instance_handle, HINSTANCE, LPWSTR, INT) {  
 
@@ -389,7 +389,7 @@ int WINAPI wWinMain(HINSTANCE instance_handle, HINSTANCE, LPWSTR, INT) {
 	helper.LoadUserConfig(mode, mode2, notifications);
 
 
-	for( StereoMode& m : GetStereoModes() ){
+	for( cStereoMode& m : GetStereoModes() ){
 		
 		char tb[512];
 		_snprintf(tb, sizeof(tb), "%s\t%d", m.name.c_str(), m.uid );

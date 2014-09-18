@@ -36,7 +36,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "d3dx9.h"
 #include "Vireio.h"
 #include "ProxyHelper.h"
-#include "StereoMode.h"
+#include "cStereoMode.h"
 
 #define LEFT_CONSTANT -1
 #define RIGHT_CONSTANT 1
@@ -51,7 +51,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class ViewAdjustment
 {
 public:	
-	ViewAdjustment(StereoMode *hmdInfo, float metersToWorldUnits, bool enableRoll);
+	ViewAdjustment(cStereoMode *hmdInfo, float metersToWorldUnits, bool enableRoll);
 	virtual ~ViewAdjustment();
 
 	/*** ViewAdjustment public methods ***/
@@ -110,7 +110,7 @@ public:
 	float         SeparationIPDAdjustment();
 	bool          RollEnabled();
 	int			  GetStereoType();
-	StereoMode* HMDInfo();	
+	cStereoMode* HMDInfo();
 
 private:
 	/*** Projection Matrix variables ***/
@@ -262,7 +262,7 @@ private:
 	/**
 	* Head mounted display info.
 	***/
-	StereoMode* hmdInfo;
+	cStereoMode* hmdInfo;
 	/**
 	* True if head roll enabled.
 	***/

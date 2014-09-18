@@ -14,6 +14,7 @@
     <ProjectGuid>{16A8AA38-36D3-437F-922A-B808F654AAAA}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>d3d9</RootNamespace>
+    <ProjectName>vireio_proxy</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -57,6 +58,7 @@
     <ClCompile />
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="cStereoMode.cpp" />
     <ClCompile Include="D3D9ProxyCubeTexture.cpp" />
     <ClCompile Include="D3D9ProxyPixelShader.cpp" />
     <ClCompile Include="D3D9ProxySwapChain.cpp" />
@@ -96,7 +98,6 @@
     <ClCompile Include="ShaderRegisters.cpp" />
     <ClCompile Include="SharedMemoryTracker.cpp" />
     <ClCompile Include="StereoBackbuffer.cpp" />
-    <ClCompile Include="StereoMode.cpp" />
     <ClCompile Include="StereoView.cpp" />
     <ClCompile Include="Streaming\Streamer-enc-ffmpeg.cpp" />
     <ClCompile Include="Streaming\Streamer-net-udp.cpp" />
@@ -105,6 +106,7 @@
     <ClCompile Include="Vireio.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="cStereoMode.h" />
     <ClInclude Include="D3D9ProxyCubeTexture.h" />
     <ClInclude Include="D3D9ProxyPixelShader.h" />
     <ClInclude Include="D3D9ProxySwapChain.h" />
@@ -140,9 +142,9 @@
     <ClInclude Include="MatrixSurfaceRefractionTransform.h" />
     <ClInclude Include="ShaderMatrixModification.h" />
     <ClInclude Include="MatrixIgnoreOrtho.h" />
-    <ClInclude Include="StereoMode.h" />
     <ClInclude Include="Streaming\Streamer.h" />
     <ClInclude Include="Vector4EyeShiftUnity.h" />
+    <ClInclude Include="Version.h" />
     <ClInclude Include="ViewAdjustment.h" />
     <ClInclude Include="Vireio.h" />
     <ClInclude Include="MurmurHash3.h" />
@@ -220,6 +222,7 @@
     <None Include="..\data\fx\SideBySideRift.fx">
       <FileType>Document</FileType>
     </None>
+    <None Include="Exports.def" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

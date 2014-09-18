@@ -49,16 +49,16 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\DxProxy\cStereoMode.cpp" />
     <ClCompile Include="..\DxProxy\ProxyHelper.cpp" />
     <ClCompile Include="..\DxProxy\pugixml.cpp" />
-    <ClCompile Include="..\DxProxy\StereoMode.cpp" />
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\DxProxy\cStereoMode.h" />
     <ClInclude Include="..\DxProxy\ProxyHelper.h" />
     <ClInclude Include="..\DxProxy\pugiconfig.hpp" />
     <ClInclude Include="..\DxProxy\pugixml.hpp" />
-    <ClInclude Include="..\DxProxy\StereoMode.h" />
     <ClInclude Include="Resource.h" />
   </ItemGroup>
   <ItemGroup>

@@ -31,7 +31,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "D3DProxyDevice.h"
 #include "D3D9ProxySurface.h"
 #include "MotionTrackerFactory.h"
-#include "StereoMode.h"
+#include "cStereoMode.h"
 #include <typeinfo>
 #include <assert.h>
 #include <comdef.h>
@@ -124,7 +124,7 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, D3D9ProxyDirect3D* pCr
 	ProxyHelper helper = ProxyHelper();
 	helper.LoadUserConfig(mode, mode2, showNotifications);
 
-	StereoMode *hmdInfo = FindStereoMode(mode); 
+	cStereoMode *hmdInfo = FindStereoMode(mode); 
 	OutputDebugString(("Created HMD Info for: " + hmdInfo->name).c_str());
 
 

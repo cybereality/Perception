@@ -27,7 +27,7 @@
     <ClCompile Include="..\DxProxy\pugixml.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\DxProxy\StereoMode.cpp">
+    <ClCompile Include="..\DxProxy\cStereoMode.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -44,7 +44,7 @@
     <ClInclude Include="..\DxProxy\pugixml.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\DxProxy\StereoMode.h">
+    <ClInclude Include="..\DxProxy\cStereoMode.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

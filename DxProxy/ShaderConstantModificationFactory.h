@@ -113,7 +113,7 @@ public:
 			return std::make_shared<Vector4EyeShiftUnity>(mod, adjustmentMatrices);
 
 		default:
-			OutputDebugString("Nonexistant Vec4 modification\n");
+			OutputDebugStringA("Nonexistant Vec4 modification\n");
 			assert(false);
 			throw std::out_of_range ("Nonexistant Vec4 modification");
 		}
@@ -184,7 +184,7 @@ public:
 			return std::make_shared<MatrixNoShowModification>(mod, adjustmentMatrices, transpose);
 
 		default:
-			OutputDebugString("Nonexistant matrix modification\n");
+			OutputDebugStringA("Nonexistant matrix modification\n");
 			assert(false);
 			throw std::out_of_range ("Nonexistant matrix modification");
 		}

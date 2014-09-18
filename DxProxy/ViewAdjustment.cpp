@@ -36,7 +36,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * Constructor.
 * Sets class constants, identity matrices and a projection matrix.
 ***/
-ViewAdjustment::ViewAdjustment(StereoMode *displayInfo, float metersToWorldUnits, bool enableRoll) :
+ViewAdjustment::ViewAdjustment(cStereoMode *displayInfo, float metersToWorldUnits, bool enableRoll) :
 	hmdInfo(displayInfo),
 	metersToWorldMultiplier(metersToWorldUnits),
 	rollEnabled(enableRoll),
@@ -712,7 +712,7 @@ bool ViewAdjustment::RollEnabled()
 /**
 * Returns the head mounted display info.
 ***/
-StereoMode* ViewAdjustment::HMDInfo()
+cStereoMode* ViewAdjustment::HMDInfo()
 {
 	return hmdInfo;
 }

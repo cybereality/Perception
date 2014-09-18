@@ -2,7 +2,7 @@
 #include <string>
 #include <list>
 
-struct StereoMode {
+struct cStereoMode {
 	int          uid;
 	std::string  name;
 	std::string  shader;
@@ -23,5 +23,5 @@ struct StereoMode {
 	float        lensXCenterOffset;
 };
 
-std::list<StereoMode> GetStereoModes();
-StereoMode*           FindStereoMode( int uid );
+std::list<cStereoMode> GetStereoModes();
+cStereoMode*           FindStereoMode( int uid );

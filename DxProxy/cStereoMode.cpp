@@ -1,10 +1,8 @@
-#include "StereoMode.h"
-#include "StereoView.h"
+#include "cStereoMode.h"
 
+static std::list<cStereoMode> g_stereo_modes;
 
-static std::list<StereoMode> g_stereo_modes;
-
-static void Add( int uid , std::string name , std::string shader , StereoMode m ){
+static void Add( int uid , std::string name , std::string shader , cStereoMode m ){
 	m.uid    = uid;
 	m.name   = name;
 	m.shader = shader;
@@ -28,53 +26,53 @@ static void Add( int uid , std::string name , std::string shader , StereoMode m 
 
 
 
-std::list<StereoMode> GetStereoModes(){
+std::list<cStereoMode> GetStereoModes(){
 
 	if( g_stereo_modes.empty() ){
-		StereoMode dk1;
-		dk1.distortionCoefficients[0] = 1.0;
-		dk1.distortionCoefficients[1] = 0.22;
-		dk1.distortionCoefficients[2] = 0.24;
-		dk1.distortionCoefficients[3] = 0.0;
+		cStereoMode dk1;
+		dk1.distortionCoefficients[0] = 1.0f;
+		dk1.distortionCoefficients[1] = 0.22f;
+		dk1.distortionCoefficients[2] = 0.24f;
+		dk1.distortionCoefficients[3] = 0.0f;
 		dk1.resolutionWidth           = 1280;
 		dk1.resolutionHeight          = 800;
-		dk1.physicalWidth             = 0.14976;
-		dk1.physicalHeight            = 0.0935;
-		dk1.eyeToScreenDistance       = 0.041;
-		dk1.physicalLensSeparation    = 0.064; 
-		dk1.lensYCenterOffset         = 0.5;
-		dk1.lensIPDCenterOffset       = 0.0;
-		dk1.minDistortionScale        = -1.0;
+		dk1.physicalWidth             = 0.14976f;
+		dk1.physicalHeight            = 0.0935f;
+		dk1.eyeToScreenDistance       = 0.041f;
+		dk1.physicalLensSeparation    = 0.064f;
+		dk1.lensYCenterOffset         = 0.5f;
+		dk1.lensIPDCenterOffset       = 0.0f;
+		dk1.minDistortionScale        = -1.0f;
 
-		StereoMode dk2;
-		dk1.distortionCoefficients[0] = 1.0;
-		dk1.distortionCoefficients[1] = 0.15;
-		dk1.distortionCoefficients[2] = 0.05;
-		dk1.distortionCoefficients[3] = 0.0;
+		cStereoMode dk2;
+		dk1.distortionCoefficients[0] = 1.0f;
+		dk1.distortionCoefficients[1] = 0.15f;
+		dk1.distortionCoefficients[2] = 0.05f;
+		dk1.distortionCoefficients[3] = 0.0f;
 		dk1.resolutionWidth           = 1920;
 		dk1.resolutionHeight          = 1080;
-		dk1.physicalWidth             = 0.12577;
-		dk1.physicalHeight            = 0.07074;
-		dk1.eyeToScreenDistance       = 0.041;
-		dk1.physicalLensSeparation    = 0.064; 
-		dk1.lensYCenterOffset         = 0.5;
-		dk1.lensIPDCenterOffset       = 0.0;
-		dk1.minDistortionScale        = -0.5;
+		dk1.physicalWidth             = 0.12577f;
+		dk1.physicalHeight            = 0.07074f;
+		dk1.eyeToScreenDistance       = 0.041f;
+		dk1.physicalLensSeparation    = 0.064f;
+		dk1.lensYCenterOffset         = 0.5f;
+		dk1.lensIPDCenterOffset       = 0.0f;
+		dk1.minDistortionScale        = -0.5f;
 
-		StereoMode rfu;
-		dk1.distortionCoefficients[0] = 1.0;
-		dk1.distortionCoefficients[1] = 0.18;
-		dk1.distortionCoefficients[2] = 0.115;
-		dk1.distortionCoefficients[3] = 0.0;
+		cStereoMode rfu;
+		dk1.distortionCoefficients[0] = 1.0f;
+		dk1.distortionCoefficients[1] = 0.18f;
+		dk1.distortionCoefficients[2] = 0.115f;
+		dk1.distortionCoefficients[3] = 0.0f;
 		dk1.resolutionWidth           = 1920;
 		dk1.resolutionHeight          = 1080;
-		dk1.physicalWidth             = 0.1296;
-		dk1.physicalHeight            = 0.0729;
-		dk1.eyeToScreenDistance       = 0.041;
-		dk1.physicalLensSeparation    = 0.064; 
-		dk1.lensYCenterOffset         = 0.5;
-		dk1.lensIPDCenterOffset       = 0.0;
-		dk1.minDistortionScale        = -0.5;
+		dk1.physicalWidth             = 0.1296f;
+		dk1.physicalHeight            = 0.0729f;
+		dk1.eyeToScreenDistance       = 0.041f;
+		dk1.physicalLensSeparation    = 0.064f;
+		dk1.lensYCenterOffset         = 0.5f;
+		dk1.lensIPDCenterOffset       = 0.0f;
+		dk1.minDistortionScale        = -0.5f;
 
 		Add( 0    , "Disabled"                     , ""                            , dk1 );
 		Add( 1001 , "Anaglyph (Red/Cyan)"          , "AnaglyphRedCyan.fx"          , dk1 );
@@ -100,10 +98,10 @@ std::list<StereoMode> GetStereoModes(){
 }
 
 
-StereoMode* FindStereoMode( int uid ){
+cStereoMode* FindStereoMode( int uid ){
 	GetStereoModes();
 
-	for( StereoMode& m : g_stereo_modes ){
+	for( cStereoMode& m : g_stereo_modes ){
 		if( m.uid == uid ){
 			return &m;
 		}

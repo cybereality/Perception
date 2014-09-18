@@ -48,7 +48,7 @@ inline void releaseCheck(char* object, int newRefCount)
 * Constructor.
 * Sets game configuration data. Sets all member pointers to NULL to prevent uninitialized objects being used.
 ***/ 
-StereoView::StereoView(ProxyHelper::ProxyConfig& config , StereoMode *hmd )	: hmdInfo(hmd)
+StereoView::StereoView(ProxyHelper::ProxyConfig& config , cStereoMode *hmd )	: hmdInfo(hmd)
 {
 	OutputDebugString("Created SteroView\n");
 	initialized = false;

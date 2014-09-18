@@ -63,10 +63,10 @@ static bool LoadDll()
 
 	// Load DLL
 	char szBuff[MAX_PATH+64];
-	GetSystemDirectory(szBuff, sizeof(szBuff));
+	GetSystemDirectoryA(szBuff, sizeof(szBuff));
 	szBuff[MAX_PATH] = 0;
 	strcat(szBuff, "\\d3d9.dll");
-	g_hDll = LoadLibrary(szBuff);
+	g_hDll = LoadLibraryA(szBuff);
 	if(!g_hDll)
 		return false;
 
@@ -106,6 +106,23 @@ IDirect3D9* WINAPI Direct3DCreate9(UINT nSDKVersion)
 
 	// Create and return proxy interface
 	D3D9ProxyDirect3D* pWrapper = new D3D9ProxyDirect3D(pD3D);
+
+	return pWrapper;
+}
+
+IDirect3D9* WINAPI ProxyDirect3DCreate9( IDirect3D9* base ) {
+
+	// Load DLL
+	if( !LoadDll( ) )
+		return NULL;
+
+	// Create real interface
+	IDirect3D9* pD3D = base;
+	if( !pD3D )
+		return NULL;
+
+	// Create and return proxy interface
+	D3D9ProxyDirect3D* pWrapper = new D3D9ProxyDirect3D( pD3D );
 
 	return pWrapper;
 }
@@ -157,12 +174,12 @@ void Log(const char* szFormat, ...)
 	if(!pFile)
 		pFile = fopen("C:/D3D9Proxy.log", "w");
 
-	OutputDebugString(szBuff);
-	OutputDebugString("\n");
+	OutputDebugStringA(szBuff);
+	OutputDebugStringA("\n");
 	if(pFile) {
 		fwrite(szBuff, 1, strlen(szBuff), pFile);
 		fflush(pFile);
 	} else {
-		OutputDebugString("Couldn't open log file for writing.\n");
+		OutputDebugStringA("Couldn't open log file for writing.\n");
 	}
 }
