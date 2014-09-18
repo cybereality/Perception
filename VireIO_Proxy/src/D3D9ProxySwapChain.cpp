@@ -28,7 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
 #include "D3D9ProxySwapChain.h"
-#include <assert.h>
+#include "StereoView.h"
 
 /**
 * Debug output helper.
@@ -48,16 +48,11 @@ void releaseCheckO(char* object, int newRefCount)
 * @see m_backBuffers
 ***/
 D3D9ProxySwapChain::D3D9ProxySwapChain(IDirect3DSwapChain9* pActualSwapChain, D3DProxyDevice* pWrappedOwningDevice, bool isAdditionalChain) : 
-		m_pActualSwapChain(pActualSwapChain),
-		m_pOwningDevice(pWrappedOwningDevice),
-		m_nRefCount(1),
-		m_bIsAdditionalChain(isAdditionalChain),
-		m_backBuffers()
+	cBase( pActualSwapChain , pWrappedOwningDevice ) ,
+	m_bIsAdditionalChain(isAdditionalChain)
 {
 	assert (pActualSwapChain != NULL);
-	assert (m_pOwningDevice != NULL);
 
-	m_pOwningDevice->AddRef();
 	// Get creation parameters for backbuffers.
 	D3DPRESENT_PARAMETERS params;
 	pActualSwapChain->GetPresentParameters(&params);
@@ -102,31 +97,9 @@ D3D9ProxySwapChain::~D3D9ProxySwapChain()
 	}
 
 	m_backBuffers.clear();
-
-	if(m_pActualSwapChain) 
-		m_pActualSwapChain->Release();
-
-	if (m_pOwningDevice)
-		m_pOwningDevice->Release();
 }
 
 
-
-/**
-* Base QueryInterface functionality. 
-***/
-HRESULT WINAPI D3D9ProxySwapChain::QueryInterface(REFIID riid, LPVOID* ppv)
-{
-	return m_pActualSwapChain->QueryInterface(riid, ppv);
-}
-
-/**
-* Base AddRef functionality.
-***/
-ULONG WINAPI D3D9ProxySwapChain::AddRef()
-{
-	return ++m_nRefCount;
-}
 
 /**
 * Releases only additional swap chains.
@@ -136,23 +109,21 @@ ULONG WINAPI D3D9ProxySwapChain::AddRef()
 * our container for the stereo backbuffers.
 * Because of this all swap chains have to be forcibly destroyed just before a reset.
 ***/
-ULONG WINAPI D3D9ProxySwapChain::Release()
-{	
-	if (m_nRefCount > 0) { 
-		if(--m_nRefCount == 0)
-		{
-
-			if (m_bIsAdditionalChain) {
-				if(m_pActualSwapChain) 
-					m_pActualSwapChain->Release();
-
-				m_pActualSwapChain = NULL;
+ULONG WINAPI D3D9ProxySwapChain::Release(){	
+	if( refCount > 0 ) { 
+		if( --refCount == 0 ){
+			if( m_bIsAdditionalChain ){
+				if( actual ){
+					actual->Release();
+					actual = 0;
+				}
 			}
 		}
 	}
 
-	return m_nRefCount;
+	return refCount;
 }
+
 
 /**
 * Here, the stereo view render method is called.
@@ -167,15 +138,14 @@ HRESULT WINAPI D3D9ProxySwapChain::Present(CONST RECT* pSourceRect, CONST RECT* 
 
 	// Test only, StereoView needs to be properly integrated as part of SwapChain.
 	// This test allowed deus ex menus and videos to work correctly. Lots of model rendering issues in game though
-	D3DProxyDevice* pD3DProxyDev = static_cast<D3DProxyDevice*>(m_pOwningDevice);
 
 	IDirect3DSurface9* pWrappedBackBuffer;
 
 	try {
 		GetBackBuffer(0, D3DBACKBUFFER_TYPE_MONO, &pWrappedBackBuffer);
 
-		if (pD3DProxyDev->stereoView->initialized)
-			pD3DProxyDev->stereoView->Draw(static_cast<D3D9ProxySurface*>(pWrappedBackBuffer));
+		if (device->stereoView->initialized)
+			device->stereoView->Draw(static_cast<D3D9ProxySurface*>(pWrappedBackBuffer));
 
 		pWrappedBackBuffer->Release();
 	}
@@ -184,9 +154,9 @@ HRESULT WINAPI D3D9ProxySwapChain::Present(CONST RECT* pSourceRect, CONST RECT* 
 	}
 
 	// call proxy device present update
-	pD3DProxyDev->HandleUpdateExtern();
+	device->HandleUpdateExtern();
 
-	return m_pActualSwapChain->Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion, dwFlags);
+	return actual->Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion, dwFlags);
 }
 
 /**
@@ -201,14 +171,14 @@ HRESULT WINAPI D3D9ProxySwapChain::GetFrontBufferData(IDirect3DSurface9* pDestSu
 
 	HRESULT result;
 	if (!pWrappedDestSurface) {
-		result = m_pActualSwapChain->GetFrontBufferData(NULL);
+		result = actual->GetFrontBufferData(NULL);
 	}
 	else {
-		result = m_pActualSwapChain->GetFrontBufferData(pWrappedDestSurface->getActualLeft());
+		result = actual->GetFrontBufferData(pWrappedDestSurface->actual);
 
-		if (SUCCEEDED(result) && pWrappedDestSurface->getActualRight()) {
+		if (SUCCEEDED(result) && pWrappedDestSurface->right) {
 
-			if (FAILED(m_pActualSwapChain->GetFrontBufferData(pWrappedDestSurface->getActualRight()))) {
+			if (FAILED(actual->GetFrontBufferData(pWrappedDestSurface->right))) {
 				OutputDebugStringA("SwapChain::GetFrontBufferData; right problem - left ok\n");
 			}
 		}
@@ -239,7 +209,7 @@ HRESULT WINAPI D3D9ProxySwapChain::GetBackBuffer(UINT iBackBuffer, D3DBACKBUFFER
 ***/
 HRESULT WINAPI D3D9ProxySwapChain::GetRasterStatus(D3DRASTER_STATUS* pRasterStatus)
 {
-	return m_pActualSwapChain->GetRasterStatus(pRasterStatus);
+	return actual->GetRasterStatus(pRasterStatus);
 }
 
 /**
@@ -247,29 +217,17 @@ HRESULT WINAPI D3D9ProxySwapChain::GetRasterStatus(D3DRASTER_STATUS* pRasterStat
 ***/
 HRESULT WINAPI D3D9ProxySwapChain::GetDisplayMode(D3DDISPLAYMODE* pMode)
 {
-	return m_pActualSwapChain->GetDisplayMode(pMode);
+	return actual->GetDisplayMode(pMode);
 }
 
-/**
-* Base GetDevice functionality.
-***/
-HRESULT WINAPI D3D9ProxySwapChain::GetDevice(IDirect3DDevice9** ppDevice)
-{
-	if (!m_pOwningDevice)
-		return D3DERR_INVALIDCALL;
-	else {
-		*ppDevice = m_pOwningDevice;
-		m_pOwningDevice->AddRef(); 
-		return D3D_OK;
-	}
-}
+
 
 /**
 * Base GetPresentParameters functionality.
 ***/
 HRESULT WINAPI D3D9ProxySwapChain::GetPresentParameters(D3DPRESENT_PARAMETERS* pPresentationParameters)
 {
-	return m_pActualSwapChain->GetPresentParameters(pPresentationParameters);
+	return actual->GetPresentParameters(pPresentationParameters);
 }
 
 /**

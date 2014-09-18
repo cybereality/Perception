@@ -27,46 +27,19 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#ifndef DIRECT3DQUERY9_H_INCLUDED
-#define DIRECT3DQUERY9_H_INCLUDED
-
-#include <d3d9.h>
+#pragma once
 #include "D3DProxyDevice.h"
+#include <cBase.h>
 
-/**
-*  Direct 3D query class. 
-*  Overwrites IDirect3DQuery9 and imbeds the actual query.
-*/
-class D3D9ProxyQuery : public IDirect3DQuery9
-{
+
+class D3D9ProxyQuery : public cBase<IDirect3DQuery9>{
 public:
-	D3D9ProxyQuery(IDirect3DQuery9* pActualQuery, IDirect3DDevice9* pOwningDevice);
-	virtual ~D3D9ProxyQuery();
-
-	/*** IUnknown methods ***/
-	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv);
-	virtual ULONG   WINAPI AddRef();
-	virtual ULONG   WINAPI Release();
+	D3D9ProxyQuery(IDirect3DQuery9* pActualQuery, D3DProxyDevice* pOwningDevice);
 
 	/*** IDirect3DQuery9 methods ***/
-	virtual D3DQUERYTYPE WINAPI GetType();
-	virtual HRESULT	     WINAPI GetDevice(IDirect3DDevice9** ppDevice);
-    virtual DWORD        WINAPI GetDataSize();
-    virtual HRESULT      WINAPI Issue(DWORD dwIssueFlags);
-    virtual HRESULT      WINAPI GetData(void* pData, DWORD dwSize, DWORD dwGetDataFlags);
-
-protected:
-	/**
-	* The actual query embedded. 
-	***/
-	IDirect3DQuery9* const m_pActualQuery;
-	/**
-	* Pointer to the D3D device that owns the query. 
-	***/
-	IDirect3DDevice9* m_pOwningDevice;
-	/**
-	* Internal reference counter. 
-	***/
-	ULONG m_nRefCount;
+	DWORD        WINAPI GetPriority();
+	D3DQUERYTYPE WINAPI GetType();
+    DWORD        WINAPI GetDataSize();
+    HRESULT      WINAPI Issue(DWORD dwIssueFlags);
+    HRESULT      WINAPI GetData(void* pData, DWORD dwSize, DWORD dwGetDataFlags);
 };
-#endif

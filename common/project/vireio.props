@@ -14,7 +14,6 @@
     </Link>
     <ClCompile>
       <AdditionalIncludeDirectories>$(DXSDK_DIR)\Include;$(FREESPACE)\include;$(LIBOVR)\Include;$(FFMPEG)\include;$(SolutionDir)\VRboostReferee;$(SolutionDir)\DxProxy;$(SolutionDir)\DxProxy\Streaming;$(SolutionDir)\DxHijack;$(WIN_DDK_DIR)inc\atl71;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <WarningLevel />
       <TreatWarningAsError />
       <InlineFunctionExpansion />
@@ -23,8 +22,8 @@
       <OmitFramePointers />
       <EnableFiberSafeOptimizations />
       <WholeProgramOptimization />
-      <DebugInformationFormat>None</DebugInformationFormat>
-      <MinimalRebuild>false</MinimalRebuild>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
   </ItemDefinitionGroup>
 </Project>

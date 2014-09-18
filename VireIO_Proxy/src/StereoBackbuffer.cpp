@@ -52,9 +52,9 @@ StereoBackBuffer::~StereoBackBuffer()
 ***/
 ULONG WINAPI StereoBackBuffer::Release()
 {	
-	if (m_nRefCount > 0) { 
-		--m_nRefCount;
+	if (refCount > 0) { 
+		--refCount;
 	}
 
-	return m_nRefCount;
+	return refCount;
 }

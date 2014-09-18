@@ -27,9 +27,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#ifndef D3D9PROXYVERTEXSHADER_H_INCLUDED
-#define D3D9PROXYVERTEXSHADER_H_INCLUDED
-
+#pragma once
 #include <d3d9.h>
 #include <memory>
 #include <unordered_map>
@@ -39,42 +37,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ShaderRegisters.h"
 #include "D3DProxyDevice.h"
 #include "ShaderModificationRepository.h"
-
-
-class D3DProxyDevice;
-class ShaderModificationRepository;
+#include <cBase.h>
 
 /**
 *  Direct 3D proxy vertex shader class.
 *  Overwrites BaseDirect3DVertexShader9 and handles modified constants.
 */
-class D3D9ProxyVertexShader : public IDirect3DVertexShader9
+class D3D9ProxyVertexShader : public cBase<IDirect3DVertexShader9>
 {
 public:	
 	D3D9ProxyVertexShader(IDirect3DVertexShader9* pActualVertexShader, D3DProxyDevice* pOwningDevice, ShaderModificationRepository* pModLoader);
-	virtual ~D3D9ProxyVertexShader();
 
-	/*** IUnknown methods ***/
-	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv);
-	virtual ULONG   WINAPI AddRef();
-	virtual ULONG   WINAPI Release();
-	
 	/*** IDirect3DVertexShader9 methods ***/
-	virtual HRESULT WINAPI GetDevice(IDirect3DDevice9 **ppDevice);
-	virtual HRESULT WINAPI GetFunction(void *pDate, UINT *pSizeOfData);
-
-	/*** BaseDirect3DVertexShader9 methods ***/
-	IDirect3DVertexShader9* getActual();
+	HRESULT WINAPI GetFunction(void *pDate, UINT *pSizeOfData);
 
 	/*** D3D9ProxyVertexShader public methods ***/
 	std::map<UINT, StereoShaderConstant<>>* ModifiedConstants();
 	bool                                    SquishViewport();
 
 protected:
-	/**
-	* Currently not used actual owning device.
-	***/
-	IDirect3DDevice9* m_pActualDevice;
 	/**
 	* Modified shader constants.
 	* <StartRegister, StereoShaderConstant<>>
@@ -85,18 +66,4 @@ protected:
 	* True if viewport should be squished (seen as GUI) if this shader is set.
 	***/
 	bool m_bSquishViewport;
-
-	/**
-	* The actual vertex shader embedded. 
-	***/
-	IDirect3DVertexShader9* const m_pActualVertexShader;
-	/**
-	* Pointer to the D3D device that owns the shader. 
-	***/
-	IDirect3DDevice9* m_pOwningDevice;
-	/**
-	* Internal reference counter. 
-	***/
-	ULONG m_nRefCount;
 };
-#endif

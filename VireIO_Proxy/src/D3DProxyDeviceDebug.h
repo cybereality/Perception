@@ -27,10 +27,10 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#ifndef D3DPROXYDEVICEDEBUG_H_INCLUDED
-#define D3DPROXYDEVICEDEBUG_H_INCLUDED
+#pragma once
 
 #include "D3DProxyDevice.h"
+#include <fstream>
 #include <cConfig.h>
 
 /**
@@ -116,5 +116,3 @@ private:
 	***/
 	std::ofstream m_logFile;
 };
-
-#endif

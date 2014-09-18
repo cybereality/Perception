@@ -29,6 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "StereoView.h"
 #include <Streamer.h>
+#include "D3D9ProxySurface.h"
 /**
 * Tiny debug helper.
 * Outputs debug info if object reference counter is not zero when release.
@@ -236,12 +237,12 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 {
 	// Copy left and right surfaces to textures to use as shader input
 	// TODO match aspect ratio of source in target ? 
-	IDirect3DSurface9* leftImage = stereoCapableSurface->getActualLeft();
-	IDirect3DSurface9* rightImage = stereoCapableSurface->getActualRight();
+	IDirect3DSurface9* leftImage = stereoCapableSurface->actual;
+	IDirect3DSurface9* rightImage = stereoCapableSurface->right;
 
 	m_pActualDevice->StretchRect(leftImage, NULL, leftSurface, NULL, D3DTEXF_NONE);
 
-	if (stereoCapableSurface->IsStereo())
+	if (stereoCapableSurface->right)
 		m_pActualDevice->StretchRect(rightImage, NULL, rightSurface, NULL, D3DTEXF_NONE);
 	else
 		m_pActualDevice->StretchRect(leftImage, NULL, rightSurface, NULL, D3DTEXF_NONE);

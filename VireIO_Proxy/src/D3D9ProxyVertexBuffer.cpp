@@ -28,167 +28,73 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
 #include "D3D9ProxyVertexBuffer.h"
-#include <assert.h>
+
 
 /**
 * Constructor. 
 * @param pActualVertexBuffer Imbed actual vertex buffer. 
 * @param pOwningDevice Pointer to the device that owns the buffer. 
 ***/
-D3D9ProxyVertexBuffer::D3D9ProxyVertexBuffer(IDirect3DVertexBuffer9* pActualVertexBuffer, IDirect3DDevice9* pOwningDevice) :
-	m_pActualVertexBuffer(pActualVertexBuffer),
-	m_pOwningDevice(pOwningDevice),
-	m_nRefCount(1)
+D3D9ProxyVertexBuffer::D3D9ProxyVertexBuffer(IDirect3DVertexBuffer9* pActualVertexBuffer, D3DProxyDevice* pOwningDevice) :
+	cBase( pActualVertexBuffer , pOwningDevice )
 {
-	assert (pActualVertexBuffer != NULL);
-	assert (pOwningDevice != NULL);
-
-	pOwningDevice->AddRef();
 }
 
-/**
-* Destructor. 
-* Releases embedded vertex buffer. 
-***/
-D3D9ProxyVertexBuffer::~D3D9ProxyVertexBuffer()
-{
-	if(m_pActualVertexBuffer) {
-		m_pActualVertexBuffer->Release();
-	}
 
-	if (m_pOwningDevice) {
-		m_pOwningDevice->Release();
-	}
-}
-
-/**
-* Base QueryInterface functionality. 
-***/
-HRESULT WINAPI D3D9ProxyVertexBuffer::QueryInterface(REFIID riid, LPVOID* ppv)
-{
-	return m_pActualVertexBuffer->QueryInterface(riid, ppv);
-}
-
-/**
-* Base AddRef functionality.
-***/
-ULONG WINAPI D3D9ProxyVertexBuffer::AddRef()
-{
-	return ++m_nRefCount;
-}
-
-/**
-* Base Release functionality.
-***/
-ULONG WINAPI D3D9ProxyVertexBuffer::Release()
-{
-	if(--m_nRefCount == 0)
-	{
-		delete this;
-		return 0;
-	}
-
-	return m_nRefCount;
-}
-
-/**
-* Base GetDevice functionality.
-***/
-HRESULT WINAPI D3D9ProxyVertexBuffer::GetDevice(IDirect3DDevice9** ppDevice)
-{
-	if (!m_pOwningDevice)
-		return D3DERR_INVALIDCALL;
-	else {
-		*ppDevice = m_pOwningDevice;
-		m_pOwningDevice->AddRef(); 
-		return D3D_OK;
-	}
-}
-
-/**
-* Base SetPrivateData functionality.
-***/
 HRESULT WINAPI D3D9ProxyVertexBuffer::SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags)
 {
-	return m_pActualVertexBuffer->SetPrivateData(refguid, pData, SizeOfData, Flags);
+	return actual->SetPrivateData(refguid, pData, SizeOfData, Flags);
 }
 
-/**
-* Base GetPrivateData functionality.
-***/
+
 HRESULT WINAPI D3D9ProxyVertexBuffer::GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData)
 {
-	return m_pActualVertexBuffer->GetPrivateData(refguid, pData, pSizeOfData);
+	return actual->GetPrivateData(refguid, pData, pSizeOfData);
 }
 
-/**
-* Base FreePrivateData functionality.
-***/
+
 HRESULT WINAPI D3D9ProxyVertexBuffer::FreePrivateData(REFGUID refguid)
 {
-	return m_pActualVertexBuffer->FreePrivateData(refguid);
+	return actual->FreePrivateData(refguid);
 }
 
-/**
-* Base SetPriority functionality.
-***/
+
 DWORD WINAPI D3D9ProxyVertexBuffer::SetPriority(DWORD PriorityNew)
 {
-	return m_pActualVertexBuffer->SetPriority(PriorityNew);
+	return actual->SetPriority(PriorityNew);
 }
 
-/**
-* Base GetPriority functionality.
-***/
+
 DWORD WINAPI D3D9ProxyVertexBuffer::GetPriority()
 {
-	return m_pActualVertexBuffer->GetPriority();
+	return actual->GetPriority();
 }
 
-/**
-* Base PreLoad functionality.
-***/
+
 void WINAPI D3D9ProxyVertexBuffer::PreLoad()
 {
-	return m_pActualVertexBuffer->PreLoad();
+	return actual->PreLoad();
 }
 
-/**
-* Base GetType functionality.
-***/
 D3DRESOURCETYPE WINAPI D3D9ProxyVertexBuffer::GetType()
 {
-	return m_pActualVertexBuffer->GetType();
+	return actual->GetType();
 }
 
-/**
-* Base Lock functionality.
-***/
+
 HRESULT WINAPI D3D9ProxyVertexBuffer::Lock(UINT OffsetToLock, UINT SizeToLock, VOID **ppbData, DWORD Flags)
 {
-	return m_pActualVertexBuffer->Lock(OffsetToLock, SizeToLock, ppbData, Flags);
+	return actual->Lock(OffsetToLock, SizeToLock, ppbData, Flags);
 }
 
-/**
-* Base Unlock functionality.
-***/
+
 HRESULT WINAPI D3D9ProxyVertexBuffer::Unlock()
 {
-	return m_pActualVertexBuffer->Unlock();
+	return actual->Unlock();
 }
 
-/**
-* Base GetDesc functionality.
-***/
+
 HRESULT WINAPI D3D9ProxyVertexBuffer::GetDesc(D3DVERTEXBUFFER_DESC *pDesc)
 {
-	return m_pActualVertexBuffer->GetDesc(pDesc);
-}
-
-/**
-* Returns the actual embedded buffer pointer.
-***/
-IDirect3DVertexBuffer9* D3D9ProxyVertexBuffer::getActual()
-{
-	return m_pActualVertexBuffer;
+	return actual->GetDesc(pDesc);
 }

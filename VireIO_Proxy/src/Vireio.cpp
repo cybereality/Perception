@@ -56,22 +56,22 @@ namespace vireio {
 		case D3DRTYPE_TEXTURE:
 			{
 				D3D9ProxyTexture* pDerivedTexture = static_cast<D3D9ProxyTexture*> (pWrappedTexture);
-				*ppActualLeftTexture = pDerivedTexture->getActualLeft();
-				*ppActualRightTexture = pDerivedTexture->getActualRight();
+				*ppActualLeftTexture = pDerivedTexture->actual;
+				*ppActualRightTexture = pDerivedTexture->right;
 
 				break;
 			}
 		case D3DRTYPE_VOLUMETEXTURE:
 			{
 				D3D9ProxyVolumeTexture* pDerivedTexture = static_cast<D3D9ProxyVolumeTexture*> (pWrappedTexture);
-				*ppActualLeftTexture = pDerivedTexture->getActual();
+				*ppActualLeftTexture = pDerivedTexture->actual;
 				break;
 			}
 		case D3DRTYPE_CUBETEXTURE:
 			{
 				D3D9ProxyCubeTexture* pDerivedTexture = static_cast<D3D9ProxyCubeTexture*> (pWrappedTexture);
-				*ppActualLeftTexture = pDerivedTexture->getActualLeft();
-				*ppActualRightTexture = pDerivedTexture->getActualRight();
+				*ppActualLeftTexture = pDerivedTexture->actual;
+				*ppActualRightTexture = pDerivedTexture->right;
 				break;
 			}
 

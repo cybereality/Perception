@@ -27,29 +27,24 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#ifndef DIRECT3DVERTEXBUFFER9_H_INCLUDED
-#define DIRECT3DVERTEXBUFFER9_H_INCLUDED
-
+#pragma once
 #include <d3d9.h>
-class D3DProxyDevice;
+
+class D3D9ProxyVertexBuffer;
+
+#include "D3DProxyDevice.h"
+#include <cBase.h>
+
 
 /**
 *  Direct 3D vertex buffer class. 
 *  Overwrites IDirect3DVertexBuffer9 and imbeds the actual vertex buffer.
 */
-class D3D9ProxyVertexBuffer : public IDirect3DVertexBuffer9
-{
+class D3D9ProxyVertexBuffer : public cBase<IDirect3DVertexBuffer9>{
 public:
-	D3D9ProxyVertexBuffer(IDirect3DVertexBuffer9* pActualVertexBuffer, IDirect3DDevice9* pOwningDevice);
-	virtual ~D3D9ProxyVertexBuffer();
-
-	//*** IUnknown methods ***/
-	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv);
-	virtual ULONG   WINAPI AddRef();
-	virtual ULONG   WINAPI Release();
+	D3D9ProxyVertexBuffer(IDirect3DVertexBuffer9* pActualVertexBuffer, D3DProxyDevice* pOwningDevice);
 
 	/*** IDirect3DResource9 methods ***/
-	virtual HRESULT         WINAPI GetDevice(IDirect3DDevice9** ppDevice);
 	virtual HRESULT         WINAPI SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags);
 	virtual HRESULT         WINAPI GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData);
 	virtual HRESULT         WINAPI FreePrivateData(REFGUID refguid);
@@ -60,23 +55,4 @@ public:
 	virtual HRESULT         WINAPI Lock(UINT OffsetToLock, UINT SizeToLock, VOID **ppbData, DWORD Flags);
 	virtual HRESULT         WINAPI Unlock();
 	virtual HRESULT         WINAPI GetDesc(D3DVERTEXBUFFER_DESC *pDesc);
-	
-	/*** D3D9ProxyVertexBuffer methods ***/
-	IDirect3DVertexBuffer9* getActual();
-
-protected:
-	/**
-	* The actual vertex buffer embedded. 
-	***/
-	IDirect3DVertexBuffer9* const m_pActualVertexBuffer;
-	/**
-	* Pointer to the D3D device that owns the buffer. 
-	***/
-	IDirect3DDevice9* m_pOwningDevice;
-	/**
-	* Internal reference counter. 
-	***/
-	ULONG m_nRefCount;
 };
-
-#endif

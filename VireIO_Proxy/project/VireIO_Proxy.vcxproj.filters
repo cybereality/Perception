@@ -358,9 +358,6 @@
     <ClInclude Include="..\src\ViewAdjustment.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\Vireio.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\Streaming\inttypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -398,6 +395,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\common\pugixml.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\cBase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

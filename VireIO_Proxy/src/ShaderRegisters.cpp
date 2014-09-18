@@ -521,11 +521,11 @@ void ShaderRegisters::ActivePixelShaderChanged(D3D9ProxyPixelShader* pNewPixelSh
 
 	if (pNewPixelShader) {
 
-		std::map<UINT, StereoShaderConstant<float>>* pNewShaderModConstants = pNewPixelShader->ModifiedConstants();
+		std::map<UINT, StereoShaderConstant<float>>* pNewShaderModConstants = &pNewPixelShader->m_modifiedConstants;
 
 		std::map<UINT, StereoShaderConstant<float>>* pOldShaderModConstants = NULL;
 		if (m_pActivePixelShader)
-			pOldShaderModConstants = m_pActivePixelShader->ModifiedConstants();
+			pOldShaderModConstants = &m_pActivePixelShader->m_modifiedConstants;
 
 		// Update the data in new shader constants with data from matching constants from last shader.
 		auto itNewConstants = pNewShaderModConstants->begin();
@@ -536,7 +536,7 @@ void ShaderRegisters::ActivePixelShaderChanged(D3D9ProxyPixelShader* pNewPixelSh
 			if (pOldShaderModConstants) {
 				// No idea if this is saving any time or if it would be better to just mark all the registers dirty 
 				// and re-apply the constants on first draw
-				if (m_pActivePixelShader->ModifiedConstants()->count(itNewConstants->first) == 1) {
+				if (m_pActivePixelShader->m_modifiedConstants.count(itNewConstants->first) == 1) {
 					if (pOldShaderModConstants->at(itNewConstants->first).SameConstantAs(itNewConstants->second)) {
 						(*pNewShaderModConstants).at(itNewConstants->first) = (*pOldShaderModConstants).at(itNewConstants->first);
 						mightBeDirty = false;
@@ -621,8 +621,8 @@ void ShaderRegisters::ApplyStereoConstantsPS(vireio::RenderPosition currentSide,
 	if (!m_pActivePixelShader)
 		return;
 
-	auto itStereoConstant = m_pActivePixelShader->ModifiedConstants()->begin();
-	while (itStereoConstant != m_pActivePixelShader->ModifiedConstants()->end()) {
+	auto itStereoConstant = m_pActivePixelShader->m_modifiedConstants.begin();
+	while (itStereoConstant != m_pActivePixelShader->m_modifiedConstants.end()) {
 
 		// if any of the registers that make up this constant are dirty update before setting
 		if ( AnyDirtyPS(itStereoConstant->second.StartRegister(), itStereoConstant->second.Count())) { // Should we do this or make this method just switch sides without checking for updated data? 
@@ -673,8 +673,8 @@ void ShaderRegisters::MarkAllPSStereoConstantsDirty()
 	// pixel shader
 	if (m_pActivePixelShader) {
 		// Mark all StereoShaderConstants dirty so they are updated before drawing
-		auto itStereoConstant = m_pActivePixelShader->ModifiedConstants()->begin();
-		while (itStereoConstant != m_pActivePixelShader->ModifiedConstants()->end()) {
+		auto itStereoConstant = m_pActivePixelShader->m_modifiedConstants.begin();
+		while (itStereoConstant != m_pActivePixelShader->m_modifiedConstants.end()) {
 
 			m_dirtyPSRegistersF.insert(itStereoConstant->first);
 			++itStereoConstant;

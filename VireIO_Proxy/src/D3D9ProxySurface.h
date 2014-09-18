@@ -27,90 +27,33 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#ifndef D3D9PROXYSURFACE_H_INCLUDED
-#define D3D9PROXYSURFACE_H_INCLUDED
+#pragma once
+#include "D3DProxyDevice.h"
+#include <cBase.h>
 
-#include <d3d9.h>
-#include "IStereoCapableWrapper.h"
-#include <stdio.h>
-
-class D3DProxyDevice;
 /**
 *  Direct 3D proxy surface class. 
 *  Overwrites wrapped surface class (BaseDirect3DSurface9) and imbeds additional right surface.
 */
-class D3D9ProxySurface : public IDirect3DSurface9, public IStereoCapableWrapper<IDirect3DSurface9>
-{
+class D3D9ProxySurface : public cBase<IDirect3DSurface9> {
 public:
 	D3D9ProxySurface(IDirect3DSurface9* pActualSurfaceLeft, IDirect3DSurface9* pActualSurfaceRight, D3DProxyDevice* pOwningDevice, IUnknown* pWrappedContainer);
-	virtual ~D3D9ProxySurface();
-
-	/*** IUnknown methods ***/
-	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv);
-	virtual ULONG   WINAPI AddRef();
-	virtual ULONG   WINAPI Release();
+	~D3D9ProxySurface();
 
 	/*** IDirect3DResource9 methods ***/
-	virtual HRESULT         WINAPI GetDevice(IDirect3DDevice9** ppDevice);
-	virtual HRESULT         WINAPI SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags);
-	virtual HRESULT         WINAPI GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData);
-	virtual HRESULT         WINAPI FreePrivateData(REFGUID refguid);
-	virtual DWORD           WINAPI SetPriority(DWORD PriorityNew);
-	virtual DWORD           WINAPI GetPriority();
-	virtual void            WINAPI PreLoad();
-	virtual D3DRESOURCETYPE WINAPI GetType();
-	virtual HRESULT         WINAPI GetContainer(REFIID riid, LPVOID* ppContainer);
-	virtual HRESULT         WINAPI GetDesc(D3DSURFACE_DESC *pDesc);
-	virtual HRESULT         WINAPI LockRect(D3DLOCKED_RECT* pLockedRect, CONST RECT* pRect, DWORD Flags);
-	virtual HRESULT         WINAPI UnlockRect();
-	virtual HRESULT         WINAPI GetDC(HDC *phdc);
-	virtual HRESULT         WINAPI ReleaseDC(HDC hdc);
+	HRESULT         WINAPI SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags);
+	HRESULT         WINAPI GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData);
+	HRESULT         WINAPI FreePrivateData(REFGUID refguid);
+	DWORD           WINAPI SetPriority(DWORD PriorityNew);
+	DWORD           WINAPI GetPriority();
+	void            WINAPI PreLoad();
+	D3DRESOURCETYPE WINAPI GetType();
+	HRESULT         WINAPI GetContainer(REFIID riid, LPVOID* ppContainer);
+	HRESULT         WINAPI GetDesc(D3DSURFACE_DESC *pDesc);
+	HRESULT         WINAPI LockRect(D3DLOCKED_RECT* pLockedRect, CONST RECT* pRect, DWORD Flags);
+	HRESULT         WINAPI UnlockRect();
+	HRESULT         WINAPI GetDC(HDC *phdc);
+	HRESULT         WINAPI ReleaseDC(HDC hdc);
 
-
-	/*** D3D9ProxySurface methods ***/
-	virtual IDirect3DSurface9* getActualMono();
-	virtual IDirect3DSurface9* getActualLeft();
-	virtual IDirect3DSurface9* getActualRight();
-	virtual bool               IsStereo();
-
-protected:
-	/**
-	* Container this surface is part of. Texture, CubeTexture, SwapChain, (other?) NULL if standalone surface.
-	*
-	* If a surface is in a container then they use the containers ref count as a shared total ref count.
-	* The container is responsible for deleting any surfaces it contains when the ref count reaches 0.
-	* Surfaces must be deleted before the container.
-	***/
-	IUnknown* const m_pWrappedContainer;
-	/** 
-	* Device that created this surface.
-	* If in a container we don't add a ref or release the device when done because...
-	* D3D only keeps one ref to the device for the container and all its surfaces. A contained
-	* Surface doesn't exist without its container, if the container is destroyed so is the surface.
-	* The container handles the device ref count changes.
-	*
-	* This device pointer is maintained here to simplify GetDevice. Normally keeping the pointer would need
-	* an add ref, but that would produce different results compared to D3Ds normal behvaiour.
-	* As the surface is destroyed with the container this should be safe enough.
-	* 
-	* It would probably be more correct to remove this pointer and use QueryInterface to check for 
-	* IDirect3DResource9 or Direct3DISwapChain9 then cast the container to the appropriate interface 
-	* and the use GetDevice to fetch the device. 
-	***/
-	D3DProxyDevice* const m_pOwningDevice;
-	/**
-	* Right surface. 
-	* NULL for surfaces that aren't being duplicated.
-	***/
-	IDirect3DSurface9* const m_pActualSurfaceRight;
-
-	/**
-	* The actual surface embedded. 
-	***/
-	IDirect3DSurface9* const m_pActualSurface;
-	/**
-	* Internal reference counter. 
-	***/
-	ULONG m_nRefCount;
+	IDirect3DSurface9* right;
 };
-#endif

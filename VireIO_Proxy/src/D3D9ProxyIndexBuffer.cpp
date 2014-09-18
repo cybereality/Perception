@@ -35,82 +35,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * @param pActualIndexBuffer Imbed actual index buffer. 
 * @param pOwningDevice Pointer to the device that owns the buffer. 
 ***/
-D3D9ProxyIndexBuffer::D3D9ProxyIndexBuffer(IDirect3DIndexBuffer9* pActualIndexBuffer, IDirect3DDevice9* pOwningDevice) :
-	m_pActualIndexBuffer(pActualIndexBuffer),
-	m_pOwningDevice(pOwningDevice),
-	m_nRefCount(1)
+D3D9ProxyIndexBuffer::D3D9ProxyIndexBuffer(IDirect3DIndexBuffer9* pActualIndexBuffer, D3DProxyDevice* pOwningDevice) :
+	cBase( pActualIndexBuffer , pOwningDevice )
 {
-	assert (pActualIndexBuffer != NULL);
-	assert (pOwningDevice != NULL);
-
-	pOwningDevice->AddRef();
 }
 
-/**
-* Destructor. 
-* Releases embedded index buffer. 
-***/
-D3D9ProxyIndexBuffer::~D3D9ProxyIndexBuffer()
-{
-	if(m_pActualIndexBuffer) {
-		m_pActualIndexBuffer->Release();
-	}
-
-	if (m_pOwningDevice) {
-		m_pOwningDevice->Release();
-	}
-}
-
-/**
-* Base QueryInterface functionality. 
-***/
-HRESULT WINAPI D3D9ProxyIndexBuffer::QueryInterface(REFIID riid, LPVOID* ppv)
-{
-	return m_pActualIndexBuffer->QueryInterface(riid, ppv);
-}
-
-/**
-* Base AddRef functionality.
-***/
-ULONG WINAPI D3D9ProxyIndexBuffer::AddRef()
-{
-	return ++m_nRefCount;
-}
-
-/**
-* Base Release functionality.
-***/
-ULONG WINAPI D3D9ProxyIndexBuffer::Release()
-{
-	if(--m_nRefCount == 0)
-	{
-		delete this;
-		return 0;
-	}
-
-	return m_nRefCount;
-}
-
-/**
-* Base GetDevice functionality.
-***/
-HRESULT WINAPI D3D9ProxyIndexBuffer::GetDevice(IDirect3DDevice9** ppDevice)
-{
-	if (!m_pOwningDevice)
-		return D3DERR_INVALIDCALL;
-	else {
-		*ppDevice = m_pOwningDevice;
-		m_pOwningDevice->AddRef(); 
-		return D3D_OK;
-	}
-}
 
 /**
 * Base SetPrivateData functionality.
 ***/
 HRESULT WINAPI D3D9ProxyIndexBuffer::SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags)
 {
-	return m_pActualIndexBuffer->SetPrivateData(refguid, pData, SizeOfData, Flags);
+	return actual->SetPrivateData(refguid, pData, SizeOfData, Flags);
 }
 
 /**
@@ -118,7 +54,7 @@ HRESULT WINAPI D3D9ProxyIndexBuffer::SetPrivateData(REFGUID refguid, CONST void*
 ***/
 HRESULT WINAPI D3D9ProxyIndexBuffer::GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData)
 {
-	return m_pActualIndexBuffer->GetPrivateData(refguid, pData, pSizeOfData);
+	return actual->GetPrivateData(refguid, pData, pSizeOfData);
 }
 
 /**
@@ -126,7 +62,7 @@ HRESULT WINAPI D3D9ProxyIndexBuffer::GetPrivateData(REFGUID refguid, void* pData
 ***/
 HRESULT WINAPI D3D9ProxyIndexBuffer::FreePrivateData(REFGUID refguid)
 {
-	return m_pActualIndexBuffer->FreePrivateData(refguid);
+	return actual->FreePrivateData(refguid);
 }
 
 /**
@@ -134,7 +70,7 @@ HRESULT WINAPI D3D9ProxyIndexBuffer::FreePrivateData(REFGUID refguid)
 ***/
 DWORD WINAPI D3D9ProxyIndexBuffer::SetPriority(DWORD PriorityNew)
 {
-	return m_pActualIndexBuffer->SetPriority(PriorityNew);
+	return actual->SetPriority(PriorityNew);
 }
 
 /**
@@ -142,7 +78,7 @@ DWORD WINAPI D3D9ProxyIndexBuffer::SetPriority(DWORD PriorityNew)
 ***/
 DWORD WINAPI D3D9ProxyIndexBuffer::GetPriority()
 {
-	return m_pActualIndexBuffer->GetPriority();
+	return actual->GetPriority();
 }
 
 /**
@@ -150,7 +86,7 @@ DWORD WINAPI D3D9ProxyIndexBuffer::GetPriority()
 ***/
 void WINAPI D3D9ProxyIndexBuffer::PreLoad()
 {
-	return m_pActualIndexBuffer->PreLoad();
+	return actual->PreLoad();
 }
 
 /**
@@ -158,7 +94,7 @@ void WINAPI D3D9ProxyIndexBuffer::PreLoad()
 ***/
 D3DRESOURCETYPE WINAPI D3D9ProxyIndexBuffer::GetType()
 {
-	return m_pActualIndexBuffer->GetType();
+	return actual->GetType();
 }
 
 /**
@@ -166,7 +102,7 @@ D3DRESOURCETYPE WINAPI D3D9ProxyIndexBuffer::GetType()
 ***/
 HRESULT WINAPI D3D9ProxyIndexBuffer::Lock(UINT OffsetToLock, UINT SizeToLock, VOID **ppbData, DWORD Flags)
 {
-	return m_pActualIndexBuffer->Lock(OffsetToLock, SizeToLock, ppbData, Flags);
+	return actual->Lock(OffsetToLock, SizeToLock, ppbData, Flags);
 }
 
 /**
@@ -174,7 +110,7 @@ HRESULT WINAPI D3D9ProxyIndexBuffer::Lock(UINT OffsetToLock, UINT SizeToLock, VO
 ***/
 HRESULT WINAPI D3D9ProxyIndexBuffer::Unlock()
 {
-	return m_pActualIndexBuffer->Unlock();
+	return actual->Unlock();
 }
 
 /**
@@ -182,13 +118,6 @@ HRESULT WINAPI D3D9ProxyIndexBuffer::Unlock()
 ***/
 HRESULT WINAPI D3D9ProxyIndexBuffer::GetDesc(D3DINDEXBUFFER_DESC *pDesc)
 {
-	return m_pActualIndexBuffer->GetDesc(pDesc);
+	return actual->GetDesc(pDesc);
 }
 
-/**
-* Returns the actual embedded buffer pointer.
-***/
-IDirect3DIndexBuffer9* D3D9ProxyIndexBuffer::getActual()
-{
-	return m_pActualIndexBuffer;
-}

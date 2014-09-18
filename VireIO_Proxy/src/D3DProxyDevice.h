@@ -35,40 +35,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define BRASSA_PIXEL_WIDTH 1920
 #define BRASSA_PIXEL_HEIGHT 1080
 
-
-#include "D3D9ProxySurface.h"
-#include "D3D9ProxyTexture.h"
-#include "D3D9ProxyVolumeTexture.h"
-#include "D3D9ProxyCubeTexture.h"
-#include "D3D9ProxyStateBlock.h"
-#include "D3D9ProxySwapChain.h"
-#include "D3D9ProxyVertexShader.h"
-#include "D3D9ProxyPixelShader.h"
-
-#include "D3D9ProxyDirect3D.h"
-#include "D3D9ProxyVertexBuffer.h"
-#include "D3D9ProxyIndexBuffer.h"
-#include "D3D9ProxyVertexDeclaration.h"
-#include "D3D9ProxyQuery.h"
-
-#include "StereoView.h"
-#include "MotionTracker.h"
+#include <VireIO.h>
 #include <d3dx9.h>
 #include <XInput.h>
-#include <stdio.h>
-#include <iostream>
-#include <fstream>
-#include <vector>
 #include <memory>
-#include <ctime>
-#include "Vireio.h"
-#include "StereoShaderConstant.h"
-#include "StereoBackBuffer.h"
-#include "GameHandler.h"
-#include "ShaderRegisters.h"
-#include "ViewAdjustment.h"
+#include <unordered_map>
 #include "InputControls.h"
-#include "VRBoostEnums.h"
 #include "DirectInput.h"
 #include <cConfig.h>
 
@@ -915,7 +887,7 @@ private:
 	* Private to force you to think about whether you really need direct 
 	* access to the actual device. Can be accessed via getActual(). 
 	***/
-	IDirect3DDevice9* m_pDevice;
+	IDirect3DDevice9* actual;
 	/**
 	* Pointer to the D3D object that created the device. 
 	***/

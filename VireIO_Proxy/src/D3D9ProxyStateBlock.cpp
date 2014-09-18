@@ -42,10 +42,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * @see CaptureSelectedFromProxyDevice()
 ***/
 D3D9ProxyStateBlock::D3D9ProxyStateBlock(IDirect3DStateBlock9* pActualStateBlock, D3DProxyDevice *pOwningDevice, CaptureType type, bool isSideLeft) :
-	m_pActualStateBlock(pActualStateBlock),
-	m_pOwningDevice(pOwningDevice),
-	m_nRefCount(1),
-	m_pWrappedDevice(pOwningDevice),
+	cBase( pActualStateBlock , pOwningDevice ) , 
 	m_eCaptureMode(type),
 	m_storedTextureStages(),
 	m_storedVertexBuffers(),
@@ -61,14 +58,13 @@ D3D9ProxyStateBlock::D3D9ProxyStateBlock(IDirect3DStateBlock9* pActualStateBlock
 	m_storedAllVSRegistersF(),
 	m_selectedVertexConstantRegistersF()
 {
-	assert (pOwningDevice != NULL);
-	pOwningDevice->AddRef();
 
 	if (!pActualStateBlock) {
 		assert(type == Cap_Type_Selected);
 	}
 
-	m_pWrappedDevice->AddRef();
+	// as device. what for?
+	device->AddRef();
 
 	m_pStoredIndicies = NULL;
 	m_pStoredVertexShader = NULL;
@@ -134,68 +130,9 @@ D3D9ProxyStateBlock::~D3D9ProxyStateBlock()
 	m_selectedPixelConstantRegistersF.clear();
 	m_selectedVertexConstantRegistersF.clear();
 
-	m_pWrappedDevice->Release();
-
-	if(m_pActualStateBlock) 
-		m_pActualStateBlock->Release();
-
-	m_pOwningDevice->Release();
+	//was device. what for?
+	device->Release();
 }
-
-
-
-
-
-/**
-* Base QueryInterface functionality. 
-***/
-HRESULT WINAPI D3D9ProxyStateBlock::QueryInterface(REFIID riid, LPVOID* ppv)
-{
-	if (!m_pActualStateBlock) {
-		OutputDebugStringA("Proxy state block is missing actual state block.\n");
-		return D3DERR_INVALIDCALL;
-	}
-
-	return m_pActualStateBlock->QueryInterface(riid, ppv);
-}
-
-/**
-* Base AddRef functionality.
-***/
-ULONG WINAPI D3D9ProxyStateBlock::AddRef()
-{
-	return ++m_nRefCount;
-}
-
-/**
-* Base Release functionality.
-***/
-ULONG WINAPI D3D9ProxyStateBlock::Release()
-{
-	if(--m_nRefCount == 0)
-	{
-		delete this;
-		return 0;
-	}
-
-	return m_nRefCount;
-}
-
-/**
-* Base GetDevice functionality.
-* TODO D3D behaviour. Docs don't have the notice that is usually there about a refcount increase
-***/
-HRESULT WINAPI D3D9ProxyStateBlock::GetDevice(IDirect3DDevice9** ppDevice)
-{
-	if (!m_pOwningDevice)
-		return D3DERR_INVALIDCALL;
-	else {
-		*ppDevice = m_pOwningDevice;
-		//m_pOwningDevice->AddRef(); //TODO D3D behaviour. Docs don't have the notice that is usually there about a refcount increase
-		return D3D_OK;
-	}
-}
-
 
 
 /**
@@ -205,12 +142,12 @@ HRESULT WINAPI D3D9ProxyStateBlock::GetDevice(IDirect3DDevice9** ppDevice)
 HRESULT WINAPI D3D9ProxyStateBlock::Capture()
 {
 
-	if (!m_pActualStateBlock) {
+	if (!actual) {
 		OutputDebugStringA("Proxy state block is missing actual state block.\n");
 		return D3DERR_INVALIDCALL;
 	}
 
-	HRESULT result = m_pActualStateBlock->Capture();
+	HRESULT result = actual->Capture();
 
 	if (SUCCEEDED(result)) {
 		CaptureSelectedFromProxyDevice();
@@ -242,26 +179,26 @@ HRESULT WINAPI D3D9ProxyStateBlock::Capture()
 HRESULT WINAPI D3D9ProxyStateBlock::Apply()
 {
 
-	if (!m_pActualStateBlock) {
+	if (!actual) {
 		OutputDebugStringA("Proxy state block is missing actual state block.\n");
 		return D3DERR_INVALIDCALL;
 	}
 
 	// assert that device isn't in the middle of a begin/end stateblock capture cycle because said situation is not accounted for 
 	// (probably an error in D3D but haven't tested to check)
-	assert (!m_pWrappedDevice->m_bInBeginEndStateBlock);
+	assert (!device->m_bInBeginEndStateBlock);
 
 
 	// If all stereo states recorded on the same side then switch the proxy device to that side
 	if (m_eSidesAre == SidesAllLeft) {
-		m_pWrappedDevice->setDrawingSide(vireio::Left);
+		device->setDrawingSide(vireio::Left);
 	}
 	else if (m_eSidesAre == SidesAllRight) {
-		m_pWrappedDevice->setDrawingSide(vireio::Right);
+		device->setDrawingSide(vireio::Right);
 	}
 
 
-	HRESULT result = m_pActualStateBlock->Apply();
+	HRESULT result = actual->Apply();
 
 	if (SUCCEEDED(result)) {
 
@@ -286,16 +223,16 @@ HRESULT WINAPI D3D9ProxyStateBlock::Apply()
 		while (itVertexBuffer != m_storedVertexBuffers.end()) {
 
 			// Remove and Release existing buffer in proxy device
-			if (m_pWrappedDevice->m_activeVertexBuffers.count(itVertexBuffer->first) == 1) {
+			if (device->m_activeVertexBuffers.count(itVertexBuffer->first) == 1) {
 
-				auto removing = m_pWrappedDevice->m_activeVertexBuffers[itVertexBuffer->first];
+				auto removing = device->m_activeVertexBuffers[itVertexBuffer->first];
 				if (removing != NULL) {
 					removing->Release();
 				}
-				m_pWrappedDevice->m_activeVertexBuffers.erase(itVertexBuffer->first);
+				device->m_activeVertexBuffers.erase(itVertexBuffer->first);
 			}
 
-			auto inserted = m_pWrappedDevice->m_activeVertexBuffers.insert(std::pair<UINT, D3D9ProxyVertexBuffer*>(itVertexBuffer->first, itVertexBuffer->second));
+			auto inserted = device->m_activeVertexBuffers.insert(std::pair<UINT, D3D9ProxyVertexBuffer*>(itVertexBuffer->first, itVertexBuffer->second));
 			// insert success and buffer not NULL
 			if (inserted.second && inserted.first->second) {
 				inserted.first->second->AddRef();
@@ -312,28 +249,28 @@ HRESULT WINAPI D3D9ProxyStateBlock::Apply()
 		case Cap_Type_Selected:
 
 			if (m_selectedStates.count(VertexShader) == 1) 
-				m_pWrappedDevice->m_spManagedShaderRegisters->SetFromStateBlockVertexShader(m_pStoredVertexShader);
+				device->m_spManagedShaderRegisters->SetFromStateBlockVertexShader(m_pStoredVertexShader);
 			if (m_selectedStates.count(PixelShader) == 1)
-				m_pWrappedDevice->m_spManagedShaderRegisters->SetFromStateBlockPixelShader(m_pStoredPixelShader);
+				device->m_spManagedShaderRegisters->SetFromStateBlockPixelShader(m_pStoredPixelShader);
 
-			m_pWrappedDevice->m_spManagedShaderRegisters->SetFromStateBlockData(&m_storedSelectedVSRegistersF, &m_storedSelectedPSRegistersF);
+			device->m_spManagedShaderRegisters->SetFromStateBlockData(&m_storedSelectedVSRegistersF, &m_storedSelectedPSRegistersF);
 			break;
 
 		case Cap_Type_Full:
-			m_pWrappedDevice->m_spManagedShaderRegisters->SetFromStateBlockVertexShader(m_pStoredVertexShader);
-			m_pWrappedDevice->m_spManagedShaderRegisters->SetFromStateBlockPixelShader(m_pStoredPixelShader);
-			m_pWrappedDevice->m_spManagedShaderRegisters->SetFromStateBlockData(&m_storedAllVSRegistersF, &m_storedAllPSRegistersF);
+			device->m_spManagedShaderRegisters->SetFromStateBlockVertexShader(m_pStoredVertexShader);
+			device->m_spManagedShaderRegisters->SetFromStateBlockPixelShader(m_pStoredPixelShader);
+			device->m_spManagedShaderRegisters->SetFromStateBlockData(&m_storedAllVSRegistersF, &m_storedAllPSRegistersF);
 			break;
 
 		case Cap_Type_Vertex:
-			m_pWrappedDevice->m_spManagedShaderRegisters->SetFromStateBlockVertexShader(m_pStoredVertexShader);
-			m_pWrappedDevice->m_spManagedShaderRegisters->SetFromStateBlockData(&m_storedAllVSRegistersF, NULL);
+			device->m_spManagedShaderRegisters->SetFromStateBlockVertexShader(m_pStoredVertexShader);
+			device->m_spManagedShaderRegisters->SetFromStateBlockData(&m_storedAllVSRegistersF, NULL);
 			break;
 
 		case Cap_Type_Pixel:
 		default:
-			m_pWrappedDevice->m_spManagedShaderRegisters->SetFromStateBlockPixelShader(m_pStoredPixelShader);
-			m_pWrappedDevice->m_spManagedShaderRegisters->SetFromStateBlockData(NULL, &m_storedAllPSRegistersF);
+			device->m_spManagedShaderRegisters->SetFromStateBlockPixelShader(m_pStoredPixelShader);
+			device->m_spManagedShaderRegisters->SetFromStateBlockData(NULL, &m_storedAllPSRegistersF);
 			break;
 		}
 
@@ -346,7 +283,7 @@ HRESULT WINAPI D3D9ProxyStateBlock::Apply()
 			auto itTextures = m_storedTextureStages.begin();
 			while (itTextures != m_storedTextureStages.end()) {
 
-				m_pWrappedDevice->SetTexture(itTextures->first, itTextures->second);
+				device->SetTexture(itTextures->first, itTextures->second);
 				++itTextures;
 			}
 		}
@@ -359,16 +296,16 @@ HRESULT WINAPI D3D9ProxyStateBlock::Apply()
 			while (itTextures != m_storedTextureStages.end()) {
 
 				// Remove and Release existing active texture in proxy device
-				if (m_pWrappedDevice->m_activeTextureStages.count(itTextures->first) == 1) {
+				if (device->m_activeTextureStages.count(itTextures->first) == 1) {
 
-					auto removing = m_pWrappedDevice->m_activeTextureStages[itTextures->first];
+					auto removing = device->m_activeTextureStages[itTextures->first];
 					if (removing != NULL) {
 						removing->Release();
 					}
-					m_pWrappedDevice->m_activeTextureStages.erase(itTextures->first);
+					device->m_activeTextureStages.erase(itTextures->first);
 				}
 
-				auto inserted = m_pWrappedDevice->m_activeTextureStages.insert(std::pair<DWORD, IDirect3DBaseTexture9*>(itTextures->first, itTextures->second));
+				auto inserted = device->m_activeTextureStages.insert(std::pair<DWORD, IDirect3DBaseTexture9*>(itTextures->first, itTextures->second));
 				// insert success and texture not NULL
 				if (inserted.second && inserted.first->second) {
 					inserted.first->second->AddRef();
@@ -392,8 +329,8 @@ HRESULT WINAPI D3D9ProxyStateBlock::Apply()
 void D3D9ProxyStateBlock::SelectAndCaptureState(D3D9ProxyIndexBuffer* pWrappedIndexBuffer)
 {
 	assert(m_eCaptureMode == Cap_Type_Selected);
-	assert (m_pWrappedDevice->m_bInBeginEndStateBlock);
-	assert (!m_pActualStateBlock);
+	assert (device->m_bInBeginEndStateBlock);
+	assert (!actual);
 
 	if (!m_selectedStates.insert(IndexBuffer).second) {
 		// Release existing
@@ -417,8 +354,8 @@ void D3D9ProxyStateBlock::SelectAndCaptureState(D3D9ProxyIndexBuffer* pWrappedIn
 void D3D9ProxyStateBlock::SelectAndCaptureState(D3DVIEWPORT9 viewport)
 {
 	assert(m_eCaptureMode == Cap_Type_Selected);
-	assert (!m_pActualStateBlock);
-	assert (m_pWrappedDevice->m_bInBeginEndStateBlock);
+	assert (!actual);
+	assert (device->m_bInBeginEndStateBlock);
 
 	m_selectedStates.insert(Viewport);
 
@@ -437,8 +374,8 @@ void D3D9ProxyStateBlock::SelectAndCaptureState(D3DVIEWPORT9 viewport)
 void D3D9ProxyStateBlock::SelectAndCaptureViewTransform(D3DXMATRIX left, D3DXMATRIX right)
 {
 	assert(m_eCaptureMode == Cap_Type_Selected);
-	assert (m_pWrappedDevice->m_bInBeginEndStateBlock);
-	assert (!m_pActualStateBlock);
+	assert (device->m_bInBeginEndStateBlock);
+	assert (!actual);
 
 	m_selectedStates.insert(ViewMatrices);
 
@@ -460,8 +397,8 @@ void D3D9ProxyStateBlock::SelectAndCaptureViewTransform(D3DXMATRIX left, D3DXMAT
 void D3D9ProxyStateBlock::SelectAndCaptureProjectionTransform(D3DXMATRIX left, D3DXMATRIX right)
 {
 	assert(m_eCaptureMode == Cap_Type_Selected);
-	assert (m_pWrappedDevice->m_bInBeginEndStateBlock);
-	assert (!m_pActualStateBlock);
+	assert (device->m_bInBeginEndStateBlock);
+	assert (!actual);
 
 	m_selectedStates.insert(ProjectionMatrices);
 
@@ -480,8 +417,8 @@ void D3D9ProxyStateBlock::SelectAndCaptureProjectionTransform(D3DXMATRIX left, D
 void D3D9ProxyStateBlock::SelectAndCaptureState(D3D9ProxyPixelShader* pWrappedPixelShader)
 {
 	assert(m_eCaptureMode == Cap_Type_Selected);
-	assert (m_pWrappedDevice->m_bInBeginEndStateBlock);
-	assert (!m_pActualStateBlock);
+	assert (device->m_bInBeginEndStateBlock);
+	assert (!actual);
 
 	if (!m_selectedStates.insert(PixelShader).second) {
 		// Release existing
@@ -505,8 +442,8 @@ void D3D9ProxyStateBlock::SelectAndCaptureState(D3D9ProxyPixelShader* pWrappedPi
 void D3D9ProxyStateBlock::SelectAndCaptureState(D3D9ProxyVertexShader* pWrappedVertexShader)
 {
 	assert(m_eCaptureMode == Cap_Type_Selected);
-	assert (m_pWrappedDevice->m_bInBeginEndStateBlock);
-	assert (!m_pActualStateBlock);
+	assert (device->m_bInBeginEndStateBlock);
+	assert (!actual);
 
 	if (!m_selectedStates.insert(VertexShader).second) {
 		// Release existing
@@ -530,8 +467,8 @@ void D3D9ProxyStateBlock::SelectAndCaptureState(D3D9ProxyVertexShader* pWrappedV
 void D3D9ProxyStateBlock::SelectAndCaptureState(D3D9ProxyVertexDeclaration* pWrappedVertexDeclaration)
 {
 	assert(m_eCaptureMode == Cap_Type_Selected);
-	assert (m_pWrappedDevice->m_bInBeginEndStateBlock);
-	assert (!m_pActualStateBlock);
+	assert (device->m_bInBeginEndStateBlock);
+	assert (!actual);
 
 	if (!m_selectedStates.insert(VertexDeclaration).second) {
 		// Release existing
@@ -556,8 +493,8 @@ void D3D9ProxyStateBlock::SelectAndCaptureState(D3D9ProxyVertexDeclaration* pWra
 void D3D9ProxyStateBlock::SelectAndCaptureState(DWORD Stage, IDirect3DBaseTexture9* pWrappedTexture)
 {
 	assert(m_eCaptureMode == Cap_Type_Selected);
-	assert (m_pWrappedDevice->m_bInBeginEndStateBlock);
-	assert (!m_pActualStateBlock);
+	assert (device->m_bInBeginEndStateBlock);
+	assert (!actual);
 
 	m_selectedTextureSamplers.insert(Stage);
 
@@ -586,8 +523,8 @@ void D3D9ProxyStateBlock::SelectAndCaptureState(DWORD Stage, IDirect3DBaseTextur
 void D3D9ProxyStateBlock::SelectAndCaptureState(UINT StreamNumber, D3D9ProxyVertexBuffer* pWrappedStreamData)
 {
 	assert(m_eCaptureMode == Cap_Type_Selected);
-	assert (m_pWrappedDevice->m_bInBeginEndStateBlock);
-	assert (!m_pActualStateBlock);
+	assert (device->m_bInBeginEndStateBlock);
+	assert (!actual);
 
 	m_selectedVertexStreams.insert(StreamNumber);
 
@@ -616,12 +553,12 @@ void D3D9ProxyStateBlock::SelectAndCaptureState(UINT StreamNumber, D3D9ProxyVert
 HRESULT WINAPI D3D9ProxyStateBlock::SelectAndCaptureStateVSConst(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount)
 {
 	assert(m_eCaptureMode == Cap_Type_Selected);
-	assert (m_pWrappedDevice->m_bInBeginEndStateBlock);
-	assert (!m_pActualStateBlock);
+	assert (device->m_bInBeginEndStateBlock);
+	assert (!actual);
 
 	// The assumption here is that most registers won't need to be stereo so we set them all on the actual device imiediately and overwrite the stereo ones 
 	// when we Apply. (if there are any). This Simplifies "Apply" when this block is applied later.
-	HRESULT result = m_pOwningDevice->SetVertexShaderConstantF(StartRegister, pConstantData, Vector4fCount);
+	HRESULT result = device->SetVertexShaderConstantF(StartRegister, pConstantData, Vector4fCount);
 
 	if (SUCCEEDED(result)) {
 		// Mark these registers as being tracked and save them
@@ -644,12 +581,12 @@ HRESULT WINAPI D3D9ProxyStateBlock::SelectAndCaptureStateVSConst(UINT StartRegis
 HRESULT WINAPI D3D9ProxyStateBlock::SelectAndCaptureStatePSConst(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount)
 {
 	assert(m_eCaptureMode == Cap_Type_Selected);
-	assert (m_pWrappedDevice->m_bInBeginEndStateBlock);
-	assert (!m_pActualStateBlock);
+	assert (device->m_bInBeginEndStateBlock);
+	assert (!actual);
 
 	// The assumption here is that most registers won't need to be stereo so we set them all on the actual device imiediately and overwrite the stereo ones 
 	// when we Apply. (if there are any). This Simplifies "Apply" when this block is applied later.
-	HRESULT result = m_pOwningDevice->SetPixelShaderConstantF(StartRegister, pConstantData, Vector4fCount);
+	HRESULT result = device->SetPixelShaderConstantF(StartRegister, pConstantData, Vector4fCount);
 
 	if (SUCCEEDED(result)) {
 		// Mark these registers as being tracked and save them
@@ -672,7 +609,7 @@ void D3D9ProxyStateBlock::EndStateBlock(IDirect3DStateBlock9* pActualStateBlock)
 {
 	assert (pActualStateBlock != NULL);
 
-	m_pActualStateBlock = pActualStateBlock;
+	actual = pActualStateBlock;
 }
 
 /*void D3D9ProxyStateBlock::ClearSelected(UINT StartRegister) 
@@ -715,7 +652,7 @@ void D3D9ProxyStateBlock::CaptureSelectedFromProxyDevice()
 			// if full - copy all textures, vertex buffers and shader constants.
 
 			// Textures
-			m_storedTextureStages = m_pWrappedDevice->m_activeTextureStages;
+			m_storedTextureStages = device->m_activeTextureStages;
 
 			// TODO Do we need to copy Textures rather than just keeping reference. Textures could be changed (have new data stretched/copied into them) 
 			// TODO Check actual behaviour of state block. Is it saving a reference to the texture or a copy of the texture??
@@ -730,7 +667,7 @@ void D3D9ProxyStateBlock::CaptureSelectedFromProxyDevice()
 
 
 			// Vertex buffers
-			m_storedVertexBuffers = m_pWrappedDevice->m_activeVertexBuffers;
+			m_storedVertexBuffers = device->m_activeVertexBuffers;
 
 			// TODO same question as for Textures above
 			// Need to increase ref count on all copied vbs
@@ -744,16 +681,16 @@ void D3D9ProxyStateBlock::CaptureSelectedFromProxyDevice()
 
 
 			// Vertex Shader constants
-			m_storedAllVSRegistersF = m_pWrappedDevice->m_spManagedShaderRegisters->GetAllVSConstantRegistersF();
+			m_storedAllVSRegistersF = device->m_spManagedShaderRegisters->GetAllVSConstantRegistersF();
 			// Pixel Shader constants
-			m_storedAllPSRegistersF = m_pWrappedDevice->m_spManagedShaderRegisters->GetAllPSConstantRegistersF();
+			m_storedAllPSRegistersF = device->m_spManagedShaderRegisters->GetAllPSConstantRegistersF();
 			break;
 		}
 
 	case Cap_Type_Vertex:
 		{
 			// Vertex Shader constants
-			m_storedAllVSRegistersF = m_pWrappedDevice->m_spManagedShaderRegisters->GetAllVSConstantRegistersF();
+			m_storedAllVSRegistersF = device->m_spManagedShaderRegisters->GetAllVSConstantRegistersF();
 
 			break;
 		}
@@ -761,7 +698,7 @@ void D3D9ProxyStateBlock::CaptureSelectedFromProxyDevice()
 	case Cap_Type_Pixel:
 		{
 			// Pixel Shader constants
-			m_storedAllPSRegistersF = m_pWrappedDevice->m_spManagedShaderRegisters->GetAllPSConstantRegistersF();
+			m_storedAllPSRegistersF = device->m_spManagedShaderRegisters->GetAllPSConstantRegistersF();
 			break;
 		}
 
@@ -772,9 +709,9 @@ void D3D9ProxyStateBlock::CaptureSelectedFromProxyDevice()
 			auto itSelectedTextures = m_selectedTextureSamplers.begin();
 			while (itSelectedTextures != m_selectedTextureSamplers.end()) {
 
-				if (m_pWrappedDevice->m_activeTextureStages.count(*itSelectedTextures) == 1) {
+				if (device->m_activeTextureStages.count(*itSelectedTextures) == 1) {
 
-					auto inserted = m_storedTextureStages.insert(std::pair<DWORD, IDirect3DBaseTexture9*>(*itSelectedTextures, m_pWrappedDevice->m_activeTextureStages[*itSelectedTextures]));
+					auto inserted = m_storedTextureStages.insert(std::pair<DWORD, IDirect3DBaseTexture9*>(*itSelectedTextures, device->m_activeTextureStages[*itSelectedTextures]));
 					// insert success and texture is not NULL
 					if (inserted.second && inserted.first->second) {
 						inserted.first->second->AddRef();
@@ -792,9 +729,9 @@ void D3D9ProxyStateBlock::CaptureSelectedFromProxyDevice()
 			auto itSelectedVertexStreams = m_selectedVertexStreams.begin();
 			while (itSelectedVertexStreams != m_selectedVertexStreams.end()) {
 
-				if (m_pWrappedDevice->m_activeVertexBuffers.count(*itSelectedVertexStreams) == 1) {
+				if (device->m_activeVertexBuffers.count(*itSelectedVertexStreams) == 1) {
 
-					auto inserted = m_storedVertexBuffers.insert(std::pair<UINT, D3D9ProxyVertexBuffer*>(*itSelectedVertexStreams, m_pWrappedDevice->m_activeVertexBuffers[*itSelectedVertexStreams]));
+					auto inserted = m_storedVertexBuffers.insert(std::pair<UINT, D3D9ProxyVertexBuffer*>(*itSelectedVertexStreams, device->m_activeVertexBuffers[*itSelectedVertexStreams]));
 					// insert success and buffer is not NULL
 					if (inserted.second && inserted.first->second) {
 						inserted.first->second->AddRef();
@@ -814,7 +751,7 @@ void D3D9ProxyStateBlock::CaptureSelectedFromProxyDevice()
 			auto itSelectedVertexConstants = m_selectedVertexConstantRegistersF.begin();
 			while (itSelectedVertexConstants != m_selectedVertexConstantRegistersF.end()) {
 
-				m_pWrappedDevice->m_spManagedShaderRegisters->GetVertexShaderConstantF(*itSelectedVertexConstants, currentRegister, 1);
+				device->m_spManagedShaderRegisters->GetVertexShaderConstantF(*itSelectedVertexConstants, currentRegister, 1);
 
 				m_storedSelectedVSRegistersF.insert(std::pair<UINT, D3DXVECTOR4>(*itSelectedVertexConstants, currentRegister));
 
@@ -825,7 +762,7 @@ void D3D9ProxyStateBlock::CaptureSelectedFromProxyDevice()
 			auto itSelectedPixelConstants = m_selectedPixelConstantRegistersF.begin();
 			while (itSelectedPixelConstants != m_selectedPixelConstantRegistersF.end()) {
 
-				m_pWrappedDevice->m_spManagedShaderRegisters->GetPixelShaderConstantF(*itSelectedPixelConstants, currentRegister, 1);
+				device->m_spManagedShaderRegisters->GetPixelShaderConstantF(*itSelectedPixelConstants, currentRegister, 1);
 
 				m_storedSelectedPSRegistersF.insert(std::pair<UINT, D3DXVECTOR4>(*itSelectedPixelConstants, currentRegister));
 
@@ -843,10 +780,10 @@ void D3D9ProxyStateBlock::CaptureSelectedFromProxyDevice()
 	}
 
 
-	if (m_pWrappedDevice->m_currentRenderingSide == vireio::Left) {
+	if (device->m_currentRenderingSide == vireio::Left) {
 		m_eSidesAre = SidesAllLeft;
 	}
-	else if (m_pWrappedDevice->m_currentRenderingSide == vireio::Right) {
+	else if (device->m_currentRenderingSide == vireio::Right) {
 		m_eSidesAre = SidesAllRight;
 	}
 	else {
@@ -865,7 +802,7 @@ void D3D9ProxyStateBlock::Capture(CaptureableState toCap)
 	{
 	case IndexBuffer: 
 		{
-			m_pStoredIndicies = m_pWrappedDevice->m_pActiveIndicies;
+			m_pStoredIndicies = device->m_pActiveIndicies;
 			if (m_pStoredIndicies)
 				m_pStoredIndicies->AddRef();
 
@@ -874,27 +811,27 @@ void D3D9ProxyStateBlock::Capture(CaptureableState toCap)
 
 	case Viewport: 
 		{
-			m_storedViewport = m_pWrappedDevice->m_LastViewportSet;
+			m_storedViewport = device->m_LastViewportSet;
 			break;
 		}
 
 	case ViewMatrices: 
 		{
-			m_storedLeftView = m_pWrappedDevice->m_leftView;
-			m_storedRightView = m_pWrappedDevice->m_rightView;
+			m_storedLeftView = device->m_leftView;
+			m_storedRightView = device->m_rightView;
 			break;
 		}
 
 	case ProjectionMatrices: 
 		{
-			m_storedLeftProjection = m_pWrappedDevice->m_leftProjection;
-			m_storedRightProjection = m_pWrappedDevice->m_rightProjection;
+			m_storedLeftProjection = device->m_leftProjection;
+			m_storedRightProjection = device->m_rightProjection;
 			break;
 		}
 
 	case PixelShader: 
 		{
-			m_pStoredPixelShader = m_pWrappedDevice->m_pActivePixelShader;
+			m_pStoredPixelShader = device->m_pActivePixelShader;
 			if (m_pStoredPixelShader)
 				m_pStoredPixelShader->AddRef();
 
@@ -903,7 +840,7 @@ void D3D9ProxyStateBlock::Capture(CaptureableState toCap)
 
 	case VertexShader: 
 		{
-			m_pStoredVertexShader = m_pWrappedDevice->m_pActiveVertexShader;
+			m_pStoredVertexShader = device->m_pActiveVertexShader;
 			if (m_pStoredVertexShader)
 				m_pStoredVertexShader->AddRef();
 
@@ -912,7 +849,7 @@ void D3D9ProxyStateBlock::Capture(CaptureableState toCap)
 
 	case VertexDeclaration: 
 		{
-			m_pStoredVertexDeclaration = m_pWrappedDevice->m_pActiveVertexDeclaration;
+			m_pStoredVertexDeclaration = device->m_pActiveVertexDeclaration;
 			if (m_pStoredVertexDeclaration)
 				m_pStoredVertexDeclaration->AddRef();
 
@@ -992,11 +929,11 @@ void D3D9ProxyStateBlock::Apply(CaptureableState toApply, bool reApplyStereo)
 	{
 	case IndexBuffer: 
 		{
-			if (m_pWrappedDevice->m_pActiveIndicies)
-				m_pWrappedDevice->m_pActiveIndicies->Release();
+			if (device->m_pActiveIndicies)
+				device->m_pActiveIndicies->Release();
 
-			m_pWrappedDevice->m_pActiveIndicies = m_pStoredIndicies;
-			if (m_pWrappedDevice->m_pActiveIndicies)
+			device->m_pActiveIndicies = m_pStoredIndicies;
+			if (device->m_pActiveIndicies)
 				m_pStoredIndicies->AddRef();
 
 			break;
@@ -1004,58 +941,58 @@ void D3D9ProxyStateBlock::Apply(CaptureableState toApply, bool reApplyStereo)
 
 	case Viewport: 
 		{
-			m_pWrappedDevice->m_LastViewportSet = m_storedViewport;
-			m_pWrappedDevice->m_bActiveViewportIsDefault = m_pWrappedDevice->isViewportDefaultForMainRT(&m_storedViewport);
+			device->m_LastViewportSet = m_storedViewport;
+			device->m_bActiveViewportIsDefault = device->isViewportDefaultForMainRT(&m_storedViewport);
 
 			break;
 		}
 
 	case ViewMatrices: 
 		{
-			m_pWrappedDevice->SetStereoViewTransform(m_storedLeftView, m_storedRightView, reApplyStereo);
+			device->SetStereoViewTransform(m_storedLeftView, m_storedRightView, reApplyStereo);
 
 			break;
 		}
 
 	case ProjectionMatrices: 
 		{
-			m_pWrappedDevice->SetStereoProjectionTransform(m_storedLeftProjection, m_storedRightProjection, reApplyStereo);
+			device->SetStereoProjectionTransform(m_storedLeftProjection, m_storedRightProjection, reApplyStereo);
 
 			break;
 		}
 
 	case PixelShader: 
 		{
-			if (m_pWrappedDevice->m_pActivePixelShader)
-				m_pWrappedDevice->m_pActivePixelShader->Release();
+			if (device->m_pActivePixelShader)
+				device->m_pActivePixelShader->Release();
 
-			m_pWrappedDevice->m_pActivePixelShader = m_pStoredPixelShader;
-			if (m_pWrappedDevice->m_pActivePixelShader)
-				m_pWrappedDevice->m_pActivePixelShader->AddRef();
+			device->m_pActivePixelShader = m_pStoredPixelShader;
+			if (device->m_pActivePixelShader)
+				device->m_pActivePixelShader->AddRef();
 
 			break;
 		}
 
 	case VertexShader: 
 		{
-			if (m_pWrappedDevice->m_pActiveVertexShader)
-				m_pWrappedDevice->m_pActiveVertexShader->Release();
+			if (device->m_pActiveVertexShader)
+				device->m_pActiveVertexShader->Release();
 
-			m_pWrappedDevice->m_pActiveVertexShader = m_pStoredVertexShader;
-			if (m_pWrappedDevice->m_pActiveVertexShader)
-				m_pWrappedDevice->m_pActiveVertexShader->AddRef();
+			device->m_pActiveVertexShader = m_pStoredVertexShader;
+			if (device->m_pActiveVertexShader)
+				device->m_pActiveVertexShader->AddRef();
 
 			break;
 		}
 
 	case VertexDeclaration: 
 		{
-			if (m_pWrappedDevice->m_pActiveVertexDeclaration)
-				m_pWrappedDevice->m_pActiveVertexDeclaration->Release();
+			if (device->m_pActiveVertexDeclaration)
+				device->m_pActiveVertexDeclaration->Release();
 
-			m_pWrappedDevice->m_pActiveVertexDeclaration = m_pStoredVertexDeclaration;
-			if (m_pWrappedDevice->m_pActiveVertexDeclaration)
-				m_pWrappedDevice->m_pActiveVertexDeclaration->AddRef();
+			device->m_pActiveVertexDeclaration = m_pStoredVertexDeclaration;
+			if (device->m_pActiveVertexDeclaration)
+				device->m_pActiveVertexDeclaration->AddRef();
 
 			break;
 		}
@@ -1079,8 +1016,8 @@ inline void D3D9ProxyStateBlock::updateCaptureSideTracking()
 	if (m_eSidesAre == SidesMixed)
 		return;
 
-	if (((m_pWrappedDevice->m_currentRenderingSide == vireio::Left) && (m_eSidesAre != SidesAllLeft)) ||
-		((m_pWrappedDevice->m_currentRenderingSide == vireio::Right) && (m_eSidesAre != SidesAllRight))) {
+	if (((device->m_currentRenderingSide == vireio::Left) && (m_eSidesAre != SidesAllLeft)) ||
+		((device->m_currentRenderingSide == vireio::Right) && (m_eSidesAre != SidesAllRight))) {
 
 			m_eSidesAre = SidesMixed;
 	}

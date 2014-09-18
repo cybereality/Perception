@@ -34,103 +34,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * @param pModLoader Can be NULL (no modifications in this game profile).
 ***/
 D3D9ProxyVertexShader::D3D9ProxyVertexShader(IDirect3DVertexShader9* pActualVertexShader, D3DProxyDevice *pOwningDevice, ShaderModificationRepository* pModLoader) :
-	m_pActualVertexShader(pActualVertexShader),
-	m_pOwningDevice(pOwningDevice),
-	m_nRefCount(1),
-	m_pActualDevice(pOwningDevice->getActual()),
-	m_modifiedConstants()
+	cBase( pActualVertexShader , pOwningDevice )
 {
-	assert (pActualVertexShader != NULL);
-	assert (pOwningDevice != NULL);
-	
-	pOwningDevice->AddRef();
-
-	if (pModLoader)
-	{
+	if( pModLoader ){
 		m_modifiedConstants = pModLoader->GetModifiedConstantsF(pActualVertexShader);
 		m_bSquishViewport = pModLoader->SquishViewportForShader(pActualVertexShader);
-	}
-	else m_bSquishViewport = false;
-}
-
-/**
-* Empty destructor.
-***/
-D3D9ProxyVertexShader::~D3D9ProxyVertexShader()
-{
-	if(m_pActualVertexShader) 
-		m_pActualVertexShader->Release();
-
-	if (m_pOwningDevice)
-		m_pOwningDevice->Release();
-}
-
-
-
-
-
-/**
-* Base QueryInterface functionality. 
-***/
-HRESULT WINAPI D3D9ProxyVertexShader::QueryInterface(REFIID riid, LPVOID* ppv)
-{
-	return m_pActualVertexShader->QueryInterface(riid, ppv);
-}
-
-/**
-* Base AddRef functionality.
-***/
-ULONG WINAPI D3D9ProxyVertexShader::AddRef()
-{
-	return ++m_nRefCount;
-}
-
-/**
-* Base Release functionality.
-***/
-ULONG WINAPI D3D9ProxyVertexShader::Release()
-{
-	if(--m_nRefCount == 0)
-	{
-		delete this;
-		return 0;
-	}
-
-	return m_nRefCount;
-}
-
-/**
-* Base GetDevice functionality.
-* TODO D3D behaviour. Docs don't have the notice that is usually there about a refcount increase
-***/
-HRESULT WINAPI D3D9ProxyVertexShader::GetDevice(IDirect3DDevice9** ppDevice)
-{
-	if (!m_pOwningDevice)
-		return D3DERR_INVALIDCALL;
-	else {
-		*ppDevice = m_pOwningDevice;
-		//m_pOwningDevice->AddRef(); //TODO Test this. Docs don't have the notice that is usually there about a refcount increase
-		return D3D_OK;
+	}else{
+		m_bSquishViewport = false;
 	}
 }
+
+
 
 /**
 * Base GetFunction functionality.
 ***/
 HRESULT WINAPI D3D9ProxyVertexShader::GetFunction(void *pDate, UINT *pSizeOfData)
 {
-	return m_pActualVertexShader->GetFunction(pDate, pSizeOfData);
+	return actual->GetFunction(pDate, pSizeOfData);
 }
-
-/**
-* Returns the actual embedded shader pointer.
-***/
-IDirect3DVertexShader9* D3D9ProxyVertexShader::getActual()
-{
-	return m_pActualVertexShader;
-}
-
-
 
 
 /**

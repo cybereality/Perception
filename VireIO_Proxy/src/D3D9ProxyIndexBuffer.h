@@ -27,29 +27,22 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#ifndef DIRECT3DINDEXBUFFER9_H_INCLUDED
-#define DIRECT3DINDEXBUFFER9_H_INCLUDED
-
-#include <d3d9.h>
+#pragma once
 #include "D3DProxyDevice.h"
+#include <cBase.h>
+
 
 /**
 *  Direct 3D index buffer class. 
 *  Overwrites IDirect3DIndexBuffer9 and imbeds the actual index buffer.
 */
-class D3D9ProxyIndexBuffer : public IDirect3DIndexBuffer9
+class D3D9ProxyIndexBuffer : public cBase<IDirect3DIndexBuffer9>
 {
 public:
-	D3D9ProxyIndexBuffer(IDirect3DIndexBuffer9* pActualIndexBuffer, IDirect3DDevice9* pOwningDevice);
+	D3D9ProxyIndexBuffer(IDirect3DIndexBuffer9* pActualIndexBuffer, D3DProxyDevice* pOwningDevice);
 	virtual ~D3D9ProxyIndexBuffer();
 
-	/*** IUnknown methods ***/
-	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv);
-	virtual ULONG   WINAPI AddRef();
-	virtual ULONG   WINAPI Release();
-
 	/*** IDirect3DResource9 methods ***/
-	virtual HRESULT         WINAPI GetDevice(IDirect3DDevice9** ppDevice);
 	virtual HRESULT         WINAPI SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags);
 	virtual HRESULT         WINAPI GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData);
 	virtual HRESULT	        WINAPI FreePrivateData(REFGUID refguid);
@@ -60,23 +53,4 @@ public:
 	virtual HRESULT         WINAPI Lock(UINT OffsetToLock, UINT SizeToLock, VOID **ppbData, DWORD Flags);
 	virtual HRESULT         WINAPI Unlock();
 	virtual HRESULT         WINAPI GetDesc(D3DINDEXBUFFER_DESC *pDesc);
-
-	/*** D3D9ProxyIndexBuffer methods ***/
-	IDirect3DIndexBuffer9* getActual();
-
-protected:
-	/**
-	* The actual index buffer embedded. 
-	***/
-	IDirect3DIndexBuffer9* const m_pActualIndexBuffer;
-	/**
-	* Pointer to the D3D device that owns the buffer. 
-	***/
-	IDirect3DDevice9* m_pOwningDevice;
-	/**
-	* Internal reference counter. 
-	***/
-	ULONG m_nRefCount;
 };
-
-#endif

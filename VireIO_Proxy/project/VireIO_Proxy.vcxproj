@@ -108,6 +108,7 @@
     <ClCompile Include="..\src\Vireio.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\common\cBase.h" />
     <ClInclude Include="..\..\common\cConfig.h" />
     <ClInclude Include="..\..\common\cGame.h" />
     <ClInclude Include="..\..\common\cGameProfile.h" />
@@ -183,7 +184,6 @@
     <ClInclude Include="..\src\Vector4SimpleTranslate.h" />
     <ClInclude Include="..\src\Version.h" />
     <ClInclude Include="..\src\ViewAdjustment.h" />
-    <ClInclude Include="..\src\Vireio.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

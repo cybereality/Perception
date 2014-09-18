@@ -306,7 +306,7 @@ HRESULT WINAPI DataGatherer::CreateVertexShader(CONST DWORD* pFunction,IDirect3D
 
 	if (SUCCEEDED(creationResult)) {
 		D3D9ProxyVertexShader* pWrappedShader = static_cast<D3D9ProxyVertexShader*>(*ppShader);
-		IDirect3DVertexShader9* pActualShader = pWrappedShader->getActual();
+		IDirect3DVertexShader9* pActualShader = pWrappedShader->actual;
 
 		// No idea what happens if the same vertex shader is created twice. Pointer to the same shader or two
 		// separate instances? guessing separate in which case m_recordedShader as is is pointless. 
@@ -526,7 +526,7 @@ HRESULT WINAPI DataGatherer::CreatePixelShader(CONST DWORD* pFunction,IDirect3DP
 
 	if (SUCCEEDED(creationResult)) {
 		D3D9ProxyPixelShader* pWrappedShader = static_cast<D3D9ProxyPixelShader*>(*ppShader);
-		IDirect3DPixelShader9* pActualShader = pWrappedShader->getActual();
+		IDirect3DPixelShader9* pActualShader = pWrappedShader->actual;
 
 		// No idea what happens if the same vertex shader is created twice. Pointer to the same shader or two
 		// separate instances? guessing separate in which case m_recordedShader as is is pointless. 

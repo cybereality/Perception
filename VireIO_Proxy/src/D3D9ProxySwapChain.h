@@ -27,70 +27,31 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#ifndef D3DPROXYSWAPCHAIN_H_INCLUDED
-#define D3DPROXYSWAPCHAIN_H_INCLUDED
-
-#include <d3d9.h>
-#include <vector>
+#pragma once
 #include "D3D9ProxySurface.h"
 #include "D3DProxyDevice.h"
+#include <cBase.h>
+#include <vector>
 
-
-class D3DProxyDevice;
-
-/**
-*  Direct 3D proxy swap chain class. 
-*  Overwrites BaseDirect3DSwapChain9 and imbeds the back buffers and front buffer data.
-*/
-class D3D9ProxySwapChain : public IDirect3DSwapChain9
-{
+class D3D9ProxySwapChain : public cBase<IDirect3DSwapChain9>{
 public:
 	D3D9ProxySwapChain(IDirect3DSwapChain9* pActualSwapChain, D3DProxyDevice* pWrappedOwningDevice, bool isAdditionalChain);
-	virtual ~D3D9ProxySwapChain();	
+	~D3D9ProxySwapChain();	
 	
-	/*** IUnknown methods ***/
-	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv);
-	virtual ULONG   WINAPI AddRef();
-	virtual ULONG   WINAPI Release();
-		
-	/*** IDirect3DSwapChain9 methods ***/
-	virtual HRESULT WINAPI Present(CONST RECT* pSourceRect, CONST RECT* pDestRect, HWND hDestWindowOverride, CONST RGNDATA* pDirtyRegion, DWORD dwFlags);
-    virtual HRESULT WINAPI GetFrontBufferData(IDirect3DSurface9* pDestSurface);
-    virtual HRESULT WINAPI GetBackBuffer(UINT iBackBuffer, D3DBACKBUFFER_TYPE Type, IDirect3DSurface9** ppBackBuffer);
-    virtual HRESULT WINAPI GetRasterStatus(D3DRASTER_STATUS* pRasterStatus);
-    virtual HRESULT WINAPI GetDisplayMode(D3DDISPLAYMODE* pMode);
-	virtual HRESULT WINAPI GetDevice(IDirect3DDevice9** ppDevice);
-    virtual HRESULT WINAPI GetPresentParameters(D3DPRESENT_PARAMETERS* pPresentationParameters);
+	ULONG   WINAPI Release();
+	HRESULT WINAPI Present(CONST RECT* pSourceRect, CONST RECT* pDestRect, HWND hDestWindowOverride, CONST RGNDATA* pDirtyRegion, DWORD dwFlags);
+    HRESULT WINAPI GetFrontBufferData(IDirect3DSurface9* pDestSurface);
+    HRESULT WINAPI GetBackBuffer(UINT iBackBuffer, D3DBACKBUFFER_TYPE Type, IDirect3DSurface9** ppBackBuffer);
+    HRESULT WINAPI GetRasterStatus(D3DRASTER_STATUS* pRasterStatus);
+    HRESULT WINAPI GetDisplayMode(D3DDISPLAYMODE* pMode);
+    HRESULT WINAPI GetPresentParameters(D3DPRESENT_PARAMETERS* pPresentationParameters);
+	void           Destroy();
 
-	/*** BaseDirect3DSwapChain9 methods ***/
-	void Destroy();
-
-protected:
-	/**
-	* The actual swap chain embedded. 
-	***/
-	IDirect3DSwapChain9* m_pActualSwapChain;
-	/**
-	* Pointer to the D3D device that owns the swap chain. 
-	***/
-	D3DProxyDevice* m_pOwningDevice;
-	/**
-	* Bool to ensure only additional chains are destroyed on release.
-	***/
-	bool m_bIsAdditionalChain;
 
 private:
-	/**
-	* Internal reference counter. 
-	***/
-	ULONG m_nRefCount;
-	/**
-	* Currently not used front buffer proxy surface.
-	***/
-	D3D9ProxySurface* m_pWrappedFrontBufferData;
-	/**
-	* Stored indexed proxy back buffer surfaces.
-	***/
+	//Bool to ensure only additional chains are destroyed on release.
+	bool m_bIsAdditionalChain;
+
+	//Stored indexed proxy back buffer surfaces.
 	std::vector<D3D9ProxySurface*> m_backBuffers;
 };
-#endif

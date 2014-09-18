@@ -28,110 +28,30 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
 #include "D3D9ProxyQuery.h"
-#include <assert.h>
 
-/**
-* Constructor. 
-* @param pActualQuery Imbed actual query. 
-* @param pOwningDevice Pointer to the device that owns the query. 
-***/
-D3D9ProxyQuery::D3D9ProxyQuery(IDirect3DQuery9* pActualQuery, IDirect3DDevice9* pOwningDevice) :
-	m_pActualQuery(pActualQuery),
-	m_pOwningDevice(pOwningDevice),
-	m_nRefCount(1)
+D3D9ProxyQuery::D3D9ProxyQuery(IDirect3DQuery9* pActualQuery, D3DProxyDevice* pOwningDevice) :
+	cBase( pActualQuery , pOwningDevice )
 {
 	assert (pActualQuery != NULL);
 	assert (pOwningDevice != NULL);
-
-	pOwningDevice->AddRef();
 }
 
-/**
-* Destructor. 
-* Releases embedded query. 
-***/
-D3D9ProxyQuery::~D3D9ProxyQuery()
-{
-	if(m_pActualQuery) {
-		m_pActualQuery->Release();
-	}
 
-	if (m_pOwningDevice) {
-		m_pOwningDevice->Release();
-	}
+DWORD WINAPI D3D9ProxyQuery::GetDataSize(){
+	return actual->GetDataSize();
 }
 
-/**
-* Base QueryInterface functionality. 
-***/
-HRESULT WINAPI D3D9ProxyQuery::QueryInterface(REFIID riid, LPVOID* ppv)
-{
-	return m_pActualQuery->QueryInterface(riid, ppv);
+
+HRESULT WINAPI D3D9ProxyQuery::Issue(DWORD dwIssueFlags){
+	return actual->Issue(dwIssueFlags);
 }
 
-/**
-* Base AddRef functionality.
-***/
-ULONG WINAPI D3D9ProxyQuery::AddRef()
-{
-	return ++m_nRefCount;
+
+HRESULT WINAPI D3D9ProxyQuery::GetData(void* pData, DWORD dwSize, DWORD dwGetDataFlags){
+	return actual->GetData(pData, dwSize, dwGetDataFlags);
 }
 
-/**
-* Base Release functionality.
-***/
-ULONG WINAPI D3D9ProxyQuery::Release()
-{
-	if(--m_nRefCount == 0)
-	{
-		delete this;
-		return 0;
-	}
 
-	return m_nRefCount;
-}
-
-/**
-* Base GetDevice functionality.
-***/
-HRESULT WINAPI D3D9ProxyQuery::GetDevice(IDirect3DDevice9** ppDevice)
-{
-	if (!m_pOwningDevice)
-		return D3DERR_INVALIDCALL;
-	else {
-		*ppDevice = m_pOwningDevice;
-		return D3D_OK;
-	}
-}
-
-/**
-* Base GetType functionality.
-***/
-D3DQUERYTYPE WINAPI D3D9ProxyQuery::GetType()
-{
-	return m_pActualQuery->GetType();
-}
-
-/**
-* Base GetDataSize functionality.
-***/
-DWORD WINAPI D3D9ProxyQuery::GetDataSize()
-{
-	return m_pActualQuery->GetDataSize();
-}
-
-/**
-* Base Issue functionality.
-***/
-HRESULT WINAPI D3D9ProxyQuery::Issue(DWORD dwIssueFlags)
-{
-	return m_pActualQuery->Issue(dwIssueFlags);
-}
-
-/**
-* Base GetData functionality.
-***/
-HRESULT WINAPI D3D9ProxyQuery::GetData(void* pData, DWORD dwSize, DWORD dwGetDataFlags)
-{
-	return m_pActualQuery->GetData(pData, dwSize, dwGetDataFlags);
+D3DQUERYTYPE WINAPI D3D9ProxyQuery::GetType(){
+	return actual->GetType();
 }

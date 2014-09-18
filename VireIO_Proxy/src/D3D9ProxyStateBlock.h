@@ -27,9 +27,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#ifndef D3D9PROXYSTATEBLOCK_H_INCLUDED
-#define D3D9PROXYSTATEBLOCK_H_INCLUDED
-
+#pragma once
+#include <VireIO.h>
 #include <d3d9.h>
 #include <d3dx9.h>
 #include "D3DProxyDevice.h"
@@ -89,7 +88,7 @@ class D3D9ProxyVertexDeclaration;
 * Pixel shader constants TODO - if needed (if stereo'ified for some reason), otherwise leave these to 
 * the actual device.
 */
-class D3D9ProxyStateBlock : public IDirect3DStateBlock9
+class D3D9ProxyStateBlock : public cBase<IDirect3DStateBlock9>
 {
 public:
 	/**
@@ -273,30 +272,5 @@ private:
 	* Use this to copy everything when needed with other modes.
 	**/
 	std::vector<float> m_storedAllPSRegistersF;
-	/**
-	* Pointer to wrapped device - quick solution (TODO) 
-	* Had issues when the type of the device in the base class was the wrapped type rather than the 
-	* Interface type.
-	* Duplicated the device here under the wrapped pointer. Almost certain to at least confuse someone 
-	* later.
-	* TODO fix. This was the quick and dirty 2am style solution. This shouldn't be here and the base 
-	* classs device should just be of the derived type.
-	***/
-	D3DProxyDevice* const m_pWrappedDevice;
 
-protected:
-	/**
-	* The actual state block embedded. 
-	***/
-	IDirect3DStateBlock9* m_pActualStateBlock;
-	/**
-	* Pointer to the D3D device that owns the block. 
-	***/
-	IDirect3DDevice9* const m_pOwningDevice;
-	/**
-	* Internal reference counter. 
-	***/
-	ULONG m_nRefCount;
 };
-#endif
-

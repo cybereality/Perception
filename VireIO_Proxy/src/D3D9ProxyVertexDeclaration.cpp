@@ -28,94 +28,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
 #include "D3D9ProxyVertexDeclaration.h"
-#include <assert.h>
 
-/**
-* Constructor. 
-* @param pActualVertexDeclaration Imbed actual vertex declaration. 
-* @param pOwningDevice Pointer to the device that owns the declaration. 
-***/
-D3D9ProxyVertexDeclaration::D3D9ProxyVertexDeclaration(IDirect3DVertexDeclaration9* pActualVertexDeclaration, IDirect3DDevice9 *pOwningDevice) :
-	m_pActualVertexDeclaration(pActualVertexDeclaration),
-	m_pOwningDevice(pOwningDevice),
-	m_nRefCount(1)
+D3D9ProxyVertexDeclaration::D3D9ProxyVertexDeclaration(IDirect3DVertexDeclaration9* pActualVertexDeclaration, D3DProxyDevice *pOwningDevice) :
+	cBase( pActualVertexDeclaration , pOwningDevice )
 {
-	assert (pActualVertexDeclaration != NULL);
-	assert (pOwningDevice != NULL);
-
-	pOwningDevice->AddRef();
 }
 
-/**
-* Destructor. 
-* Releases embedded vertex declaration. 
-***/
-D3D9ProxyVertexDeclaration::~D3D9ProxyVertexDeclaration()
-{
-	if(m_pActualVertexDeclaration) 
-		m_pActualVertexDeclaration->Release();
 
-	if (m_pOwningDevice)
-		m_pOwningDevice->Release();
-}
-
-/**
-* Base QueryInterface functionality. 
-***/
-HRESULT WINAPI D3D9ProxyVertexDeclaration::QueryInterface(REFIID riid, LPVOID* ppv)
-{
-	return m_pActualVertexDeclaration->QueryInterface(riid, ppv);
-}
-
-/**
-* Base AddRef functionality.
-***/
-ULONG WINAPI D3D9ProxyVertexDeclaration::AddRef()
-{
-	return ++m_nRefCount;
-}
-
-/**
-* Base Release functionality.
-***/
-ULONG WINAPI D3D9ProxyVertexDeclaration::Release()
-{
-	if(--m_nRefCount == 0)
-	{
-		delete this;
-		return 0;
-	}
-
-	return m_nRefCount;
-}
-
-/**
-* Base GetDevice functionality.
-* TODO Test this. Docs don't have the notice that is usually there about a refcount increase
-***/
-HRESULT WINAPI D3D9ProxyVertexDeclaration::GetDevice(IDirect3DDevice9** ppDevice)
-{
-	if (!m_pOwningDevice)
-		return D3DERR_INVALIDCALL;
-	else {
-		*ppDevice = m_pOwningDevice;
-		//m_pOwningDevice->AddRef(); //TODO Test this. Docs don't have the notice that is usually there about a refcount increase
-		return D3D_OK;
-	}
-}
-
-/**
-* Base GetDeclaration functionality.
-***/
 HRESULT WINAPI D3D9ProxyVertexDeclaration::GetDeclaration(D3DVERTEXELEMENT9 *pDecl, UINT *pNumElements)
 {
-	return m_pActualVertexDeclaration->GetDeclaration(pDecl, pNumElements);
-}
-
-/**
-* Returns the actual embedded declaration pointer.
-***/
-IDirect3DVertexDeclaration9* D3D9ProxyVertexDeclaration::getActual()
-{
-	return m_pActualVertexDeclaration;
+	return actual->GetDeclaration(pDecl, pNumElements);
 }

@@ -27,23 +27,15 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#include <assert.h>
 #include "D3DProxyDevice.h"
-
+#include "D3D9ProxyVolumeTexture.h"
 /**
 * Constructor.
 * @see D3D9ProxySurface::D3D9ProxySurface
 ***/
 D3D9ProxyVolumeTexture::D3D9ProxyVolumeTexture(IDirect3DVolumeTexture9* pActualVolumeTexture, D3DProxyDevice* pOwningDevice) :
-	m_pActualTexture(pActualVolumeTexture),
-	m_nRefCount(1),
-	m_wrappedVolumeLevels(),
-	m_pOwningDevice(pOwningDevice)
+	cBase( pActualVolumeTexture , pOwningDevice )
 {
-	assert (pOwningDevice != NULL);
-	assert (m_pActualTexture != NULL);
-
-	m_pOwningDevice->AddRef();
 }
 
 /**
@@ -60,65 +52,7 @@ D3D9ProxyVolumeTexture::~D3D9ProxyVolumeTexture()
 		delete it->second;
 		it = m_wrappedVolumeLevels.erase(it);
 	}
-
-	if (m_pOwningDevice)
-		m_pOwningDevice->Release();
-	
-	if (m_pActualTexture)
-		m_pActualTexture->Release();
 }
-
-/**
-* Base QueryInterface functionality. 
-***/
-HRESULT WINAPI D3D9ProxyVolumeTexture::QueryInterface(REFIID riid, LPVOID* ppv)
-{
-	return m_pActualTexture->QueryInterface(riid, ppv);
-}
-
-/**
-* Base AddRef functionality.
-***/
-ULONG WINAPI D3D9ProxyVolumeTexture::AddRef()
-{
-	return ++m_nRefCount;
-}
-
-/**
-* Base Release functionality.
-***/
-ULONG WINAPI D3D9ProxyVolumeTexture::Release()
-{
-	if(--m_nRefCount == 0)
-	{
-		delete this;
-		return 0;
-	}
-
-	return m_nRefCount;
-}
-
-
-/**
-* GetDevice on the underlying IDirect3DVolumeTexture9 will return the device used to create it. 
-* Which is the actual device and not the wrapper. Therefore we have to keep track of the 
-* wrapper device and return that instead.
-* 
-* Calling this method will increase the internal reference count on the IDirect3DDevice9 interface. 
-* Failure to call IUnknown::Release when finished using this IDirect3DDevice9 interface results in a 
-* memory leak.
-*/
-HRESULT WINAPI D3D9ProxyVolumeTexture::GetDevice(IDirect3DDevice9** ppDevice)
-{
-	if (!m_pOwningDevice)
-		return D3DERR_INVALIDCALL;
-	else {
-		*ppDevice = m_pOwningDevice;
-		m_pOwningDevice->AddRef();
-		return D3D_OK;
-	}
-}
-
 
 
 /**
@@ -126,7 +60,7 @@ HRESULT WINAPI D3D9ProxyVolumeTexture::GetDevice(IDirect3DDevice9** ppDevice)
 ***/
 HRESULT WINAPI D3D9ProxyVolumeTexture::SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags)
 {
-	return m_pActualTexture->SetPrivateData(refguid, pData, SizeOfData, Flags);
+	return actual->SetPrivateData(refguid, pData, SizeOfData, Flags);
 }
 
 /**
@@ -134,7 +68,7 @@ HRESULT WINAPI D3D9ProxyVolumeTexture::SetPrivateData(REFGUID refguid, CONST voi
 ***/
 HRESULT WINAPI D3D9ProxyVolumeTexture::GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData)
 {
-	return m_pActualTexture->GetPrivateData(refguid, pData, pSizeOfData);
+	return actual->GetPrivateData(refguid, pData, pSizeOfData);
 }
 
 /**
@@ -142,7 +76,7 @@ HRESULT WINAPI D3D9ProxyVolumeTexture::GetPrivateData(REFGUID refguid, void* pDa
 ***/
 HRESULT WINAPI D3D9ProxyVolumeTexture::FreePrivateData(REFGUID refguid)
 {
-	return m_pActualTexture->FreePrivateData(refguid);
+	return actual->FreePrivateData(refguid);
 }
 
 /**
@@ -150,39 +84,25 @@ HRESULT WINAPI D3D9ProxyVolumeTexture::FreePrivateData(REFGUID refguid)
 ***/
 DWORD WINAPI D3D9ProxyVolumeTexture::SetPriority(DWORD PriorityNew)
 {
-	return m_pActualTexture->SetPriority(PriorityNew);
+	return actual->SetPriority(PriorityNew);
 }
 
-/**
-* Base GetPriority functionality. 
-***/
-DWORD WINAPI D3D9ProxyVolumeTexture::GetPriority()
-{
-	return m_pActualTexture->GetPriority();
-}
 
 /**
 * Base PreLoad functionality. 
 ***/
 void WINAPI D3D9ProxyVolumeTexture::PreLoad()
 {
-	return m_pActualTexture->PreLoad();
+	return actual->PreLoad();
 }
 
-/**
-* Base GetType functionality. 
-***/
-D3DRESOURCETYPE WINAPI D3D9ProxyVolumeTexture::GetType()
-{
-	return m_pActualTexture->GetType();
-}
 
 /**
 * Base SetLOD functionality. 
 ***/
 DWORD WINAPI D3D9ProxyVolumeTexture::SetLOD(DWORD LODNew)
 {
-	return m_pActualTexture->SetLOD(LODNew);
+	return actual->SetLOD(LODNew);
 }
 
 /**
@@ -190,7 +110,7 @@ DWORD WINAPI D3D9ProxyVolumeTexture::SetLOD(DWORD LODNew)
 ***/
 DWORD WINAPI D3D9ProxyVolumeTexture::GetLOD()
 {
-	return m_pActualTexture->GetLOD();
+	return actual->GetLOD();
 }
 
 /**
@@ -198,7 +118,7 @@ DWORD WINAPI D3D9ProxyVolumeTexture::GetLOD()
 ***/
 DWORD WINAPI D3D9ProxyVolumeTexture::GetLevelCount()
 {
-	return m_pActualTexture->GetLevelCount();
+	return actual->GetLevelCount();
 }
 
 /**
@@ -206,7 +126,7 @@ DWORD WINAPI D3D9ProxyVolumeTexture::GetLevelCount()
 ***/
 HRESULT WINAPI D3D9ProxyVolumeTexture::SetAutoGenFilterType(D3DTEXTUREFILTERTYPE FilterType)
 {
-	return m_pActualTexture->SetAutoGenFilterType(FilterType);
+	return actual->SetAutoGenFilterType(FilterType);
 }
 
 /**
@@ -214,7 +134,7 @@ HRESULT WINAPI D3D9ProxyVolumeTexture::SetAutoGenFilterType(D3DTEXTUREFILTERTYPE
 ***/
 D3DTEXTUREFILTERTYPE WINAPI D3D9ProxyVolumeTexture::GetAutoGenFilterType()
 {
-	return m_pActualTexture->GetAutoGenFilterType();
+	return actual->GetAutoGenFilterType();
 }
 
 /**
@@ -222,7 +142,7 @@ D3DTEXTUREFILTERTYPE WINAPI D3D9ProxyVolumeTexture::GetAutoGenFilterType()
 ***/
 void WINAPI D3D9ProxyVolumeTexture::GenerateMipSubLevels()
 {
-	return m_pActualTexture->GenerateMipSubLevels();
+	return actual->GenerateMipSubLevels();
 }
 
 /**
@@ -230,7 +150,7 @@ void WINAPI D3D9ProxyVolumeTexture::GenerateMipSubLevels()
 ***/
 HRESULT WINAPI D3D9ProxyVolumeTexture::GetLevelDesc(UINT Level, D3DVOLUME_DESC *pDesc)
 {
-	return m_pActualTexture->GetLevelDesc(Level, pDesc);
+	return actual->GetLevelDesc(Level, pDesc);
 }
 
 
@@ -258,11 +178,11 @@ HRESULT WINAPI D3D9ProxyVolumeTexture::GetVolumeLevel(UINT Level, IDirect3DVolum
 		//  wrap, then store in m_wrappedSurfaceLevels and return the wrapped surface
 		IDirect3DVolume9* pActualVolumeLevel = NULL;
 
-		HRESULT result = m_pActualTexture->GetVolumeLevel(Level, &pActualVolumeLevel);
+		HRESULT result = actual->GetVolumeLevel(Level, &pActualVolumeLevel);
 
 		if (SUCCEEDED(result)) {
 
-			D3D9ProxyVolume* pWrappedVolumeLevel = new D3D9ProxyVolume(pActualVolumeLevel, m_pOwningDevice, this);
+			D3D9ProxyVolume* pWrappedVolumeLevel = new D3D9ProxyVolume(pActualVolumeLevel,device, this);
 
 			if(m_wrappedVolumeLevels.insert(std::pair<ULONG, D3D9ProxyVolume*>(Level, pWrappedVolumeLevel)).second) {
 				// insertion of wrapped surface level into m_wrappedSurfaceLevels succeeded
@@ -299,7 +219,7 @@ HRESULT WINAPI D3D9ProxyVolumeTexture::GetVolumeLevel(UINT Level, IDirect3DVolum
 ***/
 HRESULT WINAPI D3D9ProxyVolumeTexture::LockBox(UINT Level, D3DLOCKED_BOX *pLockedVolume, const D3DBOX *pBox, DWORD Flags)
 {
-	return m_pActualTexture->LockBox(Level, pLockedVolume, pBox, Flags);
+	return actual->LockBox(Level, pLockedVolume, pBox, Flags);
 }
 	
 /**
@@ -307,7 +227,7 @@ HRESULT WINAPI D3D9ProxyVolumeTexture::LockBox(UINT Level, D3DLOCKED_BOX *pLocke
 ***/
 HRESULT WINAPI D3D9ProxyVolumeTexture::UnlockBox(UINT Level)
 {
-	return m_pActualTexture->UnlockBox(Level);
+	return actual->UnlockBox(Level);
 }
 
 /**
@@ -315,14 +235,13 @@ HRESULT WINAPI D3D9ProxyVolumeTexture::UnlockBox(UINT Level)
 ***/
 HRESULT WINAPI D3D9ProxyVolumeTexture::AddDirtyBox(const D3DBOX *pDirtyBox)
 {
-	return m_pActualTexture->AddDirtyBox(pDirtyBox);
+	return actual->AddDirtyBox(pDirtyBox);
 }
 
+DWORD WINAPI D3D9ProxyVolumeTexture::GetPriority(){
+	return actual->GetPriority();
+}
 
-/**
-* Returns the actual volume texture.
-***/
-IDirect3DVolumeTexture9* D3D9ProxyVolumeTexture::getActual()
-{
-	return m_pActualTexture;
+D3DRESOURCETYPE WINAPI D3D9ProxyVolumeTexture::GetType(){
+	return actual->GetType();
 }

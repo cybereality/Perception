@@ -27,13 +27,11 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#ifndef D3D9PROXYVOLUME_H_INCLUDED
-#define D3D9PROXYvOLUME_H_INCLUDED
-
+#pragma once
 #include <d3d9.h>
 #include <stdio.h>
-
-class D3DProxyDevice;
+#include "D3DProxyDevice.h"
+#include <cBase.h>
 
 
 /**
@@ -43,49 +41,15 @@ class D3DProxyDevice;
 * See D3D9ProxySurface for notes on reference counting when in container.
 * @see D3D9ProxySurface
 ***/ 
-class D3D9ProxyVolume : public IDirect3DVolume9
-{
+class D3D9ProxyVolume : public cBase<IDirect3DVolume9>{
 public:
 	D3D9ProxyVolume(IDirect3DVolume9* pActualVolume, D3DProxyDevice* pOwningDevice, IUnknown* pWrappedContainer);
-	virtual ~D3D9ProxyVolume();
-	
-	/*** IUnknown methods ***/
-	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv);
-	virtual ULONG   WINAPI AddRef();
-	virtual ULONG   WINAPI Release();
 
 	/*** IDirect3DVolume9 methods ***/
-	virtual HRESULT WINAPI GetDevice(IDirect3DDevice9** ppDevice);
 	virtual HRESULT WINAPI SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags);
 	virtual HRESULT WINAPI GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData);
 	virtual HRESULT WINAPI FreePrivateData(REFGUID refguid);
-	virtual HRESULT WINAPI GetContainer(REFIID riid, LPVOID* ppContainer);
 	virtual HRESULT WINAPI GetDesc(D3DVOLUME_DESC *pDesc);
 	virtual HRESULT WINAPI LockBox(D3DLOCKED_BOX *pLockedVolume, const D3DBOX *pBox, DWORD Flags);
 	virtual HRESULT WINAPI UnlockBox();
-
-	/*** D3D9ProxyVolume public methods ***/
-	IDirect3DVolume9* getActualVolume();
-
-protected:
-	/**
-	* Container this Volume is part of. 
-	* VolumeTexture, (other?) NULL if standalone.
-	***/
-	IUnknown* const m_pWrappedContainer;
-	/**
-	* The owning device.
-	* @see D3D9ProxySurface::m_pOwningDevice
-	***/
-	D3DProxyDevice* const m_pOwningDevice;
-
-	/**
-	* The actual volume embedded. 
-	***/
-	IDirect3DVolume9* const m_pActualVolume;
-	/**
-	* Internal reference counter. 
-	***/
-	ULONG m_nRefCount;
 };
-#endif

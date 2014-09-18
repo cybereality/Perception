@@ -29,100 +29,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "D3D9ProxyPixelShader.h"
 
-/**
-* Constructor.
-* @param pModLoader Can be NULL (no modifications in this game profile).
-***/
+
 D3D9ProxyPixelShader::D3D9ProxyPixelShader(IDirect3DPixelShader9* pActualPixelShader, D3DProxyDevice *pOwningDevice, ShaderModificationRepository* pModLoader) :
-	m_pActualPixelShader(pActualPixelShader),
-	m_pOwningDevice(pOwningDevice),
-	m_nRefCount(1) , 
-	m_pActualDevice(pOwningDevice->getActual()),
-	m_modifiedConstants()
+	cBase( pActualPixelShader , pOwningDevice ) 
 {
-	pOwningDevice->AddRef();
 	if (pModLoader)
 		m_modifiedConstants = pModLoader->GetModifiedConstantsF(pActualPixelShader);
 }
 
-/**
-* Empty destructor.
-***/
-D3D9ProxyPixelShader::~D3D9ProxyPixelShader()
-{
-	if(m_pActualPixelShader) 
-		m_pActualPixelShader->Release();
-
-	if (m_pOwningDevice)
-		m_pOwningDevice->Release();
-}
-
-/**
-* Returns modified constants pointer.
-***/
-std::map<UINT, StereoShaderConstant<float>>* D3D9ProxyPixelShader::ModifiedConstants()
-{
-	return &m_modifiedConstants;
-}
 
 
-/**
-* Base QueryInterface functionality. 
-***/
-HRESULT WINAPI D3D9ProxyPixelShader::QueryInterface(REFIID riid, LPVOID* ppv)
-{
-	return m_pActualPixelShader->QueryInterface(riid, ppv);
-}
-
-/**
-* Base AddRef functionality.
-***/
-ULONG WINAPI D3D9ProxyPixelShader::AddRef()
-{
-	return ++m_nRefCount;
-}
-
-/**
-* Base Release functionality.
-***/
-ULONG WINAPI D3D9ProxyPixelShader::Release()
-{
-	if(--m_nRefCount == 0)
-	{
-		delete this;
-		return 0;
-	}
-
-	return m_nRefCount;
-}
-
-/**
-* Base GetDevice functionality.
-* TODO D3D behaviour. Docs don't have the notice that is usually there about a refcount increase
-***/
-HRESULT WINAPI D3D9ProxyPixelShader::GetDevice(IDirect3DDevice9** ppDevice)
-{
-	if (!m_pOwningDevice)
-		return D3DERR_INVALIDCALL;
-	else {
-		*ppDevice = m_pOwningDevice;
-		//m_pOwningDevice->AddRef(); //TODO D3D behaviour. Docs don't have the notice that is usually there about a refcount increase
-		return D3D_OK;
-	}
-}
-
-/**
-* Base GetFunction functionality.
-***/
 HRESULT WINAPI D3D9ProxyPixelShader::GetFunction(void *pDate, UINT *pSizeOfData)
 {
-	return m_pActualPixelShader->GetFunction(pDate, pSizeOfData);
+	return actual->GetFunction(pDate, pSizeOfData);
 }
 
-/**
-* Returns the actual embedded shader pointer.
-***/
-IDirect3DPixelShader9* D3D9ProxyPixelShader::getActual()
-{
-	return m_pActualPixelShader;
-}
