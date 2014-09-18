@@ -26,161 +26,119 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#define _CRT_SECURE_NO_WARNINGS
-#include "Main.h"
-#include "D3D9ProxyDirect3D.h"
 #include <windows.h>
 #include <d3d9.h>
-#include <stdio.h>
+#include "D3D9ProxyDirect3D.h"
+#include <qcoreapplication.h>
+#include <qdebug.h>
 
-// Function pointer trypedefs
-typedef IDirect3D9* (WINAPI *LPDirect3DCreate9)(UINT nSDKVersion);
+#include <cConfig.h>
+#include <qfileinfo.h>
 
-typedef int (WINAPI *LPD3DPERF_BeginEvent)( D3DCOLOR col, LPCWSTR wszName );
-typedef int (WINAPI *LPD3DPERF_EndEvent)( void );
-typedef void (WINAPI *LPD3DPERF_SetMarker)( D3DCOLOR col, LPCWSTR wszName );
-typedef void (WINAPI *LPD3DPERF_SetRegion)( D3DCOLOR col, LPCWSTR wszName );
-typedef BOOL (WINAPI *LPD3DPERF_QueryRepeatFrame)( void );
-typedef void (WINAPI *LPD3DPERF_SetOptions)( DWORD dwOptions );
-typedef DWORD (WINAPI *LPD3DPERF_GetStatus)( void );
+QString vireioDir;
+static cConfig config;
+static bool    loaded = false;
 
-// Globals from d3d9.dll
-HMODULE g_hDll = NULL;
-LPDirect3DCreate9 g_pfnDirect3DCreate9 = NULL;
+BOOL APIENTRY DllMain( HINSTANCE dll , DWORD fdwReason, LPVOID ){
+	if( fdwReason == DLL_PROCESS_ATTACH ){
+		char exe_path[MAX_PATH];
+		char dll_path[MAX_PATH];
 
-LPD3DPERF_BeginEvent g_pfnD3DPERF_BeginEvent = NULL;
-LPD3DPERF_EndEvent g_pfnD3DPERF_EndEvent = NULL;
-LPD3DPERF_SetMarker g_pfnD3DPERF_SetMarker = NULL;
-LPD3DPERF_SetRegion g_pfnD3DPERF_SetRegion = NULL;
-LPD3DPERF_QueryRepeatFrame g_pfnD3DPERF_QueryRepeatFrame = NULL;
-LPD3DPERF_SetOptions g_pfnD3DPERF_SetOptions = NULL;
-LPD3DPERF_GetStatus g_pfnD3DPERF_GetStatus = NULL;
+		GetModuleFileNameA( 0   , exe_path , MAX_PATH );
+		GetModuleFileNameA( dll , dll_path , MAX_PATH );
 
-static bool LoadDll()
-{
-	if(g_hDll)
-		return true;
+		vireioDir = QFileInfo(dll_path).absolutePath() + "/../";
 
-	// Load DLL
-	char szBuff[MAX_PATH+64];
-	GetSystemDirectoryA(szBuff, sizeof(szBuff));
-	szBuff[MAX_PATH] = 0;
-	strcat(szBuff, "\\d3d9.dll");
-	g_hDll = LoadLibraryA(szBuff);
-	if(!g_hDll)
-		return false;
+		printf( "vireio: path %s\n" , vireioDir.toLocal8Bit().data() );
 
-	// Get function addresses
-	g_pfnDirect3DCreate9 = (LPDirect3DCreate9)GetProcAddress(g_hDll, "Direct3DCreate9");
-	if(!g_pfnDirect3DCreate9)
-	{
-		FreeLibrary(g_hDll);
-		return false;
+		cStereoMode ::loadAll();
+		cGameProfile::loadAll();
+		cGame       ::loadAll();
+
+		loaded = config.load( QFileInfo(exe_path).absoluteFilePath() );
+
+		if( loaded ){
+			printf("vireio: profile \"%s\"\n" , config.profileName.toLocal8Bit().data() );
+
+			printf( "vireio: stereoMode=%s\n" , config.stereoMode.toLocal8Bit().data() );
+			printf( "vireio: trackerMode=%d\n" , config.trackerMode);
+			printf( "vireio: streamingEnable=%d\n" , config.streamingEnable);
+			printf( "vireio: streamingAddress=%s\n" , config.streamingAddress.toLocal8Bit().data() );
+			printf( "vireio: streamingPort=%d\n" , config.streamingPort);
+			printf( "vireio: streamingCodec=%s\n" , config.streamingCodec.toLocal8Bit().data() );
+			printf( "vireio: streamingBitrate=%d\n" , config.streamingBitrate);
+			printf( "vireio: profileName=%s\n" , config.profileName.toLocal8Bit().data() );
+			printf( "vireio: exeName=%s\n" , config.exeName.toLocal8Bit().data() );
+			printf( "vireio: shaderRulePath=%s\n" , config.shaderRulePath.toLocal8Bit().data() );
+			printf( "vireio: VRboostPath=%s\n" , config.VRboostPath.toLocal8Bit().data() );
+			printf( "vireio: VRboostMinShaderCount=%d\n" , config.VRboostMinShaderCount);
+			printf( "vireio: VRboostMaxShaderCount=%d\n" , config.VRboostMaxShaderCount);
+			printf( "vireio: game_type=%d\n" , config.game_type);
+			printf( "vireio: rollEnabled=%d\n" , config.rollEnabled);
+			printf( "vireio: worldScaleFactor=%f\n" , config.worldScaleFactor);
+			printf( "vireio: convergence=%f\n" , config.convergence);
+			printf( "vireio: swap_eyes=%d\n" , config.swap_eyes);
+			printf( "vireio: yaw_multiplier=%f\n" , config.yaw_multiplier);
+			printf( "vireio: pitch_multiplier=%f\n" , config.pitch_multiplier);
+			printf( "vireio: roll_multiplier=%f\n" , config.roll_multiplier);
+			printf( "vireio: position_multiplier=%f\n" , config.position_multiplier);
+			printf( "vireio: DistortionScale=%f\n" , config.DistortionScale);
+			printf( "vireio: YOffset=%f\n" , config.YOffset);
+			printf( "vireio: IPDOffset=%f\n" , config.IPDOffset);
+			printf( "vireio: hud3DDepthMode=%d\n" , config.hud3DDepthMode);
+			printf( "vireio: hud3DDepthPresets=%f\n" , config.hud3DDepthPresets[0]);
+			printf( "vireio: hudDistancePresets=%f\n" , config.hudDistancePresets[0]);
+			printf( "vireio: hudHotkeys=%d\n" , config.hudHotkeys[0]);
+			printf( "vireio: gui3DDepthMode=%d\n" , config.gui3DDepthMode);
+			printf( "vireio: gui3DDepthPresets=%f\n" , config.gui3DDepthPresets[0]);
+			printf( "vireio: guiSquishPresets=%f\n" , config.guiSquishPresets[0]);
+			printf( "vireio: guiHotkeys=%d\n" , config.guiHotkeys[0]);
+			printf( "vireio: VRBoostResetHotkey=%d\n" , config.VRBoostResetHotkey);
+			printf( "vireio: WorldFOV=%f\n" , config.WorldFOV);
+			printf( "vireio: PlayerFOV=%f\n" , config.PlayerFOV);
+			printf( "vireio: FarPlaneFOV=%f\n" , config.FarPlaneFOV);
+			printf( "vireio: CameraTranslateX=%f\n" , config.CameraTranslateX);
+			printf( "vireio: CameraTranslateY=%f\n" , config.CameraTranslateY);
+			printf( "vireio: CameraTranslateZ=%f\n" , config.CameraTranslateZ);
+			printf( "vireio: CameraDistance=%f\n" , config.CameraDistance);
+			printf( "vireio: CameraZoom=%f\n" , config.CameraZoom);
+			printf( "vireio: CameraHorizonAdjustment=%f\n" , config.CameraHorizonAdjustment);
+			printf( "vireio: ConstantValue1=%f\n" , config.ConstantValue1);
+			printf( "vireio: ConstantValue2=%f\n" , config.ConstantValue2);
+			printf( "vireio: ConstantValue3=%f\n" , config.ConstantValue3);
+			printf( "vireio: name=%s\n" , config.name.toLocal8Bit().data() );
+			printf( "vireio: shader=%s\n" , config.shader.toLocal8Bit().data() );
+			printf( "vireio: isHmd=%d\n" , config.isHmd);
+			printf( "vireio: resolutionWidth=%d\n" , config.resolutionWidth);
+			printf( "vireio: resolutionHeight=%d\n" , config.resolutionHeight);
+			printf( "vireio: physicalWidth=%f\n" , config.physicalWidth);
+			printf( "vireio: physicalHeight=%f\n" , config.physicalHeight);
+			printf( "vireio: distortionCoefficients=%f\n" , config.distortionCoefficients[0]);
+			printf( "vireio: eyeToScreenDistance=%f\n" , config.eyeToScreenDistance);
+			printf( "vireio: physicalLensSeparation=%f\n" , config.physicalLensSeparation);
+			printf( "vireio: lensYCenterOffset=%f\n" , config.lensYCenterOffset);
+			printf( "vireio: lensIPDCenterOffset=%f\n" , config.lensIPDCenterOffset);
+			printf( "vireio: minDistortionScale=%f\n" , config.minDistortionScale);
+			printf( "vireio: screenAspectRatio=%f\n" , config.screenAspectRatio);
+			printf( "vireio: scaleToFillHorizontal=%f\n" , config.scaleToFillHorizontal);
+			printf( "vireio: lensXCenterOffset=%f\n" , config.lensXCenterOffset);
+			printf( "vireio: userName=%s\n" , config.userName.toLocal8Bit().data() );
+			printf( "vireio: gender=%s\n" , config.gender.toLocal8Bit().data() );
+			printf( "vireio: PlayerHeight=%f\n" , config.PlayerHeight);
+			printf( "vireio: PlayerIPD=%f\n" , config.PlayerIPD);
+			printf( "vireio: RiftVersion=%s\n" , config.RiftVersion.toLocal8Bit().data() );
+		}
+
 	}
-
-	g_pfnD3DPERF_BeginEvent = (LPD3DPERF_BeginEvent)GetProcAddress(g_hDll, "D3DPERF_BeginEvent");
-	g_pfnD3DPERF_EndEvent = (LPD3DPERF_EndEvent)GetProcAddress(g_hDll, "D3DPERF_EndEvent");
-	g_pfnD3DPERF_SetMarker = (LPD3DPERF_SetMarker)GetProcAddress(g_hDll, "D3DPERF_SetMarker");
-	g_pfnD3DPERF_SetRegion = (LPD3DPERF_SetRegion)GetProcAddress(g_hDll, "D3DPERF_SetRegion");
-	g_pfnD3DPERF_QueryRepeatFrame = (LPD3DPERF_QueryRepeatFrame)GetProcAddress(g_hDll, "D3DPERF_QueryRepeatFrame");
-	g_pfnD3DPERF_SetOptions = (LPD3DPERF_SetOptions)GetProcAddress(g_hDll, "D3DPERF_SetOptions");
-	g_pfnD3DPERF_GetStatus = (LPD3DPERF_GetStatus)GetProcAddress(g_hDll, "D3DPERF_GetStatus");
-
-	// Done
-	return true;
+	return TRUE;
 }
 
 
-IDirect3D9* WINAPI Direct3DCreate9(UINT nSDKVersion)
-{
-	// Log
-	Log("Direct3DCreate9(%d)\n", nSDKVersion);
-
-	// Load DLL
-	if(!LoadDll())
-		return NULL;
-
-	// Create real interface
-	IDirect3D9* pD3D = g_pfnDirect3DCreate9(nSDKVersion);
-	if(!pD3D)
-		return NULL;
-
-	// Create and return proxy interface
-	D3D9ProxyDirect3D* pWrapper = new D3D9ProxyDirect3D(pD3D);
-
-	return pWrapper;
-}
 
 extern "C" __declspec(dllexport) IDirect3D9* ProxyDirect3DCreate9( IDirect3D9* base ) {
-
-	// Load DLL
-	if( !LoadDll( ) )
-		return NULL;
-
-	// Create real interface
-	IDirect3D9* pD3D = base;
-	if( !pD3D )
-		return NULL;
-
-	// Create and return proxy interface
-	D3D9ProxyDirect3D* pWrapper = new D3D9ProxyDirect3D( pD3D );
-
-	return pWrapper;
-}
-
-int WINAPI D3DPERF_BeginEvent( D3DCOLOR col, LPCWSTR wszName )
-{
-	return g_pfnD3DPERF_BeginEvent(col, wszName);
-}
-
-int WINAPI D3DPERF_EndEvent( void )
-{
-	return g_pfnD3DPERF_EndEvent();
-}
-
-void WINAPI D3DPERF_SetMarker( D3DCOLOR col, LPCWSTR wszName )
-{
-	g_pfnD3DPERF_SetMarker(col, wszName);
-}
-
-void WINAPI D3DPERF_SetRegion( D3DCOLOR col, LPCWSTR wszName )
-{
-	g_pfnD3DPERF_SetRegion(col, wszName);
-}
-
-BOOL WINAPI D3DPERF_QueryRepeatFrame( void )
-{
-	return g_pfnD3DPERF_QueryRepeatFrame();
-}
-
-void WINAPI D3DPERF_SetOptions( DWORD dwOptions )
-{
-	g_pfnD3DPERF_SetOptions(dwOptions);
-}
-
-DWORD WINAPI D3DPERF_GetStatus( void )
-{
-	return g_pfnD3DPERF_GetStatus();
-}
-
-void Log(const char* szFormat, ...)
-{
-	char szBuff[1024];
-	va_list arg;
-	va_start(arg, szFormat);
-	_vsnprintf(szBuff, sizeof(szBuff), szFormat, arg);
-	va_end(arg);
-
-	static FILE* pFile = NULL;
-	if(!pFile)
-		pFile = fopen("C:/D3D9Proxy.log", "w");
-
-	OutputDebugStringA(szBuff);
-	OutputDebugStringA("\n");
-	if(pFile) {
-		fwrite(szBuff, 1, strlen(szBuff), pFile);
-		fflush(pFile);
-	} else {
-		OutputDebugStringA("Couldn't open log file for writing.\n");
+	printf("vireio: creating device\n");
+	if( !loaded ){
+		return base;
 	}
+	return new D3D9ProxyDirect3D( base , config );
 }

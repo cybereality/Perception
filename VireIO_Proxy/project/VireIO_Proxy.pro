@@ -1,8 +1,7 @@
 TEMPLATE = lib
 CONFIG  += shared
 CONFIG  -= app_bundle
-CONFIG  -= qt
-DEFINES -= UNICODE
+QT      += core gui
 
 DESTDIR = "C:/Program Files (x86)/Vireio/Perception/bin"
 
@@ -41,6 +40,14 @@ LIBS += \
     -lgdi32
 
 SOURCES += \
+    ../src/Main.cpp \
+    ../../common/cStereoMode.cpp \
+    ../../common/cPropsFile.cpp \
+    ../../common/cGameProfile.cpp \
+    ../../common/cUser.cpp \
+    ../../common/cSettings.cpp \
+    ../../common/cGame.cpp \
+    ../../common/cConfig.cpp \
     ../src/D3D9ProxyCubeTexture.cpp \
     ../src/D3D9ProxyDirect3D.cpp \
     ../src/D3D9ProxyIndexBuffer.cpp \
@@ -61,8 +68,6 @@ SOURCES += \
     ../src/D3DProxyDeviceEgo.cpp \
     ../src/D3DProxyDeviceFactory.cpp \
     ../src/DataGatherer.cpp \
-    ../src/Direct3D9Ex.cpp \
-    ../src/Direct3DDevice9Ex.cpp \
     ../src/DirectInput.cpp \
     ../src/FreeSpaceTracker.cpp \
     ../src/FreeTrackTracker.cpp \
@@ -74,7 +79,6 @@ SOURCES += \
     ../src/MotionTrackerFactory.cpp \
     ../src/MurmurHash3.cpp \
     ../src/OculusTracker.cpp \
-    ../src/ProxyHelper.cpp \
     ../src/pugixml.cpp \
     ../src/ShaderModificationRepository.cpp \
     ../src/ShaderRegisters.cpp \
@@ -87,7 +91,8 @@ SOURCES += \
     ../src/Streaming/Streamer.cpp \
     ../src/Streaming/Streamer-enc-ffmpeg.cpp \
     ../src/Streaming/Streamer-net-udp.cpp \
-    ../../common/cStereoMode.cpp
+    ../src/D3D9ProxyDeviceEx.cpp \
+    ../src/D3D9ProxyDirect3DEx.cpp
 
 HEADERS += \
     ../src/D3D9ProxyCubeTexture.h \
@@ -118,7 +123,6 @@ HEADERS += \
     ../src/GameHandler.h \
     ../src/InputControls.h \
     ../src/IStereoCapableWrapper.h \
-    ../src/Main.h \
     ../src/MatrixConvOffsetAdjustment.h \
     ../src/MatrixDoNothing.h \
     ../src/MatrixGatheredOrhoSquash.h \
@@ -139,7 +143,6 @@ HEADERS += \
     ../src/MotionTrackerFactory.h \
     ../src/MurmurHash3.h \
     ../src/OculusTracker.h \
-    ../src/ProxyHelper.h \
     ../src/pugiconfig.hpp \
     ../src/pugixml.hpp \
     ../src/ShaderConstantModification.h \
@@ -159,7 +162,14 @@ HEADERS += \
     ../src/Vireio.h \
     ../src/Streaming/inttypes.h \
     ../src/Streaming/Streamer.h \
-    ../../common/cStereoMode.h
+    ../../common/cStereoMode.h \
+    ../../common/cGame.h \
+    ../../common/cGameProfile.h \
+    ../../common/cPropsFile.h \
+    ../../common/cSettings.h \
+    ../../common/cConfig.h \
+    ../../common/cUser.h \
+    ../../common/VireIO.h
 
 OTHER_FILES += \
     ../src/Exports.def \

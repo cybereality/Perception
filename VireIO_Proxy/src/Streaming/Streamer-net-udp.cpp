@@ -13,18 +13,18 @@ void Streamer::net_init( ){
 	WSADATA wsaData;
 	WSAStartup( MAKEWORD(2,2) , &wsaData );
 
-	if( cfg.streaming_protocol == "udp" ){
+	//if( cfg.streaming_protocol == "udp" ){
 		sock = socket( AF_INET , SOCK_DGRAM , IPPROTO_UDP );
 		tcp  = false;
-	}else
-	if( cfg.streaming_protocol == "tcp" ){
-		sock = socket( AF_INET , SOCK_STREAM , IPPROTO_TCP );
-		tcp  = true;
-	}
+	//}else
+	//if( cfg.streaming_protocol == "tcp" ){
+	//	sock = socket( AF_INET , SOCK_STREAM , IPPROTO_TCP );
+	//	tcp  = true;
+	//}
 
 	addr.sin_family      = AF_INET;
-	addr.sin_addr.s_addr = inet_addr( cfg.streaming_host.c_str()  );
-	addr.sin_port        = htons( cfg.streaming_port );
+	addr.sin_addr.s_addr = inet_addr( cfg.streamingAddress.toLocal8Bit() );
+	addr.sin_port        = htons( cfg.streamingPort );
 	
 	connected = false;
 }

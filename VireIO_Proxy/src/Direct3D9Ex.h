@@ -31,8 +31,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define DIRECT3D9EX_H_INCLUDED
 
 #include <d3d9.h>
-#include "ProxyHelper.h"
-
+#include <cConfig.h>
 
 /**
 * Direct 3D extended. 
@@ -42,7 +41,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class __declspec(dllexport) D3D9ProxyDirect3DEx : public IDirect3D9Ex
 {
 public:
-	D3D9ProxyDirect3DEx(IDirect3D9Ex* pD3DEx);
+	D3D9ProxyDirect3DEx( IDirect3D9Ex* pD3DEx , cConfig& cfg );
 	virtual ~D3D9ProxyDirect3DEx();
 
 	/*** IUnknown methods ***/
@@ -70,6 +69,7 @@ public:
 	virtual HRESULT  WINAPI GetAdapterLUID(UINT Adapter,LUID * pLUID);
 
 private:
+	cConfig& config;
 	/**
 	* The actual device embedded. 
 	***/

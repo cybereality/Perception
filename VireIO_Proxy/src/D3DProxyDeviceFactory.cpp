@@ -41,21 +41,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * @param pDevice The actual device pointer for the proxy constructor.
 * @param pCreatedBy Pointer to the object that created the device.
 ***/
-D3DProxyDevice* D3DProxyDeviceFactory::Get(ProxyHelper::ProxyConfig& config, IDirect3DDevice9* dev, D3D9ProxyDirect3D* pCreatedBy)
+D3DProxyDevice* D3DProxyDeviceFactory::Get(cConfig& config, IDirect3DDevice9* dev, D3D9ProxyDirect3D* pCreatedBy)
 {
 	D3DProxyDevice* newDev = NULL;
 
 	// if game profile = game type + 10000 -> return DataGatherer (=shader analyzer)
 	if (config.game_type == D3DProxyDevice::GAMEBRYO)
-		newDev = new D3DProxyDeviceAdv(dev, pCreatedBy);
+		newDev = new D3DProxyDeviceAdv(dev, pCreatedBy , config );
 	else if (config.game_type == D3DProxyDevice::DEBUG_LOG_FILE)
-		newDev = new D3DProxyDeviceDebug(dev, pCreatedBy);
+		newDev = new D3DProxyDeviceDebug(dev, pCreatedBy , config );
 	else if (config.game_type > 10000)
-		newDev = new DataGatherer(dev, pCreatedBy);
+		newDev = new DataGatherer(dev, pCreatedBy , config );
 	else 
-		newDev = new D3DProxyDevice(dev, pCreatedBy);
-
-	newDev->Init(config);
+		newDev = new D3DProxyDevice(dev, pCreatedBy , config );
 
 	return newDev;
 }

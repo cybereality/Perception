@@ -46,11 +46,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 *  Get motion tracker. 
 *  Creates the currently selected motion tracker class pointer.
 ***/
-MotionTracker* MotionTrackerFactory::Get(ProxyHelper::ProxyConfig& config)
+MotionTracker* MotionTrackerFactory::Get( cConfig& config)
 {
 	MotionTracker* newTracker = NULL;
 
-	switch(config.tracker_mode)
+	switch(config.trackerMode)
 	{
 	case MotionTracker::DISABLED:
 		newTracker = new MotionTracker();

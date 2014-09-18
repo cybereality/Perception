@@ -30,9 +30,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef MOTIONTRACKERFACTORY_H_INCLUDED
 #define MOTIONTRACKERFACTORY_H_INCLUDED
 
-#include "ProxyHelper.h"
 #include "MotionTracker.h"
-
+#include <cConfig.h>
 /**
 *  Motion tracker factory class. 
 *  Class to retrieve the currently selected motion tracker.
@@ -41,7 +40,7 @@ class MotionTrackerFactory
 {
 public:
 	/*** MotionTrackerFactory public methods ***/
-	static MotionTracker* Get(ProxyHelper::ProxyConfig& config);
+	static MotionTracker* Get(cConfig& config);
 };
 
 #endif

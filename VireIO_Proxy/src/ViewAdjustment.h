@@ -35,8 +35,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "d3d9.h"
 #include "d3dx9.h"
 #include "Vireio.h"
-#include "ProxyHelper.h"
-#include "cStereoMode.h"
+#include <cConfig.h>
 
 #define LEFT_CONSTANT -1
 #define RIGHT_CONSTANT 1
@@ -51,12 +50,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class ViewAdjustment
 {
 public:	
-	ViewAdjustment(cStereoMode *hmdInfo, float metersToWorldUnits, bool enableRoll);
+	ViewAdjustment( float metersToWorldUnits, bool enableRoll , cConfig& cfg );
 	virtual ~ViewAdjustment();
 
 	/*** ViewAdjustment public methods ***/
-	void          Load(ProxyHelper::ProxyConfig& cfg);
-	void          Save(ProxyHelper::ProxyConfig& cfg);
+	void          Load(cConfig& cfg);
+	void          Save(cConfig& cfg);
 	void          UpdateProjectionMatrices(float aspectRatio);
 	void          UpdatePitchYaw(float pitch, float yaw);
 	void          UpdateRoll(float roll);
@@ -109,10 +108,10 @@ public:
 	float         SeparationInWorldUnits();
 	float         SeparationIPDAdjustment();
 	bool          RollEnabled();
-	int			  GetStereoType();
-	cStereoMode* HMDInfo();
 
 private:
+	cConfig& config;
+
 	/*** Projection Matrix variables ***/
 	float n;	/**< Minimum z-value of the view volume. */
 	float f;	/**< Maximum z-value of the view volume. */
@@ -260,10 +259,6 @@ private:
 	*/
 	D3DXVECTOR3 gameScaleVec;
 	/**
-	* Head mounted display info.
-	***/
-	cStereoMode* hmdInfo;
-	/**
 	* True if head roll enabled.
 	***/
 	bool rollEnabled;
@@ -284,7 +279,7 @@ private:
 	/**
 	* The current way to render stereo. Matches StereoView::StereoTypes.
 	***/
-	int stereoType;
+	bool isHmd;
 	/**
 	* The amount of squashing GUI shader constants.
 	* 1.0 == full render

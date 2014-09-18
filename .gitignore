@@ -137,3 +137,4 @@ LibOVR
 StreamingClientAndroid/bin/*
 StreamingClientAndroid/libs/*
 StreamingClientAndroid/obj/*
+data/games/*

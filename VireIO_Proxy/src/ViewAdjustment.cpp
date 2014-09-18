@@ -36,8 +36,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * Constructor.
 * Sets class constants, identity matrices and a projection matrix.
 ***/
-ViewAdjustment::ViewAdjustment(cStereoMode *displayInfo, float metersToWorldUnits, bool enableRoll) :
-	hmdInfo(displayInfo),
+ViewAdjustment::ViewAdjustment( float metersToWorldUnits, bool enableRoll , cConfig& cfg ) :
+	config(cfg) ,
 	metersToWorldMultiplier(metersToWorldUnits),
 	rollEnabled(enableRoll),
 	bulletLabyrinth(false)
@@ -79,7 +79,7 @@ ViewAdjustment::ViewAdjustment(cStereoMode *displayInfo, float metersToWorldUnit
 	D3DXMatrixIdentity(&matGatheredLeft);
 	D3DXMatrixIdentity(&matGatheredRight);
 
-	UpdateProjectionMatrices(displayInfo->screenAspectRatio);
+	UpdateProjectionMatrices( cfg.screenAspectRatio );
 	D3DXMatrixIdentity(&rollMatrix);
 	D3DXMatrixIdentity(&rollMatrixNegative);
 	ComputeViewTransforms();
@@ -96,32 +96,27 @@ ViewAdjustment::~ViewAdjustment()
 * Loads game configuration data.
 * @param cfg Game configuration to load.
 ***/
-void ViewAdjustment::Load(ProxyHelper::ProxyConfig& cfg) 
+void ViewAdjustment::Load( cConfig& cfg)
 {
 	rollEnabled = cfg.rollEnabled;
 	metersToWorldMultiplier  = cfg.worldScaleFactor;
 	convergence = cfg.convergence;
-	ipd = cfg.ipd;
-	stereoType = cfg.stereo_mode;
+	ipd = cfg.PlayerIPD;
+	isHmd = cfg.isHmd;
 }
 
 /**
 * Saves game configuration data.
 * @param cfg The game configuration to be saved to.
 ***/
-void ViewAdjustment::Save(ProxyHelper::ProxyConfig& cfg) 
+void ViewAdjustment::Save(cConfig& cfg)
 {
 	cfg.rollEnabled = rollEnabled;
 	cfg.convergence = convergence;
 
 	//worldscale and ipd are not normally edited;
 	cfg.worldScaleFactor = metersToWorldMultiplier;
-	cfg.ipd = ipd;
-}
-
-int ViewAdjustment::GetStereoType()
-{
-	return stereoType;
+	cfg.PlayerIPD = ipd;
 }
 
 /**
@@ -141,11 +136,11 @@ void ViewAdjustment::UpdateProjectionMatrices(float aspectRatio)
 	D3DXMatrixInverse(&matProjectionInv, 0, &matProjection);
 
 	// ALL stated in meters here ! screen size = horizontal size
-	float nearClippingPlaneDistance = hmdInfo->eyeToScreenDistance; 
-	float physicalScreenSizeInMeters = hmdInfo->physicalWidth / 2; 
+	float nearClippingPlaneDistance = config.eyeToScreenDistance;
+	float physicalScreenSizeInMeters = config.physicalWidth / 2;
 
 	// if not HMD, set values to fullscreen defaults
-	if (stereoType <100)   //stereo type > 100 reserved specifically for HMDs
+	if ( !isHmd )   //stereo type > 100 reserved specifically for HMDs
 	{
 		// assumption here :
 		// end user is placed 1 meter away from screen
@@ -198,7 +193,7 @@ void ViewAdjustment::UpdateRoll(float roll)
 {
 	char buffer[256]; 
 	sprintf_s(buffer, "ViewAdjustment::UpdateRoll: %.4f", roll); 
-	OutputDebugString(buffer);
+	OutputDebugStringA(buffer);
 
 	D3DXMatrixIdentity(&rollMatrix);
 	D3DXMatrixRotationZ(&rollMatrix, roll);
@@ -290,7 +285,7 @@ void ViewAdjustment::ComputeViewTransforms()
 	// now, create HUD/GUI helper matrices
 
 	// if not HMD, set HUD/GUI to fullscreen
-	if (stereoType <100)   //stereo type > 100 reserved specifically for HMDs
+	if ( !isHmd )   //stereo type > 100 reserved specifically for HMDs
 	{
 		squash = 1.0f;
 		gui3DDepth = 0.0f;
@@ -307,7 +302,7 @@ void ViewAdjustment::ComputeViewTransforms()
 	// hud3DDepth
 	D3DXMatrixTranslation(&matLeftHud3DDepth, hud3DDepth, 0, 0);
 	D3DXMatrixTranslation(&matRightHud3DDepth, -hud3DDepth, 0, 0);
-	float additionalSeparation = (1.5f-hudDistance)*hmdInfo->lensXCenterOffset;
+	float additionalSeparation = (1.5f-hudDistance)*config.lensXCenterOffset;
 	D3DXMatrixTranslation(&matLeftHud3DDepthShifted, hud3DDepth+additionalSeparation, 0, 0);
 	D3DXMatrixTranslation(&matRightHud3DDepthShifted, -hud3DDepth-additionalSeparation, 0, 0);
 	D3DXMatrixTranslation(&matLeftGui3DDepth, gui3DDepth+SeparationIPDAdjustment(), 0, 0);
@@ -631,7 +626,7 @@ void ViewAdjustment::ChangeHUD3DDepth(float newHud3DDepth)
 
 	D3DXMatrixTranslation(&matLeftHud3DDepth, -hud3DDepth, 0, 0);
 	D3DXMatrixTranslation(&matRightHud3DDepth, hud3DDepth, 0, 0);
-	float additionalSeparation = (1.5f-hudDistance)*hmdInfo->lensXCenterOffset;
+	float additionalSeparation = (1.5f-hudDistance)*config.lensXCenterOffset;
 	D3DXMatrixTranslation(&matLeftHud3DDepthShifted, hud3DDepth+additionalSeparation, 0, 0);
 	D3DXMatrixTranslation(&matRightHud3DDepthShifted, -hud3DDepth-additionalSeparation, 0, 0);
 }
@@ -707,12 +702,4 @@ float ViewAdjustment::SeparationIPDAdjustment()
 bool ViewAdjustment::RollEnabled() 
 { 
 	return rollEnabled; 
-}
-
-/**
-* Returns the head mounted display info.
-***/
-cStereoMode* ViewAdjustment::HMDInfo()
-{
-	return hmdInfo;
 }

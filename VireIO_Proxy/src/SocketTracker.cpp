@@ -30,7 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 SocketTracker::SocketTracker(void):MotionTracker()
 {
-	OutputDebugString("Socket Tracker Created\n");
+	OutputDebugStringA("Socket Tracker Created\n");
 	init();
 }
 
@@ -46,7 +46,7 @@ SocketTracker::~SocketTracker(void)
 
 void SocketTracker::init()
 {
-	OutputDebugString("Socket Tracker Init\n");
+	OutputDebugStringA("Socket Tracker Init\n");
 
 	// add init code
     m_dwThreadID = 0;
@@ -74,7 +74,7 @@ void SocketTracker::init()
 
 int SocketTracker::getOrientation(float* yaw, float* pitch, float* roll) 
 {
-	OutputDebugString("Socket Tracker getOrient\n");
+	OutputDebugStringA("Socket Tracker getOrient\n");
 
 	*roll = this->roll;
 	*pitch = this->pitch;
@@ -90,7 +90,7 @@ bool SocketTracker::isAvailable()
 
 void SocketTracker::updateOrientation()
 {
-	OutputDebugString("Motion Tracker updateOrientation\n");
+	OutputDebugStringA("Motion Tracker updateOrientation\n");
 
 	// need to add multipliers...
 
@@ -102,7 +102,7 @@ void SocketTracker::updateOrientation()
 		mouseData.mi.dx = (long)(deltaYaw);
 		mouseData.mi.dy = (long)(deltaPitch);
 		
-		OutputDebugString("Motion Tracker SendInput\n");
+		OutputDebugStringA("Motion Tracker SendInput\n");
 		SendInput(1, &mouseData, sizeof(INPUT));
 		currentYaw = yaw;
 		currentPitch = pitch;

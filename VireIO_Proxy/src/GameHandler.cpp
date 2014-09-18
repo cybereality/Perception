@@ -56,7 +56,7 @@ GameHandler::~GameHandler()
 * @param cfg The game configuration.
 * @param spShaderViewAdjustments The view adjustments pointer.
 ***/
-bool GameHandler::Load(ProxyHelper::ProxyConfig& cfg, std::shared_ptr<ViewAdjustment> spShaderViewAdjustments)
+bool GameHandler::Load( cConfig& cfg, std::shared_ptr<ViewAdjustment> spShaderViewAdjustments)
 {
 	// Get rid of existing modification repository if there is one
 	if (m_ShaderModificationRepository) {
@@ -67,16 +67,16 @@ bool GameHandler::Load(ProxyHelper::ProxyConfig& cfg, std::shared_ptr<ViewAdjust
 	bool loadSuccess = true;
 
 	//if (game profile has shader rules)
-	if (!cfg.shaderRulePath.empty()) {
+	if (!cfg.shaderRulePath.isEmpty()) {
 		m_ShaderModificationRepository = new ShaderModificationRepository(spShaderViewAdjustments);
 
-		if (!m_ShaderModificationRepository->LoadRules(cfg.shaderRulePath)) {
-			OutputDebugString("Rules failed to load.");
+		if (!m_ShaderModificationRepository->LoadRules(cfg.shaderRulePath.toStdString())) {
+			OutputDebugStringA("Rules failed to load.");
 			loadSuccess = false;
 		}
 	}
 	else {
-		OutputDebugString("No shader rule path found. No rules to apply");
+		OutputDebugStringA("No shader rule path found. No rules to apply");
 		// We call this success as we have successfully loaded nothing. We assume 'no rules' is intentional
 	}
 
@@ -91,18 +91,18 @@ bool GameHandler::Load(ProxyHelper::ProxyConfig& cfg, std::shared_ptr<ViewAdjust
 * @param cfg The game configuration.
 * @param spShaderViewAdjustments The view adjustments pointer.
 ***/
-bool GameHandler::Save(ProxyHelper::ProxyConfig& cfg, std::shared_ptr<ViewAdjustment> spShaderViewAdjustments)
+bool GameHandler::Save(cConfig& cfg, std::shared_ptr<ViewAdjustment> spShaderViewAdjustments)
 {
-	OutputDebugString("Save shader rules...");
+	OutputDebugStringA("Save shader rules...");
 
 	// if (game profile has shader rules path) and (modification repository present)
-	if ((!cfg.shaderRulePath.empty()) && (m_ShaderModificationRepository)) {
-		if (!m_ShaderModificationRepository->SaveRules(cfg.shaderRulePath)) {
-			OutputDebugString("Rules failed to save.");
+	if ((!cfg.shaderRulePath.isEmpty()) && (m_ShaderModificationRepository)) {
+		if (!m_ShaderModificationRepository->SaveRules(cfg.shaderRulePath.toStdString())) {
+			OutputDebugStringA("Rules failed to save.");
 		}
 	}
 	else {
-		OutputDebugString("No shader rule path found. No rules to save.");
+		OutputDebugStringA("No shader rule path found. No rules to save.");
 	}	
 
 	return true;

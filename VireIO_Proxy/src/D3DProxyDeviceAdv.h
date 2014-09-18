@@ -32,7 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define D3DPROXYDEVICEADV_H_INCLUDED
 
 #include "D3DProxyDevice.h"
-#include "ProxyHelper.h"
+#include <cConfig.h>
 
 /**
 * Proxy device class for Gamebryo games, to avoid GUI flaws.
@@ -40,7 +40,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class D3DProxyDeviceAdv : public D3DProxyDevice
 {
 public:
-	D3DProxyDeviceAdv(IDirect3DDevice9* pDevice, D3D9ProxyDirect3D* pCreatedBy);
+	D3DProxyDeviceAdv(IDirect3DDevice9* pDevice, D3D9ProxyDirect3D* pCreatedBy , cConfig& cfg );
 	virtual ~D3DProxyDeviceAdv();
 
 	/*** IDirect3DDevice9 methods ***/

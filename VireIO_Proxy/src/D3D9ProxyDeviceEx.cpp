@@ -28,7 +28,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
 #include "Direct3DDevice9Ex.h"
-#include "Main.h"
 
 /**
 * Constructor. 

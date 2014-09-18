@@ -30,8 +30,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef PROXYDEVICEFACTORY_H_INCLUDED
 #define PROXYDEVICEFACTORY_H_INCLUDED
 
-#include "ProxyHelper.h"
 #include "D3DProxyDevice.h"
+#include <cConfig.h>
 
 /**
 *  D3D proxy device factory class. 
@@ -40,7 +40,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class D3DProxyDeviceFactory
 {
 public:
-	static D3DProxyDevice* Get(ProxyHelper::ProxyConfig& config, IDirect3DDevice9* dev, D3D9ProxyDirect3D* pCreatedBy);
+	static D3DProxyDevice* Get(cConfig& config, IDirect3DDevice9* dev, D3D9ProxyDirect3D* pCreatedBy);
 };
 
 #endif

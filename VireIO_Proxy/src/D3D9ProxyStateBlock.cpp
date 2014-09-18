@@ -109,7 +109,7 @@ D3D9ProxyStateBlock::D3D9ProxyStateBlock(IDirect3DStateBlock9* pActualStateBlock
 
 	default:
 		{
-			OutputDebugString("Unhandled stateblock capture mode\n");
+			OutputDebugStringA("Unhandled stateblock capture mode\n");
 			break;
 		}
 	}
@@ -152,7 +152,7 @@ D3D9ProxyStateBlock::~D3D9ProxyStateBlock()
 HRESULT WINAPI D3D9ProxyStateBlock::QueryInterface(REFIID riid, LPVOID* ppv)
 {
 	if (!m_pActualStateBlock) {
-		OutputDebugString("Proxy state block is missing actual state block.\n");
+		OutputDebugStringA("Proxy state block is missing actual state block.\n");
 		return D3DERR_INVALIDCALL;
 	}
 
@@ -206,7 +206,7 @@ HRESULT WINAPI D3D9ProxyStateBlock::Capture()
 {
 
 	if (!m_pActualStateBlock) {
-		OutputDebugString("Proxy state block is missing actual state block.\n");
+		OutputDebugStringA("Proxy state block is missing actual state block.\n");
 		return D3DERR_INVALIDCALL;
 	}
 
@@ -243,7 +243,7 @@ HRESULT WINAPI D3D9ProxyStateBlock::Apply()
 {
 
 	if (!m_pActualStateBlock) {
-		OutputDebugString("Proxy state block is missing actual state block.\n");
+		OutputDebugStringA("Proxy state block is missing actual state block.\n");
 		return D3DERR_INVALIDCALL;
 	}
 
@@ -780,7 +780,7 @@ void D3D9ProxyStateBlock::CaptureSelectedFromProxyDevice()
 						inserted.first->second->AddRef();
 					}
 					else { // insertfailed
-						//OutputDebugString("Texture sampler capture to StateBlock failed");
+						//OutputDebugStringA("Texture sampler capture to StateBlock failed");
 						//TODO aaaaa why does this get spammed
 					}
 				}
@@ -800,7 +800,7 @@ void D3D9ProxyStateBlock::CaptureSelectedFromProxyDevice()
 						inserted.first->second->AddRef();
 					}
 					else { // insertfailed
-						OutputDebugString("Vertex buffer capture to StateBlock failed");
+						OutputDebugStringA("Vertex buffer capture to StateBlock failed");
 					}
 				}
 
@@ -837,7 +837,7 @@ void D3D9ProxyStateBlock::CaptureSelectedFromProxyDevice()
 
 	default:
 		{
-			OutputDebugString("Unhandled stateblock capture mode\n");
+			OutputDebugStringA("Unhandled stateblock capture mode\n");
 			break;
 		}
 	}
@@ -850,7 +850,7 @@ void D3D9ProxyStateBlock::CaptureSelectedFromProxyDevice()
 		m_eSidesAre = SidesAllRight;
 	}
 	else {
-		OutputDebugString("CaptureSelectedFromProxyDevice: This shouldn't be possible.\n");
+		OutputDebugStringA("CaptureSelectedFromProxyDevice: This shouldn't be possible.\n");
 	}
 }
 
@@ -921,7 +921,7 @@ void D3D9ProxyStateBlock::Capture(CaptureableState toCap)
 
 	default:
 		{
-			OutputDebugString("SelectAndCaptureState: Unknown CaptureableState in ProxyStateBlock\n");
+			OutputDebugStringA("SelectAndCaptureState: Unknown CaptureableState in ProxyStateBlock\n");
 			break;
 		}
 	}
@@ -1062,7 +1062,7 @@ void D3D9ProxyStateBlock::Apply(CaptureableState toApply, bool reApplyStereo)
 
 	default:
 		{
-			OutputDebugString("SelectAndCaptureState: Unknown CaptureableState in ProxyStateBlock\n");
+			OutputDebugStringA("SelectAndCaptureState: Unknown CaptureableState in ProxyStateBlock\n");
 			break;
 		}
 	}

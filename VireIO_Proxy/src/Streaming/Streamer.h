@@ -1,16 +1,16 @@
 #include <string>
 #include <d3dx9.h>
-#include "../ProxyHelper.h"
+#include <cConfig.h>
 
 #define D_STR1(x)  #x
 #define D_STR(x)  D_STR1(x)
-#define D_LINE    OutputDebugString( __FILE__  D_STR(__LINE__) );
+#define D_LINE    OutputDebugStringA( __FILE__  D_STR(__LINE__) );
 
 class Streamer {
 public:
-	ProxyHelper::ProxyConfig cfg;
+	cConfig& cfg;
 
-	Streamer (  ProxyHelper::ProxyConfig& c );
+	Streamer ( cConfig& c );
 	~Streamer( );
 
 	void send ( IDirect3DDevice9*  device  );

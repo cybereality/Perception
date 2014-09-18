@@ -1,7 +1,8 @@
 #include <Windows.h>
 #include <Psapi.h>
 #include "hijack.h"
-#include <qdebug.h>
+#include <qmessagebox.h>
+
 static QList<HANDLE> g_handles;
 
 
@@ -43,7 +44,6 @@ static QString Inject( HANDLE h , const QStringList& dlls ){
 		WaitForSingleObject( remote_thread , INFINITE );
 
 		if( !GetExitCodeThread( remote_thread , &ret_dword ) ){
-			ret += "GetExitCodeThread failed";
 			goto end;
 		}
 
@@ -116,7 +116,7 @@ QString HijackAttachToProcess( int index , const QStringList& dlls ){
 
 
 
-QString HijackLaunchProcess  ( QString exe_path , const QStringList& dlls ){
+QString HijackLaunchProcess  ( QString exe_path , const QStringList& dlls , bool pause ){
 
 	PROCESS_INFORMATION pi;
 	STARTUPINFOA        si;
@@ -139,6 +139,10 @@ QString HijackLaunchProcess  ( QString exe_path , const QStringList& dlls ){
 	ret = Inject( pi.hProcess , dlls );
 	if( !ret.isEmpty() ){
 		goto end;
+	}
+
+	if( pause ){
+		QMessageBox::information( 0 , "pause" , "Click ok to resume game" );
 	}
 
 	ResumeThread( pi.hThread );

@@ -27,53 +27,38 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#ifndef DIRECT3D9_H_INCLUDED
-#define DIRECT3D9_H_INCLUDED
-
+#pragma once
 #include <d3d9.h>
-#include "ProxyHelper.h"
+#include <cConfig.h>
 
-
-/**
-*  Direct 3D. 
-*  Overwrites IDirect3D9 and imbeds the actual D3D object pointer in m_pD3D.
-*/
-class __declspec(dllexport) D3D9ProxyDirect3D : public IDirect3D9
-{
+class D3D9ProxyDirect3D : public IDirect3D9 {
 public:
-	D3D9ProxyDirect3D(IDirect3D9* pD3D);
+	D3D9ProxyDirect3D(IDirect3D9* pD3D , cConfig& cfg );
 	virtual ~D3D9ProxyDirect3D();
 
 	/*** IUnknown methods ***/
-	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv);
-	virtual ULONG   WINAPI AddRef();
-	virtual ULONG   WINAPI Release();
+	HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv);
+	ULONG   WINAPI AddRef();
+	ULONG   WINAPI Release();
 
 	/*** IDirect3D9 methods ***/
-	virtual HRESULT	 WINAPI RegisterSoftwareDevice(void* pInitializeFunction);
-	virtual UINT     WINAPI GetAdapterCount();
-	virtual HRESULT	 WINAPI GetAdapterIdentifier(UINT Adapter, DWORD Flags, D3DADAPTER_IDENTIFIER9* pIdentifier);
-	virtual UINT     WINAPI GetAdapterModeCount(UINT Adapter, D3DFORMAT Format);
-	virtual HRESULT	 WINAPI EnumAdapterModes(UINT Adapter, D3DFORMAT Format, UINT Mode, D3DDISPLAYMODE* pMode);
-	virtual HRESULT	 WINAPI GetAdapterDisplayMode(UINT Adapter, D3DDISPLAYMODE* pMode);
-	virtual HRESULT	 WINAPI CheckDeviceType(UINT Adapter, D3DDEVTYPE DevType, D3DFORMAT AdapterFormat, D3DFORMAT BackBufferFormat, BOOL bWindowed);
-	virtual HRESULT	 WINAPI CheckDeviceFormat(UINT Adapter, D3DDEVTYPE DeviceType, D3DFORMAT AdapterFormat, DWORD Usage, D3DRESOURCETYPE RType, D3DFORMAT CheckFormat);
-	virtual HRESULT	 WINAPI CheckDeviceMultiSampleType(UINT Adapter, D3DDEVTYPE DeviceType, D3DFORMAT SurfaceFormat, BOOL Windowed, D3DMULTISAMPLE_TYPE MultiSampleType, DWORD* pQualityLevels);
-	virtual HRESULT	 WINAPI CheckDepthStencilMatch(UINT Adapter, D3DDEVTYPE DeviceType, D3DFORMAT AdapterFormat, D3DFORMAT RenderTargetFormat, D3DFORMAT DepthStencilFormat);
-	virtual HRESULT	 WINAPI CheckDeviceFormatConversion(UINT Adapter, D3DDEVTYPE DeviceType,	D3DFORMAT SourceFormat, D3DFORMAT TargetFormat);
-	virtual HRESULT	 WINAPI GetDeviceCaps(UINT Adapter, D3DDEVTYPE DeviceType, D3DCAPS9* pCaps);
-	virtual HMONITOR WINAPI GetAdapterMonitor(UINT Adapter);
-	virtual HRESULT	 WINAPI CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, HWND hFocusWindow,	DWORD BehaviorFlags, D3DPRESENT_PARAMETERS* pPresentationParameters, IDirect3DDevice9** ppReturnedDeviceInterface);
+	HRESULT	 WINAPI RegisterSoftwareDevice(void* pInitializeFunction);
+	UINT     WINAPI GetAdapterCount();
+	HRESULT	 WINAPI GetAdapterIdentifier(UINT Adapter, DWORD Flags, D3DADAPTER_IDENTIFIER9* pIdentifier);
+	UINT     WINAPI GetAdapterModeCount(UINT Adapter, D3DFORMAT Format);
+	HRESULT	 WINAPI EnumAdapterModes(UINT Adapter, D3DFORMAT Format, UINT Mode, D3DDISPLAYMODE* pMode);
+	HRESULT	 WINAPI GetAdapterDisplayMode(UINT Adapter, D3DDISPLAYMODE* pMode);
+	HRESULT	 WINAPI CheckDeviceType(UINT Adapter, D3DDEVTYPE DevType, D3DFORMAT AdapterFormat, D3DFORMAT BackBufferFormat, BOOL bWindowed);
+	HRESULT	 WINAPI CheckDeviceFormat(UINT Adapter, D3DDEVTYPE DeviceType, D3DFORMAT AdapterFormat, DWORD Usage, D3DRESOURCETYPE RType, D3DFORMAT CheckFormat);
+	HRESULT	 WINAPI CheckDeviceMultiSampleType(UINT Adapter, D3DDEVTYPE DeviceType, D3DFORMAT SurfaceFormat, BOOL Windowed, D3DMULTISAMPLE_TYPE MultiSampleType, DWORD* pQualityLevels);
+	HRESULT	 WINAPI CheckDepthStencilMatch(UINT Adapter, D3DDEVTYPE DeviceType, D3DFORMAT AdapterFormat, D3DFORMAT RenderTargetFormat, D3DFORMAT DepthStencilFormat);
+	HRESULT	 WINAPI CheckDeviceFormatConversion(UINT Adapter, D3DDEVTYPE DeviceType,	D3DFORMAT SourceFormat, D3DFORMAT TargetFormat);
+	HRESULT	 WINAPI GetDeviceCaps(UINT Adapter, D3DDEVTYPE DeviceType, D3DCAPS9* pCaps);
+	HMONITOR WINAPI GetAdapterMonitor(UINT Adapter);
+	HRESULT	 WINAPI CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, HWND hFocusWindow,	DWORD BehaviorFlags, D3DPRESENT_PARAMETERS* pPresentationParameters, IDirect3DDevice9** ppReturnedDeviceInterface);
 
 private:
-	/**
-	* The actual device embedded. 
-	***/
+	cConfig&    config;
 	IDirect3D9* m_pD3D;
-	/**
-	* Internal reference counter. 
-	***/
-	ULONG m_nRefCount;
+	ULONG       m_nRefCount;
 };
-
-#endif

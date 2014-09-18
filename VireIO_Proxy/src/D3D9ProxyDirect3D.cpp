@@ -29,16 +29,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "D3D9ProxyDirect3D.h"
 #include "D3DProxyDevice.h"
-#include "Main.h"
 #include "D3DProxyDeviceFactory.h"
 
 /**
 * Constructor. 
 * @param pD3D Imbed actual Direct3D object. 
 ***/
-D3D9ProxyDirect3D::D3D9ProxyDirect3D(IDirect3D9* pD3D) :
+D3D9ProxyDirect3D::D3D9ProxyDirect3D(IDirect3D9* pD3D , cConfig& cfg ) :
 	m_pD3D(pD3D),
-	m_nRefCount(1)
+	m_nRefCount(1) ,
+	config(cfg)
 {
 }
 
@@ -202,36 +202,36 @@ HRESULT WINAPI D3D9ProxyDirect3D::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceTy
 	if(FAILED(hResult))
 		return hResult;
 
-	OutputDebugString("[OK] Normal D3D device created\n");
+	OutputDebugStringA("[OK] Normal D3D device created\n");
 
 	char buf[64];
 	sprintf_s(buf, "Number of back buffers = %d\n", pPresentationParameters->BackBufferCount);
-	OutputDebugString(buf);
+	OutputDebugStringA(buf);
 	sprintf_s(buf, "Format of back buffers = %x\n", pPresentationParameters->BackBufferFormat);
-	OutputDebugString(buf);
+	OutputDebugStringA(buf);
 
 	// for debug reasons, output the d3dswapeffect parameter
 	switch (pPresentationParameters->SwapEffect)
 	{
 	case D3DSWAPEFFECT::D3DSWAPEFFECT_COPY:
-		OutputDebugString("D3DSWAPEFFECT_COPY");
+		OutputDebugStringA("D3DSWAPEFFECT_COPY");
 		break;
 	case D3DSWAPEFFECT::D3DSWAPEFFECT_DISCARD:
-		OutputDebugString("D3DSWAPEFFECT_DISCARD");
+		OutputDebugStringA("D3DSWAPEFFECT_DISCARD");
 		break;
 	case D3DSWAPEFFECT::D3DSWAPEFFECT_FLIP:
-		OutputDebugString("D3DSWAPEFFECT_FLIP");
+		OutputDebugStringA("D3DSWAPEFFECT_FLIP");
 		break;
 	case D3DSWAPEFFECT::D3DSWAPEFFECT_FLIPEX:
-		OutputDebugString("D3DSWAPEFFECT_FLIPEX");
+		OutputDebugStringA("D3DSWAPEFFECT_FLIPEX");
 		break;
 	case D3DSWAPEFFECT::D3DSWAPEFFECT_OVERLAY:
-		OutputDebugString("D3DSWAPEFFECT_OVERLAY");
+		OutputDebugStringA("D3DSWAPEFFECT_OVERLAY");
 		break;
 	default:
 		char buf[256];
 		sprintf_s(buf, 256, "D3DPRESENT_PARAMETERS::SwapEffect %x", pPresentationParameters->SwapEffect);
-		OutputDebugString(buf);
+		OutputDebugStringA(buf);
 		break;
 	}
 
@@ -244,36 +244,12 @@ HRESULT WINAPI D3D9ProxyDirect3D::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceTy
 		return hResult;
 	}*/
 
-	// load configuration file
-	ProxyHelper helper = ProxyHelper();
-	ProxyHelper::ProxyConfig cfg;
-	ProxyHelper::OculusProfile oculusProfile;
-	if(!helper.LoadConfig(cfg, oculusProfile)) {
-		OutputDebugString("[ERR] Config loading failed, config could not be loaded. Returning normal D3DDevice. Vireio will not be active.\n");
+	if( config.shader.isEmpty() ) {
 		return hResult;
 	}
 
-	OutputDebugString("[OK] Config loading - OK\n");
 
-	if( cfg.stereo_mode == 0 ) {
-		OutputDebugString("[WARN] stereo_mode == disabled. Returning normal D3DDevice. Vireio will not be active.\n");
-		return hResult;
-	}
-
-	OutputDebugString("[OK] Stereo mode is enabled.\n");
-
-	char buf1[32];
-	LPCSTR psz = NULL;
-
-	wsprintf(buf1,"Config type: %d", cfg.game_type);
-	psz = buf1;
-	OutputDebugString(psz);
-	OutputDebugString("\n");
-
-	// Create and return proxy
-	*ppReturnedDeviceInterface = D3DProxyDeviceFactory::Get(cfg, *ppReturnedDeviceInterface, this);
-
-	OutputDebugString("[OK] Vireio D3D device created.\n");
+	*ppReturnedDeviceInterface = D3DProxyDeviceFactory::Get( config , *ppReturnedDeviceInterface, this);
 
 	return hResult;
 }

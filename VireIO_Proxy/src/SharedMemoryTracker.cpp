@@ -44,7 +44,7 @@ TCHAR szName[]=TEXT("VireioSMTrack");
 ***/ 
 SharedMemoryTracker::SharedMemoryTracker(void):MotionTracker()
 {
-	OutputDebugString("Socket Tracker Created\n");
+	OutputDebugStringA("Socket Tracker Created\n");
 	hMapFile = NULL;
 	pTrackBuf = NULL;
 	init();
@@ -66,7 +66,7 @@ SharedMemoryTracker::~SharedMemoryTracker(void)
 ***/
 void SharedMemoryTracker::init()
 {
-	OutputDebugString("Socket Tracker Init\n");
+	OutputDebugStringA("Socket Tracker Init\n");
 	openSharedMemory();
 }
 
@@ -77,7 +77,7 @@ void SharedMemoryTracker::init()
 int  SharedMemoryTracker::getOrientationAndPosition(float* yaw, float* pitch, float* roll, float* x, float* y, float* z)
 {
 #ifdef _DEBUG
-	OutputDebugString("Socket Tracker getOrient\n");
+	OutputDebugStringA("Socket Tracker getOrient\n");
 #endif
 
 	if(pTrackBuf == NULL)
@@ -103,7 +103,7 @@ int  SharedMemoryTracker::getOrientationAndPosition(float* yaw, float* pitch, fl
 void SharedMemoryTracker::updateOrientationAndPosition()
 {
 #ifdef _DEBUG
-	OutputDebugString("Motion Tracker updateOrientation\n");
+	OutputDebugStringA("Motion Tracker updateOrientation\n");
 #endif
 
 	// Get orientation from shared memory.
@@ -132,7 +132,7 @@ void SharedMemoryTracker::updateOrientationAndPosition()
 		deltaPitch -= ((float)mouseData.mi.dy)/multiplierPitch;
 
 #ifdef _DEBUG
-		OutputDebugString("Motion Tracker SendInput\n");
+		OutputDebugStringA("Motion Tracker SendInput\n");
 #endif
 		// Send to mouse input
 		if (mouseEmulation)

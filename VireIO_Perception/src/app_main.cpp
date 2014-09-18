@@ -1,12 +1,13 @@
-#define UNICODE
-#define _UNICODE
-
 #include <qapplication.h>
 #include "cMainWindow.h"
+#include <qdebug.h>
 
+QString vireioDir;
 
-extern "C" int main(int argc, char **argv){
+int main(int argc, char **argv){
 	QApplication a(argc, argv);
+
+	vireioDir = a.applicationDirPath() + "/../";
 
 	QCoreApplication::setOrganizationName( "VireIO" );
 	QCoreApplication::setApplicationName ( "Perception" );

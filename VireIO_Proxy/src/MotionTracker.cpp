@@ -35,7 +35,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***/ 
 MotionTracker::MotionTracker()
 {
-	OutputDebugString("Motion Tracker Created\n");
+	OutputDebugStringA("Motion Tracker Created\n");
 	init();
 }
 
@@ -52,7 +52,7 @@ MotionTracker::~MotionTracker()
 ***/
 void MotionTracker::init()
 {
-	OutputDebugString("Motion Tracker Init\n");
+	OutputDebugStringA("Motion Tracker Init\n");
 
 	currentYaw = 0.0f;
 	currentPitch = 0.0f;
@@ -94,7 +94,7 @@ void MotionTracker::init()
 int  MotionTracker::getOrientationAndPosition(float* yaw, float* pitch, float* roll, float* x, float* y, float* z)
 {
 #ifdef _DEBUG
-	OutputDebugString("Motion Tracker getOrient\n");
+	OutputDebugStringA("Motion Tracker getOrient\n");
 #endif
 	return -1;
 }
@@ -107,13 +107,13 @@ int  MotionTracker::getOrientationAndPosition(float* yaw, float* pitch, float* r
 void MotionTracker::updateOrientationAndPosition()
 {
 #ifdef _DEBUG
-	OutputDebugString("Motion Tracker updateOrientationAndPosition\n");
+	OutputDebugStringA("Motion Tracker updateOrientationAndPosition\n");
 #endif
 	// Get orientation from derived tracker.
 	if(getOrientationAndPosition(&yaw, &pitch, &roll, &x, &y, &z) == 0)
 	{
 #ifdef _DEBUG
-		OutputDebugString("Motion Tracker getOrientation == 0\n");
+		OutputDebugStringA("Motion Tracker getOrientation == 0\n");
 #endif
 		// Skip empty input data.
 		if(!isEqual(currentYaw, 0.0f) && !isEqual(currentPitch, 0.0f))
@@ -141,7 +141,7 @@ void MotionTracker::updateOrientationAndPosition()
 			deltaPitch -= (float)mouseData.mi.dy;
 
 #ifdef _DEBUG
-			//OutputDebugString("Motion Tracker SendInput\n");
+			//OutputDebugStringA("Motion Tracker SendInput\n");
 #endif
 			// Send to mouse input.
 			if (mouseEmulation)

@@ -38,7 +38,7 @@ void releaseCheckO(char* object, int newRefCount)
 	if (newRefCount > 0) {
 		char buf[128];
 		sprintf_s(buf, "Error: %s count = %d\n", object, newRefCount);
-		OutputDebugString(buf);
+		OutputDebugStringA(buf);
 	}
 }
 
@@ -161,8 +161,8 @@ ULONG WINAPI D3D9ProxySwapChain::Release()
 HRESULT WINAPI D3D9ProxySwapChain::Present(CONST RECT* pSourceRect, CONST RECT* pDestRect, HWND hDestWindowOverride, CONST RGNDATA* pDirtyRegion, DWORD dwFlags)
 {
 #ifdef _DEBUG
-	OutputDebugString(__FUNCTION__);
-	OutputDebugString("\n");
+	OutputDebugStringA(__FUNCTION__);
+	OutputDebugStringA("\n");
 #endif;
 
 	// Test only, StereoView needs to be properly integrated as part of SwapChain.
@@ -180,7 +180,7 @@ HRESULT WINAPI D3D9ProxySwapChain::Present(CONST RECT* pSourceRect, CONST RECT* 
 		pWrappedBackBuffer->Release();
 	}
 	catch (std::out_of_range) {
-		OutputDebugString("Present: No primary swap chain found. (Present probably called before device has been reset)");
+		OutputDebugStringA("Present: No primary swap chain found. (Present probably called before device has been reset)");
 	}
 
 	// call proxy device present update
@@ -209,13 +209,13 @@ HRESULT WINAPI D3D9ProxySwapChain::GetFrontBufferData(IDirect3DSurface9* pDestSu
 		if (SUCCEEDED(result) && pWrappedDestSurface->getActualRight()) {
 
 			if (FAILED(m_pActualSwapChain->GetFrontBufferData(pWrappedDestSurface->getActualRight()))) {
-				OutputDebugString("SwapChain::GetFrontBufferData; right problem - left ok\n");
+				OutputDebugStringA("SwapChain::GetFrontBufferData; right problem - left ok\n");
 			}
 		}
 	}
 	
 	// TODO Might be able to use a frame delayed backbuffer (copy last back buffer?) to get proper left/right images. Much pondering required, and some testing
-	OutputDebugString("SwapChain::GetFrontBufferData; Caution Will Robinson. The result of this method at the moment is wrapped surfaces containing what the user would see on a monitor. Example: A side-by-side warped image for the rift in the left and right surfaces of the output surface.\n");
+	OutputDebugStringA("SwapChain::GetFrontBufferData; Caution Will Robinson. The result of this method at the moment is wrapped surfaces containing what the user would see on a monitor. Example: A side-by-side warped image for the rift in the left and right surfaces of the output surface.\n");
 	return result;
 }
 

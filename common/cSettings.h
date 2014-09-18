@@ -1,9 +1,12 @@
 #pragma once
-#include <qstring.h>
+#include "VireIO.h"
+#include "cGame.h"
+#include "cGameProfile.h"
+#include "cStereoMode.h"
 
 class cSettings {
 public:
-	int     stereoMode;
+	QString stereoMode;
 	int     trackerMode;
 
 	bool    streamingEnable;
@@ -14,7 +17,7 @@ public:
 
 	cSettings();
 
-	void load();
-	void save();
+	bool load();
+	bool save();
 };
 

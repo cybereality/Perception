@@ -18,7 +18,8 @@ SOURCES += \
     ../../common/cPropsFile.cpp \
     ../../common/cSettings.cpp \
     ../../common/cStereoMode.cpp \
-    ../../common/hijack.cpp
+    ../../common/hijack.cpp \
+    ../../common/cUser.cpp
 
 HEADERS  += \
     ../src/cMainWindow.h \
@@ -27,7 +28,9 @@ HEADERS  += \
     ../../common/cPropsFile.h \
     ../../common/cSettings.h \
     ../../common/cStereoMode.h \
-    ../../common/hijack.h
+    ../../common/hijack.h \
+    ../../common/VireIO.h \
+    ../../common/cUser.h
 
 FORMS    += \
     ../src/cMainWindow.ui

@@ -3,38 +3,38 @@
 
 
 cSettings::cSettings(){
-	stereoMode       = 0;
-	trackerMode      = 0;
 	streamingPort    = 0;
 	streamingBitrate = 0;
 }
 
 
-void cSettings::load(){
+bool cSettings::load(){
 	cPropsFile props;
-	if( props.load("../config/main.ini" ) ){
-		stereoMode       = props["stereoMode"      ].toInt();
-		trackerMode      = props["trackerMode"     ].toInt();
-
-		streamingEnable  = (props["streamingEnable" ] == "true");
-		streamingAddress = props["streamingAddress"];
-		streamingPort    = props["streamingPort"   ].toInt();
-		streamingCodec   = props["streamingCodec"  ];
-		streamingBitrate = props["streamingBitrate"].toInt();
+	if( !props.load( vireioDir+"config/main.ini" ) ){
+		return false;
 	}
+
+	stereoMode       = props.getString( "stereoMode"       );
+	trackerMode      = props.getInt   ( "trackerMode"      );
+	streamingEnable  = props.getBool  ( "streamingEnable"  );
+	streamingAddress = props.getString( "streamingAddress" );
+	streamingPort    = props.getInt   ( "streamingPort"    );
+	streamingCodec   = props.getString( "streamingCodec"   );
+	streamingBitrate = props.getInt   ( "streamingBitrate" );
+
+	return true;
 }
 
 
-void cSettings::save(){
+bool cSettings::save(){
 	cPropsFile props;
-	props["stereoMode"      ] = QString::number(stereoMode);
-	props["trackerMode"     ] = QString::number(trackerMode);
+	props.setString( "stereoMode"       , stereoMode       );
+	props.setInt   ( "trackerMode"      , trackerMode      );
+	props.setBool  ( "streamingEnable"  , streamingEnable  );
+	props.setString( "streamingAddress" , streamingAddress );
+	props.setInt   ( "streamingPort"    , streamingPort    );
+	props.setString( "streamingCodec"   , streamingCodec   );
+	props.setInt   ( "streamingBitrate" , streamingBitrate );
 
-	props["streamingEnable" ] = streamingEnable?"true":"false";
-	props["streamingAddress"] = streamingAddress;
-	props["streamingPort"   ] = QString::number(streamingPort);
-	props["streamingCodec"  ] = streamingCodec;
-	props["streamingBitrate"] = QString::number(streamingBitrate);
-
-	props.save( "../config/main.ini" );
+	return props.save( vireioDir+"config/main.ini" );
 }

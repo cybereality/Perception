@@ -83,7 +83,7 @@ uint32_t ShaderHash(LPDIRECT3DPIXELSHADER9 pShader)
 * @param pDevice Imbed actual device.
 * @param pCreatedBy Pointer to the object that created the device.
 ***/
-DataGatherer::DataGatherer(IDirect3DDevice9* pDevice, D3D9ProxyDirect3D* pCreatedBy):D3DProxyDevice(pDevice, pCreatedBy),
+DataGatherer::DataGatherer(IDirect3DDevice9* pDevice, D3D9ProxyDirect3D* pCreatedBy , cConfig& cfg ):D3DProxyDevice(pDevice, pCreatedBy,cfg),
 	m_recordedVShaders(),
 	m_recordedPShaders(),
 	m_recordedSetVShaders(),
@@ -110,11 +110,10 @@ DataGatherer::DataGatherer(IDirect3DDevice9* pDevice, D3D9ProxyDirect3D* pCreate
 	m_bTestForTransposed = true;
 
 	// get potential matrix names
-	ProxyHelper* helper = new ProxyHelper();
-	std::stringstream sstm;
-	sstm << helper->GetBaseDir() << "cfg\\shader_rules\\brassa.cfg";
+
+
 	std::ifstream cfgFile;
-	cfgFile.open(sstm.str(), std::ios::in);
+	cfgFile.open( (vireioDir+"config/brassa.cfg").toLocal8Bit() , std::ios::in);
 	if (cfgFile.is_open())
 	{
 		enum CFG_FILEMODE
@@ -158,18 +157,18 @@ DataGatherer::DataGatherer(IDirect3DDevice9* pDevice, D3D9ProxyDirect3D* pCreate
 				case BRASSA_COMMANDS:
 					if (s.compare("Output_Shader_Code")==0)
 					{
-						OutputDebugString("Output_Shader_Code");
+						OutputDebugStringA("Output_Shader_Code");
 						m_bOutputShaderCode = true;
 					}
 					if (s.compare("Do_Transpose_Matrices")==0)
 					{
-						OutputDebugString("Do_Transpose_Matrices");
+						OutputDebugStringA("Do_Transpose_Matrices");
 						m_bTransposedRules = true;
 						m_bTestForTransposed = false;
 					}
 					if (s.compare("Do_Not_Transpose_Matrices")==0)
 					{
-						OutputDebugString("Do_Not_Transpose_Matrices");
+						OutputDebugStringA("Do_Not_Transpose_Matrices");
 						m_bTransposedRules = false;
 						m_bTestForTransposed = false;
 					}
@@ -186,7 +185,6 @@ DataGatherer::DataGatherer(IDirect3DDevice9* pDevice, D3D9ProxyDirect3D* pCreate
 		cfgFile.close();
 		vNames.clear();
 	}
-	delete helper;
 
 	// create shader dump file
 	m_shaderDumpFile.open("shaderDump.csv", std::ios::out);
@@ -346,7 +344,7 @@ HRESULT WINAPI DataGatherer::CreateVertexShader(CONST DWORD* pFunction,IDirect3D
 
 				pConstantTable->GetConstantDesc(handle, pConstantDesc, &pConstantNum);
 				if (pConstantNum >= 512) {
-					OutputDebugString("Need larger constant description buffer");
+					OutputDebugStringA("Need larger constant description buffer");
 				}
 
 				// loop through constants, output relevant data
@@ -448,7 +446,7 @@ HRESULT WINAPI DataGatherer::SetVertexShader(IDirect3DVertexShader9* pShader)
 			{
 				char buf[32];
 				sprintf_s(buf,"Set Vertex Shader: %u", m_currentVertexShaderHash);
-				OutputDebugString(buf);
+				OutputDebugStringA(buf);
 			}
 
 		}
@@ -566,7 +564,7 @@ HRESULT WINAPI DataGatherer::CreatePixelShader(CONST DWORD* pFunction,IDirect3DP
 
 				pConstantTable->GetConstantDesc(handle, pConstantDesc, &pConstantNum);
 				if (pConstantNum >= 512) {
-					OutputDebugString("Need larger constant description buffer");
+					OutputDebugStringA("Need larger constant description buffer");
 				}
 
 				// loop through constants, output relevant data
@@ -661,25 +659,15 @@ HRESULT WINAPI DataGatherer::SetPixelShader(IDirect3DPixelShader9* pShader)
 #ifdef _DEBUG
 	char buf[32];
 	sprintf_s(buf,"Cur Vertex Shader: %u", m_currentVertexShaderHash);
-	OutputDebugString(buf);
+	OutputDebugStringA(buf);
 	sprintf_s(buf,"Set Pixel Shader: %u", currentPixelShaderHash);
-	OutputDebugString(buf);
+	OutputDebugStringA(buf);
 #endif
 
 	return D3DProxyDevice::SetPixelShader(pShader);
 }
 
-/**
-* Calls the super init-method.
-* Implemented here for possible future use.
-* @param cfg The game configuration to init this class.
-***/
-void DataGatherer::Init(ProxyHelper::ProxyConfig& cfg)
-{
-	OutputDebugString("Special Proxy: Shader data gatherer created.\n");
 
-	D3DProxyDevice::Init(cfg);
-}
 
 /**
 * Shader Analyzer sub menu.
@@ -739,23 +727,6 @@ void DataGatherer::BRASSA_ShaderSubMenu()
 			BRASSA_mode = BRASSA_Modes::INACTIVE;
 			menuVelocity.x+=2.0f;
 			// save data
-			ProxyHelper* helper = new ProxyHelper();
-
-			// get filename by target exe name
-			std::string shaderRulesFileName = helper->GetTargetExe();
-			auto ext = shaderRulesFileName.find("exe");
-			if (ext!=std::string::npos)
-				shaderRulesFileName.replace(ext,3,"xml");
-			else
-				shaderRulesFileName = "default.xml";
-
-			// ... and add path, delete proxy helper
-			std::stringstream sstm;
-			sstm << helper->GetBaseDir() << "cfg\\shader_rules\\" << shaderRulesFileName;
-			config.shaderRulePath = sstm.str();
-			delete helper;
-
-			// ... finally, save
 			saveShaderRules();
 		}
 		// back to main menu
@@ -1416,29 +1387,29 @@ void DataGatherer::Analyze()
 						m_addedVSConstants.push_back(*itShaderConstants);
 
 					// output debug data
-					OutputDebugString("---Shader Rule");
+					OutputDebugStringA("---Shader Rule");
 					// output constant name
-					OutputDebugString(itShaderConstants->desc.Name);
+					OutputDebugStringA(itShaderConstants->desc.Name);
 					// output shader constant + index 
 					switch(itShaderConstants->desc.Class)
 					{
 					case D3DXPC_VECTOR:
-						OutputDebugString("D3DXPC_VECTOR");
+						OutputDebugStringA("D3DXPC_VECTOR");
 						break;
 					case D3DXPC_MATRIX_ROWS:
-						OutputDebugString("D3DXPC_MATRIX_ROWS");
+						OutputDebugStringA("D3DXPC_MATRIX_ROWS");
 						break;
 					case D3DXPC_MATRIX_COLUMNS:
-						OutputDebugString("D3DXPC_MATRIX_COLUMNS");
+						OutputDebugStringA("D3DXPC_MATRIX_COLUMNS");
 						break;
 					}
 					char buf[32];
 					sprintf_s(buf,"Register Index: %d", itShaderConstants->desc.RegisterIndex);
-					OutputDebugString(buf);
+					OutputDebugStringA(buf);
 					sprintf_s(buf,"Shader Hash: %u", itShaderConstants->hash);
-					OutputDebugString(buf);
+					OutputDebugStringA(buf);
 					sprintf_s(buf,"Transposed: %d", m_bTransposedRules);
-					OutputDebugString(buf);
+					OutputDebugStringA(buf);
 
 					// end loop
 					i = MATRIX_NAMES;
@@ -1447,8 +1418,8 @@ void DataGatherer::Analyze()
 			else
 				if (itShaderConstants->desc.RegisterIndex == 128)
 				{
-					OutputDebugString(itShaderConstants->name.c_str());
-					OutputDebugString(m_wvpMatrixConstantNames[i].c_str());
+					OutputDebugStringA(itShaderConstants->name.c_str());
+					OutputDebugStringA(m_wvpMatrixConstantNames[i].c_str());
 				}
 		}
 
@@ -1456,23 +1427,6 @@ void DataGatherer::Analyze()
 	}
 
 	// save data
-	ProxyHelper* helper = new ProxyHelper();
-
-	// get filename by target exe name
-	std::string shaderRulesFileName = helper->GetTargetExe();
-	auto ext = shaderRulesFileName.find("exe");
-	if (ext!=std::string::npos)
-		shaderRulesFileName.replace(ext,3,"xml");
-	else
-		shaderRulesFileName = "default.xml";
-
-	// ... and add path, delete proxy helper
-	std::stringstream sstm;
-	sstm << helper->GetBaseDir() << "cfg\\shader_rules\\" << shaderRulesFileName;
-	config.shaderRulePath = sstm.str();
-	delete helper;
-
-	// ... finally, save
 	saveShaderRules();
 }
 

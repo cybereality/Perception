@@ -31,7 +31,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define D3DPROXYDEVICEDEBUG_H_INCLUDED
 
 #include "D3DProxyDevice.h"
-#include "ProxyHelper.h"
+#include <cConfig.h>
 
 /**
 * Class to output a debug log file.
@@ -39,7 +39,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class D3DProxyDeviceDebug : public D3DProxyDevice
 {
 public:
-	D3DProxyDeviceDebug(IDirect3DDevice9* pDevice, D3D9ProxyDirect3D* pCreatedBy);
+	D3DProxyDeviceDebug(IDirect3DDevice9* pDevice, D3D9ProxyDirect3D* pCreatedBy, cConfig& cfg );
 	virtual ~D3DProxyDeviceDebug();
 
 	/*** IUnknown methods ***/

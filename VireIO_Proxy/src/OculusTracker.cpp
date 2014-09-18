@@ -55,17 +55,17 @@ OculusTracker::~OculusTracker()
 ***/
 void OculusTracker::init()
 {
-	OutputDebugString("OculusTracker Start");
+	OutputDebugStringA("OculusTracker Start");
 	status = MTS_INITIALISING;
 	ovrBool res = ovr_Initialize(); // start LibOVR
 
 	if (res)
 	{
-		OutputDebugString("OculusTracker Initialize");
+		OutputDebugStringA("OculusTracker Initialize");
 	}
 	else
 	{
-		OutputDebugString("OculusTracker Initialize call failed");
+		OutputDebugStringA("OculusTracker Initialize call failed");
 		status = MTS_DRIVERFAIL;
 		return;
 	}
@@ -73,7 +73,7 @@ void OculusTracker::init()
 	int detected = ovrHmd_Detect();
 	if (detected == 0)
 	{
-		OutputDebugString("No HMD detected, use a dummy DK1");
+		OutputDebugStringA("No HMD detected, use a dummy DK1");
 		hmd=ovrHmd_CreateDebug(ovrHmd_DK1);
 		status = MTS_NOHMDDETECTED;
 		strcpy_s(trackerDescription, "No HMD Detected");
@@ -91,20 +91,20 @@ void OculusTracker::init()
 
 	if (!success)
 	{
-		OutputDebugString("oculus tracker failed to initialise tracking");
+		OutputDebugStringA("oculus tracker failed to initialise tracking");
 		status = MTS_INITFAIL;
 	}
 
 	resetOrientationAndPosition();
 
-	OutputDebugString("oculus tracker initted");
+	OutputDebugStringA("oculus tracker initted");
 	if (status == MTS_INITIALISING)
 		status = MTS_OK;
 
 #ifdef SHOW_CALLS
 	char buf[256];
 	sprintf_s(buf, "init: %i", (int)status);
-	OutputDebugString(buf);
+	OutputDebugStringA(buf);
 #endif 
 
 }
@@ -147,7 +147,7 @@ void OculusTracker::EndFrame()
 void OculusTracker::resetOrientationAndPosition()
 {
 #ifdef SHOW_CALLS
-	OutputDebugString("OculusTracker resetOrientationAndPosition\n");
+	OutputDebugStringA("OculusTracker resetOrientationAndPosition\n");
 #endif
 
 	offsetYaw = 0.0f;
@@ -185,7 +185,7 @@ void OculusTracker::resetOrientationAndPosition()
 #ifdef SHOW_CALLS
 	char buf[256];
 	sprintf_s(buf, "resetOrientationAndPosition: %i", (int)status);
-	OutputDebugString(buf);
+	OutputDebugStringA(buf);
 #endif 
 }
 
@@ -197,7 +197,7 @@ void OculusTracker::resetOrientationAndPosition()
 int OculusTracker::getOrientationAndPosition(float* yaw, float* pitch, float* roll, float* x, float* y, float* z) 
 {
 #ifdef SHOW_CALLS
-	OutputDebugString("OculusTracker getOrientationAndPosition\n");
+	OutputDebugStringA("OculusTracker getOrientationAndPosition\n");
 #endif
 
 	ovrTrackingState ts = ovrHmd_GetTrackingState(hmd,FrameRef.ScanoutMidpointSeconds);
@@ -246,13 +246,13 @@ int OculusTracker::getOrientationAndPosition(float* yaw, float* pitch, float* ro
 #ifdef SHOW_CALLS
 	char buffer[256]; 
 	sprintf_s(buffer, "Yaw: %.4f Pitch: %.4f Roll: %.4f", primaryYaw, primaryPitch, primaryRoll); 
-	OutputDebugString(buffer);
+	OutputDebugStringA(buffer);
 	sprintf_s(buffer, "X: %.4f Y: %.4f Z: %.4f", primaryX, primaryY, primaryZ); 
-	OutputDebugString(buffer);
+	OutputDebugStringA(buffer);
 
 	char buf[256];
 	sprintf_s(buf, "getOrientationAndPosition: %i", (int)status);
-	OutputDebugString(buf);
+	OutputDebugStringA(buf);
 #endif
 
 	return (int)status; 
@@ -265,7 +265,7 @@ int OculusTracker::getOrientationAndPosition(float* yaw, float* pitch, float* ro
 void OculusTracker::updateOrientationAndPosition()
 {
 #ifdef SHOW_CALLS
-	OutputDebugString("OculusTracker updateOrientation\n");
+	OutputDebugStringA("OculusTracker updateOrientation\n");
 #endif
 
 	// Get orientation from Oculus tracker.
@@ -294,7 +294,7 @@ void OculusTracker::updateOrientationAndPosition()
 		deltaPitch -= ((float)mouseData.mi.dy)/multiplierPitch;
 
 #ifdef SHOW_CALLS
-		OutputDebugString("Motion Tracker SendInput\n");
+		OutputDebugStringA("Motion Tracker SendInput\n");
 #endif
 		// Send to mouse input.
 		if (mouseEmulation)
@@ -307,9 +307,9 @@ void OculusTracker::updateOrientationAndPosition()
 #ifdef SHOW_CALLS
 	char buffer[256]; 
 	sprintf_s(buffer, "roll: %.4f multiplierRoll: %.4f", roll, multiplierRoll); 
-	OutputDebugString(buffer);
+	OutputDebugStringA(buffer);
 	sprintf_s(buffer, "currentYaw: %.4f currentPitch: %.4f currentRoll: %.4f", currentYaw, currentPitch, currentRoll); 
-	OutputDebugString(buffer);
+	OutputDebugStringA(buffer);
 #endif
 	}
 }

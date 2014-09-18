@@ -39,7 +39,7 @@ inline void releaseCheck(char* object, int newRefCount)
 	if (newRefCount > 0) {
 		char buf[128];
 		sprintf_s(buf, "Error: %s count = %d\n", object, newRefCount);
-		OutputDebugString(buf);
+		OutputDebugStringA(buf);
 	}
 #endif
 }
@@ -48,9 +48,10 @@ inline void releaseCheck(char* object, int newRefCount)
 * Constructor.
 * Sets game configuration data. Sets all member pointers to NULL to prevent uninitialized objects being used.
 ***/ 
-StereoView::StereoView(ProxyHelper::ProxyConfig& config , cStereoMode *hmd )	: hmdInfo(hmd)
+StereoView::StereoView(cConfig& cfg ) :
+	config(cfg)
 {
-	OutputDebugString("Created SteroView\n");
+	OutputDebugStringA("Created SteroView\n");
 	initialized = false;
 	DistortionScale = 0.0f;
 	YOffset = config.YOffset;
@@ -138,7 +139,7 @@ StereoView::StereoView(ProxyHelper::ProxyConfig& config , cStereoMode *hmd )	: h
 ***/
 StereoView::~StereoView()
 {
-	OutputDebugString("Destroyed SteroView\n");
+	OutputDebugStringA("Destroyed SteroView\n");
 	delete m_pStreamer;
 }
 
@@ -148,10 +149,10 @@ StereoView::~StereoView()
 ***/
 void StereoView::Init(IDirect3DDevice9* pActualDevice)
 {
-	OutputDebugString("SteroView Init\n");
+	OutputDebugStringA("SteroView Init\n");
 
 	if (initialized) {
-		OutputDebugString("SteroView already Init'd\n");
+		OutputDebugStringA("SteroView already Init'd\n");
 		return;
 	}
 
@@ -170,10 +171,10 @@ void StereoView::Init(IDirect3DDevice9* pActualDevice)
 ***/
 void StereoView::ReleaseEverything()
 {
-	OutputDebugString("SteroView Reset\n");
+	OutputDebugStringA("SteroView Reset\n");
 
 	if(!initialized)
-		OutputDebugString("SteroView is already reset\n");
+		OutputDebugStringA("SteroView is already reset\n");
 
 	if(backBuffer)
 		releaseCheck("backBuffer", backBuffer->Release());	
@@ -281,43 +282,43 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 	}
 
 	if (FAILED(m_pActualDevice->SetRenderTarget(0, backBuffer))) {
-		OutputDebugString("SetRenderTarget backbuffer failed\n");
+		OutputDebugStringA("SetRenderTarget backbuffer failed\n");
 	}
 
 	if (FAILED(m_pActualDevice->SetStreamSource(0, screenVertexBuffer, 0, sizeof(TEXVERTEX)))) {
-		OutputDebugString("SetStreamSource failed\n");
+		OutputDebugStringA("SetStreamSource failed\n");
 	}
 
 	UINT iPass, cPasses;
 
 	if (FAILED(viewEffect->SetTechnique("ViewShader"))) {
-		OutputDebugString("SetTechnique failed\n");
+		OutputDebugStringA("SetTechnique failed\n");
 	}
 
 	SetViewEffectInitialValues();
 
 	// now, render
 	if (FAILED(viewEffect->Begin(&cPasses, 0))) {
-		OutputDebugString("Begin failed\n");
+		OutputDebugStringA("Begin failed\n");
 	}
 
 	for(iPass = 0; iPass < cPasses; iPass++)
 	{
 		if (FAILED(viewEffect->BeginPass(iPass))) {
-			OutputDebugString("Beginpass failed\n");
+			OutputDebugStringA("Beginpass failed\n");
 		}
 
 		if (FAILED(m_pActualDevice->DrawPrimitive(D3DPT_TRIANGLEFAN, 0, 2))) {
-			OutputDebugString("Draw failed\n");
+			OutputDebugStringA("Draw failed\n");
 		}
 
 		if (FAILED(viewEffect->EndPass())) {
-			OutputDebugString("Beginpass failed\n");
+			OutputDebugStringA("Beginpass failed\n");
 		}
 	}
 
 	if (FAILED(viewEffect->End())) {
-		OutputDebugString("End failed\n");
+		OutputDebugStringA("End failed\n");
 	}
 
 	m_pStreamer->send( m_pActualDevice );
@@ -351,20 +352,20 @@ void StereoView::SaveScreen()
 	++screenCount;
 
 	char fileName[32];
-	wsprintf(fileName, "%d_final.bmp", screenCount);
+	sprintf(fileName, "%d_final.bmp", screenCount);
 	char fileNameLeft[32];
-	wsprintf(fileNameLeft, "%d_left.bmp", screenCount);
+	sprintf(fileNameLeft, "%d_left.bmp", screenCount);
 	char fileNameRight[32];
-	wsprintf(fileNameRight, "%d_right.bmp", screenCount);
+	sprintf(fileNameRight, "%d_right.bmp", screenCount);
 
 #ifdef _DEBUG
-	OutputDebugString(fileName);
-	OutputDebugString("\n");
+	OutputDebugStringA(fileName);
+	OutputDebugStringA("\n");
 #endif	
 
-	D3DXSaveSurfaceToFile(fileNameLeft, D3DXIFF_BMP, leftSurface, NULL, NULL);
-	D3DXSaveSurfaceToFile(fileNameRight, D3DXIFF_BMP, rightSurface, NULL, NULL);
-	D3DXSaveSurfaceToFile(fileName, D3DXIFF_BMP, backBuffer, NULL, NULL);
+	D3DXSaveSurfaceToFileA(fileNameLeft, D3DXIFF_BMP, leftSurface, NULL, NULL);
+	D3DXSaveSurfaceToFileA(fileNameRight, D3DXIFF_BMP, rightSurface, NULL, NULL);
+	D3DXSaveSurfaceToFileA(fileName, D3DXIFF_BMP, backBuffer, NULL, NULL);
 }
 
 /**
@@ -391,15 +392,15 @@ void StereoView::InitTextureBuffers()
 	char buf[32];
 	LPCSTR psz = NULL;
 
-	wsprintf(buf,"viewport width: %d",viewport.Width);
+	sprintf(buf,"viewport width: %d",viewport.Width);
 	psz = buf;
-	OutputDebugString(psz);
-	OutputDebugString("\n");
+	OutputDebugStringA(psz);
+	OutputDebugStringA("\n");
 
-	wsprintf(buf,"backbuffer width: %d",pDesc.Width);
+	sprintf(buf,"backbuffer width: %d",pDesc.Width);
 	psz = buf;
-	OutputDebugString(psz);
-	OutputDebugString("\n");
+	OutputDebugStringA(psz);
+	OutputDebugStringA("\n");
 #endif
 
 	m_pActualDevice->CreateTexture(pDesc.Width, pDesc.Height, 0, D3DUSAGE_RENDERTARGET, pDesc.Format, D3DPOOL_DEFAULT, &leftTexture, NULL);
@@ -414,7 +415,7 @@ void StereoView::InitTextureBuffers()
 ***/
 void StereoView::InitVertexBuffers()
 {
-	OutputDebugString("SteroView initVertexBuffers\n");
+	OutputDebugStringA("SteroView initVertexBuffers\n");
 
 	m_pActualDevice->CreateVertexBuffer(sizeof(TEXVERTEX) * 4, NULL,
 		D3DFVF_TEXVERTEX, D3DPOOL_MANAGED, &screenVertexBuffer, NULL);
@@ -468,14 +469,8 @@ void StereoView::InitVertexBuffers()
 ***/
 void StereoView::InitShaderEffects()
 {
-	char viewPath[512];
-	ProxyHelper helper = ProxyHelper();
-	ProxyHelper().GetPath(viewPath, "fx\\");
-
-	strcat_s(viewPath, 512, hmdInfo->shader.c_str() );
-
-	if (FAILED(D3DXCreateEffectFromFile(m_pActualDevice, viewPath, NULL, NULL, D3DXFX_DONOTSAVESTATE, NULL, &viewEffect, NULL))) {
-		OutputDebugString("Effect creation failed\n");
+	if (FAILED(D3DXCreateEffectFromFileA(m_pActualDevice, (vireioDir+"shaders/"+config.shader).toLocal8Bit(), NULL, NULL, D3DXFX_DONOTSAVESTATE, NULL, &viewEffect, NULL))) {
+		OutputDebugStringA("Effect creation failed\n");
 	}
 }
 
@@ -490,7 +485,7 @@ void StereoView::SetViewEffectInitialValues() {
 	viewEffect->SetFloatArray( "LensCenter"      , LensCenter , 2 );
 	viewEffect->SetFloatArray( "Scale"           , Scale , 2);
 	viewEffect->SetFloatArray( "ScaleIn"         , ScaleIn , 2);
-	viewEffect->SetFloatArray( "HmdWarpParam"    , hmdInfo->distortionCoefficients , 4 );
+	viewEffect->SetFloatArray( "HmdWarpParam"    , config.distortionCoefficients , 4 );
 	viewEffect->SetFloat     ( "ViewportXOffset" , -ViewportXOffset );
 	viewEffect->SetFloat     ( "ViewportYOffset" , -ViewportYOffset );
 } 
@@ -502,10 +497,10 @@ void StereoView::SetViewEffectInitialValues() {
 void StereoView::CalculateShaderVariables() {
 	// Center of half screen is 0.25 in x (halfscreen x input in 0 to 0.5 range)
 	// Lens offset is in a -1 to 1 range. Using in shader with a 0 to 0.5 range so use 25% of the value.
-	LensCenter[0] = 0.25f + (hmdInfo->lensXCenterOffset * 0.25f) - (hmdInfo->lensIPDCenterOffset - IPDOffset);
+	LensCenter[0] = 0.25f + (config.lensXCenterOffset * 0.25f) - (config.lensIPDCenterOffset - IPDOffset);
 
 	// Center of halfscreen range is 0.5 in y (halfscreen y input in 0 to 1 range)
-	LensCenter[1] = hmdInfo->lensYCenterOffset - YOffset; 
+	LensCenter[1] = config.lensYCenterOffset - YOffset;
 
 	
 	
@@ -525,7 +520,7 @@ void StereoView::CalculateShaderVariables() {
 	// y is changed from 0 to 1 to 0 to 2 and scaled to account for aspect ratio
 	ScaleIn[1] = 2.0f / (inputTextureAspectRatio * 0.5f); // 1/2 aspect ratio for differing input ranges
 	
-	float scaleFactor = (1.0f / (hmdInfo->scaleToFillHorizontal + DistortionScale));
+	float scaleFactor = (1.0f / (config.scaleToFillHorizontal + DistortionScale));
 
 	// Scale from 0 to 2 to 0 to 1  for x and y 
 	// Then use scaleFactor to fill horizontal space in line with the lens and adjust for aspect ratio for y.

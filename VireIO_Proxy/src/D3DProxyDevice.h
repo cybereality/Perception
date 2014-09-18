@@ -51,7 +51,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "D3D9ProxyVertexDeclaration.h"
 #include "D3D9ProxyQuery.h"
 
-#include "ProxyHelper.h"
 #include "StereoView.h"
 #include "MotionTracker.h"
 #include <d3dx9.h>
@@ -71,6 +70,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "InputControls.h"
 #include "VRBoostEnums.h"
 #include "DirectInput.h"
+#include <cConfig.h>
 
 #define _SAFE_RELEASE(x) if(x) { x->Release(); x = NULL; } 
 // Define SHOW_CALLS to have each method output a debug string when it is invoked
@@ -87,7 +87,7 @@ class GameHandler;
 class D3DProxyDevice : public IDirect3DDevice9
 {
 public:
-	D3DProxyDevice(IDirect3DDevice9* pDevice, D3D9ProxyDirect3D* pCreatedBy);
+	D3DProxyDevice(IDirect3DDevice9* pDevice, D3D9ProxyDirect3D* pCreatedBy , cConfig& cfg );
 	virtual ~D3DProxyDevice();
 
 	friend class D3D9ProxyStateBlock;
@@ -220,7 +220,6 @@ public:
 
 	/*** D3DProxyDevice public methods ***/
 	HRESULT WINAPI CreateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample, DWORD MultisampleQuality,BOOL Lockable,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle, bool isBackBufferOfPrimarySwapChain);
-	virtual void   Init(ProxyHelper::ProxyConfig& cfg);
 	void           SetupHUD();
 	virtual void   HandleControls(void);
 	void           HandleTracking(void);
@@ -250,7 +249,7 @@ public:
 		UNITY = 500,               /**< Unity is a cross-platform game engine with a built-in IDE developed by Unity Technologies. */
 		UNITY_SLENDER = 501,       /**<  !! */
 		GAMEBRYO = 600,            /**< Gamebryo 3D and LightSpeed engines are owned by Gamebase Co., Ltd. and Gamebase USA and have been used by several video game developers. */
-		GAMEBRYO_SKYRIM = 601,     /**< Skyrim’s Creation Engine still has at least some Gamebryo in it. */
+		GAMEBRYO_SKYRIM = 601,     /**< Skyrimâ€™s Creation Engine still has at least some Gamebryo in it. */
 		LFS = 700,                 /**< Live for Speed (LFS) is a racing simulator developed by a three person team comprising Scawen Roberts, Eric Bailey, and Victor van Vlaardingen. */
 		CDC = 800,                 /**< Proprietary game engine developed by Crystal Dynamics. */
 		DEBUG_LOG_FILE = 99999     /**< Debug log file output game type. For development causes. Do not use since slows down game extremely. */
@@ -305,7 +304,7 @@ public:
 	/**
 	* Game-specific proxy configuration.
 	**/
-	ProxyHelper::ProxyConfig config;
+	cConfig config;
 	/**
 	* VRBoost values. 
 	* Set to public for future use in input device classes.
@@ -854,7 +853,7 @@ private:
 	/**
 	* Backup of the current game profile.
 	***/
-	ProxyHelper::ProxyConfig m_configBackup;
+	cConfig m_configBackup;
 	/**
 	* Current HUD 3D Depth mode.
 	***/

@@ -1,11 +1,11 @@
 #pragma once
-#include <string>
-#include <list>
+#include "VireIO.h"
 
-struct cStereoMode {
-	int          uid;
-	std::string  name;
-	std::string  shader;
+class cStereoMode {
+public:
+	QString      name;
+	QString      shader;
+	bool         isHmd;
 	unsigned int resolutionWidth;
 	unsigned int resolutionHeight;
 	float        physicalWidth;
@@ -21,7 +21,11 @@ struct cStereoMode {
 	float        screenAspectRatio;
 	float        scaleToFillHorizontal;
 	float        lensXCenterOffset;
-};
 
-std::list<cStereoMode> GetStereoModes();
-cStereoMode*           FindStereoMode( int uid );
+	cStereoMode();
+	~cStereoMode();
+
+	static void                 loadAll( );
+	static QList<cStereoMode*>& all    ( );
+	static cStereoMode*         find   ( QString name );
+};

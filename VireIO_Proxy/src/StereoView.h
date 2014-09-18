@@ -30,13 +30,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef STEREOVIEW_H_INCLUDED
 #define STEREOVIEW_H_INCLUDED
 
-#include "ProxyHelper.h"
 #include "D3DProxyDevice.h"
 #include <d3d9.h>
 #include <d3dx9.h>
 #include <map>
 #include <string.h>
 #include <assert.h>
+#include <cConfig.h>
 #include "cStereoMode.h"
 
 
@@ -50,7 +50,7 @@ class Streamer;
 class StereoView
 {
 public:
-	StereoView(ProxyHelper::ProxyConfig& config , cStereoMode *hmd );
+	StereoView(cConfig& config );
 	virtual ~StereoView();
 
 	/*** StereoView public methods ***/
@@ -69,6 +69,8 @@ public:
 		LEFT_EYE,
 		RIGHT_EYE
 	};
+
+	cConfig& config;
 	/**
 	* Current Direct3D Viewport.
 	***/
@@ -127,11 +129,6 @@ public:
 	* due to aspect ratio.
 	***/
 	float ScaleIn[2];
-	/**
-	* Predefined Oculus Rift Head Mounted Display info.
-	* Contains distortionCoefficients, needed as vertex shader constants
-	***/
-	cStereoMode *hmdInfo;
 
 	/**
 	* The streamer.

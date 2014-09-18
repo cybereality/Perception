@@ -10,6 +10,7 @@
 #include "ShaderConstantModification.h"
 #include "Vireio.h"
 #include "ShaderMatrixModification.h"
+#include <sstream>
 
 /**
 * Matrix ignores head roll.

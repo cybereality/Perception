@@ -37,8 +37,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "d3d9.h"
 #include "pugixml.hpp"
 #include "ShaderModificationRepository.h"
-#include "ProxyHelper.h"
 #include "ViewAdjustment.h"
+#include <cConfig.h>
 
 class ShaderModificationRepository;
 
@@ -61,8 +61,8 @@ public:
 	virtual ~GameHandler();
 
 	/*** GameHandler public methods ***/
-	bool                          Load(ProxyHelper::ProxyConfig& cfg, std::shared_ptr<ViewAdjustment> spShaderViewAdjustments);
-	bool                          Save(ProxyHelper::ProxyConfig& cfg, std::shared_ptr<ViewAdjustment> spShaderViewAdjustments);
+	bool                          Load(cConfig& cfg, std::shared_ptr<ViewAdjustment> spShaderViewAdjustments);
+	bool                          Save(cConfig& cfg, std::shared_ptr<ViewAdjustment> spShaderViewAdjustments);
 	bool                          ShouldDuplicateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample, DWORD MultisampleQuality,BOOL Lockable, bool isSwapChainBackBuffer);
 	bool                          ShouldDuplicateDepthStencilSurface(UINT Width,UINT Height,D3DFORMAT Format,D3DMULTISAMPLE_TYPE MultiSample,DWORD MultisampleQuality,BOOL Discard);
 	bool                          ShouldDuplicateTexture(UINT Width,UINT Height,UINT Levels,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool);

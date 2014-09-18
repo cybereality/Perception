@@ -1,7 +1,7 @@
 #include <qmainwindow.h>
 #include <qsettings.h>
 #include <Ui_cMainWindow.h>
-
+#include <cGame.h>
 
 class cMainWindow : public QMainWindow {
 Q_OBJECT
@@ -12,8 +12,9 @@ public:
 private:
 	Ui_cMainWindow ui;
 	QSettings      settings;
-	void ScanGames();
-	void LoadSettings();
+	void ScanGames   ( );
+	void LoadSettings( );
+	void AddGame     ( cGame* );
 
 
 private slots:

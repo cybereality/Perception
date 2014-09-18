@@ -76,12 +76,12 @@ namespace vireio {
 			}
 
 		default:
-			OutputDebugString("Unhandled texture type in SetTexture\n");
+			OutputDebugStringA("Unhandled texture type in SetTexture\n");
 			break;
 		}
 
 		if ((*ppActualLeftTexture) == NULL) {
-			OutputDebugString("No left texture? Unpossible!\n");
+			OutputDebugStringA("No left texture? Unpossible!\n");
 			assert (false);
 		}
 	}

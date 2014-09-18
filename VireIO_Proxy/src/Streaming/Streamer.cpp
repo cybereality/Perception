@@ -1,9 +1,9 @@
 #include "Streamer.h"
 
-Streamer::Streamer( ProxyHelper::ProxyConfig& c ){
-	surf = 0;
-	cfg  = c;
-
+Streamer::Streamer( cConfig& c ) :
+	surf(0) ,
+	cfg (c)
+{
 	net_init();
 	enc_init();
 }
@@ -22,25 +22,25 @@ void Streamer::send( IDirect3DDevice9* device ){
 
 	QueryPerformanceCounter( &i1 );
 
-	if( !cfg.streaming_enable ){
+	if( !cfg.streamingEnable ){
 		return;
 	}
 	
 	IDirect3DSurface9* rt;
 	if( FAILED(device->GetRenderTarget(0,&rt)) ){
-		OutputDebugString( "Streamer: GetRenderTarget failed\n" );
+		OutputDebugStringA( "Streamer: GetRenderTarget failed\n" );
 		return;
 	}
 	
 	if( !surf ){
 		if( FAILED(rt->GetDesc(&desc)) ){
-			OutputDebugString( "Streamer: GetDesc failed\n" );
+			OutputDebugStringA( "Streamer: GetDesc failed\n" );
 			rt->Release();
 			return;
 		}
 		
 		if( FAILED(device->CreateOffscreenPlainSurface( desc.Width , desc.Height , desc.Format , D3DPOOL_SYSTEMMEM , &surf, 0 )) ){
-			OutputDebugString( "Streamer: CreateOffscreenPlainSurface failed\n" );
+			OutputDebugStringA( "Streamer: CreateOffscreenPlainSurface failed\n" );
 			rt->Release();
 			return;
 		}
@@ -48,7 +48,7 @@ void Streamer::send( IDirect3DDevice9* device ){
 	
 	HRESULT r = device->GetRenderTargetData(rt,surf);
 	if( FAILED(r) ){
-		OutputDebugString( "Streamer: GetRenderTargetData failed\n" );
+		OutputDebugStringA( "Streamer: GetRenderTargetData failed\n" );
 		rt  ->Release();
 		surf->Release();
 		surf = 0;
@@ -57,7 +57,7 @@ void Streamer::send( IDirect3DDevice9* device ){
 	
 	D3DLOCKED_RECT rect;
 	if( FAILED(surf->LockRect( &rect , 0 , D3DLOCK_READONLY )) ){
-		OutputDebugString( "Streamer: LockRect failed\n" );
+		OutputDebugStringA( "Streamer: LockRect failed\n" );
 		return;
 	}
 	

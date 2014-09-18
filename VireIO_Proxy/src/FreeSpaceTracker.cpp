@@ -39,7 +39,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***/ 
 FreeSpaceTracker::FreeSpaceTracker(void):MotionTracker()
 {
-	OutputDebugString("Free Tracker Created\n");
+	OutputDebugStringA("Free Tracker Created\n");
 	init();
 }
 
@@ -58,7 +58,7 @@ FreeSpaceTracker::~FreeSpaceTracker(void)
 ***/
 void FreeSpaceTracker::init()
 {
-	OutputDebugString("Free Tracker Init\n");
+	OutputDebugStringA("Free Tracker Init\n");
 	DeviceID = -1;
 	int err = connect();
 	if (err)
@@ -72,7 +72,7 @@ void FreeSpaceTracker::init()
 ***/
 int FreeSpaceTracker::connect() 
 {
-	OutputDebugString("Free Tracker Connect\n");
+	OutputDebugStringA("Free Tracker Connect\n");
 	// Initialize the freespace library
 	int err = freespace_init();
 	if (err)
@@ -144,7 +144,7 @@ void FreeSpaceTracker::reset()
 ***/
 void FreeSpaceTracker::close() 
 {
-	OutputDebugString("Free Tracker Close\n");
+	OutputDebugStringA("Free Tracker Close\n");
 	if (DeviceID >= 0) 
 	{
 		// Shut off the data stream
@@ -173,7 +173,7 @@ void FreeSpaceTracker::close()
 		freespace_exit();
 	}
 
-	OutputDebugString("Free Tracker Exit\n");
+	OutputDebugStringA("Free Tracker Exit\n");
 }
 
 /**
@@ -192,7 +192,7 @@ void FreeSpaceTracker::destroy()
 int FreeSpaceTracker::getOrientationAndPosition(float* yaw, float* pitch, float* roll, float* x, float* y, float* z)
 {
 #ifdef _DEBUG
-	OutputDebugString("Free Tracker getOrient\n");
+	OutputDebugStringA("Free Tracker getOrient\n");
 #endif
 
 	freespace_message msg;
@@ -247,9 +247,9 @@ int FreeSpaceTracker::getOrientationAndPosition(float* yaw, float* pitch, float*
 #ifdef _DEBUG
 		char errChar[512];
 		sprintf_s(errChar, "devID = %d, err == %d", DeviceID, err);
-		OutputDebugString("Freespace Error:");
-		OutputDebugString(errChar);
-		OutputDebugString("\n");
+		OutputDebugStringA("Freespace Error:");
+		OutputDebugStringA(errChar);
+		OutputDebugStringA("\n");
 #endif
 		return err;  // return on timeouts or serious errors
 	}

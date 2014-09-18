@@ -31,8 +31,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define DATAGATHERER_H_INCLUDED
 
 #include "D3DProxyDevice.h"
-#include "ProxyHelper.h"
 #include "MurmurHash3.h"
+#include <cConfig.h>
 
 /**
 * Data gatherer class, outputs relevant shader data to dump file (.csv format) .
@@ -44,7 +44,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class DataGatherer : public D3DProxyDevice
 {
 public:
-	DataGatherer(IDirect3DDevice9* pDevice, D3D9ProxyDirect3D* pCreatedBy);
+	DataGatherer(IDirect3DDevice9* pDevice, D3D9ProxyDirect3D* pCreatedBy , cConfig& cfg );
 	virtual ~DataGatherer();
 
 	/*** IDirect3DDevice9 methods ***/
@@ -60,8 +60,6 @@ public:
 	virtual HRESULT WINAPI CreatePixelShader(CONST DWORD* pFunction,IDirect3DPixelShader9** ppShader);
 	virtual HRESULT WINAPI SetPixelShader(IDirect3DPixelShader9* pShader);
 
-	/*** DataGatherer public methods ***/
-	virtual void Init(ProxyHelper::ProxyConfig& cfg);
 
 protected:
 	/*** DataGatherer protected methods ***/

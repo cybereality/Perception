@@ -36,7 +36,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***/ 
 FreeTrackTracker::FreeTrackTracker(void):MotionTracker()
 {
-	OutputDebugString("FreeTrack Tracker Created\n");
+	OutputDebugStringA("FreeTrack Tracker Created\n");
 	init();
 }
 
@@ -64,12 +64,12 @@ void FreeTrackTracker::init()
 	pData = &data;
 
 	// Load DLL file
-	hinstLib = LoadLibrary("FreeTrackClient.dll");
+	hinstLib = LoadLibraryA("FreeTrackClient.dll");
 
 	// Get function pointer
 	getData = (importGetData)GetProcAddress(hinstLib, "FTGetData");
 
-	OutputDebugString("FreeTrack Tracker Init\n");
+	OutputDebugStringA("FreeTrack Tracker Init\n");
 }
 
 /**
@@ -97,7 +97,7 @@ void FreeTrackTracker::destroy()
 int FreeTrackTracker::getOrientationAndPosition(float* yaw, float* pitch, float* roll, float* x, float* y, float* z)
 {
 #ifdef _DEBUG
-	OutputDebugString("FreeTrack Tracker getOrient\n");
+	OutputDebugStringA("FreeTrack Tracker getOrient\n");
 #endif
 
 	if (getData(pData)) {
@@ -111,7 +111,7 @@ int FreeTrackTracker::getOrientationAndPosition(float* yaw, float* pitch, float*
 	*yaw = -lastYaw;
 
 #ifdef _DEBUG
-	OutputDebugString("FreeTrack Tracker updateOrientation\n");
+	OutputDebugStringA("FreeTrack Tracker updateOrientation\n");
 #endif
 
 	return 0;

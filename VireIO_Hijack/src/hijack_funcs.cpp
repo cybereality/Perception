@@ -12,9 +12,8 @@ namespace{
 	IDirect3D9* (*       PROXY_Direct3DCreate9  )( IDirect3D9* base );
 
 	IDirect3D9* WINAPI NEW_Direct3DCreate9( unsigned int nSDKVersion ){
-		printf("Create D3D\n");
 		if( !PROXY_Direct3DCreate9 ){
-			printf("Proxy not loaded!\n");
+			printf("hook: proxy not loaded!\n");
 			return 0;
 		}
 
@@ -33,7 +32,7 @@ namespace{
 BOOL APIENTRY DllMain( HINSTANCE , DWORD fdwReason, LPVOID ){
 	if( fdwReason == DLL_PROCESS_ATTACH ){
 		AllocConsole();
-		freopen("log.txt", "w", stdout);
+		freopen("CONOUT$", "w", stdout);
 
 		vireio_hijack_hook_install();
 
@@ -42,18 +41,6 @@ BOOL APIENTRY DllMain( HINSTANCE , DWORD fdwReason, LPVOID ){
 		vireio_hijack_hook_add( "*"        , "ProxyDirect3DCreate9" , (void**)&PROXY_Direct3DCreate9  , 0                            );
 
 		LoadLibraryA( "d3d9.dll" );
-
-		/*char path[4096];
-		GetModuleFileNameA( hModule , path , 4096 );
-
-		std::string str_path( path );
-		str_path = str_path.substr( 0 , str_path.find_last_of('\\') + 1 );
-
-		HMODULE proxy = LoadLibraryA( (str_path + "vireio_proxy.dll").c_str() );
-
-		PROXY_Direct3DCreate9 = (IDirect3D9*(WINAPI*)(IDirect3D9*))GetProcAddress( proxy , "ProxyDirect3DCreate9" );*/
-
-
 
 		vireio_hijack_hook_update( );
 
