@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -11,78 +11,66 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{866D94CE-80C6-4660-9D25-D1F73F024D5A}</ProjectGuid>
-    <RootNamespace>VireIO_Perception</RootNamespace>
+    <ProjectGuid>{5F90C539-597D-4193-A47A-2F522A664A70}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>VRboostReferee</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\..\common\project\paths.props" />
     <Import Project="..\..\common\project\vireio.props" />
-    <Import Project="..\..\common\project\qt-lib.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\..\common\project\paths.props" />
     <Import Project="..\..\common\project\vireio.props" />
-    <Import Project="..\..\common\project\qt-lib.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(OUTDIR)\..\VRboost_rules\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(OutDir)\..\VRboost_rules\</OutDir>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\common\cConfig.cpp" />
-    <ClCompile Include="..\..\common\cGame.cpp" />
-    <ClCompile Include="..\..\common\cGameProfile.cpp" />
-    <ClCompile Include="..\..\common\cPropsFile.cpp" />
-    <ClCompile Include="..\..\common\cSettings.cpp" />
-    <ClCompile Include="..\..\common\cStereoMode.cpp" />
-    <ClCompile Include="..\..\common\cUser.cpp" />
-    <ClCompile Include="..\..\common\hijack.cpp" />
-    <ClCompile Include="..\src\app_main.cpp" />
-    <ClCompile Include="..\src\cMainWindow.cpp" />
+    <ClInclude Include="..\..\common\pugiconfig.hpp" />
+    <ClInclude Include="..\..\common\pugixml.hpp" />
+    <ClInclude Include="..\..\common\VRBoostEnums.h" />
+    <ClInclude Include="..\src\VRboostReferee.h" />
   </ItemGroup>
   <ItemGroup>
-    <QT_MOC Include="..\..\common\cConfig.h" />
-    <QT_MOC Include="..\..\common\cGame.h" />
-    <QT_MOC Include="..\..\common\cGameProfile.h" />
-    <QT_MOC Include="..\..\common\cPropsFile.h" />
-    <QT_MOC Include="..\..\common\cSettings.h" />
-    <QT_MOC Include="..\..\common\cStereoMode.h" />
-    <QT_MOC Include="..\..\common\cUser.h" />
-    <QT_MOC Include="..\..\common\hijack.h" />
-    <QT_MOC Include="..\..\common\VireIO.h" />
-    <QT_MOC Include="..\src\cMainWindow.h">
-      <FileType>Document</FileType>
-    </QT_MOC>
-  </ItemGroup>
-  <ItemGroup>
-    <QT_UIC Include="..\src\cMainWindow.ui">
-      <FileType>Document</FileType>
-    </QT_UIC>
+    <ClCompile Include="..\..\common\pugixml.cpp" />
+    <ClCompile Include="..\src\VRboostReferee.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
-    <Import Project="..\..\common\project\qt.targets" />
   </ImportGroup>
 </Project>

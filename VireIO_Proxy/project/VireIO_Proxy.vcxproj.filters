@@ -167,7 +167,7 @@
     <ClCompile Include="..\..\common\hijack.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\pugixml.cpp">
+    <ClCompile Include="..\..\common\pugixml.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -394,10 +394,10 @@
     <ClInclude Include="..\..\common\VireIO.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\pugiconfig.hpp">
+    <ClInclude Include="..\..\common\pugiconfig.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\pugixml.hpp">
+    <ClInclude Include="..\..\common\pugixml.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

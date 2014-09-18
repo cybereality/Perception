@@ -31,20 +31,26 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\..\common\project\paths.props" />
-    <Import Project="..\..\common\project\qt-lib.props" />
     <Import Project="..\..\common\project\vireio.props" />
+    <Import Project="..\..\common\project\qt-lib.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\..\common\project\paths.props" />
-    <Import Project="..\..\common\project\qt-lib.props" />
     <Import Project="..\..\common\project\vireio.props" />
+    <Import Project="..\..\common\project\qt-lib.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Link>
+      <SubSystem>Windows</SubSystem>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Link>
+      <SubSystem>Windows</SubSystem>
+    </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\common\cConfig.cpp" />
@@ -55,6 +61,7 @@
     <ClCompile Include="..\..\common\cStereoMode.cpp" />
     <ClCompile Include="..\..\common\cUser.cpp" />
     <ClCompile Include="..\..\common\hijack.cpp" />
+    <ClCompile Include="..\..\common\pugixml.cpp" />
     <ClCompile Include="..\src\D3D9ProxyCubeTexture.cpp" />
     <ClCompile Include="..\src\D3D9ProxyDeviceEx.cpp" />
     <ClCompile Include="..\src\D3D9ProxyDirect3D.cpp" />
@@ -88,7 +95,6 @@
     <ClCompile Include="..\src\MotionTrackerFactory.cpp" />
     <ClCompile Include="..\src\MurmurHash3.cpp" />
     <ClCompile Include="..\src\OculusTracker.cpp" />
-    <ClCompile Include="..\src\pugixml.cpp" />
     <ClCompile Include="..\src\ShaderModificationRepository.cpp" />
     <ClCompile Include="..\src\ShaderRegisters.cpp" />
     <ClCompile Include="..\src\SharedMemoryTracker.cpp" />
@@ -110,6 +116,8 @@
     <ClInclude Include="..\..\common\cStereoMode.h" />
     <ClInclude Include="..\..\common\cUser.h" />
     <ClInclude Include="..\..\common\hijack.h" />
+    <ClInclude Include="..\..\common\pugiconfig.hpp" />
+    <ClInclude Include="..\..\common\pugixml.hpp" />
     <ClInclude Include="..\..\common\VireIO.h" />
     <ClInclude Include="..\src\D3D9ProxyCubeTexture.h" />
     <ClInclude Include="..\src\D3D9ProxyDirect3D.h" />
@@ -159,8 +167,6 @@
     <ClInclude Include="..\src\MotionTrackerFactory.h" />
     <ClInclude Include="..\src\MurmurHash3.h" />
     <ClInclude Include="..\src\OculusTracker.h" />
-    <ClInclude Include="..\src\pugiconfig.hpp" />
-    <ClInclude Include="..\src\pugixml.hpp" />
     <ClInclude Include="..\src\ShaderConstantModification.h" />
     <ClInclude Include="..\src\ShaderConstantModificationFactory.h" />
     <ClInclude Include="..\src\ShaderMatrixModification.h" />
