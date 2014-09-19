@@ -44,8 +44,8 @@ ViewAdjustment::ViewAdjustment( float metersToWorldUnits, bool enableRoll , cCon
 {
 	// TODO : max, min convergence; arbitrary now
 	convergence = 0.0f;
-	minConvergence = -10.0f;
-	maxConvergence = 10.0f;
+	minConvergence = -100.0f;
+	maxConvergence = 100.0f;
 
 	ipd = IPD_DEFAULT;
 
@@ -145,7 +145,7 @@ void ViewAdjustment::UpdateProjectionMatrices(float aspectRatio)
 		// assumption here :
 		// end user is placed 1 meter away from screen
 		// end user screen is 1 meter in horizontal size
-		nearClippingPlaneDistance = 1;
+		nearClippingPlaneDistance = 0.1; //for more flexibility
 		physicalScreenSizeInMeters = 1;
 	}
 
