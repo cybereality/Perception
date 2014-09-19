@@ -464,6 +464,7 @@ protected:
 			memset(line3, 0, 256);
 			memset(line4, 0, 256);
 			memset(line5, 0, 256);
+			memset(line6, 0, 256);
 		}
 
 		void setDuration(long duration_ms)
@@ -488,6 +489,7 @@ protected:
 			memset(line3, 0, 256);
 			memset(line4, 0, 256);
 			memset(line5, 0, 256);
+			memset(line6, 0, 256);
 		}
 
 		VireioPopupType popupType;
@@ -498,6 +500,7 @@ protected:
 		char line3[256];
 		char line4[256];
 		char line5[256];
+		char line6[256];
 	};
 
 	VireioPopup activePopup;

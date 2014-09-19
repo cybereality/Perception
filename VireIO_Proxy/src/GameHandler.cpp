@@ -315,7 +315,7 @@ bool GameHandler::ShouldDuplicateTexture(UINT Width,UINT Height,UINT Levels,DWOR
 	case D3DProxyDevice::ProxyTypes::UNREAL_MIRROR:
 		if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
 			return true;
-		return IS_RENDER_TARGET(Usage) && (Width != Height);
+		return IS_RENDER_TARGET(Usage);
 
 	case D3DProxyDevice::ProxyTypes::UNREAL_UT3:
 		if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
