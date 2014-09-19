@@ -97,8 +97,7 @@ void OculusRiftView::CalculateShaderVariables()
 ***/ 
 void OculusRiftView::InitShaderEffects()
 {
-	//Currently, RiftUp DK1 and DK2 share the same shader effects
-	shaderEffect[RIFTUP] = "OculusRift.fx";
+	shaderEffect[RIFTUP] = "RiftUp.fx";
 	shaderEffect[OCULUS_RIFT_DK1] = "OculusRift.fx";
 	shaderEffect[OCULUS_RIFT_DK1_CROPPED] = "OculusRiftCropped.fx";
 	shaderEffect[OCULUS_RIFT_DK2] = "OculusRiftDK2.fx";
