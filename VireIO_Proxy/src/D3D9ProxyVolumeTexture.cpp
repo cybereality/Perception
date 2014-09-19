@@ -56,105 +56,6 @@ D3D9ProxyVolumeTexture::~D3D9ProxyVolumeTexture()
 
 
 /**
-* Base SetPrivateData functionality. 
-***/
-HRESULT WINAPI D3D9ProxyVolumeTexture::SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags)
-{
-	return actual->SetPrivateData(refguid, pData, SizeOfData, Flags);
-}
-
-/**
-* Base GetPrivateData functionality. 
-***/
-HRESULT WINAPI D3D9ProxyVolumeTexture::GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData)
-{
-	return actual->GetPrivateData(refguid, pData, pSizeOfData);
-}
-
-/**
-* Base FreePrivateData functionality. 
-***/
-HRESULT WINAPI D3D9ProxyVolumeTexture::FreePrivateData(REFGUID refguid)
-{
-	return actual->FreePrivateData(refguid);
-}
-
-/**
-* Base SetPriority functionality. 
-***/
-DWORD WINAPI D3D9ProxyVolumeTexture::SetPriority(DWORD PriorityNew)
-{
-	return actual->SetPriority(PriorityNew);
-}
-
-
-/**
-* Base PreLoad functionality. 
-***/
-void WINAPI D3D9ProxyVolumeTexture::PreLoad()
-{
-	return actual->PreLoad();
-}
-
-
-/**
-* Base SetLOD functionality. 
-***/
-DWORD WINAPI D3D9ProxyVolumeTexture::SetLOD(DWORD LODNew)
-{
-	return actual->SetLOD(LODNew);
-}
-
-/**
-* Base GetLOD functionality. 
-***/
-DWORD WINAPI D3D9ProxyVolumeTexture::GetLOD()
-{
-	return actual->GetLOD();
-}
-
-/**
-* Base GetLevelCount functionality. 
-***/
-DWORD WINAPI D3D9ProxyVolumeTexture::GetLevelCount()
-{
-	return actual->GetLevelCount();
-}
-
-/**
-* Base SetAutoGenFilterType functionality. 
-***/
-HRESULT WINAPI D3D9ProxyVolumeTexture::SetAutoGenFilterType(D3DTEXTUREFILTERTYPE FilterType)
-{
-	return actual->SetAutoGenFilterType(FilterType);
-}
-
-/**
-* Base GetAutoGenFilterType functionality. 
-***/
-D3DTEXTUREFILTERTYPE WINAPI D3D9ProxyVolumeTexture::GetAutoGenFilterType()
-{
-	return actual->GetAutoGenFilterType();
-}
-
-/**
-* Base GenerateMipSubLevels functionality. 
-***/
-void WINAPI D3D9ProxyVolumeTexture::GenerateMipSubLevels()
-{
-	return actual->GenerateMipSubLevels();
-}
-
-/**
-* Base GetLevelDesc functionality. 
-***/
-HRESULT WINAPI D3D9ProxyVolumeTexture::GetLevelDesc(UINT Level, D3DVOLUME_DESC *pDesc)
-{
-	return actual->GetLevelDesc(Level, pDesc);
-}
-
-
-/**
 * If proxy volume is already stored on this level, return this one, otherwise create it.
 * To create a new stored volume level, call the method on both (left/right) actual volumes.
 ***/
@@ -214,34 +115,21 @@ HRESULT WINAPI D3D9ProxyVolumeTexture::GetVolumeLevel(UINT Level, IDirect3DVolum
 }
 
 
-/**
-* Base LockBox functionality. 
-***/
-HRESULT WINAPI D3D9ProxyVolumeTexture::LockBox(UINT Level, D3DLOCKED_BOX *pLockedVolume, const D3DBOX *pBox, DWORD Flags)
-{
-	return actual->LockBox(Level, pLockedVolume, pBox, Flags);
-}
-	
-/**
-* Base UnlockBox functionality. 
-***/
-HRESULT WINAPI D3D9ProxyVolumeTexture::UnlockBox(UINT Level)
-{
-	return actual->UnlockBox(Level);
-}
 
-/**
-* Base AddDirtyBox functionality. 
-***/
-HRESULT WINAPI D3D9ProxyVolumeTexture::AddDirtyBox(const D3DBOX *pDirtyBox)
-{
-	return actual->AddDirtyBox(pDirtyBox);
-}
-
-DWORD WINAPI D3D9ProxyVolumeTexture::GetPriority(){
-	return actual->GetPriority();
-}
-
-D3DRESOURCETYPE WINAPI D3D9ProxyVolumeTexture::GetType(){
-	return actual->GetType();
-}
+METHOD_THRU( HRESULT              , WINAPI , D3D9ProxyVolumeTexture , SetPrivateData , REFGUID , refguid , CONST void* , pData , DWORD , SizeOfData , DWORD , Flags )
+METHOD_THRU( HRESULT              , WINAPI , D3D9ProxyVolumeTexture , GetPrivateData , REFGUID , refguid , void* , pData , DWORD* , pSizeOfData )
+METHOD_THRU( HRESULT              , WINAPI , D3D9ProxyVolumeTexture , FreePrivateData , REFGUID , refguid )
+METHOD_THRU( DWORD                , WINAPI , D3D9ProxyVolumeTexture , SetPriority , DWORD , PriorityNew )
+METHOD_THRU( void                 , WINAPI , D3D9ProxyVolumeTexture , PreLoad )
+METHOD_THRU( DWORD                , WINAPI , D3D9ProxyVolumeTexture , SetLOD , DWORD , LODNew )
+METHOD_THRU( DWORD                , WINAPI , D3D9ProxyVolumeTexture , GetLOD )
+METHOD_THRU( DWORD                , WINAPI , D3D9ProxyVolumeTexture , GetLevelCount )
+METHOD_THRU( HRESULT              , WINAPI , D3D9ProxyVolumeTexture , SetAutoGenFilterType , D3DTEXTUREFILTERTYPE , FilterType )
+METHOD_THRU( D3DTEXTUREFILTERTYPE , WINAPI , D3D9ProxyVolumeTexture , GetAutoGenFilterType )
+METHOD_THRU( void                 , WINAPI , D3D9ProxyVolumeTexture , GenerateMipSubLevels )
+METHOD_THRU( HRESULT              , WINAPI , D3D9ProxyVolumeTexture , GetLevelDesc , UINT , Level , D3DVOLUME_DESC* , pDesc )
+METHOD_THRU( HRESULT              , WINAPI , D3D9ProxyVolumeTexture , LockBox , UINT , Level, D3DLOCKED_BOX* ,  pLockedVolume , const D3DBOX* , pBox , DWORD , Flags )
+METHOD_THRU( HRESULT              , WINAPI , D3D9ProxyVolumeTexture , UnlockBox , UINT , Level)
+METHOD_THRU( HRESULT              , WINAPI , D3D9ProxyVolumeTexture , AddDirtyBox , const D3DBOX* , pDirtyBox )
+METHOD_THRU( DWORD                , WINAPI , D3D9ProxyVolumeTexture , GetPriority )
+METHOD_THRU( D3DRESOURCETYPE      , WINAPI , D3D9ProxyVolumeTexture , GetType )

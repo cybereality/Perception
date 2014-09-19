@@ -34,7 +34,7 @@
 
 ####BUILD INSTRUCTIONS:
 
-1. Set environment variables (Click Start, Control Panel, System (in System and Security), Advanced System Settings, Environment Variables):
+1. Set macros in "common/project/paths.props" file:
     * FREESPACE   : The folder for libfreespace (Hillcrest Labs SDK).
     * DXSDK_DIR   : The folder for DirectX SDK (already set automatically by the June 2010 DirectX SDK)
     * WIN_DDK_DIR : The folder you installed the Windows Driver Development Kit to

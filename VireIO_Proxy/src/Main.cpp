@@ -135,10 +135,16 @@ BOOL APIENTRY DllMain( HINSTANCE dll , DWORD fdwReason, LPVOID ){
 
 
 
-extern "C" __declspec(dllexport) IDirect3D9* ProxyDirect3DCreate9( IDirect3D9* base ) {
-	printf("vireio: creating device\n");
+extern "C" __declspec(dllexport) IDirect3D9Ex* ProxyDirect3DCreate9( IDirect3D9* base , IDirect3D9Ex* baseEx ) {
 	if( !loaded ){
-		return base;
+		return 0;
 	}
-	return new D3D9ProxyDirect3D( base , config );
+
+	if( baseEx ){
+		printf("vireio: creating Direct3D\n");
+	}else{
+		printf("vireio: creating Direct3DEx\n");
+	}
+
+	return new D3D9ProxyDirect3D( base , baseEx , config );
 }

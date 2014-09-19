@@ -30,64 +30,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "D3DProxyDevice.h"
 #include "D3D9ProxyVolume.h"
 
-/**
-* Constructor.
-* If the Proxy volume is in a container it will have a combined ref count with it's container
-* and that count is managed by forwarding release and addref to the container. In this case the
-* container must delete this volume when the ref count reaches 0.
-***/ 
 D3D9ProxyVolume::D3D9ProxyVolume(IDirect3DVolume9* pActualVolume, D3DProxyDevice* pOwningDevice, IUnknown* pWrappedContainer) :
 	cBase( pActualVolume , pOwningDevice , pWrappedContainer )
 {
 }
 
-/**
-* Base SetPrivateData functionality.
-***/
-HRESULT WINAPI D3D9ProxyVolume::SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags)
-{
-	return actual->SetPrivateData(refguid, pData, SizeOfData, Flags);
-}
 
-/**
-* Base GetPrivateData functionality.
-***/
-HRESULT WINAPI D3D9ProxyVolume::GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData)
-{
-	return actual->GetPrivateData(refguid, pData, pSizeOfData);
-}
-
-/**
-* Base FreePrivateData functionality.
-***/
-HRESULT WINAPI D3D9ProxyVolume::FreePrivateData(REFGUID refguid)
-{
-	return actual->FreePrivateData(refguid);
-}
-
-
-
-
-/**
-* Base GetDesc functionality.
-***/
-HRESULT WINAPI D3D9ProxyVolume::GetDesc(D3DVOLUME_DESC *pDesc)
-{
-	return actual->GetDesc(pDesc);
-}
-
-/**
-* Base LockBox functionality.
-***/
-HRESULT WINAPI D3D9ProxyVolume::LockBox(D3DLOCKED_BOX *pLockedVolume, const D3DBOX *pBox, DWORD Flags)
-{
-	return actual->LockBox(pLockedVolume, pBox, Flags);
-}
-
-/**
-* Base UnlockBox functionality.
-***/
-HRESULT WINAPI D3D9ProxyVolume::UnlockBox()
-{
-	return actual->UnlockBox();
-}
+METHOD_THRU( HRESULT , WINAPI , D3D9ProxyVolume , SetPrivateData , REFGUID , refguid , CONST void* , pData , DWORD , SizeOfData , DWORD , Flags )
+METHOD_THRU( HRESULT , WINAPI , D3D9ProxyVolume , GetPrivateData , REFGUID , refguid , void* , pData , DWORD* , pSizeOfData )
+METHOD_THRU( HRESULT , WINAPI , D3D9ProxyVolume , FreePrivateData , REFGUID , refguid )
+METHOD_THRU( HRESULT , WINAPI , D3D9ProxyVolume , GetDesc , D3DVOLUME_DESC* , pDesc )
+METHOD_THRU( HRESULT , WINAPI , D3D9ProxyVolume , LockBox , D3DLOCKED_BOX* , pLockedVolume, const D3DBOX* , pBox , DWORD , Flags )
+METHOD_THRU( HRESULT , WINAPI , D3D9ProxyVolume , UnlockBox )

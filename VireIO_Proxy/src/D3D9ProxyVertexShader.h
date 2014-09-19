@@ -51,11 +51,6 @@ public:
 	/*** IDirect3DVertexShader9 methods ***/
 	HRESULT WINAPI GetFunction(void *pDate, UINT *pSizeOfData);
 
-	/*** D3D9ProxyVertexShader public methods ***/
-	std::map<UINT, StereoShaderConstant<>>* ModifiedConstants();
-	bool                                    SquishViewport();
-
-protected:
 	/**
 	* Modified shader constants.
 	* <StartRegister, StereoShaderConstant<>>

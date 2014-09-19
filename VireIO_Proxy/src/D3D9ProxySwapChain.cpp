@@ -73,7 +73,7 @@ D3D9ProxySwapChain::D3D9ProxySwapChain(IDirect3DSwapChain9* pActualSwapChain, D3
 	// Create stereo backbuffers to use in place of actual backbuffers
 	for (UINT i = 0; i < bbCount; i++) {
 		IDirect3DSurface9* pTemp;
-		pWrappedOwningDevice->CreateRenderTarget(backDesc.Width, backDesc.Height, backDesc.Format, backDesc.MultiSampleType, backDesc.MultiSampleQuality, false, &pTemp, NULL, true);
+		pWrappedOwningDevice->ProxyCreateRenderTarget(backDesc.Width, backDesc.Height, backDesc.Format, backDesc.MultiSampleType, backDesc.MultiSampleQuality, false, &pTemp, NULL, 0 , true , 0 );
 		m_backBuffers.push_back(static_cast<D3D9ProxySurface*>(pTemp));
 	}
 }
@@ -205,35 +205,15 @@ HRESULT WINAPI D3D9ProxySwapChain::GetBackBuffer(UINT iBackBuffer, D3DBACKBUFFER
 
 
 /**
-* Base functionality.
-***/
-HRESULT WINAPI D3D9ProxySwapChain::GetRasterStatus(D3DRASTER_STATUS* pRasterStatus)
-{
-	return actual->GetRasterStatus(pRasterStatus);
-}
-
-/**
-* Base GetDisplayMode functionality.
-***/
-HRESULT WINAPI D3D9ProxySwapChain::GetDisplayMode(D3DDISPLAYMODE* pMode)
-{
-	return actual->GetDisplayMode(pMode);
-}
-
-
-
-/**
-* Base GetPresentParameters functionality.
-***/
-HRESULT WINAPI D3D9ProxySwapChain::GetPresentParameters(D3DPRESENT_PARAMETERS* pPresentationParameters)
-{
-	return actual->GetPresentParameters(pPresentationParameters);
-}
-
-/**
 * Simple "delete this" function.
 ***/
 void D3D9ProxySwapChain::Destroy() 
 {
 	delete this;
 }
+
+
+
+METHOD_THRU( HRESULT , WINAPI , D3D9ProxySwapChain , GetRasterStatus , D3DRASTER_STATUS* , pRasterStatus )
+METHOD_THRU( HRESULT , WINAPI , D3D9ProxySwapChain , GetDisplayMode , D3DDISPLAYMODE* , pMode )
+METHOD_THRU( HRESULT , WINAPI , D3D9ProxySwapChain , GetPresentParameters , D3DPRESENT_PARAMETERS* , pPresentationParameters )

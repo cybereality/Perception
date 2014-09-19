@@ -92,16 +92,20 @@ class ViewAdjustment;
 #define METHOD_EXPAND_8( F,A,B,...)  F(A,B) , EXPAND(METHOD_EXPAND_7(F,__VA_ARGS__))
 #define METHOD_EXPAND_9( F,A,B,...)  F(A,B) , EXPAND(METHOD_EXPAND_8(F,__VA_ARGS__))
 #define METHOD_EXPAND_10(F,A,B,...)  F(A,B) , EXPAND(METHOD_EXPAND_9(F,__VA_ARGS__))
+#define METHOD_EXPAND_11(F,A,B,...)  F(A,B) , EXPAND(METHOD_EXPAND_10(F,__VA_ARGS__))
+#define METHOD_EXPAND_12(F,A,B,...)  F(A,B) , EXPAND(METHOD_EXPAND_11(F,__VA_ARGS__))
 
 #define METHOD_EXPAND_F12(A,B) A B
 #define METHOD_EXPAND_F2(A,B) B
 
-#define METHOD_SELECT_EXPAND(A1,A2,A3,A4,A5,A6,A7,A8,A9,A10,A11,A12,A13,A14,A15,A16,A17,A18,A19,A20,A21,A22,...) A22
+#define METHOD_SELECT_EXPAND(A1,A2,A3,A4,A5,A6,A7,A8,A9,A10,A11,A12,A13,A14,A15,A16,A17,A18,A19,A20,A21,A22,A23,A24,A25,A26,...) A26
 #define METHOD_EXPAND_FUNC(F,...)					   \
 	EXPAND(											   \
 		EXPAND(										   \
 			METHOD_SELECT_EXPAND(					   \
 				__VA_ARGS__ ,						   \
+				METHOD_EXPAND_12,METHOD_EXPAND_12 ,	   \
+				METHOD_EXPAND_11,METHOD_EXPAND_11 ,	   \
 				METHOD_EXPAND_10,METHOD_EXPAND_10 ,	   \
 				METHOD_EXPAND_9 ,METHOD_EXPAND_9 ,	   \
 				METHOD_EXPAND_8 ,METHOD_EXPAND_8 ,	   \
@@ -123,9 +127,28 @@ class ViewAdjustment;
 
 
 //This macro expand to method declaration
-#define METHOD_IMPL(ret,spec,base,name,...) ret spec base::name( METHOD_EXPAND_ALL(__VA_ARGS__) )
+#define METHOD_IMPL(ret,spec,base,name,...)                     \
+	ret spec base::name( METHOD_EXPAND_ALL(__VA_ARGS__) )
 
-//This macro expand to method declaration and calls same method of "actual" class
-#define METHOD_THRU(ret,spec,base,name,...) ret spec base::name( METHOD_EXPAND_ALL(__VA_ARGS__) ){ return actual->name( METHOD_EXPAND_NAME(__VA_ARGS__) ); }
+	//This macro expand to method declaration and calls same method of  "actualEx"
+#define METHOD_THRU_EX(ret,spec,base,name,...)				\
+	ret spec base::name( METHOD_EXPAND_ALL(__VA_ARGS__) ){		\
+		return actualEx->name( METHOD_EXPAND_NAME(__VA_ARGS__) );	\
+	}
+
+//This macro expand to method declaration and calls same method of "actual"
+#define METHOD_THRU(ret,spec,base,name,...)				\
+	ret spec base::name( METHOD_EXPAND_ALL(__VA_ARGS__) ){		\
+		return actual->name( METHOD_EXPAND_NAME(__VA_ARGS__) );	\
+	}
+
+//This macro expand to method declaration and calls same method of "right" and "actual"
+#define METHOD_THRU_LR(ret,spec,base,name,...)                  \
+	ret spec base::name( METHOD_EXPAND_ALL(__VA_ARGS__) ){ 		\
+		if( right ){ 											\
+			right->name( METHOD_EXPAND_NAME(__VA_ARGS__) );		\
+		}														\
+		return actual->name( METHOD_EXPAND_NAME(__VA_ARGS__) );	\
+	}
 
 

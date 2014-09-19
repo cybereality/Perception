@@ -44,9 +44,15 @@
     <ClCompile Include="..\..\common\hijack.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\cProfileSelectDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QT_UIC Include="..\src\cMainWindow.ui">
+      <Filter>Form files</Filter>
+    </QT_UIC>
+    <QT_UIC Include="..\src\cProfileSelectDialog.ui">
       <Filter>Form files</Filter>
     </QT_UIC>
   </ItemGroup>
@@ -79,6 +85,9 @@
       <Filter>Header Files</Filter>
     </QT_MOC>
     <QT_MOC Include="..\src\cMainWindow.h">
+      <Filter>Header Files</Filter>
+    </QT_MOC>
+    <QT_MOC Include="..\src\cProfileSelectDialog.h">
       <Filter>Header Files</Filter>
     </QT_MOC>
   </ItemGroup>

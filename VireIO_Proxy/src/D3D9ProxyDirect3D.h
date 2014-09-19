@@ -31,10 +31,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <d3d9.h>
 #include <cConfig.h>
 
-class D3D9ProxyDirect3D : public IDirect3D9 {
+class D3D9ProxyDirect3D : public IDirect3D9Ex {
 public:
-	D3D9ProxyDirect3D(IDirect3D9* pD3D , cConfig& cfg );
-	virtual ~D3D9ProxyDirect3D();
+	D3D9ProxyDirect3D(IDirect3D9* pD3D , IDirect3D9Ex* pD3DEx , cConfig& cfg );
+	~D3D9ProxyDirect3D();
 
 	/*** IUnknown methods ***/
 	HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv);
@@ -57,8 +57,19 @@ public:
 	HMONITOR WINAPI GetAdapterMonitor(UINT Adapter);
 	HRESULT	 WINAPI CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, HWND hFocusWindow,	DWORD BehaviorFlags, D3DPRESENT_PARAMETERS* pPresentationParameters, IDirect3DDevice9** ppReturnedDeviceInterface);
 
+	//IDirect3D9Ex methods
+	UINT    WINAPI GetAdapterModeCountEx(UINT Adapter,CONST D3DDISPLAYMODEFILTER* pFilter );
+    HRESULT WINAPI EnumAdapterModesEx(UINT Adapter,CONST D3DDISPLAYMODEFILTER* pFilter,UINT Mode,D3DDISPLAYMODEEX* pMode);
+    HRESULT WINAPI GetAdapterDisplayModeEx(UINT Adapter,D3DDISPLAYMODEEX* pMode,D3DDISPLAYROTATION* pRotation);
+    HRESULT WINAPI CreateDeviceEx(UINT Adapter,D3DDEVTYPE DeviceType,HWND hFocusWindow,DWORD BehaviorFlags,D3DPRESENT_PARAMETERS* pPresentationParameters,D3DDISPLAYMODEEX* pFullscreenDisplayMode,IDirect3DDevice9Ex** ppReturnedDeviceInterface);
+    HRESULT WINAPI GetAdapterLUID(UINT Adapter,LUID * pLUID);
+
+
+	HRESULT WINAPI ProxyCreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, HWND hFocusWindow,DWORD BehaviorFlags, D3DPRESENT_PARAMETERS* pPresentationParameters,D3DDISPLAYMODEEX* pFullscreenDisplayMode,IDirect3DDevice9** ppReturnedDeviceInterface,IDirect3DDevice9Ex** ppReturnedDeviceInterfaceEx);
+
 private:
-	cConfig&    config;
-	IDirect3D9* m_pD3D;
-	ULONG       m_nRefCount;
+	cConfig&      config;
+	IDirect3D9*   actual;
+	IDirect3D9Ex* actualEx;
+	ULONG         m_nRefCount;
 };

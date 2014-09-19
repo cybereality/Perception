@@ -29,72 +29,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "D3D9ProxyVertexBuffer.h"
 
-
-/**
-* Constructor. 
-* @param pActualVertexBuffer Imbed actual vertex buffer. 
-* @param pOwningDevice Pointer to the device that owns the buffer. 
-***/
 D3D9ProxyVertexBuffer::D3D9ProxyVertexBuffer(IDirect3DVertexBuffer9* pActualVertexBuffer, D3DProxyDevice* pOwningDevice) :
 	cBase( pActualVertexBuffer , pOwningDevice )
 {
 }
 
 
-HRESULT WINAPI D3D9ProxyVertexBuffer::SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags)
-{
-	return actual->SetPrivateData(refguid, pData, SizeOfData, Flags);
-}
-
-
-HRESULT WINAPI D3D9ProxyVertexBuffer::GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData)
-{
-	return actual->GetPrivateData(refguid, pData, pSizeOfData);
-}
-
-
-HRESULT WINAPI D3D9ProxyVertexBuffer::FreePrivateData(REFGUID refguid)
-{
-	return actual->FreePrivateData(refguid);
-}
-
-
-DWORD WINAPI D3D9ProxyVertexBuffer::SetPriority(DWORD PriorityNew)
-{
-	return actual->SetPriority(PriorityNew);
-}
-
-
-DWORD WINAPI D3D9ProxyVertexBuffer::GetPriority()
-{
-	return actual->GetPriority();
-}
-
-
-void WINAPI D3D9ProxyVertexBuffer::PreLoad()
-{
-	return actual->PreLoad();
-}
-
-D3DRESOURCETYPE WINAPI D3D9ProxyVertexBuffer::GetType()
-{
-	return actual->GetType();
-}
-
-
-HRESULT WINAPI D3D9ProxyVertexBuffer::Lock(UINT OffsetToLock, UINT SizeToLock, VOID **ppbData, DWORD Flags)
-{
-	return actual->Lock(OffsetToLock, SizeToLock, ppbData, Flags);
-}
-
-
-HRESULT WINAPI D3D9ProxyVertexBuffer::Unlock()
-{
-	return actual->Unlock();
-}
-
-
-HRESULT WINAPI D3D9ProxyVertexBuffer::GetDesc(D3DVERTEXBUFFER_DESC *pDesc)
-{
-	return actual->GetDesc(pDesc);
-}
+METHOD_THRU( HRESULT         , WINAPI , D3D9ProxyVertexBuffer , SetPrivateData , REFGUID , refguid , CONST void* , pData , DWORD , SizeOfData , DWORD , Flags )
+METHOD_THRU( HRESULT         , WINAPI , D3D9ProxyVertexBuffer , GetPrivateData , REFGUID , refguid , void* , pData , DWORD* , pSizeOfData )
+METHOD_THRU( HRESULT         , WINAPI , D3D9ProxyVertexBuffer , FreePrivateData , REFGUID , refguid )
+METHOD_THRU( DWORD           , WINAPI , D3D9ProxyVertexBuffer , SetPriority , DWORD , PriorityNew )
+METHOD_THRU( DWORD           , WINAPI , D3D9ProxyVertexBuffer , GetPriority )
+METHOD_THRU( void            , WINAPI , D3D9ProxyVertexBuffer , PreLoad )
+METHOD_THRU( D3DRESOURCETYPE , WINAPI , D3D9ProxyVertexBuffer , GetType )
+METHOD_THRU( HRESULT         , WINAPI , D3D9ProxyVertexBuffer , Lock , UINT , OffsetToLock , UINT , SizeToLock , VOID** , ppbData , DWORD , Flags )
+METHOD_THRU( HRESULT         , WINAPI , D3D9ProxyVertexBuffer , Unlock )
+METHOD_THRU( HRESULT         , WINAPI , D3D9ProxyVertexBuffer , GetDesc , D3DVERTEXBUFFER_DESC* , pDesc )

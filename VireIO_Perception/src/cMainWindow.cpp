@@ -11,6 +11,11 @@
 #include <cSettings.h>
 
 
+static cGame* GameForItem( QTreeWidgetItem* i ){
+	return (cGame*) i->data( 0 , Qt::UserRole ).value<void*>();
+}
+
+
 cMainWindow::cMainWindow( ){
 	ui.setupUi(this);
 
@@ -85,19 +90,50 @@ void cMainWindow::on_saveSettings_clicked(){
 	s.save();
 }
 
-
+#include <qfiledialog.h>
+#include "cProfileSelectDialog.h"
 
 
 void cMainWindow::on_games_customContextMenuRequested( const QPoint& pos ){
 	QMenu m;
 	QAction* scan = m.addAction( "Scan new games" );
+	QAction* add  = m.addAction( "Add new game"   );
+	QAction* del  = m.addAction( "Delete"         );
+
+	del->setVisible( !ui.games->selectedItems().isEmpty() );
 
 	QAction* ret = m.exec( ui.games->viewport()->mapToGlobal(pos) );
 
 	if( ret == scan ){
-
 		ScanGames();
+		return;
+	}
 
+	if( ret == add ){
+		QFileDialog d(this);
+		d.setNameFilter( "Executables (*.exe)" );
+		d.setAcceptMode( QFileDialog::AcceptOpen );
+		d.setFileMode  ( QFileDialog::ExistingFile );
+		if( d.exec() ){
+			cProfileSelectDialog pd(this);
+			if( pd.exec() ){
+				cGame* g = new cGame;
+				g->exe_path = d.selectedFiles()[0];
+				g->profile  = pd.selectedProfile;
+				g->save();
+				AddGame( g );
+			}
+		}
+	}
+
+	if( ret == del ){
+		for( QTreeWidgetItem* i : ui.games->selectedItems() ){
+			cGame* g = GameForItem(i);
+			if( QFile( g->propFile).remove() ){
+				delete g;
+				delete i;
+			}
+		}
 	}
 }
 
@@ -158,7 +194,7 @@ void cMainWindow::ScanGames(){
 }
 
 void cMainWindow::on_games_itemDoubleClicked( QTreeWidgetItem *item , int ){
-	cGame* g = (cGame*) item->data( 0 , Qt::UserRole ).value<void*>();
+	cGame* g = GameForItem(item);
 
 	QStringList dlls;
 	dlls += vireioDir+"bin/VireIO_Hijack.dll";

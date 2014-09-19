@@ -34,7 +34,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * @param pDevice Imbed actual device.
 * @param pCreatedBy Pointer to the object that created the device.
 ***/
-D3DProxyDeviceDebug::D3DProxyDeviceDebug(IDirect3DDevice9* pDevice, D3D9ProxyDirect3D* pCreatedBy , cConfig& cfg ) : D3DProxyDevice(pDevice, pCreatedBy , cfg )
+D3DProxyDeviceDebug::D3DProxyDeviceDebug(IDirect3DDevice9* pDevice,IDirect3DDevice9Ex* pDeviceEx, D3D9ProxyDirect3D* pCreatedBy , cConfig& cfg ) : D3DProxyDevice(pDevice,pDeviceEx ,pCreatedBy , cfg )
 {
 	m_logFile.open("logD3DProxyDevice.txt", std::ios::out);
 	m_logFile << "D3DProxyDevice history:__________" << std::endl;

@@ -32,25 +32,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <cBase.h>
 
 
-/**
-*  Direct 3D index buffer class. 
-*  Overwrites IDirect3DIndexBuffer9 and imbeds the actual index buffer.
-*/
-class D3D9ProxyIndexBuffer : public cBase<IDirect3DIndexBuffer9>
-{
+class D3D9ProxyIndexBuffer : public cBase<IDirect3DIndexBuffer9>{
 public:
 	D3D9ProxyIndexBuffer(IDirect3DIndexBuffer9* pActualIndexBuffer, D3DProxyDevice* pOwningDevice);
-	virtual ~D3D9ProxyIndexBuffer();
 
-	/*** IDirect3DResource9 methods ***/
-	virtual HRESULT         WINAPI SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags);
-	virtual HRESULT         WINAPI GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData);
-	virtual HRESULT	        WINAPI FreePrivateData(REFGUID refguid);
-	virtual DWORD           WINAPI SetPriority(DWORD PriorityNew);
-	virtual DWORD           WINAPI GetPriority();
-	virtual void            WINAPI PreLoad();
-	virtual D3DRESOURCETYPE WINAPI GetType();
-	virtual HRESULT         WINAPI Lock(UINT OffsetToLock, UINT SizeToLock, VOID **ppbData, DWORD Flags);
-	virtual HRESULT         WINAPI Unlock();
-	virtual HRESULT         WINAPI GetDesc(D3DINDEXBUFFER_DESC *pDesc);
+	HRESULT         WINAPI SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags);
+	HRESULT         WINAPI GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData);
+	HRESULT	        WINAPI FreePrivateData(REFGUID refguid);
+	DWORD           WINAPI SetPriority(DWORD PriorityNew);
+	DWORD           WINAPI GetPriority();
+	void            WINAPI PreLoad();
+	D3DRESOURCETYPE WINAPI GetType();
+	HRESULT         WINAPI Lock(UINT OffsetToLock, UINT SizeToLock, VOID **ppbData, DWORD Flags);
+	HRESULT         WINAPI Unlock();
+	HRESULT         WINAPI GetDesc(D3DINDEXBUFFER_DESC *pDesc);
 };

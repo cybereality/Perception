@@ -14,13 +14,7 @@
     <ClCompile Include="..\src\D3D9ProxyCubeTexture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\D3D9ProxyDeviceEx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\D3D9ProxyDirect3D.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\D3D9ProxyDirect3DEx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\D3D9ProxyIndexBuffer.cpp">
@@ -69,9 +63,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\D3DProxyDeviceEgo.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\D3DProxyDeviceFactory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\DataGatherer.cpp">
@@ -226,16 +217,7 @@
     <ClInclude Include="..\src\D3DProxyDeviceEgo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\D3DProxyDeviceFactory.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\DataGatherer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\Direct3D9Ex.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\Direct3DDevice9Ex.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\DirectInput.h">
@@ -398,6 +380,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\common\cBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\cBaseTexture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

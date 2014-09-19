@@ -84,149 +84,6 @@ HRESULT WINAPI D3D9ProxyTexture::QueryInterface(REFIID riid, LPVOID* ppv)
 	return actual->QueryInterface(riid, ppv);
 }
 
-
-/**
-* Sets private data on both (left/right) textures.
-***/
-HRESULT WINAPI D3D9ProxyTexture::SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags)
-{
-	if( right ){
-		right->SetPrivateData(refguid, pData, SizeOfData, Flags);
-	}
-
-	return actual->SetPrivateData(refguid, pData, SizeOfData, Flags);
-}
-
-/**
-* Base GetPrivateData functionality. 
-***/
-HRESULT WINAPI D3D9ProxyTexture::GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData)
-{
-	return actual->GetPrivateData(refguid, pData, pSizeOfData);
-}
-
-/**
-* Frees private data on both (left/right) textures.
-***/
-HRESULT WINAPI D3D9ProxyTexture::FreePrivateData(REFGUID refguid)
-{
-	if( right ){
-		right->FreePrivateData(refguid);
-	}
-
-	return actual->FreePrivateData(refguid);
-}
-
-/**
-* Sets priority on both (left/right) textures.
-***/
-DWORD WINAPI D3D9ProxyTexture::SetPriority(DWORD PriorityNew)
-{
-	if( right ){
-		right->SetPriority(PriorityNew);
-	}
-
-	return actual->SetPriority(PriorityNew);
-}
-
-/**
-* Base GetPriority functionality. 
-***/
-DWORD WINAPI D3D9ProxyTexture::GetPriority()
-{
-	return actual->GetPriority();
-}
-
-
-/**
-* Calls method on both (left/right) textures.
-***/
-void WINAPI D3D9ProxyTexture::PreLoad()
-{
-	if( right ){
-		right->PreLoad();
-	}
-
-	return actual->PreLoad();
-}
-
-/**
-* Base GetType functionality. 
-***/
-D3DRESOURCETYPE WINAPI D3D9ProxyTexture::GetType()
-{
-	return actual->GetType();
-}
-
-/**
-* Sets LOD on both (left/right) texture.
-***/
-DWORD WINAPI D3D9ProxyTexture::SetLOD(DWORD LODNew)
-{
-	if( right ){
-		right->SetLOD(LODNew);
-	}
-
-	return actual->SetLOD(LODNew);
-}
-
-/**
-* Base GetLOD functionality. 
-***/
-DWORD WINAPI D3D9ProxyTexture::GetLOD()
-{
-	return actual->GetLOD();
-}
-
-/**
-* Base GetLevelCount functionality. 
-***/
-DWORD WINAPI D3D9ProxyTexture::GetLevelCount()
-{
-	return actual->GetLevelCount();
-}
-
-/**
-* Sets filter type on both (left/right) texture.
-***/
-HRESULT WINAPI D3D9ProxyTexture::SetAutoGenFilterType(D3DTEXTUREFILTERTYPE FilterType)
-{
-	if( right ){
-		right->SetAutoGenFilterType(FilterType);
-	}
-
-	return actual->SetAutoGenFilterType(FilterType);
-}
-
-/**
-* Base GetAutoGenFilterType functionality. 
-***/
-D3DTEXTUREFILTERTYPE WINAPI D3D9ProxyTexture::GetAutoGenFilterType()
-{
-	return actual->GetAutoGenFilterType();
-}
-
-/**
-* Generates sub levels on both (left/right) texture.
-***/
-void WINAPI D3D9ProxyTexture::GenerateMipSubLevels()
-{
-	if( right ){
-		right->GenerateMipSubLevels();
-	}
-
-	return actual->GenerateMipSubLevels();
-}
-
-/**
-* Base GetLevelDesc functionality. 
-***/
-HRESULT WINAPI D3D9ProxyTexture::GetLevelDesc(UINT Level, D3DSURFACE_DESC *pDesc)
-{
-	return actual->GetLevelDesc(Level, pDesc);
-}
-
-
 /**
 * If proxy surface is already stored on this level, return this one, otherwise create it.
 * To create a new stored surface level, call the method on both (left/right) actual textures.
@@ -293,38 +150,24 @@ HRESULT WINAPI D3D9ProxyTexture::GetSurfaceLevel(UINT Level, IDirect3DSurface9**
 	return finalResult;
 }
 
-/**
-* Locks rectangle on both (left/right) textures.
-***/
-HRESULT WINAPI D3D9ProxyTexture::LockRect(UINT Level, D3DLOCKED_RECT* pLockedRect, CONST RECT* pRect, DWORD Flags)
-{
-	if( right ){
-		right->LockRect(Level, pLockedRect, pRect, Flags);
-	}
 
-	return actual->LockRect(Level, pLockedRect, pRect, Flags);
-}
-	
-/**
-* Unlocks rectangle on both (left/right) textures.
-***/
-HRESULT WINAPI D3D9ProxyTexture::UnlockRect(UINT Level)
-{
-	if( right ){
-		right->UnlockRect(Level);
-	}
 
-	return actual->UnlockRect(Level);
-}
 
-/**
-* Adds dirty rectangle on both (left/right) textures.
-***/
-HRESULT WINAPI D3D9ProxyTexture::AddDirtyRect(CONST RECT* pDirtyRect)
-{
-	if( right ){
-		right->AddDirtyRect(pDirtyRect);
-	}
 
-	return actual->AddDirtyRect(pDirtyRect);
-}
+METHOD_THRU_LR( HRESULT              , WINAPI , D3D9ProxyTexture, SetPrivateData , REFGUID , refguid , CONST void* , pData , DWORD , SizeOfData , DWORD , Flags )
+METHOD_THRU   ( HRESULT              , WINAPI , D3D9ProxyTexture, GetPrivateData , REFGUID , refguid , void* , pData , DWORD* , pSizeOfData )
+METHOD_THRU_LR( HRESULT              , WINAPI , D3D9ProxyTexture, FreePrivateData , REFGUID , refguid )
+METHOD_THRU_LR( DWORD                , WINAPI , D3D9ProxyTexture, SetPriority , DWORD , PriorityNew )
+METHOD_THRU   ( DWORD                , WINAPI , D3D9ProxyTexture, GetPriority )
+METHOD_THRU_LR( void                 , WINAPI , D3D9ProxyTexture, PreLoad )
+METHOD_THRU   ( D3DRESOURCETYPE      , WINAPI , D3D9ProxyTexture, GetType )
+METHOD_THRU_LR( DWORD                , WINAPI , D3D9ProxyTexture, SetLOD , DWORD , LODNew )
+METHOD_THRU   ( DWORD                , WINAPI , D3D9ProxyTexture, GetLOD )
+METHOD_THRU   ( DWORD                , WINAPI , D3D9ProxyTexture, GetLevelCount )
+METHOD_THRU_LR( HRESULT              , WINAPI , D3D9ProxyTexture, SetAutoGenFilterType , D3DTEXTUREFILTERTYPE , FilterType )
+METHOD_THRU   ( D3DTEXTUREFILTERTYPE , WINAPI , D3D9ProxyTexture, GetAutoGenFilterType )
+METHOD_THRU_LR( void                 , WINAPI , D3D9ProxyTexture, GenerateMipSubLevels )
+METHOD_THRU   ( HRESULT              , WINAPI , D3D9ProxyTexture, GetLevelDesc , UINT , Level , D3DSURFACE_DESC* , pDesc )
+METHOD_THRU_LR( HRESULT              , WINAPI , D3D9ProxyTexture, LockRect , UINT , Level , D3DLOCKED_RECT* , pLockedRect , CONST RECT* , pRect , DWORD , Flags )
+METHOD_THRU_LR( HRESULT              , WINAPI , D3D9ProxyTexture, UnlockRect , UINT , Level )
+METHOD_THRU_LR( HRESULT              , WINAPI , D3D9ProxyTexture, AddDirtyRect , CONST RECT* , pDirtyRect )

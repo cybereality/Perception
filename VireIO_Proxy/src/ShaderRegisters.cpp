@@ -469,11 +469,11 @@ void ShaderRegisters::ActiveVertexShaderChanged(D3D9ProxyVertexShader* pNewVerte
 
 	if (pNewVertexShader) {
 
-		std::map<UINT, StereoShaderConstant<float>>* pNewShaderModConstants = pNewVertexShader->ModifiedConstants();
+		std::map<UINT, StereoShaderConstant<float>>* pNewShaderModConstants = &pNewVertexShader->m_modifiedConstants;
 
 		std::map<UINT, StereoShaderConstant<float>>* pOldShaderModConstants = NULL;
 		if (m_pActiveVertexShader)
-			pOldShaderModConstants = m_pActiveVertexShader->ModifiedConstants();
+			pOldShaderModConstants = &m_pActiveVertexShader->m_modifiedConstants;
 
 		// Update the data in new shader constants with data from matching constants from last shader.
 		auto itNewConstants = pNewShaderModConstants->begin();
@@ -484,7 +484,7 @@ void ShaderRegisters::ActiveVertexShaderChanged(D3D9ProxyVertexShader* pNewVerte
 			if (pOldShaderModConstants) {
 				// No idea if this is saving any time or if it would be better to just mark all the registers dirty 
 				// and re-apply the constants on first draw
-				if (m_pActiveVertexShader->ModifiedConstants()->count(itNewConstants->first) == 1) {
+				if (m_pActiveVertexShader->m_modifiedConstants.count(itNewConstants->first) == 1) {
 					if (pOldShaderModConstants->at(itNewConstants->first).SameConstantAs(itNewConstants->second)) {
 						(*pNewShaderModConstants).at(itNewConstants->first) = (*pOldShaderModConstants).at(itNewConstants->first);
 						mightBeDirty = false;
@@ -584,8 +584,8 @@ void ShaderRegisters::ApplyStereoConstantsVS(vireio::RenderPosition currentSide,
 	if (!m_pActiveVertexShader)
 		return;
 
-	auto itStereoConstant = m_pActiveVertexShader->ModifiedConstants()->begin();
-	while (itStereoConstant != m_pActiveVertexShader->ModifiedConstants()->end()) {
+	auto itStereoConstant = m_pActiveVertexShader->m_modifiedConstants.begin();
+	while (itStereoConstant != m_pActiveVertexShader->m_modifiedConstants.end()) {
 
 		// if any of the registers that make up this constant are dirty update before setting
 		if ( AnyDirtyVS(itStereoConstant->second.StartRegister(), itStereoConstant->second.Count())) { // Should we do this or make this method just switch sides without checking for updated data? 
@@ -656,8 +656,8 @@ void ShaderRegisters::MarkAllVSStereoConstantsDirty()
 	// vertex shader
 	if (m_pActiveVertexShader) {
 		// Mark all StereoShaderConstants dirty so they are updated before drawing
-		auto itStereoConstant = m_pActiveVertexShader->ModifiedConstants()->begin();
-		while (itStereoConstant != m_pActiveVertexShader->ModifiedConstants()->end()) {
+		auto itStereoConstant = m_pActiveVertexShader->m_modifiedConstants.begin();
+		while (itStereoConstant != m_pActiveVertexShader->m_modifiedConstants.end()) {
 
 			m_dirtyVSRegistersF.insert(itStereoConstant->first);
 			++itStereoConstant;

@@ -48,7 +48,6 @@ public:
 	DWORD           WINAPI GetPriority();
 	void            WINAPI PreLoad();
 	D3DRESOURCETYPE WINAPI GetType();
-	HRESULT         WINAPI GetContainer(REFIID riid, LPVOID* ppContainer);
 	HRESULT         WINAPI GetDesc(D3DSURFACE_DESC *pDesc);
 	HRESULT         WINAPI LockRect(D3DLOCKED_RECT* pLockedRect, CONST RECT* pRect, DWORD Flags);
 	HRESULT         WINAPI UnlockRect();

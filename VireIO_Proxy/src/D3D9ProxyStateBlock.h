@@ -129,15 +129,10 @@ public:
 	};
 
 	D3D9ProxyStateBlock(IDirect3DStateBlock9* pActualStateBlock, D3DProxyDevice* pOwningDevice, CaptureType type, bool isSideLeft);
-	virtual ~D3D9ProxyStateBlock();
+	~D3D9ProxyStateBlock();
 
-	/*** IUnknown methods ***/
-	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv);
-	virtual ULONG   WINAPI AddRef();
-	virtual ULONG   WINAPI Release();
 
 	/*** IDirect3DStateBlock9 methods ***/
-	virtual HRESULT WINAPI GetDevice(IDirect3DDevice9 **ppDevice);
 	virtual HRESULT WINAPI Capture();
 	virtual HRESULT WINAPI Apply();
 

@@ -4,14 +4,15 @@
 
 class cGame{
 public:
+	QString       propFile;
 	QString       exe_path;
 	cGameProfile* profile;
 
 	cGame ( );
 	~cGame( );
 
-	void    load  ( QString file );
-	void    save  ( );
+	void save( );
+
 
 	static QList<cGame*>& all();
 	static void           loadAll();

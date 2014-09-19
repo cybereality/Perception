@@ -61,6 +61,7 @@
     <ClCompile Include="..\..\common\hijack.cpp" />
     <ClCompile Include="..\src\app_main.cpp" />
     <ClCompile Include="..\src\cMainWindow.cpp" />
+    <ClCompile Include="..\src\cProfileSelectDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <QT_MOC Include="..\..\common\cConfig.h" />
@@ -75,11 +76,13 @@
     <QT_MOC Include="..\src\cMainWindow.h">
       <FileType>Document</FileType>
     </QT_MOC>
+    <QT_MOC Include="..\src\cProfileSelectDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <QT_UIC Include="..\src\cMainWindow.ui">
       <FileType>Document</FileType>
     </QT_UIC>
+    <QT_UIC Include="..\src\cProfileSelectDialog.ui" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

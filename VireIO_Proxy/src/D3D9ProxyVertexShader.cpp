@@ -29,10 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "D3D9ProxyVertexShader.h"
 
-/**
-* Constructor.
-* @param pModLoader Can be NULL (no modifications in this game profile).
-***/
+
 D3D9ProxyVertexShader::D3D9ProxyVertexShader(IDirect3DVertexShader9* pActualVertexShader, D3DProxyDevice *pOwningDevice, ShaderModificationRepository* pModLoader) :
 	cBase( pActualVertexShader , pOwningDevice )
 {
@@ -45,28 +42,6 @@ D3D9ProxyVertexShader::D3D9ProxyVertexShader(IDirect3DVertexShader9* pActualVert
 }
 
 
-
-/**
-* Base GetFunction functionality.
-***/
-HRESULT WINAPI D3D9ProxyVertexShader::GetFunction(void *pDate, UINT *pSizeOfData)
-{
-	return actual->GetFunction(pDate, pSizeOfData);
-}
+METHOD_THRU( HRESULT , WINAPI , D3D9ProxyVertexShader , GetFunction , void* , pDate , UINT* , pSizeOfData )
 
 
-/**
-* Returns modified constants pointer.
-***/
-std::map<UINT, StereoShaderConstant<float>>* D3D9ProxyVertexShader::ModifiedConstants()
-{
-	return &m_modifiedConstants;
-}
-
-/**
-* Returns true if viewport is to be squished for that shader.
-***/
-bool D3D9ProxyVertexShader::SquishViewport()
-{
-	return m_bSquishViewport;
-}

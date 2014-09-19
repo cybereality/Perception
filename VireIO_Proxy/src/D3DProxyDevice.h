@@ -56,10 +56,10 @@ class GameHandler;
 * Direct 3D proxy device class. 
 * Basically this class hosts all proxy wrappers accordingly to the methods called by the game.
 */
-class D3DProxyDevice : public IDirect3DDevice9
+class D3DProxyDevice : public IDirect3DDevice9Ex
 {
 public:
-	D3DProxyDevice(IDirect3DDevice9* pDevice, D3D9ProxyDirect3D* pCreatedBy , cConfig& cfg );
+	D3DProxyDevice(IDirect3DDevice9* pDevice,IDirect3DDevice9Ex* pDeviceEx, D3D9ProxyDirect3D* pCreatedBy , cConfig& cfg );
 	virtual ~D3DProxyDevice();
 
 	friend class D3D9ProxyStateBlock;
@@ -187,11 +187,38 @@ public:
 	virtual HRESULT WINAPI DeletePatch(UINT Handle);
 	virtual HRESULT WINAPI CreateQuery(D3DQUERYTYPE Type,IDirect3DQuery9** ppQuery);
 
+
+
+	
+	// IDirect3DDevice9Ex methods
+	HRESULT WINAPI SetConvolutionMonoKernel(UINT width,UINT height,float* rows,float* columns);
+    HRESULT WINAPI ComposeRects(IDirect3DSurface9* pSrc,IDirect3DSurface9* pDst,IDirect3DVertexBuffer9* pSrcRectDescs,UINT NumRects,IDirect3DVertexBuffer9* pDstRectDescs,D3DCOMPOSERECTSOP Operation,int Xoffset,int Yoffset);
+    HRESULT WINAPI PresentEx(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion,DWORD dwFlags);
+    HRESULT WINAPI GetGPUThreadPriority(INT* pPriority);
+    HRESULT WINAPI SetGPUThreadPriority(INT Priority);
+    HRESULT WINAPI WaitForVBlank(UINT iSwapChain);
+    HRESULT WINAPI CheckResourceResidency(IDirect3DResource9** pResourceArray,UINT32 NumResources);
+    HRESULT WINAPI SetMaximumFrameLatency(UINT MaxLatency);
+    HRESULT WINAPI GetMaximumFrameLatency(UINT* pMaxLatency);
+    HRESULT WINAPI CheckDeviceState(HWND hDestinationWindow);
+    HRESULT WINAPI CreateRenderTargetEx(UINT Width,UINT Height,D3DFORMAT Format,D3DMULTISAMPLE_TYPE MultiSample,DWORD MultisampleQuality,BOOL Lockable,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle,DWORD Usage);
+    HRESULT WINAPI CreateOffscreenPlainSurfaceEx(UINT Width,UINT Height,D3DFORMAT Format,D3DPOOL Pool,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle,DWORD Usage);
+    HRESULT WINAPI CreateDepthStencilSurfaceEx(UINT Width,UINT Height,D3DFORMAT Format,D3DMULTISAMPLE_TYPE MultiSample,DWORD MultisampleQuality,BOOL Discard,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle,DWORD Usage);
+    HRESULT WINAPI ResetEx(D3DPRESENT_PARAMETERS* pPresentationParameters,D3DDISPLAYMODEEX *pFullscreenDisplayMode);
+    HRESULT WINAPI GetDisplayModeEx(UINT iSwapChain,D3DDISPLAYMODEEX* pMode,D3DDISPLAYROTATION* pRotation);
+
+
+	void    ProxyPresent( );
+	HRESULT ProxyReset( D3DPRESENT_PARAMETERS* pPresentationParameters , D3DDISPLAYMODEEX* pFullscreenDisplayMode , bool useEx );
+	HRESULT ProxyCreateOffscreenPlainSurface(UINT Width , UINT Height , D3DFORMAT Format , D3DPOOL Pool , IDirect3DSurface9** ppSurface , HANDLE* pSharedHandle , DWORD Usage , bool useEx );
+	HRESULT ProxyCreateRenderTarget         (UINT Width , UINT Height , D3DFORMAT Format , D3DMULTISAMPLE_TYPE MultiSample , DWORD MultisampleQuality , BOOL Lockable , IDirect3DSurface9** ppSurface , HANDLE* pSharedHandle , DWORD Usage , bool isSwapChainBackBuffer , bool useEx );
+	HRESULT ProxyCreateDepthStencilSurface  (UINT Width , UINT Height , D3DFORMAT Format , D3DMULTISAMPLE_TYPE MultiSample , DWORD MultisampleQuality , BOOL Discard , IDirect3DSurface9** ppSurface , HANDLE* pSharedHandle ,  DWORD Usage , bool useEx );
+
 	/*** BaseDirect3DDevice9 methods ***/
 	IDirect3DDevice9* getActual();
 
 	/*** D3DProxyDevice public methods ***/
-	HRESULT WINAPI CreateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample, DWORD MultisampleQuality,BOOL Lockable,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle, bool isBackBufferOfPrimarySwapChain);
+	
 	void           SetupHUD();
 	virtual void   HandleControls(void);
 	void           HandleTracking(void);
@@ -887,7 +914,8 @@ private:
 	* Private to force you to think about whether you really need direct 
 	* access to the actual device. Can be accessed via getActual(). 
 	***/
-	IDirect3DDevice9* actual;
+	IDirect3DDevice9*   actual;
+	IDirect3DDevice9Ex* actualEx;
 	/**
 	* Pointer to the D3D object that created the device. 
 	***/

@@ -44,89 +44,15 @@ D3D9ProxySurface::~D3D9ProxySurface(){
 }
 
 
-HRESULT WINAPI D3D9ProxySurface::SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags){
-	if( right ){
-		right->SetPrivateData(refguid, pData, SizeOfData, Flags);
-	}
-
-	return actual->SetPrivateData(refguid, pData, SizeOfData, Flags);
-}
-
-
-HRESULT WINAPI D3D9ProxySurface::GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData){
-	return actual->GetPrivateData(refguid, pData, pSizeOfData);
-}
-
-
-HRESULT WINAPI D3D9ProxySurface::FreePrivateData(REFGUID refguid){
-	if( right ){
-		right->FreePrivateData(refguid);
-	}
-
-	return actual->FreePrivateData(refguid);
-}
-
-
-DWORD WINAPI D3D9ProxySurface::SetPriority(DWORD PriorityNew){
-	if( right ){
-		right->SetPriority(PriorityNew);
-	}
-
-	return actual->SetPriority(PriorityNew);
-}
-
-
-DWORD WINAPI D3D9ProxySurface::GetPriority(){
-	return actual->GetPriority();
-}
-
-
-D3DRESOURCETYPE WINAPI D3D9ProxySurface::GetType(){
-	return actual->GetType();
-}
-
-
-HRESULT WINAPI D3D9ProxySurface::GetDesc(D3DSURFACE_DESC *pDesc){
-	return actual->GetDesc(pDesc);
-}
-
-
-HRESULT WINAPI D3D9ProxySurface::GetDC(HDC *phdc){
-	return actual->GetDC(phdc);
-}
-
-
-void WINAPI D3D9ProxySurface::PreLoad(){
-	if( right ){
-		right->PreLoad();
-	}
-
-	return actual->PreLoad();
-}
-
-
-HRESULT WINAPI D3D9ProxySurface::LockRect(D3DLOCKED_RECT* pLockedRect, CONST RECT* pRect, DWORD Flags){
-	if( right ){
-		right->LockRect(pLockedRect, pRect, Flags);
-	}
-
-	return actual->LockRect(pLockedRect, pRect, Flags);
-}
-
-
-HRESULT WINAPI D3D9ProxySurface::UnlockRect(){
-	if( right ){
-		right->UnlockRect();
-	}
-
-	return actual->UnlockRect();
-}
-
-
-HRESULT WINAPI D3D9ProxySurface::ReleaseDC(HDC hdc){
-	if( right ){
-		right->ReleaseDC(hdc);
-	}
-
-	return actual->ReleaseDC(hdc);
-}
+METHOD_THRU_LR( HRESULT         , WINAPI , D3D9ProxySurface , SetPrivateData , REFGUID , refguid , CONST void* , pData , DWORD , SizeOfData , DWORD , Flags)
+METHOD_THRU   ( HRESULT         , WINAPI , D3D9ProxySurface , GetPrivateData , REFGUID , refguid , void* , pData , DWORD* , pSizeOfData )
+METHOD_THRU_LR( HRESULT         , WINAPI , D3D9ProxySurface , FreePrivateData , REFGUID , refguid )
+METHOD_THRU_LR( DWORD           , WINAPI , D3D9ProxySurface , SetPriority , DWORD , PriorityNew )
+METHOD_THRU   ( DWORD           , WINAPI , D3D9ProxySurface , GetPriority )
+METHOD_THRU   ( D3DRESOURCETYPE , WINAPI , D3D9ProxySurface , GetType )
+METHOD_THRU   ( HRESULT         , WINAPI , D3D9ProxySurface , GetDesc , D3DSURFACE_DESC* , pDesc )
+METHOD_THRU   ( HRESULT         , WINAPI , D3D9ProxySurface , GetDC , HDC* , phdc )
+METHOD_THRU_LR( void            , WINAPI , D3D9ProxySurface , PreLoad )
+METHOD_THRU_LR( HRESULT         , WINAPI , D3D9ProxySurface , LockRect , D3DLOCKED_RECT* , pLockedRect , CONST RECT* , pRect , DWORD , Flags )
+METHOD_THRU_LR( HRESULT         , WINAPI , D3D9ProxySurface , UnlockRect )
+METHOD_THRU_LR( HRESULT         , WINAPI , D3D9ProxySurface , ReleaseDC , HDC , hdc )

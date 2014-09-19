@@ -115,8 +115,9 @@ UINT GetMouseScrollLines()
 /**
 * Constructor : creates game handler and sets various states.
 ***/
-D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, D3D9ProxyDirect3D* pCreatedBy , cConfig& cfg ) :
+D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice,IDirect3DDevice9Ex* pDeviceEx,  D3D9ProxyDirect3D* pCreatedBy , cConfig& cfg ) :
 	actual(pDevice),
+	actualEx(pDeviceEx),
 	m_pCreatedBy(pCreatedBy),
 	m_nRefCount(1),
 	m_activeRenderTargets (1, NULL),
@@ -305,64 +306,6 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetDirect3D , IDirect3D9** , pp
 	return D3D_OK;
 }
 
-// The calling application will start releasing resources after TestCooperativeLevel returns D3DERR_DEVICENOTRESET.
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , TestCooperativeLevel )
-METHOD_THRU( UINT    , WINAPI , D3DProxyDevice , GetAvailableTextureMem )
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , EvictManagedResources )
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , GetDeviceCaps , D3DCAPS9* , pCaps )
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , GetDisplayMode , UINT , iSwapChain , D3DDISPLAYMODE* , pMode )
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , GetCreationParameters , D3DDEVICE_CREATION_PARAMETERS* , pParameters )
-METHOD_THRU( void    , WINAPI , D3DProxyDevice , SetCursorPosition , int , X , int , Y , DWORD , Flags )
-METHOD_THRU( BOOL    , WINAPI , D3DProxyDevice , ShowCursor , BOOL , bShow )
-METHOD_THRU( UINT    , WINAPI , D3DProxyDevice , GetNumberOfSwapChains )
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , GetRasterStatus , UINT , iSwapChain , D3DRASTER_STATUS* , pRasterStatus )
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , SetDialogBoxMode , BOOL , bEnableDialogs )
-METHOD_THRU( void    , WINAPI , D3DProxyDevice , SetGammaRamp     , UINT , iSwapChain , DWORD , Flags , CONST D3DGAMMARAMP* , pRamp )
-METHOD_THRU( void    , WINAPI , D3DProxyDevice , GetGammaRamp     , UINT , iSwapChain , D3DGAMMARAMP* , pRamp )
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , GetTransform , D3DTRANSFORMSTATETYPE , State , D3DMATRIX* , pMatrix )
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , MultiplyTransform , D3DTRANSFORMSTATETYPE , State , CONST D3DMATRIX* , pMatrix );
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , GetViewport , D3DVIEWPORT9* , pViewport )
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , SetMaterial , CONST D3DMATERIAL9* , pMaterial )
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , GetMaterial , D3DMATERIAL9* , pMaterial )
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , SetLight , DWORD , Index , CONST D3DLIGHT9* , pLight )
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , GetLight , DWORD , Index , D3DLIGHT9* , pLight )
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , LightEnable , DWORD , Index , BOOL , Enable )
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , GetLightEnable , DWORD , Index , BOOL* , pEnable )
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , SetClipPlane , DWORD , Index , CONST float* , pPlane )
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , GetClipPlane , DWORD , Index , float* , pPlane )
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , SetRenderState , D3DRENDERSTATETYPE , State , DWORD , Value )
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , GetRenderState , D3DRENDERSTATETYPE , State , DWORD* , pValue )
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , SetClipStatus , CONST D3DCLIPSTATUS9* , pClipStatus )
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , GetClipStatus , D3DCLIPSTATUS9* , pClipStatus )
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , GetTextureStageState , DWORD , Stage , D3DTEXTURESTAGESTATETYPE , Type , DWORD* , pValue )
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , SetTextureStageState , DWORD , Stage , D3DTEXTURESTAGESTATETYPE , Type , DWORD  , Value )
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , GetSamplerState , DWORD , Sampler , D3DSAMPLERSTATETYPE , Type , DWORD* , pValue)
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , SetSamplerState,DWORD ,Sampler,D3DSAMPLERSTATETYPE ,Type,DWORD ,Value)
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , ValidateDevice,DWORD* ,pNumPasses)
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , SetPaletteEntries,UINT ,PaletteNumber,CONST PALETTEENTRY*, pEntries)
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , GetPaletteEntries,UINT ,PaletteNumber,PALETTEENTRY* ,pEntries)
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , SetCurrentTexturePalette,UINT, PaletteNumber)
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , GetCurrentTexturePalette,UINT*,PaletteNumber)
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , SetScissorRect,CONST RECT*, pRect)
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , GetScissorRect,RECT*, pRect)
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , SetSoftwareVertexProcessing,BOOL, bSoftware)
-METHOD_THRU( BOOL    , WINAPI , D3DProxyDevice , GetSoftwareVertexProcessing)
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , SetNPatchMode,float, nSegments)
-METHOD_THRU( float   , WINAPI , D3DProxyDevice , GetNPatchMode)
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , SetFVF , DWORD , FVF )
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , GetFVF , DWORD* , pFVF )
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , SetVertexShaderConstantI , UINT , StartRegister , CONST int*  , pConstantData , UINT , Vector4iCount )
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , GetVertexShaderConstantI , UINT , StartRegister , int*        , pConstantData , UINT , Vector4iCount )
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , SetVertexShaderConstantB , UINT , StartRegister , CONST BOOL* , pConstantData , UINT , BoolCount )
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , GetVertexShaderConstantB , UINT , StartRegister , BOOL*       , pConstantData , UINT , BoolCount )
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , SetStreamSourceFreq , UINT , StreamNumber , UINT  , Setting )
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , GetStreamSourceFreq , UINT , StreamNumber , UINT* , pSetting )
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , SetPixelShaderConstantI , UINT , StartRegister , CONST int* , pConstantData , UINT , Vector4iCount )
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , GetPixelShaderConstantI , UINT , StartRegister , int*       , pConstantData , UINT , Vector4iCount )
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , SetPixelShaderConstantB , UINT , StartRegister , CONST BOOL*, pConstantData , UINT , BoolCount )
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , GetPixelShaderConstantB , UINT , StartRegister , BOOL*      , pConstantData , UINT , BoolCount )
-METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , DeletePatch , UINT , Handle )
-
 
 // Calls SetCursorProperties() using the actual left surface from the proxy of pCursorBitmap.
 METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , SetCursorProperties , UINT , XHotSpot , UINT , YHotSpot , IDirect3DSurface9* , pCursorBitmap ){
@@ -413,84 +356,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetSwapChain , UINT , iSwapChai
 
 
 
-/**
-* Calls release functions here and in stereo view class, releases swap chains and restores everything.
-* Subclasses which override this method must call through to super method at the end of the subclasses
-* implementation.
-* @see ReleaseEverything()
-* @see StereoView::ReleaseEverything()
-* @see OnCreateOrRestore()
-***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , Reset , D3DPRESENT_PARAMETERS* , pPresentationParameters ){
-	if(stereoView)
-		stereoView->ReleaseEverything();
 
-	ReleaseEverything();
-
-	m_bInBeginEndStateBlock = false;
-
-	auto it = m_activeSwapChains.begin();
-	while (it != m_activeSwapChains.end()) {
-
-		if ((*it) != NULL)
-			(*it)->Release();
-
-		delete (*it);
-
-		it = m_activeSwapChains.erase(it);
-	}
-
-	HRESULT hr = actual->Reset(pPresentationParameters);
-
-	// if the device has been successfully reset we need to recreate any resources we created
-	if (hr == D3D_OK)  {
-		OnCreateOrRestore();
-		stereoView->PostReset();
-	}
-	else {
-#ifdef _DEBUG
-		char buf[256];
-		sprintf_s(buf, "Error: %s error description: %s\n",
-			DXGetErrorString(hr), DXGetErrorDescription(hr));
-
-		OutputDebugStringA(buf);				
-#endif
-		OutputDebugStringA("Device reset failed");
-	}
-
-	return hr;
-}
-
-/**
-* Here the chosen stereoviews draw function is called to render to wrapped back buffer.
-* All other final screen output is also done here.
-***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , Present , CONST RECT* , pSourceRect , CONST RECT* , pDestRect , HWND , hDestWindowOverride , CONST RGNDATA* , pDirtyRegion ){
-	IDirect3DSurface9* pWrappedBackBuffer;
-
-	try {
-		m_activeSwapChains.at(0)->GetBackBuffer(0, D3DBACKBUFFER_TYPE_MONO, &pWrappedBackBuffer);
-
-		if (stereoView->initialized)
-			stereoView->Draw(static_cast<D3D9ProxySurface*>(pWrappedBackBuffer));
-
-		pWrappedBackBuffer->Release();
-	}
-	catch (std::out_of_range) {
-		OutputDebugStringA("Present: No primary swap chain found. (Present probably called before device has been reset)");
-	}
-
-	// did set this now also in proxy swap chain ? solved ?
-	// (this can break if device present is followed by present on another swap chain... or not work well anyway)
-	m_isFirstBeginSceneOfFrame = true; 
-
-	BRASSA_UpdateBorder();
-
-	//Now calculate frames per second
-	fps = CalcFPS();
-
-	return actual->Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
-}
 
 /**
 * Calls the backbuffer using the stored active proxy (wrapped) swap chain.
@@ -619,48 +485,6 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateIndexBuffer , UINT , Leng
 	return creationResult;
 }
 
-/**
-* Calls the public overloaded function.
-* The IDirect3DSurface9** ppSurface returned should always be a D3D9ProxySurface. Any class overloading
-* this method should ensure that this remains true.
-***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateRenderTarget , UINT , Width , UINT , Height , D3DFORMAT , Format , D3DMULTISAMPLE_TYPE , MultiSample , DWORD , MultisampleQuality , BOOL , Lockable , IDirect3DSurface9** , ppSurface , HANDLE* , pSharedHandle ){
-	// call public overloaded function
-	return CreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, ppSurface, pSharedHandle, false);
-}
-
-/**
-* Creates a proxy (or wrapped) depth stencil surface (D3D9ProxySurface).
-* Surface to be created only gets both stereo surfaces if game handler agrees.
-* @see D3D9ProxySurface
-* @see GameHandler::ShouldDuplicateDepthStencilSurface() 
-***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateDepthStencilSurface , UINT , Width , UINT , Height , D3DFORMAT , Format , D3DMULTISAMPLE_TYPE , MultiSample , DWORD , MultisampleQuality , BOOL , Discard , IDirect3DSurface9** , ppSurface , HANDLE* , pSharedHandle ){
-	IDirect3DSurface9* pDepthStencilSurfaceLeft = NULL;
-	IDirect3DSurface9* pDepthStencilSurfaceRight = NULL;
-	HRESULT creationResult;
-
-	// create left/mono
-	if (SUCCEEDED(creationResult = actual->CreateDepthStencilSurface(Width, Height, Format, MultiSample, MultisampleQuality, Discard, &pDepthStencilSurfaceLeft, pSharedHandle))) {
-
-		// TODO Should we always duplicated Depth stencils? I think yes, but there may be exceptions
-		if (m_pGameHandler->ShouldDuplicateDepthStencilSurface(Width, Height, Format, MultiSample, MultisampleQuality, Discard)) 
-		{
-			if (FAILED(actual->CreateDepthStencilSurface(Width, Height, Format, MultiSample, MultisampleQuality, Discard, &pDepthStencilSurfaceRight, pSharedHandle))) {
-				OutputDebugStringA("Failed to create right eye Depth Stencil Surface while attempting to create stereo pair, falling back to mono\n");
-				pDepthStencilSurfaceRight = NULL;
-			}
-		}
-	}
-	else {
-		OutputDebugStringA("Failed to create Depth Stencil Surface\n"); 
-	}
-
-	if (SUCCEEDED(creationResult))
-		*ppSurface = new D3D9ProxySurface(pDepthStencilSurfaceLeft, pDepthStencilSurfaceRight, this, NULL);
-
-	return creationResult;
-}
 
 /**
 * Copies rectangular subsets of pixels from one proxy (wrapped) surface to another.
@@ -849,25 +673,6 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , ColorFill, IDirect3DSurface9* ,
 	}
 
 	return result;
-}
-
-/**
-* Creates a wrapped mono surface with only one (left) side.
-* OffscreenPlainSurfaces doesn't need to be Stereo. 
-* They can't be used as render targets and they can't have rendertargets copied to them with stretch
-* rect, so don't need to be stereo capable.
-* See table at bottom of 
-* <http://msdn.microsoft.com/en-us/library/windows/desktop/bb174471%28v=vs.85%29.aspx> 
-* for stretch rect restrictions.
-**/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateOffscreenPlainSurface , UINT , Width , UINT , Height , D3DFORMAT , Format , D3DPOOL , Pool , IDirect3DSurface9** , ppSurface , HANDLE* , pSharedHandle ){	
-	IDirect3DSurface9* pActualSurface = NULL;
-	HRESULT creationResult = actual->CreateOffscreenPlainSurface(Width, Height, Format, Pool, &pActualSurface, pSharedHandle);
-
-	if (SUCCEEDED(creationResult))
-		*ppSurface = new D3D9ProxySurface(pActualSurface, NULL, this, NULL);
-
-	return creationResult;
 }
 
 /**
@@ -1675,7 +1480,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , SetVertexShader , IDirect3DVert
 
 	if (pWrappedVShaderData)
 	{
-		if (pWrappedVShaderData->SquishViewport())
+		if (pWrappedVShaderData->m_bSquishViewport)
 			SetGUIViewport();
 		else
 		{
@@ -2025,46 +1830,6 @@ IDirect3DDevice9* D3DProxyDevice::getActual()
 	return actual;
 }
 
-/**
-* Creates proxy (wrapped) render target, if swapchain buffer returns StereoBackBuffer, otherwise D3D9ProxySurface.
-* Duplicates render target if game handler agrees.
-* @see GameHandler::ShouldDuplicateRenderTarget()
-* @see StereoBackBuffer
-* @see D3D9ProxySurface
-***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateRenderTarget , UINT , Width , UINT , Height , D3DFORMAT , Format , D3DMULTISAMPLE_TYPE , MultiSample ,
-												  DWORD , MultisampleQuality , BOOL , Lockable , IDirect3DSurface9** , ppSurface , HANDLE* , pSharedHandle , bool  ,isSwapChainBackBuffer ){
-	IDirect3DSurface9* pLeftRenderTarget = NULL;
-	IDirect3DSurface9* pRightRenderTarget = NULL;
-	HRESULT creationResult;
-
-	// create left/mono
-	if (SUCCEEDED(creationResult = actual->CreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, &pLeftRenderTarget, pSharedHandle))) {
-
-		/* "If Needed" heuristic is the complicated part here.
-		Fixed heuristics (based on type, format, size, etc) + game specific overrides + isForcedMono + magic? */
-		// TODO Should we duplicate this Render Target? Replace "true" with heuristic
-		if (m_pGameHandler->ShouldDuplicateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, isSwapChainBackBuffer))
-		{
-			if (FAILED(actual->CreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, &pRightRenderTarget, pSharedHandle))) {
-				OutputDebugStringA("Failed to create right eye render target while attempting to create stereo pair, falling back to mono\n");
-				pRightRenderTarget = NULL;
-			}
-		}
-	}
-	else {
-		OutputDebugStringA("Failed to create render target\n"); 
-	}
-
-	if (SUCCEEDED(creationResult)) {
-		if (!isSwapChainBackBuffer)
-			*ppSurface = new D3D9ProxySurface(pLeftRenderTarget, pRightRenderTarget, this, NULL);
-		else
-			*ppSurface = new StereoBackBuffer(pLeftRenderTarget, pRightRenderTarget, this);
-	}
-
-	return creationResult;
-}
 
 /**
 * Creates HUD according to viewport height.
@@ -5852,3 +5617,361 @@ METHOD_IMPL( bool , , D3DProxyDevice , InitTracker ){
 
  	return false;
  }
+
+
+
+
+
+
+
+
+
+
+  /**
+* Here the chosen stereoviews draw function is called to render to wrapped back buffer.
+* All other final screen output is also done here.
+***/
+void D3DProxyDevice::ProxyPresent(){
+ 	IDirect3DSurface9* pWrappedBackBuffer;
+
+	try {
+		m_activeSwapChains.at(0)->GetBackBuffer(0, D3DBACKBUFFER_TYPE_MONO, &pWrappedBackBuffer);
+
+		if (stereoView->initialized)
+			stereoView->Draw(static_cast<D3D9ProxySurface*>(pWrappedBackBuffer));
+
+		pWrappedBackBuffer->Release();
+	}
+	catch (std::out_of_range) {
+		OutputDebugStringA("Present: No primary swap chain found. (Present probably called before device has been reset)");
+	}
+
+	// did set this now also in proxy swap chain ? solved ?
+	// (this can break if device present is followed by present on another swap chain... or not work well anyway)
+	m_isFirstBeginSceneOfFrame = true; 
+
+	BRASSA_UpdateBorder();
+
+	//Now calculate frames per second
+	fps = CalcFPS();
+ }
+
+
+ 
+
+
+
+
+
+
+/**
+* Creates a proxy (or wrapped) depth stencil surface (D3D9ProxySurface).
+* Surface to be created only gets both stereo surfaces if game handler agrees.
+* @see D3D9ProxySurface
+* @see GameHandler::ShouldDuplicateDepthStencilSurface() 
+***/
+METHOD_IMPL( HRESULT , , D3DProxyDevice , ProxyCreateDepthStencilSurface , UINT , Width , UINT , Height , D3DFORMAT , Format , D3DMULTISAMPLE_TYPE , MultiSample , DWORD , MultisampleQuality , BOOL , Discard , IDirect3DSurface9** , ppSurface , HANDLE* , pSharedHandle , DWORD , Usage , bool , useEx ){
+	IDirect3DSurface9* left  = 0;
+	IDirect3DSurface9* right = 0;
+	HRESULT            resultLeft;
+	HRESULT            resultRight;
+
+	if( useEx ){
+		resultLeft = actualEx->CreateDepthStencilSurfaceEx( Width, Height, Format, MultiSample, MultisampleQuality, Discard, &left, pSharedHandle , Usage );
+	}else{
+		resultLeft = actual  ->CreateDepthStencilSurface  ( Width, Height, Format, MultiSample, MultisampleQuality, Discard, &left, pSharedHandle);
+	}
+	
+	if( SUCCEEDED(resultLeft) ){
+
+		// TODO Should we always duplicated Depth stencils? I think yes, but there may be exceptions
+		if (m_pGameHandler->ShouldDuplicateDepthStencilSurface(Width, Height, Format, MultiSample, MultisampleQuality, Discard)) 
+		{
+			if( useEx ){
+				resultRight = actualEx->CreateDepthStencilSurfaceEx( Width, Height, Format, MultiSample, MultisampleQuality, Discard, &right, pSharedHandle , Usage );
+			}else{
+				resultRight = actual  ->CreateDepthStencilSurface  ( Width, Height, Format, MultiSample, MultisampleQuality, Discard, &right, pSharedHandle);
+			}
+
+			if( FAILED(resultRight) ){
+				OutputDebugStringA("Failed to create right eye Depth Stencil Surface while attempting to create stereo pair, falling back to mono\n");
+				right = 0;
+			}
+		}
+
+		*ppSurface = new D3D9ProxySurface(left, right, this, NULL);
+	} else {
+		OutputDebugStringA("Failed to create Depth Stencil Surface\n"); 
+	}
+
+	return resultLeft;
+}
+
+
+
+/**
+* Creates proxy (wrapped) render target, if swapchain buffer returns StereoBackBuffer, otherwise D3D9ProxySurface.
+* Duplicates render target if game handler agrees.
+* @see GameHandler::ShouldDuplicateRenderTarget()
+* @see StereoBackBuffer
+* @see D3D9ProxySurface
+***/
+METHOD_IMPL( HRESULT , , D3DProxyDevice , ProxyCreateRenderTarget , UINT , Width , UINT , Height , D3DFORMAT , Format , D3DMULTISAMPLE_TYPE , MultiSample ,
+												  DWORD , MultisampleQuality , BOOL , Lockable , IDirect3DSurface9** , ppSurface , HANDLE* , pSharedHandle , DWORD , Usage , bool , isSwapChainBackBuffer , bool , useEx ){
+	IDirect3DSurface9* left  = 0;
+	IDirect3DSurface9* right = 0;
+	HRESULT resultLeft;
+	HRESULT resultRight;
+
+	// create left/mono
+
+	if( useEx ){
+		resultLeft = actualEx->CreateRenderTargetEx(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, &left, pSharedHandle , Usage );
+	}else{
+		resultLeft = actual->CreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, &left, pSharedHandle);
+	}
+
+	if( SUCCEEDED(resultLeft) ){
+
+		/* "If Needed" heuristic is the complicated part here.
+		Fixed heuristics (based on type, format, size, etc) + game specific overrides + isForcedMono + magic? */
+		// TODO Should we duplicate this Render Target? Replace "true" with heuristic
+		if (m_pGameHandler->ShouldDuplicateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, isSwapChainBackBuffer))
+		{
+			if( useEx ){
+				resultRight = actualEx->CreateRenderTargetEx(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, &right, pSharedHandle , Usage );
+			}else{
+				resultRight = actual->CreateRenderTarget  (Width, Height, Format, MultiSample, MultisampleQuality, Lockable, &right, pSharedHandle);
+			}
+
+			if( FAILED(resultRight) ){
+				OutputDebugStringA("Failed to create right eye render target while attempting to create stereo pair, falling back to mono\n");
+				right = NULL;
+			}
+		}
+
+		if (!isSwapChainBackBuffer){
+			*ppSurface = new D3D9ProxySurface(left, right, this, NULL);
+		}else{
+			*ppSurface = new StereoBackBuffer(left, right, this);
+		}
+	}
+	else {
+		OutputDebugStringA("Failed to create render target\n"); 
+	}
+
+
+	return resultLeft;
+}
+
+
+
+//Creates a wrapped mono surface with only one (left) side.
+//OffscreenPlainSurfaces doesn't need to be Stereo. 
+//They can't be used as render targets and they can't have rendertargets copied to them with stretch
+//rect, so don't need to be stereo capable.
+//See table at bottom of 
+//<http://msdn.microsoft.com/en-us/library/windows/desktop/bb174471%28v=vs.85%29.aspx> 
+//for stretch rect restrictions.
+METHOD_IMPL( HRESULT , , D3DProxyDevice , ProxyCreateOffscreenPlainSurface , UINT , Width , UINT , Height , D3DFORMAT , Format , D3DPOOL , Pool , IDirect3DSurface9** , ppSurface , HANDLE* , pSharedHandle , DWORD , Usage , bool , useEx ){
+	IDirect3DSurface9* surface = 0;
+	HRESULT result;
+	
+	if( useEx ){
+		result = actualEx->CreateOffscreenPlainSurfaceEx(Width, Height, Format, Pool, &surface, pSharedHandle , Usage );
+	}else{
+		result = actual->CreateOffscreenPlainSurface(Width, Height, Format, Pool, &surface, pSharedHandle );
+	}
+
+	if (SUCCEEDED(result)){
+		*ppSurface = new D3D9ProxySurface(surface, NULL, this, NULL);
+	}
+
+	return result;
+}
+
+
+/**
+* Calls release functions here and in stereo view class, releases swap chains and restores everything.
+* Subclasses which override this method must call through to super method at the end of the subclasses
+* implementation.
+* @see ReleaseEverything()
+* @see StereoView::ReleaseEverything()
+* @see OnCreateOrRestore()
+***/
+METHOD_IMPL( HRESULT , , D3DProxyDevice , ProxyReset , D3DPRESENT_PARAMETERS* , pPresentationParameters , D3DDISPLAYMODEEX* , pFullscreenDisplayMode , bool , useEx ){
+	if(stereoView)
+		stereoView->ReleaseEverything();
+
+	ReleaseEverything();
+
+	m_bInBeginEndStateBlock = false;
+
+	auto it = m_activeSwapChains.begin();
+	while (it != m_activeSwapChains.end()) {
+
+		if ((*it) != NULL)
+			(*it)->Release();
+
+		delete (*it);
+
+		it = m_activeSwapChains.erase(it);
+	}
+
+	HRESULT hr;
+	if( useEx ){
+		hr = actualEx->ResetEx(pPresentationParameters,pFullscreenDisplayMode);
+	}else{
+		hr = actual->Reset(pPresentationParameters);
+	}
+
+	// if the device has been successfully reset we need to recreate any resources we created
+	if (hr == D3D_OK)  {
+		OnCreateOrRestore();
+		stereoView->PostReset();
+	}
+	else {
+#ifdef _DEBUG
+		char buf[256];
+		sprintf_s(buf, "Error: %s error description: %s\n",
+			DXGetErrorString(hr), DXGetErrorDescription(hr));
+
+		OutputDebugStringA(buf);				
+#endif
+		OutputDebugStringA("Device reset failed");
+	}
+
+	return hr;
+}
+
+
+
+
+
+
+
+// IDirect3DDevice9 / IDirect3DDevice9Ex similar methods
+
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , Present , CONST RECT* , pSourceRect , CONST RECT* , pDestRect , HWND , hDestWindowOverride , CONST RGNDATA* , pDirtyRegion ){
+	ProxyPresent();
+	return actual->Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion );
+}
+
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , PresentEx , CONST RECT* , pSourceRect , CONST RECT* , pDestRect , HWND , hDestWindowOverride , CONST RGNDATA* , pDirtyRegion , DWORD , dwFlags ){
+	ProxyPresent();
+	return actualEx->PresentEx(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion , dwFlags );
+}
+
+
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateOffscreenPlainSurface , UINT , Width , UINT , Height , D3DFORMAT , Format , D3DPOOL , Pool , IDirect3DSurface9** , ppSurface , HANDLE* , pSharedHandle ){	
+	return ProxyCreateOffscreenPlainSurface( Width, Height, Format, Pool, ppSurface , pSharedHandle , 0 , false );
+}
+
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateOffscreenPlainSurfaceEx , UINT , Width , UINT , Height , D3DFORMAT , Format , D3DPOOL , Pool , IDirect3DSurface9** , ppSurface , HANDLE* , pSharedHandle , DWORD , Usage ){	
+	return ProxyCreateOffscreenPlainSurface( Width, Height, Format, Pool, ppSurface , pSharedHandle , Usage , true );
+}
+
+
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateRenderTarget , UINT , Width , UINT , Height , D3DFORMAT , Format , D3DMULTISAMPLE_TYPE , MultiSample , DWORD , MultisampleQuality , BOOL , Lockable , IDirect3DSurface9** , ppSurface , HANDLE* , pSharedHandle ){
+	//The IDirect3DSurface9** ppSurface returned should always be a D3D9ProxySurface. Any class overloading
+	//this method should ensure that this remains true.
+	return ProxyCreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, ppSurface, pSharedHandle, 0 , false , false );
+}
+
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateRenderTargetEx , UINT , Width , UINT , Height , D3DFORMAT , Format , D3DMULTISAMPLE_TYPE , MultiSample , DWORD , MultisampleQuality , BOOL , Lockable , IDirect3DSurface9** , ppSurface , HANDLE* , pSharedHandle , DWORD , Usage ){
+	return ProxyCreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, ppSurface, pSharedHandle, 0 , false , true );
+}
+
+
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateDepthStencilSurface , UINT , Width , UINT , Height , D3DFORMAT , Format , D3DMULTISAMPLE_TYPE , MultiSample , DWORD , MultisampleQuality , BOOL , Discard , IDirect3DSurface9** , ppSurface , HANDLE* , pSharedHandle ){
+	return ProxyCreateDepthStencilSurface( Width, Height, Format, MultiSample, MultisampleQuality, Discard, ppSurface , pSharedHandle , 0  , false );
+}
+
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateDepthStencilSurfaceEx , UINT , Width , UINT , Height , D3DFORMAT , Format , D3DMULTISAMPLE_TYPE , MultiSample , DWORD , MultisampleQuality , BOOL , Discard , IDirect3DSurface9** , ppSurface , HANDLE* , pSharedHandle , DWORD , Usage ){
+	return ProxyCreateDepthStencilSurface( Width, Height, Format, MultiSample, MultisampleQuality, Discard, ppSurface , pSharedHandle , Usage , true );
+}
+
+
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , Reset , D3DPRESENT_PARAMETERS* , pPresentationParameters ){
+	return ProxyReset( pPresentationParameters , 0 , false );
+}
+
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , ResetEx , D3DPRESENT_PARAMETERS* , pPresentationParameters , D3DDISPLAYMODEEX* , pFullscreenDisplayMode ){
+	return ProxyReset( pPresentationParameters , pFullscreenDisplayMode , true );
+}
+
+
+
+
+// IDirect3DDevice9Ex base methods. are there any proxy required for those?
+METHOD_THRU_EX( HRESULT , WINAPI , D3DProxyDevice , GetDisplayModeEx , UINT , iSwapChain , D3DDISPLAYMODEEX* , pMode , D3DDISPLAYROTATION* , pRotation )
+METHOD_THRU_EX( HRESULT , WINAPI , D3DProxyDevice , SetConvolutionMonoKernel , UINT , width , UINT , height , float* , rows , float* , columns )
+METHOD_THRU_EX( HRESULT , WINAPI , D3DProxyDevice , ComposeRects , IDirect3DSurface9* , pSrc , IDirect3DSurface9* , pDst , IDirect3DVertexBuffer9* , pSrcRectDescs , UINT , NumRects , IDirect3DVertexBuffer9* , pDstRectDescs , D3DCOMPOSERECTSOP , Operation , int , Xoffset , int , Yoffset )
+METHOD_THRU_EX( HRESULT , WINAPI , D3DProxyDevice , GetGPUThreadPriority , INT* , pPriority )
+METHOD_THRU_EX( HRESULT , WINAPI , D3DProxyDevice , SetGPUThreadPriority , INT , Priority )
+METHOD_THRU_EX( HRESULT , WINAPI , D3DProxyDevice , WaitForVBlank , UINT , iSwapChain )
+METHOD_THRU_EX( HRESULT , WINAPI , D3DProxyDevice , CheckResourceResidency , IDirect3DResource9** , pResourceArray , UINT32 , NumResources )
+METHOD_THRU_EX( HRESULT , WINAPI , D3DProxyDevice , SetMaximumFrameLatency , UINT , MaxLatency )
+METHOD_THRU_EX( HRESULT , WINAPI , D3DProxyDevice , GetMaximumFrameLatency , UINT* , pMaxLatency )
+METHOD_THRU_EX( HRESULT , WINAPI , D3DProxyDevice , CheckDeviceState , HWND , hDestinationWindow )
+
+
+
+// IDirect3DDevice9 base methods
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , TestCooperativeLevel ) // The calling application will start releasing resources after TestCooperativeLevel returns D3DERR_DEVICENOTRESET.
+METHOD_THRU( UINT    , WINAPI , D3DProxyDevice , GetAvailableTextureMem )
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , EvictManagedResources )
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , GetDeviceCaps , D3DCAPS9* , pCaps )
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , GetDisplayMode , UINT , iSwapChain , D3DDISPLAYMODE* , pMode )
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , GetCreationParameters , D3DDEVICE_CREATION_PARAMETERS* , pParameters )
+METHOD_THRU( void    , WINAPI , D3DProxyDevice , SetCursorPosition , int , X , int , Y , DWORD , Flags )
+METHOD_THRU( BOOL    , WINAPI , D3DProxyDevice , ShowCursor , BOOL , bShow )
+METHOD_THRU( UINT    , WINAPI , D3DProxyDevice , GetNumberOfSwapChains )
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , GetRasterStatus , UINT , iSwapChain , D3DRASTER_STATUS* , pRasterStatus )
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , SetDialogBoxMode , BOOL , bEnableDialogs )
+METHOD_THRU( void    , WINAPI , D3DProxyDevice , SetGammaRamp     , UINT , iSwapChain , DWORD , Flags , CONST D3DGAMMARAMP* , pRamp )
+METHOD_THRU( void    , WINAPI , D3DProxyDevice , GetGammaRamp     , UINT , iSwapChain , D3DGAMMARAMP* , pRamp )
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , GetTransform , D3DTRANSFORMSTATETYPE , State , D3DMATRIX* , pMatrix )
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , MultiplyTransform , D3DTRANSFORMSTATETYPE , State , CONST D3DMATRIX* , pMatrix );
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , GetViewport , D3DVIEWPORT9* , pViewport )
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , SetMaterial , CONST D3DMATERIAL9* , pMaterial )
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , GetMaterial , D3DMATERIAL9* , pMaterial )
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , SetLight , DWORD , Index , CONST D3DLIGHT9* , pLight )
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , GetLight , DWORD , Index , D3DLIGHT9* , pLight )
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , LightEnable , DWORD , Index , BOOL , Enable )
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , GetLightEnable , DWORD , Index , BOOL* , pEnable )
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , SetClipPlane , DWORD , Index , CONST float* , pPlane )
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , GetClipPlane , DWORD , Index , float* , pPlane )
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , SetRenderState , D3DRENDERSTATETYPE , State , DWORD , Value )
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , GetRenderState , D3DRENDERSTATETYPE , State , DWORD* , pValue )
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , SetClipStatus , CONST D3DCLIPSTATUS9* , pClipStatus )
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , GetClipStatus , D3DCLIPSTATUS9* , pClipStatus )
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , GetTextureStageState , DWORD , Stage , D3DTEXTURESTAGESTATETYPE , Type , DWORD* , pValue )
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , SetTextureStageState , DWORD , Stage , D3DTEXTURESTAGESTATETYPE , Type , DWORD  , Value )
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , GetSamplerState , DWORD , Sampler , D3DSAMPLERSTATETYPE , Type , DWORD* , pValue)
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , SetSamplerState,DWORD ,Sampler,D3DSAMPLERSTATETYPE ,Type,DWORD ,Value)
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , ValidateDevice,DWORD* ,pNumPasses)
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , SetPaletteEntries,UINT ,PaletteNumber,CONST PALETTEENTRY*, pEntries)
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , GetPaletteEntries,UINT ,PaletteNumber,PALETTEENTRY* ,pEntries)
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , SetCurrentTexturePalette,UINT, PaletteNumber)
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , GetCurrentTexturePalette,UINT*,PaletteNumber)
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , SetScissorRect,CONST RECT*, pRect)
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , GetScissorRect,RECT*, pRect)
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , SetSoftwareVertexProcessing,BOOL, bSoftware)
+METHOD_THRU( BOOL    , WINAPI , D3DProxyDevice , GetSoftwareVertexProcessing)
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , SetNPatchMode,float, nSegments)
+METHOD_THRU( float   , WINAPI , D3DProxyDevice , GetNPatchMode)
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , SetFVF , DWORD , FVF )
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , GetFVF , DWORD* , pFVF )
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , SetVertexShaderConstantI , UINT , StartRegister , CONST int*  , pConstantData , UINT , Vector4iCount )
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , GetVertexShaderConstantI , UINT , StartRegister , int*        , pConstantData , UINT , Vector4iCount )
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , SetVertexShaderConstantB , UINT , StartRegister , CONST BOOL* , pConstantData , UINT , BoolCount )
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , GetVertexShaderConstantB , UINT , StartRegister , BOOL*       , pConstantData , UINT , BoolCount )
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , SetStreamSourceFreq , UINT , StreamNumber , UINT  , Setting )
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , GetStreamSourceFreq , UINT , StreamNumber , UINT* , pSetting )
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , SetPixelShaderConstantI , UINT , StartRegister , CONST int* , pConstantData , UINT , Vector4iCount )
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , GetPixelShaderConstantI , UINT , StartRegister , int*       , pConstantData , UINT , Vector4iCount )
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , SetPixelShaderConstantB , UINT , StartRegister , CONST BOOL*, pConstantData , UINT , BoolCount )
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , GetPixelShaderConstantB , UINT , StartRegister , BOOL*      , pConstantData , UINT , BoolCount )
+METHOD_THRU( HRESULT , WINAPI , D3DProxyDevice , DeletePatch , UINT , Handle )
+

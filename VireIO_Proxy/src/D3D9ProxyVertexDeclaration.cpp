@@ -35,7 +35,4 @@ D3D9ProxyVertexDeclaration::D3D9ProxyVertexDeclaration(IDirect3DVertexDeclaratio
 }
 
 
-HRESULT WINAPI D3D9ProxyVertexDeclaration::GetDeclaration(D3DVERTEXELEMENT9 *pDecl, UINT *pNumElements)
-{
-	return actual->GetDeclaration(pDecl, pNumElements);
-}
+METHOD_THRU( HRESULT , WINAPI , D3D9ProxyVertexDeclaration , GetDeclaration , D3DVERTEXELEMENT9* , pDecl , UINT* , pNumElements )

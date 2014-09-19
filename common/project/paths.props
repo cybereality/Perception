@@ -1,9 +1,32 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="PropertySheets" />
-
   <PropertyGroup Label="UserMacros">
+    <DXSDK_DIR>C:\Dev\DXSDK</DXSDK_DIR>
+    <FFMPEG>C:\Dev\ffmpeg</FFMPEG>
+    <FREESPACE>C:\Dev\libfreespace</FREESPACE>
+    <LIBOVR>C:\Dev\OculusSDK\LibOVR</LIBOVR>
+    <WIN_DDK_DIR>D:\Dev\WDK</WIN_DDK_DIR>
     <QTDIR>C:\Dev\Qt\5.3\msvc2013_opengl</QTDIR>
   </PropertyGroup>
-
+  <ItemGroup>
+    <BuildMacro Include="DXSDK_DIR">
+      <Value>$(DXSDK_DIR)</Value>
+    </BuildMacro>
+    <BuildMacro Include="FFMPEG">
+      <Value>$(FFMPEG)</Value>
+    </BuildMacro>
+    <BuildMacro Include="FREESPACE">
+      <Value>$(FREESPACE)</Value>
+    </BuildMacro>
+    <BuildMacro Include="LIBOVR">
+      <Value>$(LIBOVR)</Value>
+    </BuildMacro>
+    <BuildMacro Include="WIN_DDK_DIR">
+      <Value>$(WIN_DDK_DIR)</Value>
+    </BuildMacro>
+    <BuildMacro Include="QTDIR">
+      <Value>$(QTDIR)</Value>
+    </BuildMacro>
+  </ItemGroup>
 </Project>

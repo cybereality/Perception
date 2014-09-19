@@ -22,34 +22,35 @@ QList<cGame*>& cGame::all( ){
 }
 
 
-void cGame::load( QString file ){
-	cPropsFile props;
-	if( props.load( file ) ){
-		profile  = cGameProfile::findByName( props.getString("profile") );
-		exe_path = props.getString("exe");
-	}
-}
-
-
 void cGame::save( ){
 	cPropsFile props;
 	props.setString( "profile" , profile->profileName );
 	props.setString( "exe"     , exe_path );
 
-	QString uid = exe_path;
-	uid.replace( ':'  , '_' );
-	uid.replace( '\\' , '_' );
-	uid.replace( '/'  , '_' );
+	if( propFile.isEmpty() ){
+		propFile = exe_path;
+		propFile.replace( ':'  , '_' );
+		propFile.replace( '\\' , '_' );
+		propFile.replace( '/'  , '_' );
+		propFile = vireioDir+"games/" + propFile + ".ini";
+	}
 
-	props.save( vireioDir+"games/" + uid + ".ini" );
+	props.save( propFile );
 }
 
 
 void cGame::loadAll(){
 	for( QFileInfo& info : QDir( vireioDir+"games" ).entryInfoList( QDir::Files ) ){
-		cGame* game = new cGame;
-		game->load( info.filePath() );
+		cPropsFile props;
+		if( !props.load( info.filePath() ) ){
+			continue;
+		}
 
+		cGame* game = new cGame;
+		game->propFile = info.filePath();
+		game->profile  = cGameProfile::findByName( props.getString("profile") );
+		game->exe_path = props.getString("exe");
+	
 		if( !game->profile ){
 			delete game;
 		}
