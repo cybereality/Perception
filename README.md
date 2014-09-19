@@ -23,7 +23,7 @@
    https://developer.oculusvr.com/
    Install it to a folder
 
-6. Download and extract FFMPEG Shared build (32 bit) from
+6. Download and extract FFMPEG Shared  and  dev build (32 bit) from
    http://ffmpeg.zeranoe.com/builds/
    Extract it to a folder
 
