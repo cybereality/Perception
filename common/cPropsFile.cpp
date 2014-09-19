@@ -19,8 +19,8 @@ bool cPropsFile::load( QString path ){
 		int index = line.indexOf('=');
 		if( index >=0 ){
 			item_type item;
-			item.first  = QString::fromUtf8( line.left( index     ).trimmed() );
-			item.second = QString::fromUtf8( line.mid ( index + 1 ).trimmed() );
+			item.first  = QString::fromUtf8( line.left( index     ) ).trimmed();
+			item.second = QString::fromUtf8( line.mid ( index + 1 ) ).trimmed();
 			items += item;
 		}
 	}

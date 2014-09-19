@@ -23,7 +23,6 @@
       <EnableFiberSafeOptimizations />
       <WholeProgramOptimization />
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
   </ItemDefinitionGroup>
 </Project>

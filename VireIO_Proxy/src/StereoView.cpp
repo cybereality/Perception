@@ -416,8 +416,12 @@ void StereoView::InitVertexBuffers()
 {
 	OutputDebugStringA("SteroView initVertexBuffers\n");
 
-	m_pActualDevice->CreateVertexBuffer(sizeof(TEXVERTEX) * 4, NULL,
-		D3DFVF_TEXVERTEX, D3DPOOL_MANAGED, &screenVertexBuffer, NULL);
+	HRESULT result = m_pActualDevice->CreateVertexBuffer(sizeof(TEXVERTEX) * 4, NULL,
+		D3DFVF_TEXVERTEX, D3DPOOL_MANAGED , &screenVertexBuffer, NULL);
+
+	if( FAILED(result) ){
+		OutputDebugStringA("SteroView initVertexBuffers failed\n");
+	}
 
 	TEXVERTEX* vertices;
 

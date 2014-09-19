@@ -703,3 +703,8 @@ bool ViewAdjustment::RollEnabled()
 { 
 	return rollEnabled; 
 }
+
+void ViewAdjustment::SetRollEnabled(bool rollEnabled)
+{
+	this->rollEnabled = rollEnabled;
+}

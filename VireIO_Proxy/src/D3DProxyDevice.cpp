@@ -190,11 +190,12 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice,IDirect3DDevice9Ex* pDe
 
 	//Show a splash screen on startup
 	VireioPopup splashPopup(VPT_SPLASH, VPS_TOAST, 10000);
-	strcpy_s(splashPopup.line1, (std::string("Vireio Perception: Stereoscopic 3D Driver VERSION: ") + APP_VERSION + " " + buildDate).c_str());
-	strcpy_s(splashPopup.line2, "This program is distributed in the hope that it will be useful,"); 
-	strcpy_s(splashPopup.line3, "but WITHOUT ANY WARRANTY; without even the implied warranty of "); 
-	strcpy_s(splashPopup.line4, "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.");
-	strcpy_s(splashPopup.line5, "See the GNU LGPL: http://www.gnu.org/licenses/ for more details. ");
+	strcpy_s(splashPopup.line1, "Vireio Perception: Stereoscopic 3D Driver");
+	strcpy_s(splashPopup.line2, (std::string("Version: ") + APP_VERSION + "   Build Date: " + buildDate).c_str());
+	strcpy_s(splashPopup.line3, "This program is distributed in the hope that it will be useful,"); 
+	strcpy_s(splashPopup.line4, "but WITHOUT ANY WARRANTY; without even the implied warranty of "); 
+	strcpy_s(splashPopup.line5, "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.");
+	strcpy_s(splashPopup.line6, "See the GNU LGPL: http://www.gnu.org/licenses/ for more details. ");
 	ShowPopup(splashPopup);
 
 
@@ -2407,16 +2408,18 @@ METHOD_IMPL( void , , D3DProxyDevice , HandleTracking ){
 		if (!VRBoostStatus.VRBoost_LoadRules)
 		{
 			VireioPopup popup(VPT_VRBOOST_FAILURE, VPS_ERROR);
-			strcpy_s(popup.line3, "VRBoost LoadRules Failed & Mouse Emulation is not Enabled");
-			strcpy_s(popup.line4, "To Enable head tracking, turn on Mouse Emulation in BRASSA Settings");
+			strcpy_s(popup.line3, "VRBoost LoadRules Failed");
+			strcpy_s(popup.line4, "To Enable head tracking, turn on Force Mouse Emulation");
+			strcpy_s(popup.line5, "in BRASSA Settings");
 			ShowPopup(popup);
 		}
 		else if (!VRBoostStatus.VRBoost_ApplyRules)
 		{
 			VireioPopup popup(VPT_VRBOOST_FAILURE, VPS_ERROR);
-			strcpy_s(popup.line3, "VRBoost rules loaded but could not be applied");
-			strcpy_s(popup.line4, "Mouse Emulation is not Enabled,");
-			strcpy_s(popup.line5, "To Enable head tracking, turn on Mouse Emulation in BRASSA Settings");
+			strcpy_s(popup.line2, "VRBoost rules loaded but could not be applied");
+			strcpy_s(popup.line3, "Mouse Emulation is not Enabled,");
+			strcpy_s(popup.line4, "To Enable head tracking, turn on Force Mouse Emulation");
+			strcpy_s(popup.line5, "in BRASSA Settings");
 			ShowPopup(popup);
 		}
 		else
@@ -4077,6 +4080,7 @@ METHOD_IMPL( void , , D3DProxyDevice , BRASSA_Settings ){
 		PITCH_MULT,
 		ROLL_MULT,
 		RESET_MULT,
+		ROLL_ENABLED,
 		FORCE_MOUSE_EMU,
 		TOGGLE_VRBOOST,
 		HOTKEY_VRBOOST,
@@ -4135,6 +4139,14 @@ METHOD_IMPL( void , , D3DProxyDevice , BRASSA_Settings ){
 				tracker->multiplierYaw = 25.0f;
 				tracker->multiplierPitch = 25.0f;
 				tracker->multiplierRoll = 1.0f;
+				menuVelocity.x += 4.0f;
+			}
+
+			// force mouse emulation
+			if (entryID == ROLL_ENABLED)
+			{
+				config.rollEnabled = !config.rollEnabled;
+				m_spShaderViewAdjustment->SetRollEnabled(config.rollEnabled);
 				menuVelocity.x += 4.0f;
 			}
 
@@ -4435,10 +4447,10 @@ METHOD_IMPL( void , , D3DProxyDevice , BRASSA_Settings ){
 		switch (stereoView->swapEyes)
 		{
 		case true:
-			DrawTextShadowed(hudFont, hudMainMenu, "Swap Eyes : true", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			DrawTextShadowed(hudFont, hudMainMenu, "Swap Eyes : True", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 			break;
 		case false:
-			DrawTextShadowed(hudFont, hudMainMenu, "Swap Eyes : false", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			DrawTextShadowed(hudFont, hudMainMenu, "Swap Eyes : False", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 			break;
 		}
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
@@ -4464,6 +4476,16 @@ METHOD_IMPL( void , , D3DProxyDevice , BRASSA_Settings ){
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		DrawTextShadowed(hudFont, hudMainMenu, "Reset Multipliers", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		switch (m_spShaderViewAdjustment->RollEnabled())
+		{
+		case true:
+			DrawTextShadowed(hudFont, hudMainMenu, "Force Mouse Emulation HT : True", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			break;
+		case false:
+			DrawTextShadowed(hudFont, hudMainMenu, "Force Mouse Emulation HT : False", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			break;
+		}
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		switch (m_bForceMouseEmulation)
 		{
@@ -4645,10 +4667,10 @@ METHOD_IMPL( void , , D3DProxyDevice , BRASSA_PosTracking ){
 		switch (m_bPosTrackingToggle)
 		{
 		case true:
-			DrawTextShadowed(hudFont, hudMainMenu, "Toggle Positional Tracking (CTRL + P) : On", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 64, 255, 64));
+			DrawTextShadowed(hudFont, hudMainMenu, "Positional Tracking (CTRL + P) : On", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 64, 255, 64));
 			break;
 		case false:
-			DrawTextShadowed(hudFont, hudMainMenu, "Toggle Positional Tracking (CTRL + P) : Off", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 128, 128));
+			DrawTextShadowed(hudFont, hudMainMenu, "Positional Tracking (CTRL + P) : Off", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 128, 128));
 			break;
 		}
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
@@ -5162,7 +5184,7 @@ METHOD_IMPL( void , , D3DProxyDevice , DisplayCurrentPopup ){
 		}
 
 		menuHelperRect.left = 640;
-		menuHelperRect.top = 500;
+		menuHelperRect.top = 480;
 		DrawTextShadowed(pFont, hudMainMenu, activePopup.line1, -1, &menuHelperRect, 0, popupColour);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		DrawTextShadowed(pFont, hudMainMenu, activePopup.line2, -1, &menuHelperRect, 0, popupColour);
@@ -5172,6 +5194,9 @@ METHOD_IMPL( void , , D3DProxyDevice , DisplayCurrentPopup ){
 		DrawTextShadowed(pFont, hudMainMenu, activePopup.line4, -1, &menuHelperRect, 0, popupColour);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		DrawTextShadowed(pFont, hudMainMenu, activePopup.line5, -1, &menuHelperRect, 0, popupColour);
+		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawTextShadowed(pFont, hudMainMenu, activePopup.line6, -1, &menuHelperRect, 0, popupColour);
+ 
 
 		if (show_fps != FPS_NONE)
 		{
@@ -5181,9 +5206,10 @@ METHOD_IMPL( void , , D3DProxyDevice , DisplayCurrentPopup ){
 			else if (show_fps == FPS_TIME)
 				sprintf_s(buffer, "Frame Time: %.2f ms", 1000.0f / fps);
 
+			D3DCOLOR colour = (fps <= 40) ? D3DCOLOR_ARGB(255, 255, 0, 0) : D3DCOLOR_ARGB(255, 255, 255, 255);;
 			menuHelperRect.left = 850;
 			menuHelperRect.top = 800;
-			DrawTextShadowed(hudFont, hudMainMenu, buffer, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			DrawTextShadowed(hudFont, hudMainMenu, buffer, -1, &menuHelperRect, 0, colour);
 		}
 
 		menuHelperRect.left = 0;

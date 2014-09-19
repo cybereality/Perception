@@ -28,14 +28,16 @@ namespace{
 	}
 
 	HRESULT WINAPI NEW_Direct3DCreate9Ex( unsigned int nSDKVersion , IDirect3D9Ex** ret ){
-		HRESULT result = ORIG_Direct3DCreate9Ex(nSDKVersion,ret);
-		if( SUCCEEDED(result) ){
-			IDirect3D9Ex* proxy = PROXY_Direct3DCreate9( *ret , *ret );
-			if( proxy ){
-				*ret = proxy;
-			}
-		}
-		return result;
+		// Ex device somehow behave diferently (hl2.exe)
+		return -1;
+		//HRESULT result = ORIG_Direct3DCreate9Ex(nSDKVersion,ret);
+		//if( SUCCEEDED(result) ){
+		//	IDirect3D9Ex* proxy = PROXY_Direct3DCreate9( *ret , *ret );
+		//	if( proxy ){
+		//		*ret = proxy;
+		//	}
+		//}
+		//return result;
 	}
 
 }
