@@ -77,7 +77,8 @@ bool cGameProfile::load( QString path ){
 	VRboostPath            = props.getString( "VRboostRules"                    );
 	rollEnabled            = props.getBool  ( "rollEnabled"            , false  );
 	worldScaleFactor       = props.getFloat ( "worldScaleFactor"       , 1.0f   );
-
+	SteamAppId             = props.getString( "SteamAppId"                      );
+	CommandLineArguments   = props.getString( "CommandLineArguments"            );
 
 	if( !shaderRulePath.isEmpty() ){
 		shaderRulePath.prepend( vireioDir + "shader_rules/" );

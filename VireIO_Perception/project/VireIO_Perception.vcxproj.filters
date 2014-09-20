@@ -78,9 +78,6 @@
     <QT_MOC Include="..\..\common\cUser.h">
       <Filter>Header Files</Filter>
     </QT_MOC>
-    <QT_MOC Include="..\..\common\hijack.h">
-      <Filter>Header Files</Filter>
-    </QT_MOC>
     <QT_MOC Include="..\..\common\VireIO.h">
       <Filter>Header Files</Filter>
     </QT_MOC>

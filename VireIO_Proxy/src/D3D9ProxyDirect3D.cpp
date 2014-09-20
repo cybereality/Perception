@@ -91,7 +91,7 @@ ULONG WINAPI D3D9ProxyDirect3D::Release()
 * calling the ProxyHelper class. Last it creates and returns the
 * device proxy calling D3DProxyDeviceFactory::Get().
 ***/
-METHOD_IMPL( HRESULT  , WINAPI , D3D9ProxyDirect3D , ProxyCreateDevice , UINT , Adapter , D3DDEVTYPE , DeviceType , HWND , hFocusWindow , DWORD , BehaviorFlags , D3DPRESENT_PARAMETERS* , pPresentationParameters , D3DDISPLAYMODEEX* , pFullscreenDisplayMode , IDirect3DDevice9** , ppReturnedDeviceInterface , IDirect3DDevice9Ex** , ppReturnedDeviceInterfaceEx ){
+METHOD_IMPL( HRESULT  , WINAPI , D3D9ProxyDirect3D , ProxyCreateDevice , UINT , Adapter , D3DDEVTYPE , DeviceType , HWND , hFocusWindow , DWORD , BehaviorFlags , D3DPRESENT_PARAMETERS* , pPresentationParameters , D3DDISPLAYMODEEX* , pFullscreenDisplayMode , IDirect3DDevice9** , ppReturnedDeviceInterface , IDirect3DDevice9Ex** , ppReturnedDeviceInterfaceEx )
 	// Create real interface
 
 	IDirect3DDevice9*   dev   = 0;
@@ -188,11 +188,11 @@ METHOD_IMPL( HRESULT  , WINAPI , D3D9ProxyDirect3D , ProxyCreateDevice , UINT , 
 
 
 
-METHOD_IMPL( HRESULT  , WINAPI , D3D9ProxyDirect3D , CreateDevice , UINT , Adapter , D3DDEVTYPE , DeviceType , HWND , hFocusWindow , DWORD , BehaviorFlags , D3DPRESENT_PARAMETERS* , pPresentationParameters , IDirect3DDevice9** , ppReturnedDeviceInterface ){
+METHOD_IMPL( HRESULT  , WINAPI , D3D9ProxyDirect3D , CreateDevice , UINT , Adapter , D3DDEVTYPE , DeviceType , HWND , hFocusWindow , DWORD , BehaviorFlags , D3DPRESENT_PARAMETERS* , pPresentationParameters , IDirect3DDevice9** , ppReturnedDeviceInterface )
 	return ProxyCreateDevice( Adapter , DeviceType , hFocusWindow , BehaviorFlags , pPresentationParameters, 0 , ppReturnedDeviceInterface , 0 );
 }
 
-METHOD_IMPL( HRESULT  , WINAPI , D3D9ProxyDirect3D , CreateDeviceEx , UINT , Adapter , D3DDEVTYPE , DeviceType , HWND , hFocusWindow , DWORD , BehaviorFlags , D3DPRESENT_PARAMETERS* , pPresentationParameters , D3DDISPLAYMODEEX* , pFullscreenDisplayMode , IDirect3DDevice9Ex** , ppReturnedDeviceInterface ){
+METHOD_IMPL( HRESULT  , WINAPI , D3D9ProxyDirect3D , CreateDeviceEx , UINT , Adapter , D3DDEVTYPE , DeviceType , HWND , hFocusWindow , DWORD , BehaviorFlags , D3DPRESENT_PARAMETERS* , pPresentationParameters , D3DDISPLAYMODEEX* , pFullscreenDisplayMode , IDirect3DDevice9Ex** , ppReturnedDeviceInterface )
 	return ProxyCreateDevice( Adapter , DeviceType , hFocusWindow , BehaviorFlags , pPresentationParameters, pFullscreenDisplayMode , 0 ,  ppReturnedDeviceInterface );
 }
 

@@ -44,6 +44,9 @@
     <Link>
       <SubSystem>Windows</SubSystem>
     </Link>
+    <PreBuildEvent>
+      <Command>del "$(TargetPath)"</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Link>
@@ -53,6 +56,9 @@
       <MinimalRebuild>true</MinimalRebuild>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
+    <PreBuildEvent>
+      <Command>del "$(TargetPath)"</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\common\cConfig.cpp" />
@@ -75,7 +81,6 @@
     <QT_MOC Include="..\..\common\cSettings.h" />
     <QT_MOC Include="..\..\common\cStereoMode.h" />
     <QT_MOC Include="..\..\common\cUser.h" />
-    <QT_MOC Include="..\..\common\hijack.h" />
     <QT_MOC Include="..\..\common\VireIO.h" />
     <QT_MOC Include="..\src\cMainWindow.h">
       <FileType>Document</FileType>

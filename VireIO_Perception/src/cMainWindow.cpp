@@ -200,8 +200,12 @@ void cMainWindow::on_games_itemDoubleClicked( QTreeWidgetItem *item , int ){
 	dlls += vireioDir+"bin/VireIO_Hijack.dll";
 	dlls += vireioDir+"bin/VireIO_Proxy.dll";
 
+	QStringList env;
+	if( !g->profile->SteamAppId.isEmpty() ){
+		env += "SteamAppId=" + g->profile->SteamAppId;
+	}
 
-	QString ret = HijackLaunchProcess( g->exe_path , dlls , ui.pause->isChecked() );
+	QString ret = HijackLaunchProcess( g->exe_path , g->profile->CommandLineArguments , dlls , env , ui.pause->isChecked() );
 	if( !ret.isEmpty() ){
 		QMessageBox::critical( 0 , "Launch error" , ret );
 	}

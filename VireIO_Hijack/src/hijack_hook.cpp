@@ -26,9 +26,10 @@ namespace{
 
 
 	FARPROC WINAPI NEW_GetProcAddress( HMODULE hModule , LPCSTR lpProcName ){
+		printf("hook: requested  %s\n",lpProcName);
+
 		for( HookInfo* h : hooks ){
 			if( h->module == hModule && strcmp(h->function_name,lpProcName)==0 ){
-				printf("hook: requested  %s\n",lpProcName);
 				return h->new_function;
 			}
 		}

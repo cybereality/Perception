@@ -266,7 +266,7 @@ D3DProxyDevice::~D3DProxyDevice()
 * Catch QueryInterface calls and increment the reference counter if necesarry. 
 ***/
 
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , QueryInterface , REFIID , riid , LPVOID* , ppv ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , QueryInterface , REFIID , riid , LPVOID* , ppv )
 
 	//DEFINE_GUID(IID_IDirect3DDevice9Ex, 0xb18b10ce, 0x2649, 0x405a, 0x87, 0xf, 0x95, 0xf7, 0x77, 0xd4, 0x31, 0x3a);
 	IF_GUID(riid,0xb18b10ce,0x2649,0x405a,0x87,0xf,0x95,0xf7,0x77,0xd4,0x31,0x3a)
@@ -283,12 +283,12 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , QueryInterface , REFIID , riid 
 
 
 
-METHOD_IMPL( ULONG , WINAPI , D3DProxyDevice , AddRef ){	 
+METHOD_IMPL( ULONG , WINAPI , D3DProxyDevice , AddRef )	 
 	return ++m_nRefCount;
 }
 
 
-METHOD_IMPL( ULONG , WINAPI , D3DProxyDevice , Release ){
+METHOD_IMPL( ULONG , WINAPI , D3DProxyDevice , Release )
 	if(--m_nRefCount == 0){
 		delete this;
 		return 0;
@@ -297,7 +297,7 @@ METHOD_IMPL( ULONG , WINAPI , D3DProxyDevice , Release ){
 }
 
 
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetDirect3D , IDirect3D9** , ppD3D9 ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetDirect3D , IDirect3D9** , ppD3D9 )
 	if (!m_pCreatedBy){
 		return D3DERR_INVALIDCALL;
 	}
@@ -309,7 +309,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetDirect3D , IDirect3D9** , pp
 
 
 // Calls SetCursorProperties() using the actual left surface from the proxy of pCursorBitmap.
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , SetCursorProperties , UINT , XHotSpot , UINT , YHotSpot , IDirect3DSurface9* , pCursorBitmap ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , SetCursorProperties , UINT , XHotSpot , UINT , YHotSpot , IDirect3DSurface9* , pCursorBitmap )
 	if (!pCursorBitmap){
 		return actual->SetCursorProperties(XHotSpot, YHotSpot, NULL);
 	}
@@ -321,7 +321,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , SetCursorProperties , UINT , XH
 * Creates a proxy (or wrapped) swap chain.
 * @param pSwapChain [in, out] Proxy (wrapped) swap chain to be returned.
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateAdditionalSwapChain , D3DPRESENT_PARAMETERS* , pPresentationParameters , IDirect3DSwapChain9** , pSwapChain ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateAdditionalSwapChain , D3DPRESENT_PARAMETERS* , pPresentationParameters , IDirect3DSwapChain9** , pSwapChain )
 	IDirect3DSwapChain9* pActualSwapChain;
 	HRESULT result = actual->CreateAdditionalSwapChain(pPresentationParameters, &pActualSwapChain);
 
@@ -339,7 +339,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateAdditionalSwapChain , D3D
 * @param pSwapChain [in, out] The proxy (wrapped) swap chain to be returned.
 * @see D3D9ProxySwapChain
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetSwapChain , UINT , iSwapChain , IDirect3DSwapChain9** , pSwapChain ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetSwapChain , UINT , iSwapChain , IDirect3DSwapChain9** , pSwapChain )
 
 	try {
 		*pSwapChain = m_activeSwapChains.at(iSwapChain); 
@@ -362,7 +362,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetSwapChain , UINT , iSwapChai
 /**
 * Calls the backbuffer using the stored active proxy (wrapped) swap chain.
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetBackBuffer , UINT , iSwapChain, UINT , iBackBuffer , D3DBACKBUFFER_TYPE , Type , IDirect3DSurface9** , ppBackBuffer ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetBackBuffer , UINT , iSwapChain, UINT , iBackBuffer , D3DBACKBUFFER_TYPE , Type , IDirect3DSurface9** , ppBackBuffer )
 	HRESULT result;
 	try {
 		result = m_activeSwapChains.at(iSwapChain)->GetBackBuffer(iBackBuffer, Type, ppBackBuffer);
@@ -383,7 +383,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetBackBuffer , UINT , iSwapCha
 * @see D3DProxyTexture
 * @see GameHandler::ShouldDuplicateTexture()
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateTexture , UINT , Width , UINT , Height , UINT , Levels , DWORD , Usage , D3DFORMAT , Format , D3DPOOL , Pool , IDirect3DTexture9** , ppTexture , HANDLE* , pSharedHandle ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateTexture , UINT , Width , UINT , Height , UINT , Levels , DWORD , Usage , D3DFORMAT , Format , D3DPOOL , Pool , IDirect3DTexture9** , ppTexture , HANDLE* , pSharedHandle )
 	HRESULT creationResult;
 	IDirect3DTexture9* pLeftTexture = NULL;
 	IDirect3DTexture9* pRightTexture = NULL;	
@@ -415,7 +415,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateTexture , UINT , Width , 
 * Volumes can't be used as render targets and therefore don't need to be stereo (in DX9).
 * @see D3D9ProxyVolumeTexture
 ***/	
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateVolumeTexture , UINT , Width , UINT , Height , UINT , Depth , UINT , Levels , DWORD , Usage , D3DFORMAT , Format , D3DPOOL , Pool , IDirect3DVolumeTexture9** , ppVolumeTexture , HANDLE* , pSharedHandle ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateVolumeTexture , UINT , Width , UINT , Height , UINT , Depth , UINT , Levels , DWORD , Usage , D3DFORMAT , Format , D3DPOOL , Pool , IDirect3DVolumeTexture9** , ppVolumeTexture , HANDLE* , pSharedHandle )
 	IDirect3DVolumeTexture9* pActualTexture = NULL;
 	HRESULT creationResult = actual->CreateVolumeTexture(Width, Height, Depth, Levels, Usage, Format, Pool, &pActualTexture, pSharedHandle);
 
@@ -431,7 +431,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateVolumeTexture , UINT , Wi
 * @see D3D9ProxyCubeTexture
 * @see GameHandler::ShouldDuplicateCubeTexture() 
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateCubeTexture , UINT , EdgeLength , UINT , Levels , DWORD , Usage , D3DFORMAT , Format, D3DPOOL , Pool , IDirect3DCubeTexture9** , ppCubeTexture , HANDLE* , pSharedHandle ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateCubeTexture , UINT , EdgeLength , UINT , Levels , DWORD , Usage , D3DFORMAT , Format, D3DPOOL , Pool , IDirect3DCubeTexture9** , ppCubeTexture , HANDLE* , pSharedHandle )
 	HRESULT creationResult;
 	IDirect3DCubeTexture9* pLeftCubeTexture = NULL;
 	IDirect3DCubeTexture9* pRightCubeTexture = NULL;	
@@ -462,7 +462,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateCubeTexture , UINT , Edge
 * Creates base vertex buffer pointer (D3D9ProxyVertexBuffer).
 * @see D3D9ProxyVertexBuffer
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateVertexBuffer , UINT , Length , DWORD , Usage , DWORD , FVF , D3DPOOL , Pool, IDirect3DVertexBuffer9** , ppVertexBuffer , HANDLE* , pSharedHandle ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateVertexBuffer , UINT , Length , DWORD , Usage , DWORD , FVF , D3DPOOL , Pool, IDirect3DVertexBuffer9** , ppVertexBuffer , HANDLE* , pSharedHandle )
 	IDirect3DVertexBuffer9* pActualBuffer = NULL;
 	HRESULT creationResult = actual->CreateVertexBuffer(Length, Usage, FVF, Pool, &pActualBuffer, pSharedHandle);
 
@@ -476,7 +476,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateVertexBuffer , UINT , Len
 * * Creates base index buffer pointer (D3D9ProxyIndexBuffer).
 * @see D3D9ProxyIndexBuffer
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateIndexBuffer , UINT , Length , DWORD , Usage , D3DFORMAT , Format , D3DPOOL , Pool , IDirect3DIndexBuffer9** , ppIndexBuffer , HANDLE* , pSharedHandle ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateIndexBuffer , UINT , Length , DWORD , Usage , D3DFORMAT , Format , D3DPOOL , Pool , IDirect3DIndexBuffer9** , ppIndexBuffer , HANDLE* , pSharedHandle )
 	IDirect3DIndexBuffer9* pActualBuffer = NULL;
 	HRESULT creationResult = actual->CreateIndexBuffer(Length, Usage, Format, Pool, &pActualBuffer, pSharedHandle);
 
@@ -491,7 +491,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateIndexBuffer , UINT , Leng
 * Copies rectangular subsets of pixels from one proxy (wrapped) surface to another.
 * @see D3D9ProxySurface
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , UpdateSurface , IDirect3DSurface9* , pSourceSurface , CONST RECT* , pSourceRect , IDirect3DSurface9* , pDestinationSurface , CONST POINT* , pDestPoint ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , UpdateSurface , IDirect3DSurface9* , pSourceSurface , CONST RECT* , pSourceRect , IDirect3DSurface9* , pDestinationSurface , CONST POINT* , pDestPoint )
 	if (!pSourceSurface || !pDestinationSurface)
 		return D3DERR_INVALIDCALL;
 
@@ -528,7 +528,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , UpdateSurface , IDirect3DSurfac
 * The super method updates the dirty portions of a texture.
 * @see vireio::UnWrapTexture()
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , UpdateTexture , IDirect3DBaseTexture9* , pSourceTexture , IDirect3DBaseTexture9* , pDestinationTexture ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , UpdateTexture , IDirect3DBaseTexture9* , pSourceTexture , IDirect3DBaseTexture9* , pDestinationTexture )
 	if (!pSourceTexture || !pDestinationTexture)
 		return D3DERR_INVALIDCALL;
 
@@ -567,7 +567,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , UpdateTexture , IDirect3DBaseTe
 /**
 * Copies the render-target data from proxy (wrapped) source surface to proxy (wrapped) destination surface.
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetRenderTargetData , IDirect3DSurface9* , pRenderTarget , IDirect3DSurface9* , pDestSurface ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetRenderTargetData , IDirect3DSurface9* , pRenderTarget , IDirect3DSurface9* , pDestSurface )
 	if ((pDestSurface == NULL) || (pRenderTarget == NULL))
 		return D3DERR_INVALIDCALL;
 
@@ -606,7 +606,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetRenderTargetData , IDirect3D
 * Gets the front buffer data from the internal stored active proxy (or wrapped) swap chain.
 * @see D3D9ProxySwapChain
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetFrontBufferData , UINT , iSwapChain , IDirect3DSurface9* , pDestSurface ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetFrontBufferData , UINT , iSwapChain , IDirect3DSurface9* , pDestSurface )
 	HRESULT result;
 	try {
 		result = m_activeSwapChains.at(iSwapChain)->GetFrontBufferData(pDestSurface);
@@ -623,7 +623,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetFrontBufferData , UINT , iSw
 * Copy the contents of the source proxy (wrapped) surface rectangles to the destination proxy (wrapped) surface rectangles.
 * @see D3D9ProxySurface
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , StretchRect , IDirect3DSurface9* , pSourceSurface , CONST RECT* , pSourceRect , IDirect3DSurface9* , pDestSurface , CONST RECT* , pDestRect , D3DTEXTUREFILTERTYPE , Filter ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , StretchRect , IDirect3DSurface9* , pSourceSurface , CONST RECT* , pSourceRect , IDirect3DSurface9* , pDestSurface , CONST RECT* , pDestRect , D3DTEXTUREFILTERTYPE , Filter )
 	if (!pSourceSurface || !pDestSurface)
 		return D3DERR_INVALIDCALL;
 
@@ -662,7 +662,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , StretchRect , IDirect3DSurface9
 * Fills the rectangle for both stereo sides if switchDrawingSide() agrees and sets the render target accordingly.
 * @see switchDrawingSide()
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , ColorFill, IDirect3DSurface9* , pSurface , CONST RECT* , pRect , D3DCOLOR , color ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , ColorFill, IDirect3DSurface9* , pSurface , CONST RECT* , pRect , D3DCOLOR , color )
 	HRESULT result;
 
 	D3D9ProxySurface* pDerivedSurface = static_cast<D3D9ProxySurface*> (pSurface);
@@ -680,7 +680,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , ColorFill, IDirect3DSurface9* ,
 * Updates render target accordingly to current render side.
 * Updates proxy collection of stereo render targets to reflect new actual render target.
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , SetRenderTarget , DWORD , RenderTargetIndex , IDirect3DSurface9* , pRenderTarget ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , SetRenderTarget , DWORD , RenderTargetIndex , IDirect3DSurface9* , pRenderTarget )
 	D3D9ProxySurface* newRenderTarget = static_cast<D3D9ProxySurface*>(pRenderTarget);
 
 #ifdef _DEBUG
@@ -733,7 +733,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , SetRenderTarget , DWORD , Rende
 /**
 * Provides render target from the internally stored active proxy (wrapped) render targets.
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetRenderTarget , DWORD , RenderTargetIndex , IDirect3DSurface9** , ppRenderTarget ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetRenderTarget , DWORD , RenderTargetIndex , IDirect3DSurface9** , ppRenderTarget )
 	if ((RenderTargetIndex >= m_activeRenderTargets.capacity()) || (RenderTargetIndex < 0)) {
 		return D3DERR_INVALIDCALL;
 	}
@@ -752,7 +752,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetRenderTarget , DWORD , Rende
 * Updates depth stencil accordingly to current render side.
 * Updates stored proxy (or wrapped) depth stencil.
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , SetDepthStencilSurface , IDirect3DSurface9* , pNewZStencil ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , SetDepthStencilSurface , IDirect3DSurface9* , pNewZStencil )
 	D3D9ProxySurface* pNewDepthStencil = static_cast<D3D9ProxySurface*>(pNewZStencil);
 
 	IDirect3DSurface9* pActualStencilForCurrentSide = NULL;
@@ -784,7 +784,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , SetDepthStencilSurface , IDirec
 /**
 * Provides the active proxy (wrapped) depth stencil.
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetDepthStencilSurface , IDirect3DSurface9** , ppZStencilSurface ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetDepthStencilSurface , IDirect3DSurface9** , ppZStencilSurface )
 	if (!m_pActiveStereoDepthStencil)
 		return D3DERR_NOTFOUND;
 
@@ -799,7 +799,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetDepthStencilSurface , IDirec
 * Because input for this frame would already have been handled here so injection of any mouse 
 * manipulation ?
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , BeginScene ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , BeginScene )
 	if (tracker)
 		tracker->BeginFrame();
 
@@ -867,7 +867,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , BeginScene ){
 /**
 * BRASSA called here for source engine games.
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , EndScene ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , EndScene )
 	// handle controls 
 	if (m_deviceBehavior.whenToHandleHeadTracking == DeviceBehavior::WhenToDo::END_SCENE) 
 		HandleTracking();
@@ -890,7 +890,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , EndScene ){
 /**
 * Clears both stereo sides if switchDrawingSide() agrees.
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , Clear , DWORD , Count , CONST D3DRECT* , pRects , DWORD , Flags , D3DCOLOR , Color , float , Z , DWORD , Stencil ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , Clear , DWORD , Count , CONST D3DRECT* , pRects , DWORD , Flags , D3DCOLOR , Color , float , Z , DWORD , Stencil )
 	HRESULT result;
 	if (SUCCEEDED(result = actual->Clear(Count, pRects, Flags, Color, Z, Stencil))) {
 		if (switchDrawingSide()) {
@@ -919,7 +919,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , Clear , DWORD , Count , CONST D
 * Catches transform for stored proxy state block accordingly or updates proxy device.
 * @see D3D9ProxyStateBlock
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , SetTransform , D3DTRANSFORMSTATETYPE , State , CONST D3DMATRIX* , pMatrix ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , SetTransform , D3DTRANSFORMSTATETYPE , State , CONST D3DMATRIX* , pMatrix )
 	if(State == D3DTS_VIEW)
 	{
 		D3DXMATRIX tempLeft;
@@ -1072,7 +1072,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , SetTransform , D3DTRANSFORMSTAT
 * @see D3D9ProxyStateBlock::SelectAndCaptureState()
 * @see m_bActiveViewportIsDefault
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , SetViewport , CONST D3DVIEWPORT9* , pViewport ){	
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , SetViewport , CONST D3DVIEWPORT9* , pViewport )	
 	HRESULT result = actual->SetViewport(pViewport);
 
 	if (SUCCEEDED(result)) {
@@ -1104,7 +1104,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , SetViewport , CONST D3DVIEWPORT
 * @param ppSB [in, out] The proxy (or wrapped) state block returned.
 * @see D3DProxyStateBlock
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateStateBlock , D3DSTATEBLOCKTYPE , Type , IDirect3DStateBlock9** , ppSB ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateStateBlock , D3DSTATEBLOCKTYPE , Type , IDirect3DStateBlock9** , ppSB )
 	IDirect3DStateBlock9* pActualStateBlock = NULL;
 	HRESULT creationResult = actual->CreateStateBlock(Type, &pActualStateBlock);
 
@@ -1148,7 +1148,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateStateBlock , D3DSTATEBLOC
 * Creates and stores proxy state block.
 * @see D3DProxyStateBlock
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , BeginStateBlock ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , BeginStateBlock )
 	HRESULT result;
 	if (SUCCEEDED(result = actual->BeginStateBlock())) {
 		m_bInBeginEndStateBlock = true;
@@ -1163,7 +1163,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , BeginStateBlock ){
 * @param [in, out] The returned proxy (or wrapped) state block.
 * @see D3D9ProxyStateBlock::EndStateBlock()
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , EndStateBlock , IDirect3DStateBlock9** , ppSB ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , EndStateBlock , IDirect3DStateBlock9** , ppSB )
 	IDirect3DStateBlock9* pActualStateBlock = NULL;
 	HRESULT creationResult = actual->EndStateBlock(&pActualStateBlock);
 
@@ -1188,7 +1188,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , EndStateBlock , IDirect3DStateB
 * Provides texture from stored active (mono) texture stages.
 * @see D3D9ProxyTexture
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetTexture , DWORD , Stage , IDirect3DBaseTexture9** , ppTexture ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetTexture , DWORD , Stage , IDirect3DBaseTexture9** , ppTexture )
 	if (m_activeTextureStages.count(Stage) != 1)
 		return D3DERR_INVALIDCALL;
 	else {
@@ -1205,7 +1205,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetTexture , DWORD , Stage , ID
 *
 * @see vireio::UnWrapTexture() 
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , SetTexture , DWORD , Stage , IDirect3DBaseTexture9* , pTexture ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , SetTexture , DWORD , Stage , IDirect3DBaseTexture9* , pTexture )
 	HRESULT result;
 	if (pTexture) {
 
@@ -1276,7 +1276,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , SetTexture , DWORD , Stage , ID
 * Applies all dirty shader registers, draws both stereo sides if switchDrawingSide() agrees.
 * @see switchDrawingSide()
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , DrawPrimitive , D3DPRIMITIVETYPE , PrimitiveType , UINT , StartVertex , UINT , PrimitiveCount ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , DrawPrimitive , D3DPRIMITIVETYPE , PrimitiveType , UINT , StartVertex , UINT , PrimitiveCount )
 	m_spManagedShaderRegisters->ApplyAllDirty(m_currentRenderingSide);
 
 	HRESULT result;
@@ -1292,7 +1292,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , DrawPrimitive , D3DPRIMITIVETYP
 * Applies all dirty shader registers, draws both stereo sides if switchDrawingSide() agrees.
 * @see switchDrawingSide()
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , DrawIndexedPrimitive , D3DPRIMITIVETYPE , PrimitiveType , INT , BaseVertexIndex , UINT , MinVertexIndex , UINT , NumVertices , UINT , startIndex , UINT , primCount ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , DrawIndexedPrimitive , D3DPRIMITIVETYPE , PrimitiveType , INT , BaseVertexIndex , UINT , MinVertexIndex , UINT , NumVertices , UINT , startIndex , UINT , primCount )
 	m_spManagedShaderRegisters->ApplyAllDirty(m_currentRenderingSide);
 
 	HRESULT result;
@@ -1311,7 +1311,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , DrawIndexedPrimitive , D3DPRIMI
 * Applies all dirty shader registers, draws both stereo sides if switchDrawingSide() agrees.
 * @see switchDrawingSide()
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , DrawPrimitiveUP , D3DPRIMITIVETYPE , PrimitiveType , UINT , PrimitiveCount , CONST void* , pVertexStreamZeroData , UINT , VertexStreamZeroStride ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , DrawPrimitiveUP , D3DPRIMITIVETYPE , PrimitiveType , UINT , PrimitiveCount , CONST void* , pVertexStreamZeroData , UINT , VertexStreamZeroStride )
 	m_spManagedShaderRegisters->ApplyAllDirty(m_currentRenderingSide);
 
 	HRESULT result;
@@ -1327,7 +1327,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , DrawPrimitiveUP , D3DPRIMITIVET
 * Applies all dirty shader registers, draws both stereo sides if switchDrawingSide() agrees.
 * @see switchDrawingSide()
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , DrawIndexedPrimitiveUP , D3DPRIMITIVETYPE , PrimitiveType , UINT , MinVertexIndex , UINT , NumVertices , UINT , PrimitiveCount , CONST void* , pIndexData , D3DFORMAT , IndexDataFormat , CONST void* , pVertexStreamZeroData , UINT , VertexStreamZeroStride ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , DrawIndexedPrimitiveUP , D3DPRIMITIVETYPE , PrimitiveType , UINT , MinVertexIndex , UINT , NumVertices , UINT , PrimitiveCount , CONST void* , pIndexData , D3DFORMAT , IndexDataFormat , CONST void* , pVertexStreamZeroData , UINT , VertexStreamZeroStride )
 	m_spManagedShaderRegisters->ApplyAllDirty(m_currentRenderingSide);
 
 	HRESULT result;
@@ -1342,7 +1342,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , DrawIndexedPrimitiveUP , D3DPRI
 /**
 * Applies all dirty shader registers, processes vertices.
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , ProcessVertices , UINT , SrcStartIndex , UINT , DestIndex , UINT , VertexCount , IDirect3DVertexBuffer9* , pDestBuffer , IDirect3DVertexDeclaration9* , pVertexDecl , DWORD , Flags ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , ProcessVertices , UINT , SrcStartIndex , UINT , DestIndex , UINT , VertexCount , IDirect3DVertexBuffer9* , pDestBuffer , IDirect3DVertexDeclaration9* , pVertexDecl , DWORD , Flags )
 	if (!pDestBuffer)
 		return D3DERR_INVALIDCALL;
 
@@ -1366,7 +1366,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , ProcessVertices , UINT , SrcSta
 /**
 * Creates base vertex declaration (D3D9ProxyVertexDeclaration).
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateVertexDeclaration , CONST D3DVERTEXELEMENT9* , pVertexElements , IDirect3DVertexDeclaration9** , ppDecl ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateVertexDeclaration , CONST D3DVERTEXELEMENT9* , pVertexElements , IDirect3DVertexDeclaration9** , ppDecl )
 	IDirect3DVertexDeclaration9* pActualVertexDeclaration = NULL;
 	HRESULT creationResult = actual->CreateVertexDeclaration(pVertexElements, &pActualVertexDeclaration );
 
@@ -1381,7 +1381,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateVertexDeclaration , CONST
 * First, set vertex declaration by base function.
 * @see D3D9ProxyStateBlock
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , SetVertexDeclaration , IDirect3DVertexDeclaration9* , pDecl ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , SetVertexDeclaration , IDirect3DVertexDeclaration9* , pDecl )
 	D3D9ProxyVertexDeclaration* pWrappedVDeclarationData = static_cast<D3D9ProxyVertexDeclaration*>(pDecl);
 
 	// Update actual Vertex Declaration
@@ -1417,7 +1417,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , SetVertexDeclaration , IDirect3
 /**
 * Provides currently stored vertex declaration.
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetVertexDeclaration , IDirect3DVertexDeclaration9** , ppDecl ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetVertexDeclaration , IDirect3DVertexDeclaration9** , ppDecl )
 	if (!m_pActiveVertexDeclaration) 
 		// TODO check this is the response if no declaration set
 		//In Response to TODO:  JB, Jan 12. I believe it crashes most times this happens, tested by simply nulling out the ppDecl pointer and passing it into the base d3d method
@@ -1433,7 +1433,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetVertexDeclaration , IDirect3
 * @param ppShader [in, out] The created proxy vertex shader.
 * @see D3D9ProxyVertexShader
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateVertexShader , CONST DWORD* , pFunction , IDirect3DVertexShader9** , ppShader ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateVertexShader , CONST DWORD* , pFunction , IDirect3DVertexShader9** , ppShader )
 	IDirect3DVertexShader9* pActualVShader = NULL;
 	HRESULT creationResult = actual->CreateVertexShader(pFunction, &pActualVShader);
 
@@ -1448,7 +1448,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateVertexShader , CONST DWOR
 * Sets and updates stored proxy vertex shader.
 * @see D3D9ProxyVertexShader
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , SetVertexShader , IDirect3DVertexShader9* , pShader ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , SetVertexShader , IDirect3DVertexShader9* , pShader )
 	D3D9ProxyVertexShader* pWrappedVShaderData = static_cast<D3D9ProxyVertexShader*>(pShader);
 
 	// Update actual Vertex shader
@@ -1499,7 +1499,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , SetVertexShader , IDirect3DVert
 /**
 * Returns the stored and active proxy vertex shader.
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetVertexShader , IDirect3DVertexShader9** , ppShader ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetVertexShader , IDirect3DVertexShader9** , ppShader )
 	if (!m_pActiveVertexShader)
 		return D3DERR_INVALIDCALL;
 
@@ -1513,7 +1513,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetVertexShader , IDirect3DVert
 * @see D3D9ProxyStateBlock
 * @see ShaderRegisters
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , SetVertexShaderConstantF , UINT , StartRegister , CONST float* , pConstantData , UINT , Vector4fCount ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , SetVertexShaderConstantF , UINT , StartRegister , CONST float* , pConstantData , UINT , Vector4fCount )
 	HRESULT result = D3DERR_INVALIDCALL;
 
 	if (m_pCapturingStateTo) {
@@ -1531,7 +1531,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , SetVertexShaderConstantF , UINT
 * @see ShaderRegisters
 * @see ShaderRegisters::GetVertexShaderConstantF()
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetVertexShaderConstantF , UINT , StartRegister , float* , pData , UINT , Vector4fCount ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetVertexShaderConstantF , UINT , StartRegister , float* , pData , UINT , Vector4fCount )
 	return m_spManagedShaderRegisters->GetVertexShaderConstantF(StartRegister, pData, Vector4fCount);
 }
 
@@ -1545,7 +1545,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetVertexShaderConstantF , UINT
 * Also, it calls proxy state block to capture states.
 * @see D3D9ProxyStateBlock::SelectAndCaptureState()
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , SetStreamSource , UINT , StreamNumber , IDirect3DVertexBuffer9* , pStreamData , UINT , OffsetInBytes , UINT , Stride ){	
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , SetStreamSource , UINT , StreamNumber , IDirect3DVertexBuffer9* , pStreamData , UINT , OffsetInBytes , UINT , Stride )	
 	D3D9ProxyVertexBuffer* pCastStreamData = static_cast<D3D9ProxyVertexBuffer*>(pStreamData);
 	HRESULT result;
 	if (pStreamData) {		
@@ -1604,7 +1604,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , SetStreamSource , UINT , Stream
 * TODO ppStreamData is marked in and out in docs. Potentially it can be a get when the stream hasn't been set before???
 * Category of probleme: Worry about it if it breaks.
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetStreamSource , UINT , StreamNumber , IDirect3DVertexBuffer9** , ppStreamData , UINT* , pOffsetInBytes , UINT* , pStride ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetStreamSource , UINT , StreamNumber , IDirect3DVertexBuffer9** , ppStreamData , UINT* , pOffsetInBytes , UINT* , pStride )
 	// This whole methods implementation is highly questionable. Not sure exactly how GetStreamSource works
 	HRESULT result = D3DERR_INVALIDCALL;
 
@@ -1631,7 +1631,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetStreamSource , UINT , Stream
 * Sets indices and calls proxy state block to capture states.
 * @see D3D9ProxyStateBlock::SelectAndCaptureState()
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , SetIndices , IDirect3DIndexBuffer9* , pIndexData ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , SetIndices , IDirect3DIndexBuffer9* , pIndexData )
 	D3D9ProxyIndexBuffer* pWrappedNewIndexData = static_cast<D3D9ProxyIndexBuffer*>(pIndexData);
 
 	// Update actual index buffer
@@ -1666,7 +1666,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , SetIndices , IDirect3DIndexBuff
 /**
 * Provides stored indices.
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetIndices , IDirect3DIndexBuffer9** , ppIndexData ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetIndices , IDirect3DIndexBuffer9** , ppIndexData )
 	if (!m_pActiveIndicies)
 		return D3DERR_INVALIDCALL;
 
@@ -1677,7 +1677,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetIndices , IDirect3DIndexBuff
 }
 
 
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreatePixelShader , CONST DWORD* , pFunction , IDirect3DPixelShader9** , ppShader ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreatePixelShader , CONST DWORD* , pFunction , IDirect3DPixelShader9** , ppShader )
 	IDirect3DPixelShader9* pActualPShader = NULL;
 	HRESULT creationResult = actual->CreatePixelShader(pFunction, &pActualPShader);
 
@@ -1692,7 +1692,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreatePixelShader , CONST DWORD
 * Sets pixel shader and calls proxy state block to capture states.
 * @see D3D9ProxyStateBlock::SelectAndCaptureState()
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , SetPixelShader , IDirect3DPixelShader9* , pShader ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , SetPixelShader , IDirect3DPixelShader9* , pShader )
 	D3D9ProxyPixelShader* pWrappedPShaderData = static_cast<D3D9ProxyPixelShader*>(pShader);
 
 	// Update actual pixel shader
@@ -1733,7 +1733,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , SetPixelShader , IDirect3DPixel
 /**
 * Provides stored pixel shader.
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetPixelShader , IDirect3DPixelShader9** , ppShader ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetPixelShader , IDirect3DPixelShader9** , ppShader )
 	if (!m_pActivePixelShader)
 		return D3DERR_INVALIDCALL;
 
@@ -1747,7 +1747,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetPixelShader , IDirect3DPixel
 * @see D3D9ProxyStateBlock
 * @see ShaderRegisters
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , SetPixelShaderConstantF , UINT , StartRegister , CONST float* , pConstantData , UINT , Vector4fCount ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , SetPixelShaderConstantF , UINT , StartRegister , CONST float* , pConstantData , UINT , Vector4fCount )
 	HRESULT result = D3DERR_INVALIDCALL;
 
 	if (m_pCapturingStateTo) {
@@ -1765,7 +1765,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , SetPixelShaderConstantF , UINT 
 * @see ShaderRegisters
 * @see ShaderRegisters::GetPixelShaderConstantF()
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetPixelShaderConstantF , UINT , StartRegister , float* , pData , UINT , Vector4fCount ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetPixelShaderConstantF , UINT , StartRegister , float* , pData , UINT , Vector4fCount )
 	return m_spManagedShaderRegisters->GetPixelShaderConstantF(StartRegister, pData, Vector4fCount);
 }
 
@@ -1776,7 +1776,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , GetPixelShaderConstantF , UINT 
 * Applies all dirty registers, draws both stereo sides if switchDrawingSide() agrees.
 * @see switchDrawingSide()
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , DrawRectPatch , UINT , Handle , CONST float* , pNumSegs , CONST D3DRECTPATCH_INFO* , pRectPatchInfo ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , DrawRectPatch , UINT , Handle , CONST float* , pNumSegs , CONST D3DRECTPATCH_INFO* , pRectPatchInfo )
 	m_spManagedShaderRegisters->ApplyAllDirty(m_currentRenderingSide);
 
 	HRESULT result;
@@ -1792,7 +1792,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , DrawRectPatch , UINT , Handle ,
 * Applies all dirty registers, draws both stereo sides if switchDrawingSide() agrees.
 * @see switchDrawingSide() 
 ***/
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , DrawTriPatch , UINT , Handle , CONST float* , pNumSegs , CONST D3DTRIPATCH_INFO* , pTriPatchInfo ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , DrawTriPatch , UINT , Handle , CONST float* , pNumSegs , CONST D3DTRIPATCH_INFO* , pTriPatchInfo )
 	m_spManagedShaderRegisters->ApplyAllDirty(m_currentRenderingSide);
 
 	HRESULT result;
@@ -1807,7 +1807,7 @@ METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , DrawTriPatch , UINT , Handle , 
 
 
 
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateQuery , D3DQUERYTYPE , Type , IDirect3DQuery9** , ppQuery ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateQuery , D3DQUERYTYPE , Type , IDirect3DQuery9** , ppQuery )
 	// this seems a weird response to me but it's what the actual device does.
 	if (!ppQuery)
 		return D3D_OK;
@@ -1835,7 +1835,7 @@ IDirect3DDevice9* D3DProxyDevice::getActual()
 /**
 * Creates HUD according to viewport height.
 ***/
-METHOD_IMPL( void , , D3DProxyDevice , SetupHUD ){
+METHOD_IMPL( void , , D3DProxyDevice , SetupHUD )
 	D3DXCreateFontA( this, 32, 0, FW_BOLD, 4, FALSE, DEFAULT_CHARSET, OUT_TT_ONLY_PRECIS, ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_DONTCARE, "Arial", &hudFont );
 	D3DXCreateFontA( this, 24, 0, FW_BOLD, 4, FALSE, DEFAULT_CHARSET, OUT_TT_ONLY_PRECIS, ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_DONTCARE, "Arial", &popupFont );
 	D3DXCreateFontA( this, 26, 0, FW_BOLD, 4, FALSE, DEFAULT_CHARSET, OUT_TT_ONLY_PRECIS, ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_DONTCARE, "Courier New", &errorFont );
@@ -1846,7 +1846,7 @@ METHOD_IMPL( void , , D3DProxyDevice , SetupHUD ){
 /**
 * Keyboard input handling, BRASSA called here.
 ***/
-METHOD_IMPL( void , , D3DProxyDevice, HandleControls ){
+METHOD_IMPL( void , , D3DProxyDevice, HandleControls )
 	controls.UpdateXInputs();
 
 	// loop through hotkeys
@@ -2232,7 +2232,7 @@ METHOD_IMPL( void , , D3DProxyDevice, HandleControls ){
 /**
 * Updates selected motion tracker orientation.
 ***/
-METHOD_IMPL( void , , D3DProxyDevice , HandleTracking ){
+METHOD_IMPL( void , , D3DProxyDevice , HandleTracking )
 	if(!tracker)
 	{
 		InitTracker();
@@ -2433,7 +2433,7 @@ METHOD_IMPL( void , , D3DProxyDevice , HandleTracking ){
 /**
 * Handles all updates if Present() is called in an extern swap chain.
 ***/
-METHOD_IMPL( void , , D3DProxyDevice , HandleUpdateExtern ){
+METHOD_IMPL( void , , D3DProxyDevice , HandleUpdateExtern )
 	#ifdef SHOW_CALLS
 		OutputDebugStringA("called HandleUpdateExtern");
 	#endif
@@ -2461,7 +2461,7 @@ METHOD_IMPL( void , , D3DProxyDevice , HandleUpdateExtern ){
 * This method will be called when the proxy device is initialised with Init (happens before device is
 * passed back to actual application by CreateDevice) and after a successful device Reset.
 ***/
-METHOD_IMPL( void , , D3DProxyDevice , OnCreateOrRestore ){	
+METHOD_IMPL( void , , D3DProxyDevice , OnCreateOrRestore )	
 	m_currentRenderingSide = vireio::Left;
 	m_pCurrentMatViewTransform = &m_spShaderViewAdjustment->LeftAdjustmentMatrix();
 	m_pCurrentView = &m_leftView;
@@ -2536,7 +2536,7 @@ METHOD_IMPL( void , , D3DProxyDevice , OnCreateOrRestore ){
 * when the current primary active render target (target 0  in m_activeRenderTargets) is not stereo.
 * Attempting to switch to a side when that side is already the active side will return true without making any changes.
 ***/
-METHOD_IMPL( bool , , D3DProxyDevice , setDrawingSide , vireio::RenderPosition , side ){
+METHOD_IMPL( bool , , D3DProxyDevice , setDrawingSide , vireio::RenderPosition , side )
 	// Already on the correct eye
 	if (side == m_currentRenderingSide) {
 		return true;
@@ -2658,7 +2658,7 @@ METHOD_IMPL( bool , , D3DProxyDevice , setDrawingSide , vireio::RenderPosition ,
 * Try and toggle to other drawing side. 
 * @return False if changes fails due to the current render target being mono.
 ***/
-METHOD_IMPL( bool , , D3DProxyDevice , switchDrawingSide ){
+METHOD_IMPL( bool , , D3DProxyDevice , switchDrawingSide )
 	bool switched = false;
 
 	if (m_currentRenderingSide == vireio::Left) {
@@ -2678,7 +2678,7 @@ METHOD_IMPL( bool , , D3DProxyDevice , switchDrawingSide ){
 * Adds a default shader rule to the game configuration.
 * @return True if rule was added, false if rule already present.
 ***/
-METHOD_IMPL( bool , , D3DProxyDevice , addRule , std::string , constantName , bool , allowPartialNameMatch , UINT , startRegIndex , D3DXPARAMETER_CLASS , constantType , UINT , operationToApply , bool , transpose ){
+METHOD_IMPL( bool , , D3DProxyDevice , addRule , std::string , constantName , bool , allowPartialNameMatch , UINT , startRegIndex , D3DXPARAMETER_CLASS , constantType , UINT , operationToApply , bool , transpose )
 	return m_pGameHandler->AddRule(m_spShaderViewAdjustment, constantName, allowPartialNameMatch, startRegIndex, constantType, operationToApply, transpose);
 }
 
@@ -2686,7 +2686,7 @@ METHOD_IMPL( bool , , D3DProxyDevice , addRule , std::string , constantName , bo
 * Adds a default shader rule to the game configuration.
 * @return True if rule was added, false if rule already present.
 ***/
-METHOD_IMPL( bool , , D3DProxyDevice , modifyRule , std::string , constantName , UINT , operationToApply , bool , transpose ){
+METHOD_IMPL( bool , , D3DProxyDevice , modifyRule , std::string , constantName , UINT , operationToApply , bool , transpose )
 	return m_pGameHandler->ModifyRule(m_spShaderViewAdjustment, constantName, operationToApply, transpose);
 }
 
@@ -2694,14 +2694,14 @@ METHOD_IMPL( bool , , D3DProxyDevice , modifyRule , std::string , constantName ,
 * Delete rule.
 * @return True if rule was deleted, false if rule not present.
 ***/
-METHOD_IMPL( bool , , D3DProxyDevice , deleteRule , std::string , constantName ){
+METHOD_IMPL( bool , , D3DProxyDevice , deleteRule , std::string , constantName )
 	return m_pGameHandler->DeleteRule(m_spShaderViewAdjustment, constantName);
 }
 
 /**
 * Saves current game shader rules (and game configuration).
 ***/
-METHOD_IMPL( void , , D3DProxyDevice , saveShaderRules ){ 
+METHOD_IMPL( void , , D3DProxyDevice , saveShaderRules ) 
 	m_pGameHandler->Save(config, m_spShaderViewAdjustment);
 
 	config.cGameProfile::save();
@@ -2713,7 +2713,7 @@ METHOD_IMPL( void , , D3DProxyDevice , saveShaderRules ){
 * @param rect The rectangle in pixel space to be cleared.
 * @param color The direct 3d color to be used.
 ***/
-METHOD_IMPL( void , , D3DProxyDevice , ClearRect , vireio::RenderPosition , renderPosition , D3DRECT , rect , D3DCOLOR , color ){
+METHOD_IMPL( void , , D3DProxyDevice , ClearRect , vireio::RenderPosition , renderPosition , D3DRECT , rect , D3DCOLOR , color )
 	setDrawingSide(renderPosition);
 	actual->Clear(1, &rect, D3DCLEAR_TARGET, color, 0, 0);
 }
@@ -2725,7 +2725,7 @@ METHOD_IMPL( void , , D3DProxyDevice , ClearRect , vireio::RenderPosition , rend
 * @param color The direct 3d color to be used.
 * @param bw The border width.
 ***/
-METHOD_IMPL( void , , D3DProxyDevice , ClearEmptyRect , vireio::RenderPosition , renderPosition , D3DRECT , rect , D3DCOLOR , color, int , bw ){
+METHOD_IMPL( void , , D3DProxyDevice , ClearEmptyRect , vireio::RenderPosition , renderPosition , D3DRECT , rect , D3DCOLOR , color, int , bw )
 	// helper rectangle
 	D3DRECT rect0 = D3DRECT(rect);
 
@@ -2755,7 +2755,7 @@ METHOD_IMPL( void , , D3DProxyDevice , ClearEmptyRect , vireio::RenderPosition ,
 * @param selectionIndex The index of the currently chosen selection.
 * @param selectionRange The range of the selection.
 ***/
-METHOD_IMPL( void , , D3DProxyDevice , DrawSelection , vireio::RenderPosition , renderPosition , D3DRECT , rect , D3DCOLOR , color , int , selectionIndex , int , selectionRange ){	
+METHOD_IMPL( void , , D3DProxyDevice , DrawSelection , vireio::RenderPosition , renderPosition , D3DRECT , rect , D3DCOLOR , color , int , selectionIndex , int , selectionRange )	
 	// get width of each selection
 	float selectionWidth = (rect.x2-rect.x1) / (float)selectionRange;
 
@@ -2784,7 +2784,7 @@ METHOD_IMPL( void , , D3DProxyDevice , DrawSelection , vireio::RenderPosition , 
 * @param selectionIndex The index of the currently chosen selection.
 * @param selectionRange The range of the selection.
 ***/
-METHOD_IMPL( void , , D3DProxyDevice , DrawScrollbar , vireio::RenderPosition , renderPosition , D3DRECT , rect , D3DCOLOR , color , float , scroll , int , scrollbarSize ){	
+METHOD_IMPL( void , , D3DProxyDevice , DrawScrollbar , vireio::RenderPosition , renderPosition , D3DRECT , rect , D3DCOLOR , color , float , scroll , int , scrollbarSize )	
 	if (scroll<0.0f) scroll=0.0f;
 	if (scroll>1.0f) scroll=1.0f;
 
@@ -2808,7 +2808,7 @@ METHOD_IMPL( void , , D3DProxyDevice , DrawScrollbar , vireio::RenderPosition , 
 * Draws a text with a dark shadow.
 * @see DrawText()
 ***/
-METHOD_IMPL( void , , D3DProxyDevice , DrawTextShadowed , ID3DXFont* , font , LPD3DXSPRITE , sprite , LPCSTR , lpchText , int , cchText , LPRECT , lprc , UINT , format, D3DCOLOR , color ){
+METHOD_IMPL( void , , D3DProxyDevice , DrawTextShadowed , ID3DXFont* , font , LPD3DXSPRITE , sprite , LPCSTR , lpchText , int , cchText , LPRECT , lprc , UINT , format, D3DCOLOR , color )
 	lprc->left+=2; lprc->right+=2; lprc->top+=2; lprc->bottom+=2;
 	font->DrawTextA(sprite, lpchText, -1, lprc, format, D3DCOLOR_ARGB(255, 64, 64, 64));
 	lprc->left-=2; lprc->right-=2; lprc->top-=2; lprc->bottom-=2;
@@ -2818,7 +2818,7 @@ METHOD_IMPL( void , , D3DProxyDevice , DrawTextShadowed , ID3DXFont* , font , LP
 /**
 * Changes the HUD scale mode - also changes new scale in view adjustment class.
 ***/
-METHOD_IMPL( void , , D3DProxyDevice , ChangeHUD3DDepthMode , HUD_3D_Depth_Modes , newMode ){
+METHOD_IMPL( void , , D3DProxyDevice , ChangeHUD3DDepthMode , HUD_3D_Depth_Modes , newMode )
 	if (newMode >= HUD_3D_Depth_Modes::HUD_ENUM_RANGE)
 		return;
 
@@ -2831,7 +2831,7 @@ METHOD_IMPL( void , , D3DProxyDevice , ChangeHUD3DDepthMode , HUD_3D_Depth_Modes
 /**
 * Changes the GUI scale mode - also changes new scale in view adjustment class.
 ***/
-METHOD_IMPL( void , , D3DProxyDevice , ChangeGUI3DDepthMode , GUI_3D_Depth_Modes , newMode ){
+METHOD_IMPL( void , , D3DProxyDevice , ChangeGUI3DDepthMode , GUI_3D_Depth_Modes , newMode )
 	if (newMode >= GUI_3D_Depth_Modes::GUI_ENUM_RANGE)
 		return;
 
@@ -2852,7 +2852,7 @@ METHOD_IMPL( void , , D3DProxyDevice , ChangeGUI3DDepthMode , GUI_3D_Depth_Modes
 * @param entryID [in, out] Provides the identifier by count of the menu entry.
 * @param menuEntryCount [in] The number of menu entries.
 ***/
-METHOD_IMPL( void , , D3DProxyDevice , BRASSA_NewFrame , UINT& , entryID , UINT , menuEntryCount ){
+METHOD_IMPL( void , , D3DProxyDevice , BRASSA_NewFrame , UINT& , entryID , UINT , menuEntryCount )
 	// set menu entry attraction
 	menuAttraction.y = ((borderTopHeight-menuTop)/menuEntryHeight);
 	menuAttraction.y -= (float)((UINT)menuAttraction.y);
@@ -2886,7 +2886,7 @@ METHOD_IMPL( void , , D3DProxyDevice , BRASSA_NewFrame , UINT& , entryID , UINT 
 /**
 * BRASSA menu main method.
 ***/
-METHOD_IMPL( void , , D3DProxyDevice , BRASSA ){
+METHOD_IMPL( void , , D3DProxyDevice , BRASSA )
 	switch (BRASSA_mode)
 	{
 	case D3DProxyDevice::MAINMENU:
@@ -2931,7 +2931,7 @@ METHOD_IMPL( void , , D3DProxyDevice , BRASSA ){
 /**
 * BRASSA Main Menu method.
 ***/
-METHOD_IMPL( void , , D3DProxyDevice , BRASSA_MainMenu ){
+METHOD_IMPL( void , , D3DProxyDevice , BRASSA_MainMenu )
 	UINT menuEntryCount = 11;
 	if (config.game_type > 10000) menuEntryCount++;
 
@@ -3144,7 +3144,7 @@ METHOD_IMPL( void , , D3DProxyDevice , BRASSA_MainMenu ){
 /**
 * BRASSA World Scale Calibration.
 ***/
-METHOD_IMPL( void , , D3DProxyDevice , BRASSA_WorldScale ){
+METHOD_IMPL( void , , D3DProxyDevice , BRASSA_WorldScale )
 	// base values
 	float separationChange = 0.005f;
 	static UINT gameXScaleUnitIndex = 0;
@@ -3413,7 +3413,7 @@ METHOD_IMPL( void , , D3DProxyDevice , BRASSA_WorldScale ){
 /**
 * BRASSA Convergence Adjustment.
 ***/
-METHOD_IMPL( void , , D3DProxyDevice , BRASSA_Convergence ){
+METHOD_IMPL( void , , D3DProxyDevice , BRASSA_Convergence )
 	// base values
 	float convergenceChange = 0.05f;
 
@@ -3606,7 +3606,7 @@ METHOD_IMPL( void , , D3DProxyDevice , BRASSA_Convergence ){
 /**
 * BRASSA HUD Calibration.
 ***/
-METHOD_IMPL( void , , D3DProxyDevice , BRASSA_HUD ){
+METHOD_IMPL( void , , D3DProxyDevice , BRASSA_HUD )
 	UINT menuEntryCount = 10;
 
 	menuHelperRect.left = 0;
@@ -3837,7 +3837,7 @@ METHOD_IMPL( void , , D3DProxyDevice , BRASSA_HUD ){
 /**
 * BRASSA GUI Calibration.
 ***/
-METHOD_IMPL( void , , D3DProxyDevice , BRASSA_GUI ){
+METHOD_IMPL( void , , D3DProxyDevice , BRASSA_GUI )
 	UINT menuEntryCount = 10;
 
 	menuHelperRect.left = 0;
@@ -4067,7 +4067,7 @@ METHOD_IMPL( void , , D3DProxyDevice , BRASSA_GUI ){
 /**
 * BRASSA Settings.
 ***/
-METHOD_IMPL( void , , D3DProxyDevice , BRASSA_Settings ){
+METHOD_IMPL( void , , D3DProxyDevice , BRASSA_Settings )
 	//Use enumeration for menu items to avoid confusion
 	enum 
 	{
@@ -4534,7 +4534,7 @@ METHOD_IMPL( void , , D3DProxyDevice , BRASSA_Settings ){
 /**
 * BRASSA Positional Tracking Settings.
 ***/
-METHOD_IMPL( void , , D3DProxyDevice , BRASSA_PosTracking ){
+METHOD_IMPL( void , , D3DProxyDevice , BRASSA_PosTracking )
 	enum
 	{
 		TOGGLE_TRACKING,
@@ -4695,7 +4695,7 @@ METHOD_IMPL( void , , D3DProxyDevice , BRASSA_PosTracking ){
 /**
 * VRBoost constant value sub-menu.
 ***/
-METHOD_IMPL( void , , D3DProxyDevice , BRASSA_VRBoostValues ){
+METHOD_IMPL( void , , D3DProxyDevice , BRASSA_VRBoostValues )
 	UINT menuEntryCount = 14;
 
 	menuHelperRect.left = 0;
@@ -4846,7 +4846,7 @@ METHOD_IMPL( void , , D3DProxyDevice , BRASSA_VRBoostValues ){
 * BRASSA menu border velocity updated here
 * Arrow up/down need to be done via call from Present().
 ***/
-METHOD_IMPL( void , , D3DProxyDevice , BRASSA_UpdateBorder ){
+METHOD_IMPL( void , , D3DProxyDevice , BRASSA_UpdateBorder )
 	// handle controls 
 	if (m_deviceBehavior.whenToHandleHeadTracking == DeviceBehavior::PRESENT)
 		HandleTracking();
@@ -4903,7 +4903,7 @@ METHOD_IMPL( void , , D3DProxyDevice , BRASSA_UpdateBorder ){
 /**
 * Updates the current config based on the current device settings.
 ***/
-METHOD_IMPL( void , , D3DProxyDevice , BRASSA_UpdateConfigSettings ){
+METHOD_IMPL( void , , D3DProxyDevice , BRASSA_UpdateConfigSettings )
 	config.roll_multiplier = tracker->multiplierRoll;
 	config.yaw_multiplier = tracker->multiplierYaw;
 	config.pitch_multiplier = tracker->multiplierPitch;
@@ -4949,7 +4949,7 @@ METHOD_IMPL( void , , D3DProxyDevice , BRASSA_UpdateConfigSettings ){
 /**
 * Updates all device settings read from the current config.
 ***/
-METHOD_IMPL( void , , D3DProxyDevice , BRASSA_UpdateDeviceSettings ){
+METHOD_IMPL( void , , D3DProxyDevice , BRASSA_UpdateDeviceSettings )
 	m_spShaderViewAdjustment->Load( config );
 	stereoView->DistortionScale = config.DistortionScale;
 
@@ -5049,7 +5049,7 @@ METHOD_IMPL( void , , D3DProxyDevice , BRASSA_UpdateDeviceSettings ){
 /**
 * Additional output when menu is not drawn.
 ***/
-METHOD_IMPL( void , , D3DProxyDevice , BRASSA_AdditionalOutput ){
+METHOD_IMPL( void , , D3DProxyDevice , BRASSA_AdditionalOutput )
 	// draw vrboost toggle indicator
 	if (m_fVRBoostIndicator>0.0f)
 	{
@@ -5122,7 +5122,7 @@ METHOD_IMPL( void , , D3DProxyDevice , BRASSA_AdditionalOutput ){
 	DisplayCurrentPopup();
 }
 
-METHOD_IMPL( void , , D3DProxyDevice , DisplayCurrentPopup ){
+METHOD_IMPL( void , , D3DProxyDevice , DisplayCurrentPopup )
 	if ((activePopup.popupType == VPT_NONE && show_fps == FPS_NONE) || 
 		BRASSA_mode != BRASSA_Modes::INACTIVE ||
 		!showNotifications)
@@ -5262,7 +5262,7 @@ float D3DProxyDevice::CalcFPS(){
 }
 
 //Logic for popup, need some priority logic here
-METHOD_IMPL( void , , D3DProxyDevice , ShowPopup , VireioPopup& , popup ){
+METHOD_IMPL( void , , D3DProxyDevice , ShowPopup , VireioPopup& , popup )
 	//Nothing to do if we are already showing this popup, or splash screen is currently displayed
 	if (activePopup.popupType == popup.popupType ||
 		activePopup.popupType == VPT_SPLASH)
@@ -5280,7 +5280,7 @@ METHOD_IMPL( void , , D3DProxyDevice , ShowPopup , VireioPopup& , popup ){
 }
 
 //DIsmiss popup if the popup type matches current displayed popup
-METHOD_IMPL( void , , D3DProxyDevice , DismissPopup , VireioPopupType , popupType ){
+METHOD_IMPL( void , , D3DProxyDevice , DismissPopup , VireioPopupType , popupType )
 	if (activePopup.popupType == popupType)
 		activePopup.reset();
 }
@@ -5288,7 +5288,7 @@ METHOD_IMPL( void , , D3DProxyDevice , DismissPopup , VireioPopupType , popupTyp
 /**
 * Releases HUD font, shader registers, render targets, texture stages, vertex buffers, depth stencils, indices, shaders, declarations.
 ***/
-METHOD_IMPL( void , , D3DProxyDevice , ReleaseEverything ){
+METHOD_IMPL( void , , D3DProxyDevice , ReleaseEverything )
 	// Fonts and any other D3DX interfaces should be released first.
 	// They frequently hold stateblocks which are holding further references to other resources.
 	if(hudFont) {
@@ -5363,7 +5363,7 @@ METHOD_IMPL( void , , D3DProxyDevice , ReleaseEverything ){
 * Comparison made against active primary render target.
 *
 ***/
-METHOD_IMPL( bool , , D3DProxyDevice , isViewportDefaultForMainRT , CONST D3DVIEWPORT9* , pViewport ){
+METHOD_IMPL( bool , , D3DProxyDevice , isViewportDefaultForMainRT , CONST D3DVIEWPORT9* , pViewport )
 	D3D9ProxySurface* pPrimaryRenderTarget = m_activeRenderTargets[0];
 	D3DSURFACE_DESC pRTDesc;
 	pPrimaryRenderTarget->GetDesc(&pRTDesc);
@@ -5379,7 +5379,7 @@ METHOD_IMPL( bool , , D3DProxyDevice , isViewportDefaultForMainRT , CONST D3DVIE
 * @param apply True to apply calling SetTransform()
 * @see actual->SetTransform()
 ***/
-METHOD_IMPL( HRESULT , , D3DProxyDevice , SetStereoViewTransform , D3DXMATRIX , pLeftMatrix , D3DXMATRIX , pRightMatrix , bool , apply ){
+METHOD_IMPL( HRESULT , , D3DProxyDevice , SetStereoViewTransform , D3DXMATRIX , pLeftMatrix , D3DXMATRIX , pRightMatrix , bool , apply )
 	if (D3DXMatrixIsIdentity(&pLeftMatrix) && D3DXMatrixIsIdentity(&pRightMatrix)) {
 		m_bViewTransformSet = false;
 	}
@@ -5410,7 +5410,7 @@ METHOD_IMPL( HRESULT , , D3DProxyDevice , SetStereoViewTransform , D3DXMATRIX , 
 * @param apply True to apply calling SetTransform()
 * @see actual->SetTransform()
 ***/
-METHOD_IMPL( HRESULT , , D3DProxyDevice , SetStereoProjectionTransform , D3DXMATRIX , pLeftMatrix , D3DXMATRIX , pRightMatrix , bool , apply ){
+METHOD_IMPL( HRESULT , , D3DProxyDevice , SetStereoProjectionTransform , D3DXMATRIX , pLeftMatrix , D3DXMATRIX , pRightMatrix , bool , apply )
 	if (D3DXMatrixIsIdentity(&pLeftMatrix) && D3DXMatrixIsIdentity(&pRightMatrix)) {
 		m_bProjectionTransformSet = false;
 	}
@@ -5437,7 +5437,7 @@ METHOD_IMPL( HRESULT , , D3DProxyDevice , SetStereoProjectionTransform , D3DXMAT
 /**
 * Sets the viewport to squish the GUI accordingly.
 ***/
-METHOD_IMPL( void , , D3DProxyDevice , SetGUIViewport ){
+METHOD_IMPL( void , , D3DProxyDevice , SetGUIViewport )
 	// do not squish the viewport in case brassa menu is open - GBCODE Why?
 	//if ((BRASSA_mode>=BRASSA_Modes::MAINMENU) && (BRASSA_mode<BRASSA_Modes::BRASSA_ENUM_RANGE))
 	//	return;
@@ -5499,12 +5499,12 @@ METHOD_IMPL( void , , D3DProxyDevice , SetGUIViewport ){
 /**
 * Rounds the floats to make them more display friendly
 **/
-METHOD_IMPL( float , , D3DProxyDevice , RoundBrassaValue , float , val ){
+METHOD_IMPL( float , , D3DProxyDevice , RoundBrassaValue , float , val )
 	return (float)floor(val * 1000.0f + 0.5f) / 1000.0f;
 }
 
 
-METHOD_IMPL( bool , , D3DProxyDevice , InitVRBoost ){
+METHOD_IMPL( bool , , D3DProxyDevice , InitVRBoost )
 	bool initSuccess = false;
 
 	// explicit VRboost dll import
@@ -5563,7 +5563,7 @@ METHOD_IMPL( bool , , D3DProxyDevice , InitVRBoost ){
 	return initSuccess;
 }
 
-METHOD_IMPL( bool , , D3DProxyDevice , InitBrassa ){
+METHOD_IMPL( bool , , D3DProxyDevice , InitBrassa )
 	hudFont = NULL;
 	menuTime = (float)GetTickCount()/1000.0f;
 	screenshot = (int)false;
@@ -5618,7 +5618,7 @@ METHOD_IMPL( bool , , D3DProxyDevice , InitBrassa ){
   * Initializes the tracker, setting the tracker initialized status.
   * @return true if tracker was initialized, false otherwise
   */
-METHOD_IMPL( bool , , D3DProxyDevice , InitTracker ){
+METHOD_IMPL( bool , , D3DProxyDevice , InitTracker )
  	// VRboost rules present ?
  	if (config.VRboostPath != "") m_VRboostRulesPresent = true; else m_VRboostRulesPresent = false;
  
@@ -5696,7 +5696,7 @@ void D3DProxyDevice::ProxyPresent(){
 * @see D3D9ProxySurface
 * @see GameHandler::ShouldDuplicateDepthStencilSurface() 
 ***/
-METHOD_IMPL( HRESULT , , D3DProxyDevice , ProxyCreateDepthStencilSurface , UINT , Width , UINT , Height , D3DFORMAT , Format , D3DMULTISAMPLE_TYPE , MultiSample , DWORD , MultisampleQuality , BOOL , Discard , IDirect3DSurface9** , ppSurface , HANDLE* , pSharedHandle , DWORD , Usage , bool , useEx ){
+METHOD_IMPL( HRESULT , , D3DProxyDevice , ProxyCreateDepthStencilSurface , UINT , Width , UINT , Height , D3DFORMAT , Format , D3DMULTISAMPLE_TYPE , MultiSample , DWORD , MultisampleQuality , BOOL , Discard , IDirect3DSurface9** , ppSurface , HANDLE* , pSharedHandle , DWORD , Usage , bool , useEx )
 	IDirect3DSurface9* left  = 0;
 	IDirect3DSurface9* right = 0;
 	HRESULT            resultLeft;
@@ -5743,7 +5743,7 @@ METHOD_IMPL( HRESULT , , D3DProxyDevice , ProxyCreateDepthStencilSurface , UINT 
 * @see D3D9ProxySurface
 ***/
 METHOD_IMPL( HRESULT , , D3DProxyDevice , ProxyCreateRenderTarget , UINT , Width , UINT , Height , D3DFORMAT , Format , D3DMULTISAMPLE_TYPE , MultiSample ,
-												  DWORD , MultisampleQuality , BOOL , Lockable , IDirect3DSurface9** , ppSurface , HANDLE* , pSharedHandle , DWORD , Usage , bool , isSwapChainBackBuffer , bool , useEx ){
+												  DWORD , MultisampleQuality , BOOL , Lockable , IDirect3DSurface9** , ppSurface , HANDLE* , pSharedHandle , DWORD , Usage , bool , isSwapChainBackBuffer , bool , useEx )
 	IDirect3DSurface9* left  = 0;
 	IDirect3DSurface9* right = 0;
 	HRESULT resultLeft;
@@ -5799,7 +5799,7 @@ METHOD_IMPL( HRESULT , , D3DProxyDevice , ProxyCreateRenderTarget , UINT , Width
 //See table at bottom of 
 //<http://msdn.microsoft.com/en-us/library/windows/desktop/bb174471%28v=vs.85%29.aspx> 
 //for stretch rect restrictions.
-METHOD_IMPL( HRESULT , , D3DProxyDevice , ProxyCreateOffscreenPlainSurface , UINT , Width , UINT , Height , D3DFORMAT , Format , D3DPOOL , Pool , IDirect3DSurface9** , ppSurface , HANDLE* , pSharedHandle , DWORD , Usage , bool , useEx ){
+METHOD_IMPL( HRESULT , , D3DProxyDevice , ProxyCreateOffscreenPlainSurface , UINT , Width , UINT , Height , D3DFORMAT , Format , D3DPOOL , Pool , IDirect3DSurface9** , ppSurface , HANDLE* , pSharedHandle , DWORD , Usage , bool , useEx )
 	IDirect3DSurface9* surface = 0;
 	HRESULT result;
 	
@@ -5825,7 +5825,7 @@ METHOD_IMPL( HRESULT , , D3DProxyDevice , ProxyCreateOffscreenPlainSurface , UIN
 * @see StereoView::ReleaseEverything()
 * @see OnCreateOrRestore()
 ***/
-METHOD_IMPL( HRESULT , , D3DProxyDevice , ProxyReset , D3DPRESENT_PARAMETERS* , pPresentationParameters , D3DDISPLAYMODEEX* , pFullscreenDisplayMode , bool , useEx ){
+METHOD_IMPL( HRESULT , , D3DProxyDevice , ProxyReset , D3DPRESENT_PARAMETERS* , pPresentationParameters , D3DDISPLAYMODEEX* , pFullscreenDisplayMode , bool , useEx )
 	if(stereoView)
 		stereoView->ReleaseEverything();
 
@@ -5878,51 +5878,51 @@ METHOD_IMPL( HRESULT , , D3DProxyDevice , ProxyReset , D3DPRESENT_PARAMETERS* , 
 
 // IDirect3DDevice9 / IDirect3DDevice9Ex similar methods
 
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , Present , CONST RECT* , pSourceRect , CONST RECT* , pDestRect , HWND , hDestWindowOverride , CONST RGNDATA* , pDirtyRegion ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , Present , CONST RECT* , pSourceRect , CONST RECT* , pDestRect , HWND , hDestWindowOverride , CONST RGNDATA* , pDirtyRegion )
 	ProxyPresent();
 	return actual->Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion );
 }
 
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , PresentEx , CONST RECT* , pSourceRect , CONST RECT* , pDestRect , HWND , hDestWindowOverride , CONST RGNDATA* , pDirtyRegion , DWORD , dwFlags ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , PresentEx , CONST RECT* , pSourceRect , CONST RECT* , pDestRect , HWND , hDestWindowOverride , CONST RGNDATA* , pDirtyRegion , DWORD , dwFlags )
 	ProxyPresent();
 	return actualEx->PresentEx(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion , dwFlags );
 }
 
 
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateOffscreenPlainSurface , UINT , Width , UINT , Height , D3DFORMAT , Format , D3DPOOL , Pool , IDirect3DSurface9** , ppSurface , HANDLE* , pSharedHandle ){	
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateOffscreenPlainSurface , UINT , Width , UINT , Height , D3DFORMAT , Format , D3DPOOL , Pool , IDirect3DSurface9** , ppSurface , HANDLE* , pSharedHandle )	
 	return ProxyCreateOffscreenPlainSurface( Width, Height, Format, Pool, ppSurface , pSharedHandle , 0 , false );
 }
 
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateOffscreenPlainSurfaceEx , UINT , Width , UINT , Height , D3DFORMAT , Format , D3DPOOL , Pool , IDirect3DSurface9** , ppSurface , HANDLE* , pSharedHandle , DWORD , Usage ){	
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateOffscreenPlainSurfaceEx , UINT , Width , UINT , Height , D3DFORMAT , Format , D3DPOOL , Pool , IDirect3DSurface9** , ppSurface , HANDLE* , pSharedHandle , DWORD , Usage )	
 	return ProxyCreateOffscreenPlainSurface( Width, Height, Format, Pool, ppSurface , pSharedHandle , Usage , true );
 }
 
 
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateRenderTarget , UINT , Width , UINT , Height , D3DFORMAT , Format , D3DMULTISAMPLE_TYPE , MultiSample , DWORD , MultisampleQuality , BOOL , Lockable , IDirect3DSurface9** , ppSurface , HANDLE* , pSharedHandle ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateRenderTarget , UINT , Width , UINT , Height , D3DFORMAT , Format , D3DMULTISAMPLE_TYPE , MultiSample , DWORD , MultisampleQuality , BOOL , Lockable , IDirect3DSurface9** , ppSurface , HANDLE* , pSharedHandle )
 	//The IDirect3DSurface9** ppSurface returned should always be a D3D9ProxySurface. Any class overloading
 	//this method should ensure that this remains true.
 	return ProxyCreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, ppSurface, pSharedHandle, 0 , false , false );
 }
 
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateRenderTargetEx , UINT , Width , UINT , Height , D3DFORMAT , Format , D3DMULTISAMPLE_TYPE , MultiSample , DWORD , MultisampleQuality , BOOL , Lockable , IDirect3DSurface9** , ppSurface , HANDLE* , pSharedHandle , DWORD , Usage ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateRenderTargetEx , UINT , Width , UINT , Height , D3DFORMAT , Format , D3DMULTISAMPLE_TYPE , MultiSample , DWORD , MultisampleQuality , BOOL , Lockable , IDirect3DSurface9** , ppSurface , HANDLE* , pSharedHandle , DWORD , Usage )
 	return ProxyCreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, ppSurface, pSharedHandle, 0 , false , true );
 }
 
 
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateDepthStencilSurface , UINT , Width , UINT , Height , D3DFORMAT , Format , D3DMULTISAMPLE_TYPE , MultiSample , DWORD , MultisampleQuality , BOOL , Discard , IDirect3DSurface9** , ppSurface , HANDLE* , pSharedHandle ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateDepthStencilSurface , UINT , Width , UINT , Height , D3DFORMAT , Format , D3DMULTISAMPLE_TYPE , MultiSample , DWORD , MultisampleQuality , BOOL , Discard , IDirect3DSurface9** , ppSurface , HANDLE* , pSharedHandle )
 	return ProxyCreateDepthStencilSurface( Width, Height, Format, MultiSample, MultisampleQuality, Discard, ppSurface , pSharedHandle , 0  , false );
 }
 
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateDepthStencilSurfaceEx , UINT , Width , UINT , Height , D3DFORMAT , Format , D3DMULTISAMPLE_TYPE , MultiSample , DWORD , MultisampleQuality , BOOL , Discard , IDirect3DSurface9** , ppSurface , HANDLE* , pSharedHandle , DWORD , Usage ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , CreateDepthStencilSurfaceEx , UINT , Width , UINT , Height , D3DFORMAT , Format , D3DMULTISAMPLE_TYPE , MultiSample , DWORD , MultisampleQuality , BOOL , Discard , IDirect3DSurface9** , ppSurface , HANDLE* , pSharedHandle , DWORD , Usage )
 	return ProxyCreateDepthStencilSurface( Width, Height, Format, MultiSample, MultisampleQuality, Discard, ppSurface , pSharedHandle , Usage , true );
 }
 
 
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , Reset , D3DPRESENT_PARAMETERS* , pPresentationParameters ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , Reset , D3DPRESENT_PARAMETERS* , pPresentationParameters )
 	return ProxyReset( pPresentationParameters , 0 , false );
 }
 
-METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , ResetEx , D3DPRESENT_PARAMETERS* , pPresentationParameters , D3DDISPLAYMODEEX* , pFullscreenDisplayMode ){
+METHOD_IMPL( HRESULT , WINAPI , D3DProxyDevice , ResetEx , D3DPRESENT_PARAMETERS* , pPresentationParameters , D3DDISPLAYMODEEX* , pFullscreenDisplayMode )
 	return ProxyReset( pPresentationParameters , pFullscreenDisplayMode , true );
 }
 

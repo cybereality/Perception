@@ -55,7 +55,7 @@ namespace vireio {
 
 QStringList HijackListProcesses( );
 QString     HijackAttachToProcess( int index        , const QStringList& dlls );
-QString     HijackLaunchProcess  ( QString exe_path , const QStringList& dlls , bool pause);
+QString     HijackLaunchProcess  ( QString exe_path , QString args , const QStringList& dlls ,const QStringList& environment , bool pause);
 
 extern QString vireioDir;
 
@@ -126,25 +126,33 @@ class ViewAdjustment;
 #define METHOD_EXPAND_NAME(...) METHOD_EXPAND_FUNC( METHOD_EXPAND_F2  , __VA_ARGS__ )
 
 
+
+//this one is for logging ALL function calls
+#define METHOD_LOG(ret,spec,base,name,...)
+//#define METHOD_LOG(ret,spec,base,name,...) printf( #base "::" #name "\n" );
+
 //This macro expand to method declaration
 #define METHOD_IMPL(ret,spec,base,name,...)                     \
-	ret spec base::name( METHOD_EXPAND_ALL(__VA_ARGS__) )
+	ret spec base::name( METHOD_EXPAND_ALL(__VA_ARGS__) ){ METHOD_LOG(ret,spec,base,name,__VA_ARGS__)
 
 	//This macro expand to method declaration and calls same method of  "actualEx"
-#define METHOD_THRU_EX(ret,spec,base,name,...)				\
-	ret spec base::name( METHOD_EXPAND_ALL(__VA_ARGS__) ){		\
-		return actualEx->name( METHOD_EXPAND_NAME(__VA_ARGS__) );	\
+#define METHOD_THRU_EX(ret,spec,base,name,...)		              \
+	ret spec base::name( METHOD_EXPAND_ALL(__VA_ARGS__) ){		  \
+		METHOD_LOG(ret,spec,base,name,__VA_ARGS__)                \
+		return actualEx->name( METHOD_EXPAND_NAME(__VA_ARGS__) ); \
 	}
 
 //This macro expand to method declaration and calls same method of "actual"
-#define METHOD_THRU(ret,spec,base,name,...)				\
+#define METHOD_THRU(ret,spec,base,name,...)				        \
 	ret spec base::name( METHOD_EXPAND_ALL(__VA_ARGS__) ){		\
+		METHOD_LOG(ret,spec,base,name,__VA_ARGS__)              \
 		return actual->name( METHOD_EXPAND_NAME(__VA_ARGS__) );	\
 	}
 
 //This macro expand to method declaration and calls same method of "right" and "actual"
 #define METHOD_THRU_LR(ret,spec,base,name,...)                  \
 	ret spec base::name( METHOD_EXPAND_ALL(__VA_ARGS__) ){ 		\
+		METHOD_LOG(ret,spec,base,name,__VA_ARGS__)              \
 		if( right ){ 											\
 			right->name( METHOD_EXPAND_NAME(__VA_ARGS__) );		\
 		}														\

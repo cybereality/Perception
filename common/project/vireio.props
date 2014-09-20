@@ -22,6 +22,8 @@
       <EnableFiberSafeOptimizations />
       <WholeProgramOptimization />
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <MinimalRebuild>false</MinimalRebuild>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
   </ItemDefinitionGroup>
 </Project>

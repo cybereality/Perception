@@ -42,6 +42,8 @@ public:
 	float   ConstantValue1;             // Game-specific constant value 1
 	float   ConstantValue2;             // Game-specific constant value 2
 	float   ConstantValue3;             // Game-specific constant value 3
+	QString SteamAppId;                 // Game Steam app id (number only). Create game desktop shortcut from steam, open properties and find the number.
+	QString CommandLineArguments;       // Arguments passed to executable
 
 	cGameProfile();
 	~cGameProfile();

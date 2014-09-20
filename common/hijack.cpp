@@ -1,7 +1,9 @@
 #include <Windows.h>
 #include <Psapi.h>
-#include "hijack.h"
+#include <Vireio.h>
 #include <qmessagebox.h>
+#include <qfileinfo.h>
+#include <qprocess.h>
 
 static QList<HANDLE> g_handles;
 
@@ -115,9 +117,7 @@ QString HijackAttachToProcess( int index , const QStringList& dlls ){
 
 
 
-
-QString HijackLaunchProcess  ( QString exe_path , const QStringList& dlls , bool pause ){
-
+QString HijackLaunchProcess  ( QString exe_path , QString args , const QStringList& dlls , const QStringList& environment , const bool pause ){
 	PROCESS_INFORMATION pi;
 	STARTUPINFOA        si;
 	QString             ret;
@@ -130,8 +130,20 @@ QString HijackLaunchProcess  ( QString exe_path , const QStringList& dlls , bool
 	si.wShowWindow = SW_NORMAL;
 
 	exe_path.replace( "/" , "\\" );
+	QByteArray exe = exe_path.toLocal8Bit();
+	QByteArray dir = QFileInfo(exe_path).absolutePath().toLocal8Bit();
 
-	if( !CreateProcessA( exe_path.toLocal8Bit().data() , 0 , 0, 0 , false , CREATE_SUSPENDED , 0 , 0 , &si ,&pi ) ){
+	QByteArray env;
+	for( QString s : (environment + QProcessEnvironment::systemEnvironment().toStringList()) ){
+		if( s.toLower().startsWith("path=") ){
+			s = s + ";" + vireioDir + "bin";
+		}
+		env += s.toLocal8Bit() + QByteArray("\0",1);
+	}
+	env += QByteArray("\0",1);
+
+
+	if( !CreateProcessA( exe , args.toLocal8Bit().data() , 0, 0 , false , CREATE_SUSPENDED , env.data() , dir , &si ,&pi ) ){
 		ret = "CreateProcessA failed";
 		goto end;
 	}
