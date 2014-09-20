@@ -58,3 +58,13 @@ void cGame::loadAll(){
 
 	printf( "vireio: loaded %d games\n" , all().count() );
 }
+
+
+cGame* cGame::findByPath( QString path ){
+	for( cGame* g : all() ){
+		if( QString::compare( path , QFileInfo( g->exe_path ).absoluteFilePath() , Qt::CaseInsensitive )==0 ){
+			return g;
+		}
+	}
+	return 0;
+}

@@ -54,8 +54,14 @@ namespace vireio {
 
 
 QStringList HijackListProcesses( );
-QString     HijackAttachToProcess( int index        , const QStringList& dlls );
-QString     HijackLaunchProcess  ( QString exe_path , QString args , const QStringList& dlls ,const QStringList& environment , bool pause);
+QString     HijackAttachToProcess( int index         );
+QString     HijackLaunchProcess  ( QString exe_path , QString args , QStringList environment , bool pause);
+
+QString     HijackInject     ( HANDLE proccess );
+void        HijackHookAdd    ( const char* moduleName , const char* functionName , void** oldFunctionPtr  , void* newFunction );
+void        HijackHookUpdate ( );
+void        HijackHookInstall( );
+
 
 extern QString vireioDir;
 

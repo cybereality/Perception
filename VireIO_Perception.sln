@@ -1,11 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.21005.1
-MinimumVisualStudioVersion = 10.0.40219.1
+# Visual Studio Express 2012 for Windows Desktop
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VireIO_Perception", "VireIO_Perception\project\VireIO_Perception.vcxproj", "{866D94CE-80C6-4660-9D25-D1F73F024D5A}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VireIO_Hijack", "VireIO_Hijack\project\VireIO_Hijack.vcxproj", "{2CF96273-6F84-44AA-853E-6B023B06ABBF}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VireIO_Proxy", "VireIO_Proxy\project\VireIO_Proxy.vcxproj", "{F0290832-C81F-4165-BA92-2A31FB20D7CD}"
 EndProject
@@ -21,10 +17,6 @@ Global
 		{866D94CE-80C6-4660-9D25-D1F73F024D5A}.Debug|Win32.Build.0 = Debug|Win32
 		{866D94CE-80C6-4660-9D25-D1F73F024D5A}.Release|Win32.ActiveCfg = Release|Win32
 		{866D94CE-80C6-4660-9D25-D1F73F024D5A}.Release|Win32.Build.0 = Release|Win32
-		{2CF96273-6F84-44AA-853E-6B023B06ABBF}.Debug|Win32.ActiveCfg = Debug|Win32
-		{2CF96273-6F84-44AA-853E-6B023B06ABBF}.Debug|Win32.Build.0 = Debug|Win32
-		{2CF96273-6F84-44AA-853E-6B023B06ABBF}.Release|Win32.ActiveCfg = Release|Win32
-		{2CF96273-6F84-44AA-853E-6B023B06ABBF}.Release|Win32.Build.0 = Release|Win32
 		{F0290832-C81F-4165-BA92-2A31FB20D7CD}.Debug|Win32.ActiveCfg = Debug|Win32
 		{F0290832-C81F-4165-BA92-2A31FB20D7CD}.Debug|Win32.Build.0 = Debug|Win32
 		{F0290832-C81F-4165-BA92-2A31FB20D7CD}.Release|Win32.ActiveCfg = Release|Win32

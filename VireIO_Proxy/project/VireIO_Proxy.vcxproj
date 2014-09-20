@@ -45,6 +45,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Link>
       <SubSystem>Windows</SubSystem>
+      <AdditionalDependencies>dbghelp.lib;psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
       <Command>del "$(TargetPath)"</Command>
@@ -66,7 +67,6 @@
     <ClCompile Include="..\..\common\cSettings.cpp" />
     <ClCompile Include="..\..\common\cStereoMode.cpp" />
     <ClCompile Include="..\..\common\cUser.cpp" />
-    <ClCompile Include="..\..\common\hijack.cpp" />
     <ClCompile Include="..\..\common\pugixml.cpp" />
     <ClCompile Include="..\src\D3D9ProxyCubeTexture.cpp" />
     <ClCompile Include="..\src\D3D9ProxyDirect3D.cpp" />
@@ -91,6 +91,9 @@
     <ClCompile Include="..\src\FreeSpaceTracker.cpp" />
     <ClCompile Include="..\src\FreeTrackTracker.cpp" />
     <ClCompile Include="..\src\GameHandler.cpp" />
+    <ClCompile Include="..\src\Hijack\hijack_hook.cpp" />
+    <ClCompile Include="..\src\Hijack\hijack_launch.cpp" />
+    <ClCompile Include="..\src\Hijack\hijack_list.cpp" />
     <ClCompile Include="..\src\InputControls.cpp" />
     <ClCompile Include="..\src\Main.cpp" />
     <ClCompile Include="..\src\MatrixNoShowModification.cpp" />

@@ -13,7 +13,7 @@ public:
 
 	void save( );
 
-
+	static cGame*         findByPath( QString path );
 	static QList<cGame*>& all();
 	static void           loadAll();
 };

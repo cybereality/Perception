@@ -12,12 +12,7 @@ bool cConfig::load( QString game_exe ){
 		return false;
 	}
 
-	for( cGame* g : cGame::all() ){
-		if( game_exe == QFileInfo( g->exe_path ).absoluteFilePath() ){
-			game = g;
-			break;
-		}
-	}
+	game = cGame::findByPath(game_exe);
 
 	if( !game ){
 		printf( "vireio: no game found for \"%s\"\n" , game_exe.toLocal8Bit().data() );

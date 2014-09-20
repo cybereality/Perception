@@ -4,11 +4,12 @@
     <OutDir>$(ProgramFiles)\Vireio\Perception\bin\</OutDir>
     <IntDir>$(TEMP)\projects\$(ProjectName)\$(Configuration)\</IntDir>
     <IncludePath>..\..\common;..\..\VireIO_Proxy\src\Streaming;$(IncludePath)</IncludePath>
+    <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <Link>
       <AdditionalLibraryDirectories>$(DXSDK_DIR)\Lib\x86;$(FREESPACE)\lib;$(FFMPEG)\lib;$(LIBOVR)\Lib\Win32\VS2012;$(WIN_DDK_DIR)\lib\ATL\i386;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>avcodec.lib;avformat.lib;avutil.lib;swscale.lib;ws2_32.lib;dxerr.lib;dxguid.lib;dinput8.lib;xinput.lib;libfreespace.lib;libovr.lib;Winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>avcodec.lib;avformat.lib;avutil.lib;swscale.lib;ws2_32.lib;dxerr.lib;dxguid.lib;dinput8.lib;xinput.lib;libfreespace.lib;libovr.lib;Winmm.lib;dbghelp.lib;psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <ClCompile>

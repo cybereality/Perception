@@ -41,10 +41,13 @@
     <ClCompile Include="..\..\common\cUser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\common\hijack.cpp">
+    <ClCompile Include="..\src\cProfileSelectDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cProfileSelectDialog.cpp">
+    <ClCompile Include="..\..\VireIO_Proxy\src\Hijack\hijack_launch.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\VireIO_Proxy\src\Hijack\hijack_hook.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -57,34 +60,36 @@
     </QT_UIC>
   </ItemGroup>
   <ItemGroup>
-    <QT_MOC Include="..\..\common\cConfig.h">
+    <ClInclude Include="..\..\common\cConfig.h">
       <Filter>Header Files</Filter>
-    </QT_MOC>
-    <QT_MOC Include="..\..\common\cGame.h">
+    </ClInclude>
+    <ClInclude Include="..\..\common\cGame.h">
       <Filter>Header Files</Filter>
-    </QT_MOC>
-    <QT_MOC Include="..\..\common\cGameProfile.h">
+    </ClInclude>
+    <ClInclude Include="..\..\common\cGameProfile.h">
       <Filter>Header Files</Filter>
-    </QT_MOC>
-    <QT_MOC Include="..\..\common\cPropsFile.h">
+    </ClInclude>
+    <ClInclude Include="..\..\common\cPropsFile.h">
       <Filter>Header Files</Filter>
-    </QT_MOC>
-    <QT_MOC Include="..\..\common\cSettings.h">
+    </ClInclude>
+    <ClInclude Include="..\..\common\cSettings.h">
       <Filter>Header Files</Filter>
-    </QT_MOC>
-    <QT_MOC Include="..\..\common\cStereoMode.h">
+    </ClInclude>
+    <ClInclude Include="..\..\common\cStereoMode.h">
       <Filter>Header Files</Filter>
-    </QT_MOC>
-    <QT_MOC Include="..\..\common\cUser.h">
+    </ClInclude>
+    <ClInclude Include="..\..\common\cUser.h">
       <Filter>Header Files</Filter>
-    </QT_MOC>
-    <QT_MOC Include="..\..\common\VireIO.h">
+    </ClInclude>
+    <ClInclude Include="..\..\common\VireIO.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <QT_MOC Include="..\src\cProfileSelectDialog.h">
       <Filter>Header Files</Filter>
     </QT_MOC>
     <QT_MOC Include="..\src\cMainWindow.h">
-      <Filter>Header Files</Filter>
-    </QT_MOC>
-    <QT_MOC Include="..\src\cProfileSelectDialog.h">
       <Filter>Header Files</Filter>
     </QT_MOC>
   </ItemGroup>

@@ -154,9 +154,9 @@ void cMainWindow::ScanGames(){
 			if( info.isDir() ){
 				scan_queue += info.absoluteFilePath() + "/";
 			}else{
-				QString name = info.fileName().toLower();
+				QString name = info.fileName();
 
-				if( name.endsWith(".exe") || name.endsWith(".dll") ){
+				if( name.toLower().endsWith(".exe") ){
 					file_list += info.filePath();
 					name_list += name;
 				}
@@ -166,16 +166,9 @@ void cMainWindow::ScanGames(){
 
 
 	while( !name_list.isEmpty() ){
-		bool add = true;
+		cGame* game = cGame::findByPath(file_list[0]);
 
-		for( cGame* g : cGame::all() ){
-			if( g->exe_path == file_list[0] ){
-				add = false;
-				break;
-			}
-		}
-
-		if( add ){
+		if( !game ){
 			cGameProfile* profile = cGameProfile::findByExe( name_list[0] );
 
 			if( profile ){
@@ -196,16 +189,12 @@ void cMainWindow::ScanGames(){
 void cMainWindow::on_games_itemDoubleClicked( QTreeWidgetItem *item , int ){
 	cGame* g = GameForItem(item);
 
-	QStringList dlls;
-	dlls += vireioDir+"bin/VireIO_Hijack.dll";
-	dlls += vireioDir+"bin/VireIO_Proxy.dll";
-
 	QStringList env;
 	if( !g->profile->SteamAppId.isEmpty() ){
 		env += "SteamAppId=" + g->profile->SteamAppId;
 	}
 
-	QString ret = HijackLaunchProcess( g->exe_path , g->profile->CommandLineArguments , dlls , env , ui.pause->isChecked() );
+	QString ret = HijackLaunchProcess( g->exe_path , g->profile->CommandLineArguments , env , ui.pause->isChecked() );
 	if( !ret.isEmpty() ){
 		QMessageBox::critical( 0 , "Launch error" , ret );
 	}

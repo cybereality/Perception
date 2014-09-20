@@ -189,7 +189,7 @@ bool cGameProfile::save( ){
 
 cGameProfile* cGameProfile::findByExe( QString exe ){
 	for( cGameProfile* p : all() ){
-		if( p->exeName == exe ){
+		if( QString::compare( p->exeName , exe , Qt::CaseInsensitive )==0 ){
 			return p;
 		}
 	}
