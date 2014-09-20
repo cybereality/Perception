@@ -112,6 +112,7 @@ BOOL APIENTRY DllMain( HINSTANCE dll , DWORD fdwReason, LPVOID ){
 	AllocConsole();
 	freopen("CONOUT$", "w", stdout);
 
+
 	HijackHookInstall();
 
 	HijackHookAdd( "d3d9.dll" , "Direct3DCreate9"        , (void**)&ORIG_Direct3DCreate9    , (void*)NEW_Direct3DCreate9   );
@@ -209,6 +210,11 @@ BOOL APIENTRY DllMain( HINSTANCE dll , DWORD fdwReason, LPVOID ){
 	printf( "vireio: RiftVersion=%s\n" , config.RiftVersion.toLocal8Bit().data() );
 
 	LoadLibraryA( "d3d9.dll" );
+
+	if( !config.logToConsole ){
+		fclose( stdout );
+		FreeConsole();
+	}
 
 	return TRUE;
 }

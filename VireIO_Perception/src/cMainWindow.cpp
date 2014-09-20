@@ -4,6 +4,8 @@
 #include <qdir.h>
 #include <qfileiconprovider.h>
 #include <qmessagebox.h>
+#include <qfiledialog.h>
+#include "cProfileSelectDialog.h"
 
 #include <cStereoMode.h>
 #include <cGameProfile.h>
@@ -67,6 +69,8 @@ void cMainWindow::LoadSettings(){
 
 	ui.stereoMode      ->setCurrentIndex( ui.stereoMode ->findText(s.stereoMode)  );
 	ui.trackerMode     ->setCurrentIndex( ui.trackerMode->findData(s.trackerMode) );
+	
+	ui.logToConsole    ->setChecked     ( s.logToConsole      );
 
 	ui.streamingEnable ->setChecked     ( s.streamingEnable   );
 	ui.streamingAddress->setText        ( s.streamingAddress  );
@@ -82,6 +86,8 @@ void cMainWindow::on_saveSettings_clicked(){
 	s.stereoMode        = ui.stereoMode       ->currentText();
 	s.trackerMode       = ui.trackerMode      ->currentData().toInt();
 
+	s.logToConsole      = ui.logToConsole     ->isChecked();
+
 	s.streamingEnable   = ui.streamingEnable  ->isChecked();
 	s.streamingAddress  = ui.streamingAddress ->text();
 	s.streamingPort     = ui.streamingPort    ->value();
@@ -89,9 +95,6 @@ void cMainWindow::on_saveSettings_clicked(){
 	s.streamingBitrate  = ui.streamingBitrate ->value();
 	s.save();
 }
-
-#include <qfiledialog.h>
-#include "cProfileSelectDialog.h"
 
 
 void cMainWindow::on_games_customContextMenuRequested( const QPoint& pos ){

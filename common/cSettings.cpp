@@ -16,6 +16,7 @@ bool cSettings::load(){
 
 	stereoMode       = props.getString( "stereoMode"       );
 	trackerMode      = props.getInt   ( "trackerMode"      );
+	logToConsole     = props.getBool  ( "logToConsole"     );
 	streamingEnable  = props.getBool  ( "streamingEnable"  );
 	streamingAddress = props.getString( "streamingAddress" );
 	streamingPort    = props.getInt   ( "streamingPort"    );
@@ -30,6 +31,7 @@ bool cSettings::save(){
 	cPropsFile props;
 	props.setString( "stereoMode"       , stereoMode       );
 	props.setInt   ( "trackerMode"      , trackerMode      );
+	props.setBool  ( "logToConsole"     , logToConsole     );
 	props.setBool  ( "streamingEnable"  , streamingEnable  );
 	props.setString( "streamingAddress" , streamingAddress );
 	props.setInt   ( "streamingPort"    , streamingPort    );

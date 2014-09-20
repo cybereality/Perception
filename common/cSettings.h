@@ -8,7 +8,7 @@ class cSettings {
 public:
 	QString stereoMode;
 	int     trackerMode;
-
+	bool    logToConsole;
 	bool    streamingEnable;
 	QString streamingAddress;
 	int     streamingPort;
