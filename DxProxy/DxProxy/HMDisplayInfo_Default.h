@@ -27,8 +27,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#ifndef HMDISPLAYINFO_DK2_H_INCLUDED
-#define HMDISPLAYINFO_DK2_H_INCLUDED
+#ifndef HMDISPLAYINFO_DK1_H_INCLUDED
+#define HMDISPLAYINFO_DK1_H_INCLUDED
 
 #include "d3d9.h"
 #include "d3dx9.h"
@@ -37,36 +37,44 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "HMDisplayInfo.h"
 
+
 /**
 * Predefined head mounted display info.
 * Default constructing with Rift DK1 values.
 ***/
-struct HMDisplayInfo_DK2 :
+struct HMDisplayInfo_Default :
 	public HMDisplayInfo
 {
 public:
 
 #pragma warning( push )
 #pragma warning( disable : 4351 ) //disable "new behaviour warning for default initialised array" for this constructor
+
 	/**
 	* All rift values from OVR_Win32_HMDDevice.cpp in LibOVR
 	* Default constructing with Rift DK1 values.
 	***/
-
-	HMDisplayInfo_DK2() :
+	HMDisplayInfo_Default() :
+	   //Just use the constructor of the base class
 		HMDisplayInfo()
 	{
+		// Rift dev kit 
 		distortionCoefficients[0] = 1.0f;
-		distortionCoefficients[1] = 0.15f;
-		distortionCoefficients[2] = 0.05f;
+		distortionCoefficients[1] = 0.22f;
+		distortionCoefficients[2] = 0.24f;
 		distortionCoefficients[3] = 0.0f;
-		
+
+		chromaCoefficients[0] = 0.010f;
+		chromaCoefficients[1] = 0.002f;
+		chromaCoefficients[2] = -0.002f;
+		chromaCoefficients[3] = -0.005f;
+
 		std::stringstream sstm;
 		sstm << "scaleToFillHorizontal: " << GetScaleToFillHorizontal() << std::endl;
 		OutputDebugString(sstm.str().c_str());
 	}
 
-	virtual std::string GetHMDName() {return "DK2";}
+	virtual std::string GetHMDName() {return "Default";}
 
 	/**
 	* Screen resolution, in pixels.
@@ -74,7 +82,7 @@ public:
 	***/
 	virtual std::pair<UINT, UINT>  GetResolution()
 	{
-		return std::make_pair<UINT, UINT>(1920, 1080);
+		return std::make_pair<UINT, UINT>(1280, 800);
 	}
 
 	/**
@@ -83,7 +91,7 @@ public:
 	***/
 	virtual std::pair<float, float> GetPhysicalScreenSize()
 	{
-		return std::make_pair<float, float>(0.12577f, 0.07074f);
+		return std::make_pair<float, float>(0.14976f, 0.0935f);
 	}
 
 	/**
@@ -101,8 +109,7 @@ public:
 	{
 		return 0.064f;
 	}
-
-
+	
 	/**
 	* The distance in a 0 to 1 range that the center of each lens is from the center of each half of
 	* the screen on Y axis
@@ -122,19 +129,11 @@ public:
 	}
 
 	/**
-	* The minimum distortion scale allowed, varies between headsets (-1.0 is fine for DK1, whereas -0.5 is better for DK2)
+	* The minimum distortion scale allowed, varies between headsets (-1.0 is fine for DK1, whereas -0.5 is better for RiftUp)
 	***/
 	virtual float GetMinDistortionScale()
 	{
-		return -0.5;
-	}
-
-	/**
-	* From Rift docs on distortion : uvResult = uvInput * (K0 + K1 * uvLength^2 + K2 * uvLength^4).
-	***/
-	virtual float* GetDistortionCoefficients()
-	{
-		return distortionCoefficients;
+		return -1.0;
 	}
 };
 #endif

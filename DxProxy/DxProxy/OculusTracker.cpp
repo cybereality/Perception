@@ -29,6 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "OculusTracker.h"
 #include "HMDisplayInfoFactory.h"
+#include <string>
 
 /**
 * Constructor.
@@ -83,7 +84,7 @@ void OculusTracker::init()
 	else
 	{
 		hmd=ovrHmd_Create(0);
-		strcpy_s(trackerDescription, hmd->ProductName);
+		strcpy_s(trackerDescription, (std::string(hmd->ProductName) + "   Serial: " + hmd->SerialNumber).c_str());
 	}
 
 
@@ -114,6 +115,13 @@ char* OculusTracker::GetTrackerDescription()
 {
 	return trackerDescription;
 }
+
+bool OculusTracker::SupportsPositionTracking()
+{
+	//Only DK2 supports positional tracking for now
+	return (hmd->ProductId == ovrHmd_DK2);
+}
+
 
 
 void OculusTracker::BeginFrame()

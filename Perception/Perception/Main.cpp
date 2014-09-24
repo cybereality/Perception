@@ -38,6 +38,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Resource.h"
 #include "Version.h"
 
+
 using namespace std;
 
 bool InitConfig(void);
@@ -388,13 +389,7 @@ int WINAPI wWinMain(HINSTANCE instance_handle, HINSTANCE, LPWSTR, INT) {
 	main_window.add_item("Anaglyph (Green/Magenta)\t10");
 	main_window.add_item("Anaglyph (Green/Magenta) B+W\t11");
 	main_window.add_item("DIY Rift\t100");
-	main_window.add_item("Oculus Rift DK1\t110");
-	main_window.add_item("Oculus Rift DK1 Cropped\t111");
-	main_window.add_item("RiftUp!\t112");
-	main_window.add_item("Oculus Rift DK2\t120");
-	main_window.add_item("Oculus Rift DK2 Cropped\t121");
-//	main_window.add_item("Oculus Rift CV1\t130");
-//	main_window.add_item("Oculus Rift CV1 Cropped\t131");
+	main_window.add_item("Oculus Rift (All Variants)\t110");
 
 	main_window.add_item2("No Tracking\t0");
 	main_window.add_item2("Hillcrest Labs\t10");
@@ -483,10 +478,6 @@ bool InitModes()
 	stereoModes[11] = comboPos++;
 	stereoModes[100] = comboPos++;
 	stereoModes[110] = comboPos++;
-	stereoModes[111] = comboPos++;
-	stereoModes[112] = comboPos++;
-	stereoModes[120] = comboPos++;
-	stereoModes[121] = comboPos++;
 
 	comboPos = 0;
 	trackerModes[0] = comboPos++;

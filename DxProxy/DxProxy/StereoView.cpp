@@ -59,6 +59,7 @@ StereoView::StereoView(ProxyHelper::ProxyConfig& config)
 	game_type = config.game_type;
 	stereo_mode = config.stereo_mode;
 	swapEyes = config.swap_eyes;
+	chromaticAberrationCorrection = true;
 
 	// set all member pointers to NULL to prevent uninitialized objects being used
 	m_pActualDevice = NULL;

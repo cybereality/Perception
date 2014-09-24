@@ -30,8 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef HMDISPLAYINFOFACTORY_H_INCLUDED
 #define HMDISPLAYINFOFACTORY_H_INCLUDED
 
-#include "HMDisplayInfo.h"
-#include "StereoView.h"
+struct HMDisplayInfo;
 
 /**
 *  HMDisplayInfo Factory Class
@@ -42,7 +41,7 @@ class HMDisplayInfoFactory
 private:
 	HMDisplayInfoFactory(){}
 public:
-	static HMDisplayInfo* CreateHMDisplayInfo(StereoView::StereoTypes stereoType);
+	static HMDisplayInfo* CreateHMDisplayInfo(int stereoType);
 };
 
 #endif //HMDISPLAYINFOFACTORY_H_INCLUDED

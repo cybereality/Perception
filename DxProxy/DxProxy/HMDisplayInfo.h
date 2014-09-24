@@ -30,11 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef HMDISPLAYINFO_H_INCLUDED
 #define HMDISPLAYINFO_H_INCLUDED
 
-#include "d3d9.h"
-#include "d3dx9.h"
-#include <utility>
-#include <sstream>
-
+#include <string>
 
 /**
 * HMDisplayInfo abstract base class
@@ -51,11 +47,14 @@ public:
 	***/
 	HMDisplayInfo()
 	{
-		distortionCoefficients[0] = 0.0f;
-		distortionCoefficients[1] = 0.0f;
-		distortionCoefficients[2] = 0.0f;
-		distortionCoefficients[3] = 0.0f;
+		//Still using poly4 distortion implementaion until SDK rendering in place
+		enum { NumCoefficients = 4 };
+		distortionCoefficients = new float[NumCoefficients];
+		ZeroMemory(distortionCoefficients, NumCoefficients * sizeof(float));
+		ZeroMemory(chromaCoefficients, 4 * sizeof(float));
 	}
+
+	virtual ~HMDisplayInfo() { delete []distortionCoefficients; }
 
 	virtual std::string GetHMDName() = 0;
 
@@ -133,9 +132,20 @@ public:
 	virtual float GetMinDistortionScale() = 0;
 
 	/**
-	* From Rift docs on distortion : uvResult = uvInput * (K0 + K1 * uvLength^2 + K2 * uvLength^4).
+	* See OVR SDK for distortion types (Vireio uses RecipPoly4)
 	***/
-	virtual float* GetDistortionCoefficients() = 0;
+	virtual float* GetDistortionCoefficients()
+	{
+		return distortionCoefficients;
+	}
+
+	/**
+	* Chromatic Abberation Coefficients
+	***/
+	virtual float* GetDistortionCoefficientsChroma()
+	{
+		return chromaCoefficients;
+	}
 
 	/**
 	* Scaling value, used to fill shader constants.
@@ -158,6 +168,7 @@ public:
 	}
 
 protected:
-	float distortionCoefficients[4];
+	float *distortionCoefficients;
+	float chromaCoefficients[4];
 };
 #endif

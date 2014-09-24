@@ -81,6 +81,7 @@ class StereoView;
 class D3D9ProxySwapChain;
 class ShaderRegisters;
 class GameHandler;
+struct HMDisplayInfo;
 
 /**
 * Direct 3D proxy device class. 
@@ -574,6 +575,12 @@ protected:
  	* Maximum Distortion Scale the Quicklinks will zoom to
  	**/
  	float m_maxDistortionScale;
+
+	/**
+	* Pointer to the hmd info
+	*/
+	HMDisplayInfo *hmdInfo;
+
 	/**
 	* Counts the current vertex shader set calls.
 	* Used for VRboost security.

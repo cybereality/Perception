@@ -72,6 +72,7 @@ public:
 	virtual void WaitTillTime() {}
 	virtual void EndFrame() {}
 	virtual char* GetTrackerDescription() {return "No Tracker";}
+	virtual bool SupportsPositionTracking() {return false;}
 
 	/*** MotionTracker public methods ***/
 	bool isEqual(float a, float b){ return abs(a-b) < 0.001; };

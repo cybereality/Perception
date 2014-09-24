@@ -50,11 +50,7 @@ StereoView* StereoViewFactory::Get(ProxyHelper::ProxyConfig& config, HMDisplayIn
 	case StereoView::OVER_UNDER:
 		return new StereoView(config);
 		break;
-	case StereoView::RIFTUP:
-	case StereoView::OCULUS_RIFT_DK1:
-	case StereoView::OCULUS_RIFT_DK1_CROPPED:
-	case StereoView::OCULUS_RIFT_DK2:
-	case StereoView::OCULUS_RIFT_DK2_CROPPED:
+	case StereoView::OCULUS_RIFT:
 		return new OculusRiftView(config, hmd);
 		break;
 	case StereoView::INTERLEAVE_HORZ:

@@ -185,9 +185,8 @@
     <ClInclude Include="GameHandler.h" />
     <ClInclude Include="HMDisplayInfo.h" />
     <ClInclude Include="HMDisplayInfoFactory.h" />
-    <ClInclude Include="HMDisplayInfo_DK1.h" />
-    <ClInclude Include="HMDisplayInfo_DK2.h" />
-    <ClInclude Include="HMDisplayInfo_RiftUp.h" />
+    <ClInclude Include="HMDisplayInfo_Default.h" />
+    <ClInclude Include="HMDisplayInfo_OculusRift.h" />
     <ClInclude Include="InputControls.h" />
     <ClInclude Include="MatrixDoNothing.h" />
     <ClInclude Include="MatrixGatheredOrhoSquash.h" />
@@ -338,14 +337,9 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
     </CustomBuild>
     <CustomBuild Include="..\..\Release\Perception\fx\OculusRift.fx">
-      <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx;%(Outputs)</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="..\..\Release\Perception\fx\OculusRiftCropped.fx">
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx;%(Outputs)</Outputs>
     </CustomBuild>
     <CustomBuild Include="..\..\Release\Perception\cfg\users.xml">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\cfg\" /Y</Command>
@@ -383,17 +377,6 @@
     <Xml Include="..\..\Release\Perception\cfg\shader_rules\TESV.xml">
       <SubType>Designer</SubType>
     </Xml>
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="..\..\Release\Perception\fx\OculusRiftDK2.fx">
-      <FileType>Document</FileType>
-    </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="..\..\Release\Perception\fx\RiftUp.fx">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Effect</ShaderType>
-      <FileType>Document</FileType>
-    </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

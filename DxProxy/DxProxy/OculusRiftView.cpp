@@ -48,12 +48,25 @@ OculusRiftView::OculusRiftView(ProxyHelper::ProxyConfig& config, HMDisplayInfo *
 ***/ 
 void OculusRiftView::SetViewEffectInitialValues() 
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("OculusRiftView::SetViewEffectInitialValues\n");
+	#endif
+
 	viewEffect->SetFloatArray("LensCenter", LensCenter, 2);
 	viewEffect->SetFloatArray("Scale", Scale, 2);
 	viewEffect->SetFloatArray("ScaleIn", ScaleIn, 2);
-	viewEffect->SetFloatArray("HmdWarpParam", hmdInfo->GetDistortionCoefficients(), 4);
 	viewEffect->SetFloat("ViewportXOffset", -ViewportXOffset);
 	viewEffect->SetFloat("ViewportYOffset", -ViewportYOffset);
+	if (chromaticAberrationCorrection)
+		viewEffect->SetFloatArray("Chroma", hmdInfo->GetDistortionCoefficientsChroma(), 4);
+	else
+	{
+		static float noChroma[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+		viewEffect->SetFloatArray("Chroma", noChroma, 4);
+	}
+
+	viewEffect->SetFloatArray("Resolution", Resolution, 2);
+	viewEffect->SetFloatArray("HmdWarpParam", hmdInfo->GetDistortionCoefficients(), 4);
 }
 
 /**
@@ -61,6 +74,10 @@ void OculusRiftView::SetViewEffectInitialValues()
 ***/ 
 void OculusRiftView::CalculateShaderVariables()
 {
+	#ifdef SHOW_CALLS
+	OutputDebugString("OculusRiftView::CalculateShaderVariables\n");
+	#endif
+
 	// Center of half screen is 0.25 in x (halfscreen x input in 0 to 0.5 range)
 	// Lens offset is in a -1 to 1 range. Using in shader with a 0 to 0.5 range so use 25% of the value.
 	LensCenter[0] = 0.25f + (hmdInfo->GetLensXCenterOffset() * 0.25f) - (hmdInfo->GetLensIPDCenterOffset() - IPDOffset);
@@ -90,6 +107,11 @@ void OculusRiftView::CalculateShaderVariables()
 	// Then use scaleFactor to fill horizontal space in line with the lens and adjust for aspect ratio for y.
 	Scale[0] = (1.0f / 4.0f) * scaleFactor;
 	Scale[1] = (1.0f / 2.0f) * scaleFactor * inputTextureAspectRatio;
+
+	//Set resolution  0 = Horizontal, 1 = Vertical
+	Resolution[0] = hmdInfo->GetResolution().first;
+	Resolution[1] = hmdInfo->GetResolution().second;
+
 }
 
 /**
@@ -97,11 +119,11 @@ void OculusRiftView::CalculateShaderVariables()
 ***/ 
 void OculusRiftView::InitShaderEffects()
 {
-	shaderEffect[RIFTUP] = "RiftUp.fx";
-	shaderEffect[OCULUS_RIFT_DK1] = "OculusRift.fx";
-	shaderEffect[OCULUS_RIFT_DK1_CROPPED] = "OculusRiftCropped.fx";
-	shaderEffect[OCULUS_RIFT_DK2] = "OculusRiftDK2.fx";
-	shaderEffect[OCULUS_RIFT_DK2_CROPPED] = "OculusRiftDK2Cropped.fx";
+	#ifdef SHOW_CALLS
+		OutputDebugString("OculusRiftView::InitShaderEffects\n");
+	#endif
+
+	shaderEffect[OCULUS_RIFT] = "OculusRift.fx";
 
 	char viewPath[512];
 	ProxyHelper helper = ProxyHelper();

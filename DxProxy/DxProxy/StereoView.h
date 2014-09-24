@@ -75,15 +75,7 @@ public:
 
 		//Reserve numbers over 100 for HMDs as many more could be added in the future
 		DIY_RIFT = 100,                      /**< For do-it-yourself Oculus Rift kits. */
-		OCULUS_RIFT_DK1 = 110,               /**< Standard Oculus Rift DK1 render method. */
-		OCULUS_RIFT_DK1_CROPPED = 111,       /**< Cropped Oculus Rift DK1 render method. */
-		RIFTUP = 112,					    /**< RiftUp! upgrade for the Oculus Rift DK1 */
-		OCULUS_RIFT_DK2 = 120,               /**< Standard Oculus Rift DK2 render method. */
-		OCULUS_RIFT_DK2_CROPPED = 121,        /**< Cropped Oculus Rift DK2 render method. */
-
-		//Currently no support for the following, simply placeholders
-		OCULUS_RIFT_CV1 = 130,               /**< Standard Oculus Rift DK2 render method. */
-		OCULUS_RIFT_CV1_CROPPED = 131        /**< Cropped Oculus Rift DK2 render method. */
+		OCULUS_RIFT = 110					/**< Standard Oculus Rift render method. */
 	};
 	/**
 	* Left and right enumeration.
@@ -97,6 +89,10 @@ public:
 	* Current Direct3D Viewport.
 	***/
 	D3DVIEWPORT9 viewport;
+	/**
+	* Option to suppress chromatic abberation correction for HMD
+	*/
+	bool chromaticAberrationCorrection;
 	/**
 	* Option to swap the eye output for different 3D systems.
 	***/	

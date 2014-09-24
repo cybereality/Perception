@@ -67,6 +67,12 @@ private:
 	* due to aspect ratio.
 	***/
 	float ScaleIn[2];
+
+	/**
+	* Resolution of the display
+	*/
+	float Resolution[2];
+
 	/**
 	* Predefined Oculus Rift Head Mounted Display info.
 	* Contains distortionCoefficients, needed as vertex shader constants

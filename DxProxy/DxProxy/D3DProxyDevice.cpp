@@ -105,7 +105,8 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	dinput(),
 	activePopup(VPT_NONE),
 	show_fps(FPS_NONE),
-	calibrate_tracker(false)
+	calibrate_tracker(false),
+	hmdInfo(NULL)
 {
 	#ifdef SHOW_CALLS
 		OutputDebugString("called D3DProxyDevice");
@@ -118,10 +119,8 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	int mode2;
 	ProxyHelper helper = ProxyHelper();
 	helper.LoadUserConfig(mode, mode2, showNotifications);
-
-	HMDisplayInfo *hmdInfo = HMDisplayInfoFactory::CreateHMDisplayInfo(static_cast<StereoView::StereoTypes>(mode)); 
+	hmdInfo = HMDisplayInfoFactory::CreateHMDisplayInfo(static_cast<StereoView::StereoTypes>(mode)); 
 	OutputDebugString(("Created HMD Info for: " + hmdInfo->GetHMDName()).c_str());
-
 
 	m_spShaderViewAdjustment = std::make_shared<ViewAdjustment>(hmdInfo, 1.0f, false);
 	m_pGameHandler = new GameHandler();
@@ -2394,6 +2393,22 @@ void D3DProxyDevice::HandleControls()
 
 		if (!m_bPosTrackingToggle)
 			m_spShaderViewAdjustment->UpdatePosition(0.0f, 0.0f, 0.0f);
+
+		menuVelocity.x += 4.0f;
+	}
+
+	//Toggle chromatic abberation correction - SHIFT+SPACE
+	if (((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down(0x43))
+		&& (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	{
+		stereoView->chromaticAberrationCorrection = !stereoView->chromaticAberrationCorrection;
+
+		VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1000);
+		if (stereoView->chromaticAberrationCorrection)
+			strcpy_s(popup.line3, "Chromatic Aberration Correction Enabled");
+		else
+			strcpy_s(popup.line3, "Chromatic Aberration Correction Disabled");
+		ShowPopup(popup);
 
 		menuVelocity.x += 4.0f;
 	}
@@ -6190,7 +6205,7 @@ bool D3DProxyDevice::InitBrassa()
 		tracker->setMouseEmulation((!m_VRboostRulesPresent) || (hmVRboost==NULL));
 
 		//Only advise calibration for positional tracking on DK2
-		if (m_spShaderViewAdjustment->GetStereoType() >= 120)
+		if (tracker->SupportsPositionTracking())
 			calibrate_tracker = true;
 
 		return true;

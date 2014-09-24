@@ -28,17 +28,28 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
+#define _WINSOCKAPI_
+
 #include "HMDisplayInfoFactory.h"
+#include "StereoView.h"
+
+#include <utility>
+#include <sstream>
+
+#include "..\..\LibOVR\include\OVR.h"
+#include "..\..\LibOVR\Src\OVR_Stereo.h"
+#include "..\..\LibOVR\Src\OVR_Profile.h"
+#include "..\..\LibOVR\Src\CAPI\CAPI_HMDState.h"
+#include "..\..\LibOVR\Src\Sensors\OVR_DeviceConstants.h"
 
 #include "HMDisplayInfo.h"
-#include "HMDisplayInfo_DK1.h"
-#include "HMDisplayInfo_DK2.h"
-#include "HMDisplayInfo_RiftUp.h"
+#include "HMDisplayInfo_Default.h"
+#include "HMDisplayInfo_OculusRift.h"
 
 
-HMDisplayInfo* HMDisplayInfoFactory::CreateHMDisplayInfo(StereoView::StereoTypes stereoType)
+HMDisplayInfo* HMDisplayInfoFactory::CreateHMDisplayInfo(int /*StereoView::StereoTypes*/ stereoType)
 {
-	switch(stereoType)
+	switch((StereoView::StereoTypes)stereoType)
 	{
 	//Basically, everything uses the "default", which is the DK1 variant
 	case StereoView::ANAGLYPH_RED_CYAN:
@@ -51,21 +62,15 @@ HMDisplayInfo* HMDisplayInfoFactory::CreateHMDisplayInfo(StereoView::StereoTypes
 	case StereoView::INTERLEAVE_VERT:
 	case StereoView::CHECKERBOARD:
 	case StereoView::SIDE_BY_SIDE:
-	case StereoView::DIY_RIFT:
 	case StereoView::OVER_UNDER:
-	case StereoView::OCULUS_RIFT_DK1:
-	case StereoView::OCULUS_RIFT_DK1_CROPPED:
-		return new HMDisplayInfo_DK1();
+	case StereoView::DIY_RIFT:
+		return new HMDisplayInfo_Default();
 		break;
-	case StereoView::RIFTUP:
-		return new HMDisplayInfo_RiftUp();
-		break;
-	case StereoView::OCULUS_RIFT_DK2:
-	case StereoView::OCULUS_RIFT_DK2_CROPPED:
-		return new HMDisplayInfo_DK2();
+	case StereoView::OCULUS_RIFT:
+		return new HMDisplayInfo_OculusRift();
 		break;	
 	default:
-		return new HMDisplayInfo_DK1();
+		return new HMDisplayInfo_Default();
 		break;
 	}
 }

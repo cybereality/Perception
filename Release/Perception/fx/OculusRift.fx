@@ -8,6 +8,8 @@ float ViewportYOffset;
 float2 LensCenter;
 float2 Scale;
 float2 ScaleIn;
+float4 Chroma;
+float2 Resolution;
 float4 HmdWarpParam;
 
 // Warp operates on left view, for right, mirror x texture coord
@@ -19,7 +21,7 @@ float2 HmdWarp(float2 in01, float2 in02)
   float  rSq= theta.x * theta.x + theta.y * theta.y;
   float2 theta1 = theta
 
-                  * (in02.x + in02.y * rSq) // correct chromatic aberr.
+                  * ((1.0f + in02.x) + in02.y * rSq) // correct chromatic aberr.
 
                   * (HmdWarpParam.x +       // correct lens distortion
                      HmdWarpParam.y * rSq +
@@ -38,8 +40,8 @@ float2 HmdWarp(float2 in01, float2 in02)
 
 float4 HorizSuperSampledWarp(float2 in01, float2 in02)
 {
-  float2 output_tc1 = HmdWarp(in01 + float2(-.0666666/1280.0f, 0.0f), in02);
-  float2 output_tc2 = HmdWarp(in01 + float2( .0666666/1280.0f, 0.0f), in02);
+  float2 output_tc1 = HmdWarp(in01 + float2(-.0666666/Resolution.x, 0.0f), in02);
+  float2 output_tc2 = HmdWarp(in01 + float2( .0666666/Resolution.x, 0.0f), in02);
 
   return float4(output_tc1.x, output_tc1.y, output_tc2.x, output_tc2.y);
 }
@@ -54,8 +56,8 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
   float4 tcGreen1;
   float4 tcBlue1;
 
-  float subpixelShiftR = -0.33333/1280.0f;
-  float subpixelShiftB = 0.33333/1280.0f;
+  float subpixelShiftR = -0.33333/Resolution.x;
+  float subpixelShiftB = 0.33333/Resolution.x;
 
   float3 outColor;
 
@@ -63,24 +65,23 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
     // mirror to get the right-eye distortion
     newPos.x = 1.0f - newPos.x;
 	// subpixel alignment isn't symmetric under mirroring
-    subpixelShiftR = 0.33333/1920.0f;
-    subpixelShiftB = -0.33333/1920.0f;
+    subpixelShiftR = 0.33333/Resolution.x;
+    subpixelShiftB = -0.33333/Resolution.x;
   }  
 
-  // TODO chromaberr params hardcoded for DK2 with A-cup lenses; need to pass in
-  // from SDK.
-  tcBlue0 = HorizSuperSampledWarp(newPos + float2(subpixelShiftB, -0.066666/800.0f), float2(1.010, 0.002f));
-  tcBlue1 = HorizSuperSampledWarp(newPos + float2(subpixelShiftB,  0.066666/800.0f), float2(1.010, 0.002f));
+  // Chromatic Aberation Correction using coefs from SDK.
+  tcBlue0 = HorizSuperSampledWarp(newPos + float2(subpixelShiftB, -0.066666/Resolution.y), float2(Chroma.z, Chroma.w));
+  tcBlue1 = HorizSuperSampledWarp(newPos + float2(subpixelShiftB,  0.066666/Resolution.y), float2(Chroma.z, Chroma.w));
 
   // Clamp on blue, because we expand the blue channel outward the most.
   // Symmetry makes this ok to do before any unmirroring.
   if (any(clamp(tcBlue0.xy, float2(0.0,0.0), float2(1.0, 1.0)) - tcBlue0.xy))
     return 0;
 
-  tcRed0   = HorizSuperSampledWarp(newPos + float2(subpixelShiftR, -0.25f/800.0f), float2(0.998f, -.005f));
-  tcRed1   = HorizSuperSampledWarp(newPos + float2(subpixelShiftR,  0.25f/800.0f), float2(0.998f, -.005f));
-  tcGreen0 = HorizSuperSampledWarp(newPos + float2(0.0, -0.25f/800.0f), float2(1.0f, 0.0f));
-  tcGreen1 = HorizSuperSampledWarp(newPos + float2(0.0,  0.25f/800.0f), float2(1.0f, 0.0f));
+  tcRed0   = HorizSuperSampledWarp(newPos + float2(subpixelShiftR, -0.25f/Resolution.y), float2(Chroma.x, Chroma.y));
+  tcRed1   = HorizSuperSampledWarp(newPos + float2(subpixelShiftR,  0.25f/Resolution.y), float2(Chroma.x, Chroma.y));
+  tcGreen0 = HorizSuperSampledWarp(newPos + float2(0.0, -0.25f/Resolution.y), float2(0.0f, 0.0f));
+  tcGreen1 = HorizSuperSampledWarp(newPos + float2(0.0,  0.25f/Resolution.y), float2(0.0f, 0.0f));
   
   if (Tex.x > 0.5f) {
     // unmirror the right-eye coords

@@ -62,6 +62,8 @@ public:
 	void updateOrientationAndPosition();
 	MotionTrackerStatus getStatus();	
 	virtual char* GetTrackerDescription();
+	virtual bool SupportsPositionTracking();
+
 
 	void BeginFrame();
 	void EndFrame();
