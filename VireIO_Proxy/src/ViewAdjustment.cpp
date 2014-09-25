@@ -191,10 +191,6 @@ void ViewAdjustment::UpdatePitchYaw(float pitch, float yaw)
 ***/
 void ViewAdjustment::UpdateRoll(float roll)
 {
-	char buffer[256]; 
-	sprintf_s(buffer, "ViewAdjustment::UpdateRoll: %.4f", roll); 
-	OutputDebugStringA(buffer);
-
 	D3DXMatrixIdentity(&rollMatrix);
 	D3DXMatrixRotationZ(&rollMatrix, roll);
 	D3DXMatrixRotationZ(&rollMatrixNegative, -roll);

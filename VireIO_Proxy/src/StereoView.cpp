@@ -60,6 +60,7 @@ StereoView::StereoView(cConfig& cfg ) :
 	XOffset = 0;
 	game_type = config.game_type;
 	swapEyes = config.swap_eyes;
+	chromaticAberrationCorrection = true;
 
 	// set all member pointers to NULL to prevent uninitialized objects being used
 	m_pActualDevice = NULL;
