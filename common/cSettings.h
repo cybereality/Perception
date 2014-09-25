@@ -9,6 +9,8 @@ public:
 	QString stereoMode;
 	int     trackerMode;
 	bool    logToConsole;
+	bool    logToFile;
+	bool    pauseOnLaunch;
 	bool    streamingEnable;
 	QString streamingAddress;
 	int     streamingPort;

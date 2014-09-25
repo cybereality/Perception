@@ -110,7 +110,8 @@ BOOL APIENTRY DllMain( HINSTANCE dll , DWORD fdwReason, LPVOID ){
 	}
 
 	AllocConsole();
-	freopen("CONOUT$", "w", stdout);
+	//freopen("CONOUT$", "w", stdout);
+	freopen("vireio_log.txt", "w", stdout);
 
 
 	HijackHookInstall();

@@ -76,10 +76,6 @@ public:
 	***/
 	D3DVIEWPORT9 viewport;
 	/**
-	* Option to suppress chromatic abberation correction for HMD
-	*/
-	bool chromaticAberrationCorrection;
-	/**
 	* Option to swap the eye output for different 3D systems.
 	***/	
 	bool swapEyes;

@@ -2004,6 +2004,22 @@ METHOD_IMPL( void , , D3DProxyDevice, HandleControls )
 		menuVelocity.x += 4.0f;
 	}
 
+	//Toggle chromatic abberation correction - CTRL/SHIFT + C
+	if (((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down(0x43))
+		&& (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	{
+		stereoView->config.chromaticAberrationCorrection = !stereoView->config.chromaticAberrationCorrection;
+
+		VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1000);
+		if (stereoView->config.chromaticAberrationCorrection)
+			strcpy_s(popup.line3, "Chromatic Aberration Correction Enabled");
+		else
+			strcpy_s(popup.line3, "Chromatic Aberration Correction Disabled");
+		ShowPopup(popup);
+
+		menuVelocity.x += 4.0f;
+	}
+
 	// toggle VR Mouse
 	if (controls.Key_Down(VK_LCONTROL) && controls.Key_Down(VK_NUMPAD0) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
@@ -5633,7 +5649,7 @@ METHOD_IMPL( bool , , D3DProxyDevice , InitTracker )
 		tracker->setMouseEmulation((!m_VRboostRulesPresent) || (hmVRboost==NULL));
 
 		//Only advise calibration for positional tracking on DK2
-		if( config.stereoMode.contains("DK2") ){
+		if (tracker->SupportsPositionTracking()){
 			calibrate_tracker = true;
 			//TODO: add new tracker interface
 		}

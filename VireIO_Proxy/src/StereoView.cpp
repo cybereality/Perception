@@ -60,7 +60,6 @@ StereoView::StereoView(cConfig& cfg ) :
 	XOffset = 0;
 	game_type = config.game_type;
 	swapEyes = config.swap_eyes;
-	chromaticAberrationCorrection = true;
 
 	// set all member pointers to NULL to prevent uninitialized objects being used
 	m_pActualDevice = NULL;
@@ -492,6 +491,18 @@ void StereoView::SetViewEffectInitialValues() {
 	viewEffect->SetFloatArray( "HmdWarpParam"    , config.distortionCoefficients , 4 );
 	viewEffect->SetFloat     ( "ViewportXOffset" , -ViewportXOffset );
 	viewEffect->SetFloat     ( "ViewportYOffset" , -ViewportYOffset );
+
+	if( config.chromaticAberrationCorrection ){
+		viewEffect->SetFloatArray( "Chroma",  config.chromaCoefficients , 4 );
+	}else{
+		static float noChroma[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+		viewEffect->SetFloatArray( "Chroma" , noChroma , 4 );
+	}
+
+	float resolution[2];
+	resolution[0] = config.resolutionWidth;
+	resolution[1] = config.resolutionHeight;
+	viewEffect->SetFloatArray( "Resolution" , resolution , 2 );
 } 
 
 
