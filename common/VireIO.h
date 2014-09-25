@@ -133,9 +133,10 @@ class ViewAdjustment;
 
 
 
-//this one is for logging ALL function calls
-//#define METHOD_LOG(ret,spec,base,name,...)
-#define METHOD_LOG(ret,spec,base,name,...) printf( #base "::" #name "\n" );
+//uncomment second to enable VERY verbose output (and comment first)
+#define METHOD_LOG(ret,spec,base,name,...)
+//#define METHOD_LOG(ret,spec,base,name,...) printf( #base "::" #name "\n" );
+
 
 //This macro expand to method declaration
 #define METHOD_IMPL(ret,spec,base,name,...)                     \
