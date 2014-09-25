@@ -217,6 +217,9 @@
          <property name="suffix">
           <string> Kbits/s</string>
          </property>
+         <property name="maximum">
+          <number>999999</number>
+         </property>
         </widget>
        </item>
        <item row="0" column="1">
