@@ -71,6 +71,8 @@ void cMainWindow::LoadSettings(){
 	ui.trackerMode     ->setCurrentIndex( ui.trackerMode->findData(s.trackerMode) );
 	
 	ui.logToConsole    ->setChecked     ( s.logToConsole      );
+	ui.logToFile       ->setChecked     ( s.logToFile         );
+	ui.pauseOnLaunch   ->setChecked     ( s.pauseOnLaunch     );
 
 	ui.streamingEnable ->setChecked     ( s.streamingEnable   );
 	ui.streamingAddress->setText        ( s.streamingAddress  );
@@ -87,6 +89,8 @@ void cMainWindow::on_saveSettings_clicked(){
 	s.trackerMode       = ui.trackerMode      ->currentData().toInt();
 
 	s.logToConsole      = ui.logToConsole     ->isChecked();
+	s.logToFile         = ui.logToFile        ->isChecked();
+	s.pauseOnLaunch     = ui.pauseOnLaunch    ->isChecked();
 
 	s.streamingEnable   = ui.streamingEnable  ->isChecked();
 	s.streamingAddress  = ui.streamingAddress ->text();
@@ -197,7 +201,7 @@ void cMainWindow::on_games_itemDoubleClicked( QTreeWidgetItem *item , int ){
 		env += "SteamAppId=" + g->profile->SteamAppId;
 	}
 
-	QString ret = HijackLaunchProcess( g->exe_path , g->profile->CommandLineArguments , env , ui.pause->isChecked() );
+	QString ret = HijackLaunchProcess( g->exe_path , g->profile->CommandLineArguments , env );
 	if( !ret.isEmpty() ){
 		QMessageBox::critical( 0 , "Launch error" , ret );
 	}

@@ -55,7 +55,7 @@ namespace vireio {
 
 QStringList HijackListProcesses( );
 QString     HijackAttachToProcess( int index         );
-QString     HijackLaunchProcess  ( QString exe_path , QString args , QStringList environment , bool pause);
+QString     HijackLaunchProcess  ( QString exe_path , QString args , QStringList environment );
 
 QString     HijackInject     ( HANDLE proccess );
 void        HijackHookAdd    ( const char* moduleName , const char* functionName , void** oldFunctionPtr  , void* newFunction );
@@ -134,8 +134,8 @@ class ViewAdjustment;
 
 
 //this one is for logging ALL function calls
-#define METHOD_LOG(ret,spec,base,name,...)
-//#define METHOD_LOG(ret,spec,base,name,...) printf( #base "::" #name "\n" );
+//#define METHOD_LOG(ret,spec,base,name,...)
+#define METHOD_LOG(ret,spec,base,name,...) printf( #base "::" #name "\n" );
 
 //This macro expand to method declaration
 #define METHOD_IMPL(ret,spec,base,name,...)                     \

@@ -34,6 +34,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <qdebug.h>
 #include <cConfig.h>
 #include <qfileinfo.h>
+#include <qmessagebox.h>
 
 QString vireioDir;
 /*
@@ -110,9 +111,7 @@ BOOL APIENTRY DllMain( HINSTANCE dll , DWORD fdwReason, LPVOID ){
 	}
 
 	AllocConsole();
-	//freopen("CONOUT$", "w", stdout);
-	freopen("vireio_log.txt", "w", stdout);
-
+	freopen("CONOUT$", "w", stdout);
 
 	HijackHookInstall();
 
@@ -210,12 +209,23 @@ BOOL APIENTRY DllMain( HINSTANCE dll , DWORD fdwReason, LPVOID ){
 	printf( "vireio: PlayerIPD=%f\n" , config.PlayerIPD);
 	printf( "vireio: RiftVersion=%s\n" , config.RiftVersion.toLocal8Bit().data() );
 
-	LoadLibraryA( "d3d9.dll" );
 
 	if( !config.logToConsole ){
-		fclose( stdout );
 		FreeConsole();
 	}
+
+	if( config.logToFile ){
+		freopen( "vireio_log.txt" , "w" , stdout );
+	}
+
+	if( config.pauseOnLaunch ){
+		MessageBoxA( 0 , "pause" , "click ok to resume" , 0 );
+//		ResumeThread
+		//GetProcessIdOfThread
+	}
+
+	LoadLibraryA( "d3d9.dll" );
+
 
 	return TRUE;
 }

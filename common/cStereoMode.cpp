@@ -19,27 +19,27 @@ void cStereoMode::loadAll(){
 		cPropsFile props;
 		if( props.load( info.filePath() ) ){
 			cStereoMode* mode = new cStereoMode;
-			mode->name                      = info.baseName();
-			mode->shader                    = props.getString( "shader"                   );
-			mode->isHmd                     = props.getBool  ( "isHmd"                    );
-			mode->resolutionWidth           = props.getInt   ( "resolutionWidth"          );
-			mode->resolutionHeight          = props.getInt   ( "resolutionHeight"         );
-			mode->physicalWidth             = props.getFloat ( "physicalWidth"            );
-			mode->physicalHeight            = props.getFloat ( "physicalHeight"           );
-			mode->distortionCoefficients[0] = props.getFloat ( "distortionCoefficients_0" );
-			mode->distortionCoefficients[1] = props.getFloat ( "distortionCoefficients_1" );
-			mode->distortionCoefficients[2] = props.getFloat ( "distortionCoefficients_2" );
-			mode->distortionCoefficients[3] = props.getFloat ( "distortionCoefficients_3" );
-			mode->chromaCoefficients[0]     = props.getFloat ( "chromaCoefficients_0"     );
-			mode->chromaCoefficients[1]     = props.getFloat ( "chromaCoefficients_1"     );
-			mode->chromaCoefficients[2]     = props.getFloat ( "chromaCoefficients_2"     );
-			mode->chromaCoefficients[3]     = props.getFloat ( "chromaCoefficients_3"     );
-			mode->eyeToScreenDistance       = props.getFloat ( "eyeToScreenDistance"      );
-			mode->physicalLensSeparation    = props.getFloat ( "physicalLensSeparation"   );
-			mode->lensYCenterOffset         = props.getFloat ( "lensYCenterOffset"        );
-			mode->lensIPDCenterOffset       = props.getFloat ( "lensIPDCenterOffset"      );
-			mode->minDistortionScale        = props.getFloat ( "minDistortionScale"       );
-			mode->minDistortionScale        = props.getBool  ( "chromaticAberrationCorrection" , true );
+			mode->name                          = info.baseName();
+			mode->shader                        = props.getString( "shader"                   );
+			mode->isHmd                         = props.getBool  ( "isHmd"                    );
+			mode->resolutionWidth               = props.getInt   ( "resolutionWidth"          );
+			mode->resolutionHeight              = props.getInt   ( "resolutionHeight"         );
+			mode->physicalWidth                 = props.getFloat ( "physicalWidth"            );
+			mode->physicalHeight                = props.getFloat ( "physicalHeight"           );
+			mode->distortionCoefficients[0]     = props.getFloat ( "distortionCoefficients_0" );
+			mode->distortionCoefficients[1]     = props.getFloat ( "distortionCoefficients_1" );
+			mode->distortionCoefficients[2]     = props.getFloat ( "distortionCoefficients_2" );
+			mode->distortionCoefficients[3]     = props.getFloat ( "distortionCoefficients_3" );
+			mode->chromaCoefficients[0]         = props.getFloat ( "chromaCoefficients_0"     );
+			mode->chromaCoefficients[1]         = props.getFloat ( "chromaCoefficients_1"     );
+			mode->chromaCoefficients[2]         = props.getFloat ( "chromaCoefficients_2"     );
+			mode->chromaCoefficients[3]         = props.getFloat ( "chromaCoefficients_3"     );
+			mode->eyeToScreenDistance           = props.getFloat ( "eyeToScreenDistance"      );
+			mode->physicalLensSeparation        = props.getFloat ( "physicalLensSeparation"   );
+			mode->lensYCenterOffset             = props.getFloat ( "lensYCenterOffset"        );
+			mode->lensIPDCenterOffset           = props.getFloat ( "lensIPDCenterOffset"      );
+			mode->minDistortionScale            = props.getFloat ( "minDistortionScale"       );
+			mode->chromaticAberrationCorrection = props.getBool  ( "chromaticAberrationCorrection" , true );
 
 			mode->screenAspectRatio = mode->resolutionWidth / (float)mode->resolutionHeight;
 

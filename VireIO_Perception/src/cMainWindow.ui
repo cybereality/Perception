@@ -270,10 +270,17 @@
        <bool>true</bool>
       </property>
       <layout class="QGridLayout" name="gridLayout_5">
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_9">
+       <item row="2" column="1">
+        <widget class="QCheckBox" name="pauseOnLaunch">
          <property name="text">
-          <string>Log to console</string>
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_10">
+         <property name="text">
+          <string>Pause game on launch</string>
          </property>
         </widget>
        </item>
@@ -284,17 +291,24 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="1">
-        <widget class="QCheckBox" name="pause">
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_9">
          <property name="text">
-          <string/>
+          <string>Log to console</string>
          </property>
         </widget>
        </item>
        <item row="1" column="0">
-        <widget class="QLabel" name="label_10">
+        <widget class="QLabel" name="label_11">
          <property name="text">
-          <string>Pause game on launch</string>
+          <string>Log to file</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QCheckBox" name="logToFile">
+         <property name="text">
+          <string/>
          </property>
         </widget>
        </item>

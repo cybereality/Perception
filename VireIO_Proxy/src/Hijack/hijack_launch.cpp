@@ -6,7 +6,7 @@
 #include <qprocess.h>
 
 
-QString HijackLaunchProcess  ( QString exe_path , QString args , QStringList environment , const bool pause ){
+QString HijackLaunchProcess  ( QString exe_path , QString args , QStringList environment ){
 	PROCESS_INFORMATION pi;
 	STARTUPINFOA        si;
 	QString             ret;
@@ -42,9 +42,9 @@ QString HijackLaunchProcess  ( QString exe_path , QString args , QStringList env
 		goto end;
 	}
 
-	if( pause ){
-		QMessageBox::information( 0 , "pause" , "Click ok to resume game" );
-	}
+	//if( pause ){
+	//	QMessageBox::information( 0 , "pause" , "Click ok to resume game" );
+	//}
 
 	ResumeThread( pi.hThread );
 
