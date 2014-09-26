@@ -142,12 +142,84 @@ BOOL APIENTRY DllMain( HINSTANCE dll , DWORD fdwReason, LPVOID ){
 		return FALSE;
 	}
 
+
 	//load game settings again, in case if there any overrides for profile settings
 	config.load( config.getGameConfigFile(exe_path) );
 
 	config.calculateValues();
 
 
+	printf( "stereoDevice %s\n" , config.stereoDevice.toLocal8Bit().data() );
+	printf( "trackerMode %d\n" , config.trackerMode );
+	printf( "logToConsole %d\n" , config.logToConsole );
+	printf( "logToFile %d\n" , config.logToFile );
+	printf( "pauseOnLaunch %d\n" , config.pauseOnLaunch );
+	printf( "streamingEnable %d\n" , config.streamingEnable );
+	printf( "streamingAddress %s\n" , config.streamingAddress.toLocal8Bit().data() );
+	printf( "streamingPort %d\n" , config.streamingPort );
+	printf( "streamingCodec %s\n" , config.streamingCodec.toLocal8Bit().data() );
+	printf( "streamingBitrate %d\n" , config.streamingBitrate );
+	printf( "showNotifications %d\n" , config.showNotifications );
+	printf( "exePath %s\n" , config.exePath.toLocal8Bit().data() );
+	printf( "profileName %s\n" , config.profileName.toLocal8Bit().data() );
+	printf( "exeName %s\n" , config.exeName.toLocal8Bit().data() );                   
+	printf( "shaderRulePath %s\n" , config.shaderRulePath.toLocal8Bit().data() );            
+	printf( "VRboostPath %s\n" , config.VRboostPath.toLocal8Bit().data() );               
+	printf( "VRboostMinShaderCount %d\n" , config.VRboostMinShaderCount );     
+	printf( "VRboostMaxShaderCount %d\n" , config.VRboostMaxShaderCount );     
+	printf( "game_type %d\n" , config.game_type );                 
+	printf( "rollEnabled %d\n" , config.rollEnabled );               
+	printf( "worldScaleFactor %f\n" , config.worldScaleFactor );          
+	printf( "convergence %f\n" , config.convergence );               
+	printf( "swap_eyes %d\n" , config.swap_eyes );                 
+	printf( "yaw_multiplier %f\n" , config.yaw_multiplier );            
+	printf( "pitch_multiplier %f\n" , config.pitch_multiplier );          
+	printf( "roll_multiplier %f\n" , config.roll_multiplier );           
+	printf( "position_multiplier %f\n" , config.position_multiplier );       
+	printf( "DistortionScale %f\n" , config.DistortionScale );           
+	printf( "YOffset %f\n" , config.YOffset );                   
+	printf( "IPDOffset %f\n" , config.IPDOffset );                 
+	printf( "hud3DDepthMode %d\n" , config.hud3DDepthMode );            
+	printf( "hud3DDepthPresets %f\n" , config.hud3DDepthPresets[0] );   
+	printf( "hudDistancePresets %f\n" , config.hudDistancePresets[0] ); 
+	printf( "hudHotkeys %d\n" , config.hudHotkeys[0] );            
+	printf( "gui3DDepthMode %d\n" , config.gui3DDepthMode );            
+	printf( "gui3DDepthPresets %f\n" , config.gui3DDepthPresets[0] );    
+	printf( "guiSquishPresets %f\n" , config.guiSquishPresets[0] );     
+	printf( "guiHotkeys %d\n" , config.guiHotkeys );           
+	printf( "VRBoostResetHotkey %d\n" , config.VRBoostResetHotkey );        
+	printf( "WorldFOV %f\n" , config.WorldFOV );                  
+	printf( "PlayerFOV %f\n" , config.PlayerFOV );                 
+	printf( "FarPlaneFOV %f\n" , config.FarPlaneFOV );               
+	printf( "CameraTranslateX %f\n" , config.CameraTranslateX );          
+	printf( "CameraTranslateY %f\n" , config.CameraTranslateY );          
+	printf( "CameraTranslateZ %f\n" , config.CameraTranslateZ );          
+	printf( "CameraDistance %f\n" , config.CameraDistance );            
+	printf( "CameraZoom %f\n" , config.CameraZoom );                
+	printf( "CameraHorizonAdjustment %f\n" , config.CameraHorizonAdjustment );   
+	printf( "ConstantValue1 %f\n" , config.ConstantValue1 );            
+	printf( "ConstantValue2 %f\n" , config.ConstantValue2 );            
+	printf( "ConstantValue3 %f\n" , config.ConstantValue3 );            
+	printf( "SteamAppId %s\n" , config.SteamAppId.toLocal8Bit().data() );                
+	printf( "CommandLineArguments %s\n" , config.CommandLineArguments.toLocal8Bit().data() );      
+	printf( "shader %s\n" , config.shader.toLocal8Bit().data() );
+	printf( "isHmd %d\n" , config.isHmd );
+	printf( "resolutionWidth %d\n" , config.resolutionWidth );
+	printf( "resolutionHeight %d\n" , config.resolutionHeight );
+	printf( "physicalWidth %f\n" , config.physicalWidth );
+	printf( "physicalHeight %f\n" , config.physicalHeight );
+	printf( "distortionCoefficients %f\n" , config.distortionCoefficients[0] );
+	printf( "chromaCoefficients %f\n" , config.chromaCoefficients[0] );
+	printf( "eyeToScreenDistance %f\n" , config.eyeToScreenDistance );
+	printf( "physicalLensSeparation %f\n" , config.physicalLensSeparation );
+	printf( "lensYCenterOffset %f\n" , config.lensYCenterOffset );
+	printf( "lensIPDCenterOffset %f\n" , config.lensIPDCenterOffset );
+	printf( "minDistortionScale %f\n" , config.minDistortionScale );
+	printf( "chromaticAberrationCorrection %d\n" , config.chromaticAberrationCorrection );
+	printf( "PlayerIPD %f\n" , config.PlayerIPD );
+	printf( "screenAspectRatio %f\n" , config.screenAspectRatio );
+	printf( "scaleToFillHorizontal %f\n" , config.scaleToFillHorizontal );
+	printf( "lensXCenterOffset %f\n" , config.lensXCenterOffset );
 
 	if( !config.logToConsole ){
 		FreeConsole();

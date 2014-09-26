@@ -166,6 +166,8 @@ void cMainWindow::ScanGames(){
 			cfg.save( config.getGameConfigFile(file) , config.SAVE_GAME );
 		}
 	}
+
+	LoadGames();
 }
 
 
