@@ -1,26 +1,24 @@
 #include "cProfileSelectDialog.h"
-#include <cGameProfile.h>
+#include <VireIO.h>
 
 
 cProfileSelectDialog::cProfileSelectDialog( QWidget* parent ) : QDialog(parent) {
 	ui.setupUi(this);
-	selectedProfile = 0;
 
-	for( cGameProfile* g : cGameProfile::all() ){
-		ui.profile->addItem( g->profileName );
+	for( QString& s : config.getAvailableProfiles() ){
+		ui.profile->addItem( s );
 	}
 }
 
 
 
 void cProfileSelectDialog::on_ok_clicked(){
-	int i = ui.profile->currentIndex();
-	if( i<0 ){
-		reject();
-		return;
-	}
+	selectedProfileName = ui.profile->currentText();
 
-	selectedProfile = cGameProfile::all()[i];
-	accept();
+	if( selectedProfileName.isEmpty() ){
+		reject();
+	}else{
+		accept();
+	}
 }
 

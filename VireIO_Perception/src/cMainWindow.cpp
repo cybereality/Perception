@@ -6,16 +6,9 @@
 #include <qmessagebox.h>
 #include <qfiledialog.h>
 #include "cProfileSelectDialog.h"
-
-#include <cStereoMode.h>
-#include <cGameProfile.h>
-#include <cGame.h>
-#include <cSettings.h>
-
-
-static cGame* GameForItem( QTreeWidgetItem* i ){
-	return (cGame*) i->data( 0 , Qt::UserRole ).value<void*>();
-}
+#include <VireIO.h>
+#include <cConfig.h>
+#include <cPropsFile.h>
 
 
 cMainWindow::cMainWindow( ){
@@ -23,20 +16,8 @@ cMainWindow::cMainWindow( ){
 
 	ui.games->header()->setSectionResizeMode( 0 , QHeaderView::ResizeToContents );
 
-	cStereoMode ::loadAll();
-	cGameProfile::loadAll();
-	cGame       ::loadAll();
-
-	ui.info->setText(
-		QString("Loaded %1 profiles.\nLoaded %2 games.\nLoaded %3 stereo modes.").arg( cGameProfile::all().count() ).arg( cGame::all().count() ).arg( cStereoMode::all().count() )
-	);
-
-	for( cGame* g : cGame::all() ){
-		AddGame( g );
-	}
-
-	for( cStereoMode* m : cStereoMode::all() ){
-		ui.stereoMode->addItem( m->name );
+	for( QString& s : config.getAvailableDevices() ){
+		ui.stereoMode->addItem( s );
 	}
 
 	ui.trackerMode->addItem( "No Tracking"           , 0  );
@@ -45,59 +26,54 @@ cMainWindow::cMainWindow( ){
 	ui.trackerMode->addItem( "Shared Memory Tracker" , 30 );
 	ui.trackerMode->addItem( "OculusTrack"           , 40 );
 
-	LoadSettings();
+
+
+	ui.stereoMode      ->setCurrentIndex( ui.stereoMode ->findText(config.stereoDevice)  );
+	ui.trackerMode     ->setCurrentIndex( ui.trackerMode->findData(config.trackerMode) );
+
+	ui.logToConsole    ->setChecked     ( config.logToConsole      );
+	ui.logToFile       ->setChecked     ( config.logToFile         );
+	ui.pauseOnLaunch   ->setChecked     ( config.pauseOnLaunch     );
+
+	ui.streamingEnable ->setChecked     ( config.streamingEnable   );
+	ui.streamingAddress->setText        ( config.streamingAddress  );
+	ui.streamingPort   ->setValue       ( config.streamingPort     );
+	ui.streamingCodec  ->setCurrentText ( config.streamingCodec    );
+	ui.streamingBitrate->setValue       ( config.streamingBitrate  );
+
+	LoadGames();
 }
 
 
 cMainWindow::~cMainWindow( ){
 
 }
-
+/*
 void cMainWindow::AddGame( cGame* g ){
 	QTreeWidgetItem* item = new QTreeWidgetItem;
 	item->setText( 0 , g->profile->profileName );
-	item->setText( 1 , g->exe_path           );
-	item->setIcon( 0 , QFileIconProvider().icon( QFileInfo( g->exe_path ) ) );
+	item->setText( 1 , g->exe           );
+	item->setIcon( 0 , QFileIconProvider().icon( QFileInfo( g->exe ) ) );
 	item->setData( 0 , Qt::UserRole , QVariant::fromValue<void*>( g ) );
 	ui.games->addTopLevelItem( item );
 }
+*/
 
-
-void cMainWindow::LoadSettings(){
-	cSettings s;
-	s.load();
-
-	ui.stereoMode      ->setCurrentIndex( ui.stereoMode ->findText(s.stereoMode)  );
-	ui.trackerMode     ->setCurrentIndex( ui.trackerMode->findData(s.trackerMode) );
-	
-	ui.logToConsole    ->setChecked     ( s.logToConsole      );
-	ui.logToFile       ->setChecked     ( s.logToFile         );
-	ui.pauseOnLaunch   ->setChecked     ( s.pauseOnLaunch     );
-
-	ui.streamingEnable ->setChecked     ( s.streamingEnable   );
-	ui.streamingAddress->setText        ( s.streamingAddress  );
-	ui.streamingPort   ->setValue       ( s.streamingPort     );
-	ui.streamingCodec  ->setCurrentText ( s.streamingCodec    );
-	ui.streamingBitrate->setValue       ( s.streamingBitrate  );
-
-}
 
 
 void cMainWindow::on_saveSettings_clicked(){
-	cSettings s;
-	s.stereoMode        = ui.stereoMode       ->currentText();
-	s.trackerMode       = ui.trackerMode      ->currentData().toInt();
+	config.stereoDevice      = ui.stereoMode       ->currentText();
+	config.trackerMode       = ui.trackerMode      ->currentData().toInt();
+	config.logToConsole      = ui.logToConsole     ->isChecked();
+	config.logToFile         = ui.logToFile        ->isChecked();
+	config.pauseOnLaunch     = ui.pauseOnLaunch    ->isChecked();
+	config.streamingEnable   = ui.streamingEnable  ->isChecked();
+	config.streamingAddress  = ui.streamingAddress ->text();
+	config.streamingPort     = ui.streamingPort    ->value();
+	config.streamingCodec    = ui.streamingCodec   ->currentText();
+	config.streamingBitrate  = ui.streamingBitrate ->value();
 
-	s.logToConsole      = ui.logToConsole     ->isChecked();
-	s.logToFile         = ui.logToFile        ->isChecked();
-	s.pauseOnLaunch     = ui.pauseOnLaunch    ->isChecked();
-
-	s.streamingEnable   = ui.streamingEnable  ->isChecked();
-	s.streamingAddress  = ui.streamingAddress ->text();
-	s.streamingPort     = ui.streamingPort    ->value();
-	s.streamingCodec    = ui.streamingCodec   ->currentText();
-	s.streamingBitrate  = ui.streamingBitrate ->value();
-	s.save();
+	config.save( config.getMainConfigFile() , config.SAVE_GENERAL );
 }
 
 
@@ -124,32 +100,44 @@ void cMainWindow::on_games_customContextMenuRequested( const QPoint& pos ){
 		if( d.exec() ){
 			cProfileSelectDialog pd(this);
 			if( pd.exec() ){
-				cGame* g = new cGame;
-				g->exe_path = d.selectedFiles()[0];
-				g->profile  = pd.selectedProfile;
-				g->save();
-				AddGame( g );
+				cConfig cfg;
+				cfg.exePath     = d.selectedFiles()[0];
+				cfg.profileName = pd.selectedProfileName;
+				cfg.save( config.getGameConfigFile(cfg.exePath) , config.SAVE_GAME );
+				LoadGames( );
 			}
 		}
 	}
 
 	if( ret == del ){
 		for( QTreeWidgetItem* i : ui.games->selectedItems() ){
-			cGame* g = GameForItem(i);
-			if( QFile( g->propFile).remove() ){
-				delete g;
-				delete i;
-			}
+			QFile(i->text(2)).remove();
+		}
+		LoadGames( );
+	}
+}
+
+
+void cMainWindow::LoadGames(){
+	ui.games->clear();
+
+	for( QFileInfo& info : QDir(config.vireioDir+"games").entryInfoList(QDir::Files) ){
+		cConfig cfg;
+		if( cfg.load( info.absoluteFilePath() ) ){
+			QTreeWidgetItem* item = new QTreeWidgetItem;
+			item->setText( 0 , cfg.profileName         );
+			item->setText( 1 , cfg.exePath             );
+			item->setText( 2 , info.absoluteFilePath() );
+			item->setIcon( 0 , QFileIconProvider().icon( QFileInfo( cfg.exePath ) ) );
+			ui.games->addTopLevelItem( item );
 		}
 	}
 }
 
 
 void cMainWindow::ScanGames(){
-
 	QStringList scan_queue;
 	QStringList file_list;
-	QStringList name_list;
 
 	scan_queue += QSettings( "HKEY_CURRENT_USER\\Software\\Valve\\Steam" , QSettings::NativeFormat ).value("SteamPath").toString() + "/SteamApps";
 
@@ -161,47 +149,43 @@ void cMainWindow::ScanGames(){
 			if( info.isDir() ){
 				scan_queue += info.absoluteFilePath() + "/";
 			}else{
-				QString name = info.fileName();
-
-				if( name.toLower().endsWith(".exe") ){
+				if( info.fileName().toLower().endsWith(".exe") ){
 					file_list += info.filePath();
-					name_list += name;
 				}
 			}
 		}
 	}
 
 
-	while( !name_list.isEmpty() ){
-		cGame* game = cGame::findByPath(file_list[0]);
-
-		if( !game ){
-			cGameProfile* profile = cGameProfile::findByExe( name_list[0] );
-
-			if( profile ){
-				cGame* g = new cGame;
-				g->exe_path = file_list[0];
-				g->profile  = profile;
-				g->save();
-				AddGame( g );
-			}
+	for( QString& file : file_list ){
+		QString profile = config.findProfileFileForExe( file );
+		if( !profile.isEmpty() ){
+			cConfig cfg;
+			cfg.exePath     = file;
+			cfg.profileName = profile;
+			cfg.save( config.getGameConfigFile(file) , config.SAVE_GAME );
 		}
-
-		name_list.removeFirst();
-		file_list.removeFirst();
 	}
-
 }
 
-void cMainWindow::on_games_itemDoubleClicked( QTreeWidgetItem *item , int ){
-	cGame* g = GameForItem(item);
 
-	QStringList env;
-	if( !g->profile->SteamAppId.isEmpty() ){
-		env += "SteamAppId=" + g->profile->SteamAppId;
+void cMainWindow::on_games_itemDoubleClicked( QTreeWidgetItem *item , int ){
+	cConfig game = config;
+	if( !game.load( item->text(2) ) ){
+		return;
 	}
 
-	QString ret = HijackLaunchProcess( g->exe_path , g->profile->CommandLineArguments , env );
+	if( !game.loadProfile() ){
+		return;
+	}
+
+	QStringList env;
+	if( !game.SteamAppId.isEmpty() ){
+		env += "SteamAppId=" + game.SteamAppId;
+	}
+
+	QString ret = HijackLaunchProcess( game.exePath , game.CommandLineArguments , env );
+
 	if( !ret.isEmpty() ){
 		QMessageBox::critical( 0 , "Launch error" , ret );
 	}

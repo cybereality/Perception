@@ -1,10 +1,9 @@
 #include <Ui_cProfileSelectDialog.h>
-#include <cGameProfile.h>
 
 class cProfileSelectDialog : public QDialog {
 Q_OBJECT
 public:
-	cGameProfile* selectedProfile;
+	QString selectedProfileName;
 
 	cProfileSelectDialog( QWidget* parent );
 

@@ -162,7 +162,7 @@ QString HijackInject( HANDLE proccess ){
 		load_func = (FARPROC)LoadLibraryA;
 	}
 
-	QByteArray path = (vireioDir+"bin/VireIO_Proxy.dll").toLocal8Bit();
+	QByteArray path = ( config.vireioDir + "bin/VireIO_Proxy.dll" ).toLocal8Bit();
 	path.replace( "/" , "\\" );
 
 	remote_lib_name = VirtualAllocEx( proccess , 0 , path.size()+1 , MEM_COMMIT , PAGE_READWRITE );

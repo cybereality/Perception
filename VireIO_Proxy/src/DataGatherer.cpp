@@ -113,7 +113,7 @@ DataGatherer::DataGatherer(IDirect3DDevice9* pDevice, IDirect3DDevice9Ex* pDevic
 
 
 	std::ifstream cfgFile;
-	cfgFile.open( (vireioDir+"config/brassa.cfg").toLocal8Bit() , std::ios::in);
+	cfgFile.open( (config.vireioDir+"/config/brassa.cfg").toLocal8Bit() , std::ios::in);
 	if (cfgFile.is_open())
 	{
 		enum CFG_FILEMODE

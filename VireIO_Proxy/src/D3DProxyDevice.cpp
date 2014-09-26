@@ -40,7 +40,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "D3D9ProxyStateBlock.h" 
 #include "D3D9ProxyQuery.h"
 #include "MotionTrackerFactory.h"
-#include "cStereoMode.h"
 #include "VRBoostEnums.h"
 #include "StereoShaderConstant.h"
 #include "StereoBackBuffer.h"
@@ -2720,7 +2719,7 @@ METHOD_IMPL( bool , , D3DProxyDevice , deleteRule , std::string , constantName )
 METHOD_IMPL( void , , D3DProxyDevice , saveShaderRules ) 
 	m_pGameHandler->Save(config, m_spShaderViewAdjustment);
 
-	config.cGameProfile::save();
+	config.saveProfile( );
 }
 
 /**
@@ -5141,7 +5140,7 @@ METHOD_IMPL( void , , D3DProxyDevice , BRASSA_AdditionalOutput )
 METHOD_IMPL( void , , D3DProxyDevice , DisplayCurrentPopup )
 	if ((activePopup.popupType == VPT_NONE && show_fps == FPS_NONE) || 
 		BRASSA_mode != BRASSA_Modes::INACTIVE ||
-		!showNotifications)
+		!config.showNotifications)
 		return;
 	
 	// output menu

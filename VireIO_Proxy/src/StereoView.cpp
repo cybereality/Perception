@@ -472,7 +472,7 @@ void StereoView::InitVertexBuffers()
 ***/
 void StereoView::InitShaderEffects()
 {
-	if (FAILED(D3DXCreateEffectFromFileA(m_pActualDevice, (vireioDir+"shaders/"+config.shader).toLocal8Bit(), NULL, NULL, D3DXFX_DONOTSAVESTATE, NULL, &viewEffect, NULL))) {
+	if (FAILED(D3DXCreateEffectFromFileA(m_pActualDevice, (config.vireioDir+"shaders/"+config.shader).toLocal8Bit(), NULL, NULL, D3DXFX_DONOTSAVESTATE, NULL, &viewEffect, NULL))) {
 		OutputDebugStringA("Effect creation failed\n");
 	}
 }

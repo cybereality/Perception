@@ -50,7 +50,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
     </Link>
     <ClCompile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -61,13 +61,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\common\cConfig.cpp" />
-    <ClCompile Include="..\..\common\cGame.cpp" />
-    <ClCompile Include="..\..\common\cGameProfile.cpp" />
     <ClCompile Include="..\..\common\cPropsFile.cpp" />
-    <ClCompile Include="..\..\common\cSettings.cpp" />
-    <ClCompile Include="..\..\common\cStereoMode.cpp" />
-    <ClCompile Include="..\..\common\cStereoMode_oculus.cpp" />
-    <ClCompile Include="..\..\common\cUser.cpp" />
     <ClCompile Include="..\..\VireIO_Proxy\src\Hijack\hijack_hook.cpp" />
     <ClCompile Include="..\..\VireIO_Proxy\src\Hijack\hijack_launch.cpp" />
     <ClCompile Include="..\src\app_main.cpp" />
@@ -78,22 +72,7 @@
     <ClInclude Include="..\..\common\cConfig.h">
       <FileType>Document</FileType>
     </ClInclude>
-    <ClInclude Include="..\..\common\cGame.h">
-      <FileType>Document</FileType>
-    </ClInclude>
-    <ClInclude Include="..\..\common\cGameProfile.h">
-      <FileType>Document</FileType>
-    </ClInclude>
     <ClInclude Include="..\..\common\cPropsFile.h">
-      <FileType>Document</FileType>
-    </ClInclude>
-    <ClInclude Include="..\..\common\cSettings.h">
-      <FileType>Document</FileType>
-    </ClInclude>
-    <ClInclude Include="..\..\common\cStereoMode.h">
-      <FileType>Document</FileType>
-    </ClInclude>
-    <ClInclude Include="..\..\common\cUser.h">
       <FileType>Document</FileType>
     </ClInclude>
     <ClInclude Include="..\..\common\VireIO.h">

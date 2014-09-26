@@ -61,13 +61,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\common\cConfig.cpp" />
-    <ClCompile Include="..\..\common\cGame.cpp" />
-    <ClCompile Include="..\..\common\cGameProfile.cpp" />
     <ClCompile Include="..\..\common\cPropsFile.cpp" />
-    <ClCompile Include="..\..\common\cSettings.cpp" />
-    <ClCompile Include="..\..\common\cStereoMode.cpp" />
-    <ClCompile Include="..\..\common\cStereoMode_oculus.cpp" />
-    <ClCompile Include="..\..\common\cUser.cpp" />
     <ClCompile Include="..\..\common\pugixml.cpp" />
     <ClCompile Include="..\src\D3D9ProxyCubeTexture.cpp" />
     <ClCompile Include="..\src\D3D9ProxyDirect3D.cpp" />

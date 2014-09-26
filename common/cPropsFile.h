@@ -2,22 +2,32 @@
 #include "VireIO.h"
 
 class cPropsFile{
-private:
-	QList< QPair<QString , QString> > items;
-
 public:
+	cPropsFile();
+	~cPropsFile();
+
 	bool load( QString path );
 	bool save( QString path );
 
-	bool    getBool  ( QString name , bool    default_value = false );
-	float   getFloat ( QString name , float   default_value = 0.0f  );
-	int     getInt   ( QString name , int     default_value = 0     );
-	QString getString( QString name , QString default_value = ""    );
+	QString getString( const QString& name , bool* ok );
+	void    setString( const QString& name , const QString& value );
 
-	void    setBool  ( QString name , bool    value );
-	void    setFloat ( QString name , float   value );
-	void    setInt   ( QString name , int     value );
-	void    setString( QString name , QString value );
+	void get( bool*           , const QString& );
+	void get( int*            , const QString& );
+	void get( float*          , const QString& );
+	void get( QString*        , const QString& );
 
-	//static QList< QPair<QString , cPropsFile > >  loadFiles( QString directory );
+	void set( bool*          , const QString& );
+	void set( int*           , const QString& );
+	void set( float*         , const QString& );
+	void set( QString*       , const QString& );
+
+private:
+	struct Item{
+		QString id;
+		QString value;
+		bool    used;
+	};
+
+	QList<Item> items;
 };

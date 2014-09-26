@@ -62,8 +62,8 @@ void        HijackHookAdd    ( const char* moduleName , const char* functionName
 void        HijackHookUpdate ( );
 void        HijackHookInstall( );
 
-
-extern QString vireioDir;
+#include "cConfig.h"
+extern cConfig config;
 
 
 class D3D9ProxySurface;

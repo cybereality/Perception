@@ -1,13 +1,13 @@
 #include <qapplication.h>
 #include "cMainWindow.h"
-#include <qdebug.h>
-
-QString vireioDir;
+#include <VireIO.h>
 
 int main(int argc, char **argv){
 	QApplication a(argc, argv);
 
-	vireioDir = a.applicationDirPath() + "/../";
+	config.vireioDir = a.applicationDirPath() + "/../";
+
+	config.load( config.getMainConfigFile() );
 
 	QCoreApplication::setOrganizationName( "VireIO" );
 	QCoreApplication::setApplicationName ( "Perception" );
