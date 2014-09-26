@@ -35,6 +35,9 @@
     <ClCompile Include="..\..\VireIO_Proxy\src\Hijack\hijack_hook.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\common\cConfig_ovr.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QT_UIC Include="..\src\cMainWindow.ui">

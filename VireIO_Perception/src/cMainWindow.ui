@@ -101,16 +101,6 @@
        <bool>true</bool>
       </property>
       <layout class="QGridLayout" name="gridLayout_4">
-       <item row="0" column="1">
-        <widget class="QComboBox" name="stereoMode"/>
-       </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label">
-         <property name="text">
-          <string>Mode</string>
-         </property>
-        </widget>
-       </item>
        <item row="1" column="0">
         <widget class="QLabel" name="label_8">
          <property name="enabled">
@@ -120,6 +110,9 @@
           <string>Quality</string>
          </property>
         </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QComboBox" name="stereoMode"/>
        </item>
        <item row="1" column="1">
         <widget class="QComboBox" name="stereoResolution">
@@ -141,6 +134,13 @@
            <string>half height</string>
           </property>
          </item>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>Mode</string>
+         </property>
         </widget>
        </item>
       </layout>

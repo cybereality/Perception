@@ -18,7 +18,6 @@ public:
 	QString streamingCodec;
 	int     streamingBitrate;
 	bool    showNotifications;
-	bool    detectOculusRift;
 
 	//game/rprofile settings
 	QString exePath;
@@ -105,7 +104,7 @@ public:
 	bool loadProfile( );
 	bool saveProfile( );
 	bool loadDevice ( );
-	
+	bool loadOculusSdk( );
 
 	void        calculateValues();
 	QString     getMainConfigFile( );

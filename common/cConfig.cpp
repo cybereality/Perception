@@ -35,7 +35,6 @@ bool cConfig::load( const QString& file ){
 	props.get( &streamingCodec    , "streamingCodec"    );
 	props.get( &streamingBitrate  , "streamingBitrate"  );
 	props.get( &showNotifications , "showNotifications" );
-	props.get( &detectOculusRift  , "detectOculusRift"  );
 
 	//device settings
 	props.get( &shader                        , "shader"                        );
@@ -148,7 +147,6 @@ bool cConfig::save( const QString& file , int flags ){
 		props.set( &streamingCodec    , "streamingCodec"    );
 		props.set( &streamingBitrate  , "streamingBitrate"  );
 		props.set( &showNotifications , "showNotifications" );
-		props.set( &detectOculusRift  , "detectOculusRift"  );
 	}
 
 	if( flags & SAVE_GAME ){
@@ -224,6 +222,8 @@ QStringList cConfig::getAvailableProfiles( ){
 
 QStringList cConfig::getAvailableDevices( ){
 	QStringList ret;
+	ret += "Oculus Rift (auto)";
+
 	for( QFileInfo& info : QDir(config.vireioDir+"/modes").entryInfoList(QDir::Files) ){
 		ret += info.baseName();
 	}
@@ -248,5 +248,9 @@ bool cConfig::saveProfile( ){
 
 
 bool cConfig::loadDevice ( ){
-	return load( vireioDir + "/modes/" + stereoDevice + ".ini" );
+	if( stereoDevice == "Oculus Rift (auto)" ){
+		return loadOculusSdk();
+	}else{
+		return load( vireioDir + "/modes/" + stereoDevice + ".ini" );
+	}
 }

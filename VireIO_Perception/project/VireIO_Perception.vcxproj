@@ -61,6 +61,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\common\cConfig.cpp" />
+    <ClCompile Include="..\..\common\cConfig_ovr.cpp" />
     <ClCompile Include="..\..\common\cPropsFile.cpp" />
     <ClCompile Include="..\..\VireIO_Proxy\src\Hijack\hijack_hook.cpp" />
     <ClCompile Include="..\..\VireIO_Proxy\src\Hijack\hijack_launch.cpp" />

@@ -61,6 +61,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\common\cConfig.cpp" />
+    <ClCompile Include="..\..\common\cConfig_ovr.cpp" />
     <ClCompile Include="..\..\common\cPropsFile.cpp" />
     <ClCompile Include="..\..\common\pugixml.cpp" />
     <ClCompile Include="..\src\D3D9ProxyCubeTexture.cpp" />
@@ -112,12 +113,7 @@
     <ClInclude Include="..\..\common\cBase.h" />
     <ClInclude Include="..\..\common\cBaseTexture.h" />
     <ClInclude Include="..\..\common\cConfig.h" />
-    <ClInclude Include="..\..\common\cGame.h" />
-    <ClInclude Include="..\..\common\cGameProfile.h" />
     <ClInclude Include="..\..\common\cPropsFile.h" />
-    <ClInclude Include="..\..\common\cSettings.h" />
-    <ClInclude Include="..\..\common\cStereoMode.h" />
-    <ClInclude Include="..\..\common\cUser.h" />
     <ClInclude Include="..\..\common\hijack.h" />
     <ClInclude Include="..\..\common\pugiconfig.hpp" />
     <ClInclude Include="..\..\common\pugixml.hpp" />
