@@ -16,6 +16,7 @@ public:
 	int     streamingPort;
 	QString streamingCodec;
 	int     streamingBitrate;
+	bool    showNotifications;
 
 	cSettings();
 

@@ -30,4 +30,8 @@ public:
 	static void                 loadAll( );
 	static QList<cStereoMode*>& all    ( );
 	static cStereoMode*         find   ( QString name );
+
+private:
+	static void loadOculus();
+	void calculateValues();
 };

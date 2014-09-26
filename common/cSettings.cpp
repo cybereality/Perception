@@ -27,6 +27,8 @@ bool cSettings::load(){
 	streamingCodec   = props.getString( "streamingCodec"   );
 	streamingBitrate = props.getInt   ( "streamingBitrate" );
 
+	showNotifications  = props.getBool  ( "showNotifications"  );
+
 	return true;
 }
 
@@ -45,6 +47,8 @@ bool cSettings::save(){
 	props.setInt   ( "streamingPort"    , streamingPort    );
 	props.setString( "streamingCodec"   , streamingCodec   );
 	props.setInt   ( "streamingBitrate" , streamingBitrate );
+
+	props.setBool  ( "showNotifications" , showNotifications  );
 
 	return props.save( vireioDir+"config/main.ini" );
 }

@@ -170,6 +170,9 @@
     <ClCompile Include="..\src\Hijack\hijack_list.cpp">
       <Filter>Hijack</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\common\cStereoMode_oculus.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\D3D9ProxyCubeTexture.h">

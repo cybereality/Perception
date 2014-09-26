@@ -372,10 +372,6 @@ public:
 	**/
 	ID3DXFont *popupFont;	
 	/**
-	* Whether notifications are shown for this user
-	**/
-	bool showNotifications;
-	/**
 	* Timestamp used to adjust the menu velocity independent of game speed.
 	**/
 	float menuTime;

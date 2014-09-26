@@ -3,7 +3,7 @@
   <PropertyGroup>
     <OutDir>$(ProgramFiles)\Vireio\Perception\bin\</OutDir>
     <IntDir>$(TEMP)\projects\$(ProjectName)\$(Configuration)\</IntDir>
-    <IncludePath>..\..\common;..\..\VireIO_Proxy\src\Streaming;$(IncludePath)</IncludePath>
+    <IncludePath>..\..\common;..\..\VireIO_Proxy\src\Streaming;$(DXSDK_DIR)\Include;$(FREESPACE)\include;$(LIBOVR)\Include;$(LIBOVR)\Src;$(LIBOVR)\Src\CAPI;$(LIBOVR)\Src\Sensors;$(FFMPEG)\include;$(SolutionDir)\VRboostReferee;$(SolutionDir)\DxProxy;$(SolutionDir)\DxProxy\Streaming;$(SolutionDir)\DxHijack;$(WIN_DDK_DIR)inc\atl71;$(IncludePath)</IncludePath>
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <ItemDefinitionGroup>
@@ -13,7 +13,6 @@
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(DXSDK_DIR)\Include;$(FREESPACE)\include;$(LIBOVR)\Include;$(FFMPEG)\include;$(SolutionDir)\VRboostReferee;$(SolutionDir)\DxProxy;$(SolutionDir)\DxProxy\Streaming;$(SolutionDir)\DxHijack;$(WIN_DDK_DIR)inc\atl71;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <WarningLevel />
       <TreatWarningAsError />
       <InlineFunctionExpansion />
