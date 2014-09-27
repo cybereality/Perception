@@ -33,7 +33,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * Constructor.
 * Calls init function.
 ***/ 
-MotionTracker::MotionTracker()
+MotionTracker::MotionTracker() :
+	useTimewarp(true)
 {
 	OutputDebugString("Motion Tracker Created\n");
 	init();

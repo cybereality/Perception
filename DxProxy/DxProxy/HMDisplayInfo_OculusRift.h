@@ -214,6 +214,12 @@ public:
 		return -0.5f;
 	}
 
+		/**
+	 * Returns the manufacturer of the HMD - Enumeration to be added to when new HMD manufacturers are supported
+	 */
+	virtual HMDManufacturer GetHMDManufacturer() {return HMD_OCULUS;}
+
+
 
 private:
 	/**

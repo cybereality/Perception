@@ -32,6 +32,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <string>
 
+enum HMDManufacturer
+{
+	HMD_UNKNOWN,
+	HMD_DIY,
+	HMD_OCULUS
+};
+
 /**
 * HMDisplayInfo abstract base class
 ***/
@@ -166,6 +173,11 @@ public:
 		return radius * (GetDistortionCoefficients()[0] + GetDistortionCoefficients()[1] * radiusSqared + GetDistortionCoefficients()[2] * 
 			radiusSqared * radiusSqared + GetDistortionCoefficients()[3] * radiusSqared * radiusSqared * radiusSqared);
 	}
+
+	/**
+	 * Returns the manufacturer of the HMD - Enumeration to be added to when new HMD manufacturers are supported
+	 */
+	virtual HMDManufacturer GetHMDManufacturer() {return HMD_UNKNOWN;}
 
 protected:
 	float *distortionCoefficients;

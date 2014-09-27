@@ -177,7 +177,7 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	std::string buildDate = date.substr(4, 2) + "-" + date.substr(0, 3) + "-" + date.substr(7, 4);
 
 	//Show a splash screen on startup
-	VireioPopup splashPopup(VPT_SPLASH, VPS_TOAST, 10000);
+	VireioPopup splashPopup(VPT_SPLASH, VPS_INFO, 10000);
 	strcpy_s(splashPopup.line1, "Vireio Perception: Stereoscopic 3D Driver");
 	strcpy_s(splashPopup.line2, (std::string("Version: ") + APP_VERSION + "   Build Date: " + buildDate).c_str());
 	strcpy_s(splashPopup.line3, "This program is distributed in the hope that it will be useful,"); 
@@ -395,6 +395,10 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 
 	//Now calculate frames per second
 	fps = CalcFPS();
+
+	if (tracker)
+		tracker->EndFrame();
+
 
 	return BaseDirect3DDevice9::Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
 }
@@ -1065,9 +1069,6 @@ HRESULT WINAPI D3DProxyDevice::EndScene()
 		else
 			BRASSA_AdditionalOutput();
 	}
-
-	if (tracker)
-		tracker->EndFrame();
 
 	return BaseDirect3DDevice9::EndScene();
 }
@@ -2364,14 +2365,14 @@ void D3DProxyDevice::HandleControls()
 		{
 			calibrate_tracker = false;
 			//Replace popup
-			VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 3000);
+			VireioPopup popup(VPT_NOTIFICATION, VPS_INFO, 3000);
 			strcpy_s(popup.line3, "HMD Orientation and Position Calibrated");
 			strcpy_s(popup.line3, "Please repeat if required...");
 			ShowPopup(popup);
 		}
 		else
 		{
-			VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1000);
+			VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 2000);
 			strcpy_s(popup.line3, "HMD Orientation and Position Reset");
 			ShowPopup(popup);
 		}
@@ -2384,7 +2385,7 @@ void D3DProxyDevice::HandleControls()
 	{
 		m_bPosTrackingToggle = !m_bPosTrackingToggle;
 
-		VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1000);
+		VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 2000);
 		if (m_bPosTrackingToggle)
 			strcpy_s(popup.line3, "HMD Positional Tracking Enabled");
 		else
@@ -2397,13 +2398,29 @@ void D3DProxyDevice::HandleControls()
 		menuVelocity.x += 4.0f;
 	}
 
-	//Toggle chromatic abberation correction - SHIFT+SPACE
+	//Toggle timewarp - LSHIFT + DELETE
+	if (hmdInfo->GetHMDManufacturer() == HMD_OCULUS	&&
+		(controls.Key_Down(VK_LSHIFT) && controls.Key_Down(VK_DELETE)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)) && tracker)
+	{
+		tracker->useTimewarp = !tracker->useTimewarp;
+
+		VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 2000);
+		if (tracker->useTimewarp)
+			strcpy_s(popup.line3, "Oculus VR Timewarp Enabled");
+		else
+			strcpy_s(popup.line3, "Oculus VR Timewarp Disabled");
+		ShowPopup(popup);
+
+		menuVelocity.x += 4.0f;
+	}
+
+	//Toggle chromatic abberation correction - SHIFT+C
 	if (((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down(0x43))
 		&& (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		stereoView->chromaticAberrationCorrection = !stereoView->chromaticAberrationCorrection;
 
-		VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1000);
+		VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 2000);
 		if (stereoView->chromaticAberrationCorrection)
 			strcpy_s(popup.line3, "Chromatic Aberration Correction Enabled");
 		else
@@ -2421,7 +2438,7 @@ void D3DProxyDevice::HandleControls()
 		else
 			m_bShowVRMouse = true;
 
-		VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1000);
+		VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 2000);
 		if (m_bShowVRMouse)
 			strcpy_s(popup.line3, "VR Mouse Enabled");
 		else
@@ -2446,7 +2463,7 @@ void D3DProxyDevice::HandleControls()
 			}
 		}
 
-		VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1000);
+		VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 2000);
 		if (m_bfloatingMenu)
 			strcpy_s(popup.line3, "Floating Menus Enabled");
 		else
@@ -2479,7 +2496,7 @@ void D3DProxyDevice::HandleControls()
 			}
 		}
 
-		VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1000);
+		VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 2000);
 		if (m_bfloatingScreen)
 			strcpy_s(popup.line3, "Disconnected Screen View Enabled");
 		else
@@ -5683,6 +5700,13 @@ void D3DProxyDevice::DisplayCurrentPopup()
 				strcpy_s(activePopup.line5, "HMD Positional Tracking Enabled");
 			else
 				strcpy_s(activePopup.line5, "HMD Positional Tracking Disabled");
+			if (hmdInfo->GetHMDManufacturer() == HMD_OCULUS)
+			{
+				if (tracker->useTimewarp)
+					strcpy_s(activePopup.line6, "Oculus VR Timewarp Enabled");
+				else
+					strcpy_s(activePopup.line6, "Oculus VR Timewarp Disabled");
+			}
 		}
 
 		if (activePopup.expired())
@@ -5692,14 +5716,22 @@ void D3DProxyDevice::DisplayCurrentPopup()
 			activePopup.reset();
 		}
 
+		UINT format = 0;
 		D3DCOLOR popupColour;
 		ID3DXFont *pFont;
+		menuHelperRect.left = 640;
+		menuHelperRect.top = 440;
 		switch (activePopup.severity)
 		{
 			case VPS_TOAST:
 				{
+					//Center on the screen
+					format = DT_CENTER;
 					popupColour = D3DCOLOR_ARGB(255, 255, 255, 255);
-					pFont = popupFont;
+					int fontSize = (activePopup.popupDuration - GetTickCount() > 800) ? 32 : 
+						(int)( (31.0f * (activePopup.popupDuration - GetTickCount())) / 800.0f + 1);
+					D3DXCreateFont( this, fontSize, 0, FW_BOLD, 4, FALSE, DEFAULT_CHARSET, OUT_TT_ONLY_PRECIS, ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_DONTCARE, "Arial", &pFont );
+					menuHelperRect.left = 0;
 				}
 				break;
 			case VPS_INFO:
@@ -5716,32 +5748,30 @@ void D3DProxyDevice::DisplayCurrentPopup()
 				break;
 		}
 
-		menuHelperRect.left = 640;
-		menuHelperRect.top = 480;
-		DrawTextShadowed(pFont, hudMainMenu, activePopup.line1, -1, &menuHelperRect, 0, popupColour);
+		DrawTextShadowed(pFont, hudMainMenu, activePopup.line1, -1, &menuHelperRect, format, popupColour);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(pFont, hudMainMenu, activePopup.line2, -1, &menuHelperRect, 0, popupColour);
+		DrawTextShadowed(pFont, hudMainMenu, activePopup.line2, -1, &menuHelperRect, format, popupColour);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(pFont, hudMainMenu, activePopup.line3, -1, &menuHelperRect, 0, popupColour);
+		DrawTextShadowed(pFont, hudMainMenu, activePopup.line3, -1, &menuHelperRect, format, popupColour);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(pFont, hudMainMenu, activePopup.line4, -1, &menuHelperRect, 0, popupColour);
+		DrawTextShadowed(pFont, hudMainMenu, activePopup.line4, -1, &menuHelperRect, format, popupColour);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(pFont, hudMainMenu, activePopup.line5, -1, &menuHelperRect, 0, popupColour);
+		DrawTextShadowed(pFont, hudMainMenu, activePopup.line5, -1, &menuHelperRect, format, popupColour);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(pFont, hudMainMenu, activePopup.line6, -1, &menuHelperRect, 0, popupColour);
+		DrawTextShadowed(pFont, hudMainMenu, activePopup.line6, -1, &menuHelperRect, format, popupColour);
 
 		if (show_fps != FPS_NONE)
 		{
 			char buffer[256];
 			if (show_fps == FPS_COUNT)
-				sprintf_s(buffer, "       FPS: %.1f", fps);
+				sprintf_s(buffer, "FPS: %.1f", fps);
 			else if (show_fps == FPS_TIME)
 				sprintf_s(buffer, "Frame Time: %.2f ms", 1000.0f / fps);
 
 			D3DCOLOR colour = (fps <= 40) ? D3DCOLOR_ARGB(255, 255, 0, 0) : D3DCOLOR_ARGB(255, 255, 255, 255);;
-			menuHelperRect.left = 850;
 			menuHelperRect.top = 800;
-			DrawTextShadowed(hudFont, hudMainMenu, buffer, -1, &menuHelperRect, 0, colour);
+			menuHelperRect.left = 0;
+			DrawTextShadowed(hudFont, hudMainMenu, buffer, -1, &menuHelperRect, DT_CENTER, colour);
 		}
 
 		menuHelperRect.left = 0;
@@ -5750,6 +5780,9 @@ void D3DProxyDevice::DisplayCurrentPopup()
 		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
 		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));
 		hudMainMenu->End();
+
+		if (activePopup.severity == VPS_TOAST)
+			pFont->Release();
 	}
 
 }
@@ -5787,30 +5820,19 @@ float D3DProxyDevice::CalcFPS()
 
 	float FPS = (float)((double)MAXSAMPLES / ((double)ticksum / (double)perffreq.QuadPart));
 
-	//char buffer[256];
-	//sprintf(buffer, "FPS: %.1f\n", FPS);
-	//OutputDebugString(buffer);
-
     return FPS;
 }
 
 //Logic for popup, need some priority logic here
 void D3DProxyDevice::ShowPopup(VireioPopup &popup)
 {
-	//Nothing to do if we are already showing this popup, or splash screen is currently displayed
+	//Nothing to do if we are already showing this popup, splash screen is currently displayed, or we are showing stats
 	if (activePopup.popupType == popup.popupType ||
-		activePopup.popupType == VPT_SPLASH)
+		activePopup.popupType == VPT_SPLASH ||
+		activePopup.popupType == VPT_STATS)
 		return;
 
-//	if (popup.popupType == VPT_FPS || popup.popupType == VPT_STATS)
-	{
-		activePopup = popup;
-		return;
-	}
-
-	if (m_spShaderViewAdjustment->GetStereoType() < 100)   //stereo type > 100 reserved specifically for HMDs
-	{
-	}
+	activePopup = popup;
 }
 
 //DIsmiss popup if the popup type matches current displayed popup

@@ -135,5 +135,11 @@ public:
 	{
 		return -1.0;
 	}
+
+	/**
+	 * Returns the manufacturer of the HMD - Enumeration to be added to when new HMD manufacturers are supported
+	 */
+	virtual HMDManufacturer GetHMDManufacturer() {return HMD_DIY;}
+
 };
 #endif

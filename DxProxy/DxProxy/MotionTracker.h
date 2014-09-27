@@ -140,6 +140,12 @@ public:
 	float offsetX, offsetY, offsetZ;
 
 	/**
+	 * Whether we are using Oculus Timewarp or not (currently appears to introduce awful juddering)
+	 * Need a better place to put this, probably shouldn't be on the base class
+	 */
+	bool useTimewarp;
+
+	/**
 	* Currently supported tracker types enumeration.
 	***/
 	static enum TrackerTypes
