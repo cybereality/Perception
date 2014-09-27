@@ -7,6 +7,7 @@
 
 namespace{
 	struct HookInfo{
+		HookInfo*   next;
 		const char* module_name;
 		const char* function_name;
 		PROC        new_function;
@@ -15,7 +16,7 @@ namespace{
 		HMODULE     module;
 	};
 
-	std::list<HookInfo*> hooks;
+	HookInfo* hooks;
 	
 	FARPROC (WINAPI* ORIG_GetProcAddress )( HMODULE hModule , LPCSTR lpProcName );
 	HMODULE (WINAPI* ORIG_LoadLibraryA   )( LPCSTR lpLibFileName );
@@ -27,6 +28,7 @@ namespace{
 void HijackHookAdd( const char* moduleName , const char* functionName , void** oldFunctionPtr  , void* newFunction ){
 	HookInfo *h = new HookInfo;
 
+	h->next             = hooks;
 	h->module_name      = _strdup( moduleName   );
 	h->function_name    = _strdup( functionName );
 	h->new_function     = (PROC)newFunction;
@@ -34,7 +36,7 @@ void HijackHookAdd( const char* moduleName , const char* functionName , void** o
 	h->module           = 0;
 	h->old_function_ret = (PROC*)oldFunctionPtr;
 
-	hooks.push_back( h );
+	hooks = h;
 }
 
 
@@ -51,7 +53,7 @@ void HijackHookUpdate(){
 	size = size/sizeof(HMODULE);
 
 
-	for( HookInfo* h : hooks ){
+	for( HookInfo* h = hooks  ; h ; h=h->next ){
 		if( h->old_function ){
 			continue;
 		}
@@ -103,8 +105,8 @@ void HijackHookUpdate(){
 					PROC* func = (PROC*)&thunk->u1.Function;
 
 
-					for( HookInfo* hook : hooks ){
-						if(  hook->old_function && *func == hook->old_function  ){
+					for( HookInfo* h = hooks ; h ; h=h->next ){
+						if(  h->old_function && *func == h->old_function  ){
 							MEMORY_BASIC_INFORMATION mbi;
 							DWORD ret;
 
@@ -112,13 +114,13 @@ void HijackHookUpdate(){
 
 							VirtualProtect( mbi.BaseAddress , mbi.RegionSize , PAGE_READWRITE , &mbi.Protect );
 
-							*func = hook->new_function;
+							*func = h->new_function;
 
 							VirtualProtect( mbi.BaseAddress , mbi.RegionSize , mbi.Protect , &ret );
 
-							char name[4096];
-							GetModuleFileNameA( modules[c] , name , sizeof(name) );
-							name[4095] = 0;
+							//char name[4096];
+							//GetModuleFileNameA( modules[c] , name , sizeof(name) );
+							//name[4095] = 0;
 
 							/*if( hook->new_function != (PROC)NEW_GetProcAddress &&
 								hook->new_function != (PROC)NEW_LoadLibraryA   &&
@@ -246,7 +248,7 @@ void HijackHookInstall( ){
 	ORIG_GetProcAddress = GetProcAddress;
 
 	HOOK( "Kernel32.dll" , FARPROC , WINAPI , GetProcAddress , ( HMODULE hModule , LPCSTR lpProcName ) , {
-		for( HookInfo* h : hooks ){
+		for( HookInfo* h = hooks ; h ; h=h->next ){
 			if( h->module == hModule && strcmp(h->function_name,lpProcName)==0 ){
 				if( config.logHijack ){
 					printf("hook: requested  %s\n",lpProcName);
