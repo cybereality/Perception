@@ -25,8 +25,8 @@ public:
 
 	//profile settings
 	QString exeName;                    // Game executable name
-	QString shaderRulePath;             // Full path of shader rules for this game
-	QString VRboostPath;                // Full path of VRboost rules for this game
+	QString shaderRule;                 // Name of shader rule file for this game
+	QString VRboostRule;                // Name of VRboost rule file for this game
 	int     VRboostMinShaderCount;      // Minimum Vertex Shader Count to apply VRboost (security)
 	int     VRboostMaxShaderCount;      // Maximum Vertex Shader Count to apply VRboost (security)
 	int     game_type;                  // Game type enumeration. Matching D3DProxyDevice::ProxyTypes
@@ -110,6 +110,8 @@ public:
 	QString     getMainConfigFile( );
 	QString     getGameConfigFile( const QString& gameExePath );
 	QString     getProfileConfigFile( );
+	QString     getShaderRuleFilePath();
+	QString     getVRBoostRuleFilePath();
 	QString     findProfileFileForExe( const QString& gameExePath );
 	QStringList getAvailableProfiles( );
 	QStringList getAvailableDevices ( );

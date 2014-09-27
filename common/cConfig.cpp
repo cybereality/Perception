@@ -115,8 +115,8 @@ bool cConfig::load( const QString& file ){
 	props.get( &ConstantValue1                , "ConstantValue1"                );
 	props.get( &ConstantValue2                , "ConstantValue2"                );
 	props.get( &ConstantValue3                , "ConstantValue3"                );
-	props.get( &shaderRulePath                , "shaderModRules"                );
-	props.get( &VRboostPath                   , "VRboostRules"                  );
+	props.get( &shaderRule                    , "shaderModRules"                );
+	props.get( &VRboostRule                   , "VRboostRules"                  );
 	props.get( &rollEnabled                   , "rollEnabled"                   );
 	props.get( &worldScaleFactor              , "worldScaleFactor"              );
 	props.get( &SteamAppId                    , "SteamAppId"                    );
@@ -235,6 +235,15 @@ QString cConfig::getProfileConfigFile( ){
 	return vireioDir + "/profiles/" + profileName + ".ini";
 }
 
+
+QString cConfig::getShaderRuleFilePath( ){
+	return vireioDir + "/shader_rules/" + shaderRule;
+}
+
+
+QString cConfig::getVRBoostRuleFilePath(){
+	return vireioDir + "/VRboost_rules/" + VRboostRule;
+}
 
 
 bool cConfig::loadProfile( ){

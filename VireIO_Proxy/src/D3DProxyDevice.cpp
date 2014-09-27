@@ -2398,10 +2398,10 @@ METHOD_IMPL( void , , D3DProxyDevice , HandleTracking )
 			if (!createNSave)
 			{
 				// load VRboost rules
-				if (config.VRboostPath != "")
+				if (config.VRboostRule != "")
 				{
 					//OutputDebugStringA(std::string("config.VRboostPath: " + config.VRboostPath).c_str());
-					if (m_pVRboost_LoadMemoryRules(config.exeName.toStdString() , config.VRboostPath.toStdString() ) != S_OK)
+					if (m_pVRboost_LoadMemoryRules(config.exeName.toStdString() , config.getVRBoostRuleFilePath().toStdString() ) != S_OK)
 						VRBoostStatus.VRBoost_LoadRules = false;
 					else
 						VRBoostStatus.VRBoost_LoadRules = true;
@@ -3023,14 +3023,14 @@ METHOD_IMPL( void , , D3DProxyDevice , BRASSA_MainMenu )
 		{
 			// first, backup all strings
 			QString game_exe      = config.exeName;
-			QString shaderRulePath= config.shaderRulePath;
-			QString VRboostPath   = config.VRboostPath;
+			QString shaderRule    = config.shaderRule;
+			QString VRboostRule   = config.VRboostRule;
 
 			config = m_configBackup;
 
 			config.exeName          = game_exe;
-			config.shaderRulePath   = shaderRulePath;
-			config.VRboostPath      = VRboostPath;
+			config.shaderRule       = shaderRule;
+			config.VRboostRule      = VRboostRule;
 
 			BRASSA_UpdateDeviceSettings();
 			BRASSA_UpdateConfigSettings();
@@ -5635,7 +5635,7 @@ METHOD_IMPL( bool , , D3DProxyDevice , InitBrassa )
   */
 METHOD_IMPL( bool , , D3DProxyDevice , InitTracker )
  	// VRboost rules present ?
- 	if (config.VRboostPath != "") m_VRboostRulesPresent = true; else m_VRboostRulesPresent = false;
+ 	if (config.VRboostRule != "") m_VRboostRulesPresent = true; else m_VRboostRulesPresent = false;
  
  	OutputDebugStringA("GB - Try to init Tracker\n");
 	tracker.reset(MotionTrackerFactory::Get(config));

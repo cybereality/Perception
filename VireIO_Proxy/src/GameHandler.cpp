@@ -67,10 +67,10 @@ bool GameHandler::Load( cConfig& cfg, std::shared_ptr<ViewAdjustment> spShaderVi
 	bool loadSuccess = true;
 
 	//if (game profile has shader rules)
-	if (!cfg.shaderRulePath.isEmpty()) {
+	if (!cfg.shaderRule.isEmpty()) {
 		m_ShaderModificationRepository = new ShaderModificationRepository(spShaderViewAdjustments);
 
-		if (!m_ShaderModificationRepository->LoadRules(cfg.shaderRulePath.toStdString())) {
+		if (!m_ShaderModificationRepository->LoadRules( cfg.getShaderRuleFilePath().toStdString() )) {
 			OutputDebugStringA("Rules failed to load.");
 			loadSuccess = false;
 		}
@@ -96,8 +96,8 @@ bool GameHandler::Save(cConfig& cfg, std::shared_ptr<ViewAdjustment> spShaderVie
 	OutputDebugStringA("Save shader rules...");
 
 	// if (game profile has shader rules path) and (modification repository present)
-	if ((!cfg.shaderRulePath.isEmpty()) && (m_ShaderModificationRepository)) {
-		if (!m_ShaderModificationRepository->SaveRules(cfg.shaderRulePath.toStdString())) {
+	if ((!cfg.shaderRule.isEmpty()) && (m_ShaderModificationRepository)) {
+		if (!m_ShaderModificationRepository->SaveRules(cfg.getShaderRuleFilePath().toStdString())) {
 			OutputDebugStringA("Rules failed to save.");
 		}
 	}
