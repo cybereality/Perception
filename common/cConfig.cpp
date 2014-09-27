@@ -23,11 +23,14 @@ bool cConfig::load( const QString& file ){
 		return false;
 	}
 
+	props.get( &vireioDir , "vireioDir" );
+
 	//global settings
 	props.get( &stereoDevice      , "stereoDevice"      );
 	props.get( &trackerMode       , "trackerMode"       );
 	props.get( &logToConsole      , "logToConsole"      );
 	props.get( &logToFile         , "logToFile"         );
+	props.get( &logHijack         , "logHijack"         );
 	props.get( &pauseOnLaunch     , "pauseOnLaunch"     );
 	props.get( &streamingEnable   , "streamingEnable"   );
 	props.get( &streamingAddress  , "streamingAddress"  );

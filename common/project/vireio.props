@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <OutDir>$(ProgramFiles)\Vireio\Perception\bin\</OutDir>
+    <OutDir>$(SolutionDir)\data\bin\</OutDir>
     <IntDir>$(TEMP)\projects\$(ProjectName)\$(Configuration)\</IntDir>
     <IncludePath>..\..\common;..\..\VireIO_Proxy\src\Streaming;$(DXSDK_DIR)\Include;$(FREESPACE)\include;$(LIBOVR)\Include;$(LIBOVR)\Src;$(LIBOVR)\Src\CAPI;$(LIBOVR)\Src\Sensors;$(FFMPEG)\include;$(SolutionDir)\VRboostReferee;$(SolutionDir)\DxProxy;$(SolutionDir)\DxProxy\Streaming;$(SolutionDir)\DxHijack;$(WIN_DDK_DIR)inc\atl71;$(IncludePath)</IncludePath>
     <LinkIncremental>false</LinkIncremental>

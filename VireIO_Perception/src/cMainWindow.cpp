@@ -33,6 +33,8 @@ cMainWindow::cMainWindow( ){
 
 	ui.logToConsole    ->setChecked     ( config.logToConsole      );
 	ui.logToFile       ->setChecked     ( config.logToFile         );
+	ui.logHijack       ->setChecked     ( config.logHijack         );
+	
 	ui.pauseOnLaunch   ->setChecked     ( config.pauseOnLaunch     );
 
 	ui.streamingEnable ->setChecked     ( config.streamingEnable   );
@@ -66,6 +68,7 @@ void cMainWindow::on_saveSettings_clicked(){
 	config.trackerMode       = ui.trackerMode      ->currentData().toInt();
 	config.logToConsole      = ui.logToConsole     ->isChecked();
 	config.logToFile         = ui.logToFile        ->isChecked();
+	config.logHijack         = ui.logHijack        ->isChecked();
 	config.pauseOnLaunch     = ui.pauseOnLaunch    ->isChecked();
 	config.streamingEnable   = ui.streamingEnable  ->isChecked();
 	config.streamingAddress  = ui.streamingAddress ->text();

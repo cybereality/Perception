@@ -11,6 +11,7 @@ public:
 	int     trackerMode;
 	bool    logToConsole;
 	bool    logToFile;
+	bool    logHijack;
 	bool    pauseOnLaunch;
 	bool    streamingEnable;
 	QString streamingAddress;

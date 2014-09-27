@@ -8,7 +8,7 @@ int main(int argc, char **argv){
 	config.vireioDir = a.applicationDirPath() + "/../";
 
 	config.load( config.getMainConfigFile() );
-
+	
 	QCoreApplication::setOrganizationName( "VireIO" );
 	QCoreApplication::setApplicationName ( "Perception" );
 

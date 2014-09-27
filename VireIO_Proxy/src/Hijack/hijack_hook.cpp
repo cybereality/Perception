@@ -79,7 +79,7 @@ void HijackHookUpdate(){
 			}
 		}
 
-		if( h->old_function ){
+		if( h->old_function && config.logHijack  ){
 			printf( "hook: found      %s\n" , h->function_name );
 		}
 
@@ -238,7 +238,9 @@ QString HijackInject( HANDLE proccess ){
 
 
 void HijackHookInstall( ){
-	printf("hook: installing...\n");
+	if( config.logHijack ){
+		printf("hook: installing...\n");
+	}
 
 	ORIG_LoadLibraryA   = LoadLibraryA;
 	ORIG_GetProcAddress = GetProcAddress;
@@ -246,7 +248,9 @@ void HijackHookInstall( ){
 	HOOK( "Kernel32.dll" , FARPROC , WINAPI , GetProcAddress , ( HMODULE hModule , LPCSTR lpProcName ) , {
 		for( HookInfo* h : hooks ){
 			if( h->module == hModule && strcmp(h->function_name,lpProcName)==0 ){
-				printf("hook: requested  %s\n",lpProcName);
+				if( config.logHijack ){
+					printf("hook: requested  %s\n",lpProcName);
+				}
 				return h->new_function;
 			}
 		}
@@ -254,7 +258,9 @@ void HijackHookInstall( ){
 	})
 
 	HOOK( "Kernel32.dll" , HMODULE , WINAPI , LoadLibraryA , ( LPCSTR  lpLibFileName ) , {
-		printf("hook: load       %s\n" , lpLibFileName );
+		if( config.logHijack ){
+			printf("hook: load       %s\n" , lpLibFileName );
+		}
 		HMODULE m = ORIG( lpLibFileName );
 		HijackHookUpdate();
 		return m;
@@ -262,7 +268,9 @@ void HijackHookInstall( ){
 
 
 	HOOK( "Kernel32.dll" , HMODULE , WINAPI , LoadLibraryW , ( LPCWSTR lpLibFileName ) , {
-		printf("hook: load       %S\n" , lpLibFileName );
+		if( config.logHijack ){
+			printf("hook: load       %S\n" , lpLibFileName );
+		}
 		HMODULE m = ORIG( lpLibFileName );
 		HijackHookUpdate();
 		return m;
@@ -270,7 +278,9 @@ void HijackHookInstall( ){
 
 
 	HOOK( "Kernel32.dll" , HMODULE , WINAPI , LoadLibraryExA , ( LPCSTR lpLibFileName , HANDLE hFile , DWORD dwFlags ) , {
-		printf("hook: load       %s\n" , lpLibFileName );
+		if( config.logHijack ){
+			printf("hook: load       %s\n" , lpLibFileName );
+		}
 		HMODULE m = ORIG( lpLibFileName , hFile , dwFlags );
 		HijackHookUpdate();
 		return m;
@@ -278,7 +288,9 @@ void HijackHookInstall( ){
 
 
 	HOOK( "Kernel32.dll" , HMODULE , WINAPI , LoadLibraryExW , ( LPCWSTR lpLibFileName , HANDLE hFile , DWORD dwFlags ) , {
-		printf("hook: load       %S\n" , lpLibFileName );
+		if( config.logHijack ){
+			printf("hook: load       %S\n" , lpLibFileName );
+		}
 		HMODULE m = ORIG( lpLibFileName , hFile , dwFlags );
 		HijackHookUpdate();
 		return m;
@@ -296,36 +308,50 @@ void HijackHookInstall( ){
 
 
 	HOOK( "Kernel32.dll" , BOOL , WINAPI , CreateProcessA , (LPCSTR lpApplicationName,LPSTR lpCommandLine,LPSECURITY_ATTRIBUTES lpProcessAttributes,LPSECURITY_ATTRIBUTES lpThreadAttributes,BOOL bInheritHandles,DWORD dwCreationFlags,LPVOID lpEnvironment,LPCSTR lpCurrentDirectory,LPSTARTUPINFOA lpStartupInfo,LPPROCESS_INFORMATION lpProcessInformation) , {
-		printf("hook: launching %s\n" , lpApplicationName );
+		if( config.logHijack ){
+			printf("hook: launching %s\n" , lpApplicationName );
+		}
 		CreateProcess_macro(lpApplicationName,lpCommandLine,lpProcessAttributes,lpThreadAttributes,bInheritHandles,dwCreationFlags,lpEnvironment,lpCurrentDirectory,lpStartupInfo,lpProcessInformation)
 	})
 
 	HOOK( "*" , BOOL , WINAPI , CreateProcessAsUserA , (HANDLE hToken,LPCSTR lpApplicationName,LPSTR lpCommandLine,LPSECURITY_ATTRIBUTES lpProcessAttributes,LPSECURITY_ATTRIBUTES lpThreadAttributes,BOOL bInheritHandles,DWORD dwCreationFlags,LPVOID lpEnvironment,LPCSTR lpCurrentDirectory,LPSTARTUPINFOA lpStartupInfo,LPPROCESS_INFORMATION lpProcessInformation) , {
-		printf("hook: launching %s\n" , lpApplicationName );
+		if( config.logHijack ){
+			printf("hook: launching %s\n" , lpApplicationName );
+		}
 		CreateProcess_macro(hToken,lpApplicationName,lpCommandLine,lpProcessAttributes,lpThreadAttributes,bInheritHandles,dwCreationFlags,lpEnvironment,lpCurrentDirectory,lpStartupInfo,lpProcessInformation)
 	})
 
 	HOOK( "Kernel32.dll" , BOOL , WINAPI , CreateProcessAsUserW , (HANDLE hToken,LPCWSTR lpApplicationName,LPWSTR lpCommandLine,LPSECURITY_ATTRIBUTES lpProcessAttributes,LPSECURITY_ATTRIBUTES lpThreadAttributes,BOOL bInheritHandles,DWORD dwCreationFlags,LPVOID lpEnvironment,LPCWSTR lpCurrentDirectory,LPSTARTUPINFOW lpStartupInfo,LPPROCESS_INFORMATION lpProcessInformation) , {
-		printf("hook: launching %S\n" , lpApplicationName );
+		if( config.logHijack ){
+			printf("hook: launching %S\n" , lpApplicationName );
+		}
 		CreateProcess_macro(hToken,lpApplicationName,lpCommandLine,lpProcessAttributes,lpThreadAttributes,bInheritHandles,dwCreationFlags,lpEnvironment,lpCurrentDirectory,lpStartupInfo,lpProcessInformation)
 	})
 
 	HOOK( "Kernel32.dll" , BOOL , WINAPI , CreateProcessW , (LPCWSTR lpApplicationName,LPWSTR lpCommandLine,LPSECURITY_ATTRIBUTES lpProcessAttributes,LPSECURITY_ATTRIBUTES lpThreadAttributes,BOOL bInheritHandles,DWORD dwCreationFlags,LPVOID lpEnvironment,LPCWSTR lpCurrentDirectory,LPSTARTUPINFOW lpStartupInfo,LPPROCESS_INFORMATION lpProcessInformation) , {
-		printf("hook: launching %S\n" , lpApplicationName );
+		if( config.logHijack ){
+			printf("hook: launching %S\n" , lpApplicationName );
+		}
 		CreateProcess_macro(lpApplicationName,lpCommandLine,lpProcessAttributes,lpThreadAttributes,bInheritHandles,dwCreationFlags,lpEnvironment,lpCurrentDirectory,lpStartupInfo,lpProcessInformation)
 	})
 
 	HOOK( "*" , BOOL , WINAPI , CreateProcessWithLogonW , (LPCWSTR lpUsername,LPCWSTR lpDomain,LPCWSTR lpPassword,DWORD dwLogonFlags,LPCWSTR lpApplicationName,LPWSTR lpCommandLine,DWORD dwCreationFlags,LPVOID lpEnvironment,LPCWSTR lpCurrentDirectory,LPSTARTUPINFOW lpStartupInfo,LPPROCESS_INFORMATION lpProcessInformation) , {
-		printf("hook: launching %S\n" , lpApplicationName );
+		if( config.logHijack ){
+			printf("hook: launching %S\n" , lpApplicationName );
+		}
 		CreateProcess_macro(lpUsername,lpDomain,lpPassword,dwLogonFlags,lpApplicationName,lpCommandLine,dwCreationFlags,lpEnvironment,lpCurrentDirectory,lpStartupInfo,lpProcessInformation)
 	})
 
 	HOOK( "*" , BOOL , WINAPI , CreateProcessWithTokenW , (HANDLE hToken,DWORD dwLogonFlags,LPCWSTR lpApplicationName,LPWSTR lpCommandLine,DWORD dwCreationFlags,LPVOID lpEnvironment,LPCWSTR lpCurrentDirectory,LPSTARTUPINFOW lpStartupInfo,LPPROCESS_INFORMATION lpProcessInformation) , {
-		printf("hook: launching %S\n" , lpApplicationName );
+		if( config.logHijack ){
+			printf("hook: launching %S\n" , lpApplicationName );
+		}
 		CreateProcess_macro(hToken,dwLogonFlags,lpApplicationName,lpCommandLine,dwCreationFlags,lpEnvironment,lpCurrentDirectory,lpStartupInfo,lpProcessInformation)
 	})
 	
 	HijackHookUpdate();
-
-	printf("hook: installed  default hooks\n");
+	
+	if( config.logHijack ){
+		printf("hook: installed  default hooks\n");
+	}
 }

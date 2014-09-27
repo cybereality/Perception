@@ -107,11 +107,6 @@ BOOL APIENTRY DllMain( HINSTANCE dll , DWORD fdwReason, LPVOID ){
 	AllocConsole();
 	freopen("CONOUT$", "w", stdout);
 
-	HijackHookInstall();
-
-	HijackHookAdd( "d3d9.dll" , "Direct3DCreate9"        , (void**)&ORIG_Direct3DCreate9    , (void*)NEW_Direct3DCreate9   );
-	HijackHookAdd( "d3d9.dll" , "Direct3DCreate9Ex"      , (void**)&ORIG_Direct3DCreate9Ex  , (void*)NEW_Direct3DCreate9Ex );
-
 
 	char exe_path[MAX_PATH];
 	char dll_path[MAX_PATH];
@@ -219,6 +214,13 @@ BOOL APIENTRY DllMain( HINSTANCE dll , DWORD fdwReason, LPVOID ){
 	printf( "screenAspectRatio             = %f\n" , config.screenAspectRatio );
 	printf( "scaleToFillHorizontal         = %f\n" , config.scaleToFillHorizontal );
 	printf( "lensXCenterOffset             = %f\n" , config.lensXCenterOffset );
+
+
+	HijackHookInstall();
+
+	HijackHookAdd( "d3d9.dll" , "Direct3DCreate9"        , (void**)&ORIG_Direct3DCreate9    , (void*)NEW_Direct3DCreate9   );
+	HijackHookAdd( "d3d9.dll" , "Direct3DCreate9Ex"      , (void**)&ORIG_Direct3DCreate9Ex  , (void*)NEW_Direct3DCreate9Ex );
+
 
 	if( !config.logToConsole ){
 		FreeConsole();
