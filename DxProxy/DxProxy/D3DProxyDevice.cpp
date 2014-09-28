@@ -396,11 +396,13 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 	//Now calculate frames per second
 	fps = CalcFPS();
 
+
+	HRESULT hr =  BaseDirect3DDevice9::Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
+
 	if (tracker)
 		tracker->EndFrame();
 
-
-	return BaseDirect3DDevice9::Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
+	return hr;
 }
 
 /**
@@ -2853,11 +2855,11 @@ void D3DProxyDevice::HandleTracking()
 			strcpy_s(popup.line5, "in BRASSA Settings");
 			ShowPopup(popup);
 		}
-		else
-		{
-			//All is well
-			DismissPopup(VPT_VRBOOST_FAILURE);
-		}
+	}
+	else
+	{
+		//All is well
+		DismissPopup(VPT_VRBOOST_FAILURE);
 	}
 }
 
