@@ -633,6 +633,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 		config.DistortionScale = gameProfile.attribute("distortion_scale").as_float(0.0f);
 		config.YOffset = gameProfile.attribute("y_offset").as_float(0.0f);
 		config.IPDOffset = gameProfile.attribute("ipd_offset").as_float(0.0f);
+		config.useTimewarpPrediction = gameProfile.attribute("use_timewarp_prediction").as_bool(true);
 
 		if(config.yaw_multiplier == 0.0f) config.yaw_multiplier = 25.0f;
 		if(config.pitch_multiplier == 0.0f) config.pitch_multiplier = 25.0f;
@@ -913,13 +914,23 @@ bool ProxyHelper::SaveConfig(ProxyConfig& config)
 			gameProfile.remove_attribute("ipd_offset");
 			gameProfile.insert_attribute_after("ipd_offset", gameProfile.attribute("swap_eyes")) = config.YOffset;
 		}
-		if (strcmp(gameProfile.attribute("ipd_offset").next_attribute().name(), "y_offset") == 0)
+
+		if (strcmp(gameProfile.attribute("ipd_offset").next_attribute().name(), "use_timewarp_prediction") == 0)
+			gameProfile.attribute("use_timewarp_prediction") = config.useTimewarpPrediction;
+		else
+		{
+			gameProfile.remove_attribute("use_timewarp_prediction");
+			gameProfile.insert_attribute_after("use_timewarp_prediction", gameProfile.attribute("ipd_offset")) = config.useTimewarpPrediction;
+		}
+
+		if (strcmp(gameProfile.attribute("use_timewarp_prediction").next_attribute().name(), "y_offset") == 0)
 			gameProfile.attribute("y_offset") = config.YOffset;
 		else
 		{
 			gameProfile.remove_attribute("y_offset");
-			gameProfile.insert_attribute_after("y_offset", gameProfile.attribute("ipd_offset")) = config.YOffset;
+			gameProfile.insert_attribute_after("y_offset", gameProfile.attribute("use_timewarp_prediction")) = config.YOffset;
 		}
+
 		if (strcmp(gameProfile.attribute("swap_eyes").next_attribute().name(), "yaw_multiplier") == 0)
 			gameProfile.attribute("yaw_multiplier") = config.yaw_multiplier;
 		else
