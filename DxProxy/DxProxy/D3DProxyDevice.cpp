@@ -2845,6 +2845,7 @@ void D3DProxyDevice::HandleTracking()
 			strcpy_s(popup.line4, "To Enable head tracking, turn on Force Mouse Emulation");
 			strcpy_s(popup.line5, "in BRASSA Settings");
 			ShowPopup(popup);
+			return;
 		}
 		else if (!VRBoostStatus.VRBoost_ApplyRules)
 		{
@@ -2854,13 +2855,12 @@ void D3DProxyDevice::HandleTracking()
 			strcpy_s(popup.line4, "To Enable head tracking, turn on Force Mouse Emulation");
 			strcpy_s(popup.line5, "in BRASSA Settings");
 			ShowPopup(popup);
+			return;
 		}
 	}
-	else
-	{
-		//All is well
-		DismissPopup(VPT_VRBOOST_FAILURE);
-	}
+
+	//All is well
+	DismissPopup(VPT_VRBOOST_FAILURE);
 }
 
 /**
