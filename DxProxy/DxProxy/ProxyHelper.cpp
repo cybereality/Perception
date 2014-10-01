@@ -227,7 +227,7 @@ void ProxyHelper::GetTargetPath(char* newFolder, char* path)
 * @param mode Stereo mode returned.
 * @param mode2 Tracker mode returned.
 ***/
-bool ProxyHelper::LoadUserConfig(int& mode, int& mode2, bool &notifications)
+bool ProxyHelper::LoadUserConfig(int& mode, int& mode2, int& adapter, bool &notifications)
 {
 	// load the base dir for the app
 	GetBaseDir();
@@ -247,6 +247,7 @@ bool ProxyHelper::LoadUserConfig(int& mode, int& mode2, bool &notifications)
 
 		mode = xml_config.attribute("stereo_mode").as_int();
 		mode2 = xml_config.attribute("tracker_mode").as_int();
+		adapter = xml_config.attribute("display_adapter").as_int(0);
 		notifications = (xml_config.attribute("notifications").as_int(1) != 0);
 
 		return true;
@@ -513,6 +514,39 @@ bool ProxyHelper::SaveTrackerMode(int mode)
 }
 
 /**
+* Saves the global Vireio Perception configuration (only selected display adapter).
+* @param mode The chosen display adapter.
+***/
+bool ProxyHelper::SaveDisplayAdapter(int adapter)
+{
+	// load the base dir for the app
+	GetBaseDir();
+	OutputDebugString(baseDir);
+	OutputDebugString("\n");
+
+	// get global config
+	char configPath[512];
+	GetPath(configPath, "cfg\\config.xml");
+
+	xml_document docConfig;
+	xml_parse_result resultConfig = docConfig.load_file(configPath);
+
+	if(resultConfig.status == status_ok)
+	{
+		xml_node xml_config = docConfig.child("config");
+
+		if(adapter >= 0)
+			xml_config.attribute("display_adapter") = adapter;
+
+		docConfig.save_file(configPath);
+
+		return true;
+	}
+
+	return false;
+}
+
+/**
 * Loads the game configuration for the target process specified in the registry (targetExe).
 * @param config Returned game configuration.
 * @param oculusProfile Returned Oculus Player Profile.
@@ -557,6 +591,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 		config.stereo_mode = xml_config.attribute("stereo_mode").as_int();
 		config.aspect_multiplier = xml_config.attribute("aspect_multiplier").as_float();
 		config.tracker_mode = xml_config.attribute("tracker_mode").as_int();
+		config.display_adapter = xml_config.attribute("display_adapter").as_int(0);
 
 		fileFound = true;
 	}

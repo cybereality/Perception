@@ -146,6 +146,15 @@ public:
 		}
 	}
 
+	void new_selection3() {
+		char string[120];
+		int selection = (int)SendMessage(combobox_handle, CB_GETCURSEL, 0, 0);
+		if ( selection != CB_ERR ) {
+			// save the adapter to xml file
+			ProxyHelper helper = ProxyHelper();
+			helper.SaveDisplayAdapter(selection);
+		}
+	}
 };
 
 class static_control {
@@ -186,6 +195,7 @@ private:
 public:
 	combobox_control* combobox;
 	combobox_control* combobox2;
+	combobox_control* combobox3;
 	frame_window(LPCSTR window_class_identity) : window_class_name(window_class_identity) {         
 		int screen_width = GetSystemMetrics(SM_CXFULLSCREEN);  
 		int screen_height = GetSystemMetrics(SM_CYFULLSCREEN);  
@@ -204,8 +214,8 @@ public:
 			"Vireio Perception", 
 			WS_OVERLAPPEDWINDOW & ~(WS_THICKFRAME | WS_MAXIMIZEBOX), 
 			//WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,   
-			(screen_width-585)/2, (screen_height-195)/2, 
-			585, 195,
+			(screen_width-585)/2, (screen_height-240)/2, 
+			585, 240,
 			NULL, NULL, instance_handle, NULL);
 		SetWindowLongPtr(window_handle, GWL_USERDATA, (LONG)this);  
 		GetClientRect(window_handle, &client_rectangle);
@@ -214,6 +224,7 @@ public:
 		text = new static_control(instance_handle, window_handle);
 		combobox = new combobox_control(instance_handle, window_handle, text, 20, 81, 1001);
 		combobox2 = new combobox_control(instance_handle, window_handle, text, 20, 115, 1002);
+		combobox3 = new combobox_control(instance_handle, window_handle, text, 20, 149, 1003);
 
 		char viewPath[512];
 		ProxyHelper helper = ProxyHelper();
@@ -283,12 +294,12 @@ public:
 
 					// Output user profile data
 					SetBkMode(paint_device_context, TRANSPARENT);
-					TextOut (paint_device_context,290,78,"Version:",8);
-					TextOut (paint_device_context,420,78,std::string(APP_VERSION).c_str(),std::string(APP_VERSION).size());
-					TextOut (paint_device_context,290,101,"Build Date:",11);
-					TextOut (paint_device_context,420,101,buildDate.c_str(),buildDate.size());
-					TextOut (paint_device_context,290,124,"Oculus Profile:",15);
-					TextOut (paint_device_context,420,124,oculusProfile.Name.c_str(),oculusProfile.Name.size());
+					TextOut (paint_device_context,290,81,"Version:",8);
+					TextOut (paint_device_context,420,81,std::string(APP_VERSION).c_str(),std::string(APP_VERSION).size());
+					TextOut (paint_device_context,290,115,"Build Date:",11);
+					TextOut (paint_device_context,420,115,buildDate.c_str(),buildDate.size());
+					TextOut (paint_device_context,290,149,"Oculus Profile:",15);
+					TextOut (paint_device_context,420,149,oculusProfile.Name.c_str(),oculusProfile.Name.size());
 
 					DeleteObject(SelectObject(paint_device_context, oldFont));
 					DeleteDC(paint_dc);   
@@ -308,6 +319,7 @@ public:
 				{
 					This->combobox->measure_item((LPMEASUREITEMSTRUCT)lparam);
 					This->combobox2->measure_item((LPMEASUREITEMSTRUCT)lparam);
+					This->combobox3->measure_item((LPMEASUREITEMSTRUCT)lparam);
 					return TRUE;
 				}
 			case WM_DRAWITEM:
@@ -321,6 +333,10 @@ public:
 					{
 						This->combobox2->draw_item((LPDRAWITEMSTRUCT)lparam);
 					}
+					else if (Item->CtlID == 1003)
+					{
+						This->combobox3->draw_item((LPDRAWITEMSTRUCT)lparam);
+					}
 					return TRUE;
 				}
 			case WM_COMMAND:
@@ -328,6 +344,7 @@ public:
 					if ( HIWORD(wparam) == CBN_SELCHANGE ) {
 						This->combobox->new_selection();
 						This->combobox2->new_selection2();
+						This->combobox3->new_selection3();
 					} 
 					return 0;
 				}
@@ -354,6 +371,10 @@ public:
 
 	void add_item2(char * string) {
 		combobox2->add_item(string);
+	}
+
+	void add_item3(const char * string) {
+		combobox3->add_item(const_cast<char*>(string));
 	}
 };  
 
@@ -397,14 +418,66 @@ int WINAPI wWinMain(HINSTANCE instance_handle, HINSTANCE, LPWSTR, INT) {
 	main_window.add_item2("Shared Memory Tracker\t30");
 	main_window.add_item2("OculusTrack\t40");
 
+
+    UINT32 num_of_paths = 0;
+    UINT32 num_of_modes = 0;
+    DISPLAYCONFIG_PATH_INFO* displayPaths = NULL; 
+    DISPLAYCONFIG_MODE_INFO* displayModes = NULL;
+	GetDisplayConfigBufferSizes(QDC_ALL_PATHS, &num_of_paths, &num_of_modes);
+
+    
+    // Allocate paths and modes dynamically
+    displayPaths = (DISPLAYCONFIG_PATH_INFO*)calloc((int)num_of_paths, sizeof(DISPLAYCONFIG_PATH_INFO));
+    displayModes = (DISPLAYCONFIG_MODE_INFO*)calloc((int)num_of_modes, sizeof(DISPLAYCONFIG_MODE_INFO));
+    
+    // Query for the information 
+    QueryDisplayConfig(QDC_ONLY_ACTIVE_PATHS, &num_of_paths, displayPaths, &num_of_modes, displayModes, NULL);
+
+	int index = 0;
+	int adapterNum = 0;
+	while (index < num_of_modes)
+	{
+		if (displayModes[index].infoType == DISPLAYCONFIG_MODE_INFO_TYPE_TARGET)
+		{
+			DISPLAYCONFIG_TARGET_DEVICE_NAME deviceName;
+			DISPLAYCONFIG_DEVICE_INFO_HEADER header;
+			header.size = sizeof(DISPLAYCONFIG_TARGET_DEVICE_NAME);
+			header.adapterId = displayModes[index].adapterId;
+			header.id = displayModes[index].id;
+			header.type = DISPLAYCONFIG_DEVICE_INFO_GET_TARGET_NAME;
+			deviceName.header = header;
+			DisplayConfigGetDeviceInfo( (DISPLAYCONFIG_DEVICE_INFO_HEADER*) &deviceName );
+
+			char monitorFriendlyDeviceName[256];
+			ZeroMemory(monitorFriendlyDeviceName, 256);
+
+			size_t countConverted = 0;
+			wcstombs_s(&countConverted, monitorFriendlyDeviceName, 256, deviceName.monitorFriendlyDeviceName, 256);
+
+			std::string adapterStr(monitorFriendlyDeviceName);
+			if (adapterNum == 0) adapterStr = "Primary Monitor: " + adapterStr + "\t";
+			if (adapterNum == 1) adapterStr = "Secondary Monitor: " + adapterStr + "\t";
+			if (adapterNum == 2) adapterStr = "Tertiary Monitor: " + adapterStr + "\t";
+			main_window.add_item3(adapterStr.c_str());
+			adapterNum++;
+		}
+
+		index++;
+	}
+	
+
+	
+
 	int mode;
 	int mode2;
 	bool notifications;
+	int adapter;
 	ProxyHelper helper = ProxyHelper();
-	helper.LoadUserConfig(mode, mode2, notifications);
+	helper.LoadUserConfig(mode, mode2, adapter, notifications);
 
 	SendMessage(main_window.combobox->combobox_handle, CB_SETCURSEL, stereoModes[mode], 0);
 	SendMessage(main_window.combobox2->combobox_handle, CB_SETCURSEL, trackerModes[mode2], 0);
+	SendMessage(main_window.combobox3->combobox_handle, CB_SETCURSEL, adapter, 0);
 
 	main_window.run();
 

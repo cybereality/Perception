@@ -117,8 +117,9 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	// rift info
 	int mode;
 	int mode2;
+	int adapter;
 	ProxyHelper helper = ProxyHelper();
-	helper.LoadUserConfig(mode, mode2, showNotifications);
+	helper.LoadUserConfig(mode, mode2, adapter, showNotifications);
 	hmdInfo = HMDisplayInfoFactory::CreateHMDisplayInfo(static_cast<StereoView::StereoTypes>(mode)); 
 	OutputDebugString(("Created HMD Info for: " + hmdInfo->GetHMDName()).c_str());
 

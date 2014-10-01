@@ -196,8 +196,25 @@ HMONITOR WINAPI BaseDirect3D9::GetAdapterMonitor(UINT Adapter)
 ***/
 HRESULT WINAPI BaseDirect3D9::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, HWND hFocusWindow,DWORD BehaviorFlags, D3DPRESENT_PARAMETERS* pPresentationParameters,IDirect3DDevice9** ppReturnedDeviceInterface)
 {
+	// load configuration file
+	ProxyHelper helper = ProxyHelper();
+	ProxyHelper::ProxyConfig cfg;
+	ProxyHelper::OculusProfile oculusProfile;
+	bool configLoaded = true;
+	if(!helper.LoadConfig(cfg, oculusProfile)) {
+		OutputDebugString("[ERR] Config loading failed, config could not be loaded. Returning normal D3DDevice. Vireio will not be active.\n");
+		configLoaded = false;
+	}
+
+	UINT adapter = cfg.display_adapter;
+	if (adapter > m_pD3D->GetAdapterCount())
+	{
+		OutputDebugString("[ERR] Invalid Display Adapter ID - Using Primary adapter\n");
+		adapter = D3DADAPTER_DEFAULT;
+	}
+
 	// Create real interface
-	HRESULT hResult = m_pD3D->CreateDevice(Adapter, DeviceType, hFocusWindow, BehaviorFlags,
+	HRESULT hResult = m_pD3D->CreateDevice(adapter, DeviceType, hFocusWindow, BehaviorFlags,
 		pPresentationParameters, ppReturnedDeviceInterface);
 	if(FAILED(hResult))
 		return hResult;
@@ -244,14 +261,8 @@ HRESULT WINAPI BaseDirect3D9::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, 
 		return hResult;
 	}*/
 
-	// load configuration file
-	ProxyHelper helper = ProxyHelper();
-	ProxyHelper::ProxyConfig cfg;
-	ProxyHelper::OculusProfile oculusProfile;
-	if(!helper.LoadConfig(cfg, oculusProfile)) {
-		OutputDebugString("[ERR] Config loading failed, config could not be loaded. Returning normal D3DDevice. Vireio will not be active.\n");
+	if (!configLoaded)
 		return hResult;
-	}
 
 	OutputDebugString("[OK] Config loading - OK\n");
 
