@@ -2230,8 +2230,12 @@ void D3DProxyDevice::SetupHUD()
 		OutputDebugString("called SetupHUD");
 	#endif
 	D3DXCreateFont( this, 32, 0, FW_BOLD, 4, FALSE, DEFAULT_CHARSET, OUT_TT_ONLY_PRECIS, ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_DONTCARE, "Arial", &hudFont );
-	D3DXCreateFont( this, 24, 0, FW_BOLD, 4, FALSE, DEFAULT_CHARSET, OUT_TT_ONLY_PRECIS, ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_DONTCARE, "Arial", &popupFont );
 	D3DXCreateFont( this, 26, 0, FW_BOLD, 4, FALSE, DEFAULT_CHARSET, OUT_TT_ONLY_PRECIS, ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_DONTCARE, "Courier New", &errorFont );
+
+	//Create all font size
+	for (int fontSize = 0; fontSize < 33; ++fontSize)
+		D3DXCreateFont( this, fontSize, 0, FW_BOLD, 4, FALSE, DEFAULT_CHARSET, OUT_TT_ONLY_PRECIS, ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_DONTCARE, "Arial", &popupFont[fontSize] );
+
 	D3DXCreateSprite(this, &hudMainMenu);
 	D3DXCreateSprite(this, &hudTextBox);
 }
@@ -2375,7 +2379,7 @@ void D3DProxyDevice::HandleControls()
 		}
 		else
 		{
-			VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 2000);
+			VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1200);
 			strcpy_s(popup.line3, "HMD Orientation and Position Reset");
 			ShowPopup(popup);
 		}
@@ -2388,7 +2392,7 @@ void D3DProxyDevice::HandleControls()
 	{
 		m_bPosTrackingToggle = !m_bPosTrackingToggle;
 
-		VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 2000);
+		VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1200);
 		if (m_bPosTrackingToggle)
 			strcpy_s(popup.line3, "HMD Positional Tracking Enabled");
 		else
@@ -2407,7 +2411,7 @@ void D3DProxyDevice::HandleControls()
 	{
 		tracker->useTimewarpPrediction = !tracker->useTimewarpPrediction;
 
-		VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 2000);
+		VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1200);
 		if (tracker->useTimewarpPrediction)
 			strcpy_s(popup.line3, "Oculus VR Timewarp Enabled");
 		else
@@ -2423,7 +2427,7 @@ void D3DProxyDevice::HandleControls()
 	{
 		stereoView->chromaticAberrationCorrection = !stereoView->chromaticAberrationCorrection;
 
-		VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 2000);
+		VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1200);
 		if (stereoView->chromaticAberrationCorrection)
 			strcpy_s(popup.line3, "Chromatic Aberration Correction Enabled");
 		else
@@ -2441,7 +2445,7 @@ void D3DProxyDevice::HandleControls()
 		else
 			m_bShowVRMouse = true;
 
-		VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 2000);
+		VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1200);
 		if (m_bShowVRMouse)
 			strcpy_s(popup.line3, "VR Mouse Enabled");
 		else
@@ -2466,7 +2470,7 @@ void D3DProxyDevice::HandleControls()
 			}
 		}
 
-		VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 2000);
+		VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1200);
 		if (m_bfloatingMenu)
 			strcpy_s(popup.line3, "Floating Menus Enabled");
 		else
@@ -2499,7 +2503,7 @@ void D3DProxyDevice::HandleControls()
 			}
 		}
 
-		VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 2000);
+		VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1200);
 		if (m_bfloatingScreen)
 			strcpy_s(popup.line3, "Disconnected Screen View Enabled");
 		else
@@ -2696,7 +2700,7 @@ void D3DProxyDevice::HandleTracking()
 				case MTS_NOHMDDETECTED:
 					{
 						VireioPopup popup(VPT_NO_HMD_DETECTED, VPS_ERROR, 10000);
-						strcpy_s(popup.line3, (std::string(10, ' ') + "HMD NOT DETECTED").c_str());
+						strcpy_s(popup.line3, "HMD NOT DETECTED");
 						ShowPopup(popup);
 					}
 					break;
@@ -5731,37 +5735,45 @@ void D3DProxyDevice::DisplayCurrentPopup()
 					//Center on the screen
 					format = DT_CENTER;
 					popupColour = D3DCOLOR_ARGB(255, 255, 255, 255);
-					int fontSize = (activePopup.popupDuration - GetTickCount() > 800) ? 32 : 
-						(int)( (31.0f * (activePopup.popupDuration - GetTickCount())) / 800.0f + 1);
-					D3DXCreateFont( this, fontSize, 0, FW_BOLD, 4, FALSE, DEFAULT_CHARSET, OUT_TT_ONLY_PRECIS, ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_DONTCARE, "Arial", &pFont );
+					float FADE_DURATION = 200.0f;
+					int fontSize = (activePopup.popupDuration - GetTickCount() > FADE_DURATION) ? 32 : 
+						(int)( (31.0f * (activePopup.popupDuration - GetTickCount())) / FADE_DURATION + 1);
+					pFont = popupFont[fontSize];
 					menuHelperRect.left = 0;
 				}
 				break;
 			case VPS_INFO:
 				{
 					popupColour = D3DCOLOR_ARGB(255, 128, 255, 128);
-					pFont = popupFont;
+					pFont = popupFont[24];
 				}
 				break;
 			case VPS_ERROR:
 				{
 					popupColour = D3DCOLOR_ARGB(255, 255, 0, 0);
+					format = DT_CENTER;
 					pFont = errorFont;
 				}
 				break;
 		}
 
-		DrawTextShadowed(pFont, hudMainMenu, activePopup.line1, -1, &menuHelperRect, format, popupColour);
+		if (strlen(activePopup.line1))
+			DrawTextShadowed(pFont, hudMainMenu, activePopup.line1, -1, &menuHelperRect, format, popupColour);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(pFont, hudMainMenu, activePopup.line2, -1, &menuHelperRect, format, popupColour);
+		if (strlen(activePopup.line2))
+			DrawTextShadowed(pFont, hudMainMenu, activePopup.line2, -1, &menuHelperRect, format, popupColour);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(pFont, hudMainMenu, activePopup.line3, -1, &menuHelperRect, format, popupColour);
+		if (strlen(activePopup.line3))
+			DrawTextShadowed(pFont, hudMainMenu, activePopup.line3, -1, &menuHelperRect, format, popupColour);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(pFont, hudMainMenu, activePopup.line4, -1, &menuHelperRect, format, popupColour);
+		if (strlen(activePopup.line4))
+			DrawTextShadowed(pFont, hudMainMenu, activePopup.line4, -1, &menuHelperRect, format, popupColour);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(pFont, hudMainMenu, activePopup.line5, -1, &menuHelperRect, format, popupColour);
+		if (strlen(activePopup.line5))
+			DrawTextShadowed(pFont, hudMainMenu, activePopup.line5, -1, &menuHelperRect, format, popupColour);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(pFont, hudMainMenu, activePopup.line6, -1, &menuHelperRect, format, popupColour);
+		if (strlen(activePopup.line6))
+			DrawTextShadowed(pFont, hudMainMenu, activePopup.line6, -1, &menuHelperRect, format, popupColour);
 
 		if (show_fps != FPS_NONE)
 		{
@@ -5774,7 +5786,8 @@ void D3DProxyDevice::DisplayCurrentPopup()
 			D3DCOLOR colour = (fps <= 40) ? D3DCOLOR_ARGB(255, 255, 0, 0) : D3DCOLOR_ARGB(255, 255, 255, 255);;
 			menuHelperRect.top = 800;
 			menuHelperRect.left = 0;
-			DrawTextShadowed(hudFont, hudMainMenu, buffer, -1, &menuHelperRect, DT_CENTER, colour);
+			hudFont->DrawText(hudMainMenu, buffer, -1, &menuHelperRect, DT_CENTER, colour);
+			//DrawTextShadowed(hudFont, hudMainMenu, buffer, -1, &menuHelperRect, DT_CENTER, colour);
 		}
 
 		menuHelperRect.left = 0;
@@ -5783,9 +5796,6 @@ void D3DProxyDevice::DisplayCurrentPopup()
 		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
 		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));
 		hudMainMenu->End();
-
-		if (activePopup.severity == VPS_TOAST)
-			pFont->Release();
 	}
 
 }

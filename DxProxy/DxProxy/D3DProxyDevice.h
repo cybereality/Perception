@@ -313,9 +313,9 @@ public:
 	**/
 	ID3DXFont *errorFont;	
 	/**
-	* HUD font to be used for non-error notifications.
+	* Fonts to be used for non-error notifications.
 	**/
-	ID3DXFont *popupFont;	
+	ID3DXFont *popupFont[33];	
 	/**
 	* Whether notifications are shown for this user
 	**/

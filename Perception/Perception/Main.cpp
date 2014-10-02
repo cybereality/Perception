@@ -477,6 +477,13 @@ int WINAPI wWinMain(HINSTANCE instance_handle, HINSTANCE, LPWSTR, INT) {
 
 	SendMessage(main_window.combobox->combobox_handle, CB_SETCURSEL, stereoModes[mode], 0);
 	SendMessage(main_window.combobox2->combobox_handle, CB_SETCURSEL, trackerModes[mode2], 0);
+
+	//If an HMD is unplugged we may not actually be able to select it
+	if (adapter >= adapterNum)
+	{
+		adapter = 0;
+		helper.SaveDisplayAdapter(0);
+	}
 	SendMessage(main_window.combobox3->combobox_handle, CB_SETCURSEL, adapter, 0);
 
 	main_window.run();

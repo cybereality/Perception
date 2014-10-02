@@ -74,6 +74,17 @@ private:
 	* Internal reference counter. 
 	***/
 	ULONG m_nRefCount;
+
+	/**
+	* Whether the configuration was loaded
+	*/
+	bool configLoaded;
+
+	/**
+	* Proxy configuration we load
+	*/
+	ProxyHelper::ProxyConfig cfg;
+
 };
 
 #endif
