@@ -5751,6 +5751,7 @@ void D3DProxyDevice::DisplayCurrentPopup()
 			case VPS_ERROR:
 				{
 					popupColour = D3DCOLOR_ARGB(255, 255, 0, 0);
+					menuHelperRect.left = 0;
 					format = DT_CENTER;
 					pFont = errorFont;
 				}
