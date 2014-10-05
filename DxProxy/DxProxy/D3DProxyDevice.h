@@ -381,7 +381,9 @@ protected:
 		VPT_CALIBRATE_TRACKER,
 		VPT_STATS,
 		//Short notification, such as hot key toggles
-		VPT_NOTIFICATION
+		VPT_NOTIFICATION,
+		//Short notification of valu adjustment, such as Y Offset, or IPD offset
+		VPT_ADJUSTER
 	};
 
 	enum VireioPopupSeverity

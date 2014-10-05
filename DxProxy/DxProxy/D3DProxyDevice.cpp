@@ -2374,7 +2374,7 @@ void D3DProxyDevice::HandleControls()
 			//Replace popup
 			VireioPopup popup(VPT_NOTIFICATION, VPS_INFO, 3000);
 			strcpy_s(popup.line3, "HMD Orientation and Position Calibrated");
-			strcpy_s(popup.line3, "Please repeat if required...");
+			strcpy_s(popup.line4, "Please repeat if required...");
 			ShowPopup(popup);
 		}
 		else
@@ -2586,6 +2586,10 @@ void D3DProxyDevice::HandleControls()
 					this->stereoView->PostReset();										
 				}
 			}
+
+			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 800);
+			sprintf_s(popup.line3, "Y-Offset: %1.3f", this->stereoView->YOffset);
+			ShowPopup(popup);
 		}
 		else if(controls.Key_Down(VK_LSHIFT))
  		{			
@@ -2605,6 +2609,10 @@ void D3DProxyDevice::HandleControls()
 					this->stereoView->PostReset();										
 				}
  			}
+
+			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 800);
+			sprintf_s(popup.line3, "IPD-Offset: %1.3f", this->stereoView->IPDOffset);
+			ShowPopup(popup);
  		}
 		else
 		{
@@ -2624,6 +2632,10 @@ void D3DProxyDevice::HandleControls()
 						this->stereoView->PostReset();										
 					}
 			}
+
+			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 800);
+			sprintf_s(popup.line3, "Distortion Scale: %1.3f", this->stereoView->DistortionScale);
+			ShowPopup(popup);
 		}
 	}
 	
@@ -2650,6 +2662,10 @@ void D3DProxyDevice::HandleControls()
 				this->stereoView->PostReset();							
 			}
 		}		
+
+		VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 800);
+		sprintf_s(popup.line3, "Distortion Scale: %1.3f", this->stereoView->DistortionScale);
+		ShowPopup(popup);
 	}	
 
 
@@ -5841,7 +5857,7 @@ float D3DProxyDevice::CalcFPS()
 void D3DProxyDevice::ShowPopup(VireioPopup &popup)
 {
 	//Nothing to do if we are already showing this popup, splash screen is currently displayed, or we are showing stats
-	if (activePopup.popupType == popup.popupType ||
+	if ((activePopup.popupType == popup.popupType && popup.popupType != VPT_ADJUSTER) ||
 		activePopup.popupType == VPT_SPLASH ||
 		activePopup.popupType == VPT_STATS)
 		return;
