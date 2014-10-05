@@ -315,7 +315,7 @@ public:
 	/**
 	* Fonts to be used for non-error notifications.
 	**/
-	ID3DXFont *popupFont[33];	
+	ID3DXFont *popupFont[27];	
 	/**
 	* Whether notifications are shown for this user
 	**/

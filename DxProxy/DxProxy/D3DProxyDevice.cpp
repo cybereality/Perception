@@ -2233,7 +2233,7 @@ void D3DProxyDevice::SetupHUD()
 	D3DXCreateFont( this, 26, 0, FW_BOLD, 4, FALSE, DEFAULT_CHARSET, OUT_TT_ONLY_PRECIS, ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_DONTCARE, "Courier New", &errorFont );
 
 	//Create all font size
-	for (int fontSize = 0; fontSize < 33; ++fontSize)
+	for (int fontSize = 0; fontSize < 27; ++fontSize)
 		D3DXCreateFont( this, fontSize, 0, FW_BOLD, 4, FALSE, DEFAULT_CHARSET, OUT_TT_ONLY_PRECIS, ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_DONTCARE, "Arial", &popupFont[fontSize] );
 
 	D3DXCreateSprite(this, &hudMainMenu);
@@ -2343,6 +2343,18 @@ void D3DProxyDevice::HandleControls()
 		}
 	}
 
+	//Reset IPD Offset to 0  -  F8  or  LSHIFT+I
+	if ((controls.Key_Down(VK_F8) || (controls.Key_Down(VK_LSHIFT) && controls.Key_Down(0x49))) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	{
+		this->stereoView->IPDOffset = 0.0;
+		this->stereoView->PostReset();		
+
+		VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
+		sprintf_s(popup.line3, "IPD-Offset: %1.3f", this->stereoView->IPDOffset);
+		ShowPopup(popup);
+		menuVelocity.x+=2.0f;
+	}
+
 	//Show FPS Counter / Frame Time counter
 	if ((controls.Key_Down(VK_F9) || ((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down(0x46))) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
@@ -2404,6 +2416,7 @@ void D3DProxyDevice::HandleControls()
 
 		menuVelocity.x += 4.0f;
 	}
+
 
 	//Toggle timewarp - LSHIFT + DELETE
 	if (hmdInfo->GetHMDManufacturer() == HMD_OCULUS	&&
@@ -2587,7 +2600,7 @@ void D3DProxyDevice::HandleControls()
 				}
 			}
 
-			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 800);
+			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
 			sprintf_s(popup.line3, "Y-Offset: %1.3f", this->stereoView->YOffset);
 			ShowPopup(popup);
 		}
@@ -2610,32 +2623,35 @@ void D3DProxyDevice::HandleControls()
 				}
  			}
 
-			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 800);
+			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
 			sprintf_s(popup.line3, "IPD-Offset: %1.3f", this->stereoView->IPDOffset);
 			ShowPopup(popup);
  		}
 		else
 		{
-			if(_wheel < 0)
+			if (_wheel != 0)
 			{
-				if(this->stereoView->DistortionScale > m_spShaderViewAdjustment->HMDInfo()->GetMinDistortionScale())
+				if(_wheel < 0)
 				{
-					this->stereoView->DistortionScale -= 0.05f;
-					this->stereoView->PostReset();				
-				}
-			}
-			else if(_wheel > 0)
-			{
-				if(this->stereoView->DistortionScale < m_maxDistortionScale)
+					if(this->stereoView->DistortionScale > m_spShaderViewAdjustment->HMDInfo()->GetMinDistortionScale())
 					{
-						this->stereoView->DistortionScale += 0.05f;
-						this->stereoView->PostReset();										
+						this->stereoView->DistortionScale -= 0.05f;
+						this->stereoView->PostReset();				
 					}
-			}
+				}
+				else if(_wheel > 0)
+				{
+					if(this->stereoView->DistortionScale < m_maxDistortionScale)
+						{
+							this->stereoView->DistortionScale += 0.05f;
+							this->stereoView->PostReset();										
+						}
+				}
 
-			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 800);
-			sprintf_s(popup.line3, "Distortion Scale: %1.3f", this->stereoView->DistortionScale);
-			ShowPopup(popup);
+				VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
+				sprintf_s(popup.line3, "Distortion Scale: %1.3f", this->stereoView->DistortionScale);
+				ShowPopup(popup);
+			}
 		}
 	}
 	
@@ -2653,6 +2669,10 @@ void D3DProxyDevice::HandleControls()
 				this->stereoView->DistortionScale = m_maxDistortionScale;
 				this->stereoView->PostReset();										
 			}
+
+			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
+			sprintf_s(popup.line3, "Distortion Scale: %1.3f", this->stereoView->DistortionScale);
+			ShowPopup(popup);
 		}
 		else if(controls.Key_Down(VK_SUBTRACT))
 		{
@@ -2661,11 +2681,11 @@ void D3DProxyDevice::HandleControls()
 				this->stereoView->DistortionScale = m_spShaderViewAdjustment->HMDInfo()->GetMinDistortionScale();
 				this->stereoView->PostReset();							
 			}
-		}		
 
-		VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 800);
-		sprintf_s(popup.line3, "Distortion Scale: %1.3f", this->stereoView->DistortionScale);
-		ShowPopup(popup);
+			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
+			sprintf_s(popup.line3, "Distortion Scale: %1.3f", this->stereoView->DistortionScale);
+			ShowPopup(popup);
+		}		
 	}	
 
 
@@ -5752,8 +5772,8 @@ void D3DProxyDevice::DisplayCurrentPopup()
 					format = DT_CENTER;
 					popupColour = D3DCOLOR_ARGB(255, 255, 255, 255);
 					float FADE_DURATION = 200.0f;
-					int fontSize = (activePopup.popupDuration - GetTickCount() > FADE_DURATION) ? 32 : 
-						(int)( (31.0f * (activePopup.popupDuration - GetTickCount())) / FADE_DURATION + 1);
+					int fontSize = (activePopup.popupDuration - GetTickCount() > FADE_DURATION) ? 26 : 
+						(int)( (25.0f * (activePopup.popupDuration - GetTickCount())) / FADE_DURATION + 1);
 					pFont = popupFont[fontSize];
 					menuHelperRect.left = 0;
 				}
