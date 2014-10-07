@@ -5905,6 +5905,12 @@ void D3DProxyDevice::ReleaseEverything()
 	if(hudFont) {
 		hudFont->Release();
 		hudFont = NULL;
+
+		for (int fontSize = 0; fontSize < 27; ++fontSize)
+		{
+			popupFont[fontSize]->Release();
+			popupFont[fontSize] = NULL;
+		}
 	}
 
 
