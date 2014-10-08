@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<shaderConfig>
+	<rules>
+		<rule constantName="worldViewProj" partialName="true" id="1" constantType="MatrixR" modToApply="2" startReg="0" transpose="true" />
+		<rule constantName="worldViewProj" partialName="true" id="2" constantType="MatrixR" modToApply="2" startReg="5" transpose="true" />
+		<rule constantName="worldViewProj" partialName="true" id="3" constantType="MatrixR" modToApply="2" startReg="20" transpose="true" />
+	</rules>
+	<defaultRuleIDs>
+		<ruleID id="1" />
+		<ruleID id="2" />
+		<ruleID id="3" />
+	</defaultRuleIDs>
+</shaderConfig>
