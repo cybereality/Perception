@@ -185,7 +185,8 @@ public:
 		UNREAL_MIRROR = 201,       /**<  !! */
 		UNREAL_UT3 = 202,          /**<  !! */
 		UNREAL_BIOSHOCK = 203,     /**<  !! */
-		UNREAL_BORDERLANDS = 204,  /**< Borderlands(TM) */
+		UNREAL_BIOSHOCK2 = 204,     /**<  !! */
+		UNREAL_BORDERLANDS = 210,  /**< Borderlands(TM) */
 		EGO = 300,                 /**< Ego Game Technology Engine (more commonly referred to as Ego Engine or EGO, stylised ego) is a video game engine developed by Codemasters. */
 		EGO_DIRT = 301,            /**<  !! */
 		REALV = 400,               /**< Real Virtuality is a proprietary computer game engine developed by Bohemia Interactive (BI), originally called Poseidon. */
@@ -315,7 +316,7 @@ public:
 	/**
 	* Fonts to be used for non-error notifications.
 	**/
-	ID3DXFont *popupFont[33];	
+	ID3DXFont *popupFont[27];	
 	/**
 	* Whether notifications are shown for this user
 	**/
@@ -381,7 +382,9 @@ protected:
 		VPT_CALIBRATE_TRACKER,
 		VPT_STATS,
 		//Short notification, such as hot key toggles
-		VPT_NOTIFICATION
+		VPT_NOTIFICATION,
+		//Short notification of valu adjustment, such as Y Offset, or IPD offset
+		VPT_ADJUSTER
 	};
 
 	enum VireioPopupSeverity

@@ -100,6 +100,7 @@ StereoView::StereoView(ProxyHelper::ProxyConfig& config)
 	case D3DProxyDevice::UNREAL_BIOSHOCK:
 		howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;
 		break;
+	case D3DProxyDevice::UNREAL_BIOSHOCK2:
 	case D3DProxyDevice::UNREAL_BORDERLANDS:
 		howToSaveRenderStates = HowToSaveRenderStates::DO_NOT_SAVE_AND_RESTORE;
 		break;

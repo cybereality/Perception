@@ -126,10 +126,11 @@ bool OculusTracker::SupportsPositionTracking()
 
 void OculusTracker::BeginFrame()
 {
+	static unsigned int frameID = 0;
 	//return;
 	if (status >= MTS_OK  && useTimewarpPrediction)
 	{
-		FrameRef=ovrHmd_BeginFrameTiming(hmd,0);
+		FrameRef=ovrHmd_BeginFrameTiming(hmd,frameID++);
 	}
 }
 
@@ -169,7 +170,7 @@ void OculusTracker::resetOrientationAndPosition()
 	//Force OVR positional reset
 	ovrHmd_RecenterPose(hmd);
 
-	ovrTrackingState ts = ovrHmd_GetTrackingState(hmd, useTimewarpPrediction ? FrameRef.ScanoutMidpointSeconds : ovr_GetTimeInSeconds());
+	ovrTrackingState ts = ovrHmd_GetTrackingState(hmd, ovr_GetTimeInSeconds());
 	
 	if (ts.StatusFlags & ovrStatus_OrientationTracked)
 	{
@@ -209,7 +210,7 @@ int OculusTracker::getOrientationAndPosition(float* yaw, float* pitch, float* ro
 	OutputDebugString("OculusTracker getOrientationAndPosition\n");
 #endif
 
-	ovrTrackingState ts = ovrHmd_GetTrackingState(hmd,FrameRef.ScanoutMidpointSeconds);
+	ovrTrackingState ts = ovrHmd_GetTrackingState(hmd, useTimewarpPrediction ? FrameRef.ScanoutMidpointSeconds : ovr_GetTimeInSeconds());
 
 	if (ts.StatusFlags & ovrStatus_OrientationTracked)
 	{
