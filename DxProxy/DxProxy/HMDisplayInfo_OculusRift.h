@@ -56,6 +56,7 @@ public:
 		int detected = ovrHmd_Detect();
 		if (detected == 0)
 		{
+			OutputDebugString("No HMD Detected - Creating Debug DK2\n");
 			hmd=ovrHmd_CreateDebug(ovrHmd_DK2);
 		}
 		else
@@ -63,6 +64,7 @@ public:
 			hmd=ovrHmd_Create(0);
 			if (!hmd)
 			{
+				OutputDebugString("Unable to create HMD of correct type - Creating Debug DK2\n");
 				hmd=ovrHmd_CreateDebug(ovrHmd_DK2);
 			}
 		}

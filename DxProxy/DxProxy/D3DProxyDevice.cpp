@@ -2627,6 +2627,48 @@ void D3DProxyDevice::HandleControls()
 			sprintf_s(popup.line3, "IPD-Offset: %1.3f", this->stereoView->IPDOffset);
 			ShowPopup(popup);
  		}
+		//CTRL + ALT + Mouse Wheel - adjust World Scale dynamically
+		else if (controls.Key_Down(VK_MENU))
+		{
+			float separationChange = 0.05f;
+			if(_wheel < 0)
+			{
+				m_spShaderViewAdjustment->ChangeWorldScale(-separationChange);
+			}
+			else if(_wheel > 0)
+			{
+				m_spShaderViewAdjustment->ChangeWorldScale(separationChange);
+ 			}
+
+			if(_wheel != 0)
+			{
+				m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
+				VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
+				sprintf_s(popup.line3, "Stereo Separation (World Scale): %1.3f", m_spShaderViewAdjustment->WorldScale());
+				ShowPopup(popup);
+			}
+		}
+		//CTRL + SPACE + Mouse Wheel - adjust stereo convergence dynamically
+		else if(controls.Key_Down(VK_SPACE))
+ 		{	
+			float convergenceChange = 0.1f;
+			if(_wheel < 0)
+			{
+				m_spShaderViewAdjustment->ChangeConvergence(-convergenceChange);
+			}
+			else if(_wheel > 0)
+			{
+				m_spShaderViewAdjustment->ChangeConvergence(convergenceChange);
+ 			}
+
+			if(_wheel != 0)
+			{
+				m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
+				VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
+				sprintf_s(popup.line3, "Stereo Convergence: %1.3f", m_spShaderViewAdjustment->Convergence());
+				ShowPopup(popup);
+			}
+		}
 		else
 		{
 			if (_wheel != 0)
@@ -2863,7 +2905,11 @@ void D3DProxyDevice::HandleTracking()
 					if (m_pVRboost_LoadMemoryRules(config.game_exe, config.VRboostPath) != S_OK)
 						VRBoostStatus.VRBoost_LoadRules = false;
 					else
+					{
 						VRBoostStatus.VRBoost_LoadRules = true;
+						//As we've only just loaded the rules, we don't want to report an apply error this time round:
+						VRBoostStatus.VRBoost_ApplyRules = true;
+					}
 				}
 			}
 		}
