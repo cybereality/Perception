@@ -121,12 +121,13 @@ public:
 	char* GetTargetExe();
 	void  GetPath(char* newFolder, char* path);
 	void  GetTargetPath(char* newFolder, char* path);
-	bool  LoadUserConfig(int& mode, int& mode2, int& adapter, bool &notifications);
+	bool  LoadUserConfig(int& mode, int& mode2, int& adapter, int &mirror, bool &notifications);
 	bool  SaveUserConfig(int mode = -1, float aspect = -1.0f);
 	bool  LoadUserConfig(ProxyConfig& config, OculusProfile& oculusProfile);
 	bool  SaveUserConfig(float ipd = IPD_DEFAULT);
 	bool  SaveTrackerMode(int mode = -1);
 	bool  SaveDisplayAdapter(int adapter);
+	bool  SaveMirrorOption(int mirror);
 	bool  LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile);	
 	bool  SaveConfig(ProxyConfig& config);
 	bool  HasProfile(char* name);

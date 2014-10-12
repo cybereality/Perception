@@ -155,6 +155,16 @@ public:
 			helper.SaveDisplayAdapter(selection);
 		}
 	}
+
+	void new_selection4() {
+		char string[120];
+		int selection = (int)SendMessage(combobox_handle, CB_GETCURSEL, 0, 0);
+		if ( selection != CB_ERR ) {
+			//save the adapter to xml file
+			ProxyHelper helper = ProxyHelper();
+			helper.SaveMirrorOption(selection);
+		}
+	}
 };
 
 class static_control {
@@ -196,6 +206,7 @@ public:
 	combobox_control* combobox;
 	combobox_control* combobox2;
 	combobox_control* combobox3;
+	combobox_control* combobox4;
 	frame_window(LPCSTR window_class_identity) : window_class_name(window_class_identity) {         
 		int screen_width = GetSystemMetrics(SM_CXFULLSCREEN);  
 		int screen_height = GetSystemMetrics(SM_CYFULLSCREEN);  
@@ -215,7 +226,7 @@ public:
 			WS_OVERLAPPEDWINDOW & ~(WS_THICKFRAME | WS_MAXIMIZEBOX), 
 			//WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,   
 			(screen_width-585)/2, (screen_height-240)/2, 
-			585, 240,
+			585, 274,
 			NULL, NULL, instance_handle, NULL);
 		SetWindowLongPtr(window_handle, GWL_USERDATA, (LONG)this);  
 		GetClientRect(window_handle, &client_rectangle);
@@ -225,6 +236,7 @@ public:
 		combobox = new combobox_control(instance_handle, window_handle, text, 20, 81, 1001);
 		combobox2 = new combobox_control(instance_handle, window_handle, text, 20, 115, 1002);
 		combobox3 = new combobox_control(instance_handle, window_handle, text, 20, 149, 1003);
+		combobox4 = new combobox_control(instance_handle, window_handle, text, 20, 183, 1004);
 
 		char viewPath[512];
 		ProxyHelper helper = ProxyHelper();
@@ -320,6 +332,7 @@ public:
 					This->combobox->measure_item((LPMEASUREITEMSTRUCT)lparam);
 					This->combobox2->measure_item((LPMEASUREITEMSTRUCT)lparam);
 					This->combobox3->measure_item((LPMEASUREITEMSTRUCT)lparam);
+					This->combobox4->measure_item((LPMEASUREITEMSTRUCT)lparam);
 					return TRUE;
 				}
 			case WM_DRAWITEM:
@@ -337,6 +350,10 @@ public:
 					{
 						This->combobox3->draw_item((LPDRAWITEMSTRUCT)lparam);
 					}
+					else if (Item->CtlID == 1004)
+					{
+						This->combobox4->draw_item((LPDRAWITEMSTRUCT)lparam);
+					}
 					return TRUE;
 				}
 			case WM_COMMAND:
@@ -345,6 +362,7 @@ public:
 						This->combobox->new_selection();
 						This->combobox2->new_selection2();
 						This->combobox3->new_selection3();
+						This->combobox4->new_selection4();
 					} 
 					return 0;
 				}
@@ -375,6 +393,10 @@ public:
 
 	void add_item3(const char * string) {
 		combobox3->add_item(const_cast<char*>(string));
+	}
+
+	void add_item4(const char * string) {
+		combobox4->add_item(const_cast<char*>(string));
 	}
 };  
 
@@ -465,18 +487,23 @@ int WINAPI wWinMain(HINSTANCE instance_handle, HINSTANCE, LPWSTR, INT) {
 		index++;
 	}
 	
-
+	main_window.add_item4("No Desktop Mirroring\t");
+	main_window.add_item4("Mirror to Primary Desktop (Fullscreen)\t");
+	main_window.add_item4("Mirror to Primary Desktop (1/4 Screen)\t");
+	main_window.add_item4("Mirror to Primary Desktop (Tiny)\t");
 	
 
 	int mode;
 	int mode2;
 	bool notifications;
+	int mirror;
 	int adapter;
 	ProxyHelper helper = ProxyHelper();
-	helper.LoadUserConfig(mode, mode2, adapter, notifications);
+	helper.LoadUserConfig(mode, mode2, adapter, mirror, notifications);
 
 	SendMessage(main_window.combobox->combobox_handle, CB_SETCURSEL, stereoModes[mode], 0);
 	SendMessage(main_window.combobox2->combobox_handle, CB_SETCURSEL, trackerModes[mode2], 0);
+	SendMessage(main_window.combobox4->combobox_handle, CB_SETCURSEL, mirror, 0);
 
 	//If an HMD is unplugged we may not actually be able to select it
 	if (adapter >= adapterNum)

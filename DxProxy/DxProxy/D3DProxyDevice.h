@@ -82,6 +82,7 @@ class D3D9ProxySwapChain;
 class ShaderRegisters;
 class GameHandler;
 struct HMDisplayInfo;
+class mirror_window;
 
 /**
 * Direct 3D proxy device class. 
@@ -372,7 +373,9 @@ protected:
 	{
 		VPT_NONE,
 		//"splash screen" - shown when Vireio is first injected
-		VPT_SPLASH,
+		VPT_SPLASH_1,
+		//Second "splash" - tells users a couple of helpful hot-keys
+		VPT_SPLASH_2,
 		VPT_NO_HMD_DETECTED,
 		VPY_HMDINITFAIL,
 		VPT_VRBOOST_FAILURE,
@@ -510,6 +513,14 @@ protected:
 	* Main menu affection.
 	***/
 	D3DXVECTOR2 menuAttraction;
+
+	/**
+	* Window for the desktop mirror
+	*/
+	HWND mirrorWindow;
+	mirror_window *m_pMirrorWindow;
+	IDirect3DSwapChain9* m_pMirrorSwapChain;
+
 	/**
 	* Main menu border top height.
 	***/
@@ -578,6 +589,10 @@ protected:
  	* Maximum Distortion Scale the Quicklinks will zoom to
  	**/
  	float m_maxDistortionScale;
+	/**
+	* Whether we are mirroring to a desktop window (and it's relative size)
+	*/
+	int mirrorToWindow;
 
 	/**
 	* Pointer to the hmd info

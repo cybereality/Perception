@@ -227,7 +227,7 @@ void ProxyHelper::GetTargetPath(char* newFolder, char* path)
 * @param mode Stereo mode returned.
 * @param mode2 Tracker mode returned.
 ***/
-bool ProxyHelper::LoadUserConfig(int& mode, int& mode2, int& adapter, bool &notifications)
+bool ProxyHelper::LoadUserConfig(int& mode, int& mode2, int& adapter, int &mirror, bool &notifications)
 {
 	// load the base dir for the app
 	GetBaseDir();
@@ -248,6 +248,7 @@ bool ProxyHelper::LoadUserConfig(int& mode, int& mode2, int& adapter, bool &noti
 		mode = xml_config.attribute("stereo_mode").as_int();
 		mode2 = xml_config.attribute("tracker_mode").as_int();
 		adapter = xml_config.attribute("display_adapter").as_int(0);
+		mirror = xml_config.attribute("mirror").as_int(0);
 		notifications = (xml_config.attribute("notifications").as_int(1) != 0);
 
 		return true;
@@ -537,6 +538,39 @@ bool ProxyHelper::SaveDisplayAdapter(int adapter)
 
 		if(adapter >= 0)
 			xml_config.attribute("display_adapter") = adapter;
+
+		docConfig.save_file(configPath);
+
+		return true;
+	}
+
+	return false;
+}
+
+/**
+* Saves the global Vireio Perception configuration (only selected mirroring option).
+* @param mode selected mirroring option.
+***/
+bool ProxyHelper::SaveMirrorOption(int mirror)
+{
+	// load the base dir for the app
+	GetBaseDir();
+	OutputDebugString(baseDir);
+	OutputDebugString("\n");
+
+	// get global config
+	char configPath[512];
+	GetPath(configPath, "cfg\\config.xml");
+
+	xml_document docConfig;
+	xml_parse_result resultConfig = docConfig.load_file(configPath);
+
+	if(resultConfig.status == status_ok)
+	{
+		xml_node xml_config = docConfig.child("config");
+
+		if(mirror >= 0)
+			xml_config.attribute("mirror") = mirror;
 
 		docConfig.save_file(configPath);
 

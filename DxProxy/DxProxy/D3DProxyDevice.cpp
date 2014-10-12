@@ -92,6 +92,55 @@ UINT GetMouseScrollLines()
 	return nScrollLines;
 }
 
+
+	
+class mirror_window 
+{
+public:
+	LPCSTR window_class_name;  
+	HINSTANCE instance_handle;  
+	HWND window_handle;
+	HWND header_handle;
+	RECT client_rectangle;
+	mirror_window(LPCSTR window_class_identity, int height, int width) : window_class_name(window_class_identity) {         
+		instance_handle = GetModuleHandle(NULL);  
+
+		WNDCLASS window_class = { CS_OWNDC, main_window_proc, 0, 0,    
+			instance_handle, NULL,    
+			NULL, NULL, NULL,    
+			window_class_name };   
+
+		RegisterClass(&window_class);   
+		window_handle = CreateWindowEx(WS_EX_TOPMOST | WS_EX_STATICEDGE,    
+			window_class_name,    
+			"Vireio Perception", 
+			WS_OVERLAPPEDWINDOW & ~(WS_THICKFRAME | WS_MAXIMIZEBOX), 
+			0, 0, 
+			width, height,
+			NULL, NULL, instance_handle, NULL);
+		SetWindowLongPtr(window_handle, GWL_USERDATA, (LONG)this);  
+		ShowWindow(window_handle, SW_SHOW);   
+	}  
+	~mirror_window() {  
+		UnregisterClass(window_class_name, instance_handle);   
+	}  
+
+	static LRESULT WINAPI main_window_proc(HWND window_handle, UINT message,    
+		WPARAM wparam, LPARAM lparam) {  
+			mirror_window *This = (mirror_window *)GetWindowLongPtr(window_handle, GWL_USERDATA); 
+
+			switch ( message ) {  
+			case WM_CLOSE:   
+				{   
+					PostQuitMessage(0);   
+					return 0;   
+				}   
+			}   
+			return DefWindowProc(window_handle, message, wparam, lparam);   
+	}
+}; 
+
+
 /**
 * Constructor : creates game handler and sets various states.
 ***/
@@ -106,7 +155,9 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	activePopup(VPT_NONE),
 	show_fps(FPS_NONE),
 	calibrate_tracker(false),
-	hmdInfo(NULL)
+	hmdInfo(NULL),
+	mirrorWindow(NULL),
+	mirrorToWindow(0)
 {
 	#ifdef SHOW_CALLS
 		OutputDebugString("called D3DProxyDevice");
@@ -119,7 +170,7 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	int mode2;
 	int adapter;
 	ProxyHelper helper = ProxyHelper();
-	helper.LoadUserConfig(mode, mode2, adapter, showNotifications);
+	helper.LoadUserConfig(mode, mode2, adapter, mirrorToWindow, showNotifications);
 	hmdInfo = HMDisplayInfoFactory::CreateHMDisplayInfo(static_cast<StereoView::StereoTypes>(mode)); 
 	OutputDebugString(("Created HMD Info for: " + hmdInfo->GetHMDName()).c_str());
 
@@ -174,11 +225,12 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 		dinput.Activate();		
 	}	
 
+
 	std::string date(__DATE__);
 	std::string buildDate = date.substr(4, 2) + "-" + date.substr(0, 3) + "-" + date.substr(7, 4);
 
 	//Show a splash screen on startup
-	VireioPopup splashPopup(VPT_SPLASH, VPS_INFO, 10000);
+	VireioPopup splashPopup(VPT_SPLASH_1, VPS_INFO, 8000);
 	strcpy_s(splashPopup.line1, "Vireio Perception: Stereoscopic 3D Driver");
 	strcpy_s(splashPopup.line2, (std::string("Version: ") + APP_VERSION + "   Build Date: " + buildDate).c_str());
 	strcpy_s(splashPopup.line3, "This program is distributed in the hope that it will be useful,"); 
@@ -194,7 +246,6 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 ***/
 D3DProxyDevice::~D3DProxyDevice()
 {
-
 	#ifdef SHOW_CALLS
 		OutputDebugString("called ~D3DProxyDevice");
 	#endif
@@ -206,6 +257,9 @@ D3DProxyDevice::~D3DProxyDevice()
 	m_spManagedShaderRegisters.reset();
 
 	FreeLibrary(hmVRboost);
+
+	DestroyWindow(m_pMirrorWindow->window_handle);
+	delete m_pMirrorWindow;
 
 	// always do this last
 	auto it = m_activeSwapChains.begin();
@@ -343,6 +397,9 @@ HRESULT WINAPI D3DProxyDevice::Reset(D3DPRESENT_PARAMETERS* pPresentationParamet
 		it = m_activeSwapChains.erase(it);
 	}
 
+	DestroyWindow(m_pMirrorWindow->window_handle);
+	delete m_pMirrorWindow;
+
 	HRESULT hr = BaseDirect3DDevice9::Reset(pPresentationParameters);
 
 	// if the device has been successfully reset we need to recreate any resources we created
@@ -382,11 +439,29 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 		if (stereoView->initialized)
 			stereoView->Draw(static_cast<D3D9ProxySurface*>(pWrappedBackBuffer));
 
+		if (mirrorToWindow != 0)
+		{
+			HRESULT hr = S_OK;
+
+			// Set the primary rendertarget to the first stereo backbuffer
+			IDirect3DSurface9* pBackBuffer = NULL;
+			hr = m_pMirrorSwapChain->GetBackBuffer(0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer);
+			hr = BaseDirect3DDevice9::SetRenderTarget(0, pBackBuffer);
+			IDirect3DSurface9* leftImage = static_cast<D3D9ProxySurface*>(pWrappedBackBuffer)->getActualLeft();
+			hr = BaseDirect3DDevice9::StretchRect(leftImage, NULL, pBackBuffer, NULL, D3DTEXF_NONE);
+
+			pBackBuffer->Release();
+			pBackBuffer = NULL;
+
+			m_pMirrorSwapChain->Present(pSourceRect, pDestRect, m_pMirrorWindow->window_handle, pDirtyRegion, 0);
+		}
+
 		pWrappedBackBuffer->Release();
 	}
 	catch (std::out_of_range) {
 		OutputDebugString("Present: No primary swap chain found. (Present probably called before device has been reset)");
 	}
+
 
 	// did set this now also in proxy swap chain ? solved ?
 	// (this can break if device present is followed by present on another swap chain... or not work well anyway)
@@ -987,6 +1062,20 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 	#ifdef SHOW_CALLS
 		OutputDebugString("called BeginScene");
 	#endif
+
+	static int spash2tick = GetTickCount();
+	if (GetTickCount() - spash2tick  < 15000)
+	{
+		//Show a splash screen on startup
+		VireioPopup splashPopup(VPT_SPLASH_2, VPS_INFO, 8000);
+		strcpy_s(splashPopup.line1, "Vireio Perception: Stereoscopic 3D Driver");
+		//strcpy_s(splashPopup.line2, );
+		strcpy_s(splashPopup.line3, "Useful Hot-keys:"); 
+		strcpy_s(splashPopup.line4, "     <CTRL> + <Q>      :  Show BRASSA Menu"); 
+		strcpy_s(splashPopup.line5, "     Mouse Wheel Click :  Disconnected Screen View");
+		strcpy_s(splashPopup.line6, "     F12               :  Reset HMD Orientation");
+		ShowPopup(splashPopup);
+	}
 	
 	if (tracker)
 		tracker->BeginFrame();
@@ -3007,6 +3096,7 @@ void D3DProxyDevice::OnCreateOrRestore()
 	IDirect3DSurface9* pWrappedBackBuffer;
 	m_activeSwapChains[0]->GetBackBuffer(0, D3DBACKBUFFER_TYPE_MONO, &pWrappedBackBuffer);
 	SetRenderTarget(0, pWrappedBackBuffer);
+
 	pWrappedBackBuffer->Release();
 	pWrappedBackBuffer = NULL;
 
@@ -3033,6 +3123,25 @@ void D3DProxyDevice::OnCreateOrRestore()
 
 	m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
 	m_spShaderViewAdjustment->ComputeViewTransforms();
+
+	if (mirrorToWindow != 0)
+	{
+		m_pMirrorWindow = new mirror_window(config.game_exe.c_str(), (stereoView->viewport.Height / mirrorToWindow), 
+			(stereoView->viewport.Width / mirrorToWindow));
+
+		// Wrap the swap chain
+		D3DPRESENT_PARAMETERS params;
+		pActualPrimarySwapChain->GetPresentParameters(&params);
+		if (FAILED(BaseDirect3DDevice9::CreateAdditionalSwapChain(&params, &m_pMirrorSwapChain))) {
+			OutputDebugString("Failed to fetch swapchain.\n");
+			exit(1); 
+		}
+
+		//Cache for cleanup
+		assert (m_activeSwapChains.size() == 1);
+		m_activeSwapChains.push_back(new D3D9ProxySwapChain(m_pMirrorSwapChain, this, true));
+		assert (m_activeSwapChains.size() == 2);
+	}
 
 	// set BRASSA main values
 	viewportWidth = stereoView->viewport.Width;
@@ -5925,7 +6034,8 @@ void D3DProxyDevice::ShowPopup(VireioPopup &popup)
 {
 	//Nothing to do if we are already showing this popup, splash screen is currently displayed, or we are showing stats
 	if ((activePopup.popupType == popup.popupType && popup.popupType != VPT_ADJUSTER) ||
-		activePopup.popupType == VPT_SPLASH ||
+		activePopup.popupType == VPT_SPLASH_1 ||
+		activePopup.popupType == VPT_SPLASH_2 ||
 		activePopup.popupType == VPT_STATS)
 		return;
 
