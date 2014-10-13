@@ -486,9 +486,9 @@ int WINAPI wWinMain(HINSTANCE instance_handle, HINSTANCE, LPWSTR, INT) {
 	}
 	
 	main_window.add_item4("No Desktop Mirroring\t");
-	main_window.add_item4("Mirror to Primary Desktop (Fullscreen)\t");
-	main_window.add_item4("Mirror to Primary Desktop (1/4 Screen)\t");
-	main_window.add_item4("Mirror to Primary Desktop (Tiny)\t");
+	main_window.add_item4("Mirror to Desktop - Fullscreen\t");
+	main_window.add_item4("Mirror to Window  - 1/4 Screen\t");
+	main_window.add_item4("Mirror to Window  - Small\t");
 	
 
 	int mode;

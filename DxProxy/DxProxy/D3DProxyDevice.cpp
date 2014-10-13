@@ -451,7 +451,7 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 		if (stereoView->initialized)
 			stereoView->Draw(static_cast<D3D9ProxySurface*>(pWrappedBackBuffer));
 
-		if (mirrorToWindow != 0 && m_mirrorType != MW_NONE)
+		if (mirrorToWindow != 0)
 		{
 			HRESULT hr = S_OK;
 
@@ -495,7 +495,7 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 			pBackBuffer->Release();
 			pBackBuffer = NULL;
 
-			m_pMirrorSwapChain->Present(pSourceRect, pDestRect, m_pMirrorWindow->window_handle, pDirtyRegion, 0);
+			m_pMirrorSwapChain->Present(NULL, NULL, m_pMirrorWindow->window_handle, NULL, 0);
 		}
 
 		pWrappedBackBuffer->Release();
@@ -2585,8 +2585,8 @@ void D3DProxyDevice::HandleControls()
 		menuVelocity.x += 4.0f;
 	}
 
-	//Switch mirror mode (if enabled) SHIFT+M
-	if (((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down(0x4D))
+	//Switch mirror mode (if enabled) SHIFT+END
+	if (((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down(VK_END))
 		&& (menuVelocity == D3DXVECTOR2(0.0f, 0.0f))
 		&& mirrorToWindow > 0)
 	{
@@ -2595,19 +2595,8 @@ void D3DProxyDevice::HandleControls()
 		VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1200);
 		switch (m_mirrorType)
 		{
-		case MW_NONE:
-			{
-				strcpy_s(popup.line3, "Desktop Mirroring: Disabled");
-				//Hide mirroring window
-				ShowWindow(m_pMirrorWindow->window_handle, SW_HIDE);
-			}
-			break;
 		case MW_LEFT_EYE:
-			{
-				strcpy_s(popup.line3, "Desktop Mirroring: Left Eye");
-				//Show mirroring window
-				ShowWindow(m_pMirrorWindow->window_handle, SW_SHOW);
-			}
+			strcpy_s(popup.line3, "Desktop Mirroring: Left Eye");
 			break;
 		case MW_RIGHT_EYE:
 			strcpy_s(popup.line3, "Desktop Mirroring: Right Eye");
@@ -3228,17 +3217,11 @@ void D3DProxyDevice::OnCreateOrRestore()
 				windowSize.cy = monitorRects[mirrorAdapter].bottom - monitorRects[mirrorAdapter].top;
 				if (mirrorToWindow > 1)
 				{
-					location.x -= (stereoView->viewport.Width / mirrorToWindow) / 2; 
-					location.y -= (stereoView->viewport.Height / mirrorToWindow) / 2; 
+					location.x = (windowSize.cx / 2) - (stereoView->viewport.Width / mirrorToWindow) / 2; 
+					location.y = (windowSize.cy / 2) - (stereoView->viewport.Height / mirrorToWindow) / 2; 
 					windowSize.cx /= mirrorToWindow;
 					windowSize.cy /= mirrorToWindow;
 				}
-
-				// Wrap the swap chain
-				D3DPRESENT_PARAMETERS params;
-				pActualPrimarySwapChain->GetPresentParameters(&params);
-				params.BackBufferHeight = (stereoView->viewport.Height / mirrorToWindow);
-				params.BackBufferWidth = (stereoView->viewport.Width / mirrorToWindow);
 
 				//Now create the output window
 				m_pMirrorWindow = new mirror_window(mirrorToWindow == 1,
@@ -3248,10 +3231,32 @@ void D3DProxyDevice::OnCreateOrRestore()
 					location.y,
 					windowSize.cx,
 					windowSize.cy);
+
 				if (m_pMirrorWindow->window_handle == NULL)
 					throw std::exception("Unable to create desktop mirror window - Mirroring disabled");
 
-				if (FAILED(BaseDirect3DDevice9::CreateAdditionalSwapChain(&params, &m_pMirrorSwapChain))) {
+				// Wrap the swap chain
+				D3DPRESENT_PARAMETERS params;
+				pActualPrimarySwapChain->GetPresentParameters(&params);
+				//params.BackBufferHeight = (stereoView->viewport.Height / mirrorToWindow);
+				//params.BackBufferWidth = (stereoView->viewport.Width / mirrorToWindow);
+				params.Windowed = TRUE;
+				/*params.hDeviceWindow = m_pMirrorWindow->window_handle;*/
+				/*params.EnableAutoDepthStencil = FALSE;
+				params.BackBufferFormat = D3DFMT_UNKNOWN;
+				params.BackBufferCount = 1;
+				params.MultiSampleType = D3DMULTISAMPLE_NONE;
+				params.MultiSampleQuality = D3DMULTISAMPLE_NONE;
+				params.SwapEffect = D3DSWAPEFFECT_DISCARD;
+				params.FullScreen_RefreshRateInHz = 0;
+				params.Flags = 0;//D3DPRESENTFLAG_DEVICECLIP;
+				params.PresentationInterval = D3DPRESENT_INTERVAL_DEFAULT;*/
+
+				m_pMirrorSwapChain = NULL;
+				HRESULT hr = BaseDirect3DDevice9::CreateAdditionalSwapChain(&params, &m_pMirrorSwapChain);
+				if (FAILED(hr))
+				{
+					ShowWindow(m_pMirrorWindow->window_handle, SW_HIDE);
 					throw std::exception("Unable to create desktop mirror swap chain - Mirroring disabled");
 				}
 

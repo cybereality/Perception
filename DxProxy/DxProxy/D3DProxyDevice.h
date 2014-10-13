@@ -526,7 +526,6 @@ protected:
 	int mirrorToWindow;
 	enum MirrorWindow
 	{
-		MW_NONE,
 		MW_LEFT_EYE,
 		MW_RIGHT_EYE,
 		MW_RIFT_VIEW,
