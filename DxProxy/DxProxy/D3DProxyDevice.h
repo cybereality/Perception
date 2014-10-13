@@ -520,6 +520,20 @@ protected:
 	HWND mirrorWindow;
 	mirror_window *m_pMirrorWindow;
 	IDirect3DSwapChain9* m_pMirrorSwapChain;
+	/**
+	* Whether we are mirroring to a desktop window (and it's relative size)
+	*/
+	int mirrorToWindow;
+	enum MirrorWindow
+	{
+		MW_NONE,
+		MW_LEFT_EYE,
+		MW_RIGHT_EYE,
+		MW_RIFT_VIEW,
+		MW_ENTRIES
+	};
+	MirrorWindow m_mirrorType;
+
 
 	/**
 	* Main menu border top height.
@@ -589,11 +603,6 @@ protected:
  	* Maximum Distortion Scale the Quicklinks will zoom to
  	**/
  	float m_maxDistortionScale;
-	/**
-	* Whether we are mirroring to a desktop window (and it's relative size)
-	*/
-	int mirrorToWindow;
-
 	/**
 	* Pointer to the hmd info
 	*/

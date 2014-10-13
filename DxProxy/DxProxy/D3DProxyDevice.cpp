@@ -102,7 +102,7 @@ public:
 	HWND window_handle;
 	HWND header_handle;
 	RECT client_rectangle;
-	mirror_window(LPCSTR window_class_identity, int height, int width) : window_class_name(window_class_identity) {         
+	mirror_window(bool fullScreen, LPCSTR window_class_identity, LPCSTR window_title, int x, int y, int width, int height) : window_class_name(window_class_identity) {         
 		instance_handle = GetModuleHandle(NULL);  
 
 		WNDCLASS window_class = { CS_OWNDC, main_window_proc, 0, 0,    
@@ -110,12 +110,14 @@ public:
 			NULL, NULL, NULL,    
 			window_class_name };   
 
+		UINT style = fullScreen ? WS_POPUP|WS_VISIBLE|WS_SYSMENU :
+			WS_OVERLAPPEDWINDOW & ~(WS_THICKFRAME | WS_MAXIMIZEBOX);
 		RegisterClass(&window_class);   
 		window_handle = CreateWindowEx(WS_EX_TOPMOST | WS_EX_STATICEDGE,    
 			window_class_name,    
-			"Vireio Perception", 
-			WS_OVERLAPPEDWINDOW & ~(WS_THICKFRAME | WS_MAXIMIZEBOX), 
-			0, 0, 
+			window_title, 
+			style, 
+			x, y, 
 			width, height,
 			NULL, NULL, instance_handle, NULL);
 		SetWindowLongPtr(window_handle, GWL_USERDATA, (LONG)this);  
@@ -140,6 +142,14 @@ public:
 	}
 }; 
 
+BOOL CALLBACK MonitorEnumProc( HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData )
+{
+	static int index = 0;
+	std::map<int, RECT> *pMonitorRectVec = (std::map<int, RECT> *)(dwData);
+	if (lprcMonitor && pMonitorRectVec)
+		pMonitorRectVec->insert(std::make_pair(index++, RECT(*lprcMonitor)));
+	return TRUE;
+}
 
 /**
 * Constructor : creates game handler and sets various states.
@@ -157,7 +167,9 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	calibrate_tracker(false),
 	hmdInfo(NULL),
 	mirrorWindow(NULL),
-	mirrorToWindow(0)
+	mirrorToWindow(0),
+	//Start mirroring with left eye
+	m_mirrorType(MW_LEFT_EYE)
 {
 	#ifdef SHOW_CALLS
 		OutputDebugString("called D3DProxyDevice");
@@ -439,16 +451,46 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 		if (stereoView->initialized)
 			stereoView->Draw(static_cast<D3D9ProxySurface*>(pWrappedBackBuffer));
 
-		if (mirrorToWindow != 0)
+		if (mirrorToWindow != 0 && m_mirrorType != MW_NONE)
 		{
 			HRESULT hr = S_OK;
 
 			// Set the primary rendertarget to the first stereo backbuffer
 			IDirect3DSurface9* pBackBuffer = NULL;
 			hr = m_pMirrorSwapChain->GetBackBuffer(0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer);
+			if (FAILED(hr))
+				throw std::exception("Could not get Mirror Window Swap Chain back buffer");
+
 			hr = BaseDirect3DDevice9::SetRenderTarget(0, pBackBuffer);
-			IDirect3DSurface9* leftImage = static_cast<D3D9ProxySurface*>(pWrappedBackBuffer)->getActualLeft();
-			hr = BaseDirect3DDevice9::StretchRect(leftImage, NULL, pBackBuffer, NULL, D3DTEXF_NONE);
+			if (FAILED(hr))
+				throw std::exception("Could not set Mirror Window render target");
+			
+			switch (m_mirrorType)
+			{
+			case MW_LEFT_EYE:
+				{
+					IDirect3DSurface9* leftImage = static_cast<D3D9ProxySurface*>(pWrappedBackBuffer)->getActualLeft();
+					hr = BaseDirect3DDevice9::StretchRect(leftImage, NULL, pBackBuffer, NULL, D3DTEXF_NONE);
+				}
+				break;
+			case MW_RIGHT_EYE:
+				{
+					IDirect3DSurface9* rightImage = static_cast<D3D9ProxySurface*>(pWrappedBackBuffer)->getActualRight();
+					hr = BaseDirect3DDevice9::StretchRect(rightImage, NULL, pBackBuffer, NULL, D3DTEXF_NONE);
+				}
+				break;
+			case MW_RIFT_VIEW:
+				{
+					if (stereoView->initialized)
+					{
+						IDirect3DSurface9* riftImage = stereoView->GetBackBuffer();
+						hr = BaseDirect3DDevice9::StretchRect(riftImage, NULL, pBackBuffer, NULL, D3DTEXF_NONE);
+					}
+				}
+				break;
+			}
+			if (FAILED(hr))
+				throw std::exception("Mirroring failed on buffer copy");
 
 			pBackBuffer->Release();
 			pBackBuffer = NULL;
@@ -460,6 +502,10 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 	}
 	catch (std::out_of_range) {
 		OutputDebugString("Present: No primary swap chain found. (Present probably called before device has been reset)");
+	}
+	catch (std::exception e)
+	{
+		OutputDebugString(e.what());
 	}
 
 
@@ -2539,6 +2585,42 @@ void D3DProxyDevice::HandleControls()
 		menuVelocity.x += 4.0f;
 	}
 
+	//Switch mirror mode (if enabled) SHIFT+M
+	if (((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down(0x4D))
+		&& (menuVelocity == D3DXVECTOR2(0.0f, 0.0f))
+		&& mirrorToWindow > 0)
+	{
+		m_mirrorType = (MirrorWindow)((m_mirrorType + 1) % (int)MW_ENTRIES);
+
+		VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1200);
+		switch (m_mirrorType)
+		{
+		case MW_NONE:
+			{
+				strcpy_s(popup.line3, "Desktop Mirroring: Disabled");
+				//Hide mirroring window
+				ShowWindow(m_pMirrorWindow->window_handle, SW_HIDE);
+			}
+			break;
+		case MW_LEFT_EYE:
+			{
+				strcpy_s(popup.line3, "Desktop Mirroring: Left Eye");
+				//Show mirroring window
+				ShowWindow(m_pMirrorWindow->window_handle, SW_SHOW);
+			}
+			break;
+		case MW_RIGHT_EYE:
+			strcpy_s(popup.line3, "Desktop Mirroring: Right Eye");
+			break;
+		case MW_RIFT_VIEW:
+			strcpy_s(popup.line3, "Desktop Mirroring: Rift View");
+			break;
+		}
+		ShowPopup(popup);
+
+		menuVelocity.x += 4.0f;
+	}
+
 	// toggle VR Mouse
 	if (controls.Key_Down(VK_LCONTROL) && controls.Key_Down(VK_NUMPAD0) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
@@ -3126,21 +3208,68 @@ void D3DProxyDevice::OnCreateOrRestore()
 
 	if (mirrorToWindow != 0)
 	{
-		m_pMirrorWindow = new mirror_window(config.game_exe.c_str(), (stereoView->viewport.Height / mirrorToWindow), 
-			(stereoView->viewport.Width / mirrorToWindow));
+		try
+		{
+			//Get all display rectangles
+			std::map<int, RECT> monitorRects;
+			EnumDisplayMonitors(NULL, NULL, &MonitorEnumProc, (LPARAM)(&monitorRects));
 
-		// Wrap the swap chain
-		D3DPRESENT_PARAMETERS params;
-		pActualPrimarySwapChain->GetPresentParameters(&params);
-		if (FAILED(BaseDirect3DDevice9::CreateAdditionalSwapChain(&params, &m_pMirrorSwapChain))) {
-			OutputDebugString("Failed to fetch swapchain.\n");
-			exit(1); 
+			if (monitorRects.size() > 1)
+			{
+				POINT location;
+				SIZE windowSize;
+
+				int mirrorAdapter = 1 - config.display_adapter;
+
+				//Set the window location
+				location.x = monitorRects[mirrorAdapter].left;
+				location.y = monitorRects[mirrorAdapter].top;
+				windowSize.cx = monitorRects[mirrorAdapter].right - monitorRects[mirrorAdapter].left;
+				windowSize.cy = monitorRects[mirrorAdapter].bottom - monitorRects[mirrorAdapter].top;
+				if (mirrorToWindow > 1)
+				{
+					location.x -= (stereoView->viewport.Width / mirrorToWindow) / 2; 
+					location.y -= (stereoView->viewport.Height / mirrorToWindow) / 2; 
+					windowSize.cx /= mirrorToWindow;
+					windowSize.cy /= mirrorToWindow;
+				}
+
+				// Wrap the swap chain
+				D3DPRESENT_PARAMETERS params;
+				pActualPrimarySwapChain->GetPresentParameters(&params);
+				params.BackBufferHeight = (stereoView->viewport.Height / mirrorToWindow);
+				params.BackBufferWidth = (stereoView->viewport.Width / mirrorToWindow);
+
+				//Now create the output window
+				m_pMirrorWindow = new mirror_window(mirrorToWindow == 1,
+					"VireioPerceptionMirrorWindow",
+					("Vireio Perception: " + config.game_exe).c_str(),  
+					location.x,
+					location.y,
+					windowSize.cx,
+					windowSize.cy);
+				if (m_pMirrorWindow->window_handle == NULL)
+					throw std::exception("Unable to create desktop mirror window - Mirroring disabled");
+
+				if (FAILED(BaseDirect3DDevice9::CreateAdditionalSwapChain(&params, &m_pMirrorSwapChain))) {
+					throw std::exception("Unable to create desktop mirror swap chain - Mirroring disabled");
+				}
+
+				//Cache for cleanup
+				m_activeSwapChains.push_back(new D3D9ProxySwapChain(m_pMirrorSwapChain, this, true));
+			}
+			else
+			{
+				//Only one monitor, no point mirroring anywhere
+				mirrorToWindow = 0;
+			}
 		}
-
-		//Cache for cleanup
-		assert (m_activeSwapChains.size() == 1);
-		m_activeSwapChains.push_back(new D3D9ProxySwapChain(m_pMirrorSwapChain, this, true));
-		assert (m_activeSwapChains.size() == 2);
+		catch (std::exception e)
+		{
+			//Log error and disable window mirroring
+			mirrorToWindow = 0;
+			OutputDebugString(e.what());
+		}
 	}
 
 	// set BRASSA main values

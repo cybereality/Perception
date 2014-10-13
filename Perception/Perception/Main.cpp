@@ -147,7 +147,6 @@ public:
 	}
 
 	void new_selection3() {
-		char string[120];
 		int selection = (int)SendMessage(combobox_handle, CB_GETCURSEL, 0, 0);
 		if ( selection != CB_ERR ) {
 			// save the adapter to xml file
@@ -157,7 +156,6 @@ public:
 	}
 
 	void new_selection4() {
-		char string[120];
 		int selection = (int)SendMessage(combobox_handle, CB_GETCURSEL, 0, 0);
 		if ( selection != CB_ERR ) {
 			//save the adapter to xml file
