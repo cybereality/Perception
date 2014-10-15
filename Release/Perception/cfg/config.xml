@@ -1,2 +1,2 @@
 <?xml version="1.0"?>
-<config stereo_mode="110" tracker_mode="40" aspect_multiplier="1" ipd="0.064" notifications="1" display_adapter="1" />
+<config stereo_mode="110" tracker_mode="40" aspect_multiplier="1" ipd="0.064" mirror="2" notifications="1" display_adapter="1" />

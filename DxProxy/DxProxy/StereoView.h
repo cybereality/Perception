@@ -54,7 +54,7 @@ public:
 	virtual void Draw(D3D9ProxySurface* stereoCapableSurface);
 	virtual void SaveScreen();
 	virtual void PostReset();
-
+	IDirect3DSurface9* GetBackBuffer();
 	/**
 	* Stereo render options.
 	***/

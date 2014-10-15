@@ -363,6 +363,11 @@ void StereoView::SaveScreen()
 	D3DXSaveSurfaceToFile(fileName, D3DXIFF_BMP, backBuffer, NULL, NULL);
 }
 
+IDirect3DSurface9* StereoView::GetBackBuffer()
+{
+	return backBuffer;
+}
+
 /**
 * Calls ID3DXEffect::OnResetDevice.
 ***/
