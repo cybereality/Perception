@@ -634,7 +634,6 @@ protected:
 		{
 			PRESENT,
 			BEGIN_SCENE,
-			FIRST_BEGIN_SCENE,
 			END_SCENE,
 		};
 

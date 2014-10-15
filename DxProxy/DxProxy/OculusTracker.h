@@ -76,6 +76,8 @@ private:
 	***/
     ovrHmd hmd;
 
+	bool supportsPositional;
+
 	/**
 	 * Stores the product name of the HMD
 	 */

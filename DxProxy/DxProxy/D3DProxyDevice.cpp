@@ -1109,24 +1109,24 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 		OutputDebugString("called BeginScene");
 	#endif
 
-	static int spash2tick = GetTickCount();
-	if (GetTickCount() - spash2tick  < 15000)
+	if (m_isFirstBeginSceneOfFrame)
 	{
-		//Show a splash screen on startup
-		VireioPopup splashPopup(VPT_SPLASH_2, VPS_INFO, 8000);
-		strcpy_s(splashPopup.line1, "Vireio Perception: Stereoscopic 3D Driver");
-		//strcpy_s(splashPopup.line2, );
-		strcpy_s(splashPopup.line3, "Useful Hot-keys:"); 
-		strcpy_s(splashPopup.line4, "     <CTRL> + <Q>      :  Show BRASSA Menu"); 
-		strcpy_s(splashPopup.line5, "     Mouse Wheel Click :  Disconnected Screen View");
-		strcpy_s(splashPopup.line6, "     F12               :  Reset HMD Orientation");
-		ShowPopup(splashPopup);
-	}
+		static int spash2tick = GetTickCount();
+		if (GetTickCount() - spash2tick  < 15000)
+		{
+			//Show a splash screen on startup
+			VireioPopup splashPopup(VPT_SPLASH_2, VPS_INFO, 8000);
+			strcpy_s(splashPopup.line1, "Vireio Perception: Stereoscopic 3D Driver");
+			//strcpy_s(splashPopup.line2, );
+			strcpy_s(splashPopup.line3, "Useful Hot-keys:"); 
+			strcpy_s(splashPopup.line4, "     <CTRL> + <Q>\t\t\t:  Show BRASSA Menu"); 
+			strcpy_s(splashPopup.line5, "     Mouse Wheel Click\t:  Disconnected Screen View");
+			strcpy_s(splashPopup.line6, "     F12\t\t\t\t:  Reset HMD Orientation");
+			ShowPopup(splashPopup);
+		}
 	
-	if (tracker)
-		tracker->BeginFrame();
-
-	if (m_isFirstBeginSceneOfFrame) {
+		if (tracker)
+			tracker->BeginFrame();
 
 		// save screenshot before first clear() is called
 		if (screenshot>0)
@@ -1147,12 +1147,12 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 			m_bViewportIsSquished = false;
 		}
 
-		// handle controls 
-		if ((m_deviceBehavior.whenToHandleHeadTracking == DeviceBehavior::WhenToDo::BEGIN_SCENE) || (m_deviceBehavior.whenToHandleHeadTracking == DeviceBehavior::WhenToDo::FIRST_BEGIN_SCENE))
+		// handle controls - Only handled on the first begin scene
+		if (m_deviceBehavior.whenToHandleHeadTracking == DeviceBehavior::WhenToDo::BEGIN_SCENE)
 			HandleTracking();
 
 		// draw BRASSA
-		if ((m_deviceBehavior.whenToRenderBRASSA == DeviceBehavior::WhenToDo::BEGIN_SCENE) || (m_deviceBehavior.whenToRenderBRASSA == DeviceBehavior::WhenToDo::FIRST_BEGIN_SCENE))
+		if (m_deviceBehavior.whenToRenderBRASSA == DeviceBehavior::WhenToDo::BEGIN_SCENE)
 		{
 			if ((BRASSA_mode>=BRASSA_Modes::MAINMENU) && (BRASSA_mode<BRASSA_Modes::BRASSA_ENUM_RANGE))
 				BRASSA();
@@ -1168,10 +1168,6 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 	}
 	else
 	{
-		// handle controls 
-		if (m_deviceBehavior.whenToHandleHeadTracking == DeviceBehavior::WhenToDo::BEGIN_SCENE)
-			HandleTracking();
-
 		// draw BRASSA
 		if (m_deviceBehavior.whenToRenderBRASSA == DeviceBehavior::WhenToDo::BEGIN_SCENE)
 		{
@@ -5712,6 +5708,7 @@ void D3DProxyDevice::BRASSA_UpdateBorder()
 	#ifdef SHOW_CALLS
 		OutputDebugString("called BRASSA_UpdateBorder");
 	#endif
+
 	// handle controls 
 	if (m_deviceBehavior.whenToHandleHeadTracking == DeviceBehavior::PRESENT)
 		HandleTracking();
