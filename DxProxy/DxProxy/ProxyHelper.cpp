@@ -752,6 +752,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 
 		// get VRBoost reset hotkey and settings
 		config.VRBoostResetHotkey = (byte)gameProfile.attribute("VRBoost_key_reset").as_int(0);
+		config.EdgePeekHotkey = (byte)gameProfile.attribute("edge_peek_key").as_int(0);
 		config.WorldFOV = gameProfile.attribute("WorldFOV").as_float(95.0f);
 		config.PlayerFOV = gameProfile.attribute("PlayerFOV").as_float(125.0f);
 		config.FarPlaneFOV = gameProfile.attribute("FarPlaneFOV").as_float(95.0f);
@@ -1191,6 +1192,14 @@ bool ProxyHelper::SaveConfig(ProxyConfig& config)
 			gameProfile.insert_attribute_after("FarPlaneFOV", gameProfile.attribute("VRBoost_key_reset")) = config.FarPlaneFOV;
 			gameProfile.insert_attribute_after("PlayerFOV", gameProfile.attribute("VRBoost_key_reset")) = config.PlayerFOV;
 			gameProfile.insert_attribute_after("WorldFOV", gameProfile.attribute("VRBoost_key_reset")) = config.WorldFOV;			
+		}
+
+		if (strcmp(gameProfile.attribute("ConstantValue3").next_attribute().name(), "edge_peek_key") == 0)
+			gameProfile.attribute("edge_peek_key") = config.EdgePeekHotkey;
+		else
+		{
+			gameProfile.remove_attribute("edge_peek_key");
+			gameProfile.insert_attribute_after("edge_peek_key", gameProfile.attribute("ConstantValue3")) = config.EdgePeekHotkey;
 		}
 
 		docProfiles.save_file(profilePath);
