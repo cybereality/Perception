@@ -161,7 +161,7 @@ void OculusTracker::EndFrame()
 
 /**
 * Oculus reset.
-* Resets the orientation.
+* Resets the orientation - As per Oculus VR, only yaw/x/y/z should be reset
 ***/
 void OculusTracker::resetOrientationAndPosition()
 {
@@ -228,11 +228,12 @@ int OculusTracker::getOrientationAndPosition(float* yaw, float* pitch, float* ro
 
 		// set primary orientations
 		primaryYaw = *yaw - offsetYaw;
-		primaryPitch = *pitch - offsetPitch;
-		primaryRoll = *roll - offsetRoll;
+		//As per oculus vr, roll and pitch should not be reset, only yaw/x/y/z
+		primaryPitch = *pitch;// - offsetPitch;
+		primaryRoll = *roll;// - offsetRoll;
 		*yaw = -RadToDegree(*yaw - offsetYaw);
-		*pitch = RadToDegree(*pitch - offsetPitch);
-		*roll = -RadToDegree(*roll - offsetRoll);
+		*pitch = RadToDegree(*pitch);// - offsetPitch);
+		*roll = -RadToDegree(*roll);// - offsetRoll);
 		status = MTS_OK;
 	}
 	else
