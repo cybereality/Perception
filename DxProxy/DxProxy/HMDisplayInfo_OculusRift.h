@@ -78,6 +78,8 @@ public:
 		sstm << "Using Oculus Profile: " << std::endl;
 		sstm << OVR_KEY_USER << ": " << profile->GetValue(OVR_KEY_USER)  << std::endl;
 		sstm << "HmdType: " << (int)pHMDState->OurHMDInfo.HmdType  << std::endl;
+		//clean up
+		delete profile;
 
 		switch (pHMDState->OurHMDInfo.HmdType)
 		{
@@ -177,12 +179,19 @@ public:
 	***/
 	virtual float GetPhysicalLensSeparation()
 	{
-		OVR::CAPI::HMDState *pHMDState = (OVR::CAPI::HMDState*)(hmd->Handle);
-		std::string user = OVR::ProfileManager::GetInstance()->GetUser(0);
-		OVR::ProfileDeviceKey pdk(&(pHMDState->OurHMDInfo));
-		OVR::Profile* profile = OVR::ProfileManager::GetInstance()->GetProfile(pdk, user.c_str());
-		OVR::HmdRenderInfo renderInfo = OVR::GenerateHmdRenderInfoFromHmdInfo(pHMDState->OurHMDInfo, profile, OVR::DistortionEqnType::Distortion_CatmullRom10);
-		return renderInfo.LensSeparationInMeters;
+		static float separation = 0.0f;
+		if (separation == 0.0f)
+		{
+			OVR::CAPI::HMDState *pHMDState = (OVR::CAPI::HMDState*)(hmd->Handle);
+			std::string user = OVR::ProfileManager::GetInstance()->GetUser(0);
+			OVR::ProfileDeviceKey pdk(&(pHMDState->OurHMDInfo));
+			OVR::Profile* profile = OVR::ProfileManager::GetInstance()->GetProfile(pdk, user.c_str());
+			OVR::HmdRenderInfo renderInfo = OVR::GenerateHmdRenderInfoFromHmdInfo(pHMDState->OurHMDInfo, profile, OVR::DistortionEqnType::Distortion_CatmullRom10);
+			separation = renderInfo.LensSeparationInMeters;
+			//Finished with the Profile - Not deleting this was causing a memory leak
+			delete profile;
+		}
+		return separation;
 	}
 	
 	/**

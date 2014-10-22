@@ -101,6 +101,7 @@ public:
 		float       ipd;                        /**< IPD, which stands for interpupillary distance (distance between your pupils - in meters...default = 0.064). Also called the interocular distance (or just Interocular). */
 		float       aspect_multiplier;          /**< Currently unused aspect multiplier. Aspect multiplier allows adjusting aspect ratio consistently for Stereo/NoStereo. */
 		UINT		display_adapter;			/**< The display adapter to use - 0 = Primary Display, 1 = Secondary and so on.. */
+		//int			mirror;						/**< Whether to mirror to desktop (0 - No, 1 - Full Screen, 2- 1/4 Size, 3 - Tiny */
 	};
 
 	/**
@@ -121,13 +122,13 @@ public:
 	char* GetTargetExe();
 	void  GetPath(char* newFolder, char* path);
 	void  GetTargetPath(char* newFolder, char* path);
-	bool  LoadUserConfig(int& mode, int& mode2, int& adapter, int &mirror, bool &notifications);
+	bool  LoadUserConfig(int& mode, int& mode2, int& adapter, bool &notifications);
 	bool  SaveUserConfig(int mode = -1, float aspect = -1.0f);
 	bool  LoadUserConfig(ProxyConfig& config, OculusProfile& oculusProfile);
 	bool  SaveUserConfig(float ipd = IPD_DEFAULT);
 	bool  SaveTrackerMode(int mode = -1);
 	bool  SaveDisplayAdapter(int adapter);
-	bool  SaveMirrorOption(int mirror);
+	//bool  SaveMirrorOption(int mirror);
 	bool  LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile);	
 	bool  SaveConfig(ProxyConfig& config);
 	bool  HasProfile(char* name);

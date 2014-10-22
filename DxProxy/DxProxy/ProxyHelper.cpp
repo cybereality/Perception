@@ -227,7 +227,7 @@ void ProxyHelper::GetTargetPath(char* newFolder, char* path)
 * @param mode Stereo mode returned.
 * @param mode2 Tracker mode returned.
 ***/
-bool ProxyHelper::LoadUserConfig(int& mode, int& mode2, int& adapter, int &mirror, bool &notifications)
+bool ProxyHelper::LoadUserConfig(int& mode, int& mode2, int& adapter, bool &notifications)
 {
 	// load the base dir for the app
 	GetBaseDir();
@@ -248,7 +248,7 @@ bool ProxyHelper::LoadUserConfig(int& mode, int& mode2, int& adapter, int &mirro
 		mode = xml_config.attribute("stereo_mode").as_int();
 		mode2 = xml_config.attribute("tracker_mode").as_int();
 		adapter = xml_config.attribute("display_adapter").as_int(0);
-		mirror = xml_config.attribute("mirror").as_int(0);
+		//mirror = xml_config.attribute("mirror").as_int(0);
 		notifications = (xml_config.attribute("notifications").as_int(1) != 0);
 
 		return true;
@@ -551,6 +551,7 @@ bool ProxyHelper::SaveDisplayAdapter(int adapter)
 * Saves the global Vireio Perception configuration (only selected mirroring option).
 * @param mode selected mirroring option.
 ***/
+/*
 bool ProxyHelper::SaveMirrorOption(int mirror)
 {
 	// load the base dir for the app
@@ -579,7 +580,7 @@ bool ProxyHelper::SaveMirrorOption(int mirror)
 
 	return false;
 }
-
+*/
 /**
 * Loads the game configuration for the target process specified in the registry (targetExe).
 * @param config Returned game configuration.
@@ -626,6 +627,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 		config.aspect_multiplier = xml_config.attribute("aspect_multiplier").as_float();
 		config.tracker_mode = xml_config.attribute("tracker_mode").as_int();
 		config.display_adapter = xml_config.attribute("display_adapter").as_int(0);
+		//config.mirror = xml_config.attribute("mirror").as_int(0);
 
 		fileFound = true;
 	}

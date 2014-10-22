@@ -11,6 +11,7 @@ float2 ScaleIn;
 float4 Chroma;
 float2 Resolution;
 float4 HmdWarpParam;
+float3 Vignette;
 
 // Warp operates on left view, for right, mirror x texture coord
 // before and after calling.  in02 contains the chromatic aberration
@@ -180,8 +181,43 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
     outColor.b +=  (tex2D(TexMap0,  tcBlue1.xy).b + tex2D(TexMap0,  tcBlue1.zw).b);
     outColor.b /= 4.0f; // 4 samples
   }
+ 	//Are we applying vignette filter?
+	float vignetteScaler = 1.0f;
+ 
+	//values used in the following manner:
+	//  x - Where the vignette starts (0.0 -> 1.0, 1.0 is edge of screen)
+	//  y - Vignette distance, where fade ends (0.0f for no vignette effect at the edge, ideally x + y == 1.0f)
+	//  z - aspect multiplier (should be small number), pushes the vignette towards corners of the screen (rather 
+	//      than being simply oval or circular like VorpX
+	if (Vignette.x > 0 && Vignette.x < 1.0f)
+	{
+		//x is halved by subtracting 0.5 if greater than 0.5, y needs to be halved by dividing by 2
+		float2 newPos = float2(Tex.x, Tex.y / 2);
+		if (Tex.x > 0.5)
+			newPos.x = newPos.x - 0.5;
+		newPos = float2(abs(newPos.x - 0.25f), abs(newPos.y - 0.25f));
+	
+		//Get the position on a scale of 0 to 1 for x and y
+		newPos *= 4.0f;
 
-  return float4(outColor.r, outColor.g, outColor.b, 1.0f);
+		float aspectScale = 0.0f;
+		if (newPos.x == 0.0f && newPos.y == 0.0f)
+			aspectScale = 0.0f;
+		else if (newPos.x > newPos.y)
+			aspectScale = (newPos.y / newPos.x) * Vignette.z;
+		else
+			aspectScale = (newPos.x / newPos.y) * Vignette.z;
+
+		float dist = sqrt((newPos.x * newPos.x) + (newPos.y * newPos.y)) / (1.0f + aspectScale);
+		if (dist > Vignette.x)
+		{
+			vignetteScaler = 1.0f - ((dist - Vignette.x) / Vignette.y);
+			if (vignetteScaler < 0.0f)
+				vignetteScaler = 0.0f;
+		}
+	}
+
+	return float4(outColor.r * vignetteScaler, outColor.g * vignetteScaler, outColor.b * vignetteScaler, 1.0f);
 }
 
 technique ViewShader

@@ -548,5 +548,8 @@
     <Xml Include="..\..\Release\Perception\cfg\shader_rules\dearesther.xml">
       <Filter>cfg\shader_rules</Filter>
     </Xml>
+    <Xml Include="..\..\Release\Perception\cfg\shader_rules\Bioshock2.xml">
+      <Filter>cfg\shader_rules</Filter>
+    </Xml>
   </ItemGroup>
 </Project>

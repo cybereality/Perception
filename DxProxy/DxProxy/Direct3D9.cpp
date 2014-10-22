@@ -203,6 +203,9 @@ HMONITOR WINAPI BaseDirect3D9::GetAdapterMonitor(UINT Adapter)
 	return m_pD3D->GetAdapterMonitor(cfg.display_adapter);
 }
 
+#define RECT_WIDTH(x) (x.right - x.left)
+#define RECT_HEIGHT(x) (x.bottom - x.top)
+
 /**
 * Create D3D device proxy. 
 * First it creates the device, then it loads the game configuration
@@ -211,11 +214,51 @@ HMONITOR WINAPI BaseDirect3D9::GetAdapterMonitor(UINT Adapter)
 ***/
 HRESULT WINAPI BaseDirect3D9::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, HWND hFocusWindow,DWORD BehaviorFlags, D3DPRESENT_PARAMETERS* pPresentationParameters,IDirect3DDevice9** ppReturnedDeviceInterface)
 {
-	// Create real interface
-	HRESULT hResult = m_pD3D->CreateDevice(cfg.display_adapter, DeviceType, hFocusWindow, BehaviorFlags,
-		pPresentationParameters, ppReturnedDeviceInterface);
-	if(FAILED(hResult))
-		return hResult;
+	HWND hMainWindow = NULL;
+	HRESULT hResult = S_OK;
+/*	if (cfg.mirror != 0)
+	{
+		//Get all display rectangles
+		EnumDisplayMonitors(NULL, NULL, &MonitorEnumProc, (LPARAM)(&D3DProxyDevice::m_monitorRects));
+		if (D3DProxyDevice::m_monitorRects.size() > 1)
+		{
+			OutputDebugString("Mirroring Enabled - Create Device in Windowed Mode");
+
+			D3DPRESENT_PARAMETERS params = *pPresentationParameters;
+
+/*			//Create our own window
+			game_window *pWindow = new game_window(true, 
+				"VireioPerceptionGameWindow",
+				(std::string("Vireio Perception: ") + cfg.game_exe).c_str(),  
+				D3DProxyDevice::m_monitorRects[cfg.display_adapter].left,
+				D3DProxyDevice::m_monitorRects[cfg.display_adapter].top,
+				RECT_WIDTH(D3DProxyDevice::m_monitorRects[cfg.display_adapter]),
+				RECT_HEIGHT(D3DProxyDevice::m_monitorRects[cfg.display_adapter]));
+
+			//Save the main game window
+			hMainWindow = params.hDeviceWindow;
+			
+			//params.Windowed = TRUE;
+			//params.hDeviceWindow = pWindow->window_handle;
+			//params.FullScreen_RefreshRateInHz = 0;
+
+			// Create real interface
+			hResult = m_pD3D->CreateDevice(cfg.display_adapter, DeviceType, hFocusWindow, BehaviorFlags,
+				&params, ppReturnedDeviceInterface);
+			if(FAILED(hResult))
+				return hResult;
+
+			//SetWindowPos(pWindow->window_handle, HWND_TOPMOST, 0, 0, params.BackBufferWidth, params.BackBufferHeight, SWP_SHOWWINDOW|SWP_NOSIZE|SWP_NOREPOSITION);
+		}
+	}
+	else*/
+	{
+		hResult = m_pD3D->CreateDevice(cfg.display_adapter, DeviceType, hFocusWindow, BehaviorFlags,
+			pPresentationParameters, ppReturnedDeviceInterface);
+		if(FAILED(hResult))
+			return hResult;
+	}
+
 
 	OutputDebugString("[OK] Normal D3D device created\n");
 
@@ -282,6 +325,10 @@ HRESULT WINAPI BaseDirect3D9::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, 
 	// Create and return proxy
 	*ppReturnedDeviceInterface = D3DProxyDeviceFactory::Get(cfg, *ppReturnedDeviceInterface, this);
 
+	//Now pass our game window (if we created one)
+/*	if (hMainWindow)
+		((D3DProxyDevice*)(*ppReturnedDeviceInterface))->SetGameWindow(hMainWindow);
+*/
 	OutputDebugString("[OK] Vireio D3D device created.\n");
 
 	return hResult;

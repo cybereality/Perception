@@ -196,6 +196,10 @@ BOOL APIENTRY DllMain( HINSTANCE hModule, DWORD fdwReason, LPVOID lpReserved )
 
 			SaveExeName(targetExe, (char*)targetPathString.c_str());
 		}
+		else
+		{
+			OutputDebugString((std::string("Game profile not found for: ") + targetExe).c_str());
+		}
 	}
 
 	return TRUE;

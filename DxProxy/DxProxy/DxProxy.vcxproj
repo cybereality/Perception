@@ -373,6 +373,7 @@
     <None Include="SideBySideRiftPartialCrop.fx" />
   </ItemGroup>
   <ItemGroup>
+    <Xml Include="..\..\Release\Perception\cfg\shader_rules\Bioshock2.xml" />
     <Xml Include="..\..\Release\Perception\cfg\shader_rules\dearesther.xml" />
     <Xml Include="..\..\Release\Perception\cfg\shader_rules\TESV.xml">
       <SubType>Designer</SubType>

@@ -33,6 +33,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <d3d9.h>
 #include "ProxyHelper.h"
 
+class game_window;
 
 /**
 *  Direct 3D. 
@@ -79,6 +80,11 @@ private:
 	* Whether the configuration was loaded
 	*/
 	bool configLoaded;
+
+	/**
+	* Window we use to render into (override the one passed by the game for the mirror setup
+	*/
+	game_window *m_pGameWindow;
 
 	/**
 	* Proxy configuration we load

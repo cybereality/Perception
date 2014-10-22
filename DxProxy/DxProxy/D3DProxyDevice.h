@@ -82,7 +82,60 @@ class D3D9ProxySwapChain;
 class ShaderRegisters;
 class GameHandler;
 struct HMDisplayInfo;
-class mirror_window;
+
+BOOL CALLBACK MonitorEnumProc( HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData );
+
+/**
+	WIndow class used to create the window for mirroring and to override the normal game window when using mirroring (otherwise it doesn't work)
+*/
+/*
+class game_window 
+{
+public:
+	LPCSTR window_class_name;  
+	HINSTANCE instance_handle;  
+	HWND window_handle;
+	HWND header_handle;
+	RECT client_rectangle;
+	game_window(bool fullScreen, LPCSTR window_class_identity, LPCSTR window_title, int x, int y, int width, int height) : window_class_name(window_class_identity) {         
+		instance_handle = GetModuleHandle(NULL);  
+
+		WNDCLASS window_class = { CS_OWNDC, main_window_proc, 0, 0,    
+			instance_handle, NULL,    
+			NULL, NULL, NULL,    
+			window_class_name };   
+
+		UINT style = fullScreen ? WS_POPUP|WS_VISIBLE|WS_SYSMENU :
+			WS_OVERLAPPEDWINDOW & ~(WS_THICKFRAME | WS_MAXIMIZEBOX);
+		RegisterClass(&window_class);   
+		window_handle = CreateWindowEx(WS_EX_TOPMOST,    
+			window_class_name,    
+			window_title, 
+			style, 
+			x, y, 
+			width, height,
+			NULL, NULL, instance_handle, NULL);
+		SetWindowLongPtr(window_handle, GWL_USERDATA, (LONG)this);  
+		ShowWindow(window_handle, SW_SHOW);   
+	}  
+	~game_window() {  
+		UnregisterClass(window_class_name, instance_handle);   
+	}  
+
+	static LRESULT WINAPI main_window_proc(HWND window_handle, UINT message,    
+		WPARAM wparam, LPARAM lparam) {  
+			game_window *This = (game_window *)GetWindowLongPtr(window_handle, GWL_USERDATA); 
+
+			switch ( message ) {  
+			case WM_CLOSE:   
+				{   
+					PostQuitMessage(0);   
+					return 0;   
+				}   
+			}   
+			return DefWindowProc(window_handle, message, wparam, lparam);   
+	}
+};*/
 
 /**
 * Direct 3D proxy device class. 
@@ -169,6 +222,7 @@ public:
 	virtual void   HandleControls(void);
 	void           HandleTracking(void);
 	void           HandleUpdateExtern();
+	void		   SetGameWindow(HWND hMainGameWindow);
 
 	/**
 	* Game Types.
@@ -347,6 +401,11 @@ public:
 	InputControls controls;
 	DirectInput dinput;
 
+	/**
+	* Monitor rects
+	*/
+	static std::map<int, RECT> m_monitorRects;
+
 protected:
 	/*** D3DProxyDevice protected methods ***/
 	virtual void OnCreateOrRestore();	
@@ -515,15 +574,15 @@ protected:
 	D3DXVECTOR2 menuAttraction;
 
 	/**
-	* Window for the desktop mirror
+	* Window for the desktop mirror and game window (required if mirroring)
 	*/
-	HWND mirrorWindow;
-	mirror_window *m_pMirrorWindow;
-	IDirect3DSwapChain9* m_pMirrorSwapChain;
+/*	game_window *m_pMirrorWindow;
+	HWND m_hMainGameWindow;*/
+
 	/**
 	* Whether we are mirroring to a desktop window (and it's relative size)
 	*/
-	int mirrorToWindow;
+/*	int mirrorToWindow;
 	enum MirrorWindow
 	{
 		MW_LEFT_EYE,
@@ -532,7 +591,7 @@ protected:
 		MW_ENTRIES
 	};
 	MirrorWindow m_mirrorType;
-
+*/
 
 	/**
 	* Main menu border top height.
