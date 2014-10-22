@@ -2652,7 +2652,7 @@ void D3DProxyDevice::HandleControls()
 	}
 
 	//Floaty Screen
-	if ((controls.Key_Down(VK_MBUTTON) || (controls.Key_Down(VK_LCONTROL) && controls.Key_Down(VK_NUMPAD2))) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	if ((controls.Key_Down(edgePeekHotkey) || (controls.Key_Down(VK_MBUTTON) || (controls.Key_Down(VK_LCONTROL) && controls.Key_Down(VK_NUMPAD2)))) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		if (m_bfloatingScreen)
 		{
@@ -4953,7 +4953,6 @@ void D3DProxyDevice::BRASSA_Settings()
 		IPD_OFFSET,
 		Y_OFFSET,
 		DISTORTION_SCALE,
-		STEREO_SCREENSHOTS,
 		YAW_MULT,
 		PITCH_MULT,
 		ROLL_MULT,
@@ -4962,9 +4961,10 @@ void D3DProxyDevice::BRASSA_Settings()
 		FORCE_MOUSE_EMU,
 		TOGGLE_VRBOOST,
 		HOTKEY_VRBOOST,
+		HOTKEY_EDGEPEEK,
 		BACK_BRASSA,
 		BACK_GAME,
-		NUM_MENU_ITEMS
+		NUM_MENU_ITEMS		
 	};
 
 	UINT menuEntryCount = NUM_MENU_ITEMS;
@@ -4982,7 +4982,10 @@ void D3DProxyDevice::BRASSA_Settings()
 			if (controls.Key_Down(i) && controls.GetKeyName(i)!="-")
 			{
 				hotkeyCatch = false;
-				toggleVRBoostHotkey = (byte)i;
+				if(entryID == HOTKEY_VRBOOST)
+					toggleVRBoostHotkey = (byte)i;
+				else
+					edgePeekHotkey = (byte)i;
 			}
 	}
 	else
@@ -5005,12 +5008,12 @@ void D3DProxyDevice::BRASSA_Settings()
 				menuVelocity.x += 4.0f;
 			}
 			// screenshot
-			if (entryID == STEREO_SCREENSHOTS)
+			/*if (entryID == STEREO_SCREENSHOTS)
 			{
 				// render 3 frames to get screenshots without BRASSA
 				screenshot = 3;
 				BRASSA_mode = BRASSA_Modes::INACTIVE;
-			}
+			}*/
 			// reset multipliers
 			if (entryID == RESET_MULT)
 			{
@@ -5055,6 +5058,12 @@ void D3DProxyDevice::BRASSA_Settings()
 			}
 			// VRBoost hotkey
 			if (entryID == HOTKEY_VRBOOST)
+			{
+				hotkeyCatch = true;
+				menuVelocity.x+=2.0f;
+			}
+			// VRBoost hotkey
+			if (entryID == HOTKEY_EDGEPEEK)
 			{
 				hotkeyCatch = true;
 				menuVelocity.x+=2.0f;
@@ -5112,6 +5121,12 @@ void D3DProxyDevice::BRASSA_Settings()
 			if (entryID == HOTKEY_VRBOOST)
 			{
 				toggleVRBoostHotkey = 0;
+				menuVelocity.x+=2.0f;
+			}
+			// reset hotkey
+			if (entryID == HOTKEY_EDGEPEEK)
+			{
+				edgePeekHotkey = 0;
 				menuVelocity.x+=2.0f;
 			}
 		}
@@ -5342,8 +5357,8 @@ void D3DProxyDevice::BRASSA_Settings()
 		sprintf_s(vcString,"Distortion Scale : %g", RoundBrassaValue(this->stereoView->DistortionScale));
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Stereo Screenshots", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		//DrawTextShadowed(hudFont, hudMainMenu, "Stereo Screenshots", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		//menuHelperRect.top += MENU_ITEM_SEPARATION;
 		sprintf_s(vcString,"Yaw multiplier : %g", RoundBrassaValue(tracker->multiplierYaw));
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
@@ -5389,6 +5404,13 @@ void D3DProxyDevice::BRASSA_Settings()
 		std::string stdString = std::string(vcString);
 		stdString.append(controls.GetKeyName(toggleVRBoostHotkey));
 		if ((hotkeyCatch) && (entryID==11))
+			stdString = "Press the desired key.";
+		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		sprintf_s(vcString,"Hotkey >Disconnected Screen< : ");
+		stdString = std::string(vcString);
+		stdString.append(controls.GetKeyName(edgePeekHotkey));
+		if ((hotkeyCatch) && (entryID==12))
 			stdString = "Press the desired key.";
 		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
@@ -5828,6 +5850,7 @@ void D3DProxyDevice::BRASSA_UpdateConfigSettings()
 	config.guiHotkeys[4] = guiHotkeys[4];
 
 	config.VRBoostResetHotkey = toggleVRBoostHotkey;
+	config.EdgePeekHotkey = edgePeekHotkey;
 	config.WorldFOV = VRBoostValue[VRboostAxis::WorldFOV];
 	config.PlayerFOV = VRBoostValue[VRboostAxis::PlayerFOV];
 	config.FarPlaneFOV = VRBoostValue[VRboostAxis::FarPlaneFOV];
@@ -5877,6 +5900,8 @@ void D3DProxyDevice::BRASSA_UpdateDeviceSettings()
 	guiHotkeys[4] = config.guiHotkeys[4];
 	ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)config.gui3DDepthMode);
 
+	//Disconnected Screen Mode
+	edgePeekHotkey = config.EdgePeekHotkey;
 	// VRBoost
 	toggleVRBoostHotkey = config.VRBoostResetHotkey;
 	VRBoostValue[VRboostAxis::WorldFOV] = config.WorldFOV;
@@ -6566,6 +6591,7 @@ bool D3DProxyDevice::InitBrassa()
 
 	hotkeyCatch = false;
 	toggleVRBoostHotkey = 0;
+	edgePeekHotkey = 0;
 	for (int i = 0; i < 5; i++)
 	{
 		guiHotkeys[i] = 0;

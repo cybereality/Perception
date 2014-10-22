@@ -82,6 +82,7 @@ public:
 		float       guiSquishPresets[4];        /**< GUI Size presets.*/
 		byte        guiHotkeys[5];              /**< GUI Hotkeys.*/
 		byte        VRBoostResetHotkey;         /**< Hotkey option to reset VRBoost. */
+		byte        EdgePeekHotkey;				/**< Hotkey option to toggle disconnected screen view. */
 		float       WorldFOV;                   /**< Game-specific global FOV setting. **/
 		float       PlayerFOV;                  /**< Game-specific player surroundings FOV setting. **/
 		float       FarPlaneFOV;                /**< Game-specific FOV setting for the most distant objects. **/ 

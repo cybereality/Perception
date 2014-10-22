@@ -936,6 +936,10 @@ private:
 	***/
 	byte toggleVRBoostHotkey;
 	/**
+	* Hotkey for disconnected screen.
+	***/
+	byte edgePeekHotkey;
+	/**
 	* True if BRASSA is waiting to catch a hotkey.
 	***/
 	bool hotkeyCatch;
