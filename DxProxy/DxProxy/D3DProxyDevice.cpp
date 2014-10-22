@@ -2332,6 +2332,7 @@ void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 	m_bfloatingMenu = false;
 	m_bfloatingScreen = false;
 	m_bSurpressHeadtracking = false;
+	m_bSurpressPositionaltracking = false;
 
 	char buf[64];
 	LPCSTR psz = NULL;
@@ -2345,6 +2346,7 @@ void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 	stereoView = StereoViewFactory::Get(config, m_spShaderViewAdjustment->HMDInfo());
 	stereoView->YOffset = config.YOffset;
 	stereoView->HeadYOffset = 0;
+	stereoView->HeadZOffset = 0;
 	stereoView->IPDOffset = config.IPDOffset;
 	stereoView->DistortionScale = config.DistortionScale;
 	m_maxDistortionScale = config.DistortionScale;
@@ -2658,8 +2660,10 @@ void D3DProxyDevice::HandleControls()
 		{
 			m_bfloatingScreen = false;
 			m_bSurpressHeadtracking = false;
+			m_bSurpressPositionaltracking = false;
 			//TODO Change this back to initial
 			this->stereoView->HeadYOffset = 0;
+			this->stereoView->HeadZOffset = 0;
 			this->stereoView->XOffset = 0;
 			this->stereoView->PostReset();	
 		}
@@ -2667,10 +2671,12 @@ void D3DProxyDevice::HandleControls()
 		{
 			m_bfloatingScreen = true;
 			m_bSurpressHeadtracking = true;
+			m_bSurpressPositionaltracking = true;
 			if (tracker->getStatus() >= MTS_OK)
 			{
 				m_fFloatingScreenPitch = tracker->primaryPitch;
 				m_fFloatingScreenYaw = tracker->primaryYaw;			
+				m_fFloatingScreenZ = tracker->z;			
 			}
 		}
 
@@ -2687,10 +2693,12 @@ void D3DProxyDevice::HandleControls()
 	{
 		float screenFloatMultiplierY = 0.75;
 		float screenFloatMultiplierX = 0.5;
+		float screenFloatMultiplierZ = 1.5;
 		if (tracker->getStatus() >= MTS_OK)
 		{
 			this->stereoView->HeadYOffset = (m_fFloatingScreenPitch - tracker->primaryPitch) * screenFloatMultiplierY;
 			this->stereoView->XOffset = (m_fFloatingScreenYaw - tracker->primaryYaw) * screenFloatMultiplierX;
+			this->stereoView->HeadZOffset = (m_fFloatingScreenZ - tracker->z) * screenFloatMultiplierZ;
 			this->stereoView->PostReset();
 		}
 		//m_ViewportIfSquished.X = (int)(vOut.x+centerX-(((m_fFloatingYaw - tracker->primaryYaw) * floatMultiplier) * (180 / PI)));
@@ -3022,7 +3030,8 @@ void D3DProxyDevice::HandleTracking()
 
 			m_spShaderViewAdjustment->UpdatePitchYaw(tracker->primaryPitch, tracker->primaryYaw);
 
-			if (m_bPosTrackingToggle && tracker->getStatus() != MTS_LOSTPOSITIONAL)
+			if (m_bPosTrackingToggle && tracker->getStatus() != MTS_LOSTPOSITIONAL
+				&& !m_bSurpressPositionaltracking)
 			{
 				m_spShaderViewAdjustment->UpdatePosition(tracker->primaryYaw, tracker->primaryPitch, tracker->primaryRoll,
 					(VRBoostValue[VRboostAxis::CameraTranslateX] / 20.0f) + tracker->primaryX, 

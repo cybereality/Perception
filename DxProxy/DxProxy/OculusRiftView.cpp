@@ -116,6 +116,12 @@ void OculusRiftView::CalculateShaderVariables()
 	
 	float scaleFactor = (1.0f / (hmdInfo->GetScaleToFillHorizontal() + DistortionScale));
 
+	if (HeadZOffset != 0)
+	{
+		//Zoom out a little bit, since user can now lean in if they need to
+		scaleFactor = (scaleFactor / 0.75) - HeadZOffset;
+	}
+
 	// Scale from 0 to 2 to 0 to 1  for x and y 
 	// Then use scaleFactor to fill horizontal space in line with the lens and adjust for aspect ratio for y.
 	Scale[0] = (1.0f / 4.0f) * scaleFactor;

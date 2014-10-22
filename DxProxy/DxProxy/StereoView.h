@@ -126,6 +126,10 @@ public:
 	***/
 	float HeadYOffset;	
 	/**
+	* Floaty Screen Z Offset
+	***/
+	float HeadZOffset;	
+	/**
 	* Offset the screen horizontally
 	***/
 	float XOffset;	
