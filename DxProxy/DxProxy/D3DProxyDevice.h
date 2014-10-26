@@ -75,6 +75,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "DirectInput.h"
 
 #define _SAFE_RELEASE(x) if(x) { x->Release(); x = NULL; } 
+#define RECT_WIDTH(x) (x.right - x.left)
+#define RECT_HEIGHT(x) (x.bottom - x.top)
+
 // Define SHOW_CALLS to have each method output a debug string when it is invoked
 //#define SHOW_CALLS
 class StereoView;
@@ -83,59 +86,6 @@ class ShaderRegisters;
 class GameHandler;
 struct HMDisplayInfo;
 
-BOOL CALLBACK MonitorEnumProc( HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData );
-
-/**
-	WIndow class used to create the window for mirroring and to override the normal game window when using mirroring (otherwise it doesn't work)
-*/
-/*
-class game_window 
-{
-public:
-	LPCSTR window_class_name;  
-	HINSTANCE instance_handle;  
-	HWND window_handle;
-	HWND header_handle;
-	RECT client_rectangle;
-	game_window(bool fullScreen, LPCSTR window_class_identity, LPCSTR window_title, int x, int y, int width, int height) : window_class_name(window_class_identity) {         
-		instance_handle = GetModuleHandle(NULL);  
-
-		WNDCLASS window_class = { CS_OWNDC, main_window_proc, 0, 0,    
-			instance_handle, NULL,    
-			NULL, NULL, NULL,    
-			window_class_name };   
-
-		UINT style = fullScreen ? WS_POPUP|WS_VISIBLE|WS_SYSMENU :
-			WS_OVERLAPPEDWINDOW & ~(WS_THICKFRAME | WS_MAXIMIZEBOX);
-		RegisterClass(&window_class);   
-		window_handle = CreateWindowEx(WS_EX_TOPMOST,    
-			window_class_name,    
-			window_title, 
-			style, 
-			x, y, 
-			width, height,
-			NULL, NULL, instance_handle, NULL);
-		SetWindowLongPtr(window_handle, GWL_USERDATA, (LONG)this);  
-		ShowWindow(window_handle, SW_SHOW);   
-	}  
-	~game_window() {  
-		UnregisterClass(window_class_name, instance_handle);   
-	}  
-
-	static LRESULT WINAPI main_window_proc(HWND window_handle, UINT message,    
-		WPARAM wparam, LPARAM lparam) {  
-			game_window *This = (game_window *)GetWindowLongPtr(window_handle, GWL_USERDATA); 
-
-			switch ( message ) {  
-			case WM_CLOSE:   
-				{   
-					PostQuitMessage(0);   
-					return 0;   
-				}   
-			}   
-			return DefWindowProc(window_handle, message, wparam, lparam);   
-	}
-};*/
 
 /**
 * Direct 3D proxy device class. 
@@ -235,7 +185,8 @@ public:
 		FIXED = 10,                /**< Default driver behavior. */
 		SOURCE = 100,              /**< Source is a 3D video game engine developed by Valve Corporation. */
 		SOURCE_L4D = 101,          /**<  !! */
-		SOURCE_ESTER = 102,          /**<  !! */
+		SOURCE_ESTER = 102,        /**<  !! */
+		SOURCE_STANLEY = 103,      /**<  !! */
 		UNREAL = 200,              /**< The Unreal Engine is a game engine developed by Epic Games, first illustrated in the 1998 first-person shooter game Unreal. */
 		UNREAL_MIRROR = 201,       /**<  !! */
 		UNREAL_UT3 = 202,          /**<  !! */
@@ -403,11 +354,6 @@ public:
 	InputControls controls;
 	DirectInput dinput;
 
-	/**
-	* Monitor rects
-	*/
-	static std::map<int, RECT> m_monitorRects;
-
 protected:
 	/*** D3DProxyDevice protected methods ***/
 	virtual void OnCreateOrRestore();	
@@ -574,27 +520,6 @@ protected:
 	* Main menu affection.
 	***/
 	D3DXVECTOR2 menuAttraction;
-
-	/**
-	* Window for the desktop mirror and game window (required if mirroring)
-	*/
-/*	game_window *m_pMirrorWindow;
-	HWND m_hMainGameWindow;*/
-
-	/**
-	* Whether we are mirroring to a desktop window (and it's relative size)
-	*/
-/*	int mirrorToWindow;
-	enum MirrorWindow
-	{
-		MW_LEFT_EYE,
-		MW_RIGHT_EYE,
-		MW_RIFT_VIEW,
-		MW_ENTRIES
-	};
-	MirrorWindow m_mirrorType;
-*/
-
 	/**
 	* Main menu border top height.
 	***/

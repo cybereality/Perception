@@ -83,6 +83,7 @@ private:
 	* Whether a vignette effect is applied to the rendered image (defaulted to false)
 	*/
 	bool useVignette;
+
 };
 
 #endif

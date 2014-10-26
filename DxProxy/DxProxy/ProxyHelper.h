@@ -68,7 +68,10 @@ public:
 		float       yaw_multiplier;             /**< Game-specific tracking multiplier (yaw). */
 		float       pitch_multiplier;           /**< Game-specific tracking multiplier (pitch). */
 		float       roll_multiplier;            /**< Game-specific tracking multiplier (roll). */
-		float		position_multiplier;		/**< Game-specific position multiplier (for X, Y and Z). */
+		float		position_multiplier;		/**< Game-specific position overall multiplier (for X, Y and Z). */
+		float		position_x_multiplier;		/**< Game-specific position multiplier for X*/
+		float		position_y_multiplier;		/**< Game-specific position multiplier for Y*/
+		float		position_z_multiplier;		/**< Game-specific position multiplier for Z*/
 		float		DistortionScale;			/**< The scale to apply distortion. **/
 		float		YOffset;					/**< The Y offset from the centre of the screen on the Y-axis **/
 		float		IPDOffset;					/**< The IPD offset from the centre of the screen on the X-axis **/
@@ -102,7 +105,6 @@ public:
 		float       ipd;                        /**< IPD, which stands for interpupillary distance (distance between your pupils - in meters...default = 0.064). Also called the interocular distance (or just Interocular). */
 		float       aspect_multiplier;          /**< Currently unused aspect multiplier. Aspect multiplier allows adjusting aspect ratio consistently for Stereo/NoStereo. */
 		UINT		display_adapter;			/**< The display adapter to use - 0 = Primary Display, 1 = Secondary and so on.. */
-		//int			mirror;						/**< Whether to mirror to desktop (0 - No, 1 - Full Screen, 2- 1/4 Size, 3 - Tiny */
 	};
 
 	/**
@@ -129,7 +131,6 @@ public:
 	bool  SaveUserConfig(float ipd = IPD_DEFAULT);
 	bool  SaveTrackerMode(int mode = -1);
 	bool  SaveDisplayAdapter(int adapter);
-	//bool  SaveMirrorOption(int mirror);
 	bool  LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile);	
 	bool  SaveConfig(ProxyConfig& config);
 	bool  HasProfile(char* name);

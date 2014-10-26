@@ -248,7 +248,6 @@ bool ProxyHelper::LoadUserConfig(int& mode, int& mode2, int& adapter, bool &noti
 		mode = xml_config.attribute("stereo_mode").as_int();
 		mode2 = xml_config.attribute("tracker_mode").as_int();
 		adapter = xml_config.attribute("display_adapter").as_int(0);
-		//mirror = xml_config.attribute("mirror").as_int(0);
 		notifications = (xml_config.attribute("notifications").as_int(1) != 0);
 
 		return true;
@@ -546,41 +545,6 @@ bool ProxyHelper::SaveDisplayAdapter(int adapter)
 
 	return false;
 }
-
-/**
-* Saves the global Vireio Perception configuration (only selected mirroring option).
-* @param mode selected mirroring option.
-***/
-/*
-bool ProxyHelper::SaveMirrorOption(int mirror)
-{
-	// load the base dir for the app
-	GetBaseDir();
-	OutputDebugString(baseDir);
-	OutputDebugString("\n");
-
-	// get global config
-	char configPath[512];
-	GetPath(configPath, "cfg\\config.xml");
-
-	xml_document docConfig;
-	xml_parse_result resultConfig = docConfig.load_file(configPath);
-
-	if(resultConfig.status == status_ok)
-	{
-		xml_node xml_config = docConfig.child("config");
-
-		if(mirror >= 0)
-			xml_config.attribute("mirror") = mirror;
-
-		docConfig.save_file(configPath);
-
-		return true;
-	}
-
-	return false;
-}
-*/
 /**
 * Loads the game configuration for the target process specified in the registry (targetExe).
 * @param config Returned game configuration.
@@ -627,7 +591,6 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 		config.aspect_multiplier = xml_config.attribute("aspect_multiplier").as_float();
 		config.tracker_mode = xml_config.attribute("tracker_mode").as_int();
 		config.display_adapter = xml_config.attribute("display_adapter").as_int(0);
-		//config.mirror = xml_config.attribute("mirror").as_int(0);
 
 		fileFound = true;
 	}
@@ -701,6 +664,9 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 		config.pitch_multiplier = gameProfile.attribute("pitch_multiplier").as_float(25.0f);
 		config.roll_multiplier = gameProfile.attribute("roll_multiplier").as_float(1.0f);
 		config.position_multiplier = gameProfile.attribute("position_multiplier").as_float(1.0f);
+		config.position_x_multiplier = gameProfile.attribute("position_x_multiplier").as_float(0.0f);
+		config.position_y_multiplier = gameProfile.attribute("position_y_multiplier").as_float(0.0f);
+		config.position_z_multiplier = gameProfile.attribute("position_z_multiplier").as_float(0.0f);
 		config.DistortionScale = gameProfile.attribute("distortion_scale").as_float(0.0f);
 		config.YOffset = gameProfile.attribute("y_offset").as_float(0.0f);
 		config.IPDOffset = gameProfile.attribute("ipd_offset").as_float(0.0f);
@@ -710,6 +676,11 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 		if(config.pitch_multiplier == 0.0f) config.pitch_multiplier = 25.0f;
 		if(config.roll_multiplier == 0.0f) config.roll_multiplier = 1.0f;
 		if(config.position_multiplier == 0.0f) config.position_multiplier = 1.0f;
+
+		//With some experimentation, these feel most natural (in Skyrim)
+		if(config.position_x_multiplier == 0.0f) config.position_x_multiplier = 2.0f;
+		if(config.position_y_multiplier == 0.0f) config.position_y_multiplier = 2.5f;
+		if(config.position_z_multiplier == 0.0f) config.position_z_multiplier = 0.5f;
 
 		// set process name
 		config.game_exe = std::string(gameProfile.attribute("game_exe").as_string(""));
@@ -1024,6 +995,7 @@ bool ProxyHelper::SaveConfig(ProxyConfig& config)
 			gameProfile.remove_attribute("roll_multiplier");
 			gameProfile.insert_attribute_after("roll_multiplier", gameProfile.attribute("pitch_multiplier")) = config.roll_multiplier;
 		}
+
 		if (strcmp(gameProfile.attribute("roll_multiplier").next_attribute().name(), "position_multiplier") == 0)
 			gameProfile.attribute("position_multiplier") = config.position_multiplier;
 		else
@@ -1031,12 +1003,37 @@ bool ProxyHelper::SaveConfig(ProxyConfig& config)
 			gameProfile.remove_attribute("position_multiplier");
 			gameProfile.insert_attribute_after("position_multiplier", gameProfile.attribute("distortion_scale")) = config.position_multiplier;
 		}
-		if (strcmp(gameProfile.attribute("position_multiplier").next_attribute().name(), "distortion_scale") == 0)
+
+		if (strcmp(gameProfile.attribute("position_multiplier").next_attribute().name(), "position_x_multiplier") == 0)
+			gameProfile.attribute("position_x_multiplier") = config.position_x_multiplier;
+		else
+		{
+			gameProfile.remove_attribute("position_x_multiplier");
+			gameProfile.insert_attribute_after("position_x_multiplier", gameProfile.attribute("position_multiplier")) = config.position_x_multiplier;
+		}
+
+		if (strcmp(gameProfile.attribute("position_x_multiplier").next_attribute().name(), "position_y_multiplier") == 0)
+			gameProfile.attribute("position_y_multiplier") = config.position_y_multiplier;
+		else
+		{
+			gameProfile.remove_attribute("position_y_multiplier");
+			gameProfile.insert_attribute_after("position_y_multiplier", gameProfile.attribute("position_x_multiplier")) = config.position_y_multiplier;
+		}
+
+		if (strcmp(gameProfile.attribute("position_y_multiplier").next_attribute().name(), "position_z_multiplier") == 0)
+			gameProfile.attribute("position_z_multiplier") = config.position_z_multiplier;
+		else
+		{
+			gameProfile.remove_attribute("position_z_multiplier");
+			gameProfile.insert_attribute_after("position_z_multiplier", gameProfile.attribute("position_y_multiplier")) = config.position_z_multiplier;
+		}
+
+		if (strcmp(gameProfile.attribute("position_z_multiplier").next_attribute().name(), "distortion_scale") == 0)
 			gameProfile.attribute("distortion_scale") = config.DistortionScale;
 		else
 		{
 			gameProfile.remove_attribute("distortion_scale");
-			gameProfile.insert_attribute_after("distortion_scale", gameProfile.attribute("position_multiplier")) = config.DistortionScale;
+			gameProfile.insert_attribute_after("distortion_scale", gameProfile.attribute("position_z_multiplier")) = config.DistortionScale;
 		}
 
 		// shader mod rules attribute present ? otherwise insert

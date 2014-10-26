@@ -113,6 +113,11 @@ public:
 	int			  GetStereoType();
 	HMDisplayInfo* HMDInfo();	
 
+public:
+	float x_scaler;
+	float y_scaler;
+	float z_scaler;
+
 private:
 	/*** Projection Matrix variables ***/
 	float n;	/**< Minimum z-value of the view volume. */

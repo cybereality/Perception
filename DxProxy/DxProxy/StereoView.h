@@ -136,8 +136,11 @@ public:
 	/**
 	* Offset the IPD
 	***/
-	float IPDOffset;	
-
+	float IPDOffset;
+	/**
+	* Used to glide the disconnected screen view in and out
+	*/
+	float m_screenViewGlideFactor;
 
 protected:
 	/*** StereoView protected methods ***/

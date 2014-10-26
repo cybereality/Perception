@@ -40,7 +40,10 @@ ViewAdjustment::ViewAdjustment(HMDisplayInfo *displayInfo, float metersToWorldUn
 	hmdInfo(displayInfo),
 	metersToWorldMultiplier(metersToWorldUnits),
 	rollEnabled(enableRoll),
-	bulletLabyrinth(false)
+	bulletLabyrinth(false),
+	x_scaler(2.0f),
+	y_scaler(2.5f),
+	z_scaler(0.5f)
 {
 	// TODO : max, min convergence; arbitrary now
 	convergence = 0.0f;
@@ -237,9 +240,8 @@ void ViewAdjustment::UpdatePosition(float yaw, float pitch, float roll, float xP
 	D3DXVec3TransformNormal(&positionTransformVec, &positionTransformVec, &rotationMatrixRoll);
 
 	//Now apply game specific scaling for the X/Y/Z
-	D3DXVECTOR3 gameScaleVec(3.0f, 2.0f, 1.0f);
 	D3DXMATRIX gamescalingmatrix;
-	D3DXMatrixScaling(&gamescalingmatrix, gameScaleVec.x, gameScaleVec.y, gameScaleVec.z);
+	D3DXMatrixScaling(&gamescalingmatrix, x_scaler, y_scaler, z_scaler);
 	D3DXVec3TransformNormal(&positionTransformVec, &positionTransformVec, &gamescalingmatrix);
 	
 	D3DXMatrixTranslation(&matPosition, positionTransformVec.x, positionTransformVec.y, positionTransformVec.z);

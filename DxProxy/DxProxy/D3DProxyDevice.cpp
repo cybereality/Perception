@@ -60,9 +60,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define MENU_ITEM_SEPARATION  40
 
-std::map<int, RECT> D3DProxyDevice::m_monitorRects;
-
-
 using namespace VRBoost;
 
 /**
@@ -96,15 +93,6 @@ UINT GetMouseScrollLines()
 }
 
 
-BOOL CALLBACK MonitorEnumProc( HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData )
-{
-	static int index = 0;
-	std::map<int, RECT> *pMonitorRectVec = (std::map<int, RECT> *)(dwData);
-	if (lprcMonitor && pMonitorRectVec)
-		pMonitorRectVec->insert(std::make_pair(index++, RECT(*lprcMonitor)));
-	return TRUE;
-}
-
 /**
 * Constructor : creates game handler and sets various states.
 ***/
@@ -120,10 +108,6 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	show_fps(FPS_NONE),
 	calibrate_tracker(false),
 	hmdInfo(NULL)
-	//mirrorToWindow(0),
-	//Start mirroring with left eye
-	//m_mirrorType(MW_LEFT_EYE),
-	//m_pMirrorWindow(NULL)
 {
 	#ifdef SHOW_CALLS
 		OutputDebugString("called D3DProxyDevice");
@@ -223,12 +207,6 @@ D3DProxyDevice::~D3DProxyDevice()
 	m_spManagedShaderRegisters.reset();
 
 	FreeLibrary(hmVRboost);
-
-/*	if (m_pMirrorWindow)
-	{
-		DestroyWindow(m_pMirrorWindow->window_handle);
-		delete m_pMirrorWindow;
-	}*/
 
 	// always do this last
 	auto it = m_activeSwapChains.begin();
@@ -366,12 +344,6 @@ HRESULT WINAPI D3DProxyDevice::Reset(D3DPRESENT_PARAMETERS* pPresentationParamet
 		it = m_activeSwapChains.erase(it);
 	}
 
-/*	if (m_pMirrorWindow)
-	{
-		DestroyWindow(m_pMirrorWindow->window_handle);
-		delete m_pMirrorWindow;
-	}*/
-
 	HRESULT hr = BaseDirect3DDevice9::Reset(pPresentationParameters);
 
 	// if the device has been successfully reset we need to recreate any resources we created
@@ -427,100 +399,6 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 	fps = CalcFPS();
 
 	HRESULT hr =  BaseDirect3DDevice9::Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
-
-/*
-	try {
-		static int skip = 0;
-		if (mirrorToWindow != 0 && (skip++ % 4 == 0))
-		{
-			
-			BaseDirect3DDevice9::Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_ARGB(255, 0, 255, 0), 0, 0);
-			HRESULT hr = S_OK;
-			IDirect3DSurface9* pWrappedBackBuffer = NULL;
-			hr = m_activeSwapChains.at(0)->GetBackBuffer(0, D3DBACKBUFFER_TYPE_MONO, &pWrappedBackBuffer);
-			if (FAILED(hr))
-				throw std::exception("Could not get wrapped back buffer");
-
-			//Do I need to do this?
-			//BaseDirect3DDevice9::BeginScene();
-			//BaseDirect3DDevice9::EndScene();
-
-			// Set the primary rendertarget to the first stereo backbuffer
-			IDirect3DSurface9* pBackBuffer = NULL;
-			
-			hr = BaseDirect3DDevice9::GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer);
-			if (FAILED(hr))
-				throw std::exception("Could not get primary back buffer");
-
-			//hr = BaseDirect3DDevice9::SetRenderTarget(0, pBackBuffer);
-			if (FAILED(hr))
-				throw std::exception("Could not set Mirror Window render target");
-			
-			switch (m_mirrorType)
-			{
-			case MW_LEFT_EYE:
-				{
-					IDirect3DSurface9* leftImage = static_cast<D3D9ProxySurface*>(pWrappedBackBuffer)->getActualLeft();
-					hr = BaseDirect3DDevice9::StretchRect(leftImage, NULL, pBackBuffer, NULL, D3DTEXF_NONE);
-				}
-				break;
-			case MW_RIGHT_EYE:
-				{
-					IDirect3DSurface9* rightImage = static_cast<D3D9ProxySurface*>(pWrappedBackBuffer)->getActualRight();
-					hr = BaseDirect3DDevice9::StretchRect(rightImage, NULL, pBackBuffer, NULL, D3DTEXF_NONE);
-				}
-				break;
-			case MW_RIFT_VIEW:
-				{
-					if (stereoView->initialized)
-					{
-						IDirect3DSurface9* riftImage = stereoView->GetBackBuffer();
-						hr = BaseDirect3DDevice9::StretchRect(riftImage, NULL, pBackBuffer, NULL, D3DTEXF_NONE);
-					}
-				}
-				break;
-			}
-			if (FAILED(hr))
-				throw std::exception("Mirroring failed on buffer copy");
-
-			pBackBuffer->Release();
-			pBackBuffer = NULL;
-
-			//m_activeSwapChains.at(0)->Present(NULL, NULL, m_pMirrorWindow->window_handle, NULL, 0);
-			hr = BaseDirect3DDevice9::Present(NULL, NULL, m_pMirrorWindow->window_handle, NULL);
-			if (FAILED(hr))
-				throw std::exception("Mirroring failed on present");
-			pWrappedBackBuffer->Release();*/
-
-			/** ATEMPT NUMBER 2 - USING GDI - ALSO DOESN'T WORK **/
-			/*
-			HDC mirrorDC = GetDC(m_pMirrorWindow->window_handle);
-
-			//Get DC for the game window
-			HDC gameDC = GetDC(m_hMainGameWindow);
-
-			RECT mirrorRect;
-			GetClientRect(m_pMirrorWindow->window_handle, &mirrorRect);
-			RECT gameRect;
-			GetClientRect(m_hMainGameWindow, &gameRect);
-			StretchBlt(mirrorDC, 0, 0, mirrorRect.right, mirrorRect.bottom,
-				gameDC, 0, 0, gameRect.right, gameRect.bottom, SRCCOPY);
-
-
-			ReleaseDC(m_pMirrorWindow->window_handle, mirrorDC);
-			ReleaseDC(m_hMainGameWindow, gameDC);
-			
-
-		}		
-	}
-	catch (std::out_of_range) {
-		OutputDebugString("Present: No primary swap chain found. (Present probably called before device has been reset)");
-	}
-	catch (std::exception e)
-	{
-		OutputDebugString(e.what());
-	}
-	*/
 
 	if (tracker)
 		tracker->EndFrame();
@@ -2346,7 +2224,7 @@ void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 	stereoView = StereoViewFactory::Get(config, m_spShaderViewAdjustment->HMDInfo());
 	stereoView->YOffset = config.YOffset;
 	stereoView->HeadYOffset = 0;
-	stereoView->HeadZOffset = 0;
+	stereoView->HeadZOffset = FLT_MAX;
 	stereoView->IPDOffset = config.IPDOffset;
 	stereoView->DistortionScale = config.DistortionScale;
 	m_maxDistortionScale = config.DistortionScale;
@@ -2584,32 +2462,6 @@ void D3DProxyDevice::HandleControls()
 		menuVelocity.x += 4.0f;
 	}
 
-	/*
-	//Switch mirror mode (if enabled) SHIFT+END
-	if (((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down(VK_END))
-		&& (menuVelocity == D3DXVECTOR2(0.0f, 0.0f))
-		&& mirrorToWindow > 0)
-	{
-		m_mirrorType = (MirrorWindow)((m_mirrorType + 1) % (int)MW_ENTRIES);
-
-		VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1200);
-		switch (m_mirrorType)
-		{
-		case MW_LEFT_EYE:
-			strcpy_s(popup.line3, "Desktop Mirroring: Left Eye");
-			break;
-		case MW_RIGHT_EYE:
-			strcpy_s(popup.line3, "Desktop Mirroring: Right Eye");
-			break;
-		case MW_RIFT_VIEW:
-			strcpy_s(popup.line3, "Desktop Mirroring: Rift View");
-			break;
-		}
-		ShowPopup(popup);
-
-		menuVelocity.x += 4.0f;
-	}*/
-
 	// toggle VR Mouse
 	if (controls.Key_Down(VK_LCONTROL) && controls.Key_Down(VK_NUMPAD0) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
@@ -2663,7 +2515,7 @@ void D3DProxyDevice::HandleControls()
 			m_bSurpressPositionaltracking = false;
 			//TODO Change this back to initial
 			this->stereoView->HeadYOffset = 0;
-			this->stereoView->HeadZOffset = 0;
+			this->stereoView->HeadZOffset = FLT_MAX;
 			this->stereoView->XOffset = 0;
 			this->stereoView->PostReset();	
 		}
@@ -2689,11 +2541,12 @@ void D3DProxyDevice::HandleControls()
 
 		menuVelocity.x += 4.0f;		
 	}
+
+	float screenFloatMultiplierY = 0.75;
+	float screenFloatMultiplierX = 0.5;
+	float screenFloatMultiplierZ = 1.5;
 	if(m_bfloatingScreen)
 	{
-		float screenFloatMultiplierY = 0.75;
-		float screenFloatMultiplierX = 0.5;
-		float screenFloatMultiplierZ = 1.5;
 		if (tracker->getStatus() >= MTS_OK)
 		{
 			this->stereoView->HeadYOffset = (m_fFloatingScreenPitch - tracker->primaryPitch) * screenFloatMultiplierY;
@@ -2703,6 +2556,19 @@ void D3DProxyDevice::HandleControls()
 		}
 		//m_ViewportIfSquished.X = (int)(vOut.x+centerX-(((m_fFloatingYaw - tracker->primaryYaw) * floatMultiplier) * (180 / PI)));
 		//m_ViewportIfSquished.Y = (int)(vOut.y+centerY-(((m_fFloatingPitch - tracker->primaryPitch) * floatMultiplier) * (180 / PI)));
+	}
+	else
+	{
+		if (this->stereoView->m_screenViewGlideFactor < 1.0f)
+		{
+			float drift = ((1.0f - this->stereoView->m_screenViewGlideFactor) * 4);
+			this->stereoView->HeadYOffset = ((m_fFloatingScreenPitch - tracker->primaryPitch) * screenFloatMultiplierY) 
+				* drift;
+			this->stereoView->XOffset = ((m_fFloatingScreenYaw - tracker->primaryYaw) * screenFloatMultiplierX) 
+				* drift;
+
+			this->stereoView->PostReset();
+		}
 	}
 
 	// avoid double input by using the menu velocity
@@ -3033,6 +2899,11 @@ void D3DProxyDevice::HandleTracking()
 			if (m_bPosTrackingToggle && tracker->getStatus() != MTS_LOSTPOSITIONAL
 				&& !m_bSurpressPositionaltracking)
 			{
+				//Set translation vector multipliers
+				m_spShaderViewAdjustment->x_scaler = config.position_x_multiplier;
+				m_spShaderViewAdjustment->y_scaler = config.position_y_multiplier;
+				m_spShaderViewAdjustment->z_scaler = config.position_z_multiplier;
+
 				m_spShaderViewAdjustment->UpdatePosition(tracker->primaryYaw, tracker->primaryPitch, tracker->primaryRoll,
 					(VRBoostValue[VRboostAxis::CameraTranslateX] / 20.0f) + tracker->primaryX, 
 					(VRBoostValue[VRboostAxis::CameraTranslateY] / 20.0f) + tracker->primaryY,
@@ -3201,117 +3072,7 @@ void D3DProxyDevice::OnCreateOrRestore()
 
 	m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
 	m_spShaderViewAdjustment->ComputeViewTransforms();
-/*	
-	if (mirrorToWindow != 0)
-	{
-		try
-		{
-			//Get all display rectangles
-			if (m_monitorRects.size() == 0)
-				EnumDisplayMonitors(NULL, NULL, &MonitorEnumProc, (LPARAM)(&m_monitorRects));
 
-
-			if (m_monitorRects.size() > 1)
-			{
-				RECT mirrorAdapterRect;
-				std::map<int, RECT>::iterator adapterIter = m_monitorRects.begin();
-				while (adapterIter != m_monitorRects.end())
-				{
-					RECT r = adapterIter->second;
-					if (config.display_adapter != 0)
-					{
-						//Looking for the primary display (left = 0, top = 0)
-						if (r.left == 0 && r.top == 0)
-						{
-							mirrorAdapterRect = r;
-							break;
-						}
-					}
-					else
-					{
-						//Looking for the first non-primary display (left != 0 or top != 0)
-						if (r.left != 0 || r.top != 0)
-						{
-							mirrorAdapterRect = r;
-							break;
-						}
-					}
-
-					adapterIter++;
-				}
-
-				POINT location;
-				SIZE windowSize;
-				
-
-				char buf[64];
-				sprintf_s(buf, "[MIRROR DISPLAY]: left = %d", mirrorAdapterRect.left);
-				OutputDebugString(buf);
-				sprintf_s(buf, "[MIRROR DISPLAY]: top = %d", mirrorAdapterRect.top);
-				OutputDebugString(buf);
-				sprintf_s(buf, "[MIRROR DISPLAY]: right = %d", mirrorAdapterRect.right);
-				OutputDebugString(buf);
-				sprintf_s(buf, "[MIRROR DISPLAY]: bottom = %d", mirrorAdapterRect.bottom);
-				OutputDebugString(buf);
-
-				//Set the window location
-				location.x = mirrorAdapterRect.left;
-				location.y = mirrorAdapterRect.top;
-				windowSize.cx = (mirrorAdapterRect.right - mirrorAdapterRect.left) / (1 + (mirrorToWindow-1)*0.5);
-				windowSize.cy = (mirrorAdapterRect.bottom - mirrorAdapterRect.top) / (1 + (mirrorToWindow-1)*0.5);
-
-				//Now create the output window
-				m_pMirrorWindow = new game_window(mirrorToWindow == 1,
-					"VireioPerceptionMirrorWindow",
-					("Vireio Perception: " + config.game_exe).c_str(),  
-					location.x,
-					location.y,
-					windowSize.cx,
-					windowSize.cy);
-
-				if (m_pMirrorWindow->window_handle == NULL)
-					throw std::exception("Unable to create desktop mirror window - Mirroring disabled");
-
-				SetWindowPos(m_pMirrorWindow->window_handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_SHOWWINDOW|SWP_NOSIZE|SWP_NOREPOSITION);
-
-				//Now we need to create a Device Independent bitmap for us to copy to in the window's device context
-				HDC gameDC = GetDC(m_hMainGameWindow);
-				HDC compatibleGameDC = CreateCompatibleDC(gameDC);
-				HDC mirrorDC = GetDC(m_pMirrorWindow->window_handle);
-				BITMAPINFO bi;
-				ZeroMemory(&bi, sizeof(bi));
-				bi.bmiHeader.biBitCount = 32;
-				bi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-				bi.bmiHeader.biWidth = windowSize.cx;
-				bi.bmiHeader.biHeight = windowSize.cy;
-				bi.bmiHeader.biPlanes = 1;
-				bi.bmiHeader.biCompression = BI_RGB;
-				
-				void *pBits = NULL;
-				HBITMAP bmp = CreateDIBSection(compatibleGameDC, &bi, DIB_RGB_COLORS, &pBits, NULL, NULL);
-				if (bmp == NULL)
-					throw std::exception("Unable to create desktop mirror window bitmap - Mirroring disabled");
-
-				HBITMAP old_bmp = (HBITMAP)SelectObject(mirrorDC, bmp);
-
-				ReleaseDC(m_hMainGameWindow, gameDC);
-				ReleaseDC(m_pMirrorWindow->window_handle, mirrorDC);
-				DeleteDC(compatibleGameDC);
-			}
-			else
-			{
-				//Only one monitor, no point mirroring anywhere
-				mirrorToWindow = 0;
-			}
-		}
-		catch (std::exception e)
-		{
-			//Log error and disable window mirroring
-			mirrorToWindow = 0;
-			OutputDebugString(e.what());
-		}
-	}
-*/
 	// set BRASSA main values
 	viewportWidth = stereoView->viewport.Width;
 	viewportHeight = stereoView->viewport.Height;
@@ -5453,6 +5214,9 @@ void D3DProxyDevice::BRASSA_PosTracking()
 	{
 		TOGGLE_TRACKING,
 		TRACKING_MULT,
+		TRACKING_MULT_X,
+		TRACKING_MULT_Y,
+		TRACKING_MULT_Z,
 		RESET_HMD,
 		BACK_BRASSA,
 		BACK_GAME,
@@ -5521,11 +5285,26 @@ void D3DProxyDevice::BRASSA_PosTracking()
 			config.position_multiplier = 1.0f;
 			menuVelocity.x+=2.0f;
 		}
+		if ((entryID == TRACKING_MULT_X) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		{
+			config.position_x_multiplier = 2.0f;
+			menuVelocity.x+=2.0f;
+		}
+		if ((entryID == TRACKING_MULT_Y) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		{
+			config.position_y_multiplier = 2.5f;
+			menuVelocity.x+=2.0f;
+		}
+		if ((entryID == TRACKING_MULT_Z) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		{
+			config.position_z_multiplier = 0.5f;
+			menuVelocity.x+=2.0f;
+		}
 	}
 
 	if ((controls.Key_Down(VK_LEFT) || controls.Key_Down(0x4A) || (controls.xInputState.Gamepad.sThumbLX<-8192)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
-		// position multiplier
+		// overall position multiplier
 		if (entryID == TRACKING_MULT)
 		{
 			if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
@@ -5534,18 +5313,79 @@ void D3DProxyDevice::BRASSA_PosTracking()
 				config.position_multiplier -= 0.01f;
 			menuVelocity.x -= 1.0f;
 		}
+
+		// overall position multiplier
+		if (entryID == TRACKING_MULT_X)
+		{
+			if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
+				config.position_x_multiplier += 0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
+			else
+				config.position_x_multiplier -= 0.01f;
+			menuVelocity.x -= 1.0f;
+		}
+
+		// overall position multiplier
+		if (entryID == TRACKING_MULT_Y)
+		{
+			if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
+				config.position_y_multiplier += 0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
+			else
+				config.position_y_multiplier -= 0.01f;
+			menuVelocity.x -= 1.0f;
+		}
+
+		// overall position multiplier
+		if (entryID == TRACKING_MULT_Z)
+		{
+			if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
+				config.position_z_multiplier += 0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
+			else
+				config.position_z_multiplier -= 0.01f;
+			menuVelocity.x -= 1.0f;
+		}
 	}
 
-	if ((controls.Key_Down(VK_RIGHT) || controls.Key_Down(0x4C) || (controls.xInputState.Gamepad.sThumbLX>8192)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+
+	if ((controls.Key_Down(VK_RIGHT) || controls.Key_Down(0x4C) || (controls.xInputState.Gamepad.sThumbLX<-8192)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
-		// position multiplier
+		// overall position multiplier
 		if (entryID == TRACKING_MULT)
 		{
-			if (controls.xInputState.Gamepad.sThumbLX != 0  && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down(0x4C))
+			if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
 				config.position_multiplier += 0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 			else
 				config.position_multiplier += 0.01f;
-			menuVelocity.x += 1.0f;
+			menuVelocity.x -= 1.0f;
+		}
+
+		// overall position multiplier
+		if (entryID == TRACKING_MULT_X)
+		{
+			if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
+				config.position_x_multiplier += 0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
+			else
+				config.position_x_multiplier += 0.01f;
+			menuVelocity.x -= 1.0f;
+		}
+
+		// overall position multiplier
+		if (entryID == TRACKING_MULT_Y)
+		{
+			if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
+				config.position_y_multiplier += 0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
+			else
+				config.position_y_multiplier += 0.01f;
+			menuVelocity.x -= 1.0f;
+		}
+
+		// overall position multiplier
+		if (entryID == TRACKING_MULT_Z)
+		{
+			if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
+				config.position_z_multiplier += 0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
+			else
+				config.position_z_multiplier += 0.01f;
+			menuVelocity.x -= 1.0f;
 		}
 	}
 
@@ -5588,7 +5428,16 @@ void D3DProxyDevice::BRASSA_PosTracking()
 			break;
 		}
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		sprintf_s(vcString,"Position Tracking multiplier : %g", RoundBrassaValue(config.position_multiplier));
+		sprintf_s(vcString,"Position Overall Tracking multiplier : %g", RoundBrassaValue(config.position_multiplier));
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		sprintf_s(vcString,"Position X-Tracking multiplier : %g", RoundBrassaValue(config.position_x_multiplier));
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		sprintf_s(vcString,"Position Y-Tracking multiplier : %g", RoundBrassaValue(config.position_y_multiplier));
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		sprintf_s(vcString,"Position Z-Tracking multiplier : %g", RoundBrassaValue(config.position_z_multiplier));
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		DrawTextShadowed(hudFont, hudMainMenu, "Reset HMD Orientation (CTRL + R)", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
@@ -5938,6 +5787,7 @@ void D3DProxyDevice::BRASSA_UpdateDeviceSettings()
 	case D3DProxyDevice::SOURCE:
 	case D3DProxyDevice::SOURCE_L4D:
 	case D3DProxyDevice::SOURCE_ESTER:
+	case D3DProxyDevice::SOURCE_STANLEY:
 		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::END_SCENE;
 		m_deviceBehavior.whenToRenderBRASSA = DeviceBehavior::WhenToDo::END_SCENE;
 		break;
