@@ -175,19 +175,6 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 		dinput.Activate();		
 	}	
 
-
-	std::string date(__DATE__);
-	std::string buildDate = date.substr(4, 2) + "-" + date.substr(0, 3) + "-" + date.substr(7, 4);
-
-	//Show a splash screen on startup
-	VireioPopup splashPopup(VPT_SPLASH_1, VPS_INFO, 8000);
-	strcpy_s(splashPopup.line1, "Vireio Perception: Stereoscopic 3D Driver");
-	strcpy_s(splashPopup.line2, (std::string("Version: ") + APP_VERSION + "   Build Date: " + buildDate).c_str());
-	strcpy_s(splashPopup.line3, "This program is distributed in the hope that it will be useful,"); 
-	strcpy_s(splashPopup.line4, "but WITHOUT ANY WARRANTY; without even the implied warranty of "); 
-	strcpy_s(splashPopup.line5, "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.");
-	strcpy_s(splashPopup.line6, "See the GNU LGPL: http://www.gnu.org/licenses/ for more details. ");
-	ShowPopup(splashPopup);
 }
 
 /**
@@ -990,11 +977,28 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 
 	if (m_isFirstBeginSceneOfFrame)
 	{
-		static int spash2tick = GetTickCount();
-		if (GetTickCount() - spash2tick  < 15000)
+		static int spashtick = GetTickCount();
+		if ((GetTickCount() - spashtick)  < 8000)
+		{
+			std::string date(__DATE__);
+			std::string buildDate = date.substr(4, 2) + "-" + date.substr(0, 3) + "-" + date.substr(7, 4);
+
+			//Show a splash screen on startup
+			VireioPopup splashPopup(VPT_SPLASH_1, VPS_INFO, 8000);
+			strcpy_s(splashPopup.line1, "Vireio Perception: Stereoscopic 3D Driver");
+			strcpy_s(splashPopup.line2, (std::string("Version: ") + APP_VERSION + "   Build Date: " + buildDate).c_str());
+			strcpy_s(splashPopup.line3, "This program is distributed in the hope that it will be useful,"); 
+			strcpy_s(splashPopup.line4, "but WITHOUT ANY WARRANTY; without even the implied warranty of "); 
+			strcpy_s(splashPopup.line5, "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.");
+			strcpy_s(splashPopup.line6, "See the GNU LGPL: http://www.gnu.org/licenses/ for more details. ");
+			ShowPopup(splashPopup);
+		}
+
+		if ((GetTickCount() - spashtick)  > 8000 &&
+			(GetTickCount() - spashtick)  < 13000)
 		{
 			//Show a splash screen on startup
-			VireioPopup splashPopup(VPT_SPLASH_2, VPS_INFO, 8000);
+			VireioPopup splashPopup(VPT_SPLASH_2, VPS_INFO, 5000);
 			strcpy_s(splashPopup.line1, "Vireio Perception: Stereoscopic 3D Driver");
 			//strcpy_s(splashPopup.line2, );
 			strcpy_s(splashPopup.line3, "Useful Hot-keys:"); 
@@ -1004,6 +1008,19 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 			ShowPopup(splashPopup);
 		}
 	
+		if ((GetTickCount() - spashtick)  > 15000)
+		{
+			if (calibrate_tracker)
+			{
+				VireioPopup popup(VPT_CALIBRATE_TRACKER, VPS_INFO, 15000);
+				strcpy_s(popup.line2, "Please Calibrate HMD/Tracker:");
+				strcpy_s(popup.line3, "     -  Sit comfortably with your head facing forwards");
+				strcpy_s(popup.line4, "     -  Press any of the following:");
+				strcpy_s(popup.line5, "             F12 / CTRL+R / L-SHIFT + R");
+				ShowPopup(popup);
+			}
+		}
+
 		if (tracker)
 			tracker->BeginFrame();
 
@@ -2852,15 +2869,6 @@ void D3DProxyDevice::HandleTracking()
 				DismissPopup(VPT_POSITION_TRACKING_LOST);
 				DismissPopup(VPT_NO_HMD_DETECTED);
 				DismissPopup(VPT_NO_ORIENTATION);
-				if (calibrate_tracker)
-				{
-					VireioPopup popup(VPT_CALIBRATE_TRACKER, VPS_INFO, 30000);
-					strcpy_s(popup.line2, "Please Calibrate HMD/Tracker:");
-					strcpy_s(popup.line3, "     -  Sit comfortably with your head facing forwards");
-					strcpy_s(popup.line4, "     -  Press any of the following:");
-					strcpy_s(popup.line5, "        F12 / CTRL+R / L-SHIFT + R");
-					ShowPopup(popup);
-				}
 			}
 			break;
 		case MTS_NOORIENTATION:
@@ -2939,11 +2947,55 @@ void D3DProxyDevice::HandleTracking()
 				// load VRboost rules
 				if (config.VRboostPath != "")
 				{
+#ifdef SHOW_CALLS
 					OutputDebugString(std::string("config.VRboostPath: " + config.VRboostPath).c_str());
-					if (m_pVRboost_LoadMemoryRules(config.game_exe, config.VRboostPath) != S_OK)
+#endif 
+					HRESULT hr = m_pVRboost_LoadMemoryRules(config.game_exe, config.VRboostPath);
+					if (hr == S_FALSE)
+					{
+						VRBoostStatus.VRBoost_Scanning = true;
+						VireioPopup popup(VPT_VRBOOST_SCANNING, VPS_INFO);
+						strcpy_s(popup.line1, "VRBoost Memory Scan");
+						strcpy_s(popup.line2, "===================");
+						strcpy_s(popup.line3, "STATUS: IN PROGRESS");
+						strcpy_s(popup.line4, "Please turn using mouse to assist with orientation detection");
+						ShowPopup(popup);
+					}
+					else if (hr == E_NOTIMPL)
+					{
+						DismissPopup(VPT_VRBOOST_SCANNING);
+						//If we get here, then the VRBoost memory scanner came up with no good results :(
+						VireioPopup popup(VPT_VRBOOST_FAILURE, VPS_INFO, 5000);
+						strcpy_s(popup.line1, "VRBoost Memory Scan");
+						strcpy_s(popup.line2, "===================");
+						strcpy_s(popup.line3, "STATUS: FAILED");
+						strcpy_s(popup.line4, "VRBoost is now disabled");
+						strcpy_s(popup.line5, "Please enable mouse emulation and");
+						strcpy_s(popup.line6, "head roll in the BRASSA menu (CTRL+Q)");
+						ShowPopup(popup);
+						VRBoostStatus.VRBoost_Active = false;
+					}
+					else if (hr != S_OK)
+					{
+						DismissPopup(VPT_VRBOOST_SCANNING);
+						VRBoostStatus.VRBoost_Scanning = false;
 						VRBoostStatus.VRBoost_LoadRules = false;
+					}
 					else
 					{
+						if (VRBoostStatus.VRBoost_Scanning)
+						{
+							DismissPopup(VPT_VRBOOST_SCANNING);
+							VireioPopup popup(VPT_NOTIFICATION, VPS_INFO, 2000);
+							strcpy_s(popup.line1, "VRBoost Memory Scan");
+							strcpy_s(popup.line2, "===================");
+							strcpy_s(popup.line3, "STATUS: SUCCESS");
+							strcpy_s(popup.line4, "Found stable orientation addresses");
+							strcpy_s(popup.line5, "VRBoost is now active");
+							ShowPopup(popup);
+							//No longer scanning
+							VRBoostStatus.VRBoost_Scanning = false;
+						}
 						VRBoostStatus.VRBoost_LoadRules = true;
 						//As we've only just loaded the rules, we don't want to report an apply error this time round:
 						VRBoostStatus.VRBoost_ApplyRules = true;
@@ -2961,7 +3013,7 @@ void D3DProxyDevice::HandleTracking()
 		VRBoostStatus.VRBoost_Active = false;
 	}
 
-	if (!m_bForceMouseEmulation && VRBoostStatus.VRBoost_Active)
+	if (!m_bForceMouseEmulation && VRBoostStatus.VRBoost_Active && !VRBoostStatus.VRBoost_Scanning)
 	{
 		if (!VRBoostStatus.VRBoost_LoadRules)
 		{
@@ -5788,7 +5840,7 @@ void D3DProxyDevice::BRASSA_UpdateDeviceSettings()
 	case D3DProxyDevice::SOURCE_L4D:
 	case D3DProxyDevice::SOURCE_ESTER:
 	case D3DProxyDevice::SOURCE_STANLEY:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::END_SCENE;
+		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
 		m_deviceBehavior.whenToRenderBRASSA = DeviceBehavior::WhenToDo::END_SCENE;
 		break;
 	case D3DProxyDevice::UNREAL:
@@ -5917,6 +5969,11 @@ void D3DProxyDevice::BRASSA_AdditionalOutput()
 
 void D3DProxyDevice::DisplayCurrentPopup()
 {
+	//We don't want to show any notification for the first few seconds (seems to cause an issue in some games!)
+	static DWORD initialTick = GetTickCount();
+	if ((GetTickCount() - initialTick) < 2500)
+		return;
+
 	if ((activePopup.popupType == VPT_NONE && show_fps == FPS_NONE) || 
 		BRASSA_mode != BRASSA_Modes::INACTIVE ||
 		!showNotifications)
@@ -6356,6 +6413,7 @@ bool D3DProxyDevice::InitVRBoost()
 	VRBoostStatus.VRBoost_Active = false;
 	VRBoostStatus.VRBoost_LoadRules = false;
 	VRBoostStatus.VRBoost_ApplyRules = false;
+	VRBoostStatus.VRBoost_Scanning = false;
 
 	// get VRboost methods
 	if (hmVRboost != NULL)

@@ -432,7 +432,7 @@ int WINAPI wWinMain(HINSTANCE instance_handle, HINSTANCE, LPWSTR, INT) {
     // Query for the information 
     QueryDisplayConfig(QDC_ONLY_ACTIVE_PATHS, &num_of_paths, displayPaths, &num_of_modes, displayModes, NULL);
 
-	int index = 0;
+	UINT32 index = 0;
 	int adapterNum = 0;
 	while (index < num_of_modes)
 	{

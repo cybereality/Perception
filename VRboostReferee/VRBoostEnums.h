@@ -28,6 +28,11 @@ namespace VRBoost
 		FloatUnrealCompass = 101,         /**< Applies the input float to a UNREAL engine rotator compass calculatian and incorporates prior rotation angle. **/
 		FloatUnrealAxis = 201,            /**< Applies the input float to a UNREAL engine rotator axis. **/
 		FloatUnrealNegativeAxis = 202,     /**< Applies the input float to a negative UNREAL engine rotator axis. **/
+		//The following is a special case for some source engine games (Portal 2, The Stanley Parable) as they
+		//don't appear to posses stable pointers!, however the address of the yaw is always found at 0x08XX8EF4,
+		//where XX varies from run to run. Therefore this will look at all addresses varying XX to find a candidate
+		//for Yaw, and when it does, pitch and roll are in adjacent memory locations
+		SourceEngineMemScanner = 300/**< Will scan through a set of addresses until if finds candidate for yaw*/
 	};
 
 	/**

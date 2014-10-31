@@ -386,6 +386,7 @@ protected:
 		VPT_NO_HMD_DETECTED,
 		VPY_HMDINITFAIL,
 		VPT_VRBOOST_FAILURE,
+		VPT_VRBOOST_SCANNING,
 		VPT_POSITION_TRACKING_LOST,
 		VPT_NO_ORIENTATION,
 		//Notification that is only dismissed once user has "calibrated HMD/Tracker"
@@ -705,6 +706,7 @@ private:
 		bool VRBoost_Active;
 		bool VRBoost_LoadRules;
 		bool VRBoost_ApplyRules;
+		bool VRBoost_Scanning;
 	} VRBoostStatus;
 
 	/**

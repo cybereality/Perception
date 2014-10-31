@@ -60,6 +60,7 @@ int VRboost_RuleType(std::string ruleName)
 	else if (ruleName.find("FloatUnrealCompass") != std::string::npos) return FloatModificationTypes::FloatUnrealCompass;
 	else if (ruleName.find("FloatUnrealAxis") != std::string::npos) return FloatModificationTypes::FloatUnrealAxis;
 	else if (ruleName.find("FloatUnrealNegativeAxis") != std::string::npos) return FloatModificationTypes::FloatUnrealNegativeAxis;
+	else if (ruleName.find("SourceEngineMemScanner") != std::string::npos) return FloatModificationTypes::SourceEngineMemScanner;
 	else return -1;
 }
 
@@ -132,6 +133,7 @@ int _tmain(int argc, char* argv[])
 	{
 		// VRboost rule simple data structure
 		DWORD rule = 0;
+		DWORD subRuleType = 0;
 		DWORD axis = 0;
 		DWORD offsets[] = { 0, 0x0, 0x0, 0x0, 0x0, 0x0};
 		DWORD cOffsets1[] = { 0, 0x0, 0x0, 0x0, 0x0, 0x0};
@@ -201,134 +203,188 @@ int _tmain(int argc, char* argv[])
 					int rule_type = VRboost_RuleType(desc);
 					float value = (float)atof(desc.c_str());
 					int axis_type = VRboost_Axis(desc);
+					
 
-					// get the address
-					DWORD dwAddress = 0;
-					std::string addr = std::string(entry.child("Address").child_value());
-					sscanf_s(addr.substr(addr.find_last_of("+")+1).c_str(), "%x", &dwAddress);
-
-					// set process respective address string process
-					if (addr.find('"')!=std::string::npos)
+					//Here we fork depending on whether we have the special case for the Source Engine games
+					if (rule_type == (int)SourceEngineMemScanner ||
+						(desc.find("MemIncrement") != std::string::npos) ||
+						(desc.find("MemIncCount") != std::string::npos))
 					{
-						module = addr.substr(1, addr.find_last_of('"')-1);
-						OutputDebugString(module.c_str());
-						m_pVRboost_SetProcess(process, module);
+						if (rule_type == (int)SourceEngineMemScanner)
+						{
+							OutputDebugString("SourceEngineMemScanner rule started....");
+
+							// valid new rule, first erase data structure
+							ZeroMemory(&offsets[0], 6*sizeof(DWORD));
+							ZeroMemory(&cOffsets1[0], 6*sizeof(DWORD));
+							ZeroMemory(&cOffsets2[0], 6*sizeof(DWORD));
+							ZeroMemory(&address[0], 3*sizeof(float));
+							values = D3DXVECTOR4(0,0,0,0);
+							valuenumber = 0;
+
+							// set address, then offsets
+							DWORD dwAddress = 0;
+							std::string addr = std::string(entry.child("Address").child_value());
+							sscanf_s(addr.c_str(), "%x", &dwAddress);
+							address[0] = dwAddress;
+
+							// set rule type
+							rule = rule_type;
+						}
+						else if (desc.find("MemIncrement") != std::string::npos)
+						{
+							// This isn't actually an address, this is the relative increments through which we increase the memory area to scan
+							DWORD dwAddressInc = 0;
+							std::string addr = std::string(entry.child("Address").child_value());
+							sscanf_s(addr.c_str(), "%x", &dwAddressInc);
+							cOffsets1[0] = 1;
+							cOffsets1[1] = dwAddressInc;
+							//Store sub rule type, this is the actual rule type that will be created for this address
+							subRuleType = rule_type;
+						}
+						else if (desc.find("MemIncCount") != std::string::npos)
+						{
+							// This isn't actually an address, this is the number of increments through which we increase the memory area to scan
+							//We will divide this by 2 and scan either side of the original address
+							DWORD dwAddressIncCount = 0;
+							std::string addr = std::string(entry.child("Address").child_value());
+							sscanf_s(addr.c_str(), "%x", &dwAddressIncCount);
+							cOffsets2[0] = 1;
+							cOffsets2[1] = dwAddressIncCount;
+
+							m_pVRboost_CreateFloatMemoryRule(rule, axis_type, values, address[0], offsets, subRuleType, 0, address[1], cOffsets1, 0, address[2], cOffsets2, 0);
+						}
 					}
 					else
 					{
-						// no base address - static pointers
-						module = std::string(process);
-						OutputDebugString(module.c_str());
-						m_pVRboost_SetProcess(process, module);
-					}
+						// get the address
+						DWORD dwAddress = 0;
+						std::string addr = std::string(entry.child("Address").child_value());
+						sscanf_s(addr.substr(addr.find_last_of("+")+1).c_str(), "%x", &dwAddress);
 
-					// get the offsets - note that offsets are stored from last to first !!
-					pugi::xml_node offsets_node = entry.child("Offsets");
-					DWORD dwOffset[5];
-					BYTE index = 0;
-					for (pugi::xml_node offset_node = offsets_node.first_child(); offset_node; offset_node = offset_node.next_sibling())
-					{
-						sscanf_s(offset_node.child_value(), "%x", &dwOffset[index]);
-						index++;
-					}
-
-					if (rule_type>=0)
-					{
-						OutputDebugString("rule started....");
-						// valid new rule, first erase data structure
-						ZeroMemory(&offsets[0], 6*sizeof(DWORD));
-						ZeroMemory(&cOffsets1[0], 6*sizeof(DWORD));
-						ZeroMemory(&cOffsets2[0], 6*sizeof(DWORD));
-						ZeroMemory(&address[0], 3*sizeof(float));
-						values = D3DXVECTOR4(0,0,0,0);
-						valuenumber = 0;
-
-						// set address, then offsets
-						address[0] = dwAddress;
-
-						// offsets start from last to first, offset[0] = number of offsets
-						offsets[0] = (DWORD)index;
-						for (int i = 0; i < index; i++)
-							offsets[i+1] = dwOffset[index-i-1];
-
-						// set rule type
-						rule = rule_type;
-					}
-					else if (axis_type>=0)
-					{
-						// valid new axis, set data and create rule
-
-						// set address, then offsets
-						address[2] = dwAddress;
-
-						// offsets start from last to first, offset[0] = number of offsets
-						cOffsets2[0] = (DWORD)index;
-						for (int i = 0; i < index; i++)
-							cOffsets2[i+1] = dwOffset[index-i-1];
-
-						// set axis type
-						axis = axis_type;
-
-						char buf[256];
-						sprintf_s(buf, 256, "rule %u", rule);
-						OutputDebugString(buf);
-						for (int i = 0; i < 3; i++)
+						// set process respective address string process
+						if (addr.find('"')!=std::string::npos)
 						{
-							sprintf_s(buf, 256, "addr %x", address[i]);
-							OutputDebugString(buf);
+							module = addr.substr(1, addr.find_last_of('"')-1);
+							OutputDebugString(module.c_str());
+							m_pVRboost_SetProcess(process, module);
 						}
-						for (int i = 0; i < 6; i++)
+						else
 						{
-							sprintf_s(buf, 256, "off %x", offsets[i]);
-							OutputDebugString(buf);
-						}
-						for (int i = 0; i < 6; i++)
-						{
-							sprintf_s(buf, 256, "off %x", cOffsets1[i]);
-							OutputDebugString(buf);
-						}
-						for (int i = 0; i < 6; i++)
-						{
-							sprintf_s(buf, 256, "off %x", cOffsets2[i]);
-							OutputDebugString(buf);
+							// no base address - static pointers
+							module = std::string(process);
+							OutputDebugString(module.c_str());
+							m_pVRboost_SetProcess(process, module);
 						}
 
-						sprintf_s(buf, 256, "value %g", values.x);
-						OutputDebugString(buf);
-						sprintf_s(buf, 256, "value %g", values.y);
-						OutputDebugString(buf);
-						sprintf_s(buf, 256, "value %g", values.z);
-						OutputDebugString(buf);
-						sprintf_s(buf, 256, "value %g", values.w);
-						OutputDebugString(buf);
+						// get the offsets - note that offsets are stored from last to first !!
+						pugi::xml_node offsets_node = entry.child("Offsets");
+						DWORD dwOffset[5];
+						BYTE index = 0;
+						for (pugi::xml_node offset_node = offsets_node.first_child(); offset_node; offset_node = offset_node.next_sibling())
+						{
+							sscanf_s(offset_node.child_value(), "%x", &dwOffset[index]);
+							index++;
+						}
 
-						// create skyrim shader rules here
-						m_pVRboost_CreateFloatMemoryRule(rule, axis, values, address[0], offsets, 0x00001000, 0xA0000000, address[1], cOffsets1, 0, address[2], cOffsets2, 0);
+						if (rule_type>=0)
+						{
+							OutputDebugString("rule started....");
+							// valid new rule, first erase data structure
+							ZeroMemory(&offsets[0], 6*sizeof(DWORD));
+							ZeroMemory(&cOffsets1[0], 6*sizeof(DWORD));
+							ZeroMemory(&cOffsets2[0], 6*sizeof(DWORD));
+							ZeroMemory(&address[0], 3*sizeof(float));
+							values = D3DXVECTOR4(0,0,0,0);
+							valuenumber = 0;
 
-					}
-					else
-					{
-						// data, parse pointer to mid comparisation data pointer
+							// set address, then offsets
+							address[0] = dwAddress;
 
-						// set address, then offsets
-						address[1] = dwAddress;
+							// offsets start from last to first, offset[0] = number of offsets
+							offsets[0] = (DWORD)index;
+							for (int i = 0; i < index; i++)
+								offsets[i+1] = dwOffset[index-i-1];
 
-						// offsets start from last to first, offset[0] = number of offsets
-						cOffsets1[0] = (DWORD)index;
-						for (int i = 0; i < index; i++)
-							cOffsets1[i+1] = dwOffset[index-i-1];
+							// set rule type
+							rule = rule_type;
+						}
+						else if (axis_type>=0)
+						{
+							// valid new axis, set data and create rule
 
-						// set vector data
-						if (valuenumber==0)
-							values.x = value;
-						else if (valuenumber==1)
-							values.y = value;
-						else if (valuenumber==2)
-							values.z = value;
-						else if (valuenumber==3)
-							values.w = value;
+							// set address, then offsets
+							address[2] = dwAddress;
 
-						valuenumber++;
+							// offsets start from last to first, offset[0] = number of offsets
+							cOffsets2[0] = (DWORD)index;
+							for (int i = 0; i < index; i++)
+								cOffsets2[i+1] = dwOffset[index-i-1];
+
+							// set axis type
+							axis = axis_type;
+
+							char buf[256];
+							sprintf_s(buf, 256, "rule %u", rule);
+							OutputDebugString(buf);
+							for (int i = 0; i < 3; i++)
+							{
+								sprintf_s(buf, 256, "addr %x", address[i]);
+								OutputDebugString(buf);
+							}
+							for (int i = 0; i < 6; i++)
+							{
+								sprintf_s(buf, 256, "off %x", offsets[i]);
+								OutputDebugString(buf);
+							}
+							for (int i = 0; i < 6; i++)
+							{
+								sprintf_s(buf, 256, "off %x", cOffsets1[i]);
+								OutputDebugString(buf);
+							}
+							for (int i = 0; i < 6; i++)
+							{
+								sprintf_s(buf, 256, "off %x", cOffsets2[i]);
+								OutputDebugString(buf);
+							}
+
+							sprintf_s(buf, 256, "value %g", values.x);
+							OutputDebugString(buf);
+							sprintf_s(buf, 256, "value %g", values.y);
+							OutputDebugString(buf);
+							sprintf_s(buf, 256, "value %g", values.z);
+							OutputDebugString(buf);
+							sprintf_s(buf, 256, "value %g", values.w);
+							OutputDebugString(buf);
+
+							// create skyrim shader rules here
+							m_pVRboost_CreateFloatMemoryRule(rule, axis, values, address[0], offsets, 0x00001000, 0xA0000000, address[1], cOffsets1, 0, address[2], cOffsets2, 0);
+
+						}
+						else
+						{
+							// data, parse pointer to mid comparisation data pointer
+
+							// set address, then offsets
+							address[1] = dwAddress;
+
+							// offsets start from last to first, offset[0] = number of offsets
+							cOffsets1[0] = (DWORD)index;
+							for (int i = 0; i < index; i++)
+								cOffsets1[i+1] = dwOffset[index-i-1];
+
+							// set vector data
+							if (valuenumber==0)
+								values.x = value;
+							else if (valuenumber==1)
+								values.y = value;
+							else if (valuenumber==2)
+								values.z = value;
+							else if (valuenumber==3)
+								values.w = value;
+
+							valuenumber++;
+						}
 					}
 				}
 
