@@ -665,12 +665,13 @@ private:
 	float CalcFPS();
 
 	/*** VRboost function pointer typedefs ***/
-	typedef HRESULT (WINAPI *LPVRBOOST_LoadMemoryRules)(std::string processName, std::string rulesPath);
-	typedef HRESULT (WINAPI *LPVRBOOST_SaveMemoryRules)(std::string rulesPath);
-	typedef HRESULT (WINAPI *LPVRBOOST_CreateFloatMemoryRule)(DWORD ruleType, UINT axisIndex, D3DXVECTOR4 constantVector, DWORD pointerAddress, DWORD* offsets, DWORD minValue, DWORD maxValue, DWORD comparisationPointer1, DWORD* comparisationOffsets1, int pointerDifference1, DWORD comparisationPointer2, DWORD* comparisationOffsets2, int pointerDifference2);
-	typedef HRESULT (WINAPI *LPVRBOOST_SetProcess)(std::string processName, std::string moduleName);
-	typedef HRESULT (WINAPI *LPVRBOOST_ReleaseAllMemoryRules)( void );
-	typedef HRESULT (WINAPI *LPVRBOOST_ApplyMemoryRules)(UINT axisNumber, float** axis);
+	typedef VRBoost::ReturnValue (WINAPI *LPVRBOOST_LoadMemoryRules)(std::string processName, std::string rulesPath);
+	typedef VRBoost::ReturnValue (WINAPI *LPVRBOOST_SaveMemoryRules)(std::string rulesPath);
+	typedef VRBoost::ReturnValue (WINAPI *LPVRBOOST_CreateFloatMemoryRule)(DWORD ruleType, UINT axisIndex, D3DXVECTOR4 constantVector, DWORD pointerAddress, DWORD* offsets, DWORD minValue, DWORD maxValue, DWORD comparisationPointer1, DWORD* comparisationOffsets1, int pointerDifference1, DWORD comparisationPointer2, DWORD* comparisationOffsets2, int pointerDifference2);
+	typedef VRBoost::ReturnValue (WINAPI *LPVRBOOST_SetProcess)(std::string processName, std::string moduleName);
+	typedef VRBoost::ReturnValue (WINAPI *LPVRBOOST_ReleaseAllMemoryRules)( void );
+	typedef VRBoost::ReturnValue (WINAPI *LPVRBOOST_ApplyMemoryRules)(UINT axisNumber, float** axis);
+	typedef VRBoost::ReturnValue (WINAPI *LPVRBOOST_StartMemoryScan)( void );
 
 	/**
 	* VRboost pointer function to load memory rules for a process.
@@ -696,6 +697,10 @@ private:
 	* VRboost pointer function to apply memory rules to process memory.
 	***/
 	LPVRBOOST_ApplyMemoryRules m_pVRboost_ApplyMemoryRules;
+	/**
+	* VRboost pointer function to start the memory scanner.
+	***/
+	LPVRBOOST_StartMemoryScan m_pVRboost_StartMemoryScan;
 	/**
 	* Handle to VRboost library.
 	***/

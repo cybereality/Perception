@@ -62,4 +62,17 @@ namespace VRBoost
 		ConstantValue3 = 35,              /**< Game-specific constant value 3. **/
 		// 255								maximum VRboost axis index
 	};
+
+	/**
+	* Custom defined return type from VRBoost
+	*/
+	enum ReturnValue
+	{
+		VRBOOST_OK, /**< Basic, "everything is ok" */
+		VRBOOST_ERROR, /**< An error occured */
+		VRBOOST_SCAN_READY, /**< VRBoost is ready to scan for memory locations */
+		VRBOOST_SCANNING, /**< Memory scans are now in progress */
+		VRBOOST_SCAN_FAILED, /**< Memory scan failed completely to find a any appropriate addresses */
+		VRBOOST_SCAN_WARNING /**< Memory scan failed to find one or more appropriate addresses (but some did succeed) */
+	};
 }
