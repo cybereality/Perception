@@ -34,6 +34,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "hijackdll.h"
 #include "apihijack.h"
 #include "Direct3D9.h"
+#include "Direct3D9Ex.h"
 #include <string>
 
 // Text buffer for sprintf
@@ -57,6 +58,9 @@ HMODULE WINAPI MyLoadLibraryExW(LPCWSTR lpFileName, HANDLE hFile, DWORD dwFlags)
 typedef IDirect3D9* (WINAPI *Direct3DCreate9_t)(UINT sdk_version);
 IDirect3D9* WINAPI MyDirect3DCreate9(UINT sdk_version);
 
+typedef HRESULT (WINAPI *Direct3DCreate9Ex_t)(UINT sdk_version, IDirect3D9Ex**);
+HRESULT WINAPI MyDirect3DCreate9Ex(UINT sdk_version, IDirect3D9Ex**);
+
 void ParsePaths();
 void SaveExeName(char*, char*);
 
@@ -68,7 +72,8 @@ enum
 
 enum
 {
-	D3DFN_Direct3DCreate9 = 0
+	D3DFN_Direct3DCreate9 = 0,
+	D3DFN_Direct3DCreate9Ex
 };
 
 SDLLHook KernelHook = 
@@ -87,6 +92,7 @@ SDLLHook D3DHook =
 	false, NULL,		// Default hook disabled, NULL function pointer.
 	{
 		{ "Direct3DCreate9", MyDirect3DCreate9},
+		{ "Direct3DCreate9Ex", MyDirect3DCreate9Ex},
 		{ NULL, NULL }
 	}
 };
@@ -129,6 +135,14 @@ IDirect3D9* WINAPI MyDirect3DCreate9(UINT sdk_version)
 	IDirect3D9* d3d = old_func(sdk_version);
 
 	return d3d ? new BaseDirect3D9(d3d) : 0;
+}
+
+HRESULT WINAPI MyDirect3DCreate9Ex(UINT sdk_version, IDirect3D9Ex**p)
+{
+	OutputDebugString( "Direct3D-Hook: MyDirect3DCreate9Ex called.\n" );
+
+	//Ex is not currently supported
+	return ERROR_NOT_SUPPORTED;
 }
 
 bool fileExists(std::string file)

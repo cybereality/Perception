@@ -724,7 +724,8 @@ void D3D9ProxyStateBlock::CaptureSelectedFromProxyDevice()
 						inserted.first->second->AddRef();
 					}
 					else { // insertfailed
-						OutputDebugString("Vertex buffer capture to StateBlock failed");
+						//Need to find out why this is repeatedly written in Bioshock 2
+						//OutputDebugString("Vertex buffer capture to StateBlock failed");
 					}
 				}
 

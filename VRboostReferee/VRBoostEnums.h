@@ -28,11 +28,9 @@ namespace VRBoost
 		FloatUnrealCompass = 101,         /**< Applies the input float to a UNREAL engine rotator compass calculatian and incorporates prior rotation angle. **/
 		FloatUnrealAxis = 201,            /**< Applies the input float to a UNREAL engine rotator axis. **/
 		FloatUnrealNegativeAxis = 202,     /**< Applies the input float to a negative UNREAL engine rotator axis. **/
-		//The following is a special case for some source engine games (Portal 2, The Stanley Parable) as they
-		//don't appear to posses stable pointers!, however the address of the yaw is always found at 0x08XX8EF4,
-		//where XX varies from run to run. Therefore this will look at all addresses varying XX to find a candidate
-		//for Yaw, and when it does, pitch and roll are in adjacent memory locations
-		SourceEngineMemScanner = 300/**< Will scan through a set of addresses until if finds candidate for yaw*/
+
+		//The following are more general types for the memory scanners
+		MemoryScanner = 300				  /**< Will scan through a set of addresses until if finds candidate for yaw or FOV*/
 	};
 
 	/**
@@ -64,6 +62,24 @@ namespace VRBoost
 	};
 
 	/**
+	* Enum for the various ways we can check memory locations
+	*/
+	enum Comparison
+	{
+		NoCompare = 0,
+		Equal,
+		NotEqual,
+		LessThan,
+		GreaterThan,
+		LessThanOrEqual,
+		GreaterThanOrEqual,
+		Between, //Between min max but not including
+		BetweenIncl, //Pretty obvious isnt it?
+		Outside //Not between min and max
+	};
+
+
+	/**
 	* Custom defined return type from VRBoost
 	*/
 	enum ReturnValue
@@ -71,8 +87,8 @@ namespace VRBoost
 		VRBOOST_OK, /**< Basic, "everything is ok" */
 		VRBOOST_ERROR, /**< An error occured */
 		VRBOOST_SCAN_READY, /**< VRBoost is ready to scan for memory locations */
+		VRBOOST_SCAN_INITIALISING, /**< VRBoost is preparing scanner for memory locations */
 		VRBOOST_SCANNING, /**< Memory scans are now in progress */
-		VRBOOST_SCAN_FAILED, /**< Memory scan failed completely to find a any appropriate addresses */
-		VRBOOST_SCAN_WARNING /**< Memory scan failed to find one or more appropriate addresses (but some did succeed) */
+		VRBOOST_SCAN_FAILED /**< Memory scan failed completely to find a any appropriate addresses */
 	};
 }

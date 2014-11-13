@@ -82,11 +82,6 @@ private:
 	bool configLoaded;
 
 	/**
-	* Window we use to render into (override the one passed by the game for the mirror setup
-	*/
-	game_window *m_pGameWindow;
-
-	/**
 	* Proxy configuration we load
 	*/
 	ProxyHelper::ProxyConfig cfg;

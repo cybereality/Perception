@@ -2958,6 +2958,8 @@ void D3DProxyDevice::HandleTracking()
 
 	m_isFirstBeginSceneOfFrame = false;
 
+	bool scanFailed = false;
+
 	// update vrboost, if present, tracker available and shader count higher than the minimum
 	if ((!m_bSurpressHeadtracking) 
 		&& (!m_bForceMouseEmulation || VRBoostStatus.VRBoost_Scanning) 
@@ -2974,7 +2976,10 @@ void D3DProxyDevice::HandleTracking()
 		VRBoostValue[VRboostAxis::TrackerYaw] = tracker->primaryYaw;
 		VRBoostValue[VRboostAxis::TrackerPitch] = tracker->primaryPitch;
 		VRBoostValue[VRboostAxis::TrackerRoll] = tracker->primaryRoll;
-		if (m_pVRboost_ApplyMemoryRules(MAX_VRBOOST_VALUES, (float**)&VRBoostValue) != VRBOOST_OK)
+
+		//If we know VRBoost is scanning, don't even try to apply memory rules this time round
+		if (VRBoostStatus.VRBoost_Scanning ||
+			m_pVRboost_ApplyMemoryRules(MAX_VRBOOST_VALUES, (float**)&VRBoostValue) != VRBOOST_OK)
 		{
 			VRBoostStatus.VRBoost_ApplyRules = false;
 			if (!createNSave)
@@ -3016,6 +3021,26 @@ void D3DProxyDevice::HandleTracking()
 							ShowPopup(popup);
 						}
 						break;
+					case VRBoost::VRBOOST_SCAN_INITIALISING:
+						{
+							//Indicate we are going to be scanning
+							VRBoostStatus.VRBoost_Scanning = true;
+
+							//Enable mouse emulation whilst VRBoost is not active
+							m_bForceMouseEmulation = true;
+							tracker->setMouseEmulation(true);
+
+							DismissPopup(VPT_VRBOOST_SCANNING);
+							VireioPopup popup(VPT_VRBOOST_SCANNING, VPS_INFO);
+							strcpy_s(popup.line1, "VRBoost Memory Scan");
+							strcpy_s(popup.line2, "===================");
+
+							float percent = m_pVRboost_GetScanInitPercent();
+							sprintf_s(popup.line3, "STATUS: INITIALISING - %.1f%% Complete", percent);
+							strcpy_s(popup.line4, "Setting up scanner parameters - Please wait..");
+							ShowPopup(popup);
+						}
+						break;
 					case VRBoost::VRBOOST_SCANNING:
 						{
 							VRBoostStatus.VRBoost_Scanning = true;
@@ -3028,13 +3053,15 @@ void D3DProxyDevice::HandleTracking()
 							VireioPopup popup(VPT_VRBOOST_SCANNING, VPS_INFO);
 							strcpy_s(popup.line1, "VRBoost Memory Scan");
 							strcpy_s(popup.line2, "===================");
-							strcpy_s(popup.line3, "STATUS: IN PROGRESS");
+							strcpy_s(popup.line3, "STATUS: SCANNING");
 							strcpy_s(popup.line4, "Please look around to assist with orientation detection");
 							ShowPopup(popup);
 						}
 						break;
 					case VRBoost::VRBOOST_SCAN_FAILED:
 						{
+							scanFailed = true;
+							VRBoostStatus.VRBoost_Scanning = false;
 							DismissPopup(VPT_VRBOOST_SCANNING);
 
 							//Enable mouse emulation whilst VRBoost is not active
@@ -3042,13 +3069,17 @@ void D3DProxyDevice::HandleTracking()
 							tracker->setMouseEmulation(true);
 
 							//If we get here, then the VRBoost memory scanner came up with no good results :(
-							VireioPopup popup(VPT_VRBOOST_FAILURE, VPS_INFO, 5000);
+							VireioPopup popup(VPT_VRBOOST_FAILURE, VPS_ERROR, 5000);
 							strcpy_s(popup.line1, "VRBoost Memory Scan");
 							strcpy_s(popup.line2, "===================");
 							strcpy_s(popup.line3, "STATUS: FAILED");
-							strcpy_s(popup.line4, "VRBoost is now disabled");
-							strcpy_s(popup.line5, "Please enable mouse emulation and");
-							strcpy_s(popup.line6, "head roll in the BRASSA menu (CTRL+Q)");
+
+							//Reason
+							char failReason[256] = {0};
+							m_pVRboost_GetScanFailReason(failReason);
+							sprintf_s(popup.line4, "REASON: %s", failReason);
+							strcpy_s(popup.line5, "VRBoost is now disabled");
+							strcpy_s(popup.line6, "Re-run the scan any time with F2");
 							ShowPopup(popup);
 							VRBoostStatus.VRBoost_Active = false;
 						}
@@ -3062,7 +3093,7 @@ void D3DProxyDevice::HandleTracking()
 								m_bForceMouseEmulation = false;
 								tracker->setMouseEmulation(false);
 
-								VireioPopup popup(VPT_NOTIFICATION, VPS_INFO, 2000);
+								VireioPopup popup(VPT_NOTIFICATION, VPS_INFO, 5000);
 								strcpy_s(popup.line1, "VRBoost Memory Scan");
 								strcpy_s(popup.line2, "===================");
 								strcpy_s(popup.line3, "STATUS: SUCCESS");
@@ -3114,8 +3145,11 @@ void D3DProxyDevice::HandleTracking()
 		}
 	}
 
-	//All is well
-	DismissPopup(VPT_VRBOOST_FAILURE);
+	if (!scanFailed)
+	{
+		//All is well
+		DismissPopup(VPT_VRBOOST_FAILURE);
+	}
 }
 
 /**
@@ -6505,13 +6539,17 @@ bool D3DProxyDevice::InitVRBoost()
 		m_pVRboost_ReleaseAllMemoryRules = (LPVRBOOST_ReleaseAllMemoryRules)GetProcAddress(hmVRboost, "VRboost_ReleaseAllMemoryRules");
 		m_pVRboost_ApplyMemoryRules = (LPVRBOOST_ApplyMemoryRules)GetProcAddress(hmVRboost, "VRboost_ApplyMemoryRules");
 		m_pVRboost_StartMemoryScan = (LPVRBOOST_StartMemoryScan)GetProcAddress(hmVRboost, "VRboost_StartMemoryScan");
+		m_pVRboost_GetScanInitPercent = (LPVRBOOST_GetScanInitPercent)GetProcAddress(hmVRboost, "VRboost_GetScanInitPercent");
+		m_pVRboost_GetScanFailReason = (LPVRBOOST_GetScanFailReason)GetProcAddress(hmVRboost, "VRboost_GetScanFailReason");
 		if ((!m_pVRboost_LoadMemoryRules) || 
 			(!m_pVRboost_SaveMemoryRules) || 
 			(!m_pVRboost_CreateFloatMemoryRule) || 
 			(!m_pVRboost_SetProcess) || 
 			(!m_pVRboost_ReleaseAllMemoryRules) || 
 			(!m_pVRboost_ApplyMemoryRules) ||
-			(!m_pVRboost_StartMemoryScan))
+			(!m_pVRboost_StartMemoryScan) ||
+			(!m_pVRboost_GetScanInitPercent) ||
+			(!m_pVRboost_GetScanFailReason))
 		{
 			hmVRboost = NULL;
 			m_bForceMouseEmulation = false;
@@ -6524,6 +6562,8 @@ bool D3DProxyDevice::InitVRBoost()
 			if (!m_pVRboost_ReleaseAllMemoryRules) OutputDebugString("m_pVRboost_ReleaseAllMemoryRules");
 			if (!m_pVRboost_ApplyMemoryRules) OutputDebugString("m_pVRboost_ApplyMemoryRules");
 			if (!m_pVRboost_StartMemoryScan) OutputDebugString("m_pVRboost_StartMemoryScan");
+			if (!m_pVRboost_GetScanInitPercent) OutputDebugString("m_pVRboost_GetScanInitPercent");
+			if (!m_pVRboost_GetScanFailReason) OutputDebugString("m_pVRboost_GetScanFailReason");
 		}
 		else
 		{
