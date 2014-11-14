@@ -91,6 +91,7 @@ int VRboost_Axis(std::string axisName)
 
 int VRboost_Compare(std::string compare)
 {
+	//Order of these is important as we are doing a find - DO NOT CHANGE ORDER!!
 	if (compare.find("NoCompare") != std::string::npos) return NoCompare;
 	else if (compare.find("NotEqual") != std::string::npos) return NotEqual;
 	else if (compare.find("LessThanOrEqual") != std::string::npos) return LessThanOrEqual;
@@ -106,8 +107,10 @@ int VRboost_Compare(std::string compare)
 
 int VRboost_CheckChanges(std::string compare)
 {
+	//Order of these is important as we are doing a find - DO NOT CHANGE ORDER!!
 	if (compare.find("NoCheck") != std::string::npos) return 0;
 	else if (compare.find("NoChange") != std::string::npos) return 1;
+	else if (compare.find("ChangesLoWordOnly") != std::string::npos) return 3;
 	else if (compare.find("Changes") != std::string::npos) return 2;
 	else return 0;
 }
