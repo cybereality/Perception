@@ -58,7 +58,7 @@ namespace VRBoost
 		ConstantValue1 = 33,             /**< Game-specific constant value 1. **/
 		ConstantValue2 = 34,             /**< Game-specific constant value 2. **/
 		ConstantValue3 = 35,              /**< Game-specific constant value 3. **/
-		// 255								maximum VRboost axis index
+		NoAxis = 255						/**< No VRboost axis index **/
 	};
 
 	/**

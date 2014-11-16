@@ -86,6 +86,8 @@ int VRboost_Axis(std::string axisName)
 	else if (axisName.find("ConstantValue1") != std::string::npos) return VRboostAxis::ConstantValue1;
 	else if (axisName.find("ConstantValue2") != std::string::npos) return VRboostAxis::ConstantValue2;
 	else if (axisName.find("ConstantValue3") != std::string::npos) return VRboostAxis::ConstantValue3;
+	//Used by memory scanner to check addresses that won't be converted to a memory modifier
+	else if (axisName.find("NoAxis") != std::string::npos) return VRboostAxis::NoAxis;
 	else return -1;
 }
 
@@ -225,6 +227,10 @@ int _tmain(int argc, char* argv[])
 						std::string incCount = std::string(scannerGroup.child("MemIncCount").child_value());
 						sscanf_s(incCount.c_str(), "%x", &dwAddressIncCount);
 
+						DWORD failIfNotFound = 0;
+						std::string fail = std::string(scannerGroup.child("FailIfNotFound").child_value());
+						failIfNotFound = ((fail.length() == 0) || (fail == "True")) ? 1 : 0;
+
 						for (pugi::xml_node ruleItem = scannerGroup.first_child(); ruleItem; ruleItem = ruleItem.next_sibling())
 						{
 								if (strcmp(ruleItem.name(), "ScanRule") == 0)
@@ -299,10 +305,11 @@ int _tmain(int argc, char* argv[])
 									}
 
 									//Encode all this into the vrboost data structures
-									cOffsets1[0] = 3;
+									cOffsets1[0] = 4;
 									cOffsets1[1] = dwAddressInc;
 									cOffsets1[2] = rule_type;
 									cOffsets1[3] = scannerGroupID;
+									cOffsets1[4] = failIfNotFound;
 
 									cOffsets2[0] = 4;
 									cOffsets2[1] = dwAddressIncCount;
