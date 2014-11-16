@@ -2374,7 +2374,7 @@ void D3DProxyDevice::HandleControls()
 	}
 
 	// Initiate VRBoost Memory Scan
-	if (controls.Key_Down(VK_F2) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	if (controls.Key_Down(VK_NUMPAD5) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		if (hmVRboost!=NULL)
 		{
@@ -2389,16 +2389,14 @@ void D3DProxyDevice::HandleControls()
 		}
 	}
 
-	if (controls.Key_Down(VK_F3) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	if (controls.Key_Down(VK_NUMPAD8) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		DismissPopup(VPT_VRBOOST_SCANNING);
 
 		VRBoostStatus.VRBoost_Scanning = false;
 
 		m_bForceMouseEmulation = true;
-
-		if ((hmVRboost) && (m_VRboostRulesPresent) && (tracker->getStatus() >= MTS_OK))
-			tracker->setMouseEmulation(true);
+		tracker->setMouseEmulation(true);
 
 		menuVelocity.x-=2.0f;
 	}
@@ -3015,9 +3013,9 @@ void D3DProxyDevice::HandleTracking()
 							strcpy_s(popup.line1, "VRBoost Memory Scan");
 							strcpy_s(popup.line2, "===================");
 							strcpy_s(popup.line3, "STATUS: WAITING USER ACTIVATION");
-							strcpy_s(popup.line4, " - Once you are \"in-game\", please press F2 to start memory scan");
-							strcpy_s(popup.line5, "   and press F2 to repeat if memory scan fails");
-							strcpy_s(popup.line6, " - Press F3 to cancel VRBoost and turn on mouse emulation");
+							strcpy_s(popup.line4, " - Once you are \"in-game\", please press NUMPAD5 to start memory scan");
+							strcpy_s(popup.line5, "   and press NUMPAD5 to repeat if memory scan fails");
+							strcpy_s(popup.line6, " - Press NUMPAD8 to cancel VRBoost and turn on mouse emulation");
 							ShowPopup(popup);
 						}
 						break;
