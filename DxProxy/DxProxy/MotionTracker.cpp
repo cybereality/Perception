@@ -34,7 +34,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * Calls init function.
 ***/ 
 MotionTracker::MotionTracker() :
-	useTimewarpPrediction(true)
+	useSDKPosePrediction(true)
 {
 	OutputDebugString("Motion Tracker Created\n");
 	init();

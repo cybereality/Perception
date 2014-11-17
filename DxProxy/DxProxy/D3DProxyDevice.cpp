@@ -2477,17 +2477,17 @@ void D3DProxyDevice::HandleControls()
 	}
 
 
-	//Toggle timewarp - LSHIFT + DELETE
+	//Toggle SDK Pose Prediction- LSHIFT + DELETE
 	if (hmdInfo->GetHMDManufacturer() == HMD_OCULUS	&&
 		(controls.Key_Down(VK_LSHIFT) && controls.Key_Down(VK_DELETE)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)) && tracker)
 	{
-		tracker->useTimewarpPrediction = !tracker->useTimewarpPrediction;
+		tracker->useSDKPosePrediction = !tracker->useSDKPosePrediction;
 
 		VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1200);
-		if (tracker->useTimewarpPrediction)
-			strcpy_s(popup.line3, "Oculus VR Timewarp Enabled");
+		if (tracker->useSDKPosePrediction)
+			strcpy_s(popup.line3, "SDK Pose Prediction Enabled");
 		else
-			strcpy_s(popup.line3, "Oculus VR Timewarp Disabled");
+			strcpy_s(popup.line3, "SDK Pose Prediction Disabled");
 		ShowPopup(popup);
 
 		menuVelocity.x += 4.0f;
@@ -6113,7 +6113,7 @@ void D3DProxyDevice::DisplayCurrentPopup()
 				strcpy_s(activePopup.line5, "HMD Positional Tracking Disabled");
 			if (hmdInfo->GetHMDManufacturer() == HMD_OCULUS)
 			{
-				if (tracker->useTimewarpPrediction)
+				if (tracker->useSDKPosePrediction)
 					strcpy_s(activePopup.line6, "Oculus VR Timewarp Enabled");
 				else
 					strcpy_s(activePopup.line6, "Oculus VR Timewarp Disabled");
@@ -6670,7 +6670,7 @@ bool D3DProxyDevice::InitBrassa()
 		tracker->setMouseEmulation((!m_VRboostRulesPresent) || (hmVRboost==NULL));
 
 		//Set the default timewarp prediction behaviour for this game - this will have no effect on non-Oculus trackers
-		tracker->useTimewarpPrediction = config.useTimewarpPrediction;
+		tracker->useSDKPosePrediction = config.useSDKPosePrediction;
 
 		//Only advise calibration for positional tracking on DK2
 		if (tracker->SupportsPositionTracking())
