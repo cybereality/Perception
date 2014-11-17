@@ -335,7 +335,7 @@ bool ProxyHelper::LoadUserConfig(ProxyConfig& config, OculusProfile& oculusProfi
 	size_t len;
 	errno_t err = _dupenv_s( &pValue, &len, "userprofile" );
 	std::stringstream sstm;
-	sstm << pValue << "\\AppData\\Local\\Oculus\\Profiles.json";
+	sstm << pValue << "\\AppData\\Local\\Oculus\\ProfileDB.json";
 	std::string filePath = sstm.str();
 	OutputDebugString(filePath.c_str());
 
@@ -359,7 +359,7 @@ bool ProxyHelper::LoadUserConfig(ProxyConfig& config, OculusProfile& oculusProfi
 
 	// loop through file data lines
 	OutputDebugString("Load Oculus User Profile.");
-	std::string currentUser = "";
+	std::string defaultUser = "";
 	std::string currentUserParsed = "";
 	std::string line_stream;    
 	while(std::getline(filestream, line_stream)){  
@@ -369,6 +369,8 @@ bool ProxyHelper::LoadUserConfig(ProxyConfig& config, OculusProfile& oculusProfi
 		std::string type_str;
 		std::string data_str;
 		str_stream >> type_str >> data_str;
+
+		
 
 		// erase unnecessarry characters
 		EraseCharacter(type_str, '"'); 
@@ -381,39 +383,44 @@ bool ProxyHelper::LoadUserConfig(ProxyConfig& config, OculusProfile& oculusProfi
 		EraseCharacter(data_str, ','); 
 		EraseCharacter(data_str, ' ');		
 
+		OutputDebugString(type_str.c_str());
+		OutputDebugString(data_str.c_str());
+
 		// parse data
-		if(type_str == "CurrentProfile")
+		if(type_str == "DefaultUser")
 		{
 			auto found = line_stream.find(data_str);
-			currentUser = line_stream.substr(found);
-			EraseCharacter(currentUser, '"');
-			EraseCharacter(currentUser, ':'); 
-			EraseCharacter(currentUser, ','); 
+			defaultUser = line_stream.substr(found);
+			EraseCharacter(defaultUser, '"');
+			EraseCharacter(defaultUser, ':'); 
+			EraseCharacter(defaultUser, ','); 			
 		}
-		if(type_str == "Name")
+		if(type_str == "User")
 		{
 			auto found = line_stream.find(data_str);
 			currentUserParsed = line_stream.substr(found);
 			EraseCharacter(currentUserParsed, '"');
 			EraseCharacter(currentUserParsed, ':'); 
-			EraseCharacter(currentUserParsed, ','); 
+			EraseCharacter(currentUserParsed, ',');				
 		}
-		if((type_str == "Name") && (currentUser.compare(currentUserParsed)==0))
+		if((type_str == "User") && (defaultUser.compare(currentUserParsed)==0))
 			oculusProfile.Name = currentUserParsed;
-		if((type_str == "Gender") && (currentUser.compare(currentUserParsed)==0))
+		if((type_str == "Gender") && (defaultUser.compare(currentUserParsed)==0))
 			oculusProfile.Gender = data_str;
-		if((type_str == "PlayerHeight") && (currentUser.compare(currentUserParsed)==0))
+		if((type_str == "PlayerHeight") && (defaultUser.compare(currentUserParsed)==0))
 		{
 			std::stringstream st(data_str);
 			st >> oculusProfile.PlayerHeight;
 		}
-		if((type_str == "IPD") && (currentUser.compare(currentUserParsed)==0))
+		if((type_str == "IPD") && (defaultUser.compare(currentUserParsed)==0))
 		{
 			std::stringstream st(data_str);
 			st >> oculusProfile.IPD;
 		}
-		if((type_str == "RiftDK1") && (currentUser.compare(currentUserParsed)==0))
+		if((data_str == "RiftDK1") && (defaultUser.compare(currentUserParsed)==0))
 			oculusProfile.RiftVersion = "RiftDK1";
+		else if(data_str == "RiftDK2" && (defaultUser.compare(currentUserParsed)==0))
+			oculusProfile.RiftVersion = "RiftDK2";
 	}
 
 	// set and save ipd
