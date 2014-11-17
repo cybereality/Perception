@@ -50,6 +50,9 @@
     <Filter Include="HMDisplayInfo">
       <UniqueIdentifier>{a6984bac-c136-41ca-be60-21017e230f65}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Instructions">
+      <UniqueIdentifier>{92c90211-acba-45e4-ba88-ea8ccba4391a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -244,6 +247,9 @@
     </None>
     <None Include="..\..\Release\Perception\cfg\shader_rules\omd2.xml">
       <Filter>cfg\shader_rules</Filter>
+    </None>
+    <None Include="..\..\Release\Perception\instructions\Vireio Perception Manual and Game Support LIst.docx">
+      <Filter>Instructions</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

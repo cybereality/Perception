@@ -368,6 +368,7 @@
     <None Include="..\..\Release\Perception\cfg\shader_rules\unreal.xml">
       <SubType>Designer</SubType>
     </None>
+    <None Include="..\..\Release\Perception\instructions\Vireio Perception Manual and Game Support LIst.docx" />
     <None Include="Exports.def" />
     <None Include="SideBySideRiftPartialCrop.fx" />
   </ItemGroup>
