@@ -137,7 +137,7 @@ void OculusTracker::BeginFrame()
 {
 	static unsigned int frameID = 0;
 	//return;
-	if (status >= MTS_OK  && useTimewarpPrediction)
+	if (status >= MTS_OK  && useSDKPosePrediction)
 	{
 		FrameRef=ovrHmd_BeginFrameTiming(hmd,frameID++);
 	}
@@ -145,7 +145,7 @@ void OculusTracker::BeginFrame()
 
 void OculusTracker::WaitTillTime()
 {
-	if (status >= MTS_OK && useTimewarpPrediction)
+	if (status >= MTS_OK && useSDKPosePrediction)
 	{
 		ovr_WaitTillTime(FrameRef.TimewarpPointSeconds);
 	}
@@ -153,7 +153,7 @@ void OculusTracker::WaitTillTime()
 
 void OculusTracker::EndFrame()
 {
-	if (status >= MTS_OK && useTimewarpPrediction)
+	if (status >= MTS_OK && useSDKPosePrediction)
 	{
 		ovrHmd_EndFrameTiming(hmd);
 	}
@@ -219,7 +219,7 @@ int OculusTracker::getOrientationAndPosition(float* yaw, float* pitch, float* ro
 	OutputDebugString("OculusTracker getOrientationAndPosition\n");
 #endif
 
-	ovrTrackingState ts = ovrHmd_GetTrackingState(hmd, useTimewarpPrediction ? FrameRef.ScanoutMidpointSeconds : ovr_GetTimeInSeconds());
+	ovrTrackingState ts = ovrHmd_GetTrackingState(hmd, useSDKPosePrediction ? FrameRef.ScanoutMidpointSeconds : ovr_GetTimeInSeconds());
 
 	if (ts.StatusFlags & ovrStatus_OrientationTracked)
 	{

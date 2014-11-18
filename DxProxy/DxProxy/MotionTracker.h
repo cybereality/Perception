@@ -143,7 +143,7 @@ public:
 	 * Whether we are using Oculus Timewarp or not (currently appears to introduce awful juddering)
 	 * Need a better place to put this, probably shouldn't be on the base class
 	 */
-	bool useTimewarpPrediction;
+	bool useSDKPosePrediction;
 
 	/**
 	* Currently supported tracker types enumeration.
