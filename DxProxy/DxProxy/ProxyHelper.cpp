@@ -29,6 +29,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "ProxyHelper.h"
 
+#include <algorithm>
+
 using namespace pugi;
 
 /**
@@ -1248,6 +1250,32 @@ bool ProxyHelper::HasProfile(char* name)
 
 	return profileFound;
 }
+
+bool ProxyHelper::GetProfileGameExes(std::vector<std::string> &gameExes)
+{
+	// get the profile
+	char profilePath[512];
+	GetPath(profilePath, "cfg\\profiles.xml");
+
+	xml_document docProfiles;
+	xml_parse_result resultProfiles = docProfiles.load_file(profilePath);
+	xml_node profile;
+
+	if(resultProfiles.status == status_ok)
+	{
+		xml_node xml_profiles = docProfiles.child("profiles");
+
+		for (xml_node profile = xml_profiles.child("profile"); profile; profile = profile.next_sibling("profile"))
+		{
+			std::string exe = profile.attribute("game_exe").value();
+			std::transform(exe.begin(), exe.end(), exe.begin(), ::tolower);			
+			gameExes.push_back(exe);
+		}
+	}
+
+	return gameExes.size() > 0;
+}
+
 
 /**
 * Currently incomplete : Get configuration for the specified process name.

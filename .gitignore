@@ -83,6 +83,8 @@ ipch/
 *.ncb
 *.opensdf
 *.sdf
+*.tlog
+*.lastbuildstate
 
 # Visual Studio profiler
 *.psess
