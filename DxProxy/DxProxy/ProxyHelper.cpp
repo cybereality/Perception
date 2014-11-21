@@ -54,7 +54,7 @@ void EraseCharacter(std::string& string, char character)
 * @param szValueName Name of the value to be read.
 * @param lpszResult The string result.
 ***/
-HRESULT RegGetString(HKEY hKey, LPCTSTR szValueName, LPTSTR * lpszResult) {
+HRESULT ProxyHelper::RegGetString(HKEY hKey, LPCTSTR szValueName, LPTSTR * lpszResult) {
 
 	// Given a HKEY and value name returns a string from the registry.
 	// Upon successful return the string should be freed using free()

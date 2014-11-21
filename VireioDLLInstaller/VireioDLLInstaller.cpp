@@ -64,6 +64,64 @@ static int CALLBACK BrowseFolderCallback(
     return 0;
 }
 
+std::string GetLastPath()
+{
+	HKEY hKey;
+	LPCTSTR sk = TEXT("SOFTWARE\\Vireio\\Perception");
+
+	LONG openRes = RegOpenKeyEx(HKEY_CURRENT_USER, sk, 0, KEY_QUERY_VALUE , &hKey);
+	if (openRes!=ERROR_SUCCESS) 
+	{
+		return "";
+	}
+
+	char *lastPath = NULL;
+	HRESULT hr = ProxyHelper::RegGetString(hKey, TEXT("VireioDllInstallerPath"), &lastPath);
+	if (FAILED(hr)) 
+	{
+		return "";
+	}
+
+	std::string path = lastPath;
+	free(lastPath);
+
+	RegCloseKey(hKey);
+
+	return path;
+}
+
+void SaveLastPath(std::string path)
+{
+	HKEY hKey;
+	LPCTSTR sk = TEXT("SOFTWARE\\Vireio\\Perception");
+
+	LONG openRes = RegOpenKeyEx(HKEY_CURRENT_USER, sk, 0, KEY_ALL_ACCESS , &hKey);
+
+	if (openRes==ERROR_SUCCESS) {
+		OutputDebugString("Hx // Success opening key.\n");
+	} else {
+		OutputDebugString("Hx // Error opening key.\n");
+	}
+
+	LPCTSTR value = TEXT("VireioDllInstallerPath");
+
+	LONG setRes = RegSetValueEx(hKey, value, 0, REG_SZ, (LPBYTE)path.c_str(), path.length()+1);
+
+	if (setRes == ERROR_SUCCESS) {
+		OutputDebugString("Hx // Success writing to Registry.\n");
+	} else {
+		OutputDebugString("Hx // Error writing to Registry.\n");
+	}
+
+	LONG closeOut = RegCloseKey(hKey);
+
+	if (closeOut == ERROR_SUCCESS) {
+		OutputDebugString("Hx // Success closing key.\n");
+	} else {
+		OutputDebugString("Hx // Error closing key.\n");
+	}
+}
+
 int _tmain(int argc, _TCHAR* argv[])
 {
 	_tprintf ( _T(" Vireio DLL Install/Uninstall Utility\r\n"));
@@ -83,33 +141,61 @@ int _tmain(int argc, _TCHAR* argv[])
 	instructions += "** Please select target game root folder in selection dialog **\r\n";
 	_tprintf ( instructions.c_str());
 
-	std::vector<std::string> steamLocations;
-
-	steamLocations.push_back("C:\\Program Files (x86)\\Steam\\SteamApps\\common");
-	steamLocations.push_back("D:\\Program Files (x86)\\Steam\\SteamApps\\common");
-	steamLocations.push_back("C:\\Program Files\\Steam\\SteamApps\\common");
-	steamLocations.push_back("D:\\Program Files\\Steam\\SteamApps\\common");
-	steamLocations.push_back("C:\\Steam\\SteamApps\\common");
-	steamLocations.push_back("D:\\Steam\\SteamApps\\common");
-
-	//Attempt to find the right root folder
-	int i = 0;
-	while (i < (int)steamLocations.size() && !PathFileExists(steamLocations[i].c_str()))
-		i++;
-
-	std::string rootFolder;
-	if (i == steamLocations.size())
+	std::string rootFolder = GetLastPath();
+	if (rootFolder.length() == 0)
 	{
-		//Fail, just go to user's documents folder
-		PWSTR pszPath = NULL;
-		SHGetKnownFolderPath(FOLDERID_Documents, 0, NULL, &pszPath);
-		char path[1024];
-		size_t c  = 0;
-		wcstombs_s(&c, path, pszPath, 1024);
-		rootFolder = path;
+		std::string localDriveList;
+		DWORD dw = GetLogicalDrives();
+		char d[] = {'A', 0};
+		while (dw)
+		{
+			if (dw & 1)
+			{
+				std::string drive = std::string(d) + ":\\";
+				if (GetDriveType(drive.c_str()) == DRIVE_FIXED)
+					localDriveList += d;
+			}
+			dw = dw >> 1;
+			d[0]++;
+		}
+
+		std::vector<std::string> steamLocations;
+		steamLocations.push_back(":\\Program Files (x86)\\Steam\\SteamApps\\common");
+		steamLocations.push_back(":\\Program Files\\Steam\\SteamApps\\common");
+		steamLocations.push_back(":\\Steam\\SteamApps\\common");
+
+		bool foundPath = false;
+		std::string steamLocation;
+		for (int i = 0; (i < localDriveList.length() && !foundPath); i++)
+		{
+			//Attempt to find the right root folder
+			int location = 0;
+			while (location < (int)steamLocations.size())
+			{
+				std::string path = localDriveList[i] + steamLocations[location];
+				if (PathFileExists(path.c_str()))
+				{
+					foundPath = true;
+					steamLocation = path;
+					break;
+				}
+				location++;
+			}
+		}
+
+		if (!foundPath)
+		{
+			//Fail, just go to user's documents folder
+			PWSTR pszPath = NULL;
+			SHGetKnownFolderPath(FOLDERID_Documents, 0, NULL, &pszPath);
+			char path[1024];
+			size_t c  = 0;
+			wcstombs_s(&c, path, pszPath, 1024);
+			rootFolder = path;
+		}
+		else
+			rootFolder =  steamLocation;
 	}
-	else
-		rootFolder =  steamLocations[i];
 
 
 	BROWSEINFO binf = { 0 };
@@ -136,7 +222,11 @@ int _tmain(int argc, _TCHAR* argv[])
         // free memory used
         CoTaskMemFree(pidl);
 
-		_tprintf ( "Scanning for supported game executables...\r\n" );
+		//Now save the selected folder for the next time we open
+		SaveLastPath(path);
+
+		std::string msg = std::string("Scanning: ") + path + "  for supported game executables...\r\n";
+		_tprintf ( msg.c_str() );
 
 		std::vector<std::string> exefiles;
 		std::vector<std::string> exepaths;
@@ -184,7 +274,7 @@ int _tmain(int argc, _TCHAR* argv[])
 				int result = MessageBox(NULL, ("Are you sure you wish to remove Vireio DLLs from the following location:\r\n\r\n"+std::string(gamePath)).c_str(), "Uninstall DLLs", MB_YESNO|MB_ICONEXCLAMATION);
 				if (result == IDYES)
 				{
-					std::string command = "call UninstallVireioDLLs.cmd \"";
+					std::string command = "call RevokeVireioSymlinks.cmd \"";
 					command += gamePath;
 					command += "\"";
 					system(command.c_str());
@@ -202,7 +292,7 @@ int _tmain(int argc, _TCHAR* argv[])
 				int result = MessageBox(NULL, ("Are you sure you wish to Install Vireio DLLs to the following location:\r\n\r\n"+std::string(gamePath)).c_str(), "Install DLLs", MB_YESNO|MB_ICONEXCLAMATION);
 				if (result == IDYES)
 				{
-					std::string command = "call InstallVireioDLLs.cmd \"";
+					std::string command = "call DeployVireioSymlinks.cmd \"";
 					command += gamePath;
 					command += "\"";
 					system(command.c_str());

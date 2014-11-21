@@ -101,6 +101,10 @@
     <ClCompile Include="..\DxProxy\DxProxy\pugixml.cpp" />
     <ClCompile Include="VireioDLLInstaller.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="DeployVireioSymlinks.cmd" />
+    <None Include="RevokeVireioSymlinks.cmd" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

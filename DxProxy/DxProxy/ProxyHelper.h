@@ -122,6 +122,7 @@ public:
 	};
 
 	/*** ProxyHelper public methods ***/
+	static HRESULT RegGetString(HKEY hKey, LPCTSTR szValueName, LPTSTR * lpszResult);
 	char* GetBaseDir();
 	char* GetTargetExe();
 	void  GetPath(char* newFolder, char* path);
