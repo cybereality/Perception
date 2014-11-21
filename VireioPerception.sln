@@ -16,6 +16,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DxHijack32", "DxHijack\DxHi
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VRboostReferee", "VRboostReferee\VRboostReferee.vcxproj", "{5F90C539-597D-4193-A47A-2F522A664A70}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VireioDLLInstaller", "VireioDLLInstaller\VireioDLLInstaller.vcxproj", "{064A363C-A198-4A54-852A-A4816FE28A57}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -38,6 +40,10 @@ Global
 		{5F90C539-597D-4193-A47A-2F522A664A70}.Debug|Win32.Build.0 = Debug|Win32
 		{5F90C539-597D-4193-A47A-2F522A664A70}.Release|Win32.ActiveCfg = Release|Win32
 		{5F90C539-597D-4193-A47A-2F522A664A70}.Release|Win32.Build.0 = Release|Win32
+		{064A363C-A198-4A54-852A-A4816FE28A57}.Debug|Win32.ActiveCfg = Debug|Win32
+		{064A363C-A198-4A54-852A-A4816FE28A57}.Debug|Win32.Build.0 = Debug|Win32
+		{064A363C-A198-4A54-852A-A4816FE28A57}.Release|Win32.ActiveCfg = Release|Win32
+		{064A363C-A198-4A54-852A-A4816FE28A57}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

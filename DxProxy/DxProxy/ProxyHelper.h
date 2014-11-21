@@ -34,6 +34,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <vector>
 #include <windows.h>
 #include "pugixml.hpp"
 #include "Vireio.h"
@@ -136,6 +137,7 @@ public:
 	bool  HasProfile(char* name);
 	bool  isAPIHookable(char* name);
 	bool  GetProfile(char* name, ProxyConfig& config);
+	bool  GetProfileGameExes(std::vector<std::string> &gameExes);
 
 	/**
 	* True if base directory path loaded.

@@ -113,7 +113,17 @@ int VRboost_CheckChanges(std::string compare)
 	if (compare.find("NoCheck") != std::string::npos) return 0;
 	else if (compare.find("NoChange") != std::string::npos) return 1;
 	else if (compare.find("ChangesLoWordOnly") != std::string::npos) return 3;
+	else if (compare.find("ChangesLoWordWithCarry") != std::string::npos) return 4;
 	else if (compare.find("Changes") != std::string::npos) return 2;
+	else return 0;
+}
+
+int VRboost_ExcludeGroup(std::string compare)
+{
+	//Order of these is important as we are doing a find - DO NOT CHANGE ORDER!!
+	if (compare.find("NoExclude") != std::string::npos) return 0;
+	else if (compare.find("IfZero") != std::string::npos) return 1;
+	else if (compare.find("IfEqual") != std::string::npos) return 2;
 	else return 0;
 }
 
@@ -245,7 +255,7 @@ int _tmain(int argc, char* argv[])
 									DWORD minValue[2] = {0, 0};
 									DWORD maxValue[2] = {0, 0};
 									DWORD checkForChanges = 0;
-									DWORD excludeIfZeroGroup = 0;
+									DWORD excludeGroup = 0;
 									DWORD addressType = 0;
 
 									std::string axisName = std::string(ruleItem.child("AxisName").child_value());
@@ -268,8 +278,8 @@ int _tmain(int argc, char* argv[])
 									std::string checkStr = std::string(ruleItem.child("CheckForChanges").child_value());
 									checkForChanges = VRboost_CheckChanges(checkStr);
 
-									std::string excludeZero = std::string(ruleItem.child("ExcludeIfZeroGroup").child_value());
-									excludeIfZeroGroup = (excludeZero == "True") ? 1 : 0;
+									std::string exclude = std::string(ruleItem.child("ExcludeGroup").child_value());
+									excludeGroup = VRboost_ExcludeGroup(exclude);
 
 									for (pugi::xml_node compareItem = ruleItem.first_child(); compareItem; compareItem = compareItem.next_sibling())
 									{
@@ -315,7 +325,7 @@ int _tmain(int argc, char* argv[])
 									cOffsets2[1] = dwAddressIncCount;
 									cOffsets2[2] = addressType;
 									cOffsets2[3] = checkForChanges;
-									cOffsets2[4] = excludeIfZeroGroup;
+									cOffsets2[4] = excludeGroup;
 
 									//Comparisons
 									offsets[0] = 5;

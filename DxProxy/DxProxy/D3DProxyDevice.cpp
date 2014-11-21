@@ -2956,7 +2956,8 @@ void D3DProxyDevice::HandleTracking()
 
 	m_isFirstBeginSceneOfFrame = false;
 
-	bool scanFailed = false;
+	//Make static so we don't instantly dismiss any fail messages
+	static bool scanFailed = false;
 
 	// update vrboost, if present, tracker available and shader count higher than the minimum
 	if ((!m_bSurpressHeadtracking) 
@@ -3002,6 +3003,7 @@ void D3DProxyDevice::HandleTracking()
 					case VRBoost::VRBOOST_SCAN_READY:
 						{
 							//Indicate we are going to be scanning
+							scanFailed = false;
 							VRBoostStatus.VRBoost_Scanning = true;
 
 							//Enable mouse emulation whilst VRBoost is not active
@@ -3022,6 +3024,7 @@ void D3DProxyDevice::HandleTracking()
 					case VRBoost::VRBOOST_SCAN_INITIALISING:
 						{
 							//Indicate we are going to be scanning
+							scanFailed = false;
 							VRBoostStatus.VRBoost_Scanning = true;
 
 							//Enable mouse emulation whilst VRBoost is not active
@@ -3041,6 +3044,7 @@ void D3DProxyDevice::HandleTracking()
 						break;
 					case VRBoost::VRBOOST_SCANNING:
 						{
+							scanFailed = false;
 							VRBoostStatus.VRBoost_Scanning = true;
 
 							//Enable mouse emulation whilst VRBoost is not active
@@ -3084,6 +3088,7 @@ void D3DProxyDevice::HandleTracking()
 						break;
 					case VRBoost::VRBOOST_OK:
 						{
+							scanFailed = false;
 							DismissPopup(VPT_VRBOOST_SCANNING);
 							if (VRBoostStatus.VRBoost_Scanning)
 							{
