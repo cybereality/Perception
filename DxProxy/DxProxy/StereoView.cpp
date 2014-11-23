@@ -98,6 +98,9 @@ StereoView::StereoView(ProxyHelper::ProxyConfig& config)
 	case D3DProxyDevice::SOURCE_STANLEY:
 		howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;
 		break;
+	case D3DProxyDevice::SOURCE_ZENO:
+		howToSaveRenderStates = HowToSaveRenderStates::SELECTED_STATES_MANUALLY;
+		break;
 	case D3DProxyDevice::UNREAL:
 	case D3DProxyDevice::UNREAL_MIRROR:
 	case D3DProxyDevice::UNREAL_UT3:
