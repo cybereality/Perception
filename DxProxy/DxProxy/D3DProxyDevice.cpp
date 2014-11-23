@@ -6119,9 +6119,9 @@ void D3DProxyDevice::DisplayCurrentPopup()
 			if (hmdInfo->GetHMDManufacturer() == HMD_OCULUS)
 			{
 				if (tracker->useSDKPosePrediction)
-					strcpy_s(activePopup.line6, "Oculus VR Timewarp Enabled");
+					strcpy_s(activePopup.line6, "SDK Pose Prediction Enabled");
 				else
-					strcpy_s(activePopup.line6, "Oculus VR Timewarp Disabled");
+					strcpy_s(activePopup.line6, "SDK Pose Prediction Disabled");
 			}
 		}
 

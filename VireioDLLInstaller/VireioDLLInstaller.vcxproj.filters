@@ -42,4 +42,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="DeployVireioSymlinks.cmd">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="RevokeVireioSymlinks.cmd">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
 </Project>

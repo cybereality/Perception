@@ -1,4 +1,3 @@
-
 set CURDIR=%CD%
 
 mklink %1\d3d9.dll "%CURDIR%"\d3d9.dll
