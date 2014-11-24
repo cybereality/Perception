@@ -2378,13 +2378,17 @@ void D3DProxyDevice::HandleControls()
 	{
 		if (hmVRboost!=NULL)
 		{
-			if (m_pVRboost_StartMemoryScan() == VRBOOST_ERROR)
+			ReturnValue vr = m_pVRboost_StartMemoryScan();
+			if (vr == VRBOOST_ERROR)
 			{
 				VireioPopup popup(VPT_VRBOOST_FAILURE, VPS_TOAST, 5000);
 				sprintf_s(popup.line3, "VRBoost: StartMemoryScan - Failed");
 				ShowPopup(popup);
 			}
-			
+			//If initialising then we have successfully started a new scan
+			else if (vr = VRBOOST_SCAN_INITIALISING)
+				VRBoostStatus.VRBoost_Scanning = true;
+
 			menuVelocity.x += 4.0f;
 		}
 	}
@@ -3077,11 +3081,13 @@ void D3DProxyDevice::HandleTracking()
 							strcpy_s(popup.line3, "STATUS: FAILED");
 
 							//Reason
-							char failReason[256] = {0};
-							m_pVRboost_GetScanFailReason(failReason);
+							char *failReason = new char[256];
+							ZeroMemory(failReason, 256);
+							m_pVRboost_GetScanFailReason((char**)&failReason);
 							sprintf_s(popup.line4, "REASON: %s", failReason);
+							delete []failReason;
 							strcpy_s(popup.line5, "VRBoost is now disabled");
-							strcpy_s(popup.line6, "Re-run the scan any time with F2");
+							strcpy_s(popup.line6, "Re-run the scan with NUMPAD5");
 							ShowPopup(popup);
 							VRBoostStatus.VRBoost_Active = false;
 						}
