@@ -1000,11 +1000,11 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 			//Show a splash screen on startup
 			VireioPopup splashPopup(VPT_SPLASH_2, VPS_INFO, 5000);
 			strcpy_s(splashPopup.line1, "Vireio Perception: Stereoscopic 3D Driver");
-			//strcpy_s(splashPopup.line2, );
-			strcpy_s(splashPopup.line3, "Useful Hot-keys:"); 
-			strcpy_s(splashPopup.line4, "     <CTRL> + <Q>\t\t\t:  Show BRASSA Menu"); 
-			strcpy_s(splashPopup.line5, "     Mouse Wheel Click\t:  Disconnected Screen View");
-			strcpy_s(splashPopup.line6, "     F12\t\t\t\t:  Reset HMD Orientation");
+			strcpy_s(splashPopup.line2, "Useful Hot-keys:"); 
+			strcpy_s(splashPopup.line3, "     <CTRL> + <Q>\t\t\t:  Show BRASSA Menu"); 
+			strcpy_s(splashPopup.line4, "     Mouse Wheel Click\t:  Disconnected Screen View");
+			strcpy_s(splashPopup.line5, "     <LSHIFT> + <R>\t\t\t:  Reset HMD Orientation");
+			strcpy_s(splashPopup.line6, "     <LSHIFT> + <F>\t\t\t:  FPS Counter");
 			ShowPopup(splashPopup);
 		}
 	
@@ -1016,7 +1016,7 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 				strcpy_s(popup.line2, "Please Calibrate HMD/Tracker:");
 				strcpy_s(popup.line3, "     -  Sit comfortably with your head facing forwards");
 				strcpy_s(popup.line4, "     -  Press any of the following:");
-				strcpy_s(popup.line5, "             F12 / CTRL+R / L-SHIFT + R");
+				strcpy_s(popup.line5, "             <CTRL> + <R> / <LSHIFT> + <R>");
 				ShowPopup(popup);
 			}
 		}
@@ -2378,13 +2378,17 @@ void D3DProxyDevice::HandleControls()
 	{
 		if (hmVRboost!=NULL)
 		{
-			if (m_pVRboost_StartMemoryScan() == VRBOOST_ERROR)
+			ReturnValue vr = m_pVRboost_StartMemoryScan();
+			if (vr == VRBOOST_ERROR)
 			{
 				VireioPopup popup(VPT_VRBOOST_FAILURE, VPS_TOAST, 5000);
 				sprintf_s(popup.line3, "VRBoost: StartMemoryScan - Failed");
 				ShowPopup(popup);
 			}
-			
+			//If initialising then we have successfully started a new scan
+			else if (vr = VRBOOST_SCAN_INITIALISING)
+				VRBoostStatus.VRBoost_Scanning = true;
+
 			menuVelocity.x += 4.0f;
 		}
 	}
@@ -2414,15 +2418,15 @@ void D3DProxyDevice::HandleControls()
 		menuVelocity.x+=2.0f;
 	}
 
-	//Show FPS Counter / Frame Time counter
-	if ((controls.Key_Down(VK_F9) || ((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down(0x46))) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	//Show FPS Counter / Frame Time counter LSHIFT+F
+	if (((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down(0x46)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		show_fps = (FPS_TYPE)((show_fps+1) % 3);
 		menuVelocity.x+=2.0f;
 	}
 
-	//Show HMD Stats Counter
-	if ((controls.Key_Down(VK_F10) || ((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down(0x53))) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	//Show HMD Stats Counter LSHIFT+S
+	if (((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down(0x53)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		if (activePopup.popupType == VPT_STATS)
 		{
@@ -2436,8 +2440,8 @@ void D3DProxyDevice::HandleControls()
 		menuVelocity.x+=2.0f;
 	}
 
-	//Rset HMD Orientation+Position
-	if ((controls.Key_Down(VK_F12) || ((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down(0x52))) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	//Rset HMD Orientation+Position LSHIFT+R
+	if (((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down(0x52)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		if (calibrate_tracker)
 		{
@@ -3077,11 +3081,13 @@ void D3DProxyDevice::HandleTracking()
 							strcpy_s(popup.line3, "STATUS: FAILED");
 
 							//Reason
-							char failReason[256] = {0};
-							m_pVRboost_GetScanFailReason(failReason);
+							char *failReason = new char[256];
+							ZeroMemory(failReason, 256);
+							m_pVRboost_GetScanFailReason((char**)&failReason);
 							sprintf_s(popup.line4, "REASON: %s", failReason);
+							delete []failReason;
 							strcpy_s(popup.line5, "VRBoost is now disabled");
-							strcpy_s(popup.line6, "Re-run the scan any time with F2");
+							strcpy_s(popup.line6, "Re-run the scan with NUMPAD5");
 							ShowPopup(popup);
 							VRBoostStatus.VRBoost_Active = false;
 						}
@@ -5418,14 +5424,14 @@ void D3DProxyDevice::BRASSA_PosTracking()
 			if (!m_bPosTrackingToggle)
 				m_spShaderViewAdjustment->UpdatePosition(0.0f, 0.0f, 0.0f);
 
-			menuVelocity.x += 4.0f;
+			menuVelocity.x += 3.0f;
 		}
 
 		// reset orientation
 		if (entryID == RESET_HMD)
 		{
 			tracker->resetOrientationAndPosition();
-			menuVelocity.x += 4.0f;
+			menuVelocity.x += 3.0f;
 		}
 
 		// back to main menu
@@ -5450,22 +5456,22 @@ void D3DProxyDevice::BRASSA_PosTracking()
 		if ((entryID == TRACKING_MULT) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
 			config.position_multiplier = 1.0f;
-			menuVelocity.x+=2.0f;
+			menuVelocity.x+=1.0f;
 		}
 		if ((entryID == TRACKING_MULT_X) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
 			config.position_x_multiplier = 2.0f;
-			menuVelocity.x+=2.0f;
+			menuVelocity.x+=1.0f;
 		}
 		if ((entryID == TRACKING_MULT_Y) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
 			config.position_y_multiplier = 2.5f;
-			menuVelocity.x+=2.0f;
+			menuVelocity.x+=1.0f;
 		}
 		if ((entryID == TRACKING_MULT_Z) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
 			config.position_z_multiplier = 0.5f;
-			menuVelocity.x+=2.0f;
+			menuVelocity.x+=1.0f;
 		}
 	}
 
@@ -5478,7 +5484,7 @@ void D3DProxyDevice::BRASSA_PosTracking()
 				config.position_multiplier += 0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 			else
 				config.position_multiplier -= 0.01f;
-			menuVelocity.x -= 1.0f;
+			menuVelocity.x += 1.0f;
 		}
 
 		// overall position multiplier
@@ -5488,7 +5494,7 @@ void D3DProxyDevice::BRASSA_PosTracking()
 				config.position_x_multiplier += 0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 			else
 				config.position_x_multiplier -= 0.01f;
-			menuVelocity.x -= 1.0f;
+			menuVelocity.x -= 0.6f;
 		}
 
 		// overall position multiplier
@@ -5498,7 +5504,7 @@ void D3DProxyDevice::BRASSA_PosTracking()
 				config.position_y_multiplier += 0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 			else
 				config.position_y_multiplier -= 0.01f;
-			menuVelocity.x -= 1.0f;
+			menuVelocity.x -= 0.6f;
 		}
 
 		// overall position multiplier
@@ -5508,7 +5514,7 @@ void D3DProxyDevice::BRASSA_PosTracking()
 				config.position_z_multiplier += 0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 			else
 				config.position_z_multiplier -= 0.01f;
-			menuVelocity.x -= 1.0f;
+			menuVelocity.x -= 0.6f;
 		}
 	}
 
@@ -5522,7 +5528,7 @@ void D3DProxyDevice::BRASSA_PosTracking()
 				config.position_multiplier += 0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 			else
 				config.position_multiplier += 0.01f;
-			menuVelocity.x -= 1.0f;
+			menuVelocity.x -= 0.6f;
 		}
 
 		// overall position multiplier
@@ -5532,7 +5538,7 @@ void D3DProxyDevice::BRASSA_PosTracking()
 				config.position_x_multiplier += 0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 			else
 				config.position_x_multiplier += 0.01f;
-			menuVelocity.x -= 1.0f;
+			menuVelocity.x -= 0.6f;
 		}
 
 		// overall position multiplier
@@ -5542,7 +5548,7 @@ void D3DProxyDevice::BRASSA_PosTracking()
 				config.position_y_multiplier += 0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 			else
 				config.position_y_multiplier += 0.01f;
-			menuVelocity.x -= 1.0f;
+			menuVelocity.x -= 0.6f;
 		}
 
 		// overall position multiplier
@@ -5552,7 +5558,7 @@ void D3DProxyDevice::BRASSA_PosTracking()
 				config.position_z_multiplier += 0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 			else
 				config.position_z_multiplier += 0.01f;
-			menuVelocity.x -= 1.0f;
+			menuVelocity.x -= 0.6f;
 		}
 	}
 

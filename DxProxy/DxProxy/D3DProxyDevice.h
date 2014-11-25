@@ -674,7 +674,7 @@ private:
 	typedef VRBoost::ReturnValue (WINAPI *LPVRBOOST_ApplyMemoryRules)(UINT axisNumber, float** axis);
 	typedef VRBoost::ReturnValue (WINAPI *LPVRBOOST_StartMemoryScan)( void );
 	typedef float (WINAPI *LPVRBOOST_GetScanInitPercent)( void );
-	typedef void (WINAPI *LPVRBOOST_GetScanFailReason)( char reason[] );
+	typedef void (WINAPI *LPVRBOOST_GetScanFailReason)( char **reason );
 
 	/**
 	* VRboost pointer function to load memory rules for a process.
