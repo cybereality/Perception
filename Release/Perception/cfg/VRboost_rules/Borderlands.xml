@@ -73,7 +73,7 @@
 			</Comparisons>
 		</ScanRule>
 		
-<ScanRule>
+<!--<ScanRule>
 			<AxisName>PlayerFOV</AxisName>
 			<AddressType>Float</AddressType>
 			<ModificationToApply>FloatSimpleApply</ModificationToApply>
@@ -86,7 +86,7 @@
 					<MaxValue>90.0</MaxValue>
 				</Compare>
 			</Comparisons>
-		</ScanRule>
+		</ScanRule>-->
 	</ScannerGroup>
   </ScannerGroups>
 </Scanner>
