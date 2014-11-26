@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Scanner>
+  <ScannerGroups>
+	<ScannerGroup>
+		<ID>0</ID>
+		<BaseAddress>070099E8</BaseAddress>
+		<MemIncrement>00010000</MemIncrement>
+		<MemIncCount>00000200</MemIncCount>
+		<FailIfNotFound>True</FailIfNotFound>
+		<ScanRule>
+			<AxisName>TrackerPitch</AxisName>
+			<AddressType>Float</AddressType>
+			<ModificationToApply>FloatDegreeNegativeApply</ModificationToApply>
+			<BaseAddressOffset>00000000</BaseAddressOffset>
+			<CheckForChanges>Changes</CheckForChanges>
+			<ExcludeGroup>IfZero</ExcludeGroup>
+			<Comparisons>
+				<Compare type="BetweenIncl">
+					<MinValue>-90.0</MinValue>
+					<MaxValue>90.0</MaxValue>
+				</Compare>
+			</Comparisons>
+		</ScanRule>
+			
+		<ScanRule>
+			<AxisName>TrackerYaw</AxisName>
+			<AddressType>Float</AddressType>
+			<ModificationToApply>FloatDegreeNegativeCompass</ModificationToApply>
+			<BaseAddressOffset>00000004</BaseAddressOffset>
+			<CheckForChanges>Changes</CheckForChanges>
+			<ExcludeGroup>IfZero</ExcludeGroup>
+			<Comparisons>
+				<Compare type="BetweenIncl">
+					<MinValue>-180.0</MinValue>
+					<MaxValue>180.0</MaxValue>
+				</Compare>
+			</Comparisons>
+		</ScanRule>
+			
+		<ScanRule>
+			<AxisName>TrackerRoll</AxisName>
+			<AddressType>Float</AddressType>
+			<ModificationToApply>FloatDoNothing</ModificationToApply>
+			<BaseAddressOffset>00000008</BaseAddressOffset>
+			<CheckForChanges>NoCheck</CheckForChanges>
+			<ExcludeGroup>NoExclude</ExcludeGroup>
+			<Comparisons>
+				<Compare type="Equal">
+					<MinValue>0.0</MinValue>
+				</Compare>
+			</Comparisons>
+		</ScanRule>
+	</ScannerGroup>
+			
+	<ScannerGroup>
+		<ID>1</ID>
+		<BaseAddress>1000DF3C</BaseAddress>
+		<MemIncrement>00010000</MemIncrement>
+		<MemIncCount>0000EFFF</MemIncCount>
+		<FailIfNotFound>False</FailIfNotFound>
+		<ScanRule>
+			<AxisName>WorldFOV</AxisName>
+			<AddressType>Float</AddressType>
+			<ModificationToApply>FloatSimpleApply</ModificationToApply>
+			<BaseAddressOffset>00000000</BaseAddressOffset>
+			<CheckForChanges>NoChange</CheckForChanges>
+			<ExcludeGroup>IfZero</ExcludeGroup>
+			<Comparisons>
+				<Compare type="Equal">
+					<MinValue>90.0</MinValue>
+				</Compare>
+			</Comparisons>
+		</ScanRule>
+	</ScannerGroup>
+  </ScannerGroups>
+</Scanner>

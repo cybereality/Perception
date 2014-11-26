@@ -124,19 +124,20 @@ void SaveLastPath(std::string path)
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-	_tprintf ( _T(" Vireio DLL Install/Uninstall Utility\r\n"));
+	_tprintf ( _T(" Vireio DLL link Install/Uninstall Utility\r\n"));
 	_tprintf ( _T(" -------------------------------------\r\n"));
 	_tprintf ( _T("\r\n"));
-	_tprintf ( _T("NOTE: THIS TOOL IS ONLY REQUIRED IF VIREIO DOES NOT INJECT WITH PERCEPTION\r\n"));
-	_tprintf ( _T("APP RUNNING WHEN YOU START THE GAME\r\n"));
+	_tprintf ( _T("NOTE: THIS TOOL IS ONLY REQUIRED IF VIREIO DOES NOT INJECT WITH THE\r\n"));
+	_tprintf ( _T("PERCEPTION APP RUNNING WHEN YOU START THE GAME\r\n"));
 	_tprintf ( _T("\r\n"));
 	std::string instructions;
 	instructions += "This will create symbolic links to the Vireio DLLs in the target\r\n";
 	instructions += "folder rather than physically copying them.\r\n";
-	instructions += "To uninstall the symbolic links just run this application again as\r\n";
-	instructions += "Administrator and select the game folder and the symbolic links will be removed\r\n";
+	instructions += "To uninstall the symbolic links just run this application again\r\n";
+	instructions += "and select the game folder and the symbolic links will be removed\r\n";
 	instructions += "This means if you upgrade Vireio and put it in the same location as the\r\n";
 	instructions += "previous version there is no need to re-run this installation tool\r\n";
+	instructions += "This application needs to run as Administrator to create symlinks\r\n";
 	instructions += "\r\n";
 	instructions += "** Please select target game root folder in selection dialog **\r\n";
 	_tprintf ( instructions.c_str());
