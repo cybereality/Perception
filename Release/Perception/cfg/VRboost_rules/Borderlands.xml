@@ -73,7 +73,7 @@
 			</Comparisons>
 		</ScanRule>
 		
-<!--<ScanRule>
+<ScanRule>
 			<AxisName>PlayerFOV</AxisName>
 			<AddressType>Float</AddressType>
 			<ModificationToApply>FloatSimpleApply</ModificationToApply>
@@ -81,12 +81,11 @@
 			<CheckForChanges>NoChange</CheckForChanges>
 			<ExcludeGroup>NoExclude</ExcludeGroup>
 			<Comparisons>
-				<Compare type="BetweenIncl">
-					<MinValue>0.0</MinValue>
-					<MaxValue>90.0</MaxValue>
+				<Compare type="Equal">
+					<MinValue>55.0</MinValue>
 				</Compare>
 			</Comparisons>
-		</ScanRule>-->
+		</ScanRule>
 	</ScannerGroup>
   </ScannerGroups>
 </Scanner>
