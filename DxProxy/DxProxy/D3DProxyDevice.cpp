@@ -2447,6 +2447,7 @@ void D3DProxyDevice::HandleControls()
 		{
 			calibrate_tracker = false;
 			//Replace popup
+			DismissPopup(VPT_CALIBRATE_TRACKER);
 			VireioPopup popup(VPT_NOTIFICATION, VPS_INFO, 3000);
 			strcpy_s(popup.line3, "HMD Orientation and Position Calibrated");
 			strcpy_s(popup.line4, "Please repeat if required...");
@@ -6263,6 +6264,7 @@ void D3DProxyDevice::ShowPopup(VireioPopup &popup)
 	if ((activePopup.popupType == popup.popupType && popup.popupType != VPT_ADJUSTER) ||
 		activePopup.popupType == VPT_SPLASH_1 ||
 		activePopup.popupType == VPT_SPLASH_2 ||
+		activePopup.popupType == VPT_CALIBRATE_TRACKER ||
 		activePopup.popupType == VPT_STATS)
 		return;
 
