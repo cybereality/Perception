@@ -30,6 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Main.h"
 #include "Direct3D9.h"
 #include <windows.h>
+#include <shlwapi.h>
 #include <d3d9.h>
 #include <stdio.h>
 
@@ -56,10 +57,70 @@ LPD3DPERF_QueryRepeatFrame g_pfnD3DPERF_QueryRepeatFrame = NULL;
 LPD3DPERF_SetOptions g_pfnD3DPERF_SetOptions = NULL;
 LPD3DPERF_GetStatus g_pfnD3DPERF_GetStatus = NULL;
 
+
+
+void SaveExeName(char* data, char* path)
+{
+	HKEY hKey;
+	LPCTSTR sk = TEXT("SOFTWARE\\Vireio\\Perception");
+
+	LONG openRes = RegOpenKeyEx(HKEY_CURRENT_USER, sk, 0, KEY_ALL_ACCESS , &hKey);
+
+	if (openRes==ERROR_SUCCESS) {
+		OutputDebugString("Hx // Success opening key.\n");
+	} else {
+		OutputDebugString("Hx // Error opening key.\n");
+	}
+
+	LPCTSTR value = TEXT("TargetExe");
+
+	LONG setRes = RegSetValueEx(hKey, value, 0, REG_SZ, (LPBYTE)data, strlen(data)+1);
+
+	if (setRes == ERROR_SUCCESS) {
+		OutputDebugString("Hx // Success writing to Registry.\n");
+	} else {
+		OutputDebugString("Hx // Error writing to Registry.\n");
+	}
+
+	value = TEXT("TargetPath");
+
+	setRes = RegSetValueEx(hKey, value, 0, REG_SZ, (LPBYTE)path, strlen(path)+1);
+
+	if (setRes == ERROR_SUCCESS) {
+		OutputDebugString("Hx // Success writing to Registry.\n");
+	} else {
+		OutputDebugString("Hx // Error writing to Registry.\n");
+	}
+
+	LONG closeOut = RegCloseKey(hKey);
+
+	if (closeOut == ERROR_SUCCESS) {
+		OutputDebugString("Hx // Success closing key.\n");
+	} else {
+		OutputDebugString("Hx // Error closing key.\n");
+	}
+}
+
+char targetExe[256];
+char targetPath[256];
+char lastExe[256];
+std::string targetPathString;
+
 static bool LoadDll()
 {
 	if(g_hDll)
 		return true;
+
+	//Once loaded, ensure we update the registry with the exe that loaded us
+	//Sometimes hijack doesn't manage this
+	GetModuleFileName(GetModuleHandle(NULL), targetExe, sizeof(targetExe));
+	PathStripPath(targetExe);
+
+	GetModuleFileName(GetModuleHandle(NULL), targetPath, sizeof(targetPath));
+	targetPathString = std::string(targetPath);
+	targetPathString = targetPathString.substr(0, targetPathString.find_last_of("\\/") + 1);
+	SaveExeName(targetExe, (char*)targetPathString.c_str());
+
 
 	// Load DLL
 	char szBuff[MAX_PATH+64];

@@ -565,7 +565,6 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 
 	// set defaults
 	config.game_type = 0;
-	config.isAPIHookable = true;
 	config.stereo_mode = 0;
 	config.tracker_mode = 0;
 	config.convergence = 0.0f;
@@ -693,6 +692,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 
 		// set process name
 		config.game_exe = std::string(gameProfile.attribute("game_exe").as_string(""));
+		config.is64bit = std::string(gameProfile.attribute("cpu_architecture").as_string("32bit")) == "64bit";
 
 		// get hud config
 		config.hud3DDepthMode = gameProfile.attribute("hud_3D_depth_mode").as_int();
@@ -883,13 +883,22 @@ bool ProxyHelper::SaveConfig(ProxyConfig& config)
 		else
 			fileName = config.shaderRulePath;
 
+		// cpu_architecture
+		if (strcmp(gameProfile.attribute("game_exe").next_attribute().name(), "cpu_architecture") == 0)
+			gameProfile.attribute("cpu_architecture") = config.is64bit ? "64bit" : "32bit";
+		else
+		{
+			gameProfile.remove_attribute("cpu_architecture");
+			gameProfile.insert_attribute_after("cpu_architecture", gameProfile.attribute("game_exe")) = config.is64bit ? "64bit" : "32bit";
+		}
+
 		// shader mod rules attribute present ? otherwise insert
-		if (strcmp(gameProfile.attribute("game_exe").next_attribute().name(), "shaderModRules") == 0)
+		if (strcmp(gameProfile.attribute("cpu_architecture").next_attribute().name(), "shaderModRules") == 0)
 			gameProfile.attribute("shaderModRules") = fileName.c_str();
 		else
 		{
 			gameProfile.remove_attribute("shaderModRules");
-			gameProfile.insert_attribute_after("shaderModRules", gameProfile.attribute("game_exe")) = fileName.c_str();
+			gameProfile.insert_attribute_after("shaderModRules", gameProfile.attribute("cpu_architecture")) = fileName.c_str();
 		}
 
 		// get VRboost rules filename
@@ -1250,6 +1259,35 @@ bool ProxyHelper::HasProfile(char* name)
 
 	return profileFound;
 }
+
+bool  ProxyHelper::is64bit(const char* name)
+{
+	// get the profile
+	bool is64bit = false;
+	char profilePath[512];
+	GetPath(profilePath, "cfg\\profiles.xml");
+
+	xml_document docProfiles;
+	xml_parse_result resultProfiles = docProfiles.load_file(profilePath);
+	xml_node profile;
+
+	if(resultProfiles.status == status_ok)
+	{
+		xml_node xml_profiles = docProfiles.child("profiles");
+
+		for (xml_node profile = xml_profiles.child("profile"); profile; profile = profile.next_sibling("profile"))
+		{
+			if(_strcmpi(name, profile.attribute("game_exe").value()) == 0)
+			{
+				is64bit = std::string(profile.attribute("cpu_architecture").as_string("32bit")) == std::string("64bit");
+				break;
+			}
+		}
+	}
+
+	return is64bit;
+}
+
 
 bool ProxyHelper::GetProfileGameExes(std::vector<std::string> &gameExes)
 {

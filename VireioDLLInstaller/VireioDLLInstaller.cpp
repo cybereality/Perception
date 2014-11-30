@@ -238,7 +238,6 @@ int _tmain(int argc, _TCHAR* argv[])
 		ProxyHelper helper;
 		helper.GetProfileGameExes(g_list);
 
-
 		std::string gamePath;
 		std::string gameExe;
 		for (int i = 0; i < (int)exefiles.size(); ++i)
@@ -275,7 +274,7 @@ int _tmain(int argc, _TCHAR* argv[])
 				int result = MessageBox(NULL, ("Are you sure you wish to remove Vireio DLLs from the following location:\r\n\r\n"+std::string(gamePath)).c_str(), "Uninstall DLLs", MB_YESNO|MB_ICONEXCLAMATION);
 				if (result == IDYES)
 				{
-					std::string command = "call RevokeVireioSymlinks.cmd \"";
+					std::string command = helper.is64bit(gameExe.c_str()) ? "call RevokeVireioSymlinks64bit.cmd \"" : "call RevokeVireioSymlinks.cmd \"";
 					command += gamePath;
 					command += "\"";
 					system(command.c_str());
@@ -293,7 +292,8 @@ int _tmain(int argc, _TCHAR* argv[])
 				int result = MessageBox(NULL, ("Are you sure you wish to Install Vireio DLLs to the following location:\r\n\r\n"+std::string(gamePath)).c_str(), "Install DLLs", MB_YESNO|MB_ICONEXCLAMATION);
 				if (result == IDYES)
 				{
-					std::string command = "call DeployVireioSymlinks.cmd \"";
+					//handling for 32 or 64 bit
+					std::string command = helper.is64bit(gameExe.c_str()) ? "call DeployVireioSymlinks64bit.cmd \"" : "call DeployVireioSymlinks.cmd \"";
 					command += gamePath;
 					command += "\"";
 					system(command.c_str());

@@ -50,6 +50,9 @@ LPCWSTR proxyDllW = NULL;
 LPCSTR dllDir = NULL;
 
 HINSTANCE hDLL;
+void ParsePaths();
+
+#ifndef x64
 
 typedef HMODULE (WINAPI *LoadLibraryExW_Type)(LPCWSTR lpFileName, HANDLE hFile, DWORD dwFlags);   
 
@@ -61,8 +64,7 @@ IDirect3D9* WINAPI MyDirect3DCreate9(UINT sdk_version);
 typedef HRESULT (WINAPI *Direct3DCreate9Ex_t)(UINT sdk_version, IDirect3D9Ex**);
 HRESULT WINAPI MyDirect3DCreate9Ex(UINT sdk_version, IDirect3D9Ex**);
 
-void ParsePaths();
-void SaveExeName(char*, char*);
+
 
 // Hook structure.
 enum
@@ -144,6 +146,7 @@ HRESULT WINAPI MyDirect3DCreate9Ex(UINT sdk_version, IDirect3D9Ex**p)
 	//Ex is not currently supported
 	return ERROR_NOT_SUPPORTED;
 }
+#endif //!x64
 
 bool fileExists(std::string file)
 {
@@ -178,11 +181,15 @@ BOOL APIENTRY DllMain( HINSTANCE hModule, DWORD fdwReason, LPVOID lpReserved )
 		OutputDebugString(targetExe);
 		OutputDebugString("\n");
 
+
+#ifndef x64
 		ParsePaths();
+#endif
 		ProxyHelper helper = ProxyHelper();
 
 		if (helper.HasProfile(targetExe))
 		{
+#ifndef x64
 			//Need to check that the d3d9.dll is actually in the game folder - If it is, then we don't need to hook API calls
 			//using the methods below as d3d9 will just be loaded by the game's executable
 			if (!fileExists(targetPathString + "D3D9.dll"))
@@ -206,9 +213,7 @@ BOOL APIENTRY DllMain( HINSTANCE hModule, DWORD fdwReason, LPVOID lpReserved )
 			{
 				OutputDebugString(std::string("D3D9.dll found in game directory (" + targetPathString + ") - Bypassing API injection").c_str());
 			}
-
-
-			SaveExeName(targetExe, (char*)targetPathString.c_str());
+#endif 
 		}
 		else
 		{
@@ -218,6 +223,9 @@ BOOL APIENTRY DllMain( HINSTANCE hModule, DWORD fdwReason, LPVOID lpReserved )
 
 	return TRUE;
 }
+
+//Implemented for 32-bit only 
+#ifndef x64
 
 // This segment must be defined as SHARED in the .DEF
 #pragma data_seg (".HookSection")		
@@ -253,45 +261,4 @@ void ParsePaths()
 	helper.GetPath((char*)proxyDll, "bin\\d3d9.dll");
 	mbstowcs_s(NULL, (wchar_t*)proxyDllW, 512, proxyDll, 512);
 }
-
-void SaveExeName(char* data, char* path)
-{
-	HKEY hKey;
-	LPCTSTR sk = TEXT("SOFTWARE\\Vireio\\Perception");
-
-	LONG openRes = RegOpenKeyEx(HKEY_CURRENT_USER, sk, 0, KEY_ALL_ACCESS , &hKey);
-
-	if (openRes==ERROR_SUCCESS) {
-		OutputDebugString("Hx // Success opening key.\n");
-	} else {
-		OutputDebugString("Hx // Error opening key.\n");
-	}
-
-	LPCTSTR value = TEXT("TargetExe");
-
-	LONG setRes = RegSetValueEx(hKey, value, 0, REG_SZ, (LPBYTE)data, strlen(data)+1);
-
-	if (setRes == ERROR_SUCCESS) {
-		OutputDebugString("Hx // Success writing to Registry.\n");
-	} else {
-		OutputDebugString("Hx // Error writing to Registry.\n");
-	}
-
-	value = TEXT("TargetPath");
-
-	setRes = RegSetValueEx(hKey, value, 0, REG_SZ, (LPBYTE)path, strlen(path)+1);
-
-	if (setRes == ERROR_SUCCESS) {
-		OutputDebugString("Hx // Success writing to Registry.\n");
-	} else {
-		OutputDebugString("Hx // Error writing to Registry.\n");
-	}
-
-	LONG closeOut = RegCloseKey(hKey);
-
-	if (closeOut == ERROR_SUCCESS) {
-		OutputDebugString("Hx // Success closing key.\n");
-	} else {
-		OutputDebugString("Hx // Error closing key.\n");
-	}
-}
+#endif

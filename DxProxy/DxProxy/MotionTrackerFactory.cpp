@@ -30,6 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "MotionTrackerFactory.h"
 
 //HACK - Have to do this to stop certain types that are redefined by OVR_Types.h from causing an issue
+#ifndef x64
 #ifdef _WIN32
 #undef _WIN32
 #include "FreeSpaceTracker.h"
@@ -37,6 +38,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #else
 #include "FreeSpaceTracker.h"
 #endif
+#endif //!x64
 
 #include "FreeTrackTracker.h"
 #include "SharedMemoryTracker.h"
@@ -55,9 +57,11 @@ MotionTracker* MotionTrackerFactory::Get(ProxyHelper::ProxyConfig& config)
 	case MotionTracker::DISABLED:
 		newTracker = new MotionTracker();
 		break;
+#ifndef x64
 	case MotionTracker::HILLCREST:
 		newTracker = new FreeSpaceTracker();
 		break;
+#endif
 	case MotionTracker::FREETRACK:
 		newTracker = new FreeTrackTracker();
 		break;

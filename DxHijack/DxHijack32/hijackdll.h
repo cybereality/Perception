@@ -5,7 +5,10 @@
 #define HIJACKDLL_API __declspec(dllimport)
 #endif
 
+//32-bit only 
+#ifndef x64
 HIJACKDLL_API LRESULT CALLBACK HookProc(int nCode, WPARAM wParam, LPARAM lParam);
 
 HIJACKDLL_API void InstallHook();
 HIJACKDLL_API void RemoveHook();
+#endif

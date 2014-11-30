@@ -5,9 +5,17 @@
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Release|Win32">
       <Configuration>Release</Configuration>
       <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -22,7 +30,20 @@
     <CharacterSet>MultiByte</CharacterSet>
     <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v110</PlatformToolset>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v110</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -35,11 +56,24 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <TargetName>d3d9</TargetName>
+    <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
+    <IncludePath>$(WIN_DDK_DIR)inc\atl71;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSDK_IncludePath);</IncludePath>
+    <LibraryPath>$(WIN_DDK_DIR)\lib\ATL\i386;$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSDK_LibraryPath_x86);</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <TargetName>d3d9</TargetName>
     <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
@@ -54,7 +88,42 @@
     <IncludePath>$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSDK_IncludePath);</IncludePath>
     <LibraryPath>$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSDK_LibraryPath_x86);</LibraryPath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSDK_IncludePath);</IncludePath>
+    <LibraryPath>$(VCInstallDir)lib\amd64;$(VCInstallDir)atlmfc\lib\amd64;$(WindowsSDK_LibraryPath_x64);</LibraryPath>
+    <LinkIncremental>false</LinkIncremental>
+    <TargetName>d3d9_64</TargetName>
+    <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
+    <PreBuildEventUseInBuild>false</PreBuildEventUseInBuild>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;DXPROXY_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(DXSDK_DIR)\Include;$(DX)\Include;$(FREESPACE)\include;$(SolutionDir)\VRBoostReferee</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ModuleDefinitionFile>Exports.def</ModuleDefinitionFile>
+      <AdditionalLibraryDirectories>$(DXSDK_DIR)\Lib\x86;$(DX)\Lib\x86;$(FREESPACE)\lib;..\..\LibOVR\Lib\Win32\VS2012</AdditionalLibraryDirectories>
+      <AdditionalDependencies>ws2_32.lib;dxerr.lib;dxguid.lib;dinput8.lib;xinput.lib;libfreespace.lib;libovr.lib;Winmm.lib;DxErr.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(SolutionDir)$(Configuration)\Perception\bin\$(TargetName)$(TargetExt)</OutputFile>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(OutDir)$(TargetName)$(TargetExt)" "C:\Program Files (x86)\Vireio\Perception\bin\$(TargetName)$(TargetExt)"</Command>
+    </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>xcopy "$(FREESPACE)\lib\*.dll" "$(SolutionDir)$(Configuration)\Perception\bin\" /Y</Command>
+    </PreBuildEvent>
+    <PreBuildEvent>
+      <Message>Copy libfreespace.dll from the libfreespace SDK</Message>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PrecompiledHeader>
       </PrecompiledHeader>
@@ -99,7 +168,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <ModuleDefinitionFile>Exports.def</ModuleDefinitionFile>
       <AdditionalLibraryDirectories>$(DXSDK_DIR)\Lib\x86;$(DX)\Lib\x86;$(FREESPACE)\lib;..\..\LibOVR\Lib\Win32\VS2012</AdditionalLibraryDirectories>
-      <AdditionalDependencies>ws2_32.lib;dxerr.lib;dxguid.lib;dinput8.lib;xinput.lib;libfreespace.lib;libovr.lib;Winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>shlwapi.lib;ws2_32.lib;dxerr.lib;dxguid.lib;dinput8.lib;xinput.lib;libfreespace.lib;libovr.lib;Winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(SolutionDir)$(Configuration)\Perception\bin\$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <PostBuildEvent>
@@ -108,6 +177,37 @@
     <PreBuildEvent>
       <Command>xcopy "$(FREESPACE)\lib\*.dll" "$(SolutionDir)$(Configuration)\Perception\bin\" /Y</Command>
       <Message>Copy libfreespace.dll from the libfreespace SDK</Message>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>x64;WIN32;NDEBUG;_WINDOWS;_USRDLL;DXPROXY_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(DXSDK_DIR)\Include;$(DX)\Include;$(FREESPACE)\include;$(SolutionDir)\VRboostReferee;</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <ModuleDefinitionFile>Exports.def</ModuleDefinitionFile>
+      <AdditionalLibraryDirectories>$(DXSDK_DIR)\Lib\x64;$(DX)\Lib\x64;..\..\LibOVR\Lib\x64\VS2012</AdditionalLibraryDirectories>
+      <AdditionalDependencies>shlwapi.lib;ws2_32.lib;dxerr.lib;dxguid.lib;dinput8.lib;xinput.lib;libovr64.lib;Winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(SolutionDir)$(Configuration)\Perception\bin\$(TargetName)$(TargetExt)</OutputFile>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(OutDir)$(TargetName)$(TargetExt)" "C:\Program Files (x86)\Vireio\Perception\bin\$(TargetName)$(TargetExt)"</Command>
+    </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+      <Message>
+      </Message>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -255,96 +355,143 @@
   <ItemGroup>
     <CustomBuild Include="..\..\Release\Perception\cfg\config.xml">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\cfg\" /Y</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\cfg\" /Y</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copying xml config from Release to $(Configuration)</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">copying xml config from Release to $(Configuration)</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\cfg\%(filename).xml</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)$(Configuration)\Perception\cfg\%(filename).xml</Outputs>
     </CustomBuild>
     <CustomBuild Include="..\..\Release\Perception\cfg\profiles.xml">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\cfg\" /Y</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\cfg\" /Y</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copying xml config from Release to $(Configuration)</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">copying xml config from Release to $(Configuration)</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\cfg\%(filename).xml</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)$(Configuration)\Perception\cfg\%(filename).xml</Outputs>
       <SubType>Designer</SubType>
     </CustomBuild>
     <CustomBuild Include="..\..\Release\Perception\fx\AnaglyphGreenMagenta.fx">
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copying pixel shader from Release to $(Configuration)</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">copying pixel shader from Release to $(Configuration)</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
     </CustomBuild>
     <CustomBuild Include="..\..\Release\Perception\fx\AnaglyphGreenMagentaGray.fx">
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copying pixel shader from Release to $(Configuration)</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">copying pixel shader from Release to $(Configuration)</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
     </CustomBuild>
     <CustomBuild Include="..\..\Release\Perception\fx\AnaglyphRedCyan.fx">
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copying pixel shader from Release to $(Configuration)</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">copying pixel shader from Release to $(Configuration)</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
     </CustomBuild>
     <CustomBuild Include="..\..\Release\Perception\fx\AnaglyphRedCyanGray.fx">
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copying pixel shader from Release to $(Configuration)</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">copying pixel shader from Release to $(Configuration)</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
     </CustomBuild>
     <CustomBuild Include="..\..\Release\Perception\fx\AnaglyphYellowBlue.fx">
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copying pixel shader from Release to $(Configuration)</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">copying pixel shader from Release to $(Configuration)</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
     </CustomBuild>
     <CustomBuild Include="..\..\Release\Perception\fx\AnaglyphYellowBlueGray.fx">
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copying pixel shader from Release to $(Configuration)</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">copying pixel shader from Release to $(Configuration)</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
     </CustomBuild>
     <CustomBuild Include="..\..\Release\Perception\fx\Checkerboard.fx">
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copying pixel shader from Release to $(Configuration)</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">copying pixel shader from Release to $(Configuration)</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
     </CustomBuild>
     <CustomBuild Include="..\..\Release\Perception\fx\InterleaveHorz.fx">
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copying pixel shader from Release to $(Configuration)</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">copying pixel shader from Release to $(Configuration)</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
     </CustomBuild>
     <CustomBuild Include="..\..\Release\Perception\fx\InterleaveVert.fx">
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copying pixel shader from Release to $(Configuration)</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">copying pixel shader from Release to $(Configuration)</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
     </CustomBuild>
     <CustomBuild Include="..\..\Release\Perception\fx\OverUnder.fx">
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copying pixel shader from Release to $(Configuration)</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">copying pixel shader from Release to $(Configuration)</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
     </CustomBuild>
     <CustomBuild Include="..\..\Release\Perception\fx\SideBySide.fx">
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copying pixel shader from Release to $(Configuration)</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">copying pixel shader from Release to $(Configuration)</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
     </CustomBuild>
     <CustomBuild Include="..\..\Release\Perception\fx\SideBySideRift.fx">
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copying pixel shader from Release to $(Configuration)</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">copying pixel shader from Release to $(Configuration)</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx</Outputs>
     </CustomBuild>
     <CustomBuild Include="..\..\Release\Perception\fx\OculusRift.fx">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\fx\" /Y</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)$(Configuration)\Perception\fx\%(filename).fx;%(Outputs)</Outputs>
       <FileType>Document</FileType>
     </CustomBuild>
     <CustomBuild Include="..\..\Release\Perception\cfg\users.xml">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\cfg\" /Y</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\cfg\" /Y</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copying xml config from Release to $(Configuration)</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">copying xml config from Release to $(Configuration)</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\cfg\%(filename).xml;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)$(Configuration)\Perception\cfg\%(filename).xml;%(Outputs)</Outputs>
       <SubType>Designer</SubType>
     </CustomBuild>
     <None Include="..\..\Release\Perception\cfg\shader_rules\borderlands2.xml">

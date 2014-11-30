@@ -26,6 +26,9 @@
     <None Include="hijackdll.def">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="hijackdll64.def">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="apihijack.h">

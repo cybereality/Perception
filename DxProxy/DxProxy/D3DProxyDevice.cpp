@@ -6534,8 +6534,14 @@ bool D3DProxyDevice::InitVRBoost()
 	#endif
 	bool initSuccess = false;
 	OutputDebugString("Try to init VR Boost\n");
+
+#ifdef x64
+	// explicit VRboost dll import
+	hmVRboost = LoadLibrary("VRboost64.dll");
+#else
 	// explicit VRboost dll import
 	hmVRboost = LoadLibrary("VRboost.dll");
+#endif
 
 	VRBoostStatus.VRBoost_Active = false;
 	VRBoostStatus.VRBoost_LoadRules = false;

@@ -3,6 +3,10 @@
     http://msdn.microsoft.com/library/periodic/period00/hood0200.htm
     Adapted by Wade Brainerd, wadeb@wadeb.com
 --------------------------------------------------------------------------------------------------------*/
+
+//Implemented for 32-bit only
+#ifndef x64
+
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <stdio.h>
@@ -275,3 +279,4 @@ bool HookAPICalls( SDLLHook* Hook )
     return returnVal;
 }
 
+#endif //!x64
