@@ -136,9 +136,12 @@ public:
 	bool  LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile);	
 	bool  SaveConfig(ProxyConfig& config);
 	bool  HasProfile(char* name);
-	bool  is64bit(const char* name);
-	bool  GetProfile(char* name, ProxyConfig& config);
-	bool  GetProfileGameExes(std::vector<std::string> &gameExes);
+	bool  GetProfile(char* name, bool _64bit, ProxyConfig& config);
+	/**
+	* The following is used by the dll symlink installer to identify which game is in the
+	* scanned folder
+	*/
+	bool  GetProfileGameExes(std::vector<std::pair<std::string, bool>> &gameExes);
 
 	/**
 	* True if base directory path loaded.

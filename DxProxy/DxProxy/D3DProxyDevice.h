@@ -591,6 +591,19 @@ protected:
  	**/
  	float m_maxDistortionScale;
 	/**
+	* Whether we are in telescope mode
+	*/
+	int m_telescopicSightMode;
+	/**
+	* Target FOV for telescopic sight mode
+	*/
+	float m_telescopeTargetFOV;
+	/**
+	* Current FOV for telescopic sight mode (used to zoom in and out of tele mode)
+	*/
+	float m_telescopeCurrentFOV;
+
+	/**
 	* Pointer to the hmd info
 	*/
 	HMDisplayInfo *hmdInfo;

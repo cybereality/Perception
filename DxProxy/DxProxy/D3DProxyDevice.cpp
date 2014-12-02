@@ -175,6 +175,10 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 		dinput.Activate();		
 	}	
 
+	m_telescopeTargetFOV = FLT_MAX;
+	m_telescopeCurrentFOV = FLT_MAX;
+
+
 }
 
 /**
@@ -2481,7 +2485,6 @@ void D3DProxyDevice::HandleControls()
 		menuVelocity.x += 4.0f;
 	}
 
-
 	//Toggle SDK Pose Prediction- LSHIFT + DELETE
 	if (hmdInfo->GetHMDManufacturer() == HMD_OCULUS	&&
 		(controls.Key_Down(VK_LSHIFT) && controls.Key_Down(VK_DELETE)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)) && tracker)
@@ -2557,6 +2560,34 @@ void D3DProxyDevice::HandleControls()
 		menuVelocity.x += 4.0f;		
 	}
 
+
+	//Pick a hot-key for telescopic mode - use ALT+RIght Mouse CLick
+	if (controls.Key_Down(VK_MENU))
+	{
+		if (controls.Key_Down(VK_MBUTTON) && 
+			(menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		{
+			if (!m_telescopicSightMode &&
+				m_telescopeTargetFOV == FLT_MAX)
+			{   
+				//enabling
+				m_telescopeTargetFOV = 15;
+				m_telescopeCurrentFOV = config.WorldFOV;
+				stereoView->m_vignette = true;
+				m_telescopicSightMode = true;
+			}
+			else if (m_telescopicSightMode)
+			{
+				//disabling
+				m_telescopicSightMode = false;
+				m_telescopeTargetFOV = config.WorldFOV;
+				stereoView->m_vignette = false;
+			}
+
+			menuVelocity.x += 4.0f;
+		}
+	}
+	else
 	//Floaty Screen
 	if ((controls.Key_Down(edgePeekHotkey) || (controls.Key_Down(VK_MBUTTON) || (controls.Key_Down(VK_LCONTROL) && controls.Key_Down(VK_NUMPAD2)))) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
@@ -2976,10 +3007,35 @@ void D3DProxyDevice::HandleTracking()
 		// development bool
 		bool createNSave = false;
 
+		float mult = 1.0f;
+		if (m_telescopicSightMode)
+			mult = 0.1f;
+
 		// apply VRboost memory rules if present
-		VRBoostValue[VRboostAxis::TrackerYaw] = tracker->primaryYaw;
-		VRBoostValue[VRboostAxis::TrackerPitch] = tracker->primaryPitch;
+		VRBoostValue[VRboostAxis::TrackerYaw] = tracker->primaryYaw;// * mult;
+		VRBoostValue[VRboostAxis::TrackerPitch] = tracker->primaryPitch;// * mult;
 		VRBoostValue[VRboostAxis::TrackerRoll] = tracker->primaryRoll;
+
+		//Telescopic sight mode implementation
+		if (m_telescopeTargetFOV != FLT_MAX)
+		{
+			if (m_telescopeTargetFOV < m_telescopeCurrentFOV)
+				m_telescopeCurrentFOV -= 1.0f;
+			else if (m_telescopeTargetFOV > m_telescopeCurrentFOV)
+				m_telescopeCurrentFOV += 1.0f;
+
+			if (abs(m_telescopeCurrentFOV - m_telescopeTargetFOV) < 1.0)
+				m_telescopeCurrentFOV = m_telescopeTargetFOV;
+
+			if (!m_telescopicSightMode &&
+				m_telescopeCurrentFOV == m_telescopeTargetFOV)
+			{
+				m_telescopeTargetFOV = FLT_MAX;
+				VRBoostValue[VRboostAxis::WorldFOV] = config.WorldFOV;
+			}
+			else
+				VRBoostValue[VRboostAxis::WorldFOV] = m_telescopeCurrentFOV;
+		}
 
 		//If we know VRBoost is scanning, don't even try to apply memory rules this time round
 		if (VRBoostStatus.VRBoost_Scanning ||
@@ -6204,7 +6260,12 @@ void D3DProxyDevice::DisplayCurrentPopup()
 			else if (show_fps == FPS_TIME)
 				sprintf_s(buffer, "Frame Time: %.2f ms", 1000.0f / fps);
 
-			D3DCOLOR colour = (fps <= 40) ? D3DCOLOR_ARGB(255, 255, 0, 0) : D3DCOLOR_ARGB(255, 255, 255, 255);;
+			D3DCOLOR colour = D3DCOLOR_ARGB(255, 255, 255, 255);
+			if (fps <= 40)
+				colour = D3DCOLOR_ARGB(255, 255, 0, 0);
+			else if (fps > 74)
+				colour = D3DCOLOR_ARGB(255, 0, 255, 0);
+
 			menuHelperRect.top = 800;
 			menuHelperRect.left = 0;
 			hudFont->DrawText(hudMainMenu, buffer, -1, &menuHelperRect, DT_CENTER, colour);

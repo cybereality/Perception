@@ -234,32 +234,64 @@ int _tmain(int argc, _TCHAR* argv[])
 		SearchForFiles(".exe", path, true, exefiles, exepaths);
 
 		//Build compatible list from xml
-		std::vector<std::string> g_list;
+		std::vector<std::pair<std::string, bool>> g_list;
 		ProxyHelper helper;
 		helper.GetProfileGameExes(g_list);
 
-		std::string gamePath;
-		std::string gameExe;
+		std::string game32Path;
+		std::string game32Exe;
+		std::string game64Path;
+		std::string game64Exe;
 		for (int i = 0; i < (int)exefiles.size(); ++i)
 		{
-			std::vector<std::string>::iterator iter = std::find(g_list.begin(), g_list.end(), exefiles[i]);
+			std::vector<std::pair<std::string, bool>>::iterator iter = std::find(g_list.begin(), g_list.end(), std::make_pair(exefiles[i], false));
 			if (iter != g_list.end())
 			{
 				//Found one in our collection
-				gameExe = exefiles[i];
-				gamePath = exepaths[i];
-				break;
+				game32Exe = exefiles[i];
+				game32Path = exepaths[i];
+			}
+
+			iter = std::find(g_list.begin(), g_list.end(), std::make_pair(exefiles[i], true));
+			if (iter != g_list.end())
+			{
+				//Found one in our collection
+				game64Exe = exefiles[i];
+				game64Path = exepaths[i];
 			}
 		}
 
-		if (gameExe.length() == 0)
+		if (game32Exe.length() == 0 && game64Exe.length() == 0 )
 		{
 			//Invalid folder, no supported games contained within
 			MessageBox(NULL, ("No supported games found in folder:\r\n\r\n"+std::string(path)).c_str(), "", MB_OK|MB_ICONINFORMATION);
 		}
 		else
 		{
-			_tprintf ( ("Found: " + gameExe + "\r\n").c_str() );
+			//Now figure out if we should create 32 or 64-bit symlinks
+			std::string gameExe = game32Exe;
+			std::string gamePath = game32Path;
+			bool use64bit = false;
+			if (game32Exe.length() == 0)
+			{
+				use64bit = true;
+				gameExe = game64Exe;
+				gamePath = game64Path;
+			}
+			else
+			{
+				//we have exes for both 32 and 64 bit defined
+				if (game64Path.find("Win64") != std::string::npos)
+				{
+					use64bit = true;
+					gameExe = game64Exe;
+					gamePath = game64Path;
+				}
+			}
+
+			std::string cpuArch = (use64bit ? std::string("(64-bit)") : std::string("(32-bit)"));
+
+			_tprintf (("Found " + cpuArch + ": " + gameExe + "\r\n").c_str() );
 			_tprintf ( ("In folder: " + gamePath + "\r\n").c_str() );
 
 			//Now check to see if the symlinks exist in that folder
@@ -271,10 +303,10 @@ int _tmain(int argc, _TCHAR* argv[])
 			int file = (int)OpenFile(filename.c_str(), &of, OF_EXIST);
 			if (file == 1)
 			{
-				int result = MessageBox(NULL, ("Are you sure you wish to remove Vireio DLLs from the following location:\r\n\r\n"+std::string(gamePath)).c_str(), "Uninstall DLLs", MB_YESNO|MB_ICONEXCLAMATION);
+				int result = MessageBox(NULL, ("Are you sure you wish to remove " + cpuArch  + " Vireio DLL symlinks from the following location:\r\n\r\n"+std::string(gamePath)).c_str(), "Uninstall DLLs", MB_YESNO|MB_ICONEXCLAMATION);
 				if (result == IDYES)
 				{
-					std::string command = helper.is64bit(gameExe.c_str()) ? "call RevokeVireioSymlinks64bit.cmd \"" : "call RevokeVireioSymlinks.cmd \"";
+					std::string command = use64bit ? "call RevokeVireioSymlinks64bit.cmd \"" : "call RevokeVireioSymlinks.cmd \"";
 					command += gamePath;
 					command += "\"";
 					system(command.c_str());
@@ -289,11 +321,11 @@ int _tmain(int argc, _TCHAR* argv[])
 			}
 			else if (file == -1)
 			{
-				int result = MessageBox(NULL, ("Are you sure you wish to Install Vireio DLLs to the following location:\r\n\r\n"+std::string(gamePath)).c_str(), "Install DLLs", MB_YESNO|MB_ICONEXCLAMATION);
+				int result = MessageBox(NULL, ("Are you sure you wish to Install " + cpuArch  + " Vireio DLL symlinks to the following location:\r\n\r\n"+std::string(gamePath)).c_str(), "Install DLLs", MB_YESNO|MB_ICONEXCLAMATION);
 				if (result == IDYES)
 				{
 					//handling for 32 or 64 bit
-					std::string command = helper.is64bit(gameExe.c_str()) ? "call DeployVireioSymlinks64bit.cmd \"" : "call DeployVireioSymlinks.cmd \"";
+					std::string command = use64bit ? "call DeployVireioSymlinks64bit.cmd \"" : "call DeployVireioSymlinks.cmd \"";
 					command += gamePath;
 					command += "\"";
 					system(command.c_str());

@@ -640,10 +640,21 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 			{
 				profileProcess[i] = (char)tolower((int)profileProcess[i]);
 			}
-			// profile found ?
-			if(strcmp(targetExe, profileProcess.c_str()) == 0)
+
+			std::string cpuArch = profile.attribute("cpu_architecture").as_string("32bit");
+
+			// profile found - now has to match on exe name and cpu architecture
+			if(strcmp(targetExe, profileProcess.c_str()) == 0 &&
+#ifdef x64
+				cpuArch == std::string("64bit")
+#else
+				cpuArch == std::string("32bit")
+#endif
+				)
 			{
-				OutputDebugString("Load the specific profile!!!\n");
+				char buffer[256];
+				sprintf_s(buffer, "Found specific profile: %s (%s)", targetExe, cpuArch.c_str());
+				OutputDebugString(buffer);
 				gameProfile = profile;
 				profileFound = true;
 				break;
@@ -1260,36 +1271,7 @@ bool ProxyHelper::HasProfile(char* name)
 	return profileFound;
 }
 
-bool  ProxyHelper::is64bit(const char* name)
-{
-	// get the profile
-	bool is64bit = false;
-	char profilePath[512];
-	GetPath(profilePath, "cfg\\profiles.xml");
-
-	xml_document docProfiles;
-	xml_parse_result resultProfiles = docProfiles.load_file(profilePath);
-	xml_node profile;
-
-	if(resultProfiles.status == status_ok)
-	{
-		xml_node xml_profiles = docProfiles.child("profiles");
-
-		for (xml_node profile = xml_profiles.child("profile"); profile; profile = profile.next_sibling("profile"))
-		{
-			if(_strcmpi(name, profile.attribute("game_exe").value()) == 0)
-			{
-				is64bit = std::string(profile.attribute("cpu_architecture").as_string("32bit")) == std::string("64bit");
-				break;
-			}
-		}
-	}
-
-	return is64bit;
-}
-
-
-bool ProxyHelper::GetProfileGameExes(std::vector<std::string> &gameExes)
+bool ProxyHelper::GetProfileGameExes(std::vector<std::pair<std::string, bool>> &gameExes)
 {
 	// get the profile
 	char profilePath[512];
@@ -1306,8 +1288,9 @@ bool ProxyHelper::GetProfileGameExes(std::vector<std::string> &gameExes)
 		for (xml_node profile = xml_profiles.child("profile"); profile; profile = profile.next_sibling("profile"))
 		{
 			std::string exe = profile.attribute("game_exe").value();
+			bool _64bit = profile.attribute("cpu_architecture").as_string("32bit") == std::string("64bit");
 			std::transform(exe.begin(), exe.end(), exe.begin(), ::tolower);			
-			gameExes.push_back(exe);
+			gameExes.push_back(std::make_pair(exe, _64bit));
 		}
 	}
 
@@ -1320,7 +1303,7 @@ bool ProxyHelper::GetProfileGameExes(std::vector<std::string> &gameExes)
 * @param name The exe process name.
 * @param config Currently unused: The returned configuration.
 ***/
-bool ProxyHelper::GetProfile(char* name, ProxyConfig& config) // TODO !!! fill config
+bool ProxyHelper::GetProfile(char* name, bool _64bit, ProxyConfig& config) // TODO !!! fill config
 {
 	// get the profile
 	bool profileFound = false;
@@ -1337,7 +1320,8 @@ bool ProxyHelper::GetProfile(char* name, ProxyConfig& config) // TODO !!! fill c
 
 		for (xml_node profile = xml_profiles.child("profile"); profile; profile = profile.next_sibling("profile"))
 		{
-			if(strcmp(name, profile.attribute("game_exe").value()) == 0)
+			if(strcmp(name, profile.attribute("game_exe").value()) == 0 &&
+				_64bit == (profile.attribute("cpu_architecture").as_string("32bit") == std::string("64bit")))
 			{
 				OutputDebugString("Found a profile!!!\n");
 				profileFound = true;
