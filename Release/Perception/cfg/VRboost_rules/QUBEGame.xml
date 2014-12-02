@@ -59,7 +59,7 @@
 			<AxisName>WorldFOV</AxisName>
 			<AddressType>Float</AddressType>
 			<ModificationToApply>FloatSimpleApply</ModificationToApply>
-			<BaseAddressOffset>00000324</BaseAddressOffset>
+			<BaseAddressOffset>00000328</BaseAddressOffset>
 			<CheckForChanges>NoChange</CheckForChanges>
 			<ExcludeGroup>NoExclude</ExcludeGroup>
 			<Comparisons>
