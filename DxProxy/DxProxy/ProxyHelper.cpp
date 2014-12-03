@@ -653,7 +653,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 				)
 			{
 				char buffer[256];
-				sprintf_s(buffer, "Found specific profile: %s (%s)", targetExe, cpuArch.c_str());
+				sprintf_s(buffer, "Found specific profile: %s (%s)\n", targetExe, cpuArch.c_str());
 				OutputDebugString(buffer);
 				gameProfile = profile;
 				profileFound = true;
@@ -871,10 +871,21 @@ bool ProxyHelper::SaveConfig(ProxyConfig& config)
 			{
 				profileProcess[i] = (char)tolower((int)profileProcess[i]);
 			}
-			// profile found ?
-			if(strcmp(targetExe, profileProcess.c_str()) == 0)
+
+			std::string cpuArch = profile.attribute("cpu_architecture").as_string("32bit");
+
+			// profile found - now has to match on exe name and cpu architecture
+			if(strcmp(targetExe, profileProcess.c_str()) == 0 &&
+#ifdef x64
+				cpuArch == std::string("64bit")
+#else
+				cpuArch == std::string("32bit")
+#endif
+				)
 			{
-				OutputDebugString("Load the specific profile!!!\n");
+				char buffer[256];
+				sprintf_s(buffer, "Found specific profile: %s (%s)\n", targetExe, cpuArch.c_str());
+				OutputDebugString(buffer);
 				gameProfile = profile;
 				profileFound = true;
 				break;

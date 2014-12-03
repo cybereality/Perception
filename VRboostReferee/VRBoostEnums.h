@@ -27,7 +27,8 @@ namespace VRBoost
 		FloatGaussianCompass = 100,       /**< Applies the input float to a gaussian compass calculatian and incorporates prior rotation angle. **/
 		FloatUnrealCompass = 101,         /**< Applies the input float to a UNREAL engine rotator compass calculatian and incorporates prior rotation angle. **/
 		FloatUnrealAxis = 201,            /**< Applies the input float to a UNREAL engine rotator axis. **/
-		FloatUnrealNegativeAxis = 202,     /**< Applies the input float to a negative UNREAL engine rotator axis. **/
+		FloatUnrealNegativeAxis = 202,    /**< Applies the input float to a negative UNREAL engine rotator axis. **/
+		FloatUnrealAxisWithOffsets = 203, /**< Applies the input float to a UNREAL engine rotator axis with offsets for horizon adjustment and pitch caps. **/
 
 		//The following are more general types for the memory scanners
 		MemoryScanner = 300				  /**< Will scan through a set of addresses until if finds candidate for yaw or FOV*/
