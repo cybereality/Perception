@@ -122,15 +122,15 @@ void SaveLastPath(std::string path)
 	}
 }
 
-int _tmain(int argc, _TCHAR* argv[])
+int WINAPI wWinMain(HINSTANCE instance_handle, HINSTANCE, LPWSTR, INT)
 {
-	_tprintf ( _T(" Vireio DLL link Install/Uninstall Utility\r\n"));
-	_tprintf ( _T(" -------------------------------------\r\n"));
-	_tprintf ( _T("\r\n"));
-	_tprintf ( _T("NOTE: THIS TOOL IS ONLY REQUIRED IF VIREIO DOES NOT INJECT WITH THE\r\n"));
-	_tprintf ( _T("PERCEPTION APP RUNNING WHEN YOU START THE GAME\r\n"));
-	_tprintf ( _T("\r\n"));
 	std::string instructions;
+	instructions += " Vireio DLL Symlink Install/Uninstall Utility\r\n";
+	instructions += " --------------------------------------------\r\n";
+	instructions += "\r\n";
+	instructions += "NOTE: THIS TOOL IS ONLY REQUIRED IF VIREIO DOES NOT INJECT WITH THE\r\n";
+	instructions += "PERCEPTION APP RUNNING WHEN YOU START THE GAME\r\n";
+	instructions += "\r\n";
 	instructions += "This will create symbolic links to the Vireio DLLs in the target\r\n";
 	instructions += "folder rather than physically copying them.\r\n";
 	instructions += "To uninstall the symbolic links just run this application again\r\n";
@@ -138,9 +138,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	instructions += "This means if you upgrade Vireio and put it in the same location as the\r\n";
 	instructions += "previous version there is no need to re-run this installation tool\r\n";
 	instructions += "This application needs to run as Administrator to create symlinks\r\n";
-	instructions += "\r\n";
-	instructions += "** Please select target game root folder in selection dialog **\r\n";
-	_tprintf ( instructions.c_str());
+	MessageBox( NULL, instructions.c_str(), "Vireio Symlink Installer", MB_OK);
 
 	std::string rootFolder = GetLastPath();
 	if (rootFolder.length() == 0)
@@ -215,19 +213,13 @@ int _tmain(int argc, _TCHAR* argv[])
     {
         // get the name of the folder
         TCHAR path[MAX_PATH];
-        if ( SHGetPathFromIDList ( pidl, path ) )
-        {
-            _tprintf ( _T("Selected Folder: %s\n"), path );
-        }
+        SHGetPathFromIDList ( pidl, path );
 
         // free memory used
         CoTaskMemFree(pidl);
 
 		//Now save the selected folder for the next time we open
 		SaveLastPath(path);
-
-		std::string msg = std::string("Scanning: ") + path + "  for supported game executables...\r\n";
-		_tprintf ( msg.c_str() );
 
 		std::vector<std::string> exefiles;
 		std::vector<std::string> exepaths;
@@ -291,8 +283,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 			std::string cpuArch = (use64bit ? std::string("(64-bit)") : std::string("(32-bit)"));
 
-			_tprintf (("Found " + cpuArch + ": " + gameExe + "\r\n").c_str() );
-			_tprintf ( ("In folder: " + gamePath + "\r\n").c_str() );
+			MessageBox(NULL, ("Found " + cpuArch + ": " + gameExe + "\r\nIn folder: " + gamePath + "\r\n").c_str(), "Vireio Symlink Installer", MB_OK);
 
 			//Now check to see if the symlinks exist in that folder
 			std::string filename = gamePath;
