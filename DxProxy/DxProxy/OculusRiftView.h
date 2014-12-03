@@ -78,12 +78,6 @@ private:
 	* Contains distortionCoefficients, needed as vertex shader constants
 	***/
 	HMDisplayInfo *hmdInfo;
-
-	/**
-	* Whether a vignette effect is applied to the rendered image (defaulted to false)
-	*/
-	bool useVignette;
-
 };
 
 #endif

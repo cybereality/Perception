@@ -38,8 +38,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * @param hmd Oculus Rift Head Mounted Display info.
 ***/ 
 OculusRiftView::OculusRiftView(ProxyHelper::ProxyConfig& config, HMDisplayInfo *hmd) : StereoView(config),
-	hmdInfo(hmd),
-	useVignette(false)
+	hmdInfo(hmd)
 {
 	OutputDebugString("Created OculusRiftView\n");
 }
@@ -69,15 +68,23 @@ void OculusRiftView::SetViewEffectInitialValues()
 	viewEffect->SetFloatArray("Resolution", Resolution, 2);
 	viewEffect->SetFloatArray("HmdWarpParam", hmdInfo->GetDistortionCoefficients(), 4);
 
-	//Vignette effect - maybe make this hot-key triggered on and off (off by default, doesn't have a great deal of use right now)
-	if (useVignette)
+	static float vignette_val = 1.0f;
+
+	if (m_vignette)
 	{
-		static float vignette[3] = {0.95f, 0.05f, 0.275f};
+		if (vignette_val > 0.4f)
+			vignette_val -= 0.01f;
+		//Telescopic sight mode
+		float vignette[3] = {vignette_val, 0.05f, 0.0f};
+		//Traditional mode (unused)
+		//static float vignette[3] = {0.95f, 0.05f, 0.275f};
 		viewEffect->SetFloatArray("Vignette", vignette, 3);
 	}
 	else
 	{
-		static float vignette[3] = {0.0f, 0.0f, 0.0f};
+		if (vignette_val < 1.0f)
+			vignette_val += 0.01f;
+		float vignette[3] = {vignette_val, 0.05f, 0.0f};
 		viewEffect->SetFloatArray("Vignette", vignette, 3);
 	}
 }
