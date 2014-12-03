@@ -8,4 +8,5 @@
 		<ruleID id="1" />
 		<ruleID id="2" />
 	</defaultRuleIDs>
+  <!--<shaderSpecificRuleIDs shaderHash="3625815894" squishViewport="true"></shaderSpecificRuleIDs>-->
 </shaderConfig>
