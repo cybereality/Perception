@@ -3688,11 +3688,11 @@ void D3DProxyDevice::ChangeGUI3DDepthMode(GUI_3D_Depth_Modes newMode)
 	m_spShaderViewAdjustment->ChangeGUISquash(guiSquishPresets[(int)newMode]);
 	m_spShaderViewAdjustment->ChangeGUI3DDepth(gui3DDepthPresets[(int)newMode]);
 
-
-	if (newMode == GUI_3D_Depth_Modes::GUI_FULL)
+	//Removed this as see no reason for it and it buggers up quite a few games dependant on shaders
+	/*if (newMode == GUI_3D_Depth_Modes::GUI_FULL)
 		m_spShaderViewAdjustment->SetBulletLabyrinthMode(true);
-	else
-		m_spShaderViewAdjustment->SetBulletLabyrinthMode(false);
+	else*/
+	m_spShaderViewAdjustment->SetBulletLabyrinthMode(false);
 }
 
 /**

@@ -97,10 +97,10 @@ StereoView::StereoView(ProxyHelper::ProxyConfig& config)
 		howToSaveRenderStates = HowToSaveRenderStates::SELECTED_STATES_MANUALLY;
 		break;
 	case D3DProxyDevice::SOURCE_STANLEY:
-		howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;
+		howToSaveRenderStates = HowToSaveRenderStates::SELECTED_STATES_MANUALLY;
 		break;
 	case D3DProxyDevice::SOURCE_ZENO:
-		howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;
+		howToSaveRenderStates = HowToSaveRenderStates::ALL_STATES_MANUALLY;
 		break;
 	case D3DProxyDevice::UNREAL:
 	case D3DProxyDevice::UNREAL_MIRROR:
@@ -585,7 +585,8 @@ void StereoView::SetState()
 	//m_pActualDevice->SetRenderState(D3DRS_SRGBWRITEENABLE, 0);  // will cause visual errors in HL2
 
 	if(game_type == D3DProxyDevice::SOURCE_L4D ||
-		game_type == D3DProxyDevice::SOURCE_ESTER)
+		game_type == D3DProxyDevice::SOURCE_ESTER || 
+		game_type == D3DProxyDevice::SOURCE_STANLEY)
 	{
 		m_pActualDevice->SetSamplerState(0, D3DSAMP_SRGBTEXTURE, ssSrgb);
 		m_pActualDevice->SetSamplerState(1, D3DSAMP_SRGBTEXTURE, ssSrgb);
