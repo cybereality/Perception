@@ -2,15 +2,18 @@
 <shaderConfig>
 	<rules>
 		<rule constantName="cViewProj" partialName="true" id="1" constantType="MatrixC" modToApply="2" startReg="8" transpose="true" />
-		<rule constantName="cModelViewProj" partialName="true" id="2" constantType="MatrixC" modToApply="2" startReg="4" transpose="true" />
-		<rule constantName="g_CustomViewProj" partialName="true" id="3" constantType="MatrixC" modToApply="2" startReg="48" transpose="false" />
-	</rules>
+		<rule constantName="cModelViewProj" partialName="true" id="2" constantType="MatrixC" modToApply="14" startReg="4" transpose="true" />
+    <rule constantName="cViewProj" partialName="true" id="3" constantType="MatrixC" modToApply="0" startReg="8" transpose="true" />    
+  </rules>
 	<defaultRuleIDs>
 		<ruleID id="1" />
-		<ruleID id="2" />
-		<ruleID id="3" />
-	</defaultRuleIDs>
+		<ruleID id="2" />    
+  </defaultRuleIDs>
   <shaderSpecificRuleIDs shaderHash="3546995421">
     <ruleID id="3" />
   </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="719017533">
+    <ruleID id="3" />
+  </shaderSpecificRuleIDs>
+  <!--1068779810 Has an issue (its the menu) - not sure what to do with this one. Not used a lot so easy to ignorew when in game-->  
 </shaderConfig>
