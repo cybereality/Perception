@@ -9,21 +9,6 @@
 		<FailIfNotFound>True</FailIfNotFound>
 
 		<ScanRule>
-			<AxisName>NoAxis</AxisName>
-			<AddressType>DWORD</AddressType>
-			<ModificationToApply>FloatDoNothing</ModificationToApply>
-			<BaseAddressOffset>00000000</BaseAddressOffset>
-			<CheckForChanges>NoChange</CheckForChanges>
-			<ExcludeGroup>NoExclude</ExcludeGroup>
-			<Comparisons>
-				<Compare type="Equal">
-					<MinValue>4602E4FF</MinValue>
-				</Compare>
-			</Comparisons>
-		</ScanRule>
-
-
-		<ScanRule>
 			<AxisName>TrackerPitch</AxisName>
 			<AddressType>DWORD</AddressType>
 			<ModificationToApply>FloatUnrealAxis</ModificationToApply>
@@ -31,13 +16,13 @@
 			<CheckForChanges>Changes</CheckForChanges>
 			<ExcludeGroup>IfZero</ExcludeGroup>
 			<Comparisons>
-			<Compare type="BetweenIncl">
+				<Compare type="BetweenIncl">
 					<MinValue>0000C000</MinValue>
 					<MaxValue>0000FFFF</MaxValue>
 				</Compare>
 				<!-- OR -->
 				<Compare type="BetweenIncl">
-					<MinValue>00000001</MinValue>
+					<MinValue>00000002</MinValue>
 					<MaxValue>00003FFF</MaxValue>
 				</Compare>
 			</Comparisons>
@@ -72,4 +57,115 @@
 		</ScanRule>
 	</ScannerGroup>
   </ScannerGroups>
+  
+	<!-- The following is used to direct the user to move their HMD so that addresses can be filtered, don't repeat -->
+	<ScanAssistSequence>
+
+		<ScanAssistStep>
+			<TimeBeforeCheck>4000</TimeBeforeCheck>
+			<Pose>UP</Pose>
+			<Axis>
+				<AxisName>TrackerPitch</AxisName>
+				<AddressType>DWORD</AddressType>
+				<Comparisons>
+					<Compare type="BetweenIncl">
+						<MinValue>00002000</MinValue>
+						<MaxValue>00004000</MaxValue>
+					</Compare>
+				</Comparisons>
+			</Axis>
+		</ScanAssistStep>
+
+		<ScanAssistStep>
+			<TimeBeforeCheck>4000</TimeBeforeCheck>
+			<Pose>DOWN</Pose>
+			<Axis>
+				<AxisName>TrackerPitch</AxisName>
+				<AddressType>DWORD</AddressType>
+				<Comparisons>
+					<Compare type="BetweenIncl">
+						<MinValue>0000C000</MinValue>
+						<MaxValue>0000E000</MaxValue>
+					</Compare>
+				</Comparisons>
+			</Axis>
+		</ScanAssistStep>
+
+		<ScanAssistStep>
+			<TimeBeforeCheck>4000</TimeBeforeCheck>
+			<Pose>STRAIGHT-AHEAD</Pose>
+			<Axis>
+				<AxisName>TrackerPitch</AxisName>
+				<AddressType>DWORD</AddressType>
+				<Comparisons>
+					<Compare type="BetweenIncl">
+						<MinValue>0000E000</MinValue>
+						<MaxValue>0000FFFF</MaxValue>
+					</Compare>
+					<!-- OR -->
+					<Compare type="BetweenIncl">
+						<MinValue>00000000</MinValue>
+						<MaxValue>00002000</MaxValue>
+					</Compare>
+				</Comparisons>
+			</Axis>
+		</ScanAssistStep>
+
+		<!-- This is not needed (and doesn't work quite so well anyway)
+		<ScanAssistStep>
+			<TimeBeforeCheck>4000</TimeBeforeCheck>
+			<Pose>LEFT</Pose>
+			<Axis>
+				<AxisName>TrackerYaw</AxisName>
+				<AddressType>DWORD</AddressType>
+				<Comparisons>
+					Comparison against the initial value when the scan was started
+					<Compare type="DecreasedDWORD"/>
+				</Comparisons>
+			</Axis>
+			<Axis>
+				<AxisName>TrackerPitch</AxisName>
+				<AddressType>DWORD</AddressType>
+				Ensure the addresses are equivalent to looking more or less at the horizon (be a bit more generous with this range)
+				<Comparisons>
+					<Compare type="BetweenIncl">
+						<MinValue>0000E000</MinValue>
+						<MaxValue>0000FFFF</MaxValue>
+					</Compare>
+					<Compare type="BetweenIncl">
+						<MinValue>00000000</MinValue>
+						<MaxValue>00002000</MaxValue>
+					</Compare>
+				</Comparisons>
+			</Axis>
+		</ScanAssistStep>
+
+		<ScanAssistStep>
+			<TimeBeforeCheck>4000</TimeBeforeCheck>
+			<Pose>RIGHT</Pose>
+			<Axis>
+				<AxisName>TrackerYaw</AxisName>
+				<AddressType>DWORD</AddressType>
+				<Comparisons>
+					Comparison against the initial value when the scan was started
+					<Compare type="IncreasedDWORD"/>
+				</Comparisons>
+			</Axis>
+			<Axis>
+				<AxisName>TrackerPitch</AxisName>
+				<AddressType>DWORD</AddressType>
+				Ensure the addresses are equivalent to looking more or less at the horizon (be a bit more generous with this range)
+				<Comparisons>
+					<Compare type="BetweenIncl">
+						<MinValue>0000E000</MinValue>
+						<MaxValue>0000FFFF</MaxValue>
+					</Compare>
+					<Compare type="BetweenIncl">
+						<MinValue>00000000</MinValue>
+						<MaxValue>00002000</MaxValue>
+					</Compare>
+				</Comparisons>
+			</Axis>
+		</ScanAssistStep>-->
+	</ScanAssistSequence>
 </Scanner>

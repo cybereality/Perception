@@ -5,9 +5,9 @@
   <ScannerGroups>
 	<ScannerGroup>
 		<ID>0</ID>
-		<BaseAddress>50001A9C</BaseAddress>
+		<BaseAddress>50009A1C</BaseAddress>
 		<MemIncrement>00010000</MemIncrement>
-		<MemIncCount>00000FFF</MemIncCount>
+		<MemIncCount>00001FFF</MemIncCount>
 		<FailIfNotFound>True</FailIfNotFound>
 		<ScanRule>
 			<AxisName>TrackerPitch</AxisName>

@@ -85,11 +85,13 @@ namespace VRBoost
 	*/
 	enum ReturnValue
 	{
+		VRBOOST_CANDIDATES, /**< Scan completed but there were a number of candidate addresses */
 		VRBOOST_OK, /**< Basic, "everything is ok" */
 		VRBOOST_ERROR, /**< An error occured */
 		VRBOOST_SCAN_READY, /**< VRBoost is ready to scan for memory locations */
 		VRBOOST_SCAN_INITIALISING, /**< VRBoost is preparing scanner for memory locations */
 		VRBOOST_SCANNING, /**< Memory scans are now in progress */
+		VRBOOST_SCANNING_ASSIST, /**< Memory scans are now in progress, instructions need to be provided to the user (e.g. look up) */
 		VRBOOST_SCAN_FAILED /**< Memory scan failed completely to find a any appropriate addresses */
 	};
 }

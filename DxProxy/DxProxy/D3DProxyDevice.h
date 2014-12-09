@@ -688,6 +688,9 @@ private:
 	typedef VRBoost::ReturnValue (WINAPI *LPVRBOOST_StartMemoryScan)( void );
 	typedef float (WINAPI *LPVRBOOST_GetScanInitPercent)( void );
 	typedef void (WINAPI *LPVRBOOST_GetScanFailReason)( char **reason );
+	typedef void (WINAPI *LPVRBOOST_SetNextScanCandidate)( bool increase );
+	typedef UINT (WINAPI *LPVRBOOST_GetScanCandidates)( void );
+	typedef void (WINAPI *LPVRBOOST_GetScanAssist)( char **instruction, DWORD *timeToEvent );
 
 	/**
 	* VRboost pointer function to load memory rules for a process.
@@ -726,6 +729,13 @@ private:
 	***/
 	LPVRBOOST_GetScanFailReason m_pVRboost_GetScanFailReason;
 	/**
+	* VRboost pointer function to select next scan candidate
+	***/
+	LPVRBOOST_SetNextScanCandidate m_pVRboost_SetNextScanCandidate;
+	LPVRBOOST_GetScanCandidates m_pVRboost_GetScanCandidates;
+	LPVRBOOST_GetScanAssist m_pVRboost_GetScanAssist;
+
+	/**
 	* Handle to VRboost library.
 	***/
 	HMODULE hmVRboost;
@@ -736,6 +746,7 @@ private:
 		bool VRBoost_LoadRules;
 		bool VRBoost_ApplyRules;
 		bool VRBoost_Scanning;
+		bool VRBoost_Candidates;
 	} VRBoostStatus;
 
 	/**
