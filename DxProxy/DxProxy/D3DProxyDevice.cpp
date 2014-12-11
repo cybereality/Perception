@@ -2379,14 +2379,14 @@ void D3DProxyDevice::HandleControls()
 	}
 
 	// Initiate VRBoost Memory Scan (NUMPAD5 or <LCTRL> + </> )
-	if (controls.Key_Down(VK_NUMPAD5) || (controls.Key_Down(VK_OEM_2) && controls.Key_Down(VK_LCONTROL)) && 
+	if ((controls.Key_Down(VK_NUMPAD5) || (controls.Key_Down(VK_OEM_2) && controls.Key_Down(VK_LCONTROL))) && 
 		(menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		if (hmVRboost!=NULL)
 		{
 			//Use local static, as it is a simple flag
 			static bool showRescanWarning = false;
-			if (showRescanWarning)
+			if (showRescanWarning && !VRBoostStatus.VRBoost_Scanning)
 			{
 				//If roll isn't enabled then rolling is done through the game engine using VRBoost
 				//In this case, if the user has already run a successful scan then running again would likely
@@ -2401,6 +2401,7 @@ void D3DProxyDevice::HandleControls()
 				sprintf_s(popup.line5, "Press scan trigger again to initiate memory scan");
 				sprintf_s(popup.line6, "or wait and this message will disappear (and scan wont run)");
 				ShowPopup(popup);
+				showRescanWarning = false;
 			}
 			else
 			{
@@ -2454,7 +2455,7 @@ void D3DProxyDevice::HandleControls()
 	}
 	
 	// Cancel VRBoost Memory Scan Mode (NUMPAD8 or <LCTRL> + <;> )
-	if (controls.Key_Down(VK_NUMPAD8) || (controls.Key_Down(VK_OEM_1) && controls.Key_Down(VK_LCONTROL))
+	if ((controls.Key_Down(VK_NUMPAD8) || (controls.Key_Down(VK_OEM_1) && controls.Key_Down(VK_LCONTROL)))
 		&& (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		DismissPopup(VPT_VRBOOST_SCANNING);
