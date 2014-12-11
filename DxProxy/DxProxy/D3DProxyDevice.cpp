@@ -2377,8 +2377,9 @@ void D3DProxyDevice::HandleControls()
 		}
 	}
 
-	// Initiate VRBoost Memory Scan
-	if (controls.Key_Down(VK_NUMPAD5) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	// Initiate VRBoost Memory Scan (NUMPAD5 or <LCTRL> + </> )
+	if (controls.Key_Down(VK_NUMPAD5) || (controls.Key_Down(VK_OEM_2) && controls.Key_Down(VK_LCONTROL)) && 
+		(menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		if (hmVRboost!=NULL)
 		{
@@ -2402,13 +2403,17 @@ void D3DProxyDevice::HandleControls()
 	}
 
 	// Select next scan candidate if there is one
-	if (VRBoostStatus.VRBoost_Candidates && (controls.Key_Down(VK_NUMPAD6) || controls.Key_Down(VK_NUMPAD4)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	//  Increase = NUMPAD6 or <LCTRL> + <.> 
+	//  Decrease = NUMPAD4 or <LCTRL> + <,> 
+	if (VRBoostStatus.VRBoost_Candidates && 
+		(controls.Key_Down(VK_NUMPAD6) || controls.Key_Down(VK_NUMPAD4) || (controls.Key_Down(VK_LCONTROL) && (controls.Key_Down(VK_OEM_COMMA) || controls.Key_Down(VK_OEM_PERIOD)))) && 
+		(menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		if (hmVRboost!=NULL)
 		{
 			static int c = 0;
 			UINT candidates = m_pVRboost_GetScanCandidates();
-			bool increase = controls.Key_Down(VK_NUMPAD6);
+			bool increase = (controls.Key_Down(VK_NUMPAD6) || controls.Key_Down(VK_OEM_PERIOD));
 			if (increase)
 				c = (c + 1) % candidates;
 			else
@@ -2425,8 +2430,10 @@ void D3DProxyDevice::HandleControls()
 			menuVelocity.x += 2.0f;
 		}
 	}
-
-	if (controls.Key_Down(VK_NUMPAD8) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	
+	// Cancel VRBoost Memory Scan Mode (NUMPAD8 or <LCTRL> + <;> )
+	if (controls.Key_Down(VK_NUMPAD8) || (controls.Key_Down(VK_OEM_1) && controls.Key_Down(VK_LCONTROL))
+		&& (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		DismissPopup(VPT_VRBOOST_SCANNING);
 
