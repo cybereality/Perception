@@ -13,6 +13,7 @@ v1.0.X 2013 by John Hicks, Neil Schneider
 v1.1.x 2013 by Primary Coding Author: Chris Drain
 Team Support: John Hicks, Phil Larkson, Neil Schneider
 v2.0.x 2013 by Denis Reischl, Neil Schneider, Joshua Brown
+v2.0.4 onwards 2014 by Grant Bagwell, Simon Brown and Neil Schneider
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -2382,21 +2383,42 @@ void D3DProxyDevice::HandleControls()
 	{
 		if (hmVRboost!=NULL)
 		{
-			ReturnValue vr = m_pVRboost_StartMemoryScan();
-			if (vr == VRBOOST_ERROR)
+			//Use local static, as it is a simple flag
+			static bool showRescanWarning = false;
+			if (showRescanWarning)
 			{
-				VireioPopup popup(VPT_VRBOOST_FAILURE, VPS_TOAST, 5000);
-				sprintf_s(popup.line3, "VRBoost: StartMemoryScan - Failed");
+				//If roll isn't enabled then rolling is done through the game engine using VRBoost
+				//In this case, if the user has already run a successful scan then running again would likely
+				//fail as the roll address will almost definitely not be 0, which is what the scanner would be looking for
+				//so before starting the scan, confirm with the user this is what they actually wish to do
+				//This will also prevent an accidental re-run
+				//Games that use matrix roll can usually be re-run without issue
+				VireioPopup popup(VPT_NOTIFICATION, VPS_INFO, 10000);
+				sprintf_s(popup.line1, "*WARNING*: re-running a memory scan once stable");
+				sprintf_s(popup.line2, "addresses have been found is likely to fail");
+				sprintf_s(popup.line3, "IF SCAN HASN'T SO FAR SUCCEEDED THEN IGNORE THIS WARNING");
+				sprintf_s(popup.line5, "Press scan trigger again to initiate memory scan");
+				sprintf_s(popup.line6, "or wait and this message will disappear (and scan wont run)");
 				ShowPopup(popup);
 			}
-			//If initialising then we have successfully started a new scan
-			else if (vr = VRBOOST_SCAN_INITIALISING)
+			else
 			{
-				VRBoostStatus.VRBoost_Scanning = true;
-				//Definitely have no candidates at this point
-				VRBoostStatus.VRBoost_Candidates = false;
+				ReturnValue vr = m_pVRboost_StartMemoryScan();
+				if (vr == VRBOOST_ERROR)
+				{
+					VireioPopup popup(VPT_VRBOOST_FAILURE, VPS_TOAST, 5000);
+					sprintf_s(popup.line3, "VRBoost: StartMemoryScan - Failed");
+					ShowPopup(popup);
+				}
+				//If initialising then we have successfully started a new scan
+				else if (vr = VRBOOST_SCAN_INITIALISING)
+				{
+					VRBoostStatus.VRBoost_Scanning = true;
+					//Definitely have no candidates at this point
+					VRBoostStatus.VRBoost_Candidates = false;
+					showRescanWarning = true;
+				}
 			}
-
 			menuVelocity.x += 4.0f;
 		}
 	}
