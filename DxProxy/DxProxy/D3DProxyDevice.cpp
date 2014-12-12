@@ -93,7 +93,63 @@ UINT GetMouseScrollLines()
 	return nScrollLines;
 }
 
-
+std::string VRboostAxisString(UINT axis)
+{
+	switch (axis)
+	{
+	case VRboostAxis::TrackerYaw:
+		return "Yaw";
+		break;
+	case VRboostAxis::TrackerPitch:
+		return "Pitch";
+		break;
+	case VRboostAxis::TrackerRoll:
+		return "Roll";
+		break;
+	case VRboostAxis::Zero:
+		return "Zero";
+		break;
+	case VRboostAxis::One:
+		return "One";
+		break;
+	case VRboostAxis::WorldFOV:
+		return "WorldFOV";
+		break;
+	case VRboostAxis::PlayerFOV:
+		return "PlayerFOV";
+		break;
+	case VRboostAxis::FarPlaneFOV:
+		return "FarPlaneFOV";
+		break;
+	case VRboostAxis::CameraTranslateX:
+		return "CameraTranslateX";
+		break;
+	case VRboostAxis::CameraTranslateY:
+		return "CameraTranslateY";
+		break;
+	case VRboostAxis::CameraTranslateZ:
+		return "CameraTranslateZ";
+		break;
+	case VRboostAxis::CameraDistance:
+		return "CameraDistance";
+		break;
+	case VRboostAxis::CameraZoom:
+		return "CameraZoom";
+		break;
+	case VRboostAxis::CameraHorizonAdjustment:
+		return "CameraHorizonAdjustment";
+		break;
+	case VRboostAxis::ConstantValue1:
+		return "ConstantValue1";
+		break;
+	case VRboostAxis::ConstantValue2:
+		return "ConstantValue2";
+		break;
+	case VRboostAxis::ConstantValue3:
+		return "ConstantValue3";
+		break;
+	}
+}
 /**
 * Constructor : creates game handler and sets various states.
 ***/
@@ -2395,11 +2451,11 @@ void D3DProxyDevice::HandleControls()
 				//This will also prevent an accidental re-run
 				//Games that use matrix roll can usually be re-run without issue
 				VireioPopup popup(VPT_NOTIFICATION, VPS_INFO, 10000);
-				sprintf_s(popup.line1, "*WARNING*: re-running a memory scan once stable");
-				sprintf_s(popup.line2, "addresses have been found is likely to fail");
-				sprintf_s(popup.line3, "IF SCAN HASN'T SO FAR SUCCEEDED THEN IGNORE THIS WARNING");
-				sprintf_s(popup.line5, "Press scan trigger again to initiate memory scan");
-				sprintf_s(popup.line6, "or wait and this message will disappear (and scan wont run)");
+				sprintf_s(popup.line1, "   *WARNING*: re-running a scan once stable");
+				sprintf_s(popup.line2, "   addresses have been found will fail");
+				sprintf_s(popup.line3, "   IF NO SCAN HAS YET SUCCEEDED; IGNORE THIS WARNING");
+				sprintf_s(popup.line5, "   Press scan trigger again to initiate scan");
+				sprintf_s(popup.line6, "   or wait for this message to disappear (No Scan)");
 				ShowPopup(popup);
 				showRescanWarning = false;
 			}
@@ -2489,8 +2545,8 @@ void D3DProxyDevice::HandleControls()
 		menuVelocity.x+=2.0f;
 	}
 
-	//Show HMD Stats Counter LSHIFT+S
-	if (((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down(0x53)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	//Show HMD Stats Counter LSHIFT+H 
+	if (((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down(0x48)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		if (activePopup.popupType == VPT_STATS)
 		{
@@ -2624,7 +2680,20 @@ void D3DProxyDevice::HandleControls()
 	//Pick a hot-key for telescopic mode - use ALT+RIght Mouse CLick
 	if (controls.Key_Down(VK_MENU))
 	{
-		if (controls.Key_Down(VK_MBUTTON) && 
+		//First check whether VRBoost is controlling FOV, we can't use this functionality if it isn't
+		bool canUseTelescope = false;
+		if (hmVRboost && VRBoostStatus.VRBoost_Active)
+		{
+			UINT axesArray[30];
+			memset(axesArray, 0, sizeof(axesArray));
+			UINT count = m_pVRboost_GetActiveRuleAxes((UINT**)&axesArray);
+			int i = 0;
+			while (i < count)
+				canUseTelescope |= (axesArray[i++] == VRboostAxis::WorldFOV);
+		}
+
+		if (canUseTelescope &&
+			controls.Key_Down(VK_MBUTTON) && 
 			(menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
 			if (!m_telescopicSightMode &&
@@ -6294,10 +6363,32 @@ void D3DProxyDevice::DisplayCurrentPopup()
 			sprintf_s(activePopup.line1, "HMD Description: %s", tracker->GetTrackerDescription()); 
 			sprintf_s(activePopup.line2, "Yaw: %.3f Pitch: %.3f Roll: %.3f", tracker->primaryYaw, tracker->primaryPitch, tracker->primaryRoll); 
 			sprintf_s(activePopup.line3, "X: %.3f Y: %.3f Z: %.3f", tracker->primaryX, tracker->primaryY, tracker->primaryZ); 
-			sprintf_s(activePopup.line4, "VRBoost Active: %s     Rules Loaded: %s   Applied: %s", 
-				(VRBoostStatus.VRBoost_Active ? "TRUE" : "FALSE"), 
-				(VRBoostStatus.VRBoost_LoadRules ? "TRUE" : "FALSE"), 
-				(VRBoostStatus.VRBoost_ApplyRules ? "TRUE" : "FALSE"));
+
+			
+			if (VRBoostStatus.VRBoost_Active)
+			{
+				UINT axes[30];
+				memset(axes, 0xFF, sizeof(UINT) * 30);
+				UINT count = m_pVRboost_GetActiveRuleAxes((UINT**)&axes);
+
+				std::string axisNames;
+				int i = 0;
+				while (i < count)
+				{
+					if (axes[i] == MAXDWORD)
+						break;
+					axisNames += VRboostAxisString(axes[i]) + " ";
+					i++;
+				}				
+
+				sprintf_s(activePopup.line4, "VRBoost Active: TRUE     Axes: %s", 
+					axisNames.c_str());
+			}
+			else
+			{
+				strcpy_s(activePopup.line4, "VRBoost Active: FALSE");
+			}
+
 			if (m_bPosTrackingToggle)
 				strcpy_s(activePopup.line5, "HMD Positional Tracking Enabled");
 			else
@@ -6740,6 +6831,7 @@ bool D3DProxyDevice::InitVRBoost()
 		m_pVRboost_SetProcess = (LPVRBOOST_SetProcess)GetProcAddress(hmVRboost, "VRboost_SetProcess");
 		m_pVRboost_ReleaseAllMemoryRules = (LPVRBOOST_ReleaseAllMemoryRules)GetProcAddress(hmVRboost, "VRboost_ReleaseAllMemoryRules");
 		m_pVRboost_ApplyMemoryRules = (LPVRBOOST_ApplyMemoryRules)GetProcAddress(hmVRboost, "VRboost_ApplyMemoryRules");
+		m_pVRboost_GetActiveRuleAxes = (LPVRBOOST_GetActiveRuleAxes)GetProcAddress(hmVRboost, "VRboost_GetActiveRuleAxes");
 		m_pVRboost_StartMemoryScan = (LPVRBOOST_StartMemoryScan)GetProcAddress(hmVRboost, "VRboost_StartMemoryScan");
 		m_pVRboost_GetScanInitPercent = (LPVRBOOST_GetScanInitPercent)GetProcAddress(hmVRboost, "VRboost_GetScanInitPercent");
 		m_pVRboost_GetScanFailReason = (LPVRBOOST_GetScanFailReason)GetProcAddress(hmVRboost, "VRboost_GetScanFailReason");
@@ -6752,6 +6844,7 @@ bool D3DProxyDevice::InitVRBoost()
 			(!m_pVRboost_SetProcess) || 
 			(!m_pVRboost_ReleaseAllMemoryRules) || 
 			(!m_pVRboost_ApplyMemoryRules) ||
+			(!m_pVRboost_GetActiveRuleAxes) ||
 			(!m_pVRboost_StartMemoryScan) ||
 			(!m_pVRboost_GetScanInitPercent) ||
 			(!m_pVRboost_GetScanFailReason) ||
@@ -6769,6 +6862,7 @@ bool D3DProxyDevice::InitVRBoost()
 			if (!m_pVRboost_SetProcess) OutputDebugString("m_pVRboost_SetProcess");
 			if (!m_pVRboost_ReleaseAllMemoryRules) OutputDebugString("m_pVRboost_ReleaseAllMemoryRules");
 			if (!m_pVRboost_ApplyMemoryRules) OutputDebugString("m_pVRboost_ApplyMemoryRules");
+			if (!m_pVRboost_GetActiveRuleAxes) OutputDebugString("m_pVRboost_GetActiveRuleAxes");
 			if (!m_pVRboost_StartMemoryScan) OutputDebugString("m_pVRboost_StartMemoryScan");
 			if (!m_pVRboost_GetScanInitPercent) OutputDebugString("m_pVRboost_GetScanInitPercent");
 			if (!m_pVRboost_GetScanFailReason) OutputDebugString("m_pVRboost_GetScanFailReason");
