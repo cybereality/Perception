@@ -2677,19 +2677,28 @@ void D3DProxyDevice::HandleControls()
 	}
 
 
-	//Pick a hot-key for telescopic mode - use ALT+RIght Mouse CLick
+	//Pick a hot-key for telescopic mode - use ALT + Mouse Wheel CLick
 	if (controls.Key_Down(VK_MENU))
 	{
 		//First check whether VRBoost is controlling FOV, we can't use this functionality if it isn't
 		bool canUseTelescope = false;
 		if (hmVRboost && VRBoostStatus.VRBoost_Active)
 		{
-			UINT axesArray[30];
-			memset(axesArray, 0, sizeof(axesArray));
-			UINT count = m_pVRboost_GetActiveRuleAxes((UINT**)&axesArray);
+			UINT axes[30];
+			memset(axes, 0, sizeof(UINT) * 30);
+			UINT count = m_pVRboost_GetActiveRuleAxes((UINT**)&axes);
+
 			int i = 0;
 			while (i < count)
-				canUseTelescope |= (axesArray[i++] == VRboostAxis::WorldFOV);
+			{
+				if (axes[i] == VRboostAxis::WorldFOV)
+				{
+					canUseTelescope = true;
+					break;
+				}
+
+				i++;
+			}				
 		}
 
 		if (canUseTelescope &&
