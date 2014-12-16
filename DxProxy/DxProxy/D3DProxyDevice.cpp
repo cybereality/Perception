@@ -3214,8 +3214,8 @@ void D3DProxyDevice::HandleTracking()
 							strcpy_s(popup.line1, "VRBoost Memory Scan");
 							strcpy_s(popup.line2, "===================");
 							strcpy_s(popup.line3, "STATUS: WAITING USER ACTIVATION");
-							strcpy_s(popup.line4, " - Once you are \"in-game\", please press NUMPAD5 to start memory scan");
-							strcpy_s(popup.line5, "   and press NUMPAD5 to repeat if memory scan fails");
+							strcpy_s(popup.line4, " - Once you are \"in-game\", press NUMPAD5 to start memory scan");
+							strcpy_s(popup.line5, " - Press NUMPAD5 to repeat if memory scan fails");
 							strcpy_s(popup.line6, " - Press NUMPAD8 to cancel VRBoost and turn on mouse emulation");
 							ShowPopup(popup);
 						}
@@ -3313,6 +3313,26 @@ void D3DProxyDevice::HandleTracking()
 							m_pVRboost_GetScanFailReason((char**)&failReason);
 							sprintf_s(popup.line4, "REASON: %s", failReason);
 							delete []failReason;
+							strcpy_s(popup.line5, "VRBoost is now disabled");
+							strcpy_s(popup.line6, "Re-run the scan with NUMPAD5");
+							ShowPopup(popup);
+							VRBoostStatus.VRBoost_Active = false;
+						}
+						break;
+					case VRBoost::VRBOOST_ADDRESSES_LOST:
+						{
+							scanFailed = true;
+							VRBoostStatus.VRBoost_Scanning = false;
+							DismissPopup(VPT_VRBOOST_SCANNING);
+
+							//Enable mouse emulation whilst VRBoost is not active
+							m_bForceMouseEmulation = true;
+							tracker->setMouseEmulation(true);
+
+							VireioPopup popup(VPT_VRBOOST_FAILURE, VPS_ERROR, 10000);
+							strcpy_s(popup.line1, "VRBoost");
+							strcpy_s(popup.line2, "=======");
+							strcpy_s(popup.line3, "STATUS: ADDRESSES LOST");
 							strcpy_s(popup.line5, "VRBoost is now disabled");
 							strcpy_s(popup.line6, "Re-run the scan with NUMPAD5");
 							ShowPopup(popup);

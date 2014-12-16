@@ -92,6 +92,7 @@ namespace VRBoost
 		VRBOOST_SCAN_INITIALISING, /**< VRBoost is preparing scanner for memory locations */
 		VRBOOST_SCANNING, /**< Memory scans are now in progress */
 		VRBOOST_SCANNING_ASSIST, /**< Memory scans are now in progress, instructions need to be provided to the user (e.g. look up) */
-		VRBOOST_SCAN_FAILED /**< Memory scan failed completely to find a any appropriate addresses */
+		VRBOOST_SCAN_FAILED, /**< Memory scan failed completely to find a any appropriate addresses */
+		VRBOOST_ADDRESSES_LOST /**< Memory scan addresses are no longer valid - rescan required*/
 	};
 }
