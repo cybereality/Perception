@@ -1039,13 +1039,13 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 	if (m_isFirstBeginSceneOfFrame)
 	{
 		static int spashtick = GetTickCount();
-		if ((GetTickCount() - spashtick)  < 8000)
+		if ((GetTickCount() - spashtick)  < 5000)
 		{
 			std::string date(__DATE__);
 			std::string buildDate = date.substr(4, 2) + "-" + date.substr(0, 3) + "-" + date.substr(7, 4);
 
 			//Show a splash screen on startup
-			VireioPopup splashPopup(VPT_SPLASH_1, VPS_INFO, 8000);
+			VireioPopup splashPopup(VPT_SPLASH_1, VPS_INFO, 5000);
 			strcpy_s(splashPopup.line1, "Vireio Perception: Stereoscopic 3D Driver");
 			strcpy_s(splashPopup.line2, (std::string("Version: ") + APP_VERSION + "   Build Date: " + buildDate).c_str());
 			strcpy_s(splashPopup.line3, "This program is distributed in the hope that it will be useful,"); 
@@ -1055,8 +1055,8 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 			ShowPopup(splashPopup);
 		}
 
-		if ((GetTickCount() - spashtick)  > 8000 &&
-			(GetTickCount() - spashtick)  < 13000)
+		if ((GetTickCount() - spashtick)  > 5000 &&
+			(GetTickCount() - spashtick)  < 10000)
 		{
 			//Show a splash screen on startup
 			VireioPopup splashPopup(VPT_SPLASH_2, VPS_INFO, 5000);
@@ -1069,7 +1069,7 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 			ShowPopup(splashPopup);
 		}
 	
-		if ((GetTickCount() - spashtick)  > 13000)
+		if ((GetTickCount() - spashtick)  > 10000)
 		{
 			if (calibrate_tracker)
 			{
@@ -3283,10 +3283,10 @@ void D3DProxyDevice::HandleTracking()
 							if (timeToEvent == MAXDWORD)
 							{
 								strcpy_s(popup.line4, "    PLEASE LOOK STRAIGHT-AHEAD THEN");
-								strcpy_s(popup.line5, "    PRESS SCAN TRGGER (NUMPAD5) TO START \"ASSISTED\" SCAN");
+								strcpy_s(popup.line5, "    PRESS SCAN TRIGGER (NUMPAD5) TO START \"ASSISTED\" SCAN");
 							}
 							else
-								sprintf_s(popup.line4, "       ***  PLEASE LOOK:    %s  in   %i  ***", instruction, (timeToEvent/1000)+1);
+								sprintf_s(popup.line4, "       ***  PLEASE LOOK:    %s   %i  ***", instruction, (timeToEvent/1000)+1);
 							delete []instruction;
 							ShowPopup(popup);
 						}
