@@ -141,10 +141,18 @@ public:
 	* Used to glide the disconnected screen view in and out
 	*/
 	float m_screenViewGlideFactor;
+
+	enum VignetteStyle
+	{
+		NONE,
+		SOFT_EDGE,
+		TELESCOPIC_SIGHT
+	};
+
 	/**
-	* Whether Vignette is enabled (used for telescopic sight mode)
+	* Whether Vignette is enabled (also used for telescopic sight mode)
 	*/
-	bool m_vignette;
+	VignetteStyle m_vignetteStyle;
 
 protected:
 	/*** StereoView protected methods ***/

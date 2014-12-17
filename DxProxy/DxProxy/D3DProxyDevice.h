@@ -593,7 +593,7 @@ protected:
 	/**
 	* Whether we are in telescope mode
 	*/
-	int m_telescopicSightMode;
+	bool m_telescopicSightMode;
 	/**
 	* Target FOV for telescopic sight mode
 	*/
