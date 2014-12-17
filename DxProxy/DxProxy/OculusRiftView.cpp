@@ -68,24 +68,35 @@ void OculusRiftView::SetViewEffectInitialValues()
 	viewEffect->SetFloatArray("Resolution", Resolution, 2);
 	viewEffect->SetFloatArray("HmdWarpParam", hmdInfo->GetDistortionCoefficients(), 4);
 
+	//Local static for controlling vignette in telescopic sight mode
 	static float vignette_val = 1.0f;
 
-	if (m_vignette)
+	switch (m_vignetteStyle)
 	{
-		if (vignette_val > 0.4f)
-			vignette_val -= 0.01f;
-		//Telescopic sight mode
-		float vignette[3] = {vignette_val, 0.05f, 0.0f};
-		//Traditional mode (unused)
-		//static float vignette[3] = {0.95f, 0.05f, 0.275f};
-		viewEffect->SetFloatArray("Vignette", vignette, 3);
-	}
-	else
-	{
-		if (vignette_val < 1.0f)
-			vignette_val += 0.01f;
-		float vignette[3] = {vignette_val, 0.05f, 0.0f};
-		viewEffect->SetFloatArray("Vignette", vignette, 3);
+	case NONE:
+		{
+			//This also controls the zooming out of telescope mode
+			if (vignette_val < 1.0f)
+				vignette_val += 0.02f;
+			float vignette[3] = {vignette_val, 0.05f, 0.0f};
+			viewEffect->SetFloatArray("Vignette", vignette, 3);
+		}
+		break;
+	case SOFT_EDGE:
+		{
+			//Soft edge implementation - Not used
+			float vignette[3] = {0.9f, 0.1f, 0.275f};
+			viewEffect->SetFloatArray("Vignette", vignette, 3);
+		}
+		break;
+	case TELESCOPIC_SIGHT:
+		{
+			if (vignette_val > 0.44f)
+				vignette_val -= 0.02f;
+			float vignette[3] = {vignette_val, 0.05f, 0.0f};
+			viewEffect->SetFloatArray("Vignette", vignette, 3);
+		}
+		break;
 	}
 }
 

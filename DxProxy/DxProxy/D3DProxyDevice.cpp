@@ -149,6 +149,8 @@ std::string VRboostAxisString(UINT axis)
 		return "ConstantValue3";
 		break;
 	}
+
+	return "UnknownAxis";
 }
 /**
 * Constructor : creates game handler and sets various states.
@@ -159,6 +161,7 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	m_activeVertexBuffers(),
 	m_activeSwapChains(),
 	m_gameXScaleUnits(),
+	m_telescopicSightMode(false),
 	controls(),
 	dinput(),
 	activePopup(VPT_NONE),
@@ -2688,7 +2691,7 @@ void D3DProxyDevice::HandleControls()
 			memset(axes, 0, sizeof(UINT) * 30);
 			UINT count = m_pVRboost_GetActiveRuleAxes((UINT**)&axes);
 
-			int i = 0;
+			UINT i = 0;
 			while (i < count)
 			{
 				if (axes[i] == VRboostAxis::WorldFOV)
@@ -2708,10 +2711,10 @@ void D3DProxyDevice::HandleControls()
 			if (!m_telescopicSightMode &&
 				m_telescopeTargetFOV == FLT_MAX)
 			{   
-				//enabling
-				m_telescopeTargetFOV = 15;
+				//enabling - reduce FOV to 25 (will result in zooming in)
+				m_telescopeTargetFOV = 25;
 				m_telescopeCurrentFOV = config.WorldFOV;
-				stereoView->m_vignette = true;
+				stereoView->m_vignetteStyle = StereoView::TELESCOPIC_SIGHT;
 				m_telescopicSightMode = true;
 			}
 			else if (m_telescopicSightMode)
@@ -2719,7 +2722,7 @@ void D3DProxyDevice::HandleControls()
 				//disabling
 				m_telescopicSightMode = false;
 				m_telescopeTargetFOV = config.WorldFOV;
-				stereoView->m_vignette = false;
+				stereoView->m_vignetteStyle = StereoView::NONE;
 			}
 
 			menuVelocity.x += 4.0f;
@@ -3145,13 +3148,14 @@ void D3DProxyDevice::HandleTracking()
 		// development bool
 		bool createNSave = false;
 
+		//Reduce level of movement in telescopic mode
 		float mult = 1.0f;
 		if (m_telescopicSightMode)
-			mult = 0.1f;
+			mult = 0.5f;
 
 		// apply VRboost memory rules if present
-		VRBoostValue[VRboostAxis::TrackerYaw] = tracker->primaryYaw;// * mult;
-		VRBoostValue[VRboostAxis::TrackerPitch] = tracker->primaryPitch;// * mult;
+		VRBoostValue[VRboostAxis::TrackerYaw] = tracker->primaryYaw * mult;
+		VRBoostValue[VRboostAxis::TrackerPitch] = tracker->primaryPitch * mult;
 		VRBoostValue[VRboostAxis::TrackerRoll] = tracker->primaryRoll;
 
 		//Telescopic sight mode implementation
@@ -6401,7 +6405,7 @@ void D3DProxyDevice::DisplayCurrentPopup()
 				UINT count = m_pVRboost_GetActiveRuleAxes((UINT**)&axes);
 
 				std::string axisNames;
-				int i = 0;
+				UINT i = 0;
 				while (i < count)
 				{
 					if (axes[i] == MAXDWORD)
