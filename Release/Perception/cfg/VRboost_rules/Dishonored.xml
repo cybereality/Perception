@@ -5,7 +5,7 @@
 		<ID>0</ID>
 		<BaseAddress>000000D0</BaseAddress>
 		<MemIncrement>00000100</MemIncrement>
-		<MemIncCount>00500000</MemIncCount>
+		<MemIncCount>00300000</MemIncCount>
 		<FailIfNotFound>True</FailIfNotFound>
 		<ScanRule>
 			<AxisName>TrackerPitch</AxisName>
@@ -55,27 +55,6 @@
 			</Comparisons>
 		</ScanRule>
   </ScannerGroup>
-    
-  <!--<ScannerGroup>
-      <ID>1</ID>
-      <BaseAddress>0E000054</BaseAddress>
-      <MemIncrement>00000100</MemIncrement>
-      <MemIncCount>00400000</MemIncCount>
-      <FailIfNotFound>False</FailIfNotFound>
-    <ScanRule>
-			<AxisName>WorldFOV</AxisName>
-			<AddressType>Float</AddressType>
-			<ModificationToApply>FloatSimpleApply</ModificationToApply>
-			<BaseAddressOffset>00000000</BaseAddressOffset>
-			<CheckForChanges>NoChange</CheckForChanges>
-			<ExcludeGroup>NoExclude</ExcludeGroup>
-			<Comparisons>
-				<Compare type="Equal">
-					<MinValue>110.0</MinValue>
-				</Compare>
-			</Comparisons>
-		</ScanRule>
-	</ScannerGroup>-->
   </ScannerGroups>
 
   <!-- The following is used to direct the user to move their HMD so that addresses can be filtered, don't repeat -->
