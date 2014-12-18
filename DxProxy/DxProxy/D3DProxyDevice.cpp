@@ -3290,7 +3290,7 @@ void D3DProxyDevice::HandleTracking()
 								strcpy_s(popup.line5, "    PRESS SCAN TRIGGER (NUMPAD5) TO START \"ASSISTED\" SCAN");
 							}
 							else
-								sprintf_s(popup.line4, "       ***  PLEASE LOOK:    %s   %i  ***", instruction, (timeToEvent/1000)+1);
+								sprintf_s(popup.line4, "       ***  PLEASE LOOK:    %s   -   %i  ***", instruction, (timeToEvent/1000)+1);
 							delete []instruction;
 							ShowPopup(popup);
 						}
