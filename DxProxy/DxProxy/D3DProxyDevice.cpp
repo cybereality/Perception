@@ -2685,23 +2685,24 @@ void D3DProxyDevice::HandleControls()
 	{
 		//First check whether VRBoost is controlling FOV, we can't use this functionality if it isn't
 		bool canUseTelescope = false;
-		if (hmVRboost && VRBoostStatus.VRBoost_Active)
+		if (VRBoostStatus.VRBoost_Active)
 		{
 			UINT axes[30];
-			memset(axes, 0, sizeof(UINT) * 30);
+			memset(axes, 0xFF, sizeof(UINT) * 30);
 			UINT count = m_pVRboost_GetActiveRuleAxes((UINT**)&axes);
 
 			UINT i = 0;
 			while (i < count)
 			{
+				if (axes[i] == MAXDWORD)
+					break;
 				if (axes[i] == VRboostAxis::WorldFOV)
 				{
 					canUseTelescope = true;
 					break;
 				}
-
 				i++;
-			}				
+			}	
 		}
 
 		if (canUseTelescope &&
@@ -2711,8 +2712,8 @@ void D3DProxyDevice::HandleControls()
 			if (!m_telescopicSightMode &&
 				m_telescopeTargetFOV == FLT_MAX)
 			{   
-				//enabling - reduce FOV to 25 (will result in zooming in)
-				m_telescopeTargetFOV = 25;
+				//enabling - reduce FOV to 20 (will result in zooming in)
+				m_telescopeTargetFOV = 20;
 				m_telescopeCurrentFOV = config.WorldFOV;
 				stereoView->m_vignetteStyle = StereoView::TELESCOPIC_SIGHT;
 				m_telescopicSightMode = true;
@@ -3148,14 +3149,9 @@ void D3DProxyDevice::HandleTracking()
 		// development bool
 		bool createNSave = false;
 
-		//Reduce level of movement in telescopic mode
-		float mult = 1.0f;
-		if (m_telescopicSightMode)
-			mult = 0.5f;
-
 		// apply VRboost memory rules if present
-		VRBoostValue[VRboostAxis::TrackerYaw] = tracker->primaryYaw * mult;
-		VRBoostValue[VRboostAxis::TrackerPitch] = tracker->primaryPitch * mult;
+		VRBoostValue[VRboostAxis::TrackerYaw] = tracker->primaryYaw;
+		VRBoostValue[VRboostAxis::TrackerPitch] = tracker->primaryPitch;
 		VRBoostValue[VRboostAxis::TrackerRoll] = tracker->primaryRoll;
 
 		//Telescopic sight mode implementation
