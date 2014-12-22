@@ -107,6 +107,7 @@ DataGatherer::DataGatherer(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy)
 	m_bOutputShaderCode = false;
 	m_bTransposedRules = false;
 	m_bTestForTransposed = true;
+	m_bIgnoreCompare = false;
 
 	// get potential matrix names
 	ProxyHelper* helper = new ProxyHelper();
@@ -171,6 +172,11 @@ DataGatherer::DataGatherer(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy)
 						OutputDebugString("Do_Not_Transpose_Matrices");
 						m_bTransposedRules = false;
 						m_bTestForTransposed = false;
+					}
+					if (s.compare("Show_All_Matrices")==0)
+					{
+						OutputDebugString("Show_All_Matrices");
+						m_bIgnoreCompare = true;
 					}
 					break;
 				}
@@ -321,20 +327,38 @@ HRESULT WINAPI DataGatherer::CreateVertexShader(CONST DWORD* pFunction,IDirect3D
 			UINT pSizeOfData;
 			pActualShader->GetFunction(NULL, &pSizeOfData);
 
-			pData = new BYTE[pSizeOfData];
-			pActualShader->GetFunction(pData, &pSizeOfData);
-
+			pData = new BYTE[pSizeOfData];					
+			HRESULT _hr = pActualShader->GetFunction(pData, &pSizeOfData);
+			if(_hr == D3DERR_INVALIDCALL)
+			{
+				OutputDebugString("DATAGATHERER :: Invalid Call to IDirect3DVertexShader9->getFunction()");	
+			}
+			
 			uint32_t hash = 0;
 			MurmurHash3_x86_32(pData, pSizeOfData, VIREIO_SEED, &hash); 
 
-			D3DXGetShaderConstantTable(reinterpret_cast<DWORD*>(pData), &pConstantTable);
-
-			if(pConstantTable == NULL) 
+			_hr = D3DXGetShaderConstantTable(reinterpret_cast<DWORD*>(pData), &pConstantTable);
+			if(_hr == D3DERR_INVALIDCALL)
+				OutputDebugString("DATAGATHERER :: Invalid Call to D3DXGetShaderConstantTable");	
+			else if(_hr == D3DXERR_INVALIDDATA)
+				OutputDebugString("DATAGATHERER :: D3DXERR_INVALIDDATA to D3DXGetShaderConstantTable");	
+			else if(_hr == E_OUTOFMEMORY)
+				OutputDebugString("DATAGATHERER :: Out of Memory to D3DXGetShaderConstantTable");	
+			
+			if(pConstantTable == NULL)
+			{
+				OutputDebugString("DATAGATHERER :: Constant Table is Null");	
+				char buf[64];
+				LPCSTR psz = NULL;
+				sprintf_s(buf, "Size of Data: %d Data Contents: %s\n", pSizeOfData, pData);
+				psz = buf;
+				OutputDebugString(psz);
 				return creationResult;
+			}
 
 			D3DXCONSTANTTABLE_DESC pDesc;
 			pConstantTable->GetDesc(&pDesc);
-
+			
 			D3DXCONSTANT_DESC pConstantDesc[512];
 			UINT pConstantNum = 512;
 
@@ -347,7 +371,7 @@ HRESULT WINAPI DataGatherer::CreateVertexShader(CONST DWORD* pFunction,IDirect3D
 				if (pConstantNum >= 512) {
 					OutputDebugString("Need larger constant description buffer");
 				}
-
+				
 				// loop through constants, output relevant data
 				for(UINT j = 0; j < pConstantNum; j++)
 				{
@@ -1386,15 +1410,19 @@ void DataGatherer::BRASSA_ShowActiveShaders()
 ***/
 void DataGatherer::Analyze()
 {
+	OutputDebugString("DATA GATHERER: Analyzing");
 	// loop through relevant vertex shader constants
 	auto itShaderConstants = m_relevantVSConstantNames.begin();
 	while (itShaderConstants != m_relevantVSConstantNames.end())
 	{
+		OutputDebugString("DATA GATHERER: While Not at End");
 		// loop through matrix constant name assumptions
 		for (int i = 0; i < MATRIX_NAMES; i++)
 		{
+			OutputDebugString("DATA GATHERER: Matrix Name:");
+			OutputDebugString(itShaderConstants->name.c_str());
 			// test if assumption is found in constant name
-			if (strstr(itShaderConstants->name.c_str(), m_wvpMatrixConstantNames[i].c_str()) != 0)
+			if (strstr(itShaderConstants->name.c_str(), m_wvpMatrixConstantNames[i].c_str()) != 0 || m_bIgnoreCompare == true)
 			{
 				// test for "to-be-avoided" assumptions
 				for (int j = 0; j < AVOID_SUBSTRINGS; j++)

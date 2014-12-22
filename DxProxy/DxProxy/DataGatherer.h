@@ -95,6 +95,10 @@ private:
 	***/
 	bool m_bTransposedRules;
 	/**
+	* If true will ignore comparing shader name to strings
+	***/
+	bool m_bIgnoreCompare;
+	/**
 	* True if analyzer tests for transposed matrices.
 	***/
 	bool m_bTestForTransposed;
