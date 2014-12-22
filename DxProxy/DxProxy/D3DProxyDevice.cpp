@@ -6518,7 +6518,6 @@ void D3DProxyDevice::DisplayCurrentPopup()
 		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));
 		hudMainMenu->End();
 	}
-
 }
 
 
@@ -6599,6 +6598,11 @@ void D3DProxyDevice::ReleaseEverything()
 		}
 	}
 
+	if (hudMainMenu)
+	{
+		hudMainMenu->Release();
+		hudMainMenu = NULL;
+	}
 
 	m_spManagedShaderRegisters->ReleaseResources();
 
