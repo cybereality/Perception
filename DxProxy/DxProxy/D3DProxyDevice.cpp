@@ -2528,6 +2528,33 @@ void D3DProxyDevice::HandleControls()
 		menuVelocity.x-=2.0f;
 	}
 
+	//Enabled/Disable Free Pitch (default is disabled), LSHIFT + X
+	if (VRBoostStatus.VRBoost_Active && 
+		(controls.Key_Down(VK_LSHIFT) && controls.Key_Down(0x58)) && 
+		(menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	{
+		if (VRBoostValue[VRboostAxis::FreePitch] != 0.0f)
+		{
+			//Disable Free Pitch
+			VRBoostValue[VRboostAxis::FreePitch] = 0.0f;
+
+			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
+			sprintf_s(popup.line3, "Pitch Free-look Disabled");
+			ShowPopup(popup);
+		}
+		else
+		{
+			//Enable Free Pitch
+			VRBoostValue[VRboostAxis::FreePitch] = 1.0f;
+
+			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
+			sprintf_s(popup.line3, "Pitch Free-look Enabled");
+			ShowPopup(popup);
+		}
+
+		menuVelocity.x+=2.0f;
+	}
+
 
 	//Reset IPD Offset to 0  -  F8  or  LSHIFT+I
 	if ((controls.Key_Down(VK_F8) || (controls.Key_Down(VK_LSHIFT) && controls.Key_Down(0x49))) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
