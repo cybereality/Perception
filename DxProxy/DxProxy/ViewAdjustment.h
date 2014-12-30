@@ -51,7 +51,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class ViewAdjustment
 {
 public:	
-	ViewAdjustment(HMDisplayInfo *hmdInfo, float metersToWorldUnits, bool enableRoll);
+	ViewAdjustment(HMDisplayInfo *hmdInfo, float metersToWorldUnits, int rollImpl);
 	virtual ~ViewAdjustment();
 
 	/*** ViewAdjustment public methods ***/
@@ -108,8 +108,8 @@ public:
 	float         ConvergenceInWorldUnits();
 	float         SeparationInWorldUnits();
 	float         SeparationIPDAdjustment();
-	bool          RollEnabled();
-	void          SetRollEnabled(bool rollEnabled);
+	int           RollImpl();
+	void          SetRollImpl(int rollImpl);
 	int			  GetStereoType();
 	HMDisplayInfo* HMDInfo();	
 
@@ -270,9 +270,9 @@ private:
 	***/
 	HMDisplayInfo* hmdInfo;
 	/**
-	* True if head roll enabled.
+	* True if roll impl == 1.
 	***/
-	bool rollEnabled;
+	int rollImpl;
 	/**
 	* World scale, used to correct eye seperation game-specific.
 	***/

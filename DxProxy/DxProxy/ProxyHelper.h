@@ -62,7 +62,7 @@ public:
 		UINT        VRboostMaxShaderCount;      /**< Maximum Vertex Shader Count to apply VRboost (security) */
 		bool		is64bit;					/**< The game cpu-architecture, true for 64-bit games */
 		int         game_type;                  /**< Game type enumeration. Matching D3DProxyDevice::ProxyTypes. */
-		bool        rollEnabled;                /**< True if headtracking-roll is to be enabled. */
+		int         rollImpl;                   /**< 0 - NONE, 1 - Matrix Roll, 2 - Pixel Shader Roll */
 		float       worldScaleFactor;           /**< Value the eye seperation is to be multiplied with. (mm * worldScaleFactor = mm in game units). */
 		float       convergence;                /**< Convergence or Neutral Point distance, in meters. */
 		bool        swap_eyes;                  /**< Option to swap the eye output for different 3D systems. */

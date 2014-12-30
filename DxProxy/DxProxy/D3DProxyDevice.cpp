@@ -184,7 +184,7 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	hmdInfo = HMDisplayInfoFactory::CreateHMDisplayInfo(static_cast<StereoView::StereoTypes>(mode)); 
 	OutputDebugString(("Created HMD Info for: " + hmdInfo->GetHMDName()).c_str());
 
-	m_spShaderViewAdjustment = std::make_shared<ViewAdjustment>(hmdInfo, 1.0f, false);
+	m_spShaderViewAdjustment = std::make_shared<ViewAdjustment>(hmdInfo, 1.0f, 0);
 	m_pGameHandler = new GameHandler();
 
 	// Check the maximum number of supported render targets
@@ -2555,6 +2555,33 @@ void D3DProxyDevice::HandleControls()
 		menuVelocity.x+=2.0f;
 	}
 
+	//Enabled/Disable Black Smear Correction for DK2 (default is disabled), LSHIFT + B
+	if ((tracker && tracker->SupportsPositionTracking()) &&
+		(controls.Key_Down(VK_LSHIFT) && controls.Key_Down(0x42)) && 
+		(menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	{
+		if (stereoView->m_blackSmearCorrection != 0.0f)
+		{
+			stereoView->m_blackSmearCorrection = 0.0f;
+			stereoView->PostReset();		
+
+			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
+			sprintf_s(popup.line3, "DK2 Black Smear Correction Disabled");
+			ShowPopup(popup);
+		}
+		else
+		{
+			stereoView->m_blackSmearCorrection = 0.02f;
+			stereoView->PostReset();		
+
+			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
+			sprintf_s(popup.line3, "DK2 Black Smear Correction Enabled");
+			ShowPopup(popup);
+		}
+
+		menuVelocity.x+=2.0f;
+	}
+
 
 	//Reset IPD Offset to 0  -  F8  or  LSHIFT+I
 	if ((controls.Key_Down(VK_F8) || (controls.Key_Down(VK_LSHIFT) && controls.Key_Down(0x49))) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
@@ -3133,8 +3160,28 @@ void D3DProxyDevice::HandleTracking()
 		// update view adjustment class
 		if (tracker->getStatus() >= MTS_OK)
 		{
-			if (m_spShaderViewAdjustment->RollEnabled()) {
-				m_spShaderViewAdjustment->UpdateRoll(tracker->currentRoll);
+			//Roll implementation
+			switch (m_spShaderViewAdjustment->RollImpl())
+			{
+			case 0:
+				{
+					//Ensure this is 0, presumably VRBoost taking care of business
+					stereoView->m_rotation = 0.0f;
+				}
+			case 1:
+				{
+					if (tracker)
+						m_spShaderViewAdjustment->UpdateRoll(tracker->currentRoll);
+					stereoView->m_rotation = 0.0f;
+				}
+				break;
+			case 2:
+				{
+					//Set rotation on the stereo view
+					if (tracker)
+						stereoView->m_rotation = -1.0f * tracker->primaryRoll;
+				}
+				break;
 			}
 
 			m_spShaderViewAdjustment->UpdatePitchYaw(tracker->primaryPitch, tracker->primaryYaw);
@@ -5267,11 +5314,11 @@ void D3DProxyDevice::BRASSA_Settings()
 				menuVelocity.x += 4.0f;
 			}
 
-			// force mouse emulation
+			// update roll implementation
 			if (entryID == ROLL_ENABLED)
 			{
-				config.rollEnabled = !config.rollEnabled;
-				m_spShaderViewAdjustment->SetRollEnabled(config.rollEnabled);
+				config.rollImpl = (config.rollImpl+1) % 3;
+				m_spShaderViewAdjustment->SetRollImpl(config.rollImpl);
 				menuVelocity.x += 4.0f;
 			}
 
@@ -5614,13 +5661,16 @@ void D3DProxyDevice::BRASSA_Settings()
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		DrawTextShadowed(hudFont, hudMainMenu, "Reset Multipliers", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		switch (m_spShaderViewAdjustment->RollEnabled())
+		switch (m_spShaderViewAdjustment->RollImpl())
 		{
-		case true:
-			DrawTextShadowed(hudFont, hudMainMenu, "Roll Enabled : True", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		case 0:
+			DrawTextShadowed(hudFont, hudMainMenu, "Roll : Not Enabled", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 			break;
-		case false:
-			DrawTextShadowed(hudFont, hudMainMenu, "Roll Enabled : False", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		case 1:
+			DrawTextShadowed(hudFont, hudMainMenu, "Roll : Matrix Translation", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			break;
+		case 2:
+			DrawTextShadowed(hudFont, hudMainMenu, "Roll : Pixel Shader", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 			break;
 		}
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
