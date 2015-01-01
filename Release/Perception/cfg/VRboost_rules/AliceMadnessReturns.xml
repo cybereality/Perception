@@ -49,8 +49,14 @@
 			<CheckForChanges>NoChange</CheckForChanges>
 			<ExcludeGroup>NoExclude</ExcludeGroup>
 			<Comparisons>
-				<Compare type="Equal">
+			<Compare type="BetweenIncl">
+					<MinValue>0000D000</MinValue>
+					<MaxValue>0000FFFF</MaxValue>
+				</Compare>
+				<!-- OR -->
+				<Compare type="BetweenIncl">
 					<MinValue>00000000</MinValue>
+					<MaxValue>00003000</MaxValue>
 				</Compare>
 			</Comparisons>
 		</ScanRule>
