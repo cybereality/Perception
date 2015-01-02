@@ -145,6 +145,7 @@ public:
 	* Used to indicate 2d Depth Mode
 	*/
 	bool m_b2dDepthMode;
+	bool m_bLeftSideActive;
 
 	enum VignetteStyle
 	{

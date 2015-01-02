@@ -194,8 +194,7 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	DWORD maxRenderTargets = capabilities.NumSimultaneousRTs;
 	m_activeRenderTargets.resize(maxRenderTargets, NULL);
 
-	//FORCE This on to begin with
-	m_b2dDepthMode = true;
+	m_b2dDepthMode = false;
 
 	D3DXMatrixIdentity(&m_leftView);
 	D3DXMatrixIdentity(&m_rightView);
@@ -1046,13 +1045,13 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 	if (m_isFirstBeginSceneOfFrame)
 	{
 		static int spashtick = GetTickCount();
-		if ((GetTickCount() - spashtick)  < 5000)
+		if ((GetTickCount() - spashtick)  < 4000)
 		{
 			std::string date(__DATE__);
 			std::string buildDate = date.substr(4, 2) + "-" + date.substr(0, 3) + "-" + date.substr(7, 4);
 
 			//Show a splash screen on startup
-			VireioPopup splashPopup(VPT_SPLASH_1, VPS_INFO, 5000);
+			VireioPopup splashPopup(VPT_SPLASH_1, VPS_INFO, 4000);
 			strcpy_s(splashPopup.line1, "Vireio Perception: Stereoscopic 3D Driver");
 			strcpy_s(splashPopup.line2, (std::string("Version: ") + APP_VERSION + "   Build Date: " + buildDate).c_str());
 			strcpy_s(splashPopup.line3, "This program is distributed in the hope that it will be useful,"); 
@@ -1062,11 +1061,11 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 			ShowPopup(splashPopup);
 		}
 
-		if ((GetTickCount() - spashtick)  > 5000 &&
-			(GetTickCount() - spashtick)  < 10000)
+		if ((GetTickCount() - spashtick)  > 4000 &&
+			(GetTickCount() - spashtick)  < 8000)
 		{
 			//Show a splash screen on startup
-			VireioPopup splashPopup(VPT_SPLASH_2, VPS_INFO, 5000);
+			VireioPopup splashPopup(VPT_SPLASH_2, VPS_INFO, 4000);
 			strcpy_s(splashPopup.line1, "Vireio Perception: Stereoscopic 3D Driver");
 			strcpy_s(splashPopup.line2, "Useful Hot-keys:"); 
 			strcpy_s(splashPopup.line3, "     <CTRL> + <Q>\t\t\t:  Show BRASSA Menu"); 
@@ -1076,7 +1075,7 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 			ShowPopup(splashPopup);
 		}
 	
-		if ((GetTickCount() - spashtick)  > 10000)
+		if ((GetTickCount() - spashtick)  > 8000)
 		{
 			if (calibrate_tracker)
 			{
@@ -2312,8 +2311,7 @@ void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 	stereoView->HeadZOffset = FLT_MAX;
 	stereoView->IPDOffset = config.IPDOffset;
 	stereoView->DistortionScale = config.DistortionScale;
-	//GB TESTING - Hardwire to true
-	stereoView->m_b2dDepthMode = true;
+	stereoView->m_b2dDepthMode = false;	
 
 	m_maxDistortionScale = config.DistortionScale;
 
@@ -2442,6 +2440,30 @@ void D3DProxyDevice::HandleControls()
 
 			menuVelocity.x += 4.0f;
 		}
+	}
+
+	// switch to 2d Depth Mode (Shift + L)
+	if (controls.Key_Down(VK_LSHIFT) && (controls.Key_Down(0x4C) || controls.Key_Down(VK_NUMPAD9)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	{
+		if(!m_b2dDepthMode)
+		{
+			m_b2dDepthMode = true;
+			stereoView->m_b2dDepthMode = true;
+
+			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
+			sprintf_s(popup.line3, "Depth Perception Mode On");
+			ShowPopup(popup);
+		}
+		else
+		{
+			m_b2dDepthMode = false;
+			stereoView->m_b2dDepthMode = false;
+			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
+			sprintf_s(popup.line3, "Depth Perception Mode Off");
+			ShowPopup(popup);
+		}
+		menuVelocity.x += 4.0f;
+		
 	}
 
 	// Initiate VRBoost Memory Scan (NUMPAD5 or <LCTRL> + </> )
@@ -3507,7 +3529,8 @@ void D3DProxyDevice::OnCreateOrRestore()
 		OutputDebugString("called OnCreateOrRestore");
 	#endif
 	m_currentRenderingSide = vireio::Left;
-	m_pCurrentMatViewTransform = &m_spShaderViewAdjustment->LeftAdjustmentMatrix();
+	if(!m_b2dDepthMode)
+		m_pCurrentMatViewTransform = &m_spShaderViewAdjustment->LeftAdjustmentMatrix();
 	m_pCurrentView = &m_leftView;
 	m_pCurrentProjection = &m_leftProjection;
 
@@ -4229,7 +4252,7 @@ void D3DProxyDevice::BRASSA_MainMenu()
 		DrawTextShadowed(hudFont, hudMainMenu, "Restore Configuration\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-
+		
 		// draw HUD quick setting rectangles
 		rect.x1 = (int)(viewportWidth*0.57f); rect.x2 = (int)(viewportWidth*0.61f); rect.y1 = (int)hudQSHeight; rect.y2 = (int)(hudQSHeight+viewportHeight*0.027f);
 		DrawSelection(vireio::RenderPosition::Left, rect, D3DCOLOR_ARGB(255, 128, 196, 128), (int)hud3DDepthMode, (int)HUD_3D_Depth_Modes::HUD_ENUM_RANGE);

@@ -82,14 +82,14 @@ StereoView::StereoView(ProxyHelper::ProxyConfig& config)
 	lastRenderTarget1 = NULL;
 	viewEffect = NULL;
 	sb = NULL;
-
+	m_bLeftSideActive = false;
 	// set behavior accordingly to game type
 	int gameType = config.game_type;
 	if (gameType>10000) gameType-=10000;
 	switch(gameType)
 	{
 	case D3DProxyDevice::FIXED:
-		howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;
+		howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;		
 		break;
 	case D3DProxyDevice::SOURCE:
 	case D3DProxyDevice::SOURCE_L4D:
@@ -111,6 +111,7 @@ StereoView::StereoView(ProxyHelper::ProxyConfig& config)
 	case D3DProxyDevice::UNREAL_BIOSHOCK2:
 	case D3DProxyDevice::UNREAL_BORDERLANDS:
 		howToSaveRenderStates = HowToSaveRenderStates::DO_NOT_SAVE_AND_RESTORE;
+		m_bLeftSideActive = true;
 		break;
 	case D3DProxyDevice::EGO:
 	case D3DProxyDevice::EGO_DIRT:
@@ -127,6 +128,7 @@ StereoView::StereoView(ProxyHelper::ProxyConfig& config)
 	case D3DProxyDevice::GAMEBRYO:
 	case D3DProxyDevice::GAMEBRYO_SKYRIM:
 		howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;
+		m_bLeftSideActive = true;
 		break;
 	case D3DProxyDevice::LFS:
 		howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;
@@ -241,12 +243,30 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 {
 	// Copy left and right surfaces to textures to use as shader input
 	// TODO match aspect ratio of source in target ? 
-	IDirect3DSurface9* leftImage = stereoCapableSurface->getActualLeft();
+	IDirect3DSurface9* leftImage;
 	IDirect3DSurface9* rightImage;	
+	
 	if(m_b2dDepthMode == true)
+	{
+		if(m_bLeftSideActive == true)
+		{
+			leftImage = stereoCapableSurface->getActualRight();
+			//leftImage = stereoCapableSurface->getActualLeft();
+			//rightImage = stereoCapableSurface->getActualRight();
+		}
+		else
+		{
+			leftImage = stereoCapableSurface->getActualLeft();
+			//leftImage = stereoCapableSurface->getActualRight();
+			//rightImage = stereoCapableSurface->getActualLeft();
+		}
 		rightImage = leftImage;
+	}
 	else
+	{
+		leftImage = stereoCapableSurface->getActualLeft();
 		rightImage = stereoCapableSurface->getActualRight();
+	}
 
 	m_pActualDevice->StretchRect(leftImage, NULL, leftSurface, NULL, D3DTEXF_NONE);
 
