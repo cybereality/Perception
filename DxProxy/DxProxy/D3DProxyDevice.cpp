@@ -173,6 +173,7 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 		OutputDebugString("called D3DProxyDevice");
 	#endif
 	OutputDebugString("D3D ProxyDev Created\n");
+	
 	InitVRBoost();
 
 	// rift info
@@ -192,6 +193,9 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	BaseDirect3DDevice9::GetDeviceCaps(&capabilities);
 	DWORD maxRenderTargets = capabilities.NumSimultaneousRTs;
 	m_activeRenderTargets.resize(maxRenderTargets, NULL);
+
+	//FORCE This on to begin with
+	m_b2dDepthMode = true;
 
 	D3DXMatrixIdentity(&m_leftView);
 	D3DXMatrixIdentity(&m_rightView);
@@ -862,10 +866,10 @@ HRESULT WINAPI D3DProxyDevice::ColorFill(IDirect3DSurface9* pSurface,CONST RECT*
 	HRESULT result;
 
 	D3D9ProxySurface* pDerivedSurface = static_cast<D3D9ProxySurface*> (pSurface);
-	if (SUCCEEDED(result = BaseDirect3DDevice9::ColorFill(pDerivedSurface->getActualLeft(), pRect, color)))
+	if (SUCCEEDED(result = BaseDirect3DDevice9::ColorFill(pDerivedSurface->getActualRight(), pRect, color)))
 	{
-		if (pDerivedSurface->IsStereo())
-			BaseDirect3DDevice9::ColorFill(pDerivedSurface->getActualRight(), pRect, color);
+		if (!m_b2dDepthMode && pDerivedSurface->IsStereo())
+			BaseDirect3DDevice9::ColorFill(pDerivedSurface->getActualLeft(), pRect, color);
 	}
 
 	return result;
@@ -1177,7 +1181,7 @@ HRESULT WINAPI D3DProxyDevice::Clear(DWORD Count,CONST D3DRECT* pRects,DWORD Fla
 	#endif
 	HRESULT result;
 	if (SUCCEEDED(result = BaseDirect3DDevice9::Clear(Count, pRects, Flags, Color, Z, Stencil))) {
-		if (switchDrawingSide()) {
+		if (!m_b2dDepthMode && switchDrawingSide()) {
 
 			HRESULT hr;
 			if (FAILED(hr = BaseDirect3DDevice9::Clear(Count, pRects, Flags, Color, Z, Stencil))) {
@@ -1596,7 +1600,7 @@ HRESULT WINAPI D3DProxyDevice::DrawPrimitive(D3DPRIMITIVETYPE PrimitiveType,UINT
 
 	HRESULT result;
 	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawPrimitive(PrimitiveType, StartVertex, PrimitiveCount))) {
-		if (switchDrawingSide())
+		if (!m_b2dDepthMode && switchDrawingSide())
 			BaseDirect3DDevice9::DrawPrimitive(PrimitiveType, StartVertex, PrimitiveCount);
 	}
 
@@ -1616,7 +1620,7 @@ HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitive(D3DPRIMITIVETYPE PrimitiveTy
 
 	HRESULT result;
 	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawIndexedPrimitive(PrimitiveType, BaseVertexIndex, MinVertexIndex, NumVertices, startIndex, primCount))) {
-		if (switchDrawingSide()) {
+		if (!m_b2dDepthMode && switchDrawingSide()) {
 			HRESULT result2 = BaseDirect3DDevice9::DrawIndexedPrimitive(PrimitiveType, BaseVertexIndex, MinVertexIndex, NumVertices, startIndex, primCount);
 			if (result != result2)
 				OutputDebugString("moop\n");
@@ -1639,7 +1643,7 @@ HRESULT WINAPI D3DProxyDevice::DrawPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType,UI
 
 	HRESULT result;
 	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawPrimitiveUP(PrimitiveType, PrimitiveCount, pVertexStreamZeroData, VertexStreamZeroStride))) {
-		if (switchDrawingSide())
+		if (!m_b2dDepthMode && switchDrawingSide())
 			BaseDirect3DDevice9::DrawPrimitiveUP(PrimitiveType, PrimitiveCount, pVertexStreamZeroData, VertexStreamZeroStride);
 	}
 
@@ -1659,7 +1663,7 @@ HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitiveUP(D3DPRIMITIVETYPE Primitive
 
 	HRESULT result;
 	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawIndexedPrimitiveUP(PrimitiveType, MinVertexIndex, NumVertices, PrimitiveCount, pIndexData, IndexDataFormat, pVertexStreamZeroData, VertexStreamZeroStride))) {
-		if (switchDrawingSide())
+		if (!m_b2dDepthMode && switchDrawingSide())
 			BaseDirect3DDevice9::DrawIndexedPrimitiveUP(PrimitiveType, MinVertexIndex, NumVertices, PrimitiveCount, pIndexData, IndexDataFormat, pVertexStreamZeroData, VertexStreamZeroStride);
 	}
 
@@ -2175,7 +2179,7 @@ HRESULT WINAPI D3DProxyDevice::DrawRectPatch(UINT Handle,CONST float* pNumSegs,C
 
 	HRESULT result;
 	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawRectPatch(Handle, pNumSegs, pRectPatchInfo))) {
-		if (switchDrawingSide())
+		if (!m_b2dDepthMode && switchDrawingSide())
 			BaseDirect3DDevice9::DrawRectPatch(Handle, pNumSegs, pRectPatchInfo);
 	}
 
@@ -2195,7 +2199,7 @@ HRESULT WINAPI D3DProxyDevice::DrawTriPatch(UINT Handle,CONST float* pNumSegs,CO
 
 	HRESULT result;
 	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawTriPatch(Handle, pNumSegs, pTriPatchInfo))) {
-		if (switchDrawingSide())
+		if (!m_b2dDepthMode && switchDrawingSide())
 			BaseDirect3DDevice9::DrawTriPatch(Handle, pNumSegs, pTriPatchInfo);
 	}
 
@@ -2308,6 +2312,9 @@ void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 	stereoView->HeadZOffset = FLT_MAX;
 	stereoView->IPDOffset = config.IPDOffset;
 	stereoView->DistortionScale = config.DistortionScale;
+	//GB TESTING - Hardwire to true
+	stereoView->m_b2dDepthMode = true;
+
 	m_maxDistortionScale = config.DistortionScale;
 
 	BRASSA_UpdateDeviceSettings();
@@ -3706,7 +3713,7 @@ bool D3DProxyDevice::switchDrawingSide()
 		OutputDebugString("called SwitchDrawingSide");
 	#endif
 	bool switched = false;
-
+	
 	if (m_currentRenderingSide == vireio::Left) {
 		switched = setDrawingSide(vireio::Right);
 	}

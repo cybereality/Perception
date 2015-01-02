@@ -242,7 +242,11 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 	// Copy left and right surfaces to textures to use as shader input
 	// TODO match aspect ratio of source in target ? 
 	IDirect3DSurface9* leftImage = stereoCapableSurface->getActualLeft();
-	IDirect3DSurface9* rightImage = stereoCapableSurface->getActualRight();
+	IDirect3DSurface9* rightImage;	
+	if(m_b2dDepthMode == true)
+		rightImage = leftImage;
+	else
+		rightImage = stereoCapableSurface->getActualRight();
 
 	m_pActualDevice->StretchRect(leftImage, NULL, leftSurface, NULL, D3DTEXF_NONE);
 
@@ -251,6 +255,7 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 	else
 		m_pActualDevice->StretchRect(leftImage, NULL, rightSurface, NULL, D3DTEXF_NONE);
 
+	
 	// how to save (backup) render states ?
 	switch(howToSaveRenderStates)
 	{
@@ -267,7 +272,7 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 	case HowToSaveRenderStates::DO_NOT_SAVE_AND_RESTORE:
 		break;
 	}
-
+	
 	// set states for fullscreen render
 	SetState();
 

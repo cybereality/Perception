@@ -355,6 +355,11 @@ public:
 	InputControls controls;
 	DirectInput dinput;
 
+	/**
+	* What 3D mode is used
+	**/
+	bool m_b2dDepthMode;
+
 protected:
 	/*** D3DProxyDevice protected methods ***/
 	virtual void OnCreateOrRestore();	

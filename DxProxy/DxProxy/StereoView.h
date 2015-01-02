@@ -141,6 +141,10 @@ public:
 	* Used to glide the disconnected screen view in and out
 	*/
 	float m_screenViewGlideFactor;
+	/**
+	* Used to indicate 2d Depth Mode
+	*/
+	bool m_b2dDepthMode;
 
 	enum VignetteStyle
 	{

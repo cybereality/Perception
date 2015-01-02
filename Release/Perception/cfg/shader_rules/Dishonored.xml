@@ -1,11 +1,15 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0"?>
 <shaderConfig>
-  <rules>
-    <rule constantName="ViewProjectionMatrix" partialName="true" id="1" constantType="MatrixC" modToApply="1" startReg="0" transpose="false" />
-  </rules>
-  <defaultRuleIDs>
-    <ruleID id="1" />
-  </defaultRuleIDs>
-  <!--<shaderSpecificRuleIDs shaderHash="163823880" squishViewport="true"></shaderSpecificRuleIDs>-->
-  <!--<shaderSpecificRuleIDs shaderHash="2181797770" squishViewport="true"></shaderSpecificRuleIDs>-->
+	<rules>
+		<rule constantName="ViewProjectionMatrix" partialName="true" id="1" constantType="MatrixC" modToApply="1" startReg="0" transpose="false" />
+		<rule constantName="Transform" partialName="true" id="2" constantType="MatrixC" modToApply="8" startReg="6" transpose="false" />
+		<rule constantName="TextureMatrix" partialName="true" id="3" constantType="MatrixC" modToApply="8" startReg="10" transpose="false" />
+		<rule constantName="Transform" partialName="true" id="4" constantType="MatrixC" modToApply="8" startReg="6" transpose="false" />		
+	</rules>
+	<defaultRuleIDs>
+		<ruleID id="1" />		
+	</defaultRuleIDs>
+	<shaderSpecificRuleIDs shaderHash="2181797770">
+		<ruleID id="3" />
+	</shaderSpecificRuleIDs>
 </shaderConfig>

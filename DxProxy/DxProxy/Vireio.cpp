@@ -47,7 +47,7 @@ namespace vireio {
 			assert (false);
 
 		D3DRESOURCETYPE type = pWrappedTexture->GetType();
-
+		
 		*ppActualLeftTexture = NULL;
 		*ppActualRightTexture = NULL;
 
