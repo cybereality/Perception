@@ -12,6 +12,8 @@ float4 Chroma;
 float2 Resolution;
 float4 HmdWarpParam;
 float3 Vignette;
+float Rotation;
+float BlackSmearCorrection;
 
 // Warp operates on left view, for right, mirror x texture coord
 // before and after calling.  in02 contains the chromatic aberration
@@ -19,7 +21,7 @@ float3 Vignette;
 float2 HmdWarp(float2 in01, float2 in02)
 {
 	float2 theta = (in01 - LensCenter) * ScaleIn;
-		float  rSq= theta.x * theta.x + theta.y * theta.y;
+	float  rSq= theta.x * theta.x + theta.y * theta.y;
 	float2 theta1 = theta
 
 		* ((1.0f + in02.x) + in02.y * rSq) // correct chromatic aberr.
@@ -39,6 +41,37 @@ float2 HmdWarp(float2 in01, float2 in02)
 	return theta1;
 }
 
+float2 rotatePoint(float angle, float2 coord)
+{
+	if (angle == 0.0f)
+		return coord;
+	
+	float aspect = Resolution.x / Resolution.y;
+
+	float2 newPos = coord;
+	
+	float s = sin(angle);
+	float c = cos(angle);
+	
+
+	//New Elliptical Rotation
+	// translate point back to origin:
+	newPos.x -= 0.5f;
+	newPos.y -= 0.5f;
+	float tempX = newPos.x;
+
+	newPos.y /= aspect;
+	newPos.x = newPos.x * c - newPos.y * s;
+	newPos.y = tempX * s + newPos.y * c;
+	newPos.y *= aspect;
+		
+	// translate point back:
+	newPos.x += 0.5f;
+	newPos.y += 0.5f; 
+	
+	return newPos;
+}
+
 
 float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 {
@@ -46,24 +79,30 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 	float2 tcRed;
 	float2 tcGreen;
 	float2 tcBlue;
+	float angle = Rotation;
 	float3 outColor;
 
 
 	if (Tex.x > 0.5f) {
 		// mirror to get the right-eye distortion
 		newPos.x = 1.0f - newPos.x;
+		angle = -Rotation;
 	}  
 
 	// Chromatic Aberation Correction using coefs from SDK.
 	tcBlue = HmdWarp(newPos, float2(Chroma.z, Chroma.w));
+	tcBlue = rotatePoint(angle, tcBlue);
 
 	// Clamp on blue, because we expand the blue channel outward the most.
 	// Symmetry makes this ok to do before any unmirroring.
 	if (any(clamp(tcBlue.xy, float2(0.0,0.0), float2(1.0, 1.0)) - tcBlue.xy))
 		return 0;
 
-	tcRed   = HmdWarp(newPos, float2(Chroma.x, Chroma.y));
+	tcRed = HmdWarp(newPos, float2(Chroma.x, Chroma.y));
+	tcRed = rotatePoint(angle, tcRed);
+
 	tcGreen = HmdWarp(newPos, float2(0.0f, 0.0f));
+	tcGreen = rotatePoint(angle, tcGreen);
 
 	if (Tex.x > 0.5f)
 	{
@@ -83,8 +122,6 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 
 	if (any(clamp(tcBlue.xy, float2(0.0,0.0), float2(1.0, 1.0)) - tcBlue.xy))
 		return 0;
-//	if(tcRed.x >= 1.0f || tcRed.y <= 0.0f || tcRed.x <= 0.0f || tcRed.y >= 1.0f)
-//		return 0;
 
 	if (Tex.x > 0.5f)
 	{
@@ -135,7 +172,18 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 		}
 	}
 
-	return float4(outColor.r * vignetteScaler, outColor.g * vignetteScaler, outColor.b * vignetteScaler, 1.0f);
+	float4 returnColour = float4(outColor.r * vignetteScaler, outColor.g * vignetteScaler, outColor.b * vignetteScaler, 1.0f);
+	if (BlackSmearCorrection != 0.0f)
+	{
+		if (returnColour.r < BlackSmearCorrection)
+			returnColour.r = BlackSmearCorrection;
+		if (returnColour.g < BlackSmearCorrection)
+			returnColour.g = BlackSmearCorrection;
+		if (returnColour.b < BlackSmearCorrection)
+			returnColour.b = BlackSmearCorrection;
+	}
+
+	return returnColour;
 }
 
 technique ViewShader

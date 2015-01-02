@@ -62,6 +62,8 @@ StereoView::StereoView(ProxyHelper::ProxyConfig& config)
 	swapEyes = config.swap_eyes;
 	chromaticAberrationCorrection = true;
 	m_vignetteStyle = NONE;
+	m_rotation = 0.0f;
+	m_blackSmearCorrection = 0.0f;
 
 	// set all member pointers to NULL to prevent uninitialized objects being used
 	m_pActualDevice = NULL;

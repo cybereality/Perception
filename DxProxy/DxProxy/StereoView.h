@@ -159,6 +159,12 @@ public:
 	*/
 	VignetteStyle m_vignetteStyle;
 
+	//The amount of rotation to apply if using pixel shader implementation of roll
+	float m_rotation;
+
+	//DK2 black smear correction (0.0f if disabled)
+	float m_blackSmearCorrection;
+
 protected:
 	/*** StereoView protected methods ***/
 	virtual void InitTextureBuffers();

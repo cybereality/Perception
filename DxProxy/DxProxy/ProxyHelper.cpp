@@ -789,7 +789,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 			config.VRboostPath = "";
 		}
 
-		config.rollEnabled = gameProfile.attribute("rollEnabled").as_bool(false);
+		config.rollImpl = gameProfile.attribute("rollImpl").as_int(0);
 		config.worldScaleFactor = gameProfile.attribute("worldScaleFactor").as_float(1.0f);
 
 		// copy game dlls
@@ -961,19 +961,19 @@ bool ProxyHelper::SaveConfig(ProxyConfig& config)
 			gameProfile.remove_attribute("game_type");
 			gameProfile.insert_attribute_after("game_type", gameProfile.attribute("maxVRboostShaderCount")) = config.game_type;
 		}
-		if (strcmp(gameProfile.attribute("game_type").next_attribute().name(), "rollEnabled") == 0)
-			gameProfile.attribute("rollEnabled") = config.rollEnabled;
+		if (strcmp(gameProfile.attribute("game_type").next_attribute().name(), "rollImpl") == 0)
+			gameProfile.attribute("rollImpl") = config.rollImpl;
 		else
 		{
-			gameProfile.remove_attribute("rollEnabled");
-			gameProfile.insert_attribute_after("rollEnabled", gameProfile.attribute("game_type")) = config.rollEnabled;
+			gameProfile.remove_attribute("rollImpl");
+			gameProfile.insert_attribute_after("rollImpl", gameProfile.attribute("game_type")) = config.rollImpl;
 		}
-		if (strcmp(gameProfile.attribute("rollEnabled").next_attribute().name(), "worldScaleFactor") == 0)
+		if (strcmp(gameProfile.attribute("rollImpl").next_attribute().name(), "worldScaleFactor") == 0)
 			gameProfile.attribute("worldScaleFactor") = config.worldScaleFactor;
 		else
 		{
 			gameProfile.remove_attribute("worldScaleFactor");
-			gameProfile.insert_attribute_after("worldScaleFactor", gameProfile.attribute("rollEnabled")) = config.worldScaleFactor;
+			gameProfile.insert_attribute_after("worldScaleFactor", gameProfile.attribute("rollImpl")) = config.worldScaleFactor;
 		}
 		if (strcmp(gameProfile.attribute("worldScaleFactor").next_attribute().name(), "convergence") == 0)
 			gameProfile.attribute("convergence") = config.convergence;

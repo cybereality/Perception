@@ -68,6 +68,12 @@ void OculusRiftView::SetViewEffectInitialValues()
 	viewEffect->SetFloatArray("Resolution", Resolution, 2);
 	viewEffect->SetFloatArray("HmdWarpParam", hmdInfo->GetDistortionCoefficients(), 4);
 
+	//Set rotation, this will only be non-zero if we have pixel shader roll enabled
+	viewEffect->SetFloat("Rotation", m_rotation);
+
+	//Set the black smear corection - 0.0f will do nothing
+	viewEffect->SetFloat("BlackSmearCorrection", m_blackSmearCorrection);
+
 	//Local static for controlling vignette in telescopic sight mode
 	static float vignette_val = 1.0f;
 

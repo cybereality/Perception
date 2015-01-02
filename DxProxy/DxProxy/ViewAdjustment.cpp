@@ -36,10 +36,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * Constructor.
 * Sets class constants, identity matrices and a projection matrix.
 ***/
-ViewAdjustment::ViewAdjustment(HMDisplayInfo *displayInfo, float metersToWorldUnits, bool enableRoll) :
+ViewAdjustment::ViewAdjustment(HMDisplayInfo *displayInfo, float metersToWorldUnits, int roll) :
 	hmdInfo(displayInfo),
 	metersToWorldMultiplier(metersToWorldUnits),
-	rollEnabled(enableRoll),
+	rollImpl(roll),
 	bulletLabyrinth(false),
 	x_scaler(2.0f),
 	y_scaler(2.5f),
@@ -101,7 +101,7 @@ ViewAdjustment::~ViewAdjustment()
 ***/
 void ViewAdjustment::Load(ProxyHelper::ProxyConfig& cfg) 
 {
-	rollEnabled = cfg.rollEnabled;
+	rollImpl = cfg.rollImpl;
 	metersToWorldMultiplier  = cfg.worldScaleFactor;
 	convergence = cfg.convergence;
 	ipd = cfg.ipd;
@@ -114,7 +114,7 @@ void ViewAdjustment::Load(ProxyHelper::ProxyConfig& cfg)
 ***/
 void ViewAdjustment::Save(ProxyHelper::ProxyConfig& cfg) 
 {
-	cfg.rollEnabled = rollEnabled;
+	cfg.rollImpl = rollImpl;
 	cfg.convergence = convergence;
 
 	//worldscale and ipd are not normally edited;
@@ -265,8 +265,8 @@ void ViewAdjustment::ComputeViewTransforms()
 	matViewProjTransformLeftNoRoll = matProjectionInv * transformLeft * projectLeft;
 	matViewProjTransformRightNoRoll = matProjectionInv * transformRight * projectRight;
 	
-	// head roll
-	if (rollEnabled) {
+	// head roll - only if using translation implementation
+	if (rollImpl == 1) {
 		D3DXMatrixMultiply(&transformLeft, &rollMatrix, &transformLeft);
 		D3DXMatrixMultiply(&transformRight, &rollMatrix, &transformRight);
 
@@ -702,14 +702,14 @@ float ViewAdjustment::SeparationIPDAdjustment()
 /**
 * Returns true if head roll is enabled.
 ***/
-bool ViewAdjustment::RollEnabled() 
+int ViewAdjustment::RollImpl() 
 { 
-	return rollEnabled; 
+	return rollImpl; 
 }
 
-void ViewAdjustment::SetRollEnabled(bool rollEnabled)
+void ViewAdjustment::SetRollImpl(int rollImpl)
 {
-	this->rollEnabled = rollEnabled;
+	this->rollImpl = rollImpl;
 }
 
 /**
