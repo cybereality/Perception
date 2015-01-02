@@ -86,7 +86,7 @@
 			<Comparisons>
 				<Compare type="BetweenIncl">
 					<MinValue>65.0</MinValue>
-					<MaxValue>120.0</MaxValue>
+					<MaxValue>130.0</MaxValue>
 				</Compare>
 			</Comparisons>
 		</ScanRule>
