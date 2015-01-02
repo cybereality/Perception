@@ -103,10 +103,13 @@ StereoView::StereoView(ProxyHelper::ProxyConfig& config)
 		howToSaveRenderStates = HowToSaveRenderStates::ALL_STATES_MANUALLY;
 		break;
 	case D3DProxyDevice::UNREAL:
+		howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;
+		break;
 	case D3DProxyDevice::UNREAL_MIRROR:
 	case D3DProxyDevice::UNREAL_UT3:
 	case D3DProxyDevice::UNREAL_BIOSHOCK:
 		howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;
+		m_bLeftSideActive = true;
 		break;
 	case D3DProxyDevice::UNREAL_BIOSHOCK2:
 	case D3DProxyDevice::UNREAL_BORDERLANDS:
@@ -250,15 +253,11 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 	{
 		if(m_bLeftSideActive == true)
 		{
-			leftImage = stereoCapableSurface->getActualRight();
-			//leftImage = stereoCapableSurface->getActualLeft();
-			//rightImage = stereoCapableSurface->getActualRight();
+			leftImage = stereoCapableSurface->getActualRight();			
 		}
 		else
 		{
-			leftImage = stereoCapableSurface->getActualLeft();
-			//leftImage = stereoCapableSurface->getActualRight();
-			//rightImage = stereoCapableSurface->getActualLeft();
+			leftImage = stereoCapableSurface->getActualLeft();			
 		}
 		rightImage = leftImage;
 	}
@@ -291,7 +290,7 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 		break;
 	case HowToSaveRenderStates::DO_NOT_SAVE_AND_RESTORE:
 		break;
-	}
+	}	
 	
 	// set states for fullscreen render
 	SetState();
@@ -368,7 +367,7 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 		break;
 	case HowToSaveRenderStates::DO_NOT_SAVE_AND_RESTORE:
 		break;
-	}
+	}	
 }
 
 /**

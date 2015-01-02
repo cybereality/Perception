@@ -865,10 +865,10 @@ HRESULT WINAPI D3DProxyDevice::ColorFill(IDirect3DSurface9* pSurface,CONST RECT*
 	HRESULT result;
 
 	D3D9ProxySurface* pDerivedSurface = static_cast<D3D9ProxySurface*> (pSurface);
-	if (SUCCEEDED(result = BaseDirect3DDevice9::ColorFill(pDerivedSurface->getActualRight(), pRect, color)))
+	if (SUCCEEDED(result = BaseDirect3DDevice9::ColorFill(pDerivedSurface->getActualLeft(), pRect, color)))
 	{
 		if (!m_b2dDepthMode && pDerivedSurface->IsStereo())
-			BaseDirect3DDevice9::ColorFill(pDerivedSurface->getActualLeft(), pRect, color);
+			BaseDirect3DDevice9::ColorFill(pDerivedSurface->getActualRight(), pRect, color);
 	}
 
 	return result;
