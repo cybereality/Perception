@@ -75,7 +75,7 @@
 			</Axis>
 		</ScanAssistStep>
 
-		<ScanAssistStep>
+<!--		<ScanAssistStep>
 			<TimeBeforeCheck>3000</TimeBeforeCheck>
 			<Pose>LEFT</Pose>
 			<Axis>
@@ -88,7 +88,7 @@
 			<Axis>
 				<AxisName>TrackerPitch</AxisName>
 				<AddressType>DWORD</AddressType>
-				<!--Ensure the addresses are equivalent to looking more or less at the horizon (be a bit more generous with this range)-->
+				--Ensure the addresses are equivalent to looking more or less at the horizon (be a bit more generous with this range)--
 				<Comparisons>
 					<Compare type="BetweenIncl">
 						<MinValue>0000D800</MinValue>
@@ -109,7 +109,7 @@
 				<AxisName>TrackerYaw</AxisName>
 				<AddressType>DWORD</AddressType>
 				<Comparisons>
-					<!-- increased against initial sample -->
+					-- increased against initial sample --
 					<Compare type="IncreasedDWORD"/>
 				</Comparisons>
 			</Axis>
@@ -128,7 +128,7 @@
 				</Comparisons>
 			</Axis>
 		</ScanAssistStep>
-		
+	-->	
 		<ScanAssistStep>
 			<TimeBeforeCheck>3000</TimeBeforeCheck>
 			<Pose>DOWN</Pose>
@@ -144,7 +144,7 @@
 			</Axis>
 		</ScanAssistStep>
 
-		<ScanAssistStep>
+		<!-- <ScanAssistStep>
 			<TimeBeforeCheck>3000</TimeBeforeCheck>
 			<Pose>STRAIGHT-AHEAD</Pose>
 			<Axis>
@@ -155,13 +155,13 @@
 						<MinValue>0000E000</MinValue>
 						<MaxValue>0000FFFF</MaxValue>
 					</Compare>
-					<!-- OR -->
+					-- OR --
 					<Compare type="BetweenIncl">
 						<MinValue>00000000</MinValue>
 						<MaxValue>00002000</MaxValue>
 					</Compare>
 				</Comparisons>
 			</Axis>
-		</ScanAssistStep>
+		</ScanAssistStep> -->
 	</ScanAssistSequence>
 </Scanner>
