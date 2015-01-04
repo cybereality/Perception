@@ -1,94 +1,96 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Scanner>
-  <ScannerGroups>
+	<ScannerGroups>
+		<ScannerGroup>
+			<!-- Orientation Group -->
+			<ID>0</ID>
+			<BaseAddress>100000F4</BaseAddress>
+			<MemIncrement>00000100</MemIncrement>
+			<MemIncCount>03000000</MemIncCount>
+			<FailIfNotFound>True</FailIfNotFound>
 
-	<ScannerGroup>
-		<!-- Orientation Group -->
-		<ID>0</ID>
-		<BaseAddress>100000F0</BaseAddress>
-		<MemIncrement>00000100</MemIncrement>
-		<MemIncCount>03000000</MemIncCount>
-		<FailIfNotFound>True</FailIfNotFound>
+			<ScanRule>
+				<AxisName>TrackerPitch</AxisName>
+				<AddressType>DWORD</AddressType>
+				<ModificationToApply>FloatUnrealAxis</ModificationToApply>
+				<BaseAddressOffset>00000000</BaseAddressOffset>
+				<CheckForChanges>Changes</CheckForChanges>
+				<ExcludeGroup>IfEqual</ExcludeGroup>
+				<Comparisons>
+					<Compare type="BetweenIncl">
+						<MinValue>00000001</MinValue>
+						<MaxValue>00003FFF</MaxValue>
+					</Compare>
+					<!-- OR -->
+					<Compare type="BetweenIncl">
+						<MinValue>0000C000</MinValue>
+						<MaxValue>0000FFFF</MaxValue>
+					</Compare>
+				</Comparisons>
+			</ScanRule>
+				
+			<ScanRule>
+				<AxisName>TrackerYaw</AxisName>
+				<AddressType>DWORD</AddressType>
+				<ModificationToApply>FloatUnrealCompass</ModificationToApply>
+				<BaseAddressOffset>00000004</BaseAddressOffset>
+				<CheckForChanges>ChangesLoWordWithCarry</CheckForChanges>
+				<ExcludeGroup>IfEqual</ExcludeGroup>
+				<Comparisons>
+					<Compare type="NotEqual">
+						<MinValue>00000000</MinValue>
+					</Compare>
+				</Comparisons>
+			</ScanRule>
+				
+			<ScanRule>
+				<AxisName>TrackerRoll</AxisName>
+				<AddressType>DWORD</AddressType>
+				<ModificationToApply>FloatDoNothing</ModificationToApply>
+				<BaseAddressOffset>00000008</BaseAddressOffset>
+				<CheckForChanges>NoCheck</CheckForChanges>
+				<ExcludeGroup>NoExclude</ExcludeGroup>
+				<Comparisons>
+					<Compare type="Equal">
+						<MinValue>00000000</MinValue>
+					</Compare>
+				</Comparisons>
+			</ScanRule>
 
-		<ScanRule>
-			<!-- Check the DWORD before pitch.. it might be a good enough clue -->
-			<AxisName>NoAxis</AxisName>
-			<AddressType>DWORD</AddressType>
-			<ModificationToApply>FloatDoNothing</ModificationToApply>
-			<BaseAddressOffset>00000000</BaseAddressOffset>
-			<CheckForChanges>NoChange</CheckForChanges>
-			<ExcludeGroup>NoExclude</ExcludeGroup>
-			<Comparisons>
-				<Compare type="NotEqual">
-					<!-- Fingers crossed, the value before pitch is never 0... seems to be the case -->
-					<MinValue>00000000</MinValue>
-				</Compare>
-			</Comparisons>
-		</ScanRule>
-
-		<ScanRule>
-			<AxisName>TrackerPitch</AxisName>
-			<AddressType>DWORD</AddressType>
-			<ModificationToApply>FloatUnrealAxis</ModificationToApply>
-			<BaseAddressOffset>00000004</BaseAddressOffset>
-			<CheckForChanges>Changes</CheckForChanges>
-			<ExcludeGroup>IfEqual</ExcludeGroup>
-			<Comparisons>
-				<Compare type="BetweenIncl">
-					<MinValue>00000001</MinValue>
-					<MaxValue>00003FFF</MaxValue>
-				</Compare>
-				<!-- OR -->
-				<Compare type="BetweenIncl">
-					<MinValue>0000C000</MinValue>
-					<MaxValue>0000FFFF</MaxValue>
-				</Compare>
-			</Comparisons>
-		</ScanRule>
 			
-		<ScanRule>
-			<AxisName>TrackerYaw</AxisName>
-			<AddressType>DWORD</AddressType>
-			<ModificationToApply>FloatUnrealCompass</ModificationToApply>
-			<BaseAddressOffset>00000008</BaseAddressOffset>
-			<CheckForChanges>ChangesLoWordWithCarry</CheckForChanges>
-			<ExcludeGroup>IfEqual</ExcludeGroup>
-			<Comparisons>
-				<Compare type="NotEqual">
-					<MinValue>00000000</MinValue>
-				</Compare>
-			</Comparisons>
-		</ScanRule>
+		</ScannerGroup>
+	</ScannerGroups>
+     
+ 	<!-- The following is used to direct the user to move their HMD so that addresses can be filtered, don't repeat -->
+	<ScanAssistSequence>
+		<ScanAssistStep>
+			<TimeBeforeCheck>3000</TimeBeforeCheck>
+			<Pose>UP</Pose>
+			<Axis>
+				<AxisName>TrackerPitch</AxisName>
+				<AddressType>DWORD</AddressType>
+				<Comparisons>
+					<Compare type="BetweenIncl">
+						<MinValue>00001800</MinValue>
+						<MaxValue>00003FFF</MaxValue>
+					</Compare>
+				</Comparisons>
+			</Axis>
+		</ScanAssistStep>
 		
-			
-		<ScanRule>
-			<AxisName>TrackerRoll</AxisName>
-			<AddressType>DWORD</AddressType>
-			<ModificationToApply>FloatDoNothing</ModificationToApply>
-			<BaseAddressOffset>0000000C</BaseAddressOffset>
-			<CheckForChanges>NoCheck</CheckForChanges>
-			<ExcludeGroup>NoExclude</ExcludeGroup>
-			<Comparisons>
-				<Compare type="Equal">
-					<MinValue>00000000</MinValue>
-				</Compare>
-			</Comparisons>
-		</ScanRule>
-		
-		<ScanRule>
-			<AxisName>NoAxis</AxisName>
-			<AddressType>DWORD</AddressType>
-			<ModificationToApply>FloatDoNothing</ModificationToApply>
-			<BaseAddressOffset>00000010</BaseAddressOffset>
-			<CheckForChanges>NoChange</CheckForChanges>
-			<ExcludeGroup>NoExclude</ExcludeGroup>
-			<Comparisons>
-				<Compare type="Equal">
-					<MinValue>00000000</MinValue>
-				</Compare>
-			</Comparisons>
-		</ScanRule>
-		
-	</ScannerGroup>
-  </ScannerGroups>
+		<ScanAssistStep>
+			<TimeBeforeCheck>3000</TimeBeforeCheck>
+			<Pose>DOWN</Pose>
+			<Axis>
+				<AxisName>TrackerPitch</AxisName>
+				<AddressType>DWORD</AddressType>
+				<Comparisons>
+					<Compare type="BetweenIncl">
+						<MinValue>0000C000</MinValue>
+						<MaxValue>0000E800</MaxValue>
+					</Compare>
+				</Comparisons>
+			</Axis>
+		</ScanAssistStep>
+	</ScanAssistSequence>  
 </Scanner>
