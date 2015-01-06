@@ -20,4 +20,6 @@
 		<ruleID id="7" />
 		<ruleID id="8" />
 	</defaultRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="1321827125" squishViewport="true"></shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="2344507479" squishViewport="true"></shaderSpecificRuleIDs>
 </shaderConfig>
