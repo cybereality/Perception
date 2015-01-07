@@ -309,7 +309,7 @@ int _tmain(int argc, char* argv[])
 									cOffsets1[3] = scannerGroupID;
 									cOffsets1[4] = failIfNotFound;
 
-									cOffsets2[0] = 4;
+									cOffsets2[0] = 3;
 									cOffsets2[1] = dwAddressIncCount;
 									cOffsets2[2] = addressType;
 									cOffsets2[3] = checkForChanges;
