@@ -13,7 +13,6 @@
 			<ModificationToApply>FloatDegreeNegativeApply</ModificationToApply>
 			<BaseAddressOffset>00000000</BaseAddressOffset>
 			<CheckForChanges>Changes</CheckForChanges>
-			<ExcludeGroup>IfZero</ExcludeGroup>
 			<Comparisons>
 				<Compare type="BetweenIncl">
 					<MinValue>-90.0</MinValue>
@@ -28,7 +27,6 @@
 			<ModificationToApply>FloatDegreeNegativeCompass</ModificationToApply>
 			<BaseAddressOffset>00000004</BaseAddressOffset>
 			<CheckForChanges>Changes</CheckForChanges>
-			<ExcludeGroup>IfZero</ExcludeGroup>
 			<Comparisons>
 				<Compare type="BetweenIncl">
 					<MinValue>-180.0</MinValue>
@@ -43,7 +41,6 @@
 			<ModificationToApply>FloatDoNothing</ModificationToApply>
 			<BaseAddressOffset>00000008</BaseAddressOffset>
 			<CheckForChanges>NoCheck</CheckForChanges>
-			<ExcludeGroup>NoExclude</ExcludeGroup>
 			<Comparisons>
 				<Compare type="Equal">
 					<MinValue>0.0</MinValue>
@@ -64,7 +61,6 @@
 			<ModificationToApply>FloatSimpleApply</ModificationToApply>
 			<BaseAddressOffset>00000000</BaseAddressOffset>
 			<CheckForChanges>NoChange</CheckForChanges>
-			<ExcludeGroup>IfZero</ExcludeGroup>
 			<Comparisons>
 				<Compare type="Equal">
 					<MinValue>90.0</MinValue>

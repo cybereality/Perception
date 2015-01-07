@@ -15,7 +15,6 @@
 			<ModificationToApply>FloatSimpleApply</ModificationToApply>
 			<BaseAddressOffset>00000000</BaseAddressOffset>
 			<CheckForChanges>NoChange</CheckForChanges>
-			<ExcludeGroup>NoExclude</ExcludeGroup>
 			<Comparisons>
 				<Compare type="Equal">
 					<MinValue>0.0</MinValue>
@@ -29,7 +28,6 @@
 			<ModificationToApply>FloatDoNothing</ModificationToApply>
 			<BaseAddressOffset>0000013C</BaseAddressOffset>
 			<CheckForChanges>Changes</CheckForChanges>
-			<ExcludeGroup>IfZero</ExcludeGroup>
 			<Comparisons>
 				<Compare type="BetweenIncl">
 					<MinValue>00000000</MinValue>
@@ -49,7 +47,6 @@
 			<ModificationToApply>FloatDoNothing</ModificationToApply>
 			<BaseAddressOffset>00000140</BaseAddressOffset>
 			<CheckForChanges>ChangesLoWordOnly</CheckForChanges>
-			<ExcludeGroup>IfZero</ExcludeGroup>
 			<Comparisons>
 				<Compare type="NotEqual">
 					<MinValue>00000000</MinValue>
@@ -63,7 +60,6 @@
 			<ModificationToApply>FloatDoNothing</ModificationToApply>
 			<BaseAddressOffset>00000144</BaseAddressOffset>
 			<CheckForChanges>NoChange</CheckForChanges>
-			<ExcludeGroup>NoExclude</ExcludeGroup>
 			<Comparisons>
 				<Compare type="Equal">
 					<MinValue>00000000</MinValue>
@@ -85,7 +81,6 @@
 			<ModificationToApply>FloatUnrealAxis</ModificationToApply>
 			<BaseAddressOffset>00000000</BaseAddressOffset>
 			<CheckForChanges>Changes</CheckForChanges>
-			<ExcludeGroup>IfZero</ExcludeGroup>
 			<Comparisons>
 				<Compare type="BetweenIncl">
 					<MinValue>00000000</MinValue>
@@ -105,7 +100,6 @@
 			<ModificationToApply>FloatUnrealCompass</ModificationToApply>
 			<BaseAddressOffset>00000004</BaseAddressOffset>
 			<CheckForChanges>ChangesLoWordWithCarry</CheckForChanges>
-			<ExcludeGroup>IfZero</ExcludeGroup>
 			<Comparisons>
 				<Compare type="NotEqual">
 					<MinValue>00000000</MinValue>
@@ -119,7 +113,6 @@
 			<ModificationToApply>FloatUnrealNegativeAxis</ModificationToApply>
 			<BaseAddressOffset>00000008</BaseAddressOffset>
 			<CheckForChanges>NoChange</CheckForChanges>
-			<ExcludeGroup>NoExclude</ExcludeGroup>
 			<Comparisons>
 				<Compare type="Equal">
 					<MinValue>00000000</MinValue>

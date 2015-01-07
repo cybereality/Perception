@@ -13,7 +13,6 @@
 			<ModificationToApply>FloatUnrealAxis</ModificationToApply>
 			<BaseAddressOffset>00000000</BaseAddressOffset>
 			<CheckForChanges>Changes</CheckForChanges>
-			<ExcludeGroup>IfZero</ExcludeGroup>
 			<Comparisons>
 				<!--<Compare type="BetweenIncl">
 					<MinValue>00000000</MinValue>
@@ -36,7 +35,6 @@
 			<ModificationToApply>FloatUnrealCompass</ModificationToApply>
 			<BaseAddressOffset>00000004</BaseAddressOffset>
 			<CheckForChanges>ChangesLoWordWithCarry</CheckForChanges>
-			<ExcludeGroup>IfZero</ExcludeGroup>
 			<Comparisons>
 				<!-- Borderlands Yaw field can be any number :( -->
 				<Compare type="NotEqual">
@@ -51,7 +49,6 @@
 			<ModificationToApply>FloatUnrealNegativeAxis</ModificationToApply>
 			<BaseAddressOffset>00000008</BaseAddressOffset>
 			<CheckForChanges>NoChange</CheckForChanges>
-			<ExcludeGroup>NoExclude</ExcludeGroup>
 			<Comparisons>
 				<Compare type="Equal">
 					<MinValue>00000000</MinValue>
@@ -65,7 +62,6 @@
 			<ModificationToApply>FloatSimpleApply</ModificationToApply>
 			<BaseAddressOffset>00000554</BaseAddressOffset>
 			<CheckForChanges>NoChange</CheckForChanges>
-			<ExcludeGroup>NoExclude</ExcludeGroup>
 			<Comparisons>
 				<Compare type="Equal">
 					<MinValue>70.0</MinValue>
@@ -73,13 +69,12 @@
 			</Comparisons>
 		</ScanRule>
 		
-<ScanRule>
+		<ScanRule>
 			<AxisName>PlayerFOV</AxisName>
 			<AddressType>Float</AddressType>
 			<ModificationToApply>FloatSimpleApply</ModificationToApply>
 			<BaseAddressOffset>00000570</BaseAddressOffset>
 			<CheckForChanges>NoChange</CheckForChanges>
-			<ExcludeGroup>NoExclude</ExcludeGroup>
 			<Comparisons>
 				<Compare type="Equal">
 					<MinValue>55.0</MinValue>
