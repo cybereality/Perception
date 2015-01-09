@@ -360,6 +360,7 @@
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">copying xml config from Release to $(Configuration)</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\Perception\cfg\%(filename).xml</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)$(Configuration)\Perception\cfg\%(filename).xml</Outputs>
+      <SubType>Designer</SubType>
     </CustomBuild>
     <CustomBuild Include="..\..\Release\Perception\cfg\profiles.xml">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">xcopy "%(fullpath)" "$(SolutionDir)$(Configuration)\Perception\cfg\" /Y</Command>

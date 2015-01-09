@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Scanner>
+  <ScannerGroups>
+	<ScannerGroup>
+		<ID>0</ID>
+		<BaseAddress>27000000</BaseAddress>
+		<MemIncrement>00000008</MemIncrement>
+		<MemIncCount>057FFFFF</MemIncCount>
+		<FailIfNotFound>True</FailIfNotFound>
+    <!--<ScanRule>
+      <AxisName>TrackerYaw</AxisName>
+      <AddressType>DWORD</AddressType>
+      <ModificationToApply>FloatUnrealCompass</ModificationToApply>
+      <BaseAddressOffset>00000000</BaseAddressOffset>
+      <CheckForChanges>NoCheck</CheckForChanges>
+      <Comparisons>
+        <Compare type="NoCompare">          
+        </Compare>
+      </Comparisons>
+    </ScanRule>-->
+    
+    <ScanRule>
+      <AxisName>TrackerPitch</AxisName>
+      <AddressType>Float</AddressType>
+      <ModificationToApply>FloatUnrealAxis</ModificationToApply>
+      <BaseAddressOffset>00000000</BaseAddressOffset>
+      <CheckForChanges>Changes</CheckForChanges>
+      <Comparisons>
+        <Compare type="BetweenIncl">
+          <MinValue>-81</MinValue>          
+          <MaxValue>90</MaxValue>
+        </Compare>
+      </Comparisons>
+    </ScanRule>
+  </ScannerGroup>
+  </ScannerGroups>
+
+  <!-- The following is used to direct the user to move their HMD so that addresses can be filtered, don't repeat -->
+  <ScanAssistSequence>
+    <ScanAssistStep>
+      <TimeBeforeCheck>2000</TimeBeforeCheck>
+      <Pose>Directly UP</Pose>
+      <Axis>
+        <AxisName>TrackerPitch</AxisName>
+        <AddressType>Float</AddressType>
+        <Comparisons>
+          <Compare type="BetweenIncl">
+            <MinValue>80</MinValue>
+            <MaxValue>90</MaxValue>
+          </Compare>
+        </Comparisons>
+      </Axis>
+    </ScanAssistStep>
+
+    <ScanAssistStep>
+      <TimeBeforeCheck>2000</TimeBeforeCheck>
+      <Pose>Directly DOWN</Pose>
+      <Axis>
+        <AxisName>TrackerPitch</AxisName>
+        <AddressType>Float</AddressType>
+        <Comparisons>
+          <Compare type="BetweenIncl">
+            <MinValue>-81</MinValue>
+            <MaxValue>-70</MaxValue>
+          </Compare>
+        </Comparisons>
+      </Axis>
+    </ScanAssistStep>
+    
+  </ScanAssistSequence>
+</Scanner>

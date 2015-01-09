@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<shaderConfig>
+	<rules>
+		
+	</rules>
+	<defaultRuleIDs>
+		
+	</defaultRuleIDs>
+  <!--<shaderSpecificRuleIDs shaderHash="2074522192" squishViewport="true" />
+  <shaderSpecificRuleIDs shaderHash="429132169" squishViewport="true" />
+  <shaderSpecificRuleIDs shaderHash="2924115447" squishViewport="true" />
+  <shaderSpecificRuleIDs shaderHash="222753246" squishViewport="true" />
+	<shaderSpecificRuleIDs shaderHash="2071568812" squishViewport="true" />
+	<shaderSpecificRuleIDs shaderHash="2606660424" squishViewport="true" />-->
+</shaderConfig>

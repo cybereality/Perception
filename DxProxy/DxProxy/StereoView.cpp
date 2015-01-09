@@ -276,7 +276,7 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 		m_pActualDevice->StretchRect(leftImage, NULL, rightSurface, NULL, D3DTEXF_NONE);
 
 	
-	// how to save (backup) render states ?
+	// how to save (backup) render states ?	
 	switch(howToSaveRenderStates)
 	{
 	case HowToSaveRenderStates::STATE_BLOCK:
@@ -293,6 +293,7 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 		break;
 	}	
 	
+
 	// set states for fullscreen render
 	SetState();
 
@@ -311,6 +312,7 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 		m_pActualDevice->SetTexture(1, leftTexture);
 	}
 
+	
 	if (FAILED(m_pActualDevice->SetRenderTarget(0, backBuffer))) {
 		OutputDebugString("SetRenderTarget backbuffer failed\n");
 	}
@@ -350,7 +352,7 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 	if (FAILED(viewEffect->End())) {
 		OutputDebugString("End failed\n");
 	}
-
+	
 	// how to restore render states ?
 	switch(howToSaveRenderStates)
 	{
@@ -368,7 +370,7 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 		break;
 	case HowToSaveRenderStates::DO_NOT_SAVE_AND_RESTORE:
 		break;
-	}	
+	}		
 }
 
 /**
