@@ -15,7 +15,6 @@
 				<ModificationToApply>FloatUnrealAxis</ModificationToApply>
 				<BaseAddressOffset>00000000</BaseAddressOffset>
 				<CheckForChanges>Changes</CheckForChanges>
-				<ExcludeGroup>IfEqual</ExcludeGroup>
 				<Comparisons>
 					<Compare type="BetweenIncl">
 						<MinValue>00000001</MinValue>
@@ -35,7 +34,6 @@
 				<ModificationToApply>FloatUnrealCompass</ModificationToApply>
 				<BaseAddressOffset>00000004</BaseAddressOffset>
 				<CheckForChanges>ChangesLoWordWithCarry</CheckForChanges>
-				<ExcludeGroup>IfEqual</ExcludeGroup>
 				<Comparisons>
 					<Compare type="NotEqual">
 						<MinValue>00000000</MinValue>
@@ -49,7 +47,6 @@
 				<ModificationToApply>FloatDoNothing</ModificationToApply>
 				<BaseAddressOffset>00000008</BaseAddressOffset>
 				<CheckForChanges>NoCheck</CheckForChanges>
-				<ExcludeGroup>NoExclude</ExcludeGroup>
 				<Comparisons>
 					<Compare type="Equal">
 						<MinValue>00000000</MinValue>

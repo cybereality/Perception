@@ -5,7 +5,7 @@
 		<ID>0</ID>
 		<BaseAddress>10000070</BaseAddress>
 		<MemIncrement>00000100</MemIncrement>
-		<MemIncCount>00100000</MemIncCount>
+		<MemIncCount>00200000</MemIncCount>
 		<FailIfNotFound>True</FailIfNotFound>
 		<ScanRule>
 			<AxisName>TrackerPitch</AxisName>
