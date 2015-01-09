@@ -110,7 +110,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ModuleDefinitionFile>Exports.def</ModuleDefinitionFile>
       <AdditionalLibraryDirectories>$(DXSDK_DIR)\Lib\x86;$(DX)\Lib\x86;$(FREESPACE)\lib;..\..\LibOVR\Lib\Win32\VS2012</AdditionalLibraryDirectories>
-      <AdditionalDependencies>ws2_32.lib;dxerr.lib;dxguid.lib;dinput8.lib;xinput.lib;libfreespace.lib;libovr.lib;Winmm.lib;DxErr.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Shlwapi.lib;ws2_32.lib;dxerr.lib;dxguid.lib;dinput8.lib;xinput.lib;libfreespace.lib;libovr.lib;Winmm.lib;DxErr.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(SolutionDir)$(Configuration)\Perception\bin\$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <PostBuildEvent>

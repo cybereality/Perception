@@ -249,8 +249,8 @@ HRESULT WINAPI DataGatherer::BeginScene()
 		// create last frame active shader vectors, delete current frame ones
 		m_activeVShadersLastFrame.clear();
 		m_activePShadersLastFrame.clear();
-		m_activeVShadersLastFrame = std::vector<uint32_t>(m_activeVShaders);
-		m_activePShadersLastFrame = std::vector<uint32_t>(m_activePShaders);
+		m_activeVShadersLastFrame = m_activeVShaders;
+		m_activePShadersLastFrame = m_activePShaders;
 		m_activeVShaders.clear();
 		m_activePShaders.clear();
 	}
@@ -315,27 +315,27 @@ HRESULT WINAPI DataGatherer::CreateVertexShader(CONST DWORD* pFunction,IDirect3D
 		BaseDirect3DVertexShader9* pWrappedShader = static_cast<BaseDirect3DVertexShader9*>(*ppShader);
 		IDirect3DVertexShader9* pActualShader = pWrappedShader->getActual();
 
+		// insertion succeeded - record shader details.
+		LPD3DXCONSTANTTABLE pConstantTable = NULL;
+
+		BYTE* pData = NULL;
+		UINT pSizeOfData;
+		pActualShader->GetFunction(NULL, &pSizeOfData);
+
+		pData = new BYTE[pSizeOfData];					
+		HRESULT _hr = pActualShader->GetFunction(pData, &pSizeOfData);
+		if(_hr == D3DERR_INVALIDCALL)
+		{
+			OutputDebugString("DATAGATHERER :: Invalid Call to IDirect3DVertexShader9->getFunction()");	
+		}
+			
+		uint32_t hash = 0;
+		MurmurHash3_x86_32(pData, pSizeOfData, VIREIO_SEED, &hash); 
+
 		// No idea what happens if the same vertex shader is created twice. Pointer to the same shader or two
 		// separate instances? guessing separate in which case m_recordedShader as is is pointless. 
 		// TODO Replace pointer check with check on hash of shader data. (and print hash with data)
-		if (m_recordedVShaders.insert(pActualShader).second && m_shaderDumpFile.is_open()) {
-
-			// insertion succeeded - record shader details.
-			LPD3DXCONSTANTTABLE pConstantTable = NULL;
-
-			BYTE* pData = NULL;
-			UINT pSizeOfData;
-			pActualShader->GetFunction(NULL, &pSizeOfData);
-
-			pData = new BYTE[pSizeOfData];					
-			HRESULT _hr = pActualShader->GetFunction(pData, &pSizeOfData);
-			if(_hr == D3DERR_INVALIDCALL)
-			{
-				OutputDebugString("DATAGATHERER :: Invalid Call to IDirect3DVertexShader9->getFunction()");	
-			}
-			
-			uint32_t hash = 0;
-			MurmurHash3_x86_32(pData, pSizeOfData, VIREIO_SEED, &hash); 
+		if (m_recordedVShaders.insert(hash).second && m_shaderDumpFile.is_open()) {
 
 			_hr = D3DXGetShaderConstantTable(reinterpret_cast<DWORD*>(pData), &pConstantTable);
 			if(_hr == D3DERR_INVALIDCALL)
@@ -399,7 +399,7 @@ HRESULT WINAPI DataGatherer::CreateVertexShader(CONST DWORD* pFunction,IDirect3D
 							sc.hash = hash;
 							sc.desc = D3DXCONSTANT_DESC(pConstantDesc[j]);
 							sc.name = std::string(pConstantDesc[j].Name);
-							m_relevantVSConstants.push_back(sc);
+							m_relevantVSConstants[hash].push_back(sc);
 					}
 				}
 			}
@@ -425,9 +425,10 @@ HRESULT WINAPI DataGatherer::CreateVertexShader(CONST DWORD* pFunction,IDirect3D
 			}
 
 			_SAFE_RELEASE(pConstantTable);
-			if (pData) delete[] pData;
 		}
 		// else shader already recorded
+
+		if (pData) delete[] pData;
 	}
 
 	return creationResult;
@@ -444,8 +445,8 @@ HRESULT WINAPI DataGatherer::SetVertexShader(IDirect3DVertexShader9* pShader)
 		m_currentVertexShaderHash = ShaderHash(pShader);
 
 		// add to vector of active shaders if not present
-		if (std::find(m_activeVShaders.begin(), m_activeVShaders.end(), m_currentVertexShaderHash) == m_activeVShaders.end()) {
-			m_activeVShaders.push_back(m_currentVertexShaderHash);
+		if (m_activeVShaders.find(m_currentVertexShaderHash) == m_activeVShaders.end()) {
+			m_activeVShaders[m_currentVertexShaderHash] = pShader;
 		}
 
 		// avoid draw if shader present in excluded vector
@@ -497,44 +498,46 @@ HRESULT WINAPI DataGatherer::SetVertexShaderConstantF(UINT StartRegister,CONST f
 	// test for transposed rules
 	if (m_bTestForTransposed)
 	{
-		// loop through relevant vertex shader constants
-		auto itShaderConstants = m_relevantVSConstants.begin();
-		while (itShaderConstants != m_relevantVSConstants.end())
+		if (m_relevantVSConstants.find(m_currentVertexShaderHash) != m_relevantVSConstants.end())
 		{
-			// is a constant of current shader ?
-			// start register ? 
-			if ((itShaderConstants->hash == m_currentVertexShaderHash) &&
-				(itShaderConstants->desc.RegisterIndex < (StartRegister+Vector4fCount)) &&
-				(itShaderConstants->desc.RegisterIndex >= StartRegister))
-			{	
-				// is a matrix ?
-				if (itShaderConstants->desc.Class == D3DXPARAMETER_CLASS::D3DXPC_MATRIX_ROWS)
-				{
-					// Perspective projection matrices have in the last column (0,0,1,0) if left-handed and 
-					// * (0,0,-1,0) if right-handed.
-					// Note that we DO NOT TEST here wether this is actually a projection matrix
-					// (we do that in the analyze() method)
-					D3DXMATRIX matrix = D3DXMATRIX(pConstantData+((itShaderConstants->desc.RegisterIndex-StartRegister)*4*sizeof(float)));
+			// loop through relevant vertex shader constants
+			auto itShaderConstants = m_relevantVSConstants[m_currentVertexShaderHash].begin();
+			while (itShaderConstants != m_relevantVSConstants[m_currentVertexShaderHash].end())
+			{
+				// is a constant of current shader ?
+				// start register ? 
+				if ((itShaderConstants->desc.RegisterIndex < (StartRegister+Vector4fCount)) &&
+					(itShaderConstants->desc.RegisterIndex >= StartRegister))
+				{	
+					// is a matrix ?
+					if (itShaderConstants->desc.Class == D3DXPARAMETER_CLASS::D3DXPC_MATRIX_ROWS)
+					{
+						// Perspective projection matrices have in the last column (0,0,1,0) if left-handed and 
+						// * (0,0,-1,0) if right-handed.
+						// Note that we DO NOT TEST here wether this is actually a projection matrix
+						// (we do that in the analyze() method)
+						D3DXMATRIX matrix = D3DXMATRIX(pConstantData+((itShaderConstants->desc.RegisterIndex-StartRegister)*4*sizeof(float)));
 
-					// [14] for row matrix ??
-					if ((!vireio::AlmostSame(matrix[14], 1.0f, 0.00001f)) && (!vireio::AlmostSame(matrix[14], -1.0f, 0.00001f)))
-						m_bTransposedRules = true;
+						// [14] for row matrix ??
+						if ((!vireio::AlmostSame(matrix[14], 1.0f, 0.00001f)) && (!vireio::AlmostSame(matrix[14], -1.0f, 0.00001f)))
+							m_bTransposedRules = true;
 
+					}
+					else if (itShaderConstants->desc.Class == D3DXPARAMETER_CLASS::D3DXPC_MATRIX_COLUMNS)
+					{
+						// Perspective projection matrices have in the last column (0,0,1,0) if left-handed and 
+						// * (0,0,-1,0) if right-handed.
+						// Note that we DO NOT TEST here wether this is actually a projection matrix
+						// (we do that in the analyze() method)
+						D3DXMATRIX matrix = D3DXMATRIX(pConstantData+((itShaderConstants->desc.RegisterIndex-StartRegister)*4*sizeof(float)));
+
+						// [12] for column matrix ??
+						if ((!vireio::AlmostSame(matrix[12], 1.0f, 0.00001f)) && (!vireio::AlmostSame(matrix[12], -1.0f, 0.00001f)))
+							m_bTransposedRules = true;
+					}
 				}
-				else if (itShaderConstants->desc.Class == D3DXPARAMETER_CLASS::D3DXPC_MATRIX_COLUMNS)
-				{
-					// Perspective projection matrices have in the last column (0,0,1,0) if left-handed and 
-					// * (0,0,-1,0) if right-handed.
-					// Note that we DO NOT TEST here wether this is actually a projection matrix
-					// (we do that in the analyze() method)
-					D3DXMATRIX matrix = D3DXMATRIX(pConstantData+((itShaderConstants->desc.RegisterIndex-StartRegister)*4*sizeof(float)));
-
-					// [12] for column matrix ??
-					if ((!vireio::AlmostSame(matrix[12], 1.0f, 0.00001f)) && (vireio::AlmostSame(matrix[12], -1.0f, 0.00001f)))
-						m_bTransposedRules = true;
-				}
+				++itShaderConstants;
 			}
-			++itShaderConstants;
 		}
 	}
 
@@ -553,23 +556,23 @@ HRESULT WINAPI DataGatherer::CreatePixelShader(CONST DWORD* pFunction,IDirect3DP
 		BaseDirect3DPixelShader9* pWrappedShader = static_cast<BaseDirect3DPixelShader9*>(*ppShader);
 		IDirect3DPixelShader9* pActualShader = pWrappedShader->getActual();
 
+		// insertion succeeded - record shader details.
+		LPD3DXCONSTANTTABLE pConstantTable = NULL;
+
+		BYTE* pData = NULL;
+		UINT pSizeOfData;
+		pActualShader->GetFunction(NULL, &pSizeOfData);
+
+		pData = new BYTE[pSizeOfData];
+		pActualShader->GetFunction(pData, &pSizeOfData);
+
+		uint32_t hash = 0;
+		MurmurHash3_x86_32(pData, pSizeOfData, VIREIO_SEED, &hash); 
+
 		// No idea what happens if the same vertex shader is created twice. Pointer to the same shader or two
 		// separate instances? guessing separate in which case m_recordedShader as is is pointless. 
 		// TODO Replace pointer check with check on hash of shader data. (and print hash with data)
-		if (m_recordedPShaders.insert(pActualShader).second && m_shaderDumpFile.is_open()) {
-
-			// insertion succeeded - record shader details.
-			LPD3DXCONSTANTTABLE pConstantTable = NULL;
-
-			BYTE* pData = NULL;
-			UINT pSizeOfData;
-			pActualShader->GetFunction(NULL, &pSizeOfData);
-
-			pData = new BYTE[pSizeOfData];
-			pActualShader->GetFunction(pData, &pSizeOfData);
-
-			uint32_t hash = 0;
-			MurmurHash3_x86_32(pData, pSizeOfData, VIREIO_SEED, &hash); 
+		if (m_recordedPShaders.insert(hash).second && m_shaderDumpFile.is_open()) {
 
 			D3DXGetShaderConstantTable(reinterpret_cast<DWORD*>(pData), &pConstantTable);
 
@@ -620,7 +623,7 @@ HRESULT WINAPI DataGatherer::CreatePixelShader(CONST DWORD* pFunction,IDirect3DP
 							//sc.desc = D3DXCONSTANT_DESC(pConstantDesc[j]);
 							//sc.name = std::string(pConstantDesc[j].Name);
 							//sc.hasRule = false;
-							//m_relevantVSConstants.push_back(sc);
+							//m_relevantVSConstants[hash].push_back(sc);
 					}
 				}
 			}
@@ -646,9 +649,10 @@ HRESULT WINAPI DataGatherer::CreatePixelShader(CONST DWORD* pFunction,IDirect3DP
 			}
 
 			_SAFE_RELEASE(pConstantTable);
-			if (pData) delete[] pData;
 		}
 		// else shader already recorded
+
+		if (pData) delete[] pData;
 	}
 
 	return creationResult;
@@ -665,8 +669,8 @@ HRESULT WINAPI DataGatherer::SetPixelShader(IDirect3DPixelShader9* pShader)
 		currentPixelShaderHash = ShaderHash(pShader);
 
 		// add to vector of active shaders if not present
-		if (std::find(m_activePShaders.begin(), m_activePShaders.end(), currentPixelShaderHash) == m_activePShaders.end()) {
-			m_activePShaders.push_back(currentPixelShaderHash);
+		if (m_activePShaders.find(currentPixelShaderHash) == m_activePShaders.end()) {
+			m_activePShaders[currentPixelShaderHash] = pShader;
 		}
 
 		// avoid draw if shader present in excluded vector
@@ -938,34 +942,40 @@ void DataGatherer::BRASSA_ChangeRules()
 				// no rule present, so add
 				if (!m_relevantVSConstantNames[menuID[entryID]].hasRule)
 				{
-					auto itShaderConstants = m_relevantVSConstants.begin();
-					while (itShaderConstants != m_relevantVSConstants.end())
+					auto itShaderConstantMap = m_relevantVSConstants.begin();
+					while (itShaderConstantMap != m_relevantVSConstants.end())
 					{
-						// constant name in menu entries already present
-						if (itShaderConstants->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) == 0)
+						auto itShaderConstants = itShaderConstantMap->second.begin();
+						while (itShaderConstants != itShaderConstantMap->second.end())
 						{
-							// never assign "transposed" to vector
-							if (itShaderConstants->desc.Class == D3DXPARAMETER_CLASS::D3DXPC_VECTOR)
-								addRule(itShaderConstants->name, true, itShaderConstants->desc.RegisterIndex, itShaderConstants->desc.Class, 1, false);
-							else
-								addRule(itShaderConstants->name, true, itShaderConstants->desc.RegisterIndex, itShaderConstants->desc.Class, 1, m_bTransposedRules);
-							itShaderConstants->hasRule = true;
-
-							// set the menu output accordingly
-							auto itShaderConstants1 = m_relevantVSConstantNames.begin();
-							while (itShaderConstants1 != m_relevantVSConstantNames.end())
+							// constant name in menu entries already present
+							if (itShaderConstants->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) == 0)
 							{
-								// set rule bool for all relevant constant names
-								if (itShaderConstants1->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) == 0)
+								// never assign "transposed" to vector
+								if (itShaderConstants->desc.Class == D3DXPARAMETER_CLASS::D3DXPC_VECTOR)
+									addRule(itShaderConstants->name, true, itShaderConstants->desc.RegisterIndex, itShaderConstants->desc.Class, 1, false);
+								else
+									addRule(itShaderConstants->name, true, itShaderConstants->desc.RegisterIndex, itShaderConstants->desc.Class, 1, m_bTransposedRules);
+								itShaderConstants->hasRule = true;
+
+								// set the menu output accordingly
+								auto itShaderConstants1 = m_relevantVSConstantNames.begin();
+								while (itShaderConstants1 != m_relevantVSConstantNames.end())
 								{
-									UINT operation;
-									itShaderConstants1->hasRule = m_pGameHandler->GetShaderModificationRepository()->ConstantHasRule(itShaderConstants1->name, itShaderConstants1->ruleName, operation, itShaderConstants1->isTransposed);
+									// set rule bool for all relevant constant names
+									if (itShaderConstants1->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) == 0)
+									{
+										UINT operation;
+										itShaderConstants1->hasRule = m_pGameHandler->GetShaderModificationRepository()->ConstantHasRule(itShaderConstants1->name, itShaderConstants1->ruleName, operation, itShaderConstants1->isTransposed);
+									}
+									++itShaderConstants1;
 								}
-								++itShaderConstants1;
 							}
+
+							++itShaderConstants;
 						}
 
-						++itShaderConstants;
+						++itShaderConstantMap;
 					}
 				}
 				else // rule present, so delete
@@ -990,31 +1000,37 @@ void DataGatherer::BRASSA_ChangeRules()
 			{
 				bool newTrans = !m_relevantVSConstantNames[menuID[entryID]].isTransposed;
 				// transposed or non-transposed
-				auto itShaderConstants = m_relevantVSConstants.begin();
-				while (itShaderConstants != m_relevantVSConstants.end())
+				auto itShaderConstantMap = m_relevantVSConstants.begin();
+				while (itShaderConstantMap != m_relevantVSConstants.end())
 				{
-					// constant name in menu entries already present
-					if (itShaderConstants->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) == 0)
+					auto itShaderConstants = itShaderConstantMap->second.begin();
+					while (itShaderConstants != itShaderConstantMap->second.end())
 					{
-						// get the operation id
-						UINT operation;
-						m_pGameHandler->GetShaderModificationRepository()->ConstantHasRule(itShaderConstants->name, itShaderConstants->ruleName, operation, itShaderConstants->isTransposed);
-						modifyRule(itShaderConstants->name, operation, newTrans);
-
-						// set the menu output accordingly
-						auto itShaderConstants1 = m_relevantVSConstantNames.begin();
-						while (itShaderConstants1 != m_relevantVSConstantNames.end())
+						// constant name in menu entries already present
+						if (itShaderConstants->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) == 0)
 						{
-							// set rule bool for all relevant constant names
-							if (itShaderConstants1->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) == 0)
+							// get the operation id
+							UINT operation;
+							m_pGameHandler->GetShaderModificationRepository()->ConstantHasRule(itShaderConstants->name, itShaderConstants->ruleName, operation, itShaderConstants->isTransposed);
+							modifyRule(itShaderConstants->name, operation, newTrans);
+
+							// set the menu output accordingly
+							auto itShaderConstants1 = m_relevantVSConstantNames.begin();
+							while (itShaderConstants1 != m_relevantVSConstantNames.end())
 							{
-								itShaderConstants1->hasRule = m_pGameHandler->GetShaderModificationRepository()->ConstantHasRule(itShaderConstants1->name, itShaderConstants1->ruleName, operation, itShaderConstants1->isTransposed);
+								// set rule bool for all relevant constant names
+								if (itShaderConstants1->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) == 0)
+								{
+									itShaderConstants1->hasRule = m_pGameHandler->GetShaderModificationRepository()->ConstantHasRule(itShaderConstants1->name, itShaderConstants1->ruleName, operation, itShaderConstants1->isTransposed);
+								}
+								++itShaderConstants1;
 							}
-							++itShaderConstants1;
 						}
+
+						itShaderConstants++;
 					}
 
-					itShaderConstants++;
+					++itShaderConstantMap;
 				}
 			}
 			else
@@ -1022,26 +1038,32 @@ void DataGatherer::BRASSA_ChangeRules()
 				// open or close node
 				m_relevantVSConstantNames[menuID[entryID]].nodeOpen = !m_relevantVSConstantNames[menuID[entryID]].nodeOpen;
 
-				auto itShaderConstants = m_relevantVSConstants.begin();
-				while (itShaderConstants != m_relevantVSConstants.end())
+				auto itShaderConstantMap = m_relevantVSConstants.begin();
+				while (itShaderConstantMap != m_relevantVSConstants.end())
 				{
-					// constant name in menu entries already present
-					if (itShaderConstants->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) == 0)
+					auto itShaderConstants = itShaderConstantMap->second.begin();
+					while (itShaderConstants != itShaderConstantMap->second.end())
 					{
-						// show blinking if shader is drawn
-						if (m_relevantVSConstantNames[menuID[entryID]].nodeOpen)
+						// constant name in menu entries already present
+						if (itShaderConstants->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) == 0)
 						{
-							if (std::find(m_excludedVShaders.begin(), m_excludedVShaders.end(), itShaderConstants->hash) == m_excludedVShaders.end()) {
-								m_excludedVShaders.push_back(itShaderConstants->hash);
+							// show blinking if shader is drawn
+							if (m_relevantVSConstantNames[menuID[entryID]].nodeOpen)
+							{
+								if (std::find(m_excludedVShaders.begin(), m_excludedVShaders.end(), itShaderConstants->hash) == m_excludedVShaders.end()) {
+									m_excludedVShaders.push_back(itShaderConstants->hash);
+								}
+							}
+							else
+							{
+								// erase all entries for that hash
+								m_excludedVShaders.erase(std::remove(m_excludedVShaders.begin(), m_excludedVShaders.end(), itShaderConstants->hash), m_excludedVShaders.end()); 
 							}
 						}
-						else
-						{
-							// erase all entries for that hash
-							m_excludedVShaders.erase(std::remove(m_excludedVShaders.begin(), m_excludedVShaders.end(), itShaderConstants->hash), m_excludedVShaders.end()); 
-						}
+						++itShaderConstants;
 					}
-					++itShaderConstants;
+
+					++itShaderConstantMap;
 				}
 			}
 
@@ -1076,28 +1098,34 @@ void DataGatherer::BRASSA_ChangeRules()
 					if (operation > 0)
 						operation--;
 
-					auto itShaderConstants = m_relevantVSConstants.begin();
-					while (itShaderConstants != m_relevantVSConstants.end())
+					auto itShaderConstantMap = m_relevantVSConstants.begin();
+					while (itShaderConstantMap != m_relevantVSConstants.end())
 					{
-						// constant name in menu entries already present
-						if (itShaderConstants->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) == 0)
+						auto itShaderConstants = itShaderConstantMap->second.begin();
+						while (itShaderConstants != itShaderConstantMap->second.end())
 						{
-							modifyRule(itShaderConstants->name, operation, itShaderConstants->isTransposed);
-
-							// set the menu output accordingly
-							auto itShaderConstants1 = m_relevantVSConstantNames.begin();
-							while (itShaderConstants1 != m_relevantVSConstantNames.end())
+							// constant name in menu entries already present
+							if (itShaderConstants->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) == 0)
 							{
-								// set rule bool for all relevant constant names
-								if (itShaderConstants1->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) == 0)
+								modifyRule(itShaderConstants->name, operation, itShaderConstants->isTransposed);
+
+								// set the menu output accordingly
+								auto itShaderConstants1 = m_relevantVSConstantNames.begin();
+								while (itShaderConstants1 != m_relevantVSConstantNames.end())
 								{
-									itShaderConstants1->hasRule = m_pGameHandler->GetShaderModificationRepository()->ConstantHasRule(itShaderConstants1->name, itShaderConstants1->ruleName, operation, itShaderConstants1->isTransposed);
+									// set rule bool for all relevant constant names
+									if (itShaderConstants1->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) == 0)
+									{
+										itShaderConstants1->hasRule = m_pGameHandler->GetShaderModificationRepository()->ConstantHasRule(itShaderConstants1->name, itShaderConstants1->ruleName, operation, itShaderConstants1->isTransposed);
+									}
+									++itShaderConstants1;
 								}
-								++itShaderConstants1;
 							}
+
+							itShaderConstants++;
 						}
 
-						itShaderConstants++;
+						++itShaderConstantMap;
 					}
 				}
 			}
@@ -1129,28 +1157,34 @@ void DataGatherer::BRASSA_ChangeRules()
 							operation++;
 					}
 
-					auto itShaderConstants = m_relevantVSConstants.begin();
-					while (itShaderConstants != m_relevantVSConstants.end())
+					auto itShaderConstantMap = m_relevantVSConstants.begin();
+					while (itShaderConstantMap != m_relevantVSConstants.end())
 					{
-						// constant name in menu entries already present
-						if (itShaderConstants->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) == 0)
+						auto itShaderConstants = itShaderConstantMap->second.begin();
+						while (itShaderConstants != itShaderConstantMap->second.end())
 						{
-							modifyRule(itShaderConstants->name, operation, itShaderConstants->isTransposed);
-
-							// set the menu output accordingly
-							auto itShaderConstants1 = m_relevantVSConstantNames.begin();
-							while (itShaderConstants1 != m_relevantVSConstantNames.end())
+							// constant name in menu entries already present
+							if (itShaderConstants->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) == 0)
 							{
-								// set rule bool for all relevant constant names
-								if (itShaderConstants1->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) == 0)
+								modifyRule(itShaderConstants->name, operation, itShaderConstants->isTransposed);
+
+								// set the menu output accordingly
+								auto itShaderConstants1 = m_relevantVSConstantNames.begin();
+								while (itShaderConstants1 != m_relevantVSConstantNames.end())
 								{
-									itShaderConstants1->hasRule = m_pGameHandler->GetShaderModificationRepository()->ConstantHasRule(itShaderConstants1->name, itShaderConstants1->ruleName, operation, itShaderConstants1->isTransposed);
+									// set rule bool for all relevant constant names
+									if (itShaderConstants1->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) == 0)
+									{
+										itShaderConstants1->hasRule = m_pGameHandler->GetShaderModificationRepository()->ConstantHasRule(itShaderConstants1->name, itShaderConstants1->ruleName, operation, itShaderConstants1->isTransposed);
+									}
+									++itShaderConstants1;
 								}
-								++itShaderConstants1;
 							}
+
+							itShaderConstants++;
 						}
 
-						itShaderConstants++;
+						++itShaderConstantMap;
 					}
 				}
 			}
@@ -1232,11 +1266,6 @@ void DataGatherer::BRASSA_PickRules()
 ***/
 void DataGatherer::BRASSA_ShowActiveShaders()
 {
-	// sort the vertex shader vector
-	std::sort (m_activeVShadersLastFrame.begin(), m_activeVShadersLastFrame.end());
-	// sort the pixel shader vector
-	std::sort (m_activePShadersLastFrame.begin(), m_activePShadersLastFrame.end());
-
 	menuHelperRect.left = 0;
 	menuHelperRect.top = 0;
 	
@@ -1251,13 +1280,13 @@ void DataGatherer::BRASSA_ShowActiveShaders()
 	{
 		bool excluded = false;
 		// show colored if shader is drawn
-		if (std::find(m_excludedVShaders.begin(), m_excludedVShaders.end(), *itVShaderHash) == m_excludedVShaders.end()) {
+		if (std::find(m_excludedVShaders.begin(), m_excludedVShaders.end(), itVShaderHash->first) == m_excludedVShaders.end()) {
 			excluded = true;
 		}
 		menuColor.push_back(excluded);
-		menuID.push_back(*itVShaderHash);
+		menuID.push_back(itVShaderHash->first);
 		char buf[256];
-		sprintf_s(buf, 256, "VS : %u", *itVShaderHash);
+		sprintf_s(buf, 256, "VS : %u", itVShaderHash->first);
 		menuEntry = std::string(buf);
 		menuEntries.push_back(menuEntry);
 
@@ -1271,13 +1300,13 @@ void DataGatherer::BRASSA_ShowActiveShaders()
 	{
 		bool excluded = false;
 		// show colored if shader is drawn
-		if (std::find(m_excludedPShaders.begin(), m_excludedPShaders.end(), *itPShaderHash) == m_excludedPShaders.end()) {
+		if (std::find(m_excludedPShaders.begin(), m_excludedPShaders.end(), itPShaderHash->first) == m_excludedPShaders.end()) {
 			excluded = true;
 		}
 		menuColor.push_back(excluded);
-		menuID.push_back(*itPShaderHash);
+		menuID.push_back(itPShaderHash->first);
 		char buf[256];
-		sprintf_s(buf, 256, "PS : %u", *itPShaderHash);
+		sprintf_s(buf, 256, "PS : %u", itPShaderHash->first);
 		menuEntry = std::string(buf);
 		menuEntries.push_back(menuEntry);
 
@@ -1513,36 +1542,42 @@ void DataGatherer::GetCurrentShaderRules(bool allStartRegisters)
 
 	// clear name vector, loop through constants
 	m_relevantVSConstantNames.clear();
-	auto itShaderConstants = m_relevantVSConstants.begin();
-	while (itShaderConstants != m_relevantVSConstants.end())
+	auto itShaderConstantMap = m_relevantVSConstants.begin();
+	while (itShaderConstantMap != m_relevantVSConstants.end())
 	{
-		bool namePresent = false;
-		bool registerPresent = !allStartRegisters;
-		auto itShaderConstants1 = m_relevantVSConstantNames.begin();
-		while (itShaderConstants1 != m_relevantVSConstantNames.end())
+		auto itShaderConstants = itShaderConstantMap->second.begin();
+		while (itShaderConstants != itShaderConstantMap->second.end())
 		{
-			// constant name in menu entries already present
-			if (itShaderConstants->name.compare(itShaderConstants1->name) == 0)
+			bool namePresent = false;
+			bool registerPresent = !allStartRegisters;
+			auto itShaderConstants1 = m_relevantVSConstantNames.begin();
+			while (itShaderConstants1 != m_relevantVSConstantNames.end())
 			{
-				namePresent = true;
-				if (itShaderConstants->desc.RegisterIndex==itShaderConstants1->desc.RegisterIndex)
-					registerPresent = true;
+				// constant name in menu entries already present
+				if (itShaderConstants->name.compare(itShaderConstants1->name) == 0)
+				{
+					namePresent = true;
+					if (itShaderConstants->desc.RegisterIndex==itShaderConstants1->desc.RegisterIndex)
+						registerPresent = true;
+				}
+				++itShaderConstants1;
 			}
-			++itShaderConstants1;
+
+			if ((!namePresent) || (!registerPresent))
+			{
+				// is a rule already applied to that constant name ?
+				itShaderConstants->nodeOpen = false;
+				UINT operation = 0;
+				if (pModRep)
+					itShaderConstants->hasRule = pModRep->ConstantHasRule(itShaderConstants->name, itShaderConstants->ruleName, operation, itShaderConstants->isTransposed);
+				else
+					itShaderConstants->hasRule = false;
+				m_relevantVSConstantNames.push_back(*itShaderConstants);
+			}
+
+			++itShaderConstants;
 		}
 
-		if ((!namePresent) || (!registerPresent))
-		{
-			// is a rule already applied to that constant name ?
-			itShaderConstants->nodeOpen = false;
-			UINT operation = 0;
-			if (pModRep)
-				itShaderConstants->hasRule = pModRep->ConstantHasRule(itShaderConstants->name, itShaderConstants->ruleName, operation, itShaderConstants->isTransposed);
-			else
-				itShaderConstants->hasRule = false;
-			m_relevantVSConstantNames.push_back(*itShaderConstants);
-		}
-
-		++itShaderConstants;
+		++itShaderConstantMap;
 	}
 }

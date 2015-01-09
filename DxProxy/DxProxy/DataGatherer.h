@@ -103,9 +103,9 @@ private:
 	***/
 	bool m_bTestForTransposed;
 	/**
-	* Vector of all relevant vertex shader constants.
+	* Map of all relevant vertex shader constants.
 	***/
-	std::vector<ShaderConstant> m_relevantVSConstants;
+	std::map<uint32_t, std::vector<ShaderConstant>> m_relevantVSConstants;
 	/**
 	* Vector of all added vertex shader constants (rules).
 	***/
@@ -115,21 +115,21 @@ private:
 	***/
 	std::vector<ShaderConstant> m_relevantVSConstantNames;
 	/**
-	* Vector of all active vertex shader hash codes.
+	* Map of all active vertex shader hash codes.
 	***/
-	std::vector<uint32_t> m_activeVShaders;
+	std::map<uint32_t, IDirect3DVertexShader9*> m_activeVShaders;
 	/**
-	* Vector of all active pixel shader hash codes.
+	* Map of all active pixel shader hash codes.
 	***/
-	std::vector<uint32_t> m_activePShaders;
+	std::map<uint32_t, IDirect3DPixelShader9*> m_activePShaders;
 	/**
-	* Vector of all active vertex shader hash codes (last frame).
+	* Map of all active vertex shader hash codes (last frame).
 	***/
-	std::vector<uint32_t> m_activeVShadersLastFrame;
+	std::map<uint32_t, IDirect3DVertexShader9*> m_activeVShadersLastFrame;
 	/**
-	* Vector of all active pixel shader hash codes (last frame).
+	* Map of all active pixel shader hash codes (last frame).
 	***/
-	std::vector<uint32_t> m_activePShadersLastFrame;
+	std::map<uint32_t, IDirect3DPixelShader9*> m_activePShadersLastFrame;
 	/**
 	* Vector of all excluded vertex shader hash codes.
 	* Vertex shaders are excluded from being drawn.
@@ -167,11 +167,11 @@ private:
 	/**
 	* Set of recorded vertex shaders, to avoid double output.
 	***/
-	std::unordered_set<IDirect3DVertexShader9*> m_recordedVShaders;
+	std::unordered_set<uint32_t> m_recordedVShaders;
 	/**
 	* Set of recorded shaders, to avoid double output.
 	***/
-	std::unordered_set<IDirect3DPixelShader9*> m_recordedPShaders;
+	std::unordered_set<uint32_t> m_recordedPShaders;
 	/**
 	* Set of recorded vertex shaders, to avoid double debug log output.
 	***/
