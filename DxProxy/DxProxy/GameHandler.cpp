@@ -81,7 +81,9 @@ bool GameHandler::Load(ProxyHelper::ProxyConfig& cfg, std::shared_ptr<ViewAdjust
 	}
 
 	// set the internal game type
-	m_gameType = cfg.game_type;
+	int gameType = cfg.game_type;
+	if (gameType >= 10000) gameType -= 10000;
+	m_gameType = gameType;
 
 	return true;
 }
