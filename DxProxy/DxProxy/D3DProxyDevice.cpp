@@ -500,7 +500,7 @@ HRESULT WINAPI D3DProxyDevice::CreateTexture(UINT Width,UINT Height,UINT Levels,
 	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateTexture(Width, Height, Levels, Usage, Format, Pool, &pLeftTexture, pSharedHandle))) {
 
 		// Does this Texture need duplicating?
-		if (m_pGameHandler->ShouldDuplicateTexture(Width, Height, Levels, Usage, Format, Pool)) {
+		if (!m_b2dDepthMode && m_pGameHandler->ShouldDuplicateTexture(Width, Height, Levels, Usage, Format, Pool)) {
 
 			if (FAILED(BaseDirect3DDevice9::CreateTexture(Width, Height, Levels, Usage, Format, Pool, &pRightTexture, pSharedHandle))) {
 				OutputDebugString("Failed to create right eye texture while attempting to create stereo pair, falling back to mono\n");
@@ -556,7 +556,7 @@ HRESULT WINAPI D3DProxyDevice::CreateCubeTexture(UINT EdgeLength, UINT Levels, D
 	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateCubeTexture(EdgeLength, Levels, Usage, Format, Pool, &pLeftCubeTexture, pSharedHandle))) {
 
 		// Does this Texture need duplicating?
-		if (m_pGameHandler->ShouldDuplicateCubeTexture(EdgeLength, Levels, Usage, Format, Pool)) {
+		if (!m_b2dDepthMode && m_pGameHandler->ShouldDuplicateCubeTexture(EdgeLength, Levels, Usage, Format, Pool)) {
 
 			if (FAILED(BaseDirect3DDevice9::CreateCubeTexture(EdgeLength, Levels, Usage, Format, Pool, &pRightCubeTexture, pSharedHandle))) {
 				OutputDebugString("Failed to create right eye texture while attempting to create stereo pair, falling back to mono\n");
@@ -644,7 +644,7 @@ HRESULT WINAPI D3DProxyDevice::CreateDepthStencilSurface(UINT Width,UINT Height,
 	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateDepthStencilSurface(Width, Height, Format, MultiSample, MultisampleQuality, Discard, &pDepthStencilSurfaceLeft, pSharedHandle))) {
 
 		// TODO Should we always duplicated Depth stencils? I think yes, but there may be exceptions
-		if (m_pGameHandler->ShouldDuplicateDepthStencilSurface(Width, Height, Format, MultiSample, MultisampleQuality, Discard)) 
+		if (!m_b2dDepthMode && m_pGameHandler->ShouldDuplicateDepthStencilSurface(Width, Height, Format, MultiSample, MultisampleQuality, Discard)) 
 		{
 			if (m_b2dDepthMode || FAILED(BaseDirect3DDevice9::CreateDepthStencilSurface(Width, Height, Format, MultiSample, MultisampleQuality, Discard, &pDepthStencilSurfaceRight, pSharedHandle))) {
 				OutputDebugString("Failed to create right eye Depth Stencil Surface while attempting to create stereo pair, falling back to mono\n");
@@ -2249,7 +2249,7 @@ HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFO
 		/* "If Needed" heuristic is the complicated part here.
 		Fixed heuristics (based on type, format, size, etc) + game specific overrides + isForcedMono + magic? */
 		// TODO Should we duplicate this Render Target? Replace "true" with heuristic
-		if (m_pGameHandler->ShouldDuplicateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, isSwapChainBackBuffer))
+		if (!m_b2dDepthMode && m_pGameHandler->ShouldDuplicateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, isSwapChainBackBuffer))
 		{
 			if (FAILED(BaseDirect3DDevice9::CreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, &pRightRenderTarget, pSharedHandle))) {
 				OutputDebugString("Failed to create right eye render target while attempting to create stereo pair, falling back to mono\n");
@@ -2441,8 +2441,8 @@ void D3DProxyDevice::HandleControls()
 		}
 	}
 
-	// switch to 2d Depth Mode (Shift + L)
-	if (controls.Key_Down(VK_LSHIFT) && (controls.Key_Down(0x4C) || controls.Key_Down(VK_NUMPAD9)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	// switch to 2d Depth Mode (Shift + O / Numpad 9)
+	if (controls.Key_Down(VK_LSHIFT) && (controls.Key_Down(0x4F) || controls.Key_Down(VK_NUMPAD9)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		if(!m_b2dDepthMode)
 		{
@@ -2465,7 +2465,7 @@ void D3DProxyDevice::HandleControls()
 		
 	}
 
-	// switch to 2d Depth Mode (ALT + Right Arrow / Left Arrow)
+	// cycle Render States
 	if (controls.Key_Down(VK_MENU) && (controls.Key_Down(VK_LEFT) || controls.Key_Down(VK_RIGHT)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		std::string _str = "";

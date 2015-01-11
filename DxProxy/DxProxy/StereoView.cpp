@@ -131,7 +131,7 @@ StereoView::StereoView(ProxyHelper::ProxyConfig& config)
 		break;
 	case D3DProxyDevice::GAMEBRYO:
 	case D3DProxyDevice::GAMEBRYO_SKYRIM:
-		howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;
+		howToSaveRenderStates = HowToSaveRenderStates::SELECTED_STATES_MANUALLY;
 		m_bLeftSideActive = true;
 		break;
 	case D3DProxyDevice::LFS:

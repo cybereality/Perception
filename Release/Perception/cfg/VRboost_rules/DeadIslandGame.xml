@@ -3,32 +3,32 @@
   <ScannerGroups>
 	<ScannerGroup>
 		<ID>0</ID>
-		<BaseAddress>27000000</BaseAddress>
+		<BaseAddress>27000004</BaseAddress>
 		<MemIncrement>00000008</MemIncrement>
 		<MemIncCount>057FFFFF</MemIncCount>
 		<FailIfNotFound>True</FailIfNotFound>
-    <!--<ScanRule>
+    <ScanRule>
       <AxisName>TrackerYaw</AxisName>
       <AddressType>DWORD</AddressType>
-      <ModificationToApply>FloatUnrealCompass</ModificationToApply>
-      <BaseAddressOffset>00000000</BaseAddressOffset>
-      <CheckForChanges>NoCheck</CheckForChanges>
-      <Comparisons>
-        <Compare type="NoCompare">          
-        </Compare>
-      </Comparisons>
-    </ScanRule>-->
-    
-    <ScanRule>
-      <AxisName>TrackerPitch</AxisName>
-      <AddressType>Float</AddressType>
       <ModificationToApply>FloatUnrealAxis</ModificationToApply>
       <BaseAddressOffset>00000000</BaseAddressOffset>
       <CheckForChanges>Changes</CheckForChanges>
       <Comparisons>
+        <Compare type="NoCompare">          
+        </Compare>
+      </Comparisons>
+    </ScanRule>
+    
+    <ScanRule>
+      <AxisName>TrackerPitch</AxisName>
+      <AddressType>Float</AddressType>
+      <ModificationToApply>FloatDegreeApply</ModificationToApply>
+      <BaseAddressOffset>00000004</BaseAddressOffset>
+      <CheckForChanges>Changes</CheckForChanges>
+      <Comparisons>
         <Compare type="BetweenIncl">
           <MinValue>-81</MinValue>          
-          <MaxValue>90</MaxValue>
+          <MaxValue>-1</MaxValue>
         </Compare>
       </Comparisons>
     </ScanRule>
