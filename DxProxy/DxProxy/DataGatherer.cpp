@@ -1278,7 +1278,7 @@ void DataGatherer::BRASSA_ShowActiveShaders()
 	
 	UINT menuEntryCount = 2;
 	std::vector<std::string> menuEntries;
-	std::vector<bool> menuColor;
+	std::vector<int> menuColor;
 	std::vector<uint32_t> menuID;
 	std::string menuEntry;
 
@@ -1305,12 +1305,12 @@ void DataGatherer::BRASSA_ShowActiveShaders()
 		char buf[256];
 		if (!visible)
 		{
-			menuColor.push_back(true);
-			sprintf_s(buf, 256, "VS : --");
+			menuColor.push_back(0);
+			sprintf_s(buf, 256, "VS : (%u)", itVShaderHash->first);
 		}
 		else
 		{
-			menuColor.push_back(excluded);
+			menuColor.push_back(excluded ? 1 : 2);
 			sprintf_s(buf, 256, "VS : %u", itVShaderHash->first);
 		}
 
@@ -1354,12 +1354,12 @@ void DataGatherer::BRASSA_ShowActiveShaders()
 		char buf[256];
 		if (!visible)
 		{
-			menuColor.push_back(true);
-			sprintf_s(buf, 256, "PS : --");
+			menuColor.push_back(0);
+			sprintf_s(buf, 256, "PS : (%u)", itPShaderHash->first);
 		}
 		else
 		{
-			menuColor.push_back(excluded);
+			menuColor.push_back(excluded ? 1 : 2);
 			sprintf_s(buf, 256, "PS : %u", itPShaderHash->first);
 		}
 
@@ -1481,10 +1481,13 @@ void DataGatherer::BRASSA_ShowActiveShaders()
 		{
 			if ((menuHelperRect.top + 40) >= 0)
 			{
-				if (!menuColor[i])
-					DrawTextShadowed(hudFont, hudMainMenu, menuEntries[i].c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 64, 255, 64));
-				else	
+				if (menuColor[i] == 0) // Not visible
+					DrawTextShadowed(hudFont, hudMainMenu, menuEntries[i].c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 64, 64));
+				else if (menuColor[i] == 1) // excluded
 					DrawTextShadowed(hudFont, hudMainMenu, menuEntries[i].c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+				else	
+					DrawTextShadowed(hudFont, hudMainMenu, menuEntries[i].c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 64, 255, 64));
+					
 			}
 
 			menuHelperRect.top += 40;
