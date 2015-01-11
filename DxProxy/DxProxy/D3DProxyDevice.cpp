@@ -3969,6 +3969,10 @@ void D3DProxyDevice::DrawTextShadowed(ID3DXFont* font, LPD3DXSPRITE sprite, LPCS
 	#ifdef SHOW_CALLS
 		OutputDebugString("called DrawTextShadowed");
 	#endif
+	
+	if (lprc->top < 0 || lprc->top > viewportHeight)
+		return;
+
 	lprc->left+=2; lprc->right+=2; lprc->top+=2; lprc->bottom+=2;
 	font->DrawText(sprite, lpchText, -1, lprc, format, D3DCOLOR_ARGB(255, 64, 64, 64));
 	lprc->left-=2; lprc->right-=2; lprc->top-=2; lprc->bottom-=2;

@@ -331,11 +331,11 @@ HRESULT WINAPI DataGatherer::CreateVertexShader(CONST DWORD* pFunction,IDirect3D
 			
 		uint32_t hash = 0;
 		MurmurHash3_x86_32(pData, pSizeOfData, VIREIO_SEED, &hash); 
-
-		// No idea what happens if the same vertex shader is created twice. Pointer to the same shader or two
-		// separate instances? guessing separate in which case m_recordedShader as is is pointless. 
-		// TODO Replace pointer check with check on hash of shader data. (and print hash with data)
-		if (m_recordedVShaders.insert(hash).second && m_shaderDumpFile.is_open()) {
+		if (m_recordedVShaders.find(hash) == m_recordedVShaders.end() && 
+			m_shaderDumpFile.is_open())
+		{
+			//This doesn't keep a ref count, doesn't need to, it isn't used
+			m_recordedVShaders[hash] = *ppShader;
 
 			_hr = D3DXGetShaderConstantTable(reinterpret_cast<DWORD*>(pData), &pConstantTable);
 			if(_hr == D3DERR_INVALIDCALL)
@@ -568,11 +568,11 @@ HRESULT WINAPI DataGatherer::CreatePixelShader(CONST DWORD* pFunction,IDirect3DP
 
 		uint32_t hash = 0;
 		MurmurHash3_x86_32(pData, pSizeOfData, VIREIO_SEED, &hash); 
-
-		// No idea what happens if the same vertex shader is created twice. Pointer to the same shader or two
-		// separate instances? guessing separate in which case m_recordedShader as is is pointless. 
-		// TODO Replace pointer check with check on hash of shader data. (and print hash with data)
-		if (m_recordedPShaders.insert(hash).second && m_shaderDumpFile.is_open()) {
+		if (m_recordedPShaders.find(hash) == m_recordedPShaders.end() && 
+			m_shaderDumpFile.is_open())
+		{
+			//This doesn't keep a ref count (no need, it basically isn't used)
+			m_recordedPShaders[hash] = *ppShader;
 
 			D3DXGetShaderConstantTable(reinterpret_cast<DWORD*>(pData), &pConstantTable);
 
@@ -758,6 +758,9 @@ void DataGatherer::BRASSA_ShaderSubMenu()
 		if (entryID == 2)
 		{
 			BRASSA_mode = BRASSA_Modes::SHOW_SHADERS_SCREEN;
+			//Clear collections
+			m_knownVShaders.clear();
+			m_knownPShaders.clear();
 			menuVelocity.x+=2.0f;
 		}
 		// save rules
@@ -1266,6 +1269,10 @@ void DataGatherer::BRASSA_PickRules()
 ***/
 void DataGatherer::BRASSA_ShowActiveShaders()
 {
+	//Don't do anything if it is an empty collection
+	if (m_activePShaders.size() == 0)
+		return;
+
 	menuHelperRect.left = 0;
 	menuHelperRect.top = 0;
 	
@@ -1274,44 +1281,102 @@ void DataGatherer::BRASSA_ShowActiveShaders()
 	std::vector<bool> menuColor;
 	std::vector<uint32_t> menuID;
 	std::string menuEntry;
+
+	//Local copy of known shaders, the main collection is too big
+	if (m_knownVShaders.size() == 0)
+		m_knownVShaders = m_activeVShaders;
+
 	// loop through relevant vertex shaders
-	auto itVShaderHash = m_activeVShadersLastFrame.begin();
-	while (itVShaderHash != m_activeVShadersLastFrame.end())
+	auto itVShaderHash = m_knownVShaders.begin();
+	while (itVShaderHash != m_knownVShaders.end())
 	{
 		bool excluded = false;
+		bool visible = true;
 		// show colored if shader is drawn
-		if (std::find(m_excludedVShaders.begin(), m_excludedVShaders.end(), itVShaderHash->first) == m_excludedVShaders.end()) {
+		if (std::find(m_excludedVShaders.begin(), m_excludedVShaders.end(), itVShaderHash->first) != m_excludedVShaders.end()) {
 			excluded = true;
 		}
-		menuColor.push_back(excluded);
+
+		if (m_activeVShaders.find(itVShaderHash->first) == m_activeVShaders.end())
+			visible = false;
+
 		menuID.push_back(itVShaderHash->first);
+
 		char buf[256];
-		sprintf_s(buf, 256, "VS : %u", itVShaderHash->first);
+		if (!visible)
+		{
+			menuColor.push_back(true);
+			sprintf_s(buf, 256, "VS : --");
+		}
+		else
+		{
+			menuColor.push_back(excluded);
+			sprintf_s(buf, 256, "VS : %u", itVShaderHash->first);
+		}
+
 		menuEntry = std::string(buf);
 		menuEntries.push_back(menuEntry);
 
 		menuEntryCount++;
 		++itVShaderHash;
 	}
+
+	// for next time, add in any we don;t know yet
+	auto itVShaderCurrentHash = m_activeVShaders.begin();
+	while (itVShaderCurrentHash != m_activeVShaders.end())
+	{
+		if (m_knownVShaders.find(itVShaderCurrentHash->first) == m_knownVShaders.end())
+			m_knownVShaders[itVShaderCurrentHash->first] = itVShaderCurrentHash->second;
+		itVShaderCurrentHash++;
+	}
+
 	UINT endOfVertexShaderEntries = menuEntryCount-2;
+	
+	//Local copy of known shaders, the main collection is too big
+	if (m_knownPShaders.size() == 0)
+		m_knownPShaders = m_activePShaders;
+
 	// loop through relevant pixel shaders
-	auto itPShaderHash = m_activePShadersLastFrame.begin();
-	while (itPShaderHash != m_activePShadersLastFrame.end())
+	auto itPShaderHash = m_knownPShaders.begin();
+	while (itPShaderHash != m_knownPShaders.end())
 	{
 		bool excluded = false;
+		bool visible = true;
 		// show colored if shader is drawn
-		if (std::find(m_excludedPShaders.begin(), m_excludedPShaders.end(), itPShaderHash->first) == m_excludedPShaders.end()) {
+		if (std::find(m_excludedPShaders.begin(), m_excludedPShaders.end(), itPShaderHash->first) != m_excludedPShaders.end()) {
 			excluded = true;
 		}
-		menuColor.push_back(excluded);
+		if (m_activePShaders.find(itPShaderHash->first) == m_activePShaders.end())
+			visible = false;
+
 		menuID.push_back(itPShaderHash->first);
+
 		char buf[256];
-		sprintf_s(buf, 256, "PS : %u", itPShaderHash->first);
+		if (!visible)
+		{
+			menuColor.push_back(true);
+			sprintf_s(buf, 256, "PS : --");
+		}
+		else
+		{
+			menuColor.push_back(excluded);
+			sprintf_s(buf, 256, "PS : %u", itPShaderHash->first);
+		}
+
 		menuEntry = std::string(buf);
 		menuEntries.push_back(menuEntry);
 
 		menuEntryCount++;
 		++itPShaderHash;
+	}
+	
+	// for next time, add in any we don;t know yet
+	auto itPShaderCurrentHash = m_activePShaders.begin();
+	while (itPShaderCurrentHash != m_activePShaders.end())
+	{
+		if (m_knownPShaders.find(itPShaderCurrentHash->first) == m_knownPShaders.end())
+			m_knownPShaders[itPShaderCurrentHash->first] = itPShaderCurrentHash->second;
+		itPShaderCurrentHash++;
 	}
 
 	UINT entryID;
@@ -1414,16 +1479,27 @@ void DataGatherer::BRASSA_ShowActiveShaders()
 		menuHelperRect.top += (int)(menuTopHeight / fScaleY);
 		for (UINT i = 0; i < menuEntryCount-2; i++)
 		{
-			if (menuColor[i])
-				DrawTextShadowed(hudFont, hudMainMenu, menuEntries[i].c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 64, 255, 64));
-			else	
-				DrawTextShadowed(hudFont, hudMainMenu, menuEntries[i].c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			if ((menuHelperRect.top + 40) >= 0)
+			{
+				if (!menuColor[i])
+					DrawTextShadowed(hudFont, hudMainMenu, menuEntries[i].c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 64, 255, 64));
+				else	
+					DrawTextShadowed(hudFont, hudMainMenu, menuEntries[i].c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			}
 
 			menuHelperRect.top += 40;
+
+			//No point drawing anything off the bottom of the viewport!
+			if (menuHelperRect.top > viewportHeight)
+				break;
 		}
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to BRASSA Menu", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += 40;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+
+		if (menuHelperRect.top < viewportHeight)
+		{
+			DrawTextShadowed(hudFont, hudMainMenu, "Back to BRASSA Menu", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			menuHelperRect.top += 40;
+			DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		}
 
 		menuHelperRect.left = 0;
 		menuHelperRect.top = 0;

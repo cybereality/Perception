@@ -167,11 +167,19 @@ private:
 	/**
 	* Set of recorded vertex shaders, to avoid double output.
 	***/
-	std::unordered_set<uint32_t> m_recordedVShaders;
+	std::map<uint32_t, IDirect3DVertexShader9*> m_recordedVShaders;
 	/**
 	* Set of recorded shaders, to avoid double output.
 	***/
-	std::unordered_set<uint32_t> m_recordedPShaders;
+	std::map<uint32_t, IDirect3DPixelShader9*> m_recordedPShaders;
+	/**
+	* Set of known vertex shaders for ShowActiveShaders
+	***/
+	std::map<uint32_t, IDirect3DVertexShader9*> m_knownVShaders;
+	/**
+	* Set of known pixel shaders for ShowActiveShaders.
+	***/
+	std::map<uint32_t, IDirect3DPixelShader9*> m_knownPShaders;
 	/**
 	* Set of recorded vertex shaders, to avoid double debug log output.
 	***/
