@@ -2484,6 +2484,52 @@ void D3DProxyDevice::HandleControls()
 		menuVelocity.x += 4.0f;		
 	}
 
+	//When to render brassa (Alt + Up)
+	if (controls.Key_Down(VK_MENU) && controls.Key_Down(VK_UP) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	{
+		VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
+		if(m_deviceBehavior.whenToRenderBRASSA == DeviceBehavior::BEGIN_SCENE)
+		{
+			m_deviceBehavior.whenToRenderBRASSA = DeviceBehavior::END_SCENE;
+			sprintf_s(popup.line3, "BRASSA RENDER = END_SCENE");
+		}
+		else if(m_deviceBehavior.whenToRenderBRASSA == DeviceBehavior::END_SCENE)
+		{
+			m_deviceBehavior.whenToRenderBRASSA = DeviceBehavior::PRESENT;
+			sprintf_s(popup.line3, "BRASSA RENDER = PRESENT");
+		}
+		else
+		{
+			m_deviceBehavior.whenToRenderBRASSA = DeviceBehavior::BEGIN_SCENE;
+			sprintf_s(popup.line3, "BRASSA RENDER = BEGIN_SCENE");
+		}
+		ShowPopup(popup);		
+		menuVelocity.x += 4.0f;		
+	}
+
+	//When to poll headtracking (Alt + Down)
+	if (controls.Key_Down(VK_MENU) && controls.Key_Down(VK_DOWN) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	{
+		VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
+		if(m_deviceBehavior.whenToHandleHeadTracking == DeviceBehavior::BEGIN_SCENE)
+		{
+			m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::END_SCENE;			
+			sprintf_s(popup.line3, "HEADTRACKING = END_SCENE");
+		}
+		else if(m_deviceBehavior.whenToHandleHeadTracking == DeviceBehavior::END_SCENE)
+		{
+			m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::PRESENT;
+			sprintf_s(popup.line3, "HEADTRACKING = PRESENT");
+		}
+		else
+		{
+			m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::BEGIN_SCENE;
+			sprintf_s(popup.line3, "HEADTRACKING = BEGIN_SCENE");
+		}
+		ShowPopup(popup);		
+		menuVelocity.x += 4.0f;		
+	}
+
 	// Initiate VRBoost Memory Scan (NUMPAD5 or <LCTRL> + </> )
 	if ((controls.Key_Down(VK_NUMPAD5) || (controls.Key_Down(VK_OEM_2) && controls.Key_Down(VK_LCONTROL))) && 
 		(menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
