@@ -232,6 +232,7 @@ std::string StereoView::CycleRenderState(bool blnBackwards)
 		}
 		return "ERROR";
 	}
+	return "";
 }
 
 /**

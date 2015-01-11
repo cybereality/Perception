@@ -2518,14 +2518,15 @@ void D3DProxyDevice::HandleControls()
 		}
 		else if(m_deviceBehavior.whenToHandleHeadTracking == DeviceBehavior::END_SCENE)
 		{
+			m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::BEGIN_SCENE;			
+			sprintf_s(popup.line3, "HEADTRACKING = BEGIN_SCENE");
+		}	
+		/*else if(m_deviceBehavior.whenToHandleHeadTracking == DeviceBehavior::END_SCENE)
+		{
 			m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::PRESENT;
 			sprintf_s(popup.line3, "HEADTRACKING = PRESENT");
-		}
-		else
-		{
-			m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::BEGIN_SCENE;
-			sprintf_s(popup.line3, "HEADTRACKING = BEGIN_SCENE");
-		}
+		}*///TODO This Crashes Brassa for some reason - problem for another day
+		
 		ShowPopup(popup);		
 		menuVelocity.x += 4.0f;		
 	}
