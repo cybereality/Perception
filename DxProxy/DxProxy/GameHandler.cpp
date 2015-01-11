@@ -65,6 +65,8 @@ bool GameHandler::Load(ProxyHelper::ProxyConfig& cfg, std::shared_ptr<ViewAdjust
 	}
 
 	bool loadSuccess = true;
+	intDuplicateCubeTexture = 0;
+	intDuplicateTexture = 0;
 
 	//if (game profile has shader rules)
 	if (!cfg.shaderRulePath.empty()) {
@@ -284,6 +286,10 @@ bool GameHandler::ShouldDuplicateDepthStencilSurface(UINT Width,UINT Height,D3DF
 	case D3DProxyDevice::ProxyTypes::CDC:
 		// NOT TESTED NOW !
 		return true;
+	
+	case D3DProxyDevice::ProxyTypes::CHROME:
+		// NOT TESTED NOW !
+		return true;
 
 	default:
 		return true;
@@ -298,122 +304,149 @@ bool GameHandler::ShouldDuplicateDepthStencilSurface(UINT Width,UINT Height,D3DF
 ***/
 bool GameHandler::ShouldDuplicateTexture(UINT Width,UINT Height,UINT Levels,DWORD Usage, D3DFORMAT Format,D3DPOOL Pool)
 {
-	switch(m_gameType)
+	if(intDuplicateTexture > 0)
 	{
-	case D3DProxyDevice::ProxyTypes::SOURCE:
-		if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-			return true;
-		return IS_RENDER_TARGET(Usage) && (Width != Height);
+		switch(intDuplicateTexture)
+		{
+			case 1:
+				if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
+					return true;
+				return IS_RENDER_TARGET(Usage) && (Width != Height);
+			case 2: 
+				if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
+				return true;
+				return IS_RENDER_TARGET(Usage) && (Width != Height);
+			case 3: 
+				return false;
+			case 4: 
+				return true;
+		}
+	}
+	else
+	{
+		switch(m_gameType)
+		{
+		case D3DProxyDevice::ProxyTypes::SOURCE:
+			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
+				return true;
+			return IS_RENDER_TARGET(Usage) && (Width != Height);
 
-	case D3DProxyDevice::ProxyTypes::SOURCE_L4D:
-		if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-			return true;
-		return IS_RENDER_TARGET(Usage) && (Width != Height);
+		case D3DProxyDevice::ProxyTypes::SOURCE_L4D:
+			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
+				return true;
+			return IS_RENDER_TARGET(Usage) && (Width != Height);
 
-	case D3DProxyDevice::ProxyTypes::SOURCE_ESTER:
-		if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-			return true;
-		return IS_RENDER_TARGET(Usage);
+		case D3DProxyDevice::ProxyTypes::SOURCE_ESTER:
+			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
+				return true;
+			return IS_RENDER_TARGET(Usage);
 
-	case D3DProxyDevice::ProxyTypes::SOURCE_STANLEY:
-		if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-			return true;
-		return IS_RENDER_TARGET(Usage);
+		case D3DProxyDevice::ProxyTypes::SOURCE_STANLEY:
+			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
+				return true;
+			return IS_RENDER_TARGET(Usage);
 
-	case D3DProxyDevice::ProxyTypes::SOURCE_ZENO:
-		if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-			return true;
-		return IS_RENDER_TARGET(Usage);
+		case D3DProxyDevice::ProxyTypes::SOURCE_ZENO:
+			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
+				return true;
+			return IS_RENDER_TARGET(Usage);
 
-	case D3DProxyDevice::ProxyTypes::UNREAL:
-		if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-			return true;
-		return IS_RENDER_TARGET(Usage) && (Width != Height);
+		case D3DProxyDevice::ProxyTypes::UNREAL:
+			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
+				return true;
+			return IS_RENDER_TARGET(Usage) && (Width != Height);
 
-	case D3DProxyDevice::ProxyTypes::UNREAL_MIRROR:
-		if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-			return true;
-		return IS_RENDER_TARGET(Usage);
+		case D3DProxyDevice::ProxyTypes::UNREAL_MIRROR:
+			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
+				return true;
+			return IS_RENDER_TARGET(Usage);
 
-	case D3DProxyDevice::ProxyTypes::UNREAL_UT3:
-		if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-			return true;
-		return IS_RENDER_TARGET(Usage) && (Width != Height);
+		case D3DProxyDevice::ProxyTypes::UNREAL_UT3:
+			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
+				return true;
+			return IS_RENDER_TARGET(Usage) && (Width != Height);
 
-	case D3DProxyDevice::ProxyTypes::UNREAL_BIOSHOCK:
-	case D3DProxyDevice::ProxyTypes::UNREAL_BIOSHOCK2:
-		if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-			return true;
-		return IS_RENDER_TARGET(Usage) && (Width != Height);
+		case D3DProxyDevice::ProxyTypes::UNREAL_BIOSHOCK:
+		case D3DProxyDevice::ProxyTypes::UNREAL_BIOSHOCK2:
+			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
+				return true;
+			return IS_RENDER_TARGET(Usage) && (Width != Height);
 
-	case D3DProxyDevice::ProxyTypes::UNREAL_BORDERLANDS:
-		if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-			return true;
-		return IS_RENDER_TARGET(Usage) && (Width != Height);
+		case D3DProxyDevice::ProxyTypes::UNREAL_BORDERLANDS:
+			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
+				return true;
+			return IS_RENDER_TARGET(Usage) && (Width != Height);
 
-	case D3DProxyDevice::ProxyTypes::EGO:
-		if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-			return true;
-		return IS_RENDER_TARGET(Usage);
+		case D3DProxyDevice::ProxyTypes::EGO:
+			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
+				return true;
+			return IS_RENDER_TARGET(Usage);
 
-	case D3DProxyDevice::ProxyTypes::EGO_DIRT:
-		if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-			return true;
-		return IS_RENDER_TARGET(Usage);
+		case D3DProxyDevice::ProxyTypes::EGO_DIRT:
+			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
+				return true;
+			return IS_RENDER_TARGET(Usage);
 
-	case D3DProxyDevice::ProxyTypes::REALV:
-		// NOT TESTED NOW !
-		if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-			return true;
-		return IS_RENDER_TARGET(Usage);
+		case D3DProxyDevice::ProxyTypes::REALV:
+			// NOT TESTED NOW !
+			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
+				return true;
+			return IS_RENDER_TARGET(Usage);
 
-	case D3DProxyDevice::ProxyTypes::REALV_ARMA:
-		// NOT TESTED NOW !
-		if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-			return true;
-		return IS_RENDER_TARGET(Usage);
+		case D3DProxyDevice::ProxyTypes::REALV_ARMA:
+			// NOT TESTED NOW !
+			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
+				return true;
+			return IS_RENDER_TARGET(Usage);
 
-	case D3DProxyDevice::ProxyTypes::UNITY:
-		// NOT TESTED NOW !
-		if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-			return true;
-		return IS_RENDER_TARGET(Usage);
+		case D3DProxyDevice::ProxyTypes::UNITY:
+			// NOT TESTED NOW !
+			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
+				return true;
+			return IS_RENDER_TARGET(Usage);
 
-	case D3DProxyDevice::ProxyTypes::UNITY_SLENDER:
-		// NOT TESTED NOW !
-		if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-			return true;
-		return IS_RENDER_TARGET(Usage);
+		case D3DProxyDevice::ProxyTypes::UNITY_SLENDER:
+			// NOT TESTED NOW !
+			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
+				return true;
+			return IS_RENDER_TARGET(Usage);
 
-	case D3DProxyDevice::ProxyTypes::GAMEBRYO:
-		// NOT TESTED NOW !
-		if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-			return true;
-		return IS_RENDER_TARGET(Usage);
+		case D3DProxyDevice::ProxyTypes::GAMEBRYO:
+			// NOT TESTED NOW !
+			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
+				return true;
+			return IS_RENDER_TARGET(Usage);
 
-	case D3DProxyDevice::ProxyTypes::GAMEBRYO_SKYRIM:
-		// NOT TESTED NOW !
-		if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-			return true;
-		return IS_RENDER_TARGET(Usage);
+		case D3DProxyDevice::ProxyTypes::GAMEBRYO_SKYRIM:
+			// NOT TESTED NOW !
+			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
+				return true;
+			return IS_RENDER_TARGET(Usage);
 
-	case D3DProxyDevice::ProxyTypes::LFS:
-		// NOT TESTED NOW !
-		if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-			return true;
-		return IS_RENDER_TARGET(Usage);
+		case D3DProxyDevice::ProxyTypes::LFS:
+			// NOT TESTED NOW !
+			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
+				return true;
+			return IS_RENDER_TARGET(Usage);
 
-	case D3DProxyDevice::ProxyTypes::CDC:
-		// NOT TESTED NOW !
-		if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-			return true;
-		return IS_RENDER_TARGET(Usage);
+		case D3DProxyDevice::ProxyTypes::CDC:
+			// NOT TESTED NOW !
+			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
+				return true;
+			return IS_RENDER_TARGET(Usage);
 
-	default:
-		if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-			return true;
-		return IS_RENDER_TARGET(Usage);
+		case D3DProxyDevice::ProxyTypes::CHROME:
+			// NOT TESTED NOW !
+			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
+				return true;
+			return IS_RENDER_TARGET(Usage);
+		
+		default:
+			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
+				return true;
+			return IS_RENDER_TARGET(Usage);
 
+		}
 	}
 }
 
@@ -424,80 +457,99 @@ bool GameHandler::ShouldDuplicateTexture(UINT Width,UINT Height,UINT Levels,DWOR
 ***/
 bool GameHandler::ShouldDuplicateCubeTexture(UINT EdgeLength, UINT Levels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool)
 {
-	switch(m_gameType)
+	if(intDuplicateCubeTexture > 0)
 	{
-	case D3DProxyDevice::ProxyTypes::SOURCE:
-		return false;
+		switch(intDuplicateCubeTexture)
+		{
+			case 1:
+				return false;
+			case 2: 
+				return true;
+			case 3: 
+				return IS_RENDER_TARGET(Usage);
+		}
+	}
+	else
+	{
+		switch(m_gameType)
+		{
+		case D3DProxyDevice::ProxyTypes::SOURCE:
+			return false;
 
-	case D3DProxyDevice::ProxyTypes::SOURCE_L4D:
-		return false;
+		case D3DProxyDevice::ProxyTypes::SOURCE_L4D:
+			return false;
 
-	case D3DProxyDevice::ProxyTypes::SOURCE_ESTER:
-		return IS_RENDER_TARGET(Usage);
+		case D3DProxyDevice::ProxyTypes::SOURCE_ESTER:
+			return IS_RENDER_TARGET(Usage);
 
-	case D3DProxyDevice::ProxyTypes::SOURCE_STANLEY:
-		return IS_RENDER_TARGET(Usage);
+		case D3DProxyDevice::ProxyTypes::SOURCE_STANLEY:
+			return IS_RENDER_TARGET(Usage);
 
-	case D3DProxyDevice::ProxyTypes::SOURCE_ZENO:
-		return IS_RENDER_TARGET(Usage);
+		case D3DProxyDevice::ProxyTypes::SOURCE_ZENO:
+			return IS_RENDER_TARGET(Usage);
 	
-	case D3DProxyDevice::ProxyTypes::UNREAL:
-		return false;
+		case D3DProxyDevice::ProxyTypes::UNREAL:
+			return false;
 
-	case D3DProxyDevice::ProxyTypes::UNREAL_MIRROR:
-		return false;
+		case D3DProxyDevice::ProxyTypes::UNREAL_MIRROR:
+			return false;
 
-	case D3DProxyDevice::ProxyTypes::UNREAL_UT3:
-		return false;
+		case D3DProxyDevice::ProxyTypes::UNREAL_UT3:
+			return false;
 
-	case D3DProxyDevice::ProxyTypes::UNREAL_BIOSHOCK:
-	case D3DProxyDevice::ProxyTypes::UNREAL_BIOSHOCK2:
-		return false;
+		case D3DProxyDevice::ProxyTypes::UNREAL_BIOSHOCK:
+		case D3DProxyDevice::ProxyTypes::UNREAL_BIOSHOCK2:
+			return false;
 
-	case D3DProxyDevice::ProxyTypes::UNREAL_BORDERLANDS:
-		return false;
+		case D3DProxyDevice::ProxyTypes::UNREAL_BORDERLANDS:
+			return false;
 
-	case D3DProxyDevice::ProxyTypes::EGO:
-		return IS_RENDER_TARGET(Usage);
+		case D3DProxyDevice::ProxyTypes::EGO:
+			return IS_RENDER_TARGET(Usage);
 
-	case D3DProxyDevice::ProxyTypes::EGO_DIRT:
-		return IS_RENDER_TARGET(Usage);
+		case D3DProxyDevice::ProxyTypes::EGO_DIRT:
+			return IS_RENDER_TARGET(Usage);
 
-	case D3DProxyDevice::ProxyTypes::REALV:
-		// NOT TESTED NOW !
-		return IS_RENDER_TARGET(Usage);
+		case D3DProxyDevice::ProxyTypes::REALV:
+			// NOT TESTED NOW !
+			return IS_RENDER_TARGET(Usage);
 
-	case D3DProxyDevice::ProxyTypes::REALV_ARMA:
-		// NOT TESTED NOW !
-		return IS_RENDER_TARGET(Usage);
+		case D3DProxyDevice::ProxyTypes::REALV_ARMA:
+			// NOT TESTED NOW !
+			return IS_RENDER_TARGET(Usage);
 
-	case D3DProxyDevice::ProxyTypes::UNITY:
-		// NOT TESTED NOW !
-		return IS_RENDER_TARGET(Usage);
+		case D3DProxyDevice::ProxyTypes::UNITY:
+			// NOT TESTED NOW !
+			return IS_RENDER_TARGET(Usage);
 
-	case D3DProxyDevice::ProxyTypes::UNITY_SLENDER:
-		// NOT TESTED NOW !
-		return IS_RENDER_TARGET(Usage);
+		case D3DProxyDevice::ProxyTypes::UNITY_SLENDER:
+			// NOT TESTED NOW !
+			return IS_RENDER_TARGET(Usage);
 
-	case D3DProxyDevice::ProxyTypes::GAMEBRYO:
-		// NOT TESTED NOW !
-		return IS_RENDER_TARGET(Usage);
+		case D3DProxyDevice::ProxyTypes::GAMEBRYO:
+			// NOT TESTED NOW !
+			return IS_RENDER_TARGET(Usage);
 
-	case D3DProxyDevice::ProxyTypes::GAMEBRYO_SKYRIM:
-		// NOT TESTED NOW !
-		return IS_RENDER_TARGET(Usage);
+		case D3DProxyDevice::ProxyTypes::GAMEBRYO_SKYRIM:
+			// NOT TESTED NOW !
+			return IS_RENDER_TARGET(Usage);
 
-	case D3DProxyDevice::ProxyTypes::LFS:
-		// NOT TESTED NOW !
-		return IS_RENDER_TARGET(Usage);
+		case D3DProxyDevice::ProxyTypes::LFS:
+			// NOT TESTED NOW !
+			return IS_RENDER_TARGET(Usage);
 
-	case D3DProxyDevice::ProxyTypes::CDC:
-		// NOT TESTED NOW !
-		return IS_RENDER_TARGET(Usage);
+		case D3DProxyDevice::ProxyTypes::CDC:
+			// NOT TESTED NOW !
+			return IS_RENDER_TARGET(Usage);
 
-	default:
-		return IS_RENDER_TARGET(Usage);
+		case D3DProxyDevice::ProxyTypes::CHROME:
+			// NOT TESTED NOW !
+			return IS_RENDER_TARGET(Usage);
+		
+		default:
+			return IS_RENDER_TARGET(Usage);
 
+		}
 	}
 }
 

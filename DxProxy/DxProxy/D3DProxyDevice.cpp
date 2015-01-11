@@ -2484,6 +2484,55 @@ void D3DProxyDevice::HandleControls()
 		menuVelocity.x += 4.0f;		
 	}
 
+	// Toggle Through Cube Renders -> ALt + 1
+	if (controls.Key_Down(VK_MENU) && controls.Key_Down(0x31) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	{
+		VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
+		if(m_pGameHandler->intDuplicateCubeTexture < 3)
+		{
+			m_pGameHandler->intDuplicateCubeTexture++;
+			if(m_pGameHandler->intDuplicateCubeTexture == 1)
+				sprintf_s(popup.line3, "Cube Duplication :: Always False");
+			else if(m_pGameHandler->intDuplicateCubeTexture == 2)
+				sprintf_s(popup.line3, "Cube Duplication :: Always True");
+			else if(m_pGameHandler->intDuplicateCubeTexture == 3)
+				sprintf_s(popup.line3, "Cube Duplication :: Always IS_RENDER_TARGET(Usage)");
+		}
+		else
+		{
+			m_pGameHandler->intDuplicateCubeTexture = 0;
+			sprintf_s(popup.line3, "Cube Duplication :: Default (Game Type)");
+		}		
+		
+		ShowPopup(popup);		
+		menuVelocity.x += 4.0f;		
+	}
+	// Toggle Through Texture Renders -> ALt + 2
+	if (controls.Key_Down(VK_MENU) && controls.Key_Down(0x32) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	{
+		VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
+		if(m_pGameHandler->intDuplicateTexture < 4)
+		{
+			m_pGameHandler->intDuplicateTexture++;
+			if(m_pGameHandler->intDuplicateTexture == 1)
+				sprintf_s(popup.line3, "Texture Duplication :: Method 1");
+			else if(m_pGameHandler->intDuplicateTexture == 2)
+				sprintf_s(popup.line3, "Texture Duplication :: Method 2 (1 + Width and Height)");
+			else if(m_pGameHandler->intDuplicateTexture == 3)
+				sprintf_s(popup.line3, "Texture Duplication :: Always False");
+			else if(m_pGameHandler->intDuplicateTexture == 4)
+				sprintf_s(popup.line3, "Texture Duplication :: Always True");
+		}
+		else
+		{
+			m_pGameHandler->intDuplicateTexture = 0;
+			sprintf_s(popup.line3, "Texture Duplication :: Default (Game Type)");
+		}		
+		
+		ShowPopup(popup);		
+		menuVelocity.x += 4.0f;		
+	}
+
 	//When to render brassa (Alt + Up)
 	if (controls.Key_Down(VK_MENU) && controls.Key_Down(VK_UP) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
@@ -6453,6 +6502,10 @@ void D3DProxyDevice::BRASSA_UpdateDeviceSettings()
 		break;
 	case D3DProxyDevice::CDC:
 		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::END_SCENE;
+		m_deviceBehavior.whenToRenderBRASSA = DeviceBehavior::WhenToDo::END_SCENE;
+		break;
+	case D3DProxyDevice::CHROME:
+		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
 		m_deviceBehavior.whenToRenderBRASSA = DeviceBehavior::WhenToDo::END_SCENE;
 		break;
 	default:

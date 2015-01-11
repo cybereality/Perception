@@ -59,6 +59,8 @@ class GameHandler
 public:
 	GameHandler(); 
 	virtual ~GameHandler();
+	int intDuplicateCubeTexture;
+	int intDuplicateTexture;
 
 	/*** GameHandler public methods ***/
 	bool                          Load(ProxyHelper::ProxyConfig& cfg, std::shared_ptr<ViewAdjustment> spShaderViewAdjustments);
@@ -71,6 +73,7 @@ public:
 	bool                          ModifyRule(std::shared_ptr<ViewAdjustment> spShaderViewAdjustments, std::string constantName, UINT operationToApply, bool transpose);
 	bool                          DeleteRule(std::shared_ptr<ViewAdjustment> spShaderViewAdjustments, std::string constantName);
 	ShaderModificationRepository* GetShaderModificationRepository();
+	
 private:
 	/**
 	* The shader modification repository for the handled game.

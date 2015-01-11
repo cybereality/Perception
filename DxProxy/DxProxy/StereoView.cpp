@@ -140,6 +140,9 @@ StereoView::StereoView(ProxyHelper::ProxyConfig& config)
 	case D3DProxyDevice::CDC:
 		howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;
 		break;
+	case D3DProxyDevice::CHROME:
+		howToSaveRenderStates = HowToSaveRenderStates::SELECTED_STATES_MANUALLY;
+		break;
 	default:
 		howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;
 		break;
@@ -308,7 +311,7 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 	IDirect3DSurface9* leftImage;
 	IDirect3DSurface9* rightImage;	
 	
-	if(m_b2dDepthMode == true)
+	if(m_b2dDepthMode == true && 1 == 2)
 	{
 		if(m_bLeftSideActive == true)
 		{
