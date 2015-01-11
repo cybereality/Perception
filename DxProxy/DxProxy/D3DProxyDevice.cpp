@@ -2465,6 +2465,25 @@ void D3DProxyDevice::HandleControls()
 		
 	}
 
+	// switch to 2d Depth Mode (ALT + Right Arrow / Left Arrow)
+	if (controls.Key_Down(VK_MENU) && (controls.Key_Down(VK_LEFT) || controls.Key_Down(VK_RIGHT)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	{
+		std::string _str = "";
+		if(controls.Key_Down(VK_LEFT))
+		{			
+			_str = stereoView->CycleRenderState(false);
+		}
+		else if(controls.Key_Down(VK_RIGHT))
+		{			
+			_str = stereoView->CycleRenderState(true);
+		}
+		VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
+		sprintf_s(popup.line3, _str.append(" :: New Render State").c_str());
+		ShowPopup(popup);
+		
+		menuVelocity.x += 4.0f;		
+	}
+
 	// Initiate VRBoost Memory Scan (NUMPAD5 or <LCTRL> + </> )
 	if ((controls.Key_Down(VK_NUMPAD5) || (controls.Key_Down(VK_OEM_2) && controls.Key_Down(VK_LCONTROL))) && 
 		(menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))

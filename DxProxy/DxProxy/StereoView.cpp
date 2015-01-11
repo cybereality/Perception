@@ -178,6 +178,63 @@ void StereoView::Init(IDirect3DDevice9* pActualDevice)
 }
 
 /**
+* Cycle Render States
+* Boolean for going backwards
+***/
+std::string StereoView::CycleRenderState(bool blnBackwards)
+{
+	if (initialized) {
+		if(blnBackwards)
+		{
+			if(howToSaveRenderStates == HowToSaveRenderStates::ALL_STATES_MANUALLY)
+			{
+				howToSaveRenderStates = HowToSaveRenderStates::DO_NOT_SAVE_AND_RESTORE;
+				return "DO_NOT_SAVE_AND_RESTORE";
+			}
+			else if(howToSaveRenderStates == HowToSaveRenderStates::DO_NOT_SAVE_AND_RESTORE)
+			{
+				howToSaveRenderStates = HowToSaveRenderStates::SELECTED_STATES_MANUALLY;
+				return "SELECTED_STATES_MANUALLY";
+			}
+			else if(howToSaveRenderStates == HowToSaveRenderStates::SELECTED_STATES_MANUALLY)
+			{
+				howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;
+				return "STATE_BLOCK";
+			}
+			else if(howToSaveRenderStates == HowToSaveRenderStates::STATE_BLOCK)
+			{
+				howToSaveRenderStates = HowToSaveRenderStates::ALL_STATES_MANUALLY;
+				return "ALL_STATES_MANUALLY";
+			}
+		}
+		else
+		{
+			if(howToSaveRenderStates == HowToSaveRenderStates::DO_NOT_SAVE_AND_RESTORE)
+			{
+				howToSaveRenderStates = HowToSaveRenderStates::ALL_STATES_MANUALLY;
+				return "ALL_STATES_MANUALLY";
+			}
+			else if(howToSaveRenderStates == HowToSaveRenderStates::SELECTED_STATES_MANUALLY)
+			{
+				howToSaveRenderStates = HowToSaveRenderStates::DO_NOT_SAVE_AND_RESTORE;
+				return "DO_NOT_SAVE_AND_RESTORE";
+			}
+			else if(howToSaveRenderStates == HowToSaveRenderStates::STATE_BLOCK)
+			{
+				howToSaveRenderStates = HowToSaveRenderStates::SELECTED_STATES_MANUALLY;
+				return "SELECTED_STATES_MANUALLY";
+			}
+			else if(howToSaveRenderStates == HowToSaveRenderStates::ALL_STATES_MANUALLY)
+			{
+				howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;
+				return "STATE_BLOCK";
+			}
+		}
+		return "ERROR";
+	}
+}
+
+/**
 * Releases all Direct3D objects.
 ***/
 void StereoView::ReleaseEverything()

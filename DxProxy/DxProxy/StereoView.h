@@ -53,6 +53,7 @@ public:
 	virtual void ReleaseEverything();
 	virtual void Draw(D3D9ProxySurface* stereoCapableSurface);
 	virtual void SaveScreen();
+	virtual std::string CycleRenderState(bool blnBackwards);
 	virtual void PostReset();
 	IDirect3DSurface9* GetBackBuffer();
 	/**
