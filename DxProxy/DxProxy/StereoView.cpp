@@ -311,7 +311,7 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 	IDirect3DSurface9* leftImage;
 	IDirect3DSurface9* rightImage;	
 	
-	if(m_b2dDepthMode == true && 1 == 2)
+	if(m_b2dDepthMode == true)
 	{
 		if(m_bLeftSideActive == true)
 		{

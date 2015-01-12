@@ -2465,6 +2465,27 @@ void D3DProxyDevice::HandleControls()
 		
 	}
 
+	// Swap Sides on Depth mode (Alt + O)
+	if (controls.Key_Down(VK_MENU) && controls.Key_Down(0x4F) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	{
+		if(m_b2dDepthMode)
+		{
+			if(stereoView->m_bLeftSideActive)
+			{
+				stereoView->m_bLeftSideActive = false;
+			}
+			else
+			{
+				stereoView->m_bLeftSideActive = true;
+			}
+			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
+			sprintf_s(popup.line3, "Depth Perception Side Switched");
+			ShowPopup(popup);
+		}		
+		menuVelocity.x += 4.0f;
+		
+	}
+
 	// cycle Render States
 	if (controls.Key_Down(VK_MENU) && (controls.Key_Down(VK_LEFT) || controls.Key_Down(VK_RIGHT)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{

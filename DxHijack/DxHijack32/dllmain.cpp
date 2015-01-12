@@ -172,7 +172,13 @@ BOOL APIENTRY DllMain( HINSTANCE hModule, DWORD fdwReason, LPVOID lpReserved )
 		// Only hook the APIs if this is the right process.
 		GetModuleFileName(GetModuleHandle(NULL), targetExe, sizeof(targetExe));
 		PathStripPath(targetExe);
-
+		/*if(std::string(targetExe) == "GitHub.exe")
+		{
+			OutputDebugString("Ignoring process: ");
+			OutputDebugString(targetExe);
+			OutputDebugString("\n");
+			return TRUE;
+		}*/
 		GetModuleFileName(GetModuleHandle(NULL), targetPath, sizeof(targetPath));
 		targetPathString = std::string(targetPath);
 		targetPathString = targetPathString.substr(0, targetPathString.find_last_of("\\/") + 1);
