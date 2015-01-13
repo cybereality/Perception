@@ -8,7 +8,8 @@
 		<rule constantName="mViewProjI" partialName="true" id="6" constantType="MatrixR" modToApply="2" startReg="4" transpose="true" />
 		<rule constantName="g_VS_ViewProjZeroMatr" partialName="true" id="8" constantType="MatrixR" modToApply="1" startReg="25" transpose="true" />
 		<rule constantName="ObjWorldMatrix" partialName="true" id="9" constantType="MatrixR" modToApply="1" startReg="0" transpose="true" />
-		<rule constantName="_g_SkinQuat" partialName="true" id="10" constantType="MatrixR" modToApply="1" startReg="40" transpose="true" />
+
+		<rule constantName="g_VS_ViewProjZeroMatr" partialName="true" id="10" constantType="MatrixR" modToApply="9" startReg="25" transpose="true" />
 		
 	</rules>
 	<defaultRuleIDs>
@@ -24,8 +25,8 @@
 		<ruleID id="9" />
 		<ruleID id="10" />
 	</defaultRuleIDs>
- <!-- <shaderSpecificRuleIDs shaderHash="2635404621">
-    <ruleID id="9" />Sort out funky looking gun and hand</shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="419806981">
-    <ruleID id="9" />Sort out funky looking hand</shaderSpecificRuleIDs>-->
+	<shaderSpecificRuleIDs shaderHash="85882304">
+		<ruleID id="10" />Sort out skybox</shaderSpecificRuleIDs>
+	<shaderSpecificRuleIDs shaderHash="1177584787">
+		<ruleID id="10" />Sort out skybox</shaderSpecificRuleIDs>
 </shaderConfig>
