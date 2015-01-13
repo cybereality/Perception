@@ -3,9 +3,9 @@
   <ScannerGroups>
 	<ScannerGroup>
 		<ID>0</ID>
-		<BaseAddress>000000D0</BaseAddress>
+		<BaseAddress>100000D0</BaseAddress>
 		<MemIncrement>00000100</MemIncrement>
-		<MemIncCount>00300000</MemIncCount>
+		<MemIncCount>00200000</MemIncCount>
 		<FailIfNotFound>True</FailIfNotFound>
 		<ScanRule>
 			<AxisName>TrackerPitch</AxisName>
@@ -19,7 +19,7 @@
 					<MaxValue>0000FFFE</MaxValue>
 				</Compare>
 				<Compare type="BetweenIncl">
-					<MinValue>00000001</MinValue>
+					<MinValue>00000002</MinValue>
 					<MaxValue>00004000</MaxValue>
 				</Compare>
 			</Comparisons>
@@ -74,60 +74,6 @@
 
     <ScanAssistStep>
       <TimeBeforeCheck>3000</TimeBeforeCheck>
-      <Pose>LEFT</Pose>
-      <Axis>
-        <AxisName>TrackerYaw</AxisName>
-        <AddressType>DWORD</AddressType>
-        <Comparisons>
-          <Compare type="DecreasedDWORD"/>
-        </Comparisons>
-      </Axis>
-      <Axis>
-        <AxisName>TrackerPitch</AxisName>
-        <AddressType>DWORD</AddressType>
-        <!--Ensure the addresses are equivalent to looking more or less at the horizon (be a bit more generous with this range)-->
-        <Comparisons>
-          <Compare type="BetweenIncl">
-            <MinValue>0000D800</MinValue>
-            <MaxValue>0000FFFF</MaxValue>
-          </Compare>
-          <Compare type="BetweenIncl">
-            <MinValue>00000000</MinValue>
-            <MaxValue>00002800</MaxValue>
-          </Compare>
-        </Comparisons>
-      </Axis>
-    </ScanAssistStep>
-
-    <ScanAssistStep>
-      <TimeBeforeCheck>4000</TimeBeforeCheck>
-      <Pose>RIGHT</Pose>
-      <Axis>
-        <AxisName>TrackerYaw</AxisName>
-        <AddressType>DWORD</AddressType>
-        <Comparisons>
-          <!-- increased against initial sample -->
-          <Compare type="IncreasedDWORD"/>
-        </Comparisons>
-      </Axis>
-      <Axis>
-        <AxisName>TrackerPitch</AxisName>
-        <AddressType>DWORD</AddressType>
-        <Comparisons>
-          <Compare type="BetweenIncl">
-            <MinValue>0000D800</MinValue>
-            <MaxValue>0000FFFF</MaxValue>
-          </Compare>
-          <Compare type="BetweenIncl">
-            <MinValue>00000000</MinValue>
-            <MaxValue>00002800</MaxValue>
-          </Compare>
-        </Comparisons>
-      </Axis>
-    </ScanAssistStep>
-
-    <ScanAssistStep>
-      <TimeBeforeCheck>3000</TimeBeforeCheck>
       <Pose>DOWN</Pose>
       <Axis>
         <AxisName>TrackerPitch</AxisName>
@@ -141,24 +87,5 @@
       </Axis>
     </ScanAssistStep>
 
-    <ScanAssistStep>
-      <TimeBeforeCheck>3000</TimeBeforeCheck>
-      <Pose>STRAIGHT-AHEAD</Pose>
-      <Axis>
-        <AxisName>TrackerPitch</AxisName>
-        <AddressType>DWORD</AddressType>
-        <Comparisons>
-          <Compare type="BetweenIncl">
-            <MinValue>0000E000</MinValue>
-            <MaxValue>0000FFFF</MaxValue>
-          </Compare>
-          <!-- OR -->
-          <Compare type="BetweenIncl">
-            <MinValue>00000000</MinValue>
-            <MaxValue>00002000</MaxValue>
-          </Compare>
-        </Comparisons>
-      </Axis>
-    </ScanAssistStep>
   </ScanAssistSequence>
 </Scanner>

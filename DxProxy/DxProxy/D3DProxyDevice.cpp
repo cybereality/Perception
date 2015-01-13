@@ -2609,6 +2609,7 @@ void D3DProxyDevice::HandleControls()
 		{
 			//Use local static, as it is a simple flag
 			static bool showRescanWarning = false;
+			static bool shownRescanWarning = false;
 			if (showRescanWarning && !VRBoostStatus.VRBoost_Scanning)
 			{
 				//If roll isn't enabled then rolling is done through the game engine using VRBoost
@@ -2617,7 +2618,7 @@ void D3DProxyDevice::HandleControls()
 				//so before starting the scan, confirm with the user this is what they actually wish to do
 				//This will also prevent an accidental re-run
 				//Games that use matrix roll can usually be re-run without issue
-				VireioPopup popup(VPT_NOTIFICATION, VPS_INFO, 10000);
+				VireioPopup popup(VPT_NOTIFICATION, VPS_INFO, 5000);
 				sprintf_s(popup.line1, "   *WARNING*: re-running a scan once stable");
 				sprintf_s(popup.line2, "   addresses have been found will fail");
 				sprintf_s(popup.line3, "   IF NO SCAN HAS YET SUCCEEDED; IGNORE THIS WARNING");
@@ -2625,9 +2626,17 @@ void D3DProxyDevice::HandleControls()
 				sprintf_s(popup.line6, "   or wait for this message to disappear (No Scan)");
 				ShowPopup(popup);
 				showRescanWarning = false;
+				shownRescanWarning = true;
 			}
 			else
 			{
+				//Ensure the previous notification is dismissed
+				if (shownRescanWarning)
+				{
+					DismissPopup(VPT_NOTIFICATION);
+					shownRescanWarning = false;
+				}
+
 				ReturnValue vr = m_pVRboost_StartMemoryScan();
 				if (vr == VRBOOST_ERROR)
 				{
