@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Scanner>
+  <ScannerGroups>
+	<ScannerGroup>
+		<ID>0</ID>
+		<BaseAddress>0A00000C</BaseAddress>
+		<MemIncrement>00000010</MemIncrement>
+		<MemIncCount>01400000</MemIncCount>
+		<FailIfNotFound>True</FailIfNotFound>
+		<ScanRule>
+			<AxisName>WorldFOV</AxisName>
+			<AddressType>Float</AddressType>
+			<ModificationToApply>FloatSimpleApply</ModificationToApply>
+			<BaseAddressOffset>00000000</BaseAddressOffset>
+			<CheckForChanges>NoChange</CheckForChanges>
+			<Comparisons>
+				<Compare type="Equal">
+					<MinValue>60.0</MinValue>
+				</Compare>
+			</Comparisons>
+		</ScanRule>
+		<ScanRule>
+			<AxisName>NoAxis</AxisName>
+			<AddressType>Float</AddressType>
+			<ModificationToApply>FloatSimpleApply</ModificationToApply>
+			<BaseAddressOffset>00000008</BaseAddressOffset>
+			<CheckForChanges>NoChange</CheckForChanges>
+			<Comparisons>
+				<Compare type="Equal">
+					<MinValue>1.0</MinValue>
+				</Compare>
+			</Comparisons>
+		</ScanRule>
+		<ScanRule>
+			<AxisName>NoAxis</AxisName>
+			<AddressType>Float</AddressType>
+			<ModificationToApply>FloatSimpleApply</ModificationToApply>
+			<BaseAddressOffset>00000010</BaseAddressOffset>
+			<CheckForChanges>NoChange</CheckForChanges>
+			<Comparisons>
+				<Compare type="Equal">
+					<MinValue>3.5</MinValue>
+				</Compare>
+			</Comparisons>
+		</ScanRule>	
+	</ScannerGroup>
+  
+	<ScannerGroup>
+		<ID>1</ID>
+		<BaseAddress>382D4078</BaseAddress>
+		<MemIncrement>00000010</MemIncrement>
+		<MemIncCount>00000001</MemIncCount>
+		<FailIfNotFound>False</FailIfNotFound>
+		<ScanRule>
+			<AxisName>PlayerFOV</AxisName>
+			<AddressType>DWORD</AddressType>
+			<ModificationToApply>FloatSimpleApply</ModificationToApply>
+			<BaseAddressOffset>00000000</BaseAddressOffset>
+			<CheckForChanges>NoChange</CheckForChanges>
+			<Comparisons>
+				<Compare type="Equal">
+					<MinValue>00000060</MinValue>
+				</Compare>
+			</Comparisons>
+		</ScanRule>
+	</ScannerGroup>
+  </ScannerGroups>
+  
+</Scanner>
