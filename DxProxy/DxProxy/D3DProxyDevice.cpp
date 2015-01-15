@@ -3013,7 +3013,7 @@ void D3DProxyDevice::HandleControls()
 	{
 		if (this->stereoView->m_screenViewGlideFactor < 1.0f)
 		{
-			float drift = ((1.0f - this->stereoView->m_screenViewGlideFactor) * 4);
+			float drift = (sinf(1 + (-cosf((1.0f - this->stereoView->m_screenViewGlideFactor) * 3.142f) / 2)) - 0.5f) * 2.0f;
 			this->stereoView->HeadYOffset = ((m_fFloatingScreenPitch - tracker->primaryPitch) * screenFloatMultiplierY) 
 				* drift;
 			this->stereoView->XOffset = ((m_fFloatingScreenYaw - tracker->primaryYaw) * screenFloatMultiplierX) 
