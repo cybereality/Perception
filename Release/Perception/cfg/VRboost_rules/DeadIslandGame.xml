@@ -10,7 +10,7 @@
     <ScanRule>
       <AxisName>TrackerYaw</AxisName>
       <AddressType>DWORD</AddressType>
-      <ModificationToApply>FloatUnrealAxis</ModificationToApply>
+      <ModificationToApply>FloatDegreeChromeYaw</ModificationToApply>
       <BaseAddressOffset>00000000</BaseAddressOffset>
       <CheckForChanges>Changes</CheckForChanges>
       <Comparisons>

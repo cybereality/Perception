@@ -1,15 +1,17 @@
 <?xml version="1.0"?>
 <shaderConfig>
 	<rules>
-		
-	</rules>
+		<rule constantName="VIEWPROJ_XFORM" partialName="true" id="1" constantType="Vector" modToApply="1" startReg="0" transpose="true" />		
+  </rules>
 	<defaultRuleIDs>
-		
+		<ruleID id="1" />		
 	</defaultRuleIDs>
-  <!--<shaderSpecificRuleIDs shaderHash="2074522192" squishViewport="true" />
-  <shaderSpecificRuleIDs shaderHash="429132169" squishViewport="true" />
-  <shaderSpecificRuleIDs shaderHash="2924115447" squishViewport="true" />
-  <shaderSpecificRuleIDs shaderHash="222753246" squishViewport="true" />
-	<shaderSpecificRuleIDs shaderHash="2071568812" squishViewport="true" />
-	<shaderSpecificRuleIDs shaderHash="2606660424" squishViewport="true" />-->
+  <shaderSpecificRuleIDs shaderHash="222753246" squishViewport="true"></shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="429132169" squishViewport="true"></shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="1344695224" squishViewport="true"></shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="2071568812" squishViewport="true"></shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="2074522192" squishViewport="true"></shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="2606660424" squishViewport="true"></shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="2924115447" squishViewport="true"></shaderSpecificRuleIDs>
+  
 </shaderConfig>
