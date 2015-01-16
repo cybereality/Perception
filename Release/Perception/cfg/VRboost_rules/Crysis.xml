@@ -19,6 +19,7 @@
 				</Compare>
 			</Comparisons>
 		</ScanRule>
+		<!-- Couple of extra addresses that contain fixed values to help find the FOV -->
 		<ScanRule>
 			<AxisName>NoAxis</AxisName>
 			<AddressType>Float</AddressType>
@@ -54,7 +55,7 @@
 		<ScanRule>
 			<AxisName>PlayerFOV</AxisName>
 			<AddressType>DWORD</AddressType>
-			<ModificationToApply>FloatSimpleApply</ModificationToApply>
+			<ModificationToApply>FloatToSimpleDWord</ModificationToApply>
 			<BaseAddressOffset>00000000</BaseAddressOffset>
 			<CheckForChanges>NoChange</CheckForChanges>
 			<Comparisons>
