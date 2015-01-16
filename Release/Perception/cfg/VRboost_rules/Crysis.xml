@@ -4,8 +4,8 @@
 	<ScannerGroup>
 		<ID>0</ID>
 		<BaseAddress>0A00000C</BaseAddress>
-		<MemIncrement>00000010</MemIncrement>
-		<MemIncCount>01400000</MemIncCount>
+		<MemIncrement>00000008</MemIncrement>
+		<MemIncCount>02800000</MemIncCount>
 		<FailIfNotFound>True</FailIfNotFound>
 		<ScanRule>
 			<AxisName>WorldFOV</AxisName>
@@ -23,7 +23,7 @@
 		<ScanRule>
 			<AxisName>NoAxis</AxisName>
 			<AddressType>Float</AddressType>
-			<ModificationToApply>FloatSimpleApply</ModificationToApply>
+			<ModificationToApply>FloatDoNothing</ModificationToApply>
 			<BaseAddressOffset>00000008</BaseAddressOffset>
 			<CheckForChanges>NoChange</CheckForChanges>
 			<Comparisons>
@@ -35,7 +35,7 @@
 		<ScanRule>
 			<AxisName>NoAxis</AxisName>
 			<AddressType>Float</AddressType>
-			<ModificationToApply>FloatSimpleApply</ModificationToApply>
+			<ModificationToApply>FloatDoNothing</ModificationToApply>
 			<BaseAddressOffset>00000010</BaseAddressOffset>
 			<CheckForChanges>NoChange</CheckForChanges>
 			<Comparisons>
@@ -60,7 +60,8 @@
 			<CheckForChanges>NoChange</CheckForChanges>
 			<Comparisons>
 				<Compare type="Equal">
-					<MinValue>00000060</MinValue>
+					<!-- 60 as HEX -->
+					<MinValue>003C</MinValue>
 				</Compare>
 			</Comparisons>
 		</ScanRule>
