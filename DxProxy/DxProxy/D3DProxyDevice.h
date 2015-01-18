@@ -759,6 +759,7 @@ private:
 		bool VRBoost_ApplyRules;
 		bool VRBoost_Scanning;
 		bool VRBoost_Candidates;
+		bool VRBoost_HasOrientation;
 	} VRBoostStatus;
 
 	/**

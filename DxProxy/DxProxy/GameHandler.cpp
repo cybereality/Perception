@@ -319,10 +319,10 @@ bool GameHandler::ShouldDuplicateTexture(UINT Width,UINT Height,UINT Levels,DWOR
 			case 1:
 				if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
 					return true;
-				return IS_RENDER_TARGET(Usage) && (Width != Height);
+				return IS_RENDER_TARGET(Usage);
 			case 2: 
 				if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-				return true;
+					return true;
 				return IS_RENDER_TARGET(Usage) && (Width != Height);
 			case 3: 
 				return false;
@@ -454,14 +454,14 @@ bool GameHandler::ShouldDuplicateTexture(UINT Width,UINT Height,UINT Levels,DWOR
 			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
 				return true;
 			return IS_RENDER_TARGET(Usage);
-		
-		default:
-			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-				return true;
-			return IS_RENDER_TARGET(Usage);
-
 		}
 	}
+
+	//Default
+	if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
+		return true;
+	return IS_RENDER_TARGET(Usage);
+
 }
 
 /**
@@ -563,12 +563,11 @@ bool GameHandler::ShouldDuplicateCubeTexture(UINT EdgeLength, UINT Levels, DWORD
 		case D3DProxyDevice::ProxyTypes::CHROME:
 			// NOT TESTED NOW !
 			return IS_RENDER_TARGET(Usage);
-		
-		default:
-			return IS_RENDER_TARGET(Usage);
-
 		}
 	}
+
+	//Default
+	return IS_RENDER_TARGET(Usage);
 }
 
 /**

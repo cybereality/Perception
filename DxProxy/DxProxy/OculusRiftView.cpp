@@ -139,20 +139,21 @@ void OculusRiftView::CalculateShaderVariables()
 	ScaleIn[1] = 2.0f / (inputTextureAspectRatio * 0.5f); // 1/2 aspect ratio for differing input ranges
 	
 	float scaleFactor = (1.0f / (hmdInfo->GetScaleToFillHorizontal() + DistortionScale));
+	float glide = (sinf(1 + (-cosf(m_screenViewGlideFactor * 3.142f) / 2)) - 0.5f) * 2.0f;
 
 	//This change will gently glide the disconnected screen view in and out
 	if (HeadZOffset != FLT_MAX)
 	{
-		scaleFactor = (scaleFactor / m_screenViewGlideFactor) - HeadZOffset;
-		if (m_screenViewGlideFactor > 0.75f)
-			m_screenViewGlideFactor -= 0.02f;
+		scaleFactor = (scaleFactor / ((glide * 0.333f) + 0.666f)) - HeadZOffset;
+		if (m_screenViewGlideFactor > 0.0f)
+			m_screenViewGlideFactor -= 0.04f;
 	}
 	else
 	{
 		//Disconnected screen view not active
-		scaleFactor = (scaleFactor / m_screenViewGlideFactor);
+		scaleFactor = (scaleFactor / ((glide * 0.333f) + 0.666f));
 		if (m_screenViewGlideFactor < 1.0f)
-			m_screenViewGlideFactor += 0.02f;
+			m_screenViewGlideFactor += 0.04f;
 	}
 
 	// Scale from 0 to 2 to 0 to 1  for x and y 

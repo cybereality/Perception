@@ -3013,7 +3013,7 @@ void D3DProxyDevice::HandleControls()
 	{
 		if (this->stereoView->m_screenViewGlideFactor < 1.0f)
 		{
-			float drift = ((1.0f - this->stereoView->m_screenViewGlideFactor) * 4);
+			float drift = (sinf(1 + (-cosf((1.0f - this->stereoView->m_screenViewGlideFactor) * 3.142f) / 2)) - 0.5f) * 2.0f;
 			this->stereoView->HeadYOffset = ((m_fFloatingScreenPitch - tracker->primaryPitch) * screenFloatMultiplierY) 
 				* drift;
 			this->stereoView->XOffset = ((m_fFloatingScreenYaw - tracker->primaryYaw) * screenFloatMultiplierX) 
@@ -3386,7 +3386,7 @@ void D3DProxyDevice::HandleTracking()
 
 	// update vrboost, if present, tracker available and shader count higher than the minimum
 	if ((!m_bSurpressHeadtracking) 
-		&& (!m_bForceMouseEmulation || VRBoostStatus.VRBoost_Scanning) 
+		&& (!m_bForceMouseEmulation || !VRBoostStatus.VRBoost_HasOrientation || VRBoostStatus.VRBoost_Scanning) 
 		&& (hmVRboost) && (m_VRboostRulesPresent) 
 		&& (tracker->getStatus() >= MTS_OK) && (m_bVRBoostToggle)
 		&& (m_VertexShaderCountLastFrame>(UINT)config.VRboostMinShaderCount) 
@@ -3592,16 +3592,38 @@ void D3DProxyDevice::HandleTracking()
 							DismissPopup(VPT_VRBOOST_SCANNING);
 							if (VRBoostStatus.VRBoost_Scanning)
 							{
-								//Enable mouse emulation whilst VRBoost is not active
-								m_bForceMouseEmulation = false;
-								tracker->setMouseEmulation(false);
+								//Find which axes we have VRBoost capabilities for
+								UINT axes[30];
+								memset(axes, 0xFF, sizeof(UINT) * 30);
+								UINT count = m_pVRboost_GetActiveRuleAxes((UINT**)&axes);
+								std::string axisNames;
+								UINT i = 0;
+								VRBoostStatus.VRBoost_HasOrientation = false;
+								while (i < count)
+								{
+									if (axes[i] == VRboostAxis::TrackerPitch)
+										VRBoostStatus.VRBoost_HasOrientation = true;
+									if (axes[i] == MAXDWORD)
+										break;
+									axisNames += VRboostAxisString(axes[i]) + " ";
+									i++;
+								}				
+
+								//Only disable mouse emulation if we have orientation addresses
+								if (VRBoostStatus.VRBoost_HasOrientation)
+								{
+									m_bForceMouseEmulation = false;
+									tracker->setMouseEmulation(false);
+								}
+
 
 								VireioPopup popup(VPT_NOTIFICATION, VPS_INFO, 5000);
-								strcpy_s(popup.line1, "     VRBoost Memory Scan");
-								strcpy_s(popup.line2, "     ===================");
-								strcpy_s(popup.line3, "     STATUS:   SUCCESS");
-								strcpy_s(popup.line4, "     Found stable orientation addresses");
-								strcpy_s(popup.line5, "     VRBoost is now active");
+								strcpy_s(popup.line1, "    VRBoost Memory Scan");
+								strcpy_s(popup.line2, "    ===================");
+								strcpy_s(popup.line3, "    STATUS:   SUCCESS");
+								strcpy_s(popup.line4, "    Found addresses: ");
+								sprintf_s(popup.line5, "       %s", axisNames.c_str());
+								strcpy_s(popup.line6, "    VRBoost is now active");
 								ShowPopup(popup);
 								//No longer scanning
 								VRBoostStatus.VRBoost_Scanning = false;
@@ -6704,7 +6726,7 @@ void D3DProxyDevice::DisplayCurrentPopup()
 		UINT format = 0;
 		D3DCOLOR popupColour;
 		ID3DXFont *pFont;
-		menuHelperRect.left = 640;
+		menuHelperRect.left = 670;
 		menuHelperRect.top = 440;
 		switch (activePopup.severity)
 		{
@@ -6723,7 +6745,7 @@ void D3DProxyDevice::DisplayCurrentPopup()
 			case VPS_INFO:
 				{
 					popupColour = D3DCOLOR_ARGB(255, 128, 255, 128);
-					pFont = popupFont[24];
+					pFont = popupFont[22];
 				}
 				break;
 			case VPS_ERROR:
@@ -7115,6 +7137,8 @@ bool D3DProxyDevice::InitVRBoost()
 	VRBoostStatus.VRBoost_ApplyRules = false;
 	VRBoostStatus.VRBoost_Scanning = false;
 	VRBoostStatus.VRBoost_Candidates = false;
+	//Assume VRBoost will have orientation (it probably will)
+	VRBoostStatus.VRBoost_HasOrientation = true;
 
 	// get VRboost methods
 	if (hmVRboost != NULL)
