@@ -13,7 +13,7 @@ float2 Resolution;
 float4 HmdWarpParam;
 float3 Vignette;
 float Rotation;
-float BlackSmearCorrection;
+float SmearCorrection;
 
 // Warp operates on left view, for right, mirror x texture coord
 // before and after calling.  in02 contains the chromatic aberration
@@ -173,14 +173,11 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 	}
 
 	float4 returnColour = float4(outColor.r * vignetteScaler, outColor.g * vignetteScaler, outColor.b * vignetteScaler, 1.0f);
-	if (BlackSmearCorrection != 0.0f)
+	if (SmearCorrection != 0.0f)
 	{
-		if (returnColour.r < BlackSmearCorrection)
-			returnColour.r = BlackSmearCorrection;
-		if (returnColour.g < BlackSmearCorrection)
-			returnColour.g = BlackSmearCorrection;
-		if (returnColour.b < BlackSmearCorrection)
-			returnColour.b = BlackSmearCorrection;
+		returnColour.r = (returnColour.r * (1.0f - (2.0f * SmearCorrection))) + SmearCorrection;
+		returnColour.g = (returnColour.g * (1.0f - (2.0f * SmearCorrection))) + SmearCorrection;
+		returnColour.b = (returnColour.b * (1.0f - (2.0f * SmearCorrection))) + SmearCorrection;
 	}
 
 	return returnColour;
