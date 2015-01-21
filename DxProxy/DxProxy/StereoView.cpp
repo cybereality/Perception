@@ -144,7 +144,7 @@ StereoView::StereoView(ProxyHelper::ProxyConfig& config)
 		howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;
 		break;
 	case D3DProxyDevice::CHROME:
-		howToSaveRenderStates = HowToSaveRenderStates::SELECTED_STATES_MANUALLY;
+		howToSaveRenderStates = HowToSaveRenderStates::ALL_STATES_MANUALLY;
 		break;
 	default:
 		howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;
