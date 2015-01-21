@@ -29,4 +29,11 @@
 		<ruleID id="10" />Sort out skybox</shaderSpecificRuleIDs>
 	<shaderSpecificRuleIDs shaderHash="1177584787">
 		<ruleID id="10" />Sort out skybox</shaderSpecificRuleIDs>
+		
+	<!-- HUD stuff -->
+	<shaderSpecificRuleIDs shaderHash="264140054" squishViewport="true"></shaderSpecificRuleIDs>
+	<shaderSpecificRuleIDs shaderHash="3455458341" squishViewport="true"></shaderSpecificRuleIDs>
+	<shaderSpecificRuleIDs shaderHash="3753878441" squishViewport="true"></shaderSpecificRuleIDs>
+	<shaderSpecificRuleIDs shaderHash="4200281762" squishViewport="true"></shaderSpecificRuleIDs>    
+	
 </shaderConfig>
