@@ -1547,9 +1547,13 @@ void DataGatherer::Analyze()
 				if (i < MATRIX_NAMES)
 				{
 					// add this rule !!!!
-					if (addRule(itShaderConstants->name, true, itShaderConstants->desc.RegisterIndex, itShaderConstants->desc.Class, 2, m_bTransposedRules))
-						m_addedVSConstants.push_back(*itShaderConstants);
-
+					//Only Add the rule if it is a vector or has a register count of 1
+					if((itShaderConstants->desc.Class != D3DXPC_VECTOR && itShaderConstants->desc.RegisterCount == 4) || itShaderConstants->desc.RegisterCount == 1)
+					{
+						if (addRule(itShaderConstants->name, true, itShaderConstants->desc.RegisterIndex, itShaderConstants->desc.Class, 2, m_bTransposedRules))
+							m_addedVSConstants.push_back(*itShaderConstants);
+					}
+					
 					// output debug data
 					OutputDebugString("---Shader Rule");
 					// output constant name
