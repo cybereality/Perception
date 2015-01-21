@@ -5,6 +5,12 @@
 	</rules>
 	<defaultRuleIDs>
 		<ruleID id="1" />
-		
 	</defaultRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="335464891" squishViewport="true"></shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="1253374534" squishViewport="true"></shaderSpecificRuleIDs>  
+  <shaderSpecificRuleIDs shaderHash="1334851684" squishViewport="true"></shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="2183332352" squishViewport="true"></shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="3048850962" squishViewport="true"></shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="3350897976" squishViewport="true"></shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="3129186717" squishViewport="true"></shaderSpecificRuleIDs>
 </shaderConfig>

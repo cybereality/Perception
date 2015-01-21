@@ -7048,8 +7048,8 @@ void D3DProxyDevice::SetGUIViewport()
 	#endif
 	
 	// do not squish the viewport in case brassa menu is open - GBCODE Why?
-	//if ((BRASSA_mode>=BRASSA_Modes::MAINMENU) && (BRASSA_mode<BRASSA_Modes::BRASSA_ENUM_RANGE))
-	//	return;
+	if ((BRASSA_mode>=BRASSA_Modes::MAINMENU) && (BRASSA_mode<BRASSA_Modes::BRASSA_ENUM_RANGE))
+		return;
 
 	D3DXMATRIX mLeftShift;
 	D3DXMATRIX mRightShift;
