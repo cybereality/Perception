@@ -7,35 +7,78 @@
 		<MemIncrement>00000008</MemIncrement>
 		<MemIncCount>057FFFFF</MemIncCount>
 		<FailIfNotFound>True</FailIfNotFound>
-    <ScanRule>
-      <AxisName>TrackerYaw</AxisName>
-      <AddressType>DWORD</AddressType>
-      <ModificationToApply>FloatDegreeChromeYaw</ModificationToApply>
-      <BaseAddressOffset>00000000</BaseAddressOffset>
-      <CheckForChanges>Changes</CheckForChanges>
-      <Comparisons>
-        <Compare type="NoCompare">          
-        </Compare>
-      </Comparisons>
-    </ScanRule>
-    
-    <ScanRule>
-      <AxisName>TrackerPitch</AxisName>
-      <AddressType>Float</AddressType>
-      <ModificationToApply>FloatDegreeApply</ModificationToApply>
-      <BaseAddressOffset>00000004</BaseAddressOffset>
-      <CheckForChanges>Changes</CheckForChanges>
-      <Comparisons>
-        <Compare type="BetweenIncl">
-          <MinValue>-81</MinValue>          
-          <MaxValue>-1</MaxValue>
-        </Compare>
-      </Comparisons>
-    </ScanRule>
-  </ScannerGroup>
+		<ScanRule>
+		  <AxisName>TrackerYaw</AxisName>
+		  <AddressType>Float</AddressType>
+		  <ModificationToApply>FloatDegreeChromeYaw</ModificationToApply>
+		  <BaseAddressOffset>00000000</BaseAddressOffset>
+		  <CheckForChanges>Changes</CheckForChanges>
+		  <Comparisons>
+			<Compare type="NotEqual">          
+			   <MinValue>0.0</MinValue>          
+		   </Compare>
+		  </Comparisons>
+		</ScanRule>
+		
+		<ScanRule>
+		  <AxisName>TrackerPitch</AxisName>
+		  <AddressType>Float</AddressType>
+		  <ModificationToApply>FloatDegreeApply</ModificationToApply>
+		  <BaseAddressOffset>00000004</BaseAddressOffset>
+		  <CheckForChanges>Changes</CheckForChanges>
+		  <Comparisons>
+			<Compare type="Between">
+			  <MinValue>-81</MinValue>          
+			  <MaxValue>-2</MaxValue>
+			</Compare>
+		  </Comparisons>
+		</ScanRule>
+		
+		<ScanRule>
+		  <AxisName>TrackerRoll</AxisName>
+		  <AddressType>Float</AddressType>
+		  <ModificationToApply>FloatDoNothing</ModificationToApply>
+		  <BaseAddressOffset>00000008</BaseAddressOffset>
+		  <CheckForChanges>NoChange</CheckForChanges>
+		  <Comparisons>
+			<Compare type="Equal">
+			   <MinValue>0.0</MinValue>          
+			</Compare>
+		  </Comparisons>
+		</ScanRule>
+		
+		<ScanRule>
+			<!-- This address is actually Player Z Axis Location in game world, seems to be a very large number, certainly always likely to be greater than 1 -->
+		  <AxisName>NoAxis</AxisName>
+		  <AddressType>Float</AddressType>
+		  <ModificationToApply>FloatDoNothing</ModificationToApply>
+		  <BaseAddressOffset>00000018</BaseAddressOffset>
+		  <CheckForChanges>NoChange</CheckForChanges>
+		  <Comparisons>
+			<Compare type="GreaterThan">
+			   <MinValue>1.0</MinValue>          
+			</Compare>
+		  </Comparisons>
+		</ScanRule>
+		
+		<ScanRule>
+			<!-- This address is actually Player X Axis Location in game world, seems to be a very large number, certainly always likely to be greater than 1 -->
+		  <AxisName>NoAxis</AxisName>
+		  <AddressType>Float</AddressType>
+		  <ModificationToApply>FloatDoNothing</ModificationToApply>
+		  <BaseAddressOffset>0000001C</BaseAddressOffset>
+		  <CheckForChanges>NoChange</CheckForChanges>
+		  <Comparisons>
+			<Compare type="GreaterThan">
+			   <MinValue>1.0</MinValue>          
+			</Compare>
+		  </Comparisons>
+		</ScanRule>
+	
+	</ScannerGroup>
   </ScannerGroups>
 
-  <!-- The following is used to direct the user to move their HMD so that addresses can be filtered, don't repeat -->
+  <!-- The following is used to direct the user to move their HMD so that addresses can be filtered, only used if multiple candidates found -->
   <ScanAssistSequence>
     <ScanAssistStep>
       <TimeBeforeCheck>2000</TimeBeforeCheck>
