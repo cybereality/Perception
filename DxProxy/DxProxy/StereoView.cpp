@@ -132,6 +132,9 @@ StereoView::StereoView(ProxyHelper::ProxyConfig& config)
 	case D3DProxyDevice::CRYENGINE:
 		howToSaveRenderStates = HowToSaveRenderStates::ALL_STATES_MANUALLY;
 		break;
+	case D3DProxyDevice::CRYENGINE_WARHEAD:
+		howToSaveRenderStates = HowToSaveRenderStates::ALL_STATES_MANUALLY;
+		break;
 	case D3DProxyDevice::GAMEBRYO:
 	case D3DProxyDevice::GAMEBRYO_SKYRIM:
 		howToSaveRenderStates = HowToSaveRenderStates::SELECTED_STATES_MANUALLY;

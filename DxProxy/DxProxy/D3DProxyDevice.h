@@ -201,6 +201,7 @@ public:
 		UNITY = 500,               /**< Unity is a cross-platform game engine with a built-in IDE developed by Unity Technologies. */
 		UNITY_SLENDER = 501,       /**<  !! */
 		CRYENGINE = 550,           /**< CryEngine is a game engine designed by the German/Turkish game developer Crytek. */
+		CRYENGINE_WARHEAD = 551,   /**< CryEngine is a game engine designed by the German/Turkish game developer Crytek (modified for Warhead). */
 		GAMEBRYO = 600,            /**< Gamebryo 3D and LightSpeed engines are owned by Gamebase Co., Ltd. and Gamebase USA and have been used by several video game developers. */
 		GAMEBRYO_SKYRIM = 601,     /**< Skyrim’s Creation Engine still has at least some Gamebryo in it. */
 		LFS = 700,                 /**< Live for Speed (LFS) is a racing simulator developed by a three person team comprising Scawen Roberts, Eric Bailey, and Victor van Vlaardingen. */
