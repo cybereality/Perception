@@ -42,8 +42,13 @@ D3D9ProxyVertexShader::D3D9ProxyVertexShader(IDirect3DVertexShader9* pActualVert
 	{
 		m_modifiedConstants = pModLoader->GetModifiedConstantsF(pActualVertexShader);
 		m_bSquishViewport = pModLoader->SquishViewportForShader(pActualVertexShader);
+		m_bDoNotDraw = pModLoader->DoNotDrawShader(pActualVertexShader);
 	}
-	else m_bSquishViewport = false;
+	else
+	{
+		m_bSquishViewport = false;
+		m_bDoNotDraw = false;
+	}
 }
 
 /**
@@ -66,4 +71,12 @@ std::map<UINT, StereoShaderConstant<float>>* D3D9ProxyVertexShader::ModifiedCons
 bool D3D9ProxyVertexShader::SquishViewport()
 {
 	return m_bSquishViewport;
+}
+
+/**
+* Returns true if shader should never be drawn
+***/
+bool D3D9ProxyVertexShader::DoNotDraw()
+{
+	return m_bDoNotDraw;
 }
