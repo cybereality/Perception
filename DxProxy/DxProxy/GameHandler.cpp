@@ -158,17 +158,12 @@ bool GameHandler::ShouldDuplicateRenderTarget(UINT Width, UINT Height, D3DFORMAT
 
 	case D3DProxyDevice::ProxyTypes::UNREAL_BIOSHOCK:
 	case D3DProxyDevice::ProxyTypes::UNREAL_BIOSHOCK2:
-		if (isSwapChainBackBuffer) {
-			return true;
-		}
-		return Width != Height;
-
 	case D3DProxyDevice::ProxyTypes::UNREAL_BORDERLANDS:
+	case D3DProxyDevice::ProxyTypes::UNREAL_BETRAYER:
 		if (isSwapChainBackBuffer) {
 			return true;
 		}
 		return Width != Height;
-
 	case D3DProxyDevice::ProxyTypes::EGO:
 		return true;  
 
@@ -249,9 +244,8 @@ bool GameHandler::ShouldDuplicateDepthStencilSurface(UINT Width,UINT Height,D3DF
 
 	case D3DProxyDevice::ProxyTypes::UNREAL_BIOSHOCK:
 	case D3DProxyDevice::ProxyTypes::UNREAL_BIOSHOCK2:
-		return Width != Height;
-
 	case D3DProxyDevice::ProxyTypes::UNREAL_BORDERLANDS:
+	case D3DProxyDevice::ProxyTypes::UNREAL_BETRAYER:
 		return Width != Height;
 
 	case D3DProxyDevice::ProxyTypes::EGO:
@@ -377,12 +371,9 @@ bool GameHandler::ShouldDuplicateTexture(UINT Width,UINT Height,UINT Levels,DWOR
 			return IS_RENDER_TARGET(Usage) && (Width != Height);
 
 		case D3DProxyDevice::ProxyTypes::UNREAL_BIOSHOCK:
-		case D3DProxyDevice::ProxyTypes::UNREAL_BIOSHOCK2:
-			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-				return true;
-			return IS_RENDER_TARGET(Usage) && (Width != Height);
-
+		case D3DProxyDevice::ProxyTypes::UNREAL_BIOSHOCK2:			
 		case D3DProxyDevice::ProxyTypes::UNREAL_BORDERLANDS:
+		case D3DProxyDevice::ProxyTypes::UNREAL_BETRAYER:
 			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
 				return true;
 			return IS_RENDER_TARGET(Usage) && (Width != Height);
@@ -516,9 +507,8 @@ bool GameHandler::ShouldDuplicateCubeTexture(UINT EdgeLength, UINT Levels, DWORD
 
 		case D3DProxyDevice::ProxyTypes::UNREAL_BIOSHOCK:
 		case D3DProxyDevice::ProxyTypes::UNREAL_BIOSHOCK2:
-			return false;
-
 		case D3DProxyDevice::ProxyTypes::UNREAL_BORDERLANDS:
+		case D3DProxyDevice::ProxyTypes::UNREAL_BETRAYER:
 			return false;
 
 		case D3DProxyDevice::ProxyTypes::EGO:

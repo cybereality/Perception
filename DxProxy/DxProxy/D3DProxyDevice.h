@@ -194,6 +194,7 @@ public:
 		UNREAL_BIOSHOCK = 203,     /**<  !! */
 		UNREAL_BIOSHOCK2 = 204,     /**<  !! */
 		UNREAL_BORDERLANDS = 210,  /**< Borderlands(TM) */
+		UNREAL_BETRAYER= 211,	   /**< Betrayer(TM) */
 		EGO = 300,                 /**< Ego Game Technology Engine (more commonly referred to as Ego Engine or EGO, stylised ego) is a video game engine developed by Codemasters. */
 		EGO_DIRT = 301,            /**<  !! */
 		REALV = 400,               /**< Real Virtuality is a proprietary computer game engine developed by Bohemia Interactive (BI), originally called Poseidon. */

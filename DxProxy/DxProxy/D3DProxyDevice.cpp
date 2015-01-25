@@ -1860,7 +1860,9 @@ HRESULT WINAPI D3DProxyDevice::SetVertexShader(IDirect3DVertexShader9* pShader)
 		m_bDoNotDrawVShader = pWrappedVShaderData->DoNotDraw();
 
 		if (pWrappedVShaderData->SquishViewport())
+		{
 			SetGUIViewport();
+		}
 		else
 		{
 			if (m_bViewportIsSquished)
@@ -6561,6 +6563,10 @@ void D3DProxyDevice::BRASSA_UpdateDeviceSettings()
 	case D3DProxyDevice::UNREAL_BIOSHOCK2:
 	case D3DProxyDevice::UNREAL_BORDERLANDS:
 		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::END_SCENE;
+		m_deviceBehavior.whenToRenderBRASSA = DeviceBehavior::WhenToDo::END_SCENE;
+		break;
+	case D3DProxyDevice::UNREAL_BETRAYER:
+		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
 		m_deviceBehavior.whenToRenderBRASSA = DeviceBehavior::WhenToDo::END_SCENE;
 		break;
 	case D3DProxyDevice::EGO:
