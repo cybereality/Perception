@@ -249,7 +249,6 @@
     <ClCompile Include="HMDisplayInfoFactory.cpp" />
     <ClCompile Include="InputControls.cpp" />
     <ClCompile Include="Main.cpp" />
-    <ClCompile Include="MatrixNoShowModification.cpp" />
     <ClCompile Include="MotionTracker.cpp" />
     <ClCompile Include="MotionTrackerFactory.cpp" />
     <ClCompile Include="MurmurHash3.cpp" />
@@ -293,7 +292,6 @@
     <ClInclude Include="MatrixGuiSquash.h" />
     <ClInclude Include="MatrixHudSlide.h" />
     <ClInclude Include="MatrixNoRoll.h" />
-    <ClInclude Include="MatrixNoShowModification.h" />
     <ClInclude Include="MatrixOrthoSquash.h" />
     <ClInclude Include="MatrixOrthoSquashHud.h" />
     <ClInclude Include="MatrixOrthoSquashShifted.h" />
@@ -304,6 +302,7 @@
     <ClInclude Include="MatrixSurfaceRefractionTransform.h" />
     <ClInclude Include="ShaderMatrixModification.h" />
     <ClInclude Include="MatrixIgnoreOrtho.h" />
+    <ClInclude Include="Vector4GBTest.h" />
     <ClInclude Include="Vector4EyeShiftUnity.h" />
     <ClInclude Include="Version.h" />
     <ClInclude Include="ViewAdjustment.h" />

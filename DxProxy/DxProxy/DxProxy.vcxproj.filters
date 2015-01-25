@@ -202,9 +202,6 @@
     <ClCompile Include="Direct3DDevice9Ex.cpp">
       <Filter>Direct3D9</Filter>
     </ClCompile>
-    <ClCompile Include="MatrixNoShowModification.cpp">
-      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
-    </ClCompile>
     <ClCompile Include="D3DProxyDeviceAdv.cpp">
       <Filter>Direct3D9Vireio\Direct3DDevice9\DeviceTypes</Filter>
     </ClCompile>
@@ -463,9 +460,6 @@
     <ClInclude Include="MatrixNoRoll.h">
       <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
     </ClInclude>
-    <ClInclude Include="MatrixNoShowModification.h">
-      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
-    </ClInclude>
     <ClInclude Include="D3DProxyDeviceAdv.h">
       <Filter>Direct3D9Vireio\Direct3DDevice9\DeviceTypes</Filter>
     </ClInclude>
@@ -492,6 +486,9 @@
     </ClInclude>
     <ClInclude Include="HMDisplayInfo_Default.h">
       <Filter>HMDisplayInfo</Filter>
+    </ClInclude>
+    <ClInclude Include="Vector4GBTest.h">
+      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
