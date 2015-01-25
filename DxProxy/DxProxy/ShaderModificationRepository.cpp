@@ -746,6 +746,35 @@ bool ShaderModificationRepository::DoNotDrawShader(IDirect3DVertexShader9* pActu
 }
 
 /**
+* Returns true if shader should never be drawn.
+***/
+bool ShaderModificationRepository::DoNotDrawShader(IDirect3DPixelShader9* pActualPixelShader)
+{
+	// Hash the shader
+	BYTE *pData = NULL;
+	UINT pSizeOfData;
+
+	pActualPixelShader->GetFunction(NULL, &pSizeOfData);
+	pData = new BYTE[pSizeOfData];
+	pActualPixelShader->GetFunction(pData,&pSizeOfData);
+
+	uint32_t hash;
+	MurmurHash3_x86_32(pData, pSizeOfData, VIREIO_SEED, &hash);
+
+	delete[] pData;
+
+	// find hash
+	auto i = std::find(m_doNotDrawShaderIDs.begin(), m_doNotDrawShaderIDs.end(), hash);
+
+	// found
+	if (i != m_doNotDrawShaderIDs.end()) {
+		return true;
+	} 
+
+	return false;
+}
+
+/**
 * Returns a unique identifier for a new shader rule.
 ***/
 UINT ShaderModificationRepository::GetUniqueRuleID()

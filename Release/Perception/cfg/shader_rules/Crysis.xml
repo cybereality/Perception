@@ -23,8 +23,8 @@
 		<ruleID id="7" />
 		<ruleID id="8" />
 		<ruleID id="9" />
-		<ruleID id="10" />
 	</defaultRuleIDs>
+	
 	<shaderSpecificRuleIDs shaderHash="85882304">
 		<ruleID id="10" />Sort out skybox</shaderSpecificRuleIDs>
 	<shaderSpecificRuleIDs shaderHash="1177584787">

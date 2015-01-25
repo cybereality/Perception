@@ -67,6 +67,7 @@ public:
 	std::map<UINT, StereoShaderConstant<float>> GetModifiedConstantsF(IDirect3DVertexShader9* pActualVertexShader);
 	bool										SquishViewportForShader(IDirect3DVertexShader9* pActualVertexShader);
 	bool										DoNotDrawShader(IDirect3DVertexShader9* pActualVertexShader);
+	bool										DoNotDrawShader(IDirect3DPixelShader9* pActualPixelShader);
 	UINT                                        GetUniqueRuleID();
 	bool                                        ConstantHasRule(std::string constantName, std::string& constantRule, UINT& operation, bool& isTransposed);
 
