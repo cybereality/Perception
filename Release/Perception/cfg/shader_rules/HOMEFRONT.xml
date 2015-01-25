@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<shaderConfig>
+	<rules>
+		<rule constantName="PrevViewProjectionMatrix" partialName="true" id="9" constantType="MatrixC" modToApply="2" startReg="17" transpose="false" />
+		<rule constantName="ViewProjectionMatrix" partialName="true" id="1" constantType="MatrixC" modToApply="2" startReg="0" transpose="false" />
+		<rule constantName="PrevViewProjectionMatrix" partialName="true" id="2" constantType="MatrixC" modToApply="2" startReg="13" transpose="false" />
+		<rule constantName="PrevViewProjectionMatrix" partialName="true" id="3" constantType="MatrixC" modToApply="2" startReg="238" transpose="false" />
+		<rule constantName="PrevViewProjectionMatrix" partialName="true" id="4" constantType="MatrixC" modToApply="2" startReg="9" transpose="false" />
+		<rule constantName="PrevViewProjectionMatrix" partialName="true" id="5" constantType="MatrixC" modToApply="2" startReg="234" transpose="false" />
+		<rule constantName="PrevViewProjectionMatrix" partialName="true" id="6" constantType="MatrixC" modToApply="2" startReg="25" transpose="false" />
+		<rule constantName="PrevViewProjectionMatrix" partialName="true" id="7" constantType="MatrixC" modToApply="2" startReg="5" transpose="false" />
+		<rule constantName="PrevViewProjectionMatrix" partialName="true" id="8" constantType="MatrixC" modToApply="2" startReg="21" transpose="false" />
+	</rules>
+	<defaultRuleIDs>
+		<ruleID id="1" />
+		<ruleID id="2" />
+		<ruleID id="3" />
+		<ruleID id="4" />
+		<ruleID id="5" />
+		<ruleID id="6" />
+		<ruleID id="7" />
+		<ruleID id="8" />
+		<ruleID id="9" />
+	</defaultRuleIDs>
+</shaderConfig>
