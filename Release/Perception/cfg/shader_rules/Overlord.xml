@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<shaderConfig>
+	<rules>
+		<rule constantName="VPM" partialName="true" id="1" constantType="MatrixR" modToApply="2" startReg="9" transpose="true" />
+	</rules>
+	<defaultRuleIDs>
+		<ruleID id="1" />
+	</defaultRuleIDs>
+	
+	<!-- Don't draw any shadow shaders, they don't work well with roll and positional -->
+	<shaderSpecificRuleIDs shaderHash="597879514" doNotDraw="true"/>
+
+</shaderConfig>

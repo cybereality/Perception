@@ -782,6 +782,14 @@ private:
 	* True if viewport is currently squished.
 	***/
 	bool m_bViewportIsSquished;
+	/***
+	* True if the currently selected vertex shader shouldn't be drawn
+	*/
+	bool m_bDoNotDrawVShader;
+	/***
+	* True if the currently selected pixel shader shouldn't be drawn
+	*/
+	bool m_bDoNotDrawPShader;
 	/**
 	* True if VRboost rules are present.
 	**/

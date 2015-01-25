@@ -15,4 +15,7 @@
   <shaderSpecificRuleIDs shaderHash="2644238922" squishViewport="true"></shaderSpecificRuleIDs>
   <shaderSpecificRuleIDs shaderHash="2990597996" squishViewport="true"></shaderSpecificRuleIDs>
   <shaderSpecificRuleIDs shaderHash="1677210664"><ruleID id="2" /></shaderSpecificRuleIDs>
+
+  <!-- Don't draw dodgy shadows -->
+  <shaderSpecificRuleIDs shaderHash="3537484276" doNotDraw="true"></shaderSpecificRuleIDs>
 </shaderConfig>

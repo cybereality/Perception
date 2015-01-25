@@ -39,7 +39,12 @@ D3D9ProxyPixelShader::D3D9ProxyPixelShader(IDirect3DPixelShader9* pActualPixelSh
 	m_modifiedConstants()
 {
 	if (pModLoader)
+	{
 		m_modifiedConstants = pModLoader->GetModifiedConstantsF(pActualPixelShader);
+		m_bDoNotDraw = pModLoader->DoNotDrawShader(pActualPixelShader);
+	}
+	else
+		m_bDoNotDraw = false;
 }
 
 /**
@@ -54,4 +59,12 @@ D3D9ProxyPixelShader::~D3D9ProxyPixelShader()
 std::map<UINT, StereoShaderConstant<float>>* D3D9ProxyPixelShader::ModifiedConstants()
 {
 	return &m_modifiedConstants;
+}
+
+/**
+* Returns true if shader should never be drawn
+***/
+bool D3D9ProxyPixelShader::DoNotDraw()
+{
+	return m_bDoNotDraw;
 }

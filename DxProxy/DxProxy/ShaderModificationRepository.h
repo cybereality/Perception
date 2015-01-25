@@ -66,6 +66,8 @@ public:
 	std::map<UINT, StereoShaderConstant<float>> GetModifiedConstantsF(IDirect3DPixelShader9* pActualPixelShader);
 	std::map<UINT, StereoShaderConstant<float>> GetModifiedConstantsF(IDirect3DVertexShader9* pActualVertexShader);
 	bool										SquishViewportForShader(IDirect3DVertexShader9* pActualVertexShader);
+	bool										DoNotDrawShader(IDirect3DVertexShader9* pActualVertexShader);
+	bool										DoNotDrawShader(IDirect3DPixelShader9* pActualPixelShader);
 	UINT                                        GetUniqueRuleID();
 	bool                                        ConstantHasRule(std::string constantName, std::string& constantRule, UINT& operation, bool& isTransposed);
 
@@ -221,5 +223,9 @@ private:
 	* Vector of shader hash identifiers of shaders to squash the viewport.
 	***/
 	std::vector<uint32_t> m_shaderViewportSquashIDs;
+	/**
+	* Vector of shader hash identifiers of shaders that should never be drawn.
+	***/
+	std::vector<uint32_t> m_doNotDrawShaderIDs;
 };
 #endif

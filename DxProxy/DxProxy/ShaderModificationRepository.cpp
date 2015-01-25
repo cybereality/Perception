@@ -137,9 +137,15 @@ bool ShaderModificationRepository::LoadRules(std::string rulesPath)
 			}
 
 			bool squishViewport = shader.attribute("squishViewport").as_bool(false);
-
 			if (squishViewport)
 				m_shaderViewportSquashIDs.push_back(hash);
+
+			bool doNotDraw = shader.attribute("doNotDraw").as_bool(false);
+			if (doNotDraw)
+			{
+				m_doNotDrawShaderIDs.push_back(hash);
+			}
+			
 
 			std::vector<UINT> shaderRules;
 
@@ -239,6 +245,11 @@ bool ShaderModificationRepository::SaveRules(std::string rulesPath)
 			if(std::find(m_shaderViewportSquashIDs.begin(), m_shaderViewportSquashIDs.end(), hash)!=m_shaderViewportSquashIDs.end()){
 				// set id attribute
 				shader.append_attribute("squishViewport") = true;
+			}
+
+			if(std::find(m_doNotDrawShaderIDs.begin(), m_doNotDrawShaderIDs.end(), hash)!=m_doNotDrawShaderIDs.end()){
+				// set id attribute
+				shader.append_attribute("doNotDraw") = true;
 			}
 
 			// save ids
@@ -724,6 +735,64 @@ bool ShaderModificationRepository::SquishViewportForShader(IDirect3DVertexShader
 
 	// found
 	if (i != m_shaderViewportSquashIDs.end()) {
+		return true;
+	} 
+
+	return false;
+}
+
+/**
+* Returns true if shader should never be drawn.
+***/
+bool ShaderModificationRepository::DoNotDrawShader(IDirect3DVertexShader9* pActualVertexShader)
+{
+	// Hash the shader
+	BYTE *pData = NULL;
+	UINT pSizeOfData;
+
+	pActualVertexShader->GetFunction(NULL, &pSizeOfData);
+	pData = new BYTE[pSizeOfData];
+	pActualVertexShader->GetFunction(pData,&pSizeOfData);
+
+	uint32_t hash;
+	MurmurHash3_x86_32(pData, pSizeOfData, VIREIO_SEED, &hash);
+
+	delete[] pData;
+
+	// find hash
+	auto i = std::find(m_doNotDrawShaderIDs.begin(), m_doNotDrawShaderIDs.end(), hash);
+
+	// found
+	if (i != m_doNotDrawShaderIDs.end()) {
+		return true;
+	} 
+
+	return false;
+}
+
+/**
+* Returns true if shader should never be drawn.
+***/
+bool ShaderModificationRepository::DoNotDrawShader(IDirect3DPixelShader9* pActualPixelShader)
+{
+	// Hash the shader
+	BYTE *pData = NULL;
+	UINT pSizeOfData;
+
+	pActualPixelShader->GetFunction(NULL, &pSizeOfData);
+	pData = new BYTE[pSizeOfData];
+	pActualPixelShader->GetFunction(pData,&pSizeOfData);
+
+	uint32_t hash;
+	MurmurHash3_x86_32(pData, pSizeOfData, VIREIO_SEED, &hash);
+
+	delete[] pData;
+
+	// find hash
+	auto i = std::find(m_doNotDrawShaderIDs.begin(), m_doNotDrawShaderIDs.end(), hash);
+
+	// found
+	if (i != m_doNotDrawShaderIDs.end()) {
 		return true;
 	} 
 

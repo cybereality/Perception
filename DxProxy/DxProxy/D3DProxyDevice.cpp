@@ -221,6 +221,8 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	m_pActiveVertexDeclaration = NULL;
 	m_bActiveViewportIsDefault = true;
 	m_bViewportIsSquished = false;
+	m_bDoNotDrawVShader = false;
+	m_bDoNotDrawPShader = false;
 	m_bViewTransformSet = false;
 	m_bProjectionTransformSet = false;
 	m_bInBeginEndStateBlock = false;
@@ -1594,6 +1596,11 @@ HRESULT WINAPI D3DProxyDevice::DrawPrimitive(D3DPRIMITIVETYPE PrimitiveType,UINT
 	#ifdef SHOW_CALLS
 		OutputDebugString("called DrawPrimitive");
 	#endif
+
+	//If we shouldn't draw this shader, then just return immediately
+	if (m_bDoNotDrawVShader || m_bDoNotDrawPShader)
+		return S_OK;
+
 	m_spManagedShaderRegisters->ApplyAllDirty(m_currentRenderingSide);
 
 	HRESULT result;
@@ -1614,6 +1621,11 @@ HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitive(D3DPRIMITIVETYPE PrimitiveTy
 	#ifdef SHOW_CALLS
 		OutputDebugString("called DrawIndexedPrimitive");
 	#endif
+
+	//If we shouldn't draw this shader, then just return immediately
+	if (m_bDoNotDrawVShader || m_bDoNotDrawPShader)
+		return S_OK;
+
 	m_spManagedShaderRegisters->ApplyAllDirty(m_currentRenderingSide);
 
 	HRESULT result;
@@ -1637,6 +1649,11 @@ HRESULT WINAPI D3DProxyDevice::DrawPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType,UI
 	#ifdef SHOW_CALLS
 		OutputDebugString("called DrawPrimitiveUP");
 	#endif
+
+	//If we shouldn't draw this shader, then just return immediately
+	if (m_bDoNotDrawVShader || m_bDoNotDrawPShader)
+		return S_OK;
+
 	m_spManagedShaderRegisters->ApplyAllDirty(m_currentRenderingSide);
 
 	HRESULT result;
@@ -1657,6 +1674,11 @@ HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitiveUP(D3DPRIMITIVETYPE Primitive
 	#ifdef SHOW_CALLS
 		OutputDebugString("called DrawIndexedPrimitiveUP");
 	#endif
+
+	//If we shouldn't draw this shader, then just return immediately
+	if (m_bDoNotDrawVShader || m_bDoNotDrawPShader)
+		return S_OK;
+
 	m_spManagedShaderRegisters->ApplyAllDirty(m_currentRenderingSide);
 
 	HRESULT result;
@@ -1834,6 +1856,9 @@ HRESULT WINAPI D3DProxyDevice::SetVertexShader(IDirect3DVertexShader9* pShader)
 
 	if (pWrappedVShaderData)
 	{
+		//Flag whether we should even draw this shader
+		m_bDoNotDrawVShader = pWrappedVShaderData->DoNotDraw();
+
 		if (pWrappedVShaderData->SquishViewport())
 			SetGUIViewport();
 		else
@@ -1843,6 +1868,8 @@ HRESULT WINAPI D3DProxyDevice::SetVertexShader(IDirect3DVertexShader9* pShader)
 			m_bViewportIsSquished = false;
 		}
 	}
+	else
+		m_bDoNotDrawVShader = false;
 
 	// increase vertex shader call count
 	++m_VertexShaderCount;
@@ -2109,6 +2136,14 @@ HRESULT WINAPI D3DProxyDevice::SetPixelShader(IDirect3DPixelShader9* pShader)
 			m_spManagedShaderRegisters->ActivePixelShaderChanged(m_pActivePixelShader);
 		}
 	}
+
+	if (pWrappedPShaderData)
+	{
+		//Flag whether we should even draw this shader
+		m_bDoNotDrawPShader = pWrappedPShaderData->DoNotDraw();
+	}
+	else
+		m_bDoNotDrawPShader = false;
 
 	return result;
 }

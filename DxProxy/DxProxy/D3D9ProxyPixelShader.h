@@ -57,6 +57,7 @@ public:
 
 	/*** D3D9ProxyPixelShader public methods ***/
 	std::map<UINT, StereoShaderConstant<>>* ModifiedConstants();
+	bool									DoNotDraw();
 protected:
 	/**
 	* Currently not used actual owning device.
@@ -68,5 +69,9 @@ protected:
 	* @see StereoShaderConstant
 	***/
 	std::map<UINT, StereoShaderConstant<>> m_modifiedConstants;
+	/**
+	* True if this shader shouldn't be drawn at all
+	***/
+	bool m_bDoNotDraw;
 };
 #endif
