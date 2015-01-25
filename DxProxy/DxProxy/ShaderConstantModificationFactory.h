@@ -37,6 +37,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ShaderMatrixModification.h"
 #include "Vector4SimpleTranslate.h"
 #include "Vector4EyeShiftUnity.h"
+#include "Vector4GBTest.h"
 #include "MatrixIgnoreOrtho.h"
 #include "MatrixDoNothing.h"
 #include "MatrixHudSlide.h"
@@ -51,7 +52,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "MatrixRollOnlyNegative.h"
 #include "MatrixRollOnlyHalf.h"
 #include "MatrixNoRoll.h"
-#include "MatrixNoShowModification.h"
 
 /**
 * Shader constant modification helper class.
@@ -67,7 +67,8 @@ public:
 	{
 		Vec4DoNothing = 0,                 /**< Simple modification that does not apply anything. **/
 		Vec4SimpleTranslate = 1,           /**< Default modification is simple translate. **/
-		Vec4EyeShiftUnity = 2              /**< **/
+		Vec4EyeShiftUnity = 2,              /**< **/
+		Vec4GBTest = 3              /**< **/
 	};
 	/**
 	* Matrix modification identifiers.
@@ -88,8 +89,7 @@ public:
 		MatRollOnly = 11,                  /**< Modification applies only the head roll. **/
 		MatRollOnlyNegative = 12,          /**< Modification applies only the head roll. (negative)**/
 		MatRollOnlyHalf = 13,              /**< Modification applies only the head roll. (half roll)**/
-		MatNoRoll = 14,                    /**< Default modification without head roll. **/
-		MatNoShow = 15					   /**< Causes shader to not be displayed. **/
+		MatNoRoll = 14                     /**< Default modification without head roll. **/		
 	};
 
 	/**
@@ -111,7 +111,9 @@ public:
 			return std::make_shared<Vector4SimpleTranslate>(mod, adjustmentMatrices);
 		case Vec4EyeShiftUnity:
 			return std::make_shared<Vector4EyeShiftUnity>(mod, adjustmentMatrices);
-
+		case Vec4GBTest:
+			return std::make_shared<Vector4GBTest>(mod, adjustmentMatrices);
+		
 		default:
 			OutputDebugString("Nonexistant Vec4 modification\n");
 			assert(false);
@@ -180,9 +182,7 @@ public:
 
 		case MatNoRoll:
 			return std::make_shared<MatrixNoRoll>(mod, adjustmentMatrices, transpose);
-		case MatNoShow:
-			return std::make_shared<MatrixNoShowModification>(mod, adjustmentMatrices, transpose);
-
+		
 		default:
 			OutputDebugString("Nonexistant matrix modification\n");
 			assert(false);
