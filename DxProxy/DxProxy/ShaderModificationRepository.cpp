@@ -476,19 +476,22 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 								switch(pConstantDesc[j].Class)
 								{
 								case D3DXPC_VECTOR:
-									OutputDebugString("D3DXPC_VECTOR");
+									OutputDebugString("PS: D3DXPC_VECTOR");
 									break;
 								case D3DXPC_MATRIX_ROWS:
-									OutputDebugString("D3DXPC_MATRIX_ROWS");
+									OutputDebugString("PS: D3DXPC_MATRIX_ROWS");
 									break;
 								case D3DXPC_MATRIX_COLUMNS:
-									OutputDebugString("D3DXPC_MATRIX_COLUMNS");
+									OutputDebugString("PS: D3DXPC_MATRIX_COLUMNS");
+									break;
+								default:
+									OutputDebugString("PS: UNKNOWN_CONSTANT");
 									break;
 								}
 								char buf[32];
 								sprintf_s(buf,"Register Index: %d", pConstantDesc[j].RegisterIndex);
 								OutputDebugString(buf);
-#endif
+#endif // DEBUG
 
 								// Create StereoShaderConstant<float> and add to result
 								result.insert(std::pair<UINT, StereoShaderConstant<>>(pConstantDesc[j].RegisterIndex, CreateStereoConstantFrom(*itRules, pConstantDesc[j].RegisterIndex, pConstantDesc[j].RegisterCount)));
@@ -589,11 +592,30 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 
 			for(UINT j = 0; j < pConstantNum; j++)
 			{
+#ifdef _DEBUG
+				// output shader constant + index 
+				switch(pConstantDesc[j].Class)
+				{
+				case D3DXPC_VECTOR:
+					OutputDebugString("VS1: D3DXPC_VECTOR");
+					break;
+				case D3DXPC_MATRIX_ROWS:
+					OutputDebugString("VS1: D3DXPC_MATRIX_ROWS");
+					break;
+				case D3DXPC_MATRIX_COLUMNS:
+					OutputDebugString("VS1: D3DXPC_MATRIX_COLUMNS");
+					break;
+				default:
+					OutputDebugString("VS1: UNKNOWN_CONSTANT_TYPE");
+					break;
+				}
+#endif // DEBUG
 				// We are only modifying selected float vectors/matricies.
 				if (pConstantDesc[j].RegisterSet != D3DXRS_FLOAT4)
 					continue;
 
-				if ( ((pConstantDesc[j].Class == D3DXPC_VECTOR) && (pConstantDesc[j].RegisterCount == 1))
+				//if ( ((pConstantDesc[j].Class == D3DXPC_VECTOR) && (pConstantDesc[j].RegisterCount == 1)) 
+				if (((pConstantDesc[j].Class == D3DXPC_VECTOR)) 
 					|| (((pConstantDesc[j].Class == D3DXPC_MATRIX_ROWS) || (pConstantDesc[j].Class == D3DXPC_MATRIX_COLUMNS)) && (pConstantDesc[j].RegisterCount == 4)) ) {
 						// Check if any rules match this constant
 						auto itRules = rulesToApply.begin();
@@ -641,19 +663,22 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 								switch(pConstantDesc[j].Class)
 								{
 								case D3DXPC_VECTOR:
-									OutputDebugString("D3DXPC_VECTOR");
+									OutputDebugString("VS2: D3DXPC_VECTOR");
 									break;
 								case D3DXPC_MATRIX_ROWS:
-									OutputDebugString("D3DXPC_MATRIX_ROWS");
+									OutputDebugString("VS2: D3DXPC_MATRIX_ROWS");
 									break;
 								case D3DXPC_MATRIX_COLUMNS:
-									OutputDebugString("D3DXPC_MATRIX_COLUMNS");
+									OutputDebugString("VS2: D3DXPC_MATRIX_COLUMNS");
+									break;
+								default:
+									OutputDebugString("VS2: UNKNOWN_CONSTANTTYPE");
 									break;
 								}
 								char buf[32];
 								sprintf_s(buf,"Register Index: %d", pConstantDesc[j].RegisterIndex);
 								OutputDebugString(buf);
-#endif
+#endif // DEBUG
 
 								// Create StereoShaderConstant<float> and add to result
 
@@ -779,6 +804,8 @@ bool ShaderModificationRepository::ConstantHasRule(std::string constantName, std
 					constantRule = "MatRollOnlyHalf";
 				else if (iRules->second.m_operationToApply == ShaderConstantModificationFactory::MatNoRoll)
 					constantRule = "MatNoRoll";
+				else if (iRules->second.m_operationToApply == ShaderConstantModificationFactory::MatNoShow)
+					constantRule = "MatNoShow";
 				break;
 
 			default:
