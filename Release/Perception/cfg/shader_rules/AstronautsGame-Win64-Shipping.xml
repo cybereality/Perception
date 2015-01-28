@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-<shaderConfig>
-	<rules>
-		<rule constantName="ViewProjectionMatrix" partialName="true" id="1" constantType="MatrixC" modToApply="2" startReg="0" transpose="false" />
-	</rules>
-	<defaultRuleIDs>
-		<ruleID id="1" />
-	</defaultRuleIDs>
-</shaderConfig>
