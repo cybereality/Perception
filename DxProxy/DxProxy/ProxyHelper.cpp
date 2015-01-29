@@ -652,6 +652,13 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 #endif
 				)
 			{
+				//Check against dir name too if present
+				if (profile.attribute("dir_contains").as_string() && targetPath)
+				{
+					if (std::string(targetPath).find(profile.attribute("dir_contains").as_string()) == std::string::npos)
+						continue;
+				}
+
 				char buffer[256];
 				sprintf_s(buffer, "Found specific profile: %s (%s)\n", targetExe, cpuArch.c_str());
 				OutputDebugString(buffer);
@@ -703,6 +710,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 
 		// set process name
 		config.game_exe = std::string(gameProfile.attribute("game_exe").as_string(""));
+		config.dir_contains = std::string(gameProfile.attribute("dir_contains").as_string(""));
 		config.is64bit = std::string(gameProfile.attribute("cpu_architecture").as_string("32bit")) == "64bit";
 
 		// get hud config
@@ -842,6 +850,7 @@ bool ProxyHelper::SaveConfig(ProxyConfig& config)
 
 	// get the profile
 	bool profileFound = false;
+	bool hasDirContains = false;
 	bool profileSaved = false;
 	char profilePath[512];
 	GetPath(profilePath, "cfg\\profiles.xml");
@@ -883,6 +892,15 @@ bool ProxyHelper::SaveConfig(ProxyConfig& config)
 #endif
 				)
 			{
+				//Check against dir name too if present
+				if (profile.attribute("dir_contains").as_string() && targetPath)
+				{
+					hasDirContains = true;
+					if (std::string(targetPath).find(profile.attribute("dir_contains").as_string()) == std::string::npos)
+						continue;
+				}
+				else hasDirContains = false;
+
 				char buffer[256];
 				sprintf_s(buffer, "Found specific profile: %s (%s)\n", targetExe, cpuArch.c_str());
 				OutputDebugString(buffer);
@@ -905,13 +923,16 @@ bool ProxyHelper::SaveConfig(ProxyConfig& config)
 		else
 			fileName = config.shaderRulePath;
 
+		std::string firstTag = "game_exe";
+		if (hasDirContains) firstTag = "dir_contains";
+
 		// cpu_architecture
-		if (strcmp(gameProfile.attribute("game_exe").next_attribute().name(), "cpu_architecture") == 0)
+		if (strcmp(gameProfile.attribute(firstTag.c_str()).next_attribute().name(), "cpu_architecture") == 0)
 			gameProfile.attribute("cpu_architecture") = config.is64bit ? "64bit" : "32bit";
 		else
 		{
 			gameProfile.remove_attribute("cpu_architecture");
-			gameProfile.insert_attribute_after("cpu_architecture", gameProfile.attribute("game_exe")) = config.is64bit ? "64bit" : "32bit";
+			gameProfile.insert_attribute_after("cpu_architecture", gameProfile.attribute(firstTag.c_str())) = config.is64bit ? "64bit" : "32bit";
 		}
 
 		// shader mod rules attribute present ? otherwise insert
@@ -1253,7 +1274,7 @@ bool ProxyHelper::SaveConfig(ProxyConfig& config)
 * True if process has a configuration profile.
 * @param name The exe process name.
 ***/
-bool ProxyHelper::HasProfile(char* name)
+bool ProxyHelper::HasProfile(const char* name, const char *path)
 {
 	// get the profile
 	bool profileFound = false;
@@ -1272,6 +1293,13 @@ bool ProxyHelper::HasProfile(char* name)
 		{
 			if(strcmp(name, profile.attribute("game_exe").value()) == 0)
 			{
+				//Check against dir name too if present
+				if (profile.attribute("dir_contains").as_string() && path)
+				{
+					if (std::string(path).find(profile.attribute("dir_contains").as_string()) == std::string::npos)
+						continue;
+				}
+
 				OutputDebugString("Found a profile!!!\n");
 				profileFound = true;
 				break;
@@ -1314,7 +1342,7 @@ bool ProxyHelper::GetProfileGameExes(std::vector<std::pair<std::string, bool>> &
 * @param name The exe process name.
 * @param config Currently unused: The returned configuration.
 ***/
-bool ProxyHelper::GetProfile(char* name, bool _64bit, ProxyConfig& config) // TODO !!! fill config
+bool ProxyHelper::GetProfile(char* name, char *path, bool _64bit, ProxyConfig& config) // TODO !!! fill config
 {
 	// get the profile
 	bool profileFound = false;
@@ -1334,6 +1362,13 @@ bool ProxyHelper::GetProfile(char* name, bool _64bit, ProxyConfig& config) // TO
 			if(strcmp(name, profile.attribute("game_exe").value()) == 0 &&
 				_64bit == (profile.attribute("cpu_architecture").as_string("32bit") == std::string("64bit")))
 			{
+				//Check against dir name too if present
+				if (profile.attribute("dir_contains").as_string() && path)
+				{
+					if (std::string(path).find(profile.attribute("dir_contains").as_string()) == std::string::npos)
+						continue;
+				}
+
 				OutputDebugString("Found a profile!!!\n");
 				profileFound = true;
 

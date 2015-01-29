@@ -75,11 +75,18 @@ public:
 		std::string user = OVR::ProfileManager::GetInstance()->GetUser(0);
 		OVR::ProfileDeviceKey pdk(&(pHMDState->OurHMDInfo));
 		OVR::Profile* profile = OVR::ProfileManager::GetInstance()->GetProfile(pdk, user.c_str());
-		sstm << "Using Oculus Profile: " << std::endl;
-		sstm << OVR_KEY_USER << ": " << profile->GetValue(OVR_KEY_USER)  << std::endl;
-		sstm << "HmdType: " << (int)pHMDState->OurHMDInfo.HmdType  << std::endl;
-		//clean up
-		delete profile;
+		if (profile)
+		{
+			sstm << "Using Oculus Profile: " << std::endl;
+			sstm << OVR_KEY_USER << ": " << profile->GetValue(OVR_KEY_USER)  << std::endl;
+			sstm << "HmdType: " << (int)pHMDState->OurHMDInfo.HmdType  << std::endl;
+			//clean up
+			delete profile;
+		}
+		else
+		{
+			sstm << "No Oculus Profile Defined!!" << std::endl;
+		}
 
 		switch (pHMDState->OurHMDInfo.HmdType)
 		{

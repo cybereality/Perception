@@ -193,7 +193,7 @@ BOOL APIENTRY DllMain( HINSTANCE hModule, DWORD fdwReason, LPVOID lpReserved )
 #endif
 		ProxyHelper helper = ProxyHelper();
 
-		if (helper.HasProfile(targetExe))
+		if (helper.HasProfile(targetExe, targetPathString.c_str()))
 		{
 #ifndef x64
 			//Need to check that the d3d9.dll is actually in the game folder - If it is, then we don't need to hook API calls

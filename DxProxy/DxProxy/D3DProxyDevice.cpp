@@ -2657,7 +2657,7 @@ void D3DProxyDevice::HandleControls()
 				//Games that use matrix roll can usually be re-run without issue
 				VireioPopup popup(VPT_NOTIFICATION, VPS_INFO, 5000);
 				sprintf_s(popup.line1, "   *WARNING*: re-running a scan once stable");
-				sprintf_s(popup.line2, "   addresses have been found will fail");
+				sprintf_s(popup.line2, "   addresses have been found could fail");
 				sprintf_s(popup.line3, "   IF NO SCAN HAS YET SUCCEEDED; IGNORE THIS WARNING");
 				sprintf_s(popup.line5, "   Press scan trigger again to initiate scan");
 				sprintf_s(popup.line6, "   or wait for this message to disappear (No Scan)");
@@ -6549,11 +6549,12 @@ void D3DProxyDevice::BRASSA_UpdateDeviceSettings()
 	case D3DProxyDevice::SOURCE_L4D:
 	case D3DProxyDevice::SOURCE_ESTER:
 	case D3DProxyDevice::SOURCE_STANLEY:
+	case D3DProxyDevice::SOURCE_ZENO:
 		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::END_SCENE;
 		m_deviceBehavior.whenToRenderBRASSA = DeviceBehavior::WhenToDo::END_SCENE;
 		break;
-	case D3DProxyDevice::SOURCE_ZENO:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::END_SCENE;
+	case D3DProxyDevice::SOURCE_HL2:
+		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
 		m_deviceBehavior.whenToRenderBRASSA = DeviceBehavior::WhenToDo::END_SCENE;
 		break;
 	case D3DProxyDevice::UNREAL:

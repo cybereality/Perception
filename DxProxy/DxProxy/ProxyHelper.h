@@ -56,6 +56,7 @@ public:
 	{
 		/** game configuration **/
 		std::string game_exe;                   /**< Process name, to be used in VRboost. */
+		std::string dir_contains;				/**< Part of the folder name (root folder best), used to filter */
 		std::string shaderRulePath;             /**< Full path of shader rules for this game. */
 		std::string VRboostPath;                /**< Full path of VRboost rules for this game. */
 		UINT        VRboostMinShaderCount;      /**< Minimum Vertex Shader Count to apply VRboost (security) */
@@ -135,8 +136,8 @@ public:
 	bool  SaveDisplayAdapter(int adapter);
 	bool  LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile);	
 	bool  SaveConfig(ProxyConfig& config);
-	bool  HasProfile(char* name);
-	bool  GetProfile(char* name, bool _64bit, ProxyConfig& config);
+	bool  HasProfile(const char* name, const char *path);
+	bool  GetProfile(char* name, char *path, bool _64bit, ProxyConfig& config);
 	/**
 	* The following is used by the dll symlink installer to identify which game is in the
 	* scanned folder

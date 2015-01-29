@@ -188,6 +188,7 @@ public:
 		SOURCE_ESTER = 102,        /**<  !! */
 		SOURCE_STANLEY = 103,      /**<  !! */
 		SOURCE_ZENO = 104,		   /**<  !! */
+		SOURCE_HL2 = 105,		   /**<  !! */
 		UNREAL = 200,              /**< The Unreal Engine is a game engine developed by Epic Games, first illustrated in the 1998 first-person shooter game Unreal. */
 		UNREAL_MIRROR = 201,       /**<  !! */
 		UNREAL_UT3 = 202,          /**<  !! */
