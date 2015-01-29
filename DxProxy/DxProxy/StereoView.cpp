@@ -96,11 +96,10 @@ StereoView::StereoView(ProxyHelper::ProxyConfig& config)
 	case D3DProxyDevice::SOURCE:
 	case D3DProxyDevice::SOURCE_L4D:
 	case D3DProxyDevice::SOURCE_ESTER:
-		howToSaveRenderStates = HowToSaveRenderStates::SELECTED_STATES_MANUALLY;
-		break;
 	case D3DProxyDevice::SOURCE_STANLEY:
 		howToSaveRenderStates = HowToSaveRenderStates::SELECTED_STATES_MANUALLY;
 		break;
+	case D3DProxyDevice::SOURCE_HL2:
 	case D3DProxyDevice::SOURCE_ZENO:
 		howToSaveRenderStates = HowToSaveRenderStates::ALL_STATES_MANUALLY;
 		break;
@@ -675,8 +674,6 @@ void StereoView::SetState()
 	m_pActualDevice->SetRenderState(D3DRS_ZENABLE, D3DZB_FALSE);
 	m_pActualDevice->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
 	m_pActualDevice->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);  
-
-	//m_pActualDevice->SetRenderState(D3DRS_SRGBWRITEENABLE, 0);  // will cause visual errors in HL2
 
 	if(game_type == D3DProxyDevice::SOURCE_L4D ||
 		game_type == D3DProxyDevice::SOURCE_ESTER || 
