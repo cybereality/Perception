@@ -653,7 +653,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 				)
 			{
 				//Check against dir name too if present
-				if (profile.attribute("dir_contains").as_string() && targetPath)
+				if (std::string(profile.attribute("dir_contains").as_string()).length() && targetPath)
 				{
 					if (std::string(targetPath).find(profile.attribute("dir_contains").as_string()) == std::string::npos)
 						continue;
@@ -893,16 +893,20 @@ bool ProxyHelper::SaveConfig(ProxyConfig& config)
 				)
 			{
 				//Check against dir name too if present
-				if (profile.attribute("dir_contains").as_string() && targetPath)
+				std::string dirContains = profile.attribute("dir_contains").as_string();
+				if (dirContains.length() && std::string(targetPath).length())
 				{
 					hasDirContains = true;
-					if (std::string(targetPath).find(profile.attribute("dir_contains").as_string()) == std::string::npos)
+					if (std::string(targetPath).find(dirContains) == std::string::npos)
 						continue;
 				}
 				else hasDirContains = false;
 
 				char buffer[256];
-				sprintf_s(buffer, "Found specific profile: %s (%s)\n", targetExe, cpuArch.c_str());
+				if (hasDirContains)
+					sprintf_s(buffer, "Found specific profile: %s (%s), dirContains: TRUE\n", targetExe, cpuArch.c_str());
+				else
+					sprintf_s(buffer, "Found specific profile: %s (%s), dirContains: FALSE\n", targetExe, cpuArch.c_str());
 				OutputDebugString(buffer);
 				gameProfile = profile;
 				profileFound = true;
