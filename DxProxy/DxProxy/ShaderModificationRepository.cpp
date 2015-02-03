@@ -517,6 +517,72 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 			}
 		}
 	}
+	else
+	{
+		//Alternative approach as no shader constants are defined - parse the shader code to see if c0/c4/c69 are defined as the projection matrices
+		//This will probably need some serious refinement
+		LPD3DXBUFFER bOut; 
+		D3DXDisassembleShader(reinterpret_cast<DWORD*>(pData),NULL,NULL,&bOut); 
+		//Need to improve this!
+		char * c0_r0 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r0, c0");
+		char * c0_r1 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r1, c0");
+		char * c0_r2 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r2, c0");
+		char * c0_r3 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r3, c0");
+		char * c0_r4 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r4, c0");
+
+		char * c4_r0 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r0, c4");
+		char * c4_r1 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r1, c4");
+		char * c4_r2 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r2, c4");
+		char * c4_r3 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r3, c4");
+		char * c4_r4 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r4, c4");
+
+		char * c69_r0 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r0, c69");
+		char * c69_r1 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r1, c69");
+		char * c69_r2 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r2, c69");
+		char * c69_r3 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r3, c69");
+		char * c69_r4 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r4, c69");
+		char * c69_v0 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, v0, c69");
+		if (c0_r0 || c0_r1 || c0_r2 || c0_r3 || c0_r4)
+		{
+			OutputDebugString("VS: Shader - Potential c0 rule match");
+			auto itRules = rulesToApply.begin();
+			while (itRules != rulesToApply.end()) 
+			{
+				//Some hardcoding needs to be fixed
+				if ((*itRules)->m_startRegIndex == 0)
+					result.insert(std::pair<UINT, StereoShaderConstant<>>((*itRules)->m_startRegIndex, CreateStereoConstantFrom(*itRules, (*itRules)->m_startRegIndex, 4)));
+				++itRules;
+			}
+		}
+		else if (c4_r0 || c4_r1 || c4_r2 || c4_r3 || c4_r4)
+		{
+			OutputDebugString("VS: Shader - Potential c4 rule match");
+			auto itRules = rulesToApply.begin();
+			while (itRules != rulesToApply.end()) 
+			{
+				//Some hardcoding needs to be fixed
+				if ((*itRules)->m_startRegIndex == 4)
+					result.insert(std::pair<UINT, StereoShaderConstant<>>((*itRules)->m_startRegIndex, CreateStereoConstantFrom(*itRules, (*itRules)->m_startRegIndex, 4)));
+				++itRules;
+			}
+		}
+		else if (c69_r0 || c69_r1 || c69_r2 || c69_r3 || c69_r4 || c69_v0)
+		{
+			OutputDebugString("VS: Shader - Potential c69 rule match");
+			auto itRules = rulesToApply.begin();
+			while (itRules != rulesToApply.end()) 
+			{
+				//Some hardcoding needs to be fixed
+				if ((*itRules)->m_startRegIndex == 69)
+					result.insert(std::pair<UINT, StereoShaderConstant<>>((*itRules)->m_startRegIndex, CreateStereoConstantFrom(*itRules, (*itRules)->m_startRegIndex, 4)));
+				++itRules;
+			}
+		}
+		else
+		{
+			OutputDebugString("VS: Shader - No rule match");
+		}
+	}
 
 	_SAFE_RELEASE(pConstantTable);
 	if (pData) delete[] pData;
@@ -579,7 +645,6 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 
 	// Load the constant descriptions for this shader and create StereoShaderConstants as the applicable rules require them.
 	LPD3DXCONSTANTTABLE pConstantTable = NULL;
-
 	D3DXGetShaderConstantTable(reinterpret_cast<DWORD*>(pData), &pConstantTable);
 
 	if(pConstantTable) {
@@ -702,6 +767,71 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 						}
 				}	
 			}
+		}
+	}
+	else
+	{
+		LPD3DXBUFFER bOut; 
+		D3DXDisassembleShader(reinterpret_cast<DWORD*>(pData),NULL,NULL,&bOut); 
+
+		//Need to improve this!
+		char * c0_r0 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r0, c0");
+		char * c0_r1 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r1, c0");
+		char * c0_r2 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r2, c0");
+		char * c0_r3 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r3, c0");
+		char * c0_r4 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r4, c0");
+
+		char * c4_r0 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r0, c4");
+		char * c4_r1 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r1, c4");
+		char * c4_r2 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r2, c4");
+		char * c4_r3 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r3, c4");
+		char * c4_r4 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r4, c4");
+
+		char * c69_r0 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r0, c69");
+		char * c69_r1 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r1, c69");
+		char * c69_r2 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r2, c69");
+		char * c69_r3 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r3, c69");
+		char * c69_r4 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r4, c69");
+		char * c69_v0 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, v0, c69");
+		if (c0_r0 || c0_r1 || c0_r2 || c0_r3 || c0_r4)
+		{
+			OutputDebugString("VS: Shader - Potential c0 rule match");
+			auto itRules = rulesToApply.begin();
+			while (itRules != rulesToApply.end()) 
+			{
+				//Some hardcoding needs to be fixed
+				if ((*itRules)->m_startRegIndex == 0)
+					result.insert(std::pair<UINT, StereoShaderConstant<>>((*itRules)->m_startRegIndex, CreateStereoConstantFrom(*itRules, (*itRules)->m_startRegIndex, 4)));
+				++itRules;
+			}
+		}
+		else if (c4_r0 || c4_r1 || c4_r2 || c4_r3 || c4_r4)
+		{
+			OutputDebugString("VS: Shader - Potential c4 rule match");
+			auto itRules = rulesToApply.begin();
+			while (itRules != rulesToApply.end()) 
+			{
+				//Some hardcoding needs to be fixed
+				if ((*itRules)->m_startRegIndex == 4)
+					result.insert(std::pair<UINT, StereoShaderConstant<>>((*itRules)->m_startRegIndex, CreateStereoConstantFrom(*itRules, (*itRules)->m_startRegIndex, 4)));
+				++itRules;
+			}
+		}
+		else if (c69_r0 || c69_r1 || c69_r2 || c69_r3 || c69_r4 || c69_v0)
+		{
+			OutputDebugString("VS: Shader - Potential c69 rule match");
+			auto itRules = rulesToApply.begin();
+			while (itRules != rulesToApply.end()) 
+			{
+				//Some hardcoding needs to be fixed
+				if ((*itRules)->m_startRegIndex == 69)
+					result.insert(std::pair<UINT, StereoShaderConstant<>>((*itRules)->m_startRegIndex, CreateStereoConstantFrom(*itRules, (*itRules)->m_startRegIndex, 4)));
+				++itRules;
+			}
+		}
+		else
+		{
+			OutputDebugString("VS: Shader - No rule match");
 		}
 	}
 
