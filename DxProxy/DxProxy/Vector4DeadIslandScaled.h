@@ -27,8 +27,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#ifndef VEC4GBTESTTRANSLATE_H_INCLUDED
-#define VEC4GBTESTTRANSLATE_H_INCLUDED
+#ifndef VEC4DEADISLANDTRANSLATE_H_INCLUDED
+#define VEC4DEADISLANDTRANSLATE_H_INCLUDED
 
 
 #include "d3d9.h"
@@ -39,10 +39,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * Vector4 translation.
 * Translates Vector4 to left and right by separation in world units.
 */
-class Vector4GBTest : public ShaderConstantModification<float>
+class Vector4DeadIslandScaled : public ShaderConstantModification<float>
 {
 public:		
-	Vector4GBTest(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatrices) : ShaderConstantModification(modID, adjustmentMatrices) {};
+	Vector4DeadIslandScaled(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatrices) : ShaderConstantModification(modID, adjustmentMatrices) {};
 
 	/**
 	* Translates Vector4 to left and right by separation in world units.
@@ -52,11 +52,11 @@ public:
 		D3DXVECTOR4 tempLeft (inData);
 		D3DXVECTOR4 tempRight (inData);
 
-		tempLeft[2] += (m_spAdjustmentMatrices->SeparationInWorldUnits() / 100) * LEFT_CONSTANT;
-		tempRight[2] += (m_spAdjustmentMatrices->SeparationInWorldUnits() / 100) * RIGHT_CONSTANT;
+		tempLeft[2] += (m_spAdjustmentMatrices->SeparationInWorldUnits() / 70) * LEFT_CONSTANT;
+		tempRight[2] += (m_spAdjustmentMatrices->SeparationInWorldUnits() / 70) * RIGHT_CONSTANT;
 
-		outLeft->assign(&tempLeft[2], &tempLeft[2] + outLeft->size());
-		outRight->assign(&tempRight[2], &tempRight[2] + outRight->size());			
+		outLeft->assign(&tempLeft[0], &tempLeft[0] + outLeft->size());
+		outRight->assign(&tempRight[0], &tempRight[0] + outRight->size());			
 	}
 };
 #endif

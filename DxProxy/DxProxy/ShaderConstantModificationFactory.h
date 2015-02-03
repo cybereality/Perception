@@ -37,7 +37,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ShaderMatrixModification.h"
 #include "Vector4SimpleTranslate.h"
 #include "Vector4EyeShiftUnity.h"
-#include "Vector4GBTest.h"
+#include "Vector4DeadIslandScaled.h"
 #include "MatrixIgnoreOrtho.h"
 #include "MatrixDoNothing.h"
 #include "MatrixHudSlide.h"
@@ -68,7 +68,7 @@ public:
 		Vec4DoNothing = 0,                 /**< Simple modification that does not apply anything. **/
 		Vec4SimpleTranslate = 1,           /**< Default modification is simple translate. **/
 		Vec4EyeShiftUnity = 2,              /**< **/
-		Vec4GBTest = 3              /**< **/
+		Vec4DeadIslandScaled = 3              /**< **/
 	};
 	/**
 	* Matrix modification identifiers.
@@ -111,8 +111,8 @@ public:
 			return std::make_shared<Vector4SimpleTranslate>(mod, adjustmentMatrices);
 		case Vec4EyeShiftUnity:
 			return std::make_shared<Vector4EyeShiftUnity>(mod, adjustmentMatrices);
-		case Vec4GBTest:
-			return std::make_shared<Vector4GBTest>(mod, adjustmentMatrices);
+		case Vec4DeadIslandScaled:
+			return std::make_shared<Vector4DeadIslandScaled>(mod, adjustmentMatrices);
 		
 		default:
 			OutputDebugString("Nonexistant Vec4 modification\n");

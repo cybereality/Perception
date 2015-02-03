@@ -1105,12 +1105,13 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 		m_VertexShaderCountLastFrame = m_VertexShaderCount;
 
 		// avoid squished viewport in case of brassa menu being drawn
+		/*
 		if ((m_bViewportIsSquished) && (BRASSA_mode>=BRASSA_Modes::MAINMENU) && (BRASSA_mode<BRASSA_Modes::BRASSA_ENUM_RANGE))
 		{
 			if (m_bViewportIsSquished)
 				BaseDirect3DDevice9::SetViewport(&m_LastViewportSet);
 			m_bViewportIsSquished = false;
-		}
+		}*/
 
 		// handle controls - Only handled on the first begin scene
 		if (m_deviceBehavior.whenToHandleHeadTracking == DeviceBehavior::WhenToDo::BEGIN_SCENE)
@@ -2626,13 +2627,13 @@ void D3DProxyDevice::HandleControls()
 		else if(m_deviceBehavior.whenToHandleHeadTracking == DeviceBehavior::END_SCENE)
 		{
 			m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::BEGIN_SCENE;			
-			sprintf_s(popup.line3, "HEADTRACKING = BEGIN_SCENE");
+			sprintf_s(popup.line3, "HEADTRACKING = BEGIN SCENE");
 		}	
-		/*else if(m_deviceBehavior.whenToHandleHeadTracking == DeviceBehavior::END_SCENE)
+		/*else if(m_deviceBehavior.whenToHandleHeadTracking == DeviceBehavior::PRESENT)
 		{
-			m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::PRESENT;
-			sprintf_s(popup.line3, "HEADTRACKING = PRESENT");
-		}*///TODO This Crashes Brassa for some reason - problem for another day
+			m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::BEGIN_SCENE;
+			sprintf_s(popup.line3, "HEADTRACKING = BEGIN SCENE");
+		}//TODO This Crashes Brassa for some reason - problem for another day*/
 		
 		ShowPopup(popup);		
 		menuVelocity.x += 4.0f;		
@@ -7094,8 +7095,8 @@ void D3DProxyDevice::SetGUIViewport()
 	#endif
 	
 	// do not squish the viewport in case brassa menu is open - GBCODE Why?
-	if ((BRASSA_mode>=BRASSA_Modes::MAINMENU) && (BRASSA_mode<BRASSA_Modes::BRASSA_ENUM_RANGE))
-		return;
+	//if ((BRASSA_mode>=BRASSA_Modes::MAINMENU) && (BRASSA_mode<BRASSA_Modes::BRASSA_ENUM_RANGE))
+	//	return;
 
 	D3DXMATRIX mLeftShift;
 	D3DXMATRIX mRightShift;

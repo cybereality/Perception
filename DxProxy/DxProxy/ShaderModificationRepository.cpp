@@ -625,8 +625,7 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 				if (pConstantDesc[j].RegisterSet != D3DXRS_FLOAT4)
 					continue;
 
-				//if ( ((pConstantDesc[j].Class == D3DXPC_VECTOR) && (pConstantDesc[j].RegisterCount == 1)) 
-				if (((pConstantDesc[j].Class == D3DXPC_VECTOR)) 
+				if ( ((pConstantDesc[j].Class == D3DXPC_VECTOR) && (pConstantDesc[j].RegisterCount == 1 || pConstantDesc[j].RegisterCount == 4)) 								
 					|| (((pConstantDesc[j].Class == D3DXPC_MATRIX_ROWS) || (pConstantDesc[j].Class == D3DXPC_MATRIX_COLUMNS)) && (pConstantDesc[j].RegisterCount == 4)) ) {
 						// Check if any rules match this constant
 						auto itRules = rulesToApply.begin();
@@ -839,6 +838,8 @@ bool ShaderModificationRepository::ConstantHasRule(std::string constantName, std
 					constantRule = "Vec4SimpleTranslate";
 				else if (iRules->second.m_operationToApply == ShaderConstantModificationFactory::Vec4EyeShiftUnity)
 					constantRule = "Vec4EyeShiftUnity";
+				else if (iRules->second.m_operationToApply == ShaderConstantModificationFactory::Vec4DeadIslandScaled)
+					constantRule = "Vec4DeadIslandScaled";
 				break;
 
 			case D3DXPC_MATRIX_ROWS:
@@ -907,12 +908,23 @@ StereoShaderConstant<> ShaderModificationRepository::CreateStereoConstantFrom(co
 	switch (rule->m_constantType)
 	{
 	case D3DXPC_VECTOR:
-		modification = ShaderConstantModificationFactory::CreateVector4Modification(rule->m_operationToApply, m_spAdjustmentMatrices);
-		pData = D3DXVECTOR4(0,0,0,0);
+		//If a register of 4 treat as a matrix
+		if(Count == 4)
+		{
+			modification = ShaderConstantModificationFactory::CreateMatrixModification(rule->m_operationToApply, m_spAdjustmentMatrices, rule->m_transpose);
+			pData = m_identity;
 
-		return StereoShaderConstant<>(StartReg, pData, Count, modification);
+			return StereoShaderConstant<>(StartReg, pData, Count, modification);
+		}
+		else
+		{
+			modification = ShaderConstantModificationFactory::CreateVector4Modification(rule->m_operationToApply, m_spAdjustmentMatrices);
+			pData = D3DXVECTOR4(0,0,0,0);
+
+			return StereoShaderConstant<>(StartReg, pData, Count, modification);
+		}
 		break;
-
+	
 	case D3DXPC_MATRIX_ROWS:
 	case D3DXPC_MATRIX_COLUMNS:
 		modification = ShaderConstantModificationFactory::CreateMatrixModification(rule->m_operationToApply, m_spAdjustmentMatrices, rule->m_transpose);
