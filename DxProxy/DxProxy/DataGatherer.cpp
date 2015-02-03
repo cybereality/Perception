@@ -349,13 +349,12 @@ HRESULT WINAPI DataGatherer::CreateVertexShader(CONST DWORD* pFunction,IDirect3D
 
 			if(pConstantTable == NULL)
 			{
-				OutputDebugString("DATAGATHERER :: Constant Table is Null");	
+				OutputDebugString("DATAGATHERER :: Vertex Shader Constant Table is Null");	
 				char buf[64];
 				LPCSTR psz = NULL;
 				sprintf_s(buf, "Size of Data: %d Data Contents: %s\n", pSizeOfData, pData);
 				psz = buf;
 				OutputDebugString(psz);
-				//return creationResult;
 			}
 			else
 			{
@@ -583,54 +582,63 @@ HRESULT WINAPI DataGatherer::CreatePixelShader(CONST DWORD* pFunction,IDirect3DP
 
 			D3DXGetShaderConstantTable(reinterpret_cast<DWORD*>(pData), &pConstantTable);
 
-			if(pConstantTable == NULL) 
-				return creationResult;
-
 			D3DXCONSTANTTABLE_DESC pDesc;
-			pConstantTable->GetDesc(&pDesc);
-
-			D3DXCONSTANT_DESC pConstantDesc[512];
-			UINT pConstantNum = 512;
-
-			for(UINT i = 0; i < pDesc.Constants; i++)
+			if(pConstantTable == NULL)
 			{
-				D3DXHANDLE handle = pConstantTable->GetConstant(NULL,i);
-				if(handle == NULL) continue;
+				OutputDebugString("DATAGATHERER :: Pixel Shader Constant Table is Null");	
+				char buf[64];
+				LPCSTR psz = NULL;
+				sprintf_s(buf, "Size of Data: %d Data Contents: %s\n", pSizeOfData, pData);
+				psz = buf;
+				OutputDebugString(psz);
+			}
+			else
+			{
+				pConstantTable->GetDesc(&pDesc);
 
-				pConstantTable->GetConstantDesc(handle, pConstantDesc, &pConstantNum);
-				if (pConstantNum >= 512) {
-					OutputDebugString("Need larger constant description buffer");
-				}
+				D3DXCONSTANT_DESC pConstantDesc[512];
+				UINT pConstantNum = 512;
 
-				// loop through constants, output relevant data
-				for(UINT j = 0; j < pConstantNum; j++)
+				for(UINT i = 0; i < pDesc.Constants; i++)
 				{
-					if ((pConstantDesc[j].RegisterSet == D3DXRS_FLOAT4) &&
-						((pConstantDesc[j].Class == D3DXPC_VECTOR) || (pConstantDesc[j].Class == D3DXPC_MATRIX_ROWS) || (pConstantDesc[j].Class == D3DXPC_MATRIX_COLUMNS))  ) {
+					D3DXHANDLE handle = pConstantTable->GetConstant(NULL,i);
+					if(handle == NULL) continue;
 
-							m_shaderDumpFile << hash;
-							m_shaderDumpFile << "," << pConstantDesc[j].Name;
+					pConstantTable->GetConstantDesc(handle, pConstantDesc, &pConstantNum);
+					if (pConstantNum >= 512) {
+						OutputDebugString("Need larger constant description buffer");
+					}
 
-							if (pConstantDesc[j].Class == D3DXPC_VECTOR) {
-								m_shaderDumpFile << ",Vector";
-							}
-							else if (pConstantDesc[j].Class == D3DXPC_MATRIX_ROWS) {
-								m_shaderDumpFile << ",MatrixR";
-							}
-							else if (pConstantDesc[j].Class == D3DXPC_MATRIX_COLUMNS) {
-								m_shaderDumpFile << ",MatrixC";
-							}
+					// loop through constants, output relevant data
+					for(UINT j = 0; j < pConstantNum; j++)
+					{
+						if ((pConstantDesc[j].RegisterSet == D3DXRS_FLOAT4) &&
+							((pConstantDesc[j].Class == D3DXPC_VECTOR) || (pConstantDesc[j].Class == D3DXPC_MATRIX_ROWS) || (pConstantDesc[j].Class == D3DXPC_MATRIX_COLUMNS))  ) {
 
-							m_shaderDumpFile << "," << pConstantDesc[j].RegisterIndex;
-							m_shaderDumpFile << "," << pConstantDesc[j].RegisterCount << ",PS" << std::endl;
+								m_shaderDumpFile << hash;
+								m_shaderDumpFile << "," << pConstantDesc[j].Name;
 
-							//// add constant to relevant constant vector - TODO !! pixel shader constants
-							//ShaderConstant sc;
-							//sc.hash = hash;
-							//sc.desc = D3DXCONSTANT_DESC(pConstantDesc[j]);
-							//sc.name = std::string(pConstantDesc[j].Name);
-							//sc.hasRule = false;
-							//m_relevantVSConstants[hash].push_back(sc);
+								if (pConstantDesc[j].Class == D3DXPC_VECTOR) {
+									m_shaderDumpFile << ",Vector";
+								}
+								else if (pConstantDesc[j].Class == D3DXPC_MATRIX_ROWS) {
+									m_shaderDumpFile << ",MatrixR";
+								}
+								else if (pConstantDesc[j].Class == D3DXPC_MATRIX_COLUMNS) {
+									m_shaderDumpFile << ",MatrixC";
+								}
+
+								m_shaderDumpFile << "," << pConstantDesc[j].RegisterIndex;
+								m_shaderDumpFile << "," << pConstantDesc[j].RegisterCount << ",PS" << std::endl;
+
+								//// add constant to relevant constant vector - TODO !! pixel shader constants
+								//ShaderConstant sc;
+								//sc.hash = hash;
+								//sc.desc = D3DXCONSTANT_DESC(pConstantDesc[j]);
+								//sc.name = std::string(pConstantDesc[j].Name);
+								//sc.hasRule = false;
+								//m_relevantVSConstants[hash].push_back(sc);
+						}
 					}
 				}
 			}
@@ -649,8 +657,11 @@ HRESULT WINAPI DataGatherer::CreatePixelShader(CONST DWORD* pFunction,IDirect3DP
 					D3DXDisassembleShader(reinterpret_cast<DWORD*>(pData),NULL,NULL,&bOut); 
 					oLogFile << static_cast<char*>(bOut->GetBufferPointer()) << std::endl;
 					oLogFile << std::endl << std::endl;
-					oLogFile << "// Shader Creator: " << pDesc.Creator << std::endl;
-					oLogFile << "// Shader Version: " << pDesc.Version << std::endl;
+					if (pConstantTable != NULL)
+					{
+						oLogFile << "// Shader Creator: " << pDesc.Creator << std::endl;
+						oLogFile << "// Shader Version: " << pDesc.Version << std::endl;
+					}
 					oLogFile << "// Shader Hash   : " << hash << std::endl;
 				}
 			}
