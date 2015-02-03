@@ -12,9 +12,9 @@
     <ruleID id="3" />
   </defaultRuleIDs>
 
-  <!-- 
-  <shaderSpecificRuleIDs shaderHash="12345">
-    <ruleID id="3" />
-  </shaderSpecificRuleIDs>
-  -->
+  <!-- Removes most dodgy shadows -->
+  <shaderSpecificRuleIDs shaderHash="1660635056" doNotDraw="true"/>
+  <shaderSpecificRuleIDs shaderHash="3388901281" doNotDraw="true"/>
+  <shaderSpecificRuleIDs shaderHash="1284330534" doNotDraw="true"/>
+  <shaderSpecificRuleIDs shaderHash="3380305637" doNotDraw="true"/>
 </shaderConfig>
