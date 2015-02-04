@@ -101,6 +101,13 @@ bool ShaderModificationRepository::LoadRules(std::string rulesPath)
 
 			static ConstantModificationRule newRule;
 
+			//This section is specifically for the shaders that have no constant table so parsing
+			//of the disassembled shader code is required
+			{
+				newRule.m_shaderCodeFindPattern = rule.attribute("shaderCodeFindPattern").as_string();
+				newRule.m_shaderCodeRegSub = rule.attribute("shaderCodeRegSub").as_string();
+				newRule.m_registerCount = rule.attribute("registerCount").as_uint(4);
+			}
 			newRule.m_constantName = rule.attribute("constantName").as_string();
 			newRule.m_constantType = ConstantModificationRule::ConstantTypeFrom(rule.attribute("constantType").as_string());
 			newRule.m_modificationRuleID = rule.attribute("id").as_uint();
@@ -523,65 +530,66 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 		//This will probably need some serious refinement
 		LPD3DXBUFFER bOut; 
 		D3DXDisassembleShader(reinterpret_cast<DWORD*>(pData),NULL,NULL,&bOut); 
-		//Need to improve this!
-		char * c0_r0 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r0, c0");
-		char * c0_r1 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r1, c0");
-		char * c0_r2 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r2, c0");
-		char * c0_r3 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r3, c0");
-		char * c0_r4 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r4, c0");
 
-		char * c4_r0 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r0, c4");
-		char * c4_r1 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r1, c4");
-		char * c4_r2 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r2, c4");
-		char * c4_r3 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r3, c4");
-		char * c4_r4 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r4, c4");
+		//Iterate through the rules and see if the parse strings match any of the disassembled code
+		auto itRules = rulesToApply.begin();
+		while (itRules != rulesToApply.end()) 
+		{
+			//Pointer into the shader code buffer
+			char *codeBuffer = static_cast<char*>(bOut->GetBufferPointer());
 
-		char * c69_r0 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r0, c69");
-		char * c69_r1 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r1, c69");
-		char * c69_r2 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r2, c69");
-		char * c69_r3 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r3, c69");
-		char * c69_r4 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r4, c69");
-		char * c69_v0 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, v0, c69");
-		if (c0_r0 || c0_r1 || c0_r2 || c0_r3 || c0_r4)
-		{
-			OutputDebugString("VS: Shader - Potential c0 rule match");
-			auto itRules = rulesToApply.begin();
-			while (itRules != rulesToApply.end()) 
+			std::string shaderCodeFindPattern = (*itRules)->m_shaderCodeFindPattern;
+			if (shaderCodeFindPattern.length() == 0)
 			{
-				//Some hardcoding needs to be fixed
-				if ((*itRules)->m_startRegIndex == 0)
-					result.insert(std::pair<UINT, StereoShaderConstant<>>((*itRules)->m_startRegIndex, CreateStereoConstantFrom(*itRules, (*itRules)->m_startRegIndex, 4)));
 				++itRules;
+				continue;
 			}
-		}
-		else if (c4_r0 || c4_r1 || c4_r2 || c4_r3 || c4_r4)
-		{
-			OutputDebugString("VS: Shader - Potential c4 rule match");
-			auto itRules = rulesToApply.begin();
-			while (itRules != rulesToApply.end()) 
+
+			//Are we doing substitutions in the parse string?
+			if (std::strstr(shaderCodeFindPattern.c_str(), "%s"))
 			{
-				//Some hardcoding needs to be fixed
-				if ((*itRules)->m_startRegIndex == 4)
-					result.insert(std::pair<UINT, StereoShaderConstant<>>((*itRules)->m_startRegIndex, CreateStereoConstantFrom(*itRules, (*itRules)->m_startRegIndex, 4)));
-				++itRules;
+				//For want of a more exact method, iterate through 0 - 32 (the max number of temp registers)
+				//and replace in find pattern
+				bool found = false;
+				for (int i = 0; i < 32; ++i)
+				{
+					char registerBuffer[5];
+					sprintf_s(registerBuffer, (*itRules)->m_shaderCodeRegSub.c_str(), i);
+
+					char parseStringBuffer[256];
+					sprintf_s(parseStringBuffer, (*itRules)->m_shaderCodeFindPattern.c_str(), registerBuffer);
+
+					OutputDebugString("Comparing:");
+					OutputDebugString(parseStringBuffer);
+					if (std::strstr(codeBuffer, parseStringBuffer))
+					{
+						OutputDebugString("PS: Shader - rule match");
+						result.insert(std::pair<UINT, StereoShaderConstant<>>((*itRules)->m_startRegIndex, CreateStereoConstantFrom(*itRules, (*itRules)->m_startRegIndex, (*itRules)->m_registerCount)));
+						found = true;
+						break;
+					}
+				}
+				if (found)
+					break;
 			}
-		}
-		else if (c69_r0 || c69_r1 || c69_r2 || c69_r3 || c69_r4 || c69_v0)
-		{
-			OutputDebugString("VS: Shader - Potential c69 rule match");
-			auto itRules = rulesToApply.begin();
-			while (itRules != rulesToApply.end()) 
+			else
 			{
-				//Some hardcoding needs to be fixed
-				if ((*itRules)->m_startRegIndex == 69)
-					result.insert(std::pair<UINT, StereoShaderConstant<>>((*itRules)->m_startRegIndex, CreateStereoConstantFrom(*itRules, (*itRules)->m_startRegIndex, 4)));
-				++itRules;
+				//Direct compare for contains
+				OutputDebugString("Comparing:");
+				OutputDebugString(shaderCodeFindPattern.c_str());
+				if (std::strstr(codeBuffer, shaderCodeFindPattern.c_str()))
+				{
+					OutputDebugString("PS: Shader - rule match");
+					result.insert(std::pair<UINT, StereoShaderConstant<>>((*itRules)->m_startRegIndex, CreateStereoConstantFrom(*itRules, (*itRules)->m_startRegIndex, (*itRules)->m_registerCount)));
+					break;
+				}
 			}
+
+			++itRules;
 		}
-		else
-		{
-			OutputDebugString("VS: Shader - No rule match");
-		}
+
+		if (result.size() == 0)
+			OutputDebugString("PS: Shader - No matching rules");
 	}
 
 	_SAFE_RELEASE(pConstantTable);
@@ -774,65 +782,65 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 		LPD3DXBUFFER bOut; 
 		D3DXDisassembleShader(reinterpret_cast<DWORD*>(pData),NULL,NULL,&bOut); 
 
-		//Need to improve this!
-		char * c0_r0 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r0, c0");
-		char * c0_r1 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r1, c0");
-		char * c0_r2 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r2, c0");
-		char * c0_r3 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r3, c0");
-		char * c0_r4 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r4, c0");
+		//Iterate through the rules and see if the parse strings match any of the disassembled code
+		auto itRules = rulesToApply.begin();
+		while (itRules != rulesToApply.end()) 
+		{
+			//Pointer into the shader code buffer
+			char *codeBuffer = static_cast<char*>(bOut->GetBufferPointer());
 
-		char * c4_r0 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r0, c4");
-		char * c4_r1 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r1, c4");
-		char * c4_r2 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r2, c4");
-		char * c4_r3 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r3, c4");
-		char * c4_r4 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r4, c4");
+			std::string shaderCodeFindPattern = (*itRules)->m_shaderCodeFindPattern;
+			if (shaderCodeFindPattern.length() == 0)
+			{
+				++itRules;
+				continue;
+			}
 
-		char * c69_r0 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r0, c69");
-		char * c69_r1 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r1, c69");
-		char * c69_r2 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r2, c69");
-		char * c69_r3 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r3, c69");
-		char * c69_r4 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, r4, c69");
-		char * c69_v0 = std::strstr(static_cast<char*>(bOut->GetBufferPointer()), "dp4 o0.x, v0, c69");
-		if (c0_r0 || c0_r1 || c0_r2 || c0_r3 || c0_r4)
-		{
-			OutputDebugString("VS: Shader - Potential c0 rule match");
-			auto itRules = rulesToApply.begin();
-			while (itRules != rulesToApply.end()) 
+			//Are we doing substitutions in the parse string?
+			if (std::strstr(shaderCodeFindPattern.c_str(), "%s"))
 			{
-				//Some hardcoding needs to be fixed
-				if ((*itRules)->m_startRegIndex == 0)
-					result.insert(std::pair<UINT, StereoShaderConstant<>>((*itRules)->m_startRegIndex, CreateStereoConstantFrom(*itRules, (*itRules)->m_startRegIndex, 4)));
-				++itRules;
+				//For want of a more exact method, iterate through 0 - 32 (the max number of temp registers)
+				//and replace in find pattern
+				bool found = false;
+				for (int i = 0; i < 32; ++i)
+				{
+					char registerBuffer[5];
+					sprintf_s(registerBuffer, (*itRules)->m_shaderCodeRegSub.c_str(), i);
+
+					char parseStringBuffer[256];
+					sprintf_s(parseStringBuffer, (*itRules)->m_shaderCodeFindPattern.c_str(), registerBuffer);
+
+					OutputDebugString("Comparing:");
+					OutputDebugString(parseStringBuffer);
+					if (std::strstr(codeBuffer, parseStringBuffer))
+					{
+						OutputDebugString("VS: Shader - rule match");
+						result.insert(std::pair<UINT, StereoShaderConstant<>>((*itRules)->m_startRegIndex, CreateStereoConstantFrom(*itRules, (*itRules)->m_startRegIndex, (*itRules)->m_registerCount)));
+						found = true;
+						break;
+					}
+				}
+				if (found)
+					break;
 			}
-		}
-		else if (c4_r0 || c4_r1 || c4_r2 || c4_r3 || c4_r4)
-		{
-			OutputDebugString("VS: Shader - Potential c4 rule match");
-			auto itRules = rulesToApply.begin();
-			while (itRules != rulesToApply.end()) 
+			else
 			{
-				//Some hardcoding needs to be fixed
-				if ((*itRules)->m_startRegIndex == 4)
-					result.insert(std::pair<UINT, StereoShaderConstant<>>((*itRules)->m_startRegIndex, CreateStereoConstantFrom(*itRules, (*itRules)->m_startRegIndex, 4)));
-				++itRules;
+				//Direct compare for contains
+				OutputDebugString("Comparing:");
+				OutputDebugString(shaderCodeFindPattern.c_str());
+				if (std::strstr(codeBuffer, shaderCodeFindPattern.c_str()))
+				{
+					OutputDebugString("VS: Shader - rule match");
+					result.insert(std::pair<UINT, StereoShaderConstant<>>((*itRules)->m_startRegIndex, CreateStereoConstantFrom(*itRules, (*itRules)->m_startRegIndex, (*itRules)->m_registerCount)));
+					break;
+				}
 			}
+
+			++itRules;
 		}
-		else if (c69_r0 || c69_r1 || c69_r2 || c69_r3 || c69_r4 || c69_v0)
-		{
-			OutputDebugString("VS: Shader - Potential c69 rule match");
-			auto itRules = rulesToApply.begin();
-			while (itRules != rulesToApply.end()) 
-			{
-				//Some hardcoding needs to be fixed
-				if ((*itRules)->m_startRegIndex == 69)
-					result.insert(std::pair<UINT, StereoShaderConstant<>>((*itRules)->m_startRegIndex, CreateStereoConstantFrom(*itRules, (*itRules)->m_startRegIndex, 4)));
-				++itRules;
-			}
-		}
-		else
-		{
-			OutputDebugString("VS: Shader - No rule match");
-		}
+
+		if (result.size() == 0)
+			OutputDebugString("VS: Shader - No matching rules");
 	}
 
 	_SAFE_RELEASE(pConstantTable);

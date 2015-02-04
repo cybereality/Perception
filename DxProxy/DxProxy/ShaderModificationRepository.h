@@ -167,10 +167,25 @@ private:
 		***/
 		bool m_allowPartialNameMatch;
 		/**
+		* If the shader has no constant table, we need to be able to parse the disassembled code to figure
+		* out the register to apply a matrix modification to, fortunately this is a rare situation
+		**/
+		std::string m_shaderCodeFindPattern;
+		/**
+		* If the shader has no constant table, we need to be able to parse the disassembled code to figure
+		* out the register to apply a matrix modification to, fortunately this is a rare situation
+		**/
+		std::string m_shaderCodeRegSub;
+		/**
 		* Shader start register of that rule.
 		* (UINT_MAX is "any start reg")
 		***/
 		UINT m_startRegIndex;
+		/**
+		* Register count, 4 for Matrix, 1 for Vector, anything else probably doesn't make any sense
+		* Only used for shader constantless implementation (far cry 3 etc al)
+		***/
+		UINT m_registerCount;
 		/**
 		* Constant type as defined in "d3dx9shader.h".
 		* (type Vector/Matrix)
