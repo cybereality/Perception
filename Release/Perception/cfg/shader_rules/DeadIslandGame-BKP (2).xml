@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<shaderConfig>
+	<rules>
+      <!--<rule constantName="VIEWPROJ_XFORM" partialName="true" id="1" constantType="Vector" modToApply="1" startReg="0" transpose="true" />-->
+      <!--<rule constantName="COMBINED_XFORM" partialName="true" id="1" constantType="Vector" modToApply="1" startReg="0" transpose="true" />-->
+      <!--<rule constantName="CONST_100" partialName="true" id="1" constantType="Vector" modToApply="1" startReg="0" transpose="true" />-->
+      <!--<rule constantName="PROJECTION_XFORM" partialName="true" id="3" constantType="Vector" modToApply="1" startReg="0" transpose="true" />
+      <rule constantName="SRL0_VIEWPROJ_XFORM" partialName="true" id="2" constantType="Vector" modToApply="1" startReg="0" transpose="true" />
+      <rule constantName="RENDER_TARGET_PARAMS" partialName="true" id="4" constantType="Vector" modToApply="1" startReg="0" transpose="true" />-->
+      <!--<rule constantName="POS_2D" partialName="true" id="1" constantType="Vector" modToApply="1" startReg="0" transpose="true" />
+      <rule constantName="RENDER_TARGET_PARAMS" partialName="true" id="2" constantType="Vector" modToApply="1" startReg="0" transpose="true" />-->
+      <rule constantName="CAMERA_POS_MS" partialName="true" id="3" constantType="Vector" modToApply="1" startReg="0" transpose="true" />
+      <rule constantName="FRUSTRUM_PARAMS" partialName="true" id="4" constantType="Vector" modToApply="1" startReg="0" transpose="true" />
+      <rule constantName="BACKBUFFER_PARAMS" partialName="true" id="5" constantType="Vector" modToApply="1" startReg="0" transpose="true" />
+      <rule constantName="CAMERA_POS_WS" partialName="true" id="6" constantType="Vector" modToApply="1" startReg="0" transpose="true" />
+	</rules>
+	<defaultRuleIDs>
+      
+      <ruleID id="3" />
+      <ruleID id="4" />
+      <ruleID id="5" />
+      <ruleID id="6" />
+      
+    
+  </defaultRuleIDs>
+</shaderConfig>

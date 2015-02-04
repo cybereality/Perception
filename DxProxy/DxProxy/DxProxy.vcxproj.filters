@@ -487,7 +487,7 @@
     <ClInclude Include="HMDisplayInfo_Default.h">
       <Filter>HMDisplayInfo</Filter>
     </ClInclude>
-    <ClInclude Include="Vector4GBTest.h">
+    <ClInclude Include="Vector4DeadIslandScaled.h">
       <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
     </ClInclude>
   </ItemGroup>
