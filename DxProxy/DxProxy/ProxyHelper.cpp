@@ -660,7 +660,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 				}
 
 				char buffer[256];
-				sprintf_s(buffer, "Found specific profile: %s (%s)\n", targetExe, cpuArch.c_str());
+				sprintf_s(buffer, "Found specific profile: %s (%s)\n", profile.attribute("game_name").as_string(), cpuArch.c_str());
 				OutputDebugString(buffer);
 				gameProfile = profile;
 				profileFound = true;

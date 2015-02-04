@@ -85,7 +85,7 @@
 		<BaseAddress>0A000000</BaseAddress>
 		<MemIncrement>00000008</MemIncrement>
 		<MemIncCount>02800000</MemIncCount>
-		<FailIfNotFound>True</FailIfNotFound>
+		<FailIfNotFound>False</FailIfNotFound>
 		<ScanRule>
 			<AxisName>WorldFOV</AxisName>
 			<AddressType>Float</AddressType>
