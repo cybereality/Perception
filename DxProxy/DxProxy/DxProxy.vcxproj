@@ -302,7 +302,7 @@
     <ClInclude Include="MatrixSurfaceRefractionTransform.h" />
     <ClInclude Include="ShaderMatrixModification.h" />
     <ClInclude Include="MatrixIgnoreOrtho.h" />
-    <ClInclude Include="Vector4DeadIslandScaled.h" />
+    <ClInclude Include="Vector4GBTest.h" />
     <ClInclude Include="Vector4EyeShiftUnity.h" />
     <ClInclude Include="Version.h" />
     <ClInclude Include="ViewAdjustment.h" />
