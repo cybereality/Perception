@@ -1,15 +1,20 @@
 <?xml version="1.0"?>
 <shaderConfig>
   <rules>
-    <rule id="1" constantType="MatrixC" modToApply="2" startReg="0" transpose="true"/>
-    <rule id="2" constantType="MatrixC" modToApply="2" startReg="4" transpose="true"/>
-    <rule id="3" constantType="MatrixC" modToApply="2" startReg="69" transpose="true"/>
+    <rule id="1" shaderCodeFindPattern="dp4 o0.x, %s, c0" shaderCodeRegSub="r%i" constantType="MatrixC" modToApply="2" startReg="0" registerCount="4" transpose="true"/>
+    <rule id="2" shaderCodeFindPattern="dp4 o0.x, %s, c4" shaderCodeRegSub="r%i" constantType="MatrixC" modToApply="2" startReg="4" registerCount="4" transpose="true"/>
+	
+	<!-- The following is basically the same rule, but the match criteria is slightly different due to a different possible variable v0 -->
+	<!-- %s will be replaced with possible variables -->
+    <rule id="3" shaderCodeFindPattern="dp4 o0.x, %s, c69" shaderCodeRegSub="r%i" constantType="MatrixC" modToApply="2" startReg="69" registerCount="4" transpose="true"/>
+    <rule id="4" shaderCodeFindPattern="dp4 o0.x, v0, c69" constantType="MatrixC" modToApply="2" startReg="69" registerCount="4" transpose="true"/>
   </rules>
 
   <defaultRuleIDs>
     <ruleID id="1" />
     <ruleID id="2" />
     <ruleID id="3" />
+    <ruleID id="4" />
   </defaultRuleIDs>
 
   <!-- Removes most dodgy shadows -->
@@ -17,4 +22,7 @@
   <shaderSpecificRuleIDs shaderHash="3388901281" doNotDraw="true"/>
   <shaderSpecificRuleIDs shaderHash="1284330534" doNotDraw="true"/>
   <shaderSpecificRuleIDs shaderHash="3380305637" doNotDraw="true"/>
+  
+  <!-- Naked People!! -->
+  <!-- <shaderSpecificRuleIDs shaderHash="??" doNotDraw="true"/> -->
 </shaderConfig>
