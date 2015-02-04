@@ -454,6 +454,16 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 	//Now calculate frames per second
 	fps = CalcFPS();
 
+	//Write FPS to debug log every second
+	static DWORD lastFPSTick = GetTickCount();
+	if (GetTickCount() - lastFPSTick > 1000)
+	{
+		lastFPSTick = GetTickCount();
+		char buffer[256];
+		sprintf_s(buffer, "FPS: %.1f", fps);
+		OutputDebugString(buffer);
+	}
+
 	HRESULT hr =  BaseDirect3DDevice9::Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
 
 	if (tracker)

@@ -22,7 +22,11 @@
   <shaderSpecificRuleIDs shaderHash="3388901281" doNotDraw="true"/>
   <shaderSpecificRuleIDs shaderHash="1284330534" doNotDraw="true"/>
   <shaderSpecificRuleIDs shaderHash="3380305637" doNotDraw="true"/>
+  <shaderSpecificRuleIDs shaderHash="578759246" doNotDraw="true"/>
+  <shaderSpecificRuleIDs shaderHash="2103744669" doNotDraw="true"/>
+  <shaderSpecificRuleIDs shaderHash="2500508736" doNotDraw="true"/>
+  <shaderSpecificRuleIDs shaderHash="2472633357" doNotDraw="true"/>
   
   <!-- Naked People!! -->
-  <!-- <shaderSpecificRuleIDs shaderHash="??" doNotDraw="true"/> -->
+  <!-- <shaderSpecificRuleIDs shaderHash="3959869407" doNotDraw="true"/> -->
 </shaderConfig>

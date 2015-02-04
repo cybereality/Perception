@@ -559,11 +559,8 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 					char parseStringBuffer[256];
 					sprintf_s(parseStringBuffer, (*itRules)->m_shaderCodeFindPattern.c_str(), registerBuffer);
 
-					OutputDebugString("Comparing:");
-					OutputDebugString(parseStringBuffer);
 					if (std::strstr(codeBuffer, parseStringBuffer))
 					{
-						OutputDebugString("PS: Shader - rule match");
 						result.insert(std::pair<UINT, StereoShaderConstant<>>((*itRules)->m_startRegIndex, CreateStereoConstantFrom(*itRules, (*itRules)->m_startRegIndex, (*itRules)->m_registerCount)));
 						found = true;
 						break;
@@ -575,11 +572,8 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 			else
 			{
 				//Direct compare for contains
-				OutputDebugString("Comparing:");
-				OutputDebugString(shaderCodeFindPattern.c_str());
 				if (std::strstr(codeBuffer, shaderCodeFindPattern.c_str()))
 				{
-					OutputDebugString("PS: Shader - rule match");
 					result.insert(std::pair<UINT, StereoShaderConstant<>>((*itRules)->m_startRegIndex, CreateStereoConstantFrom(*itRules, (*itRules)->m_startRegIndex, (*itRules)->m_registerCount)));
 					break;
 				}
@@ -587,9 +581,6 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 
 			++itRules;
 		}
-
-		if (result.size() == 0)
-			OutputDebugString("PS: Shader - No matching rules");
 	}
 
 	_SAFE_RELEASE(pConstantTable);
@@ -810,11 +801,8 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 					char parseStringBuffer[256];
 					sprintf_s(parseStringBuffer, (*itRules)->m_shaderCodeFindPattern.c_str(), registerBuffer);
 
-					OutputDebugString("Comparing:");
-					OutputDebugString(parseStringBuffer);
 					if (std::strstr(codeBuffer, parseStringBuffer))
 					{
-						OutputDebugString("VS: Shader - rule match");
 						result.insert(std::pair<UINT, StereoShaderConstant<>>((*itRules)->m_startRegIndex, CreateStereoConstantFrom(*itRules, (*itRules)->m_startRegIndex, (*itRules)->m_registerCount)));
 						found = true;
 						break;
@@ -826,11 +814,8 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 			else
 			{
 				//Direct compare for contains
-				OutputDebugString("Comparing:");
-				OutputDebugString(shaderCodeFindPattern.c_str());
 				if (std::strstr(codeBuffer, shaderCodeFindPattern.c_str()))
 				{
-					OutputDebugString("VS: Shader - rule match");
 					result.insert(std::pair<UINT, StereoShaderConstant<>>((*itRules)->m_startRegIndex, CreateStereoConstantFrom(*itRules, (*itRules)->m_startRegIndex, (*itRules)->m_registerCount)));
 					break;
 				}
@@ -838,9 +823,6 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 
 			++itRules;
 		}
-
-		if (result.size() == 0)
-			OutputDebugString("VS: Shader - No matching rules");
 	}
 
 	_SAFE_RELEASE(pConstantTable);
