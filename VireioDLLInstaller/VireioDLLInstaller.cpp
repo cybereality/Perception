@@ -273,7 +273,7 @@ int WINAPI wWinMain(HINSTANCE instance_handle, HINSTANCE, LPWSTR, INT)
 			else
 			{
 				//we have exes for both 32 and 64 bit defined
-				if (game64Path.find("Win64") != std::string::npos)
+				if (game64Path.find("Win64") != std::string::npos || game64Path.find("x64") != std::string::npos)
 				{
 					use64bit = true;
 					gameExe = game64Exe;
