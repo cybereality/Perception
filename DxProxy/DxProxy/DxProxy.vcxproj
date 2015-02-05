@@ -291,6 +291,7 @@
     <ClInclude Include="MatrixGatheredOrhoSquash.h" />
     <ClInclude Include="MatrixGuiSquash.h" />
     <ClInclude Include="MatrixHudSlide.h" />
+    <ClInclude Include="MatrixNoPositional.h" />
     <ClInclude Include="MatrixNoRoll.h" />
     <ClInclude Include="MatrixOrthoSquash.h" />
     <ClInclude Include="MatrixOrthoSquashHud.h" />
