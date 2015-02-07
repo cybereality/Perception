@@ -12,6 +12,10 @@
     <!--SkyLights / Smoke / Fire-->
     <rule id="8" shaderCodeFindPattern="dp4 r0.x, %s, c0" shaderCodeRegSub="r%i" constantType="MatrixC" modToApply="2" startReg="0" registerCount="4" transpose="true"/>    
     
+    <!-- Blood / Water -->
+    <rule id="9" shaderCodeFindPattern="dp4 r1.x, %s, c0" shaderCodeRegSub="r%i" constantType="MatrixC" modToApply="2" startReg="0" registerCount="4" transpose="true"/>    
+    
+        
     <!-- Shader Specific Rules - Skybox: Not react to positional-->
     <rule id="5" shaderCodeFindPattern="dp4 o0.x, %s, c0" shaderCodeRegSub="r%i" constantType="MatrixC" modToApply="15" startReg="0" registerCount="4" transpose="true"/>
     <rule id="6" shaderCodeFindPattern="dp4 o0.x, %s, c73" shaderCodeRegSub="r%i" constantType="MatrixC" modToApply="15" startReg="73" registerCount="4" transpose="true"/>    
@@ -22,6 +26,8 @@
     <ruleID id="2" />
     <ruleID id="3" />
     <ruleID id="8" />
+    <ruleID id="9" />
+    
   </defaultRuleIDs>
 
 	<!-- Ocean -->
