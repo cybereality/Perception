@@ -2,6 +2,8 @@
 <shaderConfig>
 	<rules>
 		<rule id="1" shaderCodeFindPattern="dp4 o0.x, %s, c0" shaderCodeRegSub="r%i" constantType="MatrixC" modToApply="2" startReg="0" registerCount="4" transpose="true"/>
+		<rule id="8" shaderCodeFindPattern="dp4 r4.x, r0, c0" constantType="MatrixC" modToApply="2" startReg="0" registerCount="4" transpose="true"/>
+		
 		<rule id="2" shaderCodeFindPattern="dp4 o0.x, %s, c4" shaderCodeRegSub="r%i" constantType="MatrixC" modToApply="2" startReg="4" registerCount="4" transpose="true"/>
 
 		<!-- The following is basically the same rule, but the match criteria is slightly different due to a different possible variable v0 -->
@@ -12,6 +14,7 @@
 		<!-- Shader Specific Rules - Skybox: Not react to positional-->
 		<rule id="5" shaderCodeFindPattern="dp4 o0.x, r1, c69" constantType="MatrixC" modToApply="15" startReg="69" registerCount="4" transpose="true"/>
 		<rule id="6" shaderCodeFindPattern="dp4 o0.x, v0, c69" constantType="MatrixC" modToApply="15" startReg="69" registerCount="4" transpose="true"/>
+		<rule id="7" shaderCodeFindPattern="dp4 o0.x, r1, c4" constantType="MatrixC" modToApply="15" startReg="4" registerCount="4" transpose="true"/>
 	</rules>
 
 	<defaultRuleIDs>
@@ -19,11 +22,13 @@
 		<ruleID id="2" />
 		<ruleID id="3" />
 		<ruleID id="4" />
+		<ruleID id="8" />
 	</defaultRuleIDs>
 	
-	<!-- Don't let skybox be affected by positional tracking -->
+	<!-- Don't let skybox or mountains be affected by positional tracking -->
 	<shaderSpecificRuleIDs shaderHash="1628388903"><ruleID id="5" /></shaderSpecificRuleIDs>
 	<shaderSpecificRuleIDs shaderHash="2145499317"><ruleID id="6" /></shaderSpecificRuleIDs>
+	<shaderSpecificRuleIDs shaderHash="331649639"><ruleID id="7" /></shaderSpecificRuleIDs>
 	
 
 	<!-- Removes most dodgy shadows -->
@@ -40,6 +45,7 @@
 	<shaderSpecificRuleIDs shaderHash="739302123" doNotDraw="true"/>
 	<shaderSpecificRuleIDs shaderHash="810523533" doNotDraw="true"/>
 	<shaderSpecificRuleIDs shaderHash="2907067565" doNotDraw="true"/>
+	<shaderSpecificRuleIDs shaderHash="2007068218" doNotDraw="true"/>
    
 	<!-- Naked People!! -->
 	<!-- <shaderSpecificRuleIDs shaderHash="3959869407" doNotDraw="true"/> -->
