@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<shaderConfig>
+	<rules>
+		<rule id="1" shaderCodeFindPattern="dp4 r0.x, v0, c0" constantType="MatrixC" modToApply="2" startReg="0" registerCount="4" transpose="true"/>
+		<rule id="2" shaderCodeFindPattern="dp4 oPos.x, v0, c0" constantType="MatrixC" modToApply="2" startReg="0" registerCount="4" transpose="true"/>
+		<rule id="3" shaderCodeFindPattern="dp4 r1.x, v0, c0" constantType="MatrixC" modToApply="2" startReg="0" registerCount="4" transpose="true"/>
+		<rule id="4" shaderCodeFindPattern="dp4 oPos.x, v0, c4" constantType="MatrixC" modToApply="2" startReg="4" registerCount="4" transpose="true"/>
+		<rule id="5" shaderCodeFindPattern="dp4 r0.x, v0, c4" constantType="MatrixC" modToApply="2" startReg="4" registerCount="4" transpose="true"/>
+
+		<!-- Sky & Sun -->
+		<rule id="6" shaderCodeFindPattern="dp4 oPos.x, v0, c0" constantType="MatrixC" modToApply="15" startReg="0" registerCount="4" transpose="true"/>
+
+	</rules>
+
+	<defaultRuleIDs>
+		<ruleID id="1" />
+		<ruleID id="2" />
+		<ruleID id="3" />
+		<ruleID id="4" />
+		<ruleID id="5" />
+	</defaultRuleIDs>
+
+	<!-- Dodgy Shadows -->
+	<shaderSpecificRuleIDs shaderHash="650676161" doNotDraw="true"/>
+	
+	<!-- HUD stuff -->
+	<shaderSpecificRuleIDs shaderHash="3448052611" squishViewport="true"></shaderSpecificRuleIDs>
+  
+	<!-- Sky -->
+	<shaderSpecificRuleIDs shaderHash="1883223743">
+		<ruleID id="6"/>
+	</shaderSpecificRuleIDs>
+	<!-- Sun -->
+	<shaderSpecificRuleIDs shaderHash="348734685">
+		<ruleID id="6"/>
+	</shaderSpecificRuleIDs>
+</shaderConfig>
