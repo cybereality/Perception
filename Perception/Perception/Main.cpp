@@ -208,13 +208,13 @@ public:
 		window_class.hIcon = LoadIcon(instance_handle, MAKEINTRESOURCE(IDI_ICON_BIG));
 
 		RegisterClass(&window_class);   
-		window_handle = CreateWindowEx(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE,    
+		window_handle = CreateWindowEx(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE | WS_EX_TOPMOST,    
 			window_class_name,    
 			"Vireio Perception", 
 			WS_OVERLAPPEDWINDOW & ~(WS_THICKFRAME | WS_MAXIMIZEBOX), 
 			//WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,   
 			(screen_width-585)/2, (screen_height-240)/2, 
-			585, 240,
+			585, 270,
 			NULL, NULL, instance_handle, NULL);
 		SetWindowLongPtr(window_handle, GWL_USERDATA, (LONG)this);  
 		GetClientRect(window_handle, &client_rectangle);
@@ -238,6 +238,9 @@ public:
 		SetCursor(LoadCursor(NULL, IDC_ARROW)); 
 		ShowWindow(window_handle, SW_SHOW);   
 		UpdateWindow(window_handle); 
+
+		//Refresh on timer for FPS readings
+		SetTimer(window_handle, 1, 500, NULL);
 	}  
 	~frame_window() {  
 		UnregisterClass(window_class_name, instance_handle);   
@@ -251,6 +254,13 @@ public:
 			case WM_CREATE:
 				{
 					OutputDebugString("Create Window\n");
+					break;
+				}
+			case WM_TIMER:
+				{
+					RECT client_rect;   
+					GetClientRect(window_handle, &client_rect);   
+					InvalidateRect(window_handle, &client_rect, FALSE);
 					break;
 				}
 			case WM_PAINT:   
@@ -299,6 +309,27 @@ public:
 					TextOut (paint_device_context,420,115,buildDate.c_str(),buildDate.size());
 					TextOut (paint_device_context,290,149,"Oculus Profile:",15);
 					TextOut (paint_device_context,420,149,oculusProfile.Name.c_str(),oculusProfile.Name.size());
+					TextOut (paint_device_context,290,183,"Current FPS:",12);
+					//Now get FPS from the registry
+					HKEY hKey;
+					LONG openRes = RegOpenKeyEx(HKEY_CURRENT_USER, "SOFTWARE\\Vireio\\Perception", 0, KEY_ALL_ACCESS, &hKey);
+					if (openRes==ERROR_SUCCESS)
+					{
+						char fpsBuffer[10];
+						memset(fpsBuffer, 0, 10);
+						DWORD dwDataSize = 10;
+						LONG lResult = RegGetValue(hKey, NULL, "FPS", RRF_RT_REG_SZ, NULL, (LPVOID)&fpsBuffer, &dwDataSize);
+						if (lResult == ERROR_SUCCESS)
+						{
+							TextOut (paint_device_context,420,183,fpsBuffer, strlen(fpsBuffer));
+							//Now delete, if this isn't refreshed, then we'll report blank next time round
+							RegDeleteValue(hKey, "FPS");
+							RegCloseKey(hKey);
+						}
+						else
+							TextOut (paint_device_context,420,183,"--", 2);
+					}
+
 
 					DeleteObject(SelectObject(paint_device_context, oldFont));
 					DeleteDC(paint_dc);   

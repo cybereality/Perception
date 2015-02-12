@@ -454,14 +454,23 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 	//Now calculate frames per second
 	fps = CalcFPS();
 
-	//Write FPS to debug log every second
+	//Write FPS to debug log every half second
 	static DWORD lastFPSTick = GetTickCount();
-	if (GetTickCount() - lastFPSTick > 1000)
+	if (GetTickCount() - lastFPSTick > 500)
 	{
 		lastFPSTick = GetTickCount();
 		char buffer[256];
-		sprintf_s(buffer, "FPS: %.1f", fps);
-		OutputDebugString(buffer);
+		sprintf_s(buffer, "%.1f", fps);
+		OutputDebugString((std::string("FPS: ") + buffer).c_str());
+
+		//Now write FPS to the registry for the Perception App (hopefully this is a very quick operation)
+		HKEY hKey;
+		LONG openRes = RegOpenKeyEx(HKEY_CURRENT_USER, "SOFTWARE\\Vireio\\Perception", 0, KEY_ALL_ACCESS , &hKey);
+		if (openRes==ERROR_SUCCESS)
+		{
+			RegSetValueEx(hKey, "FPS", 0, REG_SZ, (LPBYTE)buffer, strlen(buffer)+1);
+			RegCloseKey(hKey);
+		}
 	}
 
 	HRESULT hr =  BaseDirect3DDevice9::Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
@@ -3008,10 +3017,12 @@ void D3DProxyDevice::HandleControls()
 	//Floaty Screen
 	if ((controls.Key_Down(edgePeekHotkey) || (controls.Key_Down(VK_MBUTTON) || (controls.Key_Down(VK_LCONTROL) && controls.Key_Down(VK_NUMPAD2)))) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
+		static bool bSurpressPositionaltracking = false;
 		if (m_bfloatingScreen)
 		{
 			m_bfloatingScreen = false;
 			m_bSurpressHeadtracking = false;
+			bSurpressPositionaltracking = m_bSurpressPositionaltracking;
 			m_bSurpressPositionaltracking = false;
 			//TODO Change this back to initial
 			this->stereoView->HeadYOffset = 0;
@@ -3023,7 +3034,7 @@ void D3DProxyDevice::HandleControls()
 		{
 			m_bfloatingScreen = true;
 			m_bSurpressHeadtracking = true;
-			m_bSurpressPositionaltracking = true;
+			m_bSurpressPositionaltracking = bSurpressPositionaltracking;
 			if (tracker->getStatus() >= MTS_OK)
 			{
 				m_fFloatingScreenPitch = tracker->primaryPitch;
@@ -3344,38 +3355,44 @@ void D3DProxyDevice::HandleTracking()
 	{
 		tracker->updateOrientationAndPosition();
 
-		switch (tracker->getStatus())
+		if (tracker->getStatus() == MTS_OK)
 		{
-		case MTS_OK:
+			//Dismiss popups related to issues
+			DismissPopup(VPT_POSITION_TRACKING_LOST);
+			DismissPopup(VPT_NO_HMD_DETECTED);
+			DismissPopup(VPT_NO_ORIENTATION);
+		}
+		else if (tracker->getStatus() == MTS_NOORIENTATION)
+		{
+			VireioPopup popup(VPT_NO_ORIENTATION, VPS_ERROR);
+			strcpy_s(popup.line3, "HMD ORIENTATION NOT BEING REPORTED");
+			ShowPopup(popup);
+		}
+		else 
+		{
+			//Only report positional tracking errors if positional tracking is turned on
+			if (!m_bSurpressPositionaltracking)
+			{
+				if (tracker->getStatus() == MTS_CAMERAMALFUNCTION)
+				{
+					VireioPopup popup(VPT_NO_HMD_DETECTED, VPS_ERROR);
+					strcpy_s(popup.line3, "CAMERA MALFUNCTION - PLEASE WAIT WHILST CAMERA INITIALISES");
+					ShowPopup(popup);
+				}
+				else if (tracker->getStatus() == MTS_LOSTPOSITIONAL)
+				{
+					//Show popup regarding lost positional tracking
+					VireioPopup popup(VPT_POSITION_TRACKING_LOST);
+					strcpy_s(popup.line5, "HMD POSITIONAL TRACKING LOST");
+					ShowPopup(popup);
+				}
+			}
+			else
 			{
 				//Dismiss popups related to issues
 				DismissPopup(VPT_POSITION_TRACKING_LOST);
 				DismissPopup(VPT_NO_HMD_DETECTED);
-				DismissPopup(VPT_NO_ORIENTATION);
 			}
-			break;
-		case MTS_NOORIENTATION:
-			{
-				VireioPopup popup(VPT_NO_ORIENTATION, VPS_ERROR);
-				strcpy_s(popup.line3, "HMD ORIENTATION NOT BEING REPORTED");
-				ShowPopup(popup);
-			}
-			break;
-		case MTS_CAMERAMALFUNCTION:
-			{
-				VireioPopup popup(VPT_NO_HMD_DETECTED, VPS_ERROR);
-				strcpy_s(popup.line3, "CAMERA MALFUNCTION - PLEASE WAIT WHILST CAMERA INITIALISES");
-				ShowPopup(popup);
-			}
-			break;
-		case MTS_LOSTPOSITIONAL:
-			{
-				//Show popup regarding lost positional tracking
-				VireioPopup popup(VPT_POSITION_TRACKING_LOST);
-				strcpy_s(popup.line5, "HMD POSITIONAL TRACKING LOST");
-				ShowPopup(popup);
-			}
-			break;
 		}
 
 		// update view adjustment class
