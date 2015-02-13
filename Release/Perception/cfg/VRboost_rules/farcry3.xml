@@ -24,19 +24,6 @@
 			</Comparisons>
 		</ScanRule>
 
-		<ScanRule>
-			<AxisName>NoAxis</AxisName>
-			<AddressType>Float</AddressType>
-			<ModificationToApply>FloatDoNothing</ModificationToApply>
-			<BaseAddressOffset>00000004</BaseAddressOffset>
-			<CheckForChanges>NoChange</CheckForChanges>
-			<Comparisons>
-				<Compare type="Equal">
-					<MinValue>0.0</MinValue>
-				</Compare>
-			</Comparisons>
-		</ScanRule>
-	
 		<!-- Couple of extra addresses that contain fixed values to help find the FOV -->
 		<ScanRule>
 			<AxisName>TrackerYaw</AxisName>
@@ -60,7 +47,20 @@
 			<AxisName>NoAxis</AxisName>
 			<AddressType>Float</AddressType>
 			<ModificationToApply>FloatDoNothing</ModificationToApply>
-			<BaseAddressOffset>0000000C</BaseAddressOffset>
+			<BaseAddressOffset>00000010</BaseAddressOffset>
+			<CheckForChanges>NoChange</CheckForChanges>
+			<Comparisons>
+				<Compare type="Equal">
+					<MinValue>0.0</MinValue>
+				</Compare>
+			</Comparisons>
+		</ScanRule>
+	
+		<ScanRule>
+			<AxisName>NoAxis</AxisName>
+			<AddressType>Float</AddressType>
+			<ModificationToApply>FloatDoNothing</ModificationToApply>
+			<BaseAddressOffset>00000014</BaseAddressOffset>
 			<CheckForChanges>NoChange</CheckForChanges>
 			<Comparisons>
 				<Compare type="Equal">
@@ -69,27 +69,6 @@
 			</Comparisons>
 		</ScanRule>
 	</ScannerGroup>
-	
-	<!-- Need to investigate FOV
-	<ScannerGroup>
-		<ID>1</ID>
-		<BaseAddress>24000004</BaseAddress>
-		<MemIncrement>00000010</MemIncrement>
-		<MemIncCount>02000000</MemIncCount>
-		<FailIfNotFound>True</FailIfNotFound>
-		<ScanRule>
-			<AxisName>WorldFOV</AxisName>
-			<AddressType>Float</AddressType>
-			<ModificationToApply>FloatFunctionApply</ModificationToApply>
-			<BaseAddressOffset>00000000</BaseAddressOffset>
-			<CheckForChanges>NoChange</CheckForChanges>
-			<Comparisons>
-				<Compare type="Equal">
-					<MinValue>1.225</MinValue>
-				</Compare>
-			</Comparisons>
-		</ScanRule>
-	</ScannerGroup>-->
   </ScannerGroups>
   
   	<!-- The following is used to direct the user to move their HMD so that addresses can be filtered, don't repeat -->
@@ -114,7 +93,7 @@
 			<Pose>DOWN</Pose>
 			<Axis>
 				<AxisName>TrackerPitch</AxisName>
-				<AddressType>DWORD</AddressType>
+				<AddressType>Float</AddressType>
 				<Comparisons>
 					<Compare type="BetweenIncl">
 						<MinValue>-1.25</MinValue>
