@@ -140,23 +140,8 @@ bool GameHandler::ShouldDuplicateRenderTarget(UINT Width, UINT Height, D3DFORMAT
 		return true;
 
 	case D3DProxyDevice::ProxyTypes::UNREAL:
-		if (isSwapChainBackBuffer) {
-			return true;
-		}
-		return Width != Height;
-
 	case D3DProxyDevice::ProxyTypes::UNREAL_MIRROR:
-		if (isSwapChainBackBuffer) {
-			return true;
-		}
-		return Width != Height;
-
 	case D3DProxyDevice::ProxyTypes::UNREAL_UT3:
-		if (isSwapChainBackBuffer) {
-			return true;
-		}
-		return Width != Height;
-
 	case D3DProxyDevice::ProxyTypes::UNREAL_BIOSHOCK:
 	case D3DProxyDevice::ProxyTypes::UNREAL_BIOSHOCK2:
 	case D3DProxyDevice::ProxyTypes::UNREAL_BORDERLANDS:
@@ -236,14 +221,8 @@ bool GameHandler::ShouldDuplicateDepthStencilSurface(UINT Width,UINT Height,D3DF
 		return true;
 
 	case D3DProxyDevice::ProxyTypes::UNREAL:
-		return Width != Height;
-
 	case D3DProxyDevice::ProxyTypes::UNREAL_MIRROR:
-		return Width != Height;
-
 	case D3DProxyDevice::ProxyTypes::UNREAL_UT3:
-		return Width != Height;
-
 	case D3DProxyDevice::ProxyTypes::UNREAL_BIOSHOCK:
 	case D3DProxyDevice::ProxyTypes::UNREAL_BIOSHOCK2:
 	case D3DProxyDevice::ProxyTypes::UNREAL_BORDERLANDS:
@@ -368,6 +347,7 @@ bool GameHandler::ShouldDuplicateTexture(UINT Width,UINT Height,UINT Levels,DWOR
 			return IS_RENDER_TARGET(Usage) && (Width != Height);
 
 		case D3DProxyDevice::ProxyTypes::UNREAL_MIRROR:
+		case D3DProxyDevice::ProxyTypes::UNREAL_BIOSHOCK:
 			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
 				return true;
 			return IS_RENDER_TARGET(Usage);
@@ -377,7 +357,6 @@ bool GameHandler::ShouldDuplicateTexture(UINT Width,UINT Height,UINT Levels,DWOR
 				return true;
 			return IS_RENDER_TARGET(Usage) && (Width != Height);
 
-		case D3DProxyDevice::ProxyTypes::UNREAL_BIOSHOCK:
 		case D3DProxyDevice::ProxyTypes::UNREAL_BIOSHOCK2:			
 		case D3DProxyDevice::ProxyTypes::UNREAL_BORDERLANDS:
 		case D3DProxyDevice::ProxyTypes::UNREAL_BETRAYER:
@@ -507,14 +486,8 @@ bool GameHandler::ShouldDuplicateCubeTexture(UINT EdgeLength, UINT Levels, DWORD
 			return IS_RENDER_TARGET(Usage);
 	
 		case D3DProxyDevice::ProxyTypes::UNREAL:
-			return false;
-
 		case D3DProxyDevice::ProxyTypes::UNREAL_MIRROR:
-			return false;
-
 		case D3DProxyDevice::ProxyTypes::UNREAL_UT3:
-			return false;
-
 		case D3DProxyDevice::ProxyTypes::UNREAL_BIOSHOCK:
 		case D3DProxyDevice::ProxyTypes::UNREAL_BIOSHOCK2:
 		case D3DProxyDevice::ProxyTypes::UNREAL_BORDERLANDS:
