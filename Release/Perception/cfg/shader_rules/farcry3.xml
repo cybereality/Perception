@@ -54,7 +54,20 @@
 	<shaderSpecificRuleIDs shaderHash="3639701086" doNotDraw="true"/>
 	<shaderSpecificRuleIDs shaderHash="1369444560" doNotDraw="true"/>
 	<shaderSpecificRuleIDs shaderHash="436644605" doNotDraw="true"/>
-   
+	<shaderSpecificRuleIDs shaderHash="2439569728" doNotDraw="true"/>
+	<shaderSpecificRuleIDs shaderHash="2440523048" doNotDraw="true"/>
+	<shaderSpecificRuleIDs shaderHash="1726773818" doNotDraw="true"/>
+	<shaderSpecificRuleIDs shaderHash="2185507776" doNotDraw="true"/>
+
+	<!-- Shadows only visible when moving (flickering horribleness) -->
+	<shaderSpecificRuleIDs shaderHash="3640932062" doNotDraw="true"/>
+	<shaderSpecificRuleIDs shaderHash="4249643688" doNotDraw="true"/>
+	<shaderSpecificRuleIDs shaderHash="1556363810" doNotDraw="true"/>
+	<shaderSpecificRuleIDs shaderHash="2092929951" doNotDraw="true"/>
+	<shaderSpecificRuleIDs shaderHash="1067896468" doNotDraw="true"/>
+	
+	
+	
 	<!-- Naked People!! -->
 	<!-- <shaderSpecificRuleIDs shaderHash="3959869407" doNotDraw="true"/> -->
   

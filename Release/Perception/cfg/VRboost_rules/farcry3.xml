@@ -6,9 +6,9 @@
 	<!-- Orientation below the horizon in order for it to work -->
 	<ScannerGroup>
 		<ID>0</ID>
-		<BaseAddress>24000004</BaseAddress>
+		<BaseAddress>20000004</BaseAddress>
 		<MemIncrement>00000010</MemIncrement>
-		<MemIncCount>02000000</MemIncCount>
+		<MemIncCount>02400000</MemIncCount>
 		<FailIfNotFound>True</FailIfNotFound>
 		<ScanRule>
 			<AxisName>TrackerPitch</AxisName>
