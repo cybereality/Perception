@@ -429,12 +429,7 @@ protected:
 			if (duration != -1)
 				setDuration(duration);
 
-			memset(line1, 0, 256);
-			memset(line2, 0, 256);
-			memset(line3, 0, 256);
-			memset(line4, 0, 256);
-			memset(line5, 0, 256);
-			memset(line6, 0, 256);
+			memset(line, 0, 7 * 256);
 		}
 
 		void setDuration(long duration_ms)
@@ -454,23 +449,13 @@ protected:
 		{
 			popupType = VPT_NONE;
 			popupDuration = -1;
-			memset(line1, 0, 256);
-			memset(line2, 0, 256);
-			memset(line3, 0, 256);
-			memset(line4, 0, 256);
-			memset(line5, 0, 256);
-			memset(line6, 0, 256);
+			memset(line, 0, 7 * 256);
 		}
 
 		VireioPopupType popupType;
 		VireioPopupSeverity severity;
 		long popupDuration;
-		char line1[256];
-		char line2[256];
-		char line3[256];
-		char line4[256];
-		char line5[256];
-		char line6[256];
+		char line[7][256];
 	};
 
 	VireioPopup activePopup;
@@ -688,6 +673,16 @@ private:
 	float fps;
 	float CalcFPS();
 
+
+	/**
+	* Active axes (and address) returned
+	*/
+	struct ActiveAxisInfo
+	{
+		UINT Axis;
+		size_t Address;
+	};
+
 	/*** VRboost function pointer typedefs ***/
 	typedef VRBoost::ReturnValue (WINAPI *LPVRBOOST_LoadMemoryRules)(std::string processName, std::string rulesPath);
 	typedef VRBoost::ReturnValue (WINAPI *LPVRBOOST_SaveMemoryRules)(std::string rulesPath);
@@ -695,7 +690,7 @@ private:
 	typedef VRBoost::ReturnValue (WINAPI *LPVRBOOST_SetProcess)(std::string processName, std::string moduleName);
 	typedef VRBoost::ReturnValue (WINAPI *LPVRBOOST_ReleaseAllMemoryRules)( void );
 	typedef VRBoost::ReturnValue (WINAPI *LPVRBOOST_ApplyMemoryRules)(UINT axisNumber, float** axis);
-	typedef UINT (WINAPI *LPVRBOOST_GetActiveRuleAxes)(UINT **axes);
+	typedef UINT (WINAPI *LPVRBOOST_GetActiveRuleAxes)(ActiveAxisInfo **axes);
 	typedef VRBoost::ReturnValue (WINAPI *LPVRBOOST_StartMemoryScan)( void );
 	typedef float (WINAPI *LPVRBOOST_GetScanInitPercent)( void );
 	typedef void (WINAPI *LPVRBOOST_GetScanFailReason)( char **reason );

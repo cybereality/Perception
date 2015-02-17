@@ -61,6 +61,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define MENU_ITEM_SEPARATION  40
 
+#ifdef x64
+#define PR_SIZET "I64"
+#else
+#define PR_SIZET ""
+#endif
+
 using namespace VRBoost;
 
 /**
@@ -1073,12 +1079,12 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 
 			//Show a splash screen on startup
 			VireioPopup splashPopup(VPT_SPLASH_1, VPS_INFO, 4000);
-			strcpy_s(splashPopup.line1, "Vireio Perception: Stereoscopic 3D Driver");
-			strcpy_s(splashPopup.line2, (std::string("Version: ") + APP_VERSION + "   Build Date: " + buildDate).c_str());
-			strcpy_s(splashPopup.line3, "This program is distributed in the hope that it will be useful,"); 
-			strcpy_s(splashPopup.line4, "but WITHOUT ANY WARRANTY; without even the implied warranty of "); 
-			strcpy_s(splashPopup.line5, "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.");
-			strcpy_s(splashPopup.line6, "See the GNU LGPL: http://www.gnu.org/licenses/ for more details. ");
+			strcpy_s(splashPopup.line[0], "Vireio Perception: Stereoscopic 3D Driver");
+			strcpy_s(splashPopup.line[1], (std::string("Version: ") + APP_VERSION + "   Build Date: " + buildDate).c_str());
+			strcpy_s(splashPopup.line[2], "This program is distributed in the hope that it will be useful,"); 
+			strcpy_s(splashPopup.line[3], "but WITHOUT ANY WARRANTY; without even the implied warranty of "); 
+			strcpy_s(splashPopup.line[4], "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.");
+			strcpy_s(splashPopup.line[5], "See the GNU LGPL: http://www.gnu.org/licenses/ for more details. ");
 			ShowPopup(splashPopup);
 		}
 
@@ -1087,12 +1093,12 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 		{
 			//Show a splash screen on startup
 			VireioPopup splashPopup(VPT_SPLASH_2, VPS_INFO, 4000);
-			strcpy_s(splashPopup.line1, "Vireio Perception: Stereoscopic 3D Driver");
-			strcpy_s(splashPopup.line2, "Useful Hot-keys:"); 
-			strcpy_s(splashPopup.line3, "     <CTRL> + <Q>\t\t\t:  Show BRASSA Menu"); 
-			strcpy_s(splashPopup.line4, "     Mouse Wheel Click\t:  Disconnected Screen View");
-			strcpy_s(splashPopup.line5, "     <LSHIFT> + <R>\t\t\t:  Reset HMD Orientation");
-			strcpy_s(splashPopup.line6, "     <LSHIFT> + <F>\t\t\t:  FPS Counter");
+			strcpy_s(splashPopup.line[0], "Vireio Perception: Stereoscopic 3D Driver");
+			strcpy_s(splashPopup.line[1], "Useful Hot-keys:"); 
+			strcpy_s(splashPopup.line[2], "     <CTRL> + <Q>\t\t\t:  Show BRASSA Menu"); 
+			strcpy_s(splashPopup.line[3], "     Mouse Wheel Click\t:  Disconnected Screen View");
+			strcpy_s(splashPopup.line[4], "     <LSHIFT> + <R>\t\t\t:  Reset HMD Orientation");
+			strcpy_s(splashPopup.line[5], "     <LSHIFT> + <F>\t\t\t:  FPS Counter");
 			ShowPopup(splashPopup);
 		}
 	
@@ -1101,10 +1107,10 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 			if (calibrate_tracker)
 			{
 				VireioPopup popup(VPT_CALIBRATE_TRACKER, VPS_INFO, 15000);
-				strcpy_s(popup.line2, "Please Calibrate HMD/Tracker:");
-				strcpy_s(popup.line3, "     -  Sit comfortably with your head facing forwards");
-				strcpy_s(popup.line4, "     -  Press any of the following:");
-				strcpy_s(popup.line5, "             <CTRL> + <R> / <LSHIFT> + <R>");
+				strcpy_s(popup.line[1], "Please Calibrate HMD/Tracker:");
+				strcpy_s(popup.line[2], "     -  Sit comfortably with your head facing forwards");
+				strcpy_s(popup.line[3], "     -  Press any of the following:");
+				strcpy_s(popup.line[4], "             <CTRL> + <R> / <LSHIFT> + <R>");
 				ShowPopup(popup);
 			}
 		}
@@ -2498,6 +2504,39 @@ void D3DProxyDevice::HandleControls()
 		}
 	}
 
+	// Show active VRBoost axes and their addresses (SHIFT+V)
+	if (controls.Key_Down(VK_LSHIFT) && (controls.Key_Down(0x56)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	{
+		if (hmVRboost!=NULL)
+		{
+			if (VRBoostStatus.VRBoost_Active)
+			{
+				VireioPopup popup(VPT_NOTIFICATION, VPS_INFO, 10000);
+				
+				ActiveAxisInfo axes[30];
+				memset(axes, 0xFF, sizeof(ActiveAxisInfo) * 30);
+				UINT count = m_pVRboost_GetActiveRuleAxes((ActiveAxisInfo**)&axes);
+				sprintf_s(popup.line[0], "VRBoost Axis Addresses: %i", count);
+
+				UINT i = 0;
+				while (i < count)
+				{
+					if (axes[i].Axis == MAXDWORD || i == 6)
+						break;
+
+					std::string axisName = VRboostAxisString(axes[i].Axis);
+					sprintf_s(popup.line[i+1], "      %s:      0x%"PR_SIZET"x", axisName.c_str(), axes[i].Address);
+
+					i++;
+				}	
+			
+				ShowPopup(popup);
+			}
+
+			menuVelocity.x += 4.0f;
+		}
+	}
+
 	// switch to 2d Depth Mode (Shift + O / Numpad 9)
 	if (controls.Key_Down(VK_LSHIFT) && (controls.Key_Down(0x4F) || controls.Key_Down(VK_NUMPAD9)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
@@ -2507,7 +2546,7 @@ void D3DProxyDevice::HandleControls()
 			stereoView->m_b2dDepthMode = true;
 
 			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
-			sprintf_s(popup.line3, "Depth Perception Mode On");
+			sprintf_s(popup.line[2], "Depth Perception Mode On");
 			ShowPopup(popup);
 		}
 		else
@@ -2515,7 +2554,7 @@ void D3DProxyDevice::HandleControls()
 			m_b2dDepthMode = false;
 			stereoView->m_b2dDepthMode = false;
 			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
-			sprintf_s(popup.line3, "Depth Perception Mode Off");
+			sprintf_s(popup.line[2], "Depth Perception Mode Off");
 			ShowPopup(popup);
 		}
 		menuVelocity.x += 4.0f;
@@ -2536,7 +2575,7 @@ void D3DProxyDevice::HandleControls()
 				stereoView->m_bLeftSideActive = true;
 			}
 			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
-			sprintf_s(popup.line3, "Depth Perception Side Switched");
+			sprintf_s(popup.line[2], "Depth Perception Side Switched");
 			ShowPopup(popup);
 		}		
 		menuVelocity.x += 4.0f;
@@ -2556,7 +2595,7 @@ void D3DProxyDevice::HandleControls()
 			_str = stereoView->CycleRenderState(true);
 		}
 		VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
-		sprintf_s(popup.line3, _str.append(" :: New Render State").c_str());
+		sprintf_s(popup.line[2], _str.append(" :: New Render State").c_str());
 		ShowPopup(popup);
 		
 		menuVelocity.x += 4.0f;		
@@ -2570,16 +2609,16 @@ void D3DProxyDevice::HandleControls()
 		{
 			m_pGameHandler->intDuplicateCubeTexture++;
 			if(m_pGameHandler->intDuplicateCubeTexture == 1)
-				sprintf_s(popup.line3, "Cube Duplication :: Always False");
+				sprintf_s(popup.line[2], "Cube Duplication :: Always False");
 			else if(m_pGameHandler->intDuplicateCubeTexture == 2)
-				sprintf_s(popup.line3, "Cube Duplication :: Always True");
+				sprintf_s(popup.line[2], "Cube Duplication :: Always True");
 			else if(m_pGameHandler->intDuplicateCubeTexture == 3)
-				sprintf_s(popup.line3, "Cube Duplication :: Always IS_RENDER_TARGET(Usage)");
+				sprintf_s(popup.line[2], "Cube Duplication :: Always IS_RENDER_TARGET(Usage)");
 		}
 		else
 		{
 			m_pGameHandler->intDuplicateCubeTexture = 0;
-			sprintf_s(popup.line3, "Cube Duplication :: Default (Game Type)");
+			sprintf_s(popup.line[2], "Cube Duplication :: Default (Game Type)");
 		}		
 		
 		ShowPopup(popup);		
@@ -2593,18 +2632,18 @@ void D3DProxyDevice::HandleControls()
 		{
 			m_pGameHandler->intDuplicateTexture++;
 			if(m_pGameHandler->intDuplicateTexture == 1)
-				sprintf_s(popup.line3, "Texture Duplication :: Method 1");
+				sprintf_s(popup.line[2], "Texture Duplication :: Method 1");
 			else if(m_pGameHandler->intDuplicateTexture == 2)
-				sprintf_s(popup.line3, "Texture Duplication :: Method 2 (1 + Width and Height)");
+				sprintf_s(popup.line[2], "Texture Duplication :: Method 2 (1 + Width and Height)");
 			else if(m_pGameHandler->intDuplicateTexture == 3)
-				sprintf_s(popup.line3, "Texture Duplication :: Always False");
+				sprintf_s(popup.line[2], "Texture Duplication :: Always False");
 			else if(m_pGameHandler->intDuplicateTexture == 4)
-				sprintf_s(popup.line3, "Texture Duplication :: Always True");
+				sprintf_s(popup.line[2], "Texture Duplication :: Always True");
 		}
 		else
 		{
 			m_pGameHandler->intDuplicateTexture = 0;
-			sprintf_s(popup.line3, "Texture Duplication :: Default (Game Type)");
+			sprintf_s(popup.line[2], "Texture Duplication :: Default (Game Type)");
 		}		
 		
 		ShowPopup(popup);		
@@ -2618,17 +2657,17 @@ void D3DProxyDevice::HandleControls()
 		if(m_deviceBehavior.whenToRenderBRASSA == DeviceBehavior::BEGIN_SCENE)
 		{
 			m_deviceBehavior.whenToRenderBRASSA = DeviceBehavior::END_SCENE;
-			sprintf_s(popup.line3, "BRASSA RENDER = END_SCENE");
+			sprintf_s(popup.line[2], "BRASSA RENDER = END_SCENE");
 		}
 		else if(m_deviceBehavior.whenToRenderBRASSA == DeviceBehavior::END_SCENE)
 		{
 			m_deviceBehavior.whenToRenderBRASSA = DeviceBehavior::PRESENT;
-			sprintf_s(popup.line3, "BRASSA RENDER = PRESENT");
+			sprintf_s(popup.line[2], "BRASSA RENDER = PRESENT");
 		}
 		else
 		{
 			m_deviceBehavior.whenToRenderBRASSA = DeviceBehavior::BEGIN_SCENE;
-			sprintf_s(popup.line3, "BRASSA RENDER = BEGIN_SCENE");
+			sprintf_s(popup.line[2], "BRASSA RENDER = BEGIN_SCENE");
 		}
 		ShowPopup(popup);		
 		menuVelocity.x += 4.0f;		
@@ -2641,17 +2680,17 @@ void D3DProxyDevice::HandleControls()
 		if(m_deviceBehavior.whenToHandleHeadTracking == DeviceBehavior::BEGIN_SCENE)
 		{
 			m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::END_SCENE;			
-			sprintf_s(popup.line3, "HEADTRACKING = END_SCENE");
+			sprintf_s(popup.line[2], "HEADTRACKING = END_SCENE");
 		}
 		else if(m_deviceBehavior.whenToHandleHeadTracking == DeviceBehavior::END_SCENE)
 		{
 			m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::BEGIN_SCENE;			
-			sprintf_s(popup.line3, "HEADTRACKING = BEGIN SCENE");
+			sprintf_s(popup.line[2], "HEADTRACKING = BEGIN SCENE");
 		}	
 		/*else if(m_deviceBehavior.whenToHandleHeadTracking == DeviceBehavior::PRESENT)
 		{
 			m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::BEGIN_SCENE;
-			sprintf_s(popup.line3, "HEADTRACKING = BEGIN SCENE");
+			sprintf_s(popup.line[2], "HEADTRACKING = BEGIN SCENE");
 		}//TODO This Crashes Brassa for some reason - problem for another day*/
 		
 		ShowPopup(popup);		
@@ -2676,11 +2715,11 @@ void D3DProxyDevice::HandleControls()
 				//This will also prevent an accidental re-run
 				//Games that use matrix roll can usually be re-run without issue
 				VireioPopup popup(VPT_NOTIFICATION, VPS_INFO, 5000);
-				sprintf_s(popup.line1, "   *WARNING*: re-running a scan once stable");
-				sprintf_s(popup.line2, "   addresses have been found could fail");
-				sprintf_s(popup.line3, "   IF NO SCAN HAS YET SUCCEEDED; IGNORE THIS WARNING");
-				sprintf_s(popup.line5, "   Press scan trigger again to initiate scan");
-				sprintf_s(popup.line6, "   or wait for this message to disappear (No Scan)");
+				sprintf_s(popup.line[0], "   *WARNING*: re-running a scan once stable");
+				sprintf_s(popup.line[1], "   addresses have been found could fail");
+				sprintf_s(popup.line[2], "   IF NO SCAN HAS YET SUCCEEDED; IGNORE THIS WARNING");
+				sprintf_s(popup.line[4], "   Press scan trigger again to initiate scan");
+				sprintf_s(popup.line[5], "   or wait for this message to disappear (No Scan)");
 				ShowPopup(popup);
 				showRescanWarning = false;
 				shownRescanWarning = true;
@@ -2698,7 +2737,7 @@ void D3DProxyDevice::HandleControls()
 				if (vr == VRBOOST_ERROR)
 				{
 					VireioPopup popup(VPT_VRBOOST_FAILURE, VPS_TOAST, 5000);
-					sprintf_s(popup.line3, "VRBoost: StartMemoryScan - Failed");
+					sprintf_s(popup.line[2], "VRBoost: StartMemoryScan - Failed");
 					ShowPopup(popup);
 				}
 				//If initialising then we have successfully started a new scan
@@ -2735,7 +2774,7 @@ void D3DProxyDevice::HandleControls()
 
 			m_pVRboost_SetNextScanCandidate(increase);
 			VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1000);
-			sprintf_s(popup.line3, "VRBoost: Select Next Scan Candidate: %i / %i", c+1, candidates);
+			sprintf_s(popup.line[2], "VRBoost: Select Next Scan Candidate: %i / %i", c+1, candidates);
 			DismissPopup(VPT_NOTIFICATION);
 			ShowPopup(popup);
 
@@ -2769,7 +2808,7 @@ void D3DProxyDevice::HandleControls()
 			VRBoostValue[VRboostAxis::FreePitch] = 0.0f;
 
 			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
-			sprintf_s(popup.line3, "Pitch Free-look Disabled");
+			sprintf_s(popup.line[2], "Pitch Free-look Disabled");
 			ShowPopup(popup);
 		}
 		else
@@ -2778,7 +2817,7 @@ void D3DProxyDevice::HandleControls()
 			VRBoostValue[VRboostAxis::FreePitch] = 1.0f;
 
 			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
-			sprintf_s(popup.line3, "Pitch Free-look Enabled");
+			sprintf_s(popup.line[2], "Pitch Free-look Enabled");
 			ShowPopup(popup);
 		}
 
@@ -2796,7 +2835,7 @@ void D3DProxyDevice::HandleControls()
 			stereoView->PostReset();		
 
 			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
-			sprintf_s(popup.line3, "DK2 Black Smear Correction Disabled");
+			sprintf_s(popup.line[2], "DK2 Black Smear Correction Disabled");
 			ShowPopup(popup);
 		}
 		else
@@ -2805,7 +2844,7 @@ void D3DProxyDevice::HandleControls()
 			stereoView->PostReset();		
 
 			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
-			sprintf_s(popup.line3, "DK2 Black Smear Correction Enabled");
+			sprintf_s(popup.line[2], "DK2 Black Smear Correction Enabled");
 			ShowPopup(popup);
 		}
 
@@ -2820,7 +2859,7 @@ void D3DProxyDevice::HandleControls()
 		this->stereoView->PostReset();		
 
 		VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
-		sprintf_s(popup.line3, "IPD-Offset: %1.3f", this->stereoView->IPDOffset);
+		sprintf_s(popup.line[2], "IPD-Offset: %1.3f", this->stereoView->IPDOffset);
 		ShowPopup(popup);
 		menuVelocity.x+=2.0f;
 	}
@@ -2856,14 +2895,14 @@ void D3DProxyDevice::HandleControls()
 			//Replace popup
 			DismissPopup(VPT_CALIBRATE_TRACKER);
 			VireioPopup popup(VPT_NOTIFICATION, VPS_INFO, 3000);
-			strcpy_s(popup.line3, "HMD Orientation and Position Calibrated");
-			strcpy_s(popup.line4, "Please repeat if required...");
+			strcpy_s(popup.line[2], "HMD Orientation and Position Calibrated");
+			strcpy_s(popup.line[3], "Please repeat if required...");
 			ShowPopup(popup);
 		}
 		else
 		{
 			VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1200);
-			strcpy_s(popup.line3, "HMD Orientation and Position Reset");
+			strcpy_s(popup.line[2], "HMD Orientation and Position Reset");
 			ShowPopup(popup);
 		}
 		tracker->resetOrientationAndPosition();
@@ -2877,9 +2916,9 @@ void D3DProxyDevice::HandleControls()
 
 		VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1200);
 		if (m_bPosTrackingToggle)
-			strcpy_s(popup.line3, "HMD Positional Tracking Enabled");
+			strcpy_s(popup.line[2], "HMD Positional Tracking Enabled");
 		else
-			strcpy_s(popup.line3, "HMD Positional Tracking Disabled");
+			strcpy_s(popup.line[2], "HMD Positional Tracking Disabled");
 		ShowPopup(popup);
 
 		if (!m_bPosTrackingToggle)
@@ -2896,9 +2935,9 @@ void D3DProxyDevice::HandleControls()
 
 		VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1200);
 		if (tracker->useSDKPosePrediction)
-			strcpy_s(popup.line3, "SDK Pose Prediction Enabled");
+			strcpy_s(popup.line[2], "SDK Pose Prediction Enabled");
 		else
-			strcpy_s(popup.line3, "SDK Pose Prediction Disabled");
+			strcpy_s(popup.line[2], "SDK Pose Prediction Disabled");
 		ShowPopup(popup);
 
 		menuVelocity.x += 4.0f;
@@ -2912,9 +2951,9 @@ void D3DProxyDevice::HandleControls()
 
 		VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1200);
 		if (stereoView->chromaticAberrationCorrection)
-			strcpy_s(popup.line3, "Chromatic Aberration Correction Enabled");
+			strcpy_s(popup.line[2], "Chromatic Aberration Correction Enabled");
 		else
-			strcpy_s(popup.line3, "Chromatic Aberration Correction Disabled");
+			strcpy_s(popup.line[2], "Chromatic Aberration Correction Disabled");
 		ShowPopup(popup);
 
 		menuVelocity.x += 4.0f;
@@ -2930,9 +2969,9 @@ void D3DProxyDevice::HandleControls()
 
 		VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1200);
 		if (m_bShowVRMouse)
-			strcpy_s(popup.line3, "VR Mouse Enabled");
+			strcpy_s(popup.line[2], "VR Mouse Enabled");
 		else
-			strcpy_s(popup.line3, "VR Mouse Disabled");
+			strcpy_s(popup.line[2], "VR Mouse Disabled");
 		ShowPopup(popup);
 
 		menuVelocity.x += 4.0f;		
@@ -2955,9 +2994,9 @@ void D3DProxyDevice::HandleControls()
 
 		VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1200);
 		if (m_bfloatingMenu)
-			strcpy_s(popup.line3, "Floating Menus Enabled");
+			strcpy_s(popup.line[2], "Floating Menus Enabled");
 		else
-			strcpy_s(popup.line3, "Floating Menus Disabled");
+			strcpy_s(popup.line[2], "Floating Menus Disabled");
 		ShowPopup(popup);
 
 		menuVelocity.x += 4.0f;		
@@ -2971,16 +3010,16 @@ void D3DProxyDevice::HandleControls()
 		bool canUseTelescope = false;
 		if (VRBoostStatus.VRBoost_Active)
 		{
-			UINT axes[30];
-			memset(axes, 0xFF, sizeof(UINT) * 30);
-			UINT count = m_pVRboost_GetActiveRuleAxes((UINT**)&axes);
+			ActiveAxisInfo axes[30];
+			memset(axes, 0xFF, sizeof(ActiveAxisInfo) * 30);
+			UINT count = m_pVRboost_GetActiveRuleAxes((ActiveAxisInfo**)&axes);
 
 			UINT i = 0;
 			while (i < count)
 			{
-				if (axes[i] == MAXDWORD)
+				if (axes[i].Axis == MAXDWORD)
 					break;
-				if (axes[i] == VRboostAxis::WorldFOV)
+				if (axes[i].Axis == VRboostAxis::WorldFOV)
 				{
 					canUseTelescope = true;
 					break;
@@ -3045,9 +3084,9 @@ void D3DProxyDevice::HandleControls()
 
 		VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1200);
 		if (m_bfloatingScreen)
-			strcpy_s(popup.line3, "Disconnected Screen View Enabled");
+			strcpy_s(popup.line[2], "Disconnected Screen View Enabled");
 		else
-			strcpy_s(popup.line3, "Disconnected Screen View Disabled");
+			strcpy_s(popup.line[2], "Disconnected Screen View Disabled");
 		ShowPopup(popup);
 
 		menuVelocity.x += 4.0f;		
@@ -3144,7 +3183,7 @@ void D3DProxyDevice::HandleControls()
 			}
 
 			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
-			sprintf_s(popup.line3, "Y-Offset: %1.3f", this->stereoView->YOffset);
+			sprintf_s(popup.line[2], "Y-Offset: %1.3f", this->stereoView->YOffset);
 			ShowPopup(popup);
 		}
 		else if(controls.Key_Down(VK_LSHIFT))
@@ -3167,7 +3206,7 @@ void D3DProxyDevice::HandleControls()
  			}
 
 			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
-			sprintf_s(popup.line3, "IPD-Offset: %1.3f", this->stereoView->IPDOffset);
+			sprintf_s(popup.line[2], "IPD-Offset: %1.3f", this->stereoView->IPDOffset);
 			ShowPopup(popup);
  		}
 		//CTRL + ALT + Mouse Wheel - adjust World Scale dynamically
@@ -3187,7 +3226,7 @@ void D3DProxyDevice::HandleControls()
 			{
 				m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
 				VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
-				sprintf_s(popup.line3, "Stereo Separation (World Scale): %1.3f", m_spShaderViewAdjustment->WorldScale());
+				sprintf_s(popup.line[2], "Stereo Separation (World Scale): %1.3f", m_spShaderViewAdjustment->WorldScale());
 				ShowPopup(popup);
 			}
 		}
@@ -3208,7 +3247,7 @@ void D3DProxyDevice::HandleControls()
 			{
 				m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
 				VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
-				sprintf_s(popup.line3, "Stereo Convergence: %1.3f", m_spShaderViewAdjustment->Convergence());
+				sprintf_s(popup.line[2], "Stereo Convergence: %1.3f", m_spShaderViewAdjustment->Convergence());
 				ShowPopup(popup);
 			}
 		}
@@ -3234,7 +3273,7 @@ void D3DProxyDevice::HandleControls()
 				}
 
 				VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
-				sprintf_s(popup.line3, "Distortion Scale: %1.3f", this->stereoView->DistortionScale);
+				sprintf_s(popup.line[2], "Distortion Scale: %1.3f", this->stereoView->DistortionScale);
 				ShowPopup(popup);
 			}
 		}
@@ -3256,7 +3295,7 @@ void D3DProxyDevice::HandleControls()
 			}
 
 			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
-			sprintf_s(popup.line3, "Distortion Scale: %1.3f", this->stereoView->DistortionScale);
+			sprintf_s(popup.line[2], "Distortion Scale: %1.3f", this->stereoView->DistortionScale);
 			ShowPopup(popup);
 		}
 		else if(controls.Key_Down(VK_SUBTRACT))
@@ -3268,7 +3307,7 @@ void D3DProxyDevice::HandleControls()
 			}
 
 			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
-			sprintf_s(popup.line3, "Distortion Scale: %1.3f", this->stereoView->DistortionScale);
+			sprintf_s(popup.line[2], "Distortion Scale: %1.3f", this->stereoView->DistortionScale);
 			ShowPopup(popup);
 		}		
 	}	
@@ -3307,35 +3346,35 @@ void D3DProxyDevice::HandleTracking()
 				case MTS_NOTINIT:
 					{
 						VireioPopup popup(VPT_NO_HMD_DETECTED, VPS_ERROR, 10000);
-						strcpy_s(popup.line3, "HMD NOT INITIALISED");
+						strcpy_s(popup.line[2], "HMD NOT INITIALISED");
 						ShowPopup(popup);
 					}
 					break;
 				case MTS_INITIALISING:
 					{
 						VireioPopup popup(VPT_NO_HMD_DETECTED);
-						strcpy_s(popup.line3, "HMD INITIALISING");
+						strcpy_s(popup.line[2], "HMD INITIALISING");
 						ShowPopup(popup);
 					}
 					break;
 				case MTS_NOHMDDETECTED:
 					{
 						VireioPopup popup(VPT_NO_HMD_DETECTED, VPS_ERROR, 10000);
-						strcpy_s(popup.line3, "HMD NOT DETECTED");
+						strcpy_s(popup.line[2], "HMD NOT DETECTED");
 						ShowPopup(popup);
 					}
 					break;
 				case MTS_INITFAIL:
 					{
 						VireioPopup popup(VPT_NO_HMD_DETECTED, VPS_ERROR, 10000);
-						strcpy_s(popup.line3, "HMD INITIALISATION FAILED");
+						strcpy_s(popup.line[2], "HMD INITIALISATION FAILED");
 						ShowPopup(popup);
 					}
 					break;
 				case MTS_DRIVERFAIL:
 					{
 						VireioPopup popup(VPT_NO_HMD_DETECTED, VPS_ERROR, 10000);
-						strcpy_s(popup.line3, "TRACKER DRIVER FAILED TO INITIALISE");
+						strcpy_s(popup.line[2], "TRACKER DRIVER FAILED TO INITIALISE");
 						ShowPopup(popup);
 					}
 					break;
@@ -3365,7 +3404,7 @@ void D3DProxyDevice::HandleTracking()
 		else if (tracker->getStatus() == MTS_NOORIENTATION)
 		{
 			VireioPopup popup(VPT_NO_ORIENTATION, VPS_ERROR);
-			strcpy_s(popup.line3, "HMD ORIENTATION NOT BEING REPORTED");
+			strcpy_s(popup.line[2], "HMD ORIENTATION NOT BEING REPORTED");
 			ShowPopup(popup);
 		}
 		else 
@@ -3376,14 +3415,14 @@ void D3DProxyDevice::HandleTracking()
 				if (tracker->getStatus() == MTS_CAMERAMALFUNCTION)
 				{
 					VireioPopup popup(VPT_NO_HMD_DETECTED, VPS_ERROR);
-					strcpy_s(popup.line3, "CAMERA MALFUNCTION - PLEASE WAIT WHILST CAMERA INITIALISES");
+					strcpy_s(popup.line[2], "CAMERA MALFUNCTION - PLEASE WAIT WHILST CAMERA INITIALISES");
 					ShowPopup(popup);
 				}
 				else if (tracker->getStatus() == MTS_LOSTPOSITIONAL)
 				{
 					//Show popup regarding lost positional tracking
 					VireioPopup popup(VPT_POSITION_TRACKING_LOST);
-					strcpy_s(popup.line5, "HMD POSITIONAL TRACKING LOST");
+					strcpy_s(popup.line[4], "HMD POSITIONAL TRACKING LOST");
 					ShowPopup(popup);
 				}
 			}
@@ -3523,12 +3562,12 @@ void D3DProxyDevice::HandleTracking()
 
 							DismissPopup(VPT_VRBOOST_SCANNING);
 							VireioPopup popup(VPT_VRBOOST_SCANNING, VPS_INFO);
-							strcpy_s(popup.line1, "VRBoost Memory Scan");
-							strcpy_s(popup.line2, "===================");
-							strcpy_s(popup.line3, "STATUS: WAITING USER ACTIVATION");
-							strcpy_s(popup.line4, " - Once you are \"in-game\", press NUMPAD5 to start memory scan");
-							strcpy_s(popup.line5, " - Press NUMPAD5 to repeat if memory scan fails");
-							strcpy_s(popup.line6, " - Press NUMPAD8 to cancel VRBoost and turn on mouse emulation");
+							strcpy_s(popup.line[0], "VRBoost Memory Scan");
+							strcpy_s(popup.line[1], "===================");
+							strcpy_s(popup.line[2], "STATUS: WAITING USER ACTIVATION");
+							strcpy_s(popup.line[3], " - Once you are \"in-game\", press NUMPAD5 to start memory scan");
+							strcpy_s(popup.line[4], " - Press NUMPAD5 to repeat if memory scan fails");
+							strcpy_s(popup.line[5], " - Press NUMPAD8 to cancel VRBoost and turn on mouse emulation");
 							ShowPopup(popup);
 						}
 						break;
@@ -3544,12 +3583,12 @@ void D3DProxyDevice::HandleTracking()
 
 							DismissPopup(VPT_VRBOOST_SCANNING);
 							VireioPopup popup(VPT_VRBOOST_SCANNING, VPS_INFO);
-							strcpy_s(popup.line1, "VRBoost Memory Scan");
-							strcpy_s(popup.line2, "===================");
+							strcpy_s(popup.line[0], "VRBoost Memory Scan");
+							strcpy_s(popup.line[1], "===================");
 
 							float percent = m_pVRboost_GetScanInitPercent();
-							sprintf_s(popup.line3, "STATUS: INITIALISING - %.1f%% Complete", percent);
-							strcpy_s(popup.line4, "Setting up scanner parameters - Please wait..");
+							sprintf_s(popup.line[2], "STATUS: INITIALISING - %.1f%% Complete", percent);
+							strcpy_s(popup.line[3], "Setting up scanner parameters - Please wait..");
 							ShowPopup(popup);
 						}
 						break;
@@ -3564,10 +3603,10 @@ void D3DProxyDevice::HandleTracking()
 
 							DismissPopup(VPT_VRBOOST_SCANNING);
 							VireioPopup popup(VPT_VRBOOST_SCANNING, VPS_INFO);
-							strcpy_s(popup.line1, "VRBoost Memory Scan");
-							strcpy_s(popup.line2, "===================");
-							strcpy_s(popup.line3, "STATUS: SCANNING");
-							strcpy_s(popup.line5, "Please look around to assist with orientation detection");
+							strcpy_s(popup.line[0], "VRBoost Memory Scan");
+							strcpy_s(popup.line[1], "===================");
+							strcpy_s(popup.line[2], "STATUS: SCANNING");
+							strcpy_s(popup.line[4], "Please look around to assist with orientation detection");
 							ShowPopup(popup);
 						}
 						break;
@@ -3589,16 +3628,16 @@ void D3DProxyDevice::HandleTracking()
 
 							DismissPopup(VPT_VRBOOST_SCANNING);
 							VireioPopup popup(VPT_VRBOOST_SCANNING, VPS_INFO);
-							strcpy_s(popup.line1, "VRBoost Memory Scan");
-							strcpy_s(popup.line2, "===================");
-							strcpy_s(popup.line3, "STATUS: SCANNING - REQUIRES USER ASSISTANCE");
+							strcpy_s(popup.line[0], "VRBoost Memory Scan");
+							strcpy_s(popup.line[1], "===================");
+							strcpy_s(popup.line[2], "STATUS: SCANNING - REQUIRES USER ASSISTANCE");
 							if (timeToEvent == MAXDWORD)
 							{
-								strcpy_s(popup.line4, "    PLEASE LOOK STRAIGHT-AHEAD THEN");
-								strcpy_s(popup.line5, "    PRESS SCAN TRIGGER (NUMPAD5) TO START \"ASSISTED\" SCAN");
+								strcpy_s(popup.line[3], "    PLEASE LOOK STRAIGHT-AHEAD THEN");
+								strcpy_s(popup.line[4], "    PRESS SCAN TRIGGER (NUMPAD5) TO START \"ASSISTED\" SCAN");
 							}
 							else
-								sprintf_s(popup.line4, "       ***  PLEASE LOOK:    %s   -   %i  ***", instruction, (timeToEvent/1000)+1);
+								sprintf_s(popup.line[3], "       ***  PLEASE LOOK:    %s   -   %i  ***", instruction, (timeToEvent/1000)+1);
 							delete []instruction;
 							ShowPopup(popup);
 						}
@@ -3615,18 +3654,18 @@ void D3DProxyDevice::HandleTracking()
 
 							//If we get here, then the VRBoost memory scanner came up with no good results :(
 							VireioPopup popup(VPT_VRBOOST_FAILURE, VPS_ERROR, 5000);
-							strcpy_s(popup.line1, "VRBoost Memory Scan");
-							strcpy_s(popup.line2, "===================");
-							strcpy_s(popup.line3, "STATUS: FAILED");
+							strcpy_s(popup.line[0], "VRBoost Memory Scan");
+							strcpy_s(popup.line[1], "===================");
+							strcpy_s(popup.line[2], "STATUS: FAILED");
 
 							//Reason
 							char *failReason = new char[256];
 							ZeroMemory(failReason, 256);
 							m_pVRboost_GetScanFailReason((char**)&failReason);
-							sprintf_s(popup.line4, "REASON: %s", failReason);
+							sprintf_s(popup.line[3], "REASON: %s", failReason);
 							delete []failReason;
-							strcpy_s(popup.line5, "VRBoost is now disabled");
-							strcpy_s(popup.line6, "Re-run the scan with NUMPAD5");
+							strcpy_s(popup.line[4], "VRBoost is now disabled");
+							strcpy_s(popup.line[5], "Re-run the scan with NUMPAD5");
 							ShowPopup(popup);
 							VRBoostStatus.VRBoost_Active = false;
 						}
@@ -3642,11 +3681,11 @@ void D3DProxyDevice::HandleTracking()
 							tracker->setMouseEmulation(true);
 
 							VireioPopup popup(VPT_VRBOOST_FAILURE, VPS_ERROR, 10000);
-							strcpy_s(popup.line1, "VRBoost");
-							strcpy_s(popup.line2, "=======");
-							strcpy_s(popup.line3, "STATUS: ADDRESSES LOST");
-							strcpy_s(popup.line5, "VRBoost is now disabled");
-							strcpy_s(popup.line6, "Re-run the scan with NUMPAD5");
+							strcpy_s(popup.line[0], "VRBoost");
+							strcpy_s(popup.line[1], "=======");
+							strcpy_s(popup.line[2], "STATUS: ADDRESSES LOST");
+							strcpy_s(popup.line[4], "VRBoost is now disabled");
+							strcpy_s(popup.line[5], "Re-run the scan with NUMPAD5");
 							ShowPopup(popup);
 							VRBoostStatus.VRBoost_Active = false;
 						}
@@ -3658,19 +3697,19 @@ void D3DProxyDevice::HandleTracking()
 							if (VRBoostStatus.VRBoost_Scanning)
 							{
 								//Find which axes we have VRBoost capabilities for
-								UINT axes[30];
-								memset(axes, 0xFF, sizeof(UINT) * 30);
-								UINT count = m_pVRboost_GetActiveRuleAxes((UINT**)&axes);
+								ActiveAxisInfo axes[30];
+								memset(axes, 0xFF, sizeof(ActiveAxisInfo) * 30);
+								UINT count = m_pVRboost_GetActiveRuleAxes((ActiveAxisInfo**)&axes);
 								std::string axisNames;
 								UINT i = 0;
 								VRBoostStatus.VRBoost_HasOrientation = false;
 								while (i < count)
 								{
-									if (axes[i] == VRboostAxis::TrackerPitch)
+									if (axes[i].Axis == VRboostAxis::TrackerPitch)
 										VRBoostStatus.VRBoost_HasOrientation = true;
-									if (axes[i] == MAXDWORD)
+									if (axes[i].Axis == MAXDWORD)
 										break;
-									axisNames += VRboostAxisString(axes[i]) + " ";
+									axisNames += VRboostAxisString(axes[i].Axis) + " ";
 									i++;
 								}				
 
@@ -3683,12 +3722,12 @@ void D3DProxyDevice::HandleTracking()
 
 
 								VireioPopup popup(VPT_NOTIFICATION, VPS_INFO, 5000);
-								strcpy_s(popup.line1, "    VRBoost Memory Scan");
-								strcpy_s(popup.line2, "    ===================");
-								strcpy_s(popup.line3, "    STATUS:   SUCCESS");
-								strcpy_s(popup.line4, "    Found addresses: ");
-								sprintf_s(popup.line5, "       %s", axisNames.c_str());
-								strcpy_s(popup.line6, "    VRBoost is now active");
+								strcpy_s(popup.line[0], "    VRBoost Memory Scan");
+								strcpy_s(popup.line[1], "    ===================");
+								strcpy_s(popup.line[2], "    STATUS:   SUCCESS");
+								strcpy_s(popup.line[3], "    Found addresses: ");
+								sprintf_s(popup.line[4], "       %s", axisNames.c_str());
+								strcpy_s(popup.line[5], "    VRBoost is now active");
 								ShowPopup(popup);
 								//No longer scanning
 								VRBoostStatus.VRBoost_Scanning = false;
@@ -3709,12 +3748,12 @@ void D3DProxyDevice::HandleTracking()
 								tracker->setMouseEmulation(false);
 
 								VireioPopup popup(VPT_NOTIFICATION, VPS_INFO, 8000);
-								strcpy_s(popup.line1, "VRBoost Memory Scan");
-								strcpy_s(popup.line2, "===================");
-								strcpy_s(popup.line3, "STATUS: SUCCESS - MULTIPLE CANDIDATES");
-								sprintf_s(popup.line4, "Found %i candidate orientation addresses", m_pVRboost_GetScanCandidates());
-								strcpy_s(popup.line5, "Use NUMPAD4/NUMPAD6 to cycle through candidates");
-								strcpy_s(popup.line6, "VRBoost is now active");
+								strcpy_s(popup.line[0], "VRBoost Memory Scan");
+								strcpy_s(popup.line[1], "===================");
+								strcpy_s(popup.line[2], "STATUS: SUCCESS - MULTIPLE CANDIDATES");
+								sprintf_s(popup.line[3], "Found %i candidate orientation addresses", m_pVRboost_GetScanCandidates());
+								strcpy_s(popup.line[4], "Use NUMPAD4/NUMPAD6 to cycle through candidates");
+								strcpy_s(popup.line[5], "VRBoost is now active");
 								ShowPopup(popup);
 								//No longer scanning
 								VRBoostStatus.VRBoost_Scanning = false;
@@ -3744,19 +3783,19 @@ void D3DProxyDevice::HandleTracking()
 		if (!VRBoostStatus.VRBoost_LoadRules)
 		{
 			VireioPopup popup(VPT_VRBOOST_FAILURE, VPS_ERROR);
-			strcpy_s(popup.line3, "VRBoost LoadRules Failed");
-			strcpy_s(popup.line4, "To Enable head tracking, turn on Force Mouse Emulation");
-			strcpy_s(popup.line5, "in BRASSA Settings");
+			strcpy_s(popup.line[2], "VRBoost LoadRules Failed");
+			strcpy_s(popup.line[3], "To Enable head tracking, turn on Force Mouse Emulation");
+			strcpy_s(popup.line[4], "in BRASSA Settings");
 			ShowPopup(popup);
 			return;
 		}
 		else if (!VRBoostStatus.VRBoost_ApplyRules)
 		{
 			VireioPopup popup(VPT_VRBOOST_FAILURE, VPS_ERROR);
-			strcpy_s(popup.line2, "VRBoost rules loaded but could not be applied");
-			strcpy_s(popup.line3, "Mouse Emulation is not Enabled,");
-			strcpy_s(popup.line4, "To Enable head tracking, turn on Force Mouse Emulation");
-			strcpy_s(popup.line5, "in BRASSA Settings");
+			strcpy_s(popup.line[1], "VRBoost rules loaded but could not be applied");
+			strcpy_s(popup.line[2], "Mouse Emulation is not Enabled,");
+			strcpy_s(popup.line[3], "To Enable head tracking, turn on Force Mouse Emulation");
+			strcpy_s(popup.line[4], "in BRASSA Settings");
 			ShowPopup(popup);
 			return;
 		}
@@ -6748,45 +6787,45 @@ void D3DProxyDevice::DisplayCurrentPopup()
 
 		if (activePopup.popupType == VPT_STATS && m_spShaderViewAdjustment->GetStereoType() >= 100)
 		{
-			sprintf_s(activePopup.line1, "HMD Description: %s", tracker->GetTrackerDescription()); 
-			sprintf_s(activePopup.line2, "Yaw: %.3f Pitch: %.3f Roll: %.3f", tracker->primaryYaw, tracker->primaryPitch, tracker->primaryRoll); 
-			sprintf_s(activePopup.line3, "X: %.3f Y: %.3f Z: %.3f", tracker->primaryX, tracker->primaryY, tracker->primaryZ); 
+			sprintf_s(activePopup.line[0], "HMD Description: %s", tracker->GetTrackerDescription()); 
+			sprintf_s(activePopup.line[1], "Yaw: %.3f Pitch: %.3f Roll: %.3f", tracker->primaryYaw, tracker->primaryPitch, tracker->primaryRoll); 
+			sprintf_s(activePopup.line[2], "X: %.3f Y: %.3f Z: %.3f", tracker->primaryX, tracker->primaryY, tracker->primaryZ); 
 
 			
 			if (VRBoostStatus.VRBoost_Active)
 			{
-				UINT axes[30];
-				memset(axes, 0xFF, sizeof(UINT) * 30);
-				UINT count = m_pVRboost_GetActiveRuleAxes((UINT**)&axes);
+				ActiveAxisInfo axes[30];
+				memset(axes, 0xFF, sizeof(ActiveAxisInfo) * 30);
+				UINT count = m_pVRboost_GetActiveRuleAxes((ActiveAxisInfo**)&axes);
 
 				std::string axisNames;
 				UINT i = 0;
 				while (i < count)
 				{
-					if (axes[i] == MAXDWORD)
+					if (axes[i].Axis == MAXDWORD)
 						break;
-					axisNames += VRboostAxisString(axes[i]) + " ";
+					axisNames += VRboostAxisString(axes[i].Axis) + " ";
 					i++;
 				}				
 
-				sprintf_s(activePopup.line4, "VRBoost Active: TRUE     Axes: %s", 
+				sprintf_s(activePopup.line[3], "VRBoost Active: TRUE     Axes: %s", 
 					axisNames.c_str());
 			}
 			else
 			{
-				strcpy_s(activePopup.line4, "VRBoost Active: FALSE");
+				strcpy_s(activePopup.line[3], "VRBoost Active: FALSE");
 			}
 
 			if (m_bPosTrackingToggle)
-				strcpy_s(activePopup.line5, "HMD Positional Tracking Enabled");
+				strcpy_s(activePopup.line[4], "HMD Positional Tracking Enabled");
 			else
-				strcpy_s(activePopup.line5, "HMD Positional Tracking Disabled");
+				strcpy_s(activePopup.line[4], "HMD Positional Tracking Disabled");
 			if (hmdInfo->GetHMDManufacturer() == HMD_OCULUS)
 			{
 				if (tracker->useSDKPosePrediction)
-					strcpy_s(activePopup.line6, "SDK Pose Prediction Enabled");
+					strcpy_s(activePopup.line[5], "SDK Pose Prediction Enabled");
 				else
-					strcpy_s(activePopup.line6, "SDK Pose Prediction Disabled");
+					strcpy_s(activePopup.line[5], "SDK Pose Prediction Disabled");
 			}
 		}
 
@@ -6832,23 +6871,23 @@ void D3DProxyDevice::DisplayCurrentPopup()
 				break;
 		}
 
-		if (strlen(activePopup.line1))
-			DrawTextShadowed(pFont, hudMainMenu, activePopup.line1, -1, &menuHelperRect, format, popupColour);
+		if (strlen(activePopup.line[0]))
+			DrawTextShadowed(pFont, hudMainMenu, activePopup.line[0], -1, &menuHelperRect, format, popupColour);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		if (strlen(activePopup.line2))
-			DrawTextShadowed(pFont, hudMainMenu, activePopup.line2, -1, &menuHelperRect, format, popupColour);
+		if (strlen(activePopup.line[1]))
+			DrawTextShadowed(pFont, hudMainMenu, activePopup.line[1], -1, &menuHelperRect, format, popupColour);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		if (strlen(activePopup.line3))
-			DrawTextShadowed(pFont, hudMainMenu, activePopup.line3, -1, &menuHelperRect, format, popupColour);
+		if (strlen(activePopup.line[2]))
+			DrawTextShadowed(pFont, hudMainMenu, activePopup.line[2], -1, &menuHelperRect, format, popupColour);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		if (strlen(activePopup.line4))
-			DrawTextShadowed(pFont, hudMainMenu, activePopup.line4, -1, &menuHelperRect, format, popupColour);
+		if (strlen(activePopup.line[3]))
+			DrawTextShadowed(pFont, hudMainMenu, activePopup.line[3], -1, &menuHelperRect, format, popupColour);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		if (strlen(activePopup.line5))
-			DrawTextShadowed(pFont, hudMainMenu, activePopup.line5, -1, &menuHelperRect, format, popupColour);
+		if (strlen(activePopup.line[4]))
+			DrawTextShadowed(pFont, hudMainMenu, activePopup.line[4], -1, &menuHelperRect, format, popupColour);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		if (strlen(activePopup.line6))
-			DrawTextShadowed(pFont, hudMainMenu, activePopup.line6, -1, &menuHelperRect, format, popupColour);
+		if (strlen(activePopup.line[5]))
+			DrawTextShadowed(pFont, hudMainMenu, activePopup.line[5], -1, &menuHelperRect, format, popupColour);
 
 		if (show_fps != FPS_NONE)
 		{
