@@ -2943,8 +2943,8 @@ void D3DProxyDevice::HandleControls()
 		menuVelocity.x += 4.0f;
 	}
 
-	//Toggle chromatic abberation correction - SHIFT+C
-	if (((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down(0x43))
+	//Toggle chromatic abberation correction - SHIFT+J
+	if (((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down(0x4A))
 		&& (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		stereoView->chromaticAberrationCorrection = !stereoView->chromaticAberrationCorrection;
