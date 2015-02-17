@@ -58,6 +58,7 @@
 	<shaderSpecificRuleIDs shaderHash="2440523048" doNotDraw="true"/>
 	<shaderSpecificRuleIDs shaderHash="1726773818" doNotDraw="true"/>
 	<shaderSpecificRuleIDs shaderHash="2185507776" doNotDraw="true"/>
+	<shaderSpecificRuleIDs shaderHash="1446729854" doNotDraw="true"/>
 
 	<!-- Shadows only visible when moving (flickering horribleness) -->
 	<shaderSpecificRuleIDs shaderHash="3640932062" doNotDraw="true"/>

@@ -3192,7 +3192,7 @@ void D3DProxyDevice::HandleControls()
 			{
 				if(this->stereoView->IPDOffset > -0.1f)
 				{
-					this->stereoView->IPDOffset -= 0.005f;
+					this->stereoView->IPDOffset -= 0.001f;
 					this->stereoView->PostReset();				
 				}
 			}
@@ -3200,7 +3200,7 @@ void D3DProxyDevice::HandleControls()
 			{
 				if(this->stereoView->IPDOffset < 0.1f)
 				{
-					this->stereoView->IPDOffset += 0.005f;
+					this->stereoView->IPDOffset += 0.001f;
 					this->stereoView->PostReset();										
 				}
  			}

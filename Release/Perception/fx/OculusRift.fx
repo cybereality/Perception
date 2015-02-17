@@ -57,7 +57,7 @@ float2 rotatePoint(float angle, float2 coord)
 	//New Elliptical Rotation
 	// translate point back to origin:
 	newPos.x -= 0.5f;
-	newPos.y -= 0.5f;
+	newPos.y -= LensCenter.y;
 	float tempX = newPos.x;
 
 	newPos.y /= aspect;
@@ -67,7 +67,7 @@ float2 rotatePoint(float angle, float2 coord)
 		
 	// translate point back:
 	newPos.x += 0.5f;
-	newPos.y += 0.5f; 
+	newPos.y += LensCenter.y; 
 	
 	return newPos;
 }
