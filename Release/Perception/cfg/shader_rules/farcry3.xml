@@ -15,6 +15,10 @@
 		<rule id="5" shaderCodeFindPattern="dp4 o0.x, r1, c69" constantType="MatrixC" modToApply="15" startReg="69" registerCount="4" transpose="true"/>
 		<rule id="6" shaderCodeFindPattern="dp4 o0.x, v0, c69" constantType="MatrixC" modToApply="15" startReg="69" registerCount="4" transpose="true"/>
 		<rule id="7" shaderCodeFindPattern="dp4 o0.x, r1, c4" constantType="MatrixC" modToApply="15" startReg="4" registerCount="4" transpose="true"/>
+		<!-- Stars -->
+		<rule id="10" shaderCodeFindPattern="dp4 o0.x, r0, c69" constantType="MatrixC" modToApply="15" startReg="69" registerCount="4" transpose="true"/>
+		<!-- Moon -->
+		<rule id="11" shaderCodeFindPattern="dp4 o0.x, v0, c69" constantType="MatrixC" modToApply="15" startReg="69" registerCount="4" transpose="true"/>
 	</rules>
 
 	<defaultRuleIDs>
@@ -30,7 +34,8 @@
 	<shaderSpecificRuleIDs shaderHash="1628388903"><ruleID id="5" /></shaderSpecificRuleIDs>
 	<shaderSpecificRuleIDs shaderHash="2145499317"><ruleID id="6" /></shaderSpecificRuleIDs>
 	<shaderSpecificRuleIDs shaderHash="331649639"><ruleID id="7" /></shaderSpecificRuleIDs>
-	
+	<shaderSpecificRuleIDs shaderHash="221551103"><ruleID id="10" /></shaderSpecificRuleIDs>
+	<shaderSpecificRuleIDs shaderHash="1490477037"><ruleID id="11" /></shaderSpecificRuleIDs>
 
 	<!-- Removes most dodgy shadows, can't believe how long this list is! -->
 	<shaderSpecificRuleIDs shaderHash="1660635056" doNotDraw="true"/>
