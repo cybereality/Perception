@@ -40,6 +40,7 @@ ViewAdjustment::ViewAdjustment(HMDisplayInfo *displayInfo, float metersToWorldUn
 	hmdInfo(displayInfo),
 	metersToWorldMultiplier(metersToWorldUnits),
 	rollImpl(roll),
+	m_roll(0.0f),
 	bulletLabyrinth(false),
 	x_scaler(2.0f),
 	y_scaler(2.5f),
@@ -203,6 +204,7 @@ void ViewAdjustment::UpdateRoll(float roll)
 	D3DXMatrixRotationZ(&rollMatrix, roll);
 	D3DXMatrixRotationZ(&rollMatrixNegative, -roll);
 	D3DXMatrixRotationZ(&rollMatrixHalf, roll * 0.5f);
+	m_roll = roll;
 }
 void  ViewAdjustment::SetGameSpecificPositionalScaling(D3DXVECTOR3 scalingVec)
 {
@@ -255,11 +257,24 @@ void ViewAdjustment::UpdatePosition(float yaw, float pitch, float roll, float xP
 ***/
 void ViewAdjustment::ComputeViewTransforms()
 {
+	//Pixel shader roll needs to apply stereo separation adjusted for the tilted horizon
+	if (rollImpl == 2)
+	{
+		float xLeftSeparation = cos(-m_roll) * SeparationInWorldUnits() * LEFT_CONSTANT;
+		float yLeftSeparation = sin(-m_roll) * SeparationInWorldUnits() * LEFT_CONSTANT;
+		float xRightSeparation = cos(-m_roll) * SeparationInWorldUnits() * RIGHT_CONSTANT;
+		float yRightSeparation = sin(-m_roll) * SeparationInWorldUnits() * RIGHT_CONSTANT;
 
-
-	// separation settings are overall (HMD and desktop), since they are based on physical IPD
-	D3DXMatrixTranslation(&transformLeft, SeparationInWorldUnits() * LEFT_CONSTANT, 0, 0);
-	D3DXMatrixTranslation(&transformRight, SeparationInWorldUnits() * RIGHT_CONSTANT, 0, 0);
+		// separation settings are overall (HMD and desktop), since they are based on physical IPD
+		D3DXMatrixTranslation(&transformLeft, xLeftSeparation, yLeftSeparation, 0);
+		D3DXMatrixTranslation(&transformRight, xRightSeparation, yRightSeparation, 0);
+	}
+	else
+	{
+		// separation settings are overall (HMD and desktop), since they are based on physical IPD
+		D3DXMatrixTranslation(&transformLeft, SeparationInWorldUnits() * LEFT_CONSTANT, 0, 0);
+		D3DXMatrixTranslation(&transformRight, SeparationInWorldUnits() * RIGHT_CONSTANT, 0, 0);
+	}
 	
 	// projection transform, no roll
 	matViewProjTransformLeftNoRoll = matProjectionInv * transformLeft * projectLeft;

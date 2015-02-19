@@ -3454,9 +3454,12 @@ void D3DProxyDevice::HandleTracking()
 				break;
 			case 2:
 				{
-					//Set rotation on the stereo view
+					//Set rotation on the stereo view and on the shader adjustment
 					if (tracker)
-						stereoView->m_rotation = -1.0f * tracker->primaryRoll;
+					{
+						stereoView->m_rotation = tracker->currentRoll;
+						m_spShaderViewAdjustment->UpdateRoll(tracker->currentRoll);
+					}
 				}
 				break;
 			}

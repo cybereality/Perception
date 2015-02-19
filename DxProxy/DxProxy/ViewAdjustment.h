@@ -274,6 +274,10 @@ private:
 	***/
 	int rollImpl;
 	/**
+	* Amount of actual roll (in radians)
+	*/
+	float m_roll;
+	/**
 	* World scale, used to correct eye seperation game-specific.
 	***/
 	float metersToWorldMultiplier;
