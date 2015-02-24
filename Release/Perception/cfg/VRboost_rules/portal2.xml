@@ -3,9 +3,9 @@
   <ScannerGroups>
 	<ScannerGroup>
 		<ID>0</ID>
-		<BaseAddress>070099E8</BaseAddress>
-		<MemIncrement>00010000</MemIncrement>
-		<MemIncCount>00000200</MemIncCount>
+		<BaseAddress>070000E8</BaseAddress>
+		<MemIncrement>00000100</MemIncrement>
+		<MemIncCount>00900000</MemIncCount>
 		<FailIfNotFound>True</FailIfNotFound>
 		<ScanRule>
 			<AxisName>TrackerPitch</AxisName>
@@ -16,6 +16,10 @@
 			<Comparisons>
 				<Compare type="BetweenIncl">
 					<MinValue>-90.0</MinValue>
+					<MaxValue>-0.001</MaxValue>
+				</Compare>
+				<Compare type="BetweenIncl">
+					<MinValue>0.001</MinValue>
 					<MaxValue>90.0</MaxValue>
 				</Compare>
 			</Comparisons>
@@ -30,6 +34,10 @@
 			<Comparisons>
 				<Compare type="BetweenIncl">
 					<MinValue>-180.0</MinValue>
+					<MaxValue>-0.001</MaxValue>
+				</Compare>
+				<Compare type="BetweenIncl">
+					<MinValue>0.001</MinValue>
 					<MaxValue>180.0</MaxValue>
 				</Compare>
 			</Comparisons>
@@ -69,4 +77,36 @@
 		</ScanRule>
 	</ScannerGroup>
   </ScannerGroups>
+  
+	<!-- The following is used to direct the user to move their HMD so that addresses can be filtered, don't repeat -->
+	<ScanAssistSequence>
+		<ScanAssistStep>
+			<TimeBeforeCheck>3000</TimeBeforeCheck>
+			<Pose>UP MORE THAN 45 DEGREES</Pose>
+			<Axis>
+				<AxisName>TrackerPitch</AxisName>
+				<AddressType>Float</AddressType>
+				<Comparisons>
+					<Compare type="BetweenIncl">
+						<MinValue>-90</MinValue>
+						<MaxValue>-45</MaxValue>
+					</Compare>
+				</Comparisons>
+			</Axis>
+		</ScanAssistStep>
+		<ScanAssistStep>
+			<TimeBeforeCheck>3000</TimeBeforeCheck>
+			<Pose>DOWN MORE THAN 45 DEGREES</Pose>
+			<Axis>
+				<AxisName>TrackerPitch</AxisName>
+				<AddressType>Float</AddressType>
+				<Comparisons>
+					<Compare type="BetweenIncl">
+						<MinValue>45</MinValue>
+						<MaxValue>90</MaxValue>
+					</Compare>
+				</Comparisons>
+			</Axis>
+		</ScanAssistStep>
+	</ScanAssistSequence>  
 </Scanner>
