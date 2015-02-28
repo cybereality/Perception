@@ -6,7 +6,8 @@
     <rule id="3" constantType="MatrixC" modToApply="8" startReg="51" transpose="true" />
     <rule id="4" constantType="Vector" modToApply="1" startReg="2" />
     <rule id="5" constantType="MatrixC" modToApply="0" startReg="8" transpose="true" />
-	 <rule id="6" constantType="MatrixC" modToApply="15" startReg="8" transpose="true" />
+	 	<rule id="6" constantType="MatrixC" modToApply="15" startReg="8" transpose="true" />
+	 	<rule id="7" constantType="MatrixC" modToApply="15" startReg="4" transpose="true" />
   </rules>
   <defaultRuleIDs>
     <ruleID id="1" />
@@ -17,10 +18,12 @@
     <ruleID id="5" />
     <ruleID id="4" />
   </shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="719017533">
-    <ruleID id="6" />
-  </shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="3546995421">
-    <ruleID id="6" />
-  </shaderSpecificRuleIDs>  
+  <shaderSpecificRuleIDs shaderHash="719017533" doNotDraw="true"></shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="3546995421" doNotDraw="true"></shaderSpecificRuleIDs>  
+  <shaderSpecificRuleIDs shaderHash="3783252820">
+  	<ruleID id="7" />
+ 	</shaderSpecificRuleIDs>  
+ 	<shaderSpecificRuleIDs shaderHash="3315439731">
+  	<ruleID id="7" />
+ 	</shaderSpecificRuleIDs>  
 </shaderConfig>
