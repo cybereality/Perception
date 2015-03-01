@@ -5,8 +5,8 @@
 	<ScannerGroup>
 		<ID>0</ID>
 		<BaseAddress>34000000</BaseAddress>
-		<MemIncrement>00000008</MemIncrement>
-		<MemIncCount>01800000</MemIncCount>
+		<MemIncrement>00000004</MemIncrement>
+		<MemIncCount>03000000</MemIncCount>
 		<FailIfNotFound>True</FailIfNotFound>
 		<ScanRule>
 			<AxisName>TrackerPitch</AxisName>
@@ -73,7 +73,7 @@
 			<CheckForChanges>Changes</CheckForChanges>
 			<Comparisons>
 				<Compare type="BetweenIncl">
-					<MinValue>1.35</MinValue>
+					<MinValue>1.348</MinValue>
 					<MaxValue>1.351</MaxValue>
 				</Compare>
 			</Comparisons>
