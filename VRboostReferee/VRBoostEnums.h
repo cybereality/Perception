@@ -20,18 +20,26 @@ namespace VRBoost
 		FloatToDWordScale = 10,           /**< Inputs a float and applies a scaled DWORD. */
 		FloatToLongScale = 11,            /**< Inputs a float and applies a scaled long. */
 		FloatToQWordScale = 12,           /**< Inputs a float and applies a scaled double. */
+		FloatExtendedApply = 13,          /**< Simply applies the input float to the destination plus original value. **/
+		FloatToSimpleDWord = 14,          /**< Inputs a float and casts to a DWORD and applies. */
 		FloatDegreeApply = 80,            /**< Applies degrees from radian input. */
 		FloatDegreeCompass = 81,          /**< Applies degrees from radian input and incorporates prior rotation angle. **/
 		FloatDegreeNegativeApply = 82,    /**< Applies degrees from radian input. */
 		FloatDegreeNegativeCompass = 83,  /**< Applies degrees from radian input and incorporates prior rotation angle. **/
+		FloatDegreeStanley = 84,		  /**< Applies only to Stanley as it uses a smaller scale (-135 < x < 135). **/
+		FloatDegreeStanleyPitch = 85,	  /**< Applies only to Stanley as it uses a smaller scale (-90 < x < 90). **/
+		FloatDegreeChromeYaw = 86,		  /**< Applies only to Chrome Yaw Axis **/
 		FloatGaussianCompass = 100,       /**< Applies the input float to a gaussian compass calculatian and incorporates prior rotation angle. **/
 		FloatUnrealCompass = 101,         /**< Applies the input float to a UNREAL engine rotator compass calculatian and incorporates prior rotation angle. **/
+		FloatUnrealCompass2 = 102,         /**< Applies the input float to a UNREAL engine rotator compass calculatian and incorporates prior rotation angle. **/
 		FloatUnrealAxis = 201,            /**< Applies the input float to a UNREAL engine rotator axis. **/
 		FloatUnrealNegativeAxis = 202,    /**< Applies the input float to a negative UNREAL engine rotator axis. **/
 		FloatUnrealAxisWithOffsets = 203, /**< Applies the input float to a UNREAL engine rotator axis with offsets for horizon adjustment and pitch caps. **/
+		FloatUnrealAxis2 = 204,            /**< Applies the input float to a UNREAL engine rotator axis. **/
+		FloatCRYENGINEQuaternion = 300,	  /**< Applies input YPR to a Quaternion for CRYENGINE - Very specific to CryEngine games **/
 
 		//The following are more general types for the memory scanners
-		MemoryScanner = 300				  /**< Will scan through a set of addresses until if finds candidate for yaw or FOV*/
+		MemoryScanner = 300 			  /**< Will scan through a set of addresses until if finds candidate for yaw or FOV*/
 	};
 
 	/**

@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-<!-- Another below the horizon scanner -->
+<!-- Below the horizon -->
 <Scanner>
   <ScannerGroups>
 	<ScannerGroup>
 		<ID>0</ID>
-		<BaseAddress>7FF700000074</BaseAddress>
-		<MemIncrement>100</MemIncrement>
-		<MemIncCount>2FFFFFF</MemIncCount>
+		<BaseAddress>7FF600000004</BaseAddress>
+		<MemIncrement>10</MemIncrement>
+		<MemIncCount>1FFFFFFF</MemIncCount>
 		<FailIfNotFound>True</FailIfNotFound>
 
 		<ScanRule>
@@ -20,10 +19,10 @@
 			<Comparisons>
 				<Compare type="Between">
 					<MinValue>-180.0</MinValue>
-					<MaxValue>-0.01</MaxValue>
+					<MaxValue>-0.1</MaxValue>
 				</Compare>
 				<Compare type="Between">
-					<MinValue>0.01</MinValue>
+					<MinValue>0.1</MinValue>
 					<MaxValue>180.0</MaxValue>
 				</Compare>
 			</Comparisons>
@@ -42,10 +41,10 @@
 					<MaxValue>-0.01</MaxValue>
 				</Compare>
 				<!-- OR -->
-				<Compare type="BetweenIncl">
+				<!--<Compare type="BetweenIncl">
 					<MinValue>0.01</MinValue>
 					<MaxValue>67.0</MaxValue>
-				</Compare>
+				</Compare>-->
 			</Comparisons>
 		</ScanRule>
 			
@@ -54,7 +53,7 @@
 			<AddressType>Float</AddressType>
 			<ModificationToApply>FloatDoNothing</ModificationToApply>
 			<BaseAddressOffset>00000008</BaseAddressOffset>
-			<CheckForChanges>Changes</CheckForChanges>
+			<CheckForChanges>NoChange</CheckForChanges>
 			<Comparisons>
 				<Compare type="Equal">
 					<MinValue>0.0</MinValue>
@@ -67,7 +66,7 @@
 			<AddressType>Float</AddressType>
 			<ModificationToApply>FloatDoNothing</ModificationToApply>
 			<BaseAddressOffset>00000018</BaseAddressOffset>
-			<CheckForChanges>Changes</CheckForChanges>
+			<CheckForChanges>NoChange</CheckForChanges>
 			<Comparisons>
 				<Compare type="Equal">
 					<MinValue>0.0</MinValue>
@@ -78,7 +77,7 @@
 		<ScanRule>
 			<AxisName>TrackerPitch</AxisName>
 			<AddressType>Float</AddressType>
-			<ModificationToApply>FloatSimpleApply</ModificationToApply>
+			<ModificationToApply>FloatDegreeApply</ModificationToApply>
 			<BaseAddressOffset>0000001C</BaseAddressOffset>
 			<CheckForChanges>Changes</CheckForChanges>
 			<Comparisons>
@@ -87,10 +86,10 @@
 					<MaxValue>-0.1</MaxValue>
 				</Compare>
 				<!-- OR -->
-<!--			<Compare type="BetweenIncl">
+				<!--<Compare type="BetweenIncl">
 					<MinValue>0.001</MinValue>
 					<MaxValue>67.0</MaxValue>
-				</Compare> -->
+				</Compare>-->
 			</Comparisons>
 		</ScanRule>
 			
@@ -99,10 +98,10 @@
 
 	<ScannerGroup>
 		<ID>1</ID>
-		<BaseAddress>7FF7000000CC</BaseAddress>
+		<BaseAddress>7FF5000000BC</BaseAddress>
 		<MemIncrement>100</MemIncrement>
-		<MemIncCount>FFFFFF</MemIncCount>
-		<FailIfNotFound>False</FailIfNotFound>
+		<MemIncCount>4FFFFFF</MemIncCount>
+		<FailIfNotFound>True</FailIfNotFound>
 
 		<ScanRule>
 			<AxisName>NoAxis</AxisName>
@@ -112,7 +111,49 @@
 			<CheckForChanges>NoChange</CheckForChanges>
 			<Comparisons>
 				<Compare type="Equal">
-					<MinValue>00000000</MinValue>
+					<MinValue>00000016</MinValue>
+				</Compare>
+			</Comparisons>
+		</ScanRule>
+			
+		<ScanRule>
+			<!-- CameraTranslateZ -->
+			<AxisName>NoAxis</AxisName>
+			<AddressType>Float</AddressType>
+			<ModificationToApply>FloatDoNothing</ModificationToApply>
+			<BaseAddressOffset>00000004</BaseAddressOffset>
+			<CheckForChanges>NoChange</CheckForChanges>
+			<Comparisons>
+				<Compare type="NotEqual">
+					<MinValue>0.0</MinValue>
+				</Compare>
+			</Comparisons>
+		</ScanRule>
+			
+		<ScanRule>
+			<!-- CameraTranslateX -->
+			<AxisName>NoAxis</AxisName>
+			<AddressType>Float</AddressType>
+			<ModificationToApply>FloatDoNothing</ModificationToApply>
+			<BaseAddressOffset>00000008</BaseAddressOffset>
+			<CheckForChanges>NoChange</CheckForChanges>
+			<Comparisons>
+				<Compare type="NotEqual">
+					<MinValue>0.0</MinValue>
+				</Compare>
+			</Comparisons>
+		</ScanRule>
+			
+		<ScanRule>
+			<!-- CameraTranslateY -->
+			<AxisName>NoAxis</AxisName>
+			<AddressType>Float</AddressType>
+			<ModificationToApply>FloatDoNothing</ModificationToApply>
+			<BaseAddressOffset>0000000C</BaseAddressOffset>
+			<CheckForChanges>NoChange</CheckForChanges>
+			<Comparisons>
+				<Compare type="NotEqual">
+					<MinValue>0.0</MinValue>
 				</Compare>
 			</Comparisons>
 		</ScanRule>
@@ -120,8 +161,8 @@
 		<ScanRule>
 			<AxisName>TrackerYaw</AxisName>
 			<AddressType>DWORD</AddressType>
-			<ModificationToApply>FloatUnrealCompass</ModificationToApply>
-			<BaseAddressOffset>00000004</BaseAddressOffset>
+			<ModificationToApply>FloatUnrealCompass2</ModificationToApply>
+			<BaseAddressOffset>00000014</BaseAddressOffset>
 			<CheckForChanges>Changes</CheckForChanges>
 			<Comparisons>
 				<Compare type="BetweenIncl">
@@ -140,7 +181,7 @@
 			<AxisName>NoAxis</AxisName>
 			<AddressType>DWORD</AddressType>
 			<ModificationToApply>FloatDoNothing</ModificationToApply>
-			<BaseAddressOffset>00000008</BaseAddressOffset>
+			<BaseAddressOffset>00000018</BaseAddressOffset>
 			<CheckForChanges>NoChange</CheckForChanges>
 			<Comparisons>
 				<Compare type="Equal">
@@ -153,7 +194,7 @@
 			<AxisName>NoAxis</AxisName>
 			<AddressType>DWORD</AddressType>
 			<ModificationToApply>FloatDoNothing</ModificationToApply>
-			<BaseAddressOffset>0000000C</BaseAddressOffset>
+			<BaseAddressOffset>0000001C</BaseAddressOffset>
 			<CheckForChanges>NoChange</CheckForChanges>
 			<Comparisons>
 				<Compare type="Equal">
@@ -166,11 +207,11 @@
 			<AxisName>NoAxis</AxisName>
 			<AddressType>DWORD</AddressType>
 			<ModificationToApply>FloatDoNothing</ModificationToApply>
-			<BaseAddressOffset>00000010</BaseAddressOffset>
+			<BaseAddressOffset>00000050</BaseAddressOffset>
 			<CheckForChanges>NoChange</CheckForChanges>
 			<Comparisons>
 				<Compare type="Equal">
-					<MinValue>3F800000</MinValue>
+					<MinValue>00007FF6</MinValue>
 				</Compare>
 			</Comparisons>
 		</ScanRule>
@@ -189,7 +230,7 @@
 				<Comparisons>
 					<Compare type="BetweenIncl">
 						<MinValue>30.0</MinValue>
-						<MaxValue>67.0</MaxValue>
+						<MaxValue>70.0</MaxValue>
 					</Compare>
 				</Comparisons>
 			</Axis>
@@ -202,7 +243,7 @@
 				<AddressType>Float</AddressType>
 				<Comparisons>
 					<Compare type="BetweenIncl">
-						<MinValue>-81.0</MinValue>
+						<MinValue>-90.0</MinValue>
 						<MaxValue>-40.0</MaxValue>
 					</Compare>
 				</Comparisons>

@@ -2,9 +2,7 @@
 <shaderConfig>
 	<rules>
 		<!-- Basically, this will match all shaders, they all use constants 0-3 -->
-		<rule id="1" shaderCodeFindPattern="dcl_position" constantType="MatrixC" modToApply="1" startReg="0" registerCount="4" transpose="true"/>
-		<rule id="2" shaderCodeFindPattern="dcl_position" constantType="MatrixC" modToApply="7" startReg="0" registerCount="4" transpose="true"/>
-		<rule id="3" shaderCodeFindPattern="dcl_position" constantType="MatrixC" modToApply="8" startReg="0" registerCount="4" transpose="true"/>
+		<rule id="1" shaderCodeFindPattern="dcl_position" constantType="MatrixR" modToApply="1" startReg="0" registerCount="4" transpose="true"/>
 	</rules>
 
 	<defaultRuleIDs>
@@ -14,14 +12,11 @@
 	<!-- Shadows -->
 	<shaderSpecificRuleIDs shaderHash="3952270238" doNotDraw="true"/>
 	<shaderSpecificRuleIDs shaderHash="2950422486" doNotDraw="true"/>
-  
-  <shaderSpecificRuleIDs shaderHash="3149498153">
-    <ruleID id="2" />Low Res Vegetation
-  </shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="4206807624">
-    <ruleID id="2" />Low Res Vegetation
-  </shaderSpecificRuleIDs>
-  
+
+	<!-- Want a better solution than this, but these shaders won't draw in stereo for some reason, so not drawing for now -->
+	<shaderSpecificRuleIDs shaderHash="3149498153" doNotDraw="true"/>
+	<shaderSpecificRuleIDs shaderHash="4206807624" doNotDraw="true"/>
+
 	<!-- HUD stuff - This doesn't work -->
-	<shaderSpecificRuleIDs shaderHash="714304875" squishViewport="true"><ruleID id="3"/></shaderSpecificRuleIDs>
+	<!-- <shaderSpecificRuleIDs shaderHash="714304875" squishViewport="true"><ruleID id="3"/></shaderSpecificRuleIDs> -->
 </shaderConfig>

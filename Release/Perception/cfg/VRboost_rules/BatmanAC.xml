@@ -29,7 +29,7 @@
 		<ScanRule>
 			<AxisName>TrackerYaw</AxisName>
 			<AddressType>DWORD</AddressType>
-			<ModificationToApply>FloatUnrealCompass</ModificationToApply>
+			<ModificationToApply>FloatUnrealCompass2</ModificationToApply>
 			<BaseAddressOffset>00000004</BaseAddressOffset>
 			<CheckForChanges>Changes</CheckForChanges>
 			<Comparisons>

@@ -42,6 +42,7 @@ int VRboost_RuleType(std::string ruleName)
 	if (ruleName.find("FloatDoNothing") != std::string::npos) return FloatModificationTypes::FloatDoNothing;
 	else if (ruleName.find("FloatSimpleApply") != std::string::npos) return FloatModificationTypes::FloatSimpleApply;
 	else if (ruleName.find("FloatSimpleNegativeApply") != std::string::npos) return FloatModificationTypes::FloatSimpleNegativeApply;
+	else if (ruleName.find("FloatExtendedApply") != std::string::npos) return FloatModificationTypes::FloatExtendedApply;
 	else if (ruleName.find("FloatScale") != std::string::npos) return FloatModificationTypes::FloatScale;
 	else if (ruleName.find("FloatToDoubleScale") != std::string::npos) return FloatModificationTypes::FloatToDoubleScale;
 	else if (ruleName.find("FloatToBoolScale") != std::string::npos) return FloatModificationTypes::FloatToBoolScale;
@@ -52,15 +53,22 @@ int VRboost_RuleType(std::string ruleName)
 	else if (ruleName.find("FloatToDWordScale") != std::string::npos) return FloatModificationTypes::FloatToDWordScale;
 	else if (ruleName.find("FloatToLongScale") != std::string::npos) return FloatModificationTypes::FloatToLongScale;        
 	else if (ruleName.find("FloatToQWordScale") != std::string::npos) return FloatModificationTypes::FloatToQWordScale;
+	else if (ruleName.find("FloatToSimpleDWord") != std::string::npos) return FloatModificationTypes::FloatToSimpleDWord;
 	else if (ruleName.find("FloatDegreeApply") != std::string::npos) return FloatModificationTypes::FloatDegreeApply;
 	else if (ruleName.find("FloatDegreeCompass") != std::string::npos) return FloatModificationTypes::FloatDegreeCompass;
 	else if (ruleName.find("FloatDegreeNegativeApply") != std::string::npos) return FloatModificationTypes::FloatDegreeNegativeApply;
 	else if (ruleName.find("FloatDegreeNegativeCompass") != std::string::npos) return FloatModificationTypes::FloatDegreeNegativeCompass;
+	else if (ruleName.find("FloatDegreeStanleyPitch") != std::string::npos) return FloatModificationTypes::FloatDegreeStanleyPitch;
+	else if (ruleName.find("FloatDegreeStanley") != std::string::npos) return FloatModificationTypes::FloatDegreeStanley;
+	else if (ruleName.find("FloatDegreeChromeYaw") != std::string::npos) return FloatModificationTypes::FloatDegreeChromeYaw;
 	else if (ruleName.find("FloatGaussianCompass") != std::string::npos) return FloatModificationTypes::FloatGaussianCompass;
+	else if (ruleName.find("FloatUnrealCompass2") != std::string::npos) return FloatModificationTypes::FloatUnrealCompass2;
 	else if (ruleName.find("FloatUnrealCompass") != std::string::npos) return FloatModificationTypes::FloatUnrealCompass;
 	else if (ruleName.find("FloatUnrealAxisWithOffsets") != std::string::npos) return FloatModificationTypes::FloatUnrealAxisWithOffsets;
+	else if (ruleName.find("FloatUnrealAxis2") != std::string::npos) return FloatModificationTypes::FloatUnrealAxis2;
 	else if (ruleName.find("FloatUnrealAxis") != std::string::npos) return FloatModificationTypes::FloatUnrealAxis;
 	else if (ruleName.find("FloatUnrealNegativeAxis") != std::string::npos) return FloatModificationTypes::FloatUnrealNegativeAxis;
+	else if (ruleName.find("FloatCRYENGINEQuaternion") != std::string::npos) return FloatModificationTypes::FloatCRYENGINEQuaternion;
 	else if (ruleName.find("MemoryScanner") != std::string::npos) return FloatModificationTypes::MemoryScanner;
 	else return -1;
 }
