@@ -229,7 +229,7 @@ void ProxyHelper::GetTargetPath(char* newFolder, char* path)
 * @param mode Stereo mode returned.
 * @param mode2 Tracker mode returned.
 ***/
-bool ProxyHelper::LoadUserConfig(int& mode, int& mode2, int& adapter, bool &notifications)
+bool ProxyHelper::LoadUserConfig(int& mode, int& mode2, int& adapter, bool &notifications, bool &warnPosLost)
 {
 	// load the base dir for the app
 	GetBaseDir();
@@ -251,6 +251,7 @@ bool ProxyHelper::LoadUserConfig(int& mode, int& mode2, int& adapter, bool &noti
 		mode2 = xml_config.attribute("tracker_mode").as_int();
 		adapter = xml_config.attribute("display_adapter").as_int(0);
 		notifications = (xml_config.attribute("notifications").as_int(1) != 0);
+		warnPosLost = (xml_config.attribute("warn_positional_lost").as_int(1) != 0);
 
 		return true;
 	}

@@ -187,7 +187,7 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	int mode2;
 	int adapter;
 	ProxyHelper helper = ProxyHelper();
-	helper.LoadUserConfig(mode, mode2, adapter, showNotifications);
+	helper.LoadUserConfig(mode, mode2, adapter, showNotifications, warnPositionalLost);
 	hmdInfo = HMDisplayInfoFactory::CreateHMDisplayInfo(static_cast<StereoView::StereoTypes>(mode)); 
 	OutputDebugString(("Created HMD Info for: " + hmdInfo->GetHMDName()).c_str());
 
@@ -3420,10 +3420,13 @@ void D3DProxyDevice::HandleTracking()
 				}
 				else if (tracker->getStatus() == MTS_LOSTPOSITIONAL)
 				{
-					//Show popup regarding lost positional tracking
-					VireioPopup popup(VPT_POSITION_TRACKING_LOST);
-					strcpy_s(popup.line[4], "HMD POSITIONAL TRACKING LOST");
-					ShowPopup(popup);
+					if (warnPositionalLost)
+					{
+						//Show popup regarding lost positional tracking
+						VireioPopup popup(VPT_POSITION_TRACKING_LOST);
+						strcpy_s(popup.line[4], "HMD POSITIONAL TRACKING LOST");
+						ShowPopup(popup);
+					}
 				}
 			}
 			else

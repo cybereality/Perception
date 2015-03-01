@@ -334,6 +334,10 @@ public:
 	**/
 	bool showNotifications;
 	/**
+	* Whether the user should be warned when positional tracking is lost
+	*/
+	bool warnPositionalLost;
+	/**
 	* Timestamp used to adjust the menu velocity independent of game speed.
 	**/
 	float menuTime;

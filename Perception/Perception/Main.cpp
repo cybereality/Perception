@@ -497,10 +497,10 @@ int WINAPI wWinMain(HINSTANCE instance_handle, HINSTANCE, LPWSTR, INT) {
 
 	int mode;
 	int mode2;
-	bool notifications;
+	bool notifications, posLost;
 	int adapter;
 	ProxyHelper helper = ProxyHelper();
-	helper.LoadUserConfig(mode, mode2, adapter, notifications);
+	helper.LoadUserConfig(mode, mode2, adapter, notifications, posLost);
 
 	SendMessage(main_window.combobox->combobox_handle, CB_SETCURSEL, stereoModes[mode], 0);
 	SendMessage(main_window.combobox2->combobox_handle, CB_SETCURSEL, trackerModes[mode2], 0);
