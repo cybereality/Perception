@@ -234,10 +234,6 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	m_bInBeginEndStateBlock = false;
 	m_pCapturingStateTo = NULL;
 	m_isFirstBeginSceneOfFrame = true;
-	yaw_mode = 0;
-	pitch_mode = 0;
-	translation_mode = 0;
-	trackingOn = true;
 	InitBrassa();
 	//Create Direct Input Mouse Device
 	bool directInputActivated = dinput.Init(GetModuleHandle(NULL), ::GetActiveWindow());
@@ -1110,7 +1106,8 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 				strcpy_s(popup.line[1], "Please Calibrate HMD/Tracker:");
 				strcpy_s(popup.line[2], "     -  Sit comfortably with your head facing forwards");
 				strcpy_s(popup.line[3], "     -  Press any of the following:");
-				strcpy_s(popup.line[4], "             <CTRL> + <R> / <LSHIFT> + <R>");
+				strcpy_s(popup.line[4], "           <CTRL> + <R> / <LSHIFT> + <R>");
+				strcpy_s(popup.line[5], "           L + R Shoulder Buttons on XBOX360 Controller");
 				ShowPopup(popup);
 			}
 		}
@@ -2352,7 +2349,6 @@ void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 	config = cfg;
 	memcpy(&m_configBackup, &cfg, sizeof(ProxyHelper::ProxyConfig));
 
-	eyeShutter = 1;
 	m_bfloatingMenu = false;
 	m_bfloatingScreen = false;
 	m_bSurpressHeadtracking = false;
@@ -2503,6 +2499,52 @@ void D3DProxyDevice::HandleControls()
 			menuVelocity.x += 4.0f;
 		}
 	}
+
+	//Duck for cover - trigger crouch and prone keys if Y position of HMD moves appropriately
+	if (m_DuckForCover.dfcStatus > DFC_INACTIVE &&
+		m_DuckForCover.dfcStatus < DFC_STANDING && tracker &&
+		tracker->getStatus() >= MTS_OK)
+	{
+		if (controls.xButtonsStatus[0x0c] && menuVelocity == D3DXVECTOR2(0.0f, 0.0f))
+		{
+			if (m_DuckForCover.dfcStatus == DFC_CAL_STANDING)
+			{
+				//Reset positional ready for the next stage
+				tracker->resetPosition();
+				m_DuckForCover.dfcStatus = DFC_CAL_CROUCHING;
+			}
+			else if (m_DuckForCover.dfcStatus == DFC_CAL_CROUCHING)
+			{
+				m_DuckForCover.yPos_Crouch = tracker->y;
+				m_DuckForCover.dfcStatus = DFC_CAL_PRONE;
+			}
+			else if (m_DuckForCover.dfcStatus == DFC_CAL_PRONE)
+			{
+				m_DuckForCover.proneEnabled = true;
+				m_DuckForCover.yPos_Prone = tracker->y - m_DuckForCover.yPos_Crouch;
+				m_DuckForCover.dfcStatus = DFC_CAL_COMPLETE;
+			}
+			else if (m_DuckForCover.dfcStatus == DFC_CAL_COMPLETE)
+			{
+				//Ready to go..
+				m_DuckForCover.dfcStatus = DFC_STANDING;
+				tracker->resetPosition();
+				DismissPopup(VPT_NOTIFICATION);
+			}
+			menuVelocity.x += 5.0f;
+		}
+		//B button only skips the prone position
+		else if (controls.xButtonsStatus[0x0d] && menuVelocity == D3DXVECTOR2(0.0f, 0.0f))
+		{
+			if (m_DuckForCover.dfcStatus == DFC_CAL_PRONE)
+			{
+				m_DuckForCover.proneEnabled = false;
+				m_DuckForCover.dfcStatus = DFC_CAL_COMPLETE;
+			}
+			menuVelocity.x += 5.0f;
+		}
+	}
+
 
 	// Show active VRBoost axes and their addresses (SHIFT+V)
 	if (controls.Key_Down(VK_LSHIFT) && (controls.Key_Down(0x56)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
@@ -2886,8 +2928,10 @@ void D3DProxyDevice::HandleControls()
 		menuVelocity.x+=2.0f;
 	}
 
-	//Rset HMD Orientation+Position LSHIFT+R
-	if (((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down(0x52)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	//Rset HMD Orientation+Position LSHIFT+R, or L+R Shoulder buttons on xbox360 controller
+	if ((((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down(0x52)) 
+		|| (controls.xButtonsStatus[8] && controls.xButtonsStatus[9]))
+		&& (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		if (calibrate_tracker)
 		{
@@ -3124,6 +3168,40 @@ void D3DProxyDevice::HandleControls()
 	// avoid double input by using the menu velocity
 	if (hotkeyPressed)
 		menuVelocity.x+=2.0f;
+
+	//Double clicking the start button will invoke the BRASSA menu
+	static DWORD startClick = 0;
+	if ((controls.xButtonsStatus[4] || startClick != 0) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	{
+		if (controls.xButtonsStatus[4] && startClick == 0)
+		{
+			startClick = 1;
+		}
+		else if (!controls.xButtonsStatus[4] && startClick == 1)
+		{
+			startClick = GetTickCount();
+		}
+		else if (controls.xButtonsStatus[4] && startClick > 1)
+		{
+			//If we clicked a second time within 350 ms, then open brassa menu
+			if ((GetTickCount() - startClick) <= 350)
+			{
+				if (BRASSA_mode == BRASSA_Modes::INACTIVE)
+				{
+					borderTopHeight = 0.0f;
+					BRASSA_mode = BRASSA_Modes::MAINMENU;
+				}
+				else
+				{
+					BRASSA_mode = BRASSA_Modes::INACTIVE;
+					BRASSA_UpdateConfigSettings();
+				}
+			}
+
+			startClick = 0;
+			menuVelocity.x+=2.0f;
+		}
+	}
 
 	// open BRASSA - <CTRL>+<T>
 	if(controls.Key_Down(0x51) && controls.Key_Down(VK_LCONTROL) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
@@ -3477,15 +3555,123 @@ void D3DProxyDevice::HandleTracking()
 				m_spShaderViewAdjustment->y_scaler = config.position_y_multiplier;
 				m_spShaderViewAdjustment->z_scaler = config.position_z_multiplier;
 
+				//We don't use Y-position tracking in DFC mode, user should be triggering crouch by moving up and down
+				float yPosition = (VRBoostValue[VRboostAxis::CameraTranslateY] / 20.0f) + tracker->primaryY;
+				if (m_DuckForCover.dfcStatus >= DFC_STANDING)
+					yPosition = 0.0f;
+
 				m_spShaderViewAdjustment->UpdatePosition(tracker->primaryYaw, tracker->primaryPitch, tracker->primaryRoll,
 					(VRBoostValue[VRboostAxis::CameraTranslateX] / 20.0f) + tracker->primaryX, 
-					(VRBoostValue[VRboostAxis::CameraTranslateY] / 20.0f) + tracker->primaryY,
+					yPosition,
 					(VRBoostValue[VRboostAxis::CameraTranslateZ] / 20.0f) + tracker->primaryZ,
 					config.position_multiplier);
 			}
+
+			//Now we test for whether we are using "duck for cover" (for crouch and prone)
+			if (m_DuckForCover.dfcStatus == DFC_STANDING)
+			{
+				//trigger crouching
+				if (tracker->y < (m_DuckForCover.yPos_Crouch * 0.7f))
+				{
+					m_DuckForCover.dfcStatus = DFC_CROUCH;
+					VireioPopup popup(VPT_NOTIFICATION, VPS_INFO, 250);
+					strcpy_s(popup.line[0], "Crouch");
+					ShowPopup(popup);
+
+					//Trigger crouch button
+					INPUT ip;
+					ip.type = INPUT_KEYBOARD;
+					ip.ki.wScan = 0;
+					ip.ki.time = 0;
+					ip.ki.dwExtraInfo = 0;
+					ip.ki.wVk = m_DuckForCover.crouchKey;
+					ip.ki.dwFlags = 0;
+					SendInput(1, &ip, sizeof(INPUT));
+					if (m_DuckForCover.crouchToggle)
+					{
+						ip.ki.dwFlags = KEYEVENTF_KEYUP;
+						SendInput(1, &ip, sizeof(INPUT));
+					}
+				}
+			}
+			else if (m_DuckForCover.dfcStatus == DFC_CROUCH)
+			{
+				if (tracker->y > (m_DuckForCover.yPos_Crouch * 0.3f))
+				{
+					//back to standing
+					m_DuckForCover.dfcStatus = DFC_STANDING;
+					VireioPopup popup(VPT_NOTIFICATION, VPS_INFO, 250);
+					strcpy_s(popup.line[0], "Standing");
+					ShowPopup(popup);
+
+					//Trigger crouch button
+					INPUT ip;
+					ip.type = INPUT_KEYBOARD;
+					ip.ki.wScan = 0;
+					ip.ki.time = 0;
+					ip.ki.dwExtraInfo = 0;
+					ip.ki.wVk = m_DuckForCover.crouchKey;
+					if (m_DuckForCover.crouchToggle)
+					{
+						ip.ki.dwFlags = 0;
+						SendInput(1, &ip, sizeof(INPUT));
+					}
+					ip.ki.dwFlags = KEYEVENTF_KEYUP;
+					SendInput(1, &ip, sizeof(INPUT));
+				}
+				else if (m_DuckForCover.proneEnabled && 
+					tracker->y < (m_DuckForCover.yPos_Crouch + m_DuckForCover.yPos_Prone * 0.7f))
+				{
+					m_DuckForCover.dfcStatus = DFC_PRONE;
+					VireioPopup popup(VPT_NOTIFICATION, VPS_INFO, 250);
+					strcpy_s(popup.line[0], "Prone");
+					ShowPopup(popup);
+
+					//Trigger prone button
+					INPUT ip;
+					ip.type = INPUT_KEYBOARD;
+					ip.ki.wScan = 0;
+					ip.ki.time = 0;
+					ip.ki.dwExtraInfo = 0;
+					ip.ki.wVk = m_DuckForCover.proneKey;
+					if (m_DuckForCover.proneToggle)
+					{
+						ip.ki.dwFlags = 0;
+						SendInput(1, &ip, sizeof(INPUT));
+					}
+					ip.ki.dwFlags = KEYEVENTF_KEYUP;
+					SendInput(1, &ip, sizeof(INPUT));
+				}
+			}
+			else if (m_DuckForCover.proneEnabled &&
+				m_DuckForCover.dfcStatus == DFC_PRONE)
+			{
+				if (tracker->y > (m_DuckForCover.yPos_Crouch + m_DuckForCover.yPos_Prone * 0.3f))
+				{
+					//back to crouching
+					m_DuckForCover.dfcStatus = DFC_CROUCH;
+					VireioPopup popup(VPT_NOTIFICATION, VPS_INFO, 250);
+					strcpy_s(popup.line[0], "Crouch");
+					ShowPopup(popup);
+
+					//Trigger prone button
+					INPUT ip;
+					ip.type = INPUT_KEYBOARD;
+					ip.ki.wScan = 0;
+					ip.ki.time = 0;
+					ip.ki.dwExtraInfo = 0;
+					ip.ki.wVk = m_DuckForCover.proneKey;
+					if (m_DuckForCover.proneToggle)
+					{
+						ip.ki.dwFlags = 0;
+						SendInput(1, &ip, sizeof(INPUT));
+					}
+					ip.ki.dwFlags = KEYEVENTF_KEYUP;
+					SendInput(1, &ip, sizeof(INPUT));
+				}
+			}
 		}
 	}
-
 		
 	m_spShaderViewAdjustment->ComputeViewTransforms();
 
@@ -4370,6 +4556,9 @@ void D3DProxyDevice::BRASSA()
 	case D3DProxyDevice::POS_TRACKING_SETTINGS:
 		BRASSA_PosTracking();
 		break;
+	case D3DProxyDevice::POSE_ASSIST_CONFIGURATION:
+		BRASSA_DuckForCover();
+		break;
 	case D3DProxyDevice::BRASSA_SHADER_ANALYZER_SUBMENU:
 		BRASSA_ShaderSubMenu();
 		break;
@@ -4931,7 +5120,7 @@ void D3DProxyDevice::BRASSA_Convergence()
 			convergenceChange *= 10.0f;
 		}
 
-		if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4C))
+		if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down(0x4C))
 			m_spShaderViewAdjustment->ChangeConvergence(convergenceChange * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f));
 		else
 			m_spShaderViewAdjustment->ChangeConvergence(convergenceChange);
@@ -6052,6 +6241,7 @@ void D3DProxyDevice::BRASSA_PosTracking()
 		TRACKING_MULT_Y,
 		TRACKING_MULT_Z,
 		RESET_HMD,
+		DuckForCover_CONFIG,
 		BACK_BRASSA,
 		BACK_GAME,
 		NUM_MENU_ITEMS
@@ -6088,10 +6278,16 @@ void D3DProxyDevice::BRASSA_PosTracking()
 			menuVelocity.x += 3.0f;
 		}
 
-		// reset orientation
+		// ientientation
 		if (entryID == RESET_HMD)
 		{
 			tracker->resetOrientationAndPosition();
+			menuVelocity.x += 3.0f;
+		}
+
+		if (entryID == DuckForCover_CONFIG)
+		{
+			BRASSA_mode = BRASSA_Modes::POSE_ASSIST_CONFIGURATION;
 			menuVelocity.x += 3.0f;
 		}
 
@@ -6180,12 +6376,12 @@ void D3DProxyDevice::BRASSA_PosTracking()
 	}
 
 
-	if ((controls.Key_Down(VK_RIGHT) || controls.Key_Down(0x4C) || (controls.xInputState.Gamepad.sThumbLX<-8192)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	if ((controls.Key_Down(VK_RIGHT) || controls.Key_Down(0x4C) || (controls.xInputState.Gamepad.sThumbLX>8192)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		// overall position multiplier
 		if (entryID == TRACKING_MULT)
 		{
-			if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
+			if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down(0x4A))
 				config.position_multiplier += 0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 			else
 				config.position_multiplier += 0.01f;
@@ -6195,7 +6391,7 @@ void D3DProxyDevice::BRASSA_PosTracking()
 		// overall position multiplier
 		if (entryID == TRACKING_MULT_X)
 		{
-			if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
+			if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down(0x4A))
 				config.position_x_multiplier += 0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 			else
 				config.position_x_multiplier += 0.01f;
@@ -6205,7 +6401,7 @@ void D3DProxyDevice::BRASSA_PosTracking()
 		// overall position multiplier
 		if (entryID == TRACKING_MULT_Y)
 		{
-			if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
+			if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down(0x4A))
 				config.position_y_multiplier += 0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 			else
 				config.position_y_multiplier += 0.01f;
@@ -6215,7 +6411,7 @@ void D3DProxyDevice::BRASSA_PosTracking()
 		// overall position multiplier
 		if (entryID == TRACKING_MULT_Z)
 		{
-			if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
+			if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down(0x4A))
 				config.position_z_multiplier += 0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 			else
 				config.position_z_multiplier += 0.01f;
@@ -6274,7 +6470,215 @@ void D3DProxyDevice::BRASSA_PosTracking()
 		sprintf_s(vcString,"Position Z-Tracking multiplier : %g", RoundBrassaValue(config.position_z_multiplier));
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Reset HMD Orientation (CTRL + R)", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "Reset HMD Orientation (LSHIFT + R)", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawTextShadowed(hudFont, hudMainMenu, "\"Duck-for-Cover\" Configuration", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawTextShadowed(hudFont, hudMainMenu, "Back to BRASSA Menu", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+
+		menuHelperRect.left = 0;
+		menuHelperRect.top = 0;
+
+		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
+		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));
+		hudMainMenu->End();
+	}
+}
+
+/**
+* BRASSA configure pose assist.
+***/
+void D3DProxyDevice::BRASSA_DuckForCover()
+{
+	#ifdef SHOW_CALLS
+		OutputDebugString("called BRASSA_DuckForCover");
+	#endif
+
+	enum
+	{
+		CROUCH_KEY,
+		CROUCH_TOGGLE,
+		CROUCH_Y_POS,
+		PRONE_KEY,
+		PRONE_TOGGLE,
+		PRONE_Y_POS,
+		START_DUCKFORCOVER_CALIBRATE,
+		BACK_BRASSA,
+		BACK_GAME,
+		NUM_MENU_ITEMS
+	};
+
+	UINT menuEntryCount = NUM_MENU_ITEMS;
+
+	menuHelperRect.left = 0;
+	menuHelperRect.top = 0;
+
+	UINT entryID;
+	BRASSA_NewFrame(entryID, menuEntryCount);
+	UINT borderSelection = entryID;
+	controls.UpdateXInputs();
+
+	if ((hotkeyCatch) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	{
+		for (int i = 0; i < 256; i++)
+			if (controls.Key_Down(i) && controls.GetKeyName(i)!="-")
+			{
+				hotkeyCatch = false;
+				if(entryID == CROUCH_KEY)
+					m_DuckForCover.crouchKey = (byte)i;
+				else
+					m_DuckForCover.proneKey = (byte)i;
+
+				break;
+			}
+	}
+	else
+	{
+		/**
+		* ESCAPE : Set BRASSA inactive and save the configuration.
+		***/
+		if (controls.Key_Down(VK_ESCAPE))
+		{
+			BRASSA_mode = BRASSA_Modes::INACTIVE;
+			BRASSA_UpdateConfigSettings();
+		}
+
+		if ((controls.Key_Down(VK_RETURN) || controls.Key_Down(VK_RSHIFT) || (controls.xButtonsStatus[0x0c])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		{
+			if (entryID == CROUCH_KEY)
+			{
+				hotkeyCatch = true;
+				menuVelocity.x+=2.0f;
+			}
+
+			if (entryID == CROUCH_TOGGLE)
+			{
+				m_DuckForCover.crouchToggle = !m_DuckForCover.crouchToggle;
+				menuVelocity.x+=2.0f;
+			}
+
+			if (entryID == PRONE_KEY)
+			{
+				hotkeyCatch = true;
+				menuVelocity.x+=2.0f;
+			}
+
+			if (entryID == PRONE_TOGGLE)
+			{
+				m_DuckForCover.proneToggle = !m_DuckForCover.proneToggle;
+				menuVelocity.x+=2.0f;
+			}
+
+			// start "pose assist" calibration
+			if (entryID == START_DUCKFORCOVER_CALIBRATE)
+			{
+				BRASSA_mode = BRASSA_Modes::INACTIVE;
+				m_DuckForCover.dfcStatus = DFC_CAL_STANDING;
+				menuVelocity.x += 3.0f;
+			}
+
+			// back to main menu
+			if (entryID == BACK_BRASSA)
+			{
+				BRASSA_mode = BRASSA_Modes::MAINMENU;
+				BRASSA_UpdateConfigSettings();
+				menuVelocity.x+=2.0f;
+			}
+
+			// back to game
+			if (entryID == BACK_GAME)
+			{
+				BRASSA_mode = BRASSA_Modes::INACTIVE;
+				BRASSA_UpdateConfigSettings();
+			}
+		}
+	}
+
+	// output menu
+	if (hudFont)
+	{
+		// adjust border
+		float borderDrawingHeight = borderTopHeight;
+		if ((menuVelocity.y < 1.0f) && (menuVelocity.y > -1.0f))
+			borderTopHeight = menuTop+menuEntryHeight*(float)borderSelection;
+
+		// draw border - total width due to shift correction
+		D3DRECT rect;
+		rect.x1 = (int)0; rect.x2 = (int)viewportWidth; rect.y1 = (int)borderTopHeight; rect.y2 = (int)(borderTopHeight+viewportHeight*0.04f);
+		ClearEmptyRect(vireio::RenderPosition::Left, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
+		ClearEmptyRect(vireio::RenderPosition::Right, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
+
+		hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
+
+		D3DXMATRIX matScale;
+		D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
+		hudMainMenu->SetTransform(&matScale);
+
+		menuHelperRect.left = 550;
+		menuHelperRect.top = 300;
+		DrawTextShadowed(hudFont, hudMainMenu, "Pose Assist Configuration\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect.x1 = 0; rect.x2 = viewportWidth; rect.y1 = (int)(335*fScaleY); rect.y2 = (int)(340*fScaleY);
+		Clear(1, &rect, D3DCLEAR_TARGET, D3DCOLOR_ARGB(255,255,128,128), 0, 0);
+
+		menuHelperRect.top += 50;  menuHelperRect.left += 250; float guiQSHeight = (float)menuHelperRect.top * fScaleY;
+		char vcString[128];
+
+		sprintf_s(vcString,"Crouch Key : ");
+		std::string stdString = std::string(vcString);
+		stdString.append(controls.GetKeyName(m_DuckForCover.crouchKey));
+		if ((hotkeyCatch) && (entryID==CROUCH_KEY))
+			stdString = "Press the desired key.";
+		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		menuHelperRect.top += MENU_ITEM_SEPARATION;
+
+		switch (m_DuckForCover.crouchToggle)
+		{
+		case true:
+			DrawTextShadowed(hudFont, hudMainMenu, "Crouch : Toggle", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			break;
+		case false:
+			DrawTextShadowed(hudFont, hudMainMenu, "Crouch : Hold", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			break;
+		}
+		menuHelperRect.top += MENU_ITEM_SEPARATION;
+
+		sprintf_s(vcString, "Crouch Trigger Y-Position: %f", m_DuckForCover.yPos_Crouch);
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		menuHelperRect.top += MENU_ITEM_SEPARATION;
+
+		sprintf_s(vcString,"Prone Key : ");
+		stdString = std::string(vcString);
+		stdString.append(controls.GetKeyName(m_DuckForCover.proneKey));
+		if ((hotkeyCatch) && (entryID==PRONE_KEY))
+			stdString = "Press the desired key.";
+		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		menuHelperRect.top += MENU_ITEM_SEPARATION;
+
+		if (!m_DuckForCover.proneEnabled)
+		{
+			DrawTextShadowed(hudFont, hudMainMenu, "Prone : Disabled", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 64, 64));
+		}
+		else
+		{
+			switch (m_DuckForCover.proneToggle)
+			{
+			case true:
+				DrawTextShadowed(hudFont, hudMainMenu, "Prone : Toggle", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+				break;
+			case false:
+				DrawTextShadowed(hudFont, hudMainMenu, "Prone : Hold", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+				break;
+			}
+		}
+		menuHelperRect.top += MENU_ITEM_SEPARATION;
+
+		sprintf_s(vcString, "Prone Trigger Y-Position: %f", m_DuckForCover.yPos_Prone);
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		menuHelperRect.top += MENU_ITEM_SEPARATION;
+
+		DrawTextShadowed(hudFont, hudMainMenu, "Start \"Duck-for-Cover\" Calibration", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		DrawTextShadowed(hudFont, hudMainMenu, "Back to BRASSA Menu", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
@@ -6766,15 +7170,79 @@ void D3DProxyDevice::BRASSA_AdditionalOutput()
 	//if ((BRASSA_mode>=BRASSA_Modes::MAINMENU) && (BRASSA_mode<BRASSA_Modes::BRASSA_ENUM_RANGE))
 	//return;
 
+	//Having this here will hijack any other notification - this is intentional
+	if (m_DuckForCover.dfcStatus > DFC_INACTIVE &&
+		m_DuckForCover.dfcStatus < DFC_STANDING)
+	{
+		DuckForCoverCalibrate();
+	}
+
 	//Finally, draw any popups if required
 	DisplayCurrentPopup();
 }
+
+void D3DProxyDevice::DuckForCoverCalibrate()
+{
+	switch (m_DuckForCover.dfcStatus)
+	{
+	case DFC_CAL_STANDING:
+		{
+			VireioPopup popup(VPT_NOTIFICATION, VPS_INFO);
+			strcpy_s(popup.line[0], "\"Duck-for-cover\" Mode");
+			strcpy_s(popup.line[1], "=====================");
+			strcpy_s(popup.line[2], "Step 1:");
+			strcpy_s(popup.line[3], " - Move to the standing position you will be playing in");
+			strcpy_s(popup.line[4], " - Push A on the XBOX360 controller");
+			ShowPopup(popup);
+		}
+		break;
+	case DFC_CAL_CROUCHING:
+		{
+			DismissPopup(VPT_NOTIFICATION);
+			VireioPopup popup(VPT_NOTIFICATION, VPS_INFO);
+			strcpy_s(popup.line[0], "\"Duck-for-cover\" Mode");
+			strcpy_s(popup.line[1], "=====================");
+			strcpy_s(popup.line[2], "Step 2:");
+			strcpy_s(popup.line[3], " - Move to a crouching position");
+			strcpy_s(popup.line[4], " - Push A on the XBOX360 controller");
+			ShowPopup(popup);
+		}
+		break;
+	case DFC_CAL_PRONE:
+		{
+			DismissPopup(VPT_NOTIFICATION);
+			VireioPopup popup(VPT_NOTIFICATION, VPS_INFO);
+			strcpy_s(popup.line[0], "\"Duck-for-cover\" Mode");
+			strcpy_s(popup.line[1], "=====================");
+			strcpy_s(popup.line[2], "Step 3 (optional):");
+			strcpy_s(popup.line[3], " - Move to a prone position");
+			strcpy_s(popup.line[4], " - Push A button on the XBOX360 controller");
+			strcpy_s(popup.line[5], " - or Push B button on the controller to skip");
+			ShowPopup(popup);
+		}
+		break;
+	case DFC_CAL_COMPLETE:
+		{
+			DismissPopup(VPT_NOTIFICATION);
+			VireioPopup popup(VPT_NOTIFICATION, VPS_INFO);
+			strcpy_s(popup.line[0], "\"Duck-for-cover\" Mode");
+			strcpy_s(popup.line[1], "=====================");
+			strcpy_s(popup.line[2], "Step 4:");
+			strcpy_s(popup.line[3], " - Calibration is complete");
+			strcpy_s(popup.line[3], " - Return to the standing position you will be playing in");
+			strcpy_s(popup.line[4], " - Push A on the XBOX360 controller");
+			ShowPopup(popup);
+		}
+		break;
+	}
+}
+
 
 void D3DProxyDevice::DisplayCurrentPopup()
 {
 	//We don't want to show any notification for the first few seconds (seems to cause an issue in some games!)
 	static DWORD initialTick = GetTickCount();
-	if ((GetTickCount() - initialTick) < 2500)
+	if ((GetTickCount() - initialTick) < 2000)
 		return;
 
 	if ((activePopup.popupType == VPT_NONE && show_fps == FPS_NONE) || 

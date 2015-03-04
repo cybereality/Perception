@@ -227,6 +227,7 @@ public:
 		OVERALL_SETTINGS,
 		VRBOOST_VALUES,
 		POS_TRACKING_SETTINGS,
+		POSE_ASSIST_CONFIGURATION,
 		BRASSA_SHADER_ANALYZER_SUBMENU,
 		CHANGE_RULES_SCREEN,
 		PICK_RULES_SCREEN,
@@ -259,6 +260,52 @@ public:
 	};
 
 	/**
+	* Pose Assist stages
+	***/
+	enum DuckForCoverMode
+	{
+		DFC_INACTIVE,
+		//Calibration
+		DFC_CAL_STANDING,
+		DFC_CAL_CROUCHING,
+		DFC_CAL_PRONE,
+		DFC_CAL_COMPLETE,
+		//Active
+		DFC_STANDING,
+		DFC_CROUCH,
+		DFC_PRONE
+	};
+
+	struct DuckForCover
+	{
+		DuckForCover() : 
+			dfcStatus(DFC_INACTIVE),
+			crouchKey(VK_CONTROL),
+			crouchToggle(false),
+			yPos_Crouch(0.0f),
+			proneKey(0x5A),
+			proneToggle(true),
+			yPos_Prone(0.0f),
+			proneEnabled(false) {}
+
+		DuckForCoverMode dfcStatus;
+
+		byte crouchKey;
+		bool crouchToggle;
+		float yPos_Crouch;
+
+		bool proneEnabled;
+		byte proneKey;
+		bool proneToggle;
+		float yPos_Prone;
+	} m_DuckForCover;
+
+	/**
+	* Calibrate the pose assist (for crouch/prone toggle using HMD's Y position)
+	*/
+	void DuckForCoverCalibrate();
+
+	/**
 	* Game-specific proxy configuration.
 	**/
 	ProxyHelper::ProxyConfig config;
@@ -271,26 +318,7 @@ public:
 	* Currently not used.
 	***/
 	float* currentMatrix;
-	/**
-	* View translation settings (yaw - 0 disabled, 1 enabled).
-	**/
-	int yaw_mode;			
-	/**
-	* View translation settings (pitch - 0 disabled, 1 enabled).
-	**/
-	int pitch_mode;			
-	/**
-	* Currently not used (For head translation).
-	**/
-	int translation_mode;	
-	/**
-	* True if head tracking is enabled.
-	**/
-	bool trackingOn;
-	/**
-	* Currently not used, eye shutter side from old code.
-	**/
-	int eyeShutter;
+
 	/**
 	* Currently not used aspect ratio.
 	**/
@@ -659,6 +687,7 @@ private:
 	void    BRASSA_Settings();
 	void    BRASSA_VRBoostValues();
 	void	BRASSA_PosTracking();
+	void	BRASSA_DuckForCover();
 	void    BRASSA_UpdateBorder();
 	void    BRASSA_UpdateConfigSettings();
 	void    BRASSA_UpdateDeviceSettings();

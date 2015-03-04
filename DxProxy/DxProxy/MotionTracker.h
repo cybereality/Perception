@@ -63,6 +63,7 @@ public:
 	/*** MotionTracker virtual public methods ***/
 	virtual void init();
 	virtual void resetOrientationAndPosition() {}
+	virtual void resetPosition() {}
 	virtual int  getOrientationAndPosition(float* yaw, float* pitch, float* roll, float* x, float* y, float* z);
 	virtual void updateOrientationAndPosition();
 	virtual MotionTrackerStatus getStatus();

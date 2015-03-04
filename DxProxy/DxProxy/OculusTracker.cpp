@@ -209,6 +209,44 @@ void OculusTracker::resetOrientationAndPosition()
 }
 
 /**
+* Oculus reset.
+* Resets the positional values only - As per Oculus VR, only x/y/z should be reset
+***/
+void OculusTracker::resetPosition()
+{
+#ifdef SHOW_CALLS
+	OutputDebugString("OculusTracker resetOrientationAndPosition\n");
+#endif
+
+	offsetX = 0.0f;
+	offsetY = 0.0f;
+	offsetZ = 0.0f;
+
+	//Force OVR positional reset
+	ovrHmd_RecenterPose(hmd);
+
+	ovrTrackingState ts = ovrHmd_GetTrackingState(hmd, ovr_GetTimeInSeconds());
+	
+	if (ts.StatusFlags & ovrStatus_PositionConnected)
+	{
+		if (ts.StatusFlags & ovrStatus_PositionTracked)
+		{
+			offsetX = ts.HeadPose.ThePose.Position.x;
+			offsetY = ts.HeadPose.ThePose.Position.y;
+			offsetZ = ts.HeadPose.ThePose.Position.z;
+		}
+		else
+			status = MTS_LOSTPOSITIONAL;
+	}
+
+#ifdef SHOW_CALLS
+	char buf[256];
+	sprintf_s(buf, "resetPosition: %i", (int)status);
+	OutputDebugString(buf);
+#endif 
+}
+
+/**
 * Retrieve Oculus tracker orientation.
 * Reads device input and returns orientation (yaw and roll negated). All Orientations are in degrees.
 * Roll gets converted back to radians in updateOrientation.
