@@ -227,7 +227,7 @@ public:
 		OVERALL_SETTINGS,
 		VRBOOST_VALUES,
 		POS_TRACKING_SETTINGS,
-		POSE_ASSIST_CONFIGURATION,
+		DUCKANDCOVER_CONFIGURATION,
 		BRASSA_SHADER_ANALYZER_SUBMENU,
 		CHANGE_RULES_SCREEN,
 		PICK_RULES_SCREEN,
@@ -262,24 +262,26 @@ public:
 	/**
 	* Pose Assist stages
 	***/
-	enum DuckForCoverMode
+	enum DuckAndCoverMode
 	{
-		DFC_INACTIVE,
+		DAC_INACTIVE,
 		//Calibration
-		DFC_CAL_STANDING,
-		DFC_CAL_CROUCHING,
-		DFC_CAL_PRONE,
-		DFC_CAL_COMPLETE,
+		DAC_CAL_STANDING,
+		DAC_CAL_CROUCHING,
+		DAC_CAL_PRONE,
+		DAC_CAL_COMPLETE,
+		//Calibrated but not active
+		DAC_DISABLED,
 		//Active
-		DFC_STANDING,
-		DFC_CROUCH,
-		DFC_PRONE
+		DAC_STANDING,
+		DAC_CROUCH,
+		DAC_PRONE
 	};
 
-	struct DuckForCover
+	struct DuckAndCover
 	{
-		DuckForCover() : 
-			dfcStatus(DFC_INACTIVE),
+		DuckAndCover() : 
+			dfcStatus(DAC_INACTIVE),
 			crouchKey(VK_CONTROL),
 			crouchToggle(false),
 			yPos_Crouch(0.0f),
@@ -288,7 +290,7 @@ public:
 			yPos_Prone(0.0f),
 			proneEnabled(false) {}
 
-		DuckForCoverMode dfcStatus;
+		DuckAndCoverMode dfcStatus;
 
 		byte crouchKey;
 		bool crouchToggle;
@@ -298,12 +300,12 @@ public:
 		byte proneKey;
 		bool proneToggle;
 		float yPos_Prone;
-	} m_DuckForCover;
+	} m_DuckAndCover;
 
 	/**
-	* Calibrate the pose assist (for crouch/prone toggle using HMD's Y position)
+	* Calibrate the duck-and-cover mode (for crouch/prone toggle using HMD's Y position)
 	*/
-	void DuckForCoverCalibrate();
+	void DuckAndCoverCalibrate();
 
 	/**
 	* Game-specific proxy configuration.
@@ -687,7 +689,7 @@ private:
 	void    BRASSA_Settings();
 	void    BRASSA_VRBoostValues();
 	void	BRASSA_PosTracking();
-	void	BRASSA_DuckForCover();
+	void	BRASSA_DuckAndCover();
 	void    BRASSA_UpdateBorder();
 	void    BRASSA_UpdateConfigSettings();
 	void    BRASSA_UpdateDeviceSettings();

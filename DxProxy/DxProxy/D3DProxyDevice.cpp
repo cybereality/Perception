@@ -2501,33 +2501,33 @@ void D3DProxyDevice::HandleControls()
 	}
 
 	//Duck for cover - trigger crouch and prone keys if Y position of HMD moves appropriately
-	if (m_DuckForCover.dfcStatus > DFC_INACTIVE &&
-		m_DuckForCover.dfcStatus < DFC_STANDING && tracker &&
+	if (m_DuckAndCover.dfcStatus > DAC_INACTIVE &&
+		m_DuckAndCover.dfcStatus < DAC_DISABLED && tracker &&
 		tracker->getStatus() >= MTS_OK)
 	{
 		if (controls.xButtonsStatus[0x0c] && menuVelocity == D3DXVECTOR2(0.0f, 0.0f))
 		{
-			if (m_DuckForCover.dfcStatus == DFC_CAL_STANDING)
+			if (m_DuckAndCover.dfcStatus == DAC_CAL_STANDING)
 			{
 				//Reset positional ready for the next stage
 				tracker->resetPosition();
-				m_DuckForCover.dfcStatus = DFC_CAL_CROUCHING;
+				m_DuckAndCover.dfcStatus = DAC_CAL_CROUCHING;
 			}
-			else if (m_DuckForCover.dfcStatus == DFC_CAL_CROUCHING)
+			else if (m_DuckAndCover.dfcStatus == DAC_CAL_CROUCHING)
 			{
-				m_DuckForCover.yPos_Crouch = tracker->y;
-				m_DuckForCover.dfcStatus = DFC_CAL_PRONE;
+				m_DuckAndCover.yPos_Crouch = tracker->y;
+				m_DuckAndCover.dfcStatus = DAC_CAL_PRONE;
 			}
-			else if (m_DuckForCover.dfcStatus == DFC_CAL_PRONE)
+			else if (m_DuckAndCover.dfcStatus == DAC_CAL_PRONE)
 			{
-				m_DuckForCover.proneEnabled = true;
-				m_DuckForCover.yPos_Prone = tracker->y - m_DuckForCover.yPos_Crouch;
-				m_DuckForCover.dfcStatus = DFC_CAL_COMPLETE;
+				m_DuckAndCover.proneEnabled = true;
+				m_DuckAndCover.yPos_Prone = tracker->y - m_DuckAndCover.yPos_Crouch;
+				m_DuckAndCover.dfcStatus = DAC_CAL_COMPLETE;
 			}
-			else if (m_DuckForCover.dfcStatus == DFC_CAL_COMPLETE)
+			else if (m_DuckAndCover.dfcStatus == DAC_CAL_COMPLETE)
 			{
 				//Ready to go..
-				m_DuckForCover.dfcStatus = DFC_STANDING;
+				m_DuckAndCover.dfcStatus = DAC_STANDING;
 				tracker->resetPosition();
 				DismissPopup(VPT_NOTIFICATION);
 			}
@@ -2536,10 +2536,10 @@ void D3DProxyDevice::HandleControls()
 		//B button only skips the prone position
 		else if (controls.xButtonsStatus[0x0d] && menuVelocity == D3DXVECTOR2(0.0f, 0.0f))
 		{
-			if (m_DuckForCover.dfcStatus == DFC_CAL_PRONE)
+			if (m_DuckAndCover.dfcStatus == DAC_CAL_PRONE)
 			{
-				m_DuckForCover.proneEnabled = false;
-				m_DuckForCover.dfcStatus = DFC_CAL_COMPLETE;
+				m_DuckAndCover.proneEnabled = false;
+				m_DuckAndCover.dfcStatus = DAC_CAL_COMPLETE;
 			}
 			menuVelocity.x += 5.0f;
 		}
@@ -3555,10 +3555,10 @@ void D3DProxyDevice::HandleTracking()
 				m_spShaderViewAdjustment->y_scaler = config.position_y_multiplier;
 				m_spShaderViewAdjustment->z_scaler = config.position_z_multiplier;
 
-				//We don't use Y-position tracking in DFC mode, user should be triggering crouch by moving up and down
+				//Use reduced Y-position tracking in DFC mode, user should be triggering crouch by moving up and down
 				float yPosition = (VRBoostValue[VRboostAxis::CameraTranslateY] / 20.0f) + tracker->primaryY;
-				if (m_DuckForCover.dfcStatus >= DFC_STANDING)
-					yPosition = 0.0f;
+				if (m_DuckAndCover.dfcStatus >= DAC_STANDING)
+					yPosition /= 3.0f;
 
 				m_spShaderViewAdjustment->UpdatePosition(tracker->primaryYaw, tracker->primaryPitch, tracker->primaryRoll,
 					(VRBoostValue[VRboostAxis::CameraTranslateX] / 20.0f) + tracker->primaryX, 
@@ -3568,12 +3568,12 @@ void D3DProxyDevice::HandleTracking()
 			}
 
 			//Now we test for whether we are using "duck for cover" (for crouch and prone)
-			if (m_DuckForCover.dfcStatus == DFC_STANDING)
+			if (m_DuckAndCover.dfcStatus == DAC_STANDING)
 			{
 				//trigger crouching
-				if (tracker->y < (m_DuckForCover.yPos_Crouch * 0.7f))
+				if (tracker->y < (m_DuckAndCover.yPos_Crouch * 0.55f))
 				{
-					m_DuckForCover.dfcStatus = DFC_CROUCH;
+					m_DuckAndCover.dfcStatus = DAC_CROUCH;
 					VireioPopup popup(VPT_NOTIFICATION, VPS_INFO, 250);
 					strcpy_s(popup.line[0], "Crouch");
 					ShowPopup(popup);
@@ -3581,48 +3581,47 @@ void D3DProxyDevice::HandleTracking()
 					//Trigger crouch button
 					INPUT ip;
 					ip.type = INPUT_KEYBOARD;
-					ip.ki.wScan = 0;
+					ip.ki.wScan = MapVirtualKey(m_DuckAndCover.crouchKey, MAPVK_VK_TO_VSC);
 					ip.ki.time = 0;
 					ip.ki.dwExtraInfo = 0;
-					ip.ki.wVk = m_DuckForCover.crouchKey;
-					ip.ki.dwFlags = 0;
+					ip.ki.wVk = 0;
+					ip.ki.dwFlags = KEYEVENTF_SCANCODE;
 					SendInput(1, &ip, sizeof(INPUT));
-					if (m_DuckForCover.crouchToggle)
+					if (m_DuckAndCover.crouchToggle)
 					{
-						ip.ki.dwFlags = KEYEVENTF_KEYUP;
+						ip.ki.dwFlags = KEYEVENTF_SCANCODE|KEYEVENTF_KEYUP;
 						SendInput(1, &ip, sizeof(INPUT));
 					}
 				}
 			}
-			else if (m_DuckForCover.dfcStatus == DFC_CROUCH)
+			else if (m_DuckAndCover.dfcStatus == DAC_CROUCH)
 			{
-				if (tracker->y > (m_DuckForCover.yPos_Crouch * 0.3f))
+				if (tracker->y > (m_DuckAndCover.yPos_Crouch * 0.45f))
 				{
 					//back to standing
-					m_DuckForCover.dfcStatus = DFC_STANDING;
+					m_DuckAndCover.dfcStatus = DAC_STANDING;
 					VireioPopup popup(VPT_NOTIFICATION, VPS_INFO, 250);
 					strcpy_s(popup.line[0], "Standing");
 					ShowPopup(popup);
 
-					//Trigger crouch button
 					INPUT ip;
 					ip.type = INPUT_KEYBOARD;
-					ip.ki.wScan = 0;
+					ip.ki.wScan = MapVirtualKey(m_DuckAndCover.crouchKey, MAPVK_VK_TO_VSC);
 					ip.ki.time = 0;
 					ip.ki.dwExtraInfo = 0;
-					ip.ki.wVk = m_DuckForCover.crouchKey;
-					if (m_DuckForCover.crouchToggle)
+					ip.ki.wVk = 0;
+					ip.ki.dwFlags = KEYEVENTF_SCANCODE;
+					if (m_DuckAndCover.crouchToggle)
 					{
-						ip.ki.dwFlags = 0;
 						SendInput(1, &ip, sizeof(INPUT));
 					}
-					ip.ki.dwFlags = KEYEVENTF_KEYUP;
+					ip.ki.dwFlags = KEYEVENTF_SCANCODE|KEYEVENTF_KEYUP;
 					SendInput(1, &ip, sizeof(INPUT));
 				}
-				else if (m_DuckForCover.proneEnabled && 
-					tracker->y < (m_DuckForCover.yPos_Crouch + m_DuckForCover.yPos_Prone * 0.7f))
+				else if (m_DuckAndCover.proneEnabled && 
+					tracker->y < (m_DuckAndCover.yPos_Crouch + m_DuckAndCover.yPos_Prone * 0.55f))
 				{
-					m_DuckForCover.dfcStatus = DFC_PRONE;
+					m_DuckAndCover.dfcStatus = DAC_PRONE;
 					VireioPopup popup(VPT_NOTIFICATION, VPS_INFO, 250);
 					strcpy_s(popup.line[0], "Prone");
 					ShowPopup(popup);
@@ -3630,26 +3629,26 @@ void D3DProxyDevice::HandleTracking()
 					//Trigger prone button
 					INPUT ip;
 					ip.type = INPUT_KEYBOARD;
-					ip.ki.wScan = 0;
+					ip.ki.wScan = MapVirtualKey(m_DuckAndCover.proneKey, MAPVK_VK_TO_VSC);
 					ip.ki.time = 0;
 					ip.ki.dwExtraInfo = 0;
-					ip.ki.wVk = m_DuckForCover.proneKey;
-					if (m_DuckForCover.proneToggle)
+					ip.ki.wVk = 0;
+					ip.ki.dwFlags = KEYEVENTF_SCANCODE;
+					SendInput(1, &ip, sizeof(INPUT));
+					if (m_DuckAndCover.proneToggle)
 					{
-						ip.ki.dwFlags = 0;
+						ip.ki.dwFlags = KEYEVENTF_SCANCODE|KEYEVENTF_KEYUP;
 						SendInput(1, &ip, sizeof(INPUT));
 					}
-					ip.ki.dwFlags = KEYEVENTF_KEYUP;
-					SendInput(1, &ip, sizeof(INPUT));
 				}
 			}
-			else if (m_DuckForCover.proneEnabled &&
-				m_DuckForCover.dfcStatus == DFC_PRONE)
+			else if (m_DuckAndCover.proneEnabled &&
+				m_DuckAndCover.dfcStatus == DAC_PRONE)
 			{
-				if (tracker->y > (m_DuckForCover.yPos_Crouch + m_DuckForCover.yPos_Prone * 0.3f))
+				if (tracker->y > (m_DuckAndCover.yPos_Crouch + m_DuckAndCover.yPos_Prone * 0.45f))
 				{
 					//back to crouching
-					m_DuckForCover.dfcStatus = DFC_CROUCH;
+					m_DuckAndCover.dfcStatus = DAC_CROUCH;
 					VireioPopup popup(VPT_NOTIFICATION, VPS_INFO, 250);
 					strcpy_s(popup.line[0], "Crouch");
 					ShowPopup(popup);
@@ -3657,16 +3656,16 @@ void D3DProxyDevice::HandleTracking()
 					//Trigger prone button
 					INPUT ip;
 					ip.type = INPUT_KEYBOARD;
-					ip.ki.wScan = 0;
+					ip.ki.wScan = MapVirtualKey(m_DuckAndCover.proneKey, MAPVK_VK_TO_VSC);
 					ip.ki.time = 0;
 					ip.ki.dwExtraInfo = 0;
-					ip.ki.wVk = m_DuckForCover.proneKey;
-					if (m_DuckForCover.proneToggle)
+					ip.ki.wVk = 0;
+					ip.ki.dwFlags = KEYEVENTF_SCANCODE;
+					if (m_DuckAndCover.proneToggle)
 					{
-						ip.ki.dwFlags = 0;
 						SendInput(1, &ip, sizeof(INPUT));
 					}
-					ip.ki.dwFlags = KEYEVENTF_KEYUP;
+					ip.ki.dwFlags = KEYEVENTF_SCANCODE|KEYEVENTF_KEYUP;
 					SendInput(1, &ip, sizeof(INPUT));
 				}
 			}
@@ -4556,8 +4555,8 @@ void D3DProxyDevice::BRASSA()
 	case D3DProxyDevice::POS_TRACKING_SETTINGS:
 		BRASSA_PosTracking();
 		break;
-	case D3DProxyDevice::POSE_ASSIST_CONFIGURATION:
-		BRASSA_DuckForCover();
+	case D3DProxyDevice::DUCKANDCOVER_CONFIGURATION:
+		BRASSA_DuckAndCover();
 		break;
 	case D3DProxyDevice::BRASSA_SHADER_ANALYZER_SUBMENU:
 		BRASSA_ShaderSubMenu();
@@ -6241,7 +6240,7 @@ void D3DProxyDevice::BRASSA_PosTracking()
 		TRACKING_MULT_Y,
 		TRACKING_MULT_Z,
 		RESET_HMD,
-		DuckForCover_CONFIG,
+		DuckAndCover_CONFIG,
 		BACK_BRASSA,
 		BACK_GAME,
 		NUM_MENU_ITEMS
@@ -6285,9 +6284,9 @@ void D3DProxyDevice::BRASSA_PosTracking()
 			menuVelocity.x += 3.0f;
 		}
 
-		if (entryID == DuckForCover_CONFIG)
+		if (entryID == DuckAndCover_CONFIG)
 		{
-			BRASSA_mode = BRASSA_Modes::POSE_ASSIST_CONFIGURATION;
+			BRASSA_mode = BRASSA_Modes::DUCKANDCOVER_CONFIGURATION;
 			menuVelocity.x += 3.0f;
 		}
 
@@ -6472,7 +6471,7 @@ void D3DProxyDevice::BRASSA_PosTracking()
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		DrawTextShadowed(hudFont, hudMainMenu, "Reset HMD Orientation (LSHIFT + R)", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "\"Duck-for-Cover\" Configuration", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "\"Duck-and-Cover\" Configuration", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		DrawTextShadowed(hudFont, hudMainMenu, "Back to BRASSA Menu", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
@@ -6490,21 +6489,20 @@ void D3DProxyDevice::BRASSA_PosTracking()
 /**
 * BRASSA configure pose assist.
 ***/
-void D3DProxyDevice::BRASSA_DuckForCover()
+void D3DProxyDevice::BRASSA_DuckAndCover()
 {
 	#ifdef SHOW_CALLS
-		OutputDebugString("called BRASSA_DuckForCover");
+		OutputDebugString("called BRASSA_DuckAndCover");
 	#endif
 
 	enum
 	{
 		CROUCH_KEY,
 		CROUCH_TOGGLE,
-		CROUCH_Y_POS,
 		PRONE_KEY,
 		PRONE_TOGGLE,
-		PRONE_Y_POS,
-		START_DUCKFORCOVER_CALIBRATE,
+		DUCKANDCOVER_CALIBRATE,
+		DUCKANDCOVER_MODE,
 		BACK_BRASSA,
 		BACK_GAME,
 		NUM_MENU_ITEMS
@@ -6527,9 +6525,9 @@ void D3DProxyDevice::BRASSA_DuckForCover()
 			{
 				hotkeyCatch = false;
 				if(entryID == CROUCH_KEY)
-					m_DuckForCover.crouchKey = (byte)i;
+					m_DuckAndCover.crouchKey = (byte)i;
 				else
-					m_DuckForCover.proneKey = (byte)i;
+					m_DuckAndCover.proneKey = (byte)i;
 
 				break;
 			}
@@ -6555,7 +6553,7 @@ void D3DProxyDevice::BRASSA_DuckForCover()
 
 			if (entryID == CROUCH_TOGGLE)
 			{
-				m_DuckForCover.crouchToggle = !m_DuckForCover.crouchToggle;
+				m_DuckAndCover.crouchToggle = !m_DuckAndCover.crouchToggle;
 				menuVelocity.x+=2.0f;
 			}
 
@@ -6567,15 +6565,41 @@ void D3DProxyDevice::BRASSA_DuckForCover()
 
 			if (entryID == PRONE_TOGGLE)
 			{
-				m_DuckForCover.proneToggle = !m_DuckForCover.proneToggle;
+				m_DuckAndCover.proneToggle = !m_DuckAndCover.proneToggle;
 				menuVelocity.x+=2.0f;
 			}
 
-			// start "pose assist" calibration
-			if (entryID == START_DUCKFORCOVER_CALIBRATE)
+			// start calibration
+			if (entryID == DUCKANDCOVER_CALIBRATE)
 			{
-				BRASSA_mode = BRASSA_Modes::INACTIVE;
-				m_DuckForCover.dfcStatus = DFC_CAL_STANDING;
+				if (m_DuckAndCover.dfcStatus = DAC_INACTIVE)
+				{
+					BRASSA_mode = BRASSA_Modes::INACTIVE;
+					m_DuckAndCover.dfcStatus = DAC_CAL_STANDING;
+				}
+					
+				menuVelocity.x += 3.0f;
+			}
+
+			// enable/disable - calibrate if not previously calibrated
+			if (entryID == DUCKANDCOVER_MODE)
+			{
+				if (m_DuckAndCover.dfcStatus = DAC_INACTIVE)
+				{
+					BRASSA_mode = BRASSA_Modes::INACTIVE;
+					m_DuckAndCover.dfcStatus = DAC_CAL_STANDING;
+				}
+				else if (m_DuckAndCover.dfcStatus = DAC_DISABLED)
+				{
+					//Already calibrated, so just set to standing again
+					m_DuckAndCover.dfcStatus = DAC_STANDING;
+				}
+				else
+				{
+					//Already enabled, so disable
+					m_DuckAndCover.dfcStatus = DAC_DISABLED;
+				}
+					
 				menuVelocity.x += 3.0f;
 			}
 
@@ -6618,7 +6642,7 @@ void D3DProxyDevice::BRASSA_DuckForCover()
 
 		menuHelperRect.left = 550;
 		menuHelperRect.top = 300;
-		DrawTextShadowed(hudFont, hudMainMenu, "Pose Assist Configuration\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "\"Duck-and-Cover\" Mode Configuration\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		rect.x1 = 0; rect.x2 = viewportWidth; rect.y1 = (int)(335*fScaleY); rect.y2 = (int)(340*fScaleY);
 		Clear(1, &rect, D3DCLEAR_TARGET, D3DCOLOR_ARGB(255,255,128,128), 0, 0);
 
@@ -6627,13 +6651,13 @@ void D3DProxyDevice::BRASSA_DuckForCover()
 
 		sprintf_s(vcString,"Crouch Key : ");
 		std::string stdString = std::string(vcString);
-		stdString.append(controls.GetKeyName(m_DuckForCover.crouchKey));
+		stdString.append(controls.GetKeyName(m_DuckAndCover.crouchKey));
 		if ((hotkeyCatch) && (entryID==CROUCH_KEY))
 			stdString = "Press the desired key.";
 		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 
-		switch (m_DuckForCover.crouchToggle)
+		switch (m_DuckAndCover.crouchToggle)
 		{
 		case true:
 			DrawTextShadowed(hudFont, hudMainMenu, "Crouch : Toggle", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
@@ -6644,25 +6668,21 @@ void D3DProxyDevice::BRASSA_DuckForCover()
 		}
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 
-		sprintf_s(vcString, "Crouch Trigger Y-Position: %f", m_DuckForCover.yPos_Crouch);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-
 		sprintf_s(vcString,"Prone Key : ");
 		stdString = std::string(vcString);
-		stdString.append(controls.GetKeyName(m_DuckForCover.proneKey));
+		stdString.append(controls.GetKeyName(m_DuckAndCover.proneKey));
 		if ((hotkeyCatch) && (entryID==PRONE_KEY))
 			stdString = "Press the desired key.";
 		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 
-		if (!m_DuckForCover.proneEnabled)
+		if (!m_DuckAndCover.proneEnabled)
 		{
 			DrawTextShadowed(hudFont, hudMainMenu, "Prone : Disabled", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 64, 64));
 		}
 		else
 		{
-			switch (m_DuckForCover.proneToggle)
+			switch (m_DuckAndCover.proneToggle)
 			{
 			case true:
 				DrawTextShadowed(hudFont, hudMainMenu, "Prone : Toggle", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
@@ -6674,12 +6694,20 @@ void D3DProxyDevice::BRASSA_DuckForCover()
 		}
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 
-		sprintf_s(vcString, "Prone Trigger Y-Position: %f", m_DuckForCover.yPos_Prone);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "Calibrate \"Duck-and-Cover\" then Enable", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 
-		DrawTextShadowed(hudFont, hudMainMenu, "Start \"Duck-for-Cover\" Calibration", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		if (m_DuckAndCover.dfcStatus == DAC_DISABLED ||
+			m_DuckAndCover.dfcStatus == DAC_INACTIVE)
+		{
+			DrawTextShadowed(hudFont, hudMainMenu, "Enable \"Duck-and-Cover\" Mode", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		}
+		else
+		{
+			DrawTextShadowed(hudFont, hudMainMenu, "Disable \"Duck-and-Cover\" Mode", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		}
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
+
 		DrawTextShadowed(hudFont, hudMainMenu, "Back to BRASSA Menu", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
@@ -7171,24 +7199,24 @@ void D3DProxyDevice::BRASSA_AdditionalOutput()
 	//return;
 
 	//Having this here will hijack any other notification - this is intentional
-	if (m_DuckForCover.dfcStatus > DFC_INACTIVE &&
-		m_DuckForCover.dfcStatus < DFC_STANDING)
+	if (m_DuckAndCover.dfcStatus > DAC_INACTIVE &&
+		m_DuckAndCover.dfcStatus < DAC_DISABLED)
 	{
-		DuckForCoverCalibrate();
+		DuckAndCoverCalibrate();
 	}
 
 	//Finally, draw any popups if required
 	DisplayCurrentPopup();
 }
 
-void D3DProxyDevice::DuckForCoverCalibrate()
+void D3DProxyDevice::DuckAndCoverCalibrate()
 {
-	switch (m_DuckForCover.dfcStatus)
+	switch (m_DuckAndCover.dfcStatus)
 	{
-	case DFC_CAL_STANDING:
+	case DAC_CAL_STANDING:
 		{
 			VireioPopup popup(VPT_NOTIFICATION, VPS_INFO);
-			strcpy_s(popup.line[0], "\"Duck-for-cover\" Mode");
+			strcpy_s(popup.line[0], "\"Duck-and-Cover\" Mode");
 			strcpy_s(popup.line[1], "=====================");
 			strcpy_s(popup.line[2], "Step 1:");
 			strcpy_s(popup.line[3], " - Move to the standing position you will be playing in");
@@ -7196,11 +7224,11 @@ void D3DProxyDevice::DuckForCoverCalibrate()
 			ShowPopup(popup);
 		}
 		break;
-	case DFC_CAL_CROUCHING:
+	case DAC_CAL_CROUCHING:
 		{
 			DismissPopup(VPT_NOTIFICATION);
 			VireioPopup popup(VPT_NOTIFICATION, VPS_INFO);
-			strcpy_s(popup.line[0], "\"Duck-for-cover\" Mode");
+			strcpy_s(popup.line[0], "\"Duck-and-Cover\" Mode");
 			strcpy_s(popup.line[1], "=====================");
 			strcpy_s(popup.line[2], "Step 2:");
 			strcpy_s(popup.line[3], " - Move to a crouching position");
@@ -7208,11 +7236,11 @@ void D3DProxyDevice::DuckForCoverCalibrate()
 			ShowPopup(popup);
 		}
 		break;
-	case DFC_CAL_PRONE:
+	case DAC_CAL_PRONE:
 		{
 			DismissPopup(VPT_NOTIFICATION);
 			VireioPopup popup(VPT_NOTIFICATION, VPS_INFO);
-			strcpy_s(popup.line[0], "\"Duck-for-cover\" Mode");
+			strcpy_s(popup.line[0], "\"Duck-and-Cover\" Mode");
 			strcpy_s(popup.line[1], "=====================");
 			strcpy_s(popup.line[2], "Step 3 (optional):");
 			strcpy_s(popup.line[3], " - Move to a prone position");
@@ -7221,11 +7249,11 @@ void D3DProxyDevice::DuckForCoverCalibrate()
 			ShowPopup(popup);
 		}
 		break;
-	case DFC_CAL_COMPLETE:
+	case DAC_CAL_COMPLETE:
 		{
 			DismissPopup(VPT_NOTIFICATION);
 			VireioPopup popup(VPT_NOTIFICATION, VPS_INFO);
-			strcpy_s(popup.line[0], "\"Duck-for-cover\" Mode");
+			strcpy_s(popup.line[0], "\"Duck-and-Cover\" Mode");
 			strcpy_s(popup.line[1], "=====================");
 			strcpy_s(popup.line[2], "Step 4:");
 			strcpy_s(popup.line[3], " - Calibration is complete");
