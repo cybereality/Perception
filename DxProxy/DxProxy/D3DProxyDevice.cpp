@@ -2516,6 +2516,8 @@ void D3DProxyDevice::HandleControls()
 			else if (m_DuckAndCover.dfcStatus == DAC_CAL_CROUCHING)
 			{
 				m_DuckAndCover.yPos_Crouch = tracker->y;
+				//Slightly randomly decided on this
+				m_DuckAndCover.yPos_Jump = fabs(tracker->y) / 3.0f;
 				m_DuckAndCover.dfcStatus = DAC_CAL_PRONE;
 			}
 			else if (m_DuckAndCover.dfcStatus == DAC_CAL_PRONE)
@@ -3558,7 +3560,7 @@ void D3DProxyDevice::HandleTracking()
 				//Use reduced Y-position tracking in DFC mode, user should be triggering crouch by moving up and down
 				float yPosition = (VRBoostValue[VRboostAxis::CameraTranslateY] / 20.0f) + tracker->primaryY;
 				if (m_DuckAndCover.dfcStatus >= DAC_STANDING)
-					yPosition /= 3.0f;
+					yPosition *= 0.25f;
 
 				m_spShaderViewAdjustment->UpdatePosition(tracker->primaryYaw, tracker->primaryPitch, tracker->primaryRoll,
 					(VRBoostValue[VRboostAxis::CameraTranslateX] / 20.0f) + tracker->primaryX, 
@@ -3570,6 +3572,22 @@ void D3DProxyDevice::HandleTracking()
 			//Now we test for whether we are using "duck for cover" (for crouch and prone)
 			if (m_DuckAndCover.dfcStatus == DAC_STANDING)
 			{
+				//Should we jump?
+				if (tracker->y > m_DuckAndCover.yPos_Jump)
+				{
+					//Trigger jump
+					INPUT ip;
+					ip.type = INPUT_KEYBOARD;
+					ip.ki.wScan = MapVirtualKey(m_DuckAndCover.jumpKey, MAPVK_VK_TO_VSC);
+					ip.ki.time = 0;
+					ip.ki.dwExtraInfo = 0;
+					ip.ki.wVk = 0;
+					ip.ki.dwFlags = KEYEVENTF_SCANCODE;
+					SendInput(1, &ip, sizeof(INPUT));
+					ip.ki.dwFlags = KEYEVENTF_SCANCODE|KEYEVENTF_KEYUP;
+					SendInput(1, &ip, sizeof(INPUT));
+				}
+
 				//trigger crouching
 				if (tracker->y < (m_DuckAndCover.yPos_Crouch * 0.55f))
 				{
@@ -3626,13 +3644,22 @@ void D3DProxyDevice::HandleTracking()
 					strcpy_s(popup.line[0], "Prone");
 					ShowPopup(popup);
 
-					//Trigger prone button
 					INPUT ip;
 					ip.type = INPUT_KEYBOARD;
-					ip.ki.wScan = MapVirtualKey(m_DuckAndCover.proneKey, MAPVK_VK_TO_VSC);
 					ip.ki.time = 0;
 					ip.ki.dwExtraInfo = 0;
 					ip.ki.wVk = 0;
+
+					//If crouch isn't toggle, then we need to release crouch key before going prone
+					if (!m_DuckAndCover.crouchToggle)
+					{
+						ip.ki.wScan = MapVirtualKey(m_DuckAndCover.crouchKey, MAPVK_VK_TO_VSC);
+						ip.ki.dwFlags = KEYEVENTF_SCANCODE|KEYEVENTF_KEYUP;
+						SendInput(1, &ip, sizeof(INPUT));
+					}
+
+					//Trigger prone button
+					ip.ki.wScan = MapVirtualKey(m_DuckAndCover.proneKey, MAPVK_VK_TO_VSC);
 					ip.ki.dwFlags = KEYEVENTF_SCANCODE;
 					SendInput(1, &ip, sizeof(INPUT));
 					if (m_DuckAndCover.proneToggle)
@@ -3667,6 +3694,16 @@ void D3DProxyDevice::HandleTracking()
 					}
 					ip.ki.dwFlags = KEYEVENTF_SCANCODE|KEYEVENTF_KEYUP;
 					SendInput(1, &ip, sizeof(INPUT));
+
+					//If crouch isn't toggle, then we need to crouch key before going prone
+					ip.ki.wScan = MapVirtualKey(m_DuckAndCover.crouchKey, MAPVK_VK_TO_VSC);
+					ip.ki.dwFlags = KEYEVENTF_SCANCODE;
+					SendInput(1, &ip, sizeof(INPUT));
+					if (m_DuckAndCover.crouchToggle)
+					{
+						ip.ki.dwFlags = KEYEVENTF_SCANCODE|KEYEVENTF_KEYUP;
+						SendInput(1, &ip, sizeof(INPUT));
+					}
 				}
 			}
 		}
@@ -5950,7 +5987,7 @@ void D3DProxyDevice::BRASSA_Settings()
  				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
 				{
 					if (this->stereoView->YOffset > 0.1f)
-						this->stereoView->YOffset -= 0.001f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
+						this->stereoView->YOffset += 0.001f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 				}
 				else
 				{
@@ -6497,10 +6534,12 @@ void D3DProxyDevice::BRASSA_DuckAndCover()
 
 	enum
 	{
-		CROUCH_KEY,
 		CROUCH_TOGGLE,
-		PRONE_KEY,
+		CROUCH_KEY,
 		PRONE_TOGGLE,
+		PRONE_KEY,
+		JUMP_ENABLED,
+		JUMP_KEY,
 		DUCKANDCOVER_CALIBRATE,
 		DUCKANDCOVER_MODE,
 		BACK_BRASSA,
@@ -6526,8 +6565,10 @@ void D3DProxyDevice::BRASSA_DuckAndCover()
 				hotkeyCatch = false;
 				if(entryID == CROUCH_KEY)
 					m_DuckAndCover.crouchKey = (byte)i;
-				else
+				else if(entryID == PRONE_KEY)
 					m_DuckAndCover.proneKey = (byte)i;
+				else if(entryID == JUMP_KEY)
+					m_DuckAndCover.jumpKey = (byte)i;
 
 				break;
 			}
@@ -6569,27 +6610,35 @@ void D3DProxyDevice::BRASSA_DuckAndCover()
 				menuVelocity.x+=2.0f;
 			}
 
+			if (entryID == JUMP_KEY)
+			{
+				hotkeyCatch = true;
+				menuVelocity.x+=2.0f;
+			}
+
+			if (entryID == JUMP_ENABLED)
+			{
+				m_DuckAndCover.jumpEnabled = !m_DuckAndCover.jumpEnabled;
+				menuVelocity.x+=2.0f;
+			}
+
 			// start calibration
 			if (entryID == DUCKANDCOVER_CALIBRATE)
 			{
-				if (m_DuckAndCover.dfcStatus = DAC_INACTIVE)
-				{
-					BRASSA_mode = BRASSA_Modes::INACTIVE;
-					m_DuckAndCover.dfcStatus = DAC_CAL_STANDING;
-				}
-					
+				BRASSA_mode = BRASSA_Modes::INACTIVE;
+				m_DuckAndCover.dfcStatus = DAC_CAL_STANDING;
 				menuVelocity.x += 3.0f;
 			}
 
 			// enable/disable - calibrate if not previously calibrated
 			if (entryID == DUCKANDCOVER_MODE)
 			{
-				if (m_DuckAndCover.dfcStatus = DAC_INACTIVE)
+				if (m_DuckAndCover.dfcStatus == DAC_INACTIVE)
 				{
 					BRASSA_mode = BRASSA_Modes::INACTIVE;
 					m_DuckAndCover.dfcStatus = DAC_CAL_STANDING;
 				}
-				else if (m_DuckAndCover.dfcStatus = DAC_DISABLED)
+				else if (m_DuckAndCover.dfcStatus == DAC_DISABLED)
 				{
 					//Already calibrated, so just set to standing again
 					m_DuckAndCover.dfcStatus = DAC_STANDING;
@@ -6649,14 +6698,6 @@ void D3DProxyDevice::BRASSA_DuckAndCover()
 		menuHelperRect.top += 50;  menuHelperRect.left += 250; float guiQSHeight = (float)menuHelperRect.top * fScaleY;
 		char vcString[128];
 
-		sprintf_s(vcString,"Crouch Key : ");
-		std::string stdString = std::string(vcString);
-		stdString.append(controls.GetKeyName(m_DuckAndCover.crouchKey));
-		if ((hotkeyCatch) && (entryID==CROUCH_KEY))
-			stdString = "Press the desired key.";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-
 		switch (m_DuckAndCover.crouchToggle)
 		{
 		case true:
@@ -6668,17 +6709,17 @@ void D3DProxyDevice::BRASSA_DuckAndCover()
 		}
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 
-		sprintf_s(vcString,"Prone Key : ");
-		stdString = std::string(vcString);
-		stdString.append(controls.GetKeyName(m_DuckAndCover.proneKey));
-		if ((hotkeyCatch) && (entryID==PRONE_KEY))
-			stdString = "Press the desired key.";
+		sprintf_s(vcString,"Crouch Key : ");
+		std::string stdString = std::string(vcString);
+		stdString.append(controls.GetKeyName(m_DuckAndCover.crouchKey));
+		if ((hotkeyCatch) && (entryID==CROUCH_KEY))
+			stdString = "Crouch Key : >Press the desired key<";
 		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 
 		if (!m_DuckAndCover.proneEnabled)
 		{
-			DrawTextShadowed(hudFont, hudMainMenu, "Prone : Disabled", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 64, 64));
+			DrawTextShadowed(hudFont, hudMainMenu, "Prone : Disabled (Use calibrate to enable)", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 64, 64));
 		}
 		else
 		{
@@ -6692,6 +6733,28 @@ void D3DProxyDevice::BRASSA_DuckAndCover()
 				break;
 			}
 		}
+		menuHelperRect.top += MENU_ITEM_SEPARATION;
+
+		sprintf_s(vcString,"Prone Key : ");
+		stdString = std::string(vcString);
+		stdString.append(controls.GetKeyName(m_DuckAndCover.proneKey));
+		if ((hotkeyCatch) && (entryID==PRONE_KEY))
+			stdString = "Prone Key : >Press the desired key<";
+		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		menuHelperRect.top += MENU_ITEM_SEPARATION;
+
+		if (!m_DuckAndCover.jumpEnabled)
+			DrawTextShadowed(hudFont, hudMainMenu, "Jump : Enabled", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		else
+			DrawTextShadowed(hudFont, hudMainMenu, "Jump : Disabled", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 64, 64));
+		menuHelperRect.top += MENU_ITEM_SEPARATION;
+
+		sprintf_s(vcString,"Jump Key : ");
+		stdString = std::string(vcString);
+		stdString.append(controls.GetKeyName(m_DuckAndCover.jumpKey));
+		if ((hotkeyCatch) && (entryID==JUMP_KEY))
+			stdString = "Jump Key : >Press the desired key<";
+		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 
 		DrawTextShadowed(hudFont, hudMainMenu, "Calibrate \"Duck-and-Cover\" then Enable", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));

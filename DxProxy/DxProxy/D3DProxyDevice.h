@@ -282,6 +282,8 @@ public:
 	{
 		DuckAndCover() : 
 			dfcStatus(DAC_INACTIVE),
+			jumpKey(VK_SPACE),
+			jumpEnabled(true),
 			crouchKey(VK_CONTROL),
 			crouchToggle(false),
 			yPos_Crouch(0.0f),
@@ -291,6 +293,10 @@ public:
 			proneEnabled(false) {}
 
 		DuckAndCoverMode dfcStatus;
+
+		bool jumpEnabled;
+		byte jumpKey;
+		float yPos_Jump;
 
 		byte crouchKey;
 		bool crouchToggle;
