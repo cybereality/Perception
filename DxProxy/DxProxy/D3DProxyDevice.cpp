@@ -245,6 +245,8 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	m_telescopeTargetFOV = FLT_MAX;
 	m_telescopeCurrentFOV = FLT_MAX;
 
+	//Restore duck and cover settings
+	m_DuckAndCover.LoadFromRegistry();
 
 }
 
@@ -1107,7 +1109,7 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 				strcpy_s(popup.line[2], "     -  Sit comfortably with your head facing forwards");
 				strcpy_s(popup.line[3], "     -  Press any of the following:");
 				strcpy_s(popup.line[4], "           <CTRL> + <R> / <LSHIFT> + <R>");
-				strcpy_s(popup.line[5], "           L + R Shoulder Buttons on XBOX360 Controller");
+				strcpy_s(popup.line[5], "           L + R Shoulder Buttons on Xbox 360 Controller");
 				ShowPopup(popup);
 			}
 		}
@@ -2505,7 +2507,7 @@ void D3DProxyDevice::HandleControls()
 		m_DuckAndCover.dfcStatus < DAC_DISABLED && tracker &&
 		tracker->getStatus() >= MTS_OK)
 	{
-		if (controls.xButtonsStatus[0x0c] && menuVelocity == D3DXVECTOR2(0.0f, 0.0f))
+		if ((controls.xButtonsStatus[0x0c] || controls.Key_Down(VK_RSHIFT)) && menuVelocity == D3DXVECTOR2(0.0f, 0.0f))
 		{
 			if (m_DuckAndCover.dfcStatus == DAC_CAL_STANDING)
 			{
@@ -2536,7 +2538,7 @@ void D3DProxyDevice::HandleControls()
 			menuVelocity.x += 5.0f;
 		}
 		//B button only skips the prone position
-		else if (controls.xButtonsStatus[0x0d] && menuVelocity == D3DXVECTOR2(0.0f, 0.0f))
+		else if ((controls.xButtonsStatus[0x0d] || controls.Key_Down(VK_ESCAPE)) && menuVelocity == D3DXVECTOR2(0.0f, 0.0f))
 		{
 			if (m_DuckAndCover.dfcStatus == DAC_CAL_PRONE)
 			{
@@ -2930,7 +2932,7 @@ void D3DProxyDevice::HandleControls()
 		menuVelocity.x+=2.0f;
 	}
 
-	//Rset HMD Orientation+Position LSHIFT+R, or L+R Shoulder buttons on xbox360 controller
+	//Rset HMD Orientation+Position LSHIFT+R, or L+R Shoulder buttons on Xbox 360 controller
 	if ((((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down(0x52)) 
 		|| (controls.xButtonsStatus[8] && controls.xButtonsStatus[9]))
 		&& (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
@@ -3402,6 +3404,49 @@ void D3DProxyDevice::HandleControls()
 	}
 }
 
+//Persist, just to the registry for now
+void D3DProxyDevice::DuckAndCover::SaveToRegistry()
+{
+	HKEY hKey;
+	LONG openRes = RegOpenKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Vireio\\Perception"), 0, KEY_ALL_ACCESS , &hKey);
+	if (openRes==ERROR_SUCCESS)
+	{
+		char buffer[128];
+		sprintf_s(buffer, "%i %i %i %i %i %i %i", (int)jumpKey, jumpEnabled ? 1 : 0, (int)crouchKey, crouchToggle ? 1 : 0, (int)proneKey, proneEnabled ? 1 : 0, proneToggle ? 1 : 0);
+		RegSetValueEx(hKey, _T("DuckAndCOver"), 0, REG_SZ, (LPBYTE)buffer, strlen(buffer)+1);
+		RegCloseKey(hKey);
+	}
+}
+
+void D3DProxyDevice::DuckAndCover::LoadFromRegistry()
+{
+	HKEY hKey;
+	if (RegOpenKeyEx(HKEY_CURRENT_USER,  _T("SOFTWARE\\Vireio\\Perception"),
+		0, KEY_QUERY_VALUE, &hKey) == ERROR_SUCCESS)
+	{
+		TCHAR szData[128];
+		DWORD dwKeyDataType;
+		DWORD dwDataBufSize = sizeof(szData);
+		if (RegQueryValueEx(hKey, _T("DuckAndCOver"), NULL, &dwKeyDataType,
+			(LPBYTE) &szData, &dwDataBufSize) == ERROR_SUCCESS &&
+			_tcslen(szData) > 0)
+		{
+			int a=0, b=0, c=0, d=0, e=0, f=0, g=0;
+			sscanf_s(szData, "%i %i %i %i %i %i %i", &a, &b, &c, &d, &e, &f, &g);
+			jumpKey = (byte) a;
+			jumpEnabled = b == 1;
+			crouchKey = (byte)c;
+			crouchToggle = d == 1;
+			proneKey = (byte)e;
+			proneEnabled = f == 1;
+			proneToggle = g == 1;
+		}
+
+		RegCloseKey(hKey);
+	}
+}
+
+
 /**
 * Updates selected motion tracker orientation.
 ***/
@@ -3833,7 +3878,8 @@ void D3DProxyDevice::HandleTracking()
 							VireioPopup popup(VPT_VRBOOST_SCANNING, VPS_INFO);
 							strcpy_s(popup.line[0], "VRBoost Memory Scan");
 							strcpy_s(popup.line[1], "===================");
-							strcpy_s(popup.line[2], "STATUS: SCANNING");
+							UINT candidates = m_pVRboost_GetScanCandidates();
+							sprintf_s(popup.line[2], "STATUS: SCANNING (%i candidates)", candidates);
 							strcpy_s(popup.line[4], "Please look around to assist with orientation detection");
 							ShowPopup(popup);
 						}
@@ -3858,7 +3904,8 @@ void D3DProxyDevice::HandleTracking()
 							VireioPopup popup(VPT_VRBOOST_SCANNING, VPS_INFO);
 							strcpy_s(popup.line[0], "VRBoost Memory Scan");
 							strcpy_s(popup.line[1], "===================");
-							strcpy_s(popup.line[2], "STATUS: SCANNING - REQUIRES USER ASSISTANCE");
+							UINT candidates = m_pVRboost_GetScanCandidates();
+							sprintf_s(popup.line[2], "STATUS: SCANNING (%i candidates) - REQUIRES USER ASSISTANCE", candidates);
 							if (timeToEvent == MAXDWORD)
 							{
 								strcpy_s(popup.line[3], "    PLEASE LOOK STRAIGHT-AHEAD THEN");
@@ -6570,6 +6617,7 @@ void D3DProxyDevice::BRASSA_DuckAndCover()
 				else if(entryID == JUMP_KEY)
 					m_DuckAndCover.jumpKey = (byte)i;
 
+				m_DuckAndCover.SaveToRegistry();
 				break;
 			}
 	}
@@ -6595,6 +6643,7 @@ void D3DProxyDevice::BRASSA_DuckAndCover()
 			if (entryID == CROUCH_TOGGLE)
 			{
 				m_DuckAndCover.crouchToggle = !m_DuckAndCover.crouchToggle;
+				m_DuckAndCover.SaveToRegistry();
 				menuVelocity.x+=2.0f;
 			}
 
@@ -6607,6 +6656,7 @@ void D3DProxyDevice::BRASSA_DuckAndCover()
 			if (entryID == PRONE_TOGGLE)
 			{
 				m_DuckAndCover.proneToggle = !m_DuckAndCover.proneToggle;
+				m_DuckAndCover.SaveToRegistry();
 				menuVelocity.x+=2.0f;
 			}
 
@@ -6619,6 +6669,7 @@ void D3DProxyDevice::BRASSA_DuckAndCover()
 			if (entryID == JUMP_ENABLED)
 			{
 				m_DuckAndCover.jumpEnabled = !m_DuckAndCover.jumpEnabled;
+				m_DuckAndCover.SaveToRegistry();
 				menuVelocity.x+=2.0f;
 			}
 
@@ -7283,7 +7334,8 @@ void D3DProxyDevice::DuckAndCoverCalibrate()
 			strcpy_s(popup.line[1], "=====================");
 			strcpy_s(popup.line[2], "Step 1:");
 			strcpy_s(popup.line[3], " - Move to the standing position you will be playing in");
-			strcpy_s(popup.line[4], " - Push A on the XBOX360 controller");
+			strcpy_s(popup.line[4], " - Push A on the Xbox 360 controller");
+			strcpy_s(popup.line[5], "      or Right Shift");
 			ShowPopup(popup);
 		}
 		break;
@@ -7295,7 +7347,8 @@ void D3DProxyDevice::DuckAndCoverCalibrate()
 			strcpy_s(popup.line[1], "=====================");
 			strcpy_s(popup.line[2], "Step 2:");
 			strcpy_s(popup.line[3], " - Move to a crouching position");
-			strcpy_s(popup.line[4], " - Push A on the XBOX360 controller");
+			strcpy_s(popup.line[4], " - Push A on the Xbox 360 controller");
+			strcpy_s(popup.line[5], "      or Right Shift");
 			ShowPopup(popup);
 		}
 		break;
@@ -7307,8 +7360,9 @@ void D3DProxyDevice::DuckAndCoverCalibrate()
 			strcpy_s(popup.line[1], "=====================");
 			strcpy_s(popup.line[2], "Step 3 (optional):");
 			strcpy_s(popup.line[3], " - Move to a prone position");
-			strcpy_s(popup.line[4], " - Push A button on the XBOX360 controller");
-			strcpy_s(popup.line[5], " - or Push B button on the controller to skip");
+			strcpy_s(popup.line[4], " - Push A button on the Xbox 360 controller");
+			strcpy_s(popup.line[5], "      or Right Shift");
+			strcpy_s(popup.line[6], " - or Push B button on the controller or Escape key to skip");
 			ShowPopup(popup);
 		}
 		break;
@@ -7321,7 +7375,8 @@ void D3DProxyDevice::DuckAndCoverCalibrate()
 			strcpy_s(popup.line[2], "Step 4:");
 			strcpy_s(popup.line[3], " - Calibration is complete");
 			strcpy_s(popup.line[3], " - Return to the standing position you will be playing in");
-			strcpy_s(popup.line[4], " - Push A on the XBOX360 controller");
+			strcpy_s(popup.line[4], " - Push A on the Xbox 360 controller");
+			strcpy_s(popup.line[5], "      or Right Shift");
 			ShowPopup(popup);
 		}
 		break;

@@ -284,13 +284,17 @@ public:
 			dfcStatus(DAC_INACTIVE),
 			jumpKey(VK_SPACE),
 			jumpEnabled(true),
-			crouchKey(VK_CONTROL),
+			crouchKey(VK_LCONTROL),
 			crouchToggle(false),
 			yPos_Crouch(0.0f),
 			proneKey(0x5A),
 			proneToggle(true),
 			yPos_Prone(0.0f),
 			proneEnabled(false) {}
+
+		//Persist, just to the registry for now
+		void SaveToRegistry();
+		void LoadFromRegistry();
 
 		DuckAndCoverMode dfcStatus;
 
