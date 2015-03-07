@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Scanner>
+  <!-- Above the horizon !!  -->
   <ScannerGroups>
 	<ScannerGroup>
 		<ID>0</ID>
 		<BaseAddress>0400000C</BaseAddress>
 		<MemIncrement>00000008</MemIncrement>
-		<MemIncCount>20000000</MemIncCount>
+		<MemIncCount>30000000</MemIncCount>
 		<FailIfNotFound>True</FailIfNotFound>
 		
 		<ScanRule>
@@ -41,14 +42,14 @@
 			<BaseAddressOffset>00000008</BaseAddressOffset>
 			<CheckForChanges>Changes</CheckForChanges>
 			<Comparisons>
-				<Compare type="BetweenIncl">
+				<Compare type="Between">
 					<MinValue>-85.0</MinValue>
-					<MaxValue>-0.001</MaxValue>
+					<MaxValue>-5.0</MaxValue>
 				</Compare>
-				<Compare type="BetweenIncl">
-					<MinValue>0.001</MinValue>
+				<!--<Compare type="BetweenIncl">
+					<MinValue>2.0</MinValue>
 					<MaxValue>85.0</MaxValue>
-				</Compare>
+				</Compare>-->
 			</Comparisons>
 		</ScanRule>
 
@@ -75,10 +76,10 @@
 			<Comparisons>
 				<Compare type="BetweenIncl">
 					<MinValue>-360.0</MinValue>
-					<MaxValue>-0.001</MaxValue>
+					<MaxValue>-0.1</MaxValue>
 				</Compare>
 				<Compare type="BetweenIncl">
-					<MinValue>0.001</MinValue>
+					<MinValue>0.1</MinValue>
 					<MaxValue>360.0</MaxValue>
 				</Compare>
 			</Comparisons>
@@ -90,18 +91,43 @@
 		<ID>1</ID>
 		<BaseAddress>08000814</BaseAddress>
 		<MemIncrement>00001000</MemIncrement>
-		<MemIncCount>00008000</MemIncCount>
+		<MemIncCount>00020000</MemIncCount>
 		<FailIfNotFound>False</FailIfNotFound>
-		<ScanRule>
-			<AxisName>WorldFOV</AxisName>
+<!--		<ScanRule>
+			<AxisName>NoAxis</AxisName>
 			<AddressType>Float</AddressType>
-			<ModificationToApply>FloatSimpleApply</ModificationToApply>
+			<ModificationToApply>FloatDoNothing</ModificationToApply>
 			<BaseAddressOffset>00000000</BaseAddressOffset>
 			<CheckForChanges>NoChange</CheckForChanges>
 			<Comparisons>
 				<Compare type="Between">
-					<MinValue>1.55</MinValue>
+					<MinValue>1.570795</MinValue>
+					<MaxValue>1.570796</MaxValue>
+				</Compare>
+			</Comparisons>
+		</ScanRule>-->
+		<ScanRule>
+			<AxisName>WorldFOV</AxisName>
+			<AddressType>Float</AddressType>
+			<ModificationToApply>FloatDegreeToRad</ModificationToApply>
+			<BaseAddressOffset>00000000</BaseAddressOffset>
+			<CheckForChanges>NoChange</CheckForChanges>
+			<Comparisons>
+				<Compare type="Between">
+					<MinValue>1.57</MinValue>
 					<MaxValue>1.58</MaxValue>
+				</Compare>
+			</Comparisons>
+		</ScanRule>
+		<ScanRule>
+			<AxisName>NoAxis</AxisName>
+			<AddressType>Float</AddressType>
+			<ModificationToApply>FloatDoNothing</ModificationToApply>
+			<BaseAddressOffset>00000004</BaseAddressOffset>
+			<CheckForChanges>NoChange</CheckForChanges>
+			<Comparisons>
+				<Compare type="Equal">
+					<MinValue>1</MinValue>
 				</Compare>
 			</Comparisons>
 		</ScanRule>
@@ -126,6 +152,18 @@
 			<Comparisons>
 				<Compare type="Equal">
 					<MinValue>1080</MinValue>
+				</Compare>
+			</Comparisons>
+		</ScanRule>
+		<ScanRule>
+			<AxisName>NoAxis</AxisName>
+			<AddressType>Float</AddressType>
+			<ModificationToApply>FloatDoNothing</ModificationToApply>
+			<BaseAddressOffset>00000020</BaseAddressOffset>
+			<CheckForChanges>NoChange</CheckForChanges>
+			<Comparisons>
+				<Compare type="Equal">
+					<MinValue>0.25</MinValue>
 				</Compare>
 			</Comparisons>
 		</ScanRule>

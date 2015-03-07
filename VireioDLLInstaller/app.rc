@@ -1,0 +1,5 @@
+#include "Resource.h"
+  
+IDI_MAIN_ICON ICON "../Perception/Perception/icons/dll_installer.ico" 
+IDI_ICON_BIG ICON "../Perception/Perception/icons/dll_installer.ico"
+IDI_ICON_SMALL ICON "../Perception/Perception/icons/dll_installer.ico"
