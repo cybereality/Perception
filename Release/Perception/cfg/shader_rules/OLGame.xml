@@ -25,18 +25,18 @@
   <shaderSpecificRuleIDs shaderHash="3129186717" squishViewport="true" />
   <shaderSpecificRuleIDs shaderHash="2177211951" squishViewport="true" />
   <shaderSpecificRuleIDs shaderHash="3662082258" squishViewport="true" />
-  <shaderSpecificRuleIDs shaderHash="965342778">
-    <ruleID id="4" />Lights
-  </shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="3537484276">
-    <ruleID id="5" />Shadows Everywhere
-  </shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="3183579799">
-    <ruleID id="3" />Shadows Under Car? What Mod (test at the moment)
-  </shaderSpecificRuleIDs>
-  <!-- Fog outside the mansion has some awful occlusion culling going on, better not to draw it altogether, doesn't detract too much terrible ambience -->
-  <shaderSpecificRuleIDs shaderHash="493863985" doNotDraw="true"/>
   
+  <shaderSpecificRuleIDs shaderHash="965342778"><ruleID id="4" />Lights</shaderSpecificRuleIDs>
+  
+  <!--Shadows Everywhere-->
+  <shaderSpecificRuleIDs shaderHash="3537484276"><ruleID id="5" /></shaderSpecificRuleIDs>
+  
+  <!--Shadows Under Car? What Mod (test at the moment)-->
+  <shaderSpecificRuleIDs shaderHash="3183579799"><ruleID id="3" /></shaderSpecificRuleIDs>
+  <!-- Fog outside the mansion has some awful occlusion culling going on, better not to draw it altogether, doesn't detract too much terrible ambience -->
+  <shaderSpecificRuleIDs shaderHash="493863985" doNotDraw="true"/>  
   <!--Camera (Offset Shader)-->
   <shaderSpecificRuleIDs shaderHash="1810071918" doNotDraw="true" />
+  <!--Fog?
+  <shaderSpecificRuleIDs shaderHash="4068380453" doNotDraw="true" />-->
 </shaderConfig>
