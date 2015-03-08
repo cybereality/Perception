@@ -44,12 +44,12 @@
 			<Comparisons>
 				<Compare type="Between">
 					<MinValue>-85.0</MinValue>
-					<MaxValue>-5.0</MaxValue>
+					<MaxValue>-0.01</MaxValue>
 				</Compare>
-				<!--<Compare type="BetweenIncl">
-					<MinValue>2.0</MinValue>
+				<Compare type="BetweenIncl">
+					<MinValue>0.01</MinValue>
 					<MaxValue>85.0</MaxValue>
-				</Compare>-->
+				</Compare>
 			</Comparisons>
 		</ScanRule>
 
@@ -86,90 +86,6 @@
 		</ScanRule>
 			
 	</ScannerGroup>
-	
-		<!-- This was problematic, use the permanent FOV fix on http://pcgamingwiki.com/wiki/Far_Cry#Field_of_view_.28FOV.29 -->
-<!--	<ScannerGroup>
-		<ID>1</ID>
-		<BaseAddress>08000814</BaseAddress>
-		<MemIncrement>00001000</MemIncrement>
-		<MemIncCount>00020000</MemIncCount>
-		<FailIfNotFound>False</FailIfNotFound>
-<!--		<ScanRule>
-			<AxisName>NoAxis</AxisName>
-			<AddressType>Float</AddressType>
-			<ModificationToApply>FloatDoNothing</ModificationToApply>
-			<BaseAddressOffset>00000000</BaseAddressOffset>
-			<CheckForChanges>NoChange</CheckForChanges>
-			<Comparisons>
-				<Compare type="Between">
-					<MinValue>1.570795</MinValue>
-					<MaxValue>1.570796</MaxValue>
-				</Compare>
-			</Comparisons>
-		</ScanRule>
-		<ScanRule>
-			<AxisName>WorldFOV</AxisName>
-			<AddressType>Float</AddressType>
-			<ModificationToApply>FloatDegreeToRad</ModificationToApply>
-			<BaseAddressOffset>00000000</BaseAddressOffset>
-			<CheckForChanges>NoChange</CheckForChanges>
-			<Comparisons>
-				<Compare type="Between">
-					<MinValue>1.57</MinValue>
-					<MaxValue>1.58</MaxValue>
-				</Compare>
-			</Comparisons>
-		</ScanRule>
-		<ScanRule>
-			<AxisName>NoAxis</AxisName>
-			<AddressType>Float</AddressType>
-			<ModificationToApply>FloatDoNothing</ModificationToApply>
-			<BaseAddressOffset>00000004</BaseAddressOffset>
-			<CheckForChanges>NoChange</CheckForChanges>
-			<Comparisons>
-				<Compare type="Equal">
-					<MinValue>1</MinValue>
-				</Compare>
-			</Comparisons>
-		</ScanRule>
-		<ScanRule>
-			<AxisName>NoAxis</AxisName>
-			<AddressType>Float</AddressType>
-			<ModificationToApply>FloatDoNothing</ModificationToApply>
-			<BaseAddressOffset>00000010</BaseAddressOffset>
-			<CheckForChanges>NoChange</CheckForChanges>
-			<Comparisons>
-				<Compare type="Equal">
-					<MinValue>1920</MinValue>
-				</Compare>
-			</Comparisons>
-		</ScanRule>
-		<ScanRule>
-			<AxisName>NoAxis</AxisName>
-			<AddressType>Float</AddressType>
-			<ModificationToApply>FloatDoNothing</ModificationToApply>
-			<BaseAddressOffset>00000014</BaseAddressOffset>
-			<CheckForChanges>NoChange</CheckForChanges>
-			<Comparisons>
-				<Compare type="Equal">
-					<MinValue>1080</MinValue>
-				</Compare>
-			</Comparisons>
-		</ScanRule>
-		<ScanRule>
-			<AxisName>NoAxis</AxisName>
-			<AddressType>Float</AddressType>
-			<ModificationToApply>FloatDoNothing</ModificationToApply>
-			<BaseAddressOffset>00000020</BaseAddressOffset>
-			<CheckForChanges>NoChange</CheckForChanges>
-			<Comparisons>
-				<Compare type="Equal">
-					<MinValue>0.25</MinValue>
-				</Compare>
-			</Comparisons>
-		</ScanRule>
-	</ScannerGroup>-->
-	
   </ScannerGroups> 
   
 	<!-- The following is used to direct the user to move their HMD so that addresses can be filtered, don't repeat -->
