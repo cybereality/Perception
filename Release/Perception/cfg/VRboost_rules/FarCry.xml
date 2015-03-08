@@ -86,8 +86,9 @@
 		</ScanRule>
 			
 	</ScannerGroup>
-			
-	<ScannerGroup>
+	
+		<!-- This was problematic, use the permanent FOV fix on http://pcgamingwiki.com/wiki/Far_Cry#Field_of_view_.28FOV.29 -->
+<!--	<ScannerGroup>
 		<ID>1</ID>
 		<BaseAddress>08000814</BaseAddress>
 		<MemIncrement>00001000</MemIncrement>
@@ -105,7 +106,7 @@
 					<MaxValue>1.570796</MaxValue>
 				</Compare>
 			</Comparisons>
-		</ScanRule>-->
+		</ScanRule>
 		<ScanRule>
 			<AxisName>WorldFOV</AxisName>
 			<AddressType>Float</AddressType>
@@ -167,7 +168,8 @@
 				</Compare>
 			</Comparisons>
 		</ScanRule>
-	</ScannerGroup>
+	</ScannerGroup>-->
+	
   </ScannerGroups> 
   
 	<!-- The following is used to direct the user to move their HMD so that addresses can be filtered, don't repeat -->
