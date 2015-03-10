@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Below the horizon -->
+<!-- Below the horizon , lower than 5 degrees-->
 <Scanner>
   <ScannerGroups>
 	<ScannerGroup>
 		<ID>0</ID>
-		<BaseAddress>7FF600000004</BaseAddress>
+		<BaseAddress>7FF500000004</BaseAddress>
 		<MemIncrement>10</MemIncrement>
-		<MemIncCount>1FFFFFFF</MemIncCount>
+		<MemIncCount>3FFFFFFF</MemIncCount>
 		<FailIfNotFound>True</FailIfNotFound>
 
 		<ScanRule>
@@ -38,7 +38,7 @@
 			<Comparisons>
 				<Compare type="BetweenIncl">
 					<MinValue>-81.0</MinValue>
-					<MaxValue>-0.01</MaxValue>
+					<MaxValue>-5.0</MaxValue>
 				</Compare>
 				<!-- OR -->
 				<!--<Compare type="BetweenIncl">
@@ -83,7 +83,7 @@
 			<Comparisons>
 				<Compare type="BetweenIncl">
 					<MinValue>-81.0</MinValue>
-					<MaxValue>-0.1</MaxValue>
+					<MaxValue>-5.0</MaxValue>
 				</Compare>
 				<!-- OR -->
 				<!--<Compare type="BetweenIncl">
@@ -97,10 +97,10 @@
 
 
 	<ScannerGroup>
-		<ID>1</ID>
-		<BaseAddress>7FF5000000BC</BaseAddress>
-		<MemIncrement>100</MemIncrement>
-		<MemIncCount>4FFFFFF</MemIncCount>
+		<ID>1</ID>      
+		<BaseAddress>7FF50000000C</BaseAddress>
+		<MemIncrement>10</MemIncrement>
+		<MemIncCount>50000000</MemIncCount>
 		<FailIfNotFound>True</FailIfNotFound>
 
 		<ScanRule>
