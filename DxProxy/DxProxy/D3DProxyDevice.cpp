@@ -444,8 +444,8 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 		if(bSkipFrame && iInjectedFrames == 1)
 		{
 			D3DRECT rec = {0, 0, 1920, 1080};
-			ClearRect(vireio::RenderPosition::Left, rec, D3DCOLOR_ARGB(0,0,0,0));
-			ClearRect(vireio::RenderPosition::Right, rec, D3DCOLOR_ARGB(0,0,0,0));
+			ClearRect(vireio::RenderPosition::Left, rec, D3DCOLOR_ARGB(150, 70, 70, 70));
+			ClearRect(vireio::RenderPosition::Right, rec, D3DCOLOR_ARGB(150, 70, 70, 70));
 		}
 		m_activeSwapChains.at(0)->GetBackBuffer(0, D3DBACKBUFFER_TYPE_MONO, &pWrappedBackBuffer);
 		if (stereoView->initialized)
@@ -483,8 +483,7 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 			RegCloseKey(hKey);
 		}
 	}
-	HRESULT hr =  BaseDirect3DDevice9::Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
-		
+	HRESULT hr =  BaseDirect3DDevice9::Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);	
 
 	if (tracker)
 		tracker->EndFrame();

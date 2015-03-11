@@ -99,8 +99,8 @@
 	<ScannerGroup>
 		<ID>1</ID>      
 		<BaseAddress>7FF50000000C</BaseAddress>
-		<MemIncrement>10</MemIncrement>
-		<MemIncCount>50000000</MemIncCount>
+		<MemIncrement>8</MemIncrement>
+		<MemIncCount>80000000</MemIncCount>
 		<FailIfNotFound>True</FailIfNotFound>
 
 		<ScanRule>
@@ -210,9 +210,10 @@
 			<BaseAddressOffset>00000050</BaseAddressOffset>
 			<CheckForChanges>NoChange</CheckForChanges>
 			<Comparisons>
-				<Compare type="Equal">
-					<MinValue>00007FF6</MinValue>
-				</Compare>
+        <Compare type="BetweenIncl">
+          <MinValue>00007FF0</MinValue>
+          <MaxValue>00007FFF</MaxValue>
+        </Compare>        
 			</Comparisons>
 		</ScanRule>
 
