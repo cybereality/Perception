@@ -199,7 +199,11 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	BaseDirect3DDevice9::GetDeviceCaps(&capabilities);
 	DWORD maxRenderTargets = capabilities.NumSimultaneousRTs;
 	m_activeRenderTargets.resize(maxRenderTargets, NULL);
-
+	iInjectedFrames = 0;
+	fMinFPS = 70;
+	iMaxInjectedFrames = 1;
+	bSkipFrame = false;
+	bReprojectionOn = false;
 	m_b2dDepthMode = false;
 
 	D3DXMatrixIdentity(&m_leftView);
@@ -434,15 +438,18 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 	#ifdef SHOW_CALLS
 		OutputDebugString("called Present");
 	#endif
-		
-
+	
 	try {
 		IDirect3DSurface9* pWrappedBackBuffer = NULL;
+		if(bSkipFrame && iInjectedFrames == 1)
+		{
+			D3DRECT rec = {0, 0, 1920, 1080};
+			ClearRect(vireio::RenderPosition::Left, rec, D3DCOLOR_ARGB(150, 70, 70, 70));
+			ClearRect(vireio::RenderPosition::Right, rec, D3DCOLOR_ARGB(150, 70, 70, 70));
+		}
 		m_activeSwapChains.at(0)->GetBackBuffer(0, D3DBACKBUFFER_TYPE_MONO, &pWrappedBackBuffer);
-
 		if (stereoView->initialized)
 			stereoView->Draw(static_cast<D3D9ProxySurface*>(pWrappedBackBuffer));
-
 		pWrappedBackBuffer->Release();
 	}
 	catch (std::out_of_range) {
@@ -476,8 +483,7 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 			RegCloseKey(hKey);
 		}
 	}
-
-	HRESULT hr =  BaseDirect3DDevice9::Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
+	HRESULT hr =  BaseDirect3DDevice9::Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);	
 
 	if (tracker)
 		tracker->EndFrame();
@@ -577,6 +583,9 @@ HRESULT WINAPI D3DProxyDevice::CreateCubeTexture(UINT EdgeLength, UINT Levels, D
 	IDirect3DCubeTexture9* pLeftCubeTexture = NULL;
 	IDirect3DCubeTexture9* pRightCubeTexture = NULL;	
 
+	if(bSkipFrame)
+		return D3D_OK;
+
 	// try and create left
 	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateCubeTexture(EdgeLength, Levels, Usage, Format, Pool, &pLeftCubeTexture, pSharedHandle))) {
 
@@ -661,10 +670,14 @@ HRESULT WINAPI D3DProxyDevice::CreateDepthStencilSurface(UINT Width,UINT Height,
 	#ifdef SHOW_CALLS
 		OutputDebugString("called CreateDepthStencilSurface");
 	#endif
+	
+	if(bSkipFrame)
+		return D3D_OK;
+		
 	IDirect3DSurface9* pDepthStencilSurfaceLeft = NULL;
 	IDirect3DSurface9* pDepthStencilSurfaceRight = NULL;
 	HRESULT creationResult;
-
+	
 	// create left/mono
 	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateDepthStencilSurface(Width, Height, Format, MultiSample, MultisampleQuality, Discard, &pDepthStencilSurfaceLeft, pSharedHandle))) {
 
@@ -888,6 +901,9 @@ HRESULT WINAPI D3DProxyDevice::ColorFill(IDirect3DSurface9* pSurface,CONST RECT*
 		OutputDebugString("called ColorFill");
 	#endif
 	HRESULT result;
+	
+	if(bSkipFrame)
+		return D3D_OK;
 
 	D3D9ProxySurface* pDerivedSurface = static_cast<D3D9ProxySurface*> (pSurface);
 	if (SUCCEEDED(result = BaseDirect3DDevice9::ColorFill(pDerivedSurface->getActualLeft(), pRect, color)))
@@ -1125,6 +1141,17 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 			screenshot--;
 		}
 
+		if(fps < fMinFPS && bReprojectionOn && iMaxInjectedFrames > iInjectedFrames)
+		{			
+			bSkipFrame = true;
+			iInjectedFrames++;
+		}
+		else
+		{
+			bSkipFrame = false;
+			iInjectedFrames = 0;
+		}
+
 		// set last frame vertex shader count
 		m_VertexShaderCountLastFrame = m_VertexShaderCount;
 
@@ -1142,17 +1169,18 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 			HandleTracking();
 
 		// draw menu
-		if (m_deviceBehavior.whenToRenderVPMENU == DeviceBehavior::WhenToDo::BEGIN_SCENE)
+		if(!bSkipFrame)
 		{
-			if ((VPMENU_mode>=VPMENU_Modes::MAINMENU) && (VPMENU_mode<VPMENU_Modes::VPMENU_ENUM_RANGE))
-				VPMENU();
-			else
-				VPMENU_AdditionalOutput();
+			if (m_deviceBehavior.whenToRenderVPMENU == DeviceBehavior::WhenToDo::BEGIN_SCENE)
+			{
+				if ((VPMENU_mode>=VPMENU_Modes::MAINMENU) && (VPMENU_mode<VPMENU_Modes::VPMENU_ENUM_RANGE))
+					VPMENU();
+				else
+					VPMENU_AdditionalOutput();
+			}		
+			// handle controls
+			HandleControls();
 		}
-
-		// handle controls
-		HandleControls();
-
 		// set vertex shader call count to zero
 		m_VertexShaderCount = 0;
 	}
@@ -1206,6 +1234,7 @@ HRESULT WINAPI D3DProxyDevice::Clear(DWORD Count,CONST D3DRECT* pRects,DWORD Fla
 		OutputDebugString("called Clear");
 	#endif
 	HRESULT result;
+
 	if (SUCCEEDED(result = BaseDirect3DDevice9::Clear(Count, pRects, Flags, Color, Z, Stencil))) {
 		if (!m_b2dDepthMode && switchDrawingSide()) {
 			HRESULT hr;
@@ -1621,6 +1650,9 @@ HRESULT WINAPI D3DProxyDevice::DrawPrimitive(D3DPRIMITIVETYPE PrimitiveType,UINT
 	#ifdef SHOW_CALLS
 		OutputDebugString("called DrawPrimitive");
 	#endif
+	
+	if(bSkipFrame)
+		return D3D_OK;
 
 	//If we shouldn't draw this shader, then just return immediately
 	if (m_bDoNotDrawVShader || m_bDoNotDrawPShader)
@@ -1646,6 +1678,9 @@ HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitive(D3DPRIMITIVETYPE PrimitiveTy
 	#ifdef SHOW_CALLS
 		OutputDebugString("called DrawIndexedPrimitive");
 	#endif
+	
+	if(bSkipFrame)
+		return D3D_OK;
 
 	//If we shouldn't draw this shader, then just return immediately
 	if (m_bDoNotDrawVShader || m_bDoNotDrawPShader)
@@ -1655,7 +1690,7 @@ HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitive(D3DPRIMITIVETYPE PrimitiveTy
 
 	HRESULT result;
 	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawIndexedPrimitive(PrimitiveType, BaseVertexIndex, MinVertexIndex, NumVertices, startIndex, primCount))) {
-		if (!m_b2dDepthMode && switchDrawingSide()) {
+		if (!m_b2dDepthMode && switchDrawingSide()) {			
 			HRESULT result2 = BaseDirect3DDevice9::DrawIndexedPrimitive(PrimitiveType, BaseVertexIndex, MinVertexIndex, NumVertices, startIndex, primCount);
 			if (result != result2)
 				OutputDebugString("moop\n");
@@ -1674,6 +1709,9 @@ HRESULT WINAPI D3DProxyDevice::DrawPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType,UI
 	#ifdef SHOW_CALLS
 		OutputDebugString("called DrawPrimitiveUP");
 	#endif
+	
+	if(bSkipFrame)
+		return D3D_OK;
 
 	//If we shouldn't draw this shader, then just return immediately
 	if (m_bDoNotDrawVShader || m_bDoNotDrawPShader)
@@ -1699,6 +1737,9 @@ HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitiveUP(D3DPRIMITIVETYPE Primitive
 	#ifdef SHOW_CALLS
 		OutputDebugString("called DrawIndexedPrimitiveUP");
 	#endif
+	
+	if(bSkipFrame)
+		return D3D_OK;
 
 	//If we shouldn't draw this shader, then just return immediately
 	if (m_bDoNotDrawVShader || m_bDoNotDrawPShader)
@@ -2235,6 +2276,9 @@ HRESULT WINAPI D3DProxyDevice::DrawRectPatch(UINT Handle,CONST float* pNumSegs,C
 	#ifdef SHOW_CALLS
 		OutputDebugString("called DrawRectPatch");
 	#endif
+	if(bSkipFrame)
+		return D3D_OK;
+
 	m_spManagedShaderRegisters->ApplyAllDirty(m_currentRenderingSide);
 
 	HRESULT result;
@@ -2255,6 +2299,9 @@ HRESULT WINAPI D3DProxyDevice::DrawTriPatch(UINT Handle,CONST float* pNumSegs,CO
 	#ifdef SHOW_CALLS
 		OutputDebugString("called DrawTriPatch");
 	#endif
+	if(bSkipFrame)
+		return D3D_OK;
+
 	m_spManagedShaderRegisters->ApplyAllDirty(m_currentRenderingSide);
 
 	HRESULT result;
@@ -2304,6 +2351,8 @@ HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFO
 	IDirect3DSurface9* pLeftRenderTarget = NULL;
 	IDirect3DSurface9* pRightRenderTarget = NULL;
 	HRESULT creationResult;
+	if(bSkipFrame)
+		return D3D_OK;
 
 	// create left/mono
 	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, &pLeftRenderTarget, pSharedHandle))) {
@@ -2583,6 +2632,25 @@ void D3DProxyDevice::HandleControls()
 		}
 	}
 
+	// Toggle Reprojection (SHIFT+0 - not numpad)
+	if (controls.Key_Down(VK_LSHIFT) && (controls.Key_Down(0x30)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	{
+		VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
+		if (bReprojectionOn)
+		{			
+			sprintf_s(popup.line[2], "Reprojection Off");								
+			bReprojectionOn = false;
+		}
+		else
+		{
+			sprintf_s(popup.line[2], "Reprojection On");								
+			bReprojectionOn = true;
+		}
+		ShowPopup(popup);
+
+		menuVelocity.x += 4.0f;
+	}
+
 	// switch to 2d Depth Mode (Shift + O / Numpad 9)
 	if (controls.Key_Down(VK_LSHIFT) && (controls.Key_Down(0x4F) || controls.Key_Down(VK_NUMPAD9)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
@@ -2626,6 +2694,44 @@ void D3DProxyDevice::HandleControls()
 		}		
 		menuVelocity.x += 4.0f;
 		
+	}
+
+	// Change Max Injected Frames
+	if (controls.Key_Down(VK_SHIFT) && (controls.Key_Down(VK_UP) || controls.Key_Down(VK_DOWN)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	{
+		std::string _str = "";
+		if(controls.Key_Down(VK_UP))
+		{			
+			iMaxInjectedFrames++;
+		}
+		else if(controls.Key_Down(VK_DOWN))
+		{			
+			iMaxInjectedFrames--;
+		}
+		VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
+		sprintf_s(popup.line[0], "Max Injected Frames: %i", iMaxInjectedFrames);		
+		ShowPopup(popup);
+		
+		menuVelocity.x += 4.0f;		
+	}
+
+	// Change Min FPS
+	if (controls.Key_Down(VK_SHIFT) && (controls.Key_Down(VK_LEFT) || controls.Key_Down(VK_RIGHT)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	{
+		std::string _str = "";
+		if(controls.Key_Down(VK_RIGHT))
+		{			
+			fMinFPS++;			
+		}
+		else if(controls.Key_Down(VK_LEFT))
+		{			
+			fMinFPS--;			
+		}
+		VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
+		sprintf_s(popup.line[0], "MIN FPS: %f", fMinFPS);		
+		ShowPopup(popup);
+		
+		menuVelocity.x += 4.0f;		
 	}
 
 	// cycle Render States

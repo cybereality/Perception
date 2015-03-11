@@ -717,6 +717,7 @@ private:
 	//Calculate FPS, called every Present
 	float fps;
 	float CalcFPS();
+	
 
 
 	/**
@@ -980,6 +981,14 @@ private:
 	* True if screenshot is taken next frame.
 	***/
 	int screenshot;
+	/**
+	* Variables related to skipping a frame if FPS is low
+	***/
+	bool bReprojectionOn;
+	int iInjectedFrames;
+	int iMaxInjectedFrames;
+	float fMinFPS;
+	bool bSkipFrame;
 };
 
 #endif
