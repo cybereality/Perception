@@ -32,8 +32,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define D3DPROXYDEVICE_H_INCLUDED
 
 #define MAX_VRBOOST_VALUES 256
-#define BRASSA_PIXEL_WIDTH 1920
-#define BRASSA_PIXEL_HEIGHT 1080
+#define VPMENU_PIXEL_WIDTH 1920
+#define VPMENU_PIXEL_HEIGHT 1080
 
 #include "Direct3DDevice9.h"
 
@@ -176,7 +176,7 @@ public:
 
 	/**
 	* Game Types.
-	* We use these ProxyTypes to determine either to draw BRASSA in EndScene() or in Present().
+	* We use these ProxyTypes to determine either to draw VPMENU in EndScene() or in Present().
 	* Will be also used for any game- or engine-specific things.
 	***/
 	enum ProxyTypes
@@ -212,10 +212,10 @@ public:
 		DEBUG_LOG_FILE = 99999     /**< Debug log file output game type. For development causes. Do not use since slows down game extremely. */
 	};
 	/**
-	* Mode of the BRASSA menu.
+	* Mode of the VP menu.
 	*
 	***/
-	enum BRASSA_Modes
+	enum VPMENU_Modes
 	{
 		INACTIVE = 0,
 		MAINMENU = 1,
@@ -228,11 +228,11 @@ public:
 		VRBOOST_VALUES,
 		POS_TRACKING_SETTINGS,
 		DUCKANDCOVER_CONFIGURATION,
-		BRASSA_SHADER_ANALYZER_SUBMENU,
+		VPMENU_SHADER_ANALYZER_SUBMENU,
 		CHANGE_RULES_SCREEN,
 		PICK_RULES_SCREEN,
 		SHOW_SHADERS_SCREEN,
-		BRASSA_ENUM_RANGE
+		VPMENU_ENUM_RANGE
 	};
 	/**
 	* HUD scale enumeration.
@@ -348,7 +348,7 @@ public:
 	/**
 	* Schneider-Hicks Optical Calibration Tool GUI mode.
 	**/
-	BRASSA_Modes BRASSA_mode;
+	VPMENU_Modes VPMENU_mode;
 	/**
 	* Schneider-Hicks Optical Calibration Tool center of right line.
 	**/
@@ -425,11 +425,11 @@ protected:
 	void         DrawTextShadowed(ID3DXFont* font, LPD3DXSPRITE sprite, LPCSTR lpchText, int cchText, LPRECT lprc, UINT format, D3DCOLOR color);
 	void         ChangeHUD3DDepthMode(HUD_3D_Depth_Modes newMode);
 	void         ChangeGUI3DDepthMode(GUI_3D_Depth_Modes newMode);
-	void         BRASSA_NewFrame(UINT &entryID, UINT menuEntryCount);
-	virtual void BRASSA_ShaderSubMenu(){}
-	virtual void BRASSA_ChangeRules(){}
-	virtual void BRASSA_PickRules(){}
-	virtual void BRASSA_ShowActiveShaders(){}
+	void         VPMENU_NewFrame(UINT &entryID, UINT menuEntryCount);
+	virtual void VPMENU_ShaderSubMenu(){}
+	virtual void VPMENU_ChangeRules(){}
+	virtual void VPMENU_PickRules(){}
+	virtual void VPMENU_ShowActiveShaders(){}
 
 	enum VireioPopupType
 	{
@@ -570,34 +570,34 @@ protected:
 	***/
 	float menuTopHeight;
 	/**
-	* BRASSA menu value.
+	* VP menu value.
 	***/
 	int viewportWidth;
 	/**
-	* BRASSA menu value.
+	* VP menu value.
 	***/
 	int viewportHeight;
 	/**
-	* BRASSA menu value.
+	* VP menu value.
 	***/
 	float menuTop;
 	/**
-	* BRASSA menu value.
+	* VP menu value.
 	* Menu entry height, in pixels.
 	***/
 	float menuEntryHeight;
 	/**
-	* BRASSA menu helper rectangle.
+	* VP menu helper rectangle.
 	***/
 	RECT menuHelperRect;
 	/**
-	* BRASSA menu value.
-	* Scales BRASSA menu to current resolution.
+	* VP menu value.
+	* Scales VP menu to current resolution.
 	***/
 	float fScaleX;
 	/**
-	* BRASSA menu value.
-	* Scales BRASSA menu to current resolution.
+	* VP menu value.
+	* Scales VP menu to current resolution.
 	***/
 	float fScaleY;
 	/**
@@ -659,7 +659,7 @@ protected:
 	UINT m_VertexShaderCountLastFrame;
 	/**
 	* Vector contains all possible game projection x scale values.
-	* Filled only if BRASSA_mode == WorldScale and SetTransform(>projection<) called by the game.
+	* Filled only if VPMENU_mode == WorldScale and SetTransform(>projection<) called by the game.
 	***/
 	std::vector<float> m_gameXScaleUnits;
 	/**
@@ -668,7 +668,7 @@ protected:
 	struct DeviceBehavior
 	{
 		/**
-		* Determines when to render the brassa menu for that game profile.
+		* Determines when to render the VP menu for that game profile.
 		***/
 		enum WhenToDo
 		{
@@ -678,9 +678,9 @@ protected:
 		};
 
 		/**
-		* Determines when to render the brassa menu for that game profile.
+		* Determines when to render the VP menu for that game profile.
 		***/
-		WhenToDo whenToRenderBRASSA;
+		WhenToDo whenToRenderVPMENU;
 		/**
 		* Determines when to handle head tracking for that game profile.
 		***/
@@ -690,27 +690,27 @@ protected:
 
 private:
 	/*** D3DProxyDevice private methods ***/
-	void    BRASSA();
-	void    BRASSA_MainMenu();
-	void    BRASSA_WorldScale();
-	void    BRASSA_Convergence();
-	void    BRASSA_HUD();
-	void    BRASSA_GUI();
-	void    BRASSA_Settings();
-	void    BRASSA_VRBoostValues();
-	void	BRASSA_PosTracking();
-	void	BRASSA_DuckAndCover();
-	void    BRASSA_UpdateBorder();
-	void    BRASSA_UpdateConfigSettings();
-	void    BRASSA_UpdateDeviceSettings();
-	void    BRASSA_AdditionalOutput();
+	void    VPMENU();
+	void    VPMENU_MainMenu();
+	void    VPMENU_WorldScale();
+	void    VPMENU_Convergence();
+	void    VPMENU_HUD();
+	void    VPMENU_GUI();
+	void    VPMENU_Settings();
+	void    VPMENU_VRBoostValues();
+	void	VPMENU_PosTracking();
+	void	VPMENU_DuckAndCover();
+	void    VPMENU_UpdateBorder();
+	void    VPMENU_UpdateConfigSettings();
+	void    VPMENU_UpdateDeviceSettings();
+	void    VPMENU_AdditionalOutput();
 	void    ReleaseEverything();
 	bool    isViewportDefaultForMainRT(CONST D3DVIEWPORT9* pViewport);
 	HRESULT SetStereoViewTransform(D3DXMATRIX pLeftMatrix, D3DXMATRIX pRightMatrix, bool apply);
 	HRESULT SetStereoProjectionTransform(D3DXMATRIX pLeftMatrix, D3DXMATRIX pRightMatrix, bool apply);
 	void    SetGUIViewport();
-	float   RoundBrassaValue(float val);
-	bool	InitBrassa();
+	float   RoundVireioValue(float val);
+	bool	InitVPMENU();
 	bool	InitVRBoost();
 	bool	InitTracker();
 
@@ -973,7 +973,7 @@ private:
 	***/
 	byte edgePeekHotkey;
 	/**
-	* True if BRASSA is waiting to catch a hotkey.
+	* True if menu is waiting to catch a hotkey.
 	***/
 	bool hotkeyCatch;
 	/**

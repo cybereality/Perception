@@ -67,10 +67,10 @@ public:
 
 protected:
 	/*** DataGatherer protected methods ***/
-	virtual void BRASSA_ShaderSubMenu();
-	virtual void BRASSA_ChangeRules();
-	virtual void BRASSA_PickRules();
-	virtual void BRASSA_ShowActiveShaders();
+	virtual void VPMENU_ShaderSubMenu();
+	virtual void VPMENU_ChangeRules();
+	virtual void VPMENU_PickRules();
+	virtual void VPMENU_ShowActiveShaders();
 
 private:
 	/*** DataGatherer private methods ***/

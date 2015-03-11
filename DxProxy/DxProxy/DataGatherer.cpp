@@ -120,7 +120,7 @@ DataGatherer::DataGatherer(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy)
 		enum CFG_FILEMODE
 		{
 			POTENTIAL_MATRIX_NAMES = 1,
-			BRASSA_COMMANDS
+			VPMENU_COMMANDS
 		} cfgFileMode;
 
 		// get names
@@ -144,9 +144,9 @@ DataGatherer::DataGatherer(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy)
 			else if (s.compare("<Potential_Matrix_Names>")==0)
 			{
 				cfgFileMode = POTENTIAL_MATRIX_NAMES;
-			} else if (s.compare("<BRASSA_Commands>")==0)
+			} else if (s.compare("<VPMENU_Commands>")==0)
 			{
-				cfgFileMode = BRASSA_COMMANDS;
+				cfgFileMode = VPMENU_COMMANDS;
 			} else
 			{
 				switch(cfgFileMode)
@@ -155,7 +155,7 @@ DataGatherer::DataGatherer(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy)
 					vNames.push_back(s);
 					numLines++;
 					break;
-				case BRASSA_COMMANDS:
+				case VPMENU_COMMANDS:
 					if (s.compare("Output_Shader_Code")==0)
 					{
 						OutputDebugString("Output_Shader_Code");
@@ -729,7 +729,7 @@ void DataGatherer::Init(ProxyHelper::ProxyConfig& cfg)
 /**
 * Shader Analyzer sub menu.
 ***/
-void DataGatherer::BRASSA_ShaderSubMenu()
+void DataGatherer::VPMENU_ShaderSubMenu()
 {
 	UINT menuEntryCount = 6;
 
@@ -737,14 +737,14 @@ void DataGatherer::BRASSA_ShaderSubMenu()
 	menuHelperRect.top = 0;
 	
 	UINT entryID;
-	BRASSA_NewFrame(entryID, menuEntryCount);
+	VPMENU_NewFrame(entryID, menuEntryCount);
 
 	/**
 	* ESCAPE : Set BRASSA inactive and save the configuration.
 	***/
 	if (controls.Key_Down(VK_ESCAPE))
 	{
-		BRASSA_mode = BRASSA_Modes::INACTIVE;
+		VPMENU_mode = VPMENU_Modes::INACTIVE;
 	}
 
 	if ((controls.Key_Down(VK_RETURN) || controls.Key_Down(VK_RSHIFT) || (controls.xButtonsStatus[0x0c])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
@@ -754,7 +754,7 @@ void DataGatherer::BRASSA_ShaderSubMenu()
 		{
 			// create relevant shader constant table
 			GetCurrentShaderRules(true);
-			BRASSA_mode = BRASSA_Modes::INACTIVE;
+			VPMENU_mode = VPMENU_Modes::INACTIVE;
 			menuVelocity.x+=2.0f;
 			Analyze();
 		}
@@ -763,19 +763,19 @@ void DataGatherer::BRASSA_ShaderSubMenu()
 		{
 			// create menu names new
 			GetCurrentShaderRules(false);
-			BRASSA_mode = BRASSA_Modes::CHANGE_RULES_SCREEN;
+			VPMENU_mode = VPMENU_Modes::CHANGE_RULES_SCREEN;
 			menuVelocity.x+=2.0f;
 		}
 		//// pick rules
 		//if (entryID == 2)
 		//{
-		//	BRASSA_mode = BRASSA_Modes::PICK_RULES_SCREEN;
+		//	VPMENU_mode = VPMENU_Modes::PICK_RULES_SCREEN;
 		//	menuVelocity.x+=2.0f;
 		//}
 		// show shaders
 		if (entryID == 2)
 		{
-			BRASSA_mode = BRASSA_Modes::SHOW_SHADERS_SCREEN;
+			VPMENU_mode = VPMENU_Modes::SHOW_SHADERS_SCREEN;
 			//Clear collections
 			m_knownVShaders.clear();
 			m_knownPShaders.clear();
@@ -784,7 +784,7 @@ void DataGatherer::BRASSA_ShaderSubMenu()
 		// save rules
 		if (entryID == 3)
 		{
-			BRASSA_mode = BRASSA_Modes::INACTIVE;
+			VPMENU_mode = VPMENU_Modes::INACTIVE;
 			menuVelocity.x+=2.0f;
 			// save data
 			ProxyHelper* helper = new ProxyHelper();
@@ -809,13 +809,13 @@ void DataGatherer::BRASSA_ShaderSubMenu()
 		// back to main menu
 		if (entryID == 4)
 		{
-			BRASSA_mode = BRASSA_Modes::MAINMENU;
+			VPMENU_mode = VPMENU_Modes::MAINMENU;
 			menuVelocity.x+=2.0f;
 		}
 		// back to game
 		if (entryID == 5)
 		{
-			BRASSA_mode = BRASSA_Modes::INACTIVE;
+			VPMENU_mode = VPMENU_Modes::INACTIVE;
 		}
 	}
 
@@ -872,7 +872,7 @@ void DataGatherer::BRASSA_ShaderSubMenu()
 /**
 * Change current shader rules.
 ***/
-void DataGatherer::BRASSA_ChangeRules()
+void DataGatherer::VPMENU_ChangeRules()
 {
 	menuHelperRect.left = 0;
 	menuHelperRect.top = 0;
@@ -937,7 +937,7 @@ void DataGatherer::BRASSA_ChangeRules()
 	}
 
 	UINT entryID;
-	BRASSA_NewFrame(entryID, menuEntryCount);
+	VPMENU_NewFrame(entryID, menuEntryCount);
 	UINT borderSelection = entryID;
 
 	/**
@@ -945,7 +945,7 @@ void DataGatherer::BRASSA_ChangeRules()
 	***/
 	if (controls.Key_Down(VK_ESCAPE))
 	{
-		BRASSA_mode = BRASSA_Modes::INACTIVE;
+		VPMENU_mode = VPMENU_Modes::INACTIVE;
 	}
 
 	if ((controls.Key_Down(VK_RETURN) || controls.Key_Down(VK_RSHIFT) || (controls.xButtonsStatus[0x0c])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
@@ -1093,13 +1093,13 @@ void DataGatherer::BRASSA_ChangeRules()
 		// back to main menu
 		if (entryID == menuEntryCount-2)
 		{
-			BRASSA_mode = BRASSA_Modes::MAINMENU;
+			VPMENU_mode = VPMENU_Modes::MAINMENU;
 			menuVelocity.x+=2.0f;
 		}
 		// back to game
 		if (entryID == menuEntryCount-1)
 		{
-			BRASSA_mode = BRASSA_Modes::INACTIVE;
+			VPMENU_mode = VPMENU_Modes::INACTIVE;
 		}
 	}
 
@@ -1277,7 +1277,7 @@ void DataGatherer::BRASSA_ChangeRules()
 /**
 * Pick shader rules out of active shaders.
 ***/
-void DataGatherer::BRASSA_PickRules()
+void DataGatherer::VPMENU_PickRules()
 {
 	// ERROR_CALL_NOT_IMPLEMENTED
 }
@@ -1285,7 +1285,7 @@ void DataGatherer::BRASSA_PickRules()
 /**
 * Show currently used Shaders (Hash code) and exclude from rendering, if chosen.
 ***/
-void DataGatherer::BRASSA_ShowActiveShaders()
+void DataGatherer::VPMENU_ShowActiveShaders()
 {
 	//Don't do anything if it is an empty collection
 	if (m_activePShaders.size() == 0)
@@ -1398,7 +1398,7 @@ void DataGatherer::BRASSA_ShowActiveShaders()
 	}
 
 	UINT entryID;
-	BRASSA_NewFrame(entryID, menuEntryCount);
+	VPMENU_NewFrame(entryID, menuEntryCount);
 	UINT borderSelection = entryID;
 
 	/**
@@ -1406,7 +1406,7 @@ void DataGatherer::BRASSA_ShowActiveShaders()
 	***/
 	if (controls.Key_Down(VK_ESCAPE))
 	{
-		BRASSA_mode = BRASSA_Modes::INACTIVE;
+		VPMENU_mode = VPMENU_Modes::INACTIVE;
 	}
 
 	if ((controls.Key_Down(VK_RETURN) || controls.Key_Down(VK_RSHIFT) || (controls.xButtonsStatus[0x0c])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
@@ -1444,13 +1444,13 @@ void DataGatherer::BRASSA_ShowActiveShaders()
 		// back to main menu
 		if (entryID == menuEntryCount-2)
 		{
-			BRASSA_mode = BRASSA_Modes::MAINMENU;
+			VPMENU_mode = VPMENU_Modes::MAINMENU;
 			menuVelocity.x+=2.0f;
 		}
 		// back to game
 		if (entryID == menuEntryCount-1)
 		{
-			BRASSA_mode = BRASSA_Modes::INACTIVE;
+			VPMENU_mode = VPMENU_Modes::INACTIVE;
 		}
 	}
 
