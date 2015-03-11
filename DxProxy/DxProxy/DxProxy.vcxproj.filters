@@ -248,6 +248,9 @@
     <None Include="..\..\Release\Perception\instructions\Vireio Perception Manual and Game Support LIst.docx">
       <Filter>Instructions</Filter>
     </None>
+    <None Include="..\..\Release\Perception\cfg\shader_rules\brassa.cfg">
+      <Filter>cfg\shader_rules</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Main.h">

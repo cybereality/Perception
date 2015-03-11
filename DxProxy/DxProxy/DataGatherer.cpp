@@ -29,6 +29,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "DataGatherer.h"
 
+#include "Version.h"
+
 #define MATRIX_NAMES 17
 #define AVOID_SUBSTRINGS 2
 #define ANALYZE_FRAMES 500
@@ -120,7 +122,7 @@ DataGatherer::DataGatherer(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy)
 		enum CFG_FILEMODE
 		{
 			POTENTIAL_MATRIX_NAMES = 1,
-			VPMENU_COMMANDS
+			BRASSA_COMMANDS
 		} cfgFileMode;
 
 		// get names
@@ -144,9 +146,9 @@ DataGatherer::DataGatherer(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy)
 			else if (s.compare("<Potential_Matrix_Names>")==0)
 			{
 				cfgFileMode = POTENTIAL_MATRIX_NAMES;
-			} else if (s.compare("<VPMENU_Commands>")==0)
+			} else if (s.compare("<BRASSA_Commands>")==0)
 			{
-				cfgFileMode = VPMENU_COMMANDS;
+				cfgFileMode = BRASSA_COMMANDS;
 			} else
 			{
 				switch(cfgFileMode)
@@ -155,7 +157,7 @@ DataGatherer::DataGatherer(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy)
 					vNames.push_back(s);
 					numLines++;
 					break;
-				case VPMENU_COMMANDS:
+				case BRASSA_COMMANDS:
 					if (s.compare("Output_Shader_Code")==0)
 					{
 						OutputDebugString("Output_Shader_Code");
@@ -839,13 +841,13 @@ void DataGatherer::VPMENU_ShaderSubMenu()
 		D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
 		hudMainMenu->SetTransform(&matScale);
 
-		menuHelperRect.left = 550;
+		menuHelperRect.left = 650;
 		menuHelperRect.top = 300;
-		D3DProxyDevice::DrawTextShadowed(hudFont, hudMainMenu, "Brown Reischl and Schneider Settings Analyzer (B.R.A.S.S.A.).\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		D3DProxyDevice::DrawTextShadowed(hudFont, hudMainMenu, "Vireio Perception ("APP_VERSION") - Shader Analyser\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		rect.x1 = 0; rect.x2 = viewportWidth; rect.y1 = (int)(335*fScaleY); rect.y2 = (int)(340*fScaleY);
 		Clear(1, &rect, D3DCLEAR_TARGET, D3DCOLOR_ARGB(255,255,128,128), 0, 0);
 
-		menuHelperRect.top += 50;  menuHelperRect.left += 250; float guiQSHeight = (float)menuHelperRect.top * fScaleY;
+		menuHelperRect.top += 50;  menuHelperRect.left += 150; float guiQSHeight = (float)menuHelperRect.top * fScaleY;
 		DrawTextShadowed(hudFont, hudMainMenu, "Create new Shader Rules", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += 40;
 		DrawTextShadowed(hudFont, hudMainMenu, "Change current Shader Rules", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));

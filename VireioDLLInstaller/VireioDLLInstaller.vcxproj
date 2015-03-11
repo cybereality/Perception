@@ -166,6 +166,7 @@
     <ClInclude Include="..\DxProxy\DxProxy\ProxyHelper.h" />
     <ClInclude Include="..\DxProxy\DxProxy\pugiconfig.hpp" />
     <ClInclude Include="..\DxProxy\DxProxy\pugixml.hpp" />
+    <ClInclude Include="Resource.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
@@ -176,6 +177,9 @@
   <ItemGroup>
     <None Include="DeployVireioSymlinks.cmd" />
     <None Include="RevokeVireioSymlinks.cmd" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="app.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
