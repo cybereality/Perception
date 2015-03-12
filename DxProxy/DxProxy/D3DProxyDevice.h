@@ -989,6 +989,7 @@ private:
 	int iMaxInjectedFrames;
 	float fMinFPS;
 	bool bSkipFrame;
+	bool bColorFrame;
 };
 
 #endif

@@ -200,7 +200,8 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	DWORD maxRenderTargets = capabilities.NumSimultaneousRTs;
 	m_activeRenderTargets.resize(maxRenderTargets, NULL);
 	iInjectedFrames = 0;
-	fMinFPS = 70;
+	fMinFPS = 73;
+	bColorFrame = false;
 	iMaxInjectedFrames = 1;
 	bSkipFrame = false;
 	bReprojectionOn = false;
@@ -441,11 +442,19 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 	
 	try {
 		IDirect3DSurface9* pWrappedBackBuffer = NULL;
-		if(bSkipFrame && iInjectedFrames == 1)
+		if(bSkipFrame && bColorFrame)
 		{
 			D3DRECT rec = {0, 0, 1920, 1080};
-			ClearRect(vireio::RenderPosition::Left, rec, D3DCOLOR_ARGB(150, 70, 70, 70));
-			ClearRect(vireio::RenderPosition::Right, rec, D3DCOLOR_ARGB(150, 70, 70, 70));
+			ClearRect(vireio::RenderPosition::Left, rec, D3DCOLOR_ARGB (0, 0, 0, 0));
+			ClearRect(vireio::RenderPosition::Right, rec, D3DCOLOR_ARGB (0, 0, 0, 0));
+			bColorFrame = false;
+		}
+		else if(bSkipFrame)
+		{
+			D3DRECT rec = {0, 0, 1920, 1080};
+			ClearRect(vireio::RenderPosition::Left, rec, D3DCOLOR_ARGB(50, 0, 0, 0));
+			ClearRect(vireio::RenderPosition::Right, rec, D3DCOLOR_ARGB(50, 0, 0, 0));
+			bColorFrame = true;
 		}
 		m_activeSwapChains.at(0)->GetBackBuffer(0, D3DBACKBUFFER_TYPE_MONO, &pWrappedBackBuffer);
 		if (stereoView->initialized)
@@ -1141,15 +1150,18 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 			screenshot--;
 		}
 
-		if(fps < fMinFPS && bReprojectionOn && iMaxInjectedFrames > iInjectedFrames)
+		if(fps < fMinFPS && bReprojectionOn && iInjectedFrames == 0)
 		{			
 			bSkipFrame = true;
-			iInjectedFrames++;
+			iInjectedFrames = iMaxInjectedFrames;
 		}
 		else
 		{
 			bSkipFrame = false;
-			iInjectedFrames = 0;
+			if(iInjectedFrames > 0)
+				iInjectedFrames--;			
+			else
+				iInjectedFrames = 0;			
 		}
 
 		// set last frame vertex shader count
@@ -2709,7 +2721,7 @@ void D3DProxyDevice::HandleControls()
 			iMaxInjectedFrames--;
 		}
 		VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
-		sprintf_s(popup.line[0], "Max Injected Frames: %i", iMaxInjectedFrames);		
+		sprintf_s(popup.line[0], "Inject Frame Every: %i Frame(s)", iMaxInjectedFrames);		
 		ShowPopup(popup);
 		
 		menuVelocity.x += 4.0f;		
