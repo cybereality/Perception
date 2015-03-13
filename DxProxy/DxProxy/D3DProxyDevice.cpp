@@ -7135,8 +7135,8 @@ void D3DProxyDevice::VPMENU_UpdateBorder()
 	timeStamp = (float)GetTickCount()/1000.0f;
 	menuSeconds = timeStamp-menuTime;
 	menuTime = timeStamp;
-	// tested having about 50 fps, so menu velocity is based on that
-	float timeScale = (float)menuSeconds*50;
+	// Speed up menu - makes an incredible difference!
+	float timeScale = (float)menuSeconds*90;
 
 	// menu velocity present ? in case calculate diminution of the velocity
 	if (menuVelocity != D3DXVECTOR2(0.0f, 0.0f))
