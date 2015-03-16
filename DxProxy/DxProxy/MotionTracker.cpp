@@ -187,7 +187,9 @@ void MotionTracker::setMultipliers(float yaw, float pitch, float roll)
 * Set mouse emulation.
 * @param emulateMouse True if mouse emulation is on.
 ***/
-void MotionTracker::setMouseEmulation(bool emulateMouse)
+bool MotionTracker::setMouseEmulation(bool emulateMouse)
 {
+	bool temp = mouseEmulation;
 	mouseEmulation = emulateMouse;
+	return temp;
 }

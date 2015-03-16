@@ -370,13 +370,9 @@ public:
 	**/
 	ID3DXFont *popupFont[27];	
 	/**
-	* Whether notifications are shown for this user
+	* User configuration (defined in config.xmnl)
 	**/
-	bool showNotifications;
-	/**
-	* Whether the user should be warned when positional tracking is lost
-	*/
-	bool warnPositionalLost;
+	ProxyHelper::UserConfig userConfig;
 	/**
 	* Timestamp used to adjust the menu velocity independent of game speed.
 	**/
@@ -545,6 +541,10 @@ protected:
 	* Proxy state block to capture various states.
 	**/
 	D3D9ProxyStateBlock* m_pCapturingStateTo;
+	/**
+	* Timer used to indicate that an adjuster changed a config value and when timer expires, config should be saved
+	*/
+	DWORD m_saveConfigTimer;
 	/**
 	* Main menu sprite.
 	***/
