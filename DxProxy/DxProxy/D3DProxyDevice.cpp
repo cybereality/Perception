@@ -197,12 +197,9 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	BaseDirect3DDevice9::GetDeviceCaps(&capabilities);
 	DWORD maxRenderTargets = capabilities.NumSimultaneousRTs;
 	m_activeRenderTargets.resize(maxRenderTargets, NULL);
-	iInjectedFrames = 0;
 	fMinFPS = 73;
-	bColorFrame = false;
-	iMaxInjectedFrames = 1;
+	
 	bSkipFrame = false;
-	bReprojectionOn = false;
 	m_b2dDepthMode = false;
 
 	D3DXMatrixIdentity(&m_leftView);
@@ -440,23 +437,16 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 	
 	try {
 		IDirect3DSurface9* pWrappedBackBuffer = NULL;
-		if(bSkipFrame && bColorFrame)
-		{
-			D3DRECT rec = {0, 0, 1920, 1080};
-			ClearRect(vireio::RenderPosition::Left, rec, D3DCOLOR_ARGB (0, 0, 0, 0));
-			ClearRect(vireio::RenderPosition::Right, rec, D3DCOLOR_ARGB (0, 0, 0, 0));
-			bColorFrame = false;
-		}
-		else if(bSkipFrame)
-		{
-			D3DRECT rec = {0, 0, 1920, 1080};
-			ClearRect(vireio::RenderPosition::Left, rec, D3DCOLOR_ARGB(50, 0, 0, 0));
-			ClearRect(vireio::RenderPosition::Right, rec, D3DCOLOR_ARGB(50, 0, 0, 0));
-			bColorFrame = true;
-		}
 		m_activeSwapChains.at(0)->GetBackBuffer(0, D3DBACKBUFFER_TYPE_MONO, &pWrappedBackBuffer);
+		float deltaCutoff = 0.01f;
+		if(bSkipFrame)
+		{
+			stereoView->bAverageFrame = true;
+			//Clear(0, 0, D3DCLEAR_STENCIL | D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_ARGB(255, 0, 0, 0), 0.0f, 0);			
+		}		
 		if (stereoView->initialized)
 			stereoView->Draw(static_cast<D3D9ProxySurface*>(pWrappedBackBuffer));
+				
 		pWrappedBackBuffer->Release();
 	}
 	catch (std::out_of_range) {
@@ -479,7 +469,7 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 		lastFPSTick = GetTickCount();
 		char buffer[256];
 		sprintf_s(buffer, "%.1f", fps);
-		OutputDebugString((std::string("FPS: ") + buffer).c_str());
+		//OutputDebugString((std::string("FPS: ") + buffer).c_str());
 
 		//Now write FPS to the registry for the Perception App (hopefully this is a very quick operation)
 		HKEY hKey;
@@ -1158,18 +1148,13 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 			screenshot--;
 		}
 
-		if(fps < fMinFPS && bReprojectionOn && iInjectedFrames == 0)
+		if(fps < fMinFPS && stereoView->bReprojection && !bSkipFrame)
 		{			
-			bSkipFrame = true;
-			iInjectedFrames = iMaxInjectedFrames;
+			bSkipFrame = true;			
 		}
 		else
 		{
-			bSkipFrame = false;
-			if(iInjectedFrames > 0)
-				iInjectedFrames--;			
-			else
-				iInjectedFrames = 0;			
+			bSkipFrame = false;			
 		}
 
 		// set last frame vertex shader count
@@ -2656,15 +2641,15 @@ void D3DProxyDevice::HandleControls()
 	if (controls.Key_Down(VK_LSHIFT) && (controls.Key_Down(0x30)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
-		if (bReprojectionOn)
+		if (stereoView->bReprojection)
 		{			
 			sprintf_s(popup.line[2], "Reprojection Off");								
-			bReprojectionOn = false;
+			stereoView->bReprojection = false;
 		}
 		else
 		{
 			sprintf_s(popup.line[2], "Reprojection On");								
-			bReprojectionOn = true;
+			stereoView->bReprojection = true;
 		}
 		ShowPopup(popup);
 
@@ -2720,16 +2705,46 @@ void D3DProxyDevice::HandleControls()
 	if (controls.Key_Down(VK_SHIFT) && (controls.Key_Down(VK_UP) || controls.Key_Down(VK_DOWN)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		std::string _str = "";
+		VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
+				
 		if(controls.Key_Down(VK_UP))
-		{			
-			iMaxInjectedFrames++;
+		{	
+			stereoView->iWhenToAverageFrame++;
+			if(stereoView->iWhenToAverageFrame == 1)
+			{
+				sprintf_s(popup.line[0], "Show Averaged Frame All The Time");		
+			}
+			else if(stereoView->iWhenToAverageFrame == 2)
+			{
+				sprintf_s(popup.line[0], "Show Average Frame Never");		
+			}
+			else if(stereoView->iWhenToAverageFrame == 3 || stereoView->iWhenToAverageFrame == 0)
+			{
+				stereoView->iWhenToAverageFrame = 0;
+				sprintf_s(popup.line[0], "Show Average Frame Alternately");		
+			}
 		}
 		else if(controls.Key_Down(VK_DOWN))
 		{			
-			iMaxInjectedFrames--;
+			stereoView->iWhenToReadFrame++;
+			if(stereoView->iWhenToReadFrame == 1)
+			{
+				sprintf_s(popup.line[0], "Read frame when Averaged");		
+			}
+			else if(stereoView->iWhenToReadFrame == 2)
+			{
+				sprintf_s(popup.line[0], "Read frame all the time");		
+			}
+			else if(stereoView->iWhenToReadFrame == 3)
+			{
+				sprintf_s(popup.line[0], "Read Never");		
+			}
+			else if(stereoView->iWhenToReadFrame == 4 || stereoView->iWhenToReadFrame == 0)
+			{
+				stereoView->iWhenToReadFrame = 0;
+				sprintf_s(popup.line[0], "Read When Not Averaged");		
+			}
 		}
-		VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
-		sprintf_s(popup.line[0], "Inject Frame Every: %i Frame(s)", iMaxInjectedFrames);		
 		ShowPopup(popup);
 		
 		menuVelocity.x += 4.0f;		

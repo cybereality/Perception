@@ -74,6 +74,8 @@ void OculusRiftView::SetViewEffectInitialValues()
 	//Set the black smear corection - 0.0f will do nothing
 	viewEffect->SetFloat("SmearCorrection", m_blackSmearCorrection);
 
+	viewEffect->SetBool("bAverageFrame", bAverageFrame);
+
 	//Local static for controlling vignette in telescopic sight mode
 	static float vignette_val = 1.0f;
 

@@ -1,7 +1,8 @@
-﻿Build started 08/03/2015 22:01:00.
-     1>Project "F:\Users\baggyg\Documents\GitHub\Perception\VRboostReferee\VRboostReferee.vcxproj" on node 3 (Build target(s)).
+﻿Build started 13/03/2015 01:05:24.
+     1>Project "F:\Users\baggyg\Documents\GitHub\Perception\VRboostReferee\VRboostReferee.vcxproj" on node 3 (Rebuild target(s)).
      1>ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\CL.exe /c /I"C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\\Include" /I\Include /Zi /nologo /W3 /WX- /O2 /Oi /Oy- /GL /D WIN32 /D NDEBUG /D _CONSOLE /D _MBCS /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Release\\" /Fd"Release\vc110.pdb" /Gd /TP /analyze- /errorReport:prompt VRboostReferee.cpp
+         C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\CL.exe /c /I"C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\\Include" /I\Include /Zi /nologo /W3 /WX- /O2 /Oi /Oy- /GL /D WIN32 /D NDEBUG /D _CONSOLE /D _MBCS /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Release\\" /Fd"Release\vc110.pdb" /Gd /TP /analyze- /errorReport:prompt ..\DxProxy\DxProxy\pugixml.cpp VRboostReferee.cpp
+         pugixml.cpp
          VRboostReferee.cpp
      1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V110\Microsoft.CppBuild.targets(1137,5): warning MSB8012: TargetPath(F:\Users\baggyg\Documents\GitHub\Perception\VRboostReferee\Release\VRboostReferee.exe) does not match the Linker's OutputFile property value (F:\Users\baggyg\Documents\GitHub\Perception\Release\Perception\cfg\VRboost_rules\VRboostReferee.exe). This may cause your project to build incorrectly. To correct this, please make sure that $(OutDir), $(TargetName) and $(TargetExt) property values match the value specified in %(Link.OutputFile).
        Link:
@@ -10,8 +11,8 @@
          Generating code
          Finished generating code
          VRboostReferee.vcxproj -> F:\Users\baggyg\Documents\GitHub\Perception\VRboostReferee\Release\VRboostReferee.exe
-     1>Done Building Project "F:\Users\baggyg\Documents\GitHub\Perception\VRboostReferee\VRboostReferee.vcxproj" (Build target(s)).
+     1>Done Building Project "F:\Users\baggyg\Documents\GitHub\Perception\VRboostReferee\VRboostReferee.vcxproj" (Rebuild target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:02.16
+Time Elapsed 00:00:02.15
