@@ -68,7 +68,7 @@ public:
 	virtual void updateOrientationAndPosition();
 	virtual MotionTrackerStatus getStatus();
 	virtual void setMultipliers(float yaw, float pitch, float roll);
-	virtual void setMouseEmulation(bool emulateMouse);
+	virtual bool setMouseEmulation(bool emulateMouse);
 	virtual void BeginFrame() {}
 	virtual void WaitTillTime() {}
 	virtual void EndFrame() {}

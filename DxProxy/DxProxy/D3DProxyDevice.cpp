@@ -173,7 +173,8 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	activePopup(VPT_NONE),
 	show_fps(FPS_NONE),
 	calibrate_tracker(false),
-	hmdInfo(NULL)
+	hmdInfo(NULL),
+	m_saveConfigTimer(MAXDWORD)
 {
 	#ifdef SHOW_CALLS
 		OutputDebugString("called D3DProxyDevice");
@@ -183,12 +184,9 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	InitVRBoost();
 
 	// rift info
-	int mode;
-	int mode2;
-	int adapter;
 	ProxyHelper helper = ProxyHelper();
-	helper.LoadUserConfig(mode, mode2, adapter, showNotifications, warnPositionalLost);
-	hmdInfo = HMDisplayInfoFactory::CreateHMDisplayInfo(static_cast<StereoView::StereoTypes>(mode)); 
+	helper.LoadUserConfig(userConfig);
+	hmdInfo = HMDisplayInfoFactory::CreateHMDisplayInfo(static_cast<StereoView::StereoTypes>(userConfig.mode)); 
 	OutputDebugString(("Created HMD Info for: " + hmdInfo->GetHMDName()).c_str());
 
 	m_spShaderViewAdjustment = std::make_shared<ViewAdjustment>(hmdInfo, 1.0f, 0);
@@ -1127,6 +1125,16 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 				strcpy_s(popup.line[5], "           L + R Shoulder Buttons on Xbox 360 Controller");
 				ShowPopup(popup);
 			}
+		}
+
+		//If we need to save configuration, do it now
+		if (m_saveConfigTimer != MAXDWORD &&
+			//Wait 10 seconds before saving
+			(GetTickCount() - m_saveConfigTimer) > 10000)
+		{
+			VPMENU_UpdateConfigSettings();
+			//Make sure we don't come back in here
+			m_saveConfigTimer = MAXDWORD;
 		}
 
 		if (tracker)
@@ -3040,6 +3048,7 @@ void D3DProxyDevice::HandleControls()
 		VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
 		sprintf_s(popup.line[2], "IPD-Offset: %1.3f", this->stereoView->IPDOffset);
 		ShowPopup(popup);
+		m_saveConfigTimer = GetTickCount();
 		menuVelocity.x+=2.0f;
 	}
 
@@ -3238,10 +3247,12 @@ void D3DProxyDevice::HandleControls()
 	if ((controls.Key_Down(edgePeekHotkey) || (controls.Key_Down(VK_MBUTTON) || (controls.Key_Down(VK_LCONTROL) && controls.Key_Down(VK_NUMPAD2)))) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
 		static bool bSurpressPositionaltracking = false;
+		static bool bForceMouseEmulation = false;
 		if (m_bfloatingScreen)
 		{
 			m_bfloatingScreen = false;
 			m_bSurpressHeadtracking = false;
+			tracker->setMouseEmulation(bForceMouseEmulation);
 			bSurpressPositionaltracking = m_bSurpressPositionaltracking;
 			m_bSurpressPositionaltracking = false;
 			//TODO Change this back to initial
@@ -3252,8 +3263,10 @@ void D3DProxyDevice::HandleControls()
 		}
 		else
 		{
+			//Suspend in-game movement whilst showing disconnected screen view
 			m_bfloatingScreen = true;
 			m_bSurpressHeadtracking = true;
+			bForceMouseEmulation = tracker->setMouseEmulation(false);
 			m_bSurpressPositionaltracking = bSurpressPositionaltracking;
 			if (tracker->getStatus() >= MTS_OK)
 			{
@@ -3399,6 +3412,7 @@ void D3DProxyDevice::HandleControls()
 
 			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
 			sprintf_s(popup.line[2], "Y-Offset: %1.3f", this->stereoView->YOffset);
+			m_saveConfigTimer = GetTickCount();
 			ShowPopup(popup);
 		}
 		else if(controls.Key_Down(VK_LSHIFT))
@@ -3422,6 +3436,7 @@ void D3DProxyDevice::HandleControls()
 
 			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
 			sprintf_s(popup.line[2], "IPD-Offset: %1.3f", this->stereoView->IPDOffset);
+			m_saveConfigTimer = GetTickCount();
 			ShowPopup(popup);
  		}
 		//CTRL + ALT + Mouse Wheel - adjust World Scale dynamically
@@ -3442,6 +3457,7 @@ void D3DProxyDevice::HandleControls()
 				m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
 				VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
 				sprintf_s(popup.line[2], "Stereo Separation (World Scale): %1.3f", m_spShaderViewAdjustment->WorldScale());
+				m_saveConfigTimer = GetTickCount();
 				ShowPopup(popup);
 			}
 		}
@@ -3463,6 +3479,7 @@ void D3DProxyDevice::HandleControls()
 				m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
 				VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
 				sprintf_s(popup.line[2], "Stereo Convergence: %1.3f", m_spShaderViewAdjustment->Convergence());
+				m_saveConfigTimer = GetTickCount();
 				ShowPopup(popup);
 			}
 		}
@@ -3489,6 +3506,7 @@ void D3DProxyDevice::HandleControls()
 
 				VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
 				sprintf_s(popup.line[2], "Distortion Scale: %1.3f", this->stereoView->DistortionScale);
+				m_saveConfigTimer = GetTickCount();
 				ShowPopup(popup);
 			}
 		}
@@ -3511,6 +3529,7 @@ void D3DProxyDevice::HandleControls()
 
 			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
 			sprintf_s(popup.line[2], "Distortion Scale: %1.3f", this->stereoView->DistortionScale);
+			m_saveConfigTimer = GetTickCount();
 			ShowPopup(popup);
 		}
 		else if(controls.Key_Down(VK_SUBTRACT))
@@ -3523,6 +3542,7 @@ void D3DProxyDevice::HandleControls()
 
 			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
 			sprintf_s(popup.line[2], "Distortion Scale: %1.3f", this->stereoView->DistortionScale);
+			m_saveConfigTimer = GetTickCount();
 			ShowPopup(popup);
 		}		
 	}	
@@ -3678,7 +3698,7 @@ void D3DProxyDevice::HandleTracking()
 				}
 				else if (tracker->getStatus() == MTS_LOSTPOSITIONAL)
 				{
-					if (warnPositionalLost)
+					if (userConfig.warnPosLost)
 					{
 						//Show popup regarding lost positional tracking
 						VireioPopup popup(VPT_POSITION_TRACKING_LOST);
@@ -7145,13 +7165,42 @@ void D3DProxyDevice::VPMENU_UpdateBorder()
 			VPMENU_AdditionalOutput();
 	}
 
+
+	//If this is enabled, then draw an apostrophe in the top left corner of the screen at all times
+	//this results in obs only picking up the left eye's texture for some reason (total hack, but some users make use of this for streaming
+	//using OBS
+	if (userConfig.obsStreamHack)
+	{
+		LPD3DXSPRITE hackSprite = NULL;
+		D3DXCreateSprite(this, &hackSprite);
+		if (hudFont && hackSprite)
+		{
+			hackSprite->Begin(D3DXSPRITE_ALPHABLEND);
+			D3DXMATRIX matScale;
+			D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
+			hackSprite->SetTransform(&matScale);			
+			menuHelperRect.left = 0;
+			menuHelperRect.top = 0;
+			menuHelperRect.right = 50;
+			menuHelperRect.bottom = 50;
+			char buffer[4];
+			sprintf_s(buffer, "'");
+			hudFont->DrawText(hackSprite, buffer, -1, &menuHelperRect, DT_LEFT, D3DCOLOR_ARGB(255, 255, 0, 0));
+			D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
+			hackSprite->Draw(NULL, &menuHelperRect, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));
+			hackSprite->End();
+			hackSprite->Release();
+			hackSprite = NULL;
+		}		
+	}
+
 	// first, calculate a time scale to adjust the menu speed for the frame speed of the game
 	float timeStamp;
 	timeStamp = (float)GetTickCount()/1000.0f;
 	menuSeconds = timeStamp-menuTime;
 	menuTime = timeStamp;
-	// tested having about 50 fps, so menu velocity is based on that
-	float timeScale = (float)menuSeconds*50;
+	// Speed up menu - makes an incredible difference!
+	float timeScale = (float)menuSeconds*90;
 
 	// menu velocity present ? in case calculate diminution of the velocity
 	if (menuVelocity != D3DXVECTOR2(0.0f, 0.0f))
@@ -7526,7 +7575,7 @@ void D3DProxyDevice::DisplayCurrentPopup()
 
 	if ((activePopup.popupType == VPT_NONE && show_fps == FPS_NONE) || 
 		VPMENU_mode != VPMENU_Modes::INACTIVE ||
-		!showNotifications)
+		!userConfig.notifications)
 		return;
 	
 	// output menu
@@ -7659,7 +7708,6 @@ void D3DProxyDevice::DisplayCurrentPopup()
 			menuHelperRect.top = 800;
 			menuHelperRect.left = 0;
 			hudFont->DrawText(hudMainMenu, buffer, -1, &menuHelperRect, DT_CENTER, colour);
-			//DrawTextShadowed(hudFont, hudMainMenu, buffer, -1, &menuHelperRect, DT_CENTER, colour);
 		}
 
 		menuHelperRect.left = 0;
@@ -7753,6 +7801,12 @@ void D3DProxyDevice::ReleaseEverything()
 	{
 		hudMainMenu->Release();
 		hudMainMenu = NULL;
+	}
+
+	if (hudTextBox)
+	{
+		hudTextBox->Release();
+		hudTextBox = NULL;
 	}
 
 	m_spManagedShaderRegisters->ReleaseResources();

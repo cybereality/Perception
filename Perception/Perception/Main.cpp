@@ -495,23 +495,20 @@ int WINAPI wWinMain(HINSTANCE instance_handle, HINSTANCE, LPWSTR, INT) {
 		index++;
 	}
 
-	int mode;
-	int mode2;
-	bool notifications, posLost;
-	int adapter;
 	ProxyHelper helper = ProxyHelper();
-	helper.LoadUserConfig(mode, mode2, adapter, notifications, posLost);
+	ProxyHelper::UserConfig userConfig;
+	helper.LoadUserConfig(userConfig);
 
-	SendMessage(main_window.combobox->combobox_handle, CB_SETCURSEL, stereoModes[mode], 0);
-	SendMessage(main_window.combobox2->combobox_handle, CB_SETCURSEL, trackerModes[mode2], 0);
+	SendMessage(main_window.combobox->combobox_handle, CB_SETCURSEL, stereoModes[userConfig.mode], 0);
+	SendMessage(main_window.combobox2->combobox_handle, CB_SETCURSEL, trackerModes[userConfig.mode2], 0);
 
 	//If an HMD is unplugged we may not actually be able to select it
-	if (adapter >= adapterNum)
+	if (userConfig.adapter >= adapterNum)
 	{
-		adapter = 0;
+		userConfig.adapter = 0;
 		helper.SaveDisplayAdapter(0);
 	}
-	SendMessage(main_window.combobox3->combobox_handle, CB_SETCURSEL, adapter, 0);
+	SendMessage(main_window.combobox3->combobox_handle, CB_SETCURSEL, userConfig.adapter, 0);
 
 	main_window.run();
 

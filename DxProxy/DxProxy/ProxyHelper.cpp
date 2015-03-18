@@ -229,7 +229,7 @@ void ProxyHelper::GetTargetPath(char* newFolder, char* path)
 * @param mode Stereo mode returned.
 * @param mode2 Tracker mode returned.
 ***/
-bool ProxyHelper::LoadUserConfig(int& mode, int& mode2, int& adapter, bool &notifications, bool &warnPosLost)
+bool ProxyHelper::LoadUserConfig(UserConfig &userConfig)
 {
 	// load the base dir for the app
 	GetBaseDir();
@@ -247,11 +247,14 @@ bool ProxyHelper::LoadUserConfig(int& mode, int& mode2, int& adapter, bool &noti
 	{
 		xml_node xml_config = docConfig.child("config");
 
-		mode = xml_config.attribute("stereo_mode").as_int();
-		mode2 = xml_config.attribute("tracker_mode").as_int();
-		adapter = xml_config.attribute("display_adapter").as_int(0);
-		notifications = (xml_config.attribute("notifications").as_int(1) != 0);
-		warnPosLost = (xml_config.attribute("warn_positional_lost").as_int(1) != 0);
+		userConfig.mode = xml_config.attribute("stereo_mode").as_int();
+		userConfig.mode2 = xml_config.attribute("tracker_mode").as_int();
+		userConfig.adapter = xml_config.attribute("display_adapter").as_int(0);
+		userConfig.notifications = (xml_config.attribute("notifications").as_int(1) != 0);
+		userConfig.warnPosLost = (xml_config.attribute("warn_positional_lost").as_int(1) != 0);
+
+		//Thhis triggers the "hack" to get obs streaming the game without stereo and distortion
+		userConfig.obsStreamHack = (xml_config.attribute("obs_stream_hack").as_int(0) != 0);
 
 		return true;
 	}

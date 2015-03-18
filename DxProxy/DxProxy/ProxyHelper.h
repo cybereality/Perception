@@ -109,6 +109,16 @@ public:
 		UINT		display_adapter;			/**< The display adapter to use - 0 = Primary Display, 1 = Secondary and so on.. */
 	};
 
+	struct UserConfig
+	{
+		int mode;
+		int mode2;
+		int adapter;
+		bool notifications;
+		bool warnPosLost;
+		bool obsStreamHack;
+	};
+
 	/**
 	* Oculus user profile.
 	* Saved from Oculus Configuration Utility to "%USERPROFILE%\AppData\Local\Oculus".
@@ -128,7 +138,7 @@ public:
 	char* GetTargetExe();
 	void  GetPath(char* newFolder, char* path);
 	void  GetTargetPath(char* newFolder, char* path);
-	bool  LoadUserConfig(int& mode, int& mode2, int& adapter, bool &notifications, bool &warnPosLost);
+	bool  LoadUserConfig(UserConfig &userConfig);
 	bool  SaveUserConfig(int mode = -1, float aspect = -1.0f);
 	bool  LoadUserConfig(ProxyConfig& config, OculusProfile& oculusProfile);
 	bool  SaveUserConfig(float ipd = IPD_DEFAULT);
