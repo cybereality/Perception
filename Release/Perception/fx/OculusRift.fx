@@ -2,6 +2,8 @@
 
 sampler2D TexMap0;
 sampler2D TexMap1;
+sampler2D TexMap2;
+sampler2D TexMap3;
 
 float ViewportXOffset;
 float ViewportYOffset;
@@ -14,6 +16,7 @@ float4 HmdWarpParam;
 float3 Vignette;
 float Rotation;
 float SmearCorrection;
+bool bAverageFrame;
 
 // Warp operates on left view, for right, mirror x texture coord
 // before and after calling.  in02 contains the chromatic aberration
@@ -123,17 +126,35 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 	if (any(clamp(tcBlue.xy, float2(0.0,0.0), float2(1.0, 1.0)) - tcBlue.xy))
 		return 0;
 
-	if (Tex.x > 0.5f)
+	if(bAverageFrame)
 	{
-		outColor.r =  tex2D(TexMap1,   tcRed.xy).r;
-		outColor.g =  tex2D(TexMap1, tcGreen.xy).g;
-		outColor.b =  tex2D(TexMap1,  tcBlue.xy).b;
+		if (Tex.x > 0.5f)
+		{
+			outColor.r =  (tex2D(TexMap1,   tcRed.xy).r + tex2D(TexMap3,   tcRed.xy).r) / 2;
+			outColor.g =  (tex2D(TexMap1, tcGreen.xy).g + tex2D(TexMap3, tcGreen.xy).g) / 2;
+			outColor.b =  (tex2D(TexMap1, tcBlue.xy).b + tex2D(TexMap3, tcBlue.xy).b) / 2;			
+		}
+		else
+		{
+			outColor.r =  (tex2D(TexMap0,   tcRed.xy).r + tex2D(TexMap2,   tcRed.xy).r) / 2;
+			outColor.g =  (tex2D(TexMap0, tcGreen.xy).g + tex2D(TexMap2, tcGreen.xy).g) / 2;
+			outColor.b =  (tex2D(TexMap0, tcBlue.xy).b + tex2D(TexMap2, tcBlue.xy).b) / 2;						
+		}
 	}
 	else
 	{
-		outColor.r =  tex2D(TexMap0,   tcRed.xy).r;
-		outColor.g =  tex2D(TexMap0, tcGreen.xy).g;
-		outColor.b =  tex2D(TexMap0,  tcBlue.xy).b;
+		if (Tex.x > 0.5f)
+		{
+			outColor.r =  tex2D(TexMap1,   tcRed.xy).r;
+			outColor.g =  tex2D(TexMap1, tcGreen.xy).g;
+			outColor.b =  tex2D(TexMap1,  tcBlue.xy).b;
+		}
+		else
+		{
+			outColor.r =  tex2D(TexMap0,   tcRed.xy).r;
+			outColor.g =  tex2D(TexMap0, tcGreen.xy).g;
+			outColor.b =  tex2D(TexMap0,  tcBlue.xy).b;
+		}
 	}
 
 	//Are we applying vignette filter?

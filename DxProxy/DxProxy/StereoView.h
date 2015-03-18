@@ -53,6 +53,7 @@ public:
 	virtual void ReleaseEverything();
 	virtual void Draw(D3D9ProxySurface* stereoCapableSurface);
 	virtual void SaveScreen();
+	virtual void SaveLastScreen();
 	virtual std::string CycleRenderState(bool blnBackwards);
 	virtual void PostReset();
 	IDirect3DSurface9* GetBackBuffer();
@@ -166,6 +167,17 @@ public:
 	//DK2 black smear correction (0.0f if disabled)
 	float m_blackSmearCorrection;
 
+	//Indicates whether to average the frame or not
+	bool bAverageFrame;
+
+	//When to read frame? (NotAveraged / Averaged / All The Time / Never)
+	int iWhenToReadFrame;
+	//When to average frame? (Regular / All The Time / Never)
+	int iWhenToAverageFrame;
+	//Reprojection 
+	bool bReprojection;
+	
+
 protected:
 	/*** StereoView protected methods ***/
 	virtual void InitTextureBuffers();
@@ -222,6 +234,16 @@ protected:
 	* Right eye (or lower) target texture buffer.
 	* Surface data from D3D9ProxySurface is copied on that. To be swapped with left texture if swap_eyes set to true.
 	***/
+	IDirect3DTexture9* rightTextureSaved;
+	/**
+	* Last Left eye (or upper) target texture buffer.
+	* Surface data from D3D9ProxySurface is copied on that. To be swapped with right texture if swap_eyes set to true.
+	***/
+	IDirect3DTexture9* leftTextureSaved;
+	/**
+	* Right eye (or lower) target texture buffer.
+	* Surface data from D3D9ProxySurface is copied on that. To be swapped with left texture if swap_eyes set to true.
+	***/
 	IDirect3DTexture9* rightTexture;
 	/**
 	* Current render target.
@@ -254,6 +276,7 @@ protected:
 	* View effect according to the stereo mode preset in stereo_mode.
 	***/
 	ID3DXEffect* viewEffect;
+	
 	/**
 	* Map of the shader effect file names.
 	***/

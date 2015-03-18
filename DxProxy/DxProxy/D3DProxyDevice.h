@@ -984,12 +984,8 @@ private:
 	/**
 	* Variables related to skipping a frame if FPS is low
 	***/
-	bool bReprojectionOn;
-	int iInjectedFrames;
-	int iMaxInjectedFrames;
 	float fMinFPS;
-	bool bSkipFrame;
-	bool bColorFrame;
+	bool bSkipFrame;	
 };
 
 #endif
