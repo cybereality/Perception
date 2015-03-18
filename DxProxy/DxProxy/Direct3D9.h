@@ -82,6 +82,11 @@ private:
 	bool configLoaded;
 
 	/**
+	* Whether the perception app is running - if it isn't, we don't inject
+	*/
+	bool m_perceptionRunning;
+
+	/**
 	* Proxy configuration we load
 	*/
 	ProxyHelper::ProxyConfig cfg;

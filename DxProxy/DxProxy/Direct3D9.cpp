@@ -31,6 +31,31 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Direct3DDevice9.h"
 #include "Main.h"
 #include "D3DProxyDeviceFactory.h"
+#include <cstdio>
+#include <windows.h>
+#include <tlhelp32.h>
+
+/*!
+\brief Check if a process is running
+\param [in] processName Name of process to check if is running
+\returns \c True if the process is running, or \c False if the process is not running
+*/
+bool IsProcessRunning(const char *processName)
+{
+    bool exists = false;
+    PROCESSENTRY32 entry;
+    entry.dwSize = sizeof(PROCESSENTRY32);
+
+    HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, NULL);
+
+    if (Process32First(snapshot, &entry))
+        while (Process32Next(snapshot, &entry))
+            if (!strcmp(entry.szExeFile, processName))
+                exists = true;
+
+    CloseHandle(snapshot);
+    return exists;
+}
 
 /**
 * Constructor. 
@@ -38,22 +63,32 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***/
 BaseDirect3D9::BaseDirect3D9(IDirect3D9* pD3D) :
 	m_pD3D(pD3D),
-	m_nRefCount(1)
+	m_nRefCount(1),
+	m_perceptionRunning(false)
 {
-	// load configuration file
-	ProxyHelper helper = ProxyHelper();
-	ProxyHelper::OculusProfile oculusProfile;
-	configLoaded = true;
-	if(!helper.LoadConfig(cfg, oculusProfile)) {
-		OutputDebugString("[ERR] Config loading failed, config could not be loaded. Returning normal D3DDevice. Vireio will not be active.\n");
-		configLoaded = false;
+	if(!IsProcessRunning("Perception.exe")) {
+		OutputDebugString("[WARN] Perception Application is not running. Vireio will not be active.\n");
 	}
-
-	if (cfg.display_adapter > m_pD3D->GetAdapterCount() ||
-		!configLoaded)
+	else
 	{
-		OutputDebugString("[ERR] Invalid Display Adapter ID - Using Primary adapter\n");
-		cfg.display_adapter = D3DADAPTER_DEFAULT;
+		//record that the perception app is running
+		m_perceptionRunning = true;
+
+		// load configuration file
+		ProxyHelper helper = ProxyHelper();
+		ProxyHelper::OculusProfile oculusProfile;
+		configLoaded = true;
+		if(!helper.LoadConfig(cfg, oculusProfile)) {
+			OutputDebugString("[ERR] Config loading failed, config could not be loaded. Returning normal D3DDevice. Vireio will not be active.\n");
+			configLoaded = false;
+		}
+
+		if (cfg.display_adapter > m_pD3D->GetAdapterCount() ||
+			!configLoaded)
+		{
+			OutputDebugString("[ERR] Invalid Display Adapter ID - Using Primary adapter\n");
+			cfg.display_adapter = D3DADAPTER_DEFAULT;
+		}
 	}
 }
 
@@ -117,7 +152,7 @@ UINT BaseDirect3D9::GetAdapterCount()
 ***/
 HRESULT WINAPI BaseDirect3D9::GetAdapterIdentifier(UINT Adapter, DWORD Flags,D3DADAPTER_IDENTIFIER9* pIdentifier)
 {
-	return m_pD3D->GetAdapterIdentifier(cfg.display_adapter, Flags, pIdentifier);
+	return m_pD3D->GetAdapterIdentifier(m_perceptionRunning ? cfg.display_adapter : Adapter, Flags, pIdentifier);
 }
 
 /**
@@ -125,7 +160,7 @@ HRESULT WINAPI BaseDirect3D9::GetAdapterIdentifier(UINT Adapter, DWORD Flags,D3D
 ***/
 UINT WINAPI BaseDirect3D9::GetAdapterModeCount(UINT Adapter, D3DFORMAT Format)
 {
-	return m_pD3D->GetAdapterModeCount(cfg.display_adapter, Format);
+	return m_pD3D->GetAdapterModeCount(m_perceptionRunning ? cfg.display_adapter : Adapter, Format);
 }
 
 /**
@@ -133,7 +168,7 @@ UINT WINAPI BaseDirect3D9::GetAdapterModeCount(UINT Adapter, D3DFORMAT Format)
 ***/
 HRESULT WINAPI BaseDirect3D9::EnumAdapterModes(UINT Adapter, D3DFORMAT Format, UINT Mode,D3DDISPLAYMODE* pMode)
 {
-	return m_pD3D->EnumAdapterModes(cfg.display_adapter, Format, Mode, pMode);
+	return m_pD3D->EnumAdapterModes(m_perceptionRunning ? cfg.display_adapter : Adapter, Format, Mode, pMode);
 }
 
 /**
@@ -141,7 +176,7 @@ HRESULT WINAPI BaseDirect3D9::EnumAdapterModes(UINT Adapter, D3DFORMAT Format, U
 ***/
 HRESULT WINAPI BaseDirect3D9::GetAdapterDisplayMode(UINT Adapter, D3DDISPLAYMODE* pMode)
 {
-	return m_pD3D->GetAdapterDisplayMode(cfg.display_adapter, pMode);
+	return m_pD3D->GetAdapterDisplayMode(m_perceptionRunning ? cfg.display_adapter : Adapter, pMode);
 }
 
 /**
@@ -149,7 +184,7 @@ HRESULT WINAPI BaseDirect3D9::GetAdapterDisplayMode(UINT Adapter, D3DDISPLAYMODE
 ***/
 HRESULT WINAPI BaseDirect3D9::CheckDeviceType(UINT Adapter, D3DDEVTYPE DevType,D3DFORMAT AdapterFormat, D3DFORMAT BackBufferFormat, BOOL bWindowed)
 {
-	return m_pD3D->CheckDeviceType(cfg.display_adapter, DevType, AdapterFormat, BackBufferFormat, bWindowed);
+	return m_pD3D->CheckDeviceType(m_perceptionRunning ? cfg.display_adapter : Adapter, DevType, AdapterFormat, BackBufferFormat, bWindowed);
 }
 
 /**
@@ -157,7 +192,7 @@ HRESULT WINAPI BaseDirect3D9::CheckDeviceType(UINT Adapter, D3DDEVTYPE DevType,D
 ***/
 HRESULT WINAPI BaseDirect3D9::CheckDeviceFormat(UINT Adapter, D3DDEVTYPE DeviceType,D3DFORMAT AdapterFormat, DWORD Usage, D3DRESOURCETYPE RType, D3DFORMAT CheckFormat)
 {
-	return m_pD3D->CheckDeviceFormat(cfg.display_adapter, DeviceType, AdapterFormat, Usage, RType,
+	return m_pD3D->CheckDeviceFormat(m_perceptionRunning ? cfg.display_adapter : Adapter, DeviceType, AdapterFormat, Usage, RType,
 		CheckFormat);
 }
 
@@ -166,7 +201,7 @@ HRESULT WINAPI BaseDirect3D9::CheckDeviceFormat(UINT Adapter, D3DDEVTYPE DeviceT
 ***/
 HRESULT WINAPI BaseDirect3D9::CheckDeviceMultiSampleType(UINT Adapter, D3DDEVTYPE DeviceType,D3DFORMAT SurfaceFormat, BOOL Windowed, D3DMULTISAMPLE_TYPE MultiSampleType,DWORD* pQualityLevels)
 {
-	return m_pD3D->CheckDeviceMultiSampleType(cfg.display_adapter, DeviceType, SurfaceFormat, Windowed,
+	return m_pD3D->CheckDeviceMultiSampleType(m_perceptionRunning ? cfg.display_adapter : Adapter, DeviceType, SurfaceFormat, Windowed,
 		MultiSampleType, pQualityLevels);
 }
 
@@ -175,7 +210,7 @@ HRESULT WINAPI BaseDirect3D9::CheckDeviceMultiSampleType(UINT Adapter, D3DDEVTYP
 ***/
 HRESULT WINAPI BaseDirect3D9::CheckDepthStencilMatch(UINT Adapter, D3DDEVTYPE DeviceType,D3DFORMAT AdapterFormat, D3DFORMAT RenderTargetFormat, D3DFORMAT DepthStencilFormat)
 {
-	return m_pD3D->CheckDepthStencilMatch(cfg.display_adapter, DeviceType, AdapterFormat, RenderTargetFormat,
+	return m_pD3D->CheckDepthStencilMatch(m_perceptionRunning ? cfg.display_adapter : Adapter, DeviceType, AdapterFormat, RenderTargetFormat,
 		DepthStencilFormat);
 }
 
@@ -184,7 +219,7 @@ HRESULT WINAPI BaseDirect3D9::CheckDepthStencilMatch(UINT Adapter, D3DDEVTYPE De
 ***/
 HRESULT WINAPI BaseDirect3D9::CheckDeviceFormatConversion(UINT Adapter, D3DDEVTYPE DeviceType,D3DFORMAT SourceFormat, D3DFORMAT TargetFormat)
 {
-	return m_pD3D->CheckDeviceFormatConversion(cfg.display_adapter, DeviceType, SourceFormat, TargetFormat);
+	return m_pD3D->CheckDeviceFormatConversion(m_perceptionRunning ? cfg.display_adapter : Adapter, DeviceType, SourceFormat, TargetFormat);
 }
 
 /**
@@ -192,7 +227,7 @@ HRESULT WINAPI BaseDirect3D9::CheckDeviceFormatConversion(UINT Adapter, D3DDEVTY
 ***/
 HRESULT WINAPI BaseDirect3D9::GetDeviceCaps(UINT Adapter, D3DDEVTYPE DeviceType, D3DCAPS9* pCaps)
 {	
-	return m_pD3D->GetDeviceCaps(cfg.display_adapter, DeviceType, pCaps);
+	return m_pD3D->GetDeviceCaps(m_perceptionRunning ? cfg.display_adapter : Adapter, DeviceType, pCaps);
 }
 
 /**
@@ -200,7 +235,7 @@ HRESULT WINAPI BaseDirect3D9::GetDeviceCaps(UINT Adapter, D3DDEVTYPE DeviceType,
 ***/
 HMONITOR WINAPI BaseDirect3D9::GetAdapterMonitor(UINT Adapter)
 {
-	return m_pD3D->GetAdapterMonitor(cfg.display_adapter);
+	return m_pD3D->GetAdapterMonitor(m_perceptionRunning ? cfg.display_adapter : Adapter);
 }
 
 /**
@@ -212,7 +247,7 @@ HMONITOR WINAPI BaseDirect3D9::GetAdapterMonitor(UINT Adapter)
 HRESULT WINAPI BaseDirect3D9::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, HWND hFocusWindow,DWORD BehaviorFlags, D3DPRESENT_PARAMETERS* pPresentationParameters,IDirect3DDevice9** ppReturnedDeviceInterface)
 {
 	HRESULT hResult = S_OK;
-	hResult = m_pD3D->CreateDevice(cfg.display_adapter, DeviceType, hFocusWindow, BehaviorFlags,
+	hResult = m_pD3D->CreateDevice(m_perceptionRunning ? cfg.display_adapter : Adapter, DeviceType, hFocusWindow, BehaviorFlags,
 		pPresentationParameters, ppReturnedDeviceInterface);
 	if(FAILED(hResult))
 		return hResult;
@@ -267,6 +302,11 @@ HRESULT WINAPI BaseDirect3D9::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, 
 
 	if(cfg.stereo_mode == StereoView::DISABLED) {
 		OutputDebugString("[WARN] stereo_mode == disabled. Returning normal D3DDevice. Vireio will not be active.\n");
+		return hResult;
+	}
+
+	if(!m_perceptionRunning) {
+		OutputDebugString("[WARN] Perception application is not running. Returning normal D3DDevice. Vireio will not be active.\n");
 		return hResult;
 	}
 
