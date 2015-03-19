@@ -7673,24 +7673,13 @@ void D3DProxyDevice::DisplayCurrentPopup()
 				break;
 		}
 
-		if (strlen(activePopup.line[0]))
-			DrawTextShadowed(pFont, hudMainMenu, activePopup.line[0], -1, &menuHelperRect, format, popupColour);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		if (strlen(activePopup.line[1]))
-			DrawTextShadowed(pFont, hudMainMenu, activePopup.line[1], -1, &menuHelperRect, format, popupColour);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		if (strlen(activePopup.line[2]))
-			DrawTextShadowed(pFont, hudMainMenu, activePopup.line[2], -1, &menuHelperRect, format, popupColour);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		if (strlen(activePopup.line[3]))
-			DrawTextShadowed(pFont, hudMainMenu, activePopup.line[3], -1, &menuHelperRect, format, popupColour);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		if (strlen(activePopup.line[4]))
-			DrawTextShadowed(pFont, hudMainMenu, activePopup.line[4], -1, &menuHelperRect, format, popupColour);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		if (strlen(activePopup.line[5]))
-			DrawTextShadowed(pFont, hudMainMenu, activePopup.line[5], -1, &menuHelperRect, format, popupColour);
-
+		for (int i = 0; i <= 6; ++i)
+		{
+			if (strlen(activePopup.line[i]))
+				DrawTextShadowed(pFont, hudMainMenu, activePopup.line[i], -1, &menuHelperRect, format, popupColour);
+			menuHelperRect.top += MENU_ITEM_SEPARATION;
+		}
+		
 		if (show_fps != FPS_NONE)
 		{
 			char buffer[256];

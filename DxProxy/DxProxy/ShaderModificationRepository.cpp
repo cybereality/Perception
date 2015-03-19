@@ -996,6 +996,8 @@ bool ShaderModificationRepository::ConstantHasRule(std::string constantName, std
 					constantRule = "MatNoRoll";
 				else if (iRules->second.m_operationToApply == ShaderConstantModificationFactory::MatSimpleTranslateNoPositional)
 					constantRule = "MatSimpleTranslateNoPositional";
+				else if (iRules->second.m_operationToApply == ShaderConstantModificationFactory::MatNoStereoSeparate)
+					constantRule = "MatNoStereoSeparate";
 				break;
 
 			default:

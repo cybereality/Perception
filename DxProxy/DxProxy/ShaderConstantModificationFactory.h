@@ -53,6 +53,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "MatrixRollOnlyHalf.h"
 #include "MatrixNoRoll.h"
 #include "MatrixNoPositional.h"
+#include "MatrixNoStereoSeparate.h"
 
 /**
 * Shader constant modification helper class.
@@ -75,23 +76,24 @@ public:
 	* Matrix modification identifiers.
 	***/
 	enum MatrixModificationTypes
-	{
-		MatDoNothing = 0,                  /**< Simple modification that does not apply anything. **/
-		MatSimpleTranslate = 1,            /**< Default modification is simple translate. **/
-		MatOrthographicSquash = 2,         /**< Squashes matrix if orthographic, otherwise simple translate. **/
-		MatHudSlide = 3,                   /**< Modification to slide the head up display (HUD) into the head mounted display (HMD) output.  **/
-		MatGuiSquash = 4,                  /**< Modification to squash the graphical user interface (GUI). **/
-		MatSurfaceRefractionTransform = 5, /**< Modification to fix surface refraction in pixel shaders. **/
-		MatGatheredOrthographicSquash = 6, /**< Squashes matrix if orthographic, otherwise simple translate. Result will be gathered to be used in other modifications.**/
-		MatOrthographicSquashShifted = 7,  /**< Squashes matrix if orthographic, otherwise simple translate - shift accordingly. **/
-		MatOrthographicSquashHud = 8,      /**< Squashes matrix if orthographic, otherwise simple translate - matrices treated as beeing for HUD. **/
-		MatConvergenceOffset = 9,          /**< Fixes far away objects using the convergence offset. **/
-		MatSimpleTranslateIgnoreOrtho = 10,/**< Modification to ignore orthographic matrices. **/
-		MatRollOnly = 11,                  /**< Modification applies only the head roll. **/
-		MatRollOnlyNegative = 12,          /**< Modification applies only the head roll. (negative)**/
-		MatRollOnlyHalf = 13,              /**< Modification applies only the head roll. (half roll)**/
-		MatNoRoll = 14,                    /**< Default modification without head roll. **/		
-		MatSimpleTranslateNoPositional = 15/**< Simple translate, but is not affected by positional tracking **/
+	 {
+		MatDoNothing = 0,                   /**< Simple modification that does not apply anything. **/
+		MatSimpleTranslate = 1,             /**< Default modification is simple translate. **/
+		MatOrthographicSquash = 2,          /**< Squashes matrix if orthographic, otherwise simple translate. **/
+		MatHudSlide = 3,                    /**< Modification to slide the head up display (HUD) into the head mounted display (HMD) output.  **/
+		MatGuiSquash = 4,                   /**< Modification to squash the graphical user interface (GUI). **/
+		MatSurfaceRefractionTransform = 5,  /**< Modification to fix surface refraction in pixel shaders. **/
+		MatGatheredOrthographicSquash = 6,  /**< Squashes matrix if orthographic, otherwise simple translate. Result will be gathered to be used in other modifications.**/
+		MatOrthographicSquashShifted = 7,   /**< Squashes matrix if orthographic, otherwise simple translate - shift accordingly. **/
+		MatOrthographicSquashHud = 8,       /**< Squashes matrix if orthographic, otherwise simple translate - matrices treated as beeing for HUD. **/
+		MatConvergenceOffset = 9,           /**< Fixes far away objects using the convergence offset. **/
+		MatSimpleTranslateIgnoreOrtho = 10, /**< Modification to ignore orthographic matrices. **/
+		MatRollOnly = 11,                   /**< Modification applies only the head roll. **/
+		MatRollOnlyNegative = 12,           /**< Modification applies only the head roll. (negative)**/
+		MatRollOnlyHalf = 13,               /**< Modification applies only the head roll. (half roll)**/
+		MatNoRoll = 14,                     /**< Default modification without head roll. **/		
+		MatSimpleTranslateNoPositional = 15,/**< Simple translate, but is not affected by positional tracking **/
+		MatNoStereoSeparate = 16			/**< Don't translate, but is still affected by positional tracking **/
 	};
 
 	/**
@@ -187,6 +189,9 @@ public:
 
 		case MatSimpleTranslateNoPositional:
 			return std::make_shared<MatrixNoPositional>(mod, adjustmentMatrices, transpose);
+		
+		case MatNoStereoSeparate:
+			return std::make_shared<MatrixNoStereoSeparate>(mod, adjustmentMatrices, transpose);
 		
 		default:
 			OutputDebugString("Nonexistant matrix modification\n");
