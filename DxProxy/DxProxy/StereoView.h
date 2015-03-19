@@ -165,18 +165,7 @@ public:
 	float m_rotation;
 
 	//DK2 black smear correction (0.0f if disabled)
-	float m_blackSmearCorrection;
-
-	//Indicates whether to average the frame or not
-	bool bAverageFrame;
-
-	//When to read frame? (NotAveraged / Averaged / All The Time / Never)
-	int iWhenToReadFrame;
-	//When to average frame? (Regular / All The Time / Never)
-	int iWhenToAverageFrame;
-	//Reprojection 
-	bool bReprojection;
-	
+	float m_blackSmearCorrection;		
 
 protected:
 	/*** StereoView protected methods ***/
@@ -230,16 +219,6 @@ protected:
 	* Surface data from D3D9ProxySurface is copied on that. To be swapped with right texture if swap_eyes set to true.
 	***/
 	IDirect3DTexture9* leftTexture;
-	/**
-	* Right eye (or lower) target texture buffer.
-	* Surface data from D3D9ProxySurface is copied on that. To be swapped with left texture if swap_eyes set to true.
-	***/
-	IDirect3DTexture9* rightTextureSaved;
-	/**
-	* Last Left eye (or upper) target texture buffer.
-	* Surface data from D3D9ProxySurface is copied on that. To be swapped with right texture if swap_eyes set to true.
-	***/
-	IDirect3DTexture9* leftTextureSaved;
 	/**
 	* Right eye (or lower) target texture buffer.
 	* Surface data from D3D9ProxySurface is copied on that. To be swapped with left texture if swap_eyes set to true.

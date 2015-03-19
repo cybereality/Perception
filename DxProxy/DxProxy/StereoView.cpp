@@ -70,15 +70,9 @@ StereoView::StereoView(ProxyHelper::ProxyConfig& config)
 	backBuffer = NULL;
 	leftTexture = NULL;
 	rightTexture = NULL;
-	leftTextureSaved = NULL;
-	rightTextureSaved = NULL;
-	iWhenToAverageFrame = 0;
-	iWhenToReadFrame = 0;
-	bReprojection = false;
-
+	
 	leftSurface = NULL;
-	rightSurface = NULL;
-	bAverageFrame = false;
+	rightSurface = NULL;	
 
 	screenVertexBuffer = NULL;
 	lastVertexShader = NULL;
@@ -271,14 +265,6 @@ void StereoView::ReleaseEverything()
 		releaseCheck("rightTexture", rightTexture->Release());
 	rightTexture = NULL;
 
-	if(leftTextureSaved)
-		releaseCheck("leftTextureSaved", leftTextureSaved->Release());
-	leftTextureSaved = NULL;
-
-	if(rightTextureSaved)
-		releaseCheck("rightTexture", rightTextureSaved->Release());
-	rightTextureSaved = NULL;
-
 	if(leftSurface)
 		releaseCheck("leftSurface", leftSurface->Release());
 	leftSurface = NULL;
@@ -348,26 +334,7 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 		rightImage = stereoCapableSurface->getActualRight();
 	}
 	
-	if(bReprojection && 
-	   ((bAverageFrame && iWhenToReadFrame == 1) || 
-	   (!bAverageFrame && iWhenToReadFrame == 0) ||
-	   iWhenToReadFrame == 2))
-	{
-		LPDIRECT3DSURFACE9 pSrcLeft, pSrcRight, pDstLeft, pDstRight;
-		leftTexture->GetSurfaceLevel(0,  &pSrcLeft);
-		rightTexture->GetSurfaceLevel(0,  &pSrcRight);
-		leftTextureSaved->GetSurfaceLevel(0, &pDstLeft);
-		rightTextureSaved->GetSurfaceLevel(0, &pDstRight);
-		m_pActualDevice->StretchRect(pSrcLeft, NULL, pDstLeft, NULL, D3DTEXF_NONE);
-		m_pActualDevice->StretchRect(pSrcRight, NULL, pDstRight, NULL, D3DTEXF_NONE);
-		pSrcLeft->Release();
-		pSrcRight->Release();
-		pDstLeft->Release();
-		pDstRight->Release();	
-	}
-
 	m_pActualDevice->StretchRect(leftImage, NULL, leftSurface, NULL, D3DTEXF_NONE);
-
 	if (stereoCapableSurface->IsStereo())
 		m_pActualDevice->StretchRect(rightImage, NULL, rightSurface, NULL, D3DTEXF_NONE);
 	else
@@ -403,28 +370,11 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 	{
 		m_pActualDevice->SetTexture(0, leftTexture);
 		m_pActualDevice->SetTexture(1, rightTexture);
-		if(bReprojection && leftTextureSaved && 
-			((bAverageFrame && iWhenToAverageFrame == 0) ||
-			 iWhenToAverageFrame == 1)
-		)
-		{
-			m_pActualDevice->SetTexture(2, leftTextureSaved);
-			m_pActualDevice->SetTexture(3, rightTextureSaved);
-		}
-		
 	}
 	else 
 	{
 		m_pActualDevice->SetTexture(0, rightTexture);
-		m_pActualDevice->SetTexture(1, leftTexture);
-		if(bReprojection && leftTextureSaved && 
-			((bAverageFrame && iWhenToAverageFrame == 0) ||
-			 iWhenToAverageFrame == 1)
-		)
-		{
-			m_pActualDevice->SetTexture(2, rightTextureSaved);
-			m_pActualDevice->SetTexture(3, leftTextureSaved);			
-		}
+		m_pActualDevice->SetTexture(1, leftTexture);		
 	}
 	
 	
@@ -487,8 +437,6 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 	case HowToSaveRenderStates::DO_NOT_SAVE_AND_RESTORE:
 		break;
 	}		
-
-	bAverageFrame = false;
 }
 
 void StereoView::SaveLastScreen()
@@ -561,12 +509,6 @@ void StereoView::InitTextureBuffers()
 	OutputDebugString("\n");
 #endif
 
-	m_pActualDevice->CreateTexture(pDesc.Width, pDesc.Height, 0, D3DUSAGE_RENDERTARGET, pDesc.Format, D3DPOOL_DEFAULT, &leftTextureSaved, NULL);
-	leftTextureSaved->GetSurfaceLevel(0, &leftSurface);
-
-	m_pActualDevice->CreateTexture(pDesc.Width, pDesc.Height, 0, D3DUSAGE_RENDERTARGET, pDesc.Format, D3DPOOL_DEFAULT, &rightTextureSaved, NULL);
-	rightTextureSaved->GetSurfaceLevel(0, &rightSurface);
-	
 	m_pActualDevice->CreateTexture(pDesc.Width, pDesc.Height, 0, D3DUSAGE_RENDERTARGET, pDesc.Format, D3DPOOL_DEFAULT, &leftTexture, NULL);
 	leftTexture->GetSurfaceLevel(0, &leftSurface);
 
