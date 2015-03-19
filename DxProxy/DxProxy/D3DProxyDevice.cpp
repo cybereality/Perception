@@ -438,12 +438,6 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 	try {
 		IDirect3DSurface9* pWrappedBackBuffer = NULL;
 		m_activeSwapChains.at(0)->GetBackBuffer(0, D3DBACKBUFFER_TYPE_MONO, &pWrappedBackBuffer);
-		float deltaCutoff = 0.01f;
-		if(bSkipFrame)
-		{
-			stereoView->bAverageFrame = true;
-			//Clear(0, 0, D3DCLEAR_STENCIL | D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_ARGB(255, 0, 0, 0), 0.0f, 0);			
-		}		
 		if (stereoView->initialized)
 			stereoView->Draw(static_cast<D3D9ProxySurface*>(pWrappedBackBuffer));
 				
@@ -1148,14 +1142,14 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 			screenshot--;
 		}
 
-		if(fps < fMinFPS && stereoView->bReprojection && !bSkipFrame)
+		/*if(fps < fMinFPS && stereoView->bReprojection && !bSkipFrame)
 		{			
 			bSkipFrame = true;			
 		}
 		else
 		{
 			bSkipFrame = false;			
-		}
+		}*/
 
 		// set last frame vertex shader count
 		m_VertexShaderCountLastFrame = m_VertexShaderCount;
@@ -1174,18 +1168,16 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 			HandleTracking();
 
 		// draw menu
-		if(!bSkipFrame)
+		if (m_deviceBehavior.whenToRenderVPMENU == DeviceBehavior::WhenToDo::BEGIN_SCENE)
 		{
-			if (m_deviceBehavior.whenToRenderVPMENU == DeviceBehavior::WhenToDo::BEGIN_SCENE)
-			{
-				if ((VPMENU_mode>=VPMENU_Modes::MAINMENU) && (VPMENU_mode<VPMENU_Modes::VPMENU_ENUM_RANGE))
-					VPMENU();
-				else
-					VPMENU_AdditionalOutput();
-			}		
-			// handle controls
-			HandleControls();
-		}
+			if ((VPMENU_mode>=VPMENU_Modes::MAINMENU) && (VPMENU_mode<VPMENU_Modes::VPMENU_ENUM_RANGE))
+				VPMENU();
+			else
+				VPMENU_AdditionalOutput();
+		}		
+		// handle controls
+		HandleControls();
+
 		// set vertex shader call count to zero
 		m_VertexShaderCount = 0;
 	}
@@ -2637,25 +2629,6 @@ void D3DProxyDevice::HandleControls()
 		}
 	}
 
-	// Toggle Reprojection (SHIFT+0 - not numpad)
-	if (controls.Key_Down(VK_LSHIFT) && (controls.Key_Down(0x30)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-	{
-		VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
-		if (stereoView->bReprojection)
-		{			
-			sprintf_s(popup.line[2], "Reprojection Off");								
-			stereoView->bReprojection = false;
-		}
-		else
-		{
-			sprintf_s(popup.line[2], "Reprojection On");								
-			stereoView->bReprojection = true;
-		}
-		ShowPopup(popup);
-
-		menuVelocity.x += 4.0f;
-	}
-
 	// switch to 2d Depth Mode (Shift + O / Numpad 9)
 	if (controls.Key_Down(VK_LSHIFT) && (controls.Key_Down(0x4F) || controls.Key_Down(VK_NUMPAD9)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
@@ -2699,74 +2672,6 @@ void D3DProxyDevice::HandleControls()
 		}		
 		menuVelocity.x += 4.0f;
 		
-	}
-
-	// Change Max Injected Frames
-	if (controls.Key_Down(VK_SHIFT) && (controls.Key_Down(VK_UP) || controls.Key_Down(VK_DOWN)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-	{
-		std::string _str = "";
-		VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
-				
-		if(controls.Key_Down(VK_UP))
-		{	
-			stereoView->iWhenToAverageFrame++;
-			if(stereoView->iWhenToAverageFrame == 1)
-			{
-				sprintf_s(popup.line[0], "Show Averaged Frame All The Time");		
-			}
-			else if(stereoView->iWhenToAverageFrame == 2)
-			{
-				sprintf_s(popup.line[0], "Show Average Frame Never");		
-			}
-			else if(stereoView->iWhenToAverageFrame == 3 || stereoView->iWhenToAverageFrame == 0)
-			{
-				stereoView->iWhenToAverageFrame = 0;
-				sprintf_s(popup.line[0], "Show Average Frame Alternately");		
-			}
-		}
-		else if(controls.Key_Down(VK_DOWN))
-		{			
-			stereoView->iWhenToReadFrame++;
-			if(stereoView->iWhenToReadFrame == 1)
-			{
-				sprintf_s(popup.line[0], "Read frame when Averaged");		
-			}
-			else if(stereoView->iWhenToReadFrame == 2)
-			{
-				sprintf_s(popup.line[0], "Read frame all the time");		
-			}
-			else if(stereoView->iWhenToReadFrame == 3)
-			{
-				sprintf_s(popup.line[0], "Read Never");		
-			}
-			else if(stereoView->iWhenToReadFrame == 4 || stereoView->iWhenToReadFrame == 0)
-			{
-				stereoView->iWhenToReadFrame = 0;
-				sprintf_s(popup.line[0], "Read When Not Averaged");		
-			}
-		}
-		ShowPopup(popup);
-		
-		menuVelocity.x += 4.0f;		
-	}
-
-	// Change Min FPS
-	if (controls.Key_Down(VK_SHIFT) && (controls.Key_Down(VK_LEFT) || controls.Key_Down(VK_RIGHT)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-	{
-		std::string _str = "";
-		if(controls.Key_Down(VK_RIGHT))
-		{			
-			fMinFPS++;			
-		}
-		else if(controls.Key_Down(VK_LEFT))
-		{			
-			fMinFPS--;			
-		}
-		VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
-		sprintf_s(popup.line[0], "MIN FPS: %f", fMinFPS);		
-		ShowPopup(popup);
-		
-		menuVelocity.x += 4.0f;		
 	}
 
 	// cycle Render States
