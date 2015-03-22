@@ -46,6 +46,7 @@ public:
 	virtual void SetViewEffectInitialValues();
 	virtual void CalculateShaderVariables( );
 	virtual void InitShaderEffects();
+	virtual void ReleaseEverything();
 
 private:
 	/**
@@ -78,6 +79,8 @@ private:
 	* Contains distortionCoefficients, needed as vertex shader constants
 	***/
 	HMDisplayInfo *hmdInfo;
+
+	IDirect3DTexture9 *m_logoTexture;
 };
 
 #endif

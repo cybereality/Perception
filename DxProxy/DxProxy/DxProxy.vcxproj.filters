@@ -53,6 +53,9 @@
     <Filter Include="Instructions">
       <UniqueIdentifier>{92c90211-acba-45e4-ba88-ea8ccba4391a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="img">
+      <UniqueIdentifier>{061e0ca2-ece4-4d44-b466-730bc0e3b486}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -499,6 +502,9 @@
     <ClInclude Include="MatrixNoStereoSeparate.h">
       <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
     </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>Main</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\Release\Perception\cfg\profiles.xml">
@@ -566,5 +572,15 @@
     <Xml Include="..\..\Release\Perception\cfg\shader_rules\portal2.xml">
       <Filter>cfg\shader_rules</Filter>
     </Xml>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\Release\Perception\img\logo.bmp">
+      <Filter>img</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="DXProxy.rc">
+      <Filter>Main</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

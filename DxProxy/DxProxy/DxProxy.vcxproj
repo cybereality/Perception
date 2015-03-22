@@ -302,6 +302,7 @@
     <ClInclude Include="MatrixRollOnlyHalf.h" />
     <ClInclude Include="MatrixRollOnlyNegative.h" />
     <ClInclude Include="MatrixSurfaceRefractionTransform.h" />
+    <ClInclude Include="Resource.h" />
     <ClInclude Include="ShaderMatrixModification.h" />
     <ClInclude Include="MatrixIgnoreOrtho.h" />
     <ClInclude Include="Vector4DeadIslandScaled.h" />
@@ -530,6 +531,12 @@
     <Xml Include="..\..\Release\Perception\cfg\shader_rules\TESV.xml">
       <SubType>Designer</SubType>
     </Xml>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\Release\Perception\img\logo.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="DXProxy.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -2,8 +2,10 @@
 
 sampler2D TexMap0;
 sampler2D TexMap1;
+
+//This is the logo
 sampler2D TexMap2;
-sampler2D TexMap3;
+
 
 float ViewportXOffset;
 float ViewportYOffset;
@@ -83,6 +85,16 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 	float2 tcBlue;
 	float angle = Rotation;
 	float3 outColor;	
+
+	//blit the VP logo to the top left corner
+	if (Tex.x <= 0.2f   &&   Tex.y <= 0.05f)
+	{
+		float2 pos = Tex;
+		pos.x *= 5.0f;
+		pos.y *= 20.0f;
+		return tex2D(TexMap2, pos.xy);
+	}
+
 	
 	if (Tex.x > 0.5f) {
 		// mirror to get the right-eye distortion

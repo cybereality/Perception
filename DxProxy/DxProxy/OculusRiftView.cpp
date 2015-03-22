@@ -31,6 +31,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "OculusRiftView.h"
 #include "StereoView.h"
 #include "D3DProxyDevice.h"
+#include "Resource.h"
+
+#define DLL_NAME "d3d9.dll"
 
 /**
 * Constructor.
@@ -38,10 +41,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * @param hmd Oculus Rift Head Mounted Display info.
 ***/ 
 OculusRiftView::OculusRiftView(ProxyHelper::ProxyConfig& config, HMDisplayInfo *hmd) : StereoView(config),
-	hmdInfo(hmd)
+	hmdInfo(hmd),
+	m_logoTexture(NULL)
 {
 	OutputDebugString("Created OculusRiftView\n");
 }
+
+void OculusRiftView::ReleaseEverything()
+{
+	//Release the texture we loaded
+	if (m_logoTexture)
+	{
+		m_logoTexture->Release();
+		m_logoTexture = NULL;
+	}
+
+	//Call base class
+	StereoView::ReleaseEverything();
+}
+
 
 /**
 * Sets vertex shader constants.
@@ -104,6 +122,13 @@ void OculusRiftView::SetViewEffectInitialValues()
 		}
 		break;
 	}
+
+	if (!m_logoTexture)
+		D3DXCreateTextureFromResource(m_pActualDevice, GetModuleHandle(DLL_NAME), MAKEINTRESOURCE(IDB_IMAGE), &m_logoTexture);
+
+	if (m_logoTexture)
+		m_pActualDevice->SetTexture(2, m_logoTexture);
+
 }
 
 /**
