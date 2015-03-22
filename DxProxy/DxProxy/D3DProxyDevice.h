@@ -318,6 +318,11 @@ public:
 	void DuckAndCoverCalibrate();
 
 	/**
+	* Yaw when in Comfort Mode
+	*/
+	float m_comfortModeYaw;
+
+	/**
 	* Game-specific proxy configuration.
 	**/
 	ProxyHelper::ProxyConfig config;

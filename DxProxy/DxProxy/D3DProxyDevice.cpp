@@ -174,7 +174,8 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	show_fps(FPS_NONE),
 	calibrate_tracker(false),
 	hmdInfo(NULL),
-	m_saveConfigTimer(MAXDWORD)
+	m_saveConfigTimer(MAXDWORD),
+	m_comfortModeYaw(0.0f)
 {
 	#ifdef SHOW_CALLS
 		OutputDebugString("called D3DProxyDevice");
@@ -2916,6 +2917,57 @@ void D3DProxyDevice::HandleControls()
 		menuVelocity.x+=2.0f;
 	}
 
+	//Enabled/Disable Comfort Mode - LSHIFT + M
+	if (VRBoostStatus.VRBoost_Active && 
+		(controls.Key_Down(VK_LSHIFT) && controls.Key_Down(0x4D)) && 
+		(menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	{
+		if (VRBoostValue[VRboostAxis::ComfortMode] != 0.0f)
+		{
+			//Disable Comfort Mode
+			VRBoostValue[VRboostAxis::ComfortMode] = 0.0f;
+
+			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
+			sprintf_s(popup.line[2], "\"Comfort Mode\" Disabled");
+			ShowPopup(popup);
+		}
+		else
+		{
+			//Enable Comfort Mode
+			VRBoostValue[VRboostAxis::ComfortMode] = 1.0f;
+
+			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 3000);
+			sprintf_s(popup.line[2], "\"Comfort Mode\" Enabled");
+			sprintf_s(popup.line[3], "Xbox360 or Compatible Controller only");
+			sprintf_s(popup.line[3], "for turning 90 degrees left/right");
+			ShowPopup(popup);
+		}
+
+		menuVelocity.x+=2.0f;
+	}
+
+	//If we are in comfort mode and user has pushed left or right, then change yaw
+	if (VRBoostValue[VRboostAxis::ComfortMode] != 0.0f  &&
+		VRBoostStatus.VRBoost_Active &&
+		(menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	{
+		if (controls.xInputState.Gamepad.sThumbRX < -16384)
+		{
+			m_comfortModeYaw += 1.0f;
+			if (m_comfortModeYaw == 2.0f)
+				m_comfortModeYaw = -2.0f;
+			menuVelocity.x+=4.0f;
+		}
+
+		if (controls.xInputState.Gamepad.sThumbRX > 16384)
+		{
+			m_comfortModeYaw -= 1.0f;
+			if (m_comfortModeYaw == -2.0f)
+				m_comfortModeYaw = 2.0f;
+			menuVelocity.x+=4.0f;
+		}
+	}
+
 	//Enabled/Disable Black Smear Correction for DK2 (default is disabled), LSHIFT + B
 	if ((tracker && tracker->SupportsPositionTracking()) &&
 		(controls.Key_Down(VK_LSHIFT) && controls.Key_Down(0x42)) && 
@@ -3832,7 +3884,7 @@ void D3DProxyDevice::HandleTracking()
 		bool createNSave = false;
 
 		// apply VRboost memory rules if present
-		VRBoostValue[VRboostAxis::TrackerYaw] = tracker->primaryYaw;
+		VRBoostValue[VRboostAxis::TrackerYaw] = tracker->primaryYaw + (m_comfortModeYaw * (float)(PI/2));
 		VRBoostValue[VRboostAxis::TrackerPitch] = tracker->primaryPitch;
 		VRBoostValue[VRboostAxis::TrackerRoll] = tracker->primaryRoll;
 
