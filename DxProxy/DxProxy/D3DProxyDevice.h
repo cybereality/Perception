@@ -323,6 +323,11 @@ public:
 	float m_comfortModeYaw;
 
 	/**
+	* Disables ALL Vireio Hot-keys
+	*/
+	bool m_disableAllHotkeys;
+
+	/**
 	* Game-specific proxy configuration.
 	**/
 	ProxyHelper::ProxyConfig config;
