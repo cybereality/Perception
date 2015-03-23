@@ -2939,7 +2939,7 @@ void D3DProxyDevice::HandleControls()
 			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 3000);
 			sprintf_s(popup.line[2], "\"Comfort Mode\" Enabled");
 			sprintf_s(popup.line[3], "Xbox360 or Compatible Controller only");
-			sprintf_s(popup.line[3], "for turning 90 degrees left/right");
+			sprintf_s(popup.line[4], "for turning 90 degrees left/right");
 			ShowPopup(popup);
 		}
 
