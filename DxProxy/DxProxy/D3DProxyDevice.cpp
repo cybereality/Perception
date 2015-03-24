@@ -176,6 +176,10 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	hmdInfo(NULL),
 	m_saveConfigTimer(MAXDWORD),
 	m_comfortModeYaw(0.0f),
+	//Yaw increment stored in degrees for easier comparison
+	m_comfortModeYawIncrement(90.0f),
+	m_comfortModeLeftKey(VK_LEFT),
+	m_comfortModeRightKey(VK_RIGHT),
 	m_disableAllHotkeys(false)
 {
 	#ifdef SHOW_CALLS
@@ -2559,19 +2563,21 @@ void D3DProxyDevice::HandleControls()
 		VRBoostStatus.VRBoost_Active &&
 		(menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
-		if (controls.xInputState.Gamepad.sThumbRX < -16384)
+		if (controls.xInputState.Gamepad.sThumbRX < -16384 ||
+			controls.Key_Down(m_comfortModeLeftKey))
 		{
-			m_comfortModeYaw += 1.0f;
-			if (m_comfortModeYaw == 2.0f)
-				m_comfortModeYaw = -2.0f;
+			m_comfortModeYaw +=m_comfortModeYawIncrement;
+			if (m_comfortModeYaw == 180.0f)
+				m_comfortModeYaw = -180.0f;
 			menuVelocity.x+=4.0f;
 		}
 
-		if (controls.xInputState.Gamepad.sThumbRX > 16384)
+		if (controls.xInputState.Gamepad.sThumbRX > 16384 ||
+			controls.Key_Down(m_comfortModeRightKey))
 		{
-			m_comfortModeYaw -= 1.0f;
-			if (m_comfortModeYaw == -2.0f)
-				m_comfortModeYaw = 2.0f;
+			m_comfortModeYaw -= m_comfortModeYawIncrement;
+			if (m_comfortModeYaw == -180.0f)
+				m_comfortModeYaw = 180.0f;
 			menuVelocity.x+=4.0f;
 		}
 	}
@@ -3097,20 +3103,20 @@ void D3DProxyDevice::HandleControls()
 			{
 				//Disable Comfort Mode
 				VRBoostValue[VRboostAxis::ComfortMode] = 0.0f;
+				m_comfortModeYaw = 0.0f;
 
 				VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
-				sprintf_s(popup.line[2], "\"Comfort Mode\" Disabled");
+				sprintf_s(popup.line[2], "Comfort Mode Disabled");
 				ShowPopup(popup);
 			}
 			else
 			{
 				//Enable Comfort Mode
 				VRBoostValue[VRboostAxis::ComfortMode] = 1.0f;
+				m_comfortModeYaw = 0.0f;
 
 				VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 3000);
-				sprintf_s(popup.line[2], "\"Comfort Mode\" Enabled");
-				sprintf_s(popup.line[3], "Xbox360 or Compatible Controller only");
-				sprintf_s(popup.line[4], "for turning 90 degrees left/right");
+				sprintf_s(popup.line[2], "Comfort Mode Enabled");
 				ShowPopup(popup);
 			}
 
@@ -3938,7 +3944,14 @@ void D3DProxyDevice::HandleTracking()
 		bool createNSave = false;
 
 		// apply VRboost memory rules if present
-		VRBoostValue[VRboostAxis::TrackerYaw] = tracker->primaryYaw + (m_comfortModeYaw * (float)(PI/2));
+		float yaw = tracker->primaryYaw;
+		if ((m_comfortModeYaw == 180.f && tracker->primaryYaw > 0.0f) ||
+			(m_comfortModeYaw == -180.f && tracker->primaryYaw < 0.0f))
+			yaw += ((-m_comfortModeYaw / 180.0f) * (float)PI);
+		else
+			yaw += ((m_comfortModeYaw / 180.0f) * (float)PI);
+
+		VRBoostValue[VRboostAxis::TrackerYaw] = yaw;
 		VRBoostValue[VRboostAxis::TrackerPitch] = tracker->primaryPitch;
 		VRBoostValue[VRboostAxis::TrackerRoll] = tracker->primaryRoll;
 
@@ -4803,6 +4816,9 @@ void D3DProxyDevice::VPMENU()
 	case D3DProxyDevice::POS_TRACKING_SETTINGS:
 		VPMENU_PosTracking();
 		break;
+	case D3DProxyDevice::COMFORT_MODE:
+		VPMENU_ComfortMode();
+		break;
 	case D3DProxyDevice::DUCKANDCOVER_CONFIGURATION:
 		VPMENU_DuckAndCover();
 		break;
@@ -4829,7 +4845,7 @@ void D3DProxyDevice::VPMENU_MainMenu()
 	#ifdef SHOW_CALLS
 		OutputDebugString("called VPMENU_MainMenu");
 	#endif
-	UINT menuEntryCount = 11;
+	UINT menuEntryCount = 12;
 	if (config.game_type > 10000) menuEntryCount++;
 
 	menuHelperRect.left = 0;
@@ -4900,8 +4916,14 @@ void D3DProxyDevice::VPMENU_MainMenu()
 			VPMENU_mode = VPMENU_Modes::POS_TRACKING_SETTINGS;
 			menuVelocity.x+=2.0f;
 		}
-		// restore configuration
+		// comfort mode settings
 		if (entryID == 10)
+		{
+			VPMENU_mode = VPMENU_Modes::COMFORT_MODE;
+			menuVelocity.x+=2.0f;
+		}
+		// restore configuration
+		if (entryID == 11)
 		{
 			// first, backup all strings
 			std::string game_exe = std::string(config.game_exe);
@@ -4916,7 +4938,7 @@ void D3DProxyDevice::VPMENU_MainMenu()
 			menuVelocity.x+=10.0f;
 		}	
 		// back to game
-		if (entryID == 11)
+		if (entryID == 12)
 		{
 			VPMENU_mode = VPMENU_Modes::INACTIVE;
 			VPMENU_UpdateConfigSettings();
@@ -5011,6 +5033,8 @@ void D3DProxyDevice::VPMENU_MainMenu()
 		DrawTextShadowed(hudFont, hudMainMenu, "VRBoost Values\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		DrawTextShadowed(hudFont, hudMainMenu, "Position Tracking Configuration\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawTextShadowed(hudFont, hudMainMenu, "Comfort Mode Configuration\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		DrawTextShadowed(hudFont, hudMainMenu, "Restore Configuration\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
@@ -6719,7 +6743,7 @@ void D3DProxyDevice::VPMENU_PosTracking()
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		DrawTextShadowed(hudFont, hudMainMenu, "Reset HMD Orientation (LSHIFT + R)", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "\"Duck-and-Cover\" Configuration", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "Duck-and-Cover Configuration", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		DrawTextShadowed(hudFont, hudMainMenu, "Back to Main Menu", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
@@ -6735,7 +6759,7 @@ void D3DProxyDevice::VPMENU_PosTracking()
 }
 
 /**
-* configure pose assist.
+* configure DuckAndCover.
 ***/
 void D3DProxyDevice::VPMENU_DuckAndCover()
 {
@@ -6906,7 +6930,7 @@ void D3DProxyDevice::VPMENU_DuckAndCover()
 
 		menuHelperRect.left = 650;
 		menuHelperRect.top = 300;
-		DrawTextShadowed(hudFont, hudMainMenu, "Vireio Perception ("APP_VERSION") Settings - \"Duck-and-Cover\"\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "Vireio Perception ("APP_VERSION") Settings - Duck-and-Cover\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		rect.x1 = 0; rect.x2 = viewportWidth; rect.y1 = (int)(335*fScaleY); rect.y2 = (int)(340*fScaleY);
 		Clear(1, &rect, D3DCLEAR_TARGET, D3DCOLOR_ARGB(255,255,128,128), 0, 0);
 
@@ -6972,18 +6996,192 @@ void D3DProxyDevice::VPMENU_DuckAndCover()
 		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 
-		DrawTextShadowed(hudFont, hudMainMenu, "Calibrate \"Duck-and-Cover\" then Enable", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "Calibrate Duck-and-Cover then Enable", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 
 		if (m_DuckAndCover.dfcStatus == DAC_DISABLED ||
 			m_DuckAndCover.dfcStatus == DAC_INACTIVE)
 		{
-			DrawTextShadowed(hudFont, hudMainMenu, "Enable \"Duck-and-Cover\" Mode", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			DrawTextShadowed(hudFont, hudMainMenu, "Enable Duck-and-Cover Mode", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		}
 		else
 		{
-			DrawTextShadowed(hudFont, hudMainMenu, "Disable \"Duck-and-Cover\" Mode", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			DrawTextShadowed(hudFont, hudMainMenu, "Disable Duck-and-Cover Mode", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		}
+		menuHelperRect.top += MENU_ITEM_SEPARATION;
+
+		DrawTextShadowed(hudFont, hudMainMenu, "Back to Main Menu", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+
+		menuHelperRect.left = 0;
+		menuHelperRect.top = 0;
+
+		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
+		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));
+		hudMainMenu->End();
+	}
+}
+
+/**
+* configure Comfort Mode.
+***/
+void D3DProxyDevice::VPMENU_ComfortMode()
+{
+	#ifdef SHOW_CALLS
+		OutputDebugString("called VPMENU_ComfortMode");
+	#endif
+
+	enum
+	{
+		COMFORT_MODE_ENABLED,
+		TURN_LEFT,
+		TURN_RIGHT,
+		YAW_INCREMENT,
+		BACK_VPMENU,
+		BACK_GAME,
+		NUM_MENU_ITEMS
+	};
+
+	UINT menuEntryCount = NUM_MENU_ITEMS;
+
+	menuHelperRect.left = 0;
+	menuHelperRect.top = 0;
+
+	UINT entryID;
+	VPMENU_NewFrame(entryID, menuEntryCount);
+	UINT borderSelection = entryID;
+	controls.UpdateXInputs();
+
+	if ((hotkeyCatch) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	{
+		for (int i = 0; i < 256; i++)
+			if (controls.Key_Down(i) && controls.GetKeyName(i)!="-")
+			{
+				hotkeyCatch = false;
+				if(entryID == TURN_LEFT)
+					m_comfortModeLeftKey = (byte)i;
+				else if(entryID == TURN_RIGHT)
+					m_comfortModeRightKey = (byte)i;
+				break;
+			}
+	}
+	else
+	{
+		/**
+		* ESCAPE : Set menu inactive and save the configuration.
+		***/
+		if (controls.Key_Down(VK_ESCAPE))
+		{
+			VPMENU_mode = VPMENU_Modes::INACTIVE;
+			VPMENU_UpdateConfigSettings();
+		}
+
+		if ((controls.Key_Down(VK_RETURN) || controls.Key_Down(VK_RSHIFT) || (controls.xButtonsStatus[0x0c])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		{
+			if (entryID == COMFORT_MODE_ENABLED)
+			{
+				VRBoostValue[VRboostAxis::ComfortMode] = 1.0f - VRBoostValue[VRboostAxis::ComfortMode];
+				//Reset Yaw to avoid complications
+				m_comfortModeYaw = 0.0f;
+				menuVelocity.x+=2.0f;
+			}
+
+			if (entryID == TURN_LEFT || entryID == TURN_RIGHT)
+			{
+				hotkeyCatch = true;
+				menuVelocity.x+=2.0f;
+			}
+
+			if (entryID == YAW_INCREMENT)
+			{
+				if (m_comfortModeYawIncrement == 30.0f)
+					m_comfortModeYawIncrement = 45.0f;
+				else if (m_comfortModeYawIncrement == 45.0f)
+					m_comfortModeYawIncrement = 60.0f;
+				else if (m_comfortModeYawIncrement == 60.0f)
+					m_comfortModeYawIncrement = 90.0f;
+				else if (m_comfortModeYawIncrement == 90.0f)
+					m_comfortModeYawIncrement = 30.0f;
+				menuVelocity.x+=2.0f;
+			}
+
+			// back to main menu
+			if (entryID == BACK_VPMENU)
+			{
+				VPMENU_mode = VPMENU_Modes::MAINMENU;
+				VPMENU_UpdateConfigSettings();
+				menuVelocity.x+=2.0f;
+			}
+
+			// back to game
+			if (entryID == BACK_GAME)
+			{
+				VPMENU_mode = VPMENU_Modes::INACTIVE;
+				VPMENU_UpdateConfigSettings();
+			}
+		}
+	}
+
+	// output menu
+	if (hudFont)
+	{
+		// adjust border
+		float borderDrawingHeight = borderTopHeight;
+		if ((menuVelocity.y < 1.0f) && (menuVelocity.y > -1.0f))
+			borderTopHeight = menuTop+menuEntryHeight*(float)borderSelection;
+
+		// draw border - total width due to shift correction
+		D3DRECT rect;
+		rect.x1 = (int)0; rect.x2 = (int)viewportWidth; rect.y1 = (int)borderTopHeight; rect.y2 = (int)(borderTopHeight+viewportHeight*0.04f);
+		ClearEmptyRect(vireio::RenderPosition::Left, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
+		ClearEmptyRect(vireio::RenderPosition::Right, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
+
+		hudMainMenu->Begin(D3DXSPRITE_BILLBOARD);
+
+		D3DXMATRIX matScale;
+		D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
+		hudMainMenu->SetTransform(&matScale);
+
+		menuHelperRect.left = 650;
+		menuHelperRect.top = 300;
+		DrawTextShadowed(hudFont, hudMainMenu, "Vireio Perception ("APP_VERSION") Settings - Comfort Mode\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		rect.x1 = 0; rect.x2 = viewportWidth; rect.y1 = (int)(335*fScaleY); rect.y2 = (int)(340*fScaleY);
+		Clear(1, &rect, D3DCLEAR_TARGET, D3DCOLOR_ARGB(255,255,128,128), 0, 0);
+
+		menuHelperRect.top += 50;  menuHelperRect.left += 150; float guiQSHeight = (float)menuHelperRect.top * fScaleY;
+		char vcString[128];
+
+		switch (VRBoostValue[VRboostAxis::ComfortMode] != 0.0f)
+		{
+		case true:
+			DrawTextShadowed(hudFont, hudMainMenu, "Comfort Mode : Enabled", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			break;
+		case false:
+			DrawTextShadowed(hudFont, hudMainMenu, "Comfort Mode : Disabled", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			break;
+		}
+		menuHelperRect.top += MENU_ITEM_SEPARATION;
+
+		sprintf_s(vcString,"Turn Left Key : ");
+		std::string stdString = std::string(vcString);
+		stdString.append(controls.GetKeyName(m_comfortModeLeftKey));
+		if ((hotkeyCatch) && (entryID==TURN_LEFT))
+			stdString = "Turn Left Key : >Press the desired key<";
+		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		menuHelperRect.top += MENU_ITEM_SEPARATION;
+
+		sprintf_s(vcString,"Turn Right Key : ");
+		stdString = std::string(vcString);
+		stdString.append(controls.GetKeyName(m_comfortModeRightKey));
+		if ((hotkeyCatch) && (entryID==TURN_RIGHT))
+			stdString = "Turn Right Key : >Press the desired key<";
+		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		menuHelperRect.top += MENU_ITEM_SEPARATION;
+
+		sprintf_s(vcString,"Yaw Rotation Increment : %.1f", m_comfortModeYawIncrement);
+		stdString = std::string(vcString);
+		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 
 		DrawTextShadowed(hudFont, hudMainMenu, "Back to Main Menu", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
@@ -7523,8 +7721,8 @@ void D3DProxyDevice::DuckAndCoverCalibrate()
 	case DAC_CAL_STANDING:
 		{
 			VireioPopup popup(VPT_NOTIFICATION, VPS_INFO);
-			strcpy_s(popup.line[0], "\"Duck-and-Cover\" Mode");
-			strcpy_s(popup.line[1], "=====================");
+			strcpy_s(popup.line[0], "Duck-and-Cover Mode");
+			strcpy_s(popup.line[1], "===================");
 			strcpy_s(popup.line[2], "Step 1:");
 			strcpy_s(popup.line[3], " - Move to the standing position you will be playing in");
 			strcpy_s(popup.line[4], " - Push A on the Xbox 360 controller");
@@ -7536,8 +7734,8 @@ void D3DProxyDevice::DuckAndCoverCalibrate()
 		{
 			DismissPopup(VPT_NOTIFICATION);
 			VireioPopup popup(VPT_NOTIFICATION, VPS_INFO);
-			strcpy_s(popup.line[0], "\"Duck-and-Cover\" Mode");
-			strcpy_s(popup.line[1], "=====================");
+			strcpy_s(popup.line[0], "Duck-and-Cover Mode");
+			strcpy_s(popup.line[1], "===================");
 			strcpy_s(popup.line[2], "Step 2:");
 			strcpy_s(popup.line[3], " - Move to a crouching position");
 			strcpy_s(popup.line[4], " - Push A on the Xbox 360 controller");
@@ -7549,13 +7747,13 @@ void D3DProxyDevice::DuckAndCoverCalibrate()
 		{
 			DismissPopup(VPT_NOTIFICATION);
 			VireioPopup popup(VPT_NOTIFICATION, VPS_INFO);
-			strcpy_s(popup.line[0], "\"Duck-and-Cover\" Mode");
-			strcpy_s(popup.line[1], "=====================");
+			strcpy_s(popup.line[0], "Duck-and-Cover Mode");
+			strcpy_s(popup.line[1], "===================");
 			strcpy_s(popup.line[2], "Step 3 (optional):");
 			strcpy_s(popup.line[3], " - Move to a prone position");
-			strcpy_s(popup.line[4], " - Push A button on the Xbox 360 controller");
-			strcpy_s(popup.line[5], "      or Right Shift");
-			strcpy_s(popup.line[6], " - or Push B button on the controller or Escape key to skip");
+			strcpy_s(popup.line[4], "    - Push A button on the Xbox360 controller");
+			strcpy_s(popup.line[5], "       or Right Shift");
+			strcpy_s(popup.line[6], "    - TO SKIP: Push B button on the controller or Escape key");
 			ShowPopup(popup);
 		}
 		break;
@@ -7563,8 +7761,8 @@ void D3DProxyDevice::DuckAndCoverCalibrate()
 		{
 			DismissPopup(VPT_NOTIFICATION);
 			VireioPopup popup(VPT_NOTIFICATION, VPS_INFO);
-			strcpy_s(popup.line[0], "\"Duck-and-Cover\" Mode");
-			strcpy_s(popup.line[1], "=====================");
+			strcpy_s(popup.line[0], "Duck-and-Cover Mode");
+			strcpy_s(popup.line[1], "===================");
 			strcpy_s(popup.line[2], "Step 4:");
 			strcpy_s(popup.line[3], " - Calibration is complete");
 			strcpy_s(popup.line[3], " - Return to the standing position you will be playing in");

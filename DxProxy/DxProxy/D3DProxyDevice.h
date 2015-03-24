@@ -232,6 +232,7 @@ public:
 		CHANGE_RULES_SCREEN,
 		PICK_RULES_SCREEN,
 		SHOW_SHADERS_SCREEN,
+		COMFORT_MODE,
 		VPMENU_ENUM_RANGE
 	};
 	/**
@@ -321,6 +322,20 @@ public:
 	* Yaw when in Comfort Mode
 	*/
 	float m_comfortModeYaw;
+
+	/**
+	* Yaw increment when in Comfort Mode
+	*/
+	float m_comfortModeYawIncrement;
+
+	/**
+	* Keys to turn left or right in comfort mode
+	*/
+	byte m_comfortModeLeftKey;
+	/**
+	* Keys to turn left or right in comfort mode
+	*/
+	byte m_comfortModeRightKey;
 
 	/**
 	* Disables ALL Vireio Hot-keys
@@ -709,6 +724,7 @@ private:
 	void    VPMENU_Settings();
 	void    VPMENU_VRBoostValues();
 	void	VPMENU_PosTracking();
+	void	VPMENU_ComfortMode();
 	void	VPMENU_DuckAndCover();
 	void    VPMENU_UpdateBorder();
 	void    VPMENU_UpdateConfigSettings();
