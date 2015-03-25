@@ -7133,7 +7133,7 @@ void D3DProxyDevice::VPMENU_ComfortMode()
 		ClearEmptyRect(vireio::RenderPosition::Left, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
 		ClearEmptyRect(vireio::RenderPosition::Right, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
 
-		hudMainMenu->Begin(D3DXSPRITE_BILLBOARD);
+		hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
 
 		D3DXMATRIX matScale;
 		D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
@@ -7828,7 +7828,7 @@ void D3DProxyDevice::DisplayCurrentPopup()
 			else
 				strcpy_s(activePopup.line[4], "HMD Positional Tracking Disabled");
 
-			sprintf_s(activePopup.line[5],"Current VShader Count : %u)", m_VertexShaderCountLastFrame);
+			sprintf_s(activePopup.line[5],"Current VShader Count : %u", m_VertexShaderCountLastFrame);
 		}
 
 		if (activePopup.expired())
