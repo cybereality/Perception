@@ -173,6 +173,7 @@ protected:
 	virtual void InitVertexBuffers();
 	virtual void InitShaderEffects();
 	virtual void SetViewEffectInitialValues(); 
+	virtual void PostViewEffectCleanup(); 
 	virtual void CalculateShaderVariables();
 	virtual void SaveState();
 	virtual void SetState();

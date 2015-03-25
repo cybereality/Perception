@@ -42,7 +42,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***/ 
 OculusRiftView::OculusRiftView(ProxyHelper::ProxyConfig& config, HMDisplayInfo *hmd) : StereoView(config),
 	hmdInfo(hmd),
-	m_logoTexture(NULL)
+	m_logoTexture(NULL),
+	m_prevTexture(NULL)
 {
 	OutputDebugString("Created OculusRiftView\n");
 }
@@ -127,9 +128,24 @@ void OculusRiftView::SetViewEffectInitialValues()
 		D3DXCreateTextureFromResource(m_pActualDevice, GetModuleHandle(DLL_NAME), MAKEINTRESOURCE(IDB_IMAGE), &m_logoTexture);
 
 	if (m_logoTexture)
+	{
+		m_pActualDevice->GetTexture(2, &m_prevTexture);
 		m_pActualDevice->SetTexture(2, m_logoTexture);
+	}
 
 }
+
+void OculusRiftView::PostViewEffectCleanup()
+{
+	if (m_prevTexture)
+	{
+		m_pActualDevice->SetTexture(2, m_prevTexture);
+		//Does GetTexture increase ref count?!?
+		m_prevTexture->Release();
+		m_prevTexture = NULL;
+	}	
+}
+
 
 /**
 * Calculate all vertex shader constants.

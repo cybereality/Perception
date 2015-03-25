@@ -6481,9 +6481,6 @@ void D3DProxyDevice::VPMENU_Settings()
 		DrawTextShadowed(hudFont, hudMainMenu, "Back to Main Menu", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += 70;
-		sprintf_s(vcString,"(current VShader Count : %u)", m_VertexShaderCountLastFrame);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 128, 255, 128));
 
 		menuHelperRect.left = 0;
 		menuHelperRect.top = 0;
@@ -6512,7 +6509,7 @@ void D3DProxyDevice::VPMENU_PosTracking()
 		TRACKING_MULT_Y,
 		TRACKING_MULT_Z,
 		RESET_HMD,
-		DuckAndCover_CONFIG,
+		DUCKANDCOVER_CONFIG,
 		BACK_VPMENU,
 		BACK_GAME,
 		NUM_MENU_ITEMS
@@ -6556,15 +6553,14 @@ void D3DProxyDevice::VPMENU_PosTracking()
 			menuVelocity.x += 3.0f;
 		}
 
-		if (entryID == DuckAndCover_CONFIG)
+		if (entryID == DUCKANDCOVER_CONFIG)
 		{
 			VPMENU_mode = VPMENU_Modes::DUCKANDCOVER_CONFIGURATION;
 			menuVelocity.x += 3.0f;
 		}
 
 		// back to main menu
-		if (entryID == BACK_VPMENU
-			)
+		if (entryID == BACK_VPMENU)
 		{
 			VPMENU_mode = VPMENU_Modes::MAINMENU;
 			VPMENU_UpdateConfigSettings();
@@ -7831,13 +7827,8 @@ void D3DProxyDevice::DisplayCurrentPopup()
 				strcpy_s(activePopup.line[4], "HMD Positional Tracking Enabled");
 			else
 				strcpy_s(activePopup.line[4], "HMD Positional Tracking Disabled");
-			if (hmdInfo->GetHMDManufacturer() == HMD_OCULUS)
-			{
-				if (tracker->useSDKPosePrediction)
-					strcpy_s(activePopup.line[5], "SDK Pose Prediction Enabled");
-				else
-					strcpy_s(activePopup.line[5], "SDK Pose Prediction Disabled");
-			}
+
+			sprintf_s(activePopup.line[5],"Current VShader Count : %u)", m_VertexShaderCountLastFrame);
 		}
 
 		if (activePopup.expired())

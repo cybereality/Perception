@@ -44,6 +44,7 @@ public:
 	
 	/*** OculusRiftView public methods ***/
 	virtual void SetViewEffectInitialValues();
+	virtual void PostViewEffectCleanup(); 
 	virtual void CalculateShaderVariables( );
 	virtual void InitShaderEffects();
 	virtual void ReleaseEverything();
@@ -81,6 +82,7 @@ private:
 	HMDisplayInfo *hmdInfo;
 
 	IDirect3DTexture9 *m_logoTexture;
+	IDirect3DBaseTexture9 *m_prevTexture;
 };
 
 #endif

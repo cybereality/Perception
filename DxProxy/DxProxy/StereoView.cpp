@@ -378,7 +378,6 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 	}
 	
 	
-	
 	if (FAILED(m_pActualDevice->SetRenderTarget(0, backBuffer))) {
 		OutputDebugString("SetRenderTarget backbuffer failed\n");
 	}
@@ -418,6 +417,8 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 	if (FAILED(viewEffect->End())) {
 		OutputDebugString("End failed\n");
 	}
+
+	PostViewEffectCleanup();
 	
 	// how to restore render states ?
 	switch(howToSaveRenderStates)
@@ -436,7 +437,8 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 		break;
 	case HowToSaveRenderStates::DO_NOT_SAVE_AND_RESTORE:
 		break;
-	}		
+	}
+
 }
 
 void StereoView::SaveLastScreen()
@@ -603,6 +605,11 @@ void StereoView::InitShaderEffects()
 * Empty in parent class.
 ***/
 void StereoView::SetViewEffectInitialValues() {} 
+
+void StereoView::PostViewEffectCleanup()
+{
+	//Do nothing here
+}
 
 /**
 * Empty in parent class.
