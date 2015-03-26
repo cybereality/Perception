@@ -4552,6 +4552,7 @@ void D3DProxyDevice::OnCreateOrRestore()
 			OutputDebugString(e.what());
 		}
 	}
+
 	// set VP main values
 	viewportWidth = stereoView->viewport.Width;
 	viewportHeight = stereoView->viewport.Height;

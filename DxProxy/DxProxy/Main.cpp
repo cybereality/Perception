@@ -131,13 +131,17 @@ static bool LoadDll()
 	strcat(szBuff, "\\d3d9.dll");
 	g_hDll = LoadLibrary(szBuff);
 	if(!g_hDll)
+	{
+		Log("Failed to load DLL");
 		return false;
+	}
 
 	// Get function addresses
 	g_pfnDirect3DCreate9 = (LPDirect3DCreate9)GetProcAddress(g_hDll, "Direct3DCreate9");
 	g_pfnDirect3DCreate9Ex = (LPDirect3DCreate9Ex)GetProcAddress(g_hDll, "Direct3DCreate9Ex");
 	if (!g_pfnDirect3DCreate9 || !g_pfnDirect3DCreate9Ex)
 	{
+		Log("Failed to get function addresses");
 		FreeLibrary(g_hDll);
 		return false;
 	}
@@ -177,11 +181,11 @@ IDirect3D9* WINAPI Direct3DCreate9(UINT nSDKVersion)
 	}
 	else
 	{
-		Log("Direct3DCreate9Ex - Succeeded");
+		Log("Direct3DCreate9Ex - Succeeded\n");
 		hr = pD3DEx->QueryInterface(IID_IDirect3D9, reinterpret_cast<void**>(&pD3D));
 		if (FAILED(hr))
 		{
-			Log("pD3DEx->QueryInterface(IID_IDirect3D9, reinterpret_cast<void**>(&pD3D)); - Failed");
+			Log("pD3DEx->QueryInterface(IID_IDirect3D9, reinterpret_cast<void**>(&pD3D)); - Failed\n");
 		}
 	}
 
@@ -236,7 +240,7 @@ void Log(const char* szFormat, ...)
 
 	static FILE* pFile = NULL;
 	if(!pFile)
-		pFile = fopen("C:/D3D9Proxy.log", "w");
+		pFile = fopen("F:\\GitHub\\Perception\\D3D9Proxy.log", "w");
 
 	OutputDebugString(szBuff);
 	OutputDebugString("\n");
