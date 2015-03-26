@@ -252,7 +252,6 @@ HRESULT WINAPI BaseDirect3D9::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, 
 	if(FAILED(hResult))
 		return hResult;
 
-
 	OutputDebugString("[OK] Normal D3D device created\n");
 
 	char buf[64];

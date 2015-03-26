@@ -250,6 +250,7 @@ bool ProxyHelper::LoadUserConfig(UserConfig &userConfig)
 		userConfig.mode = xml_config.attribute("stereo_mode").as_int();
 		userConfig.mode2 = xml_config.attribute("tracker_mode").as_int();
 		userConfig.adapter = xml_config.attribute("display_adapter").as_int(0);
+		userConfig.mirror = xml_config.attribute("mirror").as_int(0);
 		userConfig.notifications = (xml_config.attribute("notifications").as_int(1) != 0);
 		userConfig.warnPosLost = (xml_config.attribute("warn_positional_lost").as_int(1) != 0);
 
@@ -558,6 +559,40 @@ bool ProxyHelper::SaveDisplayAdapter(int adapter)
 
 	return false;
 }
+
+/**
+* Saves the global Vireio Perception configuration (only selected mirroring option).
+* @param mode selected mirroring option.
+***/
+bool ProxyHelper::SaveMirrorOption(int mirror)
+{
+	// load the base dir for the app
+	GetBaseDir();
+	OutputDebugString(baseDir);
+	OutputDebugString("\n");
+
+	// get global config
+	char configPath[512];
+	GetPath(configPath, "cfg\\config.xml");
+
+	xml_document docConfig;
+	xml_parse_result resultConfig = docConfig.load_file(configPath);
+
+	if(resultConfig.status == status_ok)
+	{
+		xml_node xml_config = docConfig.child("config");
+
+		if(mirror >= 0)
+			xml_config.attribute("mirror") = mirror;
+
+		docConfig.save_file(configPath);
+
+		return true;
+	}
+
+	return false;
+}
+
 /**
 * Loads the game configuration for the target process specified in the registry (targetExe).
 * @param config Returned game configuration.

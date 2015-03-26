@@ -33,7 +33,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <d3d9.h>
 #include "ProxyHelper.h"
 
-class game_window;
 
 /**
 *  Direct 3D. 
@@ -82,11 +81,14 @@ private:
 	bool configLoaded;
 
 	/**
+<<<<<<< HEAD
 	* Whether the perception app is running - if it isn't, we don't inject
 	*/
 	bool m_perceptionRunning;
 
 	/**
+=======
+>>>>>>> parent of 9d9993d... Fixed Memory Leak
 	* Proxy configuration we load
 	*/
 	ProxyHelper::ProxyConfig cfg;

@@ -36,6 +36,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // Function pointer trypedefs
 typedef IDirect3D9* (WINAPI *LPDirect3DCreate9)(UINT nSDKVersion);
+typedef HRESULT (WINAPI *LPDirect3DCreate9Ex)(UINT sdk_version, IDirect3D9Ex**);
 
 typedef int (WINAPI *LPD3DPERF_BeginEvent)( D3DCOLOR col, LPCWSTR wszName );
 typedef int (WINAPI *LPD3DPERF_EndEvent)( void );
@@ -48,6 +49,7 @@ typedef DWORD (WINAPI *LPD3DPERF_GetStatus)( void );
 // Globals from d3d9.dll
 HMODULE g_hDll = NULL;
 LPDirect3DCreate9 g_pfnDirect3DCreate9 = NULL;
+LPDirect3DCreate9Ex g_pfnDirect3DCreate9Ex = NULL;
 
 LPD3DPERF_BeginEvent g_pfnD3DPERF_BeginEvent = NULL;
 LPD3DPERF_EndEvent g_pfnD3DPERF_EndEvent = NULL;
@@ -133,7 +135,8 @@ static bool LoadDll()
 
 	// Get function addresses
 	g_pfnDirect3DCreate9 = (LPDirect3DCreate9)GetProcAddress(g_hDll, "Direct3DCreate9");
-	if(!g_pfnDirect3DCreate9)
+	g_pfnDirect3DCreate9Ex = (LPDirect3DCreate9Ex)GetProcAddress(g_hDll, "Direct3DCreate9Ex");
+	if (!g_pfnDirect3DCreate9 || !g_pfnDirect3DCreate9Ex)
 	{
 		FreeLibrary(g_hDll);
 		return false;
@@ -160,10 +163,27 @@ IDirect3D9* WINAPI Direct3DCreate9(UINT nSDKVersion)
 	if(!LoadDll())
 		return NULL;
 
-	// Create real interface
-	IDirect3D9* pD3D = g_pfnDirect3DCreate9(nSDKVersion);
-	if(!pD3D)
-		return NULL;
+	//Try to create an ex interface
+	IDirect3D9* pD3D = NULL;
+	IDirect3D9Ex *pD3DEx = NULL;
+	HRESULT hr = g_pfnDirect3DCreate9Ex(nSDKVersion, &pD3DEx);
+
+	if (FAILED(hr))
+	{
+		// Create real interface
+		pD3D = g_pfnDirect3DCreate9(nSDKVersion);
+		if(!pD3D)
+			return NULL;
+	}
+	else
+	{
+		Log("Direct3DCreate9Ex - Succeeded");
+		hr = pD3DEx->QueryInterface(IID_IDirect3D9, reinterpret_cast<void**>(&pD3D));
+		if (FAILED(hr))
+		{
+			Log("pD3DEx->QueryInterface(IID_IDirect3D9, reinterpret_cast<void**>(&pD3D)); - Failed");
+		}
+	}
 
 	// Create and return proxy interface
 	BaseDirect3D9* pWrapper = new BaseDirect3D9(pD3D);

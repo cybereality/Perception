@@ -99,6 +99,63 @@ UINT GetMouseScrollLines()
 	return nScrollLines;
 }
 
+class mirror_window 
+{
+public:
+	LPCSTR window_class_name;  
+	HINSTANCE instance_handle;  
+	HWND window_handle;
+	HWND header_handle;
+	RECT client_rectangle;
+	mirror_window(bool fullScreen, LPCSTR window_class_identity, LPCSTR window_title, int x, int y, int width, int height) : window_class_name(window_class_identity) {         
+		instance_handle = GetModuleHandle(NULL);  
+
+		WNDCLASS window_class = { CS_OWNDC, main_window_proc, 0, 0,    
+			instance_handle, NULL,    
+			NULL, NULL, NULL,    
+			window_class_name };   
+
+		UINT style = fullScreen ? WS_POPUP|WS_VISIBLE|WS_SYSMENU :
+			WS_OVERLAPPEDWINDOW & ~(WS_THICKFRAME | WS_MAXIMIZEBOX);
+		RegisterClass(&window_class);   
+		window_handle = CreateWindowEx(WS_EX_TOPMOST | WS_EX_STATICEDGE,    
+			window_class_name,    
+			window_title, 
+			style, 
+			x, y, 
+			width, height,
+			NULL, NULL, instance_handle, NULL);
+		SetWindowLongPtr(window_handle, GWL_USERDATA, (LONG)this);  
+		ShowWindow(window_handle, SW_SHOW);   
+	}  
+	~mirror_window() {  
+		UnregisterClass(window_class_name, instance_handle);   
+	}  
+
+	static LRESULT WINAPI main_window_proc(HWND window_handle, UINT message,    
+		WPARAM wparam, LPARAM lparam) {  
+			mirror_window *This = (mirror_window *)GetWindowLongPtr(window_handle, GWL_USERDATA); 
+
+			switch ( message ) {  
+			case WM_CLOSE:   
+				{   
+					PostQuitMessage(0);   
+					return 0;   
+				}   
+			}   
+			return DefWindowProc(window_handle, message, wparam, lparam);   
+	}
+}; 
+
+BOOL CALLBACK MonitorEnumProc( HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData )
+{
+	static int index = 0;
+	std::map<int, RECT> *pMonitorRectVec = (std::map<int, RECT> *)(dwData);
+	if (lprcMonitor && pMonitorRectVec)
+		pMonitorRectVec->insert(std::make_pair(index++, RECT(*lprcMonitor)));
+	return TRUE;
+}
+
 std::string VRboostAxisString(UINT axis)
 {
 	switch (axis)
@@ -180,7 +237,11 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	m_comfortModeYawIncrement(90.0f),
 	m_comfortModeLeftKey(VK_LEFT),
 	m_comfortModeRightKey(VK_RIGHT),
-	m_disableAllHotkeys(false)
+	m_disableAllHotkeys(false),
+	mirrorWindow(NULL),
+	mirrorToWindow(0),
+	//Start mirroring with left eye
+	m_mirrorType(MW_LEFT_EYE)
 {
 	#ifdef SHOW_CALLS
 		OutputDebugString("called D3DProxyDevice");
@@ -273,6 +334,9 @@ D3DProxyDevice::~D3DProxyDevice()
 	m_spManagedShaderRegisters.reset();
 
 	FreeLibrary(hmVRboost);
+
+	DestroyWindow(m_pMirrorWindow->window_handle);
+	delete m_pMirrorWindow;
 
 	// always do this last
 	auto it = m_activeSwapChains.begin();
@@ -410,6 +474,9 @@ HRESULT WINAPI D3DProxyDevice::Reset(D3DPRESENT_PARAMETERS* pPresentationParamet
 		it = m_activeSwapChains.erase(it);
 	}
 
+	DestroyWindow(m_pMirrorWindow->window_handle);
+	delete m_pMirrorWindow;
+
 	HRESULT hr = BaseDirect3DDevice9::Reset(pPresentationParameters);
 
 	// if the device has been successfully reset we need to recreate any resources we created
@@ -440,17 +507,68 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 	#ifdef SHOW_CALLS
 		OutputDebugString("called Present");
 	#endif
-	
+
+	IDirect3DSurface9* pWrappedBackBuffer;
+
 	try {
-		IDirect3DSurface9* pWrappedBackBuffer = NULL;
 		m_activeSwapChains.at(0)->GetBackBuffer(0, D3DBACKBUFFER_TYPE_MONO, &pWrappedBackBuffer);
 		if (stereoView->initialized)
 			stereoView->Draw(static_cast<D3D9ProxySurface*>(pWrappedBackBuffer));
-				
+
+		if (mirrorToWindow != 0)
+		{
+			HRESULT hr = S_OK;
+
+			// Set the primary rendertarget to the first stereo backbuffer
+			IDirect3DSurface9* pBackBuffer = NULL;
+			hr = m_pMirrorSwapChain->GetBackBuffer(0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer);
+			if (FAILED(hr))
+				throw std::exception("Could not get Mirror Window Swap Chain back buffer");
+
+			hr = BaseDirect3DDevice9::SetRenderTarget(0, pBackBuffer);
+			if (FAILED(hr))
+				throw std::exception("Could not set Mirror Window render target");
+			
+			switch (m_mirrorType)
+			{
+			case MW_LEFT_EYE:
+				{
+					IDirect3DSurface9* leftImage = static_cast<D3D9ProxySurface*>(pWrappedBackBuffer)->getActualLeft();
+					hr = BaseDirect3DDevice9::StretchRect(leftImage, NULL, pBackBuffer, NULL, D3DTEXF_NONE);
+				}
+				break;
+			case MW_RIGHT_EYE:
+				{
+					IDirect3DSurface9* rightImage = static_cast<D3D9ProxySurface*>(pWrappedBackBuffer)->getActualRight();
+					hr = BaseDirect3DDevice9::StretchRect(rightImage, NULL, pBackBuffer, NULL, D3DTEXF_NONE);
+				}
+				break;
+			case MW_RIFT_VIEW:
+				{
+					if (stereoView->initialized)
+					{
+						IDirect3DSurface9* riftImage = stereoView->GetBackBuffer();
+						hr = BaseDirect3DDevice9::StretchRect(riftImage, NULL, pBackBuffer, NULL, D3DTEXF_NONE);
+					}
+				}
+				break;
+			}
+			if (FAILED(hr))
+				throw std::exception("Mirroring failed on buffer copy");
+
+			pBackBuffer->Release();
+			pBackBuffer = NULL;
+
+			m_pMirrorSwapChain->Present(NULL, NULL, m_pMirrorWindow->window_handle, NULL, 0);
+		}
+
 		pWrappedBackBuffer->Release();
 	}
 	catch (std::out_of_range) {
 		OutputDebugString("Present: No primary swap chain found. (Present probably called before device has been reset)");
+	}
+	catch (std::exception e) {
+		OutputDebugString(e.what());
 	}
 
 	// did set this now also in proxy swap chain ? solved ?
@@ -480,7 +598,8 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 			RegCloseKey(hKey);
 		}
 	}
-	HRESULT hr =  BaseDirect3DDevice9::Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);	
+
+	HRESULT hr =  BaseDirect3DDevice9::Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
 
 	if (tracker)
 		tracker->EndFrame();
@@ -2726,6 +2845,17 @@ void D3DProxyDevice::HandleControls()
 			menuVelocity.x+=2.0f;
 		}
 
+		//Switch mirror mode (if enabled) SHIFT+END
+		if (((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down(VK_END))
+			&& (menuVelocity == D3DXVECTOR2(0.0f, 0.0f))
+			&& mirrorToWindow > 0)
+		{
+			m_mirrorType = (MirrorWindow)((m_mirrorType + 1) % (int)MW_ENTRIES);
+
+//			VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1200);
+//			switch (m_mirrorType)
+		}
+
 		//Duck and cover - trigger crouch and prone keys if Y position of HMD moves appropriately
 		if (m_DuckAndCover.dfcStatus > DAC_INACTIVE &&
 			m_DuckAndCover.dfcStatus < DAC_DISABLED && tracker &&
@@ -2942,6 +3072,8 @@ void D3DProxyDevice::HandleControls()
 			ShowPopup(popup);		
 			menuVelocity.x += 4.0f;		
 		}
+
+
 
 		//When to poll headtracking (Alt + Down)
 		if (controls.Key_Down(VK_MENU) && controls.Key_Down(VK_DOWN) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
@@ -4346,6 +4478,80 @@ void D3DProxyDevice::OnCreateOrRestore()
 	m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
 	m_spShaderViewAdjustment->ComputeViewTransforms();
 
+	if (mirrorToWindow != 0)
+	{
+		try
+		{
+			//Get all display rectangles
+			std::map<int, RECT> monitorRects;
+			EnumDisplayMonitors(NULL, NULL, &MonitorEnumProc, (LPARAM)(&monitorRects));
+
+			if (monitorRects.size() > 1)
+			{
+				POINT location;
+				SIZE windowSize;
+
+				int mirrorAdapter = 1 - config.display_adapter;
+
+				//Set the window location
+				location.x = monitorRects[mirrorAdapter].left;
+				location.y = monitorRects[mirrorAdapter].top;
+				windowSize.cx = monitorRects[mirrorAdapter].right - monitorRects[mirrorAdapter].left;
+				windowSize.cy = monitorRects[mirrorAdapter].bottom - monitorRects[mirrorAdapter].top;
+				if (mirrorToWindow > 1)
+				{
+					location.x = (windowSize.cx / 2) - (stereoView->viewport.Width / mirrorToWindow) / 2; 
+					location.y = (windowSize.cy / 2) - (stereoView->viewport.Height / mirrorToWindow) / 2; 
+					windowSize.cx /= mirrorToWindow;
+					windowSize.cy /= mirrorToWindow;
+				}
+
+				//Now create the output window
+				m_pMirrorWindow = new mirror_window(mirrorToWindow == 1,
+					"VireioPerceptionMirrorWindow",
+					("Vireio Perception: " + config.game_exe).c_str(),  
+					location.x,
+					location.y,
+					windowSize.cx,
+					windowSize.cy);
+
+				if (m_pMirrorWindow->window_handle == NULL)
+					throw std::exception("Unable to create desktop mirror window - Mirroring disabled");
+
+				// Wrap the swap chain
+				D3DPRESENT_PARAMETERS params;
+				pActualPrimarySwapChain->GetPresentParameters(&params);
+				//params.BackBufferHeight = (stereoView->viewport.Height / mirrorToWindow);
+				//params.BackBufferWidth = (stereoView->viewport.Width / mirrorToWindow);
+				params.Windowed = TRUE;
+				/*params.hDeviceWindow = m_pMirrorWindow->window_handle;*/
+				/*params.EnableAutoDepthStencil = FALSE;
+				params.BackBufferFormat = D3DFMT_UNKNOWN;
+				params.BackBufferCount = 1;
+				params.MultiSampleType = D3DMULTISAMPLE_NONE;
+				params.MultiSampleQuality = D3DMULTISAMPLE_NONE;
+				params.SwapEffect = D3DSWAPEFFECT_DISCARD;
+				params.FullScreen_RefreshRateInHz = 0;
+				params.Flags = 0;//D3DPRESENTFLAG_DEVICECLIP;
+				params.PresentationInterval = D3DPRESENT_INTERVAL_DEFAULT;*/
+
+				m_pMirrorSwapChain = NULL;
+				HRESULT hr = BaseDirect3DDevice9::CreateAdditionalSwapChain(&params, &m_pMirrorSwapChain);
+				if (FAILED(hr))
+				{
+					ShowWindow(m_pMirrorWindow->window_handle, SW_HIDE);
+					throw std::exception("Unable to create desktop mirror swap chain - Mirroring disabled");
+				}
+
+				//Cache for cleanup
+				m_activeSwapChains.push_back(new D3D9ProxySwapChain(m_pMirrorSwapChain, this, true));
+			}
+		}
+		catch (std::exception e)
+		{
+			OutputDebugString(e.what());
+		}
+	}
 	// set VP main values
 	viewportWidth = stereoView->viewport.Width;
 	viewportHeight = stereoView->viewport.Height;

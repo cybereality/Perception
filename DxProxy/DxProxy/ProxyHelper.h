@@ -114,6 +114,7 @@ public:
 		int mode;
 		int mode2;
 		int adapter;
+		int mirror;
 		bool notifications;
 		bool warnPosLost;
 		bool obsStreamHack;
@@ -144,6 +145,7 @@ public:
 	bool  SaveUserConfig(float ipd = IPD_DEFAULT);
 	bool  SaveTrackerMode(int mode = -1);
 	bool  SaveDisplayAdapter(int adapter);
+	bool  SaveMirrorOption(int mirror);
 	bool  LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile);	
 	bool  SaveConfig(ProxyConfig& config);
 	bool  HasProfile(const char* name, const char *path);

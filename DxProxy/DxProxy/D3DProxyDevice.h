@@ -85,7 +85,7 @@ class D3D9ProxySwapChain;
 class ShaderRegisters;
 class GameHandler;
 struct HMDisplayInfo;
-
+class mirror_window;
 
 /**
 * Direct 3D proxy device class. 
@@ -172,7 +172,6 @@ public:
 	virtual void   HandleControls(void);
 	void           HandleTracking(void);
 	void           HandleUpdateExtern();
-	void		   SetGameWindow(HWND hMainGameWindow);
 
 	/**
 	* Game Types.
@@ -586,6 +585,26 @@ protected:
 	* Main menu affection.
 	***/
 	D3DXVECTOR2 menuAttraction;
+
+	/**
+	* Window for the desktop mirror
+	*/
+	HWND mirrorWindow;
+	mirror_window *m_pMirrorWindow;
+	IDirect3DSwapChain9* m_pMirrorSwapChain;
+	/**
+	* Whether we are mirroring to a desktop window (and it's relative size)
+	*/
+	int mirrorToWindow;
+	enum MirrorWindow
+	{
+		MW_LEFT_EYE,
+		MW_RIGHT_EYE,
+		MW_RIFT_VIEW,
+		MW_ENTRIES
+	};
+	MirrorWindow m_mirrorType;
+
 	/**
 	* Main menu border top height.
 	***/

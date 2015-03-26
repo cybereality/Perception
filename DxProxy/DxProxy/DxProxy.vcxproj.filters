@@ -563,6 +563,7 @@
     <Xml Include="..\..\Release\Perception\cfg\shader_rules\dearesther.xml">
       <Filter>cfg\shader_rules</Filter>
     </Xml>
+<<<<<<< HEAD
     <Xml Include="..\..\Release\Perception\cfg\shader_rules\Bioshock2.xml">
       <Filter>cfg\shader_rules</Filter>
     </Xml>
@@ -582,5 +583,7 @@
     <ResourceCompile Include="DXProxy.rc">
       <Filter>Main</Filter>
     </ResourceCompile>
+=======
+>>>>>>> parent of 9d9993d... Fixed Memory Leak
   </ItemGroup>
 </Project>
