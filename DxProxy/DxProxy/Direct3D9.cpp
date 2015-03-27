@@ -252,11 +252,25 @@ HRESULT WINAPI BaseDirect3D9::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, 
 	IDirect3D9Ex *pDirect3D9Ex = NULL;
 	if (SUCCEEDED(m_pD3D->QueryInterface(IID_IDirect3D9Ex, reinterpret_cast<void**>(&pDirect3D9Ex))))
 	{
+		D3DDISPLAYMODEFILTER  filter;
+		filter.Size = sizeof(D3DDISPLAYMODEFILTER);
+		filter.Format = pPresentationParameters->BackBufferFormat;
+		filter.ScanLineOrdering = D3DSCANLINEORDERING_PROGRESSIVE;
+
+		UINT modes = pDirect3D9Ex->GetAdapterModeCountEx(m_perceptionRunning ? cfg.display_adapter : Adapter, &filter);
+		char buffer[256];
+		sprintf_s(buffer, "Mode Count: %u", modes);
+		OutputDebugString(buffer);
+
+		D3DDISPLAYMODEEX dModeEx;
+		dModeEx.Size = sizeof(D3DDISPLAYMODEEX);
+		HRESULT hr = pDirect3D9Ex->EnumAdapterModesEx(m_perceptionRunning ? cfg.display_adapter : Adapter, &filter, modes - 1, &dModeEx);
+		sprintf_s(buffer, "0x%0.8x", hr);
+		OutputDebugString(buffer);
 		OutputDebugString("A\n");
 		IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
 		hResult = pDirect3D9Ex->CreateDeviceEx(m_perceptionRunning ? cfg.display_adapter : Adapter, DeviceType, hFocusWindow, BehaviorFlags,
-			pPresentationParameters, NULL, &pDirect3DDevice9Ex);
-		char buffer[256];
+			pPresentationParameters, &dModeEx, &pDirect3DDevice9Ex);
 		sprintf_s(buffer, "0x%0.8x", hResult);
 		OutputDebugString(buffer);
 		pDirect3D9Ex->Release();
