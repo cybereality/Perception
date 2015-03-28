@@ -246,40 +246,30 @@ HMONITOR WINAPI BaseDirect3D9::GetAdapterMonitor(UINT Adapter)
 ***/
 HRESULT WINAPI BaseDirect3D9::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, HWND hFocusWindow,DWORD BehaviorFlags, D3DPRESENT_PARAMETERS* pPresentationParameters,IDirect3DDevice9** ppReturnedDeviceInterface)
 {
-	OutputDebugString("[OK] Normal D3D device created\n");
+	OutputDebugString("BaseDirect3D9::CreateDevice\n");
 
 	HRESULT hResult = S_OK;
 	IDirect3D9Ex *pDirect3D9Ex = NULL;
 	if (SUCCEEDED(m_pD3D->QueryInterface(IID_IDirect3D9Ex, reinterpret_cast<void**>(&pDirect3D9Ex))))
 	{
-		D3DDISPLAYMODEFILTER  filter;
-		filter.Size = sizeof(D3DDISPLAYMODEFILTER);
-		filter.Format = pPresentationParameters->BackBufferFormat;
-		filter.ScanLineOrdering = D3DSCANLINEORDERING_PROGRESSIVE;
-
-		UINT modes = pDirect3D9Ex->GetAdapterModeCountEx(m_perceptionRunning ? cfg.display_adapter : Adapter, &filter);
 		char buffer[256];
-		sprintf_s(buffer, "Mode Count: %u", modes);
-		OutputDebugString(buffer);
+		hResult = pDirect3D9Ex->CreateDevice(m_perceptionRunning ? cfg.display_adapter : Adapter, DeviceType, hFocusWindow, BehaviorFlags,
+			pPresentationParameters, ppReturnedDeviceInterface);
 
-		D3DDISPLAYMODEEX dModeEx;
-		dModeEx.Size = sizeof(D3DDISPLAYMODEEX);
-		HRESULT hr = pDirect3D9Ex->EnumAdapterModesEx(m_perceptionRunning ? cfg.display_adapter : Adapter, &filter, modes - 1, &dModeEx);
-		sprintf_s(buffer, "0x%0.8x", hr);
-		OutputDebugString(buffer);
-		OutputDebugString("A\n");
-		IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
-		hResult = pDirect3D9Ex->CreateDeviceEx(m_perceptionRunning ? cfg.display_adapter : Adapter, DeviceType, hFocusWindow, BehaviorFlags,
-			pPresentationParameters, &dModeEx, &pDirect3DDevice9Ex);
-		sprintf_s(buffer, "0x%0.8x", hResult);
-		OutputDebugString(buffer);
-		pDirect3D9Ex->Release();
-		OutputDebugString("C\n");
-		if (SUCCEEDED(hResult))
+		if (*ppReturnedDeviceInterface)
 		{
-			OutputDebugString("D\n");
-			hResult = pDirect3DDevice9Ex->QueryInterface(IID_IDirect3DDevice9, reinterpret_cast<void**>(ppReturnedDeviceInterface));
-			OutputDebugString("E\n");
+			IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
+			if (SUCCEEDED((*ppReturnedDeviceInterface)->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))))
+			{
+				if (SUCCEEDED(hResult))
+					OutputDebugString("[OK] Direct3DDevice9Ex created\n");
+	
+				pDirect3DDevice9Ex->Release();
+			}
+			else
+			{
+				OutputDebugString("[OK] Normal D3D device created\n");
+			}
 		}
 	}
 	else
@@ -287,15 +277,16 @@ HRESULT WINAPI BaseDirect3D9::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, 
 		OutputDebugString("F\n");
 		hResult = m_pD3D->CreateDevice(m_perceptionRunning ? cfg.display_adapter : Adapter, DeviceType, hFocusWindow, BehaviorFlags,
 			pPresentationParameters, ppReturnedDeviceInterface);
+		if (SUCCEEDED(hResult))
+			OutputDebugString("[OK] Normal D3D device created\n");
 	}
 
 	if(FAILED(hResult))
 	{
-		OutputDebugString("G\n");
+		OutputDebugString("[ERROR] No D3DDevice9 Created\n");
 		return hResult;
 	}
 
-	OutputDebugString("[OK] Normal D3D device created\n");
 
 	char buf[64];
 	sprintf_s(buf, "Number of back buffers = %d\n", pPresentationParameters->BackBufferCount);

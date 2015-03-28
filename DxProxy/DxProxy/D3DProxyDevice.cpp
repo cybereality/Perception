@@ -38,6 +38,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <assert.h>
 #include <comdef.h>
 #include <tchar.h>
+#include <WinUser.h>
 
 #ifdef _DEBUG
 #include "DxErr.h"
@@ -811,7 +812,7 @@ HRESULT WINAPI D3DProxyDevice::CreateDepthStencilSurface(UINT Width,UINT Height,
 	}
 
 	if (SUCCEEDED(creationResult))
-		*ppSurface = new D3D9ProxySurface(pDepthStencilSurfaceLeft, pDepthStencilSurfaceRight, this, NULL);
+		*ppSurface = new D3D9ProxySurface(pDepthStencilSurfaceLeft, pDepthStencilSurfaceRight, this, NULL, NULL, NULL);
 
 	return creationResult;
 }
@@ -1049,7 +1050,7 @@ HRESULT WINAPI D3DProxyDevice::CreateOffscreenPlainSurface(UINT Width,UINT Heigh
 	HRESULT creationResult = BaseDirect3DDevice9::CreateOffscreenPlainSurface(Width, Height, Format, Pool, &pActualSurface, pSharedHandle);
 
 	if (SUCCEEDED(creationResult))
-		*ppSurface = new D3D9ProxySurface(pActualSurface, NULL, this, NULL);
+		*ppSurface = new D3D9ProxySurface(pActualSurface, NULL, this, NULL, NULL, NULL);
 
 	return creationResult;
 }
@@ -2477,17 +2478,25 @@ HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFO
 		return D3D_OK;
 
 	// create left/mono
-	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, &pLeftRenderTarget, pSharedHandle))) {
+	HANDLE sharedHandleLeft = NULL;
+	HANDLE sharedHandleRight = NULL;
+	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, &pLeftRenderTarget, &sharedHandleLeft))) {
+
+		char buffer[256];
+		sprintf_s(buffer, "Shared Handle Left: 0x%0.8x", sharedHandleLeft);
+		OutputDebugString(buffer);
 
 		/* "If Needed" heuristic is the complicated part here.
 		Fixed heuristics (based on type, format, size, etc) + game specific overrides + isForcedMono + magic? */
 		// TODO Should we duplicate this Render Target? Replace "true" with heuristic
 		if (!m_b2dDepthMode && m_pGameHandler->ShouldDuplicateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, isSwapChainBackBuffer))
 		{
-			if (FAILED(BaseDirect3DDevice9::CreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, &pRightRenderTarget, pSharedHandle))) {
+			if (FAILED(BaseDirect3DDevice9::CreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, &pRightRenderTarget, &sharedHandleRight))) {
 				OutputDebugString("Failed to create right eye render target while attempting to create stereo pair, falling back to mono\n");
 				pRightRenderTarget = NULL;
 			}
+			sprintf_s(buffer, "Shared Handle Right: 0x%0.8x", sharedHandleRight);
+			OutputDebugString(buffer);
 		}
 	}
 	else {
@@ -2496,9 +2505,9 @@ HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFO
 
 	if (SUCCEEDED(creationResult)) {
 		if (!isSwapChainBackBuffer)
-			*ppSurface = new D3D9ProxySurface(pLeftRenderTarget, pRightRenderTarget, this, NULL);
+			*ppSurface = new D3D9ProxySurface(pLeftRenderTarget, pRightRenderTarget, this, NULL, sharedHandleLeft, sharedHandleRight);
 		else
-			*ppSurface = new StereoBackBuffer(pLeftRenderTarget, pRightRenderTarget, this);
+			*ppSurface = new StereoBackBuffer(pLeftRenderTarget, pRightRenderTarget, this, sharedHandleLeft, sharedHandleRight);
 	}
 
 	return creationResult;

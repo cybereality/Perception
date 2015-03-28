@@ -36,11 +36,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * and that count is managed by forwarding release and addref to the container. In this case the
 * container must delete this surface when the ref count reaches 0.
 ***/ 
-D3D9ProxySurface::D3D9ProxySurface(IDirect3DSurface9* pActualSurfaceLeft, IDirect3DSurface9* pActualSurfaceRight, BaseDirect3DDevice9* pOwningDevice, IUnknown* pWrappedContainer) :
+D3D9ProxySurface::D3D9ProxySurface(IDirect3DSurface9* pActualSurfaceLeft, IDirect3DSurface9* pActualSurfaceRight, BaseDirect3DDevice9* pOwningDevice, IUnknown* pWrappedContainer, HANDLE SharedHandleLeft, HANDLE SharedHandleRight) :
 	BaseDirect3DSurface9(pActualSurfaceLeft),
 	m_pActualSurfaceRight(pActualSurfaceRight),
 	m_pOwningDevice(pOwningDevice),
-	m_pWrappedContainer(pWrappedContainer)
+	m_pWrappedContainer(pWrappedContainer),
+	m_SharedHandleLeft(SharedHandleLeft),
+	m_SharedHandleRight(SharedHandleRight)
 {
 	assert (pOwningDevice != NULL);
 
@@ -268,6 +270,17 @@ IDirect3DSurface9* D3D9ProxySurface::getActualRight()
 {
 	return m_pActualSurfaceRight;
 }
+
+HANDLE D3D9ProxySurface::getHandleLeft()
+{
+	return m_SharedHandleLeft;
+}
+
+HANDLE D3D9ProxySurface::getHandleRight()
+{
+	return m_SharedHandleRight;
+}
+
 
 /**
 * True if right surface present.
