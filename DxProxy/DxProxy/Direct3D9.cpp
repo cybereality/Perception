@@ -75,7 +75,7 @@ BaseDirect3D9::BaseDirect3D9(IDirect3D9* pD3D) :
 		m_perceptionRunning = true;
 
 		// load configuration file
-		ProxyHelper helper = ProxyHelper();
+		ProxyHelper helper;
 		ProxyHelper::OculusProfile oculusProfile;
 		configLoaded = true;
 		if(!helper.LoadConfig(cfg, oculusProfile)) {

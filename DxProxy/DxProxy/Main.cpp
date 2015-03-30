@@ -167,14 +167,24 @@ IDirect3D9* WINAPI Direct3DCreate9(UINT nSDKVersion)
 	if(!LoadDll())
 		return NULL;
 
-	//Try to create an ex interface
+	ProxyHelper helper;
+	ProxyHelper::UserConfig userCfg;
+	helper.LoadUserConfig(userCfg);
+
 	IDirect3D9* pD3D = NULL;
 	IDirect3D9Ex *pD3DEx = NULL;
-	HRESULT hr = g_pfnDirect3DCreate9Ex(nSDKVersion, &pD3DEx);
+	HRESULT hr = E_NOTIMPL;
+	if (userCfg.mirror != 0)
+	{
+		//Try to create an ex interface
+		Log("g_pfnDirect3DCreate9Ex\n");
+		hr = g_pfnDirect3DCreate9Ex(nSDKVersion, &pD3DEx);
+	}
 
 	if (FAILED(hr))
 	{
 		// Create real interface
+		Log("g_pfnDirect3DCreate9\n");
 		pD3D = g_pfnDirect3DCreate9(nSDKVersion);
 		if(!pD3D)
 			return NULL;

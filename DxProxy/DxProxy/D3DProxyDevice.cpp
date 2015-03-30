@@ -239,6 +239,7 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	m_comfortModeLeftKey(VK_LEFT),
 	m_comfortModeRightKey(VK_RIGHT),
 	m_disableAllHotkeys(false),
+	m_pMirrorWindow(NULL),
 	mirrorWindow(NULL),
 	mirrorToWindow(0),
 	//Start mirroring with left eye
@@ -475,8 +476,12 @@ HRESULT WINAPI D3DProxyDevice::Reset(D3DPRESENT_PARAMETERS* pPresentationParamet
 		it = m_activeSwapChains.erase(it);
 	}
 
-	DestroyWindow(m_pMirrorWindow->window_handle);
-	delete m_pMirrorWindow;
+	if (m_pMirrorWindow)
+	{
+		DestroyWindow(m_pMirrorWindow->window_handle);
+		delete m_pMirrorWindow;
+		m_pMirrorWindow = NULL;
+	}
 
 	HRESULT hr = BaseDirect3DDevice9::Reset(pPresentationParameters);
 
@@ -638,11 +643,24 @@ HRESULT WINAPI D3DProxyDevice::GetBackBuffer(UINT iSwapChain,UINT iBackBuffer,D3
 HRESULT WINAPI D3DProxyDevice::CreateTexture(UINT Width,UINT Height,UINT Levels,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool,IDirect3DTexture9** ppTexture,HANDLE* pSharedHandle)
 {
 	#ifdef SHOW_CALLS
-		OutputDebugString("called CreateTexture");
+		OutputDebugString("called D3DProxyDevice::CreateTexture");
 	#endif
 	HRESULT creationResult;
 	IDirect3DTexture9* pLeftTexture = NULL;
 	IDirect3DTexture9* pRightTexture = NULL;	
+
+	// create left/mono
+	HANDLE sharedHandleLeft = NULL;
+	HANDLE sharedHandleRight = NULL;
+
+	HRESULT hr = S_OK;
+	IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
+	if (SUCCEEDED(getActual()->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))) &&
+		(Usage|D3DUSAGE_RENDERTARGET) == D3DUSAGE_RENDERTARGET)
+	{
+		Pool = D3DPOOL_DEFAULT;
+		pSharedHandle = &sharedHandleLeft;
+	}
 
 	// try and create left
 	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateTexture(Width, Height, Levels, Usage, Format, Pool, &pLeftTexture, pSharedHandle))) {
@@ -650,15 +668,24 @@ HRESULT WINAPI D3DProxyDevice::CreateTexture(UINT Width,UINT Height,UINT Levels,
 		// Does this Texture need duplicating?
 		if (!m_b2dDepthMode && m_pGameHandler->ShouldDuplicateTexture(Width, Height, Levels, Usage, Format, Pool)) {
 
+			if (pDirect3DDevice9Ex)
+				pSharedHandle = &sharedHandleRight;
+
 			if (FAILED(BaseDirect3DDevice9::CreateTexture(Width, Height, Levels, Usage, Format, Pool, &pRightTexture, pSharedHandle))) {
 				OutputDebugString("Failed to create right eye texture while attempting to create stereo pair, falling back to mono\n");
 				pRightTexture = NULL;
 			}
 		}
+		else {
+			OutputDebugString("NOT DUPLICATING texture\n"); 
+		}
 	}
 	else {
 		OutputDebugString("Failed to create texture\n"); 
 	}
+
+	if (pDirect3DDevice9Ex)
+		pDirect3DDevice9Ex->Release();
 
 	if (SUCCEEDED(creationResult))
 		*ppTexture = new D3D9ProxyTexture(pLeftTexture, pRightTexture, this);
@@ -676,6 +703,16 @@ HRESULT WINAPI D3DProxyDevice::CreateVolumeTexture(UINT Width,UINT Height,UINT D
 	#ifdef SHOW_CALLS
 		OutputDebugString("called CreateVolumeTexture");
 	#endif
+
+	HRESULT hr = S_OK;
+	IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
+	if (SUCCEEDED(getActual()->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))) &&
+		(Usage|D3DUSAGE_RENDERTARGET) == D3DUSAGE_RENDERTARGET)
+	{
+		Pool = D3DPOOL_DEFAULT;
+		pDirect3DDevice9Ex->Release();
+	}
+
 	IDirect3DVolumeTexture9* pActualTexture = NULL;
 	HRESULT creationResult = BaseDirect3DDevice9::CreateVolumeTexture(Width, Height, Depth, Levels, Usage, Format, Pool, &pActualTexture, pSharedHandle);
 
@@ -696,6 +733,16 @@ HRESULT WINAPI D3DProxyDevice::CreateCubeTexture(UINT EdgeLength, UINT Levels, D
 	#ifdef SHOW_CALLS
 		OutputDebugString("called CreateCubeTexture");
 	#endif
+
+	HRESULT hr = S_OK;
+	IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
+	if (SUCCEEDED(getActual()->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))) &&
+		(Usage|D3DUSAGE_RENDERTARGET) == D3DUSAGE_RENDERTARGET)
+	{
+		Pool = D3DPOOL_DEFAULT;
+		pDirect3DDevice9Ex->Release();
+	}
+
 	HRESULT creationResult;
 	IDirect3DCubeTexture9* pLeftCubeTexture = NULL;
 	IDirect3DCubeTexture9* pRightCubeTexture = NULL;	
@@ -734,6 +781,16 @@ HRESULT WINAPI D3DProxyDevice::CreateVertexBuffer(UINT Length, DWORD Usage, DWOR
 	#ifdef SHOW_CALLS
 		OutputDebugString("called CreateVertexBuffer");
 	#endif
+		
+	HRESULT hr = S_OK;
+	IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
+	if (SUCCEEDED(getActual()->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))) &&
+		(Usage|D3DUSAGE_RENDERTARGET) == D3DUSAGE_RENDERTARGET)
+	{
+		Pool = D3DPOOL_DEFAULT;
+		pDirect3DDevice9Ex->Release();
+	}
+
 	IDirect3DVertexBuffer9* pActualBuffer = NULL;
 	HRESULT creationResult = BaseDirect3DDevice9::CreateVertexBuffer(Length, Usage, FVF, Pool, &pActualBuffer, pSharedHandle);
 
@@ -752,6 +809,16 @@ HRESULT WINAPI D3DProxyDevice::CreateIndexBuffer(UINT Length,DWORD Usage,D3DFORM
 	#ifdef SHOW_CALLS
 		OutputDebugString("called CreateIndexBuffer");
 	#endif
+
+	HRESULT hr = S_OK;
+	IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
+	if (SUCCEEDED(getActual()->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))) &&
+		(Usage|D3DUSAGE_RENDERTARGET) == D3DUSAGE_RENDERTARGET)
+	{
+		Pool = D3DPOOL_DEFAULT;
+		pDirect3DDevice9Ex->Release();
+	}
+
 	IDirect3DIndexBuffer9* pActualBuffer = NULL;
 	HRESULT creationResult = BaseDirect3DDevice9::CreateIndexBuffer(Length, Usage, Format, Pool, &pActualBuffer, pSharedHandle);
 
@@ -1046,6 +1113,8 @@ HRESULT WINAPI D3DProxyDevice::CreateOffscreenPlainSurface(UINT Width,UINT Heigh
 	#ifdef SHOW_CALLS
 		OutputDebugString("called CreateOffscreenPlainSurface");
 	#endif
+
+	HRESULT hr = S_OK;
 	IDirect3DSurface9* pActualSurface = NULL;
 	HRESULT creationResult = BaseDirect3DDevice9::CreateOffscreenPlainSurface(Width, Height, Format, Pool, &pActualSurface, pSharedHandle);
 
@@ -2480,7 +2549,13 @@ HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFO
 	// create left/mono
 	HANDLE sharedHandleLeft = NULL;
 	HANDLE sharedHandleRight = NULL;
-	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, &pLeftRenderTarget, &sharedHandleLeft))) {
+
+	HRESULT hr = S_OK;
+	IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
+	if (SUCCEEDED(getActual()->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))))
+		pSharedHandle = &sharedHandleLeft;
+
+	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, &pLeftRenderTarget, pSharedHandle))) {
 
 		char buffer[256];
 		sprintf_s(buffer, "Shared Handle Left: 0x%0.8x", sharedHandleLeft);
@@ -2491,7 +2566,10 @@ HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFO
 		// TODO Should we duplicate this Render Target? Replace "true" with heuristic
 		if (!m_b2dDepthMode && m_pGameHandler->ShouldDuplicateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, isSwapChainBackBuffer))
 		{
-			if (FAILED(BaseDirect3DDevice9::CreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, &pRightRenderTarget, &sharedHandleRight))) {
+			if (pDirect3DDevice9Ex)
+				pSharedHandle = &sharedHandleRight;
+
+			if (FAILED(BaseDirect3DDevice9::CreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, &pRightRenderTarget, pSharedHandle))) {
 				OutputDebugString("Failed to create right eye render target while attempting to create stereo pair, falling back to mono\n");
 				pRightRenderTarget = NULL;
 			}
@@ -2509,6 +2587,9 @@ HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFO
 		else
 			*ppSurface = new StereoBackBuffer(pLeftRenderTarget, pRightRenderTarget, this, sharedHandleLeft, sharedHandleRight);
 	}
+
+	if (pDirect3DDevice9Ex)
+		pDirect3DDevice9Ex->Release();
 
 	return creationResult;
 }
@@ -8056,7 +8137,7 @@ void D3DProxyDevice::DisplayCurrentPopup()
 
 		UINT format = 0;
 		D3DCOLOR popupColour;
-		ID3DXFont *pFont;
+		ID3DXFont *pFont = NULL;
 		menuHelperRect.left = 670;
 		menuHelperRect.top = 440;
 		switch (activePopup.severity)
@@ -8073,18 +8154,24 @@ void D3DProxyDevice::DisplayCurrentPopup()
 					menuHelperRect.left = 0;
 				}
 				break;
-			case VPS_INFO:
-				{
-					popupColour = D3DCOLOR_ARGB(255, 128, 255, 128);
-					pFont = popupFont[24];
-				}
-				break;
 			case VPS_ERROR:
 				{
 					popupColour = D3DCOLOR_ARGB(255, 255, 0, 0);
 					menuHelperRect.left = 0;
 					format = DT_CENTER;
 					pFont = errorFont;
+				}
+				break;
+			case VPS_INFO:
+				{
+					popupColour = D3DCOLOR_ARGB(255, 128, 255, 128);
+					pFont = popupFont[24];
+				}
+				break;
+			default:
+				{
+					popupColour = D3DCOLOR_ARGB(255, 255, 255, 255);
+					pFont = popupFont[18];
 				}
 				break;
 		}

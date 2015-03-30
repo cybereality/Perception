@@ -40,6 +40,9 @@ D3D9ProxyTexture::D3D9ProxyTexture(IDirect3DTexture9* pActualTextureLeft, IDirec
 	m_wrappedSurfaceLevels(),
 	m_pOwningDevice(pOwningDevice)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxyTexture::D3D9ProxyTexture");
+	#endif
 	assert (pOwningDevice != NULL);
 
 	m_pOwningDevice->AddRef();
@@ -51,6 +54,9 @@ D3D9ProxyTexture::D3D9ProxyTexture(IDirect3DTexture9* pActualTextureLeft, IDirec
 ***/
 D3D9ProxyTexture::~D3D9ProxyTexture()
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxyTexture::~D3D9ProxyTexture");
+	#endif
 	// delete all surfaces in m_levels
 	auto it = m_wrappedSurfaceLevels.begin();
 	while (it != m_wrappedSurfaceLevels.end()) {
@@ -76,6 +82,9 @@ D3D9ProxyTexture::~D3D9ProxyTexture()
 ***/
 HRESULT WINAPI D3D9ProxyTexture::QueryInterface(REFIID riid, LPVOID* ppv)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxyTexture::QueryInterface");
+	#endif
 	/* IID_IDirect3DTexture9 */
 	/* {85C31227-3DE5-4f00-9B3A-F11AC38C18B5} */
 	IF_GUID(riid,0x85c31227,0x3de5,0x4f00,0x9b,0x3a,0xf1,0x1a)
@@ -104,6 +113,9 @@ HRESULT WINAPI D3D9ProxyTexture::QueryInterface(REFIID riid, LPVOID* ppv)
 */
 HRESULT WINAPI D3D9ProxyTexture::GetDevice(IDirect3DDevice9** ppDevice)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxyTexture::GetDevice");
+	#endif
 	if (!m_pOwningDevice)
 		return D3DERR_INVALIDCALL;
 	else {
@@ -118,7 +130,10 @@ HRESULT WINAPI D3D9ProxyTexture::GetDevice(IDirect3DDevice9** ppDevice)
 ***/
 HRESULT WINAPI D3D9ProxyTexture::SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags)
 {
-	if (IsStereo())
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxyTexture::SetPrivateData");
+	#endif
+	if (IsStereo() && m_pActualTextureRight)
 		m_pActualTextureRight->SetPrivateData(refguid, pData, SizeOfData, Flags);
 
 	return m_pActualTexture->SetPrivateData(refguid, pData, SizeOfData, Flags);
@@ -129,7 +144,10 @@ HRESULT WINAPI D3D9ProxyTexture::SetPrivateData(REFGUID refguid, CONST void* pDa
 ***/
 HRESULT WINAPI D3D9ProxyTexture::FreePrivateData(REFGUID refguid)
 {
-	if (IsStereo())
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxyTexture::FreePrivateData");
+	#endif
+	if (IsStereo() && m_pActualTextureRight)
 		m_pActualTextureRight->FreePrivateData(refguid);
 
 	return m_pActualTexture->FreePrivateData(refguid);
@@ -140,7 +158,10 @@ HRESULT WINAPI D3D9ProxyTexture::FreePrivateData(REFGUID refguid)
 ***/
 DWORD WINAPI D3D9ProxyTexture::SetPriority(DWORD PriorityNew)
 {
-	if (IsStereo())
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxyTexture::SetPriority");
+	#endif
+	if (IsStereo() && m_pActualTextureRight)
 		m_pActualTextureRight->SetPriority(PriorityNew);
 
 	return m_pActualTexture->SetPriority(PriorityNew);
@@ -151,7 +172,10 @@ DWORD WINAPI D3D9ProxyTexture::SetPriority(DWORD PriorityNew)
 ***/
 void WINAPI D3D9ProxyTexture::PreLoad()
 {
-	if (IsStereo())
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxyTexture::PreLoad");
+	#endif
+	if (IsStereo() && m_pActualTextureRight)
 		m_pActualTextureRight->PreLoad();
 
 	return m_pActualTexture->PreLoad();
@@ -162,7 +186,10 @@ void WINAPI D3D9ProxyTexture::PreLoad()
 ***/
 DWORD WINAPI D3D9ProxyTexture::SetLOD(DWORD LODNew)
 {
-	if (IsStereo())
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxyTexture::SetLOD");
+	#endif
+	if (IsStereo() && m_pActualTextureRight)
 		m_pActualTextureRight->SetLOD(LODNew);
 
 	return m_pActualTexture->SetLOD(LODNew);
@@ -173,7 +200,10 @@ DWORD WINAPI D3D9ProxyTexture::SetLOD(DWORD LODNew)
 ***/
 HRESULT WINAPI D3D9ProxyTexture::SetAutoGenFilterType(D3DTEXTUREFILTERTYPE FilterType)
 {
-	if (IsStereo())
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxyTexture::SetAutoGenFilterType");
+	#endif
+	if (IsStereo() && m_pActualTextureRight)
 		m_pActualTextureRight->SetAutoGenFilterType(FilterType);
 
 	return m_pActualTexture->SetAutoGenFilterType(FilterType);
@@ -184,7 +214,10 @@ HRESULT WINAPI D3D9ProxyTexture::SetAutoGenFilterType(D3DTEXTUREFILTERTYPE Filte
 ***/
 void WINAPI D3D9ProxyTexture::GenerateMipSubLevels()
 {
-	if (IsStereo())
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxyTexture::GenerateMipSubLevels");
+	#endif
+	if (IsStereo() && m_pActualTextureRight)
 		m_pActualTextureRight->GenerateMipSubLevels();
 
 	return m_pActualTexture->GenerateMipSubLevels();
@@ -196,6 +229,9 @@ void WINAPI D3D9ProxyTexture::GenerateMipSubLevels()
 ***/
 HRESULT WINAPI D3D9ProxyTexture::GetSurfaceLevel(UINT Level, IDirect3DSurface9** ppSurfaceLevel)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxyTexture::GetSurfaceLevel");
+	#endif
 	HRESULT finalResult;
 
 	// Have we already got a Proxy for this surface level?
@@ -217,7 +253,7 @@ HRESULT WINAPI D3D9ProxyTexture::GetSurfaceLevel(UINT Level, IDirect3DSurface9**
 
 		HRESULT leftResult = m_pActualTexture->GetSurfaceLevel(Level, &pActualSurfaceLevelLeft);
 
-		if (IsStereo()) {
+		if (IsStereo() && m_pActualTextureRight) {
 			HRESULT resultRight = m_pActualTextureRight->GetSurfaceLevel(Level, &pActualSurfaceLevelRight);
 			assert (leftResult == resultRight);
 		}
@@ -261,10 +297,24 @@ HRESULT WINAPI D3D9ProxyTexture::GetSurfaceLevel(UINT Level, IDirect3DSurface9**
 ***/
 HRESULT WINAPI D3D9ProxyTexture::LockRect(UINT Level, D3DLOCKED_RECT* pLockedRect, CONST RECT* pRect, DWORD Flags)
 {
-	if (IsStereo())
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxyTexture::LockRect");
+	#endif
+	if (IsStereo() && m_pActualTextureRight)
 		m_pActualTextureRight->LockRect(Level, pLockedRect, pRect, Flags);
 
-	return m_pActualTexture->LockRect(Level, pLockedRect, pRect, Flags);
+	HRESULT hr =  m_pActualTexture->LockRect(Level, pLockedRect, pRect, Flags);
+	#ifdef SHOW_CALLS
+		if (FAILED(hr))
+		{
+			char buffer[32];
+			sprintf_s(buffer, "0x%0.8x", hr);
+			OutputDebugString(buffer);
+		}
+
+		OutputDebugString("called D3D9ProxyTexture::LockRect - Exit");
+	#endif
+	return S_OK;//hr;
 }
 	
 /**
@@ -272,7 +322,10 @@ HRESULT WINAPI D3D9ProxyTexture::LockRect(UINT Level, D3DLOCKED_RECT* pLockedRec
 ***/
 HRESULT WINAPI D3D9ProxyTexture::UnlockRect(UINT Level)
 {
-	if (IsStereo())
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxyTexture::UnlockRect");
+	#endif
+	if (IsStereo() && m_pActualTextureRight)
 		m_pActualTextureRight->UnlockRect(Level);
 
 	return m_pActualTexture->UnlockRect(Level);
@@ -283,7 +336,10 @@ HRESULT WINAPI D3D9ProxyTexture::UnlockRect(UINT Level)
 ***/
 HRESULT WINAPI D3D9ProxyTexture::AddDirtyRect(CONST RECT* pDirtyRect)
 {
-	if (IsStereo())
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxyTexture::AddDirtyRect");
+	#endif
+	if (IsStereo() && m_pActualTextureRight)
 		m_pActualTextureRight->AddDirtyRect(pDirtyRect);
 
 	return m_pActualTexture->AddDirtyRect(pDirtyRect);
@@ -294,6 +350,9 @@ HRESULT WINAPI D3D9ProxyTexture::AddDirtyRect(CONST RECT* pDirtyRect)
 ***/
 IDirect3DTexture9* D3D9ProxyTexture::getActualMono()
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxyTexture::getActualMono");
+	#endif
 	return getActualLeft();
 }
 
@@ -302,6 +361,9 @@ IDirect3DTexture9* D3D9ProxyTexture::getActualMono()
 ***/
 IDirect3DTexture9* D3D9ProxyTexture::getActualLeft()
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxyTexture::getActualLeft");
+	#endif
 	return m_pActualTexture;
 }
 
@@ -310,6 +372,9 @@ IDirect3DTexture9* D3D9ProxyTexture::getActualLeft()
 ***/
 IDirect3DTexture9* D3D9ProxyTexture::getActualRight()
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxyTexture::getActualRight");
+	#endif
 	return m_pActualTextureRight;
 }
 
@@ -318,5 +383,10 @@ IDirect3DTexture9* D3D9ProxyTexture::getActualRight()
 ***/
 bool D3D9ProxyTexture::IsStereo() 
 {
+	#ifdef SHOW_CALLS
+		char buffer[32];
+		sprintf_s(buffer, "m_pActualTexture = 0x%x", (DWORD)m_pActualTexture);
+		OutputDebugString(buffer);
+	#endif
 	return (m_pActualTextureRight != NULL);
 }

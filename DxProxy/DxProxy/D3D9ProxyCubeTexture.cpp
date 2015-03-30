@@ -233,10 +233,24 @@ HRESULT WINAPI D3D9ProxyCubeTexture::GetCubeMapSurface(D3DCUBEMAP_FACES FaceType
 ***/
 HRESULT WINAPI D3D9ProxyCubeTexture::LockRect(D3DCUBEMAP_FACES FaceType, UINT Level, D3DLOCKED_RECT* pLockedRect, CONST RECT* pRect, DWORD Flags)
 {
-	if (IsStereo())
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxyCubeTexture::LockRect");
+	#endif
+	if (IsStereo() && m_pActualTextureRight)
 		m_pActualTextureRight->LockRect(FaceType, Level, pLockedRect, pRect, Flags);
 
-	return m_pActualTexture->LockRect(FaceType, Level, pLockedRect, pRect, Flags);
+	HRESULT hr =  m_pActualTexture->LockRect(FaceType, Level, pLockedRect, pRect, Flags);
+	#ifdef SHOW_CALLS
+		if (FAILED(hr))
+		{
+			char buffer[32];
+			sprintf_s(buffer, "0x%0.8x", hr);
+			OutputDebugString(buffer);
+		}
+
+		OutputDebugString("called D3D9ProxyCubeTexture::LockRect - Exit");
+	#endif
+	return S_OK;//hr;
 }
 
 /**
