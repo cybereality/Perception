@@ -44,6 +44,9 @@ D3D9ProxySurface::D3D9ProxySurface(IDirect3DSurface9* pActualSurfaceLeft, IDirec
 	m_SharedHandleLeft(SharedHandleLeft),
 	m_SharedHandleRight(SharedHandleRight)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxySurface::D3D9ProxySurface()");
+	#endif
 	assert (pOwningDevice != NULL);
 
 
@@ -63,6 +66,9 @@ D3D9ProxySurface::D3D9ProxySurface(IDirect3DSurface9* pActualSurfaceLeft, IDirec
 ***/
 D3D9ProxySurface::~D3D9ProxySurface()
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxySurface::~D3D9ProxySurface()");
+	#endif
 	if (!m_pWrappedContainer) { 
 		m_pOwningDevice->Release();
 	}
@@ -84,6 +90,9 @@ D3D9ProxySurface::~D3D9ProxySurface()
 ***/
 ULONG WINAPI D3D9ProxySurface::AddRef()
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxySurface::AddRef()");
+	#endif
 	// if surface is in a container increase count on container instead of the surface
 	if (m_pWrappedContainer) {
 		return m_pWrappedContainer->AddRef();
@@ -99,6 +108,9 @@ ULONG WINAPI D3D9ProxySurface::AddRef()
 ***/
 ULONG WINAPI D3D9ProxySurface::Release()
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxySurface::Release()");
+	#endif
 	if (m_pWrappedContainer) {
 		return m_pWrappedContainer->Release(); 
 	}
@@ -118,6 +130,9 @@ ULONG WINAPI D3D9ProxySurface::Release()
 */
 HRESULT WINAPI D3D9ProxySurface::GetDevice(IDirect3DDevice9** ppDevice)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxySurface::GetDevice()");
+	#endif
 	if (!m_pOwningDevice)
 		return D3DERR_INVALIDCALL;
 	else {
@@ -132,6 +147,9 @@ HRESULT WINAPI D3D9ProxySurface::GetDevice(IDirect3DDevice9** ppDevice)
 ***/
 HRESULT WINAPI D3D9ProxySurface::SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxySurface::SetPrivateData()");
+	#endif
 	if (IsStereo())
 		m_pActualSurfaceRight->SetPrivateData(refguid, pData, SizeOfData, Flags);
 
@@ -143,6 +161,9 @@ HRESULT WINAPI D3D9ProxySurface::SetPrivateData(REFGUID refguid, CONST void* pDa
 ***/
 HRESULT WINAPI D3D9ProxySurface::FreePrivateData(REFGUID refguid)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxySurface::FreePrivateData()");
+	#endif
 	if (IsStereo())
 		m_pActualSurfaceRight->FreePrivateData(refguid);
 
@@ -154,6 +175,9 @@ HRESULT WINAPI D3D9ProxySurface::FreePrivateData(REFGUID refguid)
 ***/
 DWORD WINAPI D3D9ProxySurface::SetPriority(DWORD PriorityNew)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxySurface::SetPriority()");
+	#endif
 	if (IsStereo())
 		m_pActualSurfaceRight->SetPriority(PriorityNew);
 
@@ -165,6 +189,9 @@ DWORD WINAPI D3D9ProxySurface::SetPriority(DWORD PriorityNew)
 ***/
 void WINAPI D3D9ProxySurface::PreLoad()
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxySurface::PreLoad()");
+	#endif
 	if (IsStereo())
 		m_pActualSurfaceRight->PreLoad();
 
@@ -187,6 +214,9 @@ void WINAPI D3D9ProxySurface::PreLoad()
 ***/
 HRESULT WINAPI D3D9ProxySurface::GetContainer(REFIID riid, LPVOID* ppContainer)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxySurface::GetContainer()");
+	#endif
 	if (!m_pWrappedContainer) {
 		m_pOwningDevice->AddRef();
 		*ppContainer = m_pOwningDevice;
@@ -219,10 +249,24 @@ HRESULT WINAPI D3D9ProxySurface::GetContainer(REFIID riid, LPVOID* ppContainer)
 ***/
 HRESULT WINAPI D3D9ProxySurface::LockRect(D3DLOCKED_RECT* pLockedRect, CONST RECT* pRect, DWORD Flags)
 {
-	if (IsStereo())
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxySurface::LockRect");
+	#endif
+	if (IsStereo() && m_pActualSurfaceRight)
 		m_pActualSurfaceRight->LockRect(pLockedRect, pRect, Flags);
 
-	return BaseDirect3DSurface9::LockRect(pLockedRect, pRect, Flags);
+	HRESULT hr =  BaseDirect3DSurface9::LockRect(pLockedRect, pRect, Flags);
+	#ifdef SHOW_CALLS
+		if (FAILED(hr))
+		{
+			char buffer[32];
+			sprintf_s(buffer, "0x%0.8x", hr);
+			OutputDebugString(buffer);
+		}
+
+		OutputDebugString("called D3D9ProxySurface::LockRect - Exit");
+	#endif
+	return S_OK;//hr;
 }
 
 /**
@@ -230,6 +274,9 @@ HRESULT WINAPI D3D9ProxySurface::LockRect(D3DLOCKED_RECT* pLockedRect, CONST REC
 ***/
 HRESULT WINAPI D3D9ProxySurface::UnlockRect()
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxySurface::UnlockRect()");
+	#endif
 	if (IsStereo())
 		m_pActualSurfaceRight->UnlockRect();
 
@@ -241,6 +288,9 @@ HRESULT WINAPI D3D9ProxySurface::UnlockRect()
 ***/
 HRESULT WINAPI D3D9ProxySurface::ReleaseDC(HDC hdc)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxySurface::ReleaseDC()");
+	#endif
 	if (IsStereo())
 		m_pActualSurfaceRight->ReleaseDC(hdc);
 

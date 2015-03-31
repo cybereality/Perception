@@ -521,7 +521,7 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 		if (stereoView->initialized)
 			stereoView->Draw(static_cast<D3D9ProxySurface*>(pWrappedBackBuffer));
 
-		if (mirrorToWindow != 0)
+		if (false)//mirrorToWindow != 0)
 		{
 			HRESULT hr = S_OK;
 
@@ -648,29 +648,12 @@ HRESULT WINAPI D3DProxyDevice::CreateTexture(UINT Width,UINT Height,UINT Levels,
 	HRESULT creationResult;
 	IDirect3DTexture9* pLeftTexture = NULL;
 	IDirect3DTexture9* pRightTexture = NULL;	
-
-	// create left/mono
-	HANDLE sharedHandleLeft = NULL;
-	HANDLE sharedHandleRight = NULL;
-
-	HRESULT hr = S_OK;
-	IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
-	if (SUCCEEDED(getActual()->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))) &&
-		(Usage|D3DUSAGE_RENDERTARGET) == D3DUSAGE_RENDERTARGET)
-	{
-		Pool = D3DPOOL_DEFAULT;
-		pSharedHandle = &sharedHandleLeft;
-	}
-
+	
 	// try and create left
 	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateTexture(Width, Height, Levels, Usage, Format, Pool, &pLeftTexture, pSharedHandle))) {
 
 		// Does this Texture need duplicating?
 		if (!m_b2dDepthMode && m_pGameHandler->ShouldDuplicateTexture(Width, Height, Levels, Usage, Format, Pool)) {
-
-			if (pDirect3DDevice9Ex)
-				pSharedHandle = &sharedHandleRight;
-
 			if (FAILED(BaseDirect3DDevice9::CreateTexture(Width, Height, Levels, Usage, Format, Pool, &pRightTexture, pSharedHandle))) {
 				OutputDebugString("Failed to create right eye texture while attempting to create stereo pair, falling back to mono\n");
 				pRightTexture = NULL;
@@ -683,9 +666,6 @@ HRESULT WINAPI D3DProxyDevice::CreateTexture(UINT Width,UINT Height,UINT Levels,
 	else {
 		OutputDebugString("Failed to create texture\n"); 
 	}
-
-	if (pDirect3DDevice9Ex)
-		pDirect3DDevice9Ex->Release();
 
 	if (SUCCEEDED(creationResult))
 		*ppTexture = new D3D9ProxyTexture(pLeftTexture, pRightTexture, this);
@@ -703,16 +683,6 @@ HRESULT WINAPI D3DProxyDevice::CreateVolumeTexture(UINT Width,UINT Height,UINT D
 	#ifdef SHOW_CALLS
 		OutputDebugString("called CreateVolumeTexture");
 	#endif
-
-	HRESULT hr = S_OK;
-	IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
-	if (SUCCEEDED(getActual()->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))) &&
-		(Usage|D3DUSAGE_RENDERTARGET) == D3DUSAGE_RENDERTARGET)
-	{
-		Pool = D3DPOOL_DEFAULT;
-		pDirect3DDevice9Ex->Release();
-	}
-
 	IDirect3DVolumeTexture9* pActualTexture = NULL;
 	HRESULT creationResult = BaseDirect3DDevice9::CreateVolumeTexture(Width, Height, Depth, Levels, Usage, Format, Pool, &pActualTexture, pSharedHandle);
 
@@ -733,15 +703,6 @@ HRESULT WINAPI D3DProxyDevice::CreateCubeTexture(UINT EdgeLength, UINT Levels, D
 	#ifdef SHOW_CALLS
 		OutputDebugString("called CreateCubeTexture");
 	#endif
-
-	HRESULT hr = S_OK;
-	IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
-	if (SUCCEEDED(getActual()->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))) &&
-		(Usage|D3DUSAGE_RENDERTARGET) == D3DUSAGE_RENDERTARGET)
-	{
-		Pool = D3DPOOL_DEFAULT;
-		pDirect3DDevice9Ex->Release();
-	}
 
 	HRESULT creationResult;
 	IDirect3DCubeTexture9* pLeftCubeTexture = NULL;
@@ -781,15 +742,6 @@ HRESULT WINAPI D3DProxyDevice::CreateVertexBuffer(UINT Length, DWORD Usage, DWOR
 	#ifdef SHOW_CALLS
 		OutputDebugString("called CreateVertexBuffer");
 	#endif
-		
-	HRESULT hr = S_OK;
-	IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
-	if (SUCCEEDED(getActual()->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))) &&
-		(Usage|D3DUSAGE_RENDERTARGET) == D3DUSAGE_RENDERTARGET)
-	{
-		Pool = D3DPOOL_DEFAULT;
-		pDirect3DDevice9Ex->Release();
-	}
 
 	IDirect3DVertexBuffer9* pActualBuffer = NULL;
 	HRESULT creationResult = BaseDirect3DDevice9::CreateVertexBuffer(Length, Usage, FVF, Pool, &pActualBuffer, pSharedHandle);
@@ -809,15 +761,6 @@ HRESULT WINAPI D3DProxyDevice::CreateIndexBuffer(UINT Length,DWORD Usage,D3DFORM
 	#ifdef SHOW_CALLS
 		OutputDebugString("called CreateIndexBuffer");
 	#endif
-
-	HRESULT hr = S_OK;
-	IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
-	if (SUCCEEDED(getActual()->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))) &&
-		(Usage|D3DUSAGE_RENDERTARGET) == D3DUSAGE_RENDERTARGET)
-	{
-		Pool = D3DPOOL_DEFAULT;
-		pDirect3DDevice9Ex->Release();
-	}
 
 	IDirect3DIndexBuffer9* pActualBuffer = NULL;
 	HRESULT creationResult = BaseDirect3DDevice9::CreateIndexBuffer(Length, Usage, Format, Pool, &pActualBuffer, pSharedHandle);
@@ -4568,7 +4511,7 @@ void D3DProxyDevice::OnCreateOrRestore()
 	m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
 	m_spShaderViewAdjustment->ComputeViewTransforms();
 
-	if (mirrorToWindow != 0)
+	if (false)//mirrorToWindow != 0)
 	{
 		try
 		{

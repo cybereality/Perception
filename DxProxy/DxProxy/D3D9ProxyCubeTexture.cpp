@@ -40,6 +40,9 @@ D3D9ProxyCubeTexture::D3D9ProxyCubeTexture(IDirect3DCubeTexture9* pActualTexture
 	m_wrappedSurfaceLevels(),
 	m_pOwningDevice(pOwningDevice)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxyCubeTexture::D3D9ProxyCubeTexture()");
+	#endif
 	assert (pOwningDevice != NULL);
 
 	m_pOwningDevice->AddRef();
@@ -51,6 +54,9 @@ D3D9ProxyCubeTexture::D3D9ProxyCubeTexture(IDirect3DCubeTexture9* pActualTexture
 ***/
 D3D9ProxyCubeTexture::~D3D9ProxyCubeTexture()
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxyCubeTexture::~D3D9ProxyCubeTexture()");
+	#endif
 	// delete all surfaces in m_levels
 	auto it = m_wrappedSurfaceLevels.begin();
 	while (it != m_wrappedSurfaceLevels.end()) {
@@ -78,6 +84,9 @@ D3D9ProxyCubeTexture::~D3D9ProxyCubeTexture()
 */
 HRESULT WINAPI D3D9ProxyCubeTexture::GetDevice(IDirect3DDevice9** ppDevice)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxyCubeTexture::GetDevice");
+	#endif
 	if (!m_pOwningDevice)
 		return D3DERR_INVALIDCALL;
 	else {
@@ -92,6 +101,9 @@ HRESULT WINAPI D3D9ProxyCubeTexture::GetDevice(IDirect3DDevice9** ppDevice)
 ***/
 HRESULT WINAPI D3D9ProxyCubeTexture::SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxyCubeTexture::SetPrivateData");
+	#endif
 	if (IsStereo())
 		m_pActualTextureRight->SetPrivateData(refguid, pData, SizeOfData, Flags);
 
@@ -103,6 +115,9 @@ HRESULT WINAPI D3D9ProxyCubeTexture::SetPrivateData(REFGUID refguid, CONST void*
 ***/
 HRESULT WINAPI D3D9ProxyCubeTexture::FreePrivateData(REFGUID refguid)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxyCubeTexture::FreePrivateData");
+	#endif
 	if (IsStereo())
 		m_pActualTextureRight->FreePrivateData(refguid);
 
@@ -114,6 +129,9 @@ HRESULT WINAPI D3D9ProxyCubeTexture::FreePrivateData(REFGUID refguid)
 ***/
 DWORD WINAPI D3D9ProxyCubeTexture::SetPriority(DWORD PriorityNew)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxyCubeTexture::SetPriority");
+	#endif
 	if (IsStereo())
 		m_pActualTextureRight->SetPriority(PriorityNew);
 
@@ -125,6 +143,9 @@ DWORD WINAPI D3D9ProxyCubeTexture::SetPriority(DWORD PriorityNew)
 ***/
 void WINAPI D3D9ProxyCubeTexture::PreLoad()
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxyCubeTexture::PreLoad");
+	#endif
 	if (IsStereo())
 		m_pActualTextureRight->PreLoad();
 
@@ -136,6 +157,9 @@ void WINAPI D3D9ProxyCubeTexture::PreLoad()
 ***/
 DWORD WINAPI D3D9ProxyCubeTexture::SetLOD(DWORD LODNew)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxyCubeTexture::SetLOD");
+	#endif
 	if (IsStereo())
 		m_pActualTextureRight->SetLOD(LODNew);
 
@@ -147,6 +171,9 @@ DWORD WINAPI D3D9ProxyCubeTexture::SetLOD(DWORD LODNew)
 ***/
 HRESULT WINAPI D3D9ProxyCubeTexture::SetAutoGenFilterType(D3DTEXTUREFILTERTYPE FilterType)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxyCubeTexture::SetAutoGenFilterType");
+	#endif
 	if (IsStereo())
 		m_pActualTextureRight->SetAutoGenFilterType(FilterType);
 
@@ -158,6 +185,9 @@ HRESULT WINAPI D3D9ProxyCubeTexture::SetAutoGenFilterType(D3DTEXTUREFILTERTYPE F
 ***/
 void WINAPI D3D9ProxyCubeTexture::GenerateMipSubLevels()
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxyCubeTexture::GenerateMipSubLevels");
+	#endif
 	if (IsStereo())
 		m_pActualTextureRight->GenerateMipSubLevels();
 
@@ -170,7 +200,10 @@ void WINAPI D3D9ProxyCubeTexture::GenerateMipSubLevels()
 ***/
 HRESULT WINAPI D3D9ProxyCubeTexture::GetCubeMapSurface(D3DCUBEMAP_FACES FaceType, UINT Level, IDirect3DSurface9** ppCubeMapSurface)
 {
-	HRESULT finalResult;
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxyCubeTexture::GetCubeMapSurface");
+	#endif	
+		HRESULT finalResult;
 
 	CubeSurfaceKey key = CubeSurfaceKey(FaceType,Level);
 	// Have we already got a Proxy for this surface level?
@@ -258,6 +291,9 @@ HRESULT WINAPI D3D9ProxyCubeTexture::LockRect(D3DCUBEMAP_FACES FaceType, UINT Le
 ***/
 HRESULT WINAPI D3D9ProxyCubeTexture::UnlockRect(D3DCUBEMAP_FACES FaceType, UINT Level)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxyCubeTexture::UnlockRect");
+	#endif
 	if (IsStereo())
 		m_pActualTextureRight->UnlockRect(FaceType, Level);
 
@@ -269,6 +305,9 @@ HRESULT WINAPI D3D9ProxyCubeTexture::UnlockRect(D3DCUBEMAP_FACES FaceType, UINT 
 ***/
 HRESULT WINAPI D3D9ProxyCubeTexture::AddDirtyRect(D3DCUBEMAP_FACES FaceType, CONST RECT* pDirtyRect)
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxyCubeTexture::AddDirtyRect");
+	#endif
 	if (IsStereo())
 		m_pActualTextureRight->AddDirtyRect(FaceType, pDirtyRect);
 
