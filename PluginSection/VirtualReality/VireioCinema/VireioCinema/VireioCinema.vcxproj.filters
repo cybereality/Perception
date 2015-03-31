@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <None Include="AQU_Nodus.def" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AQU_Nodus.h" />
+    <ClInclude Include="Resources.h">
+      <Filter>Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Shader_D3D9.h">
+      <Filter>Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="VireioCinema.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Resource">
+      <UniqueIdentifier>{987420b4-675f-4605-a8a7-17f63fad43f9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader">
+      <UniqueIdentifier>{8ab627a2-ab1b-48c1-9763-82cc9950fe5d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="VireioCinema.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="VireioCinema_Resources.rc">
+      <Filter>Resource</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>
