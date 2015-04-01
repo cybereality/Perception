@@ -18,6 +18,7 @@ float4 HmdWarpParam;
 float3 Vignette;
 float Rotation;
 float SmearCorrection;
+float2 MousePosition;
 
 // Warp operates on left view, for right, mirror x texture coord
 // before and after calling.  in02 contains the chromatic aberration
@@ -148,6 +149,31 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 		outColor.g =  tex2D(TexMap0, tcGreen.xy).g;
 		outColor.b =  tex2D(TexMap0,  tcBlue.xy).b;
 	}	
+
+	//If we are showing VR mouse, then draw a little circle in its location
+	if (MousePosition.x != 0.0f &&
+		MousePosition.y != 0.0f) 
+	{
+		float aspect = Resolution.x / Resolution.y;
+
+		float xRedOffset = MousePosition.x - tcRed.x;
+		float yRedOffset = (MousePosition.y - tcRed.y) / aspect;
+		float redDist = sqrt(xRedOffset * xRedOffset + yRedOffset * yRedOffset);
+		if (redDist > 0.003 && redDist < 0.006)
+			outColor.r = 1.0f;
+
+		float xGreenOffset = MousePosition.x - tcGreen.x;
+		float yGreenOffset = (MousePosition.y - tcGreen.y) / aspect;
+		float greenDist = sqrt(xGreenOffset * xGreenOffset + yGreenOffset * yGreenOffset);
+		if (greenDist > 0.003 && greenDist < 0.006)
+			outColor.g = 1.0f;
+
+		float xBlueOffset = MousePosition.x - tcBlue.x;
+		float yBlueOffset = (MousePosition.y - tcBlue.y) / aspect;
+		float blueDist = sqrt(xBlueOffset * xBlueOffset + yBlueOffset * yBlueOffset);
+		if (blueDist > 0.003 && blueDist < 0.006)
+			outColor.b = 1.0f;
+	}
 
 	//Are we applying vignette filter?
 	float vignetteScaler = 1.0f;

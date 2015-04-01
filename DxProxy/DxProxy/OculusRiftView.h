@@ -55,6 +55,10 @@ private:
 	***/
 	float LensCenter[2];
 	/**
+	* VR mouse position in texture
+	*/
+	float m_mouseTexLocation[2];
+	/**
 	* XOffset
 	***/
 	float ViewportXOffset;
