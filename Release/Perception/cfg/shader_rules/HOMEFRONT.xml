@@ -10,6 +10,7 @@
 		<rule constantName="PrevViewProjectionMatrix" partialName="true" id="6" constantType="MatrixC" modToApply="2" startReg="25" transpose="false" />
 		<rule constantName="PrevViewProjectionMatrix" partialName="true" id="7" constantType="MatrixC" modToApply="2" startReg="5" transpose="false" />
 		<rule constantName="PrevViewProjectionMatrix" partialName="true" id="8" constantType="MatrixC" modToApply="2" startReg="21" transpose="false" />
+		<rule constantName="ViewProjectionMatrix" partialName="true" id="10" constantType="MatrixC" modToApply="10" startReg="0" transpose="false" />
 	</rules>
 	<defaultRuleIDs>
 		<ruleID id="1" />
@@ -22,4 +23,7 @@
 		<ruleID id="8" />
 		<ruleID id="9" />
 	</defaultRuleIDs>
+	<shaderSpecificRuleIDs shaderHash="629615154"><ruleID id="10" /></shaderSpecificRuleIDs>
+	<shaderSpecificRuleIDs shaderHash="3925502172" squishViewport="true"></shaderSpecificRuleIDs>
+	<shaderSpecificRuleIDs shaderHash="957650611" squishViewport="true"></shaderSpecificRuleIDs>
 </shaderConfig>
