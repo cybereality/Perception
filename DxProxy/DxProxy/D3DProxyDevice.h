@@ -635,9 +635,9 @@ protected:
 	**/
 	bool m_bForceMouseEmulation;
 	/**
-	* Toggle VR Mouse
+	* Toggle VR Mouse: 0 = off, 1 = use GUI squish, 2 = use HUD Distance
 	**/
-	bool m_bShowVRMouse;
+	int m_showVRMouse;
 	/**
 	* True if VRBoost is on.
 	**/

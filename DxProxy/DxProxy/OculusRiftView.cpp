@@ -149,6 +149,10 @@ void OculusRiftView::PostViewEffectCleanup()
 	}	
 }
 
+void OculusRiftView::SetVRMouseSquish(float squish)
+{
+	m_VRMouseSquish = squish;
+}
 
 /**
 * Calculate all vertex shader constants.
@@ -178,8 +182,11 @@ void OculusRiftView::CalculateShaderVariables()
 	if (m_mousePos.x != 0 && m_mousePos.y != 0)
 	{
 		//X mouse pos on the texture
-		m_mouseTexLocation[0] = (float)m_mousePos.x / (float)eyeTextureDescriptor.Width;
-		m_mouseTexLocation[1] = (float)m_mousePos.y / (float)eyeTextureDescriptor.Height;
+		m_mousePos.x = abs((long)(m_mousePos.x % eyeTextureDescriptor.Width));
+		m_mousePos.y = abs((long)(m_mousePos.y % eyeTextureDescriptor.Height));
+
+		m_mouseTexLocation[0] = ((1.0f - m_VRMouseSquish) / 2.0f) + (m_VRMouseSquish * ((float)m_mousePos.x / (float)eyeTextureDescriptor.Width)) - (0.125f * m_VRMouseSquish);
+		m_mouseTexLocation[1] = ((1.0f - m_VRMouseSquish) / 2.0f) + (m_VRMouseSquish * ((float)m_mousePos.y / (float)eyeTextureDescriptor.Height));
 	}
 	else
 	{

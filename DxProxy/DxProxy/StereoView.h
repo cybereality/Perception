@@ -56,6 +56,7 @@ public:
 	virtual void SaveLastScreen();
 	virtual std::string CycleRenderState(bool blnBackwards);
 	virtual void PostReset();
+	virtual void SetVRMouseSquish(float squish){}
 	IDirect3DSurface9* GetBackBuffer();
 	/**
 	* Stereo render options.

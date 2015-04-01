@@ -159,19 +159,19 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 		float xRedOffset = MousePosition.x - tcRed.x;
 		float yRedOffset = (MousePosition.y - tcRed.y) / aspect;
 		float redDist = sqrt(xRedOffset * xRedOffset + yRedOffset * yRedOffset);
-		if (redDist > 0.003 && redDist < 0.006)
-			outColor.r = 1.0f;
+		if (redDist > 0.001 && redDist < 0.003)
+			outColor.r = 0.5f;
 
 		float xGreenOffset = MousePosition.x - tcGreen.x;
 		float yGreenOffset = (MousePosition.y - tcGreen.y) / aspect;
 		float greenDist = sqrt(xGreenOffset * xGreenOffset + yGreenOffset * yGreenOffset);
-		if (greenDist > 0.003 && greenDist < 0.006)
+		if (greenDist > 0.001 && greenDist < 0.003)
 			outColor.g = 1.0f;
 
 		float xBlueOffset = MousePosition.x - tcBlue.x;
 		float yBlueOffset = (MousePosition.y - tcBlue.y) / aspect;
 		float blueDist = sqrt(xBlueOffset * xBlueOffset + yBlueOffset * yBlueOffset);
-		if (blueDist > 0.003 && blueDist < 0.006)
+		if (blueDist > 0.001 && blueDist < 0.003)
 			outColor.b = 1.0f;
 	}
 

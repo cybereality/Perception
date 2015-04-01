@@ -3239,24 +3239,24 @@ void D3DProxyDevice::HandleControls()
 		// toggle VR Mouse
 		if (controls.Key_Down(VK_LCONTROL) && controls.Key_Down(VK_NUMPAD0) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
-			if (m_bShowVRMouse)
+			if (m_showVRMouse==2)
 			{
-				ShowCursor(TRUE);
-				m_bShowVRMouse = false;
+				m_showVRMouse = 0;
 				stereoView->m_mousePos.x = 0;
 				stereoView->m_mousePos.y = 0;
 			}
 			else
 			{
-				ShowCursor(FALSE);
-				m_bShowVRMouse = true;
+				m_showVRMouse++;
 			}
 
 			stereoView->PostReset();
 
 			VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1200);
-			if (m_bShowVRMouse)
-				strcpy_s(popup.line[2], "VR Mouse Enabled");
+			if (m_showVRMouse == 1)
+				strcpy_s(popup.line[2], "VR Mouse (GUI) Enabled");
+			else if (m_showVRMouse == 2)
+				strcpy_s(popup.line[2], "VR Mouse (HUD) Enabled");
 			else
 				strcpy_s(popup.line[2], "VR Mouse Disabled");
 			ShowPopup(popup);
@@ -3934,10 +3934,15 @@ void D3DProxyDevice::HandleTracking()
 		}
 	}
 
-	if (m_bShowVRMouse)
+	if (m_showVRMouse)
 	{
 		//Get mouse position on screen
-		GetCursorPos(&stereoView->m_mousePos); 
+		GetCursorPos(&stereoView->m_mousePos);
+		if (m_showVRMouse == 1)
+			stereoView->SetVRMouseSquish(guiSquishPresets[(int)gui3DDepthMode]);
+		else
+			stereoView->SetVRMouseSquish(1.0f - hudDistancePresets[(int)hud3DDepthMode]);
+
 		stereoView->PostReset();
 	}
 
@@ -7165,14 +7170,13 @@ void D3DProxyDevice::VPMENU_ComfortMode()
 		menuHelperRect.top += 50;  menuHelperRect.left += 150; float guiQSHeight = (float)menuHelperRect.top * fScaleY;
 		char vcString[128];
 
-		switch (VRBoostValue[VRboostAxis::ComfortMode] != 0.0f)
+		if (VRBoostValue[VRboostAxis::ComfortMode] != 0.0f)
 		{
-		case true:
 			DrawTextShadowed(hudFont, hudMainMenu, "Comfort Mode : Enabled", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-			break;
-		case false:
+		}
+		else
+		{
 			DrawTextShadowed(hudFont, hudMainMenu, "Comfort Mode : Disabled", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-			break;
 		}
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 
@@ -8302,7 +8306,7 @@ bool D3DProxyDevice::InitVPMENU()
 	m_bForceMouseEmulation = false;
 	m_bVRBoostToggle = true;
 	m_bPosTrackingToggle = true;
-	m_bShowVRMouse = false;
+	m_showVRMouse = 0;
 	m_fVRBoostIndicator = 0.0f;
 	VPMENU_mode = VPMENU_Modes::INACTIVE;
 	borderTopHeight = 0.0f;

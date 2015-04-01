@@ -48,6 +48,7 @@ public:
 	virtual void CalculateShaderVariables( );
 	virtual void InitShaderEffects();
 	virtual void ReleaseEverything();
+	virtual void SetVRMouseSquish(float squish);
 
 private:
 	/**
@@ -58,6 +59,10 @@ private:
 	* VR mouse position in texture
 	*/
 	float m_mouseTexLocation[2];
+	/**
+	* VR Mouse Squish Param
+	*/
+	float m_VRMouseSquish;
 	/**
 	* XOffset
 	***/
