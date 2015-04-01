@@ -93,6 +93,9 @@ void OculusRiftView::SetViewEffectInitialValues()
 	//Set the black smear corection - 0.0f will do nothing
 	viewEffect->SetFloat("SmearCorrection", m_blackSmearCorrection);
 
+	//Set mouse position for VR Mouse
+	viewEffect->SetFloatArray("MousePosition", m_mouseTexLocation, 2);
+
 	//Local static for controlling vignette in telescopic sight mode
 	static float vignette_val = 1.0f;
 
@@ -170,6 +173,19 @@ void OculusRiftView::CalculateShaderVariables()
 	leftSurface->GetDesc(&eyeTextureDescriptor);
 
 	float inputTextureAspectRatio = (float)eyeTextureDescriptor.Width / (float)eyeTextureDescriptor.Height;
+
+	//Set the mouse position for VR Mouse
+	if (m_mousePos.x != 0 && m_mousePos.y != 0)
+	{
+		//X mouse pos on the texture
+		m_mouseTexLocation[0] = (float)m_mousePos.x / (float)eyeTextureDescriptor.Width;
+		m_mouseTexLocation[1] = (float)m_mousePos.y / (float)eyeTextureDescriptor.Height;
+	}
+	else
+	{
+		m_mouseTexLocation[0]=0.0f;
+		m_mouseTexLocation[1]=0.0f;
+	}
 	
 	// Note: The range is shifted using the LensCenter in the shader before the scale is applied so you actually end up with a -1 to 1 range
 	// in the distortion function rather than the 0 to 2 I mention below.

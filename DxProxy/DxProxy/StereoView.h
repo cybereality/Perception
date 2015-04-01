@@ -160,6 +160,12 @@ public:
 	* Whether Vignette is enabled (also used for telescopic sight mode)
 	*/
 	VignetteStyle m_vignetteStyle;
+	
+	/**
+	* Mouse position for VRMouse
+	*/
+	POINT m_mousePos;
+
 
 	//The amount of rotation to apply if using pixel shader implementation of roll
 	float m_rotation;

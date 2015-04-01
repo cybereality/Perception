@@ -3240,9 +3240,19 @@ void D3DProxyDevice::HandleControls()
 		if (controls.Key_Down(VK_LCONTROL) && controls.Key_Down(VK_NUMPAD0) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
 			if (m_bShowVRMouse)
+			{
+				ShowCursor(TRUE);
 				m_bShowVRMouse = false;
+				stereoView->m_mousePos.x = 0;
+				stereoView->m_mousePos.y = 0;
+			}
 			else
+			{
+				ShowCursor(FALSE);
 				m_bShowVRMouse = true;
+			}
+
+			stereoView->PostReset();
 
 			VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1200);
 			if (m_bShowVRMouse)
@@ -3923,7 +3933,14 @@ void D3DProxyDevice::HandleTracking()
 			}
 		}
 	}
-		
+
+	if (m_bShowVRMouse)
+	{
+		//Get mouse position on screen
+		GetCursorPos(&stereoView->m_mousePos); 
+		stereoView->PostReset();
+	}
+
 	m_spShaderViewAdjustment->ComputeViewTransforms();
 
 	m_isFirstBeginSceneOfFrame = false;
@@ -7645,59 +7662,6 @@ void D3DProxyDevice::VPMENU_AdditionalOutput()
 		// update the indicator float
 		m_fVRBoostIndicator-=menuSeconds;
 	}
-
-	//GBCODE - Test VR Mouse Positioning
-	if (m_bShowVRMouse)
-	{
-		POINT pt;   
-		GetCursorPos(&pt); 
-		D3DRECT rec2;	
-		//D3DRECT rec2hud;	
-		rec2.x1 = (int)-5 + ((pt.x * guiSquishPresets[(int)gui3DDepthMode]) + (((1 - guiSquishPresets[(int)gui3DDepthMode]) / 2) * viewportWidth)); 
-		rec2.x2 = rec2.x1 + 10; 
-		rec2.y1 = (int)-5 + ((pt.y * guiSquishPresets[(int)gui3DDepthMode]) + (((1 - guiSquishPresets[(int)gui3DDepthMode]) / 2) * viewportHeight)); 
-		rec2.y2 = rec2.y1 + 10; 	
-		
-		ClearRect(vireio::RenderPosition::Left, rec2, D3DCOLOR_ARGB(255,255,255,255));
-		ClearRect(vireio::RenderPosition::Right, rec2, D3DCOLOR_ARGB(255,255,255,255));
-		rec2.x1 += 2;
-		rec2.x2 -= 2;
-		rec2.y1 += 2;
-		rec2.y2 -= 2;
-		ClearRect(vireio::RenderPosition::Left, rec2, D3DCOLOR_ARGB(0,0,0,0));
-		ClearRect(vireio::RenderPosition::Right, rec2, D3DCOLOR_ARGB(0,0,0,0));	
-		/*
-		//Hud Depth = 0 = Full Size 0.5 = Half Size
-		/*rec2hud.x1 = (int)-5 + (hudDistancePresets[(int)hud3DDepthMode]) * viewportWidth)) + (pt.x * (1 - hudDistancePresets[(int)hud3DDepthMode]));
-		rec2hud.x2 = rec2hud.x1 + 10;		
-		rec2hud.y1 = (int)-5 + (hudDistancePresets[(int)hud3DDepthMode]) * viewportHeight)) + (pt.y * (1 - hudDistancePresets[(int)hud3DDepthMode]));
-		rec2hud.y2 = rec2hud.y1 + 10;
-		
-		rec2hud.x1 = (int)-5 + ((pt.x * (1 - hudDistancePresets[(int)hud3DDepthMode])) + (((hudDistancePresets[(int)hud3DDepthMode]) / 2) * viewportWidth)); 
-		rec2hud.x2 = rec2hud.x1 + 10; 
-		rec2hud.y1 = (int)-5 + ((pt.y * (1 - hudDistancePresets[(int)hud3DDepthMode])) + (((hudDistancePresets[(int)hud3DDepthMode]) / 2) * viewportHeight)); 
-		rec2hud.y2 = rec2hud.y1 + 10; 	
-		ClearRect(vireio::RenderPosition::Left, rec2hud, D3DCOLOR_ARGB(255,255,255,255));
-		ClearRect(vireio::RenderPosition::Right, rec2hud, D3DCOLOR_ARGB(255,255,255,255));
-
-		rec2hud.x1 = 0;
-		rec2hud.x2 = (viewportWidth / 2) * (hudDistancePresets[(int)hud3DDepthMode]) + 200;		
-		rec2hud.y1 = 0;
-		rec2hud.y2 = (viewportHeight / 2) * (hudDistancePresets[(int)hud3DDepthMode]) + 200;
-		ClearRect(vireio::RenderPosition::Left, rec2hud, D3DCOLOR_ARGB(255,255,255,255));
-		//ClearRect(vireio::RenderPosition::Right, rec2hud, D3DCOLOR_ARGB(255,255,255,255));
-
-		rec2hud.x1 = viewportWidth - ((hudDistancePresets[(int)hud3DDepthMode]) * viewportWidth);
-		rec2hud.x2 = rec2hud.x1 + 10;		
-		rec2hud.y1 = viewportHeight - ((hudDistancePresets[(int)hud3DDepthMode]) * viewportHeight);
-		rec2hud.y2 = rec2hud.y1 + 10;
-		ClearRect(vireio::RenderPosition::Left, rec2hud, D3DCOLOR_ARGB(255,255,255,255));
-		ClearRect(vireio::RenderPosition::Right, rec2hud, D3DCOLOR_ARGB(255,255,255,255));*/
-	}
-	
-	// do not squish the viewport in case vp menu is open - GBCODE - Why? Test on supported games. 
-	//if ((VPMENU_mode>=VPMENU_Modes::MAINMENU) && (VPMENU_mode<VPMENU_Modes::VPMENU_ENUM_RANGE))
-	//return;
 
 	//Having this here will hijack any other notification - this is intentional
 	if (m_DuckAndCover.dfcStatus > DAC_INACTIVE &&
