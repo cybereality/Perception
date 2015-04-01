@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{BD999969-5240-4424-A182-BE1E5B2C6DEE}</ProjectGuid>
+    <ProjectGuid>{498BD343-A166-4345-9EA1-AAE6AC82B37D}</ProjectGuid>
     <RootNamespace>OculusRenderer</RootNamespace>
     <ProjectName>OculusRenderer</ProjectName>
   </PropertyGroup>

@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{BD999969-5240-4424-A182-BE1E5B2C6DEE}</ProjectGuid>
+    <ProjectGuid>{44C97809-D330-419D-A70C-68B53960B351}</ProjectGuid>
     <RootNamespace>VireioCinema</RootNamespace>
     <ProjectName>VireioCinema</ProjectName>
   </PropertyGroup>

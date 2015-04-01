@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Express 2012 for Windows Desktop
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OculusRenderer", "OculusRenderer\OculusRenderer.vcxproj", "{BD999969-5240-4424-A182-BE1E5B2C6DEE}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OculusRenderer", "OculusRenderer\OculusRenderer.vcxproj", "{498BD343-A166-4345-9EA1-AAE6AC82B37D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -9,10 +9,10 @@ Global
 		Release|Win32 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{BD999969-5240-4424-A182-BE1E5B2C6DEE}.Debug|Win32.ActiveCfg = Debug|Win32
-		{BD999969-5240-4424-A182-BE1E5B2C6DEE}.Debug|Win32.Build.0 = Debug|Win32
-		{BD999969-5240-4424-A182-BE1E5B2C6DEE}.Release|Win32.ActiveCfg = Release|Win32
-		{BD999969-5240-4424-A182-BE1E5B2C6DEE}.Release|Win32.Build.0 = Release|Win32
+		{498BD343-A166-4345-9EA1-AAE6AC82B37D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{498BD343-A166-4345-9EA1-AAE6AC82B37D}.Debug|Win32.Build.0 = Debug|Win32
+		{498BD343-A166-4345-9EA1-AAE6AC82B37D}.Release|Win32.ActiveCfg = Release|Win32
+		{498BD343-A166-4345-9EA1-AAE6AC82B37D}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
