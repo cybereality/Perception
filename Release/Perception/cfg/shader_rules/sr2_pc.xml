@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<shaderConfig>
+	<rules>
+		<rule constantName="V_MVP_matrix" partialName="true" id="1" constantType="MatrixC" modToApply="1" startReg="4" transpose="true" />
+		<rule constantName="View_proj_matrix" partialName="true" id="2" constantType="MatrixC" modToApply="1" startReg="4" transpose="true" />
+		<rule constantName="V_MVP_matrix" partialName="true" id="3" constantType="MatrixC" modToApply="2" startReg="4" transpose="true" />
+	</rules>
+	<defaultRuleIDs>
+		<ruleID id="1" />
+		<ruleID id="2" />
+	</defaultRuleIDs>
+
+	<!-- GUI -->
+	<shaderSpecificRuleIDs shaderHash="4046258670" squishViewport="true"><ruleID id="3" /></shaderSpecificRuleIDs>
+	
+	<!-- Crap looking shadows -->
+	<shaderSpecificRuleIDs shaderHash="3365422221" doNotDraw="true"/>
+</shaderConfig>
