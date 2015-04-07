@@ -7,6 +7,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OculusRenderer", "Renderer\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VireioCinema", "VirtualReality\VireioCinema\VireioCinema\VireioCinema.vcxproj", "{44C97809-D330-419D-A70C-68B53960B351}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VireioStereoPresenter", "VireioCore\VireioStereoPresenter\VireioStereoPresenter\VireioStereoPresenter.vcxproj", "{42FF1DFB-B8B3-4A03-B00A-C811D04344F8}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VireioStereoSplitter", "VireioCore\VireioStereoSplitter\VireioStereoSplitter\VireioStereoSplitter.vcxproj", "{08DE0036-DCA5-430C-9999-327D9D8DE387}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -25,6 +29,14 @@ Global
 		{44C97809-D330-419D-A70C-68B53960B351}.Debug|Win32.Build.0 = Debug|Win32
 		{44C97809-D330-419D-A70C-68B53960B351}.Release|Win32.ActiveCfg = Release|Win32
 		{44C97809-D330-419D-A70C-68B53960B351}.Release|Win32.Build.0 = Release|Win32
+		{42FF1DFB-B8B3-4A03-B00A-C811D04344F8}.Debug|Win32.ActiveCfg = Debug|Win32
+		{42FF1DFB-B8B3-4A03-B00A-C811D04344F8}.Debug|Win32.Build.0 = Debug|Win32
+		{42FF1DFB-B8B3-4A03-B00A-C811D04344F8}.Release|Win32.ActiveCfg = Release|Win32
+		{42FF1DFB-B8B3-4A03-B00A-C811D04344F8}.Release|Win32.Build.0 = Release|Win32
+		{08DE0036-DCA5-430C-9999-327D9D8DE387}.Debug|Win32.ActiveCfg = Debug|Win32
+		{08DE0036-DCA5-430C-9999-327D9D8DE387}.Debug|Win32.Build.0 = Debug|Win32
+		{08DE0036-DCA5-430C-9999-327D9D8DE387}.Release|Win32.ActiveCfg = Release|Win32
+		{08DE0036-DCA5-430C-9999-327D9D8DE387}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

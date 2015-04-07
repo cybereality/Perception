@@ -603,7 +603,7 @@ void* OculusTracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DM
 				OutputDebugString(L"OculusTracker : Failed to create vertex buffer !");
 
 			// create left eye index buffer
-			if (SUCCEEDED(pDevice->CreateIndexBuffer( (meshDataLeft.IndexCount)*sizeof(u_short),0, D3DFMT_INDEX16, D3DPOOL_MANAGED, &m_pcDistortionIndexBufferLeft, NULL ) ) )
+			if (SUCCEEDED(pDevice->CreateIndexBuffer( (meshDataLeft.IndexCount)*sizeof(u_short),0, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &m_pcDistortionIndexBufferLeft, NULL ) ) )
 			{
 				unsigned short* dxi; 
 				if (SUCCEEDED(m_pcDistortionIndexBufferLeft->Lock( 0, 0, (void**)&dxi, 0 )))
@@ -619,7 +619,7 @@ void* OculusTracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DM
 				OutputDebugString(L"OculusTracker : Failed to create index buffer !");
 
 			// create right eye index buffer
-			if (SUCCEEDED(pDevice->CreateIndexBuffer( (meshDataRight.IndexCount)*sizeof(u_short),0, D3DFMT_INDEX16, D3DPOOL_MANAGED, &m_pcDistortionIndexBufferRight, NULL ) ) )
+			if (SUCCEEDED(pDevice->CreateIndexBuffer( (meshDataRight.IndexCount)*sizeof(u_short),0, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &m_pcDistortionIndexBufferRight, NULL ) ) )
 			{
 				unsigned short* dxi; 
 				if (SUCCEEDED(m_pcDistortionIndexBufferRight->Lock( 0, 0, (void**)&dxi, 0 )))
