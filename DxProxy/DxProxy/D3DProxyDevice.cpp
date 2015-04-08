@@ -2659,11 +2659,11 @@ void D3DProxyDevice::HandleControls()
 			}
 		}
 
-		VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1200);
+		VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 700);
 		if (m_bfloatingScreen)
-			strcpy_s(popup.line[2], "Disconnected Screen View Enabled");
+			strcpy_s(popup.line[2], "Disconnected Screen Enabled");
 		else
-			strcpy_s(popup.line[2], "Disconnected Screen View Disabled");
+			strcpy_s(popup.line[2], "Disconnected Screen Disabled");
 		ShowPopup(popup);
 
 		menuVelocity.x += 4.0f;		
