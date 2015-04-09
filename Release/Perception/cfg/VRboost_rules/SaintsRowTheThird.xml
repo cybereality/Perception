@@ -3,7 +3,7 @@
   <ScannerGroups>
 	<ScannerGroup>
 		<ID>0</ID>
-		<BaseAddress>02000058</BaseAddress>
+		<BaseAddress>01000044</BaseAddress>
 		<MemIncrement>00000100</MemIncrement>
 		<MemIncCount>00200000</MemIncCount>
 		<FailIfNotFound>True</FailIfNotFound>
@@ -16,8 +16,8 @@
 			<CheckForChanges>Changes</CheckForChanges>
 			<Comparisons>
 				<Compare type="Between">
-					<MinValue>0.001</MinValue>
-					<MaxValue>6.28</MaxValue>
+					<MinValue>0.01</MinValue>
+					<MaxValue>6.29</MaxValue>
 				</Compare>
 			</Comparisons>
 		</ScanRule>
@@ -31,12 +31,12 @@
 			<CheckForChanges>Changes</CheckForChanges>
 			<Comparisons>
 				<Compare type="Between">
-					<MinValue>0.05</MinValue>
+					<MinValue>0.01</MinValue>
 					<MaxValue>1.49</MaxValue>
 				</Compare>
 				<Compare type="Between">
 					<MinValue>-1.49</MinValue>
-					<MaxValue>-0.05</MaxValue>
+					<MaxValue>-0.01</MaxValue>
 				</Compare>
 			</Comparisons>
 		</ScanRule>
@@ -67,7 +67,7 @@
 			</Comparisons>
 		</ScanRule>	
 
-		<!-- Not-quite copy of Yaw -->
+		<!-- Not-quite copy of Yaw - Strange address this, will give it a wide region-->
 		<ScanRule>
 			<AxisName>NoAxis</AxisName>
 			<AddressType>Float</AddressType>
@@ -76,8 +76,12 @@
 			<CheckForChanges>Changes</CheckForChanges>
 			<Comparisons>
 				<Compare type="Between">
-					<MinValue>0.5</MinValue>
-					<MaxValue>6.9</MaxValue>
+					<MinValue>0.01</MinValue>
+					<MaxValue>7.5</MaxValue>
+				</Compare>
+				<Compare type="Between">
+					<MinValue>-7.5</MinValue>
+					<MaxValue>-0.01</MaxValue>
 				</Compare>
 			</Comparisons>
 		</ScanRule>
@@ -90,12 +94,12 @@
 			<CheckForChanges>Changes</CheckForChanges>
 			<Comparisons>
 				<Compare type="Between">
-					<MinValue>0.05</MinValue>
+					<MinValue>0.01</MinValue>
 					<MaxValue>1.49</MaxValue>
 				</Compare>
 				<Compare type="Between">
 					<MinValue>-1.49</MinValue>
-					<MaxValue>-0.05</MaxValue>
+					<MaxValue>-0.01</MaxValue>
 				</Compare>
 			</Comparisons>
 		</ScanRule>
@@ -113,8 +117,8 @@
 				<AddressType>Float</AddressType>
 				<Comparisons>
 					<Compare type="BetweenIncl">
-						<MinValue>-0.7</MinValue>
-						<MaxValue>-1.49</MaxValue>
+						<MinValue>-1.49</MinValue>
+						<MaxValue>-0.7</MaxValue>
 					</Compare>
 				</Comparisons>
 			</Axis>

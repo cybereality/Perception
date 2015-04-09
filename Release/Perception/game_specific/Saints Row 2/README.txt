@@ -1,8 +1,14 @@
+Saints Row 2 
+=============
+
+Please follow these steps to enable first person with high enough FOV for playing in the rift:
+
+
 Download the Gentlemen of the Row - Saints Row 2 Super Mod from here:  http://idolninja.com/sr2.php   should be version v1.9.2
 
 Extract to a local folder.
 
-Next, copy the file  camera_free.xtbl  to the following sub-foler that you just extracted, you can overwrite the file that is already there:  
+Next, copy the file  camera_free.xtbl  to the following sub-folder that you just extracted, you can overwrite the file that is already there:  
 
 Gentlemen_of_the_Row_Saints_Row_2_Super_Mod_v1.9.2\optional_mod_stuff\optional_mods\first_person\
 

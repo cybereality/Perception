@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<shaderConfig>
+	<rules>
+		<rule constantName="projTM" partialName="true" id="1" constantType="MatrixC" modToApply="1" startReg="28" transpose="true" />
+	</rules>
+	<defaultRuleIDs>
+		<ruleID id="1" />
+	</defaultRuleIDs>
+</shaderConfig>
