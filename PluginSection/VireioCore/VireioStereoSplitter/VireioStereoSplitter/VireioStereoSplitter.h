@@ -48,14 +48,38 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define PNT_INT_PLUG_TYPE                            107 
 #define PNT_UINT_PLUG_TYPE                           112
 
-#define NUMBER_OF_DECOMMANDERS                         0
+#define NUMBER_OF_DECOMMANDERS                        25
 
 /**
 * Node Commander Enumeration.
 ***/
 enum STS_Decommanders
 {
-	
+	RenderTargetIndex,            /**< ->SetRenderTarget() render target index ***/
+	pRenderTarget,                /**< ->SetRenderTarget() render target ***/
+	Sampler,                      /**< ->SetTexture() sampler index **/
+	pTexture,                     /**< ->SetTexture() texture pointer ***/
+	PrimitiveType,                /**< ->DrawPrimitive() primitive type ***/
+	StartVertex,                  /**< ->DrawPrimitive() start vertex ***/
+	PrimitiveCount,               /**< ->DrawPrimitive() primitive count ***/
+	Type,                         /**< ->DrawIndexedPrimitive() primitive type ***/
+	BaseVertexIndex,              /**< ->DrawIndexedPrimitive() base vertex index ***/
+	MinIndex,                     /**< ->DrawIndexedPrimitive() minimum vertex index ***/
+	NumVertices,                  /**< ->DrawIndexedPrimitive() number of vertices ***/
+	StartIndex,                   /**< ->DrawIndexedPrimitive() start index  ***/
+	PrimitiveCountIndexed,        /**< ->DrawIndexedPrimitive() primitive count ***/
+	PrimitiveTypeUP,              /**< ->DrawPrimitiveUP() primitive type ***/
+	PrimitiveCountUP,             /**< ->DrawPrimitiveUP() primitive count ***/
+	pVertexStreamZeroData,        /**< ->DrawPrimitiveUP() memory pointer to the vertex data ***/
+	VertexStreamZeroStride,       /**< ->DrawPrimitiveUP() number of bytes of data for each vertex ***/
+	PrimitiveTypeUPIndexed,       /**< ->DrawIndexedPrimitiveUP() primitive type ***/
+	MinVertexIndex,               /**< ->DrawIndexedPrimitiveUP() minimum vertex index ***/
+	NumVerticesUPIndexed,         /**< ->DrawIndexedPrimitiveUP() number of vertices ***/
+	PrimitiveCountUPIndexed,      /**< ->DrawIndexedPrimitiveUP() primitive count ***/
+	pIndexData,                   /**< ->DrawIndexedPrimitiveUP() memory pointer to the index data ***/
+	IndexDataFormat,              /**< ->DrawIndexedPrimitiveUP() format of the index data ***/
+	pVertexStreamZeroDataIndexed, /**< ->DrawIndexedPrimitiveUP() memory pointer to the vertex data ***/
+	VertexStreamZeroStrideIndexed /**< ->DrawIndexedPrimitiveUP() number of bytes of data for each vertex ***/
 };
 
 /**

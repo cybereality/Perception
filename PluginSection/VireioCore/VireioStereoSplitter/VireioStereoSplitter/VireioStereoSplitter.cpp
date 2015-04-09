@@ -37,7 +37,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include"VireioStereoSplitter.h"
 
-#define INTERFACE_IDIRECT3DDEVICE9           8
+#define INTERFACE_IDIRECT3DDEVICE9                           8
+#define INTERFACE_IDIRECT3DSWAPCHAIN9                       15
+#define	METHOD_IDIRECT3DDEVICE9_PRESENT                     17
+#define METHOD_IDIRECT3DDEVICE9_SETRENDERTARGET             37
+#define METHOD_IDIRECT3DDEVICE9_SETTEXTURE                  65
+#define METHOD_IDIRECT3DDEVICE9_DRAWPRIMITIVE               81
+#define METHOD_IDIRECT3DDEVICE9_DRAWINDEXEDPRIMITIVE        82 
+#define METHOD_IDIRECT3DDEVICE9_DRAWPRIMITIVEUP             83 
+#define METHOD_IDIRECT3DDEVICE9_DRAWINDEXEDPRIMITIVEUP      84 
+#define	METHOD_IDIRECT3DSWAPCHAIN9_PRESENT                   3
 
 /**
 * Constructor.
@@ -103,10 +112,58 @@ HBITMAP StereoSplitter::GetControl()
 ***/
 LPWSTR StereoSplitter::GetDecommanderName(DWORD dwDecommanderIndex)
 {
-	//switch ((STS_Decommanders)dwDecommanderIndex)
+	switch ((STS_Decommanders)dwDecommanderIndex)
 	{
-	//case STS_Decommanders:::
-		//return L"";
+	case STS_Decommanders::RenderTargetIndex:             /**< ->SetRenderTarget() render target index ***/
+		return L"RenderTargetIndex";
+	case STS_Decommanders::pRenderTarget:                 /**< ->SetRenderTarget() render target ***/
+		return L"pRenderTarget";
+	case STS_Decommanders::Sampler:                       /**< ->SetTexture() sampler index **/
+		return L"Sampler";
+	case STS_Decommanders::pTexture:                      /**< ->SetTexture() texture pointer ***/
+		return L"pTexture";
+	case STS_Decommanders::PrimitiveType:                 /**< ->DrawPrimitive() primitive type ***/
+		return L"PrimitiveType";
+	case STS_Decommanders::StartVertex:                   /**< ->DrawPrimitive() start vertex ***/
+		return L"StartVertex";
+	case STS_Decommanders::PrimitiveCount:                /**< ->DrawPrimitive() primitive count ***/
+		return L"PrimitiveCount";
+	case STS_Decommanders::Type:                          /**< ->DrawIndexedPrimitive() primitive type ***/
+		return L"Type";
+	case STS_Decommanders::BaseVertexIndex:               /**< ->DrawIndexedPrimitive() base vertex index ***/
+		return L"BaseVertexIndex";
+	case STS_Decommanders::MinIndex:                      /**< ->DrawIndexedPrimitive() minimum vertex index ***/
+		return L"MinIndex";
+	case STS_Decommanders::NumVertices:                   /**< ->DrawIndexedPrimitive() number of vertices ***/
+		return L"NumVertices";
+	case STS_Decommanders::StartIndex:                    /**< ->DrawIndexedPrimitive() start index  ***/
+		return L"StartIndex";
+	case STS_Decommanders::PrimitiveCountIndexed:         /**< ->DrawIndexedPrimitive() primitive count ***/
+		return L"PrimitiveCountIndexed";
+	case STS_Decommanders::PrimitiveTypeUP:               /**< ->DrawPrimitiveUP() primitive type ***/
+		return L"PrimitiveTypeUP";
+	case STS_Decommanders::PrimitiveCountUP:              /**< ->DrawPrimitiveUP() primitive count ***/
+		return L"PrimitiveCountUP";
+	case STS_Decommanders::pVertexStreamZeroData:         /**< ->DrawPrimitiveUP() memory pointer to the vertex data ***/
+		return L"pVertexStreamZeroData";
+	case STS_Decommanders::VertexStreamZeroStride:        /**< ->DrawPrimitiveUP() number of bytes of data for each vertex ***/
+		return L"VertexStreamZeroStride";
+	case STS_Decommanders::PrimitiveTypeUPIndexed:        /**< ->DrawIndexedPrimitiveUP() primitive type ***/
+		return L"PrimitiveTypeUPIndexed";
+	case STS_Decommanders::MinVertexIndex:                /**< ->DrawIndexedPrimitiveUP() minimum vertex index ***/
+		return L"MinVertexIndex";
+	case STS_Decommanders::NumVerticesUPIndexed:          /**< ->DrawIndexedPrimitiveUP() number of vertices ***/
+		return L"NumVerticesUPIndexed";
+	case STS_Decommanders::PrimitiveCountUPIndexed:       /**< ->DrawIndexedPrimitiveUP() primitive count ***/
+		return L"PrimitiveCountUPIndexed";
+	case STS_Decommanders::pIndexData:                    /**< ->DrawIndexedPrimitiveUP() memory pointer to the index data ***/
+		return L"pIndexData";
+	case STS_Decommanders::IndexDataFormat:               /**< ->DrawIndexedPrimitiveUP() format of the index data ***/
+		return L"IndexDataFormat";
+	case STS_Decommanders::pVertexStreamZeroDataIndexed:  /**< ->DrawIndexedPrimitiveUP() memory pointer to the vertex data ***/
+		return L"pVertexStreamZeroDataIndexed";
+	case STS_Decommanders::VertexStreamZeroStrideIndexed: /**< ->DrawIndexedPrimitiveUP() number of bytes of data for each vertex ***/
+		return L"VertexStreamZeroStrideIndexed";
 	}
 
 	return L"";
@@ -117,9 +174,34 @@ LPWSTR StereoSplitter::GetDecommanderName(DWORD dwDecommanderIndex)
 ***/
 DWORD StereoSplitter::GetDecommanderType(DWORD dwDecommanderIndex) 
 {
-	//switch ((STS_Decommanders)dwDecommanderIndex)
+	switch ((STS_Decommanders)dwDecommanderIndex)
 	{
-	//case STS_Decommanders:::
+	case STS_Decommanders::RenderTargetIndex:             /**< ->SetRenderTarget() render target index ***/
+	case STS_Decommanders::pRenderTarget:                 /**< ->SetRenderTarget() render target ***/
+	case STS_Decommanders::Sampler:                       /**< ->SetTexture() sampler index **/
+	case STS_Decommanders::pTexture:                      /**< ->SetTexture() texture pointer ***/
+	case STS_Decommanders::PrimitiveType:                 /**< ->DrawPrimitive() primitive type ***/
+	case STS_Decommanders::StartVertex:                   /**< ->DrawPrimitive() start vertex ***/
+	case STS_Decommanders::PrimitiveCount:                /**< ->DrawPrimitive() primitive count ***/
+	case STS_Decommanders::Type:                          /**< ->DrawIndexedPrimitive() primitive type ***/
+	case STS_Decommanders::BaseVertexIndex:               /**< ->DrawIndexedPrimitive() base vertex index ***/
+	case STS_Decommanders::MinIndex:                      /**< ->DrawIndexedPrimitive() minimum vertex index ***/
+	case STS_Decommanders::NumVertices:                   /**< ->DrawIndexedPrimitive() number of vertices ***/
+	case STS_Decommanders::StartIndex:                    /**< ->DrawIndexedPrimitive() start index  ***/
+	case STS_Decommanders::PrimitiveCountIndexed:         /**< ->DrawIndexedPrimitive() primitive count ***/
+	case STS_Decommanders::PrimitiveTypeUP:               /**< ->DrawPrimitiveUP() primitive type ***/
+	case STS_Decommanders::PrimitiveCountUP:              /**< ->DrawPrimitiveUP() primitive count ***/
+	case STS_Decommanders::pVertexStreamZeroData:         /**< ->DrawPrimitiveUP() memory pointer to the vertex data ***/
+	case STS_Decommanders::VertexStreamZeroStride:        /**< ->DrawPrimitiveUP() number of bytes of data for each vertex ***/
+	case STS_Decommanders::PrimitiveTypeUPIndexed:        /**< ->DrawIndexedPrimitiveUP() primitive type ***/
+	case STS_Decommanders::MinVertexIndex:                /**< ->DrawIndexedPrimitiveUP() minimum vertex index ***/
+	case STS_Decommanders::NumVerticesUPIndexed:          /**< ->DrawIndexedPrimitiveUP() number of vertices ***/
+	case STS_Decommanders::PrimitiveCountUPIndexed:       /**< ->DrawIndexedPrimitiveUP() primitive count ***/
+	case STS_Decommanders::pIndexData:                    /**< ->DrawIndexedPrimitiveUP() memory pointer to the index data ***/
+	case STS_Decommanders::IndexDataFormat:               /**< ->DrawIndexedPrimitiveUP() format of the index data ***/
+	case STS_Decommanders::pVertexStreamZeroDataIndexed:  /**< ->DrawIndexedPrimitiveUP() memory pointer to the vertex data ***/
+	case STS_Decommanders::VertexStreamZeroStrideIndexed: /**< ->DrawIndexedPrimitiveUP() number of bytes of data for each vertex ***/
+		return 0;
 		//return PNT_IDIRECT3DTEXTURE9_PLUG_TYPE;
 	}
 
@@ -131,16 +213,60 @@ DWORD StereoSplitter::GetDecommanderType(DWORD dwDecommanderIndex)
 ***/
 void StereoSplitter::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 {
+	switch ((STS_Decommanders)dwDecommanderIndex)
+	{
+	case STS_Decommanders::RenderTargetIndex:             /**< ->SetRenderTarget() render target index ***/
+	case STS_Decommanders::pRenderTarget:                 /**< ->SetRenderTarget() render target ***/
+	case STS_Decommanders::Sampler:                       /**< ->SetTexture() sampler index **/
+	case STS_Decommanders::pTexture:                      /**< ->SetTexture() texture pointer ***/
+	case STS_Decommanders::PrimitiveType:                 /**< ->DrawPrimitive() primitive type ***/
+	case STS_Decommanders::StartVertex:                   /**< ->DrawPrimitive() start vertex ***/
+	case STS_Decommanders::PrimitiveCount:                /**< ->DrawPrimitive() primitive count ***/
+	case STS_Decommanders::Type:                          /**< ->DrawIndexedPrimitive() primitive type ***/
+	case STS_Decommanders::BaseVertexIndex:               /**< ->DrawIndexedPrimitive() base vertex index ***/
+	case STS_Decommanders::MinIndex:                      /**< ->DrawIndexedPrimitive() minimum vertex index ***/
+	case STS_Decommanders::NumVertices:                   /**< ->DrawIndexedPrimitive() number of vertices ***/
+	case STS_Decommanders::StartIndex:                    /**< ->DrawIndexedPrimitive() start index  ***/
+	case STS_Decommanders::PrimitiveCountIndexed:         /**< ->DrawIndexedPrimitive() primitive count ***/
+	case STS_Decommanders::PrimitiveTypeUP:               /**< ->DrawPrimitiveUP() primitive type ***/
+	case STS_Decommanders::PrimitiveCountUP:              /**< ->DrawPrimitiveUP() primitive count ***/
+	case STS_Decommanders::pVertexStreamZeroData:         /**< ->DrawPrimitiveUP() memory pointer to the vertex data ***/
+	case STS_Decommanders::VertexStreamZeroStride:        /**< ->DrawPrimitiveUP() number of bytes of data for each vertex ***/
+	case STS_Decommanders::PrimitiveTypeUPIndexed:        /**< ->DrawIndexedPrimitiveUP() primitive type ***/
+	case STS_Decommanders::MinVertexIndex:                /**< ->DrawIndexedPrimitiveUP() minimum vertex index ***/
+	case STS_Decommanders::NumVerticesUPIndexed:          /**< ->DrawIndexedPrimitiveUP() number of vertices ***/
+	case STS_Decommanders::PrimitiveCountUPIndexed:       /**< ->DrawIndexedPrimitiveUP() primitive count ***/
+	case STS_Decommanders::pIndexData:                    /**< ->DrawIndexedPrimitiveUP() memory pointer to the index data ***/
+	case STS_Decommanders::IndexDataFormat:               /**< ->DrawIndexedPrimitiveUP() format of the index data ***/
+	case STS_Decommanders::pVertexStreamZeroDataIndexed:  /**< ->DrawIndexedPrimitiveUP() memory pointer to the vertex data ***/
+	case STS_Decommanders::VertexStreamZeroStrideIndexed: /**< ->DrawIndexedPrimitiveUP() number of bytes of data for each vertex ***/
+		break;
+	}
 }
 
 /**
-* Stereo Splitter supports D3D 9 Present() and EndScene() calls.
+* Stereo Splitter supports various D3D9 calls.
 ***/
 bool StereoSplitter::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod)  
 { 
 	if ((nD3DVersion >= (int)AQU_DirectXVersion::DirectX_9_0) &&
 		(nD3DVersion <= (int)AQU_DirectXVersion::DirectX_9_29))
 	{
+		if (nD3DInterface == INTERFACE_IDIRECT3DDEVICE9)
+		{
+			if ((nD3DMethod == METHOD_IDIRECT3DDEVICE9_PRESENT) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_SETRENDERTARGET) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_SETTEXTURE) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_DRAWPRIMITIVE) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_DRAWINDEXEDPRIMITIVE) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_DRAWPRIMITIVEUP) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_DRAWINDEXEDPRIMITIVEUP))
+				return true;
+		}
+		if (nD3DInterface == INTERFACE_IDIRECT3DSWAPCHAIN9)
+		{
+			if (nD3DMethod == METHOD_IDIRECT3DSWAPCHAIN9_PRESENT) return true;
+		}
 	}
 	return false; 
 }
@@ -150,5 +276,34 @@ bool StereoSplitter::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 ***/
 void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)	
 {
+	switch(eD3DInterface)
+	{
+	case INTERFACE_IDIRECT3DDEVICE9:
+		switch(eD3DMethod)
+		{
+		case METHOD_IDIRECT3DDEVICE9_PRESENT:
+			return nullptr;
+		case METHOD_IDIRECT3DDEVICE9_SETRENDERTARGET:
+			return nullptr;
+		case METHOD_IDIRECT3DDEVICE9_SETTEXTURE:
+			return nullptr;
+		case METHOD_IDIRECT3DDEVICE9_DRAWPRIMITIVE:
+			return nullptr;
+		case METHOD_IDIRECT3DDEVICE9_DRAWINDEXEDPRIMITIVE:
+			return nullptr;
+		case METHOD_IDIRECT3DDEVICE9_DRAWPRIMITIVEUP:
+			return nullptr;
+		case METHOD_IDIRECT3DDEVICE9_DRAWINDEXEDPRIMITIVEUP:
+			return nullptr;
+		}
+		return nullptr;
+	case INTERFACE_IDIRECT3DSWAPCHAIN9:
+		switch(eD3DMethod)
+		{
+		case METHOD_IDIRECT3DSWAPCHAIN9_PRESENT:
+			return nullptr;
+		}
+		return nullptr;
+	}
 	return nullptr;
 }
