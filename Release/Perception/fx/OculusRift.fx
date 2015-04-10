@@ -19,6 +19,7 @@ float3 Vignette;
 float Rotation;
 float SmearCorrection;
 float2 MousePosition;
+float ZoomScale;
 
 // Warp operates on left view, for right, mirror x texture coord
 // before and after calling.  in02 contains the chromatic aberration
@@ -77,6 +78,19 @@ float2 rotatePoint(float angle, float2 coord)
 	return newPos;
 }
 
+float2 ScalePoint(float scale, float2 coord)
+{
+	float2 newPos = coord;
+	newPos.x -= 0.5f;
+	newPos.y -= 1.0f - LensCenter.y;
+	
+	newPos.x /= scale;
+	newPos.y /= scale;
+	
+	newPos.x += 0.5f;
+	newPos.y += 1.0f - LensCenter.y; 
+	return newPos;
+}
 
 float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 {
@@ -86,7 +100,7 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 	float2 tcBlue;
 	float angle = Rotation;
 	float3 outColor;	
-
+	
 	//blit the VP logo to the top left corner
 	if (Tex.x <= 0.2f   &&   Tex.y <= 0.05f)
 	{
@@ -96,7 +110,9 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 		return tex2D(TexMap2, pos.xy);
 	}
 
-	
+	newPos.x = newPos.x - ViewportXOffset;
+	newPos.y = newPos.y - ViewportYOffset;
+
 	if (Tex.x > 0.5f) {
 		// mirror to get the right-eye distortion
 		newPos.x = 1.0f - newPos.x;
@@ -104,7 +120,9 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 	}  
 
 	// Chromatic Aberation Correction using coefs from SDK.
+	
 	tcBlue = HmdWarp(newPos, float2(Chroma.z, Chroma.w));
+	tcBlue = ScalePoint(ZoomScale, tcBlue);
 	tcBlue = rotatePoint(angle, tcBlue);
 
 	// Clamp on blue, because we expand the blue channel outward the most.
@@ -113,9 +131,11 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 		return 0;
 
 	tcRed = HmdWarp(newPos, float2(Chroma.x, Chroma.y));
+	tcRed = ScalePoint(ZoomScale, tcRed);
 	tcRed = rotatePoint(angle, tcRed);
 
 	tcGreen = HmdWarp(newPos, float2(0.0f, 0.0f));
+	tcGreen = ScalePoint(ZoomScale, tcGreen);
 	tcGreen = rotatePoint(angle, tcGreen);
 
 	if (Tex.x > 0.5f)
@@ -126,13 +146,13 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 		tcBlue.x = 1 - tcBlue.x;
 	}
 
-	tcRed.x = tcRed.x - ViewportXOffset;
+	/*tcRed.x = tcRed.x - ViewportXOffset;
 	tcGreen.x = tcGreen.x - ViewportXOffset;
 	tcBlue.x = tcBlue.x - ViewportXOffset;
 
 	tcRed.y = tcRed.y - ViewportYOffset;
 	tcGreen.y = tcGreen.y - ViewportYOffset;
-	tcBlue.y = tcBlue.y - ViewportYOffset;
+	tcBlue.y = tcBlue.y - ViewportYOffset;*/
 
 	if (any(clamp(tcBlue.xy, float2(0.0,0.0), float2(1.0, 1.0)) - tcBlue.xy))
 		return 0;

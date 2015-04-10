@@ -66,7 +66,7 @@ StereoView::StereoView(ProxyHelper::ProxyConfig& config)
 	m_blackSmearCorrection = 0.0f;
 	m_mousePos.x = 0;
 	m_mousePos.y = 0;
-
+	ZoomOutScale = 1.0f;
 	// set all member pointers to NULL to prevent uninitialized objects being used
 	m_pActualDevice = NULL;
 	backBuffer = NULL;

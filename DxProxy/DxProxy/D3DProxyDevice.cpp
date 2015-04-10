@@ -2420,7 +2420,8 @@ void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 	stereoView = StereoViewFactory::Get(config, m_spShaderViewAdjustment->HMDInfo());
 	stereoView->YOffset = config.YOffset;
 	stereoView->HeadYOffset = 0;
-	stereoView->HeadZOffset = FLT_MAX;
+	//stereoView->HeadZOffset = FLT_MAX;
+	stereoView->HeadZOffset = 0;
 	stereoView->IPDOffset = config.IPDOffset;
 	stereoView->DistortionScale = config.DistortionScale;
 	stereoView->m_b2dDepthMode = false;	
@@ -2640,7 +2641,7 @@ void D3DProxyDevice::HandleControls()
 			m_bSurpressPositionaltracking = false;
 			//TODO Change this back to initial
 			this->stereoView->HeadYOffset = 0;
-			this->stereoView->HeadZOffset = FLT_MAX;
+			this->stereoView->HeadZOffset = 0;
 			this->stereoView->XOffset = 0;
 			this->stereoView->PostReset();	
 		}
@@ -3465,23 +3466,33 @@ void D3DProxyDevice::HandleControls()
 				{
 					if(_wheel < 0)
 					{
-						if(this->stereoView->DistortionScale > m_spShaderViewAdjustment->HMDInfo()->GetMinDistortionScale())
+						/*if(this->stereoView->DistortionScale > m_spShaderViewAdjustment->HMDInfo()->GetMinDistortionScale())
 						{
 							this->stereoView->DistortionScale -= 0.05f;
+							this->stereoView->PostReset();				
+						}*/
+						if(this->stereoView->ZoomOutScale > 0.05f)
+						{
+							this->stereoView->ZoomOutScale -= 0.05f;
 							this->stereoView->PostReset();				
 						}
 					}
 					else if(_wheel > 0)
 					{
-						if(this->stereoView->DistortionScale < m_maxDistortionScale)
-							{
-								this->stereoView->DistortionScale += 0.05f;
-								this->stereoView->PostReset();										
-							}
+						/*if(this->stereoView->DistortionScale < m_maxDistortionScale)
+						{
+							this->stereoView->DistortionScale += 0.05f;
+							this->stereoView->PostReset();										
+						}*/
+						if(this->stereoView->ZoomOutScale < 2.00f)
+						{
+							this->stereoView->ZoomOutScale += 0.05f;
+							this->stereoView->PostReset();				
+						}
 					}
 
 					VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
-					sprintf_s(popup.line[2], "Distortion Scale: %1.3f", this->stereoView->DistortionScale);
+					sprintf_s(popup.line[2], "Zoom Scale: %1.3f", this->stereoView->ZoomOutScale);
 					m_saveConfigTimer = GetTickCount();
 					ShowPopup(popup);
 				}
@@ -3491,33 +3502,23 @@ void D3DProxyDevice::HandleControls()
 		//Change Distortion Scale CTRL + + / -
 		if(controls.Key_Down(VK_LCONTROL) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
-			if(config.DistortionScale > 0.00f)
-			{
-				m_maxDistortionScale = config.DistortionScale;
-			}
 			if(controls.Key_Down(VK_ADD))
 			{
-				if(this->stereoView->DistortionScale < m_maxDistortionScale)
-				{
-					this->stereoView->DistortionScale = m_maxDistortionScale;
-					this->stereoView->PostReset();										
-				}
+				this->stereoView->ZoomOutScale = 1.00f;
+				this->stereoView->PostReset();	
 
 				VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
-				sprintf_s(popup.line[2], "Distortion Scale: %1.3f", this->stereoView->DistortionScale);
+				sprintf_s(popup.line[2], "Zoom Scale: %1.3f", this->stereoView->ZoomOutScale);
 				m_saveConfigTimer = GetTickCount();
 				ShowPopup(popup);
 			}
 			else if(controls.Key_Down(VK_SUBTRACT))
 			{
-				if(this->stereoView->DistortionScale != m_spShaderViewAdjustment->HMDInfo()->GetMinDistortionScale())
-				{
-					this->stereoView->DistortionScale = m_spShaderViewAdjustment->HMDInfo()->GetMinDistortionScale();
-					this->stereoView->PostReset();							
-				}
+				this->stereoView->ZoomOutScale = 0.50f;
+				this->stereoView->PostReset();	
 
 				VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
-				sprintf_s(popup.line[2], "Distortion Scale: %1.3f", this->stereoView->DistortionScale);
+				sprintf_s(popup.line[2], "Zoom Scale: %1.3f", this->stereoView->ZoomOutScale);
 				m_saveConfigTimer = GetTickCount();
 				ShowPopup(popup);
 			}		
