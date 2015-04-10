@@ -16,7 +16,7 @@
 			<CheckForChanges>Changes</CheckForChanges>
 			<Comparisons>
 				<Compare type="Between">
-					<MinValue>0.01</MinValue>
+					<MinValue>0.0</MinValue>
 					<MaxValue>6.29</MaxValue>
 				</Compare>
 			</Comparisons>
@@ -31,12 +31,12 @@
 			<CheckForChanges>Changes</CheckForChanges>
 			<Comparisons>
 				<Compare type="Between">
-					<MinValue>0.01</MinValue>
+					<MinValue>0.0</MinValue>
 					<MaxValue>1.49</MaxValue>
 				</Compare>
 				<Compare type="Between">
 					<MinValue>-1.49</MinValue>
-					<MaxValue>-0.01</MaxValue>
+					<MaxValue>0.0</MaxValue>
 				</Compare>
 			</Comparisons>
 		</ScanRule>
@@ -75,13 +75,8 @@
 			<BaseAddressOffset>00000018</BaseAddressOffset>
 			<CheckForChanges>Changes</CheckForChanges>
 			<Comparisons>
-				<Compare type="Between">
-					<MinValue>0.01</MinValue>
-					<MaxValue>7.5</MaxValue>
-				</Compare>
-				<Compare type="Between">
-					<MinValue>-7.5</MinValue>
-					<MaxValue>-0.01</MaxValue>
+				<Compare type="NotEqual">
+					<MinValue>0.0</MinValue>
 				</Compare>
 			</Comparisons>
 		</ScanRule>
@@ -94,12 +89,12 @@
 			<CheckForChanges>Changes</CheckForChanges>
 			<Comparisons>
 				<Compare type="Between">
-					<MinValue>0.01</MinValue>
+					<MinValue>0.0</MinValue>
 					<MaxValue>1.49</MaxValue>
 				</Compare>
 				<Compare type="Between">
 					<MinValue>-1.49</MinValue>
-					<MaxValue>-0.01</MaxValue>
+					<MaxValue>0.0</MaxValue>
 				</Compare>
 			</Comparisons>
 		</ScanRule>
