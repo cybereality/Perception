@@ -35,6 +35,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
+#include<stdio.h>
+#include<vector>
+
 #include"AQU_Nodus.h"
 #include"Resources.h"
 
@@ -44,11 +47,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <d3dx9.h>
 #pragma comment(lib, "d3dx9.lib")
 
+#define UINT_PLUG_TYPE                                12
 #define PNT_FLOAT_PLUG_TYPE                          104
 #define PNT_INT_PLUG_TYPE                            107 
 #define PNT_UINT_PLUG_TYPE                           112
+#define PNT_IDIRECT3DSURFACE9_PLUG_TYPE             2046
 
-#define NUMBER_OF_DECOMMANDERS                        25
+#define NUMBER_OF_DECOMMANDERS                        26
 
 /**
 * Node Commander Enumeration.
@@ -57,6 +62,7 @@ enum STS_Decommanders
 {
 	RenderTargetIndex,            /**< ->SetRenderTarget() render target index ***/
 	pRenderTarget,                /**< ->SetRenderTarget() render target ***/
+	pNewZStencil,                 /**< ->SetDepthStencilSurface() stencil surface ***/
 	Sampler,                      /**< ->SetTexture() sampler index **/
 	pTexture,                     /**< ->SetTexture() texture pointer ***/
 	PrimitiveType,                /**< ->DrawPrimitive() primitive type ***/
@@ -106,6 +112,34 @@ public:
 	virtual void            SetInputPointer(DWORD dwDecommanderIndex, void* pData);
 	virtual bool            SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod);
 	virtual void*           Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex);
+
+private:
+	/*** StereoSplitter private methods ***/
+	void                    SetRenderTarget(LPDIRECT3DDEVICE9 pcDevice);
+
+	/**
+	* Input pointers.
+	***/
+	DWORD*              m_pdwRenderTargetIndex;         /**< ->SetRenderTarget() render target index ***/
+	IDirect3DSurface9** m_ppcRenderTarget;              /**< ->SetRenderTarget() render target ***/
+
+	/**
+	* Active stored render targets.
+	* The render targets that are currently in use.
+	***/
+	std::vector<IDirect3DSurface9*> m_pcActiveRenderTargets;
+	/**
+	* The control bitmap.
+	***/
+	HBITMAP m_hBitmapControl;
+	/**
+	* The control update bool.
+	***/
+	bool m_bControlUpdate;
+	/**
+	* The font used.
+	***/
+	HFONT m_hFont;
 };
 
 /**

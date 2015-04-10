@@ -41,6 +41,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define INTERFACE_IDIRECT3DSWAPCHAIN9                       15
 #define	METHOD_IDIRECT3DDEVICE9_PRESENT                     17
 #define METHOD_IDIRECT3DDEVICE9_SETRENDERTARGET             37
+#define METHOD_IDIRECT3DDEVICE9_SETDEPTHSTENCILSURFACE      39 
 #define METHOD_IDIRECT3DDEVICE9_SETTEXTURE                  65
 #define METHOD_IDIRECT3DDEVICE9_DRAWPRIMITIVE               81
 #define METHOD_IDIRECT3DDEVICE9_DRAWINDEXEDPRIMITIVE        82 
@@ -51,7 +52,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /**
 * Constructor.
 ***/
-StereoSplitter::StereoSplitter():AQU_Nodus()
+StereoSplitter::StereoSplitter():AQU_Nodus(),
+	m_hBitmapControl(nullptr),
+	m_bControlUpdate(false),
+	m_hFont(nullptr),
+	m_pcActiveRenderTargets(0, NULL)
 {
 }
 
@@ -104,7 +109,91 @@ HBITMAP StereoSplitter::GetLogo()
 ***/
 HBITMAP StereoSplitter::GetControl()
 {
-	return nullptr;
+	if (!m_hBitmapControl)
+	{
+		// create bitmap, set control update to true
+		HWND hwnd = GetActiveWindow();
+		HDC hdc = GetDC(hwnd);
+		m_hBitmapControl = CreateCompatibleBitmap(hdc, 1024, 1980);
+		if (!m_hBitmapControl)
+			OutputDebugString(L"Failed to create bitmap!");
+		m_bControlUpdate = true;
+	}
+
+	if (m_bControlUpdate)
+	{
+		// get control bitmap dc
+		HDC hdcImage = CreateCompatibleDC(NULL);
+		HBITMAP hbmOld = (HBITMAP)SelectObject(hdcImage, m_hBitmapControl);
+		HFONT hOldFont; 
+
+		// clear the background
+		RECT rc;
+		SetRect(&rc, 0, 0, 1024, 1980);
+		FillRect(hdcImage, &rc, (HBRUSH)CreateSolidBrush(RGB(160, 160, 200)));
+
+		// create font
+		if (!m_hFont)
+			m_hFont = CreateFont(64, 0, 0, 0, 0, FALSE,
+			FALSE, FALSE, ANSI_CHARSET, OUT_DEFAULT_PRECIS,
+			CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH,
+			L"Segoe UI");
+
+		// Select the variable stock font into the specified device context. 
+		if (hOldFont = (HFONT)SelectObject(hdcImage, m_hFont))
+		{
+			int nY = 16;
+			wchar_t szBuffer[256];
+
+			SetTextColor(hdcImage, RGB(240,240,240));
+			SetBkColor(hdcImage, RGB(160, 160, 200));
+
+			// display all data
+			TextOut(hdcImage, 50, nY, L"RenderTargetIndex", 17); nY+=64;
+			TextOut(hdcImage, 50, nY, L"pRenderTarget", 13); nY+=64;
+			TextOut(hdcImage, 50, nY, L"pNewZStencil", 12); nY+=64;
+			TextOut(hdcImage, 50, nY, L"Sampler", 7); nY+=64;
+			TextOut(hdcImage, 50, nY, L"pTexture", 8); nY+=64;
+			TextOut(hdcImage, 50, nY, L"PrimitiveType", 13); nY+=64;
+			TextOut(hdcImage, 50, nY, L"StartVertex", 11); nY+=64;
+			TextOut(hdcImage, 50, nY, L"PrimitiveCount", 14); nY+=64;
+			TextOut(hdcImage, 50, nY, L"Type", 4); nY+=64;
+			TextOut(hdcImage, 50, nY, L"BaseVertexIndex", 15); nY+=64;
+			TextOut(hdcImage, 50, nY, L"MinIndex", 8); nY+=64;
+			TextOut(hdcImage, 50, nY, L"NumVertices", 11); nY+=64;
+			TextOut(hdcImage, 50, nY, L"StartIndex", 10); nY+=64;
+			TextOut(hdcImage, 50, nY, L"PrimitiveCountIndexed", 21); nY+=64;
+			TextOut(hdcImage, 50, nY, L"PrimitiveTypeUP", 15); nY+=64;
+			TextOut(hdcImage, 50, nY, L"PrimitiveCountUP", 16); nY+=64;
+			TextOut(hdcImage, 50, nY, L"pVertexStreamZeroData", 21); nY+=64;
+			TextOut(hdcImage, 50, nY, L"VertexStreamZeroStride", 22); nY+=64;
+			TextOut(hdcImage, 50, nY, L"PrimitiveTypeUPIndexed", 22); nY+=64;
+			TextOut(hdcImage, 50, nY, L"MinVertexIndex", 14); nY+=64;
+			TextOut(hdcImage, 50, nY, L"NumVerticesUPIndexed", 20); nY+=64;
+			TextOut(hdcImage, 50, nY, L"PrimitiveCountUPIndexed", 23); nY+=64;
+			TextOut(hdcImage, 50, nY, L"pIndexData", 10); nY+=64;
+			TextOut(hdcImage, 50, nY, L"IndexDataFormat", 15); nY+=64;
+			TextOut(hdcImage, 50, nY, L"pVertexStreamZeroDataIndexed", 28); nY+=64;
+			TextOut(hdcImage, 50, nY, L"VertexStreamZeroStrideIndexed", 29); nY+=128;
+
+			TextOut(hdcImage, 50, nY, L"Max Render Targets : ", 21);
+			wsprintf(szBuffer, L"%u", (UINT)m_pcActiveRenderTargets.size());
+			int nLen = (int)wcslen(szBuffer); if (nLen > 11) nLen = 11;
+			TextOut(hdcImage, 550, nY, szBuffer, nLen); nY+=64;
+
+			// Restore the original font.        
+			SelectObject(hdcImage, hOldFont); 
+		}
+
+		SelectObject(hdcImage, hbmOld);
+		DeleteDC(hdcImage);
+
+		// next update only by request, return updated bitmap
+		m_bControlUpdate = false;
+		return m_hBitmapControl;
+	}
+	else
+		return nullptr;	
 }
 
 /**
@@ -118,6 +207,8 @@ LPWSTR StereoSplitter::GetDecommanderName(DWORD dwDecommanderIndex)
 		return L"RenderTargetIndex";
 	case STS_Decommanders::pRenderTarget:                 /**< ->SetRenderTarget() render target ***/
 		return L"pRenderTarget";
+	case STS_Decommanders::pNewZStencil:                  /**< ->SetDepthStencilSurface() stencil surface ***/
+		return L"pNewZStencil";
 	case STS_Decommanders::Sampler:                       /**< ->SetTexture() sampler index **/
 		return L"Sampler";
 	case STS_Decommanders::pTexture:                      /**< ->SetTexture() texture pointer ***/
@@ -177,7 +268,10 @@ DWORD StereoSplitter::GetDecommanderType(DWORD dwDecommanderIndex)
 	switch ((STS_Decommanders)dwDecommanderIndex)
 	{
 	case STS_Decommanders::RenderTargetIndex:             /**< ->SetRenderTarget() render target index ***/
+		return UINT_PLUG_TYPE;
 	case STS_Decommanders::pRenderTarget:                 /**< ->SetRenderTarget() render target ***/
+		return PNT_IDIRECT3DSURFACE9_PLUG_TYPE;
+	case STS_Decommanders::pNewZStencil:                  /**< ->SetDepthStencilSurface() stencil surface ***/
 	case STS_Decommanders::Sampler:                       /**< ->SetTexture() sampler index **/
 	case STS_Decommanders::pTexture:                      /**< ->SetTexture() texture pointer ***/
 	case STS_Decommanders::PrimitiveType:                 /**< ->DrawPrimitive() primitive type ***/
@@ -216,7 +310,12 @@ void StereoSplitter::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 	switch ((STS_Decommanders)dwDecommanderIndex)
 	{
 	case STS_Decommanders::RenderTargetIndex:             /**< ->SetRenderTarget() render target index ***/
+		m_pdwRenderTargetIndex = (DWORD*)pData;
+		break;
 	case STS_Decommanders::pRenderTarget:                 /**< ->SetRenderTarget() render target ***/
+		m_ppcRenderTarget = (IDirect3DSurface9**)pData;
+		break;
+	case STS_Decommanders::pNewZStencil:                  /**< ->SetDepthStencilSurface() stencil surface ***/
 	case STS_Decommanders::Sampler:                       /**< ->SetTexture() sampler index **/
 	case STS_Decommanders::pTexture:                      /**< ->SetTexture() texture pointer ***/
 	case STS_Decommanders::PrimitiveType:                 /**< ->DrawPrimitive() primitive type ***/
@@ -256,6 +355,7 @@ bool StereoSplitter::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 		{
 			if ((nD3DMethod == METHOD_IDIRECT3DDEVICE9_PRESENT) ||
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_SETRENDERTARGET) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_SETDEPTHSTENCILSURFACE) ||
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_SETTEXTURE) ||
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_DRAWPRIMITIVE) ||
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_DRAWINDEXEDPRIMITIVE) ||
@@ -272,31 +372,36 @@ bool StereoSplitter::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 }
 
 /**
-* Handle Stereo Render Targets.
+* Handle Stereo Render Targets (+Depth Buffers).
 ***/
 void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)	
 {
 	switch(eD3DInterface)
 	{
 	case INTERFACE_IDIRECT3DDEVICE9:
-		switch(eD3DMethod)
 		{
-		case METHOD_IDIRECT3DDEVICE9_PRESENT:
-			return nullptr;
-		case METHOD_IDIRECT3DDEVICE9_SETRENDERTARGET:
-			return nullptr;
-		case METHOD_IDIRECT3DDEVICE9_SETTEXTURE:
-			return nullptr;
-		case METHOD_IDIRECT3DDEVICE9_DRAWPRIMITIVE:
-			return nullptr;
-		case METHOD_IDIRECT3DDEVICE9_DRAWINDEXEDPRIMITIVE:
-			return nullptr;
-		case METHOD_IDIRECT3DDEVICE9_DRAWPRIMITIVEUP:
-			return nullptr;
-		case METHOD_IDIRECT3DDEVICE9_DRAWINDEXEDPRIMITIVEUP:
+			switch(eD3DMethod)
+			{
+			case METHOD_IDIRECT3DDEVICE9_PRESENT:
+				return nullptr;
+			case METHOD_IDIRECT3DDEVICE9_SETRENDERTARGET:
+				SetRenderTarget((LPDIRECT3DDEVICE9)pThis);
+				return nullptr;
+			case METHOD_IDIRECT3DDEVICE9_SETDEPTHSTENCILSURFACE:
+				return nullptr;
+			case METHOD_IDIRECT3DDEVICE9_SETTEXTURE:
+				return nullptr;
+			case METHOD_IDIRECT3DDEVICE9_DRAWPRIMITIVE:
+				return nullptr;
+			case METHOD_IDIRECT3DDEVICE9_DRAWINDEXEDPRIMITIVE:
+				return nullptr;
+			case METHOD_IDIRECT3DDEVICE9_DRAWPRIMITIVEUP:
+				return nullptr;
+			case METHOD_IDIRECT3DDEVICE9_DRAWINDEXEDPRIMITIVEUP:
+				return nullptr;
+			}
 			return nullptr;
 		}
-		return nullptr;
 	case INTERFACE_IDIRECT3DSWAPCHAIN9:
 		switch(eD3DMethod)
 		{
@@ -306,4 +411,28 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 		return nullptr;
 	}
 	return nullptr;
+}
+
+/**
+* Incoming SetRenderTarget() call.
+***/ 
+void StereoSplitter::SetRenderTarget(LPDIRECT3DDEVICE9 pcDevice)
+{
+	// get data
+	DWORD dwRenderTargetIndex;
+	if (m_pdwRenderTargetIndex) dwRenderTargetIndex = *m_pdwRenderTargetIndex;
+	IDirect3DSurface9* pcRenderTarget;
+	if (m_ppcRenderTarget) pcRenderTarget = *m_ppcRenderTarget;
+
+	// Check the maximum number of supported render targets
+	if (m_pcActiveRenderTargets.size() == 0)
+	{
+		D3DCAPS9 sCapabilities;
+		pcDevice->GetDeviceCaps(&sCapabilities);
+		DWORD dwMaxRenderTargets = sCapabilities.NumSimultaneousRTs;
+		m_pcActiveRenderTargets.resize(dwMaxRenderTargets, NULL);
+
+		// set control update
+		m_bControlUpdate = true;
+	}
 }
