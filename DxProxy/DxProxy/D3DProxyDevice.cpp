@@ -3236,34 +3236,69 @@ void D3DProxyDevice::HandleControls()
 			menuVelocity.x += 4.0f;
 		}
 
-		// toggle VR Mouse
-		if (controls.Key_Down(VK_LCONTROL) && controls.Key_Down(VK_NUMPAD0) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		//Double clicking the NUMPAD0 key will invoke the VR mouse
+		//Double clicking when VR mouse is enabled will either:
+		//   - Toggle between GUI and HUD scaling if double click occurs within 2 seconds
+		//   - Disable VR Mouse if double click occurs after 2 seconds
+		static DWORD numPad0Click = 0;
+		if ((controls.Key_Down(VK_NUMPAD0) || numPad0Click != 0) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
-			if (m_showVRMouse==2)
+			if (controls.Key_Down(VK_NUMPAD0) && numPad0Click == 0)
 			{
-				m_showVRMouse = 0;
-				stereoView->m_mousePos.x = 0;
-				stereoView->m_mousePos.y = 0;
+				numPad0Click = 1;
 			}
-			else
+			else if (!controls.Key_Down(VK_NUMPAD0) && numPad0Click == 1)
 			{
-				m_showVRMouse++;
+				numPad0Click = GetTickCount();
 			}
+			else if (controls.Key_Down(VK_NUMPAD0) && numPad0Click > 1)
+			{
+				//If we clicked a second time within 500 ms, then trigger VR Mouse
+				if ((GetTickCount() - numPad0Click) <= 500)
+				{
+					static DWORD tc = 0;
+					if (tc != 0 && (GetTickCount() - tc > 2000))
+					{
+						tc = 0;
+						m_showVRMouse = 0;
+						stereoView->m_mousePos.x = 0;
+						stereoView->m_mousePos.y = 0;
+					}
+					else
+					{
+						tc = GetTickCount();
+						if (m_showVRMouse == 2)
+							m_showVRMouse = 1;
+						else
+							m_showVRMouse++;
+					}
 
-			stereoView->PostReset();
+					stereoView->PostReset();
 
-			VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1200);
-			if (m_showVRMouse == 1)
-				strcpy_s(popup.line[2], "VR Mouse (GUI) Enabled");
-			else if (m_showVRMouse == 2)
-				strcpy_s(popup.line[2], "VR Mouse (HUD) Enabled");
-			else
-				strcpy_s(popup.line[2], "VR Mouse Disabled");
-			ShowPopup(popup);
+					VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1200);
+					DismissPopup(VPT_NOTIFICATION);
+					if (m_showVRMouse == 1)
+						strcpy_s(popup.line[2], "VR Mouse - GUI Scaling");
+					else if (m_showVRMouse == 2)
+						strcpy_s(popup.line[2], "VR Mouse - HUD Scaling");
+					else
+						strcpy_s(popup.line[2], "VR Mouse - Disabled");
+					ShowPopup(popup);
 
-			menuVelocity.x += 4.0f;		
+					menuVelocity.x += 4.0f;		
+				}
+
+				numPad0Click = 0;
+				menuVelocity.x+=2.0f;
+			}
+			else if (numPad0Click > 1 &&
+				(GetTickCount() - numPad0Click) > 500)
+			{
+				//Reset, user clearly not double clicking
+				numPad0Click = 0;
+			}
 		}
-
+		
 		// floaty menus
 		if (controls.Key_Down(VK_LCONTROL) && controls.Key_Down(VK_NUMPAD1) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
