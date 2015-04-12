@@ -58,7 +58,6 @@ public:
 	void          Load(ProxyHelper::ProxyConfig& cfg);
 	void          Save(ProxyHelper::ProxyConfig& cfg);
 	void          UpdateProjectionMatrices(float aspectRatio);
-	void          UpdatePitchYaw(float pitch, float yaw);
 	void          UpdateRoll(float roll);
 	void		  UpdatePosition(float yaw, float pitch, float roll, float xPosition = 0.0f, float yPosition = 0.0f, float zPosition = 0.0f, float scaler = 1.0f);
 	void          ComputeViewTransforms(); 
@@ -88,7 +87,6 @@ public:
 	D3DXMATRIX    RightHUD3DDepthShifted();
 	D3DXMATRIX    LeftGUI3DDepth();
 	D3DXMATRIX    RightGUI3DDepth();
-	D3DXMATRIX    BulletLabyrinth();
 	D3DXMATRIX    GatheredMatrixLeft();
 	D3DXMATRIX    GatheredMatrixRight();
 	void          GatherMatrix(D3DXMATRIX& matrixLeft, D3DXMATRIX& matrixRight);
@@ -99,9 +97,7 @@ public:
 	void          ChangeGUI3DDepth(float newGui3DDepth);
 	void          ChangeHUDDistance(float newHudDistance);
 	void          ChangeHUD3DDepth(float newHud3DDepth);
-	void          SetBulletLabyrinthMode(bool newMode);
 	void		  SetGameSpecificPositionalScaling(D3DXVECTOR3 scalingVec);
-	bool          BulletLabyrinthMode();
 	void          ResetWorldScale();
 	void          ResetConvergence();	
 	float         Convergence();
@@ -258,10 +254,6 @@ private:
 	***/
 	D3DXMATRIX matRightGui3DDepth;
 	/**
-	* Bullet labyrinth matrix.
-	***/
-	D3DXMATRIX matBulletLabyrinth;
-	/**
 	* Used to scale the positional movement, seems x/y/z are not equal
 	*/
 	D3DXVECTOR3 gameScaleVec;
@@ -312,10 +304,5 @@ private:
 	* The 3d depth of the HUD.
 	***/
 	float hud3DDepth;
-	/**
-	* True if "bullet-labyrinth-style" GUI/HUD rotation is active.
-	***/
-	bool bulletLabyrinth;
-
 };
 #endif

@@ -38,6 +38,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <assert.h>
 #include <comdef.h>
 #include <tchar.h>
+#include "Resource.h"
+#include <D3DX9Shader.h>
 
 #ifdef _DEBUG
 #include "DxErr.h"
@@ -1877,8 +1879,33 @@ HRESULT WINAPI D3DProxyDevice::CreateVertexShader(CONST DWORD* pFunction,IDirect
 	IDirect3DVertexShader9* pActualVShader = NULL;
 	HRESULT creationResult = BaseDirect3DDevice9::CreateVertexShader(pFunction, &pActualVShader);
 
+	std::string shaderReplacementCode;
+	if (m_pGameHandler->GetShaderModificationRepository() &&
+		m_pGameHandler->GetShaderModificationRepository()->ReplaceShaderCode(pActualVShader, shaderReplacementCode))
+	{
+		ID3DXBuffer *pBuffer = NULL;
+		ProxyHelper ph;
+		std::string shaderCodeFilename = ph.GetBaseDir() + std::string("shader_replacements\\") + shaderReplacementCode;
+		OutputDebugString(("ReplaceShaderCode: " + shaderCodeFilename).c_str());
+		HRESULT hr = D3DXAssembleShaderFromFile(shaderCodeFilename.c_str(), NULL, NULL, 0, &pBuffer, NULL);
+		if (FAILED(hr))
+		{
+			OutputDebugString("ReplaceShaderCode - FAILED - Using original Shader");
+		}
+		else
+		{
+			pActualVShader->Release();
+			pActualVShader = NULL;
+			creationResult = BaseDirect3DDevice9::CreateVertexShader((const DWORD*)pBuffer->GetBufferPointer(), &pActualVShader);
+		}
+	}
+
 	if (SUCCEEDED(creationResult)) {
 		*ppShader = new D3D9ProxyVertexShader(pActualVShader, this, m_pGameHandler->GetShaderModificationRepository());
+	}
+	else
+	{
+		OutputDebugString("Failed to create the vertex shader!");
 	}
 
 	return creationResult;
@@ -3807,8 +3834,6 @@ void D3DProxyDevice::HandleTracking()
 				break;
 			}
 
-			m_spShaderViewAdjustment->UpdatePitchYaw(tracker->primaryPitch, tracker->primaryYaw);
-
 			if (m_bPosTrackingToggle && tracker->getStatus() != MTS_LOSTPOSITIONAL
 				&& !m_bSurpressPositionaltracking)
 			{
@@ -4791,12 +4816,6 @@ void D3DProxyDevice::ChangeGUI3DDepthMode(GUI_3D_Depth_Modes newMode)
 
 	m_spShaderViewAdjustment->ChangeGUISquash(guiSquishPresets[(int)newMode]);
 	m_spShaderViewAdjustment->ChangeGUI3DDepth(gui3DDepthPresets[(int)newMode]);
-
-	//Removed this as see no reason for it and it buggers up quite a few games dependant on shaders
-	/*if (newMode == GUI_3D_Depth_Modes::GUI_FULL)
-		m_spShaderViewAdjustment->SetBulletLabyrinthMode(true);
-	else*/
-	m_spShaderViewAdjustment->SetBulletLabyrinthMode(false);
 }
 
 /**

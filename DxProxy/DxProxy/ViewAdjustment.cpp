@@ -41,7 +41,6 @@ ViewAdjustment::ViewAdjustment(HMDisplayInfo *displayInfo, float metersToWorldUn
 	metersToWorldMultiplier(metersToWorldUnits),
 	rollImpl(roll),
 	m_roll(0.0f),
-	bulletLabyrinth(false),
 	x_scaler(2.0f),
 	y_scaler(2.5f),
 	z_scaler(0.5f)
@@ -183,15 +182,6 @@ void ViewAdjustment::UpdateProjectionMatrices(float aspectRatio)
 	// now, create the re-projection matrices for both eyes using this frustum asymmetry
 	D3DXMatrixPerspectiveOffCenterLH(&projectLeft, l+frustumAsymmetryLeft, r+frustumAsymmetryLeft, b, t, n, f);
 	D3DXMatrixPerspectiveOffCenterLH(&projectRight, l+frustumAsymmetryRight, r+frustumAsymmetryRight, b, t, n, f);
-}
-
-/**
-* Updates the current pitch and yaw head movement.
-***/
-void ViewAdjustment::UpdatePitchYaw(float pitch, float yaw)
-{
-	// bullet labyrinth matrix
-	D3DXMatrixTranslation(&matBulletLabyrinth, -yaw, pitch, 0.0f);
 }
 
 /**
@@ -539,14 +529,6 @@ D3DXMATRIX ViewAdjustment::RightGUI3DDepth()
 }
 
 /**
-* Returns the current bullet labyrinth matrix.
-***/
-D3DXMATRIX ViewAdjustment::BulletLabyrinth()
-{
-	return matBulletLabyrinth;
-}
-
-/**
 * Returns the current left gathered matrix.
 ***/
 D3DXMATRIX ViewAdjustment::GatheredMatrixLeft()
@@ -647,22 +629,6 @@ void ViewAdjustment::ChangeHUD3DDepth(float newHud3DDepth)
 	float additionalSeparation = (1.5f-hudDistance)*hmdInfo->GetLensXCenterOffset();
 	D3DXMatrixTranslation(&matLeftHud3DDepthShifted, hud3DDepth+additionalSeparation, 0, 0);
 	D3DXMatrixTranslation(&matRightHud3DDepthShifted, -hud3DDepth-additionalSeparation, 0, 0);
-}
-
-/**
-* Set to true if orthographical matrices should be rotated in a bullet labyrinth style.
-***/
-void ViewAdjustment::SetBulletLabyrinthMode(bool newMode)
-{
-	bulletLabyrinth = newMode;
-}
-
-/**
-* True if bullet-labyrinth mode is on.
-***/
-bool ViewAdjustment::BulletLabyrinthMode()
-{
-	return bulletLabyrinth;
 }
 
 /**

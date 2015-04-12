@@ -86,24 +86,9 @@ public:
 			}
 			else // GUI
 			{
-				if (m_spAdjustmentMatrices->BulletLabyrinthMode())
-				{
-					D3DXMATRIX tempMatrix;
-					D3DXMatrixTranspose(&tempMatrix, &in);
-					tempMatrix = m_spAdjustmentMatrices->BulletLabyrinth() * tempMatrix;
-					D3DXMatrixTranspose(&tempMatrix, &tempMatrix);
-
-					outLeft = tempMatrix * m_spAdjustmentMatrices->LeftGUIMatrix();
-					outright = tempMatrix * m_spAdjustmentMatrices->RightGUIMatrix();
-				
-					// SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
-				}
-				else
-				{
-					// simple squash
-					outLeft = in *  m_spAdjustmentMatrices->LeftGUIMatrix();
-					outright = in * m_spAdjustmentMatrices->RightGUIMatrix();
-				}
+				// simple squash
+				outLeft = in *  m_spAdjustmentMatrices->LeftGUIMatrix();
+				outright = in * m_spAdjustmentMatrices->RightGUIMatrix();
 			}
 		}
 		else {

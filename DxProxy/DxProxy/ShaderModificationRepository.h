@@ -68,6 +68,7 @@ public:
 	bool										SquishViewportForShader(IDirect3DVertexShader9* pActualVertexShader);
 	bool										DoNotDrawShader(IDirect3DVertexShader9* pActualVertexShader);
 	bool										DoNotDrawShader(IDirect3DPixelShader9* pActualPixelShader);
+	bool										ReplaceShaderCode(IDirect3DVertexShader9* pActualVertexShader, std::string &shaderReplacementCode);
 	UINT                                        GetUniqueRuleID();
 	bool                                        ConstantHasRule(std::string constantName, std::string& constantRule, UINT& operation, bool& isTransposed);
 
@@ -242,5 +243,9 @@ private:
 	* Vector of shader hash identifiers of shaders that should never be drawn.
 	***/
 	std::vector<uint32_t> m_doNotDrawShaderIDs;
+	/**
+	* map of shader hash identifiers of shaders that should have their shader code replaced, and the filename of the replacement code
+	***/
+	std::unordered_map<UINT, std::string> m_replaceShaderCode;
 };
 #endif

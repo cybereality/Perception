@@ -50,9 +50,6 @@
     <Filter Include="HMDisplayInfo">
       <UniqueIdentifier>{a6984bac-c136-41ca-be60-21017e230f65}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Instructions">
-      <UniqueIdentifier>{92c90211-acba-45e4-ba88-ea8ccba4391a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="img">
       <UniqueIdentifier>{061e0ca2-ece4-4d44-b466-730bc0e3b486}</UniqueIdentifier>
     </Filter>
@@ -224,9 +221,6 @@
     <None Include="Exports.def">
       <Filter>Main</Filter>
     </None>
-    <None Include="SideBySideRiftPartialCrop.fx">
-      <Filter>fx</Filter>
-    </None>
     <None Include="..\..\Release\Perception\cfg\shader_rules\source.xml">
       <Filter>cfg\shader_rules</Filter>
     </None>
@@ -247,9 +241,6 @@
     </None>
     <None Include="..\..\Release\Perception\cfg\shader_rules\omd2.xml">
       <Filter>cfg\shader_rules</Filter>
-    </None>
-    <None Include="..\..\Release\Perception\instructions\Vireio Perception Manual and Game Support LIst.docx">
-      <Filter>Instructions</Filter>
     </None>
     <None Include="..\..\Release\Perception\cfg\shader_rules\brassa.cfg">
       <Filter>cfg\shader_rules</Filter>

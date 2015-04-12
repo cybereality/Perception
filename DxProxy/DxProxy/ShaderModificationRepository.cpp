@@ -149,9 +149,11 @@ bool ShaderModificationRepository::LoadRules(std::string rulesPath)
 
 			bool doNotDraw = shader.attribute("doNotDraw").as_bool(false);
 			if (doNotDraw)
-			{
 				m_doNotDrawShaderIDs.push_back(hash);
-			}
+
+			std::string replaceShaderCode = shader.attribute("replaceShaderCode").as_string();
+			if (replaceShaderCode.length())
+				m_replaceShaderCode[hash] = replaceShaderCode;
 			
 
 			std::vector<UINT> shaderRules;
@@ -257,6 +259,11 @@ bool ShaderModificationRepository::SaveRules(std::string rulesPath)
 			if(std::find(m_doNotDrawShaderIDs.begin(), m_doNotDrawShaderIDs.end(), hash)!=m_doNotDrawShaderIDs.end()){
 				// set id attribute
 				shader.append_attribute("doNotDraw") = true;
+			}
+
+			if(m_replaceShaderCode.find(hash) != m_replaceShaderCode.end()){
+				// set id attribute
+				shader.append_attribute("replaceShaderCode") = m_replaceShaderCode[hash].c_str();
 			}
 
 			// save ids
@@ -883,6 +890,36 @@ bool ShaderModificationRepository::DoNotDrawShader(IDirect3DVertexShader9* pActu
 
 	// found
 	if (i != m_doNotDrawShaderIDs.end()) {
+		return true;
+	} 
+
+	return false;
+}
+
+/**
+* Returns true if shader code should be replaced - only available for vertex shaders at the moment
+***/
+bool ShaderModificationRepository::ReplaceShaderCode(IDirect3DVertexShader9* pActualVertexShader, std::string &shaderReplacementCode)
+{
+	// Hash the shader
+	BYTE *pData = NULL;
+	UINT pSizeOfData;
+
+	pActualVertexShader->GetFunction(NULL, &pSizeOfData);
+	pData = new BYTE[pSizeOfData];
+	pActualVertexShader->GetFunction(pData,&pSizeOfData);
+
+	uint32_t hash;
+	MurmurHash3_x86_32(pData, pSizeOfData, VIREIO_SEED, &hash);
+
+	delete[] pData;
+
+	// find hash
+	auto i = m_replaceShaderCode.find(hash);
+
+	// found
+	if (i != m_replaceShaderCode.end()) {
+		shaderReplacementCode = m_replaceShaderCode[hash];
 		return true;
 	} 
 

@@ -122,6 +122,9 @@
     <PreBuildEvent>
       <Message>Copy libfreespace.dll from the libfreespace SDK</Message>
     </PreBuildEvent>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>$(IntDir)</AdditionalIncludeDirectories>
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -149,6 +152,9 @@
     <PreBuildEvent>
       <Message>Copy libfreespace.dll from the libfreespace SDK</Message>
     </PreBuildEvent>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>$(IntDir)</AdditionalIncludeDirectories>
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -178,6 +184,9 @@
       <Command>xcopy "$(FREESPACE)\lib\*.dll" "$(SolutionDir)$(Configuration)\Perception\bin\" /Y</Command>
       <Message>Copy libfreespace.dll from the libfreespace SDK</Message>
     </PreBuildEvent>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>$(IntDir)</AdditionalIncludeDirectories>
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -209,6 +218,9 @@
       <Message>
       </Message>
     </PreBuildEvent>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>$(IntDir)</AdditionalIncludeDirectories>
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="D3D9ProxyCubeTexture.cpp" />
@@ -519,9 +531,7 @@
     <None Include="..\..\Release\Perception\cfg\shader_rules\unreal.xml">
       <SubType>Designer</SubType>
     </None>
-    <None Include="..\..\Release\Perception\instructions\Vireio Perception Manual and Game Support LIst.docx" />
     <None Include="Exports.def" />
-    <None Include="SideBySideRiftPartialCrop.fx" />
   </ItemGroup>
   <ItemGroup>
     <Xml Include="..\..\Release\Perception\cfg\shader_rules\Bioshock2.xml" />

@@ -92,24 +92,9 @@ public:
 			}
 			else // GUI
 			{
-				if (m_spAdjustmentMatrices->BulletLabyrinthMode())
-				{
-					D3DXMATRIX tempMatrix;
-					D3DXMatrixTranspose(&tempMatrix, &in);
-					tempMatrix = m_spAdjustmentMatrices->BulletLabyrinth() * tempMatrix;
-					D3DXMatrixTranspose(&tempMatrix, &tempMatrix);
-
-					outLeft = tempMatrix * m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->LeftGUI3DDepth() * m_spAdjustmentMatrices->Squash() * m_spAdjustmentMatrices->Projection();
-					outright = tempMatrix * m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->RightGUI3DDepth() * m_spAdjustmentMatrices->Squash() * m_spAdjustmentMatrices->Projection();
-				
-					// SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
-				}
-				else
-				{
-					// simple squash
-					outLeft = in * m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->LeftGUI3DDepth() * m_spAdjustmentMatrices->Squash() * m_spAdjustmentMatrices->Projection();
-					outright = in * m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->RightGUI3DDepth() * m_spAdjustmentMatrices->Squash() * m_spAdjustmentMatrices->Projection();
-				}
+				// simple squash
+				outLeft = in * m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->LeftGUI3DDepth() * m_spAdjustmentMatrices->Squash() * m_spAdjustmentMatrices->Projection();
+				outright = in * m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->RightGUI3DDepth() * m_spAdjustmentMatrices->Squash() * m_spAdjustmentMatrices->Projection();
 			}
 		}
 		else {

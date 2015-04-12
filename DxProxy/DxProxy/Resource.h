@@ -1,3 +1,1 @@
-#define IDB_IMAGE 1
-
-
+#define IDB_IMAGE			1
