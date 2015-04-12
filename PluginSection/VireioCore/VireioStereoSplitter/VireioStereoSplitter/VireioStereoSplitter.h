@@ -127,7 +127,30 @@ private:
 	* Active stored render targets.
 	* The render targets that are currently in use.
 	***/
-	std::vector<IDirect3DSurface9*> m_pcActiveRenderTargets;
+	std::vector<IDirect3DSurface9*> m_apcActiveRenderTargets;
+	/**
+	* Monitored stored render targets.
+	* The render targets that are currently watched or monitored.
+	* These render targets have been used for the last period of 
+	* frames.
+	***/
+	std::vector<IDirect3DSurface9*> m_apcMonitoredRenderTargets;
+	/**
+	* Monitored render targets check time counter.
+	* Each index of the vector array represents the frame counter
+	* the render target stored in m_pcMonitoredRenderTargets will
+	* be watched. If this render target is in use again this counter 
+	* will be set to the check time counter constant set in 
+	* m_nChecktimeFrameConstant.
+	***/
+	std::vector<int> m_anMonitoredRenderTargetsCheckTimeCounter;
+	/**
+	* Monitored render target check time constant (in frames).
+	* Time (in frames) any render target will be (at least) monitored.
+	* If any render target is set again, its check time counter
+	* will be resetted to this value.
+	***/
+	int m_nChecktimeFrameConstant;
 	/**
 	* The control bitmap.
 	***/

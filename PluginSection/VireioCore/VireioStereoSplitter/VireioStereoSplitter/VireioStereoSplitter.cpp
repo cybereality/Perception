@@ -53,10 +53,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * Constructor.
 ***/
 StereoSplitter::StereoSplitter():AQU_Nodus(),
+	m_pdwRenderTargetIndex(nullptr),
+	m_ppcRenderTarget(nullptr),
 	m_hBitmapControl(nullptr),
 	m_bControlUpdate(false),
 	m_hFont(nullptr),
-	m_pcActiveRenderTargets(0, NULL)
+	m_apcActiveRenderTargets(0, nullptr),
+	m_apcMonitoredRenderTargets(0, nullptr),
+	m_anMonitoredRenderTargetsCheckTimeCounter(0, 0),
+	m_nChecktimeFrameConstant(30)                           /**< Set this constant to 30 frames, later we should be able to change this value on the node. ***/
 {
 }
 
@@ -114,7 +119,7 @@ HBITMAP StereoSplitter::GetControl()
 		// create bitmap, set control update to true
 		HWND hwnd = GetActiveWindow();
 		HDC hdc = GetDC(hwnd);
-		m_hBitmapControl = CreateCompatibleBitmap(hdc, 1024, 1980);
+		m_hBitmapControl = CreateCompatibleBitmap(hdc, 1024, 2200);
 		if (!m_hBitmapControl)
 			OutputDebugString(L"Failed to create bitmap!");
 		m_bControlUpdate = true;
@@ -129,7 +134,7 @@ HBITMAP StereoSplitter::GetControl()
 
 		// clear the background
 		RECT rc;
-		SetRect(&rc, 0, 0, 1024, 1980);
+		SetRect(&rc, 0, 0, 1024, 2200);
 		FillRect(hdcImage, &rc, (HBRUSH)CreateSolidBrush(RGB(160, 160, 200)));
 
 		// create font
@@ -176,10 +181,23 @@ HBITMAP StereoSplitter::GetControl()
 			TextOut(hdcImage, 50, nY, L"pVertexStreamZeroDataIndexed", 28); nY+=64;
 			TextOut(hdcImage, 50, nY, L"VertexStreamZeroStrideIndexed", 29); nY+=128;
 
+			// output maximum simultanous render targets
 			TextOut(hdcImage, 50, nY, L"Max Render Targets : ", 21);
-			wsprintf(szBuffer, L"%u", (UINT)m_pcActiveRenderTargets.size());
+			wsprintf(szBuffer, L"%u", (UINT)m_apcActiveRenderTargets.size());
 			int nLen = (int)wcslen(szBuffer); if (nLen > 11) nLen = 11;
-			TextOut(hdcImage, 550, nY, szBuffer, nLen); nY+=64;
+			TextOut(hdcImage, 650, nY, szBuffer, nLen); nY+=64;
+
+			// output the number of currently monitored render targets
+			TextOut(hdcImage, 50, nY, L"Monitored Render Targets : ", 27);
+			wsprintf(szBuffer, L"%u", (UINT)m_apcMonitoredRenderTargets.size());
+			nLen = (int)wcslen(szBuffer); if (nLen > 11) nLen = 11;
+			TextOut(hdcImage, 650, nY, szBuffer, nLen); nY+=64;
+
+			// output the number of check time counters - this number should match monitored render targets number
+			TextOut(hdcImage, 50, nY, L"Check Time Counters : ", 22);
+			wsprintf(szBuffer, L"%u", (UINT)m_anMonitoredRenderTargetsCheckTimeCounter.size());
+			nLen = (int)wcslen(szBuffer); if (nLen > 11) nLen = 11;
+			TextOut(hdcImage, 650, nY, szBuffer, nLen); nY+=64;
 
 			// Restore the original font.        
 			SelectObject(hdcImage, hOldFont); 
@@ -419,20 +437,91 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 void StereoSplitter::SetRenderTarget(LPDIRECT3DDEVICE9 pcDevice)
 {
 	// get data
-	DWORD dwRenderTargetIndex;
-	if (m_pdwRenderTargetIndex) dwRenderTargetIndex = *m_pdwRenderTargetIndex;
-	IDirect3DSurface9* pcRenderTarget;
-	if (m_ppcRenderTarget) pcRenderTarget = *m_ppcRenderTarget;
+	DWORD dwRenderTargetIndex = 0;
+	if (m_pdwRenderTargetIndex) dwRenderTargetIndex = *m_pdwRenderTargetIndex; else return;
+	IDirect3DSurface9* pcRenderTarget = nullptr;
+	if (m_ppcRenderTarget) pcRenderTarget = *m_ppcRenderTarget; else return;
 
 	// Check the maximum number of supported render targets
-	if (m_pcActiveRenderTargets.size() == 0)
+	if (m_apcActiveRenderTargets.size() == 0)
 	{
 		D3DCAPS9 sCapabilities;
 		pcDevice->GetDeviceCaps(&sCapabilities);
 		DWORD dwMaxRenderTargets = sCapabilities.NumSimultaneousRTs;
-		m_pcActiveRenderTargets.resize(dwMaxRenderTargets, NULL);
+		m_apcActiveRenderTargets.resize(dwMaxRenderTargets, NULL);
 
 		// set control update
 		m_bControlUpdate = true;
+	}
+
+	// set the render target internally
+	if (dwRenderTargetIndex < (DWORD)m_apcActiveRenderTargets.size())
+	{
+		// original vireio code, instable !!!
+		// release old render target
+		/*if (m_apcActiveRenderTargets[dwRenderTargetIndex] != NULL)
+		m_apcActiveRenderTargets[dwRenderTargetIndex]->Release();
+
+		// replace with new render target (may be NULL)
+		m_apcActiveRenderTargets[dwRenderTargetIndex] = pcRenderTarget;
+		if (m_apcActiveRenderTargets[dwRenderTargetIndex] != NULL)
+		m_apcActiveRenderTargets[dwRenderTargetIndex]->AddRef();*/
+
+		// so, here we just set the render target :
+		m_apcActiveRenderTargets[dwRenderTargetIndex] = pcRenderTarget;
+
+	}
+
+	// return if NULL
+	if (!pcRenderTarget) return;
+
+	// check wether this render target is actually monitored
+	{
+		auto it = std::find(m_apcMonitoredRenderTargets.begin(), m_apcMonitoredRenderTargets.end(), pcRenderTarget);
+		if(it != m_apcMonitoredRenderTargets.end()) 
+		{
+			// set check time counter if this render target is actually monitored
+			auto index = it - m_apcMonitoredRenderTargets.begin();
+			if (m_anMonitoredRenderTargetsCheckTimeCounter.size() > (size_t)index)
+			{
+				m_anMonitoredRenderTargetsCheckTimeCounter[index] = m_nChecktimeFrameConstant;
+			}
+		} 
+		else 
+		{
+			// add new render target + check time frame constant
+			m_apcMonitoredRenderTargets.push_back(pcRenderTarget);
+			m_anMonitoredRenderTargetsCheckTimeCounter.push_back(m_nChecktimeFrameConstant);
+		}
+	}
+
+	// loop through check time vector, decrease check time counter for each render target.. TODO !! MOVE TO Present() CALL !!
+	{
+		int nIndex = 0;
+		auto it = m_anMonitoredRenderTargetsCheckTimeCounter.begin();
+		while (it < m_anMonitoredRenderTargetsCheckTimeCounter.end())
+		{
+			// decrease counter
+			auto i = *it; i--; *it = i;
+
+			// remove render target (+counter) from list if counter <= zero
+			if (*it <= 0)
+			{
+				// erase render target iterator
+				m_apcMonitoredRenderTargets.erase(m_apcMonitoredRenderTargets.begin() + nIndex);
+
+				// erase check time counter
+				m_anMonitoredRenderTargetsCheckTimeCounter.erase(it);
+
+				// increase index
+				nIndex++;
+
+				// end loop
+				it = m_anMonitoredRenderTargetsCheckTimeCounter.end();
+			}
+			else
+				// increase iterator
+				it++;			
+		}
 	}
 }
