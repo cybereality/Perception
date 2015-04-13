@@ -19,12 +19,26 @@
 			<Comparisons>
 				<Compare type="Between">
 					<MinValue>-1.225</MinValue>
-					<MaxValue>-0.005</MaxValue>
+					<MaxValue>0.0</MaxValue>
 				</Compare>
 			</Comparisons>
 		</ScanRule>
-
-		<!-- Couple of extra addresses that contain fixed values to help find the FOV -->
+  
+		<ScanRule>
+			<AxisName>NoAxis</AxisName>
+			<AddressType>DWORD</AddressType>
+			<ModificationToApply>FloatDoNothing</ModificationToApply>
+			<BaseAddressOffset>00000004</BaseAddressOffset>
+			<CheckForChanges>NoChange</CheckForChanges>
+			<Comparisons>
+				<Compare type="BetweenIncl">
+					<!-- Some arbitrary number -->
+					<MinValue>00000000</MinValue>
+					<MaxValue>0000FFFF</MaxValue>
+				</Compare>
+			</Comparisons>
+		</ScanRule>
+		
 		<ScanRule>
 			<AxisName>TrackerYaw</AxisName>
 			<AddressType>Float</AddressType>
@@ -34,10 +48,10 @@
 			<Comparisons>
 				<Compare type="Between">
 					<MinValue>-3.142</MinValue>
-					<MaxValue>0.0001</MaxValue>
+					<MaxValue>0.0</MaxValue>
 				</Compare>
 				<Compare type="Between">
-					<MinValue>0.0001</MinValue>
+					<MinValue>0.0</MinValue>
 					<MaxValue>3.142</MaxValue>
 				</Compare>
 			</Comparisons>
@@ -48,19 +62,6 @@
 			<AddressType>Float</AddressType>
 			<ModificationToApply>FloatDoNothing</ModificationToApply>
 			<BaseAddressOffset>00000010</BaseAddressOffset>
-			<CheckForChanges>NoChange</CheckForChanges>
-			<Comparisons>
-				<Compare type="Equal">
-					<MinValue>0.0</MinValue>
-				</Compare>
-			</Comparisons>
-		</ScanRule>
-	
-		<ScanRule>
-			<AxisName>NoAxis</AxisName>
-			<AddressType>Float</AddressType>
-			<ModificationToApply>FloatDoNothing</ModificationToApply>
-			<BaseAddressOffset>00000014</BaseAddressOffset>
 			<CheckForChanges>NoChange</CheckForChanges>
 			<Comparisons>
 				<Compare type="Equal">
