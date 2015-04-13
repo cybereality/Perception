@@ -120,7 +120,6 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 	}  
 
 	// Chromatic Aberation Correction using coefs from SDK.
-	
 	tcBlue = HmdWarp(newPos, float2(Chroma.z, Chroma.w));
 	tcBlue = rotatePoint(angle, tcBlue);
 	if (Tex.x > 0.5f)
@@ -137,43 +136,42 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 	if (any(clamp(tcBlue.xy, float2(0.0,0.0), float2(1.0, 1.0)) - tcBlue.xy))
 		return 0;
 
+	// Chromatic Aberation Correction using coefs from SDK.
 	tcRed = HmdWarp(newPos, float2(Chroma.x, Chroma.y));
-	tcRed = ScalePoint(ZoomScale, tcRed);
 	tcRed = rotatePoint(angle, tcRed);
-
-	tcGreen = HmdWarp(newPos, float2(0.0f, 0.0f));
-	tcGreen = ScalePoint(ZoomScale, tcGreen);
-	tcGreen = rotatePoint(angle, tcGreen);
-
 	if (Tex.x > 0.5f)
 	{
 		// unmirror the right-eye coords
 		tcRed.x = 1 - tcRed.x;
-		tcGreen.x = 1 - tcGreen.x;
-		//tcBlue.x = 1 - tcBlue.x;
-	}
-
-	/*tcRed.x = tcRed.x - ViewportXOffset;
-	tcGreen.x = tcGreen.x - ViewportXOffset;
-	tcBlue.x = tcBlue.x - ViewportXOffset;
-
+	}	
+	tcRed.x = tcRed.x - ViewportXOffset;
 	tcRed.y = tcRed.y - ViewportYOffset;
+	tcRed = ScalePoint(ZoomScale, tcRed);	
+
+	tcGreen = HmdWarp(newPos, float2(0.0f, 0.0f));
+	tcGreen = rotatePoint(angle, tcGreen);
+	if (Tex.x > 0.5f)
+	{
+		// unmirror the right-eye coords
+		tcGreen.x = 1 - tcGreen.x;
+	}	
+	tcGreen.x = tcGreen.x - ViewportXOffset;
 	tcGreen.y = tcGreen.y - ViewportYOffset;
-	tcBlue.y = tcBlue.y - ViewportYOffset;*/
+	tcGreen = ScalePoint(ZoomScale, tcGreen);	
 
 	if (any(clamp(tcBlue.xy, float2(0.0,0.0), float2(1.0, 1.0)) - tcBlue.xy))
 		return 0;
 
 	if (Tex.x > 0.5f)
 	{
-		outColor.r =  tex2D(TexMap1,   tcBlue.xy).r;
-		outColor.g =  tex2D(TexMap1, tcBlue.xy).g;
+		outColor.r =  tex2D(TexMap1,   tcRed.xy).r;
+		outColor.g =  tex2D(TexMap1, tcGreen.xy).g;
 		outColor.b =  tex2D(TexMap1,  tcBlue.xy).b;
 	}
 	else
 	{
-		outColor.r =  tex2D(TexMap0,   tcBlue.xy).r;
-		outColor.g =  tex2D(TexMap0, tcBlue.xy).g;
+		outColor.r =  tex2D(TexMap0,   tcRed.xy).r;
+		outColor.g =  tex2D(TexMap0, tcGreen.xy).g;
 		outColor.b =  tex2D(TexMap0,  tcBlue.xy).b;
 	}	
 
