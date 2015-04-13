@@ -61,6 +61,8 @@ StereoSplitter::StereoSplitter():AQU_Nodus(),
 	m_apcActiveRenderTargets(0, nullptr),
 	m_apcMonitoredRenderTargets(0, nullptr),
 	m_anMonitoredRenderTargetsCheckTimeCounter(0, 0),
+	m_dwMaxRenderTargets(0),
+	m_bMaxRenderTargets(false),
 	m_nChecktimeFrameConstant(30)                           /**< Set this constant to 30 frames, later we should be able to change this value on the node. ***/
 {
 }
@@ -183,7 +185,7 @@ HBITMAP StereoSplitter::GetControl()
 
 			// output maximum simultanous render targets
 			TextOut(hdcImage, 50, nY, L"Max Render Targets : ", 21);
-			wsprintf(szBuffer, L"%u", (UINT)m_apcActiveRenderTargets.size());
+			wsprintf(szBuffer, L"%u", (UINT)m_dwMaxRenderTargets);
 			int nLen = (int)wcslen(szBuffer); if (nLen > 11) nLen = 11;
 			TextOut(hdcImage, 650, nY, szBuffer, nLen); nY+=64;
 
@@ -401,10 +403,26 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			switch(eD3DMethod)
 			{
 			case METHOD_IDIRECT3DDEVICE9_PRESENT:
+				Present((LPDIRECT3DDEVICE9)pThis);
 				return nullptr;
 			case METHOD_IDIRECT3DDEVICE9_SETRENDERTARGET:
-				SetRenderTarget((LPDIRECT3DDEVICE9)pThis);
-				return nullptr;
+				{
+					// get data
+					DWORD dwRenderTargetIndex = 0;
+					if (m_pdwRenderTargetIndex) 
+						dwRenderTargetIndex = *m_pdwRenderTargetIndex; 
+					else 
+						return nullptr;
+					IDirect3DSurface9* pcRenderTarget = nullptr;
+					if (m_ppcRenderTarget) 
+						pcRenderTarget = (IDirect3DSurface9*)*m_ppcRenderTarget; 
+					else
+						return nullptr;
+
+					// call method
+					SetRenderTarget((LPDIRECT3DDEVICE9)pThis, dwRenderTargetIndex, pcRenderTarget);
+					return nullptr;
+				}
 			case METHOD_IDIRECT3DDEVICE9_SETDEPTHSTENCILSURFACE:
 				return nullptr;
 			case METHOD_IDIRECT3DDEVICE9_SETTEXTURE:
@@ -432,70 +450,29 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 }
 
 /**
-* Incoming SetRenderTarget() call.
-***/ 
-void StereoSplitter::SetRenderTarget(LPDIRECT3DDEVICE9 pcDevice)
+* Incoming Present() call.
+* Handle the check time counter.
+***/
+void StereoSplitter::Present(IDirect3DDevice9* pcDevice)
 {
-	// get data
-	DWORD dwRenderTargetIndex = 0;
-	if (m_pdwRenderTargetIndex) dwRenderTargetIndex = *m_pdwRenderTargetIndex; else return;
-	IDirect3DSurface9* pcRenderTarget = nullptr;
-	if (m_ppcRenderTarget) pcRenderTarget = *m_ppcRenderTarget; else return;
-
 	// Check the maximum number of supported render targets
-	if (m_apcActiveRenderTargets.size() == 0)
+	if (m_dwMaxRenderTargets == 0)
 	{
 		D3DCAPS9 sCapabilities;
 		pcDevice->GetDeviceCaps(&sCapabilities);
-		DWORD dwMaxRenderTargets = sCapabilities.NumSimultaneousRTs;
-		m_apcActiveRenderTargets.resize(dwMaxRenderTargets, NULL);
+		m_dwMaxRenderTargets = sCapabilities.NumSimultaneousRTs;
+	}
 
-		// set control update
+	// validate active render targets vector here
+	if (m_dwMaxRenderTargets != m_apcActiveRenderTargets.size())
+	{
+		m_apcActiveRenderTargets.resize(m_dwMaxRenderTargets, NULL);
 		m_bControlUpdate = true;
+		if (m_dwMaxRenderTargets == m_apcActiveRenderTargets.size())
+			m_bMaxRenderTargets = true;
 	}
 
-	// set the render target internally
-	if (dwRenderTargetIndex < (DWORD)m_apcActiveRenderTargets.size())
-	{
-		// original vireio code, instable !!!
-		// release old render target
-		/*if (m_apcActiveRenderTargets[dwRenderTargetIndex] != NULL)
-		m_apcActiveRenderTargets[dwRenderTargetIndex]->Release();
-
-		// replace with new render target (may be NULL)
-		m_apcActiveRenderTargets[dwRenderTargetIndex] = pcRenderTarget;
-		if (m_apcActiveRenderTargets[dwRenderTargetIndex] != NULL)
-		m_apcActiveRenderTargets[dwRenderTargetIndex]->AddRef();*/
-
-		// so, here we just set the render target :
-		m_apcActiveRenderTargets[dwRenderTargetIndex] = pcRenderTarget;
-
-	}
-
-	// return if NULL
-	if (!pcRenderTarget) return;
-
-	// check wether this render target is actually monitored
-	{
-		auto it = std::find(m_apcMonitoredRenderTargets.begin(), m_apcMonitoredRenderTargets.end(), pcRenderTarget);
-		if(it != m_apcMonitoredRenderTargets.end()) 
-		{
-			// set check time counter if this render target is actually monitored
-			auto index = it - m_apcMonitoredRenderTargets.begin();
-			if (m_anMonitoredRenderTargetsCheckTimeCounter.size() > (size_t)index)
-			{
-				m_anMonitoredRenderTargetsCheckTimeCounter[index] = m_nChecktimeFrameConstant;
-			}
-		} 
-		else 
-		{
-			// add new render target + check time frame constant
-			m_apcMonitoredRenderTargets.push_back(pcRenderTarget);
-			m_anMonitoredRenderTargetsCheckTimeCounter.push_back(m_nChecktimeFrameConstant);
-		}
-	}
-
-	// loop through check time vector, decrease check time counter for each render target.. TODO !! MOVE TO Present() CALL !!
+	// loop through check time vector, decrease check time counter for each render target.. 
 	{
 		int nIndex = 0;
 		auto it = m_anMonitoredRenderTargetsCheckTimeCounter.begin();
@@ -525,3 +502,89 @@ void StereoSplitter::SetRenderTarget(LPDIRECT3DDEVICE9 pcDevice)
 		}
 	}
 }
+
+/**
+* Incoming SetRenderTarget() call.
+* Set render targets internally, handle render target monitoring.
+***/ 
+void StereoSplitter::SetRenderTarget(IDirect3DDevice9* pcDevice, DWORD dwRenderTargetIndex,IDirect3DSurface9* pcRenderTarget)
+{	
+	// set the render target internally
+	if ((dwRenderTargetIndex < m_dwMaxRenderTargets) && (m_bMaxRenderTargets))
+	{
+		// set NULL manually, otherwise just set the render target :
+		if (!pcRenderTarget) 
+			m_apcActiveRenderTargets[dwRenderTargetIndex] = NULL;
+		else			
+			m_apcActiveRenderTargets[dwRenderTargetIndex] = pcRenderTarget;
+	}
+
+	// return if NULL
+	if (!pcRenderTarget) return;
+
+	// check wether this render target is actually monitored
+	{
+		auto it = std::find(m_apcMonitoredRenderTargets.begin(), m_apcMonitoredRenderTargets.end(), pcRenderTarget);
+		if(it != m_apcMonitoredRenderTargets.end()) 
+		{
+			// set check time counter if this render target is actually monitored
+			auto index = it - m_apcMonitoredRenderTargets.begin();
+			if (m_anMonitoredRenderTargetsCheckTimeCounter.size() > (size_t)index)
+			{
+				m_anMonitoredRenderTargetsCheckTimeCounter[index] = m_nChecktimeFrameConstant;
+			}
+		} 
+		else 
+		{
+			// add new render target + check time frame constant
+			m_apcMonitoredRenderTargets.push_back(pcRenderTarget);
+			m_anMonitoredRenderTargetsCheckTimeCounter.push_back(m_nChecktimeFrameConstant);
+
+			// update control
+			m_bControlUpdate = true;
+		}
+	}
+}
+
+/**
+* Incoming SetDepthStencilSurface() call.
+***/
+void StereoSplitter::SetDepthStencilSurface(IDirect3DDevice9* pcDevice, IDirect3DSurface9* pNewZStencil)
+{
+}
+
+/**
+* Incoming SetTexture() call.
+***/
+void StereoSplitter::SetTexture(IDirect3DDevice9* pcDevice, DWORD Stage,IDirect3DBaseTexture9* pTexture)
+{
+}
+
+/**
+* Incoming DrawPrimitive() call.
+***/
+void StereoSplitter::DrawPrimitive(IDirect3DDevice9* pcDevice, D3DPRIMITIVETYPE ePrimitiveType, UINT dwStartVertex, UINT dwPrimitiveCount)
+{
+}
+
+/**
+* Incoming DrawIndexedPrimitive() call.
+***/
+void StereoSplitter::DrawIndexedPrimitive(IDirect3DDevice9* pcDevice, D3DPRIMITIVETYPE ePrimitiveType, INT nBaseVertexIndex, UINT dwMinVertexIndex, UINT dwNumVertices, UINT dwStartIndex, UINT dwPrimCount)
+{
+}
+
+/**
+* Incoming DrawPrimitiveUP() call.
+***/
+void StereoSplitter::DrawPrimitiveUP(IDirect3DDevice9* pcDevice, D3DPRIMITIVETYPE ePrimitiveType, UINT dwPrimitiveCount, CONST void* pVertexStreamZeroData, UINT dwVertexStreamZeroStride)
+{
+}
+
+/**
+* Incoming DrawIndexedPrimitiveUP() call.
+***/
+void StereoSplitter::DrawIndexedPrimitiveUP(IDirect3DDevice9* pcDevice, D3DPRIMITIVETYPE ePrimitiveType, UINT dwMinVertexIndex, UINT dwNumVertices, UINT dwPrimitiveCount, CONST void* pIndexData, D3DFORMAT eIndexDataFormat, CONST void* pVertexStreamZeroData, UINT dwVertexStreamZeroStride)
+{
+}
+

@@ -114,8 +114,17 @@ public:
 	virtual void*           Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex);
 
 private:
-	/*** StereoSplitter private methods ***/
-	void                    SetRenderTarget(LPDIRECT3DDEVICE9 pcDevice);
+	/*** StereoSplitter private D3D9 stub methods ***/
+	void                    Present(IDirect3DDevice9* pcDevice);
+
+	/*** StereoSplitter private D3D9 methods ***/
+	void                    SetRenderTarget(IDirect3DDevice9* pcDevice, DWORD dwRenderTargetIndex, IDirect3DSurface9* pcRenderTarget);
+	void                    SetDepthStencilSurface(IDirect3DDevice9* pcDevice, IDirect3DSurface9* pNewZStencil);
+	void                    SetTexture(IDirect3DDevice9* pcDevice, DWORD Stage,IDirect3DBaseTexture9* pTexture);
+	void                    DrawPrimitive(IDirect3DDevice9* pcDevice, D3DPRIMITIVETYPE ePrimitiveType, UINT dwStartVertex, UINT dwPrimitiveCount);
+	void                    DrawIndexedPrimitive(IDirect3DDevice9* pcDevice, D3DPRIMITIVETYPE ePrimitiveType, INT nBaseVertexIndex, UINT dwMinVertexIndex, UINT dwNumVertices, UINT dwStartIndex, UINT dwPrimCount);
+	void                    DrawPrimitiveUP(IDirect3DDevice9* pcDevice, D3DPRIMITIVETYPE ePrimitiveType, UINT dwPrimitiveCount, CONST void* pVertexStreamZeroData, UINT dwVertexStreamZeroStride);
+	void                    DrawIndexedPrimitiveUP(IDirect3DDevice9* pcDevice, D3DPRIMITIVETYPE ePrimitiveType, UINT dwMinVertexIndex, UINT dwNumVertices, UINT dwPrimitiveCount, CONST void* pIndexData, D3DFORMAT eIndexDataFormat, CONST void* pVertexStreamZeroData, UINT dwVertexStreamZeroStride);
 
 	/**
 	* Input pointers.
@@ -151,6 +160,14 @@ private:
 	* will be resetted to this value.
 	***/
 	int m_nChecktimeFrameConstant;
+	/**
+	* Maximum render targets, as read from 
+	***/
+	DWORD m_dwMaxRenderTargets;
+	/**
+	* True if max render targets vector is initialized.
+	***/
+	bool m_bMaxRenderTargets;
 	/**
 	* The control bitmap.
 	***/
