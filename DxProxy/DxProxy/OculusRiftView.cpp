@@ -74,7 +74,7 @@ void OculusRiftView::SetViewEffectInitialValues()
 	viewEffect->SetFloatArray("LensCenter", LensCenter, 2);
 	viewEffect->SetFloatArray("Scale", Scale, 2);
 	viewEffect->SetFloatArray("ScaleIn", ScaleIn, 2);
-	viewEffect->SetFloat("ZoomScale", ZoomOutScale);
+	viewEffect->SetFloat("ZoomScale", m_zoom);
 	viewEffect->SetFloat("ViewportXOffset", -ViewportXOffset);
 	viewEffect->SetFloat("ViewportYOffset", -ViewportYOffset);
 	if (chromaticAberrationCorrection)
@@ -174,8 +174,7 @@ void OculusRiftView::CalculateShaderVariables()
 	ViewportXOffset = XOffset;
 	ViewportYOffset = HeadYOffset;
 	
-	//This is just completely wrong
-	//ZoomOutScale = ZoomOutScale + HeadZOffset;
+
 	D3DSURFACE_DESC eyeTextureDescriptor;
 	leftSurface->GetDesc(&eyeTextureDescriptor);
 
@@ -210,21 +209,20 @@ void OculusRiftView::CalculateShaderVariables()
 
 	//GB This should change the zoom - not the scale factor
 	//This change will gently glide the disconnected screen view in and out
-	/*if (HeadZOffset != FLT_MAX)
+	if (HeadZOffset != FLT_MAX)
 	{
-		ZoomOutScale = (scaleFactor / ((glide * 0.333f) + 0.666f)) - HeadZOffset;
-		//scaleFactor = (scaleFactor / ((glide * 0.333f) + 0.666f)) - HeadZOffset;
+		m_zoom = (ZoomOutScale * ((glide * 0.333f) + 0.666f)) + HeadZOffset;
+		m_zoom = max(0.4, m_zoom);
 		if (m_screenViewGlideFactor > 0.0f)
 			m_screenViewGlideFactor -= 0.04f;
 	}
 	else
 	{
 		//Disconnected screen view not active
-		//scaleFactor = (scaleFactor / ((glide * 0.333f) + 0.666f));
-		ZoomOutScale = (scaleFactor / ((glide * 0.333f) + 0.666f)) - HeadZOffset;
+		m_zoom = (ZoomOutScale * ((glide * 0.333f) + 0.666f));
 		if (m_screenViewGlideFactor < 1.0f)
 			m_screenViewGlideFactor += 0.04f;
-	}*/
+	}
 
 	// Scale from 0 to 2 to 0 to 1  for x and y 
 	// Then use scaleFactor to fill horizontal space in line with the lens and adjust for aspect ratio for y.

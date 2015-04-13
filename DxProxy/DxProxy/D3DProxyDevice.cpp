@@ -2420,8 +2420,7 @@ void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 	stereoView = StereoViewFactory::Get(config, m_spShaderViewAdjustment->HMDInfo());
 	stereoView->YOffset = config.YOffset;
 	stereoView->HeadYOffset = 0;
-	//stereoView->HeadZOffset = FLT_MAX;
-	stereoView->HeadZOffset = 0;
+	stereoView->HeadZOffset = FLT_MAX;
 	stereoView->IPDOffset = config.IPDOffset;
 	stereoView->DistortionScale = config.DistortionScale;
 	stereoView->m_b2dDepthMode = false;	
@@ -2630,7 +2629,7 @@ void D3DProxyDevice::HandleControls()
 	//Disconnected Screen View Mode
 	if ((controls.Key_Down(edgePeekHotkey) || (controls.Key_Down(VK_MBUTTON) || (controls.Key_Down(VK_LCONTROL) && controls.Key_Down(VK_NUMPAD2)))) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
-		static bool bSurpressPositionaltracking = false;
+		static bool bSurpressPositionaltracking = true;
 		static bool bForceMouseEmulation = false;
 		if (m_bfloatingScreen)
 		{
@@ -2641,7 +2640,7 @@ void D3DProxyDevice::HandleControls()
 			m_bSurpressPositionaltracking = false;
 			//TODO Change this back to initial
 			this->stereoView->HeadYOffset = 0;
-			this->stereoView->HeadZOffset = 0;
+			this->stereoView->HeadZOffset = FLT_MAX;
 			this->stereoView->XOffset = 0;
 			this->stereoView->PostReset();	
 		}
@@ -2682,8 +2681,6 @@ void D3DProxyDevice::HandleControls()
 			this->stereoView->HeadZOffset = (m_fFloatingScreenZ - tracker->z) * screenFloatMultiplierZ;
 			this->stereoView->PostReset();
 		}
-		//m_ViewportIfSquished.X = (int)(vOut.x+centerX-(((m_fFloatingYaw - tracker->primaryYaw) * floatMultiplier) * (180 / PI)));
-		//m_ViewportIfSquished.Y = (int)(vOut.y+centerY-(((m_fFloatingPitch - tracker->primaryPitch) * floatMultiplier) * (180 / PI)));
 	}
 	else
 	{
