@@ -61,6 +61,11 @@ StereoSplitter::StereoSplitter():AQU_Nodus(),
 	m_apcActiveRenderTargets(0, nullptr),
 	m_apcMonitoredRenderTargets(0, nullptr),
 	m_anMonitoredRenderTargetsCheckTimeCounter(0, 0),
+	m_apcStereoTwinRenderTargets(0, nullptr),
+	m_apcStereoTwinRenderTextures(0, nullptr),
+	m_dwNewStereoTwinRenderTargets(0),
+	m_apcStereoTwinRenderTargetClipboard(0, nullptr),
+	m_apcStereoTwinRenderTextureClipboard(0, nullptr),
 	m_dwMaxRenderTargets(0),
 	m_bMaxRenderTargets(false),
 	m_nChecktimeFrameConstant(30)                           /**< Set this constant to 30 frames, later we should be able to change this value on the node. ***/
@@ -72,6 +77,26 @@ StereoSplitter::StereoSplitter():AQU_Nodus(),
 ***/
 StereoSplitter::~StereoSplitter()
 {
+	for (int i = 0; i < (int)m_apcStereoTwinRenderTargets.size(); i++)
+	{
+		if (m_apcStereoTwinRenderTargets[i])
+			m_apcStereoTwinRenderTargets[i]->Release();
+	}
+	for (int i = 0; i < (int)m_apcStereoTwinRenderTextures.size(); i++)
+	{
+		if (m_apcStereoTwinRenderTextures[i])
+			m_apcStereoTwinRenderTextures[i]->Release();
+	}
+	for (int i = 0; i < (int)m_apcStereoTwinRenderTargetClipboard.size(); i++)
+	{
+		if (m_apcStereoTwinRenderTargetClipboard[i])
+			m_apcStereoTwinRenderTargetClipboard[i]->Release();
+	}
+	for (int i = 0; i < (int)m_apcStereoTwinRenderTextureClipboard.size(); i++)
+	{
+		if (m_apcStereoTwinRenderTextureClipboard[i])
+			m_apcStereoTwinRenderTextureClipboard[i]->Release();
+	}
 }
 
 /**
@@ -121,7 +146,7 @@ HBITMAP StereoSplitter::GetControl()
 		// create bitmap, set control update to true
 		HWND hwnd = GetActiveWindow();
 		HDC hdc = GetDC(hwnd);
-		m_hBitmapControl = CreateCompatibleBitmap(hdc, 1024, 2200);
+		m_hBitmapControl = CreateCompatibleBitmap(hdc, 1024, 2600);
 		if (!m_hBitmapControl)
 			OutputDebugString(L"Failed to create bitmap!");
 		m_bControlUpdate = true;
@@ -136,7 +161,7 @@ HBITMAP StereoSplitter::GetControl()
 
 		// clear the background
 		RECT rc;
-		SetRect(&rc, 0, 0, 1024, 2200);
+		SetRect(&rc, 0, 0, 1024, 2600);
 		FillRect(hdcImage, &rc, (HBRUSH)CreateSolidBrush(RGB(160, 160, 200)));
 
 		// create font
@@ -198,6 +223,30 @@ HBITMAP StereoSplitter::GetControl()
 			// output the number of check time counters - this number should match monitored render targets number
 			TextOut(hdcImage, 50, nY, L"Check Time Counters : ", 22);
 			wsprintf(szBuffer, L"%u", (UINT)m_anMonitoredRenderTargetsCheckTimeCounter.size());
+			nLen = (int)wcslen(szBuffer); if (nLen > 11) nLen = 11;
+			TextOut(hdcImage, 650, nY, szBuffer, nLen); nY+=64;
+
+			// output the number of check time counters - this number should match monitored render targets number
+			TextOut(hdcImage, 50, nY, L"Stereo Twin Targets : ", 22);
+			wsprintf(szBuffer, L"%u", (UINT)m_apcStereoTwinRenderTargets.size());
+			nLen = (int)wcslen(szBuffer); if (nLen > 11) nLen = 11;
+			TextOut(hdcImage, 650, nY, szBuffer, nLen); nY+=64;
+
+			// output the number of check time counters - this number should match monitored render targets number
+			TextOut(hdcImage, 50, nY, L"Stereo Twin Textures : ", 23);
+			wsprintf(szBuffer, L"%u", (UINT)m_apcStereoTwinRenderTextures.size());
+			nLen = (int)wcslen(szBuffer); if (nLen > 11) nLen = 11;
+			TextOut(hdcImage, 650, nY, szBuffer, nLen); nY+=64;
+
+			// output the number of check time counters - this number should match monitored render targets number
+			TextOut(hdcImage, 50, nY, L"Twin Target Clipboard : ", 24);
+			wsprintf(szBuffer, L"%u", (UINT)m_apcStereoTwinRenderTargetClipboard.size());
+			nLen = (int)wcslen(szBuffer); if (nLen > 11) nLen = 11;
+			TextOut(hdcImage, 650, nY, szBuffer, nLen); nY+=64;
+
+			// output the number of check time counters - this number should match monitored render targets number
+			TextOut(hdcImage, 50, nY, L"Twin Textures Clipboard : ", 26);
+			wsprintf(szBuffer, L"%u", (UINT)m_apcStereoTwinRenderTextureClipboard.size());
 			nLen = (int)wcslen(szBuffer); if (nLen > 11) nLen = 11;
 			TextOut(hdcImage, 650, nY, szBuffer, nLen); nY+=64;
 
@@ -472,6 +521,94 @@ void StereoSplitter::Present(IDirect3DDevice9* pcDevice)
 			m_bMaxRenderTargets = true;
 	}
 
+	// create new stereo twin render targets or assign from clipboard
+	for (DWORD i = 0; i < m_dwNewStereoTwinRenderTargets; i++)
+	{
+		// get monitored render target a twin needs to be found for
+		DWORD dwIndex = (DWORD)m_apcMonitoredRenderTargets.size() - (m_dwNewStereoTwinRenderTargets - i);
+		LPDIRECT3DSURFACE9 pcRenderTarget = m_apcMonitoredRenderTargets[dwIndex];
+
+		// get description
+		D3DSURFACE_DESC desc;
+		if (pcRenderTarget)
+		{
+			// get render target desc
+			pcRenderTarget->GetDesc(&desc);
+
+			// get render target pointers, both tex + surface
+			LPDIRECT3DTEXTURE9 pcStereoTwinRenderTexture = nullptr;
+			LPDIRECT3DSURFACE9 pcStereoTwinRenderTarget = nullptr;
+
+			// loop through the clipboard, try to find useable stereo twin render target
+			int nIndex = 0;
+			auto it = m_apcStereoTwinRenderTargetClipboard.begin();
+			while (it < m_apcStereoTwinRenderTargetClipboard.end())
+			{
+				// get surface desc
+				D3DSURFACE_DESC descClipboard;
+				(*it)->GetDesc(&descClipboard);
+
+				// compare descriptions, take this target if all matches
+				if ((desc.Width == descClipboard.Width) ||
+					(desc.Height == descClipboard.Height) ||
+					(desc.Usage == descClipboard.Usage) ||
+					(desc.Format == descClipboard.Format))
+				{
+					// first, set the new stereo twins from the clipboard
+					pcStereoTwinRenderTarget = m_apcStereoTwinRenderTargetClipboard[nIndex];
+					pcStereoTwinRenderTexture = m_apcStereoTwinRenderTextureClipboard[nIndex];
+
+					// erase render target iterator for both clipboard vectors
+					m_apcStereoTwinRenderTargetClipboard.erase(m_apcStereoTwinRenderTargetClipboard.begin() + nIndex);
+					m_apcStereoTwinRenderTextureClipboard.erase(m_apcStereoTwinRenderTextureClipboard.begin() + nIndex);
+
+					// end loop
+					it = m_apcStereoTwinRenderTargetClipboard.end();
+				}
+				else
+				{
+					// increase index
+					nIndex++;
+
+					// increase iterator
+					it++;
+				}
+			}
+
+			// if no render target (texture) is found on the clipboard, create a new
+			if (pcStereoTwinRenderTarget == nullptr)
+			{
+				if (FAILED(pcDevice->CreateTexture((UINT)desc.Width, (UINT)desc.Height, 1, desc.Usage, desc.Format, D3DPOOL_DEFAULT, &pcStereoTwinRenderTexture, NULL)))
+				{
+					OutputDebugString(L"VireioStereoSplitter : Failed to create render target texture.");
+					pcStereoTwinRenderTexture = nullptr;
+				}
+				else
+					pcStereoTwinRenderTexture->GetSurfaceLevel(0, &pcStereoTwinRenderTarget);
+			}
+
+			// add to stereo twin render targets
+			m_apcStereoTwinRenderTargets.push_back(pcStereoTwinRenderTarget);
+			m_apcStereoTwinRenderTextures.push_back(pcStereoTwinRenderTexture);			
+
+			// update control
+			m_bControlUpdate = true;
+		}
+		else
+		{
+			// code failure, null pointer render target
+			OutputDebugString(L"VireioStereoSplitter code failure ! Null pointer monitored render target !");
+			m_apcStereoTwinRenderTargets.push_back(nullptr);
+			m_apcStereoTwinRenderTextures.push_back(nullptr);
+
+			// update control
+			m_bControlUpdate = true;
+		}
+	}
+
+	// finally, clear new render targets number
+	m_dwNewStereoTwinRenderTargets = 0;
+
 	// loop through check time vector, decrease check time counter for each render target.. 
 	{
 		int nIndex = 0;
@@ -484,21 +621,32 @@ void StereoSplitter::Present(IDirect3DDevice9* pcDevice)
 			// remove render target (+counter) from list if counter <= zero
 			if (*it <= 0)
 			{
-				// erase render target iterator
+				// first, move the stereo twin of this render target to the clipboard
+				m_apcStereoTwinRenderTargetClipboard.push_back(m_apcStereoTwinRenderTargets[nIndex]);
+				m_apcStereoTwinRenderTextureClipboard.push_back(m_apcStereoTwinRenderTextures[nIndex]);
+
+				// erase render target iterator for all 3 vectors (original, stereo twin, stereo twin texture)
 				m_apcMonitoredRenderTargets.erase(m_apcMonitoredRenderTargets.begin() + nIndex);
+				m_apcStereoTwinRenderTargets.erase(m_apcStereoTwinRenderTargets.begin() + nIndex);
+				m_apcStereoTwinRenderTextures.erase(m_apcStereoTwinRenderTextures.begin() + nIndex);
 
 				// erase check time counter
 				m_anMonitoredRenderTargetsCheckTimeCounter.erase(it);
 
+				// end loop
+				it = m_anMonitoredRenderTargetsCheckTimeCounter.end();
+
+				// update control
+				m_bControlUpdate = true;
+			}
+			else
+			{
 				// increase index
 				nIndex++;
 
-				// end loop
-				it = m_anMonitoredRenderTargetsCheckTimeCounter.end();
-			}
-			else
 				// increase iterator
-				it++;			
+				it++;
+			}
 		}
 	}
 }
@@ -539,6 +687,9 @@ void StereoSplitter::SetRenderTarget(IDirect3DDevice9* pcDevice, DWORD dwRenderT
 			// add new render target + check time frame constant
 			m_apcMonitoredRenderTargets.push_back(pcRenderTarget);
 			m_anMonitoredRenderTargetsCheckTimeCounter.push_back(m_nChecktimeFrameConstant);
+
+			// increase new render targets number, stereo twin will be created in Present() call
+			m_dwNewStereoTwinRenderTargets++;
 
 			// update control
 			m_bControlUpdate = true;

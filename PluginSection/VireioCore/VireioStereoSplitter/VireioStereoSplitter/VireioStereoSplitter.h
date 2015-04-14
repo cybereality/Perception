@@ -161,6 +161,35 @@ private:
 	***/
 	int m_nChecktimeFrameConstant;
 	/**
+	* Stereo twin render targets.
+	* Each entry in this vector corresponds as the stereo twin
+	* of the render target stored in m_apcMonitoredRenderTargets
+	* with the same index.
+	***/
+	std::vector<IDirect3DSurface9*> m_apcStereoTwinRenderTargets;
+	/**
+	* Stereo twin render textures.
+	* Each entry in this vector corresponds as the the texture of 
+	* the stereo twin surface with the same index.
+	***/
+	std::vector<IDirect3DTexture9*> m_apcStereoTwinRenderTextures;
+	/**
+	* The number of stereo twin render targets to be verified this frame.
+	***/
+	DWORD m_dwNewStereoTwinRenderTargets;
+	/**
+	* Currently unused render targets.
+	* To be taken as new render targets if needed.
+	***/
+	std::vector<IDirect3DSurface9*> m_apcStereoTwinRenderTargetClipboard;
+	/**
+	* Currently unused render textures.
+	* Each entry in this vector corresponds as the the texture of 
+	* the stereo twin surface with the same clipboard index.
+	* (m_apcStereoTwinRenderTargetClipboard)
+	***/
+	std::vector<IDirect3DTexture9*> m_apcStereoTwinRenderTextureClipboard;
+	/**
 	* Maximum render targets, as read from 
 	***/
 	DWORD m_dwMaxRenderTargets;
