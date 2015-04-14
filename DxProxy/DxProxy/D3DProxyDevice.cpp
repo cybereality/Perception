@@ -2656,7 +2656,7 @@ void D3DProxyDevice::HandleControls()
 	//Disconnected Screen View Mode
 	if ((controls.Key_Down(edgePeekHotkey) || (controls.Key_Down(VK_MBUTTON) || (controls.Key_Down(VK_LCONTROL) && controls.Key_Down(VK_NUMPAD2)))) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 	{
-		static bool bSurpressPositionaltracking = false;
+		static bool bSurpressPositionaltracking = true;
 		static bool bForceMouseEmulation = false;
 		if (m_bfloatingScreen)
 		{
@@ -2708,8 +2708,6 @@ void D3DProxyDevice::HandleControls()
 			this->stereoView->HeadZOffset = (m_fFloatingScreenZ - tracker->z) * screenFloatMultiplierZ;
 			this->stereoView->PostReset();
 		}
-		//m_ViewportIfSquished.X = (int)(vOut.x+centerX-(((m_fFloatingYaw - tracker->primaryYaw) * floatMultiplier) * (180 / PI)));
-		//m_ViewportIfSquished.Y = (int)(vOut.y+centerY-(((m_fFloatingPitch - tracker->primaryPitch) * floatMultiplier) * (180 / PI)));
 	}
 	else
 	{
@@ -3527,23 +3525,33 @@ void D3DProxyDevice::HandleControls()
 				{
 					if(_wheel < 0)
 					{
-						if(this->stereoView->DistortionScale > m_spShaderViewAdjustment->HMDInfo()->GetMinDistortionScale())
+						/*if(this->stereoView->DistortionScale > m_spShaderViewAdjustment->HMDInfo()->GetMinDistortionScale())
 						{
 							this->stereoView->DistortionScale -= 0.05f;
+							this->stereoView->PostReset();				
+						}*/
+						if(this->stereoView->ZoomOutScale > 0.05f)
+						{
+							this->stereoView->ZoomOutScale -= 0.05f;
 							this->stereoView->PostReset();				
 						}
 					}
 					else if(_wheel > 0)
 					{
-						if(this->stereoView->DistortionScale < m_maxDistortionScale)
-							{
-								this->stereoView->DistortionScale += 0.05f;
-								this->stereoView->PostReset();										
-							}
+						/*if(this->stereoView->DistortionScale < m_maxDistortionScale)
+						{
+							this->stereoView->DistortionScale += 0.05f;
+							this->stereoView->PostReset();										
+						}*/
+						if(this->stereoView->ZoomOutScale < 2.00f)
+						{
+							this->stereoView->ZoomOutScale += 0.05f;
+							this->stereoView->PostReset();				
+						}
 					}
 
 					VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
-					sprintf_s(popup.line[2], "Distortion Scale: %1.3f", this->stereoView->DistortionScale);
+					sprintf_s(popup.line[2], "Zoom Scale: %1.3f", this->stereoView->ZoomOutScale);
 					m_saveConfigTimer = GetTickCount();
 					ShowPopup(popup);
 				}
@@ -3553,33 +3561,23 @@ void D3DProxyDevice::HandleControls()
 		//Change Distortion Scale CTRL + + / -
 		if(controls.Key_Down(VK_LCONTROL) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
-			if(config.DistortionScale > 0.00f)
-			{
-				m_maxDistortionScale = config.DistortionScale;
-			}
 			if(controls.Key_Down(VK_ADD))
 			{
-				if(this->stereoView->DistortionScale < m_maxDistortionScale)
-				{
-					this->stereoView->DistortionScale = m_maxDistortionScale;
-					this->stereoView->PostReset();										
-				}
+				this->stereoView->ZoomOutScale = 1.00f;
+				this->stereoView->PostReset();	
 
 				VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
-				sprintf_s(popup.line[2], "Distortion Scale: %1.3f", this->stereoView->DistortionScale);
+				sprintf_s(popup.line[2], "Zoom Scale: %1.3f", this->stereoView->ZoomOutScale);
 				m_saveConfigTimer = GetTickCount();
 				ShowPopup(popup);
 			}
 			else if(controls.Key_Down(VK_SUBTRACT))
 			{
-				if(this->stereoView->DistortionScale != m_spShaderViewAdjustment->HMDInfo()->GetMinDistortionScale())
-				{
-					this->stereoView->DistortionScale = m_spShaderViewAdjustment->HMDInfo()->GetMinDistortionScale();
-					this->stereoView->PostReset();							
-				}
+				this->stereoView->ZoomOutScale = 0.50f;
+				this->stereoView->PostReset();	
 
 				VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
-				sprintf_s(popup.line[2], "Distortion Scale: %1.3f", this->stereoView->DistortionScale);
+				sprintf_s(popup.line[2], "Zoom Scale: %1.3f", this->stereoView->ZoomOutScale);
 				m_saveConfigTimer = GetTickCount();
 				ShowPopup(popup);
 			}		

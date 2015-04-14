@@ -132,6 +132,11 @@ public:
 	* Floaty Screen Z Offset
 	***/
 	float HeadZOffset;	
+
+	/**
+	* Controls how zoomed the picture is (not just the distortion)
+	***/
+	float ZoomOutScale;	
 	/**
 	* Offset the screen horizontally
 	***/

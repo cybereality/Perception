@@ -19,6 +19,7 @@ float3 Vignette;
 float Rotation;
 float SmearCorrection;
 float2 MousePosition;
+float ZoomScale;
 
 // Warp operates on left view, for right, mirror x texture coord
 // before and after calling.  in02 contains the chromatic aberration
@@ -39,9 +40,12 @@ float2 HmdWarp(float2 in01, float2 in02)
 	theta1 = (Scale * theta1) + LensCenter;
 	theta1.x = theta1.x - (LensCenter.x-0.25f);
 	theta1.y = theta1.y - (LensCenter.y-0.5f);
+	
 
 	// We're sampling from the full texture not a half texture like in libovr
 	theta1.x *= 2.0f;
+	//theta1.x = theta1.x + ViewportXOffset;
+	//theta1.y = theta1.y - ViewportYOffset;
 
 	return theta1;
 }
@@ -77,6 +81,19 @@ float2 rotatePoint(float angle, float2 coord)
 	return newPos;
 }
 
+float2 ScalePoint(float scale, float2 coord)
+{
+	float2 newPos = coord;
+	newPos.x -= 0.5f;
+	newPos.y -= 1.0f - LensCenter.y;
+	
+	newPos.x /= scale;
+	newPos.y /= scale;
+	
+	newPos.x += 0.5f;
+	newPos.y += 1.0f - LensCenter.y; 
+	return newPos;
+}
 
 float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 {
@@ -86,7 +103,7 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 	float2 tcBlue;
 	float angle = Rotation;
 	float3 outColor;	
-
+	
 	//blit the VP logo to the top left corner
 	if (Tex.x <= 0.2f   &&   Tex.y <= 0.05f)
 	{
@@ -96,7 +113,6 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 		return tex2D(TexMap2, pos.xy);
 	}
 
-	
 	if (Tex.x > 0.5f) {
 		// mirror to get the right-eye distortion
 		newPos.x = 1.0f - newPos.x;
@@ -106,33 +122,42 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 	// Chromatic Aberation Correction using coefs from SDK.
 	tcBlue = HmdWarp(newPos, float2(Chroma.z, Chroma.w));
 	tcBlue = rotatePoint(angle, tcBlue);
+	if (Tex.x > 0.5f)
+	{
+		// unmirror the right-eye coords
+		tcBlue.x = 1 - tcBlue.x;
+	}	
+	tcBlue.x = tcBlue.x - ViewportXOffset;
+	tcBlue.y = tcBlue.y - ViewportYOffset;
+	tcBlue = ScalePoint(ZoomScale, tcBlue);	
 
 	// Clamp on blue, because we expand the blue channel outward the most.
 	// Symmetry makes this ok to do before any unmirroring.
 	if (any(clamp(tcBlue.xy, float2(0.0,0.0), float2(1.0, 1.0)) - tcBlue.xy))
 		return 0;
 
+	// Chromatic Aberation Correction using coefs from SDK.
 	tcRed = HmdWarp(newPos, float2(Chroma.x, Chroma.y));
 	tcRed = rotatePoint(angle, tcRed);
-
-	tcGreen = HmdWarp(newPos, float2(0.0f, 0.0f));
-	tcGreen = rotatePoint(angle, tcGreen);
-
 	if (Tex.x > 0.5f)
 	{
 		// unmirror the right-eye coords
 		tcRed.x = 1 - tcRed.x;
-		tcGreen.x = 1 - tcGreen.x;
-		tcBlue.x = 1 - tcBlue.x;
-	}
-
+	}	
 	tcRed.x = tcRed.x - ViewportXOffset;
-	tcGreen.x = tcGreen.x - ViewportXOffset;
-	tcBlue.x = tcBlue.x - ViewportXOffset;
-
 	tcRed.y = tcRed.y - ViewportYOffset;
+	tcRed = ScalePoint(ZoomScale, tcRed);	
+
+	tcGreen = HmdWarp(newPos, float2(0.0f, 0.0f));
+	tcGreen = rotatePoint(angle, tcGreen);
+	if (Tex.x > 0.5f)
+	{
+		// unmirror the right-eye coords
+		tcGreen.x = 1 - tcGreen.x;
+	}	
+	tcGreen.x = tcGreen.x - ViewportXOffset;
 	tcGreen.y = tcGreen.y - ViewportYOffset;
-	tcBlue.y = tcBlue.y - ViewportYOffset;
+	tcGreen = ScalePoint(ZoomScale, tcGreen);	
 
 	if (any(clamp(tcBlue.xy, float2(0.0,0.0), float2(1.0, 1.0)) - tcBlue.xy))
 		return 0;

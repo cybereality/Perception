@@ -64,6 +64,10 @@ private:
 	*/
 	float m_VRMouseSquish;
 	/**
+	* zoom
+	*/
+	float m_zoom;
+	/**
 	* XOffset
 	***/
 	float ViewportXOffset;
