@@ -18,10 +18,10 @@
 					<MinValue>0000C000</MinValue>
 					<MaxValue>0000FFFF</MaxValue>
 				</Compare>
-				<Compare type="BetweenIncl">
+				<!--<Compare type="BetweenIncl">
 					<MinValue>00000001</MinValue>
 					<MaxValue>00003FFF</MaxValue>
-				</Compare>
+				</Compare>-->
 			</Comparisons>
 		</ScanRule>
 			
