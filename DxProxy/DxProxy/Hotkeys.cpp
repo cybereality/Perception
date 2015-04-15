@@ -72,7 +72,7 @@ void D3DProxyDevice::HandleControls()
 	bool hotkeyPressed = false;
 	for (int i = 0; i < 5; i++)
 	{
-		if ((controls.Key_Down(hudHotkeys[i])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		if ((controls.Key_Down(hudHotkeys[i])) && HotkeysActive())
 		{
 			if (i==0)
 			{
@@ -108,7 +108,7 @@ void D3DProxyDevice::HandleControls()
 			}
 			hotkeyPressed = true;
 		}
-		if ((controls.Key_Down(guiHotkeys[i])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		if ((controls.Key_Down(guiHotkeys[i])) && HotkeysActive())
 		{
 			if (i==0)
 			{
@@ -147,10 +147,10 @@ void D3DProxyDevice::HandleControls()
 
 	// avoid double input by using the menu velocity
 	if (hotkeyPressed)
-		menuVelocity.x+=2.0f;
+		HotkeyCooldown(2.0f);
 
 	// test VRBoost reset hotkey
-	if (controls.Key_Down(toggleVRBoostHotkey) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	if (controls.Key_Down(toggleVRBoostHotkey) && HotkeysActive())
 	{
 		if (hmVRboost!=NULL)
 		{
@@ -162,14 +162,14 @@ void D3DProxyDevice::HandleControls()
 			// set the indicator to be drawn
 			m_fVRBoostIndicator = 1.0f;
 
-			menuVelocity.x += 4.0f;
+			HotkeyCooldown(4.0f);
 		}
 	}
 
 	//If we are in comfort mode and user has pushed left or right, then change yaw
 	if (VRBoostValue[VRboostAxis::ComfortMode] != 0.0f  &&
 		VRBoostStatus.VRBoost_Active &&
-		(menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		HotkeysActive())
 	{
 		if (controls.xInputState.Gamepad.sThumbRX < -16384 ||
 			controls.Key_Down(m_comfortModeLeftKey))
@@ -177,7 +177,7 @@ void D3DProxyDevice::HandleControls()
 			m_comfortModeYaw +=m_comfortModeYawIncrement;
 			if (m_comfortModeYaw == 180.0f)
 				m_comfortModeYaw = -180.0f;
-			menuVelocity.x+=4.0f;
+			HotkeyCooldown(4.0f);
 		}
 
 		if (controls.xInputState.Gamepad.sThumbRX > 16384 ||
@@ -186,13 +186,13 @@ void D3DProxyDevice::HandleControls()
 			m_comfortModeYaw -= m_comfortModeYawIncrement;
 			if (m_comfortModeYaw == -180.0f)
 				m_comfortModeYaw = 180.0f;
-			menuVelocity.x+=4.0f;
+			HotkeyCooldown(4.0f);
 		}
 	}
 
 	//Double clicking the Right-Ctrl will disable or re-enable all Vireio hot-keys
 	static DWORD rctrlStartClick = 0;
-	if ((controls.Key_Down(VK_RCONTROL) || rctrlStartClick != 0) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	if ((controls.Key_Down(VK_RCONTROL) || rctrlStartClick != 0) && HotkeysActive())
 	{
 		if (controls.Key_Down(VK_RCONTROL) && rctrlStartClick == 0)
 		{
@@ -220,7 +220,7 @@ void D3DProxyDevice::HandleControls()
 			}
 
 			rctrlStartClick = 0;
-			menuVelocity.x+=2.0f;
+			HotkeyCooldown(2.0f);
 		}
 		else if (rctrlStartClick > 1 && 
 			(GetTickCount() - rctrlStartClick) > 500)
@@ -231,7 +231,7 @@ void D3DProxyDevice::HandleControls()
 	}
 
 	//Disconnected Screen View Mode
-	if ((controls.Key_Down(edgePeekHotkey) || (controls.Key_Down(VK_MBUTTON) || (controls.Key_Down(VK_LCONTROL) && controls.Key_Down(VK_NUMPAD2)))) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	if ((controls.Key_Down(edgePeekHotkey) || (controls.Key_Down(VK_MBUTTON) || (controls.Key_Down(VK_LCONTROL) && controls.Key_Down(VK_NUMPAD2)))) && HotkeysActive())
 	{
 		static bool bSurpressPositionaltracking = true;
 		static bool bForceMouseEmulation = false;
@@ -266,7 +266,7 @@ void D3DProxyDevice::HandleControls()
 		ShowAdjusterToast(retprintf("Disconnected Screen %s",
 			m_bfloatingScreen ? "Enabled" : "Disabled"), 700);
 
-		menuVelocity.x += 4.0f;		
+		HotkeyCooldown(4.0f);
 	}
 
 	float screenFloatMultiplierY = 0.75;
@@ -302,7 +302,7 @@ void D3DProxyDevice::HandleControls()
 		//Rset HMD Orientation+Position LSHIFT+R, or L+R Shoulder buttons on Xbox 360 controller
 		if ((((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down('R')) 
 			|| (controls.xButtonsStatus[8] && controls.xButtonsStatus[9]))
-			&& (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+			&& HotkeysActive())
 		{
 			if (calibrate_tracker)
 			{
@@ -318,7 +318,7 @@ void D3DProxyDevice::HandleControls()
 				ShowPopup(VPT_NOTIFICATION, VPS_TOAST, 1200, "HMD Orientation and Position Reset");
 			}
 			tracker->resetOrientationAndPosition();
-			menuVelocity.x+=2.0f;
+			HotkeyCooldown(2.0f);
 		}
 
 		//Duck and cover - trigger crouch and prone keys if Y position of HMD moves appropriately
@@ -326,7 +326,7 @@ void D3DProxyDevice::HandleControls()
 			m_DuckAndCover.dfcStatus < DAC_DISABLED && tracker &&
 			tracker->getStatus() >= MTS_OK)
 		{
-			if ((controls.xButtonsStatus[0x0c] || controls.Key_Down(VK_RSHIFT)) && menuVelocity == D3DXVECTOR2(0.0f, 0.0f))
+			if ((controls.xButtonsStatus[0x0c] || controls.Key_Down(VK_RSHIFT)) && HotkeysActive())
 			{
 				if (m_DuckAndCover.dfcStatus == DAC_CAL_STANDING)
 				{
@@ -354,23 +354,23 @@ void D3DProxyDevice::HandleControls()
 					tracker->resetPosition();
 					DismissPopup(VPT_NOTIFICATION);
 				}
-				menuVelocity.x += 5.0f;
+				HotkeyCooldown(5.0f);
 			}
 			//B button only skips the prone position
-			else if ((controls.xButtonsStatus[0x0d] || controls.Key_Down(VK_ESCAPE)) && menuVelocity == D3DXVECTOR2(0.0f, 0.0f))
+			else if ((controls.xButtonsStatus[0x0d] || controls.Key_Down(VK_ESCAPE)) && HotkeysActive())
 			{
 				if (m_DuckAndCover.dfcStatus == DAC_CAL_PRONE)
 				{
 					m_DuckAndCover.proneEnabled = false;
 					m_DuckAndCover.dfcStatus = DAC_CAL_COMPLETE;
 				}
-				menuVelocity.x += 5.0f;
+				HotkeyCooldown(5.0f);
 			}
 		}
 
 
 		// Show active VRBoost axes and their addresses (SHIFT+V)
-		if (controls.Key_Down(VK_LSHIFT) && (controls.Key_Down('V')) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		if (controls.Key_Down(VK_LSHIFT) && (controls.Key_Down('V')) && HotkeysActive())
 		{
 			if (hmVRboost!=NULL)
 			{
@@ -398,35 +398,35 @@ void D3DProxyDevice::HandleControls()
 					ShowPopup(popup);
 				}
 
-				menuVelocity.x += 4.0f;
+				HotkeyCooldown(4.0f);
 			}
 		}
 
 		// switch to 2d Depth Mode (Shift + O / Numpad 9)
-		if (controls.Key_Down(VK_LSHIFT) && (controls.Key_Down('O') || controls.Key_Down(VK_NUMPAD9)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		if (controls.Key_Down(VK_LSHIFT) && (controls.Key_Down('O') || controls.Key_Down(VK_NUMPAD9)) && HotkeysActive())
 		{
 			m_b2dDepthMode = !m_b2dDepthMode;
 			stereoView->m_b2dDepthMode = m_b2dDepthMode;
 			ShowAdjusterToast(retprintf("Depth Perception Mode %s",
 				m_b2dDepthMode?"On":"Off"), 1000);
-			menuVelocity.x += 4.0f;
+			HotkeyCooldown(4.0f);
 		
 		}
 
 		// Swap Sides on Depth mode (Alt + O)
-		if (controls.Key_Down(VK_MENU) && controls.Key_Down('O') && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		if (controls.Key_Down(VK_MENU) && controls.Key_Down('O') && HotkeysActive())
 		{
 			if(m_b2dDepthMode)
 			{
 				stereoView->m_bLeftSideActive = !stereoView->m_bLeftSideActive;
 				ShowAdjusterToast("Depth Perception Side Switched", 1000);
 			}		
-			menuVelocity.x += 4.0f;
+			HotkeyCooldown(4.0f);
 		
 		}
 
 		// cycle Render States
-		if (controls.Key_Down(VK_MENU) && (controls.Key_Down(VK_LEFT) || controls.Key_Down(VK_RIGHT)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		if (controls.Key_Down(VK_MENU) && (controls.Key_Down(VK_LEFT) || controls.Key_Down(VK_RIGHT)) && HotkeysActive())
 		{
 			std::string _str = "";
 			if(controls.Key_Down(VK_LEFT))
@@ -440,11 +440,11 @@ void D3DProxyDevice::HandleControls()
 			ShowPopup(VPT_ADJUSTER, VPS_TOAST, 1000,
 				retprintf("%s :: New Render State", _str.c_str()));
 		
-			menuVelocity.x += 4.0f;		
+			HotkeyCooldown(4.0f);
 		}
 
 		// Toggle Through Cube Renders -> ALt + 1
-		if (controls.Key_Down(VK_MENU) && controls.Key_Down('1') && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		if (controls.Key_Down(VK_MENU) && controls.Key_Down('1') && HotkeysActive())
 		{
 			const char *cubeDuplicationDescription = "?";
 			if(m_pGameHandler->intDuplicateCubeTexture < 3)
@@ -465,10 +465,10 @@ void D3DProxyDevice::HandleControls()
 		
 			ShowPopup(VPT_ADJUSTER, VPS_TOAST, 1000,
 				retprintf("Cube Duplication :: %s", cubeDuplicationDescription));
-			menuVelocity.x += 4.0f;		
+			HotkeyCooldown(4.0f);
 		}
 		// Toggle Through Texture Renders -> ALt + 2
-		if (controls.Key_Down(VK_MENU) && controls.Key_Down('2') && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		if (controls.Key_Down(VK_MENU) && controls.Key_Down('2') && HotkeysActive())
 		{
 			const char *textureDuplicationDescription = "?";
 			if(m_pGameHandler->intDuplicateTexture < 4)
@@ -491,11 +491,11 @@ void D3DProxyDevice::HandleControls()
 		
 			ShowPopup(VPT_ADJUSTER, VPS_TOAST, 1000,
 				retprintf("Texture Duplication :: %s", textureDuplicationDescription));
-			menuVelocity.x += 4.0f;		
+			HotkeyCooldown(4.0f);
 		}
 
 		//When to render vpmenu (Alt + Up)
-		if (controls.Key_Down(VK_MENU) && controls.Key_Down(VK_UP) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		if (controls.Key_Down(VK_MENU) && controls.Key_Down(VK_UP) && HotkeysActive())
 		{
 			const char *vpmenuRenderDesc = "?";
 			if(m_deviceBehavior.whenToRenderVPMENU == DeviceBehavior::BEGIN_SCENE)
@@ -516,11 +516,11 @@ void D3DProxyDevice::HandleControls()
 			
 			ShowPopup(VPT_ADJUSTER, VPS_TOAST, 1000,
 				retprintf("VPMENU RENDER = %s", vpmenuRenderDesc));
-			menuVelocity.x += 4.0f;		
+			HotkeyCooldown(4.0f);
 		}
 
 		//When to poll headtracking (Alt + Down)
-		if (controls.Key_Down(VK_MENU) && controls.Key_Down(VK_DOWN) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		if (controls.Key_Down(VK_MENU) && controls.Key_Down(VK_DOWN) && HotkeysActive())
 		{
 			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
 			if(m_deviceBehavior.whenToHandleHeadTracking == DeviceBehavior::BEGIN_SCENE)
@@ -540,12 +540,12 @@ void D3DProxyDevice::HandleControls()
 			}//TODO This Crashes for some reason - problem for another day*/
 		
 			ShowPopup(popup);		
-			menuVelocity.x += 4.0f;		
+			HotkeyCooldown(4.0f);
 		}
 
 		// Initiate VRBoost Memory Scan (NUMPAD5 or <LCTRL> + </> )
 		if ((controls.Key_Down(VK_NUMPAD5) || (controls.Key_Down(VK_OEM_2) && controls.Key_Down(VK_LCONTROL))) && 
-			(menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+			HotkeysActive())
 		{
 			if (hmVRboost!=NULL)
 			{
@@ -593,7 +593,7 @@ void D3DProxyDevice::HandleControls()
 						showRescanWarning = true;
 					}
 				}
-				menuVelocity.x += 4.0f;
+				HotkeyCooldown(4.0f);
 			}
 		}
 
@@ -602,7 +602,7 @@ void D3DProxyDevice::HandleControls()
 		//  Decrease = NUMPAD4 or <LCTRL> + <,> 
 		if (VRBoostStatus.VRBoost_Candidates && 
 			(controls.Key_Down(VK_NUMPAD6) || controls.Key_Down(VK_NUMPAD4) || (controls.Key_Down(VK_LCONTROL) && (controls.Key_Down(VK_OEM_COMMA) || controls.Key_Down(VK_OEM_PERIOD)))) && 
-			(menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+			HotkeysActive())
 		{
 			if (hmVRboost!=NULL)
 			{
@@ -622,13 +622,13 @@ void D3DProxyDevice::HandleControls()
 					retprintf("VRBoost: Select Next Scan Candidate: %i / %i",
 						c+1, candidates));
 
-				menuVelocity.x += 2.0f;
+				HotkeyCooldown(2.0f);
 			}
 		}
 	
 		// Cancel VRBoost Memory Scan Mode (NUMPAD8 or <LCTRL> + <;> )
 		if ((controls.Key_Down(VK_NUMPAD8) || (controls.Key_Down(VK_OEM_1) && controls.Key_Down(VK_LCONTROL)))
-			&& (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+			&& HotkeysActive())
 		{
 			DismissPopup(VPT_VRBOOST_SCANNING);
 
@@ -644,7 +644,7 @@ void D3DProxyDevice::HandleControls()
 		//Enabled/Disable Free Pitch (default is disabled), LSHIFT + X
 		if (VRBoostStatus.VRBoost_Active && 
 			(controls.Key_Down(VK_LSHIFT) && controls.Key_Down('X')) && 
-			(menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+			HotkeysActive())
 		{
 			if (VRBoostValue[VRboostAxis::FreePitch] != 0.0f)
 			{
@@ -660,13 +660,13 @@ void D3DProxyDevice::HandleControls()
 			ShowAdjusterToast(retprintf("Pitch Free-look Enabled",
 				(VRBoostValue[VRboostAxis::FreePitch] != 0.0f) ? "Enabled" : "Disabled"), 1000);
 
-			menuVelocity.x+=2.0f;
+			HotkeyCooldown(2.0f);
 		}
 
 		//Enabled/Disable Comfort Mode - LSHIFT + M
 		if (VRBoostStatus.VRBoost_Active && 
 			(controls.Key_Down(VK_LSHIFT) && controls.Key_Down('M')) && 
-			(menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+			HotkeysActive())
 		{
 			if (VRBoostValue[VRboostAxis::ComfortMode] != 0.0f)
 			{
@@ -683,13 +683,13 @@ void D3DProxyDevice::HandleControls()
 			ShowAdjusterToast(retprintf("Comfort Mode %s",
 				(VRBoostValue[VRboostAxis::ComfortMode]!=0.0f) ? "Enabled" : "Disabled"), 1000);
 
-			menuVelocity.x+=2.0f;
+			HotkeyCooldown(2.0f);
 		}
 
 		//Enabled/Disable Black Smear Correction for DK2 (default is disabled), LSHIFT + B
 		if ((tracker && tracker->SupportsPositionTracking()) &&
 			(controls.Key_Down(VK_LSHIFT) && controls.Key_Down('B')) && 
-			(menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+			HotkeysActive())
 		{
 			if (stereoView->m_blackSmearCorrection != 0.0f)
 				stereoView->m_blackSmearCorrection = 0.0f;
@@ -700,30 +700,30 @@ void D3DProxyDevice::HandleControls()
 			ShowAdjusterToast(retprintf("DK2 Black Smear Correction %s",
 				stereoView->m_blackSmearCorrection!=0.0f ? "Enabled" : "Disabled"), 1000);
 
-			menuVelocity.x+=2.0f;
+			HotkeyCooldown(2.0f);
 		}
 
 
 		//Reset IPD Offset to 0  -  F8  or  LSHIFT+I
-		if ((controls.Key_Down(VK_F8) || (controls.Key_Down(VK_LSHIFT) && controls.Key_Down('I'))) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		if ((controls.Key_Down(VK_F8) || (controls.Key_Down(VK_LSHIFT) && controls.Key_Down('I'))) && HotkeysActive())
 		{
 			this->stereoView->IPDOffset = 0.0;
 			this->stereoView->PostReset();		
 
 			ShowAdjusterToast(retprintf("IPD-Offset: %1.3f", this->stereoView->IPDOffset), 500);
 			m_saveConfigTimer = GetTickCount();
-			menuVelocity.x+=2.0f;
+			HotkeyCooldown(2.0f);
 		}
 
 		//Show FPS Counter / Frame Time counter LSHIFT+F
-		if (((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down('F')) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		if (((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down('F')) && HotkeysActive())
 		{
 			show_fps = (FPS_TYPE)((show_fps+1) % 3);
-			menuVelocity.x+=2.0f;
+			HotkeyCooldown(2.0f);
 		}
 
 		//Show HMD Stats Counter LSHIFT+H 
-		if (((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down('H')) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		if (((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down('H')) && HotkeysActive())
 		{
 			if (activePopup.popupType == VPT_STATS)
 			{
@@ -734,11 +734,11 @@ void D3DProxyDevice::HandleControls()
 				VireioPopup popup(VPT_STATS);
 				ShowPopup(popup);
 			}
-			menuVelocity.x+=2.0f;
+			HotkeyCooldown(2.0f);
 		}
 
 		//Toggle positional tracking
-		if ((controls.Key_Down(VK_F11) || ((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down('P'))) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		if ((controls.Key_Down(VK_F11) || ((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down('P'))) && HotkeysActive())
 		{
 			m_bPosTrackingToggle = !m_bPosTrackingToggle;
 
@@ -749,12 +749,12 @@ void D3DProxyDevice::HandleControls()
 			if (!m_bPosTrackingToggle)
 				m_spShaderViewAdjustment->UpdatePosition(0.0f, 0.0f, 0.0f);
 
-			menuVelocity.x += 4.0f;
+			HotkeyCooldown(4.0f);
 		}
 
 		//Toggle SDK Pose Prediction- LSHIFT + DELETE
 		if (hmdInfo->GetHMDManufacturer() == HMD_OCULUS	&&
-			(controls.Key_Down(VK_LSHIFT) && controls.Key_Down(VK_DELETE)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)) && tracker)
+			(controls.Key_Down(VK_LSHIFT) && controls.Key_Down(VK_DELETE)) && HotkeysActive() && tracker)
 		{
 			tracker->useSDKPosePrediction = !tracker->useSDKPosePrediction;
 
@@ -762,12 +762,12 @@ void D3DProxyDevice::HandleControls()
 				retprintf("SDK Pose Prediction %s",
 					tracker->useSDKPosePrediction?"Enabled":"Disabled"));
 
-			menuVelocity.x += 4.0f;
+			HotkeyCooldown(4.0f);
 		}
 
 		//Toggle chromatic abberation correction - SHIFT+J
 		if (((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down('J'))
-			&& (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+			&& HotkeysActive())
 		{
 			stereoView->chromaticAberrationCorrection = !stereoView->chromaticAberrationCorrection;
 
@@ -775,7 +775,7 @@ void D3DProxyDevice::HandleControls()
 				retprintf("Chromatic Aberration Correction %s",
 					stereoView->chromaticAberrationCorrection?"Enabled":"Disabled"));
 
-			menuVelocity.x += 4.0f;
+			HotkeyCooldown(4.0f);
 		}
 
 		//Double clicking the NUMPAD0 key will invoke the VR mouse
@@ -783,7 +783,7 @@ void D3DProxyDevice::HandleControls()
 		//   - Toggle between GUI and HUD scaling if double click occurs within 2 seconds
 		//   - Disable VR Mouse if double click occurs after 2 seconds
 		static DWORD numPad0Click = 0;
-		if ((controls.Key_Down(VK_NUMPAD0) || numPad0Click != 0) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		if ((controls.Key_Down(VK_NUMPAD0) || numPad0Click != 0) && HotkeysActive())
 		{
 			if (controls.Key_Down(VK_NUMPAD0) && numPad0Click == 0)
 			{
@@ -829,11 +829,11 @@ void D3DProxyDevice::HandleControls()
 					ShowPopup(VPT_NOTIFICATION, VPS_TOAST, 1200,
 						retprintf("VR Mouse - %s", vrMouseDescription));
 
-					menuVelocity.x += 4.0f;		
+					HotkeyCooldown(4.0f);
 				}
 
 				numPad0Click = 0;
-				menuVelocity.x+=2.0f;
+				HotkeyCooldown(2.0f);
 			}
 			else if (numPad0Click > 1 &&
 				(GetTickCount() - numPad0Click) > 500)
@@ -844,7 +844,7 @@ void D3DProxyDevice::HandleControls()
 		}
 		
 		// floaty menus
-		if (controls.Key_Down(VK_LCONTROL) && controls.Key_Down(VK_NUMPAD1) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		if (controls.Key_Down(VK_LCONTROL) && controls.Key_Down(VK_NUMPAD1) && HotkeysActive())
 		{
 			if (m_bfloatingMenu)
 				m_bfloatingMenu = false;
@@ -862,12 +862,12 @@ void D3DProxyDevice::HandleControls()
 				retprintf("Floating Menus %s",
 					m_bfloatingMenu?"Enabled":"Disabled"));
 
-			menuVelocity.x += 4.0f;		
+			HotkeyCooldown(4.0f);
 		}
 
 		//Double clicking the start button will invoke the VP menu
 		static DWORD startClick = 0;
-		if ((controls.xButtonsStatus[4] || startClick != 0) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		if ((controls.xButtonsStatus[4] || startClick != 0) && HotkeysActive())
 		{
 			if (controls.xButtonsStatus[4] && startClick == 0)
 			{
@@ -895,7 +895,7 @@ void D3DProxyDevice::HandleControls()
 				}
 
 				startClick = 0;
-				menuVelocity.x+=2.0f;
+				HotkeyCooldown(2.0f);
 			}
 			else if (startClick > 1 &&
 				(GetTickCount() - startClick) > 500)
@@ -906,7 +906,7 @@ void D3DProxyDevice::HandleControls()
 		}
 
 		// open VP Menu - <CTRL>+<Q>
-		if(controls.Key_Down('Q') && controls.Key_Down(VK_LCONTROL) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		if(controls.Key_Down('Q') && controls.Key_Down(VK_LCONTROL) && HotkeysActive())
 		{
 			if (VPMENU_mode == VPMENU_Modes::INACTIVE)
 			{
@@ -919,11 +919,11 @@ void D3DProxyDevice::HandleControls()
 				VPMENU_UpdateConfigSettings();
 			}
 
-			menuVelocity.x+=2.0f;
+			HotkeyCooldown(2.0f);
 		}
 
 		// open VP Menu - <LSHIFT>+<*>
-		if(controls.Key_Down(VK_MULTIPLY) && controls.Key_Down(VK_LSHIFT) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))		
+		if(controls.Key_Down(VK_MULTIPLY) && controls.Key_Down(VK_LSHIFT) && HotkeysActive())		
 		{
 			if (VPMENU_mode == VPMENU_Modes::INACTIVE)
 			{
@@ -936,7 +936,7 @@ void D3DProxyDevice::HandleControls()
 				VPMENU_UpdateConfigSettings();
 			}
 
-			menuVelocity.x+=2.0f;
+			HotkeyCooldown(2.0f);
 		}
 
 		//Mouse Wheel Scroll
@@ -1065,7 +1065,7 @@ void D3DProxyDevice::HandleControls()
 		}
 	
 		//Change Distortion Scale CTRL + + / -
-		if(controls.Key_Down(VK_LCONTROL) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		if(controls.Key_Down(VK_LCONTROL) && HotkeysActive())
 		{
 			if(controls.Key_Down(VK_ADD))
 			{
@@ -1087,17 +1087,17 @@ void D3DProxyDevice::HandleControls()
 
 
 		// screenshot - <RCONTROL>+<*>
-		if(controls.Key_Down(VK_MULTIPLY) && controls.Key_Down(VK_RCONTROL) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))		
+		if(controls.Key_Down(VK_MULTIPLY) && controls.Key_Down(VK_RCONTROL) && HotkeysActive())		
 		{
 			// render 3 frames to get screenshots
 			screenshot = 3;
-			menuVelocity.x+=8.0f;
+			HotkeyCooldown(8.0f);
 		}
 	
 		//Telescopic mode - use ALT + Mouse Wheel CLick
 		if (controls.Key_Down(VK_MENU) &&
 			controls.Key_Down(VK_MBUTTON) && 
-			(menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+			HotkeysActive())
 		{
 			//First check whether VRBoost is controlling FOV, we can't use this functionality if it isn't
 			bool canUseTelescope = false;
@@ -1140,8 +1140,18 @@ void D3DProxyDevice::HandleControls()
 					stereoView->m_vignetteStyle = StereoView::NONE;
 				}
 
-				menuVelocity.x += 4.0f;
+				HotkeyCooldown(4.0f);
 			}
 		}
 	}
+}
+
+void D3DProxyDevice::HotkeyCooldown(float duration)
+{
+	menuVelocity.x += duration;
+}
+
+bool D3DProxyDevice::HotkeysActive()
+{
+	return menuVelocity.x == 0.0f && menuVelocity.y == 0.0f;
 }

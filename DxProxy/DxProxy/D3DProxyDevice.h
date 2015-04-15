@@ -174,6 +174,9 @@ public:
 	void           HandleTracking(void);
 	void           HandleUpdateExtern();
 	void		   SetGameWindow(HWND hMainGameWindow);
+	
+	void HotkeyCooldown(float duration);
+	bool HotkeysActive();
 
 	/**
 	* Game Types.

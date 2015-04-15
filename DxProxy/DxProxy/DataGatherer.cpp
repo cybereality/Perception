@@ -739,7 +739,7 @@ void DataGatherer::VPMENU_ShaderSubMenu()
 		VPMENU_mode = VPMENU_Modes::INACTIVE;
 	}
 
-	if ((controls.Key_Down(VK_RETURN) || controls.Key_Down(VK_RSHIFT) || (controls.xButtonsStatus[0x0c])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	if ((controls.Key_Down(VK_RETURN) || controls.Key_Down(VK_RSHIFT) || (controls.xButtonsStatus[0x0c])) && HotkeysActive())
 	{
 		// 
 		if (entryID == 0)
@@ -747,7 +747,7 @@ void DataGatherer::VPMENU_ShaderSubMenu()
 			// create relevant shader constant table
 			GetCurrentShaderRules(true);
 			VPMENU_mode = VPMENU_Modes::INACTIVE;
-			menuVelocity.x+=2.0f;
+			HotkeyCooldown(2.0f);
 			Analyze();
 		}
 		// 
@@ -756,13 +756,13 @@ void DataGatherer::VPMENU_ShaderSubMenu()
 			// create menu names new
 			GetCurrentShaderRules(false);
 			VPMENU_mode = VPMENU_Modes::CHANGE_RULES_SCREEN;
-			menuVelocity.x+=2.0f;
+			HotkeyCooldown(2.0f);
 		}
 		//// pick rules
 		//if (entryID == 2)
 		//{
 		//	VPMENU_mode = VPMENU_Modes::PICK_RULES_SCREEN;
-		//	menuVelocity.x+=2.0f;
+		//	HotkeyCooldown(2.0f);
 		//}
 		// show shaders
 		if (entryID == 2)
@@ -771,13 +771,13 @@ void DataGatherer::VPMENU_ShaderSubMenu()
 			//Clear collections
 			m_knownVShaders.clear();
 			m_knownPShaders.clear();
-			menuVelocity.x+=2.0f;
+			HotkeyCooldown(2.0f);
 		}
 		// save rules
 		if (entryID == 3)
 		{
 			VPMENU_mode = VPMENU_Modes::INACTIVE;
-			menuVelocity.x+=2.0f;
+			HotkeyCooldown(2.0f);
 			// save data
 			ProxyHelper* helper = new ProxyHelper();
 
@@ -802,7 +802,7 @@ void DataGatherer::VPMENU_ShaderSubMenu()
 		if (entryID == 4)
 		{
 			VPMENU_mode = VPMENU_Modes::MAINMENU;
-			menuVelocity.x+=2.0f;
+			HotkeyCooldown(2.0f);
 		}
 		// back to game
 		if (entryID == 5)
@@ -940,7 +940,7 @@ void DataGatherer::VPMENU_ChangeRules()
 		VPMENU_mode = VPMENU_Modes::INACTIVE;
 	}
 
-	if ((controls.Key_Down(VK_RETURN) || controls.Key_Down(VK_RSHIFT) || (controls.xButtonsStatus[0x0c])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	if ((controls.Key_Down(VK_RETURN) || controls.Key_Down(VK_RSHIFT) || (controls.xButtonsStatus[0x0c])) && HotkeysActive())
 	{
 		// switch shader rule node
 		if ((entryID >= 0) && (entryID < menuEntryCount-2) && (menuEntryCount>2))
@@ -1080,13 +1080,13 @@ void DataGatherer::VPMENU_ChangeRules()
 				}
 			}
 
-			menuVelocity.x+=2.0f;
+			HotkeyCooldown(2.0f);
 		}
 		// back to main menu
 		if (entryID == menuEntryCount-2)
 		{
 			VPMENU_mode = VPMENU_Modes::MAINMENU;
-			menuVelocity.x+=2.0f;
+			HotkeyCooldown(2.0f);
 		}
 		// back to game
 		if (entryID == menuEntryCount-1)
@@ -1095,7 +1095,7 @@ void DataGatherer::VPMENU_ChangeRules()
 		}
 	}
 
-	if ((controls.Key_Down(VK_LEFT) || controls.Key_Down(0x4A) || (controls.xInputState.Gamepad.sThumbLX<-8192)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	if ((controls.Key_Down(VK_LEFT) || controls.Key_Down(0x4A) || (controls.xInputState.Gamepad.sThumbLX<-8192)) && HotkeysActive())
 	{
 		// switch shader rule node
 		if ((entryID >= 0) && (entryID < menuEntryCount-2) && (menuEntryCount>2))
@@ -1143,10 +1143,10 @@ void DataGatherer::VPMENU_ChangeRules()
 				}
 			}
 		}
-		menuVelocity.x+=2.0f;
+		HotkeyCooldown(2.0f);
 	}
 
-	if ((controls.Key_Down(VK_RIGHT) || controls.Key_Down(0x4C) || (controls.xInputState.Gamepad.sThumbLX>8192)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	if ((controls.Key_Down(VK_RIGHT) || controls.Key_Down(0x4C) || (controls.xInputState.Gamepad.sThumbLX>8192)) && HotkeysActive())
 	{
 		// switch shader rule node
 		if ((entryID >= 0) && (entryID < menuEntryCount-2) && (menuEntryCount>2))
@@ -1202,7 +1202,7 @@ void DataGatherer::VPMENU_ChangeRules()
 				}
 			}
 		}
-		menuVelocity.x+=2.0f;
+		HotkeyCooldown(2.0f);
 	}
 
 	// output menu
@@ -1401,7 +1401,7 @@ void DataGatherer::VPMENU_ShowActiveShaders()
 		VPMENU_mode = VPMENU_Modes::INACTIVE;
 	}
 
-	if ((controls.Key_Down(VK_RETURN) || controls.Key_Down(VK_RSHIFT) || (controls.xButtonsStatus[0x0c])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+	if ((controls.Key_Down(VK_RETURN) || controls.Key_Down(VK_RSHIFT) || (controls.xButtonsStatus[0x0c])) && HotkeysActive())
 	{
 		// switch shader node (drawn/not-drawn)
 		if ((entryID >= 0) && (entryID < menuEntryCount-2) && (menuEntryCount>2))
@@ -1431,13 +1431,13 @@ void DataGatherer::VPMENU_ShowActiveShaders()
 				}
 			}
 
-			menuVelocity.x+=2.0f;
+			HotkeyCooldown(2.0f);
 		}
 		// back to main menu
 		if (entryID == menuEntryCount-2)
 		{
 			VPMENU_mode = VPMENU_Modes::MAINMENU;
-			menuVelocity.x+=2.0f;
+			HotkeyCooldown(2.0f);
 		}
 		// back to game
 		if (entryID == menuEntryCount-1)
