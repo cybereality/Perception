@@ -306,7 +306,7 @@ void D3DProxyDevice::HandleControls()
 	if (!m_disableAllHotkeys)
 	{
 		//Rset HMD Orientation+Position LSHIFT+R, or L+R Shoulder buttons on Xbox 360 controller
-		if ((((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down(0x52)) 
+		if ((((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down('R')) 
 			|| (controls.xButtonsStatus[8] && controls.xButtonsStatus[9]))
 			&& (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
@@ -379,7 +379,7 @@ void D3DProxyDevice::HandleControls()
 
 
 		// Show active VRBoost axes and their addresses (SHIFT+V)
-		if (controls.Key_Down(VK_LSHIFT) && (controls.Key_Down(0x56)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		if (controls.Key_Down(VK_LSHIFT) && (controls.Key_Down('V')) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
 			if (hmVRboost!=NULL)
 			{
@@ -412,7 +412,7 @@ void D3DProxyDevice::HandleControls()
 		}
 
 		// switch to 2d Depth Mode (Shift + O / Numpad 9)
-		if (controls.Key_Down(VK_LSHIFT) && (controls.Key_Down(0x4F) || controls.Key_Down(VK_NUMPAD9)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		if (controls.Key_Down(VK_LSHIFT) && (controls.Key_Down('O') || controls.Key_Down(VK_NUMPAD9)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
 			if(!m_b2dDepthMode)
 			{
@@ -436,7 +436,7 @@ void D3DProxyDevice::HandleControls()
 		}
 
 		// Swap Sides on Depth mode (Alt + O)
-		if (controls.Key_Down(VK_MENU) && controls.Key_Down(0x4F) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		if (controls.Key_Down(VK_MENU) && controls.Key_Down('O') && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
 			if(m_b2dDepthMode)
 			{
@@ -476,7 +476,7 @@ void D3DProxyDevice::HandleControls()
 		}
 
 		// Toggle Through Cube Renders -> ALt + 1
-		if (controls.Key_Down(VK_MENU) && controls.Key_Down(0x31) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		if (controls.Key_Down(VK_MENU) && controls.Key_Down('1') && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
 			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
 			if(m_pGameHandler->intDuplicateCubeTexture < 3)
@@ -499,7 +499,7 @@ void D3DProxyDevice::HandleControls()
 			menuVelocity.x += 4.0f;		
 		}
 		// Toggle Through Texture Renders -> ALt + 2
-		if (controls.Key_Down(VK_MENU) && controls.Key_Down(0x32) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		if (controls.Key_Down(VK_MENU) && controls.Key_Down('2') && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
 			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
 			if(m_pGameHandler->intDuplicateTexture < 4)
@@ -673,7 +673,7 @@ void D3DProxyDevice::HandleControls()
 
 		//Enabled/Disable Free Pitch (default is disabled), LSHIFT + X
 		if (VRBoostStatus.VRBoost_Active && 
-			(controls.Key_Down(VK_LSHIFT) && controls.Key_Down(0x58)) && 
+			(controls.Key_Down(VK_LSHIFT) && controls.Key_Down('X')) && 
 			(menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
 			if (VRBoostValue[VRboostAxis::FreePitch] != 0.0f)
@@ -700,7 +700,7 @@ void D3DProxyDevice::HandleControls()
 
 		//Enabled/Disable Comfort Mode - LSHIFT + M
 		if (VRBoostStatus.VRBoost_Active && 
-			(controls.Key_Down(VK_LSHIFT) && controls.Key_Down(0x4D)) && 
+			(controls.Key_Down(VK_LSHIFT) && controls.Key_Down('M')) && 
 			(menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
 			if (VRBoostValue[VRboostAxis::ComfortMode] != 0.0f)
@@ -729,7 +729,7 @@ void D3DProxyDevice::HandleControls()
 
 		//Enabled/Disable Black Smear Correction for DK2 (default is disabled), LSHIFT + B
 		if ((tracker && tracker->SupportsPositionTracking()) &&
-			(controls.Key_Down(VK_LSHIFT) && controls.Key_Down(0x42)) && 
+			(controls.Key_Down(VK_LSHIFT) && controls.Key_Down('B')) && 
 			(menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
 			if (stereoView->m_blackSmearCorrection != 0.0f)
@@ -756,7 +756,7 @@ void D3DProxyDevice::HandleControls()
 
 
 		//Reset IPD Offset to 0  -  F8  or  LSHIFT+I
-		if ((controls.Key_Down(VK_F8) || (controls.Key_Down(VK_LSHIFT) && controls.Key_Down(0x49))) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		if ((controls.Key_Down(VK_F8) || (controls.Key_Down(VK_LSHIFT) && controls.Key_Down('I'))) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
 			this->stereoView->IPDOffset = 0.0;
 			this->stereoView->PostReset();		
@@ -769,14 +769,14 @@ void D3DProxyDevice::HandleControls()
 		}
 
 		//Show FPS Counter / Frame Time counter LSHIFT+F
-		if (((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down(0x46)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		if (((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down('F')) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
 			show_fps = (FPS_TYPE)((show_fps+1) % 3);
 			menuVelocity.x+=2.0f;
 		}
 
 		//Show HMD Stats Counter LSHIFT+H 
-		if (((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down(0x48)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		if (((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down('H')) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
 			if (activePopup.popupType == VPT_STATS)
 			{
@@ -791,7 +791,7 @@ void D3DProxyDevice::HandleControls()
 		}
 
 		//Toggle positional tracking
-		if ((controls.Key_Down(VK_F11) || ((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down(0x50))) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		if ((controls.Key_Down(VK_F11) || ((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down('P'))) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
 			m_bPosTrackingToggle = !m_bPosTrackingToggle;
 
@@ -825,7 +825,7 @@ void D3DProxyDevice::HandleControls()
 		}
 
 		//Toggle chromatic abberation correction - SHIFT+J
-		if (((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down(0x4A))
+		if (((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down('J'))
 			&& (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
 			stereoView->chromaticAberrationCorrection = !stereoView->chromaticAberrationCorrection;
@@ -968,8 +968,8 @@ void D3DProxyDevice::HandleControls()
 			}
 		}
 
-		// open VP Menu - <CTRL>+<T>
-		if(controls.Key_Down(0x51) && controls.Key_Down(VK_LCONTROL) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		// open VP Menu - <CTRL>+<Q>
+		if(controls.Key_Down('Q') && controls.Key_Down(VK_LCONTROL) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
 			if (VPMENU_mode == VPMENU_Modes::INACTIVE)
 			{
