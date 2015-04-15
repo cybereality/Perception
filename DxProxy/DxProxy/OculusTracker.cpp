@@ -114,9 +114,7 @@ void OculusTracker::init()
 		status = MTS_OK;
 
 #ifdef SHOW_CALLS
-	char buf[256];
-	sprintf_s(buf, "init: %i", (int)status);
-	OutputDebugString(buf);
+	debugf("init: %i", (int)status);
 #endif 
 
 }
@@ -202,9 +200,7 @@ void OculusTracker::resetOrientationAndPosition()
 	}
 
 #ifdef SHOW_CALLS
-	char buf[256];
-	sprintf_s(buf, "resetOrientationAndPosition: %i", (int)status);
-	OutputDebugString(buf);
+	debugf("resetOrientationAndPosition: %i", (int)status);
 #endif 
 }
 
@@ -240,9 +236,7 @@ void OculusTracker::resetPosition()
 	}
 
 #ifdef SHOW_CALLS
-	char buf[256];
-	sprintf_s(buf, "resetPosition: %i", (int)status);
-	OutputDebugString(buf);
+	debugf("resetPosition: %i", (int)status);
 #endif 
 }
 
@@ -302,15 +296,10 @@ int OculusTracker::getOrientationAndPosition(float* yaw, float* pitch, float* ro
 	}
 
 #ifdef SHOW_CALLS
-	char buffer[256]; 
-	sprintf_s(buffer, "Yaw: %.4f Pitch: %.4f Roll: %.4f", primaryYaw, primaryPitch, primaryRoll); 
-	OutputDebugString(buffer);
-	sprintf_s(buffer, "X: %.4f Y: %.4f Z: %.4f", primaryX, primaryY, primaryZ); 
-	OutputDebugString(buffer);
+	debugf("Yaw: %.4f Pitch: %.4f Roll: %.4f", primaryYaw, primaryPitch, primaryRoll); 
+	debugf("X: %.4f Y: %.4f Z: %.4f", primaryX, primaryY, primaryZ); 
 
-	char buf[256];
-	sprintf_s(buf, "getOrientationAndPosition: %i", (int)status);
-	OutputDebugString(buf);
+	debugf("getOrientationAndPosition: %i", (int)status);
 #endif
 
 	return (int)status; 
@@ -363,11 +352,8 @@ void OculusTracker::updateOrientationAndPosition()
 		currentPitch = pitch;
 		currentRoll = (float)( roll * (PI/180.0) * multiplierRoll);	// convert from deg to radians then apply mutiplier
 #ifdef SHOW_CALLS
-	char buffer[256]; 
-	sprintf_s(buffer, "roll: %.4f multiplierRoll: %.4f", roll, multiplierRoll); 
-	OutputDebugString(buffer);
-	sprintf_s(buffer, "currentYaw: %.4f currentPitch: %.4f currentRoll: %.4f", currentYaw, currentPitch, currentRoll); 
-	OutputDebugString(buffer);
+	debugf("roll: %.4f multiplierRoll: %.4f", roll, multiplierRoll); 
+	debugf("currentYaw: %.4f currentPitch: %.4f currentRoll: %.4f", currentYaw, currentPitch, currentRoll); 
 #endif
 	}
 }

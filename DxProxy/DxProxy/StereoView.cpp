@@ -28,6 +28,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
 #include "StereoView.h"
+#include "Vireio.h"
+
+using namespace vireio;
 
 /**
 * Tiny debug helper.
@@ -37,9 +40,7 @@ inline void releaseCheck(char* object, int newRefCount)
 {
 #ifdef _DEBUG
 	if (newRefCount > 0) {
-		char buf[128];
-		sprintf_s(buf, "Error: %s count = %d\n", object, newRefCount);
-		OutputDebugString(buf);
+		debugf("Error: %s count = %d\n", object, newRefCount);
 	}
 #endif
 }
@@ -499,17 +500,10 @@ void StereoView::InitTextureBuffers()
 	backBuffer->GetDesc(&pDesc);
 
 #ifdef _DEBUG
-	char buf[32];
-	LPCSTR psz = NULL;
-
-	wsprintf(buf,"viewport width: %d",viewport.Width);
-	psz = buf;
-	OutputDebugString(psz);
+	debugf("viewport width: %d",viewport.Width);
 	OutputDebugString("\n");
 
-	wsprintf(buf,"backbuffer width: %d",pDesc.Width);
-	psz = buf;
-	OutputDebugString(psz);
+	debugf("backbuffer width: %d",pDesc.Width);
 	OutputDebugString("\n");
 #endif
 

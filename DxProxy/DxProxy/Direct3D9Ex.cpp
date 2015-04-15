@@ -31,6 +31,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Direct3DDevice9.h"
 #include "Main.h"
 #include "D3DProxyDeviceFactory.h"
+#include "Vireio.h"
+
+using namespace vireio;
 
 /**
 * Constructor. 
@@ -188,9 +191,7 @@ HRESULT WINAPI BaseDirect3D9Ex::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType
 
 	OutputDebugString("[OK] Normal D3D device created\n");
 
-	char buf[64];
-	sprintf_s(buf, "Number of back buffers = %d\n", pPresentationParameters->BackBufferCount);
-	OutputDebugString(buf);
+	debugf("Number of back buffers = %d\n", pPresentationParameters->BackBufferCount);
 
 	// load configuration file
 	ProxyHelper helper = ProxyHelper();
@@ -210,12 +211,7 @@ HRESULT WINAPI BaseDirect3D9Ex::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType
 
 	OutputDebugString("[OK] Stereo mode is enabled.\n");
 
-	char buf1[32];
-	LPCSTR psz = NULL;
-
-	wsprintf(buf1,"Config type: %d", cfg.game_type);
-	psz = buf1;
-	OutputDebugString(psz);
+	debugf("Config type: %d", cfg.game_type);
 	OutputDebugString("\n");
 
 	// Create and return proxy TODO !!

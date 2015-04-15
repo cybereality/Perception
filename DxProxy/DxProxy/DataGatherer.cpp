@@ -28,12 +28,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
 #include "DataGatherer.h"
+#include "Vireio.h"
 
 #include "Version.h"
 
 #define MATRIX_NAMES 17
 #define AVOID_SUBSTRINGS 2
 #define ANALYZE_FRAMES 500
+
+using namespace vireio;
 
 /**
 * Simple helper to get the hash of a shader.
@@ -352,11 +355,7 @@ HRESULT WINAPI DataGatherer::CreateVertexShader(CONST DWORD* pFunction,IDirect3D
 			if(pConstantTable == NULL)
 			{
 				OutputDebugString("DATAGATHERER :: Vertex Shader Constant Table is Null");	
-				char buf[64];
-				LPCSTR psz = NULL;
-				sprintf_s(buf, "Size of Data: %d Data Contents: %s\n", pSizeOfData, pData);
-				psz = buf;
-				OutputDebugString(psz);
+				debugf("Size of Data: %d Data Contents: %s\n", pSizeOfData, pData);
 			}
 			else
 			{
@@ -478,9 +477,7 @@ HRESULT WINAPI DataGatherer::SetVertexShader(IDirect3DVertexShader9* pShader)
 		{
 			if (m_recordedSetVShaders.insert(pShader).second)
 			{
-				char buf[32];
-				sprintf_s(buf,"Set Vertex Shader: %u", m_currentVertexShaderHash);
-				OutputDebugString(buf);
+				debugf("Set Vertex Shader: %u", m_currentVertexShaderHash);
 			}
 
 		}
@@ -588,11 +585,7 @@ HRESULT WINAPI DataGatherer::CreatePixelShader(CONST DWORD* pFunction,IDirect3DP
 			if(pConstantTable == NULL)
 			{
 				OutputDebugString("DATAGATHERER :: Pixel Shader Constant Table is Null");	
-				char buf[64];
-				LPCSTR psz = NULL;
-				sprintf_s(buf, "Size of Data: %d Data Contents: %s\n", pSizeOfData, pData);
-				psz = buf;
-				OutputDebugString(psz);
+				debugf("Size of Data: %d Data Contents: %s\n", pSizeOfData, pData);
 			}
 			else
 			{
@@ -706,11 +699,8 @@ HRESULT WINAPI DataGatherer::SetPixelShader(IDirect3DPixelShader9* pShader)
 	}
 
 #ifdef _DEBUG
-	char buf[32];
-	sprintf_s(buf,"Cur Vertex Shader: %u", m_currentVertexShaderHash);
-	OutputDebugString(buf);
-	sprintf_s(buf,"Set Pixel Shader: %u", currentPixelShaderHash);
-	OutputDebugString(buf);
+	debugf("Cur Vertex Shader: %u", m_currentVertexShaderHash);
+	debugf("Set Pixel Shader: %u", currentPixelShaderHash);
 #endif
 
 	return D3DProxyDevice::SetPixelShader(pShader);
@@ -1591,13 +1581,9 @@ void DataGatherer::Analyze()
 						OutputDebugString("D3DXPC_MATRIX_COLUMNS");
 						break;
 					}
-					char buf[32];
-					sprintf_s(buf,"Register Index: %d", itShaderConstants->desc.RegisterIndex);
-					OutputDebugString(buf);
-					sprintf_s(buf,"Shader Hash: %u", itShaderConstants->hash);
-					OutputDebugString(buf);
-					sprintf_s(buf,"Transposed: %d", m_bTransposedRules);
-					OutputDebugString(buf);
+					debugf("Register Index: %d", itShaderConstants->desc.RegisterIndex);
+					debugf("Shader Hash: %u", itShaderConstants->hash);
+					debugf("Transposed: %d", m_bTransposedRules);
 
 					// end loop
 					i = MATRIX_NAMES;

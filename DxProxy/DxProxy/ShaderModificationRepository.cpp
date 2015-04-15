@@ -28,7 +28,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
 #include "ShaderModificationRepository.h"
+#include "Vireio.h"
 #include <assert.h>
+
+using namespace vireio;
 
 /**
 * Constructor.
@@ -513,9 +516,7 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 									OutputDebugString("PS: UNKNOWN_CONSTANT");
 									break;
 								}
-								char buf[32];
-								sprintf_s(buf,"Register Index: %d", pConstantDesc[j].RegisterIndex);
-								OutputDebugString(buf);
+								debugf("Register Index: %d", pConstantDesc[j].RegisterIndex);
 #endif // DEBUG
 
 								// Create StereoShaderConstant<float> and add to result
@@ -756,9 +757,7 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 									OutputDebugString("VS2: UNKNOWN_CONSTANTTYPE");
 									break;
 								}
-								char buf[32];
-								sprintf_s(buf,"Register Index: %d", pConstantDesc[j].RegisterIndex);
-								OutputDebugString(buf);
+								debugf("Register Index: %d", pConstantDesc[j].RegisterIndex);
 #endif // DEBUG
 
 								// Create StereoShaderConstant<float> and add to result

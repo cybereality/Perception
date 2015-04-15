@@ -31,9 +31,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Direct3DDevice9.h"
 #include "Main.h"
 #include "D3DProxyDeviceFactory.h"
+#include "Vireio.h"
 #include <cstdio>
 #include <windows.h>
 #include <tlhelp32.h>
+
+using namespace vireio;
 
 /*!
 \brief Check if a process is running
@@ -255,11 +258,8 @@ HRESULT WINAPI BaseDirect3D9::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, 
 
 	OutputDebugString("[OK] Normal D3D device created\n");
 
-	char buf[64];
-	sprintf_s(buf, "Number of back buffers = %d\n", pPresentationParameters->BackBufferCount);
-	OutputDebugString(buf);
-	sprintf_s(buf, "Format of back buffers = %x\n", pPresentationParameters->BackBufferFormat);
-	OutputDebugString(buf);
+	debugf("Number of back buffers = %d\n", pPresentationParameters->BackBufferCount);
+	debugf("Format of back buffers = %x\n", pPresentationParameters->BackBufferFormat);
 
 	// for debug reasons, output the d3dswapeffect parameter
 	switch (pPresentationParameters->SwapEffect)
@@ -280,9 +280,7 @@ HRESULT WINAPI BaseDirect3D9::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, 
 		OutputDebugString("D3DSWAPEFFECT_OVERLAY");
 		break;
 	default:
-		char buf[256];
-		sprintf_s(buf, 256, "D3DPRESENT_PARAMETERS::SwapEffect %x", pPresentationParameters->SwapEffect);
-		OutputDebugString(buf);
+		debugf("D3DPRESENT_PARAMETERS::SwapEffect %x", pPresentationParameters->SwapEffect);
 		break;
 	}
 
@@ -312,12 +310,7 @@ HRESULT WINAPI BaseDirect3D9::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, 
 
 	OutputDebugString("[OK] Stereo mode is enabled.\n");
 
-	char buf1[32];
-	LPCSTR psz = NULL;
-
-	wsprintf(buf1,"Config type: %d", cfg.game_type);
-	psz = buf1;
-	OutputDebugString(psz);
+	debugf("Config type: %d", cfg.game_type);
 	OutputDebugString("\n");
 
 	// Create and return proxy

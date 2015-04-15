@@ -29,10 +29,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef x64
 
 #include "FreeSpaceTracker.h"
+#include "Vireio.h"
 #include <string.h>
 #include <math.h>
 #include <time.h>
 #include <stdio.h>
+
+using namespace vireio;
 
 /**
 * Constructor.
@@ -246,10 +249,8 @@ int FreeSpaceTracker::getOrientationAndPosition(float* yaw, float* pitch, float*
 	else
 	{
 #ifdef _DEBUG
-		char errChar[512];
-		sprintf_s(errChar, "devID = %d, err == %d", DeviceID, err);
 		OutputDebugString("Freespace Error:");
-		OutputDebugString(errChar);
+		debugf("devID = %d, err == %d", DeviceID, err);
 		OutputDebugString("\n");
 #endif
 		return err;  // return on timeouts or serious errors

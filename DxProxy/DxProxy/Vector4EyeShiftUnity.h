@@ -1,10 +1,10 @@
 /********************************************************************
 Vireio Perception: Open-Source Stereoscopic 3D Driver
-Copyright © 2012 Andres Hernandez
+Copyright (C) 2012 Andres Hernandez
 
 File <Vector4EyeShiftUnity.h> and
 Class <Vector4EyeShiftUnity> :
-Copyright © 2013 Denis Reischl
+Copyright (C) 2013 Denis Reischl
 
 Vireio Perception Version History:
 v1.0.0 2012 by Andres Hernandez
@@ -53,13 +53,9 @@ public:
 		D3DXVECTOR4 tempLeft (inData);
 		D3DXVECTOR4 tempRight (inData);
 
-		/*char buf[128];
-		sprintf_s(buf, 128, "X : %f", tempLeft.x);
-		OutputDebugString(buf);
-		sprintf_s(buf, 128, "Y : %f", tempLeft.y);
-		OutputDebugString(buf);
-		sprintf_s(buf, 128, "Z : %f", tempLeft.z);
-		OutputDebugString(buf);*/
+		/*debugf("X : %f", tempLeft.x);
+		debugf("Y : %f", tempLeft.y);
+		debugf("Z : %f", tempLeft.z);*/
 
 		tempLeft[0] += m_spAdjustmentMatrices->SeparationInWorldUnits() * LEFT_SHIFT;
 		tempRight[0] += m_spAdjustmentMatrices->SeparationInWorldUnits() * RIGHT_SHIFT;

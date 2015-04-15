@@ -30,6 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ProxyHelper.h"
 
 #include <algorithm>
+#include <stdarg.h>
 
 using namespace pugi;
 
@@ -95,6 +96,16 @@ HRESULT ProxyHelper::RegGetString(HKEY hKey, LPCTSTR szValueName, LPTSTR * lpszR
 	(*lpszResult)[(dwBufSize / sizeof(TCHAR)) - 1] = TEXT('\0');
 
 	return NOERROR;
+}
+
+void debugf(const char *fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	char buf[8192];
+	vsnprintf_s(buf, 8192, fmt, args);
+	va_end(args);
+	OutputDebugString(buf);
 }
 
 /**
@@ -438,11 +449,8 @@ bool ProxyHelper::LoadUserConfig(ProxyConfig& config, OculusProfile& oculusProfi
 	OutputDebugString(oculusProfile.Name.c_str());
 	OutputDebugString(oculusProfile.Gender.c_str());
 	OutputDebugString(oculusProfile.RiftVersion.c_str());
-	char buf[32];
-	sprintf_s(buf,"IPD: %g", oculusProfile.IPD);
-	OutputDebugString(buf);
-	sprintf_s(buf,"PlayerHeight: %g", oculusProfile.PlayerHeight);
-	OutputDebugString(buf);
+	debugf("IPD: %g", oculusProfile.IPD);
+	debugf("PlayerHeight: %g", oculusProfile.PlayerHeight);
 
 	return userFound;
 }
@@ -663,9 +671,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 						continue;
 				}
 
-				char buffer[256];
-				sprintf_s(buffer, "Found specific profile: %s (%s)\n", profile.attribute("game_name").as_string(), cpuArch.c_str());
-				OutputDebugString(buffer);
+				debugf("Found specific profile: %s (%s)\n", profile.attribute("game_name").as_string(), cpuArch.c_str());
 				gameProfile = profile;
 				profileFound = true;
 				break;
@@ -678,12 +684,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 		OutputDebugString("Set the config to profile!!!\n");
 		config.game_type = gameProfile.attribute("game_type").as_int();
 
-		char buf[32];
-		LPCSTR psz = NULL;
-
-		wsprintf(buf,"gameType: %d", gameProfile.attribute("game_type").as_int());
-		psz = buf;
-		OutputDebugString(psz);
+		debugf("gameType: %d", gameProfile.attribute("game_type").as_int());
 		OutputDebugString("\n");
 
 		config.VRboostMinShaderCount = gameProfile.attribute("minVRboostShaderCount").as_uint(0);
@@ -906,12 +907,10 @@ bool ProxyHelper::SaveConfig(ProxyConfig& config)
 				}
 				else hasDirContains = false;
 
-				char buffer[256];
 				if (hasDirContains)
-					sprintf_s(buffer, "Found specific profile: %s (%s), dirContains: TRUE\n", targetExe, cpuArch.c_str());
+					debugf("Found specific profile: %s (%s), dirContains: TRUE\n", targetExe, cpuArch.c_str());
 				else
-					sprintf_s(buffer, "Found specific profile: %s (%s), dirContains: FALSE\n", targetExe, cpuArch.c_str());
-				OutputDebugString(buffer);
+					debugf("Found specific profile: %s (%s), dirContains: FALSE\n", targetExe, cpuArch.c_str());
 				gameProfile = profile;
 				profileFound = true;
 				break;

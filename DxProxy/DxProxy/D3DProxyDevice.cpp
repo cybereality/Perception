@@ -62,6 +62,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MAX_PIXEL_SHADER_CONST_3_0 224
 
 using namespace VRBoost;
+using namespace vireio;
 
 /**
 * Returns the mouse wheel scroll lines.
@@ -152,6 +153,7 @@ std::string VRboostAxisString(UINT axis)
 
 	return "UnknownAxis";
 }
+
 /**
 * Constructor : creates game handler and sets various states.
 ***/
@@ -413,11 +415,8 @@ HRESULT WINAPI D3DProxyDevice::Reset(D3DPRESENT_PARAMETERS* pPresentationParamet
 	}
 	else {
 #ifdef _DEBUG
-		char buf[256];
-		sprintf_s(buf, "Error: %s error description: %s\n",
+		debugf("Error: %s error description: %s\n",
 			DXGetErrorString(hr), DXGetErrorDescription(hr));
-
-		OutputDebugString(buf);				
 #endif
 		OutputDebugString("Device reset failed");
 	}
@@ -1238,11 +1237,7 @@ HRESULT WINAPI D3DProxyDevice::Clear(DWORD Count,CONST D3DRECT* pRects,DWORD Fla
 			if (FAILED(hr = BaseDirect3DDevice9::Clear(Count, pRects, Flags, Color, Z, Stencil))) {
 
 #ifdef _DEBUG
-				char buf[256];
-				sprintf_s(buf, "Error: %s error description: %s\n",
-				DXGetErrorString(hr), DXGetErrorDescription(hr));
-
-				OutputDebugString(buf);
+				debugf("Error: %s error description: %s\n", DXGetErrorString(hr), DXGetErrorDescription(hr));
 				OutputDebugString("Clear failed\n");
 
 #endif
@@ -2428,11 +2423,7 @@ void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 	m_bSurpressHeadtracking = false;
 	m_bSurpressPositionaltracking = false;
 
-	char buf[64];
-	LPCSTR psz = NULL;
-	sprintf_s(buf, "type: %d, aspect: %f\n", config.game_type, config.aspect_multiplier);
-	psz = buf;
-	OutputDebugString(psz);
+	debugf("type: %d, aspect: %f\n", config.game_type, config.aspect_multiplier);
 
 	// first time configuration
 	m_spShaderViewAdjustment->Load(config);

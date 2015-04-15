@@ -33,6 +33,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <d3d9.h>
 #include <assert.h>
+#include <string>
 
 // 64mm in meters
 #define IPD_DEFAULT 0.064f
@@ -57,5 +58,8 @@ namespace vireio {
 	void UnWrapTexture(IDirect3DBaseTexture9* pWrappedTexture, IDirect3DBaseTexture9** ppActualLeftTexture, IDirect3DBaseTexture9** ppActualRightTexture);
 	bool AlmostSame(float a, float b, float epsilon);
 	void clamp(float* toClamp, float min, float max);
+
+	std::string retprintf(const char *fmt, ...);
+	void debugf(const char *fmt, ...);
 };
 #endif

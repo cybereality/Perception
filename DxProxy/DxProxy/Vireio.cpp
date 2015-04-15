@@ -32,6 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "D3D9ProxyVolumeTexture.h"
 #include "D3D9ProxyCubeTexture.h"
 #include "Vireio.h"
+#include <stdarg.h>
 
 namespace vireio {
 
@@ -106,5 +107,25 @@ namespace vireio {
 	void clamp(float* pfToClamp, float min, float max)
 	{
 		*pfToClamp > max ? *pfToClamp = max : (*pfToClamp < min ? *pfToClamp = min : *pfToClamp = *pfToClamp);
+	}
+
+	std::string retprintf(const char *fmt, ...)
+	{
+		va_list args;
+		va_start(args, fmt);
+		char buf[8192];
+		vsnprintf_s(buf, 8192, fmt, args);
+		va_end(args);
+		return std::string(buf);
+	}
+	
+	void debugf(const char *fmt, ...)
+	{
+		va_list args;
+		va_start(args, fmt);
+		char buf[8192];
+		vsnprintf_s(buf, 8192, fmt, args);
+		va_end(args);
+		OutputDebugString(buf);
 	}
 };
