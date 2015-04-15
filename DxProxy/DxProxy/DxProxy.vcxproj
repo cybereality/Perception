@@ -259,6 +259,8 @@
     <ClCompile Include="FreeTrackTracker.cpp" />
     <ClCompile Include="GameHandler.cpp" />
     <ClCompile Include="HMDisplayInfoFactory.cpp" />
+    <ClCompile Include="Hotkeys.cpp" />
+    <ClCompile Include="InGameMenus.cpp" />
     <ClCompile Include="InputControls.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MotionTracker.cpp" />
@@ -266,6 +268,7 @@
     <ClCompile Include="MurmurHash3.cpp" />
     <ClCompile Include="OculusRiftView.cpp" />
     <ClCompile Include="OculusTracker.cpp" />
+    <ClCompile Include="Popup.cpp" />
     <ClCompile Include="ProxyHelper.cpp" />
     <ClCompile Include="pugixml.cpp" />
     <ClCompile Include="DataGatherer.cpp" />
