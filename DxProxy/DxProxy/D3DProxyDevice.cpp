@@ -3580,6 +3580,17 @@ void D3DProxyDevice::DrawTextShadowed(ID3DXFont* font, LPD3DXSPRITE sprite, LPCS
 	font->DrawText(sprite, lpchText, -1, lprc, format, color);
 }
 
+void D3DProxyDevice::DrawTextShadowed(ID3DXFont* font, LPD3DXSPRITE sprite, const char *text, LPRECT rect, D3DCOLOR color)
+{
+	DrawTextShadowed(font, sprite, text, -1, rect, 0, color);
+}
+
+void D3DProxyDevice::DrawMenuItem(const char *text, D3DCOLOR color)
+{
+	DrawTextShadowed(hudFont, hudMainMenu, text, &menuHelperRect, color);
+	menuHelperRect.top += MENU_ITEM_SEPARATION;
+}
+
 /**
 * Changes the HUD scale mode - also changes new scale in view adjustment class.
 ***/

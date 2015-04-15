@@ -48,8 +48,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Version.h"
 
-#define MENU_ITEM_SEPARATION  40
-
 using namespace VRBoost;
 using namespace vireio;
 
@@ -174,7 +172,7 @@ void D3DProxyDevice::VPMENU_StartDrawing(const char *pageTitle, int borderSelect
 	menuHelperRect.top = 300;
 	
 	std::string pageHeading = retprintf("Vireio Perception (%s) %s\n", APP_VERSION, pageTitle);
-	DrawTextShadowed(hudFont, hudMainMenu, pageHeading.c_str(), -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
+	DrawTextShadowed(hudFont, hudMainMenu, pageHeading.c_str(), &menuHelperRect, COLOR_MENU_TEXT);
 	rect.x1 = 0; rect.x2 = viewportWidth; rect.y1 = (int)(335*fScaleY); rect.y2 = (int)(340*fScaleY);
 	Clear(1, &rect, D3DCLEAR_TARGET, COLOR_MENU_BORDER, 0, 0);
 }
@@ -400,41 +398,31 @@ void D3DProxyDevice::VPMENU_MainMenu()
 		menuHelperRect.top += 50;  menuHelperRect.left += 150;
 		if (config.game_type > 10000)
 		{
-			DrawTextShadowed(hudFont, hudMainMenu, "Activate Vireio Shader Analyzer\n", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-			menuHelperRect.top += MENU_ITEM_SEPARATION;
+			DrawMenuItem("Activate Vireio Shader Analyzer\n");
 		}
-		DrawTextShadowed(hudFont, hudMainMenu, "World-Scale Calibration\n", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Convergence Adjustment\n", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "HUD Calibration\n", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "GUI Calibration\n", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION; float hudQSHeight = (float)menuHelperRect.top * fScaleY;
-		DrawTextShadowed(hudFont, hudMainMenu, "HUD Quick Setting : \n", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION; float guiQSHeight = (float)menuHelperRect.top * fScaleY;
-		DrawTextShadowed(hudFont, hudMainMenu, "GUI Quick Setting : \n", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Overall Settings\n", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "VRBoost Values\n", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Position Tracking Configuration\n", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Comfort Mode Configuration\n", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Restore Configuration\n", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game\n", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
+		DrawMenuItem("World-Scale Calibration\n");
+		DrawMenuItem("Convergence Adjustment\n");
+		DrawMenuItem("HUD Calibration\n");
+		DrawMenuItem("GUI Calibration\n");
+		DrawMenuItem("HUD Quick Setting : \n");
+		float hudQSTop = (float)menuHelperRect.top * fScaleY;
+		DrawMenuItem("GUI Quick Setting : \n");
+		float guiQSTop = (float)menuHelperRect.top * fScaleY;
+		DrawMenuItem("Overall Settings\n");
+		DrawMenuItem("VRBoost Values\n");
+		DrawMenuItem("Position Tracking Configuration\n");
+		DrawMenuItem("Comfort Mode Configuration\n");
+		DrawMenuItem("Restore Configuration\n");
+		DrawMenuItem("Back to Game\n");
 		
 		// draw HUD quick setting rectangles
 		D3DRECT rect;
-		rect.x1 = (int)(viewportWidth*0.57f); rect.x2 = (int)(viewportWidth*0.61f); rect.y1 = (int)hudQSHeight; rect.y2 = (int)(hudQSHeight+viewportHeight*0.027f);
+		rect.x1 = (int)(viewportWidth*0.57f); rect.x2 = (int)(viewportWidth*0.61f); rect.y1 = (int)hudQSTop; rect.y2 = (int)(hudQSTop+viewportHeight*0.027f);
 		DrawSelection(vireio::RenderPosition::Left, rect, COLOR_QUICK_SETTING, (int)hud3DDepthMode, (int)HUD_3D_Depth_Modes::HUD_ENUM_RANGE);
 		DrawSelection(vireio::RenderPosition::Right, rect, COLOR_QUICK_SETTING, (int)hud3DDepthMode, (int)HUD_3D_Depth_Modes::HUD_ENUM_RANGE);
 
 		// draw GUI quick setting rectangles
-		rect.x1 = (int)(viewportWidth*0.57f); rect.x2 = (int)(viewportWidth*0.61f); rect.y1 = (int)guiQSHeight; rect.y2 = (int)(guiQSHeight+viewportHeight*0.027f);
+		rect.x1 = (int)(viewportWidth*0.57f); rect.x2 = (int)(viewportWidth*0.61f); rect.y1 = (int)guiQSTop; rect.y2 = (int)(guiQSTop+viewportHeight*0.027f);
 		DrawSelection(vireio::RenderPosition::Left, rect, COLOR_QUICK_SETTING, (int)gui3DDepthMode, (int)GUI_3D_Depth_Modes::GUI_ENUM_RANGE);
 		DrawSelection(vireio::RenderPosition::Right, rect, COLOR_QUICK_SETTING, (int)gui3DDepthMode, (int)GUI_3D_Depth_Modes::GUI_ENUM_RANGE);
 
@@ -569,7 +557,7 @@ void D3DProxyDevice::VPMENU_WorldScale()
 
 		RECT rec2 = {(int)(width*0.27f), (int)(height*0.8f),width,height};
 		sprintf_s(vcString, 1024, "Vireio Perception ("APP_VERSION") Settings - World Scale\n");
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec2, 0, COLOR_MENU_TEXT);
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec2, COLOR_MENU_TEXT);
 
 		// draw right line (using BaseDirect3DDevice9, since otherwise we have two lines)
 		D3DRECT rec3 = {(int)(viewportWidth/2 + (-BlueLineCenterAsPercentage * viewportWidth * 0.25f))-1, 0,
@@ -608,10 +596,10 @@ void D3DProxyDevice::VPMENU_WorldScale()
 		rec2.left = (int)(width*0.35f);
 		rec2.top = (int)(height*0.83f);
 		sprintf_s(vcString, 1024, "World-Scale Calibration");
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec2, 0, COLOR_MENU_TEXT);
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec2, COLOR_MENU_TEXT);
 
 		RECT rec10 = {(int)(width*0.40f), (int)(height*0.57f),width,height};
-		DrawTextShadowed(hudFont, hudMainMenu, "<- calibrate using Arrow Keys ->", -1, &rec10, 0, COLOR_MENU_TEXT);
+		DrawTextShadowed(hudFont, hudMainMenu, "<- calibrate using Arrow Keys ->", &rec10, COLOR_MENU_TEXT);
 
 		float gameUnit = m_spShaderViewAdjustment->WorldScale();
 
@@ -630,7 +618,7 @@ void D3DProxyDevice::VPMENU_WorldScale()
 
 			rec10.top = (int)(height*0.77f); rec10.left = (int)(width*0.45f);
 			sprintf_s(vcString,"Actual Units %u/%u", gameXScaleUnitIndex, m_gameXScaleUnits.size());
-			DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, COLOR_MENU_TEXT);
+			DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec10, COLOR_MENU_TEXT);
 		}
 
 		//Column 1:
@@ -646,35 +634,35 @@ void D3DProxyDevice::VPMENU_WorldScale()
 		rec10.top = (int)(height*0.6f); rec10.left = (int)(width*0.28f);
 		float meters = 1 / gameUnit;
 		sprintf_s(vcString,"1 Game Unit = %g Meters", meters);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, COLOR_MENU_TEXT);
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec10, COLOR_MENU_TEXT);
 		rec10.top+=35;
 		float centimeters = meters * 100.0f;
 		sprintf_s(vcString,"1 Game Unit = %g CM", centimeters);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, COLOR_MENU_TEXT);
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec10, COLOR_MENU_TEXT);
 		rec10.top+=35;
 		float feet = meters * 3.2808399f;
 		sprintf_s(vcString,"1 Game Unit = %g Feet", feet);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, COLOR_MENU_TEXT);
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec10, COLOR_MENU_TEXT);
 		rec10.top+=35;
 		float inches = feet * 12.0f;
 		sprintf_s(vcString,"1 Game Unit = %g In.", inches);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, COLOR_MENU_TEXT);
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec10, COLOR_MENU_TEXT);
 
 		RECT rec11 = {(int)(width*0.52f), (int)(height*0.6f),width,height};
 		sprintf_s(vcString,"1 Meter      = %g Game Units", gameUnit);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec11, 0, COLOR_MENU_TEXT);
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec11, COLOR_MENU_TEXT);
 		rec11.top+=35;
 		float gameUnitsToCentimeter =  gameUnit / 100.0f;
 		sprintf_s(vcString,"1 CM         = %g Game Units", gameUnitsToCentimeter);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec11, 0, COLOR_MENU_TEXT);
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec11, COLOR_MENU_TEXT);
 		rec11.top+=35;
 		float gameUnitsToFoot = gameUnit / 3.2808399f;
 		sprintf_s(vcString,"1 Foot       = %g Game Units", gameUnitsToFoot);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec11, 0, COLOR_MENU_TEXT);
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec11, COLOR_MENU_TEXT);
 		rec11.top+=35;
 		float gameUnitsToInches = gameUnit / 39.3700787f;
 		sprintf_s(vcString,"1 Inch       = %g Game Units", gameUnitsToInches);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec11, 0, COLOR_MENU_TEXT);
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec11, COLOR_MENU_TEXT);
 
 		VPMENU_FinishDrawing();
 
@@ -697,7 +685,7 @@ void D3DProxyDevice::VPMENU_WorldScale()
 			"while changing the World Scale.  Adjust \n"
 			"further for comfort and game unit accuracy.\n"
 			);
-		DrawTextShadowed(hudFont, hudTextBox, vcString, -1, &rec8, 0, COLOR_MENU_TEXT);
+		DrawTextShadowed(hudFont, hudTextBox, vcString, &rec8, COLOR_MENU_TEXT);
 		D3DXVECTOR3 vPos(0.0f, 0.0f, 0.0f);
 		hudTextBox->Draw(NULL, &rec8, NULL, &vPos, COLOR_WHITE);
 
@@ -810,7 +798,7 @@ void D3DProxyDevice::VPMENU_Convergence()
 
 		RECT rec2 = {(int)(width*0.27f), (int)(height*0.8f),width,height};
 		sprintf_s(vcString, 1024, "Vireio Perception ("APP_VERSION") Settings - Convergence\n");
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec2, 0, COLOR_MENU_TEXT);
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec2, COLOR_MENU_TEXT);
 
 		// draw right line (using BaseDirect3DDevice9, since otherwise we have two lines)
 		D3DRECT rec3 = {(int)(viewportWidth/2 + (-BlueLineCenterAsPercentage * viewportWidth * 0.25f))-1, 0,
@@ -849,28 +837,28 @@ void D3DProxyDevice::VPMENU_Convergence()
 		rec2.left = (int)(width*0.35f);
 		rec2.top = (int)(height*0.83f);
 		sprintf_s(vcString, 1024, "Convergence Adjustment");
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec2, 0, COLOR_MENU_TEXT);
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec2, COLOR_MENU_TEXT);
 
 		// output convergence
 		RECT rec10 = {(int)(width*0.40f), (int)(height*0.57f),width,height};
-		DrawTextShadowed(hudFont, hudMainMenu, "<- calibrate using Arrow Keys ->", -1, &rec10, 0, COLOR_MENU_TEXT);
+		DrawTextShadowed(hudFont, hudMainMenu, "<- calibrate using Arrow Keys ->", &rec10, COLOR_MENU_TEXT);
 		// Convergence Screen = X Meters = X Feet
 		rec10.top = (int)(height*0.6f); rec10.left = (int)(width*0.385f);
 		float meters = m_spShaderViewAdjustment->Convergence();
 		sprintf_s(vcString,"Convergence Screen = %g Meters", meters);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, COLOR_MENU_TEXT);
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec10, COLOR_MENU_TEXT);
 		rec10.top+=35;
 		float centimeters = meters * 100.0f;
 		sprintf_s(vcString,"Convergence Screen = %g CM", centimeters);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, COLOR_MENU_TEXT);
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec10, COLOR_MENU_TEXT);
 		rec10.top+=35;
 		float feet = meters * 3.2808399f;
 		sprintf_s(vcString,"Convergence Screen = %g Feet", feet);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, COLOR_MENU_TEXT);
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec10, COLOR_MENU_TEXT);
 		rec10.top+=35;
 		float inches = feet * 12.0f;
 		sprintf_s(vcString,"Convergence Screen = %g Inches", inches);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, COLOR_MENU_TEXT);
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec10, COLOR_MENU_TEXT);
 
 		VPMENU_FinishDrawing();
 
@@ -890,7 +878,7 @@ void D3DProxyDevice::VPMENU_Convergence()
 			"Good examples include a wall corner, a table\n"
 			"corner, a square post, etc.\n"
 			);
-		DrawTextShadowed(hudFont, hudTextBox, vcString, -1, &rec8, 0, COLOR_MENU_TEXT);
+		DrawTextShadowed(hudFont, hudTextBox, vcString, &rec8, COLOR_MENU_TEXT);
 		D3DXVECTOR3 vPos(0.0f, 0.0f, 0.0f);
 		hudTextBox->Draw(NULL, &rec8, NULL, &vPos, COLOR_WHITE);
 
@@ -1043,66 +1031,57 @@ void D3DProxyDevice::VPMENU_HUD()
 		switch (hud3DDepthMode)
 		{
 		case D3DProxyDevice::HUD_DEFAULT:
-			DrawTextShadowed(hudFont, hudMainMenu, "HUD : Default", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
+			DrawMenuItem("HUD : Default");
 			break;
 		case D3DProxyDevice::HUD_SMALL:
-			DrawTextShadowed(hudFont, hudMainMenu, "HUD : Small", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
+			DrawMenuItem("HUD : Small");
 			break;
 		case D3DProxyDevice::HUD_LARGE:
-			DrawTextShadowed(hudFont, hudMainMenu, "HUD : Large", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
+			DrawMenuItem("HUD : Large");
 			break;
 		case D3DProxyDevice::HUD_FULL:
-			DrawTextShadowed(hudFont, hudMainMenu, "HUD : Full", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
+			DrawMenuItem("HUD : Full");
 			break;
 		default:
 			break;
 		}
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		char vcString[128];
 		sprintf_s(vcString,"HUD Distance : %g", RoundVireioValue(hudDistancePresets[(int)hud3DDepthMode]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawMenuItem(vcString);
 		sprintf_s(vcString,"HUD's 3D Depth : %g", RoundVireioValue(hud3DDepthPresets[(int)hud3DDepthMode]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawMenuItem(vcString);
 		sprintf_s(vcString,"Hotkey >Switch< : ");
 		std::string stdString = std::string(vcString);
 		stdString.append(controls.GetKeyName(hudHotkeys[0]));
 		if ((hotkeyCatch) && (entryID==3))
 			stdString = "Press the desired key.";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawMenuItem((LPCSTR)stdString.c_str());
 		sprintf_s(vcString,"Hotkey >Default< : ");
 		stdString = std::string(vcString);
 		stdString.append(controls.GetKeyName(hudHotkeys[1]));
 		if ((hotkeyCatch) && (entryID==4))
 			stdString = "Press the desired key.";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawMenuItem((LPCSTR)stdString.c_str());
 		sprintf_s(vcString,"Hotkey >Small< : ");
 		stdString = std::string(vcString);
 		stdString.append(controls.GetKeyName(hudHotkeys[2]));
 		if ((hotkeyCatch) && (entryID==5))
 			stdString = "Press the desired key.";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawMenuItem((LPCSTR)stdString.c_str());
 		sprintf_s(vcString,"Hotkey >Large< : ");
 		stdString = std::string(vcString);
 		stdString.append(controls.GetKeyName(hudHotkeys[3]));
 		if ((hotkeyCatch) && (entryID==6))
 			stdString = "Press the desired key.";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawMenuItem((LPCSTR)stdString.c_str());
 		sprintf_s(vcString,"Hotkey >Full< : ");
 		stdString = std::string(vcString);
 		stdString.append(controls.GetKeyName(hudHotkeys[4]));
 		if ((hotkeyCatch) && (entryID==7))
 			stdString = "Press the desired key.";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Main Menu", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
+		DrawMenuItem((LPCSTR)stdString.c_str());
+		DrawMenuItem("Back to Main Menu");
+		DrawMenuItem("Back to Game");
 
 		// draw HUD quick setting rectangles
 		D3DRECT rect;
@@ -1248,74 +1227,68 @@ void D3DProxyDevice::VPMENU_GUI()
 	{
 		VPMENU_StartDrawing("Settings - GUI", borderSelection);
 
-		menuHelperRect.top += 50;  menuHelperRect.left +=150; float guiQSHeight = (float)menuHelperRect.top * fScaleY;
+		menuHelperRect.top += 50;
+		menuHelperRect.left += 150;
+		float guiQSTop = (float)menuHelperRect.top * fScaleY;
+		
 		switch (gui3DDepthMode)
 		{
 		case D3DProxyDevice::GUI_DEFAULT:
-			DrawTextShadowed(hudFont, hudMainMenu, "GUI : Default", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
+			DrawMenuItem("GUI : Default");
 			break;
 		case D3DProxyDevice::GUI_SMALL:
-			DrawTextShadowed(hudFont, hudMainMenu, "GUI : Small", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
+			DrawMenuItem("GUI : Small");
 			break;
 		case D3DProxyDevice::GUI_LARGE:
-			DrawTextShadowed(hudFont, hudMainMenu, "GUI : Large", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
+			DrawMenuItem("GUI : Large");
 			break;
 		case D3DProxyDevice::GUI_FULL:
-			DrawTextShadowed(hudFont, hudMainMenu, "GUI : Full", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
+			DrawMenuItem("GUI : Full");
 			break;
 		default:
 			break;
 		}
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		char vcString[128];
 		sprintf_s(vcString,"GUI Size : %g", RoundVireioValue(guiSquishPresets[(int)gui3DDepthMode]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawMenuItem(vcString);
 		sprintf_s(vcString,"GUI's 3D Depth : %g", RoundVireioValue(gui3DDepthPresets[(int)gui3DDepthMode]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawMenuItem(vcString);
 		sprintf_s(vcString,"Hotkey >Switch< : ");
 		std::string stdString = std::string(vcString);
 		stdString.append(controls.GetKeyName(guiHotkeys[0]));
 		if ((hotkeyCatch) && (entryID==3))
 			stdString = "Press the desired key.";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawMenuItem((LPCSTR)stdString.c_str());
 		sprintf_s(vcString,"Hotkey >Default< : ");
 		stdString = std::string(vcString);
 		stdString.append(controls.GetKeyName(guiHotkeys[1]));
 		if ((hotkeyCatch) && (entryID==4))
 			stdString = "Press the desired key.";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawMenuItem((LPCSTR)stdString.c_str());
 		sprintf_s(vcString,"Hotkey >Small< : ");
 		stdString = std::string(vcString);
 		stdString.append(controls.GetKeyName(guiHotkeys[2]));
 		if ((hotkeyCatch) && (entryID==5))
 			stdString = "Press the desired key.";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawMenuItem((LPCSTR)stdString.c_str());
 		sprintf_s(vcString,"Hotkey >Large< : ");
 		stdString = std::string(vcString);
 		stdString.append(controls.GetKeyName(guiHotkeys[3]));
 		if ((hotkeyCatch) && (entryID==6))
 			stdString = "Press the desired key.";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawMenuItem((LPCSTR)stdString.c_str());
 		sprintf_s(vcString,"Hotkey >Full< : ");
 		stdString = std::string(vcString);
 		stdString.append(controls.GetKeyName(guiHotkeys[4]));
 		if ((hotkeyCatch) && (entryID==7))
 			stdString = "Press the desired key.";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Main Menu", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
+		DrawMenuItem((LPCSTR)stdString.c_str());
+		DrawMenuItem("Back to Main Menu");
+		DrawMenuItem("Back to Game");
 
 		// draw GUI quick setting rectangles
 		D3DRECT rect;
-		rect.x1 = (int)(viewportWidth*0.52f); rect.x2 = (int)(viewportWidth*0.56f); rect.y1 = (int)guiQSHeight; rect.y2 = (int)(guiQSHeight+viewportHeight*0.027f);
+		rect.x1 = (int)(viewportWidth*0.52f); rect.x2 = (int)(viewportWidth*0.56f); rect.y1 = (int)guiQSTop; rect.y2 = (int)(guiQSTop+viewportHeight*0.027f);
 		DrawSelection(vireio::RenderPosition::Left, rect, COLOR_QUICK_SETTING, (int)gui3DDepthMode, (int)GUI_3D_Depth_Modes::GUI_ENUM_RANGE);
 		DrawSelection(vireio::RenderPosition::Right, rect, COLOR_QUICK_SETTING, (int)gui3DDepthMode, (int)GUI_3D_Depth_Modes::GUI_ENUM_RANGE);
 
@@ -1701,90 +1674,77 @@ void D3DProxyDevice::VPMENU_Settings()
 	{
 		VPMENU_StartDrawing("Settings - General", borderSelection);
 
-		menuHelperRect.top += 50;  menuHelperRect.left += 150; float guiQSHeight = (float)menuHelperRect.top * fScaleY;
+		menuHelperRect.top += 50; 
+		menuHelperRect.left += 150;
+		
 		switch (stereoView->swapEyes)
 		{
 		case true:
-			DrawTextShadowed(hudFont, hudMainMenu, "Swap Eyes : True", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
+			DrawMenuItem("Swap Eyes : True");
 			break;
 		case false:
-			DrawTextShadowed(hudFont, hudMainMenu, "Swap Eyes : False", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
+			DrawMenuItem("Swap Eyes : False");
 			break;
 		}
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		char vcString[128];
 		sprintf_s(vcString,"IPD-Offset : %1.3f", RoundVireioValue(this->stereoView->IPDOffset));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawMenuItem(vcString);
 		sprintf_s(vcString,"Y-Offset : %1.3f", RoundVireioValue(this->stereoView->YOffset));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawMenuItem(vcString);
 		sprintf_s(vcString,"Distortion Scale : %g", RoundVireioValue(this->stereoView->DistortionScale));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		//DrawTextShadowed(hudFont, hudMainMenu, "Stereo Screenshots", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		//menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawMenuItem(vcString);
+		//DrawMenuItem("Stereo Screenshots");
 		sprintf_s(vcString,"Yaw multiplier : %g", RoundVireioValue(tracker->multiplierYaw));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawMenuItem(vcString);
 		sprintf_s(vcString,"Pitch multiplier : %g", RoundVireioValue(tracker->multiplierPitch));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawMenuItem(vcString);
 		sprintf_s(vcString,"Roll multiplier : %g", RoundVireioValue(tracker->multiplierRoll));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Reset Multipliers", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawMenuItem(vcString);
+		DrawMenuItem("Reset Multipliers");
 		switch (m_spShaderViewAdjustment->RollImpl())
 		{
 		case 0:
-			DrawTextShadowed(hudFont, hudMainMenu, "Roll : Not Enabled", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
+			DrawMenuItem("Roll : Not Enabled");
 			break;
 		case 1:
-			DrawTextShadowed(hudFont, hudMainMenu, "Roll : Matrix Translation", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
+			DrawMenuItem("Roll : Matrix Translation");
 			break;
 		case 2:
-			DrawTextShadowed(hudFont, hudMainMenu, "Roll : Pixel Shader", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
+			DrawMenuItem("Roll : Pixel Shader");
 			break;
 		}
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		switch (m_bForceMouseEmulation)
 		{
 		case true:
-			DrawTextShadowed(hudFont, hudMainMenu, "Force Mouse Emulation HT : True", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
+			DrawMenuItem("Force Mouse Emulation HT : True");
 			break;
 		case false:
-			DrawTextShadowed(hudFont, hudMainMenu, "Force Mouse Emulation HT : False", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
+			DrawMenuItem("Force Mouse Emulation HT : False");
 			break;
 		}
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		switch (m_bVRBoostToggle)
 		{
 		case true:
-			DrawTextShadowed(hudFont, hudMainMenu, "Toggle VRBoost : On", -1, &menuHelperRect, 0, COLOR_MENU_ENABLED);
+			DrawMenuItem("Toggle VRBoost : On", COLOR_MENU_ENABLED);
 			break;
 		case false:
-			DrawTextShadowed(hudFont, hudMainMenu, "Toggle VRBoost : Off", -1, &menuHelperRect, 0, COLOR_MENU_DISABLED);
+			DrawMenuItem("Toggle VRBoost : Off", COLOR_MENU_DISABLED);
 			break;
 		}
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		sprintf_s(vcString,"Hotkey >Toggle VRBoost< : ");
 		std::string stdString = std::string(vcString);
 		stdString.append(controls.GetKeyName(toggleVRBoostHotkey));
 		if ((hotkeyCatch) && (entryID==11))
 			stdString = "Press the desired key.";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawMenuItem((LPCSTR)stdString.c_str());
 		sprintf_s(vcString,"Hotkey >Disconnected Screen< : ");
 		stdString = std::string(vcString);
 		stdString.append(controls.GetKeyName(edgePeekHotkey));
 		if ((hotkeyCatch) && (entryID==12))
 			stdString = "Press the desired key.";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Main Menu", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
+		DrawMenuItem((LPCSTR)stdString.c_str());
+		DrawMenuItem("Back to Main Menu");
+		DrawMenuItem("Back to Game");
 
 		VPMENU_FinishDrawing();
 	}
@@ -1991,37 +1951,31 @@ void D3DProxyDevice::VPMENU_PosTracking()
 	{
 		VPMENU_StartDrawing("Settings - Positional Tracking", borderSelection);
 
-		menuHelperRect.top += 50;  menuHelperRect.left += 150; float guiQSHeight = (float)menuHelperRect.top * fScaleY;
+		menuHelperRect.top += 50;
+		menuHelperRect.left += 150;
+		
 		char vcString[128];
 		switch (m_bPosTrackingToggle)
 		{
 		case true:
-			DrawTextShadowed(hudFont, hudMainMenu, "Positional Tracking (CTRL + P) : On", -1, &menuHelperRect, 0, COLOR_MENU_ENABLED);
+			DrawMenuItem("Positional Tracking (CTRL + P) : On", COLOR_MENU_ENABLED);
 			break;
 		case false:
-			DrawTextShadowed(hudFont, hudMainMenu, "Positional Tracking (CTRL + P) : Off", -1, &menuHelperRect, 0, COLOR_LIGHTRED);
+			DrawMenuItem("Positional Tracking (CTRL + P) : Off", COLOR_LIGHTRED);
 			break;
 		}
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		sprintf_s(vcString,"Position Tracking multiplier : %g", RoundVireioValue(config.position_multiplier));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawMenuItem(vcString);
 		sprintf_s(vcString,"Position X-Tracking multiplier : %g", RoundVireioValue(config.position_x_multiplier));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawMenuItem(vcString);
 		sprintf_s(vcString,"Position Y-Tracking multiplier : %g", RoundVireioValue(config.position_y_multiplier));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawMenuItem(vcString);
 		sprintf_s(vcString,"Position Z-Tracking multiplier : %g", RoundVireioValue(config.position_z_multiplier));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Reset HMD Orientation (LSHIFT + R)", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Duck-and-Cover Configuration", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Main Menu", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
+		DrawMenuItem(vcString);
+		DrawMenuItem("Reset HMD Orientation (LSHIFT + R)");
+		DrawMenuItem("Duck-and-Cover Configuration");
+		DrawMenuItem("Back to Main Menu");
+		DrawMenuItem("Back to Game");
 
 		VPMENU_FinishDrawing();
 	}
@@ -2182,85 +2136,78 @@ void D3DProxyDevice::VPMENU_DuckAndCover()
 	{
 		VPMENU_StartDrawing("Settings - Duck-and-Cover", borderSelection);
 
-		menuHelperRect.top += 50;  menuHelperRect.left += 150; float guiQSHeight = (float)menuHelperRect.top * fScaleY;
+		menuHelperRect.top += 50;
+		menuHelperRect.left += 150;
+		
 		char vcString[128];
 
 		switch (m_DuckAndCover.crouchToggle)
 		{
 		case true:
-			DrawTextShadowed(hudFont, hudMainMenu, "Crouch : Toggle", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
+			DrawMenuItem("Crouch : Toggle");
 			break;
 		case false:
-			DrawTextShadowed(hudFont, hudMainMenu, "Crouch : Hold", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
+			DrawMenuItem("Crouch : Hold");
 			break;
 		}
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
 
 		sprintf_s(vcString,"Crouch Key : ");
 		std::string stdString = std::string(vcString);
 		stdString.append(controls.GetKeyName(m_DuckAndCover.crouchKey));
 		if ((hotkeyCatch) && (entryID==CROUCH_KEY))
 			stdString = "Crouch Key : >Press the desired key<";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawMenuItem((LPCSTR)stdString.c_str());
 
 		if (!m_DuckAndCover.proneEnabled)
 		{
-			DrawTextShadowed(hudFont, hudMainMenu, "Prone : Disabled (Use calibrate to enable)", -1, &menuHelperRect, 0, COLOR_MENU_DISABLED);
+			DrawMenuItem("Prone : Disabled (Use calibrate to enable)", COLOR_MENU_DISABLED);
 		}
 		else
 		{
 			switch (m_DuckAndCover.proneToggle)
 			{
 			case true:
-				DrawTextShadowed(hudFont, hudMainMenu, "Prone : Toggle", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
+				DrawMenuItem("Prone : Toggle");
 				break;
 			case false:
-				DrawTextShadowed(hudFont, hudMainMenu, "Prone : Hold", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
+				DrawMenuItem("Prone : Hold");
 				break;
 			}
 		}
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
 
 		sprintf_s(vcString,"Prone Key : ");
 		stdString = std::string(vcString);
 		stdString.append(controls.GetKeyName(m_DuckAndCover.proneKey));
 		if ((hotkeyCatch) && (entryID==PRONE_KEY))
 			stdString = "Prone Key : >Press the desired key<";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawMenuItem((LPCSTR)stdString.c_str());
 
 		if (!m_DuckAndCover.jumpEnabled)
-			DrawTextShadowed(hudFont, hudMainMenu, "Jump : Enabled", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
+			DrawMenuItem("Jump : Enabled");
 		else
-			DrawTextShadowed(hudFont, hudMainMenu, "Jump : Disabled", -1, &menuHelperRect, 0, COLOR_MENU_DISABLED);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
+			DrawMenuItem("Jump : Disabled", COLOR_MENU_DISABLED);
 
 		sprintf_s(vcString,"Jump Key : ");
 		stdString = std::string(vcString);
 		stdString.append(controls.GetKeyName(m_DuckAndCover.jumpKey));
 		if ((hotkeyCatch) && (entryID==JUMP_KEY))
 			stdString = "Jump Key : >Press the desired key<";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawMenuItem((LPCSTR)stdString.c_str());
 
-		DrawTextShadowed(hudFont, hudMainMenu, "Calibrate Duck-and-Cover then Enable", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawMenuItem("Calibrate Duck-and-Cover then Enable");
 
 		if (m_DuckAndCover.dfcStatus == DAC_DISABLED ||
 			m_DuckAndCover.dfcStatus == DAC_INACTIVE)
 		{
-			DrawTextShadowed(hudFont, hudMainMenu, "Enable Duck-and-Cover Mode", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
+			DrawMenuItem("Enable Duck-and-Cover Mode");
 		}
 		else
 		{
-			DrawTextShadowed(hudFont, hudMainMenu, "Disable Duck-and-Cover Mode", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
+			DrawMenuItem("Disable Duck-and-Cover Mode");
 		}
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
 
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Main Menu", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
+		DrawMenuItem("Back to Main Menu");
+		DrawMenuItem("Back to Game");
 
 		VPMENU_FinishDrawing();
 	}
@@ -2371,43 +2318,39 @@ void D3DProxyDevice::VPMENU_ComfortMode()
 	{
 		VPMENU_StartDrawing("Settings - Comfort Mode", borderSelection);
 
-		menuHelperRect.top += 50;  menuHelperRect.left += 150; float guiQSHeight = (float)menuHelperRect.top * fScaleY;
+		menuHelperRect.top += 50;
+		menuHelperRect.left += 150;
 		char vcString[128];
 
 		if (VRBoostValue[VRboostAxis::ComfortMode] != 0.0f)
 		{
-			DrawTextShadowed(hudFont, hudMainMenu, "Comfort Mode : Enabled", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
+			DrawMenuItem("Comfort Mode : Enabled");
 		}
 		else
 		{
-			DrawTextShadowed(hudFont, hudMainMenu, "Comfort Mode : Disabled", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
+			DrawMenuItem("Comfort Mode : Disabled");
 		}
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
 
 		sprintf_s(vcString,"Turn Left Key : ");
 		std::string stdString = std::string(vcString);
 		stdString.append(controls.GetKeyName(m_comfortModeLeftKey));
 		if ((hotkeyCatch) && (entryID==TURN_LEFT))
 			stdString = "Turn Left Key : >Press the desired key<";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawMenuItem((LPCSTR)stdString.c_str());
 
 		sprintf_s(vcString,"Turn Right Key : ");
 		stdString = std::string(vcString);
 		stdString.append(controls.GetKeyName(m_comfortModeRightKey));
 		if ((hotkeyCatch) && (entryID==TURN_RIGHT))
 			stdString = "Turn Right Key : >Press the desired key<";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawMenuItem((LPCSTR)stdString.c_str());
 
 		sprintf_s(vcString,"Yaw Rotation Increment : %.1f", m_comfortModeYawIncrement);
 		stdString = std::string(vcString);
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawMenuItem((LPCSTR)stdString.c_str());
 
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Main Menu", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
+		DrawMenuItem("Back to Main Menu");
+		DrawMenuItem("Back to Game");
 
 		VPMENU_FinishDrawing();
 	}
@@ -2495,47 +2438,35 @@ void D3DProxyDevice::VPMENU_VRBoostValues()
 	{
 		VPMENU_StartDrawing("Settings - VRBoost", borderSelection);
 
-		menuHelperRect.top += 50;  menuHelperRect.left += 150; float guiQSHeight = (float)menuHelperRect.top * fScaleY;
+		menuHelperRect.top += 50;
+		menuHelperRect.left += 150;
 		char vcString[128];
 		sprintf_s(vcString,"World FOV : %g", RoundVireioValue(VRBoostValue[24]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawMenuItem(vcString);
 		sprintf_s(vcString,"Player FOV : %g", RoundVireioValue(VRBoostValue[25]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawMenuItem(vcString);
 		sprintf_s(vcString,"Far Plane FOV : %g", RoundVireioValue(VRBoostValue[26]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawMenuItem(vcString);
 		sprintf_s(vcString,"Camera Translate X : %g", RoundVireioValue(VRBoostValue[27]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawMenuItem(vcString);
 		sprintf_s(vcString,"Camera Translate Y : %g", RoundVireioValue(VRBoostValue[28]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawMenuItem(vcString);
 		sprintf_s(vcString,"Camera Translate Z : %g", RoundVireioValue(VRBoostValue[29]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawMenuItem(vcString);
 		sprintf_s(vcString,"Camera Distance : %g", RoundVireioValue(VRBoostValue[30]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawMenuItem(vcString);
 		sprintf_s(vcString,"Camera Zoom : %g", RoundVireioValue(VRBoostValue[31]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawMenuItem(vcString);
 		sprintf_s(vcString,"Camera Horizon Adjustment : %g", RoundVireioValue(VRBoostValue[32]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawMenuItem(vcString);
 		sprintf_s(vcString,"Constant Value 1 : %g", RoundVireioValue(VRBoostValue[33]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawMenuItem(vcString);
 		sprintf_s(vcString,"Constant Value 2 : %g", RoundVireioValue(VRBoostValue[34]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
+		DrawMenuItem(vcString);
 		sprintf_s(vcString,"Constant Value 2 : %g", RoundVireioValue(VRBoostValue[35]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Main Menu", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
+		DrawMenuItem(vcString);
+		DrawMenuItem("Back to Main Menu");
+		DrawMenuItem("Back to Game");
 
 		VPMENU_FinishDrawing();
 	}

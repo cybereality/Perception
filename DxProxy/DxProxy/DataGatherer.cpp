@@ -817,20 +817,16 @@ void DataGatherer::VPMENU_ShaderSubMenu()
 	{
 		VPMENU_StartDrawing("Shader Analyser", entryID);
 
-		menuHelperRect.top += 50;  menuHelperRect.left += 150; float guiQSHeight = (float)menuHelperRect.top * fScaleY;
-		DrawTextShadowed(hudFont, hudMainMenu, "Create new Shader Rules", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += 40;
-		DrawTextShadowed(hudFont, hudMainMenu, "Change current Shader Rules", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		/*menuHelperRect.top += 40;
-		DrawTextShadowed(hudFont, hudMainMenu, "Pick Rules by active Shaders", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);*/
-		menuHelperRect.top += 40;
-		DrawTextShadowed(hudFont, hudMainMenu, "Show and exclude active Shaders", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += 40;
-		DrawTextShadowed(hudFont, hudMainMenu, "Save Shader Rules", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += 40;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to BRASSA Menu", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += 40;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
+		menuHelperRect.top += 50;
+		menuHelperRect.left += 150;
+		
+		DrawMenuItem("Create new Shader Rules");
+		DrawMenuItem("Change current Shader Rules");
+		//DrawMenuItem("Pick Rules by active Shaders");
+		DrawMenuItem("Show and exclude active Shaders");
+		DrawMenuItem("Save Shader Rules");
+		DrawMenuItem("Back to BRASSA Menu");
+		DrawMenuItem("Back to Game");
 
 		VPMENU_FinishDrawing();
 	}
@@ -1216,21 +1212,17 @@ void DataGatherer::VPMENU_ChangeRules()
 		D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
 		hudMainMenu->SetTransform(&matScale);
 
-		float guiQSHeight = (float)menuHelperRect.top * fScaleY;
 		menuHelperRect.left = 800; menuHelperRect.top = 350;
 		menuHelperRect.top += (int)(menuTopHeight / fScaleY);
 		for (UINT i = 0; i < menuEntryCount-2; i++)
 		{
 			if (menuColor[i])
-				DrawTextShadowed(hudFont, hudMainMenu, menuEntries[i].c_str(), -1, &menuHelperRect, 0, COLOR_MENU_ENABLED);
+				DrawMenuItem(menuEntries[i].c_str(), COLOR_MENU_ENABLED);
 			else	
-				DrawTextShadowed(hudFont, hudMainMenu, menuEntries[i].c_str(), -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-
-			menuHelperRect.top += 40;
+				DrawMenuItem(menuEntries[i].c_str());
 		}
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to BRASSA Menu", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		menuHelperRect.top += 40;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
+		DrawMenuItem("Back to BRASSA Menu");
+		DrawMenuItem("Back to Game");
 
 		VPMENU_FinishDrawing();
 	}
@@ -1454,7 +1446,6 @@ void DataGatherer::VPMENU_ShowActiveShaders()
 		D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
 		hudMainMenu->SetTransform(&matScale);
 
-		float guiQSHeight = (float)menuHelperRect.top * fScaleY;
 		menuHelperRect.left = 800; menuHelperRect.top = 350;
 		menuHelperRect.top += (int)(menuTopHeight / fScaleY);
 		for (UINT i = 0; i < menuEntryCount-2; i++)
@@ -1462,15 +1453,13 @@ void DataGatherer::VPMENU_ShowActiveShaders()
 			if ((menuHelperRect.top + 40) >= 0)
 			{
 				if (menuColor[i] == 0) // Not visible
-					DrawTextShadowed(hudFont, hudMainMenu, menuEntries[i].c_str(), -1, &menuHelperRect, 0, COLOR_MENU_DISABLED);
+					DrawMenuItem(menuEntries[i].c_str(), COLOR_MENU_DISABLED);
 				else if (menuColor[i] == 1) // excluded
-					DrawTextShadowed(hudFont, hudMainMenu, menuEntries[i].c_str(), -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
+					DrawMenuItem(menuEntries[i].c_str());
 				else	
-					DrawTextShadowed(hudFont, hudMainMenu, menuEntries[i].c_str(), -1, &menuHelperRect, 0, COLOR_MENU_ENABLED);
+					DrawMenuItem(menuEntries[i].c_str(), COLOR_MENU_ENABLED);
 					
 			}
-
-			menuHelperRect.top += 40;
 
 			//No point drawing anything off the bottom of the viewport!
 			if (menuHelperRect.top > viewportHeight)
@@ -1479,9 +1468,8 @@ void DataGatherer::VPMENU_ShowActiveShaders()
 
 		if (menuHelperRect.top < viewportHeight)
 		{
-			DrawTextShadowed(hudFont, hudMainMenu, "Back to BRASSA Menu", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-			menuHelperRect.top += 40;
-			DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
+			DrawMenuItem("Back to BRASSA Menu");
+			DrawMenuItem("Back to Game");
 		}
 
 		VPMENU_FinishDrawing();

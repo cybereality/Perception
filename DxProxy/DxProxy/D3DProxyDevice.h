@@ -94,6 +94,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define COLOR_INFO_POPUP    D3DCOLOR_ARGB(255, 128, 255, 128)
 #define COLOR_HASH_LINE     D3DCOLOR_ARGB(255,255,255,0)
 
+#define MENU_ITEM_SEPARATION  40
+
 // Define SHOW_CALLS to have each method output a debug string when it is invoked
 //#define SHOW_CALLS
 class StereoView;
@@ -463,6 +465,8 @@ protected:
 	void         DrawSelection(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color, int selectionIndex, int selectionRange);
 	void         DrawScrollbar(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color, float scroll, int scrollbarSize);
 	void         DrawTextShadowed(ID3DXFont* font, LPD3DXSPRITE sprite, LPCSTR lpchText, int cchText, LPRECT lprc, UINT format, D3DCOLOR color);
+	void         DrawTextShadowed(ID3DXFont* font, LPD3DXSPRITE sprite, const char *text, LPRECT lprc, D3DCOLOR color);
+	void         DrawMenuItem(const char *text, D3DCOLOR color=COLOR_MENU_TEXT);
 	void         ChangeHUD3DDepthMode(HUD_3D_Depth_Modes newMode);
 	void         ChangeGUI3DDepthMode(GUI_3D_Depth_Modes newMode);
 	void         VPMENU_NewFrame(UINT &entryID, UINT menuEntryCount);
