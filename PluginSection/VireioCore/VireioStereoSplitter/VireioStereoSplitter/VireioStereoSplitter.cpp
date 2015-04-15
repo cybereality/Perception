@@ -53,21 +53,30 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * Constructor.
 ***/
 StereoSplitter::StereoSplitter():AQU_Nodus(),
+	m_apcActiveRenderTargets(0, nullptr),
+	m_apcActiveTextures(MAX_SIMULTANEOUS_TEXTURES_D3D9, nullptr),
+	m_pcActiveDepthStencilSurface(nullptr),
+	m_apcMonitoredSurfaces(0, nullptr),
+	m_apcStereoTwinSurfaces(0, nullptr),
+	m_apcStereoTwinTextures(0, nullptr),
+	m_apcActiveStereoTwinRenderTarget(0, nullptr),
+	m_apcActiveStereoTwinTextures(MAX_SIMULTANEOUS_TEXTURES_D3D9, nullptr),
+	m_pcActiveStereoTwinDepthStencilSurface(nullptr),
+	m_anMonitoredRenderTargetsCheckTimeCounter(0, 0),
+	m_dwNewStereoTwinRenderTargets(0),
 	m_pdwRenderTargetIndex(nullptr),
 	m_ppcRenderTarget(nullptr),
+	m_ppcNewZStencil(nullptr),
+	m_pdwSampler(nullptr),
+	m_ppcTexture(nullptr),
 	m_hBitmapControl(nullptr),
 	m_bControlUpdate(false),
 	m_hFont(nullptr),
-	m_apcActiveRenderTargets(0, nullptr),
-	m_apcMonitoredRenderTargets(0, nullptr),
-	m_anMonitoredRenderTargetsCheckTimeCounter(0, 0),
-	m_apcStereoTwinRenderTargets(0, nullptr),
-	m_apcStereoTwinRenderTextures(0, nullptr),
-	m_dwNewStereoTwinRenderTargets(0),
 	m_apcStereoTwinRenderTargetClipboard(0, nullptr),
 	m_apcStereoTwinRenderTextureClipboard(0, nullptr),
 	m_dwMaxRenderTargets(0),
 	m_bMaxRenderTargets(false),
+	m_bPresent(false),
 	m_nChecktimeFrameConstant(30)                           /**< Set this constant to 30 frames, later we should be able to change this value on the node. ***/
 {
 }
@@ -77,15 +86,15 @@ StereoSplitter::StereoSplitter():AQU_Nodus(),
 ***/
 StereoSplitter::~StereoSplitter()
 {
-	for (int i = 0; i < (int)m_apcStereoTwinRenderTargets.size(); i++)
+	for (int i = 0; i < (int)m_apcStereoTwinSurfaces.size(); i++)
 	{
-		if (m_apcStereoTwinRenderTargets[i])
-			m_apcStereoTwinRenderTargets[i]->Release();
+		if (m_apcStereoTwinSurfaces[i])
+			m_apcStereoTwinSurfaces[i]->Release();
 	}
-	for (int i = 0; i < (int)m_apcStereoTwinRenderTextures.size(); i++)
+	for (int i = 0; i < (int)m_apcStereoTwinTextures.size(); i++)
 	{
-		if (m_apcStereoTwinRenderTextures[i])
-			m_apcStereoTwinRenderTextures[i]->Release();
+		if (m_apcStereoTwinTextures[i])
+			m_apcStereoTwinTextures[i]->Release();
 	}
 	for (int i = 0; i < (int)m_apcStereoTwinRenderTargetClipboard.size(); i++)
 	{
@@ -216,7 +225,7 @@ HBITMAP StereoSplitter::GetControl()
 
 			// output the number of currently monitored render targets
 			TextOut(hdcImage, 50, nY, L"Monitored Render Targets : ", 27);
-			wsprintf(szBuffer, L"%u", (UINT)m_apcMonitoredRenderTargets.size());
+			wsprintf(szBuffer, L"%u", (UINT)m_apcMonitoredSurfaces.size());
 			nLen = (int)wcslen(szBuffer); if (nLen > 11) nLen = 11;
 			TextOut(hdcImage, 650, nY, szBuffer, nLen); nY+=64;
 
@@ -228,13 +237,13 @@ HBITMAP StereoSplitter::GetControl()
 
 			// output the number of check time counters - this number should match monitored render targets number
 			TextOut(hdcImage, 50, nY, L"Stereo Twin Targets : ", 22);
-			wsprintf(szBuffer, L"%u", (UINT)m_apcStereoTwinRenderTargets.size());
+			wsprintf(szBuffer, L"%u", (UINT)m_apcStereoTwinSurfaces.size());
 			nLen = (int)wcslen(szBuffer); if (nLen > 11) nLen = 11;
 			TextOut(hdcImage, 650, nY, szBuffer, nLen); nY+=64;
 
 			// output the number of check time counters - this number should match monitored render targets number
 			TextOut(hdcImage, 50, nY, L"Stereo Twin Textures : ", 23);
-			wsprintf(szBuffer, L"%u", (UINT)m_apcStereoTwinRenderTextures.size());
+			wsprintf(szBuffer, L"%u", (UINT)m_apcStereoTwinTextures.size());
 			nLen = (int)wcslen(szBuffer); if (nLen > 11) nLen = 11;
 			TextOut(hdcImage, 650, nY, szBuffer, nLen); nY+=64;
 
@@ -249,6 +258,24 @@ HBITMAP StereoSplitter::GetControl()
 			wsprintf(szBuffer, L"%u", (UINT)m_apcStereoTwinRenderTextureClipboard.size());
 			nLen = (int)wcslen(szBuffer); if (nLen > 11) nLen = 11;
 			TextOut(hdcImage, 650, nY, szBuffer, nLen); nY+=64;
+
+			// debug output for depth stencil + first texture
+			if (m_pcActiveDepthStencilSurface) 
+			{
+				if (!m_pcActiveStereoTwinDepthStencilSurface)
+					TextOut(hdcImage, 50, nY, L"Depth Stencil set.", 18);
+				else
+					TextOut(hdcImage, 50, nY, L"Depth Stencil + Twin set.", 25);
+			}
+			nY+=64;
+			if (m_apcActiveTextures[0]) 
+			{
+				if (!m_apcActiveStereoTwinTextures[0])
+					TextOut(hdcImage, 50, nY, L"Texture 0 set.", 14);
+				else
+					TextOut(hdcImage, 50, nY, L"Texture 0 + Twin set.", 21);
+			}
+			nY+=64;
 
 			// Restore the original font.        
 			SelectObject(hdcImage, hOldFont); 
@@ -341,8 +368,11 @@ DWORD StereoSplitter::GetDecommanderType(DWORD dwDecommanderIndex)
 	case STS_Decommanders::pRenderTarget:                 /**< ->SetRenderTarget() render target ***/
 		return PNT_IDIRECT3DSURFACE9_PLUG_TYPE;
 	case STS_Decommanders::pNewZStencil:                  /**< ->SetDepthStencilSurface() stencil surface ***/
+		return PNT_IDIRECT3DSURFACE9_PLUG_TYPE;
 	case STS_Decommanders::Sampler:                       /**< ->SetTexture() sampler index **/
+		return UINT_PLUG_TYPE;
 	case STS_Decommanders::pTexture:                      /**< ->SetTexture() texture pointer ***/
+		return PNT_IDIRECT3DBASETEXTURE9_PLUG_TYPE;
 	case STS_Decommanders::PrimitiveType:                 /**< ->DrawPrimitive() primitive type ***/
 	case STS_Decommanders::StartVertex:                   /**< ->DrawPrimitive() start vertex ***/
 	case STS_Decommanders::PrimitiveCount:                /**< ->DrawPrimitive() primitive count ***/
@@ -385,8 +415,14 @@ void StereoSplitter::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 		m_ppcRenderTarget = (IDirect3DSurface9**)pData;
 		break;
 	case STS_Decommanders::pNewZStencil:                  /**< ->SetDepthStencilSurface() stencil surface ***/
+		m_ppcNewZStencil = (IDirect3DSurface9**)pData;
+		break;
 	case STS_Decommanders::Sampler:                       /**< ->SetTexture() sampler index **/
+		m_pdwSampler = (DWORD*)pData;
+		break;
 	case STS_Decommanders::pTexture:                      /**< ->SetTexture() texture pointer ***/
+		m_ppcTexture = (IDirect3DTexture9**)pData;
+		break;
 	case STS_Decommanders::PrimitiveType:                 /**< ->DrawPrimitive() primitive type ***/
 	case STS_Decommanders::StartVertex:                   /**< ->DrawPrimitive() start vertex ***/
 	case STS_Decommanders::PrimitiveCount:                /**< ->DrawPrimitive() primitive count ***/
@@ -455,6 +491,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 				Present((LPDIRECT3DDEVICE9)pThis);
 				return nullptr;
 			case METHOD_IDIRECT3DDEVICE9_SETRENDERTARGET:
+				if (m_bPresent)
 				{
 					// get data
 					DWORD dwRenderTargetIndex = 0;
@@ -473,8 +510,38 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					return nullptr;
 				}
 			case METHOD_IDIRECT3DDEVICE9_SETDEPTHSTENCILSURFACE:
-				return nullptr;
+				if (m_bPresent)
+				{
+					// get data
+					IDirect3DSurface9* pcNewZStencil = nullptr;
+					if (m_ppcNewZStencil) 
+						pcNewZStencil = (IDirect3DSurface9*)*m_ppcNewZStencil; 
+					else
+						return nullptr;
+
+					// call method
+					SetDepthStencilSurface((LPDIRECT3DDEVICE9)pThis, pcNewZStencil);
+					return nullptr;
+				}	
 			case METHOD_IDIRECT3DDEVICE9_SETTEXTURE:
+				if (m_bPresent)
+				{
+					// get data
+					DWORD dwSampler = 0;
+					if (m_pdwSampler) 
+						dwSampler = *m_pdwSampler; 
+					else 
+						return nullptr;
+					IDirect3DTexture9* pcTexture = nullptr;
+					if (m_ppcTexture) 
+						pcTexture = (IDirect3DTexture9*)*m_ppcTexture; 
+					else
+						return nullptr;
+
+					// call method
+					SetTexture((LPDIRECT3DDEVICE9)pThis, dwSampler, pcTexture);
+					return nullptr;
+				}
 				return nullptr;
 			case METHOD_IDIRECT3DDEVICE9_DRAWPRIMITIVE:
 				return nullptr;
@@ -525,8 +592,8 @@ void StereoSplitter::Present(IDirect3DDevice9* pcDevice)
 	for (DWORD i = 0; i < m_dwNewStereoTwinRenderTargets; i++)
 	{
 		// get monitored render target a twin needs to be found for
-		DWORD dwIndex = (DWORD)m_apcMonitoredRenderTargets.size() - (m_dwNewStereoTwinRenderTargets - i);
-		LPDIRECT3DSURFACE9 pcRenderTarget = m_apcMonitoredRenderTargets[dwIndex];
+		DWORD dwIndex = (DWORD)m_apcMonitoredSurfaces.size() - (m_dwNewStereoTwinRenderTargets - i);
+		LPDIRECT3DSURFACE9 pcRenderTarget = m_apcMonitoredSurfaces[dwIndex];
 
 		// get description
 		D3DSURFACE_DESC desc;
@@ -588,8 +655,8 @@ void StereoSplitter::Present(IDirect3DDevice9* pcDevice)
 			}
 
 			// add to stereo twin render targets
-			m_apcStereoTwinRenderTargets.push_back(pcStereoTwinRenderTarget);
-			m_apcStereoTwinRenderTextures.push_back(pcStereoTwinRenderTexture);			
+			m_apcStereoTwinSurfaces.push_back(pcStereoTwinRenderTarget);
+			m_apcStereoTwinTextures.push_back(pcStereoTwinRenderTexture);			
 
 			// update control
 			m_bControlUpdate = true;
@@ -598,8 +665,8 @@ void StereoSplitter::Present(IDirect3DDevice9* pcDevice)
 		{
 			// code failure, null pointer render target
 			OutputDebugString(L"VireioStereoSplitter code failure ! Null pointer monitored render target !");
-			m_apcStereoTwinRenderTargets.push_back(nullptr);
-			m_apcStereoTwinRenderTextures.push_back(nullptr);
+			m_apcStereoTwinSurfaces.push_back(nullptr);
+			m_apcStereoTwinTextures.push_back(nullptr);
 
 			// update control
 			m_bControlUpdate = true;
@@ -622,13 +689,13 @@ void StereoSplitter::Present(IDirect3DDevice9* pcDevice)
 			if (*it <= 0)
 			{
 				// first, move the stereo twin of this render target to the clipboard
-				m_apcStereoTwinRenderTargetClipboard.push_back(m_apcStereoTwinRenderTargets[nIndex]);
-				m_apcStereoTwinRenderTextureClipboard.push_back(m_apcStereoTwinRenderTextures[nIndex]);
+				m_apcStereoTwinRenderTargetClipboard.push_back(m_apcStereoTwinSurfaces[nIndex]);
+				m_apcStereoTwinRenderTextureClipboard.push_back(m_apcStereoTwinTextures[nIndex]);
 
 				// erase render target iterator for all 3 vectors (original, stereo twin, stereo twin texture)
-				m_apcMonitoredRenderTargets.erase(m_apcMonitoredRenderTargets.begin() + nIndex);
-				m_apcStereoTwinRenderTargets.erase(m_apcStereoTwinRenderTargets.begin() + nIndex);
-				m_apcStereoTwinRenderTextures.erase(m_apcStereoTwinRenderTextures.begin() + nIndex);
+				m_apcMonitoredSurfaces.erase(m_apcMonitoredSurfaces.begin() + nIndex);
+				m_apcStereoTwinSurfaces.erase(m_apcStereoTwinSurfaces.begin() + nIndex);
+				m_apcStereoTwinTextures.erase(m_apcStereoTwinTextures.begin() + nIndex);
 
 				// erase check time counter
 				m_anMonitoredRenderTargetsCheckTimeCounter.erase(it);
@@ -649,6 +716,9 @@ void StereoSplitter::Present(IDirect3DDevice9* pcDevice)
 			}
 		}
 	}
+
+	// set present() bool to true
+	m_bPresent = true;
 }
 
 /**
@@ -671,29 +741,10 @@ void StereoSplitter::SetRenderTarget(IDirect3DDevice9* pcDevice, DWORD dwRenderT
 	if (!pcRenderTarget) return;
 
 	// check wether this render target is actually monitored
+	if (CheckIfMonitored(pcRenderTarget) == -1)
 	{
-		auto it = std::find(m_apcMonitoredRenderTargets.begin(), m_apcMonitoredRenderTargets.end(), pcRenderTarget);
-		if(it != m_apcMonitoredRenderTargets.end()) 
-		{
-			// set check time counter if this render target is actually monitored
-			auto index = it - m_apcMonitoredRenderTargets.begin();
-			if (m_anMonitoredRenderTargetsCheckTimeCounter.size() > (size_t)index)
-			{
-				m_anMonitoredRenderTargetsCheckTimeCounter[index] = m_nChecktimeFrameConstant;
-			}
-		} 
-		else 
-		{
-			// add new render target + check time frame constant
-			m_apcMonitoredRenderTargets.push_back(pcRenderTarget);
-			m_anMonitoredRenderTargetsCheckTimeCounter.push_back(m_nChecktimeFrameConstant);
-
-			// increase new render targets number, stereo twin will be created in Present() call
-			m_dwNewStereoTwinRenderTargets++;
-
-			// update control
-			m_bControlUpdate = true;
-		}
+		// not monitored, so start
+		MonitorSurface(pcRenderTarget);
 	}
 }
 
@@ -702,13 +753,107 @@ void StereoSplitter::SetRenderTarget(IDirect3DDevice9* pcDevice, DWORD dwRenderT
 ***/
 void StereoSplitter::SetDepthStencilSurface(IDirect3DDevice9* pcDevice, IDirect3DSurface9* pNewZStencil)
 {
+	// set NULL manually, otherwise just set the render target :
+	if (!pNewZStencil) 
+		m_pcActiveDepthStencilSurface = NULL;
+	else			
+		m_pcActiveDepthStencilSurface = pNewZStencil;
+
+	// set NULL twin if NULL
+	if (!pNewZStencil) 
+		m_pcActiveStereoTwinDepthStencilSurface = NULL;
+	else
+	{
+		// check wether this depth stencil is actually monitored
+		int nIndex = CheckIfMonitored(pNewZStencil);
+		if (nIndex == -1)
+		{
+			// not monitored, so start
+			MonitorSurface(pNewZStencil);
+
+			// set twin surface to null meanwhile
+			m_pcActiveStereoTwinDepthStencilSurface = NULL;
+		}
+		else
+		{
+			// set twin surface if twin created
+			if (nIndex < (int)m_apcStereoTwinSurfaces.size())
+				m_pcActiveStereoTwinDepthStencilSurface = m_apcStereoTwinSurfaces[nIndex];
+			else
+				// set twin surface to null meanwhile
+				m_pcActiveStereoTwinDepthStencilSurface = NULL;
+		}
+	}
+
+	m_bControlUpdate = true;
 }
 
 /**
 * Incoming SetTexture() call.
 ***/
-void StereoSplitter::SetTexture(IDirect3DDevice9* pcDevice, DWORD Stage,IDirect3DBaseTexture9* pTexture)
+void StereoSplitter::SetTexture(IDirect3DDevice9* pcDevice, DWORD Stage,IDirect3DBaseTexture9* pcTexture)
 {
+	// set the texture internally
+	if (Stage < MAX_SIMULTANEOUS_TEXTURES_D3D9)
+	{
+		// set NULL manually, otherwise just set the render target :
+		if (!pcTexture) 
+			m_apcActiveTextures[Stage] = NULL;
+		else			
+			m_apcActiveTextures[Stage] = pcTexture;
+	}
+	else return;
+
+	// set NULL twin if NULL
+	if (!pcTexture) 
+		m_apcActiveStereoTwinTextures[Stage] = NULL;
+	else
+	{
+		// get the surface
+		IDirect3DSurface9* pcSurface = nullptr;
+		D3DRESOURCETYPE type = pcTexture->GetType();
+		switch (type)
+		{
+		case D3DRTYPE_TEXTURE:
+			{
+				IDirect3DTexture9* pcDerivedTexture = static_cast<IDirect3DTexture9*> (pcTexture);
+				pcDerivedTexture->GetSurfaceLevel(0, &pcSurface);
+				break;
+			}
+		case D3DRTYPE_VOLUMETEXTURE:
+			{
+				IDirect3DVolumeTexture9* pDerivedTexture = static_cast<IDirect3DVolumeTexture9*> (pcTexture);
+				// TODO !! handle volume textures
+				break;
+			}
+		case D3DRTYPE_CUBETEXTURE:
+			{
+				IDirect3DCubeTexture9* pDerivedTexture = static_cast<IDirect3DCubeTexture9*> (pcTexture);
+				// TODO !! handle cube textures
+				break;
+			}
+		}
+
+		// set twin texture, if monitored
+		int nIndex = CheckIfMonitored(pcSurface);
+		if (nIndex == -1)
+		{
+			// set stereo texture to null meanwhile
+			m_apcActiveStereoTwinTextures[Stage] = NULL;
+		}
+		else
+		{
+			// set twin surface if twin in created
+			if (nIndex < (int)m_apcStereoTwinTextures.size())
+				// set twin surface
+				m_apcActiveStereoTwinTextures[Stage] = m_apcStereoTwinTextures[nIndex];
+			else
+				// set stereo texture to null meanwhile
+				m_apcActiveStereoTwinTextures[Stage] = NULL;
+		}
+	}
+
+	m_bControlUpdate = true;
 }
 
 /**
@@ -737,5 +882,40 @@ void StereoSplitter::DrawPrimitiveUP(IDirect3DDevice9* pcDevice, D3DPRIMITIVETYP
 ***/
 void StereoSplitter::DrawIndexedPrimitiveUP(IDirect3DDevice9* pcDevice, D3DPRIMITIVETYPE ePrimitiveType, UINT dwMinVertexIndex, UINT dwNumVertices, UINT dwPrimitiveCount, CONST void* pIndexData, D3DFORMAT eIndexDataFormat, CONST void* pVertexStreamZeroData, UINT dwVertexStreamZeroStride)
 {
+}
+
+/**
+* Index of the monitored surface in m_apcMonitoredSurfaces, -1 if not monitored.
+***/
+int StereoSplitter::CheckIfMonitored(IDirect3DSurface9* pcSurface)
+{
+	auto it = std::find(m_apcMonitoredSurfaces.begin(), m_apcMonitoredSurfaces.end(), pcSurface);
+	if(it != m_apcMonitoredSurfaces.end()) 
+	{
+		// set check time counter if this render target is actually monitored
+		auto index = it - m_apcMonitoredSurfaces.begin();
+		if (m_anMonitoredRenderTargetsCheckTimeCounter.size() > (size_t)index)
+		{
+			m_anMonitoredRenderTargetsCheckTimeCounter[index] = m_nChecktimeFrameConstant;
+			return (int)index;
+		}
+	} 
+	return -1;
+}
+
+/**
+* Start to monitor surface.
+***/
+void StereoSplitter::MonitorSurface(IDirect3DSurface9* pcSurface)
+{
+	// add new render target + check time frame constant
+	m_apcMonitoredSurfaces.push_back(pcSurface);
+	m_anMonitoredRenderTargetsCheckTimeCounter.push_back(m_nChecktimeFrameConstant);
+
+	// increase new render targets number, stereo twin will be created in Present() call
+	m_dwNewStereoTwinRenderTargets++;
+
+	// update control
+	m_bControlUpdate = true;
 }
 

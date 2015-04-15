@@ -52,8 +52,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define PNT_INT_PLUG_TYPE                            107 
 #define PNT_UINT_PLUG_TYPE                           112
 #define PNT_IDIRECT3DSURFACE9_PLUG_TYPE             2046
+#define PNT_IDIRECT3DBASETEXTURE9_PLUG_TYPE         2038
 
 #define NUMBER_OF_DECOMMANDERS                        26
+
+ /**
+ * Maximum simultaneous textures : 16 {shader sampling stage registers: s0 to s15} 
+ ***/
+#define MAX_SIMULTANEOUS_TEXTURES_D3D9                16
 
 /**
 * Node Commander Enumeration.
@@ -120,17 +126,24 @@ private:
 	/*** StereoSplitter private D3D9 methods ***/
 	void                    SetRenderTarget(IDirect3DDevice9* pcDevice, DWORD dwRenderTargetIndex, IDirect3DSurface9* pcRenderTarget);
 	void                    SetDepthStencilSurface(IDirect3DDevice9* pcDevice, IDirect3DSurface9* pNewZStencil);
-	void                    SetTexture(IDirect3DDevice9* pcDevice, DWORD Stage,IDirect3DBaseTexture9* pTexture);
+	void                    SetTexture(IDirect3DDevice9* pcDevice, DWORD Stage,IDirect3DBaseTexture9* pcTexture);
 	void                    DrawPrimitive(IDirect3DDevice9* pcDevice, D3DPRIMITIVETYPE ePrimitiveType, UINT dwStartVertex, UINT dwPrimitiveCount);
 	void                    DrawIndexedPrimitive(IDirect3DDevice9* pcDevice, D3DPRIMITIVETYPE ePrimitiveType, INT nBaseVertexIndex, UINT dwMinVertexIndex, UINT dwNumVertices, UINT dwStartIndex, UINT dwPrimCount);
 	void                    DrawPrimitiveUP(IDirect3DDevice9* pcDevice, D3DPRIMITIVETYPE ePrimitiveType, UINT dwPrimitiveCount, CONST void* pVertexStreamZeroData, UINT dwVertexStreamZeroStride);
 	void                    DrawIndexedPrimitiveUP(IDirect3DDevice9* pcDevice, D3DPRIMITIVETYPE ePrimitiveType, UINT dwMinVertexIndex, UINT dwNumVertices, UINT dwPrimitiveCount, CONST void* pIndexData, D3DFORMAT eIndexDataFormat, CONST void* pVertexStreamZeroData, UINT dwVertexStreamZeroStride);
+
+	/*** StereoSplitter private methods ***/
+	int                     CheckIfMonitored(IDirect3DSurface9* pcSurface);
+	void                    MonitorSurface(IDirect3DSurface9* pcSurface);
 
 	/**
 	* Input pointers.
 	***/
 	DWORD*              m_pdwRenderTargetIndex;         /**< ->SetRenderTarget() render target index ***/
 	IDirect3DSurface9** m_ppcRenderTarget;              /**< ->SetRenderTarget() render target ***/
+	IDirect3DSurface9** m_ppcNewZStencil;               /**< ->SetDepthStencilSurface() stencil surface ***/
+	DWORD*              m_pdwSampler;                   /**< ->SetTexture() sampler index **/
+	IDirect3DTexture9** m_ppcTexture;                   /**< ->SetTexture() texture pointer ***/
 
 	/**
 	* Active stored render targets.
@@ -138,12 +151,51 @@ private:
 	***/
 	std::vector<IDirect3DSurface9*> m_apcActiveRenderTargets;
 	/**
+	* Active stored textures.
+	* The textures that are currently in use.
+	***/
+	std::vector<IDirect3DBaseTexture9*> m_apcActiveTextures;
+	/**
+	* Active stored render targets.
+	* The depth stencil surface that are currently in use.
+	***/
+	IDirect3DSurface9* m_pcActiveDepthStencilSurface;
+	/**
 	* Monitored stored render targets.
 	* The render targets that are currently watched or monitored.
 	* These render targets have been used for the last period of 
 	* frames.
 	***/
-	std::vector<IDirect3DSurface9*> m_apcMonitoredRenderTargets;
+	std::vector<IDirect3DSurface9*> m_apcMonitoredSurfaces;
+	/**
+	* Stereo twin render targets.
+	* Each entry in this vector corresponds as the stereo twin
+	* of the render target stored in m_apcMonitoredSurfaces
+	* with the same index.
+	***/
+	std::vector<IDirect3DSurface9*> m_apcStereoTwinSurfaces;
+	/**
+	* Stereo twin render textures.
+	* Each entry in this vector corresponds as the the texture of 
+	* the stereo twin surface with the same index (stored in 
+	* m_apcStereoTwinSurfaces).
+	***/
+	std::vector<IDirect3DTexture9*> m_apcStereoTwinTextures;
+	/**
+	* Twin for active render target. 
+	* Entries ALLWAYS also exist in m_apcStereoTwinSurfaces.
+	***/
+	std::vector<IDirect3DSurface9*> m_apcActiveStereoTwinRenderTarget;	
+	/**
+	* Twin for active texture. 
+	* Entries ALLWAYS also exist in m_apcStereoTwinSurfaces.
+	***/
+	std::vector<IDirect3DTexture9*> m_apcActiveStereoTwinTextures;
+	/**
+	* Twin for active depth stencil. 
+	* Entry ALLWAYS also exist in m_apcStereoTwinSurfaces.
+	***/
+	IDirect3DSurface9* m_pcActiveStereoTwinDepthStencilSurface;
 	/**
 	* Monitored render targets check time counter.
 	* Each index of the vector array represents the frame counter
@@ -159,20 +211,7 @@ private:
 	* If any render target is set again, its check time counter
 	* will be resetted to this value.
 	***/
-	int m_nChecktimeFrameConstant;
-	/**
-	* Stereo twin render targets.
-	* Each entry in this vector corresponds as the stereo twin
-	* of the render target stored in m_apcMonitoredRenderTargets
-	* with the same index.
-	***/
-	std::vector<IDirect3DSurface9*> m_apcStereoTwinRenderTargets;
-	/**
-	* Stereo twin render textures.
-	* Each entry in this vector corresponds as the the texture of 
-	* the stereo twin surface with the same index.
-	***/
-	std::vector<IDirect3DTexture9*> m_apcStereoTwinRenderTextures;
+	int m_nChecktimeFrameConstant;	
 	/**
 	* The number of stereo twin render targets to be verified this frame.
 	***/
@@ -206,6 +245,12 @@ private:
 	***/
 	bool m_bControlUpdate;
 	/**
+	* True if Present() was called at least once.
+	* Game can crash if Present() is not connected,
+	* so this is added for security.
+	***/
+	bool m_bPresent;
+	/**
 	* The font used.
 	***/
 	HFONT m_hFont;
@@ -219,3 +264,4 @@ extern "C" __declspec(dllexport) AQU_Nodus* AQU_Nodus_Create()
 	StereoSplitter* pStereoSplitter = new StereoSplitter();
 	return static_cast<AQU_Nodus*>(pStereoSplitter);
 }
+
