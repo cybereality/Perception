@@ -1,6 +1,6 @@
+	//This shader replacement currently does nothing, but is a placeholder for future development
     vs_3_0
     def c0, 2, -2, -1, 1
-	//Attempt to dummy the squashed GUI, but not sure what these numbers should be
     def c52, 500, 500, 0, 0
     dcl_position v0
     dcl_color v1

@@ -276,8 +276,8 @@ void D3DProxyDevice::HandleControls()
 	{
 		if (tracker->getStatus() >= MTS_OK)
 		{
-			this->stereoView->HeadYOffset = (m_fFloatingScreenPitch - tracker->primaryPitch) * screenFloatMultiplierY;
-			this->stereoView->XOffset = (m_fFloatingScreenYaw - tracker->primaryYaw) * screenFloatMultiplierX;
+			this->stereoView->HeadYOffset = (m_fFloatingScreenPitch - tracker->primaryPitch) * screenFloatMultiplierY + (0.5f * tracker->y);
+			this->stereoView->XOffset = (m_fFloatingScreenYaw - tracker->primaryYaw) * screenFloatMultiplierX + (0.5f * tracker->x);
 			this->stereoView->HeadZOffset = (m_fFloatingScreenZ - tracker->z) * screenFloatMultiplierZ;
 			this->stereoView->PostReset();
 		}
@@ -705,7 +705,7 @@ void D3DProxyDevice::HandleControls()
 
 
 		//Reset IPD Offset to 0  -  F8  or  LSHIFT+I
-		if ((controls.Key_Down(VK_F8) || (controls.Key_Down(VK_LSHIFT) && controls.Key_Down('I'))) && HotkeysActive())
+		if ((controls.Key_Down(VK_F8) || (controls.Key_Down(VK_LSHIFT) && controls.Key_Down('I'))) && HotkeysActive() && this->stereoView->IPDOffset != 0.0)
 		{
 			this->stereoView->IPDOffset = 0.0;
 			this->stereoView->PostReset();		
