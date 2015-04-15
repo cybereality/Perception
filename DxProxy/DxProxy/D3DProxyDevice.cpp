@@ -2703,8 +2703,8 @@ void D3DProxyDevice::HandleControls()
 	{
 		if (tracker->getStatus() >= MTS_OK)
 		{
-			this->stereoView->HeadYOffset = (m_fFloatingScreenPitch - tracker->primaryPitch) * screenFloatMultiplierY;
-			this->stereoView->XOffset = (m_fFloatingScreenYaw - tracker->primaryYaw) * screenFloatMultiplierX;
+			this->stereoView->HeadYOffset = (m_fFloatingScreenPitch - tracker->primaryPitch) * screenFloatMultiplierY + (0.5f * tracker->y);
+			this->stereoView->XOffset = (m_fFloatingScreenYaw - tracker->primaryYaw) * screenFloatMultiplierX + (0.5f * tracker->x);
 			this->stereoView->HeadZOffset = (m_fFloatingScreenZ - tracker->z) * screenFloatMultiplierZ;
 			this->stereoView->PostReset();
 		}
