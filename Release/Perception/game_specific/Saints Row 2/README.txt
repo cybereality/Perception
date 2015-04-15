@@ -15,6 +15,13 @@ Gentlemen_of_the_Row_Saints_Row_2_Super_Mod_v1.9.2\optional_mod_stuff\optional_m
 Then run the batch script  Create_Custom_GotR_v1.9.2.bat  in the root of the extracted folders and follow instructions. 
 You can select whatever mods you want, but you will want to use the first person camera mod as that has been tweaked to work with the rift using the above file.
 
+To create the simplest most basic First Person Mod:
+
+* Type 10+Return for Camera Menu
+* Type 3 + Return for First Person Mod, ensure an "I" appears next to 3
+* Type 0 + Return to return to the main menu
+* Type P + Return to build the mod files
+
 Once it is complete, copy the contents of MY_CUSTOM_PATCH folder to the Saints Row 2 game folder (backing up existing files first)
 
 You are then good to play in first person
