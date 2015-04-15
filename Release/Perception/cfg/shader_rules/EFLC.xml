@@ -1,9 +1,25 @@
 <?xml version="1.0"?>
 <shaderConfig>
 	<rules>
-		<rule constantName="gWorldViewProj" partialName="true" id="1" constantType="MatrixR" modToApply="2" startReg="8" transpose="false" />
-	</rules>
+		<rule constantName="gWorldViewProj" partialName="true" id="1" constantType="MatrixR" modToApply="10" startReg="8" transpose="false" />
+    <rule constantName="gWorldViewProj" partialName="true" id="2" constantType="MatrixR" modToApply="15" startReg="8" transpose="false" />
+    <rule constantName="gWorldViewProj" partialName="true" id="3" constantType="MatrixR" modToApply="4" startReg="8" transpose="false" />
+    <rule constantName="gBlitMatrix" partialName="true" id="4" constantType="MatrixR" modToApply="4" startReg="208" transpose="false" />    
+  </rules>
 	<defaultRuleIDs>
 		<ruleID id="1" />
+    
 	</defaultRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="1869167510">
+    <ruleID id="2" />
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="2842601851">
+    <ruleID id="2" />
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="1902974127">
+    <ruleID id="3" />    
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="3649501000">
+    <ruleID id="4" />
+  </shaderSpecificRuleIDs>
 </shaderConfig>
