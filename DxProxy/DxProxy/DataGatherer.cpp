@@ -718,6 +718,7 @@ void DataGatherer::Init(ProxyHelper::ProxyConfig& cfg)
 	D3DProxyDevice::Init(cfg);
 }
 
+
 /**
 * Shader Analyzer sub menu.
 ***/
@@ -814,28 +815,7 @@ void DataGatherer::VPMENU_ShaderSubMenu()
 	// output menu
 	if (hudFont)
 	{
-		// adjust border
-		float borderDrawingHeight = borderTopHeight;
-		if (menuVelocity.y == 0.0f)
-			borderTopHeight = menuTop+menuEntryHeight*(float)entryID;
-
-		// draw border - total width due to shift correction
-		D3DRECT rect;
-		rect.x1 = (int)0; rect.x2 = (int)viewportWidth; rect.y1 = (int)borderTopHeight; rect.y2 = (int)(borderTopHeight+viewportHeight*0.04f);
-		ClearEmptyRect(vireio::RenderPosition::Left, rect, COLOR_MENU_BORDER, 2);
-		ClearEmptyRect(vireio::RenderPosition::Right, rect, COLOR_MENU_BORDER, 2);
-
-		hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
-
-		D3DXMATRIX matScale;
-		D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
-		hudMainMenu->SetTransform(&matScale);
-
-		menuHelperRect.left = 650;
-		menuHelperRect.top = 300;
-		D3DProxyDevice::DrawTextShadowed(hudFont, hudMainMenu, "Vireio Perception ("APP_VERSION") - Shader Analyser\n", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
-		rect.x1 = 0; rect.x2 = viewportWidth; rect.y1 = (int)(335*fScaleY); rect.y2 = (int)(340*fScaleY);
-		Clear(1, &rect, D3DCLEAR_TARGET, COLOR_MENU_BORDER, 0, 0);
+		VPMENU_StartDrawing("Shader Analyser", entryID);
 
 		menuHelperRect.top += 50;  menuHelperRect.left += 150; float guiQSHeight = (float)menuHelperRect.top * fScaleY;
 		DrawTextShadowed(hudFont, hudMainMenu, "Create new Shader Rules", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
@@ -852,12 +832,7 @@ void DataGatherer::VPMENU_ShaderSubMenu()
 		menuHelperRect.top += 40;
 		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 
-		menuHelperRect.left = 0;
-		menuHelperRect.top = 0;
-		
-		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
-		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, COLOR_WHITE);
-		hudMainMenu->End();
+		VPMENU_FinishDrawing();
 	}
 }
 
@@ -1257,12 +1232,7 @@ void DataGatherer::VPMENU_ChangeRules()
 		menuHelperRect.top += 40;
 		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 
-		menuHelperRect.left = 0;
-		menuHelperRect.top = 0;
-		
-		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
-		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, COLOR_WHITE);
-		hudMainMenu->End();
+		VPMENU_FinishDrawing();
 	}
 }
 
@@ -1514,14 +1484,10 @@ void DataGatherer::VPMENU_ShowActiveShaders()
 			DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		}
 
-		menuHelperRect.left = 0;
-		menuHelperRect.top = 0;
-		
-		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
-		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, COLOR_WHITE);
-		hudMainMenu->End();
+		VPMENU_FinishDrawing();
 	}
 }
+
 
 /**
 * Analyzes the game and outputs a shader rule xml file.

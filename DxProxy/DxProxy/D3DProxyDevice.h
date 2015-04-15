@@ -466,6 +466,8 @@ protected:
 	void         ChangeHUD3DDepthMode(HUD_3D_Depth_Modes newMode);
 	void         ChangeGUI3DDepthMode(GUI_3D_Depth_Modes newMode);
 	void         VPMENU_NewFrame(UINT &entryID, UINT menuEntryCount);
+	void         VPMENU_StartDrawing(const char *pageTitle, int borderSelection);
+	void         VPMENU_FinishDrawing();
 	virtual void VPMENU_ShaderSubMenu(){}
 	virtual void VPMENU_ChangeRules(){}
 	virtual void VPMENU_PickRules(){}
