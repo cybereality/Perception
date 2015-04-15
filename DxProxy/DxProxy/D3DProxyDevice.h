@@ -73,6 +73,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "InputControls.h"
 #include "VRBoostEnums.h"
 #include "DirectInput.h"
+#include "VireioPopup.h"
 
 #define _SAFE_RELEASE(x) if(x) { x->Release(); x = NULL; } 
 #define RECT_WIDTH(x) (x.right - x.left)
@@ -451,77 +452,6 @@ protected:
 	virtual void VPMENU_ChangeRules(){}
 	virtual void VPMENU_PickRules(){}
 	virtual void VPMENU_ShowActiveShaders(){}
-
-	enum VireioPopupType
-	{
-		VPT_NONE,
-		//"splash screen" - shown when Vireio is first injected
-		VPT_SPLASH_1,
-		//Second "splash" - tells users a couple of helpful hot-keys
-		VPT_SPLASH_2,
-		VPT_NO_HMD_DETECTED,
-		VPY_HMDINITFAIL,
-		VPT_VRBOOST_FAILURE,
-		VPT_VRBOOST_SCANNING,
-		VPT_POSITION_TRACKING_LOST,
-		VPT_NO_ORIENTATION,
-		//Notification that is only dismissed once user has "calibrated HMD/Tracker"
-		VPT_CALIBRATE_TRACKER,
-		VPT_STATS,
-		//Short notification, such as hot key toggles
-		VPT_NOTIFICATION,
-		//Short notification of valu adjustment, such as Y Offset, or IPD offset
-		VPT_ADJUSTER
-	};
-
-	enum VireioPopupSeverity
-	{
-		//A toast is a notification that is only shown for a short time, triggered by a toggle for exmample
-		VPS_TOAST,
-		//Information
-		VPS_INFO,
-		//An issue has occurred
-		VPS_ERROR
-	};
-
-	struct VireioPopup
-	{
-		VireioPopup(VireioPopupType type, VireioPopupSeverity sev = VPS_INFO, long duration = -1) :
-			popupType(type),
-			severity(sev),
-			popupDuration(duration)
-		{
-			if (duration != -1)
-				setDuration(duration);
-
-			memset(line, 0, 7 * 256);
-		}
-
-		void setDuration(long duration_ms)
-		{
-			popupDuration = (long)GetTickCount() + duration_ms;
-		}
-
-		bool expired()
-		{
-			if (popupDuration != -1 && 
-				((long)GetTickCount()) > popupDuration)
-				return true;
-			return false;
-		}
-
-		void reset()
-		{
-			popupType = VPT_NONE;
-			popupDuration = -1;
-			memset(line, 0, 7 * 256);
-		}
-
-		VireioPopupType popupType;
-		VireioPopupSeverity severity;
-		long popupDuration;
-		char line[7][256];
-	};
 
 	VireioPopup activePopup;
 
