@@ -1082,41 +1082,40 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 			std::string buildDate = date.substr(4, 2) + "-" + date.substr(0, 3) + "-" + date.substr(7, 4);
 
 			//Show a splash screen on startup
-			VireioPopup splashPopup(VPT_SPLASH_1, VPS_INFO, 4000);
-			strcpy_s(splashPopup.line[0], "Vireio Perception: Stereoscopic 3D Driver");
-			strcpy_s(splashPopup.line[1], (std::string("Version: ") + APP_VERSION + "   Build Date: " + buildDate).c_str());
-			strcpy_s(splashPopup.line[2], "This program is distributed in the hope that it will be useful,"); 
-			strcpy_s(splashPopup.line[3], "but WITHOUT ANY WARRANTY; without even the implied warranty of "); 
-			strcpy_s(splashPopup.line[4], "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.");
-			strcpy_s(splashPopup.line[5], "See the GNU LGPL: http://www.gnu.org/licenses/ for more details. ");
-			ShowPopup(splashPopup);
+			ShowPopup(VPT_SPLASH_1, VPS_INFO, 4000,
+				retprintf(
+				"Vireio Perception: Stereoscopic 3D Driver\n"
+				"Version: %s   Build Date: %s\n"
+				"This program is distributed in the hope that it will be useful,\n"
+				"but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+				"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n"
+				"See the GNU LGPL: http://www.gnu.org/licenses/ for more details.",
+				APP_VERSION, buildDate.c_str()));
 		}
 
 		if ((GetTickCount() - spashtick)  > 4000 &&
 			(GetTickCount() - spashtick)  < 8000)
 		{
 			//Show a splash screen on startup
-			VireioPopup splashPopup(VPT_SPLASH_2, VPS_INFO, 4000);
-			strcpy_s(splashPopup.line[0], "Vireio Perception: Stereoscopic 3D Driver");
-			strcpy_s(splashPopup.line[1], "Useful Hot-keys:"); 
-			strcpy_s(splashPopup.line[2], "     <CTRL> + <Q>\t\t\t:  Show Vireio In-Game Menu"); 
-			strcpy_s(splashPopup.line[3], "     Mouse Wheel Click\t:  Disconnected Screen View");
-			strcpy_s(splashPopup.line[4], "     <LSHIFT> + <R>\t\t\t:  Reset HMD Orientation");
-			strcpy_s(splashPopup.line[5], "     <LSHIFT> + <F>\t\t\t:  FPS Counter");
-			ShowPopup(splashPopup);
+			ShowPopup(VPT_SPLASH_2, VPS_INFO, 4000,
+				"Vireio Perception: Stereoscopic 3D Driver\n"
+				"Useful Hot-keys:\n"
+				"     <CTRL> + <Q>\t\t\t:  Show Vireio In-Game Menu\n"
+				"     Mouse Wheel Click\t:  Disconnected Screen View\n"
+				"     <LSHIFT> + <R>\t\t\t:  Reset HMD Orientation\n"
+				"     <LSHIFT> + <F>\t\t\t:  FPS Counter");
 		}
 	
 		if ((GetTickCount() - spashtick)  > 8000)
 		{
 			if (calibrate_tracker)
 			{
-				VireioPopup popup(VPT_CALIBRATE_TRACKER, VPS_INFO, 15000);
-				strcpy_s(popup.line[1], "Please Calibrate HMD/Tracker:");
-				strcpy_s(popup.line[2], "     -  Sit comfortably with your head facing forwards");
-				strcpy_s(popup.line[3], "     -  Press any of the following:");
-				strcpy_s(popup.line[4], "           <CTRL> + <R> / <LSHIFT> + <R>");
-				strcpy_s(popup.line[5], "           L + R Shoulder Buttons on Xbox 360 Controller");
-				ShowPopup(popup);
+				ShowPopup(VPT_CALIBRATE_TRACKER, VPS_INFO, 15000,
+					"\nPlease Calibrate HMD/Tracker:\n"
+					"     -  Sit comfortably with your head facing forwards\n"
+					"     -  Press any of the following:\n"
+					"           <CTRL> + <R> / <LSHIFT> + <R>\n"
+					"           L + R Shoulder Buttons on Xbox 360 Controller");
 			}
 		}
 
@@ -2527,39 +2526,24 @@ void D3DProxyDevice::HandleTracking()
 			switch (tracker->getStatus())
 			{
 				case MTS_NOTINIT:
-					{
-						VireioPopup popup(VPT_NO_HMD_DETECTED, VPS_ERROR, 10000);
-						strcpy_s(popup.line[2], "HMD NOT INITIALISED");
-						ShowPopup(popup);
-					}
+					ShowPopup(VPT_NO_HMD_DETECTED, VPS_ERROR, 10000,
+						"HMD NOT INITIALISED");
 					break;
 				case MTS_INITIALISING:
-					{
-						VireioPopup popup(VPT_NO_HMD_DETECTED);
-						strcpy_s(popup.line[2], "HMD INITIALISING");
-						ShowPopup(popup);
-					}
+					ShowPopup(VPT_NO_HMD_DETECTED, VPS_INFO, -1,
+						"HMD INITIALISING");
 					break;
 				case MTS_NOHMDDETECTED:
-					{
-						VireioPopup popup(VPT_NO_HMD_DETECTED, VPS_ERROR, 10000);
-						strcpy_s(popup.line[2], "HMD NOT DETECTED");
-						ShowPopup(popup);
-					}
+					ShowPopup(VPT_NO_HMD_DETECTED, VPS_ERROR, 10000,
+						"HMD NOT DETECTED");
 					break;
 				case MTS_INITFAIL:
-					{
-						VireioPopup popup(VPT_NO_HMD_DETECTED, VPS_ERROR, 10000);
-						strcpy_s(popup.line[2], "HMD INITIALISATION FAILED");
-						ShowPopup(popup);
-					}
+					ShowPopup(VPT_NO_HMD_DETECTED, VPS_ERROR, 10000,
+						"HMD INITIALISATION FAILED");
 					break;
 				case MTS_DRIVERFAIL:
-					{
-						VireioPopup popup(VPT_NO_HMD_DETECTED, VPS_ERROR, 10000);
-						strcpy_s(popup.line[2], "TRACKER DRIVER FAILED TO INITIALISE");
-						ShowPopup(popup);
-					}
+					ShowPopup(VPT_NO_HMD_DETECTED, VPS_ERROR, 10000,
+						"TRACKER DRIVER FAILED TO INITIALISE");
 					break;
 				default:
 					break;
@@ -2586,9 +2570,8 @@ void D3DProxyDevice::HandleTracking()
 		}
 		else if (tracker->getStatus() == MTS_NOORIENTATION)
 		{
-			VireioPopup popup(VPT_NO_ORIENTATION, VPS_ERROR);
-			strcpy_s(popup.line[2], "HMD ORIENTATION NOT BEING REPORTED");
-			ShowPopup(popup);
+			ShowPopup(VPT_NO_ORIENTATION, VPS_ERROR, -1,
+				"HMD ORIENTATION NOT BEING REPORTED");
 		}
 		else 
 		{
@@ -2597,18 +2580,16 @@ void D3DProxyDevice::HandleTracking()
 			{
 				if (tracker->getStatus() == MTS_CAMERAMALFUNCTION)
 				{
-					VireioPopup popup(VPT_NO_HMD_DETECTED, VPS_ERROR);
-					strcpy_s(popup.line[2], "CAMERA MALFUNCTION - PLEASE WAIT WHILST CAMERA INITIALISES");
-					ShowPopup(popup);
+					ShowPopup(VPT_NO_HMD_DETECTED, VPS_ERROR, -1,
+						"CAMERA MALFUNCTION - PLEASE WAIT WHILST CAMERA INITIALISES");
 				}
 				else if (tracker->getStatus() == MTS_LOSTPOSITIONAL)
 				{
 					if (userConfig.warnPosLost)
 					{
 						//Show popup regarding lost positional tracking
-						VireioPopup popup(VPT_POSITION_TRACKING_LOST);
-						strcpy_s(popup.line[4], "HMD POSITIONAL TRACKING LOST");
-						ShowPopup(popup);
+						ShowPopup(VPT_POSITION_TRACKING_LOST, VPS_INFO, -1,
+							"HMD POSITIONAL TRACKING LOST");
 					}
 				}
 			}
@@ -2693,9 +2674,7 @@ void D3DProxyDevice::HandleTracking()
 				if (tracker->y < (m_DuckAndCover.yPos_Crouch * 0.55f))
 				{
 					m_DuckAndCover.dfcStatus = DAC_CROUCH;
-					VireioPopup popup(VPT_NOTIFICATION, VPS_INFO, 250);
-					strcpy_s(popup.line[0], "Crouch");
-					ShowPopup(popup);
+					ShowPopup(VPT_NOTIFICATION, VPS_INFO, 250, "Crouch\n");
 
 					//Trigger crouch button
 					INPUT ip;
@@ -2719,9 +2698,7 @@ void D3DProxyDevice::HandleTracking()
 				{
 					//back to standing
 					m_DuckAndCover.dfcStatus = DAC_STANDING;
-					VireioPopup popup(VPT_NOTIFICATION, VPS_INFO, 250);
-					strcpy_s(popup.line[0], "Standing");
-					ShowPopup(popup);
+					ShowPopup(VPT_NOTIFICATION, VPS_INFO, 250, "Standing\n");
 
 					INPUT ip;
 					ip.type = INPUT_KEYBOARD;
@@ -2741,9 +2718,7 @@ void D3DProxyDevice::HandleTracking()
 					tracker->y < (m_DuckAndCover.yPos_Crouch + m_DuckAndCover.yPos_Prone * 0.55f))
 				{
 					m_DuckAndCover.dfcStatus = DAC_PRONE;
-					VireioPopup popup(VPT_NOTIFICATION, VPS_INFO, 250);
-					strcpy_s(popup.line[0], "Prone");
-					ShowPopup(popup);
+					ShowPopup(VPT_NOTIFICATION, VPS_INFO, 250, "Prone\n");
 
 					INPUT ip;
 					ip.type = INPUT_KEYBOARD;
@@ -2777,9 +2752,7 @@ void D3DProxyDevice::HandleTracking()
 				{
 					//back to crouching
 					m_DuckAndCover.dfcStatus = DAC_CROUCH;
-					VireioPopup popup(VPT_NOTIFICATION, VPS_INFO, 250);
-					strcpy_s(popup.line[0], "Crouch");
-					ShowPopup(popup);
+					ShowPopup(VPT_NOTIFICATION, VPS_INFO, 250, "Crouch\n");
 
 					//Trigger prone button
 					INPUT ip;
@@ -2909,14 +2882,13 @@ void D3DProxyDevice::HandleTracking()
 							tracker->setMouseEmulation(true);
 
 							DismissPopup(VPT_VRBOOST_SCANNING);
-							VireioPopup popup(VPT_VRBOOST_SCANNING, VPS_INFO);
-							strcpy_s(popup.line[0], "VRBoost Memory Scan");
-							strcpy_s(popup.line[1], "===================");
-							strcpy_s(popup.line[2], "STATUS: WAITING USER ACTIVATION");
-							strcpy_s(popup.line[3], " - Once you are \"in-game\", press NUMPAD5 to start memory scan");
-							strcpy_s(popup.line[4], " - Press NUMPAD5 to repeat if memory scan fails");
-							strcpy_s(popup.line[5], " - Press NUMPAD8 to cancel VRBoost and turn on mouse emulation");
-							ShowPopup(popup);
+							ShowPopup(VPT_VRBOOST_SCANNING, VPS_INFO, -1,
+								"VRBoost Memory Scan\n"
+								"===================\n"
+								"STATUS: WAITING USER ACTIVATION\n"
+								" - Once you are \"in-game\", press NUMPAD5 to start memory scan\n"
+								" - Press NUMPAD5 to repeat if memory scan fails\n"
+								" - Press NUMPAD8 to cancel VRBoost and turn on mouse emulation");
 						}
 						break;
 					case VRBoost::VRBOOST_SCAN_INITIALISING:
@@ -2930,14 +2902,14 @@ void D3DProxyDevice::HandleTracking()
 							tracker->setMouseEmulation(true);
 
 							DismissPopup(VPT_VRBOOST_SCANNING);
-							VireioPopup popup(VPT_VRBOOST_SCANNING, VPS_INFO);
-							strcpy_s(popup.line[0], "VRBoost Memory Scan");
-							strcpy_s(popup.line[1], "===================");
-
 							float percent = m_pVRboost_GetScanInitPercent();
-							sprintf_s(popup.line[2], "STATUS: INITIALISING - %.1f%% Complete", percent);
-							strcpy_s(popup.line[3], "Setting up scanner parameters - Please wait..");
-							ShowPopup(popup);
+							ShowPopup(VPT_VRBOOST_SCANNING, VPS_INFO, -1,
+								retprintf(
+									"VRBoost Memory Scan\n"
+									"===================\n"
+									"STATUS: INITIALISING - %.1f%% Complete\n"
+									"Setting up scanner parameters - Please wait..",
+									percent));
 						}
 						break;
 					case VRBoost::VRBOOST_SCANNING:
@@ -2950,13 +2922,14 @@ void D3DProxyDevice::HandleTracking()
 							tracker->setMouseEmulation(true);
 
 							DismissPopup(VPT_VRBOOST_SCANNING);
-							VireioPopup popup(VPT_VRBOOST_SCANNING, VPS_INFO);
-							strcpy_s(popup.line[0], "VRBoost Memory Scan");
-							strcpy_s(popup.line[1], "===================");
 							UINT candidates = m_pVRboost_GetScanCandidates();
-							sprintf_s(popup.line[2], "STATUS: SCANNING (%i candidates)", candidates);
-							strcpy_s(popup.line[4], "Please look around to assist with orientation detection");
-							ShowPopup(popup);
+							ShowPopup(VPT_VRBOOST_SCANNING, VPS_INFO, -1,
+								retprintf(
+									"VRBoost Memory Scan\n"
+									"===================\n"
+									"STATUS: SCANNING (%i candidates)\n"
+									"Please look around to assist with orientation detection",
+									candidates));
 						}
 						break;
 					//This is the case where the scanner needs the user to follow particular steps to identify
@@ -2976,20 +2949,27 @@ void D3DProxyDevice::HandleTracking()
 							tracker->setMouseEmulation(true);
 
 							DismissPopup(VPT_VRBOOST_SCANNING);
-							VireioPopup popup(VPT_VRBOOST_SCANNING, VPS_INFO);
-							strcpy_s(popup.line[0], "VRBoost Memory Scan");
-							strcpy_s(popup.line[1], "===================");
 							UINT candidates = m_pVRboost_GetScanCandidates();
-							sprintf_s(popup.line[2], "STATUS: SCANNING (%i candidates) - REQUIRES USER ASSISTANCE", candidates);
 							if (timeToEvent == MAXDWORD)
 							{
-								strcpy_s(popup.line[3], "    PLEASE LOOK STRAIGHT-AHEAD THEN");
-								strcpy_s(popup.line[4], "    PRESS SCAN TRIGGER (NUMPAD5) TO START \"ASSISTED\" SCAN");
+								ShowPopup(VPT_VRBOOST_SCANNING, VPS_INFO, -1, retprintf(
+									"VRBoost Memory Scan\n"
+									"===================\n"
+									"STATUS: SCANNING (%i candidates) - REQUIRES USER ASSISTANCE\n"
+									"    PLEASE LOOK STRAIGHT-AHEAD THEN\n"
+									"    PRESS SCAN TRIGGER (NUMPAD5) TO START \"ASSISTED\" SCAN",
+									candidates));
 							}
 							else
-								sprintf_s(popup.line[3], "       ***  PLEASE LOOK:    %s   -   %i  ***", instruction, (timeToEvent/1000)+1);
+							{
+								ShowPopup(VPT_VRBOOST_SCANNING, VPS_INFO, -1, retprintf(
+									"VRBoost Memory Scan\n"
+									"===================\n"
+									"STATUS: SCANNING (%i candidates) - REQUIRES USER ASSISTANCE\n"
+									"       ***  PLEASE LOOK:    %s   -   %i  ***",
+									candidates, instruction, (timeToEvent/1000)+1));
+							}
 							delete []instruction;
-							ShowPopup(popup);
 						}
 						break;
 					case VRBoost::VRBOOST_SCAN_FAILED:
@@ -3002,21 +2982,22 @@ void D3DProxyDevice::HandleTracking()
 							m_bForceMouseEmulation = true;
 							tracker->setMouseEmulation(true);
 
-							//If we get here, then the VRBoost memory scanner came up with no good results :(
-							VireioPopup popup(VPT_VRBOOST_FAILURE, VPS_ERROR, 5000);
-							strcpy_s(popup.line[0], "VRBoost Memory Scan");
-							strcpy_s(popup.line[1], "===================");
-							strcpy_s(popup.line[2], "STATUS: FAILED");
-
 							//Reason
 							char *failReason = new char[256];
 							ZeroMemory(failReason, 256);
 							m_pVRboost_GetScanFailReason((char**)&failReason);
-							sprintf_s(popup.line[3], "REASON: %s", failReason);
+							
+							//If we get here, then the VRBoost memory scanner came up with no good results :(
+							ShowPopup(VPT_VRBOOST_FAILURE, VPS_ERROR, 5000,
+								retprintf(
+									"VRBoost Memory Scan\n"
+									"===================\n"
+									"STATUS: FAILED\n"
+									"REASON: %s\n"
+									"VRBoost is now disabled\n"
+									"Re-run the scan with NUMPAD5",
+									failReason));
 							delete []failReason;
-							strcpy_s(popup.line[4], "VRBoost is now disabled");
-							strcpy_s(popup.line[5], "Re-run the scan with NUMPAD5");
-							ShowPopup(popup);
 							VRBoostStatus.VRBoost_Active = false;
 						}
 						break;
@@ -3030,13 +3011,12 @@ void D3DProxyDevice::HandleTracking()
 							m_bForceMouseEmulation = true;
 							tracker->setMouseEmulation(true);
 
-							VireioPopup popup(VPT_VRBOOST_FAILURE, VPS_ERROR, 10000);
-							strcpy_s(popup.line[0], "VRBoost");
-							strcpy_s(popup.line[1], "=======");
-							strcpy_s(popup.line[2], "STATUS: ADDRESSES LOST");
-							strcpy_s(popup.line[4], "VRBoost is now disabled");
-							strcpy_s(popup.line[5], "Re-run the scan with NUMPAD5");
-							ShowPopup(popup);
+							ShowPopup(VPT_VRBOOST_FAILURE, VPS_ERROR, 10000,
+								"VRBoost\n"
+								"=======\n"
+								"STATUS: ADDRESSES LOST\n"
+								"VRBoost is now disabled\n"
+								"Re-run the scan with NUMPAD5");
 							VRBoostStatus.VRBoost_Active = false;
 						}
 						break;
@@ -3071,14 +3051,15 @@ void D3DProxyDevice::HandleTracking()
 								}
 
 
-								VireioPopup popup(VPT_NOTIFICATION, VPS_INFO, 5000);
-								strcpy_s(popup.line[0], "    VRBoost Memory Scan");
-								strcpy_s(popup.line[1], "    ===================");
-								strcpy_s(popup.line[2], "    STATUS:   SUCCESS");
-								strcpy_s(popup.line[3], "    Found addresses: ");
-								sprintf_s(popup.line[4], "       %s", axisNames.c_str());
-								strcpy_s(popup.line[5], "    VRBoost is now active");
-								ShowPopup(popup);
+								ShowPopup(VPT_NOTIFICATION, VPS_INFO, 5000,
+									retprintf(
+										"    VRBoost Memory Scan\n"
+										"    ===================\n"
+										"    STATUS:   SUCCESS\n"
+										"    Found addresses:\n"
+										"       %s\n"
+										"    VRBoost is now active",
+										axisNames.c_str()));
 								//No longer scanning
 								VRBoostStatus.VRBoost_Scanning = false;
 							}
@@ -3097,14 +3078,15 @@ void D3DProxyDevice::HandleTracking()
 								m_bForceMouseEmulation = false;
 								tracker->setMouseEmulation(false);
 
-								VireioPopup popup(VPT_NOTIFICATION, VPS_INFO, 8000);
-								strcpy_s(popup.line[0], "VRBoost Memory Scan");
-								strcpy_s(popup.line[1], "===================");
-								strcpy_s(popup.line[2], "STATUS: SUCCESS - MULTIPLE CANDIDATES");
-								sprintf_s(popup.line[3], "Found %i candidate orientation addresses", m_pVRboost_GetScanCandidates());
-								strcpy_s(popup.line[4], "Use NUMPAD4/NUMPAD6 to cycle through candidates");
-								strcpy_s(popup.line[5], "VRBoost is now active");
-								ShowPopup(popup);
+								ShowPopup(VPT_NOTIFICATION, VPS_INFO, 8000,
+									retprintf(
+										"VRBoost Memory Scan\n"
+										"===================\n"
+										"STATUS: SUCCESS - MULTIPLE CANDIDATES\n"
+										"Found %i candidate orientation addresses\n"
+										"Use NUMPAD4/NUMPAD6 to cycle through candidates\n"
+										"VRBoost is now active",
+										m_pVRboost_GetScanCandidates()));
 								//No longer scanning
 								VRBoostStatus.VRBoost_Scanning = false;
 								VRBoostStatus.VRBoost_Candidates = true;
@@ -3132,21 +3114,19 @@ void D3DProxyDevice::HandleTracking()
 	{
 		if (!VRBoostStatus.VRBoost_LoadRules)
 		{
-			VireioPopup popup(VPT_VRBOOST_FAILURE, VPS_ERROR);
-			strcpy_s(popup.line[2], "VRBoost LoadRules Failed");
-			strcpy_s(popup.line[3], "To Enable head tracking, turn on Force Mouse Emulation");
-			strcpy_s(popup.line[4], "in VP Settings");
-			ShowPopup(popup);
+			ShowPopup(VPT_VRBOOST_FAILURE, VPS_ERROR, -1,
+				"\n\nVRBoost LoadRules Failed\n"
+				"To Enable head tracking, turn on Force Mouse Emulation\n"
+				"in VP Settings");
 			return;
 		}
 		else if (!VRBoostStatus.VRBoost_ApplyRules)
 		{
-			VireioPopup popup(VPT_VRBOOST_FAILURE, VPS_ERROR);
-			strcpy_s(popup.line[1], "VRBoost rules loaded but could not be applied");
-			strcpy_s(popup.line[2], "Mouse Emulation is not Enabled,");
-			strcpy_s(popup.line[3], "To Enable head tracking, turn on Force Mouse Emulation");
-			strcpy_s(popup.line[4], "in VP Settings");
-			ShowPopup(popup);
+			ShowPopup(VPT_VRBOOST_FAILURE, VPS_ERROR, -1,
+				"\nVRBoost rules loaded but could not be applied\n"
+				"Mouse Emulation is not Enabled,\n"
+				"To Enable head tracking, turn on Force Mouse Emulation\n"
+				"in VP Settings");
 			return;
 		}
 	}
@@ -3641,55 +3621,51 @@ void D3DProxyDevice::DuckAndCoverCalibrate()
 	{
 	case DAC_CAL_STANDING:
 		{
-			VireioPopup popup(VPT_NOTIFICATION, VPS_INFO);
-			strcpy_s(popup.line[0], "Duck-and-Cover Mode");
-			strcpy_s(popup.line[1], "===================");
-			strcpy_s(popup.line[2], "Step 1:");
-			strcpy_s(popup.line[3], " - Move to the standing position you will be playing in");
-			strcpy_s(popup.line[4], " - Push A on the Xbox 360 controller");
-			strcpy_s(popup.line[5], "      or Right Shift");
-			ShowPopup(popup);
+			ShowPopup(VPT_NOTIFICATION, VPS_INFO, -1,
+				"Duck-and-Cover Mode\n"
+				"===================\n"
+				"Step 1:\n"
+				" - Move to the standing position you will be playing in\n"
+				" - Push A on the Xbox 360 controller\n"
+				"      or Right Shift");
 		}
 		break;
 	case DAC_CAL_CROUCHING:
 		{
 			DismissPopup(VPT_NOTIFICATION);
-			VireioPopup popup(VPT_NOTIFICATION, VPS_INFO);
-			strcpy_s(popup.line[0], "Duck-and-Cover Mode");
-			strcpy_s(popup.line[1], "===================");
-			strcpy_s(popup.line[2], "Step 2:");
-			strcpy_s(popup.line[3], " - Move to a crouching position");
-			strcpy_s(popup.line[4], " - Push A on the Xbox 360 controller");
-			strcpy_s(popup.line[5], "      or Right Shift");
-			ShowPopup(popup);
+			ShowPopup(VPT_NOTIFICATION, VPS_INFO, -1,
+				"Duck-and-Cover Mode\n"
+				"===================\n"
+				"Step 2:\n"
+				" - Move to a crouching position\n"
+				" - Push A on the Xbox 360 controller\n"
+				"      or Right Shift");
 		}
 		break;
 	case DAC_CAL_PRONE:
 		{
 			DismissPopup(VPT_NOTIFICATION);
-			VireioPopup popup(VPT_NOTIFICATION, VPS_INFO);
-			strcpy_s(popup.line[0], "Duck-and-Cover Mode");
-			strcpy_s(popup.line[1], "===================");
-			strcpy_s(popup.line[2], "Step 3 (optional):");
-			strcpy_s(popup.line[3], " - Move to a prone position");
-			strcpy_s(popup.line[4], "    - Push A button on the Xbox360 controller");
-			strcpy_s(popup.line[5], "       or Right Shift");
-			strcpy_s(popup.line[6], "    - TO SKIP: Push B button on the controller or Escape key");
-			ShowPopup(popup);
+			ShowPopup(VPT_NOTIFICATION, VPS_INFO, -1,
+				"Duck-and-Cover Mode\n"
+				"===================\n"
+				"Step 3 (optional):\n"
+				" - Move to a prone position\n"
+				"    - Push A button on the Xbox360 controller\n"
+				"       or Right Shift\n"
+				"    - TO SKIP: Push B button on the controller or Escape key");
 		}
 		break;
 	case DAC_CAL_COMPLETE:
 		{
 			DismissPopup(VPT_NOTIFICATION);
-			VireioPopup popup(VPT_NOTIFICATION, VPS_INFO);
-			strcpy_s(popup.line[0], "Duck-and-Cover Mode");
-			strcpy_s(popup.line[1], "===================");
-			strcpy_s(popup.line[2], "Step 4:");
-			strcpy_s(popup.line[3], " - Calibration is complete");
-			strcpy_s(popup.line[3], " - Return to the standing position you will be playing in");
-			strcpy_s(popup.line[4], " - Push A on the Xbox 360 controller");
-			strcpy_s(popup.line[5], "      or Right Shift");
-			ShowPopup(popup);
+			ShowPopup(VPT_NOTIFICATION, VPS_INFO, -1,
+				"Duck-and-Cover Mode\n"
+				"===================\n"
+				"Step 4:\n"
+				" - Calibration is complete\n"
+				" - Return to the standing position you will be playing in\n"
+				" - Push A on the Xbox 360 controller\n"
+				"      or Right Shift");
 		}
 		break;
 	}

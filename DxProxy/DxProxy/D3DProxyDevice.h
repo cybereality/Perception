@@ -469,6 +469,9 @@ protected:
 	/** Pop-up functionality */
 	void DisplayCurrentPopup();
 	void ShowPopup(VireioPopup &popup);
+	void ShowPopup(VireioPopupType type, VireioPopupSeverity sev, long duration, std::string message);
+	void ShowPopup(VireioPopupType type, VireioPopupSeverity sev, std::string message);
+	void ShowAdjusterToast(std::string message, int duration);
 	void DismissPopup(VireioPopupType popupType);
 
 	/**

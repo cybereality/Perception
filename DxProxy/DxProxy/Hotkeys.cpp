@@ -40,6 +40,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <tchar.h>
 #include "Resource.h"
 #include <D3DX9Shader.h>
+#include "Vireio.h"
 
 #ifdef _DEBUG
 #include "DxErr.h"
@@ -55,6 +56,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 using namespace VRBoost;
+using namespace vireio;
 
 /**
 * Keyboard input handling
@@ -208,16 +210,12 @@ void D3DProxyDevice::HandleControls()
 				if (!m_disableAllHotkeys)
 				{
 					m_disableAllHotkeys = true;
-					VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 2000);
-					sprintf_s(popup.line[2], "VIREIO HOT-KEYS: DISABLED");
-					ShowPopup(popup);
+					ShowAdjusterToast("VIREIO HOT-KEYS: DISABLED", 2000);
 				}
 				else
 				{
 					m_disableAllHotkeys = false;
-					VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 2000);
-					sprintf_s(popup.line[2], "VIREIO HOT-KEYS: ENABLED");
-					ShowPopup(popup);
+					ShowAdjusterToast("VIREIO HOT-KEYS: ENABLED", 2000);
 				}
 			}
 
@@ -265,12 +263,10 @@ void D3DProxyDevice::HandleControls()
 			}
 		}
 
-		VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 700);
 		if (m_bfloatingScreen)
-			strcpy_s(popup.line[2], "Disconnected Screen Enabled");
+			ShowAdjusterToast("Disconnected Screen Enabled", 700);
 		else
-			strcpy_s(popup.line[2], "Disconnected Screen Disabled");
-		ShowPopup(popup);
+			ShowAdjusterToast("Disconnected Screen Disabled", 700);
 
 		menuVelocity.x += 4.0f;		
 	}
@@ -315,16 +311,13 @@ void D3DProxyDevice::HandleControls()
 				calibrate_tracker = false;
 				//Replace popup
 				DismissPopup(VPT_CALIBRATE_TRACKER);
-				VireioPopup popup(VPT_NOTIFICATION, VPS_INFO, 3000);
-				strcpy_s(popup.line[2], "HMD Orientation and Position Calibrated");
-				strcpy_s(popup.line[3], "Please repeat if required...");
-				ShowPopup(popup);
+				ShowPopup(VPT_NOTIFICATION, VPS_INFO, 3000,
+					"\n\nHMD Orientation and Position Calibrated\n"
+					"Please repeat if required...");
 			}
 			else
 			{
-				VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1200);
-				strcpy_s(popup.line[2], "HMD Orientation and Position Reset");
-				ShowPopup(popup);
+				ShowPopup(VPT_NOTIFICATION, VPS_TOAST, 1200, "HMD Orientation and Position Reset");
 			}
 			tracker->resetOrientationAndPosition();
 			menuVelocity.x+=2.0f;
@@ -418,18 +411,13 @@ void D3DProxyDevice::HandleControls()
 			{
 				m_b2dDepthMode = true;
 				stereoView->m_b2dDepthMode = true;
-
-				VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
-				sprintf_s(popup.line[2], "Depth Perception Mode On");
-				ShowPopup(popup);
+				ShowAdjusterToast("Depth Perception Mode On", 1000);
 			}
 			else
 			{
 				m_b2dDepthMode = false;
 				stereoView->m_b2dDepthMode = false;
-				VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
-				sprintf_s(popup.line[2], "Depth Perception Mode Off");
-				ShowPopup(popup);
+				ShowAdjusterToast("Depth Perception Mode Off", 1000);
 			}
 			menuVelocity.x += 4.0f;
 		
@@ -440,17 +428,8 @@ void D3DProxyDevice::HandleControls()
 		{
 			if(m_b2dDepthMode)
 			{
-				if(stereoView->m_bLeftSideActive)
-				{
-					stereoView->m_bLeftSideActive = false;
-				}
-				else
-				{
-					stereoView->m_bLeftSideActive = true;
-				}
-				VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
-				sprintf_s(popup.line[2], "Depth Perception Side Switched");
-				ShowPopup(popup);
+				stereoView->m_bLeftSideActive = !stereoView->m_bLeftSideActive;
+				ShowAdjusterToast("Depth Perception Side Switched", 1000);
 			}		
 			menuVelocity.x += 4.0f;
 		
@@ -610,9 +589,8 @@ void D3DProxyDevice::HandleControls()
 					ReturnValue vr = m_pVRboost_StartMemoryScan();
 					if (vr == VRBOOST_ERROR)
 					{
-						VireioPopup popup(VPT_VRBOOST_FAILURE, VPS_TOAST, 5000);
-						sprintf_s(popup.line[2], "VRBoost: StartMemoryScan - Failed");
-						ShowPopup(popup);
+						ShowPopup(VPT_VRBOOST_FAILURE, VPS_TOAST, 5000,
+							"VRBoost: StartMemoryScan - Failed");
 					}
 					//If initialising then we have successfully started a new scan
 					else if (vr = VRBOOST_SCAN_INITIALISING)
@@ -647,10 +625,10 @@ void D3DProxyDevice::HandleControls()
 				}
 
 				m_pVRboost_SetNextScanCandidate(increase);
-				VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1000);
-				sprintf_s(popup.line[2], "VRBoost: Select Next Scan Candidate: %i / %i", c+1, candidates);
 				DismissPopup(VPT_NOTIFICATION);
-				ShowPopup(popup);
+				ShowPopup(VPT_NOTIFICATION, VPS_TOAST, 1000,
+					retprintf("VRBoost: Select Next Scan Candidate: %i / %i",
+						c+1, candidates));
 
 				menuVelocity.x += 2.0f;
 			}
@@ -681,18 +659,14 @@ void D3DProxyDevice::HandleControls()
 				//Disable Free Pitch
 				VRBoostValue[VRboostAxis::FreePitch] = 0.0f;
 
-				VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
-				sprintf_s(popup.line[2], "Pitch Free-look Disabled");
-				ShowPopup(popup);
+				ShowAdjusterToast("Pitch Free-look Disabled", 1000);
 			}
 			else
 			{
 				//Enable Free Pitch
 				VRBoostValue[VRboostAxis::FreePitch] = 1.0f;
 
-				VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
-				sprintf_s(popup.line[2], "Pitch Free-look Enabled");
-				ShowPopup(popup);
+				ShowAdjusterToast("Pitch Free-look Enabled", 1000);
 			}
 
 			menuVelocity.x+=2.0f;
@@ -709,9 +683,7 @@ void D3DProxyDevice::HandleControls()
 				VRBoostValue[VRboostAxis::ComfortMode] = 0.0f;
 				m_comfortModeYaw = 0.0f;
 
-				VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
-				sprintf_s(popup.line[2], "Comfort Mode Disabled");
-				ShowPopup(popup);
+				ShowAdjusterToast("Comfort Mode Disabled", 1000);
 			}
 			else
 			{
@@ -719,9 +691,7 @@ void D3DProxyDevice::HandleControls()
 				VRBoostValue[VRboostAxis::ComfortMode] = 1.0f;
 				m_comfortModeYaw = 0.0f;
 
-				VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 3000);
-				sprintf_s(popup.line[2], "Comfort Mode Enabled");
-				ShowPopup(popup);
+				ShowAdjusterToast("Comfort Mode Enabled", 1000);
 			}
 
 			menuVelocity.x+=2.0f;
@@ -737,18 +707,14 @@ void D3DProxyDevice::HandleControls()
 				stereoView->m_blackSmearCorrection = 0.0f;
 				stereoView->PostReset();		
 
-				VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
-				sprintf_s(popup.line[2], "DK2 Black Smear Correction Disabled");
-				ShowPopup(popup);
+				ShowAdjusterToast("DK2 Black Smear Correction Disabled", 1000);
 			}
 			else
 			{
 				stereoView->m_blackSmearCorrection = 0.02f;
 				stereoView->PostReset();		
 
-				VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
-				sprintf_s(popup.line[2], "DK2 Black Smear Correction Enabled");
-				ShowPopup(popup);
+				ShowAdjusterToast("DK2 Black Smear Correction Enabled", 1000);
 			}
 
 			menuVelocity.x+=2.0f;
@@ -761,9 +727,7 @@ void D3DProxyDevice::HandleControls()
 			this->stereoView->IPDOffset = 0.0;
 			this->stereoView->PostReset();		
 
-			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
-			sprintf_s(popup.line[2], "IPD-Offset: %1.3f", this->stereoView->IPDOffset);
-			ShowPopup(popup);
+			ShowAdjusterToast(retprintf("IPD-Offset: %1.3f", this->stereoView->IPDOffset), 500);
 			m_saveConfigTimer = GetTickCount();
 			menuVelocity.x+=2.0f;
 		}
@@ -795,12 +759,9 @@ void D3DProxyDevice::HandleControls()
 		{
 			m_bPosTrackingToggle = !m_bPosTrackingToggle;
 
-			VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1200);
-			if (m_bPosTrackingToggle)
-				strcpy_s(popup.line[2], "HMD Positional Tracking Enabled");
-			else
-				strcpy_s(popup.line[2], "HMD Positional Tracking Disabled");
-			ShowPopup(popup);
+			ShowPopup(VPT_NOTIFICATION, VPS_TOAST, 1200,
+				retprintf("HMD Positional Tracking %s",
+					m_bPosTrackingToggle?"Enabled":"Disabled"));
 
 			if (!m_bPosTrackingToggle)
 				m_spShaderViewAdjustment->UpdatePosition(0.0f, 0.0f, 0.0f);
@@ -814,12 +775,9 @@ void D3DProxyDevice::HandleControls()
 		{
 			tracker->useSDKPosePrediction = !tracker->useSDKPosePrediction;
 
-			VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1200);
-			if (tracker->useSDKPosePrediction)
-				strcpy_s(popup.line[2], "SDK Pose Prediction Enabled");
-			else
-				strcpy_s(popup.line[2], "SDK Pose Prediction Disabled");
-			ShowPopup(popup);
+			ShowPopup(VPT_NOTIFICATION, VPS_TOAST, 1200,
+				retprintf("SDK Pose Prediction %s",
+					tracker->useSDKPosePrediction?"Enabled":"Disabled"));
 
 			menuVelocity.x += 4.0f;
 		}
@@ -830,12 +788,9 @@ void D3DProxyDevice::HandleControls()
 		{
 			stereoView->chromaticAberrationCorrection = !stereoView->chromaticAberrationCorrection;
 
-			VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1200);
-			if (stereoView->chromaticAberrationCorrection)
-				strcpy_s(popup.line[2], "Chromatic Aberration Correction Enabled");
-			else
-				strcpy_s(popup.line[2], "Chromatic Aberration Correction Disabled");
-			ShowPopup(popup);
+			ShowPopup(VPT_NOTIFICATION, VPS_TOAST, 1200,
+				retprintf("Chromatic Aberration Correction %s",
+					stereoView->chromaticAberrationCorrection?"Enabled":"Disabled"));
 
 			menuVelocity.x += 4.0f;
 		}
@@ -879,15 +834,17 @@ void D3DProxyDevice::HandleControls()
 
 					stereoView->PostReset();
 
-					VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1200);
 					DismissPopup(VPT_NOTIFICATION);
+					
+					const char *vrMouseDescription;
 					if (m_showVRMouse == 1)
-						strcpy_s(popup.line[2], "VR Mouse - GUI Scaling");
+						vrMouseDescription = "GUI Scaling";
 					else if (m_showVRMouse == 2)
-						strcpy_s(popup.line[2], "VR Mouse - HUD Scaling");
+						vrMouseDescription = "HUD Scaling";
 					else
-						strcpy_s(popup.line[2], "VR Mouse - Disabled");
-					ShowPopup(popup);
+						vrMouseDescription = "Disabled";
+					ShowPopup(VPT_NOTIFICATION, VPS_TOAST, 1200,
+						retprintf("VR Mouse - %s", vrMouseDescription));
 
 					menuVelocity.x += 4.0f;		
 				}
@@ -918,12 +875,9 @@ void D3DProxyDevice::HandleControls()
 				}
 			}
 
-			VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1200);
-			if (m_bfloatingMenu)
-				strcpy_s(popup.line[2], "Floating Menus Enabled");
-			else
-				strcpy_s(popup.line[2], "Floating Menus Disabled");
-			ShowPopup(popup);
+			ShowPopup(VPT_NOTIFICATION, VPS_TOAST, 1200,
+				retprintf("Floating Menus %s",
+					m_bfloatingMenu?"Enabled":"Disabled"));
 
 			menuVelocity.x += 4.0f;		
 		}
@@ -1025,10 +979,8 @@ void D3DProxyDevice::HandleControls()
 					}
 				}
 
-				VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
-				sprintf_s(popup.line[2], "Y-Offset: %1.3f", this->stereoView->YOffset);
 				m_saveConfigTimer = GetTickCount();
-				ShowPopup(popup);
+				ShowAdjusterToast(retprintf("Y-Offset: %1.3f", this->stereoView->YOffset), 500);
 			}
 			else if(controls.Key_Down(VK_LSHIFT))
  			{			
@@ -1049,10 +1001,8 @@ void D3DProxyDevice::HandleControls()
 					}
  				}
 
-				VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
-				sprintf_s(popup.line[2], "IPD-Offset: %1.3f", this->stereoView->IPDOffset);
+				ShowAdjusterToast(retprintf("IPD-Offset: %1.3f", this->stereoView->IPDOffset), 500);
 				m_saveConfigTimer = GetTickCount();
-				ShowPopup(popup);
  			}
 			//CTRL + ALT + Mouse Wheel - adjust World Scale dynamically
 			else if (controls.Key_Down(VK_MENU))
@@ -1070,10 +1020,8 @@ void D3DProxyDevice::HandleControls()
 				if(_wheel != 0)
 				{
 					m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
-					VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
-					sprintf_s(popup.line[2], "Stereo Separation (World Scale): %1.3f", m_spShaderViewAdjustment->WorldScale());
+					ShowAdjusterToast(retprintf("Stereo Separation (World Scale): %1.3f", m_spShaderViewAdjustment->WorldScale()), 500);
 					m_saveConfigTimer = GetTickCount();
-					ShowPopup(popup);
 				}
 			}
 			//CTRL + SPACE + Mouse Wheel - adjust stereo convergence dynamically
@@ -1092,10 +1040,8 @@ void D3DProxyDevice::HandleControls()
 				if(_wheel != 0)
 				{
 					m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
-					VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
-					sprintf_s(popup.line[2], "Stereo Convergence: %1.3f", m_spShaderViewAdjustment->Convergence());
+					ShowAdjusterToast(retprintf("Stereo Convergence: %1.3f", m_spShaderViewAdjustment->Convergence()), 500);
 					m_saveConfigTimer = GetTickCount();
-					ShowPopup(popup);
 				}
 			}
 			else
@@ -1129,10 +1075,8 @@ void D3DProxyDevice::HandleControls()
 						}
 					}
 
-					VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
-					sprintf_s(popup.line[2], "Zoom Scale: %1.3f", this->stereoView->ZoomOutScale);
 					m_saveConfigTimer = GetTickCount();
-					ShowPopup(popup);
+					ShowAdjusterToast(retprintf("Zoom Scale: %1.3f", this->stereoView->ZoomOutScale), 500);
 				}
 			}
 		}
@@ -1145,20 +1089,16 @@ void D3DProxyDevice::HandleControls()
 				this->stereoView->ZoomOutScale = 1.00f;
 				this->stereoView->PostReset();	
 
-				VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
-				sprintf_s(popup.line[2], "Zoom Scale: %1.3f", this->stereoView->ZoomOutScale);
 				m_saveConfigTimer = GetTickCount();
-				ShowPopup(popup);
+				ShowAdjusterToast(retprintf("Zoom Scale: %1.3f", this->stereoView->ZoomOutScale), 500);
 			}
 			else if(controls.Key_Down(VK_SUBTRACT))
 			{
 				this->stereoView->ZoomOutScale = 0.50f;
 				this->stereoView->PostReset();	
 
-				VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
-				sprintf_s(popup.line[2], "Zoom Scale: %1.3f", this->stereoView->ZoomOutScale);
 				m_saveConfigTimer = GetTickCount();
-				ShowPopup(popup);
+				ShowAdjusterToast(retprintf("Zoom Scale: %1.3f", this->stereoView->ZoomOutScale), 500);
 			}		
 		}	
 

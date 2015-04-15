@@ -45,6 +45,53 @@ void D3DProxyDevice::ShowPopup(VireioPopup &popup)
 	activePopup = popup;
 }
 
+/**
+* Convenience method for creating and showing a popup, with a possibly multiline
+* string (lines separated by newlines).
+* Single-line messages are on line 2 (the third line) for aesthetic/centering
+* reasons. To make a single-line message go all the way to the top, put a blank
+* line after it.
+**/
+void D3DProxyDevice::ShowPopup(VireioPopupType type, VireioPopupSeverity sev, long duration, std::string message)
+{
+	VireioPopup popup(type, sev, duration);
+	int newlinesInMessage = 0;
+	for(size_t ii=0; ii<message.size(); ii++) {
+		if(message[ii] == '\n')
+			newlinesInMessage++;
+	}
+	int line = 0;
+	size_t messageStartPos = 0;
+	
+	// Single-line messages are on line 2 (the third line) for aesthetic/centering reasons
+	if(newlinesInMessage==0)
+		line = 2;
+	
+	for(size_t ii=0; ii<message.size(); ii++)
+	{
+		if(message[ii] == '\n') {
+			strcpy_s(popup.line[line++], message.substr(messageStartPos, ii-messageStartPos).c_str());
+			messageStartPos = ii+1;
+		}
+	}
+	if(messageStartPos < message.size()) {
+		strcpy_s(popup.line[line++], message.substr(messageStartPos, message.size()-messageStartPos).c_str());
+	}
+	
+	ShowPopup(popup);
+}
+
+void D3DProxyDevice::ShowPopup(VireioPopupType type, VireioPopupSeverity sev, std::string message)
+{
+	ShowPopup(type, sev, -1, message);
+}
+
+
+void D3DProxyDevice::ShowAdjusterToast(std::string message, int duration)
+{
+	ShowPopup(VPT_ADJUSTER, VPS_TOAST, duration, message);
+}
+
 //DIsmiss popup if the popup type matches current displayed popup
 void D3DProxyDevice::DismissPopup(VireioPopupType popupType)
 {
