@@ -79,6 +79,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define RECT_WIDTH(x) (x.right - x.left)
 #define RECT_HEIGHT(x) (x.bottom - x.top)
 
+#define COLOR_WHITE    D3DCOLOR_ARGB(255, 255, 255, 255)
+#define COLOR_RED      D3DCOLOR_ARGB(255, 255, 0, 0)
+#define COLOR_GREEN    D3DCOLOR_ARGB(255, 0, 255, 0)
+#define COLOR_BLUE     D3DCOLOR_ARGB(255, 0, 0, 255)
+#define COLOR_LIGHTRED D3DCOLOR_ARGB(255, 255, 128, 128)
+
+#define COLOR_MENU_TEXT     COLOR_WHITE
+#define COLOR_TEXT_SHADOW   D3DCOLOR_ARGB(255, 64, 64, 64)
+#define COLOR_MENU_BORDER   D3DCOLOR_ARGB(255, 255, 128, 128)
+#define COLOR_MENU_DISABLED D3DCOLOR_ARGB(255, 255, 64, 64)
+#define COLOR_MENU_ENABLED  D3DCOLOR_ARGB(255, 64, 255, 64)
+#define COLOR_QUICK_SETTING D3DCOLOR_ARGB(255, 128, 196, 128)
+#define COLOR_INFO_POPUP    D3DCOLOR_ARGB(255, 128, 255, 128)
+#define COLOR_HASH_LINE     D3DCOLOR_ARGB(255,255,255,0)
+
 // Define SHOW_CALLS to have each method output a debug string when it is invoked
 //#define SHOW_CALLS
 class StereoView;

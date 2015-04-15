@@ -3575,7 +3575,7 @@ void D3DProxyDevice::DrawTextShadowed(ID3DXFont* font, LPD3DXSPRITE sprite, LPCS
 		return;
 
 	lprc->left+=2; lprc->right+=2; lprc->top+=2; lprc->bottom+=2;
-	font->DrawText(sprite, lpchText, -1, lprc, format, D3DCOLOR_ARGB(255, 64, 64, 64));
+	font->DrawText(sprite, lpchText, -1, lprc, format, COLOR_TEXT_SHADOW);
 	lprc->left-=2; lprc->right-=2; lprc->top-=2; lprc->bottom-=2;
 	font->DrawText(sprite, lpchText, -1, lprc, format, color);
 }

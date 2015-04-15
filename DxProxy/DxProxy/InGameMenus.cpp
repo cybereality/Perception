@@ -362,8 +362,8 @@ void D3DProxyDevice::VPMENU_MainMenu()
 		// draw border - total width due to shift correction
 		D3DRECT rect;
 		rect.x1 = (int)0; rect.x2 = (int)viewportWidth; rect.y1 = (int)borderTopHeight; rect.y2 = (int)(borderTopHeight+viewportHeight*0.04f);
-		ClearEmptyRect(vireio::RenderPosition::Left, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
-		ClearEmptyRect(vireio::RenderPosition::Right, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
+		ClearEmptyRect(vireio::RenderPosition::Left, rect, COLOR_MENU_BORDER, 2);
+		ClearEmptyRect(vireio::RenderPosition::Right, rect, COLOR_MENU_BORDER, 2);
 
 		hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
 
@@ -373,55 +373,55 @@ void D3DProxyDevice::VPMENU_MainMenu()
 
 		menuHelperRect.left = 650;
 		menuHelperRect.top = 300;
-		DrawTextShadowed(hudFont, hudMainMenu, "Vireio Perception ("APP_VERSION") Settings\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "Vireio Perception ("APP_VERSION") Settings\n", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		rect.x1 = 0; rect.x2 = viewportWidth; rect.y1 = (int)(335*fScaleY); rect.y2 = (int)(340*fScaleY);
-		Clear(1, &rect, D3DCLEAR_TARGET, D3DCOLOR_ARGB(255,255,128,128), 0, 0);
+		Clear(1, &rect, D3DCLEAR_TARGET, COLOR_MENU_BORDER, 0, 0);
 
 		menuHelperRect.top += 50;  menuHelperRect.left += 150;
 		if (config.game_type > 10000)
 		{
-			DrawTextShadowed(hudFont, hudMainMenu, "Activate Vireio Shader Analyzer\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			DrawTextShadowed(hudFont, hudMainMenu, "Activate Vireio Shader Analyzer\n", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 			menuHelperRect.top += MENU_ITEM_SEPARATION;
 		}
-		DrawTextShadowed(hudFont, hudMainMenu, "World-Scale Calibration\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "World-Scale Calibration\n", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Convergence Adjustment\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "Convergence Adjustment\n", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "HUD Calibration\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "HUD Calibration\n", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "GUI Calibration\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "GUI Calibration\n", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION; float hudQSHeight = (float)menuHelperRect.top * fScaleY;
-		DrawTextShadowed(hudFont, hudMainMenu, "HUD Quick Setting : \n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "HUD Quick Setting : \n", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION; float guiQSHeight = (float)menuHelperRect.top * fScaleY;
-		DrawTextShadowed(hudFont, hudMainMenu, "GUI Quick Setting : \n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "GUI Quick Setting : \n", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Overall Settings\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "Overall Settings\n", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "VRBoost Values\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "VRBoost Values\n", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Position Tracking Configuration\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "Position Tracking Configuration\n", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Comfort Mode Configuration\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "Comfort Mode Configuration\n", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Restore Configuration\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "Restore Configuration\n", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game\n", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		
 		// draw HUD quick setting rectangles
 		rect.x1 = (int)(viewportWidth*0.57f); rect.x2 = (int)(viewportWidth*0.61f); rect.y1 = (int)hudQSHeight; rect.y2 = (int)(hudQSHeight+viewportHeight*0.027f);
-		DrawSelection(vireio::RenderPosition::Left, rect, D3DCOLOR_ARGB(255, 128, 196, 128), (int)hud3DDepthMode, (int)HUD_3D_Depth_Modes::HUD_ENUM_RANGE);
-		DrawSelection(vireio::RenderPosition::Right, rect, D3DCOLOR_ARGB(255, 128, 196, 128), (int)hud3DDepthMode, (int)HUD_3D_Depth_Modes::HUD_ENUM_RANGE);
+		DrawSelection(vireio::RenderPosition::Left, rect, COLOR_QUICK_SETTING, (int)hud3DDepthMode, (int)HUD_3D_Depth_Modes::HUD_ENUM_RANGE);
+		DrawSelection(vireio::RenderPosition::Right, rect, COLOR_QUICK_SETTING, (int)hud3DDepthMode, (int)HUD_3D_Depth_Modes::HUD_ENUM_RANGE);
 
 		// draw GUI quick setting rectangles
 		rect.x1 = (int)(viewportWidth*0.57f); rect.x2 = (int)(viewportWidth*0.61f); rect.y1 = (int)guiQSHeight; rect.y2 = (int)(guiQSHeight+viewportHeight*0.027f);
-		DrawSelection(vireio::RenderPosition::Left, rect, D3DCOLOR_ARGB(255, 128, 196, 128), (int)gui3DDepthMode, (int)GUI_3D_Depth_Modes::GUI_ENUM_RANGE);
-		DrawSelection(vireio::RenderPosition::Right, rect, D3DCOLOR_ARGB(255, 128, 196, 128), (int)gui3DDepthMode, (int)GUI_3D_Depth_Modes::GUI_ENUM_RANGE);
+		DrawSelection(vireio::RenderPosition::Left, rect, COLOR_QUICK_SETTING, (int)gui3DDepthMode, (int)GUI_3D_Depth_Modes::GUI_ENUM_RANGE);
+		DrawSelection(vireio::RenderPosition::Right, rect, COLOR_QUICK_SETTING, (int)gui3DDepthMode, (int)GUI_3D_Depth_Modes::GUI_ENUM_RANGE);
 
 		menuHelperRect.left = 0;
 		menuHelperRect.top = 0;
 
 		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
-		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));
+		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, COLOR_WHITE);
 		hudMainMenu->End();
 	}
 }
@@ -553,30 +553,30 @@ void D3DProxyDevice::VPMENU_WorldScale()
 
 		RECT rec2 = {(int)(width*0.27f), (int)(height*0.8f),width,height};
 		sprintf_s(vcString, 1024, "Vireio Perception ("APP_VERSION") Settings - World Scale\n");
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec2, 0, COLOR_MENU_TEXT);
 
 		// draw right line (using BaseDirect3DDevice9, since otherwise we have two lines)
 		D3DRECT rec3 = {(int)(viewportWidth/2 + (-BlueLineCenterAsPercentage * viewportWidth * 0.25f))-1, 0,
 			(int)(viewportWidth/2 + (-BlueLineCenterAsPercentage * viewportWidth * 0.25f))+1,viewportHeight };
 		if (!config.swap_eyes)
-			ClearRect(vireio::RenderPosition::Right, rec3, D3DCOLOR_ARGB(255,0,0,255));
+			ClearRect(vireio::RenderPosition::Right, rec3, COLOR_BLUE);
 		else
-			ClearRect(vireio::RenderPosition::Left, rec3, D3DCOLOR_ARGB(255,0,0,255));
+			ClearRect(vireio::RenderPosition::Left, rec3, COLOR_BLUE);
 
 		// draw left line (using BaseDirect3DDevice9, since otherwise we have two lines)
 		D3DRECT rec4 = {(int)(viewportWidth/2 + (BlueLineCenterAsPercentage * viewportWidth * 0.25f))-1, 0,
 			(int)(viewportWidth/2 + (BlueLineCenterAsPercentage * viewportWidth * 0.25f))+1,viewportHeight };
 		if (!config.swap_eyes)
-			ClearRect(vireio::RenderPosition::Left, rec4, D3DCOLOR_ARGB(255,255,0,0));
+			ClearRect(vireio::RenderPosition::Left, rec4, COLOR_RED);
 		else
-			ClearRect(vireio::RenderPosition::Right, rec4, D3DCOLOR_ARGB(255,255,0,0));
+			ClearRect(vireio::RenderPosition::Right, rec4, COLOR_RED);
 
 		// horizontal line
 		D3DRECT rec5 = {beg, (viewportHeight /2)-1, end, (viewportHeight /2)+1 };
 		if (!config.swap_eyes)
-			ClearRect(vireio::RenderPosition::Left, rec5, D3DCOLOR_ARGB(255,0,0,255));
+			ClearRect(vireio::RenderPosition::Left, rec5, COLOR_BLUE);
 		else
-			ClearRect(vireio::RenderPosition::Right, rec5, D3DCOLOR_ARGB(255,0,0,255));
+			ClearRect(vireio::RenderPosition::Right, rec5, COLOR_BLUE);
 
 		// hash lines
 		int hashNum = 10;
@@ -584,18 +584,18 @@ void D3DProxyDevice::VPMENU_WorldScale()
 		for(int i=0; i<=hashNum; i++) {
 			D3DRECT rec5 = {beg+(int)(i*hashSpace)-1, hashTop, beg+(int)(i*hashSpace)+1, hashBottom};
 			if (!config.swap_eyes)
-				ClearRect(vireio::RenderPosition::Left, rec5, D3DCOLOR_ARGB(255,255,255,0));
+				ClearRect(vireio::RenderPosition::Left, rec5, COLOR_HASH_LINE);
 			else
-				ClearRect(vireio::RenderPosition::Right, rec5, D3DCOLOR_ARGB(255,255,255,0));
+				ClearRect(vireio::RenderPosition::Right, rec5, COLOR_HASH_LINE);
 		}
 
 		rec2.left = (int)(width*0.35f);
 		rec2.top = (int)(height*0.83f);
 		sprintf_s(vcString, 1024, "World-Scale Calibration");
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec2, 0, COLOR_MENU_TEXT);
 
 		RECT rec10 = {(int)(width*0.40f), (int)(height*0.57f),width,height};
-		DrawTextShadowed(hudFont, hudMainMenu, "<- calibrate using Arrow Keys ->", -1, &rec10, 0, D3DCOLOR_ARGB(255,255,255,255));
+		DrawTextShadowed(hudFont, hudMainMenu, "<- calibrate using Arrow Keys ->", -1, &rec10, 0, COLOR_MENU_TEXT);
 
 		float gameUnit = m_spShaderViewAdjustment->WorldScale();
 
@@ -614,7 +614,7 @@ void D3DProxyDevice::VPMENU_WorldScale()
 
 			rec10.top = (int)(height*0.77f); rec10.left = (int)(width*0.45f);
 			sprintf_s(vcString,"Actual Units %u/%u", gameXScaleUnitIndex, m_gameXScaleUnits.size());
-			DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, D3DCOLOR_ARGB(255,255,255,255));
+			DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, COLOR_MENU_TEXT);
 		}
 
 		//Column 1:
@@ -630,41 +630,41 @@ void D3DProxyDevice::VPMENU_WorldScale()
 		rec10.top = (int)(height*0.6f); rec10.left = (int)(width*0.28f);
 		float meters = 1 / gameUnit;
 		sprintf_s(vcString,"1 Game Unit = %g Meters", meters);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, D3DCOLOR_ARGB(255,255,255,255));
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, COLOR_MENU_TEXT);
 		rec10.top+=35;
 		float centimeters = meters * 100.0f;
 		sprintf_s(vcString,"1 Game Unit = %g CM", centimeters);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, D3DCOLOR_ARGB(255,255,255,255));
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, COLOR_MENU_TEXT);
 		rec10.top+=35;
 		float feet = meters * 3.2808399f;
 		sprintf_s(vcString,"1 Game Unit = %g Feet", feet);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, D3DCOLOR_ARGB(255,255,255,255));
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, COLOR_MENU_TEXT);
 		rec10.top+=35;
 		float inches = feet * 12.0f;
 		sprintf_s(vcString,"1 Game Unit = %g In.", inches);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, D3DCOLOR_ARGB(255,255,255,255));
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, COLOR_MENU_TEXT);
 
 		RECT rec11 = {(int)(width*0.52f), (int)(height*0.6f),width,height};
 		sprintf_s(vcString,"1 Meter      = %g Game Units", gameUnit);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec11, 0, D3DCOLOR_ARGB(255,255,255,255));
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec11, 0, COLOR_MENU_TEXT);
 		rec11.top+=35;
 		float gameUnitsToCentimeter =  gameUnit / 100.0f;
 		sprintf_s(vcString,"1 CM         = %g Game Units", gameUnitsToCentimeter);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec11, 0, D3DCOLOR_ARGB(255,255,255,255));
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec11, 0, COLOR_MENU_TEXT);
 		rec11.top+=35;
 		float gameUnitsToFoot = gameUnit / 3.2808399f;
 		sprintf_s(vcString,"1 Foot       = %g Game Units", gameUnitsToFoot);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec11, 0, D3DCOLOR_ARGB(255,255,255,255));
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec11, 0, COLOR_MENU_TEXT);
 		rec11.top+=35;
 		float gameUnitsToInches = gameUnit / 39.3700787f;
 		sprintf_s(vcString,"1 Inch       = %g Game Units", gameUnitsToInches);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec11, 0, D3DCOLOR_ARGB(255,255,255,255));
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec11, 0, COLOR_MENU_TEXT);
 
 		menuHelperRect.left = 0;
 		menuHelperRect.top = 0;
 
 		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
-		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));  
+		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, COLOR_MENU_TEXT);  
 		hudMainMenu->End();
 
 		// draw description text box
@@ -686,14 +686,14 @@ void D3DProxyDevice::VPMENU_WorldScale()
 			"while changing the World Scale.  Adjust \n"
 			"further for comfort and game unit accuracy.\n"
 			);
-		DrawTextShadowed(hudFont, hudTextBox, vcString, -1, &rec8, 0, D3DCOLOR_ARGB(255,255,255,255));
-		hudTextBox->Draw(NULL, &rec8, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudTextBox, vcString, -1, &rec8, 0, COLOR_MENU_TEXT);
+		hudTextBox->Draw(NULL, &rec8, NULL, &vPos, COLOR_WHITE);
 
 		// draw description box scroll bar
 		float scroll = (429.0f-borderTopHeight-64.0f)/429.0f;
 		D3DRECT rec9 = {(int)(1300*fScaleX), 0, (int)(1320*fScaleX), (int)(400*fScaleY)};
-		DrawScrollbar(vireio::RenderPosition::Left, rec9, D3DCOLOR_ARGB(255, 128, 196, 128), scroll, (int)(20*fScaleY));
-		DrawScrollbar(vireio::RenderPosition::Right, rec9, D3DCOLOR_ARGB(255, 128, 196, 128), scroll, (int)(20*fScaleY));
+		DrawScrollbar(vireio::RenderPosition::Left, rec9, COLOR_QUICK_SETTING, scroll, (int)(20*fScaleY));
+		DrawScrollbar(vireio::RenderPosition::Right, rec9, COLOR_QUICK_SETTING, scroll, (int)(20*fScaleY));
 
 		hudTextBox->End();
 	}
@@ -798,30 +798,30 @@ void D3DProxyDevice::VPMENU_Convergence()
 
 		RECT rec2 = {(int)(width*0.27f), (int)(height*0.8f),width,height};
 		sprintf_s(vcString, 1024, "Vireio Perception ("APP_VERSION") Settings - Convergence\n");
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec2, 0, COLOR_MENU_TEXT);
 
 		// draw right line (using BaseDirect3DDevice9, since otherwise we have two lines)
 		D3DRECT rec3 = {(int)(viewportWidth/2 + (-BlueLineCenterAsPercentage * viewportWidth * 0.25f))-1, 0,
 			(int)(viewportWidth/2 + (-BlueLineCenterAsPercentage * viewportWidth * 0.25f))+1,viewportHeight };
 		if (!config.swap_eyes)
-			ClearRect(vireio::RenderPosition::Right, rec3, D3DCOLOR_ARGB(255,0,0,255));
+			ClearRect(vireio::RenderPosition::Right, rec3, COLOR_BLUE);
 		else
-			ClearRect(vireio::RenderPosition::Left, rec3, D3DCOLOR_ARGB(255,0,0,255));
+			ClearRect(vireio::RenderPosition::Left, rec3, COLOR_BLUE);
 
 		// draw left line (using BaseDirect3DDevice9, since otherwise we have two lines)
 		D3DRECT rec4 = {(int)(viewportWidth/2 + (BlueLineCenterAsPercentage * viewportWidth * 0.25f))-1, 0,
 			(int)(viewportWidth/2 + (BlueLineCenterAsPercentage * viewportWidth * 0.25f))+1,viewportHeight };
 		if (!config.swap_eyes)
-			ClearRect(vireio::RenderPosition::Left, rec4, D3DCOLOR_ARGB(255,0,0,255));
+			ClearRect(vireio::RenderPosition::Left, rec4, COLOR_BLUE);
 		else
-			ClearRect(vireio::RenderPosition::Right, rec4, D3DCOLOR_ARGB(255,0,0,255));
+			ClearRect(vireio::RenderPosition::Right, rec4, COLOR_BLUE);
 
 		// horizontal line
 		D3DRECT rec5 = {beg, (viewportHeight /2)-1, end, (viewportHeight /2)+1 };
 		if (!config.swap_eyes)
-			ClearRect(vireio::RenderPosition::Left, rec5, D3DCOLOR_ARGB(255,0,0,255));
+			ClearRect(vireio::RenderPosition::Left, rec5, COLOR_BLUE);
 		else
-			ClearRect(vireio::RenderPosition::Right, rec5, D3DCOLOR_ARGB(255,0,0,255));
+			ClearRect(vireio::RenderPosition::Right, rec5, COLOR_BLUE);
 
 		// hash lines
 		int hashNum = 10;
@@ -829,42 +829,42 @@ void D3DProxyDevice::VPMENU_Convergence()
 		for(int i=0; i<=hashNum; i++) {
 			D3DRECT rec5 = {beg+(int)(i*hashSpace)-1, hashTop, beg+(int)(i*hashSpace)+1, hashBottom};
 			if (!config.swap_eyes)
-				ClearRect(vireio::RenderPosition::Left, rec5, D3DCOLOR_ARGB(255,255,255,0));
+				ClearRect(vireio::RenderPosition::Left, rec5, COLOR_HASH_LINE);
 			else
-				ClearRect(vireio::RenderPosition::Right, rec5, D3DCOLOR_ARGB(255,255,255,0));
+				ClearRect(vireio::RenderPosition::Right, rec5, COLOR_HASH_LINE);
 		}
 
 		rec2.left = (int)(width*0.35f);
 		rec2.top = (int)(height*0.83f);
 		sprintf_s(vcString, 1024, "Convergence Adjustment");
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec2, 0, COLOR_MENU_TEXT);
 
 		// output convergence
 		RECT rec10 = {(int)(width*0.40f), (int)(height*0.57f),width,height};
-		DrawTextShadowed(hudFont, hudMainMenu, "<- calibrate using Arrow Keys ->", -1, &rec10, 0, D3DCOLOR_ARGB(255,255,255,255));
+		DrawTextShadowed(hudFont, hudMainMenu, "<- calibrate using Arrow Keys ->", -1, &rec10, 0, COLOR_MENU_TEXT);
 		// Convergence Screen = X Meters = X Feet
 		rec10.top = (int)(height*0.6f); rec10.left = (int)(width*0.385f);
 		float meters = m_spShaderViewAdjustment->Convergence();
 		sprintf_s(vcString,"Convergence Screen = %g Meters", meters);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, D3DCOLOR_ARGB(255,255,255,255));
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, COLOR_MENU_TEXT);
 		rec10.top+=35;
 		float centimeters = meters * 100.0f;
 		sprintf_s(vcString,"Convergence Screen = %g CM", centimeters);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, D3DCOLOR_ARGB(255,255,255,255));
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, COLOR_MENU_TEXT);
 		rec10.top+=35;
 		float feet = meters * 3.2808399f;
 		sprintf_s(vcString,"Convergence Screen = %g Feet", feet);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, D3DCOLOR_ARGB(255,255,255,255));
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, COLOR_MENU_TEXT);
 		rec10.top+=35;
 		float inches = feet * 12.0f;
 		sprintf_s(vcString,"Convergence Screen = %g Inches", inches);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, D3DCOLOR_ARGB(255,255,255,255));
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, COLOR_MENU_TEXT);
 
 		menuHelperRect.left = 0;
 		menuHelperRect.top = 0;
 
 		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
-		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));  
+		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, COLOR_WHITE);  
 		hudMainMenu->End();
 
 		// draw description text box
@@ -883,14 +883,14 @@ void D3DProxyDevice::VPMENU_Convergence()
 			"Good examples include a wall corner, a table\n"
 			"corner, a square post, etc.\n"
 			);
-		DrawTextShadowed(hudFont, hudTextBox, vcString, -1, &rec8, 0, D3DCOLOR_ARGB(255,255,255,255));
-		hudTextBox->Draw(NULL, &rec8, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudTextBox, vcString, -1, &rec8, 0, COLOR_MENU_TEXT);
+		hudTextBox->Draw(NULL, &rec8, NULL, &vPos, COLOR_WHITE);
 
 		// draw description box scroll bar
 		float scroll = (429.0f-borderTopHeight-64.0f)/429.0f;
 		D3DRECT rec9 = {(int)(1300*fScaleX), 0, (int)(1320*fScaleX), (int)(400*fScaleY)};
-		DrawScrollbar(vireio::RenderPosition::Left, rec9, D3DCOLOR_ARGB(255, 128, 196, 128), scroll, (int)(20*fScaleY));
-		DrawScrollbar(vireio::RenderPosition::Right, rec9, D3DCOLOR_ARGB(255, 128, 196, 128), scroll, (int)(20*fScaleY));
+		DrawScrollbar(vireio::RenderPosition::Left, rec9, COLOR_QUICK_SETTING, scroll, (int)(20*fScaleY));
+		DrawScrollbar(vireio::RenderPosition::Right, rec9, COLOR_QUICK_SETTING, scroll, (int)(20*fScaleY));
 
 		hudTextBox->End();
 	}
@@ -1037,8 +1037,8 @@ void D3DProxyDevice::VPMENU_HUD()
 		// draw border - total width due to shift correction
 		D3DRECT rect;
 		rect.x1 = (int)0; rect.x2 = (int)viewportWidth; rect.y1 = (int)borderTopHeight; rect.y2 = (int)(borderTopHeight+viewportHeight*0.04f);
-		ClearEmptyRect(vireio::RenderPosition::Left, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
-		ClearEmptyRect(vireio::RenderPosition::Right, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
+		ClearEmptyRect(vireio::RenderPosition::Left, rect, COLOR_MENU_BORDER, 2);
+		ClearEmptyRect(vireio::RenderPosition::Right, rect, COLOR_MENU_BORDER, 2);
 
 		hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
 
@@ -1048,24 +1048,24 @@ void D3DProxyDevice::VPMENU_HUD()
 
 		menuHelperRect.left = 650;
 		menuHelperRect.top = 300;
-		DrawTextShadowed(hudFont, hudMainMenu, "Vireio Perception ("APP_VERSION") Settings - HUD\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "Vireio Perception ("APP_VERSION") Settings - HUD\n", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		rect.x1 = 0; rect.x2 = viewportWidth; rect.y1 = (int)(335*fScaleY); rect.y2 = (int)(340*fScaleY);
-		Clear(1, &rect, D3DCLEAR_TARGET, D3DCOLOR_ARGB(255,255,128,128), 0, 0);
+		Clear(1, &rect, D3DCLEAR_TARGET, COLOR_MENU_BORDER, 0, 0);
 
 		menuHelperRect.top += 50;  menuHelperRect.left += 150; float hudQSHeight = (float)menuHelperRect.top * fScaleY;
 		switch (hud3DDepthMode)
 		{
 		case D3DProxyDevice::HUD_DEFAULT:
-			DrawTextShadowed(hudFont, hudMainMenu, "HUD : Default", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			DrawTextShadowed(hudFont, hudMainMenu, "HUD : Default", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 			break;
 		case D3DProxyDevice::HUD_SMALL:
-			DrawTextShadowed(hudFont, hudMainMenu, "HUD : Small", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			DrawTextShadowed(hudFont, hudMainMenu, "HUD : Small", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 			break;
 		case D3DProxyDevice::HUD_LARGE:
-			DrawTextShadowed(hudFont, hudMainMenu, "HUD : Large", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			DrawTextShadowed(hudFont, hudMainMenu, "HUD : Large", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 			break;
 		case D3DProxyDevice::HUD_FULL:
-			DrawTextShadowed(hudFont, hudMainMenu, "HUD : Full", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			DrawTextShadowed(hudFont, hudMainMenu, "HUD : Full", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 			break;
 		default:
 			break;
@@ -1073,60 +1073,60 @@ void D3DProxyDevice::VPMENU_HUD()
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		char vcString[128];
 		sprintf_s(vcString,"HUD Distance : %g", RoundVireioValue(hudDistancePresets[(int)hud3DDepthMode]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		sprintf_s(vcString,"HUD's 3D Depth : %g", RoundVireioValue(hud3DDepthPresets[(int)hud3DDepthMode]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		sprintf_s(vcString,"Hotkey >Switch< : ");
 		std::string stdString = std::string(vcString);
 		stdString.append(controls.GetKeyName(hudHotkeys[0]));
 		if ((hotkeyCatch) && (entryID==3))
 			stdString = "Press the desired key.";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		sprintf_s(vcString,"Hotkey >Default< : ");
 		stdString = std::string(vcString);
 		stdString.append(controls.GetKeyName(hudHotkeys[1]));
 		if ((hotkeyCatch) && (entryID==4))
 			stdString = "Press the desired key.";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		sprintf_s(vcString,"Hotkey >Small< : ");
 		stdString = std::string(vcString);
 		stdString.append(controls.GetKeyName(hudHotkeys[2]));
 		if ((hotkeyCatch) && (entryID==5))
 			stdString = "Press the desired key.";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		sprintf_s(vcString,"Hotkey >Large< : ");
 		stdString = std::string(vcString);
 		stdString.append(controls.GetKeyName(hudHotkeys[3]));
 		if ((hotkeyCatch) && (entryID==6))
 			stdString = "Press the desired key.";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		sprintf_s(vcString,"Hotkey >Full< : ");
 		stdString = std::string(vcString);
 		stdString.append(controls.GetKeyName(hudHotkeys[4]));
 		if ((hotkeyCatch) && (entryID==7))
 			stdString = "Press the desired key.";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Main Menu", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "Back to Main Menu", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 
 		// draw HUD quick setting rectangles
 		rect.x1 = (int)(viewportWidth*0.52f); rect.x2 = (int)(viewportWidth*0.56f); rect.y1 = (int)hudQSHeight; rect.y2 = (int)(hudQSHeight+viewportHeight*0.027f);
-		DrawSelection(vireio::RenderPosition::Left, rect, D3DCOLOR_ARGB(255, 128, 196, 128), (int)hud3DDepthMode, (int)HUD_3D_Depth_Modes::HUD_ENUM_RANGE);
-		DrawSelection(vireio::RenderPosition::Right, rect, D3DCOLOR_ARGB(255, 128, 196, 128), (int)hud3DDepthMode, (int)HUD_3D_Depth_Modes::HUD_ENUM_RANGE);
+		DrawSelection(vireio::RenderPosition::Left, rect, COLOR_QUICK_SETTING, (int)hud3DDepthMode, (int)HUD_3D_Depth_Modes::HUD_ENUM_RANGE);
+		DrawSelection(vireio::RenderPosition::Right, rect, COLOR_QUICK_SETTING, (int)hud3DDepthMode, (int)HUD_3D_Depth_Modes::HUD_ENUM_RANGE);
 
 		menuHelperRect.left = 0;
 		menuHelperRect.top = 0;
 
 		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
-		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));
+		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, COLOR_MENU_TEXT);
 		hudMainMenu->End();
 	}
 }
@@ -1271,8 +1271,8 @@ void D3DProxyDevice::VPMENU_GUI()
 		// draw border - total width due to shift correction
 		D3DRECT rect;
 		rect.x1 = (int)0; rect.x2 = (int)viewportWidth; rect.y1 = (int)borderTopHeight; rect.y2 = (int)(borderTopHeight+viewportHeight*0.04f);
-		ClearEmptyRect(vireio::RenderPosition::Left, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
-		ClearEmptyRect(vireio::RenderPosition::Right, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
+		ClearEmptyRect(vireio::RenderPosition::Left, rect, COLOR_MENU_BORDER, 2);
+		ClearEmptyRect(vireio::RenderPosition::Right, rect, COLOR_MENU_BORDER, 2);
 
 		hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
 
@@ -1282,24 +1282,24 @@ void D3DProxyDevice::VPMENU_GUI()
 
 		menuHelperRect.left = 650;
 		menuHelperRect.top = 300;
-		DrawTextShadowed(hudFont, hudMainMenu, "Vireio Perception ("APP_VERSION") Settings - GUI\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "Vireio Perception ("APP_VERSION") Settings - GUI\n", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		rect.x1 = 0; rect.x2 = viewportWidth; rect.y1 = (int)(335*fScaleY); rect.y2 = (int)(340*fScaleY);
-		Clear(1, &rect, D3DCLEAR_TARGET, D3DCOLOR_ARGB(255,255,128,128), 0, 0);
+		Clear(1, &rect, D3DCLEAR_TARGET, COLOR_MENU_BORDER, 0, 0);
 
 		menuHelperRect.top += 50;  menuHelperRect.left +=150; float guiQSHeight = (float)menuHelperRect.top * fScaleY;
 		switch (gui3DDepthMode)
 		{
 		case D3DProxyDevice::GUI_DEFAULT:
-			DrawTextShadowed(hudFont, hudMainMenu, "GUI : Default", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			DrawTextShadowed(hudFont, hudMainMenu, "GUI : Default", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 			break;
 		case D3DProxyDevice::GUI_SMALL:
-			DrawTextShadowed(hudFont, hudMainMenu, "GUI : Small", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			DrawTextShadowed(hudFont, hudMainMenu, "GUI : Small", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 			break;
 		case D3DProxyDevice::GUI_LARGE:
-			DrawTextShadowed(hudFont, hudMainMenu, "GUI : Large", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			DrawTextShadowed(hudFont, hudMainMenu, "GUI : Large", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 			break;
 		case D3DProxyDevice::GUI_FULL:
-			DrawTextShadowed(hudFont, hudMainMenu, "GUI : Full", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			DrawTextShadowed(hudFont, hudMainMenu, "GUI : Full", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 			break;
 		default:
 			break;
@@ -1307,60 +1307,60 @@ void D3DProxyDevice::VPMENU_GUI()
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		char vcString[128];
 		sprintf_s(vcString,"GUI Size : %g", RoundVireioValue(guiSquishPresets[(int)gui3DDepthMode]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		sprintf_s(vcString,"GUI's 3D Depth : %g", RoundVireioValue(gui3DDepthPresets[(int)gui3DDepthMode]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		sprintf_s(vcString,"Hotkey >Switch< : ");
 		std::string stdString = std::string(vcString);
 		stdString.append(controls.GetKeyName(guiHotkeys[0]));
 		if ((hotkeyCatch) && (entryID==3))
 			stdString = "Press the desired key.";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		sprintf_s(vcString,"Hotkey >Default< : ");
 		stdString = std::string(vcString);
 		stdString.append(controls.GetKeyName(guiHotkeys[1]));
 		if ((hotkeyCatch) && (entryID==4))
 			stdString = "Press the desired key.";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		sprintf_s(vcString,"Hotkey >Small< : ");
 		stdString = std::string(vcString);
 		stdString.append(controls.GetKeyName(guiHotkeys[2]));
 		if ((hotkeyCatch) && (entryID==5))
 			stdString = "Press the desired key.";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		sprintf_s(vcString,"Hotkey >Large< : ");
 		stdString = std::string(vcString);
 		stdString.append(controls.GetKeyName(guiHotkeys[3]));
 		if ((hotkeyCatch) && (entryID==6))
 			stdString = "Press the desired key.";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		sprintf_s(vcString,"Hotkey >Full< : ");
 		stdString = std::string(vcString);
 		stdString.append(controls.GetKeyName(guiHotkeys[4]));
 		if ((hotkeyCatch) && (entryID==7))
 			stdString = "Press the desired key.";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Main Menu", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "Back to Main Menu", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 
 		// draw GUI quick setting rectangles
 		rect.x1 = (int)(viewportWidth*0.52f); rect.x2 = (int)(viewportWidth*0.56f); rect.y1 = (int)guiQSHeight; rect.y2 = (int)(guiQSHeight+viewportHeight*0.027f);
-		DrawSelection(vireio::RenderPosition::Left, rect, D3DCOLOR_ARGB(255, 128, 196, 128), (int)gui3DDepthMode, (int)GUI_3D_Depth_Modes::GUI_ENUM_RANGE);
-		DrawSelection(vireio::RenderPosition::Right, rect, D3DCOLOR_ARGB(255, 128, 196, 128), (int)gui3DDepthMode, (int)GUI_3D_Depth_Modes::GUI_ENUM_RANGE);
+		DrawSelection(vireio::RenderPosition::Left, rect, COLOR_QUICK_SETTING, (int)gui3DDepthMode, (int)GUI_3D_Depth_Modes::GUI_ENUM_RANGE);
+		DrawSelection(vireio::RenderPosition::Right, rect, COLOR_QUICK_SETTING, (int)gui3DDepthMode, (int)GUI_3D_Depth_Modes::GUI_ENUM_RANGE);
 
 		menuHelperRect.left = 0;
 		menuHelperRect.top = 0;
 
 		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
-		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));
+		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, COLOR_WHITE);
 		hudMainMenu->End();
 	}
 }
@@ -1749,8 +1749,8 @@ void D3DProxyDevice::VPMENU_Settings()
 		// draw border - total width due to shift correction
 		D3DRECT rect;
 		rect.x1 = (int)0; rect.x2 = (int)viewportWidth; rect.y1 = (int)borderTopHeight; rect.y2 = (int)(borderTopHeight+viewportHeight*0.04f);
-		ClearEmptyRect(vireio::RenderPosition::Left, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
-		ClearEmptyRect(vireio::RenderPosition::Right, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
+		ClearEmptyRect(vireio::RenderPosition::Left, rect, COLOR_MENU_BORDER, 2);
+		ClearEmptyRect(vireio::RenderPosition::Right, rect, COLOR_MENU_BORDER, 2);
 
 		hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
 
@@ -1760,74 +1760,74 @@ void D3DProxyDevice::VPMENU_Settings()
 
 		menuHelperRect.left = 650;
 		menuHelperRect.top = 300;
-		DrawTextShadowed(hudFont, hudMainMenu, "Vireio Perception ("APP_VERSION") Settings - General\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "Vireio Perception ("APP_VERSION") Settings - General\n", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		rect.x1 = 0; rect.x2 = viewportWidth; rect.y1 = (int)(335*fScaleY); rect.y2 = (int)(340*fScaleY);
-		Clear(1, &rect, D3DCLEAR_TARGET, D3DCOLOR_ARGB(255,255,128,128), 0, 0);
+		Clear(1, &rect, D3DCLEAR_TARGET, COLOR_MENU_BORDER, 0, 0);
 
 		menuHelperRect.top += 50;  menuHelperRect.left += 150; float guiQSHeight = (float)menuHelperRect.top * fScaleY;
 		switch (stereoView->swapEyes)
 		{
 		case true:
-			DrawTextShadowed(hudFont, hudMainMenu, "Swap Eyes : True", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			DrawTextShadowed(hudFont, hudMainMenu, "Swap Eyes : True", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 			break;
 		case false:
-			DrawTextShadowed(hudFont, hudMainMenu, "Swap Eyes : False", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			DrawTextShadowed(hudFont, hudMainMenu, "Swap Eyes : False", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 			break;
 		}
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		char vcString[128];
 		sprintf_s(vcString,"IPD-Offset : %1.3f", RoundVireioValue(this->stereoView->IPDOffset));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		sprintf_s(vcString,"Y-Offset : %1.3f", RoundVireioValue(this->stereoView->YOffset));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		sprintf_s(vcString,"Distortion Scale : %g", RoundVireioValue(this->stereoView->DistortionScale));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		//DrawTextShadowed(hudFont, hudMainMenu, "Stereo Screenshots", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		//DrawTextShadowed(hudFont, hudMainMenu, "Stereo Screenshots", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		//menuHelperRect.top += MENU_ITEM_SEPARATION;
 		sprintf_s(vcString,"Yaw multiplier : %g", RoundVireioValue(tracker->multiplierYaw));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		sprintf_s(vcString,"Pitch multiplier : %g", RoundVireioValue(tracker->multiplierPitch));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		sprintf_s(vcString,"Roll multiplier : %g", RoundVireioValue(tracker->multiplierRoll));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Reset Multipliers", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "Reset Multipliers", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		switch (m_spShaderViewAdjustment->RollImpl())
 		{
 		case 0:
-			DrawTextShadowed(hudFont, hudMainMenu, "Roll : Not Enabled", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			DrawTextShadowed(hudFont, hudMainMenu, "Roll : Not Enabled", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 			break;
 		case 1:
-			DrawTextShadowed(hudFont, hudMainMenu, "Roll : Matrix Translation", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			DrawTextShadowed(hudFont, hudMainMenu, "Roll : Matrix Translation", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 			break;
 		case 2:
-			DrawTextShadowed(hudFont, hudMainMenu, "Roll : Pixel Shader", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			DrawTextShadowed(hudFont, hudMainMenu, "Roll : Pixel Shader", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 			break;
 		}
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		switch (m_bForceMouseEmulation)
 		{
 		case true:
-			DrawTextShadowed(hudFont, hudMainMenu, "Force Mouse Emulation HT : True", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			DrawTextShadowed(hudFont, hudMainMenu, "Force Mouse Emulation HT : True", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 			break;
 		case false:
-			DrawTextShadowed(hudFont, hudMainMenu, "Force Mouse Emulation HT : False", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			DrawTextShadowed(hudFont, hudMainMenu, "Force Mouse Emulation HT : False", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 			break;
 		}
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		switch (m_bVRBoostToggle)
 		{
 		case true:
-			DrawTextShadowed(hudFont, hudMainMenu, "Toggle VRBoost : On", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 64, 255, 64));
+			DrawTextShadowed(hudFont, hudMainMenu, "Toggle VRBoost : On", -1, &menuHelperRect, 0, COLOR_MENU_ENABLED);
 			break;
 		case false:
-			DrawTextShadowed(hudFont, hudMainMenu, "Toggle VRBoost : Off", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 128, 128));
+			DrawTextShadowed(hudFont, hudMainMenu, "Toggle VRBoost : Off", -1, &menuHelperRect, 0, COLOR_MENU_DISABLED);
 			break;
 		}
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
@@ -1836,24 +1836,24 @@ void D3DProxyDevice::VPMENU_Settings()
 		stdString.append(controls.GetKeyName(toggleVRBoostHotkey));
 		if ((hotkeyCatch) && (entryID==11))
 			stdString = "Press the desired key.";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		sprintf_s(vcString,"Hotkey >Disconnected Screen< : ");
 		stdString = std::string(vcString);
 		stdString.append(controls.GetKeyName(edgePeekHotkey));
 		if ((hotkeyCatch) && (entryID==12))
 			stdString = "Press the desired key.";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Main Menu", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "Back to Main Menu", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 
 		menuHelperRect.left = 0;
 		menuHelperRect.top = 0;
 
 		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
-		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));
+		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, COLOR_WHITE);
 		hudMainMenu->End();
 	}
 }
@@ -2065,8 +2065,8 @@ void D3DProxyDevice::VPMENU_PosTracking()
 		// draw border - total width due to shift correction
 		D3DRECT rect;
 		rect.x1 = (int)0; rect.x2 = (int)viewportWidth; rect.y1 = (int)borderTopHeight; rect.y2 = (int)(borderTopHeight+viewportHeight*0.04f);
-		ClearEmptyRect(vireio::RenderPosition::Left, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
-		ClearEmptyRect(vireio::RenderPosition::Right, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
+		ClearEmptyRect(vireio::RenderPosition::Left, rect, COLOR_MENU_BORDER, 2);
+		ClearEmptyRect(vireio::RenderPosition::Right, rect, COLOR_MENU_BORDER, 2);
 
 		hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
 
@@ -2076,47 +2076,47 @@ void D3DProxyDevice::VPMENU_PosTracking()
 
 		menuHelperRect.left = 650;
 		menuHelperRect.top = 300;
-		DrawTextShadowed(hudFont, hudMainMenu, "Vireio Perception ("APP_VERSION") Settings - Positional Tracking\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "Vireio Perception ("APP_VERSION") Settings - Positional Tracking\n", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		rect.x1 = 0; rect.x2 = viewportWidth; rect.y1 = (int)(335*fScaleY); rect.y2 = (int)(340*fScaleY);
-		Clear(1, &rect, D3DCLEAR_TARGET, D3DCOLOR_ARGB(255,255,128,128), 0, 0);
+		Clear(1, &rect, D3DCLEAR_TARGET, COLOR_MENU_BORDER, 0, 0);
 
 		menuHelperRect.top += 50;  menuHelperRect.left += 150; float guiQSHeight = (float)menuHelperRect.top * fScaleY;
 		char vcString[128];
 		switch (m_bPosTrackingToggle)
 		{
 		case true:
-			DrawTextShadowed(hudFont, hudMainMenu, "Positional Tracking (CTRL + P) : On", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 64, 255, 64));
+			DrawTextShadowed(hudFont, hudMainMenu, "Positional Tracking (CTRL + P) : On", -1, &menuHelperRect, 0, COLOR_MENU_ENABLED);
 			break;
 		case false:
-			DrawTextShadowed(hudFont, hudMainMenu, "Positional Tracking (CTRL + P) : Off", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 128, 128));
+			DrawTextShadowed(hudFont, hudMainMenu, "Positional Tracking (CTRL + P) : Off", -1, &menuHelperRect, 0, COLOR_LIGHTRED);
 			break;
 		}
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		sprintf_s(vcString,"Position Tracking multiplier : %g", RoundVireioValue(config.position_multiplier));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		sprintf_s(vcString,"Position X-Tracking multiplier : %g", RoundVireioValue(config.position_x_multiplier));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		sprintf_s(vcString,"Position Y-Tracking multiplier : %g", RoundVireioValue(config.position_y_multiplier));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		sprintf_s(vcString,"Position Z-Tracking multiplier : %g", RoundVireioValue(config.position_z_multiplier));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Reset HMD Orientation (LSHIFT + R)", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "Reset HMD Orientation (LSHIFT + R)", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Duck-and-Cover Configuration", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "Duck-and-Cover Configuration", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Main Menu", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "Back to Main Menu", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 
 		menuHelperRect.left = 0;
 		menuHelperRect.top = 0;
 
 		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
-		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));
+		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, COLOR_WHITE);
 		hudMainMenu->End();
 	}
 }
@@ -2282,8 +2282,8 @@ void D3DProxyDevice::VPMENU_DuckAndCover()
 		// draw border - total width due to shift correction
 		D3DRECT rect;
 		rect.x1 = (int)0; rect.x2 = (int)viewportWidth; rect.y1 = (int)borderTopHeight; rect.y2 = (int)(borderTopHeight+viewportHeight*0.04f);
-		ClearEmptyRect(vireio::RenderPosition::Left, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
-		ClearEmptyRect(vireio::RenderPosition::Right, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
+		ClearEmptyRect(vireio::RenderPosition::Left, rect, COLOR_MENU_BORDER, 2);
+		ClearEmptyRect(vireio::RenderPosition::Right, rect, COLOR_MENU_BORDER, 2);
 
 		hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
 
@@ -2293,9 +2293,9 @@ void D3DProxyDevice::VPMENU_DuckAndCover()
 
 		menuHelperRect.left = 650;
 		menuHelperRect.top = 300;
-		DrawTextShadowed(hudFont, hudMainMenu, "Vireio Perception ("APP_VERSION") Settings - Duck-and-Cover\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "Vireio Perception ("APP_VERSION") Settings - Duck-and-Cover\n", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		rect.x1 = 0; rect.x2 = viewportWidth; rect.y1 = (int)(335*fScaleY); rect.y2 = (int)(340*fScaleY);
-		Clear(1, &rect, D3DCLEAR_TARGET, D3DCOLOR_ARGB(255,255,128,128), 0, 0);
+		Clear(1, &rect, D3DCLEAR_TARGET, COLOR_MENU_BORDER, 0, 0);
 
 		menuHelperRect.top += 50;  menuHelperRect.left += 150; float guiQSHeight = (float)menuHelperRect.top * fScaleY;
 		char vcString[128];
@@ -2303,10 +2303,10 @@ void D3DProxyDevice::VPMENU_DuckAndCover()
 		switch (m_DuckAndCover.crouchToggle)
 		{
 		case true:
-			DrawTextShadowed(hudFont, hudMainMenu, "Crouch : Toggle", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			DrawTextShadowed(hudFont, hudMainMenu, "Crouch : Toggle", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 			break;
 		case false:
-			DrawTextShadowed(hudFont, hudMainMenu, "Crouch : Hold", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			DrawTextShadowed(hudFont, hudMainMenu, "Crouch : Hold", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 			break;
 		}
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
@@ -2316,22 +2316,22 @@ void D3DProxyDevice::VPMENU_DuckAndCover()
 		stdString.append(controls.GetKeyName(m_DuckAndCover.crouchKey));
 		if ((hotkeyCatch) && (entryID==CROUCH_KEY))
 			stdString = "Crouch Key : >Press the desired key<";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 
 		if (!m_DuckAndCover.proneEnabled)
 		{
-			DrawTextShadowed(hudFont, hudMainMenu, "Prone : Disabled (Use calibrate to enable)", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 64, 64));
+			DrawTextShadowed(hudFont, hudMainMenu, "Prone : Disabled (Use calibrate to enable)", -1, &menuHelperRect, 0, COLOR_MENU_DISABLED);
 		}
 		else
 		{
 			switch (m_DuckAndCover.proneToggle)
 			{
 			case true:
-				DrawTextShadowed(hudFont, hudMainMenu, "Prone : Toggle", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+				DrawTextShadowed(hudFont, hudMainMenu, "Prone : Toggle", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 				break;
 			case false:
-				DrawTextShadowed(hudFont, hudMainMenu, "Prone : Hold", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+				DrawTextShadowed(hudFont, hudMainMenu, "Prone : Hold", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 				break;
 			}
 		}
@@ -2342,13 +2342,13 @@ void D3DProxyDevice::VPMENU_DuckAndCover()
 		stdString.append(controls.GetKeyName(m_DuckAndCover.proneKey));
 		if ((hotkeyCatch) && (entryID==PRONE_KEY))
 			stdString = "Prone Key : >Press the desired key<";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 
 		if (!m_DuckAndCover.jumpEnabled)
-			DrawTextShadowed(hudFont, hudMainMenu, "Jump : Enabled", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			DrawTextShadowed(hudFont, hudMainMenu, "Jump : Enabled", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		else
-			DrawTextShadowed(hudFont, hudMainMenu, "Jump : Disabled", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 64, 64));
+			DrawTextShadowed(hudFont, hudMainMenu, "Jump : Disabled", -1, &menuHelperRect, 0, COLOR_MENU_DISABLED);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 
 		sprintf_s(vcString,"Jump Key : ");
@@ -2356,32 +2356,32 @@ void D3DProxyDevice::VPMENU_DuckAndCover()
 		stdString.append(controls.GetKeyName(m_DuckAndCover.jumpKey));
 		if ((hotkeyCatch) && (entryID==JUMP_KEY))
 			stdString = "Jump Key : >Press the desired key<";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 
-		DrawTextShadowed(hudFont, hudMainMenu, "Calibrate Duck-and-Cover then Enable", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "Calibrate Duck-and-Cover then Enable", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 
 		if (m_DuckAndCover.dfcStatus == DAC_DISABLED ||
 			m_DuckAndCover.dfcStatus == DAC_INACTIVE)
 		{
-			DrawTextShadowed(hudFont, hudMainMenu, "Enable Duck-and-Cover Mode", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			DrawTextShadowed(hudFont, hudMainMenu, "Enable Duck-and-Cover Mode", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		}
 		else
 		{
-			DrawTextShadowed(hudFont, hudMainMenu, "Disable Duck-and-Cover Mode", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			DrawTextShadowed(hudFont, hudMainMenu, "Disable Duck-and-Cover Mode", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		}
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Main Menu", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "Back to Main Menu", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 
 		menuHelperRect.left = 0;
 		menuHelperRect.top = 0;
 
 		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
-		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));
+		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, COLOR_WHITE);
 		hudMainMenu->End();
 	}
 }
@@ -2497,8 +2497,8 @@ void D3DProxyDevice::VPMENU_ComfortMode()
 		// draw border - total width due to shift correction
 		D3DRECT rect;
 		rect.x1 = (int)0; rect.x2 = (int)viewportWidth; rect.y1 = (int)borderTopHeight; rect.y2 = (int)(borderTopHeight+viewportHeight*0.04f);
-		ClearEmptyRect(vireio::RenderPosition::Left, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
-		ClearEmptyRect(vireio::RenderPosition::Right, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
+		ClearEmptyRect(vireio::RenderPosition::Left, rect, COLOR_MENU_BORDER, 2);
+		ClearEmptyRect(vireio::RenderPosition::Right, rect, COLOR_MENU_BORDER, 2);
 
 		hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
 
@@ -2508,20 +2508,20 @@ void D3DProxyDevice::VPMENU_ComfortMode()
 
 		menuHelperRect.left = 650;
 		menuHelperRect.top = 300;
-		DrawTextShadowed(hudFont, hudMainMenu, "Vireio Perception ("APP_VERSION") Settings - Comfort Mode\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "Vireio Perception ("APP_VERSION") Settings - Comfort Mode\n", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		rect.x1 = 0; rect.x2 = viewportWidth; rect.y1 = (int)(335*fScaleY); rect.y2 = (int)(340*fScaleY);
-		Clear(1, &rect, D3DCLEAR_TARGET, D3DCOLOR_ARGB(255,255,128,128), 0, 0);
+		Clear(1, &rect, D3DCLEAR_TARGET, COLOR_MENU_BORDER, 0, 0);
 
 		menuHelperRect.top += 50;  menuHelperRect.left += 150; float guiQSHeight = (float)menuHelperRect.top * fScaleY;
 		char vcString[128];
 
 		if (VRBoostValue[VRboostAxis::ComfortMode] != 0.0f)
 		{
-			DrawTextShadowed(hudFont, hudMainMenu, "Comfort Mode : Enabled", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			DrawTextShadowed(hudFont, hudMainMenu, "Comfort Mode : Enabled", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		}
 		else
 		{
-			DrawTextShadowed(hudFont, hudMainMenu, "Comfort Mode : Disabled", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+			DrawTextShadowed(hudFont, hudMainMenu, "Comfort Mode : Disabled", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		}
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 
@@ -2530,7 +2530,7 @@ void D3DProxyDevice::VPMENU_ComfortMode()
 		stdString.append(controls.GetKeyName(m_comfortModeLeftKey));
 		if ((hotkeyCatch) && (entryID==TURN_LEFT))
 			stdString = "Turn Left Key : >Press the desired key<";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 
 		sprintf_s(vcString,"Turn Right Key : ");
@@ -2538,23 +2538,23 @@ void D3DProxyDevice::VPMENU_ComfortMode()
 		stdString.append(controls.GetKeyName(m_comfortModeRightKey));
 		if ((hotkeyCatch) && (entryID==TURN_RIGHT))
 			stdString = "Turn Right Key : >Press the desired key<";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 
 		sprintf_s(vcString,"Yaw Rotation Increment : %.1f", m_comfortModeYawIncrement);
 		stdString = std::string(vcString);
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Main Menu", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "Back to Main Menu", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 
 		menuHelperRect.left = 0;
 		menuHelperRect.top = 0;
 
 		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
-		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));
+		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, COLOR_WHITE);
 		hudMainMenu->End();
 	}
 }
@@ -2647,8 +2647,8 @@ void D3DProxyDevice::VPMENU_VRBoostValues()
 		// draw border - total width due to shift correction
 		D3DRECT rect;
 		rect.x1 = (int)0; rect.x2 = (int)viewportWidth; rect.y1 = (int)borderTopHeight; rect.y2 = (int)(borderTopHeight+viewportHeight*0.04f);
-		ClearEmptyRect(vireio::RenderPosition::Left, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
-		ClearEmptyRect(vireio::RenderPosition::Right, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
+		ClearEmptyRect(vireio::RenderPosition::Left, rect, COLOR_MENU_BORDER, 2);
+		ClearEmptyRect(vireio::RenderPosition::Right, rect, COLOR_MENU_BORDER, 2);
 
 		hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
 
@@ -2658,57 +2658,57 @@ void D3DProxyDevice::VPMENU_VRBoostValues()
 
 		menuHelperRect.left = 650;
 		menuHelperRect.top = 300;
-		DrawTextShadowed(hudFont, hudMainMenu, "Vireio Perception ("APP_VERSION") Settings - VRBoost\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "Vireio Perception ("APP_VERSION") Settings - VRBoost\n", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		rect.x1 = 0; rect.x2 = viewportWidth; rect.y1 = (int)(335*fScaleY); rect.y2 = (int)(340*fScaleY);
-		Clear(1, &rect, D3DCLEAR_TARGET, D3DCOLOR_ARGB(255,255,128,128), 0, 0);
+		Clear(1, &rect, D3DCLEAR_TARGET, COLOR_MENU_BORDER, 0, 0);
 
 		menuHelperRect.top += 50;  menuHelperRect.left += 150; float guiQSHeight = (float)menuHelperRect.top * fScaleY;
 		char vcString[128];
 		sprintf_s(vcString,"World FOV : %g", RoundVireioValue(VRBoostValue[24]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		sprintf_s(vcString,"Player FOV : %g", RoundVireioValue(VRBoostValue[25]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		sprintf_s(vcString,"Far Plane FOV : %g", RoundVireioValue(VRBoostValue[26]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		sprintf_s(vcString,"Camera Translate X : %g", RoundVireioValue(VRBoostValue[27]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		sprintf_s(vcString,"Camera Translate Y : %g", RoundVireioValue(VRBoostValue[28]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		sprintf_s(vcString,"Camera Translate Z : %g", RoundVireioValue(VRBoostValue[29]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		sprintf_s(vcString,"Camera Distance : %g", RoundVireioValue(VRBoostValue[30]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		sprintf_s(vcString,"Camera Zoom : %g", RoundVireioValue(VRBoostValue[31]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		sprintf_s(vcString,"Camera Horizon Adjustment : %g", RoundVireioValue(VRBoostValue[32]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		sprintf_s(vcString,"Constant Value 1 : %g", RoundVireioValue(VRBoostValue[33]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		sprintf_s(vcString,"Constant Value 2 : %g", RoundVireioValue(VRBoostValue[34]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
 		sprintf_s(vcString,"Constant Value 2 : %g", RoundVireioValue(VRBoostValue[35]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Main Menu", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "Back to Main Menu", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
+		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &menuHelperRect, 0, COLOR_MENU_TEXT);
 
 		menuHelperRect.left = 0;
 		menuHelperRect.top = 0;
 
 		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
-		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));
+		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, COLOR_WHITE);
 		hudMainMenu->End();
 	}
 }
@@ -2756,9 +2756,9 @@ void D3DProxyDevice::VPMENU_UpdateBorder()
 			menuHelperRect.bottom = 50;
 			char buffer[4];
 			sprintf_s(buffer, "'");
-			hudFont->DrawText(hackSprite, buffer, -1, &menuHelperRect, DT_LEFT, D3DCOLOR_ARGB(255, 255, 0, 0));
+			hudFont->DrawText(hackSprite, buffer, -1, &menuHelperRect, DT_LEFT, COLOR_RED);
 			D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
-			hackSprite->Draw(NULL, &menuHelperRect, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));
+			hackSprite->Draw(NULL, &menuHelperRect, NULL, &vPos, COLOR_WHITE);
 			hackSprite->End();
 			hackSprite->Release();
 			hackSprite = NULL;
@@ -3004,9 +3004,9 @@ void D3DProxyDevice::VPMENU_AdditionalOutput()
 		rec.x1 = (int)(viewportWidth*(0.5f-(m_fVRBoostIndicator*0.05f))); rec.x2 = (int)(viewportWidth*(0.5f+(m_fVRBoostIndicator*0.05f))); 
 		rec.y1 = (int)(viewportHeight*(0.4f-(m_fVRBoostIndicator*0.05f))); rec.y2 = (int)(viewportHeight*(0.4f+(m_fVRBoostIndicator*0.05f)));
 		if (m_bVRBoostToggle)
-			ClearRect(vireio::RenderPosition::Left, rec, D3DCOLOR_ARGB(255,64,255,64));
+			ClearRect(vireio::RenderPosition::Left, rec, COLOR_MENU_ENABLED);
 		else
-			ClearRect(vireio::RenderPosition::Left, rec, D3DCOLOR_ARGB(255,255,128,128));
+			ClearRect(vireio::RenderPosition::Left, rec, COLOR_LIGHTRED);
 
 		// update the indicator float
 		m_fVRBoostIndicator-=menuSeconds;
@@ -3102,7 +3102,7 @@ void D3DProxyDevice::DisplayCurrentPopup()
 				{
 					//Center on the screen
 					format = DT_CENTER;
-					popupColour = D3DCOLOR_ARGB(255, 255, 255, 255);
+					popupColour = COLOR_WHITE;
 					float FADE_DURATION = 200.0f;
 					int fontSize = (activePopup.popupDuration - GetTickCount() > FADE_DURATION) ? 26 : 
 						(int)( (25.0f * (activePopup.popupDuration - GetTickCount())) / FADE_DURATION + 1);
@@ -3112,13 +3112,13 @@ void D3DProxyDevice::DisplayCurrentPopup()
 				break;
 			case VPS_INFO:
 				{
-					popupColour = D3DCOLOR_ARGB(255, 128, 255, 128);
+					popupColour = COLOR_INFO_POPUP;
 					pFont = popupFont[24];
 				}
 				break;
 			case VPS_ERROR:
 				{
-					popupColour = D3DCOLOR_ARGB(255, 255, 0, 0);
+					popupColour = COLOR_RED;
 					menuHelperRect.left = 0;
 					format = DT_CENTER;
 					pFont = errorFont;
@@ -3141,11 +3141,11 @@ void D3DProxyDevice::DisplayCurrentPopup()
 			else if (show_fps == FPS_TIME)
 				sprintf_s(buffer, "Frame Time: %.2f ms", 1000.0f / fps);
 
-			D3DCOLOR colour = D3DCOLOR_ARGB(255, 255, 255, 255);
+			D3DCOLOR colour = COLOR_WHITE;
 			if (fps <= 40)
-				colour = D3DCOLOR_ARGB(255, 255, 0, 0);
+				colour = COLOR_RED;
 			else if (fps > 74)
-				colour = D3DCOLOR_ARGB(255, 0, 255, 0);
+				colour = COLOR_GREEN;
 
 			menuHelperRect.top = 800;
 			menuHelperRect.left = 0;
@@ -3156,7 +3156,7 @@ void D3DProxyDevice::DisplayCurrentPopup()
 		menuHelperRect.top = 0;
 
 		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
-		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));
+		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, COLOR_WHITE);
 		hudMainMenu->End();
 	}
 }
