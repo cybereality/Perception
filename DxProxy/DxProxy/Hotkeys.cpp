@@ -263,10 +263,8 @@ void D3DProxyDevice::HandleControls()
 			}
 		}
 
-		if (m_bfloatingScreen)
-			ShowAdjusterToast("Disconnected Screen Enabled", 700);
-		else
-			ShowAdjusterToast("Disconnected Screen Disabled", 700);
+		ShowAdjusterToast(retprintf("Disconnected Screen %s",
+			m_bfloatingScreen ? "Enabled" : "Disabled"), 700);
 
 		menuVelocity.x += 4.0f;		
 	}
@@ -407,18 +405,10 @@ void D3DProxyDevice::HandleControls()
 		// switch to 2d Depth Mode (Shift + O / Numpad 9)
 		if (controls.Key_Down(VK_LSHIFT) && (controls.Key_Down('O') || controls.Key_Down(VK_NUMPAD9)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
-			if(!m_b2dDepthMode)
-			{
-				m_b2dDepthMode = true;
-				stereoView->m_b2dDepthMode = true;
-				ShowAdjusterToast("Depth Perception Mode On", 1000);
-			}
-			else
-			{
-				m_b2dDepthMode = false;
-				stereoView->m_b2dDepthMode = false;
-				ShowAdjusterToast("Depth Perception Mode Off", 1000);
-			}
+			m_b2dDepthMode = !m_b2dDepthMode;
+			stereoView->m_b2dDepthMode = m_b2dDepthMode;
+			ShowAdjusterToast(retprintf("Depth Perception Mode %s",
+				m_b2dDepthMode?"On":"Off"), 1000);
 			menuVelocity.x += 4.0f;
 		
 		}
@@ -447,9 +437,8 @@ void D3DProxyDevice::HandleControls()
 			{			
 				_str = stereoView->CycleRenderState(true);
 			}
-			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
-			sprintf_s(popup.line[2], _str.append(" :: New Render State").c_str());
-			ShowPopup(popup);
+			ShowPopup(VPT_ADJUSTER, VPS_TOAST, 1000,
+				retprintf("%s :: New Render State", _str.c_str()));
 		
 			menuVelocity.x += 4.0f;		
 		}
@@ -457,72 +446,76 @@ void D3DProxyDevice::HandleControls()
 		// Toggle Through Cube Renders -> ALt + 1
 		if (controls.Key_Down(VK_MENU) && controls.Key_Down('1') && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
-			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
+			const char *cubeDuplicationDescription = "?";
 			if(m_pGameHandler->intDuplicateCubeTexture < 3)
 			{
 				m_pGameHandler->intDuplicateCubeTexture++;
 				if(m_pGameHandler->intDuplicateCubeTexture == 1)
-					sprintf_s(popup.line[2], "Cube Duplication :: Always False");
+					cubeDuplicationDescription = "Always False";
 				else if(m_pGameHandler->intDuplicateCubeTexture == 2)
-					sprintf_s(popup.line[2], "Cube Duplication :: Always True");
+					cubeDuplicationDescription = "Always True";
 				else if(m_pGameHandler->intDuplicateCubeTexture == 3)
-					sprintf_s(popup.line[2], "Cube Duplication :: Always IS_RENDER_TARGET(Usage)");
+					cubeDuplicationDescription = "Always IS_RENDER_TARGET(Usage)";
 			}
 			else
 			{
 				m_pGameHandler->intDuplicateCubeTexture = 0;
-				sprintf_s(popup.line[2], "Cube Duplication :: Default (Game Type)");
+				cubeDuplicationDescription = "Default (Game Type)";
 			}		
 		
-			ShowPopup(popup);		
+			ShowPopup(VPT_ADJUSTER, VPS_TOAST, 1000,
+				retprintf("Cube Duplication :: %s", cubeDuplicationDescription));
 			menuVelocity.x += 4.0f;		
 		}
 		// Toggle Through Texture Renders -> ALt + 2
 		if (controls.Key_Down(VK_MENU) && controls.Key_Down('2') && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
-			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
+			const char *textureDuplicationDescription = "?";
 			if(m_pGameHandler->intDuplicateTexture < 4)
 			{
 				m_pGameHandler->intDuplicateTexture++;
 				if(m_pGameHandler->intDuplicateTexture == 1)
-					sprintf_s(popup.line[2], "Texture Duplication :: Method 1");
+					textureDuplicationDescription = "Method 1";
 				else if(m_pGameHandler->intDuplicateTexture == 2)
-					sprintf_s(popup.line[2], "Texture Duplication :: Method 2 (1 + Width and Height)");
+					textureDuplicationDescription = "Method 2 (1 + Width and Height)";
 				else if(m_pGameHandler->intDuplicateTexture == 3)
-					sprintf_s(popup.line[2], "Texture Duplication :: Always False");
+					textureDuplicationDescription = "Always False";
 				else if(m_pGameHandler->intDuplicateTexture == 4)
-					sprintf_s(popup.line[2], "Texture Duplication :: Always True");
+					textureDuplicationDescription = "Always True";
 			}
 			else
 			{
 				m_pGameHandler->intDuplicateTexture = 0;
-				sprintf_s(popup.line[2], "Texture Duplication :: Default (Game Type)");
+				textureDuplicationDescription = "Default (Game Type)";
 			}		
 		
-			ShowPopup(popup);		
+			ShowPopup(VPT_ADJUSTER, VPS_TOAST, 1000,
+				retprintf("Texture Duplication :: %s", textureDuplicationDescription));
 			menuVelocity.x += 4.0f;		
 		}
 
 		//When to render vpmenu (Alt + Up)
 		if (controls.Key_Down(VK_MENU) && controls.Key_Down(VK_UP) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
-			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
+			const char *vpmenuRenderDesc = "?";
 			if(m_deviceBehavior.whenToRenderVPMENU == DeviceBehavior::BEGIN_SCENE)
 			{
 				m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::END_SCENE;
-				sprintf_s(popup.line[2], "VPMENU RENDER = END_SCENE");
+				vpmenuRenderDesc = "END_SCENE";
 			}
 			else if(m_deviceBehavior.whenToRenderVPMENU == DeviceBehavior::END_SCENE)
 			{
 				m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::PRESENT;
-				sprintf_s(popup.line[2], "VPMENU RENDER = PRESENT");
+				vpmenuRenderDesc = "PRESENT";
 			}
 			else
 			{
 				m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::BEGIN_SCENE;
-				sprintf_s(popup.line[2], "VPMENU RENDER = BEGIN_SCENE");
+				vpmenuRenderDesc = "BEGIN_SCENE";
 			}
-			ShowPopup(popup);		
+			
+			ShowPopup(VPT_ADJUSTER, VPS_TOAST, 1000,
+				retprintf("VPMENU RENDER = %s", vpmenuRenderDesc));
 			menuVelocity.x += 4.0f;		
 		}
 
@@ -567,13 +560,12 @@ void D3DProxyDevice::HandleControls()
 					//so before starting the scan, confirm with the user this is what they actually wish to do
 					//This will also prevent an accidental re-run
 					//Games that use matrix roll can usually be re-run without issue
-					VireioPopup popup(VPT_NOTIFICATION, VPS_INFO, 5000);
-					sprintf_s(popup.line[0], "   *WARNING*: re-running a scan once stable");
-					sprintf_s(popup.line[1], "   addresses have been found could fail");
-					sprintf_s(popup.line[2], "   IF NO SCAN HAS YET SUCCEEDED; IGNORE THIS WARNING");
-					sprintf_s(popup.line[4], "   Press scan trigger again to initiate scan");
-					sprintf_s(popup.line[5], "   or wait for this message to disappear (No Scan)");
-					ShowPopup(popup);
+					ShowPopup(VPT_NOTIFICATION, VPS_INFO, 5000,
+						"   *WARNING*: re-running a scan once stable\n"
+						"   addresses have been found could fail\n"
+						"   IF NO SCAN HAS YET SUCCEEDED; IGNORE THIS WARNING\n"
+						"   Press scan trigger again to initiate scan\n"
+						"   or wait for this message to disappear (No Scan)");
 					showRescanWarning = false;
 					shownRescanWarning = true;
 				}
@@ -658,16 +650,15 @@ void D3DProxyDevice::HandleControls()
 			{
 				//Disable Free Pitch
 				VRBoostValue[VRboostAxis::FreePitch] = 0.0f;
-
-				ShowAdjusterToast("Pitch Free-look Disabled", 1000);
 			}
 			else
 			{
 				//Enable Free Pitch
 				VRBoostValue[VRboostAxis::FreePitch] = 1.0f;
-
-				ShowAdjusterToast("Pitch Free-look Enabled", 1000);
 			}
+			
+			ShowAdjusterToast(retprintf("Pitch Free-look Enabled",
+				(VRBoostValue[VRboostAxis::FreePitch] != 0.0f) ? "Enabled" : "Disabled"), 1000);
 
 			menuVelocity.x+=2.0f;
 		}
@@ -681,18 +672,16 @@ void D3DProxyDevice::HandleControls()
 			{
 				//Disable Comfort Mode
 				VRBoostValue[VRboostAxis::ComfortMode] = 0.0f;
-				m_comfortModeYaw = 0.0f;
-
-				ShowAdjusterToast("Comfort Mode Disabled", 1000);
 			}
 			else
 			{
 				//Enable Comfort Mode
 				VRBoostValue[VRboostAxis::ComfortMode] = 1.0f;
-				m_comfortModeYaw = 0.0f;
-
-				ShowAdjusterToast("Comfort Mode Enabled", 1000);
 			}
+			
+			m_comfortModeYaw = 0.0f;
+			ShowAdjusterToast(retprintf("Comfort Mode %s",
+				(VRBoostValue[VRboostAxis::ComfortMode]!=0.0f) ? "Enabled" : "Disabled"), 1000);
 
 			menuVelocity.x+=2.0f;
 		}
@@ -703,19 +692,13 @@ void D3DProxyDevice::HandleControls()
 			(menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
 		{
 			if (stereoView->m_blackSmearCorrection != 0.0f)
-			{
 				stereoView->m_blackSmearCorrection = 0.0f;
-				stereoView->PostReset();		
-
-				ShowAdjusterToast("DK2 Black Smear Correction Disabled", 1000);
-			}
 			else
-			{
 				stereoView->m_blackSmearCorrection = 0.02f;
-				stereoView->PostReset();		
-
-				ShowAdjusterToast("DK2 Black Smear Correction Enabled", 1000);
-			}
+			
+			stereoView->PostReset();
+			ShowAdjusterToast(retprintf("DK2 Black Smear Correction %s",
+				stereoView->m_blackSmearCorrection!=0.0f ? "Enabled" : "Disabled"), 1000);
 
 			menuVelocity.x+=2.0f;
 		}
