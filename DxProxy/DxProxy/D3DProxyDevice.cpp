@@ -3177,7 +3177,7 @@ void D3DProxyDevice::HandleControls()
 
 
 		//Reset IPD Offset to 0  -  F8  or  LSHIFT+I
-		if ((controls.Key_Down(VK_LSHIFT) && controls.Key_Down(0x49)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
+		if ((controls.Key_Down(VK_F8) || (controls.Key_Down(VK_LSHIFT) && controls.Key_Down(0x49))) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)) && this->stereoView->IPDOffset != 0.0)
 		{
 			this->stereoView->IPDOffset = 0.0;
 			this->stereoView->PostReset();		
