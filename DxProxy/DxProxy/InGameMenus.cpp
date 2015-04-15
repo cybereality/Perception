@@ -175,6 +175,9 @@ void D3DProxyDevice::VPMENU_StartDrawing(const char *pageTitle, int borderSelect
 	DrawTextShadowed(hudFont, hudMainMenu, pageHeading.c_str(), &menuHelperRect, COLOR_MENU_TEXT);
 	rect.x1 = 0; rect.x2 = viewportWidth; rect.y1 = (int)(335*fScaleY); rect.y2 = (int)(340*fScaleY);
 	Clear(1, &rect, D3DCLEAR_TARGET, COLOR_MENU_BORDER, 0, 0);
+	
+	menuHelperRect.top += 50;
+	menuHelperRect.left += 150;
 }
 
 void D3DProxyDevice::VPMENU_FinishDrawing()
@@ -395,7 +398,6 @@ void D3DProxyDevice::VPMENU_MainMenu()
 	{
 		VPMENU_StartDrawing("Settings", borderSelection);
 
-		menuHelperRect.top += 50;  menuHelperRect.left += 150;
 		if (config.game_type > 10000)
 		{
 			DrawMenuItem("Activate Vireio Shader Analyzer\n");
@@ -595,8 +597,7 @@ void D3DProxyDevice::VPMENU_WorldScale()
 
 		rec2.left = (int)(width*0.35f);
 		rec2.top = (int)(height*0.83f);
-		sprintf_s(vcString, 1024, "World-Scale Calibration");
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec2, COLOR_MENU_TEXT);
+		DrawTextShadowed(hudFont, hudMainMenu, "World-Scale Calibration", &rec2, COLOR_MENU_TEXT);
 
 		RECT rec10 = {(int)(width*0.40f), (int)(height*0.57f),width,height};
 		DrawTextShadowed(hudFont, hudMainMenu, "<- calibrate using Arrow Keys ->", &rec10, COLOR_MENU_TEXT);
@@ -617,8 +618,7 @@ void D3DProxyDevice::VPMENU_WorldScale()
 			gameUnit = ((m_spShaderViewAdjustment->WorldScale()) * driverXScale ) / gameXScale;
 
 			rec10.top = (int)(height*0.77f); rec10.left = (int)(width*0.45f);
-			sprintf_s(vcString,"Actual Units %u/%u", gameXScaleUnitIndex, m_gameXScaleUnits.size());
-			DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec10, COLOR_MENU_TEXT);
+			DrawTextShadowed(hudFont, hudMainMenu, retprintf("Actual Units %u/%u", gameXScaleUnitIndex, m_gameXScaleUnits.size()), &rec10, COLOR_MENU_TEXT);
 		}
 
 		//Column 1:
@@ -631,20 +631,24 @@ void D3DProxyDevice::VPMENU_WorldScale()
 		//1 Centimeter = X Game Units
 		//1 Foot = X Game Units
 		//1 Inch = X Game Units
-		rec10.top = (int)(height*0.6f); rec10.left = (int)(width*0.28f);
 		float meters = 1 / gameUnit;
+		float centimeters = meters * 100.0f;
+		float feet = meters * 3.2808399f;
+		float inches = feet * 12.0f;
+		float gameUnitsToCentimeter =  gameUnit / 100.0f;
+		float gameUnitsToFoot = gameUnit / 3.2808399f;
+		float gameUnitsToInches = gameUnit / 39.3700787f;
+		
+		rec10.top = (int)(height*0.6f); rec10.left = (int)(width*0.28f);
 		sprintf_s(vcString,"1 Game Unit = %g Meters", meters);
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec10, COLOR_MENU_TEXT);
 		rec10.top+=35;
-		float centimeters = meters * 100.0f;
 		sprintf_s(vcString,"1 Game Unit = %g CM", centimeters);
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec10, COLOR_MENU_TEXT);
 		rec10.top+=35;
-		float feet = meters * 3.2808399f;
 		sprintf_s(vcString,"1 Game Unit = %g Feet", feet);
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec10, COLOR_MENU_TEXT);
 		rec10.top+=35;
-		float inches = feet * 12.0f;
 		sprintf_s(vcString,"1 Game Unit = %g In.", inches);
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec10, COLOR_MENU_TEXT);
 
@@ -652,15 +656,12 @@ void D3DProxyDevice::VPMENU_WorldScale()
 		sprintf_s(vcString,"1 Meter      = %g Game Units", gameUnit);
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec11, COLOR_MENU_TEXT);
 		rec11.top+=35;
-		float gameUnitsToCentimeter =  gameUnit / 100.0f;
 		sprintf_s(vcString,"1 CM         = %g Game Units", gameUnitsToCentimeter);
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec11, COLOR_MENU_TEXT);
 		rec11.top+=35;
-		float gameUnitsToFoot = gameUnit / 3.2808399f;
 		sprintf_s(vcString,"1 Foot       = %g Game Units", gameUnitsToFoot);
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec11, COLOR_MENU_TEXT);
 		rec11.top+=35;
-		float gameUnitsToInches = gameUnit / 39.3700787f;
 		sprintf_s(vcString,"1 Inch       = %g Game Units", gameUnitsToInches);
 		DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec11, COLOR_MENU_TEXT);
 
@@ -909,7 +910,7 @@ void D3DProxyDevice::VPMENU_HUD()
 	VPMENU_NewFrame(entryID, menuEntryCount);
 	UINT borderSelection = entryID;
 
-	if ((hotkeyCatch) && HotkeysActive())
+	if (hotkeyCatch && HotkeysActive())
 	{
 		for (int i = 0; i < 256; i++)
 			if (controls.Key_Down(i) && controls.GetKeyName(i)!="-")
@@ -1027,7 +1028,7 @@ void D3DProxyDevice::VPMENU_HUD()
 	{
 		VPMENU_StartDrawing("Settings - HUD", borderSelection);
 
-		menuHelperRect.top += 50;  menuHelperRect.left += 150; float hudQSHeight = (float)menuHelperRect.top * fScaleY;
+		float hudQSHeight = (float)menuHelperRect.top * fScaleY;
 		switch (hud3DDepthMode)
 		{
 		case D3DProxyDevice::HUD_DEFAULT:
@@ -1046,40 +1047,34 @@ void D3DProxyDevice::VPMENU_HUD()
 			break;
 		}
 		char vcString[128];
-		sprintf_s(vcString,"HUD Distance : %g", RoundVireioValue(hudDistancePresets[(int)hud3DDepthMode]));
-		DrawMenuItem(vcString);
-		sprintf_s(vcString,"HUD's 3D Depth : %g", RoundVireioValue(hud3DDepthPresets[(int)hud3DDepthMode]));
-		DrawMenuItem(vcString);
-		sprintf_s(vcString,"Hotkey >Switch< : ");
-		std::string stdString = std::string(vcString);
-		stdString.append(controls.GetKeyName(hudHotkeys[0]));
-		if ((hotkeyCatch) && (entryID==3))
-			stdString = "Press the desired key.";
-		DrawMenuItem((LPCSTR)stdString.c_str());
-		sprintf_s(vcString,"Hotkey >Default< : ");
-		stdString = std::string(vcString);
-		stdString.append(controls.GetKeyName(hudHotkeys[1]));
-		if ((hotkeyCatch) && (entryID==4))
-			stdString = "Press the desired key.";
-		DrawMenuItem((LPCSTR)stdString.c_str());
-		sprintf_s(vcString,"Hotkey >Small< : ");
-		stdString = std::string(vcString);
-		stdString.append(controls.GetKeyName(hudHotkeys[2]));
-		if ((hotkeyCatch) && (entryID==5))
-			stdString = "Press the desired key.";
-		DrawMenuItem((LPCSTR)stdString.c_str());
-		sprintf_s(vcString,"Hotkey >Large< : ");
-		stdString = std::string(vcString);
-		stdString.append(controls.GetKeyName(hudHotkeys[3]));
-		if ((hotkeyCatch) && (entryID==6))
-			stdString = "Press the desired key.";
-		DrawMenuItem((LPCSTR)stdString.c_str());
-		sprintf_s(vcString,"Hotkey >Full< : ");
-		stdString = std::string(vcString);
-		stdString.append(controls.GetKeyName(hudHotkeys[4]));
-		if ((hotkeyCatch) && (entryID==7))
-			stdString = "Press the desired key.";
-		DrawMenuItem((LPCSTR)stdString.c_str());
+		DrawMenuItem(retprintf("HUD Distance : %g", RoundVireioValue(hudDistancePresets[(int)hud3DDepthMode])));
+		DrawMenuItem(retprintf("HUD's 3D Depth : %g", RoundVireioValue(hud3DDepthPresets[(int)hud3DDepthMode])));
+		
+		if (hotkeyCatch && (entryID==3)) {
+			DrawMenuItem("Press the desired key.");
+		} else {
+			DrawMenuItem(retprintf("Hotkey >Switch< : %s", controls.GetKeyName(hudHotkeys[0])));
+		}
+		if (hotkeyCatch && (entryID==4)) {
+			DrawMenuItem("Press the desired key.");
+		} else {
+			DrawMenuItem(retprintf("Hotkey >Default< : %s", controls.GetKeyName(hudHotkeys[1])));
+		}
+		if (hotkeyCatch && (entryID==5)) {
+			DrawMenuItem("Press the desired key.");
+		} else {
+			DrawMenuItem(retprintf("Hotkey >Small< : %s", controls.GetKeyName(hudHotkeys[2])));
+		}
+		if (hotkeyCatch && (entryID==6)) {
+			DrawMenuItem("Press the desired key.");
+		} else {
+			DrawMenuItem(retprintf("Hotkey >Large< : %s", controls.GetKeyName(hudHotkeys[3])));
+		}
+		if (hotkeyCatch && (entryID==7)) {
+			DrawMenuItem("Press the desired key.");
+		} else {
+			DrawMenuItem(retprintf("Hotkey >Full< : %s", controls.GetKeyName(hudHotkeys[4])));
+		}
 		DrawMenuItem("Back to Main Menu");
 		DrawMenuItem("Back to Game");
 
@@ -1110,7 +1105,7 @@ void D3DProxyDevice::VPMENU_GUI()
 	VPMENU_NewFrame(entryID, menuEntryCount);
 	UINT borderSelection = entryID;
 
-	if ((hotkeyCatch) && HotkeysActive())
+	if (hotkeyCatch && HotkeysActive())
 	{
 		for (int i = 0; i < 256; i++)
 			if (controls.Key_Down(i) && controls.GetKeyName(i)!="-")
@@ -1227,8 +1222,6 @@ void D3DProxyDevice::VPMENU_GUI()
 	{
 		VPMENU_StartDrawing("Settings - GUI", borderSelection);
 
-		menuHelperRect.top += 50;
-		menuHelperRect.left += 150;
 		float guiQSTop = (float)menuHelperRect.top * fScaleY;
 		
 		switch (gui3DDepthMode)
@@ -1249,40 +1242,34 @@ void D3DProxyDevice::VPMENU_GUI()
 			break;
 		}
 		char vcString[128];
-		sprintf_s(vcString,"GUI Size : %g", RoundVireioValue(guiSquishPresets[(int)gui3DDepthMode]));
-		DrawMenuItem(vcString);
-		sprintf_s(vcString,"GUI's 3D Depth : %g", RoundVireioValue(gui3DDepthPresets[(int)gui3DDepthMode]));
-		DrawMenuItem(vcString);
-		sprintf_s(vcString,"Hotkey >Switch< : ");
-		std::string stdString = std::string(vcString);
-		stdString.append(controls.GetKeyName(guiHotkeys[0]));
-		if ((hotkeyCatch) && (entryID==3))
-			stdString = "Press the desired key.";
-		DrawMenuItem((LPCSTR)stdString.c_str());
-		sprintf_s(vcString,"Hotkey >Default< : ");
-		stdString = std::string(vcString);
-		stdString.append(controls.GetKeyName(guiHotkeys[1]));
-		if ((hotkeyCatch) && (entryID==4))
-			stdString = "Press the desired key.";
-		DrawMenuItem((LPCSTR)stdString.c_str());
-		sprintf_s(vcString,"Hotkey >Small< : ");
-		stdString = std::string(vcString);
-		stdString.append(controls.GetKeyName(guiHotkeys[2]));
-		if ((hotkeyCatch) && (entryID==5))
-			stdString = "Press the desired key.";
-		DrawMenuItem((LPCSTR)stdString.c_str());
-		sprintf_s(vcString,"Hotkey >Large< : ");
-		stdString = std::string(vcString);
-		stdString.append(controls.GetKeyName(guiHotkeys[3]));
-		if ((hotkeyCatch) && (entryID==6))
-			stdString = "Press the desired key.";
-		DrawMenuItem((LPCSTR)stdString.c_str());
-		sprintf_s(vcString,"Hotkey >Full< : ");
-		stdString = std::string(vcString);
-		stdString.append(controls.GetKeyName(guiHotkeys[4]));
-		if ((hotkeyCatch) && (entryID==7))
-			stdString = "Press the desired key.";
-		DrawMenuItem((LPCSTR)stdString.c_str());
+		DrawMenuItem(retprintf("GUI Size : %g", RoundVireioValue(guiSquishPresets[(int)gui3DDepthMode])));
+		DrawMenuItem(retprintf("GUI's 3D Depth : %g", RoundVireioValue(gui3DDepthPresets[(int)gui3DDepthMode])));
+		
+		if (hotkeyCatch && (entryID==3)) {
+			DrawMenuItem("Press the desired key.");
+		} else {
+			DrawMenuItem(retprintf("Hotkey >Switch< : %s", controls.GetKeyName(guiHotkeys[0])));
+		}
+		if (hotkeyCatch && (entryID==4)) {
+			DrawMenuItem("Press the desired key.");
+		} else {
+			DrawMenuItem(retprintf("Hotkey >Default< : %s", controls.GetKeyName(guiHotkeys[1])));
+		}
+		if (hotkeyCatch && (entryID==5)) {
+			DrawMenuItem("Press the desired key.");
+		} else {
+			DrawMenuItem(retprintf("Hotkey >Small< : %s", controls.GetKeyName(guiHotkeys[2])));
+		}
+		if (hotkeyCatch && (entryID==6)) {
+			DrawMenuItem("Press the desired key.");
+		} else {
+			DrawMenuItem(retprintf("Hotkey >Large< : %s", controls.GetKeyName(guiHotkeys[3])));
+		}
+		if (hotkeyCatch && (entryID==7)) {
+			DrawMenuItem("Press the desired key.");
+		} else {
+			DrawMenuItem(retprintf("Hotkey >Full< : %s", controls.GetKeyName(guiHotkeys[4])));
+		}
 		DrawMenuItem("Back to Main Menu");
 		DrawMenuItem("Back to Game");
 
@@ -1335,7 +1322,7 @@ void D3DProxyDevice::VPMENU_Settings()
 	VPMENU_NewFrame(entryID, menuEntryCount);
 	UINT borderSelection = entryID;
 
-	if ((hotkeyCatch) && HotkeysActive())
+	if (hotkeyCatch && HotkeysActive())
 	{
 		for (int i = 0; i < 256; i++)
 			if (controls.Key_Down(i) && controls.GetKeyName(i)!="-")
@@ -1674,75 +1661,49 @@ void D3DProxyDevice::VPMENU_Settings()
 	{
 		VPMENU_StartDrawing("Settings - General", borderSelection);
 
-		menuHelperRect.top += 50; 
-		menuHelperRect.left += 150;
-		
-		switch (stereoView->swapEyes)
-		{
-		case true:
-			DrawMenuItem("Swap Eyes : True");
-			break;
-		case false:
-			DrawMenuItem("Swap Eyes : False");
-			break;
-		}
-		char vcString[128];
-		sprintf_s(vcString,"IPD-Offset : %1.3f", RoundVireioValue(this->stereoView->IPDOffset));
-		DrawMenuItem(vcString);
-		sprintf_s(vcString,"Y-Offset : %1.3f", RoundVireioValue(this->stereoView->YOffset));
-		DrawMenuItem(vcString);
-		sprintf_s(vcString,"Distortion Scale : %g", RoundVireioValue(this->stereoView->DistortionScale));
-		DrawMenuItem(vcString);
+		DrawMenuItem(retprintf("Swap Eyes : %s", stereoView->swapEyes ? "True" : "False"));
+		DrawMenuItem(retprintf("IPD-Offset : %1.3f", RoundVireioValue(this->stereoView->IPDOffset)));
+		DrawMenuItem(retprintf("Y-Offset : %1.3f", RoundVireioValue(this->stereoView->YOffset)));
+		DrawMenuItem(retprintf("Distortion Scale : %g", RoundVireioValue(this->stereoView->DistortionScale)));
 		//DrawMenuItem("Stereo Screenshots");
-		sprintf_s(vcString,"Yaw multiplier : %g", RoundVireioValue(tracker->multiplierYaw));
-		DrawMenuItem(vcString);
-		sprintf_s(vcString,"Pitch multiplier : %g", RoundVireioValue(tracker->multiplierPitch));
-		DrawMenuItem(vcString);
-		sprintf_s(vcString,"Roll multiplier : %g", RoundVireioValue(tracker->multiplierRoll));
-		DrawMenuItem(vcString);
+		DrawMenuItem(retprintf("Yaw multiplier : %g", RoundVireioValue(tracker->multiplierYaw)));
+		DrawMenuItem(retprintf("Pitch multiplier : %g", RoundVireioValue(tracker->multiplierPitch)));
+		DrawMenuItem(retprintf("Roll multiplier : %g", RoundVireioValue(tracker->multiplierRoll)));
 		DrawMenuItem("Reset Multipliers");
+		
 		switch (m_spShaderViewAdjustment->RollImpl())
 		{
-		case 0:
-			DrawMenuItem("Roll : Not Enabled");
-			break;
-		case 1:
-			DrawMenuItem("Roll : Matrix Translation");
-			break;
-		case 2:
-			DrawMenuItem("Roll : Pixel Shader");
-			break;
+		case 0: DrawMenuItem("Roll : Not Enabled"); break;
+		case 1: DrawMenuItem("Roll : Matrix Translation"); break;
+		case 2: DrawMenuItem("Roll : Pixel Shader"); break;
 		}
+		
 		switch (m_bForceMouseEmulation)
 		{
-		case true:
-			DrawMenuItem("Force Mouse Emulation HT : True");
-			break;
-		case false:
-			DrawMenuItem("Force Mouse Emulation HT : False");
-			break;
+		case true:  DrawMenuItem("Force Mouse Emulation HT : True"); break;
+		case false: DrawMenuItem("Force Mouse Emulation HT : False"); break;
 		}
+		
 		switch (m_bVRBoostToggle)
 		{
-		case true:
-			DrawMenuItem("Toggle VRBoost : On", COLOR_MENU_ENABLED);
-			break;
-		case false:
-			DrawMenuItem("Toggle VRBoost : Off", COLOR_MENU_DISABLED);
-			break;
+		case true:  DrawMenuItem("Toggle VRBoost : On", COLOR_MENU_ENABLED); break;
+		case false: DrawMenuItem("Toggle VRBoost : Off", COLOR_MENU_DISABLED); break;
 		}
-		sprintf_s(vcString,"Hotkey >Toggle VRBoost< : ");
-		std::string stdString = std::string(vcString);
-		stdString.append(controls.GetKeyName(toggleVRBoostHotkey));
-		if ((hotkeyCatch) && (entryID==11))
-			stdString = "Press the desired key.";
-		DrawMenuItem((LPCSTR)stdString.c_str());
-		sprintf_s(vcString,"Hotkey >Disconnected Screen< : ");
-		stdString = std::string(vcString);
-		stdString.append(controls.GetKeyName(edgePeekHotkey));
-		if ((hotkeyCatch) && (entryID==12))
-			stdString = "Press the desired key.";
-		DrawMenuItem((LPCSTR)stdString.c_str());
+		
+		if (hotkeyCatch && (entryID==11)) {
+			DrawMenuItem("Press the desired key.");
+		} else {
+			DrawMenuItem(retprintf("Hotkey >Toggle VRBoost< : %s",
+				controls.GetKeyName(toggleVRBoostHotkey)));
+		}
+		
+		if (hotkeyCatch && (entryID==12)) {
+			DrawMenuItem("Press the desired key.");
+		} else {
+			DrawMenuItem(retprintf("Hotkey >Disconnected Screen< : %s",
+				controls.GetKeyName(edgePeekHotkey)));
+		}
+		
 		DrawMenuItem("Back to Main Menu");
 		DrawMenuItem("Back to Game");
 
@@ -1951,9 +1912,6 @@ void D3DProxyDevice::VPMENU_PosTracking()
 	{
 		VPMENU_StartDrawing("Settings - Positional Tracking", borderSelection);
 
-		menuHelperRect.top += 50;
-		menuHelperRect.left += 150;
-		
 		char vcString[128];
 		switch (m_bPosTrackingToggle)
 		{
@@ -1964,14 +1922,10 @@ void D3DProxyDevice::VPMENU_PosTracking()
 			DrawMenuItem("Positional Tracking (CTRL + P) : Off", COLOR_LIGHTRED);
 			break;
 		}
-		sprintf_s(vcString,"Position Tracking multiplier : %g", RoundVireioValue(config.position_multiplier));
-		DrawMenuItem(vcString);
-		sprintf_s(vcString,"Position X-Tracking multiplier : %g", RoundVireioValue(config.position_x_multiplier));
-		DrawMenuItem(vcString);
-		sprintf_s(vcString,"Position Y-Tracking multiplier : %g", RoundVireioValue(config.position_y_multiplier));
-		DrawMenuItem(vcString);
-		sprintf_s(vcString,"Position Z-Tracking multiplier : %g", RoundVireioValue(config.position_z_multiplier));
-		DrawMenuItem(vcString);
+		DrawMenuItem(retprintf("Position Tracking multiplier : %g", RoundVireioValue(config.position_multiplier)));
+		DrawMenuItem(retprintf("Position X-Tracking multiplier : %g", RoundVireioValue(config.position_x_multiplier)));
+		DrawMenuItem(retprintf("Position Y-Tracking multiplier : %g", RoundVireioValue(config.position_y_multiplier)));
+		DrawMenuItem(retprintf("Position Z-Tracking multiplier : %g", RoundVireioValue(config.position_z_multiplier)));
 		DrawMenuItem("Reset HMD Orientation (LSHIFT + R)");
 		DrawMenuItem("Duck-and-Cover Configuration");
 		DrawMenuItem("Back to Main Menu");
@@ -2015,7 +1969,7 @@ void D3DProxyDevice::VPMENU_DuckAndCover()
 	UINT borderSelection = entryID;
 	controls.UpdateXInputs();
 
-	if ((hotkeyCatch) && HotkeysActive())
+	if (hotkeyCatch && HotkeysActive())
 	{
 		for (int i = 0; i < 256; i++)
 			if (controls.Key_Down(i) && controls.GetKeyName(i)!="-")
@@ -2136,9 +2090,6 @@ void D3DProxyDevice::VPMENU_DuckAndCover()
 	{
 		VPMENU_StartDrawing("Settings - Duck-and-Cover", borderSelection);
 
-		menuHelperRect.top += 50;
-		menuHelperRect.left += 150;
-		
 		char vcString[128];
 
 		switch (m_DuckAndCover.crouchToggle)
@@ -2151,12 +2102,12 @@ void D3DProxyDevice::VPMENU_DuckAndCover()
 			break;
 		}
 
-		sprintf_s(vcString,"Crouch Key : ");
-		std::string stdString = std::string(vcString);
-		stdString.append(controls.GetKeyName(m_DuckAndCover.crouchKey));
-		if ((hotkeyCatch) && (entryID==CROUCH_KEY))
-			stdString = "Crouch Key : >Press the desired key<";
-		DrawMenuItem((LPCSTR)stdString.c_str());
+		if (hotkeyCatch && (entryID==CROUCH_KEY)) {
+			DrawMenuItem("Crouch Key : >Press the desired key<");
+		} else {
+			DrawMenuItem(retprintf("Crouch Key : %s",
+				controls.GetKeyName(m_DuckAndCover.crouchKey)));
+		}
 
 		if (!m_DuckAndCover.proneEnabled)
 		{
@@ -2175,24 +2126,24 @@ void D3DProxyDevice::VPMENU_DuckAndCover()
 			}
 		}
 
-		sprintf_s(vcString,"Prone Key : ");
-		stdString = std::string(vcString);
-		stdString.append(controls.GetKeyName(m_DuckAndCover.proneKey));
-		if ((hotkeyCatch) && (entryID==PRONE_KEY))
-			stdString = "Prone Key : >Press the desired key<";
-		DrawMenuItem((LPCSTR)stdString.c_str());
+		if (hotkeyCatch && (entryID==PRONE_KEY)) {
+			DrawMenuItem("Prone Key : >Press the desired key<");
+		} else {
+			DrawMenuItem(retprintf("Prone Key : %s",
+				controls.GetKeyName(m_DuckAndCover.proneKey)));
+		}
 
 		if (!m_DuckAndCover.jumpEnabled)
 			DrawMenuItem("Jump : Enabled");
 		else
 			DrawMenuItem("Jump : Disabled", COLOR_MENU_DISABLED);
 
-		sprintf_s(vcString,"Jump Key : ");
-		stdString = std::string(vcString);
-		stdString.append(controls.GetKeyName(m_DuckAndCover.jumpKey));
-		if ((hotkeyCatch) && (entryID==JUMP_KEY))
-			stdString = "Jump Key : >Press the desired key<";
-		DrawMenuItem((LPCSTR)stdString.c_str());
+		if (hotkeyCatch && (entryID==JUMP_KEY)) {
+			DrawMenuItem("Jump Key : >Press the desired key<");
+		} else {
+			DrawMenuItem(retprintf("Jump Key : %s",
+				controls.GetKeyName(m_DuckAndCover.jumpKey)));
+		}
 
 		DrawMenuItem("Calibrate Duck-and-Cover then Enable");
 
@@ -2243,7 +2194,7 @@ void D3DProxyDevice::VPMENU_ComfortMode()
 	UINT borderSelection = entryID;
 	controls.UpdateXInputs();
 
-	if ((hotkeyCatch) && HotkeysActive())
+	if (hotkeyCatch && HotkeysActive())
 	{
 		for (int i = 0; i < 256; i++)
 			if (controls.Key_Down(i) && controls.GetKeyName(i)!="-")
@@ -2318,10 +2269,6 @@ void D3DProxyDevice::VPMENU_ComfortMode()
 	{
 		VPMENU_StartDrawing("Settings - Comfort Mode", borderSelection);
 
-		menuHelperRect.top += 50;
-		menuHelperRect.left += 150;
-		char vcString[128];
-
 		if (VRBoostValue[VRboostAxis::ComfortMode] != 0.0f)
 		{
 			DrawMenuItem("Comfort Mode : Enabled");
@@ -2331,23 +2278,21 @@ void D3DProxyDevice::VPMENU_ComfortMode()
 			DrawMenuItem("Comfort Mode : Disabled");
 		}
 
-		sprintf_s(vcString,"Turn Left Key : ");
-		std::string stdString = std::string(vcString);
-		stdString.append(controls.GetKeyName(m_comfortModeLeftKey));
-		if ((hotkeyCatch) && (entryID==TURN_LEFT))
-			stdString = "Turn Left Key : >Press the desired key<";
-		DrawMenuItem((LPCSTR)stdString.c_str());
+		if (hotkeyCatch && (entryID==TURN_LEFT)) {
+			DrawMenuItem("Turn Left Key : >Press the desired key<");
+		} else {
+			DrawMenuItem(retprintf("Turn Left Key : %s",
+				controls.GetKeyName(m_comfortModeLeftKey)));
+		}
 
-		sprintf_s(vcString,"Turn Right Key : ");
-		stdString = std::string(vcString);
-		stdString.append(controls.GetKeyName(m_comfortModeRightKey));
-		if ((hotkeyCatch) && (entryID==TURN_RIGHT))
-			stdString = "Turn Right Key : >Press the desired key<";
-		DrawMenuItem((LPCSTR)stdString.c_str());
+		if (hotkeyCatch && (entryID==TURN_RIGHT)) {
+			DrawMenuItem("Turn Right Key : >Press the desired key<");
+		} else {
+			DrawMenuItem(retprintf("Turn Right Key : %s",
+				controls.GetKeyName(m_comfortModeRightKey)));
+		}
 
-		sprintf_s(vcString,"Yaw Rotation Increment : %.1f", m_comfortModeYawIncrement);
-		stdString = std::string(vcString);
-		DrawMenuItem((LPCSTR)stdString.c_str());
+		DrawMenuItem(retprintf("Yaw Rotation Increment : %.1f", m_comfortModeYawIncrement));
 
 		DrawMenuItem("Back to Main Menu");
 		DrawMenuItem("Back to Game");
@@ -2438,33 +2383,18 @@ void D3DProxyDevice::VPMENU_VRBoostValues()
 	{
 		VPMENU_StartDrawing("Settings - VRBoost", borderSelection);
 
-		menuHelperRect.top += 50;
-		menuHelperRect.left += 150;
-		char vcString[128];
-		sprintf_s(vcString,"World FOV : %g", RoundVireioValue(VRBoostValue[24]));
-		DrawMenuItem(vcString);
-		sprintf_s(vcString,"Player FOV : %g", RoundVireioValue(VRBoostValue[25]));
-		DrawMenuItem(vcString);
-		sprintf_s(vcString,"Far Plane FOV : %g", RoundVireioValue(VRBoostValue[26]));
-		DrawMenuItem(vcString);
-		sprintf_s(vcString,"Camera Translate X : %g", RoundVireioValue(VRBoostValue[27]));
-		DrawMenuItem(vcString);
-		sprintf_s(vcString,"Camera Translate Y : %g", RoundVireioValue(VRBoostValue[28]));
-		DrawMenuItem(vcString);
-		sprintf_s(vcString,"Camera Translate Z : %g", RoundVireioValue(VRBoostValue[29]));
-		DrawMenuItem(vcString);
-		sprintf_s(vcString,"Camera Distance : %g", RoundVireioValue(VRBoostValue[30]));
-		DrawMenuItem(vcString);
-		sprintf_s(vcString,"Camera Zoom : %g", RoundVireioValue(VRBoostValue[31]));
-		DrawMenuItem(vcString);
-		sprintf_s(vcString,"Camera Horizon Adjustment : %g", RoundVireioValue(VRBoostValue[32]));
-		DrawMenuItem(vcString);
-		sprintf_s(vcString,"Constant Value 1 : %g", RoundVireioValue(VRBoostValue[33]));
-		DrawMenuItem(vcString);
-		sprintf_s(vcString,"Constant Value 2 : %g", RoundVireioValue(VRBoostValue[34]));
-		DrawMenuItem(vcString);
-		sprintf_s(vcString,"Constant Value 2 : %g", RoundVireioValue(VRBoostValue[35]));
-		DrawMenuItem(vcString);
+		DrawMenuItem(retprintf("World FOV : %g", RoundVireioValue(VRBoostValue[24])));
+		DrawMenuItem(retprintf("Player FOV : %g", RoundVireioValue(VRBoostValue[25])));
+		DrawMenuItem(retprintf("Far Plane FOV : %g", RoundVireioValue(VRBoostValue[26])));
+		DrawMenuItem(retprintf("Camera Translate X : %g", RoundVireioValue(VRBoostValue[27])));
+		DrawMenuItem(retprintf("Camera Translate Y : %g", RoundVireioValue(VRBoostValue[28])));
+		DrawMenuItem(retprintf("Camera Translate Z : %g", RoundVireioValue(VRBoostValue[29])));
+		DrawMenuItem(retprintf("Camera Distance : %g", RoundVireioValue(VRBoostValue[30])));
+		DrawMenuItem(retprintf("Camera Zoom : %g", RoundVireioValue(VRBoostValue[31])));
+		DrawMenuItem(retprintf("Camera Horizon Adjustment : %g", RoundVireioValue(VRBoostValue[32])));
+		DrawMenuItem(retprintf("Constant Value 1 : %g", RoundVireioValue(VRBoostValue[33])));
+		DrawMenuItem(retprintf("Constant Value 2 : %g", RoundVireioValue(VRBoostValue[34])));
+		DrawMenuItem(retprintf("Constant Value 2 : %g", RoundVireioValue(VRBoostValue[35])));
 		DrawMenuItem("Back to Main Menu");
 		DrawMenuItem("Back to Game");
 
@@ -2514,9 +2444,7 @@ void D3DProxyDevice::VPMENU_UpdateBorder()
 			menuHelperRect.top = 0;
 			menuHelperRect.right = 50;
 			menuHelperRect.bottom = 50;
-			char buffer[4];
-			sprintf_s(buffer, "'");
-			hudFont->DrawText(hackSprite, buffer, -1, &menuHelperRect, DT_LEFT, COLOR_RED);
+			hudFont->DrawText(hackSprite, "'", -1, &menuHelperRect, DT_LEFT, COLOR_RED);
 			D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
 			hackSprite->Draw(NULL, &menuHelperRect, NULL, &vPos, COLOR_WHITE);
 			hackSprite->End();

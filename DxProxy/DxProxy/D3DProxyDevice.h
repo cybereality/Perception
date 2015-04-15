@@ -466,7 +466,9 @@ protected:
 	void         DrawScrollbar(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color, float scroll, int scrollbarSize);
 	void         DrawTextShadowed(ID3DXFont* font, LPD3DXSPRITE sprite, LPCSTR lpchText, int cchText, LPRECT lprc, UINT format, D3DCOLOR color);
 	void         DrawTextShadowed(ID3DXFont* font, LPD3DXSPRITE sprite, const char *text, LPRECT lprc, D3DCOLOR color);
+	void         DrawTextShadowed(ID3DXFont* font, LPD3DXSPRITE sprite, std::string text, LPRECT lprc, D3DCOLOR color);
 	void         DrawMenuItem(const char *text, D3DCOLOR color=COLOR_MENU_TEXT);
+	void         DrawMenuItem(std::string text, D3DCOLOR color=COLOR_MENU_TEXT);
 	void         ChangeHUD3DDepthMode(HUD_3D_Depth_Modes newMode);
 	void         ChangeGUI3DDepthMode(GUI_3D_Depth_Modes newMode);
 	void         VPMENU_NewFrame(UINT &entryID, UINT menuEntryCount);

@@ -817,9 +817,6 @@ void DataGatherer::VPMENU_ShaderSubMenu()
 	{
 		VPMENU_StartDrawing("Shader Analyser", entryID);
 
-		menuHelperRect.top += 50;
-		menuHelperRect.left += 150;
-		
 		DrawMenuItem("Create new Shader Rules");
 		DrawMenuItem("Change current Shader Rules");
 		//DrawMenuItem("Pick Rules by active Shaders");
@@ -1274,20 +1271,16 @@ void DataGatherer::VPMENU_ShowActiveShaders()
 
 		menuID.push_back(itVShaderHash->first);
 
-		char buf[256];
 		if (!visible)
 		{
 			menuColor.push_back(0);
-			sprintf_s(buf, 256, "VS : (%u)", itVShaderHash->first);
+			menuEntries.push_back(retprintf("VS : (%u)", itVShaderHash->first));
 		}
 		else
 		{
 			menuColor.push_back(excluded ? 1 : 2);
-			sprintf_s(buf, 256, "VS : %u", itVShaderHash->first);
+			menuEntries.push_back(retprintf("VS : %u", itVShaderHash->first));
 		}
-
-		menuEntry = std::string(buf);
-		menuEntries.push_back(menuEntry);
 
 		menuEntryCount++;
 		++itVShaderHash;
@@ -1323,20 +1316,16 @@ void DataGatherer::VPMENU_ShowActiveShaders()
 
 		menuID.push_back(itPShaderHash->first);
 
-		char buf[256];
 		if (!visible)
 		{
 			menuColor.push_back(0);
-			sprintf_s(buf, 256, "PS : (%u)", itPShaderHash->first);
+			menuEntries.push_back(retprintf("PS : (%u)", itPShaderHash->first));
 		}
 		else
 		{
 			menuColor.push_back(excluded ? 1 : 2);
-			sprintf_s(buf, 256, "PS : %u", itPShaderHash->first);
+			menuEntries.push_back(retprintf("PS : %u", itPShaderHash->first));
 		}
-
-		menuEntry = std::string(buf);
-		menuEntries.push_back(menuEntry);
 
 		menuEntryCount++;
 		++itPShaderHash;

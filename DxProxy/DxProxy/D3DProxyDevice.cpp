@@ -3585,9 +3585,20 @@ void D3DProxyDevice::DrawTextShadowed(ID3DXFont* font, LPD3DXSPRITE sprite, cons
 	DrawTextShadowed(font, sprite, text, -1, rect, 0, color);
 }
 
+void D3DProxyDevice::DrawTextShadowed(ID3DXFont* font, LPD3DXSPRITE sprite, std::string text, LPRECT rect, D3DCOLOR color)
+{
+	DrawTextShadowed(font, sprite, text.c_str(), -1, rect, 0, color);
+}
+
 void D3DProxyDevice::DrawMenuItem(const char *text, D3DCOLOR color)
 {
 	DrawTextShadowed(hudFont, hudMainMenu, text, &menuHelperRect, color);
+	menuHelperRect.top += MENU_ITEM_SEPARATION;
+}
+
+void D3DProxyDevice::DrawMenuItem(std::string text, D3DCOLOR color)
+{
+	DrawTextShadowed(hudFont, hudMainMenu, text.c_str(), &menuHelperRect, color);
 	menuHelperRect.top += MENU_ITEM_SEPARATION;
 }
 
