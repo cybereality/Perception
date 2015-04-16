@@ -406,10 +406,10 @@ void D3DProxyDevice::VPMENU_MainMenu()
 		DrawMenuItem("Convergence Adjustment\n");
 		DrawMenuItem("HUD Calibration\n");
 		DrawMenuItem("GUI Calibration\n");
-		DrawMenuItem("HUD Quick Setting : \n");
 		float hudQSTop = (float)menuHelperRect.top * fScaleY;
-		DrawMenuItem("GUI Quick Setting : \n");
+		DrawMenuItem("HUD Quick Setting : \n");
 		float guiQSTop = (float)menuHelperRect.top * fScaleY;
+		DrawMenuItem("GUI Quick Setting : \n");
 		DrawMenuItem("Overall Settings\n");
 		DrawMenuItem("VRBoost Values\n");
 		DrawMenuItem("Position Tracking Configuration\n");
@@ -1046,7 +1046,6 @@ void D3DProxyDevice::VPMENU_HUD()
 		default:
 			break;
 		}
-		char vcString[128];
 		DrawMenuItem(retprintf("HUD Distance : %g", RoundVireioValue(hudDistancePresets[(int)hud3DDepthMode])));
 		DrawMenuItem(retprintf("HUD's 3D Depth : %g", RoundVireioValue(hud3DDepthPresets[(int)hud3DDepthMode])));
 		
@@ -1241,7 +1240,6 @@ void D3DProxyDevice::VPMENU_GUI()
 		default:
 			break;
 		}
-		char vcString[128];
 		DrawMenuItem(retprintf("GUI Size : %g", RoundVireioValue(guiSquishPresets[(int)gui3DDepthMode])));
 		DrawMenuItem(retprintf("GUI's 3D Depth : %g", RoundVireioValue(gui3DDepthPresets[(int)gui3DDepthMode])));
 		
@@ -1912,7 +1910,6 @@ void D3DProxyDevice::VPMENU_PosTracking()
 	{
 		VPMENU_StartDrawing("Settings - Positional Tracking", borderSelection);
 
-		char vcString[128];
 		switch (m_bPosTrackingToggle)
 		{
 		case true:
@@ -2089,8 +2086,6 @@ void D3DProxyDevice::VPMENU_DuckAndCover()
 	if (hudFont)
 	{
 		VPMENU_StartDrawing("Settings - Duck-and-Cover", borderSelection);
-
-		char vcString[128];
 
 		switch (m_DuckAndCover.crouchToggle)
 		{
