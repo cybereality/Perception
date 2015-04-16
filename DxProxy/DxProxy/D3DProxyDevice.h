@@ -484,6 +484,7 @@ protected:
 	bool         VPMENU_Input_Selected();
 	bool         VPMENU_Input_Left();
 	bool         VPMENU_Input_Right();
+	float        VPMENU_Input_SpeedModifier();
 	virtual void VPMENU_ShaderSubMenu(){}
 	virtual void VPMENU_ChangeRules(){}
 	virtual void VPMENU_PickRules(){}
