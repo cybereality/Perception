@@ -481,6 +481,9 @@ protected:
 	void         VPMENU_NewFrame(UINT &entryID, UINT menuEntryCount);
 	void         VPMENU_StartDrawing(const char *pageTitle, int borderSelection);
 	void         VPMENU_FinishDrawing();
+	bool         VPMENU_Input_Selected();
+	bool         VPMENU_Input_Left();
+	bool         VPMENU_Input_Right();
 	virtual void VPMENU_ShaderSubMenu(){}
 	virtual void VPMENU_ChangeRules(){}
 	virtual void VPMENU_PickRules(){}

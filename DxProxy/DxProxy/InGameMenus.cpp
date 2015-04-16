@@ -117,6 +117,9 @@ void D3DProxyDevice::VPMENU_NewFrame(UINT &entryID, UINT menuEntryCount)
 {
 	SHOW_CALL("VPMENU_NewFrame");
 	
+	menuHelperRect.left = 0;
+	menuHelperRect.top = 0;
+
 	// set menu entry attraction
 	menuAttraction.y = ((borderTopHeight-menuTop)/menuEntryHeight);
 	menuAttraction.y -= (float)((UINT)menuAttraction.y);
@@ -188,6 +191,25 @@ void D3DProxyDevice::VPMENU_FinishDrawing()
 	hudMainMenu->End();
 }
 
+bool D3DProxyDevice::VPMENU_Input_Selected()
+{
+	if(!HotkeysActive())
+		return false;
+	return (controls.Key_Down(VK_RETURN)
+		|| controls.Key_Down(VK_RSHIFT)
+		|| controls.xButtonsStatus[0x0c]);
+}
+
+bool D3DProxyDevice::VPMENU_Input_Left()
+{
+	return (controls.Key_Down(VK_LEFT) || controls.Key_Down('J') || (controls.xInputState.Gamepad.sThumbLX<-8192));
+}
+
+bool D3DProxyDevice::VPMENU_Input_Right()
+{
+	return (controls.Key_Down(VK_RIGHT) || controls.Key_Down('L') || (controls.xInputState.Gamepad.sThumbLX>8192));
+}
+
 
 /**
 * VP menu main method.
@@ -253,9 +275,6 @@ void D3DProxyDevice::VPMENU_MainMenu()
 	UINT menuEntryCount = 12;
 	if (config.game_type > 10000) menuEntryCount++;
 
-	menuHelperRect.left = 0;
-	menuHelperRect.top = 0;
-
 	UINT entryID;
 	VPMENU_NewFrame(entryID, menuEntryCount);
 	UINT borderSelection = entryID;
@@ -271,7 +290,7 @@ void D3DProxyDevice::VPMENU_MainMenu()
 		VPMENU_UpdateConfigSettings();
 	}
 
-	if ((controls.Key_Down(VK_RETURN) || controls.Key_Down(VK_RSHIFT) || (controls.xButtonsStatus[0x0c])) && HotkeysActive())
+	if (VPMENU_Input_Selected())
 	{
 		// shader analyzer sub menu
 		if (entryID == 0)
@@ -350,7 +369,7 @@ void D3DProxyDevice::VPMENU_MainMenu()
 		}
 	}
 
-	if (controls.Key_Down(VK_LEFT) || controls.Key_Down('J') || (controls.xInputState.Gamepad.sThumbLX<-8192))
+	if (VPMENU_Input_Left())
 	{
 		// change hud scale 
 		if ((entryID == 5) && HotkeysActive())
@@ -369,7 +388,7 @@ void D3DProxyDevice::VPMENU_MainMenu()
 		}
 	}
 
-	if (controls.Key_Down(VK_RIGHT) || controls.Key_Down('L') || (controls.xInputState.Gamepad.sThumbLX>8192))
+	if (VPMENU_Input_Right())
 	{
 		// change hud scale 
 		if ((entryID == 5) && HotkeysActive())
@@ -448,7 +467,7 @@ void D3DProxyDevice::VPMENU_WorldScale()
 	std::sort (m_gameXScaleUnits.begin(), m_gameXScaleUnits.end());
 
 	// enter ? rshift ? increase gameXScaleUnitIndex
-	if ((controls.Key_Down(VK_RETURN) || controls.Key_Down(VK_RSHIFT) || (controls.xButtonsStatus[0x0c])) && HotkeysActive())
+	if (VPMENU_Input_Selected())
 	{
 		if (controls.Key_Down(VK_LSHIFT))
 		{
@@ -475,7 +494,7 @@ void D3DProxyDevice::VPMENU_WorldScale()
 	/**
 	* LEFT : Decrease world scale (hold CTRL to lower speed, SHIFT to speed up)
 	***/
-	if((controls.Key_Down(VK_LEFT) || controls.Key_Down('J') || (controls.xInputState.Gamepad.sThumbLX<-8192)) && (menuVelocity.x == 0.0f))
+	if (VPMENU_Input_Left() && menuVelocity.x == 0.0f)
 	{
 		if(controls.Key_Down(VK_LCONTROL)) {
 			separationChange /= 10.0f;
@@ -500,7 +519,7 @@ void D3DProxyDevice::VPMENU_WorldScale()
 	/**
 	* RIGHT : Increase world scale (hold CTRL to lower speed, SHIFT to speed up)
 	***/
-	if((controls.Key_Down(VK_RIGHT) || controls.Key_Down('L') || (controls.xInputState.Gamepad.sThumbLX>8192)) && (menuVelocity.x == 0.0f))
+	if(VPMENU_Input_Right() && menuVelocity.x == 0.0f)
 	{
 		if(controls.Key_Down(VK_LCONTROL)) {
 			separationChange /= 10.0f;
@@ -722,7 +741,7 @@ void D3DProxyDevice::VPMENU_Convergence()
 	/**
 	* LEFT : Decrease convergence (hold CTRL to lower speed, SHIFT to speed up)
 	***/
-	if((controls.Key_Down(VK_LEFT) || controls.Key_Down('J') || (controls.xInputState.Gamepad.sThumbLX<-8192)) && (menuVelocity.x == 0.0f))
+	if (VPMENU_Input_Left() && menuVelocity.x==0.0f)
 	{
 		if(controls.Key_Down(VK_LCONTROL)) {
 			convergenceChange /= 10.0f;
@@ -743,7 +762,7 @@ void D3DProxyDevice::VPMENU_Convergence()
 	/**
 	* RIGHT : Increase convergence (hold CTRL to lower speed, SHIFT to speed up)
 	***/
-	if((controls.Key_Down(VK_RIGHT) || controls.Key_Down('L') || (controls.xInputState.Gamepad.sThumbLX>8192)) && (menuVelocity.x == 0.0f))
+	if(VPMENU_Input_Right() && menuVelocity.x == 0.0f)
 	{
 		if(controls.Key_Down(VK_LCONTROL)) {
 			convergenceChange /= 10.0f;
@@ -896,12 +915,8 @@ void D3DProxyDevice::VPMENU_HUD()
 	
 	UINT menuEntryCount = 10;
 
-	menuHelperRect.left = 0;
-	menuHelperRect.top = 0;
-
 	UINT entryID;
 	VPMENU_NewFrame(entryID, menuEntryCount);
-	UINT borderSelection = entryID;
 
 	if (hotkeyCatch && HotkeysActive())
 	{
@@ -922,7 +937,7 @@ void D3DProxyDevice::VPMENU_HUD()
 			VPMENU_UpdateConfigSettings();
 		}
 
-		if ((controls.Key_Down(VK_RETURN) || controls.Key_Down(VK_RSHIFT) || (controls.xButtonsStatus[0x0c])) && HotkeysActive())
+		if (VPMENU_Input_Selected())
 		{
 			if ((entryID >= 3) && (entryID <= 7) && HotkeysActive())
 			{
@@ -955,7 +970,7 @@ void D3DProxyDevice::VPMENU_HUD()
 			}
 		}
 
-		if (controls.Key_Down(VK_LEFT) || controls.Key_Down('J') || (controls.xInputState.Gamepad.sThumbLX<-8192))
+		if (VPMENU_Input_Left())
 		{
 			if ((entryID == 0) && HotkeysActive())
 			{
@@ -985,7 +1000,7 @@ void D3DProxyDevice::VPMENU_HUD()
 			}
 		}
 
-		if (controls.Key_Down(VK_RIGHT) || controls.Key_Down('L') || (controls.xInputState.Gamepad.sThumbLX>8192))
+		if (VPMENU_Input_Right())
 		{
 			// change hud scale
 			if ((entryID == 0) && HotkeysActive())
@@ -1019,7 +1034,7 @@ void D3DProxyDevice::VPMENU_HUD()
 	// output menu
 	if (hudFont)
 	{
-		VPMENU_StartDrawing("Settings - HUD", borderSelection);
+		VPMENU_StartDrawing("Settings - HUD", entryID);
 
 		float hudQSHeight = (float)menuHelperRect.top * fScaleY;
 		switch (hud3DDepthMode)
@@ -1089,12 +1104,8 @@ void D3DProxyDevice::VPMENU_GUI()
 	
 	UINT menuEntryCount = 10;
 
-	menuHelperRect.left = 0;
-	menuHelperRect.top = 0;
-
 	UINT entryID;
 	VPMENU_NewFrame(entryID, menuEntryCount);
-	UINT borderSelection = entryID;
 
 	if (hotkeyCatch && HotkeysActive())
 	{
@@ -1115,7 +1126,7 @@ void D3DProxyDevice::VPMENU_GUI()
 			VPMENU_UpdateConfigSettings();
 		}
 
-		if ((controls.Key_Down(VK_RETURN) || controls.Key_Down(VK_RSHIFT) || (controls.xButtonsStatus[0x0c])) && HotkeysActive())
+		if (VPMENU_Input_Selected())
 		{
 			if ((entryID >= 3) && (entryID <= 7) && HotkeysActive())
 			{
@@ -1147,7 +1158,7 @@ void D3DProxyDevice::VPMENU_GUI()
 			}
 		}
 
-		if (controls.Key_Down(VK_LEFT) || controls.Key_Down('J') || (controls.xInputState.Gamepad.sThumbLX<-8192))
+		if (VPMENU_Input_Left())
 		{
 			if ((entryID == 0) && HotkeysActive())
 			{
@@ -1177,7 +1188,7 @@ void D3DProxyDevice::VPMENU_GUI()
 			}
 		}
 
-		if (controls.Key_Down(VK_RIGHT) || controls.Key_Down('L') || (controls.xInputState.Gamepad.sThumbLX>8192))
+		if (VPMENU_Input_Right())
 		{
 			// change gui scale
 			if ((entryID == 0) && HotkeysActive())
@@ -1211,7 +1222,7 @@ void D3DProxyDevice::VPMENU_GUI()
 	// output menu
 	if (hudFont)
 	{
-		VPMENU_StartDrawing("Settings - GUI", borderSelection);
+		VPMENU_StartDrawing("Settings - GUI", entryID);
 
 		float guiQSTop = (float)menuHelperRect.top * fScaleY;
 		
@@ -1303,12 +1314,8 @@ void D3DProxyDevice::VPMENU_Settings()
 
 	UINT menuEntryCount = NUM_MENU_ITEMS;
 
-	menuHelperRect.left = 0;
-	menuHelperRect.top = 0;
-
 	UINT entryID;
 	VPMENU_NewFrame(entryID, menuEntryCount);
-	UINT borderSelection = entryID;
 
 	if (hotkeyCatch && HotkeysActive())
 	{
@@ -1333,7 +1340,7 @@ void D3DProxyDevice::VPMENU_Settings()
 			VPMENU_UpdateConfigSettings();
 		}
 
-		if ((controls.Key_Down(VK_RETURN) || controls.Key_Down(VK_RSHIFT) || (controls.xButtonsStatus[0x0c])) && HotkeysActive())
+		if (VPMENU_Input_Selected())
 		{
 			// swap eyes
 			if (entryID == SWAP_EYES)
@@ -1465,7 +1472,7 @@ void D3DProxyDevice::VPMENU_Settings()
 			}
 		}
 
-		if ((controls.Key_Down(VK_LEFT) || controls.Key_Down('J') || (controls.xInputState.Gamepad.sThumbLX<-8192)) && HotkeysActive())
+		if (VPMENU_Input_Left() && HotkeysActive())
 		{
 			// swap eyes
 			if (entryID == SWAP_EYES)
@@ -1555,7 +1562,7 @@ void D3DProxyDevice::VPMENU_Settings()
 			}
 		}
 
-		if ((controls.Key_Down(VK_RIGHT) || controls.Key_Down('L') || (controls.xInputState.Gamepad.sThumbLX>8192)) && HotkeysActive())
+		if (VPMENU_Input_Right() && HotkeysActive())
 		{
 			// swap eyes
 			if (entryID == SWAP_EYES)
@@ -1565,8 +1572,8 @@ void D3DProxyDevice::VPMENU_Settings()
 			}
 			// ipd-offset
 			if (entryID == IPD_OFFSET)
- 			{
- 				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down('L'))
+			{
+				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down('L'))
 				{
 					if (this->stereoView->IPDOffset < 0.1f)
 						this->stereoView->IPDOffset += 0.001f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
@@ -1581,8 +1588,8 @@ void D3DProxyDevice::VPMENU_Settings()
 			}
 			// y-offset
 			if (entryID == Y_OFFSET)
- 			{
- 				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down('L'))
+			{
+				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down('L'))
 				{
 					if (this->stereoView->YOffset < 0.1f)
 						this->stereoView->YOffset += 0.001f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
@@ -1647,7 +1654,7 @@ void D3DProxyDevice::VPMENU_Settings()
 	// output menu
 	if (hudFont)
 	{
-		VPMENU_StartDrawing("Settings - General", borderSelection);
+		VPMENU_StartDrawing("Settings - General", entryID);
 
 		DrawMenuItem(retprintf("Swap Eyes : %s", stereoView->swapEyes ? "True" : "False"));
 		DrawMenuItem(retprintf("IPD-Offset : %1.3f", RoundVireioValue(this->stereoView->IPDOffset)));
@@ -1723,12 +1730,8 @@ void D3DProxyDevice::VPMENU_PosTracking()
 
 	UINT menuEntryCount = NUM_MENU_ITEMS;
 
-	menuHelperRect.left = 0;
-	menuHelperRect.top = 0;
-
 	UINT entryID;
 	VPMENU_NewFrame(entryID, menuEntryCount);
-	UINT borderSelection = entryID;
 
 	/**
 	* ESCAPE : Set menu inactive and save the configuration.
@@ -1739,7 +1742,7 @@ void D3DProxyDevice::VPMENU_PosTracking()
 		VPMENU_UpdateConfigSettings();
 	}
 
-	if ((controls.Key_Down(VK_RETURN) || controls.Key_Down(VK_RSHIFT) || (controls.xButtonsStatus[0x0c])) && HotkeysActive())
+	if (VPMENU_Input_Selected())
 	{
 		// toggle position tracking
 		if (entryID == TOGGLE_TRACKING)
@@ -1805,7 +1808,7 @@ void D3DProxyDevice::VPMENU_PosTracking()
 		}
 	}
 
-	if ((controls.Key_Down(VK_LEFT) || controls.Key_Down('J') || (controls.xInputState.Gamepad.sThumbLX<-8192)) && HotkeysActive())
+	if (VPMENU_Input_Left() && HotkeysActive())
 	{
 		// overall position multiplier
 		if (entryID == TRACKING_MULT)
@@ -1849,7 +1852,7 @@ void D3DProxyDevice::VPMENU_PosTracking()
 	}
 
 
-	if ((controls.Key_Down(VK_RIGHT) || controls.Key_Down('L') || (controls.xInputState.Gamepad.sThumbLX>8192)) && HotkeysActive())
+	if (VPMENU_Input_Right() && HotkeysActive())
 	{
 		// overall position multiplier
 		if (entryID == TRACKING_MULT)
@@ -1896,7 +1899,7 @@ void D3DProxyDevice::VPMENU_PosTracking()
 	// output menu
 	if (hudFont)
 	{
-		VPMENU_StartDrawing("Settings - Positional Tracking", borderSelection);
+		VPMENU_StartDrawing("Settings - Positional Tracking", entryID);
 
 		switch (m_bPosTrackingToggle)
 		{
@@ -1944,12 +1947,8 @@ void D3DProxyDevice::VPMENU_DuckAndCover()
 
 	UINT menuEntryCount = NUM_MENU_ITEMS;
 
-	menuHelperRect.left = 0;
-	menuHelperRect.top = 0;
-
 	UINT entryID;
 	VPMENU_NewFrame(entryID, menuEntryCount);
-	UINT borderSelection = entryID;
 	controls.UpdateXInputs();
 
 	if (hotkeyCatch && HotkeysActive())
@@ -1980,7 +1979,7 @@ void D3DProxyDevice::VPMENU_DuckAndCover()
 			VPMENU_UpdateConfigSettings();
 		}
 
-		if ((controls.Key_Down(VK_RETURN) || controls.Key_Down(VK_RSHIFT) || (controls.xButtonsStatus[0x0c])) && HotkeysActive())
+		if (VPMENU_Input_Selected())
 		{
 			if (entryID == CROUCH_KEY)
 			{
@@ -2071,7 +2070,7 @@ void D3DProxyDevice::VPMENU_DuckAndCover()
 	// output menu
 	if (hudFont)
 	{
-		VPMENU_StartDrawing("Settings - Duck-and-Cover", borderSelection);
+		VPMENU_StartDrawing("Settings - Duck-and-Cover", entryID);
 
 		switch (m_DuckAndCover.crouchToggle)
 		{
@@ -2165,12 +2164,8 @@ void D3DProxyDevice::VPMENU_ComfortMode()
 
 	UINT menuEntryCount = NUM_MENU_ITEMS;
 
-	menuHelperRect.left = 0;
-	menuHelperRect.top = 0;
-
 	UINT entryID;
 	VPMENU_NewFrame(entryID, menuEntryCount);
-	UINT borderSelection = entryID;
 	controls.UpdateXInputs();
 
 	if (hotkeyCatch && HotkeysActive())
@@ -2197,7 +2192,7 @@ void D3DProxyDevice::VPMENU_ComfortMode()
 			VPMENU_UpdateConfigSettings();
 		}
 
-		if ((controls.Key_Down(VK_RETURN) || controls.Key_Down(VK_RSHIFT) || (controls.xButtonsStatus[0x0c])) && HotkeysActive())
+		if (VPMENU_Input_Selected())
 		{
 			if (entryID == COMFORT_MODE_ENABLED)
 			{
@@ -2246,7 +2241,7 @@ void D3DProxyDevice::VPMENU_ComfortMode()
 	// output menu
 	if (hudFont)
 	{
-		VPMENU_StartDrawing("Settings - Comfort Mode", borderSelection);
+		VPMENU_StartDrawing("Settings - Comfort Mode", entryID);
 
 		if (VRBoostValue[VRboostAxis::ComfortMode] != 0.0f)
 		{
@@ -2289,12 +2284,8 @@ void D3DProxyDevice::VPMENU_VRBoostValues()
 	
 	UINT menuEntryCount = 14;
 
-	menuHelperRect.left = 0;
-	menuHelperRect.top = 0;
-
 	UINT entryID;
 	VPMENU_NewFrame(entryID, menuEntryCount);
-	UINT borderSelection = entryID;
 
 	/**
 	* ESCAPE : Set menu inactive and save the configuration.
@@ -2305,7 +2296,7 @@ void D3DProxyDevice::VPMENU_VRBoostValues()
 		VPMENU_UpdateConfigSettings();
 	}
 
-	if ((controls.Key_Down(VK_RETURN) || controls.Key_Down(VK_RSHIFT) || (controls.xButtonsStatus[0x0c])) && HotkeysActive())
+	if (VPMENU_Input_Selected())
 	{
 		// back to main menu
 		if (entryID == 12)
@@ -2321,7 +2312,7 @@ void D3DProxyDevice::VPMENU_VRBoostValues()
 		}
 	}
 
-	if ((controls.Key_Down(VK_LEFT) || controls.Key_Down('J') || (controls.xInputState.Gamepad.sThumbLX<-8192)) && HotkeysActive())
+	if (VPMENU_Input_Left() && HotkeysActive())
 	{
 		// change value
 		if ((entryID >= 0) && (entryID <=11))
@@ -2334,7 +2325,7 @@ void D3DProxyDevice::VPMENU_VRBoostValues()
 		}
 	}
 
-	if ((controls.Key_Down(VK_RIGHT) || controls.Key_Down('L') || (controls.xInputState.Gamepad.sThumbLX>8192)) && HotkeysActive())
+	if (VPMENU_Input_Right() && HotkeysActive())
 	{
 		// change value
 		if ((entryID >= 0) && (entryID <=11))
@@ -2359,7 +2350,7 @@ void D3DProxyDevice::VPMENU_VRBoostValues()
 	// output menu
 	if (hudFont)
 	{
-		VPMENU_StartDrawing("Settings - VRBoost", borderSelection);
+		VPMENU_StartDrawing("Settings - VRBoost", entryID);
 
 		DrawMenuItem(retprintf("World FOV : %g", RoundVireioValue(VRBoostValue[24])));
 		DrawMenuItem(retprintf("Player FOV : %g", RoundVireioValue(VRBoostValue[25])));

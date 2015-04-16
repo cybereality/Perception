@@ -726,9 +726,6 @@ void DataGatherer::VPMENU_ShaderSubMenu()
 {
 	UINT menuEntryCount = 6;
 
-	menuHelperRect.left = 0;
-	menuHelperRect.top = 0;
-	
 	UINT entryID;
 	VPMENU_NewFrame(entryID, menuEntryCount);
 
@@ -740,7 +737,7 @@ void DataGatherer::VPMENU_ShaderSubMenu()
 		VPMENU_mode = VPMENU_Modes::INACTIVE;
 	}
 
-	if ((controls.Key_Down(VK_RETURN) || controls.Key_Down(VK_RSHIFT) || (controls.xButtonsStatus[0x0c])) && HotkeysActive())
+	if (VPMENU_Input_Selected())
 	{
 		// 
 		if (entryID == 0)
@@ -834,9 +831,6 @@ void DataGatherer::VPMENU_ShaderSubMenu()
 ***/
 void DataGatherer::VPMENU_ChangeRules()
 {
-	menuHelperRect.left = 0;
-	menuHelperRect.top = 0;
-
 	UINT menuEntryCount = 2;
 	UINT constantIndex = 0;
 	std::vector<std::string> menuEntries;
@@ -898,7 +892,6 @@ void DataGatherer::VPMENU_ChangeRules()
 
 	UINT entryID;
 	VPMENU_NewFrame(entryID, menuEntryCount);
-	UINT borderSelection = entryID;
 
 	/**
 	* ESCAPE : Set BRASSA inactive and save the configuration.
@@ -908,7 +901,7 @@ void DataGatherer::VPMENU_ChangeRules()
 		VPMENU_mode = VPMENU_Modes::INACTIVE;
 	}
 
-	if ((controls.Key_Down(VK_RETURN) || controls.Key_Down(VK_RSHIFT) || (controls.xButtonsStatus[0x0c])) && HotkeysActive())
+	if (VPMENU_Input_Selected())
 	{
 		// switch shader rule node
 		if ((entryID >= 0) && (entryID < menuEntryCount-2) && (menuEntryCount>2))
@@ -1063,7 +1056,7 @@ void DataGatherer::VPMENU_ChangeRules()
 		}
 	}
 
-	if ((controls.Key_Down(VK_LEFT) || controls.Key_Down(0x4A) || (controls.xInputState.Gamepad.sThumbLX<-8192)) && HotkeysActive())
+	if (VPMENU_Input_Left() && HotkeysActive())
 	{
 		// switch shader rule node
 		if ((entryID >= 0) && (entryID < menuEntryCount-2) && (menuEntryCount>2))
@@ -1114,7 +1107,7 @@ void DataGatherer::VPMENU_ChangeRules()
 		HotkeyCooldown(2.0f);
 	}
 
-	if ((controls.Key_Down(VK_RIGHT) || controls.Key_Down(0x4C) || (controls.xInputState.Gamepad.sThumbLX>8192)) && HotkeysActive())
+	if (VPMENU_Input_Right() && HotkeysActive())
 	{
 		// switch shader rule node
 		if ((entryID >= 0) && (entryID < menuEntryCount-2) && (menuEntryCount>2))
@@ -1242,9 +1235,6 @@ void DataGatherer::VPMENU_ShowActiveShaders()
 	if (m_activePShaders.size() == 0)
 		return;
 
-	menuHelperRect.left = 0;
-	menuHelperRect.top = 0;
-	
 	UINT menuEntryCount = 2;
 	std::vector<std::string> menuEntries;
 	std::vector<int> menuColor;
@@ -1342,7 +1332,6 @@ void DataGatherer::VPMENU_ShowActiveShaders()
 
 	UINT entryID;
 	VPMENU_NewFrame(entryID, menuEntryCount);
-	UINT borderSelection = entryID;
 
 	/**
 	* ESCAPE : Set BRASSA inactive and save the configuration.
@@ -1352,7 +1341,7 @@ void DataGatherer::VPMENU_ShowActiveShaders()
 		VPMENU_mode = VPMENU_Modes::INACTIVE;
 	}
 
-	if ((controls.Key_Down(VK_RETURN) || controls.Key_Down(VK_RSHIFT) || (controls.xButtonsStatus[0x0c])) && HotkeysActive())
+	if (VPMENU_Input_Selected())
 	{
 		// switch shader node (drawn/not-drawn)
 		if ((entryID >= 0) && (entryID < menuEntryCount-2) && (menuEntryCount>2))
