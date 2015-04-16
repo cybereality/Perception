@@ -98,11 +98,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // Define SHOW_CALLS to have each method output a debug string when it is invoked
 //#define SHOW_CALLS
+
 class StereoView;
 class D3D9ProxySwapChain;
 class ShaderRegisters;
 class GameHandler;
 struct HMDisplayInfo;
+
+#ifdef SHOW_CALLS
+	#define SHOW_CALL(name) OutputDebugString("Called " name)
+#else
+	#define SHOW_CALL(name)
+#endif
 
 
 /**

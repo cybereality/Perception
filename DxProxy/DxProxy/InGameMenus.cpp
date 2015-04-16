@@ -53,9 +53,8 @@ using namespace vireio;
 
 bool D3DProxyDevice::InitVPMENU()
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called InitVPMENU");
-	#endif
+	SHOW_CALL("InitVPMENU");
+	
 	hudFont = NULL;
 	menuTime = (float)GetTickCount()/1000.0f;
 	ZeroMemory(&m_configBackup, sizeof(m_configBackup));
@@ -116,9 +115,8 @@ bool D3DProxyDevice::InitVPMENU()
 ***/
 void D3DProxyDevice::VPMENU_NewFrame(UINT &entryID, UINT menuEntryCount)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called VPMENU_NewFrame");
-	#endif
+	SHOW_CALL("VPMENU_NewFrame");
+	
 	// set menu entry attraction
 	menuAttraction.y = ((borderTopHeight-menuTop)/menuEntryHeight);
 	menuAttraction.y -= (float)((UINT)menuAttraction.y);
@@ -196,9 +194,8 @@ void D3DProxyDevice::VPMENU_FinishDrawing()
 ***/
 void D3DProxyDevice::VPMENU()
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called VPMENU");
-	#endif
+	SHOW_CALL("VPMENU");
+	
 	switch (VPMENU_mode)
 	{
 	case D3DProxyDevice::MAINMENU:
@@ -251,9 +248,8 @@ void D3DProxyDevice::VPMENU()
 ***/
 void D3DProxyDevice::VPMENU_MainMenu()
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called VPMENU_MainMenu");
-	#endif
+	SHOW_CALL("VPMENU_MainMenu");
+	
 	UINT menuEntryCount = 12;
 	if (config.game_type > 10000) menuEntryCount++;
 
@@ -437,9 +433,8 @@ void D3DProxyDevice::VPMENU_MainMenu()
 ***/
 void D3DProxyDevice::VPMENU_WorldScale()
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called VPMENU_WorldScale");
-	#endif
+	SHOW_CALL("VPMENU_WorldScale");
+	
 	// base values
 	float separationChange = 0.005f;
 	static UINT gameXScaleUnitIndex = 0;
@@ -705,9 +700,8 @@ void D3DProxyDevice::VPMENU_WorldScale()
 ***/
 void D3DProxyDevice::VPMENU_Convergence()
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called VPMENU_Convergence");
-	#endif
+	SHOW_CALL("VPMENU_Convergence");
+	
 	// base values
 	float convergenceChange = 0.05f;
 
@@ -898,9 +892,8 @@ void D3DProxyDevice::VPMENU_Convergence()
 ***/
 void D3DProxyDevice::VPMENU_HUD()
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called VPMENU_HUD");
-	#endif
+	SHOW_CALL("VPMENU_HUD");
+	
 	UINT menuEntryCount = 10;
 
 	menuHelperRect.left = 0;
@@ -1092,9 +1085,8 @@ void D3DProxyDevice::VPMENU_HUD()
 ***/
 void D3DProxyDevice::VPMENU_GUI()
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called VPMENU_GUI");
-	#endif
+	SHOW_CALL("VPMENU_GUI");
+	
 	UINT menuEntryCount = 10;
 
 	menuHelperRect.left = 0;
@@ -1286,9 +1278,7 @@ void D3DProxyDevice::VPMENU_GUI()
 ***/
 void D3DProxyDevice::VPMENU_Settings()
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called VPMENU_Settings");
-	#endif
+	SHOW_CALL("VPMENU_Settings");
 
 	//Use enumeration for menu items to avoid confusion
 	enum 
@@ -1715,9 +1705,7 @@ void D3DProxyDevice::VPMENU_Settings()
 ***/
 void D3DProxyDevice::VPMENU_PosTracking()
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called VPMENU_PosTracking");
-	#endif
+	SHOW_CALL("VPMENU_PosTracking");
 
 	enum
 	{
@@ -1937,9 +1925,7 @@ void D3DProxyDevice::VPMENU_PosTracking()
 ***/
 void D3DProxyDevice::VPMENU_DuckAndCover()
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called VPMENU_DuckAndCover");
-	#endif
+	SHOW_CALL("VPMENU_DuckAndCover");
 
 	enum
 	{
@@ -2164,9 +2150,7 @@ void D3DProxyDevice::VPMENU_DuckAndCover()
 ***/
 void D3DProxyDevice::VPMENU_ComfortMode()
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called VPMENU_ComfortMode");
-	#endif
+	SHOW_CALL("VPMENU_ComfortMode");
 
 	enum
 	{
@@ -2301,9 +2285,8 @@ void D3DProxyDevice::VPMENU_ComfortMode()
 ***/
 void D3DProxyDevice::VPMENU_VRBoostValues()
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called VPMENU_VRBoostValues");
-	#endif
+	SHOW_CALL("VPMENU_VRBoostValues");
+	
 	UINT menuEntryCount = 14;
 
 	menuHelperRect.left = 0;
@@ -2404,9 +2387,7 @@ void D3DProxyDevice::VPMENU_VRBoostValues()
 ***/
 void D3DProxyDevice::VPMENU_UpdateBorder()
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called VPMENU_UpdateBorder");
-	#endif
+	SHOW_CALL("VPMENU_UpdateBorder");
 
 	// handle controls 
 	if (m_deviceBehavior.whenToHandleHeadTracking == DeviceBehavior::PRESENT)
@@ -2493,9 +2474,8 @@ void D3DProxyDevice::VPMENU_UpdateBorder()
 ***/
 void D3DProxyDevice::VPMENU_UpdateConfigSettings()
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called VPMENU_UpdateConfigSettings");
-	#endif
+	SHOW_CALL("VPMENU_UpdateConfigSettings");
+	
 	ProxyHelper* helper = new ProxyHelper();
 
 	config.roll_multiplier = tracker->multiplierRoll;
@@ -2548,9 +2528,8 @@ void D3DProxyDevice::VPMENU_UpdateConfigSettings()
 ***/
 void D3DProxyDevice::VPMENU_UpdateDeviceSettings()
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called VPMENU_UpdateDeviceSettings");
-	#endif
+	SHOW_CALL("VPMENU_UpdateDeviceSettings");
+	
 	m_spShaderViewAdjustment->Load(config);
 	stereoView->DistortionScale = config.DistortionScale;
 
@@ -2677,9 +2656,8 @@ void D3DProxyDevice::VPMENU_UpdateDeviceSettings()
 ***/
 void D3DProxyDevice::VPMENU_AdditionalOutput()
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called VPMENU_AdditionalOutput");
-	#endif
+	SHOW_CALL("VPMENU_AdditionalOutput");
+	
 	// draw vrboost toggle indicator
 	if (m_fVRBoostIndicator>0.0f)
 	{

@@ -67,9 +67,7 @@ void OculusRiftView::ReleaseEverything()
 ***/ 
 void OculusRiftView::SetViewEffectInitialValues() 
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("OculusRiftView::SetViewEffectInitialValues\n");
-	#endif
+	SHOW_CALL("OculusRiftView::SetViewEffectInitialValues\n");
 
 	viewEffect->SetFloatArray("LensCenter", LensCenter, 2);
 	viewEffect->SetFloatArray("Scale", Scale, 2);
@@ -160,9 +158,7 @@ void OculusRiftView::SetVRMouseSquish(float squish)
 ***/ 
 void OculusRiftView::CalculateShaderVariables()
 {
-	#ifdef SHOW_CALLS
-	OutputDebugString("OculusRiftView::CalculateShaderVariables\n");
-	#endif
+	SHOW_CALL("OculusRiftView::CalculateShaderVariables");
 
 	// Center of half screen is 0.25 in x (halfscreen x input in 0 to 0.5 range)
 	// Lens offset is in a -1 to 1 range. Using in shader with a 0 to 0.5 range so use 25% of the value.
@@ -240,9 +236,7 @@ void OculusRiftView::CalculateShaderVariables()
 ***/ 
 void OculusRiftView::InitShaderEffects()
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("OculusRiftView::InitShaderEffects\n");
-	#endif
+	SHOW_CALL("OculusRiftView::InitShaderEffects");
 
 	shaderEffect[OCULUS_RIFT] = "OculusRift.fx";
 

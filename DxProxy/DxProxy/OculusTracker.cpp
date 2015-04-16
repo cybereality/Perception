@@ -29,14 +29,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define _WINSOCKAPI_
 #include "OculusTracker.h"
 #include "HMDisplayInfoFactory.h"
+#include "D3DProxyDevice.h"
 #include <string>
-
 
 #include "..\..\LibOVR\include\OVR.h"
 #include "..\..\LibOVR\Src\OVR_Stereo.h"
 #include "..\..\LibOVR\Src\OVR_Profile.h"
 #include "..\..\LibOVR\Src\CAPI\CAPI_HMDState.h"
 #include "..\..\LibOVR\Src\Sensors\OVR_DeviceConstants.h"
+
+using namespace vireio;
 
 /**
 * Constructor.
@@ -115,8 +117,7 @@ void OculusTracker::init()
 
 #ifdef SHOW_CALLS
 	debugf("init: %i", (int)status);
-#endif 
-
+#endif
 }
 
 char* OculusTracker::GetTrackerDescription()
@@ -163,9 +164,7 @@ void OculusTracker::EndFrame()
 ***/
 void OculusTracker::resetOrientationAndPosition()
 {
-#ifdef SHOW_CALLS
-	OutputDebugString("OculusTracker resetOrientationAndPosition\n");
-#endif
+	SHOW_CALL("OculusTracker resetOrientationAndPosition\n");
 
 	offsetYaw = 0.0f;
 	offsetPitch = 0.0f;
@@ -210,9 +209,7 @@ void OculusTracker::resetOrientationAndPosition()
 ***/
 void OculusTracker::resetPosition()
 {
-#ifdef SHOW_CALLS
-	OutputDebugString("OculusTracker resetOrientationAndPosition\n");
-#endif
+	SHOW_CALL("OculusTracker resetOrientationAndPosition\n");
 
 	offsetX = 0.0f;
 	offsetY = 0.0f;
@@ -247,9 +244,7 @@ void OculusTracker::resetPosition()
 ***/
 int OculusTracker::getOrientationAndPosition(float* yaw, float* pitch, float* roll, float* x, float* y, float* z) 
 {
-#ifdef SHOW_CALLS
-	OutputDebugString("OculusTracker getOrientationAndPosition\n");
-#endif
+	SHOW_CALL("OculusTracker getOrientationAndPosition\n");
 
 	ovrTrackingState ts = ovrHmd_GetTrackingState(hmd, useSDKPosePrediction ? FrameRef.ScanoutMidpointSeconds : ovr_GetTimeInSeconds());
 
@@ -311,9 +306,7 @@ int OculusTracker::getOrientationAndPosition(float* yaw, float* pitch, float* ro
 ***/
 void OculusTracker::updateOrientationAndPosition()
 {
-#ifdef SHOW_CALLS
-	OutputDebugString("OculusTracker updateOrientation\n");
-#endif
+	SHOW_CALL("OculusTracker updateOrientation\n");
 
 	// Get orientation from Oculus tracker.
 	if (getOrientationAndPosition(&yaw, &pitch, &roll, &x, &y, &z) >= MTS_OK)
@@ -352,8 +345,8 @@ void OculusTracker::updateOrientationAndPosition()
 		currentPitch = pitch;
 		currentRoll = (float)( roll * (PI/180.0) * multiplierRoll);	// convert from deg to radians then apply mutiplier
 #ifdef SHOW_CALLS
-	debugf("roll: %.4f multiplierRoll: %.4f", roll, multiplierRoll); 
-	debugf("currentYaw: %.4f currentPitch: %.4f currentRoll: %.4f", currentYaw, currentPitch, currentRoll); 
+		debugf("roll: %.4f multiplierRoll: %.4f", roll, multiplierRoll); 
+		debugf("currentYaw: %.4f currentPitch: %.4f currentRoll: %.4f", currentYaw, currentPitch, currentRoll); 
 #endif
 	}
 }

@@ -63,9 +63,8 @@ using namespace vireio;
 ***/
 void D3DProxyDevice::HandleControls()
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called HandleControls");
-	#endif
+	SHOW_CALL("HandleControls");
+	
 	controls.UpdateXInputs();
 
 	// loop through hotkeys
