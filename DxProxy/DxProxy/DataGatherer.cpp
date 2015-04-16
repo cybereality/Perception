@@ -1056,10 +1056,10 @@ void DataGatherer::VPMENU_ChangeRules()
 		}
 	}
 
-	if (VPMENU_Input_Left() && HotkeysActive())
+	if ((entryID >= 0) && (entryID < menuEntryCount-2) && (menuEntryCount>2))
 	{
 		// switch shader rule node
-		if ((entryID >= 0) && (entryID < menuEntryCount-2) && (menuEntryCount>2))
+		if (VPMENU_Input_Left() && HotkeysActive())
 		{
 			if ((menuID[entryID] & (1<<30)) == (1<<30)) // rule node entry
 			{
@@ -1103,14 +1103,10 @@ void DataGatherer::VPMENU_ChangeRules()
 					}
 				}
 			}
+			HotkeyCooldown(2.0f);
 		}
-		HotkeyCooldown(2.0f);
-	}
-
-	if (VPMENU_Input_Right() && HotkeysActive())
-	{
 		// switch shader rule node
-		if ((entryID >= 0) && (entryID < menuEntryCount-2) && (menuEntryCount>2))
+		if (VPMENU_Input_Right() && HotkeysActive())
 		{
 			if ((menuID[entryID] & (1<<30)) == (1<<30)) // rule node entry
 			{
@@ -1162,8 +1158,8 @@ void DataGatherer::VPMENU_ChangeRules()
 					}
 				}
 			}
+			HotkeyCooldown(2.0f);
 		}
-		HotkeyCooldown(2.0f);
 	}
 
 	// output menu
