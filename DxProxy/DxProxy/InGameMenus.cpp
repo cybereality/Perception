@@ -125,6 +125,12 @@ void D3DProxyDevice::VPMENU_Back()
 	HotkeyCooldown(2.0f);
 }
 
+void D3DProxyDevice::VPMENU_OpenMainMenu()
+{
+	borderTopHeight = 0.0f;
+	VPMENU_NavigateTo(VPMENU_Modes::MAINMENU);
+}
+
 void D3DProxyDevice::VPMENU_NavigateTo(VPMENU_Modes newMode)
 {
 	VPMENU_mode = newMode;
@@ -289,6 +295,12 @@ void D3DProxyDevice::VPMENU_BindKey(std::function<void(int)> onBind)
 void D3DProxyDevice::VPMENU()
 {
 	SHOW_CALL("VPMENU");
+	
+	if (!VPMENU_IsOpen())
+	{
+		VPMENU_AdditionalOutput();
+		return;
+	}
 	
 	if (controls.Key_Down(VK_ESCAPE))
 	{

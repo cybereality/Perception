@@ -926,16 +926,10 @@ void D3DProxyDevice::HandleControls()
 				//If we clicked a second time within 500 ms, then open vp menu
 				if ((GetTickCount() - startClick) <= 500)
 				{
-					if (VPMENU_mode == VPMENU_Modes::INACTIVE)
-					{
-						borderTopHeight = 0.0f;
-						VPMENU_mode = VPMENU_Modes::MAINMENU;
-					}
+					if (!VPMENU_IsOpen())
+						VPMENU_OpenMainMenu();
 					else
-					{
-						VPMENU_mode = VPMENU_Modes::INACTIVE;
-						VPMENU_UpdateConfigSettings();
-					}
+						VPMENU_close();
 				}
 
 				startClick = 0;
@@ -952,16 +946,10 @@ void D3DProxyDevice::HandleControls()
 		// open VP Menu - <CTRL>+<Q>
 		if(hotkeyOpenVPMenu->IsPressed(controls) && HotkeysActive())
 		{
-			if (VPMENU_mode == VPMENU_Modes::INACTIVE)
-			{
-				borderTopHeight = 0.0f;
-				VPMENU_mode = VPMENU_Modes::MAINMENU;
-			}
+			if (!VPMENU_IsOpen())
+				VPMENU_OpenMainMenu();
 			else
-			{
-				VPMENU_mode = VPMENU_Modes::INACTIVE;
-				VPMENU_UpdateConfigSettings();
-			}
+				VPMENU_Close();
 
 			HotkeyCooldown(2.0f);
 		}

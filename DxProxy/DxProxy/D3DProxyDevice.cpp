@@ -1120,7 +1120,7 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 
 		// avoid squished viewport in case of vp menu being drawn
 		/*
-		if ((m_bViewportIsSquished) && (VPMENU_mode>=VPMENU_Modes::MAINMENU) && (VPMENU_mode<VPMENU_Modes::VPMENU_ENUM_RANGE))
+		if ((m_bViewportIsSquished) && VPMENU_IsOpen())
 		{
 			if (m_bViewportIsSquished)
 				BaseDirect3DDevice9::SetViewport(&m_LastViewportSet);
@@ -1134,11 +1134,8 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 		// draw menu
 		if (m_deviceBehavior.whenToRenderVPMENU == DeviceBehavior::WhenToDo::BEGIN_SCENE)
 		{
-			if ((VPMENU_mode>=VPMENU_Modes::MAINMENU) && (VPMENU_mode<VPMENU_Modes::VPMENU_ENUM_RANGE))
-				VPMENU();
-			else
-				VPMENU_AdditionalOutput();
-		}		
+			VPMENU();
+		}
 		// handle controls
 		HandleControls();
 
@@ -1150,14 +1147,9 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 		// draw
 		if (m_deviceBehavior.whenToRenderVPMENU == DeviceBehavior::WhenToDo::BEGIN_SCENE)
 		{
-			if ((VPMENU_mode>=VPMENU_Modes::MAINMENU) && (VPMENU_mode<VPMENU_Modes::VPMENU_ENUM_RANGE))
-				VPMENU();
-			else
-				VPMENU_AdditionalOutput();
+			VPMENU();
 		}
 	}
-
-	
 
 	return BaseDirect3DDevice9::BeginScene();
 }
@@ -1176,10 +1168,7 @@ HRESULT WINAPI D3DProxyDevice::EndScene()
 	// draw menu
 	if (m_deviceBehavior.whenToRenderVPMENU == DeviceBehavior::WhenToDo::END_SCENE) 
 	{
-		if ((VPMENU_mode>=VPMENU_Modes::MAINMENU) && (VPMENU_mode<VPMENU_Modes::VPMENU_ENUM_RANGE))
-			VPMENU();
-		else
-			VPMENU_AdditionalOutput();
+		VPMENU();
 	}
 
 	return BaseDirect3DDevice9::EndScene();
@@ -3822,7 +3811,7 @@ void D3DProxyDevice::SetGUIViewport()
 	SHOW_CALL("SetGUIViewport");
 	
 	// do not squish the viewport in case vp menu is open - GBCODE Why?
-	//if ((VPMENU_mode>=VPMENU_Modes::MAINMENU) && (VPMENU_mode<VPMENU_Modes::VPMENU_ENUM_RANGE))
+	//if (VPMENU_IsOpen())
 	//	return;
 
 	D3DXMATRIX mLeftShift;
