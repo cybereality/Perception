@@ -193,9 +193,13 @@ private:
 	***/
 	uint32_t m_currentVertexShaderHash;
 	/**
-	* True if data gatherer should output (ALL!) shader code.
+	* True if data gatherer should output (Vertex) shader code.
 	***/
 	bool m_bOutputShaderCode;
+	/**
+	* True if data gatherer should output (Pixel) shader code.
+	***/
+	bool m_bOutputPixelShaderCode;
 };
 
 #endif
