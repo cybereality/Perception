@@ -967,27 +967,27 @@ void D3DProxyDevice::VPMENU_HUD()
 		if (hotkeyCatch && (entryID==3)) {
 			DrawMenuItem("Press the desired key.");
 		} else {
-			DrawMenuItem(retprintf("Hotkey >Switch< : %s", controls.GetKeyName(hudHotkeys[0])));
+			DrawMenuItem(retprintf("Hotkey >Switch< : %s", controls.GetKeyName(hudHotkeys[0]).c_str()));
 		}
 		if (hotkeyCatch && (entryID==4)) {
 			DrawMenuItem("Press the desired key.");
 		} else {
-			DrawMenuItem(retprintf("Hotkey >Default< : %s", controls.GetKeyName(hudHotkeys[1])));
+			DrawMenuItem(retprintf("Hotkey >Default< : %s", controls.GetKeyName(hudHotkeys[1]).c_str()));
 		}
 		if (hotkeyCatch && (entryID==5)) {
 			DrawMenuItem("Press the desired key.");
 		} else {
-			DrawMenuItem(retprintf("Hotkey >Small< : %s", controls.GetKeyName(hudHotkeys[2])));
+			DrawMenuItem(retprintf("Hotkey >Small< : %s", controls.GetKeyName(hudHotkeys[2]).c_str()));
 		}
 		if (hotkeyCatch && (entryID==6)) {
 			DrawMenuItem("Press the desired key.");
 		} else {
-			DrawMenuItem(retprintf("Hotkey >Large< : %s", controls.GetKeyName(hudHotkeys[3])));
+			DrawMenuItem(retprintf("Hotkey >Large< : %s", controls.GetKeyName(hudHotkeys[3]).c_str()));
 		}
 		if (hotkeyCatch && (entryID==7)) {
 			DrawMenuItem("Press the desired key.");
 		} else {
-			DrawMenuItem(retprintf("Hotkey >Full< : %s", controls.GetKeyName(hudHotkeys[4])));
+			DrawMenuItem(retprintf("Hotkey >Full< : %s", controls.GetKeyName(hudHotkeys[4]).c_str()));
 		}
 		DrawMenuItem("Back to Main Menu");
 		DrawMenuItem("Back to Game");
@@ -1126,27 +1126,27 @@ void D3DProxyDevice::VPMENU_GUI()
 		if (hotkeyCatch && (entryID==3)) {
 			DrawMenuItem("Press the desired key.");
 		} else {
-			DrawMenuItem(retprintf("Hotkey >Switch< : %s", controls.GetKeyName(guiHotkeys[0])));
+			DrawMenuItem(retprintf("Hotkey >Switch< : %s", controls.GetKeyName(guiHotkeys[0]).c_str()));
 		}
 		if (hotkeyCatch && (entryID==4)) {
 			DrawMenuItem("Press the desired key.");
 		} else {
-			DrawMenuItem(retprintf("Hotkey >Default< : %s", controls.GetKeyName(guiHotkeys[1])));
+			DrawMenuItem(retprintf("Hotkey >Default< : %s", controls.GetKeyName(guiHotkeys[1]).c_str()));
 		}
 		if (hotkeyCatch && (entryID==5)) {
 			DrawMenuItem("Press the desired key.");
 		} else {
-			DrawMenuItem(retprintf("Hotkey >Small< : %s", controls.GetKeyName(guiHotkeys[2])));
+			DrawMenuItem(retprintf("Hotkey >Small< : %s", controls.GetKeyName(guiHotkeys[2]).c_str()));
 		}
 		if (hotkeyCatch && (entryID==6)) {
 			DrawMenuItem("Press the desired key.");
 		} else {
-			DrawMenuItem(retprintf("Hotkey >Large< : %s", controls.GetKeyName(guiHotkeys[3])));
+			DrawMenuItem(retprintf("Hotkey >Large< : %s", controls.GetKeyName(guiHotkeys[3]).c_str()));
 		}
 		if (hotkeyCatch && (entryID==7)) {
 			DrawMenuItem("Press the desired key.");
 		} else {
-			DrawMenuItem(retprintf("Hotkey >Full< : %s", controls.GetKeyName(guiHotkeys[4])));
+			DrawMenuItem(retprintf("Hotkey >Full< : %s", controls.GetKeyName(guiHotkeys[4]).c_str()));
 		}
 		DrawMenuItem("Back to Main Menu");
 		DrawMenuItem("Back to Game");
@@ -1476,14 +1476,14 @@ void D3DProxyDevice::VPMENU_Settings()
 			DrawMenuItem("Press the desired key.");
 		} else {
 			DrawMenuItem(retprintf("Hotkey >Toggle VRBoost< : %s",
-				controls.GetKeyName(toggleVRBoostHotkey)));
+				controls.GetKeyName(toggleVRBoostHotkey).c_str()));
 		}
 		
 		if (hotkeyCatch && (entryID==12)) {
 			DrawMenuItem("Press the desired key.");
 		} else {
 			DrawMenuItem(retprintf("Hotkey >Disconnected Screen< : %s",
-				controls.GetKeyName(edgePeekHotkey)));
+				controls.GetKeyName(edgePeekHotkey).c_str()));
 		}
 		
 		DrawMenuItem("Back to Main Menu");
@@ -1804,7 +1804,7 @@ void D3DProxyDevice::VPMENU_DuckAndCover()
 			DrawMenuItem("Crouch Key : >Press the desired key<");
 		} else {
 			DrawMenuItem(retprintf("Crouch Key : %s",
-				controls.GetKeyName(m_DuckAndCover.crouchKey)));
+				controls.GetKeyName(m_DuckAndCover.crouchKey).c_str()));
 		}
 
 		if (!m_DuckAndCover.proneEnabled)
@@ -1828,7 +1828,7 @@ void D3DProxyDevice::VPMENU_DuckAndCover()
 			DrawMenuItem("Prone Key : >Press the desired key<");
 		} else {
 			DrawMenuItem(retprintf("Prone Key : %s",
-				controls.GetKeyName(m_DuckAndCover.proneKey)));
+				controls.GetKeyName(m_DuckAndCover.proneKey).c_str()));
 		}
 
 		if (!m_DuckAndCover.jumpEnabled)
@@ -1840,7 +1840,7 @@ void D3DProxyDevice::VPMENU_DuckAndCover()
 			DrawMenuItem("Jump Key : >Press the desired key<");
 		} else {
 			DrawMenuItem(retprintf("Jump Key : %s",
-				controls.GetKeyName(m_DuckAndCover.jumpKey)));
+				controls.GetKeyName(m_DuckAndCover.jumpKey).c_str()));
 		}
 
 		DrawMenuItem("Calibrate Duck-and-Cover then Enable");
@@ -1965,14 +1965,14 @@ void D3DProxyDevice::VPMENU_ComfortMode()
 			DrawMenuItem("Turn Left Key : >Press the desired key<");
 		} else {
 			DrawMenuItem(retprintf("Turn Left Key : %s",
-				controls.GetKeyName(m_comfortModeLeftKey)));
+				controls.GetKeyName(m_comfortModeLeftKey).c_str()));
 		}
 
 		if (hotkeyCatch && (entryID==TURN_RIGHT)) {
 			DrawMenuItem("Turn Right Key : >Press the desired key<");
 		} else {
 			DrawMenuItem(retprintf("Turn Right Key : %s",
-				controls.GetKeyName(m_comfortModeRightKey)));
+				controls.GetKeyName(m_comfortModeRightKey).c_str()));
 		}
 
 		DrawMenuItem(retprintf("Yaw Rotation Increment : %.1f", m_comfortModeYawIncrement));
