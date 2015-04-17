@@ -248,6 +248,12 @@ float D3DProxyDevice::VPMENU_Input_SpeedModifier()
 		return 1.0;
 }
 
+void D3DProxyDevice::VPMENU_BindKey(std::function<void(int)> onBind)
+{
+	hotkeyCatch = true;
+	onBindKey = onBind;
+}
+
 
 /**
 * VP menu main method.
@@ -261,6 +267,17 @@ void D3DProxyDevice::VPMENU()
 		VPMENU_mode = VPMENU_Modes::INACTIVE;
 		VPMENU_UpdateConfigSettings();
 		return;
+	}
+	if (hotkeyCatch && HotkeysActive())
+	{
+		for (int i = 0; i < 256; i++)
+		{
+			if (controls.Key_Down(i) && controls.GetKeyName(i)!="-")
+			{
+				hotkeyCatch = false;
+				onBindKey(i);
+			}
+		}
 	}
 	
 	switch (VPMENU_mode)
@@ -855,89 +872,79 @@ void D3DProxyDevice::VPMENU_HUD()
 	UINT entryID;
 	VPMENU_NewFrame(entryID, menuEntryCount);
 
-	if (hotkeyCatch && HotkeysActive())
+	if (VPMENU_Input_Selected())
 	{
-		for (int i = 0; i < 256; i++)
-			if (controls.Key_Down(i) && controls.GetKeyName(i)!="-")
-			{
-				hotkeyCatch = false;
+		if ((entryID >= 3) && (entryID <= 7) && HotkeysActive())
+		{
+			VPMENU_BindKey([=](int key) {
 				int index = entryID-3;
-				if ((index >=0) && (index <=4))
-					hudHotkeys[index] = (byte)i;
-			}
-	}
-	else
-	{
-		if (VPMENU_Input_Selected())
-		{
-			if ((entryID >= 3) && (entryID <= 7) && HotkeysActive())
-			{
-				hotkeyCatch = true;
-				HotkeyCooldown(2.0f);
-			}
-			// back to main menu
-			if (entryID == 8)
-			{
-				VPMENU_mode = VPMENU_Modes::MAINMENU;
-				VPMENU_UpdateConfigSettings();
-				HotkeyCooldown(2.0f);
-			}
-			// back to game
-			if (entryID == 9)
-			{
-				VPMENU_mode = VPMENU_Modes::INACTIVE;
-				VPMENU_UpdateConfigSettings();
-			}
+				hudHotkeys[index] = (byte)key;
+			});
+			HotkeyCooldown(2.0f);
 		}
-
-		if (controls.Key_Down(VK_BACK))
+		// back to main menu
+		if (entryID == 8)
 		{
-			if ((entryID >= 3) && (entryID <= 7) && HotkeysActive())
-			{
-				int index = entryID-3;
-				if ((index >=0) && (index <=4))
-					hudHotkeys[index] = 0;
-				HotkeyCooldown(2.0f);
-			}
+			VPMENU_mode = VPMENU_Modes::MAINMENU;
+			VPMENU_UpdateConfigSettings();
+			HotkeyCooldown(2.0f);
 		}
-
-		// change hud scale
-		if ((entryID == 0) && HotkeysActive())
+		// back to game
+		if (entryID == 9)
 		{
-			if (VPMENU_Input_Left())
-			{
-				if (hud3DDepthMode > HUD_3D_Depth_Modes::HUD_DEFAULT)
-					ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)(hud3DDepthMode-1));
-				HotkeyCooldown(2.0f);
-			}
-			if (VPMENU_Input_Right())
-			{
-				if (hud3DDepthMode < HUD_3D_Depth_Modes::HUD_ENUM_RANGE-1)
-					ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)(hud3DDepthMode+1));
-				HotkeyCooldown(2.0f);
-			}
-		}
-
-		if ((entryID == 1) && HotkeysActive())
-		{
-			if (VPMENU_Input_IsAdjustment())
-			{
-				hudDistancePresets[(int)hud3DDepthMode] += 0.01f * VPMENU_Input_GetAdjustment();
-				ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)hud3DDepthMode);
-				HotkeyCooldown(0.7f);
-			}
-		}
-
-		if ((entryID == 2) && HotkeysActive())
-		{
-			if (VPMENU_Input_IsAdjustment())
-			{
-				hud3DDepthPresets[(int)hud3DDepthMode] += 0.002f * VPMENU_Input_GetAdjustment();
-				ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)hud3DDepthMode);
-				HotkeyCooldown(0.7f);
-			}
+			VPMENU_mode = VPMENU_Modes::INACTIVE;
+			VPMENU_UpdateConfigSettings();
 		}
 	}
+
+	if (controls.Key_Down(VK_BACK))
+	{
+		if ((entryID >= 3) && (entryID <= 7) && HotkeysActive())
+		{
+			int index = entryID-3;
+			if ((index >=0) && (index <=4))
+				hudHotkeys[index] = 0;
+			HotkeyCooldown(2.0f);
+		}
+	}
+
+	// change hud scale
+	if ((entryID == 0) && HotkeysActive())
+	{
+		if (VPMENU_Input_Left())
+		{
+			if (hud3DDepthMode > HUD_3D_Depth_Modes::HUD_DEFAULT)
+				ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)(hud3DDepthMode-1));
+			HotkeyCooldown(2.0f);
+		}
+		if (VPMENU_Input_Right())
+		{
+			if (hud3DDepthMode < HUD_3D_Depth_Modes::HUD_ENUM_RANGE-1)
+				ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)(hud3DDepthMode+1));
+			HotkeyCooldown(2.0f);
+		}
+	}
+
+	if ((entryID == 1) && HotkeysActive())
+	{
+		if (VPMENU_Input_IsAdjustment())
+		{
+			hudDistancePresets[(int)hud3DDepthMode] += 0.01f * VPMENU_Input_GetAdjustment();
+			ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)hud3DDepthMode);
+			HotkeyCooldown(0.7f);
+		}
+	}
+
+	if ((entryID == 2) && HotkeysActive())
+	{
+		if (VPMENU_Input_IsAdjustment())
+		{
+			hud3DDepthPresets[(int)hud3DDepthMode] += 0.002f * VPMENU_Input_GetAdjustment();
+			ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)hud3DDepthMode);
+			HotkeyCooldown(0.7f);
+		}
+	}
+	
 	// output menu
 	if (hudFont)
 	{
@@ -1014,88 +1021,79 @@ void D3DProxyDevice::VPMENU_GUI()
 	UINT entryID;
 	VPMENU_NewFrame(entryID, menuEntryCount);
 
-	if (hotkeyCatch && HotkeysActive())
+	if (VPMENU_Input_Selected())
 	{
-		for (int i = 0; i < 256; i++)
-			if (controls.Key_Down(i) && controls.GetKeyName(i)!="-")
-			{
-				hotkeyCatch = false;
+		if ((entryID >= 3) && (entryID <= 7) && HotkeysActive())
+		{
+			VPMENU_BindKey([=](int key) {
 				int index = entryID-3;
 				if ((index >=0) && (index <=4))
-					guiHotkeys[index] = (byte)i;
-			}
+					guiHotkeys[index] = (byte)key;
+			});
+			HotkeyCooldown(2.0f);
+		}
+		// back to main menu
+		if (entryID == 8)
+		{
+			VPMENU_mode = VPMENU_Modes::MAINMENU;
+			HotkeyCooldown(2.0f);
+		}
+		// back to game
+		if (entryID == 9)
+		{
+			VPMENU_mode = VPMENU_Modes::INACTIVE;
+			VPMENU_UpdateConfigSettings();
+		}
 	}
-	else
+
+	if (controls.Key_Down(VK_BACK))
 	{
-		if (VPMENU_Input_Selected())
+		if ((entryID >= 3) && (entryID <= 7) && HotkeysActive())
 		{
-			if ((entryID >= 3) && (entryID <= 7) && HotkeysActive())
-			{
-				hotkeyCatch = true;
-				HotkeyCooldown(2.0f);
-			}
-			// back to main menu
-			if (entryID == 8)
-			{
-				VPMENU_mode = VPMENU_Modes::MAINMENU;
-				HotkeyCooldown(2.0f);
-			}
-			// back to game
-			if (entryID == 9)
-			{
-				VPMENU_mode = VPMENU_Modes::INACTIVE;
-				VPMENU_UpdateConfigSettings();
-			}
-		}
-
-		if (controls.Key_Down(VK_BACK))
-		{
-			if ((entryID >= 3) && (entryID <= 7) && HotkeysActive())
-			{
-				int index = entryID-3;
-				if ((index >=0) && (index <=4))
-					guiHotkeys[index] = 0;
-				HotkeyCooldown(2.0f);
-			}
-		}
-
-		// change gui scale
-		if ((entryID == 0) && HotkeysActive())
-		{
-			if (VPMENU_Input_Left())
-			{
-				if (gui3DDepthMode > GUI_3D_Depth_Modes::GUI_DEFAULT)
-					ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)(gui3DDepthMode-1));
-				HotkeyCooldown(2.0f);
-			}
-			if (VPMENU_Input_Right())
-			{
-				if (gui3DDepthMode < GUI_3D_Depth_Modes::GUI_ENUM_RANGE-1)
-					ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)(gui3DDepthMode+1));
-				HotkeyCooldown(2.0f);
-			}
-		}
-
-		if ((entryID == 1) && HotkeysActive())
-		{
-			if (VPMENU_Input_IsAdjustment())
-			{
-				guiSquishPresets[(int)gui3DDepthMode] += 0.01f * VPMENU_Input_GetAdjustment();
-				ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)gui3DDepthMode);
-				HotkeyCooldown(0.7f);
-			}
-		}
-
-		if ((entryID == 2) && HotkeysActive())
-		{
-			if (VPMENU_Input_IsAdjustment())
-			{
-				gui3DDepthPresets[(int)gui3DDepthMode] += 0.002f * VPMENU_Input_GetAdjustment();
-				ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)gui3DDepthMode);
-				HotkeyCooldown(0.7f);
-			}
+			int index = entryID-3;
+			if ((index >=0) && (index <=4))
+				guiHotkeys[index] = 0;
+			HotkeyCooldown(2.0f);
 		}
 	}
+
+	// change gui scale
+	if ((entryID == 0) && HotkeysActive())
+	{
+		if (VPMENU_Input_Left())
+		{
+			if (gui3DDepthMode > GUI_3D_Depth_Modes::GUI_DEFAULT)
+				ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)(gui3DDepthMode-1));
+			HotkeyCooldown(2.0f);
+		}
+		if (VPMENU_Input_Right())
+		{
+			if (gui3DDepthMode < GUI_3D_Depth_Modes::GUI_ENUM_RANGE-1)
+				ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)(gui3DDepthMode+1));
+			HotkeyCooldown(2.0f);
+		}
+	}
+
+	if ((entryID == 1) && HotkeysActive())
+	{
+		if (VPMENU_Input_IsAdjustment())
+		{
+			guiSquishPresets[(int)gui3DDepthMode] += 0.01f * VPMENU_Input_GetAdjustment();
+			ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)gui3DDepthMode);
+			HotkeyCooldown(0.7f);
+		}
+	}
+
+	if ((entryID == 2) && HotkeysActive())
+	{
+		if (VPMENU_Input_IsAdjustment())
+		{
+			gui3DDepthPresets[(int)gui3DDepthMode] += 0.002f * VPMENU_Input_GetAdjustment();
+			ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)gui3DDepthMode);
+			HotkeyCooldown(0.7f);
+		}
+	}
+	
 	// output menu
 	if (hudFont)
 	{
@@ -1194,250 +1192,240 @@ void D3DProxyDevice::VPMENU_Settings()
 	UINT entryID;
 	VPMENU_NewFrame(entryID, menuEntryCount);
 
-	if (hotkeyCatch && HotkeysActive())
+	if (VPMENU_Input_Selected())
 	{
-		for (int i = 0; i < 256; i++)
-			if (controls.Key_Down(i) && controls.GetKeyName(i)!="-")
-			{
-				hotkeyCatch = false;
-				if(entryID == HOTKEY_VRBOOST)
-					toggleVRBoostHotkey = (byte)i;
-				else
-					edgePeekHotkey = (byte)i;
-			}
-	}
-	else
-	{
-		if (VPMENU_Input_Selected())
-		{
-			// swap eyes
-			if (entryID == SWAP_EYES)
-			{
-				stereoView->swapEyes = !stereoView->swapEyes;
-				HotkeyCooldown(4.0f);
-			}
-			// screenshot
-			/*if (entryID == STEREO_SCREENSHOTS)
-			{
-				// render 3 frames to get screenshots without menu
-				screenshot = 3;
-				VPMENU_mode = VPMENU_Modes::INACTIVE;
-			}*/
-			// reset multipliers
-			if (entryID == RESET_MULT)
-			{
-				tracker->multiplierYaw = 25.0f;
-				tracker->multiplierPitch = 25.0f;
-				tracker->multiplierRoll = 1.0f;
-				HotkeyCooldown(4.0f);
-			}
-
-			// update roll implementation
-			if (entryID == ROLL_ENABLED)
-			{
-				config.rollImpl = (config.rollImpl+1) % 3;
-				m_spShaderViewAdjustment->SetRollImpl(config.rollImpl);
-				HotkeyCooldown(4.0f);
-			}
-
-			// force mouse emulation
-			if (entryID == FORCE_MOUSE_EMU)
-			{
-				m_bForceMouseEmulation = !m_bForceMouseEmulation;
-
-				if ((m_bForceMouseEmulation) && (tracker->getStatus() >= MTS_OK) && (!m_bSurpressHeadtracking))
-					tracker->setMouseEmulation(true);
-
-				if ((!m_bForceMouseEmulation) && (hmVRboost) && (m_VRboostRulesPresent)  && (tracker->getStatus() >= MTS_OK))
-					tracker->setMouseEmulation(false);
-
-				HotkeyCooldown(4.0f);
-			}
-			// Toggle VRBoost
-			if (entryID == TOGGLE_VRBOOST)
-			{
-				if (hmVRboost!=NULL)
-				{
-					m_pVRboost_ReleaseAllMemoryRules();
-					m_bVRBoostToggle = !m_bVRBoostToggle;
-					if (tracker->getStatus() >= MTS_OK)
-						tracker->resetOrientationAndPosition();
-					HotkeyCooldown(2.0f);
-				}
-			}
-			// VRBoost hotkey
-			if (entryID == HOTKEY_VRBOOST)
-			{
-				hotkeyCatch = true;
-				HotkeyCooldown(2.0f);
-			}
-			// VRBoost hotkey
-			if (entryID == HOTKEY_EDGEPEEK)
-			{
-				hotkeyCatch = true;
-				HotkeyCooldown(2.0f);
-			}
-			// back to main menu
-			if (entryID == BACK_VPMENU)
-			{
-				VPMENU_mode = VPMENU_Modes::MAINMENU;
-				VPMENU_UpdateConfigSettings();
-				HotkeyCooldown(2.0f);
-			}
-			// back to game
-			if (entryID == BACK_GAME)
-			{
-				VPMENU_mode = VPMENU_Modes::INACTIVE;
-				VPMENU_UpdateConfigSettings();
-			}
-		}
-
-		if (controls.Key_Down(VK_BACK))
-		{
-			if ((entryID >= DISTORTION_SCALE) && (entryID <= ROLL_MULT) && HotkeysActive())
-			{
-				int index = entryID-3;
-				if ((index >=0) && (index <=4))
-					guiHotkeys[index] = 0;
-				HotkeyCooldown(2.0f);
-			}
-		}
-
-		// reset hotkey
-		if (entryID == HOTKEY_VRBOOST)
-		{
-			if (controls.Key_Down(VK_BACK) && HotkeysActive())
-			{
-				toggleVRBoostHotkey = 0;
-				HotkeyCooldown(2.0f);
-			}
-		}
-		// reset hotkey
-		if (entryID == HOTKEY_EDGEPEEK)
-		{
-			if (controls.Key_Down(VK_BACK) && HotkeysActive())
-			{
-				edgePeekHotkey = 0;
-				HotkeyCooldown(2.0f);
-			}
-		}
-
 		// swap eyes
 		if (entryID == SWAP_EYES)
 		{
-			if (VPMENU_Input_Left() && HotkeysActive())
-			{
-				stereoView->swapEyes = !stereoView->swapEyes;
-				HotkeyCooldown(2.0f);
-			}
-			if (VPMENU_Input_Right() && HotkeysActive())
-			{
-				stereoView->swapEyes = !stereoView->swapEyes;
-				HotkeyCooldown(2.0f);
-			}
+			stereoView->swapEyes = !stereoView->swapEyes;
+			HotkeyCooldown(4.0f);
 		}
-		// ipd-offset
-		if (entryID == IPD_OFFSET)
+		// screenshot
+		/*if (entryID == STEREO_SCREENSHOTS)
 		{
-			if (controls.Key_Down(VK_BACK) && HotkeysActive())
-			{
-				this->stereoView->IPDOffset = 0.0f;
-				this->stereoView->PostReset();
-				HotkeyCooldown(0.7f);
-			}
-			if (VPMENU_Input_IsAdjustment() && HotkeysActive())
-			{
-				this->stereoView->IPDOffset += 0.001f * VPMENU_Input_GetAdjustment();
-				clamp(&this->stereoView->IPDOffset, -0.1f, 0.1f);
-				this->stereoView->PostReset();
-				HotkeyCooldown(0.7f);
-			}
-		}
-		// y-offset
-		if (entryID == Y_OFFSET)
+			// render 3 frames to get screenshots without menu
+			screenshot = 3;
+			VPMENU_mode = VPMENU_Modes::INACTIVE;
+		}*/
+		// reset multipliers
+		if (entryID == RESET_MULT)
 		{
-			if (controls.Key_Down(VK_BACK) && HotkeysActive())
-			{
-				this->stereoView->YOffset = 0.0f;
-				this->stereoView->PostReset();
-				HotkeyCooldown(0.7f);
-			}
-			if (VPMENU_Input_IsAdjustment() && HotkeysActive())
-			{
-				this->stereoView->YOffset += 0.001f * VPMENU_Input_GetAdjustment();
-				clamp(&this->stereoView->YOffset, -0.1f, 0.1f);
-				this->stereoView->PostReset();
-				HotkeyCooldown(0.7f);
-			}
-		}
-		// distortion
-		if (entryID == DISTORTION_SCALE)
-		{
-			if (controls.Key_Down(VK_BACK) && HotkeysActive())
-			{
-				this->stereoView->DistortionScale = 0.0f;
-				this->stereoView->PostReset();
-				HotkeyCooldown(0.7f);
-			}
-			if (VPMENU_Input_IsAdjustment() && HotkeysActive())
-			{
-				this->stereoView->DistortionScale += 0.01f * VPMENU_Input_GetAdjustment();
-				this->stereoView->PostReset();
-				HotkeyCooldown(0.7f);
-			}
-		}
-		// yaw multiplier
-		if (entryID == YAW_MULT)
-		{
-			if (VPMENU_Input_IsAdjustment() && HotkeysActive())
-			{
-				tracker->multiplierYaw += 0.5f * VPMENU_Input_GetAdjustment();
-				HotkeyCooldown(0.7f);
-			}
-		}
-		// pitch multiplier
-		if (entryID == PITCH_MULT)
-		{
-			if (VPMENU_Input_IsAdjustment() && HotkeysActive())
-			{
-				tracker->multiplierPitch += 0.5f * VPMENU_Input_GetAdjustment();
-				HotkeyCooldown(0.7f);
-			}
-		}
-		// roll multiplier
-		if (entryID == ROLL_MULT)
-		{
-			if (VPMENU_Input_IsAdjustment() && HotkeysActive())
-			{
-				tracker->multiplierRoll += 0.05f * VPMENU_Input_GetAdjustment();
-				HotkeyCooldown(0.7f);
-			}
+			tracker->multiplierYaw = 25.0f;
+			tracker->multiplierPitch = 25.0f;
+			tracker->multiplierRoll = 1.0f;
+			HotkeyCooldown(4.0f);
 		}
 
-		// mouse emulation
+		// update roll implementation
+		if (entryID == ROLL_ENABLED)
+		{
+			config.rollImpl = (config.rollImpl+1) % 3;
+			m_spShaderViewAdjustment->SetRollImpl(config.rollImpl);
+			HotkeyCooldown(4.0f);
+		}
+
+		// force mouse emulation
 		if (entryID == FORCE_MOUSE_EMU)
 		{
-			if (VPMENU_Input_Left() && HotkeysActive())
+			m_bForceMouseEmulation = !m_bForceMouseEmulation;
+
+			if ((m_bForceMouseEmulation) && (tracker->getStatus() >= MTS_OK) && (!m_bSurpressHeadtracking))
+				tracker->setMouseEmulation(true);
+
+			if ((!m_bForceMouseEmulation) && (hmVRboost) && (m_VRboostRulesPresent)  && (tracker->getStatus() >= MTS_OK))
+				tracker->setMouseEmulation(false);
+
+			HotkeyCooldown(4.0f);
+		}
+		// Toggle VRBoost
+		if (entryID == TOGGLE_VRBOOST)
+		{
+			if (hmVRboost!=NULL)
 			{
-				m_bForceMouseEmulation = false;
-
-				if ((hmVRboost) && (m_VRboostRulesPresent) && (tracker->getStatus() >= MTS_OK))
-					tracker->setMouseEmulation(false);
-
-				HotkeyCooldown(2.0f);
-			}
-			if (VPMENU_Input_Right() && HotkeysActive())
-			{
-				if(tracker->getStatus() >= MTS_OK)
-				{
-					tracker->setMouseEmulation(true);
-					m_bForceMouseEmulation = true;
-				}
-
+				m_pVRboost_ReleaseAllMemoryRules();
+				m_bVRBoostToggle = !m_bVRBoostToggle;
+				if (tracker->getStatus() >= MTS_OK)
+					tracker->resetOrientationAndPosition();
 				HotkeyCooldown(2.0f);
 			}
 		}
+		// VRBoost hotkey
+		if (entryID == HOTKEY_VRBOOST)
+		{
+			VPMENU_BindKey([=](int key) {
+				toggleVRBoostHotkey = (byte)key;
+			});
+			HotkeyCooldown(2.0f);
+		}
+		// VRBoost hotkey
+		if (entryID == HOTKEY_EDGEPEEK)
+		{
+			VPMENU_BindKey([=](int key) {
+				edgePeekHotkey = (byte)key;
+			});
+			HotkeyCooldown(2.0f);
+		}
+		// back to main menu
+		if (entryID == BACK_VPMENU)
+		{
+			VPMENU_mode = VPMENU_Modes::MAINMENU;
+			VPMENU_UpdateConfigSettings();
+			HotkeyCooldown(2.0f);
+		}
+		// back to game
+		if (entryID == BACK_GAME)
+		{
+			VPMENU_mode = VPMENU_Modes::INACTIVE;
+			VPMENU_UpdateConfigSettings();
+		}
 	}
+
+	if (controls.Key_Down(VK_BACK))
+	{
+		if ((entryID >= DISTORTION_SCALE) && (entryID <= ROLL_MULT) && HotkeysActive())
+		{
+			int index = entryID-3;
+			if ((index >=0) && (index <=4))
+				guiHotkeys[index] = 0;
+			HotkeyCooldown(2.0f);
+		}
+	}
+
+	// reset hotkey
+	if (entryID == HOTKEY_VRBOOST)
+	{
+		if (controls.Key_Down(VK_BACK) && HotkeysActive())
+		{
+			toggleVRBoostHotkey = 0;
+			HotkeyCooldown(2.0f);
+		}
+	}
+	// reset hotkey
+	if (entryID == HOTKEY_EDGEPEEK)
+	{
+		if (controls.Key_Down(VK_BACK) && HotkeysActive())
+		{
+			edgePeekHotkey = 0;
+			HotkeyCooldown(2.0f);
+		}
+	}
+
+	// swap eyes
+	if (entryID == SWAP_EYES)
+	{
+		if (VPMENU_Input_Left() && HotkeysActive())
+		{
+			stereoView->swapEyes = !stereoView->swapEyes;
+			HotkeyCooldown(2.0f);
+		}
+		if (VPMENU_Input_Right() && HotkeysActive())
+		{
+			stereoView->swapEyes = !stereoView->swapEyes;
+			HotkeyCooldown(2.0f);
+		}
+	}
+	// ipd-offset
+	if (entryID == IPD_OFFSET)
+	{
+		if (controls.Key_Down(VK_BACK) && HotkeysActive())
+		{
+			this->stereoView->IPDOffset = 0.0f;
+			this->stereoView->PostReset();
+			HotkeyCooldown(0.7f);
+		}
+		if (VPMENU_Input_IsAdjustment() && HotkeysActive())
+		{
+			this->stereoView->IPDOffset += 0.001f * VPMENU_Input_GetAdjustment();
+			clamp(&this->stereoView->IPDOffset, -0.1f, 0.1f);
+			this->stereoView->PostReset();
+			HotkeyCooldown(0.7f);
+		}
+	}
+	// y-offset
+	if (entryID == Y_OFFSET)
+	{
+		if (controls.Key_Down(VK_BACK) && HotkeysActive())
+		{
+			this->stereoView->YOffset = 0.0f;
+			this->stereoView->PostReset();
+			HotkeyCooldown(0.7f);
+		}
+		if (VPMENU_Input_IsAdjustment() && HotkeysActive())
+		{
+			this->stereoView->YOffset += 0.001f * VPMENU_Input_GetAdjustment();
+			clamp(&this->stereoView->YOffset, -0.1f, 0.1f);
+			this->stereoView->PostReset();
+			HotkeyCooldown(0.7f);
+		}
+	}
+	// distortion
+	if (entryID == DISTORTION_SCALE)
+	{
+		if (controls.Key_Down(VK_BACK) && HotkeysActive())
+		{
+			this->stereoView->DistortionScale = 0.0f;
+			this->stereoView->PostReset();
+			HotkeyCooldown(0.7f);
+		}
+		if (VPMENU_Input_IsAdjustment() && HotkeysActive())
+		{
+			this->stereoView->DistortionScale += 0.01f * VPMENU_Input_GetAdjustment();
+			this->stereoView->PostReset();
+			HotkeyCooldown(0.7f);
+		}
+	}
+	// yaw multiplier
+	if (entryID == YAW_MULT)
+	{
+		if (VPMENU_Input_IsAdjustment() && HotkeysActive())
+		{
+			tracker->multiplierYaw += 0.5f * VPMENU_Input_GetAdjustment();
+			HotkeyCooldown(0.7f);
+		}
+	}
+	// pitch multiplier
+	if (entryID == PITCH_MULT)
+	{
+		if (VPMENU_Input_IsAdjustment() && HotkeysActive())
+		{
+			tracker->multiplierPitch += 0.5f * VPMENU_Input_GetAdjustment();
+			HotkeyCooldown(0.7f);
+		}
+	}
+	// roll multiplier
+	if (entryID == ROLL_MULT)
+	{
+		if (VPMENU_Input_IsAdjustment() && HotkeysActive())
+		{
+			tracker->multiplierRoll += 0.05f * VPMENU_Input_GetAdjustment();
+			HotkeyCooldown(0.7f);
+		}
+	}
+
+	// mouse emulation
+	if (entryID == FORCE_MOUSE_EMU)
+	{
+		if (VPMENU_Input_Left() && HotkeysActive())
+		{
+			m_bForceMouseEmulation = false;
+
+			if ((hmVRboost) && (m_VRboostRulesPresent) && (tracker->getStatus() >= MTS_OK))
+				tracker->setMouseEmulation(false);
+
+			HotkeyCooldown(2.0f);
+		}
+		if (VPMENU_Input_Right() && HotkeysActive())
+		{
+			if(tracker->getStatus() >= MTS_OK)
+			{
+				tracker->setMouseEmulation(true);
+				m_bForceMouseEmulation = true;
+			}
+
+			HotkeyCooldown(2.0f);
+		}
+	}
+	
 	// output menu
 	if (hudFont)
 	{
@@ -1678,110 +1666,96 @@ void D3DProxyDevice::VPMENU_DuckAndCover()
 	VPMENU_NewFrame(entryID, menuEntryCount);
 	controls.UpdateXInputs();
 
-	if (hotkeyCatch && HotkeysActive())
+	if (VPMENU_Input_Selected())
 	{
-		for (int i = 0; i < 256; i++)
-			if (controls.Key_Down(i) && controls.GetKeyName(i)!="-")
-			{
-				hotkeyCatch = false;
-				if(entryID == CROUCH_KEY)
-					m_DuckAndCover.crouchKey = (byte)i;
-				else if(entryID == PRONE_KEY)
-					m_DuckAndCover.proneKey = (byte)i;
-				else if(entryID == JUMP_KEY)
-					m_DuckAndCover.jumpKey = (byte)i;
-
-				m_DuckAndCover.SaveToRegistry();
-				break;
-			}
-	}
-	else
-	{
-		if (VPMENU_Input_Selected())
+		if (entryID == CROUCH_KEY)
 		{
-			if (entryID == CROUCH_KEY)
-			{
-				hotkeyCatch = true;
-				HotkeyCooldown(2.0f);
-			}
+			VPMENU_BindKey([=](int key) {
+				m_DuckAndCover.crouchKey = (byte)key;
+			});
+			HotkeyCooldown(2.0f);
+		}
 
-			if (entryID == CROUCH_TOGGLE)
-			{
-				m_DuckAndCover.crouchToggle = !m_DuckAndCover.crouchToggle;
-				m_DuckAndCover.SaveToRegistry();
-				HotkeyCooldown(2.0f);
-			}
+		if (entryID == CROUCH_TOGGLE)
+		{
+			m_DuckAndCover.crouchToggle = !m_DuckAndCover.crouchToggle;
+			m_DuckAndCover.SaveToRegistry();
+			HotkeyCooldown(2.0f);
+		}
 
-			if (entryID == PRONE_KEY)
-			{
-				hotkeyCatch = true;
-				HotkeyCooldown(2.0f);
-			}
+		if (entryID == PRONE_KEY)
+		{
+			VPMENU_BindKey([=](int key) {
+				m_DuckAndCover.proneKey = (byte)key;
+			});
+			HotkeyCooldown(2.0f);
+		}
 
-			if (entryID == PRONE_TOGGLE)
-			{
-				m_DuckAndCover.proneToggle = !m_DuckAndCover.proneToggle;
-				m_DuckAndCover.SaveToRegistry();
-				HotkeyCooldown(2.0f);
-			}
+		if (entryID == PRONE_TOGGLE)
+		{
+			m_DuckAndCover.proneToggle = !m_DuckAndCover.proneToggle;
+			m_DuckAndCover.SaveToRegistry();
+			HotkeyCooldown(2.0f);
+		}
 
-			if (entryID == JUMP_KEY)
-			{
-				hotkeyCatch = true;
-				HotkeyCooldown(2.0f);
-			}
+		if (entryID == JUMP_KEY)
+		{
+			VPMENU_BindKey([=](int key) {
+				m_DuckAndCover.jumpKey = (byte)key;
+			});
+			HotkeyCooldown(2.0f);
+		}
 
-			if (entryID == JUMP_ENABLED)
-			{
-				m_DuckAndCover.jumpEnabled = !m_DuckAndCover.jumpEnabled;
-				m_DuckAndCover.SaveToRegistry();
-				HotkeyCooldown(2.0f);
-			}
+		if (entryID == JUMP_ENABLED)
+		{
+			m_DuckAndCover.jumpEnabled = !m_DuckAndCover.jumpEnabled;
+			m_DuckAndCover.SaveToRegistry();
+			HotkeyCooldown(2.0f);
+		}
 
-			// start calibration
-			if (entryID == DUCKANDCOVER_CALIBRATE)
+		// start calibration
+		if (entryID == DUCKANDCOVER_CALIBRATE)
+		{
+			VPMENU_mode = VPMENU_Modes::INACTIVE;
+			m_DuckAndCover.dfcStatus = DAC_CAL_STANDING;
+			HotkeyCooldown(3.0f);
+		}
+
+		// enable/disable - calibrate if not previously calibrated
+		if (entryID == DUCKANDCOVER_MODE)
+		{
+			if (m_DuckAndCover.dfcStatus == DAC_INACTIVE)
 			{
 				VPMENU_mode = VPMENU_Modes::INACTIVE;
 				m_DuckAndCover.dfcStatus = DAC_CAL_STANDING;
-				HotkeyCooldown(3.0f);
 			}
-
-			// enable/disable - calibrate if not previously calibrated
-			if (entryID == DUCKANDCOVER_MODE)
+			else if (m_DuckAndCover.dfcStatus == DAC_DISABLED)
 			{
-				if (m_DuckAndCover.dfcStatus == DAC_INACTIVE)
-				{
-					VPMENU_mode = VPMENU_Modes::INACTIVE;
-					m_DuckAndCover.dfcStatus = DAC_CAL_STANDING;
-				}
-				else if (m_DuckAndCover.dfcStatus == DAC_DISABLED)
-				{
-					//Already calibrated, so just set to standing again
-					m_DuckAndCover.dfcStatus = DAC_STANDING;
-				}
-				else
-				{
-					//Already enabled, so disable
-					m_DuckAndCover.dfcStatus = DAC_DISABLED;
-				}
-					
-				HotkeyCooldown(3.0f);
+				//Already calibrated, so just set to standing again
+				m_DuckAndCover.dfcStatus = DAC_STANDING;
 			}
-
-			// back to main menu
-			if (entryID == BACK_VPMENU)
+			else
 			{
-				VPMENU_mode = VPMENU_Modes::MAINMENU;
-				VPMENU_UpdateConfigSettings();
-				HotkeyCooldown(2.0f);
+				//Already enabled, so disable
+				m_DuckAndCover.dfcStatus = DAC_DISABLED;
 			}
+				
+			HotkeyCooldown(3.0f);
+		}
 
-			// back to game
-			if (entryID == BACK_GAME)
-			{
-				VPMENU_mode = VPMENU_Modes::INACTIVE;
-				VPMENU_UpdateConfigSettings();
-			}
+		// back to main menu
+		if (entryID == BACK_VPMENU)
+		{
+			VPMENU_mode = VPMENU_Modes::MAINMENU;
+			VPMENU_UpdateConfigSettings();
+			HotkeyCooldown(2.0f);
+		}
+
+		// back to game
+		if (entryID == BACK_GAME)
+		{
+			VPMENU_mode = VPMENU_Modes::INACTIVE;
+			VPMENU_UpdateConfigSettings();
 		}
 	}
 
@@ -1886,64 +1860,58 @@ void D3DProxyDevice::VPMENU_ComfortMode()
 	VPMENU_NewFrame(entryID, menuEntryCount);
 	controls.UpdateXInputs();
 
-	if (hotkeyCatch && HotkeysActive())
+	if (VPMENU_Input_Selected() && HotkeysActive())
 	{
-		for (int i = 0; i < 256; i++)
-			if (controls.Key_Down(i) && controls.GetKeyName(i)!="-")
-			{
-				hotkeyCatch = false;
-				if(entryID == TURN_LEFT)
-					m_comfortModeLeftKey = (byte)i;
-				else if(entryID == TURN_RIGHT)
-					m_comfortModeRightKey = (byte)i;
-				break;
-			}
-	}
-	else
-	{
-		if (VPMENU_Input_Selected())
+		if (entryID == COMFORT_MODE_ENABLED)
 		{
-			if (entryID == COMFORT_MODE_ENABLED)
-			{
-				VRBoostValue[VRboostAxis::ComfortMode] = 1.0f - VRBoostValue[VRboostAxis::ComfortMode];
-				//Reset Yaw to avoid complications
-				m_comfortModeYaw = 0.0f;
-				HotkeyCooldown(2.0f);
-			}
+			VRBoostValue[VRboostAxis::ComfortMode] = 1.0f - VRBoostValue[VRboostAxis::ComfortMode];
+			//Reset Yaw to avoid complications
+			m_comfortModeYaw = 0.0f;
+			HotkeyCooldown(2.0f);
+		}
 
-			if (entryID == TURN_LEFT || entryID == TURN_RIGHT)
-			{
-				hotkeyCatch = true;
-				HotkeyCooldown(2.0f);
-			}
+		if (entryID == TURN_LEFT)
+		{
+			VPMENU_BindKey([=](int key) {
+				m_comfortModeLeftKey = (byte)key;
+			});
+			HotkeyCooldown(2.0f);
+		}
+		
+		if (entryID == TURN_RIGHT)
+		{
+			VPMENU_BindKey([=](int key) {
+				m_comfortModeRightKey = (byte)key;
+			});
+			HotkeyCooldown(2.0f);
+		}
 
-			if (entryID == YAW_INCREMENT)
-			{
-				if (m_comfortModeYawIncrement == 30.0f)
-					m_comfortModeYawIncrement = 45.0f;
-				else if (m_comfortModeYawIncrement == 45.0f)
-					m_comfortModeYawIncrement = 60.0f;
-				else if (m_comfortModeYawIncrement == 60.0f)
-					m_comfortModeYawIncrement = 90.0f;
-				else if (m_comfortModeYawIncrement == 90.0f)
-					m_comfortModeYawIncrement = 30.0f;
-				HotkeyCooldown(2.0f);
-			}
+		if (entryID == YAW_INCREMENT)
+		{
+			if (m_comfortModeYawIncrement == 30.0f)
+				m_comfortModeYawIncrement = 45.0f;
+			else if (m_comfortModeYawIncrement == 45.0f)
+				m_comfortModeYawIncrement = 60.0f;
+			else if (m_comfortModeYawIncrement == 60.0f)
+				m_comfortModeYawIncrement = 90.0f;
+			else if (m_comfortModeYawIncrement == 90.0f)
+				m_comfortModeYawIncrement = 30.0f;
+			HotkeyCooldown(2.0f);
+		}
 
-			// back to main menu
-			if (entryID == BACK_VPMENU)
-			{
-				VPMENU_mode = VPMENU_Modes::MAINMENU;
-				VPMENU_UpdateConfigSettings();
-				HotkeyCooldown(2.0f);
-			}
+		// back to main menu
+		if (entryID == BACK_VPMENU)
+		{
+			VPMENU_mode = VPMENU_Modes::MAINMENU;
+			VPMENU_UpdateConfigSettings();
+			HotkeyCooldown(2.0f);
+		}
 
-			// back to game
-			if (entryID == BACK_GAME)
-			{
-				VPMENU_mode = VPMENU_Modes::INACTIVE;
-				VPMENU_UpdateConfigSettings();
-			}
+		// back to game
+		if (entryID == BACK_GAME)
+		{
+			VPMENU_mode = VPMENU_Modes::INACTIVE;
+			VPMENU_UpdateConfigSettings();
 		}
 	}
 

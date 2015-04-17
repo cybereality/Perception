@@ -64,6 +64,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <vector>
 #include <memory>
 #include <ctime>
+#include <functional>
 #include "Vireio.h"
 #include "StereoShaderConstant.h"
 #include "StereoBackBuffer.h"
@@ -487,12 +488,14 @@ protected:
 	bool         VPMENU_Input_IsAdjustment();
 	float        VPMENU_Input_GetAdjustment();
 	float        VPMENU_Input_SpeedModifier();
+	void         VPMENU_BindKey(std::function<void(int)> onBind);
 	virtual void VPMENU_ShaderSubMenu(){}
 	virtual void VPMENU_ChangeRules(){}
 	virtual void VPMENU_PickRules(){}
 	virtual void VPMENU_ShowActiveShaders(){}
 
 	VireioPopup activePopup;
+	std::function<void(int)> onBindKey;
 
 	/** Whether the Frames Per Second counter is being shown */
 	enum FPS_TYPE {
