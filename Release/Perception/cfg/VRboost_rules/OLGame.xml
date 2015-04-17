@@ -6,7 +6,7 @@
 		<ID>0</ID>
 		<BaseAddress>7FF500000004</BaseAddress>
 		<MemIncrement>10</MemIncrement>
-		<MemIncCount>3FFFFFFF</MemIncCount>
+		<MemIncCount>B0000000</MemIncCount>
 		<FailIfNotFound>True</FailIfNotFound>
 
 		<ScanRule>
@@ -100,7 +100,7 @@
 		<ID>1</ID>      
 		<BaseAddress>7FF50000000C</BaseAddress>
 		<MemIncrement>8</MemIncrement>
-		<MemIncCount>80000000</MemIncCount>
+		<MemIncCount>160000000</MemIncCount>
 		<FailIfNotFound>True</FailIfNotFound>
 
 		<ScanRule>
