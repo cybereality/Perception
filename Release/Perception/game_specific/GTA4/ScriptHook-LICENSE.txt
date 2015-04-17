@@ -1,0 +1,70 @@
+GTAIV Script Hook 0.5.1
+Copyright (C) 2009-2010, Aru
+<oneforaru at gmail dot com>
+
+-------
+LICENSE
+-------
+
+This license describes the conditions under which ScriptHook and/or its
+software development kit is provided to you. Please read this license
+carefully before using this software.
+
+1. LICENSE FOR SCRIPTHOOK
+
+   You are given a royalty-free, non-exclusive license to use ScriptHook and
+   make use of derived works using ScriptHook subject to the following terms
+   and conditions:
+
+   (a) You must not misappropriate the origin of this software. You must not
+       claim you wrote the original software. If you make use of or redistribute
+       this software, an acknowledgement in the documentation would be
+       appreciated but is not required.
+
+   (b) You must not remove any copyright notices or this license from any
+       distributions of this software.
+
+   (c) You must only use this software for non-commercial purposes and gain
+       no financial profit from the use or distribution of this software or
+       any derived works. You may accept donations for derived works if such
+       donations are granted at the free will of the user. You must not require
+       a donation before any such derived works is available to the user.
+
+   (d) You must not alter, tamper or otherwise circumvent the online
+       protections and restrictions included in this software. These checks
+       are included to provide a safe and enjoyable online experience for
+       both modders and non-modders alike.
+
+2. LICENSE FOR SCRIPTHOOK SOFTWARE DEVELOPMENT KIT (SDK)
+
+   You are given a royalty-free, non-exclusive license to create mods or
+   derived works based on ScriptHook subject to the terms and conditions
+   outlined in section (1) and the following terms and conditions:
+
+   (a) You must not produce another SDK using the ScriptHook SDK, its source
+       or application protocol interfaces (APIs) unless any such SDK provides
+       users with the added benefit of programming in a different language or
+       API model that is not already provided by this SDK.
+
+   (b) You may redistribute the headers or APIs provided in the ScriptHook SDK
+       in its original or altered state only in conjunction with the terms of
+       section 2(a). Any altered headers or APIs must be plainly marked as such
+       and must not be misrepresented as the original software.
+
+   (c) Any derived works that make use of ScriptHook may be published in binary
+       or source form in a license of your choosing provided that such a license
+       does not invalidate any terms or conditions of this license.
+
+   (d) You may include "ScriptHook.dll" as part of the distribution of your
+       derived works, provided that it is in its unaltered state and you
+       include this license as well.
+
+3. DISCLAIMER OF WARRANTY
+
+   This software is provided "as is", without warranty of any kind, express or
+   implied, including but not limited to the warranties of merchantability,
+   fitness for a particular purpose and non-infringement. In no event shall the
+   authors or copyright holders be liable for any claim, damages or other
+   liability, whether in an action of contract, tort or otherwise, arising
+   from, out of or in connection with this software or the use or other
+   dealings in this software.

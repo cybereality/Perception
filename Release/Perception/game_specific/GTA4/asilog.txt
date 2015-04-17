@@ -1,0 +1,29 @@
+// -- GTA IV ASI LOADER LOG -- //
+//-- (C) Alexander Blade 2008 -- //
+C:\Windows\system32\dsound.dll is loaded, address 0x71800000
+Hooking dsound proc named "DirectSoundCreate"
+"DirectSoundCreate" hooked, address 0x71822290
+Hooking dsound proc named "DirectSoundEnumerateA"
+"DirectSoundEnumerateA" hooked, address 0x71855C00
+Hooking dsound proc named "DirectSoundEnumerateW"
+"DirectSoundEnumerateW" hooked, address 0x7180F4B0
+Hooking dsound proc named "DllCanUnloadNow"
+"DllCanUnloadNow" hooked, address 0x71822030
+Hooking dsound proc named "DllGetClassObject"
+"DllGetClassObject" hooked, address 0x71807D70
+Hooking dsound proc named "DirectSoundCaptureCreate"
+"DirectSoundCaptureCreate" hooked, address 0x71855B20
+Hooking dsound proc named "DirectSoundCaptureEnumerateA"
+"DirectSoundCaptureEnumerateA" hooked, address 0x71855BE0
+Hooking dsound proc named "DirectSoundCaptureEnumerateW"
+"DirectSoundCaptureEnumerateW" hooked, address 0x7180F8F0
+Hooking dsound proc named "GetDeviceID"
+"GetDeviceID" hooked, address 0x7180EA80
+Hooking dsound proc named "DirectSoundFullDuplexCreate"
+"DirectSoundFullDuplexCreate" hooked, address 0x71855C20
+Hooking dsound proc named "DirectSoundCreate8"
+"DirectSoundCreate8" hooked, address 0x7180ECF0
+Hooking dsound proc named "DirectSoundCaptureCreate8"
+"DirectSoundCaptureCreate8" hooked, address 0x71855A50
+Loading ASI F:\Program Files (x86)\Steam\steamapps\common\Grand Theft Auto IV Episodes from Liberty City\EFLC\FirstPerson.asi
+ASI loaded : F:\Program Files (x86)\Steam\steamapps\common\Grand Theft Auto IV Episodes from Liberty City\EFLC\FirstPerson.asi, Address 0x55DD0000
