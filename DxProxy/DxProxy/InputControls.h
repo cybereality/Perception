@@ -9,7 +9,83 @@
 #include <windows.h>
 #include <WinUser.h>
 #include <XInput.h>
+#include <memory>
+#include <functional>
 
+class InputControls;
+
+class InputBinding
+{
+public:
+	virtual bool IsPressed(InputControls &controls)=0;
+};
+
+typedef std::shared_ptr<InputBinding> InputBindingRef;
+
+class SimpleKeyBinding
+	: public InputBinding
+{
+public:
+	SimpleKeyBinding(int key);
+	bool IsPressed(InputControls &controls);
+	
+private:
+	int keyIndex;
+};
+
+class SimpleButtonBinding
+	: public InputBinding
+{
+public:
+	SimpleButtonBinding(int button);
+	bool IsPressed(InputControls &controls);
+	
+private:
+	int buttonIndex;
+};
+
+class InputExpressionBinding
+	: public InputBinding
+{
+public:
+	InputExpressionBinding(std::function<bool(InputControls&)> func);
+	bool IsPressed(InputControls &controls);
+
+private:
+	std::function<bool(InputControls&)> func;
+};
+
+class CombinationKeyBinding
+	: public InputBinding
+{
+public:
+	CombinationKeyBinding(InputBindingRef first, InputBindingRef second);
+	bool IsPressed(InputControls &controls);
+	
+private:
+	InputBindingRef first;
+	InputBindingRef second;
+};
+
+class AlternativesKeyBinding
+	: public InputBinding
+{
+public:
+	AlternativesKeyBinding(InputBindingRef first, InputBindingRef second);
+	bool IsPressed(InputControls &controls);
+	
+private:
+	InputBindingRef first;
+	InputBindingRef second;
+};
+
+namespace HotkeyExpressions
+{
+	InputBindingRef Key(int keyIndex);
+	InputBindingRef Button(int buttonIndex);
+	InputBindingRef operator+(InputBindingRef lhs, InputBindingRef rhs);
+	InputBindingRef operator||(InputBindingRef lhs, InputBindingRef rhs);
+}
 
 /*
 * Holds information about inputs.

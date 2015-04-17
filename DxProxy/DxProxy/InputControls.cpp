@@ -192,3 +192,78 @@ bool InputControls::Key_Up( int virtualKeyCode )
 }
 
 std::array<std::string, 256> InputControls::KeyNameList = InputControls::GetKeyNameList();
+
+
+
+SimpleKeyBinding::SimpleKeyBinding(int key)
+{
+	this->keyIndex = key;
+}
+
+bool SimpleKeyBinding::IsPressed(InputControls &controls)
+{
+	return controls.Key_Down(keyIndex);
+}
+
+SimpleButtonBinding::SimpleButtonBinding(int button)
+{
+	this->buttonIndex = button;
+}
+
+bool SimpleButtonBinding::IsPressed(InputControls &controls)
+{
+	return controls.xButtonsStatus[buttonIndex];
+}
+
+InputExpressionBinding::InputExpressionBinding(std::function<bool(InputControls&)> func)
+{
+	this->func = func;
+}
+
+bool InputExpressionBinding::IsPressed(InputControls &controls)
+{
+	return func(controls);
+}
+
+CombinationKeyBinding::CombinationKeyBinding(InputBindingRef first, InputBindingRef second)
+{
+	this->first = first;
+	this->second = second;
+}
+
+bool CombinationKeyBinding::IsPressed(InputControls &controls)
+{
+	return first->IsPressed(controls) && second->IsPressed(controls);
+}
+
+AlternativesKeyBinding::AlternativesKeyBinding(InputBindingRef first, InputBindingRef second)
+{
+	this->first = first;
+	this->second = second;
+}
+
+bool AlternativesKeyBinding::IsPressed(InputControls &controls)
+{
+	return first->IsPressed(controls) || second->IsPressed(controls);
+}
+
+
+InputBindingRef HotkeyExpressions::Key(int keyIndex)
+{
+	return InputBindingRef(new SimpleKeyBinding(keyIndex));
+}
+
+InputBindingRef HotkeyExpressions::Button(int buttonIndex)
+{
+	return InputBindingRef(new SimpleButtonBinding(buttonIndex));
+}
+
+InputBindingRef HotkeyExpressions::operator+(InputBindingRef lhs, InputBindingRef rhs)
+{
+	return InputBindingRef(new CombinationKeyBinding(lhs, rhs));
+}
+
+InputBindingRef HotkeyExpressions::operator||(InputBindingRef lhs, InputBindingRef rhs)
+{
+	return InputBindingRef(new AlternativesKeyBinding(lhs, rhs));
+}
