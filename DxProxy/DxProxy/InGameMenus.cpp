@@ -217,19 +217,21 @@ bool D3DProxyDevice::VPMENU_Input_IsAdjustment()
 
 float D3DProxyDevice::VPMENU_Input_GetAdjustment()
 {
+	float speed = VPMENU_Input_SpeedModifier();
+	
 	if (VPMENU_Input_Left() && HotkeysActive())
 	{
 		if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down('J'))
-			return -1.0f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
+			return -speed * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 		else
-			return -1.0f;
+			return -speed;
 	}
 	if (VPMENU_Input_Right() && HotkeysActive())
 	{
 		if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down('L'))
-			return +1.0f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
+			return +speed * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 		else
-			return +1.0f;
+			return +speed;
 	}
 	return 0;
 }
@@ -484,7 +486,6 @@ void D3DProxyDevice::VPMENU_WorldScale()
 	SHOW_CALL("VPMENU_WorldScale");
 	
 	// base values
-	float separationChange = 0.005f;
 	static UINT gameXScaleUnitIndex = 0;
 
 	// ensure that the attraction is set to zero
@@ -500,21 +501,24 @@ void D3DProxyDevice::VPMENU_WorldScale()
 	{
 		if (controls.Key_Down(VK_LSHIFT))
 		{
-			if (gameXScaleUnitIndex>0) --gameXScaleUnitIndex;
+			if (gameXScaleUnitIndex>0)
+				--gameXScaleUnitIndex;
 		}
 		else
+		{
 			gameXScaleUnitIndex++;
+			
+			// game unit index out of range ?
+			if ((gameXScaleUnitIndex != 0) && (gameXScaleUnitIndex >= m_gameXScaleUnits.size()))
+				gameXScaleUnitIndex = m_gameXScaleUnits.size()-1;
+		}
 		HotkeyCooldown(2.0f);
 	}
-
-	// game unit index out of range ?
-	if ((gameXScaleUnitIndex != 0) && (gameXScaleUnitIndex >= m_gameXScaleUnits.size()))
-		gameXScaleUnitIndex = m_gameXScaleUnits.size()-1;
 
 	// Left/Right: Decrease/increase world scale
 	if (VPMENU_Input_IsAdjustment() && HotkeysActive())
 	{
-		separationChange *= VPMENU_Input_SpeedModifier() * VPMENU_Input_GetAdjustment();;
+		float separationChange = 0.005f * VPMENU_Input_GetAdjustment();;
 		m_spShaderViewAdjustment->ChangeWorldScale(separationChange);
 		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
 		HotkeyCooldown(0.7f);
@@ -699,9 +703,6 @@ void D3DProxyDevice::VPMENU_Convergence()
 {
 	SHOW_CALL("VPMENU_Convergence");
 	
-	// base values
-	float convergenceChange = 0.05f;
-
 	// ensure that the attraction is set to zero
 	// for non-menu-screens like this one
 	menuAttraction.x = 0.0f;
@@ -710,7 +711,7 @@ void D3DProxyDevice::VPMENU_Convergence()
 	// Left/Right: Decrease/Increase convergence (hold CTRL to lower speed, SHIFT to speed up)
 	if (VPMENU_Input_IsAdjustment() && HotkeysActive())
 	{
-		convergenceChange = VPMENU_Input_SpeedModifier() * VPMENU_Input_GetAdjustment();
+		float convergenceChange = 0.05f * VPMENU_Input_GetAdjustment();
 		m_spShaderViewAdjustment->ChangeConvergence(convergenceChange);
 		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
 		HotkeyCooldown(0.7f);
