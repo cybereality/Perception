@@ -241,6 +241,24 @@ bool OculusRenderer::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 ***/
 void* OculusRenderer::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)	
 {
+	// return if wrong call
+	if ((eD3D >= (int)AQU_DirectXVersion::DirectX_9_0) &&
+		(eD3D <= (int)AQU_DirectXVersion::DirectX_9_29))
+	{
+		if (((eD3DInterface == INTERFACE_IDIRECT3DDEVICE9) &&
+			(eD3DMethod == METHOD_IDIRECT3DDEVICE9_PRESENT)) || 
+			((eD3DInterface == INTERFACE_IDIRECT3DDEVICE9) &&
+			(eD3DMethod == METHOD_IDIRECT3DDEVICE9_ENDSCENE)) ||
+			((eD3DInterface == INTERFACE_IDIRECT3DSWAPCHAIN9) &&
+			(eD3DMethod == METHOD_IDIRECT3DSWAPCHAIN9_PRESENT)))
+		{
+			(pThis);
+		}
+		else return nullptr;
+	}
+	else
+		return nullptr;
+
 	// get input data
 	if (m_paInput[(int)ORN_Decommanders::LeftTexture])
 		m_pcTextureLeft = *(LPDIRECT3DTEXTURE9*)m_paInput[(int)ORN_Decommanders::LeftTexture];

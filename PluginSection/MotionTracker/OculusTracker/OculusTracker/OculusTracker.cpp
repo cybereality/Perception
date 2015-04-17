@@ -493,6 +493,16 @@ bool OculusTracker::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD
 ***/
 void* OculusTracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)	
 {
+	// return if wrong call
+	if ((eD3D >= (int)AQU_DirectXVersion::DirectX_9_0) &&
+		(eD3D <= (int)AQU_DirectXVersion::DirectX_9_29))
+	{
+		if ( !(eD3DInterface == INTERFACE_IDIRECT3DDEVICE9) && !(eD3DInterface == INTERFACE_IDIRECT3DSWAPCHAIN9))
+			return nullptr;
+	}
+	else
+		return nullptr;
+
 	if (m_hHMD)
 	{
 		// Start the sensor which informs of the Rift's pose and motion

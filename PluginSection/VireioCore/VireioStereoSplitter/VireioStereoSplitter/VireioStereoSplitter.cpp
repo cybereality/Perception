@@ -9,6 +9,9 @@ File <VireioStereoSplitter.cpp> and
 Class <VireioStereoSplitter> :
 Copyright (C) 2015 Denis Reischl
 
+Parts of this class directly derive from Vireio source code originally 
+authored by Chris Drain (v1.1.x 2013).
+
 The stub class <AQU_Nodus> is the only public class from the Aquilinus 
 repository and permitted to be used for open source plugins of any kind. 
 Read the Aquilinus documentation for further information.
@@ -56,12 +59,14 @@ StereoSplitter::StereoSplitter():AQU_Nodus(),
 	m_apcActiveRenderTargets(0, nullptr),
 	m_apcActiveTextures(MAX_SIMULTANEOUS_TEXTURES_D3D9, nullptr),
 	m_pcActiveDepthStencilSurface(nullptr),
+	m_pcActiveBackBufferSurface(nullptr),
 	m_apcMonitoredSurfaces(0, nullptr),
 	m_apcStereoTwinSurfaces(0, nullptr),
 	m_apcStereoTwinTextures(0, nullptr),
 	m_apcActiveStereoTwinRenderTarget(0, nullptr),
 	m_apcActiveStereoTwinTextures(MAX_SIMULTANEOUS_TEXTURES_D3D9, nullptr),
 	m_pcActiveStereoTwinDepthStencilSurface(nullptr),
+	m_pcActiveStereoTwinBackBufferSurface(nullptr),
 	m_anMonitoredRenderTargetsCheckTimeCounter(0, 0),
 	m_dwNewStereoTwinRenderTargets(0),
 	m_pdwRenderTargetIndex(nullptr),
@@ -77,7 +82,11 @@ StereoSplitter::StereoSplitter():AQU_Nodus(),
 	m_dwMaxRenderTargets(0),
 	m_bMaxRenderTargets(false),
 	m_bPresent(false),
-	m_nChecktimeFrameConstant(30)                           /**< Set this constant to 30 frames, later we should be able to change this value on the node. ***/
+	m_nChecktimeFrameConstant(30),                          /**< Set this constant to 30 frames, later we should be able to change this value on the node. ***/
+	m_pcStereoOutputLeft(nullptr),
+	m_pcStereoOutputRight(nullptr),
+	m_pcStereoOutputSurfaceLeft(nullptr),
+	m_pcStereoOutputSurfaceRight(nullptr)
 {
 }
 
@@ -105,6 +114,27 @@ StereoSplitter::~StereoSplitter()
 	{
 		if (m_apcStereoTwinRenderTextureClipboard[i])
 			m_apcStereoTwinRenderTextureClipboard[i]->Release();
+	}
+
+	if (m_pcStereoOutputSurfaceLeft)
+	{
+		m_pcStereoOutputSurfaceLeft->Release();
+		m_pcStereoOutputSurfaceLeft = nullptr;
+	}
+	if (m_pcStereoOutputSurfaceRight)
+	{
+		m_pcStereoOutputSurfaceRight->Release();
+		m_pcStereoOutputSurfaceRight = nullptr;
+	}
+	if (m_pcStereoOutputLeft)
+	{
+		m_pcStereoOutputLeft->Release();
+		m_pcStereoOutputLeft = nullptr;
+	}
+	if (m_pcStereoOutputRight)
+	{
+		m_pcStereoOutputRight->Release();
+		m_pcStereoOutputRight = nullptr;
 	}
 }
 
@@ -293,6 +323,22 @@ HBITMAP StereoSplitter::GetControl()
 }
 
 /**
+* Provides the name of the requested commander.
+***/
+LPWSTR StereoSplitter::GetCommanderName(DWORD dwCommanderIndex)
+{
+	switch((STS_Commanders)dwCommanderIndex)
+	{
+	case STS_Commanders::StereoTextureLeft:
+		return L"Stereo Output Texture Left";
+	case STS_Commanders::StereoTextureRight:
+		return L"Stereo Output Texture Right";
+	}
+
+	return L"";
+}
+
+/**
 * Provides the name of the requested decommander.
 ***/
 LPWSTR StereoSplitter::GetDecommanderName(DWORD dwDecommanderIndex)
@@ -357,6 +403,14 @@ LPWSTR StereoSplitter::GetDecommanderName(DWORD dwDecommanderIndex)
 }
 
 /**
+* Returns the plug type for the requested commander.
+***/
+DWORD StereoSplitter::GetCommanderType(DWORD dwCommanderIndex) 
+{
+	return PNT_IDIRECT3DTEXTURE9_PLUG_TYPE;
+}
+
+/**
 * Returns the plug type for the requested decommander.
 ***/
 DWORD StereoSplitter::GetDecommanderType(DWORD dwDecommanderIndex) 
@@ -374,31 +428,66 @@ DWORD StereoSplitter::GetDecommanderType(DWORD dwDecommanderIndex)
 	case STS_Decommanders::pTexture:                      /**< ->SetTexture() texture pointer ***/
 		return PNT_IDIRECT3DBASETEXTURE9_PLUG_TYPE;
 	case STS_Decommanders::PrimitiveType:                 /**< ->DrawPrimitive() primitive type ***/
+		return D3DPRIMITIVETYPE_PLUG_TYPE;
 	case STS_Decommanders::StartVertex:                   /**< ->DrawPrimitive() start vertex ***/
+		return UINT_PLUG_TYPE;
 	case STS_Decommanders::PrimitiveCount:                /**< ->DrawPrimitive() primitive count ***/
+		return UINT_PLUG_TYPE;
 	case STS_Decommanders::Type:                          /**< ->DrawIndexedPrimitive() primitive type ***/
+		return D3DPRIMITIVETYPE_PLUG_TYPE;
 	case STS_Decommanders::BaseVertexIndex:               /**< ->DrawIndexedPrimitive() base vertex index ***/
+		return INT_PLUG_TYPE;
 	case STS_Decommanders::MinIndex:                      /**< ->DrawIndexedPrimitive() minimum vertex index ***/
+		return UINT_PLUG_TYPE;
 	case STS_Decommanders::NumVertices:                   /**< ->DrawIndexedPrimitive() number of vertices ***/
+		return UINT_PLUG_TYPE;
 	case STS_Decommanders::StartIndex:                    /**< ->DrawIndexedPrimitive() start index  ***/
+		return UINT_PLUG_TYPE;
 	case STS_Decommanders::PrimitiveCountIndexed:         /**< ->DrawIndexedPrimitive() primitive count ***/
+		return UINT_PLUG_TYPE;
 	case STS_Decommanders::PrimitiveTypeUP:               /**< ->DrawPrimitiveUP() primitive type ***/
+		return D3DPRIMITIVETYPE_PLUG_TYPE;
 	case STS_Decommanders::PrimitiveCountUP:              /**< ->DrawPrimitiveUP() primitive count ***/
+		return UINT_PLUG_TYPE;
 	case STS_Decommanders::pVertexStreamZeroData:         /**< ->DrawPrimitiveUP() memory pointer to the vertex data ***/
+		return PNT_VOID_PLUG_TYPE;
 	case STS_Decommanders::VertexStreamZeroStride:        /**< ->DrawPrimitiveUP() number of bytes of data for each vertex ***/
+		return UINT_PLUG_TYPE;
 	case STS_Decommanders::PrimitiveTypeUPIndexed:        /**< ->DrawIndexedPrimitiveUP() primitive type ***/
+		return D3DPRIMITIVETYPE_PLUG_TYPE;
 	case STS_Decommanders::MinVertexIndex:                /**< ->DrawIndexedPrimitiveUP() minimum vertex index ***/
+		return UINT_PLUG_TYPE;
 	case STS_Decommanders::NumVerticesUPIndexed:          /**< ->DrawIndexedPrimitiveUP() number of vertices ***/
+		return UINT_PLUG_TYPE;
 	case STS_Decommanders::PrimitiveCountUPIndexed:       /**< ->DrawIndexedPrimitiveUP() primitive count ***/
+		return UINT_PLUG_TYPE;
 	case STS_Decommanders::pIndexData:                    /**< ->DrawIndexedPrimitiveUP() memory pointer to the index data ***/
+		return PNT_VOID_PLUG_TYPE;
 	case STS_Decommanders::IndexDataFormat:               /**< ->DrawIndexedPrimitiveUP() format of the index data ***/
+		return D3DFORMAT_PLUG_TYPE;
 	case STS_Decommanders::pVertexStreamZeroDataIndexed:  /**< ->DrawIndexedPrimitiveUP() memory pointer to the vertex data ***/
+		return PNT_VOID_PLUG_TYPE;
 	case STS_Decommanders::VertexStreamZeroStrideIndexed: /**< ->DrawIndexedPrimitiveUP() number of bytes of data for each vertex ***/
-		return 0;
-		//return PNT_IDIRECT3DTEXTURE9_PLUG_TYPE;
+		return UINT_PLUG_TYPE;
 	}
 
 	return 0;
+}
+
+/**
+* Provides the output pointer for the requested commander.
+***/
+void* StereoSplitter::GetOutputPointer(DWORD dwCommanderIndex)
+{
+	switch((STS_Commanders)dwCommanderIndex)
+	{
+	case STS_Commanders::StereoTextureLeft:
+		return (void*)&m_pcStereoOutputLeft;
+	case STS_Commanders::StereoTextureRight:
+		return (void*)&m_pcStereoOutputRight;
+	}
+
+	return nullptr;
 }
 
 /**
@@ -424,26 +513,67 @@ void StereoSplitter::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 		m_ppcTexture = (IDirect3DTexture9**)pData;
 		break;
 	case STS_Decommanders::PrimitiveType:                 /**< ->DrawPrimitive() primitive type ***/
+		m_pePrimitiveType = (D3DPRIMITIVETYPE*)pData;
+		break;
 	case STS_Decommanders::StartVertex:                   /**< ->DrawPrimitive() start vertex ***/
+		m_pdwStartVertex = (UINT*)pData;
+		break;
 	case STS_Decommanders::PrimitiveCount:                /**< ->DrawPrimitive() primitive count ***/
+		m_pdwPrimitiveCount = (UINT*)pData;
+		break;
 	case STS_Decommanders::Type:                          /**< ->DrawIndexedPrimitive() primitive type ***/
+		m_peType = (D3DPRIMITIVETYPE*)pData;
+		break;
 	case STS_Decommanders::BaseVertexIndex:               /**< ->DrawIndexedPrimitive() base vertex index ***/
+		m_pnBaseVertexIndex = (INT*)pData;
+		break;
 	case STS_Decommanders::MinIndex:                      /**< ->DrawIndexedPrimitive() minimum vertex index ***/
+		m_pdwMinIndex = (UINT*)pData;
+		break;
 	case STS_Decommanders::NumVertices:                   /**< ->DrawIndexedPrimitive() number of vertices ***/
+		m_pdwNumVertices = (UINT*)pData;
+		break;
 	case STS_Decommanders::StartIndex:                    /**< ->DrawIndexedPrimitive() start index  ***/
+		m_pdwStartIndex = (UINT*)pData;
+		break;
 	case STS_Decommanders::PrimitiveCountIndexed:         /**< ->DrawIndexedPrimitive() primitive count ***/
+		m_pdwPrimitiveCountIndexed = (UINT*)pData;
+		break;
 	case STS_Decommanders::PrimitiveTypeUP:               /**< ->DrawPrimitiveUP() primitive type ***/
+		m_pePrimitiveTypeUP = (D3DPRIMITIVETYPE*)pData;
+		break;
 	case STS_Decommanders::PrimitiveCountUP:              /**< ->DrawPrimitiveUP() primitive count ***/
+		m_pdwPrimitiveCountUP = (UINT*)pData;
+		break;
 	case STS_Decommanders::pVertexStreamZeroData:         /**< ->DrawPrimitiveUP() memory pointer to the vertex data ***/
+		m_ppVertexStreamZeroData = (void**)pData;
+		break;
 	case STS_Decommanders::VertexStreamZeroStride:        /**< ->DrawPrimitiveUP() number of bytes of data for each vertex ***/
+		m_pdwVertexStreamZeroStride = (UINT*)pData;
+		break;
 	case STS_Decommanders::PrimitiveTypeUPIndexed:        /**< ->DrawIndexedPrimitiveUP() primitive type ***/
+		m_pePrimitiveTypeUPIndexed = (D3DPRIMITIVETYPE*)pData;
+		break;
 	case STS_Decommanders::MinVertexIndex:                /**< ->DrawIndexedPrimitiveUP() minimum vertex index ***/
+		m_pdwMinVertexIndex = (UINT*)pData;
+		break;
 	case STS_Decommanders::NumVerticesUPIndexed:          /**< ->DrawIndexedPrimitiveUP() number of vertices ***/
+		m_pdwNumVerticesUPIndexed = (UINT*)pData;
+		break;
 	case STS_Decommanders::PrimitiveCountUPIndexed:       /**< ->DrawIndexedPrimitiveUP() primitive count ***/
+		m_pdwPrimitiveCountUPIndexed = (UINT*)pData;
+		break;
 	case STS_Decommanders::pIndexData:                    /**< ->DrawIndexedPrimitiveUP() memory pointer to the index data ***/
+		m_ppIndexData = (void**)pData;
+		break;
 	case STS_Decommanders::IndexDataFormat:               /**< ->DrawIndexedPrimitiveUP() format of the index data ***/
+		m_peIndexDataFormat = (D3DFORMAT*)pData;
+		break;
 	case STS_Decommanders::pVertexStreamZeroDataIndexed:  /**< ->DrawIndexedPrimitiveUP() memory pointer to the vertex data ***/
+		m_ppVertexStreamZeroDataIndexed = (void**)pData;
+		break;
 	case STS_Decommanders::VertexStreamZeroStrideIndexed: /**< ->DrawIndexedPrimitiveUP() number of bytes of data for each vertex ***/
+		m_pdwVertexStreamZeroStrideIndexed = (UINT*)pData;
 		break;
 	}
 }
@@ -495,57 +625,73 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 				{
 					// get data
 					DWORD dwRenderTargetIndex = 0;
-					if (m_pdwRenderTargetIndex) 
-						dwRenderTargetIndex = *m_pdwRenderTargetIndex; 
-					else 
-						return nullptr;
+					if (m_pdwRenderTargetIndex) dwRenderTargetIndex = *m_pdwRenderTargetIndex; else return nullptr;
 					IDirect3DSurface9* pcRenderTarget = nullptr;
-					if (m_ppcRenderTarget) 
-						pcRenderTarget = (IDirect3DSurface9*)*m_ppcRenderTarget; 
-					else
-						return nullptr;
+					if (m_ppcRenderTarget) pcRenderTarget = (IDirect3DSurface9*)*m_ppcRenderTarget; else return nullptr;
 
 					// call method
 					SetRenderTarget((LPDIRECT3DDEVICE9)pThis, dwRenderTargetIndex, pcRenderTarget);
-					return nullptr;
 				}
+				return nullptr;
 			case METHOD_IDIRECT3DDEVICE9_SETDEPTHSTENCILSURFACE:
 				if (m_bPresent)
 				{
 					// get data
 					IDirect3DSurface9* pcNewZStencil = nullptr;
-					if (m_ppcNewZStencil) 
-						pcNewZStencil = (IDirect3DSurface9*)*m_ppcNewZStencil; 
-					else
-						return nullptr;
+					if (m_ppcNewZStencil) pcNewZStencil = (IDirect3DSurface9*)*m_ppcNewZStencil; else return nullptr;
 
 					// call method
 					SetDepthStencilSurface((LPDIRECT3DDEVICE9)pThis, pcNewZStencil);
-					return nullptr;
 				}	
+				return nullptr;
 			case METHOD_IDIRECT3DDEVICE9_SETTEXTURE:
 				if (m_bPresent)
 				{
 					// get data
 					DWORD dwSampler = 0;
-					if (m_pdwSampler) 
-						dwSampler = *m_pdwSampler; 
-					else 
-						return nullptr;
+					if (m_pdwSampler) dwSampler = *m_pdwSampler; else return nullptr;
 					IDirect3DTexture9* pcTexture = nullptr;
-					if (m_ppcTexture) 
-						pcTexture = (IDirect3DTexture9*)*m_ppcTexture; 
-					else
-						return nullptr;
+					if (m_ppcTexture) pcTexture = (IDirect3DTexture9*)*m_ppcTexture; else return nullptr;
 
 					// call method
 					SetTexture((LPDIRECT3DDEVICE9)pThis, dwSampler, pcTexture);
-					return nullptr;
 				}
 				return nullptr;
 			case METHOD_IDIRECT3DDEVICE9_DRAWPRIMITIVE:
+				if (m_bPresent)
+				{
+					// get data
+					D3DPRIMITIVETYPE ePrimitiveType;
+					if (m_pePrimitiveType) ePrimitiveType = *m_pePrimitiveType; else return nullptr;
+					UINT dwStartVertex;
+					if (m_pdwStartVertex) dwStartVertex = *m_pdwStartVertex; else return nullptr;
+					UINT dwPrimitiveCount;
+					if (m_pdwPrimitiveCount) dwPrimitiveCount = *m_pdwPrimitiveCount; else return nullptr;
+
+					// call method
+					DrawPrimitive((LPDIRECT3DDEVICE9)pThis, ePrimitiveType, dwStartVertex, dwPrimitiveCount);
+				}
 				return nullptr;
 			case METHOD_IDIRECT3DDEVICE9_DRAWINDEXEDPRIMITIVE:
+				if (m_bPresent)
+				{
+					// get data
+					D3DPRIMITIVETYPE eType;
+					if (m_peType) eType = *m_peType; else return nullptr;
+					INT nBaseVertexIndex;
+					if (m_pnBaseVertexIndex) nBaseVertexIndex = *m_pnBaseVertexIndex; else return nullptr;
+					UINT dwMinIndex;
+					if (m_pdwMinIndex) dwMinIndex = *m_pdwMinIndex; else return nullptr;
+					UINT dwNumVertices;
+					if (m_pdwNumVertices) dwNumVertices = *m_pdwNumVertices; else return nullptr;
+					UINT dwStartIndex;
+					if (m_pdwStartIndex) dwStartIndex = *m_pdwStartIndex; else return nullptr;
+					UINT dwPrimitiveCountIndexed;
+					if (m_pdwPrimitiveCountIndexed) dwPrimitiveCountIndexed = *m_pdwPrimitiveCountIndexed; else return nullptr;
+
+					// call method
+					DrawIndexedPrimitive((LPDIRECT3DDEVICE9)pThis, eType, nBaseVertexIndex, dwMinIndex, dwNumVertices, dwStartIndex, dwPrimitiveCountIndexed);
+				}
 				return nullptr;
 			case METHOD_IDIRECT3DDEVICE9_DRAWPRIMITIVEUP:
 				return nullptr;
@@ -717,8 +863,79 @@ void StereoSplitter::Present(IDirect3DDevice9* pcDevice)
 		}
 	}
 
+	// finally, provide pointers to the left and right render target - get back buffer
+	m_pcActiveBackBufferSurface = nullptr;
+	pcDevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &m_pcActiveBackBufferSurface);
+
+	if (m_pcActiveBackBufferSurface)
+	{
+		// check wether back buffer is actually monitored
+		int nIndex = CheckIfMonitored(m_pcActiveBackBufferSurface);
+		if (nIndex == -1)
+		{
+			// not monitored, so start
+			MonitorSurface(m_pcActiveBackBufferSurface);
+		}
+		else
+		{
+			// set twin surface if twin created
+			if (nIndex < (int)m_apcStereoTwinSurfaces.size())
+				m_pcActiveStereoTwinBackBufferSurface = m_apcStereoTwinSurfaces[nIndex];
+			else
+				// set twin surface to null meanwhile
+				m_pcActiveStereoTwinBackBufferSurface = NULL;
+		}
+
+		if (nIndex > -1)
+		{
+			// create textures... (if not created) - THIS WILL BE MOVED TO THE STEREO PRESENTER NODE !!
+			if ((!m_pcStereoOutputLeft) || (!m_pcStereoOutputRight))
+			{
+				D3DVIEWPORT9 sViewport;
+				pcDevice->GetViewport(&sViewport);
+				D3DSURFACE_DESC sDesc = D3DSURFACE_DESC();
+				m_pcActiveBackBufferSurface->GetDesc(&sDesc);
+
+				// got the backbuffer ?
+				if (sDesc.Width > 0)
+				{
+					if (!m_pcStereoOutputLeft)
+						pcDevice->CreateTexture(sDesc.Width, sDesc.Height, 0, D3DUSAGE_RENDERTARGET, sDesc.Format, D3DPOOL_DEFAULT, &m_pcStereoOutputLeft, NULL);
+
+					if (!m_pcStereoOutputRight)
+						pcDevice->CreateTexture(sDesc.Width, sDesc.Height, 0, D3DUSAGE_RENDERTARGET, sDesc.Format, D3DPOOL_DEFAULT, &m_pcStereoOutputRight, NULL);
+				}
+			}
+
+			// ...and surfaces
+			if (!m_pcStereoOutputSurfaceLeft)
+				if (m_pcStereoOutputLeft)
+					m_pcStereoOutputLeft->GetSurfaceLevel(0, &m_pcStereoOutputSurfaceLeft);
+			if (!m_pcStereoOutputSurfaceRight)
+				if (m_pcStereoOutputRight)
+					m_pcStereoOutputRight->GetSurfaceLevel(0, &m_pcStereoOutputSurfaceRight);
+
+
+			// first stereo output test
+			if ((m_pcStereoOutputLeft) && (m_pcStereoOutputRight) && (m_pcStereoOutputSurfaceLeft) && (m_pcStereoOutputSurfaceRight))
+			{
+				if (m_pcActiveBackBufferSurface)
+					pcDevice->StretchRect(m_pcActiveBackBufferSurface, NULL, m_pcStereoOutputSurfaceLeft, NULL, D3DTEXF_NONE);
+				if (m_pcActiveStereoTwinBackBufferSurface)
+					pcDevice->StretchRect(m_pcActiveStereoTwinBackBufferSurface, NULL, m_pcStereoOutputSurfaceRight, NULL, D3DTEXF_NONE);
+			}
+		}
+
+		// release back buffer
+		m_pcActiveBackBufferSurface->Release();
+	}
+	else
+		OutputDebugString(L"Vireio Stereo Splitter : No primary swap chain found.");
+
 	// set present() bool to true
 	m_bPresent = true;
+
+
 }
 
 /**
@@ -846,7 +1063,7 @@ void StereoSplitter::SetTexture(IDirect3DDevice9* pcDevice, DWORD Stage,IDirect3
 			// set twin surface if twin in created
 			if (nIndex < (int)m_apcStereoTwinTextures.size())
 				// set twin surface
-				m_apcActiveStereoTwinTextures[Stage] = m_apcStereoTwinTextures[nIndex];
+					m_apcActiveStereoTwinTextures[Stage] = m_apcStereoTwinTextures[nIndex];
 			else
 				// set stereo texture to null meanwhile
 				m_apcActiveStereoTwinTextures[Stage] = NULL;
@@ -861,6 +1078,15 @@ void StereoSplitter::SetTexture(IDirect3DDevice9* pcDevice, DWORD Stage,IDirect3
 ***/
 void StereoSplitter::DrawPrimitive(IDirect3DDevice9* pcDevice, D3DPRIMITIVETYPE ePrimitiveType, UINT dwStartVertex, UINT dwPrimitiveCount)
 {
+	// Allways draw first on the right side, the left (original) side
+	// will be drawn at the end
+	SetDrawingSide(pcDevice, RenderPosition::Right);
+
+	// draw
+	pcDevice->DrawPrimitive(ePrimitiveType, dwStartVertex, dwPrimitiveCount);
+
+	// Allways switch back to the left (original) side here !
+	SetDrawingSide(pcDevice, RenderPosition::Left);
 }
 
 /**
@@ -868,6 +1094,15 @@ void StereoSplitter::DrawPrimitive(IDirect3DDevice9* pcDevice, D3DPRIMITIVETYPE 
 ***/
 void StereoSplitter::DrawIndexedPrimitive(IDirect3DDevice9* pcDevice, D3DPRIMITIVETYPE ePrimitiveType, INT nBaseVertexIndex, UINT dwMinVertexIndex, UINT dwNumVertices, UINT dwStartIndex, UINT dwPrimCount)
 {
+	// Allways draw first on the right side, the left (original) side
+	// will be drawn at the end
+	SetDrawingSide(pcDevice, RenderPosition::Right);
+
+	// draw
+	pcDevice->DrawIndexedPrimitive(ePrimitiveType, nBaseVertexIndex, dwMinVertexIndex, dwNumVertices, dwStartIndex, dwPrimCount);
+
+	// Allways switch back to the left (original) side here !
+	SetDrawingSide(pcDevice, RenderPosition::Left);
 }
 
 /**
@@ -917,5 +1152,103 @@ void StereoSplitter::MonitorSurface(IDirect3DSurface9* pcSurface)
 
 	// update control
 	m_bControlUpdate = true;
+}
+
+/**
+* Switches rendering to which ever side is specified by side.
+* Use to specify the side that you want to draw to.
+* 
+* Derives D3DProxyDevice::setDrawingSide() from the Vireio 2.x.x driver code.
+* 
+* @return True if change succeeded, false if it fails.
+* Attempting to switch to a side when that side is already the active side will return true without making any changes.
+***/
+bool StereoSplitter::SetDrawingSide(IDirect3DDevice9* pcDevice, RenderPosition eSide)
+{
+	// Already on the correct eye
+	if (eSide == m_eCurrentRenderingSide)
+		return true;
+
+	// Everything hasn't changed yet but we set this first so we don't accidentally use the member instead of the local and break
+	// things, as I have already managed twice.
+	m_eCurrentRenderingSide = eSide;
+
+	// switch render targets to new eSide
+	bool renderTargetChanged = false;
+	HRESULT hr = D3D_OK;
+	for(std::vector<IDirect3DSurface9*>::size_type i = 0; i != m_apcActiveRenderTargets.size(); i++) 
+	{
+		if (eSide == RenderPosition::Left) 
+		{
+			if (m_apcActiveRenderTargets[i])
+				hr = pcDevice->SetRenderTarget(i, m_apcActiveRenderTargets[i]); 
+			else
+				hr = pcDevice->SetRenderTarget(i, NULL); 
+		}
+		else 
+		{
+			if (i < m_apcActiveStereoTwinRenderTarget.size())
+			{
+				if (m_apcActiveStereoTwinRenderTarget[i])
+					hr = pcDevice->SetRenderTarget(i, m_apcActiveStereoTwinRenderTarget[i]);
+				else
+					hr = pcDevice->SetRenderTarget(i, NULL);
+			}
+		}
+
+		if (hr != D3D_OK) 
+		{
+			OutputDebugString(L"Error trying to set one of the Render Targets while switching between active eyes for drawing.\n");
+		}
+		else 
+		{
+			renderTargetChanged = true;
+		}
+	}
+
+	// if a non-fullsurface viewport is active and a rendertarget changed we need to reapply the viewport - TODO !!
+	/*if (renderTargetChanged && !m_bActiveViewportIsDefault) {
+	BaseDirect3DDevice9::SetViewport(&m_LastViewportSet);
+	}*/
+
+	// switch depth stencil to new side
+	if (m_pcActiveDepthStencilSurface != NULL) { 
+		if (eSide == RenderPosition::Left) 
+			hr = pcDevice->SetDepthStencilSurface(m_pcActiveDepthStencilSurface);
+		else 
+		{
+			if (m_pcActiveStereoTwinDepthStencilSurface)
+				hr = pcDevice->SetDepthStencilSurface(m_pcActiveStereoTwinDepthStencilSurface);
+			else
+				hr = pcDevice->SetDepthStencilSurface(NULL);
+		}
+	}
+
+	// switch textures to new side
+	for(std::vector<IDirect3DSurface9*>::size_type i = 0; i < m_apcActiveTextures.size(); i++)
+	{
+		// if stereo texture
+		if (m_apcActiveStereoTwinTextures[i] != NULL) 
+		{ 
+			if (eSide == RenderPosition::Left) 
+			{
+				if (m_apcActiveTextures[i])
+					hr = pcDevice->SetTexture(i, m_apcActiveTextures[i]);
+				else
+					hr = pcDevice->SetTexture(i, NULL);
+			}
+			else 
+				hr = pcDevice->SetTexture(i, m_apcActiveStereoTwinTextures[i]);
+		}
+		// else the texture is mono and doesn't need changing. It will always be set initially and then won't need changing
+
+		if (hr != D3D_OK)
+			OutputDebugString(L"Error trying to set one of the textures while switching between active eyes for drawing.\n");
+	}
+
+	// the rest of the code from the original method from the Vireio 2.x.x D3DProxyDevice 
+	// needs to be handled in the modification node
+
+	return true;
 }
 

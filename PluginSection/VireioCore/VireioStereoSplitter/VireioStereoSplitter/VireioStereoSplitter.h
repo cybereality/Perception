@@ -9,6 +9,9 @@ File <VireioStereoSplitter.h> and
 Class <VireioStereoSplitter> :
 Copyright (C) 2015 Denis Reischl
 
+Parts of this class directly derive from Vireio source code originally 
+authored by Chris Drain (v1.1.x 2013).
+
 The stub class <AQU_Nodus> is the only public class from the Aquilinus 
 repository and permitted to be used for open source plugins of any kind. 
 Read the Aquilinus documentation for further information.
@@ -47,19 +50,34 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <d3dx9.h>
 #pragma comment(lib, "d3dx9.lib")
 
+#define INT_PLUG_TYPE                                  7 
 #define UINT_PLUG_TYPE                                12
 #define PNT_FLOAT_PLUG_TYPE                          104
 #define PNT_INT_PLUG_TYPE                            107 
 #define PNT_UINT_PLUG_TYPE                           112
+#define PNT_VOID_PLUG_TYPE                           114
+#define D3DFORMAT_PLUG_TYPE                         1011
+#define D3DPRIMITIVETYPE_PLUG_TYPE                  1021
 #define PNT_IDIRECT3DSURFACE9_PLUG_TYPE             2046
 #define PNT_IDIRECT3DBASETEXTURE9_PLUG_TYPE         2038
+#define PNT_IDIRECT3DTEXTURE9_PLUG_TYPE             2048
 
+#define NUMBER_OF_COMMANDERS                           2
 #define NUMBER_OF_DECOMMANDERS                        26
 
- /**
- * Maximum simultaneous textures : 16 {shader sampling stage registers: s0 to s15} 
- ***/
+/**
+* Maximum simultaneous textures : 16 {shader sampling stage registers: s0 to s15} 
+***/
 #define MAX_SIMULTANEOUS_TEXTURES_D3D9                16
+
+/**
+* Node Commander Enumeration.
+***/
+enum STS_Commanders
+{
+	StereoTextureLeft,
+	StereoTextureRight
+};
 
 /**
 * Node Commander Enumeration.
@@ -95,6 +113,16 @@ enum STS_Decommanders
 };
 
 /**
+* Simple left, right enumeration.
+***/
+enum RenderPosition
+{
+	// probably need an 'Original' here
+	Left = 1,
+	Right = 2		
+};
+
+/**
 * Vireio Stereo Splitter Node Plugin (Direct3D 9).
 * Vireio Perception Stereo Render Target Handler.
 ***/
@@ -112,9 +140,13 @@ public:
 	virtual HBITMAP         GetControl();
 	virtual DWORD           GetNodeWidth() { return 4+256+4; }
 	virtual DWORD           GetNodeHeight() { return 128; }
+	virtual DWORD           GetCommandersNumber() { return NUMBER_OF_COMMANDERS; }
 	virtual DWORD           GetDecommandersNumber() { return NUMBER_OF_DECOMMANDERS; }
+	virtual LPWSTR          GetCommanderName(DWORD dwCommanderIndex);
 	virtual LPWSTR          GetDecommanderName(DWORD dwDecommanderIndex);
+	virtual DWORD           GetCommanderType(DWORD dwCommanderIndex);
 	virtual DWORD           GetDecommanderType(DWORD dwDecommanderIndex);
+	virtual void*           GetOutputPointer(DWORD dwCommanderIndex);
 	virtual void            SetInputPointer(DWORD dwDecommanderIndex, void* pData);
 	virtual bool            SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod);
 	virtual void*           Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex);
@@ -135,15 +167,37 @@ private:
 	/*** StereoSplitter private methods ***/
 	int                     CheckIfMonitored(IDirect3DSurface9* pcSurface);
 	void                    MonitorSurface(IDirect3DSurface9* pcSurface);
+	bool                    SetDrawingSide(IDirect3DDevice9* pcDevice, RenderPosition side);
 
 	/**
 	* Input pointers.
 	***/
-	DWORD*              m_pdwRenderTargetIndex;         /**< ->SetRenderTarget() render target index ***/
-	IDirect3DSurface9** m_ppcRenderTarget;              /**< ->SetRenderTarget() render target ***/
-	IDirect3DSurface9** m_ppcNewZStencil;               /**< ->SetDepthStencilSurface() stencil surface ***/
-	DWORD*              m_pdwSampler;                   /**< ->SetTexture() sampler index **/
-	IDirect3DTexture9** m_ppcTexture;                   /**< ->SetTexture() texture pointer ***/
+	DWORD*              m_pdwRenderTargetIndex;              /**< ->SetRenderTarget() render target index ***/
+	IDirect3DSurface9** m_ppcRenderTarget;                   /**< ->SetRenderTarget() render target ***/
+	IDirect3DSurface9** m_ppcNewZStencil;                    /**< ->SetDepthStencilSurface() stencil surface ***/
+	DWORD*              m_pdwSampler;                        /**< ->SetTexture() sampler index **/
+	IDirect3DTexture9** m_ppcTexture;                        /**< ->SetTexture() texture pointer ***/
+	D3DPRIMITIVETYPE*   m_pePrimitiveType;                   /**< ->DrawPrimitive() primitive type ***/
+	UINT*               m_pdwStartVertex;                    /**< ->DrawPrimitive() start vertex ***/
+	UINT*               m_pdwPrimitiveCount;                 /**< ->DrawPrimitive() primitive count ***/
+	D3DPRIMITIVETYPE*   m_peType;                            /**< ->DrawIndexedPrimitive() primitive type ***/
+	INT*                m_pnBaseVertexIndex;                 /**< ->DrawIndexedPrimitive() base vertex index ***/
+	UINT*               m_pdwMinIndex;                       /**< ->DrawIndexedPrimitive() minimum vertex index ***/
+	UINT*               m_pdwNumVertices;                    /**< ->DrawIndexedPrimitive() number of vertices ***/
+	UINT*               m_pdwStartIndex;                     /**< ->DrawIndexedPrimitive() start index  ***/
+	UINT*               m_pdwPrimitiveCountIndexed;          /**< ->DrawIndexedPrimitive() primitive count ***/
+	D3DPRIMITIVETYPE*   m_pePrimitiveTypeUP;                 /**< ->DrawPrimitiveUP() primitive type ***/
+	UINT*               m_pdwPrimitiveCountUP;               /**< ->DrawPrimitiveUP() primitive count ***/
+	void**              m_ppVertexStreamZeroData;            /**< ->DrawPrimitiveUP() memory pointer to the vertex data ***/
+	UINT*               m_pdwVertexStreamZeroStride;         /**< ->DrawPrimitiveUP() number of bytes of data for each vertex ***/
+	D3DPRIMITIVETYPE*   m_pePrimitiveTypeUPIndexed;          /**< ->DrawIndexedPrimitiveUP() primitive type ***/
+	UINT*               m_pdwMinVertexIndex;                 /**< ->DrawIndexedPrimitiveUP() minimum vertex index ***/
+	UINT*               m_pdwNumVerticesUPIndexed;           /**< ->DrawIndexedPrimitiveUP() number of vertices ***/
+	UINT*               m_pdwPrimitiveCountUPIndexed;        /**< ->DrawIndexedPrimitiveUP() primitive count ***/
+	void**              m_ppIndexData;                       /**< ->DrawIndexedPrimitiveUP() memory pointer to the index data ***/
+	D3DFORMAT*          m_peIndexDataFormat;                 /**< ->DrawIndexedPrimitiveUP() format of the index data ***/
+	void**              m_ppVertexStreamZeroDataIndexed;     /**< ->DrawIndexedPrimitiveUP() memory pointer to the vertex data ***/
+	UINT*               m_pdwVertexStreamZeroStrideIndexed;  /**< ->DrawIndexedPrimitiveUP() number of bytes of data for each vertex ***/
 
 	/**
 	* Active stored render targets.
@@ -160,6 +214,11 @@ private:
 	* The depth stencil surface that are currently in use.
 	***/
 	IDirect3DSurface9* m_pcActiveDepthStencilSurface;
+	/**
+	* Active back buffer.
+	* The back buffer surface that is currently in use.
+	***/
+	IDirect3DSurface9* m_pcActiveBackBufferSurface;
 	/**
 	* Monitored stored render targets.
 	* The render targets that are currently watched or monitored.
@@ -196,6 +255,11 @@ private:
 	* Entry ALLWAYS also exist in m_apcStereoTwinSurfaces.
 	***/
 	IDirect3DSurface9* m_pcActiveStereoTwinDepthStencilSurface;
+	/**
+	* Twin for active back buffer.
+	* Entry ALLWAYS also exist in m_apcStereoTwinSurfaces.
+	***/
+	IDirect3DSurface9* m_pcActiveStereoTwinBackBufferSurface;
 	/**
 	* Monitored render targets check time counter.
 	* Each index of the vector array represents the frame counter
@@ -237,6 +301,10 @@ private:
 	***/
 	bool m_bMaxRenderTargets;
 	/**
+	* Current drawing side, only changed in SetDrawingSide().
+	**/
+	RenderPosition m_eCurrentRenderingSide;
+	/**
 	* The control bitmap.
 	***/
 	HBITMAP m_hBitmapControl;
@@ -254,6 +322,22 @@ private:
 	* The font used.
 	***/
 	HFONT m_hFont;
+	/**
+	* The output texture (left). TO BE MOVED TO PRESENTER
+	***/
+	LPDIRECT3DTEXTURE9 m_pcStereoOutputLeft;
+	/**
+	* The output texture (right).
+	***/
+	LPDIRECT3DTEXTURE9 m_pcStereoOutputRight;
+	/**
+	* The output surface (left).
+	***/
+	LPDIRECT3DSURFACE9 m_pcStereoOutputSurfaceLeft;
+	/**
+	* The output surface (right).
+	***/
+	LPDIRECT3DSURFACE9 m_pcStereoOutputSurfaceRight;
 };
 
 /**
