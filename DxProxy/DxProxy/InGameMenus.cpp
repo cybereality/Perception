@@ -230,6 +230,13 @@ void D3DProxyDevice::VPMENU()
 {
 	SHOW_CALL("VPMENU");
 	
+	if (controls.Key_Down(VK_ESCAPE))
+	{
+		VPMENU_mode = VPMENU_Modes::INACTIVE;
+		VPMENU_UpdateConfigSettings();
+		return;
+	}
+	
 	switch (VPMENU_mode)
 	{
 	case D3DProxyDevice::MAINMENU:
@@ -292,15 +299,6 @@ void D3DProxyDevice::VPMENU_MainMenu()
 	UINT borderSelection = entryID;
 	if (config.game_type <= 10000)
 		entryID++;
-
-	/**
-	* ESCAPE : Set menu inactive and save the configuration.
-	***/
-	if (controls.Key_Down(VK_ESCAPE))
-	{
-		VPMENU_mode = VPMENU_Modes::INACTIVE;
-		VPMENU_UpdateConfigSettings();
-	}
 
 	if (VPMENU_Input_Selected())
 	{
@@ -488,15 +486,6 @@ void D3DProxyDevice::VPMENU_WorldScale()
 	// game unit index out of range ?
 	if ((gameXScaleUnitIndex != 0) && (gameXScaleUnitIndex >= m_gameXScaleUnits.size()))
 		gameXScaleUnitIndex = m_gameXScaleUnits.size()-1;
-
-	/**
-	* ESCAPE : Set menu inactive and save the configuration.
-	***/
-	if (controls.Key_Down(VK_ESCAPE))
-	{
-		VPMENU_mode = VPMENU_Modes::INACTIVE;
-		VPMENU_UpdateConfigSettings();
-	}
 
 	/**
 	* LEFT : Decrease world scale (hold CTRL to lower speed, SHIFT to speed up)
@@ -718,15 +707,6 @@ void D3DProxyDevice::VPMENU_Convergence()
 	menuAttraction.y = 0.0f;
 
 	/**
-	* ESCAPE : Set menu inactive and save the configuration.
-	***/
-	if (controls.Key_Down(VK_ESCAPE))
-	{
-		VPMENU_mode = VPMENU_Modes::INACTIVE;
-		VPMENU_UpdateConfigSettings();
-	}
-
-	/**
 	* LEFT : Decrease convergence (hold CTRL to lower speed, SHIFT to speed up)
 	***/
 	if (VPMENU_Input_Left() && menuVelocity.x==0.0f)
@@ -908,12 +888,6 @@ void D3DProxyDevice::VPMENU_HUD()
 	}
 	else
 	{
-		if (controls.Key_Down(VK_ESCAPE))
-		{
-			VPMENU_mode = VPMENU_Modes::INACTIVE;
-			VPMENU_UpdateConfigSettings();
-		}
-
 		if (VPMENU_Input_Selected())
 		{
 			if ((entryID >= 3) && (entryID <= 7) && HotkeysActive())
@@ -1097,12 +1071,6 @@ void D3DProxyDevice::VPMENU_GUI()
 	}
 	else
 	{
-		if (controls.Key_Down(VK_ESCAPE))
-		{
-			VPMENU_mode = VPMENU_Modes::INACTIVE;
-			VPMENU_UpdateConfigSettings();
-		}
-
 		if (VPMENU_Input_Selected())
 		{
 			if ((entryID >= 3) && (entryID <= 7) && HotkeysActive())
@@ -1308,15 +1276,6 @@ void D3DProxyDevice::VPMENU_Settings()
 	}
 	else
 	{
-		/**
-		* ESCAPE : Set menu inactive and save the configuration.
-		***/
-		if (controls.Key_Down(VK_ESCAPE))
-		{
-			VPMENU_mode = VPMENU_Modes::INACTIVE;
-			VPMENU_UpdateConfigSettings();
-		}
-
 		if (VPMENU_Input_Selected())
 		{
 			// swap eyes
@@ -1720,15 +1679,6 @@ void D3DProxyDevice::VPMENU_PosTracking()
 	UINT entryID;
 	VPMENU_NewFrame(entryID, menuEntryCount);
 
-	/**
-	* ESCAPE : Set menu inactive and save the configuration.
-	***/
-	if (controls.Key_Down(VK_ESCAPE))
-	{
-		VPMENU_mode = VPMENU_Modes::INACTIVE;
-		VPMENU_UpdateConfigSettings();
-	}
-
 	if (VPMENU_Input_Selected())
 	{
 		// toggle position tracking
@@ -1950,15 +1900,6 @@ void D3DProxyDevice::VPMENU_DuckAndCover()
 	}
 	else
 	{
-		/**
-		* ESCAPE : Set menu inactive and save the configuration.
-		***/
-		if (controls.Key_Down(VK_ESCAPE))
-		{
-			VPMENU_mode = VPMENU_Modes::INACTIVE;
-			VPMENU_UpdateConfigSettings();
-		}
-
 		if (VPMENU_Input_Selected())
 		{
 			if (entryID == CROUCH_KEY)
@@ -2163,15 +2104,6 @@ void D3DProxyDevice::VPMENU_ComfortMode()
 	}
 	else
 	{
-		/**
-		* ESCAPE : Set menu inactive and save the configuration.
-		***/
-		if (controls.Key_Down(VK_ESCAPE))
-		{
-			VPMENU_mode = VPMENU_Modes::INACTIVE;
-			VPMENU_UpdateConfigSettings();
-		}
-
 		if (VPMENU_Input_Selected())
 		{
 			if (entryID == COMFORT_MODE_ENABLED)
@@ -2266,15 +2198,6 @@ void D3DProxyDevice::VPMENU_VRBoostValues()
 
 	UINT entryID;
 	VPMENU_NewFrame(entryID, menuEntryCount);
-
-	/**
-	* ESCAPE : Set menu inactive and save the configuration.
-	***/
-	if (controls.Key_Down(VK_ESCAPE))
-	{
-		VPMENU_mode = VPMENU_Modes::INACTIVE;
-		VPMENU_UpdateConfigSettings();
-	}
 
 	if (VPMENU_Input_Selected())
 	{

@@ -729,14 +729,6 @@ void DataGatherer::VPMENU_ShaderSubMenu()
 	UINT entryID;
 	VPMENU_NewFrame(entryID, menuEntryCount);
 
-	/**
-	* ESCAPE : Set BRASSA inactive and save the configuration.
-	***/
-	if (controls.Key_Down(VK_ESCAPE))
-	{
-		VPMENU_mode = VPMENU_Modes::INACTIVE;
-	}
-
 	if (VPMENU_Input_Selected())
 	{
 		// 
@@ -892,14 +884,6 @@ void DataGatherer::VPMENU_ChangeRules()
 
 	UINT entryID;
 	VPMENU_NewFrame(entryID, menuEntryCount);
-
-	/**
-	* ESCAPE : Set BRASSA inactive and save the configuration.
-	***/
-	if (controls.Key_Down(VK_ESCAPE))
-	{
-		VPMENU_mode = VPMENU_Modes::INACTIVE;
-	}
 
 	if (VPMENU_Input_Selected())
 	{
@@ -1328,14 +1312,6 @@ void DataGatherer::VPMENU_ShowActiveShaders()
 
 	UINT entryID;
 	VPMENU_NewFrame(entryID, menuEntryCount);
-
-	/**
-	* ESCAPE : Set BRASSA inactive and save the configuration.
-	***/
-	if (controls.Key_Down(VK_ESCAPE))
-	{
-		VPMENU_mode = VPMENU_Modes::INACTIVE;
-	}
 
 	if (VPMENU_Input_Selected())
 	{
