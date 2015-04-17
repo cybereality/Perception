@@ -929,7 +929,7 @@ void D3DProxyDevice::HandleControls()
 					if (!VPMENU_IsOpen())
 						VPMENU_OpenMainMenu();
 					else
-						VPMENU_close();
+						VPMENU_Close();
 				}
 
 				startClick = 0;

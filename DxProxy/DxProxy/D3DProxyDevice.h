@@ -483,6 +483,7 @@ protected:
 	void         VPMENU_Close();
 	void         VPMENU_CloseWithoutSaving();
 	void         VPMENU_Back();
+	void         VPMENU_OpenMainMenu();
 	void         VPMENU_NavigateTo(VPMENU_Modes newMode);
 	bool         VPMENU_IsOpen();
 	void         VPMENU_NewFrame(UINT &entryID, UINT menuEntryCount);

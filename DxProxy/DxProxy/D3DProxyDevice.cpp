@@ -3337,7 +3337,7 @@ bool D3DProxyDevice::deleteRule(std::string constantName)
 	return m_pGameHandler->DeleteRule(m_spShaderViewAdjustment, constantName);
 }
 
-/**
+/*
 * Saves current game shader rules (and game configuration).
 ***/
 void D3DProxyDevice::saveShaderRules()
@@ -3885,11 +3885,10 @@ bool D3DProxyDevice::InitVRBoost()
 	bool initSuccess = false;
 	OutputDebugString("Try to init VR Boost\n");
 
-#ifdef x64
 	// explicit VRboost dll import
+#ifdef x64
 	hmVRboost = LoadLibrary("VRboost64.dll");
 #else
-	// explicit VRboost dll import
 	hmVRboost = LoadLibrary("VRboost.dll");
 #endif
 
@@ -3900,81 +3899,67 @@ bool D3DProxyDevice::InitVRBoost()
 	VRBoostStatus.VRBoost_Candidates = false;
 	//Assume VRBoost will have orientation (it probably will)
 	VRBoostStatus.VRBoost_HasOrientation = true;
+	
+	if (hmVRboost == NULL)
+	{
+		// Failed to load the DLL. Return false to indicate failure.
+		return false;
+	}
 
 	// get VRboost methods
-	if (hmVRboost != NULL)
+	OutputDebugString("VR Boost Loaded\n");
+	
+	// get methods explicit
+	std::vector<std::string> missingFunctions;
+	#define LOAD_FUNCTION(name, type) \
+		m_p##name = (type)GetProcAddress(hmVRboost, #name); \
+		if (!m_p##name) missingFunctions.push_back(#name);
+	
+	LOAD_FUNCTION(VRboost_LoadMemoryRules, LPVRBOOST_LoadMemoryRules);
+	LOAD_FUNCTION(VRboost_SaveMemoryRules, LPVRBOOST_SaveMemoryRules);
+	LOAD_FUNCTION(VRboost_CreateFloatMemoryRule, LPVRBOOST_CreateFloatMemoryRule);
+	LOAD_FUNCTION(VRboost_SetProcess, LPVRBOOST_SetProcess);
+	LOAD_FUNCTION(VRboost_ReleaseAllMemoryRules, LPVRBOOST_ReleaseAllMemoryRules);
+	LOAD_FUNCTION(VRboost_ApplyMemoryRules, LPVRBOOST_ApplyMemoryRules);
+	LOAD_FUNCTION(VRboost_GetActiveRuleAxes, LPVRBOOST_GetActiveRuleAxes);
+	LOAD_FUNCTION(VRboost_StartMemoryScan, LPVRBOOST_StartMemoryScan);
+	LOAD_FUNCTION(VRboost_GetScanInitPercent, LPVRBOOST_GetScanInitPercent);
+	LOAD_FUNCTION(VRboost_GetScanFailReason, LPVRBOOST_GetScanFailReason);
+	LOAD_FUNCTION(VRboost_SetNextScanCandidate, LPVRBOOST_SetNextScanCandidate);
+	LOAD_FUNCTION(VRboost_GetScanCandidates, LPVRBOOST_GetScanCandidates);
+	LOAD_FUNCTION(VRboost_GetScanAssist, LPVRBOOST_GetScanAssist);
+	
+	if (missingFunctions.size() > 0)
 	{
-		OutputDebugString("VR Boost Loaded\n");
-		// get methods explicit
-		m_pVRboost_LoadMemoryRules = (LPVRBOOST_LoadMemoryRules)GetProcAddress(hmVRboost, "VRboost_LoadMemoryRules");
-		m_pVRboost_SaveMemoryRules = (LPVRBOOST_SaveMemoryRules)GetProcAddress(hmVRboost, "VRboost_SaveMemoryRules");
-		m_pVRboost_CreateFloatMemoryRule = (LPVRBOOST_CreateFloatMemoryRule)GetProcAddress(hmVRboost, "VRboost_CreateFloatMemoryRule");
-		m_pVRboost_SetProcess = (LPVRBOOST_SetProcess)GetProcAddress(hmVRboost, "VRboost_SetProcess");
-		m_pVRboost_ReleaseAllMemoryRules = (LPVRBOOST_ReleaseAllMemoryRules)GetProcAddress(hmVRboost, "VRboost_ReleaseAllMemoryRules");
-		m_pVRboost_ApplyMemoryRules = (LPVRBOOST_ApplyMemoryRules)GetProcAddress(hmVRboost, "VRboost_ApplyMemoryRules");
-		m_pVRboost_GetActiveRuleAxes = (LPVRBOOST_GetActiveRuleAxes)GetProcAddress(hmVRboost, "VRboost_GetActiveRuleAxes");
-		m_pVRboost_StartMemoryScan = (LPVRBOOST_StartMemoryScan)GetProcAddress(hmVRboost, "VRboost_StartMemoryScan");
-		m_pVRboost_GetScanInitPercent = (LPVRBOOST_GetScanInitPercent)GetProcAddress(hmVRboost, "VRboost_GetScanInitPercent");
-		m_pVRboost_GetScanFailReason = (LPVRBOOST_GetScanFailReason)GetProcAddress(hmVRboost, "VRboost_GetScanFailReason");
-		m_pVRboost_SetNextScanCandidate = (LPVRBOOST_SetNextScanCandidate)GetProcAddress(hmVRboost, "VRboost_SetNextScanCandidate");
-		m_pVRboost_GetScanCandidates = (LPVRBOOST_GetScanCandidates)GetProcAddress(hmVRboost, "VRboost_GetScanCandidates");
-		m_pVRboost_GetScanAssist = (LPVRBOOST_GetScanAssist)GetProcAddress(hmVRboost, "VRboost_GetScanAssist");
-		if ((!m_pVRboost_LoadMemoryRules) || 
-			(!m_pVRboost_SaveMemoryRules) || 
-			(!m_pVRboost_CreateFloatMemoryRule) || 
-			(!m_pVRboost_SetProcess) || 
-			(!m_pVRboost_ReleaseAllMemoryRules) || 
-			(!m_pVRboost_ApplyMemoryRules) ||
-			(!m_pVRboost_GetActiveRuleAxes) ||
-			(!m_pVRboost_StartMemoryScan) ||
-			(!m_pVRboost_GetScanInitPercent) ||
-			(!m_pVRboost_GetScanFailReason) ||
-			(!m_pVRboost_SetNextScanCandidate) ||
-			(!m_pVRboost_GetScanCandidates) ||
-			(!m_pVRboost_GetScanAssist))
+		hmVRboost = NULL;
+		m_bForceMouseEmulation = false;
+		FreeLibrary(hmVRboost);
+		OutputDebugString("FAILED loading VRboost methods:");
+		
+		for(std::vector<std::string>::iterator ii=missingFunctions.begin(); ii!=missingFunctions.end(); ii++)
 		{
-			hmVRboost = NULL;
-			m_bForceMouseEmulation = false;
-			FreeLibrary(hmVRboost);
-			OutputDebugString("FAILED loading VRboost methods:");
-			if (!m_pVRboost_LoadMemoryRules) OutputDebugString("m_pVRboost_LoadMemoryRules");
-			if (!m_pVRboost_SaveMemoryRules) OutputDebugString("m_pVRboost_SaveMemoryRules");
-			if (!m_pVRboost_CreateFloatMemoryRule) OutputDebugString("m_pVRboost_CreateFloatMemoryRule");
-			if (!m_pVRboost_SetProcess) OutputDebugString("m_pVRboost_SetProcess");
-			if (!m_pVRboost_ReleaseAllMemoryRules) OutputDebugString("m_pVRboost_ReleaseAllMemoryRules");
-			if (!m_pVRboost_ApplyMemoryRules) OutputDebugString("m_pVRboost_ApplyMemoryRules");
-			if (!m_pVRboost_GetActiveRuleAxes) OutputDebugString("m_pVRboost_GetActiveRuleAxes");
-			if (!m_pVRboost_StartMemoryScan) OutputDebugString("m_pVRboost_StartMemoryScan");
-			if (!m_pVRboost_GetScanInitPercent) OutputDebugString("m_pVRboost_GetScanInitPercent");
-			if (!m_pVRboost_GetScanFailReason) OutputDebugString("m_pVRboost_GetScanFailReason");
-			if (!m_pVRboost_SetNextScanCandidate) OutputDebugString("m_pVRboost_SetNextScanCandidate");
-			if (!m_pVRboost_GetScanCandidates) OutputDebugString("m_pVRboost_GetScanCandidates");
-			if (!m_pVRboost_GetScanAssist) OutputDebugString("m_pVRboost_GetScanAssist");
+			OutputDebugString(ii->c_str());
 		}
-		else
-		{
-			initSuccess = true;
-			m_bForceMouseEmulation = true;
-			VRBoostStatus.VRBoost_Active = true;
-			OutputDebugString("Success loading VRboost methods.");
-		}
-
-		m_VRboostRulesPresent = false;
-		m_VertexShaderCount = 0;
-		m_VertexShaderCountLastFrame = 0;
-
-		// set common default VRBoost values
-		ZeroMemory(&VRBoostValue[0], MAX_VRBOOST_VALUES*sizeof(float));
-		VRBoostValue[VRboostAxis::Zero] = 0.0f;
-		VRBoostValue[VRboostAxis::One] = 1.0f;
-		VRBoostValue[VRboostAxis::WorldFOV] = 95.0f;
-		VRBoostValue[VRboostAxis::PlayerFOV] = 125.0f;
-		VRBoostValue[VRboostAxis::FarPlaneFOV] = 95.0f;
 	}
 	else
 	{
-		initSuccess = false;
+		initSuccess = true;
+		m_bForceMouseEmulation = true;
+		VRBoostStatus.VRBoost_Active = true;
+		OutputDebugString("Success loading VRboost methods.");
 	}
+
+	m_VRboostRulesPresent = false;
+	m_VertexShaderCount = 0;
+	m_VertexShaderCountLastFrame = 0;
+
+	// set common default VRBoost values
+	ZeroMemory(&VRBoostValue[0], MAX_VRBOOST_VALUES*sizeof(float));
+	VRBoostValue[VRboostAxis::Zero] = 0.0f;
+	VRBoostValue[VRboostAxis::One] = 1.0f;
+	VRBoostValue[VRboostAxis::WorldFOV] = 95.0f;
+	VRBoostValue[VRboostAxis::PlayerFOV] = 125.0f;
+	VRBoostValue[VRboostAxis::FarPlaneFOV] = 95.0f;
 	return initSuccess;
 }
 
