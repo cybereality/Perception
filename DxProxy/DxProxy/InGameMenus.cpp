@@ -210,6 +210,30 @@ bool D3DProxyDevice::VPMENU_Input_Right()
 	return (controls.Key_Down(VK_RIGHT) || controls.Key_Down('L') || (controls.xInputState.Gamepad.sThumbLX>8192));
 }
 
+bool D3DProxyDevice::VPMENU_Input_IsAdjustment()
+{
+	return VPMENU_Input_Left() || VPMENU_Input_Right();
+}
+
+float D3DProxyDevice::VPMENU_Input_GetAdjustment()
+{
+	if (VPMENU_Input_Left() && HotkeysActive())
+	{
+		if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down('J'))
+			return -1.0f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
+		else
+			return -1.0f;
+	}
+	if (VPMENU_Input_Right() && HotkeysActive())
+	{
+		if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down('L'))
+			return +1.0f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
+		else
+			return +1.0f;
+	}
+	return 0;
+}
+
 float D3DProxyDevice::VPMENU_Input_SpeedModifier()
 {
 	if(controls.Key_Down(VK_LCONTROL))
@@ -386,7 +410,7 @@ void D3DProxyDevice::VPMENU_MainMenu()
 		{
 			if (hud3DDepthMode > HUD_3D_Depth_Modes::HUD_DEFAULT)
 				ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)(hud3DDepthMode-1));
-			menuVelocity.x-=2.0f;
+			HotkeyCooldown(2.0f);
 		}
 		if (VPMENU_Input_Right())
 		{
@@ -403,7 +427,7 @@ void D3DProxyDevice::VPMENU_MainMenu()
 		{
 			if (gui3DDepthMode > GUI_3D_Depth_Modes::GUI_DEFAULT)
 				ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)(gui3DDepthMode-1));
-			menuVelocity.x-=2.0f;
+			HotkeyCooldown(2.0f);
 		}
 		if (VPMENU_Input_Right())
 		{
@@ -487,38 +511,15 @@ void D3DProxyDevice::VPMENU_WorldScale()
 	if ((gameXScaleUnitIndex != 0) && (gameXScaleUnitIndex >= m_gameXScaleUnits.size()))
 		gameXScaleUnitIndex = m_gameXScaleUnits.size()-1;
 
-	/**
-	* LEFT : Decrease world scale (hold CTRL to lower speed, SHIFT to speed up)
-	***/
-	if (VPMENU_Input_Left() && menuVelocity.x == 0.0f)
+	// Left/Right: Decrease/increase world scale
+	if (VPMENU_Input_IsAdjustment() && HotkeysActive())
 	{
-		separationChange *= VPMENU_Input_SpeedModifier();
-
-		if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down('J'))
-			m_spShaderViewAdjustment->ChangeWorldScale(separationChange * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f));
-		else
-			m_spShaderViewAdjustment->ChangeWorldScale(-separationChange);
+		separationChange *= VPMENU_Input_SpeedModifier() * VPMENU_Input_GetAdjustment();;
+		m_spShaderViewAdjustment->ChangeWorldScale(separationChange);
 		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
-
 		HotkeyCooldown(0.7f);
 	}
-
-	/**
-	* RIGHT : Increase world scale (hold CTRL to lower speed, SHIFT to speed up)
-	***/
-	if(VPMENU_Input_Right() && menuVelocity.x == 0.0f)
-	{
-		separationChange *= VPMENU_Input_SpeedModifier();
-
-		if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down('L'))
-			m_spShaderViewAdjustment->ChangeWorldScale(separationChange * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f));
-		else
-			m_spShaderViewAdjustment->ChangeWorldScale(separationChange);
-		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
-
-		HotkeyCooldown(0.7f);
-	}
-
+	
 	// handle border height (=scrollbar scroll height)
 	if (borderTopHeight<-64.0f)
 		borderTopHeight = -64.0f;
@@ -706,37 +707,15 @@ void D3DProxyDevice::VPMENU_Convergence()
 	menuAttraction.x = 0.0f;
 	menuAttraction.y = 0.0f;
 
-	/**
-	* LEFT : Decrease convergence (hold CTRL to lower speed, SHIFT to speed up)
-	***/
-	if (VPMENU_Input_Left() && menuVelocity.x==0.0f)
+	// Left/Right: Decrease/Increase convergence (hold CTRL to lower speed, SHIFT to speed up)
+	if (VPMENU_Input_IsAdjustment() && HotkeysActive())
 	{
-		convergenceChange *= VPMENU_Input_SpeedModifier();
-
-		if (controls.xInputState.Gamepad.sThumbLX != 0  && !controls.Key_Down(VK_LEFT) && !controls.Key_Down('J'))
-			m_spShaderViewAdjustment->ChangeConvergence(convergenceChange * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f));
-		else
-			m_spShaderViewAdjustment->ChangeConvergence(-convergenceChange);
+		convergenceChange = VPMENU_Input_SpeedModifier() * VPMENU_Input_GetAdjustment();
+		m_spShaderViewAdjustment->ChangeConvergence(convergenceChange);
 		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
-
 		HotkeyCooldown(0.7f);
 	}
-
-	/**
-	* RIGHT : Increase convergence (hold CTRL to lower speed, SHIFT to speed up)
-	***/
-	if(VPMENU_Input_Right() && menuVelocity.x == 0.0f)
-	{
-		convergenceChange *= VPMENU_Input_SpeedModifier();
-
-		if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down('L'))
-			m_spShaderViewAdjustment->ChangeConvergence(convergenceChange * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f));
-		else
-			m_spShaderViewAdjustment->ChangeConvergence(convergenceChange);
-		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
-
-		HotkeyCooldown(0.7f);
-	}
+	
 
 	// handle border height (=scrollbar scroll height)
 	if (borderTopHeight<-64.0f)
@@ -928,7 +907,7 @@ void D3DProxyDevice::VPMENU_HUD()
 			{
 				if (hud3DDepthMode > HUD_3D_Depth_Modes::HUD_DEFAULT)
 					ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)(hud3DDepthMode-1));
-				menuVelocity.x-=2.0f;
+				HotkeyCooldown(2.0f);
 			}
 			if (VPMENU_Input_Right())
 			{
@@ -940,21 +919,9 @@ void D3DProxyDevice::VPMENU_HUD()
 
 		if ((entryID == 1) && HotkeysActive())
 		{
-			if (VPMENU_Input_Left())
+			if (VPMENU_Input_IsAdjustment())
 			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down('J'))
-					hudDistancePresets[(int)hud3DDepthMode]+=0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-				else
-					hudDistancePresets[(int)hud3DDepthMode]-=0.01f;
-				ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)hud3DDepthMode);
-				menuVelocity.x-=0.7f;
-			}
-			if (VPMENU_Input_Right())
-			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down('L'))
-					hudDistancePresets[(int)hud3DDepthMode]+=0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-				else
-					hudDistancePresets[(int)hud3DDepthMode]+=0.01f;
+				hudDistancePresets[(int)hud3DDepthMode] += 0.01f * VPMENU_Input_GetAdjustment();
 				ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)hud3DDepthMode);
 				HotkeyCooldown(0.7f);
 			}
@@ -962,21 +929,9 @@ void D3DProxyDevice::VPMENU_HUD()
 
 		if ((entryID == 2) && HotkeysActive())
 		{
-			if (VPMENU_Input_Left())
+			if (VPMENU_Input_IsAdjustment())
 			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down('J'))
-					hud3DDepthPresets[(int)hud3DDepthMode]+=0.002f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-				else
-					hud3DDepthPresets[(int)hud3DDepthMode]-=0.002f;
-				ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)hud3DDepthMode);
-				menuVelocity.x-=0.7f;
-			}
-			if (VPMENU_Input_Right())
-			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down('L'))
-					hud3DDepthPresets[(int)hud3DDepthMode]+=0.002f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-				else
-					hud3DDepthPresets[(int)hud3DDepthMode]+=0.002f;
+				hud3DDepthPresets[(int)hud3DDepthMode] += 0.002f * VPMENU_Input_GetAdjustment();
 				ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)hud3DDepthMode);
 				HotkeyCooldown(0.7f);
 			}
@@ -1110,7 +1065,7 @@ void D3DProxyDevice::VPMENU_GUI()
 			{
 				if (gui3DDepthMode > GUI_3D_Depth_Modes::GUI_DEFAULT)
 					ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)(gui3DDepthMode-1));
-				menuVelocity.x-=2.0f;
+				HotkeyCooldown(2.0f);
 			}
 			if (VPMENU_Input_Right())
 			{
@@ -1122,21 +1077,9 @@ void D3DProxyDevice::VPMENU_GUI()
 
 		if ((entryID == 1) && HotkeysActive())
 		{
-			if (VPMENU_Input_Left())
+			if (VPMENU_Input_IsAdjustment())
 			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down('J'))
-					guiSquishPresets[(int)gui3DDepthMode]+=0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-				else
-					guiSquishPresets[(int)gui3DDepthMode]-=0.01f;
-				ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)gui3DDepthMode);
-				menuVelocity.x-=0.7f;
-			}
-			if (VPMENU_Input_Right())
-			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down('L'))
-					guiSquishPresets[(int)gui3DDepthMode]+=0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-				else
-					guiSquishPresets[(int)gui3DDepthMode]+=0.01f;
+				guiSquishPresets[(int)gui3DDepthMode] += 0.01f * VPMENU_Input_GetAdjustment();
 				ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)gui3DDepthMode);
 				HotkeyCooldown(0.7f);
 			}
@@ -1144,23 +1087,11 @@ void D3DProxyDevice::VPMENU_GUI()
 
 		if ((entryID == 2) && HotkeysActive())
 		{
-			if (VPMENU_Input_Left())
+			if (VPMENU_Input_IsAdjustment())
 			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down('J'))
-					gui3DDepthPresets[(int)gui3DDepthMode]+=0.002f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-				else
-					gui3DDepthPresets[(int)gui3DDepthMode]-=0.002f;
+				gui3DDepthPresets[(int)gui3DDepthMode] += 0.002f * VPMENU_Input_GetAdjustment();
 				ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)gui3DDepthMode);
-				menuVelocity.x-=0.7f;
-			}
-			if (VPMENU_Input_Right())
-			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down('L'))
-					gui3DDepthPresets[(int)gui3DDepthMode]+=0.002f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-				else
-					gui3DDepthPresets[(int)gui3DDepthMode]+=0.002f;
-				ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)gui3DDepthMode);
-				HotkeyCooldown(0.5);
+				HotkeyCooldown(0.7f);
 			}
 		}
 	}
@@ -1396,12 +1327,12 @@ void D3DProxyDevice::VPMENU_Settings()
 			if (VPMENU_Input_Left() && HotkeysActive())
 			{
 				stereoView->swapEyes = !stereoView->swapEyes;
-				menuVelocity.x-=2.0f;
+				HotkeyCooldown(2.0f);
 			}
 			if (VPMENU_Input_Right() && HotkeysActive())
 			{
 				stereoView->swapEyes = !stereoView->swapEyes;
-				menuVelocity.x-=2.0f;
+				HotkeyCooldown(2.0f);
 			}
 		}
 		// ipd-offset
@@ -1413,33 +1344,10 @@ void D3DProxyDevice::VPMENU_Settings()
 				this->stereoView->PostReset();
 				HotkeyCooldown(0.7f);
 			}
-			if (VPMENU_Input_Left() && HotkeysActive())
+			if (VPMENU_Input_IsAdjustment() && HotkeysActive())
 			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down('J'))
-				{
-					if (this->stereoView->IPDOffset > 0.1f)
-						this->stereoView->IPDOffset -= 0.001f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-				}
-				else
-				{
-					if (this->stereoView->IPDOffset > -0.1f)
-						this->stereoView->IPDOffset -= 0.001f;
-				}
-				this->stereoView->PostReset();
-				menuVelocity.x -= 0.7f;
-			}
-			if (VPMENU_Input_Right() && HotkeysActive())
-			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down('L'))
-				{
-					if (this->stereoView->IPDOffset < 0.1f)
-						this->stereoView->IPDOffset += 0.001f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-				}
-				else
-				{
-					if (this->stereoView->IPDOffset < 0.1f)
-						this->stereoView->IPDOffset += 0.001f;
-				}
+				this->stereoView->IPDOffset += 0.001f * VPMENU_Input_GetAdjustment();
+				clamp(&this->stereoView->IPDOffset, -0.1f, 0.1f);
 				this->stereoView->PostReset();
 				HotkeyCooldown(0.7f);
 			}
@@ -1453,33 +1361,10 @@ void D3DProxyDevice::VPMENU_Settings()
 				this->stereoView->PostReset();
 				HotkeyCooldown(0.7f);
 			}
-			if (VPMENU_Input_Left() && HotkeysActive())
+			if (VPMENU_Input_IsAdjustment() && HotkeysActive())
 			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down('J'))
-				{
-					if (this->stereoView->YOffset > 0.1f)
-						this->stereoView->YOffset += 0.001f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-				}
-				else
-				{
-					if (this->stereoView->YOffset > -0.1f)
-						this->stereoView->YOffset -= 0.001f;
-				}
-				this->stereoView->PostReset();
-				menuVelocity.x -= 0.7f;
-			}
-			if (VPMENU_Input_Right() && HotkeysActive())
-			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down('L'))
-				{
-					if (this->stereoView->YOffset < 0.1f)
-						this->stereoView->YOffset += 0.001f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-				}
-				else
-				{
-					if (this->stereoView->YOffset < 0.1f)
-						this->stereoView->YOffset += 0.001f;
-				}
+				this->stereoView->YOffset += 0.001f * VPMENU_Input_GetAdjustment();
+				clamp(&this->stereoView->YOffset, -0.1f, 0.1f);
 				this->stereoView->PostReset();
 				HotkeyCooldown(0.7f);
 			}
@@ -1493,21 +1378,9 @@ void D3DProxyDevice::VPMENU_Settings()
 				this->stereoView->PostReset();
 				HotkeyCooldown(0.7f);
 			}
-			if (VPMENU_Input_Left() && HotkeysActive())
+			if (VPMENU_Input_IsAdjustment() && HotkeysActive())
 			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down('J'))
-					this->stereoView->DistortionScale -= 0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-				else
-					this->stereoView->DistortionScale -= 0.01f;
-				this->stereoView->PostReset();
-				menuVelocity.x -= 0.7f;
-			}
-			if (VPMENU_Input_Right() && HotkeysActive())
-			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down('L'))
-					this->stereoView->DistortionScale += 0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-				else
-					this->stereoView->DistortionScale += 0.01f;
+				this->stereoView->DistortionScale += 0.01f * VPMENU_Input_GetAdjustment();
 				this->stereoView->PostReset();
 				HotkeyCooldown(0.7f);
 			}
@@ -1515,60 +1388,27 @@ void D3DProxyDevice::VPMENU_Settings()
 		// yaw multiplier
 		if (entryID == YAW_MULT)
 		{
-			if (VPMENU_Input_Left() && HotkeysActive())
+			if (VPMENU_Input_IsAdjustment() && HotkeysActive())
 			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down('J'))
-					tracker->multiplierYaw += 0.5f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-				else
-					tracker->multiplierYaw -= 0.5f;
-				menuVelocity.x -= 0.7f;
-			}
-			if (VPMENU_Input_Right() && HotkeysActive())
-			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0  && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down('L'))
-					tracker->multiplierYaw += 0.5f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-				else
-					tracker->multiplierYaw += 0.5f;
+				tracker->multiplierYaw += 0.5f * VPMENU_Input_GetAdjustment();
 				HotkeyCooldown(0.7f);
 			}
 		}
 		// pitch multiplier
 		if (entryID == PITCH_MULT)
 		{
-			if (VPMENU_Input_Left() && HotkeysActive())
+			if (VPMENU_Input_IsAdjustment() && HotkeysActive())
 			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down('J'))
-					tracker->multiplierPitch += 0.5f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-				else
-					tracker->multiplierPitch -= 0.5f;
-				menuVelocity.x -= 0.7f;
-			}
-			if (VPMENU_Input_Right() && HotkeysActive())
-			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0  && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down('L'))
-					tracker->multiplierPitch += 0.5f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-				else
-					tracker->multiplierPitch += 0.5f;
+				tracker->multiplierPitch += 0.5f * VPMENU_Input_GetAdjustment();
 				HotkeyCooldown(0.7f);
 			}
 		}
 		// roll multiplier
 		if (entryID == ROLL_MULT)
 		{
-			if (VPMENU_Input_Left() && HotkeysActive())
+			if (VPMENU_Input_IsAdjustment() && HotkeysActive())
 			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down('J'))
-					tracker->multiplierRoll += 0.05f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-				else
-					tracker->multiplierRoll -= 0.05f;
-				menuVelocity.x -= 0.7f;
-			}
-			if (VPMENU_Input_Right() && HotkeysActive())
-			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0  && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down('L'))
-					tracker->multiplierRoll += 0.05f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-				else
-					tracker->multiplierRoll += 0.05f;
+				tracker->multiplierRoll += 0.05f * VPMENU_Input_GetAdjustment();
 				HotkeyCooldown(0.7f);
 			}
 		}
@@ -1583,7 +1423,7 @@ void D3DProxyDevice::VPMENU_Settings()
 				if ((hmVRboost) && (m_VRboostRulesPresent) && (tracker->getStatus() >= MTS_OK))
 					tracker->setMouseEmulation(false);
 
-				menuVelocity.x-=2.0f;
+				HotkeyCooldown(2.0f);
 			}
 			if (VPMENU_Input_Right() && HotkeysActive())
 			{
@@ -1593,7 +1433,7 @@ void D3DProxyDevice::VPMENU_Settings()
 					m_bForceMouseEmulation = true;
 				}
 
-				menuVelocity.x-=2.0f;
+				HotkeyCooldown(2.0f);
 			}
 		}
 	}
@@ -1729,21 +1569,10 @@ void D3DProxyDevice::VPMENU_PosTracking()
 			config.position_multiplier = 1.0f;
 			HotkeyCooldown(1.0f);
 		}
-		if (VPMENU_Input_Left() && HotkeysActive())
+		if (VPMENU_Input_IsAdjustment() && HotkeysActive())
 		{
-			if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down('J'))
-				config.position_multiplier += 0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-			else
-				config.position_multiplier -= 0.01f;
-			HotkeyCooldown(1.0f);
-		}
-		if (VPMENU_Input_Right() && HotkeysActive())
-		{
-			if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down('J'))
-				config.position_multiplier += 0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-			else
-				config.position_multiplier += 0.01f;
-			menuVelocity.x -= 0.6f;
+			config.position_multiplier += 0.01f * VPMENU_Input_GetAdjustment();
+			HotkeyCooldown(0.6f);
 		}
 	}
 
@@ -1755,21 +1584,10 @@ void D3DProxyDevice::VPMENU_PosTracking()
 			config.position_x_multiplier = 2.0f;
 			HotkeyCooldown(1.0f);
 		}
-		if (VPMENU_Input_Left() && HotkeysActive())
+		if (VPMENU_Input_IsAdjustment() && HotkeysActive())
 		{
-			if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down('J'))
-				config.position_x_multiplier += 0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-			else
-				config.position_x_multiplier -= 0.01f;
-			menuVelocity.x -= 0.6f;
-		}
-		if (VPMENU_Input_Right() && HotkeysActive())
-		{
-			if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down('J'))
-				config.position_x_multiplier += 0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-			else
-				config.position_x_multiplier += 0.01f;
-			menuVelocity.x -= 0.6f;
+			config.position_x_multiplier += 0.01f * VPMENU_Input_GetAdjustment();
+			HotkeyCooldown(0.6f);
 		}
 	}
 
@@ -1781,21 +1599,10 @@ void D3DProxyDevice::VPMENU_PosTracking()
 			config.position_y_multiplier = 2.5f;
 			HotkeyCooldown(1.0f);
 		}
-		if (VPMENU_Input_Left() && HotkeysActive())
+		if (VPMENU_Input_IsAdjustment() && HotkeysActive())
 		{
-			if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down('J'))
-				config.position_y_multiplier += 0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-			else
-				config.position_y_multiplier -= 0.01f;
-			menuVelocity.x -= 0.6f;
-		}
-		if (VPMENU_Input_Right() && HotkeysActive())
-		{
-			if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down('J'))
-				config.position_y_multiplier += 0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-			else
-				config.position_y_multiplier += 0.01f;
-			menuVelocity.x -= 0.6f;
+			config.position_y_multiplier += 0.01f * VPMENU_Input_GetAdjustment();
+			HotkeyCooldown(0.6f);
 		}
 	}
 
@@ -1807,21 +1614,10 @@ void D3DProxyDevice::VPMENU_PosTracking()
 			config.position_z_multiplier = 0.5f;
 			HotkeyCooldown(1.0f);
 		}
-		if (VPMENU_Input_Left() && HotkeysActive())
+		if (VPMENU_Input_IsAdjustment() && HotkeysActive())
 		{
-			if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down('J'))
-				config.position_z_multiplier += 0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-			else
-				config.position_z_multiplier -= 0.01f;
-			menuVelocity.x -= 0.6f;
-		}
-		if (VPMENU_Input_Right() && HotkeysActive())
-		{
-			if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down('J'))
-				config.position_z_multiplier += 0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-			else
-				config.position_z_multiplier += 0.01f;
-			menuVelocity.x -= 0.6f;
+			config.position_z_multiplier += 0.01f * VPMENU_Input_GetAdjustment();
+			HotkeyCooldown(0.6f);
 		}
 	}
 
@@ -2218,20 +2014,9 @@ void D3DProxyDevice::VPMENU_VRBoostValues()
 	if ((entryID >= 0) && (entryID <=11))
 	{
 		// change value
-		if (VPMENU_Input_Left() && HotkeysActive())
+		if (VPMENU_Input_IsAdjustment() && HotkeysActive())
 		{
-			if (controls.xInputState.Gamepad.sThumbLX != 0  && !controls.Key_Down(VK_LEFT) && !controls.Key_Down('J'))
-				VRBoostValue[24+entryID] += 0.1f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-			else
-				VRBoostValue[24+entryID] -= 0.1f;
-			menuVelocity.x-=0.1f;
-		}
-		if (VPMENU_Input_Right() && HotkeysActive())
-		{
-			if (controls.xInputState.Gamepad.sThumbLX != 0  && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down('L'))
-				VRBoostValue[24+entryID] += 0.1f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-			else
-				VRBoostValue[24+entryID] += 0.1f;
+			VRBoostValue[24+entryID] += 0.1f * VPMENU_Input_GetAdjustment();
 			HotkeyCooldown(0.1f);
 		}
 	}
