@@ -725,6 +725,17 @@ void DataGatherer::Init(ProxyHelper::ProxyConfig& cfg)
 void DataGatherer::VPMENU_ShaderSubMenu()
 {
 	UINT menuEntryCount = 6;
+	
+	enum
+	{
+		CREATE_SHADER_RULES = 0,
+		CHANGE_SHADER_RULES,
+		// PICK_RULES,
+		SHOW_SHADERS,
+		SAVE_RULES,
+		BACK_VPMENU,
+		BACK_GAME
+	};
 
 	UINT entryID;
 	VPMENU_NewFrame(entryID, menuEntryCount);
@@ -732,7 +743,7 @@ void DataGatherer::VPMENU_ShaderSubMenu()
 	if (VPMENU_Input_Selected())
 	{
 		// 
-		if (entryID == 0)
+		if (entryID == CREATE_SHADER_RULES)
 		{
 			// create relevant shader constant table
 			GetCurrentShaderRules(true);
@@ -741,7 +752,7 @@ void DataGatherer::VPMENU_ShaderSubMenu()
 			Analyze();
 		}
 		// 
-		if (entryID == 1)
+		if (entryID == CHANGE_SHADER_RULES)
 		{
 			// create menu names new
 			GetCurrentShaderRules(false);
@@ -749,13 +760,13 @@ void DataGatherer::VPMENU_ShaderSubMenu()
 			HotkeyCooldown(2.0f);
 		}
 		//// pick rules
-		//if (entryID == 2)
+		//if (entryID == PICK_RULES)
 		//{
 		//	VPMENU_mode = VPMENU_Modes::PICK_RULES_SCREEN;
 		//	HotkeyCooldown(2.0f);
 		//}
 		// show shaders
-		if (entryID == 2)
+		if (entryID == SHOW_SHADERS)
 		{
 			VPMENU_mode = VPMENU_Modes::SHOW_SHADERS_SCREEN;
 			//Clear collections
@@ -764,7 +775,7 @@ void DataGatherer::VPMENU_ShaderSubMenu()
 			HotkeyCooldown(2.0f);
 		}
 		// save rules
-		if (entryID == 3)
+		if (entryID == SAVE_RULES)
 		{
 			VPMENU_mode = VPMENU_Modes::INACTIVE;
 			HotkeyCooldown(2.0f);
@@ -789,13 +800,13 @@ void DataGatherer::VPMENU_ShaderSubMenu()
 			saveShaderRules();
 		}
 		// back to main menu
-		if (entryID == 4)
+		if (entryID == BACK_VPMENU)
 		{
 			VPMENU_mode = VPMENU_Modes::MAINMENU;
 			HotkeyCooldown(2.0f);
 		}
 		// back to game
-		if (entryID == 5)
+		if (entryID == BACK_GAME)
 		{
 			VPMENU_mode = VPMENU_Modes::INACTIVE;
 		}

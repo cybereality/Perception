@@ -334,73 +334,94 @@ void D3DProxyDevice::VPMENU_MainMenu()
 {
 	SHOW_CALL("VPMENU_MainMenu");
 	
-	UINT menuEntryCount = 12;
-	if (config.game_type > 10000) menuEntryCount++;
+	enum
+	{
+		SHADER_ANALYZER,
+		WORLD_SCALE_CALIBRATION,
+		COVERGENCE_ADJUSTMENT,
+		HUD_CALIBRATION,
+		GUI_CALIBRATION,
+		HUD_SCALE,
+		GUI_SCALE,
+		OVERALL_SETTINGS,
+		VRBOOST_VALUES,
+		POS_TRACKING_SETTINGS,
+		COMFORT_MODE_SETTINGS,
+		RESTORE_CONFIGURATION,
+		BACK_TO_GAME,
+		NUM_MENU_ITEMS
+	};
+	
+	bool includeShaderAnalyzer = (config.game_type > 10000);
+	
+	UINT menuEntryCount = NUM_MENU_ITEMS;
+	if (!includeShaderAnalyzer)
+		menuEntryCount--;
 
 	UINT entryID;
 	VPMENU_NewFrame(entryID, menuEntryCount);
 	UINT borderSelection = entryID;
-	if (config.game_type <= 10000)
+	if (!includeShaderAnalyzer)
 		entryID++;
 
 	if (VPMENU_Input_Selected())
 	{
 		// shader analyzer sub menu
-		if (entryID == 0)
+		if (entryID == SHADER_ANALYZER)
 		{
 			VPMENU_mode = VPMENU_Modes::VPMENU_SHADER_ANALYZER_SUBMENU;
 			HotkeyCooldown(2.0f);
 		}
 		// world scale
-		if (entryID == 1)
+		if (entryID == WORLD_SCALE_CALIBRATION)
 		{
 			VPMENU_mode = VPMENU_Modes::WORLD_SCALE_CALIBRATION;
 			HotkeyCooldown(2.0f);
 		}
-		// hud calibration
-		if (entryID == 2)
+		// convergence adjustment
+		if (entryID == CONVERGENCE_ADJUSTMENT)
 		{
 			VPMENU_mode = VPMENU_Modes::CONVERGENCE_ADJUSTMENT;
 			HotkeyCooldown(2.0f);
 		}
 		// hud calibration
-		if (entryID == 3)
+		if (entryID == HUD_CALIBRATION)
 		{
 			VPMENU_mode = VPMENU_Modes::HUD_CALIBRATION;
 			HotkeyCooldown(2.0f);
 		}
 		// gui calibration
-		if (entryID == 4)
+		if (entryID == GUI_CALIBRATION)
 		{
 			VPMENU_mode = VPMENU_Modes::GUI_CALIBRATION;
 			HotkeyCooldown(2.0f);
 		}
 		// overall settings
-		if (entryID == 7)
+		if (entryID == OVERALL_SETTINGS)
 		{
 			VPMENU_mode = VPMENU_Modes::OVERALL_SETTINGS;
 			HotkeyCooldown(2.0f);
 		}	
 		// vrboost settings
-		if (entryID == 8)
+		if (entryID == VRBOOST_VALUES)
 		{
 			VPMENU_mode = VPMENU_Modes::VRBOOST_VALUES;
 			HotkeyCooldown(2.0f);
 		}
 		// position tracking settings
-		if (entryID == 9)
+		if (entryID == POS_TRACKING_SETTINGS)
 		{
 			VPMENU_mode = VPMENU_Modes::POS_TRACKING_SETTINGS;
 			HotkeyCooldown(2.0f);
 		}
 		// comfort mode settings
-		if (entryID == 10)
+		if (entryID == COMFORT_MODE_SETTINGS)
 		{
 			VPMENU_mode = VPMENU_Modes::COMFORT_MODE;
 			HotkeyCooldown(2.0f);
 		}
 		// restore configuration
-		if (entryID == 11)
+		if (entryID == RESTORE_CONFIGURATION)
 		{
 			// first, backup all strings
 			std::string game_exe = std::string(config.game_exe);
@@ -413,9 +434,9 @@ void D3DProxyDevice::VPMENU_MainMenu()
 			VPMENU_UpdateDeviceSettings();
 			VPMENU_UpdateConfigSettings();
 			HotkeyCooldown(10.0f);
-		}	
+		}
 		// back to game
-		if (entryID == 12)
+		if (entryID == BACK_TO_GAME)
 		{
 			VPMENU_mode = VPMENU_Modes::INACTIVE;
 			VPMENU_UpdateConfigSettings();
@@ -423,7 +444,7 @@ void D3DProxyDevice::VPMENU_MainMenu()
 	}
 
 	// change hud scale 
-	if ((entryID == 5) && HotkeysActive())
+	if ((entryID == HUD_SCALE) && HotkeysActive())
 	{
 		if (VPMENU_Input_Left())
 		{
@@ -440,7 +461,7 @@ void D3DProxyDevice::VPMENU_MainMenu()
 	}
 
 	// change gui scale
-	if ((entryID == 6) && HotkeysActive())
+	if ((entryID == GUI_SCALE) && HotkeysActive())
 	{
 		if (VPMENU_Input_Left())
 		{
@@ -867,30 +888,40 @@ void D3DProxyDevice::VPMENU_HUD()
 {
 	SHOW_CALL("VPMENU_HUD");
 	
-	UINT menuEntryCount = 10;
-
+	enum
+	{
+		HUD_MODE = 0,
+		HUD_DISTANCE = 1,
+		HUD_3DDEPTH = 2,
+		HUD_HOTKEYS_START = 3,
+		HUD_HOTKEYS_END = 7,
+		BACK_VPMENU = 8,
+		BACK_GAME = 9,
+		NUM_MENU_ITEMS = 10
+	};
+	
 	UINT entryID;
-	VPMENU_NewFrame(entryID, menuEntryCount);
+	VPMENU_NewFrame(entryID, NUM_MENU_ITEMS);
 
 	if (VPMENU_Input_Selected())
 	{
-		if ((entryID >= 3) && (entryID <= 7) && HotkeysActive())
+		if ((entryID >= HUD_HOTKEYS_START) && (entryID <= HUD_HOTKEYS_END) && HotkeysActive())
 		{
 			VPMENU_BindKey([=](int key) {
-				int index = entryID-3;
+				int index = entryID-HUD_HOTKEYS_START;
 				hudHotkeys[index] = (byte)key;
 			});
 			HotkeyCooldown(2.0f);
 		}
 		// back to main menu
-		if (entryID == 8)
+		if (entryID == BACK_VPMENU)
 		{
 			VPMENU_mode = VPMENU_Modes::MAINMENU;
 			VPMENU_UpdateConfigSettings();
 			HotkeyCooldown(2.0f);
 		}
 		// back to game
-		if (entryID == 9)
+		if (entryID == BACK_GAME)
 		{
 			VPMENU_mode = VPMENU_Modes::INACTIVE;
 			VPMENU_UpdateConfigSettings();
@@ -899,9 +930,9 @@ void D3DProxyDevice::VPMENU_HUD()
 
 	if (controls.Key_Down(VK_BACK))
 	{
-		if ((entryID >= 3) && (entryID <= 7) && HotkeysActive())
+		if ((entryID >= HUD_HOTKEYS_START) && (entryID <= HUD_HOTKEYS_END) && HotkeysActive())
 		{
-			int index = entryID-3;
+			int index = entryID-HUD_HOTKEYS_START;
 			if ((index >=0) && (index <=4))
 				hudHotkeys[index] = 0;
 			HotkeyCooldown(2.0f);
@@ -909,7 +940,7 @@ void D3DProxyDevice::VPMENU_HUD()
 	}
 
 	// change hud scale
-	if ((entryID == 0) && HotkeysActive())
+	if ((entryID == HUD_MODE) && HotkeysActive())
 	{
 		if (VPMENU_Input_Left())
 		{
@@ -925,7 +956,7 @@ void D3DProxyDevice::VPMENU_HUD()
 		}
 	}
 
-	if ((entryID == 1) && HotkeysActive())
+	if ((entryID == HUD_DISTANCE) && HotkeysActive())
 	{
 		if (VPMENU_Input_IsAdjustment())
 		{
@@ -935,7 +966,7 @@ void D3DProxyDevice::VPMENU_HUD()
 		}
 	}
 
-	if ((entryID == 2) && HotkeysActive())
+	if ((entryID == HUD_3DDEPTH) && HotkeysActive())
 	{
 		if (VPMENU_Input_IsAdjustment())
 		{
@@ -1016,30 +1047,40 @@ void D3DProxyDevice::VPMENU_GUI()
 {
 	SHOW_CALL("VPMENU_GUI");
 	
-	UINT menuEntryCount = 10;
-
+	enum
+	{
+		GUI_MODE = 0,
+		GUI_DISTANCE = 1,
+		GUI_3DDEPTH = 2,
+		GUI_HOTKEYS_START = 3,
+		GUI_HOTKEYS_END = 7,
+		BACK_VPMENU = 8,
+		BACK_GAME = 9,
+		NUM_MENU_ITEMS = 10
+	};
+	
 	UINT entryID;
-	VPMENU_NewFrame(entryID, menuEntryCount);
+	VPMENU_NewFrame(entryID, NUM_MENU_ITEMS);
 
 	if (VPMENU_Input_Selected())
 	{
-		if ((entryID >= 3) && (entryID <= 7) && HotkeysActive())
+		if ((entryID >= GUI_HOTKEYS_START) && (entryID <= GUI_HOTKEYS_END) && HotkeysActive())
 		{
 			VPMENU_BindKey([=](int key) {
-				int index = entryID-3;
-				if ((index >=0) && (index <=4))
+				int index = entryID-GUI_HOTKEYS_START;
+				if ((index >= 0) && (index <= 4))
 					guiHotkeys[index] = (byte)key;
 			});
 			HotkeyCooldown(2.0f);
 		}
 		// back to main menu
-		if (entryID == 8)
+		if (entryID == BACK_VPMENU)
 		{
 			VPMENU_mode = VPMENU_Modes::MAINMENU;
 			HotkeyCooldown(2.0f);
 		}
 		// back to game
-		if (entryID == 9)
+		if (entryID == BACK_GAME)
 		{
 			VPMENU_mode = VPMENU_Modes::INACTIVE;
 			VPMENU_UpdateConfigSettings();
@@ -1048,9 +1089,9 @@ void D3DProxyDevice::VPMENU_GUI()
 
 	if (controls.Key_Down(VK_BACK))
 	{
-		if ((entryID >= 3) && (entryID <= 7) && HotkeysActive())
+		if ((entryID >= GUI_HOTKEYS_START) && (entryID <= GUI_HOTKEYS_END) && HotkeysActive())
 		{
-			int index = entryID-3;
+			int index = entryID-GUI_HOTKEYS_START;
 			if ((index >=0) && (index <=4))
 				guiHotkeys[index] = 0;
 			HotkeyCooldown(2.0f);
@@ -1058,7 +1099,7 @@ void D3DProxyDevice::VPMENU_GUI()
 	}
 
 	// change gui scale
-	if ((entryID == 0) && HotkeysActive())
+	if ((entryID == GUI_MODE) && HotkeysActive())
 	{
 		if (VPMENU_Input_Left())
 		{
@@ -1074,7 +1115,7 @@ void D3DProxyDevice::VPMENU_GUI()
 		}
 	}
 
-	if ((entryID == 1) && HotkeysActive())
+	if ((entryID == GUI_DISTANCE) && HotkeysActive())
 	{
 		if (VPMENU_Input_IsAdjustment())
 		{
@@ -1084,7 +1125,7 @@ void D3DProxyDevice::VPMENU_GUI()
 		}
 	}
 
-	if ((entryID == 2) && HotkeysActive())
+	if ((entryID == GUI_3DDEPTH) && HotkeysActive())
 	{
 		if (VPMENU_Input_IsAdjustment())
 		{
@@ -1184,13 +1225,11 @@ void D3DProxyDevice::VPMENU_Settings()
 		HOTKEY_EDGEPEEK,
 		BACK_VPMENU,
 		BACK_GAME,
-		NUM_MENU_ITEMS		
+		NUM_MENU_ITEMS
 	};
 
-	UINT menuEntryCount = NUM_MENU_ITEMS;
-
 	UINT entryID;
-	VPMENU_NewFrame(entryID, menuEntryCount);
+	VPMENU_NewFrame(entryID, NUM_MENU_ITEMS);
 
 	if (VPMENU_Input_Selected())
 	{
@@ -1503,10 +1542,8 @@ void D3DProxyDevice::VPMENU_PosTracking()
 		NUM_MENU_ITEMS
 	};
 
-	UINT menuEntryCount = NUM_MENU_ITEMS;
-
 	UINT entryID;
-	VPMENU_NewFrame(entryID, menuEntryCount);
+	VPMENU_NewFrame(entryID, NUM_MENU_ITEMS);
 
 	if (VPMENU_Input_Selected())
 	{
@@ -1660,10 +1697,8 @@ void D3DProxyDevice::VPMENU_DuckAndCover()
 		NUM_MENU_ITEMS
 	};
 
-	UINT menuEntryCount = NUM_MENU_ITEMS;
-
 	UINT entryID;
-	VPMENU_NewFrame(entryID, menuEntryCount);
+	VPMENU_NewFrame(entryID, NUM_MENU_ITEMS);
 	controls.UpdateXInputs();
 
 	if (VPMENU_Input_Selected())
@@ -1854,10 +1889,8 @@ void D3DProxyDevice::VPMENU_ComfortMode()
 		NUM_MENU_ITEMS
 	};
 
-	UINT menuEntryCount = NUM_MENU_ITEMS;
-
 	UINT entryID;
-	VPMENU_NewFrame(entryID, menuEntryCount);
+	VPMENU_NewFrame(entryID, NUM_MENU_ITEMS);
 	controls.UpdateXInputs();
 
 	if (VPMENU_Input_Selected() && HotkeysActive())
@@ -1959,33 +1992,41 @@ void D3DProxyDevice::VPMENU_VRBoostValues()
 {
 	SHOW_CALL("VPMENU_VRBoostValues");
 	
-	UINT menuEntryCount = 14;
-
+	enum
+	{
+		VRBOOSTVALUES_START = 0,
+		VRBOOSTVALUES_END = 11,
+		BACK_VPMENU = 12,
+		BACK_GAME = 13,
+		NUM_MENU_ITEMS
+	};
+	
 	UINT entryID;
-	VPMENU_NewFrame(entryID, menuEntryCount);
+	VPMENU_NewFrame(entryID, NUM_MENU_ITEMS);
 
 	if (VPMENU_Input_Selected())
 	{
 		// back to main menu
-		if (entryID == 12)
+		if (entryID == BACK_VPMENU)
 		{
 			VPMENU_mode = VPMENU_Modes::MAINMENU;
 			HotkeyCooldown(2.0f);
 		}
 		// back to game
-		if (entryID == 13)
+		if (entryID == BACK_GAME)
 		{
 			VPMENU_mode = VPMENU_Modes::INACTIVE;
 			VPMENU_UpdateConfigSettings();
 		}
 	}
 
-	if ((entryID >= 0) && (entryID <=11))
+	if ((entryID >= VRBOOSTVALUES_START) && (entryID <= VRBOOSTVALUES_END))
 	{
 		// change value
 		if (VPMENU_Input_IsAdjustment() && HotkeysActive())
 		{
-			VRBoostValue[24+entryID] += 0.1f * VPMENU_Input_GetAdjustment();
+			int index = entryID - VRBOOSTVALUES_START;
+			VRBoostValue[24+index] += 0.1f * VPMENU_Input_GetAdjustment();
 			HotkeyCooldown(0.1f);
 		}
 	}
@@ -1993,9 +2034,11 @@ void D3DProxyDevice::VPMENU_VRBoostValues()
 	if (controls.Key_Down(VK_BACK) && HotkeysActive())
 	{
 		// change value
-		if ((entryID >= 3) && (entryID <=11))
+		// The first three values are FOV settings, and don't reset to a default of 0
+		if ((entryID >= VRBOOSTVALUES_START+3) && (entryID <= VRBOOSTVALUES_END))
 		{
-			VRBoostValue[24+entryID] = 0.0f;
+			int index = entryID - VRBOOSTVALUES_START;
+			VRBoostValue[24+index] = 0.0f;
 		}
 	}
 	
