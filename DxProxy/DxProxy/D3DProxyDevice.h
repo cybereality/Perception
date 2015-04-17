@@ -479,6 +479,12 @@ protected:
 	void         DrawMenuItem(std::string text, D3DCOLOR color=COLOR_MENU_TEXT);
 	void         ChangeHUD3DDepthMode(HUD_3D_Depth_Modes newMode);
 	void         ChangeGUI3DDepthMode(GUI_3D_Depth_Modes newMode);
+	
+	void         VPMENU_Close();
+	void         VPMENU_CloseWithoutSaving();
+	void         VPMENU_Back();
+	void         VPMENU_NavigateTo(VPMENU_Modes newMode);
+	bool         VPMENU_IsOpen();
 	void         VPMENU_NewFrame(UINT &entryID, UINT menuEntryCount);
 	void         VPMENU_StartDrawing(const char *pageTitle, int borderSelection);
 	void         VPMENU_FinishDrawing();

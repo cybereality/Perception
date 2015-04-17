@@ -747,7 +747,7 @@ void DataGatherer::VPMENU_ShaderSubMenu()
 		{
 			// create relevant shader constant table
 			GetCurrentShaderRules(true);
-			VPMENU_mode = VPMENU_Modes::INACTIVE;
+			VPMENU_CloseWithoutSaving();
 			HotkeyCooldown(2.0f);
 			Analyze();
 		}
@@ -756,28 +756,25 @@ void DataGatherer::VPMENU_ShaderSubMenu()
 		{
 			// create menu names new
 			GetCurrentShaderRules(false);
-			VPMENU_mode = VPMENU_Modes::CHANGE_RULES_SCREEN;
-			HotkeyCooldown(2.0f);
+			VPMENU_NavigateTo(VPMENU_Modes::CHANGE_RULES_SCREEN);
 		}
 		//// pick rules
 		//if (entryID == PICK_RULES)
 		//{
-		//	VPMENU_mode = VPMENU_Modes::PICK_RULES_SCREEN;
-		//	HotkeyCooldown(2.0f);
+		//	VPMENU_NavigateTo(VPMENU_Modes::PICK_RULES_SCREEN);
 		//}
 		// show shaders
 		if (entryID == SHOW_SHADERS)
 		{
-			VPMENU_mode = VPMENU_Modes::SHOW_SHADERS_SCREEN;
+			VPMENU_NavigateTo(VPMENU_Modes::SHOW_SHADERS_SCREEN);
 			//Clear collections
 			m_knownVShaders.clear();
 			m_knownPShaders.clear();
-			HotkeyCooldown(2.0f);
 		}
 		// save rules
 		if (entryID == SAVE_RULES)
 		{
-			VPMENU_mode = VPMENU_Modes::INACTIVE;
+			VPMENU_CloseWithoutSaving();
 			HotkeyCooldown(2.0f);
 			// save data
 			ProxyHelper* helper = new ProxyHelper();
@@ -802,13 +799,12 @@ void DataGatherer::VPMENU_ShaderSubMenu()
 		// back to main menu
 		if (entryID == BACK_VPMENU)
 		{
-			VPMENU_mode = VPMENU_Modes::MAINMENU;
-			HotkeyCooldown(2.0f);
+			VPMENU_Back();
 		}
 		// back to game
 		if (entryID == BACK_GAME)
 		{
-			VPMENU_mode = VPMENU_Modes::INACTIVE;
+			VPMENU_CloseWithoutSaving();
 		}
 	}
 
@@ -1041,13 +1037,12 @@ void DataGatherer::VPMENU_ChangeRules()
 		// back to main menu
 		if (entryID == menuEntryCount-2)
 		{
-			VPMENU_mode = VPMENU_Modes::MAINMENU;
-			HotkeyCooldown(2.0f);
+			VPMENU_Back();
 		}
 		// back to game
 		if (entryID == menuEntryCount-1)
 		{
-			VPMENU_mode = VPMENU_Modes::INACTIVE;
+			VPMENU_CloseWithoutSaving();
 		}
 	}
 
@@ -1324,13 +1319,12 @@ void DataGatherer::VPMENU_ShowActiveShaders()
 		// back to main menu
 		if (entryID == menuEntryCount-2)
 		{
-			VPMENU_mode = VPMENU_Modes::MAINMENU;
-			HotkeyCooldown(2.0f);
+			VPMENU_Back();
 		}
 		// back to game
 		if (entryID == menuEntryCount-1)
 		{
-			VPMENU_mode = VPMENU_Modes::INACTIVE;
+			VPMENU_CloseWithoutSaving();
 		}
 	}
 
