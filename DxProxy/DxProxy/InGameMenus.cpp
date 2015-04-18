@@ -2385,134 +2385,124 @@ void D3DProxyDevice::VPMENU_AdditionalOutput()
 }
 
 
-void D3DProxyDevice::DisplayCurrentPopup()
+void D3DProxyDevice::DrawMenuItem(const char *text, D3DCOLOR color)
 {
-	//We don't want to show any notification for the first few seconds (seems to cause an issue in some games!)
-	static DWORD initialTick = GetTickCount();
-	if ((GetTickCount() - initialTick) < 2000)
-		return;
+	DrawTextShadowed(hudFont, hudMainMenu, text, &menuHelperRect, color);
+	menuHelperRect.top += MENU_ITEM_SEPARATION;
+}
 
-	if ((activePopup.popupType == VPT_NONE && show_fps == FPS_NONE) || 
-		VPMENU_IsOpen() ||
-		!userConfig.notifications)
-		return;
+void D3DProxyDevice::DrawMenuItem(std::string text, D3DCOLOR color)
+{
+	DrawTextShadowed(hudFont, hudMainMenu, text.c_str(), &menuHelperRect, color);
+	menuHelperRect.top += MENU_ITEM_SEPARATION;
+}
+
+/**
+* Simple helper to clear a rectangle using the specified color.
+* @param renderPosition Left or Right render target to be used.
+* @param rect The rectangle in pixel space to be cleared.
+* @param color The direct 3d color to be used.
+***/
+void D3DProxyDevice::ClearRect(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color)
+{
+	SHOW_CALL("ClearRect");
 	
-	// output menu
-	if (hudFont)
+	setDrawingSide(renderPosition);
+	BaseDirect3DDevice9::Clear(1, &rect, D3DCLEAR_TARGET, color, 0, 0);
+}
+
+/**
+* Simple helper to clear an empty rectangle or border using the specified color.
+* @param renderPosition Left or Right render target to be used.
+* @param rect The rectangle in pixel space to be cleared.
+* @param color The direct 3d color to be used.
+* @param bw The border width.
+***/
+void D3DProxyDevice::ClearEmptyRect(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color, int bw)
+{
+	SHOW_CALL("ClearEmptyRect");
+	
+	// helper rectangle
+	D3DRECT rect0 = D3DRECT(rect);
+
+	setDrawingSide(renderPosition);
+
+	rect0.y2 = rect.y1 + bw;
+	BaseDirect3DDevice9::Clear(1, &rect0, D3DCLEAR_TARGET, color, 0, 0);
+
+	rect0.y1 = rect.y2 - bw;
+	rect0.y2 = rect.y2;
+	BaseDirect3DDevice9::Clear(1, &rect0, D3DCLEAR_TARGET, color, 0, 0);
+
+	rect0.y1 = rect.y1;
+	rect0.x2 = rect.x1 + bw;
+	BaseDirect3DDevice9::Clear(1, &rect0, D3DCLEAR_TARGET, color, 0, 0);
+
+	rect0.x1 = rect.x2 - bw;
+	rect0.x2 = rect.x2;
+	BaseDirect3DDevice9::Clear(1, &rect0, D3DCLEAR_TARGET, color, 0, 0);
+}
+
+/**
+* Draws a simple selection control.
+* @param renderPosition Left or Right render target to be used.
+* @param rect The rectangle in pixel space to be cleared.
+* @param color The direct 3d color to be used.
+* @param selectionIndex The index of the currently chosen selection.
+* @param selectionRange The range of the selection.
+***/
+void D3DProxyDevice::DrawSelection(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color, int selectionIndex, int selectionRange)
+{
+	SHOW_CALL("DrawSelection");
+	
+	// get width of each selection
+	float selectionWidth = (rect.x2-rect.x1) / (float)selectionRange;
+
+	// get secondary color
+	D3DXCOLOR color2 = D3DXCOLOR(color);
+	FLOAT red = color2.r;
+	color2.r = color2.g * 0.7f;
+	color2.g = red;
+
+	for (int i = 0; i < selectionRange; i++)
 	{
-		hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
-
-		D3DXMATRIX matScale;
-		D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
-		hudMainMenu->SetTransform(&matScale);
-
-		if (activePopup.popupType == VPT_STATS && m_spShaderViewAdjustment->GetStereoType() >= 100)
-		{
-			sprintf_s(activePopup.line[0], "HMD Description: %s", tracker->GetTrackerDescription()); 
-			sprintf_s(activePopup.line[1], "Yaw: %.3f Pitch: %.3f Roll: %.3f", tracker->primaryYaw, tracker->primaryPitch, tracker->primaryRoll); 
-			sprintf_s(activePopup.line[2], "X: %.3f Y: %.3f Z: %.3f", tracker->primaryX, tracker->primaryY, tracker->primaryZ); 
-
-			
-			if (VRBoostStatus.VRBoost_Active)
-			{
-				ActiveAxisInfo axes[30];
-				memset(axes, 0xFF, sizeof(ActiveAxisInfo) * 30);
-				UINT count = m_pVRboost_GetActiveRuleAxes((ActiveAxisInfo**)&axes);
-
-				std::string axisNames;
-				UINT i = 0;
-				while (i < count)
-				{
-					if (axes[i].Axis == MAXDWORD)
-						break;
-					axisNames += VRboostAxisString(axes[i].Axis) + " ";
-					i++;
-				}				
-
-				sprintf_s(activePopup.line[3], "VRBoost Active: TRUE     Axes: %s", 
-					axisNames.c_str());
-			}
-			else
-			{
-				strcpy_s(activePopup.line[3], "VRBoost Active: FALSE");
-			}
-
-			if (m_bPosTrackingToggle)
-				strcpy_s(activePopup.line[4], "HMD Positional Tracking Enabled");
-			else
-				strcpy_s(activePopup.line[4], "HMD Positional Tracking Disabled");
-
-			sprintf_s(activePopup.line[5],"Current VShader Count : %u", m_VertexShaderCountLastFrame);
-		}
-
-		if (activePopup.expired())
-		{
-			//Ensure we stop showing this popup
-			activePopup.popupType = VPT_NONE;
-			activePopup.reset();
-		}
-
-		UINT format = 0;
-		D3DCOLOR popupColour;
-		ID3DXFont *pFont;
-		menuHelperRect.left = 670;
-		menuHelperRect.top = 440;
-		switch (activePopup.severity)
-		{
-			case VPS_TOAST:
-				{
-					//Center on the screen
-					format = DT_CENTER;
-					popupColour = COLOR_WHITE;
-					float FADE_DURATION = 200.0f;
-					int fontSize = (activePopup.popupDuration - GetTickCount() > FADE_DURATION) ? 26 : 
-						(int)( (25.0f * (activePopup.popupDuration - GetTickCount())) / FADE_DURATION + 1);
-					pFont = popupFont[fontSize];
-					menuHelperRect.left = 0;
-				}
-				break;
-			case VPS_INFO:
-				{
-					popupColour = COLOR_INFO_POPUP;
-					pFont = popupFont[24];
-				}
-				break;
-			case VPS_ERROR:
-				{
-					popupColour = COLOR_RED;
-					menuHelperRect.left = 0;
-					format = DT_CENTER;
-					pFont = errorFont;
-				}
-				break;
-		}
-
-		for (int i = 0; i <= 6; ++i)
-		{
-			if (strlen(activePopup.line[i]))
-				DrawTextShadowed(pFont, hudMainMenu, activePopup.line[i], -1, &menuHelperRect, format, popupColour);
-			menuHelperRect.top += MENU_ITEM_SEPARATION;
-		}
-		
-		if (show_fps != FPS_NONE)
-		{
-			char buffer[256];
-			if (show_fps == FPS_COUNT)
-				sprintf_s(buffer, "FPS: %.1f", fps);
-			else if (show_fps == FPS_TIME)
-				sprintf_s(buffer, "Frame Time: %.2f ms", 1000.0f / fps);
-
-			D3DCOLOR colour = COLOR_WHITE;
-			if (fps <= 40)
-				colour = COLOR_RED;
-			else if (fps > 74)
-				colour = COLOR_GREEN;
-
-			menuHelperRect.top = 800;
-			menuHelperRect.left = 0;
-			hudFont->DrawText(hudMainMenu, buffer, -1, &menuHelperRect, DT_CENTER, colour);
-		}
-
-		VPMENU_FinishDrawing();
+		rect.x2 = rect.x1+(int)selectionWidth;
+		if (i==selectionIndex)
+			ClearRect(renderPosition, rect, color);
+		else
+			ClearRect(renderPosition, rect, color2);
+		rect.x1+=(int)selectionWidth;
 	}
 }
+
+/**
+* Draws a simple selection control.
+* @param renderPosition Left or Right render target to be used.
+* @param rect The rectangle in pixel space to be cleared.
+* @param color The direct 3d color to be used.
+* @param selectionIndex The index of the currently chosen selection.
+* @param selectionRange The range of the selection.
+***/
+void D3DProxyDevice::DrawScrollbar(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color, float scroll, int scrollbarSize)
+{
+	SHOW_CALL("DrawScrollbar");
+	
+	if (scroll<0.0f) scroll=0.0f;
+	if (scroll>1.0f) scroll=1.0f;
+
+	// get width of each selection
+	int scrollHeight = rect.y2-rect.y1-scrollbarSize;
+	scrollHeight = (int)(scrollHeight*scroll);
+
+	// get secondary color
+	D3DXCOLOR color2 = D3DXCOLOR(color);
+	FLOAT red = color2.r;
+	color2.r = color2.g * 0.7f;
+	color2.g = red;
+
+	ClearRect(renderPosition, rect, color2);
+	rect.y1 += scrollHeight;
+	rect.y2 = rect.y1+scrollbarSize;
+	ClearRect(renderPosition, rect, color);
+}
+

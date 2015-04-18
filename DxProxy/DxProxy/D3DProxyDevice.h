@@ -468,41 +468,117 @@ protected:
 	bool         modifyRule(std::string constantName, UINT operationToApply, bool transpose);
 	bool         deleteRule(std::string constantName);
 	void         saveShaderRules();
-	void         ClearRect(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color);
-	void         ClearEmptyRect(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color, int bw);
-	void         DrawSelection(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color, int selectionIndex, int selectionRange);
-	void         DrawScrollbar(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color, float scroll, int scrollbarSize);
-	void         DrawTextShadowed(ID3DXFont* font, LPD3DXSPRITE sprite, LPCSTR lpchText, int cchText, LPRECT lprc, UINT format, D3DCOLOR color);
-	void         DrawTextShadowed(ID3DXFont* font, LPD3DXSPRITE sprite, const char *text, LPRECT lprc, D3DCOLOR color);
-	void         DrawTextShadowed(ID3DXFont* font, LPD3DXSPRITE sprite, std::string text, LPRECT lprc, D3DCOLOR color);
-	void         DrawMenuItem(const char *text, D3DCOLOR color=COLOR_MENU_TEXT);
-	void         DrawMenuItem(std::string text, D3DCOLOR color=COLOR_MENU_TEXT);
 	void         ChangeHUD3DDepthMode(HUD_3D_Depth_Modes newMode);
 	void         ChangeGUI3DDepthMode(GUI_3D_Depth_Modes newMode);
 	
-	void         VPMENU_Close();
-	void         VPMENU_CloseWithoutSaving();
-	void         VPMENU_Back();
-	void         VPMENU_OpenMainMenu();
-	void         VPMENU_NavigateTo(VPMENU_Modes newMode);
-	bool         VPMENU_IsOpen();
-	void         VPMENU_NewFrame(UINT &entryID, UINT menuEntryCount);
-	void         VPMENU_StartDrawing(const char *pageTitle, int borderSelection);
-	void         VPMENU_FinishDrawing();
-	bool         VPMENU_Input_Selected();
-	bool         VPMENU_Input_Left();
-	bool         VPMENU_Input_Right();
-	bool         VPMENU_Input_IsAdjustment();
-	float        VPMENU_Input_GetAdjustment();
-	float        VPMENU_Input_SpeedModifier();
-	void         VPMENU_BindKey(std::function<void(int)> onBind);
+	/*** InGameMenus.cpp *****************************************************/
+protected:
+	void VPMENU_Close();
+	void VPMENU_CloseWithoutSaving();
+	void VPMENU_Back();
+	void VPMENU_OpenMainMenu();
+	void VPMENU_NavigateTo(VPMENU_Modes newMode);
+	bool VPMENU_IsOpen();
+	void VPMENU_NewFrame(UINT &entryID, UINT menuEntryCount);
+	void VPMENU_StartDrawing(const char *pageTitle, int borderSelection);
+	void VPMENU_FinishDrawing();
+	bool VPMENU_Input_Selected();
+	bool VPMENU_Input_Left();
+	bool VPMENU_Input_Right();
+	bool VPMENU_Input_IsAdjustment();
+	float VPMENU_Input_GetAdjustment();
+	float VPMENU_Input_SpeedModifier();
+	void VPMENU_BindKey(std::function<void(int)> onBind);
+	
+	bool InitVPMENU();
+	void VPMENU();
+	void VPMENU_MainMenu();
+	void VPMENU_WorldScale();
+	void VPMENU_Convergence();
+	void VPMENU_HUD();
+	void VPMENU_GUI();
+	void VPMENU_Settings();
+	
+	void VPMENU_PosTracking();
+	void VPMENU_DuckAndCover();
+	void VPMENU_ComfortMode();
+	void VPMENU_VRBoostValues();
+	
+	void VPMENU_UpdateBorder();
+	void VPMENU_UpdateConfigSettings();
+	void VPMENU_UpdateDeviceSettings();
+	void VPMENU_AdditionalOutput();
+
+	void DrawMenuItem(const char *text, D3DCOLOR color=COLOR_MENU_TEXT);
+	void DrawMenuItem(std::string text, D3DCOLOR color=COLOR_MENU_TEXT);
+	void ClearRect(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color);
+	void ClearEmptyRect(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color, int bw);
+	void DrawSelection(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color, int selectionIndex, int selectionRange);
+	void DrawScrollbar(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color, float scroll, int scrollbarSize);
+	
+	/// True if menu is waiting to catch a hotkey.
+	bool hotkeyCatch;
+	
+	/// If the menu is waiting to catch a hotkey, a function to call when it's received
+	std::function<void(int)> onBindKey;
+	
+	/// Main menu velocity.
+	D3DXVECTOR2 menuVelocity;
+	
+	/// Main menu affection.
+	D3DXVECTOR2 menuAttraction;
+	
+	/// Main menu border top height.
+	float borderTopHeight;
+	
+	/// Main menu top height for scrolling menues.
+	float menuTopHeight;
+	
+	/// VP menu value.
+	int viewportWidth;
+	
+	/// VP menu value.
+	int viewportHeight;
+	
+	/// VP menu value.
+	float menuTop;
+	
+	/// Menu entry height, in pixels.
+	float menuEntryHeight;
+	
+	/// VP menu helper rectangle.
+	RECT menuHelperRect;
+	
+	/// Scales VP menu to current resolution.
+	float fScaleX;
+	
+	/// Scales VP menu to current resolution.
+	float fScaleY;
+	
+	/*** DataGatherer menus **************************************************/
+	
 	virtual void VPMENU_ShaderSubMenu(){}
 	virtual void VPMENU_ChangeRules(){}
 	virtual void VPMENU_PickRules(){}
 	virtual void VPMENU_ShowActiveShaders(){}
+	
+	/*** Popup.cpp ***********************************************************/
 
+	void ShowPopup(VireioPopup &popup);
+	void ShowPopup(VireioPopupType type, VireioPopupSeverity sev, long duration, std::string message);
+	void ShowPopup(VireioPopupType type, VireioPopupSeverity sev, std::string message);
+	
+	void ShowAdjusterToast(std::string message, int duration);
+	void DismissPopup(VireioPopupType popupType);
+	void DisplayCurrentPopup();
+	
+	void DrawTextShadowed(ID3DXFont* font, LPD3DXSPRITE sprite, LPCSTR lpchText, int cchText, LPRECT lprc, UINT format, D3DCOLOR color);
+	void DrawTextShadowed(ID3DXFont* font, LPD3DXSPRITE sprite, const char *text, LPRECT lprc, D3DCOLOR color);
+	void DrawTextShadowed(ID3DXFont* font, LPD3DXSPRITE sprite, std::string text, LPRECT lprc, D3DCOLOR color);
+	
 	VireioPopup activePopup;
-	std::function<void(int)> onBindKey;
+
+	/********************************/
 
 	/** Whether the Frames Per Second counter is being shown */
 	enum FPS_TYPE {
@@ -514,14 +590,6 @@ protected:
 
 	/** Whether the calibrate tracker message is to be shown */
 	bool calibrate_tracker;
-
-	/** Pop-up functionality */
-	void DisplayCurrentPopup();
-	void ShowPopup(VireioPopup &popup);
-	void ShowPopup(VireioPopupType type, VireioPopupSeverity sev, long duration, std::string message);
-	void ShowPopup(VireioPopupType type, VireioPopupSeverity sev, std::string message);
-	void ShowAdjusterToast(std::string message, int duration);
-	void DismissPopup(VireioPopupType popupType);
 
 	/**
 	* The game handler.
@@ -560,53 +628,6 @@ protected:
 	* Main menu sprite.
 	***/
 	LPD3DXSPRITE hudTextBox;
-	/**
-	* Main menu velocity.
-	***/
-	D3DXVECTOR2 menuVelocity;
-	/**
-	* Main menu affection.
-	***/
-	D3DXVECTOR2 menuAttraction;
-	/**
-	* Main menu border top height.
-	***/
-	float borderTopHeight;
-	/**
-	* Main menu top height for scrolling menues.
-	***/
-	float menuTopHeight;
-	/**
-	* VP menu value.
-	***/
-	int viewportWidth;
-	/**
-	* VP menu value.
-	***/
-	int viewportHeight;
-	/**
-	* VP menu value.
-	***/
-	float menuTop;
-	/**
-	* VP menu value.
-	* Menu entry height, in pixels.
-	***/
-	float menuEntryHeight;
-	/**
-	* VP menu helper rectangle.
-	***/
-	RECT menuHelperRect;
-	/**
-	* VP menu value.
-	* Scales VP menu to current resolution.
-	***/
-	float fScaleX;
-	/**
-	* VP menu value.
-	* Scales VP menu to current resolution.
-	***/
-	float fScaleY;
 	/**
 	* True if BeginScene() is called the first time this frame.
 	* @see BeginScene()
@@ -697,28 +718,12 @@ protected:
 
 private:
 	/*** D3DProxyDevice private methods ***/
-	void    VPMENU();
-	void    VPMENU_MainMenu();
-	void    VPMENU_WorldScale();
-	void    VPMENU_Convergence();
-	void    VPMENU_HUD();
-	void    VPMENU_GUI();
-	void    VPMENU_Settings();
-	void    VPMENU_VRBoostValues();
-	void	VPMENU_PosTracking();
-	void	VPMENU_ComfortMode();
-	void	VPMENU_DuckAndCover();
-	void    VPMENU_UpdateBorder();
-	void    VPMENU_UpdateConfigSettings();
-	void    VPMENU_UpdateDeviceSettings();
-	void    VPMENU_AdditionalOutput();
 	void    ReleaseEverything();
 	bool    isViewportDefaultForMainRT(CONST D3DVIEWPORT9* pViewport);
 	HRESULT SetStereoViewTransform(D3DXMATRIX pLeftMatrix, D3DXMATRIX pRightMatrix, bool apply);
 	HRESULT SetStereoProjectionTransform(D3DXMATRIX pLeftMatrix, D3DXMATRIX pRightMatrix, bool apply);
 	void    SetGUIViewport();
 	float   RoundVireioValue(float val);
-	bool	InitVPMENU();
 	bool	InitVRBoost();
 	bool	InitTracker();
 
@@ -981,10 +986,6 @@ private:
 	* Hotkey for disconnected screen.
 	***/
 	byte edgePeekHotkey;
-	/**
-	* True if menu is waiting to catch a hotkey.
-	***/
-	bool hotkeyCatch;
 	/**
 	* True if screenshot is taken next frame.
 	***/
