@@ -33,6 +33,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdarg.h>
 
 using namespace pugi;
+using std::string;
 
 #ifdef x64
 	#define CPUARCH_STR "64bit"
@@ -45,10 +46,10 @@ using namespace pugi;
 * @param string The string to be formatted.
 * @param char The character to be deleted.
 ***/
-void EraseCharacter(std::string& string, char character)
+void EraseCharacter(string& string, char character)
 {
 	auto found=string.find(character);
-	while(found!=std::string::npos)
+	while(found!=string::npos)
 	{
 		string.erase(found,1);
 		found=string.find(character);
@@ -392,15 +393,15 @@ bool ProxyHelper::LoadUserConfig(ProxyConfig& config, OculusProfile& oculusProfi
 
 	// loop through file data lines
 	OutputDebugString("Load Oculus User Profile.");
-	std::string defaultUser = "";
-	std::string currentUserParsed = "";
-	std::string line_stream;    
+	string defaultUser = "";
+	string currentUserParsed = "";
+	string line_stream;    
 	while(std::getline(filestream, line_stream)){  
 
 		// get line data
 		std::stringstream str_stream(line_stream);
-		std::string type_str;
-		std::string data_str;
+		string type_str;
+		string data_str;
 		str_stream >> type_str >> data_str;
 
 		
@@ -659,22 +660,22 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 				targetExe[i] = (char)tolower((int)targetExe[i]);
 				i++;
 			}
-			std::string profileProcess = profile.attribute("game_exe").as_string();
+			string profileProcess = profile.attribute("game_exe").as_string();
 			for (i = 0; i < profileProcess.length(); ++i)
 			{
 				profileProcess[i] = (char)tolower((int)profileProcess[i]);
 			}
 
-			std::string cpuArch = profile.attribute("cpu_architecture").as_string("32bit");
+			string cpuArch = profile.attribute("cpu_architecture").as_string("32bit");
 
 			// profile found - now has to match on exe name and cpu architecture
 			if(strcmp(targetExe, profileProcess.c_str()) == 0
-			   && cpuArch == std::string(CPUARCH_STR))
+			   && cpuArch == string(CPUARCH_STR))
 			{
 				//Check against dir name too if present
-				if (std::string(profile.attribute("dir_contains").as_string()).length() && targetPath)
+				if (string(profile.attribute("dir_contains").as_string()).length() && targetPath)
 				{
-					if (std::string(targetPath).find(profile.attribute("dir_contains").as_string()) == std::string::npos)
+					if (string(targetPath).find(profile.attribute("dir_contains").as_string()) == string::npos)
 						continue;
 				}
 
@@ -720,9 +721,9 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 		if(config.position_z_multiplier == 0.0f) config.position_z_multiplier = 0.5f;
 
 		// set process name
-		config.game_exe = std::string(gameProfile.attribute("game_exe").as_string(""));
-		config.dir_contains = std::string(gameProfile.attribute("dir_contains").as_string(""));
-		config.is64bit = std::string(gameProfile.attribute("cpu_architecture").as_string("32bit")) == "64bit";
+		config.game_exe = string(gameProfile.attribute("game_exe").as_string(""));
+		config.dir_contains = string(gameProfile.attribute("dir_contains").as_string(""));
+		config.is64bit = string(gameProfile.attribute("cpu_architecture").as_string("32bit")) == "64bit";
 
 		// get hud config
 		config.hud3DDepthMode = gameProfile.attribute("hud_3D_depth_mode").as_int();
@@ -785,7 +786,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 		config.ConstantValue3 = gameProfile.attribute("ConstantValue3").as_float(0.0f);
 
 		// get shader rules file name
-		std::string shaderRulesFileName = gameProfile.attribute("shaderModRules").as_string("");
+		string shaderRulesFileName = gameProfile.attribute("shaderModRules").as_string("");
 
 		if (!shaderRulesFileName.empty()) {
 			std::stringstream sstm;
@@ -797,7 +798,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 		}
 
 		// get memory rules file name
-		std::string VRboostRulesFileName = gameProfile.attribute("VRboostRules").as_string("");
+		string VRboostRulesFileName = gameProfile.attribute("VRboostRules").as_string("");
 
 		if (!VRboostRulesFileName.empty()) {
 			std::stringstream sstm;
@@ -821,7 +822,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 			char destPath[512];
 			GetTargetPath(destPath, "d3d9.dll");
 
-			std::string copyD3D9Command = retprintf("copy %s %s", sourcePath, destPath);
+			string copyD3D9Command = retprintf("copy %s %s", sourcePath, destPath);
 			system(copyD3D9Command.c_str());
 			OutputDebugString(copyD3D9Command.c_str());
 
@@ -829,7 +830,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 			GetPath(sourcePath, "bin\\libfreespace.dll");
 			GetTargetPath(destPath, "libfreespace.dll");
 
-			std::string copyLibfreespaceCommand = retprintf("copy %s %s", sourcePath, destPath);
+			string copyLibfreespaceCommand = retprintf("copy %s %s", sourcePath, destPath);
 			system(copyLibfreespaceCommand.c_str());
 			OutputDebugString(copyLibfreespaceCommand.c_str());
 
@@ -882,24 +883,24 @@ bool ProxyHelper::SaveConfig(ProxyConfig& config)
 				targetExe[i] = (char)tolower((int)targetExe[i]);
 				i++;
 			}
-			std::string profileProcess = profile.attribute("game_exe").as_string();
+			string profileProcess = profile.attribute("game_exe").as_string();
 			for (i = 0; i < profileProcess.length(); ++i)
 			{
 				profileProcess[i] = (char)tolower((int)profileProcess[i]);
 			}
 
-			std::string cpuArch = profile.attribute("cpu_architecture").as_string("32bit");
+			string cpuArch = profile.attribute("cpu_architecture").as_string("32bit");
 
 			// profile found - now has to match on exe name and cpu architecture
 			if(strcmp(targetExe, profileProcess.c_str()) == 0 &&
-				cpuArch == std::string(CPUARCH_STR))
+				cpuArch == string(CPUARCH_STR))
 			{
 				//Check against dir name too if present
-				std::string dirContains = profile.attribute("dir_contains").as_string();
-				if (dirContains.length() && std::string(targetPath).length())
+				string dirContains = profile.attribute("dir_contains").as_string();
+				if (dirContains.length() && string(targetPath).length())
 				{
 					hasDirContains = true;
-					if (std::string(targetPath).find(dirContains) == std::string::npos)
+					if (string(targetPath).find(dirContains) == string::npos)
 						continue;
 				}
 				else hasDirContains = false;
@@ -918,13 +919,13 @@ bool ProxyHelper::SaveConfig(ProxyConfig& config)
 
 		// get shader mod rules filename
 		auto lastBackSlash = config.shaderRulePath.find_last_of("\\");
-		std::string fileName;
-		if (lastBackSlash!=std::string::npos)
+		string fileName;
+		if (lastBackSlash!=string::npos)
 			fileName = config.shaderRulePath.substr(lastBackSlash+1, config.shaderRulePath.size()-(lastBackSlash+1));
 		else
 			fileName = config.shaderRulePath;
 
-		std::string firstTag = "game_exe";
+		string firstTag = "game_exe";
 		if (hasDirContains) firstTag = "dir_contains";
 
 		// cpu_architecture
@@ -947,7 +948,7 @@ bool ProxyHelper::SaveConfig(ProxyConfig& config)
 
 		// get VRboost rules filename
 		lastBackSlash = config.VRboostPath.find_last_of("\\");
-		if (lastBackSlash!=std::string::npos)
+		if (lastBackSlash!=string::npos)
 			fileName = config.VRboostPath.substr(lastBackSlash+1, config.VRboostPath.size()-(lastBackSlash+1));
 		else
 			fileName = config.VRboostPath;
@@ -1297,7 +1298,7 @@ bool ProxyHelper::HasProfile(const char* name, const char *path)
 				//Check against dir name too if present
 				if (profile.attribute("dir_contains").as_string() && path)
 				{
-					if (std::string(path).find(profile.attribute("dir_contains").as_string()) == std::string::npos)
+					if (string(path).find(profile.attribute("dir_contains").as_string()) == string::npos)
 						continue;
 				}
 
@@ -1327,8 +1328,8 @@ bool ProxyHelper::GetProfileGameExes(std::vector<std::pair<std::string, bool>> &
 
 		for (xml_node profile = xml_profiles.child("profile"); profile; profile = profile.next_sibling("profile"))
 		{
-			std::string exe = profile.attribute("game_exe").value();
-			bool _64bit = profile.attribute("cpu_architecture").as_string("32bit") == std::string("64bit");
+			string exe = profile.attribute("game_exe").value();
+			bool _64bit = profile.attribute("cpu_architecture").as_string("32bit") == string("64bit");
 			std::transform(exe.begin(), exe.end(), exe.begin(), ::tolower);			
 			gameExes.push_back(std::make_pair(exe, _64bit));
 		}
@@ -1361,12 +1362,12 @@ bool ProxyHelper::GetProfile(char* name, char *path, bool _64bit, ProxyConfig& c
 		for (xml_node profile = xml_profiles.child("profile"); profile; profile = profile.next_sibling("profile"))
 		{
 			if(strcmp(name, profile.attribute("game_exe").value()) == 0 &&
-				_64bit == (profile.attribute("cpu_architecture").as_string("32bit") == std::string("64bit")))
+				_64bit == (profile.attribute("cpu_architecture").as_string("32bit") == string("64bit")))
 			{
 				//Check against dir name too if present
 				if (profile.attribute("dir_contains").as_string() && path)
 				{
-					if (std::string(path).find(profile.attribute("dir_contains").as_string()) == std::string::npos)
+					if (string(path).find(profile.attribute("dir_contains").as_string()) == string::npos)
 						continue;
 				}
 
