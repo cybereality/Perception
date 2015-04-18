@@ -18,9 +18,18 @@ class InputBinding
 {
 public:
 	virtual bool IsPressed(InputControls &controls)=0;
+	virtual std::string ToString()=0;
 };
 
 typedef std::shared_ptr<InputBinding> InputBindingRef;
+
+class UnboundKeyBinding
+	: public InputBinding
+{
+public:
+	bool IsPressed(InputControls &controls);
+	std::string ToString();
+};
 
 class SimpleKeyBinding
 	: public InputBinding
@@ -28,6 +37,7 @@ class SimpleKeyBinding
 public:
 	SimpleKeyBinding(int key);
 	bool IsPressed(InputControls &controls);
+	std::string ToString();
 	
 private:
 	int keyIndex;
@@ -39,6 +49,7 @@ class SimpleButtonBinding
 public:
 	SimpleButtonBinding(int button);
 	bool IsPressed(InputControls &controls);
+	std::string ToString();
 	
 private:
 	int buttonIndex;
@@ -48,10 +59,12 @@ class InputExpressionBinding
 	: public InputBinding
 {
 public:
-	InputExpressionBinding(std::function<bool(InputControls&)> func);
+	InputExpressionBinding(std::string description, std::function<bool(InputControls&)> func);
 	bool IsPressed(InputControls &controls);
+	std::string ToString();
 
 private:
+	std::string description;
 	std::function<bool(InputControls&)> func;
 };
 
@@ -61,6 +74,7 @@ class CombinationKeyBinding
 public:
 	CombinationKeyBinding(InputBindingRef first, InputBindingRef second);
 	bool IsPressed(InputControls &controls);
+	std::string ToString();
 	
 private:
 	InputBindingRef first;
@@ -73,6 +87,7 @@ class AlternativesKeyBinding
 public:
 	AlternativesKeyBinding(InputBindingRef first, InputBindingRef second);
 	bool IsPressed(InputControls &controls);
+	std::string ToString();
 	
 private:
 	InputBindingRef first;
@@ -85,6 +100,7 @@ namespace HotkeyExpressions
 	InputBindingRef Button(int buttonIndex);
 	InputBindingRef operator+(InputBindingRef lhs, InputBindingRef rhs);
 	InputBindingRef operator||(InputBindingRef lhs, InputBindingRef rhs);
+	InputBindingRef Unbound();
 }
 
 /*
@@ -126,5 +142,7 @@ private:
 	* (used for BRASSA menu)
 	**/
 	static std::array<std::string, 256> KeyNameList;
+	
+	friend class SimpleKeyBinding;
 
 };
