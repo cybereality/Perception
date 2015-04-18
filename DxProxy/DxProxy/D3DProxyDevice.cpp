@@ -3779,9 +3779,12 @@ void D3DProxyDevice::HandleTracking()
 			{
 				if (tracker->getStatus() == MTS_CAMERAMALFUNCTION)
 				{
-					VireioPopup popup(VPT_NO_HMD_DETECTED, VPS_ERROR);
-					strcpy_s(popup.line[2], "CAMERA MALFUNCTION - PLEASE WAIT WHILST CAMERA INITIALISES");
-					ShowPopup(popup);
+					if (userConfig.warnCameraMalfunction)
+					{
+						VireioPopup popup(VPT_NO_HMD_DETECTED, VPS_ERROR);
+						strcpy_s(popup.line[2], "CAMERA MALFUNCTION - PLEASE WAIT WHILST CAMERA INITIALISES");
+						ShowPopup(popup);
+					}
 				}
 				else if (tracker->getStatus() == MTS_LOSTPOSITIONAL)
 				{
