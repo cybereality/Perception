@@ -76,6 +76,11 @@ private:
 	/*** DataGatherer private methods ***/
 	void Analyze();
 	void GetCurrentShaderRules(bool allStartRegisters);
+	
+	bool addRule(std::string constantName, bool allowPartialNameMatch, UINT startRegIndex, D3DXPARAMETER_CLASS constantType, UINT operationToApply, bool transpose);
+	bool modifyRule(std::string constantName, UINT operationToApply, bool transpose);
+	bool deleteRule(std::string constantName);
+	void saveShaderRules();
 
 	/**
 	* Describes a shader constant.

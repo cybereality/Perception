@@ -456,10 +456,6 @@ protected:
 	virtual void OnCreateOrRestore();	
 	virtual bool setDrawingSide(vireio::RenderPosition side);
 	bool         switchDrawingSide();
-	bool         addRule(std::string constantName, bool allowPartialNameMatch, UINT startRegIndex, D3DXPARAMETER_CLASS constantType, UINT operationToApply, bool transpose);
-	bool         modifyRule(std::string constantName, UINT operationToApply, bool transpose);
-	bool         deleteRule(std::string constantName);
-	void         saveShaderRules();
 	void         ChangeHUD3DDepthMode(HUD_3D_Depth_Modes newMode);
 	void         ChangeGUI3DDepthMode(GUI_3D_Depth_Modes newMode);
 	
@@ -812,11 +808,15 @@ private:
 	* @see ShaderRegisters
 	**/
 	std::shared_ptr<ShaderRegisters> m_spManagedShaderRegisters;
+
+protected:
 	/**
 	* View matrix adjustment class.
 	* @see ViewAdjustment
 	**/
 	std::shared_ptr<ViewAdjustment> m_spShaderViewAdjustment;
+	
+private:
 	/**
 	* True if active viewport is the default one.
 	* @see isViewportDefaultForMainRT()

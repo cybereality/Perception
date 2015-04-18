@@ -3293,53 +3293,6 @@ bool D3DProxyDevice::switchDrawingSide()
 	return switched;
 }
 
-/**
-* Adds a default shader rule to the game configuration.
-* @return True if rule was added, false if rule already present.
-***/
-bool D3DProxyDevice::addRule(std::string constantName, bool allowPartialNameMatch, UINT startRegIndex, D3DXPARAMETER_CLASS constantType, UINT operationToApply, bool transpose)
-{
-	SHOW_CALL("AddRule");
-	
-	return m_pGameHandler->AddRule(m_spShaderViewAdjustment, constantName, allowPartialNameMatch, startRegIndex, constantType, operationToApply, transpose);
-}
-
-/**
-* Adds a default shader rule to the game configuration.
-* @return True if rule was added, false if rule already present.
-***/
-bool D3DProxyDevice::modifyRule(std::string constantName, UINT operationToApply, bool transpose)
-{
-	SHOW_CALL("ModifyRule");
-	
-	return m_pGameHandler->ModifyRule(m_spShaderViewAdjustment, constantName, operationToApply, transpose);
-}
-
-/**
-* Delete rule.
-* @return True if rule was deleted, false if rule not present.
-***/
-bool D3DProxyDevice::deleteRule(std::string constantName)
-{
-	SHOW_CALL("DeleteRule");
-	
-	return m_pGameHandler->DeleteRule(m_spShaderViewAdjustment, constantName);
-}
-
-/*
-* Saves current game shader rules (and game configuration).
-***/
-void D3DProxyDevice::saveShaderRules()
-{
-	SHOW_CALL("SaveShaderRules");
-	
-	m_pGameHandler->Save(config, m_spShaderViewAdjustment);
-
-	ProxyHelper* helper = new ProxyHelper();
-	helper->SaveConfig(config);
-	delete helper;
-}
-
 
 /**
 * Changes the HUD scale mode - also changes new scale in view adjustment class.
