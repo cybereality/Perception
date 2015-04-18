@@ -136,8 +136,8 @@ public:
 	static HRESULT RegGetString(HKEY hKey, LPCTSTR szValueName, LPTSTR * lpszResult);
 	char* GetBaseDir();
 	char* GetTargetExe();
-	void  GetPath(char* newFolder, char* path);
-	void  GetTargetPath(char* newFolder, char* path);
+	std::string GetPath(char* path);
+	std::string GetTargetPath(char* path);
 	bool  LoadUserConfig(UserConfig &userConfig);
 	bool  SaveUserConfig(int mode = -1, float aspect = -1.0f);
 	bool  LoadUserConfig(ProxyConfig& config, OculusProfile& oculusProfile);
@@ -154,10 +154,12 @@ public:
 	*/
 	bool  GetProfileGameExes(std::vector<std::pair<std::string, bool>> &gameExes);
 
+private:
 	/**
 	* True if base directory path loaded.
 	***/
-	bool  baseDirLoaded; 
+	bool  baseDirLoaded;
+
 	/**
 	* Base directory path.
 	* Saved to registry by InitConfig() in Main.cpp.

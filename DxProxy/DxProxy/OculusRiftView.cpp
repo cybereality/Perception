@@ -240,13 +240,10 @@ void OculusRiftView::InitShaderEffects()
 
 	shaderEffect[OCULUS_RIFT] = "OculusRift.fx";
 
-	char viewPath[512];
 	ProxyHelper helper = ProxyHelper();
-	helper.GetPath(viewPath, "fx\\");
+	std::string viewPath = helper.GetPath("fx\\") + shaderEffect[stereo_mode];
 
-	strcat_s(viewPath, 512, shaderEffect[stereo_mode].c_str());
-
-	D3DXCreateEffectFromFile(m_pActualDevice, viewPath, NULL, NULL, 0, NULL, &viewEffect, NULL);
+	D3DXCreateEffectFromFile(m_pActualDevice, viewPath.c_str(), NULL, NULL, 0, NULL, &viewEffect, NULL);
 }
 
 

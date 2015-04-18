@@ -235,10 +235,9 @@ char* ProxyHelper::GetTargetExe()
 * @param newFolder The folder string returned.
 * @param path The Vireio sub-path.
 ***/
-void ProxyHelper::GetPath(char* newFolder, char* path)
+string ProxyHelper::GetPath(char* path)
 {
-	strcpy_s(newFolder, 512, GetBaseDir());
-	strcat_s(newFolder, 512, path);
+	return retprintf("%s%s", GetBaseDir(), path);
 }
 
 /**
@@ -246,10 +245,9 @@ void ProxyHelper::GetPath(char* newFolder, char* path)
 * @param newFolder The folder string returned.
 * @param path The target sub-path.
 ***/
-void ProxyHelper::GetTargetPath(char* newFolder, char* path)
+string ProxyHelper::GetTargetPath(char* path)
 {
-	strcpy_s(newFolder, 512, targetPath);
-	strcat_s(newFolder, 512, path);
+	return retprintf("%s%s", targetPath, path);
 }
 
 /**
@@ -265,11 +263,10 @@ bool ProxyHelper::LoadUserConfig(UserConfig &userConfig)
 	OutputDebugString("\n");
 
 	// get global config
-	char configPath[512];
-	GetPath(configPath, "cfg\\config.xml");
+	string configPath = GetPath("cfg\\config.xml");
 
 	xml_document docConfig;
-	xml_parse_result resultConfig = docConfig.load_file(configPath);
+	xml_parse_result resultConfig = docConfig.load_file(configPath.c_str());
 
 	if(resultConfig.status == status_ok)
 	{
@@ -303,11 +300,10 @@ bool ProxyHelper::SaveUserConfig(int mode, float aspect)
 	OutputDebugString("\n");
 
 	// get global config
-	char configPath[512];
-	GetPath(configPath, "cfg\\config.xml");
+	string configPath = GetPath("cfg\\config.xml");
 
 	xml_document docConfig;
-	xml_parse_result resultConfig = docConfig.load_file(configPath);
+	xml_parse_result resultConfig = docConfig.load_file(configPath.c_str());
 
 	if(resultConfig.status == status_ok)
 	{
@@ -318,7 +314,7 @@ bool ProxyHelper::SaveUserConfig(int mode, float aspect)
 		if(aspect >= 0.0f)
 			xml_config.attribute("aspect_multiplier") = aspect;
 
-		docConfig.save_file(configPath);
+		docConfig.save_file(configPath.c_str());
 
 		return true;
 	}
@@ -334,13 +330,11 @@ bool ProxyHelper::LoadUserConfig(ProxyConfig& config, OculusProfile& oculusProfi
 {
 	// get the user_profile
 	bool userFound = false;
-	char usersPath[512];
-	GetPath(usersPath, "cfg\\users.xml");
-	OutputDebugString(usersPath);
-	OutputDebugString("\n");
+	string usersPath = GetPath("cfg\\users.xml");
+	debugf("%s\n", usersPath.c_str());
 
 	xml_document docUsers;
-	xml_parse_result resultUsers = docUsers.load_file(usersPath);
+	xml_parse_result resultUsers = docUsers.load_file(usersPath.c_str());
 	xml_node users;
 	xml_node userProfile;
 
@@ -481,13 +475,11 @@ bool ProxyHelper::SaveUserConfig(float ipd)
 	// get the profile
 	bool profileFound = false;
 	bool profileSaved = false;
-	char profilePath[512];
-	GetPath(profilePath, "cfg\\users.xml");
-	OutputDebugString(profilePath);
-	OutputDebugString("\n");
+	string profilePath = GetPath("cfg\\users.xml");
+	debugf("%s\n", profilePath.c_str());
 
 	xml_document docProfiles;
-	xml_parse_result resultProfiles = docProfiles.load_file(profilePath);
+	xml_parse_result resultProfiles = docProfiles.load_file(profilePath.c_str());
 	xml_node profile;
 	xml_node gameProfile;
 
@@ -511,7 +503,7 @@ bool ProxyHelper::SaveUserConfig(float ipd)
 	{
 		OutputDebugString("Save the settings to profile!!!\n");
 		gameProfile.attribute("ipd") = ipd;
-		docProfiles.save_file(profilePath);
+		docProfiles.save_file(profilePath.c_str());
 		profileSaved = true;
 	}
 
@@ -530,11 +522,10 @@ bool ProxyHelper::SaveTrackerMode(int mode)
 	OutputDebugString("\n");
 
 	// get global config
-	char configPath[512];
-	GetPath(configPath, "cfg\\config.xml");
+	string configPath = GetPath("cfg\\config.xml");
 
 	xml_document docConfig;
-	xml_parse_result resultConfig = docConfig.load_file(configPath);
+	xml_parse_result resultConfig = docConfig.load_file(configPath.c_str());
 
 	if(resultConfig.status == status_ok)
 	{
@@ -543,7 +534,7 @@ bool ProxyHelper::SaveTrackerMode(int mode)
 		if(mode >= 0)
 			xml_config.attribute("tracker_mode") = mode;
 
-		docConfig.save_file(configPath);
+		docConfig.save_file(configPath.c_str());
 
 		return true;
 	}
@@ -563,11 +554,10 @@ bool ProxyHelper::SaveDisplayAdapter(int adapter)
 	OutputDebugString("\n");
 
 	// get global config
-	char configPath[512];
-	GetPath(configPath, "cfg\\config.xml");
+	string configPath = GetPath("cfg\\config.xml");
 
 	xml_document docConfig;
-	xml_parse_result resultConfig = docConfig.load_file(configPath);
+	xml_parse_result resultConfig = docConfig.load_file(configPath.c_str());
 
 	if(resultConfig.status == status_ok)
 	{
@@ -576,7 +566,7 @@ bool ProxyHelper::SaveDisplayAdapter(int adapter)
 		if(adapter >= 0)
 			xml_config.attribute("display_adapter") = adapter;
 
-		docConfig.save_file(configPath);
+		docConfig.save_file(configPath.c_str());
 
 		return true;
 	}
@@ -610,13 +600,11 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 	debugf("Got base dir as: %s\n", baseDir);
 
 	// get global config
-	char configPath[512];
-	GetPath(configPath, "cfg\\config.xml");
-	OutputDebugString(configPath);
-	OutputDebugString("\n");
+	string configPath = GetPath("cfg\\config.xml");
+	debugf("%s\n", configPath.c_str());
 
 	xml_document docConfig;
-	xml_parse_result resultConfig = docConfig.load_file(configPath);
+	xml_parse_result resultConfig = docConfig.load_file(configPath.c_str());
 
 	if(resultConfig.status == status_ok)
 	{
@@ -637,13 +625,11 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 
 	// get the profile
 	bool profileFound = false;
-	char profilePath[512];
-	GetPath(profilePath, "cfg\\profiles.xml");
-	OutputDebugString(profilePath);
-	OutputDebugString("\n");
+	string profilePath = GetPath("cfg\\profiles.xml");
+	debugf("%s\n", profilePath.c_str());
 
 	xml_document docProfiles;
-	xml_parse_result resultProfiles = docProfiles.load_file(profilePath);
+	xml_parse_result resultProfiles = docProfiles.load_file(profilePath.c_str());
 	xml_node profile;
 	xml_node gameProfile;
 
@@ -817,20 +803,18 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 		if (copyDlls)
 		{
 			// d3d9.dll
-			char sourcePath[512];
-			GetPath(sourcePath, "bin\\d3d9.dll");
-			char destPath[512];
-			GetTargetPath(destPath, "d3d9.dll");
+			string sourcePath = GetPath("bin\\d3d9.dll");
+			string destPath = GetTargetPath("d3d9.dll");
 
-			string copyD3D9Command = retprintf("copy %s %s", sourcePath, destPath);
+			string copyD3D9Command = retprintf("copy %s %s", sourcePath.c_str(), destPath.c_str());
 			system(copyD3D9Command.c_str());
 			OutputDebugString(copyD3D9Command.c_str());
 
 			// libfreespace.dll
-			GetPath(sourcePath, "bin\\libfreespace.dll");
-			GetTargetPath(destPath, "libfreespace.dll");
+			sourcePath = GetPath("bin\\libfreespace.dll");
+			destPath = GetTargetPath("libfreespace.dll");
 
-			string copyLibfreespaceCommand = retprintf("copy %s %s", sourcePath, destPath);
+			string copyLibfreespaceCommand = retprintf("copy %s %s", sourcePath.c_str(), destPath.c_str());
 			system(copyLibfreespaceCommand.c_str());
 			OutputDebugString(copyLibfreespaceCommand.c_str());
 
@@ -860,13 +844,11 @@ bool ProxyHelper::SaveConfig(ProxyConfig& config)
 	bool profileFound = false;
 	bool hasDirContains = false;
 	bool profileSaved = false;
-	char profilePath[512];
-	GetPath(profilePath, "cfg\\profiles.xml");
-	OutputDebugString(profilePath);
-	OutputDebugString("\n");
+	string profilePath = GetPath("cfg\\profiles.xml");
+	debugf("%s\n", profilePath.c_str());
 
 	xml_document docProfiles;
-	xml_parse_result resultProfiles = docProfiles.load_file(profilePath);
+	xml_parse_result resultProfiles = docProfiles.load_file(profilePath.c_str());
 	xml_node profile;
 	xml_node gameProfile;
 
@@ -1264,7 +1246,7 @@ bool ProxyHelper::SaveConfig(ProxyConfig& config)
 			gameProfile.insert_attribute_after("edge_peek_key", gameProfile.attribute("ConstantValue3")) = config.EdgePeekHotkey;
 		}
 
-		docProfiles.save_file(profilePath);
+		docProfiles.save_file(profilePath.c_str());
 
 		profileSaved = true;
 	}
@@ -1280,11 +1262,10 @@ bool ProxyHelper::HasProfile(const char* name, const char *path)
 {
 	// get the profile
 	bool profileFound = false;
-	char profilePath[512];
-	GetPath(profilePath, "cfg\\profiles.xml");
+	string profilePath = GetPath("cfg\\profiles.xml");
 
 	xml_document docProfiles;
-	xml_parse_result resultProfiles = docProfiles.load_file(profilePath);
+	xml_parse_result resultProfiles = docProfiles.load_file(profilePath.c_str());
 	xml_node profile;
 
 	if(resultProfiles.status == status_ok)
@@ -1315,11 +1296,10 @@ bool ProxyHelper::HasProfile(const char* name, const char *path)
 bool ProxyHelper::GetProfileGameExes(std::vector<std::pair<std::string, bool>> &gameExes)
 {
 	// get the profile
-	char profilePath[512];
-	GetPath(profilePath, "cfg\\profiles.xml");
+	string profilePath = GetPath("cfg\\profiles.xml");
 
 	xml_document docProfiles;
-	xml_parse_result resultProfiles = docProfiles.load_file(profilePath);
+	xml_parse_result resultProfiles = docProfiles.load_file(profilePath.c_str());
 	xml_node profile;
 
 	if(resultProfiles.status == status_ok)
@@ -1348,11 +1328,10 @@ bool ProxyHelper::GetProfile(char* name, char *path, bool _64bit, ProxyConfig& c
 {
 	// get the profile
 	bool profileFound = false;
-	char profilePath[512];
-	GetPath(profilePath, "cfg\\profiles.xml");
+	string profilePath = GetPath("cfg\\profiles.xml");
 
 	xml_document docProfiles;
-	xml_parse_result resultProfiles = docProfiles.load_file(profilePath);
+	xml_parse_result resultProfiles = docProfiles.load_file(profilePath.c_str());
 	xml_node profile;
 
 	if(resultProfiles.status == status_ok)
