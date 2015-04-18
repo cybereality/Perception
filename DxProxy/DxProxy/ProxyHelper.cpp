@@ -105,6 +105,19 @@ HRESULT ProxyHelper::RegGetString(HKEY hKey, LPCTSTR szValueName, LPTSTR * lpszR
 	return NOERROR;
 }
 
+HRESULT ProxyHelper::RegGetString(HKEY hKey, LPCTSTR szValueName, std::string &resultStr)
+{
+	char *cstr = NULL;
+	HRESULT success = RegGetString(hKey, szValueName, &cstr);
+	if(cstr != NULL) {
+		resultStr = cstr;
+		free(cstr);
+	} else {
+		resultStr = "";
+	}
+	return success;
+}
+
 void debugf(const char *fmt, ...)
 {
 	va_list args;
@@ -125,23 +138,31 @@ std::string retprintf(const char *fmt, ...)
 	return std::string(buf);
 }
 
+string strToLower(string& str)
+{
+	string result = str;
+	for(unsigned ii=0; ii<result.size(); ii++)
+		result[ii] = ::tolower(result[ii]);
+	return result;
+}
+
+
 /**
 * Almost empty constructor.
 ***/
 ProxyHelper::ProxyHelper()
-	: baseDirLoaded(false)
 {
+	baseDirCache = NULL;
 }
 
 /**
 * Returns the name of the Vireio Perception base directory read from registry.
 * Saved to registry by InitConfig() in Main.cpp.
 ***/
-char* ProxyHelper::GetBaseDir()
+std::string ProxyHelper::GetBaseDir()
 {
-	if (baseDirLoaded == true){
-		OutputDebugString("PxHelp: Already have base value.\n");
-		return baseDir;
+	if (baseDirCache != NULL) {
+		return baseDirCache;
 	}
 
 	HKEY hKey;
@@ -149,29 +170,23 @@ char* ProxyHelper::GetBaseDir()
 
 	LONG openRes = RegOpenKeyEx(HKEY_CURRENT_USER, sk, 0, KEY_QUERY_VALUE , &hKey);
 
-	if (openRes==ERROR_SUCCESS) 
-	{
-		OutputDebugString("PxHelp: Success opening key.\n");
-	} 
-	else 
+	if (openRes!=ERROR_SUCCESS) 
 	{
 		OutputDebugString("PxHelp: Error opening key.\n");
 		return "";
 	}
 
-	HRESULT hr = RegGetString(hKey, TEXT("BasePath"), &baseDir);
+	string baseDir = "";
+	HRESULT hr = RegGetString(hKey, TEXT("BasePath"), baseDir);
 	if (FAILED(hr)) 
 	{
-		OutputDebugString("PxHelp: Error with GetString.\n");
+		OutputDebugString("Error getting BasePath from registry.\n");
 		return "";
 	} 
 	else 
 	{
-		OutputDebugString("PxHelp: Success with GetString.\n");
-		//strcpy_s(baseDir, sizeof(szVal), szVal);
-		OutputDebugString(baseDir);
-		OutputDebugString("\n");
-		baseDirLoaded = true;
+		debugf("%s\n", baseDir.c_str());
+		baseDirCache = _strdup(baseDir.c_str());
 	}
 
 	return baseDir;
@@ -181,53 +196,54 @@ char* ProxyHelper::GetBaseDir()
 * Returns the name of the target exe process read from registry.
 * Saved to registry by SaveExeName() in dllmain.cpp.
 ***/
-char* ProxyHelper::GetTargetExe()
+string ProxyHelper::GetTargetExe()
 {
 	HKEY hKey;
 	LPCTSTR sk = TEXT("SOFTWARE\\Vireio\\Perception");
 
 	// open registry key
 	LONG openRes = RegOpenKeyEx(HKEY_CURRENT_USER, sk, 0, KEY_QUERY_VALUE , &hKey);
-
-	if (openRes==ERROR_SUCCESS) 
+	if (openRes!=ERROR_SUCCESS) 
 	{
-		OutputDebugString("PxHelp TE: Success opening key.\n");
-	} 
-	else
-	{
-		OutputDebugString("PxHelp TE: Error opening key.\n");
+		OutputDebugString("Error opening registry key.\n");
 		return "";
 	}
 
 	// get exe
-	HRESULT hr = RegGetString(hKey, TEXT("TargetExe"), &targetExe);
-	if (FAILED(hr)) 
+	string targetExe;
+	HRESULT hr = RegGetString(hKey, TEXT("TargetExe"), targetExe);
+	if (FAILED(hr))
 	{
-		OutputDebugString("PxHelp TE: Error with GetString.\n");
+		OutputDebugString("Error getting TargetExe from registry.\n");
 		return "";
-	} 
-	else 
-	{
-		OutputDebugString("PxHelp TE: Success with GetString.\n");
-		OutputDebugString(targetExe);
-		OutputDebugString("\n");
-	}
-
-	// get exe path
-	hr = RegGetString(hKey, TEXT("TargetPath"), &targetPath);
-	if (FAILED(hr)) 
-	{
-		OutputDebugString("PxHelp TE: Error with GetString.\n");
-		return "";
-	} 
-	else 
-	{
-		OutputDebugString("PxHelp TE: Success with GetString.\n");
-		OutputDebugString(targetPath);
-		OutputDebugString("\n");
 	}
 
 	return targetExe;
+}
+
+string ProxyHelper::GetTargetPath()
+{
+	HKEY hKey;
+	LPCTSTR sk = TEXT("SOFTWARE\\Vireio\\Perception");
+
+	// open registry key
+	LONG openRes = RegOpenKeyEx(HKEY_CURRENT_USER, sk, 0, KEY_QUERY_VALUE , &hKey);
+	if (openRes!=ERROR_SUCCESS)
+	{
+		OutputDebugString("Error opening registry key.\n");
+		return "";
+	}
+
+	// get exe path
+	string targetPath;
+	HRESULT hr = RegGetString(hKey, TEXT("TargetPath"), targetPath);
+	if (FAILED(hr))
+	{
+		OutputDebugString("Error getting TargetPath from registry.\n");
+		return "";
+	}
+	
+	return targetPath;
 }
 
 /**
@@ -237,7 +253,7 @@ char* ProxyHelper::GetTargetExe()
 ***/
 string ProxyHelper::GetPath(char* path)
 {
-	return retprintf("%s%s", GetBaseDir(), path);
+	return retprintf("%s%s", GetBaseDir().c_str(), path);
 }
 
 /**
@@ -247,7 +263,7 @@ string ProxyHelper::GetPath(char* path)
 ***/
 string ProxyHelper::GetTargetPath(char* path)
 {
-	return retprintf("%s%s", targetPath, path);
+	return retprintf("%s%s", GetTargetPath().c_str(), path);
 }
 
 /**
@@ -257,11 +273,6 @@ string ProxyHelper::GetTargetPath(char* path)
 ***/
 bool ProxyHelper::LoadUserConfig(UserConfig &userConfig)
 {
-	// load the base dir for the app
-	GetBaseDir();
-	OutputDebugString(baseDir);
-	OutputDebugString("\n");
-
 	// get global config
 	string configPath = GetPath("cfg\\config.xml");
 
@@ -294,11 +305,6 @@ bool ProxyHelper::LoadUserConfig(UserConfig &userConfig)
 ***/
 bool ProxyHelper::SaveUserConfig(int mode, float aspect)
 {
-	// load the base dir for the app
-	GetBaseDir();
-	OutputDebugString(baseDir);
-	OutputDebugString("\n");
-
 	// get global config
 	string configPath = GetPath("cfg\\config.xml");
 
@@ -516,11 +522,6 @@ bool ProxyHelper::SaveUserConfig(float ipd)
 ***/
 bool ProxyHelper::SaveTrackerMode(int mode)
 {
-	// load the base dir for the app
-	GetBaseDir();
-	OutputDebugString(baseDir);
-	OutputDebugString("\n");
-
 	// get global config
 	string configPath = GetPath("cfg\\config.xml");
 
@@ -548,11 +549,6 @@ bool ProxyHelper::SaveTrackerMode(int mode)
 ***/
 bool ProxyHelper::SaveDisplayAdapter(int adapter)
 {
-	// load the base dir for the app
-	GetBaseDir();
-	OutputDebugString(baseDir);
-	OutputDebugString("\n");
-
 	// get global config
 	string configPath = GetPath("cfg\\config.xml");
 
@@ -595,10 +591,6 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 	config.YOffset = 0.0f;
 	config.IPDOffset = 0.0f;
 
-	// load the base dir for the app
-	GetBaseDir();
-	debugf("Got base dir as: %s\n", baseDir);
-
 	// get global config
 	string configPath = GetPath("cfg\\config.xml");
 	debugf("%s\n", configPath.c_str());
@@ -620,13 +612,15 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 
 
 	// get the target exe
-	GetTargetExe();
-	debugf("Got target exe as: %s\n", targetExe);
+	string targetExe = GetTargetExe();
+	debugf("Got target exe as: %s\n", targetExe.c_str());
+	targetExe = strToLower(targetExe);
 
 	// get the profile
 	bool profileFound = false;
 	string profilePath = GetPath("cfg\\profiles.xml");
 	debugf("%s\n", profilePath.c_str());
+	string targetPath = GetTargetPath();
 
 	xml_document docProfiles;
 	xml_parse_result resultProfiles = docProfiles.load_file(profilePath.c_str());
@@ -640,28 +634,19 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 		for (xml_node profile = xml_profiles.child("profile"); profile; profile = profile.next_sibling("profile"))
 		{
 			// first, convert to lowercase
-			unsigned int i = 0;
-			while (targetExe[i])
-			{
-				targetExe[i] = (char)tolower((int)targetExe[i]);
-				i++;
-			}
 			string profileProcess = profile.attribute("game_exe").as_string();
-			for (i = 0; i < profileProcess.length(); ++i)
-			{
-				profileProcess[i] = (char)tolower((int)profileProcess[i]);
-			}
+			profileProcess = strToLower(profileProcess);
 
 			string cpuArch = profile.attribute("cpu_architecture").as_string("32bit");
 
 			// profile found - now has to match on exe name and cpu architecture
-			if(strcmp(targetExe, profileProcess.c_str()) == 0
+			if(targetExe == profileProcess
 			   && cpuArch == string(CPUARCH_STR))
 			{
 				//Check against dir name too if present
-				if (string(profile.attribute("dir_contains").as_string()).length() && targetPath)
+				if (string(profile.attribute("dir_contains").as_string()).length() && targetPath.length()>0)
 				{
-					if (string(targetPath).find(profile.attribute("dir_contains").as_string()) == string::npos)
+					if (targetPath.find(profile.attribute("dir_contains").as_string()) == string::npos)
 						continue;
 				}
 
@@ -837,8 +822,9 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 bool ProxyHelper::SaveConfig(ProxyConfig& config)
 {
 	// get the target exe
-	GetTargetExe();
-	debugf("Got target exe as: %s\n", targetExe);
+	string targetExe = GetTargetExe();
+	debugf("Got target exe as: %s\n", targetExe.c_str());
+	targetExe = strToLower(targetExe);
 
 	// get the profile
 	bool profileFound = false;
@@ -846,6 +832,7 @@ bool ProxyHelper::SaveConfig(ProxyConfig& config)
 	bool profileSaved = false;
 	string profilePath = GetPath("cfg\\profiles.xml");
 	debugf("%s\n", profilePath.c_str());
+	string targetPath = GetTargetPath();
 
 	xml_document docProfiles;
 	xml_parse_result resultProfiles = docProfiles.load_file(profilePath.c_str());
@@ -858,36 +845,26 @@ bool ProxyHelper::SaveConfig(ProxyConfig& config)
 
 		for (xml_node profile = xml_profiles.child("profile"); profile; profile = profile.next_sibling("profile"))
 		{
-			// first, convert to lowercase
-			unsigned int i = 0;
-			while (targetExe[i])
-			{
-				targetExe[i] = (char)tolower((int)targetExe[i]);
-				i++;
-			}
 			string profileProcess = profile.attribute("game_exe").as_string();
-			for (i = 0; i < profileProcess.length(); ++i)
-			{
-				profileProcess[i] = (char)tolower((int)profileProcess[i]);
-			}
+			profileProcess = strToLower(profileProcess);
 
 			string cpuArch = profile.attribute("cpu_architecture").as_string("32bit");
 
 			// profile found - now has to match on exe name and cpu architecture
-			if(strcmp(targetExe, profileProcess.c_str()) == 0 &&
+			if(targetExe == profileProcess &&
 				cpuArch == string(CPUARCH_STR))
 			{
 				//Check against dir name too if present
 				string dirContains = profile.attribute("dir_contains").as_string();
-				if (dirContains.length() && string(targetPath).length())
+				if (dirContains.length() && targetPath.length())
 				{
 					hasDirContains = true;
-					if (string(targetPath).find(dirContains) == string::npos)
+					if (targetPath.find(dirContains) == string::npos)
 						continue;
 				}
 				else hasDirContains = false;
 
-				debugf("Found specific profile: %s (%s), dirContains: %s\n", targetExe, cpuArch.c_str(), hasDirContains?"TRUE":"FALSE");
+				debugf("Found specific profile: %s (%s), dirContains: %s\n", targetExe.c_str(), cpuArch.c_str(), hasDirContains?"TRUE":"FALSE");
 				gameProfile = profile;
 				profileFound = true;
 				break;
@@ -1309,8 +1286,8 @@ bool ProxyHelper::GetProfileGameExes(std::vector<std::pair<std::string, bool>> &
 		for (xml_node profile = xml_profiles.child("profile"); profile; profile = profile.next_sibling("profile"))
 		{
 			string exe = profile.attribute("game_exe").value();
+			exe = strToLower(exe);
 			bool _64bit = profile.attribute("cpu_architecture").as_string("32bit") == string("64bit");
-			std::transform(exe.begin(), exe.end(), exe.begin(), ::tolower);			
 			gameExes.push_back(std::make_pair(exe, _64bit));
 		}
 	}

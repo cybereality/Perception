@@ -134,9 +134,11 @@ public:
 
 	/*** ProxyHelper public methods ***/
 	static HRESULT RegGetString(HKEY hKey, LPCTSTR szValueName, LPTSTR * lpszResult);
-	char* GetBaseDir();
-	char* GetTargetExe();
+	static HRESULT RegGetString(HKEY hKey, LPCTSTR szValueName, std::string &resultStr);
+	std::string GetBaseDir();
+	std::string GetTargetExe();
 	std::string GetPath(char* path);
+	std::string GetTargetPath();
 	std::string GetTargetPath(char* path);
 	bool  LoadUserConfig(UserConfig &userConfig);
 	bool  SaveUserConfig(int mode = -1, float aspect = -1.0f);
@@ -156,25 +158,10 @@ public:
 
 private:
 	/**
-	* True if base directory path loaded.
-	***/
-	bool  baseDirLoaded;
-
-	/**
 	* Base directory path.
 	* Saved to registry by InitConfig() in Main.cpp.
 	***/
-	char* baseDir;
-	/**
-	* Name of the game process the profile will be loaded for.
-	* Saved to registry by SaveExeName() in dllmain.cpp.
-	***/
-	char* targetExe;
-	/**
-	* Name of the game process path.
-	* Saved to registry by SaveExeName() in dllmain.cpp.
-	***/
-	char* targetPath;
+	char* baseDirCache;
 };
 
 #endif
