@@ -34,6 +34,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace pugi;
 
+#ifdef x64
+	#define CPUARCH_STR "64bit"
+#else
+	#define CPUARCH_STR "32bit"
+#endif
+
 /**
 * Simple inline helper to erase characters in a string.
 * @param string The string to be formatted.
@@ -106,6 +112,16 @@ void debugf(const char *fmt, ...)
 	vsnprintf_s(buf, 8192, fmt, args);
 	va_end(args);
 	OutputDebugString(buf);
+}
+
+std::string retprintf(const char *fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	char buf[8192];
+	vsnprintf_s(buf, 8192, fmt, args);
+	va_end(args);
+	return std::string(buf);
 }
 
 /**
@@ -590,9 +606,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 
 	// load the base dir for the app
 	GetBaseDir();
-	OutputDebugString("Got base dir as: ");
-	OutputDebugString(baseDir);
-	OutputDebugString("\n");
+	debugf("Got base dir as: %s\n", baseDir);
 
 	// get global config
 	char configPath[512];
@@ -618,9 +632,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 
 	// get the target exe
 	GetTargetExe();
-	OutputDebugString("Got target exe as: ");
-	OutputDebugString(targetExe);
-	OutputDebugString("\n");
+	debugf("Got target exe as: %s\n", targetExe);
 
 	// get the profile
 	bool profileFound = false;
@@ -656,13 +668,8 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 			std::string cpuArch = profile.attribute("cpu_architecture").as_string("32bit");
 
 			// profile found - now has to match on exe name and cpu architecture
-			if(strcmp(targetExe, profileProcess.c_str()) == 0 &&
-#ifdef x64
-				cpuArch == std::string("64bit")
-#else
-				cpuArch == std::string("32bit")
-#endif
-				)
+			if(strcmp(targetExe, profileProcess.c_str()) == 0
+			   && cpuArch == std::string(CPUARCH_STR))
 			{
 				//Check against dir name too if present
 				if (std::string(profile.attribute("dir_contains").as_string()).length() && targetPath)
@@ -684,8 +691,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 		OutputDebugString("Set the config to profile!!!\n");
 		config.game_type = gameProfile.attribute("game_type").as_int();
 
-		debugf("gameType: %d", gameProfile.attribute("game_type").as_int());
-		OutputDebugString("\n");
+		debugf("gameType: %d\n", gameProfile.attribute("game_type").as_int());
 
 		config.VRboostMinShaderCount = gameProfile.attribute("minVRboostShaderCount").as_uint(0);
 		config.VRboostMaxShaderCount = gameProfile.attribute("maxVRboostShaderCount").as_uint(999999);
@@ -815,19 +821,17 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 			char destPath[512];
 			GetTargetPath(destPath, "d3d9.dll");
 
-			std::stringstream sstm;
-			sstm << "copy " << sourcePath << " " << destPath;
-			system(sstm.str().c_str());
-			OutputDebugString(sstm.str().c_str());
+			std::string copyD3D9Command = retprintf("copy %s %s", sourcePath, destPath);
+			system(copyD3D9Command.c_str());
+			OutputDebugString(copyD3D9Command.c_str());
 
 			// libfreespace.dll
 			GetPath(sourcePath, "bin\\libfreespace.dll");
 			GetTargetPath(destPath, "libfreespace.dll");
 
-			std::stringstream sstm1;
-			sstm1 << "copy " << sourcePath << " " << destPath;
-			system(sstm1.str().c_str());
-			OutputDebugString(sstm1.str().c_str());
+			std::string copyLibfreespaceCommand = retprintf("copy %s %s", sourcePath, destPath);
+			system(copyLibfreespaceCommand.c_str());
+			OutputDebugString(copyLibfreespaceCommand.c_str());
 
 		}
 	}
@@ -849,9 +853,7 @@ bool ProxyHelper::SaveConfig(ProxyConfig& config)
 {
 	// get the target exe
 	GetTargetExe();
-	OutputDebugString("Got target exe as: ");
-	OutputDebugString(targetExe);
-	OutputDebugString("\n");
+	debugf("Got target exe as: %s\n", targetExe);
 
 	// get the profile
 	bool profileFound = false;
@@ -890,12 +892,7 @@ bool ProxyHelper::SaveConfig(ProxyConfig& config)
 
 			// profile found - now has to match on exe name and cpu architecture
 			if(strcmp(targetExe, profileProcess.c_str()) == 0 &&
-#ifdef x64
-				cpuArch == std::string("64bit")
-#else
-				cpuArch == std::string("32bit")
-#endif
-				)
+				cpuArch == std::string(CPUARCH_STR))
 			{
 				//Check against dir name too if present
 				std::string dirContains = profile.attribute("dir_contains").as_string();
@@ -907,10 +904,7 @@ bool ProxyHelper::SaveConfig(ProxyConfig& config)
 				}
 				else hasDirContains = false;
 
-				if (hasDirContains)
-					debugf("Found specific profile: %s (%s), dirContains: TRUE\n", targetExe, cpuArch.c_str());
-				else
-					debugf("Found specific profile: %s (%s), dirContains: FALSE\n", targetExe, cpuArch.c_str());
+				debugf("Found specific profile: %s (%s), dirContains: %s\n", targetExe, cpuArch.c_str(), hasDirContains?"TRUE":"FALSE");
 				gameProfile = profile;
 				profileFound = true;
 				break;
