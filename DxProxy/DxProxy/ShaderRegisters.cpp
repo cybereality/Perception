@@ -28,7 +28,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
 #include "ShaderRegisters.h"
+#include "vireio.h"
 #include <assert.h>
+
+using namespace vireio;
 
 /**
 * Constructor, creates register vector.
@@ -40,8 +43,6 @@ ShaderRegisters::ShaderRegisters(DWORD maxPSConstantRegistersF, DWORD maxVSConst
 	m_maxVSConstantRegistersF(maxVSConstantRegistersF),
 	m_psRegistersF(maxPSConstantRegistersF * VECTOR_LENGTH, 0), // VECTOR_LENGTH floats per register
 	m_vsRegistersF(maxVSConstantRegistersF * VECTOR_LENGTH, 0), // VECTOR_LENGTH floats per register
-	m_dirtyPSRegistersF(),
-	m_dirtyVSRegistersF(),
 	m_pActualDevice(pActualDevice),
 	m_pActivePixelShader(NULL),
 	m_pActiveVertexShader(NULL)
@@ -86,9 +87,7 @@ HRESULT WINAPI ShaderRegisters::SetVertexShaderConstantF(UINT StartRegister, con
 	std::copy(pConstantData, pConstantData + (VECTOR_LENGTH * Vector4fCount), m_vsRegistersF.begin() + RegisterIndex(StartRegister));
 
 	// Mark registers dirty
-	for (UINT i = StartRegister; i < StartRegister + Vector4fCount; i++) {
-		m_dirtyVSRegistersF.insert(i);
-	}
+	dirtyVSRegisters.MarkRangeDirty(StartRegister, Vector4fCount);
 
 	return D3D_OK;
 }
@@ -128,9 +127,7 @@ HRESULT WINAPI ShaderRegisters::SetPixelShaderConstantF(UINT StartRegister, cons
 	std::copy(pConstantData, pConstantData + (VECTOR_LENGTH * Vector4fCount), m_psRegistersF.begin() + RegisterIndex(StartRegister));
 
 	// Mark registers dirty
-	for (UINT i = StartRegister; i < StartRegister + Vector4fCount; i++) {
-		m_dirtyPSRegistersF.insert(i);
-	}
+	dirtyPSRegisters.MarkRangeDirty(StartRegister, Vector4fCount);
 
 	return D3D_OK;
 }
@@ -243,7 +240,7 @@ void ShaderRegisters::SetFromStateBlockData(std::map<UINT, D3DXVECTOR4> * stored
 		m_vsRegistersF[regStartIndexInVector + 3] = itNewRegsVS->second.w;
 
 		// register is clean (now matches device state - unless it's stereo in which case it might not, that is handled at the end)
-		m_dirtyVSRegistersF.erase(itNewRegsVS->first);
+		dirtyVSRegisters.MarkClean(itNewRegsVS->first);
 		++itNewRegsVS;
 	}
 
@@ -264,7 +261,7 @@ void ShaderRegisters::SetFromStateBlockData(std::map<UINT, D3DXVECTOR4> * stored
 		m_psRegistersF[regStartIndexInVector + 3] = itNewRegsPS->second.w;
 
 		// register is clean (now matches device state - unless it's stereo in which case it might not, that is handled at the end)
-		m_dirtyPSRegistersF.erase(itNewRegsPS->first);
+		dirtyPSRegisters.MarkClean(itNewRegsPS->first);
 		++itNewRegsPS;
 	}
 
@@ -297,7 +294,7 @@ void ShaderRegisters::SetFromStateBlockData(std::vector<float> * storedVSRegiste
 		std::copy(storedVSRegisters->begin(), storedVSRegisters->end(), m_vsRegistersF.begin());
 
 		// Data should match registers that are already on device (unless it's stereo in which case it might not, that is handled next)
-		m_dirtyVSRegistersF.clear();
+		dirtyVSRegisters.MarkAllClean();
 
 		MarkAllVSStereoConstantsDirty();
 	}
@@ -310,48 +307,10 @@ void ShaderRegisters::SetFromStateBlockData(std::vector<float> * storedVSRegiste
 		std::copy(storedPSRegisters->begin(), storedPSRegisters->end(), m_psRegistersF.begin());
 
 		// Data should match registers that are already on device (unless it's stereo in which case it might not, that is handled next)
-		m_dirtyPSRegistersF.clear();
+		dirtyPSRegisters.MarkAllClean();
 
 		MarkAllPSStereoConstantsDirty();
 	}
-}
-
-/**
-* Returns true if any dirty vertex shader register found in the specified range.
-* @param start Start register.
-* @param count Register count.
-***/
-bool ShaderRegisters::AnyDirtyVS(UINT start, UINT count)
-{
-	auto it = m_dirtyVSRegistersF.lower_bound(start);
-
-	if (it == m_dirtyVSRegistersF.end())
-		return false;
-
-	if (*it >= start + count) {
-		return false;
-	}
-
-	return true;
-}
-
-/**
-* Returns true if any dirty pixel shader register found in the specified range.
-* @param start Start register.
-* @param count Register count.
-***/
-bool ShaderRegisters::AnyDirtyPS(UINT start, UINT count)
-{
-	auto it = m_dirtyPSRegistersF.lower_bound(start);
-
-	if (it == m_dirtyPSRegistersF.end())
-		return false;
-
-	if (*it >= start + count) {
-		return false;
-	}
-
-	return true;
 }
 
 /**
@@ -362,88 +321,47 @@ bool ShaderRegisters::AnyDirtyPS(UINT start, UINT count)
 * @param currentSide Left or Right side.
 ***/
 void ShaderRegisters::ApplyAllDirty(vireio::RenderPosition currentSide) 
-{	
-	// vertex shader 
-	if (m_dirtyVSRegistersF.size() > 0)
+{
+	int start = 0;
+	
+	// vertex shader
+	start = dirtyVSRegisters.FirstDirtyAfter(0);
+	if(start >= 0)
 	{
-
 		if (m_pActiveVertexShader) {
 			ApplyStereoConstantsVS(currentSide, true);
 		}
-
+		
 		// Apply all remaining dirty registers (should just be non-stereo that remain dirty) to device
-		auto it = m_dirtyVSRegistersF.begin();
-
-		if (it != m_dirtyVSRegistersF.end()) {
-
-			int startReg = *it; // can't dererefence this if it might be end
-			int lastReg = startReg;
-
-			while (it != m_dirtyVSRegistersF.end()) {
-
-
-				auto itNext = std::next(it);
-				if ((itNext != m_dirtyVSRegistersF.end()) && (*itNext == lastReg + 1)) {
-					// skip through until we reach the end of a continuous series of dirty registers
-					lastReg = *itNext;
-				}
-				else {
-					// set this series of registers
-					m_pActualDevice->SetVertexShaderConstantF(startReg, &m_vsRegistersF[RegisterIndex(startReg)], lastReg - startReg + 1);
-
-					// If there are more dirty registers left the next register will be the new startReg
-					if (itNext != m_dirtyVSRegistersF.end()) {
-						startReg = *itNext;
-						lastReg = startReg;
-					}
-				}
-
-				++it;
-			}
+		start = dirtyVSRegisters.FirstDirtyAfter(0);
+		while(start >= 0) {
+			int end = dirtyVSRegisters.LastInSpan(start);
+			m_pActualDevice->SetVertexShaderConstantF(start, &m_vsRegistersF[RegisterIndex(start)], end-start+1);
+			
+			start = dirtyVSRegisters.FirstDirtyAfter(end+1);
 		}
-
-		m_dirtyVSRegistersF.clear();
+		
+		dirtyVSRegisters.MarkAllClean();
 	}
-
+	
 	// pixel shader
-	if (m_dirtyPSRegistersF.size() > 0)
+	start = dirtyPSRegisters.FirstDirtyAfter(0);
+	if(start >= 0)
 	{
 		if (m_pActivePixelShader) {
 			ApplyStereoConstantsPS(currentSide, true);
 		}
-
+		
 		// Apply all remaining dirty registers (should just be non-stereo that remain dirty) to device
-		auto it = m_dirtyPSRegistersF.begin();
-
-		if (it != m_dirtyPSRegistersF.end()) {
-
-			int startReg = *it; // can't dererefence this if it might be end
-			int lastReg = startReg;
-
-			while (it != m_dirtyPSRegistersF.end()) {
-
-
-				auto itNext = std::next(it);
-				if ((itNext != m_dirtyPSRegistersF.end()) && (*itNext == lastReg + 1)) {
-					// skip through until we reach the end of a continuous series of dirty registers
-					lastReg = *itNext;
-				}
-				else {
-					// set this series of registers
-					m_pActualDevice->SetPixelShaderConstantF(startReg, &m_psRegistersF[RegisterIndex(startReg)], lastReg - startReg + 1);
-
-					// If there are more dirty registers left the next register will be the new startReg
-					if (itNext != m_dirtyPSRegistersF.end()) {
-						startReg = *itNext;
-						lastReg = startReg;
-					}
-				}
-
-				++it;
-			}
+		start = dirtyPSRegisters.FirstDirtyAfter(0);
+		while(start >= 0) {
+			int end = dirtyPSRegisters.LastInSpan(start);
+			m_pActualDevice->SetPixelShaderConstantF(start, &m_psRegistersF[RegisterIndex(start)], end-start+1);
+			
+			start = dirtyPSRegisters.FirstDirtyAfter(end+1);
 		}
-
-		m_dirtyPSRegistersF.clear();
+		
+		dirtyPSRegisters.MarkAllClean();
 	}
 }
 
@@ -494,7 +412,7 @@ void ShaderRegisters::ActiveVertexShaderChanged(D3D9ProxyVertexShader* pNewVerte
 
 			// If there isn't a corresponding old modification then this modified constant will need updating
 			if (mightBeDirty) {
-				m_dirtyVSRegistersF.insert(itNewConstants->first);
+				dirtyVSRegisters.MarkDirty(itNewConstants->first);
 			}
 
 			++itNewConstants;
@@ -546,7 +464,7 @@ void ShaderRegisters::ActivePixelShaderChanged(D3D9ProxyPixelShader* pNewPixelSh
 
 			// If there isn't a corresponding old modification then this modified constant will need updating
 			if (mightBeDirty) {
-				m_dirtyPSRegistersF.insert(itNewConstants->first);
+				dirtyPSRegisters.MarkDirty(itNewConstants->first);
 			}
 
 			++itNewConstants;
@@ -588,7 +506,9 @@ void ShaderRegisters::ApplyStereoConstantsVS(vireio::RenderPosition currentSide,
 	while (itStereoConstant != m_pActiveVertexShader->ModifiedConstants()->end()) {
 
 		// if any of the registers that make up this constant are dirty update before setting
-		if ( AnyDirtyVS(itStereoConstant->second.StartRegister(), itStereoConstant->second.Count())) { // Should we do this or make this method just switch sides without checking for updated data? 
+		if (dirtyVSRegisters.AnyDirty(itStereoConstant->second.StartRegister(), itStereoConstant->second.Count()))
+		{
+			// Should we do this or make this method just switch sides without checking for updated data? 
 
 			itStereoConstant->second.Update(&m_vsRegistersF[RegisterIndex(itStereoConstant->second.StartRegister())]);
 
@@ -598,8 +518,7 @@ void ShaderRegisters::ApplyStereoConstantsVS(vireio::RenderPosition currentSide,
 			}
 
 			// These registers are no longer dirty
-			for (UINT i = itStereoConstant->second.StartRegister(); i < itStereoConstant->second.StartRegister() + itStereoConstant->second.Count(); i++)
-				m_dirtyVSRegistersF.erase(i);
+			dirtyVSRegisters.MarkRangeClean(itStereoConstant->second.StartRegister(), itStereoConstant->second.Count());
 		}
 
 		if (!dirtyOnly) {
@@ -625,9 +544,11 @@ void ShaderRegisters::ApplyStereoConstantsPS(vireio::RenderPosition currentSide,
 	while (itStereoConstant != m_pActivePixelShader->ModifiedConstants()->end()) {
 
 		// if any of the registers that make up this constant are dirty update before setting
-		if ( AnyDirtyPS(itStereoConstant->second.StartRegister(), itStereoConstant->second.Count())) { // Should we do this or make this method just switch sides without checking for updated data? 
+		if ( dirtyPSRegisters.AnyDirty(itStereoConstant->second.StartRegister(), itStereoConstant->second.Count()))
+		{
+			// Should we do this or make this method just switch sides without checking for updated data? 
 
-			itStereoConstant->second.Update(&m_psRegistersF[RegisterIndex(itStereoConstant->second.StartRegister())]);
+			itStereoConstant->second.Update(&m_psRegistersF[RegisterIndex(itStereoConstant->second.StartRegister())]); //HOTSPOT 3.9%
 
 			if (dirtyOnly) {
 				// Apply this dirty constant to device
@@ -635,8 +556,7 @@ void ShaderRegisters::ApplyStereoConstantsPS(vireio::RenderPosition currentSide,
 			}
 
 			// These registers are no longer dirty
-			for (UINT i = itStereoConstant->second.StartRegister(); i < itStereoConstant->second.StartRegister() + itStereoConstant->second.Count(); i++)
-				m_dirtyPSRegistersF.erase(i);
+			dirtyPSRegisters.MarkRangeClean(itStereoConstant->second.StartRegister(), itStereoConstant->second.Count()); //HOTSPOT 4.8%
 		}
 
 		if (!dirtyOnly) {
@@ -659,7 +579,7 @@ void ShaderRegisters::MarkAllVSStereoConstantsDirty()
 		auto itStereoConstant = m_pActiveVertexShader->ModifiedConstants()->begin();
 		while (itStereoConstant != m_pActiveVertexShader->ModifiedConstants()->end()) {
 
-			m_dirtyVSRegistersF.insert(itStereoConstant->first);
+			dirtyVSRegisters.MarkDirty(itStereoConstant->first);
 			++itStereoConstant;
 		}
 	}
@@ -676,8 +596,128 @@ void ShaderRegisters::MarkAllPSStereoConstantsDirty()
 		auto itStereoConstant = m_pActivePixelShader->ModifiedConstants()->begin();
 		while (itStereoConstant != m_pActivePixelShader->ModifiedConstants()->end()) {
 
-			m_dirtyPSRegistersF.insert(itStereoConstant->first);
+			dirtyPSRegisters.MarkDirty(itStereoConstant->first);
 			++itStereoConstant;
 		}
+	}
+}
+
+
+RegisterDirtyStore::RegisterDirtyStore()
+{
+	Expand(32);
+	firstDirtyReg = -1;
+	lastDirtyReg = -1;
+}
+
+void RegisterDirtyStore::MarkDirty(UINT index)
+{
+	if(index+1 >= dirtyRegisters.size()) Expand(index);
+	
+	if (firstDirtyReg==-1 || firstDirtyReg>index)
+		firstDirtyReg = index;
+	if (lastDirtyReg==-1 || lastDirtyReg<index)
+		lastDirtyReg = index;
+	
+	dirtyRegisters[index] = 1;
+}
+
+void RegisterDirtyStore::MarkRangeDirty(UINT start, UINT count)
+{
+	if(start+count+1 >= dirtyRegisters.size()) Expand(start+count);
+	
+	if (firstDirtyReg==-1 || firstDirtyReg>start)
+		firstDirtyReg = start;
+	if (lastDirtyReg==-1 || lastDirtyReg<start+count-1)
+		lastDirtyReg = start+count-1;
+	
+	for (UINT ii=start; ii<start+count; ii++)
+		dirtyRegisters[ii] = 1;
+}
+
+void RegisterDirtyStore::MarkClean(UINT index)
+{
+	if(index+1 >= dirtyRegisters.size()) Expand(index);
+	
+	dirtyRegisters[index] = 0;
+}
+
+void RegisterDirtyStore::MarkRangeClean(UINT start, UINT count)
+{
+	if(start+count+1 >= dirtyRegisters.size()) Expand(start+count);
+	
+	for(UINT ii=start; ii<start+count; ii++)
+		dirtyRegisters[ii] = 0;
+}
+
+void RegisterDirtyStore::MarkAllClean()
+{
+	if(firstDirtyReg != -1) {
+		for(int ii=firstDirtyReg; ii<=lastDirtyReg; ii++)
+			dirtyRegisters[ii] = 0;
+		firstDirtyReg = -1;
+		lastDirtyReg = -1;
+	}
+}
+
+/**
+* Returns true if any dirty pixel shader register found in the specified range.
+* @param start Start register.
+* @param count Register count.
+***/
+bool RegisterDirtyStore::AnyDirty(UINT start, UINT count)
+{
+	if(start+count+1 >= dirtyRegisters.size()) Expand(start+count);
+	
+	for(int ii=start; ii<start+count; ii++) {
+		if(dirtyRegisters[ii])
+			return true;
+	}
+	return false;
+}
+
+/**
+ * Return the lowest-numbered dirty pixel shader register after start (inclusive),
+ * or -1 if there is none.
+ */
+int RegisterDirtyStore::FirstDirtyAfter(UINT start)
+{
+	if(firstDirtyReg == -1)
+		return -1;
+	
+	int pos = start;
+	while(!dirtyRegisters[pos])
+	{
+		if(pos+1 > lastDirtyReg)
+			return -1;
+		pos++;
+	}
+	return pos;
+}
+
+int RegisterDirtyStore::GetLastDirty()
+{
+	return lastDirtyReg;
+}
+
+/**
+ * Given the index of a dirty pixel shader register, return the index of the
+ * last dirty one so that there are no gaps between it and the start.
+ */
+int RegisterDirtyStore::LastInSpan(UINT start)
+{
+	int pos = start;
+	
+	while(pos+1<dirtyRegisters.size() && dirtyRegisters[pos+1])
+	{
+		pos++;
+	}
+	return pos;
+}
+
+void RegisterDirtyStore::Expand(int capacity)
+{
+	while(dirtyRegisters.size() < capacity+1) {
+		dirtyRegisters.push_back(0);
 	}
 }

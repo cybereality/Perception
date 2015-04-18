@@ -46,6 +46,29 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class D3D9ProxyVertexShader;
 class D3D9ProxyPixelShader;
 
+class RegisterDirtyStore
+{
+public:
+	RegisterDirtyStore();
+	void MarkDirty(UINT index);
+	void MarkRangeDirty(UINT start, UINT count);
+	void MarkClean(UINT index);
+	void MarkRangeClean(UINT start, UINT count);
+	void MarkAllClean();
+	bool AnyDirty();
+	bool AnyDirty(UINT start, UINT count);
+	int FirstDirtyAfter(UINT start);
+	int GetLastDirty();
+	int LastInSpan(UINT start);
+	
+//private:
+	void Expand(int capacity);
+	
+	std::vector<char> dirtyRegisters;
+	int firstDirtyReg;
+	int lastDirtyReg;
+};
+
 /**
 * Managed shader register class.
 * All shader registers stored, updated and applied to device here. 
@@ -83,6 +106,9 @@ private:
 	void MarkAllVSStereoConstantsDirty();
 	void MarkAllPSStereoConstantsDirty();
 
+	RegisterDirtyStore dirtyPSRegisters;
+	RegisterDirtyStore dirtyVSRegisters;
+
 	/**
 	* Currently active vertex shader.
 	* <StartRegister, ModifiedConstant starting at start register>
@@ -102,11 +128,6 @@ private:
 	***/
 	std::vector<float> m_vsRegistersF;
 	/**
-	* Vertex Shader dirty registers. 
-	* Nothing that this is Registers and NOT indexes of all floats that make up a register.
-	***/
-	std::set<UINT> m_dirtyVSRegistersF;
-	/**
 	* Currently active pixel shader.
 	* <StartRegister, ModifiedConstant starting at start register>
 	* const std::map<UINT, StereoShaderConstant<float>>* m_activeModifications;
@@ -124,11 +145,6 @@ private:
 	* use RegisterIndex(x) to access first float in register
 	***/
 	std::vector<float> m_psRegistersF;
-	/**
-	* Pixel Shader dirty registers. 
-	* Nothing that this is Registers and NOT indexes of all floats that make up a register.
-	***/
-	std::set<UINT> m_dirtyPSRegistersF;
 	/**
 	* Actual Direct3D Device pointer embedded. 
 	***/
