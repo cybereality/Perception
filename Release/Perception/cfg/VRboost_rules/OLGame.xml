@@ -4,9 +4,9 @@
   <ScannerGroups>
 	<ScannerGroup>
 		<ID>0</ID>
-		<BaseAddress>7FF500000004</BaseAddress>
+		<BaseAddress>7FED00000004</BaseAddress>
 		<MemIncrement>10</MemIncrement>
-		<MemIncCount>B0000000</MemIncCount>
+		<MemIncCount>12FFFFFFF</MemIncCount>
 		<FailIfNotFound>True</FailIfNotFound>
 
 		<ScanRule>
@@ -98,9 +98,9 @@
 
 	<ScannerGroup>
 		<ID>1</ID>      
-		<BaseAddress>7FF50000000C</BaseAddress>
+		<BaseAddress>7FED0000000C</BaseAddress>
 		<MemIncrement>8</MemIncrement>
-		<MemIncCount>160000000</MemIncCount>
+		<MemIncCount>24FFFFFFF</MemIncCount>
 		<FailIfNotFound>True</FailIfNotFound>
 
 		<ScanRule>
