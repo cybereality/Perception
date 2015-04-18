@@ -207,7 +207,6 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	D3DXMatrixIdentity(&m_rightProjection);	
 
 	m_currentRenderingSide = vireio::Left;
-	m_pCurrentMatViewTransform = &m_spShaderViewAdjustment->LeftAdjustmentMatrix(); 
 	m_pCurrentView = &m_leftView;
 	m_pCurrentProjection = &m_leftProjection;
 
@@ -3085,8 +3084,6 @@ void D3DProxyDevice::OnCreateOrRestore()
 	SHOW_CALL("OnCreateOrRestore");
 	
 	m_currentRenderingSide = vireio::Left;
-	if(!m_b2dDepthMode)
-		m_pCurrentMatViewTransform = &m_spShaderViewAdjustment->LeftAdjustmentMatrix();
 	m_pCurrentView = &m_leftView;
 	m_pCurrentProjection = &m_leftProjection;
 
@@ -3265,14 +3262,6 @@ bool D3DProxyDevice::setDrawingSide(vireio::RenderPosition side)
 		}
 
 		BaseDirect3DDevice9::SetTransform(D3DTS_PROJECTION, m_pCurrentProjection);
-	}
-
-	// Updated computed view translation (used by several derived proxies - see: ComputeViewTranslation)
-	if (side == vireio::Left) {
-		m_pCurrentMatViewTransform = &m_spShaderViewAdjustment->LeftAdjustmentMatrix();
-	}
-	else {
-		m_pCurrentMatViewTransform = &m_spShaderViewAdjustment->RightAdjustmentMatrix();
 	}
 
 	// Apply active stereo shader constants

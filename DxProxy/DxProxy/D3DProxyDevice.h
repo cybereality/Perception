@@ -380,15 +380,7 @@ public:
 	* Set to public for future use in input device classes.
 	***/
 	float VRBoostValue[MAX_VRBOOST_VALUES];
-	/**
-	* Currently not used.
-	***/
-	float* currentMatrix;
 
-	/**
-	* Currently not used aspect ratio.
-	**/
-	float aspectRatio;	
 	/**
 	* The chosen stereo renderer.
 	* @see StereoView
@@ -600,10 +592,6 @@ protected:
 	* Current drawing side, only changed in setDrawingSide().
 	**/
 	vireio::RenderPosition m_currentRenderingSide;
-	/**
-	* Currently not used WorldViewTransform matrix.
-	**/
-	D3DXMATRIX* m_pCurrentMatViewTransform;
 	/**
 	* Active stored proxy pixel shader.
 	**/
