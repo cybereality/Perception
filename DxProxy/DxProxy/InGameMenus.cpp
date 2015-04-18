@@ -1342,17 +1342,6 @@ void D3DProxyDevice::VPMENU_Settings()
 		}
 	}
 
-	if (controls.Key_Down(VK_BACK))
-	{
-		if ((entryID >= DISTORTION_SCALE) && (entryID <= ROLL_MULT) && HotkeysActive())
-		{
-			int index = entryID-3;
-			if ((index >=0) && (index <=4))
-				guiHotkeys[index] = 0;
-			HotkeyCooldown(2.0f);
-		}
-	}
-
 	// reset hotkey
 	if (entryID == HOTKEY_VRBOOST)
 	{
