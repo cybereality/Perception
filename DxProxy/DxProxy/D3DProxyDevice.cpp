@@ -108,6 +108,9 @@ std::string VRboostAxisString(UINT axis)
 	case VRboostAxis::TrackerYaw:
 		return "Yaw";
 		break;
+	case VRboostAxis::TrackerYaw2:
+		return "Yaw2";
+		break;
 	case VRboostAxis::TrackerPitch:
 		return "Pitch";
 		break;
@@ -3779,9 +3782,12 @@ void D3DProxyDevice::HandleTracking()
 			{
 				if (tracker->getStatus() == MTS_CAMERAMALFUNCTION)
 				{
-					VireioPopup popup(VPT_NO_HMD_DETECTED, VPS_ERROR);
-					strcpy_s(popup.line[2], "CAMERA MALFUNCTION - PLEASE WAIT WHILST CAMERA INITIALISES");
-					ShowPopup(popup);
+					if (userConfig.warnCameraMalfunction)
+					{
+						VireioPopup popup(VPT_NO_HMD_DETECTED, VPS_ERROR);
+						strcpy_s(popup.line[2], "CAMERA MALFUNCTION - PLEASE WAIT WHILST CAMERA INITIALISES");
+						ShowPopup(popup);
+					}
 				}
 				else if (tracker->getStatus() == MTS_LOSTPOSITIONAL)
 				{
@@ -4032,6 +4038,8 @@ void D3DProxyDevice::HandleTracking()
 			yaw += ((m_comfortModeYaw / 180.0f) * (float)PI);
 
 		VRBoostValue[VRboostAxis::TrackerYaw] = yaw;
+		//This might be used by games that have a second yaw address for other modes of transport for example
+		VRBoostValue[VRboostAxis::TrackerYaw2] = yaw;
 		VRBoostValue[VRboostAxis::TrackerPitch] = tracker->primaryPitch;
 		VRBoostValue[VRboostAxis::TrackerRoll] = tracker->primaryRoll;
 

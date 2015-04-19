@@ -116,6 +116,7 @@ public:
 		int adapter;
 		bool notifications;
 		bool warnPosLost;
+		bool warnCameraMalfunction;
 		bool obsStreamHack;
 	};
 
