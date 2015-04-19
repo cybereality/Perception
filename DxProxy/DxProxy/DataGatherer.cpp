@@ -740,90 +740,62 @@ void DataGatherer::VPMENU_ShaderSubMenu()
 	UINT entryID;
 	VPMENU_NewFrame(entryID, menuEntryCount);
 
-	if (VPMENU_Input_Selected())
-	{
-		// 
-		if (entryID == CREATE_SHADER_RULES)
-		{
-			// create relevant shader constant table
-			GetCurrentShaderRules(true);
-			VPMENU_CloseWithoutSaving();
-			HotkeyCooldown(2.0f);
-			Analyze();
-		}
-		// 
-		if (entryID == CHANGE_SHADER_RULES)
-		{
-			// create menu names new
-			GetCurrentShaderRules(false);
-			VPMENU_NavigateTo([=]() {
-				VPMENU_ChangeRules();
-			});
-		}
-		//// pick rules
-		//if (entryID == PICK_RULES)
-		//{
-		//	VPMENU_NavigateTo([=]() {
-		//		VPMENU_PickRules();
-		//	});
-		//}
-		// show shaders
-		if (entryID == SHOW_SHADERS)
-		{
-			VPMENU_NavigateTo([=]() {
-				VPMENU_ShowActiveShaders();
-			});
-			//Clear collections
-			m_knownVShaders.clear();
-			m_knownPShaders.clear();
-		}
-		// save rules
-		if (entryID == SAVE_RULES)
-		{
-			VPMENU_CloseWithoutSaving();
-			HotkeyCooldown(2.0f);
-			// save data
-			ProxyHelper* helper = new ProxyHelper();
-
-			// get filename by target exe name
-			std::string shaderRulesFileName = helper->GetTargetExe();
-			auto ext = shaderRulesFileName.find("exe");
-			if (ext!=std::string::npos)
-				shaderRulesFileName.replace(ext,3,"xml");
-			else
-				shaderRulesFileName = "default.xml";
-
-			// ... and add path, delete proxy helper
-			std::stringstream sstm;
-			sstm << helper->GetBaseDir() << "cfg\\shader_rules\\" << shaderRulesFileName;
-			config.shaderRulePath = sstm.str();
-			delete helper;
-
-			// ... finally, save
-			saveShaderRules();
-		}
-		// back to main menu
-		if (entryID == BACK_VPMENU)
-		{
-			VPMENU_Back();
-		}
-		// back to game
-		if (entryID == BACK_GAME)
-		{
-			VPMENU_CloseWithoutSaving();
-		}
-	}
-
 	// output menu
 	VPMENU_StartDrawing("Shader Analyser", entryID);
 
-	DrawMenuItem("Create new Shader Rules");
-	DrawMenuItem("Change current Shader Rules");
-	//DrawMenuItem("Pick Rules by active Shaders");
-	DrawMenuItem("Show and exclude active Shaders");
-	DrawMenuItem("Save Shader Rules");
-	DrawMenuItem("Back to BRASSA Menu");
-	DrawMenuItem("Back to Game");
+	AddButtonMenuItem("Create new Shader Rules", [=]() {
+		// create relevant shader constant table
+		GetCurrentShaderRules(true);
+		VPMENU_CloseWithoutSaving();
+		HotkeyCooldown(2.0f);
+		Analyze();
+	});
+	AddButtonMenuItem("Change current Shader Rules", [=]() {
+		// create menu names new
+		GetCurrentShaderRules(false);
+		VPMENU_NavigateTo([=]() {
+			VPMENU_ChangeRules();
+		});
+	});
+	//AddButtonMenuItem("Pick Rules by active Shaders", [=]() {
+	//	VPMENU_NavigateTo([=]() {
+	//		VPMENU_PickRules();
+	//	});
+	//});
+	AddButtonMenuItem("Show and exclude active Shaders", [=]() {
+		VPMENU_NavigateTo([=]() {
+			VPMENU_ShowActiveShaders();
+		});
+		//Clear collections
+		m_knownVShaders.clear();
+		m_knownPShaders.clear();
+	});
+	AddButtonMenuItem("Save Shader Rules", [=]() {
+		VPMENU_CloseWithoutSaving();
+		HotkeyCooldown(2.0f);
+		// save data
+		ProxyHelper* helper = new ProxyHelper();
+
+		// get filename by target exe name
+		std::string shaderRulesFileName = helper->GetTargetExe();
+		auto ext = shaderRulesFileName.find("exe");
+		if (ext!=std::string::npos)
+			shaderRulesFileName.replace(ext,3,"xml");
+		else
+			shaderRulesFileName = "default.xml";
+
+		// ... and add path, delete proxy helper
+		std::stringstream sstm;
+		sstm << helper->GetBaseDir() << "cfg\\shader_rules\\" << shaderRulesFileName;
+		config.shaderRulePath = sstm.str();
+		delete helper;
+
+		// ... finally, save
+		saveShaderRules();
+	});
+	
+	AddButtonMenuItem("Back to Main Menu", [=]() { VPMENU_Back(); });
+	AddButtonMenuItem("Back to Game", [=]() { VPMENU_CloseWithoutSaving(); });
 
 	VPMENU_FinishDrawing();
 }

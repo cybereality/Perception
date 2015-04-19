@@ -440,6 +440,7 @@ protected:
 	void VPMENU_NavigateTo(std::function<void()> menuHandler);
 	bool VPMENU_IsOpen();
 	void VPMENU_NewFrame(UINT &entryID, UINT menuEntryCount);
+	int VPMENU_GetCurrentSelection();
 	void VPMENU_StartDrawing(const char *pageTitle, int borderSelection);
 	void VPMENU_StartDrawing_NonMenu();
 	void VPMENU_FinishDrawing();
@@ -472,6 +473,10 @@ protected:
 
 	void DrawMenuItem(const char *text, D3DCOLOR color=COLOR_MENU_TEXT);
 	void DrawMenuItem(std::string text, D3DCOLOR color=COLOR_MENU_TEXT);
+	void AddMenuItem(std::string text, std::function<void()> onHover);
+	void AddButtonMenuItem(std::string text, std::function<void()> onPick);
+	void AddNavigationMenuItem(std::string text, std::function<void()> menuHandler);
+	void AddKeybindMenuItem(std::string text, byte *binding);
 	void ClearRect(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color);
 	void ClearEmptyRect(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color, int bw);
 	void DrawSelection(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color, int selectionIndex, int selectionRange);
@@ -521,6 +526,8 @@ protected:
 	
 	/// VP menu helper rectangle.
 	RECT menuHelperRect;
+	
+	int menuConstructionCurrentEntry;
 	
 	/// Scales VP menu to current resolution.
 	float fScaleX;
