@@ -296,7 +296,6 @@ void D3DProxyDevice::VPMENU_BindKey(std::function<void(int)> onBind)
 	onBindKey = onBind;
 }
 
-
 /**
 * VP menu main method.
 ***/
@@ -327,8 +326,12 @@ void D3DProxyDevice::VPMENU()
 		}
 	}
 	
+	if(!hudFont)
+		return;
+	
 	handleCurrentMenu();
 }
+
 
 /**
 * Main Menu method.
@@ -489,42 +492,39 @@ void D3DProxyDevice::VPMENU_MainMenu()
 	}
 
 	// output menu
-	if (hudFont)
+	VPMENU_StartDrawing("Settings", borderSelection);
+
+	if (config.game_type > 10000)
 	{
-		VPMENU_StartDrawing("Settings", borderSelection);
-
-		if (config.game_type > 10000)
-		{
-			DrawMenuItem("Activate Vireio Shader Analyzer\n");
-		}
-		DrawMenuItem("World-Scale Calibration\n");
-		DrawMenuItem("Convergence Adjustment\n");
-		DrawMenuItem("HUD Calibration\n");
-		DrawMenuItem("GUI Calibration\n");
-		float hudQSTop = (float)menuHelperRect.top * fScaleY;
-		DrawMenuItem("HUD Quick Setting : \n");
-		float guiQSTop = (float)menuHelperRect.top * fScaleY;
-		DrawMenuItem("GUI Quick Setting : \n");
-		DrawMenuItem("Overall Settings\n");
-		DrawMenuItem("VRBoost Values\n");
-		DrawMenuItem("Position Tracking Configuration\n");
-		DrawMenuItem("Comfort Mode Configuration\n");
-		DrawMenuItem("Restore Configuration\n");
-		DrawMenuItem("Back to Game\n");
-		
-		// draw HUD quick setting rectangles
-		D3DRECT rect;
-		rect.x1 = (int)(viewportWidth*0.57f); rect.x2 = (int)(viewportWidth*0.61f); rect.y1 = (int)hudQSTop; rect.y2 = (int)(hudQSTop+viewportHeight*0.027f);
-		DrawSelection(vireio::RenderPosition::Left, rect, COLOR_QUICK_SETTING, (int)hud3DDepthMode, (int)HUD_3D_Depth_Modes::HUD_ENUM_RANGE);
-		DrawSelection(vireio::RenderPosition::Right, rect, COLOR_QUICK_SETTING, (int)hud3DDepthMode, (int)HUD_3D_Depth_Modes::HUD_ENUM_RANGE);
-
-		// draw GUI quick setting rectangles
-		rect.x1 = (int)(viewportWidth*0.57f); rect.x2 = (int)(viewportWidth*0.61f); rect.y1 = (int)guiQSTop; rect.y2 = (int)(guiQSTop+viewportHeight*0.027f);
-		DrawSelection(vireio::RenderPosition::Left, rect, COLOR_QUICK_SETTING, (int)gui3DDepthMode, (int)GUI_3D_Depth_Modes::GUI_ENUM_RANGE);
-		DrawSelection(vireio::RenderPosition::Right, rect, COLOR_QUICK_SETTING, (int)gui3DDepthMode, (int)GUI_3D_Depth_Modes::GUI_ENUM_RANGE);
-
-		VPMENU_FinishDrawing();
+		DrawMenuItem("Activate Vireio Shader Analyzer\n");
 	}
+	DrawMenuItem("World-Scale Calibration\n");
+	DrawMenuItem("Convergence Adjustment\n");
+	DrawMenuItem("HUD Calibration\n");
+	DrawMenuItem("GUI Calibration\n");
+	float hudQSTop = (float)menuHelperRect.top * fScaleY;
+	DrawMenuItem("HUD Quick Setting : \n");
+	float guiQSTop = (float)menuHelperRect.top * fScaleY;
+	DrawMenuItem("GUI Quick Setting : \n");
+	DrawMenuItem("Overall Settings\n");
+	DrawMenuItem("VRBoost Values\n");
+	DrawMenuItem("Position Tracking Configuration\n");
+	DrawMenuItem("Comfort Mode Configuration\n");
+	DrawMenuItem("Restore Configuration\n");
+	DrawMenuItem("Back to Game\n");
+	
+	// draw HUD quick setting rectangles
+	D3DRECT rect;
+	rect.x1 = (int)(viewportWidth*0.57f); rect.x2 = (int)(viewportWidth*0.61f); rect.y1 = (int)hudQSTop; rect.y2 = (int)(hudQSTop+viewportHeight*0.027f);
+	DrawSelection(vireio::RenderPosition::Left, rect, COLOR_QUICK_SETTING, (int)hud3DDepthMode, (int)HUD_3D_Depth_Modes::HUD_ENUM_RANGE);
+	DrawSelection(vireio::RenderPosition::Right, rect, COLOR_QUICK_SETTING, (int)hud3DDepthMode, (int)HUD_3D_Depth_Modes::HUD_ENUM_RANGE);
+
+	// draw GUI quick setting rectangles
+	rect.x1 = (int)(viewportWidth*0.57f); rect.x2 = (int)(viewportWidth*0.61f); rect.y1 = (int)guiQSTop; rect.y2 = (int)(guiQSTop+viewportHeight*0.027f);
+	DrawSelection(vireio::RenderPosition::Left, rect, COLOR_QUICK_SETTING, (int)gui3DDepthMode, (int)GUI_3D_Depth_Modes::GUI_ENUM_RANGE);
+	DrawSelection(vireio::RenderPosition::Right, rect, COLOR_QUICK_SETTING, (int)gui3DDepthMode, (int)GUI_3D_Depth_Modes::GUI_ENUM_RANGE);
+
+	VPMENU_FinishDrawing();
 }
 
 /**
@@ -580,170 +580,168 @@ void D3DProxyDevice::VPMENU_WorldScale()
 	if (borderTopHeight>365.0f)
 		borderTopHeight = 365.0f;
 
-	if(hudFont){
+	// Draw
+	hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
 
-		hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
+	// standard hud size, will be scaled later to actual viewport
+	char vcString[1024];
+	int width = VPMENU_PIXEL_WIDTH;
+	int height = VPMENU_PIXEL_HEIGHT;
 
-		// standard hud size, will be scaled later to actual viewport
-		char vcString[1024];
-		int width = VPMENU_PIXEL_WIDTH;
-		int height = VPMENU_PIXEL_HEIGHT;
+	D3DXMATRIX matScale;
+	D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
+	hudMainMenu->SetTransform(&matScale);
 
-		D3DXMATRIX matScale;
-		D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
-		hudMainMenu->SetTransform(&matScale);
+	// arbitrary formular... TODO !! find a more nifty solution
+	float BlueLineCenterAsPercentage = m_spShaderViewAdjustment->HMDInfo()->GetLensXCenterOffset() * 0.2f;
 
-		// arbitrary formular... TODO !! find a more nifty solution
-		float BlueLineCenterAsPercentage = m_spShaderViewAdjustment->HMDInfo()->GetLensXCenterOffset() * 0.2f;
+	float horWidth = 0.15f;
+	int beg = (int)(viewportWidth*(1.0f-horWidth)/2.0) + (int)(BlueLineCenterAsPercentage * viewportWidth * 0.25f);
+	int end = (int)(viewportWidth*(0.5f+(horWidth/2.0f))) + (int)(BlueLineCenterAsPercentage * viewportWidth * 0.25f);
 
-		float horWidth = 0.15f;
-		int beg = (int)(viewportWidth*(1.0f-horWidth)/2.0) + (int)(BlueLineCenterAsPercentage * viewportWidth * 0.25f);
-		int end = (int)(viewportWidth*(0.5f+(horWidth/2.0f))) + (int)(BlueLineCenterAsPercentage * viewportWidth * 0.25f);
+	int hashTop = (int)(viewportHeight  * 0.48f);
+	int hashBottom = (int)(viewportHeight  * 0.52f);
 
-		int hashTop = (int)(viewportHeight  * 0.48f);
-		int hashBottom = (int)(viewportHeight  * 0.52f);
+	RECT rec2 = {(int)(width*0.27f), (int)(height*0.8f),width,height};
+	sprintf_s(vcString, 1024, "Vireio Perception ("APP_VERSION") Settings - World Scale\n");
+	DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec2, COLOR_MENU_TEXT);
 
-		RECT rec2 = {(int)(width*0.27f), (int)(height*0.8f),width,height};
-		sprintf_s(vcString, 1024, "Vireio Perception ("APP_VERSION") Settings - World Scale\n");
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec2, COLOR_MENU_TEXT);
+	// draw right line (using BaseDirect3DDevice9, since otherwise we have two lines)
+	D3DRECT rec3 = {(int)(viewportWidth/2 + (-BlueLineCenterAsPercentage * viewportWidth * 0.25f))-1, 0,
+		(int)(viewportWidth/2 + (-BlueLineCenterAsPercentage * viewportWidth * 0.25f))+1,viewportHeight };
+	if (!config.swap_eyes)
+		ClearRect(vireio::RenderPosition::Right, rec3, COLOR_BLUE);
+	else
+		ClearRect(vireio::RenderPosition::Left, rec3, COLOR_BLUE);
 
-		// draw right line (using BaseDirect3DDevice9, since otherwise we have two lines)
-		D3DRECT rec3 = {(int)(viewportWidth/2 + (-BlueLineCenterAsPercentage * viewportWidth * 0.25f))-1, 0,
-			(int)(viewportWidth/2 + (-BlueLineCenterAsPercentage * viewportWidth * 0.25f))+1,viewportHeight };
+	// draw left line (using BaseDirect3DDevice9, since otherwise we have two lines)
+	D3DRECT rec4 = {(int)(viewportWidth/2 + (BlueLineCenterAsPercentage * viewportWidth * 0.25f))-1, 0,
+		(int)(viewportWidth/2 + (BlueLineCenterAsPercentage * viewportWidth * 0.25f))+1,viewportHeight };
+	if (!config.swap_eyes)
+		ClearRect(vireio::RenderPosition::Left, rec4, COLOR_RED);
+	else
+		ClearRect(vireio::RenderPosition::Right, rec4, COLOR_RED);
+
+	// horizontal line
+	D3DRECT rec5 = {beg, (viewportHeight /2)-1, end, (viewportHeight /2)+1 };
+	if (!config.swap_eyes)
+		ClearRect(vireio::RenderPosition::Left, rec5, COLOR_BLUE);
+	else
+		ClearRect(vireio::RenderPosition::Right, rec5, COLOR_BLUE);
+
+	// hash lines
+	int hashNum = 10;
+	float hashSpace = horWidth*viewportWidth / (float)hashNum;
+	for(int i=0; i<=hashNum; i++) {
+		D3DRECT rec5 = {beg+(int)(i*hashSpace)-1, hashTop, beg+(int)(i*hashSpace)+1, hashBottom};
 		if (!config.swap_eyes)
-			ClearRect(vireio::RenderPosition::Right, rec3, COLOR_BLUE);
+			ClearRect(vireio::RenderPosition::Left, rec5, COLOR_HASH_LINE);
 		else
-			ClearRect(vireio::RenderPosition::Left, rec3, COLOR_BLUE);
-
-		// draw left line (using BaseDirect3DDevice9, since otherwise we have two lines)
-		D3DRECT rec4 = {(int)(viewportWidth/2 + (BlueLineCenterAsPercentage * viewportWidth * 0.25f))-1, 0,
-			(int)(viewportWidth/2 + (BlueLineCenterAsPercentage * viewportWidth * 0.25f))+1,viewportHeight };
-		if (!config.swap_eyes)
-			ClearRect(vireio::RenderPosition::Left, rec4, COLOR_RED);
-		else
-			ClearRect(vireio::RenderPosition::Right, rec4, COLOR_RED);
-
-		// horizontal line
-		D3DRECT rec5 = {beg, (viewportHeight /2)-1, end, (viewportHeight /2)+1 };
-		if (!config.swap_eyes)
-			ClearRect(vireio::RenderPosition::Left, rec5, COLOR_BLUE);
-		else
-			ClearRect(vireio::RenderPosition::Right, rec5, COLOR_BLUE);
-
-		// hash lines
-		int hashNum = 10;
-		float hashSpace = horWidth*viewportWidth / (float)hashNum;
-		for(int i=0; i<=hashNum; i++) {
-			D3DRECT rec5 = {beg+(int)(i*hashSpace)-1, hashTop, beg+(int)(i*hashSpace)+1, hashBottom};
-			if (!config.swap_eyes)
-				ClearRect(vireio::RenderPosition::Left, rec5, COLOR_HASH_LINE);
-			else
-				ClearRect(vireio::RenderPosition::Right, rec5, COLOR_HASH_LINE);
-		}
-
-		rec2.left = (int)(width*0.35f);
-		rec2.top = (int)(height*0.83f);
-		DrawTextShadowed(hudFont, hudMainMenu, "World-Scale Calibration", &rec2, COLOR_MENU_TEXT);
-
-		RECT rec10 = {(int)(width*0.40f), (int)(height*0.57f),width,height};
-		DrawTextShadowed(hudFont, hudMainMenu, "<- calibrate using Arrow Keys ->", &rec10, COLOR_MENU_TEXT);
-
-		float gameUnit = m_spShaderViewAdjustment->WorldScale();
-
-		// actual game unit chosen ... in case game has called SetTransform(>projection<);
-		if (m_bProjectionTransformSet)
-		{
-			// get the scale the 
-			float gameXScale = m_gameXScaleUnits[gameXScaleUnitIndex];
-
-			// get the scale the driver projects
-			D3DXMATRIX driverProjection = m_spShaderViewAdjustment->Projection();
-			float driverXScale = driverProjection._11;
-
-			// gameUnit = (driverWorldScale * driverXScale) /  gameXScale
-			gameUnit = ((m_spShaderViewAdjustment->WorldScale()) * driverXScale ) / gameXScale;
-
-			rec10.top = (int)(height*0.77f); rec10.left = (int)(width*0.45f);
-			DrawTextShadowed(hudFont, hudMainMenu, retprintf("Actual Units %u/%u", gameXScaleUnitIndex, m_gameXScaleUnits.size()), &rec10, COLOR_MENU_TEXT);
-		}
-
-		//Column 1:
-		//1 Game Unit = X Meters
-		//1 Game Unit = X Centimeters
-		//1 Game Unit = X Feet
-		//1 Game Unit = X Inches
-		//Column 2:
-		//1 Meter = X Game Units
-		//1 Centimeter = X Game Units
-		//1 Foot = X Game Units
-		//1 Inch = X Game Units
-		float meters = 1 / gameUnit;
-		float centimeters = meters * 100.0f;
-		float feet = meters * 3.2808399f;
-		float inches = feet * 12.0f;
-		float gameUnitsToCentimeter =  gameUnit / 100.0f;
-		float gameUnitsToFoot = gameUnit / 3.2808399f;
-		float gameUnitsToInches = gameUnit / 39.3700787f;
-		
-		rec10.top = (int)(height*0.6f); rec10.left = (int)(width*0.28f);
-		sprintf_s(vcString,"1 Game Unit = %g Meters", meters);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec10, COLOR_MENU_TEXT);
-		rec10.top+=35;
-		sprintf_s(vcString,"1 Game Unit = %g CM", centimeters);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec10, COLOR_MENU_TEXT);
-		rec10.top+=35;
-		sprintf_s(vcString,"1 Game Unit = %g Feet", feet);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec10, COLOR_MENU_TEXT);
-		rec10.top+=35;
-		sprintf_s(vcString,"1 Game Unit = %g In.", inches);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec10, COLOR_MENU_TEXT);
-
-		RECT rec11 = {(int)(width*0.52f), (int)(height*0.6f),width,height};
-		sprintf_s(vcString,"1 Meter      = %g Game Units", gameUnit);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec11, COLOR_MENU_TEXT);
-		rec11.top+=35;
-		sprintf_s(vcString,"1 CM         = %g Game Units", gameUnitsToCentimeter);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec11, COLOR_MENU_TEXT);
-		rec11.top+=35;
-		sprintf_s(vcString,"1 Foot       = %g Game Units", gameUnitsToFoot);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec11, COLOR_MENU_TEXT);
-		rec11.top+=35;
-		sprintf_s(vcString,"1 Inch       = %g Game Units", gameUnitsToInches);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec11, COLOR_MENU_TEXT);
-
-		VPMENU_FinishDrawing();
-
-		// draw description text box
-		hudTextBox->Begin(D3DXSPRITE_ALPHABLEND);
-		hudTextBox->SetTransform(&matScale);
-		RECT rec8 = {620, (int)(borderTopHeight), 1300, 400};
-		sprintf_s(vcString, 1024,
-			"In the right eye view, walk up as close as\n"
-			"possible to a 90 degree vertical object and\n"
-			"align the BLUE vertical line with its edge.\n"
-			"Good examples include a wall corner, a table\n"
-			"corner, a square post, etc.  While looking at\n"
-			"the left image, adjust the World View setting\n"
-			"until the same object's edge is on the fourth\n"
-			"notch in the >Negative Parallax< section (to\n"
-			"the right of the RED line).  If objects go \n"
-			"beyond this point, reduce the World Scale \n"
-			"further.  Try to keep the BLUE line aligned\n"
-			"while changing the World Scale.  Adjust \n"
-			"further for comfort and game unit accuracy.\n"
-			);
-		DrawTextShadowed(hudFont, hudTextBox, vcString, &rec8, COLOR_MENU_TEXT);
-		D3DXVECTOR3 vPos(0.0f, 0.0f, 0.0f);
-		hudTextBox->Draw(NULL, &rec8, NULL, &vPos, COLOR_WHITE);
-
-		// draw description box scroll bar
-		float scroll = (429.0f-borderTopHeight-64.0f)/429.0f;
-		D3DRECT rec9 = {(int)(1300*fScaleX), 0, (int)(1320*fScaleX), (int)(400*fScaleY)};
-		DrawScrollbar(vireio::RenderPosition::Left, rec9, COLOR_QUICK_SETTING, scroll, (int)(20*fScaleY));
-		DrawScrollbar(vireio::RenderPosition::Right, rec9, COLOR_QUICK_SETTING, scroll, (int)(20*fScaleY));
-
-		hudTextBox->End();
+			ClearRect(vireio::RenderPosition::Right, rec5, COLOR_HASH_LINE);
 	}
+
+	rec2.left = (int)(width*0.35f);
+	rec2.top = (int)(height*0.83f);
+	DrawTextShadowed(hudFont, hudMainMenu, "World-Scale Calibration", &rec2, COLOR_MENU_TEXT);
+
+	RECT rec10 = {(int)(width*0.40f), (int)(height*0.57f),width,height};
+	DrawTextShadowed(hudFont, hudMainMenu, "<- calibrate using Arrow Keys ->", &rec10, COLOR_MENU_TEXT);
+
+	float gameUnit = m_spShaderViewAdjustment->WorldScale();
+
+	// actual game unit chosen ... in case game has called SetTransform(>projection<);
+	if (m_bProjectionTransformSet)
+	{
+		// get the scale the 
+		float gameXScale = m_gameXScaleUnits[gameXScaleUnitIndex];
+
+		// get the scale the driver projects
+		D3DXMATRIX driverProjection = m_spShaderViewAdjustment->Projection();
+		float driverXScale = driverProjection._11;
+
+		// gameUnit = (driverWorldScale * driverXScale) /  gameXScale
+		gameUnit = ((m_spShaderViewAdjustment->WorldScale()) * driverXScale ) / gameXScale;
+
+		rec10.top = (int)(height*0.77f); rec10.left = (int)(width*0.45f);
+		DrawTextShadowed(hudFont, hudMainMenu, retprintf("Actual Units %u/%u", gameXScaleUnitIndex, m_gameXScaleUnits.size()), &rec10, COLOR_MENU_TEXT);
+	}
+
+	//Column 1:
+	//1 Game Unit = X Meters
+	//1 Game Unit = X Centimeters
+	//1 Game Unit = X Feet
+	//1 Game Unit = X Inches
+	//Column 2:
+	//1 Meter = X Game Units
+	//1 Centimeter = X Game Units
+	//1 Foot = X Game Units
+	//1 Inch = X Game Units
+	float meters = 1 / gameUnit;
+	float centimeters = meters * 100.0f;
+	float feet = meters * 3.2808399f;
+	float inches = feet * 12.0f;
+	float gameUnitsToCentimeter =  gameUnit / 100.0f;
+	float gameUnitsToFoot = gameUnit / 3.2808399f;
+	float gameUnitsToInches = gameUnit / 39.3700787f;
+	
+	rec10.top = (int)(height*0.6f); rec10.left = (int)(width*0.28f);
+	sprintf_s(vcString,"1 Game Unit = %g Meters", meters);
+	DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec10, COLOR_MENU_TEXT);
+	rec10.top+=35;
+	sprintf_s(vcString,"1 Game Unit = %g CM", centimeters);
+	DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec10, COLOR_MENU_TEXT);
+	rec10.top+=35;
+	sprintf_s(vcString,"1 Game Unit = %g Feet", feet);
+	DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec10, COLOR_MENU_TEXT);
+	rec10.top+=35;
+	sprintf_s(vcString,"1 Game Unit = %g In.", inches);
+	DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec10, COLOR_MENU_TEXT);
+
+	RECT rec11 = {(int)(width*0.52f), (int)(height*0.6f),width,height};
+	sprintf_s(vcString,"1 Meter      = %g Game Units", gameUnit);
+	DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec11, COLOR_MENU_TEXT);
+	rec11.top+=35;
+	sprintf_s(vcString,"1 CM         = %g Game Units", gameUnitsToCentimeter);
+	DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec11, COLOR_MENU_TEXT);
+	rec11.top+=35;
+	sprintf_s(vcString,"1 Foot       = %g Game Units", gameUnitsToFoot);
+	DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec11, COLOR_MENU_TEXT);
+	rec11.top+=35;
+	sprintf_s(vcString,"1 Inch       = %g Game Units", gameUnitsToInches);
+	DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec11, COLOR_MENU_TEXT);
+
+	VPMENU_FinishDrawing();
+
+	// draw description text box
+	hudTextBox->Begin(D3DXSPRITE_ALPHABLEND);
+	hudTextBox->SetTransform(&matScale);
+	RECT rec8 = {620, (int)(borderTopHeight), 1300, 400};
+	sprintf_s(vcString, 1024,
+		"In the right eye view, walk up as close as\n"
+		"possible to a 90 degree vertical object and\n"
+		"align the BLUE vertical line with its edge.\n"
+		"Good examples include a wall corner, a table\n"
+		"corner, a square post, etc.  While looking at\n"
+		"the left image, adjust the World View setting\n"
+		"until the same object's edge is on the fourth\n"
+		"notch in the >Negative Parallax< section (to\n"
+		"the right of the RED line).  If objects go \n"
+		"beyond this point, reduce the World Scale \n"
+		"further.  Try to keep the BLUE line aligned\n"
+		"while changing the World Scale.  Adjust \n"
+		"further for comfort and game unit accuracy.\n"
+		);
+	DrawTextShadowed(hudFont, hudTextBox, vcString, &rec8, COLOR_MENU_TEXT);
+	D3DXVECTOR3 vPos(0.0f, 0.0f, 0.0f);
+	hudTextBox->Draw(NULL, &rec8, NULL, &vPos, COLOR_WHITE);
+
+	// draw description box scroll bar
+	float scroll = (429.0f-borderTopHeight-64.0f)/429.0f;
+	D3DRECT rec9 = {(int)(1300*fScaleX), 0, (int)(1320*fScaleX), (int)(400*fScaleY)};
+	DrawScrollbar(vireio::RenderPosition::Left, rec9, COLOR_QUICK_SETTING, scroll, (int)(20*fScaleY));
+	DrawScrollbar(vireio::RenderPosition::Right, rec9, COLOR_QUICK_SETTING, scroll, (int)(20*fScaleY));
+
+	hudTextBox->End();
 }
 
 /**
@@ -774,123 +772,121 @@ void D3DProxyDevice::VPMENU_Convergence()
 	if (borderTopHeight>365.0f)
 		borderTopHeight = 365.0f;
 
-	if(hudFont){
+	// Draw
+	hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
 
-		hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
+	// standard hud size, will be scaled later to actual viewport
+	char vcString[1024];
+	int width = VPMENU_PIXEL_WIDTH;
+	int height = VPMENU_PIXEL_HEIGHT;
 
-		// standard hud size, will be scaled later to actual viewport
-		char vcString[1024];
-		int width = VPMENU_PIXEL_WIDTH;
-		int height = VPMENU_PIXEL_HEIGHT;
+	D3DXMATRIX matScale;
+	D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
+	hudMainMenu->SetTransform(&matScale);
 
-		D3DXMATRIX matScale;
-		D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
-		hudMainMenu->SetTransform(&matScale);
+	// arbitrary formular... TODO !! find a more nifty solution
+	float BlueLineCenterAsPercentage = m_spShaderViewAdjustment->HMDInfo()->GetLensXCenterOffset() * 0.2f;
 
-		// arbitrary formular... TODO !! find a more nifty solution
-		float BlueLineCenterAsPercentage = m_spShaderViewAdjustment->HMDInfo()->GetLensXCenterOffset() * 0.2f;
+	float horWidth = 0.15f;
+	int beg = (int)(viewportWidth*(1.0f-horWidth)/2.0) + (int)(BlueLineCenterAsPercentage * viewportWidth * 0.25f);
+	int end = (int)(viewportWidth*(0.5f+(horWidth/2.0f))) + (int)(BlueLineCenterAsPercentage * viewportWidth * 0.25f);
 
-		float horWidth = 0.15f;
-		int beg = (int)(viewportWidth*(1.0f-horWidth)/2.0) + (int)(BlueLineCenterAsPercentage * viewportWidth * 0.25f);
-		int end = (int)(viewportWidth*(0.5f+(horWidth/2.0f))) + (int)(BlueLineCenterAsPercentage * viewportWidth * 0.25f);
+	int hashTop = (int)(viewportHeight  * 0.48f);
+	int hashBottom = (int)(viewportHeight  * 0.52f);
 
-		int hashTop = (int)(viewportHeight  * 0.48f);
-		int hashBottom = (int)(viewportHeight  * 0.52f);
+	RECT rec2 = {(int)(width*0.27f), (int)(height*0.8f),width,height};
+	sprintf_s(vcString, 1024, "Vireio Perception ("APP_VERSION") Settings - Convergence\n");
+	DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec2, COLOR_MENU_TEXT);
 
-		RECT rec2 = {(int)(width*0.27f), (int)(height*0.8f),width,height};
-		sprintf_s(vcString, 1024, "Vireio Perception ("APP_VERSION") Settings - Convergence\n");
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec2, COLOR_MENU_TEXT);
+	// draw right line (using BaseDirect3DDevice9, since otherwise we have two lines)
+	D3DRECT rec3 = {(int)(viewportWidth/2 + (-BlueLineCenterAsPercentage * viewportWidth * 0.25f))-1, 0,
+		(int)(viewportWidth/2 + (-BlueLineCenterAsPercentage * viewportWidth * 0.25f))+1,viewportHeight };
+	if (!config.swap_eyes)
+		ClearRect(vireio::RenderPosition::Right, rec3, COLOR_BLUE);
+	else
+		ClearRect(vireio::RenderPosition::Left, rec3, COLOR_BLUE);
 
-		// draw right line (using BaseDirect3DDevice9, since otherwise we have two lines)
-		D3DRECT rec3 = {(int)(viewportWidth/2 + (-BlueLineCenterAsPercentage * viewportWidth * 0.25f))-1, 0,
-			(int)(viewportWidth/2 + (-BlueLineCenterAsPercentage * viewportWidth * 0.25f))+1,viewportHeight };
+	// draw left line (using BaseDirect3DDevice9, since otherwise we have two lines)
+	D3DRECT rec4 = {(int)(viewportWidth/2 + (BlueLineCenterAsPercentage * viewportWidth * 0.25f))-1, 0,
+		(int)(viewportWidth/2 + (BlueLineCenterAsPercentage * viewportWidth * 0.25f))+1,viewportHeight };
+	if (!config.swap_eyes)
+		ClearRect(vireio::RenderPosition::Left, rec4, COLOR_BLUE);
+	else
+		ClearRect(vireio::RenderPosition::Right, rec4, COLOR_BLUE);
+
+	// horizontal line
+	D3DRECT rec5 = {beg, (viewportHeight /2)-1, end, (viewportHeight /2)+1 };
+	if (!config.swap_eyes)
+		ClearRect(vireio::RenderPosition::Left, rec5, COLOR_BLUE);
+	else
+		ClearRect(vireio::RenderPosition::Right, rec5, COLOR_BLUE);
+
+	// hash lines
+	int hashNum = 10;
+	float hashSpace = horWidth*viewportWidth / (float)hashNum;
+	for(int i=0; i<=hashNum; i++) {
+		D3DRECT rec5 = {beg+(int)(i*hashSpace)-1, hashTop, beg+(int)(i*hashSpace)+1, hashBottom};
 		if (!config.swap_eyes)
-			ClearRect(vireio::RenderPosition::Right, rec3, COLOR_BLUE);
+			ClearRect(vireio::RenderPosition::Left, rec5, COLOR_HASH_LINE);
 		else
-			ClearRect(vireio::RenderPosition::Left, rec3, COLOR_BLUE);
-
-		// draw left line (using BaseDirect3DDevice9, since otherwise we have two lines)
-		D3DRECT rec4 = {(int)(viewportWidth/2 + (BlueLineCenterAsPercentage * viewportWidth * 0.25f))-1, 0,
-			(int)(viewportWidth/2 + (BlueLineCenterAsPercentage * viewportWidth * 0.25f))+1,viewportHeight };
-		if (!config.swap_eyes)
-			ClearRect(vireio::RenderPosition::Left, rec4, COLOR_BLUE);
-		else
-			ClearRect(vireio::RenderPosition::Right, rec4, COLOR_BLUE);
-
-		// horizontal line
-		D3DRECT rec5 = {beg, (viewportHeight /2)-1, end, (viewportHeight /2)+1 };
-		if (!config.swap_eyes)
-			ClearRect(vireio::RenderPosition::Left, rec5, COLOR_BLUE);
-		else
-			ClearRect(vireio::RenderPosition::Right, rec5, COLOR_BLUE);
-
-		// hash lines
-		int hashNum = 10;
-		float hashSpace = horWidth*viewportWidth / (float)hashNum;
-		for(int i=0; i<=hashNum; i++) {
-			D3DRECT rec5 = {beg+(int)(i*hashSpace)-1, hashTop, beg+(int)(i*hashSpace)+1, hashBottom};
-			if (!config.swap_eyes)
-				ClearRect(vireio::RenderPosition::Left, rec5, COLOR_HASH_LINE);
-			else
-				ClearRect(vireio::RenderPosition::Right, rec5, COLOR_HASH_LINE);
-		}
-
-		rec2.left = (int)(width*0.35f);
-		rec2.top = (int)(height*0.83f);
-		sprintf_s(vcString, 1024, "Convergence Adjustment");
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec2, COLOR_MENU_TEXT);
-
-		// output convergence
-		RECT rec10 = {(int)(width*0.40f), (int)(height*0.57f),width,height};
-		DrawTextShadowed(hudFont, hudMainMenu, "<- calibrate using Arrow Keys ->", &rec10, COLOR_MENU_TEXT);
-		// Convergence Screen = X Meters = X Feet
-		rec10.top = (int)(height*0.6f); rec10.left = (int)(width*0.385f);
-		float meters = m_spShaderViewAdjustment->Convergence();
-		sprintf_s(vcString,"Convergence Screen = %g Meters", meters);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec10, COLOR_MENU_TEXT);
-		rec10.top+=35;
-		float centimeters = meters * 100.0f;
-		sprintf_s(vcString,"Convergence Screen = %g CM", centimeters);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec10, COLOR_MENU_TEXT);
-		rec10.top+=35;
-		float feet = meters * 3.2808399f;
-		sprintf_s(vcString,"Convergence Screen = %g Feet", feet);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec10, COLOR_MENU_TEXT);
-		rec10.top+=35;
-		float inches = feet * 12.0f;
-		sprintf_s(vcString,"Convergence Screen = %g Inches", inches);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec10, COLOR_MENU_TEXT);
-
-		VPMENU_FinishDrawing();
-
-		// draw description text box
-		hudTextBox->Begin(D3DXSPRITE_ALPHABLEND);
-		hudTextBox->SetTransform(&matScale);
-		RECT rec8 = {620, (int)(borderTopHeight), 1300, 400};
-		sprintf_s(vcString, 1024,
-			"Note that the Convergence Screens distance\n"
-			"is measured in physical meters and should\n"
-			"only be adjusted to match Your personal\n"
-			"depth cognition after You calibrated the\n"
-			"World Scale accordingly.\n"
-			"In the right eye view, walk up as close as\n"
-			"possible to a 90 degree vertical object and\n"
-			"align the BLUE vertical line with its edge.\n"
-			"Good examples include a wall corner, a table\n"
-			"corner, a square post, etc.\n"
-			);
-		DrawTextShadowed(hudFont, hudTextBox, vcString, &rec8, COLOR_MENU_TEXT);
-		D3DXVECTOR3 vPos(0.0f, 0.0f, 0.0f);
-		hudTextBox->Draw(NULL, &rec8, NULL, &vPos, COLOR_WHITE);
-
-		// draw description box scroll bar
-		float scroll = (429.0f-borderTopHeight-64.0f)/429.0f;
-		D3DRECT rec9 = {(int)(1300*fScaleX), 0, (int)(1320*fScaleX), (int)(400*fScaleY)};
-		DrawScrollbar(vireio::RenderPosition::Left, rec9, COLOR_QUICK_SETTING, scroll, (int)(20*fScaleY));
-		DrawScrollbar(vireio::RenderPosition::Right, rec9, COLOR_QUICK_SETTING, scroll, (int)(20*fScaleY));
-
-		hudTextBox->End();
+			ClearRect(vireio::RenderPosition::Right, rec5, COLOR_HASH_LINE);
 	}
+
+	rec2.left = (int)(width*0.35f);
+	rec2.top = (int)(height*0.83f);
+	sprintf_s(vcString, 1024, "Convergence Adjustment");
+	DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec2, COLOR_MENU_TEXT);
+
+	// output convergence
+	RECT rec10 = {(int)(width*0.40f), (int)(height*0.57f),width,height};
+	DrawTextShadowed(hudFont, hudMainMenu, "<- calibrate using Arrow Keys ->", &rec10, COLOR_MENU_TEXT);
+	// Convergence Screen = X Meters = X Feet
+	rec10.top = (int)(height*0.6f); rec10.left = (int)(width*0.385f);
+	float meters = m_spShaderViewAdjustment->Convergence();
+	sprintf_s(vcString,"Convergence Screen = %g Meters", meters);
+	DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec10, COLOR_MENU_TEXT);
+	rec10.top+=35;
+	float centimeters = meters * 100.0f;
+	sprintf_s(vcString,"Convergence Screen = %g CM", centimeters);
+	DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec10, COLOR_MENU_TEXT);
+	rec10.top+=35;
+	float feet = meters * 3.2808399f;
+	sprintf_s(vcString,"Convergence Screen = %g Feet", feet);
+	DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec10, COLOR_MENU_TEXT);
+	rec10.top+=35;
+	float inches = feet * 12.0f;
+	sprintf_s(vcString,"Convergence Screen = %g Inches", inches);
+	DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec10, COLOR_MENU_TEXT);
+
+	VPMENU_FinishDrawing();
+
+	// draw description text box
+	hudTextBox->Begin(D3DXSPRITE_ALPHABLEND);
+	hudTextBox->SetTransform(&matScale);
+	RECT rec8 = {620, (int)(borderTopHeight), 1300, 400};
+	sprintf_s(vcString, 1024,
+		"Note that the Convergence Screens distance\n"
+		"is measured in physical meters and should\n"
+		"only be adjusted to match Your personal\n"
+		"depth cognition after You calibrated the\n"
+		"World Scale accordingly.\n"
+		"In the right eye view, walk up as close as\n"
+		"possible to a 90 degree vertical object and\n"
+		"align the BLUE vertical line with its edge.\n"
+		"Good examples include a wall corner, a table\n"
+		"corner, a square post, etc.\n"
+		);
+	DrawTextShadowed(hudFont, hudTextBox, vcString, &rec8, COLOR_MENU_TEXT);
+	D3DXVECTOR3 vPos(0.0f, 0.0f, 0.0f);
+	hudTextBox->Draw(NULL, &rec8, NULL, &vPos, COLOR_WHITE);
+
+	// draw description box scroll bar
+	float scroll = (429.0f-borderTopHeight-64.0f)/429.0f;
+	D3DRECT rec9 = {(int)(1300*fScaleX), 0, (int)(1320*fScaleX), (int)(400*fScaleY)};
+	DrawScrollbar(vireio::RenderPosition::Left, rec9, COLOR_QUICK_SETTING, scroll, (int)(20*fScaleY));
+	DrawScrollbar(vireio::RenderPosition::Right, rec9, COLOR_QUICK_SETTING, scroll, (int)(20*fScaleY));
+
+	hudTextBox->End();
 }
 
 /**
@@ -987,67 +983,64 @@ void D3DProxyDevice::VPMENU_HUD()
 	}
 	
 	// output menu
-	if (hudFont)
+	VPMENU_StartDrawing("Settings - HUD", entryID);
+
+	float hudQSHeight = (float)menuHelperRect.top * fScaleY;
+	switch (hud3DDepthMode)
 	{
-		VPMENU_StartDrawing("Settings - HUD", entryID);
-
-		float hudQSHeight = (float)menuHelperRect.top * fScaleY;
-		switch (hud3DDepthMode)
-		{
-		case D3DProxyDevice::HUD_DEFAULT:
-			DrawMenuItem("HUD : Default");
-			break;
-		case D3DProxyDevice::HUD_SMALL:
-			DrawMenuItem("HUD : Small");
-			break;
-		case D3DProxyDevice::HUD_LARGE:
-			DrawMenuItem("HUD : Large");
-			break;
-		case D3DProxyDevice::HUD_FULL:
-			DrawMenuItem("HUD : Full");
-			break;
-		default:
-			break;
-		}
-		DrawMenuItem(retprintf("HUD Distance : %g", RoundVireioValue(hudDistancePresets[(int)hud3DDepthMode])));
-		DrawMenuItem(retprintf("HUD's 3D Depth : %g", RoundVireioValue(hud3DDepthPresets[(int)hud3DDepthMode])));
-		
-		if (hotkeyCatch && (entryID==3)) {
-			DrawMenuItem("Press the desired key.");
-		} else {
-			DrawMenuItem(retprintf("Hotkey >Switch< : %s", controls.GetKeyName(hudHotkeys[0]).c_str()));
-		}
-		if (hotkeyCatch && (entryID==4)) {
-			DrawMenuItem("Press the desired key.");
-		} else {
-			DrawMenuItem(retprintf("Hotkey >Default< : %s", controls.GetKeyName(hudHotkeys[1]).c_str()));
-		}
-		if (hotkeyCatch && (entryID==5)) {
-			DrawMenuItem("Press the desired key.");
-		} else {
-			DrawMenuItem(retprintf("Hotkey >Small< : %s", controls.GetKeyName(hudHotkeys[2]).c_str()));
-		}
-		if (hotkeyCatch && (entryID==6)) {
-			DrawMenuItem("Press the desired key.");
-		} else {
-			DrawMenuItem(retprintf("Hotkey >Large< : %s", controls.GetKeyName(hudHotkeys[3]).c_str()));
-		}
-		if (hotkeyCatch && (entryID==7)) {
-			DrawMenuItem("Press the desired key.");
-		} else {
-			DrawMenuItem(retprintf("Hotkey >Full< : %s", controls.GetKeyName(hudHotkeys[4]).c_str()));
-		}
-		DrawMenuItem("Back to Main Menu");
-		DrawMenuItem("Back to Game");
-
-		// draw HUD quick setting rectangles
-		D3DRECT rect;
-		rect.x1 = (int)(viewportWidth*0.52f); rect.x2 = (int)(viewportWidth*0.56f); rect.y1 = (int)hudQSHeight; rect.y2 = (int)(hudQSHeight+viewportHeight*0.027f);
-		DrawSelection(vireio::RenderPosition::Left, rect, COLOR_QUICK_SETTING, (int)hud3DDepthMode, (int)HUD_3D_Depth_Modes::HUD_ENUM_RANGE);
-		DrawSelection(vireio::RenderPosition::Right, rect, COLOR_QUICK_SETTING, (int)hud3DDepthMode, (int)HUD_3D_Depth_Modes::HUD_ENUM_RANGE);
-
-		VPMENU_FinishDrawing();
+	case D3DProxyDevice::HUD_DEFAULT:
+		DrawMenuItem("HUD : Default");
+		break;
+	case D3DProxyDevice::HUD_SMALL:
+		DrawMenuItem("HUD : Small");
+		break;
+	case D3DProxyDevice::HUD_LARGE:
+		DrawMenuItem("HUD : Large");
+		break;
+	case D3DProxyDevice::HUD_FULL:
+		DrawMenuItem("HUD : Full");
+		break;
+	default:
+		break;
 	}
+	DrawMenuItem(retprintf("HUD Distance : %g", RoundVireioValue(hudDistancePresets[(int)hud3DDepthMode])));
+	DrawMenuItem(retprintf("HUD's 3D Depth : %g", RoundVireioValue(hud3DDepthPresets[(int)hud3DDepthMode])));
+	
+	if (hotkeyCatch && (entryID==3)) {
+		DrawMenuItem("Press the desired key.");
+	} else {
+		DrawMenuItem(retprintf("Hotkey >Switch< : %s", controls.GetKeyName(hudHotkeys[0]).c_str()));
+	}
+	if (hotkeyCatch && (entryID==4)) {
+		DrawMenuItem("Press the desired key.");
+	} else {
+		DrawMenuItem(retprintf("Hotkey >Default< : %s", controls.GetKeyName(hudHotkeys[1]).c_str()));
+	}
+	if (hotkeyCatch && (entryID==5)) {
+		DrawMenuItem("Press the desired key.");
+	} else {
+		DrawMenuItem(retprintf("Hotkey >Small< : %s", controls.GetKeyName(hudHotkeys[2]).c_str()));
+	}
+	if (hotkeyCatch && (entryID==6)) {
+		DrawMenuItem("Press the desired key.");
+	} else {
+		DrawMenuItem(retprintf("Hotkey >Large< : %s", controls.GetKeyName(hudHotkeys[3]).c_str()));
+	}
+	if (hotkeyCatch && (entryID==7)) {
+		DrawMenuItem("Press the desired key.");
+	} else {
+		DrawMenuItem(retprintf("Hotkey >Full< : %s", controls.GetKeyName(hudHotkeys[4]).c_str()));
+	}
+	DrawMenuItem("Back to Main Menu");
+	DrawMenuItem("Back to Game");
+
+	// draw HUD quick setting rectangles
+	D3DRECT rect;
+	rect.x1 = (int)(viewportWidth*0.52f); rect.x2 = (int)(viewportWidth*0.56f); rect.y1 = (int)hudQSHeight; rect.y2 = (int)(hudQSHeight+viewportHeight*0.027f);
+	DrawSelection(vireio::RenderPosition::Left, rect, COLOR_QUICK_SETTING, (int)hud3DDepthMode, (int)HUD_3D_Depth_Modes::HUD_ENUM_RANGE);
+	DrawSelection(vireio::RenderPosition::Right, rect, COLOR_QUICK_SETTING, (int)hud3DDepthMode, (int)HUD_3D_Depth_Modes::HUD_ENUM_RANGE);
+
+	VPMENU_FinishDrawing();
 }
 
 /**
@@ -1144,68 +1137,65 @@ void D3DProxyDevice::VPMENU_GUI()
 	}
 	
 	// output menu
-	if (hudFont)
+	VPMENU_StartDrawing("Settings - GUI", entryID);
+
+	float guiQSTop = (float)menuHelperRect.top * fScaleY;
+	
+	switch (gui3DDepthMode)
 	{
-		VPMENU_StartDrawing("Settings - GUI", entryID);
-
-		float guiQSTop = (float)menuHelperRect.top * fScaleY;
-		
-		switch (gui3DDepthMode)
-		{
-		case D3DProxyDevice::GUI_DEFAULT:
-			DrawMenuItem("GUI : Default");
-			break;
-		case D3DProxyDevice::GUI_SMALL:
-			DrawMenuItem("GUI : Small");
-			break;
-		case D3DProxyDevice::GUI_LARGE:
-			DrawMenuItem("GUI : Large");
-			break;
-		case D3DProxyDevice::GUI_FULL:
-			DrawMenuItem("GUI : Full");
-			break;
-		default:
-			break;
-		}
-		DrawMenuItem(retprintf("GUI Size : %g", RoundVireioValue(guiSquishPresets[(int)gui3DDepthMode])));
-		DrawMenuItem(retprintf("GUI's 3D Depth : %g", RoundVireioValue(gui3DDepthPresets[(int)gui3DDepthMode])));
-		
-		if (hotkeyCatch && (entryID==3)) {
-			DrawMenuItem("Press the desired key.");
-		} else {
-			DrawMenuItem(retprintf("Hotkey >Switch< : %s", controls.GetKeyName(guiHotkeys[0]).c_str()));
-		}
-		if (hotkeyCatch && (entryID==4)) {
-			DrawMenuItem("Press the desired key.");
-		} else {
-			DrawMenuItem(retprintf("Hotkey >Default< : %s", controls.GetKeyName(guiHotkeys[1]).c_str()));
-		}
-		if (hotkeyCatch && (entryID==5)) {
-			DrawMenuItem("Press the desired key.");
-		} else {
-			DrawMenuItem(retprintf("Hotkey >Small< : %s", controls.GetKeyName(guiHotkeys[2]).c_str()));
-		}
-		if (hotkeyCatch && (entryID==6)) {
-			DrawMenuItem("Press the desired key.");
-		} else {
-			DrawMenuItem(retprintf("Hotkey >Large< : %s", controls.GetKeyName(guiHotkeys[3]).c_str()));
-		}
-		if (hotkeyCatch && (entryID==7)) {
-			DrawMenuItem("Press the desired key.");
-		} else {
-			DrawMenuItem(retprintf("Hotkey >Full< : %s", controls.GetKeyName(guiHotkeys[4]).c_str()));
-		}
-		DrawMenuItem("Back to Main Menu");
-		DrawMenuItem("Back to Game");
-
-		// draw GUI quick setting rectangles
-		D3DRECT rect;
-		rect.x1 = (int)(viewportWidth*0.52f); rect.x2 = (int)(viewportWidth*0.56f); rect.y1 = (int)guiQSTop; rect.y2 = (int)(guiQSTop+viewportHeight*0.027f);
-		DrawSelection(vireio::RenderPosition::Left, rect, COLOR_QUICK_SETTING, (int)gui3DDepthMode, (int)GUI_3D_Depth_Modes::GUI_ENUM_RANGE);
-		DrawSelection(vireio::RenderPosition::Right, rect, COLOR_QUICK_SETTING, (int)gui3DDepthMode, (int)GUI_3D_Depth_Modes::GUI_ENUM_RANGE);
-
-		VPMENU_FinishDrawing();
+	case D3DProxyDevice::GUI_DEFAULT:
+		DrawMenuItem("GUI : Default");
+		break;
+	case D3DProxyDevice::GUI_SMALL:
+		DrawMenuItem("GUI : Small");
+		break;
+	case D3DProxyDevice::GUI_LARGE:
+		DrawMenuItem("GUI : Large");
+		break;
+	case D3DProxyDevice::GUI_FULL:
+		DrawMenuItem("GUI : Full");
+		break;
+	default:
+		break;
 	}
+	DrawMenuItem(retprintf("GUI Size : %g", RoundVireioValue(guiSquishPresets[(int)gui3DDepthMode])));
+	DrawMenuItem(retprintf("GUI's 3D Depth : %g", RoundVireioValue(gui3DDepthPresets[(int)gui3DDepthMode])));
+	
+	if (hotkeyCatch && (entryID==3)) {
+		DrawMenuItem("Press the desired key.");
+	} else {
+		DrawMenuItem(retprintf("Hotkey >Switch< : %s", controls.GetKeyName(guiHotkeys[0]).c_str()));
+	}
+	if (hotkeyCatch && (entryID==4)) {
+		DrawMenuItem("Press the desired key.");
+	} else {
+		DrawMenuItem(retprintf("Hotkey >Default< : %s", controls.GetKeyName(guiHotkeys[1]).c_str()));
+	}
+	if (hotkeyCatch && (entryID==5)) {
+		DrawMenuItem("Press the desired key.");
+	} else {
+		DrawMenuItem(retprintf("Hotkey >Small< : %s", controls.GetKeyName(guiHotkeys[2]).c_str()));
+	}
+	if (hotkeyCatch && (entryID==6)) {
+		DrawMenuItem("Press the desired key.");
+	} else {
+		DrawMenuItem(retprintf("Hotkey >Large< : %s", controls.GetKeyName(guiHotkeys[3]).c_str()));
+	}
+	if (hotkeyCatch && (entryID==7)) {
+		DrawMenuItem("Press the desired key.");
+	} else {
+		DrawMenuItem(retprintf("Hotkey >Full< : %s", controls.GetKeyName(guiHotkeys[4]).c_str()));
+	}
+	DrawMenuItem("Back to Main Menu");
+	DrawMenuItem("Back to Game");
+
+	// draw GUI quick setting rectangles
+	D3DRECT rect;
+	rect.x1 = (int)(viewportWidth*0.52f); rect.x2 = (int)(viewportWidth*0.56f); rect.y1 = (int)guiQSTop; rect.y2 = (int)(guiQSTop+viewportHeight*0.027f);
+	DrawSelection(vireio::RenderPosition::Left, rect, COLOR_QUICK_SETTING, (int)gui3DDepthMode, (int)GUI_3D_Depth_Modes::GUI_ENUM_RANGE);
+	DrawSelection(vireio::RenderPosition::Right, rect, COLOR_QUICK_SETTING, (int)gui3DDepthMode, (int)GUI_3D_Depth_Modes::GUI_ENUM_RANGE);
+
+	VPMENU_FinishDrawing();
 }
 
 /**
@@ -1461,58 +1451,55 @@ void D3DProxyDevice::VPMENU_Settings()
 	}
 	
 	// output menu
-	if (hudFont)
+	VPMENU_StartDrawing("Settings - General", entryID);
+
+	DrawMenuItem(retprintf("Swap Eyes : %s", stereoView->swapEyes ? "True" : "False"));
+	DrawMenuItem(retprintf("IPD-Offset : %1.3f", RoundVireioValue(this->stereoView->IPDOffset)));
+	DrawMenuItem(retprintf("Y-Offset : %1.3f", RoundVireioValue(this->stereoView->YOffset)));
+	DrawMenuItem(retprintf("Distortion Scale : %g", RoundVireioValue(this->stereoView->DistortionScale)));
+	//DrawMenuItem("Stereo Screenshots");
+	DrawMenuItem(retprintf("Yaw multiplier : %g", RoundVireioValue(tracker->multiplierYaw)));
+	DrawMenuItem(retprintf("Pitch multiplier : %g", RoundVireioValue(tracker->multiplierPitch)));
+	DrawMenuItem(retprintf("Roll multiplier : %g", RoundVireioValue(tracker->multiplierRoll)));
+	DrawMenuItem("Reset Multipliers");
+	
+	switch (m_spShaderViewAdjustment->RollImpl())
 	{
-		VPMENU_StartDrawing("Settings - General", entryID);
-
-		DrawMenuItem(retprintf("Swap Eyes : %s", stereoView->swapEyes ? "True" : "False"));
-		DrawMenuItem(retprintf("IPD-Offset : %1.3f", RoundVireioValue(this->stereoView->IPDOffset)));
-		DrawMenuItem(retprintf("Y-Offset : %1.3f", RoundVireioValue(this->stereoView->YOffset)));
-		DrawMenuItem(retprintf("Distortion Scale : %g", RoundVireioValue(this->stereoView->DistortionScale)));
-		//DrawMenuItem("Stereo Screenshots");
-		DrawMenuItem(retprintf("Yaw multiplier : %g", RoundVireioValue(tracker->multiplierYaw)));
-		DrawMenuItem(retprintf("Pitch multiplier : %g", RoundVireioValue(tracker->multiplierPitch)));
-		DrawMenuItem(retprintf("Roll multiplier : %g", RoundVireioValue(tracker->multiplierRoll)));
-		DrawMenuItem("Reset Multipliers");
-		
-		switch (m_spShaderViewAdjustment->RollImpl())
-		{
-		case 0: DrawMenuItem("Roll : Not Enabled"); break;
-		case 1: DrawMenuItem("Roll : Matrix Translation"); break;
-		case 2: DrawMenuItem("Roll : Pixel Shader"); break;
-		}
-		
-		switch (m_bForceMouseEmulation)
-		{
-		case true:  DrawMenuItem("Force Mouse Emulation HT : True"); break;
-		case false: DrawMenuItem("Force Mouse Emulation HT : False"); break;
-		}
-		
-		switch (m_bVRBoostToggle)
-		{
-		case true:  DrawMenuItem("Toggle VRBoost : On", COLOR_MENU_ENABLED); break;
-		case false: DrawMenuItem("Toggle VRBoost : Off", COLOR_MENU_DISABLED); break;
-		}
-		
-		if (hotkeyCatch && (entryID==11)) {
-			DrawMenuItem("Press the desired key.");
-		} else {
-			DrawMenuItem(retprintf("Hotkey >Toggle VRBoost< : %s",
-				controls.GetKeyName(toggleVRBoostHotkey).c_str()));
-		}
-		
-		if (hotkeyCatch && (entryID==12)) {
-			DrawMenuItem("Press the desired key.");
-		} else {
-			DrawMenuItem(retprintf("Hotkey >Disconnected Screen< : %s",
-				controls.GetKeyName(edgePeekHotkey).c_str()));
-		}
-		
-		DrawMenuItem("Back to Main Menu");
-		DrawMenuItem("Back to Game");
-
-		VPMENU_FinishDrawing();
+	case 0: DrawMenuItem("Roll : Not Enabled"); break;
+	case 1: DrawMenuItem("Roll : Matrix Translation"); break;
+	case 2: DrawMenuItem("Roll : Pixel Shader"); break;
 	}
+	
+	switch (m_bForceMouseEmulation)
+	{
+	case true:  DrawMenuItem("Force Mouse Emulation HT : True"); break;
+	case false: DrawMenuItem("Force Mouse Emulation HT : False"); break;
+	}
+	
+	switch (m_bVRBoostToggle)
+	{
+	case true:  DrawMenuItem("Toggle VRBoost : On", COLOR_MENU_ENABLED); break;
+	case false: DrawMenuItem("Toggle VRBoost : Off", COLOR_MENU_DISABLED); break;
+	}
+	
+	if (hotkeyCatch && (entryID==HOTKEY_VRBOOST)) {
+		DrawMenuItem("Press the desired key.");
+	} else {
+		DrawMenuItem(retprintf("Hotkey >Toggle VRBoost< : %s",
+			controls.GetKeyName(toggleVRBoostHotkey).c_str()));
+	}
+	
+	if (hotkeyCatch && (entryID==HOTKEY_EDGEPEEK)) {
+		DrawMenuItem("Press the desired key.");
+	} else {
+		DrawMenuItem(retprintf("Hotkey >Disconnected Screen< : %s",
+			controls.GetKeyName(edgePeekHotkey).c_str()));
+	}
+	
+	DrawMenuItem("Back to Main Menu");
+	DrawMenuItem("Back to Game");
+
+	VPMENU_FinishDrawing();
 }
 
 
@@ -1643,30 +1630,27 @@ void D3DProxyDevice::VPMENU_PosTracking()
 
 
 	// output menu
-	if (hudFont)
+	VPMENU_StartDrawing("Settings - Positional Tracking", entryID);
+
+	switch (m_bPosTrackingToggle)
 	{
-		VPMENU_StartDrawing("Settings - Positional Tracking", entryID);
-
-		switch (m_bPosTrackingToggle)
-		{
-		case true:
-			DrawMenuItem("Positional Tracking (CTRL + P) : On", COLOR_MENU_ENABLED);
-			break;
-		case false:
-			DrawMenuItem("Positional Tracking (CTRL + P) : Off", COLOR_LIGHTRED);
-			break;
-		}
-		DrawMenuItem(retprintf("Position Tracking multiplier : %g", RoundVireioValue(config.position_multiplier)));
-		DrawMenuItem(retprintf("Position X-Tracking multiplier : %g", RoundVireioValue(config.position_x_multiplier)));
-		DrawMenuItem(retprintf("Position Y-Tracking multiplier : %g", RoundVireioValue(config.position_y_multiplier)));
-		DrawMenuItem(retprintf("Position Z-Tracking multiplier : %g", RoundVireioValue(config.position_z_multiplier)));
-		DrawMenuItem("Reset HMD Orientation (LSHIFT + R)");
-		DrawMenuItem("Duck-and-Cover Configuration");
-		DrawMenuItem("Back to Main Menu");
-		DrawMenuItem("Back to Game");
-
-		VPMENU_FinishDrawing();
+	case true:
+		DrawMenuItem("Positional Tracking (CTRL + P) : On", COLOR_MENU_ENABLED);
+		break;
+	case false:
+		DrawMenuItem("Positional Tracking (CTRL + P) : Off", COLOR_LIGHTRED);
+		break;
 	}
+	DrawMenuItem(retprintf("Position Tracking multiplier : %g", RoundVireioValue(config.position_multiplier)));
+	DrawMenuItem(retprintf("Position X-Tracking multiplier : %g", RoundVireioValue(config.position_x_multiplier)));
+	DrawMenuItem(retprintf("Position Y-Tracking multiplier : %g", RoundVireioValue(config.position_y_multiplier)));
+	DrawMenuItem(retprintf("Position Z-Tracking multiplier : %g", RoundVireioValue(config.position_z_multiplier)));
+	DrawMenuItem("Reset HMD Orientation (LSHIFT + R)");
+	DrawMenuItem("Duck-and-Cover Configuration");
+	DrawMenuItem("Back to Main Menu");
+	DrawMenuItem("Back to Game");
+
+	VPMENU_FinishDrawing();
 }
 
 /**
@@ -1787,80 +1771,77 @@ void D3DProxyDevice::VPMENU_DuckAndCover()
 	}
 
 	// output menu
-	if (hudFont)
-	{
-		VPMENU_StartDrawing("Settings - Duck-and-Cover", entryID);
+	VPMENU_StartDrawing("Settings - Duck-and-Cover", entryID);
 
-		switch (m_DuckAndCover.crouchToggle)
+	switch (m_DuckAndCover.crouchToggle)
+	{
+	case true:
+		DrawMenuItem("Crouch : Toggle");
+		break;
+	case false:
+		DrawMenuItem("Crouch : Hold");
+		break;
+	}
+
+	if (hotkeyCatch && (entryID==CROUCH_KEY)) {
+		DrawMenuItem("Crouch Key : >Press the desired key<");
+	} else {
+		DrawMenuItem(retprintf("Crouch Key : %s",
+			controls.GetKeyName(m_DuckAndCover.crouchKey).c_str()));
+	}
+
+	if (!m_DuckAndCover.proneEnabled)
+	{
+		DrawMenuItem("Prone : Disabled (Use calibrate to enable)", COLOR_MENU_DISABLED);
+	}
+	else
+	{
+		switch (m_DuckAndCover.proneToggle)
 		{
 		case true:
-			DrawMenuItem("Crouch : Toggle");
+			DrawMenuItem("Prone : Toggle");
 			break;
 		case false:
-			DrawMenuItem("Crouch : Hold");
+			DrawMenuItem("Prone : Hold");
 			break;
 		}
-
-		if (hotkeyCatch && (entryID==CROUCH_KEY)) {
-			DrawMenuItem("Crouch Key : >Press the desired key<");
-		} else {
-			DrawMenuItem(retprintf("Crouch Key : %s",
-				controls.GetKeyName(m_DuckAndCover.crouchKey).c_str()));
-		}
-
-		if (!m_DuckAndCover.proneEnabled)
-		{
-			DrawMenuItem("Prone : Disabled (Use calibrate to enable)", COLOR_MENU_DISABLED);
-		}
-		else
-		{
-			switch (m_DuckAndCover.proneToggle)
-			{
-			case true:
-				DrawMenuItem("Prone : Toggle");
-				break;
-			case false:
-				DrawMenuItem("Prone : Hold");
-				break;
-			}
-		}
-
-		if (hotkeyCatch && (entryID==PRONE_KEY)) {
-			DrawMenuItem("Prone Key : >Press the desired key<");
-		} else {
-			DrawMenuItem(retprintf("Prone Key : %s",
-				controls.GetKeyName(m_DuckAndCover.proneKey).c_str()));
-		}
-
-		if (!m_DuckAndCover.jumpEnabled)
-			DrawMenuItem("Jump : Enabled");
-		else
-			DrawMenuItem("Jump : Disabled", COLOR_MENU_DISABLED);
-
-		if (hotkeyCatch && (entryID==JUMP_KEY)) {
-			DrawMenuItem("Jump Key : >Press the desired key<");
-		} else {
-			DrawMenuItem(retprintf("Jump Key : %s",
-				controls.GetKeyName(m_DuckAndCover.jumpKey).c_str()));
-		}
-
-		DrawMenuItem("Calibrate Duck-and-Cover then Enable");
-
-		if (m_DuckAndCover.dfcStatus == DAC_DISABLED ||
-			m_DuckAndCover.dfcStatus == DAC_INACTIVE)
-		{
-			DrawMenuItem("Enable Duck-and-Cover Mode");
-		}
-		else
-		{
-			DrawMenuItem("Disable Duck-and-Cover Mode");
-		}
-
-		DrawMenuItem("Back to Main Menu");
-		DrawMenuItem("Back to Game");
-
-		VPMENU_FinishDrawing();
 	}
+
+	if (hotkeyCatch && (entryID==PRONE_KEY)) {
+		DrawMenuItem("Prone Key : >Press the desired key<");
+	} else {
+		DrawMenuItem(retprintf("Prone Key : %s",
+			controls.GetKeyName(m_DuckAndCover.proneKey).c_str()));
+	}
+
+	if (!m_DuckAndCover.jumpEnabled)
+		DrawMenuItem("Jump : Enabled");
+	else
+		DrawMenuItem("Jump : Disabled", COLOR_MENU_DISABLED);
+
+	if (hotkeyCatch && (entryID==JUMP_KEY)) {
+		DrawMenuItem("Jump Key : >Press the desired key<");
+	} else {
+		DrawMenuItem(retprintf("Jump Key : %s",
+			controls.GetKeyName(m_DuckAndCover.jumpKey).c_str()));
+	}
+
+	DrawMenuItem("Calibrate Duck-and-Cover then Enable");
+
+	if (m_DuckAndCover.dfcStatus == DAC_DISABLED ||
+		m_DuckAndCover.dfcStatus == DAC_INACTIVE)
+	{
+		DrawMenuItem("Enable Duck-and-Cover Mode");
+	}
+	else
+	{
+		DrawMenuItem("Disable Duck-and-Cover Mode");
+	}
+
+	DrawMenuItem("Back to Main Menu");
+	DrawMenuItem("Back to Game");
+
+	VPMENU_FinishDrawing();
 }
 
 /**
@@ -1939,40 +1920,37 @@ void D3DProxyDevice::VPMENU_ComfortMode()
 	}
 
 	// output menu
-	if (hudFont)
+	VPMENU_StartDrawing("Settings - Comfort Mode", entryID);
+
+	if (VRBoostValue[VRboostAxis::ComfortMode] != 0.0f)
 	{
-		VPMENU_StartDrawing("Settings - Comfort Mode", entryID);
-
-		if (VRBoostValue[VRboostAxis::ComfortMode] != 0.0f)
-		{
-			DrawMenuItem("Comfort Mode : Enabled");
-		}
-		else
-		{
-			DrawMenuItem("Comfort Mode : Disabled");
-		}
-
-		if (hotkeyCatch && (entryID==TURN_LEFT)) {
-			DrawMenuItem("Turn Left Key : >Press the desired key<");
-		} else {
-			DrawMenuItem(retprintf("Turn Left Key : %s",
-				controls.GetKeyName(m_comfortModeLeftKey).c_str()));
-		}
-
-		if (hotkeyCatch && (entryID==TURN_RIGHT)) {
-			DrawMenuItem("Turn Right Key : >Press the desired key<");
-		} else {
-			DrawMenuItem(retprintf("Turn Right Key : %s",
-				controls.GetKeyName(m_comfortModeRightKey).c_str()));
-		}
-
-		DrawMenuItem(retprintf("Yaw Rotation Increment : %.1f", m_comfortModeYawIncrement));
-
-		DrawMenuItem("Back to Main Menu");
-		DrawMenuItem("Back to Game");
-
-		VPMENU_FinishDrawing();
+		DrawMenuItem("Comfort Mode : Enabled");
 	}
+	else
+	{
+		DrawMenuItem("Comfort Mode : Disabled");
+	}
+
+	if (hotkeyCatch && (entryID==TURN_LEFT)) {
+		DrawMenuItem("Turn Left Key : >Press the desired key<");
+	} else {
+		DrawMenuItem(retprintf("Turn Left Key : %s",
+			controls.GetKeyName(m_comfortModeLeftKey).c_str()));
+	}
+
+	if (hotkeyCatch && (entryID==TURN_RIGHT)) {
+		DrawMenuItem("Turn Right Key : >Press the desired key<");
+	} else {
+		DrawMenuItem(retprintf("Turn Right Key : %s",
+			controls.GetKeyName(m_comfortModeRightKey).c_str()));
+	}
+
+	DrawMenuItem(retprintf("Yaw Rotation Increment : %.1f", m_comfortModeYawIncrement));
+
+	DrawMenuItem("Back to Main Menu");
+	DrawMenuItem("Back to Game");
+
+	VPMENU_FinishDrawing();
 }
 
 /**
@@ -2031,27 +2009,24 @@ void D3DProxyDevice::VPMENU_VRBoostValues()
 	}
 	
 	// output menu
-	if (hudFont)
-	{
-		VPMENU_StartDrawing("Settings - VRBoost", entryID);
+	VPMENU_StartDrawing("Settings - VRBoost", entryID);
 
-		DrawMenuItem(retprintf("World FOV : %g", RoundVireioValue(VRBoostValue[24])));
-		DrawMenuItem(retprintf("Player FOV : %g", RoundVireioValue(VRBoostValue[25])));
-		DrawMenuItem(retprintf("Far Plane FOV : %g", RoundVireioValue(VRBoostValue[26])));
-		DrawMenuItem(retprintf("Camera Translate X : %g", RoundVireioValue(VRBoostValue[27])));
-		DrawMenuItem(retprintf("Camera Translate Y : %g", RoundVireioValue(VRBoostValue[28])));
-		DrawMenuItem(retprintf("Camera Translate Z : %g", RoundVireioValue(VRBoostValue[29])));
-		DrawMenuItem(retprintf("Camera Distance : %g", RoundVireioValue(VRBoostValue[30])));
-		DrawMenuItem(retprintf("Camera Zoom : %g", RoundVireioValue(VRBoostValue[31])));
-		DrawMenuItem(retprintf("Camera Horizon Adjustment : %g", RoundVireioValue(VRBoostValue[32])));
-		DrawMenuItem(retprintf("Constant Value 1 : %g", RoundVireioValue(VRBoostValue[33])));
-		DrawMenuItem(retprintf("Constant Value 2 : %g", RoundVireioValue(VRBoostValue[34])));
-		DrawMenuItem(retprintf("Constant Value 2 : %g", RoundVireioValue(VRBoostValue[35])));
-		DrawMenuItem("Back to Main Menu");
-		DrawMenuItem("Back to Game");
+	DrawMenuItem(retprintf("World FOV : %g", RoundVireioValue(VRBoostValue[24])));
+	DrawMenuItem(retprintf("Player FOV : %g", RoundVireioValue(VRBoostValue[25])));
+	DrawMenuItem(retprintf("Far Plane FOV : %g", RoundVireioValue(VRBoostValue[26])));
+	DrawMenuItem(retprintf("Camera Translate X : %g", RoundVireioValue(VRBoostValue[27])));
+	DrawMenuItem(retprintf("Camera Translate Y : %g", RoundVireioValue(VRBoostValue[28])));
+	DrawMenuItem(retprintf("Camera Translate Z : %g", RoundVireioValue(VRBoostValue[29])));
+	DrawMenuItem(retprintf("Camera Distance : %g", RoundVireioValue(VRBoostValue[30])));
+	DrawMenuItem(retprintf("Camera Zoom : %g", RoundVireioValue(VRBoostValue[31])));
+	DrawMenuItem(retprintf("Camera Horizon Adjustment : %g", RoundVireioValue(VRBoostValue[32])));
+	DrawMenuItem(retprintf("Constant Value 1 : %g", RoundVireioValue(VRBoostValue[33])));
+	DrawMenuItem(retprintf("Constant Value 2 : %g", RoundVireioValue(VRBoostValue[34])));
+	DrawMenuItem(retprintf("Constant Value 2 : %g", RoundVireioValue(VRBoostValue[35])));
+	DrawMenuItem("Back to Main Menu");
+	DrawMenuItem("Back to Game");
 
-		VPMENU_FinishDrawing();
-	}
+	VPMENU_FinishDrawing();
 }
 
 

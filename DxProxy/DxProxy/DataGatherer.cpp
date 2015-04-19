@@ -815,20 +815,17 @@ void DataGatherer::VPMENU_ShaderSubMenu()
 	}
 
 	// output menu
-	if (hudFont)
-	{
-		VPMENU_StartDrawing("Shader Analyser", entryID);
+	VPMENU_StartDrawing("Shader Analyser", entryID);
 
-		DrawMenuItem("Create new Shader Rules");
-		DrawMenuItem("Change current Shader Rules");
-		//DrawMenuItem("Pick Rules by active Shaders");
-		DrawMenuItem("Show and exclude active Shaders");
-		DrawMenuItem("Save Shader Rules");
-		DrawMenuItem("Back to BRASSA Menu");
-		DrawMenuItem("Back to Game");
+	DrawMenuItem("Create new Shader Rules");
+	DrawMenuItem("Change current Shader Rules");
+	//DrawMenuItem("Pick Rules by active Shaders");
+	DrawMenuItem("Show and exclude active Shaders");
+	DrawMenuItem("Save Shader Rules");
+	DrawMenuItem("Back to BRASSA Menu");
+	DrawMenuItem("Back to Game");
 
-		VPMENU_FinishDrawing();
-	}
+	VPMENU_FinishDrawing();
 }
 
 /**
@@ -1124,55 +1121,52 @@ void DataGatherer::VPMENU_ChangeRules()
 	}
 
 	// output menu
-	if (hudFont)
+	// adjust border & menu due to menu scroll
+	float borderDrawingHeight = borderTopHeight;
+	if (menuVelocity.y == 0.0f)
+		borderTopHeight = menuTop+menuEntryHeight*(float)entryID;
+	if (borderTopHeight>(menuTop+(menuEntryHeight*12.0f)))
+		borderDrawingHeight = menuTop+menuEntryHeight*12.0f;
+
+	// down scroll border/menu adjustment
+	if (menuTopHeight>=(borderDrawingHeight-borderTopHeight))
+		menuTopHeight = (borderDrawingHeight-borderTopHeight);
+	else
+		borderDrawingHeight=borderTopHeight+menuTopHeight;
+
+	// up scroll border/menu adjustment
+	if (borderDrawingHeight<menuTop)
 	{
-		// adjust border & menu due to menu scroll
-		float borderDrawingHeight = borderTopHeight;
-		if (menuVelocity.y == 0.0f)
-			borderTopHeight = menuTop+menuEntryHeight*(float)entryID;
-		if (borderTopHeight>(menuTop+(menuEntryHeight*12.0f)))
-			borderDrawingHeight = menuTop+menuEntryHeight*12.0f;
-
-		// down scroll border/menu adjustment
-		if (menuTopHeight>=(borderDrawingHeight-borderTopHeight))
-			menuTopHeight = (borderDrawingHeight-borderTopHeight);
-		else
-			borderDrawingHeight=borderTopHeight+menuTopHeight;
-
-		// up scroll border/menu adjustment
-		if (borderDrawingHeight<menuTop)
-		{
-			menuTopHeight+=menuTop-borderDrawingHeight;
-			borderDrawingHeight = menuTop;
-		}
-
-
-		// draw border - total width due to shift correction
-		D3DRECT rect;
-		rect.x1 = (int)0; rect.x2 = (int)viewportWidth; rect.y1 = (int)borderDrawingHeight; rect.y2 = (int)(borderDrawingHeight+viewportHeight*0.04f);
-		ClearEmptyRect(vireio::RenderPosition::Left, rect, COLOR_MENU_BORDER, 2);
-		ClearEmptyRect(vireio::RenderPosition::Right, rect, COLOR_MENU_BORDER, 2);
-
-		hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
-
-		D3DXMATRIX matScale;
-		D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
-		hudMainMenu->SetTransform(&matScale);
-
-		menuHelperRect.left = 800; menuHelperRect.top = 350;
-		menuHelperRect.top += (int)(menuTopHeight / fScaleY);
-		for (UINT i = 0; i < menuEntryCount-2; i++)
-		{
-			if (menuColor[i])
-				DrawMenuItem(menuEntries[i].c_str(), COLOR_MENU_ENABLED);
-			else	
-				DrawMenuItem(menuEntries[i].c_str());
-		}
-		DrawMenuItem("Back to BRASSA Menu");
-		DrawMenuItem("Back to Game");
-
-		VPMENU_FinishDrawing();
+		menuTopHeight+=menuTop-borderDrawingHeight;
+		borderDrawingHeight = menuTop;
 	}
+
+
+	// draw border - total width due to shift correction
+	D3DRECT rect;
+	rect.x1 = (int)0; rect.x2 = (int)viewportWidth; rect.y1 = (int)borderDrawingHeight; rect.y2 = (int)(borderDrawingHeight+viewportHeight*0.04f);
+	ClearEmptyRect(vireio::RenderPosition::Left, rect, COLOR_MENU_BORDER, 2);
+	ClearEmptyRect(vireio::RenderPosition::Right, rect, COLOR_MENU_BORDER, 2);
+
+	hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
+
+	D3DXMATRIX matScale;
+	D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
+	hudMainMenu->SetTransform(&matScale);
+
+	menuHelperRect.left = 800; menuHelperRect.top = 350;
+	menuHelperRect.top += (int)(menuTopHeight / fScaleY);
+	for (UINT i = 0; i < menuEntryCount-2; i++)
+	{
+		if (menuColor[i])
+			DrawMenuItem(menuEntries[i].c_str(), COLOR_MENU_ENABLED);
+		else	
+			DrawMenuItem(menuEntries[i].c_str());
+	}
+	DrawMenuItem("Back to BRASSA Menu");
+	DrawMenuItem("Back to Game");
+
+	VPMENU_FinishDrawing();
 }
 
 /**
@@ -1337,69 +1331,66 @@ void DataGatherer::VPMENU_ShowActiveShaders()
 
 
 	// output menu
-	if (hudFont)
+	// adjust border & menu due to menu scroll
+	float borderDrawingHeight = borderTopHeight;
+	if (menuVelocity.y == 0.0f)
+		borderTopHeight = menuTop+menuEntryHeight*(float)entryID;
+	if (borderTopHeight>(menuTop+(menuEntryHeight*12.0f)))
+		borderDrawingHeight = menuTop+menuEntryHeight*12.0f;
+
+	// down scroll border/menu adjustment
+	if (menuTopHeight>=(borderDrawingHeight-borderTopHeight))
+		menuTopHeight = (borderDrawingHeight-borderTopHeight);
+	else
+		borderDrawingHeight=borderTopHeight+menuTopHeight;
+
+	// up scroll border/menu adjustment
+	if (borderDrawingHeight<menuTop)
 	{
-		// adjust border & menu due to menu scroll
-		float borderDrawingHeight = borderTopHeight;
-		if (menuVelocity.y == 0.0f)
-			borderTopHeight = menuTop+menuEntryHeight*(float)entryID;
-		if (borderTopHeight>(menuTop+(menuEntryHeight*12.0f)))
-			borderDrawingHeight = menuTop+menuEntryHeight*12.0f;
-
-		// down scroll border/menu adjustment
-		if (menuTopHeight>=(borderDrawingHeight-borderTopHeight))
-			menuTopHeight = (borderDrawingHeight-borderTopHeight);
-		else
-			borderDrawingHeight=borderTopHeight+menuTopHeight;
-
-		// up scroll border/menu adjustment
-		if (borderDrawingHeight<menuTop)
-		{
-			menuTopHeight+=menuTop-borderDrawingHeight;
-			borderDrawingHeight = menuTop;
-		}
-
-
-		// draw border - total width due to shift correction
-		D3DRECT rect;
-		rect.x1 = (int)0; rect.x2 = (int)viewportWidth; rect.y1 = (int)borderDrawingHeight; rect.y2 = (int)(borderDrawingHeight+viewportHeight*0.04f);
-		ClearEmptyRect(vireio::RenderPosition::Left, rect, COLOR_MENU_BORDER, 2);
-		ClearEmptyRect(vireio::RenderPosition::Right, rect, COLOR_MENU_BORDER, 2);
-
-		hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
-
-		D3DXMATRIX matScale;
-		D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
-		hudMainMenu->SetTransform(&matScale);
-
-		menuHelperRect.left = 800; menuHelperRect.top = 350;
-		menuHelperRect.top += (int)(menuTopHeight / fScaleY);
-		for (UINT i = 0; i < menuEntryCount-2; i++)
-		{
-			if ((menuHelperRect.top + 40) >= 0)
-			{
-				if (menuColor[i] == 0) // Not visible
-					DrawMenuItem(menuEntries[i].c_str(), COLOR_MENU_DISABLED);
-				else if (menuColor[i] == 1) // excluded
-					DrawMenuItem(menuEntries[i].c_str());
-				else	
-					DrawMenuItem(menuEntries[i].c_str(), COLOR_MENU_ENABLED);
-					
-			}
-
-			//No point drawing anything off the bottom of the viewport!
-			if (menuHelperRect.top > viewportHeight)
-				break;
-		}
-
-		if (menuHelperRect.top < viewportHeight)
-		{
-			DrawMenuItem("Back to BRASSA Menu");
-			DrawMenuItem("Back to Game");
-		}
-
-		VPMENU_FinishDrawing();
+		menuTopHeight+=menuTop-borderDrawingHeight;
+		borderDrawingHeight = menuTop;
 	}
+
+
+	// draw border - total width due to shift correction
+	D3DRECT rect;
+	rect.x1 = (int)0; rect.x2 = (int)viewportWidth; rect.y1 = (int)borderDrawingHeight; rect.y2 = (int)(borderDrawingHeight+viewportHeight*0.04f);
+	ClearEmptyRect(vireio::RenderPosition::Left, rect, COLOR_MENU_BORDER, 2);
+	ClearEmptyRect(vireio::RenderPosition::Right, rect, COLOR_MENU_BORDER, 2);
+
+	hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
+
+	D3DXMATRIX matScale;
+	D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
+	hudMainMenu->SetTransform(&matScale);
+
+	menuHelperRect.left = 800; menuHelperRect.top = 350;
+	menuHelperRect.top += (int)(menuTopHeight / fScaleY);
+	for (UINT i = 0; i < menuEntryCount-2; i++)
+	{
+		if ((menuHelperRect.top + 40) >= 0)
+		{
+			if (menuColor[i] == 0) // Not visible
+				DrawMenuItem(menuEntries[i].c_str(), COLOR_MENU_DISABLED);
+			else if (menuColor[i] == 1) // excluded
+				DrawMenuItem(menuEntries[i].c_str());
+			else	
+				DrawMenuItem(menuEntries[i].c_str(), COLOR_MENU_ENABLED);
+				
+		}
+
+		//No point drawing anything off the bottom of the viewport!
+		if (menuHelperRect.top > viewportHeight)
+			break;
+	}
+
+	if (menuHelperRect.top < viewportHeight)
+	{
+		DrawMenuItem("Back to BRASSA Menu");
+		DrawMenuItem("Back to Game");
+	}
+
+	VPMENU_FinishDrawing();
 }
 
 
