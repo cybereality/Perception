@@ -805,6 +805,13 @@ void DataGatherer::VPMENU_ShaderSubMenu()
 ***/
 void DataGatherer::VPMENU_ChangeRules()
 {
+	enum
+	{
+		FLAG_TRANSPOSITION = (1<<29),
+		FLAG_RULENAME = (1<<30),
+		FLAG_RULECLASS = (1<<31)
+	};
+	
 	UINT menuEntryCount = 2;
 	UINT constantIndex = 0;
 	std::vector<std::string> menuEntries;
@@ -823,7 +830,7 @@ void DataGatherer::VPMENU_ChangeRules()
 		{
 			// output the class
 			menuColor.push_back(itShaderConstants->hasRule);
-			menuID.push_back(constantIndex+(1<<31));
+			menuID.push_back(constantIndex+FLAG_RULECLASS);
 			// output shader constant + index 
 			switch(itShaderConstants->desc.Class)
 			{
@@ -841,7 +848,7 @@ void DataGatherer::VPMENU_ChangeRules()
 
 			// output the class
 			menuColor.push_back(itShaderConstants->hasRule);
-			menuID.push_back(constantIndex+(1<<30));
+			menuID.push_back(constantIndex+FLAG_RULENAME);
 			if (itShaderConstants->hasRule)
 				menuEntries.push_back("  "+itShaderConstants->ruleName);
 			else
@@ -852,7 +859,7 @@ void DataGatherer::VPMENU_ChangeRules()
 			if ((itShaderConstants->hasRule) && (itShaderConstants->desc.Class != D3DXPC_VECTOR))
 			{
 				menuColor.push_back(itShaderConstants->hasRule);
-				menuID.push_back(constantIndex+(1<<29));
+				menuID.push_back(constantIndex+FLAG_TRANSPOSITION);
 				if (itShaderConstants->isTransposed)
 					menuEntries.push_back("  Transposed");
 				else
@@ -874,11 +881,11 @@ void DataGatherer::VPMENU_ChangeRules()
 		if (VPMENU_Input_Selected() && HotkeysActive())
 		{
 			// constant node entry ?
-			if ((menuID[entryID] & (1<<31)) == (1<<31))
+			if ((menuID[entryID] & FLAG_RULECLASS) == FLAG_RULECLASS)
 			{
 				// no influence on class node entry
 			}
-			else if ((menuID[entryID] & (1<<30)) == (1<<30)) // add/delete rule
+			else if ((menuID[entryID] & FLAG_RULENAME) == FLAG_RULENAME) // add/delete rule
 			{
 				// no rule present, so add
 				if (!m_relevantVSConstantNames[menuID[entryID]].hasRule)
@@ -935,7 +942,7 @@ void DataGatherer::VPMENU_ChangeRules()
 					}
 				}
 			}
-			else if ((menuID[entryID] & (1<<29)) == (1<<29))
+			else if ((menuID[entryID] & FLAG_TRANSPOSITION) == FLAG_TRANSPOSITION)
 			{
 				bool newTrans = !m_relevantVSConstantNames[menuID[entryID]].isTransposed;
 				// transposed or non-transposed
@@ -1009,7 +1016,7 @@ void DataGatherer::VPMENU_ChangeRules()
 		// switch shader rule node
 		if (VPMENU_Input_IsAdjustment() && HotkeysActive())
 		{
-			if ((menuID[entryID] & (1<<30)) == (1<<30)) // rule node entry
+			if ((menuID[entryID] & FLAG_RULENAME) == FLAG_RULENAME) // rule node entry
 			{
 				// rule present, so modify
 				if (m_relevantVSConstantNames[menuID[entryID]].hasRule)
