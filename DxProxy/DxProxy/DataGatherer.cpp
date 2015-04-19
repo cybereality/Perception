@@ -231,15 +231,15 @@ HRESULT WINAPI DataGatherer::Present(CONST RECT* pSourceRect,CONST RECT* pDestRe
 
 	// draw an indicator (colored rectangle) for each found rule
 	UINT xPos = 320;
-	auto itAddedConstants = m_addedVSConstants.begin();
-	while (itAddedConstants != m_addedVSConstants.end())
+	for(auto itAddedConstants = m_addedVSConstants.begin();
+	    itAddedConstants != m_addedVSConstants.end();
+	    ++itAddedConstants)
 	{
 		// draw a rectangle to show beeing in analyze mode
 		D3DRECT rec = {xPos, 288, xPos+16, 304};
 		ClearRect(vireio::RenderPosition::Left, rec, COLOR_GREEN);
 
 		xPos+=20;
-		++itAddedConstants;
 	}
 
 	return D3DProxyDevice::Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
@@ -506,8 +506,9 @@ HRESULT WINAPI DataGatherer::SetVertexShaderConstantF(UINT StartRegister,CONST f
 		if (m_relevantVSConstants.find(m_currentVertexShaderHash) != m_relevantVSConstants.end())
 		{
 			// loop through relevant vertex shader constants
-			auto itShaderConstants = m_relevantVSConstants[m_currentVertexShaderHash].begin();
-			while (itShaderConstants != m_relevantVSConstants[m_currentVertexShaderHash].end())
+			for(auto itShaderConstants = m_relevantVSConstants[m_currentVertexShaderHash].begin();
+			    itShaderConstants != m_relevantVSConstants[m_currentVertexShaderHash].end();
+			    ++itShaderConstants)
 			{
 				// is a constant of current shader ?
 				// start register ? 
@@ -541,7 +542,6 @@ HRESULT WINAPI DataGatherer::SetVertexShaderConstantF(UINT StartRegister,CONST f
 							m_bTransposedRules = true;
 					}
 				}
-				++itShaderConstants;
 			}
 		}
 	}
@@ -810,9 +810,11 @@ void DataGatherer::VPMENU_ChangeRules()
 	std::vector<std::string> menuEntries;
 	std::vector<bool> menuColor;
 	std::vector<DWORD> menuID;
+	
 	// loop through relevant vertex shader constants
-	auto itShaderConstants = m_relevantVSConstantNames.begin();
-	while (itShaderConstants != m_relevantVSConstantNames.end())
+	for(auto itShaderConstants = m_relevantVSConstantNames.begin();
+	    itShaderConstants != m_relevantVSConstantNames.end();
+	    itShaderConstants++)
 	{
 		menuColor.push_back(itShaderConstants->hasRule);
 		menuID.push_back(constantIndex);
@@ -861,16 +863,15 @@ void DataGatherer::VPMENU_ChangeRules()
 
 		constantIndex++;
 		menuEntryCount++;
-		++itShaderConstants;
 	}
 
 	UINT entryID;
 	VPMENU_NewFrame(entryID, menuEntryCount);
 
-	if (VPMENU_Input_Selected())
+	if ((entryID >= 0) && (entryID < menuEntryCount-2) && (menuEntryCount>2))
 	{
 		// switch shader rule node
-		if ((entryID >= 0) && (entryID < menuEntryCount-2) && (menuEntryCount>2))
+		if (VPMENU_Input_Selected() && HotkeysActive())
 		{
 			// constant node entry ?
 			if ((menuID[entryID] & (1<<31)) == (1<<31))
@@ -882,11 +883,13 @@ void DataGatherer::VPMENU_ChangeRules()
 				// no rule present, so add
 				if (!m_relevantVSConstantNames[menuID[entryID]].hasRule)
 				{
-					auto itShaderConstantMap = m_relevantVSConstants.begin();
-					while (itShaderConstantMap != m_relevantVSConstants.end())
+					for(auto itShaderConstantMap = m_relevantVSConstants.begin();
+					    itShaderConstantMap != m_relevantVSConstants.end();
+					    itShaderConstantMap++)
 					{
-						auto itShaderConstants = itShaderConstantMap->second.begin();
-						while (itShaderConstants != itShaderConstantMap->second.end())
+						for(auto itShaderConstants = itShaderConstantMap->second.begin();
+						    itShaderConstants != itShaderConstantMap->second.end();
+						    itShaderConstants++)
 						{
 							// constant name in menu entries already present
 							if (itShaderConstants->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) == 0)
@@ -899,8 +902,9 @@ void DataGatherer::VPMENU_ChangeRules()
 								itShaderConstants->hasRule = true;
 
 								// set the menu output accordingly
-								auto itShaderConstants1 = m_relevantVSConstantNames.begin();
-								while (itShaderConstants1 != m_relevantVSConstantNames.end())
+								for(auto itShaderConstants1 = m_relevantVSConstantNames.begin();
+								    itShaderConstants1 !=m_relevantVSConstantNames.end();
+								    itShaderConstants1++)
 								{
 									// set rule bool for all relevant constant names
 									if (itShaderConstants1->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) == 0)
@@ -908,14 +912,9 @@ void DataGatherer::VPMENU_ChangeRules()
 										UINT operation;
 										itShaderConstants1->hasRule = m_pGameHandler->GetShaderModificationRepository()->ConstantHasRule(itShaderConstants1->name, itShaderConstants1->ruleName, operation, itShaderConstants1->isTransposed);
 									}
-									++itShaderConstants1;
 								}
 							}
-
-							++itShaderConstants;
 						}
-
-						++itShaderConstantMap;
 					}
 				}
 				else // rule present, so delete
@@ -923,8 +922,9 @@ void DataGatherer::VPMENU_ChangeRules()
 					deleteRule(m_relevantVSConstantNames[menuID[entryID]].name);
 
 					// set the menu output accordingly
-					auto itShaderConstants1 = m_relevantVSConstantNames.begin();
-					while (itShaderConstants1 != m_relevantVSConstantNames.end())
+					for(auto itShaderConstants1 = m_relevantVSConstantNames.begin();
+					    itShaderConstants1 != m_relevantVSConstantNames.end();
+					    itShaderConstants1++)
 					{
 						// set rule bool for all relevant constant names
 						if (itShaderConstants1->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) == 0)
@@ -932,7 +932,6 @@ void DataGatherer::VPMENU_ChangeRules()
 							UINT operation;
 							itShaderConstants1->hasRule = m_pGameHandler->GetShaderModificationRepository()->ConstantHasRule(itShaderConstants1->name, itShaderConstants1->ruleName, operation, itShaderConstants1->isTransposed);
 						}
-						++itShaderConstants1;
 					}
 				}
 			}
@@ -940,11 +939,13 @@ void DataGatherer::VPMENU_ChangeRules()
 			{
 				bool newTrans = !m_relevantVSConstantNames[menuID[entryID]].isTransposed;
 				// transposed or non-transposed
-				auto itShaderConstantMap = m_relevantVSConstants.begin();
-				while (itShaderConstantMap != m_relevantVSConstants.end())
+				for(auto itShaderConstantMap = m_relevantVSConstants.begin();
+				    itShaderConstantMap != m_relevantVSConstants.end();
+				    itShaderConstantMap++)
 				{
-					auto itShaderConstants = itShaderConstantMap->second.begin();
-					while (itShaderConstants != itShaderConstantMap->second.end())
+					for(auto itShaderConstants = itShaderConstantMap->second.begin();
+					    itShaderConstants != itShaderConstantMap->second.end();
+					    itShaderConstants++)
 					{
 						// constant name in menu entries already present
 						if (itShaderConstants->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) == 0)
@@ -955,22 +956,18 @@ void DataGatherer::VPMENU_ChangeRules()
 							modifyRule(itShaderConstants->name, operation, newTrans);
 
 							// set the menu output accordingly
-							auto itShaderConstants1 = m_relevantVSConstantNames.begin();
-							while (itShaderConstants1 != m_relevantVSConstantNames.end())
+							for(auto itShaderConstants1 = m_relevantVSConstantNames.begin();
+							    itShaderConstants1 != m_relevantVSConstantNames.end();
+							    itShaderConstants1++)
 							{
 								// set rule bool for all relevant constant names
 								if (itShaderConstants1->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) == 0)
 								{
 									itShaderConstants1->hasRule = m_pGameHandler->GetShaderModificationRepository()->ConstantHasRule(itShaderConstants1->name, itShaderConstants1->ruleName, operation, itShaderConstants1->isTransposed);
 								}
-								++itShaderConstants1;
 							}
 						}
-
-						itShaderConstants++;
 					}
-
-					++itShaderConstantMap;
 				}
 			}
 			else
@@ -978,11 +975,13 @@ void DataGatherer::VPMENU_ChangeRules()
 				// open or close node
 				m_relevantVSConstantNames[menuID[entryID]].nodeOpen = !m_relevantVSConstantNames[menuID[entryID]].nodeOpen;
 
-				auto itShaderConstantMap = m_relevantVSConstants.begin();
-				while (itShaderConstantMap != m_relevantVSConstants.end())
+				for(auto itShaderConstantMap = m_relevantVSConstants.begin();
+				    itShaderConstantMap != m_relevantVSConstants.end();
+				    itShaderConstantMap++)
 				{
-					auto itShaderConstants = itShaderConstantMap->second.begin();
-					while (itShaderConstants != itShaderConstantMap->second.end())
+					for(auto itShaderConstants = itShaderConstantMap->second.begin();
+					    itShaderConstants != itShaderConstantMap->second.end();
+					    itShaderConstants++)
 					{
 						// constant name in menu entries already present
 						if (itShaderConstants->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) == 0)
@@ -1000,29 +999,13 @@ void DataGatherer::VPMENU_ChangeRules()
 								m_excludedVShaders.erase(std::remove(m_excludedVShaders.begin(), m_excludedVShaders.end(), itShaderConstants->hash), m_excludedVShaders.end()); 
 							}
 						}
-						++itShaderConstants;
 					}
-
-					++itShaderConstantMap;
 				}
 			}
 
 			HotkeyCooldown(2.0f);
 		}
-		// back to main menu
-		if (entryID == menuEntryCount-2)
-		{
-			VPMENU_Back();
-		}
-		// back to game
-		if (entryID == menuEntryCount-1)
-		{
-			VPMENU_CloseWithoutSaving();
-		}
-	}
-
-	if ((entryID >= 0) && (entryID < menuEntryCount-2) && (menuEntryCount>2))
-	{
+		
 		// switch shader rule node
 		if (VPMENU_Input_IsAdjustment() && HotkeysActive())
 		{
@@ -1057,11 +1040,13 @@ void DataGatherer::VPMENU_ChangeRules()
 						}
 					}
 
-					auto itShaderConstantMap = m_relevantVSConstants.begin();
-					while (itShaderConstantMap != m_relevantVSConstants.end())
+					for(auto itShaderConstantMap = m_relevantVSConstants.begin();
+					    itShaderConstantMap != m_relevantVSConstants.end();
+					    ++itShaderConstantMap)
 					{
-						auto itShaderConstants = itShaderConstantMap->second.begin();
-						while (itShaderConstants != itShaderConstantMap->second.end())
+						for(auto itShaderConstants = itShaderConstantMap->second.begin();
+						    itShaderConstants != itShaderConstantMap->second.end();
+						    itShaderConstants++)
 						{
 							// constant name in menu entries already present
 							if (itShaderConstants->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) == 0)
@@ -1069,22 +1054,19 @@ void DataGatherer::VPMENU_ChangeRules()
 								modifyRule(itShaderConstants->name, operation, itShaderConstants->isTransposed);
 
 								// set the menu output accordingly
-								auto itShaderConstants1 = m_relevantVSConstantNames.begin();
-								while (itShaderConstants1 != m_relevantVSConstantNames.end())
+								for(auto itShaderConstants1 = m_relevantVSConstantNames.begin();
+								    itShaderConstants1 != m_relevantVSConstantNames.end();
+								    ++itShaderConstants1)
 								{
 									// set rule bool for all relevant constant names
 									if (itShaderConstants1->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) == 0)
 									{
 										itShaderConstants1->hasRule = m_pGameHandler->GetShaderModificationRepository()->ConstantHasRule(itShaderConstants1->name, itShaderConstants1->ruleName, operation, itShaderConstants1->isTransposed);
 									}
-									++itShaderConstants1;
 								}
 							}
 
-							itShaderConstants++;
 						}
-
-						++itShaderConstantMap;
 					}
 				}
 			}
@@ -1128,11 +1110,12 @@ void DataGatherer::VPMENU_ChangeRules()
 	{
 		if (menuColor[i])
 			DrawMenuItem(menuEntries[i].c_str(), COLOR_MENU_ENABLED);
-		else	
+		else
 			DrawMenuItem(menuEntries[i].c_str());
 	}
-	DrawMenuItem("Back to BRASSA Menu");
-	DrawMenuItem("Back to Game");
+	
+	AddButtonMenuItem("Back to Main Menu", [=]() { VPMENU_Back(); });
+	AddButtonMenuItem("Back to Game", [=]() { VPMENU_CloseWithoutSaving(); });
 
 	VPMENU_FinishDrawing();
 }
@@ -1165,8 +1148,9 @@ void DataGatherer::VPMENU_ShowActiveShaders()
 		m_knownVShaders = m_activeVShaders;
 
 	// loop through relevant vertex shaders
-	auto itVShaderHash = m_knownVShaders.begin();
-	while (itVShaderHash != m_knownVShaders.end())
+	for(auto itVShaderHash = m_knownVShaders.begin();
+	    itVShaderHash != m_knownVShaders.end();
+	    itVShaderHash++)
 	{
 		bool excluded = false;
 		bool visible = true;
@@ -1192,16 +1176,15 @@ void DataGatherer::VPMENU_ShowActiveShaders()
 		}
 
 		menuEntryCount++;
-		++itVShaderHash;
 	}
 
 	// for next time, add in any we don;t know yet
-	auto itVShaderCurrentHash = m_activeVShaders.begin();
-	while (itVShaderCurrentHash != m_activeVShaders.end())
+	for(auto itVShaderCurrentHash = m_activeVShaders.begin();
+	    itVShaderCurrentHash != m_activeVShaders.end();
+	    itVShaderCurrentHash++)
 	{
 		if (m_knownVShaders.find(itVShaderCurrentHash->first) == m_knownVShaders.end())
 			m_knownVShaders[itVShaderCurrentHash->first] = itVShaderCurrentHash->second;
-		itVShaderCurrentHash++;
 	}
 
 	UINT endOfVertexShaderEntries = menuEntryCount-2;
@@ -1211,8 +1194,9 @@ void DataGatherer::VPMENU_ShowActiveShaders()
 		m_knownPShaders = m_activePShaders;
 
 	// loop through relevant pixel shaders
-	auto itPShaderHash = m_knownPShaders.begin();
-	while (itPShaderHash != m_knownPShaders.end())
+	for(auto itPShaderHash = m_knownPShaders.begin();
+	    itPShaderHash != m_knownPShaders.end();
+	    ++itPShaderHash)
 	{
 		bool excluded = false;
 		bool visible = true;
@@ -1237,16 +1221,15 @@ void DataGatherer::VPMENU_ShowActiveShaders()
 		}
 
 		menuEntryCount++;
-		++itPShaderHash;
 	}
 	
 	// for next time, add in any we don;t know yet
-	auto itPShaderCurrentHash = m_activePShaders.begin();
-	while (itPShaderCurrentHash != m_activePShaders.end())
+	for(auto itPShaderCurrentHash = m_activePShaders.begin();
+	    itPShaderCurrentHash != m_activePShaders.end();
+	    itPShaderCurrentHash++)
 	{
 		if (m_knownPShaders.find(itPShaderCurrentHash->first) == m_knownPShaders.end())
 			m_knownPShaders[itPShaderCurrentHash->first] = itPShaderCurrentHash->second;
-		itPShaderCurrentHash++;
 	}
 
 	UINT entryID;
@@ -1365,8 +1348,9 @@ void DataGatherer::Analyze()
 {
 	OutputDebugString("DATA GATHERER: Analyzing");
 	// loop through relevant vertex shader constants
-	auto itShaderConstants = m_relevantVSConstantNames.begin();
-	while (itShaderConstants != m_relevantVSConstantNames.end())
+	for(auto itShaderConstants = m_relevantVSConstantNames.begin();
+	    itShaderConstants != m_relevantVSConstantNames.end();
+	    itShaderConstants++)
 	{
 		OutputDebugString("DATA GATHERER: While Not at End");
 		// loop through matrix constant name assumptions
@@ -1431,8 +1415,6 @@ void DataGatherer::Analyze()
 					OutputDebugString(m_wvpMatrixConstantNames[i].c_str());
 				}
 		}
-
-		++itShaderConstants;
 	}
 
 	// save data
@@ -1466,16 +1448,19 @@ void DataGatherer::GetCurrentShaderRules(bool allStartRegisters)
 
 	// clear name vector, loop through constants
 	m_relevantVSConstantNames.clear();
-	auto itShaderConstantMap = m_relevantVSConstants.begin();
-	while (itShaderConstantMap != m_relevantVSConstants.end())
+	for(auto itShaderConstantMap = m_relevantVSConstants.begin();
+	    itShaderConstantMap != m_relevantVSConstants.end();
+	    ++itShaderConstantMap)
 	{
-		auto itShaderConstants = itShaderConstantMap->second.begin();
-		while (itShaderConstants != itShaderConstantMap->second.end())
+		for(auto itShaderConstants = itShaderConstantMap->second.begin();
+		    itShaderConstants != itShaderConstantMap->second.end();
+		    ++itShaderConstants)
 		{
 			bool namePresent = false;
 			bool registerPresent = !allStartRegisters;
-			auto itShaderConstants1 = m_relevantVSConstantNames.begin();
-			while (itShaderConstants1 != m_relevantVSConstantNames.end())
+			for(auto itShaderConstants1 = m_relevantVSConstantNames.begin();
+			    itShaderConstants1 != m_relevantVSConstantNames.end();
+			    itShaderConstants1++)
 			{
 				// constant name in menu entries already present
 				if (itShaderConstants->name.compare(itShaderConstants1->name) == 0)
@@ -1484,7 +1469,6 @@ void DataGatherer::GetCurrentShaderRules(bool allStartRegisters)
 					if (itShaderConstants->desc.RegisterIndex==itShaderConstants1->desc.RegisterIndex)
 						registerPresent = true;
 				}
-				++itShaderConstants1;
 			}
 
 			if ((!namePresent) || (!registerPresent))
@@ -1498,11 +1482,7 @@ void DataGatherer::GetCurrentShaderRules(bool allStartRegisters)
 					itShaderConstants->hasRule = false;
 				m_relevantVSConstantNames.push_back(*itShaderConstants);
 			}
-
-			++itShaderConstants;
 		}
-
-		++itShaderConstantMap;
 	}
 }
 
