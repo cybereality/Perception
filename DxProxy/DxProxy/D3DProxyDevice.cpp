@@ -108,6 +108,9 @@ std::string VRboostAxisString(UINT axis)
 	case VRboostAxis::TrackerYaw:
 		return "Yaw";
 		break;
+	case VRboostAxis::TrackerYaw2:
+		return "Yaw2";
+		break;
 	case VRboostAxis::TrackerPitch:
 		return "Pitch";
 		break;
