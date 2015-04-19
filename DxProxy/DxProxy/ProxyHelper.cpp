@@ -669,27 +669,27 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 		config.VRboostMaxShaderCount = gameProfile.attribute("maxVRboostShaderCount").as_uint(999999);
 		config.convergence = gameProfile.attribute("convergence").as_float(0.0f);
 		config.swap_eyes = gameProfile.attribute("swap_eyes").as_bool();
-		config.yaw_multiplier = gameProfile.attribute("yaw_multiplier").as_float(25.0f);
-		config.pitch_multiplier = gameProfile.attribute("pitch_multiplier").as_float(25.0f);
+		config.yaw_multiplier = gameProfile.attribute("yaw_multiplier").as_float(DEFAULT_YAW_MULTIPLIER);
+		config.pitch_multiplier = gameProfile.attribute("pitch_multiplier").as_float(DEFAULT_PITCH_MULTIPLIER);
 		config.roll_multiplier = gameProfile.attribute("roll_multiplier").as_float(1.0f);
 		config.position_multiplier = gameProfile.attribute("position_multiplier").as_float(1.0f);
-		config.position_x_multiplier = gameProfile.attribute("position_x_multiplier").as_float(0.0f);
-		config.position_y_multiplier = gameProfile.attribute("position_y_multiplier").as_float(0.0f);
-		config.position_z_multiplier = gameProfile.attribute("position_z_multiplier").as_float(0.0f);
+		config.position_x_multiplier = gameProfile.attribute("position_x_multiplier").as_float(DEFAULT_POS_TRACKING_X_MULT);
+		config.position_y_multiplier = gameProfile.attribute("position_y_multiplier").as_float(DEFAULT_POS_TRACKING_Y_MULT);
+		config.position_z_multiplier = gameProfile.attribute("position_z_multiplier").as_float(DEFAULT_POS_TRACKING_Z_MULT);
 		config.DistortionScale = gameProfile.attribute("distortion_scale").as_float(0.0f);
 		config.YOffset = gameProfile.attribute("y_offset").as_float(0.0f);
 		config.IPDOffset = gameProfile.attribute("ipd_offset").as_float(0.0f);
 		config.useSDKPosePrediction = gameProfile.attribute("use_sdk_pose_prediction").as_bool(true);
 
-		if(config.yaw_multiplier == 0.0f) config.yaw_multiplier = 25.0f;
-		if(config.pitch_multiplier == 0.0f) config.pitch_multiplier = 25.0f;
+		if(config.yaw_multiplier == 0.0f) config.yaw_multiplier = DEFAULT_YAW_MULTIPLIER;
+		if(config.pitch_multiplier == 0.0f) config.pitch_multiplier = DEFAULT_PITCH_MULTIPLIER;
 		if(config.roll_multiplier == 0.0f) config.roll_multiplier = 1.0f;
 		if(config.position_multiplier == 0.0f) config.position_multiplier = 1.0f;
 
 		//With some experimentation, these feel most natural (in Skyrim)
-		if(config.position_x_multiplier == 0.0f) config.position_x_multiplier = 2.0f;
-		if(config.position_y_multiplier == 0.0f) config.position_y_multiplier = 2.5f;
-		if(config.position_z_multiplier == 0.0f) config.position_z_multiplier = 0.5f;
+		if(config.position_x_multiplier == 0.0f) config.position_x_multiplier = DEFAULT_POS_TRACKING_X_MULT;
+		if(config.position_y_multiplier == 0.0f) config.position_y_multiplier = DEFAULT_POS_TRACKING_Y_MULT;
+		if(config.position_z_multiplier == 0.0f) config.position_z_multiplier = DEFAULT_POS_TRACKING_Z_MULT;
 
 		// set process name
 		config.game_exe = string(gameProfile.attribute("game_exe").as_string(""));
@@ -704,10 +704,10 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 		config.hud3DDepthPresets[2] = gameProfile.attribute("hud_3D_depth_3").as_float(0.0f);
 		config.hud3DDepthPresets[3] = gameProfile.attribute("hud_3D_depth_4").as_float(0.0f);
 
-		config.hudDistancePresets[0] = gameProfile.attribute("hud_distance_1").as_float(0.5f);
-		config.hudDistancePresets[1] = gameProfile.attribute("hud_distance_2").as_float(0.9f);
-		config.hudDistancePresets[2] = gameProfile.attribute("hud_distance_3").as_float(0.3f);
-		config.hudDistancePresets[3] = gameProfile.attribute("hud_distance_4").as_float(0.0f);
+		config.hudDistancePresets[0] = gameProfile.attribute("hud_distance_1").as_float(DEFAULT_HUD_DISTANCE_1);
+		config.hudDistancePresets[1] = gameProfile.attribute("hud_distance_2").as_float(DEFAULT_HUD_DISTANCE_2);
+		config.hudDistancePresets[2] = gameProfile.attribute("hud_distance_3").as_float(DEFAULT_HUD_DISTANCE_3);
+		config.hudDistancePresets[3] = gameProfile.attribute("hud_distance_4").as_float(DEFAULT_HUD_DISTANCE_4);
 
 		config.hudHotkeys[0] = (byte)gameProfile.attribute("hud_key_swap").as_int(0);
 		config.hudHotkeys[1] = (byte)gameProfile.attribute("hud_key_default").as_int(0);
@@ -723,10 +723,10 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 		config.gui3DDepthPresets[2] = gameProfile.attribute("gui_3D_depth_3").as_float(0.0f);
 		config.gui3DDepthPresets[3] = gameProfile.attribute("gui_3D_depth_4").as_float(0.0f);
 
-		config.guiSquishPresets[0] = gameProfile.attribute("gui_size_1").as_float(0.6f);
-		config.guiSquishPresets[1] = gameProfile.attribute("gui_size_2").as_float(0.5f);
-		config.guiSquishPresets[2] = gameProfile.attribute("gui_size_3").as_float(0.9f);
-		config.guiSquishPresets[3] = gameProfile.attribute("gui_size_4").as_float(1.0f);
+		config.guiSquishPresets[0] = gameProfile.attribute("gui_size_1").as_float(DEFAULT_GUI_SIZE_1);
+		config.guiSquishPresets[1] = gameProfile.attribute("gui_size_2").as_float(DEFAULT_GUI_SIZE_2);
+		config.guiSquishPresets[2] = gameProfile.attribute("gui_size_3").as_float(DEFAULT_GUI_SIZE_3);
+		config.guiSquishPresets[3] = gameProfile.attribute("gui_size_4").as_float(DEFAULT_GUI_SIZE_4);
 
 		config.guiHotkeys[0] = (byte)gameProfile.attribute("gui_key_swap").as_int(0);
 		config.guiHotkeys[1] = (byte)gameProfile.attribute("gui_key_default").as_int(0);

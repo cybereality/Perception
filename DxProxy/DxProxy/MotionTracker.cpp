@@ -28,6 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
 #include "MotionTracker.h"
+#include "D3DProxyDevice.h"
 
 /**
 * Constructor.
@@ -65,8 +66,8 @@ void MotionTracker::init()
 	deltaYaw = 0.0f;
 	deltaPitch = 0.0f;
 
-	multiplierYaw = 25.0f;
-	multiplierPitch = 25.0f;
+	multiplierYaw = DEFAULT_YAW_MULTIPLIER;
+	multiplierPitch = DEFAULT_PITCH_MULTIPLIER;
 	multiplierRoll = 1.0f;
 
 	offsetYaw = 0.0f;

@@ -75,6 +75,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "VRBoostEnums.h"
 #include "DirectInput.h"
 #include "VireioPopup.h"
+#include "ConfigDefaults.h"
 
 #define _SAFE_RELEASE(x) if(x) { x->Release(); x = NULL; } 
 #define RECT_WIDTH(x) (x.right - x.left)
@@ -96,6 +97,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define COLOR_HASH_LINE     D3DCOLOR_ARGB(255,255,255,0)
 
 #define MENU_ITEM_SEPARATION  40
+
 
 // Define SHOW_CALLS to have each method output a debug string when it is invoked
 //#define SHOW_CALLS
@@ -474,9 +476,12 @@ protected:
 	void DrawMenuItem(const char *text, D3DCOLOR color=COLOR_MENU_TEXT);
 	void DrawMenuItem(std::string text, D3DCOLOR color=COLOR_MENU_TEXT);
 	void AddMenuItem(std::string text, std::function<void()> onHover);
+	void AddMenuItem(std::string text, D3DCOLOR color, std::function<void()> onHover);
+	void AddButtonMenuItem(std::string text, D3DCOLOR color, std::function<void()> onPick);
 	void AddButtonMenuItem(std::string text, std::function<void()> onPick);
 	void AddNavigationMenuItem(std::string text, std::function<void()> menuHandler);
 	void AddKeybindMenuItem(std::string text, byte *binding);
+	void AddAdjustmentMenuItem(const char *formatString, float *value, float defaultValue, float rate, std::function<void()> onChange=[](){});
 	void ClearRect(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color);
 	void ClearEmptyRect(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color, int bw);
 	void DrawSelection(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color, int selectionIndex, int selectionRange);

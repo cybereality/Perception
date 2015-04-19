@@ -29,6 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "ViewAdjustment.h"
+#include "ConfigDefaults.h"
 
 #define PI 3.141592654
 
@@ -41,9 +42,9 @@ ViewAdjustment::ViewAdjustment(HMDisplayInfo *displayInfo, float metersToWorldUn
 	metersToWorldMultiplier(metersToWorldUnits),
 	rollImpl(roll),
 	m_roll(0.0f),
-	x_scaler(2.0f),
-	y_scaler(2.5f),
-	z_scaler(0.5f)
+	x_scaler(DEFAULT_POS_TRACKING_X_MULT),
+	y_scaler(DEFAULT_POS_TRACKING_Y_MULT),
+	z_scaler(DEFAULT_POS_TRACKING_Z_MULT)
 {
 	// TODO : max, min convergence; arbitrary now
 	convergence = 0.0f;

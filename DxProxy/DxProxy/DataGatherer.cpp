@@ -815,7 +815,7 @@ void DataGatherer::VPMENU_ChangeRules()
 	UINT menuEntryCount = 2;
 	UINT constantIndex = 0;
 	std::vector<std::string> menuEntries;
-	std::vector<bool> menuColor;
+	std::vector<D3DCOLOR> menuColor;
 	std::vector<DWORD> menuID;
 	
 	// loop through relevant vertex shader constants
@@ -823,13 +823,14 @@ void DataGatherer::VPMENU_ChangeRules()
 	    itShaderConstants != m_relevantVSConstantNames.end();
 	    itShaderConstants++)
 	{
-		menuColor.push_back(itShaderConstants->hasRule);
+		D3DCOLOR entryColor = itShaderConstants->hasRule ? COLOR_MENU_ENABLED : COLOR_MENU_TEXT;
+		menuColor.push_back(entryColor);
 		menuID.push_back(constantIndex);
 		menuEntries.push_back(itShaderConstants->name);
 		if (itShaderConstants->nodeOpen)
 		{
 			// output the class
-			menuColor.push_back(itShaderConstants->hasRule);
+			menuColor.push_back(entryColor);
 			menuID.push_back(constantIndex+FLAG_RULECLASS);
 			// output shader constant + index 
 			switch(itShaderConstants->desc.Class)
@@ -847,7 +848,7 @@ void DataGatherer::VPMENU_ChangeRules()
 			menuEntryCount++;
 
 			// output the class
-			menuColor.push_back(itShaderConstants->hasRule);
+			menuColor.push_back(entryColor);
 			menuID.push_back(constantIndex+FLAG_RULENAME);
 			if (itShaderConstants->hasRule)
 				menuEntries.push_back("  "+itShaderConstants->ruleName);
@@ -858,7 +859,7 @@ void DataGatherer::VPMENU_ChangeRules()
 			// output wether transposed or not
 			if ((itShaderConstants->hasRule) && (itShaderConstants->desc.Class != D3DXPC_VECTOR))
 			{
-				menuColor.push_back(itShaderConstants->hasRule);
+				menuColor.push_back(entryColor);
 				menuID.push_back(constantIndex+FLAG_TRANSPOSITION);
 				if (itShaderConstants->isTransposed)
 					menuEntries.push_back("  Transposed");
@@ -874,8 +875,41 @@ void DataGatherer::VPMENU_ChangeRules()
 
 	UINT entryID;
 	VPMENU_NewFrame(entryID, menuEntryCount);
+	
+	// adjust border & menu due to menu scroll
+	float borderDrawingHeight = borderTopHeight;
+	if (menuVelocity.y == 0.0f)
+		borderTopHeight = menuTop+menuEntryHeight*(float)entryID;
+	if (borderTopHeight>(menuTop+(menuEntryHeight*12.0f)))
+		borderDrawingHeight = menuTop+menuEntryHeight*12.0f;
 
-	if ((entryID >= 0) && (entryID < menuEntryCount-2) && (menuEntryCount>2))
+	// down scroll border/menu adjustment
+	if (menuTopHeight>=(borderDrawingHeight-borderTopHeight))
+		menuTopHeight = (borderDrawingHeight-borderTopHeight);
+	else
+		borderDrawingHeight=borderTopHeight+menuTopHeight;
+
+	// up scroll border/menu adjustment
+	if (borderDrawingHeight<menuTop)
+	{
+		menuTopHeight+=menuTop-borderDrawingHeight;
+		borderDrawingHeight = menuTop;
+	}
+
+
+	// draw border - total width due to shift correction
+	D3DRECT rect;
+	rect.x1 = (int)0; rect.x2 = (int)viewportWidth; rect.y1 = (int)borderDrawingHeight; rect.y2 = (int)(borderDrawingHeight+viewportHeight*0.04f);
+	ClearEmptyRect(vireio::RenderPosition::Left, rect, COLOR_MENU_BORDER, 2);
+	ClearEmptyRect(vireio::RenderPosition::Right, rect, COLOR_MENU_BORDER, 2);
+
+	VPMENU_StartDrawing_NonMenu();
+
+	menuHelperRect.left = 800; menuHelperRect.top = 350;
+	menuHelperRect.top += (int)(menuTopHeight / fScaleY);
+	
+	for (UINT i=0; i<menuEntryCount-2; i++)
+	AddMenuItem(menuEntries[i], menuColor[i], [&]()
 	{
 		// switch shader rule node
 		if (VPMENU_Input_Selected() && HotkeysActive())
@@ -1077,48 +1111,8 @@ void DataGatherer::VPMENU_ChangeRules()
 			}
 			HotkeyCooldown(2.0f);
 		}
-	}
+	});
 
-	// output menu
-	// adjust border & menu due to menu scroll
-	float borderDrawingHeight = borderTopHeight;
-	if (menuVelocity.y == 0.0f)
-		borderTopHeight = menuTop+menuEntryHeight*(float)entryID;
-	if (borderTopHeight>(menuTop+(menuEntryHeight*12.0f)))
-		borderDrawingHeight = menuTop+menuEntryHeight*12.0f;
-
-	// down scroll border/menu adjustment
-	if (menuTopHeight>=(borderDrawingHeight-borderTopHeight))
-		menuTopHeight = (borderDrawingHeight-borderTopHeight);
-	else
-		borderDrawingHeight=borderTopHeight+menuTopHeight;
-
-	// up scroll border/menu adjustment
-	if (borderDrawingHeight<menuTop)
-	{
-		menuTopHeight+=menuTop-borderDrawingHeight;
-		borderDrawingHeight = menuTop;
-	}
-
-
-	// draw border - total width due to shift correction
-	D3DRECT rect;
-	rect.x1 = (int)0; rect.x2 = (int)viewportWidth; rect.y1 = (int)borderDrawingHeight; rect.y2 = (int)(borderDrawingHeight+viewportHeight*0.04f);
-	ClearEmptyRect(vireio::RenderPosition::Left, rect, COLOR_MENU_BORDER, 2);
-	ClearEmptyRect(vireio::RenderPosition::Right, rect, COLOR_MENU_BORDER, 2);
-
-	VPMENU_StartDrawing_NonMenu();
-
-	menuHelperRect.left = 800; menuHelperRect.top = 350;
-	menuHelperRect.top += (int)(menuTopHeight / fScaleY);
-	for (UINT i = 0; i < menuEntryCount-2; i++)
-	{
-		if (menuColor[i])
-			DrawMenuItem(menuEntries[i].c_str(), COLOR_MENU_ENABLED);
-		else
-			DrawMenuItem(menuEntries[i].c_str());
-	}
-	
 	AddButtonMenuItem("Back to Main Menu", [=]() { VPMENU_Back(); });
 	AddButtonMenuItem("Back to Game", [=]() { VPMENU_CloseWithoutSaving(); });
 
@@ -1144,7 +1138,7 @@ void DataGatherer::VPMENU_ShowActiveShaders()
 
 	UINT menuEntryCount = 2;
 	std::vector<std::string> menuEntries;
-	std::vector<int> menuColor;
+	std::vector<D3DCOLOR> menuColor;
 	std::vector<uint32_t> menuID;
 	std::string menuEntry;
 
@@ -1171,12 +1165,12 @@ void DataGatherer::VPMENU_ShowActiveShaders()
 
 		if (!visible)
 		{
-			menuColor.push_back(0);
+			menuColor.push_back(COLOR_MENU_DISABLED);
 			menuEntries.push_back(retprintf("VS : (%u)", itVShaderHash->first));
 		}
 		else
 		{
-			menuColor.push_back(excluded ? 1 : 2);
+			menuColor.push_back(excluded ? COLOR_MENU_TEXT : COLOR_MENU_ENABLED);
 			menuEntries.push_back(retprintf("VS : %u", itVShaderHash->first));
 		}
 
@@ -1216,12 +1210,12 @@ void DataGatherer::VPMENU_ShowActiveShaders()
 
 		if (!visible)
 		{
-			menuColor.push_back(0);
+			menuColor.push_back(COLOR_MENU_DISABLED);
 			menuEntries.push_back(retprintf("PS : (%u)", itPShaderHash->first));
 		}
 		else
 		{
-			menuColor.push_back(excluded ? 1 : 2);
+			menuColor.push_back(excluded ? COLOR_MENU_TEXT : COLOR_MENU_ENABLED);
 			menuEntries.push_back(retprintf("PS : %u", itPShaderHash->first));
 		}
 
@@ -1240,10 +1234,10 @@ void DataGatherer::VPMENU_ShowActiveShaders()
 	UINT entryID;
 	VPMENU_NewFrame(entryID, menuEntryCount);
 
-	if (VPMENU_Input_Selected())
+	if ((entryID >= 0) && (entryID < menuEntryCount-2) && (menuEntryCount>2))
 	{
 		// switch shader node (drawn/not-drawn)
-		if ((entryID >= 0) && (entryID < menuEntryCount-2) && (menuEntryCount>2))
+		if (VPMENU_Input_Selected())
 		{
 			if (entryID < endOfVertexShaderEntries)
 			{
@@ -1271,16 +1265,6 @@ void DataGatherer::VPMENU_ShowActiveShaders()
 			}
 
 			HotkeyCooldown(2.0f);
-		}
-		// back to main menu
-		if (entryID == menuEntryCount-2)
-		{
-			VPMENU_Back();
-		}
-		// back to game
-		if (entryID == menuEntryCount-1)
-		{
-			VPMENU_CloseWithoutSaving();
 		}
 	}
 
@@ -1322,13 +1306,7 @@ void DataGatherer::VPMENU_ShowActiveShaders()
 	{
 		if ((menuHelperRect.top + 40) >= 0)
 		{
-			if (menuColor[i] == 0) // Not visible
-				DrawMenuItem(menuEntries[i].c_str(), COLOR_MENU_DISABLED);
-			else if (menuColor[i] == 1) // excluded
-				DrawMenuItem(menuEntries[i].c_str());
-			else	
-				DrawMenuItem(menuEntries[i].c_str(), COLOR_MENU_ENABLED);
-				
+			DrawMenuItem(menuEntries[i].c_str(), menuColor[i]);
 		}
 
 		//No point drawing anything off the bottom of the viewport!
@@ -1336,11 +1314,8 @@ void DataGatherer::VPMENU_ShowActiveShaders()
 			break;
 	}
 
-	if (menuHelperRect.top < viewportHeight)
-	{
-		DrawMenuItem("Back to BRASSA Menu");
-		DrawMenuItem("Back to Game");
-	}
+	AddButtonMenuItem("Back to Main Menu", [=]() { VPMENU_Back(); });
+	AddButtonMenuItem("Back to Game", [=]() { VPMENU_CloseWithoutSaving(); });
 
 	VPMENU_FinishDrawing();
 }
