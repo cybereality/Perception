@@ -1285,7 +1285,7 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 			D3DXMATRIX sourceMatrix(*pMatrix);
 
 			// world scale mode ? in case, add all possible actual game x scale units
-			if (VPMENU_mode == VPMENU_Modes::WORLD_SCALE_CALIBRATION)
+			if (inWorldScaleMenu)
 			{
 				// store the actual projection matrix for game unit calculation
 				D3DXMATRIX m_actualProjection = D3DXMATRIX(*pMatrix);

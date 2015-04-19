@@ -64,7 +64,7 @@ bool D3DProxyDevice::InitVPMENU()
 	m_bPosTrackingToggle = true;
 	m_showVRMouse = 0;
 	m_fVRBoostIndicator = 0.0f;
-	VPMENU_mode = VPMENU_Modes::INACTIVE;
+	menuIsOpen = false;
 	borderTopHeight = 0.0f;
 	menuTopHeight = 0.0f;
 	menuVelocity = D3DXVECTOR2(0.0f, 0.0f);
@@ -93,6 +93,7 @@ bool D3DProxyDevice::InitVPMENU()
 	ChangeGUI3DDepthMode(GUI_3D_Depth_Modes::GUI_DEFAULT);
 
 	hotkeyCatch = false;
+	inWorldScaleMenu = false;
 	toggleVRBoostHotkey = 0;
 	edgePeekHotkey = 0;
 	for (int i = 0; i < 5; i++)
@@ -116,30 +117,37 @@ void D3DProxyDevice::VPMENU_Close()
 
 void D3DProxyDevice::VPMENU_CloseWithoutSaving()
 {
-	VPMENU_mode = VPMENU_Modes::INACTIVE;
+	hotkeyCatch = false;
+	inWorldScaleMenu = false;
+	menuIsOpen = false;
 }
 
 void D3DProxyDevice::VPMENU_Back()
 {
-	VPMENU_mode = VPMENU_Modes::MAINMENU;
-	HotkeyCooldown(2.0f);
+	VPMENU_NavigateTo([=]() {
+		VPMENU_MainMenu();
+	});
 }
 
 void D3DProxyDevice::VPMENU_OpenMainMenu()
 {
 	borderTopHeight = 0.0f;
-	VPMENU_NavigateTo(VPMENU_Modes::MAINMENU);
+	VPMENU_NavigateTo([=]() {
+		VPMENU_MainMenu();
+	});
 }
 
-void D3DProxyDevice::VPMENU_NavigateTo(VPMENU_Modes newMode)
+void D3DProxyDevice::VPMENU_NavigateTo(std::function<void()> menuHandler)
 {
-	VPMENU_mode = newMode;
+	inWorldScaleMenu = false;
+	menuIsOpen = true;
+	handleCurrentMenu = menuHandler;
 	HotkeyCooldown(2.0f);
 }
 
 bool D3DProxyDevice::VPMENU_IsOpen()
 {
-	return VPMENU_mode != VPMENU_Modes::INACTIVE;
+	return menuIsOpen;
 }
 
 /**
@@ -319,51 +327,7 @@ void D3DProxyDevice::VPMENU()
 		}
 	}
 	
-	switch (VPMENU_mode)
-	{
-	case D3DProxyDevice::MAINMENU:
-		VPMENU_MainMenu();
-		break;
-	case D3DProxyDevice::WORLD_SCALE_CALIBRATION:
-		VPMENU_WorldScale();
-		break;
-	case D3DProxyDevice::CONVERGENCE_ADJUSTMENT:
-		VPMENU_Convergence();
-		break;
-	case D3DProxyDevice::HUD_CALIBRATION:
-		VPMENU_HUD();
-		break;
-	case D3DProxyDevice::GUI_CALIBRATION:
-		VPMENU_GUI();
-		break;
-	case D3DProxyDevice::OVERALL_SETTINGS:
-		VPMENU_Settings();
-		break;
-	case D3DProxyDevice::VRBOOST_VALUES:
-		VPMENU_VRBoostValues();
-		break;
-	case D3DProxyDevice::POS_TRACKING_SETTINGS:
-		VPMENU_PosTracking();
-		break;
-	case D3DProxyDevice::COMFORT_MODE:
-		VPMENU_ComfortMode();
-		break;
-	case D3DProxyDevice::DUCKANDCOVER_CONFIGURATION:
-		VPMENU_DuckAndCover();
-		break;
-	case D3DProxyDevice::VPMENU_SHADER_ANALYZER_SUBMENU:
-		VPMENU_ShaderSubMenu();
-		break;
-	case D3DProxyDevice::CHANGE_RULES_SCREEN:
-		VPMENU_ChangeRules();
-		break;
-	case D3DProxyDevice::PICK_RULES_SCREEN:
-		VPMENU_PickRules();
-		break;
-	case D3DProxyDevice::SHOW_SHADERS_SCREEN:
-		VPMENU_ShowActiveShaders();
-		break;
-	}
+	handleCurrentMenu();
 }
 
 /**
@@ -377,7 +341,7 @@ void D3DProxyDevice::VPMENU_MainMenu()
 	{
 		SHADER_ANALYZER,
 		WORLD_SCALE_CALIBRATION,
-		COVERGENCE_ADJUSTMENT,
+		CONVERGENCE_ADJUSTMENT,
 		HUD_CALIBRATION,
 		GUI_CALIBRATION,
 		HUD_SCALE,
@@ -408,47 +372,65 @@ void D3DProxyDevice::VPMENU_MainMenu()
 		// shader analyzer sub menu
 		if (entryID == SHADER_ANALYZER)
 		{
-			VPMENU_NavigateTo(VPMENU_Modes::VPMENU_SHADER_ANALYZER_SUBMENU);
+			VPMENU_NavigateTo([=]() {
+				VPMENU_ShaderSubMenu();
+			});
 		}
 		// world scale
 		if (entryID == WORLD_SCALE_CALIBRATION)
 		{
-			VPMENU_NavigateTo(VPMENU_Modes::WORLD_SCALE_CALIBRATION);
+			VPMENU_NavigateTo([=]() {
+				VPMENU_WorldScale();
+			});
 		}
 		// convergence adjustment
 		if (entryID == CONVERGENCE_ADJUSTMENT)
 		{
-			VPMENU_NavigateTo(VPMENU_Modes::CONVERGENCE_ADJUSTMENT);
+			VPMENU_NavigateTo([=]() {
+				VPMENU_Convergence();
+			});
 		}
 		// hud calibration
 		if (entryID == HUD_CALIBRATION)
 		{
-			VPMENU_NavigateTo(VPMENU_Modes::HUD_CALIBRATION);
+			VPMENU_NavigateTo([=]() {
+				VPMENU_HUD();
+			});
 		}
 		// gui calibration
 		if (entryID == GUI_CALIBRATION)
 		{
-			VPMENU_NavigateTo(VPMENU_Modes::GUI_CALIBRATION);
+			VPMENU_NavigateTo([=]() {
+				VPMENU_GUI();
+			});
 		}
 		// overall settings
 		if (entryID == OVERALL_SETTINGS)
 		{
-			VPMENU_NavigateTo(VPMENU_Modes::OVERALL_SETTINGS);
-		}	
+			VPMENU_NavigateTo([=]() {
+				VPMENU_Settings();
+			});
+		}
 		// vrboost settings
 		if (entryID == VRBOOST_VALUES)
 		{
-			VPMENU_NavigateTo(VPMENU_Modes::VRBOOST_VALUES);
+			VPMENU_NavigateTo([=]() {
+				VPMENU_VRBoostValues();
+			});
 		}
 		// position tracking settings
 		if (entryID == POS_TRACKING_SETTINGS)
 		{
-			VPMENU_NavigateTo(VPMENU_Modes::POS_TRACKING_SETTINGS);
+			VPMENU_NavigateTo([=]() {
+				VPMENU_PosTracking();
+			});
 		}
 		// comfort mode settings
 		if (entryID == COMFORT_MODE_SETTINGS)
 		{
-			VPMENU_NavigateTo(VPMENU_Modes::COMFORT_MODE);
+			VPMENU_NavigateTo([=]() {
+				VPMENU_ComfortMode();
+			});
 		}
 		// restore configuration
 		if (entryID == RESTORE_CONFIGURATION)
@@ -551,6 +533,7 @@ void D3DProxyDevice::VPMENU_MainMenu()
 void D3DProxyDevice::VPMENU_WorldScale()
 {
 	SHOW_CALL("VPMENU_WorldScale");
+	inWorldScaleMenu = true;
 	
 	// base values
 	static UINT gameXScaleUnitIndex = 0;
@@ -1579,7 +1562,9 @@ void D3DProxyDevice::VPMENU_PosTracking()
 
 		if (entryID == DUCKANDCOVER_CONFIG)
 		{
-			VPMENU_NavigateTo(VPMENU_Modes::DUCKANDCOVER_CONFIGURATION);
+			VPMENU_NavigateTo([=]() {
+				VPMENU_DuckAndCover();
+			});
 		}
 
 		// back to main menu

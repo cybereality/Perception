@@ -241,30 +241,6 @@ public:
 		DEBUG_LOG_FILE = 99999     /**< Debug log file output game type. For development causes. Do not use since slows down game extremely. */
 	};
 	/**
-	* Mode of the VP menu.
-	*
-	***/
-	enum VPMENU_Modes
-	{
-		INACTIVE = 0,
-		MAINMENU = 1,
-		WORLD_SCALE_CALIBRATION,
-		CONVERGENCE_ADJUSTMENT,
-		SHADER_ANALYZER,
-		HUD_CALIBRATION,
-		GUI_CALIBRATION,
-		OVERALL_SETTINGS,
-		VRBOOST_VALUES,
-		POS_TRACKING_SETTINGS,
-		DUCKANDCOVER_CONFIGURATION,
-		VPMENU_SHADER_ANALYZER_SUBMENU,
-		CHANGE_RULES_SCREEN,
-		PICK_RULES_SCREEN,
-		SHOW_SHADERS_SCREEN,
-		COMFORT_MODE,
-		VPMENU_ENUM_RANGE
-	};
-	/**
 	* HUD scale enumeration.
 	* ENUM_RANGE = range of the enum
 	***/
@@ -392,10 +368,6 @@ public:
 	**/
 	std::unique_ptr<MotionTracker> tracker;
 	/**
-	* Schneider-Hicks Optical Calibration Tool GUI mode.
-	**/
-	VPMENU_Modes VPMENU_mode;
-	/**
 	* Schneider-Hicks Optical Calibration Tool center of right line.
 	**/
 	float centerlineR;
@@ -465,7 +437,7 @@ protected:
 	void VPMENU_CloseWithoutSaving();
 	void VPMENU_Back();
 	void VPMENU_OpenMainMenu();
-	void VPMENU_NavigateTo(VPMENU_Modes newMode);
+	void VPMENU_NavigateTo(std::function<void()> menuHandler);
 	bool VPMENU_IsOpen();
 	void VPMENU_NewFrame(UINT &entryID, UINT menuEntryCount);
 	void VPMENU_StartDrawing(const char *pageTitle, int borderSelection);
@@ -506,6 +478,18 @@ protected:
 	
 	/// True if menu is waiting to catch a hotkey.
 	bool hotkeyCatch;
+	
+	/// True if in the world-scale menu, which turns on a little instrumentation
+	/// in SetTransform.
+	bool inWorldScaleMenu;
+	
+	bool menuIsOpen;
+	std::function<void()> handleCurrentMenu;
+	
+	// Vector contains all possible game projection x scale values.
+	// Filled only if VPMENU_mode == WorldScale and SetTransform(>projection<)
+	// called by the game.
+	std::vector<float> m_gameXScaleUnits;
 	
 	/// If the menu is waiting to catch a hotkey, a function to call when it's received
 	std::function<void(int)> onBindKey;
@@ -669,11 +653,6 @@ protected:
 	* Used for VRboost security.
 	***/
 	UINT m_VertexShaderCountLastFrame;
-	/**
-	* Vector contains all possible game projection x scale values.
-	* Filled only if VPMENU_mode == WorldScale and SetTransform(>projection<) called by the game.
-	***/
-	std::vector<float> m_gameXScaleUnits;
 	/**
 	* Struct commands device behavior.
 	***/

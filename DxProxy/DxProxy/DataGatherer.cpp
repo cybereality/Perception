@@ -756,17 +756,23 @@ void DataGatherer::VPMENU_ShaderSubMenu()
 		{
 			// create menu names new
 			GetCurrentShaderRules(false);
-			VPMENU_NavigateTo(VPMENU_Modes::CHANGE_RULES_SCREEN);
+			VPMENU_NavigateTo([=]() {
+				VPMENU_ChangeRules();
+			});
 		}
 		//// pick rules
 		//if (entryID == PICK_RULES)
 		//{
-		//	VPMENU_NavigateTo(VPMENU_Modes::PICK_RULES_SCREEN);
+		//	VPMENU_NavigateTo([=]() {
+		//		VPMENU_PickRules();
+		//	});
 		//}
 		// show shaders
 		if (entryID == SHOW_SHADERS)
 		{
-			VPMENU_NavigateTo(VPMENU_Modes::SHOW_SHADERS_SCREEN);
+			VPMENU_NavigateTo([=]() {
+				VPMENU_ShowActiveShaders();
+			});
 			//Clear collections
 			m_knownVShaders.clear();
 			m_knownPShaders.clear();
