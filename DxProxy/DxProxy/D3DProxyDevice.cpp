@@ -4314,21 +4314,32 @@ void D3DProxyDevice::HandleTracking()
 	{
 		if (!VRBoostStatus.VRBoost_LoadRules)
 		{
-			VireioPopup popup(VPT_VRBOOST_FAILURE, VPS_ERROR);
-			strcpy_s(popup.line[2], "VRBoost LoadRules Failed");
-			strcpy_s(popup.line[3], "To Enable head tracking, turn on Force Mouse Emulation");
-			strcpy_s(popup.line[4], "in VP Settings");
-			ShowPopup(popup);
-			return;
+			if(!tracker->getMouseEmulation())
+			{			
+				VireioPopup popup(VPT_VRBOOST_FAILURE, VPS_INFO, 500);
+				strcpy_s(popup.line[1], "VRBoost rule fail - turning on mouse");
+
+				/*strcpy_s(popup.line[2], "VRBoost LoadRules Failed");
+				strcpy_s(popup.line[3], "To Enable head tracking, turn on Force Mouse Emulation");
+				strcpy_s(popup.line[4], "in VP Settings");*/
+				ShowPopup(popup);			
+				tracker->setMouseEmulation(true);
+			}
+			return;			
 		}
 		else if (!VRBoostStatus.VRBoost_ApplyRules)
 		{
-			VireioPopup popup(VPT_VRBOOST_FAILURE, VPS_ERROR);
-			strcpy_s(popup.line[1], "VRBoost rules loaded but could not be applied");
-			strcpy_s(popup.line[2], "Mouse Emulation is not Enabled,");
-			strcpy_s(popup.line[3], "To Enable head tracking, turn on Force Mouse Emulation");
-			strcpy_s(popup.line[4], "in VP Settings");
-			ShowPopup(popup);
+			if(!tracker->getMouseEmulation())
+			{			
+				tracker->setMouseEmulation(true);
+				VireioPopup popup(VPT_VRBOOST_FAILURE, VPS_INFO, 500);
+				strcpy_s(popup.line[1], "VRBoost fail - turning on mouse");
+				/*strcpy_s(popup.line[1], "VRBoost rules loaded but could not be applied");
+				strcpy_s(popup.line[2], "Mouse Emulation is not Enabled,");
+				strcpy_s(popup.line[3], "To Enable head tracking, turn on Force Mouse Emulation");
+				strcpy_s(popup.line[4], "in VP Settings");*/
+				ShowPopup(popup);
+			}
 			return;
 		}
 	}
