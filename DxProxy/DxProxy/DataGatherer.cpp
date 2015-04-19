@@ -1148,11 +1148,7 @@ void DataGatherer::VPMENU_ChangeRules()
 	ClearEmptyRect(vireio::RenderPosition::Left, rect, COLOR_MENU_BORDER, 2);
 	ClearEmptyRect(vireio::RenderPosition::Right, rect, COLOR_MENU_BORDER, 2);
 
-	hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
-
-	D3DXMATRIX matScale;
-	D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
-	hudMainMenu->SetTransform(&matScale);
+	VPMENU_StartDrawing_NonMenu();
 
 	menuHelperRect.left = 800; menuHelperRect.top = 350;
 	menuHelperRect.top += (int)(menuTopHeight / fScaleY);
@@ -1358,11 +1354,7 @@ void DataGatherer::VPMENU_ShowActiveShaders()
 	ClearEmptyRect(vireio::RenderPosition::Left, rect, COLOR_MENU_BORDER, 2);
 	ClearEmptyRect(vireio::RenderPosition::Right, rect, COLOR_MENU_BORDER, 2);
 
-	hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
-
-	D3DXMATRIX matScale;
-	D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
-	hudMainMenu->SetTransform(&matScale);
+	VPMENU_StartDrawing_NonMenu();
 
 	menuHelperRect.left = 800; menuHelperRect.top = 350;
 	menuHelperRect.top += (int)(menuTopHeight / fScaleY);

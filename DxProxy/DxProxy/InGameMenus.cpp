@@ -223,6 +223,15 @@ void D3DProxyDevice::VPMENU_StartDrawing(const char *pageTitle, int borderSelect
 	menuHelperRect.left += 150;
 }
 
+void D3DProxyDevice::VPMENU_StartDrawing_NonMenu()
+{
+	hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
+
+	D3DXMATRIX matScale;
+	D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
+	hudMainMenu->SetTransform(&matScale);
+}
+
 void D3DProxyDevice::VPMENU_FinishDrawing()
 {
 	menuHelperRect.left = 0;
@@ -494,7 +503,7 @@ void D3DProxyDevice::VPMENU_MainMenu()
 	// output menu
 	VPMENU_StartDrawing("Settings", borderSelection);
 
-	if (config.game_type > 10000)
+	if (includeShaderAnalyzer)
 	{
 		DrawMenuItem("Activate Vireio Shader Analyzer\n");
 	}
@@ -581,16 +590,11 @@ void D3DProxyDevice::VPMENU_WorldScale()
 		borderTopHeight = 365.0f;
 
 	// Draw
-	hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
-
 	// standard hud size, will be scaled later to actual viewport
-	char vcString[1024];
 	int width = VPMENU_PIXEL_WIDTH;
 	int height = VPMENU_PIXEL_HEIGHT;
 
-	D3DXMATRIX matScale;
-	D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
-	hudMainMenu->SetTransform(&matScale);
+	VPMENU_StartDrawing_NonMenu();
 
 	// arbitrary formular... TODO !! find a more nifty solution
 	float BlueLineCenterAsPercentage = m_spShaderViewAdjustment->HMDInfo()->GetLensXCenterOffset() * 0.2f;
@@ -603,8 +607,8 @@ void D3DProxyDevice::VPMENU_WorldScale()
 	int hashBottom = (int)(viewportHeight  * 0.52f);
 
 	RECT rec2 = {(int)(width*0.27f), (int)(height*0.8f),width,height};
-	sprintf_s(vcString, 1024, "Vireio Perception ("APP_VERSION") Settings - World Scale\n");
-	DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec2, COLOR_MENU_TEXT);
+	std::string titleText = retprintf("Vireio Perception (%s) Settings - World Scale\n", APP_VERSION);
+	DrawTextShadowed(hudFont, hudMainMenu, titleText.c_str(), &rec2, COLOR_MENU_TEXT);
 
 	// draw right line (using BaseDirect3DDevice9, since otherwise we have two lines)
 	D3DRECT rec3 = {(int)(viewportWidth/2 + (-BlueLineCenterAsPercentage * viewportWidth * 0.25f))-1, 0,
@@ -685,30 +689,22 @@ void D3DProxyDevice::VPMENU_WorldScale()
 	float gameUnitsToInches = gameUnit / 39.3700787f;
 	
 	rec10.top = (int)(height*0.6f); rec10.left = (int)(width*0.28f);
-	sprintf_s(vcString,"1 Game Unit = %g Meters", meters);
-	DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec10, COLOR_MENU_TEXT);
+	DrawTextShadowed(hudFont, hudMainMenu, retprintf("1 Game Unit = %g Meters", meters).c_str(), &rec10, COLOR_MENU_TEXT);
 	rec10.top+=35;
-	sprintf_s(vcString,"1 Game Unit = %g CM", centimeters);
-	DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec10, COLOR_MENU_TEXT);
+	DrawTextShadowed(hudFont, hudMainMenu, retprintf("1 Game Unit = %g CM", centimeters), &rec10, COLOR_MENU_TEXT);
 	rec10.top+=35;
-	sprintf_s(vcString,"1 Game Unit = %g Feet", feet);
-	DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec10, COLOR_MENU_TEXT);
+	DrawTextShadowed(hudFont, hudMainMenu, retprintf("1 Game Unit = %g Feet", feet), &rec10, COLOR_MENU_TEXT);
 	rec10.top+=35;
-	sprintf_s(vcString,"1 Game Unit = %g In.", inches);
-	DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec10, COLOR_MENU_TEXT);
+	DrawTextShadowed(hudFont, hudMainMenu, retprintf("1 Game Unit = %g In.", inches), &rec10, COLOR_MENU_TEXT);
 
 	RECT rec11 = {(int)(width*0.52f), (int)(height*0.6f),width,height};
-	sprintf_s(vcString,"1 Meter      = %g Game Units", gameUnit);
-	DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec11, COLOR_MENU_TEXT);
+	DrawTextShadowed(hudFont, hudMainMenu, retprintf("1 Meter      = %g Game Units", gameUnit), &rec11, COLOR_MENU_TEXT);
 	rec11.top+=35;
-	sprintf_s(vcString,"1 CM         = %g Game Units", gameUnitsToCentimeter);
-	DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec11, COLOR_MENU_TEXT);
+	DrawTextShadowed(hudFont, hudMainMenu, retprintf("1 CM         = %g Game Units", gameUnitsToCentimeter), &rec11, COLOR_MENU_TEXT);
 	rec11.top+=35;
-	sprintf_s(vcString,"1 Foot       = %g Game Units", gameUnitsToFoot);
-	DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec11, COLOR_MENU_TEXT);
+	DrawTextShadowed(hudFont, hudMainMenu, retprintf("1 Foot       = %g Game Units", gameUnitsToFoot), &rec11, COLOR_MENU_TEXT);
 	rec11.top+=35;
-	sprintf_s(vcString,"1 Inch       = %g Game Units", gameUnitsToInches);
-	DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec11, COLOR_MENU_TEXT);
+	DrawTextShadowed(hudFont, hudMainMenu, retprintf("1 Inch       = %g Game Units", gameUnitsToInches), &rec11, COLOR_MENU_TEXT);
 
 	VPMENU_FinishDrawing();
 
@@ -716,7 +712,7 @@ void D3DProxyDevice::VPMENU_WorldScale()
 	hudTextBox->Begin(D3DXSPRITE_ALPHABLEND);
 	hudTextBox->SetTransform(&matScale);
 	RECT rec8 = {620, (int)(borderTopHeight), 1300, 400};
-	sprintf_s(vcString, 1024,
+	DrawTextShadowed(hudFont, hudTextBox,
 		"In the right eye view, walk up as close as\n"
 		"possible to a 90 degree vertical object and\n"
 		"align the BLUE vertical line with its edge.\n"
@@ -729,9 +725,8 @@ void D3DProxyDevice::VPMENU_WorldScale()
 		"beyond this point, reduce the World Scale \n"
 		"further.  Try to keep the BLUE line aligned\n"
 		"while changing the World Scale.  Adjust \n"
-		"further for comfort and game unit accuracy.\n"
-		);
-	DrawTextShadowed(hudFont, hudTextBox, vcString, &rec8, COLOR_MENU_TEXT);
+		"further for comfort and game unit accuracy.\n",
+		&rec8, COLOR_MENU_TEXT);
 	D3DXVECTOR3 vPos(0.0f, 0.0f, 0.0f);
 	hudTextBox->Draw(NULL, &rec8, NULL, &vPos, COLOR_WHITE);
 
@@ -773,16 +768,11 @@ void D3DProxyDevice::VPMENU_Convergence()
 		borderTopHeight = 365.0f;
 
 	// Draw
-	hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
-
 	// standard hud size, will be scaled later to actual viewport
-	char vcString[1024];
 	int width = VPMENU_PIXEL_WIDTH;
 	int height = VPMENU_PIXEL_HEIGHT;
 
-	D3DXMATRIX matScale;
-	D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
-	hudMainMenu->SetTransform(&matScale);
+	VPMENU_StartDrawing_NonMenu();
 
 	// arbitrary formular... TODO !! find a more nifty solution
 	float BlueLineCenterAsPercentage = m_spShaderViewAdjustment->HMDInfo()->GetLensXCenterOffset() * 0.2f;
@@ -795,8 +785,8 @@ void D3DProxyDevice::VPMENU_Convergence()
 	int hashBottom = (int)(viewportHeight  * 0.52f);
 
 	RECT rec2 = {(int)(width*0.27f), (int)(height*0.8f),width,height};
-	sprintf_s(vcString, 1024, "Vireio Perception ("APP_VERSION") Settings - Convergence\n");
-	DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec2, COLOR_MENU_TEXT);
+	std::string titleText = retprintf("Vireio Perception (%s) Settings - Convergence\n", APP_VERSION);
+	DrawTextShadowed(hudFont, hudMainMenu, titleText.c_str(), &rec2, COLOR_MENU_TEXT);
 
 	// draw right line (using BaseDirect3DDevice9, since otherwise we have two lines)
 	D3DRECT rec3 = {(int)(viewportWidth/2 + (-BlueLineCenterAsPercentage * viewportWidth * 0.25f))-1, 0,
@@ -834,29 +824,26 @@ void D3DProxyDevice::VPMENU_Convergence()
 
 	rec2.left = (int)(width*0.35f);
 	rec2.top = (int)(height*0.83f);
-	sprintf_s(vcString, 1024, "Convergence Adjustment");
-	DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec2, COLOR_MENU_TEXT);
+	DrawTextShadowed(hudFont, hudMainMenu, "Convergence Adjustment", &rec2, COLOR_MENU_TEXT);
 
 	// output convergence
 	RECT rec10 = {(int)(width*0.40f), (int)(height*0.57f),width,height};
 	DrawTextShadowed(hudFont, hudMainMenu, "<- calibrate using Arrow Keys ->", &rec10, COLOR_MENU_TEXT);
 	// Convergence Screen = X Meters = X Feet
 	rec10.top = (int)(height*0.6f); rec10.left = (int)(width*0.385f);
+	
 	float meters = m_spShaderViewAdjustment->Convergence();
-	sprintf_s(vcString,"Convergence Screen = %g Meters", meters);
-	DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec10, COLOR_MENU_TEXT);
-	rec10.top+=35;
 	float centimeters = meters * 100.0f;
-	sprintf_s(vcString,"Convergence Screen = %g CM", centimeters);
-	DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec10, COLOR_MENU_TEXT);
-	rec10.top+=35;
 	float feet = meters * 3.2808399f;
-	sprintf_s(vcString,"Convergence Screen = %g Feet", feet);
-	DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec10, COLOR_MENU_TEXT);
-	rec10.top+=35;
 	float inches = feet * 12.0f;
-	sprintf_s(vcString,"Convergence Screen = %g Inches", inches);
-	DrawTextShadowed(hudFont, hudMainMenu, vcString, &rec10, COLOR_MENU_TEXT);
+	
+	DrawTextShadowed(hudFont, hudMainMenu, retprintf("Convergence Screen = %g Meters", meters), &rec10, COLOR_MENU_TEXT);
+	rec10.top+=35;
+	DrawTextShadowed(hudFont, hudMainMenu, retprintf("Convergence Screen = %g CM", centimeters), &rec10, COLOR_MENU_TEXT);
+	rec10.top+=35;
+	DrawTextShadowed(hudFont, hudMainMenu, retprintf("Convergence Screen = %g Feet", feet), &rec10, COLOR_MENU_TEXT);
+	rec10.top+=35;
+	DrawTextShadowed(hudFont, hudMainMenu, retprintf("Convergence Screen = %g Inches", inches), &rec10, COLOR_MENU_TEXT);
 
 	VPMENU_FinishDrawing();
 
@@ -864,7 +851,7 @@ void D3DProxyDevice::VPMENU_Convergence()
 	hudTextBox->Begin(D3DXSPRITE_ALPHABLEND);
 	hudTextBox->SetTransform(&matScale);
 	RECT rec8 = {620, (int)(borderTopHeight), 1300, 400};
-	sprintf_s(vcString, 1024,
+	DrawTextShadowed(hudFont, hudTextBox,
 		"Note that the Convergence Screens distance\n"
 		"is measured in physical meters and should\n"
 		"only be adjusted to match Your personal\n"
@@ -874,9 +861,8 @@ void D3DProxyDevice::VPMENU_Convergence()
 		"possible to a 90 degree vertical object and\n"
 		"align the BLUE vertical line with its edge.\n"
 		"Good examples include a wall corner, a table\n"
-		"corner, a square post, etc.\n"
-		);
-	DrawTextShadowed(hudFont, hudTextBox, vcString, &rec8, COLOR_MENU_TEXT);
+		"corner, a square post, etc.\n",
+		&rec8, COLOR_MENU_TEXT);
 	D3DXVECTOR3 vPos(0.0f, 0.0f, 0.0f);
 	hudTextBox->Draw(NULL, &rec8, NULL, &vPos, COLOR_WHITE);
 
@@ -2045,10 +2031,7 @@ void D3DProxyDevice::VPMENU_UpdateBorder()
 	// draw 
 	if (m_deviceBehavior.whenToRenderVPMENU == DeviceBehavior::PRESENT)
 	{
-		if (VPMENU_IsOpen())
-			VPMENU();
-		else
-			VPMENU_AdditionalOutput();
+		VPMENU();
 	}
 
 

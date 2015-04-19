@@ -441,6 +441,7 @@ protected:
 	bool VPMENU_IsOpen();
 	void VPMENU_NewFrame(UINT &entryID, UINT menuEntryCount);
 	void VPMENU_StartDrawing(const char *pageTitle, int borderSelection);
+	void VPMENU_StartDrawing_NonMenu();
 	void VPMENU_FinishDrawing();
 	bool VPMENU_Input_Selected();
 	bool VPMENU_Input_Left();

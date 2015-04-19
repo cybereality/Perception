@@ -101,134 +101,135 @@ void D3DProxyDevice::DismissPopup(VireioPopupType popupType)
 
 void D3DProxyDevice::DisplayCurrentPopup()
 {
+	if (!hudFont)
+		return;
+	
 	//We don't want to show any notification for the first few seconds (seems to cause an issue in some games!)
 	static DWORD initialTick = GetTickCount();
 	if ((GetTickCount() - initialTick) < 2000)
 		return;
 
-	if ((activePopup.popupType == VPT_NONE && show_fps == FPS_NONE) || 
-		VPMENU_IsOpen() ||
-		!userConfig.notifications)
+	if ((activePopup.popupType == VPT_NONE && show_fps == FPS_NONE) ||
+		VPMENU_IsOpen() || !userConfig.notifications)
+	{
 		return;
+	}
 	
 	// output menu
-	if (hudFont)
+	hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
+
+	D3DXMATRIX matScale;
+	D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
+	hudMainMenu->SetTransform(&matScale);
+
+	if (activePopup.popupType == VPT_STATS && m_spShaderViewAdjustment->GetStereoType() >= 100)
 	{
-		hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
+		sprintf_s(activePopup.line[0], "HMD Description: %s", tracker->GetTrackerDescription()); 
+		sprintf_s(activePopup.line[1], "Yaw: %.3f Pitch: %.3f Roll: %.3f", tracker->primaryYaw, tracker->primaryPitch, tracker->primaryRoll); 
+		sprintf_s(activePopup.line[2], "X: %.3f Y: %.3f Z: %.3f", tracker->primaryX, tracker->primaryY, tracker->primaryZ); 
 
-		D3DXMATRIX matScale;
-		D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
-		hudMainMenu->SetTransform(&matScale);
-
-		if (activePopup.popupType == VPT_STATS && m_spShaderViewAdjustment->GetStereoType() >= 100)
-		{
-			sprintf_s(activePopup.line[0], "HMD Description: %s", tracker->GetTrackerDescription()); 
-			sprintf_s(activePopup.line[1], "Yaw: %.3f Pitch: %.3f Roll: %.3f", tracker->primaryYaw, tracker->primaryPitch, tracker->primaryRoll); 
-			sprintf_s(activePopup.line[2], "X: %.3f Y: %.3f Z: %.3f", tracker->primaryX, tracker->primaryY, tracker->primaryZ); 
-
-			
-			if (VRBoostStatus.VRBoost_Active)
-			{
-				ActiveAxisInfo axes[30];
-				memset(axes, 0xFF, sizeof(ActiveAxisInfo) * 30);
-				UINT count = m_pVRboost_GetActiveRuleAxes((ActiveAxisInfo**)&axes);
-
-				std::string axisNames;
-				UINT i = 0;
-				while (i < count)
-				{
-					if (axes[i].Axis == MAXDWORD)
-						break;
-					axisNames += VRboostAxisString(axes[i].Axis) + " ";
-					i++;
-				}				
-
-				sprintf_s(activePopup.line[3], "VRBoost Active: TRUE     Axes: %s", 
-					axisNames.c_str());
-			}
-			else
-			{
-				strcpy_s(activePopup.line[3], "VRBoost Active: FALSE");
-			}
-
-			if (m_bPosTrackingToggle)
-				strcpy_s(activePopup.line[4], "HMD Positional Tracking Enabled");
-			else
-				strcpy_s(activePopup.line[4], "HMD Positional Tracking Disabled");
-
-			sprintf_s(activePopup.line[5],"Current VShader Count : %u", m_VertexShaderCountLastFrame);
-		}
-
-		if (activePopup.expired())
-		{
-			//Ensure we stop showing this popup
-			activePopup.popupType = VPT_NONE;
-			activePopup.reset();
-		}
-
-		UINT format = 0;
-		D3DCOLOR popupColour;
-		ID3DXFont *pFont;
-		menuHelperRect.left = 670;
-		menuHelperRect.top = 440;
-		switch (activePopup.severity)
-		{
-			case VPS_TOAST:
-				{
-					//Center on the screen
-					format = DT_CENTER;
-					popupColour = COLOR_WHITE;
-					float FADE_DURATION = 200.0f;
-					int fontSize = (activePopup.popupDuration - GetTickCount() > FADE_DURATION) ? 26 : 
-						(int)( (25.0f * (activePopup.popupDuration - GetTickCount())) / FADE_DURATION + 1);
-					pFont = popupFont[fontSize];
-					menuHelperRect.left = 0;
-				}
-				break;
-			case VPS_INFO:
-				{
-					popupColour = COLOR_INFO_POPUP;
-					pFont = popupFont[24];
-				}
-				break;
-			case VPS_ERROR:
-				{
-					popupColour = COLOR_RED;
-					menuHelperRect.left = 0;
-					format = DT_CENTER;
-					pFont = errorFont;
-				}
-				break;
-		}
-
-		for (int i = 0; i <= 6; ++i)
-		{
-			if (strlen(activePopup.line[i]))
-				DrawTextShadowed(pFont, hudMainMenu, activePopup.line[i], -1, &menuHelperRect, format, popupColour);
-			menuHelperRect.top += MENU_ITEM_SEPARATION;
-		}
 		
-		if (show_fps != FPS_NONE)
+		if (VRBoostStatus.VRBoost_Active)
 		{
-			char buffer[256];
-			if (show_fps == FPS_COUNT)
-				sprintf_s(buffer, "FPS: %.1f", fps);
-			else if (show_fps == FPS_TIME)
-				sprintf_s(buffer, "Frame Time: %.2f ms", 1000.0f / fps);
+			ActiveAxisInfo axes[30];
+			memset(axes, 0xFF, sizeof(ActiveAxisInfo) * 30);
+			UINT count = m_pVRboost_GetActiveRuleAxes((ActiveAxisInfo**)&axes);
 
-			D3DCOLOR colour = COLOR_WHITE;
-			if (fps <= 40)
-				colour = COLOR_RED;
-			else if (fps > 74)
-				colour = COLOR_GREEN;
+			std::string axisNames;
+			UINT i = 0;
+			while (i < count)
+			{
+				if (axes[i].Axis == MAXDWORD)
+					break;
+				axisNames += VRboostAxisString(axes[i].Axis) + " ";
+				i++;
+			}				
 
-			menuHelperRect.top = 800;
-			menuHelperRect.left = 0;
-			hudFont->DrawText(hudMainMenu, buffer, -1, &menuHelperRect, DT_CENTER, colour);
+			sprintf_s(activePopup.line[3], "VRBoost Active: TRUE     Axes: %s", 
+				axisNames.c_str());
+		}
+		else
+		{
+			strcpy_s(activePopup.line[3], "VRBoost Active: FALSE");
 		}
 
-		VPMENU_FinishDrawing();
+		if (m_bPosTrackingToggle)
+			strcpy_s(activePopup.line[4], "HMD Positional Tracking Enabled");
+		else
+			strcpy_s(activePopup.line[4], "HMD Positional Tracking Disabled");
+
+		sprintf_s(activePopup.line[5],"Current VShader Count : %u", m_VertexShaderCountLastFrame);
 	}
+
+	if (activePopup.expired())
+	{
+		//Ensure we stop showing this popup
+		activePopup.popupType = VPT_NONE;
+		activePopup.reset();
+	}
+
+	UINT format = 0;
+	D3DCOLOR popupColour;
+	ID3DXFont *pFont;
+	menuHelperRect.left = 670;
+	menuHelperRect.top = 440;
+	switch (activePopup.severity)
+	{
+		case VPS_TOAST:
+			{
+				//Center on the screen
+				format = DT_CENTER;
+				popupColour = COLOR_WHITE;
+				float FADE_DURATION = 200.0f;
+				int fontSize = (activePopup.popupDuration - GetTickCount() > FADE_DURATION) ? 26 : 
+					(int)( (25.0f * (activePopup.popupDuration - GetTickCount())) / FADE_DURATION + 1);
+				pFont = popupFont[fontSize];
+				menuHelperRect.left = 0;
+			}
+			break;
+		case VPS_INFO:
+			{
+				popupColour = COLOR_INFO_POPUP;
+				pFont = popupFont[24];
+			}
+			break;
+		case VPS_ERROR:
+			{
+				popupColour = COLOR_RED;
+				menuHelperRect.left = 0;
+				format = DT_CENTER;
+				pFont = errorFont;
+			}
+			break;
+	}
+
+	for (int i = 0; i <= 6; ++i)
+	{
+		if (strlen(activePopup.line[i]))
+			DrawTextShadowed(pFont, hudMainMenu, activePopup.line[i], -1, &menuHelperRect, format, popupColour);
+		menuHelperRect.top += MENU_ITEM_SEPARATION;
+	}
+	
+	if (show_fps != FPS_NONE)
+	{
+		char buffer[256];
+		if (show_fps == FPS_COUNT)
+			sprintf_s(buffer, "FPS: %.1f", fps);
+		else if (show_fps == FPS_TIME)
+			sprintf_s(buffer, "Frame Time: %.2f ms", 1000.0f / fps);
+
+		D3DCOLOR colour = COLOR_WHITE;
+		if (fps <= 40)
+			colour = COLOR_RED;
+		else if (fps > 74)
+			colour = COLOR_GREEN;
+
+		menuHelperRect.top = 800;
+		menuHelperRect.left = 0;
+		hudFont->DrawText(hudMainMenu, buffer, -1, &menuHelperRect, DT_CENTER, colour);
+	}
+
+	VPMENU_FinishDrawing();
 }
 
 
