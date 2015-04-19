@@ -899,27 +899,27 @@ void DataGatherer::VPMENU_ChangeRules()
 						    itShaderConstants++)
 						{
 							// constant name in menu entries already present
-							if (itShaderConstants->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) == 0)
-							{
-								// never assign "transposed" to vector
-								if (itShaderConstants->desc.Class == D3DXPARAMETER_CLASS::D3DXPC_VECTOR)
-									addRule(itShaderConstants->name, true, itShaderConstants->desc.RegisterIndex, itShaderConstants->desc.Class, 1, false);
-								else
-									addRule(itShaderConstants->name, true, itShaderConstants->desc.RegisterIndex, itShaderConstants->desc.Class, 1, m_bTransposedRules);
-								itShaderConstants->hasRule = true;
+							if (itShaderConstants->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) != 0)
+								continue;
+							
+							// never assign "transposed" to vector
+							if (itShaderConstants->desc.Class == D3DXPARAMETER_CLASS::D3DXPC_VECTOR)
+								addRule(itShaderConstants->name, true, itShaderConstants->desc.RegisterIndex, itShaderConstants->desc.Class, 1, false);
+							else
+								addRule(itShaderConstants->name, true, itShaderConstants->desc.RegisterIndex, itShaderConstants->desc.Class, 1, m_bTransposedRules);
+							itShaderConstants->hasRule = true;
 
-								// set the menu output accordingly
-								for(auto itShaderConstants1 = m_relevantVSConstantNames.begin();
-								    itShaderConstants1 !=m_relevantVSConstantNames.end();
-								    itShaderConstants1++)
-								{
-									// set rule bool for all relevant constant names
-									if (itShaderConstants1->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) == 0)
-									{
-										UINT operation;
-										itShaderConstants1->hasRule = m_pGameHandler->GetShaderModificationRepository()->ConstantHasRule(itShaderConstants1->name, itShaderConstants1->ruleName, operation, itShaderConstants1->isTransposed);
-									}
-								}
+							// set the menu output accordingly
+							for(auto itShaderConstants1 = m_relevantVSConstantNames.begin();
+							    itShaderConstants1 !=m_relevantVSConstantNames.end();
+							    itShaderConstants1++)
+							{
+								// set rule bool for all relevant constant names
+								if (itShaderConstants1->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) != 0)
+									continue;
+								
+								UINT operation;
+								itShaderConstants1->hasRule = m_pGameHandler->GetShaderModificationRepository()->ConstantHasRule(itShaderConstants1->name, itShaderConstants1->ruleName, operation, itShaderConstants1->isTransposed);
 							}
 						}
 					}
@@ -934,11 +934,11 @@ void DataGatherer::VPMENU_ChangeRules()
 					    itShaderConstants1++)
 					{
 						// set rule bool for all relevant constant names
-						if (itShaderConstants1->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) == 0)
-						{
-							UINT operation;
-							itShaderConstants1->hasRule = m_pGameHandler->GetShaderModificationRepository()->ConstantHasRule(itShaderConstants1->name, itShaderConstants1->ruleName, operation, itShaderConstants1->isTransposed);
-						}
+						if (itShaderConstants1->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) != 0)
+							continue;
+						
+						UINT operation;
+						itShaderConstants1->hasRule = m_pGameHandler->GetShaderModificationRepository()->ConstantHasRule(itShaderConstants1->name, itShaderConstants1->ruleName, operation, itShaderConstants1->isTransposed);
 					}
 				}
 			}
@@ -968,10 +968,10 @@ void DataGatherer::VPMENU_ChangeRules()
 							    itShaderConstants1++)
 							{
 								// set rule bool for all relevant constant names
-								if (itShaderConstants1->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) == 0)
-								{
-									itShaderConstants1->hasRule = m_pGameHandler->GetShaderModificationRepository()->ConstantHasRule(itShaderConstants1->name, itShaderConstants1->ruleName, operation, itShaderConstants1->isTransposed);
-								}
+								if (itShaderConstants1->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) != 0)
+									continue;
+								
+								itShaderConstants1->hasRule = m_pGameHandler->GetShaderModificationRepository()->ConstantHasRule(itShaderConstants1->name, itShaderConstants1->ruleName, operation, itShaderConstants1->isTransposed);
 							}
 						}
 					}
@@ -990,21 +990,21 @@ void DataGatherer::VPMENU_ChangeRules()
 					    itShaderConstants != itShaderConstantMap->second.end();
 					    itShaderConstants++)
 					{
-						// constant name in menu entries already present
-						if (itShaderConstants->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) == 0)
+						// constant name in menu entries already present?
+						if (itShaderConstants->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) != 0)
+							continue;
+						
+						// show blinking if shader is drawn
+						if (m_relevantVSConstantNames[menuID[entryID]].nodeOpen)
 						{
-							// show blinking if shader is drawn
-							if (m_relevantVSConstantNames[menuID[entryID]].nodeOpen)
-							{
-								if (std::find(m_excludedVShaders.begin(), m_excludedVShaders.end(), itShaderConstants->hash) == m_excludedVShaders.end()) {
-									m_excludedVShaders.push_back(itShaderConstants->hash);
-								}
+							if (std::find(m_excludedVShaders.begin(), m_excludedVShaders.end(), itShaderConstants->hash) == m_excludedVShaders.end()) {
+								m_excludedVShaders.push_back(itShaderConstants->hash);
 							}
-							else
-							{
-								// erase all entries for that hash
-								m_excludedVShaders.erase(std::remove(m_excludedVShaders.begin(), m_excludedVShaders.end(), itShaderConstants->hash), m_excludedVShaders.end()); 
-							}
+						}
+						else
+						{
+							// erase all entries for that hash
+							m_excludedVShaders.erase(std::remove(m_excludedVShaders.begin(), m_excludedVShaders.end(), itShaderConstants->hash), m_excludedVShaders.end()); 
 						}
 					}
 				}
@@ -1035,16 +1035,15 @@ void DataGatherer::VPMENU_ChangeRules()
 					}
 					else if (VPMENU_Input_Right())
 					{
-						if (m_relevantVSConstantNames[menuID[entryID]].desc.Class == D3DXPARAMETER_CLASS::D3DXPC_VECTOR)
-						{
-							if (operation < (UINT)ShaderConstantModificationFactory::Vec4EyeShiftUnity)
-								operation++;
+						UINT maxValue;
+						if (m_relevantVSConstantNames[menuID[entryID]].desc.Class == D3DXPARAMETER_CLASS::D3DXPC_VECTOR) {
+							maxValue = (UINT)ShaderConstantModificationFactory::Vec4EyeShiftUnity;
+						} else {
+							maxValue = (UINT)ShaderConstantModificationFactory::MatConvergenceOffset;
 						}
-						else
-						{
-							if (operation < (UINT)ShaderConstantModificationFactory::MatConvergenceOffset)
-								operation++;
-						}
+						
+						if (operation < maxValue)
+							operation++;
 					}
 
 					for(auto itShaderConstantMap = m_relevantVSConstants.begin();
@@ -1055,24 +1054,23 @@ void DataGatherer::VPMENU_ChangeRules()
 						    itShaderConstants != itShaderConstantMap->second.end();
 						    itShaderConstants++)
 						{
-							// constant name in menu entries already present
-							if (itShaderConstants->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) == 0)
+							// constant name in menu entries already present?
+							if (itShaderConstants->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) != 0)
+								continue;
+							
+							modifyRule(itShaderConstants->name, operation, itShaderConstants->isTransposed);
+
+							// set the menu output accordingly
+							for(auto itShaderConstants1 = m_relevantVSConstantNames.begin();
+							    itShaderConstants1 != m_relevantVSConstantNames.end();
+							    ++itShaderConstants1)
 							{
-								modifyRule(itShaderConstants->name, operation, itShaderConstants->isTransposed);
-
-								// set the menu output accordingly
-								for(auto itShaderConstants1 = m_relevantVSConstantNames.begin();
-								    itShaderConstants1 != m_relevantVSConstantNames.end();
-								    ++itShaderConstants1)
-								{
-									// set rule bool for all relevant constant names
-									if (itShaderConstants1->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) == 0)
-									{
-										itShaderConstants1->hasRule = m_pGameHandler->GetShaderModificationRepository()->ConstantHasRule(itShaderConstants1->name, itShaderConstants1->ruleName, operation, itShaderConstants1->isTransposed);
-									}
-								}
+								// set rule bool for all relevant constant names
+								if (itShaderConstants1->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) != 0)
+									continue;
+								
+								itShaderConstants1->hasRule = m_pGameHandler->GetShaderModificationRepository()->ConstantHasRule(itShaderConstants1->name, itShaderConstants1->ruleName, operation, itShaderConstants1->isTransposed);
 							}
-
 						}
 					}
 				}
