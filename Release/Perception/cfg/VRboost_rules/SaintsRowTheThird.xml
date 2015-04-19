@@ -67,11 +67,11 @@
 			</Comparisons>
 		</ScanRule>	
 
-		<!-- Not-quite copy of Yaw - Strange address this, will give it a wide region-->
+		<!-- This is in-vehicle Yaw, separate address to on-foot yaw -->
 		<ScanRule>
-			<AxisName>NoAxis</AxisName>
+			<AxisName>TrackerYaw2</AxisName>
 			<AddressType>Float</AddressType>
-			<ModificationToApply>FloatDoNothing</ModificationToApply>
+			<ModificationToApply>FloatGaussianCompass</ModificationToApply>
 			<BaseAddressOffset>00000018</BaseAddressOffset>
 			<CheckForChanges>Changes</CheckForChanges>
 			<Comparisons>

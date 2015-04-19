@@ -55,7 +55,8 @@ namespace VRBoost
 		One = 4,                         /**< This index is reserved for constant 1 output. **/
 		FreePitch = 5,					 /**< This index is reserved for Indicating Pitch axis shouldn't be locked (0.0 = FALSE, anything else = TRUE)**/
 		ComfortMode = 6,				 /**< This index is reserved for Indicating Yaw axis should be locked (0.0 = FALSE, anything else = TRUE)**/
-		// 7..11                              reserved for future tracker use
+		TrackerYaw2 = 7,				 /**< This index is reserved for Tracker->primaryYaw. **/
+		// 8..11                              reserved for future tracker use
 		// 12..23                             reserved for future input device use
 		WorldFOV = 24,                   /**< Game-specific global FOV setting. **/
 		PlayerFOV = 25,                  /**< Game-specific player surroundings FOV setting. **/

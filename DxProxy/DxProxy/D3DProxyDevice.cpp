@@ -4035,6 +4035,8 @@ void D3DProxyDevice::HandleTracking()
 			yaw += ((m_comfortModeYaw / 180.0f) * (float)PI);
 
 		VRBoostValue[VRboostAxis::TrackerYaw] = yaw;
+		//This might be used by games that have a second yaw address for other modes of transport for example
+		VRBoostValue[VRboostAxis::TrackerYaw2] = yaw;
 		VRBoostValue[VRboostAxis::TrackerPitch] = tracker->primaryPitch;
 		VRBoostValue[VRboostAxis::TrackerRoll] = tracker->primaryRoll;
 
