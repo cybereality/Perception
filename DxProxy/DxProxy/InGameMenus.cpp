@@ -50,6 +50,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace VRBoost;
 using namespace vireio;
+using namespace HotkeyExpressions;
+
+InputBindingRef hotkeyCloseMenu = Key(VK_ESCAPE);
+InputBindingRef hotkeyResetToDefault = Key(VK_BACK);
+InputBindingRef hotkeyMenuUp = Key(VK_UP) || Key('I');
+InputBindingRef hotkeyMenuDown = Key(VK_DOWN) || Key('K');
+InputBindingRef hotkeyMenuUpFaster = Key(VK_PRIOR) || Key('U');
+InputBindingRef hotkeyMenuDownFaster = Key(VK_NEXT) || Key('O');
+InputBindingRef hotkeyMenuSelect = Key(VK_RETURN) || Key(VK_RSHIFT) || Button(0x0c);
+InputBindingRef hotkeyAdjustLeft = Key(VK_LEFT) || Key('J');
+InputBindingRef hotkeyAdjustRight = Key(VK_RIGHT) || Key('L');
+
+InputBindingRef hotkeyMenuAdjustmentFaster = Key(VK_LSHIFT);
+InputBindingRef hotkeyMenuAdjustmentSlower = Key(VK_LCONTROL);
+InputBindingRef hotkeyMenuAdjustmentMuchSlower = Key(VK_MENU);
 
 bool D3DProxyDevice::InitVPMENU()
 {
@@ -251,19 +266,19 @@ bool D3DProxyDevice::VPMENU_Input_Selected()
 {
 	if(!HotkeysActive())
 		return false;
-	return (controls.Key_Down(VK_RETURN)
-		|| controls.Key_Down(VK_RSHIFT)
-		|| controls.xButtonsStatus[0x0c]);
+	return hotkeyMenuSelect->IsPressed(controls);
 }
 
 bool D3DProxyDevice::VPMENU_Input_Left()
 {
-	return (controls.Key_Down(VK_LEFT) || controls.Key_Down('J') || (controls.xInputState.Gamepad.sThumbLX<-8192));
+	return hotkeyAdjustLeft->IsPressed(controls)
+	       || (controls.xInputState.Gamepad.sThumbLX<-8192);
 }
 
 bool D3DProxyDevice::VPMENU_Input_Right()
 {
-	return (controls.Key_Down(VK_RIGHT) || controls.Key_Down('L') || (controls.xInputState.Gamepad.sThumbLX>8192));
+	return hotkeyAdjustRight->IsPressed(controls)
+	       || (controls.xInputState.Gamepad.sThumbLX>8192);
 }
 
 bool D3DProxyDevice::VPMENU_Input_IsAdjustment()
@@ -273,32 +288,28 @@ bool D3DProxyDevice::VPMENU_Input_IsAdjustment()
 
 float D3DProxyDevice::VPMENU_Input_GetAdjustment()
 {
+	if (!HotkeysActive())
+		return 0;
+	
 	float speed = VPMENU_Input_SpeedModifier();
 	
-	if (VPMENU_Input_Left() && HotkeysActive())
-	{
-		if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down('J'))
-			return -speed * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-		else
-			return -speed;
-	}
-	if (VPMENU_Input_Right() && HotkeysActive())
-	{
-		if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down('L'))
-			return +speed * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-		else
-			return +speed;
-	}
-	return 0;
+	if (hotkeyAdjustLeft->IsPressed(controls) && hotkeyAdjustRight->IsPressed(controls))
+		return 0;
+	else if (hotkeyAdjustRight->IsPressed(controls))
+		return speed;
+	else if (hotkeyAdjustLeft->IsPressed(controls))
+		return -speed;
+	else
+		return speed * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
 }
 
 float D3DProxyDevice::VPMENU_Input_SpeedModifier()
 {
-	if(controls.Key_Down(VK_LCONTROL))
+	if(hotkeyMenuAdjustmentSlower->IsPressed(controls))
 		return 0.1f;
-	else if(controls.Key_Down(VK_LSHIFT))
+	else if(hotkeyMenuAdjustmentFaster->IsPressed(controls))
 		return 10.0f;
-	else if(controls.Key_Down(VK_MENU))
+	else if(hotkeyMenuAdjustmentMuchSlower->IsPressed(controls))
 		return 0.002f;
 	else
 		return 1.0;
@@ -323,7 +334,7 @@ void D3DProxyDevice::VPMENU()
 		return;
 	}
 	
-	if (controls.Key_Down(VK_ESCAPE))
+	if (hotkeyCloseMenu->IsPressed(controls))
 	{
 		VPMENU_Close();
 		return;
@@ -1361,15 +1372,15 @@ void D3DProxyDevice::VPMENU_VRBoostValues()
 	AddAdjustmentMenuItem("World FOV : %g",          &VRBoostValue[24], 100.0f, 0.5f);
 	AddAdjustmentMenuItem("Player FOV : %g",         &VRBoostValue[25], 100.0f, 0.5f);
 	AddAdjustmentMenuItem("Far Plane FOV : %g",      &VRBoostValue[26], 100.0f, 0.5f);
-	AddAdjustmentMenuItem("Camera Translate X : %g", &VRBoostValue[27], 0.0f, 0.5f);
-	AddAdjustmentMenuItem("Camera Translate Y : %g", &VRBoostValue[28], 0.0f, 0.5f);
-	AddAdjustmentMenuItem("Camera Translate Z : %g", &VRBoostValue[29], 0.0f, 0.5f);
-	AddAdjustmentMenuItem("Camera Distance : %g",    &VRBoostValue[30], 0.0f, 0.5f);
-	AddAdjustmentMenuItem("Camera Zoom : %g",        &VRBoostValue[31], 0.0f, 0.5f);
-	AddAdjustmentMenuItem("Camera Horizon Adjustment : %g", &VRBoostValue[32], 0.0f, 0.5f);
-	AddAdjustmentMenuItem("Constant Value 1 : %g",   &VRBoostValue[33], 0.0f, 0.5f);
-	AddAdjustmentMenuItem("Constant Value 2 : %g",   &VRBoostValue[34], 0.0f, 0.5f);
-	AddAdjustmentMenuItem("Constant Value 2 : %g",   &VRBoostValue[35], 0.0f, 0.5f);
+	AddAdjustmentMenuItem("Camera Translate X : %g", &VRBoostValue[27], 0.0f, 0.1f);
+	AddAdjustmentMenuItem("Camera Translate Y : %g", &VRBoostValue[28], 0.0f, 0.1f);
+	AddAdjustmentMenuItem("Camera Translate Z : %g", &VRBoostValue[29], 0.0f, 0.1f);
+	AddAdjustmentMenuItem("Camera Distance : %g",    &VRBoostValue[30], 0.0f, 0.1f);
+	AddAdjustmentMenuItem("Camera Zoom : %g",        &VRBoostValue[31], 0.0f, 0.1f);
+	AddAdjustmentMenuItem("Camera Horizon Adjustment : %g", &VRBoostValue[32], 0.0f, 0.1f);
+	AddAdjustmentMenuItem("Constant Value 1 : %g",   &VRBoostValue[33], 0.0f, 0.1f);
+	AddAdjustmentMenuItem("Constant Value 2 : %g",   &VRBoostValue[34], 0.0f, 0.1f);
+	AddAdjustmentMenuItem("Constant Value 2 : %g",   &VRBoostValue[35], 0.0f, 0.1f);
 	AddButtonMenuItem("Back to Main Menu", [=]() { VPMENU_Back(); });
 	AddButtonMenuItem("Back to Game", [=]() { VPMENU_Close(); });
 
@@ -1447,13 +1458,13 @@ void D3DProxyDevice::VPMENU_UpdateBorder()
 		int viewportHeight = stereoView->viewport.Height;
 
 		float fScaleY = ((float)viewportHeight / (float)1080.0f);
-		if ((controls.Key_Down(VK_UP) || controls.Key_Down('I') || (controls.xInputState.Gamepad.sThumbLY>8192)) && (menuVelocity.y==0.0f))
+		if ((hotkeyMenuUp->IsPressed(controls) || (controls.xInputState.Gamepad.sThumbLY>8192)) && (menuVelocity.y==0.0f))
 			menuVelocity.y=-2.7f;
-		if ((controls.Key_Down(VK_DOWN) || controls.Key_Down('K') || (controls.xInputState.Gamepad.sThumbLY<-8192)) && (menuVelocity.y==0.0f))
+		if ((hotkeyMenuDown->IsPressed(controls) || (controls.xInputState.Gamepad.sThumbLY<-8192)) && (menuVelocity.y==0.0f))
 			menuVelocity.y=2.7f;
-		if ((controls.Key_Down(VK_PRIOR) || controls.Key_Down('U')) && (menuVelocity.y==0.0f))
+		if (hotkeyMenuUpFaster->IsPressed(controls) && (menuVelocity.y==0.0f))
 			menuVelocity.y=-15.0f;
-		if ((controls.Key_Down(VK_NEXT) ||controls.Key_Down('O')) && (menuVelocity.y==0.0f))
+		if (hotkeyMenuDownFaster->IsPressed(controls) && (menuVelocity.y==0.0f))
 			menuVelocity.y=15.0f;
 		borderTopHeight += (menuVelocity.y+menuAttraction.y)*fScaleY*timeScale;
 	}
@@ -1739,7 +1750,7 @@ void D3DProxyDevice::AddKeybindMenuItem(std::string text, byte *binding)
 	}
 	
 	AddMenuItem(description, COLOR_MENU_TEXT, [=]() {
-		if (controls.Key_Down(VK_BACK) && HotkeysActive())
+		if (hotkeyResetToDefault->IsPressed(controls) && HotkeysActive())
 		{
 			*binding = 0;
 			HotkeyCooldown(2.0f);
@@ -1759,7 +1770,7 @@ void D3DProxyDevice::AddAdjustmentMenuItem(const char *formatString, float *valu
 	std::string label = retprintf(formatString, RoundVireioValue(*value));
 	
 	AddMenuItem(label, [=]() {
-		if (controls.Key_Down(VK_BACK) && HotkeysActive())
+		if (hotkeyResetToDefault->IsPressed(controls) && HotkeysActive())
 		{
 			*value = defaultValue;
 			onChange();
