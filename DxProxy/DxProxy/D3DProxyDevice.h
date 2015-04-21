@@ -66,6 +66,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <ctime>
 #include <functional>
 #include "Vireio.h"
+#include "../../Shared/VireioUtil.h"
 #include "StereoShaderConstant.h"
 #include "StereoBackBuffer.h"
 #include "GameHandler.h"

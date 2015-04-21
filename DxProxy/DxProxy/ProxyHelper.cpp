@@ -28,12 +28,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
 #include "ProxyHelper.h"
+#include "../../Shared/VireioUtil.h"
 #include "ConfigDefaults.h"
 
 #include <algorithm>
 #include <stdarg.h>
 
 using namespace pugi;
+using namespace vireio;
 using std::string;
 
 #ifdef x64
@@ -117,26 +119,6 @@ HRESULT ProxyHelper::RegGetString(HKEY hKey, LPCTSTR szValueName, std::string &r
 		resultStr = "";
 	}
 	return success;
-}
-
-void debugf(const char *fmt, ...)
-{
-	va_list args;
-	va_start(args, fmt);
-	char buf[8192];
-	vsnprintf_s(buf, 8192, fmt, args);
-	va_end(args);
-	OutputDebugString(buf);
-}
-
-std::string retprintf(const char *fmt, ...)
-{
-	va_list args;
-	va_start(args, fmt);
-	char buf[8192];
-	vsnprintf_s(buf, 8192, fmt, args);
-	va_end(args);
-	return std::string(buf);
 }
 
 string strToLower(string& str)

@@ -16,16 +16,28 @@
     <Filter Include="img">
       <UniqueIdentifier>{93ddb33d-fe13-4a7c-a196-5c7037bdff44}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shared Sources">
+      <UniqueIdentifier>{1cb9bae9-54d0-4a08-a9d7-0e80adf73135}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shared Headers">
+      <UniqueIdentifier>{9a74df77-8ed4-4266-996c-15b314a7e184}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\DxProxy\DxProxy\ProxyHelper.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\DxProxy\DxProxy\pugixml.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\DxProxy\DxProxy\ProxyHelper.cpp">
+      <Filter>Shared Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Shared\VireioUtil.h">
+      <Filter>Shared Headers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Shared\VireioUtil.cpp">
+      <Filter>Shared Sources</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

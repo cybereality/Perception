@@ -1,5 +1,5 @@
 #include "InputControls.h"
-#include "vireio.h"
+#include "../../Shared/VireioUtil.h"
 
 using namespace vireio;
 
