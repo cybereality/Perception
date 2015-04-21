@@ -83,7 +83,7 @@ bool D3DProxyDevice::InitVPMENU()
 	borderTopHeight = 0.0f;
 	menuTopHeight = 0.0f;
 	menuVelocity = D3DXVECTOR2(0.0f, 0.0f);
-	menuAttraction = D3DXVECTOR2(0.0f, 0.0f);
+	menuAttraction = 0.0f;
 	hud3DDepthMode = HUD_3D_Depth_Modes::HUD_DEFAULT;
 	gui3DDepthMode = GUI_3D_Depth_Modes::GUI_DEFAULT;
 	oldHudMode = HUD_3D_Depth_Modes::HUD_DEFAULT;
@@ -175,26 +175,26 @@ void D3DProxyDevice::VPMENU_NewFrame(UINT menuEntryCount)
 	menuHelperRect.top = 0;
 
 	// set menu entry attraction
-	menuAttraction.y = ((borderTopHeight-menuTop)/menuEntryHeight);
-	menuAttraction.y -= (float)((UINT)menuAttraction.y);
-	menuAttraction.y -= 0.5f;
-	menuAttraction.y *= 2.0f;
-	if ((menuVelocity.y>0.0f) && (menuAttraction.y<0.0f)) menuAttraction.y = 0.0f;
-	if ((menuVelocity.y<0.0f) && (menuAttraction.y>0.0f)) menuAttraction.y = 0.0f;
+	menuAttraction = ((borderTopHeight-menuTop)/menuEntryHeight);
+	menuAttraction -= (float)((UINT)menuAttraction);
+	menuAttraction -= 0.5f;
+	menuAttraction *= 2.0f;
+	if ((menuVelocity.y>0.0f) && (menuAttraction<0.0f)) menuAttraction = 0.0f;
+	if ((menuVelocity.y<0.0f) && (menuAttraction>0.0f)) menuAttraction = 0.0f;
 
 	// handle border height
 	if (borderTopHeight<menuTop)
 	{
 		borderTopHeight = menuTop;
 		menuVelocity.y=0.0f;
-		menuAttraction.y=0.0f;
+		menuAttraction=0.0f;
 
 	}
 	if (borderTopHeight>(menuTop+(menuEntryHeight*(float)(menuEntryCount-1))))
 	{
 		borderTopHeight = menuTop+menuEntryHeight*(float)(menuEntryCount-1);
 		menuVelocity.y=0.0f;
-		menuAttraction.y=0.0f;
+		menuAttraction=0.0f;
 	}
 }
 
@@ -476,8 +476,7 @@ void D3DProxyDevice::VPMENU_WorldScale()
 
 	// ensure that the attraction is set to zero
 	// for non-menu-screens like this one
-	menuAttraction.x = 0.0f;
-	menuAttraction.y = 0.0f;
+	menuAttraction = 0.0f;
 
 	// sort the game unit vector
 	std::sort (m_gameXScaleUnits.begin(), m_gameXScaleUnits.end());
@@ -674,8 +673,7 @@ void D3DProxyDevice::VPMENU_Convergence()
 	
 	// ensure that the attraction is set to zero
 	// for non-menu-screens like this one
-	menuAttraction.x = 0.0f;
-	menuAttraction.y = 0.0f;
+	menuAttraction = 0.0f;
 
 	// Left/Right: Decrease/Increase convergence (hold CTRL to lower speed, SHIFT to speed up)
 	if (VPMENU_Input_IsAdjustment() && HotkeysActive())
@@ -1449,7 +1447,7 @@ void D3DProxyDevice::VPMENU_UpdateBorder()
 			menuVelocity.y=-15.0f;
 		if (hotkeyMenuDownFaster->IsPressed(controls) && (menuVelocity.y==0.0f))
 			menuVelocity.y=15.0f;
-		borderTopHeight += (menuVelocity.y+menuAttraction.y)*fScaleY*timeScale;
+		borderTopHeight += (menuVelocity.y+menuAttraction)*fScaleY*timeScale;
 	}
 }
 

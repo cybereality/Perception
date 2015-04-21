@@ -511,7 +511,7 @@ protected:
 	D3DXVECTOR2 menuVelocity;
 	
 	/// Main menu affection.
-	D3DXVECTOR2 menuAttraction;
+	float menuAttraction;
 	
 	/// Main menu border top height.
 	float borderTopHeight;
