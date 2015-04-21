@@ -737,11 +737,10 @@ void DataGatherer::VPMENU_ShaderSubMenu()
 		BACK_GAME
 	};
 
-	UINT entryID;
-	VPMENU_NewFrame(entryID, menuEntryCount);
+	VPMENU_NewFrame(menuEntryCount);
 
 	// output menu
-	VPMENU_StartDrawing("Shader Analyser", entryID);
+	VPMENU_StartDrawing("Shader Analyser");
 
 	AddButtonMenuItem("Create new Shader Rules", [=]() {
 		// create relevant shader constant table
@@ -873,8 +872,8 @@ void DataGatherer::VPMENU_ChangeRules()
 		menuEntryCount++;
 	}
 
-	UINT entryID;
-	VPMENU_NewFrame(entryID, menuEntryCount);
+	VPMENU_NewFrame(menuEntryCount);
+	UINT entryID = VPMENU_GetCurrentSelection();;
 	
 	// adjust border & menu due to menu scroll
 	float borderDrawingHeight = borderTopHeight;
@@ -1231,8 +1230,8 @@ void DataGatherer::VPMENU_ShowActiveShaders()
 			m_knownPShaders[itPShaderCurrentHash->first] = itPShaderCurrentHash->second;
 	}
 
-	UINT entryID;
-	VPMENU_NewFrame(entryID, menuEntryCount);
+	VPMENU_NewFrame(menuEntryCount);
+	UINT entryID = VPMENU_GetCurrentSelection();
 
 	if ((entryID >= 0) && (entryID < menuEntryCount-2) && (menuEntryCount>2))
 	{

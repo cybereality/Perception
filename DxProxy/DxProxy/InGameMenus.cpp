@@ -167,10 +167,9 @@ bool D3DProxyDevice::VPMENU_IsOpen()
 
 /**
 * VP menu helper to setup new frame.
-* @param entryID [in, out] Provides the identifier by count of the menu entry.
 * @param menuEntryCount [in] The number of menu entries.
 ***/
-void D3DProxyDevice::VPMENU_NewFrame(UINT &entryID, UINT menuEntryCount)
+void D3DProxyDevice::VPMENU_NewFrame(UINT menuEntryCount)
 {
 	SHOW_CALL("VPMENU_NewFrame");
 	
@@ -199,11 +198,6 @@ void D3DProxyDevice::VPMENU_NewFrame(UINT &entryID, UINT menuEntryCount)
 		menuVelocity.y=0.0f;
 		menuAttraction.y=0.0f;
 	}
-
-	// get menu entry id
-	entryID = VPMENU_GetCurrentSelection();
-	if (entryID >= menuEntryCount)
-		OutputDebugString("Error in VP menu programming !");
 }
 
 int D3DProxyDevice::VPMENU_GetCurrentSelection()
@@ -212,12 +206,12 @@ int D3DProxyDevice::VPMENU_GetCurrentSelection()
 	return (int)entry;
 }
 
-void D3DProxyDevice::VPMENU_StartDrawing(const char *pageTitle, int borderSelection)
+void D3DProxyDevice::VPMENU_StartDrawing(const char *pageTitle)
 {
 	// adjust border
 	float borderDrawingHeight = borderTopHeight;
 	if ((menuVelocity.y < 1.0f) && (menuVelocity.y > -1.0f))
-		borderTopHeight = menuTop+menuEntryHeight*(float)borderSelection;
+		borderTopHeight = menuTop+menuEntryHeight*(float)VPMENU_GetCurrentSelection();
 
 	// draw border - total width due to shift correction
 	D3DRECT rect;
@@ -390,14 +384,10 @@ void D3DProxyDevice::VPMENU_MainMenu()
 	if (!includeShaderAnalyzer)
 		menuEntryCount--;
 
-	UINT entryID;
-	VPMENU_NewFrame(entryID, menuEntryCount);
-	UINT borderSelection = entryID;
-	if (!includeShaderAnalyzer)
-		entryID++;
+	VPMENU_NewFrame(menuEntryCount);
 
 	// output menu
-	VPMENU_StartDrawing("Settings", borderSelection);
+	VPMENU_StartDrawing("Settings");
 
 	if (includeShaderAnalyzer)
 	{
@@ -829,11 +819,10 @@ void D3DProxyDevice::VPMENU_HUD()
 		NUM_MENU_ITEMS = 10
 	};
 	
-	UINT entryID;
-	VPMENU_NewFrame(entryID, NUM_MENU_ITEMS);
+	VPMENU_NewFrame(NUM_MENU_ITEMS);
 	
 	// output menu
-	VPMENU_StartDrawing("Settings - HUD", entryID);
+	VPMENU_StartDrawing("Settings - HUD");
 
 	float hudQSHeight = (float)menuHelperRect.top * fScaleY;
 	std::string depthModeDescription = "";
@@ -920,11 +909,10 @@ void D3DProxyDevice::VPMENU_GUI()
 		NUM_MENU_ITEMS = 10
 	};
 	
-	UINT entryID;
-	VPMENU_NewFrame(entryID, NUM_MENU_ITEMS);
+	VPMENU_NewFrame(NUM_MENU_ITEMS);
 
 	// output menu
-	VPMENU_StartDrawing("Settings - GUI", entryID);
+	VPMENU_StartDrawing("Settings - GUI");
 
 	float guiQSTop = (float)menuHelperRect.top * fScaleY;
 	
@@ -1020,9 +1008,8 @@ void D3DProxyDevice::VPMENU_Settings()
 		NUM_MENU_ITEMS
 	};
 
-	UINT entryID;
-	VPMENU_NewFrame(entryID, NUM_MENU_ITEMS);
-	VPMENU_StartDrawing("Settings - General", entryID);
+	VPMENU_NewFrame(NUM_MENU_ITEMS);
+	VPMENU_StartDrawing("Settings - General");
 
 	AddButtonMenuItem(retprintf("Swap Eyes : %s", stereoView->swapEyes ? "True" : "False"), [=]()
 	{
@@ -1161,9 +1148,8 @@ void D3DProxyDevice::VPMENU_PosTracking()
 		NUM_MENU_ITEMS
 	};
 
-	UINT entryID;
-	VPMENU_NewFrame(entryID, NUM_MENU_ITEMS);
-	VPMENU_StartDrawing("Settings - Positional Tracking", entryID);
+	VPMENU_NewFrame(NUM_MENU_ITEMS);
+	VPMENU_StartDrawing("Settings - Positional Tracking");
 
 	AddButtonMenuItem(retprintf("Positional Tracking (CTRL + P) : %s",
 		m_bPosTrackingToggle ? "On" : "Off"),
@@ -1218,9 +1204,8 @@ void D3DProxyDevice::VPMENU_DuckAndCover()
 	
 	controls.UpdateXInputs();
 
-	UINT entryID;
-	VPMENU_NewFrame(entryID, NUM_MENU_ITEMS);
-	VPMENU_StartDrawing("Settings - Duck-and-Cover", entryID);
+	VPMENU_NewFrame(NUM_MENU_ITEMS);
+	VPMENU_StartDrawing("Settings - Duck-and-Cover");
 
 	std::string crouchToggleDescription = m_DuckAndCover.crouchToggle ? "Toggle" : "Hold";
 	AddButtonMenuItem(retprintf("Crouch : %s", crouchToggleDescription.c_str()), [=]() {
@@ -1311,9 +1296,8 @@ void D3DProxyDevice::VPMENU_ComfortMode()
 
 	controls.UpdateXInputs();
 	
-	UINT entryID;
-	VPMENU_NewFrame(entryID, NUM_MENU_ITEMS);
-	VPMENU_StartDrawing("Settings - Comfort Mode", entryID);
+	VPMENU_NewFrame(NUM_MENU_ITEMS);
+	VPMENU_StartDrawing("Settings - Comfort Mode");
 
 	bool isEnabled = (VRBoostValue[VRboostAxis::ComfortMode] != 0.0f);
 	AddButtonMenuItem(retprintf("Comfort Mode : %s", isEnabled?"Enabled":"Disabled"), [=]()
@@ -1365,9 +1349,8 @@ void D3DProxyDevice::VPMENU_VRBoostValues()
 		NUM_MENU_ITEMS
 	};
 	
-	UINT entryID;
-	VPMENU_NewFrame(entryID, NUM_MENU_ITEMS);
-	VPMENU_StartDrawing("Settings - VRBoost", entryID);
+	VPMENU_NewFrame(NUM_MENU_ITEMS);
+	VPMENU_StartDrawing("Settings - VRBoost");
 
 	AddAdjustmentMenuItem("World FOV : %g",          &VRBoostValue[24], 100.0f, 0.5f);
 	AddAdjustmentMenuItem("Player FOV : %g",         &VRBoostValue[25], 100.0f, 0.5f);

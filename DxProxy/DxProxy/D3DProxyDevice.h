@@ -441,9 +441,9 @@ protected:
 	void VPMENU_OpenMainMenu();
 	void VPMENU_NavigateTo(std::function<void()> menuHandler);
 	bool VPMENU_IsOpen();
-	void VPMENU_NewFrame(UINT &entryID, UINT menuEntryCount);
+	void VPMENU_NewFrame(UINT menuEntryCount);
 	int VPMENU_GetCurrentSelection();
-	void VPMENU_StartDrawing(const char *pageTitle, int borderSelection);
+	void VPMENU_StartDrawing(const char *pageTitle);
 	void VPMENU_StartDrawing_NonMenu();
 	void VPMENU_FinishDrawing();
 	bool VPMENU_Input_Selected();
