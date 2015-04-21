@@ -58,7 +58,7 @@
     <ClCompile Include="Main.cpp">
       <Filter>Main</Filter>
     </ClCompile>
-    <ClCompile Include="ProxyHelper.cpp">
+    <ClCompile Include="..\..\Shared\ProxyHelper.cpp">
       <Filter>Proxy</Filter>
     </ClCompile>
     <ClCompile Include="StereoViewFactory.cpp">
@@ -259,7 +259,7 @@
     <ClInclude Include="Main.h">
       <Filter>Main</Filter>
     </ClInclude>
-    <ClInclude Include="ProxyHelper.h">
+    <ClInclude Include="..\..\Shared\ProxyHelper.h">
       <Filter>Proxy</Filter>
     </ClInclude>
     <ClInclude Include="StereoView.h">
@@ -277,10 +277,10 @@
     <ClInclude Include="MotionTracker.h">
       <Filter>Tracking</Filter>
     </ClInclude>
-    <ClInclude Include="pugiconfig.hpp">
+    <ClInclude Include="..\..\Shared\pugiconfig.hpp">
       <Filter>XML</Filter>
     </ClInclude>
-    <ClInclude Include="pugixml.hpp">
+    <ClInclude Include="..\..\Shared\pugixml.hpp">
       <Filter>XML</Filter>
     </ClInclude>
     <ClInclude Include="MotionTrackerFactory.h">
@@ -486,7 +486,6 @@
     <ClInclude Include="HMDisplayInfoFactory.h">
       <Filter>HMDisplayInfo</Filter>
     </ClInclude>
-    <ClInclude Include="Version.h" />
     <ClInclude Include="HMDisplayInfo_OculusRift.h">
       <Filter>HMDisplayInfo</Filter>
     </ClInclude>

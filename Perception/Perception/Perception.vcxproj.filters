@@ -27,27 +27,33 @@
     <ClCompile Include="Main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\DxProxy\DxProxy\pugixml.cpp">
+    <ClCompile Include="..\..\Shared\pugixml.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\DxProxy\DxProxy\ProxyHelper.cpp">
+    <ClCompile Include="..\..\Shared\ProxyHelper.cpp">
       <Filter>Shared Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Shared\VireioUtil.h">
-      <Filter>Shared Headers</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Shared\VireioUtil.cpp">
       <Filter>Shared Sources</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\DxProxy\DxProxy\ProxyHelper.h">
+    <ClInclude Include="..\..\Shared\ProxyHelper.h">
+      <Filter>Shared Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Shared\VireioUtil.h">
+      <Filter>Shared Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Shared\Version.h">
+      <Filter>Shared Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Shared\ConfigDefaults.h">
+      <Filter>Shared Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Shared\pugiconfig.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\DxProxy\DxProxy\pugiconfig.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\DxProxy\DxProxy\pugixml.hpp">
+    <ClInclude Include="..\..\Shared\pugixml.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Resource.h">

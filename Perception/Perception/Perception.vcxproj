@@ -91,7 +91,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)\..\..\DxHijack\DxHijack32;$(ProjectDir)\..\..\DxProxy\DxProxy</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\..\..\DxHijack\DxHijack32;$(ProjectDir)\..\..\Shared</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -118,7 +118,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)\..\..\DxHijack\DxHijack32;$(ProjectDir)\..\..\DxProxy\DxProxy</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\..\..\DxHijack\DxHijack32;$(ProjectDir)\..\..\Shared</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -147,7 +147,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)\..\..\DxHijack\DxHijack32;$(ProjectDir)\..\..\DxProxy\DxProxy</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\..\..\DxHijack\DxHijack32;$(ProjectDir)\..\..\Shared</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -179,7 +179,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>x64;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)\..\..\DxHijack\DxHijack32;$(ProjectDir)\..\..\DxProxy\DxProxy</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\..\..\DxHijack\DxHijack32;$(ProjectDir)\..\..\Shared</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -203,16 +203,18 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\DxProxy\DxProxy\ProxyHelper.cpp" />
-    <ClCompile Include="..\..\DxProxy\DxProxy\pugixml.cpp" />
+    <ClCompile Include="..\..\Shared\pugixml.cpp" />
     <ClCompile Include="..\..\Shared\VireioUtil.cpp" />
+    <ClCompile Include="..\..\Shared\ProxyHelper.cpp" />
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\DxProxy\DxProxy\ProxyHelper.h" />
-    <ClInclude Include="..\..\DxProxy\DxProxy\pugiconfig.hpp" />
-    <ClInclude Include="..\..\DxProxy\DxProxy\pugixml.hpp" />
-    <ClCompile Include="..\..\Shared\VireioUtil.h" />
+    <ClInclude Include="..\..\Shared\pugiconfig.hpp" />
+    <ClInclude Include="..\..\Shared\pugixml.hpp" />
+    <ClInclude Include="..\..\Shared\VireioUtil.h" />
+    <ClInclude Include="..\..\Shared\ProxyHelper.h" />
+    <ClInclude Include="..\..\Shared\ConfigDefaults.h" />
+    <ClInclude Include="..\..\Shared\Version.h" />
     <ClInclude Include="Resource.h" />
   </ItemGroup>
   <ItemGroup>

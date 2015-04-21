@@ -28,7 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
 #include "ProxyHelper.h"
-#include "../../Shared/VireioUtil.h"
+#include "VireioUtil.h"
 #include "ConfigDefaults.h"
 
 #include <algorithm>

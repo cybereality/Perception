@@ -18,13 +18,13 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\DxProxy\DxProxy\ProxyHelper.h">
+    <ClInclude Include="..\Shared\ProxyHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\DxProxy\DxProxy\pugiconfig.hpp">
+    <ClInclude Include="..\Shared\pugiconfig.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\DxProxy\DxProxy\pugixml.hpp">
+    <ClInclude Include="..\Shared\pugixml.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="stdafx.h">
@@ -38,10 +38,10 @@
     <ClCompile Include="VireioDLLInstaller.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\DxProxy\DxProxy\ProxyHelper.cpp">
+    <ClCompile Include="..\Shared\ProxyHelper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\DxProxy\DxProxy\pugixml.cpp">
+    <ClCompile Include="..\Shared\pugixml.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

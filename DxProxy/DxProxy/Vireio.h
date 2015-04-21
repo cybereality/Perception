@@ -35,9 +35,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <assert.h>
 #include <string>
 
-// 64mm in meters
-#define IPD_DEFAULT 0.064f
-
 /**
 * Vireio helper namespace.
 * Contains helper methods and enumeration.

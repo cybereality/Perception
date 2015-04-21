@@ -88,7 +88,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)\..\DxProxy\DxProxy</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$()\..\Shared</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -103,7 +103,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)\..\DxProxy\DxProxy</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\..\Shared</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -120,7 +120,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)\..\DxProxy\DxProxy</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\..\Shared</AdditionalIncludeDirectories>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
     </ClCompile>
     <Link>
@@ -144,7 +144,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>x64;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)\..\DxProxy\DxProxy</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\..\Shared</AdditionalIncludeDirectories>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
     </ClCompile>
     <Link>
@@ -163,17 +163,17 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\DxProxy\DxProxy\ProxyHelper.h" />
+    <ClInclude Include="..\Shared\ProxyHelper.h" />
     <ClInclude Include="..\Shared\VireioUtil.h" />
-    <ClInclude Include="..\DxProxy\DxProxy\pugiconfig.hpp" />
-    <ClInclude Include="..\DxProxy\DxProxy\pugixml.hpp" />
+    <ClInclude Include="..\Shared\pugiconfig.hpp" />
+    <ClInclude Include="..\Shared\pugixml.hpp" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\DxProxy\DxProxy\ProxyHelper.cpp" />
+    <ClCompile Include="..\Shared\ProxyHelper.cpp" />
     <ClCompile Include="..\Shared\VireioUtil.cpp" />
-    <ClCompile Include="..\DxProxy\DxProxy\pugixml.cpp" />
+    <ClCompile Include="..\Shared\pugixml.cpp" />
     <ClCompile Include="VireioDLLInstaller.cpp" />
   </ItemGroup>
   <ItemGroup>

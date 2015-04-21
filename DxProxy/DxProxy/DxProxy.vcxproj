@@ -103,7 +103,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;DXPROXY_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(DXSDK_DIR)\Include;$(DX)\Include;$(FREESPACE)\include;$(SolutionDir)\VRBoostReferee</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(DXSDK_DIR)\Include;$(DX)\Include;$(FREESPACE)\include;$(SolutionDir)\VRBoostReferee;$(SolutionDir)\Shared</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -133,7 +133,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;DXPROXY_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(DXSDK_DIR)\Include;$(DX)\Include;$(FREESPACE)\include;$(SolutionDir)\VRBoostReferee</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(DXSDK_DIR)\Include;$(DX)\Include;$(FREESPACE)\include;$(SolutionDir)\VRBoostReferee;$(SolutionDir)\Shared</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -165,7 +165,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;DXPROXY_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(DXSDK_DIR)\Include;$(DX)\Include;$(FREESPACE)\include;$(SolutionDir)\VRboostReferee;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(DXSDK_DIR)\Include;$(DX)\Include;$(FREESPACE)\include;$(SolutionDir)\VRboostReferee;$(SolutionDir)\Shared</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -197,7 +197,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>x64;WIN32;NDEBUG;_WINDOWS;_USRDLL;DXPROXY_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(DXSDK_DIR)\Include;$(DX)\Include;$(FREESPACE)\include;$(SolutionDir)\VRboostReferee;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(DXSDK_DIR)\Include;$(DX)\Include;$(FREESPACE)\include;$(SolutionDir)\VRboostReferee;$(SolutionDir)\Shared</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -269,8 +269,6 @@
     <ClCompile Include="OculusRiftView.cpp" />
     <ClCompile Include="OculusTracker.cpp" />
     <ClCompile Include="Popup.cpp" />
-    <ClCompile Include="ProxyHelper.cpp" />
-    <ClCompile Include="pugixml.cpp" />
     <ClCompile Include="DataGatherer.cpp" />
     <ClCompile Include="ShaderModificationRepository.cpp" />
     <ClCompile Include="ShaderRegisters.cpp" />
@@ -281,7 +279,9 @@
     <ClCompile Include="StereoViewInterleave.cpp" />
     <ClCompile Include="ViewAdjustment.cpp" />
     <ClCompile Include="Vireio.cpp" />
+    <ClCompile Include="..\..\Shared\pugixml.cpp" />
     <ClCompile Include="..\..\Shared\VireioUtil.cpp" />
+    <ClCompile Include="..\..\Shared\ProxyHelper.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="D3D9ProxyCubeTexture.h" />
@@ -323,7 +323,6 @@
     <ClInclude Include="MatrixIgnoreOrtho.h" />
     <ClInclude Include="Vector4DeadIslandScaled.h" />
     <ClInclude Include="Vector4EyeShiftUnity.h" />
-    <ClInclude Include="Version.h" />
     <ClInclude Include="ViewAdjustment.h" />
     <ClInclude Include="Vireio.h" />
     <ClInclude Include="MurmurHash3.h" />
@@ -358,9 +357,6 @@
     <ClInclude Include="MotionTrackerFactory.h" />
     <ClInclude Include="OculusRiftView.h" />
     <ClInclude Include="OculusTracker.h" />
-    <ClInclude Include="ProxyHelper.h" />
-    <ClInclude Include="pugiconfig.hpp" />
-    <ClInclude Include="pugixml.hpp" />
     <ClInclude Include="SharedMemoryTracker.h" />
     <ClInclude Include="IStereoCapableWrapper.h" />
     <ClInclude Include="StereoShaderConstant.h" />
@@ -369,7 +365,10 @@
     <ClInclude Include="StereoViewInterleave.h" />
     <ClInclude Include="MotionTracker.h" />
     <ClInclude Include="Vector4SimpleTranslate.h" />
+    <ClInclude Include="..\..\Shared\pugixml.hpp" />
+    <ClInclude Include="..\..\pugiconfig.hpp" />
     <ClInclude Include="..\..\Shared\VireioUtil.h" />
+    <ClInclude Include="..\..\Shared\ProxyHelper.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\Release\Perception\cfg\config.xml">
