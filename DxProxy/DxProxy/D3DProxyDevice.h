@@ -339,11 +339,11 @@ public:
 	/**
 	* Keys to turn left or right in comfort mode
 	*/
-	byte m_comfortModeLeftKey;
+	InputBindingRef m_comfortModeLeftKey;
 	/**
 	* Keys to turn left or right in comfort mode
 	*/
-	byte m_comfortModeRightKey;
+	InputBindingRef m_comfortModeRightKey;
 
 	/**
 	* Disables ALL Vireio Hot-keys
@@ -481,7 +481,8 @@ protected:
 	void AddButtonMenuItem(std::string text, D3DCOLOR color, std::function<void()> onPick);
 	void AddButtonMenuItem(std::string text, std::function<void()> onPick);
 	void AddNavigationMenuItem(std::string text, std::function<void()> menuHandler);
-	void AddKeybindMenuItem(std::string text, byte *binding);
+	void AddGameKeypressMenuItem(std::string text, byte *binding);
+	void AddKeybindMenuItem(std::string text, InputBindingRef *binding);
 	void AddAdjustmentMenuItem(const char *formatString, float *value, float defaultValue, float rate, std::function<void()> onChange=[](){});
 	void ClearRect(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color);
 	void ClearEmptyRect(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color, int bw);
@@ -954,19 +955,19 @@ private:
 	/**
 	* Hotkey indices for the GUI.
 	***/
-	byte guiHotkeys[5];
+	InputBindingRef guiHotkeys[5];
 	/**
 	* Hotkey indices for the HUD.
 	***/
-	byte hudHotkeys[5];
+	InputBindingRef hudHotkeys[5];
 	/**
 	* Hotkey for VRBoost toggle.
 	***/
-	byte toggleVRBoostHotkey;
+	InputBindingRef toggleVRBoostHotkey;
 	/**
 	* Hotkey for disconnected screen.
 	***/
-	byte edgePeekHotkey;
+	InputBindingRef edgePeekHotkey;
 	/**
 	* True if screenshot is taken next frame.
 	***/

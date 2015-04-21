@@ -339,6 +339,8 @@ void D3DProxyDevice::VPMENU()
 			{
 				hotkeyCatch = false;
 				onBindKey(i);
+				HotkeyCooldown(10.0f);
+				break;
 			}
 		}
 	}
@@ -1211,7 +1213,7 @@ void D3DProxyDevice::VPMENU_DuckAndCover()
 		m_DuckAndCover.SaveToRegistry();
 	});
 
-	AddKeybindMenuItem("Crouch Key", &m_DuckAndCover.crouchKey);
+	AddGameKeypressMenuItem("Crouch Key", &m_DuckAndCover.crouchKey);
 
 	std::string proneToggleDescription =
 		!m_DuckAndCover.proneEnabled
@@ -1225,7 +1227,7 @@ void D3DProxyDevice::VPMENU_DuckAndCover()
 		m_DuckAndCover.SaveToRegistry();
 	});
 
-	AddKeybindMenuItem("Prone Key", &m_DuckAndCover.proneKey);
+	AddGameKeypressMenuItem("Prone Key", &m_DuckAndCover.proneKey);
 
 	AddButtonMenuItem(retprintf("Jump : %s",
 		m_DuckAndCover.jumpEnabled ? "Enabled" : "Disabled"),
@@ -1236,7 +1238,7 @@ void D3DProxyDevice::VPMENU_DuckAndCover()
 		m_DuckAndCover.SaveToRegistry();
 	});
 
-	AddKeybindMenuItem("Jump Key", &m_DuckAndCover.jumpKey);
+	AddGameKeypressMenuItem("Jump Key", &m_DuckAndCover.jumpKey);
 
 	AddButtonMenuItem("Calibrate Duck-and-Cover then Enable", [=]() {
 		VPMENU_CloseWithoutSaving();
@@ -1719,7 +1721,12 @@ void D3DProxyDevice::AddNavigationMenuItem(std::string text, std::function<void(
 	});
 }
 
-void D3DProxyDevice::AddKeybindMenuItem(std::string text, byte *binding)
+/**
+ * Add a config option for a key that Perception will send to the game as a
+ * simulated key-press. (This is different from a Keybind, which is something
+ * Perception will check on the keyboard/gamepad to see if it's pressed.)
+ */
+void D3DProxyDevice::AddGameKeypressMenuItem(std::string text, byte *binding)
 {
 	std::string description;
 	if (hotkeyCatch && VPMENU_GetCurrentSelection() == menuConstructionCurrentEntry) {
@@ -1740,6 +1747,33 @@ void D3DProxyDevice::AddKeybindMenuItem(std::string text, byte *binding)
 		{
 			VPMENU_BindKey([=](int key) {
 				*binding = (byte)key;
+			});
+			HotkeyCooldown(2.0f);
+		}
+	});
+}
+
+void D3DProxyDevice::AddKeybindMenuItem(std::string text, InputBindingRef *binding)
+{
+	std::string description;
+	if (hotkeyCatch && VPMENU_GetCurrentSelection() == menuConstructionCurrentEntry) {
+		description = "Press the desired key.";
+	} else {
+		description = retprintf("%s : %s",
+			text.c_str(),
+			(*binding)->ToString().c_str());
+	}
+	
+	AddMenuItem(description, COLOR_MENU_TEXT, [=]() {
+		if (hotkeyResetToDefault->IsPressed(controls) && HotkeysActive())
+		{
+			*binding = Unbound();
+			HotkeyCooldown(2.0f);
+		}
+		else if (VPMENU_Input_Selected() && HotkeysActive())
+		{
+			VPMENU_BindKey([=](int key) {
+				*binding = Key(key);
 			});
 			HotkeyCooldown(2.0f);
 		}

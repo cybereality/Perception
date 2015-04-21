@@ -37,9 +37,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <vector>
 #include <windows.h>
 #include "ConfigDefaults.h"
+#include "InputControls.h"
 #include "pugixml.hpp"
-
-typedef unsigned char SavedHotkey;
 
 /**
 * Game configuration helper class.
@@ -83,13 +82,13 @@ public:
 		int         hud3DDepthMode;             /**< Current HUD mode. */
 		float       hud3DDepthPresets[4];       /**< HUD 3D Depth presets.*/
 		float       hudDistancePresets[4];      /**< HUD Distance presets.*/
-		SavedHotkey hudHotkeys[5];              /**< HUD Hotkeys.*/
+		InputBindingRef hudHotkeys[5];              /**< HUD Hotkeys.*/
 		int         gui3DDepthMode;             /**< Current GUI mode. */
 		float       gui3DDepthPresets[4];       /**< GUI 3D Depth presets.*/
 		float       guiSquishPresets[4];        /**< GUI Size presets.*/
-		SavedHotkey guiHotkeys[5];              /**< GUI Hotkeys.*/
-		SavedHotkey VRBoostResetHotkey;         /**< Hotkey option to reset VRBoost. */
-		SavedHotkey EdgePeekHotkey;				/**< Hotkey option to toggle disconnected screen view. */
+		InputBindingRef guiHotkeys[5];              /**< GUI Hotkeys.*/
+		InputBindingRef VRBoostResetHotkey;         /**< Hotkey option to reset VRBoost. */
+		InputBindingRef EdgePeekHotkey;				/**< Hotkey option to toggle disconnected screen view. */
 		float       WorldFOV;                   /**< Game-specific global FOV setting. **/
 		float       PlayerFOV;                  /**< Game-specific player surroundings FOV setting. **/
 		float       FarPlaneFOV;                /**< Game-specific FOV setting for the most distant objects. **/ 

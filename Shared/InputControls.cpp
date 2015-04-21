@@ -281,3 +281,8 @@ InputBindingRef HotkeyExpressions::operator||(InputBindingRef lhs, InputBindingR
 {
 	return InputBindingRef(new AlternativesKeyBinding(lhs, rhs));
 }
+
+InputBindingRef HotkeyExpressions::Unbound()
+{
+	return InputBindingRef(new UnboundKeyBinding());
+}

@@ -129,6 +129,47 @@ string strToLower(string& str)
 	return result;
 }
 
+/**
+ * Set an attribute on an XML node.
+ * In theory, XML nodes have an ordered collection of named attributes, duplicates
+ * allowed. In practice, we're using it as an unordered string=>string dictionary.
+ */
+template<class T> static void set_attribute(xml_node &node, const char *key, T newValue)
+{
+	if(node.attribute(key).empty())
+	{
+		node.append_attribute(key).set_value(newValue);
+	}
+	else
+	{
+		node.attribute(key).set_value(newValue);
+	}
+}
+
+static InputBindingRef LoadHotkey(xml_node &node, const char *key)
+{
+	// TODO: Support types of hotkey-expressions other than simple keys
+	std::string hkString = node.attribute(key).as_string();
+	debugf("Loaded hotkey: %s\n", hkString.c_str());
+	int keycode = node.attribute(key).as_int(0);
+	if(keycode == 0)
+		return HotkeyExpressions::Unbound();
+	else
+		return HotkeyExpressions::Key(keycode);
+}
+
+static void SaveHotkey(xml_node &node, const char *key, InputBindingRef hotkey)
+{
+	// TODO: Support types of hotkey-expressions other than simple keys
+	SimpleKeyBinding *simpleHotkey = dynamic_cast<SimpleKeyBinding*>(&*hotkey);
+	if(simpleHotkey == NULL) {
+		debugf("Trying to save non-simple hotkey: %s\n", hotkey->ToString().c_str());
+	} else {
+		debugf("Saving simple hotkey");
+		set_attribute(node, key, simpleHotkey->GetKeyCode());
+	}
+}
+
 
 /**
 * Almost empty constructor.
@@ -552,6 +593,7 @@ bool ProxyHelper::SaveDisplayAdapter(int adapter)
 
 	return false;
 }
+
 /**
 * Loads the game configuration for the target process specified in the registry (targetExe).
 * @param config Returned game configuration.
@@ -692,11 +734,11 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 		config.hudDistancePresets[2] = gameProfile.attribute("hud_distance_3").as_float(DEFAULT_HUD_DISTANCE_3);
 		config.hudDistancePresets[3] = gameProfile.attribute("hud_distance_4").as_float(DEFAULT_HUD_DISTANCE_4);
 
-		config.hudHotkeys[0] = (SavedHotkey)gameProfile.attribute("hud_key_swap").as_int(0);
-		config.hudHotkeys[1] = (SavedHotkey)gameProfile.attribute("hud_key_default").as_int(0);
-		config.hudHotkeys[2] = (SavedHotkey)gameProfile.attribute("hud_key_small").as_int(0);
-		config.hudHotkeys[3] = (SavedHotkey)gameProfile.attribute("hud_key_large").as_int(0);
-		config.hudHotkeys[4] = (SavedHotkey)gameProfile.attribute("hud_key_full").as_int(0);
+		config.hudHotkeys[0] = LoadHotkey(gameProfile, "hud_key_swap");
+		config.hudHotkeys[1] = LoadHotkey(gameProfile, "hud_key_default");
+		config.hudHotkeys[2] = LoadHotkey(gameProfile, "hud_key_small");
+		config.hudHotkeys[3] = LoadHotkey(gameProfile, "hud_key_large");
+		config.hudHotkeys[4] = LoadHotkey(gameProfile, "hud_key_full");
 
 		// get gui config
 		config.gui3DDepthMode = gameProfile.attribute("gui_3D_depth_mode").as_int();
@@ -711,15 +753,15 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 		config.guiSquishPresets[2] = gameProfile.attribute("gui_size_3").as_float(DEFAULT_GUI_SIZE_3);
 		config.guiSquishPresets[3] = gameProfile.attribute("gui_size_4").as_float(DEFAULT_GUI_SIZE_4);
 
-		config.guiHotkeys[0] = (SavedHotkey)gameProfile.attribute("gui_key_swap").as_int(0);
-		config.guiHotkeys[1] = (SavedHotkey)gameProfile.attribute("gui_key_default").as_int(0);
-		config.guiHotkeys[2] = (SavedHotkey)gameProfile.attribute("gui_key_small").as_int(0);
-		config.guiHotkeys[3] = (SavedHotkey)gameProfile.attribute("gui_key_large").as_int(0);
-		config.guiHotkeys[4] = (SavedHotkey)gameProfile.attribute("gui_key_full").as_int(0);
+		config.guiHotkeys[0] = LoadHotkey(gameProfile, "gui_key_swap");
+		config.guiHotkeys[1] = LoadHotkey(gameProfile, "gui_key_default");
+		config.guiHotkeys[2] = LoadHotkey(gameProfile, "gui_key_small");
+		config.guiHotkeys[3] = LoadHotkey(gameProfile, "gui_key_large");
+		config.guiHotkeys[4] = LoadHotkey(gameProfile, "gui_key_full");
 
 		// get VRBoost reset hotkey and settings
-		config.VRBoostResetHotkey = (SavedHotkey)gameProfile.attribute("VRBoost_key_reset").as_int(0);
-		config.EdgePeekHotkey = (SavedHotkey)gameProfile.attribute("edge_peek_key").as_int(0);
+		config.VRBoostResetHotkey = LoadHotkey(gameProfile, "VRBoost_key_reset");
+		config.EdgePeekHotkey = LoadHotkey(gameProfile, "edge_peek_key");
 		config.WorldFOV = gameProfile.attribute("WorldFOV").as_float(95.0f);
 		config.PlayerFOV = gameProfile.attribute("PlayerFOV").as_float(125.0f);
 		config.FarPlaneFOV = gameProfile.attribute("FarPlaneFOV").as_float(95.0f);
@@ -796,23 +838,6 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 	LoadUserConfig(config, oculusProfile);
 
 	return fileFound && profileFound;
-}
-
-/**
- * Set an attribute on an XML node.
- * In theory, XML nodes have an ordered collection of named attributes, duplicates
- * allowed. In practice, we're using it as an unordered string=>string dictionary.
- */
-template<class T> static void set_attribute(xml_node &node, const char *key, T newValue)
-{
-	if(node.attribute(key).empty())
-	{
-		node.append_attribute(key).set_value(newValue);
-	}
-	else
-	{
-		node.attribute(key).set_value(newValue);
-	}
 }
 
 /**
@@ -932,11 +957,11 @@ bool ProxyHelper::SaveConfig(ProxyConfig& config)
 		set_attribute(gameProfile, "hud_distance_3", config.hudDistancePresets[2]);
 		set_attribute(gameProfile, "hud_distance_4", config.hudDistancePresets[3]);
 
-		set_attribute(gameProfile, "hud_key_swap", config.hudHotkeys[0]);
-		set_attribute(gameProfile, "hud_key_default", config.hudHotkeys[1]);
-		set_attribute(gameProfile, "hud_key_small", config.hudHotkeys[2]);
-		set_attribute(gameProfile, "hud_key_large", config.hudHotkeys[3]);
-		set_attribute(gameProfile, "hud_key_full", config.hudHotkeys[4]);
+		SaveHotkey(gameProfile, "hud_key_swap", config.hudHotkeys[0]);
+		SaveHotkey(gameProfile, "hud_key_default", config.hudHotkeys[1]);
+		SaveHotkey(gameProfile, "hud_key_small", config.hudHotkeys[2]);
+		SaveHotkey(gameProfile, "hud_key_large", config.hudHotkeys[3]);
+		SaveHotkey(gameProfile, "hud_key_full", config.hudHotkeys[4]);
 
 		set_attribute(gameProfile, "gui_3D_depth_mode", config.gui3DDepthMode);
 
@@ -950,13 +975,13 @@ bool ProxyHelper::SaveConfig(ProxyConfig& config)
 		set_attribute(gameProfile, "gui_size_3", config.guiSquishPresets[2]);
 		set_attribute(gameProfile, "gui_size_4", config.guiSquishPresets[3]);
 
-		set_attribute(gameProfile, "gui_key_swap", config.guiHotkeys[0]);
-		set_attribute(gameProfile, "gui_key_default", config.guiHotkeys[1]);
-		set_attribute(gameProfile, "gui_key_small", config.guiHotkeys[2]);
-		set_attribute(gameProfile, "gui_key_large", config.guiHotkeys[3]);
-		set_attribute(gameProfile, "gui_key_full", config.guiHotkeys[4]);
+		SaveHotkey(gameProfile, "gui_key_swap", config.guiHotkeys[0]);
+		SaveHotkey(gameProfile, "gui_key_default", config.guiHotkeys[1]);
+		SaveHotkey(gameProfile, "gui_key_small", config.guiHotkeys[2]);
+		SaveHotkey(gameProfile, "gui_key_large", config.guiHotkeys[3]);
+		SaveHotkey(gameProfile, "gui_key_full", config.guiHotkeys[4]);
 		
-		set_attribute(gameProfile, "VRBoost_key_reset", config.VRBoostResetHotkey);
+		SaveHotkey(gameProfile, "VRBoost_key_reset", config.VRBoostResetHotkey);
 
 		set_attribute(gameProfile, "WorldFOV", config.WorldFOV);
 		set_attribute(gameProfile, "PlayerFOV", config.PlayerFOV);
@@ -971,7 +996,7 @@ bool ProxyHelper::SaveConfig(ProxyConfig& config)
 		set_attribute(gameProfile, "ConstantValue2", config.ConstantValue2);
 		set_attribute(gameProfile, "ConstantValue3", config.ConstantValue3);
 
-		set_attribute(gameProfile, "edge_peek_key", config.EdgePeekHotkey);
+		SaveHotkey(gameProfile, "edge_peek_key", config.EdgePeekHotkey);
 
 		docProfiles.save_file(profilePath.c_str());
 

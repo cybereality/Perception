@@ -35,6 +35,7 @@ public:
 	SimpleKeyBinding(int key);
 	bool IsPressed(InputControls &controls);
 	std::string ToString();
+	int GetKeyCode() { return keyIndex; }
 	
 private:
 	int keyIndex;
@@ -47,6 +48,7 @@ public:
 	SimpleButtonBinding(int button);
 	bool IsPressed(InputControls &controls);
 	std::string ToString();
+	int GetButtonIndex() { return buttonIndex; }
 	
 private:
 	int buttonIndex;

@@ -123,7 +123,7 @@ void D3DProxyDevice::HandleControls()
 	// loop through hotkeys
 	for (int i = 0; i < 5; i++)
 	{
-		if ((controls.Key_Down(hudHotkeys[i])) && HotkeysActive())
+		if (hudHotkeys[i]->IsPressed(controls) && HotkeysActive())
 		{
 			if (i==0)
 			{
@@ -159,7 +159,7 @@ void D3DProxyDevice::HandleControls()
 			}
 			HotkeyCooldown(2.0f);
 		}
-		if ((controls.Key_Down(guiHotkeys[i])) && HotkeysActive())
+		if (guiHotkeys[i]->IsPressed(controls) && HotkeysActive())
 		{
 			if (i==0)
 			{
@@ -199,7 +199,7 @@ void D3DProxyDevice::HandleControls()
 	// avoid double input by using the menu velocity
 
 	// test VRBoost reset hotkey
-	if (controls.Key_Down(toggleVRBoostHotkey) && HotkeysActive())
+	if (toggleVRBoostHotkey->IsPressed(controls) && HotkeysActive())
 	{
 		if (hmVRboost!=NULL)
 		{
@@ -220,9 +220,9 @@ void D3DProxyDevice::HandleControls()
 		VRBoostStatus.VRBoost_Active &&
 		HotkeysActive())
 	{
-		int snapTurnAxis = controls.GetAxis(InputControls::GamepadAxis::RightStickX);
+		float snapTurnAxis = controls.GetAxis(InputControls::GamepadAxis::RightStickX);
 		if (snapTurnAxis < -COMFORT_MODE_STICK_THRESHOLD ||
-			controls.Key_Down(m_comfortModeLeftKey))
+			m_comfortModeLeftKey->IsPressed(controls))
 		{
 			m_comfortModeYaw +=m_comfortModeYawIncrement;
 			if (m_comfortModeYaw == 180.0f)
@@ -231,7 +231,7 @@ void D3DProxyDevice::HandleControls()
 		}
 
 		if (snapTurnAxis > COMFORT_MODE_STICK_THRESHOLD ||
-			controls.Key_Down(m_comfortModeRightKey))
+			m_comfortModeRightKey->IsPressed(controls))
 		{
 			m_comfortModeYaw -= m_comfortModeYawIncrement;
 			if (m_comfortModeYaw == -180.0f)
@@ -281,7 +281,7 @@ void D3DProxyDevice::HandleControls()
 	}
 
 	//Disconnected Screen View Mode
-	if ((controls.Key_Down(edgePeekHotkey) || hotkeyEdgePeek->IsPressed(controls)) && HotkeysActive())
+	if ((edgePeekHotkey->IsPressed(controls) || hotkeyEdgePeek->IsPressed(controls)) && HotkeysActive())
 	{
 		static bool bSurpressPositionaltracking = true;
 		static bool bForceMouseEmulation = false;
