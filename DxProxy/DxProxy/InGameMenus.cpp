@@ -116,10 +116,8 @@ bool D3DProxyDevice::InitVPMENU()
 		guiHotkeys[i] = 0;
 		hudHotkeys[i] = 0;
 	}
-	for (int i = 0; i < 16; i++)
-		controls.xButtonsStatus[i] = false;
 	
-	
+	controls.Reset();
 	return true;
 }
 
@@ -266,13 +264,13 @@ bool D3DProxyDevice::VPMENU_Input_Selected()
 bool D3DProxyDevice::VPMENU_Input_Left()
 {
 	return hotkeyAdjustLeft->IsPressed(controls)
-	       || (controls.xInputState.Gamepad.sThumbLX<-8192);
+	       || (controls.GetAxis(InputControls::GamepadAxis::LeftStickX)<-MENU_ADJUSTMENT_STICK_DEADZONE);
 }
 
 bool D3DProxyDevice::VPMENU_Input_Right()
 {
 	return hotkeyAdjustRight->IsPressed(controls)
-	       || (controls.xInputState.Gamepad.sThumbLX>8192);
+	       || (controls.GetAxis(InputControls::GamepadAxis::LeftStickX)>MENU_ADJUSTMENT_STICK_DEADZONE);
 }
 
 bool D3DProxyDevice::VPMENU_Input_IsAdjustment()
@@ -294,7 +292,7 @@ float D3DProxyDevice::VPMENU_Input_GetAdjustment()
 	else if (hotkeyAdjustLeft->IsPressed(controls))
 		return -speed;
 	else
-		return speed * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
+		return speed * controls.GetAxis(InputControls::GamepadAxis::LeftStickX);
 }
 
 float D3DProxyDevice::VPMENU_Input_SpeedModifier()
@@ -1441,9 +1439,9 @@ void D3DProxyDevice::VPMENU_UpdateBorder()
 		int viewportHeight = stereoView->viewport.Height;
 
 		float fScaleY = ((float)viewportHeight / (float)1080.0f);
-		if ((hotkeyMenuUp->IsPressed(controls) || (controls.xInputState.Gamepad.sThumbLY>8192)) && (menuVelocity.y==0.0f))
+		if ((hotkeyMenuUp->IsPressed(controls) || (controls.GetAxis(InputControls::GamepadAxis::LeftStickY)>MENU_SELECTION_STICK_DEADZONE)) && (menuVelocity.y==0.0f))
 			menuVelocity.y=-2.7f;
-		if ((hotkeyMenuDown->IsPressed(controls) || (controls.xInputState.Gamepad.sThumbLY<-8192)) && (menuVelocity.y==0.0f))
+		if ((hotkeyMenuDown->IsPressed(controls) || (controls.GetAxis(InputControls::GamepadAxis::LeftStickY)<-MENU_SELECTION_STICK_DEADZONE)) && (menuVelocity.y==0.0f))
 			menuVelocity.y=2.7f;
 		if (hotkeyMenuUpFaster->IsPressed(controls) && (menuVelocity.y==0.0f))
 			menuVelocity.y=-15.0f;

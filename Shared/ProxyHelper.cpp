@@ -692,11 +692,11 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 		config.hudDistancePresets[2] = gameProfile.attribute("hud_distance_3").as_float(DEFAULT_HUD_DISTANCE_3);
 		config.hudDistancePresets[3] = gameProfile.attribute("hud_distance_4").as_float(DEFAULT_HUD_DISTANCE_4);
 
-		config.hudHotkeys[0] = (byte)gameProfile.attribute("hud_key_swap").as_int(0);
-		config.hudHotkeys[1] = (byte)gameProfile.attribute("hud_key_default").as_int(0);
-		config.hudHotkeys[2] = (byte)gameProfile.attribute("hud_key_small").as_int(0);
-		config.hudHotkeys[3] = (byte)gameProfile.attribute("hud_key_large").as_int(0);
-		config.hudHotkeys[4] = (byte)gameProfile.attribute("hud_key_full").as_int(0);
+		config.hudHotkeys[0] = (SavedHotkey)gameProfile.attribute("hud_key_swap").as_int(0);
+		config.hudHotkeys[1] = (SavedHotkey)gameProfile.attribute("hud_key_default").as_int(0);
+		config.hudHotkeys[2] = (SavedHotkey)gameProfile.attribute("hud_key_small").as_int(0);
+		config.hudHotkeys[3] = (SavedHotkey)gameProfile.attribute("hud_key_large").as_int(0);
+		config.hudHotkeys[4] = (SavedHotkey)gameProfile.attribute("hud_key_full").as_int(0);
 
 		// get gui config
 		config.gui3DDepthMode = gameProfile.attribute("gui_3D_depth_mode").as_int();
@@ -711,15 +711,15 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 		config.guiSquishPresets[2] = gameProfile.attribute("gui_size_3").as_float(DEFAULT_GUI_SIZE_3);
 		config.guiSquishPresets[3] = gameProfile.attribute("gui_size_4").as_float(DEFAULT_GUI_SIZE_4);
 
-		config.guiHotkeys[0] = (byte)gameProfile.attribute("gui_key_swap").as_int(0);
-		config.guiHotkeys[1] = (byte)gameProfile.attribute("gui_key_default").as_int(0);
-		config.guiHotkeys[2] = (byte)gameProfile.attribute("gui_key_small").as_int(0);
-		config.guiHotkeys[3] = (byte)gameProfile.attribute("gui_key_large").as_int(0);
-		config.guiHotkeys[4] = (byte)gameProfile.attribute("gui_key_full").as_int(0);
+		config.guiHotkeys[0] = (SavedHotkey)gameProfile.attribute("gui_key_swap").as_int(0);
+		config.guiHotkeys[1] = (SavedHotkey)gameProfile.attribute("gui_key_default").as_int(0);
+		config.guiHotkeys[2] = (SavedHotkey)gameProfile.attribute("gui_key_small").as_int(0);
+		config.guiHotkeys[3] = (SavedHotkey)gameProfile.attribute("gui_key_large").as_int(0);
+		config.guiHotkeys[4] = (SavedHotkey)gameProfile.attribute("gui_key_full").as_int(0);
 
 		// get VRBoost reset hotkey and settings
-		config.VRBoostResetHotkey = (byte)gameProfile.attribute("VRBoost_key_reset").as_int(0);
-		config.EdgePeekHotkey = (byte)gameProfile.attribute("edge_peek_key").as_int(0);
+		config.VRBoostResetHotkey = (SavedHotkey)gameProfile.attribute("VRBoost_key_reset").as_int(0);
+		config.EdgePeekHotkey = (SavedHotkey)gameProfile.attribute("edge_peek_key").as_int(0);
 		config.WorldFOV = gameProfile.attribute("WorldFOV").as_float(95.0f);
 		config.PlayerFOV = gameProfile.attribute("PlayerFOV").as_float(125.0f);
 		config.FarPlaneFOV = gameProfile.attribute("FarPlaneFOV").as_float(95.0f);

@@ -1,14 +1,7 @@
-/*
-* @file InputControls.h Holds the input controls class.
-* @see InputControls
-*/
-#pragma once
+#ifndef HOTKEY_EXPRESSIONS_H_INCLUDED
+#define HOTKEY_EXPRESSIONS_H_INCLUDED
 
 #include <string>
-#include <array>
-#include <windows.h>
-#include <WinUser.h>
-#include <XInput.h>
 #include <memory>
 #include <functional>
 
@@ -17,6 +10,7 @@ class InputControls;
 class InputBinding
 {
 public:
+	virtual ~InputBinding();
 	virtual bool IsPressed(InputControls &controls)=0;
 	virtual std::string ToString()=0;
 };
@@ -38,6 +32,7 @@ public:
 	SimpleKeyBinding(int key);
 	bool IsPressed(InputControls &controls);
 	std::string ToString();
+	int getKeyIndex() { return keyIndex; }
 	
 private:
 	int keyIndex;
@@ -103,45 +98,4 @@ namespace HotkeyExpressions
 	InputBindingRef Unbound();
 }
 
-/*
-* Holds information about inputs.
-*/
-class InputControls
-{
-public:
-	InputControls();
-	
-	/// Refreshes the input status of the buttons and updates the input state.
-	void UpdateXInputs();
-	void Reset();
-	
-	/// Retrieves the key name for the given keycode
-	/// If the given keycode does not exists then it will return a hyphen
-	std::string GetKeyName(int virtualKeyCode);
-	
-	/// Sees if the key is down right now, takes into account xinput as well
-	bool Key_Down(int virtualKeyCode);
-	
-	/// Sees if the key is up right now, takes into account xinput as well
-	bool Key_Up(int virtualKeyCode);
-	
-	bool GetButtonState(int button);
-	
-	enum GamepadAxis
-	{
-		LeftStickX,
-		LeftStickY,
-		RightStickX,
-		RightStickY
-	};
-	
-	/// Get the stick position of a gamepad axis, scaled from -1.0f to 1.0f.
-	float GetAxis(GamepadAxis axis);
-	
-private:
-	/// XInput controller button statuses.
-	bool xButtonsStatus[16];
-	
-	/// XInput controller state.
-	XINPUT_STATE xInputState;
-};
+#endif

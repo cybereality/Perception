@@ -1,51 +1,10 @@
 #include "InputControls.h"
 #include "VireioUtil.h"
+#include <assert.h>
 
 using namespace vireio;
 
-bool xButtonsStatus[16] = {false, false, false, false,
-	false, false, false, false,
-	false, false, false, false,
-	false, false, false, false};
-
-InputControls::InputControls()
-{
-	for (int i = 0; i < 16; i++ )
-		xButtonsStatus[i] = false;
-}
-
-void InputControls::UpdateXInputs()
-{
-	// Zeroise the XInput state
-	ZeroMemory(&xInputState, sizeof(XINPUT_STATE));
-
-	// Get the XInput state
-	DWORD Result = XInputGetState(NULL, &xInputState);
-
-	if(Result == ERROR_SUCCESS)
-	{
-		// set buttons by flags
-		for(DWORD i = 0; i < 16;   ++i) 
-			if((xInputState.Gamepad.wButtons >> i) & 1) 
-				xButtonsStatus[i] = true;
-			else 
-				xButtonsStatus[i] = false;
-	}
-}
-
-std::string InputControls::GetKeyName(int keyCode)
-{
-	if (keyCode < KeyNameList.size() && keyCode >= 0)
-	{
-		return KeyNameList[keyCode];
-	}
-	else
-	{
-		return "-";
-	}
-}
-
-std::array<std::string, 256> InputControls::GetKeyNameList()
+std::array<std::string, 256> GetKeyNameList()
 {
 	std::array<std::string, 256> keyNameList;
 	for (int i = 0; i < 256; i++)
@@ -182,19 +141,87 @@ std::array<std::string, 256> InputControls::GetKeyNameList()
 	keyNameList[0xFB] = "Zoom key";
 	return keyNameList;
 }
+// 
+// Virtual keys name list.
+// (used for BRASSA menu)
+static std::array<std::string, 256> KeyNameList = GetKeyNameList();
 
-bool InputControls::Key_Down( int virtualKeyCode )
+
+InputControls::InputControls()
+{
+	for (int i = 0; i < 16; i++ )
+		xButtonsStatus[i] = false;
+}
+
+void InputControls::UpdateXInputs()
+{
+	// Zeroise the XInput state
+	ZeroMemory(&xInputState, sizeof(XINPUT_STATE));
+
+	// Get the XInput state
+	DWORD Result = XInputGetState(NULL, &xInputState);
+
+	if(Result == ERROR_SUCCESS)
+	{
+		// set buttons by flags
+		for(DWORD i = 0; i < 16;   ++i) 
+			if((xInputState.Gamepad.wButtons >> i) & 1) 
+				xButtonsStatus[i] = true;
+			else 
+				xButtonsStatus[i] = false;
+	}
+}
+
+void InputControls::Reset()
+{
+	for (int i=0; i<16; i++)
+		xButtonsStatus[i] = false;
+}
+
+std::string InputControls::GetKeyName(int keyCode)
+{
+	if (keyCode < KeyNameList.size() && keyCode >= 0)
+	{
+		return KeyNameList[keyCode];
+	}
+	else
+	{
+		return "-";
+	}
+}
+
+bool InputControls::Key_Down(int virtualKeyCode)
 {
 	return (((GetAsyncKeyState(virtualKeyCode) & 0x8000) ? 1 : 0) || 
 		((virtualKeyCode >= 0xD0) && (virtualKeyCode <= 0xDF) && (xButtonsStatus[virtualKeyCode % 0x10])));
 }
 
-bool InputControls::Key_Up( int virtualKeyCode )
+bool InputControls::Key_Up(int virtualKeyCode)
 {
 	return ((GetAsyncKeyState(virtualKeyCode) & 0x8000) ? 0 : 1); ///TODO Should we be checking if xButtonStatus is false as well?
 }
 
-std::array<std::string, 256> InputControls::KeyNameList = InputControls::GetKeyNameList();
+bool InputControls::GetButtonState(int button)
+{
+	return xButtonsStatus[button];
+}
+
+float InputControls::GetAxis(InputControls::GamepadAxis axis)
+{
+	int axisPosition;
+	
+	// Get axis position
+	switch(axis) {
+	case GamepadAxis::LeftStickX:  axisPosition = xInputState.Gamepad.sThumbLX; break;
+	case GamepadAxis::LeftStickY:  axisPosition = xInputState.Gamepad.sThumbLY; break;
+	case GamepadAxis::RightStickX: axisPosition = xInputState.Gamepad.sThumbRX; break;
+	case GamepadAxis::RightStickY: axisPosition = xInputState.Gamepad.sThumbRY; break;
+	default: assert(0); return 0;
+	}
+	
+	// Normalize to [-1,1]
+	return (float)axisPosition / 32768;
+}
 
 
 bool UnboundKeyBinding::IsPressed(InputControls &controls)
@@ -220,9 +247,9 @@ bool SimpleKeyBinding::IsPressed(InputControls &controls)
 
 std::string SimpleKeyBinding::ToString()
 {
-	if (keyIndex < InputControls::KeyNameList.size() && keyIndex >= 0)
+	if (keyIndex < KeyNameList.size() && keyIndex >= 0)
 	{
-		return InputControls::KeyNameList[keyIndex];
+		return KeyNameList[keyIndex];
 	}
 	else
 	{
@@ -238,7 +265,7 @@ SimpleButtonBinding::SimpleButtonBinding(int button)
 
 bool SimpleButtonBinding::IsPressed(InputControls &controls)
 {
-	return controls.xButtonsStatus[buttonIndex];
+	return controls.GetButtonState(buttonIndex);
 }
 
 std::string SimpleButtonBinding::ToString()

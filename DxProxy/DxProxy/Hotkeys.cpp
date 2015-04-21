@@ -220,7 +220,8 @@ void D3DProxyDevice::HandleControls()
 		VRBoostStatus.VRBoost_Active &&
 		HotkeysActive())
 	{
-		if (controls.xInputState.Gamepad.sThumbRX < -16384 ||
+		int snapTurnAxis = controls.GetAxis(InputControls::GamepadAxis::RightStickX);
+		if (snapTurnAxis < -COMFORT_MODE_STICK_THRESHOLD ||
 			controls.Key_Down(m_comfortModeLeftKey))
 		{
 			m_comfortModeYaw +=m_comfortModeYawIncrement;
@@ -229,7 +230,7 @@ void D3DProxyDevice::HandleControls()
 			HotkeyCooldown(4.0f);
 		}
 
-		if (controls.xInputState.Gamepad.sThumbRX > 16384 ||
+		if (snapTurnAxis > COMFORT_MODE_STICK_THRESHOLD ||
 			controls.Key_Down(m_comfortModeRightKey))
 		{
 			m_comfortModeYaw -= m_comfortModeYawIncrement;
