@@ -33,12 +33,18 @@
     <ClCompile Include="..\..\Shared\ProxyHelper.cpp">
       <Filter>Shared Sources</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Shared\InputControls.cpp">
+      <Filter>Shared Sources</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Shared\VireioUtil.cpp">
       <Filter>Shared Sources</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Shared\ProxyHelper.h">
+      <Filter>Shared Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Shared\InputControls.h">
       <Filter>Shared Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Shared\VireioUtil.h">

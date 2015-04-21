@@ -118,7 +118,7 @@ void D3DProxyDevice::HandleControls()
 {
 	SHOW_CALL("HandleControls");
 	
-	controls.UpdateXInputs();
+	controls.UpdateInputs();
 
 	// loop through hotkeys
 	for (int i = 0; i < 5; i++)

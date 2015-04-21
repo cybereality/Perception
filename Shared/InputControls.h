@@ -6,9 +6,6 @@
 
 #include <string>
 #include <array>
-#include <windows.h>
-#include <WinUser.h>
-#include <XInput.h>
 #include <memory>
 #include <functional>
 
@@ -110,22 +107,19 @@ class InputControls
 {
 public:
 	InputControls();
+	virtual ~InputControls();
 	
 	/// Refreshes the input status of the buttons and updates the input state.
-	void UpdateXInputs();
-	void Reset();
-	
-	/// Retrieves the key name for the given keycode
-	/// If the given keycode does not exists then it will return a hyphen
-	std::string GetKeyName(int virtualKeyCode);
+	virtual void UpdateInputs()=0;
+	virtual void Reset()=0;
 	
 	/// Sees if the key is down right now, takes into account xinput as well
-	bool Key_Down(int virtualKeyCode);
+	virtual bool Key_Down(int virtualKeyCode)=0;
 	
 	/// Sees if the key is up right now, takes into account xinput as well
-	bool Key_Up(int virtualKeyCode);
+	virtual bool Key_Up(int virtualKeyCode)=0;
 	
-	bool GetButtonState(int button);
+	virtual bool GetButtonState(int button)=0;
 	
 	enum GamepadAxis
 	{
@@ -136,12 +130,5 @@ public:
 	};
 	
 	/// Get the stick position of a gamepad axis, scaled from -1.0f to 1.0f.
-	float GetAxis(GamepadAxis axis);
-	
-private:
-	/// XInput controller button statuses.
-	bool xButtonsStatus[16];
-	
-	/// XInput controller state.
-	XINPUT_STATE xInputState;
+	virtual float GetAxis(GamepadAxis axis)=0;
 };

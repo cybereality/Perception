@@ -255,13 +255,13 @@
     <ClCompile Include="Direct3DVolume9.cpp" />
     <ClCompile Include="Direct3DVolumeTexture9.cpp" />
     <ClCompile Include="DirectInput.cpp" />
+    <ClCompile Include="DirectXInputControls.cpp" />
     <ClCompile Include="FreeSpaceTracker.cpp" />
     <ClCompile Include="FreeTrackTracker.cpp" />
     <ClCompile Include="GameHandler.cpp" />
     <ClCompile Include="HMDisplayInfoFactory.cpp" />
     <ClCompile Include="Hotkeys.cpp" />
     <ClCompile Include="InGameMenus.cpp" />
-    <ClCompile Include="InputControls.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MotionTracker.cpp" />
     <ClCompile Include="MotionTrackerFactory.cpp" />
@@ -282,6 +282,7 @@
     <ClCompile Include="..\..\Shared\pugixml.cpp" />
     <ClCompile Include="..\..\Shared\VireioUtil.cpp" />
     <ClCompile Include="..\..\Shared\ProxyHelper.cpp" />
+    <ClCompile Include="..\..\Shared\InputControls.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="D3D9ProxyCubeTexture.h" />
@@ -297,12 +298,12 @@
     <ClInclude Include="Direct3D9Ex.h" />
     <ClInclude Include="Direct3DDevice9Ex.h" />
     <ClInclude Include="DirectInput.h" />
+    <ClInclude Include="DirectXInputControls.h" />
     <ClInclude Include="GameHandler.h" />
     <ClInclude Include="HMDisplayInfo.h" />
     <ClInclude Include="HMDisplayInfoFactory.h" />
     <ClInclude Include="HMDisplayInfo_Default.h" />
     <ClInclude Include="HMDisplayInfo_OculusRift.h" />
-    <ClInclude Include="InputControls.h" />
     <ClInclude Include="MatrixDoNothing.h" />
     <ClInclude Include="MatrixGatheredOrhoSquash.h" />
     <ClInclude Include="MatrixGuiSquash.h" />
@@ -369,6 +370,7 @@
     <ClInclude Include="..\..\pugiconfig.hpp" />
     <ClInclude Include="..\..\Shared\VireioUtil.h" />
     <ClInclude Include="..\..\Shared\ProxyHelper.h" />
+    <ClInclude Include="..\..\Shared\InputControls.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\Release\Perception\cfg\config.xml">

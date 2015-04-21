@@ -164,6 +164,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Shared\ProxyHelper.h" />
+    <ClInclude Include="..\Shared\InputControls.h" />
     <ClInclude Include="..\Shared\VireioUtil.h" />
     <ClInclude Include="..\Shared\pugiconfig.hpp" />
     <ClInclude Include="..\Shared\pugixml.hpp" />
@@ -172,6 +173,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Shared\ProxyHelper.cpp" />
+    <ClCompile Include="..\Shared\InputControls.cpp" />
     <ClCompile Include="..\Shared\VireioUtil.cpp" />
     <ClCompile Include="..\Shared\pugixml.cpp" />
     <ClCompile Include="VireioDLLInstaller.cpp" />

@@ -66,13 +66,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <ctime>
 #include <functional>
 #include "Vireio.h"
-#include "../../Shared/VireioUtil.h"
+#include "VireioUtil.h"
 #include "StereoShaderConstant.h"
 #include "StereoBackBuffer.h"
 #include "GameHandler.h"
 #include "ShaderRegisters.h"
 #include "ViewAdjustment.h"
-#include "InputControls.h"
+#include "DirectXInputControls.h"
 #include "VRBoostEnums.h"
 #include "DirectInput.h"
 #include "VireioPopup.h"
@@ -418,7 +418,7 @@ public:
 	float m_fFloatingScreenZ;
 	bool m_bSurpressHeadtracking;
 	bool m_bSurpressPositionaltracking;
-	InputControls controls;
+	DirectXInputControls controls;
 	DirectInput dinput;
 
 	/**

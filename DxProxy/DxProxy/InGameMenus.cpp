@@ -335,7 +335,7 @@ void D3DProxyDevice::VPMENU()
 	{
 		for (int i = 0; i < 256; i++)
 		{
-			if (controls.Key_Down(i) && controls.GetKeyName(i)!="-")
+			if (controls.Key_Down(i) && Key(i)->ToString()!="-")
 			{
 				hotkeyCatch = false;
 				onBindKey(i);
@@ -1200,7 +1200,7 @@ void D3DProxyDevice::VPMENU_DuckAndCover()
 		NUM_MENU_ITEMS
 	};
 	
-	controls.UpdateXInputs();
+	controls.UpdateInputs();
 
 	VPMENU_NewFrame(NUM_MENU_ITEMS);
 	VPMENU_StartDrawing("Settings - Duck-and-Cover");
@@ -1292,7 +1292,7 @@ void D3DProxyDevice::VPMENU_ComfortMode()
 		NUM_MENU_ITEMS
 	};
 
-	controls.UpdateXInputs();
+	controls.UpdateInputs();
 	
 	VPMENU_NewFrame(NUM_MENU_ITEMS);
 	VPMENU_StartDrawing("Settings - Comfort Mode");
@@ -1727,7 +1727,7 @@ void D3DProxyDevice::AddKeybindMenuItem(std::string text, byte *binding)
 	} else {
 		description = retprintf("%s : %s",
 			text.c_str(),
-			controls.GetKeyName(*binding).c_str());
+			Key(*binding)->ToString().c_str());
 	}
 	
 	AddMenuItem(description, COLOR_MENU_TEXT, [=]() {
