@@ -877,7 +877,7 @@ void DataGatherer::VPMENU_ChangeRules()
 	
 	// adjust border & menu due to menu scroll
 	float borderDrawingHeight = borderTopHeight;
-	if (menuVelocity.y == 0.0f)
+	if (menuVelocity == 0.0f)
 		borderTopHeight = menuTop+menuEntryHeight*(float)entryID;
 	if (borderTopHeight>(menuTop+(menuEntryHeight*12.0f)))
 		borderDrawingHeight = menuTop+menuEntryHeight*12.0f;
@@ -1272,7 +1272,7 @@ void DataGatherer::VPMENU_ShowActiveShaders()
 	// output menu
 	// adjust border & menu due to menu scroll
 	float borderDrawingHeight = borderTopHeight;
-	if (menuVelocity.y == 0.0f)
+	if (menuVelocity == 0.0f)
 		borderTopHeight = menuTop+menuEntryHeight*(float)entryID;
 	if (borderTopHeight>(menuTop+(menuEntryHeight*12.0f)))
 		borderDrawingHeight = menuTop+menuEntryHeight*12.0f;

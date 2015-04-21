@@ -684,7 +684,7 @@ void D3DProxyDevice::HandleControls()
 			m_bForceMouseEmulation = true;
 			tracker->setMouseEmulation(true);
 
-			menuVelocity.x-=2.0f;
+			HotkeyCooldown(2.0f);
 		}
 
 		//Enabled/Disable Free Pitch (default is disabled), LSHIFT + X
@@ -1148,10 +1148,10 @@ void D3DProxyDevice::HandleControls()
 
 void D3DProxyDevice::HotkeyCooldown(float duration)
 {
-	menuVelocity.x += duration;
+	hotkeyCooldown += duration;
 }
 
 bool D3DProxyDevice::HotkeysActive()
 {
-	return menuVelocity.x == 0.0f && menuVelocity.y == 0.0f;
+	return hotkeyCooldown == 0.0f && menuVelocity == 0.0f;
 }

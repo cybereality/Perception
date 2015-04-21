@@ -507,8 +507,11 @@ protected:
 	/// If the menu is waiting to catch a hotkey, a function to call when it's received
 	std::function<void(int)> onBindKey;
 	
+	/// Time until hotkeys will accept presses again
+	float hotkeyCooldown;
+	
 	/// Main menu velocity.
-	D3DXVECTOR2 menuVelocity;
+	float menuVelocity;
 	
 	/// Main menu affection.
 	float menuAttraction;

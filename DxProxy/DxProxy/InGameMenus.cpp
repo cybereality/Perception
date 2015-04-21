@@ -82,7 +82,8 @@ bool D3DProxyDevice::InitVPMENU()
 	menuIsOpen = false;
 	borderTopHeight = 0.0f;
 	menuTopHeight = 0.0f;
-	menuVelocity = D3DXVECTOR2(0.0f, 0.0f);
+	hotkeyCooldown = 0.0f;
+	menuVelocity = 0.0f;
 	menuAttraction = 0.0f;
 	hud3DDepthMode = HUD_3D_Depth_Modes::HUD_DEFAULT;
 	gui3DDepthMode = GUI_3D_Depth_Modes::GUI_DEFAULT;
@@ -179,21 +180,21 @@ void D3DProxyDevice::VPMENU_NewFrame(UINT menuEntryCount)
 	menuAttraction -= (float)((UINT)menuAttraction);
 	menuAttraction -= 0.5f;
 	menuAttraction *= 2.0f;
-	if ((menuVelocity.y>0.0f) && (menuAttraction<0.0f)) menuAttraction = 0.0f;
-	if ((menuVelocity.y<0.0f) && (menuAttraction>0.0f)) menuAttraction = 0.0f;
+	if ((menuVelocity>0.0f) && (menuAttraction<0.0f)) menuAttraction = 0.0f;
+	if ((menuVelocity<0.0f) && (menuAttraction>0.0f)) menuAttraction = 0.0f;
 
 	// handle border height
 	if (borderTopHeight<menuTop)
 	{
 		borderTopHeight = menuTop;
-		menuVelocity.y=0.0f;
+		menuVelocity=0.0f;
 		menuAttraction=0.0f;
 
 	}
 	if (borderTopHeight>(menuTop+(menuEntryHeight*(float)(menuEntryCount-1))))
 	{
 		borderTopHeight = menuTop+menuEntryHeight*(float)(menuEntryCount-1);
-		menuVelocity.y=0.0f;
+		menuVelocity=0.0f;
 		menuAttraction=0.0f;
 	}
 }
@@ -208,7 +209,7 @@ void D3DProxyDevice::VPMENU_StartDrawing(const char *pageTitle)
 {
 	// adjust border
 	float borderDrawingHeight = borderTopHeight;
-	if ((menuVelocity.y < 1.0f) && (menuVelocity.y > -1.0f))
+	if ((menuVelocity < 1.0f) && (menuVelocity > -1.0f))
 		borderTopHeight = menuTop+menuEntryHeight*(float)VPMENU_GetCurrentSelection();
 
 	// draw border - total width due to shift correction
@@ -1420,17 +1421,21 @@ void D3DProxyDevice::VPMENU_UpdateBorder()
 	float timeScale = (float)menuSeconds*90;
 
 	// menu velocity present ? in case calculate diminution of the velocity
-	if (menuVelocity != D3DXVECTOR2(0.0f, 0.0f))
+	if (menuVelocity != 0.0f || hotkeyCooldown != 0.0f)
 	{
 		float diminution = 0.05f;
 		diminution *= timeScale;
 		if (diminution > 1.0f) diminution = 1.0f;
-		menuVelocity*=1.0f-diminution;
+		menuVelocity *= 1.0f-diminution;
+		hotkeyCooldown *= 1.0f-diminution;
 
 		// set velocity to zero in case of low velocity
-		if ((menuVelocity.y<0.9f) && (menuVelocity.y>-0.9f) &&
-			(menuVelocity.x<0.7f) && (menuVelocity.x>-0.7f))
-			menuVelocity = D3DXVECTOR2(0.0f, 0.0f);
+		if ((menuVelocity<0.9f) && (menuVelocity>-0.9f) &&
+			(hotkeyCooldown<0.7f) && (hotkeyCooldown>-0.7f))
+		{
+			menuVelocity = 0.0f;
+			hotkeyCooldown = 0.0f;
+		}
 	}
 
 	// vp menu active ? handle up/down controls
@@ -1439,15 +1444,15 @@ void D3DProxyDevice::VPMENU_UpdateBorder()
 		int viewportHeight = stereoView->viewport.Height;
 
 		float fScaleY = ((float)viewportHeight / (float)1080.0f);
-		if ((hotkeyMenuUp->IsPressed(controls) || (controls.GetAxis(InputControls::GamepadAxis::LeftStickY)>MENU_SELECTION_STICK_DEADZONE)) && (menuVelocity.y==0.0f))
-			menuVelocity.y=-2.7f;
-		if ((hotkeyMenuDown->IsPressed(controls) || (controls.GetAxis(InputControls::GamepadAxis::LeftStickY)<-MENU_SELECTION_STICK_DEADZONE)) && (menuVelocity.y==0.0f))
-			menuVelocity.y=2.7f;
-		if (hotkeyMenuUpFaster->IsPressed(controls) && (menuVelocity.y==0.0f))
-			menuVelocity.y=-15.0f;
-		if (hotkeyMenuDownFaster->IsPressed(controls) && (menuVelocity.y==0.0f))
-			menuVelocity.y=15.0f;
-		borderTopHeight += (menuVelocity.y+menuAttraction)*fScaleY*timeScale;
+		if ((hotkeyMenuUp->IsPressed(controls) || (controls.GetAxis(InputControls::GamepadAxis::LeftStickY)>MENU_SELECTION_STICK_DEADZONE)) && (menuVelocity==0.0f))
+			menuVelocity=-2.7f;
+		if ((hotkeyMenuDown->IsPressed(controls) || (controls.GetAxis(InputControls::GamepadAxis::LeftStickY)<-MENU_SELECTION_STICK_DEADZONE)) && (menuVelocity==0.0f))
+			menuVelocity=2.7f;
+		if (hotkeyMenuUpFaster->IsPressed(controls) && (menuVelocity==0.0f))
+			menuVelocity=-15.0f;
+		if (hotkeyMenuDownFaster->IsPressed(controls) && (menuVelocity==0.0f))
+			menuVelocity=15.0f;
+		borderTopHeight += (menuVelocity+menuAttraction)*fScaleY*timeScale;
 	}
 }
 
