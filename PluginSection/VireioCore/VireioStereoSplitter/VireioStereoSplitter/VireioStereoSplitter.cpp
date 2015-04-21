@@ -289,21 +289,13 @@ HBITMAP StereoSplitter::GetControl()
 			nLen = (int)wcslen(szBuffer); if (nLen > 11) nLen = 11;
 			TextOut(hdcImage, 650, nY, szBuffer, nLen); nY+=64;
 
-			// debug output for depth stencil + first texture
-			if (m_pcActiveDepthStencilSurface) 
+			// debug output for back buffer
+			if (m_pcActiveBackBufferSurface) 
 			{
-				if (!m_pcActiveStereoTwinDepthStencilSurface)
-					TextOut(hdcImage, 50, nY, L"Depth Stencil set.", 18);
+				if (!m_pcActiveStereoTwinBackBufferSurface)
+					TextOut(hdcImage, 50, nY, L"Back Buffer set.", 16);
 				else
-					TextOut(hdcImage, 50, nY, L"Depth Stencil + Twin set.", 25);
-			}
-			nY+=64;
-			if (m_apcActiveTextures[0]) 
-			{
-				if (!m_apcActiveStereoTwinTextures[0])
-					TextOut(hdcImage, 50, nY, L"Texture 0 set.", 14);
-				else
-					TextOut(hdcImage, 50, nY, L"Texture 0 + Twin set.", 21);
+					TextOut(hdcImage, 50, nY, L"Back Buffer + Twin set.", 23);
 			}
 			nY+=64;
 
@@ -729,6 +721,7 @@ void StereoSplitter::Present(IDirect3DDevice9* pcDevice)
 	if (m_dwMaxRenderTargets != m_apcActiveRenderTargets.size())
 	{
 		m_apcActiveRenderTargets.resize(m_dwMaxRenderTargets, NULL);
+		m_apcActiveStereoTwinRenderTarget.resize(m_dwMaxRenderTargets, NULL);
 		m_bControlUpdate = true;
 		if (m_dwMaxRenderTargets == m_apcActiveRenderTargets.size())
 			m_bMaxRenderTargets = true;
@@ -791,13 +784,30 @@ void StereoSplitter::Present(IDirect3DDevice9* pcDevice)
 			// if no render target (texture) is found on the clipboard, create a new
 			if (pcStereoTwinRenderTarget == nullptr)
 			{
-				if (FAILED(pcDevice->CreateTexture((UINT)desc.Width, (UINT)desc.Height, 1, desc.Usage, desc.Format, D3DPOOL_DEFAULT, &pcStereoTwinRenderTexture, NULL)))
+				switch(desc.Type)
 				{
-					OutputDebugString(L"VireioStereoSplitter : Failed to create render target texture.");
-					pcStereoTwinRenderTexture = nullptr;
+				case D3DRESOURCETYPE::D3DRTYPE_SURFACE:
+					if (FAILED(pcDevice->CreateRenderTarget(desc.Width, desc.Height, desc.Format, desc.MultiSampleType, desc.MultiSampleQuality, false, &pcStereoTwinRenderTarget, NULL)))
+					{
+						OutputDebugString(L"VireioStereoSplitter : Failed to create render target.");
+						pcStereoTwinRenderTarget = nullptr;
+					}
+					break;
+				case D3DRESOURCETYPE::D3DRTYPE_TEXTURE:
+					{
+						if (FAILED(pcDevice->CreateTexture((UINT)desc.Width, (UINT)desc.Height, 1, desc.Usage, desc.Format, D3DPOOL_DEFAULT, &pcStereoTwinRenderTexture, NULL)))
+						{
+							OutputDebugString(L"VireioStereoSplitter : Failed to create render target texture.");
+							pcStereoTwinRenderTexture = nullptr;
+						}
+						else
+							pcStereoTwinRenderTexture->GetSurfaceLevel(0, &pcStereoTwinRenderTarget);
+					}
+					break;
+				default:
+					// TODO !! HANDLE CUBE + VOLUME TEX
+					break;
 				}
-				else
-					pcStereoTwinRenderTexture->GetSurfaceLevel(0, &pcStereoTwinRenderTarget);
 			}
 
 			// add to stereo twin render targets
@@ -948,20 +958,37 @@ void StereoSplitter::SetRenderTarget(IDirect3DDevice9* pcDevice, DWORD dwRenderT
 	if ((dwRenderTargetIndex < m_dwMaxRenderTargets) && (m_bMaxRenderTargets))
 	{
 		// set NULL manually, otherwise just set the render target :
-		if (!pcRenderTarget) 
+		if (!pcRenderTarget)
+		{
 			m_apcActiveRenderTargets[dwRenderTargetIndex] = NULL;
+			m_apcActiveStereoTwinRenderTarget[dwRenderTargetIndex] = NULL;
+		}
 		else			
 			m_apcActiveRenderTargets[dwRenderTargetIndex] = pcRenderTarget;
 	}
+	else return;
 
 	// return if NULL
 	if (!pcRenderTarget) return;
 
 	// check wether this render target is actually monitored
-	if (CheckIfMonitored(pcRenderTarget) == -1)
+	int nIndex = CheckIfMonitored(pcRenderTarget);
+	if (nIndex == -1)
 	{
 		// not monitored, so start
 		MonitorSurface(pcRenderTarget);
+
+		// set twin surface to null meanwhile
+		m_apcActiveStereoTwinRenderTarget[dwRenderTargetIndex] = NULL;
+	}
+	else
+	{
+		// set twin surface if twin created
+		if (nIndex < (int)m_apcStereoTwinSurfaces.size())
+			m_apcActiveStereoTwinRenderTarget[dwRenderTargetIndex] = m_apcStereoTwinSurfaces[nIndex];
+		else
+			// set twin surface to null meanwhile
+			m_apcActiveStereoTwinRenderTarget[dwRenderTargetIndex] = NULL;
 	}
 }
 
@@ -1176,7 +1203,7 @@ bool StereoSplitter::SetDrawingSide(IDirect3DDevice9* pcDevice, RenderPosition e
 	// switch render targets to new eSide
 	bool renderTargetChanged = false;
 	HRESULT hr = D3D_OK;
-	for(std::vector<IDirect3DSurface9*>::size_type i = 0; i != m_apcActiveRenderTargets.size(); i++) 
+	for(std::vector<IDirect3DSurface9*>::size_type i = 0; i < m_apcActiveRenderTargets.size(); i++) 
 	{
 		if (eSide == RenderPosition::Left) 
 		{
