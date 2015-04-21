@@ -99,7 +99,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define MENU_ITEM_SEPARATION  40
 
-
 // Define SHOW_CALLS to have each method output a debug string when it is invoked
 //#define SHOW_CALLS
 
@@ -397,11 +396,11 @@ public:
 	/**
 	* Timestamp used to adjust the menu velocity independent of game speed.
 	**/
-	float menuTime;
+	float menuLastUpdateTime;
 	/**
 	* Timespan of every frame (in seconds).
 	***/
-	float menuSeconds;
+	float menuLastFrameLength;
 	/**
 	* True floating GUI mode activated + Reset Values
 	**/

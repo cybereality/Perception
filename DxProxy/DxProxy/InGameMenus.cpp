@@ -71,7 +71,7 @@ bool D3DProxyDevice::InitVPMENU()
 	SHOW_CALL("InitVPMENU");
 	
 	hudFont = NULL;
-	menuTime = (float)GetTickCount()/1000.0f;
+	menuLastUpdateTime = (float)GetTickCount()/1000.0f;
 	ZeroMemory(&m_configBackup, sizeof(m_configBackup));
 	screenshot = (int)false;
 	m_bForceMouseEmulation = false;
@@ -1413,12 +1413,11 @@ void D3DProxyDevice::VPMENU_UpdateBorder()
 	}
 
 	// first, calculate a time scale to adjust the menu speed for the frame speed of the game
-	float timeStamp;
-	timeStamp = (float)GetTickCount()/1000.0f;
-	menuSeconds = timeStamp-menuTime;
-	menuTime = timeStamp;
+	float timeStamp = (float)GetTickCount()/1000.0f;
+	menuLastFrameLength = timeStamp-menuLastUpdateTime;
+	menuLastUpdateTime = timeStamp;
 	// Speed up menu - makes an incredible difference!
-	float timeScale = (float)menuSeconds*90;
+	float timeScale = (float)menuLastFrameLength*90;
 
 	// menu velocity present ? in case calculate diminution of the velocity
 	if (menuVelocity != 0.0f || hotkeyCooldown != 0.0f)
@@ -1430,8 +1429,8 @@ void D3DProxyDevice::VPMENU_UpdateBorder()
 		hotkeyCooldown *= 1.0f-diminution;
 
 		// set velocity to zero in case of low velocity
-		if ((menuVelocity<0.9f) && (menuVelocity>-0.9f) &&
-			(hotkeyCooldown<0.7f) && (hotkeyCooldown>-0.7f))
+		if (menuVelocity<0.9f && menuVelocity>-0.9f
+			&& hotkeyCooldown<0.7f && hotkeyCooldown>-0.7f)
 		{
 			menuVelocity = 0.0f;
 			hotkeyCooldown = 0.0f;
@@ -1444,14 +1443,20 @@ void D3DProxyDevice::VPMENU_UpdateBorder()
 		int viewportHeight = stereoView->viewport.Height;
 
 		float fScaleY = ((float)viewportHeight / (float)1080.0f);
-		if ((hotkeyMenuUp->IsPressed(controls) || (controls.GetAxis(InputControls::GamepadAxis::LeftStickY)>MENU_SELECTION_STICK_DEADZONE)) && (menuVelocity==0.0f))
-			menuVelocity=-2.7f;
-		if ((hotkeyMenuDown->IsPressed(controls) || (controls.GetAxis(InputControls::GamepadAxis::LeftStickY)<-MENU_SELECTION_STICK_DEADZONE)) && (menuVelocity==0.0f))
-			menuVelocity=2.7f;
-		if (hotkeyMenuUpFaster->IsPressed(controls) && (menuVelocity==0.0f))
-			menuVelocity=-15.0f;
-		if (hotkeyMenuDownFaster->IsPressed(controls) && (menuVelocity==0.0f))
-			menuVelocity=15.0f;
+		
+		if(menuVelocity == 0.0f)
+		{
+			float menuSelectionAxis = controls.GetAxis(InputControls::GamepadAxis::LeftStickY);
+			if (hotkeyMenuUp->IsPressed(controls) || (menuSelectionAxis>MENU_SELECTION_STICK_DEADZONE))
+				menuVelocity=-2.7f;
+			if (hotkeyMenuDown->IsPressed(controls) || (menuSelectionAxis<-MENU_SELECTION_STICK_DEADZONE))
+				menuVelocity=2.7f;
+			if (hotkeyMenuUpFaster->IsPressed(controls))
+				menuVelocity=-15.0f;
+			if (hotkeyMenuDownFaster->IsPressed(controls))
+				menuVelocity=15.0f;
+		}
+		
 		borderTopHeight += (menuVelocity+menuAttraction)*fScaleY*timeScale;
 	}
 }
@@ -1657,7 +1662,7 @@ void D3DProxyDevice::VPMENU_AdditionalOutput()
 			ClearRect(vireio::RenderPosition::Left, rec, COLOR_LIGHTRED);
 
 		// update the indicator float
-		m_fVRBoostIndicator-=menuSeconds;
+		m_fVRBoostIndicator-=menuLastFrameLength;
 	}
 
 	//Having this here will hijack any other notification - this is intentional

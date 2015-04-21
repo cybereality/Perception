@@ -746,7 +746,6 @@ void DataGatherer::VPMENU_ShaderSubMenu()
 		// create relevant shader constant table
 		GetCurrentShaderRules(true);
 		VPMENU_CloseWithoutSaving();
-		HotkeyCooldown(2.0f);
 		Analyze();
 	});
 	AddButtonMenuItem("Change current Shader Rules", [=]() {
@@ -771,7 +770,6 @@ void DataGatherer::VPMENU_ShaderSubMenu()
 	});
 	AddButtonMenuItem("Save Shader Rules", [=]() {
 		VPMENU_CloseWithoutSaving();
-		HotkeyCooldown(2.0f);
 		// save data
 		ProxyHelper* helper = new ProxyHelper();
 
