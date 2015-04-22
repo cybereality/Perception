@@ -443,6 +443,7 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 	// (this can break if device present is followed by present on another swap chain... or not work well anyway)
 	m_isFirstBeginSceneOfFrame = true; 
 
+	HandleLandmarkMoment(DeviceBehavior::WhenToDo::PRESENT);
 	VPMENU_UpdateBorder();
 
 	//Now calculate frames per second
@@ -1132,15 +1133,8 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 			m_bViewportIsSquished = false;
 		}*/
 
-		// handle controls - Only handled on the first begin scene
-		if (m_deviceBehavior.whenToHandleHeadTracking == DeviceBehavior::WhenToDo::BEGIN_SCENE)
-			HandleTracking();
-
-		// draw menu
-		if (m_deviceBehavior.whenToRenderVPMENU == DeviceBehavior::WhenToDo::BEGIN_SCENE)
-		{
-			VPMENU();
-		}
+		HandleLandmarkMoment(DeviceBehavior::WhenToDo::BEGIN_SCENE);
+		
 		// handle controls
 		HandleControls();
 
@@ -1166,16 +1160,8 @@ HRESULT WINAPI D3DProxyDevice::EndScene()
 {
 	SHOW_CALL("EndScene");
 	
-	// handle controls 
-	if (m_deviceBehavior.whenToHandleHeadTracking == DeviceBehavior::WhenToDo::END_SCENE) 
-		HandleTracking();
-
-	// draw menu
-	if (m_deviceBehavior.whenToRenderVPMENU == DeviceBehavior::WhenToDo::END_SCENE) 
-	{
-		VPMENU();
-	}
-
+	HandleLandmarkMoment(DeviceBehavior::WhenToDo::END_SCENE);
+	
 	return BaseDirect3DDevice9::EndScene();
 }
 
@@ -2422,6 +2408,17 @@ void D3DProxyDevice::DuckAndCover::LoadFromRegistry()
 }
 
 
+void D3DProxyDevice::HandleLandmarkMoment(DeviceBehavior::WhenToDo when)
+{
+	// handle controls 
+	if (m_deviceBehavior.whenToHandleHeadTracking == when)
+		HandleTracking();
+
+	// draw menu
+	if (m_deviceBehavior.whenToRenderVPMENU == when)
+		VPMENU();
+}
+
 /**
 * Updates selected motion tracker orientation.
 ***/
@@ -3077,6 +3074,7 @@ void D3DProxyDevice::HandleUpdateExtern()
 	
 	m_isFirstBeginSceneOfFrame = true;
 
+	HandleLandmarkMoment(DeviceBehavior::WhenToDo::PRESENT);
 	VPMENU_UpdateBorder();
 }
 

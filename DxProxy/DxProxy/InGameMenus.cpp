@@ -1378,17 +1378,6 @@ void D3DProxyDevice::VPMENU_UpdateBorder()
 {
 	SHOW_CALL("VPMENU_UpdateBorder");
 
-	// handle controls 
-	if (m_deviceBehavior.whenToHandleHeadTracking == DeviceBehavior::PRESENT)
-		HandleTracking();
-
-	// draw 
-	if (m_deviceBehavior.whenToRenderVPMENU == DeviceBehavior::PRESENT)
-	{
-		VPMENU();
-	}
-
-
 	//If this is enabled, then draw an apostrophe in the top left corner of the screen at all times
 	//this results in obs only picking up the left eye's texture for some reason (total hack, but some users make use of this for streaming
 	//using OBS

@@ -701,6 +701,8 @@ protected:
 		WhenToDo whenToHandleHeadTracking;
 
 	} m_deviceBehavior;
+	
+	void HandleLandmarkMoment(DeviceBehavior::WhenToDo when);
 
 private:
 	/*** D3DProxyDevice private methods ***/
