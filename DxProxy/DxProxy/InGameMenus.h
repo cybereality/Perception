@@ -33,8 +33,12 @@ public:
 	void AddGameKeypress(std::string text, byte *binding);
 	void AddKeybind(std::string text, InputBindingRef *binding);
 	void AddAdjustment(const char *formatString, float *value, float defaultValue, float rate, std::function<void()> onChange=[](){});
+	
+	void SetDrawPosition(int left, int top);
+	int GetDrawPositionTop();
 
 private:
 	D3DProxyDevice *device;
 	int menuConstructionCurrentEntry;
+	RECT drawPosition;
 };

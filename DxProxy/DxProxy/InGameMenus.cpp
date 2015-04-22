@@ -172,9 +172,6 @@ MenuBuilder *D3DProxyDevice::VPMENU_NewFrame(UINT menuEntryCount)
 {
 	SHOW_CALL("VPMENU_NewFrame");
 	
-	menuHelperRect.left = 0;
-	menuHelperRect.top = 0;
-
 	// set menu entry attraction
 	menuAttraction = ((borderTopHeight-menuTop)/menuEntryHeight);
 	menuAttraction -= (float)((UINT)menuAttraction);
@@ -226,16 +223,13 @@ void D3DProxyDevice::VPMENU_StartDrawing(const char *pageTitle)
 	D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
 	hudMainMenu->SetTransform(&matScale);
 
-	menuHelperRect.left = 650;
-	menuHelperRect.top = 300;
-	
+	RECT titleRect = { 650, 300, VPMENU_PIXEL_WIDTH, VPMENU_PIXEL_HEIGHT };
 	std::string pageHeading = retprintf("Vireio Perception (%s) %s\n", APP_VERSION, pageTitle);
-	DrawTextShadowed(hudFont, hudMainMenu, pageHeading.c_str(), &menuHelperRect, COLOR_MENU_TEXT);
+	DrawTextShadowed(hudFont, hudMainMenu, pageHeading.c_str(), &titleRect, COLOR_MENU_TEXT);
 	rect.x1 = 0; rect.x2 = viewportWidth; rect.y1 = (int)(335*fScaleY); rect.y2 = (int)(340*fScaleY);
 	Clear(1, &rect, D3DCLEAR_TARGET, COLOR_MENU_BORDER, 0, 0);
 	
-	menuHelperRect.top += 50;
-	menuHelperRect.left += 150;
+	menu->SetDrawPosition(800, 350);
 }
 
 void D3DProxyDevice::VPMENU_StartDrawing_NonMenu()
@@ -249,11 +243,9 @@ void D3DProxyDevice::VPMENU_StartDrawing_NonMenu()
 
 void D3DProxyDevice::VPMENU_FinishDrawing(MenuBuilder *menu)
 {
-	menuHelperRect.left = 0;
-	menuHelperRect.top = 0;
-
-	D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
-	hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, COLOR_WHITE);
+	RECT copyRect = { 0, 0, VPMENU_PIXEL_WIDTH, VPMENU_PIXEL_HEIGHT };
+	D3DXVECTOR3 vPos(0.0f, 0.0f, 0.0f);
+	hudMainMenu->Draw(NULL, &copyRect, NULL, &vPos, COLOR_WHITE);
 	hudMainMenu->End();
 	
 	if(menu) {
@@ -406,7 +398,7 @@ void D3DProxyDevice::VPMENU_MainMenu()
 	menu->AddNavigation("HUD Calibration\n", [=]() { VPMENU_HUD(); });
 	menu->AddNavigation("GUI Calibration\n", [=]() { VPMENU_GUI(); });
 	
-	float hudQSTop = (float)menuHelperRect.top * fScaleY;
+	float hudQSTop = (float)menu->GetDrawPositionTop() * fScaleY;
 	menu->AddItem("HUD Quick Setting : \n", [=]() {
 		if (VPMENU_Input_Left() && HotkeysActive())
 		{
@@ -421,7 +413,7 @@ void D3DProxyDevice::VPMENU_MainMenu()
 			HotkeyCooldown(COOLDOWN_SHORT);
 		}
 	});
-	float guiQSTop = (float)menuHelperRect.top * fScaleY;
+	float guiQSTop = (float)menu->GetDrawPositionTop() * fScaleY;
 	menu->AddItem("GUI Quick Setting : \n", [=]() {
 		if (VPMENU_Input_Left() && HotkeysActive())
 		{
@@ -828,7 +820,7 @@ void D3DProxyDevice::VPMENU_HUD()
 	// output menu
 	VPMENU_StartDrawing("Settings - HUD");
 
-	float hudQSHeight = (float)menuHelperRect.top * fScaleY;
+	float hudQSHeight = (float)menu->GetDrawPositionTop() * fScaleY;
 	std::string depthModeDescription = "";
 	switch (hud3DDepthMode)
 	{
@@ -918,7 +910,7 @@ void D3DProxyDevice::VPMENU_GUI()
 	// output menu
 	VPMENU_StartDrawing("Settings - GUI");
 
-	float guiQSTop = (float)menuHelperRect.top * fScaleY;
+	float guiQSTop = (float)menu->GetDrawPositionTop() * fScaleY;
 	
 	std::string guiDepthModeDescription;
 	switch (gui3DDepthMode)
@@ -1393,13 +1385,10 @@ void D3DProxyDevice::VPMENU_UpdateBorder()
 		if (hudFont && hackSprite)
 		{
 			VPMENU_StartDrawing_NonMenu();
-			menuHelperRect.left = 0;
-			menuHelperRect.top = 0;
-			menuHelperRect.right = 50;
-			menuHelperRect.bottom = 50;
-			hudFont->DrawText(hackSprite, "'", -1, &menuHelperRect, DT_LEFT, COLOR_RED);
+			RECT apostropheDrawPos = { 0, 0, 50, 50 };
+			hudFont->DrawText(hackSprite, "'", -1, &apostropheDrawPos, DT_LEFT, COLOR_RED);
 			D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
-			hackSprite->Draw(NULL, &menuHelperRect, NULL, &vPos, COLOR_WHITE);
+			hackSprite->Draw(NULL, &apostropheDrawPos, NULL, &vPos, COLOR_WHITE);
 			hackSprite->End();
 			hackSprite->Release();
 			hackSprite = NULL;
@@ -1675,19 +1664,20 @@ MenuBuilder::MenuBuilder(D3DProxyDevice *device)
 {
 	this->device = device;
 	this->menuConstructionCurrentEntry = 0;
+	drawPosition = { 0, 0, VPMENU_PIXEL_WIDTH, VPMENU_PIXEL_HEIGHT };
 }
 
 void MenuBuilder::DrawItem(const char *text, D3DCOLOR color)
 {
-	device->DrawTextShadowed(device->hudFont, device->hudMainMenu, text, &device->menuHelperRect, color);
-	device->menuHelperRect.top += MENU_ITEM_SEPARATION;
+	device->DrawTextShadowed(device->hudFont, device->hudMainMenu, text, &drawPosition, color);
+	drawPosition.top += MENU_ITEM_SEPARATION;
 	menuConstructionCurrentEntry++;
 }
 
 void MenuBuilder::DrawItem(std::string text, D3DCOLOR color)
 {
-	device->DrawTextShadowed(device->hudFont, device->hudMainMenu, text.c_str(), &device->menuHelperRect, color);
-	device->menuHelperRect.top += MENU_ITEM_SEPARATION;
+	device->DrawTextShadowed(device->hudFont, device->hudMainMenu, text.c_str(), &drawPosition, color);
+	drawPosition.top += MENU_ITEM_SEPARATION;
 	menuConstructionCurrentEntry++;
 }
 

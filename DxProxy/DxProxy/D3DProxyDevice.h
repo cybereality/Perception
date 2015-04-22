@@ -505,9 +505,6 @@ protected:
 	/// Menu entry height, in pixels.
 	float menuEntryHeight;
 	
-	/// VP menu helper rectangle.
-	RECT menuHelperRect;
-	
 	/// Scales VP menu to current resolution.
 	float fScaleX;
 	

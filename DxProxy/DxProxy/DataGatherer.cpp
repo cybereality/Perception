@@ -915,8 +915,7 @@ void DataGatherer::VPMENU_ChangeRules()
 
 	VPMENU_StartDrawing_NonMenu();
 
-	menuHelperRect.left = 800; menuHelperRect.top = 350;
-	menuHelperRect.top += (int)(menuTopHeight / fScaleY);
+	menu->SetDrawPosition(800, 350 + (int)(menuTopHeight / fScaleY));
 	
 	for (UINT i=0; i<menuEntryCount-2; i++)
 	menu->AddItem(menuEntries[i], menuColor[i], [&]()
@@ -1310,17 +1309,17 @@ void DataGatherer::VPMENU_ShowActiveShaders()
 
 	VPMENU_StartDrawing_NonMenu();
 
-	menuHelperRect.left = 800; menuHelperRect.top = 350;
-	menuHelperRect.top += (int)(menuTopHeight / fScaleY);
+	menu->SetDrawPosition(800, 350 + (int)(menuTopHeight / fScaleY));
+	
 	for (UINT i = 0; i < menuEntryCount-2; i++)
 	{
-		if ((menuHelperRect.top + 40) >= 0)
+		if ((menu->GetDrawPositionTop() + 40) >= 0)
 		{
 			menu->DrawItem(menuEntries[i].c_str(), menuColor[i]);
 		}
 
 		//No point drawing anything off the bottom of the viewport!
-		if (menuHelperRect.top > viewportHeight)
+		if (menu->GetDrawPositionTop() > viewportHeight)
 			break;
 	}
 

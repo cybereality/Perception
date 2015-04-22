@@ -3157,11 +3157,6 @@ void D3DProxyDevice::OnCreateOrRestore()
 
 	fScaleX = ((float)viewportWidth / (float)VPMENU_PIXEL_WIDTH);
 	fScaleY = ((float)viewportHeight / (float)VPMENU_PIXEL_HEIGHT);
-
-	menuHelperRect.left = 0;
-	menuHelperRect.right = VPMENU_PIXEL_WIDTH;
-	menuHelperRect.top = 0;
-	menuHelperRect.bottom = VPMENU_PIXEL_HEIGHT;
 }
 
 /**
