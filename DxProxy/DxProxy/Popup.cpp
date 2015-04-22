@@ -171,8 +171,7 @@ void D3DProxyDevice::DisplayCurrentPopup()
 	UINT format = 0;
 	D3DCOLOR popupColour;
 	ID3DXFont *pFont;
-	menuHelperRect.left = 670;
-	menuHelperRect.top = 440;
+	RECT drawPosition = { 670, 440, VPMENU_PIXEL_WIDTH, VPMENU_PIXEL_HEIGHT };
 	switch (activePopup.severity)
 	{
 		case VPS_TOAST:
@@ -184,7 +183,7 @@ void D3DProxyDevice::DisplayCurrentPopup()
 				int fontSize = (activePopup.popupDuration - GetTickCount() > FADE_DURATION) ? 26 : 
 					(int)( (25.0f * (activePopup.popupDuration - GetTickCount())) / FADE_DURATION + 1);
 				pFont = popupFont[fontSize];
-				menuHelperRect.left = 0;
+				drawPosition.left = 0;
 			}
 			break;
 		case VPS_INFO:
@@ -196,7 +195,7 @@ void D3DProxyDevice::DisplayCurrentPopup()
 		case VPS_ERROR:
 			{
 				popupColour = COLOR_RED;
-				menuHelperRect.left = 0;
+				drawPosition.left = 0;
 				format = DT_CENTER;
 				pFont = errorFont;
 			}
@@ -206,8 +205,8 @@ void D3DProxyDevice::DisplayCurrentPopup()
 	for (int i = 0; i <= 6; ++i)
 	{
 		if (strlen(activePopup.line[i]))
-			DrawTextShadowed(pFont, hudMainMenu, activePopup.line[i], -1, &menuHelperRect, format, popupColour);
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
+			DrawTextShadowed(pFont, hudMainMenu, activePopup.line[i], -1, &drawPosition, format, popupColour);
+		drawPosition.top += MENU_ITEM_SEPARATION;
 	}
 	
 	if (show_fps != FPS_NONE)
@@ -224,9 +223,9 @@ void D3DProxyDevice::DisplayCurrentPopup()
 		else if (fps > 74)
 			colour = COLOR_GREEN;
 
-		menuHelperRect.top = 800;
-		menuHelperRect.left = 0;
-		hudFont->DrawText(hudMainMenu, buffer, -1, &menuHelperRect, DT_CENTER, colour);
+		drawPosition.top = 800;
+		drawPosition.left = 0;
+		hudFont->DrawText(hudMainMenu, buffer, -1, &drawPosition, DT_CENTER, colour);
 	}
 
 	VPMENU_FinishDrawing();
