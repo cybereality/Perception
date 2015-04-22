@@ -156,7 +156,7 @@ void D3DProxyDevice::VPMENU_NavigateTo(std::function<void()> menuHandler)
 	inWorldScaleMenu = false;
 	menuIsOpen = true;
 	handleCurrentMenu = menuHandler;
-	HotkeyCooldown(2.0f);
+	HotkeyCooldown(COOLDOWN_SHORT);
 }
 
 bool D3DProxyDevice::VPMENU_IsOpen()
@@ -340,7 +340,7 @@ void D3DProxyDevice::VPMENU()
 			{
 				hotkeyCatch = false;
 				onBindKey(i);
-				HotkeyCooldown(10.0f);
+				HotkeyCooldown(COOLDOWN_EXTRA_LONG);
 				break;
 			}
 		}
@@ -407,13 +407,13 @@ void D3DProxyDevice::VPMENU_MainMenu()
 		{
 			if (hud3DDepthMode > HUD_3D_Depth_Modes::HUD_DEFAULT)
 				ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)(hud3DDepthMode-1));
-			HotkeyCooldown(2.0f);
+			HotkeyCooldown(COOLDOWN_SHORT);
 		}
 		if (VPMENU_Input_Right() && HotkeysActive())
 		{
 			if (hud3DDepthMode < HUD_3D_Depth_Modes::HUD_ENUM_RANGE-1)
 				ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)(hud3DDepthMode+1));
-			HotkeyCooldown(2.0f);
+			HotkeyCooldown(COOLDOWN_SHORT);
 		}
 	});
 	float guiQSTop = (float)menuHelperRect.top * fScaleY;
@@ -422,13 +422,13 @@ void D3DProxyDevice::VPMENU_MainMenu()
 		{
 			if (gui3DDepthMode > GUI_3D_Depth_Modes::GUI_DEFAULT)
 				ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)(gui3DDepthMode-1));
-			HotkeyCooldown(2.0f);
+			HotkeyCooldown(COOLDOWN_SHORT);
 		}
 		if (VPMENU_Input_Right() && HotkeysActive())
 		{
 			if (gui3DDepthMode < GUI_3D_Depth_Modes::GUI_ENUM_RANGE-1)
 				ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)(gui3DDepthMode+1));
-			HotkeyCooldown(2.0f);
+			HotkeyCooldown(COOLDOWN_SHORT);
 		}
 	});
 	AddNavigationMenuItem("Overall Settings\n", [=]() { VPMENU_Settings(); });
@@ -446,7 +446,7 @@ void D3DProxyDevice::VPMENU_MainMenu()
 		config.VRboostPath = std::string(VRboostPath);
 		VPMENU_UpdateDeviceSettings();
 		VPMENU_UpdateConfigSettings();
-		HotkeyCooldown(10.0f);
+		HotkeyCooldown(COOLDOWN_EXTRA_LONG);
 	});
 	AddButtonMenuItem("Back to Game\n", [=]() { VPMENU_Close(); });
 	
@@ -498,7 +498,7 @@ void D3DProxyDevice::VPMENU_WorldScale()
 			if ((gameXScaleUnitIndex != 0) && (gameXScaleUnitIndex >= m_gameXScaleUnits.size()))
 				gameXScaleUnitIndex = m_gameXScaleUnits.size()-1;
 		}
-		HotkeyCooldown(2.0f);
+		HotkeyCooldown(COOLDOWN_SHORT);
 	}
 
 	// Left/Right: Decrease/increase world scale
@@ -507,7 +507,7 @@ void D3DProxyDevice::VPMENU_WorldScale()
 		float separationChange = 0.005f * VPMENU_Input_GetAdjustment();;
 		m_spShaderViewAdjustment->ChangeWorldScale(separationChange);
 		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
-		HotkeyCooldown(0.7f);
+		HotkeyCooldown(COOLDOWN_ONE_FRAME);
 	}
 	
 	// handle border height (=scrollbar scroll height)
@@ -682,7 +682,7 @@ void D3DProxyDevice::VPMENU_Convergence()
 		float convergenceChange = 0.05f * VPMENU_Input_GetAdjustment();
 		m_spShaderViewAdjustment->ChangeConvergence(convergenceChange);
 		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
-		HotkeyCooldown(0.7f);
+		HotkeyCooldown(COOLDOWN_ONE_FRAME);
 	}
 	
 
@@ -840,13 +840,13 @@ void D3DProxyDevice::VPMENU_HUD()
 		{
 			if (hud3DDepthMode > HUD_3D_Depth_Modes::HUD_DEFAULT)
 				ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)(hud3DDepthMode-1));
-			HotkeyCooldown(2.0f);
+			HotkeyCooldown(COOLDOWN_SHORT);
 		}
 		if (VPMENU_Input_Right() && HotkeysActive())
 		{
 			if (hud3DDepthMode < HUD_3D_Depth_Modes::HUD_ENUM_RANGE-1)
 				ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)(hud3DDepthMode+1));
-			HotkeyCooldown(2.0f);
+			HotkeyCooldown(COOLDOWN_SHORT);
 		}
 	});
 	
@@ -856,7 +856,7 @@ void D3DProxyDevice::VPMENU_HUD()
 		{
 			hudDistancePresets[(int)hud3DDepthMode] += 0.01f * VPMENU_Input_GetAdjustment();
 			ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)hud3DDepthMode);
-			HotkeyCooldown(0.7f);
+			HotkeyCooldown(COOLDOWN_ONE_FRAME);
 		}
 	});
 	AddMenuItem(retprintf("HUD's 3D Depth : %g", RoundVireioValue(hud3DDepthPresets[(int)hud3DDepthMode])), [=]()
@@ -865,7 +865,7 @@ void D3DProxyDevice::VPMENU_HUD()
 		{
 			hud3DDepthPresets[(int)hud3DDepthMode] += 0.002f * VPMENU_Input_GetAdjustment();
 			ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)hud3DDepthMode);
-			HotkeyCooldown(0.7f);
+			HotkeyCooldown(COOLDOWN_ONE_FRAME);
 		}
 	});
 	
@@ -930,13 +930,13 @@ void D3DProxyDevice::VPMENU_GUI()
 		{
 			if (gui3DDepthMode > GUI_3D_Depth_Modes::GUI_DEFAULT)
 				ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)(gui3DDepthMode-1));
-			HotkeyCooldown(2.0f);
+			HotkeyCooldown(COOLDOWN_SHORT);
 		}
 		if (VPMENU_Input_Right() && HotkeysActive())
 		{
 			if (gui3DDepthMode < GUI_3D_Depth_Modes::GUI_ENUM_RANGE-1)
 				ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)(gui3DDepthMode+1));
-			HotkeyCooldown(2.0f);
+			HotkeyCooldown(COOLDOWN_SHORT);
 		}
 	});
 	
@@ -946,7 +946,7 @@ void D3DProxyDevice::VPMENU_GUI()
 		{
 			guiSquishPresets[(int)gui3DDepthMode] += 0.01f * VPMENU_Input_GetAdjustment();
 			ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)gui3DDepthMode);
-			HotkeyCooldown(0.7f);
+			HotkeyCooldown(COOLDOWN_ONE_FRAME);
 		}
 	});
 	
@@ -956,7 +956,7 @@ void D3DProxyDevice::VPMENU_GUI()
 		{
 			gui3DDepthPresets[(int)gui3DDepthMode] += 0.002f * VPMENU_Input_GetAdjustment();
 			ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)gui3DDepthMode);
-			HotkeyCooldown(0.7f);
+			HotkeyCooldown(COOLDOWN_ONE_FRAME);
 		}
 	});
 	
@@ -1075,7 +1075,7 @@ void D3DProxyDevice::VPMENU_Settings()
 			if ((!m_bForceMouseEmulation) && (hmVRboost) && (m_VRboostRulesPresent)  && (tracker->getStatus() >= MTS_OK))
 				tracker->setMouseEmulation(false);
 
-			HotkeyCooldown(4.0f);
+			HotkeyCooldown(COOLDOWN_LONG);
 		}
 		if (VPMENU_Input_Left() && HotkeysActive())
 		{
@@ -1084,7 +1084,7 @@ void D3DProxyDevice::VPMENU_Settings()
 			if ((hmVRboost) && (m_VRboostRulesPresent) && (tracker->getStatus() >= MTS_OK))
 				tracker->setMouseEmulation(false);
 
-			HotkeyCooldown(2.0f);
+			HotkeyCooldown(COOLDOWN_SHORT);
 		}
 		if (VPMENU_Input_Right() && HotkeysActive())
 		{
@@ -1094,7 +1094,7 @@ void D3DProxyDevice::VPMENU_Settings()
 				m_bForceMouseEmulation = true;
 			}
 
-			HotkeyCooldown(2.0f);
+			HotkeyCooldown(COOLDOWN_SHORT);
 		}
 	});
 	
@@ -1109,7 +1109,7 @@ void D3DProxyDevice::VPMENU_Settings()
 			m_bVRBoostToggle = !m_bVRBoostToggle;
 			if (tracker->getStatus() >= MTS_OK)
 				tracker->resetOrientationAndPosition();
-			HotkeyCooldown(2.0f);
+			HotkeyCooldown(COOLDOWN_SHORT);
 		}
 	});
 	
@@ -1710,7 +1710,7 @@ void D3DProxyDevice::AddButtonMenuItem(std::string text, D3DCOLOR color, std::fu
 	AddMenuItem(text, color, [=]() {
 		if(VPMENU_Input_Selected() && HotkeysActive()) {
 			onPick();
-			HotkeyCooldown(2.0f);
+			HotkeyCooldown(COOLDOWN_SHORT);
 		}
 	});
 }
@@ -1749,14 +1749,14 @@ void D3DProxyDevice::AddGameKeypressMenuItem(std::string text, byte *binding)
 		if (hotkeyResetToDefault->IsPressed(controls) && HotkeysActive())
 		{
 			*binding = 0;
-			HotkeyCooldown(2.0f);
+			HotkeyCooldown(COOLDOWN_SHORT);
 		}
 		else if (VPMENU_Input_Selected() && HotkeysActive())
 		{
 			VPMENU_BindKey([=](int key) {
 				*binding = (byte)key;
 			});
-			HotkeyCooldown(2.0f);
+			HotkeyCooldown(COOLDOWN_SHORT);
 		}
 	});
 }
@@ -1776,14 +1776,14 @@ void D3DProxyDevice::AddKeybindMenuItem(std::string text, InputBindingRef *bindi
 		if (hotkeyResetToDefault->IsPressed(controls) && HotkeysActive())
 		{
 			*binding = Unbound();
-			HotkeyCooldown(2.0f);
+			HotkeyCooldown(COOLDOWN_SHORT);
 		}
 		else if (VPMENU_Input_Selected() && HotkeysActive())
 		{
 			VPMENU_BindKey([=](int key) {
 				*binding = Key(key);
 			});
-			HotkeyCooldown(2.0f);
+			HotkeyCooldown(COOLDOWN_SHORT);
 		}
 	});
 }
@@ -1797,13 +1797,13 @@ void D3DProxyDevice::AddAdjustmentMenuItem(const char *formatString, float *valu
 		{
 			*value = defaultValue;
 			onChange();
-			HotkeyCooldown(2.0f);
+			HotkeyCooldown(COOLDOWN_SHORT);
 		}
 		if (VPMENU_Input_IsAdjustment() && HotkeysActive())
 		{
 			*value += rate * VPMENU_Input_GetAdjustment();
 			onChange();
-			HotkeyCooldown(0.7f);
+			HotkeyCooldown(COOLDOWN_SHORT);
 		}
 	});
 }

@@ -157,7 +157,7 @@ void D3DProxyDevice::HandleControls()
 					ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)(i-1));
 				}
 			}
-			HotkeyCooldown(2.0f);
+			HotkeyCooldown(COOLDOWN_SHORT);
 		}
 		if (guiHotkeys[i]->IsPressed(controls) && HotkeysActive())
 		{
@@ -192,7 +192,7 @@ void D3DProxyDevice::HandleControls()
 					ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)(i-1));
 				}
 			}
-			HotkeyCooldown(2.0f);
+			HotkeyCooldown(COOLDOWN_SHORT);
 		}
 	}
 
@@ -211,7 +211,7 @@ void D3DProxyDevice::HandleControls()
 			// set the indicator to be drawn
 			m_fVRBoostIndicator = 1.0f;
 
-			HotkeyCooldown(4.0f);
+			HotkeyCooldown(COOLDOWN_LONG);
 		}
 	}
 
@@ -227,7 +227,7 @@ void D3DProxyDevice::HandleControls()
 			m_comfortModeYaw +=m_comfortModeYawIncrement;
 			if (m_comfortModeYaw == 180.0f)
 				m_comfortModeYaw = -180.0f;
-			HotkeyCooldown(4.0f);
+			HotkeyCooldown(COOLDOWN_LONG);
 		}
 
 		if (snapTurnAxis > COMFORT_MODE_STICK_THRESHOLD ||
@@ -236,7 +236,7 @@ void D3DProxyDevice::HandleControls()
 			m_comfortModeYaw -= m_comfortModeYawIncrement;
 			if (m_comfortModeYaw == -180.0f)
 				m_comfortModeYaw = 180.0f;
-			HotkeyCooldown(4.0f);
+			HotkeyCooldown(COOLDOWN_LONG);
 		}
 	}
 
@@ -270,7 +270,7 @@ void D3DProxyDevice::HandleControls()
 			}
 
 			rctrlStartClick = 0;
-			HotkeyCooldown(2.0f);
+			HotkeyCooldown(COOLDOWN_SHORT);
 		}
 		else if (rctrlStartClick > 1 && 
 			(GetTickCount() - rctrlStartClick) > 500)
@@ -316,7 +316,7 @@ void D3DProxyDevice::HandleControls()
 		ShowAdjusterToast(retprintf("Disconnected Screen %s",
 			m_bfloatingScreen ? "Enabled" : "Disabled"), 700);
 
-		HotkeyCooldown(4.0f);
+		HotkeyCooldown(COOLDOWN_LONG);
 	}
 
 	float screenFloatMultiplierY = 0.75;
@@ -366,7 +366,7 @@ void D3DProxyDevice::HandleControls()
 				ShowPopup(VPT_NOTIFICATION, VPS_TOAST, 1200, "HMD Orientation and Position Reset");
 			}
 			tracker->resetOrientationAndPosition();
-			HotkeyCooldown(2.0f);
+			HotkeyCooldown(COOLDOWN_SHORT);
 		}
 
 		//Duck and cover - trigger crouch and prone keys if Y position of HMD moves appropriately
@@ -402,7 +402,7 @@ void D3DProxyDevice::HandleControls()
 					tracker->resetPosition();
 					DismissPopup(VPT_NOTIFICATION);
 				}
-				HotkeyCooldown(5.0f);
+				HotkeyCooldown(COOLDOWN_LONG);
 			}
 			//B button only skips the prone position
 			else if (hotkeySkipProne->IsPressed(controls) && HotkeysActive())
@@ -412,7 +412,7 @@ void D3DProxyDevice::HandleControls()
 					m_DuckAndCover.proneEnabled = false;
 					m_DuckAndCover.dfcStatus = DAC_CAL_COMPLETE;
 				}
-				HotkeyCooldown(5.0f);
+				HotkeyCooldown(COOLDOWN_LONG);
 			}
 		}
 
@@ -446,7 +446,7 @@ void D3DProxyDevice::HandleControls()
 					ShowPopup(popup);
 				}
 
-				HotkeyCooldown(4.0f);
+				HotkeyCooldown(COOLDOWN_LONG);
 			}
 		}
 
@@ -457,7 +457,7 @@ void D3DProxyDevice::HandleControls()
 			stereoView->m_b2dDepthMode = m_b2dDepthMode;
 			ShowAdjusterToast(retprintf("Depth Perception Mode %s",
 				m_b2dDepthMode?"On":"Off"), 1000);
-			HotkeyCooldown(4.0f);
+			HotkeyCooldown(COOLDOWN_LONG);
 		
 		}
 
@@ -469,7 +469,7 @@ void D3DProxyDevice::HandleControls()
 				stereoView->m_bLeftSideActive = !stereoView->m_bLeftSideActive;
 				ShowAdjusterToast("Depth Perception Side Switched", 1000);
 			}		
-			HotkeyCooldown(4.0f);
+			HotkeyCooldown(COOLDOWN_LONG);
 		
 		}
 
@@ -488,7 +488,7 @@ void D3DProxyDevice::HandleControls()
 			ShowPopup(VPT_ADJUSTER, VPS_TOAST, 1000,
 				retprintf("%s :: New Render State", _str.c_str()));
 		
-			HotkeyCooldown(4.0f);
+			HotkeyCooldown(COOLDOWN_LONG);
 		}
 
 		// Toggle Through Cube Renders -> ALt + 1
@@ -513,7 +513,7 @@ void D3DProxyDevice::HandleControls()
 		
 			ShowPopup(VPT_ADJUSTER, VPS_TOAST, 1000,
 				retprintf("Cube Duplication :: %s", cubeDuplicationDescription));
-			HotkeyCooldown(4.0f);
+			HotkeyCooldown(COOLDOWN_LONG);
 		}
 		// Toggle Through Texture Renders -> ALt + 2
 		if (hotkeyToggleTextureRenders->IsPressed(controls) && HotkeysActive())
@@ -539,7 +539,7 @@ void D3DProxyDevice::HandleControls()
 		
 			ShowPopup(VPT_ADJUSTER, VPS_TOAST, 1000,
 				retprintf("Texture Duplication :: %s", textureDuplicationDescription));
-			HotkeyCooldown(4.0f);
+			HotkeyCooldown(COOLDOWN_LONG);
 		}
 
 		//When to render vpmenu (Alt + Up)
@@ -564,7 +564,7 @@ void D3DProxyDevice::HandleControls()
 			
 			ShowPopup(VPT_ADJUSTER, VPS_TOAST, 1000,
 				retprintf("VPMENU RENDER = %s", vpmenuRenderDesc));
-			HotkeyCooldown(4.0f);
+			HotkeyCooldown(COOLDOWN_LONG);
 		}
 
 		//When to poll headtracking (Alt + Down)
@@ -588,7 +588,7 @@ void D3DProxyDevice::HandleControls()
 			}//TODO This Crashes for some reason - problem for another day*/
 		
 			ShowPopup(popup);		
-			HotkeyCooldown(4.0f);
+			HotkeyCooldown(COOLDOWN_LONG);
 		}
 
 		// Initiate VRBoost Memory Scan (NUMPAD5 or <LCTRL> + </> )
@@ -640,7 +640,7 @@ void D3DProxyDevice::HandleControls()
 						showRescanWarning = true;
 					}
 				}
-				HotkeyCooldown(4.0f);
+				HotkeyCooldown(COOLDOWN_LONG);
 			}
 		}
 
@@ -669,7 +669,7 @@ void D3DProxyDevice::HandleControls()
 					retprintf("VRBoost: Select Next Scan Candidate: %i / %i",
 						c+1, candidates));
 
-				HotkeyCooldown(2.0f);
+				HotkeyCooldown(COOLDOWN_SHORT);
 			}
 		}
 	
@@ -684,7 +684,7 @@ void D3DProxyDevice::HandleControls()
 			m_bForceMouseEmulation = true;
 			tracker->setMouseEmulation(true);
 
-			HotkeyCooldown(2.0f);
+			HotkeyCooldown(COOLDOWN_SHORT);
 		}
 
 		//Enabled/Disable Free Pitch (default is disabled), LSHIFT + X
@@ -706,7 +706,7 @@ void D3DProxyDevice::HandleControls()
 			ShowAdjusterToast(retprintf("Pitch Free-look Enabled",
 				(VRBoostValue[VRboostAxis::FreePitch] != 0.0f) ? "Enabled" : "Disabled"), 1000);
 
-			HotkeyCooldown(2.0f);
+			HotkeyCooldown(COOLDOWN_SHORT);
 		}
 
 		//Enabled/Disable Comfort Mode - LSHIFT + M
@@ -729,7 +729,7 @@ void D3DProxyDevice::HandleControls()
 			ShowAdjusterToast(retprintf("Comfort Mode %s",
 				(VRBoostValue[VRboostAxis::ComfortMode]!=0.0f) ? "Enabled" : "Disabled"), 1000);
 
-			HotkeyCooldown(2.0f);
+			HotkeyCooldown(COOLDOWN_SHORT);
 		}
 
 		//Enabled/Disable Black Smear Correction for DK2 (default is disabled), LSHIFT + B
@@ -746,7 +746,7 @@ void D3DProxyDevice::HandleControls()
 			ShowAdjusterToast(retprintf("DK2 Black Smear Correction %s",
 				stereoView->m_blackSmearCorrection!=0.0f ? "Enabled" : "Disabled"), 1000);
 
-			HotkeyCooldown(2.0f);
+			HotkeyCooldown(COOLDOWN_SHORT);
 		}
 
 
@@ -758,14 +758,14 @@ void D3DProxyDevice::HandleControls()
 
 			ShowAdjusterToast(retprintf("IPD-Offset: %1.3f", this->stereoView->IPDOffset), 500);
 			m_saveConfigTimer = GetTickCount();
-			HotkeyCooldown(2.0f);
+			HotkeyCooldown(COOLDOWN_SHORT);
 		}
 
 		//Show FPS Counter / Frame Time counter LSHIFT+F
 		if (hotkeyShowFPS->IsPressed(controls) && HotkeysActive())
 		{
 			show_fps = (FPS_TYPE)((show_fps+1) % 3);
-			HotkeyCooldown(2.0f);
+			HotkeyCooldown(COOLDOWN_SHORT);
 		}
 
 		//Show HMD Stats Counter LSHIFT+H 
@@ -780,7 +780,7 @@ void D3DProxyDevice::HandleControls()
 				VireioPopup popup(VPT_STATS);
 				ShowPopup(popup);
 			}
-			HotkeyCooldown(2.0f);
+			HotkeyCooldown(COOLDOWN_SHORT);
 		}
 
 		//Toggle positional tracking
@@ -795,7 +795,7 @@ void D3DProxyDevice::HandleControls()
 			if (!m_bPosTrackingToggle)
 				m_spShaderViewAdjustment->UpdatePosition(0.0f, 0.0f, 0.0f);
 
-			HotkeyCooldown(4.0f);
+			HotkeyCooldown(COOLDOWN_LONG);
 		}
 
 		//Toggle SDK Pose Prediction- LSHIFT + DELETE
@@ -808,7 +808,7 @@ void D3DProxyDevice::HandleControls()
 				retprintf("SDK Pose Prediction %s",
 					tracker->useSDKPosePrediction?"Enabled":"Disabled"));
 
-			HotkeyCooldown(4.0f);
+			HotkeyCooldown(COOLDOWN_LONG);
 		}
 
 		//Toggle chromatic abberation correction - SHIFT+J
@@ -820,7 +820,7 @@ void D3DProxyDevice::HandleControls()
 				retprintf("Chromatic Aberration Correction %s",
 					stereoView->chromaticAberrationCorrection?"Enabled":"Disabled"));
 
-			HotkeyCooldown(4.0f);
+			HotkeyCooldown(COOLDOWN_LONG);
 		}
 
 		//Double clicking the NUMPAD0 key will invoke the VR mouse
@@ -874,11 +874,11 @@ void D3DProxyDevice::HandleControls()
 					ShowPopup(VPT_NOTIFICATION, VPS_TOAST, 1200,
 						retprintf("VR Mouse - %s", vrMouseDescription));
 
-					HotkeyCooldown(4.0f);
+					HotkeyCooldown(COOLDOWN_LONG);
 				}
 
 				numPad0Click = 0;
-				HotkeyCooldown(2.0f);
+				HotkeyCooldown(COOLDOWN_SHORT);
 			}
 			else if (numPad0Click > 1 &&
 				(GetTickCount() - numPad0Click) > 500)
@@ -907,7 +907,7 @@ void D3DProxyDevice::HandleControls()
 				retprintf("Floating Menus %s",
 					m_bfloatingMenu?"Enabled":"Disabled"));
 
-			HotkeyCooldown(4.0f);
+			HotkeyCooldown(COOLDOWN_LONG);
 		}
 
 		//Double clicking the start button will invoke the VP menu
@@ -934,7 +934,7 @@ void D3DProxyDevice::HandleControls()
 				}
 
 				startClick = 0;
-				HotkeyCooldown(2.0f);
+				HotkeyCooldown(COOLDOWN_SHORT);
 			}
 			else if (startClick > 1 &&
 				(GetTickCount() - startClick) > 500)
@@ -952,7 +952,7 @@ void D3DProxyDevice::HandleControls()
 			else
 				VPMENU_Close();
 
-			HotkeyCooldown(2.0f);
+			HotkeyCooldown(COOLDOWN_SHORT);
 		}
 
 		//Mouse Wheel Scroll
@@ -1093,7 +1093,7 @@ void D3DProxyDevice::HandleControls()
 		{
 			// render 3 frames to get screenshots
 			screenshot = 3;
-			HotkeyCooldown(8.0f);
+			HotkeyCooldown(COOLDOWN_EXTRA_LONG);
 		}
 	
 		//Telescopic mode - use ALT + Mouse Wheel CLick
@@ -1140,7 +1140,7 @@ void D3DProxyDevice::HandleControls()
 					stereoView->m_vignetteStyle = StereoView::NONE;
 				}
 
-				HotkeyCooldown(4.0f);
+				HotkeyCooldown(COOLDOWN_LONG);
 			}
 		}
 	}

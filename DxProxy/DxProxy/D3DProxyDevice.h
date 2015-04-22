@@ -99,6 +99,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define MENU_ITEM_SEPARATION  40
 
+#define COOLDOWN_ONE_FRAME 0.7f
+#define COOLDOWN_SHORT 2.0f
+#define COOLDOWN_LONG 4.0f
+#define COOLDOWN_EXTRA_LONG 10.0f
+
+
 // Define SHOW_CALLS to have each method output a debug string when it is invoked
 //#define SHOW_CALLS
 

@@ -1041,7 +1041,7 @@ void DataGatherer::VPMENU_ChangeRules()
 				}
 			}
 
-			HotkeyCooldown(2.0f);
+			HotkeyCooldown(COOLDOWN_SHORT);
 		}
 		
 		// switch shader rule node
@@ -1106,7 +1106,7 @@ void DataGatherer::VPMENU_ChangeRules()
 					}
 				}
 			}
-			HotkeyCooldown(2.0f);
+			HotkeyCooldown(COOLDOWN_SHORT);
 		}
 	});
 
@@ -1261,7 +1261,7 @@ void DataGatherer::VPMENU_ShowActiveShaders()
 				}
 			}
 
-			HotkeyCooldown(2.0f);
+			HotkeyCooldown(COOLDOWN_SHORT);
 		}
 	}
 
