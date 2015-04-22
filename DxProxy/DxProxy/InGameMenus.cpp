@@ -168,7 +168,7 @@ bool D3DProxyDevice::VPMENU_IsOpen()
 * VP menu helper to setup new frame.
 * @param menuEntryCount [in] The number of menu entries.
 ***/
-void D3DProxyDevice::VPMENU_NewFrame(UINT menuEntryCount)
+MenuBuilder *D3DProxyDevice::VPMENU_NewFrame(UINT menuEntryCount)
 {
 	SHOW_CALL("VPMENU_NewFrame");
 	
@@ -197,6 +197,8 @@ void D3DProxyDevice::VPMENU_NewFrame(UINT menuEntryCount)
 		menuVelocity=0.0f;
 		menuAttraction=0.0f;
 	}
+	
+	return new MenuBuilder(this);
 }
 
 int D3DProxyDevice::VPMENU_GetCurrentSelection()
@@ -245,7 +247,7 @@ void D3DProxyDevice::VPMENU_StartDrawing_NonMenu()
 	hudMainMenu->SetTransform(&matScale);
 }
 
-void D3DProxyDevice::VPMENU_FinishDrawing()
+void D3DProxyDevice::VPMENU_FinishDrawing(MenuBuilder *menu)
 {
 	menuHelperRect.left = 0;
 	menuHelperRect.top = 0;
@@ -253,6 +255,10 @@ void D3DProxyDevice::VPMENU_FinishDrawing()
 	D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
 	hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, COLOR_WHITE);
 	hudMainMenu->End();
+	
+	if(menu) {
+		delete menu;
+	}
 }
 
 bool D3DProxyDevice::VPMENU_Input_Selected()
@@ -349,7 +355,6 @@ void D3DProxyDevice::VPMENU()
 	if(!hudFont)
 		return;
 	
-	menuConstructionCurrentEntry = 0;
 	handleCurrentMenu();
 }
 
@@ -385,24 +390,24 @@ void D3DProxyDevice::VPMENU_MainMenu()
 	if (!includeShaderAnalyzer)
 		menuEntryCount--;
 
-	VPMENU_NewFrame(menuEntryCount);
+	MenuBuilder *menu = VPMENU_NewFrame(menuEntryCount);
 
 	// output menu
 	VPMENU_StartDrawing("Settings");
 
 	if (includeShaderAnalyzer)
 	{
-		AddNavigationMenuItem("Activate Vireio Shader Analyzer\n",
+		menu->AddNavigation("Activate Vireio Shader Analyzer\n",
 			[=]() { VPMENU_ShaderSubMenu(); });
 	}
 	
-	AddNavigationMenuItem("World-Scale Calibration\n", [=]() { VPMENU_WorldScale(); });
-	AddNavigationMenuItem("Convergence Adjustment\n", [=]() { VPMENU_Convergence(); });
-	AddNavigationMenuItem("HUD Calibration\n", [=]() { VPMENU_HUD(); });
-	AddNavigationMenuItem("GUI Calibration\n", [=]() { VPMENU_GUI(); });
+	menu->AddNavigation("World-Scale Calibration\n", [=]() { VPMENU_WorldScale(); });
+	menu->AddNavigation("Convergence Adjustment\n", [=]() { VPMENU_Convergence(); });
+	menu->AddNavigation("HUD Calibration\n", [=]() { VPMENU_HUD(); });
+	menu->AddNavigation("GUI Calibration\n", [=]() { VPMENU_GUI(); });
 	
 	float hudQSTop = (float)menuHelperRect.top * fScaleY;
-	AddMenuItem("HUD Quick Setting : \n", [=]() {
+	menu->AddItem("HUD Quick Setting : \n", [=]() {
 		if (VPMENU_Input_Left() && HotkeysActive())
 		{
 			if (hud3DDepthMode > HUD_3D_Depth_Modes::HUD_DEFAULT)
@@ -417,7 +422,7 @@ void D3DProxyDevice::VPMENU_MainMenu()
 		}
 	});
 	float guiQSTop = (float)menuHelperRect.top * fScaleY;
-	AddMenuItem("GUI Quick Setting : \n", [=]() {
+	menu->AddItem("GUI Quick Setting : \n", [=]() {
 		if (VPMENU_Input_Left() && HotkeysActive())
 		{
 			if (gui3DDepthMode > GUI_3D_Depth_Modes::GUI_DEFAULT)
@@ -431,11 +436,11 @@ void D3DProxyDevice::VPMENU_MainMenu()
 			HotkeyCooldown(COOLDOWN_SHORT);
 		}
 	});
-	AddNavigationMenuItem("Overall Settings\n", [=]() { VPMENU_Settings(); });
-	AddNavigationMenuItem("VRBoost Values\n", [=]() { VPMENU_VRBoostValues(); });
-	AddNavigationMenuItem("Position Tracking Configuration\n", [=]() { VPMENU_PosTracking(); });
-	AddNavigationMenuItem("Comfort Mode Configuration\n", [=]() { VPMENU_ComfortMode(); });
-	AddButtonMenuItem("Restore Configuration\n", [=]() {
+	menu->AddNavigation("Overall Settings\n", [=]() { VPMENU_Settings(); });
+	menu->AddNavigation("VRBoost Values\n", [=]() { VPMENU_VRBoostValues(); });
+	menu->AddNavigation("Position Tracking Configuration\n", [=]() { VPMENU_PosTracking(); });
+	menu->AddNavigation("Comfort Mode Configuration\n", [=]() { VPMENU_ComfortMode(); });
+	menu->AddButton("Restore Configuration\n", [=]() {
 		// first, backup all strings
 		std::string game_exe = std::string(config.game_exe);
 		std::string shaderRulePath = std::string(config.shaderRulePath);
@@ -448,7 +453,7 @@ void D3DProxyDevice::VPMENU_MainMenu()
 		VPMENU_UpdateConfigSettings();
 		HotkeyCooldown(COOLDOWN_EXTRA_LONG);
 	});
-	AddButtonMenuItem("Back to Game\n", [=]() { VPMENU_Close(); });
+	menu->AddButton("Back to Game\n", [=]() { VPMENU_Close(); });
 	
 	// draw HUD quick setting rectangles
 	D3DRECT rect;
@@ -461,7 +466,7 @@ void D3DProxyDevice::VPMENU_MainMenu()
 	DrawSelection(vireio::RenderPosition::Left, rect, COLOR_QUICK_SETTING, (int)gui3DDepthMode, (int)GUI_3D_Depth_Modes::GUI_ENUM_RANGE);
 	DrawSelection(vireio::RenderPosition::Right, rect, COLOR_QUICK_SETTING, (int)gui3DDepthMode, (int)GUI_3D_Depth_Modes::GUI_ENUM_RANGE);
 
-	VPMENU_FinishDrawing();
+	VPMENU_FinishDrawing(menu);
 }
 
 /**
@@ -633,7 +638,7 @@ void D3DProxyDevice::VPMENU_WorldScale()
 	rec11.top+=35;
 	DrawTextShadowed(hudFont, hudMainMenu, retprintf("1 Inch       = %g Game Units", gameUnitsToInches), &rec11, COLOR_MENU_TEXT);
 
-	VPMENU_FinishDrawing();
+	VPMENU_FinishDrawing(menu);
 
 	// draw description text box
 	VPMENU_StartDrawing_NonMenu();
@@ -770,7 +775,7 @@ void D3DProxyDevice::VPMENU_Convergence()
 	rec10.top+=35;
 	DrawTextShadowed(hudFont, hudMainMenu, retprintf("Convergence Screen = %g Inches", inches), &rec10, COLOR_MENU_TEXT);
 
-	VPMENU_FinishDrawing();
+	VPMENU_FinishDrawing(menu);
 
 	// draw description text box
 	VPMENU_StartDrawing_NonMenu();
@@ -818,7 +823,7 @@ void D3DProxyDevice::VPMENU_HUD()
 		NUM_MENU_ITEMS = 10
 	};
 	
-	VPMENU_NewFrame(NUM_MENU_ITEMS);
+	MenuBuilder *menu = VPMENU_NewFrame(NUM_MENU_ITEMS);
 	
 	// output menu
 	VPMENU_StartDrawing("Settings - HUD");
@@ -834,7 +839,7 @@ void D3DProxyDevice::VPMENU_HUD()
 	}
 	
 	// change hud scale
-	AddMenuItem(retprintf("HUD : %s", depthModeDescription.c_str()), [=]()
+	menu->AddItem(retprintf("HUD : %s", depthModeDescription.c_str()), [=]()
 	{
 		if (VPMENU_Input_Left() && HotkeysActive())
 		{
@@ -850,7 +855,7 @@ void D3DProxyDevice::VPMENU_HUD()
 		}
 	});
 	
-	AddMenuItem(retprintf("HUD Distance : %g", RoundVireioValue(hudDistancePresets[(int)hud3DDepthMode])), [=]()
+	menu->AddItem(retprintf("HUD Distance : %g", RoundVireioValue(hudDistancePresets[(int)hud3DDepthMode])), [=]()
 	{
 		if (VPMENU_Input_IsAdjustment() && HotkeysActive())
 		{
@@ -859,7 +864,7 @@ void D3DProxyDevice::VPMENU_HUD()
 			HotkeyCooldown(COOLDOWN_ONE_FRAME);
 		}
 	});
-	AddMenuItem(retprintf("HUD's 3D Depth : %g", RoundVireioValue(hud3DDepthPresets[(int)hud3DDepthMode])), [=]()
+	menu->AddItem(retprintf("HUD's 3D Depth : %g", RoundVireioValue(hud3DDepthPresets[(int)hud3DDepthMode])), [=]()
 	{
 		if (VPMENU_Input_IsAdjustment() && HotkeysActive())
 		{
@@ -869,16 +874,16 @@ void D3DProxyDevice::VPMENU_HUD()
 		}
 	});
 	
-	AddKeybindMenuItem("Hotkey >Switch<",  &hudHotkeys[0]);
-	AddKeybindMenuItem("Hotkey >Default<", &hudHotkeys[1]);
-	AddKeybindMenuItem("Hotkey >Small<",   &hudHotkeys[2]);
-	AddKeybindMenuItem("Hotkey >Large<",   &hudHotkeys[3]);
-	AddKeybindMenuItem("Hotkey >Full<",    &hudHotkeys[4]);
-	AddButtonMenuItem("Back to Main Menu", [=]() {
+	menu->AddKeybind("Hotkey >Switch<",  &hudHotkeys[0]);
+	menu->AddKeybind("Hotkey >Default<", &hudHotkeys[1]);
+	menu->AddKeybind("Hotkey >Small<",   &hudHotkeys[2]);
+	menu->AddKeybind("Hotkey >Large<",   &hudHotkeys[3]);
+	menu->AddKeybind("Hotkey >Full<",    &hudHotkeys[4]);
+	menu->AddButton("Back to Main Menu", [=]() {
 		VPMENU_Back();
 		VPMENU_UpdateConfigSettings();
 	});
-	AddButtonMenuItem("Back to Game", [=]() { VPMENU_Close(); });
+	menu->AddButton("Back to Game", [=]() { VPMENU_Close(); });
 
 	// draw HUD quick setting rectangles
 	D3DRECT rect;
@@ -886,7 +891,7 @@ void D3DProxyDevice::VPMENU_HUD()
 	DrawSelection(vireio::RenderPosition::Left, rect, COLOR_QUICK_SETTING, (int)hud3DDepthMode, (int)HUD_3D_Depth_Modes::HUD_ENUM_RANGE);
 	DrawSelection(vireio::RenderPosition::Right, rect, COLOR_QUICK_SETTING, (int)hud3DDepthMode, (int)HUD_3D_Depth_Modes::HUD_ENUM_RANGE);
 
-	VPMENU_FinishDrawing();
+	VPMENU_FinishDrawing(menu);
 }
 
 /**
@@ -908,7 +913,7 @@ void D3DProxyDevice::VPMENU_GUI()
 		NUM_MENU_ITEMS = 10
 	};
 	
-	VPMENU_NewFrame(NUM_MENU_ITEMS);
+	MenuBuilder *menu = VPMENU_NewFrame(NUM_MENU_ITEMS);
 
 	// output menu
 	VPMENU_StartDrawing("Settings - GUI");
@@ -924,7 +929,7 @@ void D3DProxyDevice::VPMENU_GUI()
 		case D3DProxyDevice::GUI_FULL:    guiDepthModeDescription = "Full"; break;
 	}
 	
-	AddMenuItem(retprintf("GUI : %s", guiDepthModeDescription.c_str()), [=]()
+	menu->AddItem(retprintf("GUI : %s", guiDepthModeDescription.c_str()), [=]()
 	{
 		if (VPMENU_Input_Left() && HotkeysActive())
 		{
@@ -940,7 +945,7 @@ void D3DProxyDevice::VPMENU_GUI()
 		}
 	});
 	
-	AddMenuItem(retprintf("GUI Size : %g", RoundVireioValue(guiSquishPresets[(int)gui3DDepthMode])), [=]()
+	menu->AddItem(retprintf("GUI Size : %g", RoundVireioValue(guiSquishPresets[(int)gui3DDepthMode])), [=]()
 	{
 		if (VPMENU_Input_IsAdjustment() && HotkeysActive())
 		{
@@ -950,7 +955,7 @@ void D3DProxyDevice::VPMENU_GUI()
 		}
 	});
 	
-	AddMenuItem(retprintf("GUI's 3D Depth : %g", RoundVireioValue(gui3DDepthPresets[(int)gui3DDepthMode])), [=]()
+	menu->AddItem(retprintf("GUI's 3D Depth : %g", RoundVireioValue(gui3DDepthPresets[(int)gui3DDepthMode])), [=]()
 	{
 		if (VPMENU_Input_IsAdjustment() && HotkeysActive())
 		{
@@ -960,14 +965,14 @@ void D3DProxyDevice::VPMENU_GUI()
 		}
 	});
 	
-	AddKeybindMenuItem("Hotkey >Switch<",  &guiHotkeys[0]);
-	AddKeybindMenuItem("Hotkey >Default<", &guiHotkeys[1]);
-	AddKeybindMenuItem("Hotkey >Small<",   &guiHotkeys[2]);
-	AddKeybindMenuItem("Hotkey >Large<",   &guiHotkeys[3]);
-	AddKeybindMenuItem("Hotkey >Full<",    &guiHotkeys[4]);
+	menu->AddKeybind("Hotkey >Switch<",  &guiHotkeys[0]);
+	menu->AddKeybind("Hotkey >Default<", &guiHotkeys[1]);
+	menu->AddKeybind("Hotkey >Small<",   &guiHotkeys[2]);
+	menu->AddKeybind("Hotkey >Large<",   &guiHotkeys[3]);
+	menu->AddKeybind("Hotkey >Full<",    &guiHotkeys[4]);
 	
-	AddButtonMenuItem("Back to Main Menu", [=]() { VPMENU_Back(); });
-	AddButtonMenuItem("Back to Game", [=]() { VPMENU_Close(); });
+	menu->AddButton("Back to Main Menu", [=]() { VPMENU_Back(); });
+	menu->AddButton("Back to Game", [=]() { VPMENU_Close(); });
 
 	// draw GUI quick setting rectangles
 	D3DRECT rect;
@@ -975,7 +980,7 @@ void D3DProxyDevice::VPMENU_GUI()
 	DrawSelection(vireio::RenderPosition::Left, rect, COLOR_QUICK_SETTING, (int)gui3DDepthMode, (int)GUI_3D_Depth_Modes::GUI_ENUM_RANGE);
 	DrawSelection(vireio::RenderPosition::Right, rect, COLOR_QUICK_SETTING, (int)gui3DDepthMode, (int)GUI_3D_Depth_Modes::GUI_ENUM_RANGE);
 
-	VPMENU_FinishDrawing();
+	VPMENU_FinishDrawing(menu);
 }
 
 /**
@@ -1007,42 +1012,42 @@ void D3DProxyDevice::VPMENU_Settings()
 		NUM_MENU_ITEMS
 	};
 
-	VPMENU_NewFrame(NUM_MENU_ITEMS);
+	MenuBuilder *menu = VPMENU_NewFrame(NUM_MENU_ITEMS);
 	VPMENU_StartDrawing("Settings - General");
 
-	AddButtonMenuItem(retprintf("Swap Eyes : %s", stereoView->swapEyes ? "True" : "False"), [=]()
+	menu->AddButton(retprintf("Swap Eyes : %s", stereoView->swapEyes ? "True" : "False"), [=]()
 	{
 		stereoView->swapEyes = !stereoView->swapEyes;
 	});
-	AddAdjustmentMenuItem("IPD-Offset : %1.3f", &this->stereoView->IPDOffset,
+	menu->AddAdjustment("IPD-Offset : %1.3f", &this->stereoView->IPDOffset,
 		0.0f, 0.001f, [=]()
 	{
 		clamp(&this->stereoView->IPDOffset, -0.1f, 0.1f);
 		this->stereoView->PostReset();
 	});
-	AddAdjustmentMenuItem("Y-Offset : %1.3f", &this->stereoView->YOffset,
+	menu->AddAdjustment("Y-Offset : %1.3f", &this->stereoView->YOffset,
 		0.0f, 0.001f, [=]()
 	{
 		clamp(&this->stereoView->YOffset, -0.1f, 0.1f);
 		this->stereoView->PostReset();
 	});
-	AddAdjustmentMenuItem("Distortion Scale : %g", &this->stereoView->DistortionScale,
+	menu->AddAdjustment("Distortion Scale : %g", &this->stereoView->DistortionScale,
 		0.0f, 0.01f, [=]()
 	{
 		this->stereoView->PostReset();
 	});
 	/*
-	AddButtonMenuItem("Stereo Screenshots", [=]() {
+	AddButton("Stereo Screenshots", [=]() {
 		// render 3 frames to get screenshots without menu
 		screenshot = 3;
 		VPMENU_CloseWithoutSaving();
 	});
 	*/
-	AddAdjustmentMenuItem("Yaw multiplier : %g", &tracker->multiplierYaw, DEFAULT_YAW_MULTIPLIER, 0.05f);
-	AddAdjustmentMenuItem("Pitch multiplier : %g", &tracker->multiplierPitch, DEFAULT_PITCH_MULTIPLIER, 0.05f);
-	AddAdjustmentMenuItem("Roll multiplier : %g", &tracker->multiplierRoll, 1.0f, 0.05f);
+	menu->AddAdjustment("Yaw multiplier : %g", &tracker->multiplierYaw, DEFAULT_YAW_MULTIPLIER, 0.05f);
+	menu->AddAdjustment("Pitch multiplier : %g", &tracker->multiplierPitch, DEFAULT_PITCH_MULTIPLIER, 0.05f);
+	menu->AddAdjustment("Roll multiplier : %g", &tracker->multiplierRoll, 1.0f, 0.05f);
 	
-	AddButtonMenuItem("Reset Multipliers", [=]()
+	menu->AddButton("Reset Multipliers", [=]()
 	{
 		tracker->multiplierYaw = DEFAULT_YAW_MULTIPLIER;
 		tracker->multiplierPitch = DEFAULT_PITCH_MULTIPLIER;
@@ -1056,13 +1061,13 @@ void D3DProxyDevice::VPMENU_Settings()
 		case 1: rollImplDescription = "Matrix Translation"; break;
 		case 2: rollImplDescription = "Pixel Shader"; break;
 	}
-	AddButtonMenuItem(retprintf("Roll : %s", rollImplDescription.c_str()), [=]()
+	menu->AddButton(retprintf("Roll : %s", rollImplDescription.c_str()), [=]()
 	{
 		config.rollImpl = (config.rollImpl+1) % 3;
 		m_spShaderViewAdjustment->SetRollImpl(config.rollImpl);
 	});
 	
-	AddMenuItem(retprintf("Force Mouse Emulation HT : %s",
+	menu->AddItem(retprintf("Force Mouse Emulation HT : %s",
 		m_bForceMouseEmulation?"True":"False"), [=]()
 	{
 		if (VPMENU_Input_Selected() && HotkeysActive())
@@ -1098,7 +1103,7 @@ void D3DProxyDevice::VPMENU_Settings()
 		}
 	});
 	
-	AddButtonMenuItem(retprintf("Toggle VRBoost : %s",
+	menu->AddButton(retprintf("Toggle VRBoost : %s",
 		m_bVRBoostToggle ? "On" : "Off"),
 		m_bVRBoostToggle ? COLOR_MENU_ENABLED : COLOR_MENU_DISABLED,
 		[=]()
@@ -1113,16 +1118,16 @@ void D3DProxyDevice::VPMENU_Settings()
 		}
 	});
 	
-	AddKeybindMenuItem("Hotkey >Toggle VRBoost<", &toggleVRBoostHotkey);
-	AddKeybindMenuItem("Hotkey >Disconnected Screen<", &edgePeekHotkey);
+	menu->AddKeybind("Hotkey >Toggle VRBoost<", &toggleVRBoostHotkey);
+	menu->AddKeybind("Hotkey >Disconnected Screen<", &edgePeekHotkey);
 	
-	AddButtonMenuItem("Back to Main Menu", [=]() {
+	menu->AddButton("Back to Main Menu", [=]() {
 		VPMENU_Back();
 		VPMENU_UpdateConfigSettings();
 	});
-	AddButtonMenuItem("Back to Game", [=]() { VPMENU_Close(); });
+	menu->AddButton("Back to Game", [=]() { VPMENU_Close(); });
 
-	VPMENU_FinishDrawing();
+	VPMENU_FinishDrawing(menu);
 }
 
 
@@ -1147,10 +1152,10 @@ void D3DProxyDevice::VPMENU_PosTracking()
 		NUM_MENU_ITEMS
 	};
 
-	VPMENU_NewFrame(NUM_MENU_ITEMS);
+	MenuBuilder *menu = VPMENU_NewFrame(NUM_MENU_ITEMS);
 	VPMENU_StartDrawing("Settings - Positional Tracking");
 
-	AddButtonMenuItem(retprintf("Positional Tracking (CTRL + P) : %s",
+	menu->AddButton(retprintf("Positional Tracking (CTRL + P) : %s",
 		m_bPosTrackingToggle ? "On" : "Off"),
 		m_bPosTrackingToggle ? COLOR_MENU_ENABLED : COLOR_LIGHTRED,
 		[=]()
@@ -1161,22 +1166,22 @@ void D3DProxyDevice::VPMENU_PosTracking()
 			m_spShaderViewAdjustment->UpdatePosition(0.0f, 0.0f, 0.0f);
 	});
 	
-	AddAdjustmentMenuItem("Position Tracking multiplier : %g", &config.position_multiplier, 1.0f, 0.01f);
-	AddAdjustmentMenuItem("Position X-Tracking multiplier : %g", &config.position_x_multiplier, DEFAULT_POS_TRACKING_X_MULT, 0.01f);
-	AddAdjustmentMenuItem("Position Y-Tracking multiplier : %g", &config.position_y_multiplier, DEFAULT_POS_TRACKING_Y_MULT, 0.01f);
-	AddAdjustmentMenuItem("Position Z-Tracking multiplier : %g", &config.position_z_multiplier, DEFAULT_POS_TRACKING_Z_MULT, 0.01f);
+	menu->AddAdjustment("Position Tracking multiplier : %g", &config.position_multiplier, 1.0f, 0.01f);
+	menu->AddAdjustment("Position X-Tracking multiplier : %g", &config.position_x_multiplier, DEFAULT_POS_TRACKING_X_MULT, 0.01f);
+	menu->AddAdjustment("Position Y-Tracking multiplier : %g", &config.position_y_multiplier, DEFAULT_POS_TRACKING_Y_MULT, 0.01f);
+	menu->AddAdjustment("Position Z-Tracking multiplier : %g", &config.position_z_multiplier, DEFAULT_POS_TRACKING_Z_MULT, 0.01f);
 	
-	AddButtonMenuItem("Reset HMD Orientation (LSHIFT + R)", [=]() {
+	menu->AddButton("Reset HMD Orientation (LSHIFT + R)", [=]() {
 		tracker->resetOrientationAndPosition();
 	});
-	AddNavigationMenuItem("Duck-and-Cover Configuration", [=]() { VPMENU_DuckAndCover(); });
-	AddButtonMenuItem("Back to Main Menu", [=]() {
+	menu->AddNavigation("Duck-and-Cover Configuration", [=]() { VPMENU_DuckAndCover(); });
+	menu->AddButton("Back to Main Menu", [=]() {
 		VPMENU_Back();
 		VPMENU_UpdateConfigSettings();
 	});
-	AddButtonMenuItem("Back to Game", [=]() { VPMENU_Close(); });
+	menu->AddButton("Back to Game", [=]() { VPMENU_Close(); });
 
-	VPMENU_FinishDrawing();
+	VPMENU_FinishDrawing(menu);
 }
 
 /**
@@ -1203,22 +1208,22 @@ void D3DProxyDevice::VPMENU_DuckAndCover()
 	
 	controls.UpdateInputs();
 
-	VPMENU_NewFrame(NUM_MENU_ITEMS);
+	MenuBuilder *menu = VPMENU_NewFrame(NUM_MENU_ITEMS);
 	VPMENU_StartDrawing("Settings - Duck-and-Cover");
 
 	std::string crouchToggleDescription = m_DuckAndCover.crouchToggle ? "Toggle" : "Hold";
-	AddButtonMenuItem(retprintf("Crouch : %s", crouchToggleDescription.c_str()), [=]() {
+	menu->AddButton(retprintf("Crouch : %s", crouchToggleDescription.c_str()), [=]() {
 		m_DuckAndCover.crouchToggle = !m_DuckAndCover.crouchToggle;
 		m_DuckAndCover.SaveToRegistry();
 	});
 
-	AddGameKeypressMenuItem("Crouch Key", &m_DuckAndCover.crouchKey);
+	menu->AddGameKeypress("Crouch Key", &m_DuckAndCover.crouchKey);
 
 	std::string proneToggleDescription =
 		!m_DuckAndCover.proneEnabled
 		? "Disabled (Use calibrate to enable)" :
 			(m_DuckAndCover.proneToggle ? "Toggle" : "Hold");
-	AddButtonMenuItem(retprintf("Prone : %s", proneToggleDescription.c_str()),
+	menu->AddButton(retprintf("Prone : %s", proneToggleDescription.c_str()),
 		m_DuckAndCover.proneEnabled ? COLOR_MENU_TEXT : COLOR_MENU_DISABLED,
 		[=]()
 	{
@@ -1226,9 +1231,9 @@ void D3DProxyDevice::VPMENU_DuckAndCover()
 		m_DuckAndCover.SaveToRegistry();
 	});
 
-	AddGameKeypressMenuItem("Prone Key", &m_DuckAndCover.proneKey);
+	menu->AddGameKeypress("Prone Key", &m_DuckAndCover.proneKey);
 
-	AddButtonMenuItem(retprintf("Jump : %s",
+	menu->AddButton(retprintf("Jump : %s",
 		m_DuckAndCover.jumpEnabled ? "Enabled" : "Disabled"),
 		m_DuckAndCover.jumpEnabled ? COLOR_MENU_TEXT : COLOR_MENU_DISABLED,
 		[=]()
@@ -1237,16 +1242,16 @@ void D3DProxyDevice::VPMENU_DuckAndCover()
 		m_DuckAndCover.SaveToRegistry();
 	});
 
-	AddGameKeypressMenuItem("Jump Key", &m_DuckAndCover.jumpKey);
+	menu->AddGameKeypress("Jump Key", &m_DuckAndCover.jumpKey);
 
-	AddButtonMenuItem("Calibrate Duck-and-Cover then Enable", [=]() {
+	menu->AddButton("Calibrate Duck-and-Cover then Enable", [=]() {
 		VPMENU_CloseWithoutSaving();
 		m_DuckAndCover.dfcStatus = DAC_CAL_STANDING;
 	});
 
 	bool dacIsDisabled = (m_DuckAndCover.dfcStatus == DAC_DISABLED ||
 		m_DuckAndCover.dfcStatus == DAC_INACTIVE);
-	AddButtonMenuItem(retprintf("%s Duck-and-Cover Mode",
+	menu->AddButton(retprintf("%s Duck-and-Cover Mode",
 		dacIsDisabled?"Enable":"Disable"), [=]()
 	{
 		if (m_DuckAndCover.dfcStatus == DAC_INACTIVE)
@@ -1266,13 +1271,13 @@ void D3DProxyDevice::VPMENU_DuckAndCover()
 		}
 	});
 
-	AddButtonMenuItem("Back to Main Menu", [=]() {
+	menu->AddButton("Back to Main Menu", [=]() {
 		VPMENU_Back();
 		VPMENU_UpdateConfigSettings();
 	});
-	AddButtonMenuItem("Back to Game", [=]() { VPMENU_Close(); });
+	menu->AddButton("Back to Game", [=]() { VPMENU_Close(); });
 
-	VPMENU_FinishDrawing();
+	VPMENU_FinishDrawing(menu);
 }
 
 /**
@@ -1295,21 +1300,21 @@ void D3DProxyDevice::VPMENU_ComfortMode()
 
 	controls.UpdateInputs();
 	
-	VPMENU_NewFrame(NUM_MENU_ITEMS);
+	MenuBuilder *menu = VPMENU_NewFrame(NUM_MENU_ITEMS);
 	VPMENU_StartDrawing("Settings - Comfort Mode");
 
 	bool isEnabled = (VRBoostValue[VRboostAxis::ComfortMode] != 0.0f);
-	AddButtonMenuItem(retprintf("Comfort Mode : %s", isEnabled?"Enabled":"Disabled"), [=]()
+	menu->AddButton(retprintf("Comfort Mode : %s", isEnabled?"Enabled":"Disabled"), [=]()
 	{
 		VRBoostValue[VRboostAxis::ComfortMode] = 1.0f - VRBoostValue[VRboostAxis::ComfortMode];
 		//Reset Yaw to avoid complications
 		m_comfortModeYaw = 0.0f;
 	});
 
-	AddKeybindMenuItem("Turn Left Key", &m_comfortModeLeftKey);
-	AddKeybindMenuItem("Turn Right Key", &m_comfortModeRightKey);
+	menu->AddKeybind("Turn Left Key", &m_comfortModeLeftKey);
+	menu->AddKeybind("Turn Right Key", &m_comfortModeRightKey);
 
-	AddButtonMenuItem(retprintf("Yaw Rotation Increment : %.1f", m_comfortModeYawIncrement), [=]()
+	menu->AddButton(retprintf("Yaw Rotation Increment : %.1f", m_comfortModeYawIncrement), [=]()
 	{
 		if (m_comfortModeYawIncrement == 30.0f)
 			m_comfortModeYawIncrement = 45.0f;
@@ -1323,13 +1328,13 @@ void D3DProxyDevice::VPMENU_ComfortMode()
 			m_comfortModeYawIncrement = 30.0f;
 	});
 
-	AddButtonMenuItem("Back to Main Menu", [=]() {
+	menu->AddButton("Back to Main Menu", [=]() {
 		VPMENU_Back();
 		VPMENU_UpdateConfigSettings();
 	});
-	AddButtonMenuItem("Back to Game", [=]() { VPMENU_Close(); });
+	menu->AddButton("Back to Game", [=]() { VPMENU_Close(); });
 
-	VPMENU_FinishDrawing();
+	VPMENU_FinishDrawing(menu);
 }
 
 /**
@@ -1348,25 +1353,25 @@ void D3DProxyDevice::VPMENU_VRBoostValues()
 		NUM_MENU_ITEMS
 	};
 	
-	VPMENU_NewFrame(NUM_MENU_ITEMS);
+	MenuBuilder *menu = VPMENU_NewFrame(NUM_MENU_ITEMS);
 	VPMENU_StartDrawing("Settings - VRBoost");
 
-	AddAdjustmentMenuItem("World FOV : %g",          &VRBoostValue[24], 100.0f, 0.5f);
-	AddAdjustmentMenuItem("Player FOV : %g",         &VRBoostValue[25], 100.0f, 0.5f);
-	AddAdjustmentMenuItem("Far Plane FOV : %g",      &VRBoostValue[26], 100.0f, 0.5f);
-	AddAdjustmentMenuItem("Camera Translate X : %g", &VRBoostValue[27], 0.0f, 0.1f);
-	AddAdjustmentMenuItem("Camera Translate Y : %g", &VRBoostValue[28], 0.0f, 0.1f);
-	AddAdjustmentMenuItem("Camera Translate Z : %g", &VRBoostValue[29], 0.0f, 0.1f);
-	AddAdjustmentMenuItem("Camera Distance : %g",    &VRBoostValue[30], 0.0f, 0.1f);
-	AddAdjustmentMenuItem("Camera Zoom : %g",        &VRBoostValue[31], 0.0f, 0.1f);
-	AddAdjustmentMenuItem("Camera Horizon Adjustment : %g", &VRBoostValue[32], 0.0f, 0.1f);
-	AddAdjustmentMenuItem("Constant Value 1 : %g",   &VRBoostValue[33], 0.0f, 0.1f);
-	AddAdjustmentMenuItem("Constant Value 2 : %g",   &VRBoostValue[34], 0.0f, 0.1f);
-	AddAdjustmentMenuItem("Constant Value 2 : %g",   &VRBoostValue[35], 0.0f, 0.1f);
-	AddButtonMenuItem("Back to Main Menu", [=]() { VPMENU_Back(); });
-	AddButtonMenuItem("Back to Game", [=]() { VPMENU_Close(); });
+	menu->AddAdjustment("World FOV : %g",          &VRBoostValue[24], 100.0f, 0.5f);
+	menu->AddAdjustment("Player FOV : %g",         &VRBoostValue[25], 100.0f, 0.5f);
+	menu->AddAdjustment("Far Plane FOV : %g",      &VRBoostValue[26], 100.0f, 0.5f);
+	menu->AddAdjustment("Camera Translate X : %g", &VRBoostValue[27], 0.0f, 0.1f);
+	menu->AddAdjustment("Camera Translate Y : %g", &VRBoostValue[28], 0.0f, 0.1f);
+	menu->AddAdjustment("Camera Translate Z : %g", &VRBoostValue[29], 0.0f, 0.1f);
+	menu->AddAdjustment("Camera Distance : %g",    &VRBoostValue[30], 0.0f, 0.1f);
+	menu->AddAdjustment("Camera Zoom : %g",        &VRBoostValue[31], 0.0f, 0.1f);
+	menu->AddAdjustment("Camera Horizon Adjustment : %g", &VRBoostValue[32], 0.0f, 0.1f);
+	menu->AddAdjustment("Constant Value 1 : %g",   &VRBoostValue[33], 0.0f, 0.1f);
+	menu->AddAdjustment("Constant Value 2 : %g",   &VRBoostValue[34], 0.0f, 0.1f);
+	menu->AddAdjustment("Constant Value 2 : %g",   &VRBoostValue[35], 0.0f, 0.1f);
+	menu->AddButton("Back to Main Menu", [=]() { VPMENU_Back(); });
+	menu->AddButton("Back to Game", [=]() { VPMENU_Close(); });
 
-	VPMENU_FinishDrawing();
+	VPMENU_FinishDrawing(menu);
 }
 
 
@@ -1666,54 +1671,60 @@ void D3DProxyDevice::VPMENU_AdditionalOutput()
 }
 
 
-void D3DProxyDevice::DrawMenuItem(const char *text, D3DCOLOR color)
+MenuBuilder::MenuBuilder(D3DProxyDevice *device)
 {
-	DrawTextShadowed(hudFont, hudMainMenu, text, &menuHelperRect, color);
-	menuHelperRect.top += MENU_ITEM_SEPARATION;
+	this->device = device;
+	this->menuConstructionCurrentEntry = 0;
+}
+
+void MenuBuilder::DrawItem(const char *text, D3DCOLOR color)
+{
+	device->DrawTextShadowed(device->hudFont, device->hudMainMenu, text, &device->menuHelperRect, color);
+	device->menuHelperRect.top += MENU_ITEM_SEPARATION;
 	menuConstructionCurrentEntry++;
 }
 
-void D3DProxyDevice::DrawMenuItem(std::string text, D3DCOLOR color)
+void MenuBuilder::DrawItem(std::string text, D3DCOLOR color)
 {
-	DrawTextShadowed(hudFont, hudMainMenu, text.c_str(), &menuHelperRect, color);
-	menuHelperRect.top += MENU_ITEM_SEPARATION;
+	device->DrawTextShadowed(device->hudFont, device->hudMainMenu, text.c_str(), &device->menuHelperRect, color);
+	device->menuHelperRect.top += MENU_ITEM_SEPARATION;
 	menuConstructionCurrentEntry++;
 }
 
-void D3DProxyDevice::AddMenuItem(std::string text, std::function<void()> onHover)
+void MenuBuilder::AddItem(std::string text, std::function<void()> onHover)
 {
-	AddMenuItem(text, COLOR_MENU_TEXT, onHover);
+	AddItem(text, COLOR_MENU_TEXT, onHover);
 }
 
-void D3DProxyDevice::AddMenuItem(std::string text, D3DCOLOR color, std::function<void()> onHover)
+void MenuBuilder::AddItem(std::string text, D3DCOLOR color, std::function<void()> onHover)
 {
-	int selection = VPMENU_GetCurrentSelection();
+	int selection = device->VPMENU_GetCurrentSelection();
 	int entryID = menuConstructionCurrentEntry;
-	DrawMenuItem(text, color);
+	DrawItem(text, color);
 	if(entryID == selection)
 		onHover();
 }
 
-void D3DProxyDevice::AddButtonMenuItem(std::string text, D3DCOLOR color, std::function<void()> onPick)
+void MenuBuilder::AddButton(std::string text, D3DCOLOR color, std::function<void()> onPick)
 {
-	AddMenuItem(text, color, [=]() {
-		if(VPMENU_Input_Selected() && HotkeysActive()) {
+	AddItem(text, color, [=]() {
+		if(device->VPMENU_Input_Selected() && device->HotkeysActive()) {
 			onPick();
-			HotkeyCooldown(COOLDOWN_SHORT);
+			device->HotkeyCooldown(COOLDOWN_SHORT);
 		}
 	});
 }
 
-void D3DProxyDevice::AddButtonMenuItem(std::string text, std::function<void()> onPick)
+void MenuBuilder::AddButton(std::string text, std::function<void()> onPick)
 {
-	AddButtonMenuItem(text, COLOR_MENU_TEXT, onPick);
+	AddButton(text, COLOR_MENU_TEXT, onPick);
 }
 
-void D3DProxyDevice::AddNavigationMenuItem(std::string text, std::function<void()> menuHandler)
+void MenuBuilder::AddNavigation(std::string text, std::function<void()> menuHandler)
 {
-	AddMenuItem(text, COLOR_MENU_TEXT, [=]() {
-		if(VPMENU_Input_Selected() && HotkeysActive()) {
-			VPMENU_NavigateTo(menuHandler);
+	AddItem(text, COLOR_MENU_TEXT, [=]() {
+		if(device->VPMENU_Input_Selected() && device->HotkeysActive()) {
+			device->VPMENU_NavigateTo(menuHandler);
 		}
 	});
 }
@@ -1723,10 +1734,10 @@ void D3DProxyDevice::AddNavigationMenuItem(std::string text, std::function<void(
  * simulated key-press. (This is different from a Keybind, which is something
  * Perception will check on the keyboard/gamepad to see if it's pressed.)
  */
-void D3DProxyDevice::AddGameKeypressMenuItem(std::string text, byte *binding)
+void MenuBuilder::AddGameKeypress(std::string text, byte *binding)
 {
 	std::string description;
-	if (hotkeyCatch && VPMENU_GetCurrentSelection() == menuConstructionCurrentEntry) {
+	if (device->hotkeyCatch && device->VPMENU_GetCurrentSelection() == menuConstructionCurrentEntry) {
 		description = "Press the desired key.";
 	} else {
 		description = retprintf("%s : %s",
@@ -1734,26 +1745,26 @@ void D3DProxyDevice::AddGameKeypressMenuItem(std::string text, byte *binding)
 			Key(*binding)->ToString().c_str());
 	}
 	
-	AddMenuItem(description, COLOR_MENU_TEXT, [=]() {
-		if (hotkeyResetToDefault->IsPressed(controls) && HotkeysActive())
+	AddItem(description, COLOR_MENU_TEXT, [=]() {
+		if (hotkeyResetToDefault->IsPressed(device->controls) && device->HotkeysActive())
 		{
 			*binding = 0;
-			HotkeyCooldown(COOLDOWN_SHORT);
+			device->HotkeyCooldown(COOLDOWN_SHORT);
 		}
-		else if (VPMENU_Input_Selected() && HotkeysActive())
+		else if (device->VPMENU_Input_Selected() && device->HotkeysActive())
 		{
-			VPMENU_BindKey([=](int key) {
+			device->VPMENU_BindKey([=](int key) {
 				*binding = (byte)key;
 			});
-			HotkeyCooldown(COOLDOWN_SHORT);
+			device->HotkeyCooldown(COOLDOWN_SHORT);
 		}
 	});
 }
 
-void D3DProxyDevice::AddKeybindMenuItem(std::string text, InputBindingRef *binding)
+void MenuBuilder::AddKeybind(std::string text, InputBindingRef *binding)
 {
 	std::string description;
-	if (hotkeyCatch && VPMENU_GetCurrentSelection() == menuConstructionCurrentEntry) {
+	if (device->hotkeyCatch && device->VPMENU_GetCurrentSelection() == menuConstructionCurrentEntry) {
 		description = "Press the desired key.";
 	} else {
 		description = retprintf("%s : %s",
@@ -1761,38 +1772,38 @@ void D3DProxyDevice::AddKeybindMenuItem(std::string text, InputBindingRef *bindi
 			(*binding)->ToString().c_str());
 	}
 	
-	AddMenuItem(description, COLOR_MENU_TEXT, [=]() {
-		if (hotkeyResetToDefault->IsPressed(controls) && HotkeysActive())
+	AddItem(description, COLOR_MENU_TEXT, [=]() {
+		if (hotkeyResetToDefault->IsPressed(device->controls) && device->HotkeysActive())
 		{
 			*binding = Unbound();
-			HotkeyCooldown(COOLDOWN_SHORT);
+			device->HotkeyCooldown(COOLDOWN_SHORT);
 		}
-		else if (VPMENU_Input_Selected() && HotkeysActive())
+		else if (device->VPMENU_Input_Selected() && device->HotkeysActive())
 		{
-			VPMENU_BindKey([=](int key) {
+			device->VPMENU_BindKey([=](int key) {
 				*binding = Key(key);
 			});
-			HotkeyCooldown(COOLDOWN_SHORT);
+			device->HotkeyCooldown(COOLDOWN_SHORT);
 		}
 	});
 }
 
-void D3DProxyDevice::AddAdjustmentMenuItem(const char *formatString, float *value, float defaultValue, float rate, std::function<void()> onChange)
+void MenuBuilder::AddAdjustment(const char *formatString, float *value, float defaultValue, float rate, std::function<void()> onChange)
 {
-	std::string label = retprintf(formatString, RoundVireioValue(*value));
+	std::string label = retprintf(formatString, device->RoundVireioValue(*value));
 	
-	AddMenuItem(label, [=]() {
-		if (hotkeyResetToDefault->IsPressed(controls) && HotkeysActive())
+	AddItem(label, [=]() {
+		if (hotkeyResetToDefault->IsPressed(device->controls) && device->HotkeysActive())
 		{
 			*value = defaultValue;
 			onChange();
-			HotkeyCooldown(COOLDOWN_SHORT);
+			device->HotkeyCooldown(COOLDOWN_SHORT);
 		}
-		if (VPMENU_Input_IsAdjustment() && HotkeysActive())
+		if (device->VPMENU_Input_IsAdjustment() && device->HotkeysActive())
 		{
-			*value += rate * VPMENU_Input_GetAdjustment();
+			*value += rate * device->VPMENU_Input_GetAdjustment();
 			onChange();
-			HotkeyCooldown(COOLDOWN_SHORT);
+			device->HotkeyCooldown(COOLDOWN_SHORT);
 		}
 	});
 }

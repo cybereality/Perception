@@ -77,27 +77,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "DirectInput.h"
 #include "VireioPopup.h"
 #include "ConfigDefaults.h"
+#include "InGameMenus.h"
 
 #define _SAFE_RELEASE(x) if(x) { x->Release(); x = NULL; } 
 #define RECT_WIDTH(x) (x.right - x.left)
 #define RECT_HEIGHT(x) (x.bottom - x.top)
-
-#define COLOR_WHITE    D3DCOLOR_ARGB(255, 255, 255, 255)
-#define COLOR_RED      D3DCOLOR_ARGB(255, 255, 0, 0)
-#define COLOR_GREEN    D3DCOLOR_ARGB(255, 0, 255, 0)
-#define COLOR_BLUE     D3DCOLOR_ARGB(255, 0, 0, 255)
-#define COLOR_LIGHTRED D3DCOLOR_ARGB(255, 255, 128, 128)
-
-#define COLOR_MENU_TEXT     COLOR_WHITE
-#define COLOR_TEXT_SHADOW   D3DCOLOR_ARGB(255, 64, 64, 64)
-#define COLOR_MENU_BORDER   D3DCOLOR_ARGB(255, 255, 128, 128)
-#define COLOR_MENU_DISABLED D3DCOLOR_ARGB(255, 255, 64, 64)
-#define COLOR_MENU_ENABLED  D3DCOLOR_ARGB(255, 64, 255, 64)
-#define COLOR_QUICK_SETTING D3DCOLOR_ARGB(255, 128, 196, 128)
-#define COLOR_INFO_POPUP    D3DCOLOR_ARGB(255, 128, 255, 128)
-#define COLOR_HASH_LINE     D3DCOLOR_ARGB(255,255,255,0)
-
-#define MENU_ITEM_SEPARATION  40
 
 #define COOLDOWN_ONE_FRAME 0.7f
 #define COOLDOWN_SHORT 2.0f
@@ -400,14 +384,6 @@ public:
 	**/
 	ProxyHelper::UserConfig userConfig;
 	/**
-	* Timestamp used to adjust the menu velocity independent of game speed.
-	**/
-	float menuLastUpdateTime;
-	/**
-	* Timespan of every frame (in seconds).
-	***/
-	float menuLastFrameLength;
-	/**
 	* True floating GUI mode activated + Reset Values
 	**/
 	bool m_bfloatingMenu;
@@ -447,11 +423,11 @@ protected:
 	void VPMENU_OpenMainMenu();
 	void VPMENU_NavigateTo(std::function<void()> menuHandler);
 	bool VPMENU_IsOpen();
-	void VPMENU_NewFrame(UINT menuEntryCount);
+	MenuBuilder *VPMENU_NewFrame(UINT menuEntryCount);
 	int VPMENU_GetCurrentSelection();
 	void VPMENU_StartDrawing(const char *pageTitle);
 	void VPMENU_StartDrawing_NonMenu();
-	void VPMENU_FinishDrawing();
+	void VPMENU_FinishDrawing(MenuBuilder *menu);
 	bool VPMENU_Input_Selected();
 	bool VPMENU_Input_Left();
 	bool VPMENU_Input_Right();
@@ -479,16 +455,6 @@ protected:
 	void VPMENU_UpdateDeviceSettings();
 	void VPMENU_AdditionalOutput();
 
-	void DrawMenuItem(const char *text, D3DCOLOR color=COLOR_MENU_TEXT);
-	void DrawMenuItem(std::string text, D3DCOLOR color=COLOR_MENU_TEXT);
-	void AddMenuItem(std::string text, std::function<void()> onHover);
-	void AddMenuItem(std::string text, D3DCOLOR color, std::function<void()> onHover);
-	void AddButtonMenuItem(std::string text, D3DCOLOR color, std::function<void()> onPick);
-	void AddButtonMenuItem(std::string text, std::function<void()> onPick);
-	void AddNavigationMenuItem(std::string text, std::function<void()> menuHandler);
-	void AddGameKeypressMenuItem(std::string text, byte *binding);
-	void AddKeybindMenuItem(std::string text, InputBindingRef *binding);
-	void AddAdjustmentMenuItem(const char *formatString, float *value, float defaultValue, float rate, std::function<void()> onChange=[](){});
 	void ClearRect(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color);
 	void ClearEmptyRect(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color, int bw);
 	void DrawSelection(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color, int selectionIndex, int selectionRange);
@@ -542,13 +508,19 @@ protected:
 	/// VP menu helper rectangle.
 	RECT menuHelperRect;
 	
-	int menuConstructionCurrentEntry;
-	
 	/// Scales VP menu to current resolution.
 	float fScaleX;
 	
 	/// Scales VP menu to current resolution.
 	float fScaleY;
+	
+	// Timestamp used to adjust the menu velocity independent of game speed.
+	float menuLastUpdateTime;
+	
+	// Timespan of every frame (in seconds).
+	float menuLastFrameLength;
+	
+	friend class MenuBuilder;
 	
 	/*** DataGatherer menus **************************************************/
 	

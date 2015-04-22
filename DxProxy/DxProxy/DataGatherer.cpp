@@ -750,30 +750,30 @@ void DataGatherer::VPMENU_ShaderSubMenu()
 		BACK_GAME
 	};
 
-	VPMENU_NewFrame(menuEntryCount);
+	MenuBuilder *menu = VPMENU_NewFrame(menuEntryCount);
 
 	// output menu
 	VPMENU_StartDrawing("Shader Analyser");
 
-	AddButtonMenuItem("Create new Shader Rules", [=]() {
+	menu->AddButton("Create new Shader Rules", [=]() {
 		// create relevant shader constant table
 		GetCurrentShaderRules(true);
 		VPMENU_CloseWithoutSaving();
 		Analyze();
 	});
-	AddButtonMenuItem("Change current Shader Rules", [=]() {
+	menu->AddButton("Change current Shader Rules", [=]() {
 		// create menu names new
 		GetCurrentShaderRules(false);
 		VPMENU_NavigateTo([=]() {
 			VPMENU_ChangeRules();
 		});
 	});
-	//AddButtonMenuItem("Pick Rules by active Shaders", [=]() {
+	//menu->AddButton("Pick Rules by active Shaders", [=]() {
 	//	VPMENU_NavigateTo([=]() {
 	//		VPMENU_PickRules();
 	//	});
 	//});
-	AddButtonMenuItem("Show and exclude active Shaders", [=]() {
+	menu->AddButton("Show and exclude active Shaders", [=]() {
 		VPMENU_NavigateTo([=]() {
 			VPMENU_ShowActiveShaders();
 		});
@@ -781,7 +781,7 @@ void DataGatherer::VPMENU_ShaderSubMenu()
 		m_knownVShaders.clear();
 		m_knownPShaders.clear();
 	});
-	AddButtonMenuItem("Save Shader Rules", [=]() {
+	menu->AddButton("Save Shader Rules", [=]() {
 		VPMENU_CloseWithoutSaving();
 		// save data
 		ProxyHelper* helper = new ProxyHelper();
@@ -804,10 +804,10 @@ void DataGatherer::VPMENU_ShaderSubMenu()
 		saveShaderRules();
 	});
 	
-	AddButtonMenuItem("Back to Main Menu", [=]() { VPMENU_Back(); });
-	AddButtonMenuItem("Back to Game", [=]() { VPMENU_CloseWithoutSaving(); });
+	menu->AddButton("Back to Main Menu", [=]() { VPMENU_Back(); });
+	menu->AddButton("Back to Game", [=]() { VPMENU_CloseWithoutSaving(); });
 
-	VPMENU_FinishDrawing();
+	VPMENU_FinishDrawing(menu);
 }
 
 /**
@@ -883,7 +883,7 @@ void DataGatherer::VPMENU_ChangeRules()
 		menuEntryCount++;
 	}
 
-	VPMENU_NewFrame(menuEntryCount);
+	MenuBuilder *menu = VPMENU_NewFrame(menuEntryCount);
 	UINT entryID = VPMENU_GetCurrentSelection();;
 	
 	// adjust border & menu due to menu scroll
@@ -919,7 +919,7 @@ void DataGatherer::VPMENU_ChangeRules()
 	menuHelperRect.top += (int)(menuTopHeight / fScaleY);
 	
 	for (UINT i=0; i<menuEntryCount-2; i++)
-	AddMenuItem(menuEntries[i], menuColor[i], [&]()
+	menu->AddItem(menuEntries[i], menuColor[i], [&]()
 	{
 		// switch shader rule node
 		if (VPMENU_Input_Selected() && HotkeysActive())
@@ -1123,10 +1123,10 @@ void DataGatherer::VPMENU_ChangeRules()
 		}
 	});
 
-	AddButtonMenuItem("Back to Main Menu", [=]() { VPMENU_Back(); });
-	AddButtonMenuItem("Back to Game", [=]() { VPMENU_CloseWithoutSaving(); });
+	menu->AddButton("Back to Main Menu", [=]() { VPMENU_Back(); });
+	menu->AddButton("Back to Game", [=]() { VPMENU_CloseWithoutSaving(); });
 
-	VPMENU_FinishDrawing();
+	VPMENU_FinishDrawing(menu);
 }
 
 /**
@@ -1241,7 +1241,7 @@ void DataGatherer::VPMENU_ShowActiveShaders()
 			m_knownPShaders[itPShaderCurrentHash->first] = itPShaderCurrentHash->second;
 	}
 
-	VPMENU_NewFrame(menuEntryCount);
+	MenuBuilder *menu = VPMENU_NewFrame(menuEntryCount);
 	UINT entryID = VPMENU_GetCurrentSelection();
 
 	if ((entryID >= 0) && (entryID < menuEntryCount-2) && (menuEntryCount>2))
@@ -1316,7 +1316,7 @@ void DataGatherer::VPMENU_ShowActiveShaders()
 	{
 		if ((menuHelperRect.top + 40) >= 0)
 		{
-			DrawMenuItem(menuEntries[i].c_str(), menuColor[i]);
+			menu->DrawItem(menuEntries[i].c_str(), menuColor[i]);
 		}
 
 		//No point drawing anything off the bottom of the viewport!
@@ -1324,10 +1324,10 @@ void DataGatherer::VPMENU_ShowActiveShaders()
 			break;
 	}
 
-	AddButtonMenuItem("Back to Main Menu", [=]() { VPMENU_Back(); });
-	AddButtonMenuItem("Back to Game", [=]() { VPMENU_CloseWithoutSaving(); });
+	menu->AddButton("Back to Main Menu", [=]() { VPMENU_Back(); });
+	menu->AddButton("Back to Game", [=]() { VPMENU_CloseWithoutSaving(); });
 
-	VPMENU_FinishDrawing();
+	VPMENU_FinishDrawing(menu);
 }
 
 

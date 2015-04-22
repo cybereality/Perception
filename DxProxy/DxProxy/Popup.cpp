@@ -228,7 +228,7 @@ void D3DProxyDevice::DisplayCurrentPopup()
 		hudFont->DrawText(hudMainMenu, buffer, -1, &drawPosition, DT_CENTER, colour);
 	}
 
-	VPMENU_FinishDrawing();
+	VPMENU_FinishDrawing(NULL);
 }
 
 
