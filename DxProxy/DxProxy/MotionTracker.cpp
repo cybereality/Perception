@@ -194,3 +194,11 @@ bool MotionTracker::setMouseEmulation(bool emulateMouse)
 	mouseEmulation = emulateMouse;
 	return temp;
 }
+
+/**
+* Get mouse emulation.
+***/
+bool MotionTracker::getMouseEmulation()
+{
+	return mouseEmulation;
+}

@@ -110,6 +110,7 @@ DataGatherer::DataGatherer(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy)
 
 	// set commands predefined before read from cfg file
 	m_bOutputShaderCode = false;
+	m_bOutputPixelShaderCode = false;
 	m_bTransposedRules = false;
 	m_bTestForTransposed = true;
 	m_bIgnoreCompare = false;
@@ -165,6 +166,17 @@ DataGatherer::DataGatherer(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy)
 					{
 						OutputDebugString("Output_Shader_Code");
 						m_bOutputShaderCode = true;
+					}
+					if (s.compare("Output_Shader_Code_All")==0)
+					{
+						OutputDebugString("Output_Shader_Code_All");
+						m_bOutputPixelShaderCode = true;
+						m_bOutputShaderCode = true;
+					}
+					if (s.compare("Output_Shader_Code_Pixel")==0)
+					{
+						OutputDebugString("Output_Shader_Code_Pixel");
+						m_bOutputPixelShaderCode = true;						
 					}
 					if (s.compare("Do_Transpose_Matrices")==0)
 					{
@@ -639,7 +651,8 @@ HRESULT WINAPI DataGatherer::CreatePixelShader(CONST DWORD* pFunction,IDirect3DP
 			}
 
 			// output shader code ?
-			if (m_bOutputShaderCode)
+			
+			if (m_bOutputPixelShaderCode)
 			{
 				// optionally, output shader code to "PS(hash).txt"
 				char buf[32]; ZeroMemory(&buf[0],32);

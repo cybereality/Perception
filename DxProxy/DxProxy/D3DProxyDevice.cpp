@@ -103,6 +103,9 @@ std::string VRboostAxisString(UINT axis)
 	case VRboostAxis::TrackerYaw:
 		return "Yaw";
 		break;
+	case VRboostAxis::TrackerYaw2:
+		return "Yaw2";
+		break;
 	case VRboostAxis::TrackerPitch:
 		return "Pitch";
 		break;
@@ -2493,8 +2496,11 @@ void D3DProxyDevice::HandleTracking()
 			{
 				if (tracker->getStatus() == MTS_CAMERAMALFUNCTION)
 				{
-					ShowPopup(VPT_NO_HMD_DETECTED, VPS_ERROR, -1,
-						"CAMERA MALFUNCTION - PLEASE WAIT WHILST CAMERA INITIALISES");
+					if (userConfig.warnCameraMalfunction)
+					{
+						ShowPopup(VPT_NO_HMD_DETECTED, VPS_ERROR, -1,
+							"CAMERA MALFUNCTION - PLEASE WAIT WHILST CAMERA INITIALISES");
+					}
 				}
 				else if (tracker->getStatus() == MTS_LOSTPOSITIONAL)
 				{
@@ -2736,6 +2742,8 @@ void D3DProxyDevice::HandleTracking()
 			yaw += ((m_comfortModeYaw / 180.0f) * (float)PI);
 
 		VRBoostValue[VRboostAxis::TrackerYaw] = yaw;
+		//This might be used by games that have a second yaw address for other modes of transport for example
+		VRBoostValue[VRboostAxis::TrackerYaw2] = yaw;
 		VRBoostValue[VRboostAxis::TrackerPitch] = tracker->primaryPitch;
 		VRBoostValue[VRboostAxis::TrackerRoll] = tracker->primaryRoll;
 
@@ -3027,19 +3035,28 @@ void D3DProxyDevice::HandleTracking()
 	{
 		if (!VRBoostStatus.VRBoost_LoadRules)
 		{
-			ShowPopup(VPT_VRBOOST_FAILURE, VPS_ERROR, -1,
+			/*ShowPopup(VPT_VRBOOST_FAILURE, VPS_ERROR, -1,
 				"\n\nVRBoost LoadRules Failed\n"
 				"To Enable head tracking, turn on Force Mouse Emulation\n"
-				"in VP Settings");
+				"in VP Settings");*/
+			ShowPopup(VPT_VRBOOST_FAILURE, VPS_INFO, 500,
+				"VRBoost rule fail - turning on mouse");
+			tracker->setMouseEmulation(true);
 			return;
 		}
 		else if (!VRBoostStatus.VRBoost_ApplyRules)
 		{
-			ShowPopup(VPT_VRBOOST_FAILURE, VPS_ERROR, -1,
-				"\nVRBoost rules loaded but could not be applied\n"
-				"Mouse Emulation is not Enabled,\n"
-				"To Enable head tracking, turn on Force Mouse Emulation\n"
-				"in VP Settings");
+			if (!tracker->getMouseEmulation())
+			{
+				/*ShowPopup(VPT_VRBOOST_FAILURE, VPS_ERROR, -1,
+					"\nVRBoost rules loaded but could not be applied\n"
+					"Mouse Emulation is not Enabled,\n"
+					"To Enable head tracking, turn on Force Mouse Emulation\n"
+					"in VP Settings");*/
+				tracker->setMouseEmulation(true);
+				ShowPopup(VPT_VRBOOST_FAILURE, VPS_INFO, 500,
+					"VRBoost rule fail - turning on mouse");
+			}
 			return;
 		}
 	}
