@@ -57,13 +57,17 @@ OculusRenderer::OculusRenderer():AQU_Nodus(),
 	m_pcOculusPixelShaderCT(nullptr),
 	m_pcOculusVertexShader(nullptr),
 	m_pcOculusVertexShaderCT(nullptr),
+	m_pcSideBySidePixelShader(nullptr),
+	m_pcSideBySidePixelShaderCT(nullptr),
 	m_pcDistortionVertexBufferLeft(nullptr),
 	m_pcDistortionVertexBufferRight(nullptr),
+	m_pcVertexBufferDefault(nullptr),
 	m_pcDistortionIndexBufferLeft(nullptr),
 	m_pcDistortionIndexBufferRight(nullptr),
 	m_pcVertexDecl(nullptr),
 	m_psFOVPortLeft(nullptr),
-	m_psFOVPortRight(nullptr)
+	m_psFOVPortRight(nullptr),
+	m_bBuffersConnected(false)
 {
 	// clear vertex and index buffer descriptions
 	ZeroMemory(&m_sVertexBufferDescLeft, sizeof(D3DVERTEXBUFFER_DESC));
@@ -96,6 +100,9 @@ OculusRenderer::~OculusRenderer()
 	if (m_pcOculusPixelShaderCT) m_pcOculusPixelShaderCT->Release();
 	if (m_pcOculusVertexShader) m_pcOculusVertexShader->Release();
 	if (m_pcOculusVertexShaderCT) m_pcOculusVertexShaderCT->Release();	
+	if (m_pcSideBySidePixelShader) m_pcSideBySidePixelShader->Release();
+	if (m_pcSideBySidePixelShaderCT) m_pcSideBySidePixelShaderCT->Release();
+	if (m_pcVertexBufferDefault) m_pcVertexBufferDefault->Release();
 }
 
 /**
@@ -305,11 +312,11 @@ void* OculusRenderer::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 	else m_psFOVPortRight = nullptr;
 
 	// get device 
-	LPDIRECT3DDEVICE9 pDevice = nullptr;
+	LPDIRECT3DDEVICE9 pcDevice = nullptr;
 	bool bReleaseDevice = false;
 	if (eD3DInterface == INTERFACE_IDIRECT3DDEVICE9)
 	{
-		pDevice = (LPDIRECT3DDEVICE9)pThis;
+		pcDevice = (LPDIRECT3DDEVICE9)pThis;
 	}
 	else if (eD3DInterface == INTERFACE_IDIRECT3DSWAPCHAIN9)
 	{
@@ -319,10 +326,10 @@ void* OculusRenderer::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			OutputDebugString(L"Oculus Renderer Node : No swapchain !");
 			return nullptr;
 		}
-		pSwapChain->GetDevice(&pDevice);
+		pSwapChain->GetDevice(&pcDevice);
 		bReleaseDevice = true;
 	}
-	if (!pDevice)
+	if (!pcDevice)
 	{
 		OutputDebugString(L"Oculus Renderer Node : No device !");
 		return nullptr;
@@ -342,7 +349,7 @@ void* OculusRenderer::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 		if (SUCCEEDED(D3DXCompileShader(PixelShaderSrc,strlen(PixelShaderSrc),NULL,NULL,"main","ps_3_0",NULL,&pShader,NULL,&m_pcOculusPixelShaderCT)))
 		{
 			OutputDebugString(L"Pixel shader compiled!");
-			pDevice->CreatePixelShader((DWORD*)pShader->GetBufferPointer(), &m_pcOculusPixelShader);
+			pcDevice->CreatePixelShader((DWORD*)pShader->GetBufferPointer(), &m_pcOculusPixelShader);
 		}
 	}
 
@@ -355,8 +362,22 @@ void* OculusRenderer::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 		if (SUCCEEDED(D3DXCompileShader(VertexShaderSrc,strlen(VertexShaderSrc),NULL,NULL,"main","vs_2_0",NULL,&pShader,NULL,&m_pcOculusVertexShaderCT)))
 		{
 			OutputDebugString(L"Vertex shader compiled!");
-			pDevice->CreateVertexShader((DWORD*)pShader->GetBufferPointer(), &m_pcOculusVertexShader);
+			pcDevice->CreateVertexShader((DWORD*)pShader->GetBufferPointer(), &m_pcOculusVertexShader);
 		}
+	}
+
+	// side by side pixel shader ?
+	if (!m_pcSideBySidePixelShader)
+	{
+		LPD3DXBUFFER pShader;
+
+		// compile and create shader
+		if (SUCCEEDED(D3DXCompileShader(PixelShaderSrcSideBySide,strlen(PixelShaderSrcSideBySide),NULL,NULL,"SBS","ps_2_0",NULL,&pShader,NULL,&m_pcSideBySidePixelShaderCT)))
+		{
+			OutputDebugString(L"Pixel shader compiled!");
+			pcDevice->CreatePixelShader((DWORD*)pShader->GetBufferPointer(), &m_pcSideBySidePixelShader);
+		}
+
 	}
 
 	// test textures created ?
@@ -367,17 +388,24 @@ void* OculusRenderer::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 		if (!m_pcTextureLeftTest)
 		{
 			// create a test texture
-			if (SUCCEEDED(D3DXCreateTextureFromResource(pDevice, hModule, MAKEINTRESOURCE(IMG_LOGO01), &m_pcTextureLeftTest)))
+			if (SUCCEEDED(D3DXCreateTextureFromResource(pcDevice, hModule, MAKEINTRESOURCE(IMG_BACKGROUND01), &m_pcTextureLeftTest)))
 				OutputDebugString(L"Texture created !");
 			else m_pcTextureLeftTest = nullptr;
 		}
 		if (!m_pcTextureRightTest)
 		{
 			// create a test texture
-			if (SUCCEEDED(D3DXCreateTextureFromResource(pDevice, hModule, MAKEINTRESOURCE(IMG_LOGO01), &m_pcTextureRightTest)))
+			if (SUCCEEDED(D3DXCreateTextureFromResource(pcDevice, hModule, MAKEINTRESOURCE(IMG_BACKGROUND02), &m_pcTextureRightTest)))
 				OutputDebugString(L"Texture created !");
 			else m_pcTextureRightTest = nullptr;
 		}
+	}
+
+	// default vertex buffer ?
+	if (!m_pcVertexBufferDefault)
+	{
+		InitDefaultVertexBuffer(pcDevice);
+		if (!m_pcVertexBufferDefault) return nullptr;
 	}
 
 	// vertex buffers ? index buffers ? not all present ?
@@ -385,186 +413,222 @@ void* OculusRenderer::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 		(!m_pcDistortionIndexBufferLeft) || (!m_pcDistortionIndexBufferRight) ||
 		(!m_pcVertexDecl))
 	{
-		// clear all descriptions for safety
-		ZeroMemory(&m_sVertexBufferDescLeft, sizeof(D3DVERTEXBUFFER_DESC));
-		ZeroMemory(&m_sVertexBufferDescRight, sizeof(D3DVERTEXBUFFER_DESC));
-		ZeroMemory(&m_sIndexBufferDescLeft, sizeof(D3DINDEXBUFFER_DESC));
-		ZeroMemory(&m_sIndexBufferDescRight, sizeof(D3DINDEXBUFFER_DESC));
-
-		OutputDebugString(L"OculusRenderer: Connect ALL vertex and index buffers PLUS vertex declaration !");
-
-		return nullptr;
-	}
-
-	// vertex buffer description ? left
-	if (!m_sVertexBufferDescLeft.Size)
-		m_pcDistortionVertexBufferLeft->GetDesc(&m_sVertexBufferDescLeft);
-
-	// vertex buffer length matches oculus vertex type ?
-	if ((m_sVertexBufferDescLeft.Size % sizeof(ovrDistortionVertex)) != 0)
-	{
-		OutputDebugString(L"OculusRenderer Node : Connected vertex buffer size mismatch !");
-		return nullptr;
-	}
-
-	// and right
-	if (!m_sVertexBufferDescRight.Size)
-		m_pcDistortionVertexBufferRight->GetDesc(&m_sVertexBufferDescRight);
-
-	// vertex buffer length matches oculus vertex type ?
-	if ((m_sVertexBufferDescRight.Size % sizeof(ovrDistortionVertex)) != 0)
-	{
-		OutputDebugString(L"OculusRenderer Node : Connected vertex buffer size mismatch !");
-		return nullptr;
-	}
-
-	// index buffer ?
-	if ((!m_pcDistortionIndexBufferLeft) || (!m_pcDistortionIndexBufferRight))
-		return nullptr;
-
-	// index buffer description ?
-	if (!m_sIndexBufferDescLeft.Size)
-	{
-		m_pcDistortionIndexBufferLeft->GetDesc(&m_sIndexBufferDescLeft);
-
-		// index buffer length matches vertex buffer size ? TODO !!
-		/*if ()
+		if (m_bBuffersConnected)
 		{
-		OutputDebugString(L"OculusRenderer Node : Connected index buffer size mismatch !");
-		return nullptr;
-		}*/
-	}
-	if (!m_sIndexBufferDescRight.Size)
-	{
-		m_pcDistortionIndexBufferRight->GetDesc(&m_sIndexBufferDescRight);
+			// clear all descriptions for safety
+			ZeroMemory(&m_sVertexBufferDescLeft, sizeof(D3DVERTEXBUFFER_DESC));
+			ZeroMemory(&m_sVertexBufferDescRight, sizeof(D3DVERTEXBUFFER_DESC));
+			ZeroMemory(&m_sIndexBufferDescLeft, sizeof(D3DINDEXBUFFER_DESC));
+			ZeroMemory(&m_sIndexBufferDescRight, sizeof(D3DINDEXBUFFER_DESC));
 
-		// index buffer length matches vertex buffer size ? TODO !!
-		/*if ()
+			m_bBuffersConnected = false;
+		}
+	}
+	else
+	{
+		m_bBuffersConnected = true;
+
+		// vertex buffer description ? left
+		if (!m_sVertexBufferDescLeft.Size)
+			m_pcDistortionVertexBufferLeft->GetDesc(&m_sVertexBufferDescLeft);
+
+		// vertex buffer length matches oculus vertex type ?
+		if ((m_sVertexBufferDescLeft.Size % sizeof(ovrDistortionVertex)) != 0)
 		{
-		OutputDebugString(L"OculusRenderer Node : Connected index buffer size mismatch !");
-		return nullptr;
-		}*/
+			OutputDebugString(L"OculusRenderer Node : Connected vertex buffer size mismatch !");
+			return nullptr;
+		}
+
+		// and right
+		if (!m_sVertexBufferDescRight.Size)
+			m_pcDistortionVertexBufferRight->GetDesc(&m_sVertexBufferDescRight);
+
+		// vertex buffer length matches oculus vertex type ?
+		if ((m_sVertexBufferDescRight.Size % sizeof(ovrDistortionVertex)) != 0)
+		{
+			OutputDebugString(L"OculusRenderer Node : Connected vertex buffer size mismatch !");
+			return nullptr;
+		}
+
+		// index buffer ?
+		if ((!m_pcDistortionIndexBufferLeft) || (!m_pcDistortionIndexBufferRight))
+			return nullptr;
+
+		// index buffer description ?
+		if (!m_sIndexBufferDescLeft.Size)
+		{
+			m_pcDistortionIndexBufferLeft->GetDesc(&m_sIndexBufferDescLeft);
+
+			// index buffer length matches vertex buffer size ? TODO !!
+			/*if ()
+			{
+			OutputDebugString(L"OculusRenderer Node : Connected index buffer size mismatch !");
+			return nullptr;
+			}*/
+		}
+		if (!m_sIndexBufferDescRight.Size)
+		{
+			m_pcDistortionIndexBufferRight->GetDesc(&m_sIndexBufferDescRight);
+
+			// index buffer length matches vertex buffer size ? TODO !!
+			/*if ()
+			{
+			OutputDebugString(L"OculusRenderer Node : Connected index buffer size mismatch !");
+			return nullptr;
+			}*/
+		}
 	}
 
 	// start to render
-	pDevice->BeginScene();
+	pcDevice->BeginScene();
 
 	// save states
 	IDirect3DStateBlock9* pStateBlock;
-	pDevice->CreateStateBlock(D3DSBT_ALL, &pStateBlock);
+	pcDevice->CreateStateBlock(D3DSBT_ALL, &pStateBlock);
 
 	// set ALL render states to default
-	SetAllRenderStatesDefault(pDevice);
+	SetAllRenderStatesDefault(pcDevice);
 
 	// set states
-	pDevice->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_SELECTARG1);
-	pDevice->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
-	pDevice->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_SELECTARG1);
-	pDevice->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_CONSTANT);
-	pDevice->SetTextureStageState(0, D3DTSS_CONSTANT, 0xffffffff);
-	pDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
-	pDevice->SetRenderState(D3DRS_ZENABLE, D3DZB_FALSE);
-	pDevice->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
-	pDevice->SetSamplerState(0, D3DSAMP_SRGBTEXTURE, 0);
-	pDevice->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-	pDevice->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
-	pDevice->SetSamplerState(0, D3DSAMP_ADDRESSW, D3DTADDRESS_CLAMP);
-	pDevice->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC);
-	pDevice->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC);
-	pDevice->SetSamplerState(0, D3DSAMP_MIPFILTER, D3DTEXF_NONE);
+	pcDevice->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_SELECTARG1);
+	pcDevice->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
+	pcDevice->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_SELECTARG1);
+	pcDevice->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_CONSTANT);
+	pcDevice->SetTextureStageState(0, D3DTSS_CONSTANT, 0xffffffff);
+	pcDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
+	pcDevice->SetRenderState(D3DRS_ZENABLE, D3DZB_FALSE);
+	pcDevice->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
+	pcDevice->SetSamplerState(0, D3DSAMP_SRGBTEXTURE, 0);
+	pcDevice->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
+	pcDevice->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+	pcDevice->SetSamplerState(0, D3DSAMP_ADDRESSW, D3DTADDRESS_CLAMP);
+	pcDevice->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC);
+	pcDevice->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC);
+	pcDevice->SetSamplerState(0, D3DSAMP_MIPFILTER, D3DTEXF_NONE);
 
 	D3DCOLOR clearColor = D3DCOLOR_RGBA(0, 0, 0, 0);
 
-	pDevice->Clear(0, NULL, D3DCLEAR_TARGET, clearColor, 0, 0);
-
-	// no timewarp here, use standard vertex shader, set pixel shader, set vertex declaration
-	pDevice->SetVertexShader( m_pcOculusVertexShader);
-	pDevice->SetPixelShader( m_pcOculusPixelShader );
-	pDevice->SetVertexDeclaration( m_pcVertexDecl );
+	pcDevice->Clear(0, NULL, D3DCLEAR_TARGET, clearColor, 0, 0);
+	
+	// required fields
+	D3DSURFACE_DESC sSurfaceDesc;
+	ovrSizei sTextureSize;
+	ovrRecti sRenderViewport;
+	ovrVector2f UVScaleOffset[2];
 
 	// LEFT EYE :
 
-	// get texture size
-	D3DSURFACE_DESC sSurfaceDesc;
-	if (m_pcTextureLeft)
-		m_pcTextureLeft->GetLevelDesc(0, &sSurfaceDesc);
-	else if (m_pcTextureLeftTest)
-		m_pcTextureLeftTest->GetLevelDesc(0, &sSurfaceDesc);
-	else ZeroMemory(&sSurfaceDesc, sizeof(D3DSURFACE_DESC));
-	ovrSizei sTextureSize;
-	sTextureSize.w = (int)sSurfaceDesc.Width;
-	sTextureSize.h = (int)sSurfaceDesc.Height;
-
-	// set render viewport size the same size as the texture size (!)
-	ovrRecti sRenderViewport;
-	sRenderViewport.Pos.x = 0;
-	sRenderViewport.Pos.y = 0;
-	sRenderViewport.Size.w = sTextureSize.w;
-	sRenderViewport.Size.h = sTextureSize.h;
-
-	// get and set scale and offset
-	ovrVector2f UVScaleOffset[2];
-	if (m_psFOVPortLeft)
-		ovrHmd_GetRenderScaleAndOffset(*m_psFOVPortLeft, sTextureSize, sRenderViewport, UVScaleOffset);
-	else
-		ovrHmd_GetRenderScaleAndOffset(m_sDefaultFOVPortLeft, sTextureSize, sRenderViewport, UVScaleOffset);
-	pDevice->SetVertexShaderConstantF( 0, ( FLOAT* )&UVScaleOffset[0], 1 );
-	pDevice->SetVertexShaderConstantF( 2, ( FLOAT* )&UVScaleOffset[1], 1 );
-
 	// left eye, first set stream source, indices
-	pDevice->SetStreamSource( 0, m_pcDistortionVertexBufferLeft,0, sizeof(ovrDistortionVertex) );
-	pDevice->SetIndices( m_pcDistortionIndexBufferLeft);
+	if (m_bBuffersConnected)
+	{
+		// no timewarp here, use standard vertex shader, set pixel shader, set vertex declaration
+		pcDevice->SetVertexShader( m_pcOculusVertexShader);
+		pcDevice->SetPixelShader( m_pcOculusPixelShader );
+		pcDevice->SetVertexDeclaration( m_pcVertexDecl );
 
-	// set texture
-	if (m_pcTextureLeft)
-		pDevice->SetTexture( 0, m_pcTextureLeft );
-	else if (m_pcTextureLeftTest)
-		pDevice->SetTexture( 0, m_pcTextureLeftTest );
-	else pDevice->SetTexture( 0, 0);
+		// set texture
+		if (m_pcTextureLeft)
+			pcDevice->SetTexture( 0, m_pcTextureLeft );
+		else if (m_pcTextureLeftTest)
+			pcDevice->SetTexture( 0, m_pcTextureLeftTest );
+		else pcDevice->SetTexture( 0, 0);
 
-	// draw
-	pDevice->DrawIndexedPrimitive( D3DPT_TRIANGLELIST,0,0, m_sVertexBufferDescLeft.Size / sizeof(ovrDistortionVertex) , 0, m_sIndexBufferDescLeft.Size / 6 );
+		// get texture size
+		if (m_pcTextureLeft)
+			m_pcTextureLeft->GetLevelDesc(0, &sSurfaceDesc);
+		else if (m_pcTextureLeftTest)
+			m_pcTextureLeftTest->GetLevelDesc(0, &sSurfaceDesc);
+		else ZeroMemory(&sSurfaceDesc, sizeof(D3DSURFACE_DESC));
+		sTextureSize.w = (int)sSurfaceDesc.Width;
+		sTextureSize.h = (int)sSurfaceDesc.Height;
+
+		// set render viewport size the same size as the texture size (!)
+		sRenderViewport.Pos.x = 0;
+		sRenderViewport.Pos.y = 0;
+		sRenderViewport.Size.w = sTextureSize.w;
+		sRenderViewport.Size.h = sTextureSize.h;
+
+		// get and set scale and offset
+		if (m_psFOVPortLeft)
+			ovrHmd_GetRenderScaleAndOffset(*m_psFOVPortLeft, sTextureSize, sRenderViewport, UVScaleOffset);
+		else
+			ovrHmd_GetRenderScaleAndOffset(m_sDefaultFOVPortLeft, sTextureSize, sRenderViewport, UVScaleOffset);
+		pcDevice->SetVertexShaderConstantF( 0, ( FLOAT* )&UVScaleOffset[0], 1 );
+		pcDevice->SetVertexShaderConstantF( 2, ( FLOAT* )&UVScaleOffset[1], 1 );
+		
+		pcDevice->SetStreamSource( 0, m_pcDistortionVertexBufferLeft,0, sizeof(ovrDistortionVertex) );
+		pcDevice->SetIndices( m_pcDistortionIndexBufferLeft);
+
+		// draw
+		pcDevice->DrawIndexedPrimitive( D3DPT_TRIANGLELIST,0,0, m_sVertexBufferDescLeft.Size / sizeof(ovrDistortionVertex) , 0, m_sIndexBufferDescLeft.Size / 6 );
+	}
+	else
+	{
+		// side by side render
+		pcDevice->SetVertexShader(NULL);
+		pcDevice->SetPixelShader(m_pcSideBySidePixelShader);
+		pcDevice->SetVertexDeclaration( NULL );
+		pcDevice->SetFVF(D3DFVF_TEXVERTEX);
+
+		// set textures
+		if (m_pcTextureLeft)
+			pcDevice->SetTexture( 0, m_pcTextureLeft );
+		else if (m_pcTextureLeftTest)
+			pcDevice->SetTexture( 0, m_pcTextureLeftTest );
+		else pcDevice->SetTexture( 0, 0);
+		if (m_pcTextureRight)
+			pcDevice->SetTexture( 1, m_pcTextureRight );
+		else if (m_pcTextureRightTest)
+			pcDevice->SetTexture( 1, m_pcTextureRightTest );
+		else pcDevice->SetTexture( 1, 0);
+
+		// set stream and draw
+		pcDevice->SetStreamSource( 0, m_pcVertexBufferDefault,0, sizeof(TEXVERTEX) );
+		pcDevice->DrawPrimitive(D3DPT_TRIANGLEFAN, 0, 2);
+	}
 
 	// RIGHT EYE:
+	if (m_bBuffersConnected)
+	{
+		// set texture
+		if (m_pcTextureRight)
+			pcDevice->SetTexture( 0, m_pcTextureRight );
+		else if (m_pcTextureRightTest)
+			pcDevice->SetTexture( 0, m_pcTextureRightTest );
+		else pcDevice->SetTexture( 0, 0);
 
-	// get texture size
-	if (m_pcTextureRight)
-		m_pcTextureRight->GetLevelDesc(0, &sSurfaceDesc);
-	else if (m_pcTextureRightTest)
-		m_pcTextureRightTest->GetLevelDesc(0, &sSurfaceDesc);
-	else ZeroMemory(&sSurfaceDesc, sizeof(D3DSURFACE_DESC));
-	sTextureSize.w = (int)sSurfaceDesc.Width;
-	sTextureSize.h = (int)sSurfaceDesc.Height;
+		// get texture size
+		if (m_pcTextureRight)
+			m_pcTextureRight->GetLevelDesc(0, &sSurfaceDesc);
+		else if (m_pcTextureRightTest)
+			m_pcTextureRightTest->GetLevelDesc(0, &sSurfaceDesc);
+		else ZeroMemory(&sSurfaceDesc, sizeof(D3DSURFACE_DESC));
+		sTextureSize.w = (int)sSurfaceDesc.Width;
+		sTextureSize.h = (int)sSurfaceDesc.Height;
 
-	// get and set scale and offset
-	if (m_psFOVPortRight)
-		ovrHmd_GetRenderScaleAndOffset(*m_psFOVPortRight, sTextureSize, sRenderViewport, UVScaleOffset);
-	else
-		ovrHmd_GetRenderScaleAndOffset(m_sDefaultFOVPortRight, sTextureSize, sRenderViewport, UVScaleOffset);
-	pDevice->SetVertexShaderConstantF( 0, ( FLOAT* )&UVScaleOffset[0], 1 );
-	pDevice->SetVertexShaderConstantF( 2, ( FLOAT* )&UVScaleOffset[1], 1 );
+		// get and set scale and offset
+		if (m_psFOVPortRight)
+			ovrHmd_GetRenderScaleAndOffset(*m_psFOVPortRight, sTextureSize, sRenderViewport, UVScaleOffset);
+		else
+			ovrHmd_GetRenderScaleAndOffset(m_sDefaultFOVPortRight, sTextureSize, sRenderViewport, UVScaleOffset);
+		pcDevice->SetVertexShaderConstantF( 0, ( FLOAT* )&UVScaleOffset[0], 1 );
+		pcDevice->SetVertexShaderConstantF( 2, ( FLOAT* )&UVScaleOffset[1], 1 );
 
-	// set stream source, indices
-	pDevice->SetStreamSource( 0, m_pcDistortionVertexBufferRight,0, sizeof(ovrDistortionVertex) );
-	pDevice->SetIndices( m_pcDistortionIndexBufferRight);
+		// set stream source, indices, draw
+		pcDevice->SetStreamSource( 0, m_pcDistortionVertexBufferRight,0, sizeof(ovrDistortionVertex) );
+		pcDevice->SetIndices( m_pcDistortionIndexBufferRight);
 
-	// set texture
-	if (m_pcTextureRight)
-		pDevice->SetTexture( 0, m_pcTextureRight );
-	else if (m_pcTextureRightTest)
-		pDevice->SetTexture( 0, m_pcTextureRightTest );
-	else pDevice->SetTexture( 0, 0);
+		// draw
+		pcDevice->DrawIndexedPrimitive( D3DPT_TRIANGLELIST,0,0, m_sVertexBufferDescRight.Size / sizeof(ovrDistortionVertex) , 0, m_sIndexBufferDescRight.Size / 6 );
+	}
 
-	// draw
-	pDevice->DrawIndexedPrimitive( D3DPT_TRIANGLELIST,0,0, m_sVertexBufferDescRight.Size / sizeof(ovrDistortionVertex) , 0, m_sIndexBufferDescRight.Size / 6 );
-
-	pDevice->EndScene();
+	pcDevice->EndScene();
 
 	pStateBlock->Apply();
 	pStateBlock->Release();
 
 	// release device if provided by swapchain
-	if (bReleaseDevice) pDevice->Release();
+	if (bReleaseDevice) pcDevice->Release();
 
 	return nullptr;
 }
@@ -573,128 +637,183 @@ void* OculusRenderer::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 * Sets all Direct3D 9 render states to their default values.
 * Use this function only if a game does not want to render.
 ***/
-void OculusRenderer::SetAllRenderStatesDefault(LPDIRECT3DDEVICE9 pDevice)
+void OculusRenderer::SetAllRenderStatesDefault(LPDIRECT3DDEVICE9 pcDevice)
 {
 	// set all Direct3D 9 RenderStates to default values
 	float fData = 0.0f;
 	double dData = 0.0f;
 
-	pDevice->SetRenderState(D3DRS_ZENABLE                     , D3DZB_TRUE);
-	pDevice->SetRenderState(D3DRS_FILLMODE                    , D3DFILL_SOLID);
-	pDevice->SetRenderState(D3DRS_SHADEMODE                   , D3DSHADE_GOURAUD);
-	pDevice->SetRenderState(D3DRS_ZWRITEENABLE                , TRUE);
-	pDevice->SetRenderState(D3DRS_ALPHATESTENABLE             , FALSE);
-	pDevice->SetRenderState(D3DRS_LASTPIXEL                   , TRUE);
-	pDevice->SetRenderState(D3DRS_SRCBLEND                    , D3DBLEND_ONE);
-	pDevice->SetRenderState(D3DRS_DESTBLEND                   , D3DBLEND_ZERO);
-	pDevice->SetRenderState(D3DRS_CULLMODE                    , D3DCULL_CCW);
-	pDevice->SetRenderState(D3DRS_ZFUNC                       , D3DCMP_LESSEQUAL);
-	pDevice->SetRenderState(D3DRS_ALPHAREF                    , 0);
-	pDevice->SetRenderState(D3DRS_ALPHAFUNC                   , D3DCMP_ALWAYS);
-	pDevice->SetRenderState(D3DRS_DITHERENABLE                , FALSE);
-	pDevice->SetRenderState(D3DRS_ALPHABLENDENABLE            , FALSE);
-	pDevice->SetRenderState(D3DRS_FOGENABLE                   , FALSE);
-	pDevice->SetRenderState(D3DRS_SPECULARENABLE              , FALSE);
-	pDevice->SetRenderState(D3DRS_FOGCOLOR                    , 0);
-	pDevice->SetRenderState(D3DRS_FOGTABLEMODE                , D3DFOG_NONE);
+	pcDevice->SetRenderState(D3DRS_ZENABLE                     , D3DZB_TRUE);
+	pcDevice->SetRenderState(D3DRS_FILLMODE                    , D3DFILL_SOLID);
+	pcDevice->SetRenderState(D3DRS_SHADEMODE                   , D3DSHADE_GOURAUD);
+	pcDevice->SetRenderState(D3DRS_ZWRITEENABLE                , TRUE);
+	pcDevice->SetRenderState(D3DRS_ALPHATESTENABLE             , FALSE);
+	pcDevice->SetRenderState(D3DRS_LASTPIXEL                   , TRUE);
+	pcDevice->SetRenderState(D3DRS_SRCBLEND                    , D3DBLEND_ONE);
+	pcDevice->SetRenderState(D3DRS_DESTBLEND                   , D3DBLEND_ZERO);
+	pcDevice->SetRenderState(D3DRS_CULLMODE                    , D3DCULL_CCW);
+	pcDevice->SetRenderState(D3DRS_ZFUNC                       , D3DCMP_LESSEQUAL);
+	pcDevice->SetRenderState(D3DRS_ALPHAREF                    , 0);
+	pcDevice->SetRenderState(D3DRS_ALPHAFUNC                   , D3DCMP_ALWAYS);
+	pcDevice->SetRenderState(D3DRS_DITHERENABLE                , FALSE);
+	pcDevice->SetRenderState(D3DRS_ALPHABLENDENABLE            , FALSE);
+	pcDevice->SetRenderState(D3DRS_FOGENABLE                   , FALSE);
+	pcDevice->SetRenderState(D3DRS_SPECULARENABLE              , FALSE);
+	pcDevice->SetRenderState(D3DRS_FOGCOLOR                    , 0);
+	pcDevice->SetRenderState(D3DRS_FOGTABLEMODE                , D3DFOG_NONE);
 	fData = 0.0f;
-	pDevice->SetRenderState(D3DRS_FOGSTART                    , *((DWORD*)&fData));
+	pcDevice->SetRenderState(D3DRS_FOGSTART                    , *((DWORD*)&fData));
 	fData = 1.0f;
-	pDevice->SetRenderState(D3DRS_FOGEND                      , *((DWORD*)&fData));
+	pcDevice->SetRenderState(D3DRS_FOGEND                      , *((DWORD*)&fData));
 	fData = 1.0f;
-	pDevice->SetRenderState(D3DRS_FOGDENSITY                  , *((DWORD*)&fData));
-	pDevice->SetRenderState(D3DRS_RANGEFOGENABLE              , FALSE);
-	pDevice->SetRenderState(D3DRS_STENCILENABLE               , FALSE);
-	pDevice->SetRenderState(D3DRS_STENCILFAIL                 , D3DSTENCILOP_KEEP);
-	pDevice->SetRenderState(D3DRS_STENCILZFAIL                , D3DSTENCILOP_KEEP);
-	pDevice->SetRenderState(D3DRS_STENCILPASS                 , D3DSTENCILOP_KEEP);
-	pDevice->SetRenderState(D3DRS_STENCILFUNC                 , D3DCMP_ALWAYS);
-	pDevice->SetRenderState(D3DRS_STENCILREF                  , 0);
-	pDevice->SetRenderState(D3DRS_STENCILMASK                 , 0xFFFFFFFF);
-	pDevice->SetRenderState(D3DRS_STENCILWRITEMASK            , 0xFFFFFFFF);
-	pDevice->SetRenderState(D3DRS_TEXTUREFACTOR               , 0xFFFFFFFF);
-	pDevice->SetRenderState(D3DRS_WRAP0                       , 0);
-	pDevice->SetRenderState(D3DRS_WRAP1                       , 0);
-	pDevice->SetRenderState(D3DRS_WRAP2                       , 0);
-	pDevice->SetRenderState(D3DRS_WRAP3                       , 0);
-	pDevice->SetRenderState(D3DRS_WRAP4                       , 0);
-	pDevice->SetRenderState(D3DRS_WRAP5                       , 0);
-	pDevice->SetRenderState(D3DRS_WRAP6                       , 0);
-	pDevice->SetRenderState(D3DRS_WRAP7                       , 0);
-	pDevice->SetRenderState(D3DRS_CLIPPING                    , TRUE);
-	pDevice->SetRenderState(D3DRS_LIGHTING                    , TRUE);
-	pDevice->SetRenderState(D3DRS_AMBIENT                     , 0);
-	pDevice->SetRenderState(D3DRS_FOGVERTEXMODE               , D3DFOG_NONE);
-	pDevice->SetRenderState(D3DRS_COLORVERTEX                 , TRUE);
-	pDevice->SetRenderState(D3DRS_LOCALVIEWER                 , TRUE);
-	pDevice->SetRenderState(D3DRS_NORMALIZENORMALS            , FALSE);
-	pDevice->SetRenderState(D3DRS_DIFFUSEMATERIALSOURCE       , D3DMCS_COLOR1);
-	pDevice->SetRenderState(D3DRS_SPECULARMATERIALSOURCE      , D3DMCS_COLOR2);
-	pDevice->SetRenderState(D3DRS_AMBIENTMATERIALSOURCE       , D3DMCS_MATERIAL);
-	pDevice->SetRenderState(D3DRS_EMISSIVEMATERIALSOURCE      , D3DMCS_MATERIAL);
-	pDevice->SetRenderState(D3DRS_VERTEXBLEND                 , D3DVBF_DISABLE);
-	pDevice->SetRenderState(D3DRS_CLIPPLANEENABLE             , 0);
-	pDevice->SetRenderState(D3DRS_POINTSIZE                   , 64);
+	pcDevice->SetRenderState(D3DRS_FOGDENSITY                  , *((DWORD*)&fData));
+	pcDevice->SetRenderState(D3DRS_RANGEFOGENABLE              , FALSE);
+	pcDevice->SetRenderState(D3DRS_STENCILENABLE               , FALSE);
+	pcDevice->SetRenderState(D3DRS_STENCILFAIL                 , D3DSTENCILOP_KEEP);
+	pcDevice->SetRenderState(D3DRS_STENCILZFAIL                , D3DSTENCILOP_KEEP);
+	pcDevice->SetRenderState(D3DRS_STENCILPASS                 , D3DSTENCILOP_KEEP);
+	pcDevice->SetRenderState(D3DRS_STENCILFUNC                 , D3DCMP_ALWAYS);
+	pcDevice->SetRenderState(D3DRS_STENCILREF                  , 0);
+	pcDevice->SetRenderState(D3DRS_STENCILMASK                 , 0xFFFFFFFF);
+	pcDevice->SetRenderState(D3DRS_STENCILWRITEMASK            , 0xFFFFFFFF);
+	pcDevice->SetRenderState(D3DRS_TEXTUREFACTOR               , 0xFFFFFFFF);
+	pcDevice->SetRenderState(D3DRS_WRAP0                       , 0);
+	pcDevice->SetRenderState(D3DRS_WRAP1                       , 0);
+	pcDevice->SetRenderState(D3DRS_WRAP2                       , 0);
+	pcDevice->SetRenderState(D3DRS_WRAP3                       , 0);
+	pcDevice->SetRenderState(D3DRS_WRAP4                       , 0);
+	pcDevice->SetRenderState(D3DRS_WRAP5                       , 0);
+	pcDevice->SetRenderState(D3DRS_WRAP6                       , 0);
+	pcDevice->SetRenderState(D3DRS_WRAP7                       , 0);
+	pcDevice->SetRenderState(D3DRS_CLIPPING                    , TRUE);
+	pcDevice->SetRenderState(D3DRS_LIGHTING                    , TRUE);
+	pcDevice->SetRenderState(D3DRS_AMBIENT                     , 0);
+	pcDevice->SetRenderState(D3DRS_FOGVERTEXMODE               , D3DFOG_NONE);
+	pcDevice->SetRenderState(D3DRS_COLORVERTEX                 , TRUE);
+	pcDevice->SetRenderState(D3DRS_LOCALVIEWER                 , TRUE);
+	pcDevice->SetRenderState(D3DRS_NORMALIZENORMALS            , FALSE);
+	pcDevice->SetRenderState(D3DRS_DIFFUSEMATERIALSOURCE       , D3DMCS_COLOR1);
+	pcDevice->SetRenderState(D3DRS_SPECULARMATERIALSOURCE      , D3DMCS_COLOR2);
+	pcDevice->SetRenderState(D3DRS_AMBIENTMATERIALSOURCE       , D3DMCS_MATERIAL);
+	pcDevice->SetRenderState(D3DRS_EMISSIVEMATERIALSOURCE      , D3DMCS_MATERIAL);
+	pcDevice->SetRenderState(D3DRS_VERTEXBLEND                 , D3DVBF_DISABLE);
+	pcDevice->SetRenderState(D3DRS_CLIPPLANEENABLE             , 0);
+	pcDevice->SetRenderState(D3DRS_POINTSIZE                   , 64);
 	fData = 1.0f;
-	pDevice->SetRenderState(D3DRS_POINTSIZE_MIN               , *((DWORD*)&fData));
-	pDevice->SetRenderState(D3DRS_POINTSPRITEENABLE           , FALSE);
-	pDevice->SetRenderState(D3DRS_POINTSCALEENABLE            , FALSE);
+	pcDevice->SetRenderState(D3DRS_POINTSIZE_MIN               , *((DWORD*)&fData));
+	pcDevice->SetRenderState(D3DRS_POINTSPRITEENABLE           , FALSE);
+	pcDevice->SetRenderState(D3DRS_POINTSCALEENABLE            , FALSE);
 	fData = 1.0f;
-	pDevice->SetRenderState(D3DRS_POINTSCALE_A                , *((DWORD*)&fData));
+	pcDevice->SetRenderState(D3DRS_POINTSCALE_A                , *((DWORD*)&fData));
 	fData = 0.0f;
-	pDevice->SetRenderState(D3DRS_POINTSCALE_B                , *((DWORD*)&fData));
+	pcDevice->SetRenderState(D3DRS_POINTSCALE_B                , *((DWORD*)&fData));
 	fData = 0.0f;
-	pDevice->SetRenderState(D3DRS_POINTSCALE_C                , *((DWORD*)&fData));
-	pDevice->SetRenderState(D3DRS_MULTISAMPLEANTIALIAS        , TRUE);
-	pDevice->SetRenderState(D3DRS_MULTISAMPLEMASK             , 0xFFFFFFFF);
-	pDevice->SetRenderState(D3DRS_PATCHEDGESTYLE              , D3DPATCHEDGE_DISCRETE);
-	pDevice->SetRenderState(D3DRS_DEBUGMONITORTOKEN           , D3DDMT_ENABLE);
+	pcDevice->SetRenderState(D3DRS_POINTSCALE_C                , *((DWORD*)&fData));
+	pcDevice->SetRenderState(D3DRS_MULTISAMPLEANTIALIAS        , TRUE);
+	pcDevice->SetRenderState(D3DRS_MULTISAMPLEMASK             , 0xFFFFFFFF);
+	pcDevice->SetRenderState(D3DRS_PATCHEDGESTYLE              , D3DPATCHEDGE_DISCRETE);
+	pcDevice->SetRenderState(D3DRS_DEBUGMONITORTOKEN           , D3DDMT_ENABLE);
 	dData = 64.0;
-	pDevice->SetRenderState(D3DRS_POINTSIZE_MAX               , *((DWORD*)&dData));
-	pDevice->SetRenderState(D3DRS_INDEXEDVERTEXBLENDENABLE    , FALSE);
-	pDevice->SetRenderState(D3DRS_COLORWRITEENABLE            , 0x0000000F);
+	pcDevice->SetRenderState(D3DRS_POINTSIZE_MAX               , *((DWORD*)&dData));
+	pcDevice->SetRenderState(D3DRS_INDEXEDVERTEXBLENDENABLE    , FALSE);
+	pcDevice->SetRenderState(D3DRS_COLORWRITEENABLE            , 0x0000000F);
 	fData = 0.0f;
-	pDevice->SetRenderState(D3DRS_TWEENFACTOR                 , *((DWORD*)&fData));
-	pDevice->SetRenderState(D3DRS_BLENDOP                     , D3DBLENDOP_ADD);
-	pDevice->SetRenderState(D3DRS_POSITIONDEGREE              , D3DDEGREE_CUBIC);
-	pDevice->SetRenderState(D3DRS_NORMALDEGREE                , D3DDEGREE_LINEAR );
-	pDevice->SetRenderState(D3DRS_SCISSORTESTENABLE           , FALSE);
-	pDevice->SetRenderState(D3DRS_SLOPESCALEDEPTHBIAS         , 0);
-	pDevice->SetRenderState(D3DRS_ANTIALIASEDLINEENABLE       , FALSE);
+	pcDevice->SetRenderState(D3DRS_TWEENFACTOR                 , *((DWORD*)&fData));
+	pcDevice->SetRenderState(D3DRS_BLENDOP                     , D3DBLENDOP_ADD);
+	pcDevice->SetRenderState(D3DRS_POSITIONDEGREE              , D3DDEGREE_CUBIC);
+	pcDevice->SetRenderState(D3DRS_NORMALDEGREE                , D3DDEGREE_LINEAR );
+	pcDevice->SetRenderState(D3DRS_SCISSORTESTENABLE           , FALSE);
+	pcDevice->SetRenderState(D3DRS_SLOPESCALEDEPTHBIAS         , 0);
+	pcDevice->SetRenderState(D3DRS_ANTIALIASEDLINEENABLE       , FALSE);
 	fData = 1.0f;
-	pDevice->SetRenderState(D3DRS_MINTESSELLATIONLEVEL        , *((DWORD*)&fData));
+	pcDevice->SetRenderState(D3DRS_MINTESSELLATIONLEVEL        , *((DWORD*)&fData));
 	fData = 1.0f;
-	pDevice->SetRenderState(D3DRS_MAXTESSELLATIONLEVEL        , *((DWORD*)&fData));
+	pcDevice->SetRenderState(D3DRS_MAXTESSELLATIONLEVEL        , *((DWORD*)&fData));
 	fData = 0.0f;
-	pDevice->SetRenderState(D3DRS_ADAPTIVETESS_X              , *((DWORD*)&fData));
+	pcDevice->SetRenderState(D3DRS_ADAPTIVETESS_X              , *((DWORD*)&fData));
 	fData = 0.0f;
-	pDevice->SetRenderState(D3DRS_ADAPTIVETESS_Y              , *((DWORD*)&fData));
+	pcDevice->SetRenderState(D3DRS_ADAPTIVETESS_Y              , *((DWORD*)&fData));
 	fData = 1.0f;
-	pDevice->SetRenderState(D3DRS_ADAPTIVETESS_Z              , *((DWORD*)&fData));
+	pcDevice->SetRenderState(D3DRS_ADAPTIVETESS_Z              , *((DWORD*)&fData));
 	fData = 0.0f;
-	pDevice->SetRenderState(D3DRS_ADAPTIVETESS_W              , *((DWORD*)&fData));
-	pDevice->SetRenderState(D3DRS_ENABLEADAPTIVETESSELLATION  , FALSE);
-	pDevice->SetRenderState(D3DRS_TWOSIDEDSTENCILMODE         , FALSE);
-	pDevice->SetRenderState(D3DRS_CCW_STENCILFAIL             , D3DSTENCILOP_KEEP);
-	pDevice->SetRenderState(D3DRS_CCW_STENCILZFAIL            , D3DSTENCILOP_KEEP);
-	pDevice->SetRenderState(D3DRS_CCW_STENCILPASS             , D3DSTENCILOP_KEEP);
-	pDevice->SetRenderState(D3DRS_CCW_STENCILFUNC             , D3DCMP_ALWAYS);
-	pDevice->SetRenderState(D3DRS_COLORWRITEENABLE1           , 0x0000000f);
-	pDevice->SetRenderState(D3DRS_COLORWRITEENABLE2           , 0x0000000f);
-	pDevice->SetRenderState(D3DRS_COLORWRITEENABLE3           , 0x0000000f);
-	pDevice->SetRenderState(D3DRS_BLENDFACTOR                 , 0xffffffff);
-	pDevice->SetRenderState(D3DRS_SRGBWRITEENABLE             , 0);
-	pDevice->SetRenderState(D3DRS_DEPTHBIAS                   , 0);
-	pDevice->SetRenderState(D3DRS_WRAP8                       , 0);
-	pDevice->SetRenderState(D3DRS_WRAP9                       , 0);
-	pDevice->SetRenderState(D3DRS_WRAP10                      , 0);
-	pDevice->SetRenderState(D3DRS_WRAP11                      , 0);
-	pDevice->SetRenderState(D3DRS_WRAP12                      , 0);
-	pDevice->SetRenderState(D3DRS_WRAP13                      , 0);
-	pDevice->SetRenderState(D3DRS_WRAP14                      , 0);
-	pDevice->SetRenderState(D3DRS_WRAP15                      , 0);
-	pDevice->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE    , FALSE);
-	pDevice->SetRenderState(D3DRS_SRCBLENDALPHA               , D3DBLEND_ONE);
-	pDevice->SetRenderState(D3DRS_DESTBLENDALPHA              , D3DBLEND_ZERO);
-	pDevice->SetRenderState(D3DRS_BLENDOPALPHA                , D3DBLENDOP_ADD);
+	pcDevice->SetRenderState(D3DRS_ADAPTIVETESS_W              , *((DWORD*)&fData));
+	pcDevice->SetRenderState(D3DRS_ENABLEADAPTIVETESSELLATION  , FALSE);
+	pcDevice->SetRenderState(D3DRS_TWOSIDEDSTENCILMODE         , FALSE);
+	pcDevice->SetRenderState(D3DRS_CCW_STENCILFAIL             , D3DSTENCILOP_KEEP);
+	pcDevice->SetRenderState(D3DRS_CCW_STENCILZFAIL            , D3DSTENCILOP_KEEP);
+	pcDevice->SetRenderState(D3DRS_CCW_STENCILPASS             , D3DSTENCILOP_KEEP);
+	pcDevice->SetRenderState(D3DRS_CCW_STENCILFUNC             , D3DCMP_ALWAYS);
+	pcDevice->SetRenderState(D3DRS_COLORWRITEENABLE1           , 0x0000000f);
+	pcDevice->SetRenderState(D3DRS_COLORWRITEENABLE2           , 0x0000000f);
+	pcDevice->SetRenderState(D3DRS_COLORWRITEENABLE3           , 0x0000000f);
+	pcDevice->SetRenderState(D3DRS_BLENDFACTOR                 , 0xffffffff);
+	pcDevice->SetRenderState(D3DRS_SRGBWRITEENABLE             , 0);
+	pcDevice->SetRenderState(D3DRS_DEPTHBIAS                   , 0);
+	pcDevice->SetRenderState(D3DRS_WRAP8                       , 0);
+	pcDevice->SetRenderState(D3DRS_WRAP9                       , 0);
+	pcDevice->SetRenderState(D3DRS_WRAP10                      , 0);
+	pcDevice->SetRenderState(D3DRS_WRAP11                      , 0);
+	pcDevice->SetRenderState(D3DRS_WRAP12                      , 0);
+	pcDevice->SetRenderState(D3DRS_WRAP13                      , 0);
+	pcDevice->SetRenderState(D3DRS_WRAP14                      , 0);
+	pcDevice->SetRenderState(D3DRS_WRAP15                      , 0);
+	pcDevice->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE    , FALSE);
+	pcDevice->SetRenderState(D3DRS_SRCBLENDALPHA               , D3DBLEND_ONE);
+	pcDevice->SetRenderState(D3DRS_DESTBLENDALPHA              , D3DBLEND_ZERO);
+	pcDevice->SetRenderState(D3DRS_BLENDOPALPHA                , D3DBLENDOP_ADD);
+}
+
+/**
+* Inits a full screen vertex buffer containing 4 vertices.
+***/
+void OculusRenderer::InitDefaultVertexBuffer(LPDIRECT3DDEVICE9 pcDevice)
+{
+	// get the viewport
+	D3DVIEWPORT9 sViewport;
+	pcDevice->GetViewport(&sViewport);
+
+	// create vertex buffer
+	pcDevice->CreateVertexBuffer(sizeof(TEXVERTEX) * 4, NULL,
+		D3DFVF_TEXVERTEX, D3DPOOL_MANAGED, &m_pcVertexBufferDefault, NULL);
+
+	// ..and lock
+	TEXVERTEX* vertices;
+	m_pcVertexBufferDefault->Lock(0, 0, (void**)&vertices, NULL);
+
+	RECT* rDest = new RECT();
+	rDest->left = 0;
+	rDest->right = int(sViewport.Width);
+	rDest->top = 0;
+	rDest->bottom = int(sViewport.Height);
+
+	//Setup vertices
+	vertices[0].x = (float) rDest->left - 0.5f;
+	vertices[0].y = (float) rDest->top - 0.5f;
+	vertices[0].z = 0.0f;
+	vertices[0].rhw = 1.0f;
+	vertices[0].u = 0.0f;
+	vertices[0].v = 0.0f;
+
+	vertices[1].x = (float) rDest->right - 0.5f;
+	vertices[1].y = (float) rDest->top - 0.5f;
+	vertices[1].z = 0.0f;
+	vertices[1].rhw = 1.0f;
+	vertices[1].u = 1.0f;
+	vertices[1].v = 0.0f;
+
+	vertices[2].x = (float) rDest->right - 0.5f;
+	vertices[2].y = (float) rDest->bottom - 0.5f;
+	vertices[2].z = 0.0f;
+	vertices[2].rhw = 1.0f;
+	vertices[2].u = 1.0f;	
+	vertices[2].v = 1.0f;
+
+	vertices[3].x = (float) rDest->left - 0.5f;
+	vertices[3].y = (float) rDest->bottom - 0.5f;
+	vertices[3].z = 0.0f;
+	vertices[3].rhw = 1.0f;
+	vertices[3].u = 0.0f;
+	vertices[3].v = 1.0f;
+
+	m_pcVertexBufferDefault->Unlock();
 }

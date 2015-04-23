@@ -63,7 +63,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***/
 typedef struct ovrSizei_
 {
-    int w, h;
+	int w, h;
 } ovrSizei;
 
 /**
@@ -81,7 +81,7 @@ typedef struct ovrVector2f_
 ***/
 typedef struct ovrVector2i_
 {
-    int x, y;
+	int x, y;
 } ovrVector2i;
 
 /**
@@ -91,8 +91,8 @@ typedef struct ovrVector2i_
 ***/
 typedef struct ovrRecti_
 {
-    ovrVector2i Pos;
-    ovrSizei    Size;
+	ovrVector2i Pos;
+	ovrSizei    Size;
 } ovrRecti;
 
 /**
@@ -118,11 +118,11 @@ typedef struct ovrDistortionVertex_
 ***/
 struct ScaleAndOffset2D
 {
-    ovrVector2f Scale;
-    ovrVector2f Offset;
+	ovrVector2f Scale;
+	ovrVector2f Offset;
 
-    ScaleAndOffset2D(float sx = 0.0f, float sy = 0.0f, float ox = 0.0f, float oy = 0.0f)
-    { 
+	ScaleAndOffset2D(float sx = 0.0f, float sy = 0.0f, float ox = 0.0f, float oy = 0.0f)
+	{ 
 		Scale.x = sx;
 		Scale.y = sy;
 
@@ -139,22 +139,22 @@ struct ScaleAndOffset2D
 ***/
 typedef struct ovrFovPort_
 {
-    /**
+	/**
 	* The tangent of the angle between the viewing vector and the top edge of the field of view.
 	***/
-    float UpTan;
-    /**
+	float UpTan;
+	/**
 	* The tangent of the angle between the viewing vector and the bottom edge of the field of view.
 	***/
-    float DownTan;
-    /**
+	float DownTan;
+	/**
 	* The tangent of the angle between the viewing vector and the left edge of the field of view.
 	***/
-    float LeftTan;
-    /**
+	float LeftTan;
+	/**
 	* The tangent of the angle between the viewing vector and the right edge of the field of view.
 	***/
-    float RightTan;
+	float RightTan;
 } ovrFovPort;
 
 /**
@@ -229,6 +229,32 @@ const char* PixelShaderSrc =
 	"}";
 
 /**
+* Simple side by side pixel shader.
+***/
+const char* PixelShaderSrcSideBySide =
+	"// Combines two images into one Side-by-Side image		                           \n"
+
+	"sampler2D TexMap0;		                                                           \n"
+	"sampler2D TexMap1;		                                                           \n"
+
+	"float4 SBS(float2 Tex : TEXCOORD0) : COLOR		                                   \n"
+	"{		                                                                           \n"
+	"	float4 tColor;		                                                           \n"
+	"	float2 newPos = Tex;		                                                   \n"
+	"	if(newPos.x < 0.5)		                                                       \n"
+	"	{		                                                                       \n"
+	"		newPos.x = newPos.x * 2.0f;		                                           \n"
+	"		tColor = tex2D(TexMap0, newPos);			                               \n"
+	"	}		                                                                       \n"
+	"	else 		                                                                   \n"
+	"	{		                                                                       \n"
+	"		newPos.x = (newPos.x - 0.5f) * 2.0f;		                               \n"
+	"		tColor = tex2D(TexMap1, newPos);		                                   \n"
+	"	}		                                                                       \n"
+	"	return tColor;		                                                           \n"
+	"}		                                                                           \n";
+
+/**
 * LibOVR method to create scale and offset from FOV.
 ***/
 ScaleAndOffset2D CreateNDCScaleAndOffsetFromFov(ovrFovPort tanHalfFov)
@@ -237,21 +263,21 @@ ScaleAndOffset2D CreateNDCScaleAndOffsetFromFov(ovrFovPort tanHalfFov)
 	if (tanHalfFov.LeftTan == 0.0f) tanHalfFov.LeftTan = 0.0001f;
 	if (tanHalfFov.UpTan == 0.0f) tanHalfFov.UpTan = 0.0001f;
 
-    float projXScale = 2.0f / ( tanHalfFov.LeftTan + tanHalfFov.RightTan );
-    float projXOffset = ( tanHalfFov.LeftTan - tanHalfFov.RightTan ) * projXScale * 0.5f;
-    float projYScale = 2.0f / ( tanHalfFov.UpTan + tanHalfFov.DownTan );
-    float projYOffset = ( tanHalfFov.UpTan - tanHalfFov.DownTan ) * projYScale * 0.5f;
+	float projXScale = 2.0f / ( tanHalfFov.LeftTan + tanHalfFov.RightTan );
+	float projXOffset = ( tanHalfFov.LeftTan - tanHalfFov.RightTan ) * projXScale * 0.5f;
+	float projYScale = 2.0f / ( tanHalfFov.UpTan + tanHalfFov.DownTan );
+	float projYOffset = ( tanHalfFov.UpTan - tanHalfFov.DownTan ) * projYScale * 0.5f;
 
-    ScaleAndOffset2D result;
-    result.Scale.x  = projXScale;
+	ScaleAndOffset2D result;
+	result.Scale.x  = projXScale;
 	result.Scale.y  = projYScale;
 	result.Offset.x = projXOffset;
 	result.Offset.y	= projYOffset;
-    // Hey - why is that Y.Offset negated?
-    // It's because a projection matrix transforms from world coords with Y=up,
-    // whereas this is from NDC which is Y=down.
+	// Hey - why is that Y.Offset negated?
+	// It's because a projection matrix transforms from world coords with Y=up,
+	// whereas this is from NDC which is Y=down.
 
-    return result;
+	return result;
 }
 
 /**
@@ -259,32 +285,32 @@ ScaleAndOffset2D CreateNDCScaleAndOffsetFromFov(ovrFovPort tanHalfFov)
 ***/
 ScaleAndOffset2D CreateUVScaleAndOffsetfromNDCScaleandOffset(ScaleAndOffset2D scaleAndOffsetNDC, ovrRecti renderedViewport, ovrSizei renderTargetSize)
 {
-    // scaleAndOffsetNDC takes you to NDC space [-1,+1] within the given viewport on the rendertarget.
-    // We want a scale to instead go to actual UV coordinates you can sample with,
-    // which need [0,1] and ignore the viewport.
-    ScaleAndOffset2D result;
-    // Scale [-1,1] to [0,1]
+	// scaleAndOffsetNDC takes you to NDC space [-1,+1] within the given viewport on the rendertarget.
+	// We want a scale to instead go to actual UV coordinates you can sample with,
+	// which need [0,1] and ignore the viewport.
+	ScaleAndOffset2D result;
+	// Scale [-1,1] to [0,1]
 	result.Scale.x = scaleAndOffsetNDC.Scale.x * 0.5f;
 	result.Scale.y = scaleAndOffsetNDC.Scale.y * 0.5f;
-    result.Offset.x = scaleAndOffsetNDC.Offset.x * 0.5f + 0.5f;
-    result.Offset.y = scaleAndOffsetNDC.Offset.y * 0.5f + 0.5f;
-    
-    // ...but we will have rendered to a subsection of the RT, so scale for that.
-    ovrVector2f scale;
+	result.Offset.x = scaleAndOffsetNDC.Offset.x * 0.5f + 0.5f;
+	result.Offset.y = scaleAndOffsetNDC.Offset.y * 0.5f + 0.5f;
+
+	// ...but we will have rendered to a subsection of the RT, so scale for that.
+	ovrVector2f scale;
 	scale.x = (float)renderedViewport.Size.w / (float)renderTargetSize.w;
 	scale.y = (float)renderedViewport.Size.h / (float)renderTargetSize.h;
-    ovrVector2f offset;
+	ovrVector2f offset;
 	offset.x = (float)renderedViewport.Pos.x / (float)renderTargetSize.w;
 	offset.y = (float)renderedViewport.Pos.y / (float)renderTargetSize.h;
 
 	// Vector2	EntrywiseMultiply(const Vector2& b) const	{ return Vector2(x * b.x, y * b.y);}
 	// result.Scale  = result.Scale.EntrywiseMultiply(scale);
-    // result.Offset  = result.Offset.EntrywiseMultiply(scale) + offset;
+	// result.Offset  = result.Offset.EntrywiseMultiply(scale) + offset;
 	result.Scale.x = result.Scale.x * scale.x;
 	result.Scale.y = result.Scale.y * scale.y;
 	result.Offset.x = result.Offset.x * scale.x + offset.x;
 	result.Offset.y = result.Offset.y * scale.y + offset.y;
-    return result;
+	return result;
 }
 
 /**
@@ -294,15 +320,15 @@ ScaleAndOffset2D CreateUVScaleAndOffsetfromNDCScaleandOffset(ScaleAndOffset2D sc
 ***/
 void ovrHmd_GetRenderScaleAndOffset( ovrFovPort fov, ovrSizei textureSize, ovrRecti renderViewport, ovrVector2f uvScaleOffsetOut[2] )
 {        
-    // Find the mapping from TanAngle space to target NDC space.
-    ScaleAndOffset2D  eyeToSourceNDC = CreateNDCScaleAndOffsetFromFov(fov);
-    // Find the mapping from TanAngle space to textureUV space.
-    ScaleAndOffset2D  eyeToSourceUV  = CreateUVScaleAndOffsetfromNDCScaleandOffset(
-                                         eyeToSourceNDC,
-                                         renderViewport, textureSize );
+	// Find the mapping from TanAngle space to target NDC space.
+	ScaleAndOffset2D  eyeToSourceNDC = CreateNDCScaleAndOffsetFromFov(fov);
+	// Find the mapping from TanAngle space to textureUV space.
+	ScaleAndOffset2D  eyeToSourceUV  = CreateUVScaleAndOffsetfromNDCScaleandOffset(
+		eyeToSourceNDC,
+		renderViewport, textureSize );
 
-    uvScaleOffsetOut[0].x = eyeToSourceUV.Scale.x;
-    uvScaleOffsetOut[0].y = eyeToSourceUV.Scale.y;
-    uvScaleOffsetOut[1].x = eyeToSourceUV.Offset.x;
-    uvScaleOffsetOut[1].y = eyeToSourceUV.Offset.y;
+	uvScaleOffsetOut[0].x = eyeToSourceUV.Scale.x;
+	uvScaleOffsetOut[0].y = eyeToSourceUV.Scale.y;
+	uvScaleOffsetOut[1].x = eyeToSourceUV.Offset.x;
+	uvScaleOffsetOut[1].y = eyeToSourceUV.Offset.y;
 }

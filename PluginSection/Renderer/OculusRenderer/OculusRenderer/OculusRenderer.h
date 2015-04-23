@@ -74,6 +74,23 @@ enum ORN_Decommanders
 };
 
 /**
+* Declaration of texture vertex used for default stereo output.
+***/
+const DWORD D3DFVF_TEXVERTEX = D3DFVF_XYZRHW | D3DFVF_TEX1;
+/**
+* Texture vertex used for full screen render.
+***/
+struct TEXVERTEX
+{
+	float x;
+	float y;
+	float z;
+	float rhw;
+	float u;
+	float v;
+};
+
+/**
 * Virtual Reality Oculus Node Plugin (Direct3D 9).
 ***/
 class OculusRenderer : public AQU_Nodus
@@ -99,7 +116,8 @@ public:
 
 private:
 	/*** OculusRenderer private methods ***/
-	void                    SetAllRenderStatesDefault(LPDIRECT3DDEVICE9 pDevice);
+	void                    SetAllRenderStatesDefault(LPDIRECT3DDEVICE9 pcDevice);
+	void                    InitDefaultVertexBuffer(LPDIRECT3DDEVICE9 pcDevice);
 
 	/**
 	* Pointers to input data. 
@@ -130,6 +148,14 @@ private:
 	***/
 	LPD3DXCONSTANTTABLE	m_pcOculusVertexShaderCT;
 	/**
+	* Side by side pixel shader.
+	***/
+	LPDIRECT3DPIXELSHADER9	m_pcSideBySidePixelShader;
+	/**
+	* Side by side pixel shader constant table.
+	***/
+	LPD3DXCONSTANTTABLE	m_pcSideBySidePixelShaderCT;
+	/**
 	* Left Eye Texture.
 	***/
 	LPDIRECT3DTEXTURE9 m_pcTextureLeft;
@@ -153,6 +179,10 @@ private:
 	* The direct3d 9 distortion mesh vertex buffer for the right eye.
 	***/
 	LPDIRECT3DVERTEXBUFFER9 m_pcDistortionVertexBufferRight;
+	/**
+	* The direct3d 9 default distortion mesh vertex buffer for side by side rendering.
+	***/
+	LPDIRECT3DVERTEXBUFFER9 m_pcVertexBufferDefault;
 	/**
 	* Oculus distortion vertex declaration (D3D9).
 	***/
@@ -197,6 +227,10 @@ private:
 	* Input FOV port, right.
 	***/
 	ovrFovPort* m_psFOVPortRight;
+	/**
+	* True if all buffers (vertex, index + declaration) are connected.
+	***/
+	bool m_bBuffersConnected;
 };
 
 /**

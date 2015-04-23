@@ -1273,8 +1273,8 @@ bool StereoSplitter::SetDrawingSide(IDirect3DDevice9* pcDevice, RenderPosition e
 			OutputDebugString(L"Error trying to set one of the textures while switching between active eyes for drawing.\n");
 	}
 
+	// TODO !!
 	// the rest of the code from the original method from the Vireio 2.x.x D3DProxyDevice 
-	// needs to be handled in the modification node
 
 	return true;
 }
