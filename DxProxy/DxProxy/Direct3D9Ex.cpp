@@ -195,7 +195,7 @@ HRESULT WINAPI BaseDirect3D9Ex::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType
 
 	// load configuration file
 	ProxyHelper helper = ProxyHelper();
-	ProxyHelper::ProxyConfig cfg;
+	ProxyConfig cfg;
 	ProxyHelper::OculusProfile oculusProfile;
 	if(!helper.LoadConfig(cfg, oculusProfile)) {
 		OutputDebugString("[ERR] Config loading failed, config could not be loaded. Returning normal D3DDevice. Vireio will not be active.\n");

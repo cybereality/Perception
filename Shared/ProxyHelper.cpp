@@ -1115,7 +1115,7 @@ bool ProxyHelper::GetProfile(char* name, char *path, bool _64bit, ProxyConfig& c
 }
 
 
-ProxyHelper::ProxyConfig::ProxyConfig()
+ProxyConfig::ProxyConfig()
 {
 }
 
@@ -1123,7 +1123,7 @@ ProxyHelper::ProxyConfig::ProxyConfig()
 * If swap_eyes is not set, returns the given eye; otherwise returns the opposite
 * of the given eye.
 */
-vireio::RenderPosition ProxyHelper::ProxyConfig::MaybeSwap(vireio::RenderPosition whichEye)
+vireio::RenderPosition ProxyConfig::MaybeSwap(vireio::RenderPosition whichEye)
 {
 	if(swap_eyes) {
 		if(whichEye == vireio::RenderPosition::Left)

@@ -63,8 +63,8 @@ public:
 	int intDuplicateTexture;
 
 	/*** GameHandler public methods ***/
-	bool                          Load(ProxyHelper::ProxyConfig& cfg, std::shared_ptr<ViewAdjustment> spShaderViewAdjustments);
-	bool                          Save(ProxyHelper::ProxyConfig& cfg, std::shared_ptr<ViewAdjustment> spShaderViewAdjustments);
+	bool                          Load(ProxyConfig& cfg, std::shared_ptr<ViewAdjustment> spShaderViewAdjustments);
+	bool                          Save(ProxyConfig& cfg, std::shared_ptr<ViewAdjustment> spShaderViewAdjustments);
 	bool                          ShouldDuplicateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample, DWORD MultisampleQuality,BOOL Lockable, bool isSwapChainBackBuffer);
 	bool                          ShouldDuplicateDepthStencilSurface(UINT Width,UINT Height,D3DFORMAT Format,D3DMULTISAMPLE_TYPE MultiSample,DWORD MultisampleQuality,BOOL Discard);
 	bool                          ShouldDuplicateTexture(UINT Width,UINT Height,UINT Levels,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool);

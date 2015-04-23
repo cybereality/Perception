@@ -2313,7 +2313,7 @@ HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFO
 * Anything that needs to be done before the device is used by the actual application should happen here.
 * @param The game (or engine) specific configuration.
 ***/
-void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
+void D3DProxyDevice::Init(ProxyConfig& cfg)
 {
 	SHOW_CALL("Init");
 	

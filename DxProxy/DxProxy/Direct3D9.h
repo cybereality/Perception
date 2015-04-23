@@ -89,8 +89,7 @@ private:
 	/**
 	* Proxy configuration we load
 	*/
-	ProxyHelper::ProxyConfig cfg;
-
+	ProxyConfig *cfg;
 };
 
 #endif

@@ -55,8 +55,8 @@ public:
 	virtual ~ViewAdjustment();
 
 	/*** ViewAdjustment public methods ***/
-	void          Load(ProxyHelper::ProxyConfig& cfg);
-	void          Save(ProxyHelper::ProxyConfig& cfg);
+	void          Load(ProxyConfig& cfg);
+	void          Save(ProxyConfig& cfg);
 	void          UpdateProjectionMatrices(float aspectRatio);
 	void          UpdateRoll(float roll);
 	void		  UpdatePosition(float yaw, float pitch, float roll, float xPosition = 0.0f, float yPosition = 0.0f, float zPosition = 0.0f, float scaler = 1.0f);

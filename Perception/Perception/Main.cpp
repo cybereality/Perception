@@ -231,7 +231,7 @@ public:
 		logo_bitmap = (HBITMAP)LoadImage(NULL,viewPath.c_str(),IMAGE_BITMAP,0,0,LR_LOADFROMFILE);
 		OutputDebugString("Load the bitmap\n");
 
-		ProxyHelper::ProxyConfig cfg;
+		ProxyConfig cfg;
 		helper.LoadUserConfig(cfg, oculusProfile);
 
 		SetCursor(LoadCursor(NULL, IDC_ARROW)); 

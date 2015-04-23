@@ -63,7 +63,7 @@ public:
 	virtual HRESULT WINAPI SetPixelShader(IDirect3DPixelShader9* pShader);
 
 	/*** DataGatherer public methods ***/
-	virtual void Init(ProxyHelper::ProxyConfig& cfg);
+	virtual void Init(ProxyConfig& cfg);
 
 protected:
 	/*** DataGatherer protected methods ***/

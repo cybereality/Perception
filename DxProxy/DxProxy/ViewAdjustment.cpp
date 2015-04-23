@@ -100,7 +100,7 @@ ViewAdjustment::~ViewAdjustment()
 * Loads game configuration data.
 * @param cfg Game configuration to load.
 ***/
-void ViewAdjustment::Load(ProxyHelper::ProxyConfig& cfg) 
+void ViewAdjustment::Load(ProxyConfig& cfg) 
 {
 	rollImpl = cfg.rollImpl;
 	metersToWorldMultiplier  = cfg.worldScaleFactor;
@@ -113,7 +113,7 @@ void ViewAdjustment::Load(ProxyHelper::ProxyConfig& cfg)
 * Saves game configuration data.
 * @param cfg The game configuration to be saved to.
 ***/
-void ViewAdjustment::Save(ProxyHelper::ProxyConfig& cfg) 
+void ViewAdjustment::Save(ProxyConfig& cfg) 
 {
 	cfg.rollImpl = rollImpl;
 	cfg.convergence = convergence;

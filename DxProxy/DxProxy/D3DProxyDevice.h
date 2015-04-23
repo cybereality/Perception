@@ -186,7 +186,7 @@ public:
 
 	/*** D3DProxyDevice public methods ***/
 	HRESULT WINAPI CreateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample, DWORD MultisampleQuality,BOOL Lockable,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle, bool isBackBufferOfPrimarySwapChain);
-	virtual void   Init(ProxyHelper::ProxyConfig& cfg);
+	virtual void   Init(ProxyConfig& cfg);
 	void           SetupHUD();
 	virtual void   HandleControls(void);
 	void           HandleTracking(void);
@@ -415,13 +415,13 @@ protected:
 	/*** Configurations ******************************************************/
 	
 	/// Game-specific proxy configuration. This is the active copy.
-	ProxyHelper::ProxyConfig config;
+	ProxyConfig config;
 	
 	/// Config settings which haven't been saved or applied yet, used in menus.
-	//ProxyHelper::ProxyConfig pendingConfig;
+	//ProxyConfig pendingConfig;
 	
 	/// Backup of the current game profile.
-	ProxyHelper::ProxyConfig m_configBackup;
+	ProxyConfig m_configBackup;
 	
 	/// Timer used to indicate that an adjuster changed a config value and when
 	/// timer expires, config should be saved

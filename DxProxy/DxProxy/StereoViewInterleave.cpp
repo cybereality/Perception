@@ -32,7 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /**
 * Empty constructor.
 ***/ 
-StereoViewInterleave::StereoViewInterleave(ProxyHelper::ProxyConfig& config):StereoView(config)
+StereoViewInterleave::StereoViewInterleave(ProxyConfig& config):StereoView(config)
 {
 	OutputDebugString("Created SteroView Interleave\n");
 }

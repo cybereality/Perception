@@ -56,7 +56,7 @@ GameHandler::~GameHandler()
 * @param cfg The game configuration.
 * @param spShaderViewAdjustments The view adjustments pointer.
 ***/
-bool GameHandler::Load(ProxyHelper::ProxyConfig& cfg, std::shared_ptr<ViewAdjustment> spShaderViewAdjustments)
+bool GameHandler::Load(ProxyConfig& cfg, std::shared_ptr<ViewAdjustment> spShaderViewAdjustments)
 {
 	// Get rid of existing modification repository if there is one
 	if (m_ShaderModificationRepository) {
@@ -95,7 +95,7 @@ bool GameHandler::Load(ProxyHelper::ProxyConfig& cfg, std::shared_ptr<ViewAdjust
 * @param cfg The game configuration.
 * @param spShaderViewAdjustments The view adjustments pointer.
 ***/
-bool GameHandler::Save(ProxyHelper::ProxyConfig& cfg, std::shared_ptr<ViewAdjustment> spShaderViewAdjustments)
+bool GameHandler::Save(ProxyConfig& cfg, std::shared_ptr<ViewAdjustment> spShaderViewAdjustments)
 {
 	OutputDebugString("Save shader rules...");
 

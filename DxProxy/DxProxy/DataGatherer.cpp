@@ -724,7 +724,7 @@ HRESULT WINAPI DataGatherer::SetPixelShader(IDirect3DPixelShader9* pShader)
 * Implemented here for possible future use.
 * @param cfg The game configuration to init this class.
 ***/
-void DataGatherer::Init(ProxyHelper::ProxyConfig& cfg)
+void DataGatherer::Init(ProxyConfig& cfg)
 {
 	OutputDebugString("Special Proxy: Shader data gatherer created.\n");
 

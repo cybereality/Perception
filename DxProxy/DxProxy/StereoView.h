@@ -45,7 +45,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class StereoView
 {
 public:
-	StereoView(ProxyHelper::ProxyConfig& config);
+	StereoView(ProxyConfig& config);
 	virtual ~StereoView();
 
 	/*** StereoView public methods ***/

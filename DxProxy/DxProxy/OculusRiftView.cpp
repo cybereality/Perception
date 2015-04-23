@@ -40,7 +40,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * @param config Game configuration.
 * @param hmd Oculus Rift Head Mounted Display info.
 ***/ 
-OculusRiftView::OculusRiftView(ProxyHelper::ProxyConfig& config, HMDisplayInfo *hmd) : StereoView(config),
+OculusRiftView::OculusRiftView(ProxyConfig& config, HMDisplayInfo *hmd) : StereoView(config),
 	hmdInfo(hmd),
 	m_logoTexture(NULL),
 	m_prevTexture(NULL)
