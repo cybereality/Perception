@@ -123,7 +123,7 @@ void D3DProxyDevice::HandleControls()
 	// loop through hotkeys
 	for (int i = 0; i < 5; i++)
 	{
-		if (hudHotkeys[i]->IsPressed(controls) && HotkeysActive())
+		if (config.hudHotkeys[i]->IsPressed(controls) && HotkeysActive())
 		{
 			if (i==0)
 			{
@@ -159,7 +159,7 @@ void D3DProxyDevice::HandleControls()
 			}
 			HotkeyCooldown(COOLDOWN_SHORT);
 		}
-		if (guiHotkeys[i]->IsPressed(controls) && HotkeysActive())
+		if (config.guiHotkeys[i]->IsPressed(controls) && HotkeysActive())
 		{
 			if (i==0)
 			{

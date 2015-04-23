@@ -87,22 +87,6 @@ bool D3DProxyDevice::InitVPMENU()
 	gui3DDepthMode = GUI_3D_Depth_Modes::GUI_DEFAULT;
 	oldHudMode = HUD_3D_Depth_Modes::HUD_DEFAULT;
 	oldGuiMode = GUI_3D_Depth_Modes::GUI_DEFAULT;
-	hud3DDepthPresets[0] = 0.0f;
-	hud3DDepthPresets[1] = 0.0f;
-	hud3DDepthPresets[2] = 0.0f;
-	hud3DDepthPresets[3] = 0.0f;
-	hudDistancePresets[0] = 0.5f;
-	hudDistancePresets[1] = 0.9f;
-	hudDistancePresets[2] = 0.3f;
-	hudDistancePresets[3] = 0.0f;
-	gui3DDepthPresets[0] = 0.0f;
-	gui3DDepthPresets[1] = 0.0f;
-	gui3DDepthPresets[2] = 0.0f;
-	gui3DDepthPresets[3] = 0.0f;
-	guiSquishPresets[0] = 0.6f;
-	guiSquishPresets[1] = 0.5f;
-	guiSquishPresets[2] = 0.9f;
-	guiSquishPresets[3] = 1.0f;
 	ChangeHUD3DDepthMode(HUD_3D_Depth_Modes::HUD_DEFAULT);
 	ChangeGUI3DDepthMode(GUI_3D_Depth_Modes::GUI_DEFAULT);
 
@@ -110,11 +94,6 @@ bool D3DProxyDevice::InitVPMENU()
 	inWorldScaleMenu = false;
 	toggleVRBoostHotkey = 0;
 	edgePeekHotkey = 0;
-	for (int i = 0; i < 5; i++)
-	{
-		guiHotkeys[i] = 0;
-		hudHotkeys[i] = 0;
-	}
 	
 	controls.Reset();
 	return true;
@@ -878,30 +857,30 @@ void D3DProxyDevice::VPMENU_HUD()
 		}
 	});
 	
-	menu->AddItem(retprintf("HUD Distance : %g", RoundVireioValue(hudDistancePresets[(int)hud3DDepthMode])), [=]()
+	menu->AddItem(retprintf("HUD Distance : %g", RoundVireioValue(config.hudDistancePresets[(int)hud3DDepthMode])), [=]()
 	{
 		if (VPMENU_Input_IsAdjustment() && HotkeysActive())
 		{
-			hudDistancePresets[(int)hud3DDepthMode] += 0.01f * VPMENU_Input_GetAdjustment();
+			config.hudDistancePresets[(int)hud3DDepthMode] += 0.01f * VPMENU_Input_GetAdjustment();
 			ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)hud3DDepthMode);
 			HotkeyCooldown(COOLDOWN_ONE_FRAME);
 		}
 	});
-	menu->AddItem(retprintf("HUD's 3D Depth : %g", RoundVireioValue(hud3DDepthPresets[(int)hud3DDepthMode])), [=]()
+	menu->AddItem(retprintf("HUD's 3D Depth : %g", RoundVireioValue(config.hud3DDepthPresets[(int)hud3DDepthMode])), [=]()
 	{
 		if (VPMENU_Input_IsAdjustment() && HotkeysActive())
 		{
-			hud3DDepthPresets[(int)hud3DDepthMode] += 0.002f * VPMENU_Input_GetAdjustment();
+			config.hud3DDepthPresets[(int)hud3DDepthMode] += 0.002f * VPMENU_Input_GetAdjustment();
 			ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)hud3DDepthMode);
 			HotkeyCooldown(COOLDOWN_ONE_FRAME);
 		}
 	});
 	
-	menu->AddKeybind("Hotkey >Switch<",  &hudHotkeys[0]);
-	menu->AddKeybind("Hotkey >Default<", &hudHotkeys[1]);
-	menu->AddKeybind("Hotkey >Small<",   &hudHotkeys[2]);
-	menu->AddKeybind("Hotkey >Large<",   &hudHotkeys[3]);
-	menu->AddKeybind("Hotkey >Full<",    &hudHotkeys[4]);
+	menu->AddKeybind("Hotkey >Switch<",  &config.hudHotkeys[0]);
+	menu->AddKeybind("Hotkey >Default<", &config.hudHotkeys[1]);
+	menu->AddKeybind("Hotkey >Small<",   &config.hudHotkeys[2]);
+	menu->AddKeybind("Hotkey >Large<",   &config.hudHotkeys[3]);
+	menu->AddKeybind("Hotkey >Full<",    &config.hudHotkeys[4]);
 	menu->AddButton("Back to Main Menu", [=]() {
 		VPMENU_Back();
 		VPMENU_UpdateConfigSettings();
@@ -968,31 +947,31 @@ void D3DProxyDevice::VPMENU_GUI()
 		}
 	});
 	
-	menu->AddItem(retprintf("GUI Size : %g", RoundVireioValue(guiSquishPresets[(int)gui3DDepthMode])), [=]()
+	menu->AddItem(retprintf("GUI Size : %g", RoundVireioValue(config.guiSquishPresets[(int)gui3DDepthMode])), [=]()
 	{
 		if (VPMENU_Input_IsAdjustment() && HotkeysActive())
 		{
-			guiSquishPresets[(int)gui3DDepthMode] += 0.01f * VPMENU_Input_GetAdjustment();
+			config.guiSquishPresets[(int)gui3DDepthMode] += 0.01f * VPMENU_Input_GetAdjustment();
 			ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)gui3DDepthMode);
 			HotkeyCooldown(COOLDOWN_ONE_FRAME);
 		}
 	});
 	
-	menu->AddItem(retprintf("GUI's 3D Depth : %g", RoundVireioValue(gui3DDepthPresets[(int)gui3DDepthMode])), [=]()
+	menu->AddItem(retprintf("GUI's 3D Depth : %g", RoundVireioValue(config.gui3DDepthPresets[(int)gui3DDepthMode])), [=]()
 	{
 		if (VPMENU_Input_IsAdjustment() && HotkeysActive())
 		{
-			gui3DDepthPresets[(int)gui3DDepthMode] += 0.002f * VPMENU_Input_GetAdjustment();
+			config.gui3DDepthPresets[(int)gui3DDepthMode] += 0.002f * VPMENU_Input_GetAdjustment();
 			ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)gui3DDepthMode);
 			HotkeyCooldown(COOLDOWN_ONE_FRAME);
 		}
 	});
 	
-	menu->AddKeybind("Hotkey >Switch<",  &guiHotkeys[0]);
-	menu->AddKeybind("Hotkey >Default<", &guiHotkeys[1]);
-	menu->AddKeybind("Hotkey >Small<",   &guiHotkeys[2]);
-	menu->AddKeybind("Hotkey >Large<",   &guiHotkeys[3]);
-	menu->AddKeybind("Hotkey >Full<",    &guiHotkeys[4]);
+	menu->AddKeybind("Hotkey >Switch<",  &config.guiHotkeys[0]);
+	menu->AddKeybind("Hotkey >Default<", &config.guiHotkeys[1]);
+	menu->AddKeybind("Hotkey >Small<",   &config.guiHotkeys[2]);
+	menu->AddKeybind("Hotkey >Large<",   &config.guiHotkeys[3]);
+	menu->AddKeybind("Hotkey >Full<",    &config.guiHotkeys[4]);
 	
 	menu->AddButton("Back to Main Menu", [=]() { VPMENU_Back(); });
 	menu->AddButton("Back to Game", [=]() { VPMENU_Close(); });
@@ -1492,23 +1471,7 @@ void D3DProxyDevice::VPMENU_UpdateConfigSettings()
 	config.swap_eyes = stereoView->swapEyes;
 	config.DistortionScale = stereoView->DistortionScale;
 	config.hud3DDepthMode = (int)hud3DDepthMode;
-	for (int i = 0; i < 4; i++)
-	{
-		config.hud3DDepthPresets[i] = hud3DDepthPresets[i];
-		config.hudDistancePresets[i] = hudDistancePresets[i];
-		config.hudHotkeys[i] = hudHotkeys[i];
-	}
-	config.hudHotkeys[4] = hudHotkeys[4];
-
 	config.gui3DDepthMode = (int)gui3DDepthMode;
-	for (int i = 0; i < 4; i++)
-	{
-		config.gui3DDepthPresets[i] = gui3DDepthPresets[i];
-		config.guiSquishPresets[i] = guiSquishPresets[i];
-		config.guiHotkeys[i] = guiHotkeys[i];
-	}
-	config.guiHotkeys[4] = guiHotkeys[4];
-
 	config.VRBoostResetHotkey = toggleVRBoostHotkey;
 	config.EdgePeekHotkey = edgePeekHotkey;
 	config.WorldFOV = VRBoostValue[VRboostAxis::WorldFOV];
@@ -1540,23 +1503,9 @@ void D3DProxyDevice::VPMENU_UpdateDeviceSettings()
 	stereoView->DistortionScale = config.DistortionScale;
 
 	// HUD
-	for (int i = 0; i < 4; i++)
-	{
-		hud3DDepthPresets[i] = config.hud3DDepthPresets[i];
-		hudDistancePresets[i] = config.hudDistancePresets[i];
-		hudHotkeys[i] = config.hudHotkeys[i];
-	}
-	hudHotkeys[4] = config.hudHotkeys[4];
 	ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)config.hud3DDepthMode);
 
 	// GUI
-	for (int i = 0; i < 4; i++)
-	{
-		gui3DDepthPresets[i] = config.gui3DDepthPresets[i];
-		guiSquishPresets[i] = config.guiSquishPresets[i];
-		guiHotkeys[i] = config.guiHotkeys[i];
-	}
-	guiHotkeys[4] = config.guiHotkeys[4];
 	ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)config.gui3DDepthMode);
 
 	//Disconnected Screen Mode

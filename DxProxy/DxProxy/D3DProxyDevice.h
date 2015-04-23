@@ -917,30 +917,6 @@ private:
 	***/
 	GUI_3D_Depth_Modes oldGuiMode;
 	/**
-	* Current HUD 3D Depth presets.
-	***/
-	float hud3DDepthPresets[4];
-	/**
-	* Current HUD distance presets.
-	***/
-	float hudDistancePresets[4];
-	/**
-	* Current GUI 3D Depth presets.
-	***/
-	float gui3DDepthPresets[4];
-	/**
-	* Current GUI squish presets.
-	***/
-	float guiSquishPresets[4];
-	/**
-	* Hotkey indices for the GUI.
-	***/
-	InputBindingRef guiHotkeys[5];
-	/**
-	* Hotkey indices for the HUD.
-	***/
-	InputBindingRef hudHotkeys[5];
-	/**
 	* Hotkey for VRBoost toggle.
 	***/
 	InputBindingRef toggleVRBoostHotkey;

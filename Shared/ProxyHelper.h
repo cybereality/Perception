@@ -54,8 +54,10 @@ public:
 	* Game configuration structure.
 	* All game-specific information + IPD + swap_eyes + stereo_mode + tracker_mode.
 	***/
-	struct ProxyConfig 
+	struct ProxyConfig
 	{
+		ProxyConfig();
+		
 		/** game configuration **/
 		std::string game_exe;                   /**< Process name, to be used in VRboost. */
 		std::string dir_contains;				/**< Part of the folder name (root folder best), used to filter */

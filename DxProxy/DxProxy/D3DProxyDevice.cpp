@@ -2705,9 +2705,9 @@ void D3DProxyDevice::HandleTracking()
 		//Get mouse position on screen
 		GetCursorPos(&stereoView->m_mousePos);
 		if (m_showVRMouse == 1)
-			stereoView->SetVRMouseSquish(guiSquishPresets[(int)gui3DDepthMode]);
+			stereoView->SetVRMouseSquish(config.guiSquishPresets[(int)gui3DDepthMode]);
 		else
-			stereoView->SetVRMouseSquish(1.0f - hudDistancePresets[(int)hud3DDepthMode]);
+			stereoView->SetVRMouseSquish(1.0f - config.hudDistancePresets[(int)hud3DDepthMode]);
 
 		stereoView->PostReset();
 	}
@@ -3320,8 +3320,8 @@ void D3DProxyDevice::ChangeHUD3DDepthMode(HUD_3D_Depth_Modes newMode)
 
 	hud3DDepthMode = newMode;
 
-	m_spShaderViewAdjustment->ChangeHUDDistance(hudDistancePresets[(int)newMode]);
-	m_spShaderViewAdjustment->ChangeHUD3DDepth(hud3DDepthPresets[(int)newMode]);
+	m_spShaderViewAdjustment->ChangeHUDDistance(config.hudDistancePresets[(int)newMode]);
+	m_spShaderViewAdjustment->ChangeHUD3DDepth(config.hud3DDepthPresets[(int)newMode]);
 }
 
 /**
@@ -3336,8 +3336,8 @@ void D3DProxyDevice::ChangeGUI3DDepthMode(GUI_3D_Depth_Modes newMode)
 
 	gui3DDepthMode = newMode;
 
-	m_spShaderViewAdjustment->ChangeGUISquash(guiSquishPresets[(int)newMode]);
-	m_spShaderViewAdjustment->ChangeGUI3DDepth(gui3DDepthPresets[(int)newMode]);
+	m_spShaderViewAdjustment->ChangeGUISquash(config.guiSquishPresets[(int)newMode]);
+	m_spShaderViewAdjustment->ChangeGUI3DDepth(config.gui3DDepthPresets[(int)newMode]);
 }
 
 
@@ -3627,7 +3627,7 @@ void D3DProxyDevice::SetGUIViewport()
 	D3DXMATRIX mRightShift;
 
 	// set shift by current gui 3d depth
-	float shiftInPixels = gui3DDepthPresets[gui3DDepthMode];
+	float shiftInPixels = config.gui3DDepthPresets[gui3DDepthMode];
 	D3DXMatrixTranslation(&mLeftShift, -shiftInPixels, 0, 0);
 	D3DXMatrixTranslation(&mRightShift, shiftInPixels, 0, 0);
 
