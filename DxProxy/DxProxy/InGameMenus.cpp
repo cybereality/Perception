@@ -66,6 +66,8 @@ InputBindingRef hotkeyMenuAdjustmentFaster = Key(VK_LSHIFT);
 InputBindingRef hotkeyMenuAdjustmentSlower = Key(VK_LCONTROL);
 InputBindingRef hotkeyMenuAdjustmentMuchSlower = Key(VK_MENU);
 
+/*** D3DProxyDevice menu functions *******************************************/
+
 bool D3DProxyDevice::InitVPMENU()
 {
 	SHOW_CALL("InitVPMENU");
@@ -1699,6 +1701,117 @@ void D3DProxyDevice::VPMENU_AdditionalOutput()
 }
 
 
+/**
+* Simple helper to clear a rectangle using the specified color.
+* @param renderPosition Left or Right render target to be used.
+* @param rect The rectangle in pixel space to be cleared.
+* @param color The direct 3d color to be used.
+***/
+void D3DProxyDevice::ClearRect(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color)
+{
+	SHOW_CALL("ClearRect");
+	
+	setDrawingSide(renderPosition);
+	BaseDirect3DDevice9::Clear(1, &rect, D3DCLEAR_TARGET, color, 0, 0);
+}
+
+/**
+* Simple helper to clear an empty rectangle or border using the specified color.
+* @param renderPosition Left or Right render target to be used.
+* @param rect The rectangle in pixel space to be cleared.
+* @param color The direct 3d color to be used.
+* @param bw The border width.
+***/
+void D3DProxyDevice::ClearEmptyRect(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color, int bw)
+{
+	SHOW_CALL("ClearEmptyRect");
+	
+	// helper rectangle
+	D3DRECT rect0 = D3DRECT(rect);
+
+	setDrawingSide(renderPosition);
+
+	rect0.y2 = rect.y1 + bw;
+	BaseDirect3DDevice9::Clear(1, &rect0, D3DCLEAR_TARGET, color, 0, 0);
+
+	rect0.y1 = rect.y2 - bw;
+	rect0.y2 = rect.y2;
+	BaseDirect3DDevice9::Clear(1, &rect0, D3DCLEAR_TARGET, color, 0, 0);
+
+	rect0.y1 = rect.y1;
+	rect0.x2 = rect.x1 + bw;
+	BaseDirect3DDevice9::Clear(1, &rect0, D3DCLEAR_TARGET, color, 0, 0);
+
+	rect0.x1 = rect.x2 - bw;
+	rect0.x2 = rect.x2;
+	BaseDirect3DDevice9::Clear(1, &rect0, D3DCLEAR_TARGET, color, 0, 0);
+}
+
+/**
+* Draws a simple selection control.
+* @param renderPosition Left or Right render target to be used.
+* @param rect The rectangle in pixel space to be cleared.
+* @param color The direct 3d color to be used.
+* @param selectionIndex The index of the currently chosen selection.
+* @param selectionRange The range of the selection.
+***/
+void D3DProxyDevice::DrawSelection(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color, int selectionIndex, int selectionRange)
+{
+	SHOW_CALL("DrawSelection");
+	
+	// get width of each selection
+	float selectionWidth = (rect.x2-rect.x1) / (float)selectionRange;
+
+	// get secondary color
+	D3DXCOLOR color2 = D3DXCOLOR(color);
+	FLOAT red = color2.r;
+	color2.r = color2.g * 0.7f;
+	color2.g = red;
+
+	for (int i = 0; i < selectionRange; i++)
+	{
+		rect.x2 = rect.x1+(int)selectionWidth;
+		if (i==selectionIndex)
+			ClearRect(renderPosition, rect, color);
+		else
+			ClearRect(renderPosition, rect, color2);
+		rect.x1+=(int)selectionWidth;
+	}
+}
+
+/**
+* Draws a simple selection control.
+* @param renderPosition Left or Right render target to be used.
+* @param rect The rectangle in pixel space to be cleared.
+* @param color The direct 3d color to be used.
+* @param selectionIndex The index of the currently chosen selection.
+* @param selectionRange The range of the selection.
+***/
+void D3DProxyDevice::DrawScrollbar(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color, float scroll, int scrollbarSize)
+{
+	SHOW_CALL("DrawScrollbar");
+	
+	if (scroll<0.0f) scroll=0.0f;
+	if (scroll>1.0f) scroll=1.0f;
+
+	// get width of each selection
+	int scrollHeight = rect.y2-rect.y1-scrollbarSize;
+	scrollHeight = (int)(scrollHeight*scroll);
+
+	// get secondary color
+	D3DXCOLOR color2 = D3DXCOLOR(color);
+	FLOAT red = color2.r;
+	color2.r = color2.g * 0.7f;
+	color2.g = red;
+
+	ClearRect(renderPosition, rect, color2);
+	rect.y1 += scrollHeight;
+	rect.y2 = rect.y1+scrollbarSize;
+	ClearRect(renderPosition, rect, color);
+}
+
+/*** MenuBuilder *************************************************************/
+
 MenuBuilder::MenuBuilder(D3DProxyDevice *device)
 {
 	this->device = device;
@@ -1849,6 +1962,7 @@ int MenuBuilder::GetDrawPositionTop()
 	return drawPosition.top;
 }
 
+/*** MenuState ***************************************************************/
 
 MenuState::MenuState(D3DProxyDevice *device)
 {
@@ -1862,114 +1976,4 @@ MenuState::MenuState(D3DProxyDevice *device)
 void MenuState::Reset()
 {
 	borderTopHeight = 0.0f;
-}
-
-
-/**
-* Simple helper to clear a rectangle using the specified color.
-* @param renderPosition Left or Right render target to be used.
-* @param rect The rectangle in pixel space to be cleared.
-* @param color The direct 3d color to be used.
-***/
-void D3DProxyDevice::ClearRect(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color)
-{
-	SHOW_CALL("ClearRect");
-	
-	setDrawingSide(renderPosition);
-	BaseDirect3DDevice9::Clear(1, &rect, D3DCLEAR_TARGET, color, 0, 0);
-}
-
-/**
-* Simple helper to clear an empty rectangle or border using the specified color.
-* @param renderPosition Left or Right render target to be used.
-* @param rect The rectangle in pixel space to be cleared.
-* @param color The direct 3d color to be used.
-* @param bw The border width.
-***/
-void D3DProxyDevice::ClearEmptyRect(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color, int bw)
-{
-	SHOW_CALL("ClearEmptyRect");
-	
-	// helper rectangle
-	D3DRECT rect0 = D3DRECT(rect);
-
-	setDrawingSide(renderPosition);
-
-	rect0.y2 = rect.y1 + bw;
-	BaseDirect3DDevice9::Clear(1, &rect0, D3DCLEAR_TARGET, color, 0, 0);
-
-	rect0.y1 = rect.y2 - bw;
-	rect0.y2 = rect.y2;
-	BaseDirect3DDevice9::Clear(1, &rect0, D3DCLEAR_TARGET, color, 0, 0);
-
-	rect0.y1 = rect.y1;
-	rect0.x2 = rect.x1 + bw;
-	BaseDirect3DDevice9::Clear(1, &rect0, D3DCLEAR_TARGET, color, 0, 0);
-
-	rect0.x1 = rect.x2 - bw;
-	rect0.x2 = rect.x2;
-	BaseDirect3DDevice9::Clear(1, &rect0, D3DCLEAR_TARGET, color, 0, 0);
-}
-
-/**
-* Draws a simple selection control.
-* @param renderPosition Left or Right render target to be used.
-* @param rect The rectangle in pixel space to be cleared.
-* @param color The direct 3d color to be used.
-* @param selectionIndex The index of the currently chosen selection.
-* @param selectionRange The range of the selection.
-***/
-void D3DProxyDevice::DrawSelection(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color, int selectionIndex, int selectionRange)
-{
-	SHOW_CALL("DrawSelection");
-	
-	// get width of each selection
-	float selectionWidth = (rect.x2-rect.x1) / (float)selectionRange;
-
-	// get secondary color
-	D3DXCOLOR color2 = D3DXCOLOR(color);
-	FLOAT red = color2.r;
-	color2.r = color2.g * 0.7f;
-	color2.g = red;
-
-	for (int i = 0; i < selectionRange; i++)
-	{
-		rect.x2 = rect.x1+(int)selectionWidth;
-		if (i==selectionIndex)
-			ClearRect(renderPosition, rect, color);
-		else
-			ClearRect(renderPosition, rect, color2);
-		rect.x1+=(int)selectionWidth;
-	}
-}
-
-/**
-* Draws a simple selection control.
-* @param renderPosition Left or Right render target to be used.
-* @param rect The rectangle in pixel space to be cleared.
-* @param color The direct 3d color to be used.
-* @param selectionIndex The index of the currently chosen selection.
-* @param selectionRange The range of the selection.
-***/
-void D3DProxyDevice::DrawScrollbar(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color, float scroll, int scrollbarSize)
-{
-	SHOW_CALL("DrawScrollbar");
-	
-	if (scroll<0.0f) scroll=0.0f;
-	if (scroll>1.0f) scroll=1.0f;
-
-	// get width of each selection
-	int scrollHeight = rect.y2-rect.y1-scrollbarSize;
-	scrollHeight = (int)(scrollHeight*scroll);
-
-	// get secondary color
-	D3DXCOLOR color2 = D3DXCOLOR(color);
-	FLOAT red = color2.r;
-	color2.r = color2.g * 0.7f;
-	color2.g = red;
-
-	ClearRect(renderPosition, rect, color2);
-	rect.y1 += scrollHeight;
-	rect.y2 = rect.y1+scrollbarSize;
-	ClearRect(renderPosition, rect, color);
 }
