@@ -62,6 +62,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <stack>
 #include <memory>
 #include <ctime>
 #include <functional>
@@ -471,7 +472,6 @@ protected:
 	bool inWorldScaleMenu;
 	
 	bool menuIsOpen;
-	std::function<void()> handleCurrentMenu;
 	
 	// Vector contains all possible game projection x scale values.
 	// Filled only if VPMENU_mode == WorldScale and SetTransform(>projection<)
@@ -485,6 +485,7 @@ protected:
 	float hotkeyCooldown;
 	
 	MenuState menuState;
+	std::stack<MenuState> menuStatesStack;
 	
 	/// VP menu value.
 	int viewportWidth;

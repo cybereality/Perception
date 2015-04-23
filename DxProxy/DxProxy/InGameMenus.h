@@ -58,6 +58,8 @@ public:
 	/// Main menu top height for scrolling menues.
 	float menuTopHeight;
 	
+	std::function<void()> handleCurrentMenu;
+	
 private:
 	D3DProxyDevice *device;
 };

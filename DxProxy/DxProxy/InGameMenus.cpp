@@ -132,13 +132,23 @@ void D3DProxyDevice::VPMENU_CloseWithoutSaving()
 	hotkeyCatch = false;
 	inWorldScaleMenu = false;
 	menuIsOpen = false;
+	
+	while(menuStatesStack.size() > 0)
+		menuStatesStack.pop();
 }
 
 void D3DProxyDevice::VPMENU_Back()
 {
-	VPMENU_NavigateTo([=]() {
+	if(menuStatesStack.size() == 0) {
+		VPMENU_Close();
+	} else {
+		menuState = menuStatesStack.top();
+		menuStatesStack.pop();
+		inWorldScaleMenu = false;
+	}
+	/*VPMENU_NavigateTo([=]() {
 		VPMENU_MainMenu();
-	});
+	});*/
 }
 
 void D3DProxyDevice::VPMENU_OpenMainMenu()
@@ -151,9 +161,13 @@ void D3DProxyDevice::VPMENU_OpenMainMenu()
 
 void D3DProxyDevice::VPMENU_NavigateTo(std::function<void()> menuHandler)
 {
+	menuStatesStack.push(menuState);
+	menuState.Reset();
+	menuState.handleCurrentMenu = menuHandler;
+	
 	inWorldScaleMenu = false;
 	menuIsOpen = true;
-	handleCurrentMenu = menuHandler;
+	
 	HotkeyCooldown(COOLDOWN_SHORT);
 }
 
@@ -386,7 +400,7 @@ void D3DProxyDevice::VPMENU()
 	if(!hudFont)
 		return;
 	
-	handleCurrentMenu();
+	menuState.handleCurrentMenu();
 }
 
 
@@ -1967,13 +1981,13 @@ int MenuBuilder::GetDrawPositionTop()
 MenuState::MenuState(D3DProxyDevice *device)
 {
 	this->device = device;
-	menuVelocity = 0.0f;
-	menuAttraction = 0.0f;
-	borderTopHeight = 0.0f;
-	menuTopHeight = 0.0f;
+	Reset();
 }
 
 void MenuState::Reset()
 {
+	menuVelocity = 0.0f;
+	menuAttraction = 0.0f;
 	borderTopHeight = 0.0f;
+	menuTopHeight = 0.0f;
 }
