@@ -487,13 +487,13 @@ void D3DProxyDevice::VPMENU_MainMenu()
 	menu->AddNavigation("Comfort Mode Configuration\n", [=]() { VPMENU_ComfortMode(); });
 	menu->AddButton("Restore Configuration\n", [=]() {
 		// first, backup all strings
-		std::string game_exe = std::string(config.game_exe);
-		std::string shaderRulePath = std::string(config.shaderRulePath);
-		std::string VRboostPath = std::string(config.VRboostPath);
+		std::string game_exe = config.game_exe;
+		std::string shaderRulePath = config.shaderRulePath;
+		std::string VRboostPath = config.VRboostPath;
 		config = m_configBackup;
-		config.game_exe = std::string(game_exe);
-		config.shaderRulePath = std::string(shaderRulePath);
-		config.VRboostPath = std::string(VRboostPath);
+		config.game_exe = game_exe;
+		config.shaderRulePath = shaderRulePath;
+		config.VRboostPath = VRboostPath;
 		VPMENU_UpdateDeviceSettings();
 		VPMENU_UpdateConfigSettings();
 		HotkeyCooldown(COOLDOWN_EXTRA_LONG);
@@ -591,35 +591,23 @@ void D3DProxyDevice::VPMENU_WorldScale()
 	// draw right line (using BaseDirect3DDevice9, since otherwise we have two lines)
 	D3DRECT rec3 = {(int)(viewportWidth/2 + (-BlueLineCenterAsPercentage * viewportWidth * 0.25f))-1, 0,
 		(int)(viewportWidth/2 + (-BlueLineCenterAsPercentage * viewportWidth * 0.25f))+1,viewportHeight };
-	if (!config.swap_eyes)
-		ClearRect(vireio::RenderPosition::Right, rec3, COLOR_BLUE);
-	else
-		ClearRect(vireio::RenderPosition::Left, rec3, COLOR_BLUE);
+	ClearRect(config.MaybeSwap(vireio::RenderPosition::Right), rec3, COLOR_BLUE);
 
 	// draw left line (using BaseDirect3DDevice9, since otherwise we have two lines)
 	D3DRECT rec4 = {(int)(viewportWidth/2 + (BlueLineCenterAsPercentage * viewportWidth * 0.25f))-1, 0,
 		(int)(viewportWidth/2 + (BlueLineCenterAsPercentage * viewportWidth * 0.25f))+1,viewportHeight };
-	if (!config.swap_eyes)
-		ClearRect(vireio::RenderPosition::Left, rec4, COLOR_RED);
-	else
-		ClearRect(vireio::RenderPosition::Right, rec4, COLOR_RED);
+	ClearRect(config.MaybeSwap(vireio::RenderPosition::Left), rec4, COLOR_RED);
 
 	// horizontal line
 	D3DRECT rec5 = {beg, (viewportHeight /2)-1, end, (viewportHeight /2)+1 };
-	if (!config.swap_eyes)
-		ClearRect(vireio::RenderPosition::Left, rec5, COLOR_BLUE);
-	else
-		ClearRect(vireio::RenderPosition::Right, rec5, COLOR_BLUE);
+	ClearRect(config.MaybeSwap(vireio::RenderPosition::Left), rec5, COLOR_BLUE);
 
 	// hash lines
 	int hashNum = 10;
 	float hashSpace = horWidth*viewportWidth / (float)hashNum;
 	for(int i=0; i<=hashNum; i++) {
 		D3DRECT rec5 = {beg+(int)(i*hashSpace)-1, hashTop, beg+(int)(i*hashSpace)+1, hashBottom};
-		if (!config.swap_eyes)
-			ClearRect(vireio::RenderPosition::Left, rec5, COLOR_HASH_LINE);
-		else
-			ClearRect(vireio::RenderPosition::Right, rec5, COLOR_HASH_LINE);
+		ClearRect(config.MaybeSwap(vireio::RenderPosition::Left), rec5, COLOR_HASH_LINE);
 	}
 
 	rec2.left = (int)(width*0.35f);
@@ -768,35 +756,23 @@ void D3DProxyDevice::VPMENU_Convergence()
 	// draw right line (using BaseDirect3DDevice9, since otherwise we have two lines)
 	D3DRECT rec3 = {(int)(viewportWidth/2 + (-BlueLineCenterAsPercentage * viewportWidth * 0.25f))-1, 0,
 		(int)(viewportWidth/2 + (-BlueLineCenterAsPercentage * viewportWidth * 0.25f))+1,viewportHeight };
-	if (!config.swap_eyes)
-		ClearRect(vireio::RenderPosition::Right, rec3, COLOR_BLUE);
-	else
-		ClearRect(vireio::RenderPosition::Left, rec3, COLOR_BLUE);
+	ClearRect(config.MaybeSwap(vireio::RenderPosition::Right), rec3, COLOR_BLUE);
 
 	// draw left line (using BaseDirect3DDevice9, since otherwise we have two lines)
 	D3DRECT rec4 = {(int)(viewportWidth/2 + (BlueLineCenterAsPercentage * viewportWidth * 0.25f))-1, 0,
 		(int)(viewportWidth/2 + (BlueLineCenterAsPercentage * viewportWidth * 0.25f))+1,viewportHeight };
-	if (!config.swap_eyes)
-		ClearRect(vireio::RenderPosition::Left, rec4, COLOR_BLUE);
-	else
-		ClearRect(vireio::RenderPosition::Right, rec4, COLOR_BLUE);
+	ClearRect(config.MaybeSwap(vireio::RenderPosition::Left), rec4, COLOR_BLUE);
 
 	// horizontal line
 	D3DRECT rec5 = {beg, (viewportHeight /2)-1, end, (viewportHeight /2)+1 };
-	if (!config.swap_eyes)
-		ClearRect(vireio::RenderPosition::Left, rec5, COLOR_BLUE);
-	else
-		ClearRect(vireio::RenderPosition::Right, rec5, COLOR_BLUE);
+	ClearRect(config.MaybeSwap(vireio::RenderPosition::Left), rec5, COLOR_BLUE);
 
 	// hash lines
 	int hashNum = 10;
 	float hashSpace = horWidth*viewportWidth / (float)hashNum;
 	for(int i=0; i<=hashNum; i++) {
 		D3DRECT rec5 = {beg+(int)(i*hashSpace)-1, hashTop, beg+(int)(i*hashSpace)+1, hashBottom};
-		if (!config.swap_eyes)
-			ClearRect(vireio::RenderPosition::Left, rec5, COLOR_HASH_LINE);
-		else
-			ClearRect(vireio::RenderPosition::Right, rec5, COLOR_HASH_LINE);
+		ClearRect(config.MaybeSwap(vireio::RenderPosition::Left), rec5, COLOR_HASH_LINE);
 	}
 
 	rec2.left = (int)(width*0.35f);

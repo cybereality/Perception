@@ -38,6 +38,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <windows.h>
 #include "ConfigDefaults.h"
 #include "InputControls.h"
+#include "VireioUtil.h"
 #include "pugixml.hpp"
 
 /**
@@ -108,6 +109,8 @@ public:
 		float       ipd;                        /**< IPD, which stands for interpupillary distance (distance between your pupils - in meters...default = 0.064). Also called the interocular distance (or just Interocular). */
 		float       aspect_multiplier;          /**< Currently unused aspect multiplier. Aspect multiplier allows adjusting aspect ratio consistently for Stereo/NoStereo. */
 		UINT		display_adapter;			/**< The display adapter to use - 0 = Primary Display, 1 = Secondary and so on.. */
+		
+		vireio::RenderPosition MaybeSwap(vireio::RenderPosition whichEye);
 	};
 
 	struct UserConfig

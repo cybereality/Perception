@@ -1071,6 +1071,22 @@ bool ProxyHelper::GetProfileGameExes(std::vector<std::pair<std::string, bool>> &
 	return gameExes.size() > 0;
 }
 
+/**
+* If swap_eyes is not set, returns the given eye; otherwise returns the opposite
+* of the given eye.
+*/
+vireio::RenderPosition ProxyHelper::ProxyConfig::MaybeSwap(vireio::RenderPosition whichEye)
+{
+	if(swap_eyes) {
+		if(whichEye == vireio::RenderPosition::Left)
+			return vireio::RenderPosition::Right;
+		else
+			return vireio::RenderPosition::Left;
+	} else {
+		return whichEye;
+	}
+}
+
 
 /**
 * Currently incomplete : Get configuration for the specified process name.
