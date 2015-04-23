@@ -80,11 +80,7 @@ bool D3DProxyDevice::InitVPMENU()
 	m_showVRMouse = 0;
 	m_fVRBoostIndicator = 0.0f;
 	menuIsOpen = false;
-	borderTopHeight = 0.0f;
-	menuTopHeight = 0.0f;
 	hotkeyCooldown = 0.0f;
-	menuVelocity = 0.0f;
-	menuAttraction = 0.0f;
 	hud3DDepthMode = HUD_3D_Depth_Modes::HUD_DEFAULT;
 	gui3DDepthMode = GUI_3D_Depth_Modes::GUI_DEFAULT;
 	oldHudMode = HUD_3D_Depth_Modes::HUD_DEFAULT;
@@ -145,7 +141,7 @@ void D3DProxyDevice::VPMENU_Back()
 
 void D3DProxyDevice::VPMENU_OpenMainMenu()
 {
-	borderTopHeight = 0.0f;
+	menuState.Reset();
 	VPMENU_NavigateTo([=]() {
 		VPMENU_MainMenu();
 	});
@@ -173,49 +169,81 @@ MenuBuilder *D3DProxyDevice::VPMENU_NewFrame(UINT menuEntryCount)
 	SHOW_CALL("VPMENU_NewFrame");
 	
 	// set menu entry attraction
-	menuAttraction = ((borderTopHeight-menuTop)/menuEntryHeight);
-	menuAttraction -= (float)((UINT)menuAttraction);
-	menuAttraction -= 0.5f;
-	menuAttraction *= 2.0f;
-	if ((menuVelocity>0.0f) && (menuAttraction<0.0f)) menuAttraction = 0.0f;
-	if ((menuVelocity<0.0f) && (menuAttraction>0.0f)) menuAttraction = 0.0f;
+	menuState.menuAttraction = ((menuState.borderTopHeight-menuTop)/menuEntryHeight);
+	menuState.menuAttraction -= (float)((UINT)menuState.menuAttraction);
+	menuState.menuAttraction -= 0.5f;
+	menuState.menuAttraction *= 2.0f;
+	if ((menuState.menuVelocity>0.0f) && (menuState.menuAttraction<0.0f)) menuState.menuAttraction = 0.0f;
+	if ((menuState.menuVelocity<0.0f) && (menuState.menuAttraction>0.0f)) menuState.menuAttraction = 0.0f;
 
 	// handle border height
-	if (borderTopHeight<menuTop)
+	if (menuState.borderTopHeight<menuTop)
 	{
-		borderTopHeight = menuTop;
-		menuVelocity=0.0f;
-		menuAttraction=0.0f;
+		menuState.borderTopHeight = menuTop;
+		menuState.menuVelocity=0.0f;
+		menuState.menuAttraction=0.0f;
 
 	}
-	if (borderTopHeight>(menuTop+(menuEntryHeight*(float)(menuEntryCount-1))))
+	if (menuState.borderTopHeight>(menuTop+(menuEntryHeight*(float)(menuEntryCount-1))))
 	{
-		borderTopHeight = menuTop+menuEntryHeight*(float)(menuEntryCount-1);
-		menuVelocity=0.0f;
-		menuAttraction=0.0f;
+		menuState.borderTopHeight = menuTop+menuEntryHeight*(float)(menuEntryCount-1);
+		menuState.menuVelocity=0.0f;
+		menuState.menuAttraction=0.0f;
 	}
 	
 	return new MenuBuilder(this);
 }
 
+float D3DProxyDevice::VPMENU_AdjustBorderWithScrolling()
+{
+	int entryID = VPMENU_GetCurrentSelection();
+	float borderDrawingHeight = menuState.borderTopHeight;
+	if (menuState.menuVelocity == 0.0f)
+		menuState.borderTopHeight = menuTop+menuEntryHeight*(float)entryID;
+	if (menuState.borderTopHeight>(menuTop+(menuEntryHeight*12.0f)))
+		borderDrawingHeight = menuTop+menuEntryHeight*12.0f;
+
+	// down scroll border/menu adjustment
+	if (menuState.menuTopHeight>=(borderDrawingHeight-menuState.borderTopHeight))
+		menuState.menuTopHeight = (borderDrawingHeight-menuState.borderTopHeight);
+	else
+		borderDrawingHeight=menuState.borderTopHeight+menuState.menuTopHeight;
+
+	// up scroll border/menu adjustment
+	if (borderDrawingHeight<menuTop)
+	{
+		menuState.menuTopHeight+=menuTop-borderDrawingHeight;
+		borderDrawingHeight = menuTop;
+	}
+	return borderDrawingHeight;
+}
+
+void D3DProxyDevice::VPMENU_DrawBorder(int top)
+{
+	// draw border - total width due to shift correction
+	D3DRECT rect;
+	rect.x1 = (int)0;
+	rect.x2 = (int)viewportWidth;
+	rect.y1 = (int)top;
+	rect.y2 = (int)(top+viewportHeight*0.04f);
+	ClearEmptyRect(vireio::RenderPosition::Left, rect, COLOR_MENU_BORDER, 2);
+	ClearEmptyRect(vireio::RenderPosition::Right, rect, COLOR_MENU_BORDER, 2);
+}
+
 int D3DProxyDevice::VPMENU_GetCurrentSelection()
 {
-	float entry = (borderTopHeight-menuTop+(menuEntryHeight/3.0f))/menuEntryHeight;
+	float entry = (menuState.borderTopHeight-menuTop+(menuEntryHeight/3.0f))/menuEntryHeight;
 	return (int)entry;
 }
 
-void D3DProxyDevice::VPMENU_StartDrawing(const char *pageTitle)
+void D3DProxyDevice::VPMENU_StartDrawing(MenuBuilder *menu, const char *pageTitle)
 {
 	// adjust border
-	float borderDrawingHeight = borderTopHeight;
-	if ((menuVelocity < 1.0f) && (menuVelocity > -1.0f))
-		borderTopHeight = menuTop+menuEntryHeight*(float)VPMENU_GetCurrentSelection();
+	float borderDrawingHeight = menuState.borderTopHeight;
+	if ((menuState.menuVelocity < 1.0f) && (menuState.menuVelocity > -1.0f))
+		menuState.borderTopHeight = menuTop+menuEntryHeight*(float)VPMENU_GetCurrentSelection();
 
-	// draw border - total width due to shift correction
-	D3DRECT rect;
-	rect.x1 = (int)0; rect.x2 = (int)viewportWidth; rect.y1 = (int)borderTopHeight; rect.y2 = (int)(borderTopHeight+viewportHeight*0.04f);
-	ClearEmptyRect(vireio::RenderPosition::Left, rect, COLOR_MENU_BORDER, 2);
-	ClearEmptyRect(vireio::RenderPosition::Right, rect, COLOR_MENU_BORDER, 2);
+	VPMENU_DrawBorder((int)menuState.borderTopHeight);
 
 	hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
 
@@ -223,12 +251,7 @@ void D3DProxyDevice::VPMENU_StartDrawing(const char *pageTitle)
 	D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
 	hudMainMenu->SetTransform(&matScale);
 
-	RECT titleRect = { 650, 300, VPMENU_PIXEL_WIDTH, VPMENU_PIXEL_HEIGHT };
-	std::string pageHeading = retprintf("Vireio Perception (%s) %s\n", APP_VERSION, pageTitle);
-	DrawTextShadowed(hudFont, hudMainMenu, pageHeading.c_str(), &titleRect, COLOR_MENU_TEXT);
-	rect.x1 = 0; rect.x2 = viewportWidth; rect.y1 = (int)(335*fScaleY); rect.y2 = (int)(340*fScaleY);
-	Clear(1, &rect, D3DCLEAR_TARGET, COLOR_MENU_BORDER, 0, 0);
-	
+	VPMENU_DrawTitle(pageTitle);
 	menu->SetDrawPosition(800, 350);
 }
 
@@ -251,6 +274,20 @@ void D3DProxyDevice::VPMENU_FinishDrawing(MenuBuilder *menu)
 	if(menu) {
 		delete menu;
 	}
+}
+
+void D3DProxyDevice::VPMENU_DrawTitle(const char *pageTitle)
+{
+	RECT titleRect = { 650, 300, VPMENU_PIXEL_WIDTH, VPMENU_PIXEL_HEIGHT };
+	std::string pageHeading = retprintf("Vireio Perception (%s) %s\n", APP_VERSION, pageTitle);
+	DrawTextShadowed(hudFont, hudMainMenu, pageHeading.c_str(), &titleRect, COLOR_MENU_TEXT);
+	
+	D3DRECT clearRect;
+	clearRect.x1 = 0;
+	clearRect.y1 = (int)(335*fScaleY);
+	clearRect.x2 = viewportWidth;
+	clearRect.y2 = (int)(340*fScaleY);
+	Clear(1, &clearRect, D3DCLEAR_TARGET, COLOR_MENU_BORDER, 0, 0);
 }
 
 bool D3DProxyDevice::VPMENU_Input_Selected()
@@ -385,7 +422,7 @@ void D3DProxyDevice::VPMENU_MainMenu()
 	MenuBuilder *menu = VPMENU_NewFrame(menuEntryCount);
 
 	// output menu
-	VPMENU_StartDrawing("Settings");
+	VPMENU_StartDrawing(menu, "Settings");
 
 	if (includeShaderAnalyzer)
 	{
@@ -474,7 +511,7 @@ void D3DProxyDevice::VPMENU_WorldScale()
 
 	// ensure that the attraction is set to zero
 	// for non-menu-screens like this one
-	menuAttraction = 0.0f;
+	menuState.menuAttraction = 0.0f;
 
 	// sort the game unit vector
 	std::sort (m_gameXScaleUnits.begin(), m_gameXScaleUnits.end());
@@ -508,16 +545,17 @@ void D3DProxyDevice::VPMENU_WorldScale()
 	}
 	
 	// handle border height (=scrollbar scroll height)
-	if (borderTopHeight<-64.0f)
-		borderTopHeight = -64.0f;
-	if (borderTopHeight>365.0f)
-		borderTopHeight = 365.0f;
+	if (menuState.borderTopHeight<-64.0f)
+		menuState.borderTopHeight = -64.0f;
+	if (menuState.borderTopHeight>365.0f)
+		menuState.borderTopHeight = 365.0f;
 
 	// Draw
 	// standard hud size, will be scaled later to actual viewport
 	int width = VPMENU_PIXEL_WIDTH;
 	int height = VPMENU_PIXEL_HEIGHT;
 
+	MenuBuilder *menu = VPMENU_NewFrame(0);
 	VPMENU_StartDrawing_NonMenu();
 
 	// arbitrary formular... TODO !! find a more nifty solution
@@ -634,7 +672,7 @@ void D3DProxyDevice::VPMENU_WorldScale()
 
 	// draw description text box
 	VPMENU_StartDrawing_NonMenu();
-	RECT rec8 = {620, (int)(borderTopHeight), 1300, 400};
+	RECT rec8 = {620, (int)(menuState.borderTopHeight), 1300, 400};
 	DrawTextShadowed(hudFont, hudTextBox,
 		"In the right eye view, walk up as close as\n"
 		"possible to a 90 degree vertical object and\n"
@@ -654,7 +692,7 @@ void D3DProxyDevice::VPMENU_WorldScale()
 	hudTextBox->Draw(NULL, &rec8, NULL, &vPos, COLOR_WHITE);
 
 	// draw description box scroll bar
-	float scroll = (429.0f-borderTopHeight-64.0f)/429.0f;
+	float scroll = (429.0f-menuState.borderTopHeight-64.0f)/429.0f;
 	D3DRECT rec9 = {(int)(1300*fScaleX), 0, (int)(1320*fScaleX), (int)(400*fScaleY)};
 	DrawScrollbar(vireio::RenderPosition::Left, rec9, COLOR_QUICK_SETTING, scroll, (int)(20*fScaleY));
 	DrawScrollbar(vireio::RenderPosition::Right, rec9, COLOR_QUICK_SETTING, scroll, (int)(20*fScaleY));
@@ -671,7 +709,7 @@ void D3DProxyDevice::VPMENU_Convergence()
 	
 	// ensure that the attraction is set to zero
 	// for non-menu-screens like this one
-	menuAttraction = 0.0f;
+	menuState.menuAttraction = 0.0f;
 
 	// Left/Right: Decrease/Increase convergence (hold CTRL to lower speed, SHIFT to speed up)
 	if (VPMENU_Input_IsAdjustment() && HotkeysActive())
@@ -684,16 +722,17 @@ void D3DProxyDevice::VPMENU_Convergence()
 	
 
 	// handle border height (=scrollbar scroll height)
-	if (borderTopHeight<-64.0f)
-		borderTopHeight = -64.0f;
-	if (borderTopHeight>365.0f)
-		borderTopHeight = 365.0f;
+	if (menuState.borderTopHeight<-64.0f)
+		menuState.borderTopHeight = -64.0f;
+	if (menuState.borderTopHeight>365.0f)
+		menuState.borderTopHeight = 365.0f;
 
 	// Draw
 	// standard hud size, will be scaled later to actual viewport
 	int width = VPMENU_PIXEL_WIDTH;
 	int height = VPMENU_PIXEL_HEIGHT;
 
+	MenuBuilder *menu = VPMENU_NewFrame(0);
 	VPMENU_StartDrawing_NonMenu();
 
 	// arbitrary formular... TODO !! find a more nifty solution
@@ -771,7 +810,7 @@ void D3DProxyDevice::VPMENU_Convergence()
 
 	// draw description text box
 	VPMENU_StartDrawing_NonMenu();
-	RECT rec8 = {620, (int)(borderTopHeight), 1300, 400};
+	RECT rec8 = {620, (int)(menuState.borderTopHeight), 1300, 400};
 	DrawTextShadowed(hudFont, hudTextBox,
 		"Note that the Convergence Screens distance\n"
 		"is measured in physical meters and should\n"
@@ -788,7 +827,7 @@ void D3DProxyDevice::VPMENU_Convergence()
 	hudTextBox->Draw(NULL, &rec8, NULL, &vPos, COLOR_WHITE);
 
 	// draw description box scroll bar
-	float scroll = (429.0f-borderTopHeight-64.0f)/429.0f;
+	float scroll = (429.0f-menuState.borderTopHeight-64.0f)/429.0f;
 	D3DRECT rec9 = {(int)(1300*fScaleX), 0, (int)(1320*fScaleX), (int)(400*fScaleY)};
 	DrawScrollbar(vireio::RenderPosition::Left, rec9, COLOR_QUICK_SETTING, scroll, (int)(20*fScaleY));
 	DrawScrollbar(vireio::RenderPosition::Right, rec9, COLOR_QUICK_SETTING, scroll, (int)(20*fScaleY));
@@ -818,7 +857,7 @@ void D3DProxyDevice::VPMENU_HUD()
 	MenuBuilder *menu = VPMENU_NewFrame(NUM_MENU_ITEMS);
 	
 	// output menu
-	VPMENU_StartDrawing("Settings - HUD");
+	VPMENU_StartDrawing(menu, "Settings - HUD");
 
 	float hudQSHeight = (float)menu->GetDrawPositionTop() * fScaleY;
 	std::string depthModeDescription = "";
@@ -908,7 +947,7 @@ void D3DProxyDevice::VPMENU_GUI()
 	MenuBuilder *menu = VPMENU_NewFrame(NUM_MENU_ITEMS);
 
 	// output menu
-	VPMENU_StartDrawing("Settings - GUI");
+	VPMENU_StartDrawing(menu, "Settings - GUI");
 
 	float guiQSTop = (float)menu->GetDrawPositionTop() * fScaleY;
 	
@@ -1005,7 +1044,7 @@ void D3DProxyDevice::VPMENU_Settings()
 	};
 
 	MenuBuilder *menu = VPMENU_NewFrame(NUM_MENU_ITEMS);
-	VPMENU_StartDrawing("Settings - General");
+	VPMENU_StartDrawing(menu, "Settings - General");
 
 	menu->AddButton(retprintf("Swap Eyes : %s", stereoView->swapEyes ? "True" : "False"), [=]()
 	{
@@ -1145,7 +1184,7 @@ void D3DProxyDevice::VPMENU_PosTracking()
 	};
 
 	MenuBuilder *menu = VPMENU_NewFrame(NUM_MENU_ITEMS);
-	VPMENU_StartDrawing("Settings - Positional Tracking");
+	VPMENU_StartDrawing(menu, "Settings - Positional Tracking");
 
 	menu->AddButton(retprintf("Positional Tracking (CTRL + P) : %s",
 		m_bPosTrackingToggle ? "On" : "Off"),
@@ -1201,7 +1240,7 @@ void D3DProxyDevice::VPMENU_DuckAndCover()
 	controls.UpdateInputs();
 
 	MenuBuilder *menu = VPMENU_NewFrame(NUM_MENU_ITEMS);
-	VPMENU_StartDrawing("Settings - Duck-and-Cover");
+	VPMENU_StartDrawing(menu, "Settings - Duck-and-Cover");
 
 	std::string crouchToggleDescription = m_DuckAndCover.crouchToggle ? "Toggle" : "Hold";
 	menu->AddButton(retprintf("Crouch : %s", crouchToggleDescription.c_str()), [=]() {
@@ -1293,7 +1332,7 @@ void D3DProxyDevice::VPMENU_ComfortMode()
 	controls.UpdateInputs();
 	
 	MenuBuilder *menu = VPMENU_NewFrame(NUM_MENU_ITEMS);
-	VPMENU_StartDrawing("Settings - Comfort Mode");
+	VPMENU_StartDrawing(menu, "Settings - Comfort Mode");
 
 	bool isEnabled = (VRBoostValue[VRboostAxis::ComfortMode] != 0.0f);
 	menu->AddButton(retprintf("Comfort Mode : %s", isEnabled?"Enabled":"Disabled"), [=]()
@@ -1346,7 +1385,7 @@ void D3DProxyDevice::VPMENU_VRBoostValues()
 	};
 	
 	MenuBuilder *menu = VPMENU_NewFrame(NUM_MENU_ITEMS);
-	VPMENU_StartDrawing("Settings - VRBoost");
+	VPMENU_StartDrawing(menu, "Settings - VRBoost");
 
 	menu->AddAdjustment("World FOV : %g",          &VRBoostValue[24], 100.0f, 0.5f);
 	menu->AddAdjustment("Player FOV : %g",         &VRBoostValue[25], 100.0f, 0.5f);
@@ -1403,19 +1442,19 @@ void D3DProxyDevice::VPMENU_UpdateBorder()
 	float timeScale = (float)menuLastFrameLength*90;
 
 	// menu velocity present ? in case calculate diminution of the velocity
-	if (menuVelocity != 0.0f || hotkeyCooldown != 0.0f)
+	if (menuState.menuVelocity != 0.0f || hotkeyCooldown != 0.0f)
 	{
 		float diminution = 0.05f;
 		diminution *= timeScale;
 		if (diminution > 1.0f) diminution = 1.0f;
-		menuVelocity *= 1.0f-diminution;
+		menuState.menuVelocity *= 1.0f-diminution;
 		hotkeyCooldown *= 1.0f-diminution;
 
 		// set velocity to zero in case of low velocity
-		if (menuVelocity<0.9f && menuVelocity>-0.9f
+		if (menuState.menuVelocity<0.9f && menuState.menuVelocity>-0.9f
 			&& hotkeyCooldown<0.7f && hotkeyCooldown>-0.7f)
 		{
-			menuVelocity = 0.0f;
+			menuState.menuVelocity = 0.0f;
 			hotkeyCooldown = 0.0f;
 		}
 	}
@@ -1427,20 +1466,20 @@ void D3DProxyDevice::VPMENU_UpdateBorder()
 
 		float fScaleY = ((float)viewportHeight / (float)1080.0f);
 		
-		if(menuVelocity == 0.0f)
+		if(menuState.menuVelocity == 0.0f)
 		{
 			float menuSelectionAxis = controls.GetAxis(InputControls::GamepadAxis::LeftStickY);
 			if (hotkeyMenuUp->IsPressed(controls) || (menuSelectionAxis>MENU_SELECTION_STICK_DEADZONE))
-				menuVelocity=-2.7f;
+				menuState.menuVelocity=-2.7f;
 			if (hotkeyMenuDown->IsPressed(controls) || (menuSelectionAxis<-MENU_SELECTION_STICK_DEADZONE))
-				menuVelocity=2.7f;
+				menuState.menuVelocity=2.7f;
 			if (hotkeyMenuUpFaster->IsPressed(controls))
-				menuVelocity=-15.0f;
+				menuState.menuVelocity=-15.0f;
 			if (hotkeyMenuDownFaster->IsPressed(controls))
-				menuVelocity=15.0f;
+				menuState.menuVelocity=15.0f;
 		}
 		
-		borderTopHeight += (menuVelocity+menuAttraction)*fScaleY*timeScale;
+		menuState.borderTopHeight += (menuState.menuVelocity+menuState.menuAttraction)*fScaleY*timeScale;
 	}
 }
 
@@ -1664,7 +1703,8 @@ MenuBuilder::MenuBuilder(D3DProxyDevice *device)
 {
 	this->device = device;
 	this->menuConstructionCurrentEntry = 0;
-	drawPosition = { 0, 0, VPMENU_PIXEL_WIDTH, VPMENU_PIXEL_HEIGHT };
+	RECT resetDrawPosition = { 0, 0, VPMENU_PIXEL_WIDTH, VPMENU_PIXEL_HEIGHT };
+	drawPosition = resetDrawPosition;
 }
 
 void MenuBuilder::DrawItem(const char *text, D3DCOLOR color)
@@ -1796,6 +1836,32 @@ void MenuBuilder::AddAdjustment(const char *formatString, float *value, float de
 			device->HotkeyCooldown(COOLDOWN_SHORT);
 		}
 	});
+}
+
+void MenuBuilder::SetDrawPosition(int left, int top)
+{
+	drawPosition.left = left;
+	drawPosition.top = top;
+}
+
+int MenuBuilder::GetDrawPositionTop()
+{
+	return drawPosition.top;
+}
+
+
+MenuState::MenuState(D3DProxyDevice *device)
+{
+	this->device = device;
+	menuVelocity = 0.0f;
+	menuAttraction = 0.0f;
+	borderTopHeight = 0.0f;
+	menuTopHeight = 0.0f;
+}
+
+void MenuState::Reset()
+{
+	borderTopHeight = 0.0f;
 }
 
 

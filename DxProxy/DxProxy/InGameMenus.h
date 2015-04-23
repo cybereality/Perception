@@ -42,3 +42,22 @@ private:
 	int menuConstructionCurrentEntry;
 	RECT drawPosition;
 };
+
+class MenuState
+{
+public:
+	MenuState(D3DProxyDevice *device);
+	void Reset();
+	
+	float menuVelocity;
+	float menuAttraction;
+	
+	/// Main menu border top height.
+	float borderTopHeight;
+	
+	/// Main menu top height for scrolling menues.
+	float menuTopHeight;
+	
+private:
+	D3DProxyDevice *device;
+};

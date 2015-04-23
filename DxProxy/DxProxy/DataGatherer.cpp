@@ -753,7 +753,7 @@ void DataGatherer::VPMENU_ShaderSubMenu()
 	MenuBuilder *menu = VPMENU_NewFrame(menuEntryCount);
 
 	// output menu
-	VPMENU_StartDrawing("Shader Analyser");
+	VPMENU_StartDrawing(menu, "Shader Analyser");
 
 	menu->AddButton("Create new Shader Rules", [=]() {
 		// create relevant shader constant table
@@ -887,35 +887,11 @@ void DataGatherer::VPMENU_ChangeRules()
 	UINT entryID = VPMENU_GetCurrentSelection();;
 	
 	// adjust border & menu due to menu scroll
-	float borderDrawingHeight = borderTopHeight;
-	if (menuVelocity == 0.0f)
-		borderTopHeight = menuTop+menuEntryHeight*(float)entryID;
-	if (borderTopHeight>(menuTop+(menuEntryHeight*12.0f)))
-		borderDrawingHeight = menuTop+menuEntryHeight*12.0f;
-
-	// down scroll border/menu adjustment
-	if (menuTopHeight>=(borderDrawingHeight-borderTopHeight))
-		menuTopHeight = (borderDrawingHeight-borderTopHeight);
-	else
-		borderDrawingHeight=borderTopHeight+menuTopHeight;
-
-	// up scroll border/menu adjustment
-	if (borderDrawingHeight<menuTop)
-	{
-		menuTopHeight+=menuTop-borderDrawingHeight;
-		borderDrawingHeight = menuTop;
-	}
-
-
-	// draw border - total width due to shift correction
-	D3DRECT rect;
-	rect.x1 = (int)0; rect.x2 = (int)viewportWidth; rect.y1 = (int)borderDrawingHeight; rect.y2 = (int)(borderDrawingHeight+viewportHeight*0.04f);
-	ClearEmptyRect(vireio::RenderPosition::Left, rect, COLOR_MENU_BORDER, 2);
-	ClearEmptyRect(vireio::RenderPosition::Right, rect, COLOR_MENU_BORDER, 2);
-
+	float borderDrawingHeight = VPMENU_AdjustBorderWithScrolling();
+	VPMENU_DrawBorder((int)borderDrawingHeight);
 	VPMENU_StartDrawing_NonMenu();
 
-	menu->SetDrawPosition(800, 350 + (int)(menuTopHeight / fScaleY));
+	menu->SetDrawPosition(800, 350 + (int)(menuState.menuTopHeight / fScaleY));
 	
 	for (UINT i=0; i<menuEntryCount-2; i++)
 	menu->AddItem(menuEntries[i], menuColor[i], [&]()
@@ -1281,35 +1257,12 @@ void DataGatherer::VPMENU_ShowActiveShaders()
 
 	// output menu
 	// adjust border & menu due to menu scroll
-	float borderDrawingHeight = borderTopHeight;
-	if (menuVelocity == 0.0f)
-		borderTopHeight = menuTop+menuEntryHeight*(float)entryID;
-	if (borderTopHeight>(menuTop+(menuEntryHeight*12.0f)))
-		borderDrawingHeight = menuTop+menuEntryHeight*12.0f;
-
-	// down scroll border/menu adjustment
-	if (menuTopHeight>=(borderDrawingHeight-borderTopHeight))
-		menuTopHeight = (borderDrawingHeight-borderTopHeight);
-	else
-		borderDrawingHeight=borderTopHeight+menuTopHeight;
-
-	// up scroll border/menu adjustment
-	if (borderDrawingHeight<menuTop)
-	{
-		menuTopHeight+=menuTop-borderDrawingHeight;
-		borderDrawingHeight = menuTop;
-	}
-
-
-	// draw border - total width due to shift correction
-	D3DRECT rect;
-	rect.x1 = (int)0; rect.x2 = (int)viewportWidth; rect.y1 = (int)borderDrawingHeight; rect.y2 = (int)(borderDrawingHeight+viewportHeight*0.04f);
-	ClearEmptyRect(vireio::RenderPosition::Left, rect, COLOR_MENU_BORDER, 2);
-	ClearEmptyRect(vireio::RenderPosition::Right, rect, COLOR_MENU_BORDER, 2);
+	float borderDrawingHeight = VPMENU_AdjustBorderWithScrolling();
+	VPMENU_DrawBorder((int)borderDrawingHeight);
 
 	VPMENU_StartDrawing_NonMenu();
 
-	menu->SetDrawPosition(800, 350 + (int)(menuTopHeight / fScaleY));
+	menu->SetDrawPosition(800, 350 + (int)(menuState.menuTopHeight / fScaleY));
 	
 	for (UINT i = 0; i < menuEntryCount-2; i++)
 	{

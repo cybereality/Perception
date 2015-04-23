@@ -424,10 +424,13 @@ protected:
 	void VPMENU_NavigateTo(std::function<void()> menuHandler);
 	bool VPMENU_IsOpen();
 	MenuBuilder *VPMENU_NewFrame(UINT menuEntryCount);
+	float VPMENU_AdjustBorderWithScrolling();
+	void VPMENU_DrawBorder(int top);
 	int VPMENU_GetCurrentSelection();
-	void VPMENU_StartDrawing(const char *pageTitle);
+	void VPMENU_StartDrawing(MenuBuilder *menu, const char *pageTitle);
 	void VPMENU_StartDrawing_NonMenu();
 	void VPMENU_FinishDrawing(MenuBuilder *menu);
+	void VPMENU_DrawTitle(const char *pageTitle);
 	bool VPMENU_Input_Selected();
 	bool VPMENU_Input_Left();
 	bool VPMENU_Input_Right();
@@ -481,17 +484,7 @@ protected:
 	/// Time until hotkeys will accept presses again
 	float hotkeyCooldown;
 	
-	/// Main menu velocity.
-	float menuVelocity;
-	
-	/// Main menu affection.
-	float menuAttraction;
-	
-	/// Main menu border top height.
-	float borderTopHeight;
-	
-	/// Main menu top height for scrolling menues.
-	float menuTopHeight;
+	MenuState menuState;
 	
 	/// VP menu value.
 	int viewportWidth;

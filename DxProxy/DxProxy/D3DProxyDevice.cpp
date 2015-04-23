@@ -181,7 +181,8 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	m_comfortModeYawIncrement(90.0f),
 	m_comfortModeLeftKey(hotkeyDefaultComfortModeLeft),
 	m_comfortModeRightKey(hotkeyDefaultComfortModeRight),
-	m_disableAllHotkeys(false)
+	m_disableAllHotkeys(false),
+	menuState(this)
 {
 	SHOW_CALL("D3DProxyDevice");
 	OutputDebugString("D3D ProxyDev Created\n");
