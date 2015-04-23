@@ -490,7 +490,7 @@ void D3DProxyDevice::VPMENU_MainMenu()
 		std::string game_exe = std::string(config.game_exe);
 		std::string shaderRulePath = std::string(config.shaderRulePath);
 		std::string VRboostPath = std::string(config.VRboostPath);
-		memcpy(&config, &m_configBackup, sizeof(ProxyHelper::ProxyConfig));
+		config = m_configBackup;
 		config.game_exe = std::string(game_exe);
 		config.shaderRulePath = std::string(shaderRulePath);
 		config.VRboostPath = std::string(VRboostPath);

@@ -308,8 +308,8 @@ void D3DProxyDevice::HandleControls()
 			if (tracker->getStatus() >= MTS_OK)
 			{
 				m_fFloatingScreenPitch = tracker->primaryPitch;
-				m_fFloatingScreenYaw = tracker->primaryYaw;			
-				m_fFloatingScreenZ = tracker->z;			
+				m_fFloatingScreenYaw = tracker->primaryYaw;
+				m_fFloatingScreenZ = tracker->z;
 			}
 		}
 
@@ -441,7 +441,7 @@ void D3DProxyDevice::HandleControls()
 						sprintf_s(popup.line[i+1], "      %s:      0x%"PR_SIZET"x", axisName.c_str(), axes[i].Address);
 
 						i++;
-					}	
+					}
 			
 					ShowPopup(popup);
 				}
@@ -468,7 +468,7 @@ void D3DProxyDevice::HandleControls()
 			{
 				stereoView->m_bLeftSideActive = !stereoView->m_bLeftSideActive;
 				ShowAdjusterToast("Depth Perception Side Switched", 1000);
-			}		
+			}
 			HotkeyCooldown(COOLDOWN_LONG);
 		
 		}
@@ -478,11 +478,11 @@ void D3DProxyDevice::HandleControls()
 		{
 			std::string _str = "";
 			if(hotkeyPrevRenderState->IsPressed(controls))
-			{			
+			{
 				_str = stereoView->CycleRenderState(false);
 			}
 			else if(hotkeyNextRenderState->IsPressed(controls))
-			{			
+			{
 				_str = stereoView->CycleRenderState(true);
 			}
 			ShowPopup(VPT_ADJUSTER, VPS_TOAST, 1000,
@@ -509,7 +509,7 @@ void D3DProxyDevice::HandleControls()
 			{
 				m_pGameHandler->intDuplicateCubeTexture = 0;
 				cubeDuplicationDescription = "Default (Game Type)";
-			}		
+			}
 		
 			ShowPopup(VPT_ADJUSTER, VPS_TOAST, 1000,
 				retprintf("Cube Duplication :: %s", cubeDuplicationDescription));
@@ -535,7 +535,7 @@ void D3DProxyDevice::HandleControls()
 			{
 				m_pGameHandler->intDuplicateTexture = 0;
 				textureDuplicationDescription = "Default (Game Type)";
-			}		
+			}
 		
 			ShowPopup(VPT_ADJUSTER, VPS_TOAST, 1000,
 				retprintf("Texture Duplication :: %s", textureDuplicationDescription));
@@ -573,21 +573,21 @@ void D3DProxyDevice::HandleControls()
 			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
 			if(m_deviceBehavior.whenToHandleHeadTracking == DeviceBehavior::BEGIN_SCENE)
 			{
-				m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::END_SCENE;			
+				m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::END_SCENE;
 				sprintf_s(popup.line[2], "HEADTRACKING = END_SCENE");
 			}
 			else if(m_deviceBehavior.whenToHandleHeadTracking == DeviceBehavior::END_SCENE)
 			{
-				m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::BEGIN_SCENE;			
+				m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::BEGIN_SCENE;
 				sprintf_s(popup.line[2], "HEADTRACKING = BEGIN SCENE");
-			}	
+			}
 			/*else if(m_deviceBehavior.whenToHandleHeadTracking == DeviceBehavior::PRESENT)
 			{
 				m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::BEGIN_SCENE;
 				sprintf_s(popup.line[2], "HEADTRACKING = BEGIN SCENE");
 			}//TODO This Crashes for some reason - problem for another day*/
 		
-			ShowPopup(popup);		
+			ShowPopup(popup);
 			HotkeyCooldown(COOLDOWN_LONG);
 		}
 
@@ -757,7 +757,7 @@ void D3DProxyDevice::HandleControls()
 			this->stereoView->PostReset();		
 
 			ShowAdjusterToast(retprintf("IPD-Offset: %1.3f", this->stereoView->IPDOffset), 500);
-			m_saveConfigTimer = GetTickCount();
+			DeferedSaveConfig();
 			HotkeyCooldown(COOLDOWN_SHORT);
 		}
 
@@ -959,123 +959,67 @@ void D3DProxyDevice::HandleControls()
 		int _wheel = dinput.GetWheel();
 		if(_wheel != 0)
 		{
+			int wheelSign = (_wheel>0) ? 1 : -1;
 			if(hotkeyWheelYOffset->IsPressed(controls))
 			{
-				if(_wheel < 0)
-				{
-					if(this->stereoView->YOffset > -0.1f)
-					{
-						this->stereoView->YOffset -= 0.005f;
-					}
-				}
-				else if(_wheel > 0)
-				{
-					if(this->stereoView->YOffset < 0.1f)
-					{
-						this->stereoView->YOffset += 0.005f;
-					}
-				}
+				this->stereoView->YOffset += 0.005f * wheelSign;
+				clamp(&this->stereoView->YOffset, -0.1f, 0.1f);
 				
 				this->stereoView->PostReset();
-				m_saveConfigTimer = GetTickCount();
+				DeferedSaveConfig();
 				ShowAdjusterToast(retprintf("Y-Offset: %1.3f", this->stereoView->YOffset), 500);
 			}
 			else if(hotkeyWheelIPDOffset->IsPressed(controls))
 			{
-				if(_wheel < 0)
-				{
-					if(this->stereoView->IPDOffset > -0.1f)
-					{
-						this->stereoView->IPDOffset -= 0.001f;
-					}
-				}
-				else if(_wheel > 0)
-				{
-					if(this->stereoView->IPDOffset < 0.1f)
-					{
-						this->stereoView->IPDOffset += 0.001f;
-					}
-				}
+				this->stereoView->IPDOffset += 0.001f * wheelSign;
+				clamp(&this->stereoView->IPDOffset, -0.1f, 0.1f);
 
 				this->stereoView->PostReset();
 				ShowAdjusterToast(retprintf("IPD-Offset: %1.3f", this->stereoView->IPDOffset), 500);
-				m_saveConfigTimer = GetTickCount();
+				DeferedSaveConfig();
 			}
 			//CTRL + ALT + Mouse Wheel - adjust World Scale dynamically
 			else if (hotkeyWheelWorldScale->IsPressed(controls))
 			{
-				float separationChange = 0.05f;
-				if(_wheel < 0)
-				{
-					m_spShaderViewAdjustment->ChangeWorldScale(-separationChange);
-				}
-				else if(_wheel > 0)
-				{
-					m_spShaderViewAdjustment->ChangeWorldScale(separationChange);
-				}
+				float separationChange = 0.05f * wheelSign;
+				m_spShaderViewAdjustment->ChangeWorldScale(separationChange);
 
 				m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
 				ShowAdjusterToast(retprintf("Stereo Separation (World Scale): %1.3f", m_spShaderViewAdjustment->WorldScale()), 500);
-				m_saveConfigTimer = GetTickCount();
+				DeferedSaveConfig();
 			}
 			//CTRL + SPACE + Mouse Wheel - adjust stereo convergence dynamically
 			else if(hotkeyWheelStereoConvergence->IsPressed(controls))
 			{
-				float convergenceChange = 0.1f;
-				if(_wheel < 0)
-				{
-					m_spShaderViewAdjustment->ChangeConvergence(-convergenceChange);
-				}
-				else if(_wheel > 0)
-				{
-					m_spShaderViewAdjustment->ChangeConvergence(convergenceChange);
-				}
+				float convergenceChange = 0.1f * wheelSign;
+				m_spShaderViewAdjustment->ChangeConvergence(convergenceChange);
 
 				m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
 				ShowAdjusterToast(retprintf("Stereo Convergence: %1.3f", m_spShaderViewAdjustment->Convergence()), 500);
-				m_saveConfigTimer = GetTickCount();
+				DeferedSaveConfig();
 			}
 			else if(hotkeyWheelZoomScale->IsPressed(controls))
 			{
-				if (_wheel != 0)
-				{
-					if(_wheel < 0)
-					{
-						/*if(this->stereoView->DistortionScale > m_spShaderViewAdjustment->HMDInfo()->GetMinDistortionScale())
-						{
-							this->stereoView->DistortionScale -= 0.05f;
-						}*/
-						if(this->stereoView->ZoomOutScale > 0.05f)
-						{
-							this->stereoView->ZoomOutScale -= 0.05f;
-						}
-					}
-					else if(_wheel > 0)
-					{
-						/*if(this->stereoView->DistortionScale < m_maxDistortionScale)
-						{
-							this->stereoView->DistortionScale += 0.05f;
-						}*/
-						if(this->stereoView->ZoomOutScale < 2.00f)
-						{
-							this->stereoView->ZoomOutScale += 0.05f;
-						}
-					}
-					
-					this->stereoView->PostReset();
-					m_saveConfigTimer = GetTickCount();
-					ShowAdjusterToast(retprintf("Zoom Scale: %1.3f", this->stereoView->ZoomOutScale), 500);
-				}
+				/*
+				this->stereoView->DistortionScale += 0.05f * wheelSign;
+				clamp(&this->stereoView->DistortionScale, m_spShaderViewAdjustment->HMDInfo()->GetMinDistortionScale(), m_maxDistortionScale);
+				*/
+				this->stereoView->ZoomOutScale += 0.05f * wheelSign;
+				clamp(&this->stereoView->ZoomOutScale, 0.05f, 2.00f);
+				
+				this->stereoView->PostReset();
+				DeferedSaveConfig();
+				ShowAdjusterToast(retprintf("Zoom Scale: %1.3f", this->stereoView->ZoomOutScale), 500);
 			}
 		}
 	
 		//Change Distortion Scale CTRL + + / -
-		if(hotkeyDistortionScaleMinus->IsPressed(controls) && HotkeysActive())
+		if(hotkeyDistortionScalePlus->IsPressed(controls) && HotkeysActive())
 		{
 			this->stereoView->ZoomOutScale = 1.00f;
 			this->stereoView->PostReset();	
 
-			m_saveConfigTimer = GetTickCount();
+			DeferedSaveConfig();
 			ShowAdjusterToast(retprintf("Zoom Scale: %1.3f", this->stereoView->ZoomOutScale), 500);
 		}
 		else if(hotkeyDistortionScaleMinus->IsPressed(controls) && HotkeysActive())
@@ -1083,7 +1027,7 @@ void D3DProxyDevice::HandleControls()
 			this->stereoView->ZoomOutScale = 0.50f;
 			this->stereoView->PostReset();	
 
-			m_saveConfigTimer = GetTickCount();
+			DeferedSaveConfig();
 			ShowAdjusterToast(retprintf("Zoom Scale: %1.3f", this->stereoView->ZoomOutScale), 500);
 		}
 

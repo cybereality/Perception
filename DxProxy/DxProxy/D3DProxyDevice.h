@@ -341,10 +341,6 @@ public:
 	bool m_disableAllHotkeys;
 
 	/**
-	* Game-specific proxy configuration.
-	**/
-	ProxyHelper::ProxyConfig config;
-	/**
 	* VRBoost values. 
 	* Set to public for future use in input device classes.
 	***/
@@ -415,6 +411,25 @@ protected:
 	bool         switchDrawingSide();
 	void         ChangeHUD3DDepthMode(HUD_3D_Depth_Modes newMode);
 	void         ChangeGUI3DDepthMode(GUI_3D_Depth_Modes newMode);
+	
+	/*** Configurations ******************************************************/
+	
+	/// Game-specific proxy configuration. This is the active copy.
+	ProxyHelper::ProxyConfig config;
+	
+	/// Config settings which haven't been saved or applied yet, used in menus.
+	//ProxyHelper::ProxyConfig pendingConfig;
+	
+	/// Backup of the current game profile.
+	ProxyHelper::ProxyConfig m_configBackup;
+	
+	/// Timer used to indicate that an adjuster changed a config value and when
+	/// timer expires, config should be saved
+	DWORD m_saveConfigTimer;
+	
+	/// Indicate that the configuration needs to be saved, but don't do it
+	/// immediately.
+	void DeferedSaveConfig();
 	
 	/*** InGameMenus.cpp *****************************************************/
 protected:
@@ -570,10 +585,6 @@ protected:
 	* Proxy state block to capture various states.
 	**/
 	D3D9ProxyStateBlock* m_pCapturingStateTo;
-	/**
-	* Timer used to indicate that an adjuster changed a config value and when timer expires, config should be saved
-	*/
-	DWORD m_saveConfigTimer;
 	/**
 	* Main menu sprite.
 	***/
@@ -889,10 +900,6 @@ private:
 	* Either the left or right projection, depending on active render side.	
 	**/
 	D3DXMATRIX* m_pCurrentProjection;
-	/**
-	* Backup of the current game profile.
-	***/
-	ProxyHelper::ProxyConfig m_configBackup;
 	/**
 	* Current HUD 3D Depth mode.
 	***/

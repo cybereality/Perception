@@ -795,9 +795,8 @@ void DataGatherer::VPMENU_ShaderSubMenu()
 			shaderRulesFileName = "default.xml";
 
 		// ... and add path, delete proxy helper
-		std::stringstream sstm;
-		sstm << helper->GetBaseDir() << "cfg\\shader_rules\\" << shaderRulesFileName;
-		config.shaderRulePath = sstm.str();
+		config.shaderRulePath = retprintf("%scfg\\shader_rules\\%s",
+			helper->GetBaseDir().c_str(), shaderRulesFileName.c_str());
 		delete helper;
 
 		// ... finally, save

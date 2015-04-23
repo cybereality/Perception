@@ -2321,7 +2321,7 @@ void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 
 	// get config and backup it
 	config = cfg;
-	memcpy(&m_configBackup, &cfg, sizeof(ProxyHelper::ProxyConfig));
+	m_configBackup = cfg;
 
 	m_bfloatingMenu = false;
 	m_bfloatingScreen = false;
@@ -3804,4 +3804,11 @@ bool D3DProxyDevice::InitTracker()
 	}
 
 	return false;
+}
+
+
+
+void D3DProxyDevice::DeferedSaveConfig()
+{
+	m_saveConfigTimer = GetTickCount();
 }
