@@ -163,6 +163,7 @@ private:
 	void                    DrawIndexedPrimitive(IDirect3DDevice9* pcDevice, D3DPRIMITIVETYPE ePrimitiveType, INT nBaseVertexIndex, UINT dwMinVertexIndex, UINT dwNumVertices, UINT dwStartIndex, UINT dwPrimCount);
 	void                    DrawPrimitiveUP(IDirect3DDevice9* pcDevice, D3DPRIMITIVETYPE ePrimitiveType, UINT dwPrimitiveCount, CONST void* pVertexStreamZeroData, UINT dwVertexStreamZeroStride);
 	void                    DrawIndexedPrimitiveUP(IDirect3DDevice9* pcDevice, D3DPRIMITIVETYPE ePrimitiveType, UINT dwMinVertexIndex, UINT dwNumVertices, UINT dwPrimitiveCount, CONST void* pIndexData, D3DFORMAT eIndexDataFormat, CONST void* pVertexStreamZeroData, UINT dwVertexStreamZeroStride);
+	void                    Apply();
 
 	/*** StereoSplitter private methods ***/
 	int                     CheckIfMonitored(IDirect3DSurface9* pcSurface);
@@ -318,6 +319,10 @@ private:
 	* so this is added for security.
 	***/
 	bool m_bPresent;
+	/**
+	* True if Apply() was called (IDirect3DStateBlock9).
+	***/
+	bool m_bApply;
 	/**
 	* The font used.
 	***/

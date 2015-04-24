@@ -41,6 +41,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"VireioStereoSplitter.h"
 
 #define INTERFACE_IDIRECT3DDEVICE9                           8
+#define INTERFACE_IDIRECT3DSTATEBLOCK9                      13
 #define INTERFACE_IDIRECT3DSWAPCHAIN9                       15
 #define	METHOD_IDIRECT3DDEVICE9_PRESENT                     17
 #define METHOD_IDIRECT3DDEVICE9_SETRENDERTARGET             37
@@ -51,6 +52,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define METHOD_IDIRECT3DDEVICE9_DRAWPRIMITIVEUP             83 
 #define METHOD_IDIRECT3DDEVICE9_DRAWINDEXEDPRIMITIVEUP      84 
 #define	METHOD_IDIRECT3DSWAPCHAIN9_PRESENT                   3
+#define METHOD_IDIRECT3DSTATEBLOCK9_APPLY                    5
 
 /**
 * Constructor.
@@ -82,6 +84,7 @@ StereoSplitter::StereoSplitter():AQU_Nodus(),
 	m_dwMaxRenderTargets(0),
 	m_bMaxRenderTargets(false),
 	m_bPresent(false),
+	m_bApply(false),
 	m_nChecktimeFrameConstant(30),                          /**< Set this constant to 30 frames, later we should be able to change this value on the node. ***/
 	m_pcStereoOutputLeft(nullptr),
 	m_pcStereoOutputRight(nullptr),
@@ -590,9 +593,13 @@ bool StereoSplitter::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_DRAWINDEXEDPRIMITIVEUP))
 				return true;
 		}
-		if (nD3DInterface == INTERFACE_IDIRECT3DSWAPCHAIN9)
+		else if (nD3DInterface == INTERFACE_IDIRECT3DSWAPCHAIN9)
 		{
 			if (nD3DMethod == METHOD_IDIRECT3DSWAPCHAIN9_PRESENT) return true;
+		}
+		else if (nD3DInterface == INTERFACE_IDIRECT3DSTATEBLOCK9)
+		{
+			if (nD3DMethod == METHOD_IDIRECT3DSTATEBLOCK9_APPLY) return true;
 		}
 	}
 	return false; 
@@ -699,6 +706,13 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			return nullptr;
 		}
 		return nullptr;
+	case INTERFACE_IDIRECT3DSTATEBLOCK9:
+		switch (eD3DMethod)
+		{
+		case METHOD_IDIRECT3DSTATEBLOCK9_APPLY:
+			Apply();
+			return nullptr;
+		}
 	}
 	return nullptr;
 }
@@ -1147,6 +1161,15 @@ void StereoSplitter::DrawIndexedPrimitiveUP(IDirect3DDevice9* pcDevice, D3DPRIMI
 }
 
 /**
+* IDirect3DStateBlock9->Apply()
+***/
+void StereoSplitter::Apply()
+{
+	// state block to be applied, will be handled in SetDrawingSide()
+	m_bApply = true;
+}
+
+/**
 * Index of the monitored surface in m_apcMonitoredSurfaces, -1 if not monitored.
 ***/
 int StereoSplitter::CheckIfMonitored(IDirect3DSurface9* pcSurface)
@@ -1195,6 +1218,32 @@ bool StereoSplitter::SetDrawingSide(IDirect3DDevice9* pcDevice, RenderPosition e
 	// Already on the correct eye
 	if (eSide == m_eCurrentRenderingSide)
 		return true;
+
+	// state block was applied ?
+	if (m_bApply)
+	{
+		// verify the render targets
+		for(std::vector<IDirect3DSurface9*>::size_type i = 0; i < m_apcActiveRenderTargets.size(); i++) 
+		{
+			// get the render target for this index
+			LPDIRECT3DSURFACE9 pcRenderTarget;
+			pcDevice->GetRenderTarget((DWORD)i, &pcRenderTarget);
+
+			// is this render target stored ?
+			if (pcRenderTarget != m_apcActiveRenderTargets[i])
+			{
+				SetRenderTarget(pcDevice, (DWORD)i, pcRenderTarget);
+			}
+
+			// ..and release
+			pcRenderTarget->Release();
+		}
+
+		// TODO !! TEXTURES
+
+		// state block is handled
+		m_bApply = false;
+	}
 
 	// Everything hasn't changed yet but we set this first so we don't accidentally use the member instead of the local and break
 	// things, as I have already managed twice.
