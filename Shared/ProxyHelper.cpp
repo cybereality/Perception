@@ -44,6 +44,9 @@ using std::string;
 	#define CPUARCH_STR "32bit"
 #endif
 
+const ProxyConfig defaultConfig;
+
+
 /**
 * Simple inline helper to erase characters in a string.
 * @param string The string to be formatted.
@@ -146,16 +149,16 @@ template<class T> static void set_attribute(xml_node &node, const char *key, T n
 	}
 }
 
-static InputBindingRef LoadHotkey(xml_node &node, const char *key)
+static void LoadHotkey(xml_node &node, const char *key, InputBindingRef *setting)
 {
 	// TODO: Support types of hotkey-expressions other than simple keys
 	std::string hkString = node.attribute(key).as_string();
 	debugf("Loaded hotkey: %s\n", hkString.c_str());
 	int keycode = node.attribute(key).as_int(0);
 	if(keycode == 0)
-		return HotkeyExpressions::Unbound();
+		*setting = HotkeyExpressions::Unbound();
 	else
-		return HotkeyExpressions::Key(keycode);
+		*setting = HotkeyExpressions::Key(keycode);
 }
 
 static void SaveHotkey(xml_node &node, const char *key, InputBindingRef hotkey)
@@ -168,6 +171,31 @@ static void SaveHotkey(xml_node &node, const char *key, InputBindingRef hotkey)
 		debugf("Saving simple hotkey");
 		set_attribute(node, key, simpleHotkey->GetKeyCode());
 	}
+}
+
+void LoadSetting(xml_node &node, const char *key, std::string *setting)
+{
+	*setting = node.attribute(key).as_string(setting->c_str());
+}
+
+void LoadSetting(xml_node &node, const char *key, float *setting)
+{
+	*setting = node.attribute(key).as_float(*setting);
+}
+
+void LoadSetting(xml_node &node, const char *key, int *setting)
+{
+	*setting = node.attribute(key).as_int(*setting);
+}
+
+void LoadSetting(xml_node &node, const char *key, UINT *setting)
+{
+	*setting = node.attribute(key).as_uint(*setting);
+}
+
+void LoadSetting(xml_node &node, const char *key, bool *setting)
+{
+	*setting = node.attribute(key).as_bool(*setting);
 }
 
 
@@ -605,17 +633,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 	bool fileFound = false;
 
 	// set defaults
-	config.game_type = 0;
-	config.stereo_mode = 0;
-	config.tracker_mode = 0;
-	config.convergence = 0.0f;
-	config.swap_eyes = false;
-	config.aspect_multiplier = 1.0f;
-	config.VRboostMinShaderCount = 0;
-	config.VRboostMaxShaderCount = 999999;
-	config.DistortionScale = 0.0f;
-	config.YOffset = 0.0f;
-	config.IPDOffset = 0.0f;
+	config = ProxyConfig();
 
 	// get global config
 	string configPath = GetPath("cfg\\config.xml");
@@ -628,10 +646,10 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 	{
 		xml_node xml_config = docConfig.child("config");
 
-		config.stereo_mode = xml_config.attribute("stereo_mode").as_int();
-		config.aspect_multiplier = xml_config.attribute("aspect_multiplier").as_float();
-		config.tracker_mode = xml_config.attribute("tracker_mode").as_int();
-		config.display_adapter = xml_config.attribute("display_adapter").as_int(0);
+		LoadSetting(xml_config, "stereo_mode", &config.stereo_mode);
+		LoadSetting(xml_config, "aspect_multiplier", &config.aspect_multiplier);
+		LoadSetting(xml_config, "tracker_mode", &config.tracker_mode);
+		LoadSetting(xml_config, "display_adapter", &config.display_adapter);
 
 		fileFound = true;
 	}
@@ -687,100 +705,101 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 	if(resultProfiles.status == status_ok && profileFound && gameProfile)
 	{
 		OutputDebugString("Set the config to profile!!!\n");
-		config.game_type = gameProfile.attribute("game_type").as_int();
+		LoadSetting(gameProfile, "game_type", &config.game_type);
 
 		debugf("gameType: %d\n", gameProfile.attribute("game_type").as_int());
 
-		config.VRboostMinShaderCount = gameProfile.attribute("minVRboostShaderCount").as_uint(0);
-		config.VRboostMaxShaderCount = gameProfile.attribute("maxVRboostShaderCount").as_uint(999999);
-		config.convergence = gameProfile.attribute("convergence").as_float(0.0f);
-		config.swap_eyes = gameProfile.attribute("swap_eyes").as_bool();
-		config.yaw_multiplier = gameProfile.attribute("yaw_multiplier").as_float(DEFAULT_YAW_MULTIPLIER);
-		config.pitch_multiplier = gameProfile.attribute("pitch_multiplier").as_float(DEFAULT_PITCH_MULTIPLIER);
-		config.roll_multiplier = gameProfile.attribute("roll_multiplier").as_float(1.0f);
-		config.position_multiplier = gameProfile.attribute("position_multiplier").as_float(1.0f);
-		config.position_x_multiplier = gameProfile.attribute("position_x_multiplier").as_float(DEFAULT_POS_TRACKING_X_MULT);
-		config.position_y_multiplier = gameProfile.attribute("position_y_multiplier").as_float(DEFAULT_POS_TRACKING_Y_MULT);
-		config.position_z_multiplier = gameProfile.attribute("position_z_multiplier").as_float(DEFAULT_POS_TRACKING_Z_MULT);
-		config.DistortionScale = gameProfile.attribute("distortion_scale").as_float(0.0f);
-		config.YOffset = gameProfile.attribute("y_offset").as_float(0.0f);
-		config.IPDOffset = gameProfile.attribute("ipd_offset").as_float(0.0f);
-		config.useSDKPosePrediction = gameProfile.attribute("use_sdk_pose_prediction").as_bool(true);
+		LoadSetting(gameProfile, "minVRboostShaderCount", &config.VRboostMinShaderCount);
+		LoadSetting(gameProfile, "maxVRboostShaderCount", &config.VRboostMaxShaderCount);
+		LoadSetting(gameProfile, "convergence", &config.convergence);
+		LoadSetting(gameProfile, "swap_eyes", &config.swap_eyes);
+		LoadSetting(gameProfile, "yaw_multiplier", &config.yaw_multiplier);
+		LoadSetting(gameProfile, "pitch_multiplier", &config.pitch_multiplier);
+		LoadSetting(gameProfile, "roll_multiplier", &config.roll_multiplier);
+		LoadSetting(gameProfile, "position_multiplier", &config.position_multiplier);
+		LoadSetting(gameProfile, "position_x_multiplier", &config.position_x_multiplier);
+		LoadSetting(gameProfile, "position_y_multiplier", &config.position_y_multiplier);
+		LoadSetting(gameProfile, "position_z_multiplier", &config.position_z_multiplier);
+		LoadSetting(gameProfile, "distortion_scale", &config.DistortionScale);
+		LoadSetting(gameProfile, "y_offset", &config.YOffset);
+		LoadSetting(gameProfile, "ipd_offset", &config.IPDOffset);
+		LoadSetting(gameProfile, "use_sdk_pose_prediction", &config.useSDKPosePrediction);
 
-		if(config.yaw_multiplier == 0.0f) config.yaw_multiplier = DEFAULT_YAW_MULTIPLIER;
-		if(config.pitch_multiplier == 0.0f) config.pitch_multiplier = DEFAULT_PITCH_MULTIPLIER;
-		if(config.roll_multiplier == 0.0f) config.roll_multiplier = 1.0f;
-		if(config.position_multiplier == 0.0f) config.position_multiplier = 1.0f;
+		// For settings that really shouldn't be zero, if they're zero for some
+		// reason, reset to default.
+		if(config.yaw_multiplier == 0.0f) config.yaw_multiplier = defaultConfig.yaw_multiplier;
+		if(config.pitch_multiplier == 0.0f) config.pitch_multiplier = defaultConfig.pitch_multiplier;
+		if(config.roll_multiplier == 0.0f) config.roll_multiplier = defaultConfig.roll_multiplier;
+		if(config.position_multiplier == 0.0f) config.position_multiplier = defaultConfig.position_multiplier;
 
-		//With some experimentation, these feel most natural (in Skyrim)
-		if(config.position_x_multiplier == 0.0f) config.position_x_multiplier = DEFAULT_POS_TRACKING_X_MULT;
-		if(config.position_y_multiplier == 0.0f) config.position_y_multiplier = DEFAULT_POS_TRACKING_Y_MULT;
-		if(config.position_z_multiplier == 0.0f) config.position_z_multiplier = DEFAULT_POS_TRACKING_Z_MULT;
+		if(config.position_x_multiplier == 0.0f) config.position_x_multiplier = defaultConfig.position_x_multiplier;
+		if(config.position_y_multiplier == 0.0f) config.position_y_multiplier = defaultConfig.position_y_multiplier;
+		if(config.position_z_multiplier == 0.0f) config.position_z_multiplier = defaultConfig.position_z_multiplier;
 
 		// set process name
-		config.game_exe = string(gameProfile.attribute("game_exe").as_string(""));
-		config.dir_contains = string(gameProfile.attribute("dir_contains").as_string(""));
+		LoadSetting(gameProfile, "game_exe", &config.game_exe);
+		LoadSetting(gameProfile, "dir_contains", &config.dir_contains);
 		config.is64bit = string(gameProfile.attribute("cpu_architecture").as_string("32bit")) == "64bit";
 
 		// get hud config
-		config.hud3DDepthMode = gameProfile.attribute("hud_3D_depth_mode").as_int();
+		LoadSetting(gameProfile, "hud_3D_depth_mode", &config.hud3DDepthMode);
+		LoadSetting(gameProfile, "hud_3D_depth_1", &config.hud3DDepthPresets[0]);
+		LoadSetting(gameProfile, "hud_3D_depth_2", &config.hud3DDepthPresets[1]);
+		LoadSetting(gameProfile, "hud_3D_depth_3", &config.hud3DDepthPresets[2]);
+		LoadSetting(gameProfile, "hud_3D_depth_4", &config.hud3DDepthPresets[3]);
 
-		config.hud3DDepthPresets[0] = gameProfile.attribute("hud_3D_depth_1").as_float(0.0f);
-		config.hud3DDepthPresets[1] = gameProfile.attribute("hud_3D_depth_2").as_float(0.0f);
-		config.hud3DDepthPresets[2] = gameProfile.attribute("hud_3D_depth_3").as_float(0.0f);
-		config.hud3DDepthPresets[3] = gameProfile.attribute("hud_3D_depth_4").as_float(0.0f);
+		LoadSetting(gameProfile, "hud_distance_1", &config.hudDistancePresets[0]);
+		LoadSetting(gameProfile, "hud_distance_2", &config.hudDistancePresets[1]);
+		LoadSetting(gameProfile, "hud_distance_3", &config.hudDistancePresets[2]);
+		LoadSetting(gameProfile, "hud_distance_4", &config.hudDistancePresets[3]);
 
-		config.hudDistancePresets[0] = gameProfile.attribute("hud_distance_1").as_float(DEFAULT_HUD_DISTANCE_1);
-		config.hudDistancePresets[1] = gameProfile.attribute("hud_distance_2").as_float(DEFAULT_HUD_DISTANCE_2);
-		config.hudDistancePresets[2] = gameProfile.attribute("hud_distance_3").as_float(DEFAULT_HUD_DISTANCE_3);
-		config.hudDistancePresets[3] = gameProfile.attribute("hud_distance_4").as_float(DEFAULT_HUD_DISTANCE_4);
-
-		config.hudHotkeys[0] = LoadHotkey(gameProfile, "hud_key_swap");
-		config.hudHotkeys[1] = LoadHotkey(gameProfile, "hud_key_default");
-		config.hudHotkeys[2] = LoadHotkey(gameProfile, "hud_key_small");
-		config.hudHotkeys[3] = LoadHotkey(gameProfile, "hud_key_large");
-		config.hudHotkeys[4] = LoadHotkey(gameProfile, "hud_key_full");
+		LoadHotkey(gameProfile, "hud_key_swap",    &config.hudHotkeys[0]);
+		LoadHotkey(gameProfile, "hud_key_default", &config.hudHotkeys[1]);
+		LoadHotkey(gameProfile, "hud_key_small",   &config.hudHotkeys[2]);
+		LoadHotkey(gameProfile, "hud_key_large",   &config.hudHotkeys[3]);
+		LoadHotkey(gameProfile, "hud_key_full",    &config.hudHotkeys[4]);
 
 		// get gui config
-		config.gui3DDepthMode = gameProfile.attribute("gui_3D_depth_mode").as_int();
+		LoadSetting(gameProfile, "gui_3D_depth_mode", &config.gui3DDepthMode);
+		LoadSetting(gameProfile, "gui_3D_depth_1", &config.gui3DDepthPresets[0]);
+		LoadSetting(gameProfile, "gui_3D_depth_2", &config.gui3DDepthPresets[1]);
+		LoadSetting(gameProfile, "gui_3D_depth_3", &config.gui3DDepthPresets[2]);
+		LoadSetting(gameProfile, "gui_3D_depth_4", &config.gui3DDepthPresets[3]);
 
-		config.gui3DDepthPresets[0] = gameProfile.attribute("gui_3D_depth_1").as_float(0.0f);
-		config.gui3DDepthPresets[1] = gameProfile.attribute("gui_3D_depth_2").as_float(0.0f);
-		config.gui3DDepthPresets[2] = gameProfile.attribute("gui_3D_depth_3").as_float(0.0f);
-		config.gui3DDepthPresets[3] = gameProfile.attribute("gui_3D_depth_4").as_float(0.0f);
+		LoadSetting(gameProfile, "gui_size_1", &config.guiSquishPresets[0]);
+		LoadSetting(gameProfile, "gui_size_2", &config.guiSquishPresets[1]);
+		LoadSetting(gameProfile, "gui_size_3", &config.guiSquishPresets[2]);
+		LoadSetting(gameProfile, "gui_size_4", &config.guiSquishPresets[3]);
 
-		config.guiSquishPresets[0] = gameProfile.attribute("gui_size_1").as_float(DEFAULT_GUI_SIZE_1);
-		config.guiSquishPresets[1] = gameProfile.attribute("gui_size_2").as_float(DEFAULT_GUI_SIZE_2);
-		config.guiSquishPresets[2] = gameProfile.attribute("gui_size_3").as_float(DEFAULT_GUI_SIZE_3);
-		config.guiSquishPresets[3] = gameProfile.attribute("gui_size_4").as_float(DEFAULT_GUI_SIZE_4);
-
-		config.guiHotkeys[0] = LoadHotkey(gameProfile, "gui_key_swap");
-		config.guiHotkeys[1] = LoadHotkey(gameProfile, "gui_key_default");
-		config.guiHotkeys[2] = LoadHotkey(gameProfile, "gui_key_small");
-		config.guiHotkeys[3] = LoadHotkey(gameProfile, "gui_key_large");
-		config.guiHotkeys[4] = LoadHotkey(gameProfile, "gui_key_full");
+		LoadHotkey(gameProfile, "gui_key_swap",    &config.guiHotkeys[0]);
+		LoadHotkey(gameProfile, "gui_key_default", &config.guiHotkeys[1]);
+		LoadHotkey(gameProfile, "gui_key_small",   &config.guiHotkeys[2]);
+		LoadHotkey(gameProfile, "gui_key_large",   &config.guiHotkeys[3]);
+		LoadHotkey(gameProfile, "gui_key_full",    &config.guiHotkeys[4]);
 
 		// get VRBoost reset hotkey and settings
-		config.VRBoostResetHotkey = LoadHotkey(gameProfile, "VRBoost_key_reset");
-		config.EdgePeekHotkey = LoadHotkey(gameProfile, "edge_peek_key");
-		config.WorldFOV = gameProfile.attribute("WorldFOV").as_float(95.0f);
-		config.PlayerFOV = gameProfile.attribute("PlayerFOV").as_float(125.0f);
-		config.FarPlaneFOV = gameProfile.attribute("FarPlaneFOV").as_float(95.0f);
+		LoadHotkey(gameProfile, "VRBoost_key_reset", &config.VRBoostResetHotkey);
+		LoadHotkey(gameProfile, "edge_peek_key", &config.EdgePeekHotkey);
+		LoadSetting(gameProfile, "WorldFOV", &config.WorldFOV);
+		LoadSetting(gameProfile, "PlayerFOV", &config.PlayerFOV);
+		LoadSetting(gameProfile, "FarPlaneFOV", &config.FarPlaneFOV);
 
 		//SB: This will need to be changed back when the memory modification stuff is updated, but for now
 		//I am disabling the restore of the camera translation as it is causing confusion for a lot of people when
 		//the game starts and they are detached from their avatar, or worse the scene doesn't render at all
-		config.CameraTranslateX = 0.0f;//gameProfile.attribute("CameraTranslateX").as_float(0.0f);
-		config.CameraTranslateY = 0.0f;//gameProfile.attribute("CameraTranslateY").as_float(0.0f);
-		config.CameraTranslateZ = 0.0f;//gameProfile.attribute("CameraTranslateZ").as_float(0.0f);
+		config.CameraTranslateX = 0.0f;
+		config.CameraTranslateY = 0.0f;
+		config.CameraTranslateZ = 0.0f;
+		//LoadSetting(gameProfile, "CameraTranslateX", &config.CameraTranslateX);
+		//LoadSetting(gameProfile, "CameraTranslateY", &config.CameraTranslateY);
+		//LoadSetting(gameProfile, "CameraTranslateZ", &config.CameraTranslateZ);
 
-
-		config.CameraDistance = gameProfile.attribute("CameraDistance").as_float(0.0f);
-		config.CameraZoom = gameProfile.attribute("CameraZoom").as_float(0.0f);
-		config.CameraHorizonAdjustment = gameProfile.attribute("CameraHorizonAdjustment").as_float(0.0f);
-		config.ConstantValue1 = gameProfile.attribute("ConstantValue1").as_float(0.0f);
-		config.ConstantValue2 = gameProfile.attribute("ConstantValue2").as_float(0.0f);
-		config.ConstantValue3 = gameProfile.attribute("ConstantValue3").as_float(0.0f);
+		LoadSetting(gameProfile, "CameraDistance", &config.CameraDistance);
+		LoadSetting(gameProfile, "CameraZoom", &config.CameraZoom);
+		LoadSetting(gameProfile, "CameraHorizonAdjustment", &config.CameraHorizonAdjustment);
+		LoadSetting(gameProfile, "ConstantValue1", &config.ConstantValue1);
+		LoadSetting(gameProfile, "ConstantValue2", &config.ConstantValue2);
+		LoadSetting(gameProfile, "ConstantValue3", &config.ConstantValue3);
 
 		// get shader rules file name
 		string shaderRulesFileName = gameProfile.attribute("shaderModRules").as_string("");
@@ -806,8 +825,8 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 			config.VRboostPath = "";
 		}
 
-		config.rollImpl = gameProfile.attribute("rollImpl").as_int(0);
-		config.worldScaleFactor = gameProfile.attribute("worldScaleFactor").as_float(1.0f);
+		LoadSetting(gameProfile, "rollImpl", &config.rollImpl);
+		LoadSetting(gameProfile, "worldScaleFactor", &config.worldScaleFactor);
 
 		// copy game dlls
 		bool copyDlls = gameProfile.attribute("copyDlls").as_bool(false);
@@ -910,9 +929,6 @@ bool ProxyHelper::SaveConfig(ProxyConfig& config)
 		else
 			fileName = config.shaderRulePath;
 
-		string firstTag = "game_exe";
-		if (hasDirContains) firstTag = "dir_contains";
-
 		set_attribute(gameProfile, "cpu_architecture", config.is64bit ? "64bit" : "32bit");
 
 		// shader mod rules attribute present ? otherwise insert
@@ -933,7 +949,7 @@ bool ProxyHelper::SaveConfig(ProxyConfig& config)
 		set_attribute(gameProfile, "worldScaleFactor", config.worldScaleFactor);
 		set_attribute(gameProfile, "convergence", config.convergence);
 		set_attribute(gameProfile, "swap_eyes", config.swap_eyes);
-		set_attribute(gameProfile, "ipd_offset", config.YOffset);
+		set_attribute(gameProfile, "ipd_offset", config.IPDOffset);
 		set_attribute(gameProfile, "use_sdk_pose_prediction", config.useSDKPosePrediction);
 		set_attribute(gameProfile, "y_offset", config.YOffset);
 		set_attribute(gameProfile, "yaw_multiplier", config.yaw_multiplier);
@@ -986,7 +1002,7 @@ bool ProxyHelper::SaveConfig(ProxyConfig& config)
 
 		set_attribute(gameProfile, "WorldFOV", config.WorldFOV);
 		set_attribute(gameProfile, "PlayerFOV", config.PlayerFOV);
-		set_attribute(gameProfile, "FarPlaneFOV", config.PlayerFOV);
+		set_attribute(gameProfile, "FarPlaneFOV", config.FarPlaneFOV);
 		set_attribute(gameProfile, "CameraTranslateX", config.CameraTranslateX);
 		set_attribute(gameProfile, "CameraTranslateY", config.CameraTranslateY);
 		set_attribute(gameProfile, "CameraTranslateZ", config.CameraTranslateZ);
@@ -1117,6 +1133,77 @@ bool ProxyHelper::GetProfile(char* name, char *path, bool _64bit, ProxyConfig& c
 
 ProxyConfig::ProxyConfig()
 {
+	game_exe = "";
+	dir_contains = "";
+	shaderRulePath = "";
+	VRboostPath = "";
+	VRboostMinShaderCount = 0;
+	VRboostMaxShaderCount = 999999;
+	is64bit = false;
+	game_type = 0;
+	rollImpl = 0;
+	worldScaleFactor = 1.0f;
+	convergence = 0.0f;
+	swap_eyes = false;
+	yaw_multiplier = DEFAULT_YAW_MULTIPLIER;
+	pitch_multiplier = DEFAULT_PITCH_MULTIPLIER;
+	roll_multiplier = 1.0f;
+	position_multiplier = 1.0f;
+	position_x_multiplier = DEFAULT_POS_TRACKING_X_MULT;
+	position_y_multiplier = DEFAULT_POS_TRACKING_Y_MULT;
+	position_z_multiplier = DEFAULT_POS_TRACKING_Z_MULT;
+	DistortionScale = 0.0f;
+	YOffset = 0.0f;
+	IPDOffset = 0.0f;
+	useSDKPosePrediction = true;
+	hud3DDepthMode = 0;
+	hud3DDepthPresets[0] = 0.0f;
+	hud3DDepthPresets[1] = 0.0f;
+	hud3DDepthPresets[2] = 0.0f;
+	hud3DDepthPresets[3] = 0.0f;
+	hudDistancePresets[0] = DEFAULT_HUD_DISTANCE_1;
+	hudDistancePresets[1] = DEFAULT_HUD_DISTANCE_2;
+	hudDistancePresets[2] = DEFAULT_HUD_DISTANCE_3;
+	hudDistancePresets[3] = DEFAULT_HUD_DISTANCE_4;
+	hudHotkeys[0] = HotkeyExpressions::Unbound();
+	hudHotkeys[1] = HotkeyExpressions::Unbound();
+	hudHotkeys[2] = HotkeyExpressions::Unbound();
+	hudHotkeys[3] = HotkeyExpressions::Unbound();
+	hudHotkeys[4] = HotkeyExpressions::Unbound();
+	gui3DDepthMode = 0;
+	gui3DDepthPresets[0] = 0.0f;
+	gui3DDepthPresets[1] = 0.0f;
+	gui3DDepthPresets[2] = 0.0f;
+	gui3DDepthPresets[3] = 0.0f;
+	guiSquishPresets[0] = DEFAULT_GUI_SIZE_1;
+	guiSquishPresets[1] = DEFAULT_GUI_SIZE_2;
+	guiSquishPresets[2] = DEFAULT_GUI_SIZE_3;
+	guiSquishPresets[3] = DEFAULT_GUI_SIZE_4;
+	guiHotkeys[0] = HotkeyExpressions::Unbound();
+	guiHotkeys[1] = HotkeyExpressions::Unbound();
+	guiHotkeys[2] = HotkeyExpressions::Unbound();
+	guiHotkeys[3] = HotkeyExpressions::Unbound();
+	guiHotkeys[4] = HotkeyExpressions::Unbound();
+	VRBoostResetHotkey = HotkeyExpressions::Unbound();
+	EdgePeekHotkey = HotkeyExpressions::Unbound();
+	WorldFOV = 95.0;
+	PlayerFOV = 125.0;
+	FarPlaneFOV = 95.0;
+	CameraTranslateX = 0.0f;
+	CameraTranslateY = 0.0f;
+	CameraTranslateZ = 0.0f;
+	CameraDistance = 0.0f;
+	CameraZoom = 0.0f;
+	CameraHorizonAdjustment = 0.0f;
+	ConstantValue1 = 0.0f;
+	ConstantValue2 = 0.0f;
+	ConstantValue3 = 0.0f;
+	
+	stereo_mode = 0;
+	tracker_mode = 0;
+	ipd = IPD_DEFAULT;
+	aspect_multiplier = 1.0f;
+	display_adapter = 0;
 }
 
 /**
