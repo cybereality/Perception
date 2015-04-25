@@ -526,6 +526,8 @@ protected:
 	void DrawTextShadowed(ID3DXFont* font, LPD3DXSPRITE sprite, LPCSTR lpchText, int cchText, LPRECT lprc, UINT format, D3DCOLOR color);
 	void DrawTextShadowed(ID3DXFont* font, LPD3DXSPRITE sprite, const char *text, LPRECT lprc, D3DCOLOR color);
 	void DrawTextShadowed(ID3DXFont* font, LPD3DXSPRITE sprite, std::string text, LPRECT lprc, D3DCOLOR color);
+	void DrawTextShadowed(std::string text, LPRECT lprc);
+	void DrawTextShadowed(float left, float top, std::string text);
 	
 	VireioPopup activePopup;
 

@@ -275,7 +275,7 @@ void D3DProxyDevice::VPMENU_DrawTitle(const char *pageTitle)
 {
 	RECT titleRect = { 650, 300, VPMENU_PIXEL_WIDTH, VPMENU_PIXEL_HEIGHT };
 	std::string pageHeading = retprintf("Vireio Perception (%s) %s\n", APP_VERSION, pageTitle);
-	DrawTextShadowed(hudFont, hudMainMenu, pageHeading.c_str(), &titleRect, COLOR_MENU_TEXT);
+	DrawTextShadowed(pageHeading.c_str(), &titleRect);
 	
 	D3DRECT clearRect;
 	clearRect.x1 = 0;
@@ -559,9 +559,8 @@ void D3DProxyDevice::VPMENU_WorldScale()
 	int hashTop = (int)(viewportHeight  * 0.48f);
 	int hashBottom = (int)(viewportHeight  * 0.52f);
 
-	RECT rec2 = {(int)(width*0.27f), (int)(height*0.8f),width,height};
 	std::string titleText = retprintf("Vireio Perception (%s) Settings - World Scale\n", APP_VERSION);
-	DrawTextShadowed(hudFont, hudMainMenu, titleText.c_str(), &rec2, COLOR_MENU_TEXT);
+	DrawTextShadowed(width*0.27f, height*0.8f, titleText);
 
 	// draw right line (using BaseDirect3DDevice9, since otherwise we have two lines)
 	D3DRECT rec3 = {(int)(viewportWidth/2 + (-BlueLineCenterAsPercentage * viewportWidth * 0.25f))-1, 0,
@@ -585,12 +584,9 @@ void D3DProxyDevice::VPMENU_WorldScale()
 		ClearRect(config.MaybeSwap(vireio::RenderPosition::Left), rec5, COLOR_HASH_LINE);
 	}
 
-	rec2.left = (int)(width*0.35f);
-	rec2.top = (int)(height*0.83f);
-	DrawTextShadowed(hudFont, hudMainMenu, "World-Scale Calibration", &rec2, COLOR_MENU_TEXT);
+	DrawTextShadowed(width*0.35f, height*0.83f, "World-Scale Calibration");
 
-	RECT rec10 = {(int)(width*0.40f), (int)(height*0.57f),width,height};
-	DrawTextShadowed(hudFont, hudMainMenu, "<- calibrate using Arrow Keys ->", &rec10, COLOR_MENU_TEXT);
+	DrawTextShadowed(width*0.4f, height*0.57f, "<- calibrate using Arrow Keys ->");
 
 	float gameUnit = m_spShaderViewAdjustment->WorldScale();
 
@@ -607,20 +603,15 @@ void D3DProxyDevice::VPMENU_WorldScale()
 		// gameUnit = (driverWorldScale * driverXScale) /  gameXScale
 		gameUnit = ((m_spShaderViewAdjustment->WorldScale()) * driverXScale ) / gameXScale;
 
-		rec10.top = (int)(height*0.77f); rec10.left = (int)(width*0.45f);
-		DrawTextShadowed(hudFont, hudMainMenu, retprintf("Actual Units %u/%u", gameXScaleUnitIndex, m_gameXScaleUnits.size()), &rec10, COLOR_MENU_TEXT);
+		DrawTextShadowed(width*0.45f, height*0.77f, retprintf("Actual Units %u/%u",
+			gameXScaleUnitIndex, m_gameXScaleUnits.size()));
 	}
 
-	//Column 1:
-	//1 Game Unit = X Meters
-	//1 Game Unit = X Centimeters
-	//1 Game Unit = X Feet
-	//1 Game Unit = X Inches
-	//Column 2:
-	//1 Meter = X Game Units
-	//1 Centimeter = X Game Units
-	//1 Foot = X Game Units
-	//1 Inch = X Game Units
+	//Column 1:                        Column 2:
+	//1 Game Unit = X Meters           1 Meter = X Game Units
+	//1 Game Unit = X Centimeters      1 Centimeter = X Game Units
+	//1 Game Unit = X Feet             1 Foot = X Game Units
+	//1 Game Unit = X Inches           1 Inch = X Game Units
 	float meters = 1 / gameUnit;
 	float centimeters = meters * 100.0f;
 	float feet = meters * 3.2808399f;
@@ -629,23 +620,19 @@ void D3DProxyDevice::VPMENU_WorldScale()
 	float gameUnitsToFoot = gameUnit / 3.2808399f;
 	float gameUnitsToInches = gameUnit / 39.3700787f;
 	
-	rec10.top = (int)(height*0.6f); rec10.left = (int)(width*0.28f);
-	DrawTextShadowed(hudFont, hudMainMenu, retprintf("1 Game Unit = %g Meters", meters).c_str(), &rec10, COLOR_MENU_TEXT);
-	rec10.top+=35;
-	DrawTextShadowed(hudFont, hudMainMenu, retprintf("1 Game Unit = %g CM", centimeters), &rec10, COLOR_MENU_TEXT);
-	rec10.top+=35;
-	DrawTextShadowed(hudFont, hudMainMenu, retprintf("1 Game Unit = %g Feet", feet), &rec10, COLOR_MENU_TEXT);
-	rec10.top+=35;
-	DrawTextShadowed(hudFont, hudMainMenu, retprintf("1 Game Unit = %g In.", inches), &rec10, COLOR_MENU_TEXT);
+	float unitsLeft = width*0.28f;
+	float unitsTop = height*0.6f;
+	float unitsSpacing = 35.0f;
+	DrawTextShadowed(unitsLeft, unitsTop,                 retprintf("1 Game Unit = %g Meters", meters).c_str());
+	DrawTextShadowed(unitsLeft, unitsTop+unitsSpacing*1,  retprintf("1 Game Unit = %g CM", centimeters));
+	DrawTextShadowed(unitsLeft, unitsTop+unitsSpacing*2,  retprintf("1 Game Unit = %g Feet", feet));
+	DrawTextShadowed(unitsLeft, unitsTop+unitsSpacing*3,  retprintf("1 Game Unit = %g In.", inches));
 
-	RECT rec11 = {(int)(width*0.52f), (int)(height*0.6f),width,height};
-	DrawTextShadowed(hudFont, hudMainMenu, retprintf("1 Meter      = %g Game Units", gameUnit), &rec11, COLOR_MENU_TEXT);
-	rec11.top+=35;
-	DrawTextShadowed(hudFont, hudMainMenu, retprintf("1 CM         = %g Game Units", gameUnitsToCentimeter), &rec11, COLOR_MENU_TEXT);
-	rec11.top+=35;
-	DrawTextShadowed(hudFont, hudMainMenu, retprintf("1 Foot       = %g Game Units", gameUnitsToFoot), &rec11, COLOR_MENU_TEXT);
-	rec11.top+=35;
-	DrawTextShadowed(hudFont, hudMainMenu, retprintf("1 Inch       = %g Game Units", gameUnitsToInches), &rec11, COLOR_MENU_TEXT);
+	float unitsLeft2 = width*0.52f;
+	DrawTextShadowed(unitsLeft2, unitsTop, retprintf("1 Meter      = %g Game Units", gameUnit));
+	DrawTextShadowed(unitsLeft2, unitsTop+unitsSpacing*1, retprintf("1 CM         = %g Game Units", gameUnitsToCentimeter));
+	DrawTextShadowed(unitsLeft2, unitsTop+unitsSpacing*2, retprintf("1 Foot       = %g Game Units", gameUnitsToFoot));
+	DrawTextShadowed(unitsLeft2, unitsTop+unitsSpacing*3, retprintf("1 Inch       = %g Game Units", gameUnitsToInches));
 
 	VPMENU_FinishDrawing(menu);
 
@@ -720,9 +707,8 @@ void D3DProxyDevice::VPMENU_Convergence()
 	int hashTop = (int)(viewportHeight  * 0.48f);
 	int hashBottom = (int)(viewportHeight  * 0.52f);
 
-	RECT rec2 = {(int)(width*0.27f), (int)(height*0.8f),width,height};
 	std::string titleText = retprintf("Vireio Perception (%s) Settings - Convergence\n", APP_VERSION);
-	DrawTextShadowed(hudFont, hudMainMenu, titleText.c_str(), &rec2, COLOR_MENU_TEXT);
+	DrawTextShadowed(width*0.27f, height*0.8f, titleText.c_str());
 
 	// draw right line (using BaseDirect3DDevice9, since otherwise we have two lines)
 	D3DRECT rec3 = {(int)(viewportWidth/2 + (-BlueLineCenterAsPercentage * viewportWidth * 0.25f))-1, 0,
@@ -746,28 +732,23 @@ void D3DProxyDevice::VPMENU_Convergence()
 		ClearRect(config.MaybeSwap(vireio::RenderPosition::Left), rec5, COLOR_HASH_LINE);
 	}
 
-	rec2.left = (int)(width*0.35f);
-	rec2.top = (int)(height*0.83f);
-	DrawTextShadowed(hudFont, hudMainMenu, "Convergence Adjustment", &rec2, COLOR_MENU_TEXT);
+	DrawTextShadowed(width*0.35f, height*0.83f, "Convergence Adjustment");
 
 	// output convergence
-	RECT rec10 = {(int)(width*0.40f), (int)(height*0.57f),width,height};
-	DrawTextShadowed(hudFont, hudMainMenu, "<- calibrate using Arrow Keys ->", &rec10, COLOR_MENU_TEXT);
+	DrawTextShadowed(width*0.4f, height*0.57f, "<- calibrate using Arrow Keys ->");
 	// Convergence Screen = X Meters = X Feet
-	rec10.top = (int)(height*0.6f); rec10.left = (int)(width*0.385f);
-	
 	float meters = m_spShaderViewAdjustment->Convergence();
 	float centimeters = meters * 100.0f;
 	float feet = meters * 3.2808399f;
 	float inches = feet * 12.0f;
 	
-	DrawTextShadowed(hudFont, hudMainMenu, retprintf("Convergence Screen = %g Meters", meters), &rec10, COLOR_MENU_TEXT);
-	rec10.top+=35;
-	DrawTextShadowed(hudFont, hudMainMenu, retprintf("Convergence Screen = %g CM", centimeters), &rec10, COLOR_MENU_TEXT);
-	rec10.top+=35;
-	DrawTextShadowed(hudFont, hudMainMenu, retprintf("Convergence Screen = %g Feet", feet), &rec10, COLOR_MENU_TEXT);
-	rec10.top+=35;
-	DrawTextShadowed(hudFont, hudMainMenu, retprintf("Convergence Screen = %g Inches", inches), &rec10, COLOR_MENU_TEXT);
+	float unitsLeft = width*0.385f;
+	float unitsTop = height*0.6f;
+	float unitsSpacing = 35.0f;
+	DrawTextShadowed(unitsLeft, unitsTop+unitsSpacing*0, retprintf("Convergence Screen = %g Meters", meters));
+	DrawTextShadowed(unitsLeft, unitsTop+unitsSpacing*1, retprintf("Convergence Screen = %g CM", centimeters));
+	DrawTextShadowed(unitsLeft, unitsTop+unitsSpacing*2, retprintf("Convergence Screen = %g Feet", feet));
+	DrawTextShadowed(unitsLeft, unitsTop+unitsSpacing*3, retprintf("Convergence Screen = %g Inches", inches));
 
 	VPMENU_FinishDrawing(menu);
 

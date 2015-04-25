@@ -258,3 +258,14 @@ void D3DProxyDevice::DrawTextShadowed(ID3DXFont* font, LPD3DXSPRITE sprite, std:
 {
 	DrawTextShadowed(font, sprite, text.c_str(), -1, rect, 0, color);
 }
+
+void D3DProxyDevice::DrawTextShadowed(std::string text, LPRECT rect)
+{
+	DrawTextShadowed(hudFont, hudMainMenu, text.c_str(), rect, COLOR_MENU_TEXT);
+}
+
+void D3DProxyDevice::DrawTextShadowed(float left, float top, std::string text)
+{
+	RECT rect = {(int)left, (int)top, VPMENU_PIXEL_WIDTH, VPMENU_PIXEL_HEIGHT};
+	DrawTextShadowed(hudFont, hudMainMenu, text.c_str(), &rect, COLOR_MENU_TEXT);
+}
