@@ -222,18 +222,18 @@ void D3DProxyDevice::HandleControls()
 	{
 		float snapTurnAxis = controls.GetAxis(InputControls::GamepadAxis::RightStickX);
 		if (snapTurnAxis < -COMFORT_MODE_STICK_THRESHOLD ||
-			m_comfortModeLeftKey->IsPressed(controls))
+			config.ComfortModeLeftKey->IsPressed(controls))
 		{
-			m_comfortModeYaw +=m_comfortModeYawIncrement;
+			m_comfortModeYaw +=config.ComfortModeYawIncrement;
 			if (m_comfortModeYaw == 180.0f)
 				m_comfortModeYaw = -180.0f;
 			HotkeyCooldown(COOLDOWN_LONG);
 		}
 
 		if (snapTurnAxis > COMFORT_MODE_STICK_THRESHOLD ||
-			m_comfortModeRightKey->IsPressed(controls))
+			config.ComfortModeRightKey->IsPressed(controls))
 		{
-			m_comfortModeYaw -= m_comfortModeYawIncrement;
+			m_comfortModeYaw -= config.ComfortModeYawIncrement;
 			if (m_comfortModeYaw == -180.0f)
 				m_comfortModeYaw = 180.0f;
 			HotkeyCooldown(COOLDOWN_LONG);

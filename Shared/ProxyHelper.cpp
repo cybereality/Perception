@@ -780,6 +780,12 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 		// get VRBoost reset hotkey and settings
 		LoadHotkey(gameProfile, "VRBoost_key_reset", &config.VRBoostResetHotkey);
 		LoadHotkey(gameProfile, "edge_peek_key", &config.EdgePeekHotkey);
+		
+		
+		LoadSetting(gameProfile, "ComfortModeYawIncrement", &config.ComfortModeYawIncrement);
+		LoadHotkey(gameProfile, "ComfortModeLeftKey", &config.ComfortModeLeftKey);
+		LoadHotkey(gameProfile, "ComfortModeRightKey", &config.ComfortModeRightKey);
+		
 		LoadSetting(gameProfile, "WorldFOV", &config.WorldFOV);
 		LoadSetting(gameProfile, "PlayerFOV", &config.PlayerFOV);
 		LoadSetting(gameProfile, "FarPlaneFOV", &config.FarPlaneFOV);
@@ -999,6 +1005,10 @@ bool ProxyHelper::SaveConfig(ProxyConfig& config)
 		SaveHotkey(gameProfile, "gui_key_full", config.guiHotkeys[4]);
 		
 		SaveHotkey(gameProfile, "VRBoost_key_reset", config.VRBoostResetHotkey);
+		
+		set_attribute(gameProfile, "ComfortModeYawIncrement", config.ComfortModeYawIncrement);
+		SaveHotkey(gameProfile, "ComfortModeLeftKey", config.ComfortModeLeftKey);
+		SaveHotkey(gameProfile, "ComfortModeRightKey", config.ComfortModeRightKey);
 
 		set_attribute(gameProfile, "WorldFOV", config.WorldFOV);
 		set_attribute(gameProfile, "PlayerFOV", config.PlayerFOV);
@@ -1204,6 +1214,10 @@ ProxyConfig::ProxyConfig()
 	ipd = IPD_DEFAULT;
 	aspect_multiplier = 1.0f;
 	display_adapter = 0;
+	
+	ComfortModeYawIncrement = 90.0f;
+	ComfortModeLeftKey = HotkeyExpressions::Key(VK_LEFT);
+	ComfortModeRightKey = HotkeyExpressions::Key(VK_RIGHT);
 }
 
 /**

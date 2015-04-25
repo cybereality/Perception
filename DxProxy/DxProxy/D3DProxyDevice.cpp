@@ -64,9 +64,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 using namespace VRBoost;
 using namespace vireio;
 
-InputBindingRef hotkeyDefaultComfortModeLeft = HotkeyExpressions::Key(VK_LEFT);
-InputBindingRef hotkeyDefaultComfortModeRight = HotkeyExpressions::Key(VK_RIGHT);
-
 /**
 * Returns the mouse wheel scroll lines.
 ***/
@@ -178,9 +175,6 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	m_saveConfigTimer(MAXDWORD),
 	m_comfortModeYaw(0.0f),
 	//Yaw increment stored in degrees for easier comparison
-	m_comfortModeYawIncrement(90.0f),
-	m_comfortModeLeftKey(hotkeyDefaultComfortModeLeft),
-	m_comfortModeRightKey(hotkeyDefaultComfortModeRight),
 	m_disableAllHotkeys(false),
 	menuState(this)
 {

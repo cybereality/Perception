@@ -80,9 +80,19 @@ struct ProxyConfig
 	int         gui3DDepthMode;             /**< Current GUI mode. */
 	float       gui3DDepthPresets[4];       /**< GUI 3D Depth presets.*/
 	float       guiSquishPresets[4];        /**< GUI Size presets.*/
-	InputBindingRef guiHotkeys[5];              /**< GUI Hotkeys.*/
-	InputBindingRef VRBoostResetHotkey;         /**< Hotkey option to reset VRBoost. */
-	InputBindingRef EdgePeekHotkey;				/**< Hotkey option to toggle disconnected screen view. */
+	InputBindingRef guiHotkeys[5];          /**< GUI Hotkeys.*/
+	InputBindingRef VRBoostResetHotkey;     /**< Hotkey option to reset VRBoost. */
+	InputBindingRef EdgePeekHotkey;			/**< Hotkey option to toggle disconnected screen view. */
+	
+	/// Angle (in degrees) to turn by when a snap-turn button is pressed
+	float ComfortModeYawIncrement;
+	
+	/// Button to snap-turn left
+	InputBindingRef ComfortModeLeftKey;
+	
+	/// Button to snap-turn right
+	InputBindingRef ComfortModeRightKey;
+	
 	float       WorldFOV;                   /**< Game-specific global FOV setting. **/
 	float       PlayerFOV;                  /**< Game-specific player surroundings FOV setting. **/
 	float       FarPlaneFOV;                /**< Game-specific FOV setting for the most distant objects. **/ 

@@ -1313,21 +1313,21 @@ void D3DProxyDevice::VPMENU_ComfortMode()
 		m_comfortModeYaw = 0.0f;
 	});
 
-	menu->AddKeybind("Turn Left Key", &m_comfortModeLeftKey);
-	menu->AddKeybind("Turn Right Key", &m_comfortModeRightKey);
+	menu->AddKeybind("Turn Left Key", &config.ComfortModeLeftKey);
+	menu->AddKeybind("Turn Right Key", &config.ComfortModeRightKey);
 
-	menu->AddButton(retprintf("Yaw Rotation Increment : %.1f", m_comfortModeYawIncrement), [=]()
+	menu->AddButton(retprintf("Yaw Rotation Increment : %.1f", config.ComfortModeYawIncrement), [=]()
 	{
-		if (m_comfortModeYawIncrement == 30.0f)
-			m_comfortModeYawIncrement = 45.0f;
-		else if (m_comfortModeYawIncrement == 45.0f)
-			m_comfortModeYawIncrement = 60.0f;
-		else if (m_comfortModeYawIncrement == 60.0f)
-			m_comfortModeYawIncrement = 90.0f;
-		else if (m_comfortModeYawIncrement == 90.0f)
-			m_comfortModeYawIncrement = 30.0f;
+		if (config.ComfortModeYawIncrement == 30.0f)
+			config.ComfortModeYawIncrement = 45.0f;
+		else if (config.ComfortModeYawIncrement == 45.0f)
+			config.ComfortModeYawIncrement = 60.0f;
+		else if (config.ComfortModeYawIncrement == 60.0f)
+			config.ComfortModeYawIncrement = 90.0f;
+		else if (config.ComfortModeYawIncrement == 90.0f)
+			config.ComfortModeYawIncrement = 30.0f;
 		else
-			m_comfortModeYawIncrement = 30.0f;
+			config.ComfortModeYawIncrement = 30.0f;
 	});
 
 	menu->AddButton("Back to Main Menu", [=]() {

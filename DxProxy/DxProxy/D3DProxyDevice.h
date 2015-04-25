@@ -286,7 +286,7 @@ public:
 			crouchKey(VK_LCONTROL),
 			crouchToggle(false),
 			yPos_Crouch(0.0f),
-			proneKey(0x5A),
+			proneKey('Z'),
 			proneToggle(true),
 			yPos_Prone(0.0f),
 			proneEnabled(false) {}
@@ -322,20 +322,6 @@ public:
 	float m_comfortModeYaw;
 
 	/**
-	* Yaw increment when in Comfort Mode
-	*/
-	float m_comfortModeYawIncrement;
-
-	/**
-	* Keys to turn left or right in comfort mode
-	*/
-	InputBindingRef m_comfortModeLeftKey;
-	/**
-	* Keys to turn left or right in comfort mode
-	*/
-	InputBindingRef m_comfortModeRightKey;
-
-	/**
 	* Disables ALL Vireio Hot-keys
 	*/
 	bool m_disableAllHotkeys;
@@ -356,14 +342,6 @@ public:
 	* @see MotionTracker
 	**/
 	std::unique_ptr<MotionTracker> tracker;
-	/**
-	* Schneider-Hicks Optical Calibration Tool center of right line.
-	**/
-	float centerlineR;
-	/**
-	* Schneider-Hicks Optical Calibration Tool center of left line.
-	**/
-	float centerlineL;
 	/**
 	* HUD font to be used for SHOCT.
 	**/
