@@ -125,9 +125,6 @@ void D3DProxyDevice::VPMENU_Back()
 		menuStatesStack.pop();
 		inWorldScaleMenu = false;
 	}
-	/*VPMENU_NavigateTo([=]() {
-		VPMENU_MainMenu();
-	});*/
 }
 
 void D3DProxyDevice::VPMENU_OpenMainMenu()
@@ -162,19 +159,12 @@ MenuBuilder *D3DProxyDevice::VPMENU_NewFrame()
 {
 	SHOW_CALL("VPMENU_NewFrame");
 	
-	// set menu entry attraction
-	menuState.menuAttraction = ((menuState.borderTopHeight-menuTop)/menuEntryHeight);
-	menuState.menuAttraction -= (float)((UINT)menuState.menuAttraction);
-	menuState.menuAttraction -= 0.5f;
-	menuState.menuAttraction *= 2.0f;
-	if ((menuState.menuVelocity>0.0f) && (menuState.menuAttraction<0.0f)) menuState.menuAttraction = 0.0f;
-	if ((menuState.menuVelocity<0.0f) && (menuState.menuAttraction>0.0f)) menuState.menuAttraction = 0.0f;
-	
 	return new MenuBuilder(this);
 }
 
 float D3DProxyDevice::VPMENU_AdjustBorderWithScrolling()
 {
+	// FIXME
 	int entryID = VPMENU_GetCurrentSelection();
 	float borderDrawingHeight = menuState.borderTopHeight;
 	if (menuState.menuVelocity == 0.0f)
@@ -211,18 +201,13 @@ void D3DProxyDevice::VPMENU_DrawBorder(int top)
 
 int D3DProxyDevice::VPMENU_GetCurrentSelection()
 {
-	float entry = (menuState.borderTopHeight-menuTop+(menuEntryHeight/3.0f))/menuEntryHeight;
-	return (int)entry;
+	return menuState.selectedIndex;
 }
 
 void D3DProxyDevice::VPMENU_StartDrawing(MenuBuilder *menu, const char *pageTitle)
 {
-	// adjust border
-	float borderDrawingHeight = menuState.borderTopHeight;
-	if ((menuState.menuVelocity < 1.0f) && (menuState.menuVelocity > -1.0f))
-		menuState.borderTopHeight = menuTop+menuEntryHeight*(float)VPMENU_GetCurrentSelection();
-
-	VPMENU_DrawBorder((int)menuState.borderTopHeight);
+	float borderDrawHeight = menuTop + menuEntryHeight*(menuState.selectedIndex+menuState.animationOffset);
+	VPMENU_DrawBorder(borderDrawHeight);
 
 	hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
 
@@ -250,9 +235,8 @@ void D3DProxyDevice::VPMENU_FinishDrawing(MenuBuilder *menu)
 	hudMainMenu->Draw(NULL, &copyRect, NULL, &vPos, COLOR_WHITE);
 	hudMainMenu->End();
 	
-	VPMENU_UpdateBorder(menu->GetEntryCount());
-	
 	if(menu) {
+		VPMENU_UpdateBorder(menu->GetEntryCount());
 		delete menu;
 	}
 }
@@ -499,6 +483,7 @@ void D3DProxyDevice::VPMENU_WorldScale()
 	}
 	
 	// handle border height (=scrollbar scroll height)
+	// FIXME: This scrollbar shouldn't be mixed in with menu-scrolling
 	if (menuState.borderTopHeight<-64.0f)
 		menuState.borderTopHeight = -64.0f;
 	if (menuState.borderTopHeight>365.0f)
@@ -647,6 +632,7 @@ void D3DProxyDevice::VPMENU_Convergence()
 	
 
 	// handle border height (=scrollbar scroll height)
+	// FIXME: This scrollbar shouldn't be mixed in with menu-scrolling
 	if (menuState.borderTopHeight<-64.0f)
 		menuState.borderTopHeight = -64.0f;
 	if (menuState.borderTopHeight>365.0f)
@@ -1239,19 +1225,15 @@ void D3DProxyDevice::VPMENU_UpdateCooldowns()
 	float timeScale = (float)menuLastFrameLength*90;
 
 	// menu velocity present ? in case calculate diminution of the velocity
-	if (menuState.menuVelocity != 0.0f || hotkeyCooldown != 0.0f)
+	if (hotkeyCooldown != 0.0f)
 	{
-		float diminution = 0.05f;
-		diminution *= timeScale;
+		float diminution = 0.05f * timeScale;
 		if (diminution > 1.0f) diminution = 1.0f;
-		menuState.menuVelocity *= 1.0f-diminution;
 		hotkeyCooldown *= 1.0f-diminution;
 
 		// set velocity to zero in case of low velocity
-		if (menuState.menuVelocity<0.9f && menuState.menuVelocity>-0.9f
-			&& hotkeyCooldown<0.7f && hotkeyCooldown>-0.7f)
+		if (hotkeyCooldown<0.7f && hotkeyCooldown>-0.7f)
 		{
-			menuState.menuVelocity = 0.0f;
 			hotkeyCooldown = 0.0f;
 		}
 	}
@@ -1265,41 +1247,41 @@ void D3DProxyDevice::VPMENU_UpdateCooldowns()
 void D3DProxyDevice::VPMENU_UpdateBorder(int menuEntryCount)
 {
 	SHOW_CALL("VPMENU_UpdateBorder");
+	float animationSpeed = 0.2f;
 
-	// Handle up/down controls
-	int viewportHeight = stereoView->viewport.Height;
-
-	float fScaleY = ((float)viewportHeight / (float)1080.0f);
-	
-	if(menuState.menuVelocity == 0.0f)
-	{
-		float menuSelectionAxis = controls.GetAxis(InputControls::GamepadAxis::LeftStickY);
-		if (hotkeyMenuUp->IsPressed(controls) || (menuSelectionAxis>MENU_SELECTION_STICK_DEADZONE))
-			menuState.menuVelocity=-2.7f;
-		if (hotkeyMenuDown->IsPressed(controls) || (menuSelectionAxis<-MENU_SELECTION_STICK_DEADZONE))
-			menuState.menuVelocity=2.7f;
-		if (hotkeyMenuUpFaster->IsPressed(controls))
-			menuState.menuVelocity=-15.0f;
-		if (hotkeyMenuDownFaster->IsPressed(controls))
-			menuState.menuVelocity=15.0f;
+	// Update animation
+	if(menuState.animationOffset > 0.0f) {
+		menuState.animationOffset -= menuLastFrameLength * animationSpeed;
+		if(menuState.animationOffset < 0.0f) menuState.animationOffset = 0.0f;
+	}
+	if(menuState.animationOffset < 0.0f) {
+		menuState.animationOffset += menuLastFrameLength * animationSpeed;
+		if(menuState.animationOffset > 0.0f) menuState.animationOffset = 0.0f;
 	}
 	
-	float timeScale = (float)menuLastFrameLength*90;
-	menuState.borderTopHeight += (menuState.menuVelocity+menuState.menuAttraction)*fScaleY*timeScale;
-
-	// handle border height
-	if (menuState.borderTopHeight<menuTop)
+	float menuSelectionAxis = controls.GetAxis(InputControls::GamepadAxis::LeftStickY);
+	
+	if ((hotkeyMenuUp->IsPressed(controls) || (menuSelectionAxis>MENU_SELECTION_STICK_DEADZONE)) && HotkeysActive())
 	{
-		menuState.borderTopHeight = menuTop;
-		menuState.menuVelocity=0.0f;
-		menuState.menuAttraction=0.0f;
-
+		if(menuState.selectedIndex > 0) {
+			menuState.selectedIndex--;
+			menuState.animationOffset = 1.0f;
+		} else {
+			menuState.selectedIndex = menuEntryCount-1;
+			menuState.animationOffset = 0.0f;
+		}
+		HotkeyCooldown(COOLDOWN_SHORT);
 	}
-	if (menuState.borderTopHeight>(menuTop+(menuEntryHeight*(float)(menuEntryCount-1))))
+	if ((hotkeyMenuDown->IsPressed(controls) || (menuSelectionAxis<-MENU_SELECTION_STICK_DEADZONE)) && HotkeysActive())
 	{
-		menuState.borderTopHeight = menuTop+menuEntryHeight*(float)(menuEntryCount-1);
-		menuState.menuVelocity=0.0f;
-		menuState.menuAttraction=0.0f;
+		if(menuState.selectedIndex+1 < menuEntryCount) {
+			menuState.selectedIndex++;
+			menuState.animationOffset = -1.0f;
+		} else {
+			menuState.selectedIndex = 0;
+			menuState.animationOffset = 0.0f;
+		}
+		HotkeyCooldown(COOLDOWN_SHORT);
 	}
 }
 
@@ -1768,8 +1750,9 @@ MenuState::MenuState(D3DProxyDevice *device)
 
 void MenuState::Reset()
 {
+	selectedIndex = 0;
+	animationOffset = 0.0f;
 	menuVelocity = 0.0f;
-	menuAttraction = 0.0f;
 	borderTopHeight = 0.0f;
 	menuTopHeight = 0.0f;
 }

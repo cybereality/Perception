@@ -50,8 +50,13 @@ public:
 	MenuState(D3DProxyDevice *device);
 	void Reset();
 	
+	/// Which menu item is currently selected
+	int selectedIndex;
+	
+	/// Offset between the menu selection, and where the border is drawn.
+	float animationOffset;
+	
 	float menuVelocity;
-	float menuAttraction;
 	
 	/// Main menu border top height.
 	float borderTopHeight;
