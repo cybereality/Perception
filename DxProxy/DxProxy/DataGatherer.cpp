@@ -737,20 +737,7 @@ void DataGatherer::Init(ProxyConfig& cfg)
 ***/
 void DataGatherer::VPMENU_ShaderSubMenu()
 {
-	UINT menuEntryCount = 6;
-	
-	enum
-	{
-		CREATE_SHADER_RULES = 0,
-		CHANGE_SHADER_RULES,
-		// PICK_RULES,
-		SHOW_SHADERS,
-		SAVE_RULES,
-		BACK_VPMENU,
-		BACK_GAME
-	};
-
-	MenuBuilder *menu = VPMENU_NewFrame(menuEntryCount);
+	MenuBuilder *menu = VPMENU_NewFrame();
 
 	// output menu
 	VPMENU_StartDrawing(menu, "Shader Analyser");
@@ -882,7 +869,7 @@ void DataGatherer::VPMENU_ChangeRules()
 		menuEntryCount++;
 	}
 
-	MenuBuilder *menu = VPMENU_NewFrame(menuEntryCount);
+	MenuBuilder *menu = VPMENU_NewFrame();
 	UINT entryID = VPMENU_GetCurrentSelection();;
 	
 	// adjust border & menu due to menu scroll
@@ -892,7 +879,7 @@ void DataGatherer::VPMENU_ChangeRules()
 
 	menu->SetDrawPosition(800, 350 + (int)(menuState.menuTopHeight / fScaleY));
 	
-	for (UINT i=0; i<menuEntryCount-2; i++)
+	for (UINT i=0; i<menuEntries.size(); i++)
 	menu->AddItem(menuEntries[i], menuColor[i], [&]()
 	{
 		// switch shader rule node
@@ -1215,7 +1202,7 @@ void DataGatherer::VPMENU_ShowActiveShaders()
 			m_knownPShaders[itPShaderCurrentHash->first] = itPShaderCurrentHash->second;
 	}
 
-	MenuBuilder *menu = VPMENU_NewFrame(menuEntryCount);
+	MenuBuilder *menu = VPMENU_NewFrame();
 	UINT entryID = VPMENU_GetCurrentSelection();
 
 	if ((entryID >= 0) && (entryID < menuEntryCount-2) && (menuEntryCount>2))
@@ -1265,14 +1252,7 @@ void DataGatherer::VPMENU_ShowActiveShaders()
 	
 	for (UINT i = 0; i < menuEntryCount-2; i++)
 	{
-		if ((menu->GetDrawPositionTop() + 40) >= 0)
-		{
-			menu->DrawItem(menuEntries[i].c_str(), menuColor[i]);
-		}
-
-		//No point drawing anything off the bottom of the viewport!
-		if (menu->GetDrawPositionTop() > viewportHeight)
-			break;
+		menu->DrawItem(menuEntries[i].c_str(), menuColor[i]);
 	}
 
 	menu->AddButton("Back to Main Menu", [=]() { VPMENU_Back(); });

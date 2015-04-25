@@ -157,9 +157,8 @@ bool D3DProxyDevice::VPMENU_IsOpen()
 
 /**
 * VP menu helper to setup new frame.
-* @param menuEntryCount [in] The number of menu entries.
 ***/
-MenuBuilder *D3DProxyDevice::VPMENU_NewFrame(UINT menuEntryCount)
+MenuBuilder *D3DProxyDevice::VPMENU_NewFrame()
 {
 	SHOW_CALL("VPMENU_NewFrame");
 	
@@ -170,21 +169,6 @@ MenuBuilder *D3DProxyDevice::VPMENU_NewFrame(UINT menuEntryCount)
 	menuState.menuAttraction *= 2.0f;
 	if ((menuState.menuVelocity>0.0f) && (menuState.menuAttraction<0.0f)) menuState.menuAttraction = 0.0f;
 	if ((menuState.menuVelocity<0.0f) && (menuState.menuAttraction>0.0f)) menuState.menuAttraction = 0.0f;
-
-	// handle border height
-	if (menuState.borderTopHeight<menuTop)
-	{
-		menuState.borderTopHeight = menuTop;
-		menuState.menuVelocity=0.0f;
-		menuState.menuAttraction=0.0f;
-
-	}
-	if (menuState.borderTopHeight>(menuTop+(menuEntryHeight*(float)(menuEntryCount-1))))
-	{
-		menuState.borderTopHeight = menuTop+menuEntryHeight*(float)(menuEntryCount-1);
-		menuState.menuVelocity=0.0f;
-		menuState.menuAttraction=0.0f;
-	}
 	
 	return new MenuBuilder(this);
 }
@@ -265,6 +249,8 @@ void D3DProxyDevice::VPMENU_FinishDrawing(MenuBuilder *menu)
 	D3DXVECTOR3 vPos(0.0f, 0.0f, 0.0f);
 	hudMainMenu->Draw(NULL, &copyRect, NULL, &vPos, COLOR_WHITE);
 	hudMainMenu->End();
+	
+	VPMENU_UpdateBorder(menu->GetEntryCount());
 	
 	if(menu) {
 		delete menu;
@@ -389,32 +375,9 @@ void D3DProxyDevice::VPMENU()
 void D3DProxyDevice::VPMENU_MainMenu()
 {
 	SHOW_CALL("VPMENU_MainMenu");
-	
-	enum
-	{
-		SHADER_ANALYZER,
-		WORLD_SCALE_CALIBRATION,
-		CONVERGENCE_ADJUSTMENT,
-		HUD_CALIBRATION,
-		GUI_CALIBRATION,
-		HUD_SCALE,
-		GUI_SCALE,
-		OVERALL_SETTINGS,
-		VRBOOST_VALUES,
-		POS_TRACKING_SETTINGS,
-		COMFORT_MODE_SETTINGS,
-		RESTORE_CONFIGURATION,
-		BACK_TO_GAME,
-		NUM_MENU_ITEMS
-	};
-	
 	bool includeShaderAnalyzer = (config.game_type > 10000);
 	
-	UINT menuEntryCount = NUM_MENU_ITEMS;
-	if (!includeShaderAnalyzer)
-		menuEntryCount--;
-
-	MenuBuilder *menu = VPMENU_NewFrame(menuEntryCount);
+	MenuBuilder *menu = VPMENU_NewFrame();
 
 	// output menu
 	VPMENU_StartDrawing(menu, "Settings");
@@ -546,7 +509,7 @@ void D3DProxyDevice::VPMENU_WorldScale()
 	int width = VPMENU_PIXEL_WIDTH;
 	int height = VPMENU_PIXEL_HEIGHT;
 
-	MenuBuilder *menu = VPMENU_NewFrame(0);
+	MenuBuilder *menu = VPMENU_NewFrame();
 	VPMENU_StartDrawing_NonMenu();
 
 	// arbitrary formular... TODO !! find a more nifty solution
@@ -694,7 +657,7 @@ void D3DProxyDevice::VPMENU_Convergence()
 	int width = VPMENU_PIXEL_WIDTH;
 	int height = VPMENU_PIXEL_HEIGHT;
 
-	MenuBuilder *menu = VPMENU_NewFrame(0);
+	MenuBuilder *menu = VPMENU_NewFrame();
 	VPMENU_StartDrawing_NonMenu();
 
 	// arbitrary formular... TODO !! find a more nifty solution
@@ -785,22 +748,7 @@ void D3DProxyDevice::VPMENU_Convergence()
 void D3DProxyDevice::VPMENU_HUD()
 {
 	SHOW_CALL("VPMENU_HUD");
-	
-	enum
-	{
-		HUD_MODE = 0,
-		HUD_DISTANCE = 1,
-		HUD_3DDEPTH = 2,
-		HUD_HOTKEYS_START = 3,
-		HUD_HOTKEYS_END = 7,
-		BACK_VPMENU = 8,
-		BACK_GAME = 9,
-		NUM_MENU_ITEMS = 10
-	};
-	
-	MenuBuilder *menu = VPMENU_NewFrame(NUM_MENU_ITEMS);
-	
-	// output menu
+	MenuBuilder *menu = VPMENU_NewFrame();
 	VPMENU_StartDrawing(menu, "Settings - HUD");
 
 	float hudQSHeight = (float)menu->GetDrawPositionTop() * fScaleY;
@@ -875,22 +823,7 @@ void D3DProxyDevice::VPMENU_HUD()
 void D3DProxyDevice::VPMENU_GUI()
 {
 	SHOW_CALL("VPMENU_GUI");
-	
-	enum
-	{
-		GUI_MODE = 0,
-		GUI_DISTANCE = 1,
-		GUI_3DDEPTH = 2,
-		GUI_HOTKEYS_START = 3,
-		GUI_HOTKEYS_END = 7,
-		BACK_VPMENU = 8,
-		BACK_GAME = 9,
-		NUM_MENU_ITEMS = 10
-	};
-	
-	MenuBuilder *menu = VPMENU_NewFrame(NUM_MENU_ITEMS);
-
-	// output menu
+	MenuBuilder *menu = VPMENU_NewFrame();
 	VPMENU_StartDrawing(menu, "Settings - GUI");
 
 	float guiQSTop = (float)menu->GetDrawPositionTop() * fScaleY;
@@ -964,30 +897,7 @@ void D3DProxyDevice::VPMENU_GUI()
 void D3DProxyDevice::VPMENU_Settings()
 {
 	SHOW_CALL("VPMENU_Settings");
-
-	//Use enumeration for menu items to avoid confusion
-	enum
-	{
-		SWAP_EYES,
-		IPD_OFFSET,
-		Y_OFFSET,
-		DISTORTION_SCALE,
-		//STEREO_SCREENSHOTS,
-		YAW_MULT,
-		PITCH_MULT,
-		ROLL_MULT,
-		RESET_MULT,
-		ROLL_ENABLED,
-		FORCE_MOUSE_EMU,
-		TOGGLE_VRBOOST,
-		HOTKEY_VRBOOST,
-		HOTKEY_EDGEPEEK,
-		BACK_VPMENU,
-		BACK_GAME,
-		NUM_MENU_ITEMS
-	};
-
-	MenuBuilder *menu = VPMENU_NewFrame(NUM_MENU_ITEMS);
+	MenuBuilder *menu = VPMENU_NewFrame();
 	VPMENU_StartDrawing(menu, "Settings - General");
 
 	menu->AddButton(retprintf("Swap Eyes : %s", stereoView->swapEyes ? "True" : "False"), [=]()
@@ -1112,22 +1022,7 @@ void D3DProxyDevice::VPMENU_Settings()
 void D3DProxyDevice::VPMENU_PosTracking()
 {
 	SHOW_CALL("VPMENU_PosTracking");
-
-	enum
-	{
-		TOGGLE_TRACKING,
-		TRACKING_MULT,
-		TRACKING_MULT_X,
-		TRACKING_MULT_Y,
-		TRACKING_MULT_Z,
-		RESET_HMD,
-		DUCKANDCOVER_CONFIG,
-		BACK_VPMENU,
-		BACK_GAME,
-		NUM_MENU_ITEMS
-	};
-
-	MenuBuilder *menu = VPMENU_NewFrame(NUM_MENU_ITEMS);
+	MenuBuilder *menu = VPMENU_NewFrame();
 	VPMENU_StartDrawing(menu, "Settings - Positional Tracking");
 
 	menu->AddButton(retprintf("Positional Tracking (CTRL + P) : %s",
@@ -1165,25 +1060,9 @@ void D3DProxyDevice::VPMENU_PosTracking()
 void D3DProxyDevice::VPMENU_DuckAndCover()
 {
 	SHOW_CALL("VPMENU_DuckAndCover");
-
-	enum
-	{
-		CROUCH_TOGGLE,
-		CROUCH_KEY,
-		PRONE_TOGGLE,
-		PRONE_KEY,
-		JUMP_ENABLED,
-		JUMP_KEY,
-		DUCKANDCOVER_CALIBRATE,
-		DUCKANDCOVER_MODE,
-		BACK_VPMENU,
-		BACK_GAME,
-		NUM_MENU_ITEMS
-	};
-	
 	controls.UpdateInputs();
 
-	MenuBuilder *menu = VPMENU_NewFrame(NUM_MENU_ITEMS);
+	MenuBuilder *menu = VPMENU_NewFrame();
 	VPMENU_StartDrawing(menu, "Settings - Duck-and-Cover");
 
 	std::string crouchToggleDescription = m_DuckAndCover.crouchToggle ? "Toggle" : "Hold";
@@ -1261,21 +1140,9 @@ void D3DProxyDevice::VPMENU_DuckAndCover()
 void D3DProxyDevice::VPMENU_ComfortMode()
 {
 	SHOW_CALL("VPMENU_ComfortMode");
-
-	enum
-	{
-		COMFORT_MODE_ENABLED,
-		TURN_LEFT,
-		TURN_RIGHT,
-		YAW_INCREMENT,
-		BACK_VPMENU,
-		BACK_GAME,
-		NUM_MENU_ITEMS
-	};
-
 	controls.UpdateInputs();
 	
-	MenuBuilder *menu = VPMENU_NewFrame(NUM_MENU_ITEMS);
+	MenuBuilder *menu = VPMENU_NewFrame();
 	VPMENU_StartDrawing(menu, "Settings - Comfort Mode");
 
 	bool isEnabled = (VRBoostValue[VRboostAxis::ComfortMode] != 0.0f);
@@ -1318,17 +1185,7 @@ void D3DProxyDevice::VPMENU_ComfortMode()
 void D3DProxyDevice::VPMENU_VRBoostValues()
 {
 	SHOW_CALL("VPMENU_VRBoostValues");
-	
-	enum
-	{
-		VRBOOSTVALUES_START = 0,
-		VRBOOSTVALUES_END = 11,
-		BACK_VPMENU = 12,
-		BACK_GAME = 13,
-		NUM_MENU_ITEMS
-	};
-	
-	MenuBuilder *menu = VPMENU_NewFrame(NUM_MENU_ITEMS);
+	MenuBuilder *menu = VPMENU_NewFrame();
 	VPMENU_StartDrawing(menu, "Settings - VRBoost");
 
 	menu->AddAdjustment("World FOV : %g",          &VRBoostValue[24], 100.0f, 0.5f);
@@ -1350,14 +1207,10 @@ void D3DProxyDevice::VPMENU_VRBoostValues()
 }
 
 
-/**
-* VP menu border velocity updated here
-* Arrow up/down need to be done via call from Present().
-***/
-void D3DProxyDevice::VPMENU_UpdateBorder()
+void D3DProxyDevice::VPMENU_UpdateCooldowns()
 {
-	SHOW_CALL("VPMENU_UpdateBorder");
-
+	SHOW_CALL("VPMENU_UpdateCooldowns");
+	
 	//If this is enabled, then draw an apostrophe in the top left corner of the screen at all times
 	//this results in obs only picking up the left eye's texture for some reason (total hack, but some users make use of this for streaming
 	//using OBS
@@ -1403,27 +1256,50 @@ void D3DProxyDevice::VPMENU_UpdateBorder()
 		}
 	}
 
-	// vp menu active ? handle up/down controls
-	if (VPMENU_IsOpen())
-	{
-		int viewportHeight = stereoView->viewport.Height;
+}
 
-		float fScaleY = ((float)viewportHeight / (float)1080.0f);
-		
-		if(menuState.menuVelocity == 0.0f)
-		{
-			float menuSelectionAxis = controls.GetAxis(InputControls::GamepadAxis::LeftStickY);
-			if (hotkeyMenuUp->IsPressed(controls) || (menuSelectionAxis>MENU_SELECTION_STICK_DEADZONE))
-				menuState.menuVelocity=-2.7f;
-			if (hotkeyMenuDown->IsPressed(controls) || (menuSelectionAxis<-MENU_SELECTION_STICK_DEADZONE))
-				menuState.menuVelocity=2.7f;
-			if (hotkeyMenuUpFaster->IsPressed(controls))
-				menuState.menuVelocity=-15.0f;
-			if (hotkeyMenuDownFaster->IsPressed(controls))
-				menuState.menuVelocity=15.0f;
-		}
-		
-		menuState.borderTopHeight += (menuState.menuVelocity+menuState.menuAttraction)*fScaleY*timeScale;
+/**
+* VP menu border velocity updated here
+* Arrow up/down need to be done via call from Present().
+***/
+void D3DProxyDevice::VPMENU_UpdateBorder(int menuEntryCount)
+{
+	SHOW_CALL("VPMENU_UpdateBorder");
+
+	// Handle up/down controls
+	int viewportHeight = stereoView->viewport.Height;
+
+	float fScaleY = ((float)viewportHeight / (float)1080.0f);
+	
+	if(menuState.menuVelocity == 0.0f)
+	{
+		float menuSelectionAxis = controls.GetAxis(InputControls::GamepadAxis::LeftStickY);
+		if (hotkeyMenuUp->IsPressed(controls) || (menuSelectionAxis>MENU_SELECTION_STICK_DEADZONE))
+			menuState.menuVelocity=-2.7f;
+		if (hotkeyMenuDown->IsPressed(controls) || (menuSelectionAxis<-MENU_SELECTION_STICK_DEADZONE))
+			menuState.menuVelocity=2.7f;
+		if (hotkeyMenuUpFaster->IsPressed(controls))
+			menuState.menuVelocity=-15.0f;
+		if (hotkeyMenuDownFaster->IsPressed(controls))
+			menuState.menuVelocity=15.0f;
+	}
+	
+	float timeScale = (float)menuLastFrameLength*90;
+	menuState.borderTopHeight += (menuState.menuVelocity+menuState.menuAttraction)*fScaleY*timeScale;
+
+	// handle border height
+	if (menuState.borderTopHeight<menuTop)
+	{
+		menuState.borderTopHeight = menuTop;
+		menuState.menuVelocity=0.0f;
+		menuState.menuAttraction=0.0f;
+
+	}
+	if (menuState.borderTopHeight>(menuTop+(menuEntryHeight*(float)(menuEntryCount-1))))
+	{
+		menuState.borderTopHeight = menuTop+menuEntryHeight*(float)(menuEntryCount-1);
+		menuState.menuVelocity=0.0f;
+		menuState.menuAttraction=0.0f;
 	}
 }
 
@@ -1734,16 +1610,19 @@ MenuBuilder::MenuBuilder(D3DProxyDevice *device)
 
 void MenuBuilder::DrawItem(const char *text, D3DCOLOR color)
 {
-	device->DrawTextShadowed(device->hudFont, device->hudMainMenu, text, &drawPosition, color);
+	// Only draw things within the viewport (not things scrolled off)
+	if(drawPosition.top+40 >= 0
+	   && drawPosition.top <= device->viewportHeight)
+	{
+		device->DrawTextShadowed(device->hudFont, device->hudMainMenu, text, &drawPosition, color);
+	}
 	drawPosition.top += MENU_ITEM_SEPARATION;
 	menuConstructionCurrentEntry++;
 }
 
 void MenuBuilder::DrawItem(std::string text, D3DCOLOR color)
 {
-	device->DrawTextShadowed(device->hudFont, device->hudMainMenu, text.c_str(), &drawPosition, color);
-	drawPosition.top += MENU_ITEM_SEPARATION;
-	menuConstructionCurrentEntry++;
+	DrawItem(text.c_str(), color);
 }
 
 void MenuBuilder::AddItem(std::string text, std::function<void()> onHover)
@@ -1755,7 +1634,7 @@ void MenuBuilder::AddItem(std::string text, D3DCOLOR color, std::function<void()
 {
 	int selection = device->VPMENU_GetCurrentSelection();
 	int entryID = menuConstructionCurrentEntry;
-	DrawItem(text, color);
+	DrawItem(text.c_str(), color);
 	if(entryID == selection)
 		onHover();
 }
@@ -1872,6 +1751,11 @@ void MenuBuilder::SetDrawPosition(int left, int top)
 int MenuBuilder::GetDrawPositionTop()
 {
 	return drawPosition.top;
+}
+
+int MenuBuilder::GetEntryCount()
+{
+	return menuConstructionCurrentEntry;
 }
 
 /*** MenuState ***************************************************************/

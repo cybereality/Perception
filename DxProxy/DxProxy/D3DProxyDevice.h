@@ -417,7 +417,7 @@ protected:
 	void VPMENU_OpenMainMenu();
 	void VPMENU_NavigateTo(std::function<void()> menuHandler);
 	bool VPMENU_IsOpen();
-	MenuBuilder *VPMENU_NewFrame(UINT menuEntryCount);
+	MenuBuilder *VPMENU_NewFrame();
 	float VPMENU_AdjustBorderWithScrolling();
 	void VPMENU_DrawBorder(int top);
 	int VPMENU_GetCurrentSelection();
@@ -447,7 +447,8 @@ protected:
 	void VPMENU_ComfortMode();
 	void VPMENU_VRBoostValues();
 	
-	void VPMENU_UpdateBorder();
+	void VPMENU_UpdateCooldowns();
+	void VPMENU_UpdateBorder(int menuEntryCount);
 	void VPMENU_UpdateConfigSettings();
 	void VPMENU_UpdateDeviceSettings();
 	void VPMENU_AdditionalOutput();

@@ -438,7 +438,7 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 	m_isFirstBeginSceneOfFrame = true; 
 
 	HandleLandmarkMoment(DeviceBehavior::WhenToDo::PRESENT);
-	VPMENU_UpdateBorder();
+	VPMENU_UpdateCooldowns();
 
 	//Now calculate frames per second
 	fps = CalcFPS();
@@ -3069,7 +3069,7 @@ void D3DProxyDevice::HandleUpdateExtern()
 	m_isFirstBeginSceneOfFrame = true;
 
 	HandleLandmarkMoment(DeviceBehavior::WhenToDo::PRESENT);
-	VPMENU_UpdateBorder();
+	VPMENU_UpdateCooldowns();
 }
 
 /**

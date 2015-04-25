@@ -36,6 +36,7 @@ public:
 	
 	void SetDrawPosition(int left, int top);
 	int GetDrawPositionTop();
+	int GetEntryCount();
 
 private:
 	D3DProxyDevice *device;
