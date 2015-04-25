@@ -30,6 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "FreeSpaceTracker.h"
 #include "Vireio.h"
+#include "VireioUtil.h"
 #include <string.h>
 #include <math.h>
 #include <time.h>
