@@ -504,10 +504,6 @@ void D3DProxyDevice::VPMENU_WorldScale()
 	// base values
 	static UINT gameXScaleUnitIndex = 0;
 
-	// ensure that the attraction is set to zero
-	// for non-menu-screens like this one
-	menuState.menuAttraction = 0.0f;
-
 	// sort the game unit vector
 	std::sort (m_gameXScaleUnits.begin(), m_gameXScaleUnits.end());
 
@@ -690,10 +686,6 @@ void D3DProxyDevice::VPMENU_Convergence()
 {
 	SHOW_CALL("VPMENU_Convergence");
 	
-	// ensure that the attraction is set to zero
-	// for non-menu-screens like this one
-	menuState.menuAttraction = 0.0f;
-
 	// Left/Right: Decrease/Increase convergence (hold CTRL to lower speed, SHIFT to speed up)
 	if (VPMENU_Input_IsAdjustment() && HotkeysActive())
 	{

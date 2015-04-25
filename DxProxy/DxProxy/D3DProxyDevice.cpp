@@ -174,7 +174,6 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	hmdInfo(NULL),
 	m_saveConfigTimer(MAXDWORD),
 	m_comfortModeYaw(0.0f),
-	//Yaw increment stored in degrees for easier comparison
 	m_disableAllHotkeys(false),
 	menuState(this)
 {

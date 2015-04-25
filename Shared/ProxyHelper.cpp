@@ -124,12 +124,21 @@ HRESULT ProxyHelper::RegGetString(HKEY hKey, LPCTSTR szValueName, std::string &r
 	return success;
 }
 
-string strToLower(string& str)
+string strToLower(const string& str)
 {
 	string result = str;
 	for(unsigned ii=0; ii<result.size(); ii++)
 		result[ii] = ::tolower(result[ii]);
 	return result;
+}
+
+string getFilenamePart(const string &path)
+{
+	auto lastBackSlash = path.find_last_of("\\");
+	if (lastBackSlash!=string::npos)
+		return path.substr(lastBackSlash+1, path.size()-(lastBackSlash+1));
+	else
+		return path;
 }
 
 /**
@@ -811,24 +820,16 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 		string shaderRulesFileName = gameProfile.attribute("shaderModRules").as_string("");
 
 		if (!shaderRulesFileName.empty()) {
-			std::stringstream sstm;
-			sstm << GetBaseDir() << "cfg\\shader_rules\\" << shaderRulesFileName;
-			config.shaderRulePath = sstm.str();
-		}
-		else {
-			config.shaderRulePath = "";
+			config.shaderRulePath = retprintf("%scfg\\shader_rules\\%s",
+				GetBaseDir().c_str(), shaderRulesFileName.c_str());
 		}
 
 		// get memory rules file name
 		string VRboostRulesFileName = gameProfile.attribute("VRboostRules").as_string("");
 
 		if (!VRboostRulesFileName.empty()) {
-			std::stringstream sstm;
-			sstm << GetBaseDir() << "cfg\\VRboost_rules\\" << VRboostRulesFileName;
-			config.VRboostPath = sstm.str();
-		}
-		else {
-			config.VRboostPath = "";
+			config.VRboostPath = retprintf("%scfg\\VRboost_rules\\%s",
+				GetBaseDir().c_str(), VRboostRulesFileName.c_str());
 		}
 
 		LoadSetting(gameProfile, "rollImpl", &config.rollImpl);
@@ -856,10 +857,6 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 
 		}
 	}
-
-	/*LoadHUDConfig(config);
-	LoadGUIConfig(config);
-	LoadVRBoostValues(config);*/
 
 	LoadUserConfig(config, oculusProfile);
 
@@ -927,26 +924,13 @@ bool ProxyHelper::SaveConfig(ProxyConfig& config)
 	{
 		OutputDebugString("Save the settings to profile!!!\n");
 
-		// get shader mod rules filename
-		auto lastBackSlash = config.shaderRulePath.find_last_of("\\");
-		string fileName;
-		if (lastBackSlash!=string::npos)
-			fileName = config.shaderRulePath.substr(lastBackSlash+1, config.shaderRulePath.size()-(lastBackSlash+1));
-		else
-			fileName = config.shaderRulePath;
-
 		set_attribute(gameProfile, "cpu_architecture", config.is64bit ? "64bit" : "32bit");
 
-		// shader mod rules attribute present ? otherwise insert
-		set_attribute(gameProfile, "shaderModRules", fileName.c_str());
+		string shaderRulesFilename = getFilenamePart(config.shaderRulePath);
+		set_attribute(gameProfile, "shaderModRules", shaderRulesFilename.c_str());
 
-		// get VRboost rules filename
-		lastBackSlash = config.VRboostPath.find_last_of("\\");
-		if (lastBackSlash!=string::npos)
-			fileName = config.VRboostPath.substr(lastBackSlash+1, config.VRboostPath.size()-(lastBackSlash+1));
-		else
-			fileName = config.VRboostPath;
-		set_attribute(gameProfile, "VRboostRules", fileName.c_str());
+		string VRboostRulesFilename = getFilenamePart(config.VRboostPath);
+		set_attribute(gameProfile, "VRboostRules", VRboostRulesFilename.c_str());
 
 		set_attribute(gameProfile, "minVRboostShaderCount", config.VRboostMinShaderCount);
 		set_attribute(gameProfile, "maxVRboostShaderCount", config.VRboostMaxShaderCount);
