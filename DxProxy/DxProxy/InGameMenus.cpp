@@ -162,31 +162,6 @@ MenuBuilder *D3DProxyDevice::VPMENU_NewFrame()
 	return new MenuBuilder(this);
 }
 
-float D3DProxyDevice::VPMENU_AdjustBorderWithScrolling()
-{
-	// FIXME
-	int entryID = VPMENU_GetCurrentSelection();
-	float borderDrawingHeight = menuState.borderTopHeight;
-	if (menuState.menuVelocity == 0.0f)
-		menuState.borderTopHeight = menuTop+menuEntryHeight*(float)entryID;
-	if (menuState.borderTopHeight>(menuTop+(menuEntryHeight*12.0f)))
-		borderDrawingHeight = menuTop+menuEntryHeight*12.0f;
-
-	// down scroll border/menu adjustment
-	if (menuState.menuTopHeight>=(borderDrawingHeight-menuState.borderTopHeight))
-		menuState.menuTopHeight = (borderDrawingHeight-menuState.borderTopHeight);
-	else
-		borderDrawingHeight=menuState.borderTopHeight+menuState.menuTopHeight;
-
-	// up scroll border/menu adjustment
-	if (borderDrawingHeight<menuTop)
-	{
-		menuState.menuTopHeight+=menuTop-borderDrawingHeight;
-		borderDrawingHeight = menuTop;
-	}
-	return borderDrawingHeight;
-}
-
 void D3DProxyDevice::VPMENU_DrawBorder(int top)
 {
 	// draw border - total width due to shift correction
@@ -204,10 +179,13 @@ int D3DProxyDevice::VPMENU_GetCurrentSelection()
 	return menuState.selectedIndex;
 }
 
+/**
+* 
+*/
 void D3DProxyDevice::VPMENU_StartDrawing(MenuBuilder *menu, const char *pageTitle)
 {
-	float borderDrawHeight = menuTop + menuEntryHeight*(menuState.selectedIndex+menuState.animationOffset);
-	VPMENU_DrawBorder(borderDrawHeight);
+	float borderDrawHeight = menuTop + menuEntryHeight*(menuState.selectedIndex+menuState.animationOffset-menuState.scrollOffset);
+	VPMENU_DrawBorder((int)borderDrawHeight);
 
 	hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
 
@@ -216,7 +194,7 @@ void D3DProxyDevice::VPMENU_StartDrawing(MenuBuilder *menu, const char *pageTitl
 	hudMainMenu->SetTransform(&matScale);
 
 	VPMENU_DrawTitle(pageTitle);
-	menu->SetDrawPosition(800, 350);
+	menu->ResetDrawPosition();
 }
 
 void D3DProxyDevice::VPMENU_StartDrawing_NonMenu()
@@ -1206,7 +1184,12 @@ void D3DProxyDevice::VPMENU_UpdateCooldowns()
 		D3DXCreateSprite(this, &hackSprite);
 		if (hudFont && hackSprite)
 		{
-			VPMENU_StartDrawing_NonMenu();
+			hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
+		
+			D3DXMATRIX matScale;
+			D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
+			hudMainMenu->SetTransform(&matScale);
+			
 			RECT apostropheDrawPos = { 0, 0, 50, 50 };
 			hudFont->DrawText(hackSprite, "'", -1, &apostropheDrawPos, DT_LEFT, COLOR_RED);
 			D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
@@ -1247,18 +1230,18 @@ void D3DProxyDevice::VPMENU_UpdateCooldowns()
 void D3DProxyDevice::VPMENU_UpdateBorder(int menuEntryCount)
 {
 	SHOW_CALL("VPMENU_UpdateBorder");
-	float animationSpeed = 0.2f;
 
 	// Update animation
 	if(menuState.animationOffset > 0.0f) {
-		menuState.animationOffset -= menuLastFrameLength * animationSpeed;
+		menuState.animationOffset -= menuLastFrameLength * MENU_SELECT_ANIMATION_SPEED;
 		if(menuState.animationOffset < 0.0f) menuState.animationOffset = 0.0f;
 	}
 	if(menuState.animationOffset < 0.0f) {
-		menuState.animationOffset += menuLastFrameLength * animationSpeed;
+		menuState.animationOffset += menuLastFrameLength * MENU_SELECT_ANIMATION_SPEED;
 		if(menuState.animationOffset > 0.0f) menuState.animationOffset = 0.0f;
 	}
 	
+	// Handle up/down arrows
 	float menuSelectionAxis = controls.GetAxis(InputControls::GamepadAxis::LeftStickY);
 	
 	if ((hotkeyMenuUp->IsPressed(controls) || (menuSelectionAxis>MENU_SELECTION_STICK_DEADZONE)) && HotkeysActive())
@@ -1282,6 +1265,16 @@ void D3DProxyDevice::VPMENU_UpdateBorder(int menuEntryCount)
 			menuState.animationOffset = 0.0f;
 		}
 		HotkeyCooldown(COOLDOWN_SHORT);
+	}
+	
+	// Update scroll position
+	if(menuState.scrollOffset > menuState.selectedIndex) {
+		menuState.scrollOffset = menuState.selectedIndex;
+		menuState.animationOffset = 0.0f;
+	}
+	if(menuState.scrollOffset+MENU_SCROLL_BOTTOM < menuState.selectedIndex) {
+		menuState.scrollOffset = menuState.selectedIndex - MENU_SCROLL_BOTTOM;
+		menuState.animationOffset = 0.0f;
 	}
 }
 
@@ -1724,10 +1717,10 @@ void MenuBuilder::AddAdjustment(const char *formatString, float *value, float de
 	});
 }
 
-void MenuBuilder::SetDrawPosition(int left, int top)
+void MenuBuilder::ResetDrawPosition()
 {
-	drawPosition.left = left;
-	drawPosition.top = top;
+	drawPosition.left = 800;
+	drawPosition.top = 350 - device->menuState.scrollOffset*MENU_ITEM_SEPARATION;
 }
 
 int MenuBuilder::GetDrawPositionTop()
@@ -1751,8 +1744,7 @@ MenuState::MenuState(D3DProxyDevice *device)
 void MenuState::Reset()
 {
 	selectedIndex = 0;
+	scrollOffset = 0;
 	animationOffset = 0.0f;
-	menuVelocity = 0.0f;
 	borderTopHeight = 0.0f;
-	menuTopHeight = 0.0f;
 }

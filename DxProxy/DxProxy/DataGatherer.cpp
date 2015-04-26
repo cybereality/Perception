@@ -872,12 +872,7 @@ void DataGatherer::VPMENU_ChangeRules()
 	MenuBuilder *menu = VPMENU_NewFrame();
 	UINT entryID = VPMENU_GetCurrentSelection();;
 	
-	// adjust border & menu due to menu scroll
-	float borderDrawingHeight = VPMENU_AdjustBorderWithScrolling();
-	VPMENU_DrawBorder((int)borderDrawingHeight);
-	VPMENU_StartDrawing_NonMenu();
-
-	menu->SetDrawPosition(800, 350 + (int)(menuState.menuTopHeight / fScaleY));
+	VPMENU_StartDrawing(menu, NULL);
 	
 	for (UINT i=0; i<menuEntries.size(); i++)
 	menu->AddItem(menuEntries[i], menuColor[i], [&]()
@@ -1242,14 +1237,8 @@ void DataGatherer::VPMENU_ShowActiveShaders()
 
 
 	// output menu
-	// adjust border & menu due to menu scroll
-	float borderDrawingHeight = VPMENU_AdjustBorderWithScrolling();
-	VPMENU_DrawBorder((int)borderDrawingHeight);
+	VPMENU_StartDrawing(menu, NULL);
 
-	VPMENU_StartDrawing_NonMenu();
-
-	menu->SetDrawPosition(800, 350 + (int)(menuState.menuTopHeight / fScaleY));
-	
 	for (UINT i = 0; i < menuEntryCount-2; i++)
 	{
 		menu->DrawItem(menuEntries[i].c_str(), menuColor[i]);

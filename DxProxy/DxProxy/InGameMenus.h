@@ -16,6 +16,8 @@
 #define COLOR_HASH_LINE     D3DCOLOR_ARGB(255,255,255,0)
 
 #define MENU_ITEM_SEPARATION  40
+#define MENU_SELECT_ANIMATION_SPEED 0.2f
+#define MENU_SCROLL_BOTTOM 12
 
 
 class MenuBuilder
@@ -34,7 +36,7 @@ public:
 	void AddKeybind(std::string text, InputBindingRef *binding);
 	void AddAdjustment(const char *formatString, float *value, float defaultValue, float rate, std::function<void()> onChange=[](){});
 	
-	void SetDrawPosition(int left, int top);
+	void ResetDrawPosition();
 	int GetDrawPositionTop();
 	int GetEntryCount();
 
@@ -53,16 +55,14 @@ public:
 	/// Which menu item is currently selected
 	int selectedIndex;
 	
+	/// Index of the top-most visible item, reflecting how far the menu is scrolled
+	int scrollOffset;
+	
 	/// Offset between the menu selection, and where the border is drawn.
 	float animationOffset;
 	
-	float menuVelocity;
-	
 	/// Main menu border top height.
 	float borderTopHeight;
-	
-	/// Main menu top height for scrolling menues.
-	float menuTopHeight;
 	
 	std::function<void()> handleCurrentMenu;
 	

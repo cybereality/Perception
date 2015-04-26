@@ -418,7 +418,6 @@ protected:
 	void VPMENU_NavigateTo(std::function<void()> menuHandler);
 	bool VPMENU_IsOpen();
 	MenuBuilder *VPMENU_NewFrame();
-	float VPMENU_AdjustBorderWithScrolling();
 	void VPMENU_DrawBorder(int top);
 	int VPMENU_GetCurrentSelection();
 	void VPMENU_StartDrawing(MenuBuilder *menu, const char *pageTitle);
