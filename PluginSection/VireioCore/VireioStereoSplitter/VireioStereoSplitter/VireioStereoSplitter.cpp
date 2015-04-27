@@ -693,8 +693,46 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 				}
 				return nullptr;
 			case METHOD_IDIRECT3DDEVICE9_DRAWPRIMITIVEUP:
+				if (m_bPresent)
+				{
+					// get data
+					D3DPRIMITIVETYPE ePrimitiveType;
+					if (m_pePrimitiveTypeUP) ePrimitiveType = *m_pePrimitiveTypeUP; else return nullptr;
+					UINT dwPrimitiveCount;
+					if (m_pdwPrimitiveCountUP) dwPrimitiveCount = *m_pdwPrimitiveCountUP; else return nullptr;
+					void* pVertexStreamZeroData;
+					if (m_ppVertexStreamZeroData) pVertexStreamZeroData = *m_ppVertexStreamZeroData; else return nullptr;
+					UINT dwVertexStreamZeroStride;
+					if (m_pdwVertexStreamZeroStride) dwVertexStreamZeroStride = *m_pdwVertexStreamZeroStride; else return nullptr;
+
+					// call method
+					DrawPrimitiveUP((LPDIRECT3DDEVICE9)pThis, ePrimitiveType, dwPrimitiveCount, pVertexStreamZeroData, dwVertexStreamZeroStride);
+				}
 				return nullptr;
 			case METHOD_IDIRECT3DDEVICE9_DRAWINDEXEDPRIMITIVEUP:
+				if (m_bPresent)
+				{
+					// get data
+					D3DPRIMITIVETYPE ePrimitiveType;
+					if (m_pePrimitiveTypeUPIndexed) ePrimitiveType = *m_pePrimitiveTypeUPIndexed; else return nullptr;
+					UINT dwMinVertexIndex;
+					if (m_pdwMinVertexIndex) dwMinVertexIndex = *m_pdwMinVertexIndex; else return nullptr;
+					UINT dwNumVerticesUPIndexed;
+					if (m_pdwNumVerticesUPIndexed) dwNumVerticesUPIndexed = *m_pdwNumVerticesUPIndexed; else return nullptr;
+					UINT dwPrimitiveCountUPIndexed;
+					if (m_pdwPrimitiveCountUPIndexed) dwPrimitiveCountUPIndexed = *m_pdwPrimitiveCountUPIndexed; else return nullptr;
+					void* pIndexData;
+					if (m_ppIndexData) pIndexData = *m_ppIndexData; else return nullptr;
+					D3DFORMAT eIndexDataFormat;
+					if (m_peIndexDataFormat) eIndexDataFormat = *m_peIndexDataFormat; else return nullptr;
+					void* pVertexStreamZeroDataIndexed;
+					if (m_ppVertexStreamZeroDataIndexed) pVertexStreamZeroDataIndexed = *m_ppVertexStreamZeroDataIndexed; else return nullptr;
+					UINT dwVertexStreamZeroStrideIndexed;
+					if (m_pdwVertexStreamZeroStrideIndexed) dwVertexStreamZeroStrideIndexed = *m_pdwVertexStreamZeroStrideIndexed; else return nullptr;
+
+					// call method
+					DrawIndexedPrimitiveUP((LPDIRECT3DDEVICE9)pThis, ePrimitiveType, dwMinVertexIndex, dwNumVerticesUPIndexed, dwPrimitiveCountUPIndexed, pIndexData, eIndexDataFormat, pVertexStreamZeroDataIndexed, dwVertexStreamZeroStrideIndexed);
+				}
 				return nullptr;
 			}
 			return nullptr;
@@ -1119,7 +1157,7 @@ void StereoSplitter::SetTexture(IDirect3DDevice9* pcDevice, DWORD Stage,IDirect3
 ***/
 void StereoSplitter::DrawPrimitive(IDirect3DDevice9* pcDevice, D3DPRIMITIVETYPE ePrimitiveType, UINT dwStartVertex, UINT dwPrimitiveCount)
 {
-	// Allways draw first on the right side, the left (original) side
+	// Always draw first on the right side, the left (original) side
 	// will be drawn at the end
 	SetDrawingSide(pcDevice, RenderPosition::Right);
 
@@ -1135,7 +1173,7 @@ void StereoSplitter::DrawPrimitive(IDirect3DDevice9* pcDevice, D3DPRIMITIVETYPE 
 ***/
 void StereoSplitter::DrawIndexedPrimitive(IDirect3DDevice9* pcDevice, D3DPRIMITIVETYPE ePrimitiveType, INT nBaseVertexIndex, UINT dwMinVertexIndex, UINT dwNumVertices, UINT dwStartIndex, UINT dwPrimCount)
 {
-	// Allways draw first on the right side, the left (original) side
+	// Always draw first on the right side, the left (original) side
 	// will be drawn at the end
 	SetDrawingSide(pcDevice, RenderPosition::Right);
 
@@ -1151,6 +1189,15 @@ void StereoSplitter::DrawIndexedPrimitive(IDirect3DDevice9* pcDevice, D3DPRIMITI
 ***/
 void StereoSplitter::DrawPrimitiveUP(IDirect3DDevice9* pcDevice, D3DPRIMITIVETYPE ePrimitiveType, UINT dwPrimitiveCount, CONST void* pVertexStreamZeroData, UINT dwVertexStreamZeroStride)
 {
+	// Always draw first on the right side, the left (original) side
+	// will be drawn at the end
+	SetDrawingSide(pcDevice, RenderPosition::Right);
+
+	// draw
+	pcDevice->DrawPrimitiveUP(ePrimitiveType, dwPrimitiveCount, pVertexStreamZeroData, dwVertexStreamZeroStride);
+
+	// Allways switch back to the left (original) side here !
+	SetDrawingSide(pcDevice, RenderPosition::Left);
 }
 
 /**
@@ -1158,6 +1205,15 @@ void StereoSplitter::DrawPrimitiveUP(IDirect3DDevice9* pcDevice, D3DPRIMITIVETYP
 ***/
 void StereoSplitter::DrawIndexedPrimitiveUP(IDirect3DDevice9* pcDevice, D3DPRIMITIVETYPE ePrimitiveType, UINT dwMinVertexIndex, UINT dwNumVertices, UINT dwPrimitiveCount, CONST void* pIndexData, D3DFORMAT eIndexDataFormat, CONST void* pVertexStreamZeroData, UINT dwVertexStreamZeroStride)
 {
+	// Always draw first on the right side, the left (original) side
+	// will be drawn at the end
+	SetDrawingSide(pcDevice, RenderPosition::Right);
+
+	// draw
+	pcDevice->DrawIndexedPrimitiveUP(ePrimitiveType, dwMinVertexIndex, dwNumVertices, dwPrimitiveCount, pIndexData, eIndexDataFormat, pVertexStreamZeroData, dwVertexStreamZeroStride);
+
+	// Allways switch back to the left (original) side here !
+	SetDrawingSide(pcDevice, RenderPosition::Left);
 }
 
 /**
