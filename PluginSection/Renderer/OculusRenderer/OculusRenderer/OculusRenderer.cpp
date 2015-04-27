@@ -483,7 +483,7 @@ void* OculusRenderer::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 	pcDevice->BeginScene();
 
 	// save states
-	IDirect3DStateBlock9* pStateBlock;
+	IDirect3DStateBlock9* pStateBlock = nullptr;
 	pcDevice->CreateStateBlock(D3DSBT_ALL, &pStateBlock);
 
 	// set ALL render states to default
@@ -509,7 +509,7 @@ void* OculusRenderer::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 	D3DCOLOR clearColor = D3DCOLOR_RGBA(0, 0, 0, 0);
 
 	pcDevice->Clear(0, NULL, D3DCLEAR_TARGET, clearColor, 0, 0);
-	
+
 	// required fields
 	D3DSURFACE_DESC sSurfaceDesc;
 	ovrSizei sTextureSize;
@@ -555,7 +555,7 @@ void* OculusRenderer::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			ovrHmd_GetRenderScaleAndOffset(m_sDefaultFOVPortLeft, sTextureSize, sRenderViewport, UVScaleOffset);
 		pcDevice->SetVertexShaderConstantF( 0, ( FLOAT* )&UVScaleOffset[0], 1 );
 		pcDevice->SetVertexShaderConstantF( 2, ( FLOAT* )&UVScaleOffset[1], 1 );
-		
+
 		pcDevice->SetStreamSource( 0, m_pcDistortionVertexBufferLeft,0, sizeof(ovrDistortionVertex) );
 		pcDevice->SetIndices( m_pcDistortionIndexBufferLeft);
 
@@ -624,8 +624,12 @@ void* OculusRenderer::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 	pcDevice->EndScene();
 
-	pStateBlock->Apply();
-	pStateBlock->Release();
+	// apply and release state block
+	if (pStateBlock)
+	{
+		pStateBlock->Apply();
+		pStateBlock->Release();
+	}
 
 	// release device if provided by swapchain
 	if (bReleaseDevice) pcDevice->Release();
