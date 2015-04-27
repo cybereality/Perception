@@ -1268,7 +1268,9 @@ bool StereoSplitter::SetDrawingSide(IDirect3DDevice9* pcDevice, RenderPosition e
 				if (m_apcActiveStereoTwinRenderTarget[i])
 					hr = pcDevice->SetRenderTarget(i, m_apcActiveStereoTwinRenderTarget[i]);
 				else
-					hr = pcDevice->SetRenderTarget(i, NULL);
+					// never set first render target to NULL
+					if (i > 0)
+						hr = pcDevice->SetRenderTarget(i, NULL);
 			}
 		}
 
