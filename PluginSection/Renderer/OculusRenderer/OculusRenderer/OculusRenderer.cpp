@@ -564,6 +564,14 @@ void* OculusRenderer::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 	}
 	else
 	{
+		pcDevice->SetSamplerState(1, D3DSAMP_SRGBTEXTURE, 0);
+		pcDevice->SetSamplerState(1, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
+		pcDevice->SetSamplerState(1, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+		pcDevice->SetSamplerState(1, D3DSAMP_ADDRESSW, D3DTADDRESS_CLAMP);
+		pcDevice->SetSamplerState(1, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC);
+		pcDevice->SetSamplerState(1, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC);
+		pcDevice->SetSamplerState(1, D3DSAMP_MIPFILTER, D3DTEXF_NONE);
+
 		// side by side render
 		pcDevice->SetVertexShader(NULL);
 		pcDevice->SetPixelShader(m_pcSideBySidePixelShader);
