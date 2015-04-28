@@ -294,7 +294,17 @@ private:
 	***/
 	std::vector<IDirect3DTexture9*> m_apcStereoTwinRenderTextureClipboard;
 	/**
-	* Maximum render targets, as read from 
+	* Number of set textures.
+	* Number of textures not set to NULL.
+	***/
+	DWORD m_dwTextureNumber;
+	/**
+	* Number of render targets.
+	* Number of render targets not set to NULL.
+	***/
+	DWORD m_dwRenderTargetNumber;
+	/**
+	* Maximum render targets, as read from capabilities (NumSimultaneousRTs).
 	***/
 	DWORD m_dwMaxRenderTargets;
 	/**

@@ -81,6 +81,8 @@ StereoSplitter::StereoSplitter():AQU_Nodus(),
 	m_hFont(nullptr),
 	m_apcStereoTwinRenderTargetClipboard(0, nullptr),
 	m_apcStereoTwinRenderTextureClipboard(0, nullptr),
+	m_dwTextureNumber(0),
+	m_dwRenderTargetNumber(0),
 	m_dwMaxRenderTargets(0),
 	m_bMaxRenderTargets(false),
 	m_bPresent(false),
@@ -1014,9 +1016,19 @@ void StereoSplitter::SetRenderTarget(IDirect3DDevice9* pcDevice, DWORD dwRenderT
 		{
 			m_apcActiveRenderTargets[dwRenderTargetIndex] = NULL;
 			m_apcActiveStereoTwinRenderTarget[dwRenderTargetIndex] = NULL;
+
+			// set number of render targets
+			m_dwRenderTargetNumber = 0;
+			for(std::vector<IDirect3DSurface9*>::size_type i = 0; i < m_apcActiveRenderTargets.size(); i++) 
+				if (m_apcActiveRenderTargets[i] != NULL) m_dwRenderTargetNumber = (DWORD)i + 1;
 		}
 		else			
+		{
 			m_apcActiveRenderTargets[dwRenderTargetIndex] = pcRenderTarget;
+
+			// set number of render targets
+			if (dwRenderTargetIndex >= m_dwRenderTargetNumber) m_dwRenderTargetNumber = dwRenderTargetIndex + 1;
+		}
 	}
 	else return;
 
@@ -1094,9 +1106,21 @@ void StereoSplitter::SetTexture(IDirect3DDevice9* pcDevice, DWORD Stage,IDirect3
 	{
 		// set NULL manually, otherwise just set the render target :
 		if (!pcTexture) 
+		{
 			m_apcActiveTextures[Stage] = NULL;
-		else			
+
+			// set number of textures
+			m_dwTextureNumber = 0;
+			for(std::vector<IDirect3DSurface9*>::size_type i = 0; i < m_apcActiveTextures.size(); i++) 
+				if (m_apcActiveTextures[i] != NULL) m_dwTextureNumber = (DWORD)i + 1;
+		}
+		else
+		{
 			m_apcActiveTextures[Stage] = pcTexture;
+
+			// set number of textures
+			if (Stage >= m_dwTextureNumber) m_dwTextureNumber = Stage + 1;
+		}
 	}
 	else return;
 
@@ -1308,7 +1332,7 @@ bool StereoSplitter::SetDrawingSide(IDirect3DDevice9* pcDevice, RenderPosition e
 	// switch render targets to new eSide
 	bool renderTargetChanged = false;
 	HRESULT hr = D3D_OK;
-	for(std::vector<IDirect3DSurface9*>::size_type i = 0; i < m_apcActiveRenderTargets.size(); i++) 
+	for(std::vector<IDirect3DSurface9*>::size_type i = 0; i < m_dwRenderTargetNumber; i++) 
 	{
 		if (eSide == RenderPosition::Left) 
 		{
@@ -1359,7 +1383,7 @@ bool StereoSplitter::SetDrawingSide(IDirect3DDevice9* pcDevice, RenderPosition e
 	}
 
 	// switch textures to new side
-	for(std::vector<IDirect3DSurface9*>::size_type i = 0; i < m_apcActiveTextures.size(); i++)
+	for(std::vector<IDirect3DSurface9*>::size_type i = 0; i < m_dwTextureNumber; i++)
 	{
 		// if stereo texture
 		if (m_apcActiveStereoTwinTextures[i] != NULL) 
