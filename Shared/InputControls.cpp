@@ -6,6 +6,8 @@ using namespace vireio;
 
 std::array<std::string, 256> GetKeyNameList()
 {
+	// https://msdn.microsoft.com/en-us/library/windows/desktop/dd375731(v=vs.85).aspx
+	
 	std::array<std::string, 256> keyNameList;
 	for (int i = 0; i < 256; i++)
 		keyNameList[i] = "-";
@@ -13,13 +15,21 @@ std::array<std::string, 256> GetKeyNameList()
 	keyNameList[0x02] = "Right mouse button";
 	keyNameList[0x03] = "Control-break processing";
 	keyNameList[0x04] = "Middle mouse button (three-button mouse)";
+	keyNameList[0x05] = "X1 mouse button";
+	keyNameList[0x06] = "X2 mouse button";
+	keyNameList[0x07] = "-";
 	keyNameList[0x08] = "BACKSPACE key";
 	keyNameList[0x09] = "TAB key";
 	keyNameList[0x0C] = "CLEAR key";
 	keyNameList[0x0D] = "ENTER key";
-	keyNameList[0x10] = "SHIFT key";
-	keyNameList[0x11] = "CTRL key";
-	keyNameList[0x12] = "ALT key";
+	keyNameList[0x0E] = "-";
+	keyNameList[0x0F] = "-";
+	//keyNameList[0x10] = "SHIFT key";
+	//keyNameList[0x11] = "CTRL key";
+	//keyNameList[0x12] = "ALT key";
+	keyNameList[0x10] = "-";
+	keyNameList[0x11] = "-";
+	keyNameList[0x12] = "-";
 	keyNameList[0x13] = "PAUSE key";
 	keyNameList[0x14] = "CAPS LOCK key";
 	keyNameList[0x1B] = "ESC key";
@@ -115,36 +125,60 @@ std::array<std::string, 256> GetKeyNameList()
 	keyNameList[0x87] = "F24 key";
 	keyNameList[0x90] = "NUM LOCK key";
 	keyNameList[0x91] = "SCROLL LOCK key";
-	keyNameList[0xA0] = "Left SHIFT key";
-	keyNameList[0xA1] = "Right SHIFT key";
-	keyNameList[0xA2] = "Left CONTROL key";
-	keyNameList[0xA3] = "Right CONTROL key";
-	keyNameList[0xA4] = "Left MENU key";
-	keyNameList[0xA5] = "Right MENU key";
-	/// XInput hotkeys from 0xD0 to 0xDF
-	keyNameList[0xD0] = "DPAD UP";
-	keyNameList[0xD1] = "DPAD DOWN";
-	keyNameList[0xD2] = "DPAD LEFT";
-	keyNameList[0xD3] = "DPAD RIGHT";
-	keyNameList[0xD4] = "START";
-	keyNameList[0xD5] = "BACK";
-	keyNameList[0xD6] = "LEFT THUMB";
-	keyNameList[0xD7] = "RIGHT THUMB";
-	keyNameList[0xD8] = "LEFT SHOULDER";
-	keyNameList[0xD9] = "RIGHT SHOULDER";
-	keyNameList[0xDC] = "Button A";
-	keyNameList[0xDD] = "Button B";
-	keyNameList[0xDE] = "Button X";
-	keyNameList[0xDF] = "Button Y";
+	keyNameList[0xA0] = "Left SHIFT";
+	keyNameList[0xA1] = "Right SHIFT";
+	keyNameList[0xA2] = "Left CONTROL";
+	keyNameList[0xA3] = "Right CONTROL";
+	keyNameList[0xA4] = "Left MENU";
+	keyNameList[0xA5] = "Right MENU";
+	keyNameList[0xD0] = "-";
+	keyNameList[0xD1] = "-";
+	keyNameList[0xD2] = "-";
+	keyNameList[0xD3] = "-";
+	keyNameList[0xD4] = "-";
+	keyNameList[0xD5] = "-";
+	keyNameList[0xD6] = "-";
+	keyNameList[0xD7] = "-";
+	keyNameList[0xD8] = "{[ key";
+	keyNameList[0xD9] = "-";
+	keyNameList[0xDA] = "-";
+	keyNameList[0xDB] = "-";
+	keyNameList[0xDC] = "\\ key";
+	keyNameList[0xDD] = "}] key";
+	keyNameList[0xDE] = "'\" key";
+	keyNameList[0xDF] = "-";
 	/// end of XInput hotkeys
 	keyNameList[0xFA] = "Play key";
 	keyNameList[0xFB] = "Zoom key";
 	return keyNameList;
 }
 
+std::array<std::string, 16> GetButtonNameList()
+{
+	std::array<std::string, 16> buttonNameList;
+	buttonNameList[0] = "DPAD UP";
+	buttonNameList[1] = "DPAD DOWN";
+	buttonNameList[2] = "DPAD LEFT";
+	buttonNameList[3] = "DPAD RIGHT";
+	buttonNameList[4] = "START";
+	buttonNameList[5] = "BACK";
+	buttonNameList[6] = "LEFT THUMB";
+	buttonNameList[7] = "RIGHT THUMB";
+	buttonNameList[8] = "LEFT SHOULDER";
+	buttonNameList[9] = "RIGHT SHOULDER";
+	//10
+	//11
+	buttonNameList[12] = "Button A";
+	buttonNameList[13] = "Button B";
+	buttonNameList[14] = "Button X";
+	buttonNameList[15] = "Button Y";
+	return buttonNameList;
+}
+
 // Virtual keys name list.
 // (used for BRASSA menu)
 static std::array<std::string, 256> KeyNameList = GetKeyNameList();
+static std::array<std::string, 16> ButtonNameList = GetButtonNameList();
 
 
 InputControls::InputControls()
@@ -155,6 +189,28 @@ InputControls::~InputControls()
 {
 }
 
+std::vector<InputBindingRef> InputControls::GetHeldInputs()
+{
+	std::vector<InputBindingRef> ret;
+	
+	for(int ii=0; ii<256; ii++)
+	{
+		if(Key_Down(ii) && HotkeyExpressions::Key(ii)->ToString()!="-")
+		{
+			ret.push_back(HotkeyExpressions::Key(ii));
+		}
+	}
+	
+	for(int ii=0; ii<16; ii++)
+	{
+		if(GetButtonState(ii))
+		{
+			ret.push_back(HotkeyExpressions::Button(ii));
+		}
+	}
+	
+	return ret;
+}
 
 
 bool UnboundKeyBinding::IsPressed(InputControls &controls)
@@ -165,6 +221,13 @@ bool UnboundKeyBinding::IsPressed(InputControls &controls)
 std::string UnboundKeyBinding::ToString()
 {
 	return "-";
+}
+
+Json::Value UnboundKeyBinding::ToJson()
+{
+	Json::Value arr = Json::Value(Json::arrayValue);
+	arr.append("unbound");
+	return arr;
 }
 
 
@@ -190,6 +253,14 @@ std::string SimpleKeyBinding::ToString()
 	}
 }
 
+Json::Value SimpleKeyBinding::ToJson()
+{
+	Json::Value arr = Json::Value(Json::arrayValue);
+	arr.append("key");
+	arr.append(keyIndex);
+	return arr;
+}
+
 
 SimpleButtonBinding::SimpleButtonBinding(int button)
 {
@@ -206,21 +277,12 @@ std::string SimpleButtonBinding::ToString()
 	return retprintf("Btn%i", (int)buttonIndex);
 }
 
-
-InputExpressionBinding::InputExpressionBinding(std::string description, std::function<bool(InputControls&)> func)
+Json::Value SimpleButtonBinding::ToJson()
 {
-	this->description = description;
-	this->func = func;
-}
-
-bool InputExpressionBinding::IsPressed(InputControls &controls)
-{
-	return func(controls);
-}
-
-std::string InputExpressionBinding::ToString()
-{
-	return description;
+	Json::Value arr = Json::Value(Json::arrayValue);
+	arr.append("button");
+	arr.append(buttonIndex);
+	return arr;
 }
 
 
@@ -242,6 +304,25 @@ std::string CombinationKeyBinding::ToString()
 		second->ToString().c_str());
 }
 
+Json::Value CombinationKeyBinding::ToJson()
+{
+	Json::Value arr = Json::Value(Json::arrayValue);
+	arr.append("and");
+	arr.append(first->ToJson());
+	arr.append(second->ToJson());
+	return arr;
+}
+
+InputBindingRef CombinationKeyBinding::GetFirst()
+{
+	return first;
+}
+
+InputBindingRef CombinationKeyBinding::GetSecond()
+{
+	return second;
+}
+
 
 AlternativesKeyBinding::AlternativesKeyBinding(InputBindingRef first, InputBindingRef second)
 {
@@ -259,6 +340,25 @@ std::string AlternativesKeyBinding::ToString()
 	return retprintf("%s or %s",
 		first->ToString().c_str(),
 		second->ToString().c_str());
+}
+
+Json::Value AlternativesKeyBinding::ToJson()
+{
+	Json::Value arr = Json::Value(Json::arrayValue);
+	arr.append("or");
+	arr.append(first->ToJson());
+	arr.append(second->ToJson());
+	return arr;
+}
+
+InputBindingRef AlternativesKeyBinding::GetFirst()
+{
+	return first;
+}
+
+InputBindingRef AlternativesKeyBinding::GetSecond()
+{
+	return second;
 }
 
 
@@ -285,4 +385,73 @@ InputBindingRef HotkeyExpressions::operator||(InputBindingRef lhs, InputBindingR
 InputBindingRef HotkeyExpressions::Unbound()
 {
 	return InputBindingRef(new UnboundKeyBinding());
+}
+
+void HotkeyExpressions::UnpackAlternation(InputBindingRef hotkey, std::vector<InputBindingRef> *options)
+{
+	AlternativesKeyBinding *alternatives = dynamic_cast<AlternativesKeyBinding*>(&*hotkey);
+	UnboundKeyBinding *unbound = dynamic_cast<UnboundKeyBinding*>(&*hotkey);
+	if(alternatives != NULL) {
+		UnpackAlternation(alternatives->GetFirst(), options);
+		UnpackAlternation(alternatives->GetSecond(), options);
+	} else if(unbound != NULL) {
+		return;
+	} else {
+		options->push_back(hotkey);
+	}
+}
+
+InputBindingRef HotkeyExpressions::PackAlternation(const std::vector<InputBindingRef> &options)
+{
+	if(options.size() == 0)
+		return Unbound();
+	InputBindingRef result = options[0];
+	for(size_t ii=1; ii<options.size(); ii++)
+		result = result || options[ii];
+	return result;
+}
+
+InputBindingRef HotkeyExpressions::PackConjunction(const std::vector<InputBindingRef> &options)
+{
+	if(options.size() == 0)
+		return Unbound();
+	InputBindingRef result = options[0];
+	for(size_t ii=1; ii<options.size(); ii++)
+		result = result + options[ii];
+	return result;
+}
+
+InputBindingRef HotkeyExpressions::HotkeyFromJson(const Json::Value &json)
+{
+	if(json.isInt()) {
+		// Bare number is a keycode
+		return Key(json.asInt());
+	} else if(json.isArray()) {
+		// Array: First element is type, remainder is value
+		if(json.size() < 1) return Unbound();
+		std::string type = json[0].asString();
+		if(type == "key") {
+			if(json.size() < 2) return Unbound();
+			int keyCode = json[1].asInt();
+			return Key(keyCode);
+		} else if(type == "button") {
+			if(json.size() < 2) return Unbound();
+			int buttonIndex = json[1].asInt();
+			return Button(buttonIndex);
+		} else if(type == "and") {
+			if(json.size() < 3) return Unbound();
+			InputBindingRef first = HotkeyFromJson(json[1]);
+			InputBindingRef second = HotkeyFromJson(json[2]);
+			return first+second;
+		} else if(type == "or") {
+			if(json.size() < 3) return Unbound();
+			InputBindingRef first = HotkeyFromJson(json[1]);
+			InputBindingRef second = HotkeyFromJson(json[2]);
+			return first||second;
+		} else {
+			return Unbound();
+		}
+	} else {
+		return Unbound();
+	}
 }

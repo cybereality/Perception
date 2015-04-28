@@ -38,13 +38,13 @@ void DirectXInputControls::Reset()
 
 bool DirectXInputControls::Key_Down(int virtualKeyCode)
 {
-	return (((GetAsyncKeyState(virtualKeyCode) & 0x8000) ? 1 : 0) || 
-		((virtualKeyCode >= 0xD0) && (virtualKeyCode <= 0xDF) && (xButtonsStatus[virtualKeyCode % 0x10])));
+	// FIXME: Don't hack the controller-handling this way
+	return (GetAsyncKeyState(virtualKeyCode) & 0x8000) ? 1 : 0;
 }
 
 bool DirectXInputControls::Key_Up(int virtualKeyCode)
 {
-	return ((GetAsyncKeyState(virtualKeyCode) & 0x8000) ? 0 : 1); ///TODO Should we be checking if xButtonStatus is false as well?
+	return (GetAsyncKeyState(virtualKeyCode) & 0x8000) ? 0 : 1; ///TODO Should we be checking if xButtonStatus is false as well?
 }
 
 bool DirectXInputControls::GetButtonState(int button)

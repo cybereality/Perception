@@ -30,6 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ProxyHelper.h"
 #include "VireioUtil.h"
 #include "ConfigDefaults.h"
+#include "json/json.h"
 
 #include <algorithm>
 #include <stdarg.h>
@@ -163,23 +164,23 @@ static void LoadHotkey(xml_node &node, const char *key, InputBindingRef *setting
 	// TODO: Support types of hotkey-expressions other than simple keys
 	std::string hkString = node.attribute(key).as_string();
 	debugf("Loaded hotkey: %s\n", hkString.c_str());
-	int keycode = node.attribute(key).as_int(0);
-	if(keycode == 0)
+	
+	Json::Value json;
+	Json::Reader reader;
+	if(reader.parse(hkString, json)) {
+		InputBindingRef key = HotkeyExpressions::HotkeyFromJson(json);
+		*setting = key;
+	} else {
+		debugf("Error parsing JSON");
 		*setting = HotkeyExpressions::Unbound();
-	else
-		*setting = HotkeyExpressions::Key(keycode);
+	}
 }
 
 static void SaveHotkey(xml_node &node, const char *key, InputBindingRef hotkey)
 {
-	// TODO: Support types of hotkey-expressions other than simple keys
-	SimpleKeyBinding *simpleHotkey = dynamic_cast<SimpleKeyBinding*>(&*hotkey);
-	if(simpleHotkey == NULL) {
-		debugf("Trying to save non-simple hotkey: %s\n", hotkey->ToString().c_str());
-	} else {
-		debugf("Saving simple hotkey");
-		set_attribute(node, key, simpleHotkey->GetKeyCode());
-	}
+	Json::Value json = hotkey->ToJson();
+	std::string str = Json::FastWriter().write(json);
+	set_attribute(node, key, str.c_str());
 }
 
 void LoadSetting(xml_node &node, const char *key, std::string *setting)

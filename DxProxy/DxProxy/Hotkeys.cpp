@@ -1097,5 +1097,5 @@ void D3DProxyDevice::HotkeyCooldown(float duration)
 
 bool D3DProxyDevice::HotkeysActive()
 {
-	return hotkeyCooldown == 0.0f;
+	return hotkeyCooldown == 0.0f && !hotkeyCatch;
 }

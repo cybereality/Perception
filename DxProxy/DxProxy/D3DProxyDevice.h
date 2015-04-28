@@ -430,7 +430,8 @@ protected:
 	bool VPMENU_Input_IsAdjustment();
 	float VPMENU_Input_GetAdjustment();
 	float VPMENU_Input_SpeedModifier();
-	void VPMENU_BindKey(std::function<void(int)> onBind);
+	void VPMENU_BindKey(std::function<void(InputBindingRef)> onBind);
+	void VPMENU_EditKeybind(std::string description, InputBindingRef *binding);
 	
 	bool InitVPMENU();
 	void VPMENU();
@@ -472,7 +473,10 @@ protected:
 	std::vector<float> m_gameXScaleUnits;
 	
 	/// If the menu is waiting to catch a hotkey, a function to call when it's received
-	std::function<void(int)> onBindKey;
+	std::function<void(InputBindingRef)> onBindKey;
+	
+	/// If catching a hotkey for binding, all of the hotkeys that have been held so far
+	std::vector<InputBindingRef> bindingHotkeysHeld;
 	
 	/// Time until hotkeys will accept presses again
 	float hotkeyCooldown;

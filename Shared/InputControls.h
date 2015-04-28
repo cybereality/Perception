@@ -4,10 +4,12 @@
 */
 #pragma once
 
+#include "json/json.h"
 #include <string>
 #include <array>
 #include <memory>
 #include <functional>
+#include <vector>
 
 class InputControls;
 
@@ -16,6 +18,7 @@ class InputBinding
 public:
 	virtual bool IsPressed(InputControls &controls)=0;
 	virtual std::string ToString()=0;
+	virtual Json::Value ToJson()=0;
 };
 
 typedef std::shared_ptr<InputBinding> InputBindingRef;
@@ -26,6 +29,7 @@ class UnboundKeyBinding
 public:
 	bool IsPressed(InputControls &controls);
 	std::string ToString();
+	Json::Value ToJson();
 };
 
 class SimpleKeyBinding
@@ -35,6 +39,7 @@ public:
 	SimpleKeyBinding(int key);
 	bool IsPressed(InputControls &controls);
 	std::string ToString();
+	Json::Value ToJson();
 	int GetKeyCode() { return keyIndex; }
 	
 private:
@@ -48,23 +53,11 @@ public:
 	SimpleButtonBinding(int button);
 	bool IsPressed(InputControls &controls);
 	std::string ToString();
+	Json::Value ToJson();
 	int GetButtonIndex() { return buttonIndex; }
 	
 private:
 	int buttonIndex;
-};
-
-class InputExpressionBinding
-	: public InputBinding
-{
-public:
-	InputExpressionBinding(std::string description, std::function<bool(InputControls&)> func);
-	bool IsPressed(InputControls &controls);
-	std::string ToString();
-
-private:
-	std::string description;
-	std::function<bool(InputControls&)> func;
 };
 
 class CombinationKeyBinding
@@ -74,6 +67,9 @@ public:
 	CombinationKeyBinding(InputBindingRef first, InputBindingRef second);
 	bool IsPressed(InputControls &controls);
 	std::string ToString();
+	Json::Value ToJson();
+	InputBindingRef GetFirst();
+	InputBindingRef GetSecond();
 	
 private:
 	InputBindingRef first;
@@ -87,6 +83,9 @@ public:
 	AlternativesKeyBinding(InputBindingRef first, InputBindingRef second);
 	bool IsPressed(InputControls &controls);
 	std::string ToString();
+	Json::Value ToJson();
+	InputBindingRef GetFirst();
+	InputBindingRef GetSecond();
 	
 private:
 	InputBindingRef first;
@@ -100,6 +99,11 @@ namespace HotkeyExpressions
 	InputBindingRef operator+(InputBindingRef lhs, InputBindingRef rhs);
 	InputBindingRef operator||(InputBindingRef lhs, InputBindingRef rhs);
 	InputBindingRef Unbound();
+	
+	InputBindingRef HotkeyFromJson(const Json::Value &json);
+	void UnpackAlternation(InputBindingRef hotkey, std::vector<InputBindingRef> *options);
+	InputBindingRef PackAlternation(const std::vector<InputBindingRef> &options);
+	InputBindingRef PackConjunction(const std::vector<InputBindingRef> &options);
 }
 
 /*
@@ -122,6 +126,8 @@ public:
 	virtual bool Key_Up(int virtualKeyCode)=0;
 	
 	virtual bool GetButtonState(int button)=0;
+	
+	std::vector<InputBindingRef> GetHeldInputs();
 	
 	enum GamepadAxis
 	{

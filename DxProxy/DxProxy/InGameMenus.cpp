@@ -286,7 +286,7 @@ float D3DProxyDevice::VPMENU_Input_SpeedModifier()
 		return 1.0;
 }
 
-void D3DProxyDevice::VPMENU_BindKey(std::function<void(int)> onBind)
+void D3DProxyDevice::VPMENU_BindKey(std::function<void(InputBindingRef)> onBind)
 {
 	hotkeyCatch = true;
 	onBindKey = onBind;
@@ -310,16 +310,28 @@ void D3DProxyDevice::VPMENU()
 		VPMENU_Close();
 		return;
 	}
-	if (hotkeyCatch && HotkeysActive())
+	if (hotkeyCatch && hotkeyCooldown == 0.0f)
 	{
-		for (int i = 0; i < 256; i++)
-		{
-			if (controls.Key_Down(i) && Key(i)->ToString()!="-")
+		std::vector<InputBindingRef> heldInputs = controls.GetHeldInputs();
+		if(heldInputs.size() == 0 && bindingHotkeysHeld.size() > 0) {
+			// All buttons released, and at least one button was pressed
+			hotkeyCatch = false;
+			onBindKey(HotkeyExpressions::PackConjunction(bindingHotkeysHeld));
+			bindingHotkeysHeld.clear();
+			HotkeyCooldown(COOLDOWN_EXTRA_LONG);
+		} else {
+			for(size_t ii=0; ii<heldInputs.size(); ii++)
 			{
-				hotkeyCatch = false;
-				onBindKey(i);
-				HotkeyCooldown(COOLDOWN_EXTRA_LONG);
-				break;
+				bool isDuplicate = false;
+				for(size_t jj=0; jj<bindingHotkeysHeld.size(); jj++) {
+					if(heldInputs[ii]->ToString() == bindingHotkeysHeld[jj]->ToString()) {
+						isDuplicate = true;
+						break;
+					}
+				}
+				
+				if(!isDuplicate)
+					bindingHotkeysHeld.push_back(heldInputs[ii]);
 			}
 		}
 	}
@@ -340,8 +352,6 @@ void D3DProxyDevice::VPMENU_MainMenu()
 	bool includeShaderAnalyzer = (config.game_type > 10000);
 	
 	MenuBuilder *menu = VPMENU_NewFrame();
-
-	// output menu
 	VPMENU_StartDrawing(menu, "Settings");
 
 	if (includeShaderAnalyzer)
@@ -1171,6 +1181,43 @@ void D3DProxyDevice::VPMENU_VRBoostValues()
 }
 
 
+void D3DProxyDevice::VPMENU_EditKeybind(std::string description, InputBindingRef *binding)
+{
+	MenuBuilder *menu = VPMENU_NewFrame();
+	VPMENU_StartDrawing(menu, retprintf("Bind Key - %s", description.c_str()).c_str());
+	std::vector<InputBindingRef> alternatives;
+	HotkeyExpressions::UnpackAlternation(*binding, &alternatives);
+	
+	std::string addHotkeyDescription;
+	if (hotkeyCatch) {
+		addHotkeyDescription = HotkeyExpressions::PackConjunction(bindingHotkeysHeld)->ToString();
+	} else {
+		addHotkeyDescription = "Add Hotkey";
+	}
+	
+	menu->AddButton(addHotkeyDescription.c_str(), [=]() {
+		hotkeyCatch = true;
+		onBindKey = [=](InputBindingRef key) {
+			std::vector<InputBindingRef> newAlternatives = alternatives;
+			newAlternatives.insert(newAlternatives.begin(), key);
+			*binding = HotkeyExpressions::PackAlternation(newAlternatives);
+		};
+	});
+	
+	for(size_t ii=0; ii<alternatives.size(); ii++) {
+		std::string hotkeyDescription = alternatives[ii]->ToString();
+		menu->AddButton(hotkeyDescription, [=]() {
+			std::vector<InputBindingRef> newAlternatives = alternatives;
+			newAlternatives.erase(newAlternatives.begin()+ii);
+			*binding = HotkeyExpressions::PackAlternation(newAlternatives);
+		});
+	}
+	menu->AddButton("Back", [=]() { VPMENU_Back(); });
+	
+	VPMENU_FinishDrawing(menu);
+}
+
+
 void D3DProxyDevice::VPMENU_UpdateCooldowns()
 {
 	SHOW_CALL("VPMENU_UpdateCooldowns");
@@ -1662,8 +1709,9 @@ void MenuBuilder::AddGameKeypress(std::string text, byte *binding)
 		}
 		else if (device->VPMENU_Input_Selected() && device->HotkeysActive())
 		{
-			device->VPMENU_BindKey([=](int key) {
-				*binding = (byte)key;
+			device->VPMENU_BindKey([=](InputBindingRef key) {
+				SimpleKeyBinding *simpleBinding = dynamic_cast<SimpleKeyBinding*>(&*key);
+				*binding = (byte)simpleBinding->GetKeyCode();
 			});
 			device->HotkeyCooldown(COOLDOWN_SHORT);
 		}
@@ -1673,13 +1721,9 @@ void MenuBuilder::AddGameKeypress(std::string text, byte *binding)
 void MenuBuilder::AddKeybind(std::string text, InputBindingRef *binding)
 {
 	std::string description;
-	if (device->hotkeyCatch && device->VPMENU_GetCurrentSelection() == menuConstructionCurrentEntry) {
-		description = "Press the desired key.";
-	} else {
-		description = retprintf("%s : %s",
-			text.c_str(),
-			(*binding)->ToString().c_str());
-	}
+	D3DProxyDevice *device = this->device;
+	description = retprintf("%s : %s", text.c_str(),
+		(*binding)->ToString().c_str());
 	
 	AddItem(description, COLOR_MENU_TEXT, [=]() {
 		if (hotkeyResetToDefault->IsPressed(device->controls) && device->HotkeysActive())
@@ -1689,8 +1733,9 @@ void MenuBuilder::AddKeybind(std::string text, InputBindingRef *binding)
 		}
 		else if (device->VPMENU_Input_Selected() && device->HotkeysActive())
 		{
-			device->VPMENU_BindKey([=](int key) {
-				*binding = Key(key);
+			device->bindingHotkeysHeld.clear();
+			device->VPMENU_NavigateTo([=]() {
+				device->VPMENU_EditKeybind(text, binding);
 			});
 			device->HotkeyCooldown(COOLDOWN_SHORT);
 		}

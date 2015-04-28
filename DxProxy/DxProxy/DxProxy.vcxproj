@@ -283,6 +283,9 @@
     <ClCompile Include="..\..\Shared\VireioUtil.cpp" />
     <ClCompile Include="..\..\Shared\ProxyHelper.cpp" />
     <ClCompile Include="..\..\Shared\InputControls.cpp" />
+    <ClCompile Include="..\..\Shared\json\json_reader.cpp" />
+    <ClCompile Include="..\..\Shared\json\json_value.cpp" />
+    <ClCompile Include="..\..\Shared\json\json_writer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="D3D9ProxyCubeTexture.h" />
@@ -371,6 +374,17 @@
     <ClInclude Include="..\..\Shared\VireioUtil.h" />
     <ClInclude Include="..\..\Shared\ProxyHelper.h" />
     <ClInclude Include="..\..\Shared\InputControls.h" />
+    <ClInclude Include="..\..\Shared\json\assertions.h" />
+    <ClInclude Include="..\..\Shared\json\autolink.h" />
+    <ClInclude Include="..\..\Shared\json\config.h" />
+    <ClInclude Include="..\..\Shared\json\features.h" />
+    <ClInclude Include="..\..\Shared\json\forwards.h" />
+    <ClInclude Include="..\..\Shared\json\json.h" />
+    <ClInclude Include="..\..\Shared\json\json_tool.h" />
+    <ClInclude Include="..\..\Shared\json\reader.h" />
+    <ClInclude Include="..\..\Shared\json\value.h" />
+    <ClInclude Include="..\..\Shared\json\version.h" />
+    <ClInclude Include="..\..\Shared\json\writer.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\Release\Perception\cfg\config.xml">
