@@ -955,11 +955,11 @@ void ProxyHelper::HandleGameProfile(ConfigTransferDirection dir, xml_node &node,
 	HandleSetting(dir, node, "hud_distance_3", &config.hudDistancePresets[2]);
 	HandleSetting(dir, node, "hud_distance_4", &config.hudDistancePresets[3]);
 
-	HandleSetting(dir, node, "hud_key_swap",    &config.hudHotkeys[0]);
-	HandleSetting(dir, node, "hud_key_default", &config.hudHotkeys[1]);
-	HandleSetting(dir, node, "hud_key_small",   &config.hudHotkeys[2]);
-	HandleSetting(dir, node, "hud_key_large",   &config.hudHotkeys[3]);
-	HandleSetting(dir, node, "hud_key_full",    &config.hudHotkeys[4]);
+	HandleSetting(dir, node, "hud_key_swap",    &config.hudSwitchHotkey);
+	HandleSetting(dir, node, "hud_key_default", &config.hudHotkeys[0]);
+	HandleSetting(dir, node, "hud_key_small",   &config.hudHotkeys[1]);
+	HandleSetting(dir, node, "hud_key_large",   &config.hudHotkeys[2]);
+	HandleSetting(dir, node, "hud_key_full",    &config.hudHotkeys[3]);
 
 	HandleSetting(dir, node, "gui_3D_depth_mode", &config.gui3DDepthMode);
 	HandleSetting(dir, node, "gui_3D_depth_1", &config.gui3DDepthPresets[0]);
@@ -972,11 +972,11 @@ void ProxyHelper::HandleGameProfile(ConfigTransferDirection dir, xml_node &node,
 	HandleSetting(dir, node, "gui_size_3", &config.guiSquishPresets[2]);
 	HandleSetting(dir, node, "gui_size_4", &config.guiSquishPresets[3]);
 
-	HandleSetting(dir, node, "gui_key_swap",    &config.guiHotkeys[0]);
-	HandleSetting(dir, node, "gui_key_default", &config.guiHotkeys[1]);
-	HandleSetting(dir, node, "gui_key_small",   &config.guiHotkeys[2]);
-	HandleSetting(dir, node, "gui_key_large",   &config.guiHotkeys[3]);
-	HandleSetting(dir, node, "gui_key_full",    &config.guiHotkeys[4]);
+	HandleSetting(dir, node, "gui_key_swap",    &config.guiSwitchHotkey);
+	HandleSetting(dir, node, "gui_key_default", &config.guiHotkeys[0]);
+	HandleSetting(dir, node, "gui_key_small",   &config.guiHotkeys[1]);
+	HandleSetting(dir, node, "gui_key_large",   &config.guiHotkeys[2]);
+	HandleSetting(dir, node, "gui_key_full",    &config.guiHotkeys[3]);
 
 	HandleSetting(dir, node, "VRBoost_key_reset", &config.VRBoostResetHotkey);
 	HandleSetting(dir, node, "edge_peek_key", &config.EdgePeekHotkey);
@@ -1143,11 +1143,11 @@ ProxyConfig::ProxyConfig()
 	hudDistancePresets[1] = DEFAULT_HUD_DISTANCE_2;
 	hudDistancePresets[2] = DEFAULT_HUD_DISTANCE_3;
 	hudDistancePresets[3] = DEFAULT_HUD_DISTANCE_4;
+	hudSwitchHotkey = HotkeyExpressions::Unbound();
 	hudHotkeys[0] = HotkeyExpressions::Unbound();
 	hudHotkeys[1] = HotkeyExpressions::Unbound();
 	hudHotkeys[2] = HotkeyExpressions::Unbound();
 	hudHotkeys[3] = HotkeyExpressions::Unbound();
-	hudHotkeys[4] = HotkeyExpressions::Unbound();
 	gui3DDepthMode = 0;
 	gui3DDepthPresets[0] = 0.0f;
 	gui3DDepthPresets[1] = 0.0f;
@@ -1157,11 +1157,11 @@ ProxyConfig::ProxyConfig()
 	guiSquishPresets[1] = DEFAULT_GUI_SIZE_2;
 	guiSquishPresets[2] = DEFAULT_GUI_SIZE_3;
 	guiSquishPresets[3] = DEFAULT_GUI_SIZE_4;
+	guiSwitchHotkey = HotkeyExpressions::Unbound();
 	guiHotkeys[0] = HotkeyExpressions::Unbound();
 	guiHotkeys[1] = HotkeyExpressions::Unbound();
 	guiHotkeys[2] = HotkeyExpressions::Unbound();
 	guiHotkeys[3] = HotkeyExpressions::Unbound();
-	guiHotkeys[4] = HotkeyExpressions::Unbound();
 	VRBoostResetHotkey = HotkeyExpressions::Unbound();
 	EdgePeekHotkey = HotkeyExpressions::Unbound();
 	WorldFOV = 95.0;

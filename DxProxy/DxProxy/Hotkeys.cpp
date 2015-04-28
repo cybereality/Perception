@@ -120,83 +120,77 @@ void D3DProxyDevice::HandleControls()
 	
 	controls.UpdateInputs();
 
+	if(config.hudSwitchHotkey->IsPressed(controls))
+	{
+		HUD_3D_Depth_Modes newMode=(HUD_3D_Depth_Modes)(hud3DDepthMode+1);
+		if (newMode>=HUD_3D_Depth_Modes::HUD_ENUM_RANGE)
+			newMode=HUD_3D_Depth_Modes::HUD_DEFAULT;
+		{
+			oldHudMode = hud3DDepthMode;
+			ChangeHUD3DDepthMode(newMode);
+
+		}
+		HotkeyCooldown(COOLDOWN_SHORT);
+	}
+	
+	if(config.guiSwitchHotkey->IsPressed(controls))
+	{
+		GUI_3D_Depth_Modes newMode=(GUI_3D_Depth_Modes)(gui3DDepthMode+1);
+		if (newMode>=GUI_3D_Depth_Modes::GUI_ENUM_RANGE)
+			newMode=GUI_3D_Depth_Modes::GUI_DEFAULT;
+		{
+			oldGuiMode = gui3DDepthMode;
+			ChangeGUI3DDepthMode(newMode);
+		}
+		HotkeyCooldown(COOLDOWN_SHORT);
+	}
+	
 	// loop through hotkeys
-	for (int i = 0; i < 5; i++)
+	for (int i=0; i<4; i++)
 	{
 		if (config.hudHotkeys[i]->IsPressed(controls) && HotkeysActive())
 		{
-			if (i==0)
+			if (hud3DDepthMode==(HUD_3D_Depth_Modes)i)
 			{
-				HUD_3D_Depth_Modes newMode=(HUD_3D_Depth_Modes)(hud3DDepthMode+1);
-				if (newMode>=HUD_3D_Depth_Modes::HUD_ENUM_RANGE)
-					newMode=HUD_3D_Depth_Modes::HUD_DEFAULT;
+				if (controls.Key_Down(VK_RCONTROL))
 				{
 					oldHudMode = hud3DDepthMode;
-					ChangeHUD3DDepthMode(newMode);
-
+					ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)i);
+				}
+				else
+				{
+					ChangeHUD3DDepthMode(oldHudMode);
 				}
 			}
 			else
 			{
-				if (hud3DDepthMode==(HUD_3D_Depth_Modes)(i-1))
-				{
-					if (controls.Key_Down(VK_RCONTROL))
-					{
-						oldHudMode = hud3DDepthMode;
-						ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)(i-1));
-					}
-					else
-					{
-						ChangeHUD3DDepthMode(oldHudMode);
-					}
-
-				}
-				else
-				{
-					oldHudMode = hud3DDepthMode;
-					ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)(i-1));
-				}
+				oldHudMode = hud3DDepthMode;
+				ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)i);
 			}
 			HotkeyCooldown(COOLDOWN_SHORT);
 		}
 		if (config.guiHotkeys[i]->IsPressed(controls) && HotkeysActive())
 		{
-			if (i==0)
+			if (gui3DDepthMode==(GUI_3D_Depth_Modes)i)
 			{
-				GUI_3D_Depth_Modes newMode=(GUI_3D_Depth_Modes)(gui3DDepthMode+1);
-				if (newMode>=GUI_3D_Depth_Modes::GUI_ENUM_RANGE)
-					newMode=GUI_3D_Depth_Modes::GUI_DEFAULT;
+				if (controls.Key_Down(VK_RCONTROL))
 				{
 					oldGuiMode = gui3DDepthMode;
-					ChangeGUI3DDepthMode(newMode);
+					ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)i);
+				}
+				else
+				{
+					ChangeGUI3DDepthMode(oldGuiMode);
 				}
 			}
 			else
 			{
-				if (gui3DDepthMode==(GUI_3D_Depth_Modes)(i-1))
-				{
-					if (controls.Key_Down(VK_RCONTROL))
-					{
-						oldGuiMode = gui3DDepthMode;
-						ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)(i-1));
-					}
-					else
-					{
-						ChangeGUI3DDepthMode(oldGuiMode);
-					}
-
-				}
-				else
-				{
-					oldGuiMode = gui3DDepthMode;
-					ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)(i-1));
-				}
+				oldGuiMode = gui3DDepthMode;
+				ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)i);
 			}
 			HotkeyCooldown(COOLDOWN_SHORT);
 		}
 	}
-
-	// avoid double input by using the menu velocity
 
 	// test VRBoost reset hotkey
 	if (toggleVRBoostHotkey->IsPressed(controls) && HotkeysActive())

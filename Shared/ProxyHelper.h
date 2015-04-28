@@ -76,11 +76,13 @@ struct ProxyConfig
 	int         hud3DDepthMode;             /**< Current HUD mode. */
 	float       hud3DDepthPresets[4];       /**< HUD 3D Depth presets.*/
 	float       hudDistancePresets[4];      /**< HUD Distance presets.*/
-	InputBindingRef hudHotkeys[5];              /**< HUD Hotkeys.*/
+	InputBindingRef hudSwitchHotkey;        /**< Toggle between two most recent HUD settings */
+	InputBindingRef hudHotkeys[4];          /**< HUD Hotkeys.*/
 	int         gui3DDepthMode;             /**< Current GUI mode. */
 	float       gui3DDepthPresets[4];       /**< GUI 3D Depth presets.*/
 	float       guiSquishPresets[4];        /**< GUI Size presets.*/
-	InputBindingRef guiHotkeys[5];          /**< GUI Hotkeys.*/
+	InputBindingRef guiSwitchHotkey;
+	InputBindingRef guiHotkeys[4];          /**< GUI Hotkeys.*/
 	InputBindingRef VRBoostResetHotkey;     /**< Hotkey option to reset VRBoost. */
 	InputBindingRef EdgePeekHotkey;			/**< Hotkey option to toggle disconnected screen view. */
 	
