@@ -161,9 +161,7 @@ template<class T> static void set_attribute(xml_node &node, const char *key, T n
 
 static void LoadHotkey(xml_node &node, const char *key, InputBindingRef *setting)
 {
-	// TODO: Support types of hotkey-expressions other than simple keys
 	std::string hkString = node.attribute(key).as_string();
-	debugf("Loaded hotkey: %s\n", hkString.c_str());
 	
 	Json::Value json;
 	Json::Reader reader;
@@ -715,25 +713,23 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 	if(resultProfiles.status == status_ok && profileFound && gameProfile)
 	{
 		OutputDebugString("Set the config to profile!!!\n");
-		LoadSetting(gameProfile, "game_type", &config.game_type);
 
+		// set process name
+		LoadSetting(gameProfile, "game_exe", &config.game_exe);
+		LoadSetting(gameProfile, "dir_contains", &config.dir_contains);
+		config.is64bit = string(gameProfile.attribute("cpu_architecture").as_string("32bit")) == "64bit";
+
+		// Handle most of the settings
+		HandleGameProfile(CONFIG_LOAD, gameProfile, config);
+		
 		debugf("gameType: %d\n", gameProfile.attribute("game_type").as_int());
 
-		LoadSetting(gameProfile, "minVRboostShaderCount", &config.VRboostMinShaderCount);
-		LoadSetting(gameProfile, "maxVRboostShaderCount", &config.VRboostMaxShaderCount);
-		LoadSetting(gameProfile, "convergence", &config.convergence);
-		LoadSetting(gameProfile, "swap_eyes", &config.swap_eyes);
-		LoadSetting(gameProfile, "yaw_multiplier", &config.yaw_multiplier);
-		LoadSetting(gameProfile, "pitch_multiplier", &config.pitch_multiplier);
-		LoadSetting(gameProfile, "roll_multiplier", &config.roll_multiplier);
-		LoadSetting(gameProfile, "position_multiplier", &config.position_multiplier);
-		LoadSetting(gameProfile, "position_x_multiplier", &config.position_x_multiplier);
-		LoadSetting(gameProfile, "position_y_multiplier", &config.position_y_multiplier);
-		LoadSetting(gameProfile, "position_z_multiplier", &config.position_z_multiplier);
-		LoadSetting(gameProfile, "distortion_scale", &config.DistortionScale);
-		LoadSetting(gameProfile, "y_offset", &config.YOffset);
-		LoadSetting(gameProfile, "ipd_offset", &config.IPDOffset);
-		LoadSetting(gameProfile, "use_sdk_pose_prediction", &config.useSDKPosePrediction);
+		//SB: This will need to be changed back when the memory modification stuff is updated, but for now
+		//I am disabling the restore of the camera translation as it is causing confusion for a lot of people when
+		//the game starts and they are detached from their avatar, or worse the scene doesn't render at all
+		config.CameraTranslateX = 0.0f;
+		config.CameraTranslateY = 0.0f;
+		config.CameraTranslateZ = 0.0f;
 
 		// For settings that really shouldn't be zero, if they're zero for some
 		// reason, reset to default.
@@ -745,77 +741,6 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 		if(config.position_x_multiplier == 0.0f) config.position_x_multiplier = defaultConfig.position_x_multiplier;
 		if(config.position_y_multiplier == 0.0f) config.position_y_multiplier = defaultConfig.position_y_multiplier;
 		if(config.position_z_multiplier == 0.0f) config.position_z_multiplier = defaultConfig.position_z_multiplier;
-
-		// set process name
-		LoadSetting(gameProfile, "game_exe", &config.game_exe);
-		LoadSetting(gameProfile, "dir_contains", &config.dir_contains);
-		config.is64bit = string(gameProfile.attribute("cpu_architecture").as_string("32bit")) == "64bit";
-
-		// get hud config
-		LoadSetting(gameProfile, "hud_3D_depth_mode", &config.hud3DDepthMode);
-		LoadSetting(gameProfile, "hud_3D_depth_1", &config.hud3DDepthPresets[0]);
-		LoadSetting(gameProfile, "hud_3D_depth_2", &config.hud3DDepthPresets[1]);
-		LoadSetting(gameProfile, "hud_3D_depth_3", &config.hud3DDepthPresets[2]);
-		LoadSetting(gameProfile, "hud_3D_depth_4", &config.hud3DDepthPresets[3]);
-
-		LoadSetting(gameProfile, "hud_distance_1", &config.hudDistancePresets[0]);
-		LoadSetting(gameProfile, "hud_distance_2", &config.hudDistancePresets[1]);
-		LoadSetting(gameProfile, "hud_distance_3", &config.hudDistancePresets[2]);
-		LoadSetting(gameProfile, "hud_distance_4", &config.hudDistancePresets[3]);
-
-		LoadHotkey(gameProfile, "hud_key_swap",    &config.hudHotkeys[0]);
-		LoadHotkey(gameProfile, "hud_key_default", &config.hudHotkeys[1]);
-		LoadHotkey(gameProfile, "hud_key_small",   &config.hudHotkeys[2]);
-		LoadHotkey(gameProfile, "hud_key_large",   &config.hudHotkeys[3]);
-		LoadHotkey(gameProfile, "hud_key_full",    &config.hudHotkeys[4]);
-
-		// get gui config
-		LoadSetting(gameProfile, "gui_3D_depth_mode", &config.gui3DDepthMode);
-		LoadSetting(gameProfile, "gui_3D_depth_1", &config.gui3DDepthPresets[0]);
-		LoadSetting(gameProfile, "gui_3D_depth_2", &config.gui3DDepthPresets[1]);
-		LoadSetting(gameProfile, "gui_3D_depth_3", &config.gui3DDepthPresets[2]);
-		LoadSetting(gameProfile, "gui_3D_depth_4", &config.gui3DDepthPresets[3]);
-
-		LoadSetting(gameProfile, "gui_size_1", &config.guiSquishPresets[0]);
-		LoadSetting(gameProfile, "gui_size_2", &config.guiSquishPresets[1]);
-		LoadSetting(gameProfile, "gui_size_3", &config.guiSquishPresets[2]);
-		LoadSetting(gameProfile, "gui_size_4", &config.guiSquishPresets[3]);
-
-		LoadHotkey(gameProfile, "gui_key_swap",    &config.guiHotkeys[0]);
-		LoadHotkey(gameProfile, "gui_key_default", &config.guiHotkeys[1]);
-		LoadHotkey(gameProfile, "gui_key_small",   &config.guiHotkeys[2]);
-		LoadHotkey(gameProfile, "gui_key_large",   &config.guiHotkeys[3]);
-		LoadHotkey(gameProfile, "gui_key_full",    &config.guiHotkeys[4]);
-
-		// get VRBoost reset hotkey and settings
-		LoadHotkey(gameProfile, "VRBoost_key_reset", &config.VRBoostResetHotkey);
-		LoadHotkey(gameProfile, "edge_peek_key", &config.EdgePeekHotkey);
-		
-		
-		LoadSetting(gameProfile, "ComfortModeYawIncrement", &config.ComfortModeYawIncrement);
-		LoadHotkey(gameProfile, "ComfortModeLeftKey", &config.ComfortModeLeftKey);
-		LoadHotkey(gameProfile, "ComfortModeRightKey", &config.ComfortModeRightKey);
-		
-		LoadSetting(gameProfile, "WorldFOV", &config.WorldFOV);
-		LoadSetting(gameProfile, "PlayerFOV", &config.PlayerFOV);
-		LoadSetting(gameProfile, "FarPlaneFOV", &config.FarPlaneFOV);
-
-		//SB: This will need to be changed back when the memory modification stuff is updated, but for now
-		//I am disabling the restore of the camera translation as it is causing confusion for a lot of people when
-		//the game starts and they are detached from their avatar, or worse the scene doesn't render at all
-		config.CameraTranslateX = 0.0f;
-		config.CameraTranslateY = 0.0f;
-		config.CameraTranslateZ = 0.0f;
-		//LoadSetting(gameProfile, "CameraTranslateX", &config.CameraTranslateX);
-		//LoadSetting(gameProfile, "CameraTranslateY", &config.CameraTranslateY);
-		//LoadSetting(gameProfile, "CameraTranslateZ", &config.CameraTranslateZ);
-
-		LoadSetting(gameProfile, "CameraDistance", &config.CameraDistance);
-		LoadSetting(gameProfile, "CameraZoom", &config.CameraZoom);
-		LoadSetting(gameProfile, "CameraHorizonAdjustment", &config.CameraHorizonAdjustment);
-		LoadSetting(gameProfile, "ConstantValue1", &config.ConstantValue1);
-		LoadSetting(gameProfile, "ConstantValue2", &config.ConstantValue2);
-		LoadSetting(gameProfile, "ConstantValue3", &config.ConstantValue3);
 
 		// get shader rules file name
 		string shaderRulesFileName = gameProfile.attribute("shaderModRules").as_string("");
@@ -832,9 +757,6 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 			config.VRboostPath = retprintf("%scfg\\VRboost_rules\\%s",
 				GetBaseDir().c_str(), VRboostRulesFileName.c_str());
 		}
-
-		LoadSetting(gameProfile, "rollImpl", &config.rollImpl);
-		LoadSetting(gameProfile, "worldScaleFactor", &config.worldScaleFactor);
 
 		// copy game dlls
 		bool copyDlls = gameProfile.attribute("copyDlls").as_bool(false);
@@ -933,82 +855,7 @@ bool ProxyHelper::SaveConfig(ProxyConfig& config)
 		string VRboostRulesFilename = getFilenamePart(config.VRboostPath);
 		set_attribute(gameProfile, "VRboostRules", VRboostRulesFilename.c_str());
 
-		set_attribute(gameProfile, "minVRboostShaderCount", config.VRboostMinShaderCount);
-		set_attribute(gameProfile, "maxVRboostShaderCount", config.VRboostMaxShaderCount);
-		set_attribute(gameProfile, "game_type", config.game_type);
-		set_attribute(gameProfile, "rollImpl", config.rollImpl);
-		set_attribute(gameProfile, "worldScaleFactor", config.worldScaleFactor);
-		set_attribute(gameProfile, "convergence", config.convergence);
-		set_attribute(gameProfile, "swap_eyes", config.swap_eyes);
-		set_attribute(gameProfile, "ipd_offset", config.IPDOffset);
-		set_attribute(gameProfile, "use_sdk_pose_prediction", config.useSDKPosePrediction);
-		set_attribute(gameProfile, "y_offset", config.YOffset);
-		set_attribute(gameProfile, "yaw_multiplier", config.yaw_multiplier);
-		set_attribute(gameProfile, "pitch_multiplier", config.pitch_multiplier);
-		set_attribute(gameProfile, "roll_multiplier", config.roll_multiplier);
-		
-		set_attribute(gameProfile, "position_multiplier", config.position_multiplier);
-		set_attribute(gameProfile, "position_x_multiplier", config.position_x_multiplier);
-		set_attribute(gameProfile, "position_y_multiplier", config.position_y_multiplier);
-		set_attribute(gameProfile, "position_z_multiplier", config.position_z_multiplier);
-		set_attribute(gameProfile, "distortion_scale", config.DistortionScale);
-
-		set_attribute(gameProfile, "hud_3D_depth_mode", config.hud3DDepthMode);
-
-		set_attribute(gameProfile, "hud_3D_depth_1", config.hud3DDepthPresets[0]);
-		set_attribute(gameProfile, "hud_3D_depth_2", config.hud3DDepthPresets[1]);
-		set_attribute(gameProfile, "hud_3D_depth_3", config.hud3DDepthPresets[2]);
-		set_attribute(gameProfile, "hud_3D_depth_4", config.hud3DDepthPresets[3]);
-
-		set_attribute(gameProfile, "hud_distance_1", config.hudDistancePresets[0]);
-		set_attribute(gameProfile, "hud_distance_2", config.hudDistancePresets[1]);
-		set_attribute(gameProfile, "hud_distance_3", config.hudDistancePresets[2]);
-		set_attribute(gameProfile, "hud_distance_4", config.hudDistancePresets[3]);
-
-		SaveHotkey(gameProfile, "hud_key_swap", config.hudHotkeys[0]);
-		SaveHotkey(gameProfile, "hud_key_default", config.hudHotkeys[1]);
-		SaveHotkey(gameProfile, "hud_key_small", config.hudHotkeys[2]);
-		SaveHotkey(gameProfile, "hud_key_large", config.hudHotkeys[3]);
-		SaveHotkey(gameProfile, "hud_key_full", config.hudHotkeys[4]);
-
-		set_attribute(gameProfile, "gui_3D_depth_mode", config.gui3DDepthMode);
-
-		set_attribute(gameProfile, "gui_3D_depth_1", config.gui3DDepthPresets[0]);
-		set_attribute(gameProfile, "gui_3D_depth_2", config.gui3DDepthPresets[1]);
-		set_attribute(gameProfile, "gui_3D_depth_3", config.gui3DDepthPresets[2]);
-		set_attribute(gameProfile, "gui_3D_depth_4", config.gui3DDepthPresets[3]);
-
-		set_attribute(gameProfile, "gui_size_1", config.guiSquishPresets[0]);
-		set_attribute(gameProfile, "gui_size_2", config.guiSquishPresets[1]);
-		set_attribute(gameProfile, "gui_size_3", config.guiSquishPresets[2]);
-		set_attribute(gameProfile, "gui_size_4", config.guiSquishPresets[3]);
-
-		SaveHotkey(gameProfile, "gui_key_swap", config.guiHotkeys[0]);
-		SaveHotkey(gameProfile, "gui_key_default", config.guiHotkeys[1]);
-		SaveHotkey(gameProfile, "gui_key_small", config.guiHotkeys[2]);
-		SaveHotkey(gameProfile, "gui_key_large", config.guiHotkeys[3]);
-		SaveHotkey(gameProfile, "gui_key_full", config.guiHotkeys[4]);
-		
-		SaveHotkey(gameProfile, "VRBoost_key_reset", config.VRBoostResetHotkey);
-		
-		set_attribute(gameProfile, "ComfortModeYawIncrement", config.ComfortModeYawIncrement);
-		SaveHotkey(gameProfile, "ComfortModeLeftKey", config.ComfortModeLeftKey);
-		SaveHotkey(gameProfile, "ComfortModeRightKey", config.ComfortModeRightKey);
-
-		set_attribute(gameProfile, "WorldFOV", config.WorldFOV);
-		set_attribute(gameProfile, "PlayerFOV", config.PlayerFOV);
-		set_attribute(gameProfile, "FarPlaneFOV", config.FarPlaneFOV);
-		set_attribute(gameProfile, "CameraTranslateX", config.CameraTranslateX);
-		set_attribute(gameProfile, "CameraTranslateY", config.CameraTranslateY);
-		set_attribute(gameProfile, "CameraTranslateZ", config.CameraTranslateZ);
-		set_attribute(gameProfile, "CameraDistance", config.CameraDistance);
-		set_attribute(gameProfile, "CameraZoom", config.CameraZoom);
-		set_attribute(gameProfile, "CameraHorizonAdjustment", config.CameraHorizonAdjustment);
-		set_attribute(gameProfile, "ConstantValue1", config.ConstantValue1);
-		set_attribute(gameProfile, "ConstantValue2", config.ConstantValue2);
-		set_attribute(gameProfile, "ConstantValue3", config.ConstantValue3);
-
-		SaveHotkey(gameProfile, "edge_peek_key", config.EdgePeekHotkey);
+		HandleGameProfile(CONFIG_SAVE, gameProfile, config);
 
 		docProfiles.save_file(profilePath.c_str());
 
@@ -1017,6 +864,142 @@ bool ProxyHelper::SaveConfig(ProxyConfig& config)
 
 	return (profileSaved || SaveUserConfig(config.ipd));
 }
+
+
+void HandleSetting(ProxyHelper::ConfigTransferDirection dir,xml_node &node, const char *key, std::string *setting)
+{
+	if(dir == ProxyHelper::CONFIG_SAVE) {
+		set_attribute(node, key, setting->c_str());
+	} else {
+		*setting = node.attribute(key).as_string(setting->c_str());
+	}
+}
+
+void HandleSetting(ProxyHelper::ConfigTransferDirection dir,xml_node &node, const char *key, float *setting)
+{
+	if(dir == ProxyHelper::CONFIG_SAVE) {
+		set_attribute(node, key, *setting);
+	} else {
+		*setting = node.attribute(key).as_float(*setting);
+	}
+}
+
+void HandleSetting(ProxyHelper::ConfigTransferDirection dir,xml_node &node, const char *key, int *setting)
+{
+	if(dir == ProxyHelper::CONFIG_SAVE) {
+		set_attribute(node, key, *setting);
+	} else {
+		*setting = node.attribute(key).as_int(*setting);
+	}
+}
+
+void HandleSetting(ProxyHelper::ConfigTransferDirection dir,xml_node &node, const char *key, UINT *setting)
+{
+	if(dir == ProxyHelper::CONFIG_SAVE) {
+		set_attribute(node, key, *setting);
+	} else {
+		*setting = node.attribute(key).as_uint(*setting);
+	}
+}
+
+void HandleSetting(ProxyHelper::ConfigTransferDirection dir,xml_node &node, const char *key, bool *setting)
+{
+	if(dir == ProxyHelper::CONFIG_SAVE) {
+		set_attribute(node, key, *setting);
+	} else {
+		*setting = node.attribute(key).as_bool(*setting);
+	}
+}
+
+void HandleSetting(ProxyHelper::ConfigTransferDirection dir,xml_node &node, const char *key, InputBindingRef *setting)
+{
+	if(dir == ProxyHelper::CONFIG_SAVE) {
+		SaveHotkey(node, key, *setting);
+	} else {
+		LoadHotkey(node, key, setting);
+	}
+}
+
+
+void ProxyHelper::HandleGameProfile(ConfigTransferDirection dir, xml_node &node, ProxyConfig &config)
+{
+	HandleSetting(dir, node, "minVRboostShaderCount", &config.VRboostMinShaderCount);
+	HandleSetting(dir, node, "maxVRboostShaderCount", &config.VRboostMaxShaderCount);
+	HandleSetting(dir, node, "game_type", &config.game_type);
+	HandleSetting(dir, node, "rollImpl", &config.rollImpl);
+	HandleSetting(dir, node, "worldScaleFactor", &config.worldScaleFactor);
+
+	HandleSetting(dir, node, "convergence", &config.convergence);
+	HandleSetting(dir, node, "swap_eyes", &config.swap_eyes);
+	HandleSetting(dir, node, "ipd_offset", &config.IPDOffset);
+	HandleSetting(dir, node, "use_sdk_pose_prediction", &config.useSDKPosePrediction);
+	HandleSetting(dir, node, "y_offset", &config.YOffset);
+	HandleSetting(dir, node, "yaw_multiplier", &config.yaw_multiplier);
+	HandleSetting(dir, node, "pitch_multiplier", &config.pitch_multiplier);
+	HandleSetting(dir, node, "roll_multiplier", &config.roll_multiplier);
+	HandleSetting(dir, node, "position_multiplier", &config.position_multiplier);
+	HandleSetting(dir, node, "position_x_multiplier", &config.position_x_multiplier);
+	HandleSetting(dir, node, "position_y_multiplier", &config.position_y_multiplier);
+	HandleSetting(dir, node, "position_z_multiplier", &config.position_z_multiplier);
+	HandleSetting(dir, node, "distortion_scale", &config.DistortionScale);
+	
+	HandleSetting(dir, node, "hud_3D_depth_mode", &config.hud3DDepthMode);
+
+	HandleSetting(dir, node, "hud_3D_depth_1", &config.hud3DDepthPresets[0]);
+	HandleSetting(dir, node, "hud_3D_depth_2", &config.hud3DDepthPresets[1]);
+	HandleSetting(dir, node, "hud_3D_depth_3", &config.hud3DDepthPresets[2]);
+	HandleSetting(dir, node, "hud_3D_depth_4", &config.hud3DDepthPresets[3]);
+
+	HandleSetting(dir, node, "hud_distance_1", &config.hudDistancePresets[0]);
+	HandleSetting(dir, node, "hud_distance_2", &config.hudDistancePresets[1]);
+	HandleSetting(dir, node, "hud_distance_3", &config.hudDistancePresets[2]);
+	HandleSetting(dir, node, "hud_distance_4", &config.hudDistancePresets[3]);
+
+	HandleSetting(dir, node, "hud_key_swap",    &config.hudHotkeys[0]);
+	HandleSetting(dir, node, "hud_key_default", &config.hudHotkeys[1]);
+	HandleSetting(dir, node, "hud_key_small",   &config.hudHotkeys[2]);
+	HandleSetting(dir, node, "hud_key_large",   &config.hudHotkeys[3]);
+	HandleSetting(dir, node, "hud_key_full",    &config.hudHotkeys[4]);
+
+	HandleSetting(dir, node, "gui_3D_depth_mode", &config.gui3DDepthMode);
+	HandleSetting(dir, node, "gui_3D_depth_1", &config.gui3DDepthPresets[0]);
+	HandleSetting(dir, node, "gui_3D_depth_2", &config.gui3DDepthPresets[1]);
+	HandleSetting(dir, node, "gui_3D_depth_3", &config.gui3DDepthPresets[2]);
+	HandleSetting(dir, node, "gui_3D_depth_4", &config.gui3DDepthPresets[3]);
+
+	HandleSetting(dir, node, "gui_size_1", &config.guiSquishPresets[0]);
+	HandleSetting(dir, node, "gui_size_2", &config.guiSquishPresets[1]);
+	HandleSetting(dir, node, "gui_size_3", &config.guiSquishPresets[2]);
+	HandleSetting(dir, node, "gui_size_4", &config.guiSquishPresets[3]);
+
+	HandleSetting(dir, node, "gui_key_swap",    &config.guiHotkeys[0]);
+	HandleSetting(dir, node, "gui_key_default", &config.guiHotkeys[1]);
+	HandleSetting(dir, node, "gui_key_small",   &config.guiHotkeys[2]);
+	HandleSetting(dir, node, "gui_key_large",   &config.guiHotkeys[3]);
+	HandleSetting(dir, node, "gui_key_full",    &config.guiHotkeys[4]);
+
+	HandleSetting(dir, node, "VRBoost_key_reset", &config.VRBoostResetHotkey);
+	HandleSetting(dir, node, "edge_peek_key", &config.EdgePeekHotkey);
+
+	HandleSetting(dir, node, "ComfortModeYawIncrement", &config.ComfortModeYawIncrement);
+	HandleSetting(dir, node, "ComfortModeLeftKey", &config.ComfortModeLeftKey);
+	HandleSetting(dir, node, "ComfortModeRightKey", &config.ComfortModeRightKey);
+
+	HandleSetting(dir, node, "WorldFOV", &config.WorldFOV);
+	HandleSetting(dir, node, "PlayerFOV", &config.PlayerFOV);
+	HandleSetting(dir, node, "FarPlaneFOV", &config.FarPlaneFOV);
+
+	HandleSetting(dir, node, "CameraTranslateX", &config.CameraTranslateX);
+	HandleSetting(dir, node, "CameraTranslateY", &config.CameraTranslateY);
+	HandleSetting(dir, node, "CameraTranslateZ", &config.CameraTranslateZ);
+	HandleSetting(dir, node, "CameraDistance", &config.CameraDistance);
+	HandleSetting(dir, node, "CameraZoom", &config.CameraZoom);
+	HandleSetting(dir, node, "CameraHorizonAdjustment", &config.CameraHorizonAdjustment);
+	HandleSetting(dir, node, "ConstantValue1", &config.ConstantValue1);
+	HandleSetting(dir, node, "ConstantValue2", &config.ConstantValue2);
+	HandleSetting(dir, node, "ConstantValue3", &config.ConstantValue3);
+}
+
 
 /**
 * True if process has a configuration profile.

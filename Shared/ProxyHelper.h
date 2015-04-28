@@ -164,7 +164,7 @@ public:
 	bool  SaveUserConfig(float ipd = IPD_DEFAULT);
 	bool  SaveTrackerMode(int mode = -1);
 	bool  SaveDisplayAdapter(int adapter);
-	bool  LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile);	
+	bool  LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile);
 	bool  SaveConfig(ProxyConfig& config);
 	bool  HasProfile(const char* name, const char *path);
 	bool  GetProfile(char* name, char *path, bool _64bit, ProxyConfig& config);
@@ -174,7 +174,15 @@ public:
 	*/
 	bool  GetProfileGameExes(std::vector<std::pair<std::string, bool>> &gameExes);
 
+	typedef enum
+	{
+		CONFIG_SAVE,
+		CONFIG_LOAD,
+	} ConfigTransferDirection;
+	
 private:
+	void HandleGameProfile(ConfigTransferDirection dir, pugi::xml_node &node, ProxyConfig &config);
+	
 	/**
 	* Base directory path.
 	* Saved to registry by InitConfig() in Main.cpp.
