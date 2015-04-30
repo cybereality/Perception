@@ -35,6 +35,9 @@ public:
 	void AddGameKeypress(std::string text, byte *binding);
 	void AddKeybind(std::string text, InputBindingRef *binding);
 	void AddAdjustment(const char *formatString, float *value, float defaultValue, float rate, std::function<void()> onChange=[](){});
+	void AddEnumPicker(const char *formatString, int *currentValue, int maxValue, std::function<std::string(int)> getDescription, std::function<void(int)> onChange);
+	void AddBackButtons();
+	void OnClose(std::function<void()> onClose);
 	
 	void ResetDrawPosition();
 	int GetDrawPositionTop();
@@ -65,6 +68,7 @@ public:
 	float borderTopHeight;
 	
 	std::function<void()> handleCurrentMenu;
+	std::function<void()> onClose;
 	
 private:
 	D3DProxyDevice *device;

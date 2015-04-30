@@ -140,7 +140,7 @@ struct ProxyConfig
 	
 	vireio::RenderPosition MaybeSwap(vireio::RenderPosition whichEye);
 };
-
+extern const ProxyConfig defaultConfig;
 
 /**
 * Game configuration helper class.

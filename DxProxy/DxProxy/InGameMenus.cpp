@@ -102,6 +102,7 @@ bool D3DProxyDevice::InitVPMENU()
 
 void D3DProxyDevice::VPMENU_Close()
 {
+	menuState.onClose();
 	VPMENU_CloseWithoutSaving();
 	VPMENU_UpdateConfigSettings();
 }
@@ -121,6 +122,7 @@ void D3DProxyDevice::VPMENU_Back()
 	if(menuStatesStack.size() == 0) {
 		VPMENU_Close();
 	} else {
+		menuState.onClose();
 		menuState = menuStatesStack.top();
 		menuStatesStack.pop();
 		inWorldScaleMenu = false;
@@ -343,6 +345,30 @@ void D3DProxyDevice::VPMENU()
 }
 
 
+std::string DepthModeToString(D3DProxyDevice::HUD_3D_Depth_Modes mode)
+{
+	switch(mode)
+	{
+		case D3DProxyDevice::HUD_DEFAULT: return "Default";
+		case D3DProxyDevice::HUD_SMALL:   return "Small";
+		case D3DProxyDevice::HUD_LARGE:   return "Large";
+		case D3DProxyDevice::HUD_FULL:    return "Full";
+		default: return "???";
+	}
+}
+
+std::string DepthModeToString(D3DProxyDevice::GUI_3D_Depth_Modes mode)
+{
+	switch(mode)
+	{
+		case D3DProxyDevice::GUI_DEFAULT: return "Default";
+		case D3DProxyDevice::GUI_SMALL:   return "Small";
+		case D3DProxyDevice::GUI_LARGE:   return "Large";
+		case D3DProxyDevice::GUI_FULL:    return "Full";
+		default: return "???";
+	}
+}
+
 /**
 * Main Menu method.
 ***/
@@ -365,36 +391,18 @@ void D3DProxyDevice::VPMENU_MainMenu()
 	menu->AddNavigation("HUD Calibration\n", [=]() { VPMENU_HUD(); });
 	menu->AddNavigation("GUI Calibration\n", [=]() { VPMENU_GUI(); });
 	
-	float hudQSTop = (float)menu->GetDrawPositionTop() * fScaleY;
-	menu->AddItem("HUD Quick Setting : \n", [=]() {
-		if (VPMENU_Input_Left() && HotkeysActive())
-		{
-			if (hud3DDepthMode > HUD_3D_Depth_Modes::HUD_DEFAULT)
-				ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)(hud3DDepthMode-1));
-			HotkeyCooldown(COOLDOWN_SHORT);
-		}
-		if (VPMENU_Input_Right() && HotkeysActive())
-		{
-			if (hud3DDepthMode < HUD_3D_Depth_Modes::HUD_ENUM_RANGE-1)
-				ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)(hud3DDepthMode+1));
-			HotkeyCooldown(COOLDOWN_SHORT);
-		}
-	});
-	float guiQSTop = (float)menu->GetDrawPositionTop() * fScaleY;
-	menu->AddItem("GUI Quick Setting : \n", [=]() {
-		if (VPMENU_Input_Left() && HotkeysActive())
-		{
-			if (gui3DDepthMode > GUI_3D_Depth_Modes::GUI_DEFAULT)
-				ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)(gui3DDepthMode-1));
-			HotkeyCooldown(COOLDOWN_SHORT);
-		}
-		if (VPMENU_Input_Right() && HotkeysActive())
-		{
-			if (gui3DDepthMode < GUI_3D_Depth_Modes::GUI_ENUM_RANGE-1)
-				ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)(gui3DDepthMode+1));
-			HotkeyCooldown(COOLDOWN_SHORT);
-		}
-	});
+	menu->AddEnumPicker("HUD Quick Setting : %s", (int*)&hud3DDepthMode,
+		HUD_3D_Depth_Modes::HUD_ENUM_RANGE, [](int val) {
+			return DepthModeToString((HUD_3D_Depth_Modes)val);
+		}, [=](int newValue) {
+			ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)newValue);
+		});
+	menu->AddEnumPicker("GUI Quick Setting : %s", (int*)&gui3DDepthMode,
+		GUI_3D_Depth_Modes::GUI_ENUM_RANGE, [](int val) {
+			return DepthModeToString((GUI_3D_Depth_Modes)val);
+		}, [=](int newValue) {
+			ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)newValue);
+		});
 	menu->AddNavigation("Overall Settings\n", [=]() { VPMENU_Settings(); });
 	menu->AddNavigation("VRBoost Values\n", [=]() { VPMENU_VRBoostValues(); });
 	menu->AddNavigation("Position Tracking Configuration\n", [=]() { VPMENU_PosTracking(); });
@@ -414,19 +422,8 @@ void D3DProxyDevice::VPMENU_MainMenu()
 		VPMENU_UpdateConfigSettings();
 		HotkeyCooldown(COOLDOWN_EXTRA_LONG);
 	});
-	menu->AddButton("Back to Game\n", [=]() { VPMENU_Close(); });
 	
-	// draw HUD quick setting rectangles
-	D3DRECT rect;
-	rect.x1 = (int)(viewportWidth*0.57f); rect.x2 = (int)(viewportWidth*0.61f); rect.y1 = (int)hudQSTop; rect.y2 = (int)(hudQSTop+viewportHeight*0.027f);
-	DrawSelection(vireio::RenderPosition::Left, rect, COLOR_QUICK_SETTING, (int)hud3DDepthMode, (int)HUD_3D_Depth_Modes::HUD_ENUM_RANGE);
-	DrawSelection(vireio::RenderPosition::Right, rect, COLOR_QUICK_SETTING, (int)hud3DDepthMode, (int)HUD_3D_Depth_Modes::HUD_ENUM_RANGE);
-
-	// draw GUI quick setting rectangles
-	rect.x1 = (int)(viewportWidth*0.57f); rect.x2 = (int)(viewportWidth*0.61f); rect.y1 = (int)guiQSTop; rect.y2 = (int)(guiQSTop+viewportHeight*0.027f);
-	DrawSelection(vireio::RenderPosition::Left, rect, COLOR_QUICK_SETTING, (int)gui3DDepthMode, (int)GUI_3D_Depth_Modes::GUI_ENUM_RANGE);
-	DrawSelection(vireio::RenderPosition::Right, rect, COLOR_QUICK_SETTING, (int)gui3DDepthMode, (int)GUI_3D_Depth_Modes::GUI_ENUM_RANGE);
-
+	menu->AddButton("Back to Game\n", [=]() { VPMENU_Close(); });
 	VPMENU_FinishDrawing(menu);
 }
 
@@ -726,70 +723,35 @@ void D3DProxyDevice::VPMENU_HUD()
 	SHOW_CALL("VPMENU_HUD");
 	MenuBuilder *menu = VPMENU_NewFrame();
 	VPMENU_StartDrawing(menu, "Settings - HUD");
+	menu->OnClose([=]() { VPMENU_UpdateConfigSettings(); });
 
-	float hudQSHeight = (float)menu->GetDrawPositionTop() * fScaleY;
-	std::string depthModeDescription = "";
-	switch (hud3DDepthMode)
-	{
-		case D3DProxyDevice::HUD_DEFAULT: depthModeDescription = "Default"; break;
-		case D3DProxyDevice::HUD_SMALL:   depthModeDescription = "Small"; break;
-		case D3DProxyDevice::HUD_LARGE:   depthModeDescription = "Large"; break;
-		case D3DProxyDevice::HUD_FULL:    depthModeDescription = "Full"; break;
-	}
+	menu->AddEnumPicker("HUD : %s", (int*)&hud3DDepthMode,
+		HUD_3D_Depth_Modes::HUD_ENUM_RANGE, [](int val) {
+			return DepthModeToString((HUD_3D_Depth_Modes)val);
+		}, [=](int newValue) {
+			ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)newValue);
+		});
 	
-	// change hud scale
-	menu->AddItem(retprintf("HUD : %s", depthModeDescription.c_str()), [=]()
-	{
-		if (VPMENU_Input_Left() && HotkeysActive())
-		{
-			if (hud3DDepthMode > HUD_3D_Depth_Modes::HUD_DEFAULT)
-				ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)(hud3DDepthMode-1));
-			HotkeyCooldown(COOLDOWN_SHORT);
-		}
-		if (VPMENU_Input_Right() && HotkeysActive())
-		{
-			if (hud3DDepthMode < HUD_3D_Depth_Modes::HUD_ENUM_RANGE-1)
-				ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)(hud3DDepthMode+1));
-			HotkeyCooldown(COOLDOWN_SHORT);
-		}
-	});
-	
-	menu->AddItem(retprintf("HUD Distance : %g", RoundVireioValue(config.hudDistancePresets[(int)hud3DDepthMode])), [=]()
-	{
-		if (VPMENU_Input_IsAdjustment() && HotkeysActive())
-		{
-			config.hudDistancePresets[(int)hud3DDepthMode] += 0.01f * VPMENU_Input_GetAdjustment();
+	menu->AddAdjustment("HUD Distance : %g",
+		&config.hudDistancePresets[(int)hud3DDepthMode],
+		defaultConfig.hudDistancePresets[(int)hud3DDepthMode],
+		0.01f, [=]() {
 			ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)hud3DDepthMode);
-			HotkeyCooldown(COOLDOWN_ONE_FRAME);
-		}
-	});
-	menu->AddItem(retprintf("HUD's 3D Depth : %g", RoundVireioValue(config.hud3DDepthPresets[(int)hud3DDepthMode])), [=]()
-	{
-		if (VPMENU_Input_IsAdjustment() && HotkeysActive())
-		{
-			config.hud3DDepthPresets[(int)hud3DDepthMode] += 0.002f * VPMENU_Input_GetAdjustment();
+		});
+	menu->AddAdjustment("HUD's 3D Depth : %g",
+		&config.hud3DDepthPresets[(int)hud3DDepthMode],
+		defaultConfig.hud3DDepthPresets[(int)hud3DDepthMode],
+		0.002f, [=]() {
 			ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)hud3DDepthMode);
-			HotkeyCooldown(COOLDOWN_ONE_FRAME);
-		}
-	});
+		});
 	
-	menu->AddKeybind("Hotkey >Switch<",  &config.hudHotkeys[0]);
-	menu->AddKeybind("Hotkey >Default<", &config.hudHotkeys[1]);
-	menu->AddKeybind("Hotkey >Small<",   &config.hudHotkeys[2]);
-	menu->AddKeybind("Hotkey >Large<",   &config.hudHotkeys[3]);
-	menu->AddKeybind("Hotkey >Full<",    &config.hudHotkeys[4]);
-	menu->AddButton("Back to Main Menu", [=]() {
-		VPMENU_Back();
-		VPMENU_UpdateConfigSettings();
-	});
-	menu->AddButton("Back to Game", [=]() { VPMENU_Close(); });
+	menu->AddKeybind("Hotkey >Switch<",  &config.hudSwitchHotkey);
+	menu->AddKeybind("Hotkey >Default<", &config.hudHotkeys[0]);
+	menu->AddKeybind("Hotkey >Small<",   &config.hudHotkeys[1]);
+	menu->AddKeybind("Hotkey >Large<",   &config.hudHotkeys[2]);
+	menu->AddKeybind("Hotkey >Full<",    &config.hudHotkeys[3]);
 
-	// draw HUD quick setting rectangles
-	D3DRECT rect;
-	rect.x1 = (int)(viewportWidth*0.52f); rect.x2 = (int)(viewportWidth*0.56f); rect.y1 = (int)hudQSHeight; rect.y2 = (int)(hudQSHeight+viewportHeight*0.027f);
-	DrawSelection(vireio::RenderPosition::Left, rect, COLOR_QUICK_SETTING, (int)hud3DDepthMode, (int)HUD_3D_Depth_Modes::HUD_ENUM_RANGE);
-	DrawSelection(vireio::RenderPosition::Right, rect, COLOR_QUICK_SETTING, (int)hud3DDepthMode, (int)HUD_3D_Depth_Modes::HUD_ENUM_RANGE);
-
+	menu->AddBackButtons();
 	VPMENU_FinishDrawing(menu);
 }
 
@@ -801,69 +763,35 @@ void D3DProxyDevice::VPMENU_GUI()
 	SHOW_CALL("VPMENU_GUI");
 	MenuBuilder *menu = VPMENU_NewFrame();
 	VPMENU_StartDrawing(menu, "Settings - GUI");
+	menu->OnClose([=]() { VPMENU_UpdateConfigSettings(); });
 
-	float guiQSTop = (float)menu->GetDrawPositionTop() * fScaleY;
+	menu->AddEnumPicker("GUI : %s", (int*)&gui3DDepthMode,
+		GUI_3D_Depth_Modes::GUI_ENUM_RANGE, [](int val) {
+			return DepthModeToString((GUI_3D_Depth_Modes)val);
+		}, [=](int newValue) {
+			ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)newValue);
+		});
 	
-	std::string guiDepthModeDescription;
-	switch (gui3DDepthMode)
-	{
-		case D3DProxyDevice::GUI_DEFAULT: guiDepthModeDescription = "Default"; break;
-		case D3DProxyDevice::GUI_SMALL:   guiDepthModeDescription = "Small"; break;
-		case D3DProxyDevice::GUI_LARGE:   guiDepthModeDescription = "Large"; break;
-		case D3DProxyDevice::GUI_FULL:    guiDepthModeDescription = "Full"; break;
-	}
-	
-	menu->AddItem(retprintf("GUI : %s", guiDepthModeDescription.c_str()), [=]()
-	{
-		if (VPMENU_Input_Left() && HotkeysActive())
-		{
-			if (gui3DDepthMode > GUI_3D_Depth_Modes::GUI_DEFAULT)
-				ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)(gui3DDepthMode-1));
-			HotkeyCooldown(COOLDOWN_SHORT);
-		}
-		if (VPMENU_Input_Right() && HotkeysActive())
-		{
-			if (gui3DDepthMode < GUI_3D_Depth_Modes::GUI_ENUM_RANGE-1)
-				ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)(gui3DDepthMode+1));
-			HotkeyCooldown(COOLDOWN_SHORT);
-		}
-	});
-	
-	menu->AddItem(retprintf("GUI Size : %g", RoundVireioValue(config.guiSquishPresets[(int)gui3DDepthMode])), [=]()
-	{
-		if (VPMENU_Input_IsAdjustment() && HotkeysActive())
-		{
-			config.guiSquishPresets[(int)gui3DDepthMode] += 0.01f * VPMENU_Input_GetAdjustment();
+	menu->AddAdjustment("GUI Distance : %g",
+		&config.guiSquishPresets[(int)gui3DDepthMode],
+		defaultConfig.guiSquishPresets[(int)gui3DDepthMode],
+		0.01f, [=]() {
 			ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)gui3DDepthMode);
-			HotkeyCooldown(COOLDOWN_ONE_FRAME);
-		}
-	});
-	
-	menu->AddItem(retprintf("GUI's 3D Depth : %g", RoundVireioValue(config.gui3DDepthPresets[(int)gui3DDepthMode])), [=]()
-	{
-		if (VPMENU_Input_IsAdjustment() && HotkeysActive())
-		{
-			config.gui3DDepthPresets[(int)gui3DDepthMode] += 0.002f * VPMENU_Input_GetAdjustment();
+		});
+	menu->AddAdjustment("GUI's 3D Depth : %g",
+		&config.gui3DDepthPresets[(int)gui3DDepthMode],
+		defaultConfig.gui3DDepthPresets[(int)gui3DDepthMode],
+		0.002f, [=]() {
 			ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)gui3DDepthMode);
-			HotkeyCooldown(COOLDOWN_ONE_FRAME);
-		}
-	});
+		});
 	
-	menu->AddKeybind("Hotkey >Switch<",  &config.guiHotkeys[0]);
+	menu->AddKeybind("Hotkey >Switch<",  &config.guiSwitchHotkey);
 	menu->AddKeybind("Hotkey >Default<", &config.guiHotkeys[1]);
 	menu->AddKeybind("Hotkey >Small<",   &config.guiHotkeys[2]);
 	menu->AddKeybind("Hotkey >Large<",   &config.guiHotkeys[3]);
 	menu->AddKeybind("Hotkey >Full<",    &config.guiHotkeys[4]);
 	
-	menu->AddButton("Back to Main Menu", [=]() { VPMENU_Back(); });
-	menu->AddButton("Back to Game", [=]() { VPMENU_Close(); });
-
-	// draw GUI quick setting rectangles
-	D3DRECT rect;
-	rect.x1 = (int)(viewportWidth*0.52f); rect.x2 = (int)(viewportWidth*0.56f); rect.y1 = (int)guiQSTop; rect.y2 = (int)(guiQSTop+viewportHeight*0.027f);
-	DrawSelection(vireio::RenderPosition::Left, rect, COLOR_QUICK_SETTING, (int)gui3DDepthMode, (int)GUI_3D_Depth_Modes::GUI_ENUM_RANGE);
-	DrawSelection(vireio::RenderPosition::Right, rect, COLOR_QUICK_SETTING, (int)gui3DDepthMode, (int)GUI_3D_Depth_Modes::GUI_ENUM_RANGE);
-
+	menu->AddBackButtons();
 	VPMENU_FinishDrawing(menu);
 }
 
@@ -875,6 +803,7 @@ void D3DProxyDevice::VPMENU_Settings()
 	SHOW_CALL("VPMENU_Settings");
 	MenuBuilder *menu = VPMENU_NewFrame();
 	VPMENU_StartDrawing(menu, "Settings - General");
+	menu->OnClose([=]() { VPMENU_UpdateConfigSettings(); });
 
 	menu->AddButton(retprintf("Swap Eyes : %s", stereoView->swapEyes ? "True" : "False"), [=]()
 	{
@@ -982,12 +911,7 @@ void D3DProxyDevice::VPMENU_Settings()
 	menu->AddKeybind("Hotkey >Toggle VRBoost<", &toggleVRBoostHotkey);
 	menu->AddKeybind("Hotkey >Disconnected Screen<", &edgePeekHotkey);
 	
-	menu->AddButton("Back to Main Menu", [=]() {
-		VPMENU_Back();
-		VPMENU_UpdateConfigSettings();
-	});
-	menu->AddButton("Back to Game", [=]() { VPMENU_Close(); });
-
+	menu->AddBackButtons();
 	VPMENU_FinishDrawing(menu);
 }
 
@@ -1000,6 +924,7 @@ void D3DProxyDevice::VPMENU_PosTracking()
 	SHOW_CALL("VPMENU_PosTracking");
 	MenuBuilder *menu = VPMENU_NewFrame();
 	VPMENU_StartDrawing(menu, "Settings - Positional Tracking");
+	menu->OnClose([=]() { VPMENU_UpdateConfigSettings(); });
 
 	menu->AddButton(retprintf("Positional Tracking (CTRL + P) : %s",
 		m_bPosTrackingToggle ? "On" : "Off"),
@@ -1021,12 +946,8 @@ void D3DProxyDevice::VPMENU_PosTracking()
 		tracker->resetOrientationAndPosition();
 	});
 	menu->AddNavigation("Duck-and-Cover Configuration", [=]() { VPMENU_DuckAndCover(); });
-	menu->AddButton("Back to Main Menu", [=]() {
-		VPMENU_Back();
-		VPMENU_UpdateConfigSettings();
-	});
-	menu->AddButton("Back to Game", [=]() { VPMENU_Close(); });
 
+	menu->AddBackButtons();
 	VPMENU_FinishDrawing(menu);
 }
 
@@ -1040,6 +961,7 @@ void D3DProxyDevice::VPMENU_DuckAndCover()
 
 	MenuBuilder *menu = VPMENU_NewFrame();
 	VPMENU_StartDrawing(menu, "Settings - Duck-and-Cover");
+	menu->OnClose([=]() { VPMENU_UpdateConfigSettings(); });
 
 	std::string crouchToggleDescription = m_DuckAndCover.crouchToggle ? "Toggle" : "Hold";
 	menu->AddButton(retprintf("Crouch : %s", crouchToggleDescription.c_str()), [=]() {
@@ -1101,12 +1023,7 @@ void D3DProxyDevice::VPMENU_DuckAndCover()
 		}
 	});
 
-	menu->AddButton("Back to Main Menu", [=]() {
-		VPMENU_Back();
-		VPMENU_UpdateConfigSettings();
-	});
-	menu->AddButton("Back to Game", [=]() { VPMENU_Close(); });
-
+	menu->AddBackButtons();
 	VPMENU_FinishDrawing(menu);
 }
 
@@ -1120,6 +1037,7 @@ void D3DProxyDevice::VPMENU_ComfortMode()
 	
 	MenuBuilder *menu = VPMENU_NewFrame();
 	VPMENU_StartDrawing(menu, "Settings - Comfort Mode");
+	menu->OnClose([=]() { VPMENU_UpdateConfigSettings(); });
 
 	bool isEnabled = (VRBoostValue[VRboostAxis::ComfortMode] != 0.0f);
 	menu->AddButton(retprintf("Comfort Mode : %s", isEnabled?"Enabled":"Disabled"), [=]()
@@ -1146,12 +1064,7 @@ void D3DProxyDevice::VPMENU_ComfortMode()
 			config.ComfortModeYawIncrement = 30.0f;
 	});
 
-	menu->AddButton("Back to Main Menu", [=]() {
-		VPMENU_Back();
-		VPMENU_UpdateConfigSettings();
-	});
-	menu->AddButton("Back to Game", [=]() { VPMENU_Close(); });
-
+	menu->AddBackButtons();
 	VPMENU_FinishDrawing(menu);
 }
 
@@ -1176,9 +1089,8 @@ void D3DProxyDevice::VPMENU_VRBoostValues()
 	menu->AddAdjustment("Constant Value 1 : %g",   &VRBoostValue[33], 0.0f, 0.1f);
 	menu->AddAdjustment("Constant Value 2 : %g",   &VRBoostValue[34], 0.0f, 0.1f);
 	menu->AddAdjustment("Constant Value 2 : %g",   &VRBoostValue[35], 0.0f, 0.1f);
-	menu->AddButton("Back to Main Menu", [=]() { VPMENU_Back(); });
-	menu->AddButton("Back to Game", [=]() { VPMENU_Close(); });
 
+	menu->AddBackButtons();
 	VPMENU_FinishDrawing(menu);
 }
 
@@ -1193,8 +1105,7 @@ void D3DProxyDevice::VPMENU_Hotkeys()
 	menu->AddKeybind("Screenshot", &config.HotkeyScreenshot);
 	menu->AddKeybind("Telescope Mode", &config.HotkeyTelescopeMode);
 	
-	menu->AddButton("Back to Main Menu", [=]() { VPMENU_Back(); });
-	menu->AddButton("Back to Game", [=]() { VPMENU_Close(); });
+	menu->AddBackButtons();
 	VPMENU_FinishDrawing(menu);
 }
 
@@ -1218,8 +1129,7 @@ void D3DProxyDevice::VPMENU_AdjustmentHotkeys()
 	menu->AddKeybind("Toggle Pose Prediction", &config.HotkeyTogglePosePrediction);
 	menu->AddKeybind("Toggle Chromatic Abberation Correction", &config.HotkeyToggleChromaticAbberationCorrection);
 	
-	menu->AddButton("Back to Main Menu", [=]() { VPMENU_Back(); });
-	menu->AddButton("Back to Game", [=]() { VPMENU_Close(); });
+	menu->AddBackButtons();
 	VPMENU_FinishDrawing(menu);
 }
 
@@ -1805,6 +1715,55 @@ void MenuBuilder::AddAdjustment(const char *formatString, float *value, float de
 	});
 }
 
+void MenuBuilder::AddEnumPicker(const char *formatString, int *currentValue, int maxValue, std::function<std::string(int)> getDescription, std::function<void(int)> onChange)
+{
+	std::string description = retprintf(formatString, getDescription(*currentValue).c_str());
+	
+	int indicatorTop = (int)(GetDrawPositionTop() * device->fScaleY);
+	AddItem(description, [=]()
+	{
+		if (device->VPMENU_Input_Left() && device->HotkeysActive())
+		{
+			if (*currentValue > 0) {
+				(*currentValue)--;
+				onChange(*currentValue);
+			}
+			device->HotkeyCooldown(COOLDOWN_SHORT);
+		}
+		if (device->VPMENU_Input_Right() && device->HotkeysActive())
+		{
+			if (*currentValue+1 < maxValue) {
+				(*currentValue)++;
+				onChange(*currentValue);
+			}
+			device->HotkeyCooldown(COOLDOWN_SHORT);
+		}
+	});
+	
+	D3DRECT rect;
+	rect.x1 = (int)(device->viewportWidth*0.59f);
+	rect.x2 = (int)(device->viewportWidth*0.63f);
+	rect.y1 = indicatorTop;
+	rect.y2 = (int)(indicatorTop+device->viewportHeight*0.027f);
+	device->DrawSelection(vireio::RenderPosition::Left, rect, COLOR_QUICK_SETTING, *currentValue, maxValue);
+	device->DrawSelection(vireio::RenderPosition::Right, rect, COLOR_QUICK_SETTING, *currentValue, maxValue);
+}
+
+void MenuBuilder::AddBackButtons()
+{
+	AddButton("Back to Main Menu", [=]() {
+		device->VPMENU_Back();
+	});
+	AddButton("Back to Game", [=]() {
+		device->VPMENU_Close();
+	});
+}
+
+void MenuBuilder::OnClose(std::function<void()> onClose)
+{
+	device->menuState.onClose = onClose;
+}
+
 void MenuBuilder::ResetDrawPosition()
 {
 	drawPosition.left = 800;
@@ -1826,6 +1785,7 @@ int MenuBuilder::GetEntryCount()
 MenuState::MenuState(D3DProxyDevice *device)
 {
 	this->device = device;
+	this->onClose = [](){};
 	Reset();
 }
 

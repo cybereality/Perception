@@ -738,8 +738,6 @@ void DataGatherer::Init(ProxyConfig& cfg)
 void DataGatherer::VPMENU_ShaderSubMenu()
 {
 	MenuBuilder *menu = VPMENU_NewFrame();
-
-	// output menu
 	VPMENU_StartDrawing(menu, "Shader Analyser");
 
 	menu->AddButton("Create new Shader Rules", [=]() {
@@ -790,9 +788,7 @@ void DataGatherer::VPMENU_ShaderSubMenu()
 		saveShaderRules();
 	});
 	
-	menu->AddButton("Back to Main Menu", [=]() { VPMENU_Back(); });
-	menu->AddButton("Back to Game", [=]() { VPMENU_CloseWithoutSaving(); });
-
+	menu->AddBackButtons();
 	VPMENU_FinishDrawing(menu);
 }
 
@@ -1079,9 +1075,7 @@ void DataGatherer::VPMENU_ChangeRules()
 		}
 	});
 
-	menu->AddButton("Back to Main Menu", [=]() { VPMENU_Back(); });
-	menu->AddButton("Back to Game", [=]() { VPMENU_CloseWithoutSaving(); });
-
+	menu->AddBackButtons();
 	VPMENU_FinishDrawing(menu);
 }
 
@@ -1244,9 +1238,7 @@ void DataGatherer::VPMENU_ShowActiveShaders()
 		menu->DrawItem(menuEntries[i].c_str(), menuColor[i]);
 	}
 
-	menu->AddButton("Back to Main Menu", [=]() { VPMENU_Back(); });
-	menu->AddButton("Back to Game", [=]() { VPMENU_CloseWithoutSaving(); });
-
+	menu->AddBackButtons();
 	VPMENU_FinishDrawing(menu);
 }
 
