@@ -41,6 +41,6 @@ class StereoViewFactory
 {
 public:
 	/*** StereoViewFactory public methods ***/
-	static StereoView* Get(ProxyConfig& config, HMDisplayInfo *hmd);
+	static StereoView* Get(ProxyConfig *config, HMDisplayInfo *hmd);
 };
 #endif

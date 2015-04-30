@@ -35,9 +35,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 *  Get stereo view. 
 *  Creates the currently selected stereo view class pointer.
 ***/
-StereoView* StereoViewFactory::Get(ProxyConfig& config, HMDisplayInfo *hmd)
+StereoView* StereoViewFactory::Get(ProxyConfig *config, HMDisplayInfo *hmd)
 {
-	switch(config.stereo_mode)
+	switch(config->stereo_mode)
 	{
 	case StereoView::ANAGLYPH_RED_CYAN:
 	case StereoView::ANAGLYPH_RED_CYAN_GRAY:

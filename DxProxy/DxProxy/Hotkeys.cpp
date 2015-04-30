@@ -740,12 +740,12 @@ void D3DProxyDevice::HandleControls()
 
 
 		//Reset IPD Offset to 0  -  F8  or  LSHIFT+I
-		if (config.HotkeyResetIPDOffset->IsPressed(controls) && HotkeysActive() && this->stereoView->IPDOffset != 0.0)
+		if (config.HotkeyResetIPDOffset->IsPressed(controls) && HotkeysActive() && config.IPDOffset != 0.0)
 		{
-			this->stereoView->IPDOffset = 0.0;
+			config.IPDOffset = 0.0;
 			this->stereoView->PostReset();		
 
-			ShowAdjusterToast(retprintf("IPD-Offset: %1.3f", this->stereoView->IPDOffset), 500);
+			ShowAdjusterToast(retprintf("IPD-Offset: %1.3f", config.IPDOffset), 500);
 			DeferedSaveConfig();
 			HotkeyCooldown(COOLDOWN_SHORT);
 		}
@@ -951,20 +951,20 @@ void D3DProxyDevice::HandleControls()
 			int wheelSign = (_wheel>0) ? 1 : -1;
 			if(hotkeyWheelYOffset->IsPressed(controls))
 			{
-				this->stereoView->YOffset += 0.005f * wheelSign;
-				clamp(&this->stereoView->YOffset, -0.1f, 0.1f);
+				config.YOffset += 0.005f * wheelSign;
+				clamp(&config.YOffset, -0.1f, 0.1f);
 				
 				this->stereoView->PostReset();
 				DeferedSaveConfig();
-				ShowAdjusterToast(retprintf("Y-Offset: %1.3f", this->stereoView->YOffset), 500);
+				ShowAdjusterToast(retprintf("Y-Offset: %1.3f", config.YOffset), 500);
 			}
 			else if(hotkeyWheelIPDOffset->IsPressed(controls))
 			{
-				this->stereoView->IPDOffset += 0.001f * wheelSign;
-				clamp(&this->stereoView->IPDOffset, -0.1f, 0.1f);
+				config.IPDOffset += 0.001f * wheelSign;
+				clamp(&config.IPDOffset, -0.1f, 0.1f);
 
 				this->stereoView->PostReset();
-				ShowAdjusterToast(retprintf("IPD-Offset: %1.3f", this->stereoView->IPDOffset), 500);
+				ShowAdjusterToast(retprintf("IPD-Offset: %1.3f", config.IPDOffset), 500);
 				DeferedSaveConfig();
 			}
 			//CTRL + ALT + Mouse Wheel - adjust World Scale dynamically

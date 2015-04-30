@@ -49,18 +49,14 @@ inline void releaseCheck(char* object, int newRefCount)
 * Constructor.
 * Sets game configuration data. Sets all member pointers to NULL to prevent uninitialized objects being used.
 ***/ 
-StereoView::StereoView(ProxyConfig& config)	
+StereoView::StereoView(ProxyConfig *config)	
 {
+	this->config = config;
 	OutputDebugString("Created SteroView\n");
 	initialized = false;
-	DistortionScale = 0.0f;
 	m_screenViewGlideFactor = 1.0f;
-	YOffset = config.YOffset;
-	IPDOffset = config.IPDOffset;
 	XOffset = 0;
-	game_type = config.game_type;
-	stereo_mode = config.stereo_mode;
-	swapEyes = config.swap_eyes;
+	game_type = config->game_type;
 	chromaticAberrationCorrection = true;
 	m_vignetteStyle = NONE;
 	m_rotation = 0.0f;
@@ -89,7 +85,7 @@ StereoView::StereoView(ProxyConfig& config)
 	sb = NULL;
 	m_bLeftSideActive = false;
 	// set behavior accordingly to game type
-	int gameType = config.game_type;
+	int gameType = config->game_type;
 	if (gameType>10000) gameType-=10000;
 	switch(gameType)
 	{
@@ -369,7 +365,7 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 	m_pActualDevice->SetFVF(D3DFVF_TEXVERTEX);
 
 	// swap eyes
-	if(!swapEyes)
+	if(!config->swap_eyes)
 	{
 		m_pActualDevice->SetTexture(0, leftTexture);
 		m_pActualDevice->SetTexture(1, rightTexture);
@@ -588,7 +584,7 @@ void StereoView::InitShaderEffects()
 
 	ProxyHelper helper = ProxyHelper();
 
-	std::string viewPath = helper.GetPath("fx\\") + shaderEffect[stereo_mode];
+	std::string viewPath = helper.GetPath("fx\\") + shaderEffect[config->stereo_mode];
 
 	if (FAILED(D3DXCreateEffectFromFile(m_pActualDevice, viewPath.c_str(), NULL, NULL, D3DXFX_DONOTSAVESTATE, NULL, &viewEffect, NULL))) {
 		OutputDebugString("Effect creation failed\n");

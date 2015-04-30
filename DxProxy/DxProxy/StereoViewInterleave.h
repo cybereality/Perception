@@ -38,7 +38,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class StereoViewInterleave : public StereoView
 {
 public:
-	StereoViewInterleave(ProxyConfig& config);
+	StereoViewInterleave(ProxyConfig *config);
 	~StereoViewInterleave();
 
 protected:

@@ -45,7 +45,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class StereoView
 {
 public:
-	StereoView(ProxyConfig& config);
+	StereoView(ProxyConfig *config);
 	virtual ~StereoView();
 
 	/*** StereoView public methods ***/
@@ -97,10 +97,6 @@ public:
 	*/
 	bool chromaticAberrationCorrection;
 	/**
-	* Option to swap the eye output for different 3D systems.
-	***/	
-	bool swapEyes;
-	/**
 	* True if class is initialized. Needed since initialization is not done in constructor.
 	***/
 	bool initialized;
@@ -109,21 +105,9 @@ public:
 	***/
 	int game_type;
 	/**
-	* Stereo render option as enumerated in StereoTypes.
-	***/
-	int stereo_mode;
-	/**
 	* True if stereo is enabled.
 	***/
-	bool stereoEnabled() { return (stereo_mode != DISABLED); }; 
-	/**
-	* Should be used by OculusRiftView and D3DProxyDevice.
-	***/
-	float DistortionScale;	
-	/**
-	* Offset the screen vertically
-	***/
-	float YOffset;	
+	bool stereoEnabled() { return (config->stereo_mode != DISABLED); }; 
 	/**
 	* Floaty Screen Y Offset
 	***/
@@ -141,10 +125,6 @@ public:
 	* Offset the screen horizontally
 	***/
 	float XOffset;	
-	/**
-	* Offset the IPD
-	***/
-	float IPDOffset;
 	/**
 	* Used to glide the disconnected screen view in and out
 	*/
@@ -193,6 +173,8 @@ protected:
 	virtual void SaveAllRenderStates(LPDIRECT3DDEVICE9 pDevice);
 	virtual void SetAllRenderStatesDefault(LPDIRECT3DDEVICE9 pDevice);
 	virtual void RestoreAllRenderStates(LPDIRECT3DDEVICE9 pDevice);
+	
+	ProxyConfig *config;
 
 	/**
 	* The actual, unwrapped Direct3D Device. 

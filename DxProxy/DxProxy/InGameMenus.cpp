@@ -834,23 +834,23 @@ void D3DProxyDevice::VPMENU_Settings()
 	menu->OnClose([=]() { VPMENU_UpdateConfigSettings(); });
 
 	// FIXME: Swap Eyes needs a reset-to-default
-	menu->AddButton(retprintf("Swap Eyes : %s", stereoView->swapEyes ? "True" : "False"), [=]()
+	menu->AddButton(retprintf("Swap Eyes : %s", config.swap_eyes ? "True" : "False"), [=]()
 	{
-		stereoView->swapEyes = !stereoView->swapEyes;
+		config.swap_eyes = !config.swap_eyes;
 	});
-	menu->AddAdjustment("IPD-Offset : %1.3f", &this->stereoView->IPDOffset,
+	menu->AddAdjustment("IPD-Offset : %1.3f", &config.IPDOffset,
 		defaultConfig.IPDOffset, 0.001f, [=]()
 	{
-		clamp(&this->stereoView->IPDOffset, -0.1f, 0.1f);
+		clamp(&config.IPDOffset, -0.1f, 0.1f);
 		this->stereoView->PostReset();
 	});
-	menu->AddAdjustment("Y-Offset : %1.3f", &this->stereoView->YOffset,
+	menu->AddAdjustment("Y-Offset : %1.3f", &config.YOffset,
 		defaultConfig.YOffset, 0.001f, [=]()
 	{
-		clamp(&this->stereoView->YOffset, -0.1f, 0.1f);
+		clamp(&config.YOffset, -0.1f, 0.1f);
 		this->stereoView->PostReset();
 	});
-	menu->AddAdjustment("Distortion Scale : %g", &this->stereoView->DistortionScale,
+	menu->AddAdjustment("Distortion Scale : %g", &config.DistortionScale,
 		defaultConfig.DistortionScale, 0.01f, [=]()
 	{
 		this->stereoView->PostReset();
@@ -1339,10 +1339,6 @@ void D3DProxyDevice::VPMENU_UpdateConfigSettings()
 	config.roll_multiplier = tracker->multiplierRoll;
 	config.yaw_multiplier = tracker->multiplierYaw;
 	config.pitch_multiplier = tracker->multiplierPitch;
-	config.YOffset = stereoView->YOffset;
-	config.IPDOffset = stereoView->IPDOffset;
-	config.swap_eyes = stereoView->swapEyes;
-	config.DistortionScale = stereoView->DistortionScale;
 	config.hud3DDepthMode = (int)hud3DDepthMode;
 	config.gui3DDepthMode = (int)gui3DDepthMode;
 	config.WorldFOV = VRBoostValue[VRboostAxis::WorldFOV];
@@ -1371,7 +1367,6 @@ void D3DProxyDevice::VPMENU_UpdateDeviceSettings()
 	SHOW_CALL("VPMENU_UpdateDeviceSettings");
 	
 	m_spShaderViewAdjustment->Load(config);
-	stereoView->DistortionScale = config.DistortionScale;
 
 	// HUD
 	ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)config.hud3DDepthMode);

@@ -40,7 +40,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class OculusRiftView : public StereoView
 {
 public:
-	OculusRiftView(ProxyConfig& config, HMDisplayInfo *hmd);
+	OculusRiftView(ProxyConfig *config, HMDisplayInfo *hmd);
 	
 	/*** OculusRiftView public methods ***/
 	virtual void SetViewEffectInitialValues();

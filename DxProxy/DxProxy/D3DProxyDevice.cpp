@@ -2326,12 +2326,9 @@ void D3DProxyDevice::Init(ProxyConfig& cfg)
 	// first time configuration
 	m_spShaderViewAdjustment->Load(config);
 	m_pGameHandler->Load(config, m_spShaderViewAdjustment);
-	stereoView = StereoViewFactory::Get(config, m_spShaderViewAdjustment->HMDInfo());
-	stereoView->YOffset = config.YOffset;
+	stereoView = StereoViewFactory::Get(&config, m_spShaderViewAdjustment->HMDInfo());
 	stereoView->HeadYOffset = 0;
 	stereoView->HeadZOffset = FLT_MAX;
-	stereoView->IPDOffset = config.IPDOffset;
-	stereoView->DistortionScale = config.DistortionScale;
 	stereoView->m_b2dDepthMode = false;	
 
 	m_maxDistortionScale = config.DistortionScale;
