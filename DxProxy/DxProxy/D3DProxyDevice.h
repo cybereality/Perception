@@ -446,6 +446,8 @@ protected:
 	void VPMENU_DuckAndCover();
 	void VPMENU_ComfortMode();
 	void VPMENU_VRBoostValues();
+	void VPMENU_Hotkeys();
+	void VPMENU_AdjustmentHotkeys();
 	
 	void VPMENU_UpdateCooldowns();
 	void VPMENU_UpdateBorder(int menuEntryCount);

@@ -64,37 +64,35 @@ InputBindingRef LCtrl = Key(VK_LCONTROL);
 InputBindingRef LAlt = Key(VK_MENU);
 
 InputBindingRef hotkeyEdgePeek = Key(VK_MBUTTON) || (Key(VK_LCONTROL)+Key(VK_NUMPAD2));
-InputBindingRef hotkeyResetOrientation =
-	((LShift||LCtrl) + Key('R'))
-	|| (Button(8)+Button(9));
+//InputBindingRef hotkeyResetOrientation = ((LShift||LCtrl) + Key('R')) || (Button(8)+Button(9));
 InputBindingRef hotkeyCrouch = Button(0xc) || Key(VK_RSHIFT);
 InputBindingRef hotkeySkipProne = Button(0xd) || Key(VK_ESCAPE);
-InputBindingRef hotkeyShowAxes = LShift + Key('V');
 
 InputBindingRef hotkeySwitch2DDepthMode = LShift + (Key('O') || Key(VK_NUMPAD9));
-InputBindingRef hotkeySwapSides = LAlt+Key('O');
+//InputBindingRef hotkeySwapSides = LAlt+Key('O');
 InputBindingRef hotkeyPrevRenderState = LAlt + Key(VK_LEFT);
 InputBindingRef hotkeyNextRenderState = LAlt + Key(VK_RIGHT);
 
-InputBindingRef hotkeyToggleCubeRenders = LAlt+Key('1');
-InputBindingRef hotkeyToggleTextureRenders = LAlt + Key('2');
-InputBindingRef hotkeyWhenToRenderMenu = LAlt + Key(VK_UP);
-InputBindingRef hotkeyWhenToPollHeadtracking = LAlt + Key(VK_DOWN);
-InputBindingRef hotkeyInitiateScan = Key(VK_NUMPAD5) || (Key(VK_OEM_2) + LCtrl);
+//InputBindingRef hotkeyToggleCubeRenders = LAlt+Key('1');
+//InputBindingRef hotkeyToggleTextureRenders = LAlt + Key('2');
+//InputBindingRef hotkeyWhenToRenderMenu = LAlt + Key(VK_UP);
+//InputBindingRef hotkeyWhenToPollHeadtracking = LAlt + Key(VK_DOWN);
+//InputBindingRef hotkeyInitiateScan = Key(VK_NUMPAD5) || (Key(VK_OEM_2) + LCtrl);
 InputBindingRef hotkeyNextScanCandidate = Key(VK_NUMPAD6) || (LCtrl+Key(VK_OEM_PERIOD));
 InputBindingRef hotkeyPrevScanCandidate = Key(VK_NUMPAD4) || (LCtrl+Key(VK_OEM_COMMA));
 InputBindingRef hotkeyCancelScan = Key(VK_NUMPAD8) || (LCtrl + Key(VK_OEM_1));
 
 InputBindingRef hotkeyToggleFreePitch = LShift + Key('X');
 InputBindingRef hotkeyComfortMode = LShift + Key('M');
-InputBindingRef hotkeyBlackSmear = LShift+Key('B');;
 
-InputBindingRef hotkeyResetIPDOffset = Key(VK_F8) || (LShift+Key('I'));
-InputBindingRef hotkeyShowFPS = (LShift+Key('F')) || (LCtrl+Key('F'));
-InputBindingRef hotkeyShowHMDStats = (LShift+Key('H')) || (LCtrl+Key('H'));
-InputBindingRef hotkeyTogglePositionalTracking = Key(VK_F11) || (LShift+Key('P')) || (LCtrl+Key('P'));
-InputBindingRef hotkeyTogglePosePrediction = LShift+Key(VK_DELETE);
-InputBindingRef hotkeyToggleChromaticAbberationCorrection = (LShift+Key('J')) || (LCtrl+Key('J'));
+//InputBindingRef hotkeyBlackSmear = LShift+Key('B');;
+//InputBindingRef hotkeyResetIPDOffset = Key(VK_F8) || (LShift+Key('I'));
+//InputBindingRef hotkeyShowHMDStats = (LShift+Key('H')) || (LCtrl+Key('H'));
+//InputBindingRef hotkeyShowAxes = LShift + Key('V');
+//InputBindingRef hotkeyTogglePositionalTracking = Key(VK_F11) || (LShift+Key('P')) || (LCtrl+Key('P'));
+//InputBindingRef hotkeyTogglePosePrediction = LShift+Key(VK_DELETE);
+//InputBindingRef hotkeyToggleChromaticAbberationCorrection = (LShift+Key('J')) || (LCtrl+Key('J'));
+
 InputBindingRef hotkeyVRMouse = Key(VK_NUMPAD0);
 InputBindingRef hotkeyFloatyMenus = LCtrl+Key(VK_NUMPAD1);
 InputBindingRef hotkeyDoubleClickVPMenu = Button(4);
@@ -108,8 +106,10 @@ InputBindingRef hotkeyWheelZoomScale = LCtrl;
 
 InputBindingRef hotkeyDistortionScalePlus = LCtrl+Key(VK_ADD);
 InputBindingRef hotkeyDistortionScaleMinus = LCtrl+Key(VK_SUBTRACT);
-InputBindingRef hotkeyScreenshot = Key(VK_RCONTROL) + Key(VK_MULTIPLY);
-InputBindingRef hotkeyTelescopeMode = Key(VK_MENU)+Key(VK_MBUTTON);
+
+//InputBindingRef hotkeyShowFPS = (LShift+Key('F')) || (LCtrl+Key('F'));
+//InputBindingRef hotkeyScreenshot = Key(VK_RCONTROL) + Key(VK_MULTIPLY);
+//InputBindingRef hotkeyTelescopeMode = Key(VK_MENU)+Key(VK_MBUTTON);
 
 /**
 * Keyboard input handling
@@ -344,7 +344,7 @@ void D3DProxyDevice::HandleControls()
 	if (!m_disableAllHotkeys)
 	{
 		//Rset HMD Orientation+Position LSHIFT+R, or L+R Shoulder buttons on Xbox 360 controller
-		if (hotkeyResetOrientation->IsPressed(controls) && HotkeysActive())
+		if (config.HotkeyResetOrientation->IsPressed(controls) && HotkeysActive())
 		{
 			if (calibrate_tracker)
 			{
@@ -412,7 +412,7 @@ void D3DProxyDevice::HandleControls()
 
 
 		// Show active VRBoost axes and their addresses (SHIFT+V)
-		if (hotkeyShowAxes->IsPressed(controls) && HotkeysActive())
+		if (config.HotkeyShowAxes->IsPressed(controls) && HotkeysActive())
 		{
 			if (hmVRboost!=NULL)
 			{
@@ -456,7 +456,7 @@ void D3DProxyDevice::HandleControls()
 		}
 
 		// Swap Sides on Depth mode (Alt + O)
-		if (hotkeySwapSides->IsPressed(controls) && HotkeysActive())
+		if (config.HotkeySwapSides->IsPressed(controls) && HotkeysActive())
 		{
 			if(m_b2dDepthMode)
 			{
@@ -486,7 +486,7 @@ void D3DProxyDevice::HandleControls()
 		}
 
 		// Toggle Through Cube Renders -> ALt + 1
-		if (hotkeyToggleCubeRenders->IsPressed(controls) && HotkeysActive())
+		if (config.HotkeyToggleCubeRenders->IsPressed(controls) && HotkeysActive())
 		{
 			const char *cubeDuplicationDescription = "?";
 			if(m_pGameHandler->intDuplicateCubeTexture < 3)
@@ -510,7 +510,7 @@ void D3DProxyDevice::HandleControls()
 			HotkeyCooldown(COOLDOWN_LONG);
 		}
 		// Toggle Through Texture Renders -> ALt + 2
-		if (hotkeyToggleTextureRenders->IsPressed(controls) && HotkeysActive())
+		if (config.HotkeyToggleTextureRenders->IsPressed(controls) && HotkeysActive())
 		{
 			const char *textureDuplicationDescription = "?";
 			if(m_pGameHandler->intDuplicateTexture < 4)
@@ -537,7 +537,7 @@ void D3DProxyDevice::HandleControls()
 		}
 
 		//When to render vpmenu (Alt + Up)
-		if (hotkeyWhenToRenderMenu->IsPressed(controls) && HotkeysActive())
+		if (config.HotkeyWhenToRenderMenu->IsPressed(controls) && HotkeysActive())
 		{
 			const char *vpmenuRenderDesc = "?";
 			if(m_deviceBehavior.whenToRenderVPMENU == DeviceBehavior::BEGIN_SCENE)
@@ -562,7 +562,7 @@ void D3DProxyDevice::HandleControls()
 		}
 
 		//When to poll headtracking (Alt + Down)
-		if (hotkeyWhenToPollHeadtracking->IsPressed(controls) && HotkeysActive())
+		if (config.HotkeyWhenToPollHeadtracking->IsPressed(controls) && HotkeysActive())
 		{
 			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
 			if(m_deviceBehavior.whenToHandleHeadTracking == DeviceBehavior::BEGIN_SCENE)
@@ -586,7 +586,7 @@ void D3DProxyDevice::HandleControls()
 		}
 
 		// Initiate VRBoost Memory Scan (NUMPAD5 or <LCTRL> + </> )
-		if (hotkeyInitiateScan->IsPressed(controls) && HotkeysActive())
+		if (config.HotkeyInitiateScan->IsPressed(controls) && HotkeysActive())
 		{
 			if (hmVRboost!=NULL)
 			{
@@ -728,7 +728,7 @@ void D3DProxyDevice::HandleControls()
 
 		//Enabled/Disable Black Smear Correction for DK2 (default is disabled), LSHIFT + B
 		if ((tracker && tracker->SupportsPositionTracking()) &&
-			hotkeyBlackSmear->IsPressed(controls) && 
+			config.HotkeyBlackSmear->IsPressed(controls) && 
 			HotkeysActive())
 		{
 			if (stereoView->m_blackSmearCorrection != 0.0f)
@@ -745,7 +745,7 @@ void D3DProxyDevice::HandleControls()
 
 
 		//Reset IPD Offset to 0  -  F8  or  LSHIFT+I
-		if (hotkeyResetIPDOffset->IsPressed(controls) && HotkeysActive() && this->stereoView->IPDOffset != 0.0)
+		if (config.HotkeyResetIPDOffset->IsPressed(controls) && HotkeysActive() && this->stereoView->IPDOffset != 0.0)
 		{
 			this->stereoView->IPDOffset = 0.0;
 			this->stereoView->PostReset();		
@@ -756,14 +756,14 @@ void D3DProxyDevice::HandleControls()
 		}
 
 		//Show FPS Counter / Frame Time counter LSHIFT+F
-		if (hotkeyShowFPS->IsPressed(controls) && HotkeysActive())
+		if (config.HotkeyShowFPS->IsPressed(controls) && HotkeysActive())
 		{
 			show_fps = (FPS_TYPE)((show_fps+1) % 3);
 			HotkeyCooldown(COOLDOWN_SHORT);
 		}
 
 		//Show HMD Stats Counter LSHIFT+H 
-		if (hotkeyShowHMDStats->IsPressed(controls) && HotkeysActive())
+		if (config.HotkeyShowHMDStats->IsPressed(controls) && HotkeysActive())
 		{
 			if (activePopup.popupType == VPT_STATS)
 			{
@@ -778,7 +778,7 @@ void D3DProxyDevice::HandleControls()
 		}
 
 		//Toggle positional tracking
-		if (hotkeyTogglePositionalTracking->IsPressed(controls) && HotkeysActive())
+		if (config.HotkeyTogglePositionalTracking->IsPressed(controls) && HotkeysActive())
 		{
 			m_bPosTrackingToggle = !m_bPosTrackingToggle;
 
@@ -794,7 +794,7 @@ void D3DProxyDevice::HandleControls()
 
 		//Toggle SDK Pose Prediction- LSHIFT + DELETE
 		if (hmdInfo->GetHMDManufacturer() == HMD_OCULUS	&&
-			hotkeyTogglePosePrediction->IsPressed(controls) && HotkeysActive() && tracker)
+			config.HotkeyTogglePosePrediction->IsPressed(controls) && HotkeysActive() && tracker)
 		{
 			tracker->useSDKPosePrediction = !tracker->useSDKPosePrediction;
 
@@ -806,7 +806,7 @@ void D3DProxyDevice::HandleControls()
 		}
 
 		//Toggle chromatic abberation correction - SHIFT+J
-		if (hotkeyToggleChromaticAbberationCorrection->IsPressed(controls) && HotkeysActive())
+		if (config.HotkeyToggleChromaticAbberationCorrection->IsPressed(controls) && HotkeysActive())
 		{
 			stereoView->chromaticAberrationCorrection = !stereoView->chromaticAberrationCorrection;
 
@@ -1027,7 +1027,7 @@ void D3DProxyDevice::HandleControls()
 
 
 		// screenshot - <RCONTROL>+<*>
-		if(hotkeyScreenshot->IsPressed(controls) && HotkeysActive())
+		if(config.HotkeyScreenshot->IsPressed(controls) && HotkeysActive())
 		{
 			// render 3 frames to get screenshots
 			screenshot = 3;
@@ -1035,7 +1035,7 @@ void D3DProxyDevice::HandleControls()
 		}
 	
 		//Telescopic mode - use ALT + Mouse Wheel CLick
-		if (hotkeyTelescopeMode->IsPressed(controls) && HotkeysActive())
+		if (config.HotkeyTelescopeMode->IsPressed(controls) && HotkeysActive())
 		{
 			//First check whether VRBoost is controlling FOV, we can't use this functionality if it isn't
 			bool canUseTelescope = false;

@@ -37,6 +37,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace pugi;
 using namespace vireio;
+using namespace HotkeyExpressions;
 using std::string;
 
 #ifdef x64
@@ -161,6 +162,12 @@ template<class T> static void set_attribute(xml_node &node, const char *key, T n
 
 static void LoadHotkey(xml_node &node, const char *key, InputBindingRef *setting)
 {
+	if(node.attribute(key).empty())
+	{
+		*setting = HotkeyExpressions::Unbound();
+		return;
+	}
+	
 	std::string hkString = node.attribute(key).as_string();
 	
 	Json::Value json;
@@ -998,6 +1005,25 @@ void ProxyHelper::HandleGameProfile(ConfigTransferDirection dir, xml_node &node,
 	HandleSetting(dir, node, "ConstantValue1", &config.ConstantValue1);
 	HandleSetting(dir, node, "ConstantValue2", &config.ConstantValue2);
 	HandleSetting(dir, node, "ConstantValue3", &config.ConstantValue3);
+	
+	HandleSetting(dir, node, "HotkeyResetOrientation", &config.HotkeyResetOrientation);
+	HandleSetting(dir, node, "HotkeyShowFPS", &config.HotkeyShowFPS);
+	HandleSetting(dir, node, "HotkeyScreenshot", &config.HotkeyScreenshot);
+	HandleSetting(dir, node, "HotkeyTelescopeMode", &config.HotkeyTelescopeMode);
+	
+	HandleSetting(dir, node, "HotkeySwapSides", &config.HotkeySwapSides);
+	HandleSetting(dir, node, "HotkeyToggleCubeRenders", &config.HotkeyToggleCubeRenders);
+	HandleSetting(dir, node, "HotkeyToggleTextureRenders", &config.HotkeyToggleTextureRenders);
+	HandleSetting(dir, node, "HotkeyWhenToRenderMenu", &config.HotkeyWhenToRenderMenu);
+	HandleSetting(dir, node, "HotkeyWhenToPollHeadtracking", &config.HotkeyWhenToPollHeadtracking);
+	HandleSetting(dir, node, "HotkeyInitiateScan", &config.HotkeyInitiateScan);
+	HandleSetting(dir, node, "HotkeyBlackSmear", &config.HotkeyBlackSmear);
+	HandleSetting(dir, node, "HotkeyResetIPDOffset", &config.HotkeyResetIPDOffset);
+	HandleSetting(dir, node, "HotkeyShowHMDStats", &config.HotkeyShowHMDStats);
+	HandleSetting(dir, node, "HotkeyShowAxes", &config.HotkeyShowAxes);
+	HandleSetting(dir, node, "HotkeyTogglePositionalTracking", &config.HotkeyTogglePositionalTracking);
+	HandleSetting(dir, node, "HotkeyTogglePosePrediction", &config.HotkeyTogglePosePrediction);
+	HandleSetting(dir, node, "HotkeyToggleChromaticAbberationCorrection", &config.HotkeyToggleChromaticAbberationCorrection);
 }
 
 
@@ -1111,6 +1137,10 @@ bool ProxyHelper::GetProfile(char* name, char *path, bool _64bit, ProxyConfig& c
 
 ProxyConfig::ProxyConfig()
 {
+	InputBindingRef LShift = Key(VK_LSHIFT);
+	InputBindingRef LCtrl = Key(VK_LCONTROL);
+	InputBindingRef LAlt = Key(VK_MENU);
+
 	game_exe = "";
 	dir_contains = "";
 	shaderRulePath = "";
@@ -1143,11 +1173,11 @@ ProxyConfig::ProxyConfig()
 	hudDistancePresets[1] = DEFAULT_HUD_DISTANCE_2;
 	hudDistancePresets[2] = DEFAULT_HUD_DISTANCE_3;
 	hudDistancePresets[3] = DEFAULT_HUD_DISTANCE_4;
-	hudSwitchHotkey = HotkeyExpressions::Unbound();
-	hudHotkeys[0] = HotkeyExpressions::Unbound();
-	hudHotkeys[1] = HotkeyExpressions::Unbound();
-	hudHotkeys[2] = HotkeyExpressions::Unbound();
-	hudHotkeys[3] = HotkeyExpressions::Unbound();
+	hudSwitchHotkey = Unbound();
+	hudHotkeys[0] = Unbound();
+	hudHotkeys[1] = Unbound();
+	hudHotkeys[2] = Unbound();
+	hudHotkeys[3] = Unbound();
 	gui3DDepthMode = 0;
 	gui3DDepthPresets[0] = 0.0f;
 	gui3DDepthPresets[1] = 0.0f;
@@ -1157,13 +1187,13 @@ ProxyConfig::ProxyConfig()
 	guiSquishPresets[1] = DEFAULT_GUI_SIZE_2;
 	guiSquishPresets[2] = DEFAULT_GUI_SIZE_3;
 	guiSquishPresets[3] = DEFAULT_GUI_SIZE_4;
-	guiSwitchHotkey = HotkeyExpressions::Unbound();
-	guiHotkeys[0] = HotkeyExpressions::Unbound();
-	guiHotkeys[1] = HotkeyExpressions::Unbound();
-	guiHotkeys[2] = HotkeyExpressions::Unbound();
-	guiHotkeys[3] = HotkeyExpressions::Unbound();
-	VRBoostResetHotkey = HotkeyExpressions::Unbound();
-	EdgePeekHotkey = HotkeyExpressions::Unbound();
+	guiSwitchHotkey = Unbound();
+	guiHotkeys[0] = Unbound();
+	guiHotkeys[1] = Unbound();
+	guiHotkeys[2] = Unbound();
+	guiHotkeys[3] = Unbound();
+	VRBoostResetHotkey = Unbound();
+	EdgePeekHotkey = Unbound();
 	WorldFOV = 95.0;
 	PlayerFOV = 125.0;
 	FarPlaneFOV = 95.0;
@@ -1184,8 +1214,27 @@ ProxyConfig::ProxyConfig()
 	display_adapter = 0;
 	
 	ComfortModeYawIncrement = 90.0f;
-	ComfortModeLeftKey = HotkeyExpressions::Key(VK_LEFT);
-	ComfortModeRightKey = HotkeyExpressions::Key(VK_RIGHT);
+	ComfortModeLeftKey = Key(VK_LEFT);
+	ComfortModeRightKey = Key(VK_RIGHT);
+	
+	HotkeyResetOrientation = (LShift + Key('R')) || (LCtrl + Key('R')) || (Button(8)+Button(9));
+	HotkeyShowFPS = (LShift+Key('F')) || (LCtrl+Key('F'));
+	HotkeyScreenshot = Key(VK_RCONTROL) + Key(VK_MULTIPLY);
+	HotkeyTelescopeMode = Key(VK_MENU) + Key(VK_MBUTTON);
+	
+	HotkeySwapSides = Unbound();
+	HotkeyToggleCubeRenders = Unbound();
+	HotkeyToggleTextureRenders = Unbound();
+	HotkeyWhenToRenderMenu = Unbound();
+	HotkeyWhenToPollHeadtracking = Unbound();
+	HotkeyInitiateScan = Unbound();
+	HotkeyBlackSmear = Unbound();
+	HotkeyResetIPDOffset = Unbound();
+	HotkeyShowHMDStats = Unbound();
+	HotkeyShowAxes = Unbound();
+	HotkeyTogglePositionalTracking = Unbound();
+	HotkeyTogglePosePrediction = Unbound();
+	HotkeyToggleChromaticAbberationCorrection = Unbound();
 }
 
 /**

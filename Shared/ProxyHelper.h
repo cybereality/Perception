@@ -108,12 +108,35 @@ struct ProxyConfig
 	float       ConstantValue2;             /**< Game-specific constant value 2. **/
 	float       ConstantValue3;             /**< Game-specific constant value 3. **/
 	
-	/** general settings **/
+	/****** General Settings *************************************************/
 	int         stereo_mode;                /**< Stereo render mode enumeration. Matching StereoView::StereoTypes. */
 	int         tracker_mode;               /**< Tracking mode enumeration. Matching MotionTracker::TrackingTypes. */
 	float       ipd;                        /**< IPD, which stands for interpupillary distance (distance between your pupils - in meters...default = 0.064). Also called the interocular distance (or just Interocular). */
 	float       aspect_multiplier;          /**< Currently unused aspect multiplier. Aspect multiplier allows adjusting aspect ratio consistently for Stereo/NoStereo. */
 	UINT		display_adapter;			/**< The display adapter to use - 0 = Primary Display, 1 = Secondary and so on.. */
+	
+	/****** Misc Hotkeys *****************************************************/
+	
+	InputBindingRef HotkeyResetOrientation;
+	InputBindingRef HotkeyShowFPS;
+	InputBindingRef HotkeyScreenshot;
+	InputBindingRef HotkeyTelescopeMode;
+	
+	/****** Adjuster Hotkeys *************************************************/
+	
+	InputBindingRef HotkeySwapSides;
+	InputBindingRef HotkeyToggleCubeRenders;
+	InputBindingRef HotkeyToggleTextureRenders;
+	InputBindingRef HotkeyWhenToRenderMenu;
+	InputBindingRef HotkeyWhenToPollHeadtracking;
+	InputBindingRef HotkeyInitiateScan;
+	InputBindingRef HotkeyBlackSmear;
+	InputBindingRef HotkeyResetIPDOffset;
+	InputBindingRef HotkeyShowHMDStats;
+	InputBindingRef HotkeyShowAxes;
+	InputBindingRef HotkeyTogglePositionalTracking;
+	InputBindingRef HotkeyTogglePosePrediction;
+	InputBindingRef HotkeyToggleChromaticAbberationCorrection;
 	
 	vireio::RenderPosition MaybeSwap(vireio::RenderPosition whichEye);
 };

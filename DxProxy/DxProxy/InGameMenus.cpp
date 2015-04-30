@@ -398,6 +398,8 @@ void D3DProxyDevice::VPMENU_MainMenu()
 	menu->AddNavigation("Overall Settings\n", [=]() { VPMENU_Settings(); });
 	menu->AddNavigation("VRBoost Values\n", [=]() { VPMENU_VRBoostValues(); });
 	menu->AddNavigation("Position Tracking Configuration\n", [=]() { VPMENU_PosTracking(); });
+	menu->AddNavigation("General Hotkeys\n", [=]() { VPMENU_Hotkeys(); });
+	menu->AddNavigation("3D Adjustment Hotkeys\n", [=]() { VPMENU_AdjustmentHotkeys(); });
 	menu->AddNavigation("Comfort Mode Configuration\n", [=]() { VPMENU_ComfortMode(); });
 	menu->AddButton("Restore Configuration\n", [=]() {
 		// first, backup all strings
@@ -1177,6 +1179,47 @@ void D3DProxyDevice::VPMENU_VRBoostValues()
 	menu->AddButton("Back to Main Menu", [=]() { VPMENU_Back(); });
 	menu->AddButton("Back to Game", [=]() { VPMENU_Close(); });
 
+	VPMENU_FinishDrawing(menu);
+}
+
+void D3DProxyDevice::VPMENU_Hotkeys()
+{
+	SHOW_CALL("VPMENU_Hotkeys");
+	MenuBuilder *menu = VPMENU_NewFrame();
+	VPMENU_StartDrawing(menu, "Settings - Hotkeys");
+	
+	menu->AddKeybind("Reset Orientation", &config.HotkeyResetOrientation);
+	menu->AddKeybind("Show FPS Hotkey", &config.HotkeyShowFPS);
+	menu->AddKeybind("Screenshot", &config.HotkeyScreenshot);
+	menu->AddKeybind("Telescope Mode", &config.HotkeyTelescopeMode);
+	
+	menu->AddButton("Back to Main Menu", [=]() { VPMENU_Back(); });
+	menu->AddButton("Back to Game", [=]() { VPMENU_Close(); });
+	VPMENU_FinishDrawing(menu);
+}
+
+void D3DProxyDevice::VPMENU_AdjustmentHotkeys()
+{
+	SHOW_CALL("VPMENU_AdjustmentHotkeys");
+	MenuBuilder *menu = VPMENU_NewFrame();
+	VPMENU_StartDrawing(menu, "Settings - Adjustment Hotkeys");
+	
+	menu->AddKeybind("Swap Sides Hotkey", &config.HotkeySwapSides);
+	menu->AddKeybind("Toggle Cube Renderers", &config.HotkeyToggleCubeRenders);
+	menu->AddKeybind("Toggle Texture Renderers", &config.HotkeyToggleTextureRenders);
+	menu->AddKeybind("Toggle When to Render Menu", &config.HotkeyWhenToRenderMenu);
+	menu->AddKeybind("Toggle When to Poll Headtracking", &config.HotkeyWhenToPollHeadtracking);
+	menu->AddKeybind("Initiate VRBoost Memory Scan", &config.HotkeyInitiateScan);
+	menu->AddKeybind("DK2 Black Smear Correction", &config.HotkeyBlackSmear);
+	menu->AddKeybind("Reset IPD Offset", &config.HotkeyResetIPDOffset);
+	menu->AddKeybind("Show HMD Stats", &config.HotkeyShowHMDStats);
+	menu->AddKeybind("Show Axes", &config.HotkeyShowAxes);
+	menu->AddKeybind("Toggle Positional Tracking", &config.HotkeyTogglePositionalTracking);
+	menu->AddKeybind("Toggle Pose Prediction", &config.HotkeyTogglePosePrediction);
+	menu->AddKeybind("Toggle Chromatic Abberation Correction", &config.HotkeyToggleChromaticAbberationCorrection);
+	
+	menu->AddButton("Back to Main Menu", [=]() { VPMENU_Back(); });
+	menu->AddButton("Back to Game", [=]() { VPMENU_Close(); });
 	VPMENU_FinishDrawing(menu);
 }
 
