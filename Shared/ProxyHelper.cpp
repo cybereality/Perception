@@ -48,6 +48,12 @@ using std::string;
 
 const ProxyConfig defaultConfig;
 
+static InputBindingRef LShift = Key(VK_LSHIFT);
+static InputBindingRef LCtrl = Key(VK_LCONTROL);
+static InputBindingRef LAlt = Key(VK_MENU);
+static void HandleGameProfile(ProxyHelper::ConfigTransferDirection dir, xml_node &node, ProxyConfig &config);
+
+
 
 /**
 * Simple inline helper to erase characters in a string.
@@ -873,157 +879,188 @@ bool ProxyHelper::SaveConfig(ProxyConfig& config)
 }
 
 
-void HandleSetting(ProxyHelper::ConfigTransferDirection dir,xml_node &node, const char *key, std::string *setting)
+void HandleSetting(ProxyHelper::ConfigTransferDirection dir,xml_node &node, const char *key, std::string *setting, const char *defaultValue)
 {
 	if(dir == ProxyHelper::CONFIG_SAVE) {
 		set_attribute(node, key, setting->c_str());
-	} else {
+	} else if(dir == ProxyHelper::CONFIG_LOAD) {
 		*setting = node.attribute(key).as_string(setting->c_str());
+	} else if(dir == ProxyHelper::CONFIG_RESET_DEFAULT) {
+		*setting = defaultValue;
 	}
 }
 
-void HandleSetting(ProxyHelper::ConfigTransferDirection dir,xml_node &node, const char *key, float *setting)
+void HandleSetting(ProxyHelper::ConfigTransferDirection dir,xml_node &node, const char *key, float *setting, float defaultValue=0.0f)
 {
 	if(dir == ProxyHelper::CONFIG_SAVE) {
 		set_attribute(node, key, *setting);
-	} else {
+	} else if(dir == ProxyHelper::CONFIG_LOAD) {
 		*setting = node.attribute(key).as_float(*setting);
+	} else if(dir == ProxyHelper::CONFIG_RESET_DEFAULT) {
+		*setting = defaultValue;
 	}
 }
 
-void HandleSetting(ProxyHelper::ConfigTransferDirection dir,xml_node &node, const char *key, int *setting)
+void HandleSetting(ProxyHelper::ConfigTransferDirection dir,xml_node &node, const char *key, int *setting, int defaultValue=0)
 {
 	if(dir == ProxyHelper::CONFIG_SAVE) {
 		set_attribute(node, key, *setting);
-	} else {
+	} else if(dir == ProxyHelper::CONFIG_LOAD) {
 		*setting = node.attribute(key).as_int(*setting);
+	} else if(dir == ProxyHelper::CONFIG_RESET_DEFAULT) {
+		// TODO
+		*setting = defaultValue;
 	}
 }
 
-void HandleSetting(ProxyHelper::ConfigTransferDirection dir,xml_node &node, const char *key, UINT *setting)
+void HandleSetting(ProxyHelper::ConfigTransferDirection dir,xml_node &node, const char *key, UINT *setting, UINT defaultValue=0)
 {
 	if(dir == ProxyHelper::CONFIG_SAVE) {
 		set_attribute(node, key, *setting);
-	} else {
+	} else if(dir == ProxyHelper::CONFIG_LOAD) {
 		*setting = node.attribute(key).as_uint(*setting);
+	} else if(dir == ProxyHelper::CONFIG_RESET_DEFAULT) {
+		*setting = defaultValue;
 	}
 }
 
-void HandleSetting(ProxyHelper::ConfigTransferDirection dir,xml_node &node, const char *key, bool *setting)
+void HandleSetting(ProxyHelper::ConfigTransferDirection dir,xml_node &node, const char *key, bool *setting, bool defaultValue=false)
 {
 	if(dir == ProxyHelper::CONFIG_SAVE) {
 		set_attribute(node, key, *setting);
-	} else {
+	} else if(dir == ProxyHelper::CONFIG_LOAD) {
 		*setting = node.attribute(key).as_bool(*setting);
+	} else if(dir == ProxyHelper::CONFIG_RESET_DEFAULT) {
+		*setting = defaultValue;
 	}
 }
 
-void HandleSetting(ProxyHelper::ConfigTransferDirection dir,xml_node &node, const char *key, InputBindingRef *setting)
+void HandleSetting(ProxyHelper::ConfigTransferDirection dir,xml_node &node, const char *key, InputBindingRef *setting, InputBindingRef defaultValue=Unbound())
 {
 	if(dir == ProxyHelper::CONFIG_SAVE) {
 		SaveHotkey(node, key, *setting);
-	} else {
+	} else if(dir == ProxyHelper::CONFIG_LOAD) {
 		LoadHotkey(node, key, setting);
+	} else if(dir == ProxyHelper::CONFIG_RESET_DEFAULT) {
+		*setting = defaultValue;
 	}
 }
 
 
-void ProxyHelper::HandleGameProfile(ConfigTransferDirection dir, xml_node &node, ProxyConfig &config)
+void HandleGameProfile(ProxyHelper::ConfigTransferDirection dir, xml_node &node, ProxyConfig &config)
 {
-	HandleSetting(dir, node, "minVRboostShaderCount", &config.VRboostMinShaderCount);
-	HandleSetting(dir, node, "maxVRboostShaderCount", &config.VRboostMaxShaderCount);
-	HandleSetting(dir, node, "game_type", &config.game_type);
-	HandleSetting(dir, node, "rollImpl", &config.rollImpl);
-	HandleSetting(dir, node, "worldScaleFactor", &config.worldScaleFactor);
+	// Macro for settings in the simple case where the member name equals the
+	// config-file attribute name
+	#define HANDLE_SETTING(name, defaultValue) \
+		HandleSetting(dir, node, #name, &config.name, defaultValue)
+	// Macro for settings in the slightly-more-complex case where the member
+	// name and the config-file attribute name are different
+	#define HANDLE_SETTING_ATTR(attr, name, defaultValue) \
+		HandleSetting(dir, node, attr, &config.name, defaultValue)
 
-	HandleSetting(dir, node, "convergence", &config.convergence);
-	HandleSetting(dir, node, "swap_eyes", &config.swap_eyes);
-	HandleSetting(dir, node, "ipd_offset", &config.IPDOffset);
-	HandleSetting(dir, node, "use_sdk_pose_prediction", &config.useSDKPosePrediction);
-	HandleSetting(dir, node, "y_offset", &config.YOffset);
-	HandleSetting(dir, node, "yaw_multiplier", &config.yaw_multiplier);
-	HandleSetting(dir, node, "pitch_multiplier", &config.pitch_multiplier);
-	HandleSetting(dir, node, "roll_multiplier", &config.roll_multiplier);
-	HandleSetting(dir, node, "position_multiplier", &config.position_multiplier);
-	HandleSetting(dir, node, "position_x_multiplier", &config.position_x_multiplier);
-	HandleSetting(dir, node, "position_y_multiplier", &config.position_y_multiplier);
-	HandleSetting(dir, node, "position_z_multiplier", &config.position_z_multiplier);
-	HandleSetting(dir, node, "distortion_scale", &config.DistortionScale);
+	HANDLE_SETTING_ATTR("minVRboostShaderCount", VRboostMinShaderCount, 0);
+	HANDLE_SETTING_ATTR("maxVRboostShaderCount", VRboostMaxShaderCount, 999999);
+	HANDLE_SETTING(game_type,                0);
+	HANDLE_SETTING(rollImpl,                 0);
+	HANDLE_SETTING(worldScaleFactor,         1.0f);
+
+	HANDLE_SETTING(convergence,              0.0f);
+	HANDLE_SETTING(swap_eyes,                false);
+	HANDLE_SETTING_ATTR("ipd_offset",              IPDOffset, 0.0f);
+	HANDLE_SETTING_ATTR("use_sdk_pose_prediction", useSDKPosePrediction, true);
+	HANDLE_SETTING_ATTR("y_offset",                YOffset, 0.0f);
+	HANDLE_SETTING(yaw_multiplier,           DEFAULT_YAW_MULTIPLIER);
+	HANDLE_SETTING(pitch_multiplier,         DEFAULT_PITCH_MULTIPLIER);
+	HANDLE_SETTING(roll_multiplier,          1.0f);
+	HANDLE_SETTING(position_multiplier,      1.0f);
+	HANDLE_SETTING(position_x_multiplier,    DEFAULT_POS_TRACKING_X_MULT);
+	HANDLE_SETTING(position_y_multiplier,    DEFAULT_POS_TRACKING_Y_MULT);
+	HANDLE_SETTING(position_z_multiplier,    DEFAULT_POS_TRACKING_Z_MULT);
+	HANDLE_SETTING_ATTR("distortion_scale",  DistortionScale, 0.0f);
 	
-	HandleSetting(dir, node, "hud_3D_depth_mode", &config.hud3DDepthMode);
+	HANDLE_SETTING_ATTR("hud_3D_depth_mode", hud3DDepthMode, 0);
 
-	HandleSetting(dir, node, "hud_3D_depth_1", &config.hud3DDepthPresets[0]);
-	HandleSetting(dir, node, "hud_3D_depth_2", &config.hud3DDepthPresets[1]);
-	HandleSetting(dir, node, "hud_3D_depth_3", &config.hud3DDepthPresets[2]);
-	HandleSetting(dir, node, "hud_3D_depth_4", &config.hud3DDepthPresets[3]);
+	HANDLE_SETTING_ATTR("hud_3D_depth_1",    hud3DDepthPresets[0], 0.0f);
+	HANDLE_SETTING_ATTR("hud_3D_depth_2",    hud3DDepthPresets[1], 0.0f);
+	HANDLE_SETTING_ATTR("hud_3D_depth_3",    hud3DDepthPresets[2], 0.0f);
+	HANDLE_SETTING_ATTR("hud_3D_depth_4",    hud3DDepthPresets[3], 0.0f);
 
-	HandleSetting(dir, node, "hud_distance_1", &config.hudDistancePresets[0]);
-	HandleSetting(dir, node, "hud_distance_2", &config.hudDistancePresets[1]);
-	HandleSetting(dir, node, "hud_distance_3", &config.hudDistancePresets[2]);
-	HandleSetting(dir, node, "hud_distance_4", &config.hudDistancePresets[3]);
+	HANDLE_SETTING_ATTR("hud_distance_1",    hudDistancePresets[0], DEFAULT_HUD_DISTANCE_1);
+	HANDLE_SETTING_ATTR("hud_distance_2",    hudDistancePresets[1], DEFAULT_HUD_DISTANCE_2);
+	HANDLE_SETTING_ATTR("hud_distance_3",    hudDistancePresets[2], DEFAULT_HUD_DISTANCE_3);
+	HANDLE_SETTING_ATTR("hud_distance_4",    hudDistancePresets[3], DEFAULT_HUD_DISTANCE_4);
 
-	HandleSetting(dir, node, "hud_key_swap",    &config.hudSwitchHotkey);
-	HandleSetting(dir, node, "hud_key_default", &config.hudHotkeys[0]);
-	HandleSetting(dir, node, "hud_key_small",   &config.hudHotkeys[1]);
-	HandleSetting(dir, node, "hud_key_large",   &config.hudHotkeys[2]);
-	HandleSetting(dir, node, "hud_key_full",    &config.hudHotkeys[3]);
+	HANDLE_SETTING_ATTR("hud_key_swap",      hudSwitchHotkey, Unbound());
+	HANDLE_SETTING_ATTR("hud_key_default",   hudHotkeys[0], Unbound());
+	HANDLE_SETTING_ATTR("hud_key_small",     hudHotkeys[1], Unbound());
+	HANDLE_SETTING_ATTR("hud_key_large",     hudHotkeys[2], Unbound());
+	HANDLE_SETTING_ATTR("hud_key_full",      hudHotkeys[3], Unbound());
 
-	HandleSetting(dir, node, "gui_3D_depth_mode", &config.gui3DDepthMode);
-	HandleSetting(dir, node, "gui_3D_depth_1", &config.gui3DDepthPresets[0]);
-	HandleSetting(dir, node, "gui_3D_depth_2", &config.gui3DDepthPresets[1]);
-	HandleSetting(dir, node, "gui_3D_depth_3", &config.gui3DDepthPresets[2]);
-	HandleSetting(dir, node, "gui_3D_depth_4", &config.gui3DDepthPresets[3]);
+	HANDLE_SETTING_ATTR("gui_3D_depth_mode", gui3DDepthMode, 0);
+	HANDLE_SETTING_ATTR("gui_3D_depth_1",    gui3DDepthPresets[0], 0.0f);
+	HANDLE_SETTING_ATTR("gui_3D_depth_2",    gui3DDepthPresets[1], 0.0f);
+	HANDLE_SETTING_ATTR("gui_3D_depth_3",    gui3DDepthPresets[2], 0.0f);
+	HANDLE_SETTING_ATTR("gui_3D_depth_4",    gui3DDepthPresets[3], 0.0f);
 
-	HandleSetting(dir, node, "gui_size_1", &config.guiSquishPresets[0]);
-	HandleSetting(dir, node, "gui_size_2", &config.guiSquishPresets[1]);
-	HandleSetting(dir, node, "gui_size_3", &config.guiSquishPresets[2]);
-	HandleSetting(dir, node, "gui_size_4", &config.guiSquishPresets[3]);
+	HANDLE_SETTING_ATTR("gui_size_1",        guiSquishPresets[0], DEFAULT_GUI_SIZE_1);
+	HANDLE_SETTING_ATTR("gui_size_2",        guiSquishPresets[1], DEFAULT_GUI_SIZE_2);
+	HANDLE_SETTING_ATTR("gui_size_3",        guiSquishPresets[2], DEFAULT_GUI_SIZE_3);
+	HANDLE_SETTING_ATTR("gui_size_4",        guiSquishPresets[3], DEFAULT_GUI_SIZE_4);
 
-	HandleSetting(dir, node, "gui_key_swap",    &config.guiSwitchHotkey);
-	HandleSetting(dir, node, "gui_key_default", &config.guiHotkeys[0]);
-	HandleSetting(dir, node, "gui_key_small",   &config.guiHotkeys[1]);
-	HandleSetting(dir, node, "gui_key_large",   &config.guiHotkeys[2]);
-	HandleSetting(dir, node, "gui_key_full",    &config.guiHotkeys[3]);
+	HANDLE_SETTING_ATTR("gui_key_swap",      guiSwitchHotkey, Unbound());
+	HANDLE_SETTING_ATTR("gui_key_default",   guiHotkeys[0], Unbound());
+	HANDLE_SETTING_ATTR("gui_key_small",     guiHotkeys[1], Unbound());
+	HANDLE_SETTING_ATTR("gui_key_large",     guiHotkeys[2], Unbound());
+	HANDLE_SETTING_ATTR("gui_key_full",      guiHotkeys[3], Unbound());
 
-	HandleSetting(dir, node, "VRBoost_key_reset", &config.VRBoostResetHotkey);
-	HandleSetting(dir, node, "edge_peek_key", &config.EdgePeekHotkey);
+	HANDLE_SETTING_ATTR("VRBoost_key_reset", VRBoostResetHotkey, Unbound());
+	HANDLE_SETTING_ATTR("edge_peek_key",     EdgePeekHotkey, Unbound());
 
-	HandleSetting(dir, node, "ComfortModeYawIncrement", &config.ComfortModeYawIncrement);
-	HandleSetting(dir, node, "ComfortModeLeftKey", &config.ComfortModeLeftKey);
-	HandleSetting(dir, node, "ComfortModeRightKey", &config.ComfortModeRightKey);
+	HANDLE_SETTING(ComfortModeYawIncrement, 90.0f);
+	HANDLE_SETTING(ComfortModeLeftKey,       Key(VK_LEFT));
+	HANDLE_SETTING(ComfortModeRightKey,      Key(VK_RIGHT));
 
-	HandleSetting(dir, node, "WorldFOV", &config.WorldFOV);
-	HandleSetting(dir, node, "PlayerFOV", &config.PlayerFOV);
-	HandleSetting(dir, node, "FarPlaneFOV", &config.FarPlaneFOV);
+	HANDLE_SETTING(WorldFOV,                95.0f);
+	HANDLE_SETTING(PlayerFOV,               125.0f);
+	HANDLE_SETTING(FarPlaneFOV,             95.0f);
 
-	HandleSetting(dir, node, "CameraTranslateX", &config.CameraTranslateX);
-	HandleSetting(dir, node, "CameraTranslateY", &config.CameraTranslateY);
-	HandleSetting(dir, node, "CameraTranslateZ", &config.CameraTranslateZ);
-	HandleSetting(dir, node, "CameraDistance", &config.CameraDistance);
-	HandleSetting(dir, node, "CameraZoom", &config.CameraZoom);
-	HandleSetting(dir, node, "CameraHorizonAdjustment", &config.CameraHorizonAdjustment);
-	HandleSetting(dir, node, "ConstantValue1", &config.ConstantValue1);
-	HandleSetting(dir, node, "ConstantValue2", &config.ConstantValue2);
-	HandleSetting(dir, node, "ConstantValue3", &config.ConstantValue3);
+	HANDLE_SETTING(CameraTranslateX,        0.0f);
+	HANDLE_SETTING(CameraTranslateY,        0.0f);
+	HANDLE_SETTING(CameraTranslateZ,        0.0f);
+	HANDLE_SETTING(CameraDistance,          0.0f);
+	HANDLE_SETTING(CameraZoom,              0.0f);
+	HANDLE_SETTING(CameraHorizonAdjustment, 0.0f);
+	HANDLE_SETTING(ConstantValue1,          0.0f);
+	HANDLE_SETTING(ConstantValue2,          0.0f);
+	HANDLE_SETTING(ConstantValue3,          0.0f);
 	
-	HandleSetting(dir, node, "HotkeyResetOrientation", &config.HotkeyResetOrientation);
-	HandleSetting(dir, node, "HotkeyShowFPS", &config.HotkeyShowFPS);
-	HandleSetting(dir, node, "HotkeyScreenshot", &config.HotkeyScreenshot);
-	HandleSetting(dir, node, "HotkeyTelescopeMode", &config.HotkeyTelescopeMode);
+	HANDLE_SETTING(HotkeyResetOrientation, (LShift + Key('R')) || (LCtrl + Key('R')) || (Button(8)+Button(9)));
+	HANDLE_SETTING(HotkeyShowFPS,          (LShift+Key('F')) || (LCtrl+Key('F')));
+	HANDLE_SETTING(HotkeyScreenshot,       Key(VK_RCONTROL) + Key(VK_MULTIPLY));
+	HANDLE_SETTING(HotkeyTelescopeMode,    Key(VK_MENU) + Key(VK_MBUTTON));
+	HANDLE_SETTING(HotkeyToggleFreePitch,                     Unbound());
+	HANDLE_SETTING(HotkeyComfortMode,                         Unbound());
+	HANDLE_SETTING(HotkeyVRMouse,                             Unbound());
+	HANDLE_SETTING(HotkeyFloatyMenus,                         Unbound());
 	
-	HandleSetting(dir, node, "HotkeySwapSides", &config.HotkeySwapSides);
-	HandleSetting(dir, node, "HotkeyToggleCubeRenders", &config.HotkeyToggleCubeRenders);
-	HandleSetting(dir, node, "HotkeyToggleTextureRenders", &config.HotkeyToggleTextureRenders);
-	HandleSetting(dir, node, "HotkeyWhenToRenderMenu", &config.HotkeyWhenToRenderMenu);
-	HandleSetting(dir, node, "HotkeyWhenToPollHeadtracking", &config.HotkeyWhenToPollHeadtracking);
-	HandleSetting(dir, node, "HotkeyInitiateScan", &config.HotkeyInitiateScan);
-	HandleSetting(dir, node, "HotkeyBlackSmear", &config.HotkeyBlackSmear);
-	HandleSetting(dir, node, "HotkeyResetIPDOffset", &config.HotkeyResetIPDOffset);
-	HandleSetting(dir, node, "HotkeyShowHMDStats", &config.HotkeyShowHMDStats);
-	HandleSetting(dir, node, "HotkeyShowAxes", &config.HotkeyShowAxes);
-	HandleSetting(dir, node, "HotkeyTogglePositionalTracking", &config.HotkeyTogglePositionalTracking);
-	HandleSetting(dir, node, "HotkeyTogglePosePrediction", &config.HotkeyTogglePosePrediction);
-	HandleSetting(dir, node, "HotkeyToggleChromaticAbberationCorrection", &config.HotkeyToggleChromaticAbberationCorrection);
+	HANDLE_SETTING(HotkeySwitch2DDepthMode,                   Unbound());
+	HANDLE_SETTING(HotkeySwapSides,                           Unbound());
+	HANDLE_SETTING(HotkeyToggleCubeRenders,                   Unbound());
+	HANDLE_SETTING(HotkeyToggleTextureRenders,                Unbound());
+	HANDLE_SETTING(HotkeyWhenToRenderMenu,                    Unbound());
+	HANDLE_SETTING(HotkeyWhenToPollHeadtracking,              Unbound());
+	HANDLE_SETTING(HotkeyInitiateScan,                        Unbound());
+	HANDLE_SETTING(HotkeyBlackSmear,                          Unbound());
+	HANDLE_SETTING(HotkeyResetIPDOffset,                      Unbound());
+	HANDLE_SETTING(HotkeyShowHMDStats,                        Unbound());
+	HANDLE_SETTING(HotkeyShowAxes,                            Unbound());
+	HANDLE_SETTING(HotkeyTogglePositionalTracking,            Unbound());
+	HANDLE_SETTING(HotkeyTogglePosePrediction,                Unbound());
+	HANDLE_SETTING(HotkeyToggleChromaticAbberationCorrection, Unbound());
+	HANDLE_SETTING(HotkeyDistortionScalePlus,                 Unbound());
+	HANDLE_SETTING(HotkeyDistortionScaleMinus,                Unbound());
+	HANDLE_SETTING(HotkeyPrevRenderState,                     Unbound());
+	HANDLE_SETTING(HotkeyNextRenderState,                     Unbound());
 }
 
 
@@ -1137,104 +1174,20 @@ bool ProxyHelper::GetProfile(char* name, char *path, bool _64bit, ProxyConfig& c
 
 ProxyConfig::ProxyConfig()
 {
-	InputBindingRef LShift = Key(VK_LSHIFT);
-	InputBindingRef LCtrl = Key(VK_LCONTROL);
-	InputBindingRef LAlt = Key(VK_MENU);
-
+	xml_node emptyNode;
+	HandleGameProfile(ProxyHelper::CONFIG_RESET_DEFAULT, emptyNode, *this);
+	
 	game_exe = "";
 	dir_contains = "";
 	shaderRulePath = "";
 	VRboostPath = "";
-	VRboostMinShaderCount = 0;
-	VRboostMaxShaderCount = 999999;
 	is64bit = false;
-	game_type = 0;
-	rollImpl = 0;
-	worldScaleFactor = 1.0f;
-	convergence = 0.0f;
-	swap_eyes = false;
-	yaw_multiplier = DEFAULT_YAW_MULTIPLIER;
-	pitch_multiplier = DEFAULT_PITCH_MULTIPLIER;
-	roll_multiplier = 1.0f;
-	position_multiplier = 1.0f;
-	position_x_multiplier = DEFAULT_POS_TRACKING_X_MULT;
-	position_y_multiplier = DEFAULT_POS_TRACKING_Y_MULT;
-	position_z_multiplier = DEFAULT_POS_TRACKING_Z_MULT;
-	DistortionScale = 0.0f;
-	YOffset = 0.0f;
-	IPDOffset = 0.0f;
-	useSDKPosePrediction = true;
-	hud3DDepthMode = 0;
-	hud3DDepthPresets[0] = 0.0f;
-	hud3DDepthPresets[1] = 0.0f;
-	hud3DDepthPresets[2] = 0.0f;
-	hud3DDepthPresets[3] = 0.0f;
-	hudDistancePresets[0] = DEFAULT_HUD_DISTANCE_1;
-	hudDistancePresets[1] = DEFAULT_HUD_DISTANCE_2;
-	hudDistancePresets[2] = DEFAULT_HUD_DISTANCE_3;
-	hudDistancePresets[3] = DEFAULT_HUD_DISTANCE_4;
-	hudSwitchHotkey = Unbound();
-	hudHotkeys[0] = Unbound();
-	hudHotkeys[1] = Unbound();
-	hudHotkeys[2] = Unbound();
-	hudHotkeys[3] = Unbound();
-	gui3DDepthMode = 0;
-	gui3DDepthPresets[0] = 0.0f;
-	gui3DDepthPresets[1] = 0.0f;
-	gui3DDepthPresets[2] = 0.0f;
-	gui3DDepthPresets[3] = 0.0f;
-	guiSquishPresets[0] = DEFAULT_GUI_SIZE_1;
-	guiSquishPresets[1] = DEFAULT_GUI_SIZE_2;
-	guiSquishPresets[2] = DEFAULT_GUI_SIZE_3;
-	guiSquishPresets[3] = DEFAULT_GUI_SIZE_4;
-	guiSwitchHotkey = Unbound();
-	guiHotkeys[0] = Unbound();
-	guiHotkeys[1] = Unbound();
-	guiHotkeys[2] = Unbound();
-	guiHotkeys[3] = Unbound();
-	VRBoostResetHotkey = Unbound();
-	EdgePeekHotkey = Unbound();
-	WorldFOV = 95.0;
-	PlayerFOV = 125.0;
-	FarPlaneFOV = 95.0;
-	CameraTranslateX = 0.0f;
-	CameraTranslateY = 0.0f;
-	CameraTranslateZ = 0.0f;
-	CameraDistance = 0.0f;
-	CameraZoom = 0.0f;
-	CameraHorizonAdjustment = 0.0f;
-	ConstantValue1 = 0.0f;
-	ConstantValue2 = 0.0f;
-	ConstantValue3 = 0.0f;
 	
 	stereo_mode = 0;
 	tracker_mode = 0;
 	ipd = IPD_DEFAULT;
 	aspect_multiplier = 1.0f;
 	display_adapter = 0;
-	
-	ComfortModeYawIncrement = 90.0f;
-	ComfortModeLeftKey = Key(VK_LEFT);
-	ComfortModeRightKey = Key(VK_RIGHT);
-	
-	HotkeyResetOrientation = (LShift + Key('R')) || (LCtrl + Key('R')) || (Button(8)+Button(9));
-	HotkeyShowFPS = (LShift+Key('F')) || (LCtrl+Key('F'));
-	HotkeyScreenshot = Key(VK_RCONTROL) + Key(VK_MULTIPLY);
-	HotkeyTelescopeMode = Key(VK_MENU) + Key(VK_MBUTTON);
-	
-	HotkeySwapSides = Unbound();
-	HotkeyToggleCubeRenders = Unbound();
-	HotkeyToggleTextureRenders = Unbound();
-	HotkeyWhenToRenderMenu = Unbound();
-	HotkeyWhenToPollHeadtracking = Unbound();
-	HotkeyInitiateScan = Unbound();
-	HotkeyBlackSmear = Unbound();
-	HotkeyResetIPDOffset = Unbound();
-	HotkeyShowHMDStats = Unbound();
-	HotkeyShowAxes = Unbound();
-	HotkeyTogglePositionalTracking = Unbound();
-	HotkeyTogglePosePrediction = Unbound();
-	HotkeyToggleChromaticAbberationCorrection = Unbound();
 }
 
 /**

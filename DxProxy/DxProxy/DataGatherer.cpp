@@ -737,6 +737,7 @@ void DataGatherer::Init(ProxyConfig& cfg)
 ***/
 void DataGatherer::VPMENU_ShaderSubMenu()
 {
+	SHOW_CALL("VPMENU_ShaderSubMenu");
 	MenuBuilder *menu = VPMENU_NewFrame();
 	VPMENU_StartDrawing(menu, "Shader Analyser");
 

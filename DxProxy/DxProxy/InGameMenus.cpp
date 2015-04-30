@@ -378,8 +378,7 @@ void D3DProxyDevice::VPMENU_MainMenu()
 
 	if (includeShaderAnalyzer)
 	{
-		menu->AddNavigation("Shader Analyzer\n",
-			[=]() { VPMENU_ShaderSubMenu(); });
+		menu->AddNavigation("Shader Analyzer\n", [=]() { VPMENU_ShaderSubMenu(); });
 	}
 	
 	menu->AddNavigation("World-Scale Calibration\n", [=]() { VPMENU_WorldScale(); });
@@ -1104,6 +1103,11 @@ void D3DProxyDevice::VPMENU_Hotkeys()
 	menu->AddKeybind("Screenshot", &config.HotkeyScreenshot);
 	menu->AddKeybind("Telescope Mode", &config.HotkeyTelescopeMode);
 	
+	menu->AddKeybind("Toggle Free Pitch", &config.HotkeyToggleFreePitch);
+	menu->AddKeybind("Toggle Comfort Mode", &config.HotkeyComfortMode);
+	menu->AddKeybind("Toggle VR Mouse", &config.HotkeyVRMouse);
+	menu->AddKeybind("Toggle Floaty Menus", &config.HotkeyFloatyMenus);
+	
 	menu->AddBackButtons();
 	VPMENU_FinishDrawing(menu);
 }
@@ -1114,6 +1118,7 @@ void D3DProxyDevice::VPMENU_AdjustmentHotkeys()
 	MenuBuilder *menu = VPMENU_NewFrame();
 	VPMENU_StartDrawing(menu, "Settings - Adjustment Hotkeys");
 	
+	menu->AddKeybind("Switch 2D Depth Mode", &config.HotkeySwitch2DDepthMode);
 	menu->AddKeybind("Swap Sides Hotkey", &config.HotkeySwapSides);
 	menu->AddKeybind("Toggle Cube Renderers", &config.HotkeyToggleCubeRenders);
 	menu->AddKeybind("Toggle Texture Renderers", &config.HotkeyToggleTextureRenders);
@@ -1127,6 +1132,11 @@ void D3DProxyDevice::VPMENU_AdjustmentHotkeys()
 	menu->AddKeybind("Toggle Positional Tracking", &config.HotkeyTogglePositionalTracking);
 	menu->AddKeybind("Toggle Pose Prediction", &config.HotkeyTogglePosePrediction);
 	menu->AddKeybind("Toggle Chromatic Abberation Correction", &config.HotkeyToggleChromaticAbberationCorrection);
+	
+	menu->AddKeybind("Distortion Scale Plus", &config.HotkeyDistortionScalePlus);
+	menu->AddKeybind("Distortion Scale Minus", &config.HotkeyDistortionScaleMinus);
+	menu->AddKeybind("Prev Render State", &config.HotkeyPrevRenderState);
+	menu->AddKeybind("Next Render State", &config.HotkeyNextRenderState);
 	
 	menu->AddBackButtons();
 	VPMENU_FinishDrawing(menu);

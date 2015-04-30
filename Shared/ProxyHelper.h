@@ -121,9 +121,14 @@ struct ProxyConfig
 	InputBindingRef HotkeyShowFPS;
 	InputBindingRef HotkeyScreenshot;
 	InputBindingRef HotkeyTelescopeMode;
+	InputBindingRef HotkeyToggleFreePitch;
+	InputBindingRef HotkeyComfortMode;
+	InputBindingRef HotkeyVRMouse;
+	InputBindingRef HotkeyFloatyMenus;
 	
 	/****** Adjuster Hotkeys *************************************************/
 	
+	InputBindingRef HotkeySwitch2DDepthMode;
 	InputBindingRef HotkeySwapSides;
 	InputBindingRef HotkeyToggleCubeRenders;
 	InputBindingRef HotkeyToggleTextureRenders;
@@ -137,6 +142,10 @@ struct ProxyConfig
 	InputBindingRef HotkeyTogglePositionalTracking;
 	InputBindingRef HotkeyTogglePosePrediction;
 	InputBindingRef HotkeyToggleChromaticAbberationCorrection;
+	InputBindingRef HotkeyDistortionScalePlus;
+	InputBindingRef HotkeyDistortionScaleMinus;
+	InputBindingRef HotkeyPrevRenderState;
+	InputBindingRef HotkeyNextRenderState;
 	
 	vireio::RenderPosition MaybeSwap(vireio::RenderPosition whichEye);
 };
@@ -203,11 +212,10 @@ public:
 	{
 		CONFIG_SAVE,
 		CONFIG_LOAD,
+		CONFIG_RESET_DEFAULT
 	} ConfigTransferDirection;
 	
 private:
-	void HandleGameProfile(ConfigTransferDirection dir, pugi::xml_node &node, ProxyConfig &config);
-	
 	/**
 	* Base directory path.
 	* Saved to registry by InitConfig() in Main.cpp.

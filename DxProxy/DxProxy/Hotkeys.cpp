@@ -68,10 +68,10 @@ InputBindingRef hotkeyEdgePeek = Key(VK_MBUTTON) || (Key(VK_LCONTROL)+Key(VK_NUM
 InputBindingRef hotkeyCrouch = Button(0xc) || Key(VK_RSHIFT);
 InputBindingRef hotkeySkipProne = Button(0xd) || Key(VK_ESCAPE);
 
-InputBindingRef hotkeySwitch2DDepthMode = LShift + (Key('O') || Key(VK_NUMPAD9));
+//InputBindingRef hotkeySwitch2DDepthMode = LShift + (Key('O') || Key(VK_NUMPAD9));
 //InputBindingRef hotkeySwapSides = LAlt+Key('O');
-InputBindingRef hotkeyPrevRenderState = LAlt + Key(VK_LEFT);
-InputBindingRef hotkeyNextRenderState = LAlt + Key(VK_RIGHT);
+//InputBindingRef hotkeyPrevRenderState = LAlt + Key(VK_LEFT);
+//InputBindingRef hotkeyNextRenderState = LAlt + Key(VK_RIGHT);
 
 //InputBindingRef hotkeyToggleCubeRenders = LAlt+Key('1');
 //InputBindingRef hotkeyToggleTextureRenders = LAlt + Key('2');
@@ -82,8 +82,8 @@ InputBindingRef hotkeyNextScanCandidate = Key(VK_NUMPAD6) || (LCtrl+Key(VK_OEM_P
 InputBindingRef hotkeyPrevScanCandidate = Key(VK_NUMPAD4) || (LCtrl+Key(VK_OEM_COMMA));
 InputBindingRef hotkeyCancelScan = Key(VK_NUMPAD8) || (LCtrl + Key(VK_OEM_1));
 
-InputBindingRef hotkeyToggleFreePitch = LShift + Key('X');
-InputBindingRef hotkeyComfortMode = LShift + Key('M');
+//InputBindingRef hotkeyToggleFreePitch = LShift + Key('X');
+//InputBindingRef hotkeyComfortMode = LShift + Key('M');
 
 //InputBindingRef hotkeyBlackSmear = LShift+Key('B');;
 //InputBindingRef hotkeyResetIPDOffset = Key(VK_F8) || (LShift+Key('I'));
@@ -93,8 +93,8 @@ InputBindingRef hotkeyComfortMode = LShift + Key('M');
 //InputBindingRef hotkeyTogglePosePrediction = LShift+Key(VK_DELETE);
 //InputBindingRef hotkeyToggleChromaticAbberationCorrection = (LShift+Key('J')) || (LCtrl+Key('J'));
 
-InputBindingRef hotkeyVRMouse = Key(VK_NUMPAD0);
-InputBindingRef hotkeyFloatyMenus = LCtrl+Key(VK_NUMPAD1);
+//InputBindingRef hotkeyVRMouse = Key(VK_NUMPAD0);
+//InputBindingRef hotkeyFloatyMenus = LCtrl+Key(VK_NUMPAD1);
 InputBindingRef hotkeyDoubleClickVPMenu = Button(4);
 InputBindingRef hotkeyOpenVPMenu = (LCtrl+Key('Q')) || (LShift+Key(VK_MULTIPLY));
 
@@ -104,8 +104,8 @@ InputBindingRef hotkeyWheelWorldScale = LCtrl+LAlt;
 InputBindingRef hotkeyWheelStereoConvergence = LCtrl+Key(VK_SPACE);
 InputBindingRef hotkeyWheelZoomScale = LCtrl;
 
-InputBindingRef hotkeyDistortionScalePlus = LCtrl+Key(VK_ADD);
-InputBindingRef hotkeyDistortionScaleMinus = LCtrl+Key(VK_SUBTRACT);
+//InputBindingRef hotkeyDistortionScalePlus = LCtrl+Key(VK_ADD);
+//InputBindingRef hotkeyDistortionScaleMinus = LCtrl+Key(VK_SUBTRACT);
 
 //InputBindingRef hotkeyShowFPS = (LShift+Key('F')) || (LCtrl+Key('F'));
 //InputBindingRef hotkeyScreenshot = Key(VK_RCONTROL) + Key(VK_MULTIPLY);
@@ -125,11 +125,8 @@ void D3DProxyDevice::HandleControls()
 		HUD_3D_Depth_Modes newMode=(HUD_3D_Depth_Modes)(hud3DDepthMode+1);
 		if (newMode>=HUD_3D_Depth_Modes::HUD_ENUM_RANGE)
 			newMode=HUD_3D_Depth_Modes::HUD_DEFAULT;
-		{
-			oldHudMode = hud3DDepthMode;
-			ChangeHUD3DDepthMode(newMode);
-
-		}
+		oldHudMode = hud3DDepthMode;
+		ChangeHUD3DDepthMode(newMode);
 		HotkeyCooldown(COOLDOWN_SHORT);
 	}
 	
@@ -138,10 +135,8 @@ void D3DProxyDevice::HandleControls()
 		GUI_3D_Depth_Modes newMode=(GUI_3D_Depth_Modes)(gui3DDepthMode+1);
 		if (newMode>=GUI_3D_Depth_Modes::GUI_ENUM_RANGE)
 			newMode=GUI_3D_Depth_Modes::GUI_DEFAULT;
-		{
-			oldGuiMode = gui3DDepthMode;
-			ChangeGUI3DDepthMode(newMode);
-		}
+		oldGuiMode = gui3DDepthMode;
+		ChangeGUI3DDepthMode(newMode);
 		HotkeyCooldown(COOLDOWN_SHORT);
 	}
 	
@@ -445,7 +440,7 @@ void D3DProxyDevice::HandleControls()
 		}
 
 		// switch to 2d Depth Mode (Shift + O / Numpad 9)
-		if (hotkeySwitch2DDepthMode->IsPressed(controls) && HotkeysActive())
+		if (config.HotkeySwitch2DDepthMode->IsPressed(controls) && HotkeysActive())
 		{
 			m_b2dDepthMode = !m_b2dDepthMode;
 			stereoView->m_b2dDepthMode = m_b2dDepthMode;
@@ -468,14 +463,14 @@ void D3DProxyDevice::HandleControls()
 		}
 
 		// cycle Render States
-		if ((hotkeyNextRenderState->IsPressed(controls) || hotkeyPrevRenderState->IsPressed(controls))&& HotkeysActive())
+		if ((config.HotkeyNextRenderState->IsPressed(controls) || config.HotkeyPrevRenderState->IsPressed(controls))&& HotkeysActive())
 		{
 			std::string _str = "";
-			if(hotkeyPrevRenderState->IsPressed(controls))
+			if(config.HotkeyPrevRenderState->IsPressed(controls))
 			{
 				_str = stereoView->CycleRenderState(false);
 			}
-			else if(hotkeyNextRenderState->IsPressed(controls))
+			else if(config.HotkeyNextRenderState->IsPressed(controls))
 			{
 				_str = stereoView->CycleRenderState(true);
 			}
@@ -683,7 +678,7 @@ void D3DProxyDevice::HandleControls()
 
 		//Enabled/Disable Free Pitch (default is disabled), LSHIFT + X
 		if (VRBoostStatus.VRBoost_Active && 
-			hotkeyToggleFreePitch->IsPressed(controls) &&
+			config.HotkeyToggleFreePitch->IsPressed(controls) &&
 			HotkeysActive())
 		{
 			if (VRBoostValue[VRboostAxis::FreePitch] != 0.0f)
@@ -705,7 +700,7 @@ void D3DProxyDevice::HandleControls()
 
 		//Enabled/Disable Comfort Mode - LSHIFT + M
 		if (VRBoostStatus.VRBoost_Active && 
-			hotkeyComfortMode->IsPressed(controls) &&
+			config.HotkeyComfortMode->IsPressed(controls) &&
 			HotkeysActive())
 		{
 			if (VRBoostValue[VRboostAxis::ComfortMode] != 0.0f)
@@ -822,17 +817,17 @@ void D3DProxyDevice::HandleControls()
 		//   - Toggle between GUI and HUD scaling if double click occurs within 2 seconds
 		//   - Disable VR Mouse if double click occurs after 2 seconds
 		static DWORD numPad0Click = 0;
-		if ((hotkeyVRMouse->IsPressed(controls) || numPad0Click != 0) && HotkeysActive())
+		if ((config.HotkeyVRMouse->IsPressed(controls) || numPad0Click != 0) && HotkeysActive())
 		{
-			if (hotkeyVRMouse->IsPressed(controls) && numPad0Click == 0)
+			if (config.HotkeyVRMouse->IsPressed(controls) && numPad0Click == 0)
 			{
 				numPad0Click = 1;
 			}
-			else if (!hotkeyVRMouse->IsPressed(controls) && numPad0Click == 1)
+			else if (!config.HotkeyVRMouse->IsPressed(controls) && numPad0Click == 1)
 			{
 				numPad0Click = GetTickCount();
 			}
-			else if (hotkeyVRMouse->IsPressed(controls) && numPad0Click > 1)
+			else if (config.HotkeyVRMouse->IsPressed(controls) && numPad0Click > 1)
 			{
 				//If we clicked a second time within 500 ms, then trigger VR Mouse
 				if ((GetTickCount() - numPad0Click) <= 500)
@@ -883,7 +878,7 @@ void D3DProxyDevice::HandleControls()
 		}
 		
 		// floaty menus
-		if (hotkeyFloatyMenus->IsPressed(controls) && HotkeysActive())
+		if (config.HotkeyFloatyMenus->IsPressed(controls) && HotkeysActive())
 		{
 			if (m_bfloatingMenu)
 				m_bfloatingMenu = false;
@@ -1008,7 +1003,7 @@ void D3DProxyDevice::HandleControls()
 		}
 	
 		//Change Distortion Scale CTRL + + / -
-		if(hotkeyDistortionScalePlus->IsPressed(controls) && HotkeysActive())
+		if(config.HotkeyDistortionScalePlus->IsPressed(controls) && HotkeysActive())
 		{
 			this->stereoView->ZoomOutScale = 1.00f;
 			this->stereoView->PostReset();	
@@ -1016,7 +1011,7 @@ void D3DProxyDevice::HandleControls()
 			DeferedSaveConfig();
 			ShowAdjusterToast(retprintf("Zoom Scale: %1.3f", this->stereoView->ZoomOutScale), 500);
 		}
-		else if(hotkeyDistortionScaleMinus->IsPressed(controls) && HotkeysActive())
+		else if(config.HotkeyDistortionScaleMinus->IsPressed(controls) && HotkeysActive())
 		{
 			this->stereoView->ZoomOutScale = 0.50f;
 			this->stereoView->PostReset();	
