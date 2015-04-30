@@ -419,7 +419,6 @@ protected:
 	bool VPMENU_IsOpen();
 	MenuBuilder *VPMENU_NewFrame();
 	void VPMENU_DrawBorder(int top);
-	int VPMENU_GetCurrentSelection();
 	void VPMENU_StartDrawing(MenuBuilder *menu, const char *pageTitle);
 	void VPMENU_StartDrawing_NonMenu();
 	void VPMENU_FinishDrawing(MenuBuilder *menu);

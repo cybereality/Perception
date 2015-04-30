@@ -176,11 +176,6 @@ void D3DProxyDevice::VPMENU_DrawBorder(int top)
 	ClearEmptyRect(vireio::RenderPosition::Right, rect, COLOR_MENU_BORDER, 2);
 }
 
-int D3DProxyDevice::VPMENU_GetCurrentSelection()
-{
-	return menuState.selectedIndex;
-}
-
 /**
 * 
 */
@@ -389,8 +384,6 @@ void D3DProxyDevice::VPMENU_MainMenu()
 	
 	menu->AddNavigation("World-Scale Calibration\n", [=]() { VPMENU_WorldScale(); });
 	menu->AddNavigation("Convergence Adjustment\n", [=]() { VPMENU_Convergence(); });
-	//menu->AddNavigation("HUD Calibration\n", [=]() { VPMENU_HUD(); });
-	//menu->AddNavigation("GUI Calibration\n", [=]() { VPMENU_GUI(); });
 	
 	menu->AddEnumPicker("HUD Settings : %s", (int*)&hud3DDepthMode,
 		HUD_3D_Depth_Modes::HUD_ENUM_RANGE, [](int val) {
@@ -1613,7 +1606,7 @@ void MenuBuilder::AddItem(std::string text, std::function<void()> onHover)
 
 void MenuBuilder::AddItem(std::string text, D3DCOLOR color, std::function<void()> onHover)
 {
-	int selection = device->VPMENU_GetCurrentSelection();
+	int selection = device->menuState.selectedIndex;
 	int entryID = menuConstructionCurrentEntry;
 	DrawItem(text.c_str(), color);
 	if(entryID == selection)
@@ -1652,7 +1645,7 @@ void MenuBuilder::AddNavigation(std::string text, std::function<void()> menuHand
 void MenuBuilder::AddGameKeypress(std::string text, byte *binding)
 {
 	std::string description;
-	if (device->hotkeyCatch && device->VPMENU_GetCurrentSelection() == menuConstructionCurrentEntry) {
+	if (device->hotkeyCatch && device->menuState.selectedIndex == menuConstructionCurrentEntry) {
 		description = "Press the desired key.";
 	} else {
 		description = retprintf("%s : %s",

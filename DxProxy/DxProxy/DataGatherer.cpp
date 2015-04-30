@@ -804,7 +804,6 @@ void DataGatherer::VPMENU_ChangeRules()
 		FLAG_RULECLASS = (1<<31)
 	};
 	
-	UINT menuEntryCount = 2;
 	UINT constantIndex = 0;
 	std::vector<std::string> menuEntries;
 	std::vector<D3DCOLOR> menuColor;
@@ -837,7 +836,6 @@ void DataGatherer::VPMENU_ChangeRules()
 				menuEntries.push_back("  D3DXPC_MATRIX_COLUMNS");
 				break;
 			}
-			menuEntryCount++;
 
 			// output the class
 			menuColor.push_back(entryColor);
@@ -846,7 +844,6 @@ void DataGatherer::VPMENU_ChangeRules()
 				menuEntries.push_back("  "+itShaderConstants->ruleName);
 			else
 				menuEntries.push_back("  No Rule assigned");
-			menuEntryCount++;
 
 			// output wether transposed or not
 			if ((itShaderConstants->hasRule) && (itShaderConstants->desc.Class != D3DXPC_VECTOR))
@@ -857,34 +854,30 @@ void DataGatherer::VPMENU_ChangeRules()
 					menuEntries.push_back("  Transposed");
 				else
 					menuEntries.push_back("  Non-Transposed");
-				menuEntryCount++;
 			}
 		}
 
 		constantIndex++;
-		menuEntryCount++;
 	}
 
 	MenuBuilder *menu = VPMENU_NewFrame();
-	UINT entryID = VPMENU_GetCurrentSelection();;
-	
 	VPMENU_StartDrawing(menu, NULL);
 	
 	for (UINT i=0; i<menuEntries.size(); i++)
-	menu->AddItem(menuEntries[i], menuColor[i], [&]()
+	menu->AddItem(menuEntries[i], menuColor[i], [i,this,&menuID]()
 	{
 		// switch shader rule node
 		if (VPMENU_Input_Selected() && HotkeysActive())
 		{
 			// constant node entry ?
-			if ((menuID[entryID] & FLAG_RULECLASS) == FLAG_RULECLASS)
+			if ((menuID[i] & FLAG_RULECLASS) == FLAG_RULECLASS)
 			{
 				// no influence on class node entry
 			}
-			else if ((menuID[entryID] & FLAG_RULENAME) == FLAG_RULENAME) // add/delete rule
+			else if ((menuID[i] & FLAG_RULENAME) == FLAG_RULENAME) // add/delete rule
 			{
 				// no rule present, so add
-				if (!m_relevantVSConstantNames[menuID[entryID]].hasRule)
+				if (!m_relevantVSConstantNames[menuID[i]].hasRule)
 				{
 					for(auto itShaderConstantMap = m_relevantVSConstants.begin();
 					    itShaderConstantMap != m_relevantVSConstants.end();
@@ -895,7 +888,7 @@ void DataGatherer::VPMENU_ChangeRules()
 						    itShaderConstants++)
 						{
 							// constant name in menu entries already present
-							if (itShaderConstants->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) != 0)
+							if (itShaderConstants->name.compare(m_relevantVSConstantNames[menuID[i]].name) != 0)
 								continue;
 							
 							// never assign "transposed" to vector
@@ -911,7 +904,7 @@ void DataGatherer::VPMENU_ChangeRules()
 							    itShaderConstants1++)
 							{
 								// set rule bool for all relevant constant names
-								if (itShaderConstants1->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) != 0)
+								if (itShaderConstants1->name.compare(m_relevantVSConstantNames[menuID[i]].name) != 0)
 									continue;
 								
 								UINT operation;
@@ -922,7 +915,7 @@ void DataGatherer::VPMENU_ChangeRules()
 				}
 				else // rule present, so delete
 				{
-					deleteRule(m_relevantVSConstantNames[menuID[entryID]].name);
+					deleteRule(m_relevantVSConstantNames[menuID[i]].name);
 
 					// set the menu output accordingly
 					for(auto itShaderConstants1 = m_relevantVSConstantNames.begin();
@@ -930,7 +923,7 @@ void DataGatherer::VPMENU_ChangeRules()
 					    itShaderConstants1++)
 					{
 						// set rule bool for all relevant constant names
-						if (itShaderConstants1->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) != 0)
+						if (itShaderConstants1->name.compare(m_relevantVSConstantNames[menuID[i]].name) != 0)
 							continue;
 						
 						UINT operation;
@@ -938,9 +931,9 @@ void DataGatherer::VPMENU_ChangeRules()
 					}
 				}
 			}
-			else if ((menuID[entryID] & FLAG_TRANSPOSITION) == FLAG_TRANSPOSITION)
+			else if ((menuID[i] & FLAG_TRANSPOSITION) == FLAG_TRANSPOSITION)
 			{
-				bool newTrans = !m_relevantVSConstantNames[menuID[entryID]].isTransposed;
+				bool newTrans = !m_relevantVSConstantNames[menuID[i]].isTransposed;
 				// transposed or non-transposed
 				for(auto itShaderConstantMap = m_relevantVSConstants.begin();
 				    itShaderConstantMap != m_relevantVSConstants.end();
@@ -951,7 +944,7 @@ void DataGatherer::VPMENU_ChangeRules()
 					    itShaderConstants++)
 					{
 						// constant name in menu entries already present
-						if (itShaderConstants->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) == 0)
+						if (itShaderConstants->name.compare(m_relevantVSConstantNames[menuID[i]].name) == 0)
 						{
 							// get the operation id
 							UINT operation;
@@ -964,7 +957,7 @@ void DataGatherer::VPMENU_ChangeRules()
 							    itShaderConstants1++)
 							{
 								// set rule bool for all relevant constant names
-								if (itShaderConstants1->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) != 0)
+								if (itShaderConstants1->name.compare(m_relevantVSConstantNames[menuID[i]].name) != 0)
 									continue;
 								
 								itShaderConstants1->hasRule = m_pGameHandler->GetShaderModificationRepository()->ConstantHasRule(itShaderConstants1->name, itShaderConstants1->ruleName, operation, itShaderConstants1->isTransposed);
@@ -976,7 +969,7 @@ void DataGatherer::VPMENU_ChangeRules()
 			else
 			{
 				// open or close node
-				m_relevantVSConstantNames[menuID[entryID]].nodeOpen = !m_relevantVSConstantNames[menuID[entryID]].nodeOpen;
+				m_relevantVSConstantNames[menuID[i]].nodeOpen = !m_relevantVSConstantNames[menuID[i]].nodeOpen;
 
 				for(auto itShaderConstantMap = m_relevantVSConstants.begin();
 				    itShaderConstantMap != m_relevantVSConstants.end();
@@ -987,11 +980,11 @@ void DataGatherer::VPMENU_ChangeRules()
 					    itShaderConstants++)
 					{
 						// constant name in menu entries already present?
-						if (itShaderConstants->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) != 0)
+						if (itShaderConstants->name.compare(m_relevantVSConstantNames[menuID[i]].name) != 0)
 							continue;
 						
 						// show blinking if shader is drawn
-						if (m_relevantVSConstantNames[menuID[entryID]].nodeOpen)
+						if (m_relevantVSConstantNames[menuID[i]].nodeOpen)
 						{
 							if (std::find(m_excludedVShaders.begin(), m_excludedVShaders.end(), itShaderConstants->hash) == m_excludedVShaders.end()) {
 								m_excludedVShaders.push_back(itShaderConstants->hash);
@@ -1012,17 +1005,17 @@ void DataGatherer::VPMENU_ChangeRules()
 		// switch shader rule node
 		if (VPMENU_Input_IsAdjustment() && HotkeysActive())
 		{
-			if ((menuID[entryID] & FLAG_RULENAME) == FLAG_RULENAME) // rule node entry
+			if ((menuID[i] & FLAG_RULENAME) == FLAG_RULENAME) // rule node entry
 			{
 				// rule present, so modify
-				if (m_relevantVSConstantNames[menuID[entryID]].hasRule)
+				if (m_relevantVSConstantNames[menuID[i]].hasRule)
 				{
 					// get the operation id
 					UINT operation;
 					m_pGameHandler->GetShaderModificationRepository()
-						->ConstantHasRule(m_relevantVSConstantNames[menuID[entryID]].name,
-							m_relevantVSConstantNames[menuID[entryID]].ruleName,
-							operation, m_relevantVSConstantNames[menuID[entryID]].isTransposed);
+						->ConstantHasRule(m_relevantVSConstantNames[menuID[i]].name,
+							m_relevantVSConstantNames[menuID[i]].ruleName,
+							operation, m_relevantVSConstantNames[menuID[i]].isTransposed);
 					
 					if (VPMENU_Input_Left())
 					{
@@ -1032,7 +1025,7 @@ void DataGatherer::VPMENU_ChangeRules()
 					else if (VPMENU_Input_Right())
 					{
 						UINT maxValue;
-						if (m_relevantVSConstantNames[menuID[entryID]].desc.Class == D3DXPARAMETER_CLASS::D3DXPC_VECTOR) {
+						if (m_relevantVSConstantNames[menuID[i]].desc.Class == D3DXPARAMETER_CLASS::D3DXPC_VECTOR) {
 							maxValue = (UINT)ShaderConstantModificationFactory::Vec4EyeShiftUnity;
 						} else {
 							maxValue = (UINT)ShaderConstantModificationFactory::MatConvergenceOffset;
@@ -1051,7 +1044,7 @@ void DataGatherer::VPMENU_ChangeRules()
 						    itShaderConstants++)
 						{
 							// constant name in menu entries already present?
-							if (itShaderConstants->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) != 0)
+							if (itShaderConstants->name.compare(m_relevantVSConstantNames[menuID[i]].name) != 0)
 								continue;
 							
 							modifyRule(itShaderConstants->name, operation, itShaderConstants->isTransposed);
@@ -1062,7 +1055,7 @@ void DataGatherer::VPMENU_ChangeRules()
 							    ++itShaderConstants1)
 							{
 								// set rule bool for all relevant constant names
-								if (itShaderConstants1->name.compare(m_relevantVSConstantNames[menuID[entryID]].name) != 0)
+								if (itShaderConstants1->name.compare(m_relevantVSConstantNames[menuID[i]].name) != 0)
 									continue;
 								
 								itShaderConstants1->hasRule = m_pGameHandler->GetShaderModificationRepository()->ConstantHasRule(itShaderConstants1->name, itShaderConstants1->ruleName, operation, itShaderConstants1->isTransposed);
@@ -1192,50 +1185,39 @@ void DataGatherer::VPMENU_ShowActiveShaders()
 	}
 
 	MenuBuilder *menu = VPMENU_NewFrame();
-	UINT entryID = VPMENU_GetCurrentSelection();
 
-	if ((entryID >= 0) && (entryID < menuEntryCount-2) && (menuEntryCount>2))
+	// output menu
+	VPMENU_StartDrawing(menu, NULL);
+
+	for (UINT i = 0; i < menuEntries.size(); i++)
 	{
-		// switch shader node (drawn/not-drawn)
-		if (VPMENU_Input_Selected())
+		menu->AddButton(menuEntries[i].c_str(), menuColor[i], [=]()
 		{
-			if (entryID < endOfVertexShaderEntries)
+			if (i < endOfVertexShaderEntries)
 			{
 				// show colored if shader is drawn
-				if (std::find(m_excludedVShaders.begin(), m_excludedVShaders.end(), menuID[entryID]) == m_excludedVShaders.end()) {
-					m_excludedVShaders.push_back(menuID[entryID]);
+				if (std::find(m_excludedVShaders.begin(), m_excludedVShaders.end(), menuID[i]) == m_excludedVShaders.end()) {
+					m_excludedVShaders.push_back(menuID[i]);
 				}
 				else
 				{
 					// erase all entries for that hash
-					m_excludedVShaders.erase(std::remove(m_excludedVShaders.begin(), m_excludedVShaders.end(), menuID[entryID]), m_excludedVShaders.end()); 
+					m_excludedVShaders.erase(std::remove(m_excludedVShaders.begin(), m_excludedVShaders.end(), menuID[i]), m_excludedVShaders.end()); 
 				}
 			}
 			else
 			{
 				// show colored if shader is drawn
-				if (std::find(m_excludedPShaders.begin(), m_excludedPShaders.end(), menuID[entryID]) == m_excludedPShaders.end()) {
-					m_excludedPShaders.push_back(menuID[entryID]);
+				if (std::find(m_excludedPShaders.begin(), m_excludedPShaders.end(), menuID[i]) == m_excludedPShaders.end()) {
+					m_excludedPShaders.push_back(menuID[i]);
 				}
 				else
 				{
 					// erase all entries for that hash
-					m_excludedPShaders.erase(std::remove(m_excludedPShaders.begin(), m_excludedPShaders.end(), menuID[entryID]), m_excludedPShaders.end()); 
+					m_excludedPShaders.erase(std::remove(m_excludedPShaders.begin(), m_excludedPShaders.end(), menuID[i]), m_excludedPShaders.end()); 
 				}
 			}
-
-			HotkeyCooldown(COOLDOWN_SHORT);
-		}
-	}
-
-
-
-	// output menu
-	VPMENU_StartDrawing(menu, NULL);
-
-	for (UINT i = 0; i < menuEntryCount-2; i++)
-	{
-		menu->DrawItem(menuEntries[i].c_str(), menuColor[i]);
+		});
 	}
 
 	menu->AddBackButtons();
