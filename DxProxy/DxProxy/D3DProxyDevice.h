@@ -437,6 +437,7 @@ protected:
 	void VPMENU_MainMenu();
 	void VPMENU_WorldScale();
 	void VPMENU_Convergence();
+	void VPMENU_ConvergenceCalibrator();
 	void VPMENU_HUD();
 	void VPMENU_GUI();
 	void VPMENU_Settings();

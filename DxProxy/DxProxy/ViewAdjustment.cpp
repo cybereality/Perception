@@ -37,7 +37,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * Constructor.
 * Sets class constants, identity matrices and a projection matrix.
 ***/
-ViewAdjustment::ViewAdjustment(HMDisplayInfo *displayInfo, float metersToWorldUnits, int roll) :
+ViewAdjustment::ViewAdjustment(HMDisplayInfo *displayInfo, float metersToWorldUnits, int roll, ProxyConfig *config) :
+	config(config),
 	hmdInfo(displayInfo),
 	metersToWorldMultiplier(metersToWorldUnits),
 	rollImpl(roll),
@@ -167,8 +168,14 @@ void ViewAdjustment::UpdateProjectionMatrices(float aspectRatio)
 	//
 	// (near clipping plane distance = physical screen distance)
 	// (convergence = virtual screen distance)
-	if (convergence <= nearClippingPlaneDistance) convergence = nearClippingPlaneDistance + 0.001f;
+	if (convergence <= nearClippingPlaneDistance)
+		convergence = nearClippingPlaneDistance + 0.001f;
 	float frustumAsymmetryInMeters = ((ipd/2) * nearClippingPlaneDistance) / convergence;
+	
+	// Convergence being disabled is equivalent to an infinite convergence distance,
+	// or zero asymmetry.
+	if(!config->convergenceEnabled)
+		frustumAsymmetryInMeters = 0.0f;
 
 	// divide the frustum asymmetry by the assumed physical size of the physical screen
 	float frustumAsymmetryLeftInMeters = (frustumAsymmetryInMeters * LEFT_CONSTANT) / physicalScreenSizeInMeters;
@@ -573,6 +580,12 @@ float ViewAdjustment::ChangeWorldScale(float toAdd)
 	vireio::clamp(&metersToWorldMultiplier, 0.000001f, 1000000.0f);
 
 	return metersToWorldMultiplier;
+}
+
+float ViewAdjustment::SetConvergence(float newConvergence)
+{
+	this->convergence = newConvergence;
+	return newConvergence;
 }
 
 /**

@@ -597,12 +597,44 @@ void D3DProxyDevice::VPMENU_WorldScale()
 	hudTextBox->End();
 }
 
+void D3DProxyDevice::VPMENU_Convergence()
+{
+	SHOW_CALL("VPMENU_PosTracking");
+	MenuBuilder *menu = VPMENU_NewFrame();
+	VPMENU_StartDrawing(menu, "Settings - Convergence");
+	menu->OnClose([=]() { VPMENU_UpdateConfigSettings(); });
+
+	menu->AddText(
+		"Convergence rotates the eye images inward. It should\n"
+		"be enabled for 3D monitors, and disabled for head-mounted\n"
+		"displays.");
+	menu->AddButton(retprintf("Convergence : %s", config.convergenceEnabled?"ON":"OFF"),
+		[=]() {
+			config.convergenceEnabled = !config.convergenceEnabled;
+			m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
+		});
+	
+	if(config.convergenceEnabled)
+	{
+		menu->AddAdjustment("Distance Adjustment : %g", &config.convergence, defaultConfig.convergence, 0.05, [=]() {
+			vireio::clamp(&config.convergence, -10.0f, 10.0f);
+			m_spShaderViewAdjustment->SetConvergence(config.convergence);
+			m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
+		});
+		
+		menu->AddNavigation("Adjustment Test Pattern", [=]() { VPMENU_ConvergenceCalibrator(); });
+	}
+
+	menu->AddBackButtons();
+	VPMENU_FinishDrawing(menu);
+}
+
 /**
 * Convergence Adjustment.
 ***/
-void D3DProxyDevice::VPMENU_Convergence()
+void D3DProxyDevice::VPMENU_ConvergenceCalibrator()
 {
-	SHOW_CALL("VPMENU_Convergence");
+	SHOW_CALL("VPMENU_ConvergenceCalibrator");
 	
 	// Left/Right: Decrease/Increase convergence (hold CTRL to lower speed, SHIFT to speed up)
 	if (VPMENU_Input_IsAdjustment() && HotkeysActive())
@@ -1764,6 +1796,14 @@ void MenuBuilder::AddEnumPicker(const char *formatString, int *currentValue, int
 	rect.y2 = (int)(indicatorTop+device->viewportHeight*0.027f);
 	device->DrawSelection(vireio::RenderPosition::Left, rect, COLOR_QUICK_SETTING, *currentValue, maxValue);
 	device->DrawSelection(vireio::RenderPosition::Right, rect, COLOR_QUICK_SETTING, *currentValue, maxValue);
+}
+
+void MenuBuilder::AddText(const char *text)
+{
+	// TODO: Draw text in the middle of a menu (ie, help text or a section
+	// heading). The main trickiness is that this has to not mess up the
+	// border positioning, which was previously assuming you could convert
+	// between y-position and entry index by simple multiplication.
 }
 
 void MenuBuilder::AddBackButtons()

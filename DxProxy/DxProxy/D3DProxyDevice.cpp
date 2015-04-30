@@ -188,7 +188,7 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	hmdInfo = HMDisplayInfoFactory::CreateHMDisplayInfo(static_cast<StereoView::StereoTypes>(userConfig.mode)); 
 	OutputDebugString(("Created HMD Info for: " + hmdInfo->GetHMDName()).c_str());
 
-	m_spShaderViewAdjustment = std::make_shared<ViewAdjustment>(hmdInfo, 1.0f, 0);
+	m_spShaderViewAdjustment = std::make_shared<ViewAdjustment>(hmdInfo, 1.0f, 0, &config);
 	m_pGameHandler = new GameHandler();
 
 	// Check the maximum number of supported render targets

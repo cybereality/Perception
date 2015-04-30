@@ -51,7 +51,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class ViewAdjustment
 {
 public:	
-	ViewAdjustment(HMDisplayInfo *hmdInfo, float metersToWorldUnits, int rollImpl);
+	ViewAdjustment(HMDisplayInfo *hmdInfo, float metersToWorldUnits, int rollImpl, ProxyConfig *config);
 	virtual ~ViewAdjustment();
 
 	/*** ViewAdjustment public methods ***/
@@ -92,6 +92,7 @@ public:
 	void          GatherMatrix(D3DXMATRIX& matrixLeft, D3DXMATRIX& matrixRight);
 	float         WorldScale();
 	float         ChangeWorldScale(float toAdd);
+	float         SetConvergence(float newConvergence);
 	float         ChangeConvergence(float toAdd);
 	void          ChangeGUISquash(float newSquash);
 	void          ChangeGUI3DDepth(float newGui3DDepth);
@@ -115,6 +116,8 @@ public:
 	float z_scaler;
 
 private:
+	ProxyConfig *config;
+	
 	/*** Projection Matrix variables ***/
 	float n;	/**< Minimum z-value of the view volume. */
 	float f;	/**< Maximum z-value of the view volume. */

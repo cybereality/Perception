@@ -964,6 +964,7 @@ void HandleGameProfile(ProxyHelper::ConfigTransferDirection dir, xml_node &node,
 	HANDLE_SETTING(rollImpl,                 0);
 	HANDLE_SETTING(worldScaleFactor,         1.0f);
 
+	HANDLE_SETTING(convergenceEnabled,       false);
 	HANDLE_SETTING(convergence,              0.0f);
 	HANDLE_SETTING(swap_eyes,                false);
 	HANDLE_SETTING_ATTR("ipd_offset",              IPDOffset, 0.0f);

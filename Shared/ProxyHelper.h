@@ -60,7 +60,14 @@ struct ProxyConfig
 	int         game_type;                  /**< Game type enumeration. Matching D3DProxyDevice::ProxyTypes. */
 	int         rollImpl;                   /**< 0 - NONE, 1 - Matrix Roll, 2 - Pixel Shader Roll */
 	float       worldScaleFactor;           /**< Value the eye seperation is to be multiplied with. (mm * worldScaleFactor = mm in game units). */
-	float       convergence;                /**< Convergence or Neutral Point distance, in meters. */
+	
+	/// Convergence or Neutral Point distance, in meters.
+	float convergence;
+	
+	/// Whether convergence is enabled. Typically on for 3D monitors, off for
+	/// head-mounted displays.
+	bool convergenceEnabled;
+	
 	bool        swap_eyes;                  /**< Option to swap the eye output for different 3D systems. */
 	float       yaw_multiplier;             /**< Game-specific tracking multiplier (yaw). */
 	float       pitch_multiplier;           /**< Game-specific tracking multiplier (pitch). */
