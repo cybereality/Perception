@@ -803,24 +803,25 @@ void D3DProxyDevice::VPMENU_Settings()
 	VPMENU_StartDrawing(menu, "Settings - General");
 	menu->OnClose([=]() { VPMENU_UpdateConfigSettings(); });
 
+	// FIXME: Swap Eyes needs a reset-to-default
 	menu->AddButton(retprintf("Swap Eyes : %s", stereoView->swapEyes ? "True" : "False"), [=]()
 	{
 		stereoView->swapEyes = !stereoView->swapEyes;
 	});
 	menu->AddAdjustment("IPD-Offset : %1.3f", &this->stereoView->IPDOffset,
-		0.0f, 0.001f, [=]()
+		defaultConfig.IPDOffset, 0.001f, [=]()
 	{
 		clamp(&this->stereoView->IPDOffset, -0.1f, 0.1f);
 		this->stereoView->PostReset();
 	});
 	menu->AddAdjustment("Y-Offset : %1.3f", &this->stereoView->YOffset,
-		0.0f, 0.001f, [=]()
+		defaultConfig.YOffset, 0.001f, [=]()
 	{
 		clamp(&this->stereoView->YOffset, -0.1f, 0.1f);
 		this->stereoView->PostReset();
 	});
 	menu->AddAdjustment("Distortion Scale : %g", &this->stereoView->DistortionScale,
-		0.0f, 0.01f, [=]()
+		defaultConfig.DistortionScale, 0.01f, [=]()
 	{
 		this->stereoView->PostReset();
 	});
@@ -831,15 +832,15 @@ void D3DProxyDevice::VPMENU_Settings()
 		VPMENU_CloseWithoutSaving();
 	});
 	*/
-	menu->AddAdjustment("Yaw multiplier : %g", &tracker->multiplierYaw, DEFAULT_YAW_MULTIPLIER, 0.05f);
-	menu->AddAdjustment("Pitch multiplier : %g", &tracker->multiplierPitch, DEFAULT_PITCH_MULTIPLIER, 0.05f);
-	menu->AddAdjustment("Roll multiplier : %g", &tracker->multiplierRoll, 1.0f, 0.05f);
+	menu->AddAdjustment("Yaw multiplier : %g", &tracker->multiplierYaw, defaultConfig.yaw_multiplier, 0.05f);
+	menu->AddAdjustment("Pitch multiplier : %g", &tracker->multiplierPitch, defaultConfig.pitch_multiplier, 0.05f);
+	menu->AddAdjustment("Roll multiplier : %g", &tracker->multiplierRoll, defaultConfig.roll_multiplier, 0.05f);
 	
 	menu->AddButton("Reset Multipliers", [=]()
 	{
-		tracker->multiplierYaw = DEFAULT_YAW_MULTIPLIER;
-		tracker->multiplierPitch = DEFAULT_PITCH_MULTIPLIER;
-		tracker->multiplierRoll = 1.0f;
+		tracker->multiplierYaw   = defaultConfig.yaw_multiplier;
+		tracker->multiplierPitch = defaultConfig.pitch_multiplier;
+		tracker->multiplierRoll  = defaultConfig.roll_multiplier;
 	});
 	
 	std::string rollImplDescription = "?";
@@ -858,6 +859,8 @@ void D3DProxyDevice::VPMENU_Settings()
 	menu->AddItem(retprintf("Force Mouse Emulation HT : %s",
 		m_bForceMouseEmulation?"True":"False"), [=]()
 	{
+		// FIXME: This should be a simple toggle, but has weird left/right cases
+		// that don't match. Also, it needs a reset-to-default.
 		if (VPMENU_Input_Selected() && HotkeysActive())
 		{
 			m_bForceMouseEmulation = !m_bForceMouseEmulation;
@@ -906,6 +909,9 @@ void D3DProxyDevice::VPMENU_Settings()
 		}
 	});
 	
+	// FIXME: toggleVRBoostHotkey and edgePeekHotkey should be using the copies
+	// in the config, not cloned into D3DProxyDevice. Also these need a
+	// reset-to-default.
 	menu->AddKeybind("Hotkey >Toggle VRBoost<", &toggleVRBoostHotkey);
 	menu->AddKeybind("Hotkey >Disconnected Screen<", &edgePeekHotkey);
 	
@@ -924,6 +930,7 @@ void D3DProxyDevice::VPMENU_PosTracking()
 	VPMENU_StartDrawing(menu, "Settings - Positional Tracking");
 	menu->OnClose([=]() { VPMENU_UpdateConfigSettings(); });
 
+	// FIXME: This should have a reset-to-default
 	menu->AddButton(retprintf("Positional Tracking (CTRL + P) : %s",
 		m_bPosTrackingToggle ? "On" : "Off"),
 		m_bPosTrackingToggle ? COLOR_MENU_ENABLED : COLOR_LIGHTRED,
@@ -935,10 +942,10 @@ void D3DProxyDevice::VPMENU_PosTracking()
 			m_spShaderViewAdjustment->UpdatePosition(0.0f, 0.0f, 0.0f);
 	});
 	
-	menu->AddAdjustment("Position Tracking multiplier : %g", &config.position_multiplier, 1.0f, 0.01f);
-	menu->AddAdjustment("Position X-Tracking multiplier : %g", &config.position_x_multiplier, DEFAULT_POS_TRACKING_X_MULT, 0.01f);
-	menu->AddAdjustment("Position Y-Tracking multiplier : %g", &config.position_y_multiplier, DEFAULT_POS_TRACKING_Y_MULT, 0.01f);
-	menu->AddAdjustment("Position Z-Tracking multiplier : %g", &config.position_z_multiplier, DEFAULT_POS_TRACKING_Z_MULT, 0.01f);
+	menu->AddAdjustment("Position Tracking multiplier : %g", &config.position_multiplier, defaultConfig.position_multiplier, 0.01f);
+	menu->AddAdjustment("Position X-Tracking multiplier : %g", &config.position_x_multiplier, defaultConfig.position_x_multiplier, 0.01f);
+	menu->AddAdjustment("Position Y-Tracking multiplier : %g", &config.position_y_multiplier, defaultConfig.position_y_multiplier, 0.01f);
+	menu->AddAdjustment("Position Z-Tracking multiplier : %g", &config.position_z_multiplier, defaultConfig.position_z_multiplier, 0.01f);
 	
 	menu->AddButton("Reset HMD Orientation (LSHIFT + R)", [=]() {
 		tracker->resetOrientationAndPosition();
@@ -960,6 +967,8 @@ void D3DProxyDevice::VPMENU_DuckAndCover()
 	MenuBuilder *menu = VPMENU_NewFrame();
 	VPMENU_StartDrawing(menu, "Settings - Duck-and-Cover");
 	menu->OnClose([=]() { VPMENU_UpdateConfigSettings(); });
+	
+	// FIXME: All these settings need reset-to-default handling
 
 	std::string crouchToggleDescription = m_DuckAndCover.crouchToggle ? "Toggle" : "Hold";
 	menu->AddButton(retprintf("Crouch : %s", crouchToggleDescription.c_str()), [=]() {
@@ -1032,6 +1041,7 @@ void D3DProxyDevice::VPMENU_ComfortMode()
 {
 	SHOW_CALL("VPMENU_ComfortMode");
 	controls.UpdateInputs();
+	// FIXME: All these settings need reset-to-default handling
 	
 	MenuBuilder *menu = VPMENU_NewFrame();
 	VPMENU_StartDrawing(menu, "Settings - Comfort Mode");
@@ -1075,18 +1085,18 @@ void D3DProxyDevice::VPMENU_VRBoostValues()
 	MenuBuilder *menu = VPMENU_NewFrame();
 	VPMENU_StartDrawing(menu, "Settings - VRBoost");
 
-	menu->AddAdjustment("World FOV : %g",          &VRBoostValue[24], 100.0f, 0.5f);
-	menu->AddAdjustment("Player FOV : %g",         &VRBoostValue[25], 100.0f, 0.5f);
-	menu->AddAdjustment("Far Plane FOV : %g",      &VRBoostValue[26], 100.0f, 0.5f);
-	menu->AddAdjustment("Camera Translate X : %g", &VRBoostValue[27], 0.0f, 0.1f);
-	menu->AddAdjustment("Camera Translate Y : %g", &VRBoostValue[28], 0.0f, 0.1f);
-	menu->AddAdjustment("Camera Translate Z : %g", &VRBoostValue[29], 0.0f, 0.1f);
-	menu->AddAdjustment("Camera Distance : %g",    &VRBoostValue[30], 0.0f, 0.1f);
-	menu->AddAdjustment("Camera Zoom : %g",        &VRBoostValue[31], 0.0f, 0.1f);
+	menu->AddAdjustment("World FOV : %g",          &VRBoostValue[24], defaultConfig.WorldFOV, 0.5f);
+	menu->AddAdjustment("Player FOV : %g",         &VRBoostValue[25], defaultConfig.PlayerFOV, 0.5f);
+	menu->AddAdjustment("Far Plane FOV : %g",      &VRBoostValue[26], defaultConfig.FarPlaneFOV, 0.5f);
+	menu->AddAdjustment("Camera Translate X : %g", &VRBoostValue[27], defaultConfig.CameraTranslateX, 0.1f);
+	menu->AddAdjustment("Camera Translate Y : %g", &VRBoostValue[28], defaultConfig.CameraTranslateY, 0.1f);
+	menu->AddAdjustment("Camera Translate Z : %g", &VRBoostValue[29], defaultConfig.CameraTranslateZ, 0.1f);
+	menu->AddAdjustment("Camera Distance : %g",    &VRBoostValue[30], defaultConfig.CameraDistance, 0.1f);
+	menu->AddAdjustment("Camera Zoom : %g",        &VRBoostValue[31], defaultConfig.CameraZoom, 0.1f);
 	menu->AddAdjustment("Camera Horizon Adjustment : %g", &VRBoostValue[32], 0.0f, 0.1f);
-	menu->AddAdjustment("Constant Value 1 : %g",   &VRBoostValue[33], 0.0f, 0.1f);
-	menu->AddAdjustment("Constant Value 2 : %g",   &VRBoostValue[34], 0.0f, 0.1f);
-	menu->AddAdjustment("Constant Value 2 : %g",   &VRBoostValue[35], 0.0f, 0.1f);
+	menu->AddAdjustment("Constant Value 1 : %g",   &VRBoostValue[33], defaultConfig.ConstantValue1, 0.1f);
+	menu->AddAdjustment("Constant Value 2 : %g",   &VRBoostValue[34], defaultConfig.ConstantValue2, 0.1f);
+	menu->AddAdjustment("Constant Value 2 : %g",   &VRBoostValue[35], defaultConfig.ConstantValue3, 0.1f);
 
 	menu->AddBackButtons();
 	VPMENU_FinishDrawing(menu);
@@ -1097,6 +1107,7 @@ void D3DProxyDevice::VPMENU_Hotkeys()
 	SHOW_CALL("VPMENU_Hotkeys");
 	MenuBuilder *menu = VPMENU_NewFrame();
 	VPMENU_StartDrawing(menu, "Settings - Hotkeys");
+	// FIXME: All these hotkeys need reset-to-default handling
 	
 	menu->AddKeybind("Reset Orientation", &config.HotkeyResetOrientation);
 	menu->AddKeybind("Show FPS Hotkey", &config.HotkeyShowFPS);
@@ -1117,6 +1128,7 @@ void D3DProxyDevice::VPMENU_AdjustmentHotkeys()
 	SHOW_CALL("VPMENU_AdjustmentHotkeys");
 	MenuBuilder *menu = VPMENU_NewFrame();
 	VPMENU_StartDrawing(menu, "Settings - Adjustment Hotkeys");
+	// FIXME: All these hotkeys need reset-to-default handling
 	
 	menu->AddKeybind("Switch 2D Depth Mode", &config.HotkeySwitch2DDepthMode);
 	menu->AddKeybind("Swap Sides Hotkey", &config.HotkeySwapSides);
