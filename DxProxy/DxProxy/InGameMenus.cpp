@@ -369,6 +369,7 @@ std::string DepthModeToString(D3DProxyDevice::GUI_3D_Depth_Modes mode)
 	}
 }
 
+
 /**
 * Main Menu method.
 ***/
@@ -382,26 +383,30 @@ void D3DProxyDevice::VPMENU_MainMenu()
 
 	if (includeShaderAnalyzer)
 	{
-		menu->AddNavigation("Activate Vireio Shader Analyzer\n",
+		menu->AddNavigation("Shader Analyzer\n",
 			[=]() { VPMENU_ShaderSubMenu(); });
 	}
 	
 	menu->AddNavigation("World-Scale Calibration\n", [=]() { VPMENU_WorldScale(); });
 	menu->AddNavigation("Convergence Adjustment\n", [=]() { VPMENU_Convergence(); });
-	menu->AddNavigation("HUD Calibration\n", [=]() { VPMENU_HUD(); });
-	menu->AddNavigation("GUI Calibration\n", [=]() { VPMENU_GUI(); });
+	//menu->AddNavigation("HUD Calibration\n", [=]() { VPMENU_HUD(); });
+	//menu->AddNavigation("GUI Calibration\n", [=]() { VPMENU_GUI(); });
 	
-	menu->AddEnumPicker("HUD Quick Setting : %s", (int*)&hud3DDepthMode,
+	menu->AddEnumPicker("HUD Settings : %s", (int*)&hud3DDepthMode,
 		HUD_3D_Depth_Modes::HUD_ENUM_RANGE, [](int val) {
 			return DepthModeToString((HUD_3D_Depth_Modes)val);
 		}, [=](int newValue) {
 			ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)newValue);
+		}, [=]() {
+			VPMENU_NavigateTo([=](){ VPMENU_HUD(); });
 		});
-	menu->AddEnumPicker("GUI Quick Setting : %s", (int*)&gui3DDepthMode,
+	menu->AddEnumPicker("GUI Settings : %s", (int*)&gui3DDepthMode,
 		GUI_3D_Depth_Modes::GUI_ENUM_RANGE, [](int val) {
 			return DepthModeToString((GUI_3D_Depth_Modes)val);
 		}, [=](int newValue) {
 			ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)newValue);
+		}, [=]() {
+			VPMENU_NavigateTo([=](){ VPMENU_GUI(); });
 		});
 	menu->AddNavigation("Overall Settings\n", [=]() { VPMENU_Settings(); });
 	menu->AddNavigation("VRBoost Values\n", [=]() { VPMENU_VRBoostValues(); });
@@ -409,6 +414,7 @@ void D3DProxyDevice::VPMENU_MainMenu()
 	menu->AddNavigation("General Hotkeys\n", [=]() { VPMENU_Hotkeys(); });
 	menu->AddNavigation("3D Adjustment Hotkeys\n", [=]() { VPMENU_AdjustmentHotkeys(); });
 	menu->AddNavigation("Comfort Mode Configuration\n", [=]() { VPMENU_ComfortMode(); });
+	
 	menu->AddButton("Restore Configuration\n", [=]() {
 		// first, backup all strings
 		std::string game_exe = config.game_exe;
@@ -1715,7 +1721,7 @@ void MenuBuilder::AddAdjustment(const char *formatString, float *value, float de
 	});
 }
 
-void MenuBuilder::AddEnumPicker(const char *formatString, int *currentValue, int maxValue, std::function<std::string(int)> getDescription, std::function<void(int)> onChange)
+void MenuBuilder::AddEnumPicker(const char *formatString, int *currentValue, int maxValue, std::function<std::string(int)> getDescription, std::function<void(int)> onChange, std::function<void()> onActivate)
 {
 	std::string description = retprintf(formatString, getDescription(*currentValue).c_str());
 	
@@ -1736,6 +1742,11 @@ void MenuBuilder::AddEnumPicker(const char *formatString, int *currentValue, int
 				(*currentValue)++;
 				onChange(*currentValue);
 			}
+			device->HotkeyCooldown(COOLDOWN_SHORT);
+		}
+		if (device->VPMENU_Input_Selected() && device->HotkeysActive())
+		{
+			onActivate();
 			device->HotkeyCooldown(COOLDOWN_SHORT);
 		}
 	});
