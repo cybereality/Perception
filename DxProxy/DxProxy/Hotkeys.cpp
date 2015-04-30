@@ -188,7 +188,7 @@ void D3DProxyDevice::HandleControls()
 	}
 
 	// test VRBoost reset hotkey
-	if (toggleVRBoostHotkey->IsPressed(controls) && HotkeysActive())
+	if (config.VRBoostResetHotkey->IsPressed(controls) && HotkeysActive())
 	{
 		if (hmVRboost!=NULL)
 		{
@@ -270,7 +270,7 @@ void D3DProxyDevice::HandleControls()
 	}
 
 	//Disconnected Screen View Mode
-	if ((edgePeekHotkey->IsPressed(controls) || hotkeyEdgePeek->IsPressed(controls)) && HotkeysActive())
+	if ((config.EdgePeekHotkey->IsPressed(controls) || hotkeyEdgePeek->IsPressed(controls)) && HotkeysActive())
 	{
 		static bool bSurpressPositionaltracking = true;
 		static bool bForceMouseEmulation = false;

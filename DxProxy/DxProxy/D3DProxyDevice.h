@@ -902,14 +902,6 @@ private:
 	***/
 	GUI_3D_Depth_Modes oldGuiMode;
 	/**
-	* Hotkey for VRBoost toggle.
-	***/
-	InputBindingRef toggleVRBoostHotkey;
-	/**
-	* Hotkey for disconnected screen.
-	***/
-	InputBindingRef edgePeekHotkey;
-	/**
 	* True if screenshot is taken next frame.
 	***/
 	int screenshot;

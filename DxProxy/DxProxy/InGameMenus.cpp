@@ -92,8 +92,6 @@ bool D3DProxyDevice::InitVPMENU()
 
 	hotkeyCatch = false;
 	inWorldScaleMenu = false;
-	toggleVRBoostHotkey = 0;
-	edgePeekHotkey = 0;
 	
 	controls.Reset();
 	return true;
@@ -909,11 +907,9 @@ void D3DProxyDevice::VPMENU_Settings()
 		}
 	});
 	
-	// FIXME: toggleVRBoostHotkey and edgePeekHotkey should be using the copies
-	// in the config, not cloned into D3DProxyDevice. Also these need a
-	// reset-to-default.
-	menu->AddKeybind("Hotkey >Toggle VRBoost<", &toggleVRBoostHotkey);
-	menu->AddKeybind("Hotkey >Disconnected Screen<", &edgePeekHotkey);
+	// FIXME: These should have a reset-to-default
+	menu->AddKeybind("Hotkey >Toggle VRBoost<", &config.VRBoostResetHotkey);
+	menu->AddKeybind("Hotkey >Disconnected Screen<", &config.EdgePeekHotkey);
 	
 	menu->AddBackButtons();
 	VPMENU_FinishDrawing(menu);
@@ -1317,8 +1313,6 @@ void D3DProxyDevice::VPMENU_UpdateConfigSettings()
 	config.DistortionScale = stereoView->DistortionScale;
 	config.hud3DDepthMode = (int)hud3DDepthMode;
 	config.gui3DDepthMode = (int)gui3DDepthMode;
-	config.VRBoostResetHotkey = toggleVRBoostHotkey;
-	config.EdgePeekHotkey = edgePeekHotkey;
 	config.WorldFOV = VRBoostValue[VRboostAxis::WorldFOV];
 	config.PlayerFOV = VRBoostValue[VRboostAxis::PlayerFOV];
 	config.FarPlaneFOV = VRBoostValue[VRboostAxis::FarPlaneFOV];
@@ -1353,10 +1347,7 @@ void D3DProxyDevice::VPMENU_UpdateDeviceSettings()
 	// GUI
 	ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)config.gui3DDepthMode);
 
-	//Disconnected Screen Mode
-	edgePeekHotkey = config.EdgePeekHotkey;
 	// VRBoost
-	toggleVRBoostHotkey = config.VRBoostResetHotkey;
 	VRBoostValue[VRboostAxis::WorldFOV] = config.WorldFOV;
 	VRBoostValue[VRboostAxis::PlayerFOV] = config.PlayerFOV;
 	VRBoostValue[VRboostAxis::FarPlaneFOV] = config.FarPlaneFOV;
