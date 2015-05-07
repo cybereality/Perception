@@ -611,11 +611,9 @@ void D3DProxyDevice::VPMENU_Convergence()
 		"Convergence rotates the eye images inward. It should\n"
 		"be enabled for 3D monitors, and disabled for head-mounted\n"
 		"displays.");
-	menu->AddButton(retprintf("Convergence : %s", config.convergenceEnabled?"ON":"OFF"),
-		[=]() {
-			config.convergenceEnabled = !config.convergenceEnabled;
-			m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
-		});
+	menu->AddToggle("Convergence : %s", "ON", "OFF", &config.convergenceEnabled, defaultConfig.convergenceEnabled, [=]() {
+		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
+	});
 	
 	if(config.convergenceEnabled)
 	{
@@ -836,11 +834,7 @@ void D3DProxyDevice::VPMENU_Settings()
 	VPMENU_StartDrawing(menu, "Settings - General");
 	menu->OnClose([=]() { VPMENU_UpdateConfigSettings(); });
 
-	// FIXME: Swap Eyes needs a reset-to-default
-	menu->AddButton(retprintf("Swap Eyes : %s", config.swap_eyes ? "True" : "False"), [=]()
-	{
-		config.swap_eyes = !config.swap_eyes;
-	});
+	menu->AddToggle("Swap Eyes : %s", "True", "False", &config.swap_eyes, defaultConfig.swap_eyes);
 	menu->AddAdjustment("IPD-Offset : %1.3f", &config.IPDOffset,
 		defaultConfig.IPDOffset, 0.001f, [=]()
 	{
@@ -883,6 +877,7 @@ void D3DProxyDevice::VPMENU_Settings()
 		case 1: rollImplDescription = "Matrix Translation"; break;
 		case 2: rollImplDescription = "Pixel Shader"; break;
 	}
+	// FIXME: This should have a reset-to-default
 	menu->AddButton(retprintf("Roll : %s", rollImplDescription.c_str()), [=]()
 	{
 		config.rollImpl = (config.rollImpl+1) % 3;
@@ -927,6 +922,7 @@ void D3DProxyDevice::VPMENU_Settings()
 		}
 	});
 	
+	// FIXME: This should have a reset-to-default
 	menu->AddButton(retprintf("Toggle VRBoost : %s",
 		m_bVRBoostToggle ? "On" : "Off"),
 		m_bVRBoostToggle ? COLOR_MENU_ENABLED : COLOR_MENU_DISABLED,
@@ -960,17 +956,10 @@ void D3DProxyDevice::VPMENU_PosTracking()
 	VPMENU_StartDrawing(menu, "Settings - Positional Tracking");
 	menu->OnClose([=]() { VPMENU_UpdateConfigSettings(); });
 
-	// FIXME: This should have a reset-to-default
-	menu->AddButton(retprintf("Positional Tracking (CTRL + P) : %s",
-		m_bPosTrackingToggle ? "On" : "Off"),
-		m_bPosTrackingToggle ? COLOR_MENU_ENABLED : COLOR_LIGHTRED,
-		[=]()
-	{
-		m_bPosTrackingToggle = !m_bPosTrackingToggle;
-
+	menu->AddToggle("Positional Tracking (CTRL+P) : %s", "On", "Off", &m_bPosTrackingToggle, true, [=]() {
 		if (!m_bPosTrackingToggle)
 			m_spShaderViewAdjustment->UpdatePosition(0.0f, 0.0f, 0.0f);
-	});
+	}, MenuBuilder::GreenOrRed);
 	
 	menu->AddAdjustment("Position Tracking multiplier : %g", &config.position_multiplier, defaultConfig.position_multiplier, 0.01f);
 	menu->AddAdjustment("Position X-Tracking multiplier : %g", &config.position_x_multiplier, defaultConfig.position_x_multiplier, 0.01f);
@@ -998,14 +987,11 @@ void D3DProxyDevice::VPMENU_DuckAndCover()
 	VPMENU_StartDrawing(menu, "Settings - Duck-and-Cover");
 	menu->OnClose([=]() { VPMENU_UpdateConfigSettings(); });
 	
-	// FIXME: All these settings need reset-to-default handling
-
-	std::string crouchToggleDescription = m_DuckAndCover.crouchToggle ? "Toggle" : "Hold";
-	menu->AddButton(retprintf("Crouch : %s", crouchToggleDescription.c_str()), [=]() {
-		m_DuckAndCover.crouchToggle = !m_DuckAndCover.crouchToggle;
+	menu->AddToggle("Crouch : %s", "Toggle", "Hold", &m_DuckAndCover.crouchToggle, false, [=]() {
 		m_DuckAndCover.SaveToRegistry();
 	});
 
+	// FIXME: This setting needs reset-to-default handling
 	menu->AddGameKeypress("Crouch Key", &m_DuckAndCover.crouchKey);
 
 	std::string proneToggleDescription =
@@ -1020,17 +1006,14 @@ void D3DProxyDevice::VPMENU_DuckAndCover()
 		m_DuckAndCover.SaveToRegistry();
 	});
 
+	// FIXME: This setting needs reset-to-default handling
 	menu->AddGameKeypress("Prone Key", &m_DuckAndCover.proneKey);
 
-	menu->AddButton(retprintf("Jump : %s",
-		m_DuckAndCover.jumpEnabled ? "Enabled" : "Disabled"),
-		m_DuckAndCover.jumpEnabled ? COLOR_MENU_TEXT : COLOR_MENU_DISABLED,
-		[=]()
-	{
-		m_DuckAndCover.jumpEnabled = !m_DuckAndCover.jumpEnabled;
+	menu->AddToggle("Jump : %s", "Enabled", "Disabled", &m_DuckAndCover.jumpEnabled, true, [=]() {
 		m_DuckAndCover.SaveToRegistry();
-	});
+	}, MenuBuilder::RedIfOff);
 
+	// FIXME: This setting needs reset-to-default handling
 	menu->AddGameKeypress("Jump Key", &m_DuckAndCover.jumpKey);
 
 	menu->AddButton("Calibrate Duck-and-Cover then Enable", [=]() {
@@ -1038,6 +1021,7 @@ void D3DProxyDevice::VPMENU_DuckAndCover()
 		m_DuckAndCover.dfcStatus = DAC_CAL_STANDING;
 	});
 
+	// FIXME: This setting needs reset-to-default handling
 	bool dacIsDisabled = (m_DuckAndCover.dfcStatus == DAC_DISABLED ||
 		m_DuckAndCover.dfcStatus == DAC_INACTIVE);
 	menu->AddButton(retprintf("%s Duck-and-Cover Mode",
@@ -1071,13 +1055,13 @@ void D3DProxyDevice::VPMENU_ComfortMode()
 {
 	SHOW_CALL("VPMENU_ComfortMode");
 	controls.UpdateInputs();
-	// FIXME: All these settings need reset-to-default handling
 	
 	MenuBuilder *menu = VPMENU_NewFrame();
 	VPMENU_StartDrawing(menu, "Settings - Comfort Mode");
 	menu->OnClose([=]() { VPMENU_UpdateConfigSettings(); });
 
 	bool isEnabled = (VRBoostValue[VRboostAxis::ComfortMode] != 0.0f);
+	// FIXME: This setting needs reset-to-default handling
 	menu->AddButton(retprintf("Comfort Mode : %s", isEnabled?"Enabled":"Disabled"), [=]()
 	{
 		VRBoostValue[VRboostAxis::ComfortMode] = 1.0f - VRBoostValue[VRboostAxis::ComfortMode];
@@ -1088,6 +1072,7 @@ void D3DProxyDevice::VPMENU_ComfortMode()
 	menu->AddKeybind("Turn Left Key",  &config.ComfortModeLeftKey,  defaultConfig.ComfortModeLeftKey);
 	menu->AddKeybind("Turn Right Key", &config.ComfortModeRightKey, defaultConfig.ComfortModeRightKey);
 
+	// FIXME: This setting needs reset-to-default handling
 	menu->AddButton(retprintf("Yaw Rotation Increment : %.1f", config.ComfortModeYawIncrement), [=]()
 	{
 		if (config.ComfortModeYawIncrement == 30.0f)
@@ -1664,6 +1649,23 @@ void MenuBuilder::AddButton(std::string text, D3DCOLOR color, std::function<void
 void MenuBuilder::AddButton(std::string text, std::function<void()> onPick)
 {
 	AddButton(text, COLOR_MENU_TEXT, onPick);
+}
+
+void MenuBuilder::AddToggle(const char *formatString, const char *on, const char *off, bool *value, bool defaultValue, std::function<void()> onChange, MenuHighlightMode highlightMode)
+{
+	D3DCOLOR color = COLOR_MENU_TEXT;
+	if(highlightMode == MenuHighlightMode::GreenOrRed) {
+		if(*value) color = COLOR_MENU_ENABLED;
+		else color = COLOR_LIGHTRED;
+	} else if(highlightMode == MenuHighlightMode::RedIfOff) {
+		if(!*value) color = COLOR_MENU_DISABLED;
+	}
+	
+	AddButton(retprintf(formatString, *value ? on : off), [=]()
+	{
+		*value = !(*value);
+		onChange();
+	});
 }
 
 void MenuBuilder::AddNavigation(std::string text, std::function<void()> menuHandler)

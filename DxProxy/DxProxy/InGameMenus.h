@@ -23,6 +23,13 @@
 class MenuBuilder
 {
 public:
+	enum MenuHighlightMode
+	{
+		NoHighlight,
+		GreenOrRed,
+		RedIfOff
+	};
+
 	MenuBuilder(D3DProxyDevice *device);
 	
 	void DrawItem(const char *text, D3DCOLOR color=COLOR_MENU_TEXT);
@@ -31,6 +38,7 @@ public:
 	void AddItem(std::string text, D3DCOLOR color, std::function<void()> onHover);
 	void AddButton(std::string text, D3DCOLOR color, std::function<void()> onPick);
 	void AddButton(std::string text, std::function<void()> onPick);
+	void AddToggle(const char *formatString, const char *on, const char *off, bool *value, bool defaultValue, std::function<void()> onChange=[](){}, MenuHighlightMode highlightMode=NoHighlight);
 	void AddNavigation(std::string text, std::function<void()> menuHandler);
 	void AddGameKeypress(std::string text, byte *binding);
 	void AddKeybind(std::string text, InputBindingRef *binding, InputBindingRef defaultBinding);
@@ -43,7 +51,7 @@ public:
 	void ResetDrawPosition();
 	int GetDrawPositionTop();
 	int GetEntryCount();
-
+	
 private:
 	D3DProxyDevice *device;
 	int menuConstructionCurrentEntry;
