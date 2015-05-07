@@ -92,20 +92,6 @@ private:
 	InputBindingRef second;
 };
 
-namespace HotkeyExpressions
-{
-	InputBindingRef Key(int keyIndex);
-	InputBindingRef Button(int buttonIndex);
-	InputBindingRef operator+(InputBindingRef lhs, InputBindingRef rhs);
-	InputBindingRef operator||(InputBindingRef lhs, InputBindingRef rhs);
-	InputBindingRef Unbound();
-	
-	InputBindingRef HotkeyFromJson(const Json::Value &json);
-	void UnpackAlternation(InputBindingRef hotkey, std::vector<InputBindingRef> *options);
-	InputBindingRef PackAlternation(const std::vector<InputBindingRef> &options);
-	InputBindingRef PackConjunction(const std::vector<InputBindingRef> &options);
-}
-
 /*
 * Holds information about inputs.
 */
@@ -140,3 +126,34 @@ public:
 	/// Get the stick position of a gamepad axis, scaled from -1.0f to 1.0f.
 	virtual float GetAxis(GamepadAxis axis)=0;
 };
+
+class AxisThresholdBinding
+	: public InputBinding
+{
+public:
+	AxisThresholdBinding(InputControls::GamepadAxis axisIndex, bool greater, float threshold);
+	bool IsPressed(InputControls &controls);
+	std::string ToString();
+	Json::Value ToJson();
+	
+private:
+	InputControls::GamepadAxis axisIndex;
+	bool greater;
+	float threshold;
+};
+
+
+namespace HotkeyExpressions
+{
+	InputBindingRef Key(int keyIndex);
+	InputBindingRef Button(int buttonIndex);
+	InputBindingRef Axis(InputControls::GamepadAxis axis, bool greater, float threshold);
+	InputBindingRef operator+(InputBindingRef lhs, InputBindingRef rhs);
+	InputBindingRef operator||(InputBindingRef lhs, InputBindingRef rhs);
+	InputBindingRef Unbound();
+	
+	InputBindingRef HotkeyFromJson(const Json::Value &json);
+	void UnpackAlternation(InputBindingRef hotkey, std::vector<InputBindingRef> *options);
+	InputBindingRef PackAlternation(const std::vector<InputBindingRef> &options);
+	InputBindingRef PackConjunction(const std::vector<InputBindingRef> &options);
+}

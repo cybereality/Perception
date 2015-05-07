@@ -1,10 +1,11 @@
 #include "InputControls.h"
 #include "VireioUtil.h"
+#include "ConfigDefaults.h"
 #include <assert.h>
 
 using namespace vireio;
 
-std::array<std::string, 256> GetKeyNameList()
+static std::array<std::string, 256> GetKeyNameList()
 {
 	// https://msdn.microsoft.com/en-us/library/windows/desktop/dd375731(v=vs.85).aspx
 	
@@ -153,7 +154,7 @@ std::array<std::string, 256> GetKeyNameList()
 	return keyNameList;
 }
 
-std::array<std::string, 16> GetButtonNameList()
+static std::array<std::string, 16> GetButtonNameList()
 {
 	std::array<std::string, 16> buttonNameList;
 	buttonNameList[0] = "DPAD UP";
@@ -175,10 +176,26 @@ std::array<std::string, 16> GetButtonNameList()
 	return buttonNameList;
 }
 
-// Virtual keys name list.
-// (used for BRASSA menu)
+static std::vector<InputBindingRef> GetBindableAxes()
+{
+	std::vector<InputBindingRef> ret;
+	ret.push_back(HotkeyExpressions::Axis(InputControls::LeftStickX, true, BOUND_STICK_DEADZONE));
+	ret.push_back(HotkeyExpressions::Axis(InputControls::LeftStickX, false, -BOUND_STICK_DEADZONE));
+	ret.push_back(HotkeyExpressions::Axis(InputControls::LeftStickY, true, BOUND_STICK_DEADZONE));
+	ret.push_back(HotkeyExpressions::Axis(InputControls::LeftStickY, false, -BOUND_STICK_DEADZONE));
+	ret.push_back(HotkeyExpressions::Axis(InputControls::RightStickX, true, BOUND_STICK_DEADZONE));
+	ret.push_back(HotkeyExpressions::Axis(InputControls::RightStickX, false, -BOUND_STICK_DEADZONE));
+	ret.push_back(HotkeyExpressions::Axis(InputControls::RightStickY, true, BOUND_STICK_DEADZONE));
+	ret.push_back(HotkeyExpressions::Axis(InputControls::RightStickY, false, -BOUND_STICK_DEADZONE));
+	return ret;
+}
+
+// Virtual keys name list (used for BRASSA menu)
 static std::array<std::string, 256> KeyNameList = GetKeyNameList();
 static std::array<std::string, 16> ButtonNameList = GetButtonNameList();
+
+// List of bind-able axes
+static std::vector<InputBindingRef> BindableAxes = GetBindableAxes();
 
 
 InputControls::InputControls()
@@ -206,6 +223,14 @@ std::vector<InputBindingRef> InputControls::GetHeldInputs()
 		if(GetButtonState(ii))
 		{
 			ret.push_back(HotkeyExpressions::Button(ii));
+		}
+	}
+	
+	for(size_t ii=0; ii<BindableAxes.size(); ii++)
+	{
+		if(BindableAxes[ii]->IsPressed(*this))
+		{
+			ret.push_back(BindableAxes[ii]);
 		}
 	}
 	
@@ -243,7 +268,7 @@ bool SimpleKeyBinding::IsPressed(InputControls &controls)
 
 std::string SimpleKeyBinding::ToString()
 {
-	if (keyIndex < KeyNameList.size() && keyIndex >= 0)
+	if (keyIndex < (int)KeyNameList.size() && keyIndex >= 0)
 	{
 		return KeyNameList[keyIndex];
 	}
@@ -362,6 +387,56 @@ InputBindingRef AlternativesKeyBinding::GetSecond()
 }
 
 
+AxisThresholdBinding::AxisThresholdBinding(InputControls::GamepadAxis axisIndex, bool greater, float threshold)
+{
+	this->axisIndex = axisIndex;
+	this->greater = greater;
+	this->threshold = threshold;
+}
+
+bool AxisThresholdBinding::IsPressed(InputControls &controls)
+{
+	float axisPosition = controls.GetAxis(axisIndex);
+	
+	if(greater) {
+		return axisPosition>threshold;
+	} else {
+		return axisPosition<threshold;
+	}
+}
+
+std::string AxisThresholdBinding::ToString()
+{
+	switch(axisIndex)
+	{
+	case InputControls::GamepadAxis::LeftStickX:
+		if(greater) return "LThumb Right";
+		else        return "LThumb Left";
+	case InputControls::GamepadAxis::LeftStickY:
+		if(greater) return "LThumb Up";
+		else        return "LThumb Down";
+	case InputControls::GamepadAxis::RightStickX:
+		if(greater) return "RThumb Right";
+		else        return "RThumb Left";
+	case InputControls::GamepadAxis::RightStickY:
+		if(greater) return "RThumb Up";
+		else        return "RThumb Down";
+	default:
+		return "???";
+	}
+}
+
+Json::Value AxisThresholdBinding::ToJson()
+{
+	Json::Value arr = Json::Value(Json::arrayValue);
+	arr.append("axis");
+	arr.append((int)axisIndex);
+	arr.append(greater);
+	arr.append(threshold);
+	return arr;
+}
+
+
 InputBindingRef HotkeyExpressions::Key(int keyIndex)
 {
 	return InputBindingRef(new SimpleKeyBinding(keyIndex));
@@ -370,6 +445,11 @@ InputBindingRef HotkeyExpressions::Key(int keyIndex)
 InputBindingRef HotkeyExpressions::Button(int buttonIndex)
 {
 	return InputBindingRef(new SimpleButtonBinding(buttonIndex));
+}
+
+InputBindingRef HotkeyExpressions::Axis(InputControls::GamepadAxis axis, bool greater, float threshold)
+{
+	return InputBindingRef(new AxisThresholdBinding(axis, greater, threshold));
 }
 
 InputBindingRef HotkeyExpressions::operator+(InputBindingRef lhs, InputBindingRef rhs)
@@ -438,6 +518,12 @@ InputBindingRef HotkeyExpressions::HotkeyFromJson(const Json::Value &json)
 			if(json.size() < 2) return Unbound();
 			int buttonIndex = json[1].asInt();
 			return Button(buttonIndex);
+		} else if(type == "axis") {
+			if(json.size() < 4) return Unbound();
+			int axisIndex = json[1].asInt();
+			bool isGreater = json[2].asBool();
+			float axisThreshold = json[3].asFloat();
+			return Axis((InputControls::GamepadAxis)axisIndex, isGreater, axisThreshold);
 		} else if(type == "and") {
 			if(json.size() < 3) return Unbound();
 			InputBindingRef first = HotkeyFromJson(json[1]);

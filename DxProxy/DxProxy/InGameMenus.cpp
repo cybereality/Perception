@@ -54,13 +54,15 @@ using namespace HotkeyExpressions;
 
 InputBindingRef hotkeyCloseMenu = Key(VK_ESCAPE);
 InputBindingRef hotkeyResetToDefault = Key(VK_BACK);
-InputBindingRef hotkeyMenuUp = Key(VK_UP) || Key('I');
-InputBindingRef hotkeyMenuDown = Key(VK_DOWN) || Key('K');
+InputBindingRef hotkeyMenuUp = Key(VK_UP) || Key('I') || Axis(InputControls::GamepadAxis::LeftStickY, true, MENU_SELECTION_STICK_DEADZONE);
+InputBindingRef hotkeyMenuDown = Key(VK_DOWN) || Key('K') || Axis(InputControls::GamepadAxis::LeftStickY, false, -MENU_SELECTION_STICK_DEADZONE);
 InputBindingRef hotkeyMenuUpFaster = Key(VK_PRIOR) || Key('U');
 InputBindingRef hotkeyMenuDownFaster = Key(VK_NEXT) || Key('O');
 InputBindingRef hotkeyMenuSelect = Key(VK_RETURN) || Key(VK_RSHIFT) || Button(0x0c);
 InputBindingRef hotkeyAdjustLeft = Key(VK_LEFT) || Key('J');
+InputBindingRef hotkeyAdjustAxisLeft = Axis(InputControls::LeftStickX, true, MENU_ADJUSTMENT_STICK_DEADZONE);
 InputBindingRef hotkeyAdjustRight = Key(VK_RIGHT) || Key('L');
+InputBindingRef hotkeyAdjustAxisRight = Axis(InputControls::LeftStickX, false, -MENU_ADJUSTMENT_STICK_DEADZONE);
 
 InputBindingRef hotkeyMenuAdjustmentFaster = Key(VK_LSHIFT);
 InputBindingRef hotkeyMenuAdjustmentSlower = Key(VK_LCONTROL);
@@ -238,13 +240,13 @@ bool D3DProxyDevice::VPMENU_Input_Selected()
 bool D3DProxyDevice::VPMENU_Input_Left()
 {
 	return hotkeyAdjustLeft->IsPressed(controls)
-	       || (controls.GetAxis(InputControls::GamepadAxis::LeftStickX)<-MENU_ADJUSTMENT_STICK_DEADZONE);
+	    || hotkeyAdjustAxisLeft->IsPressed(controls);
 }
 
 bool D3DProxyDevice::VPMENU_Input_Right()
 {
 	return hotkeyAdjustRight->IsPressed(controls)
-	       || (controls.GetAxis(InputControls::GamepadAxis::LeftStickX)>MENU_ADJUSTMENT_STICK_DEADZONE);
+	    || hotkeyAdjustAxisRight->IsPressed(controls);
 }
 
 bool D3DProxyDevice::VPMENU_Input_IsAdjustment()
@@ -1291,9 +1293,7 @@ void D3DProxyDevice::VPMENU_UpdateBorder(int menuEntryCount)
 	}
 	
 	// Handle up/down arrows
-	float menuSelectionAxis = controls.GetAxis(InputControls::GamepadAxis::LeftStickY);
-	
-	if ((hotkeyMenuUp->IsPressed(controls) || (menuSelectionAxis>MENU_SELECTION_STICK_DEADZONE)) && HotkeysActive())
+	if (hotkeyMenuUp->IsPressed(controls) && HotkeysActive())
 	{
 		if(menuState.selectedIndex > 0) {
 			menuState.selectedIndex--;
@@ -1304,7 +1304,7 @@ void D3DProxyDevice::VPMENU_UpdateBorder(int menuEntryCount)
 		}
 		HotkeyCooldown(COOLDOWN_SHORT);
 	}
-	if ((hotkeyMenuDown->IsPressed(controls) || (menuSelectionAxis<-MENU_SELECTION_STICK_DEADZONE)) && HotkeysActive())
+	if (hotkeyMenuDown->IsPressed(controls) && HotkeysActive())
 	{
 		if(menuState.selectedIndex+1 < menuEntryCount) {
 			menuState.selectedIndex++;
