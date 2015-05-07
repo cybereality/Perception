@@ -63,38 +63,13 @@ InputBindingRef LShift = Key(VK_LSHIFT);
 InputBindingRef LCtrl = Key(VK_LCONTROL);
 InputBindingRef LAlt = Key(VK_MENU);
 
-InputBindingRef hotkeyEdgePeek = Key(VK_MBUTTON) || (Key(VK_LCONTROL)+Key(VK_NUMPAD2));
-//InputBindingRef hotkeyResetOrientation = ((LShift||LCtrl) + Key('R')) || (Button(8)+Button(9));
 InputBindingRef hotkeyCrouch = Button(0xc) || Key(VK_RSHIFT);
 InputBindingRef hotkeySkipProne = Button(0xd) || Key(VK_ESCAPE);
 
-//InputBindingRef hotkeySwitch2DDepthMode = LShift + (Key('O') || Key(VK_NUMPAD9));
-//InputBindingRef hotkeySwapSides = LAlt+Key('O');
-//InputBindingRef hotkeyPrevRenderState = LAlt + Key(VK_LEFT);
-//InputBindingRef hotkeyNextRenderState = LAlt + Key(VK_RIGHT);
-
-//InputBindingRef hotkeyToggleCubeRenders = LAlt+Key('1');
-//InputBindingRef hotkeyToggleTextureRenders = LAlt + Key('2');
-//InputBindingRef hotkeyWhenToRenderMenu = LAlt + Key(VK_UP);
-//InputBindingRef hotkeyWhenToPollHeadtracking = LAlt + Key(VK_DOWN);
-//InputBindingRef hotkeyInitiateScan = Key(VK_NUMPAD5) || (Key(VK_OEM_2) + LCtrl);
 InputBindingRef hotkeyNextScanCandidate = Key(VK_NUMPAD6) || (LCtrl+Key(VK_OEM_PERIOD));
 InputBindingRef hotkeyPrevScanCandidate = Key(VK_NUMPAD4) || (LCtrl+Key(VK_OEM_COMMA));
 InputBindingRef hotkeyCancelScan = Key(VK_NUMPAD8) || (LCtrl + Key(VK_OEM_1));
 
-//InputBindingRef hotkeyToggleFreePitch = LShift + Key('X');
-//InputBindingRef hotkeyComfortMode = LShift + Key('M');
-
-//InputBindingRef hotkeyBlackSmear = LShift+Key('B');;
-//InputBindingRef hotkeyResetIPDOffset = Key(VK_F8) || (LShift+Key('I'));
-//InputBindingRef hotkeyShowHMDStats = (LShift+Key('H')) || (LCtrl+Key('H'));
-//InputBindingRef hotkeyShowAxes = LShift + Key('V');
-//InputBindingRef hotkeyTogglePositionalTracking = Key(VK_F11) || (LShift+Key('P')) || (LCtrl+Key('P'));
-//InputBindingRef hotkeyTogglePosePrediction = LShift+Key(VK_DELETE);
-//InputBindingRef hotkeyToggleChromaticAbberationCorrection = (LShift+Key('J')) || (LCtrl+Key('J'));
-
-//InputBindingRef hotkeyVRMouse = Key(VK_NUMPAD0);
-//InputBindingRef hotkeyFloatyMenus = LCtrl+Key(VK_NUMPAD1);
 InputBindingRef hotkeyDoubleClickVPMenu = Button(4);
 InputBindingRef hotkeyOpenVPMenu = (LCtrl+Key('Q')) || (LShift+Key(VK_MULTIPLY));
 
@@ -103,13 +78,6 @@ InputBindingRef hotkeyWheelIPDOffset = LCtrl+LShift;
 InputBindingRef hotkeyWheelWorldScale = LCtrl+LAlt;
 InputBindingRef hotkeyWheelStereoConvergence = LCtrl+Key(VK_SPACE);
 InputBindingRef hotkeyWheelZoomScale = LCtrl;
-
-//InputBindingRef hotkeyDistortionScalePlus = LCtrl+Key(VK_ADD);
-//InputBindingRef hotkeyDistortionScaleMinus = LCtrl+Key(VK_SUBTRACT);
-
-//InputBindingRef hotkeyShowFPS = (LShift+Key('F')) || (LCtrl+Key('F'));
-//InputBindingRef hotkeyScreenshot = Key(VK_RCONTROL) + Key(VK_MULTIPLY);
-//InputBindingRef hotkeyTelescopeMode = Key(VK_MENU)+Key(VK_MBUTTON);
 
 /**
 * Keyboard input handling
@@ -270,7 +238,7 @@ void D3DProxyDevice::HandleControls()
 	}
 
 	//Disconnected Screen View Mode
-	if ((config.EdgePeekHotkey->IsPressed(controls) || hotkeyEdgePeek->IsPressed(controls)) && HotkeysActive())
+	if (config.EdgePeekHotkey->IsPressed(controls) && HotkeysActive())
 	{
 		static bool bSurpressPositionaltracking = true;
 		static bool bForceMouseEmulation = false;

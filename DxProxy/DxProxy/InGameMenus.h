@@ -33,7 +33,7 @@ public:
 	void AddButton(std::string text, std::function<void()> onPick);
 	void AddNavigation(std::string text, std::function<void()> menuHandler);
 	void AddGameKeypress(std::string text, byte *binding);
-	void AddKeybind(std::string text, InputBindingRef *binding);
+	void AddKeybind(std::string text, InputBindingRef *binding, InputBindingRef defaultBinding);
 	void AddAdjustment(const char *formatString, float *value, float defaultValue, float rate, std::function<void()> onChange=[](){});
 	void AddEnumPicker(const char *formatString, int *currentValue, int maxValue, std::function<std::string(int)> getDescription, std::function<void(int)> onChange, std::function<void()> onActivate=[](){});
 	void AddText(const char *text);

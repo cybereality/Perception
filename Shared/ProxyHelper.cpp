@@ -1015,7 +1015,7 @@ void HandleGameProfile(ProxyHelper::ConfigTransferDirection dir, xml_node &node,
 	HANDLE_SETTING_ATTR("gui_key_full",      guiHotkeys[3], Unbound());
 
 	HANDLE_SETTING_ATTR("VRBoost_key_reset", VRBoostResetHotkey, Unbound());
-	HANDLE_SETTING_ATTR("edge_peek_key",     EdgePeekHotkey, Unbound());
+	HANDLE_SETTING_ATTR("edge_peek_key",     EdgePeekHotkey, Key(VK_MBUTTON) || (Key(VK_LCONTROL)+Key(VK_NUMPAD2)));
 
 	HANDLE_SETTING(ComfortModeYawIncrement, 90.0f);
 	HANDLE_SETTING(ComfortModeLeftKey,       Key(VK_LEFT));
@@ -1035,33 +1035,33 @@ void HandleGameProfile(ProxyHelper::ConfigTransferDirection dir, xml_node &node,
 	HANDLE_SETTING(ConstantValue2,          0.0f);
 	HANDLE_SETTING(ConstantValue3,          0.0f);
 	
-	HANDLE_SETTING(HotkeyResetOrientation, (LShift + Key('R')) || (LCtrl + Key('R')) || (Button(8)+Button(9)));
-	HANDLE_SETTING(HotkeyShowFPS,          (LShift+Key('F')) || (LCtrl+Key('F')));
-	HANDLE_SETTING(HotkeyScreenshot,       Key(VK_RCONTROL) + Key(VK_MULTIPLY));
-	HANDLE_SETTING(HotkeyTelescopeMode,    Key(VK_MENU) + Key(VK_MBUTTON));
-	HANDLE_SETTING(HotkeyToggleFreePitch,                     Unbound());
-	HANDLE_SETTING(HotkeyComfortMode,                         Unbound());
-	HANDLE_SETTING(HotkeyVRMouse,                             Unbound());
-	HANDLE_SETTING(HotkeyFloatyMenus,                         Unbound());
+	HANDLE_SETTING(HotkeyResetOrientation,  (LShift + Key('R')) || (LCtrl + Key('R')) || (Button(8)+Button(9)));
+	HANDLE_SETTING(HotkeyShowFPS,           (LShift+Key('F')) || (LCtrl+Key('F')));
+	HANDLE_SETTING(HotkeyScreenshot,        Key(VK_RCONTROL) + Key(VK_MULTIPLY));
+	HANDLE_SETTING(HotkeyTelescopeMode,     Key(VK_MENU) + Key(VK_MBUTTON));
+	HANDLE_SETTING(HotkeyToggleFreePitch,   LShift+Key('X'));
+	HANDLE_SETTING(HotkeyComfortMode,       LShift+Key('M'));
+	HANDLE_SETTING(HotkeyVRMouse,           Key(VK_NUMPAD0));
+	HANDLE_SETTING(HotkeyFloatyMenus,       LCtrl+Key(VK_NUMPAD1));
 	
-	HANDLE_SETTING(HotkeySwitch2DDepthMode,                   Unbound());
-	HANDLE_SETTING(HotkeySwapSides,                           Unbound());
-	HANDLE_SETTING(HotkeyToggleCubeRenders,                   Unbound());
-	HANDLE_SETTING(HotkeyToggleTextureRenders,                Unbound());
-	HANDLE_SETTING(HotkeyWhenToRenderMenu,                    Unbound());
-	HANDLE_SETTING(HotkeyWhenToPollHeadtracking,              Unbound());
-	HANDLE_SETTING(HotkeyInitiateScan,                        Unbound());
-	HANDLE_SETTING(HotkeyBlackSmear,                          Unbound());
-	HANDLE_SETTING(HotkeyResetIPDOffset,                      Unbound());
-	HANDLE_SETTING(HotkeyShowHMDStats,                        Unbound());
-	HANDLE_SETTING(HotkeyShowAxes,                            Unbound());
-	HANDLE_SETTING(HotkeyTogglePositionalTracking,            Unbound());
-	HANDLE_SETTING(HotkeyTogglePosePrediction,                Unbound());
-	HANDLE_SETTING(HotkeyToggleChromaticAbberationCorrection, Unbound());
-	HANDLE_SETTING(HotkeyDistortionScalePlus,                 Unbound());
-	HANDLE_SETTING(HotkeyDistortionScaleMinus,                Unbound());
-	HANDLE_SETTING(HotkeyPrevRenderState,                     Unbound());
-	HANDLE_SETTING(HotkeyNextRenderState,                     Unbound());
+	HANDLE_SETTING(HotkeySwitch2DDepthMode, LShift + (Key('O') || Key(VK_NUMPAD9)));
+	HANDLE_SETTING(HotkeySwapSides,         LAlt+Key('O'));
+	HANDLE_SETTING(HotkeyToggleCubeRenders, LAlt+Key('1'));
+	HANDLE_SETTING(HotkeyToggleTextureRenders, LAlt+Key('2'));
+	HANDLE_SETTING(HotkeyWhenToRenderMenu,  LAlt + Key(VK_UP));
+	HANDLE_SETTING(HotkeyWhenToPollHeadtracking, LAlt+Key(VK_DOWN));
+	HANDLE_SETTING(HotkeyInitiateScan,      Key(VK_NUMPAD5) || (LCtrl+Key(VK_OEM_2)));
+	HANDLE_SETTING(HotkeyBlackSmear,        LShift+Key('B'));
+	HANDLE_SETTING(HotkeyResetIPDOffset,    Key(VK_F8) || (LShift+Key('I')));
+	HANDLE_SETTING(HotkeyShowHMDStats,      (LShift+Key('H')) || (LCtrl+Key('H')));
+	HANDLE_SETTING(HotkeyShowAxes,          LShift + Key('V'));
+	HANDLE_SETTING(HotkeyTogglePositionalTracking, Key(VK_F11) || (LShift+Key('P')) || (LCtrl+Key('P')));
+	HANDLE_SETTING(HotkeyTogglePosePrediction, LShift+Key(VK_DELETE));
+	HANDLE_SETTING(HotkeyToggleChromaticAbberationCorrection, (LShift+Key('J')) || (LCtrl+Key('J')));
+	HANDLE_SETTING(HotkeyDistortionScalePlus, LCtrl+Key(VK_ADD));
+	HANDLE_SETTING(HotkeyDistortionScaleMinus, LCtrl+Key(VK_SUBTRACT));
+	HANDLE_SETTING(HotkeyPrevRenderState,   LAlt + Key(VK_LEFT));
+	HANDLE_SETTING(HotkeyNextRenderState,   LAlt + Key(VK_RIGHT));
 }
 
 
