@@ -190,7 +190,7 @@ HBITMAP StereoSplitter::GetControl()
 		// create bitmap, set control update to true
 		HWND hwnd = GetActiveWindow();
 		HDC hdc = GetDC(hwnd);
-		m_hBitmapControl = CreateCompatibleBitmap(hdc, 1024, 2600);
+		m_hBitmapControl = CreateCompatibleBitmap(hdc, 1024, 2800);
 		if (!m_hBitmapControl)
 			OutputDebugString(L"Failed to create bitmap!");
 		m_bControlUpdate = true;
@@ -205,7 +205,7 @@ HBITMAP StereoSplitter::GetControl()
 
 		// clear the background
 		RECT rc;
-		SetRect(&rc, 0, 0, 1024, 2600);
+		SetRect(&rc, 0, 0, 1024, 2800);
 		FillRect(hdcImage, &rc, (HBRUSH)CreateSolidBrush(RGB(160, 160, 200)));
 
 		// create font
@@ -250,7 +250,15 @@ HBITMAP StereoSplitter::GetControl()
 			TextOut(hdcImage, 50, nY, L"pIndexData", 10); nY+=64;
 			TextOut(hdcImage, 50, nY, L"IndexDataFormat", 15); nY+=64;
 			TextOut(hdcImage, 50, nY, L"pVertexStreamZeroDataIndexed", 28); nY+=64;
-			TextOut(hdcImage, 50, nY, L"VertexStreamZeroStrideIndexed", 29); nY+=128;
+			TextOut(hdcImage, 50, nY, L"VertexStreamZeroStrideIndexed", 29); nY+=64;
+			TextOut(hdcImage, 50, nY, L"Count", 5); nY+=64;
+			TextOut(hdcImage, 50, nY, L"pRects", 6); nY+=64;
+			TextOut(hdcImage, 50, nY, L"Flags", 5); nY+=64;
+			TextOut(hdcImage, 50, nY, L"Color", 5); nY+=64;
+			TextOut(hdcImage, 50, nY, L"Z", 1); nY+=64;
+			TextOut(hdcImage, 50, nY, L"Stencil", 7); nY+=64;
+			TextOut(hdcImage, 600, nY, L"Left Texture", 12); nY+=64;
+			TextOut(hdcImage, 600, nY, L"Right Texture", 13); nY+=128;
 
 			// output maximum simultanous render targets
 			TextOut(hdcImage, 50, nY, L"Max Render Targets : ", 21);
@@ -307,6 +315,18 @@ HBITMAP StereoSplitter::GetControl()
 			// Restore the original font.        
 			SelectObject(hdcImage, hOldFont); 
 		}
+
+		// draw boundaries
+		int nY = 16 + 128;
+		HBRUSH hb = CreateSolidBrush(RGB(64, 64, 192));
+		SetRect(&rc, 0, nY, 600, nY+4); FillRect(hdcImage, &rc, hb); nY+=64;
+		SetRect(&rc, 0, nY, 600, nY+4); FillRect(hdcImage, &rc, hb); nY+=128;
+		SetRect(&rc, 0, nY, 600, nY+4); FillRect(hdcImage, &rc, hb); nY+=192;
+		SetRect(&rc, 0, nY, 600, nY+4); FillRect(hdcImage, &rc, hb); nY+=64*6;
+		SetRect(&rc, 0, nY, 600, nY+4); FillRect(hdcImage, &rc, hb); nY+=64*4;
+		SetRect(&rc, 0, nY, 600, nY+4); FillRect(hdcImage, &rc, hb); nY+=64*8;
+		SetRect(&rc, 0, nY, 600, nY+4); FillRect(hdcImage, &rc, hb); nY+=64*6;
+		SetRect(&rc, 0, nY, 600, nY+4); FillRect(hdcImage, &rc, hb); 
 
 		SelectObject(hdcImage, hbmOld);
 		DeleteDC(hdcImage);
@@ -394,6 +414,18 @@ LPWSTR StereoSplitter::GetDecommanderName(DWORD dwDecommanderIndex)
 		return L"pVertexStreamZeroDataIndexed";
 	case STS_Decommanders::VertexStreamZeroStrideIndexed: /**< ->DrawIndexedPrimitiveUP() number of bytes of data for each vertex ***/
 		return L"VertexStreamZeroStrideIndexed";
+	case STS_Decommanders::Count:                         /**< ->Clear() Number of rectangles in the array at pRects. ***/
+		return L"Count";
+	case STS_Decommanders::pRects:                        /**< ->Clear() Pointer to an array of D3DRECT structures. ***/
+		return L"pRects";
+	case STS_Decommanders::Flags:                         /**< ->Clear() D3DCLEAR flags that specify the surface(s) that will be cleared. ***/
+		return L"Flags";
+	case STS_Decommanders::Color:                         /**< ->Clear() Clear a render target to this ARGB color. ***/
+		return L"Color";
+	case STS_Decommanders::Z:                             /**< ->Clear() Clear the depth buffer to this new z value which ranges from 0 to 1. ***/
+		return L"Z";
+	case STS_Decommanders::Stencil:                       /**< ->Clear() Clear the stencil buffer to this new value ***/
+		return L"Stencil";
 	}
 
 	return L"";
@@ -465,6 +497,18 @@ DWORD StereoSplitter::GetDecommanderType(DWORD dwDecommanderIndex)
 	case STS_Decommanders::pVertexStreamZeroDataIndexed:  /**< ->DrawIndexedPrimitiveUP() memory pointer to the vertex data ***/
 		return PNT_VOID_PLUG_TYPE;
 	case STS_Decommanders::VertexStreamZeroStrideIndexed: /**< ->DrawIndexedPrimitiveUP() number of bytes of data for each vertex ***/
+		return UINT_PLUG_TYPE;
+	case STS_Decommanders::Count:                         /**< ->Clear() Number of rectangles in the array at pRects. ***/
+		return UINT_PLUG_TYPE;
+	case STS_Decommanders::pRects:                        /**< ->Clear() Pointer to an array of D3DRECT structures. ***/
+		return PNT_D3DRECT_PLUG_TYPE;
+	case STS_Decommanders::Flags:                         /**< ->Clear() D3DCLEAR flags that specify the surface(s) that will be cleared. ***/
+		return UINT_PLUG_TYPE;
+	case STS_Decommanders::Color:                         /**< ->Clear() Clear a render target to this ARGB color. ***/
+		return D3DCOLOR_PLUG_TYPE;
+	case STS_Decommanders::Z:                             /**< ->Clear() Clear the depth buffer to this new z value which ranges from 0 to 1. ***/
+		return FLOAT_PLUG_TYPE;
+	case STS_Decommanders::Stencil:                       /**< ->Clear() Clear the stencil buffer to this new value ***/
 		return UINT_PLUG_TYPE;
 	}
 
@@ -571,6 +615,24 @@ void StereoSplitter::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 		break;
 	case STS_Decommanders::VertexStreamZeroStrideIndexed: /**< ->DrawIndexedPrimitiveUP() number of bytes of data for each vertex ***/
 		m_pdwVertexStreamZeroStrideIndexed = (UINT*)pData;
+		break;
+	case STS_Decommanders::Count:                         /**< ->Clear() Number of rectangles in the array at pRects. ***/
+		m_pdwCount = (DWORD*)pData;
+		break;
+	case STS_Decommanders::pRects:                        /**< ->Clear() Pointer to an array of D3DRECT structures. ***/
+		m_ppsRects = (D3DRECT**)pData;
+		break;
+	case STS_Decommanders::Flags:                         /**< ->Clear() D3DCLEAR flags that specify the surface(s) that will be cleared. ***/
+		m_pdwFlags = (DWORD*)pData;
+		break;
+	case STS_Decommanders::Color:                         /**< ->Clear() Clear a render target to this ARGB color. ***/
+		m_psColor = (D3DCOLOR*)pData;
+		break;
+	case STS_Decommanders::Z:                             /**< ->Clear() Clear the depth buffer to this new z value which ranges from 0 to 1. ***/
+		m_pfZ = (float*)pData;
+		break;
+	case STS_Decommanders::Stencil:                       /**< ->Clear() Clear the stencil buffer to this new value ***/
+		m_pdwStencil = (DWORD*)pData;
 		break;
 	}
 }

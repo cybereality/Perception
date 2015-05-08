@@ -50,20 +50,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <d3dx9.h>
 #pragma comment(lib, "d3dx9.lib")
 
+#define	FLOAT_PLUG_TYPE                                4
 #define INT_PLUG_TYPE                                  7 
 #define UINT_PLUG_TYPE                                12
 #define PNT_FLOAT_PLUG_TYPE                          104
 #define PNT_INT_PLUG_TYPE                            107 
 #define PNT_UINT_PLUG_TYPE                           112
 #define PNT_VOID_PLUG_TYPE                           114
+#define	D3DCOLOR_PLUG_TYPE                          1004
 #define D3DFORMAT_PLUG_TYPE                         1011
 #define D3DPRIMITIVETYPE_PLUG_TYPE                  1021
-#define PNT_IDIRECT3DSURFACE9_PLUG_TYPE             2046
+#define PNT_D3DRECT_PLUG_TYPE                       2024
 #define PNT_IDIRECT3DBASETEXTURE9_PLUG_TYPE         2038
+#define PNT_IDIRECT3DSURFACE9_PLUG_TYPE             2046
 #define PNT_IDIRECT3DTEXTURE9_PLUG_TYPE             2048
 
 #define NUMBER_OF_COMMANDERS                           2
-#define NUMBER_OF_DECOMMANDERS                        26
+#define NUMBER_OF_DECOMMANDERS                        32
 
 /**
 * Maximum simultaneous textures : 16 {shader sampling stage registers: s0 to s15} 
@@ -109,7 +112,13 @@ enum STS_Decommanders
 	pIndexData,                   /**< ->DrawIndexedPrimitiveUP() memory pointer to the index data ***/
 	IndexDataFormat,              /**< ->DrawIndexedPrimitiveUP() format of the index data ***/
 	pVertexStreamZeroDataIndexed, /**< ->DrawIndexedPrimitiveUP() memory pointer to the vertex data ***/
-	VertexStreamZeroStrideIndexed /**< ->DrawIndexedPrimitiveUP() number of bytes of data for each vertex ***/
+	VertexStreamZeroStrideIndexed,/**< ->DrawIndexedPrimitiveUP() number of bytes of data for each vertex ***/
+	Count,                        /**< ->Clear() Number of rectangles in the array at pRects. ***/
+	pRects,                       /**< ->Clear() Pointer to an array of D3DRECT structures. ***/
+	Flags,                        /**< ->Clear() D3DCLEAR flags that specify the surface(s) that will be cleared. ***/
+	Color,                        /**< ->Clear() Clear a render target to this ARGB color. ***/
+	Z,                            /**< ->Clear() Clear the depth buffer to this new z value which ranges from 0 to 1. ***/
+	Stencil,                      /**< ->Clear() Clear the stencil buffer to this new value ***/
 };
 
 /**
@@ -199,6 +208,12 @@ private:
 	D3DFORMAT*          m_peIndexDataFormat;                 /**< ->DrawIndexedPrimitiveUP() format of the index data ***/
 	void**              m_ppVertexStreamZeroDataIndexed;     /**< ->DrawIndexedPrimitiveUP() memory pointer to the vertex data ***/
 	UINT*               m_pdwVertexStreamZeroStrideIndexed;  /**< ->DrawIndexedPrimitiveUP() number of bytes of data for each vertex ***/
+	DWORD*              m_pdwCount;                          /**< ->Clear() Number of rectangles in the array at pRects. ***/
+	D3DRECT**           m_ppsRects;                          /**< ->Clear() Pointer to an array of D3DRECT structures. ***/
+	DWORD*              m_pdwFlags;                          /**< ->Clear() D3DCLEAR flags that specify the surface(s) that will be cleared. ***/
+	D3DCOLOR*           m_psColor;                           /**< ->Clear() Clear a render target to this ARGB color. ***/
+	float*              m_pfZ;                               /**< ->Clear() Clear the depth buffer to this new z value which ranges from 0 to 1. ***/
+	DWORD*              m_pdwStencil;                        /**< ->Clear() Clear the stencil buffer to this new value ***/
 
 	/**
 	* Active stored render targets.
