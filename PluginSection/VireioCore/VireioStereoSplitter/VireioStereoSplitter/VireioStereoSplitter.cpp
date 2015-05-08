@@ -795,9 +795,9 @@ void StereoSplitter::Present(IDirect3DDevice9* pcDevice)
 			// get render target desc
 			pcRenderTarget->GetDesc(&desc);
 
-			// get render target pointers, both tex + surface
-			LPDIRECT3DTEXTURE9 pcStereoTwinRenderTexture = nullptr;
-			LPDIRECT3DSURFACE9 pcStereoTwinRenderTarget = nullptr;
+			// get target pointers, both tex + surface
+			LPDIRECT3DTEXTURE9 pcStereoTwinTexture = nullptr;
+			LPDIRECT3DSURFACE9 pcStereoTwinSurface = nullptr;
 
 			// loop through the clipboard, try to find useable stereo twin render target
 			int nIndex = 0;
@@ -815,8 +815,8 @@ void StereoSplitter::Present(IDirect3DDevice9* pcDevice)
 					(desc.Format == descClipboard.Format))
 				{
 					// first, set the new stereo twins from the clipboard
-					pcStereoTwinRenderTarget = m_apcStereoTwinRenderTargetClipboard[nIndex];
-					pcStereoTwinRenderTexture = m_apcStereoTwinRenderTextureClipboard[nIndex];
+					pcStereoTwinSurface = m_apcStereoTwinRenderTargetClipboard[nIndex];
+					pcStereoTwinTexture = m_apcStereoTwinRenderTextureClipboard[nIndex];
 
 					// erase render target iterator for both clipboard vectors
 					m_apcStereoTwinRenderTargetClipboard.erase(m_apcStereoTwinRenderTargetClipboard.begin() + nIndex);
@@ -836,26 +836,62 @@ void StereoSplitter::Present(IDirect3DDevice9* pcDevice)
 			}
 
 			// if no render target (texture) is found on the clipboard, create a new
-			if (pcStereoTwinRenderTarget == nullptr)
+			if (pcStereoTwinSurface == nullptr)
 			{
 				switch(desc.Type)
 				{
 				case D3DRESOURCETYPE::D3DRTYPE_SURFACE:
-					if (FAILED(pcDevice->CreateRenderTarget(desc.Width, desc.Height, desc.Format, desc.MultiSampleType, desc.MultiSampleQuality, false, &pcStereoTwinRenderTarget, NULL)))
+					// depth stencil ??
+					if ((desc.Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
 					{
-						OutputDebugString(L"VireioStereoSplitter : Failed to create render target.");
-						pcStereoTwinRenderTarget = nullptr;
+						// discard must be false since we switch the stencil surfaces for every draw call
+						if (FAILED(pcDevice->CreateDepthStencilSurface(desc.Width, desc.Height, desc.Format, desc.MultiSampleType, desc.MultiSampleQuality, false, &pcStereoTwinSurface, NULL)))
+						{
+							OutputDebugString(L"VireioStereoSplitter : Failed to create depth stencil surface.");
+#ifdef _DEBUG
+							wchar_t buf[32];
+							wsprintf(buf, L"desc.Width %u", desc.Width); OutputDebugString(buf);
+							wsprintf(buf, L"desc.Height %u", desc.Height); OutputDebugString(buf);
+							wsprintf(buf, L"desc.Format %u", desc.Format); OutputDebugString(buf);
+							wsprintf(buf, L"desc.MultiSampleType %u", desc.MultiSampleType); OutputDebugString(buf);
+							wsprintf(buf, L"desc.MultiSampleQuality %u", desc.MultiSampleQuality); OutputDebugString(buf);
+#endif
+						}
 					}
-					break;
+					else
+						if (FAILED(pcDevice->CreateRenderTarget(desc.Width, desc.Height, desc.Format, desc.MultiSampleType, desc.MultiSampleQuality, false, &pcStereoTwinSurface, NULL)))
+						{
+							if (FAILED(pcDevice->CreateRenderTarget(desc.Width, desc.Height, desc.Format, desc.MultiSampleType, desc.MultiSampleQuality, true, &pcStereoTwinSurface, NULL)))
+							{							
+								OutputDebugString(L"VireioStereoSplitter : Failed to create render target.");
+#ifdef _DEBUG
+								wchar_t buf[32];
+								wsprintf(buf, L"desc.Width %u", desc.Width); OutputDebugString(buf);
+								wsprintf(buf, L"desc.Height %u", desc.Height); OutputDebugString(buf);
+								wsprintf(buf, L"desc.Format %u", desc.Format); OutputDebugString(buf);
+								wsprintf(buf, L"desc.MultiSampleType %u", desc.MultiSampleType); OutputDebugString(buf);
+								wsprintf(buf, L"desc.MultiSampleQuality %u", desc.MultiSampleQuality); OutputDebugString(buf);
+#endif
+								pcStereoTwinSurface = nullptr;
+							}
+						}
+						break;
 				case D3DRESOURCETYPE::D3DRTYPE_TEXTURE:
 					{
-						if (FAILED(pcDevice->CreateTexture((UINT)desc.Width, (UINT)desc.Height, 1, desc.Usage, desc.Format, D3DPOOL_DEFAULT, &pcStereoTwinRenderTexture, NULL)))
+						if (FAILED(pcDevice->CreateTexture((UINT)desc.Width, (UINT)desc.Height, 1, desc.Usage, desc.Format, D3DPOOL_DEFAULT, &pcStereoTwinTexture, NULL)))
 						{
 							OutputDebugString(L"VireioStereoSplitter : Failed to create render target texture.");
-							pcStereoTwinRenderTexture = nullptr;
+#ifdef _DEBUG							
+							wchar_t buf[32];
+							wsprintf(buf, L"desc.Width %u", desc.Width); OutputDebugString(buf);
+							wsprintf(buf, L"desc.Height %u", desc.Height); OutputDebugString(buf);
+							wsprintf(buf, L"desc.Usage %u", desc.Usage); OutputDebugString(buf);
+							wsprintf(buf, L"desc.Format %u", desc.Format); OutputDebugString(buf);
+#endif
+							pcStereoTwinTexture = nullptr;
 						}
 						else
-							pcStereoTwinRenderTexture->GetSurfaceLevel(0, &pcStereoTwinRenderTarget);
+							pcStereoTwinTexture->GetSurfaceLevel(0, &pcStereoTwinSurface);
 					}
 					break;
 				default:
@@ -865,8 +901,8 @@ void StereoSplitter::Present(IDirect3DDevice9* pcDevice)
 			}
 
 			// add to stereo twin render targets
-			m_apcStereoTwinSurfaces.push_back(pcStereoTwinRenderTarget);
-			m_apcStereoTwinTextures.push_back(pcStereoTwinRenderTexture);			
+			m_apcStereoTwinSurfaces.push_back(pcStereoTwinSurface);
+			m_apcStereoTwinTextures.push_back(pcStereoTwinTexture);			
 
 			// update control
 			m_bControlUpdate = true;
