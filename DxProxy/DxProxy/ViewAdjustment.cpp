@@ -228,8 +228,9 @@ void ViewAdjustment::UpdatePosition(float yaw, float pitch, float roll, float xP
 	D3DXVec3TransformNormal(&positionTransformVec, &positionTransformVec, &rotationMatrixPitchYaw);
 
 	//Still need to apply the roll, as the "no roll" param is just whether we use matrix roll translation or if
-	//memory modification, either way, the view still rolls
-	D3DXVec3TransformNormal(&positionTransformVec, &positionTransformVec, &rotationMatrixRoll);
+	//memory modification, either way, the view still rolls, unless using the pixel shader roll approach
+	if (rollImpl != 2)
+		D3DXVec3TransformNormal(&positionTransformVec, &positionTransformVec, &rotationMatrixRoll);
 
 	//Now apply game specific scaling for the X/Y/Z
 	D3DXMATRIX gamescalingmatrix;

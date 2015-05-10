@@ -6,7 +6,7 @@
 			<ID>0</ID>
 			<BaseAddress>100000F4</BaseAddress>
 			<MemIncrement>00000100</MemIncrement>
-			<MemIncCount>03000000</MemIncCount>
+			<MemIncCount>00300000</MemIncCount>
 			<FailIfNotFound>True</FailIfNotFound>
 
 			<ScanRule>
@@ -18,11 +18,11 @@
 				<Comparisons>
 					<Compare type="BetweenIncl">
 						<MinValue>00000001</MinValue>
-						<MaxValue>00003FFF</MaxValue>
+						<MaxValue>00004000</MaxValue>
 					</Compare>
 					<!-- OR -->
 					<Compare type="BetweenIncl">
-						<MinValue>0000C000</MinValue>
+						<MinValue>0000BF00</MinValue>
 						<MaxValue>0000FFFF</MaxValue>
 					</Compare>
 				</Comparisons>
@@ -33,7 +33,7 @@
 				<AddressType>DWORD</AddressType>
 				<ModificationToApply>FloatUnrealCompass</ModificationToApply>
 				<BaseAddressOffset>00000004</BaseAddressOffset>
-				<CheckForChanges>ChangesLoWordWithCarry</CheckForChanges>
+				<CheckForChanges>Changes</CheckForChanges>
 				<Comparisons>
 					<Compare type="NotEqual">
 						<MinValue>00000000</MinValue>

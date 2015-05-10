@@ -19,7 +19,7 @@
 			<Comparisons>
 				<Compare type="Between">
 					<MinValue>-1.225</MinValue>
-					<MaxValue>0.0</MaxValue>
+					<MaxValue>-0.2</MaxValue>
 				</Compare>
 			</Comparisons>
 		</ScanRule>

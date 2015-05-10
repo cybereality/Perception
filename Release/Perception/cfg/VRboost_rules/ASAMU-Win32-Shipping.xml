@@ -16,7 +16,7 @@
 			<Comparisons>
 			<Compare type="BetweenIncl">
 					<MinValue>0000C000</MinValue>
-					<MaxValue>0000FFFF</MaxValue>
+					<MaxValue>0000FFFE</MaxValue>
 				</Compare>
 				<!-- OR -->
 				<Compare type="BetweenIncl">
@@ -33,8 +33,13 @@
 			<BaseAddressOffset>00000004</BaseAddressOffset>
 			<CheckForChanges>Changes</CheckForChanges>
 			<Comparisons>
-				<Compare type="NotEqual">
+				<Compare type="BetweenIncl">
 					<MinValue>00000000</MinValue>
+					<MaxValue>0000FFFF</MaxValue>
+				</Compare>
+				<Compare type="BetweenIncl">
+					<MinValue>FFFF0000</MinValue>
+					<MaxValue>FFFFFFFF</MaxValue>
 				</Compare>
 			</Comparisons>
 		</ScanRule>
@@ -65,7 +70,7 @@
 				<Comparisons>
 					<Compare type="BetweenIncl">
 						<MinValue>00002000</MinValue>
-						<MaxValue>00004000</MaxValue>
+						<MaxValue>00004800</MaxValue>
 					</Compare>
 				</Comparisons>
 			</Axis>
@@ -79,28 +84,8 @@
 				<AddressType>DWORD</AddressType>
 				<Comparisons>
 					<Compare type="BetweenIncl">
-						<MinValue>0000C000</MinValue>
+						<MinValue>0000BA00</MinValue>
 						<MaxValue>0000E000</MaxValue>
-					</Compare>
-				</Comparisons>
-			</Axis>
-		</ScanAssistStep>
-
-		<ScanAssistStep>
-			<TimeBeforeCheck>3000</TimeBeforeCheck>
-			<Pose>STRAIGHT-AHEAD</Pose>
-			<Axis>
-				<AxisName>TrackerPitch</AxisName>
-				<AddressType>DWORD</AddressType>
-				<Comparisons>
-					<Compare type="BetweenIncl">
-						<MinValue>0000E000</MinValue>
-						<MaxValue>0000FFFF</MaxValue>
-					</Compare>
-					<!-- OR -->
-					<Compare type="BetweenIncl">
-						<MinValue>00000000</MinValue>
-						<MaxValue>00002000</MaxValue>
 					</Compare>
 				</Comparisons>
 			</Axis>
