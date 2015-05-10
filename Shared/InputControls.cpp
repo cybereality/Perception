@@ -25,6 +25,10 @@ static std::array<std::string, 256> GetKeyNameList()
 	keyNameList[0x0D] = "ENTER key";
 	keyNameList[0x0E] = "-";
 	keyNameList[0x0F] = "-";
+	// Don't assign key-names to the generic (unspecified whether left/right)
+	// versions of ctrl, alt, shift. This prevents the silly issue binding a
+	// key and it being "Shift+Left Shift+Key" with duplication instead of
+	// "Left Shift+Key".
 	//keyNameList[0x10] = "SHIFT key";
 	//keyNameList[0x11] = "CTRL key";
 	//keyNameList[0x12] = "ALT key";

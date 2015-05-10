@@ -48,7 +48,7 @@ using std::string;
 
 static InputBindingRef LShift = Key(VK_LSHIFT);
 static InputBindingRef LCtrl = Key(VK_LCONTROL);
-static InputBindingRef LAlt = Key(VK_MENU);
+static InputBindingRef LAlt = Key(VK_LMENU);
 const ProxyConfig defaultConfig;
 
 static void HandleGameProfile(ProxyHelper::ConfigTransferDirection dir, xml_node &node, ProxyConfig &config);
@@ -1038,7 +1038,7 @@ void HandleGameProfile(ProxyHelper::ConfigTransferDirection dir, xml_node &node,
 	HANDLE_SETTING(HotkeyResetOrientation,  (LShift + Key('R')) || (LCtrl + Key('R')) || (Button(8)+Button(9)));
 	HANDLE_SETTING(HotkeyShowFPS,           (LShift+Key('F')) || (LCtrl+Key('F')));
 	HANDLE_SETTING(HotkeyScreenshot,        Key(VK_RCONTROL) + Key(VK_MULTIPLY));
-	HANDLE_SETTING(HotkeyTelescopeMode,     Key(VK_MENU) + Key(VK_MBUTTON));
+	HANDLE_SETTING(HotkeyTelescopeMode,     Key(VK_LMENU) + Key(VK_MBUTTON));
 	HANDLE_SETTING(HotkeyToggleFreePitch,   LShift+Key('X'));
 	HANDLE_SETTING(HotkeyComfortMode,       LShift+Key('M'));
 	HANDLE_SETTING(HotkeyVRMouse,           Key(VK_NUMPAD0));
