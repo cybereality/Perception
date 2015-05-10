@@ -188,7 +188,7 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	hmdInfo = HMDisplayInfoFactory::CreateHMDisplayInfo(static_cast<StereoView::StereoTypes>(userConfig.mode)); 
 	OutputDebugString(("Created HMD Info for: " + hmdInfo->GetHMDName()).c_str());
 
-	m_spShaderViewAdjustment = std::make_shared<ViewAdjustment>(hmdInfo, 1.0f, 0, &config);
+	m_spShaderViewAdjustment = std::make_shared<ViewAdjustment>(hmdInfo, &config);
 	m_pGameHandler = new GameHandler();
 
 	// Check the maximum number of supported render targets
@@ -2512,7 +2512,7 @@ void D3DProxyDevice::HandleTracking()
 		if (tracker->getStatus() >= MTS_OK)
 		{
 			//Roll implementation
-			switch (m_spShaderViewAdjustment->RollImpl())
+			switch (config.rollImpl)
 			{
 			case 0:
 				{
@@ -2541,11 +2541,6 @@ void D3DProxyDevice::HandleTracking()
 			if (m_bPosTrackingToggle && tracker->getStatus() != MTS_LOSTPOSITIONAL
 				&& !m_bSurpressPositionaltracking)
 			{
-				//Set translation vector multipliers
-				m_spShaderViewAdjustment->x_scaler = config.position_x_multiplier;
-				m_spShaderViewAdjustment->y_scaler = config.position_y_multiplier;
-				m_spShaderViewAdjustment->z_scaler = config.position_z_multiplier;
-
 				//Use reduced Y-position tracking in DFC mode, user should be triggering crouch by moving up and down
 				float yPosition = (VRBoostValue[VRboostAxis::CameraTranslateY] / 20.0f) + tracker->primaryY;
 				if (m_DuckAndCover.dfcStatus >= DAC_STANDING)
@@ -2554,8 +2549,7 @@ void D3DProxyDevice::HandleTracking()
 				m_spShaderViewAdjustment->UpdatePosition(tracker->primaryYaw, tracker->primaryPitch, tracker->primaryRoll,
 					(VRBoostValue[VRboostAxis::CameraTranslateX] / 20.0f) + tracker->primaryX, 
 					yPosition,
-					(VRBoostValue[VRboostAxis::CameraTranslateZ] / 20.0f) + tracker->primaryZ,
-					config.position_multiplier);
+					(VRBoostValue[VRboostAxis::CameraTranslateZ] / 20.0f) + tracker->primaryZ);
 			}
 
 			//Now we test for whether we are using "duck for cover" (for crouch and prone)

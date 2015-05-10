@@ -51,7 +51,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class ViewAdjustment
 {
 public:	
-	ViewAdjustment(HMDisplayInfo *hmdInfo, float metersToWorldUnits, int rollImpl, ProxyConfig *config);
+	ViewAdjustment(HMDisplayInfo *hmdInfo, ProxyConfig *config);
 	virtual ~ViewAdjustment();
 
 	/*** ViewAdjustment public methods ***/
@@ -59,7 +59,7 @@ public:
 	void          Save(ProxyConfig& cfg);
 	void          UpdateProjectionMatrices(float aspectRatio);
 	void          UpdateRoll(float roll);
-	void		  UpdatePosition(float yaw, float pitch, float roll, float xPosition = 0.0f, float yPosition = 0.0f, float zPosition = 0.0f, float scaler = 1.0f);
+	void		  UpdatePosition(float yaw, float pitch, float roll, float xPosition = 0.0f, float yPosition = 0.0f, float zPosition = 0.0f);
 	void          ComputeViewTransforms(); 
 	D3DXMATRIX    PositionMatrix();
 	D3DXMATRIX    LeftAdjustmentMatrix();
@@ -90,7 +90,6 @@ public:
 	D3DXMATRIX    GatheredMatrixLeft();
 	D3DXMATRIX    GatheredMatrixRight();
 	void          GatherMatrix(D3DXMATRIX& matrixLeft, D3DXMATRIX& matrixRight);
-	float         WorldScale();
 	float         ChangeWorldScale(float toAdd);
 	float         SetConvergence(float newConvergence);
 	float         ChangeConvergence(float toAdd);
@@ -103,9 +102,6 @@ public:
 	float         ConvergenceInWorldUnits();
 	float         SeparationInWorldUnits();
 	float         SeparationIPDAdjustment();
-	int           RollImpl();
-	void          SetRollImpl(int rollImpl);
-	int			  GetStereoType();
 	HMDisplayInfo* HMDInfo();	
 
 private:
@@ -250,17 +246,9 @@ private:
 	***/
 	HMDisplayInfo* hmdInfo;
 	/**
-	* True if roll impl == 1.
-	***/
-	int rollImpl;
-	/**
 	* Amount of actual roll (in radians)
 	*/
 	float m_roll;
-	/**
-	* World scale, used to correct eye seperation game-specific.
-	***/
-	float metersToWorldMultiplier;
 	/**
 	* Interpupillary distance.
 	* As provided from Oculus Configuration Utility (or set in the "user.xml" file).
@@ -271,10 +259,6 @@ private:
 	* Left/Rigth offset adjustment. In millimeters.
 	***/
 	float convergence;
-	/**
-	* The current way to render stereo. Matches StereoView::StereoTypes.
-	***/
-	int stereoType;
 	/**
 	* The amount of squashing GUI shader constants.
 	* 1.0 == full render

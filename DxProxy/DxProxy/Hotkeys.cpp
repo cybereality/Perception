@@ -942,7 +942,7 @@ void D3DProxyDevice::HandleControls()
 				m_spShaderViewAdjustment->ChangeWorldScale(separationChange);
 
 				m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
-				ShowAdjusterToast(retprintf("Stereo Separation (World Scale): %1.3f", m_spShaderViewAdjustment->WorldScale()), 500);
+				ShowAdjusterToast(retprintf("Stereo Separation (World Scale): %1.3f", config.worldScaleFactor), 500);
 				DeferedSaveConfig();
 			}
 			//CTRL + SPACE + Mouse Wheel - adjust stereo convergence dynamically

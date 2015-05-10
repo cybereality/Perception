@@ -122,7 +122,7 @@ void D3DProxyDevice::DisplayCurrentPopup()
 	D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
 	hudMainMenu->SetTransform(&matScale);
 
-	if (activePopup.popupType == VPT_STATS && m_spShaderViewAdjustment->GetStereoType() >= 100)
+	if (activePopup.popupType == VPT_STATS && config.stereo_mode >= 100)
 	{
 		sprintf_s(activePopup.line[0], "HMD Description: %s", tracker->GetTrackerDescription()); 
 		sprintf_s(activePopup.line[1], "Yaw: %.3f Pitch: %.3f Roll: %.3f", tracker->primaryYaw, tracker->primaryPitch, tracker->primaryRoll); 

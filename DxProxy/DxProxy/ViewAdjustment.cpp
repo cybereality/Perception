@@ -41,11 +41,9 @@ const float maxConvergence = 10.0f;
 * Constructor.
 * Sets class constants, identity matrices and a projection matrix.
 ***/
-ViewAdjustment::ViewAdjustment(HMDisplayInfo *displayInfo, float metersToWorldUnits, int roll, ProxyConfig *config) :
+ViewAdjustment::ViewAdjustment(HMDisplayInfo *displayInfo, ProxyConfig *config) :
 	config(config),
 	hmdInfo(displayInfo),
-	metersToWorldMultiplier(metersToWorldUnits),
-	rollImpl(roll),
 	m_roll(0.0f)
 {
 	convergence = 0.0f;
@@ -101,11 +99,8 @@ ViewAdjustment::~ViewAdjustment()
 ***/
 void ViewAdjustment::Load(ProxyConfig& cfg) 
 {
-	rollImpl = cfg.rollImpl;
-	metersToWorldMultiplier  = cfg.worldScaleFactor;
 	convergence = cfg.convergence;
 	ipd = cfg.ipd;
-	stereoType = cfg.stereo_mode;
 }
 
 /**
@@ -114,17 +109,10 @@ void ViewAdjustment::Load(ProxyConfig& cfg)
 ***/
 void ViewAdjustment::Save(ProxyConfig& cfg) 
 {
-	cfg.rollImpl = rollImpl;
 	cfg.convergence = convergence;
 
 	//worldscale and ipd are not normally edited;
-	cfg.worldScaleFactor = metersToWorldMultiplier;
 	cfg.ipd = ipd;
-}
-
-int ViewAdjustment::GetStereoType()
-{
-	return stereoType;
 }
 
 /**
@@ -148,7 +136,7 @@ void ViewAdjustment::UpdateProjectionMatrices(float aspectRatio)
 	float physicalScreenSizeInMeters = hmdInfo->GetPhysicalScreenSize().first / 2; 
 
 	// if not HMD, set values to fullscreen defaults
-	if (stereoType <100)   //stereo type > 100 reserved specifically for HMDs
+	if (config->stereo_mode <100)   //stereo type > 100 reserved specifically for HMDs
 	{
 		// assumption here :
 		// end user is placed 1 meter away from screen
@@ -210,7 +198,7 @@ void ViewAdjustment::SetGameSpecificPositionalScaling(D3DXVECTOR3 scalingVec)
 /**
 * Updates the position matrix
 ***/
-void ViewAdjustment::UpdatePosition(float yaw, float pitch, float roll, float xPosition, float yPosition, float zPosition, float scaler)
+void ViewAdjustment::UpdatePosition(float yaw, float pitch, float roll, float xPosition, float yPosition, float zPosition)
 {
 	D3DXMATRIX rotationMatrixPitch;
 	D3DXMATRIX rotationMatrixYaw;
@@ -224,7 +212,8 @@ void ViewAdjustment::UpdatePosition(float yaw, float pitch, float roll, float xP
 	D3DXVECTOR3 vec(xPosition, yPosition, zPosition);
 
 	D3DXMATRIX worldScale;
-	D3DXMatrixScaling(&worldScale, -1.0f * WorldScale() * scaler, -1.0f * WorldScale() * scaler, WorldScale() * scaler);
+	float scaler = config->position_multiplier * config->worldScaleFactor;
+	D3DXMatrixScaling(&worldScale, -1.0f*scaler, -1.0f*scaler, scaler);
 	D3DXVec3TransformNormal(&positionTransformVec, &vec, &worldScale);
 
 	D3DXMATRIX rotationMatrixPitchYaw;
@@ -254,7 +243,7 @@ void ViewAdjustment::UpdatePosition(float yaw, float pitch, float roll, float xP
 void ViewAdjustment::ComputeViewTransforms()
 {
 	//Pixel shader roll needs to apply stereo separation adjusted for the tilted horizon
-	if (rollImpl == 2)
+	if (config->rollImpl == 2)
 	{
 		float xLeftSeparation = cos(-m_roll) * SeparationInWorldUnits() * LEFT_CONSTANT;
 		float yLeftSeparation = sin(-m_roll) * SeparationInWorldUnits() * LEFT_CONSTANT;
@@ -277,7 +266,7 @@ void ViewAdjustment::ComputeViewTransforms()
 	matViewProjTransformRightNoRoll = matProjectionInv * transformRight * projectRight;
 	
 	// head roll - only if using translation implementation
-	if (rollImpl == 1) {
+	if (config->rollImpl == 1) {
 		D3DXMatrixMultiply(&transformLeft, &rollMatrix, &transformLeft);
 		D3DXMatrixMultiply(&transformRight, &rollMatrix, &transformRight);
 
@@ -299,7 +288,7 @@ void ViewAdjustment::ComputeViewTransforms()
 	// now, create HUD/GUI helper matrices
 
 	// if not HMD, set HUD/GUI to fullscreen
-	if (stereoType <100)   //stereo type > 100 reserved specifically for HMDs
+	if (config->stereo_mode <100)   //stereo type > 100 reserved specifically for HMDs
 	{
 		squash = 1.0f;
 		gui3DDepth = 0.0f;
@@ -562,24 +551,14 @@ void ViewAdjustment::GatherMatrix(D3DXMATRIX& matrixLeft, D3DXMATRIX& matrixRigh
 }
 
 /**
-* Returns the current world scale.
-***/
-float ViewAdjustment::WorldScale()
-{
-	return metersToWorldMultiplier;
-}
-
-/**
 * Modifies the world scale with its limits 0.000001f and 1,000,000 (arbitrary limit).
 * NOTE: This should not be changed during normal usage, this is here to facilitate finding a reasonable scale.
 ***/
 float ViewAdjustment::ChangeWorldScale(float toAdd)
 {
-	metersToWorldMultiplier+= toAdd;
-
-	vireio::clamp(&metersToWorldMultiplier, 0.000001f, 1000000.0f);
-
-	return metersToWorldMultiplier;
+	config->worldScaleFactor+= toAdd;
+	vireio::clamp(&config->worldScaleFactor, 0.000001f, 1000000.0f);
+	return config->worldScaleFactor;
 }
 
 float ViewAdjustment::SetConvergence(float newConvergence)
@@ -648,47 +627,34 @@ void ViewAdjustment::ChangeHUD3DDepth(float newHud3DDepth)
 /**
 * Returns the current convergence adjustment, in meters.
 ***/
-float ViewAdjustment::Convergence() 
-{ 
-	return convergence; 
+float ViewAdjustment::Convergence()
+{
+	return convergence;
 }
 
 /**
 * Returns the current convergence adjustment, in game units.
 ***/
-float ViewAdjustment::ConvergenceInWorldUnits() 
-{ 
-	return convergence * metersToWorldMultiplier; 
+float ViewAdjustment::ConvergenceInWorldUnits()
+{
+	return convergence * config->worldScaleFactor;
 }
 
 /**
 * Returns the separation being used for view adjustments in game units.
 ***/
-float ViewAdjustment::SeparationInWorldUnits() 
+float ViewAdjustment::SeparationInWorldUnits()
 { 
-	return  (ipd / 2.0f) * metersToWorldMultiplier; 
+	return  (ipd / 2.0f) * config->worldScaleFactor;
 }
 
 /**
 * Returns the separation IPD adjustment being used for GUI and HUD matrices.
 * (or whenever the eye separation is set manually)
 ***/
-float ViewAdjustment::SeparationIPDAdjustment() 
-{ 
-	return  ((ipd-IPD_DEFAULT) / 2.0f) * metersToWorldMultiplier; 
-}
-
-/**
-* Returns true if head roll is enabled.
-***/
-int ViewAdjustment::RollImpl() 
-{ 
-	return rollImpl; 
-}
-
-void ViewAdjustment::SetRollImpl(int rollImpl)
+float ViewAdjustment::SeparationIPDAdjustment()
 {
-	this->rollImpl = rollImpl;
+	return  ((ipd-IPD_DEFAULT) / 2.0f) * config->worldScaleFactor;
 }
 
 /**

@@ -154,7 +154,7 @@ public:
 	* Screen resolution, in pixels.
 	* <horizontal, vertical>
 	***/
-	virtual std::pair<UINT, UINT>  GetResolution()
+	virtual std::pair<UINT, UINT> GetResolution()
 	{
 		return std::make_pair<UINT, UINT>((UINT)hmd->Resolution.w, (UINT)hmd->Resolution.h);
 	}

@@ -522,7 +522,7 @@ void D3DProxyDevice::VPMENU_WorldScale()
 
 	DrawTextShadowed(width*0.4f, height*0.57f, "<- calibrate using Arrow Keys ->");
 
-	float gameUnit = m_spShaderViewAdjustment->WorldScale();
+	float gameUnit = config.worldScaleFactor;
 
 	// actual game unit chosen ... in case game has called SetTransform(>projection<);
 	if (m_bProjectionTransformSet)
@@ -535,7 +535,7 @@ void D3DProxyDevice::VPMENU_WorldScale()
 		float driverXScale = driverProjection._11;
 
 		// gameUnit = (driverWorldScale * driverXScale) /  gameXScale
-		gameUnit = ((m_spShaderViewAdjustment->WorldScale()) * driverXScale ) / gameXScale;
+		gameUnit = (config.worldScaleFactor * driverXScale) / gameXScale;
 
 		DrawTextShadowed(width*0.45f, height*0.77f, retprintf("Actual Units %u/%u",
 			gameXScaleUnitIndex, m_gameXScaleUnits.size()));
@@ -871,7 +871,7 @@ void D3DProxyDevice::VPMENU_Settings()
 	});
 	
 	std::string rollImplDescription = "?";
-	switch (m_spShaderViewAdjustment->RollImpl())
+	switch (config.rollImpl)
 	{
 		case 0: rollImplDescription = "Not Enabled"; break;
 		case 1: rollImplDescription = "Matrix Translation"; break;
@@ -881,7 +881,6 @@ void D3DProxyDevice::VPMENU_Settings()
 	menu->AddButton(retprintf("Roll : %s", rollImplDescription.c_str()), [=]()
 	{
 		config.rollImpl = (config.rollImpl+1) % 3;
-		m_spShaderViewAdjustment->SetRollImpl(config.rollImpl);
 	});
 	
 	menu->AddItem(retprintf("Force Mouse Emulation HT : %s",
