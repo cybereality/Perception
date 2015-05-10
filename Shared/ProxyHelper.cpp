@@ -46,11 +46,11 @@ using std::string;
 	#define CPUARCH_STR "32bit"
 #endif
 
-const ProxyConfig defaultConfig;
-
 static InputBindingRef LShift = Key(VK_LSHIFT);
 static InputBindingRef LCtrl = Key(VK_LCONTROL);
 static InputBindingRef LAlt = Key(VK_MENU);
+const ProxyConfig defaultConfig;
+
 static void HandleGameProfile(ProxyHelper::ConfigTransferDirection dir, xml_node &node, ProxyConfig &config);
 
 
