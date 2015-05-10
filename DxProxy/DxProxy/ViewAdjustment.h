@@ -107,14 +107,6 @@ public:
 private:
 	ProxyConfig *config;
 	
-	/*** Projection Matrix variables ***/
-	float n;	/**< Minimum z-value of the view volume. */
-	float f;	/**< Maximum z-value of the view volume. */
-	float l;	/**< Minimum x-value of the view volume. */
-	float r;	/**< Maximum x-value of the view volume. */
-	float t;	/**< Minimum y-value of the view volume. */
-	float b;	/**< Maximum y-value of the view volume. */
-
 	D3DXVECTOR3 positionTransformVec;
 
 	/**

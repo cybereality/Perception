@@ -50,11 +50,6 @@ ViewAdjustment::ViewAdjustment(HMDisplayInfo *displayInfo, ProxyConfig *config) 
 
 	ipd = IPD_DEFAULT;
 
-	n = 0.1f;
-	f = 10.0f;
-	l = -0.5f;
-	r = 0.5f;
-
 	squash = 1.0f;
 	gui3DDepth = 0.0f;
 	hudDistance = 0.0f;
@@ -125,8 +120,18 @@ void ViewAdjustment::Save(ProxyConfig& cfg)
 ***/
 void ViewAdjustment::UpdateProjectionMatrices(float aspectRatio)
 {
-	t = 0.5f / aspectRatio;
-	b = -0.5f / aspectRatio;
+	// Minimum (near) Z-value
+	float n = 0.1f;
+	// Maximum (far) Z-value
+	float f = 10.0f;
+	// Minimum (left) X-value
+	float l = -0.5f;
+	// Maximum (right) X-value
+	float r = 0.5f;
+	// Maximum (top) y-value of the view volume
+	float t = 0.5f / aspectRatio;
+	// Minimum (bottom) y-value of the volume
+	float b = -0.5f / aspectRatio;
 
 	D3DXMatrixPerspectiveOffCenterLH(&matProjection, l, r, b, t, n, f);
 	D3DXMatrixInverse(&matProjectionInv, 0, &matProjection);
