@@ -99,8 +99,6 @@ public:
 	void          ChangeHUDDistance(float newHudDistance);
 	void          ChangeHUD3DDepth(float newHud3DDepth);
 	void		  SetGameSpecificPositionalScaling(D3DXVECTOR3 scalingVec);
-	void          ResetWorldScale();
-	void          ResetConvergence();	
 	float         Convergence();
 	float         ConvergenceInWorldUnits();
 	float         SeparationInWorldUnits();

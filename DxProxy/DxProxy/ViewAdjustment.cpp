@@ -54,7 +54,7 @@ ViewAdjustment::ViewAdjustment(HMDisplayInfo *displayInfo, float metersToWorldUn
 
 	ipd = IPD_DEFAULT;
 
-	n = 0.1f;					
+	n = 0.1f;
 	f = 10.0f;
 	l = -0.5f;
 	r = 0.5f;
@@ -204,7 +204,7 @@ void ViewAdjustment::UpdateRoll(float roll)
 	D3DXMatrixRotationZ(&rollMatrixHalf, roll * 0.5f);
 	m_roll = roll;
 }
-void  ViewAdjustment::SetGameSpecificPositionalScaling(D3DXVECTOR3 scalingVec)
+void ViewAdjustment::SetGameSpecificPositionalScaling(D3DXVECTOR3 scalingVec)
 {
 	gameScaleVec  = scalingVec;
 }
@@ -331,7 +331,8 @@ void ViewAdjustment::ComputeViewTransforms()
 	matGuiRight = matProjectionInv * matRightGui3DDepth * matSquash * projectRight;
 }
 
-D3DXMATRIX  ViewAdjustment::PositionMatrix()
+
+D3DXMATRIX ViewAdjustment::PositionMatrix()
 {
 	return matPosition;
 }
@@ -552,6 +553,7 @@ D3DXMATRIX ViewAdjustment::GatheredMatrixRight()
 	return matGatheredRight;
 }
 
+
 /**
 * Gathers a matrix to be used in modifications.
 ***/
@@ -643,22 +645,6 @@ void ViewAdjustment::ChangeHUD3DDepth(float newHud3DDepth)
 	float additionalSeparation = (1.5f-hudDistance)*hmdInfo->GetLensXCenterOffset();
 	D3DXMatrixTranslation(&matLeftHud3DDepthShifted, hud3DDepth+additionalSeparation, 0, 0);
 	D3DXMatrixTranslation(&matRightHud3DDepthShifted, -hud3DDepth-additionalSeparation, 0, 0);
-}
-
-/**
-* Just sets world scale to 3.0f.
-***/
-void ViewAdjustment::ResetWorldScale()
-{
-	metersToWorldMultiplier = 3.0f;
-}
-
-/**
-* Just sets convergence to 3.0f (= 3 physical meters).
-***/
-void ViewAdjustment::ResetConvergence()
-{
-	convergence = 3.0f;
 }
 
 /**
