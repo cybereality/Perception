@@ -108,11 +108,6 @@ public:
 	int			  GetStereoType();
 	HMDisplayInfo* HMDInfo();	
 
-public:
-	float x_scaler;
-	float y_scaler;
-	float z_scaler;
-
 private:
 	ProxyConfig *config;
 	
@@ -126,14 +121,6 @@ private:
 
 	D3DXVECTOR3 positionTransformVec;
 
-	/**
-	* Constant minimum convergence.
-	***/
-	float minConvergence;
-	/**
-	* Constant maximum convergence.
-	***/
-	float maxConvergence;
 	/**
 	* Positional translation matrix
 	**/

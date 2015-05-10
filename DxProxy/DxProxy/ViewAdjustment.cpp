@@ -33,6 +33,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define PI 3.141592654
 
+// TODO : max, min convergence; arbitrary now
+const float minConvergence = -10.0f;
+const float maxConvergence = 10.0f;
+
 /**
 * Constructor.
 * Sets class constants, identity matrices and a projection matrix.
@@ -42,15 +46,9 @@ ViewAdjustment::ViewAdjustment(HMDisplayInfo *displayInfo, float metersToWorldUn
 	hmdInfo(displayInfo),
 	metersToWorldMultiplier(metersToWorldUnits),
 	rollImpl(roll),
-	m_roll(0.0f),
-	x_scaler(DEFAULT_POS_TRACKING_X_MULT),
-	y_scaler(DEFAULT_POS_TRACKING_Y_MULT),
-	z_scaler(DEFAULT_POS_TRACKING_Z_MULT)
+	m_roll(0.0f)
 {
-	// TODO : max, min convergence; arbitrary now
 	convergence = 0.0f;
-	minConvergence = -10.0f;
-	maxConvergence = 10.0f;
 
 	ipd = IPD_DEFAULT;
 
@@ -241,7 +239,7 @@ void ViewAdjustment::UpdatePosition(float yaw, float pitch, float roll, float xP
 
 	//Now apply game specific scaling for the X/Y/Z
 	D3DXMATRIX gamescalingmatrix;
-	D3DXMatrixScaling(&gamescalingmatrix, x_scaler, y_scaler, z_scaler);
+	D3DXMatrixScaling(&gamescalingmatrix, config->position_x_multiplier, config->position_y_multiplier, config->position_z_multiplier);
 	D3DXVec3TransformNormal(&positionTransformVec, &positionTransformVec, &gamescalingmatrix);
 	
 	D3DXMatrixTranslation(&matPosition, positionTransformVec.x, positionTransformVec.y, positionTransformVec.z);
