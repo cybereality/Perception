@@ -202,6 +202,7 @@ public:
 		REALV_ARMA = 401,          /**<  !! */
 		UNITY = 500,               /**< Unity is a cross-platform game engine with a built-in IDE developed by Unity Technologies. */
 		UNITY_SLENDER = 501,       /**<  !! */
+		UNITY_AMONG_THE_SLEEP = 502, /**<  !! */
 		CRYENGINE = 550,           /**< CryEngine is a game engine designed by the German/Turkish game developer Crytek. */
 		CRYENGINE_WARHEAD = 551,   /**< CryEngine is a game engine designed by the German/Turkish game developer Crytek (modified for Warhead). */
 		GAMEBRYO = 600,            /**< Gamebryo 3D and LightSpeed engines are owned by Gamebase Co., Ltd. and Gamebase USA and have been used by several video game developers. */
