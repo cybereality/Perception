@@ -125,6 +125,7 @@ StereoView::StereoView(ProxyConfig *config)
 		break;
 	case D3DProxyDevice::UNITY:
 	case D3DProxyDevice::UNITY_SLENDER:
+	case D3DProxyDevice::UNITY_AMONG_THE_SLEEP:
 		howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;
 		break;
 	case D3DProxyDevice::CRYENGINE:

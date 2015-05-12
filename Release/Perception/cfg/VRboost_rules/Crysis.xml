@@ -129,7 +129,7 @@
 		<ID>2</ID>
 		<BaseAddress>382D4078</BaseAddress>
 		<MemIncrement>00000010</MemIncrement>
-		<MemIncCount>00000001</MemIncCount>
+		<MemIncCount>00000010</MemIncCount>
 		<FailIfNotFound>False</FailIfNotFound>
 		<ScanRule>
 			<AxisName>PlayerFOV</AxisName>

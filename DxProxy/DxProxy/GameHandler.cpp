@@ -172,6 +172,10 @@ bool GameHandler::ShouldDuplicateRenderTarget(UINT Width, UINT Height, D3DFORMAT
 		// NOT TESTED NOW !
 		return true;
 
+	case D3DProxyDevice::ProxyTypes::UNITY_AMONG_THE_SLEEP:
+		// NOT TESTED NOW !
+		return true;
+
 	case D3DProxyDevice::ProxyTypes::CRYENGINE:
 	case D3DProxyDevice::ProxyTypes::CRYENGINE_WARHEAD:
 		// NOT TESTED NOW !
@@ -248,6 +252,10 @@ bool GameHandler::ShouldDuplicateDepthStencilSurface(UINT Width,UINT Height,D3DF
 		return true;
 
 	case D3DProxyDevice::ProxyTypes::UNITY_SLENDER:
+		// NOT TESTED NOW !
+		return true;
+
+	case D3DProxyDevice::ProxyTypes::UNITY_AMONG_THE_SLEEP:
 		// NOT TESTED NOW !
 		return true;
 
@@ -390,6 +398,9 @@ bool GameHandler::ShouldDuplicateTexture(UINT Width,UINT Height,UINT Levels,DWOR
 				return true;
 			return IS_RENDER_TARGET(Usage);
 
+		case D3DProxyDevice::ProxyTypes::UNITY_AMONG_THE_SLEEP:
+			return false;
+
 		case D3DProxyDevice::ProxyTypes::CRYENGINE:
 		case D3DProxyDevice::ProxyTypes::CRYENGINE_WARHEAD:
 			// NOT TESTED NOW !
@@ -507,6 +518,10 @@ bool GameHandler::ShouldDuplicateCubeTexture(UINT EdgeLength, UINT Levels, DWORD
 		case D3DProxyDevice::ProxyTypes::UNITY_SLENDER:
 			// NOT TESTED NOW !
 			return IS_RENDER_TARGET(Usage);
+
+		case D3DProxyDevice::ProxyTypes::UNITY_AMONG_THE_SLEEP:
+			// NOT TESTED NOW !
+			return false;
 
 		case D3DProxyDevice::ProxyTypes::CRYENGINE:
 		case D3DProxyDevice::ProxyTypes::CRYENGINE_WARHEAD:
