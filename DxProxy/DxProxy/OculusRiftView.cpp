@@ -208,7 +208,7 @@ void OculusRiftView::CalculateShaderVariables()
 	if (HeadZOffset != FLT_MAX)
 	{
 		m_zoom = (ZoomOutScale * ((glide * 0.333f) + 0.666f)) + HeadZOffset;
-		m_zoom = max(0.4, m_zoom);
+		m_zoom = (float)max(0.4, m_zoom);
 		if (m_screenViewGlideFactor > 0.0f)
 			m_screenViewGlideFactor -= 0.04f;
 	}
@@ -226,8 +226,8 @@ void OculusRiftView::CalculateShaderVariables()
 	Scale[1] = (1.0f / 2.0f) * scaleFactor * inputTextureAspectRatio;
 
 	//Set resolution  0 = Horizontal, 1 = Vertical
-	Resolution[0] = hmdInfo->GetResolution().first;
-	Resolution[1] = hmdInfo->GetResolution().second;
+	Resolution[0] = (float)hmdInfo->GetResolution().first;
+	Resolution[1] = (float)hmdInfo->GetResolution().second;
 
 }
 

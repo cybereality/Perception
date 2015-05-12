@@ -653,7 +653,7 @@ void RegisterDirtyStore::MarkRangeClean(UINT start, UINT count)
 void RegisterDirtyStore::MarkAllClean()
 {
 	if(firstDirtyReg != -1) {
-		for(int ii=firstDirtyReg; ii<=lastDirtyReg; ii++)
+		for(UINT ii=firstDirtyReg; ii<=lastDirtyReg; ii++)
 			dirtyRegisters[ii] = 0;
 		firstDirtyReg = -1;
 		lastDirtyReg = -1;
@@ -669,7 +669,7 @@ bool RegisterDirtyStore::AnyDirty(UINT start, UINT count)
 {
 	if(start+count+1 >= dirtyRegisters.size()) Expand(start+count);
 	
-	for(int ii=start; ii<start+count; ii++) {
+	for(UINT ii=start; ii<start+count; ii++) {
 		if(dirtyRegisters[ii])
 			return true;
 	}
@@ -685,7 +685,7 @@ int RegisterDirtyStore::FirstDirtyAfter(UINT start)
 	if(firstDirtyReg == -1)
 		return -1;
 	
-	int pos = start;
+	UINT pos = start;
 	while(!dirtyRegisters[pos])
 	{
 		if(pos+1 > lastDirtyReg)
@@ -706,7 +706,7 @@ int RegisterDirtyStore::GetLastDirty()
  */
 int RegisterDirtyStore::LastInSpan(UINT start)
 {
-	int pos = start;
+	UINT pos = start;
 	
 	while(pos+1<dirtyRegisters.size() && dirtyRegisters[pos+1])
 	{
@@ -715,7 +715,7 @@ int RegisterDirtyStore::LastInSpan(UINT start)
 	return pos;
 }
 
-void RegisterDirtyStore::Expand(int capacity)
+void RegisterDirtyStore::Expand(UINT capacity)
 {
 	while(dirtyRegisters.size() < capacity+1) {
 		dirtyRegisters.push_back(0);

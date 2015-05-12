@@ -83,9 +83,7 @@ bool GameHandler::Load(ProxyConfig& cfg, std::shared_ptr<ViewAdjustment> spShade
 	}
 
 	// set the internal game type
-	int gameType = cfg.game_type;
-	if (gameType >= 10000) gameType -= 10000;
-	m_gameType = gameType;
+	m_gameType = cfg.game_type;
 
 	return true;
 }

@@ -176,6 +176,7 @@ public:
 		bool warnPosLost;
 		bool warnCameraMalfunction;
 		bool obsStreamHack;
+		bool shaderAnalyser;
 	};
 
 	/**

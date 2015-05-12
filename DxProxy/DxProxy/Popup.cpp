@@ -36,6 +36,7 @@ void D3DProxyDevice::ShowPopup(VireioPopup &popup)
 {
 	//Nothing to do if we are already showing this popup, splash screen is currently displayed, or we are showing stats
 	if ((activePopup.popupType == popup.popupType && popup.popupType != VPT_ADJUSTER) ||
+		activePopup.popupType == VPT_HMDINITFAIL ||
 		activePopup.popupType == VPT_SPLASH_1 ||
 		activePopup.popupType == VPT_SPLASH_2 ||
 		activePopup.popupType == VPT_CALIBRATE_TRACKER ||

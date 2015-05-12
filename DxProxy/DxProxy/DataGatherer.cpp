@@ -32,7 +32,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Version.h"
 
-#define MATRIX_NAMES 17
 #define AVOID_SUBSTRINGS 2
 #define ANALYZE_FRAMES 500
 
@@ -102,9 +101,6 @@ DataGatherer::DataGatherer(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy)
 	m_startAnalyzingTool(false),
 	m_analyzingFrameCounter(0)
 {
-	// create matrix name array 
-	static std::string names[] = { "ViewProj", "viewproj", "viewProj", "wvp", "mvp", "WVP", "MVP", "wvP", "mvP", "matFinal", "matrixFinal", "MatrixFinal", "FinalMatrix", "finalMatrix", "m_VP", "m_P", "m_screen" };
-	m_wvpMatrixConstantNames = names;
 	static std::string avoid[] = { "Inv", "inv" };
 	m_wvpMatrixAvoidedSubstrings = avoid;
 
@@ -118,7 +114,7 @@ DataGatherer::DataGatherer(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy)
 	// get potential matrix names
 	ProxyHelper* helper = new ProxyHelper();
 	std::stringstream sstm;
-	sstm << helper->GetBaseDir() << "cfg\\shader_rules\\brassa.cfg";
+	sstm << helper->GetBaseDir() << "cfg\\shader_rules\\shader_analyser.cfg";
 	std::ifstream cfgFile;
 	cfgFile.open(sstm.str(), std::ios::in);
 	if (cfgFile.is_open())
@@ -126,12 +122,11 @@ DataGatherer::DataGatherer(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy)
 		enum CFG_FILEMODE
 		{
 			POTENTIAL_MATRIX_NAMES = 1,
-			BRASSA_COMMANDS
+			SA_COMMANDS
 		} cfgFileMode;
 
 		// get names
 		std::vector<std::string> vNames;
-		UINT numLines = 0;
 		std::string unused;
 		while ( cfgFile.good() )
 		{
@@ -150,18 +145,17 @@ DataGatherer::DataGatherer(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy)
 			else if (s.compare("<Potential_Matrix_Names>")==0)
 			{
 				cfgFileMode = POTENTIAL_MATRIX_NAMES;
-			} else if (s.compare("<BRASSA_Commands>")==0)
+			} else if (s.compare("<Shader_Analyser_Commands>")==0)
 			{
-				cfgFileMode = BRASSA_COMMANDS;
+				cfgFileMode = SA_COMMANDS;
 			} else
 			{
 				switch(cfgFileMode)
 				{
 				case POTENTIAL_MATRIX_NAMES:
 					vNames.push_back(s);
-					numLines++;
 					break;
-				case BRASSA_COMMANDS:
+				case SA_COMMANDS:
 					if (s.compare("Output_Shader_Code")==0)
 					{
 						OutputDebugString("Output_Shader_Code");
@@ -200,11 +194,6 @@ DataGatherer::DataGatherer(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy)
 			}
 		}
 
-		// create array out of vector
-		m_wvpMatrixConstantNames = new std::string[numLines];
-		for (UINT i = 0; i < numLines; i++)
-			m_wvpMatrixConstantNames[i] = vNames[i];
-
 		cfgFile.close();
 		vNames.clear();
 	}
@@ -221,7 +210,6 @@ DataGatherer::DataGatherer(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy)
 DataGatherer::~DataGatherer()
 {
 	m_shaderDumpFile.close();
-	delete [] m_wvpMatrixConstantNames;
 }
 
 /**
@@ -1239,7 +1227,7 @@ void DataGatherer::Analyze()
 	{
 		OutputDebugString("DATA GATHERER: While Not at End");
 		// loop through matrix constant name assumptions
-		for (int i = 0; i < MATRIX_NAMES; i++)
+		for (size_t i = 0; i < m_wvpMatrixConstantNames.size(); i++)
 		{
 			OutputDebugString("DATA GATHERER: Matrix Name:");
 			OutputDebugString(itShaderConstants->name.c_str());
@@ -1252,13 +1240,13 @@ void DataGatherer::Analyze()
 					if (strstr(itShaderConstants->name.c_str(), m_wvpMatrixAvoidedSubstrings[j].c_str()) != 0)
 					{
 						// break loop
-						i = MATRIX_NAMES;
+						i = m_wvpMatrixConstantNames.size();
 						break;
 					}
 				}
 
 				// still in loop ?
-				if (i < MATRIX_NAMES)
+				if (i < m_wvpMatrixConstantNames.size())
 				{
 					// add this rule !!!!
 					//Only Add the rule if it is a vector or has a register count of 1
@@ -1290,7 +1278,7 @@ void DataGatherer::Analyze()
 					debugf("Transposed: %d", m_bTransposedRules);
 
 					// end loop
-					i = MATRIX_NAMES;
+					i = m_wvpMatrixConstantNames.size();
 				}
 			}
 			else

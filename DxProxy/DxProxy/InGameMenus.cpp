@@ -372,12 +372,11 @@ std::string DepthModeToString(D3DProxyDevice::GUI_3D_Depth_Modes mode)
 void D3DProxyDevice::VPMENU_MainMenu()
 {
 	SHOW_CALL("VPMENU_MainMenu");
-	bool includeShaderAnalyzer = (config.game_type > 10000);
 	
 	MenuBuilder *menu = VPMENU_NewFrame();
 	VPMENU_StartDrawing(menu, "Settings");
 
-	if (includeShaderAnalyzer)
+	if (userConfig.shaderAnalyser)
 	{
 		menu->AddNavigation("Shader Analyzer\n", [=]() { VPMENU_ShaderSubMenu(); });
 	}
@@ -617,7 +616,7 @@ void D3DProxyDevice::VPMENU_Convergence()
 	
 	if(config.convergenceEnabled)
 	{
-		menu->AddAdjustment("Distance Adjustment : %g", &config.convergence, defaultConfig.convergence, 0.05, [=]() {
+		menu->AddAdjustment("Distance Adjustment : %g", &config.convergence, defaultConfig.convergence, 0.05f, [=]() {
 			vireio::clamp(&config.convergence, -10.0f, 10.0f);
 			m_spShaderViewAdjustment->SetConvergence(config.convergence);
 			m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
@@ -1372,7 +1371,6 @@ void D3DProxyDevice::VPMENU_UpdateDeviceSettings()
 
 	// set behavior accordingly to game type
 	int gameType = config.game_type;
-	if (gameType>10000) gameType-=10000;
 	switch(gameType)
 	{
 	case D3DProxyDevice::FIXED:

@@ -156,7 +156,7 @@ private:
 	/**
 	* Array of possible world-view-projection matrix shader constant names.
 	***/
-	std::string* m_wvpMatrixConstantNames;
+	std::vector<std::string> m_wvpMatrixConstantNames;
 	/**
 	* Array of matrix substring names to be avoided.
 	***/

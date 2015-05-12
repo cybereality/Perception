@@ -39,7 +39,7 @@ enum VireioPopupType
 	//Second "splash" - tells users a couple of helpful hot-keys
 	VPT_SPLASH_2,
 	VPT_NO_HMD_DETECTED,
-	VPY_HMDINITFAIL,
+	VPT_HMDINITFAIL,
 	VPT_VRBOOST_FAILURE,
 	VPT_VRBOOST_SCANNING,
 	VPT_POSITION_TRACKING_LOST,

@@ -370,7 +370,8 @@
     <ClInclude Include="MotionTracker.h" />
     <ClInclude Include="Vector4SimpleTranslate.h" />
     <ClInclude Include="..\..\Shared\pugixml.hpp" />
-    <ClInclude Include="..\..\pugiconfig.hpp" />
+    <ClInclude Include="..\..\Shared\pugiconfig.hpp" />
+    <ClInclude Include="..\..\Shared\Version.h" />
     <ClInclude Include="..\..\Shared\VireioUtil.h" />
     <ClInclude Include="..\..\Shared\ProxyHelper.h" />
     <ClInclude Include="..\..\Shared\InputControls.h" />

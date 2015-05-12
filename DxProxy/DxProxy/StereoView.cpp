@@ -85,9 +85,7 @@ StereoView::StereoView(ProxyConfig *config)
 	sb = NULL;
 	m_bLeftSideActive = false;
 	// set behavior accordingly to game type
-	int gameType = config->game_type;
-	if (gameType>10000) gameType-=10000;
-	switch(gameType)
+	switch(config->game_type)
 	{
 	case D3DProxyDevice::FIXED:
 		howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;		

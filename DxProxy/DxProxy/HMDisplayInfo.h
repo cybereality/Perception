@@ -39,6 +39,12 @@ enum HMDManufacturer
 	HMD_OCULUS
 };
 
+enum HMDStatus
+{
+	HMD_STATUS_OK,
+	HMD_STATUS_ERROR
+};
+
 /**
 * HMDisplayInfo abstract base class
 ***/
@@ -178,6 +184,18 @@ public:
 	 * Returns the manufacturer of the HMD - Enumeration to be added to when new HMD manufacturers are supported
 	 */
 	virtual HMDManufacturer GetHMDManufacturer() {return HMD_UNKNOWN;}
+
+	/**
+	 * Returns the status of the HMD - If it could be initialised, then error status is set, this method can be overridden
+	 * to return more specufuc error info
+	 */
+	virtual HMDStatus GetStatus() {return HMD_STATUS_OK;}
+
+	/**
+	 * Returns the status of the HMD - If it could be initialised, then error status is set, this method can be overridden
+	 * to return more specufuc error info
+	 */
+	virtual std::string GetStatusString() {return "OK";}
 
 protected:
 	float *distortionCoefficients;

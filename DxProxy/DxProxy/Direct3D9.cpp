@@ -88,6 +88,11 @@ BaseDirect3D9::BaseDirect3D9(IDirect3D9* pD3D) :
 			configLoaded = false;
 		}
 
+		if(!helper.LoadUserConfig(userConfig)) {
+			OutputDebugString("[ERR] User config loading failed, user config could not be loaded. Returning normal D3DDevice. Vireio will not be active.\n");
+			configLoaded = false;
+		}
+
 		if (cfg->display_adapter > m_pD3D->GetAdapterCount() ||
 			!configLoaded)
 		{
@@ -320,7 +325,7 @@ HRESULT WINAPI BaseDirect3D9::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, 
 	OutputDebugString("\n");
 
 	// Create and return proxy
-	*ppReturnedDeviceInterface = D3DProxyDeviceFactory::Get(*cfg, *ppReturnedDeviceInterface, this);
+	*ppReturnedDeviceInterface = D3DProxyDeviceFactory::Get(*cfg, userConfig, *ppReturnedDeviceInterface, this);
 
 	OutputDebugString("[OK] Vireio D3D device created.\n");
 

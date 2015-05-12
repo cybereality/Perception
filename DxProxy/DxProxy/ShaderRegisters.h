@@ -62,11 +62,11 @@ public:
 	int LastInSpan(UINT start);
 	
 //private:
-	void Expand(int capacity);
+	void Expand(UINT capacity);
 	
 	std::vector<char> dirtyRegisters;
-	int firstDirtyReg;
-	int lastDirtyReg;
+	UINT firstDirtyReg;
+	UINT lastDirtyReg;
 };
 
 /**

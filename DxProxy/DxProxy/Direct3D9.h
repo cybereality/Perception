@@ -90,6 +90,11 @@ private:
 	* Proxy configuration we load
 	*/
 	ProxyConfig *cfg;
+	
+	/**
+	* Proxy user configuration we load (for shader analyser flag)
+	*/
+	ProxyHelper::UserConfig userConfig;
 };
 
 #endif

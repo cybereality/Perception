@@ -10,7 +10,7 @@
 #include <vector>
 #include <algorithm>
 
-#include "ProxyHelper.h"
+#include <ProxyHelper.h>
 
 void SearchForFiles( const std::string& strSearchFileName, const std::string& strFilePath, const bool& bRecursive, 
 	std::vector<std::string> &shortFileNames, std::vector<std::string> &paths)
@@ -165,7 +165,7 @@ int WINAPI wWinMain(HINSTANCE instance_handle, HINSTANCE, LPWSTR, INT)
 
 		bool foundPath = false;
 		std::string steamLocation;
-		for (int i = 0; (i < localDriveList.length() && !foundPath); i++)
+		for (size_t i = 0; (i < localDriveList.length() && !foundPath); i++)
 		{
 			//Attempt to find the right root folder
 			int location = 0;

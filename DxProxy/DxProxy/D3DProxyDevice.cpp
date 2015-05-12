@@ -2335,6 +2335,13 @@ void D3DProxyDevice::Init(ProxyConfig& cfg)
 
 	VPMENU_UpdateDeviceSettings();
 	OnCreateOrRestore();
+	
+	//Check HMD is ok
+	if (m_spShaderViewAdjustment->HMDInfo()->GetStatus() != HMD_STATUS_OK)
+	{
+		//Show this error message, it won't be overridden by anything else
+		ShowPopup(VPT_HMDINITFAIL, VPS_ERROR, m_spShaderViewAdjustment->HMDInfo()->GetStatusString());
+	}
 }
 
 /**
