@@ -65,8 +65,8 @@ ViewAdjustment::ViewAdjustment(HMDisplayInfo *displayInfo, float metersToWorldUn
 	D3DXMatrixIdentity(&matProjection);
 	D3DXMatrixIdentity(&matPosition);
 	D3DXMatrixIdentity(&matProjectionInv);
-	D3DXMatrixIdentity(&projectLeft);
-	D3DXMatrixIdentity(&projectRight);
+	D3DXMatrixIdentity(&projectPFOV);
+	D3DXMatrixIdentity(&projectPFOV);
 	D3DXMatrixIdentity(&transformLeft);
 	D3DXMatrixIdentity(&transformRight);
 	D3DXMatrixIdentity(&matViewProjRight);
@@ -139,6 +139,7 @@ void ViewAdjustment::UpdateProjectionMatrices(float aspectRatio, float fov_horiz
 {
 	t = 0.5f / aspectRatio;
 	b = -0.5f / aspectRatio;
+	a = aspectRatio;
 
 	//Calculate inverse projection
 	D3DXMatrixPerspectiveOffCenterLH(&matProjection, l, r, b, t, n, f);
@@ -176,8 +177,8 @@ void ViewAdjustment::UpdateProjectionMatrices(float aspectRatio, float fov_horiz
 		float frustumAsymmetryRight = frustumAsymmetryRightInMeters * multiplier;
 
 		// now, create the re-projection matrices for both eyes using this frustum asymmetry
-		D3DXMatrixPerspectiveOffCenterLH(&projectLeft, l+frustumAsymmetryLeft, r+frustumAsymmetryLeft, b, t, n, f);
-		D3DXMatrixPerspectiveOffCenterLH(&projectRight, l+frustumAsymmetryRight, r+frustumAsymmetryRight, b, t, n, f);
+		D3DXMatrixPerspectiveOffCenterLH(&projectPFOV, l+frustumAsymmetryLeft, r+frustumAsymmetryLeft, b, t, n, f);
+		D3DXMatrixPerspectiveOffCenterLH(&projectPFOV, l+frustumAsymmetryRight, r+frustumAsymmetryRight, b, t, n, f);
 	}
 	else
 	{
@@ -188,8 +189,10 @@ void ViewAdjustment::UpdateProjectionMatrices(float aspectRatio, float fov_horiz
 		D3DXMatrixPerspectiveFovLH(&matProjection, fov_vert, aspectRatio, n, f);
 
 		//ANd left and right (identical in this case)
-		D3DXMatrixPerspectiveFovLH(&projectLeft, fov_vert, aspectRatio, n, f);
-		D3DXMatrixPerspectiveFovLH(&projectRight, fov_vert, aspectRatio, n, f);
+		D3DXMatrixPerspectiveFovLH(&projectPFOV, fov_vert, aspectRatio, n, f);
+
+		float fov_vert_skybox = 2.0f * atan( tan(D3DXToRadian(fov_horiz + 12.0f) / 2.0f) * aspectRatio);
+		D3DXMatrixPerspectiveFovLH(&projectSkyBox, fov_vert_skybox, aspectRatio, n, f);
 	}
 }
 
@@ -276,8 +279,8 @@ void ViewAdjustment::ComputeViewTransforms()
 	}
 	
 	// projection transform, no roll
-	matViewProjTransformLeftNoRoll = matProjectionInv * transformLeft * projectLeft;
-	matViewProjTransformRightNoRoll = matProjectionInv * transformRight * projectRight;
+	matViewProjTransformLeftNoRoll = matProjectionInv * transformLeft * projectPFOV;
+	matViewProjTransformRightNoRoll = matProjectionInv * transformRight * projectPFOV;
 	
 	// head roll - only if using translation implementation
 	if (rollImpl == 1) {
@@ -285,19 +288,19 @@ void ViewAdjustment::ComputeViewTransforms()
 		D3DXMatrixMultiply(&transformRight, &rollMatrix, &transformRight);
 
 		// projection 
-		matViewProjLeft = matProjectionInv * rollMatrix * projectLeft;
-		matViewProjRight = matProjectionInv * rollMatrix * projectRight;
+		matViewProjLeft = matProjectionInv * rollMatrix * projectSkyBox;
+		matViewProjRight = matProjectionInv * rollMatrix * projectSkyBox;
 	}
 	else
 	{
 		// projection 
-		matViewProjLeft = matProjectionInv * projectLeft;
-		matViewProjRight = matProjectionInv * projectRight;
+		matViewProjLeft = matProjectionInv * projectSkyBox;
+		matViewProjRight = matProjectionInv * projectSkyBox;
 	}
 
 	// projection transform
-	matViewProjTransformLeft = matProjectionInv * transformLeft * projectLeft;
-	matViewProjTransformRight = matProjectionInv * transformRight * projectRight;
+	matViewProjTransformLeft = matProjectionInv * transformLeft * projectPFOV;
+	matViewProjTransformRight = matProjectionInv * transformRight * projectPFOV;
 
 	// now, create HUD/GUI helper matrices
 
@@ -326,10 +329,10 @@ void ViewAdjustment::ComputeViewTransforms()
 	D3DXMatrixTranslation(&matRightGui3DDepth, -(gui3DDepth+SeparationIPDAdjustment()), 0, 0);
 
 	// gui/hud matrices
-	matHudLeft = matProjectionInv * matLeftHud3DDepth * transformLeft * matHudDistance *  projectLeft;
-	matHudRight = matProjectionInv * matRightHud3DDepth * transformRight * matHudDistance * projectRight;
-	matGuiLeft =  matProjectionInv * matLeftGui3DDepth * matSquash * projectLeft;
-	matGuiRight = matProjectionInv * matRightGui3DDepth * matSquash * projectRight;
+	matHudLeft = matProjectionInv * matLeftHud3DDepth * transformLeft * matHudDistance *  projectPFOV;
+	matHudRight = matProjectionInv * matRightHud3DDepth * transformRight * matHudDistance * projectPFOV;
+	matGuiLeft =  matProjectionInv * matLeftGui3DDepth * matSquash * projectPFOV;
+	matGuiRight = matProjectionInv * matRightGui3DDepth * matSquash * projectPFOV;
 }
 
 D3DXMATRIX  ViewAdjustment::PositionMatrix()

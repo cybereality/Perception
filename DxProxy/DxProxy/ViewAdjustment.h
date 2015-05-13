@@ -122,6 +122,7 @@ private:
 	float r;	/**< Maximum x-value of the view volume. */
 	float t;	/**< Minimum y-value of the view volume. */
 	float b;	/**< Maximum y-value of the view volume. */
+	float a; //Aspect ratio
 
 	D3DXVECTOR3 positionTransformVec;
 
@@ -146,13 +147,13 @@ private:
 	***/
 	D3DXMATRIX matProjectionInv;
 	/**
-	* The shifted left projection matrix.
+	* The .
 	***/
-	D3DXMATRIX projectLeft;
+	D3DXMATRIX projectPFOV;
 	/**
-	* The shifted right projection matrix.
+	* The .
 	***/
-	D3DXMATRIX projectRight;
+	D3DXMATRIX projectSkyBox;
 	/**
 	* The head roll matrix.
 	***/
