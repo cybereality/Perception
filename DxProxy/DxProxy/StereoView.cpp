@@ -366,7 +366,7 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 
 	// all render settings start here
 	m_pActualDevice->SetFVF(D3DFVF_TEXVERTEX);
-
+	
 	// swap eyes
 	if(!swapEyes)
 	{
@@ -378,7 +378,8 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 		m_pActualDevice->SetTexture(0, rightTexture);
 		m_pActualDevice->SetTexture(1, leftTexture);		
 	}
-	
+	/*LPDIRECT3DSURFACE9 pZBuffer;
+	m_pActualDevice->GetDepthStencilSurface( &pZBuffer );*/
 	
 	if (FAILED(m_pActualDevice->SetRenderTarget(0, backBuffer))) {
 		OutputDebugString("SetRenderTarget backbuffer failed\n");
@@ -672,8 +673,8 @@ void StereoView::SetState()
 	m_pActualDevice->SetTransform(D3DTS_PROJECTION, &identity);
 	m_pActualDevice->SetRenderState(D3DRS_LIGHTING, FALSE);
 	m_pActualDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
-	m_pActualDevice->SetRenderState(D3DRS_ZENABLE, FALSE);
-	m_pActualDevice->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
+	m_pActualDevice->SetRenderState(D3DRS_ZENABLE,  D3DZB_TRUE);
+	m_pActualDevice->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
 	m_pActualDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
 	m_pActualDevice->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);// This fixed interior or car not being drawn in rFactor
 	m_pActualDevice->SetRenderState(D3DRS_STENCILENABLE, FALSE); 
@@ -685,8 +686,8 @@ void StereoView::SetState()
 	m_pActualDevice->SetTextureStageState(0, D3DTSS_CONSTANT, 0xffffffff);
 
 	m_pActualDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
-	m_pActualDevice->SetRenderState(D3DRS_ZENABLE, D3DZB_FALSE);
-	m_pActualDevice->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
+	m_pActualDevice->SetRenderState(D3DRS_ZENABLE, D3DZB_TRUE);
+	m_pActualDevice->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
 	m_pActualDevice->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);  
 
 	if(game_type == D3DProxyDevice::SOURCE_L4D ||
