@@ -82,7 +82,7 @@ ViewAdjustment::ViewAdjustment(HMDisplayInfo *displayInfo, float metersToWorldUn
 	D3DXMatrixIdentity(&matGatheredLeft);
 	D3DXMatrixIdentity(&matGatheredRight);
 
-	UpdateProjectionMatrices(displayInfo->GetScreenAspectRatio());
+	UpdateProjectionMatrices(displayInfo->GetScreenAspectRatio(), 110.0f);
 	D3DXMatrixIdentity(&rollMatrix);
 	D3DXMatrixIdentity(&rollMatrixNegative);
 	ComputeViewTransforms();
@@ -135,17 +135,14 @@ int ViewAdjustment::GetStereoType()
 * ahead of us.
 * @param aspectRation The aspect ratio for the projection matrix.
 ***/
-void ViewAdjustment::UpdateProjectionMatrices(float aspectRatio)
+void ViewAdjustment::UpdateProjectionMatrices(float aspectRatio, float fov_horiz)
 {
 	t = 0.5f / aspectRatio;
 	b = -0.5f / aspectRatio;
 
+	//Calculate inverse projection
 	D3DXMatrixPerspectiveOffCenterLH(&matProjection, l, r, b, t, n, f);
 	D3DXMatrixInverse(&matProjectionInv, 0, &matProjection);
-
-	// ALL stated in meters here ! screen size = horizontal size
-	float nearClippingPlaneDistance = hmdInfo->GetEyeToScreenDistance(); 
-	float physicalScreenSizeInMeters = hmdInfo->GetPhysicalScreenSize().first / 2; 
 
 	// if not HMD, set values to fullscreen defaults
 	if (stereoType <100)   //stereo type > 100 reserved specifically for HMDs
@@ -153,35 +150,47 @@ void ViewAdjustment::UpdateProjectionMatrices(float aspectRatio)
 		// assumption here :
 		// end user is placed 1 meter away from screen
 		// end user screen is 1 meter in horizontal size
-		nearClippingPlaneDistance = 1;
-		physicalScreenSizeInMeters = 1;
+		float nearClippingPlaneDistance = 1;
+		float physicalScreenSizeInMeters = 1;
+
+		// convergence frustum adjustment, based on NVidia explanations
+		//
+		// It is evident that the ratio of frustum shift to the near clipping plane is equal to the ratio of 
+		// IOD/2 to the distance from the screenplane. (IOD=IPD) 
+		// frustumAsymmetryInMeters = ((IPD/2) * nearClippingPlaneDistance) / convergence
+		// <http://www.orthostereo.com/geometryopengl.html>
+		//
+		// (near clipping plane distance = physical screen distance)
+		// (convergence = virtual screen distance)
+		if (convergence <= nearClippingPlaneDistance) convergence = nearClippingPlaneDistance + 0.001f;
+		float frustumAsymmetryInMeters = ((ipd/2) * nearClippingPlaneDistance) / convergence;
+
+		// divide the frustum asymmetry by the assumed physical size of the physical screen
+		float frustumAsymmetryLeftInMeters = (frustumAsymmetryInMeters * LEFT_CONSTANT) / physicalScreenSizeInMeters;
+		float frustumAsymmetryRightInMeters = (frustumAsymmetryInMeters * RIGHT_CONSTANT) / physicalScreenSizeInMeters;
+
+		// get the horizontal screen space size and compute screen space adjustment
+		float screenSpaceXSize = abs(l)+abs(r);
+		float multiplier = screenSpaceXSize/1; // = 1 meter
+		float frustumAsymmetryLeft = frustumAsymmetryLeftInMeters * multiplier;
+		float frustumAsymmetryRight = frustumAsymmetryRightInMeters * multiplier;
+
+		// now, create the re-projection matrices for both eyes using this frustum asymmetry
+		D3DXMatrixPerspectiveOffCenterLH(&projectLeft, l+frustumAsymmetryLeft, r+frustumAsymmetryLeft, b, t, n, f);
+		D3DXMatrixPerspectiveOffCenterLH(&projectRight, l+frustumAsymmetryRight, r+frustumAsymmetryRight, b, t, n, f);
 	}
+	else
+	{
+		//Calculate vertical fov from provided horizontal
+		float fov_vert = 2.0f * atan( tan(D3DXToRadian(fov_horiz) / 2.0f) * aspectRatio);
 
-	// convergence frustum adjustment, based on NVidia explanations
-	//
-	// It is evident that the ratio of frustum shift to the near clipping plane is equal to the ratio of 
-	// IOD/2 to the distance from the screenplane. (IOD=IPD) 
-	// frustumAsymmetryInMeters = ((IPD/2) * nearClippingPlaneDistance) / convergence
-	// <http://www.orthostereo.com/geometryopengl.html>
-	//
-	// (near clipping plane distance = physical screen distance)
-	// (convergence = virtual screen distance)
-	if (convergence <= nearClippingPlaneDistance) convergence = nearClippingPlaneDistance + 0.001f;
-	float frustumAsymmetryInMeters = ((ipd/2) * nearClippingPlaneDistance) / convergence;
+		//Now apply changed fov perspective to re-projection
+		D3DXMatrixPerspectiveFovLH(&matProjection, fov_vert, aspectRatio, n, f);
 
-	// divide the frustum asymmetry by the assumed physical size of the physical screen
-	float frustumAsymmetryLeftInMeters = (frustumAsymmetryInMeters * LEFT_CONSTANT) / physicalScreenSizeInMeters;
-	float frustumAsymmetryRightInMeters = (frustumAsymmetryInMeters * RIGHT_CONSTANT) / physicalScreenSizeInMeters;
-
-	// get the horizontal screen space size and compute screen space adjustment
-	float screenSpaceXSize = abs(l)+abs(r);
-	float multiplier = screenSpaceXSize/1; // = 1 meter
-	float frustumAsymmetryLeft = frustumAsymmetryLeftInMeters * multiplier;
-	float frustumAsymmetryRight = frustumAsymmetryRightInMeters * multiplier;
-
-	// now, create the re-projection matrices for both eyes using this frustum asymmetry
-	D3DXMatrixPerspectiveOffCenterLH(&projectLeft, l+frustumAsymmetryLeft, r+frustumAsymmetryLeft, b, t, n, f);
-	D3DXMatrixPerspectiveOffCenterLH(&projectRight, l+frustumAsymmetryRight, r+frustumAsymmetryRight, b, t, n, f);
+		//ANd left and right (identical in this case)
+		D3DXMatrixPerspectiveFovLH(&projectLeft, fov_vert, aspectRatio, n, f);
+		D3DXMatrixPerspectiveFovLH(&projectRight, fov_vert, aspectRatio, n, f);
+	}
 }
 
 /**
