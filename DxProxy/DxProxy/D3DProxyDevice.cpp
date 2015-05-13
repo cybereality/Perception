@@ -185,7 +185,8 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	m_comfortModeYawIncrement(90.0f),
 	m_comfortModeLeftKey(VK_LEFT),
 	m_comfortModeRightKey(VK_RIGHT),
-	m_disableAllHotkeys(false)
+	m_disableAllHotkeys(false),
+	m_projectionHFOV(110.0f)
 {
 	#ifdef SHOW_CALLS
 		OutputDebugString("called D3DProxyDevice");
@@ -1265,6 +1266,8 @@ HRESULT WINAPI D3DProxyDevice::Clear(DWORD Count,CONST D3DRECT* pRects,DWORD Fla
 	return result;
 }
 
+ 
+
 /**
 * Catches transform for stored proxy state block accordingly or updates proxy device.
 * @see D3D9ProxyStateBlock
@@ -1372,7 +1375,6 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 				D3DXMatrixIdentity(&tempRight);
 			}
 			else {
-
 
 				tempLeft = sourceMatrix;
 				tempRight = sourceMatrix;
@@ -3493,32 +3495,30 @@ void D3DProxyDevice::HandleControls()
 
 				if(_wheel != 0)
 				{
-					m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
+					m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, m_projectionHFOV);
 					VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
 					sprintf_s(popup.line[2], "Stereo Separation (World Scale): %1.3f", m_spShaderViewAdjustment->WorldScale());
 					m_saveConfigTimer = GetTickCount();
 					ShowPopup(popup);
 				}
 			}
-			//CTRL + SPACE + Mouse Wheel - adjust stereo convergence dynamically
+			//CTRL + SPACE + Mouse Wheel - adjust projection fov dynamically
 			else if(controls.Key_Down(VK_SPACE))
  			{	
-				float convergenceChange = 0.1f;
 				if(_wheel < 0)
 				{
-					m_spShaderViewAdjustment->ChangeConvergence(-convergenceChange);
+					m_projectionHFOV -= 0.5f;
 				}
 				else if(_wheel > 0)
 				{
-					m_spShaderViewAdjustment->ChangeConvergence(convergenceChange);
- 				}
+					m_projectionHFOV += 0.5f;
+				}
 
 				if(_wheel != 0)
 				{
-					m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
+					m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, m_projectionHFOV);
 					VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
-					sprintf_s(popup.line[2], "Stereo Convergence: %1.3f", m_spShaderViewAdjustment->Convergence());
-					m_saveConfigTimer = GetTickCount();
+					sprintf_s(popup.line[2], "Projection FOV: %1.3f", m_projectionHFOV);
 					ShowPopup(popup);
 				}
 			}
@@ -3528,11 +3528,6 @@ void D3DProxyDevice::HandleControls()
 				{
 					if(_wheel < 0)
 					{
-						/*if(this->stereoView->DistortionScale > m_spShaderViewAdjustment->HMDInfo()->GetMinDistortionScale())
-						{
-							this->stereoView->DistortionScale -= 0.05f;
-							this->stereoView->PostReset();				
-						}*/
 						if(this->stereoView->ZoomOutScale > 0.05f)
 						{
 							this->stereoView->ZoomOutScale -= 0.05f;
@@ -3541,11 +3536,6 @@ void D3DProxyDevice::HandleControls()
 					}
 					else if(_wheel > 0)
 					{
-						/*if(this->stereoView->DistortionScale < m_maxDistortionScale)
-						{
-							this->stereoView->DistortionScale += 0.05f;
-							this->stereoView->PostReset();										
-						}*/
 						if(this->stereoView->ZoomOutScale < 2.00f)
 						{
 							this->stereoView->ZoomOutScale += 0.05f;
@@ -3553,10 +3543,13 @@ void D3DProxyDevice::HandleControls()
 						}
 					}
 
-					VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
-					sprintf_s(popup.line[2], "Zoom Scale: %1.3f", this->stereoView->ZoomOutScale);
-					m_saveConfigTimer = GetTickCount();
-					ShowPopup(popup);
+					if(_wheel != 0)
+					{
+						VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
+						sprintf_s(popup.line[2], "Zoom Scale: %1.3f", this->stereoView->ZoomOutScale);
+						m_saveConfigTimer = GetTickCount();
+						ShowPopup(popup);
+					}
 				}
 			}
 		}
@@ -4442,7 +4435,7 @@ void D3DProxyDevice::OnCreateOrRestore()
 
 	stereoView->Init(getActual());
 
-	m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
+	m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, m_projectionHFOV);
 	m_spShaderViewAdjustment->ComputeViewTransforms();
 
 	// set VP main values
@@ -5217,7 +5210,7 @@ void D3DProxyDevice::VPMENU_WorldScale()
 			m_spShaderViewAdjustment->ChangeWorldScale(separationChange * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f));
 		else
 			m_spShaderViewAdjustment->ChangeWorldScale(-separationChange);
-		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
+		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, m_projectionHFOV);
 
 		menuVelocity.x+=0.7f;
 	}
@@ -5243,7 +5236,7 @@ void D3DProxyDevice::VPMENU_WorldScale()
 			m_spShaderViewAdjustment->ChangeWorldScale(separationChange * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f));
 		else
 			m_spShaderViewAdjustment->ChangeWorldScale(separationChange);
-		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
+		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, m_projectionHFOV);
 
 		menuVelocity.x+=0.7f;
 	}
@@ -5466,7 +5459,7 @@ void D3DProxyDevice::VPMENU_Convergence()
 			m_spShaderViewAdjustment->ChangeConvergence(convergenceChange * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f));
 		else
 			m_spShaderViewAdjustment->ChangeConvergence(-convergenceChange);
-		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
+		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, m_projectionHFOV);
 
 		menuVelocity.x+=0.7f;
 	}
@@ -5488,7 +5481,7 @@ void D3DProxyDevice::VPMENU_Convergence()
 			m_spShaderViewAdjustment->ChangeConvergence(convergenceChange * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f));
 		else
 			m_spShaderViewAdjustment->ChangeConvergence(convergenceChange);
-		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
+		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, m_projectionHFOV);
 
 		menuVelocity.x+=0.7f;
 	}

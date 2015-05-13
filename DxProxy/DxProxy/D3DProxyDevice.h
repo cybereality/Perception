@@ -655,6 +655,9 @@ protected:
  	* Maximum Distortion Scale the Quicklinks will zoom to
  	**/
  	float m_maxDistortionScale;
+
+	float m_projectionHFOV;
+
 	/**
 	* Whether we are in telescope mode
 	*/
