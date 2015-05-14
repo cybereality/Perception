@@ -12,7 +12,7 @@
 		<ruleID id="2" />
 	</defaultRuleIDs>
 	
-	<shaderSpecificRuleIDs shaderHash="1000648256" doNotDraw="true"/>
+	<shaderSpecificRuleIDs shaderHash="1000648256" ObjectType="Shadows"/>
   <shaderSpecificRuleIDs shaderHash="2756279282">
     <ruleID id="3" />
     <ruleID id="4" />

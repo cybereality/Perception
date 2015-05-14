@@ -38,44 +38,44 @@
 	<shaderSpecificRuleIDs shaderHash="1490477037"><ruleID id="11" /></shaderSpecificRuleIDs>
 
 	<!-- Removes most dodgy shadows, can't believe how long this list is! -->
-	<shaderSpecificRuleIDs shaderHash="1660635056" doNotDraw="true"/>
-	<shaderSpecificRuleIDs shaderHash="3388901281" doNotDraw="true"/>
-	<shaderSpecificRuleIDs shaderHash="1284330534" doNotDraw="true"/>
-	<shaderSpecificRuleIDs shaderHash="3380305637" doNotDraw="true"/>
-	<shaderSpecificRuleIDs shaderHash="578759246" doNotDraw="true"/>
-	<shaderSpecificRuleIDs shaderHash="2103744669" doNotDraw="true"/>
-	<shaderSpecificRuleIDs shaderHash="2500508736" doNotDraw="true"/>
-	<shaderSpecificRuleIDs shaderHash="2472633357" doNotDraw="true"/>
-	<shaderSpecificRuleIDs shaderHash="1571584672" doNotDraw="true"/>
-	<shaderSpecificRuleIDs shaderHash="707970652" doNotDraw="true"/>
-	<shaderSpecificRuleIDs shaderHash="739302123" doNotDraw="true"/>
-	<shaderSpecificRuleIDs shaderHash="810523533" doNotDraw="true"/>
-	<shaderSpecificRuleIDs shaderHash="2907067565" doNotDraw="true"/>
-	<shaderSpecificRuleIDs shaderHash="2007068218" doNotDraw="true"/>
-	<shaderSpecificRuleIDs shaderHash="3615526838" doNotDraw="true"/>
-	<shaderSpecificRuleIDs shaderHash="3784047586" doNotDraw="true"/>
-	<shaderSpecificRuleIDs shaderHash="1920003194" doNotDraw="true"/>
-	<shaderSpecificRuleIDs shaderHash="3444186826" doNotDraw="true"/>
-	<shaderSpecificRuleIDs shaderHash="3639701086" doNotDraw="true"/>
-	<shaderSpecificRuleIDs shaderHash="1369444560" doNotDraw="true"/>
-	<shaderSpecificRuleIDs shaderHash="436644605" doNotDraw="true"/>
-	<shaderSpecificRuleIDs shaderHash="2439569728" doNotDraw="true"/>
-	<shaderSpecificRuleIDs shaderHash="2440523048" doNotDraw="true"/>
-	<shaderSpecificRuleIDs shaderHash="1726773818" doNotDraw="true"/>
-	<shaderSpecificRuleIDs shaderHash="2185507776" doNotDraw="true"/>
-	<shaderSpecificRuleIDs shaderHash="1446729854" doNotDraw="true"/>
+	<shaderSpecificRuleIDs shaderHash="1660635056" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="3388901281" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="1284330534" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="3380305637" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="578759246" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="2103744669" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="2500508736" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="2472633357" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="1571584672" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="707970652" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="739302123" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="810523533" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="2907067565" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="2007068218" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="3615526838" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="3784047586" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="1920003194" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="3444186826" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="3639701086" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="1369444560" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="436644605" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="2439569728" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="2440523048" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="1726773818" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="2185507776" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="1446729854" ObjectType="Shadows"/>
 
 	<!-- Shadows only visible when moving (flickering horribleness) -->
-	<shaderSpecificRuleIDs shaderHash="3640932062" doNotDraw="true"/>
-	<shaderSpecificRuleIDs shaderHash="4249643688" doNotDraw="true"/>
-	<shaderSpecificRuleIDs shaderHash="1556363810" doNotDraw="true"/>
-	<shaderSpecificRuleIDs shaderHash="2092929951" doNotDraw="true"/>
-	<shaderSpecificRuleIDs shaderHash="1067896468" doNotDraw="true"/>
+	<shaderSpecificRuleIDs shaderHash="3640932062" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="4249643688" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="1556363810" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="2092929951" ObjectType="Shadows"/>
+	<shaderSpecificRuleIDs shaderHash="1067896468" ObjectType="Shadows"/>
 	
 	
 	
 	<!-- Naked People!! -->
-	<!-- <shaderSpecificRuleIDs shaderHash="3959869407" doNotDraw="true"/> -->
+	<shaderSpecificRuleIDs shaderHash="3959869407" ObjectType="Clothes"/>
   
 	<!-- HUD stuff -->
 	<shaderSpecificRuleIDs shaderHash="1837765858" squishViewport="true"></shaderSpecificRuleIDs>

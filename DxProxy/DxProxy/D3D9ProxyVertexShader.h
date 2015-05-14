@@ -40,7 +40,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ShaderRegisters.h"
 #include "D3DProxyDevice.h"
 #include "ShaderModificationRepository.h"
-
+#include "ShaderObjectType.h"
 
 class D3DProxyDevice;
 class ShaderModificationRepository;
@@ -58,7 +58,7 @@ public:
 	/*** D3D9ProxyVertexShader public methods ***/
 	std::map<UINT, StereoShaderConstant<>>* ModifiedConstants();
 	bool                                    SquishViewport();
-	bool									DoNotDraw();
+	ShaderObjectType						GetShaderObjectType();
 
 protected:
 	/**
@@ -76,8 +76,8 @@ protected:
 	***/
 	bool m_bSquishViewport;
 	/**
-	* True if this shader shouldn't be drawn at all
-	***/
-	bool m_bDoNotDraw;
+	* Store the object type of this shader (if it is specified)
+	*/
+	ShaderObjectType m_shaderObjectType;
 };
 #endif

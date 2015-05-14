@@ -1958,7 +1958,11 @@ HRESULT WINAPI D3DProxyDevice::SetVertexShader(IDirect3DVertexShader9* pShader)
 	if (pWrappedVShaderData)
 	{
 		//Flag whether we should even draw this shader
-		m_bDoNotDrawVShader = pWrappedVShaderData->DoNotDraw();
+		m_bDoNotDrawVShader =  pWrappedVShaderData->GetShaderObjectType() == ShaderObjectTypeDoNotDraw ||
+			//Need to add a toggle to allow use to turn shadows/fog on and off
+			pWrappedVShaderData->GetShaderObjectType() == ShaderObjectTypeShadows ||
+			pWrappedVShaderData->GetShaderObjectType() == ShaderObjectTypeFog
+			;
 
 		if (pWrappedVShaderData->SquishViewport())
 		{
@@ -2243,7 +2247,10 @@ HRESULT WINAPI D3DProxyDevice::SetPixelShader(IDirect3DPixelShader9* pShader)
 	if (pWrappedPShaderData)
 	{
 		//Flag whether we should even draw this shader
-		m_bDoNotDrawPShader = pWrappedPShaderData->DoNotDraw();
+		m_bDoNotDrawPShader = pWrappedPShaderData->GetShaderObjectType() == ShaderObjectTypeDoNotDraw ||
+			//Need to add a toggle to allow use to turn shadows/fog on and off
+			pWrappedPShaderData->GetShaderObjectType() == ShaderObjectTypeShadows ||
+			pWrappedPShaderData->GetShaderObjectType() == ShaderObjectTypeFog;
 	}
 	else
 		m_bDoNotDrawPShader = false;

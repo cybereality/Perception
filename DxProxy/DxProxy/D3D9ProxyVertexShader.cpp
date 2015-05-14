@@ -36,18 +36,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 D3D9ProxyVertexShader::D3D9ProxyVertexShader(IDirect3DVertexShader9* pActualVertexShader, D3DProxyDevice *pOwningDevice, ShaderModificationRepository* pModLoader) :
 	BaseDirect3DVertexShader9(pActualVertexShader, pOwningDevice),
 	m_pActualDevice(pOwningDevice->getActual()),
-	m_modifiedConstants()
+	m_shaderObjectType(ShaderObjectTypeUnknown)
 {
 	if (pModLoader)
 	{
 		m_modifiedConstants = pModLoader->GetModifiedConstantsF(pActualVertexShader);
 		m_bSquishViewport = pModLoader->SquishViewportForShader(pActualVertexShader);
-		m_bDoNotDraw = pModLoader->DoNotDrawShader(pActualVertexShader);
+		m_shaderObjectType = pModLoader->GetShaderObjectType(pActualVertexShader);
 	}
 	else
 	{
 		m_bSquishViewport = false;
-		m_bDoNotDraw = false;
 	}
 }
 
@@ -74,9 +73,9 @@ bool D3D9ProxyVertexShader::SquishViewport()
 }
 
 /**
-* Returns true if shader should never be drawn
+* Returns ShaderObjectType
 ***/
-bool D3D9ProxyVertexShader::DoNotDraw()
+ShaderObjectType D3D9ProxyVertexShader::GetShaderObjectType()
 {
-	return m_bDoNotDraw;
+	return m_shaderObjectType;
 }

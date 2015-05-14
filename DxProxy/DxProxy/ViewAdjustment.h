@@ -107,6 +107,7 @@ public:
 	int           RollImpl();
 	void          SetRollImpl(int rollImpl);
 	int			  GetStereoType();
+	void		  SetUsePFOV(bool);
 	HMDisplayInfo* HMDInfo();	
 
 public:
@@ -124,6 +125,8 @@ private:
 	float b;	/**< Maximum y-value of the view volume. */
 	float a; //Aspect ratio
 
+	bool m_usePFOV;
+
 	D3DXVECTOR3 positionTransformVec;
 
 	/**
@@ -139,21 +142,25 @@ private:
 	**/
 	D3DXMATRIX matPosition;
 	/**
-	* Projection matrix.
+	* Projection matrix - basic with no PFOV
 	***/
-	D3DXMATRIX matProjection;
+	D3DXMATRIX matBasicProjection;
 	/**
 	* Projection inverse matrix.
 	***/
 	D3DXMATRIX matProjectionInv;
 	/**
-	* The .
+	* The projection with adjusted FOV.
 	***/
 	D3DXMATRIX projectPFOV;
 	/**
-	* The .
+	* The projection with left eye convergence.
 	***/
-	D3DXMATRIX projectSkyBox;
+	D3DXMATRIX projectLeftConverge;
+	/**
+	* The projection with right eye convergence.
+	***/
+	D3DXMATRIX projectRightConverge;
 	/**
 	* The head roll matrix.
 	***/

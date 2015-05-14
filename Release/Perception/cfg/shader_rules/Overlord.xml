@@ -8,6 +8,6 @@
 	</defaultRuleIDs>
 	
 	<!-- Don't draw any shadow shaders, they don't work well with roll and positional -->
-	<shaderSpecificRuleIDs shaderHash="597879514" doNotDraw="true"/>
+	<shaderSpecificRuleIDs shaderHash="597879514" ObjectType="Shadows"/>
 
 </shaderConfig>

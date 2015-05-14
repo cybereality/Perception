@@ -25,9 +25,9 @@
 		<ruleID id="9" />
 	</defaultRuleIDs>
 	
-	<shaderSpecificRuleIDs shaderHash="85882304">
+	<shaderSpecificRuleIDs shaderHash="85882304" ObjectType="Sky">
 		<ruleID id="10" />Sort out skybox</shaderSpecificRuleIDs>
-	<shaderSpecificRuleIDs shaderHash="1177584787">
+	<shaderSpecificRuleIDs shaderHash="1177584787" ObjectType="Sky">
 		<ruleID id="10" />Sort out skybox</shaderSpecificRuleIDs>
 		
 	<!-- HUD stuff -->

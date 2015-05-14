@@ -27,7 +27,7 @@
 	</defaultRuleIDs>
 	
 	<!-- Shadows -->
-	<!--<shaderSpecificRuleIDs shaderHash="?" doNotDraw="true"/>-->
+	<!--<shaderSpecificRuleIDs shaderHash="?" ObjectType="Shadows"/>-->
 
 	<!-- HUD stuff -->
 	<!-- <shaderSpecificRuleIDs shaderHash="714304875" squishViewport="true"><ruleID id="3"/></shaderSpecificRuleIDs> -->

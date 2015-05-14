@@ -42,15 +42,6 @@ ShaderModificationRepository::ShaderModificationRepository(std::shared_ptr<ViewA
 	m_spAdjustmentMatrices(adjustmentMatrices)
 {
 	D3DXMatrixIdentity(&m_identity);
-
-	// For testing load source settings manually
-	/*m_defaultModificationRuleIDs.push_back(1);
-	m_defaultModificationRuleIDs.push_back(2);
-	m_defaultModificationRuleIDs.push_back(3);
-
-	m_AllModificationRules.insert(std::make_pair<UINT, ConstantModificationRule>(1, ConstantModificationRule("", 4, D3DXPC_MATRIX_COLUMNS, ShaderConstantModificationFactory::MatSimpleTranslateColMajorIgnoreOrtho, 1)));
-	m_AllModificationRules.insert(std::make_pair<UINT, ConstantModificationRule>(2, ConstantModificationRule("", 8, D3DXPC_MATRIX_COLUMNS, ShaderConstantModificationFactory::MatSimpleTranslateColMajorIgnoreOrtho, 2))); 
-	m_AllModificationRules.insert(std::make_pair<UINT, ConstantModificationRule>(3, ConstantModificationRule("", 51, D3DXPC_MATRIX_COLUMNS, ShaderConstantModificationFactory::MatSimpleTranslateColMajorIgnoreOrtho, 3)));*/
 }
 
 /**
@@ -147,9 +138,24 @@ bool ShaderModificationRepository::LoadRules(std::string rulesPath)
 			if (squishViewport)
 				m_shaderViewportSquashIDs.push_back(hash);
 
-			bool doNotDraw = shader.attribute("doNotDraw").as_bool(false);
-			if (doNotDraw)
-				m_doNotDrawShaderIDs.push_back(hash);
+			std::string objectType = shader.attribute("ObjectType").as_string();
+
+			ShaderObjectType type = ShaderObjectTypeUnknown;
+			if (objectType == "DoNotDraw")
+				type = ShaderObjectTypeDoNotDraw;
+			else if (objectType == "Player")
+				type = ShaderObjectTypePlayer;
+			else if (objectType == "Sky")
+				type = ShaderObjectTypeSky;
+			else if (objectType == "Shadows")
+				type = ShaderObjectTypeShadows;
+			else if (objectType == "Fog")
+				type = ShaderObjectTypeFog;
+			else if (objectType == "Clothes")
+				type = ShaderObjectTypeClothes;
+
+			//Save type to the registry
+			m_shaderObjectTypes[hash] = type;
 
 			std::string replaceShaderCode = shader.attribute("replaceShaderCode").as_string();
 			if (replaceShaderCode.length())
@@ -162,8 +168,11 @@ bool ShaderModificationRepository::LoadRules(std::string rulesPath)
 				shaderRules.push_back(ruleId.attribute("id").as_uint());
 			}
 
-			if (!(m_shaderSpecificModificationRuleIDs.insert(std::pair<uint32_t, std::vector<UINT>>(hash, shaderRules)).second)) {
-				OutputDebugString("Two sets of rules found with the same 'shaderHash'. Only the first will be applied.\n"); 
+			if (shaderRules.size())
+			{
+				if (!(m_shaderSpecificModificationRuleIDs.insert(std::pair<uint32_t, std::vector<UINT>>(hash, shaderRules)).second)) {
+					OutputDebugString("Two sets of rules found with the same 'shaderHash'. Only the first will be applied.\n"); 
+				}
 			}
 
 		}
@@ -256,9 +265,23 @@ bool ShaderModificationRepository::SaveRules(std::string rulesPath)
 				shader.append_attribute("squishViewport") = true;
 			}
 
-			if(std::find(m_doNotDrawShaderIDs.begin(), m_doNotDrawShaderIDs.end(), hash)!=m_doNotDrawShaderIDs.end()){
-				// set id attribute
-				shader.append_attribute("doNotDraw") = true;
+			std::string type;
+			if (m_shaderObjectTypes.find(hash) != m_shaderObjectTypes.end())
+			{
+				if (m_shaderObjectTypes[hash] == ShaderObjectTypeDoNotDraw)
+					type = "DoNotDraw";
+				else if (m_shaderObjectTypes[hash] == ShaderObjectTypePlayer)
+					type = "Player";
+				else if (m_shaderObjectTypes[hash] == ShaderObjectTypeSky)
+					type = "Sky";
+				else if (m_shaderObjectTypes[hash] == ShaderObjectTypeShadows)
+					type = "Shadows";
+				else if (m_shaderObjectTypes[hash] == ShaderObjectTypeFog)
+					type = "Fog";
+				else if (m_shaderObjectTypes[hash] == ShaderObjectTypeClothes)
+					type = "Clothes";
+
+				shader.append_attribute("ObjectType") = type.c_str();
 			}
 
 			if(m_replaceShaderCode.find(hash) != m_replaceShaderCode.end()){
@@ -413,8 +436,9 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 			++itRules;
 		}
 	}
-	else {
-
+	
+	if (rulesToApply.size() == 0)
+	{
 		// No specific rules, use general rules
 		auto itRules = m_defaultModificationRuleIDs.begin();
 		while (itRules != m_defaultModificationRuleIDs.end()) {
@@ -637,7 +661,9 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 			++itRules;
 		}
 	}
-	else {
+	
+	if (rulesToApply.size() == 0)
+	{
 
 		// No specific rules, use general rules
 		auto itRules = m_defaultModificationRuleIDs.begin();
@@ -870,7 +896,7 @@ bool ShaderModificationRepository::SquishViewportForShader(IDirect3DVertexShader
 /**
 * Returns true if shader should never be drawn.
 ***/
-bool ShaderModificationRepository::DoNotDrawShader(IDirect3DVertexShader9* pActualVertexShader)
+ShaderObjectType ShaderModificationRepository::GetShaderObjectType(IDirect3DVertexShader9* pActualVertexShader)
 {
 	// Hash the shader
 	BYTE *pData = NULL;
@@ -885,15 +911,11 @@ bool ShaderModificationRepository::DoNotDrawShader(IDirect3DVertexShader9* pActu
 
 	delete[] pData;
 
-	// find hash
-	auto i = std::find(m_doNotDrawShaderIDs.begin(), m_doNotDrawShaderIDs.end(), hash);
+	auto i = m_shaderObjectTypes.find(hash);
+	if (i != m_shaderObjectTypes.end())
+		return i->second;
 
-	// found
-	if (i != m_doNotDrawShaderIDs.end()) {
-		return true;
-	} 
-
-	return false;
+	return ShaderObjectTypeUnknown;
 }
 
 /**
@@ -929,7 +951,7 @@ bool ShaderModificationRepository::ReplaceShaderCode(IDirect3DVertexShader9* pAc
 /**
 * Returns true if shader should never be drawn.
 ***/
-bool ShaderModificationRepository::DoNotDrawShader(IDirect3DPixelShader9* pActualPixelShader)
+ShaderObjectType ShaderModificationRepository::GetShaderObjectType(IDirect3DPixelShader9* pActualPixelShader)
 {
 	// Hash the shader
 	BYTE *pData = NULL;
@@ -944,15 +966,11 @@ bool ShaderModificationRepository::DoNotDrawShader(IDirect3DPixelShader9* pActua
 
 	delete[] pData;
 
-	// find hash
-	auto i = std::find(m_doNotDrawShaderIDs.begin(), m_doNotDrawShaderIDs.end(), hash);
+	auto i = m_shaderObjectTypes.find(hash);
+	if (i != m_shaderObjectTypes.end())
+		return i->second;
 
-	// found
-	if (i != m_doNotDrawShaderIDs.end()) {
-		return true;
-	} 
-
-	return false;
+	return ShaderObjectTypeUnknown;
 }
 
 /**

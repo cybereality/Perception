@@ -18,8 +18,8 @@
     <ruleID id="5" />
     <ruleID id="4" />
   </shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="719017533" doNotDraw="true"></shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="3546995421" doNotDraw="true"></shaderSpecificRuleIDs>  
+  <shaderSpecificRuleIDs shaderHash="719017533" ObjectType="Shadows"></shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="3546995421" ObjectType="Shadows"></shaderSpecificRuleIDs>  
   <shaderSpecificRuleIDs shaderHash="3783252820">
   	<ruleID id="7" />
  	</shaderSpecificRuleIDs>  

@@ -33,6 +33,6 @@
   <shaderSpecificRuleIDs shaderHash="957050611">
     <ruleID id="12" />
   </shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="1900226361" doNotDraw="true"></shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="1900226361" ObjectType="Shadows"></shaderSpecificRuleIDs>
   
 </shaderConfig>

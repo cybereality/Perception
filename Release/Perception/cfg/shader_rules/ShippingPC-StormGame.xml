@@ -22,6 +22,6 @@
 	</defaultRuleIDs>
 
 	<!-- Removes most dodgy shadows -->
-	<shaderSpecificRuleIDs shaderHash="629615154" doNotDraw="true"/>
+	<shaderSpecificRuleIDs shaderHash="629615154" ObjectType="Shadows"/>
 	
 </shaderConfig>

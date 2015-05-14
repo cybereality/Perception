@@ -43,12 +43,13 @@ ViewAdjustment::ViewAdjustment(HMDisplayInfo *displayInfo, float metersToWorldUn
 	m_roll(0.0f),
 	x_scaler(2.0f),
 	y_scaler(2.5f),
-	z_scaler(0.5f)
+	z_scaler(0.5f),
+	m_usePFOV(true)
 {
 	// TODO : max, min convergence; arbitrary now
-	convergence = 0.0f;
+	convergence = 100.0f;
 	minConvergence = -10.0f;
-	maxConvergence = 10.0f;
+	maxConvergence = 100.0f;
 
 	ipd = IPD_DEFAULT;
 
@@ -62,10 +63,9 @@ ViewAdjustment::ViewAdjustment(HMDisplayInfo *displayInfo, float metersToWorldUn
 	hudDistance = 0.0f;
 	hud3DDepth = 0.0f;
 
-	D3DXMatrixIdentity(&matProjection);
+	D3DXMatrixIdentity(&matBasicProjection);
 	D3DXMatrixIdentity(&matPosition);
 	D3DXMatrixIdentity(&matProjectionInv);
-	D3DXMatrixIdentity(&projectPFOV);
 	D3DXMatrixIdentity(&projectPFOV);
 	D3DXMatrixIdentity(&transformLeft);
 	D3DXMatrixIdentity(&transformRight);
@@ -127,6 +127,12 @@ int ViewAdjustment::GetStereoType()
 	return stereoType;
 }
 
+void ViewAdjustment::SetUsePFOV(bool use)
+{
+	m_usePFOV = use;
+}
+
+
 /**
 * Updates left and right projection matrices.
 * Now, the convergence point is specified in real, physical meters, since the IPD is also specified
@@ -142,17 +148,23 @@ void ViewAdjustment::UpdateProjectionMatrices(float aspectRatio, float fov_horiz
 	a = aspectRatio;
 
 	//Calculate inverse projection
-	D3DXMatrixPerspectiveOffCenterLH(&matProjection, l, r, b, t, n, f);
-	D3DXMatrixInverse(&matProjectionInv, 0, &matProjection);
+	D3DXMatrixPerspectiveOffCenterLH(&matBasicProjection, l, r, b, t, n, f);
+	D3DXMatrixInverse(&matProjectionInv, 0, &matBasicProjection);
 
 	// if not HMD, set values to fullscreen defaults
-	if (stereoType <100)   //stereo type > 100 reserved specifically for HMDs
+	if (stereoType <100 || !m_usePFOV)   //stereo type > 100 reserved specifically for HMDs
 	{
 		// assumption here :
 		// end user is placed 1 meter away from screen
 		// end user screen is 1 meter in horizontal size
 		float nearClippingPlaneDistance = 1;
 		float physicalScreenSizeInMeters = 1;
+
+		if (stereoType < 100)
+		{
+			nearClippingPlaneDistance = hmdInfo->GetEyeToScreenDistance(); 
+			physicalScreenSizeInMeters = hmdInfo->GetPhysicalScreenSize().first / 2; 
+		}
 
 		// convergence frustum adjustment, based on NVidia explanations
 		//
@@ -177,22 +189,16 @@ void ViewAdjustment::UpdateProjectionMatrices(float aspectRatio, float fov_horiz
 		float frustumAsymmetryRight = frustumAsymmetryRightInMeters * multiplier;
 
 		// now, create the re-projection matrices for both eyes using this frustum asymmetry
-		D3DXMatrixPerspectiveOffCenterLH(&projectPFOV, l+frustumAsymmetryLeft, r+frustumAsymmetryLeft, b, t, n, f);
-		D3DXMatrixPerspectiveOffCenterLH(&projectPFOV, l+frustumAsymmetryRight, r+frustumAsymmetryRight, b, t, n, f);
+		D3DXMatrixPerspectiveOffCenterLH(&projectLeftConverge, l+frustumAsymmetryLeft, r+frustumAsymmetryLeft, b, t, n, f);
+		D3DXMatrixPerspectiveOffCenterLH(&projectRightConverge, l+frustumAsymmetryRight, r+frustumAsymmetryRight, b, t, n, f);
 	}
 	else
 	{
 		//Calculate vertical fov from provided horizontal
 		float fov_vert = 2.0f * atan( tan(D3DXToRadian(fov_horiz) / 2.0f) * aspectRatio);
 
-		//Now apply changed fov perspective to re-projection
-		D3DXMatrixPerspectiveFovLH(&matProjection, fov_vert, aspectRatio, n, f);
-
-		//ANd left and right (identical in this case)
+		//And left and right (identical in this case)
 		D3DXMatrixPerspectiveFovLH(&projectPFOV, fov_vert, aspectRatio, n, f);
-
-		float fov_vert_skybox = 2.0f * atan( tan(D3DXToRadian(fov_horiz + 12.0f) / 2.0f) * aspectRatio);
-		D3DXMatrixPerspectiveFovLH(&projectSkyBox, fov_vert_skybox, aspectRatio, n, f);
 	}
 }
 
@@ -279,28 +285,56 @@ void ViewAdjustment::ComputeViewTransforms()
 	}
 	
 	// projection transform, no roll
-	matViewProjTransformLeftNoRoll = matProjectionInv * transformLeft * projectPFOV;
-	matViewProjTransformRightNoRoll = matProjectionInv * transformRight * projectPFOV;
+	if (m_usePFOV)
+	{
+		matViewProjTransformLeftNoRoll = matProjectionInv * transformLeft * projectPFOV;
+		matViewProjTransformRightNoRoll = matProjectionInv * transformRight * projectPFOV;
 	
-	// head roll - only if using translation implementation
-	if (rollImpl == 1) {
-		D3DXMatrixMultiply(&transformLeft, &rollMatrix, &transformLeft);
-		D3DXMatrixMultiply(&transformRight, &rollMatrix, &transformRight);
+		// head roll - only if using translation implementation
+		if (rollImpl == 1) {
+			D3DXMatrixMultiply(&transformLeft, &rollMatrix, &transformLeft);
+			D3DXMatrixMultiply(&transformRight, &rollMatrix, &transformRight);
 
-		// projection 
-		matViewProjLeft = matProjectionInv * rollMatrix * projectSkyBox;
-		matViewProjRight = matProjectionInv * rollMatrix * projectSkyBox;
+			// projection 
+			matViewProjLeft = matProjectionInv * rollMatrix * projectPFOV;
+			matViewProjRight = matProjectionInv * rollMatrix * projectPFOV;
+		}
+		else
+		{
+			// projection 
+			matViewProjLeft = matProjectionInv * projectPFOV;
+			matViewProjRight = matProjectionInv * projectPFOV;
+		}
+
+		// projection transform
+		matViewProjTransformLeft = matProjectionInv * transformLeft * projectPFOV;
+		matViewProjTransformRight = matProjectionInv * transformRight * projectPFOV;
 	}
 	else
 	{
-		// projection 
-		matViewProjLeft = matProjectionInv * projectSkyBox;
-		matViewProjRight = matProjectionInv * projectSkyBox;
+		matViewProjTransformLeftNoRoll = matProjectionInv * transformLeft * projectLeftConverge;
+		matViewProjTransformRightNoRoll = matProjectionInv * transformRight * projectRightConverge;
+		// head roll - only if using translation implementation
+		if (rollImpl == 1) {
+			D3DXMatrixMultiply(&transformLeft, &rollMatrix, &transformLeft);
+			D3DXMatrixMultiply(&transformRight, &rollMatrix, &transformRight);
+
+			// projection 
+			matViewProjLeft = matProjectionInv * rollMatrix * projectLeftConverge;
+			matViewProjRight = matProjectionInv * rollMatrix * projectRightConverge;
+		}
+		else
+		{
+			// projection 
+			matViewProjLeft = matProjectionInv * projectLeftConverge;
+			matViewProjRight = matProjectionInv * projectRightConverge;
+		}
+
+		// projection transform
+		matViewProjTransformLeft = matProjectionInv * transformLeft * projectLeftConverge;
+		matViewProjTransformRight = matProjectionInv * transformRight * projectRightConverge;
 	}
 
-	// projection transform
-	matViewProjTransformLeft = matProjectionInv * transformLeft * projectPFOV;
-	matViewProjTransformRight = matProjectionInv * transformRight * projectPFOV;
 
 	// now, create HUD/GUI helper matrices
 
@@ -328,11 +362,11 @@ void ViewAdjustment::ComputeViewTransforms()
 	D3DXMatrixTranslation(&matLeftGui3DDepth, gui3DDepth+SeparationIPDAdjustment(), 0, 0);
 	D3DXMatrixTranslation(&matRightGui3DDepth, -(gui3DDepth+SeparationIPDAdjustment()), 0, 0);
 
-	// gui/hud matrices
-	matHudLeft = matProjectionInv * matLeftHud3DDepth * transformLeft * matHudDistance *  projectPFOV;
-	matHudRight = matProjectionInv * matRightHud3DDepth * transformRight * matHudDistance * projectPFOV;
-	matGuiLeft =  matProjectionInv * matLeftGui3DDepth * matSquash * projectPFOV;
-	matGuiRight = matProjectionInv * matRightGui3DDepth * matSquash * projectPFOV;
+	// gui/hud matrices - JUst use the default projection not the PFOV
+	matHudLeft = matProjectionInv * matLeftHud3DDepth * transformLeft * matHudDistance *  matBasicProjection;
+	matHudRight = matProjectionInv * matRightHud3DDepth * transformRight * matHudDistance * matBasicProjection;
+	matGuiLeft =  matProjectionInv * matLeftGui3DDepth * matSquash * matBasicProjection;
+	matGuiRight = matProjectionInv * matRightGui3DDepth * matSquash * matBasicProjection;
 }
 
 D3DXMATRIX  ViewAdjustment::PositionMatrix()
@@ -409,7 +443,7 @@ D3DXMATRIX ViewAdjustment::RightViewTransform()
 ***/
 D3DXMATRIX ViewAdjustment::Projection()
 {
-	return matProjection;
+	return matBasicProjection;
 }
 
 /**
