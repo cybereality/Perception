@@ -175,7 +175,8 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	m_saveConfigTimer(MAXDWORD),
 	m_comfortModeYaw(0.0f),
 	m_disableAllHotkeys(false),
-	menuState(this)
+	menuState(this),
+	m_projectionHFOV(110.0f)
 {
 	m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::BEFORE_COMPOSITING;
 	m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::AFTER_COMPOSITING;
@@ -1191,6 +1192,8 @@ HRESULT WINAPI D3DProxyDevice::Clear(DWORD Count,CONST D3DRECT* pRects,DWORD Fla
 	return result;
 }
 
+ 
+
 /**
 * Catches transform for stored proxy state block accordingly or updates proxy device.
 * @see D3D9ProxyStateBlock
@@ -1297,7 +1300,6 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 				D3DXMatrixIdentity(&tempRight);
 			}
 			else {
-
 
 				tempLeft = sourceMatrix;
 				tempRight = sourceMatrix;
@@ -1860,7 +1862,11 @@ HRESULT WINAPI D3DProxyDevice::SetVertexShader(IDirect3DVertexShader9* pShader)
 	if (pWrappedVShaderData)
 	{
 		//Flag whether we should even draw this shader
-		m_bDoNotDrawVShader = pWrappedVShaderData->DoNotDraw();
+		m_bDoNotDrawVShader =  pWrappedVShaderData->GetShaderObjectType() == ShaderObjectTypeDoNotDraw ||
+			//Need to add a toggle to allow use to turn shadows/fog on and off
+			pWrappedVShaderData->GetShaderObjectType() == ShaderObjectTypeShadows ||
+			pWrappedVShaderData->GetShaderObjectType() == ShaderObjectTypeFog
+			;
 
 		if (pWrappedVShaderData->SquishViewport())
 		{
@@ -2136,7 +2142,10 @@ HRESULT WINAPI D3DProxyDevice::SetPixelShader(IDirect3DPixelShader9* pShader)
 	if (pWrappedPShaderData)
 	{
 		//Flag whether we should even draw this shader
-		m_bDoNotDrawPShader = pWrappedPShaderData->DoNotDraw();
+		m_bDoNotDrawPShader = pWrappedPShaderData->GetShaderObjectType() == ShaderObjectTypeDoNotDraw ||
+			//Need to add a toggle to allow use to turn shadows/fog on and off
+			pWrappedPShaderData->GetShaderObjectType() == ShaderObjectTypeShadows ||
+			pWrappedPShaderData->GetShaderObjectType() == ShaderObjectTypeFog;
 	}
 	else
 		m_bDoNotDrawPShader = false;
@@ -3143,7 +3152,7 @@ void D3DProxyDevice::OnCreateOrRestore()
 
 	stereoView->Init(getActual());
 
-	m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
+	m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, m_projectionHFOV);
 	m_spShaderViewAdjustment->ComputeViewTransforms();
 
 	// set VP main values

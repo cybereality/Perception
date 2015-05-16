@@ -57,7 +57,7 @@ public:
 	/*** ViewAdjustment public methods ***/
 	void          Load(ProxyConfig& cfg);
 	void          Save(ProxyConfig& cfg);
-	void          UpdateProjectionMatrices(float aspectRatio);
+	void          UpdateProjectionMatrices(float aspectRatio, float fov_horiz);
 	void          UpdateRoll(float roll);
 	void		  UpdatePosition(float yaw, float pitch, float roll, float xPosition = 0.0f, float yPosition = 0.0f, float zPosition = 0.0f);
 	void          ComputeViewTransforms(); 
@@ -102,10 +102,16 @@ public:
 	float         ConvergenceInWorldUnits();
 	float         SeparationInWorldUnits();
 	float         SeparationIPDAdjustment();
+	//int           RollImpl();
+	//void          SetRollImpl(int rollImpl);
+	//int			  GetStereoType();
+	void		  SetUsePFOV(bool);
 	HMDisplayInfo* HMDInfo();	
 
 private:
 	ProxyConfig *config;
+	
+	bool m_usePFOV;
 	
 	D3DXVECTOR3 positionTransformVec;
 
@@ -114,21 +120,25 @@ private:
 	**/
 	D3DXMATRIX matPosition;
 	/**
-	* Projection matrix.
+	* Projection matrix - basic with no PFOV
 	***/
-	D3DXMATRIX matProjection;
+	D3DXMATRIX matBasicProjection;
 	/**
 	* Projection inverse matrix.
 	***/
 	D3DXMATRIX matProjectionInv;
 	/**
-	* The shifted left projection matrix.
+	* The projection with adjusted FOV.
 	***/
-	D3DXMATRIX projectLeft;
+	D3DXMATRIX projectPFOV;
 	/**
-	* The shifted right projection matrix.
+	* The projection with left eye convergence.
 	***/
-	D3DXMATRIX projectRight;
+	D3DXMATRIX projectLeftConverge;
+	/**
+	* The projection with right eye convergence.
+	***/
+	D3DXMATRIX projectRightConverge;
 	/**
 	* The head roll matrix.
 	***/

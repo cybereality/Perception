@@ -325,6 +325,7 @@
     <ClInclude Include="Resource.h" />
     <ClInclude Include="ShaderMatrixModification.h" />
     <ClInclude Include="MatrixIgnoreOrtho.h" />
+    <ClInclude Include="ShaderObjectType.h" />
     <ClInclude Include="Vector4DeadIslandScaled.h" />
     <ClInclude Include="Vector4EyeShiftUnity.h" />
     <ClInclude Include="ViewAdjustment.h" />

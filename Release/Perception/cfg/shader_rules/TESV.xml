@@ -39,74 +39,74 @@
     <ruleID id="7"></ruleID>WATER REFRACTION FIX !</shaderSpecificRuleIDs>
   <shaderSpecificRuleIDs shaderHash="908413788">
     <ruleID id="7" />WATER REFRACTION FIX !</shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="1851963494">
+  <shaderSpecificRuleIDs shaderHash="1851963494" ObjectType="Sky">
     <ruleID id="8" />HUD FIX !</shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="3047518823">
+  <shaderSpecificRuleIDs shaderHash="3047518823" ObjectType="Sky">
     <ruleID id="8" />HUD FIX !</shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="2431438006">
+  <shaderSpecificRuleIDs shaderHash="2431438006" ObjectType="Sky">
     <ruleID id="8" />HUD FIX !</shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="3582244086">
+  <shaderSpecificRuleIDs shaderHash="3582244086" ObjectType="Sky">
     <ruleID id="8" />HUD FIX !</shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="3994929422">
+  <shaderSpecificRuleIDs shaderHash="3994929422" ObjectType="Sky">
     <ruleID id="8" />HUD FIX !</shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="4109403606">
+  <shaderSpecificRuleIDs shaderHash="4109403606" ObjectType="Sky">
     <ruleID id="8" />HUD FIX !</shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="9123333">
+  <shaderSpecificRuleIDs shaderHash="9123333" ObjectType="Sky">
     <ruleID id="9" />CONVERGENCE OFFSET FIX !</shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="752610056">
+  <shaderSpecificRuleIDs shaderHash="752610056" ObjectType="Shadows">
     <ruleID id="10" />SHADOW SHADER ! SIMPLE MODIFICATION !</shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="1023935469">
+  <shaderSpecificRuleIDs shaderHash="1023935469" ObjectType="Shadows">
     <ruleID id="10" />SHADOW SHADER ! SIMPLE MODIFICATION !</shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="2937704700">
+  <shaderSpecificRuleIDs shaderHash="2937704700" ObjectType="Shadows">
     <ruleID id="10" />SHADOW SHADER ! SIMPLE MODIFICATION !</shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="3328280590">
+  <shaderSpecificRuleIDs shaderHash="3328280590" ObjectType="Shadows">
     <ruleID id="10" />SHADOW SHADER ! SIMPLE MODIFICATION !</shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="495206152">
+  <shaderSpecificRuleIDs shaderHash="495206152" ObjectType="Shadows">
     <ruleID id="11" />SHADOW SHADER ! SIMPLE MODIFICATION !</shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="253144833">
+  <shaderSpecificRuleIDs shaderHash="253144833" ObjectType="Shadows">
     <ruleID id="12" />SHADOW SHADER ! NO MODIFICATION !</shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="311972612">
+  <shaderSpecificRuleIDs shaderHash="311972612" ObjectType="Shadows">
     <ruleID id="12" />SHADOW SHADER ! NO MODIFICATION !</shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="2818948964">
+  <shaderSpecificRuleIDs shaderHash="2818948964" ObjectType="Shadows">
     <ruleID id="12" />SHADOW SHADER ! NO MODIFICATION !</shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="1475371883">
+  <shaderSpecificRuleIDs shaderHash="1475371883" ObjectType="Shadows">
     <ruleID id="12" />SHADOW SHADER ! NO MODIFICATION !</shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="43392215">
+  <shaderSpecificRuleIDs shaderHash="43392215" ObjectType="Shadows">
     <ruleID id="13" />SHADOW SHADER ! NO MODIFICATION !</shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="577023959">
+  <shaderSpecificRuleIDs shaderHash="577023959" ObjectType="Shadows">
     <ruleID id="13" />SHADOW SHADER ! NO MODIFICATION !</shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="996284032">
+  <shaderSpecificRuleIDs shaderHash="996284032" ObjectType="Shadows">
     <ruleID id="12" />SHADOW SHADER ! NO MODIFICATION !</shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="3228632850">
+  <shaderSpecificRuleIDs shaderHash="3228632850" ObjectType="Shadows">
     <ruleID id="13" />SHADOW SHADER ! NO MODIFICATION !</shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="1818018526">
+  <shaderSpecificRuleIDs shaderHash="1818018526" ObjectType="Shadows">
     <ruleID id="13" />SHADOW SHADER ! NO MODIFICATION !</shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="174026321">
+  <shaderSpecificRuleIDs shaderHash="174026321" ObjectType="Shadows">
     <ruleID id="13" />SHADOW SHADER ! NO MODIFICATION !</shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="2291231027">
+  <shaderSpecificRuleIDs shaderHash="2291231027" ObjectType="Shadows">
     <ruleID id="12" />SHADOW SHADER ! NO MODIFICATION !</shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="3325411395">
+  <shaderSpecificRuleIDs shaderHash="3325411395" ObjectType="Shadows">
     <ruleID id="12" />SHADOW SHADER ! NO MODIFICATION !</shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="3230145213">
+  <shaderSpecificRuleIDs shaderHash="3230145213" ObjectType="Shadows">
     <ruleID id="13" />SHADOW SHADER ! NO MODIFICATION !</shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="1068286076">
+  <shaderSpecificRuleIDs shaderHash="1068286076" ObjectType="Shadows">
     <ruleID id="12" />SHADOW SHADER ! NO MODIFICATION !</shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="2487947601">
+  <shaderSpecificRuleIDs shaderHash="2487947601" ObjectType="Shadows">
     <ruleID id="13" />SHADOW SHADER ! NO MODIFICATION !</shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="717279834">
+  <shaderSpecificRuleIDs shaderHash="717279834" ObjectType="Shadows">
     <ruleID id="10" />SHADOW SHADER ! SIMPLE MODIFICATION !</shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="4181114023">
+  <shaderSpecificRuleIDs shaderHash="4181114023" ObjectType="Shadows">
     <ruleID id="10" />SHADOW SHADER ! SIMPLE MODIFICATION !</shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="2956448341">
+  <shaderSpecificRuleIDs shaderHash="2956448341" ObjectType="Shadows">
     <ruleID id="10" />SHADOW SHADER ! SIMPLE MODIFICATION !</shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="4086638634">
+  <shaderSpecificRuleIDs shaderHash="4086638634" ObjectType="Shadows">
     <ruleID id="11" />SHADOW SHADER ! SIMPLE MODIFICATION !</shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="3958603502">
+  <shaderSpecificRuleIDs shaderHash="3958603502" ObjectType="Shadows">
     <ruleID id="11" />SHADOW SHADER ! SIMPLE MODIFICATION !</shaderSpecificRuleIDs>
   <shaderSpecificRuleIDs shaderHash="2386739519">
     <ruleID id="11" />SHADOW SHADER ! SIMPLE MODIFICATION ! ALSO DRAWS HANDS !!!</shaderSpecificRuleIDs>
   <shaderSpecificRuleIDs shaderHash="3685386228">
     <ruleID id="11" />HANDS/ARMS SHADER ! SIMPLE MODIFICATION !</shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="186708600">
+  <shaderSpecificRuleIDs shaderHash="186708600" ObjectType="Shadows">
     <ruleID id="10" />SHADOW SHADER ! SIMPLE MODIFICATION !</shaderSpecificRuleIDs>
 </shaderConfig>

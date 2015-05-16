@@ -2,9 +2,9 @@
 Vireio Perception: Open-Source Stereoscopic 3D Driver
 Copyright (C) 2012 Andres Hernandez
 
-File <D3D9ProxyPixelShader.cpp> and
-Class <D3D9ProxyPixelShader> :
-Copyright (C) 2013 Denis Reischl
+File <D3D9ProxyVertexShader.h> and
+Class <D3D9ProxyVertexShader> :
+Copyright (C) 2013 Chris Drain
 
 Vireio Perception Version History:
 v1.0.0 2012 by Andres Hernandez
@@ -27,42 +27,19 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#include "D3D9ProxyPixelShader.h"
+#ifndef SHADEROBJECTTYPE_H_INCLUDED
+#define SHADEROBJECTTYPE_H_INCLUDED
 
-/**
-* Constructor.
-* @param pModLoader Can be NULL (no modifications in this game profile).
-***/
-D3D9ProxyPixelShader::D3D9ProxyPixelShader(IDirect3DPixelShader9* pActualPixelShader, D3DProxyDevice *pOwningDevice, ShaderModificationRepository* pModLoader) :
-	BaseDirect3DPixelShader9(pActualPixelShader, pOwningDevice),
-	m_pActualDevice(pOwningDevice->getActual()),
-	m_shaderObjectType(ShaderObjectTypeUnknown)
+enum ShaderObjectType
 {
-	if (pModLoader)
-	{
-		m_modifiedConstants = pModLoader->GetModifiedConstantsF(pActualPixelShader);
-		m_shaderObjectType = pModLoader->GetShaderObjectType(pActualPixelShader);
-	}
-}
+	ShaderObjectTypeUnknown, //The default, it is undefined and doesn't matter
+	ShaderObjectTypeDoNotDraw, //Specifically always avoid drawing this shader
+	ShaderObjectTypeReticule, //Allow user to prevent drawing of aiming reticule for games that support it
+	ShaderObjectTypePlayer,  //This is used for players arms body etc, so we can use a different projection FOV
+	ShaderObjectTypeSky, // For any shader that is part of the skybox, including clouds, sun, moon etc
+	ShaderObjectTypeShadows, // Shadows, so user can elect to turn shadows on or off themselves (they might have a mod that makes shadows look ok)
+	ShaderObjectTypeFog, // Fog, so issues with fog or other particles can be turned off
+	ShaderObjectTypeClothes // Clothes, so user can elect to turn clothes off (naughty user!)
+};
 
-/**
-* Empty destructor.
-***/
-D3D9ProxyPixelShader::~D3D9ProxyPixelShader()
-{}
-
-/**
-* Returns modified constants pointer.
-***/
-std::map<UINT, StereoShaderConstant<float>>* D3D9ProxyPixelShader::ModifiedConstants()
-{
-	return &m_modifiedConstants;
-}
-
-/**
-* Returns ShaderObjectType
-***/
-ShaderObjectType D3D9ProxyPixelShader::GetShaderObjectType()
-{
-	return m_shaderObjectType;
-}
+#endif

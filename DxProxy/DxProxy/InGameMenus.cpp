@@ -477,7 +477,7 @@ void D3DProxyDevice::VPMENU_WorldScale()
 	{
 		float separationChange = 0.005f * VPMENU_Input_GetAdjustment();;
 		m_spShaderViewAdjustment->ChangeWorldScale(separationChange);
-		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
+		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, m_projectionHFOV);
 		HotkeyCooldown(COOLDOWN_ONE_FRAME);
 	}
 	
@@ -625,7 +625,7 @@ void D3DProxyDevice::VPMENU_Convergence()
 		"be enabled for 3D monitors, and disabled for head-mounted\n"
 		"displays.");
 	menu->AddToggle("Convergence : %s", "ON", "OFF", &config.convergenceEnabled, defaultConfig.convergenceEnabled, [=]() {
-		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
+		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, m_projectionHFOV);
 	});
 	
 	if(config.convergenceEnabled)
@@ -633,7 +633,7 @@ void D3DProxyDevice::VPMENU_Convergence()
 		menu->AddAdjustment("Distance Adjustment : %g", &config.convergence, defaultConfig.convergence, 0.05f, [=]() {
 			vireio::clamp(&config.convergence, -10.0f, 10.0f);
 			m_spShaderViewAdjustment->SetConvergence(config.convergence);
-			m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
+			m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, m_projectionHFOV);
 		});
 		
 		menu->AddNavigation("Adjustment Test Pattern", [=]() { VPMENU_ConvergenceCalibrator(); });
@@ -655,7 +655,7 @@ void D3DProxyDevice::VPMENU_ConvergenceCalibrator()
 	{
 		float convergenceChange = 0.05f * VPMENU_Input_GetAdjustment();
 		m_spShaderViewAdjustment->ChangeConvergence(convergenceChange);
-		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
+		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, m_projectionHFOV);
 		HotkeyCooldown(COOLDOWN_ONE_FRAME);
 	}
 	

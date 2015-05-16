@@ -34,9 +34,9 @@
   <!--Shadows Under Car? What Mod (test at the moment)-->
   <shaderSpecificRuleIDs shaderHash="3183579799"><ruleID id="3" /></shaderSpecificRuleIDs>
   <!-- Fog outside the mansion has some awful occlusion culling going on, better not to draw it altogether, doesn't detract too much terrible ambience -->
-  <shaderSpecificRuleIDs shaderHash="493863985" doNotDraw="true"/>  
+  <shaderSpecificRuleIDs shaderHash="493863985" ObjectType="Fog"/>  
   <!--Camera (Offset Shader)-->
-  <shaderSpecificRuleIDs shaderHash="1810071918" doNotDraw="true" />
+  <shaderSpecificRuleIDs shaderHash="1810071918" ObjectType="Shadows" />
   <!--Fog?
-  <shaderSpecificRuleIDs shaderHash="4068380453" doNotDraw="true" />-->
+  <shaderSpecificRuleIDs shaderHash="4068380453" ObjectType="Fog" />-->
 </shaderConfig>

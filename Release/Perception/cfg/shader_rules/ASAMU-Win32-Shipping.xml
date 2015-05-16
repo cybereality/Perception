@@ -17,5 +17,5 @@
   <shaderSpecificRuleIDs shaderHash="1677210664"><ruleID id="2" /></shaderSpecificRuleIDs>
 
   <!-- Don't draw dodgy shadows -->
-  <shaderSpecificRuleIDs shaderHash="3537484276" doNotDraw="true"></shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="3537484276" ObjectType="Shadows"></shaderSpecificRuleIDs>
 </shaderConfig>

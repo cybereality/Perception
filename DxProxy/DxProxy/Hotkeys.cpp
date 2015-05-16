@@ -940,26 +940,22 @@ void D3DProxyDevice::HandleControls()
 				float separationChange = 0.05f * wheelSign;
 				m_spShaderViewAdjustment->ChangeWorldScale(separationChange);
 
-				m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
+				m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, m_projectionHFOV);
 				ShowAdjusterToast(retprintf("Stereo Separation (World Scale): %1.3f", config.worldScaleFactor), 500);
 				DeferedSaveConfig();
 			}
-			//CTRL + SPACE + Mouse Wheel - adjust stereo convergence dynamically
+			//CTRL + SPACE + Mouse Wheel - adjust projection fov dynamically
 			else if(hotkeyWheelStereoConvergence->IsHeld(controls))
 			{
-				float convergenceChange = 0.1f * wheelSign;
-				m_spShaderViewAdjustment->ChangeConvergence(convergenceChange);
+				m_projectionHFOV += 0.5*wheelSign;
 
-				m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height);
-				ShowAdjusterToast(retprintf("Stereo Convergence: %1.3f", m_spShaderViewAdjustment->Convergence()), 500);
+				m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, m_projectionHFOV);
+				
+				ShowAdjusterToast(retprintf("Projection FOV: %1.3f", m_projectionHFOV), 500);
 				DeferedSaveConfig();
 			}
 			else if(hotkeyWheelZoomScale->IsHeld(controls))
 			{
-				/*
-				this->stereoView->DistortionScale += 0.05f * wheelSign;
-				clamp(&this->stereoView->DistortionScale, m_spShaderViewAdjustment->HMDInfo()->GetMinDistortionScale(), m_maxDistortionScale);
-				*/
 				this->stereoView->ZoomOutScale += 0.05f * wheelSign;
 				clamp(&this->stereoView->ZoomOutScale, 0.05f, 2.00f);
 				

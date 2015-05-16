@@ -14,5 +14,5 @@
 	<!-- <shaderSpecificRuleIDs shaderHash="393415214" squishViewport="true" /> -->
 	
 	<!-- Crap looking shadows -->
-	<shaderSpecificRuleIDs shaderHash="3365422221" doNotDraw="true"/>
+	<shaderSpecificRuleIDs shaderHash="3365422221" ObjectType="Shadows"/>
 </shaderConfig>

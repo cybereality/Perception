@@ -48,8 +48,8 @@
 	<shaderSpecificRuleIDs shaderHash="3455458341" squishViewport="true"></shaderSpecificRuleIDs>
 	<shaderSpecificRuleIDs shaderHash="3753878441" squishViewport="true"></shaderSpecificRuleIDs>
 	<shaderSpecificRuleIDs shaderHash="4200281762" squishViewport="true"></shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="357740431" doNotDraw="true"/>
-  <shaderSpecificRuleIDs shaderHash="12182343" doNotDraw="true"/>
-  <shaderSpecificRuleIDs shaderHash="1460636022" doNotDraw="true"/>
+  <shaderSpecificRuleIDs shaderHash="357740431" ObjectType="Shadows"/>
+  <shaderSpecificRuleIDs shaderHash="12182343" ObjectType="Shadows"/>
+  <shaderSpecificRuleIDs shaderHash="1460636022" ObjectType="Shadows"/>
   
 </shaderConfig>

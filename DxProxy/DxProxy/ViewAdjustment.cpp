@@ -35,7 +35,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // TODO : max, min convergence; arbitrary now
 const float minConvergence = -10.0f;
-const float maxConvergence = 10.0f;
+const float maxConvergence = 100.0f;
 
 /**
 * Constructor.
@@ -44,9 +44,10 @@ const float maxConvergence = 10.0f;
 ViewAdjustment::ViewAdjustment(HMDisplayInfo *displayInfo, ProxyConfig *config) :
 	config(config),
 	hmdInfo(displayInfo),
-	m_roll(0.0f)
+	m_roll(0.0f),
+	m_usePFOV(true)
 {
-	convergence = 0.0f;
+	convergence = 100.0f;
 
 	ipd = IPD_DEFAULT;
 
@@ -55,11 +56,10 @@ ViewAdjustment::ViewAdjustment(HMDisplayInfo *displayInfo, ProxyConfig *config) 
 	hudDistance = 0.0f;
 	hud3DDepth = 0.0f;
 
-	D3DXMatrixIdentity(&matProjection);
+	D3DXMatrixIdentity(&matBasicProjection);
 	D3DXMatrixIdentity(&matPosition);
 	D3DXMatrixIdentity(&matProjectionInv);
-	D3DXMatrixIdentity(&projectLeft);
-	D3DXMatrixIdentity(&projectRight);
+	D3DXMatrixIdentity(&projectPFOV);
 	D3DXMatrixIdentity(&transformLeft);
 	D3DXMatrixIdentity(&transformRight);
 	D3DXMatrixIdentity(&matViewProjRight);
@@ -75,7 +75,7 @@ ViewAdjustment::ViewAdjustment(HMDisplayInfo *displayInfo, ProxyConfig *config) 
 	D3DXMatrixIdentity(&matGatheredLeft);
 	D3DXMatrixIdentity(&matGatheredRight);
 
-	UpdateProjectionMatrices(displayInfo->GetScreenAspectRatio());
+	UpdateProjectionMatrices(displayInfo->GetScreenAspectRatio(), 110.0f);
 	D3DXMatrixIdentity(&rollMatrix);
 	D3DXMatrixIdentity(&rollMatrixNegative);
 	ComputeViewTransforms();
@@ -110,6 +110,12 @@ void ViewAdjustment::Save(ProxyConfig& cfg)
 	cfg.ipd = ipd;
 }
 
+void ViewAdjustment::SetUsePFOV(bool use)
+{
+	m_usePFOV = use;
+}
+
+
 /**
 * Updates left and right projection matrices.
 * Now, the convergence point is specified in real, physical meters, since the IPD is also specified
@@ -118,7 +124,7 @@ void ViewAdjustment::Save(ProxyConfig& cfg)
 * ahead of us.
 * @param aspectRation The aspect ratio for the projection matrix.
 ***/
-void ViewAdjustment::UpdateProjectionMatrices(float aspectRatio)
+void ViewAdjustment::UpdateProjectionMatrices(float aspectRatio, float fov_horiz)
 {
 	// Minimum (near) Z-value
 	float n = 0.1f;
@@ -133,54 +139,64 @@ void ViewAdjustment::UpdateProjectionMatrices(float aspectRatio)
 	// Minimum (bottom) y-value of the volume
 	float b = -0.5f / aspectRatio;
 
-	D3DXMatrixPerspectiveOffCenterLH(&matProjection, l, r, b, t, n, f);
-	D3DXMatrixInverse(&matProjectionInv, 0, &matProjection);
-
-	// ALL stated in meters here ! screen size = horizontal size
-	float nearClippingPlaneDistance = hmdInfo->GetEyeToScreenDistance(); 
-	float physicalScreenSizeInMeters = hmdInfo->GetPhysicalScreenSize().first / 2; 
+	//Calculate inverse projection
+	D3DXMatrixPerspectiveOffCenterLH(&matBasicProjection, l, r, b, t, n, f);
+	D3DXMatrixInverse(&matProjectionInv, 0, &matBasicProjection);
 
 	// if not HMD, set values to fullscreen defaults
-	if (config->stereo_mode <100)   //stereo type > 100 reserved specifically for HMDs
+	if (config->stereo_mode<100 || !m_usePFOV)   //stereo type > 100 reserved specifically for HMDs
 	{
 		// assumption here :
 		// end user is placed 1 meter away from screen
 		// end user screen is 1 meter in horizontal size
-		nearClippingPlaneDistance = 1;
-		physicalScreenSizeInMeters = 1;
+		float nearClippingPlaneDistance = 1;
+		float physicalScreenSizeInMeters = 1;
+
+		if (config->stereo_mode<100)
+		{
+			nearClippingPlaneDistance = hmdInfo->GetEyeToScreenDistance(); 
+			physicalScreenSizeInMeters = hmdInfo->GetPhysicalScreenSize().first / 2; 
+		}
+
+		// convergence frustum adjustment, based on NVidia explanations
+		//
+		// It is evident that the ratio of frustum shift to the near clipping plane is equal to the ratio of 
+		// IOD/2 to the distance from the screenplane. (IOD=IPD) 
+		// frustumAsymmetryInMeters = ((IPD/2) * nearClippingPlaneDistance) / convergence
+		// <http://www.orthostereo.com/geometryopengl.html>
+		//
+		// (near clipping plane distance = physical screen distance)
+		// (convergence = virtual screen distance)
+		if (convergence <= nearClippingPlaneDistance) convergence = nearClippingPlaneDistance + 0.001f;
+		float frustumAsymmetryInMeters = ((ipd/2) * nearClippingPlaneDistance) / convergence;
+		
+		// Convergence being disabled is equivalent to an infinite convergence distance,
+		// or zero asymmetry.
+		if(!config->convergenceEnabled)
+			frustumAsymmetryInMeters = 0.0f;
+
+		// divide the frustum asymmetry by the assumed physical size of the physical screen
+		float frustumAsymmetryLeftInMeters = (frustumAsymmetryInMeters * LEFT_CONSTANT) / physicalScreenSizeInMeters;
+		float frustumAsymmetryRightInMeters = (frustumAsymmetryInMeters * RIGHT_CONSTANT) / physicalScreenSizeInMeters;
+
+		// get the horizontal screen space size and compute screen space adjustment
+		float screenSpaceXSize = abs(l)+abs(r);
+		float multiplier = screenSpaceXSize/1; // = 1 meter
+		float frustumAsymmetryLeft = frustumAsymmetryLeftInMeters * multiplier;
+		float frustumAsymmetryRight = frustumAsymmetryRightInMeters * multiplier;
+
+		// now, create the re-projection matrices for both eyes using this frustum asymmetry
+		D3DXMatrixPerspectiveOffCenterLH(&projectLeftConverge, l+frustumAsymmetryLeft, r+frustumAsymmetryLeft, b, t, n, f);
+		D3DXMatrixPerspectiveOffCenterLH(&projectRightConverge, l+frustumAsymmetryRight, r+frustumAsymmetryRight, b, t, n, f);
 	}
+	else
+	{
+		//Calculate vertical fov from provided horizontal
+		float fov_vert = 2.0f * atan( tan(D3DXToRadian(fov_horiz) / 2.0f) * aspectRatio);
 
-	// convergence frustum adjustment, based on NVidia explanations
-	//
-	// It is evident that the ratio of frustum shift to the near clipping plane is equal to the ratio of 
-	// IOD/2 to the distance from the screenplane. (IOD=IPD) 
-	// frustumAsymmetryInMeters = ((IPD/2) * nearClippingPlaneDistance) / convergence
-	// <http://www.orthostereo.com/geometryopengl.html>
-	//
-	// (near clipping plane distance = physical screen distance)
-	// (convergence = virtual screen distance)
-	if (convergence <= nearClippingPlaneDistance)
-		convergence = nearClippingPlaneDistance + 0.001f;
-	float frustumAsymmetryInMeters = ((ipd/2) * nearClippingPlaneDistance) / convergence;
-	
-	// Convergence being disabled is equivalent to an infinite convergence distance,
-	// or zero asymmetry.
-	if(!config->convergenceEnabled)
-		frustumAsymmetryInMeters = 0.0f;
-
-	// divide the frustum asymmetry by the assumed physical size of the physical screen
-	float frustumAsymmetryLeftInMeters = (frustumAsymmetryInMeters * LEFT_CONSTANT) / physicalScreenSizeInMeters;
-	float frustumAsymmetryRightInMeters = (frustumAsymmetryInMeters * RIGHT_CONSTANT) / physicalScreenSizeInMeters;
-
-	// get the horizontal screen space size and compute screen space adjustment
-	float screenSpaceXSize = abs(l)+abs(r);
-	float multiplier = screenSpaceXSize/1; // = 1 meter
-	float frustumAsymmetryLeft = frustumAsymmetryLeftInMeters * multiplier;
-	float frustumAsymmetryRight = frustumAsymmetryRightInMeters * multiplier;
-
-	// now, create the re-projection matrices for both eyes using this frustum asymmetry
-	D3DXMatrixPerspectiveOffCenterLH(&projectLeft, l+frustumAsymmetryLeft, r+frustumAsymmetryLeft, b, t, n, f);
-	D3DXMatrixPerspectiveOffCenterLH(&projectRight, l+frustumAsymmetryRight, r+frustumAsymmetryRight, b, t, n, f);
+		//And left and right (identical in this case)
+		D3DXMatrixPerspectiveFovLH(&projectPFOV, fov_vert, aspectRatio, n, f);
+	}
 }
 
 /**
@@ -270,28 +286,56 @@ void ViewAdjustment::ComputeViewTransforms()
 	}
 	
 	// projection transform, no roll
-	matViewProjTransformLeftNoRoll = matProjectionInv * transformLeft * projectLeft;
-	matViewProjTransformRightNoRoll = matProjectionInv * transformRight * projectRight;
+	if (m_usePFOV)
+	{
+		matViewProjTransformLeftNoRoll = matProjectionInv * transformLeft * projectPFOV;
+		matViewProjTransformRightNoRoll = matProjectionInv * transformRight * projectPFOV;
 	
-	// head roll - only if using translation implementation
-	if (config->rollImpl == 1) {
-		D3DXMatrixMultiply(&transformLeft, &rollMatrix, &transformLeft);
-		D3DXMatrixMultiply(&transformRight, &rollMatrix, &transformRight);
+		// head roll - only if using translation implementation
+		if (config->rollImpl == 1) {
+			D3DXMatrixMultiply(&transformLeft, &rollMatrix, &transformLeft);
+			D3DXMatrixMultiply(&transformRight, &rollMatrix, &transformRight);
 
-		// projection 
-		matViewProjLeft = matProjectionInv * rollMatrix * projectLeft;
-		matViewProjRight = matProjectionInv * rollMatrix * projectRight;
+			// projection 
+			matViewProjLeft = matProjectionInv * rollMatrix * projectPFOV;
+			matViewProjRight = matProjectionInv * rollMatrix * projectPFOV;
+		}
+		else
+		{
+			// projection 
+			matViewProjLeft = matProjectionInv * projectPFOV;
+			matViewProjRight = matProjectionInv * projectPFOV;
+		}
+
+		// projection transform
+		matViewProjTransformLeft = matProjectionInv * transformLeft * projectPFOV;
+		matViewProjTransformRight = matProjectionInv * transformRight * projectPFOV;
 	}
 	else
 	{
-		// projection 
-		matViewProjLeft = matProjectionInv * projectLeft;
-		matViewProjRight = matProjectionInv * projectRight;
+		matViewProjTransformLeftNoRoll = matProjectionInv * transformLeft * projectLeftConverge;
+		matViewProjTransformRightNoRoll = matProjectionInv * transformRight * projectRightConverge;
+		// head roll - only if using translation implementation
+		if (config->rollImpl == 1) {
+			D3DXMatrixMultiply(&transformLeft, &rollMatrix, &transformLeft);
+			D3DXMatrixMultiply(&transformRight, &rollMatrix, &transformRight);
+
+			// projection 
+			matViewProjLeft = matProjectionInv * rollMatrix * projectLeftConverge;
+			matViewProjRight = matProjectionInv * rollMatrix * projectRightConverge;
+		}
+		else
+		{
+			// projection 
+			matViewProjLeft = matProjectionInv * projectLeftConverge;
+			matViewProjRight = matProjectionInv * projectRightConverge;
+		}
+
+		// projection transform
+		matViewProjTransformLeft = matProjectionInv * transformLeft * projectLeftConverge;
+		matViewProjTransformRight = matProjectionInv * transformRight * projectRightConverge;
 	}
 
-	// projection transform
-	matViewProjTransformLeft = matProjectionInv * transformLeft * projectLeft;
-	matViewProjTransformRight = matProjectionInv * transformRight * projectRight;
 
 	// now, create HUD/GUI helper matrices
 
@@ -319,11 +363,11 @@ void ViewAdjustment::ComputeViewTransforms()
 	D3DXMatrixTranslation(&matLeftGui3DDepth, gui3DDepth+SeparationIPDAdjustment(), 0, 0);
 	D3DXMatrixTranslation(&matRightGui3DDepth, -(gui3DDepth+SeparationIPDAdjustment()), 0, 0);
 
-	// gui/hud matrices
-	matHudLeft = matProjectionInv * matLeftHud3DDepth * transformLeft * matHudDistance *  projectLeft;
-	matHudRight = matProjectionInv * matRightHud3DDepth * transformRight * matHudDistance * projectRight;
-	matGuiLeft =  matProjectionInv * matLeftGui3DDepth * matSquash * projectLeft;
-	matGuiRight = matProjectionInv * matRightGui3DDepth * matSquash * projectRight;
+	// gui/hud matrices - JUst use the default projection not the PFOV
+	matHudLeft = matProjectionInv * matLeftHud3DDepth * transformLeft * matHudDistance *  matBasicProjection;
+	matHudRight = matProjectionInv * matRightHud3DDepth * transformRight * matHudDistance * matBasicProjection;
+	matGuiLeft =  matProjectionInv * matLeftGui3DDepth * matSquash * matBasicProjection;
+	matGuiRight = matProjectionInv * matRightGui3DDepth * matSquash * matBasicProjection;
 }
 
 
@@ -401,7 +445,7 @@ D3DXMATRIX ViewAdjustment::RightViewTransform()
 ***/
 D3DXMATRIX ViewAdjustment::Projection()
 {
-	return matProjection;
+	return matBasicProjection;
 }
 
 /**

@@ -41,6 +41,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ShaderRegisters.h"
 #include "MurmurHash3.h"
 #include "Limits.h"
+#include "ShaderObjectType.h"
 #include "ShaderConstantModification.h"
 #include "ShaderConstantModificationFactory.h"
 #include "ViewAdjustment.h"
@@ -66,8 +67,8 @@ public:
 	std::map<UINT, StereoShaderConstant<float>> GetModifiedConstantsF(IDirect3DPixelShader9* pActualPixelShader);
 	std::map<UINT, StereoShaderConstant<float>> GetModifiedConstantsF(IDirect3DVertexShader9* pActualVertexShader);
 	bool										SquishViewportForShader(IDirect3DVertexShader9* pActualVertexShader);
-	bool										DoNotDrawShader(IDirect3DVertexShader9* pActualVertexShader);
-	bool										DoNotDrawShader(IDirect3DPixelShader9* pActualPixelShader);
+	ShaderObjectType							GetShaderObjectType(IDirect3DVertexShader9* pActualVertexShader);
+	ShaderObjectType							GetShaderObjectType(IDirect3DPixelShader9* pActualPixelShader);
 	bool										ReplaceShaderCode(IDirect3DVertexShader9* pActualVertexShader, std::string &shaderReplacementCode);
 	UINT                                        GetUniqueRuleID();
 	bool                                        ConstantHasRule(std::string constantName, std::string& constantRule, UINT& operation, bool& isTransposed);
@@ -240,9 +241,9 @@ private:
 	***/
 	std::vector<uint32_t> m_shaderViewportSquashIDs;
 	/**
-	* Vector of shader hash identifiers of shaders that should never be drawn.
+	* Map of shader hash identifiers of shaders and their type.
 	***/
-	std::vector<uint32_t> m_doNotDrawShaderIDs;
+	std::map<uint32_t, ShaderObjectType> m_shaderObjectTypes;
 	/**
 	* map of shader hash identifiers of shaders that should have their shader code replaced, and the filename of the replacement code
 	***/

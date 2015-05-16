@@ -35,6 +35,6 @@
   <shaderSpecificRuleIDs shaderHash="3033044888"><ruleID id="4" />Weapon</shaderSpecificRuleIDs>
   
   <shaderSpecificRuleIDs shaderHash="3425121187"><ruleID id="5" />Weird Shadow Thing</shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="2924115447" doNotDraw="true">Weird Light Thing</shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="2924115447" ObjectType="Shadows">Weird Light Thing</shaderSpecificRuleIDs>
   
 </shaderConfig>
