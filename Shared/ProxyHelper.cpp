@@ -166,11 +166,11 @@ template<class T> static void set_attribute(xml_node &node, const char *key, T n
 	}
 }
 
-static void LoadHotkey(xml_node &node, const char *key, InputBindingRef *setting)
+static void LoadHotkey(xml_node &node, const char *key, InputBindingRef *setting, InputBindingRef defaultValue)
 {
 	if(node.attribute(key).empty())
 	{
-		*setting = HotkeyExpressions::Unbound();
+		*setting = defaultValue;
 		return;
 	}
 	
@@ -885,7 +885,10 @@ void HandleSetting(ProxyHelper::ConfigTransferDirection dir,xml_node &node, cons
 	if(dir == ProxyHelper::CONFIG_SAVE) {
 		set_attribute(node, key, setting->c_str());
 	} else if(dir == ProxyHelper::CONFIG_LOAD) {
-		*setting = node.attribute(key).as_string(setting->c_str());
+		if(node.attribute(key).empty())
+			*setting = defaultValue;
+		else
+			*setting = node.attribute(key).as_string(setting->c_str());
 	} else if(dir == ProxyHelper::CONFIG_RESET_DEFAULT) {
 		*setting = defaultValue;
 	}
@@ -896,7 +899,10 @@ void HandleSetting(ProxyHelper::ConfigTransferDirection dir,xml_node &node, cons
 	if(dir == ProxyHelper::CONFIG_SAVE) {
 		set_attribute(node, key, *setting);
 	} else if(dir == ProxyHelper::CONFIG_LOAD) {
-		*setting = node.attribute(key).as_float(*setting);
+		if(node.attribute(key).empty())
+			*setting = defaultValue;
+		else
+			*setting = node.attribute(key).as_float(*setting);
 	} else if(dir == ProxyHelper::CONFIG_RESET_DEFAULT) {
 		*setting = defaultValue;
 	}
@@ -907,7 +913,10 @@ void HandleSetting(ProxyHelper::ConfigTransferDirection dir,xml_node &node, cons
 	if(dir == ProxyHelper::CONFIG_SAVE) {
 		set_attribute(node, key, *setting);
 	} else if(dir == ProxyHelper::CONFIG_LOAD) {
-		*setting = node.attribute(key).as_int(*setting);
+		if(node.attribute(key).empty())
+			*setting = defaultValue;
+		else
+			*setting = node.attribute(key).as_int(*setting);
 	} else if(dir == ProxyHelper::CONFIG_RESET_DEFAULT) {
 		// TODO
 		*setting = defaultValue;
@@ -919,7 +928,10 @@ void HandleSetting(ProxyHelper::ConfigTransferDirection dir,xml_node &node, cons
 	if(dir == ProxyHelper::CONFIG_SAVE) {
 		set_attribute(node, key, *setting);
 	} else if(dir == ProxyHelper::CONFIG_LOAD) {
-		*setting = node.attribute(key).as_uint(*setting);
+		if(node.attribute(key).empty())
+			*setting = defaultValue;
+		else
+			*setting = node.attribute(key).as_uint(*setting);
 	} else if(dir == ProxyHelper::CONFIG_RESET_DEFAULT) {
 		*setting = defaultValue;
 	}
@@ -930,7 +942,10 @@ void HandleSetting(ProxyHelper::ConfigTransferDirection dir,xml_node &node, cons
 	if(dir == ProxyHelper::CONFIG_SAVE) {
 		set_attribute(node, key, *setting);
 	} else if(dir == ProxyHelper::CONFIG_LOAD) {
-		*setting = node.attribute(key).as_bool(*setting);
+		if(node.attribute(key).empty())
+			*setting = defaultValue;
+		else
+			*setting = node.attribute(key).as_bool(*setting);
 	} else if(dir == ProxyHelper::CONFIG_RESET_DEFAULT) {
 		*setting = defaultValue;
 	}
@@ -941,7 +956,7 @@ void HandleSetting(ProxyHelper::ConfigTransferDirection dir,xml_node &node, cons
 	if(dir == ProxyHelper::CONFIG_SAVE) {
 		SaveHotkey(node, key, *setting);
 	} else if(dir == ProxyHelper::CONFIG_LOAD) {
-		LoadHotkey(node, key, setting);
+		LoadHotkey(node, key, setting, defaultValue);
 	} else if(dir == ProxyHelper::CONFIG_RESET_DEFAULT) {
 		*setting = defaultValue;
 	}
@@ -1018,9 +1033,9 @@ void HandleGameProfile(ProxyHelper::ConfigTransferDirection dir, xml_node &node,
 	HANDLE_SETTING_ATTR("VRBoost_key_reset", VRBoostResetHotkey, Unbound());
 	HANDLE_SETTING_ATTR("edge_peek_key",     EdgePeekHotkey, Key(VK_MBUTTON) || (Key(VK_LCONTROL)+Key(VK_NUMPAD2)));
 
-	HANDLE_SETTING(ComfortModeYawIncrement, 90.0f);
-	HANDLE_SETTING(ComfortModeLeftKey,       Key(VK_LEFT));
-	HANDLE_SETTING(ComfortModeRightKey,      Key(VK_RIGHT));
+	HANDLE_SETTING(ComfortModeYawIncrement,  90.0f);
+	HANDLE_SETTING(ComfortModeLeftKey,       Key(VK_LEFT)  || Axis(InputControls::RightStickX, false, -COMFORT_MODE_STICK_THRESHOLD));
+	HANDLE_SETTING(ComfortModeRightKey,      Key(VK_RIGHT) || Axis(InputControls::RightStickX, true, COMFORT_MODE_STICK_THRESHOLD));
 
 	HANDLE_SETTING(WorldFOV,                95.0f);
 	HANDLE_SETTING(PlayerFOV,               125.0f);
