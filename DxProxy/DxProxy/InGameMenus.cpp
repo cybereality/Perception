@@ -1308,6 +1308,26 @@ void D3DProxyDevice::VPMENU_UpdateBorder(int menuEntryCount)
 		}
 		HotkeyCooldown(COOLDOWN_SHORT);
 	}
+	if (hotkeyMenuDownFaster->IsPressed(controls) && HotkeysActive())
+	{
+		if(menuState.selectedIndex+1 < menuEntryCount) {
+			menuState.selectedIndex = min(menuEntryCount-1, menuState.selectedIndex+10);
+		} else {
+			menuState.selectedIndex = 0;
+		}
+		menuState.animationOffset = 0.0f;
+		HotkeyCooldown(COOLDOWN_SHORT);
+	}
+	if (hotkeyMenuUpFaster->IsPressed(controls) && HotkeysActive())
+	{
+		if(menuState.selectedIndex > 0) {
+			menuState.selectedIndex = max(0, menuState.selectedIndex-10);
+		} else {
+			menuState.selectedIndex = menuEntryCount-1;
+		}
+		menuState.animationOffset = 0.0f;
+		HotkeyCooldown(COOLDOWN_SHORT);
+	}
 	
 	// Update scroll position
 	if(menuState.scrollOffset > menuState.selectedIndex) {
