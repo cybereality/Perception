@@ -177,6 +177,9 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	m_disableAllHotkeys(false),
 	menuState(this)
 {
+	m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::BEFORE_COMPOSITING;
+	m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::AFTER_COMPOSITING;
+	
 	SHOW_CALL("D3DProxyDevice");
 	OutputDebugString("D3D ProxyDev Created\n");
 	
@@ -421,6 +424,8 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 {
 	SHOW_CALL("Present");
 	
+	HandleLandmarkMoment(DeviceBehavior::WhenToDo::BEFORE_COMPOSITING);
+	
 	try {
 		IDirect3DSurface9* pWrappedBackBuffer = NULL;
 		m_activeSwapChains.at(0)->GetBackBuffer(0, D3DBACKBUFFER_TYPE_MONO, &pWrappedBackBuffer);
@@ -437,7 +442,7 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 	// (this can break if device present is followed by present on another swap chain... or not work well anyway)
 	m_isFirstBeginSceneOfFrame = true; 
 
-	HandleLandmarkMoment(DeviceBehavior::WhenToDo::PRESENT);
+	HandleLandmarkMoment(DeviceBehavior::WhenToDo::AFTER_COMPOSITING);
 	VPMENU_UpdateCooldowns();
 
 	//Now calculate frames per second
@@ -2413,8 +2418,9 @@ void D3DProxyDevice::HandleLandmarkMoment(DeviceBehavior::WhenToDo when)
 		HandleTracking();
 
 	// draw menu
-	if (m_deviceBehavior.whenToRenderVPMENU == when)
+	if (m_deviceBehavior.whenToRenderVPMENU == when) {
 		VPMENU();
+	}
 }
 
 /**
@@ -3066,7 +3072,7 @@ void D3DProxyDevice::HandleUpdateExtern()
 	
 	m_isFirstBeginSceneOfFrame = true;
 
-	HandleLandmarkMoment(DeviceBehavior::WhenToDo::PRESENT);
+	HandleLandmarkMoment(DeviceBehavior::WhenToDo::AFTER_COMPOSITING);
 	VPMENU_UpdateCooldowns();
 }
 

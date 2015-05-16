@@ -63,6 +63,8 @@ InputBindingRef LShift = Key(VK_LSHIFT);
 InputBindingRef LCtrl = Key(VK_LCONTROL);
 InputBindingRef LAlt = Key(VK_MENU);
 
+InputBindingRef RCtrl = Key(VK_RCONTROL);
+
 InputBindingRef hotkeyCrouch = Button(0xc) || Key(VK_RSHIFT);
 InputBindingRef hotkeySkipProne = Button(0xd) || Key(VK_ESCAPE);
 
@@ -115,7 +117,7 @@ void D3DProxyDevice::HandleControls()
 		{
 			if (hud3DDepthMode==(HUD_3D_Depth_Modes)i)
 			{
-				if (controls.Key_Down(VK_RCONTROL))
+				if (RCtrl->IsHeld(controls))
 				{
 					oldHudMode = hud3DDepthMode;
 					ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)i);
@@ -136,7 +138,7 @@ void D3DProxyDevice::HandleControls()
 		{
 			if (gui3DDepthMode==(GUI_3D_Depth_Modes)i)
 			{
-				if (controls.Key_Down(VK_RCONTROL))
+				if (RCtrl->IsHeld(controls))
 				{
 					oldGuiMode = gui3DDepthMode;
 					ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)i);
@@ -177,9 +179,7 @@ void D3DProxyDevice::HandleControls()
 		VRBoostStatus.VRBoost_Active &&
 		HotkeysActive())
 	{
-		float snapTurnAxis = controls.GetAxis(InputControls::GamepadAxis::RightStickX);
-		if (snapTurnAxis < -COMFORT_MODE_STICK_THRESHOLD ||
-			config.ComfortModeLeftKey->IsPressed(controls))
+		if (config.ComfortModeLeftKey->IsPressed(controls))
 		{
 			m_comfortModeYaw +=config.ComfortModeYawIncrement;
 			if (m_comfortModeYaw == 180.0f)
@@ -187,8 +187,7 @@ void D3DProxyDevice::HandleControls()
 			HotkeyCooldown(COOLDOWN_LONG);
 		}
 
-		if (snapTurnAxis > COMFORT_MODE_STICK_THRESHOLD ||
-			config.ComfortModeRightKey->IsPressed(controls))
+		if (config.ComfortModeRightKey->IsPressed(controls))
 		{
 			m_comfortModeYaw -= config.ComfortModeYawIncrement;
 			if (m_comfortModeYaw == -180.0f)
@@ -199,17 +198,17 @@ void D3DProxyDevice::HandleControls()
 
 	//Double clicking the Right-Ctrl will disable or re-enable all Vireio hot-keys
 	static DWORD rctrlStartClick = 0;
-	if ((controls.Key_Down(VK_RCONTROL) || rctrlStartClick != 0) && HotkeysActive())
+	if ((RCtrl->IsHeld(controls) || rctrlStartClick != 0) && HotkeysActive())
 	{
-		if (controls.Key_Down(VK_RCONTROL) && rctrlStartClick == 0)
+		if (RCtrl->IsHeld(controls) && rctrlStartClick == 0)
 		{
 			rctrlStartClick = 1;
 		}
-		else if (!controls.Key_Down(VK_RCONTROL) && rctrlStartClick == 1)
+		else if (!RCtrl->IsHeld(controls) && rctrlStartClick == 1)
 		{
 			rctrlStartClick = GetTickCount();
 		}
-		else if (controls.Key_Down(VK_RCONTROL) && rctrlStartClick > 1)
+		else if (RCtrl->IsHeld(controls) && rctrlStartClick > 1)
 		{
 			//If we clicked a second time within 500 ms
 			if ((GetTickCount() - rctrlStartClick) <= 500)
@@ -510,8 +509,8 @@ void D3DProxyDevice::HandleControls()
 			}
 			else if(m_deviceBehavior.whenToRenderVPMENU == DeviceBehavior::END_SCENE)
 			{
-				m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::PRESENT;
-				vpmenuRenderDesc = "PRESENT";
+				m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::BEFORE_COMPOSITING;
+				vpmenuRenderDesc = "BEFORE_COMPOSITING";
 			}
 			else
 			{
@@ -538,7 +537,7 @@ void D3DProxyDevice::HandleControls()
 				m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::BEGIN_SCENE;
 				sprintf_s(popup.line[2], "HEADTRACKING = BEGIN SCENE");
 			}
-			/*else if(m_deviceBehavior.whenToHandleHeadTracking == DeviceBehavior::PRESENT)
+			/*else if(m_deviceBehavior.whenToHandleHeadTracking == DeviceBehavior::BEFORE_COMPOSITING)
 			{
 				m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::BEGIN_SCENE;
 				sprintf_s(popup.line[2], "HEADTRACKING = BEGIN SCENE");
@@ -917,7 +916,7 @@ void D3DProxyDevice::HandleControls()
 		if(_wheel != 0)
 		{
 			int wheelSign = (_wheel>0) ? 1 : -1;
-			if(hotkeyWheelYOffset->IsPressed(controls))
+			if(hotkeyWheelYOffset->IsHeld(controls))
 			{
 				config.YOffset += 0.005f * wheelSign;
 				clamp(&config.YOffset, -0.1f, 0.1f);
@@ -926,7 +925,7 @@ void D3DProxyDevice::HandleControls()
 				DeferedSaveConfig();
 				ShowAdjusterToast(retprintf("Y-Offset: %1.3f", config.YOffset), 500);
 			}
-			else if(hotkeyWheelIPDOffset->IsPressed(controls))
+			else if(hotkeyWheelIPDOffset->IsHeld(controls))
 			{
 				config.IPDOffset += 0.001f * wheelSign;
 				clamp(&config.IPDOffset, -0.1f, 0.1f);
@@ -936,7 +935,7 @@ void D3DProxyDevice::HandleControls()
 				DeferedSaveConfig();
 			}
 			//CTRL + ALT + Mouse Wheel - adjust World Scale dynamically
-			else if (hotkeyWheelWorldScale->IsPressed(controls))
+			else if (hotkeyWheelWorldScale->IsHeld(controls))
 			{
 				float separationChange = 0.05f * wheelSign;
 				m_spShaderViewAdjustment->ChangeWorldScale(separationChange);
@@ -946,7 +945,7 @@ void D3DProxyDevice::HandleControls()
 				DeferedSaveConfig();
 			}
 			//CTRL + SPACE + Mouse Wheel - adjust stereo convergence dynamically
-			else if(hotkeyWheelStereoConvergence->IsPressed(controls))
+			else if(hotkeyWheelStereoConvergence->IsHeld(controls))
 			{
 				float convergenceChange = 0.1f * wheelSign;
 				m_spShaderViewAdjustment->ChangeConvergence(convergenceChange);
@@ -955,7 +954,7 @@ void D3DProxyDevice::HandleControls()
 				ShowAdjusterToast(retprintf("Stereo Convergence: %1.3f", m_spShaderViewAdjustment->Convergence()), 500);
 				DeferedSaveConfig();
 			}
-			else if(hotkeyWheelZoomScale->IsPressed(controls))
+			else if(hotkeyWheelZoomScale->IsHeld(controls))
 			{
 				/*
 				this->stereoView->DistortionScale += 0.05f * wheelSign;
@@ -1054,5 +1053,6 @@ void D3DProxyDevice::HotkeyCooldown(float duration)
 
 bool D3DProxyDevice::HotkeysActive()
 {
-	return hotkeyCooldown == 0.0f && !hotkeyCatch;
+	//return hotkeyCooldown == 0.0f && !hotkeyCatch;
+	return !hotkeyCatch;
 }

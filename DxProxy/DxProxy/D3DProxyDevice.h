@@ -427,6 +427,8 @@ protected:
 	bool VPMENU_Input_Selected();
 	bool VPMENU_Input_Left();
 	bool VPMENU_Input_Right();
+	bool VPMENU_Input_Left_Held();
+	bool VPMENU_Input_Right_Held();
 	bool VPMENU_Input_IsAdjustment();
 	float VPMENU_Input_GetAdjustment();
 	float VPMENU_Input_SpeedModifier();
@@ -647,7 +649,8 @@ protected:
 		***/
 		enum WhenToDo
 		{
-			PRESENT,
+			BEFORE_COMPOSITING,
+			AFTER_COMPOSITING,
 			BEGIN_SCENE,
 			END_SCENE,
 		};

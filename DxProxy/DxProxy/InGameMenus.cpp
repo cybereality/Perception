@@ -61,13 +61,15 @@ InputBindingRef hotkeyMenuUpFaster = Key(VK_PRIOR) || Key('U');
 InputBindingRef hotkeyMenuDownFaster = Key(VK_NEXT) || Key('O');
 InputBindingRef hotkeyMenuSelect = Key(VK_RETURN) || Key(VK_RSHIFT) || Button(0x0c);
 InputBindingRef hotkeyAdjustLeft = Key(VK_LEFT) || Key('J');
-InputBindingRef hotkeyAdjustAxisLeft = Axis(InputControls::LeftStickX, true, MENU_ADJUSTMENT_STICK_DEADZONE);
+InputBindingRef hotkeyAdjustAxisLeft = Axis(InputControls::LeftStickX, false, -MENU_ADJUSTMENT_STICK_DEADZONE);
 InputBindingRef hotkeyAdjustRight = Key(VK_RIGHT) || Key('L');
-InputBindingRef hotkeyAdjustAxisRight = Axis(InputControls::LeftStickX, false, -MENU_ADJUSTMENT_STICK_DEADZONE);
+InputBindingRef hotkeyAdjustAxisRight = Axis(InputControls::LeftStickX, true, MENU_ADJUSTMENT_STICK_DEADZONE);
 
 InputBindingRef hotkeyMenuAdjustmentFaster = Key(VK_LSHIFT);
 InputBindingRef hotkeyMenuAdjustmentSlower = Key(VK_LCONTROL);
 InputBindingRef hotkeyMenuAdjustmentMuchSlower = Key(VK_MENU);
+
+InputBindingRef hotkeyScaleUnitReverse = Key(VK_LSHIFT);
 
 /*** D3DProxyDevice menu functions *******************************************/
 
@@ -246,13 +248,25 @@ bool D3DProxyDevice::VPMENU_Input_Left()
 
 bool D3DProxyDevice::VPMENU_Input_Right()
 {
-	return hotkeyAdjustRight->IsPressed(controls)
-	    || hotkeyAdjustAxisRight->IsPressed(controls);
+	return hotkeyAdjustRight->IsHeld(controls)
+	    || hotkeyAdjustAxisRight->IsHeld(controls);
+}
+
+bool D3DProxyDevice::VPMENU_Input_Left_Held()
+{
+	return hotkeyAdjustLeft->IsHeld(controls)
+	    || hotkeyAdjustAxisLeft->IsHeld(controls);
+}
+
+bool D3DProxyDevice::VPMENU_Input_Right_Held()
+{
+	return hotkeyAdjustRight->IsHeld(controls)
+	    || hotkeyAdjustAxisRight->IsHeld(controls);
 }
 
 bool D3DProxyDevice::VPMENU_Input_IsAdjustment()
 {
-	return VPMENU_Input_Left() || VPMENU_Input_Right();
+	return VPMENU_Input_Left_Held() || VPMENU_Input_Right_Held();
 }
 
 float D3DProxyDevice::VPMENU_Input_GetAdjustment()
@@ -262,23 +276,23 @@ float D3DProxyDevice::VPMENU_Input_GetAdjustment()
 	
 	float speed = VPMENU_Input_SpeedModifier();
 	
-	if (hotkeyAdjustLeft->IsPressed(controls) && hotkeyAdjustRight->IsPressed(controls))
+	if (hotkeyAdjustLeft->IsHeld(controls) && hotkeyAdjustRight->IsHeld(controls))
 		return 0;
-	else if (hotkeyAdjustRight->IsPressed(controls))
+	else if (hotkeyAdjustRight->IsHeld(controls))
 		return speed;
-	else if (hotkeyAdjustLeft->IsPressed(controls))
+	else if (hotkeyAdjustLeft->IsHeld(controls))
 		return -speed;
 	else
-		return speed * controls.GetAxis(InputControls::GamepadAxis::LeftStickX);
+		return speed * controls.GetCurrentState()->GetAxis(InputControls::GamepadAxis::LeftStickX);
 }
 
 float D3DProxyDevice::VPMENU_Input_SpeedModifier()
 {
-	if(hotkeyMenuAdjustmentSlower->IsPressed(controls))
+	if(hotkeyMenuAdjustmentSlower->IsHeld(controls))
 		return 0.1f;
-	else if(hotkeyMenuAdjustmentFaster->IsPressed(controls))
+	else if(hotkeyMenuAdjustmentFaster->IsHeld(controls))
 		return 10.0f;
-	else if(hotkeyMenuAdjustmentMuchSlower->IsPressed(controls))
+	else if(hotkeyMenuAdjustmentMuchSlower->IsHeld(controls))
 		return 0.002f;
 	else
 		return 1.0;
@@ -310,7 +324,7 @@ void D3DProxyDevice::VPMENU()
 	}
 	if (hotkeyCatch && hotkeyCooldown == 0.0f)
 	{
-		std::vector<InputBindingRef> heldInputs = controls.GetHeldInputs();
+		std::vector<InputBindingRef> heldInputs = controls.GetCurrentState()->GetHeldInputs();
 		if(heldInputs.size() == 0 && bindingHotkeysHeld.size() > 0) {
 			// All buttons released, and at least one button was pressed
 			hotkeyCatch = false;
@@ -442,7 +456,7 @@ void D3DProxyDevice::VPMENU_WorldScale()
 	// enter ? rshift ? increase gameXScaleUnitIndex
 	if (VPMENU_Input_Selected())
 	{
-		if (controls.Key_Down(VK_LSHIFT))
+		if (hotkeyScaleUnitReverse->IsHeld(controls))
 		{
 			if (gameXScaleUnitIndex>0)
 				--gameXScaleUnitIndex;
@@ -979,7 +993,6 @@ void D3DProxyDevice::VPMENU_PosTracking()
 void D3DProxyDevice::VPMENU_DuckAndCover()
 {
 	SHOW_CALL("VPMENU_DuckAndCover");
-	controls.UpdateInputs();
 
 	MenuBuilder *menu = VPMENU_NewFrame();
 	VPMENU_StartDrawing(menu, "Settings - Duck-and-Cover");
@@ -1052,7 +1065,6 @@ void D3DProxyDevice::VPMENU_DuckAndCover()
 void D3DProxyDevice::VPMENU_ComfortMode()
 {
 	SHOW_CALL("VPMENU_ComfortMode");
-	controls.UpdateInputs();
 	
 	MenuBuilder *menu = VPMENU_NewFrame();
 	VPMENU_StartDrawing(menu, "Settings - Comfort Mode");
@@ -1368,6 +1380,8 @@ void D3DProxyDevice::VPMENU_UpdateDeviceSettings()
 	VRBoostValue[VRboostAxis::ConstantValue1] = config.ConstantValue1;
 	VRBoostValue[VRboostAxis::ConstantValue2] = config.ConstantValue2;
 	VRBoostValue[VRboostAxis::ConstantValue3] = config.ConstantValue3;
+	
+	m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::BEFORE_COMPOSITING;
 
 	// set behavior accordingly to game type
 	int gameType = config.game_type;
@@ -1375,7 +1389,6 @@ void D3DProxyDevice::VPMENU_UpdateDeviceSettings()
 	{
 	case D3DProxyDevice::FIXED:
 		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::PRESENT;
 		break;
 	case D3DProxyDevice::SOURCE:
 	case D3DProxyDevice::SOURCE_L4D:
@@ -1383,11 +1396,9 @@ void D3DProxyDevice::VPMENU_UpdateDeviceSettings()
 	case D3DProxyDevice::SOURCE_STANLEY:
 	case D3DProxyDevice::SOURCE_ZENO:
 		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::END_SCENE;
-		m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::END_SCENE;
 		break;
 	case D3DProxyDevice::SOURCE_HL2:
 		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::END_SCENE;
 		break;
 	case D3DProxyDevice::UNREAL:
 	case D3DProxyDevice::UNREAL_MIRROR:
@@ -1396,59 +1407,46 @@ void D3DProxyDevice::VPMENU_UpdateDeviceSettings()
 	case D3DProxyDevice::UNREAL_BIOSHOCK2:
 	case D3DProxyDevice::UNREAL_BORDERLANDS:
 		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::END_SCENE;
-		m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::END_SCENE;
 		break;
 	case D3DProxyDevice::UNREAL_BETRAYER:
 		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::END_SCENE;
 		break;
 	case D3DProxyDevice::EGO:
 	case D3DProxyDevice::EGO_DIRT:
 		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::END_SCENE;
-		m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::END_SCENE;
 		break;
 	case D3DProxyDevice::REALV:
 	case D3DProxyDevice::REALV_ARMA:
 		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::END_SCENE;
 		break;
 	case D3DProxyDevice::UNITY:
 	case D3DProxyDevice::UNITY_SLENDER:
 		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::END_SCENE;
 		break;
 	case D3DProxyDevice::UNITY_AMONG_THE_SLEEP:
 		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::BEGIN_SCENE;
 		break;
 	case D3DProxyDevice::CRYENGINE:
 		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::END_SCENE;
 		break;
 	case D3DProxyDevice::CRYENGINE_WARHEAD:
 		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::BEGIN_SCENE;
 		break;
 	case D3DProxyDevice::GAMEBRYO:
 	case D3DProxyDevice::GAMEBRYO_SKYRIM:
 		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::END_SCENE;
 		break;
 	case D3DProxyDevice::LFS:
 		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::END_SCENE;
 		break;
 	case D3DProxyDevice::CDC:
 		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::END_SCENE;
-		m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::END_SCENE;
 		break;
 	case D3DProxyDevice::CHROME:
 		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::END_SCENE;
 		break;
 	default:
 		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::PRESENT;
 		break;
 	}
 }

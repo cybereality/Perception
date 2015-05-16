@@ -12,11 +12,17 @@
 #include <vector>
 
 class InputControls;
+class InputControlState;
 
 class InputBinding
 {
 public:
-	virtual bool IsPressed(InputControls &controls)=0;
+	virtual bool StateIsHeld(InputControlState *controlState)=0;
+	
+	bool IsHeld(InputControls &controls);
+	bool IsPressed(InputControls &controls);
+	bool IsReleased(InputControls &controls);
+	
 	virtual std::string ToString()=0;
 	virtual Json::Value ToJson()=0;
 };
@@ -27,7 +33,7 @@ class UnboundKeyBinding
 	: public InputBinding
 {
 public:
-	bool IsPressed(InputControls &controls);
+	bool StateIsHeld(InputControlState *state);
 	std::string ToString();
 	Json::Value ToJson();
 };
@@ -37,7 +43,7 @@ class SimpleKeyBinding
 {
 public:
 	SimpleKeyBinding(int key);
-	bool IsPressed(InputControls &controls);
+	bool StateIsHeld(InputControlState *state);
 	std::string ToString();
 	Json::Value ToJson();
 	int GetKeyCode() { return keyIndex; }
@@ -51,7 +57,7 @@ class SimpleButtonBinding
 {
 public:
 	SimpleButtonBinding(int button);
-	bool IsPressed(InputControls &controls);
+	bool StateIsHeld(InputControlState *state);
 	std::string ToString();
 	Json::Value ToJson();
 	int GetButtonIndex() { return buttonIndex; }
@@ -65,7 +71,7 @@ class CombinationKeyBinding
 {
 public:
 	CombinationKeyBinding(InputBindingRef first, InputBindingRef second);
-	bool IsPressed(InputControls &controls);
+	bool StateIsHeld(InputControlState *state);
 	std::string ToString();
 	Json::Value ToJson();
 	InputBindingRef GetFirst();
@@ -81,7 +87,7 @@ class AlternativesKeyBinding
 {
 public:
 	AlternativesKeyBinding(InputBindingRef first, InputBindingRef second);
-	bool IsPressed(InputControls &controls);
+	bool StateIsHeld(InputControlState *state);
 	std::string ToString();
 	Json::Value ToJson();
 	InputBindingRef GetFirst();
@@ -105,15 +111,8 @@ public:
 	virtual void UpdateInputs()=0;
 	virtual void Reset()=0;
 	
-	/// Sees if the key is down right now, takes into account xinput as well
-	virtual bool Key_Down(int virtualKeyCode)=0;
-	
-	/// Sees if the key is up right now, takes into account xinput as well
-	virtual bool Key_Up(int virtualKeyCode)=0;
-	
-	virtual bool GetButtonState(int button)=0;
-	
-	std::vector<InputBindingRef> GetHeldInputs();
+	virtual InputControlState *GetCurrentState()=0;
+	virtual InputControlState *GetPreviousState()=0;
 	
 	enum GamepadAxis
 	{
@@ -122,9 +121,22 @@ public:
 		RightStickX,
 		RightStickY
 	};
+};
+
+class InputControlState
+{
+public:
+	/// Get a list of all held keys, buttons, and axes
+	std::vector<InputBindingRef> GetHeldInputs();
+	
+	/// Whether a key is pressed
+	virtual bool GetKeyState(int virtualKeyCode)=0;
+	
+	/// Whether a button is pressed
+	virtual bool GetButtonState(int button)=0;
 	
 	/// Get the stick position of a gamepad axis, scaled from -1.0f to 1.0f.
-	virtual float GetAxis(GamepadAxis axis)=0;
+	virtual float GetAxis(InputControls::GamepadAxis axis)=0;
 };
 
 class AxisThresholdBinding
@@ -132,7 +144,7 @@ class AxisThresholdBinding
 {
 public:
 	AxisThresholdBinding(InputControls::GamepadAxis axisIndex, bool greater, float threshold);
-	bool IsPressed(InputControls &controls);
+	bool StateIsHeld(InputControlState *controls);
 	std::string ToString();
 	Json::Value ToJson();
 	

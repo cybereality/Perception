@@ -5,6 +5,24 @@
 
 using namespace vireio;
 
+bool InputBinding::IsHeld(InputControls &controls)
+{
+	return StateIsHeld(controls.GetCurrentState());
+}
+
+bool InputBinding::IsPressed(InputControls &controls)
+{
+	return StateIsHeld(controls.GetCurrentState())
+	   && !StateIsHeld(controls.GetPreviousState());
+}
+
+bool InputBinding::IsReleased(InputControls &controls)
+{
+	return !StateIsHeld(controls.GetCurrentState())
+	     && StateIsHeld(controls.GetPreviousState());
+}
+
+
 static std::array<std::string, 256> GetKeyNameList()
 {
 	// https://msdn.microsoft.com/en-us/library/windows/desktop/dd375731(v=vs.85).aspx
@@ -210,13 +228,13 @@ InputControls::~InputControls()
 {
 }
 
-std::vector<InputBindingRef> InputControls::GetHeldInputs()
+std::vector<InputBindingRef> InputControlState::GetHeldInputs()
 {
 	std::vector<InputBindingRef> ret;
 	
 	for(int ii=0; ii<256; ii++)
 	{
-		if(Key_Down(ii) && HotkeyExpressions::Key(ii)->ToString()!="-")
+		if(GetKeyState(ii) && HotkeyExpressions::Key(ii)->ToString()!="-")
 		{
 			ret.push_back(HotkeyExpressions::Key(ii));
 		}
@@ -232,7 +250,7 @@ std::vector<InputBindingRef> InputControls::GetHeldInputs()
 	
 	for(size_t ii=0; ii<BindableAxes.size(); ii++)
 	{
-		if(BindableAxes[ii]->IsPressed(*this))
+		if(BindableAxes[ii]->StateIsHeld(this))
 		{
 			ret.push_back(BindableAxes[ii]);
 		}
@@ -242,7 +260,7 @@ std::vector<InputBindingRef> InputControls::GetHeldInputs()
 }
 
 
-bool UnboundKeyBinding::IsPressed(InputControls &controls)
+bool UnboundKeyBinding::StateIsHeld(InputControlState *state)
 {
 	return false;
 }
@@ -265,9 +283,9 @@ SimpleKeyBinding::SimpleKeyBinding(int key)
 	this->keyIndex = key;
 }
 
-bool SimpleKeyBinding::IsPressed(InputControls &controls)
+bool SimpleKeyBinding::StateIsHeld(InputControlState *state)
 {
-	return controls.Key_Down(keyIndex);
+	return state->GetKeyState(keyIndex);
 }
 
 std::string SimpleKeyBinding::ToString()
@@ -296,9 +314,9 @@ SimpleButtonBinding::SimpleButtonBinding(int button)
 	this->buttonIndex = button;
 }
 
-bool SimpleButtonBinding::IsPressed(InputControls &controls)
+bool SimpleButtonBinding::StateIsHeld(InputControlState *state)
 {
-	return controls.GetButtonState(buttonIndex);
+	return state->GetButtonState(buttonIndex);
 }
 
 std::string SimpleButtonBinding::ToString()
@@ -321,9 +339,9 @@ CombinationKeyBinding::CombinationKeyBinding(InputBindingRef first, InputBinding
 	this->second = second;
 }
 
-bool CombinationKeyBinding::IsPressed(InputControls &controls)
+bool CombinationKeyBinding::StateIsHeld(InputControlState *state)
 {
-	return first->IsPressed(controls) && second->IsPressed(controls);
+	return first->StateIsHeld(state) && second->StateIsHeld(state);
 }
 
 std::string CombinationKeyBinding::ToString()
@@ -359,9 +377,9 @@ AlternativesKeyBinding::AlternativesKeyBinding(InputBindingRef first, InputBindi
 	this->second = second;
 }
 
-bool AlternativesKeyBinding::IsPressed(InputControls &controls)
+bool AlternativesKeyBinding::StateIsHeld(InputControlState *state)
 {
-	return first->IsPressed(controls) || second->IsPressed(controls);
+	return first->StateIsHeld(state) || second->StateIsHeld(state);
 }
 
 std::string AlternativesKeyBinding::ToString()
@@ -398,9 +416,9 @@ AxisThresholdBinding::AxisThresholdBinding(InputControls::GamepadAxis axisIndex,
 	this->threshold = threshold;
 }
 
-bool AxisThresholdBinding::IsPressed(InputControls &controls)
+bool AxisThresholdBinding::StateIsHeld(InputControlState *state)
 {
-	float axisPosition = controls.GetAxis(axisIndex);
+	float axisPosition = state->GetAxis(axisIndex);
 	
 	if(greater) {
 		return axisPosition>threshold;
