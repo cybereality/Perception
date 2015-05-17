@@ -61,34 +61,38 @@ public:
 	void          UpdateRoll(float roll);
 	void		  UpdatePosition(float yaw, float pitch, float roll, float xPosition = 0.0f, float yPosition = 0.0f, float zPosition = 0.0f);
 	void          ComputeViewTransforms(); 
-	D3DXMATRIX    PositionMatrix();
-	D3DXMATRIX    LeftAdjustmentMatrix();
-	D3DXMATRIX    RightAdjustmentMatrix();
-	D3DXMATRIX    LeftAdjustmentMatrixNoRoll();
-	D3DXMATRIX    RightAdjustmentMatrixNoRoll();
-	D3DXMATRIX    LeftView();
-	D3DXMATRIX    RightView();	
-	D3DXMATRIX    LeftViewTransform();
-	D3DXMATRIX    RightViewTransform();	
-	D3DXMATRIX    Projection();
-	D3DXMATRIX    ProjectionInverse();
-	D3DXMATRIX    RollMatrix();
-	D3DXMATRIX    RollMatrixNegative();
-	D3DXMATRIX    RollMatrixHalf();
-	D3DXMATRIX    LeftHUDMatrix();
-	D3DXMATRIX    RightHUDMatrix();
-	D3DXMATRIX    LeftGUIMatrix();
-	D3DXMATRIX    RightGUIMatrix();
-	D3DXMATRIX    Squash();
-	D3DXMATRIX    HUDDistance();
-	D3DXMATRIX    LeftHUD3DDepth();
-	D3DXMATRIX    RightHUD3DDepth();
-	D3DXMATRIX    LeftHUD3DDepthShifted();
-	D3DXMATRIX    RightHUD3DDepthShifted();
-	D3DXMATRIX    LeftGUI3DDepth();
-	D3DXMATRIX    RightGUI3DDepth();
-	D3DXMATRIX    GatheredMatrixLeft();
-	D3DXMATRIX    GatheredMatrixRight();
+	
+	/*** Getters for pre-computed matrices ***/
+	
+	D3DXMATRIX PositionMatrix()              { return matPosition; }
+	D3DXMATRIX LeftAdjustmentMatrix()        { return matViewProjTransformLeft; }
+	D3DXMATRIX RightAdjustmentMatrix()       { return matViewProjTransformRight; }
+	D3DXMATRIX LeftAdjustmentMatrixNoRoll()  { return matViewProjTransformLeftNoRoll; }
+	D3DXMATRIX RightAdjustmentMatrixNoRoll() { return matViewProjTransformRightNoRoll; }
+	D3DXMATRIX LeftView()                    { return matViewProjLeft; }
+	D3DXMATRIX RightView()                   { return matViewProjRight; }
+	D3DXMATRIX LeftViewTransform()           { return transformLeft; }
+	D3DXMATRIX RightViewTransform()          { return transformRight; }
+	D3DXMATRIX Projection()                  { return matBasicProjection; }
+	D3DXMATRIX ProjectionInverse()           { return matProjectionInv; }
+	D3DXMATRIX RollMatrix()                  { return rollMatrix; }
+	D3DXMATRIX RollMatrixNegative()          { return rollMatrixNegative; }
+	D3DXMATRIX RollMatrixHalf()              { return rollMatrixHalf; }
+	D3DXMATRIX LeftHUDMatrix()               { return matHudLeft; }
+	D3DXMATRIX RightHUDMatrix()              { return matHudRight; }
+	D3DXMATRIX LeftGUIMatrix()               { return matGuiLeft; }
+	D3DXMATRIX RightGUIMatrix()              { return matGuiRight; }
+	D3DXMATRIX Squash()                      { return matSquash; }
+	D3DXMATRIX HUDDistance()                 { return matHudDistance; }
+	D3DXMATRIX LeftHUD3DDepth()              { return matLeftHud3DDepth; }
+	D3DXMATRIX RightHUD3DDepth()             { return matRightHud3DDepth; }
+	D3DXMATRIX LeftHUD3DDepthShifted()       { return matLeftHud3DDepthShifted; }
+	D3DXMATRIX RightHUD3DDepthShifted()      { return matRightHud3DDepthShifted; }
+	D3DXMATRIX LeftGUI3DDepth()              { return matLeftGui3DDepth; }
+	D3DXMATRIX RightGUI3DDepth()             { return matRightGui3DDepth; }
+	D3DXMATRIX GatheredMatrixLeft()          { return matGatheredLeft; }
+	D3DXMATRIX GatheredMatrixRight()         { return matGatheredRight; }
+	
 	void          GatherMatrix(D3DXMATRIX& matrixLeft, D3DXMATRIX& matrixRight);
 	float         ChangeWorldScale(float toAdd);
 	float         SetConvergence(float newConvergence);
@@ -132,13 +136,9 @@ private:
 	***/
 	D3DXMATRIX projectPFOV;
 	/**
-	* The projection with left eye convergence.
+	* The projections with left and right eye convergence.
 	***/
-	D3DXMATRIX projectLeftConverge;
-	/**
-	* The projection with right eye convergence.
-	***/
-	D3DXMATRIX projectRightConverge;
+	D3DXMATRIX projectLeftConverge, projectRightConverge;
 	/**
 	* The head roll matrix.
 	***/
@@ -152,61 +152,33 @@ private:
 	***/
 	D3DXMATRIX rollMatrixHalf;
 	/**
-	* Left matrix used to roll (if roll enabled) and shift view for ipd.
+	* Right and left matrices used to roll (if roll enabled) and shift view for ipd.
 	***/
-	D3DXMATRIX transformLeft;
+	D3DXMATRIX transformLeft, transformRight;
 	/**
-	* Right matrix used to roll (if roll enabled) and shift view for ipd.
+	* Left and right view projection matrices
 	***/
-	D3DXMATRIX transformRight;
+	D3DXMATRIX matViewProjLeft, matViewProjRight;
 	/**
-	* Left view projection matrix.
+	* Left and right view projection transform matrices.
 	***/
-	D3DXMATRIX matViewProjLeft;
+	D3DXMATRIX matViewProjTransformLeft, matViewProjTransformRight;
 	/**
-	* Right view projection matrix.
+	* Left and right view projection transform matrix.
 	***/
-	D3DXMATRIX matViewProjRight;
+	D3DXMATRIX matViewProjTransformLeftNoRoll, matViewProjTransformRightNoRoll;
 	/**
-	* Left view projection transform matrix.
+	* Gathered matrices to be used in gathered modifications.
 	***/
-	D3DXMATRIX matViewProjTransformLeft;
+	D3DXMATRIX matGatheredLeft, matGatheredRight;
 	/**
-	* Right view projection transform matrix.
+	* Left and right HUD matrices.
 	***/
-	D3DXMATRIX matViewProjTransformRight;
+	D3DXMATRIX matHudLeft, matHudRight;
 	/**
-	* Left view projection transform matrix.
+	* Left and right GUI matrices.
 	***/
-	D3DXMATRIX matViewProjTransformLeftNoRoll;
-	/**
-	* Right view projection transform matrix.
-	***/
-	D3DXMATRIX matViewProjTransformRightNoRoll;
-	/**
-	* Gathered matrix to be used in gathered modifications.
-	***/
-	D3DXMATRIX matGatheredLeft;
-	/**
-	* Gathered matrix to be used in gathered modifications.
-	***/
-	D3DXMATRIX matGatheredRight;
-	/**
-	* Left HUD matrix.
-	***/
-	D3DXMATRIX matHudLeft;
-	/**
-	* Right HUD matrix
-	***/
-	D3DXMATRIX matHudRight;
-	/**
-	* Left GUI matrix.
-	***/
-	D3DXMATRIX matGuiLeft;
-	/**
-	* Right GUI matrix.
-	***/
-	D3DXMATRIX matGuiRight;
+	D3DXMATRIX matGuiLeft, matGuiRight;
 	/**
 	* Squash scaling matrix, to be used in HUD/GUI scaling matrices.
 	***/
@@ -216,29 +188,17 @@ private:
 	***/
 	D3DXMATRIX matHudDistance;
 	/**
-	* HUD 3d depth matrix, to be used in HUD separation matrices. 
+	* HUD 3d depth matrices, to be used in HUD separation matrices.
 	***/
-	D3DXMATRIX matLeftHud3DDepth;
+	D3DXMATRIX matLeftHud3DDepth, matRightHud3DDepth;
 	/**
-	* HUD 3d depth matrix, to be used in HUD separation matrices. 
+	* HUD 3d depth matrices, to be used in HUD separation matrices.
 	***/
-	D3DXMATRIX matRightHud3DDepth;
+	D3DXMATRIX matLeftHud3DDepthShifted, matRightHud3DDepthShifted;
 	/**
-	* HUD 3d depth matrix, to be used in HUD separation matrices. 
+	* HUD 3d depth matrices, to be used in HUD separation matrices.
 	***/
-	D3DXMATRIX matLeftHud3DDepthShifted;
-	/**
-	* HUD 3d depth matrix, to be used in HUD separation matrices. 
-	***/
-	D3DXMATRIX matRightHud3DDepthShifted;
-	/**
-	* HUD 3d depth matrix, to be used in HUD separation matrices. 
-	***/
-	D3DXMATRIX matLeftGui3DDepth;
-	/**
-	* HUD 3d depth matrix, to be used in HUD separation matrices. 
-	***/
-	D3DXMATRIX matRightGui3DDepth;
+	D3DXMATRIX matLeftGui3DDepth, matRightGui3DDepth;
 	/**
 	* Used to scale the positional movement, seems x/y/z are not equal
 	*/
