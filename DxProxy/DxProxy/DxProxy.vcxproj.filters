@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Main">
@@ -185,6 +185,9 @@
       <Filter>Direct3D9Vireio</Filter>
     </ClCompile>
     <ClCompile Include="ShaderModificationRepository.cpp">
+      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderConstantModificationFactory.cpp">
       <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
     </ClCompile>
     <ClCompile Include="Vireio.cpp">
