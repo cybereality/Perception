@@ -55,8 +55,14 @@ public:
 	***/
 	virtual void DoMatrixModification(D3DXMATRIX in, D3DXMATRIX& outLeft, D3DXMATRIX& outright)
 	{
-		outLeft = in * m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->PositionMatrix() * m_spAdjustmentMatrices->Projection();
-		outright = in * m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->PositionMatrix() * m_spAdjustmentMatrices->Projection();
+		outLeft = in
+			* m_spAdjustmentMatrices->ProjectionInverse()
+			* m_spAdjustmentMatrices->PositionMatrix()
+			* m_spAdjustmentMatrices->Projection();
+		outright = in
+			* m_spAdjustmentMatrices->ProjectionInverse()
+			* m_spAdjustmentMatrices->PositionMatrix()
+			* m_spAdjustmentMatrices->Projection();
 	}
 };
 

@@ -74,8 +74,18 @@ public:
 			if (MatrixIsHUD(in))
 			{
 				// separation -> distance translation
-				D3DXMATRIX orthoToPersViewProjTransformLeft  = m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->LeftHUD3DDepthShifted() * m_spAdjustmentMatrices->LeftViewTransform() * m_spAdjustmentMatrices->HUDDistance() *  m_spAdjustmentMatrices->Projection();
-				D3DXMATRIX orthoToPersViewProjTransformRight = m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->RightHUD3DDepthShifted() * m_spAdjustmentMatrices->RightViewTransform() * m_spAdjustmentMatrices->HUDDistance() * m_spAdjustmentMatrices->Projection();
+				D3DXMATRIX orthoToPersViewProjTransformLeft  =
+					m_spAdjustmentMatrices->ProjectionInverse()
+					* m_spAdjustmentMatrices->LeftHUD3DDepthShifted()
+					* m_spAdjustmentMatrices->LeftViewTransform()
+					* m_spAdjustmentMatrices->HUDDistance()
+					*  m_spAdjustmentMatrices->Projection();
+				D3DXMATRIX orthoToPersViewProjTransformRight =
+					m_spAdjustmentMatrices->ProjectionInverse()
+					* m_spAdjustmentMatrices->RightHUD3DDepthShifted()
+					* m_spAdjustmentMatrices->RightViewTransform()
+					* m_spAdjustmentMatrices->HUDDistance()
+					* m_spAdjustmentMatrices->Projection();
 				
 				outLeft = in * orthoToPersViewProjTransformLeft;
 				outright = in * orthoToPersViewProjTransformRight;
@@ -83,8 +93,15 @@ public:
 			else // GUI
 			{
 				// simple squash
-				outLeft = in * m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->LeftGUI3DDepth() * m_spAdjustmentMatrices->Squash() * m_spAdjustmentMatrices->Projection();
-				outright = in * m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->RightGUI3DDepth() * m_spAdjustmentMatrices->Squash() * m_spAdjustmentMatrices->Projection();
+				outLeft = in
+					* m_spAdjustmentMatrices->ProjectionInverse()
+					* m_spAdjustmentMatrices->LeftGUI3DDepth()
+					* m_spAdjustmentMatrices->Squash()
+					* m_spAdjustmentMatrices->Projection();
+				outright = in * m_spAdjustmentMatrices->ProjectionInverse()
+					* m_spAdjustmentMatrices->RightGUI3DDepth()
+					* m_spAdjustmentMatrices->Squash()
+					* m_spAdjustmentMatrices->Projection();
 			}
 		}
 		else {
