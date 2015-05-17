@@ -388,6 +388,7 @@ protected:
 	virtual void OnCreateOrRestore();	
 	virtual bool setDrawingSide(vireio::RenderPosition side);
 	bool         switchDrawingSide();
+	HRESULT      DrawBothSides(std::function<HRESULT()> drawOneSide);
 	void         ChangeHUD3DDepthMode(HUD_3D_Depth_Modes newMode);
 	void         ChangeGUI3DDepthMode(GUI_3D_Depth_Modes newMode);
 	

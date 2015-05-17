@@ -1577,22 +1577,9 @@ HRESULT WINAPI D3DProxyDevice::DrawPrimitive(D3DPRIMITIVETYPE PrimitiveType,UINT
 {
 	SHOW_CALL("DrawPrimitive");
 	
-	if(bSkipFrame)
-		return D3D_OK;
-
-	//If we shouldn't draw this shader, then just return immediately
-	if (m_bDoNotDrawVShader || m_bDoNotDrawPShader)
-		return S_OK;
-
-	m_spManagedShaderRegisters->ApplyAllDirty(m_currentRenderingSide);
-
-	HRESULT result;
-	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawPrimitive(PrimitiveType, StartVertex, PrimitiveCount))) {
-		if (!m_b2dDepthMode && switchDrawingSide())
-			BaseDirect3DDevice9::DrawPrimitive(PrimitiveType, StartVertex, PrimitiveCount);
-	}
-
-	return result;
+	return DrawBothSides([=]() {
+		return BaseDirect3DDevice9::DrawPrimitive(PrimitiveType, StartVertex, PrimitiveCount);
+	});
 }
 
 /**
@@ -1603,25 +1590,10 @@ HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitive(D3DPRIMITIVETYPE PrimitiveTy
 {
 	SHOW_CALL("DrawIndexedPrimitive");
 	
-	if(bSkipFrame)
-		return D3D_OK;
-
-	//If we shouldn't draw this shader, then just return immediately
-	if (m_bDoNotDrawVShader || m_bDoNotDrawPShader)
-		return S_OK;
-
-	m_spManagedShaderRegisters->ApplyAllDirty(m_currentRenderingSide);
-
-	HRESULT result;
-	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawIndexedPrimitive(PrimitiveType, BaseVertexIndex, MinVertexIndex, NumVertices, startIndex, primCount))) {
-		if (!m_b2dDepthMode && switchDrawingSide()) {			
-			HRESULT result2 = BaseDirect3DDevice9::DrawIndexedPrimitive(PrimitiveType, BaseVertexIndex, MinVertexIndex, NumVertices, startIndex, primCount);
-			if (result != result2)
-				OutputDebugString("moop\n");
-		}
-	}
-
-	return result;
+	return DrawBothSides([=]()
+	{
+		return BaseDirect3DDevice9::DrawIndexedPrimitive(PrimitiveType, BaseVertexIndex, MinVertexIndex, NumVertices, startIndex, primCount);
+	});
 }
 
 /**
@@ -1632,22 +1604,10 @@ HRESULT WINAPI D3DProxyDevice::DrawPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType,UI
 {
 	SHOW_CALL("DrawPrimitiveUP");
 	
-	if(bSkipFrame)
-		return D3D_OK;
-
-	//If we shouldn't draw this shader, then just return immediately
-	if (m_bDoNotDrawVShader || m_bDoNotDrawPShader)
-		return S_OK;
-
-	m_spManagedShaderRegisters->ApplyAllDirty(m_currentRenderingSide);
-
-	HRESULT result;
-	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawPrimitiveUP(PrimitiveType, PrimitiveCount, pVertexStreamZeroData, VertexStreamZeroStride))) {
-		if (!m_b2dDepthMode && switchDrawingSide())
-			BaseDirect3DDevice9::DrawPrimitiveUP(PrimitiveType, PrimitiveCount, pVertexStreamZeroData, VertexStreamZeroStride);
-	}
-
-	return result;
+	return DrawBothSides([=]()
+	{
+		return BaseDirect3DDevice9::DrawPrimitiveUP(PrimitiveType, PrimitiveCount, pVertexStreamZeroData, VertexStreamZeroStride);
+	});
 }
 
 /**
@@ -1658,22 +1618,10 @@ HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitiveUP(D3DPRIMITIVETYPE Primitive
 {
 	SHOW_CALL("DrawIndexedPrimitiveUP");
 	
-	if(bSkipFrame)
-		return D3D_OK;
-
-	//If we shouldn't draw this shader, then just return immediately
-	if (m_bDoNotDrawVShader || m_bDoNotDrawPShader)
-		return S_OK;
-
-	m_spManagedShaderRegisters->ApplyAllDirty(m_currentRenderingSide);
-
-	HRESULT result;
-	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawIndexedPrimitiveUP(PrimitiveType, MinVertexIndex, NumVertices, PrimitiveCount, pIndexData, IndexDataFormat, pVertexStreamZeroData, VertexStreamZeroStride))) {
-		if (!m_b2dDepthMode && switchDrawingSide())		
-			BaseDirect3DDevice9::DrawIndexedPrimitiveUP(PrimitiveType, MinVertexIndex, NumVertices, PrimitiveCount, pIndexData, IndexDataFormat, pVertexStreamZeroData, VertexStreamZeroStride);
-	}
-
-	return result;
+	return DrawBothSides([=]()
+	{
+		return BaseDirect3DDevice9::DrawIndexedPrimitiveUP(PrimitiveType, MinVertexIndex, NumVertices, PrimitiveCount, pIndexData, IndexDataFormat, pVertexStreamZeroData, VertexStreamZeroStride);
+	});;
 }
 
 /**
@@ -2209,18 +2157,10 @@ HRESULT WINAPI D3DProxyDevice::DrawRectPatch(UINT Handle,CONST float* pNumSegs,C
 {
 	SHOW_CALL("DrawRectPatch");
 	
-	if(bSkipFrame)
-		return D3D_OK;
-
-	m_spManagedShaderRegisters->ApplyAllDirty(m_currentRenderingSide);
-
-	HRESULT result;
-	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawRectPatch(Handle, pNumSegs, pRectPatchInfo))) {
-		if (!m_b2dDepthMode && switchDrawingSide())		
-			BaseDirect3DDevice9::DrawRectPatch(Handle, pNumSegs, pRectPatchInfo);
-	}
-
-	return result;
+	return DrawBothSides([=]()
+	{
+		return BaseDirect3DDevice9::DrawRectPatch(Handle, pNumSegs, pRectPatchInfo);
+	});
 }
 
 /**
@@ -2231,18 +2171,10 @@ HRESULT WINAPI D3DProxyDevice::DrawTriPatch(UINT Handle,CONST float* pNumSegs,CO
 {
 	SHOW_CALL("DrawTriPatch");
 	
-	if(bSkipFrame)
-		return D3D_OK;
-
-	m_spManagedShaderRegisters->ApplyAllDirty(m_currentRenderingSide);
-
-	HRESULT result;
-	if (SUCCEEDED(result = BaseDirect3DDevice9::DrawTriPatch(Handle, pNumSegs, pTriPatchInfo))) {
-		if (!m_b2dDepthMode && switchDrawingSide())		
-			BaseDirect3DDevice9::DrawTriPatch(Handle, pNumSegs, pTriPatchInfo);
-	}
-
-	return result;
+	return DrawBothSides([=]()
+	{
+		return BaseDirect3DDevice9::DrawTriPatch(Handle, pNumSegs, pTriPatchInfo);
+	});
 }
 
 /**
@@ -3311,6 +3243,31 @@ bool D3DProxyDevice::switchDrawingSide()
 	}
 
 	return switched;
+}
+
+/**
+* Take a D3D drawing call and do it twice, once for each eye, switching
+* side and applying adjustments in between.
+*/
+HRESULT D3DProxyDevice::DrawBothSides(std::function<HRESULT()> drawOneSide)
+{
+	if(bSkipFrame)
+		return D3D_OK;
+
+	//If we shouldn't draw this shader, then just return immediately
+	if (m_bDoNotDrawVShader || m_bDoNotDrawPShader)
+		return S_OK;
+	
+	m_spManagedShaderRegisters->ApplyAllDirty(m_currentRenderingSide);
+
+	HRESULT result = drawOneSide();
+	if (SUCCEEDED(result)) {
+		if (!m_b2dDepthMode && switchDrawingSide())
+		{
+			result = drawOneSide();
+		}
+	}
+	return result;
 }
 
 
