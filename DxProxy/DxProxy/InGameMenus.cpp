@@ -148,8 +148,6 @@ void D3DProxyDevice::VPMENU_NavigateTo(std::function<void()> menuHandler)
 	
 	inWorldScaleMenu = false;
 	menuIsOpen = true;
-	
-	HotkeyCooldown(COOLDOWN_SHORT);
 }
 
 bool D3DProxyDevice::VPMENU_IsOpen()
@@ -248,8 +246,8 @@ bool D3DProxyDevice::VPMENU_Input_Left()
 
 bool D3DProxyDevice::VPMENU_Input_Right()
 {
-	return hotkeyAdjustRight->IsHeld(controls)
-	    || hotkeyAdjustAxisRight->IsHeld(controls);
+	return hotkeyAdjustRight->IsPressed(controls)
+	    || hotkeyAdjustAxisRight->IsPressed(controls);
 }
 
 bool D3DProxyDevice::VPMENU_Input_Left_Held()
@@ -432,7 +430,6 @@ void D3DProxyDevice::VPMENU_MainMenu()
 		config.VRboostPath = VRboostPath;
 		VPMENU_UpdateDeviceSettings();
 		VPMENU_UpdateConfigSettings();
-		HotkeyCooldown(COOLDOWN_EXTRA_LONG);
 	});
 	
 	menu->AddButton("Back to Game\n", [=]() { VPMENU_Close(); });
@@ -469,7 +466,6 @@ void D3DProxyDevice::VPMENU_WorldScale()
 			if ((gameXScaleUnitIndex != 0) && (gameXScaleUnitIndex >= m_gameXScaleUnits.size()))
 				gameXScaleUnitIndex = m_gameXScaleUnits.size()-1;
 		}
-		HotkeyCooldown(COOLDOWN_SHORT);
 	}
 
 	// Left/Right: Decrease/increase world scale
@@ -478,7 +474,6 @@ void D3DProxyDevice::VPMENU_WorldScale()
 		float separationChange = 0.005f * VPMENU_Input_GetAdjustment();;
 		m_spShaderViewAdjustment->ChangeWorldScale(separationChange);
 		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, m_projectionHFOV);
-		HotkeyCooldown(COOLDOWN_ONE_FRAME);
 	}
 	
 	// handle border height (=scrollbar scroll height)
@@ -656,7 +651,6 @@ void D3DProxyDevice::VPMENU_ConvergenceCalibrator()
 		float convergenceChange = 0.05f * VPMENU_Input_GetAdjustment();
 		m_spShaderViewAdjustment->ChangeConvergence(convergenceChange);
 		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, m_projectionHFOV);
-		HotkeyCooldown(COOLDOWN_ONE_FRAME);
 	}
 	
 
@@ -910,8 +904,6 @@ void D3DProxyDevice::VPMENU_Settings()
 
 			if ((!m_bForceMouseEmulation) && (hmVRboost) && (m_VRboostRulesPresent)  && (tracker->getStatus() >= MTS_OK))
 				tracker->setMouseEmulation(false);
-
-			HotkeyCooldown(COOLDOWN_LONG);
 		}
 		if (VPMENU_Input_Left() && HotkeysActive())
 		{
@@ -919,8 +911,6 @@ void D3DProxyDevice::VPMENU_Settings()
 
 			if ((hmVRboost) && (m_VRboostRulesPresent) && (tracker->getStatus() >= MTS_OK))
 				tracker->setMouseEmulation(false);
-
-			HotkeyCooldown(COOLDOWN_SHORT);
 		}
 		if (VPMENU_Input_Right() && HotkeysActive())
 		{
@@ -929,8 +919,6 @@ void D3DProxyDevice::VPMENU_Settings()
 				tracker->setMouseEmulation(true);
 				m_bForceMouseEmulation = true;
 			}
-
-			HotkeyCooldown(COOLDOWN_SHORT);
 		}
 	});
 	
@@ -946,7 +934,6 @@ void D3DProxyDevice::VPMENU_Settings()
 			m_bVRBoostToggle = !m_bVRBoostToggle;
 			if (tracker->getStatus() >= MTS_OK)
 				tracker->resetOrientationAndPosition();
-			HotkeyCooldown(COOLDOWN_SHORT);
 		}
 	});
 	
@@ -1295,7 +1282,6 @@ void D3DProxyDevice::VPMENU_UpdateBorder(int menuEntryCount)
 			menuState.selectedIndex = menuEntryCount-1;
 			menuState.animationOffset = 0.0f;
 		}
-		HotkeyCooldown(COOLDOWN_SHORT);
 	}
 	if (hotkeyMenuDown->IsPressed(controls) && HotkeysActive())
 	{
@@ -1306,7 +1292,6 @@ void D3DProxyDevice::VPMENU_UpdateBorder(int menuEntryCount)
 			menuState.selectedIndex = 0;
 			menuState.animationOffset = 0.0f;
 		}
-		HotkeyCooldown(COOLDOWN_SHORT);
 	}
 	if (hotkeyMenuDownFaster->IsPressed(controls) && HotkeysActive())
 	{
@@ -1316,7 +1301,6 @@ void D3DProxyDevice::VPMENU_UpdateBorder(int menuEntryCount)
 			menuState.selectedIndex = 0;
 		}
 		menuState.animationOffset = 0.0f;
-		HotkeyCooldown(COOLDOWN_SHORT);
 	}
 	if (hotkeyMenuUpFaster->IsPressed(controls) && HotkeysActive())
 	{
@@ -1326,7 +1310,6 @@ void D3DProxyDevice::VPMENU_UpdateBorder(int menuEntryCount)
 			menuState.selectedIndex = menuEntryCount-1;
 		}
 		menuState.animationOffset = 0.0f;
-		HotkeyCooldown(COOLDOWN_SHORT);
 	}
 	
 	// Update scroll position
@@ -1660,7 +1643,6 @@ void MenuBuilder::AddButton(std::string text, D3DCOLOR color, std::function<void
 	AddItem(text, color, [=]() {
 		if(device->VPMENU_Input_Selected() && device->HotkeysActive()) {
 			onPick();
-			device->HotkeyCooldown(COOLDOWN_SHORT);
 		}
 	});
 }
@@ -1716,7 +1698,6 @@ void MenuBuilder::AddGameKeypress(std::string text, byte *binding)
 		if (hotkeyResetToDefault->IsPressed(device->controls) && device->HotkeysActive())
 		{
 			*binding = 0;
-			device->HotkeyCooldown(COOLDOWN_SHORT);
 		}
 		else if (device->VPMENU_Input_Selected() && device->HotkeysActive())
 		{
@@ -1740,12 +1721,10 @@ void MenuBuilder::AddKeybind(std::string text, InputBindingRef *binding, InputBi
 		if (hotkeyClearHotkey->IsPressed(device->controls) && device->HotkeysActive())
 		{
 			*binding = Unbound();
-			device->HotkeyCooldown(COOLDOWN_SHORT);
 		}
 		else if (hotkeyResetToDefault->IsPressed(device->controls) && device->HotkeysActive())
 		{
 			*binding = defaultBinding;
-			device->HotkeyCooldown(COOLDOWN_SHORT);
 		}
 		else if (device->VPMENU_Input_Selected() && device->HotkeysActive())
 		{
@@ -1767,13 +1746,11 @@ void MenuBuilder::AddAdjustment(const char *formatString, float *value, float de
 		{
 			*value = defaultValue;
 			onChange();
-			device->HotkeyCooldown(COOLDOWN_SHORT);
 		}
 		if (device->VPMENU_Input_IsAdjustment() && device->HotkeysActive())
 		{
 			*value += rate * device->VPMENU_Input_GetAdjustment();
 			onChange();
-			device->HotkeyCooldown(COOLDOWN_SHORT);
 		}
 	});
 }
@@ -1791,7 +1768,6 @@ void MenuBuilder::AddEnumPicker(const char *formatString, int *currentValue, int
 				(*currentValue)--;
 				onChange(*currentValue);
 			}
-			device->HotkeyCooldown(COOLDOWN_SHORT);
 		}
 		if (device->VPMENU_Input_Right() && device->HotkeysActive())
 		{
@@ -1799,12 +1775,10 @@ void MenuBuilder::AddEnumPicker(const char *formatString, int *currentValue, int
 				(*currentValue)++;
 				onChange(*currentValue);
 			}
-			device->HotkeyCooldown(COOLDOWN_SHORT);
 		}
 		if (device->VPMENU_Input_Selected() && device->HotkeysActive())
 		{
 			onActivate();
-			device->HotkeyCooldown(COOLDOWN_SHORT);
 		}
 	});
 	
