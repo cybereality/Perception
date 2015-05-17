@@ -34,6 +34,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Direct3DSurface9.h"
 #include "Direct3DDevice9.h"
 #include "IStereoCapableWrapper.h"
+#include "VireioUtil.h"
 #include <stdio.h>
 
 
@@ -67,6 +68,14 @@ public:
 	virtual IDirect3DSurface9* getActualLeft();
 	virtual IDirect3DSurface9* getActualRight();
 	virtual bool               IsStereo();
+	
+	inline IDirect3DSurface9* getSide(vireio::RenderPosition whichSide)
+	{
+		if(whichSide == vireio::Left)
+			return getActualLeft();
+		else
+			return getActualRight();
+	}
 
 protected:
 	/**

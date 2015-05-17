@@ -454,16 +454,15 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 	if (GetTickCount() - lastFPSTick > 500)
 	{
 		lastFPSTick = GetTickCount();
-		char buffer[256];
-		sprintf_s(buffer, "%.1f", fps);
-		//OutputDebugString((std::string("FPS: ") + buffer).c_str());
+		std::string fpsString = retprintf("%.1f", fps);
+		//OutputDebugString((std::string("FPS: ") + fpsString).c_str());
 
 		//Now write FPS to the registry for the Perception App (hopefully this is a very quick operation)
 		HKEY hKey;
 		LONG openRes = RegOpenKeyEx(HKEY_CURRENT_USER, "SOFTWARE\\Vireio\\Perception", 0, KEY_ALL_ACCESS , &hKey);
 		if (openRes==ERROR_SUCCESS)
 		{
-			RegSetValueEx(hKey, "FPS", 0, REG_SZ, (LPBYTE)buffer, strlen(buffer)+1);
+			RegSetValueEx(hKey, "FPS", 0, REG_SZ, fpsString.c_str(), fpsString.length()+1);
 			RegCloseKey(hKey);
 		}
 	}
@@ -937,12 +936,7 @@ HRESULT WINAPI D3DProxyDevice::SetRenderTarget(DWORD RenderTargetIndex, IDirect3
 	}
 	// Setting a render target
 	else {
-		if (m_currentRenderingSide == vireio::Left) {
-			result = BaseDirect3DDevice9::SetRenderTarget(RenderTargetIndex, newRenderTarget->getActualLeft());
-		}
-		else {
-			result = BaseDirect3DDevice9::SetRenderTarget(RenderTargetIndex, newRenderTarget->getActualRight());
-		}
+		result = BaseDirect3DDevice9::SetRenderTarget(RenderTargetIndex, newRenderTarget->getSide(m_currentRenderingSide));
 	}
 
 	//// update proxy collection of stereo render targets to reflect new actual render target ////
@@ -996,10 +990,7 @@ HRESULT WINAPI D3DProxyDevice::SetDepthStencilSurface(IDirect3DSurface9* pNewZSt
 
 	IDirect3DSurface9* pActualStencilForCurrentSide = NULL;
 	if (pNewDepthStencil) {
-		if (m_currentRenderingSide == vireio::Left)
-			pActualStencilForCurrentSide = pNewDepthStencil->getActualLeft();
-		else
-			pActualStencilForCurrentSide = pNewDepthStencil->getActualRight();
+		pActualStencilForCurrentSide = pNewDepthStencil->getSide(m_currentRenderingSide);
 	}
 
 	// Update actual depth stencil
@@ -3135,10 +3126,7 @@ bool D3DProxyDevice::setDrawingSide(vireio::RenderPosition side)
 	{
 		if ((pCurrentRT = m_activeRenderTargets[i]) != NULL) {
 
-			if (side == vireio::Left) 
-				result = BaseDirect3DDevice9::SetRenderTarget(i, pCurrentRT->getActualLeft()); 
-			else 
-				result = BaseDirect3DDevice9::SetRenderTarget(i, pCurrentRT->getActualRight());
+			result = BaseDirect3DDevice9::SetRenderTarget(i, pCurrentRT->getSide(side));
 
 			if (result != D3D_OK) {
 				OutputDebugString("Error trying to set one of the Render Targets while switching between active eyes for drawing.\n");
@@ -3159,10 +3147,7 @@ bool D3DProxyDevice::setDrawingSide(vireio::RenderPosition side)
 
 	// switch depth stencil to new side
 	if (m_pActiveStereoDepthStencil != NULL) { 
-		if (side == vireio::Left) 
-			result = BaseDirect3DDevice9::SetDepthStencilSurface(m_pActiveStereoDepthStencil->getActualLeft()); 
-		else 
-			result = BaseDirect3DDevice9::SetDepthStencilSurface(m_pActiveStereoDepthStencil->getActualRight());
+		result = BaseDirect3DDevice9::SetDepthStencilSurface(m_pActiveStereoDepthStencil->getSide(side));
 	}
 
 	// switch textures to new side
