@@ -1,5 +1,29 @@
 #include "ShaderConstantModificationFactory.h"
 
+bool MatrixIsOrtho(const D3DXMATRIX &matrix)
+{
+	// (This is not what defines an orthographic matrix, but apparently it's
+	// a reliable correlate? --jimrandomh)
+	return vireio::AlmostSame(matrix[15], 1.0f, 0.00001f);
+}
+
+bool MatrixIsHUD(const D3DXMATRIX &matrix)
+{
+	// Add all translation and scale matrix entries.
+	// For the GUI this should be 3.0f, for the HUD above.
+	// (I have no idea why that would be the case, I just refactored it to here. --jimrandomh)
+	float allAbs = abs(matrix(3, 0)); // transX
+	allAbs += abs(matrix(3, 1)); // transY
+	allAbs += abs(matrix(3, 2)); // transZ
+
+	allAbs += abs(matrix(0, 0)); // scaleX
+	allAbs += abs(matrix(1, 1)); // scaleY
+	allAbs += abs(matrix(2, 2)); // scaleZ
+	
+	return allAbs>3.0f;
+}
+
+
 /**
 * Calls twin function.
 ***/

@@ -58,7 +58,7 @@ public:
 	***/
 	virtual bool DoNotApply(D3DXMATRIX in)
 	{		
-		return vireio::AlmostSame(in[15], 1.0f, 0.00001f);
+		return MatrixIsOrtho(in);
 	}
 };
 #endif

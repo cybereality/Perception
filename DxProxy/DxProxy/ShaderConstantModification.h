@@ -88,4 +88,8 @@ protected:
 	*/
 	std::shared_ptr<ViewAdjustment> m_spAdjustmentMatrices;
 };
+
+bool MatrixIsOrtho(const D3DXMATRIX &matrix);
+bool MatrixIsHUD(const D3DXMATRIX &matrix);
+
 #endif

@@ -65,20 +65,10 @@ public:
 	***/
 	virtual void DoMatrixModification(D3DXMATRIX in, D3DXMATRIX& outLeft, D3DXMATRIX& outright)
 	{
-		if (vireio::AlmostSame(in[15], 1.0f, 0.00001f)) {
-
-			// add all translation and scale matrix entries 
-			// (for the GUI this should be 3.0f, for the HUD above)
-			float allAbs = abs(in(3, 0)); // transX
-			allAbs += abs(in(3, 1)); // transY
-			allAbs += abs(in(3, 2)); // transZ
-
-			allAbs += abs(in(0, 0)); // scaleX
-			allAbs += abs(in(1, 1)); // scaleY
-			allAbs += abs(in(2, 2)); // scaleZ
-
+		if (MatrixIsOrtho(in))
+		{
 			// HUD
-			if (allAbs > 3.0f)
+			if (MatrixIsHUD(in))
 			{
 				// separation -> distance translation
 				outLeft = in * m_spAdjustmentMatrices->LeftHUDMatrix();
