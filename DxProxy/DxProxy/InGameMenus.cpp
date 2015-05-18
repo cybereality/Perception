@@ -393,8 +393,11 @@ void D3DProxyDevice::VPMENU_MainMenu()
 		menu->AddNavigation("Shader Analyzer\n", [=]() { VPMENU_ShaderSubMenu(); });
 	}
 	
-	menu->AddNavigation("World-Scale Calibration\n", [=]() { VPMENU_WorldScale(); });
-	menu->AddNavigation("Convergence Adjustment\n", [=]() { VPMENU_Convergence(); });
+	menu->AddNavigation("3D Reconstruction Settings\n", [=]() { VPMENU_WorldScale(); });
+	if(config.stereo_mode < 100)
+	{
+		menu->AddNavigation("Convergence Adjustment\n", [=]() { VPMENU_Convergence(); });
+	}
 	
 	menu->AddEnumPicker("HUD Settings : %s", (int*)&hud3DDepthMode,
 		HUD_3D_Depth_Modes::HUD_ENUM_RANGE, [](int val) {
@@ -416,6 +419,7 @@ void D3DProxyDevice::VPMENU_MainMenu()
 	menu->AddNavigation("VRBoost Values\n", [=]() { VPMENU_VRBoostValues(); });
 	menu->AddNavigation("Position Tracking Configuration\n", [=]() { VPMENU_PosTracking(); });
 	menu->AddNavigation("General Hotkeys\n", [=]() { VPMENU_Hotkeys(); });
+	menu->AddNavigation("Debug Hotkeys\n", [=]() { VPMENU_Debug(); });
 	menu->AddNavigation("3D Adjustment Hotkeys\n", [=]() { VPMENU_AdjustmentHotkeys(); });
 	menu->AddNavigation("Comfort Mode Configuration\n", [=]() { VPMENU_ComfortMode(); });
 	
@@ -1134,6 +1138,21 @@ void D3DProxyDevice::VPMENU_Hotkeys()
 	VPMENU_FinishDrawing(menu);
 }
 
+void D3DProxyDevice::VPMENU_Debug()
+{
+	SHOW_CALL("VPMENU_Debug");
+	MenuBuilder *menu = VPMENU_NewFrame();
+	VPMENU_StartDrawing(menu, "Settings - Debug Hotkeys");	
+	menu->AddKeybind("Toggle Cube Renderers", &config.HotkeyToggleCubeRenders, defaultConfig.HotkeyToggleCubeRenders);
+	menu->AddKeybind("Toggle Texture Renderers", &config.HotkeyToggleTextureRenders, defaultConfig.HotkeyToggleTextureRenders);
+	menu->AddKeybind("Toggle When to Render Menu", &config.HotkeyWhenToRenderMenu, defaultConfig.HotkeyWhenToRenderMenu);
+	menu->AddKeybind("Toggle When to Poll Headtracking", &config.HotkeyWhenToPollHeadtracking, defaultConfig.HotkeyWhenToPollHeadtracking);
+	menu->AddKeybind("Prev Render State", &config.HotkeyPrevRenderState, defaultConfig.HotkeyPrevRenderState);
+	menu->AddKeybind("Next Render State", &config.HotkeyNextRenderState, defaultConfig.HotkeyNextRenderState);
+	menu->AddBackButtons();
+	VPMENU_FinishDrawing(menu);
+}
+
 void D3DProxyDevice::VPMENU_AdjustmentHotkeys()
 {
 	SHOW_CALL("VPMENU_AdjustmentHotkeys");
@@ -1142,10 +1161,6 @@ void D3DProxyDevice::VPMENU_AdjustmentHotkeys()
 	
 	menu->AddKeybind("Switch 2D Depth Mode", &config.HotkeySwitch2DDepthMode, defaultConfig.HotkeySwitch2DDepthMode);
 	menu->AddKeybind("Swap Sides Hotkey", &config.HotkeySwapSides, defaultConfig.HotkeySwapSides);
-	menu->AddKeybind("Toggle Cube Renderers", &config.HotkeyToggleCubeRenders, defaultConfig.HotkeyToggleCubeRenders);
-	menu->AddKeybind("Toggle Texture Renderers", &config.HotkeyToggleTextureRenders, defaultConfig.HotkeyToggleTextureRenders);
-	menu->AddKeybind("Toggle When to Render Menu", &config.HotkeyWhenToRenderMenu, defaultConfig.HotkeyWhenToRenderMenu);
-	menu->AddKeybind("Toggle When to Poll Headtracking", &config.HotkeyWhenToPollHeadtracking, defaultConfig.HotkeyWhenToPollHeadtracking);
 	menu->AddKeybind("Initiate VRBoost Memory Scan", &config.HotkeyInitiateScan, defaultConfig.HotkeyInitiateScan);
 	menu->AddKeybind("DK2 Black Smear Correction", &config.HotkeyBlackSmear, defaultConfig.HotkeyBlackSmear);
 	menu->AddKeybind("Reset IPD Offset", &config.HotkeyResetIPDOffset, defaultConfig.HotkeyResetIPDOffset);
@@ -1154,11 +1169,9 @@ void D3DProxyDevice::VPMENU_AdjustmentHotkeys()
 	menu->AddKeybind("Toggle Positional Tracking", &config.HotkeyTogglePositionalTracking, defaultConfig.HotkeyTogglePositionalTracking);
 	menu->AddKeybind("Toggle Pose Prediction", &config.HotkeyTogglePosePrediction, defaultConfig.HotkeyTogglePosePrediction);
 	menu->AddKeybind("Toggle Chromatic Abberation Correction", &config.HotkeyToggleChromaticAbberationCorrection, defaultConfig.HotkeyToggleChromaticAbberationCorrection);
-	
 	menu->AddKeybind("Distortion Scale Plus", &config.HotkeyDistortionScalePlus, defaultConfig.HotkeyDistortionScalePlus);
 	menu->AddKeybind("Distortion Scale Minus", &config.HotkeyDistortionScaleMinus, defaultConfig.HotkeyDistortionScaleMinus);
-	menu->AddKeybind("Prev Render State", &config.HotkeyPrevRenderState, defaultConfig.HotkeyPrevRenderState);
-	menu->AddKeybind("Next Render State", &config.HotkeyNextRenderState, defaultConfig.HotkeyNextRenderState);
+	
 	
 	menu->AddBackButtons();
 	VPMENU_FinishDrawing(menu);

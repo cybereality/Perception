@@ -260,6 +260,16 @@ public:
 	};
 
 	/**
+	* 3D Reconstruction enumeration
+	***/
+	enum Reconstruction_Type
+	{
+		GEOMETRY = 1,
+		ZBUFFER = 2,
+		MONOSCOPIC = 3
+	};
+
+	/**
 	* Pose Assist stages
 	***/
 	enum DuckAndCoverMode
@@ -381,7 +391,7 @@ public:
 	/**
 	* What 3D mode is used
 	**/
-	bool m_b2dDepthMode;
+	int m_3DReconstructionMode;
 
 protected:
 	/*** D3DProxyDevice protected methods ***/
@@ -450,6 +460,7 @@ protected:
 	void VPMENU_ComfortMode();
 	void VPMENU_VRBoostValues();
 	void VPMENU_Hotkeys();
+	void VPMENU_Debug();
 	void VPMENU_AdjustmentHotkeys();
 	
 	void VPMENU_UpdateCooldowns();

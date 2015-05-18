@@ -394,20 +394,23 @@ void D3DProxyDevice::HandleControls()
 		// switch to 2d Depth Mode (Shift + O / Numpad 9)
 		if (config.HotkeySwitch2DDepthMode->IsPressed(controls) && HotkeysActive())
 		{
-			m_b2dDepthMode = !m_b2dDepthMode;
-			stereoView->m_b2dDepthMode = m_b2dDepthMode;
-			ShowAdjusterToast(retprintf("Depth Perception Mode %s",
-				m_b2dDepthMode?"On":"Off"), 1000);
+			m_3DReconstructionMode++;
+			if (m_3DReconstructionMode == 4)
+				m_3DReconstructionMode = Reconstruction_Type::GEOMETRY;
+			stereoView->m_3DReconstructionMode = m_3DReconstructionMode;
+			if(m_3DReconstructionMode == Reconstruction_Type::GEOMETRY)
+				ShowAdjusterToast(retprintf("Depth Perception Mode %s","Geometry"), 1000);
+			else if(m_3DReconstructionMode == Reconstruction_Type::ZBUFFER)
+				ShowAdjusterToast(retprintf("Depth Perception Mode %s","Z Buffer"), 1000);
+			else
+				ShowAdjusterToast(retprintf("Depth Perception Mode %s","Mono"), 1000);
 		}
 
 		// Swap Sides on Depth mode (Alt + O)
 		if (config.HotkeySwapSides->IsPressed(controls) && HotkeysActive())
 		{
-			if(m_b2dDepthMode)
-			{
-				stereoView->m_bLeftSideActive = !stereoView->m_bLeftSideActive;
-				ShowAdjusterToast("Depth Perception Side Switched", 1000);
-			}
+			stereoView->m_bLeftSideActive = !stereoView->m_bLeftSideActive;
+			ShowAdjusterToast("Depth Perception Side Switched", 1000);			
 		}
 
 		// cycle Render States
