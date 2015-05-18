@@ -231,6 +231,7 @@ public:
 		GAMEBRYO_SKYRIM = 601,     /**< Skyrim's Creation Engine still has at least some Gamebryo in it. */
 		LFS = 700,                 /**< Live for Speed (LFS) is a racing simulator developed by a three person team comprising Scawen Roberts, Eric Bailey, and Victor van Vlaardingen. */
 		CDC = 800,                 /**< Proprietary game engine developed by Crystal Dynamics. */
+		CDC_TOMB_RAIDER = 801,     /**< Proprietary game engine developed by Crystal Dynamics. */
 		CHROME = 900,              /**< Chrome Engine (Dead Island / Call of Juarez). */
 		DEBUG_LOG_FILE = 99999     /**< Debug log file output game type. For development causes. Do not use since slows down game extremely. */
 	};
@@ -611,9 +612,6 @@ protected:
  	* Maximum Distortion Scale the Quicklinks will zoom to
  	**/
  	float m_maxDistortionScale;
-
-	float m_projectionHFOV;
-
 	/**
 	* Whether we are in telescope mode
 	*/

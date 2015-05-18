@@ -473,7 +473,7 @@ void D3DProxyDevice::VPMENU_WorldScale()
 	{
 		float separationChange = 0.005f * VPMENU_Input_GetAdjustment();;
 		m_spShaderViewAdjustment->ChangeWorldScale(separationChange);
-		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, m_projectionHFOV);
+		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, config.PFOV);
 	}
 	
 	// handle border height (=scrollbar scroll height)
@@ -620,7 +620,7 @@ void D3DProxyDevice::VPMENU_Convergence()
 		"be enabled for 3D monitors, and disabled for head-mounted\n"
 		"displays.");
 	menu->AddToggle("Convergence : %s", "ON", "OFF", &config.convergenceEnabled, defaultConfig.convergenceEnabled, [=]() {
-		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, m_projectionHFOV);
+		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, config.PFOV);
 	});
 	
 	if(config.convergenceEnabled)
@@ -628,7 +628,7 @@ void D3DProxyDevice::VPMENU_Convergence()
 		menu->AddAdjustment("Distance Adjustment : %g", &config.convergence, defaultConfig.convergence, 0.05f, [=]() {
 			vireio::clamp(&config.convergence, -10.0f, 10.0f);
 			m_spShaderViewAdjustment->SetConvergence(config.convergence);
-			m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, m_projectionHFOV);
+			m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, config.PFOV);
 		});
 		
 		menu->AddNavigation("Adjustment Test Pattern", [=]() { VPMENU_ConvergenceCalibrator(); });
@@ -650,7 +650,7 @@ void D3DProxyDevice::VPMENU_ConvergenceCalibrator()
 	{
 		float convergenceChange = 0.05f * VPMENU_Input_GetAdjustment();
 		m_spShaderViewAdjustment->ChangeConvergence(convergenceChange);
-		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, m_projectionHFOV);
+		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, config.PFOV);
 	}
 	
 
@@ -1443,6 +1443,11 @@ void D3DProxyDevice::VPMENU_UpdateDeviceSettings()
 		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
 		break;
 	case D3DProxyDevice::CDC:
+		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::END_SCENE;
+		break;
+	case D3DProxyDevice::CDC_TOMB_RAIDER:
+		//WIthout doing this, we get no VP Menu
+		m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::END_SCENE;
 		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::END_SCENE;
 		break;
 	case D3DProxyDevice::CHROME:
