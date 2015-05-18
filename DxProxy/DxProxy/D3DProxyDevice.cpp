@@ -110,8 +110,7 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	m_saveConfigTimer(MAXDWORD),
 	m_comfortModeYaw(0.0f),
 	m_disableAllHotkeys(false),
-	menuState(this),
-	m_projectionHFOV(110.0f)
+	menuState(this)
 {
 	m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::BEFORE_COMPOSITING;
 	m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::AFTER_COMPOSITING;
@@ -138,7 +137,7 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	fMinFPS = 73;
 	
 	bSkipFrame = false;
-	m_b2dDepthMode = false;
+	m_3DReconstructionMode = Reconstruction_Type::GEOMETRY;
 
 	D3DXMatrixIdentity(&m_leftView);
 	D3DXMatrixIdentity(&m_rightView);
@@ -447,7 +446,7 @@ HRESULT WINAPI D3DProxyDevice::CreateTexture(UINT Width,UINT Height,UINT Levels,
 	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateTexture(Width, Height, Levels, Usage, Format, Pool, &pLeftTexture, pSharedHandle))) {
 
 		// Does this Texture need duplicating?
-		if (!m_b2dDepthMode && m_pGameHandler->ShouldDuplicateTexture(Width, Height, Levels, Usage, Format, Pool)) {
+		if (m_3DReconstructionMode == Reconstruction_Type::GEOMETRY && m_pGameHandler->ShouldDuplicateTexture(Width, Height, Levels, Usage, Format, Pool)) {
 
 			if (FAILED(BaseDirect3DDevice9::CreateTexture(Width, Height, Levels, Usage, Format, Pool, &pRightTexture, pSharedHandle))) {
 				OutputDebugString("Failed to create right eye texture while attempting to create stereo pair, falling back to mono\n");
@@ -504,7 +503,7 @@ HRESULT WINAPI D3DProxyDevice::CreateCubeTexture(UINT EdgeLength, UINT Levels, D
 	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateCubeTexture(EdgeLength, Levels, Usage, Format, Pool, &pLeftCubeTexture, pSharedHandle))) {
 
 		// Does this Texture need duplicating?
-		if (!m_b2dDepthMode && m_pGameHandler->ShouldDuplicateCubeTexture(EdgeLength, Levels, Usage, Format, Pool)) {
+		if (m_3DReconstructionMode == Reconstruction_Type::GEOMETRY && m_pGameHandler->ShouldDuplicateCubeTexture(EdgeLength, Levels, Usage, Format, Pool)) {
 
 			if (FAILED(BaseDirect3DDevice9::CreateCubeTexture(EdgeLength, Levels, Usage, Format, Pool, &pRightCubeTexture, pSharedHandle))) {
 				OutputDebugString("Failed to create right eye texture while attempting to create stereo pair, falling back to mono\n");
@@ -591,9 +590,9 @@ HRESULT WINAPI D3DProxyDevice::CreateDepthStencilSurface(UINT Width,UINT Height,
 	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateDepthStencilSurface(Width, Height, Format, MultiSample, MultisampleQuality, Discard, &pDepthStencilSurfaceLeft, pSharedHandle))) {
 
 		// TODO Should we always duplicated Depth stencils? I think yes, but there may be exceptions
-		if (!m_b2dDepthMode && m_pGameHandler->ShouldDuplicateDepthStencilSurface(Width, Height, Format, MultiSample, MultisampleQuality, Discard)) 
+		if (m_3DReconstructionMode == Reconstruction_Type::GEOMETRY && m_pGameHandler->ShouldDuplicateDepthStencilSurface(Width, Height, Format, MultiSample, MultisampleQuality, Discard)) 
 		{
-			if (m_b2dDepthMode || FAILED(BaseDirect3DDevice9::CreateDepthStencilSurface(Width, Height, Format, MultiSample, MultisampleQuality, Discard, &pDepthStencilSurfaceRight, pSharedHandle))) {
+			if (FAILED(BaseDirect3DDevice9::CreateDepthStencilSurface(Width, Height, Format, MultiSample, MultisampleQuality, Discard, &pDepthStencilSurfaceRight, pSharedHandle))) {
 				OutputDebugString("Failed to create right eye Depth Stencil Surface while attempting to create stereo pair, falling back to mono\n");
 				pDepthStencilSurfaceRight = NULL;
 			}
@@ -811,7 +810,7 @@ HRESULT WINAPI D3DProxyDevice::ColorFill(IDirect3DSurface9* pSurface,CONST RECT*
 	D3D9ProxySurface* pDerivedSurface = static_cast<D3D9ProxySurface*> (pSurface);
 	if (SUCCEEDED(result = BaseDirect3DDevice9::ColorFill(pDerivedSurface->getActualLeft(), pRect, color)))
 	{
-		if (!m_b2dDepthMode && pDerivedSurface->IsStereo())
+		if (m_3DReconstructionMode == Reconstruction_Type::GEOMETRY && pDerivedSurface->IsStereo())
 			BaseDirect3DDevice9::ColorFill(pDerivedSurface->getActualRight(), pRect, color);
 	}
 
@@ -1067,14 +1066,6 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 		// set vertex shader call count to zero
 		m_VertexShaderCount = 0;
 	}
-	else
-	{
-		// draw
-		if (m_deviceBehavior.whenToRenderVPMENU == DeviceBehavior::WhenToDo::BEGIN_SCENE)
-		{
-			VPMENU();
-		}
-	}
 
 	return BaseDirect3DDevice9::BeginScene();
 }
@@ -1101,7 +1092,7 @@ HRESULT WINAPI D3DProxyDevice::Clear(DWORD Count,CONST D3DRECT* pRects,DWORD Fla
 	HRESULT result;
 
 	if (SUCCEEDED(result = BaseDirect3DDevice9::Clear(Count, pRects, Flags, Color, Z, Stencil))) {
-		if (!m_b2dDepthMode && switchDrawingSide()) {
+		if (m_3DReconstructionMode == Reconstruction_Type::GEOMETRY && switchDrawingSide()) {
 			HRESULT hr;
 			if (FAILED(hr = BaseDirect3DDevice9::Clear(Count, pRects, Flags, Color, Z, Stencil))) {
 
@@ -1228,7 +1219,7 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 		if (m_pCapturingStateTo) {
 
 			m_pCapturingStateTo->SelectAndCaptureProjectionTransform(tempLeft, tempRight);
-			pProjectionToSet = (m_currentRenderingSide == vireio::Left) ? &tempRight : &tempRight;
+			pProjectionToSet = (m_currentRenderingSide == vireio::Left) ? &tempLeft : &tempRight;
 		}
 		else { // otherwise update proxy device
 
@@ -1530,7 +1521,7 @@ HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitiveUP(D3DPRIMITIVETYPE Primitive
 	return DrawBothSides([=]()
 	{
 		return BaseDirect3DDevice9::DrawIndexedPrimitiveUP(PrimitiveType, MinVertexIndex, NumVertices, PrimitiveCount, pIndexData, IndexDataFormat, pVertexStreamZeroData, VertexStreamZeroStride);
-	});;
+	});
 }
 
 /**
@@ -2131,7 +2122,7 @@ HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFO
 		/* "If Needed" heuristic is the complicated part here.
 		Fixed heuristics (based on type, format, size, etc) + game specific overrides + isForcedMono + magic? */
 		// TODO Should we duplicate this Render Target? Replace "true" with heuristic
-		if (!m_b2dDepthMode && m_pGameHandler->ShouldDuplicateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, isSwapChainBackBuffer))
+		if (m_3DReconstructionMode == Reconstruction_Type::GEOMETRY && m_pGameHandler->ShouldDuplicateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, isSwapChainBackBuffer))
 		{
 			if (FAILED(BaseDirect3DDevice9::CreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, &pRightRenderTarget, pSharedHandle))) {
 				OutputDebugString("Failed to create right eye render target while attempting to create stereo pair, falling back to mono\n");
@@ -2184,7 +2175,7 @@ void D3DProxyDevice::Init(ProxyConfig& cfg)
 	stereoView = StereoViewFactory::Get(&config, m_spShaderViewAdjustment->HMDInfo());
 	stereoView->HeadYOffset = 0;
 	stereoView->HeadZOffset = FLT_MAX;
-	stereoView->m_b2dDepthMode = false;	
+	stereoView->m_3DReconstructionMode = 1;	
 
 	m_maxDistortionScale = config.DistortionScale;
 
@@ -2993,7 +2984,7 @@ void D3DProxyDevice::OnCreateOrRestore()
 
 	stereoView->Init(getActual());
 
-	m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, m_projectionHFOV);
+	m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, config.PFOV);
 	m_spShaderViewAdjustment->ComputeViewTransforms();
 
 	// set VP main values
@@ -3151,7 +3142,7 @@ HRESULT D3DProxyDevice::DrawBothSides(std::function<HRESULT()> drawOneSide)
 
 	HRESULT result = drawOneSide();
 	if (SUCCEEDED(result)) {
-		if (!m_b2dDepthMode && switchDrawingSide())
+		if (m_3DReconstructionMode == Reconstruction_Type::GEOMETRY && switchDrawingSide())
 		{
 			result = drawOneSide();
 		}

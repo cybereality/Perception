@@ -285,57 +285,33 @@ void ViewAdjustment::ComputeViewTransforms()
 		D3DXMatrixTranslation(&transformRight, SeparationInWorldUnits() * RIGHT_CONSTANT, 0, 0);
 	}
 	
-	// projection transform, no roll
-	if (m_usePFOV)
-	{
-		matViewProjTransformLeftNoRoll = matProjectionInv * transformLeft * projectPFOV;
-		matViewProjTransformRightNoRoll = matProjectionInv * transformRight * projectPFOV;
+	// optionalRollMatrix: Either a rotation matrix that applies roll, or the identity
+	// matrix, depending on config->rollImpl.
+	D3DXMATRIX optionalRollMatrix;
+	if (config->rollImpl == 1) {
+		optionalRollMatrix = rollMatrix;
+	} else {
+		D3DXMatrixIdentity(&optionalRollMatrix);
+	}
 	
-		// head roll - only if using translation implementation
-		if (config->rollImpl == 1) {
-			D3DXMatrixMultiply(&transformLeft, &rollMatrix, &transformLeft);
-			D3DXMatrixMultiply(&transformRight, &rollMatrix, &transformRight);
+	D3DXMATRIX projectLeftOrPFOV  = m_usePFOV ? projectPFOV : projectLeftConverge;
+	D3DXMATRIX projectRightOrPFOV = m_usePFOV ? projectPFOV : projectRightConverge;
+	
+	// projection transform, no roll
+	matViewProjTransformLeftNoRoll = matProjectionInv * transformLeft * projectLeftOrPFOV;
+	matViewProjTransformRightNoRoll = matProjectionInv * transformRight * projectRightOrPFOV;
 
-			// projection 
-			matViewProjLeft = matProjectionInv * rollMatrix * projectPFOV;
-			matViewProjRight = matProjectionInv * rollMatrix * projectPFOV;
-		}
-		else
-		{
-			// projection 
-			matViewProjLeft = matProjectionInv * projectPFOV;
-			matViewProjRight = matProjectionInv * projectPFOV;
-		}
+	// head roll - only if using translation implementation
+	transformLeft = optionalRollMatrix * transformLeft;
+	transformRight = optionalRollMatrix * transformRight;
+	
+	// projection
+	matViewProjLeft = matProjectionInv * optionalRollMatrix * projectLeftOrPFOV;
+	matViewProjRight = matProjectionInv * optionalRollMatrix * projectRightOrPFOV;
 
-		// projection transform
-		matViewProjTransformLeft = matProjectionInv * transformLeft * projectPFOV;
-		matViewProjTransformRight = matProjectionInv * transformRight * projectPFOV;
-	}
-	else
-	{
-		matViewProjTransformLeftNoRoll = matProjectionInv * transformLeft * projectLeftConverge;
-		matViewProjTransformRightNoRoll = matProjectionInv * transformRight * projectRightConverge;
-		// head roll - only if using translation implementation
-		if (config->rollImpl == 1) {
-			D3DXMatrixMultiply(&transformLeft, &rollMatrix, &transformLeft);
-			D3DXMatrixMultiply(&transformRight, &rollMatrix, &transformRight);
-
-			// projection 
-			matViewProjLeft = matProjectionInv * rollMatrix * projectLeftConverge;
-			matViewProjRight = matProjectionInv * rollMatrix * projectRightConverge;
-		}
-		else
-		{
-			// projection 
-			matViewProjLeft = matProjectionInv * projectLeftConverge;
-			matViewProjRight = matProjectionInv * projectRightConverge;
-		}
-
-		// projection transform
-		matViewProjTransformLeft = matProjectionInv * transformLeft * projectLeftConverge;
-		matViewProjTransformRight = matProjectionInv * transformRight * projectRightConverge;
-	}
-
+	// projection transform
+	matViewProjTransformLeft = matProjectionInv * transformLeft * projectLeftOrPFOV;
+	matViewProjTransformRight = matProjectionInv * transformRight * projectRightOrPFOV;
 
 	// now, create HUD/GUI helper matrices
 
@@ -363,7 +339,7 @@ void ViewAdjustment::ComputeViewTransforms()
 	D3DXMatrixTranslation(&matLeftGui3DDepth, gui3DDepth+SeparationIPDAdjustment(), 0, 0);
 	D3DXMatrixTranslation(&matRightGui3DDepth, -(gui3DDepth+SeparationIPDAdjustment()), 0, 0);
 
-	// gui/hud matrices - JUst use the default projection not the PFOV
+	// gui/hud matrices - Just use the default projection not the PFOV
 	matHudLeft = matProjectionInv * matLeftHud3DDepth * transformLeft * matHudDistance *  matBasicProjection;
 	matHudRight = matProjectionInv * matRightHud3DDepth * transformRight * matHudDistance * matBasicProjection;
 	matGuiLeft =  matProjectionInv * matLeftGui3DDepth * matSquash * matBasicProjection;

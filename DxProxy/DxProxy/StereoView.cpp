@@ -143,6 +143,9 @@ StereoView::StereoView(ProxyConfig *config)
 	case D3DProxyDevice::CDC:
 		howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;
 		break;
+	case D3DProxyDevice::CDC_TOMB_RAIDER:
+		howToSaveRenderStates = HowToSaveRenderStates::ALL_STATES_MANUALLY;
+		break;
 	case D3DProxyDevice::CHROME:
 		howToSaveRenderStates = HowToSaveRenderStates::ALL_STATES_MANUALLY;
 		break;
@@ -174,6 +177,9 @@ void StereoView::Init(IDirect3DDevice9* pActualDevice)
 	}
 
 	m_pActualDevice = pActualDevice;
+	m_fZBufferStrength = 500.0f;	
+	m_bZBufferFilterMode = false;
+	m_fZBufferFilter = 0.0f;
 
 	InitShaderEffects();
 	InitTextureBuffers();
@@ -314,7 +320,7 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 	IDirect3DSurface9* leftImage;
 	IDirect3DSurface9* rightImage;	
 	
-	if(m_b2dDepthMode == true)
+	if(m_3DReconstructionMode != 1) // Geometry
 	{
 		if(m_bLeftSideActive == true)
 		{
