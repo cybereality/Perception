@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -103,7 +103,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;DXPROXY_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(DXSDK_DIR)\Include;$(DX)\Include;$(FREESPACE)\include;$(SolutionDir)\VRBoostReferee</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(DXSDK_DIR)\Include;$(DX)\Include;$(FREESPACE)\include;$(SolutionDir)\VRBoostReferee;$(SolutionDir)\Shared</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -133,7 +133,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;DXPROXY_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(DXSDK_DIR)\Include;$(DX)\Include;$(FREESPACE)\include;$(SolutionDir)\VRBoostReferee</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(DXSDK_DIR)\Include;$(DX)\Include;$(FREESPACE)\include;$(SolutionDir)\VRBoostReferee;$(SolutionDir)\Shared</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -165,7 +165,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;DXPROXY_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(DXSDK_DIR)\Include;$(DX)\Include;$(FREESPACE)\include;$(SolutionDir)\VRboostReferee;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(DXSDK_DIR)\Include;$(DX)\Include;$(FREESPACE)\include;$(SolutionDir)\VRboostReferee;$(SolutionDir)\Shared</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -197,7 +197,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>x64;WIN32;NDEBUG;_WINDOWS;_USRDLL;DXPROXY_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(DXSDK_DIR)\Include;$(DX)\Include;$(FREESPACE)\include;$(SolutionDir)\VRboostReferee;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(DXSDK_DIR)\Include;$(DX)\Include;$(FREESPACE)\include;$(SolutionDir)\VRboostReferee;$(SolutionDir)\Shared</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -255,19 +255,20 @@
     <ClCompile Include="Direct3DVolume9.cpp" />
     <ClCompile Include="Direct3DVolumeTexture9.cpp" />
     <ClCompile Include="DirectInput.cpp" />
+    <ClCompile Include="DirectXInputControls.cpp" />
     <ClCompile Include="FreeSpaceTracker.cpp" />
     <ClCompile Include="FreeTrackTracker.cpp" />
     <ClCompile Include="GameHandler.cpp" />
     <ClCompile Include="HMDisplayInfoFactory.cpp" />
-    <ClCompile Include="InputControls.cpp" />
+    <ClCompile Include="Hotkeys.cpp" />
+    <ClCompile Include="InGameMenus.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MotionTracker.cpp" />
     <ClCompile Include="MotionTrackerFactory.cpp" />
     <ClCompile Include="MurmurHash3.cpp" />
     <ClCompile Include="OculusRiftView.cpp" />
     <ClCompile Include="OculusTracker.cpp" />
-    <ClCompile Include="ProxyHelper.cpp" />
-    <ClCompile Include="pugixml.cpp" />
+    <ClCompile Include="Popup.cpp" />
     <ClCompile Include="DataGatherer.cpp" />
     <ClCompile Include="ShaderModificationRepository.cpp" />
     <ClCompile Include="ShaderRegisters.cpp" />
@@ -278,6 +279,13 @@
     <ClCompile Include="StereoViewInterleave.cpp" />
     <ClCompile Include="ViewAdjustment.cpp" />
     <ClCompile Include="Vireio.cpp" />
+    <ClCompile Include="..\..\Shared\pugixml.cpp" />
+    <ClCompile Include="..\..\Shared\VireioUtil.cpp" />
+    <ClCompile Include="..\..\Shared\ProxyHelper.cpp" />
+    <ClCompile Include="..\..\Shared\InputControls.cpp" />
+    <ClCompile Include="..\..\Shared\json\json_reader.cpp" />
+    <ClCompile Include="..\..\Shared\json\json_value.cpp" />
+    <ClCompile Include="..\..\Shared\json\json_writer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="D3D9ProxyCubeTexture.h" />
@@ -293,12 +301,12 @@
     <ClInclude Include="Direct3D9Ex.h" />
     <ClInclude Include="Direct3DDevice9Ex.h" />
     <ClInclude Include="DirectInput.h" />
+    <ClInclude Include="DirectXInputControls.h" />
     <ClInclude Include="GameHandler.h" />
     <ClInclude Include="HMDisplayInfo.h" />
     <ClInclude Include="HMDisplayInfoFactory.h" />
     <ClInclude Include="HMDisplayInfo_Default.h" />
     <ClInclude Include="HMDisplayInfo_OculusRift.h" />
-    <ClInclude Include="InputControls.h" />
     <ClInclude Include="MatrixDoNothing.h" />
     <ClInclude Include="MatrixGatheredOrhoSquash.h" />
     <ClInclude Include="MatrixGuiSquash.h" />
@@ -320,7 +328,6 @@
     <ClInclude Include="ShaderObjectType.h" />
     <ClInclude Include="Vector4DeadIslandScaled.h" />
     <ClInclude Include="Vector4EyeShiftUnity.h" />
-    <ClInclude Include="Version.h" />
     <ClInclude Include="ViewAdjustment.h" />
     <ClInclude Include="Vireio.h" />
     <ClInclude Include="MurmurHash3.h" />
@@ -355,9 +362,6 @@
     <ClInclude Include="MotionTrackerFactory.h" />
     <ClInclude Include="OculusRiftView.h" />
     <ClInclude Include="OculusTracker.h" />
-    <ClInclude Include="ProxyHelper.h" />
-    <ClInclude Include="pugiconfig.hpp" />
-    <ClInclude Include="pugixml.hpp" />
     <ClInclude Include="SharedMemoryTracker.h" />
     <ClInclude Include="IStereoCapableWrapper.h" />
     <ClInclude Include="StereoShaderConstant.h" />
@@ -366,6 +370,23 @@
     <ClInclude Include="StereoViewInterleave.h" />
     <ClInclude Include="MotionTracker.h" />
     <ClInclude Include="Vector4SimpleTranslate.h" />
+    <ClInclude Include="..\..\Shared\pugixml.hpp" />
+    <ClInclude Include="..\..\Shared\pugiconfig.hpp" />
+    <ClInclude Include="..\..\Shared\Version.h" />
+    <ClInclude Include="..\..\Shared\VireioUtil.h" />
+    <ClInclude Include="..\..\Shared\ProxyHelper.h" />
+    <ClInclude Include="..\..\Shared\InputControls.h" />
+    <ClInclude Include="..\..\Shared\json\assertions.h" />
+    <ClInclude Include="..\..\Shared\json\autolink.h" />
+    <ClInclude Include="..\..\Shared\json\config.h" />
+    <ClInclude Include="..\..\Shared\json\features.h" />
+    <ClInclude Include="..\..\Shared\json\forwards.h" />
+    <ClInclude Include="..\..\Shared\json\json.h" />
+    <ClInclude Include="..\..\Shared\json\json_tool.h" />
+    <ClInclude Include="..\..\Shared\json\reader.h" />
+    <ClInclude Include="..\..\Shared\json\value.h" />
+    <ClInclude Include="..\..\Shared\json\version.h" />
+    <ClInclude Include="..\..\Shared\json\writer.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\Release\Perception\cfg\config.xml">

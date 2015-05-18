@@ -258,13 +258,11 @@ HIJACKDLL_API void RemoveHook()
 
 void ParsePaths()
 {
-	dllDir = (LPCSTR)malloc(512*sizeof(char));
-	proxyDll = (LPCSTR)malloc(512*sizeof(char));
 	proxyDllW = (LPCWSTR)malloc(512*sizeof(wchar_t));
 
 	ProxyHelper helper = ProxyHelper();
-	helper.GetPath((char*)dllDir, "bin\\");
-	helper.GetPath((char*)proxyDll, "bin\\d3d9.dll");
+	dllDir = _strdup(helper.GetPath("bin\\").c_str());
+	proxyDll = _strdup(helper.GetPath("bin\\d3d9.dll").c_str());
 	mbstowcs_s(NULL, (wchar_t*)proxyDllW, 512, proxyDll, 512);
 }
 #endif

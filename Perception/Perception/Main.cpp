@@ -225,14 +225,13 @@ public:
 		combobox2 = new combobox_control(instance_handle, window_handle, text, 20, 115, 1002);
 		combobox3 = new combobox_control(instance_handle, window_handle, text, 20, 149, 1003);
 
-		char viewPath[512];
 		ProxyHelper helper = ProxyHelper();
-		helper.GetPath(viewPath, "img\\logo.bmp");
+		std::string viewPath = helper.GetPath("img\\logo.bmp");
 
-		logo_bitmap = (HBITMAP)LoadImage(NULL,viewPath,IMAGE_BITMAP,0,0,LR_LOADFROMFILE);
+		logo_bitmap = (HBITMAP)LoadImage(NULL,viewPath.c_str(),IMAGE_BITMAP,0,0,LR_LOADFROMFILE);
 		OutputDebugString("Load the bitmap\n");
 
-		ProxyHelper::ProxyConfig cfg;
+		ProxyConfig cfg;
 		helper.LoadUserConfig(cfg, oculusProfile);
 
 		SetCursor(LoadCursor(NULL, IDC_ARROW)); 

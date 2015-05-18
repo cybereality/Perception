@@ -40,7 +40,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * @param config Game configuration.
 * @param hmd Oculus Rift Head Mounted Display info.
 ***/ 
-OculusRiftView::OculusRiftView(ProxyHelper::ProxyConfig& config, HMDisplayInfo *hmd) : StereoView(config),
+OculusRiftView::OculusRiftView(ProxyConfig *config, HMDisplayInfo *hmd) : StereoView(config),
 	hmdInfo(hmd),
 	m_logoTexture(NULL),
 	m_prevTexture(NULL)
@@ -67,9 +67,7 @@ void OculusRiftView::ReleaseEverything()
 ***/ 
 void OculusRiftView::SetViewEffectInitialValues() 
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("OculusRiftView::SetViewEffectInitialValues\n");
-	#endif
+	SHOW_CALL("OculusRiftView::SetViewEffectInitialValues\n");
 
 	viewEffect->SetFloatArray("LensCenter", LensCenter, 2);
 	viewEffect->SetFloatArray("Scale", Scale, 2);
@@ -160,16 +158,14 @@ void OculusRiftView::SetVRMouseSquish(float squish)
 ***/ 
 void OculusRiftView::CalculateShaderVariables()
 {
-	#ifdef SHOW_CALLS
-	OutputDebugString("OculusRiftView::CalculateShaderVariables\n");
-	#endif
+	SHOW_CALL("OculusRiftView::CalculateShaderVariables");
 
 	// Center of half screen is 0.25 in x (halfscreen x input in 0 to 0.5 range)
 	// Lens offset is in a -1 to 1 range. Using in shader with a 0 to 0.5 range so use 25% of the value.
-	LensCenter[0] = 0.25f + (hmdInfo->GetLensXCenterOffset() * 0.25f) - (hmdInfo->GetLensIPDCenterOffset() - IPDOffset);
+	LensCenter[0] = 0.25f + (hmdInfo->GetLensXCenterOffset() * 0.25f) - (hmdInfo->GetLensIPDCenterOffset() - config->IPDOffset);
 
 	// Center of halfscreen range is 0.5 in y (halfscreen y input in 0 to 1 range)
-	LensCenter[1] = hmdInfo->GetLensYCenterOffset() - YOffset; 
+	LensCenter[1] = hmdInfo->GetLensYCenterOffset() - config->YOffset; 
 		
 	ViewportXOffset = XOffset;
 	ViewportYOffset = HeadYOffset;
@@ -204,7 +200,7 @@ void OculusRiftView::CalculateShaderVariables()
 	// y is changed from 0 to 1 to 0 to 2 and scaled to account for aspect ratio
 	ScaleIn[1] = 2.0f / (inputTextureAspectRatio * 0.5f); // 1/2 aspect ratio for differing input ranges
 	
-	float scaleFactor = (1.0f / (hmdInfo->GetScaleToFillHorizontal() + DistortionScale));
+	float scaleFactor = (1.0f / (hmdInfo->GetScaleToFillHorizontal() + config->DistortionScale));
 	float glide = (sinf(1 + (-cosf(m_screenViewGlideFactor * 3.142f) / 2)) - 0.5f) * 2.0f;
 
 	//GB This should change the zoom - not the scale factor
@@ -212,7 +208,7 @@ void OculusRiftView::CalculateShaderVariables()
 	if (HeadZOffset != FLT_MAX)
 	{
 		m_zoom = (ZoomOutScale * ((glide * 0.333f) + 0.666f)) + HeadZOffset;
-		m_zoom = max(0.4, m_zoom);
+		m_zoom = (float)max(0.4, m_zoom);
 		if (m_screenViewGlideFactor > 0.0f)
 			m_screenViewGlideFactor -= 0.04f;
 	}
@@ -230,8 +226,8 @@ void OculusRiftView::CalculateShaderVariables()
 	Scale[1] = (1.0f / 2.0f) * scaleFactor * inputTextureAspectRatio;
 
 	//Set resolution  0 = Horizontal, 1 = Vertical
-	Resolution[0] = hmdInfo->GetResolution().first;
-	Resolution[1] = hmdInfo->GetResolution().second;
+	Resolution[0] = (float)hmdInfo->GetResolution().first;
+	Resolution[1] = (float)hmdInfo->GetResolution().second;
 
 }
 
@@ -240,19 +236,14 @@ void OculusRiftView::CalculateShaderVariables()
 ***/ 
 void OculusRiftView::InitShaderEffects()
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("OculusRiftView::InitShaderEffects\n");
-	#endif
+	SHOW_CALL("OculusRiftView::InitShaderEffects");
 
 	shaderEffect[OCULUS_RIFT] = "OculusRift.fx";
 
-	char viewPath[512];
 	ProxyHelper helper = ProxyHelper();
-	helper.GetPath(viewPath, "fx\\");
+	std::string viewPath = helper.GetPath("fx\\") + shaderEffect[config->stereo_mode];
 
-	strcat_s(viewPath, 512, shaderEffect[stereo_mode].c_str());
-
-	D3DXCreateEffectFromFile(m_pActualDevice, viewPath, NULL, NULL, 0, NULL, &viewEffect, NULL);
+	D3DXCreateEffectFromFile(m_pActualDevice, viewPath.c_str(), NULL, NULL, 0, NULL, &viewEffect, NULL);
 }
 
 

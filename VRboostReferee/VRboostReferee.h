@@ -36,7 +36,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdio.h>
 #include <string.h>
 #include <tchar.h>
-#include "..//DxProxy//DxProxy//pugixml.hpp"
+#include "pugixml.hpp"
 #include "VRBoostEnums.h"
 
 	/*** VRboost function pointer typedefs ***/

@@ -32,6 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "D3D9ProxyVolumeTexture.h"
 #include "D3D9ProxyCubeTexture.h"
 #include "Vireio.h"
+#include <stdarg.h>
 
 namespace vireio {
 

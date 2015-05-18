@@ -41,7 +41,7 @@ class MotionTrackerFactory
 {
 public:
 	/*** MotionTrackerFactory public methods ***/
-	static MotionTracker* Get(ProxyHelper::ProxyConfig& config);
+	static MotionTracker* Get(ProxyConfig& config);
 };
 
 #endif

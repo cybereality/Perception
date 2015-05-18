@@ -61,24 +61,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MAX_PIXEL_SHADER_CONST_2_X 32
 #define MAX_PIXEL_SHADER_CONST_3_0 224
 
-#define MENU_ITEM_SEPARATION  40
-
-#ifdef x64
-#define PR_SIZET "I64"
-#else
-#define PR_SIZET ""
-#endif
-
 using namespace VRBoost;
+using namespace vireio;
 
 /**
 * Returns the mouse wheel scroll lines.
 ***/
 UINT GetMouseScrollLines()
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called GetMouseScrollLines");
-	#endif
+	SHOW_CALL("GetMouseScrollLines");
+	
 	int nScrollLines = 3;
 	HKEY hKey;
 
@@ -163,6 +155,7 @@ std::string VRboostAxisString(UINT axis)
 
 	return "UnknownAxis";
 }
+
 /**
 * Constructor : creates game handler and sets various states.
 ***/
@@ -181,16 +174,14 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	hmdInfo(NULL),
 	m_saveConfigTimer(MAXDWORD),
 	m_comfortModeYaw(0.0f),
-	//Yaw increment stored in degrees for easier comparison
-	m_comfortModeYawIncrement(90.0f),
-	m_comfortModeLeftKey(VK_LEFT),
-	m_comfortModeRightKey(VK_RIGHT),
 	m_disableAllHotkeys(false),
+	menuState(this),
 	m_projectionHFOV(110.0f)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called D3DProxyDevice");
-	#endif
+	m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::BEFORE_COMPOSITING;
+	m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::AFTER_COMPOSITING;
+	
+	SHOW_CALL("D3DProxyDevice");
 	OutputDebugString("D3D ProxyDev Created\n");
 	
 	InitVRBoost();
@@ -201,7 +192,7 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	hmdInfo = HMDisplayInfoFactory::CreateHMDisplayInfo(static_cast<StereoView::StereoTypes>(userConfig.mode)); 
 	OutputDebugString(("Created HMD Info for: " + hmdInfo->GetHMDName()).c_str());
 
-	m_spShaderViewAdjustment = std::make_shared<ViewAdjustment>(hmdInfo, 1.0f, 0);
+	m_spShaderViewAdjustment = std::make_shared<ViewAdjustment>(hmdInfo, &config);
 	m_pGameHandler = new GameHandler();
 
 	// Check the maximum number of supported render targets
@@ -220,7 +211,6 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	D3DXMatrixIdentity(&m_rightProjection);	
 
 	m_currentRenderingSide = vireio::Left;
-	m_pCurrentMatViewTransform = &m_spShaderViewAdjustment->LeftAdjustmentMatrix(); 
 	m_pCurrentView = &m_leftView;
 	m_pCurrentProjection = &m_leftProjection;
 
@@ -268,9 +258,8 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 ***/
 D3DProxyDevice::~D3DProxyDevice()
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called ~D3DProxyDevice");
-	#endif
+	SHOW_CALL("~D3DProxyDevice");
+	
 	ReleaseEverything();
 
 	m_spShaderViewAdjustment.reset();
@@ -299,9 +288,8 @@ D3DProxyDevice::~D3DProxyDevice()
 ***/
 HRESULT WINAPI D3DProxyDevice::QueryInterface(REFIID riid, LPVOID* ppv)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called QueryInterface");
-	#endif
+	SHOW_CALL("QueryInterface");
+	
 	//DEFINE_GUID(IID_IDirect3DDevice9Ex, 0xb18b10ce, 0x2649, 0x405a, 0x87, 0xf, 0x95, 0xf7, 0x77, 0xd4, 0x31, 0x3a);
 	IF_GUID(riid,0xb18b10ce,0x2649,0x405a,0x87,0xf,0x95,0xf7,0x77,0xd4,0x31,0x3a)
 	{
@@ -320,9 +308,8 @@ HRESULT WINAPI D3DProxyDevice::QueryInterface(REFIID riid, LPVOID* ppv)
 ***/
 HRESULT WINAPI D3DProxyDevice::TestCooperativeLevel()
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called TestCooperativeLevel");
-	#endif
+	SHOW_CALL("TestCooperativeLevel");
+	
 	return BaseDirect3DDevice9::TestCooperativeLevel();
 	// The calling application will start releasing resources after TestCooperativeLevel returns D3DERR_DEVICENOTRESET.
 }
@@ -332,9 +319,8 @@ HRESULT WINAPI D3DProxyDevice::TestCooperativeLevel()
 ***/
 HRESULT WINAPI D3DProxyDevice::SetCursorProperties(UINT XHotSpot, UINT YHotSpot, IDirect3DSurface9* pCursorBitmap)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called SetCursorProperties");
-	#endif
+	SHOW_CALL("SetCursorProperties");
+	
 	if (!pCursorBitmap)
 		return BaseDirect3DDevice9::SetCursorProperties(XHotSpot, YHotSpot, NULL);
 
@@ -347,9 +333,8 @@ HRESULT WINAPI D3DProxyDevice::SetCursorProperties(UINT XHotSpot, UINT YHotSpot,
 ***/
 HRESULT WINAPI D3DProxyDevice::CreateAdditionalSwapChain(D3DPRESENT_PARAMETERS* pPresentationParameters,IDirect3DSwapChain9** pSwapChain)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called CreateAdditionalSwapChain");
-	#endif
+	SHOW_CALL("CreateAdditionalSwapChain");
+	
 	IDirect3DSwapChain9* pActualSwapChain;
 	HRESULT result = BaseDirect3DDevice9::CreateAdditionalSwapChain(pPresentationParameters, &pActualSwapChain);
 
@@ -369,9 +354,8 @@ HRESULT WINAPI D3DProxyDevice::CreateAdditionalSwapChain(D3DPRESENT_PARAMETERS* 
 ***/
 HRESULT WINAPI D3DProxyDevice::GetSwapChain(UINT iSwapChain,IDirect3DSwapChain9** pSwapChain)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called GetSwapChain");
-	#endif
+	SHOW_CALL("GetSwapChain");
+	
 	try {
 		*pSwapChain = m_activeSwapChains.at(iSwapChain); 
 		//Device->GetSwapChain increases ref count on the chain (docs don't say this)
@@ -395,9 +379,8 @@ HRESULT WINAPI D3DProxyDevice::GetSwapChain(UINT iSwapChain,IDirect3DSwapChain9*
 ***/
 HRESULT WINAPI D3DProxyDevice::Reset(D3DPRESENT_PARAMETERS* pPresentationParameters)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called Reset");
-	#endif
+	SHOW_CALL("Reset");
+	
 	if(stereoView)
 		stereoView->ReleaseEverything();
 
@@ -425,11 +408,8 @@ HRESULT WINAPI D3DProxyDevice::Reset(D3DPRESENT_PARAMETERS* pPresentationParamet
 	}
 	else {
 #ifdef _DEBUG
-		char buf[256];
-		sprintf_s(buf, "Error: %s error description: %s\n",
+		debugf("Error: %s error description: %s\n",
 			DXGetErrorString(hr), DXGetErrorDescription(hr));
-
-		OutputDebugString(buf);				
 #endif
 		OutputDebugString("Device reset failed");
 	}
@@ -443,9 +423,9 @@ HRESULT WINAPI D3DProxyDevice::Reset(D3DPRESENT_PARAMETERS* pPresentationParamet
 ***/
 HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called Present");
-	#endif
+	SHOW_CALL("Present");
+	
+	HandleLandmarkMoment(DeviceBehavior::WhenToDo::BEFORE_COMPOSITING);
 	
 	try {
 		IDirect3DSurface9* pWrappedBackBuffer = NULL;
@@ -463,7 +443,8 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 	// (this can break if device present is followed by present on another swap chain... or not work well anyway)
 	m_isFirstBeginSceneOfFrame = true; 
 
-	VPMENU_UpdateBorder();
+	HandleLandmarkMoment(DeviceBehavior::WhenToDo::AFTER_COMPOSITING);
+	VPMENU_UpdateCooldowns();
 
 	//Now calculate frames per second
 	fps = CalcFPS();
@@ -499,9 +480,8 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 ***/
 HRESULT WINAPI D3DProxyDevice::GetBackBuffer(UINT iSwapChain,UINT iBackBuffer,D3DBACKBUFFER_TYPE Type,IDirect3DSurface9** ppBackBuffer)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called GetBackBuffer");
-	#endif
+	SHOW_CALL("GetBackBuffer");
+	
 	HRESULT result;
 	try {
 		result = m_activeSwapChains.at(iSwapChain)->GetBackBuffer(iBackBuffer, Type, ppBackBuffer);
@@ -523,9 +503,8 @@ HRESULT WINAPI D3DProxyDevice::GetBackBuffer(UINT iSwapChain,UINT iBackBuffer,D3
 ***/
 HRESULT WINAPI D3DProxyDevice::CreateTexture(UINT Width,UINT Height,UINT Levels,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool,IDirect3DTexture9** ppTexture,HANDLE* pSharedHandle)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called CreateTexture");
-	#endif
+	SHOW_CALL("CreateTexture");
+	
 	HRESULT creationResult;
 	IDirect3DTexture9* pLeftTexture = NULL;
 	IDirect3DTexture9* pRightTexture = NULL;	
@@ -559,9 +538,8 @@ HRESULT WINAPI D3DProxyDevice::CreateTexture(UINT Width,UINT Height,UINT Levels,
 ***/	
 HRESULT WINAPI D3DProxyDevice::CreateVolumeTexture(UINT Width,UINT Height,UINT Depth,UINT Levels,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool,IDirect3DVolumeTexture9** ppVolumeTexture,HANDLE* pSharedHandle)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called CreateVolumeTexture");
-	#endif
+	SHOW_CALL("CreateVolumeTexture");
+	
 	IDirect3DVolumeTexture9* pActualTexture = NULL;
 	HRESULT creationResult = BaseDirect3DDevice9::CreateVolumeTexture(Width, Height, Depth, Levels, Usage, Format, Pool, &pActualTexture, pSharedHandle);
 
@@ -579,9 +557,8 @@ HRESULT WINAPI D3DProxyDevice::CreateVolumeTexture(UINT Width,UINT Height,UINT D
 ***/
 HRESULT WINAPI D3DProxyDevice::CreateCubeTexture(UINT EdgeLength, UINT Levels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool, IDirect3DCubeTexture9** ppCubeTexture, HANDLE* pSharedHandle)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called CreateCubeTexture");
-	#endif
+	SHOW_CALL("CreateCubeTexture");
+	
 	HRESULT creationResult;
 	IDirect3DCubeTexture9* pLeftCubeTexture = NULL;
 	IDirect3DCubeTexture9* pRightCubeTexture = NULL;	
@@ -617,9 +594,8 @@ HRESULT WINAPI D3DProxyDevice::CreateCubeTexture(UINT EdgeLength, UINT Levels, D
 ***/
 HRESULT WINAPI D3DProxyDevice::CreateVertexBuffer(UINT Length, DWORD Usage, DWORD FVF, D3DPOOL Pool, IDirect3DVertexBuffer9** ppVertexBuffer, HANDLE* pSharedHandle)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called CreateVertexBuffer");
-	#endif
+	SHOW_CALL("CreateVertexBuffer");
+	
 	IDirect3DVertexBuffer9* pActualBuffer = NULL;
 	HRESULT creationResult = BaseDirect3DDevice9::CreateVertexBuffer(Length, Usage, FVF, Pool, &pActualBuffer, pSharedHandle);
 
@@ -635,9 +611,8 @@ HRESULT WINAPI D3DProxyDevice::CreateVertexBuffer(UINT Length, DWORD Usage, DWOR
 ***/
 HRESULT WINAPI D3DProxyDevice::CreateIndexBuffer(UINT Length,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool,IDirect3DIndexBuffer9** ppIndexBuffer,HANDLE* pSharedHandle)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called CreateIndexBuffer");
-	#endif
+	SHOW_CALL("CreateIndexBuffer");
+	
 	IDirect3DIndexBuffer9* pActualBuffer = NULL;
 	HRESULT creationResult = BaseDirect3DDevice9::CreateIndexBuffer(Length, Usage, Format, Pool, &pActualBuffer, pSharedHandle);
 
@@ -655,9 +630,8 @@ HRESULT WINAPI D3DProxyDevice::CreateIndexBuffer(UINT Length,DWORD Usage,D3DFORM
 HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample,
 												  DWORD MultisampleQuality,BOOL Lockable,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called CreateRenderTarget");
-	#endif
+	SHOW_CALL("CreateRenderTarget");
+	
 	// call public overloaded function
 	return CreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, ppSurface, pSharedHandle, false);
 }
@@ -670,9 +644,7 @@ HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFO
 ***/
 HRESULT WINAPI D3DProxyDevice::CreateDepthStencilSurface(UINT Width,UINT Height,D3DFORMAT Format,D3DMULTISAMPLE_TYPE MultiSample,DWORD MultisampleQuality,BOOL Discard,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called CreateDepthStencilSurface");
-	#endif
+	SHOW_CALL("CreateDepthStencilSurface");
 	
 	if(bSkipFrame)
 		return D3D_OK;
@@ -709,9 +681,8 @@ HRESULT WINAPI D3DProxyDevice::CreateDepthStencilSurface(UINT Width,UINT Height,
 ***/
 HRESULT WINAPI D3DProxyDevice::UpdateSurface(IDirect3DSurface9* pSourceSurface,CONST RECT* pSourceRect,IDirect3DSurface9* pDestinationSurface,CONST POINT* pDestPoint)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called UpdateSurface");
-	#endif
+	SHOW_CALL("UpdateSurface");
+	
 	if (!pSourceSurface || !pDestinationSurface)
 		return D3DERR_INVALIDCALL;
 
@@ -750,9 +721,8 @@ HRESULT WINAPI D3DProxyDevice::UpdateSurface(IDirect3DSurface9* pSourceSurface,C
 ***/
 HRESULT WINAPI D3DProxyDevice::UpdateTexture(IDirect3DBaseTexture9* pSourceTexture,IDirect3DBaseTexture9* pDestinationTexture)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called UpdateTexture");
-	#endif
+	SHOW_CALL("UpdateTexture");
+	
 	if (!pSourceTexture || !pDestinationTexture)
 		return D3DERR_INVALIDCALL;
 
@@ -793,9 +763,8 @@ HRESULT WINAPI D3DProxyDevice::UpdateTexture(IDirect3DBaseTexture9* pSourceTextu
 ***/
 HRESULT WINAPI D3DProxyDevice::GetRenderTargetData(IDirect3DSurface9* pRenderTarget,IDirect3DSurface9* pDestSurface)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called GetRenderTarget");
-	#endif
+	SHOW_CALL("GetRenderTarget");
+	
 	if ((pDestSurface == NULL) || (pRenderTarget == NULL))
 		return D3DERR_INVALIDCALL;
 
@@ -836,9 +805,8 @@ HRESULT WINAPI D3DProxyDevice::GetRenderTargetData(IDirect3DSurface9* pRenderTar
 ***/
 HRESULT WINAPI D3DProxyDevice::GetFrontBufferData(UINT iSwapChain, IDirect3DSurface9* pDestSurface)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called GetFrontBufferData");
-	#endif
+	SHOW_CALL("GetFrontBufferData");
+	
 	HRESULT result;
 	try {
 		result = m_activeSwapChains.at(iSwapChain)->GetFrontBufferData(pDestSurface);
@@ -857,9 +825,8 @@ HRESULT WINAPI D3DProxyDevice::GetFrontBufferData(UINT iSwapChain, IDirect3DSurf
 ***/
 HRESULT WINAPI D3DProxyDevice::StretchRect(IDirect3DSurface9* pSourceSurface,CONST RECT* pSourceRect,IDirect3DSurface9* pDestSurface,CONST RECT* pDestRect,D3DTEXTUREFILTERTYPE Filter)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called StretchRect");
-	#endif
+	SHOW_CALL("StretchRect");
+	
 	if (!pSourceSurface || !pDestSurface)
 		return D3DERR_INVALIDCALL;
 
@@ -900,9 +867,8 @@ HRESULT WINAPI D3DProxyDevice::StretchRect(IDirect3DSurface9* pSourceSurface,CON
 ***/
 HRESULT WINAPI D3DProxyDevice::ColorFill(IDirect3DSurface9* pSurface,CONST RECT* pRect,D3DCOLOR color)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called ColorFill");
-	#endif
+	SHOW_CALL("ColorFill");
+	
 	HRESULT result;
 	
 	if(bSkipFrame)
@@ -929,9 +895,8 @@ HRESULT WINAPI D3DProxyDevice::ColorFill(IDirect3DSurface9* pSurface,CONST RECT*
 **/
 HRESULT WINAPI D3DProxyDevice::CreateOffscreenPlainSurface(UINT Width,UINT Height,D3DFORMAT Format,D3DPOOL Pool,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle)
 {	
-	#ifdef SHOW_CALLS
-		OutputDebugString("called CreateOffscreenPlainSurface");
-	#endif
+	SHOW_CALL("CreateOffscreenPlainSurface");
+	
 	IDirect3DSurface9* pActualSurface = NULL;
 	HRESULT creationResult = BaseDirect3DDevice9::CreateOffscreenPlainSurface(Width, Height, Format, Pool, &pActualSurface, pSharedHandle);
 
@@ -947,9 +912,8 @@ HRESULT WINAPI D3DProxyDevice::CreateOffscreenPlainSurface(UINT Width,UINT Heigh
 ***/
 HRESULT WINAPI D3DProxyDevice::SetRenderTarget(DWORD RenderTargetIndex, IDirect3DSurface9* pRenderTarget)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called SetRenderTarget");
-	#endif
+	SHOW_CALL("SetRenderTarget");
+	
 	D3D9ProxySurface* newRenderTarget = static_cast<D3D9ProxySurface*>(pRenderTarget);
 
 #ifdef _DEBUG
@@ -1004,9 +968,8 @@ HRESULT WINAPI D3DProxyDevice::SetRenderTarget(DWORD RenderTargetIndex, IDirect3
 ***/
 HRESULT WINAPI D3DProxyDevice::GetRenderTarget(DWORD RenderTargetIndex,IDirect3DSurface9** ppRenderTarget)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called GetRenderTarget");
-	#endif
+	SHOW_CALL("GetRenderTarget");
+	
 	if ((RenderTargetIndex >= m_activeRenderTargets.capacity()) || (RenderTargetIndex < 0)) {
 		return D3DERR_INVALIDCALL;
 	}
@@ -1027,9 +990,8 @@ HRESULT WINAPI D3DProxyDevice::GetRenderTarget(DWORD RenderTargetIndex,IDirect3D
 ***/
 HRESULT WINAPI D3DProxyDevice::SetDepthStencilSurface(IDirect3DSurface9* pNewZStencil)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called SetDepthStencilSurface");
-	#endif
+	SHOW_CALL("SetDepthStencilSurface");
+	
 	D3D9ProxySurface* pNewDepthStencil = static_cast<D3D9ProxySurface*>(pNewZStencil);
 
 	IDirect3DSurface9* pActualStencilForCurrentSide = NULL;
@@ -1063,9 +1025,8 @@ HRESULT WINAPI D3DProxyDevice::SetDepthStencilSurface(IDirect3DSurface9* pNewZSt
 ***/
 HRESULT WINAPI D3DProxyDevice::GetDepthStencilSurface(IDirect3DSurface9** ppZStencilSurface)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called GetDepthStencilSurface");
-	#endif
+	SHOW_CALL("GetDepthStencilSurface");
+	
 	if (!m_pActiveStereoDepthStencil)
 		return D3DERR_NOTFOUND;
 
@@ -1082,10 +1043,8 @@ HRESULT WINAPI D3DProxyDevice::GetDepthStencilSurface(IDirect3DSurface9** ppZSte
 ***/
 HRESULT WINAPI D3DProxyDevice::BeginScene()
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called BeginScene");
-	#endif
-
+	SHOW_CALL("BeginScene");
+	
 	if (m_isFirstBeginSceneOfFrame)
 	{
 		static int spashtick = GetTickCount();
@@ -1095,41 +1054,40 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 			std::string buildDate = date.substr(4, 2) + "-" + date.substr(0, 3) + "-" + date.substr(7, 4);
 
 			//Show a splash screen on startup
-			VireioPopup splashPopup(VPT_SPLASH_1, VPS_INFO, 4000);
-			strcpy_s(splashPopup.line[0], "Vireio Perception: Stereoscopic 3D Driver");
-			strcpy_s(splashPopup.line[1], (std::string("Version: ") + APP_VERSION + "   Build Date: " + buildDate).c_str());
-			strcpy_s(splashPopup.line[2], "This program is distributed in the hope that it will be useful,"); 
-			strcpy_s(splashPopup.line[3], "but WITHOUT ANY WARRANTY; without even the implied warranty of "); 
-			strcpy_s(splashPopup.line[4], "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.");
-			strcpy_s(splashPopup.line[5], "See the GNU LGPL: http://www.gnu.org/licenses/ for more details. ");
-			ShowPopup(splashPopup);
+			ShowPopup(VPT_SPLASH_1, VPS_INFO, 4000,
+				retprintf(
+				"Vireio Perception: Stereoscopic 3D Driver\n"
+				"Version: %s   Build Date: %s\n"
+				"This program is distributed in the hope that it will be useful,\n"
+				"but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+				"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n"
+				"See the GNU LGPL: http://www.gnu.org/licenses/ for more details.",
+				APP_VERSION, buildDate.c_str()));
 		}
 
 		if ((GetTickCount() - spashtick)  > 4000 &&
 			(GetTickCount() - spashtick)  < 8000)
 		{
 			//Show a splash screen on startup
-			VireioPopup splashPopup(VPT_SPLASH_2, VPS_INFO, 4000);
-			strcpy_s(splashPopup.line[0], "Vireio Perception: Stereoscopic 3D Driver");
-			strcpy_s(splashPopup.line[1], "Useful Hot-keys:"); 
-			strcpy_s(splashPopup.line[2], "     <CTRL> + <Q>\t\t\t:  Show Vireio In-Game Menu"); 
-			strcpy_s(splashPopup.line[3], "     Mouse Wheel Click\t:  Disconnected Screen View");
-			strcpy_s(splashPopup.line[4], "     <LSHIFT> + <R>\t\t\t:  Reset HMD Orientation");
-			strcpy_s(splashPopup.line[5], "     <LSHIFT> + <F>\t\t\t:  FPS Counter");
-			ShowPopup(splashPopup);
+			ShowPopup(VPT_SPLASH_2, VPS_INFO, 4000,
+				"Vireio Perception: Stereoscopic 3D Driver\n"
+				"Useful Hot-keys:\n"
+				"     <CTRL> + <Q>\t\t\t:  Show Vireio In-Game Menu\n"
+				"     Mouse Wheel Click\t:  Disconnected Screen View\n"
+				"     <LSHIFT> + <R>\t\t\t:  Reset HMD Orientation\n"
+				"     <LSHIFT> + <F>\t\t\t:  FPS Counter");
 		}
 	
 		if ((GetTickCount() - spashtick)  > 8000)
 		{
 			if (calibrate_tracker)
 			{
-				VireioPopup popup(VPT_CALIBRATE_TRACKER, VPS_INFO, 15000);
-				strcpy_s(popup.line[1], "Please Calibrate HMD/Tracker:");
-				strcpy_s(popup.line[2], "     -  Sit comfortably with your head facing forwards");
-				strcpy_s(popup.line[3], "     -  Press any of the following:");
-				strcpy_s(popup.line[4], "           <CTRL> + <R> / <LSHIFT> + <R>");
-				strcpy_s(popup.line[5], "           L + R Shoulder Buttons on Xbox 360 Controller");
-				ShowPopup(popup);
+				ShowPopup(VPT_CALIBRATE_TRACKER, VPS_INFO, 15000,
+					"\nPlease Calibrate HMD/Tracker:\n"
+					"     -  Sit comfortably with your head facing forwards\n"
+					"     -  Press any of the following:\n"
+					"           <CTRL> + <R> / <LSHIFT> + <R>\n"
+					"           L + R Shoulder Buttons on Xbox 360 Controller");
 			}
 		}
 
@@ -1168,25 +1126,15 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 
 		// avoid squished viewport in case of vp menu being drawn
 		/*
-		if ((m_bViewportIsSquished) && (VPMENU_mode>=VPMENU_Modes::MAINMENU) && (VPMENU_mode<VPMENU_Modes::VPMENU_ENUM_RANGE))
+		if ((m_bViewportIsSquished) && VPMENU_IsOpen())
 		{
 			if (m_bViewportIsSquished)
 				BaseDirect3DDevice9::SetViewport(&m_LastViewportSet);
 			m_bViewportIsSquished = false;
 		}*/
 
-		// handle controls - Only handled on the first begin scene
-		if (m_deviceBehavior.whenToHandleHeadTracking == DeviceBehavior::WhenToDo::BEGIN_SCENE)
-			HandleTracking();
-
-		// draw menu
-		if (m_deviceBehavior.whenToRenderVPMENU == DeviceBehavior::WhenToDo::BEGIN_SCENE)
-		{
-			if ((VPMENU_mode>=VPMENU_Modes::MAINMENU) && (VPMENU_mode<VPMENU_Modes::VPMENU_ENUM_RANGE))
-				VPMENU();
-			else
-				VPMENU_AdditionalOutput();
-		}		
+		HandleLandmarkMoment(DeviceBehavior::WhenToDo::BEGIN_SCENE);
+		
 		// handle controls
 		HandleControls();
 
@@ -1198,14 +1146,9 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 		// draw
 		if (m_deviceBehavior.whenToRenderVPMENU == DeviceBehavior::WhenToDo::BEGIN_SCENE)
 		{
-			if ((VPMENU_mode>=VPMENU_Modes::MAINMENU) && (VPMENU_mode<VPMENU_Modes::VPMENU_ENUM_RANGE))
-				VPMENU();
-			else
-				VPMENU_AdditionalOutput();
+			VPMENU();
 		}
 	}
-
-	
 
 	return BaseDirect3DDevice9::BeginScene();
 }
@@ -1215,22 +1158,10 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 ***/
 HRESULT WINAPI D3DProxyDevice::EndScene()
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called EndScene");
-	#endif
-	// handle controls 
-	if (m_deviceBehavior.whenToHandleHeadTracking == DeviceBehavior::WhenToDo::END_SCENE) 
-		HandleTracking();
-
-	// draw menu
-	if (m_deviceBehavior.whenToRenderVPMENU == DeviceBehavior::WhenToDo::END_SCENE) 
-	{
-		if ((VPMENU_mode>=VPMENU_Modes::MAINMENU) && (VPMENU_mode<VPMENU_Modes::VPMENU_ENUM_RANGE))
-			VPMENU();
-		else
-			VPMENU_AdditionalOutput();
-	}
-
+	SHOW_CALL("EndScene");
+	
+	HandleLandmarkMoment(DeviceBehavior::WhenToDo::END_SCENE);
+	
 	return BaseDirect3DDevice9::EndScene();
 }
 
@@ -1239,9 +1170,8 @@ HRESULT WINAPI D3DProxyDevice::EndScene()
 ***/
 HRESULT WINAPI D3DProxyDevice::Clear(DWORD Count,CONST D3DRECT* pRects,DWORD Flags,D3DCOLOR Color,float Z,DWORD Stencil)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called Clear");
-	#endif
+	SHOW_CALL("Clear");
+	
 	HRESULT result;
 
 	if (SUCCEEDED(result = BaseDirect3DDevice9::Clear(Count, pRects, Flags, Color, Z, Stencil))) {
@@ -1250,11 +1180,7 @@ HRESULT WINAPI D3DProxyDevice::Clear(DWORD Count,CONST D3DRECT* pRects,DWORD Fla
 			if (FAILED(hr = BaseDirect3DDevice9::Clear(Count, pRects, Flags, Color, Z, Stencil))) {
 
 #ifdef _DEBUG
-				char buf[256];
-				sprintf_s(buf, "Error: %s error description: %s\n",
-				DXGetErrorString(hr), DXGetErrorDescription(hr));
-
-				OutputDebugString(buf);
+				debugf("Error: %s error description: %s\n", DXGetErrorString(hr), DXGetErrorDescription(hr));
 				OutputDebugString("Clear failed\n");
 
 #endif
@@ -1274,9 +1200,8 @@ HRESULT WINAPI D3DProxyDevice::Clear(DWORD Count,CONST D3DRECT* pRects,DWORD Fla
 ***/
 HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D3DMATRIX* pMatrix)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called SetTransform");
-	#endif
+	SHOW_CALL("SetTransform");
+	
 	if(State == D3DTS_VIEW)
 	{
 		D3DXMATRIX tempLeft;
@@ -1354,7 +1279,7 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 			D3DXMATRIX sourceMatrix(*pMatrix);
 
 			// world scale mode ? in case, add all possible actual game x scale units
-			if (VPMENU_mode == VPMENU_Modes::WORLD_SCALE_CALIBRATION)
+			if (inWorldScaleMenu)
 			{
 				// store the actual projection matrix for game unit calculation
 				D3DXMATRIX m_actualProjection = D3DXMATRIX(*pMatrix);
@@ -1421,9 +1346,8 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 ***/
 HRESULT WINAPI D3DProxyDevice::MultiplyTransform(D3DTRANSFORMSTATETYPE State,CONST D3DMATRIX* pMatrix)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called MultiplyTransform");
-	#endif
+	SHOW_CALL("MultiplyTransform");
+	
 	OutputDebugString(__FUNCTION__); 
 	OutputDebugString("\n"); 
 	OutputDebugString("Not implemented - Fix Me! (if i need fixing)\n"); 
@@ -1440,10 +1364,9 @@ HRESULT WINAPI D3DProxyDevice::MultiplyTransform(D3DTRANSFORMSTATETYPE State,CON
 * @see m_bActiveViewportIsDefault
 ***/
 HRESULT WINAPI D3DProxyDevice::SetViewport(CONST D3DVIEWPORT9* pViewport)
-{	
-	#ifdef SHOW_CALLS
-		OutputDebugString("called SetViewport");
-	#endif
+{
+	SHOW_CALL("SetViewport");
+	
 	HRESULT result = BaseDirect3DDevice9::SetViewport(pViewport);
 
 	if (SUCCEEDED(result)) {
@@ -1473,9 +1396,8 @@ HRESULT WINAPI D3DProxyDevice::SetViewport(CONST D3DVIEWPORT9* pViewport)
 ***/
 HRESULT WINAPI D3DProxyDevice::CreateStateBlock(D3DSTATEBLOCKTYPE Type,IDirect3DStateBlock9** ppSB)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called CreateStateBlock");
-	#endif
+	SHOW_CALL("CreateStateBlock");
+	
 	IDirect3DStateBlock9* pActualStateBlock = NULL;
 	HRESULT creationResult = BaseDirect3DDevice9::CreateStateBlock(Type, &pActualStateBlock);
 
@@ -1521,9 +1443,8 @@ HRESULT WINAPI D3DProxyDevice::CreateStateBlock(D3DSTATEBLOCKTYPE Type,IDirect3D
 ***/
 HRESULT WINAPI D3DProxyDevice::BeginStateBlock()
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called BeginStateBlock");
-	#endif
+	SHOW_CALL("BeginStateBlock");
+	
 	HRESULT result;
 	if (SUCCEEDED(result = BaseDirect3DDevice9::BeginStateBlock())) {
 		m_bInBeginEndStateBlock = true;
@@ -1540,9 +1461,8 @@ HRESULT WINAPI D3DProxyDevice::BeginStateBlock()
 ***/
 HRESULT WINAPI D3DProxyDevice::EndStateBlock(IDirect3DStateBlock9** ppSB)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called ppSB");
-	#endif
+	SHOW_CALL("ppSB");
+	
 	IDirect3DStateBlock9* pActualStateBlock = NULL;
 	HRESULT creationResult = BaseDirect3DDevice9::EndStateBlock(&pActualStateBlock);
 
@@ -1567,9 +1487,8 @@ HRESULT WINAPI D3DProxyDevice::EndStateBlock(IDirect3DStateBlock9** ppSB)
 ***/
 HRESULT WINAPI D3DProxyDevice::GetTexture(DWORD Stage,IDirect3DBaseTexture9** ppTexture)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called GetTexture");
-	#endif
+	SHOW_CALL("GetTexture");
+	
 	if (m_activeTextureStages.count(Stage) != 1)
 		return D3DERR_INVALIDCALL;
 	else {
@@ -1588,9 +1507,8 @@ HRESULT WINAPI D3DProxyDevice::GetTexture(DWORD Stage,IDirect3DBaseTexture9** pp
 ***/
 HRESULT WINAPI D3DProxyDevice::SetTexture(DWORD Stage,IDirect3DBaseTexture9* pTexture)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called SetTexture");
-	#endif
+	SHOW_CALL("SetTexture");
+	
 	HRESULT result;
 	if (pTexture) {
 
@@ -1657,9 +1575,7 @@ HRESULT WINAPI D3DProxyDevice::SetTexture(DWORD Stage,IDirect3DBaseTexture9* pTe
 ***/
 HRESULT WINAPI D3DProxyDevice::DrawPrimitive(D3DPRIMITIVETYPE PrimitiveType,UINT StartVertex,UINT PrimitiveCount)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called DrawPrimitive");
-	#endif
+	SHOW_CALL("DrawPrimitive");
 	
 	if(bSkipFrame)
 		return D3D_OK;
@@ -1685,9 +1601,7 @@ HRESULT WINAPI D3DProxyDevice::DrawPrimitive(D3DPRIMITIVETYPE PrimitiveType,UINT
 ***/
 HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitive(D3DPRIMITIVETYPE PrimitiveType,INT BaseVertexIndex,UINT MinVertexIndex,UINT NumVertices,UINT startIndex,UINT primCount)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called DrawIndexedPrimitive");
-	#endif
+	SHOW_CALL("DrawIndexedPrimitive");
 	
 	if(bSkipFrame)
 		return D3D_OK;
@@ -1716,9 +1630,7 @@ HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitive(D3DPRIMITIVETYPE PrimitiveTy
 ***/
 HRESULT WINAPI D3DProxyDevice::DrawPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType,UINT PrimitiveCount,CONST void* pVertexStreamZeroData,UINT VertexStreamZeroStride)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called DrawPrimitiveUP");
-	#endif
+	SHOW_CALL("DrawPrimitiveUP");
 	
 	if(bSkipFrame)
 		return D3D_OK;
@@ -1744,9 +1656,7 @@ HRESULT WINAPI D3DProxyDevice::DrawPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType,UI
 ***/
 HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType,UINT MinVertexIndex,UINT NumVertices,UINT PrimitiveCount,CONST void* pIndexData,D3DFORMAT IndexDataFormat,CONST void* pVertexStreamZeroData,UINT VertexStreamZeroStride)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called DrawIndexedPrimitiveUP");
-	#endif
+	SHOW_CALL("DrawIndexedPrimitiveUP");
 	
 	if(bSkipFrame)
 		return D3D_OK;
@@ -1771,9 +1681,8 @@ HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitiveUP(D3DPRIMITIVETYPE Primitive
 ***/
 HRESULT WINAPI D3DProxyDevice::ProcessVertices(UINT SrcStartIndex,UINT DestIndex,UINT VertexCount,IDirect3DVertexBuffer9* pDestBuffer,IDirect3DVertexDeclaration9* pVertexDecl,DWORD Flags)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called ProcessVertices");
-	#endif
+	SHOW_CALL("ProcessVertices");
+	
 	if (!pDestBuffer)
 		return D3DERR_INVALIDCALL;
 
@@ -1799,9 +1708,8 @@ HRESULT WINAPI D3DProxyDevice::ProcessVertices(UINT SrcStartIndex,UINT DestIndex
 ***/
 HRESULT WINAPI D3DProxyDevice::CreateVertexDeclaration(CONST D3DVERTEXELEMENT9* pVertexElements,IDirect3DVertexDeclaration9** ppDecl)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called CreateVertexDeclaration");
-	#endif
+	SHOW_CALL("CreateVertexDeclaration");
+	
 	IDirect3DVertexDeclaration9* pActualVertexDeclaration = NULL;
 	HRESULT creationResult = BaseDirect3DDevice9::CreateVertexDeclaration(pVertexElements, &pActualVertexDeclaration );
 
@@ -1818,9 +1726,8 @@ HRESULT WINAPI D3DProxyDevice::CreateVertexDeclaration(CONST D3DVERTEXELEMENT9* 
 ***/
 HRESULT WINAPI D3DProxyDevice::SetVertexDeclaration(IDirect3DVertexDeclaration9* pDecl)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called SetVertexDeclaration");
-	#endif
+	SHOW_CALL("SetVertexDeclaration");
+	
 	BaseDirect3DVertexDeclaration9* pWrappedVDeclarationData = static_cast<BaseDirect3DVertexDeclaration9*>(pDecl);
 
 	// Update actual Vertex Declaration
@@ -1858,9 +1765,8 @@ HRESULT WINAPI D3DProxyDevice::SetVertexDeclaration(IDirect3DVertexDeclaration9*
 ***/
 HRESULT WINAPI D3DProxyDevice::GetVertexDeclaration(IDirect3DVertexDeclaration9** ppDecl)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called GetVertexDelcaration");
-	#endif
+	SHOW_CALL("GetVertexDelcaration");
+	
 	if (!m_pActiveVertexDeclaration) 
 		// TODO check this is the response if no declaration set
 		//In Response to TODO:  JB, Jan 12. I believe it crashes most times this happens, tested by simply nulling out the ppDecl pointer and passing it into the base d3d method
@@ -1878,9 +1784,8 @@ HRESULT WINAPI D3DProxyDevice::GetVertexDeclaration(IDirect3DVertexDeclaration9*
 ***/
 HRESULT WINAPI D3DProxyDevice::CreateVertexShader(CONST DWORD* pFunction,IDirect3DVertexShader9** ppShader)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called CreateVertexShader");
-	#endif
+	SHOW_CALL("CreateVertexShader");
+	
 	IDirect3DVertexShader9* pActualVShader = NULL;
 	HRESULT creationResult = BaseDirect3DDevice9::CreateVertexShader(pFunction, &pActualVShader);
 
@@ -1922,9 +1827,8 @@ HRESULT WINAPI D3DProxyDevice::CreateVertexShader(CONST DWORD* pFunction,IDirect
 ***/
 HRESULT WINAPI D3DProxyDevice::SetVertexShader(IDirect3DVertexShader9* pShader)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called SetVertexSHader");
-	#endif
+	SHOW_CALL("SetVertexSHader");
+	
 	D3D9ProxyVertexShader* pWrappedVShaderData = static_cast<D3D9ProxyVertexShader*>(pShader);
 
 	// Update actual Vertex shader
@@ -1988,9 +1892,8 @@ HRESULT WINAPI D3DProxyDevice::SetVertexShader(IDirect3DVertexShader9* pShader)
 ***/
 HRESULT WINAPI D3DProxyDevice::GetVertexShader(IDirect3DVertexShader9** ppShader)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called GetVertexShader");
-	#endif
+	SHOW_CALL("GetVertexShader");
+	
 	if (!m_pActiveVertexShader)
 		return D3DERR_INVALIDCALL;
 
@@ -2006,9 +1909,8 @@ HRESULT WINAPI D3DProxyDevice::GetVertexShader(IDirect3DVertexShader9** ppShader
 ***/
 HRESULT WINAPI D3DProxyDevice::SetVertexShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called SEtVertexShadewrConstantF");
-	#endif
+	SHOW_CALL("SEtVertexShadewrConstantF");
+	
 	HRESULT result = D3DERR_INVALIDCALL;
 
 	if (m_pCapturingStateTo) {
@@ -2028,9 +1930,8 @@ HRESULT WINAPI D3DProxyDevice::SetVertexShaderConstantF(UINT StartRegister,CONST
 ***/
 HRESULT WINAPI D3DProxyDevice::GetVertexShaderConstantF(UINT StartRegister,float* pData,UINT Vector4fCount)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called GetVertexShaderConstantF");
-	#endif
+	SHOW_CALL("GetVertexShaderConstantF");
+	
 	return m_spManagedShaderRegisters->GetVertexShaderConstantF(StartRegister, pData, Vector4fCount);
 }
 
@@ -2040,10 +1941,9 @@ HRESULT WINAPI D3DProxyDevice::GetVertexShaderConstantF(UINT StartRegister,float
 * @see D3D9ProxyStateBlock::SelectAndCaptureState()
 ***/
 HRESULT WINAPI D3DProxyDevice::SetStreamSource(UINT StreamNumber, IDirect3DVertexBuffer9* pStreamData, UINT OffsetInBytes, UINT Stride)
-{	
-	#ifdef SHOW_CALLS
-		OutputDebugString("called SetStreamSource");
-	#endif
+{
+	SHOW_CALL("SetStreamSource");
+	
 	BaseDirect3DVertexBuffer9* pCastStreamData = static_cast<BaseDirect3DVertexBuffer9*>(pStreamData);
 	HRESULT result;
 	if (pStreamData) {		
@@ -2104,9 +2004,8 @@ HRESULT WINAPI D3DProxyDevice::SetStreamSource(UINT StreamNumber, IDirect3DVerte
 ***/
 HRESULT WINAPI D3DProxyDevice::GetStreamSource(UINT StreamNumber, IDirect3DVertexBuffer9** ppStreamData,UINT* pOffsetInBytes,UINT* pStride)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called GetSTreamSource");
-	#endif
+	SHOW_CALL("GetSTreamSource");
+	
 	// This whole methods implementation is highly questionable. Not sure exactly how GetStreamSource works
 	HRESULT result = D3DERR_INVALIDCALL;
 
@@ -2132,9 +2031,8 @@ HRESULT WINAPI D3DProxyDevice::GetStreamSource(UINT StreamNumber, IDirect3DVerte
 ***/
 HRESULT WINAPI D3DProxyDevice::SetIndices(IDirect3DIndexBuffer9* pIndexData)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called SetIndices");
-	#endif
+	SHOW_CALL("SetIndices");
+	
 	BaseDirect3DIndexBuffer9* pWrappedNewIndexData = static_cast<BaseDirect3DIndexBuffer9*>(pIndexData);
 
 	// Update actual index buffer
@@ -2171,9 +2069,8 @@ HRESULT WINAPI D3DProxyDevice::SetIndices(IDirect3DIndexBuffer9* pIndexData)
 ***/
 HRESULT WINAPI D3DProxyDevice::GetIndices(IDirect3DIndexBuffer9** ppIndexData)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called GetIndices");
-	#endif
+	SHOW_CALL("GetIndices");
+	
 	if (!m_pActiveIndicies)
 		return D3DERR_INVALIDCALL;
 
@@ -2188,9 +2085,8 @@ HRESULT WINAPI D3DProxyDevice::GetIndices(IDirect3DIndexBuffer9** ppIndexData)
 ***/
 HRESULT WINAPI D3DProxyDevice::CreatePixelShader(CONST DWORD* pFunction,IDirect3DPixelShader9** ppShader)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called CreatePixelSHader");
-	#endif
+	SHOW_CALL("CreatePixelSHader");
+	
 	IDirect3DPixelShader9* pActualPShader = NULL;
 	HRESULT creationResult = BaseDirect3DDevice9::CreatePixelShader(pFunction, &pActualPShader);
 
@@ -2207,9 +2103,8 @@ HRESULT WINAPI D3DProxyDevice::CreatePixelShader(CONST DWORD* pFunction,IDirect3
 ***/
 HRESULT WINAPI D3DProxyDevice::SetPixelShader(IDirect3DPixelShader9* pShader)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called SetPixelShader");
-	#endif
+	SHOW_CALL("SetPixelShader");
+	
 	D3D9ProxyPixelShader* pWrappedPShaderData = static_cast<D3D9ProxyPixelShader*>(pShader);
 
 	// Update actual pixel shader
@@ -2263,9 +2158,8 @@ HRESULT WINAPI D3DProxyDevice::SetPixelShader(IDirect3DPixelShader9* pShader)
 ***/
 HRESULT WINAPI D3DProxyDevice::GetPixelShader(IDirect3DPixelShader9** ppShader)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called GetPixelSHader");
-	#endif
+	SHOW_CALL("GetPixelSHader");
+	
 	if (!m_pActivePixelShader)
 		return D3DERR_INVALIDCALL;
 
@@ -2281,9 +2175,8 @@ HRESULT WINAPI D3DProxyDevice::GetPixelShader(IDirect3DPixelShader9** ppShader)
 ***/
 HRESULT WINAPI D3DProxyDevice::SetPixelShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called SetPixelShaderConstantF");
-	#endif
+	SHOW_CALL("SetPixelShaderConstantF");
+	
 	HRESULT result = D3DERR_INVALIDCALL;
 
 	if (m_pCapturingStateTo) {
@@ -2303,9 +2196,8 @@ HRESULT WINAPI D3DProxyDevice::SetPixelShaderConstantF(UINT StartRegister,CONST 
 ***/
 HRESULT WINAPI D3DProxyDevice::GetPixelShaderConstantF(UINT StartRegister,float* pData,UINT Vector4fCount)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called GetPixelSHaderConstantF");
-	#endif
+	SHOW_CALL("GetPixelSHaderConstantF");
+	
 	return m_spManagedShaderRegisters->GetPixelShaderConstantF(StartRegister, pData, Vector4fCount);
 }
 
@@ -2315,9 +2207,8 @@ HRESULT WINAPI D3DProxyDevice::GetPixelShaderConstantF(UINT StartRegister,float*
 ***/
 HRESULT WINAPI D3DProxyDevice::DrawRectPatch(UINT Handle,CONST float* pNumSegs,CONST D3DRECTPATCH_INFO* pRectPatchInfo)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called DrawRectPatch");
-	#endif
+	SHOW_CALL("DrawRectPatch");
+	
 	if(bSkipFrame)
 		return D3D_OK;
 
@@ -2338,9 +2229,8 @@ HRESULT WINAPI D3DProxyDevice::DrawRectPatch(UINT Handle,CONST float* pNumSegs,C
 ***/
 HRESULT WINAPI D3DProxyDevice::DrawTriPatch(UINT Handle,CONST float* pNumSegs,CONST D3DTRIPATCH_INFO* pTriPatchInfo)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called DrawTriPatch");
-	#endif
+	SHOW_CALL("DrawTriPatch");
+	
 	if(bSkipFrame)
 		return D3D_OK;
 
@@ -2360,9 +2250,8 @@ HRESULT WINAPI D3DProxyDevice::DrawTriPatch(UINT Handle,CONST float* pNumSegs,CO
 ***/
 HRESULT WINAPI D3DProxyDevice::CreateQuery(D3DQUERYTYPE Type,IDirect3DQuery9** ppQuery)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called CreateQuery");
-	#endif
+	SHOW_CALL("CreateQuery");
+	
 	// this seems a weird response to me but it's what the actual device does.
 	if (!ppQuery)
 		return D3D_OK;
@@ -2387,9 +2276,8 @@ HRESULT WINAPI D3DProxyDevice::CreateQuery(D3DQUERYTYPE Type,IDirect3DQuery9** p
 HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample,
 												  DWORD MultisampleQuality,BOOL Lockable,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle, bool isSwapChainBackBuffer)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called CreateRenderTarget");
-	#endif
+	SHOW_CALL("CreateRenderTarget");
+	
 	IDirect3DSurface9* pLeftRenderTarget = NULL;
 	IDirect3DSurface9* pRightRenderTarget = NULL;
 	HRESULT creationResult;
@@ -2424,6 +2312,7 @@ HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFO
 	return creationResult;
 }
 
+
 /**
 * This method must be called on the proxy device before the device is returned to the calling application.
 * Inits by game configuration.
@@ -2431,43 +2320,42 @@ HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFO
 * Anything that needs to be done before the device is used by the actual application should happen here.
 * @param The game (or engine) specific configuration.
 ***/
-void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
+void D3DProxyDevice::Init(ProxyConfig& cfg)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called Init");
-	#endif
+	SHOW_CALL("Init");
+	
 	OutputDebugString("D3D ProxyDev Init\n");
 
 	// get config and backup it
 	config = cfg;
-	memcpy(&m_configBackup, &cfg, sizeof(ProxyHelper::ProxyConfig));
+	m_configBackup = cfg;
 
 	m_bfloatingMenu = false;
 	m_bfloatingScreen = false;
 	m_bSurpressHeadtracking = false;
 	m_bSurpressPositionaltracking = false;
 
-	char buf[64];
-	LPCSTR psz = NULL;
-	sprintf_s(buf, "type: %d, aspect: %f\n", config.game_type, config.aspect_multiplier);
-	psz = buf;
-	OutputDebugString(psz);
+	debugf("type: %d, aspect: %f\n", config.game_type, config.aspect_multiplier);
 
 	// first time configuration
 	m_spShaderViewAdjustment->Load(config);
 	m_pGameHandler->Load(config, m_spShaderViewAdjustment);
-	stereoView = StereoViewFactory::Get(config, m_spShaderViewAdjustment->HMDInfo());
-	stereoView->YOffset = config.YOffset;
+	stereoView = StereoViewFactory::Get(&config, m_spShaderViewAdjustment->HMDInfo());
 	stereoView->HeadYOffset = 0;
 	stereoView->HeadZOffset = FLT_MAX;
-	stereoView->IPDOffset = config.IPDOffset;
-	stereoView->DistortionScale = config.DistortionScale;
 	stereoView->m_b2dDepthMode = false;	
 
 	m_maxDistortionScale = config.DistortionScale;
 
 	VPMENU_UpdateDeviceSettings();
 	OnCreateOrRestore();
+	
+	//Check HMD is ok
+	if (m_spShaderViewAdjustment->HMDInfo()->GetStatus() != HMD_STATUS_OK)
+	{
+		//Show this error message, it won't be overridden by anything else
+		ShowPopup(VPT_HMDINITFAIL, VPS_ERROR, m_spShaderViewAdjustment->HMDInfo()->GetStatusString());
+	}
 }
 
 /**
@@ -2475,9 +2363,8 @@ void D3DProxyDevice::Init(ProxyHelper::ProxyConfig& cfg)
 ***/
 void D3DProxyDevice::SetupHUD()
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called SetupHUD");
-	#endif
+	SHOW_CALL("SetupHUD");
+	
 	D3DXCreateFont( this, 32, 0, FW_BOLD, 4, FALSE, DEFAULT_CHARSET, OUT_TT_ONLY_PRECIS, ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_DONTCARE, "Calibri", &hudFont );
 	D3DXCreateFont( this, 26, 0, FW_BOLD, 4, FALSE, DEFAULT_CHARSET, OUT_TT_ONLY_PRECIS, ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_DONTCARE, "Courier New", &errorFont );
 
@@ -2489,1163 +2376,6 @@ void D3DProxyDevice::SetupHUD()
 	D3DXCreateSprite(this, &hudTextBox);
 }
 
-/**
-* Keyboard input handling
-***/
-void D3DProxyDevice::HandleControls()
-{
-	#ifdef SHOW_CALLS
-		OutputDebugString("called HandleControls");
-	#endif
-	controls.UpdateXInputs();
-
-	// loop through hotkeys
-	bool hotkeyPressed = false;
-	for (int i = 0; i < 5; i++)
-	{
-		if ((controls.Key_Down(hudHotkeys[i])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-		{
-			if (i==0)
-			{
-				HUD_3D_Depth_Modes newMode=(HUD_3D_Depth_Modes)(hud3DDepthMode+1);
-				if (newMode>=HUD_3D_Depth_Modes::HUD_ENUM_RANGE)
-					newMode=HUD_3D_Depth_Modes::HUD_DEFAULT;
-				{
-					oldHudMode = hud3DDepthMode;
-					ChangeHUD3DDepthMode(newMode);
-
-				}
-			}
-			else
-			{
-				if (hud3DDepthMode==(HUD_3D_Depth_Modes)(i-1))
-				{
-					if (controls.Key_Down(VK_RCONTROL))
-					{
-						oldHudMode = hud3DDepthMode;
-						ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)(i-1));
-					}
-					else
-					{
-						ChangeHUD3DDepthMode(oldHudMode);
-					}
-
-				}
-				else
-				{
-					oldHudMode = hud3DDepthMode;
-					ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)(i-1));
-				}
-			}
-			hotkeyPressed = true;
-		}
-		if ((controls.Key_Down(guiHotkeys[i])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-		{
-			if (i==0)
-			{
-				GUI_3D_Depth_Modes newMode=(GUI_3D_Depth_Modes)(gui3DDepthMode+1);
-				if (newMode>=GUI_3D_Depth_Modes::GUI_ENUM_RANGE)
-					newMode=GUI_3D_Depth_Modes::GUI_DEFAULT;
-				{
-					oldGuiMode = gui3DDepthMode;
-					ChangeGUI3DDepthMode(newMode);
-				}
-			}
-			else
-			{
-				if (gui3DDepthMode==(GUI_3D_Depth_Modes)(i-1))
-				{
-					if (controls.Key_Down(VK_RCONTROL))
-					{
-						oldGuiMode = gui3DDepthMode;
-						ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)(i-1));
-					}
-					else
-					{
-						ChangeGUI3DDepthMode(oldGuiMode);
-					}
-
-				}
-				else
-				{
-					oldGuiMode = gui3DDepthMode;
-					ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)(i-1));
-				}
-			}
-			hotkeyPressed=true;
-		}
-	}
-
-	// avoid double input by using the menu velocity
-	if (hotkeyPressed)
-		menuVelocity.x+=2.0f;
-
-	// test VRBoost reset hotkey
-	if (controls.Key_Down(toggleVRBoostHotkey) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-	{
-		if (hmVRboost!=NULL)
-		{
-			m_pVRboost_ReleaseAllMemoryRules();
-			m_bVRBoostToggle = !m_bVRBoostToggle;
-			if (tracker->getStatus() > MTS_OK)
-				tracker->resetOrientationAndPosition();
-
-			// set the indicator to be drawn
-			m_fVRBoostIndicator = 1.0f;
-
-			menuVelocity.x += 4.0f;
-		}
-	}
-
-	//If we are in comfort mode and user has pushed left or right, then change yaw
-	if (VRBoostValue[VRboostAxis::ComfortMode] != 0.0f  &&
-		VRBoostStatus.VRBoost_Active &&
-		(menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-	{
-		if (controls.xInputState.Gamepad.sThumbRX < -16384 ||
-			controls.Key_Down(m_comfortModeLeftKey))
-		{
-			m_comfortModeYaw +=m_comfortModeYawIncrement;
-			if (m_comfortModeYaw == 180.0f)
-				m_comfortModeYaw = -180.0f;
-			menuVelocity.x+=4.0f;
-		}
-
-		if (controls.xInputState.Gamepad.sThumbRX > 16384 ||
-			controls.Key_Down(m_comfortModeRightKey))
-		{
-			m_comfortModeYaw -= m_comfortModeYawIncrement;
-			if (m_comfortModeYaw == -180.0f)
-				m_comfortModeYaw = 180.0f;
-			menuVelocity.x+=4.0f;
-		}
-	}
-
-	//Double clicking the Right-Ctrl will disable or re-enable all Vireio hot-keys
-	static DWORD rctrlStartClick = 0;
-	if ((controls.Key_Down(VK_RCONTROL) || rctrlStartClick != 0) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-	{
-		if (controls.Key_Down(VK_RCONTROL) && rctrlStartClick == 0)
-		{
-			rctrlStartClick = 1;
-		}
-		else if (!controls.Key_Down(VK_RCONTROL) && rctrlStartClick == 1)
-		{
-			rctrlStartClick = GetTickCount();
-		}
-		else if (controls.Key_Down(VK_RCONTROL) && rctrlStartClick > 1)
-		{
-			//If we clicked a second time within 500 ms
-			if ((GetTickCount() - rctrlStartClick) <= 500)
-			{
-				if (!m_disableAllHotkeys)
-				{
-					m_disableAllHotkeys = true;
-					VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 2000);
-					sprintf_s(popup.line[2], "VIREIO HOT-KEYS: DISABLED");
-					ShowPopup(popup);
-				}
-				else
-				{
-					m_disableAllHotkeys = false;
-					VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 2000);
-					sprintf_s(popup.line[2], "VIREIO HOT-KEYS: ENABLED");
-					ShowPopup(popup);
-				}
-			}
-
-			rctrlStartClick = 0;
-			menuVelocity.x+=2.0f;
-		}
-		else if (rctrlStartClick > 1 && 
-			(GetTickCount() - rctrlStartClick) > 500)
-		{
-			//Reset, user clearly not double clicking
-			rctrlStartClick = 0;
-		}
-	}
-
-	//Disconnected Screen View Mode
-	if ((controls.Key_Down(edgePeekHotkey) || (controls.Key_Down(VK_MBUTTON) || (controls.Key_Down(VK_LCONTROL) && controls.Key_Down(VK_NUMPAD2)))) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-	{
-		static bool bSurpressPositionaltracking = true;
-		static bool bForceMouseEmulation = false;
-		if (m_bfloatingScreen)
-		{
-			m_bfloatingScreen = false;
-			m_bSurpressHeadtracking = false;
-			tracker->setMouseEmulation(bForceMouseEmulation);
-			bSurpressPositionaltracking = m_bSurpressPositionaltracking;
-			m_bSurpressPositionaltracking = false;
-			//TODO Change this back to initial
-			this->stereoView->HeadYOffset = 0;
-			this->stereoView->HeadZOffset = FLT_MAX;
-			this->stereoView->XOffset = 0;
-			this->stereoView->PostReset();	
-		}
-		else
-		{
-			//Suspend in-game movement whilst showing disconnected screen view
-			m_bfloatingScreen = true;
-			m_bSurpressHeadtracking = true;
-			bForceMouseEmulation = tracker->setMouseEmulation(false);
-			m_bSurpressPositionaltracking = bSurpressPositionaltracking;
-			if (tracker->getStatus() >= MTS_OK)
-			{
-				m_fFloatingScreenPitch = tracker->primaryPitch;
-				m_fFloatingScreenYaw = tracker->primaryYaw;			
-				m_fFloatingScreenZ = tracker->z;			
-			}
-		}
-
-		VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 700);
-		if (m_bfloatingScreen)
-			strcpy_s(popup.line[2], "Disconnected Screen Enabled");
-		else
-			strcpy_s(popup.line[2], "Disconnected Screen Disabled");
-		ShowPopup(popup);
-
-		menuVelocity.x += 4.0f;		
-	}
-
-	float screenFloatMultiplierY = 0.75;
-	float screenFloatMultiplierX = 0.5;
-	float screenFloatMultiplierZ = 1.5;
-	if(m_bfloatingScreen)
-	{
-		if (tracker->getStatus() >= MTS_OK)
-		{
-			this->stereoView->HeadYOffset = (m_fFloatingScreenPitch - tracker->primaryPitch) * screenFloatMultiplierY + (0.5f * tracker->y);
-			this->stereoView->XOffset = (m_fFloatingScreenYaw - tracker->primaryYaw) * screenFloatMultiplierX + (0.5f * tracker->x);
-			this->stereoView->HeadZOffset = (m_fFloatingScreenZ - tracker->z) * screenFloatMultiplierZ;
-			this->stereoView->PostReset();
-		}
-	}
-	else
-	{
-		if (this->stereoView->m_screenViewGlideFactor < 1.0f)
-		{
-			float drift = (sinf(1 + (-cosf((1.0f - this->stereoView->m_screenViewGlideFactor) * 3.142f) / 2)) - 0.5f) * 2.0f;
-			this->stereoView->HeadYOffset = ((m_fFloatingScreenPitch - tracker->primaryPitch) * screenFloatMultiplierY) 
-				* drift;
-			this->stereoView->XOffset = ((m_fFloatingScreenYaw - tracker->primaryYaw) * screenFloatMultiplierX) 
-				* drift;
-
-			this->stereoView->PostReset();
-		}
-	}
-
-	//Anything in the following block will be unavailable whilst disable hot-keys is active
-	if (!m_disableAllHotkeys)
-	{
-		//Rset HMD Orientation+Position LSHIFT+R, or L+R Shoulder buttons on Xbox 360 controller
-		if ((((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down(0x52)) 
-			|| (controls.xButtonsStatus[8] && controls.xButtonsStatus[9]))
-			&& (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-		{
-			if (calibrate_tracker)
-			{
-				calibrate_tracker = false;
-				//Replace popup
-				DismissPopup(VPT_CALIBRATE_TRACKER);
-				VireioPopup popup(VPT_NOTIFICATION, VPS_INFO, 3000);
-				strcpy_s(popup.line[2], "HMD Orientation and Position Calibrated");
-				strcpy_s(popup.line[3], "Please repeat if required...");
-				ShowPopup(popup);
-			}
-			else
-			{
-				VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1200);
-				strcpy_s(popup.line[2], "HMD Orientation and Position Reset");
-				ShowPopup(popup);
-			}
-			tracker->resetOrientationAndPosition();
-			menuVelocity.x+=2.0f;
-		}
-
-		//Duck and cover - trigger crouch and prone keys if Y position of HMD moves appropriately
-		if (m_DuckAndCover.dfcStatus > DAC_INACTIVE &&
-			m_DuckAndCover.dfcStatus < DAC_DISABLED && tracker &&
-			tracker->getStatus() >= MTS_OK)
-		{
-			if ((controls.xButtonsStatus[0x0c] || controls.Key_Down(VK_RSHIFT)) && menuVelocity == D3DXVECTOR2(0.0f, 0.0f))
-			{
-				if (m_DuckAndCover.dfcStatus == DAC_CAL_STANDING)
-				{
-					//Reset positional ready for the next stage
-					tracker->resetPosition();
-					m_DuckAndCover.dfcStatus = DAC_CAL_CROUCHING;
-				}
-				else if (m_DuckAndCover.dfcStatus == DAC_CAL_CROUCHING)
-				{
-					m_DuckAndCover.yPos_Crouch = tracker->y;
-					//Slightly randomly decided on this
-					m_DuckAndCover.yPos_Jump = fabs(tracker->y) / 3.0f;
-					m_DuckAndCover.dfcStatus = DAC_CAL_PRONE;
-				}
-				else if (m_DuckAndCover.dfcStatus == DAC_CAL_PRONE)
-				{
-					m_DuckAndCover.proneEnabled = true;
-					m_DuckAndCover.yPos_Prone = tracker->y - m_DuckAndCover.yPos_Crouch;
-					m_DuckAndCover.dfcStatus = DAC_CAL_COMPLETE;
-				}
-				else if (m_DuckAndCover.dfcStatus == DAC_CAL_COMPLETE)
-				{
-					//Ready to go..
-					m_DuckAndCover.dfcStatus = DAC_STANDING;
-					tracker->resetPosition();
-					DismissPopup(VPT_NOTIFICATION);
-				}
-				menuVelocity.x += 5.0f;
-			}
-			//B button only skips the prone position
-			else if ((controls.xButtonsStatus[0x0d] || controls.Key_Down(VK_ESCAPE)) && menuVelocity == D3DXVECTOR2(0.0f, 0.0f))
-			{
-				if (m_DuckAndCover.dfcStatus == DAC_CAL_PRONE)
-				{
-					m_DuckAndCover.proneEnabled = false;
-					m_DuckAndCover.dfcStatus = DAC_CAL_COMPLETE;
-				}
-				menuVelocity.x += 5.0f;
-			}
-		}
-
-
-		// Show active VRBoost axes and their addresses (SHIFT+V)
-		if (controls.Key_Down(VK_LSHIFT) && (controls.Key_Down(0x56)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-		{
-			if (hmVRboost!=NULL)
-			{
-				if (VRBoostStatus.VRBoost_Active)
-				{
-					VireioPopup popup(VPT_NOTIFICATION, VPS_INFO, 10000);
-				
-					ActiveAxisInfo axes[30];
-					memset(axes, 0xFF, sizeof(ActiveAxisInfo) * 30);
-					UINT count = m_pVRboost_GetActiveRuleAxes((ActiveAxisInfo**)&axes);
-					sprintf_s(popup.line[0], "VRBoost Axis Addresses: %i", count);
-
-					UINT i = 0;
-					while (i < count)
-					{
-						if (axes[i].Axis == MAXDWORD || i == 6)
-							break;
-
-						std::string axisName = VRboostAxisString(axes[i].Axis);
-						sprintf_s(popup.line[i+1], "      %s:      0x%"PR_SIZET"x", axisName.c_str(), axes[i].Address);
-
-						i++;
-					}	
-			
-					ShowPopup(popup);
-				}
-
-				menuVelocity.x += 4.0f;
-			}
-		}
-
-		// switch to 2d Depth Mode (Shift + O / Numpad 9)
-		if (controls.Key_Down(VK_LSHIFT) && (controls.Key_Down(0x4F) || controls.Key_Down(VK_NUMPAD9)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-		{
-			if(!m_b2dDepthMode)
-			{
-				m_b2dDepthMode = true;
-				stereoView->m_b2dDepthMode = true;
-
-				VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
-				sprintf_s(popup.line[2], "Depth Perception Mode On");
-				ShowPopup(popup);
-			}
-			else
-			{
-				m_b2dDepthMode = false;
-				stereoView->m_b2dDepthMode = false;
-				VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
-				sprintf_s(popup.line[2], "Depth Perception Mode Off");
-				ShowPopup(popup);
-			}
-			menuVelocity.x += 4.0f;
-		
-		}
-
-		// Swap Sides on Depth mode (Alt + O)
-		if (controls.Key_Down(VK_MENU) && controls.Key_Down(0x4F) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-		{
-			if(m_b2dDepthMode)
-			{
-				if(stereoView->m_bLeftSideActive)
-				{
-					stereoView->m_bLeftSideActive = false;
-				}
-				else
-				{
-					stereoView->m_bLeftSideActive = true;
-				}
-				VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
-				sprintf_s(popup.line[2], "Depth Perception Side Switched");
-				ShowPopup(popup);
-			}		
-			menuVelocity.x += 4.0f;
-		
-		}
-
-		// cycle Render States
-		if (controls.Key_Down(VK_MENU) && (controls.Key_Down(VK_LEFT) || controls.Key_Down(VK_RIGHT)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-		{
-			std::string _str = "";
-			if(controls.Key_Down(VK_LEFT))
-			{			
-				_str = stereoView->CycleRenderState(false);
-			}
-			else if(controls.Key_Down(VK_RIGHT))
-			{			
-				_str = stereoView->CycleRenderState(true);
-			}
-			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
-			sprintf_s(popup.line[2], _str.append(" :: New Render State").c_str());
-			ShowPopup(popup);
-		
-			menuVelocity.x += 4.0f;		
-		}
-
-		// Toggle Through Cube Renders -> ALt + 1
-		if (controls.Key_Down(VK_MENU) && controls.Key_Down(0x31) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-		{
-			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
-			if(m_pGameHandler->intDuplicateCubeTexture < 3)
-			{
-				m_pGameHandler->intDuplicateCubeTexture++;
-				if(m_pGameHandler->intDuplicateCubeTexture == 1)
-					sprintf_s(popup.line[2], "Cube Duplication :: Always False");
-				else if(m_pGameHandler->intDuplicateCubeTexture == 2)
-					sprintf_s(popup.line[2], "Cube Duplication :: Always True");
-				else if(m_pGameHandler->intDuplicateCubeTexture == 3)
-					sprintf_s(popup.line[2], "Cube Duplication :: Always IS_RENDER_TARGET(Usage)");
-			}
-			else
-			{
-				m_pGameHandler->intDuplicateCubeTexture = 0;
-				sprintf_s(popup.line[2], "Cube Duplication :: Default (Game Type)");
-			}		
-		
-			ShowPopup(popup);		
-			menuVelocity.x += 4.0f;		
-		}
-		// Toggle Through Texture Renders -> ALt + 2
-		if (controls.Key_Down(VK_MENU) && controls.Key_Down(0x32) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-		{
-			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
-			if(m_pGameHandler->intDuplicateTexture < 4)
-			{
-				m_pGameHandler->intDuplicateTexture++;
-				if(m_pGameHandler->intDuplicateTexture == 1)
-					sprintf_s(popup.line[2], "Texture Duplication :: Method 1");
-				else if(m_pGameHandler->intDuplicateTexture == 2)
-					sprintf_s(popup.line[2], "Texture Duplication :: Method 2 (1 + Width and Height)");
-				else if(m_pGameHandler->intDuplicateTexture == 3)
-					sprintf_s(popup.line[2], "Texture Duplication :: Always False");
-				else if(m_pGameHandler->intDuplicateTexture == 4)
-					sprintf_s(popup.line[2], "Texture Duplication :: Always True");
-			}
-			else
-			{
-				m_pGameHandler->intDuplicateTexture = 0;
-				sprintf_s(popup.line[2], "Texture Duplication :: Default (Game Type)");
-			}		
-		
-			ShowPopup(popup);		
-			menuVelocity.x += 4.0f;		
-		}
-
-		//When to render vpmenu (Alt + Up)
-		if (controls.Key_Down(VK_MENU) && controls.Key_Down(VK_UP) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-		{
-			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
-			if(m_deviceBehavior.whenToRenderVPMENU == DeviceBehavior::BEGIN_SCENE)
-			{
-				m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::END_SCENE;
-				sprintf_s(popup.line[2], "VPMENU RENDER = END_SCENE");
-			}
-			else if(m_deviceBehavior.whenToRenderVPMENU == DeviceBehavior::END_SCENE)
-			{
-				m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::PRESENT;
-				sprintf_s(popup.line[2], "VPMENU RENDER = PRESENT");
-			}
-			else
-			{
-				m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::BEGIN_SCENE;
-				sprintf_s(popup.line[2], "VPMENU RENDER = BEGIN_SCENE");
-			}
-			ShowPopup(popup);		
-			menuVelocity.x += 4.0f;		
-		}
-
-		//When to poll headtracking (Alt + Down)
-		if (controls.Key_Down(VK_MENU) && controls.Key_Down(VK_DOWN) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-		{
-			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
-			if(m_deviceBehavior.whenToHandleHeadTracking == DeviceBehavior::BEGIN_SCENE)
-			{
-				m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::END_SCENE;			
-				sprintf_s(popup.line[2], "HEADTRACKING = END_SCENE");
-			}
-			else if(m_deviceBehavior.whenToHandleHeadTracking == DeviceBehavior::END_SCENE)
-			{
-				m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::BEGIN_SCENE;			
-				sprintf_s(popup.line[2], "HEADTRACKING = BEGIN SCENE");
-			}	
-			/*else if(m_deviceBehavior.whenToHandleHeadTracking == DeviceBehavior::PRESENT)
-			{
-				m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::BEGIN_SCENE;
-				sprintf_s(popup.line[2], "HEADTRACKING = BEGIN SCENE");
-			}//TODO This Crashes for some reason - problem for another day*/
-		
-			ShowPopup(popup);		
-			menuVelocity.x += 4.0f;		
-		}
-
-		// Initiate VRBoost Memory Scan (NUMPAD5 or <LCTRL> + </> )
-		if ((controls.Key_Down(VK_NUMPAD5) || (controls.Key_Down(VK_OEM_2) && controls.Key_Down(VK_LCONTROL))) && 
-			(menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-		{
-			if (hmVRboost!=NULL)
-			{
-				//Use local static, as it is a simple flag
-				static bool showRescanWarning = false;
-				static bool shownRescanWarning = false;
-				if (showRescanWarning && !VRBoostStatus.VRBoost_Scanning)
-				{
-					//If roll isn't enabled then rolling is done through the game engine using VRBoost
-					//In this case, if the user has already run a successful scan then running again would likely
-					//fail as the roll address will almost definitely not be 0, which is what the scanner would be looking for
-					//so before starting the scan, confirm with the user this is what they actually wish to do
-					//This will also prevent an accidental re-run
-					//Games that use matrix roll can usually be re-run without issue
-					VireioPopup popup(VPT_NOTIFICATION, VPS_INFO, 5000);
-					sprintf_s(popup.line[0], "   *WARNING*: re-running a scan once stable");
-					sprintf_s(popup.line[1], "   addresses have been found could fail");
-					sprintf_s(popup.line[2], "   IF NO SCAN HAS YET SUCCEEDED; IGNORE THIS WARNING");
-					sprintf_s(popup.line[4], "   Press scan trigger again to initiate scan");
-					sprintf_s(popup.line[5], "   or wait for this message to disappear (No Scan)");
-					ShowPopup(popup);
-					showRescanWarning = false;
-					shownRescanWarning = true;
-				}
-				else
-				{
-					//Ensure the previous notification is dismissed
-					if (shownRescanWarning)
-					{
-						DismissPopup(VPT_NOTIFICATION);
-						shownRescanWarning = false;
-					}
-
-					ReturnValue vr = m_pVRboost_StartMemoryScan();
-					if (vr == VRBOOST_ERROR)
-					{
-						VireioPopup popup(VPT_VRBOOST_FAILURE, VPS_TOAST, 5000);
-						sprintf_s(popup.line[2], "VRBoost: StartMemoryScan - Failed");
-						ShowPopup(popup);
-					}
-					//If initialising then we have successfully started a new scan
-					else if (vr = VRBOOST_SCAN_INITIALISING)
-					{
-						VRBoostStatus.VRBoost_Scanning = true;
-						//Definitely have no candidates at this point
-						VRBoostStatus.VRBoost_Candidates = false;
-						showRescanWarning = true;
-					}
-				}
-				menuVelocity.x += 4.0f;
-			}
-		}
-
-		// Select next scan candidate if there is one
-		//  Increase = NUMPAD6 or <LCTRL> + <.> 
-		//  Decrease = NUMPAD4 or <LCTRL> + <,> 
-		if (VRBoostStatus.VRBoost_Candidates && 
-			(controls.Key_Down(VK_NUMPAD6) || controls.Key_Down(VK_NUMPAD4) || (controls.Key_Down(VK_LCONTROL) && (controls.Key_Down(VK_OEM_COMMA) || controls.Key_Down(VK_OEM_PERIOD)))) && 
-			(menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-		{
-			if (hmVRboost!=NULL)
-			{
-				static int c = 0;
-				UINT candidates = m_pVRboost_GetScanCandidates();
-				bool increase = (controls.Key_Down(VK_NUMPAD6) || controls.Key_Down(VK_OEM_PERIOD));
-				if (increase)
-					c = (c + 1) % candidates;
-				else
-				{
-					if (--c < 0) c = candidates - 1;
-				}
-
-				m_pVRboost_SetNextScanCandidate(increase);
-				VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1000);
-				sprintf_s(popup.line[2], "VRBoost: Select Next Scan Candidate: %i / %i", c+1, candidates);
-				DismissPopup(VPT_NOTIFICATION);
-				ShowPopup(popup);
-
-				menuVelocity.x += 2.0f;
-			}
-		}
-	
-		// Cancel VRBoost Memory Scan Mode (NUMPAD8 or <LCTRL> + <;> )
-		if ((controls.Key_Down(VK_NUMPAD8) || (controls.Key_Down(VK_OEM_1) && controls.Key_Down(VK_LCONTROL)))
-			&& (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-		{
-			DismissPopup(VPT_VRBOOST_SCANNING);
-
-			VRBoostStatus.VRBoost_Scanning = false;
-			VRBoostStatus.VRBoost_Candidates = false;
-
-			m_bForceMouseEmulation = true;
-			tracker->setMouseEmulation(true);
-
-			menuVelocity.x-=2.0f;
-		}
-
-		//Enabled/Disable Free Pitch (default is disabled), LSHIFT + X
-		if (VRBoostStatus.VRBoost_Active && 
-			(controls.Key_Down(VK_LSHIFT) && controls.Key_Down(0x58)) && 
-			(menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-		{
-			if (VRBoostValue[VRboostAxis::FreePitch] != 0.0f)
-			{
-				//Disable Free Pitch
-				VRBoostValue[VRboostAxis::FreePitch] = 0.0f;
-
-				VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
-				sprintf_s(popup.line[2], "Pitch Free-look Disabled");
-				ShowPopup(popup);
-			}
-			else
-			{
-				//Enable Free Pitch
-				VRBoostValue[VRboostAxis::FreePitch] = 1.0f;
-
-				VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
-				sprintf_s(popup.line[2], "Pitch Free-look Enabled");
-				ShowPopup(popup);
-			}
-
-			menuVelocity.x+=2.0f;
-		}
-
-		//Enabled/Disable Comfort Mode - LSHIFT + M
-		if (VRBoostStatus.VRBoost_Active && 
-			(controls.Key_Down(VK_LSHIFT) && controls.Key_Down(0x4D)) && 
-			(menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-		{
-			if (VRBoostValue[VRboostAxis::ComfortMode] != 0.0f)
-			{
-				//Disable Comfort Mode
-				VRBoostValue[VRboostAxis::ComfortMode] = 0.0f;
-				m_comfortModeYaw = 0.0f;
-
-				VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
-				sprintf_s(popup.line[2], "Comfort Mode Disabled");
-				ShowPopup(popup);
-			}
-			else
-			{
-				//Enable Comfort Mode
-				VRBoostValue[VRboostAxis::ComfortMode] = 1.0f;
-				m_comfortModeYaw = 0.0f;
-
-				VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 3000);
-				sprintf_s(popup.line[2], "Comfort Mode Enabled");
-				ShowPopup(popup);
-			}
-
-			menuVelocity.x+=2.0f;
-		}
-
-		//Enabled/Disable Black Smear Correction for DK2 (default is disabled), LSHIFT + B
-		if ((tracker && tracker->SupportsPositionTracking()) &&
-			(controls.Key_Down(VK_LSHIFT) && controls.Key_Down(0x42)) && 
-			(menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-		{
-			if (stereoView->m_blackSmearCorrection != 0.0f)
-			{
-				stereoView->m_blackSmearCorrection = 0.0f;
-				stereoView->PostReset();		
-
-				VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
-				sprintf_s(popup.line[2], "DK2 Black Smear Correction Disabled");
-				ShowPopup(popup);
-			}
-			else
-			{
-				stereoView->m_blackSmearCorrection = 0.02f;
-				stereoView->PostReset();		
-
-				VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
-				sprintf_s(popup.line[2], "DK2 Black Smear Correction Enabled");
-				ShowPopup(popup);
-			}
-
-			menuVelocity.x+=2.0f;
-		}
-
-
-		//Reset IPD Offset to 0  -  F8  or  LSHIFT+I
-		if ((controls.Key_Down(VK_F8) || (controls.Key_Down(VK_LSHIFT) && controls.Key_Down(0x49))) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)) && this->stereoView->IPDOffset != 0.0)
-		{
-			this->stereoView->IPDOffset = 0.0;
-			this->stereoView->PostReset();		
-
-			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
-			sprintf_s(popup.line[2], "IPD-Offset: %1.3f", this->stereoView->IPDOffset);
-			ShowPopup(popup);
-			m_saveConfigTimer = GetTickCount();
-			menuVelocity.x+=2.0f;
-		}
-
-		//Show FPS Counter / Frame Time counter LSHIFT+F
-		if (((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down(0x46)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-		{
-			show_fps = (FPS_TYPE)((show_fps+1) % 3);
-			menuVelocity.x+=2.0f;
-		}
-
-		//Show HMD Stats Counter LSHIFT+H 
-		if (((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down(0x48)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-		{
-			if (activePopup.popupType == VPT_STATS)
-			{
-				DismissPopup(VPT_STATS);
-			}
-			else
-			{
-				VireioPopup popup(VPT_STATS);
-				ShowPopup(popup);
-			}
-			menuVelocity.x+=2.0f;
-		}
-
-		//Toggle positional tracking
-		if ((controls.Key_Down(VK_F11) || ((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down(0x50))) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-		{
-			m_bPosTrackingToggle = !m_bPosTrackingToggle;
-
-			VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1200);
-			if (m_bPosTrackingToggle)
-				strcpy_s(popup.line[2], "HMD Positional Tracking Enabled");
-			else
-				strcpy_s(popup.line[2], "HMD Positional Tracking Disabled");
-			ShowPopup(popup);
-
-			if (!m_bPosTrackingToggle)
-				m_spShaderViewAdjustment->UpdatePosition(0.0f, 0.0f, 0.0f);
-
-			menuVelocity.x += 4.0f;
-		}
-
-		//Toggle SDK Pose Prediction- LSHIFT + DELETE
-		if (hmdInfo->GetHMDManufacturer() == HMD_OCULUS	&&
-			(controls.Key_Down(VK_LSHIFT) && controls.Key_Down(VK_DELETE)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)) && tracker)
-		{
-			tracker->useSDKPosePrediction = !tracker->useSDKPosePrediction;
-
-			VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1200);
-			if (tracker->useSDKPosePrediction)
-				strcpy_s(popup.line[2], "SDK Pose Prediction Enabled");
-			else
-				strcpy_s(popup.line[2], "SDK Pose Prediction Disabled");
-			ShowPopup(popup);
-
-			menuVelocity.x += 4.0f;
-		}
-
-		//Toggle chromatic abberation correction - SHIFT+J
-		if (((controls.Key_Down(VK_LSHIFT) || controls.Key_Down(VK_LCONTROL)) && controls.Key_Down(0x4A))
-			&& (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-		{
-			stereoView->chromaticAberrationCorrection = !stereoView->chromaticAberrationCorrection;
-
-			VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1200);
-			if (stereoView->chromaticAberrationCorrection)
-				strcpy_s(popup.line[2], "Chromatic Aberration Correction Enabled");
-			else
-				strcpy_s(popup.line[2], "Chromatic Aberration Correction Disabled");
-			ShowPopup(popup);
-
-			menuVelocity.x += 4.0f;
-		}
-
-		//Double clicking the NUMPAD0 key will invoke the VR mouse
-		//Double clicking when VR mouse is enabled will either:
-		//   - Toggle between GUI and HUD scaling if double click occurs within 2 seconds
-		//   - Disable VR Mouse if double click occurs after 2 seconds
-		static DWORD numPad0Click = 0;
-		if ((controls.Key_Down(VK_NUMPAD0) || numPad0Click != 0) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-		{
-			if (controls.Key_Down(VK_NUMPAD0) && numPad0Click == 0)
-			{
-				numPad0Click = 1;
-			}
-			else if (!controls.Key_Down(VK_NUMPAD0) && numPad0Click == 1)
-			{
-				numPad0Click = GetTickCount();
-			}
-			else if (controls.Key_Down(VK_NUMPAD0) && numPad0Click > 1)
-			{
-				//If we clicked a second time within 500 ms, then trigger VR Mouse
-				if ((GetTickCount() - numPad0Click) <= 500)
-				{
-					static DWORD tc = 0;
-					if (tc != 0 && (GetTickCount() - tc > 2000))
-					{
-						tc = 0;
-						m_showVRMouse = 0;
-						stereoView->m_mousePos.x = 0;
-						stereoView->m_mousePos.y = 0;
-					}
-					else
-					{
-						tc = GetTickCount();
-						if (m_showVRMouse == 2)
-							m_showVRMouse = 1;
-						else
-							m_showVRMouse++;
-					}
-
-					stereoView->PostReset();
-
-					VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1200);
-					DismissPopup(VPT_NOTIFICATION);
-					if (m_showVRMouse == 1)
-						strcpy_s(popup.line[2], "VR Mouse - GUI Scaling");
-					else if (m_showVRMouse == 2)
-						strcpy_s(popup.line[2], "VR Mouse - HUD Scaling");
-					else
-						strcpy_s(popup.line[2], "VR Mouse - Disabled");
-					ShowPopup(popup);
-
-					menuVelocity.x += 4.0f;		
-				}
-
-				numPad0Click = 0;
-				menuVelocity.x+=2.0f;
-			}
-			else if (numPad0Click > 1 &&
-				(GetTickCount() - numPad0Click) > 500)
-			{
-				//Reset, user clearly not double clicking
-				numPad0Click = 0;
-			}
-		}
-		
-		// floaty menus
-		if (controls.Key_Down(VK_LCONTROL) && controls.Key_Down(VK_NUMPAD1) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-		{
-			if (m_bfloatingMenu)
-				m_bfloatingMenu = false;
-			else
-			{
-				m_bfloatingMenu = true;
-				if (tracker->getStatus() >= MTS_OK)
-				{
-					m_fFloatingPitch = tracker->primaryPitch;
-					m_fFloatingYaw = tracker->primaryYaw;			
-				}
-			}
-
-			VireioPopup popup(VPT_NOTIFICATION, VPS_TOAST, 1200);
-			if (m_bfloatingMenu)
-				strcpy_s(popup.line[2], "Floating Menus Enabled");
-			else
-				strcpy_s(popup.line[2], "Floating Menus Disabled");
-			ShowPopup(popup);
-
-			menuVelocity.x += 4.0f;		
-		}
-
-		//Double clicking the start button will invoke the VP menu
-		static DWORD startClick = 0;
-		if ((controls.xButtonsStatus[4] || startClick != 0) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-		{
-			if (controls.xButtonsStatus[4] && startClick == 0)
-			{
-				startClick = 1;
-			}
-			else if (!controls.xButtonsStatus[4] && startClick == 1)
-			{
-				startClick = GetTickCount();
-			}
-			else if (controls.xButtonsStatus[4] && startClick > 1)
-			{
-				//If we clicked a second time within 500 ms, then open vp menu
-				if ((GetTickCount() - startClick) <= 500)
-				{
-					if (VPMENU_mode == VPMENU_Modes::INACTIVE)
-					{
-						borderTopHeight = 0.0f;
-						VPMENU_mode = VPMENU_Modes::MAINMENU;
-					}
-					else
-					{
-						VPMENU_mode = VPMENU_Modes::INACTIVE;
-						VPMENU_UpdateConfigSettings();
-					}
-				}
-
-				startClick = 0;
-				menuVelocity.x+=2.0f;
-			}
-			else if (startClick > 1 &&
-				(GetTickCount() - startClick) > 500)
-			{
-				//Reset, user clearly not double clicking
-				startClick = 0;
-			}
-		}
-
-		// open VP Menu - <CTRL>+<T>
-		if(controls.Key_Down(0x51) && controls.Key_Down(VK_LCONTROL) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-		{
-			if (VPMENU_mode == VPMENU_Modes::INACTIVE)
-			{
-				borderTopHeight = 0.0f;
-				VPMENU_mode = VPMENU_Modes::MAINMENU;
-			}
-			else
-			{
-				VPMENU_mode = VPMENU_Modes::INACTIVE;
-				VPMENU_UpdateConfigSettings();
-			}
-
-			menuVelocity.x+=2.0f;
-		}
-
-		// open VP Menu - <LSHIFT>+<*>
-		if(controls.Key_Down(VK_MULTIPLY) && controls.Key_Down(VK_LSHIFT) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))		
-		{
-			if (VPMENU_mode == VPMENU_Modes::INACTIVE)
-			{
-				borderTopHeight = 0.0f;
-				VPMENU_mode = VPMENU_Modes::MAINMENU;
-			}
-			else
-			{
-				VPMENU_mode = VPMENU_Modes::INACTIVE;
-				VPMENU_UpdateConfigSettings();
-			}
-
-			menuVelocity.x+=2.0f;
-		}
-
-		//Mouse Wheel Scroll
-		if(controls.Key_Down(VK_LCONTROL))
-		{
-			int _wheel = dinput.GetWheel();
-			if(controls.Key_Down(VK_TAB))
-			{
-				if(_wheel < 0)
-				{
-					if(this->stereoView->YOffset > -0.1f)
-					{
-						this->stereoView->YOffset -= 0.005f;
-						this->stereoView->PostReset();				
-					}
-				}
-				else if(_wheel > 0)
-				{
-					if(this->stereoView->YOffset < 0.1f)
-					{
-						this->stereoView->YOffset += 0.005f;
-						this->stereoView->PostReset();										
-					}
-				}
-
-				VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
-				sprintf_s(popup.line[2], "Y-Offset: %1.3f", this->stereoView->YOffset);
-				m_saveConfigTimer = GetTickCount();
-				ShowPopup(popup);
-			}
-			else if(controls.Key_Down(VK_LSHIFT))
- 			{			
-				if(_wheel < 0)
-				{
-					if(this->stereoView->IPDOffset > -0.1f)
-					{
-						this->stereoView->IPDOffset -= 0.001f;
-						this->stereoView->PostReset();				
-					}
-				}
-				else if(_wheel > 0)
-				{
-					if(this->stereoView->IPDOffset < 0.1f)
-					{
-						this->stereoView->IPDOffset += 0.001f;
-						this->stereoView->PostReset();										
-					}
- 				}
-
-				VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
-				sprintf_s(popup.line[2], "IPD-Offset: %1.3f", this->stereoView->IPDOffset);
-				m_saveConfigTimer = GetTickCount();
-				ShowPopup(popup);
- 			}
-			//CTRL + ALT + Mouse Wheel - adjust World Scale dynamically
-			else if (controls.Key_Down(VK_MENU))
-			{
-				float separationChange = 0.05f;
-				if(_wheel < 0)
-				{
-					m_spShaderViewAdjustment->ChangeWorldScale(-separationChange);
-				}
-				else if(_wheel > 0)
-				{
-					m_spShaderViewAdjustment->ChangeWorldScale(separationChange);
- 				}
-
-				if(_wheel != 0)
-				{
-					m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, m_projectionHFOV);
-					VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
-					sprintf_s(popup.line[2], "Stereo Separation (World Scale): %1.3f", m_spShaderViewAdjustment->WorldScale());
-					m_saveConfigTimer = GetTickCount();
-					ShowPopup(popup);
-				}
-			}
-			//CTRL + SPACE + Mouse Wheel - adjust projection fov dynamically
-			else if(controls.Key_Down(VK_SPACE))
- 			{	
-				if(_wheel < 0)
-				{
-					m_projectionHFOV -= 0.5f;
-				}
-				else if(_wheel > 0)
-				{
-					m_projectionHFOV += 0.5f;
-				}
-
-				if(_wheel != 0)
-				{
-					m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, m_projectionHFOV);
-					VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
-					sprintf_s(popup.line[2], "Projection FOV: %1.3f", m_projectionHFOV);
-					ShowPopup(popup);
-				}
-			}
-			else
-			{
-				if (_wheel != 0)
-				{
-					if(_wheel < 0)
-					{
-						if(this->stereoView->ZoomOutScale > 0.05f)
-						{
-							this->stereoView->ZoomOutScale -= 0.05f;
-							this->stereoView->PostReset();				
-						}
-					}
-					else if(_wheel > 0)
-					{
-						if(this->stereoView->ZoomOutScale < 2.00f)
-						{
-							this->stereoView->ZoomOutScale += 0.05f;
-							this->stereoView->PostReset();				
-						}
-					}
-
-					if(_wheel != 0)
-					{
-						VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
-						sprintf_s(popup.line[2], "Zoom Scale: %1.3f", this->stereoView->ZoomOutScale);
-						m_saveConfigTimer = GetTickCount();
-						ShowPopup(popup);
-					}
-				}
-			}
-		}
-	
-		//Change Distortion Scale CTRL + + / -
-		if(controls.Key_Down(VK_LCONTROL) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-		{
-			if(controls.Key_Down(VK_ADD))
-			{
-				this->stereoView->ZoomOutScale = 1.00f;
-				this->stereoView->PostReset();	
-
-				VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
-				sprintf_s(popup.line[2], "Zoom Scale: %1.3f", this->stereoView->ZoomOutScale);
-				m_saveConfigTimer = GetTickCount();
-				ShowPopup(popup);
-			}
-			else if(controls.Key_Down(VK_SUBTRACT))
-			{
-				this->stereoView->ZoomOutScale = 0.50f;
-				this->stereoView->PostReset();	
-
-				VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 500);
-				sprintf_s(popup.line[2], "Zoom Scale: %1.3f", this->stereoView->ZoomOutScale);
-				m_saveConfigTimer = GetTickCount();
-				ShowPopup(popup);
-			}		
-		}	
-
-
-		// screenshot - <RCONTROL>+<*>
-		if(controls.Key_Down(VK_MULTIPLY) && controls.Key_Down(VK_RCONTROL) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))		
-		{
-			// render 3 frames to get screenshots
-			screenshot = 3;
-			menuVelocity.x+=8.0f;
-		}
-	
-		//Telescopic mode - use ALT + Mouse Wheel CLick
-		if (controls.Key_Down(VK_MENU) &&
-			controls.Key_Down(VK_MBUTTON) && 
-			(menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-		{
-			//First check whether VRBoost is controlling FOV, we can't use this functionality if it isn't
-			bool canUseTelescope = false;
-			if (VRBoostStatus.VRBoost_Active)
-			{
-				ActiveAxisInfo axes[30];
-				memset(axes, 0xFF, sizeof(ActiveAxisInfo) * 30);
-				UINT count = m_pVRboost_GetActiveRuleAxes((ActiveAxisInfo**)&axes);
-
-				UINT i = 0;
-				while (i < count)
-				{
-					if (axes[i].Axis == MAXDWORD)
-						break;
-					if (axes[i].Axis == VRboostAxis::WorldFOV)
-					{
-						canUseTelescope = true;
-						break;
-					}
-					i++;
-				}	
-			}
-
-			if (canUseTelescope)
-			{
-				if (!m_telescopicSightMode &&
-					m_telescopeTargetFOV == FLT_MAX)
-				{   
-					//enabling - reduce FOV to 20 (will result in zooming in)
-					m_telescopeTargetFOV = 20;
-					m_telescopeCurrentFOV = config.WorldFOV;
-					stereoView->m_vignetteStyle = StereoView::TELESCOPIC_SIGHT;
-					m_telescopicSightMode = true;
-				}
-				else if (m_telescopicSightMode)
-				{
-					//disabling
-					m_telescopicSightMode = false;
-					m_telescopeTargetFOV = config.WorldFOV;
-					stereoView->m_vignetteStyle = StereoView::NONE;
-				}
-
-				menuVelocity.x += 4.0f;
-			}
-		}
-	}
-}
 
 //Persist, just to the registry for now
 void D3DProxyDevice::DuckAndCover::SaveToRegistry()
@@ -3690,14 +2420,24 @@ void D3DProxyDevice::DuckAndCover::LoadFromRegistry()
 }
 
 
+void D3DProxyDevice::HandleLandmarkMoment(DeviceBehavior::WhenToDo when)
+{
+	// handle controls 
+	if (m_deviceBehavior.whenToHandleHeadTracking == when)
+		HandleTracking();
+
+	// draw menu
+	if (m_deviceBehavior.whenToRenderVPMENU == when) {
+		VPMENU();
+	}
+}
+
 /**
 * Updates selected motion tracker orientation.
 ***/
 void D3DProxyDevice::HandleTracking()
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called HandleTracking");
-	#endif
+	SHOW_CALL("HandleTracking");
 
 	if(!tracker)
 	{
@@ -3712,39 +2452,24 @@ void D3DProxyDevice::HandleTracking()
 			switch (tracker->getStatus())
 			{
 				case MTS_NOTINIT:
-					{
-						VireioPopup popup(VPT_NO_HMD_DETECTED, VPS_ERROR, 10000);
-						strcpy_s(popup.line[2], "HMD NOT INITIALISED");
-						ShowPopup(popup);
-					}
+					ShowPopup(VPT_NO_HMD_DETECTED, VPS_ERROR, 10000,
+						"HMD NOT INITIALISED");
 					break;
 				case MTS_INITIALISING:
-					{
-						VireioPopup popup(VPT_NO_HMD_DETECTED);
-						strcpy_s(popup.line[2], "HMD INITIALISING");
-						ShowPopup(popup);
-					}
+					ShowPopup(VPT_NO_HMD_DETECTED, VPS_INFO, -1,
+						"HMD INITIALISING");
 					break;
 				case MTS_NOHMDDETECTED:
-					{
-						VireioPopup popup(VPT_NO_HMD_DETECTED, VPS_ERROR, 10000);
-						strcpy_s(popup.line[2], "HMD NOT DETECTED");
-						ShowPopup(popup);
-					}
+					ShowPopup(VPT_NO_HMD_DETECTED, VPS_ERROR, 10000,
+						"HMD NOT DETECTED");
 					break;
 				case MTS_INITFAIL:
-					{
-						VireioPopup popup(VPT_NO_HMD_DETECTED, VPS_ERROR, 10000);
-						strcpy_s(popup.line[2], "HMD INITIALISATION FAILED");
-						ShowPopup(popup);
-					}
+					ShowPopup(VPT_NO_HMD_DETECTED, VPS_ERROR, 10000,
+						"HMD INITIALISATION FAILED");
 					break;
 				case MTS_DRIVERFAIL:
-					{
-						VireioPopup popup(VPT_NO_HMD_DETECTED, VPS_ERROR, 10000);
-						strcpy_s(popup.line[2], "TRACKER DRIVER FAILED TO INITIALISE");
-						ShowPopup(popup);
-					}
+					ShowPopup(VPT_NO_HMD_DETECTED, VPS_ERROR, 10000,
+						"TRACKER DRIVER FAILED TO INITIALISE");
 					break;
 				default:
 					break;
@@ -3771,9 +2496,8 @@ void D3DProxyDevice::HandleTracking()
 		}
 		else if (tracker->getStatus() == MTS_NOORIENTATION)
 		{
-			VireioPopup popup(VPT_NO_ORIENTATION, VPS_ERROR);
-			strcpy_s(popup.line[2], "HMD ORIENTATION NOT BEING REPORTED");
-			ShowPopup(popup);
+			ShowPopup(VPT_NO_ORIENTATION, VPS_ERROR, -1,
+				"HMD ORIENTATION NOT BEING REPORTED");
 		}
 		else 
 		{
@@ -3784,9 +2508,8 @@ void D3DProxyDevice::HandleTracking()
 				{
 					if (userConfig.warnCameraMalfunction)
 					{
-						VireioPopup popup(VPT_NO_HMD_DETECTED, VPS_ERROR);
-						strcpy_s(popup.line[2], "CAMERA MALFUNCTION - PLEASE WAIT WHILST CAMERA INITIALISES");
-						ShowPopup(popup);
+						ShowPopup(VPT_NO_HMD_DETECTED, VPS_ERROR, -1,
+							"CAMERA MALFUNCTION - PLEASE WAIT WHILST CAMERA INITIALISES");
 					}
 				}
 				else if (tracker->getStatus() == MTS_LOSTPOSITIONAL)
@@ -3794,9 +2517,8 @@ void D3DProxyDevice::HandleTracking()
 					if (userConfig.warnPosLost)
 					{
 						//Show popup regarding lost positional tracking
-						VireioPopup popup(VPT_POSITION_TRACKING_LOST);
-						strcpy_s(popup.line[4], "HMD POSITIONAL TRACKING LOST");
-						ShowPopup(popup);
+						ShowPopup(VPT_POSITION_TRACKING_LOST, VPS_INFO, -1,
+							"HMD POSITIONAL TRACKING LOST");
 					}
 				}
 			}
@@ -3812,7 +2534,7 @@ void D3DProxyDevice::HandleTracking()
 		if (tracker->getStatus() >= MTS_OK)
 		{
 			//Roll implementation
-			switch (m_spShaderViewAdjustment->RollImpl())
+			switch (config.rollImpl)
 			{
 			case 0:
 				{
@@ -3841,11 +2563,6 @@ void D3DProxyDevice::HandleTracking()
 			if (m_bPosTrackingToggle && tracker->getStatus() != MTS_LOSTPOSITIONAL
 				&& !m_bSurpressPositionaltracking)
 			{
-				//Set translation vector multipliers
-				m_spShaderViewAdjustment->x_scaler = config.position_x_multiplier;
-				m_spShaderViewAdjustment->y_scaler = config.position_y_multiplier;
-				m_spShaderViewAdjustment->z_scaler = config.position_z_multiplier;
-
 				//Use reduced Y-position tracking in DFC mode, user should be triggering crouch by moving up and down
 				float yPosition = (VRBoostValue[VRboostAxis::CameraTranslateY] / 20.0f) + tracker->primaryY;
 				if (m_DuckAndCover.dfcStatus >= DAC_STANDING)
@@ -3854,8 +2571,7 @@ void D3DProxyDevice::HandleTracking()
 				m_spShaderViewAdjustment->UpdatePosition(tracker->primaryYaw, tracker->primaryPitch, tracker->primaryRoll,
 					(VRBoostValue[VRboostAxis::CameraTranslateX] / 20.0f) + tracker->primaryX, 
 					yPosition,
-					(VRBoostValue[VRboostAxis::CameraTranslateZ] / 20.0f) + tracker->primaryZ,
-					config.position_multiplier);
+					(VRBoostValue[VRboostAxis::CameraTranslateZ] / 20.0f) + tracker->primaryZ);
 			}
 
 			//Now we test for whether we are using "duck for cover" (for crouch and prone)
@@ -3881,9 +2597,7 @@ void D3DProxyDevice::HandleTracking()
 				if (tracker->y < (m_DuckAndCover.yPos_Crouch * 0.55f))
 				{
 					m_DuckAndCover.dfcStatus = DAC_CROUCH;
-					VireioPopup popup(VPT_NOTIFICATION, VPS_INFO, 250);
-					strcpy_s(popup.line[0], "Crouch");
-					ShowPopup(popup);
+					ShowPopup(VPT_NOTIFICATION, VPS_INFO, 250, "Crouch\n");
 
 					//Trigger crouch button
 					INPUT ip;
@@ -3907,9 +2621,7 @@ void D3DProxyDevice::HandleTracking()
 				{
 					//back to standing
 					m_DuckAndCover.dfcStatus = DAC_STANDING;
-					VireioPopup popup(VPT_NOTIFICATION, VPS_INFO, 250);
-					strcpy_s(popup.line[0], "Standing");
-					ShowPopup(popup);
+					ShowPopup(VPT_NOTIFICATION, VPS_INFO, 250, "Standing\n");
 
 					INPUT ip;
 					ip.type = INPUT_KEYBOARD;
@@ -3929,9 +2641,7 @@ void D3DProxyDevice::HandleTracking()
 					tracker->y < (m_DuckAndCover.yPos_Crouch + m_DuckAndCover.yPos_Prone * 0.55f))
 				{
 					m_DuckAndCover.dfcStatus = DAC_PRONE;
-					VireioPopup popup(VPT_NOTIFICATION, VPS_INFO, 250);
-					strcpy_s(popup.line[0], "Prone");
-					ShowPopup(popup);
+					ShowPopup(VPT_NOTIFICATION, VPS_INFO, 250, "Prone\n");
 
 					INPUT ip;
 					ip.type = INPUT_KEYBOARD;
@@ -3965,9 +2675,7 @@ void D3DProxyDevice::HandleTracking()
 				{
 					//back to crouching
 					m_DuckAndCover.dfcStatus = DAC_CROUCH;
-					VireioPopup popup(VPT_NOTIFICATION, VPS_INFO, 250);
-					strcpy_s(popup.line[0], "Crouch");
-					ShowPopup(popup);
+					ShowPopup(VPT_NOTIFICATION, VPS_INFO, 250, "Crouch\n");
 
 					//Trigger prone button
 					INPUT ip;
@@ -4003,9 +2711,9 @@ void D3DProxyDevice::HandleTracking()
 		//Get mouse position on screen
 		GetCursorPos(&stereoView->m_mousePos);
 		if (m_showVRMouse == 1)
-			stereoView->SetVRMouseSquish(guiSquishPresets[(int)gui3DDepthMode]);
+			stereoView->SetVRMouseSquish(config.guiSquishPresets[(int)gui3DDepthMode]);
 		else
-			stereoView->SetVRMouseSquish(1.0f - hudDistancePresets[(int)hud3DDepthMode]);
+			stereoView->SetVRMouseSquish(1.0f - config.hudDistancePresets[(int)hud3DDepthMode]);
 
 		stereoView->PostReset();
 	}
@@ -4099,14 +2807,13 @@ void D3DProxyDevice::HandleTracking()
 							tracker->setMouseEmulation(true);
 
 							DismissPopup(VPT_VRBOOST_SCANNING);
-							VireioPopup popup(VPT_VRBOOST_SCANNING, VPS_INFO);
-							strcpy_s(popup.line[0], "VRBoost Memory Scan");
-							strcpy_s(popup.line[1], "===================");
-							strcpy_s(popup.line[2], "STATUS: WAITING USER ACTIVATION");
-							strcpy_s(popup.line[3], " - Once you are \"in-game\", press NUMPAD5 to start memory scan");
-							strcpy_s(popup.line[4], " - Press NUMPAD5 to repeat if memory scan fails");
-							strcpy_s(popup.line[5], " - Press NUMPAD8 to cancel VRBoost and turn on mouse emulation");
-							ShowPopup(popup);
+							ShowPopup(VPT_VRBOOST_SCANNING, VPS_INFO, -1,
+								"VRBoost Memory Scan\n"
+								"===================\n"
+								"STATUS: WAITING USER ACTIVATION\n"
+								" - Once you are \"in-game\", press NUMPAD5 to start memory scan\n"
+								" - Press NUMPAD5 to repeat if memory scan fails\n"
+								" - Press NUMPAD8 to cancel VRBoost and turn on mouse emulation");
 						}
 						break;
 					case VRBoost::VRBOOST_SCAN_INITIALISING:
@@ -4120,14 +2827,14 @@ void D3DProxyDevice::HandleTracking()
 							tracker->setMouseEmulation(true);
 
 							DismissPopup(VPT_VRBOOST_SCANNING);
-							VireioPopup popup(VPT_VRBOOST_SCANNING, VPS_INFO);
-							strcpy_s(popup.line[0], "VRBoost Memory Scan");
-							strcpy_s(popup.line[1], "===================");
-
 							float percent = m_pVRboost_GetScanInitPercent();
-							sprintf_s(popup.line[2], "STATUS: INITIALISING - %.1f%% Complete", percent);
-							strcpy_s(popup.line[3], "Setting up scanner parameters - Please wait..");
-							ShowPopup(popup);
+							ShowPopup(VPT_VRBOOST_SCANNING, VPS_INFO, -1,
+								retprintf(
+									"VRBoost Memory Scan\n"
+									"===================\n"
+									"STATUS: INITIALISING - %.1f%% Complete\n"
+									"Setting up scanner parameters - Please wait..",
+									percent));
 						}
 						break;
 					case VRBoost::VRBOOST_SCANNING:
@@ -4140,13 +2847,14 @@ void D3DProxyDevice::HandleTracking()
 							tracker->setMouseEmulation(true);
 
 							DismissPopup(VPT_VRBOOST_SCANNING);
-							VireioPopup popup(VPT_VRBOOST_SCANNING, VPS_INFO);
-							strcpy_s(popup.line[0], "VRBoost Memory Scan");
-							strcpy_s(popup.line[1], "===================");
 							UINT candidates = m_pVRboost_GetScanCandidates();
-							sprintf_s(popup.line[2], "STATUS: SCANNING (%i candidates)", candidates);
-							strcpy_s(popup.line[4], "Please look around to assist with orientation detection");
-							ShowPopup(popup);
+							ShowPopup(VPT_VRBOOST_SCANNING, VPS_INFO, -1,
+								retprintf(
+									"VRBoost Memory Scan\n"
+									"===================\n"
+									"STATUS: SCANNING (%i candidates)\n"
+									"Please look around to assist with orientation detection",
+									candidates));
 						}
 						break;
 					//This is the case where the scanner needs the user to follow particular steps to identify
@@ -4166,20 +2874,27 @@ void D3DProxyDevice::HandleTracking()
 							tracker->setMouseEmulation(true);
 
 							DismissPopup(VPT_VRBOOST_SCANNING);
-							VireioPopup popup(VPT_VRBOOST_SCANNING, VPS_INFO);
-							strcpy_s(popup.line[0], "VRBoost Memory Scan");
-							strcpy_s(popup.line[1], "===================");
 							UINT candidates = m_pVRboost_GetScanCandidates();
-							sprintf_s(popup.line[2], "STATUS: SCANNING (%i candidates) - REQUIRES USER ASSISTANCE", candidates);
 							if (timeToEvent == MAXDWORD)
 							{
-								strcpy_s(popup.line[3], "    PLEASE LOOK STRAIGHT-AHEAD THEN");
-								strcpy_s(popup.line[4], "    PRESS SCAN TRIGGER (NUMPAD5) TO START \"ASSISTED\" SCAN");
+								ShowPopup(VPT_VRBOOST_SCANNING, VPS_INFO, -1, retprintf(
+									"VRBoost Memory Scan\n"
+									"===================\n"
+									"STATUS: SCANNING (%i candidates) - REQUIRES USER ASSISTANCE\n"
+									"    PLEASE LOOK STRAIGHT-AHEAD THEN\n"
+									"    PRESS SCAN TRIGGER (NUMPAD5) TO START \"ASSISTED\" SCAN",
+									candidates));
 							}
 							else
-								sprintf_s(popup.line[3], "       ***  PLEASE LOOK:    %s   -   %i  ***", instruction, (timeToEvent/1000)+1);
+							{
+								ShowPopup(VPT_VRBOOST_SCANNING, VPS_INFO, -1, retprintf(
+									"VRBoost Memory Scan\n"
+									"===================\n"
+									"STATUS: SCANNING (%i candidates) - REQUIRES USER ASSISTANCE\n"
+									"       ***  PLEASE LOOK:    %s   -   %i  ***",
+									candidates, instruction, (timeToEvent/1000)+1));
+							}
 							delete []instruction;
-							ShowPopup(popup);
 						}
 						break;
 					case VRBoost::VRBOOST_SCAN_FAILED:
@@ -4192,21 +2907,22 @@ void D3DProxyDevice::HandleTracking()
 							m_bForceMouseEmulation = true;
 							tracker->setMouseEmulation(true);
 
-							//If we get here, then the VRBoost memory scanner came up with no good results :(
-							VireioPopup popup(VPT_VRBOOST_FAILURE, VPS_ERROR, 5000);
-							strcpy_s(popup.line[0], "VRBoost Memory Scan");
-							strcpy_s(popup.line[1], "===================");
-							strcpy_s(popup.line[2], "STATUS: FAILED");
-
 							//Reason
 							char *failReason = new char[256];
 							ZeroMemory(failReason, 256);
 							m_pVRboost_GetScanFailReason((char**)&failReason);
-							sprintf_s(popup.line[3], "REASON: %s", failReason);
+							
+							//If we get here, then the VRBoost memory scanner came up with no good results :(
+							ShowPopup(VPT_VRBOOST_FAILURE, VPS_ERROR, 5000,
+								retprintf(
+									"VRBoost Memory Scan\n"
+									"===================\n"
+									"STATUS: FAILED\n"
+									"REASON: %s\n"
+									"VRBoost is now disabled\n"
+									"Re-run the scan with NUMPAD5",
+									failReason));
 							delete []failReason;
-							strcpy_s(popup.line[4], "VRBoost is now disabled");
-							strcpy_s(popup.line[5], "Re-run the scan with NUMPAD5");
-							ShowPopup(popup);
 							VRBoostStatus.VRBoost_Active = false;
 						}
 						break;
@@ -4220,13 +2936,12 @@ void D3DProxyDevice::HandleTracking()
 							m_bForceMouseEmulation = true;
 							tracker->setMouseEmulation(true);
 
-							VireioPopup popup(VPT_VRBOOST_FAILURE, VPS_ERROR, 10000);
-							strcpy_s(popup.line[0], "VRBoost");
-							strcpy_s(popup.line[1], "=======");
-							strcpy_s(popup.line[2], "STATUS: ADDRESSES LOST");
-							strcpy_s(popup.line[4], "VRBoost is now disabled");
-							strcpy_s(popup.line[5], "Re-run the scan with NUMPAD5");
-							ShowPopup(popup);
+							ShowPopup(VPT_VRBOOST_FAILURE, VPS_ERROR, 10000,
+								"VRBoost\n"
+								"=======\n"
+								"STATUS: ADDRESSES LOST\n"
+								"VRBoost is now disabled\n"
+								"Re-run the scan with NUMPAD5");
 							VRBoostStatus.VRBoost_Active = false;
 						}
 						break;
@@ -4261,14 +2976,15 @@ void D3DProxyDevice::HandleTracking()
 								}
 
 
-								VireioPopup popup(VPT_NOTIFICATION, VPS_INFO, 5000);
-								strcpy_s(popup.line[0], "    VRBoost Memory Scan");
-								strcpy_s(popup.line[1], "    ===================");
-								strcpy_s(popup.line[2], "    STATUS:   SUCCESS");
-								strcpy_s(popup.line[3], "    Found addresses: ");
-								sprintf_s(popup.line[4], "       %s", axisNames.c_str());
-								strcpy_s(popup.line[5], "    VRBoost is now active");
-								ShowPopup(popup);
+								ShowPopup(VPT_NOTIFICATION, VPS_INFO, 5000,
+									retprintf(
+										"    VRBoost Memory Scan\n"
+										"    ===================\n"
+										"    STATUS:   SUCCESS\n"
+										"    Found addresses:\n"
+										"       %s\n"
+										"    VRBoost is now active",
+										axisNames.c_str()));
 								//No longer scanning
 								VRBoostStatus.VRBoost_Scanning = false;
 							}
@@ -4287,14 +3003,15 @@ void D3DProxyDevice::HandleTracking()
 								m_bForceMouseEmulation = false;
 								tracker->setMouseEmulation(false);
 
-								VireioPopup popup(VPT_NOTIFICATION, VPS_INFO, 8000);
-								strcpy_s(popup.line[0], "VRBoost Memory Scan");
-								strcpy_s(popup.line[1], "===================");
-								strcpy_s(popup.line[2], "STATUS: SUCCESS - MULTIPLE CANDIDATES");
-								sprintf_s(popup.line[3], "Found %i candidate orientation addresses", m_pVRboost_GetScanCandidates());
-								strcpy_s(popup.line[4], "Use NUMPAD4/NUMPAD6 to cycle through candidates");
-								strcpy_s(popup.line[5], "VRBoost is now active");
-								ShowPopup(popup);
+								ShowPopup(VPT_NOTIFICATION, VPS_INFO, 8000,
+									retprintf(
+										"VRBoost Memory Scan\n"
+										"===================\n"
+										"STATUS: SUCCESS - MULTIPLE CANDIDATES\n"
+										"Found %i candidate orientation addresses\n"
+										"Use NUMPAD4/NUMPAD6 to cycle through candidates\n"
+										"VRBoost is now active",
+										m_pVRboost_GetScanCandidates()));
 								//No longer scanning
 								VRBoostStatus.VRBoost_Scanning = false;
 								VRBoostStatus.VRBoost_Candidates = true;
@@ -4322,31 +3039,27 @@ void D3DProxyDevice::HandleTracking()
 	{
 		if (!VRBoostStatus.VRBoost_LoadRules)
 		{
-			if(!tracker->getMouseEmulation())
-			{			
-				VireioPopup popup(VPT_VRBOOST_FAILURE, VPS_INFO, 500);
-				strcpy_s(popup.line[1], "VRBoost rule fail - turning on mouse");
-
-				/*strcpy_s(popup.line[2], "VRBoost LoadRules Failed");
-				strcpy_s(popup.line[3], "To Enable head tracking, turn on Force Mouse Emulation");
-				strcpy_s(popup.line[4], "in VP Settings");*/
-				ShowPopup(popup);			
-				tracker->setMouseEmulation(true);
-			}
-			return;			
+			/*ShowPopup(VPT_VRBOOST_FAILURE, VPS_ERROR, -1,
+				"\n\nVRBoost LoadRules Failed\n"
+				"To Enable head tracking, turn on Force Mouse Emulation\n"
+				"in VP Settings");*/
+			ShowPopup(VPT_VRBOOST_FAILURE, VPS_INFO, 500,
+				"VRBoost rule fail - turning on mouse");
+			tracker->setMouseEmulation(true);
+			return;
 		}
 		else if (!VRBoostStatus.VRBoost_ApplyRules)
 		{
-			if(!tracker->getMouseEmulation())
-			{			
+			if (!tracker->getMouseEmulation())
+			{
+				/*ShowPopup(VPT_VRBOOST_FAILURE, VPS_ERROR, -1,
+					"\nVRBoost rules loaded but could not be applied\n"
+					"Mouse Emulation is not Enabled,\n"
+					"To Enable head tracking, turn on Force Mouse Emulation\n"
+					"in VP Settings");*/
 				tracker->setMouseEmulation(true);
-				VireioPopup popup(VPT_VRBOOST_FAILURE, VPS_INFO, 500);
-				strcpy_s(popup.line[1], "VRBoost fail - turning on mouse");
-				/*strcpy_s(popup.line[1], "VRBoost rules loaded but could not be applied");
-				strcpy_s(popup.line[2], "Mouse Emulation is not Enabled,");
-				strcpy_s(popup.line[3], "To Enable head tracking, turn on Force Mouse Emulation");
-				strcpy_s(popup.line[4], "in VP Settings");*/
-				ShowPopup(popup);
+				ShowPopup(VPT_VRBOOST_FAILURE, VPS_INFO, 500,
+					"VRBoost rule fail - turning on mouse");
 			}
 			return;
 		}
@@ -4364,12 +3077,12 @@ void D3DProxyDevice::HandleTracking()
 ***/
 void D3DProxyDevice::HandleUpdateExtern()
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called HandleUpdateExtern");
-	#endif
+	SHOW_CALL("HandleUpdateExtern");
+	
 	m_isFirstBeginSceneOfFrame = true;
 
-	VPMENU_UpdateBorder();
+	HandleLandmarkMoment(DeviceBehavior::WhenToDo::AFTER_COMPOSITING);
+	VPMENU_UpdateCooldowns();
 }
 
 /**
@@ -4392,13 +3105,10 @@ void D3DProxyDevice::HandleUpdateExtern()
 * passed back to actual application by CreateDevice) and after a successful device Reset.
 ***/
 void D3DProxyDevice::OnCreateOrRestore()
-{	
-	#ifdef SHOW_CALLS
-		OutputDebugString("called OnCreateOrRestore");
-	#endif
+{
+	SHOW_CALL("OnCreateOrRestore");
+	
 	m_currentRenderingSide = vireio::Left;
-	if(!m_b2dDepthMode)
-		m_pCurrentMatViewTransform = &m_spShaderViewAdjustment->LeftAdjustmentMatrix();
 	m_pCurrentView = &m_leftView;
 	m_pCurrentProjection = &m_leftProjection;
 
@@ -4454,11 +3164,6 @@ void D3DProxyDevice::OnCreateOrRestore()
 
 	fScaleX = ((float)viewportWidth / (float)VPMENU_PIXEL_WIDTH);
 	fScaleY = ((float)viewportHeight / (float)VPMENU_PIXEL_HEIGHT);
-
-	menuHelperRect.left = 0;
-	menuHelperRect.right = VPMENU_PIXEL_WIDTH;
-	menuHelperRect.top = 0;
-	menuHelperRect.bottom = VPMENU_PIXEL_HEIGHT;
 }
 
 /**
@@ -4474,9 +3179,8 @@ void D3DProxyDevice::OnCreateOrRestore()
 ***/
 bool D3DProxyDevice::setDrawingSide(vireio::RenderPosition side)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called SetDrawingSide");
-	#endif
+	SHOW_CALL("SetDrawingSide");
+	
 	// Already on the correct eye
 	if (side == m_currentRenderingSide) {
 		return true;
@@ -4580,14 +3284,6 @@ bool D3DProxyDevice::setDrawingSide(vireio::RenderPosition side)
 		BaseDirect3DDevice9::SetTransform(D3DTS_PROJECTION, m_pCurrentProjection);
 	}
 
-	// Updated computed view translation (used by several derived proxies - see: ComputeViewTranslation)
-	if (side == vireio::Left) {
-		m_pCurrentMatViewTransform = &m_spShaderViewAdjustment->LeftAdjustmentMatrix();
-	}
-	else {
-		m_pCurrentMatViewTransform = &m_spShaderViewAdjustment->RightAdjustmentMatrix();
-	}
-
 	// Apply active stereo shader constants
 	m_spManagedShaderRegisters->ApplyAllStereoConstants(side);
 
@@ -4600,9 +3296,8 @@ bool D3DProxyDevice::setDrawingSide(vireio::RenderPosition side)
 ***/
 bool D3DProxyDevice::switchDrawingSide()
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called SwitchDrawingSide");
-	#endif
+	SHOW_CALL("SwitchDrawingSide");
+	
 	bool switched = false;
 	
 	if (m_currentRenderingSide == vireio::Left) {
@@ -4618,204 +3313,21 @@ bool D3DProxyDevice::switchDrawingSide()
 	return switched;
 }
 
-/**
-* Adds a default shader rule to the game configuration.
-* @return True if rule was added, false if rule already present.
-***/
-bool D3DProxyDevice::addRule(std::string constantName, bool allowPartialNameMatch, UINT startRegIndex, D3DXPARAMETER_CLASS constantType, UINT operationToApply, bool transpose)
-{
-	#ifdef SHOW_CALLS
-		OutputDebugString("called AddRule");
-	#endif
-	return m_pGameHandler->AddRule(m_spShaderViewAdjustment, constantName, allowPartialNameMatch, startRegIndex, constantType, operationToApply, transpose);
-}
-
-/**
-* Adds a default shader rule to the game configuration.
-* @return True if rule was added, false if rule already present.
-***/
-bool D3DProxyDevice::modifyRule(std::string constantName, UINT operationToApply, bool transpose)
-{
-	#ifdef SHOW_CALLS
-		OutputDebugString("called ModifyRule");
-	#endif
-	return m_pGameHandler->ModifyRule(m_spShaderViewAdjustment, constantName, operationToApply, transpose);
-}
-
-/**
-* Delete rule.
-* @return True if rule was deleted, false if rule not present.
-***/
-bool D3DProxyDevice::deleteRule(std::string constantName)
-{
-	#ifdef SHOW_CALLS
-		OutputDebugString("called DeleteRule");
-	#endif
-	return m_pGameHandler->DeleteRule(m_spShaderViewAdjustment, constantName);
-}
-
-/**
-* Saves current game shader rules (and game configuration).
-***/
-void D3DProxyDevice::saveShaderRules()
-{ 
-	#ifdef SHOW_CALLS
-		OutputDebugString("called SaveShaderRules");
-	#endif
-	m_pGameHandler->Save(config, m_spShaderViewAdjustment);
-
-	ProxyHelper* helper = new ProxyHelper();
-	helper->SaveConfig(config);
-	delete helper;
-}
-
-/**
-* Simple helper to clear a rectangle using the specified color.
-* @param renderPosition Left or Right render target to be used.
-* @param rect The rectangle in pixel space to be cleared.
-* @param color The direct 3d color to be used.
-***/
-void D3DProxyDevice::ClearRect(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color)
-{
-	#ifdef SHOW_CALLS
-		OutputDebugString("called ClearRect");
-	#endif
-	setDrawingSide(renderPosition);
-	BaseDirect3DDevice9::Clear(1, &rect, D3DCLEAR_TARGET, color, 0, 0);
-}
-
-/**
-* Simple helper to clear an empty rectangle or border using the specified color.
-* @param renderPosition Left or Right render target to be used.
-* @param rect The rectangle in pixel space to be cleared.
-* @param color The direct 3d color to be used.
-* @param bw The border width.
-***/
-void D3DProxyDevice::ClearEmptyRect(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color, int bw)
-{
-	#ifdef SHOW_CALLS
-		OutputDebugString("called ClearEMptyRect");
-	#endif
-	// helper rectangle
-	D3DRECT rect0 = D3DRECT(rect);
-
-	setDrawingSide(renderPosition);
-
-	rect0.y2 = rect.y1 + bw;
-	BaseDirect3DDevice9::Clear(1, &rect0, D3DCLEAR_TARGET, color, 0, 0);
-
-	rect0.y1 = rect.y2 - bw;
-	rect0.y2 = rect.y2;
-	BaseDirect3DDevice9::Clear(1, &rect0, D3DCLEAR_TARGET, color, 0, 0);
-
-	rect0.y1 = rect.y1;
-	rect0.x2 = rect.x1 + bw;
-	BaseDirect3DDevice9::Clear(1, &rect0, D3DCLEAR_TARGET, color, 0, 0);
-
-	rect0.x1 = rect.x2 - bw;
-	rect0.x2 = rect.x2;
-	BaseDirect3DDevice9::Clear(1, &rect0, D3DCLEAR_TARGET, color, 0, 0);
-}
-
-/**
-* Draws a simple selection control.
-* @param renderPosition Left or Right render target to be used.
-* @param rect The rectangle in pixel space to be cleared.
-* @param color The direct 3d color to be used.
-* @param selectionIndex The index of the currently chosen selection.
-* @param selectionRange The range of the selection.
-***/
-void D3DProxyDevice::DrawSelection(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color, int selectionIndex, int selectionRange)
-{	
-	#ifdef SHOW_CALLS
-		OutputDebugString("called DrawSelection");
-	#endif
-	// get width of each selection
-	float selectionWidth = (rect.x2-rect.x1) / (float)selectionRange;
-
-	// get secondary color
-	D3DXCOLOR color2 = D3DXCOLOR(color);
-	FLOAT red = color2.r;
-	color2.r = color2.g * 0.7f;
-	color2.g = red;
-
-	for (int i = 0; i < selectionRange; i++)
-	{
-		rect.x2 = rect.x1+(int)selectionWidth;
-		if (i==selectionIndex)
-			ClearRect(renderPosition, rect, color);
-		else
-			ClearRect(renderPosition, rect, color2);
-		rect.x1+=(int)selectionWidth;
-	}
-}
-
-/**
-* Draws a simple selection control.
-* @param renderPosition Left or Right render target to be used.
-* @param rect The rectangle in pixel space to be cleared.
-* @param color The direct 3d color to be used.
-* @param selectionIndex The index of the currently chosen selection.
-* @param selectionRange The range of the selection.
-***/
-void D3DProxyDevice::DrawScrollbar(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color, float scroll, int scrollbarSize)
-{	
-	#ifdef SHOW_CALLS
-		OutputDebugString("called DrawScrollbar");
-	#endif
-	if (scroll<0.0f) scroll=0.0f;
-	if (scroll>1.0f) scroll=1.0f;
-
-	// get width of each selection
-	int scrollHeight = rect.y2-rect.y1-scrollbarSize;
-	scrollHeight = (int)(scrollHeight*scroll);
-
-	// get secondary color
-	D3DXCOLOR color2 = D3DXCOLOR(color);
-	FLOAT red = color2.r;
-	color2.r = color2.g * 0.7f;
-	color2.g = red;
-
-	ClearRect(renderPosition, rect, color2);
-	rect.y1 += scrollHeight;
-	rect.y2 = rect.y1+scrollbarSize;
-	ClearRect(renderPosition, rect, color);
-}
-
-/**
-* Draws a text with a dark shadow.
-* @see DrawText()
-***/
-void D3DProxyDevice::DrawTextShadowed(ID3DXFont* font, LPD3DXSPRITE sprite, LPCSTR lpchText, int cchText, LPRECT lprc, UINT format, D3DCOLOR color)
-{
-	#ifdef SHOW_CALLS
-		OutputDebugString("called DrawTextShadowed");
-	#endif
-	
-	if (lprc->top < 0 || lprc->top > viewportHeight)
-		return;
-
-	lprc->left+=2; lprc->right+=2; lprc->top+=2; lprc->bottom+=2;
-	font->DrawText(sprite, lpchText, -1, lprc, format, D3DCOLOR_ARGB(255, 64, 64, 64));
-	lprc->left-=2; lprc->right-=2; lprc->top-=2; lprc->bottom-=2;
-	font->DrawText(sprite, lpchText, -1, lprc, format, color);
-}
 
 /**
 * Changes the HUD scale mode - also changes new scale in view adjustment class.
 ***/
 void D3DProxyDevice::ChangeHUD3DDepthMode(HUD_3D_Depth_Modes newMode)
 {
-#ifdef SHOW_CALLS
-	OutputDebugString("called ChangeHUD3DDepthMode");
-#endif
+	SHOW_CALL("ChangeHUD3DDepthMode");
+	
 	if (newMode >= HUD_3D_Depth_Modes::HUD_ENUM_RANGE)
 		return;
 
 	hud3DDepthMode = newMode;
 
-	m_spShaderViewAdjustment->ChangeHUDDistance(hudDistancePresets[(int)newMode]);
-	m_spShaderViewAdjustment->ChangeHUD3DDepth(hud3DDepthPresets[(int)newMode]);
+	m_spShaderViewAdjustment->ChangeHUDDistance(config.hudDistancePresets[(int)newMode]);
+	m_spShaderViewAdjustment->ChangeHUD3DDepth(config.hud3DDepthPresets[(int)newMode]);
 }
 
 /**
@@ -4823,2935 +3335,17 @@ void D3DProxyDevice::ChangeHUD3DDepthMode(HUD_3D_Depth_Modes newMode)
 ***/
 void D3DProxyDevice::ChangeGUI3DDepthMode(GUI_3D_Depth_Modes newMode)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called ChangeGUI3DDepthMode");
-	#endif
+	SHOW_CALL("ChangeGUI3DDepthMode");
+	
 	if (newMode >= GUI_3D_Depth_Modes::GUI_ENUM_RANGE)
 		return;
 
 	gui3DDepthMode = newMode;
 
-	m_spShaderViewAdjustment->ChangeGUISquash(guiSquishPresets[(int)newMode]);
-	m_spShaderViewAdjustment->ChangeGUI3DDepth(gui3DDepthPresets[(int)newMode]);
+	m_spShaderViewAdjustment->ChangeGUISquash(config.guiSquishPresets[(int)newMode]);
+	m_spShaderViewAdjustment->ChangeGUI3DDepth(config.gui3DDepthPresets[(int)newMode]);
 }
 
-/**
-* VP menu helper to setup new frame.
-* @param entryID [in, out] Provides the identifier by count of the menu entry.
-* @param menuEntryCount [in] The number of menu entries.
-***/
-void D3DProxyDevice::VPMENU_NewFrame(UINT &entryID, UINT menuEntryCount)
-{
-	#ifdef SHOW_CALLS
-		OutputDebugString("called VPMENU_NewFrame");
-	#endif
-	// set menu entry attraction
-	menuAttraction.y = ((borderTopHeight-menuTop)/menuEntryHeight);
-	menuAttraction.y -= (float)((UINT)menuAttraction.y);
-	menuAttraction.y -= 0.5f;
-	menuAttraction.y *= 2.0f;
-	if ((menuVelocity.y>0.0f) && (menuAttraction.y<0.0f)) menuAttraction.y = 0.0f;
-	if ((menuVelocity.y<0.0f) && (menuAttraction.y>0.0f)) menuAttraction.y = 0.0f;
-
-	// handle border height
-	if (borderTopHeight<menuTop)
-	{
-		borderTopHeight = menuTop;
-		menuVelocity.y=0.0f;
-		menuAttraction.y=0.0f;
-
-	}
-	if (borderTopHeight>(menuTop+(menuEntryHeight*(float)(menuEntryCount-1))))
-	{
-		borderTopHeight = menuTop+menuEntryHeight*(float)(menuEntryCount-1);
-		menuVelocity.y=0.0f;
-		menuAttraction.y=0.0f;
-	}
-
-	// get menu entry id
-	float entry = (borderTopHeight-menuTop+(menuEntryHeight/3.0f))/menuEntryHeight;
-	entryID = (UINT)entry;
-	if (entryID >= menuEntryCount)
-		OutputDebugString("Error in VP menu programming !");
-}
-
-/**
-* VP menu main method.
-***/
-void D3DProxyDevice::VPMENU()
-{
-	#ifdef SHOW_CALLS
-		OutputDebugString("called VPMENU");
-	#endif
-	switch (VPMENU_mode)
-	{
-	case D3DProxyDevice::MAINMENU:
-		VPMENU_MainMenu();
-		break;
-	case D3DProxyDevice::WORLD_SCALE_CALIBRATION:
-		VPMENU_WorldScale();
-		break;
-	case D3DProxyDevice::CONVERGENCE_ADJUSTMENT:
-		VPMENU_Convergence();
-		break;
-	case D3DProxyDevice::HUD_CALIBRATION:
-		VPMENU_HUD();
-		break;
-	case D3DProxyDevice::GUI_CALIBRATION:
-		VPMENU_GUI();
-		break;
-	case D3DProxyDevice::OVERALL_SETTINGS:
-		VPMENU_Settings();
-		break;
-	case D3DProxyDevice::VRBOOST_VALUES:
-		VPMENU_VRBoostValues();
-		break;
-	case D3DProxyDevice::POS_TRACKING_SETTINGS:
-		VPMENU_PosTracking();
-		break;
-	case D3DProxyDevice::COMFORT_MODE:
-		VPMENU_ComfortMode();
-		break;
-	case D3DProxyDevice::DUCKANDCOVER_CONFIGURATION:
-		VPMENU_DuckAndCover();
-		break;
-	case D3DProxyDevice::VPMENU_SHADER_ANALYZER_SUBMENU:
-		VPMENU_ShaderSubMenu();
-		break;
-	case D3DProxyDevice::CHANGE_RULES_SCREEN:
-		VPMENU_ChangeRules();
-		break;
-	case D3DProxyDevice::PICK_RULES_SCREEN:
-		VPMENU_PickRules();
-		break;
-	case D3DProxyDevice::SHOW_SHADERS_SCREEN:
-		VPMENU_ShowActiveShaders();
-		break;
-	}
-}
-
-/**
-* Main Menu method.
-***/
-void D3DProxyDevice::VPMENU_MainMenu()
-{
-	#ifdef SHOW_CALLS
-		OutputDebugString("called VPMENU_MainMenu");
-	#endif
-	UINT menuEntryCount = 12;
-	if (config.game_type > 10000) menuEntryCount++;
-
-	menuHelperRect.left = 0;
-	menuHelperRect.top = 0;
-
-	UINT entryID;
-	VPMENU_NewFrame(entryID, menuEntryCount);
-	UINT borderSelection = entryID;
-	if (config.game_type <= 10000)
-		entryID++;
-
-	/**
-	* ESCAPE : Set menu inactive and save the configuration.
-	***/
-	if (controls.Key_Down(VK_ESCAPE))
-	{
-		VPMENU_mode = VPMENU_Modes::INACTIVE;
-		VPMENU_UpdateConfigSettings();
-	}
-
-	if ((controls.Key_Down(VK_RETURN) || controls.Key_Down(VK_RSHIFT) || (controls.xButtonsStatus[0x0c])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-	{
-		// shader analyzer sub menu
-		if (entryID == 0)
-		{
-			VPMENU_mode = VPMENU_Modes::VPMENU_SHADER_ANALYZER_SUBMENU;
-			menuVelocity.x+=2.0f;
-		}
-		// world scale
-		if (entryID == 1)
-		{
-			VPMENU_mode = VPMENU_Modes::WORLD_SCALE_CALIBRATION;
-			menuVelocity.x+=2.0f;
-		}
-		// hud calibration
-		if (entryID == 2)
-		{
-			VPMENU_mode = VPMENU_Modes::CONVERGENCE_ADJUSTMENT;
-			menuVelocity.x+=2.0f;
-		}
-		// hud calibration
-		if (entryID == 3)
-		{
-			VPMENU_mode = VPMENU_Modes::HUD_CALIBRATION;
-			menuVelocity.x+=2.0f;
-		}
-		// gui calibration
-		if (entryID == 4)
-		{
-			VPMENU_mode = VPMENU_Modes::GUI_CALIBRATION;
-			menuVelocity.x+=2.0f;
-		}
-		// overall settings
-		if (entryID == 7)
-		{
-			VPMENU_mode = VPMENU_Modes::OVERALL_SETTINGS;
-			menuVelocity.x+=2.0f;
-		}	
-		// vrboost settings
-		if (entryID == 8)
-		{
-			VPMENU_mode = VPMENU_Modes::VRBOOST_VALUES;
-			menuVelocity.x+=2.0f;
-		}
-		// position tracking settings
-		if (entryID == 9)
-		{
-			VPMENU_mode = VPMENU_Modes::POS_TRACKING_SETTINGS;
-			menuVelocity.x+=2.0f;
-		}
-		// comfort mode settings
-		if (entryID == 10)
-		{
-			VPMENU_mode = VPMENU_Modes::COMFORT_MODE;
-			menuVelocity.x+=2.0f;
-		}
-		// restore configuration
-		if (entryID == 11)
-		{
-			// first, backup all strings
-			std::string game_exe = std::string(config.game_exe);
-			std::string shaderRulePath = std::string(config.shaderRulePath);
-			std::string VRboostPath = std::string(config.VRboostPath);
-			memcpy(&config, &m_configBackup, sizeof(ProxyHelper::ProxyConfig));
-			config.game_exe = std::string(game_exe);
-			config.shaderRulePath = std::string(shaderRulePath);
-			config.VRboostPath = std::string(VRboostPath);
-			VPMENU_UpdateDeviceSettings();
-			VPMENU_UpdateConfigSettings();
-			menuVelocity.x+=10.0f;
-		}	
-		// back to game
-		if (entryID == 12)
-		{
-			VPMENU_mode = VPMENU_Modes::INACTIVE;
-			VPMENU_UpdateConfigSettings();
-		}
-	}
-
-	if (controls.Key_Down(VK_LEFT) || controls.Key_Down(0x4A) || (controls.xInputState.Gamepad.sThumbLX<-8192))
-	{
-		// change hud scale 
-		if ((entryID == 5) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-		{
-			if (hud3DDepthMode > HUD_3D_Depth_Modes::HUD_DEFAULT)
-				ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)(hud3DDepthMode-1));
-			menuVelocity.x-=2.0f;
-		}
-
-		// change gui scale
-		if ((entryID == 6) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-		{
-			if (gui3DDepthMode > GUI_3D_Depth_Modes::GUI_DEFAULT)
-				ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)(gui3DDepthMode-1));
-			menuVelocity.x-=2.0f;
-		}
-	}
-
-	if (controls.Key_Down(VK_RIGHT) || controls.Key_Down(0x4C) || (controls.xInputState.Gamepad.sThumbLX>8192))
-	{
-		// change hud scale 
-		if ((entryID == 5) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-		{
-			if (hud3DDepthMode < HUD_3D_Depth_Modes::HUD_ENUM_RANGE-1)
-				ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)(hud3DDepthMode+1));
-			menuVelocity.x+=2.0f;
-		}
-
-		// change gui scale
-		if ((entryID == 6) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-		{
-			if (gui3DDepthMode < GUI_3D_Depth_Modes::GUI_ENUM_RANGE-1)
-				ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)(gui3DDepthMode+1));
-			menuVelocity.x+=2.0f;
-		}
-
-	}
-
-	// output menu
-	if (hudFont)
-	{
-		// adjust border
-		float borderDrawingHeight = borderTopHeight;
-		if ((menuVelocity.y < 1.0f) && (menuVelocity.y > -1.0f))
-			borderTopHeight = menuTop+menuEntryHeight*(float)borderSelection;
-
-		// draw border - total width due to shift correction
-		D3DRECT rect;
-		rect.x1 = (int)0; rect.x2 = (int)viewportWidth; rect.y1 = (int)borderTopHeight; rect.y2 = (int)(borderTopHeight+viewportHeight*0.04f);
-		ClearEmptyRect(vireio::RenderPosition::Left, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
-		ClearEmptyRect(vireio::RenderPosition::Right, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
-
-		hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
-
-		D3DXMATRIX matScale;
-		D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
-		hudMainMenu->SetTransform(&matScale);
-
-		menuHelperRect.left = 650;
-		menuHelperRect.top = 300;
-		DrawTextShadowed(hudFont, hudMainMenu, "Vireio Perception ("APP_VERSION") Settings\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		rect.x1 = 0; rect.x2 = viewportWidth; rect.y1 = (int)(335*fScaleY); rect.y2 = (int)(340*fScaleY);
-		Clear(1, &rect, D3DCLEAR_TARGET, D3DCOLOR_ARGB(255,255,128,128), 0, 0);
-
-		menuHelperRect.top += 50;  menuHelperRect.left += 150;
-		if (config.game_type > 10000)
-		{
-			DrawTextShadowed(hudFont, hudMainMenu, "Activate Vireio Shader Analyzer\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-			menuHelperRect.top += MENU_ITEM_SEPARATION;
-		}
-		DrawTextShadowed(hudFont, hudMainMenu, "World-Scale Calibration\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Convergence Adjustment\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "HUD Calibration\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "GUI Calibration\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION; float hudQSHeight = (float)menuHelperRect.top * fScaleY;
-		DrawTextShadowed(hudFont, hudMainMenu, "HUD Quick Setting : \n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION; float guiQSHeight = (float)menuHelperRect.top * fScaleY;
-		DrawTextShadowed(hudFont, hudMainMenu, "GUI Quick Setting : \n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Overall Settings\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "VRBoost Values\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Position Tracking Configuration\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Comfort Mode Configuration\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Restore Configuration\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		
-		// draw HUD quick setting rectangles
-		rect.x1 = (int)(viewportWidth*0.57f); rect.x2 = (int)(viewportWidth*0.61f); rect.y1 = (int)hudQSHeight; rect.y2 = (int)(hudQSHeight+viewportHeight*0.027f);
-		DrawSelection(vireio::RenderPosition::Left, rect, D3DCOLOR_ARGB(255, 128, 196, 128), (int)hud3DDepthMode, (int)HUD_3D_Depth_Modes::HUD_ENUM_RANGE);
-		DrawSelection(vireio::RenderPosition::Right, rect, D3DCOLOR_ARGB(255, 128, 196, 128), (int)hud3DDepthMode, (int)HUD_3D_Depth_Modes::HUD_ENUM_RANGE);
-
-		// draw GUI quick setting rectangles
-		rect.x1 = (int)(viewportWidth*0.57f); rect.x2 = (int)(viewportWidth*0.61f); rect.y1 = (int)guiQSHeight; rect.y2 = (int)(guiQSHeight+viewportHeight*0.027f);
-		DrawSelection(vireio::RenderPosition::Left, rect, D3DCOLOR_ARGB(255, 128, 196, 128), (int)gui3DDepthMode, (int)GUI_3D_Depth_Modes::GUI_ENUM_RANGE);
-		DrawSelection(vireio::RenderPosition::Right, rect, D3DCOLOR_ARGB(255, 128, 196, 128), (int)gui3DDepthMode, (int)GUI_3D_Depth_Modes::GUI_ENUM_RANGE);
-
-		menuHelperRect.left = 0;
-		menuHelperRect.top = 0;
-
-		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
-		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));
-		hudMainMenu->End();
-	}
-}
-
-/**
-* World Scale Calibration.
-***/
-void D3DProxyDevice::VPMENU_WorldScale()
-{
-	#ifdef SHOW_CALLS
-		OutputDebugString("called VPMENU_WorldScale");
-	#endif
-	// base values
-	float separationChange = 0.005f;
-	static UINT gameXScaleUnitIndex = 0;
-
-	// ensure that the attraction is set to zero
-	// for non-menu-screens like this one
-	menuAttraction.x = 0.0f;
-	menuAttraction.y = 0.0f;
-
-	// sort the game unit vector
-	std::sort (m_gameXScaleUnits.begin(), m_gameXScaleUnits.end());
-
-	// enter ? rshift ? increase gameXScaleUnitIndex
-	if ((controls.Key_Down(VK_RETURN) || controls.Key_Down(VK_RSHIFT) || (controls.xButtonsStatus[0x0c])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-	{
-		if (controls.Key_Down(VK_LSHIFT))
-		{
-			if (gameXScaleUnitIndex>0) --gameXScaleUnitIndex;
-		}
-		else
-			gameXScaleUnitIndex++;
-		menuVelocity.x+=2.0f;
-	}
-
-	// game unit index out of range ?
-	if ((gameXScaleUnitIndex != 0) && (gameXScaleUnitIndex >= m_gameXScaleUnits.size()))
-		gameXScaleUnitIndex = m_gameXScaleUnits.size()-1;
-
-	/**
-	* ESCAPE : Set menu inactive and save the configuration.
-	***/
-	if (controls.Key_Down(VK_ESCAPE))
-	{
-		VPMENU_mode = VPMENU_Modes::INACTIVE;
-		VPMENU_UpdateConfigSettings();
-	}
-
-	/**
-	* LEFT : Decrease world scale (hold CTRL to lower speed, SHIFT to speed up)
-	***/
-	if((controls.Key_Down(VK_LEFT) || controls.Key_Down(0x4A) || (controls.xInputState.Gamepad.sThumbLX<-8192)) && (menuVelocity.x == 0.0f))
-	{
-		if(controls.Key_Down(VK_LCONTROL)) {
-			separationChange /= 10.0f;
-		}
-		else if(controls.Key_Down(VK_LSHIFT)) {
-			separationChange *= 10.0f;
-		} 
-		else if(controls.Key_Down(VK_MENU))
-		{
-			separationChange /= 500.0f;
-		}
-
-		if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
-			m_spShaderViewAdjustment->ChangeWorldScale(separationChange * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f));
-		else
-			m_spShaderViewAdjustment->ChangeWorldScale(-separationChange);
-		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, m_projectionHFOV);
-
-		menuVelocity.x+=0.7f;
-	}
-
-	/**
-	* RIGHT : Increase world scale (hold CTRL to lower speed, SHIFT to speed up)
-	***/
-	if((controls.Key_Down(VK_RIGHT) || controls.Key_Down(0x4C) || (controls.xInputState.Gamepad.sThumbLX>8192)) && (menuVelocity.x == 0.0f))
-	{
-		if(controls.Key_Down(VK_LCONTROL)) {
-			separationChange /= 10.0f;
-		}
-		else if(controls.Key_Down(VK_LSHIFT))
-		{
-			separationChange *= 10.0f;
-		}
-		else if(controls.Key_Down(VK_MENU))
-		{
-			separationChange /= 500.0f;
-		}
-
-		if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down(0x4C))
-			m_spShaderViewAdjustment->ChangeWorldScale(separationChange * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f));
-		else
-			m_spShaderViewAdjustment->ChangeWorldScale(separationChange);
-		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, m_projectionHFOV);
-
-		menuVelocity.x+=0.7f;
-	}
-
-	// handle border height (=scrollbar scroll height)
-	if (borderTopHeight<-64.0f)
-		borderTopHeight = -64.0f;
-	if (borderTopHeight>365.0f)
-		borderTopHeight = 365.0f;
-
-	if(hudFont){
-
-		hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
-
-		// standard hud size, will be scaled later to actual viewport
-		char vcString[1024];
-		int width = VPMENU_PIXEL_WIDTH;
-		int height = VPMENU_PIXEL_HEIGHT;
-
-		D3DXMATRIX matScale;
-		D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
-		hudMainMenu->SetTransform(&matScale);
-
-		// arbitrary formular... TODO !! find a more nifty solution
-		float BlueLineCenterAsPercentage = m_spShaderViewAdjustment->HMDInfo()->GetLensXCenterOffset() * 0.2f;
-
-		float horWidth = 0.15f;
-		int beg = (int)(viewportWidth*(1.0f-horWidth)/2.0) + (int)(BlueLineCenterAsPercentage * viewportWidth * 0.25f);
-		int end = (int)(viewportWidth*(0.5f+(horWidth/2.0f))) + (int)(BlueLineCenterAsPercentage * viewportWidth * 0.25f);
-
-		int hashTop = (int)(viewportHeight  * 0.48f);
-		int hashBottom = (int)(viewportHeight  * 0.52f);
-
-		RECT rec2 = {(int)(width*0.27f), (int)(height*0.8f),width,height};
-		sprintf_s(vcString, 1024, "Vireio Perception ("APP_VERSION") Settings - World Scale\n");
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));
-
-		// draw right line (using BaseDirect3DDevice9, since otherwise we have two lines)
-		D3DRECT rec3 = {(int)(viewportWidth/2 + (-BlueLineCenterAsPercentage * viewportWidth * 0.25f))-1, 0,
-			(int)(viewportWidth/2 + (-BlueLineCenterAsPercentage * viewportWidth * 0.25f))+1,viewportHeight };
-		if (!config.swap_eyes)
-			ClearRect(vireio::RenderPosition::Right, rec3, D3DCOLOR_ARGB(255,0,0,255));
-		else
-			ClearRect(vireio::RenderPosition::Left, rec3, D3DCOLOR_ARGB(255,0,0,255));
-
-		// draw left line (using BaseDirect3DDevice9, since otherwise we have two lines)
-		D3DRECT rec4 = {(int)(viewportWidth/2 + (BlueLineCenterAsPercentage * viewportWidth * 0.25f))-1, 0,
-			(int)(viewportWidth/2 + (BlueLineCenterAsPercentage * viewportWidth * 0.25f))+1,viewportHeight };
-		if (!config.swap_eyes)
-			ClearRect(vireio::RenderPosition::Left, rec4, D3DCOLOR_ARGB(255,255,0,0));
-		else
-			ClearRect(vireio::RenderPosition::Right, rec4, D3DCOLOR_ARGB(255,255,0,0));
-
-		// horizontal line
-		D3DRECT rec5 = {beg, (viewportHeight /2)-1, end, (viewportHeight /2)+1 };
-		if (!config.swap_eyes)
-			ClearRect(vireio::RenderPosition::Left, rec5, D3DCOLOR_ARGB(255,0,0,255));
-		else
-			ClearRect(vireio::RenderPosition::Right, rec5, D3DCOLOR_ARGB(255,0,0,255));
-
-		// hash lines
-		int hashNum = 10;
-		float hashSpace = horWidth*viewportWidth / (float)hashNum;
-		for(int i=0; i<=hashNum; i++) {
-			D3DRECT rec5 = {beg+(int)(i*hashSpace)-1, hashTop, beg+(int)(i*hashSpace)+1, hashBottom};
-			if (!config.swap_eyes)
-				ClearRect(vireio::RenderPosition::Left, rec5, D3DCOLOR_ARGB(255,255,255,0));
-			else
-				ClearRect(vireio::RenderPosition::Right, rec5, D3DCOLOR_ARGB(255,255,255,0));
-		}
-
-		rec2.left = (int)(width*0.35f);
-		rec2.top = (int)(height*0.83f);
-		sprintf_s(vcString, 1024, "World-Scale Calibration");
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));
-
-		RECT rec10 = {(int)(width*0.40f), (int)(height*0.57f),width,height};
-		DrawTextShadowed(hudFont, hudMainMenu, "<- calibrate using Arrow Keys ->", -1, &rec10, 0, D3DCOLOR_ARGB(255,255,255,255));
-
-		float gameUnit = m_spShaderViewAdjustment->WorldScale();
-
-		// actual game unit chosen ... in case game has called SetTransform(>projection<);
-		if (m_bProjectionTransformSet)
-		{
-			// get the scale the 
-			float gameXScale = m_gameXScaleUnits[gameXScaleUnitIndex];
-
-			// get the scale the driver projects
-			D3DXMATRIX driverProjection = m_spShaderViewAdjustment->Projection();
-			float driverXScale = driverProjection._11;
-
-			// gameUnit = (driverWorldScale * driverXScale) /  gameXScale
-			gameUnit = ((m_spShaderViewAdjustment->WorldScale()) * driverXScale ) / gameXScale;
-
-			rec10.top = (int)(height*0.77f); rec10.left = (int)(width*0.45f);
-			sprintf_s(vcString,"Actual Units %u/%u", gameXScaleUnitIndex, m_gameXScaleUnits.size());
-			DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, D3DCOLOR_ARGB(255,255,255,255));
-		}
-
-		//Column 1:
-		//1 Game Unit = X Meters
-		//1 Game Unit = X Centimeters
-		//1 Game Unit = X Feet
-		//1 Game Unit = X Inches
-		//Column 2:
-		//1 Meter = X Game Units
-		//1 Centimeter = X Game Units
-		//1 Foot = X Game Units
-		//1 Inch = X Game Units
-		rec10.top = (int)(height*0.6f); rec10.left = (int)(width*0.28f);
-		float meters = 1 / gameUnit;
-		sprintf_s(vcString,"1 Game Unit = %g Meters", meters);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, D3DCOLOR_ARGB(255,255,255,255));
-		rec10.top+=35;
-		float centimeters = meters * 100.0f;
-		sprintf_s(vcString,"1 Game Unit = %g CM", centimeters);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, D3DCOLOR_ARGB(255,255,255,255));
-		rec10.top+=35;
-		float feet = meters * 3.2808399f;
-		sprintf_s(vcString,"1 Game Unit = %g Feet", feet);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, D3DCOLOR_ARGB(255,255,255,255));
-		rec10.top+=35;
-		float inches = feet * 12.0f;
-		sprintf_s(vcString,"1 Game Unit = %g In.", inches);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, D3DCOLOR_ARGB(255,255,255,255));
-
-		RECT rec11 = {(int)(width*0.52f), (int)(height*0.6f),width,height};
-		sprintf_s(vcString,"1 Meter      = %g Game Units", gameUnit);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec11, 0, D3DCOLOR_ARGB(255,255,255,255));
-		rec11.top+=35;
-		float gameUnitsToCentimeter =  gameUnit / 100.0f;
-		sprintf_s(vcString,"1 CM         = %g Game Units", gameUnitsToCentimeter);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec11, 0, D3DCOLOR_ARGB(255,255,255,255));
-		rec11.top+=35;
-		float gameUnitsToFoot = gameUnit / 3.2808399f;
-		sprintf_s(vcString,"1 Foot       = %g Game Units", gameUnitsToFoot);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec11, 0, D3DCOLOR_ARGB(255,255,255,255));
-		rec11.top+=35;
-		float gameUnitsToInches = gameUnit / 39.3700787f;
-		sprintf_s(vcString,"1 Inch       = %g Game Units", gameUnitsToInches);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec11, 0, D3DCOLOR_ARGB(255,255,255,255));
-
-		menuHelperRect.left = 0;
-		menuHelperRect.top = 0;
-
-		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
-		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));  
-		hudMainMenu->End();
-
-		// draw description text box
-		hudTextBox->Begin(D3DXSPRITE_ALPHABLEND);
-		hudTextBox->SetTransform(&matScale);
-		RECT rec8 = {620, (int)(borderTopHeight), 1300, 400};
-		sprintf_s(vcString, 1024,
-			"In the right eye view, walk up as close as\n"
-			"possible to a 90 degree vertical object and\n"
-			"align the BLUE vertical line with its edge.\n"
-			"Good examples include a wall corner, a table\n"
-			"corner, a square post, etc.  While looking at\n"
-			"the left image, adjust the World View setting\n"
-			"until the same object's edge is on the fourth\n"
-			"notch in the >Negative Parallax< section (to\n"
-			"the right of the RED line).  If objects go \n"
-			"beyond this point, reduce the World Scale \n"
-			"further.  Try to keep the BLUE line aligned\n"
-			"while changing the World Scale.  Adjust \n"
-			"further for comfort and game unit accuracy.\n"
-			);
-		DrawTextShadowed(hudFont, hudTextBox, vcString, -1, &rec8, 0, D3DCOLOR_ARGB(255,255,255,255));
-		hudTextBox->Draw(NULL, &rec8, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));
-
-		// draw description box scroll bar
-		float scroll = (429.0f-borderTopHeight-64.0f)/429.0f;
-		D3DRECT rec9 = {(int)(1300*fScaleX), 0, (int)(1320*fScaleX), (int)(400*fScaleY)};
-		DrawScrollbar(vireio::RenderPosition::Left, rec9, D3DCOLOR_ARGB(255, 128, 196, 128), scroll, (int)(20*fScaleY));
-		DrawScrollbar(vireio::RenderPosition::Right, rec9, D3DCOLOR_ARGB(255, 128, 196, 128), scroll, (int)(20*fScaleY));
-
-		hudTextBox->End();
-	}
-}
-
-/**
-* Convergence Adjustment.
-***/
-void D3DProxyDevice::VPMENU_Convergence()
-{
-	#ifdef SHOW_CALLS
-		OutputDebugString("called VPMENU_Convergence");
-	#endif
-	// base values
-	float convergenceChange = 0.05f;
-
-	// ensure that the attraction is set to zero
-	// for non-menu-screens like this one
-	menuAttraction.x = 0.0f;
-	menuAttraction.y = 0.0f;
-
-	/**
-	* ESCAPE : Set menu inactive and save the configuration.
-	***/
-	if (controls.Key_Down(VK_ESCAPE))
-	{
-		VPMENU_mode = VPMENU_Modes::INACTIVE;
-		VPMENU_UpdateConfigSettings();
-	}
-
-	/**
-	* LEFT : Decrease convergence (hold CTRL to lower speed, SHIFT to speed up)
-	***/
-	if((controls.Key_Down(VK_LEFT) || controls.Key_Down(0x4A) || (controls.xInputState.Gamepad.sThumbLX<-8192)) && (menuVelocity.x == 0.0f))
-	{
-		if(controls.Key_Down(VK_LCONTROL)) {
-			convergenceChange /= 10.0f;
-		}
-		else if(controls.Key_Down(VK_LSHIFT)) {
-			convergenceChange *= 10.0f;
-		} 
-
-		if (controls.xInputState.Gamepad.sThumbLX != 0  && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
-			m_spShaderViewAdjustment->ChangeConvergence(convergenceChange * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f));
-		else
-			m_spShaderViewAdjustment->ChangeConvergence(-convergenceChange);
-		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, m_projectionHFOV);
-
-		menuVelocity.x+=0.7f;
-	}
-
-	/**
-	* RIGHT : Increase convergence (hold CTRL to lower speed, SHIFT to speed up)
-	***/
-	if((controls.Key_Down(VK_RIGHT) || controls.Key_Down(0x4C) || (controls.xInputState.Gamepad.sThumbLX>8192)) && (menuVelocity.x == 0.0f))
-	{
-		if(controls.Key_Down(VK_LCONTROL)) {
-			convergenceChange /= 10.0f;
-		}
-		else if(controls.Key_Down(VK_LSHIFT))
-		{
-			convergenceChange *= 10.0f;
-		}
-
-		if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down(0x4C))
-			m_spShaderViewAdjustment->ChangeConvergence(convergenceChange * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f));
-		else
-			m_spShaderViewAdjustment->ChangeConvergence(convergenceChange);
-		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, m_projectionHFOV);
-
-		menuVelocity.x+=0.7f;
-	}
-
-	// handle border height (=scrollbar scroll height)
-	if (borderTopHeight<-64.0f)
-		borderTopHeight = -64.0f;
-	if (borderTopHeight>365.0f)
-		borderTopHeight = 365.0f;
-
-	if(hudFont){
-
-		hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
-
-		// standard hud size, will be scaled later to actual viewport
-		char vcString[1024];
-		int width = VPMENU_PIXEL_WIDTH;
-		int height = VPMENU_PIXEL_HEIGHT;
-
-		D3DXMATRIX matScale;
-		D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
-		hudMainMenu->SetTransform(&matScale);
-
-		// arbitrary formular... TODO !! find a more nifty solution
-		float BlueLineCenterAsPercentage = m_spShaderViewAdjustment->HMDInfo()->GetLensXCenterOffset() * 0.2f;
-
-		float horWidth = 0.15f;
-		int beg = (int)(viewportWidth*(1.0f-horWidth)/2.0) + (int)(BlueLineCenterAsPercentage * viewportWidth * 0.25f);
-		int end = (int)(viewportWidth*(0.5f+(horWidth/2.0f))) + (int)(BlueLineCenterAsPercentage * viewportWidth * 0.25f);
-
-		int hashTop = (int)(viewportHeight  * 0.48f);
-		int hashBottom = (int)(viewportHeight  * 0.52f);
-
-		RECT rec2 = {(int)(width*0.27f), (int)(height*0.8f),width,height};
-		sprintf_s(vcString, 1024, "Vireio Perception ("APP_VERSION") Settings - Convergence\n");
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));
-
-		// draw right line (using BaseDirect3DDevice9, since otherwise we have two lines)
-		D3DRECT rec3 = {(int)(viewportWidth/2 + (-BlueLineCenterAsPercentage * viewportWidth * 0.25f))-1, 0,
-			(int)(viewportWidth/2 + (-BlueLineCenterAsPercentage * viewportWidth * 0.25f))+1,viewportHeight };
-		if (!config.swap_eyes)
-			ClearRect(vireio::RenderPosition::Right, rec3, D3DCOLOR_ARGB(255,0,0,255));
-		else
-			ClearRect(vireio::RenderPosition::Left, rec3, D3DCOLOR_ARGB(255,0,0,255));
-
-		// draw left line (using BaseDirect3DDevice9, since otherwise we have two lines)
-		D3DRECT rec4 = {(int)(viewportWidth/2 + (BlueLineCenterAsPercentage * viewportWidth * 0.25f))-1, 0,
-			(int)(viewportWidth/2 + (BlueLineCenterAsPercentage * viewportWidth * 0.25f))+1,viewportHeight };
-		if (!config.swap_eyes)
-			ClearRect(vireio::RenderPosition::Left, rec4, D3DCOLOR_ARGB(255,0,0,255));
-		else
-			ClearRect(vireio::RenderPosition::Right, rec4, D3DCOLOR_ARGB(255,0,0,255));
-
-		// horizontal line
-		D3DRECT rec5 = {beg, (viewportHeight /2)-1, end, (viewportHeight /2)+1 };
-		if (!config.swap_eyes)
-			ClearRect(vireio::RenderPosition::Left, rec5, D3DCOLOR_ARGB(255,0,0,255));
-		else
-			ClearRect(vireio::RenderPosition::Right, rec5, D3DCOLOR_ARGB(255,0,0,255));
-
-		// hash lines
-		int hashNum = 10;
-		float hashSpace = horWidth*viewportWidth / (float)hashNum;
-		for(int i=0; i<=hashNum; i++) {
-			D3DRECT rec5 = {beg+(int)(i*hashSpace)-1, hashTop, beg+(int)(i*hashSpace)+1, hashBottom};
-			if (!config.swap_eyes)
-				ClearRect(vireio::RenderPosition::Left, rec5, D3DCOLOR_ARGB(255,255,255,0));
-			else
-				ClearRect(vireio::RenderPosition::Right, rec5, D3DCOLOR_ARGB(255,255,255,0));
-		}
-
-		rec2.left = (int)(width*0.35f);
-		rec2.top = (int)(height*0.83f);
-		sprintf_s(vcString, 1024, "Convergence Adjustment");
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec2, 0, D3DCOLOR_ARGB(255,255,255,255));
-
-		// output convergence
-		RECT rec10 = {(int)(width*0.40f), (int)(height*0.57f),width,height};
-		DrawTextShadowed(hudFont, hudMainMenu, "<- calibrate using Arrow Keys ->", -1, &rec10, 0, D3DCOLOR_ARGB(255,255,255,255));
-		// Convergence Screen = X Meters = X Feet
-		rec10.top = (int)(height*0.6f); rec10.left = (int)(width*0.385f);
-		float meters = m_spShaderViewAdjustment->Convergence();
-		sprintf_s(vcString,"Convergence Screen = %g Meters", meters);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, D3DCOLOR_ARGB(255,255,255,255));
-		rec10.top+=35;
-		float centimeters = meters * 100.0f;
-		sprintf_s(vcString,"Convergence Screen = %g CM", centimeters);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, D3DCOLOR_ARGB(255,255,255,255));
-		rec10.top+=35;
-		float feet = meters * 3.2808399f;
-		sprintf_s(vcString,"Convergence Screen = %g Feet", feet);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, D3DCOLOR_ARGB(255,255,255,255));
-		rec10.top+=35;
-		float inches = feet * 12.0f;
-		sprintf_s(vcString,"Convergence Screen = %g Inches", inches);
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &rec10, 0, D3DCOLOR_ARGB(255,255,255,255));
-
-		menuHelperRect.left = 0;
-		menuHelperRect.top = 0;
-
-		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
-		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));  
-		hudMainMenu->End();
-
-		// draw description text box
-		hudTextBox->Begin(D3DXSPRITE_ALPHABLEND);
-		hudTextBox->SetTransform(&matScale);
-		RECT rec8 = {620, (int)(borderTopHeight), 1300, 400};
-		sprintf_s(vcString, 1024,
-			"Note that the Convergence Screens distance\n"
-			"is measured in physical meters and should\n"
-			"only be adjusted to match Your personal\n"
-			"depth cognition after You calibrated the\n"
-			"World Scale accordingly.\n"
-			"In the right eye view, walk up as close as\n"
-			"possible to a 90 degree vertical object and\n"
-			"align the BLUE vertical line with its edge.\n"
-			"Good examples include a wall corner, a table\n"
-			"corner, a square post, etc.\n"
-			);
-		DrawTextShadowed(hudFont, hudTextBox, vcString, -1, &rec8, 0, D3DCOLOR_ARGB(255,255,255,255));
-		hudTextBox->Draw(NULL, &rec8, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));
-
-		// draw description box scroll bar
-		float scroll = (429.0f-borderTopHeight-64.0f)/429.0f;
-		D3DRECT rec9 = {(int)(1300*fScaleX), 0, (int)(1320*fScaleX), (int)(400*fScaleY)};
-		DrawScrollbar(vireio::RenderPosition::Left, rec9, D3DCOLOR_ARGB(255, 128, 196, 128), scroll, (int)(20*fScaleY));
-		DrawScrollbar(vireio::RenderPosition::Right, rec9, D3DCOLOR_ARGB(255, 128, 196, 128), scroll, (int)(20*fScaleY));
-
-		hudTextBox->End();
-	}
-}
-
-/**
-* HUD Calibration.
-***/
-void D3DProxyDevice::VPMENU_HUD()
-{
-	#ifdef SHOW_CALLS
-		OutputDebugString("called VPMENU_HUD");
-	#endif
-	UINT menuEntryCount = 10;
-
-	menuHelperRect.left = 0;
-	menuHelperRect.top = 0;
-
-	UINT entryID;
-	VPMENU_NewFrame(entryID, menuEntryCount);
-	UINT borderSelection = entryID;
-
-	if ((hotkeyCatch) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-	{
-		for (int i = 0; i < 256; i++)
-			if (controls.Key_Down(i) && controls.GetKeyName(i)!="-")
-			{
-				hotkeyCatch = false;
-				int index = entryID-3;
-				if ((index >=0) && (index <=4))
-					hudHotkeys[index] = (byte)i;
-			}
-	}
-	else
-	{
-		if (controls.Key_Down(VK_ESCAPE))
-		{
-			VPMENU_mode = VPMENU_Modes::INACTIVE;
-			VPMENU_UpdateConfigSettings();
-		}
-
-		if ((controls.Key_Down(VK_RETURN) || controls.Key_Down(VK_RSHIFT) || (controls.xButtonsStatus[0x0c])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-		{
-			if ((entryID >= 3) && (entryID <= 7) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-			{
-				hotkeyCatch = true;
-				menuVelocity.x+=2.0f;
-			}
-			// back to main menu
-			if (entryID == 8)
-			{
-				VPMENU_mode = VPMENU_Modes::MAINMENU;
-				VPMENU_UpdateConfigSettings();
-				menuVelocity.x+=2.0f;
-			}
-			// back to game
-			if (entryID == 9)
-			{
-				VPMENU_mode = VPMENU_Modes::INACTIVE;
-				VPMENU_UpdateConfigSettings();
-			}
-		}
-
-		if (controls.Key_Down(VK_BACK))
-		{
-			if ((entryID >= 3) && (entryID <= 7) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-			{
-				int index = entryID-3;
-				if ((index >=0) && (index <=4))
-					hudHotkeys[index] = 0;
-				menuVelocity.x+=2.0f;
-			}
-		}
-
-		if (controls.Key_Down(VK_LEFT) || controls.Key_Down(0x4A) || (controls.xInputState.Gamepad.sThumbLX<-8192))
-		{
-			if ((entryID == 0) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-			{
-				if (hud3DDepthMode > HUD_3D_Depth_Modes::HUD_DEFAULT)
-					ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)(hud3DDepthMode-1));
-				menuVelocity.x-=2.0f;
-			}
-
-			if ((entryID == 1) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
-					hudDistancePresets[(int)hud3DDepthMode]+=0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-				else
-					hudDistancePresets[(int)hud3DDepthMode]-=0.01f;
-				ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)hud3DDepthMode);
-				menuVelocity.x-=0.7f;
-			}
-
-			if ((entryID == 2) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
-					hud3DDepthPresets[(int)hud3DDepthMode]+=0.002f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-				else
-					hud3DDepthPresets[(int)hud3DDepthMode]-=0.002f;
-				ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)hud3DDepthMode);
-				menuVelocity.x-=0.7f;
-			}
-		}
-
-		if (controls.Key_Down(VK_RIGHT) || controls.Key_Down(0x4C) || (controls.xInputState.Gamepad.sThumbLX>8192))
-		{
-			// change hud scale
-			if ((entryID == 0) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-			{
-				if (hud3DDepthMode < HUD_3D_Depth_Modes::HUD_ENUM_RANGE-1)
-					ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)(hud3DDepthMode+1));
-				menuVelocity.x+=2.0f;
-			}
-
-			if ((entryID == 1) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down(0x4C))
-					hudDistancePresets[(int)hud3DDepthMode]+=0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-				else
-					hudDistancePresets[(int)hud3DDepthMode]+=0.01f;
-				ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)hud3DDepthMode);
-				menuVelocity.x+=0.7f;
-			}
-
-			if ((entryID == 2) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down(0x4C))
-					hud3DDepthPresets[(int)hud3DDepthMode]+=0.002f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-				else
-					hud3DDepthPresets[(int)hud3DDepthMode]+=0.002f;
-				ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)hud3DDepthMode);
-				menuVelocity.x+=0.7f;
-			}
-		}
-	}
-	// output menu
-	if (hudFont)
-	{
-		// adjust border
-		float borderDrawingHeight = borderTopHeight;
-		if ((menuVelocity.y < 1.0f) && (menuVelocity.y > -1.0f))
-			borderTopHeight = menuTop+menuEntryHeight*(float)borderSelection;
-
-		// draw border - total width due to shift correction
-		D3DRECT rect;
-		rect.x1 = (int)0; rect.x2 = (int)viewportWidth; rect.y1 = (int)borderTopHeight; rect.y2 = (int)(borderTopHeight+viewportHeight*0.04f);
-		ClearEmptyRect(vireio::RenderPosition::Left, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
-		ClearEmptyRect(vireio::RenderPosition::Right, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
-
-		hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
-
-		D3DXMATRIX matScale;
-		D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
-		hudMainMenu->SetTransform(&matScale);
-
-		menuHelperRect.left = 650;
-		menuHelperRect.top = 300;
-		DrawTextShadowed(hudFont, hudMainMenu, "Vireio Perception ("APP_VERSION") Settings - HUD\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		rect.x1 = 0; rect.x2 = viewportWidth; rect.y1 = (int)(335*fScaleY); rect.y2 = (int)(340*fScaleY);
-		Clear(1, &rect, D3DCLEAR_TARGET, D3DCOLOR_ARGB(255,255,128,128), 0, 0);
-
-		menuHelperRect.top += 50;  menuHelperRect.left += 150; float hudQSHeight = (float)menuHelperRect.top * fScaleY;
-		switch (hud3DDepthMode)
-		{
-		case D3DProxyDevice::HUD_DEFAULT:
-			DrawTextShadowed(hudFont, hudMainMenu, "HUD : Default", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-			break;
-		case D3DProxyDevice::HUD_SMALL:
-			DrawTextShadowed(hudFont, hudMainMenu, "HUD : Small", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-			break;
-		case D3DProxyDevice::HUD_LARGE:
-			DrawTextShadowed(hudFont, hudMainMenu, "HUD : Large", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-			break;
-		case D3DProxyDevice::HUD_FULL:
-			DrawTextShadowed(hudFont, hudMainMenu, "HUD : Full", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-			break;
-		default:
-			break;
-		}
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		char vcString[128];
-		sprintf_s(vcString,"HUD Distance : %g", RoundVireioValue(hudDistancePresets[(int)hud3DDepthMode]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		sprintf_s(vcString,"HUD's 3D Depth : %g", RoundVireioValue(hud3DDepthPresets[(int)hud3DDepthMode]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		sprintf_s(vcString,"Hotkey >Switch< : ");
-		std::string stdString = std::string(vcString);
-		stdString.append(controls.GetKeyName(hudHotkeys[0]));
-		if ((hotkeyCatch) && (entryID==3))
-			stdString = "Press the desired key.";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		sprintf_s(vcString,"Hotkey >Default< : ");
-		stdString = std::string(vcString);
-		stdString.append(controls.GetKeyName(hudHotkeys[1]));
-		if ((hotkeyCatch) && (entryID==4))
-			stdString = "Press the desired key.";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		sprintf_s(vcString,"Hotkey >Small< : ");
-		stdString = std::string(vcString);
-		stdString.append(controls.GetKeyName(hudHotkeys[2]));
-		if ((hotkeyCatch) && (entryID==5))
-			stdString = "Press the desired key.";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		sprintf_s(vcString,"Hotkey >Large< : ");
-		stdString = std::string(vcString);
-		stdString.append(controls.GetKeyName(hudHotkeys[3]));
-		if ((hotkeyCatch) && (entryID==6))
-			stdString = "Press the desired key.";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		sprintf_s(vcString,"Hotkey >Full< : ");
-		stdString = std::string(vcString);
-		stdString.append(controls.GetKeyName(hudHotkeys[4]));
-		if ((hotkeyCatch) && (entryID==7))
-			stdString = "Press the desired key.";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Main Menu", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-
-		// draw HUD quick setting rectangles
-		rect.x1 = (int)(viewportWidth*0.52f); rect.x2 = (int)(viewportWidth*0.56f); rect.y1 = (int)hudQSHeight; rect.y2 = (int)(hudQSHeight+viewportHeight*0.027f);
-		DrawSelection(vireio::RenderPosition::Left, rect, D3DCOLOR_ARGB(255, 128, 196, 128), (int)hud3DDepthMode, (int)HUD_3D_Depth_Modes::HUD_ENUM_RANGE);
-		DrawSelection(vireio::RenderPosition::Right, rect, D3DCOLOR_ARGB(255, 128, 196, 128), (int)hud3DDepthMode, (int)HUD_3D_Depth_Modes::HUD_ENUM_RANGE);
-
-		menuHelperRect.left = 0;
-		menuHelperRect.top = 0;
-
-		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
-		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));
-		hudMainMenu->End();
-	}
-}
-
-/**
-* GUI Calibration.
-***/
-void D3DProxyDevice::VPMENU_GUI()
-{
-	#ifdef SHOW_CALLS
-		OutputDebugString("called VPMENU_GUI");
-	#endif
-	UINT menuEntryCount = 10;
-
-	menuHelperRect.left = 0;
-	menuHelperRect.top = 0;
-
-	UINT entryID;
-	VPMENU_NewFrame(entryID, menuEntryCount);
-	UINT borderSelection = entryID;
-
-	if ((hotkeyCatch) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-	{
-		for (int i = 0; i < 256; i++)
-			if (controls.Key_Down(i) && controls.GetKeyName(i)!="-")
-			{
-				hotkeyCatch = false;
-				int index = entryID-3;
-				if ((index >=0) && (index <=4))
-					guiHotkeys[index] = (byte)i;
-			}
-	}
-	else
-	{
-		if (controls.Key_Down(VK_ESCAPE))
-		{
-			VPMENU_mode = VPMENU_Modes::INACTIVE;
-			VPMENU_UpdateConfigSettings();
-		}
-
-		if ((controls.Key_Down(VK_RETURN) || controls.Key_Down(VK_RSHIFT) || (controls.xButtonsStatus[0x0c])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-		{
-			if ((entryID >= 3) && (entryID <= 7) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-			{
-				hotkeyCatch = true;
-				menuVelocity.x+=2.0f;
-			}
-			// back to main menu
-			if (entryID == 8)
-			{
-				VPMENU_mode = VPMENU_Modes::MAINMENU;
-				menuVelocity.x+=2.0f;
-			}
-			// back to game
-			if (entryID == 9)
-			{
-				VPMENU_mode = VPMENU_Modes::INACTIVE;
-				VPMENU_UpdateConfigSettings();
-			}
-		}
-
-		if (controls.Key_Down(VK_BACK))
-		{
-			if ((entryID >= 3) && (entryID <= 7) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-			{
-				int index = entryID-3;
-				if ((index >=0) && (index <=4))
-					guiHotkeys[index] = 0;
-				menuVelocity.x+=2.0f;
-			}
-		}
-
-		if (controls.Key_Down(VK_LEFT) || controls.Key_Down(0x4A) || (controls.xInputState.Gamepad.sThumbLX<-8192))
-		{
-			if ((entryID == 0) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-			{
-				if (gui3DDepthMode > GUI_3D_Depth_Modes::GUI_DEFAULT)
-					ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)(gui3DDepthMode-1));
-				menuVelocity.x-=2.0f;
-			}
-
-			if ((entryID == 1) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
-					guiSquishPresets[(int)gui3DDepthMode]+=0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-				else
-					guiSquishPresets[(int)gui3DDepthMode]-=0.01f;
-				ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)gui3DDepthMode);
-				menuVelocity.x-=0.7f;
-			}
-
-			if ((entryID == 2) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
-					gui3DDepthPresets[(int)gui3DDepthMode]+=0.002f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-				else
-					gui3DDepthPresets[(int)gui3DDepthMode]-=0.002f;
-				ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)gui3DDepthMode);
-				menuVelocity.x-=0.7f;
-			}
-		}
-
-		if (controls.Key_Down(VK_RIGHT) || controls.Key_Down(0x4C) || (controls.xInputState.Gamepad.sThumbLX>8192))
-		{
-			// change gui scale
-			if ((entryID == 0) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-			{
-				if (gui3DDepthMode < GUI_3D_Depth_Modes::GUI_ENUM_RANGE-1)
-					ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)(gui3DDepthMode+1));
-				menuVelocity.x+=2.0f;
-			}
-
-			if ((entryID == 1) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down(0x4C))
-					guiSquishPresets[(int)gui3DDepthMode]+=0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-				else
-					guiSquishPresets[(int)gui3DDepthMode]+=0.01f;
-				ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)gui3DDepthMode);
-				menuVelocity.x+=0.7f;
-			}
-
-			if ((entryID == 2) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down(0x4C))
-					gui3DDepthPresets[(int)gui3DDepthMode]+=0.002f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-				else
-					gui3DDepthPresets[(int)gui3DDepthMode]+=0.002f;
-				ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)gui3DDepthMode);
-				menuVelocity.x+=0.5;
-			}
-		}
-	}
-	// output menu
-	if (hudFont)
-	{
-		// adjust border
-		float borderDrawingHeight = borderTopHeight;
-		if ((menuVelocity.y < 1.0f) && (menuVelocity.y > -1.0f))
-			borderTopHeight = menuTop+menuEntryHeight*(float)borderSelection;
-
-		// draw border - total width due to shift correction
-		D3DRECT rect;
-		rect.x1 = (int)0; rect.x2 = (int)viewportWidth; rect.y1 = (int)borderTopHeight; rect.y2 = (int)(borderTopHeight+viewportHeight*0.04f);
-		ClearEmptyRect(vireio::RenderPosition::Left, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
-		ClearEmptyRect(vireio::RenderPosition::Right, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
-
-		hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
-
-		D3DXMATRIX matScale;
-		D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
-		hudMainMenu->SetTransform(&matScale);
-
-		menuHelperRect.left = 650;
-		menuHelperRect.top = 300;
-		DrawTextShadowed(hudFont, hudMainMenu, "Vireio Perception ("APP_VERSION") Settings - GUI\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		rect.x1 = 0; rect.x2 = viewportWidth; rect.y1 = (int)(335*fScaleY); rect.y2 = (int)(340*fScaleY);
-		Clear(1, &rect, D3DCLEAR_TARGET, D3DCOLOR_ARGB(255,255,128,128), 0, 0);
-
-		menuHelperRect.top += 50;  menuHelperRect.left +=150; float guiQSHeight = (float)menuHelperRect.top * fScaleY;
-		switch (gui3DDepthMode)
-		{
-		case D3DProxyDevice::GUI_DEFAULT:
-			DrawTextShadowed(hudFont, hudMainMenu, "GUI : Default", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-			break;
-		case D3DProxyDevice::GUI_SMALL:
-			DrawTextShadowed(hudFont, hudMainMenu, "GUI : Small", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-			break;
-		case D3DProxyDevice::GUI_LARGE:
-			DrawTextShadowed(hudFont, hudMainMenu, "GUI : Large", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-			break;
-		case D3DProxyDevice::GUI_FULL:
-			DrawTextShadowed(hudFont, hudMainMenu, "GUI : Full", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-			break;
-		default:
-			break;
-		}
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		char vcString[128];
-		sprintf_s(vcString,"GUI Size : %g", RoundVireioValue(guiSquishPresets[(int)gui3DDepthMode]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		sprintf_s(vcString,"GUI's 3D Depth : %g", RoundVireioValue(gui3DDepthPresets[(int)gui3DDepthMode]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		sprintf_s(vcString,"Hotkey >Switch< : ");
-		std::string stdString = std::string(vcString);
-		stdString.append(controls.GetKeyName(guiHotkeys[0]));
-		if ((hotkeyCatch) && (entryID==3))
-			stdString = "Press the desired key.";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		sprintf_s(vcString,"Hotkey >Default< : ");
-		stdString = std::string(vcString);
-		stdString.append(controls.GetKeyName(guiHotkeys[1]));
-		if ((hotkeyCatch) && (entryID==4))
-			stdString = "Press the desired key.";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		sprintf_s(vcString,"Hotkey >Small< : ");
-		stdString = std::string(vcString);
-		stdString.append(controls.GetKeyName(guiHotkeys[2]));
-		if ((hotkeyCatch) && (entryID==5))
-			stdString = "Press the desired key.";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		sprintf_s(vcString,"Hotkey >Large< : ");
-		stdString = std::string(vcString);
-		stdString.append(controls.GetKeyName(guiHotkeys[3]));
-		if ((hotkeyCatch) && (entryID==6))
-			stdString = "Press the desired key.";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		sprintf_s(vcString,"Hotkey >Full< : ");
-		stdString = std::string(vcString);
-		stdString.append(controls.GetKeyName(guiHotkeys[4]));
-		if ((hotkeyCatch) && (entryID==7))
-			stdString = "Press the desired key.";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Main Menu", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-
-		// draw GUI quick setting rectangles
-		rect.x1 = (int)(viewportWidth*0.52f); rect.x2 = (int)(viewportWidth*0.56f); rect.y1 = (int)guiQSHeight; rect.y2 = (int)(guiQSHeight+viewportHeight*0.027f);
-		DrawSelection(vireio::RenderPosition::Left, rect, D3DCOLOR_ARGB(255, 128, 196, 128), (int)gui3DDepthMode, (int)GUI_3D_Depth_Modes::GUI_ENUM_RANGE);
-		DrawSelection(vireio::RenderPosition::Right, rect, D3DCOLOR_ARGB(255, 128, 196, 128), (int)gui3DDepthMode, (int)GUI_3D_Depth_Modes::GUI_ENUM_RANGE);
-
-		menuHelperRect.left = 0;
-		menuHelperRect.top = 0;
-
-		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
-		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));
-		hudMainMenu->End();
-	}
-}
-
-/**
-* Settings.
-***/
-void D3DProxyDevice::VPMENU_Settings()
-{
-	#ifdef SHOW_CALLS
-		OutputDebugString("called VPMENU_Settings");
-	#endif
-
-	//Use enumeration for menu items to avoid confusion
-	enum 
-	{
-		SWAP_EYES,
-		IPD_OFFSET,
-		Y_OFFSET,
-		DISTORTION_SCALE,
-		YAW_MULT,
-		PITCH_MULT,
-		ROLL_MULT,
-		RESET_MULT,
-		ROLL_ENABLED,
-		FORCE_MOUSE_EMU,
-		TOGGLE_VRBOOST,
-		HOTKEY_VRBOOST,
-		HOTKEY_EDGEPEEK,
-		BACK_VPMENU,
-		BACK_GAME,
-		NUM_MENU_ITEMS		
-	};
-
-	UINT menuEntryCount = NUM_MENU_ITEMS;
-
-	menuHelperRect.left = 0;
-	menuHelperRect.top = 0;
-
-	UINT entryID;
-	VPMENU_NewFrame(entryID, menuEntryCount);
-	UINT borderSelection = entryID;
-
-	if ((hotkeyCatch) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-	{
-		for (int i = 0; i < 256; i++)
-			if (controls.Key_Down(i) && controls.GetKeyName(i)!="-")
-			{
-				hotkeyCatch = false;
-				if(entryID == HOTKEY_VRBOOST)
-					toggleVRBoostHotkey = (byte)i;
-				else
-					edgePeekHotkey = (byte)i;
-			}
-	}
-	else
-	{
-		/**
-		* ESCAPE : Set menu inactive and save the configuration.
-		***/
-		if (controls.Key_Down(VK_ESCAPE))
-		{
-			VPMENU_mode = VPMENU_Modes::INACTIVE;
-			VPMENU_UpdateConfigSettings();
-		}
-
-		if ((controls.Key_Down(VK_RETURN) || controls.Key_Down(VK_RSHIFT) || (controls.xButtonsStatus[0x0c])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-		{
-			// swap eyes
-			if (entryID == SWAP_EYES)
-			{
-				stereoView->swapEyes = !stereoView->swapEyes;
-				menuVelocity.x += 4.0f;
-			}
-			// screenshot
-			/*if (entryID == STEREO_SCREENSHOTS)
-			{
-				// render 3 frames to get screenshots without menu
-				screenshot = 3;
-				VPMENU_mode = VPMENU_Modes::INACTIVE;
-			}*/
-			// reset multipliers
-			if (entryID == RESET_MULT)
-			{
-				tracker->multiplierYaw = 25.0f;
-				tracker->multiplierPitch = 25.0f;
-				tracker->multiplierRoll = 1.0f;
-				menuVelocity.x += 4.0f;
-			}
-
-			// update roll implementation
-			if (entryID == ROLL_ENABLED)
-			{
-				config.rollImpl = (config.rollImpl+1) % 3;
-				m_spShaderViewAdjustment->SetRollImpl(config.rollImpl);
-				menuVelocity.x += 4.0f;
-			}
-
-			// force mouse emulation
-			if (entryID == FORCE_MOUSE_EMU)
-			{
-				m_bForceMouseEmulation = !m_bForceMouseEmulation;
-
-				if ((m_bForceMouseEmulation) && (tracker->getStatus() >= MTS_OK) && (!m_bSurpressHeadtracking))
-					tracker->setMouseEmulation(true);
-
-				if ((!m_bForceMouseEmulation) && (hmVRboost) && (m_VRboostRulesPresent)  && (tracker->getStatus() >= MTS_OK))
-					tracker->setMouseEmulation(false);
-
-				menuVelocity.x += 4.0f;
-			}
-			// Toggle VRBoost
-			if (entryID == TOGGLE_VRBOOST)
-			{
-				if (hmVRboost!=NULL)
-				{
-					m_pVRboost_ReleaseAllMemoryRules();
-					m_bVRBoostToggle = !m_bVRBoostToggle;
-					if (tracker->getStatus() >= MTS_OK)
-						tracker->resetOrientationAndPosition();
-					menuVelocity.x+=2.0f;
-				}
-			}
-			// VRBoost hotkey
-			if (entryID == HOTKEY_VRBOOST)
-			{
-				hotkeyCatch = true;
-				menuVelocity.x+=2.0f;
-			}
-			// VRBoost hotkey
-			if (entryID == HOTKEY_EDGEPEEK)
-			{
-				hotkeyCatch = true;
-				menuVelocity.x+=2.0f;
-			}
-			// back to main menu
-			if (entryID == BACK_VPMENU)
-			{
-				VPMENU_mode = VPMENU_Modes::MAINMENU;
-				VPMENU_UpdateConfigSettings();
-				menuVelocity.x+=2.0f;
-			}
-			// back to game
-			if (entryID == BACK_GAME)
-			{
-				VPMENU_mode = VPMENU_Modes::INACTIVE;
-				VPMENU_UpdateConfigSettings();
-			}
-		}
-
-		if (controls.Key_Down(VK_BACK))
-		{
-			if ((entryID >= DISTORTION_SCALE) && (entryID <= ROLL_MULT) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-			{
-				int index = entryID-3;
-				if ((index >=0) && (index <=4))
-					guiHotkeys[index] = 0;
-				menuVelocity.x+=2.0f;
-			}
-		}
-
-		if (controls.Key_Down(VK_BACK) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-		{
-			// ipd-offset
-			if (entryID == IPD_OFFSET)
- 			{
-				this->stereoView->IPDOffset = 0.0f;
-				this->stereoView->PostReset();
-				menuVelocity.x += 0.7f;
-			}
-			//y offset
-			if (entryID == Y_OFFSET)
- 			{
-				this->stereoView->YOffset = 0.0f;
-				this->stereoView->PostReset();
-				menuVelocity.x += 0.7f;
-			}
-			// distortion
-			if (entryID == DISTORTION_SCALE)
-			{
-				this->stereoView->DistortionScale = 0.0f;
-				this->stereoView->PostReset();
-				menuVelocity.x += 0.7f;
-			}
-			// reset hotkey
-			if (entryID == HOTKEY_VRBOOST)
-			{
-				toggleVRBoostHotkey = 0;
-				menuVelocity.x+=2.0f;
-			}
-			// reset hotkey
-			if (entryID == HOTKEY_EDGEPEEK)
-			{
-				edgePeekHotkey = 0;
-				menuVelocity.x+=2.0f;
-			}
-		}
-
-		if ((controls.Key_Down(VK_LEFT) || controls.Key_Down(0x4A) || (controls.xInputState.Gamepad.sThumbLX<-8192)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-		{
-			// swap eyes
-			if (entryID == SWAP_EYES)
-			{
-				stereoView->swapEyes = !stereoView->swapEyes;
-				menuVelocity.x-=2.0f;
-			}
-			// ipd-offset
-			if (entryID == IPD_OFFSET)
- 			{
- 				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
-				{
-					if (this->stereoView->IPDOffset > 0.1f)
-						this->stereoView->IPDOffset -= 0.001f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-				}
-				else
-				{
-					if (this->stereoView->IPDOffset > -0.1f)
-						this->stereoView->IPDOffset -= 0.001f;
-				}
-				this->stereoView->PostReset();
-				menuVelocity.x -= 0.7f;
-			}
-			// y-offset
-			if (entryID == Y_OFFSET)
- 			{
- 				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
-				{
-					if (this->stereoView->YOffset > 0.1f)
-						this->stereoView->YOffset += 0.001f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-				}
-				else
-				{
-					if (this->stereoView->YOffset > -0.1f)
-						this->stereoView->YOffset -= 0.001f;
-				}
-				this->stereoView->PostReset();
-				menuVelocity.x -= 0.7f;
-			}
-			// distortion
-			if (entryID == DISTORTION_SCALE)
-			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
-					this->stereoView->DistortionScale -= 0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-				else
-					this->stereoView->DistortionScale -= 0.01f;
-				this->stereoView->PostReset();
-				menuVelocity.x -= 0.7f;
-			}
-			// yaw multiplier
-			if (entryID == YAW_MULT)
-			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
-					tracker->multiplierYaw += 0.5f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-				else
-					tracker->multiplierYaw -= 0.5f;
-				menuVelocity.x -= 0.7f;
-			}
-			// pitch multiplier
-			if (entryID == PITCH_MULT)
-			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
-					tracker->multiplierPitch += 0.5f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-				else
-					tracker->multiplierPitch -= 0.5f;
-				menuVelocity.x -= 0.7f;
-			}
-			// roll multiplier
-			if (entryID == ROLL_MULT)
-			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
-					tracker->multiplierRoll += 0.05f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-				else
-					tracker->multiplierRoll -= 0.05f;
-				menuVelocity.x -= 0.7f;
-			}
-
-			// mouse emulation
-			if (entryID == FORCE_MOUSE_EMU)
-			{
-				m_bForceMouseEmulation = false;
-
-				if ((hmVRboost) && (m_VRboostRulesPresent) && (tracker->getStatus() >= MTS_OK))
-					tracker->setMouseEmulation(false);
-
-				menuVelocity.x-=2.0f;
-			}
-		}
-
-		if ((controls.Key_Down(VK_RIGHT) || controls.Key_Down(0x4C) || (controls.xInputState.Gamepad.sThumbLX>8192)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-		{
-			// swap eyes
-			if (entryID == SWAP_EYES)
-			{
-				stereoView->swapEyes = !stereoView->swapEyes;
-				menuVelocity.x-=2.0f;
-			}
-			// ipd-offset
-			if (entryID == IPD_OFFSET)
- 			{
- 				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down(0x4C))
-				{
-					if (this->stereoView->IPDOffset < 0.1f)
-						this->stereoView->IPDOffset += 0.001f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-				}
-				else
-				{
-					if (this->stereoView->IPDOffset < 0.1f)
-						this->stereoView->IPDOffset += 0.001f;
-				}
-				this->stereoView->PostReset();
-				menuVelocity.x += 0.7f;
-			}
-			// y-offset
-			if (entryID == Y_OFFSET)
- 			{
- 				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down(0x4C))
-				{
-					if (this->stereoView->YOffset < 0.1f)
-						this->stereoView->YOffset += 0.001f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-				}
-				else
-				{
-					if (this->stereoView->YOffset < 0.1f)
-						this->stereoView->YOffset += 0.001f;
-				}
-				this->stereoView->PostReset();
-				menuVelocity.x += 0.7f;
-			}
-			if (entryID == DISTORTION_SCALE)
-			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down(0x4C))
-					this->stereoView->DistortionScale += 0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-				else
-					this->stereoView->DistortionScale += 0.01f;
-				this->stereoView->PostReset();
-				menuVelocity.x += 0.7f;
-			}
-			// yaw multiplier
-			if (entryID == YAW_MULT)
-			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0  && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down(0x4C))
-					tracker->multiplierYaw += 0.5f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-				else
-					tracker->multiplierYaw += 0.5f;
-				menuVelocity.x += 0.7f;
-			}
-			// pitch multiplier
-			if (entryID == PITCH_MULT)
-			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0  && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down(0x4C))
-					tracker->multiplierPitch += 0.5f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-				else
-					tracker->multiplierPitch += 0.5f;
-				menuVelocity.x += 0.7f;
-			}
-			// roll multiplier
-			if (entryID == ROLL_MULT)
-			{
-				if (controls.xInputState.Gamepad.sThumbLX != 0  && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down(0x4C))
-					tracker->multiplierRoll += 0.05f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-				else
-					tracker->multiplierRoll += 0.05f;
-				menuVelocity.x += 0.7f;
-			}
-			// mouse emulation
-			if (entryID == FORCE_MOUSE_EMU)
-			{
-				if(tracker->getStatus() >= MTS_OK)
-				{
-					tracker->setMouseEmulation(true);
-					m_bForceMouseEmulation = true;
-				}
-
-				menuVelocity.x-=2.0f;
-			}
-		}
-	}
-	// output menu
-	if (hudFont)
-	{
-		// adjust border
-		float borderDrawingHeight = borderTopHeight;
-		if ((menuVelocity.y < 1.0f) && (menuVelocity.y > -1.0f))
-			borderTopHeight = menuTop+menuEntryHeight*(float)borderSelection;
-
-		// draw border - total width due to shift correction
-		D3DRECT rect;
-		rect.x1 = (int)0; rect.x2 = (int)viewportWidth; rect.y1 = (int)borderTopHeight; rect.y2 = (int)(borderTopHeight+viewportHeight*0.04f);
-		ClearEmptyRect(vireio::RenderPosition::Left, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
-		ClearEmptyRect(vireio::RenderPosition::Right, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
-
-		hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
-
-		D3DXMATRIX matScale;
-		D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
-		hudMainMenu->SetTransform(&matScale);
-
-		menuHelperRect.left = 650;
-		menuHelperRect.top = 300;
-		DrawTextShadowed(hudFont, hudMainMenu, "Vireio Perception ("APP_VERSION") Settings - General\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		rect.x1 = 0; rect.x2 = viewportWidth; rect.y1 = (int)(335*fScaleY); rect.y2 = (int)(340*fScaleY);
-		Clear(1, &rect, D3DCLEAR_TARGET, D3DCOLOR_ARGB(255,255,128,128), 0, 0);
-
-		menuHelperRect.top += 50;  menuHelperRect.left += 150; float guiQSHeight = (float)menuHelperRect.top * fScaleY;
-		switch (stereoView->swapEyes)
-		{
-		case true:
-			DrawTextShadowed(hudFont, hudMainMenu, "Swap Eyes : True", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-			break;
-		case false:
-			DrawTextShadowed(hudFont, hudMainMenu, "Swap Eyes : False", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-			break;
-		}
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		char vcString[128];
-		sprintf_s(vcString,"IPD-Offset : %1.3f", RoundVireioValue(this->stereoView->IPDOffset));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		sprintf_s(vcString,"Y-Offset : %1.3f", RoundVireioValue(this->stereoView->YOffset));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		sprintf_s(vcString,"Distortion Scale : %g", RoundVireioValue(this->stereoView->DistortionScale));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		//DrawTextShadowed(hudFont, hudMainMenu, "Stereo Screenshots", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		//menuHelperRect.top += MENU_ITEM_SEPARATION;
-		sprintf_s(vcString,"Yaw multiplier : %g", RoundVireioValue(tracker->multiplierYaw));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		sprintf_s(vcString,"Pitch multiplier : %g", RoundVireioValue(tracker->multiplierPitch));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		sprintf_s(vcString,"Roll multiplier : %g", RoundVireioValue(tracker->multiplierRoll));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Reset Multipliers", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		switch (m_spShaderViewAdjustment->RollImpl())
-		{
-		case 0:
-			DrawTextShadowed(hudFont, hudMainMenu, "Roll : Not Enabled", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-			break;
-		case 1:
-			DrawTextShadowed(hudFont, hudMainMenu, "Roll : Matrix Translation", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-			break;
-		case 2:
-			DrawTextShadowed(hudFont, hudMainMenu, "Roll : Pixel Shader", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-			break;
-		}
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		switch (m_bForceMouseEmulation)
-		{
-		case true:
-			DrawTextShadowed(hudFont, hudMainMenu, "Force Mouse Emulation HT : True", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-			break;
-		case false:
-			DrawTextShadowed(hudFont, hudMainMenu, "Force Mouse Emulation HT : False", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-			break;
-		}
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		switch (m_bVRBoostToggle)
-		{
-		case true:
-			DrawTextShadowed(hudFont, hudMainMenu, "Toggle VRBoost : On", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 64, 255, 64));
-			break;
-		case false:
-			DrawTextShadowed(hudFont, hudMainMenu, "Toggle VRBoost : Off", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 128, 128));
-			break;
-		}
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		sprintf_s(vcString,"Hotkey >Toggle VRBoost< : ");
-		std::string stdString = std::string(vcString);
-		stdString.append(controls.GetKeyName(toggleVRBoostHotkey));
-		if ((hotkeyCatch) && (entryID==11))
-			stdString = "Press the desired key.";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		sprintf_s(vcString,"Hotkey >Disconnected Screen< : ");
-		stdString = std::string(vcString);
-		stdString.append(controls.GetKeyName(edgePeekHotkey));
-		if ((hotkeyCatch) && (entryID==12))
-			stdString = "Press the desired key.";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Main Menu", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-
-		menuHelperRect.left = 0;
-		menuHelperRect.top = 0;
-
-		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
-		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));
-		hudMainMenu->End();
-	}
-}
-
-
-/**
-* Positional Tracking Settings.
-***/
-void D3DProxyDevice::VPMENU_PosTracking()
-{
-	#ifdef SHOW_CALLS
-		OutputDebugString("called VPMENU_PosTracking");
-	#endif
-
-	enum
-	{
-		TOGGLE_TRACKING,
-		TRACKING_MULT,
-		TRACKING_MULT_X,
-		TRACKING_MULT_Y,
-		TRACKING_MULT_Z,
-		RESET_HMD,
-		DUCKANDCOVER_CONFIG,
-		BACK_VPMENU,
-		BACK_GAME,
-		NUM_MENU_ITEMS
-	};
-
-	UINT menuEntryCount = NUM_MENU_ITEMS;
-
-	menuHelperRect.left = 0;
-	menuHelperRect.top = 0;
-
-	UINT entryID;
-	VPMENU_NewFrame(entryID, menuEntryCount);
-	UINT borderSelection = entryID;
-
-	/**
-	* ESCAPE : Set menu inactive and save the configuration.
-	***/
-	if (controls.Key_Down(VK_ESCAPE))
-	{
-		VPMENU_mode = VPMENU_Modes::INACTIVE;
-		VPMENU_UpdateConfigSettings();
-	}
-
-	if ((controls.Key_Down(VK_RETURN) || controls.Key_Down(VK_RSHIFT) || (controls.xButtonsStatus[0x0c])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-	{
-		// toggle position tracking
-		if (entryID == TOGGLE_TRACKING)
-		{
-			m_bPosTrackingToggle = !m_bPosTrackingToggle;
-
-			if (!m_bPosTrackingToggle)
-				m_spShaderViewAdjustment->UpdatePosition(0.0f, 0.0f, 0.0f);
-
-			menuVelocity.x += 3.0f;
-		}
-
-		// ientientation
-		if (entryID == RESET_HMD)
-		{
-			tracker->resetOrientationAndPosition();
-			menuVelocity.x += 3.0f;
-		}
-
-		if (entryID == DUCKANDCOVER_CONFIG)
-		{
-			VPMENU_mode = VPMENU_Modes::DUCKANDCOVER_CONFIGURATION;
-			menuVelocity.x += 3.0f;
-		}
-
-		// back to main menu
-		if (entryID == BACK_VPMENU)
-		{
-			VPMENU_mode = VPMENU_Modes::MAINMENU;
-			VPMENU_UpdateConfigSettings();
-			menuVelocity.x+=2.0f;
-		}
-
-		// back to game
-		if (entryID == BACK_GAME)
-		{
-			VPMENU_mode = VPMENU_Modes::INACTIVE;
-			VPMENU_UpdateConfigSettings();
-		}
-	}
-
-	if (controls.Key_Down(VK_BACK))
-	{
-		if ((entryID == TRACKING_MULT) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-		{
-			config.position_multiplier = 1.0f;
-			menuVelocity.x+=1.0f;
-		}
-		if ((entryID == TRACKING_MULT_X) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-		{
-			config.position_x_multiplier = 2.0f;
-			menuVelocity.x+=1.0f;
-		}
-		if ((entryID == TRACKING_MULT_Y) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-		{
-			config.position_y_multiplier = 2.5f;
-			menuVelocity.x+=1.0f;
-		}
-		if ((entryID == TRACKING_MULT_Z) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-		{
-			config.position_z_multiplier = 0.5f;
-			menuVelocity.x+=1.0f;
-		}
-	}
-
-	if ((controls.Key_Down(VK_LEFT) || controls.Key_Down(0x4A) || (controls.xInputState.Gamepad.sThumbLX<-8192)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-	{
-		// overall position multiplier
-		if (entryID == TRACKING_MULT)
-		{
-			if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
-				config.position_multiplier += 0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-			else
-				config.position_multiplier -= 0.01f;
-			menuVelocity.x += 1.0f;
-		}
-
-		// overall position multiplier
-		if (entryID == TRACKING_MULT_X)
-		{
-			if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
-				config.position_x_multiplier += 0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-			else
-				config.position_x_multiplier -= 0.01f;
-			menuVelocity.x -= 0.6f;
-		}
-
-		// overall position multiplier
-		if (entryID == TRACKING_MULT_Y)
-		{
-			if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
-				config.position_y_multiplier += 0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-			else
-				config.position_y_multiplier -= 0.01f;
-			menuVelocity.x -= 0.6f;
-		}
-
-		// overall position multiplier
-		if (entryID == TRACKING_MULT_Z)
-		{
-			if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
-				config.position_z_multiplier += 0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-			else
-				config.position_z_multiplier -= 0.01f;
-			menuVelocity.x -= 0.6f;
-		}
-	}
-
-
-	if ((controls.Key_Down(VK_RIGHT) || controls.Key_Down(0x4C) || (controls.xInputState.Gamepad.sThumbLX>8192)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-	{
-		// overall position multiplier
-		if (entryID == TRACKING_MULT)
-		{
-			if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down(0x4A))
-				config.position_multiplier += 0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-			else
-				config.position_multiplier += 0.01f;
-			menuVelocity.x -= 0.6f;
-		}
-
-		// overall position multiplier
-		if (entryID == TRACKING_MULT_X)
-		{
-			if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down(0x4A))
-				config.position_x_multiplier += 0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-			else
-				config.position_x_multiplier += 0.01f;
-			menuVelocity.x -= 0.6f;
-		}
-
-		// overall position multiplier
-		if (entryID == TRACKING_MULT_Y)
-		{
-			if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down(0x4A))
-				config.position_y_multiplier += 0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-			else
-				config.position_y_multiplier += 0.01f;
-			menuVelocity.x -= 0.6f;
-		}
-
-		// overall position multiplier
-		if (entryID == TRACKING_MULT_Z)
-		{
-			if (controls.xInputState.Gamepad.sThumbLX != 0 && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down(0x4A))
-				config.position_z_multiplier += 0.01f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-			else
-				config.position_z_multiplier += 0.01f;
-			menuVelocity.x -= 0.6f;
-		}
-	}
-
-
-	// output menu
-	if (hudFont)
-	{
-		// adjust border
-		float borderDrawingHeight = borderTopHeight;
-		if ((menuVelocity.y < 1.0f) && (menuVelocity.y > -1.0f))
-			borderTopHeight = menuTop+menuEntryHeight*(float)borderSelection;
-
-		// draw border - total width due to shift correction
-		D3DRECT rect;
-		rect.x1 = (int)0; rect.x2 = (int)viewportWidth; rect.y1 = (int)borderTopHeight; rect.y2 = (int)(borderTopHeight+viewportHeight*0.04f);
-		ClearEmptyRect(vireio::RenderPosition::Left, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
-		ClearEmptyRect(vireio::RenderPosition::Right, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
-
-		hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
-
-		D3DXMATRIX matScale;
-		D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
-		hudMainMenu->SetTransform(&matScale);
-
-		menuHelperRect.left = 650;
-		menuHelperRect.top = 300;
-		DrawTextShadowed(hudFont, hudMainMenu, "Vireio Perception ("APP_VERSION") Settings - Positional Tracking\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		rect.x1 = 0; rect.x2 = viewportWidth; rect.y1 = (int)(335*fScaleY); rect.y2 = (int)(340*fScaleY);
-		Clear(1, &rect, D3DCLEAR_TARGET, D3DCOLOR_ARGB(255,255,128,128), 0, 0);
-
-		menuHelperRect.top += 50;  menuHelperRect.left += 150; float guiQSHeight = (float)menuHelperRect.top * fScaleY;
-		char vcString[128];
-		switch (m_bPosTrackingToggle)
-		{
-		case true:
-			DrawTextShadowed(hudFont, hudMainMenu, "Positional Tracking (CTRL + P) : On", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 64, 255, 64));
-			break;
-		case false:
-			DrawTextShadowed(hudFont, hudMainMenu, "Positional Tracking (CTRL + P) : Off", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 128, 128));
-			break;
-		}
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		sprintf_s(vcString,"Position Tracking multiplier : %g", RoundVireioValue(config.position_multiplier));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		sprintf_s(vcString,"Position X-Tracking multiplier : %g", RoundVireioValue(config.position_x_multiplier));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		sprintf_s(vcString,"Position Y-Tracking multiplier : %g", RoundVireioValue(config.position_y_multiplier));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		sprintf_s(vcString,"Position Z-Tracking multiplier : %g", RoundVireioValue(config.position_z_multiplier));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Reset HMD Orientation (LSHIFT + R)", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Duck-and-Cover Configuration", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Main Menu", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-
-		menuHelperRect.left = 0;
-		menuHelperRect.top = 0;
-
-		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
-		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));
-		hudMainMenu->End();
-	}
-}
-
-/**
-* configure DuckAndCover.
-***/
-void D3DProxyDevice::VPMENU_DuckAndCover()
-{
-	#ifdef SHOW_CALLS
-		OutputDebugString("called VPMENU_DuckAndCover");
-	#endif
-
-	enum
-	{
-		CROUCH_TOGGLE,
-		CROUCH_KEY,
-		PRONE_TOGGLE,
-		PRONE_KEY,
-		JUMP_ENABLED,
-		JUMP_KEY,
-		DUCKANDCOVER_CALIBRATE,
-		DUCKANDCOVER_MODE,
-		BACK_VPMENU,
-		BACK_GAME,
-		NUM_MENU_ITEMS
-	};
-
-	UINT menuEntryCount = NUM_MENU_ITEMS;
-
-	menuHelperRect.left = 0;
-	menuHelperRect.top = 0;
-
-	UINT entryID;
-	VPMENU_NewFrame(entryID, menuEntryCount);
-	UINT borderSelection = entryID;
-	controls.UpdateXInputs();
-
-	if ((hotkeyCatch) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-	{
-		for (int i = 0; i < 256; i++)
-			if (controls.Key_Down(i) && controls.GetKeyName(i)!="-")
-			{
-				hotkeyCatch = false;
-				if(entryID == CROUCH_KEY)
-					m_DuckAndCover.crouchKey = (byte)i;
-				else if(entryID == PRONE_KEY)
-					m_DuckAndCover.proneKey = (byte)i;
-				else if(entryID == JUMP_KEY)
-					m_DuckAndCover.jumpKey = (byte)i;
-
-				m_DuckAndCover.SaveToRegistry();
-				break;
-			}
-	}
-	else
-	{
-		/**
-		* ESCAPE : Set menu inactive and save the configuration.
-		***/
-		if (controls.Key_Down(VK_ESCAPE))
-		{
-			VPMENU_mode = VPMENU_Modes::INACTIVE;
-			VPMENU_UpdateConfigSettings();
-		}
-
-		if ((controls.Key_Down(VK_RETURN) || controls.Key_Down(VK_RSHIFT) || (controls.xButtonsStatus[0x0c])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-		{
-			if (entryID == CROUCH_KEY)
-			{
-				hotkeyCatch = true;
-				menuVelocity.x+=2.0f;
-			}
-
-			if (entryID == CROUCH_TOGGLE)
-			{
-				m_DuckAndCover.crouchToggle = !m_DuckAndCover.crouchToggle;
-				m_DuckAndCover.SaveToRegistry();
-				menuVelocity.x+=2.0f;
-			}
-
-			if (entryID == PRONE_KEY)
-			{
-				hotkeyCatch = true;
-				menuVelocity.x+=2.0f;
-			}
-
-			if (entryID == PRONE_TOGGLE)
-			{
-				m_DuckAndCover.proneToggle = !m_DuckAndCover.proneToggle;
-				m_DuckAndCover.SaveToRegistry();
-				menuVelocity.x+=2.0f;
-			}
-
-			if (entryID == JUMP_KEY)
-			{
-				hotkeyCatch = true;
-				menuVelocity.x+=2.0f;
-			}
-
-			if (entryID == JUMP_ENABLED)
-			{
-				m_DuckAndCover.jumpEnabled = !m_DuckAndCover.jumpEnabled;
-				m_DuckAndCover.SaveToRegistry();
-				menuVelocity.x+=2.0f;
-			}
-
-			// start calibration
-			if (entryID == DUCKANDCOVER_CALIBRATE)
-			{
-				VPMENU_mode = VPMENU_Modes::INACTIVE;
-				m_DuckAndCover.dfcStatus = DAC_CAL_STANDING;
-				menuVelocity.x += 3.0f;
-			}
-
-			// enable/disable - calibrate if not previously calibrated
-			if (entryID == DUCKANDCOVER_MODE)
-			{
-				if (m_DuckAndCover.dfcStatus == DAC_INACTIVE)
-				{
-					VPMENU_mode = VPMENU_Modes::INACTIVE;
-					m_DuckAndCover.dfcStatus = DAC_CAL_STANDING;
-				}
-				else if (m_DuckAndCover.dfcStatus == DAC_DISABLED)
-				{
-					//Already calibrated, so just set to standing again
-					m_DuckAndCover.dfcStatus = DAC_STANDING;
-				}
-				else
-				{
-					//Already enabled, so disable
-					m_DuckAndCover.dfcStatus = DAC_DISABLED;
-				}
-					
-				menuVelocity.x += 3.0f;
-			}
-
-			// back to main menu
-			if (entryID == BACK_VPMENU)
-			{
-				VPMENU_mode = VPMENU_Modes::MAINMENU;
-				VPMENU_UpdateConfigSettings();
-				menuVelocity.x+=2.0f;
-			}
-
-			// back to game
-			if (entryID == BACK_GAME)
-			{
-				VPMENU_mode = VPMENU_Modes::INACTIVE;
-				VPMENU_UpdateConfigSettings();
-			}
-		}
-	}
-
-	// output menu
-	if (hudFont)
-	{
-		// adjust border
-		float borderDrawingHeight = borderTopHeight;
-		if ((menuVelocity.y < 1.0f) && (menuVelocity.y > -1.0f))
-			borderTopHeight = menuTop+menuEntryHeight*(float)borderSelection;
-
-		// draw border - total width due to shift correction
-		D3DRECT rect;
-		rect.x1 = (int)0; rect.x2 = (int)viewportWidth; rect.y1 = (int)borderTopHeight; rect.y2 = (int)(borderTopHeight+viewportHeight*0.04f);
-		ClearEmptyRect(vireio::RenderPosition::Left, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
-		ClearEmptyRect(vireio::RenderPosition::Right, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
-
-		hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
-
-		D3DXMATRIX matScale;
-		D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
-		hudMainMenu->SetTransform(&matScale);
-
-		menuHelperRect.left = 650;
-		menuHelperRect.top = 300;
-		DrawTextShadowed(hudFont, hudMainMenu, "Vireio Perception ("APP_VERSION") Settings - Duck-and-Cover\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		rect.x1 = 0; rect.x2 = viewportWidth; rect.y1 = (int)(335*fScaleY); rect.y2 = (int)(340*fScaleY);
-		Clear(1, &rect, D3DCLEAR_TARGET, D3DCOLOR_ARGB(255,255,128,128), 0, 0);
-
-		menuHelperRect.top += 50;  menuHelperRect.left += 150; float guiQSHeight = (float)menuHelperRect.top * fScaleY;
-		char vcString[128];
-
-		switch (m_DuckAndCover.crouchToggle)
-		{
-		case true:
-			DrawTextShadowed(hudFont, hudMainMenu, "Crouch : Toggle", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-			break;
-		case false:
-			DrawTextShadowed(hudFont, hudMainMenu, "Crouch : Hold", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-			break;
-		}
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-
-		sprintf_s(vcString,"Crouch Key : ");
-		std::string stdString = std::string(vcString);
-		stdString.append(controls.GetKeyName(m_DuckAndCover.crouchKey));
-		if ((hotkeyCatch) && (entryID==CROUCH_KEY))
-			stdString = "Crouch Key : >Press the desired key<";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-
-		if (!m_DuckAndCover.proneEnabled)
-		{
-			DrawTextShadowed(hudFont, hudMainMenu, "Prone : Disabled (Use calibrate to enable)", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 64, 64));
-		}
-		else
-		{
-			switch (m_DuckAndCover.proneToggle)
-			{
-			case true:
-				DrawTextShadowed(hudFont, hudMainMenu, "Prone : Toggle", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-				break;
-			case false:
-				DrawTextShadowed(hudFont, hudMainMenu, "Prone : Hold", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-				break;
-			}
-		}
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-
-		sprintf_s(vcString,"Prone Key : ");
-		stdString = std::string(vcString);
-		stdString.append(controls.GetKeyName(m_DuckAndCover.proneKey));
-		if ((hotkeyCatch) && (entryID==PRONE_KEY))
-			stdString = "Prone Key : >Press the desired key<";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-
-		if (!m_DuckAndCover.jumpEnabled)
-			DrawTextShadowed(hudFont, hudMainMenu, "Jump : Enabled", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		else
-			DrawTextShadowed(hudFont, hudMainMenu, "Jump : Disabled", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 64, 64));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-
-		sprintf_s(vcString,"Jump Key : ");
-		stdString = std::string(vcString);
-		stdString.append(controls.GetKeyName(m_DuckAndCover.jumpKey));
-		if ((hotkeyCatch) && (entryID==JUMP_KEY))
-			stdString = "Jump Key : >Press the desired key<";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-
-		DrawTextShadowed(hudFont, hudMainMenu, "Calibrate Duck-and-Cover then Enable", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-
-		if (m_DuckAndCover.dfcStatus == DAC_DISABLED ||
-			m_DuckAndCover.dfcStatus == DAC_INACTIVE)
-		{
-			DrawTextShadowed(hudFont, hudMainMenu, "Enable Duck-and-Cover Mode", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		}
-		else
-		{
-			DrawTextShadowed(hudFont, hudMainMenu, "Disable Duck-and-Cover Mode", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		}
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Main Menu", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-
-		menuHelperRect.left = 0;
-		menuHelperRect.top = 0;
-
-		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
-		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));
-		hudMainMenu->End();
-	}
-}
-
-/**
-* configure Comfort Mode.
-***/
-void D3DProxyDevice::VPMENU_ComfortMode()
-{
-	#ifdef SHOW_CALLS
-		OutputDebugString("called VPMENU_ComfortMode");
-	#endif
-
-	enum
-	{
-		COMFORT_MODE_ENABLED,
-		TURN_LEFT,
-		TURN_RIGHT,
-		YAW_INCREMENT,
-		BACK_VPMENU,
-		BACK_GAME,
-		NUM_MENU_ITEMS
-	};
-
-	UINT menuEntryCount = NUM_MENU_ITEMS;
-
-	menuHelperRect.left = 0;
-	menuHelperRect.top = 0;
-
-	UINT entryID;
-	VPMENU_NewFrame(entryID, menuEntryCount);
-	UINT borderSelection = entryID;
-	controls.UpdateXInputs();
-
-	if ((hotkeyCatch) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-	{
-		for (int i = 0; i < 256; i++)
-			if (controls.Key_Down(i) && controls.GetKeyName(i)!="-")
-			{
-				hotkeyCatch = false;
-				if(entryID == TURN_LEFT)
-					m_comfortModeLeftKey = (byte)i;
-				else if(entryID == TURN_RIGHT)
-					m_comfortModeRightKey = (byte)i;
-				break;
-			}
-	}
-	else
-	{
-		/**
-		* ESCAPE : Set menu inactive and save the configuration.
-		***/
-		if (controls.Key_Down(VK_ESCAPE))
-		{
-			VPMENU_mode = VPMENU_Modes::INACTIVE;
-			VPMENU_UpdateConfigSettings();
-		}
-
-		if ((controls.Key_Down(VK_RETURN) || controls.Key_Down(VK_RSHIFT) || (controls.xButtonsStatus[0x0c])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-		{
-			if (entryID == COMFORT_MODE_ENABLED)
-			{
-				VRBoostValue[VRboostAxis::ComfortMode] = 1.0f - VRBoostValue[VRboostAxis::ComfortMode];
-				//Reset Yaw to avoid complications
-				m_comfortModeYaw = 0.0f;
-				menuVelocity.x+=2.0f;
-			}
-
-			if (entryID == TURN_LEFT || entryID == TURN_RIGHT)
-			{
-				hotkeyCatch = true;
-				menuVelocity.x+=2.0f;
-			}
-
-			if (entryID == YAW_INCREMENT)
-			{
-				if (m_comfortModeYawIncrement == 30.0f)
-					m_comfortModeYawIncrement = 45.0f;
-				else if (m_comfortModeYawIncrement == 45.0f)
-					m_comfortModeYawIncrement = 60.0f;
-				else if (m_comfortModeYawIncrement == 60.0f)
-					m_comfortModeYawIncrement = 90.0f;
-				else if (m_comfortModeYawIncrement == 90.0f)
-					m_comfortModeYawIncrement = 30.0f;
-				menuVelocity.x+=2.0f;
-			}
-
-			// back to main menu
-			if (entryID == BACK_VPMENU)
-			{
-				VPMENU_mode = VPMENU_Modes::MAINMENU;
-				VPMENU_UpdateConfigSettings();
-				menuVelocity.x+=2.0f;
-			}
-
-			// back to game
-			if (entryID == BACK_GAME)
-			{
-				VPMENU_mode = VPMENU_Modes::INACTIVE;
-				VPMENU_UpdateConfigSettings();
-			}
-		}
-	}
-
-	// output menu
-	if (hudFont)
-	{
-		// adjust border
-		float borderDrawingHeight = borderTopHeight;
-		if ((menuVelocity.y < 1.0f) && (menuVelocity.y > -1.0f))
-			borderTopHeight = menuTop+menuEntryHeight*(float)borderSelection;
-
-		// draw border - total width due to shift correction
-		D3DRECT rect;
-		rect.x1 = (int)0; rect.x2 = (int)viewportWidth; rect.y1 = (int)borderTopHeight; rect.y2 = (int)(borderTopHeight+viewportHeight*0.04f);
-		ClearEmptyRect(vireio::RenderPosition::Left, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
-		ClearEmptyRect(vireio::RenderPosition::Right, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
-
-		hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
-
-		D3DXMATRIX matScale;
-		D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
-		hudMainMenu->SetTransform(&matScale);
-
-		menuHelperRect.left = 650;
-		menuHelperRect.top = 300;
-		DrawTextShadowed(hudFont, hudMainMenu, "Vireio Perception ("APP_VERSION") Settings - Comfort Mode\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		rect.x1 = 0; rect.x2 = viewportWidth; rect.y1 = (int)(335*fScaleY); rect.y2 = (int)(340*fScaleY);
-		Clear(1, &rect, D3DCLEAR_TARGET, D3DCOLOR_ARGB(255,255,128,128), 0, 0);
-
-		menuHelperRect.top += 50;  menuHelperRect.left += 150; float guiQSHeight = (float)menuHelperRect.top * fScaleY;
-		char vcString[128];
-
-		if (VRBoostValue[VRboostAxis::ComfortMode] != 0.0f)
-		{
-			DrawTextShadowed(hudFont, hudMainMenu, "Comfort Mode : Enabled", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		}
-		else
-		{
-			DrawTextShadowed(hudFont, hudMainMenu, "Comfort Mode : Disabled", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		}
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-
-		sprintf_s(vcString,"Turn Left Key : ");
-		std::string stdString = std::string(vcString);
-		stdString.append(controls.GetKeyName(m_comfortModeLeftKey));
-		if ((hotkeyCatch) && (entryID==TURN_LEFT))
-			stdString = "Turn Left Key : >Press the desired key<";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-
-		sprintf_s(vcString,"Turn Right Key : ");
-		stdString = std::string(vcString);
-		stdString.append(controls.GetKeyName(m_comfortModeRightKey));
-		if ((hotkeyCatch) && (entryID==TURN_RIGHT))
-			stdString = "Turn Right Key : >Press the desired key<";
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-
-		sprintf_s(vcString,"Yaw Rotation Increment : %.1f", m_comfortModeYawIncrement);
-		stdString = std::string(vcString);
-		DrawTextShadowed(hudFont, hudMainMenu, (LPCSTR)stdString.c_str(), -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Main Menu", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-
-		menuHelperRect.left = 0;
-		menuHelperRect.top = 0;
-
-		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
-		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));
-		hudMainMenu->End();
-	}
-}
-
-/**
-* VRBoost constant value sub-menu.
-***/
-void D3DProxyDevice::VPMENU_VRBoostValues()
-{
-	#ifdef SHOW_CALLS
-		OutputDebugString("called VPMENU_VRBoostValues");
-	#endif
-	UINT menuEntryCount = 14;
-
-	menuHelperRect.left = 0;
-	menuHelperRect.top = 0;
-
-	UINT entryID;
-	VPMENU_NewFrame(entryID, menuEntryCount);
-	UINT borderSelection = entryID;
-
-	/**
-	* ESCAPE : Set menu inactive and save the configuration.
-	***/
-	if (controls.Key_Down(VK_ESCAPE))
-	{
-		VPMENU_mode = VPMENU_Modes::INACTIVE;
-		VPMENU_UpdateConfigSettings();
-	}
-
-	if ((controls.Key_Down(VK_RETURN) || controls.Key_Down(VK_RSHIFT) || (controls.xButtonsStatus[0x0c])) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-	{
-		// back to main menu
-		if (entryID == 12)
-		{
-			VPMENU_mode = VPMENU_Modes::MAINMENU;
-			menuVelocity.x+=2.0f;
-		}
-		// back to game
-		if (entryID == 13)
-		{
-			VPMENU_mode = VPMENU_Modes::INACTIVE;
-			VPMENU_UpdateConfigSettings();
-		}
-	}
-
-	if ((controls.Key_Down(VK_LEFT) || controls.Key_Down(0x4A) || (controls.xInputState.Gamepad.sThumbLX<-8192)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-	{
-		// change value
-		if ((entryID >= 0) && (entryID <=11))
-		{
-			if (controls.xInputState.Gamepad.sThumbLX != 0  && !controls.Key_Down(VK_LEFT) && !controls.Key_Down(0x4A))
-				VRBoostValue[24+entryID] += 0.1f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-			else
-				VRBoostValue[24+entryID] -= 0.1f;
-			menuVelocity.x-=0.1f;
-		}
-	}
-
-	if ((controls.Key_Down(VK_RIGHT) || controls.Key_Down(0x4C) || (controls.xInputState.Gamepad.sThumbLX>8192)) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-	{
-		// change value
-		if ((entryID >= 0) && (entryID <=11))
-		{
-			if (controls.xInputState.Gamepad.sThumbLX != 0  && !controls.Key_Down(VK_RIGHT) && !controls.Key_Down(0x4C))
-				VRBoostValue[24+entryID] += 0.1f * (((float)controls.xInputState.Gamepad.sThumbLX)/32768.0f);
-			else
-				VRBoostValue[24+entryID] += 0.1f;
-			menuVelocity.x+=0.1f;
-		}
-	}
-
-	if (controls.Key_Down(VK_BACK) && (menuVelocity == D3DXVECTOR2(0.0f, 0.0f)))
-	{
-		// change value
-		if ((entryID >= 3) && (entryID <=11))
-		{
-			VRBoostValue[24+entryID] = 0.0f;
-		}
-	}
-	
-	// output menu
-	if (hudFont)
-	{
-		// adjust border
-		float borderDrawingHeight = borderTopHeight;
-		if ((menuVelocity.y < 1.0f) && (menuVelocity.y > -1.0f))
-			borderTopHeight = menuTop+menuEntryHeight*(float)borderSelection;
-
-		// draw border - total width due to shift correction
-		D3DRECT rect;
-		rect.x1 = (int)0; rect.x2 = (int)viewportWidth; rect.y1 = (int)borderTopHeight; rect.y2 = (int)(borderTopHeight+viewportHeight*0.04f);
-		ClearEmptyRect(vireio::RenderPosition::Left, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
-		ClearEmptyRect(vireio::RenderPosition::Right, rect, D3DCOLOR_ARGB(255,255,128,128), 2);
-
-		hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
-
-		D3DXMATRIX matScale;
-		D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
-		hudMainMenu->SetTransform(&matScale);
-
-		menuHelperRect.left = 650;
-		menuHelperRect.top = 300;
-		DrawTextShadowed(hudFont, hudMainMenu, "Vireio Perception ("APP_VERSION") Settings - VRBoost\n", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		rect.x1 = 0; rect.x2 = viewportWidth; rect.y1 = (int)(335*fScaleY); rect.y2 = (int)(340*fScaleY);
-		Clear(1, &rect, D3DCLEAR_TARGET, D3DCOLOR_ARGB(255,255,128,128), 0, 0);
-
-		menuHelperRect.top += 50;  menuHelperRect.left += 150; float guiQSHeight = (float)menuHelperRect.top * fScaleY;
-		char vcString[128];
-		sprintf_s(vcString,"World FOV : %g", RoundVireioValue(VRBoostValue[24]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		sprintf_s(vcString,"Player FOV : %g", RoundVireioValue(VRBoostValue[25]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		sprintf_s(vcString,"Far Plane FOV : %g", RoundVireioValue(VRBoostValue[26]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		sprintf_s(vcString,"Camera Translate X : %g", RoundVireioValue(VRBoostValue[27]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		sprintf_s(vcString,"Camera Translate Y : %g", RoundVireioValue(VRBoostValue[28]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		sprintf_s(vcString,"Camera Translate Z : %g", RoundVireioValue(VRBoostValue[29]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		sprintf_s(vcString,"Camera Distance : %g", RoundVireioValue(VRBoostValue[30]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		sprintf_s(vcString,"Camera Zoom : %g", RoundVireioValue(VRBoostValue[31]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		sprintf_s(vcString,"Camera Horizon Adjustment : %g", RoundVireioValue(VRBoostValue[32]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		sprintf_s(vcString,"Constant Value 1 : %g", RoundVireioValue(VRBoostValue[33]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		sprintf_s(vcString,"Constant Value 2 : %g", RoundVireioValue(VRBoostValue[34]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		sprintf_s(vcString,"Constant Value 2 : %g", RoundVireioValue(VRBoostValue[35]));
-		DrawTextShadowed(hudFont, hudMainMenu, vcString, -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Main Menu", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-		menuHelperRect.top += MENU_ITEM_SEPARATION;
-		DrawTextShadowed(hudFont, hudMainMenu, "Back to Game", -1, &menuHelperRect, 0, D3DCOLOR_ARGB(255, 255, 255, 255));
-
-		menuHelperRect.left = 0;
-		menuHelperRect.top = 0;
-
-		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
-		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));
-		hudMainMenu->End();
-	}
-}
-
-/**
-* VP menu border velocity updated here
-* Arrow up/down need to be done via call from Present().
-***/
-void D3DProxyDevice::VPMENU_UpdateBorder()
-{
-	#ifdef SHOW_CALLS
-		OutputDebugString("called VPMENU_UpdateBorder");
-	#endif
-
-	// handle controls 
-	if (m_deviceBehavior.whenToHandleHeadTracking == DeviceBehavior::PRESENT)
-		HandleTracking();
-
-	// draw 
-	if (m_deviceBehavior.whenToRenderVPMENU == DeviceBehavior::PRESENT)
-	{
-		if ((VPMENU_mode>=VPMENU_Modes::MAINMENU) && (VPMENU_mode<VPMENU_Modes::VPMENU_ENUM_RANGE))
-			VPMENU();
-		else
-			VPMENU_AdditionalOutput();
-	}
-
-
-	//If this is enabled, then draw an apostrophe in the top left corner of the screen at all times
-	//this results in obs only picking up the left eye's texture for some reason (total hack, but some users make use of this for streaming
-	//using OBS
-	if (userConfig.obsStreamHack)
-	{
-		LPD3DXSPRITE hackSprite = NULL;
-		D3DXCreateSprite(this, &hackSprite);
-		if (hudFont && hackSprite)
-		{
-			hackSprite->Begin(D3DXSPRITE_ALPHABLEND);
-			D3DXMATRIX matScale;
-			D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
-			hackSprite->SetTransform(&matScale);			
-			menuHelperRect.left = 0;
-			menuHelperRect.top = 0;
-			menuHelperRect.right = 50;
-			menuHelperRect.bottom = 50;
-			char buffer[4];
-			sprintf_s(buffer, "'");
-			hudFont->DrawText(hackSprite, buffer, -1, &menuHelperRect, DT_LEFT, D3DCOLOR_ARGB(255, 255, 0, 0));
-			D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
-			hackSprite->Draw(NULL, &menuHelperRect, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));
-			hackSprite->End();
-			hackSprite->Release();
-			hackSprite = NULL;
-		}		
-	}
-
-	// first, calculate a time scale to adjust the menu speed for the frame speed of the game
-	float timeStamp;
-	timeStamp = (float)GetTickCount()/1000.0f;
-	menuSeconds = timeStamp-menuTime;
-	menuTime = timeStamp;
-	// Speed up menu - makes an incredible difference!
-	float timeScale = (float)menuSeconds*90;
-
-	// menu velocity present ? in case calculate diminution of the velocity
-	if (menuVelocity != D3DXVECTOR2(0.0f, 0.0f))
-	{
-		float diminution = 0.05f;
-		diminution *= timeScale;
-		if (diminution > 1.0f) diminution = 1.0f;
-		menuVelocity*=1.0f-diminution;
-
-		// set velocity to zero in case of low velocity
-		if ((menuVelocity.y<0.9f) && (menuVelocity.y>-0.9f) &&
-			(menuVelocity.x<0.7f) && (menuVelocity.x>-0.7f))
-			menuVelocity = D3DXVECTOR2(0.0f, 0.0f);
-	}
-
-	// vp menu active ? handle up/down controls
-	if (VPMENU_mode != VPMENU_Modes::INACTIVE)
-	{
-		int viewportHeight = stereoView->viewport.Height;
-
-		float fScaleY = ((float)viewportHeight / (float)1080.0f);
-		if ((controls.Key_Down(VK_UP) || controls.Key_Down(0x49) || (controls.xInputState.Gamepad.sThumbLY>8192)) && (menuVelocity.y==0.0f))
-			menuVelocity.y=-2.7f;
-		if ((controls.Key_Down(VK_DOWN) || controls.Key_Down(0x4B) || (controls.xInputState.Gamepad.sThumbLY<-8192)) && (menuVelocity.y==0.0f))
-			menuVelocity.y=2.7f;
-		if ((controls.Key_Down(VK_PRIOR) || controls.Key_Down(0x55)) && (menuVelocity.y==0.0f))
-			menuVelocity.y=-15.0f;
-		if ((controls.Key_Down(VK_NEXT) ||controls.Key_Down(0x4F)) && (menuVelocity.y==0.0f))
-			menuVelocity.y=15.0f;
-		borderTopHeight += (menuVelocity.y+menuAttraction.y)*fScaleY*timeScale;
-	}
-}
-
-/**
-* Updates the current config based on the current device settings.
-***/
-void D3DProxyDevice::VPMENU_UpdateConfigSettings()
-{
-	#ifdef SHOW_CALLS
-		OutputDebugString("called VPMENU_UpdateConfigSettings");
-	#endif
-	ProxyHelper* helper = new ProxyHelper();
-
-	config.roll_multiplier = tracker->multiplierRoll;
-	config.yaw_multiplier = tracker->multiplierYaw;
-	config.pitch_multiplier = tracker->multiplierPitch;
-	config.YOffset = stereoView->YOffset;
-	config.IPDOffset = stereoView->IPDOffset;
-	config.swap_eyes = stereoView->swapEyes;
-	config.DistortionScale = stereoView->DistortionScale;
-	config.hud3DDepthMode = (int)hud3DDepthMode;
-	for (int i = 0; i < 4; i++)
-	{
-		config.hud3DDepthPresets[i] = hud3DDepthPresets[i];
-		config.hudDistancePresets[i] = hudDistancePresets[i];
-		config.hudHotkeys[i] = hudHotkeys[i];
-	}
-	config.hudHotkeys[4] = hudHotkeys[4];
-
-	config.gui3DDepthMode = (int)gui3DDepthMode;
-	for (int i = 0; i < 4; i++)
-	{
-		config.gui3DDepthPresets[i] = gui3DDepthPresets[i];
-		config.guiSquishPresets[i] = guiSquishPresets[i];
-		config.guiHotkeys[i] = guiHotkeys[i];
-	}
-	config.guiHotkeys[4] = guiHotkeys[4];
-
-	config.VRBoostResetHotkey = toggleVRBoostHotkey;
-	config.EdgePeekHotkey = edgePeekHotkey;
-	config.WorldFOV = VRBoostValue[VRboostAxis::WorldFOV];
-	config.PlayerFOV = VRBoostValue[VRboostAxis::PlayerFOV];
-	config.FarPlaneFOV = VRBoostValue[VRboostAxis::FarPlaneFOV];
-	config.CameraTranslateX = VRBoostValue[VRboostAxis::CameraTranslateX];
-	config.CameraTranslateY = VRBoostValue[VRboostAxis::CameraTranslateY];
-	config.CameraTranslateZ = VRBoostValue[VRboostAxis::CameraTranslateZ];
-	config.CameraDistance = VRBoostValue[VRboostAxis::CameraDistance];
-	config.CameraZoom = VRBoostValue[VRboostAxis::CameraZoom];
-	config.CameraHorizonAdjustment = VRBoostValue[VRboostAxis::CameraHorizonAdjustment];
-	config.ConstantValue1 = VRBoostValue[VRboostAxis::ConstantValue1];
-	config.ConstantValue2 = VRBoostValue[VRboostAxis::ConstantValue2];
-	config.ConstantValue3 = VRBoostValue[VRboostAxis::ConstantValue3];
-
-	m_spShaderViewAdjustment->Save(config);
-	helper->SaveConfig(config);
-	delete helper;
-}
-
-/**
-* Updates all device settings read from the current config.
-***/
-void D3DProxyDevice::VPMENU_UpdateDeviceSettings()
-{
-	#ifdef SHOW_CALLS
-		OutputDebugString("called VPMENU_UpdateDeviceSettings");
-	#endif
-	m_spShaderViewAdjustment->Load(config);
-	stereoView->DistortionScale = config.DistortionScale;
-
-	// HUD
-	for (int i = 0; i < 4; i++)
-	{
-		hud3DDepthPresets[i] = config.hud3DDepthPresets[i];
-		hudDistancePresets[i] = config.hudDistancePresets[i];
-		hudHotkeys[i] = config.hudHotkeys[i];
-	}
-	hudHotkeys[4] = config.hudHotkeys[4];
-	ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)config.hud3DDepthMode);
-
-	// GUI
-	for (int i = 0; i < 4; i++)
-	{
-		gui3DDepthPresets[i] = config.gui3DDepthPresets[i];
-		guiSquishPresets[i] = config.guiSquishPresets[i];
-		guiHotkeys[i] = config.guiHotkeys[i];
-	}
-	guiHotkeys[4] = config.guiHotkeys[4];
-	ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)config.gui3DDepthMode);
-
-	//Disconnected Screen Mode
-	edgePeekHotkey = config.EdgePeekHotkey;
-	// VRBoost
-	toggleVRBoostHotkey = config.VRBoostResetHotkey;
-	VRBoostValue[VRboostAxis::WorldFOV] = config.WorldFOV;
-	VRBoostValue[VRboostAxis::PlayerFOV] = config.PlayerFOV;
-	VRBoostValue[VRboostAxis::FarPlaneFOV] = config.FarPlaneFOV;
-	VRBoostValue[VRboostAxis::CameraTranslateX] = config.CameraTranslateX;
-	VRBoostValue[VRboostAxis::CameraTranslateY] = config.CameraTranslateY;
-	VRBoostValue[VRboostAxis::CameraTranslateZ] = config.CameraTranslateZ;
-	VRBoostValue[VRboostAxis::CameraDistance] = config.CameraDistance;
-	VRBoostValue[VRboostAxis::CameraZoom] = config.CameraZoom;
-	VRBoostValue[VRboostAxis::CameraHorizonAdjustment] = config.CameraHorizonAdjustment;
-	VRBoostValue[VRboostAxis::ConstantValue1] = config.ConstantValue1;
-	VRBoostValue[VRboostAxis::ConstantValue2] = config.ConstantValue2;
-	VRBoostValue[VRboostAxis::ConstantValue3] = config.ConstantValue3;
-
-	// set behavior accordingly to game type
-	int gameType = config.game_type;
-	if (gameType>10000) gameType-=10000;
-	switch(gameType)
-	{
-	case D3DProxyDevice::FIXED:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::PRESENT;
-		break;
-	case D3DProxyDevice::SOURCE:
-	case D3DProxyDevice::SOURCE_L4D:
-	case D3DProxyDevice::SOURCE_ESTER:
-	case D3DProxyDevice::SOURCE_STANLEY:
-	case D3DProxyDevice::SOURCE_ZENO:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::END_SCENE;
-		m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::END_SCENE;
-		break;
-	case D3DProxyDevice::SOURCE_HL2:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::END_SCENE;
-		break;
-	case D3DProxyDevice::UNREAL:
-	case D3DProxyDevice::UNREAL_MIRROR:
-	case D3DProxyDevice::UNREAL_UT3:
-	case D3DProxyDevice::UNREAL_BIOSHOCK:
-	case D3DProxyDevice::UNREAL_BIOSHOCK2:
-	case D3DProxyDevice::UNREAL_BORDERLANDS:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::END_SCENE;
-		m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::END_SCENE;
-		break;
-	case D3DProxyDevice::UNREAL_BETRAYER:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::END_SCENE;
-		break;
-	case D3DProxyDevice::EGO:
-	case D3DProxyDevice::EGO_DIRT:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::END_SCENE;
-		m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::END_SCENE;
-		break;
-	case D3DProxyDevice::REALV:
-	case D3DProxyDevice::REALV_ARMA:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::END_SCENE;
-		break;
-	case D3DProxyDevice::UNITY:
-	case D3DProxyDevice::UNITY_SLENDER:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::END_SCENE;
-		break;
-	case D3DProxyDevice::UNITY_AMONG_THE_SLEEP:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		break;
-	case D3DProxyDevice::CRYENGINE:
-	m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::END_SCENE;
-		break;
-	case D3DProxyDevice::CRYENGINE_WARHEAD:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		break;
-	case D3DProxyDevice::GAMEBRYO:
-	case D3DProxyDevice::GAMEBRYO_SKYRIM:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::END_SCENE;
-		break;
-	case D3DProxyDevice::LFS:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::END_SCENE;
-		break;
-	case D3DProxyDevice::CDC:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::END_SCENE;
-		m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::END_SCENE;
-		break;
-	case D3DProxyDevice::CHROME:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::END_SCENE;
-		break;
-	default:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::PRESENT;
-		break;
-	}
-}
-
-/**
-* Additional output when menu is not drawn.
-***/
-void D3DProxyDevice::VPMENU_AdditionalOutput()
-{
-	#ifdef SHOW_CALLS
-		OutputDebugString("called VPMENU_AdditionalOutput");
-	#endif
-	// draw vrboost toggle indicator
-	if (m_fVRBoostIndicator>0.0f)
-	{
-		D3DRECT rec;
-		rec.x1 = (int)(viewportWidth*(0.5f-(m_fVRBoostIndicator*0.05f))); rec.x2 = (int)(viewportWidth*(0.5f+(m_fVRBoostIndicator*0.05f))); 
-		rec.y1 = (int)(viewportHeight*(0.4f-(m_fVRBoostIndicator*0.05f))); rec.y2 = (int)(viewportHeight*(0.4f+(m_fVRBoostIndicator*0.05f)));
-		if (m_bVRBoostToggle)
-			ClearRect(vireio::RenderPosition::Left, rec, D3DCOLOR_ARGB(255,64,255,64));
-		else
-			ClearRect(vireio::RenderPosition::Left, rec, D3DCOLOR_ARGB(255,255,128,128));
-
-		// update the indicator float
-		m_fVRBoostIndicator-=menuSeconds;
-	}
-
-	//Having this here will hijack any other notification - this is intentional
-	if (m_DuckAndCover.dfcStatus > DAC_INACTIVE &&
-		m_DuckAndCover.dfcStatus < DAC_DISABLED)
-	{
-		DuckAndCoverCalibrate();
-	}
-
-	//Finally, draw any popups if required
-	DisplayCurrentPopup();
-}
 
 void D3DProxyDevice::DuckAndCoverCalibrate()
 {
@@ -7759,195 +3353,53 @@ void D3DProxyDevice::DuckAndCoverCalibrate()
 	{
 	case DAC_CAL_STANDING:
 		{
-			VireioPopup popup(VPT_NOTIFICATION, VPS_INFO);
-			strcpy_s(popup.line[0], "Duck-and-Cover Mode");
-			strcpy_s(popup.line[1], "===================");
-			strcpy_s(popup.line[2], "Step 1:");
-			strcpy_s(popup.line[3], " - Move to the standing position you will be playing in");
-			strcpy_s(popup.line[4], " - Push A on the Xbox 360 controller");
-			strcpy_s(popup.line[5], "      or Right Shift");
-			ShowPopup(popup);
+			ShowPopup(VPT_NOTIFICATION, VPS_INFO, -1,
+				"Duck-and-Cover Mode\n"
+				"===================\n"
+				"Step 1:\n"
+				" - Move to the standing position you will be playing in\n"
+				" - Push A on the Xbox 360 controller\n"
+				"      or Right Shift");
 		}
 		break;
 	case DAC_CAL_CROUCHING:
 		{
 			DismissPopup(VPT_NOTIFICATION);
-			VireioPopup popup(VPT_NOTIFICATION, VPS_INFO);
-			strcpy_s(popup.line[0], "Duck-and-Cover Mode");
-			strcpy_s(popup.line[1], "===================");
-			strcpy_s(popup.line[2], "Step 2:");
-			strcpy_s(popup.line[3], " - Move to a crouching position");
-			strcpy_s(popup.line[4], " - Push A on the Xbox 360 controller");
-			strcpy_s(popup.line[5], "      or Right Shift");
-			ShowPopup(popup);
+			ShowPopup(VPT_NOTIFICATION, VPS_INFO, -1,
+				"Duck-and-Cover Mode\n"
+				"===================\n"
+				"Step 2:\n"
+				" - Move to a crouching position\n"
+				" - Push A on the Xbox 360 controller\n"
+				"      or Right Shift");
 		}
 		break;
 	case DAC_CAL_PRONE:
 		{
 			DismissPopup(VPT_NOTIFICATION);
-			VireioPopup popup(VPT_NOTIFICATION, VPS_INFO);
-			strcpy_s(popup.line[0], "Duck-and-Cover Mode");
-			strcpy_s(popup.line[1], "===================");
-			strcpy_s(popup.line[2], "Step 3 (optional):");
-			strcpy_s(popup.line[3], " - Move to a prone position");
-			strcpy_s(popup.line[4], "    - Push A button on the Xbox360 controller");
-			strcpy_s(popup.line[5], "       or Right Shift");
-			strcpy_s(popup.line[6], "    - TO SKIP: Push B button on the controller or Escape key");
-			ShowPopup(popup);
+			ShowPopup(VPT_NOTIFICATION, VPS_INFO, -1,
+				"Duck-and-Cover Mode\n"
+				"===================\n"
+				"Step 3 (optional):\n"
+				" - Move to a prone position\n"
+				"    - Push A button on the Xbox360 controller\n"
+				"       or Right Shift\n"
+				"    - TO SKIP: Push B button on the controller or Escape key");
 		}
 		break;
 	case DAC_CAL_COMPLETE:
 		{
 			DismissPopup(VPT_NOTIFICATION);
-			VireioPopup popup(VPT_NOTIFICATION, VPS_INFO);
-			strcpy_s(popup.line[0], "Duck-and-Cover Mode");
-			strcpy_s(popup.line[1], "===================");
-			strcpy_s(popup.line[2], "Step 4:");
-			strcpy_s(popup.line[3], " - Calibration is complete");
-			strcpy_s(popup.line[3], " - Return to the standing position you will be playing in");
-			strcpy_s(popup.line[4], " - Push A on the Xbox 360 controller");
-			strcpy_s(popup.line[5], "      or Right Shift");
-			ShowPopup(popup);
+			ShowPopup(VPT_NOTIFICATION, VPS_INFO, -1,
+				"Duck-and-Cover Mode\n"
+				"===================\n"
+				"Step 4:\n"
+				" - Calibration is complete\n"
+				" - Return to the standing position you will be playing in\n"
+				" - Push A on the Xbox 360 controller\n"
+				"      or Right Shift");
 		}
 		break;
-	}
-}
-
-
-void D3DProxyDevice::DisplayCurrentPopup()
-{
-	//We don't want to show any notification for the first few seconds (seems to cause an issue in some games!)
-	static DWORD initialTick = GetTickCount();
-	if ((GetTickCount() - initialTick) < 2000)
-		return;
-
-	if ((activePopup.popupType == VPT_NONE && show_fps == FPS_NONE) || 
-		VPMENU_mode != VPMENU_Modes::INACTIVE ||
-		!userConfig.notifications)
-		return;
-	
-	// output menu
-	if (hudFont)
-	{
-		hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
-
-		D3DXMATRIX matScale;
-		D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
-		hudMainMenu->SetTransform(&matScale);
-
-		if (activePopup.popupType == VPT_STATS && m_spShaderViewAdjustment->GetStereoType() >= 100)
-		{
-			sprintf_s(activePopup.line[0], "HMD Description: %s", tracker->GetTrackerDescription()); 
-			sprintf_s(activePopup.line[1], "Yaw: %.3f Pitch: %.3f Roll: %.3f", tracker->primaryYaw, tracker->primaryPitch, tracker->primaryRoll); 
-			sprintf_s(activePopup.line[2], "X: %.3f Y: %.3f Z: %.3f", tracker->primaryX, tracker->primaryY, tracker->primaryZ); 
-
-			
-			if (VRBoostStatus.VRBoost_Active)
-			{
-				ActiveAxisInfo axes[30];
-				memset(axes, 0xFF, sizeof(ActiveAxisInfo) * 30);
-				UINT count = m_pVRboost_GetActiveRuleAxes((ActiveAxisInfo**)&axes);
-
-				std::string axisNames;
-				UINT i = 0;
-				while (i < count)
-				{
-					if (axes[i].Axis == MAXDWORD)
-						break;
-					axisNames += VRboostAxisString(axes[i].Axis) + " ";
-					i++;
-				}				
-
-				sprintf_s(activePopup.line[3], "VRBoost Active: TRUE     Axes: %s", 
-					axisNames.c_str());
-			}
-			else
-			{
-				strcpy_s(activePopup.line[3], "VRBoost Active: FALSE");
-			}
-
-			if (m_bPosTrackingToggle)
-				strcpy_s(activePopup.line[4], "HMD Positional Tracking Enabled");
-			else
-				strcpy_s(activePopup.line[4], "HMD Positional Tracking Disabled");
-
-			sprintf_s(activePopup.line[5],"Current VShader Count : %u", m_VertexShaderCountLastFrame);
-		}
-
-		if (activePopup.expired())
-		{
-			//Ensure we stop showing this popup
-			activePopup.popupType = VPT_NONE;
-			activePopup.reset();
-		}
-
-		UINT format = 0;
-		D3DCOLOR popupColour;
-		ID3DXFont *pFont;
-		menuHelperRect.left = 670;
-		menuHelperRect.top = 440;
-		switch (activePopup.severity)
-		{
-			case VPS_TOAST:
-				{
-					//Center on the screen
-					format = DT_CENTER;
-					popupColour = D3DCOLOR_ARGB(255, 255, 255, 255);
-					float FADE_DURATION = 200.0f;
-					int fontSize = (activePopup.popupDuration - GetTickCount() > FADE_DURATION) ? 26 : 
-						(int)( (25.0f * (activePopup.popupDuration - GetTickCount())) / FADE_DURATION + 1);
-					pFont = popupFont[fontSize];
-					menuHelperRect.left = 0;
-				}
-				break;
-			case VPS_INFO:
-				{
-					popupColour = D3DCOLOR_ARGB(255, 128, 255, 128);
-					pFont = popupFont[24];
-				}
-				break;
-			case VPS_ERROR:
-				{
-					popupColour = D3DCOLOR_ARGB(255, 255, 0, 0);
-					menuHelperRect.left = 0;
-					format = DT_CENTER;
-					pFont = errorFont;
-				}
-				break;
-		}
-
-		for (int i = 0; i <= 6; ++i)
-		{
-			if (strlen(activePopup.line[i]))
-				DrawTextShadowed(pFont, hudMainMenu, activePopup.line[i], -1, &menuHelperRect, format, popupColour);
-			menuHelperRect.top += MENU_ITEM_SEPARATION;
-		}
-		
-		if (show_fps != FPS_NONE)
-		{
-			char buffer[256];
-			if (show_fps == FPS_COUNT)
-				sprintf_s(buffer, "FPS: %.1f", fps);
-			else if (show_fps == FPS_TIME)
-				sprintf_s(buffer, "Frame Time: %.2f ms", 1000.0f / fps);
-
-			D3DCOLOR colour = D3DCOLOR_ARGB(255, 255, 255, 255);
-			if (fps <= 40)
-				colour = D3DCOLOR_ARGB(255, 255, 0, 0);
-			else if (fps > 74)
-				colour = D3DCOLOR_ARGB(255, 0, 255, 0);
-
-			menuHelperRect.top = 800;
-			menuHelperRect.left = 0;
-			hudFont->DrawText(hudMainMenu, buffer, -1, &menuHelperRect, DT_CENTER, colour);
-		}
-
-		menuHelperRect.left = 0;
-		menuHelperRect.top = 0;
-
-		D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
-		hudMainMenu->Draw(NULL, &menuHelperRect, NULL, &vPos, D3DCOLOR_ARGB(255, 255, 255, 255));
-		hudMainMenu->End();
 	}
 }
 
@@ -7987,35 +3439,14 @@ float D3DProxyDevice::CalcFPS()
     return FPS;
 }
 
-//Logic for popup, need some priority logic here
-void D3DProxyDevice::ShowPopup(VireioPopup &popup)
-{
-	//Nothing to do if we are already showing this popup, splash screen is currently displayed, or we are showing stats
-	if ((activePopup.popupType == popup.popupType && popup.popupType != VPT_ADJUSTER) ||
-		activePopup.popupType == VPT_SPLASH_1 ||
-		activePopup.popupType == VPT_SPLASH_2 ||
-		activePopup.popupType == VPT_CALIBRATE_TRACKER ||
-		activePopup.popupType == VPT_STATS)
-		return;
-
-	activePopup = popup;
-}
-
-//DIsmiss popup if the popup type matches current displayed popup
-void D3DProxyDevice::DismissPopup(VireioPopupType popupType)
-{
-	if (activePopup.popupType == popupType)
-		activePopup.reset();
-}
 
 /**
 * Releases HUD font, shader registers, render targets, texture stages, vertex buffers, depth stencils, indices, shaders, declarations.
 ***/
 void D3DProxyDevice::ReleaseEverything()
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called ReleaseEverything");
-	#endif
+	SHOW_CALL("ReleaseEverything");
+	
 	// Fonts and any other D3DX interfaces should be released first.
 	// They frequently hold stateblocks which are holding further references to other resources.
 	if(hudFont) {
@@ -8109,9 +3540,8 @@ void D3DProxyDevice::ReleaseEverything()
 ***/
 bool D3DProxyDevice::isViewportDefaultForMainRT(CONST D3DVIEWPORT9* pViewport)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called isViewportDefaultForMainRT");
-	#endif
+	SHOW_CALL("isViewportDefaultForMainRT");
+	
 	D3D9ProxySurface* pPrimaryRenderTarget = m_activeRenderTargets[0];
 	D3DSURFACE_DESC pRTDesc;
 	pPrimaryRenderTarget->GetDesc(&pRTDesc);
@@ -8129,9 +3559,8 @@ bool D3DProxyDevice::isViewportDefaultForMainRT(CONST D3DVIEWPORT9* pViewport)
 ***/
 HRESULT D3DProxyDevice::SetStereoViewTransform(D3DXMATRIX pLeftMatrix, D3DXMATRIX pRightMatrix, bool apply)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called SetStereoViewTransform");
-	#endif
+	SHOW_CALL("SetStereoViewTransform");
+	
 	if (D3DXMatrixIsIdentity(&pLeftMatrix) && D3DXMatrixIsIdentity(&pRightMatrix)) {
 		m_bViewTransformSet = false;
 	}
@@ -8164,9 +3593,8 @@ HRESULT D3DProxyDevice::SetStereoViewTransform(D3DXMATRIX pLeftMatrix, D3DXMATRI
 ***/
 HRESULT D3DProxyDevice::SetStereoProjectionTransform(D3DXMATRIX pLeftMatrix, D3DXMATRIX pRightMatrix, bool apply)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called SetStereoProjectionTransform");
-	#endif
+	SHOW_CALL("SetStereoProjectionTransform");
+	
 	if (D3DXMatrixIsIdentity(&pLeftMatrix) && D3DXMatrixIsIdentity(&pRightMatrix)) {
 		m_bProjectionTransformSet = false;
 	}
@@ -8195,19 +3623,17 @@ HRESULT D3DProxyDevice::SetStereoProjectionTransform(D3DXMATRIX pLeftMatrix, D3D
 ***/
 void D3DProxyDevice::SetGUIViewport()
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called SetGUIViewport");
-	#endif
+	SHOW_CALL("SetGUIViewport");
 	
 	// do not squish the viewport in case vp menu is open - GBCODE Why?
-	//if ((VPMENU_mode>=VPMENU_Modes::MAINMENU) && (VPMENU_mode<VPMENU_Modes::VPMENU_ENUM_RANGE))
+	//if (VPMENU_IsOpen())
 	//	return;
 
 	D3DXMATRIX mLeftShift;
 	D3DXMATRIX mRightShift;
 
 	// set shift by current gui 3d depth
-	float shiftInPixels = gui3DDepthPresets[gui3DDepthMode];
+	float shiftInPixels = config.gui3DDepthPresets[gui3DDepthMode];
 	D3DXMatrixTranslation(&mLeftShift, -shiftInPixels, 0, 0);
 	D3DXMatrixTranslation(&mRightShift, shiftInPixels, 0, 0);
 
@@ -8262,25 +3688,22 @@ void D3DProxyDevice::SetGUIViewport()
 **/
 float D3DProxyDevice::RoundVireioValue(float val)
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called RoundVireioValue");
-	#endif
+	SHOW_CALL("RoundVireioValue");
+	
 	return (float)floor(val * 1000.0f + 0.5f) / 1000.0f;
 }
 
 bool D3DProxyDevice::InitVRBoost()
 {
-	#ifdef SHOW_CALLS
-		OutputDebugString("called InitVRBoost");
-	#endif
+	SHOW_CALL("InitVRBoost");
+	
 	bool initSuccess = false;
 	OutputDebugString("Try to init VR Boost\n");
 
-#ifdef x64
 	// explicit VRboost dll import
+#ifdef x64
 	hmVRboost = LoadLibrary("VRboost64.dll");
 #else
-	// explicit VRboost dll import
 	hmVRboost = LoadLibrary("VRboost.dll");
 #endif
 
@@ -8291,161 +3714,89 @@ bool D3DProxyDevice::InitVRBoost()
 	VRBoostStatus.VRBoost_Candidates = false;
 	//Assume VRBoost will have orientation (it probably will)
 	VRBoostStatus.VRBoost_HasOrientation = true;
+	
+	if (hmVRboost == NULL)
+	{
+		// Failed to load the DLL. Return false to indicate failure.
+		return false;
+	}
 
 	// get VRboost methods
-	if (hmVRboost != NULL)
+	OutputDebugString("VR Boost Loaded\n");
+	
+	// get methods explicit
+	std::vector<std::string> missingFunctions;
+	#define LOAD_FUNCTION(name, type) \
+		m_p##name = (type)GetProcAddress(hmVRboost, #name); \
+		if (!m_p##name) missingFunctions.push_back(#name);
+	
+	LOAD_FUNCTION(VRboost_LoadMemoryRules, LPVRBOOST_LoadMemoryRules);
+	LOAD_FUNCTION(VRboost_SaveMemoryRules, LPVRBOOST_SaveMemoryRules);
+	LOAD_FUNCTION(VRboost_CreateFloatMemoryRule, LPVRBOOST_CreateFloatMemoryRule);
+	LOAD_FUNCTION(VRboost_SetProcess, LPVRBOOST_SetProcess);
+	LOAD_FUNCTION(VRboost_ReleaseAllMemoryRules, LPVRBOOST_ReleaseAllMemoryRules);
+	LOAD_FUNCTION(VRboost_ApplyMemoryRules, LPVRBOOST_ApplyMemoryRules);
+	LOAD_FUNCTION(VRboost_GetActiveRuleAxes, LPVRBOOST_GetActiveRuleAxes);
+	LOAD_FUNCTION(VRboost_StartMemoryScan, LPVRBOOST_StartMemoryScan);
+	LOAD_FUNCTION(VRboost_GetScanInitPercent, LPVRBOOST_GetScanInitPercent);
+	LOAD_FUNCTION(VRboost_GetScanFailReason, LPVRBOOST_GetScanFailReason);
+	LOAD_FUNCTION(VRboost_SetNextScanCandidate, LPVRBOOST_SetNextScanCandidate);
+	LOAD_FUNCTION(VRboost_GetScanCandidates, LPVRBOOST_GetScanCandidates);
+	LOAD_FUNCTION(VRboost_GetScanAssist, LPVRBOOST_GetScanAssist);
+	
+	if (missingFunctions.size() > 0)
 	{
-		OutputDebugString("VR Boost Loaded\n");
-		// get methods explicit
-		m_pVRboost_LoadMemoryRules = (LPVRBOOST_LoadMemoryRules)GetProcAddress(hmVRboost, "VRboost_LoadMemoryRules");
-		m_pVRboost_SaveMemoryRules = (LPVRBOOST_SaveMemoryRules)GetProcAddress(hmVRboost, "VRboost_SaveMemoryRules");
-		m_pVRboost_CreateFloatMemoryRule = (LPVRBOOST_CreateFloatMemoryRule)GetProcAddress(hmVRboost, "VRboost_CreateFloatMemoryRule");
-		m_pVRboost_SetProcess = (LPVRBOOST_SetProcess)GetProcAddress(hmVRboost, "VRboost_SetProcess");
-		m_pVRboost_ReleaseAllMemoryRules = (LPVRBOOST_ReleaseAllMemoryRules)GetProcAddress(hmVRboost, "VRboost_ReleaseAllMemoryRules");
-		m_pVRboost_ApplyMemoryRules = (LPVRBOOST_ApplyMemoryRules)GetProcAddress(hmVRboost, "VRboost_ApplyMemoryRules");
-		m_pVRboost_GetActiveRuleAxes = (LPVRBOOST_GetActiveRuleAxes)GetProcAddress(hmVRboost, "VRboost_GetActiveRuleAxes");
-		m_pVRboost_StartMemoryScan = (LPVRBOOST_StartMemoryScan)GetProcAddress(hmVRboost, "VRboost_StartMemoryScan");
-		m_pVRboost_GetScanInitPercent = (LPVRBOOST_GetScanInitPercent)GetProcAddress(hmVRboost, "VRboost_GetScanInitPercent");
-		m_pVRboost_GetScanFailReason = (LPVRBOOST_GetScanFailReason)GetProcAddress(hmVRboost, "VRboost_GetScanFailReason");
-		m_pVRboost_SetNextScanCandidate = (LPVRBOOST_SetNextScanCandidate)GetProcAddress(hmVRboost, "VRboost_SetNextScanCandidate");
-		m_pVRboost_GetScanCandidates = (LPVRBOOST_GetScanCandidates)GetProcAddress(hmVRboost, "VRboost_GetScanCandidates");
-		m_pVRboost_GetScanAssist = (LPVRBOOST_GetScanAssist)GetProcAddress(hmVRboost, "VRboost_GetScanAssist");
-		if ((!m_pVRboost_LoadMemoryRules) || 
-			(!m_pVRboost_SaveMemoryRules) || 
-			(!m_pVRboost_CreateFloatMemoryRule) || 
-			(!m_pVRboost_SetProcess) || 
-			(!m_pVRboost_ReleaseAllMemoryRules) || 
-			(!m_pVRboost_ApplyMemoryRules) ||
-			(!m_pVRboost_GetActiveRuleAxes) ||
-			(!m_pVRboost_StartMemoryScan) ||
-			(!m_pVRboost_GetScanInitPercent) ||
-			(!m_pVRboost_GetScanFailReason) ||
-			(!m_pVRboost_SetNextScanCandidate) ||
-			(!m_pVRboost_GetScanCandidates) ||
-			(!m_pVRboost_GetScanAssist))
+		hmVRboost = NULL;
+		m_bForceMouseEmulation = false;
+		FreeLibrary(hmVRboost);
+		OutputDebugString("FAILED loading VRboost methods:");
+		
+		for(std::vector<std::string>::iterator ii=missingFunctions.begin(); ii!=missingFunctions.end(); ii++)
 		{
-			hmVRboost = NULL;
-			m_bForceMouseEmulation = false;
-			FreeLibrary(hmVRboost);
-			OutputDebugString("FAILED loading VRboost methods:");
-			if (!m_pVRboost_LoadMemoryRules) OutputDebugString("m_pVRboost_LoadMemoryRules");
-			if (!m_pVRboost_SaveMemoryRules) OutputDebugString("m_pVRboost_SaveMemoryRules");
-			if (!m_pVRboost_CreateFloatMemoryRule) OutputDebugString("m_pVRboost_CreateFloatMemoryRule");
-			if (!m_pVRboost_SetProcess) OutputDebugString("m_pVRboost_SetProcess");
-			if (!m_pVRboost_ReleaseAllMemoryRules) OutputDebugString("m_pVRboost_ReleaseAllMemoryRules");
-			if (!m_pVRboost_ApplyMemoryRules) OutputDebugString("m_pVRboost_ApplyMemoryRules");
-			if (!m_pVRboost_GetActiveRuleAxes) OutputDebugString("m_pVRboost_GetActiveRuleAxes");
-			if (!m_pVRboost_StartMemoryScan) OutputDebugString("m_pVRboost_StartMemoryScan");
-			if (!m_pVRboost_GetScanInitPercent) OutputDebugString("m_pVRboost_GetScanInitPercent");
-			if (!m_pVRboost_GetScanFailReason) OutputDebugString("m_pVRboost_GetScanFailReason");
-			if (!m_pVRboost_SetNextScanCandidate) OutputDebugString("m_pVRboost_SetNextScanCandidate");
-			if (!m_pVRboost_GetScanCandidates) OutputDebugString("m_pVRboost_GetScanCandidates");
-			if (!m_pVRboost_GetScanAssist) OutputDebugString("m_pVRboost_GetScanAssist");
+			OutputDebugString(ii->c_str());
 		}
-		else
-		{
-			initSuccess = true;
-			m_bForceMouseEmulation = true;
-			VRBoostStatus.VRBoost_Active = true;
-			OutputDebugString("Success loading VRboost methods.");
-		}
-
-		m_VRboostRulesPresent = false;
-		m_VertexShaderCount = 0;
-		m_VertexShaderCountLastFrame = 0;
-
-		// set common default VRBoost values
-		ZeroMemory(&VRBoostValue[0], MAX_VRBOOST_VALUES*sizeof(float));
-		VRBoostValue[VRboostAxis::Zero] = 0.0f;
-		VRBoostValue[VRboostAxis::One] = 1.0f;
-		VRBoostValue[VRboostAxis::WorldFOV] = 95.0f;
-		VRBoostValue[VRboostAxis::PlayerFOV] = 125.0f;
-		VRBoostValue[VRboostAxis::FarPlaneFOV] = 95.0f;
 	}
 	else
 	{
-		initSuccess = false;
+		initSuccess = true;
+		m_bForceMouseEmulation = true;
+		VRBoostStatus.VRBoost_Active = true;
+		OutputDebugString("Success loading VRboost methods.");
 	}
+
+	m_VRboostRulesPresent = false;
+	m_VertexShaderCount = 0;
+	m_VertexShaderCountLastFrame = 0;
+
+	// set common default VRBoost values
+	ZeroMemory(&VRBoostValue[0], MAX_VRBOOST_VALUES*sizeof(float));
+	VRBoostValue[VRboostAxis::Zero] = 0.0f;
+	VRBoostValue[VRboostAxis::One] = 1.0f;
+	VRBoostValue[VRboostAxis::WorldFOV] = 95.0f;
+	VRBoostValue[VRboostAxis::PlayerFOV] = 125.0f;
+	VRBoostValue[VRboostAxis::FarPlaneFOV] = 95.0f;
 	return initSuccess;
 }
 
-bool D3DProxyDevice::InitVPMENU()
-{
-	#ifdef SHOW_CALLS
-		OutputDebugString("called InitVPMENU");
-	#endif
-	hudFont = NULL;
-	menuTime = (float)GetTickCount()/1000.0f;
-	ZeroMemory(&m_configBackup, sizeof(m_configBackup));
-	screenshot = (int)false;
-	m_bForceMouseEmulation = false;
-	m_bVRBoostToggle = true;
-	m_bPosTrackingToggle = true;
-	m_showVRMouse = 0;
-	m_fVRBoostIndicator = 0.0f;
-	VPMENU_mode = VPMENU_Modes::INACTIVE;
-	borderTopHeight = 0.0f;
-	menuTopHeight = 0.0f;
-	menuVelocity = D3DXVECTOR2(0.0f, 0.0f);
-	menuAttraction = D3DXVECTOR2(0.0f, 0.0f);
-	hud3DDepthMode = HUD_3D_Depth_Modes::HUD_DEFAULT;
-	gui3DDepthMode = GUI_3D_Depth_Modes::GUI_DEFAULT;
-	oldHudMode = HUD_3D_Depth_Modes::HUD_DEFAULT;
-	oldGuiMode = GUI_3D_Depth_Modes::GUI_DEFAULT;
-	hud3DDepthPresets[0] = 0.0f;
-	hud3DDepthPresets[1] = 0.0f;
-	hud3DDepthPresets[2] = 0.0f;
-	hud3DDepthPresets[3] = 0.0f;
-	hudDistancePresets[0] = 0.5f;
-	hudDistancePresets[1] = 0.9f;
-	hudDistancePresets[2] = 0.3f;
-	hudDistancePresets[3] = 0.0f;
-	gui3DDepthPresets[0] = 0.0f;
-	gui3DDepthPresets[1] = 0.0f;
-	gui3DDepthPresets[2] = 0.0f;
-	gui3DDepthPresets[3] = 0.0f;
-	guiSquishPresets[0] = 0.6f;
-	guiSquishPresets[1] = 0.5f;
-	guiSquishPresets[2] = 0.9f;
-	guiSquishPresets[3] = 1.0f;
-	ChangeHUD3DDepthMode(HUD_3D_Depth_Modes::HUD_DEFAULT);
-	ChangeGUI3DDepthMode(GUI_3D_Depth_Modes::GUI_DEFAULT);
-
-	hotkeyCatch = false;
-	toggleVRBoostHotkey = 0;
-	edgePeekHotkey = 0;
-	for (int i = 0; i < 5; i++)
-	{
-		guiHotkeys[i] = 0;
-		hudHotkeys[i] = 0;
-	}
-	for (int i = 0; i < 16; i++)
-		controls.xButtonsStatus[i] = false;
-	
-	
-	return true;
-}
-
 /*
-  * Initializes the tracker, setting the tracker initialized status.
-  * @return true if tracker was initialized, false otherwise
-  */
- bool D3DProxyDevice::InitTracker()
- {
-	#ifdef SHOW_CALLS
-		 OutputDebugString("called InitTracker");
-	#endif
- 	// VRboost rules present ?
- 	if (config.VRboostPath != "") m_VRboostRulesPresent = true; else m_VRboostRulesPresent = false;
+ * Initializes the tracker, setting the tracker initialized status.
+ * @return true if tracker was initialized, false otherwise
+ */
+bool D3DProxyDevice::InitTracker()
+{
+	SHOW_CALL("InitTracker");
+	 
+	// VRboost rules present ?
+	if (config.VRboostPath != "") m_VRboostRulesPresent = true; else m_VRboostRulesPresent = false;
  
- 	OutputDebugString("GB - Try to init Tracker\n");
- 	tracker.reset(MotionTrackerFactory::Get(config));
+	OutputDebugString("GB - Try to init Tracker\n");
+	tracker.reset(MotionTrackerFactory::Get(config));
 	if (tracker && tracker->getStatus() >= MTS_OK)
- 	{
+	{
 		OutputDebugString("Tracker Got\n");
- 		OutputDebugString("Setting Multipliers\n");
+		OutputDebugString("Setting Multipliers\n");
 		tracker->setMultipliers(config.yaw_multiplier, config.pitch_multiplier, config.roll_multiplier);
- 		OutputDebugString("Setting Mouse EMu\n");
+		OutputDebugString("Setting Mouse EMu\n");
 		tracker->setMouseEmulation((!m_VRboostRulesPresent) || (hmVRboost==NULL));
 
 		//Set the default timewarp prediction behaviour for this game - this will have no effect on non-Oculus trackers
@@ -8456,7 +3807,14 @@ bool D3DProxyDevice::InitVPMENU()
 			calibrate_tracker = true;
 
 		return true;
- 	}
+	}
 
- 	return false;
- }
+	return false;
+}
+
+
+
+void D3DProxyDevice::DeferedSaveConfig()
+{
+	m_saveConfigTimer = GetTickCount();
+}

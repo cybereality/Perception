@@ -62,29 +62,48 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <stack>
 #include <memory>
 #include <ctime>
+#include <functional>
 #include "Vireio.h"
+#include "VireioUtil.h"
 #include "StereoShaderConstant.h"
 #include "StereoBackBuffer.h"
 #include "GameHandler.h"
 #include "ShaderRegisters.h"
 #include "ViewAdjustment.h"
-#include "InputControls.h"
+#include "DirectXInputControls.h"
 #include "VRBoostEnums.h"
 #include "DirectInput.h"
+#include "VireioPopup.h"
+#include "ConfigDefaults.h"
+#include "InGameMenus.h"
 
 #define _SAFE_RELEASE(x) if(x) { x->Release(); x = NULL; } 
 #define RECT_WIDTH(x) (x.right - x.left)
 #define RECT_HEIGHT(x) (x.bottom - x.top)
 
+#define COOLDOWN_ONE_FRAME 0.7f
+#define COOLDOWN_SHORT 2.0f
+#define COOLDOWN_LONG 4.0f
+#define COOLDOWN_EXTRA_LONG 10.0f
+
+
 // Define SHOW_CALLS to have each method output a debug string when it is invoked
 //#define SHOW_CALLS
+
 class StereoView;
 class D3D9ProxySwapChain;
 class ShaderRegisters;
 class GameHandler;
 struct HMDisplayInfo;
+
+#ifdef SHOW_CALLS
+	#define SHOW_CALL(name) OutputDebugString("Called " name)
+#else
+	#define SHOW_CALL(name)
+#endif
 
 
 /**
@@ -167,12 +186,15 @@ public:
 
 	/*** D3DProxyDevice public methods ***/
 	HRESULT WINAPI CreateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample, DWORD MultisampleQuality,BOOL Lockable,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle, bool isBackBufferOfPrimarySwapChain);
-	virtual void   Init(ProxyHelper::ProxyConfig& cfg);
+	virtual void   Init(ProxyConfig& cfg);
 	void           SetupHUD();
 	virtual void   HandleControls(void);
 	void           HandleTracking(void);
 	void           HandleUpdateExtern();
 	void		   SetGameWindow(HWND hMainGameWindow);
+	
+	void HotkeyCooldown(float duration);
+	bool HotkeysActive();
 
 	/**
 	* Game Types.
@@ -206,35 +228,11 @@ public:
 		CRYENGINE = 550,           /**< CryEngine is a game engine designed by the German/Turkish game developer Crytek. */
 		CRYENGINE_WARHEAD = 551,   /**< CryEngine is a game engine designed by the German/Turkish game developer Crytek (modified for Warhead). */
 		GAMEBRYO = 600,            /**< Gamebryo 3D and LightSpeed engines are owned by Gamebase Co., Ltd. and Gamebase USA and have been used by several video game developers. */
-		GAMEBRYO_SKYRIM = 601,     /**< Skyrim’s Creation Engine still has at least some Gamebryo in it. */
+		GAMEBRYO_SKYRIM = 601,     /**< Skyrim's Creation Engine still has at least some Gamebryo in it. */
 		LFS = 700,                 /**< Live for Speed (LFS) is a racing simulator developed by a three person team comprising Scawen Roberts, Eric Bailey, and Victor van Vlaardingen. */
 		CDC = 800,                 /**< Proprietary game engine developed by Crystal Dynamics. */
 		CHROME = 900,              /**< Chrome Engine (Dead Island / Call of Juarez). */
 		DEBUG_LOG_FILE = 99999     /**< Debug log file output game type. For development causes. Do not use since slows down game extremely. */
-	};
-	/**
-	* Mode of the VP menu.
-	*
-	***/
-	enum VPMENU_Modes
-	{
-		INACTIVE = 0,
-		MAINMENU = 1,
-		WORLD_SCALE_CALIBRATION,
-		CONVERGENCE_ADJUSTMENT,
-		SHADER_ANALYZER,
-		HUD_CALIBRATION,
-		GUI_CALIBRATION,
-		OVERALL_SETTINGS,
-		VRBOOST_VALUES,
-		POS_TRACKING_SETTINGS,
-		DUCKANDCOVER_CONFIGURATION,
-		VPMENU_SHADER_ANALYZER_SUBMENU,
-		CHANGE_RULES_SCREEN,
-		PICK_RULES_SCREEN,
-		SHOW_SHADERS_SCREEN,
-		COMFORT_MODE,
-		VPMENU_ENUM_RANGE
 	};
 	/**
 	* HUD scale enumeration.
@@ -289,7 +287,7 @@ public:
 			crouchKey(VK_LCONTROL),
 			crouchToggle(false),
 			yPos_Crouch(0.0f),
-			proneKey(0x5A),
+			proneKey('Z'),
 			proneToggle(true),
 			yPos_Prone(0.0f),
 			proneEnabled(false) {}
@@ -325,42 +323,16 @@ public:
 	float m_comfortModeYaw;
 
 	/**
-	* Yaw increment when in Comfort Mode
-	*/
-	float m_comfortModeYawIncrement;
-
-	/**
-	* Keys to turn left or right in comfort mode
-	*/
-	byte m_comfortModeLeftKey;
-	/**
-	* Keys to turn left or right in comfort mode
-	*/
-	byte m_comfortModeRightKey;
-
-	/**
 	* Disables ALL Vireio Hot-keys
 	*/
 	bool m_disableAllHotkeys;
 
 	/**
-	* Game-specific proxy configuration.
-	**/
-	ProxyHelper::ProxyConfig config;
-	/**
 	* VRBoost values. 
 	* Set to public for future use in input device classes.
 	***/
 	float VRBoostValue[MAX_VRBOOST_VALUES];
-	/**
-	* Currently not used.
-	***/
-	float* currentMatrix;
 
-	/**
-	* Currently not used aspect ratio.
-	**/
-	float aspectRatio;	
 	/**
 	* The chosen stereo renderer.
 	* @see StereoView
@@ -371,18 +343,6 @@ public:
 	* @see MotionTracker
 	**/
 	std::unique_ptr<MotionTracker> tracker;
-	/**
-	* Schneider-Hicks Optical Calibration Tool GUI mode.
-	**/
-	VPMENU_Modes VPMENU_mode;
-	/**
-	* Schneider-Hicks Optical Calibration Tool center of right line.
-	**/
-	float centerlineR;
-	/**
-	* Schneider-Hicks Optical Calibration Tool center of left line.
-	**/
-	float centerlineL;
 	/**
 	* HUD font to be used for SHOCT.
 	**/
@@ -400,14 +360,6 @@ public:
 	**/
 	ProxyHelper::UserConfig userConfig;
 	/**
-	* Timestamp used to adjust the menu velocity independent of game speed.
-	**/
-	float menuTime;
-	/**
-	* Timespan of every frame (in seconds).
-	***/
-	float menuSeconds;
-	/**
 	* True floating GUI mode activated + Reset Values
 	**/
 	bool m_bfloatingMenu;
@@ -423,7 +375,7 @@ public:
 	float m_fFloatingScreenZ;
 	bool m_bSurpressHeadtracking;
 	bool m_bSurpressPositionaltracking;
-	InputControls controls;
+	DirectXInputControls controls;
 	DirectInput dinput;
 
 	/**
@@ -436,95 +388,159 @@ protected:
 	virtual void OnCreateOrRestore();	
 	virtual bool setDrawingSide(vireio::RenderPosition side);
 	bool         switchDrawingSide();
-	bool         addRule(std::string constantName, bool allowPartialNameMatch, UINT startRegIndex, D3DXPARAMETER_CLASS constantType, UINT operationToApply, bool transpose);
-	bool         modifyRule(std::string constantName, UINT operationToApply, bool transpose);
-	bool         deleteRule(std::string constantName);
-	void         saveShaderRules();
-	void         ClearRect(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color);
-	void         ClearEmptyRect(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color, int bw);
-	void         DrawSelection(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color, int selectionIndex, int selectionRange);
-	void         DrawScrollbar(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color, float scroll, int scrollbarSize);
-	void         DrawTextShadowed(ID3DXFont* font, LPD3DXSPRITE sprite, LPCSTR lpchText, int cchText, LPRECT lprc, UINT format, D3DCOLOR color);
 	void         ChangeHUD3DDepthMode(HUD_3D_Depth_Modes newMode);
 	void         ChangeGUI3DDepthMode(GUI_3D_Depth_Modes newMode);
-	void         VPMENU_NewFrame(UINT &entryID, UINT menuEntryCount);
+	
+	/*** Configurations ******************************************************/
+	
+	/// Game-specific proxy configuration. This is the active copy.
+	ProxyConfig config;
+	
+	/// Config settings which haven't been saved or applied yet, used in menus.
+	//ProxyConfig pendingConfig;
+	
+	/// Backup of the current game profile.
+	ProxyConfig m_configBackup;
+	
+	/// Timer used to indicate that an adjuster changed a config value and when
+	/// timer expires, config should be saved
+	DWORD m_saveConfigTimer;
+	
+	/// Indicate that the configuration needs to be saved, but don't do it
+	/// immediately.
+	void DeferedSaveConfig();
+	
+	/*** InGameMenus.cpp *****************************************************/
+protected:
+	void VPMENU_Close();
+	void VPMENU_CloseWithoutSaving();
+	void VPMENU_Back();
+	void VPMENU_OpenMainMenu();
+	void VPMENU_NavigateTo(std::function<void()> menuHandler);
+	bool VPMENU_IsOpen();
+	MenuBuilder *VPMENU_NewFrame();
+	void VPMENU_DrawBorder(int top);
+	void VPMENU_StartDrawing(MenuBuilder *menu, const char *pageTitle);
+	void VPMENU_StartDrawing_NonMenu();
+	void VPMENU_FinishDrawing(MenuBuilder *menu);
+	void VPMENU_DrawTitle(const char *pageTitle);
+	bool VPMENU_Input_Selected();
+	bool VPMENU_Input_Left();
+	bool VPMENU_Input_Right();
+	bool VPMENU_Input_Left_Held();
+	bool VPMENU_Input_Right_Held();
+	bool VPMENU_Input_IsAdjustment();
+	float VPMENU_Input_GetAdjustment();
+	float VPMENU_Input_SpeedModifier();
+	void VPMENU_BindKey(std::function<void(InputBindingRef)> onBind);
+	void VPMENU_EditKeybind(std::string description, InputBindingRef *binding);
+	
+	bool InitVPMENU();
+	void VPMENU();
+	void VPMENU_MainMenu();
+	void VPMENU_WorldScale();
+	void VPMENU_Convergence();
+	void VPMENU_ConvergenceCalibrator();
+	void VPMENU_HUD();
+	void VPMENU_GUI();
+	void VPMENU_Settings();
+	
+	void VPMENU_PosTracking();
+	void VPMENU_DuckAndCover();
+	void VPMENU_ComfortMode();
+	void VPMENU_VRBoostValues();
+	void VPMENU_Hotkeys();
+	void VPMENU_AdjustmentHotkeys();
+	
+	void VPMENU_UpdateCooldowns();
+	void VPMENU_UpdateBorder(int menuEntryCount);
+	void VPMENU_UpdateConfigSettings();
+	void VPMENU_UpdateDeviceSettings();
+	void VPMENU_AdditionalOutput();
+
+	void ClearRect(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color);
+	void ClearEmptyRect(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color, int bw);
+	void DrawSelection(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color, int selectionIndex, int selectionRange);
+	void DrawScrollbar(vireio::RenderPosition renderPosition, D3DRECT rect, D3DCOLOR color, float scroll, int scrollbarSize);
+	
+	/// True if menu is waiting to catch a hotkey.
+	bool hotkeyCatch;
+	
+	/// True if in the world-scale menu, which turns on a little instrumentation
+	/// in SetTransform.
+	bool inWorldScaleMenu;
+	
+	bool menuIsOpen;
+	
+	// Vector contains all possible game projection x scale values.
+	// Filled only if VPMENU_mode == WorldScale and SetTransform(>projection<)
+	// called by the game.
+	std::vector<float> m_gameXScaleUnits;
+	
+	/// If the menu is waiting to catch a hotkey, a function to call when it's received
+	std::function<void(InputBindingRef)> onBindKey;
+	
+	/// If catching a hotkey for binding, all of the hotkeys that have been held so far
+	std::vector<InputBindingRef> bindingHotkeysHeld;
+	
+	/// Time until hotkeys will accept presses again
+	float hotkeyCooldown;
+	
+	MenuState menuState;
+	std::stack<MenuState> menuStatesStack;
+	
+	/// VP menu value.
+	int viewportWidth;
+	
+	/// VP menu value.
+	int viewportHeight;
+	
+	/// VP menu value.
+	float menuTop;
+	
+	/// Menu entry height, in pixels.
+	float menuEntryHeight;
+	
+	/// Scales VP menu to current resolution.
+	float fScaleX;
+	
+	/// Scales VP menu to current resolution.
+	float fScaleY;
+	
+	// Timestamp used to adjust the menu velocity independent of game speed.
+	float menuLastUpdateTime;
+	
+	// Timespan of every frame (in seconds).
+	float menuLastFrameLength;
+	
+	friend class MenuBuilder;
+	
+	/*** DataGatherer menus **************************************************/
+	
 	virtual void VPMENU_ShaderSubMenu(){}
 	virtual void VPMENU_ChangeRules(){}
 	virtual void VPMENU_PickRules(){}
 	virtual void VPMENU_ShowActiveShaders(){}
+	
+	/*** Popup.cpp ***********************************************************/
 
-	enum VireioPopupType
-	{
-		VPT_NONE,
-		//"splash screen" - shown when Vireio is first injected
-		VPT_SPLASH_1,
-		//Second "splash" - tells users a couple of helpful hot-keys
-		VPT_SPLASH_2,
-		VPT_NO_HMD_DETECTED,
-		VPY_HMDINITFAIL,
-		VPT_VRBOOST_FAILURE,
-		VPT_VRBOOST_SCANNING,
-		VPT_POSITION_TRACKING_LOST,
-		VPT_NO_ORIENTATION,
-		//Notification that is only dismissed once user has "calibrated HMD/Tracker"
-		VPT_CALIBRATE_TRACKER,
-		VPT_STATS,
-		//Short notification, such as hot key toggles
-		VPT_NOTIFICATION,
-		//Short notification of valu adjustment, such as Y Offset, or IPD offset
-		VPT_ADJUSTER
-	};
-
-	enum VireioPopupSeverity
-	{
-		//A toast is a notification that is only shown for a short time, triggered by a toggle for exmample
-		VPS_TOAST,
-		//Information
-		VPS_INFO,
-		//An issue has occurred
-		VPS_ERROR
-	};
-
-	struct VireioPopup
-	{
-		VireioPopup(VireioPopupType type, VireioPopupSeverity sev = VPS_INFO, long duration = -1) :
-			popupType(type),
-			severity(sev),
-			popupDuration(duration)
-		{
-			if (duration != -1)
-				setDuration(duration);
-
-			memset(line, 0, 7 * 256);
-		}
-
-		void setDuration(long duration_ms)
-		{
-			popupDuration = (long)GetTickCount() + duration_ms;
-		}
-
-		bool expired()
-		{
-			if (popupDuration != -1 && 
-				((long)GetTickCount()) > popupDuration)
-				return true;
-			return false;
-		}
-
-		void reset()
-		{
-			popupType = VPT_NONE;
-			popupDuration = -1;
-			memset(line, 0, 7 * 256);
-		}
-
-		VireioPopupType popupType;
-		VireioPopupSeverity severity;
-		long popupDuration;
-		char line[7][256];
-	};
-
+	void ShowPopup(VireioPopup &popup);
+	void ShowPopup(VireioPopupType type, VireioPopupSeverity sev, long duration, std::string message);
+	void ShowPopup(VireioPopupType type, VireioPopupSeverity sev, std::string message);
+	
+	void ShowAdjusterToast(std::string message, int duration);
+	void DismissPopup(VireioPopupType popupType);
+	void DisplayCurrentPopup();
+	
+	void DrawTextShadowed(ID3DXFont* font, LPD3DXSPRITE sprite, LPCSTR lpchText, int cchText, LPRECT lprc, UINT format, D3DCOLOR color);
+	void DrawTextShadowed(ID3DXFont* font, LPD3DXSPRITE sprite, const char *text, LPRECT lprc, D3DCOLOR color);
+	void DrawTextShadowed(ID3DXFont* font, LPD3DXSPRITE sprite, std::string text, LPRECT lprc, D3DCOLOR color);
+	void DrawTextShadowed(std::string text, LPRECT lprc);
+	void DrawTextShadowed(float left, float top, std::string text);
+	
 	VireioPopup activePopup;
+
+	/********************************/
 
 	/** Whether the Frames Per Second counter is being shown */
 	enum FPS_TYPE {
@@ -537,11 +553,6 @@ protected:
 	/** Whether the calibrate tracker message is to be shown */
 	bool calibrate_tracker;
 
-	/** Pop-up functionality */
-	void DisplayCurrentPopup();
-	void ShowPopup(VireioPopup &popup);
-	void DismissPopup(VireioPopupType popupType);
-
 	/**
 	* The game handler.
 	* @see GameHandler
@@ -551,10 +562,6 @@ protected:
 	* Current drawing side, only changed in setDrawingSide().
 	**/
 	vireio::RenderPosition m_currentRenderingSide;
-	/**
-	* Currently not used WorldViewTransform matrix.
-	**/
-	D3DXMATRIX* m_pCurrentMatViewTransform;
 	/**
 	* Active stored proxy pixel shader.
 	**/
@@ -568,10 +575,6 @@ protected:
 	**/
 	D3D9ProxyStateBlock* m_pCapturingStateTo;
 	/**
-	* Timer used to indicate that an adjuster changed a config value and when timer expires, config should be saved
-	*/
-	DWORD m_saveConfigTimer;
-	/**
 	* Main menu sprite.
 	***/
 	LPD3DXSPRITE hudMainMenu;
@@ -579,53 +582,6 @@ protected:
 	* Main menu sprite.
 	***/
 	LPD3DXSPRITE hudTextBox;
-	/**
-	* Main menu velocity.
-	***/
-	D3DXVECTOR2 menuVelocity;
-	/**
-	* Main menu affection.
-	***/
-	D3DXVECTOR2 menuAttraction;
-	/**
-	* Main menu border top height.
-	***/
-	float borderTopHeight;
-	/**
-	* Main menu top height for scrolling menues.
-	***/
-	float menuTopHeight;
-	/**
-	* VP menu value.
-	***/
-	int viewportWidth;
-	/**
-	* VP menu value.
-	***/
-	int viewportHeight;
-	/**
-	* VP menu value.
-	***/
-	float menuTop;
-	/**
-	* VP menu value.
-	* Menu entry height, in pixels.
-	***/
-	float menuEntryHeight;
-	/**
-	* VP menu helper rectangle.
-	***/
-	RECT menuHelperRect;
-	/**
-	* VP menu value.
-	* Scales VP menu to current resolution.
-	***/
-	float fScaleX;
-	/**
-	* VP menu value.
-	* Scales VP menu to current resolution.
-	***/
-	float fScaleY;
 	/**
 	* True if BeginScene() is called the first time this frame.
 	* @see BeginScene()
@@ -687,11 +643,6 @@ protected:
 	***/
 	UINT m_VertexShaderCountLastFrame;
 	/**
-	* Vector contains all possible game projection x scale values.
-	* Filled only if VPMENU_mode == WorldScale and SetTransform(>projection<) called by the game.
-	***/
-	std::vector<float> m_gameXScaleUnits;
-	/**
 	* Struct commands device behavior.
 	***/
 	struct DeviceBehavior
@@ -701,7 +652,8 @@ protected:
 		***/
 		enum WhenToDo
 		{
-			PRESENT,
+			BEFORE_COMPOSITING,
+			AFTER_COMPOSITING,
 			BEGIN_SCENE,
 			END_SCENE,
 		};
@@ -716,31 +668,17 @@ protected:
 		WhenToDo whenToHandleHeadTracking;
 
 	} m_deviceBehavior;
+	
+	void HandleLandmarkMoment(DeviceBehavior::WhenToDo when);
 
 private:
 	/*** D3DProxyDevice private methods ***/
-	void    VPMENU();
-	void    VPMENU_MainMenu();
-	void    VPMENU_WorldScale();
-	void    VPMENU_Convergence();
-	void    VPMENU_HUD();
-	void    VPMENU_GUI();
-	void    VPMENU_Settings();
-	void    VPMENU_VRBoostValues();
-	void	VPMENU_PosTracking();
-	void	VPMENU_ComfortMode();
-	void	VPMENU_DuckAndCover();
-	void    VPMENU_UpdateBorder();
-	void    VPMENU_UpdateConfigSettings();
-	void    VPMENU_UpdateDeviceSettings();
-	void    VPMENU_AdditionalOutput();
 	void    ReleaseEverything();
 	bool    isViewportDefaultForMainRT(CONST D3DVIEWPORT9* pViewport);
 	HRESULT SetStereoViewTransform(D3DXMATRIX pLeftMatrix, D3DXMATRIX pRightMatrix, bool apply);
 	HRESULT SetStereoProjectionTransform(D3DXMATRIX pLeftMatrix, D3DXMATRIX pRightMatrix, bool apply);
 	void    SetGUIViewport();
 	float   RoundVireioValue(float val);
-	bool	InitVPMENU();
 	bool	InitVRBoost();
 	bool	InitTracker();
 
@@ -841,11 +779,15 @@ private:
 	* @see ShaderRegisters
 	**/
 	std::shared_ptr<ShaderRegisters> m_spManagedShaderRegisters;
+
+protected:
 	/**
 	* View matrix adjustment class.
 	* @see ViewAdjustment
 	**/
 	std::shared_ptr<ViewAdjustment> m_spShaderViewAdjustment;
+	
+private:
 	/**
 	* True if active viewport is the default one.
 	* @see isViewportDefaultForMainRT()
@@ -952,10 +894,6 @@ private:
 	**/
 	D3DXMATRIX* m_pCurrentProjection;
 	/**
-	* Backup of the current game profile.
-	***/
-	ProxyHelper::ProxyConfig m_configBackup;
-	/**
 	* Current HUD 3D Depth mode.
 	***/
 	HUD_3D_Depth_Modes hud3DDepthMode;
@@ -972,42 +910,6 @@ private:
 	***/
 	GUI_3D_Depth_Modes oldGuiMode;
 	/**
-	* Current HUD 3D Depth presets.
-	***/
-	float hud3DDepthPresets[4];
-	/**
-	* Current HUD distance presets.
-	***/
-	float hudDistancePresets[4];
-	/**
-	* Current GUI 3D Depth presets.
-	***/
-	float gui3DDepthPresets[4];
-	/**
-	* Current GUI squish presets.
-	***/
-	float guiSquishPresets[4];
-	/**
-	* Hotkey indices for the GUI.
-	***/
-	byte guiHotkeys[5];
-	/**
-	* Hotkey indices for the HUD.
-	***/
-	byte hudHotkeys[5];
-	/**
-	* Hotkey for VRBoost toggle.
-	***/
-	byte toggleVRBoostHotkey;
-	/**
-	* Hotkey for disconnected screen.
-	***/
-	byte edgePeekHotkey;
-	/**
-	* True if menu is waiting to catch a hotkey.
-	***/
-	bool hotkeyCatch;
-	/**
 	* True if screenshot is taken next frame.
 	***/
 	int screenshot;
@@ -1017,5 +919,7 @@ private:
 	float fMinFPS;
 	bool bSkipFrame;	
 };
+
+std::string VRboostAxisString(UINT axis);
 
 #endif

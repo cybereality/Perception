@@ -28,6 +28,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
 #include "StereoView.h"
+#include "Vireio.h"
+
+using namespace vireio;
 
 /**
 * Tiny debug helper.
@@ -37,9 +40,7 @@ inline void releaseCheck(char* object, int newRefCount)
 {
 #ifdef _DEBUG
 	if (newRefCount > 0) {
-		char buf[128];
-		sprintf_s(buf, "Error: %s count = %d\n", object, newRefCount);
-		OutputDebugString(buf);
+		debugf("Error: %s count = %d\n", object, newRefCount);
 	}
 #endif
 }
@@ -48,18 +49,14 @@ inline void releaseCheck(char* object, int newRefCount)
 * Constructor.
 * Sets game configuration data. Sets all member pointers to NULL to prevent uninitialized objects being used.
 ***/ 
-StereoView::StereoView(ProxyHelper::ProxyConfig& config)	
+StereoView::StereoView(ProxyConfig *config)	
 {
+	this->config = config;
 	OutputDebugString("Created SteroView\n");
 	initialized = false;
-	DistortionScale = 0.0f;
 	m_screenViewGlideFactor = 1.0f;
-	YOffset = config.YOffset;
-	IPDOffset = config.IPDOffset;
 	XOffset = 0;
-	game_type = config.game_type;
-	stereo_mode = config.stereo_mode;
-	swapEyes = config.swap_eyes;
+	game_type = config->game_type;
 	chromaticAberrationCorrection = true;
 	m_vignetteStyle = NONE;
 	m_rotation = 0.0f;
@@ -88,9 +85,7 @@ StereoView::StereoView(ProxyHelper::ProxyConfig& config)
 	sb = NULL;
 	m_bLeftSideActive = false;
 	// set behavior accordingly to game type
-	int gameType = config.game_type;
-	if (gameType>10000) gameType-=10000;
-	switch(gameType)
+	switch(config->game_type)
 	{
 	case D3DProxyDevice::FIXED:
 		howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;		
@@ -369,7 +364,7 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 	m_pActualDevice->SetFVF(D3DFVF_TEXVERTEX);
 	
 	// swap eyes
-	if(!swapEyes)
+	if(!config->swap_eyes)
 	{
 		m_pActualDevice->SetTexture(0, leftTexture);
 		m_pActualDevice->SetTexture(1, rightTexture);
@@ -501,17 +496,10 @@ void StereoView::InitTextureBuffers()
 	backBuffer->GetDesc(&pDesc);
 
 #ifdef _DEBUG
-	char buf[32];
-	LPCSTR psz = NULL;
-
-	wsprintf(buf,"viewport width: %d",viewport.Width);
-	psz = buf;
-	OutputDebugString(psz);
+	debugf("viewport width: %d",viewport.Width);
 	OutputDebugString("\n");
 
-	wsprintf(buf,"backbuffer width: %d",pDesc.Width);
-	psz = buf;
-	OutputDebugString(psz);
+	debugf("backbuffer width: %d",pDesc.Width);
 	OutputDebugString("\n");
 #endif
 
@@ -594,13 +582,11 @@ void StereoView::InitShaderEffects()
 	shaderEffect[INTERLEAVE_VERT] = "InterleaveVert.fx";
 	shaderEffect[CHECKERBOARD] = "Checkerboard.fx";
 
-	char viewPath[512];
 	ProxyHelper helper = ProxyHelper();
-	helper.GetPath(viewPath, "fx\\");
 
-	strcat_s(viewPath, 512, shaderEffect[stereo_mode].c_str());
+	std::string viewPath = helper.GetPath("fx\\") + shaderEffect[config->stereo_mode];
 
-	if (FAILED(D3DXCreateEffectFromFile(m_pActualDevice, viewPath, NULL, NULL, D3DXFX_DONOTSAVESTATE, NULL, &viewEffect, NULL))) {
+	if (FAILED(D3DXCreateEffectFromFile(m_pActualDevice, viewPath.c_str(), NULL, NULL, D3DXFX_DONOTSAVESTATE, NULL, &viewEffect, NULL))) {
 		OutputDebugString("Effect creation failed\n");
 	}
 }

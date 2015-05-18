@@ -33,9 +33,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <d3d9.h>
 #include <assert.h>
-
-// 64mm in meters
-#define IPD_DEFAULT 0.064f
+#include <string>
 
 /**
 * Vireio helper namespace.
@@ -43,16 +41,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 namespace vireio {
 
-	/**
-	* Simple left, right enumeration.
-	***/
-	enum RenderPosition
-	{
-		// probably need an 'Original' here
-		Left = 1,
-		Right = 2		
-	};
-	
 	/*** vireio public methods ***/
 	void UnWrapTexture(IDirect3DBaseTexture9* pWrappedTexture, IDirect3DBaseTexture9** ppActualLeftTexture, IDirect3DBaseTexture9** ppActualRightTexture);
 	bool AlmostSame(float a, float b, float epsilon);

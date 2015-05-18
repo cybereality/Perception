@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -91,7 +91,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)\..\..\DxHijack\DxHijack32;$(ProjectDir)\..\..\DxProxy\DxProxy</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\..\..\DxHijack\DxHijack32;$(ProjectDir)\..\..\Shared</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -118,7 +118,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)\..\..\DxHijack\DxHijack32;$(ProjectDir)\..\..\DxProxy\DxProxy</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\..\..\DxHijack\DxHijack32;$(ProjectDir)\..\..\Shared</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -147,7 +147,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)\..\..\DxHijack\DxHijack32;$(ProjectDir)\..\..\DxProxy\DxProxy</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\..\..\DxHijack\DxHijack32;$(ProjectDir)\..\..\Shared</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -179,7 +179,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>x64;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)\..\..\DxHijack\DxHijack32;$(ProjectDir)\..\..\DxProxy\DxProxy</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\..\..\DxHijack\DxHijack32;$(ProjectDir)\..\..\Shared</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -203,14 +203,34 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\DxProxy\DxProxy\ProxyHelper.cpp" />
-    <ClCompile Include="..\..\DxProxy\DxProxy\pugixml.cpp" />
+    <ClCompile Include="..\..\Shared\pugixml.cpp" />
+    <ClCompile Include="..\..\Shared\VireioUtil.cpp" />
+    <ClCompile Include="..\..\Shared\ProxyHelper.cpp" />
+    <ClCompile Include="..\..\Shared\InputControls.cpp" />
+    <ClCompile Include="..\..\Shared\json\json_reader.cpp" />
+    <ClCompile Include="..\..\Shared\json\json_value.cpp" />
+    <ClCompile Include="..\..\Shared\json\json_writer.cpp" />
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\DxProxy\DxProxy\ProxyHelper.h" />
-    <ClInclude Include="..\..\DxProxy\DxProxy\pugiconfig.hpp" />
-    <ClInclude Include="..\..\DxProxy\DxProxy\pugixml.hpp" />
+    <ClInclude Include="..\..\Shared\pugiconfig.hpp" />
+    <ClInclude Include="..\..\Shared\pugixml.hpp" />
+    <ClInclude Include="..\..\Shared\VireioUtil.h" />
+    <ClInclude Include="..\..\Shared\ProxyHelper.h" />
+    <ClInclude Include="..\..\Shared\InputControls.h" />
+    <ClInclude Include="..\..\Shared\ConfigDefaults.h" />
+    <ClInclude Include="..\..\Shared\Version.h" />
+    <ClInclude Include="..\..\Shared\json\assertions.h" />
+    <ClInclude Include="..\..\Shared\json\autolink.h" />
+    <ClInclude Include="..\..\Shared\json\config.h" />
+    <ClInclude Include="..\..\Shared\json\features.h" />
+    <ClInclude Include="..\..\Shared\json\forwards.h" />
+    <ClInclude Include="..\..\Shared\json\json.h" />
+    <ClInclude Include="..\..\Shared\json\json_tool.h" />
+    <ClInclude Include="..\..\Shared\json\reader.h" />
+    <ClInclude Include="..\..\Shared\json\value.h" />
+    <ClInclude Include="..\..\Shared\json\version.h" />
+    <ClInclude Include="..\..\Shared\json\writer.h" />
     <ClInclude Include="Resource.h" />
   </ItemGroup>
   <ItemGroup>

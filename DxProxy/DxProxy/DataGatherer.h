@@ -63,7 +63,7 @@ public:
 	virtual HRESULT WINAPI SetPixelShader(IDirect3DPixelShader9* pShader);
 
 	/*** DataGatherer public methods ***/
-	virtual void Init(ProxyHelper::ProxyConfig& cfg);
+	virtual void Init(ProxyConfig& cfg);
 
 protected:
 	/*** DataGatherer protected methods ***/
@@ -76,6 +76,11 @@ private:
 	/*** DataGatherer private methods ***/
 	void Analyze();
 	void GetCurrentShaderRules(bool allStartRegisters);
+	
+	bool addRule(std::string constantName, bool allowPartialNameMatch, UINT startRegIndex, D3DXPARAMETER_CLASS constantType, UINT operationToApply, bool transpose);
+	bool modifyRule(std::string constantName, UINT operationToApply, bool transpose);
+	bool deleteRule(std::string constantName);
+	void saveShaderRules();
 
 	/**
 	* Describes a shader constant.
@@ -151,7 +156,7 @@ private:
 	/**
 	* Array of possible world-view-projection matrix shader constant names.
 	***/
-	std::string* m_wvpMatrixConstantNames;
+	std::vector<std::string> m_wvpMatrixConstantNames;
 	/**
 	* Array of matrix substring names to be avoided.
 	***/

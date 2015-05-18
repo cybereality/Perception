@@ -48,7 +48,8 @@ public:
 	***/
 	HMDisplayInfo_OculusRift() :
 	   //Just use the constructor of the base class
-		HMDisplayInfo()
+		HMDisplayInfo(),
+		m_status(HMD_STATUS_OK)
 	{
 		OutputDebugString("HMDisplayInfo_OculusRift()\n");
 		ovr_Initialize();
@@ -72,20 +73,33 @@ public:
 
 		//Get some details from OVR SDK
 		OVR::CAPI::HMDState *pHMDState = (OVR::CAPI::HMDState*)(hmd->Handle);
-		std::string user = OVR::ProfileManager::GetInstance()->GetUser(0);
-		OVR::ProfileDeviceKey pdk(&(pHMDState->OurHMDInfo));
-		OVR::Profile* profile = OVR::ProfileManager::GetInstance()->GetProfile(pdk, user.c_str());
-		if (profile)
+		const char *pUserStr = OVR::ProfileManager::GetInstance()->GetUser(0);
+		
+		try
 		{
-			sstm << "Using Oculus Profile: " << std::endl;
-			sstm << OVR_KEY_USER << ": " << profile->GetValue(OVR_KEY_USER)  << std::endl;
-			sstm << "HmdType: " << (int)pHMDState->OurHMDInfo.HmdType  << std::endl;
-			//clean up
-			delete profile;
+			if (pUserStr)
+			{
+				std::string user = pUserStr;
+				OVR::ProfileDeviceKey pdk(&(pHMDState->OurHMDInfo));
+				OVR::Profile* profile = OVR::ProfileManager::GetInstance()->GetProfile(pdk, user.c_str());
+				if (profile)
+				{
+					sstm << "Using Oculus Profile: " << std::endl;
+					sstm << OVR_KEY_USER << ": " << profile->GetValue(OVR_KEY_USER)  << std::endl;
+					sstm << "HmdType: " << (int)pHMDState->OurHMDInfo.HmdType  << std::endl;
+					//clean up
+					delete profile;
+				}
+				else
+					throw std::exception("No Oculus Profile Defined!!");
+			}
+			else
+				throw std::exception("No Oculus Profile Defined!!");
 		}
-		else
+		catch (std::exception e)
 		{
-			sstm << "No Oculus Profile Defined!!" << std::endl;
+			sstm << e.what() << std::endl;
+			m_status = HMD_STATUS_ERROR;
 		}
 
 		switch (pHMDState->OurHMDInfo.HmdType)
@@ -154,7 +168,7 @@ public:
 	* Screen resolution, in pixels.
 	* <horizontal, vertical>
 	***/
-	virtual std::pair<UINT, UINT>  GetResolution()
+	virtual std::pair<UINT, UINT> GetResolution()
 	{
 		return std::make_pair<UINT, UINT>((UINT)hmd->Resolution.w, (UINT)hmd->Resolution.h);
 	}
@@ -189,15 +203,39 @@ public:
 		static float separation = 0.0f;
 		if (separation == 0.0f)
 		{
-			OVR::CAPI::HMDState *pHMDState = (OVR::CAPI::HMDState*)(hmd->Handle);
-			std::string user = OVR::ProfileManager::GetInstance()->GetUser(0);
-			OVR::ProfileDeviceKey pdk(&(pHMDState->OurHMDInfo));
-			OVR::Profile* profile = OVR::ProfileManager::GetInstance()->GetProfile(pdk, user.c_str());
-			OVR::HmdRenderInfo renderInfo = OVR::GenerateHmdRenderInfoFromHmdInfo(pHMDState->OurHMDInfo, profile, OVR::DistortionEqnType::Distortion_CatmullRom10);
-			separation = renderInfo.LensSeparationInMeters;
-			//Finished with the Profile - Not deleting this was causing a memory leak
-			delete profile;
+			try
+			{
+				//Get some details from OVR SDK
+				OVR::CAPI::HMDState *pHMDState = (OVR::CAPI::HMDState*)(hmd->Handle);
+				const char *pUserStr = OVR::ProfileManager::GetInstance()->GetUser(0);
+				if (pUserStr)
+				{
+					std::string user = pUserStr;
+					OVR::ProfileDeviceKey pdk(&(pHMDState->OurHMDInfo));
+					OVR::Profile* profile = OVR::ProfileManager::GetInstance()->GetProfile(pdk, user.c_str());
+					if (profile)
+					{
+						OVR::ProfileDeviceKey pdk(&(pHMDState->OurHMDInfo));
+						OVR::Profile* profile = OVR::ProfileManager::GetInstance()->GetProfile(pdk, user.c_str());
+						OVR::HmdRenderInfo renderInfo = OVR::GenerateHmdRenderInfoFromHmdInfo(pHMDState->OurHMDInfo, profile, OVR::DistortionEqnType::Distortion_CatmullRom10);
+						separation = renderInfo.LensSeparationInMeters;
+						//clean up
+						delete profile;
+					}
+					else
+						throw std::exception("No Oculus Profile Defined!!");
+				}
+				else
+					throw std::exception("No Oculus Profile Defined!!");
+			}
+			catch (std::exception e)
+			{
+				separation = 0.064f;
+				OutputDebugString(e.what());
+				m_status = HMD_STATUS_ERROR;
+			}
 		}
+
 		return separation;
 	}
 	
@@ -237,6 +275,28 @@ public:
 	 */
 	virtual HMDManufacturer GetHMDManufacturer() {return HMD_OCULUS;}
 
+	/**
+	 * Returns the status of the HMD - If it could be initialised, then error status is set, this method can be overridden
+	 * to return more specufuc error info
+	 */
+	virtual HMDStatus GetStatus() {return m_status;}
+
+	/**
+	 * Returns the status of the HMD - If it could be initialised, then error status is set, this method can be overridden
+	 * to return more specufuc error info
+	 */
+	virtual std::string GetStatusString()
+	{
+		switch (m_status)
+		{
+			case HMD_STATUS_OK:
+				return "OK";
+			case HMD_STATUS_ERROR:
+				return "No Oculus Configuration Profile Defined!";
+		}
+
+		return "";
+	}
 
 
 private:
@@ -244,6 +304,8 @@ private:
 	* Oculus head mounted display device.
 	***/
     ovrHmd hmd;
+    
+    HMDStatus m_status;
 
 	float MaxRadius;
 };
