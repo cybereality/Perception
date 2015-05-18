@@ -415,6 +415,7 @@ void D3DProxyDevice::VPMENU_MainMenu()
 	menu->AddNavigation("Overall Settings\n", [=]() { VPMENU_Settings(); });
 	menu->AddNavigation("VRBoost Values\n", [=]() { VPMENU_VRBoostValues(); });
 	menu->AddNavigation("Position Tracking Configuration\n", [=]() { VPMENU_PosTracking(); });
+	menu->AddNavigation("Drawing Options\n", [=]() { VPMENU_Drawing(); });
 	menu->AddNavigation("General Hotkeys\n", [=]() { VPMENU_Hotkeys(); });
 	menu->AddNavigation("3D Adjustment Hotkeys\n", [=]() { VPMENU_AdjustmentHotkeys(); });
 	menu->AddNavigation("Comfort Mode Configuration\n", [=]() { VPMENU_ComfortMode(); });
@@ -944,7 +945,26 @@ void D3DProxyDevice::VPMENU_Settings()
 	VPMENU_FinishDrawing(menu);
 }
 
+/**
+* Drawing options.
+***/
+void D3DProxyDevice::VPMENU_Drawing()
+{
+	SHOW_CALL("VPMENU_Drawing");
+	MenuBuilder *menu = VPMENU_NewFrame();
+	VPMENU_StartDrawing(menu, "Drawing Options - General");
+	menu->OnClose([=]() { VPMENU_UpdateConfigSettings(); });
 
+	menu->AddToggle("Draw Shadows : %s", "True", "False", &config.draw_shadows, defaultConfig.draw_shadows);
+	menu->AddToggle("Draw Fog/Smoke : %s", "True", "False", &config.draw_fog, defaultConfig.draw_fog);
+	menu->AddToggle("Draw Clothes : %s", "True", "False", &config.draw_clothes, defaultConfig.draw_clothes);
+	menu->AddToggle("Draw Player : %s", "True", "False", &config.draw_player, defaultConfig.draw_player);
+	menu->AddToggle("Draw Aiming Reticule : %s", "True", "False", &config.draw_reticule, defaultConfig.draw_reticule);
+	menu->AddToggle("Draw Skybox : %s", "True", "False", &config.draw_sky, defaultConfig.draw_sky);
+	
+	menu->AddBackButtons();
+	VPMENU_FinishDrawing(menu);
+}
 /**
 * Positional Tracking Settings.
 ***/

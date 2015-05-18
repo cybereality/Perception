@@ -1854,10 +1854,12 @@ HRESULT WINAPI D3DProxyDevice::SetVertexShader(IDirect3DVertexShader9* pShader)
 	{
 		//Flag whether we should even draw this shader
 		m_bDoNotDrawVShader =  pWrappedVShaderData->GetShaderObjectType() == ShaderObjectTypeDoNotDraw ||
-			//Need to add a toggle to allow use to turn shadows/fog on and off
-			pWrappedVShaderData->GetShaderObjectType() == ShaderObjectTypeShadows ||
-			pWrappedVShaderData->GetShaderObjectType() == ShaderObjectTypeFog
-			;
+			(pWrappedVShaderData->GetShaderObjectType() == ShaderObjectTypeShadows && !config.draw_shadows) ||
+			(pWrappedVShaderData->GetShaderObjectType() == ShaderObjectTypeClothes && !config.draw_clothes) ||
+			(pWrappedVShaderData->GetShaderObjectType() == ShaderObjectTypeReticule && !config.draw_reticule) ||
+			(pWrappedVShaderData->GetShaderObjectType() == ShaderObjectTypeSky && !config.draw_sky) ||
+			(pWrappedVShaderData->GetShaderObjectType() == ShaderObjectTypePlayer && !config.draw_player) ||
+			(pWrappedVShaderData->GetShaderObjectType() == ShaderObjectTypeFog && !config.draw_fog);
 
 		if (pWrappedVShaderData->SquishViewport())
 		{
@@ -2134,10 +2136,12 @@ HRESULT WINAPI D3DProxyDevice::SetPixelShader(IDirect3DPixelShader9* pShader)
 	{
 		//Flag whether we should even draw this shader
 		m_bDoNotDrawPShader = pWrappedPShaderData->GetShaderObjectType() == ShaderObjectTypeDoNotDraw ||
-			//Need to add a toggle to allow use to turn shadows/fog on and off
-			pWrappedPShaderData->GetShaderObjectType() == ShaderObjectTypeShadows ||
-			pWrappedPShaderData->GetShaderObjectType() == ShaderObjectTypeFog;
-	}
+			(pWrappedPShaderData->GetShaderObjectType() == ShaderObjectTypeShadows && !config.draw_shadows) ||
+			(pWrappedPShaderData->GetShaderObjectType() == ShaderObjectTypeClothes && !config.draw_clothes) ||
+			(pWrappedPShaderData->GetShaderObjectType() == ShaderObjectTypeReticule && !config.draw_reticule) ||
+			(pWrappedPShaderData->GetShaderObjectType() == ShaderObjectTypeSky && !config.draw_sky) ||
+			(pWrappedPShaderData->GetShaderObjectType() == ShaderObjectTypePlayer && !config.draw_player) ||
+			(pWrappedPShaderData->GetShaderObjectType() == ShaderObjectTypeFog && !config.draw_fog);}
 	else
 		m_bDoNotDrawPShader = false;
 

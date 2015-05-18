@@ -93,7 +93,15 @@ struct ProxyConfig
 	InputBindingRef guiHotkeys[4];          /**< GUI Hotkeys.*/
 	InputBindingRef VRBoostResetHotkey;     /**< Hotkey option to reset VRBoost. */
 	InputBindingRef EdgePeekHotkey;			/**< Hotkey option to toggle disconnected screen view. */
-	
+
+	///Draw Options - do we draw things?
+	bool        draw_shadows;
+	bool        draw_fog;
+	bool        draw_reticule;
+	bool        draw_clothes;
+	bool        draw_player;
+	bool        draw_sky;
+
 	/// Angle (in degrees) to turn by when a snap-turn button is pressed
 	float ComfortModeYawIncrement;
 	
