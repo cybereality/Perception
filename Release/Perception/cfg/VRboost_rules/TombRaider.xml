@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Scanner>
+  <ScannerGroups>
+  
+    <!-- Uses the "below the horizon" technique to minimise scan address matches, user must keep -->
+	<!-- Orientation below the horizon in order for it to work -->
+	<ScannerGroup>
+		<ID>0</ID>
+		<BaseAddress>100000F4</BaseAddress>
+		<MemIncrement>00000100</MemIncrement>
+		<MemIncCount>00200000</MemIncCount>
+		<FailIfNotFound>True</FailIfNotFound>
+		<ScanRule>
+			<!-- Copy of YAW -->
+			<AxisName>NoAxis</AxisName>
+			<AddressType>Float</AddressType>
+			<ModificationToApply>FloatDoNothing</ModificationToApply>
+			<BaseAddressOffset>00000000</BaseAddressOffset>
+			<CheckForChanges>Changes</CheckForChanges>
+			<Comparisons>
+				<Compare type="Between">
+					<MinValue>0.0</MinValue>
+					<MaxValue>6.285</MaxValue>
+				</Compare>
+			</Comparisons>
+		</ScanRule>
+  
+		<ScanRule>
+			<AxisName>TrackerYaw</AxisName>
+			<AddressType>Float</AddressType>
+			<ModificationToApply>FloatExtendedApply</ModificationToApply>
+			<BaseAddressOffset>00000004</BaseAddressOffset>
+			<CheckForChanges>Changes</CheckForChanges>
+			<Comparisons>
+				<Compare type="Between">
+					<MinValue>0.0</MinValue>
+					<MaxValue>6.285</MaxValue>
+				</Compare>
+			</Comparisons>
+		</ScanRule>
+		
+  
+		<ScanRule>
+			<AxisName>NoAxis</AxisName>
+			<AddressType>Float</AddressType>
+			<ModificationToApply>FloatDoNothing</ModificationToApply>
+			<BaseAddressOffset>00000014</BaseAddressOffset>
+			<CheckForChanges>NoChange</CheckForChanges>
+			<Comparisons>
+				<Compare type="Equal">
+					<MinValue>0.0</MinValue>
+				</Compare>
+			</Comparisons>
+		</ScanRule>
+ 
+		<ScanRule>
+			<!-- Copy of Pitch -->
+			<AxisName>NoAxis</AxisName>
+			<AddressType>Float</AddressType>
+			<ModificationToApply>FloatDoNothing</ModificationToApply>
+			<BaseAddressOffset>00000018</BaseAddressOffset>
+			<CheckForChanges>Changes</CheckForChanges>
+			<Comparisons>
+				<Compare type="Between">
+					<MinValue>-0.48</MinValue>
+					<MaxValue>0.0</MaxValue>
+				</Compare>
+				<Compare type="Between">
+					<MinValue>0.0</MinValue>
+					<MaxValue>1.0</MaxValue>
+				</Compare>
+			</Comparisons>
+		</ScanRule>
+		
+		<ScanRule>
+			<!-- Pitch -->
+			<AxisName>TrackerPitch</AxisName>
+			<AddressType>Float</AddressType>
+			<ModificationToApply>FloatSimpleNegativeApply</ModificationToApply>
+			<BaseAddressOffset>0000001C</BaseAddressOffset>
+			<CheckForChanges>Changes</CheckForChanges>
+			<Comparisons>
+				<Compare type="Between">
+					<MinValue>-0.48</MinValue>
+					<MaxValue>0.0</MaxValue>
+				</Compare>
+				<Compare type="Between">
+					<MinValue>0.0</MinValue>
+					<MaxValue>1.0</MaxValue>
+				</Compare>
+			</Comparisons>
+		</ScanRule>
+		
+ 	</ScannerGroup>
+  </ScannerGroups>
+  
+  	<!-- The following is used to direct the user to move their HMD so that addresses can be filtered, don't repeat -->
+	<ScanAssistSequence>
+		<ScanAssistStep>
+			<TimeBeforeCheck>3000</TimeBeforeCheck>
+			<Pose>UP</Pose>
+			<Axis>
+				<AxisName>TrackerPitch</AxisName>
+				<AddressType>Float</AddressType>
+				<Comparisons>
+				<Compare type="Between">
+					<MinValue>-0.5</MinValue>
+					<MaxValue>-0.3</MaxValue>
+				</Compare>
+				</Comparisons>
+			</Axis>
+		</ScanAssistStep>
+		
+		<ScanAssistStep>
+			<TimeBeforeCheck>3000</TimeBeforeCheck>
+			<Pose>DOWN</Pose>
+			<Axis>
+				<AxisName>TrackerPitch</AxisName>
+				<AddressType>Float</AddressType>
+				<Comparisons>
+					<Compare type="Between">
+						<MinValue>0.5</MinValue>
+						<MaxValue>1.0</MaxValue>
+					</Compare>
+				</Comparisons>
+			</Axis>
+		</ScanAssistStep>
+	</ScanAssistSequence>
+</Scanner>

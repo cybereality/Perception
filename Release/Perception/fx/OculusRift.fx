@@ -21,6 +21,12 @@ float SmearCorrection;
 float2 MousePosition;
 float ZoomScale;
 
+//Z Buffer Variables
+bool ZBuffer;
+bool ZBufferFilterMode;
+float ZBufferStrength;
+float ZBufferFilter;
+
 // Warp operates on left view, for right, mirror x texture coord
 // before and after calling.  in02 contains the chromatic aberration
 // correction coefficients.
@@ -95,6 +101,21 @@ float2 ScalePoint(float scale, float2 coord)
 	return newPos;
 }
 
+float2 ApplyZBuffer(float2 coord,float2 origCoord, float depth)
+{
+	float2 newPos = coord;
+	if(depth > 0.0f)
+	{
+		if (origCoord.x > 0.5f) {
+			newPos.x += (depth / ZBufferStrength);		
+		}				
+		else {
+			newPos.x -= (depth / ZBufferStrength);		
+		}				
+	}
+	return newPos;
+}
+
 float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 {
 	float2 newPos = Tex;
@@ -103,6 +124,7 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 	float2 tcBlue;
 	float angle = Rotation;
 	float3 outColor;	
+	float depthValue = 0.0f;
 	
 	//blit the VP logo to the top left corner
 	if (Tex.x <= 0.2f   &&   Tex.y <= 0.05f)
@@ -130,6 +152,17 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 	tcBlue.x = tcBlue.x - ViewportXOffset;
 	tcBlue.y = tcBlue.y - ViewportYOffset;
 	tcBlue = ScalePoint(ZoomScale, tcBlue);	
+	if(ZBuffer)
+	{
+		float3 rawval = floor( 255.0 * tex2D(TexMap0, tcBlue).arg + 0.5);
+		float z = dot( rawval, float3(0.996093809371817670572857294849,0.0038909914428586627756752238080039,1.5199185323666651467481343000015e-5) / 255.0);
+		depthValue = z;	
+		if(depthValue > 0.0f)
+		{
+			depthValue = (depthValue - 0.995999) / 0.004001;
+		}
+		tcBlue = ApplyZBuffer(tcBlue,Tex,depthValue);	
+	}	
 
 	// Clamp on blue, because we expand the blue channel outward the most.
 	// Symmetry makes this ok to do before any unmirroring.
@@ -147,6 +180,10 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 	tcRed.x = tcRed.x - ViewportXOffset;
 	tcRed.y = tcRed.y - ViewportYOffset;
 	tcRed = ScalePoint(ZoomScale, tcRed);	
+	if(ZBuffer)
+	{
+		tcRed = ApplyZBuffer(tcRed,Tex,depthValue);	
+	}	
 
 	tcGreen = HmdWarp(newPos, float2(0.0f, 0.0f));
 	tcGreen = rotatePoint(angle, tcGreen);
@@ -158,6 +195,10 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 	tcGreen.x = tcGreen.x - ViewportXOffset;
 	tcGreen.y = tcGreen.y - ViewportYOffset;
 	tcGreen = ScalePoint(ZoomScale, tcGreen);	
+	if(ZBuffer)
+	{
+		tcGreen = ApplyZBuffer(tcGreen,Tex,depthValue);	
+	}	
 
 	if (any(clamp(tcBlue.xy, float2(0.0,0.0), float2(1.0, 1.0)) - tcBlue.xy))
 		return 0;

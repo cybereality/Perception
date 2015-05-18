@@ -231,6 +231,7 @@ public:
 		GAMEBRYO_SKYRIM = 601,     /**< Skyrim's Creation Engine still has at least some Gamebryo in it. */
 		LFS = 700,                 /**< Live for Speed (LFS) is a racing simulator developed by a three person team comprising Scawen Roberts, Eric Bailey, and Victor van Vlaardingen. */
 		CDC = 800,                 /**< Proprietary game engine developed by Crystal Dynamics. */
+		CDC_TOMB_RAIDER = 801,     /**< Proprietary game engine developed by Crystal Dynamics. */
 		CHROME = 900,              /**< Chrome Engine (Dead Island / Call of Juarez). */
 		DEBUG_LOG_FILE = 99999     /**< Debug log file output game type. For development causes. Do not use since slows down game extremely. */
 	};
@@ -257,6 +258,16 @@ public:
 		GUI_LARGE = 2,
 		GUI_FULL = 3,
 		GUI_ENUM_RANGE = 4
+	};
+
+	/**
+	* 3D Reconstruction enumeration
+	***/
+	enum Reconstruction_Type
+	{
+		GEOMETRY = 1,
+		ZBUFFER = 2,
+		MONOSCOPIC = 3
 	};
 
 	/**
@@ -381,7 +392,7 @@ public:
 	/**
 	* What 3D mode is used
 	**/
-	bool m_b2dDepthMode;
+	int m_3DReconstructionMode;
 
 protected:
 	/*** D3DProxyDevice protected methods ***/
@@ -440,6 +451,7 @@ protected:
 	void VPMENU();
 	void VPMENU_MainMenu();
 	void VPMENU_WorldScale();
+	void VPMENU_3DReconstruction();
 	void VPMENU_Convergence();
 	void VPMENU_ConvergenceCalibrator();
 	void VPMENU_HUD();
@@ -451,6 +463,7 @@ protected:
 	void VPMENU_ComfortMode();
 	void VPMENU_VRBoostValues();
 	void VPMENU_Hotkeys();
+	void VPMENU_Debug();
 	void VPMENU_AdjustmentHotkeys();
 	
 	void VPMENU_UpdateCooldowns();
@@ -612,9 +625,6 @@ protected:
  	* Maximum Distortion Scale the Quicklinks will zoom to
  	**/
  	float m_maxDistortionScale;
-
-	float m_projectionHFOV;
-
 	/**
 	* Whether we are in telescope mode
 	*/

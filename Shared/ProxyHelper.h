@@ -77,6 +77,7 @@ struct ProxyConfig
 	float		position_y_multiplier;		/**< Game-specific position multiplier for Y*/
 	float		position_z_multiplier;		/**< Game-specific position multiplier for Z*/
 	float		DistortionScale;			/**< The scale to apply distortion. **/
+	float		PFOV;						/**< Projection FOV, alternative to modifying game's FOV **/
 	float		YOffset;					/**< The Y offset from the centre of the screen on the Y-axis **/
 	float		IPDOffset;					/**< The IPD offset from the centre of the screen on the X-axis **/
 	bool		useSDKPosePrediction;		/**< Whether the SDK pose prediction should be used for this game **/

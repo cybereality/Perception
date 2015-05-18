@@ -1037,6 +1037,9 @@ void HandleGameProfile(ProxyHelper::ConfigTransferDirection dir, xml_node &node,
 	HANDLE_SETTING(ComfortModeLeftKey,       Key(VK_LEFT)  || Axis(InputControls::RightStickX, false, -COMFORT_MODE_STICK_THRESHOLD));
 	HANDLE_SETTING(ComfortModeRightKey,      Key(VK_RIGHT) || Axis(InputControls::RightStickX, true, COMFORT_MODE_STICK_THRESHOLD));
 
+	HANDLE_SETTING(PFOV,					110.0f);
+
+
 	HANDLE_SETTING(WorldFOV,                95.0f);
 	HANDLE_SETTING(PlayerFOV,               125.0f);
 	HANDLE_SETTING(FarPlaneFOV,             95.0f);
