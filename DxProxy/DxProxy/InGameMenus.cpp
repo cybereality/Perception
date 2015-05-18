@@ -393,8 +393,11 @@ void D3DProxyDevice::VPMENU_MainMenu()
 		menu->AddNavigation("Shader Analyzer\n", [=]() { VPMENU_ShaderSubMenu(); });
 	}
 	
-	menu->AddNavigation("World-Scale Calibration\n", [=]() { VPMENU_WorldScale(); });
-	menu->AddNavigation("Convergence Adjustment\n", [=]() { VPMENU_Convergence(); });
+	menu->AddNavigation("3D Reconstruction Settings\n", [=]() { VPMENU_3DReconstruction(); });
+	if(config.stereo_mode < 100)
+	{
+		menu->AddNavigation("Convergence Adjustment\n", [=]() { VPMENU_Convergence(); });
+	}
 	
 	menu->AddEnumPicker("HUD Settings : %s", (int*)&hud3DDepthMode,
 		HUD_3D_Depth_Modes::HUD_ENUM_RANGE, [](int val) {
@@ -417,6 +420,7 @@ void D3DProxyDevice::VPMENU_MainMenu()
 	menu->AddNavigation("Position Tracking Configuration\n", [=]() { VPMENU_PosTracking(); });
 	menu->AddNavigation("Drawing Options\n", [=]() { VPMENU_Drawing(); });
 	menu->AddNavigation("General Hotkeys\n", [=]() { VPMENU_Hotkeys(); });
+	menu->AddNavigation("Debug Hotkeys\n", [=]() { VPMENU_Debug(); });
 	menu->AddNavigation("3D Adjustment Hotkeys\n", [=]() { VPMENU_AdjustmentHotkeys(); });
 	menu->AddNavigation("Comfort Mode Configuration\n", [=]() { VPMENU_ComfortMode(); });
 	
@@ -442,7 +446,7 @@ void D3DProxyDevice::VPMENU_MainMenu()
 ***/
 void D3DProxyDevice::VPMENU_WorldScale()
 {
-	SHOW_CALL("VPMENU_WorldScale");
+	/*SHOW_CALL("VPMENU_WorldScale");
 	inWorldScaleMenu = true;
 	
 	// base values
@@ -606,9 +610,109 @@ void D3DProxyDevice::VPMENU_WorldScale()
 	DrawScrollbar(vireio::RenderPosition::Left, rec9, COLOR_QUICK_SETTING, scroll, (int)(20*fScaleY));
 	DrawScrollbar(vireio::RenderPosition::Right, rec9, COLOR_QUICK_SETTING, scroll, (int)(20*fScaleY));
 
-	hudTextBox->End();
+	hudTextBox->End();*/
 }
 
+/**
+* 3D Reconstruction Settings
+***/
+void D3DProxyDevice::VPMENU_3DReconstruction()
+{
+	SHOW_CALL("VPMENU_3DReconstruction");
+	//inWorldScaleMenu = true;
+	
+	// base values
+	/*static UINT gameXScaleUnitIndex = 0;
+
+	// sort the game unit vector
+	std::sort (m_gameXScaleUnits.begin(), m_gameXScaleUnits.end());
+
+	// enter ? rshift ? increase gameXScaleUnitIndex
+	if (VPMENU_Input_Selected())
+	{
+		if (hotkeyScaleUnitReverse->IsHeld(controls))
+		{
+			if (gameXScaleUnitIndex>0)
+				--gameXScaleUnitIndex;
+		}
+		else
+		{
+			gameXScaleUnitIndex++;
+			
+			// game unit index out of range ?
+			if ((gameXScaleUnitIndex != 0) && (gameXScaleUnitIndex >= m_gameXScaleUnits.size()))
+				gameXScaleUnitIndex = m_gameXScaleUnits.size()-1;
+		}
+	}*/
+	
+	MenuBuilder *menu = VPMENU_NewFrame();
+	VPMENU_StartDrawing(menu, "Settings - 3D Reconstruction");
+	
+	menu->AddAdjustment("World Scale : %1.3f", &config.worldScaleFactor,
+		defaultConfig.worldScaleFactor, 0.001f, [=]()
+	{
+		m_spShaderViewAdjustment->ChangeWorldScale(config.worldScaleFactor);
+		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, config.PFOV);		
+	});	
+	
+	menu->AddBackButtons();
+	VPMENU_FinishDrawing(menu);
+	/*
+	VPMENU_StartDrawing_NonMenu();	
+	
+	// Draw
+	// standard hud size, will be scaled later to actual viewport
+	int width = VPMENU_PIXEL_WIDTH;
+	int height = VPMENU_PIXEL_HEIGHT;
+	float gameUnit = config.worldScaleFactor;
+
+	// actual game unit chosen ... in case game has called SetTransform(>projection<);
+	if (m_bProjectionTransformSet)
+	{
+		// get the scale the 
+		float gameXScale = m_gameXScaleUnits[gameXScaleUnitIndex];
+
+		// get the scale the driver projects
+		D3DXMATRIX driverProjection = m_spShaderViewAdjustment->Projection();
+		float driverXScale = driverProjection._11;
+
+		// gameUnit = (driverWorldScale * driverXScale) /  gameXScale
+		gameUnit = (config.worldScaleFactor * driverXScale) / gameXScale;
+
+		DrawTextShadowed(width*0.45f, height*0.77f, retprintf("Actual Units %u/%u",
+			gameXScaleUnitIndex, m_gameXScaleUnits.size()));
+	}
+
+	//Column 1:                        Column 2:
+	//1 Game Unit = X Meters           1 Meter = X Game Units
+	//1 Game Unit = X Centimeters      1 Centimeter = X Game Units
+	//1 Game Unit = X Feet             1 Foot = X Game Units
+	//1 Game Unit = X Inches           1 Inch = X Game Units
+	float meters = 1 / gameUnit;
+	float centimeters = meters * 100.0f;
+	float feet = meters * 3.2808399f;
+	float inches = feet * 12.0f;
+	float gameUnitsToCentimeter =  gameUnit / 100.0f;
+	float gameUnitsToFoot = gameUnit / 3.2808399f;
+	float gameUnitsToInches = gameUnit / 39.3700787f;
+	
+
+	float unitsLeft = width*0.28f;
+	float unitsTop = height*0.6f;
+	float unitsSpacing = 35.0f;
+	DrawTextShadowed(unitsLeft, unitsTop,                 retprintf("1 Game Unit = %g Meters", meters).c_str());
+	DrawTextShadowed(unitsLeft, unitsTop+unitsSpacing*1,  retprintf("1 Game Unit = %g CM", centimeters));
+	DrawTextShadowed(unitsLeft, unitsTop+unitsSpacing*2,  retprintf("1 Game Unit = %g Feet", feet));
+	DrawTextShadowed(unitsLeft, unitsTop+unitsSpacing*3,  retprintf("1 Game Unit = %g In.", inches));
+
+	float unitsLeft2 = width*0.52f;
+	DrawTextShadowed(unitsLeft2, unitsTop, retprintf("1 Meter      = %g Game Units", gameUnit));
+	DrawTextShadowed(unitsLeft2, unitsTop+unitsSpacing*1, retprintf("1 CM         = %g Game Units", gameUnitsToCentimeter));
+	DrawTextShadowed(unitsLeft2, unitsTop+unitsSpacing*2, retprintf("1 Foot       = %g Game Units", gameUnitsToFoot));
+	DrawTextShadowed(unitsLeft2, unitsTop+unitsSpacing*3, retprintf("1 Inch       = %g Game Units", gameUnitsToInches));
+
+	VPMENU_FinishDrawing(menu);*/
+}
 void D3DProxyDevice::VPMENU_Convergence()
 {
 	SHOW_CALL("VPMENU_PosTracking");
@@ -1154,6 +1258,21 @@ void D3DProxyDevice::VPMENU_Hotkeys()
 	VPMENU_FinishDrawing(menu);
 }
 
+void D3DProxyDevice::VPMENU_Debug()
+{
+	SHOW_CALL("VPMENU_Debug");
+	MenuBuilder *menu = VPMENU_NewFrame();
+	VPMENU_StartDrawing(menu, "Settings - Debug Hotkeys");	
+	menu->AddKeybind("Toggle Cube Renderers", &config.HotkeyToggleCubeRenders, defaultConfig.HotkeyToggleCubeRenders);
+	menu->AddKeybind("Toggle Texture Renderers", &config.HotkeyToggleTextureRenders, defaultConfig.HotkeyToggleTextureRenders);
+	menu->AddKeybind("Toggle When to Render Menu", &config.HotkeyWhenToRenderMenu, defaultConfig.HotkeyWhenToRenderMenu);
+	menu->AddKeybind("Toggle When to Poll Headtracking", &config.HotkeyWhenToPollHeadtracking, defaultConfig.HotkeyWhenToPollHeadtracking);
+	menu->AddKeybind("Prev Render State", &config.HotkeyPrevRenderState, defaultConfig.HotkeyPrevRenderState);
+	menu->AddKeybind("Next Render State", &config.HotkeyNextRenderState, defaultConfig.HotkeyNextRenderState);
+	menu->AddBackButtons();
+	VPMENU_FinishDrawing(menu);
+}
+
 void D3DProxyDevice::VPMENU_AdjustmentHotkeys()
 {
 	SHOW_CALL("VPMENU_AdjustmentHotkeys");
@@ -1162,10 +1281,6 @@ void D3DProxyDevice::VPMENU_AdjustmentHotkeys()
 	
 	menu->AddKeybind("Switch 2D Depth Mode", &config.HotkeySwitch2DDepthMode, defaultConfig.HotkeySwitch2DDepthMode);
 	menu->AddKeybind("Swap Sides Hotkey", &config.HotkeySwapSides, defaultConfig.HotkeySwapSides);
-	menu->AddKeybind("Toggle Cube Renderers", &config.HotkeyToggleCubeRenders, defaultConfig.HotkeyToggleCubeRenders);
-	menu->AddKeybind("Toggle Texture Renderers", &config.HotkeyToggleTextureRenders, defaultConfig.HotkeyToggleTextureRenders);
-	menu->AddKeybind("Toggle When to Render Menu", &config.HotkeyWhenToRenderMenu, defaultConfig.HotkeyWhenToRenderMenu);
-	menu->AddKeybind("Toggle When to Poll Headtracking", &config.HotkeyWhenToPollHeadtracking, defaultConfig.HotkeyWhenToPollHeadtracking);
 	menu->AddKeybind("Initiate VRBoost Memory Scan", &config.HotkeyInitiateScan, defaultConfig.HotkeyInitiateScan);
 	menu->AddKeybind("DK2 Black Smear Correction", &config.HotkeyBlackSmear, defaultConfig.HotkeyBlackSmear);
 	menu->AddKeybind("Reset IPD Offset", &config.HotkeyResetIPDOffset, defaultConfig.HotkeyResetIPDOffset);
@@ -1174,11 +1289,9 @@ void D3DProxyDevice::VPMENU_AdjustmentHotkeys()
 	menu->AddKeybind("Toggle Positional Tracking", &config.HotkeyTogglePositionalTracking, defaultConfig.HotkeyTogglePositionalTracking);
 	menu->AddKeybind("Toggle Pose Prediction", &config.HotkeyTogglePosePrediction, defaultConfig.HotkeyTogglePosePrediction);
 	menu->AddKeybind("Toggle Chromatic Abberation Correction", &config.HotkeyToggleChromaticAbberationCorrection, defaultConfig.HotkeyToggleChromaticAbberationCorrection);
-	
 	menu->AddKeybind("Distortion Scale Plus", &config.HotkeyDistortionScalePlus, defaultConfig.HotkeyDistortionScalePlus);
 	menu->AddKeybind("Distortion Scale Minus", &config.HotkeyDistortionScaleMinus, defaultConfig.HotkeyDistortionScaleMinus);
-	menu->AddKeybind("Prev Render State", &config.HotkeyPrevRenderState, defaultConfig.HotkeyPrevRenderState);
-	menu->AddKeybind("Next Render State", &config.HotkeyNextRenderState, defaultConfig.HotkeyNextRenderState);
+	
 	
 	menu->AddBackButtons();
 	VPMENU_FinishDrawing(menu);

@@ -95,6 +95,15 @@ void OculusRiftView::SetViewEffectInitialValues()
 	//Set mouse position for VR Mouse
 	viewEffect->SetFloatArray("MousePosition", m_mouseTexLocation, 2);
 
+	if(m_3DReconstructionMode == 2)
+		viewEffect->SetBool("ZBuffer", true);
+	else
+		viewEffect->SetBool("ZBuffer", false);
+	
+	viewEffect->SetFloat("ZBufferStrength", m_fZBufferStrength);
+	viewEffect->SetBool("ZBufferFilterMode", m_bZBufferFilterMode);
+	viewEffect->SetFloat("ZBufferFilter", m_fZBufferFilter);	
+
 	//Local static for controlling vignette in telescopic sight mode
 	static float vignette_val = 1.0f;
 
