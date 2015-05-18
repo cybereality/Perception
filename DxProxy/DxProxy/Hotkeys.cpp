@@ -78,7 +78,7 @@ InputBindingRef hotkeyOpenVPMenu = (LCtrl+Key('Q')) || (LShift+Key(VK_MULTIPLY))
 InputBindingRef hotkeyWheelYOffset = LCtrl+Key(VK_TAB);
 InputBindingRef hotkeyWheelIPDOffset = LCtrl+LShift;
 InputBindingRef hotkeyWheelWorldScale = LCtrl+LAlt;
-InputBindingRef hotkeyWheelStereoConvergence = LCtrl+Key(VK_SPACE);
+InputBindingRef hotkeyWheelPFOV = LCtrl+Key(VK_SPACE);
 InputBindingRef hotkeyWheelZoomScale = LCtrl;
 
 /**
@@ -890,18 +890,18 @@ void D3DProxyDevice::HandleControls()
 				float separationChange = 0.05f * wheelSign;
 				m_spShaderViewAdjustment->ChangeWorldScale(separationChange);
 
-				m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, m_projectionHFOV);
+				m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, config.PFOV);
 				ShowAdjusterToast(retprintf("Stereo Separation (World Scale): %1.3f", config.worldScaleFactor), 500);
 				DeferedSaveConfig();
 			}
 			//CTRL + SPACE + Mouse Wheel - adjust projection fov dynamically
-			else if(hotkeyWheelStereoConvergence->IsHeld(controls))
+			else if(hotkeyWheelPFOV->IsHeld(controls))
 			{
-				m_projectionHFOV += 0.5*wheelSign;
+				config.PFOV += 0.5*wheelSign;
 
-				m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, m_projectionHFOV);
+				m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, config.PFOV);
 				
-				ShowAdjusterToast(retprintf("Projection FOV: %1.3f", m_projectionHFOV), 500);
+				ShowAdjusterToast(retprintf("Projection FOV: %1.3f", config.PFOV), 500);
 				DeferedSaveConfig();
 			}
 			else if(hotkeyWheelZoomScale->IsHeld(controls))

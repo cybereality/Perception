@@ -175,8 +175,7 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	m_saveConfigTimer(MAXDWORD),
 	m_comfortModeYaw(0.0f),
 	m_disableAllHotkeys(false),
-	menuState(this),
-	m_projectionHFOV(110.0f)
+	menuState(this)
 {
 	m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::BEFORE_COMPOSITING;
 	m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::AFTER_COMPOSITING;
@@ -1140,14 +1139,6 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 
 		// set vertex shader call count to zero
 		m_VertexShaderCount = 0;
-	}
-	else
-	{
-		// draw
-		if (m_deviceBehavior.whenToRenderVPMENU == DeviceBehavior::WhenToDo::BEGIN_SCENE)
-		{
-			VPMENU();
-		}
 	}
 
 	return BaseDirect3DDevice9::BeginScene();
@@ -3152,7 +3143,7 @@ void D3DProxyDevice::OnCreateOrRestore()
 
 	stereoView->Init(getActual());
 
-	m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, m_projectionHFOV);
+	m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, config.PFOV);
 	m_spShaderViewAdjustment->ComputeViewTransforms();
 
 	// set VP main values
