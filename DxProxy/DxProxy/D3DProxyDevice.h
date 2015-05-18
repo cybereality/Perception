@@ -450,6 +450,7 @@ protected:
 	void VPMENU();
 	void VPMENU_MainMenu();
 	void VPMENU_WorldScale();
+	void VPMENU_3DReconstruction();
 	void VPMENU_Convergence();
 	void VPMENU_ConvergenceCalibrator();
 	void VPMENU_HUD();
