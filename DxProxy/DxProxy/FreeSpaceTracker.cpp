@@ -250,9 +250,7 @@ int FreeSpaceTracker::getOrientationAndPosition(float* yaw, float* pitch, float*
 	else
 	{
 #ifdef _DEBUG
-		OutputDebugString("Freespace Error:");
-		debugf("devID = %d, err == %d", DeviceID, err);
-		OutputDebugString("\n");
+		debugf("Freespace Error: devID = %d, err == %d\n", DeviceID, err);
 #endif
 		return err;  // return on timeouts or serious errors
 	}

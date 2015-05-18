@@ -31,4 +31,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 void Log(const char* szFormat, ...);
 
+#ifdef _EXPORT_LOGFILE
+	#define LOG_CALL(name) (m_logFile << name << std::endl)
+#else
+	#define LOG_CALL(name)
+#endif
+
 #endif

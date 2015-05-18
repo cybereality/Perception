@@ -28,7 +28,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
 #include "D3D9ProxySwapChain.h"
+#include "VireioUtil.h"
 #include <assert.h>
+using namespace vireio;
 
 /**
 * Debug output helper.
@@ -36,9 +38,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 void releaseCheckO(char* object, int newRefCount)
 {
 	if (newRefCount > 0) {
-		char buf[128];
-		sprintf_s(buf, "Error: %s count = %d\n", object, newRefCount);
-		OutputDebugString(buf);
+		debugf("Error: %s count = %d\n", object, newRefCount);
 	}
 }
 
@@ -103,10 +103,7 @@ D3D9ProxySwapChain::~D3D9ProxySwapChain()
 ***/
 HRESULT WINAPI D3D9ProxySwapChain::Present(CONST RECT* pSourceRect, CONST RECT* pDestRect, HWND hDestWindowOverride, CONST RGNDATA* pDirtyRegion, DWORD dwFlags)
 {
-#ifdef _DEBUG
-	OutputDebugString(__FUNCTION__);
-	OutputDebugString("\n");
-#endif;
+	SHOW_CALL("D3D9ProxySwapChain::Present");
 
 	// Test only, StereoView needs to be properly integrated as part of SwapChain.
 	// This test allowed deus ex menus and videos to work correctly. Lots of model rendering issues in game though

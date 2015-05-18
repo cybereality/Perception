@@ -28,7 +28,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
 #include "D3D9ProxyCubeTexture.h"
+#include "VireioUtil.h"
 #include <assert.h>
+using namespace vireio;
 
 /**
 * Constructor.
@@ -209,18 +211,14 @@ HRESULT WINAPI D3D9ProxyCubeTexture::GetCubeMapSurface(D3DCUBEMAP_FACES FaceType
 				// Failure to insert should not be possible. In this case we could still return the wrapped surface,
 				// however, if we did and it was requested again a new wrapped instance will be returned and things would explode
 				// at some point. Better to fail fast.
-				OutputDebugString(__FUNCTION__);
-				OutputDebugString("\n");
-				OutputDebugString("Unable to store surface level.\n");
+				debugf("%s: Unable to store surface level.\n", __FUNCTION__);
 				assert(false);
 
 				finalResult = D3DERR_INVALIDCALL;
 			}
 		}
 		else { 
-			OutputDebugString(__FUNCTION__);
-			OutputDebugString("\n");
-			OutputDebugString("Error fetching actual surface level.\n");
+			debugf("%s: Error fetching actual surface level.\n", __FUNCTION__);
 			finalResult = leftResult;
 		}
 	}

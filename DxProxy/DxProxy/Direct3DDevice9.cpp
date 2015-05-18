@@ -30,6 +30,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Direct3DDevice9.h"
 #include "Main.h"
 
+#ifdef _EXPORT_LOGFILE
+	#define LOG_CALL(name) (m_logFile << name << std::endl)
+#else
+	#define LOG_CALL(name)
+#endif
+
 /**
 * Constructor. 
 * @param pDevice Imbed actual device. 
@@ -65,9 +71,7 @@ BaseDirect3DDevice9::~BaseDirect3DDevice9()
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::QueryInterface(REFIID riid, LPVOID* ppv)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "QueryInterface" << std::endl;
-#endif
+	LOG_CALL("QueryInterface");
 
 	return m_pDevice->QueryInterface(riid, ppv);
 }
@@ -76,10 +80,8 @@ HRESULT WINAPI BaseDirect3DDevice9::QueryInterface(REFIID riid, LPVOID* ppv)
 * Base AddRef functionality.
 ***/
 ULONG WINAPI BaseDirect3DDevice9::AddRef()
-{	 
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "AddRef" << std::endl;
-#endif
+{
+	LOG_CALL("AddRef");
 
 	return ++m_nRefCount;
 }
@@ -89,9 +91,7 @@ ULONG WINAPI BaseDirect3DDevice9::AddRef()
 ***/
 ULONG WINAPI BaseDirect3DDevice9::Release()
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "Release" << std::endl;
-#endif
+	LOG_CALL("Release");
 
 	if(--m_nRefCount == 0)
 	{
@@ -106,10 +106,8 @@ ULONG WINAPI BaseDirect3DDevice9::Release()
 * Base TestCooperativeLevel functionality.
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::TestCooperativeLevel()
-{	 
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "TestCooperativeLevel" << std::endl;
-#endif
+{
+	LOG_CALL("TestCooperativeLevel");
 
 	return m_pDevice->TestCooperativeLevel();
 }
@@ -119,9 +117,7 @@ HRESULT WINAPI BaseDirect3DDevice9::TestCooperativeLevel()
 ***/
 UINT WINAPI BaseDirect3DDevice9::GetAvailableTextureMem()
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "GetAvailableTextureMem" << std::endl;
-#endif
+	LOG_CALL("GetAvailableTextureMem");
 
 	return m_pDevice->GetAvailableTextureMem();
 }
@@ -131,9 +127,7 @@ UINT WINAPI BaseDirect3DDevice9::GetAvailableTextureMem()
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::EvictManagedResources()
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "EvictManagedResources" << std::endl;
-#endif
+	LOG_CALL("EvictManagedResources");
 
 	return m_pDevice->EvictManagedResources();
 }
@@ -143,9 +137,7 @@ HRESULT WINAPI BaseDirect3DDevice9::EvictManagedResources()
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::GetDirect3D(IDirect3D9** ppD3D9)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "GetDirect3D" << std::endl;
-#endif
+	LOG_CALL("GetDirect3D");
 
 	if (!m_pCreatedBy)
 		return D3DERR_INVALIDCALL;
@@ -161,9 +153,7 @@ HRESULT WINAPI BaseDirect3DDevice9::GetDirect3D(IDirect3D9** ppD3D9)
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::GetDeviceCaps(D3DCAPS9* pCaps)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "GetDeviceCaps" << std::endl;
-#endif
+	LOG_CALL("GetDeviceCaps");
 
 	return m_pDevice->GetDeviceCaps(pCaps);
 }
@@ -173,9 +163,7 @@ HRESULT WINAPI BaseDirect3DDevice9::GetDeviceCaps(D3DCAPS9* pCaps)
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::GetDisplayMode(UINT iSwapChain,D3DDISPLAYMODE* pMode)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "GetDisplayMode" << std::endl;
-#endif
+	LOG_CALL("GetDisplayMode");
 
 	return m_pDevice->GetDisplayMode(iSwapChain, pMode);
 }
@@ -185,9 +173,7 @@ HRESULT WINAPI BaseDirect3DDevice9::GetDisplayMode(UINT iSwapChain,D3DDISPLAYMOD
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::GetCreationParameters(D3DDEVICE_CREATION_PARAMETERS *pParameters)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "GetCreationParameters" << std::endl;
-#endif
+	LOG_CALL("GetCreationParameters");
 
 	return m_pDevice->GetCreationParameters(pParameters);
 }
@@ -197,9 +183,7 @@ HRESULT WINAPI BaseDirect3DDevice9::GetCreationParameters(D3DDEVICE_CREATION_PAR
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::SetCursorProperties(UINT XHotSpot,UINT YHotSpot,IDirect3DSurface9* pCursorBitmap)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "SetCursorProperties" << std::endl;
-#endif
+	LOG_CALL("SetCursorProperties");
 
 	return m_pDevice->SetCursorProperties(XHotSpot, YHotSpot, pCursorBitmap);
 }
@@ -209,9 +193,7 @@ HRESULT WINAPI BaseDirect3DDevice9::SetCursorProperties(UINT XHotSpot,UINT YHotS
 ***/
 void WINAPI BaseDirect3DDevice9::SetCursorPosition(int X,int Y,DWORD Flags)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "SetCursorPosition" << std::endl;
-#endif
+	LOG_CALL("SetCursorPosition");
 
 	return m_pDevice->SetCursorPosition(X, Y, Flags);
 }
@@ -221,9 +203,7 @@ void WINAPI BaseDirect3DDevice9::SetCursorPosition(int X,int Y,DWORD Flags)
 ***/
 BOOL WINAPI BaseDirect3DDevice9::ShowCursor(BOOL bShow)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "ShowCursor" << std::endl;
-#endif
+	LOG_CALL("ShowCursor");
 
 	return m_pDevice->ShowCursor(bShow);
 }
@@ -233,9 +213,7 @@ BOOL WINAPI BaseDirect3DDevice9::ShowCursor(BOOL bShow)
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::CreateAdditionalSwapChain(D3DPRESENT_PARAMETERS* pPresentationParameters,IDirect3DSwapChain9** pSwapChain)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "CreateAdditionalSwapChain" << std::endl;
-#endif
+	LOG_CALL("CreateAdditionalSwapChain");
 
 	return m_pDevice->CreateAdditionalSwapChain(pPresentationParameters, pSwapChain);
 }
@@ -245,9 +223,7 @@ HRESULT WINAPI BaseDirect3DDevice9::CreateAdditionalSwapChain(D3DPRESENT_PARAMET
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::GetSwapChain(UINT iSwapChain,IDirect3DSwapChain9** pSwapChain)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "GetSwapChain" << std::endl;
-#endif
+	LOG_CALL("GetSwapChain");
 
 	return m_pDevice->GetSwapChain(iSwapChain, pSwapChain);
 }
@@ -257,9 +233,7 @@ HRESULT WINAPI BaseDirect3DDevice9::GetSwapChain(UINT iSwapChain,IDirect3DSwapCh
 ***/
 UINT WINAPI BaseDirect3DDevice9::GetNumberOfSwapChains()
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "GetNumberOfSwapChains" << std::endl;
-#endif
+	LOG_CALL("GetNumberOfSwapChains");
 
 	return m_pDevice->GetNumberOfSwapChains();
 }
@@ -269,9 +243,7 @@ UINT WINAPI BaseDirect3DDevice9::GetNumberOfSwapChains()
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::Reset(D3DPRESENT_PARAMETERS* pPresentationParameters)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "Reset" << std::endl;
-#endif
+	LOG_CALL("Reset");
 
 	return m_pDevice->Reset(pPresentationParameters);
 }
@@ -281,9 +253,7 @@ HRESULT WINAPI BaseDirect3DDevice9::Reset(D3DPRESENT_PARAMETERS* pPresentationPa
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::Present(CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "Present" << std::endl;
-#endif
+	LOG_CALL("Present");
 
 	return m_pDevice->Present( pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
 }
@@ -293,9 +263,7 @@ HRESULT WINAPI BaseDirect3DDevice9::Present(CONST RECT* pSourceRect,CONST RECT* 
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::GetBackBuffer(UINT iSwapChain,UINT iBackBuffer,D3DBACKBUFFER_TYPE Type,IDirect3DSurface9** ppBackBuffer)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "GetBackBuffer" << std::endl;
-#endif
+	LOG_CALL("GetBackBuffer");
 
 	return m_pDevice->GetBackBuffer(iSwapChain, iBackBuffer, Type, ppBackBuffer);
 }
@@ -305,9 +273,7 @@ HRESULT WINAPI BaseDirect3DDevice9::GetBackBuffer(UINT iSwapChain,UINT iBackBuff
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::GetRasterStatus(UINT iSwapChain,D3DRASTER_STATUS* pRasterStatus)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "GetRasterStatus" << std::endl;
-#endif
+	LOG_CALL("GetRasterStatus");
 
 	return m_pDevice->GetRasterStatus(iSwapChain, pRasterStatus);
 }
@@ -317,9 +283,7 @@ HRESULT WINAPI BaseDirect3DDevice9::GetRasterStatus(UINT iSwapChain,D3DRASTER_ST
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::SetDialogBoxMode(BOOL bEnableDialogs)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "SetDialogBoxMode" << std::endl;
-#endif
+	LOG_CALL("SetDialogBoxMode");
 
 	return m_pDevice->SetDialogBoxMode(bEnableDialogs);
 }
@@ -329,9 +293,7 @@ HRESULT WINAPI BaseDirect3DDevice9::SetDialogBoxMode(BOOL bEnableDialogs)
 ***/
 void WINAPI BaseDirect3DDevice9::SetGammaRamp(UINT iSwapChain,DWORD Flags,CONST D3DGAMMARAMP* pRamp)
 {	
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "SetGammaRamp" << std::endl;
-#endif
+	LOG_CALL("SetGammaRamp");
 
 	return m_pDevice->SetGammaRamp(iSwapChain, Flags, pRamp);
 }
@@ -341,9 +303,7 @@ void WINAPI BaseDirect3DDevice9::SetGammaRamp(UINT iSwapChain,DWORD Flags,CONST 
 ***/
 void WINAPI BaseDirect3DDevice9::GetGammaRamp(UINT iSwapChain,D3DGAMMARAMP* pRamp)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "GetGammaRamp" << std::endl;
-#endif
+	LOG_CALL("GetGammaRamp");
 
 	return m_pDevice->GetGammaRamp(iSwapChain, pRamp);
 }
@@ -353,9 +313,7 @@ void WINAPI BaseDirect3DDevice9::GetGammaRamp(UINT iSwapChain,D3DGAMMARAMP* pRam
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::CreateTexture(UINT Width,UINT Height,UINT Levels,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool,IDirect3DTexture9** ppTexture,HANDLE* pSharedHandle)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "CreateTexture" << std::endl;
-#endif
+	LOG_CALL("CreateTexture");
 
 	return m_pDevice->CreateTexture(Width, Height, Levels, Usage, Format, Pool, ppTexture, pSharedHandle);
 }
@@ -365,9 +323,7 @@ HRESULT WINAPI BaseDirect3DDevice9::CreateTexture(UINT Width,UINT Height,UINT Le
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::CreateVolumeTexture(UINT Width,UINT Height,UINT Depth,UINT Levels,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool,IDirect3DVolumeTexture9** ppVolumeTexture,HANDLE* pSharedHandle)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "CreateVolumeTexture" << std::endl;
-#endif
+	LOG_CALL("CreateVolumeTexture");
 
 	return m_pDevice->CreateVolumeTexture(Width, Height, Depth, Levels, Usage, Format, Pool, ppVolumeTexture, pSharedHandle);
 }
@@ -376,10 +332,8 @@ HRESULT WINAPI BaseDirect3DDevice9::CreateVolumeTexture(UINT Width,UINT Height,U
 * Base CreateCubeTexture functionality.
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::CreateCubeTexture(UINT EdgeLength,UINT Levels,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool,IDirect3DCubeTexture9** ppCubeTexture,HANDLE* pSharedHandle)
-{	
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "CreateCubeTexture" << std::endl;
-#endif
+{
+	LOG_CALL("CreateCubeTexture");
 
 	return m_pDevice->CreateCubeTexture(EdgeLength, Levels, Usage, Format, Pool, ppCubeTexture, pSharedHandle);
 }
@@ -388,10 +342,8 @@ HRESULT WINAPI BaseDirect3DDevice9::CreateCubeTexture(UINT EdgeLength,UINT Level
 * Base CreateVertexBuffer functionality.
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::CreateVertexBuffer(UINT Length,DWORD Usage,DWORD FVF,D3DPOOL Pool,IDirect3DVertexBuffer9** ppVertexBuffer,HANDLE* pSharedHandle)
-{	
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "CreateVertexBuffer" << std::endl;
-#endif
+{
+	LOG_CALL("CreateVertexBuffer");
 
 	return m_pDevice->CreateVertexBuffer(Length, Usage, FVF, Pool, ppVertexBuffer, pSharedHandle);
 }
@@ -400,10 +352,8 @@ HRESULT WINAPI BaseDirect3DDevice9::CreateVertexBuffer(UINT Length,DWORD Usage,D
 * Base CreateIndexBuffer functionality.
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::CreateIndexBuffer(UINT Length,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool,IDirect3DIndexBuffer9** ppIndexBuffer,HANDLE* pSharedHandle)
-{	
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "CreateIndexBuffer" << std::endl;
-#endif
+{
+	LOG_CALL("CreateIndexBuffer");
 
 	return m_pDevice->CreateIndexBuffer(Length, Usage, Format, Pool, ppIndexBuffer, pSharedHandle);
 }
@@ -413,9 +363,7 @@ HRESULT WINAPI BaseDirect3DDevice9::CreateIndexBuffer(UINT Length,DWORD Usage,D3
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::CreateRenderTarget(UINT Width,UINT Height,D3DFORMAT Format,D3DMULTISAMPLE_TYPE MultiSample,DWORD MultisampleQuality,BOOL Lockable,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "CreateRenderTarget" << std::endl;
-#endif
+	LOG_CALL("CreateRenderTarget");
 
 	return m_pDevice->CreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, ppSurface, pSharedHandle);
 }
@@ -425,9 +373,7 @@ HRESULT WINAPI BaseDirect3DDevice9::CreateRenderTarget(UINT Width,UINT Height,D3
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::CreateDepthStencilSurface(UINT Width,UINT Height,D3DFORMAT Format,D3DMULTISAMPLE_TYPE MultiSample,DWORD MultisampleQuality,BOOL Discard,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "CreateDepthStencilSurface" << std::endl;
-#endif
+	LOG_CALL("CreateDepthStencilSurface");
 
 	return m_pDevice->CreateDepthStencilSurface(Width, Height, Format, MultiSample, MultisampleQuality, Discard, ppSurface, pSharedHandle);
 }
@@ -437,9 +383,7 @@ HRESULT WINAPI BaseDirect3DDevice9::CreateDepthStencilSurface(UINT Width,UINT He
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::UpdateSurface(IDirect3DSurface9* pSourceSurface,CONST RECT* pSourceRect,IDirect3DSurface9* pDestinationSurface,CONST POINT* pDestPoint)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "UpdateSurface" << std::endl;
-#endif
+	LOG_CALL("UpdateSurface");
 
 	return m_pDevice->UpdateSurface(pSourceSurface, pSourceRect, pDestinationSurface, pDestPoint);
 }
@@ -449,9 +393,7 @@ HRESULT WINAPI BaseDirect3DDevice9::UpdateSurface(IDirect3DSurface9* pSourceSurf
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::UpdateTexture(IDirect3DBaseTexture9* pSourceTexture,IDirect3DBaseTexture9* pDestinationTexture)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "UpdateTexture" << std::endl;
-#endif
+	LOG_CALL("UpdateTexture");
 
 	return m_pDevice->UpdateTexture(pSourceTexture, pDestinationTexture);
 }
@@ -461,9 +403,7 @@ HRESULT WINAPI BaseDirect3DDevice9::UpdateTexture(IDirect3DBaseTexture9* pSource
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::GetRenderTargetData(IDirect3DSurface9* pRenderTarget,IDirect3DSurface9* pDestSurface)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "GetRenderTargetData" << std::endl;
-#endif
+	LOG_CALL("GetRenderTargetData");
 
 	return m_pDevice->GetRenderTargetData(pRenderTarget, pDestSurface);
 }
@@ -473,9 +413,7 @@ HRESULT WINAPI BaseDirect3DDevice9::GetRenderTargetData(IDirect3DSurface9* pRend
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::GetFrontBufferData(UINT iSwapChain,IDirect3DSurface9* pDestSurface)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "GetFrontBufferData" << std::endl;
-#endif
+	LOG_CALL("GetFrontBufferData");
 
 	return m_pDevice->GetFrontBufferData(iSwapChain, pDestSurface);
 }
@@ -485,9 +423,7 @@ HRESULT WINAPI BaseDirect3DDevice9::GetFrontBufferData(UINT iSwapChain,IDirect3D
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::StretchRect(IDirect3DSurface9* pSourceSurface,CONST RECT* pSourceRect,IDirect3DSurface9* pDestSurface,CONST RECT* pDestRect,D3DTEXTUREFILTERTYPE Filter)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "StretchRect" << std::endl;
-#endif
+	LOG_CALL("StretchRect");
 
 	return m_pDevice->StretchRect(pSourceSurface, pSourceRect, pDestSurface, pDestRect, Filter);
 }
@@ -497,9 +433,7 @@ HRESULT WINAPI BaseDirect3DDevice9::StretchRect(IDirect3DSurface9* pSourceSurfac
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::ColorFill(IDirect3DSurface9* pSurface,CONST RECT* pRect,D3DCOLOR color)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "ColorFill" << std::endl;
-#endif
+	LOG_CALL("ColorFill");
 
 	return m_pDevice->ColorFill(pSurface, pRect, color);
 }
@@ -509,9 +443,7 @@ HRESULT WINAPI BaseDirect3DDevice9::ColorFill(IDirect3DSurface9* pSurface,CONST 
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::CreateOffscreenPlainSurface(UINT Width,UINT Height,D3DFORMAT Format,D3DPOOL Pool,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "CreateOffscreenPlainSurface" << std::endl;
-#endif
+	LOG_CALL("CreateOffscreenPlainSurface");
 
 	return m_pDevice->CreateOffscreenPlainSurface(Width, Height, Format, Pool, ppSurface, pSharedHandle);
 }
@@ -521,9 +453,7 @@ HRESULT WINAPI BaseDirect3DDevice9::CreateOffscreenPlainSurface(UINT Width,UINT 
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::SetRenderTarget(DWORD RenderTargetIndex,IDirect3DSurface9* pRenderTarget)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "SetRenderTarget" << std::endl;
-#endif
+	LOG_CALL("SetRenderTarget");
 
 	return m_pDevice->SetRenderTarget(RenderTargetIndex, pRenderTarget);
 }
@@ -533,10 +463,7 @@ HRESULT WINAPI BaseDirect3DDevice9::SetRenderTarget(DWORD RenderTargetIndex,IDir
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::GetRenderTarget(DWORD RenderTargetIndex,IDirect3DSurface9** ppRenderTarget)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "GetRenderTarget" << std::endl;
-
-#endif
+	LOG_CALL("GetRenderTarget");
 	return m_pDevice->GetRenderTarget(RenderTargetIndex, ppRenderTarget);
 }
 
@@ -545,9 +472,7 @@ HRESULT WINAPI BaseDirect3DDevice9::GetRenderTarget(DWORD RenderTargetIndex,IDir
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::SetDepthStencilSurface(IDirect3DSurface9* pNewZStencil)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "SetDepthStencilSurface" << std::endl;
-#endif
+	LOG_CALL("SetDepthStencilSurface");
 
 	return m_pDevice->SetDepthStencilSurface(pNewZStencil);
 }
@@ -557,9 +482,7 @@ HRESULT WINAPI BaseDirect3DDevice9::SetDepthStencilSurface(IDirect3DSurface9* pN
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::GetDepthStencilSurface(IDirect3DSurface9** ppZStencilSurface)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "GetDepthStencilSurface" << std::endl;
-#endif
+	LOG_CALL("GetDepthStencilSurface");
 
 	return m_pDevice->GetDepthStencilSurface(ppZStencilSurface);
 }
@@ -569,9 +492,7 @@ HRESULT WINAPI BaseDirect3DDevice9::GetDepthStencilSurface(IDirect3DSurface9** p
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::BeginScene()
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "BeginScene" << std::endl;
-#endif
+	LOG_CALL("BeginScene");
 
 	return m_pDevice->BeginScene();
 }
@@ -581,9 +502,7 @@ HRESULT WINAPI BaseDirect3DDevice9::BeginScene()
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::EndScene()
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "EndScene" << std::endl;
-#endif
+	LOG_CALL("EndScene");
 
 	return m_pDevice->EndScene();
 }
@@ -593,9 +512,7 @@ HRESULT WINAPI BaseDirect3DDevice9::EndScene()
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::Clear(DWORD Count,CONST D3DRECT* pRects,DWORD Flags,D3DCOLOR Color,float Z,DWORD Stencil)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "Clear" << std::endl;
-#endif
+	LOG_CALL("Clear");
 
 	return m_pDevice->Clear(Count, pRects, Flags, Color, Z, Stencil);
 }
@@ -605,9 +522,7 @@ HRESULT WINAPI BaseDirect3DDevice9::Clear(DWORD Count,CONST D3DRECT* pRects,DWOR
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::SetTransform(D3DTRANSFORMSTATETYPE State,CONST D3DMATRIX* pMatrix)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "SetTransform" << std::endl;
-#endif
+	LOG_CALL("SetTransform");
 
 	return m_pDevice->SetTransform(State, pMatrix);
 }
@@ -617,9 +532,7 @@ HRESULT WINAPI BaseDirect3DDevice9::SetTransform(D3DTRANSFORMSTATETYPE State,CON
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::GetTransform(D3DTRANSFORMSTATETYPE State,D3DMATRIX* pMatrix)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "GetTransform" << std::endl;
-#endif
+	LOG_CALL("GetTransform");
 
 	return m_pDevice->GetTransform(State, pMatrix);
 }
@@ -629,9 +542,7 @@ HRESULT WINAPI BaseDirect3DDevice9::GetTransform(D3DTRANSFORMSTATETYPE State,D3D
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::MultiplyTransform(D3DTRANSFORMSTATETYPE State,CONST D3DMATRIX* pMatrix)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "MultiplyTransform" << std::endl;
-#endif
+	LOG_CALL("MultiplyTransform");
 
 	return m_pDevice->MultiplyTransform(State, pMatrix);
 }
@@ -641,9 +552,7 @@ HRESULT WINAPI BaseDirect3DDevice9::MultiplyTransform(D3DTRANSFORMSTATETYPE Stat
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::SetViewport(CONST D3DVIEWPORT9* pViewport)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "SetViewport" << std::endl;
-#endif
+	LOG_CALL("SetViewport");
 
 	return m_pDevice->SetViewport(pViewport);
 }
@@ -653,9 +562,7 @@ HRESULT WINAPI BaseDirect3DDevice9::SetViewport(CONST D3DVIEWPORT9* pViewport)
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::GetViewport(D3DVIEWPORT9* pViewport)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "GetViewport" << std::endl;
-#endif
+	LOG_CALL("GetViewport");
 
 	return m_pDevice->GetViewport(pViewport);
 }
@@ -665,9 +572,7 @@ HRESULT WINAPI BaseDirect3DDevice9::GetViewport(D3DVIEWPORT9* pViewport)
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::SetMaterial(CONST D3DMATERIAL9* pMaterial)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "SetMaterial" << std::endl;
-#endif
+	LOG_CALL("SetMaterial");
 
 	return m_pDevice->SetMaterial(pMaterial);
 }
@@ -677,9 +582,7 @@ HRESULT WINAPI BaseDirect3DDevice9::SetMaterial(CONST D3DMATERIAL9* pMaterial)
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::GetMaterial(D3DMATERIAL9* pMaterial)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "GetMaterial" << std::endl;
-#endif
+	LOG_CALL("GetMaterial");
 
 	return m_pDevice->GetMaterial(pMaterial);
 }
@@ -689,9 +592,7 @@ HRESULT WINAPI BaseDirect3DDevice9::GetMaterial(D3DMATERIAL9* pMaterial)
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::SetLight(DWORD Index,CONST D3DLIGHT9* pLight)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "SetLight" << std::endl;
-#endif
+	LOG_CALL("SetLight");
 
 	return m_pDevice->SetLight(Index, pLight);
 }
@@ -701,9 +602,7 @@ HRESULT WINAPI BaseDirect3DDevice9::SetLight(DWORD Index,CONST D3DLIGHT9* pLight
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::GetLight(DWORD Index,D3DLIGHT9* pLight)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "GetLight" << std::endl;
-#endif
+	LOG_CALL("GetLight");
 
 	return m_pDevice->GetLight(Index, pLight);
 }
@@ -713,9 +612,7 @@ HRESULT WINAPI BaseDirect3DDevice9::GetLight(DWORD Index,D3DLIGHT9* pLight)
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::LightEnable(DWORD Index,BOOL Enable)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "LightEnable" << std::endl;
-#endif
+	LOG_CALL("LightEnable");
 
 	return m_pDevice->LightEnable(Index, Enable);
 }
@@ -725,9 +622,7 @@ HRESULT WINAPI BaseDirect3DDevice9::LightEnable(DWORD Index,BOOL Enable)
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::GetLightEnable(DWORD Index,BOOL* pEnable)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "GetLightEnable" << std::endl;
-#endif
+	LOG_CALL("GetLightEnable");
 
 	return m_pDevice->GetLightEnable(Index, pEnable);
 }
@@ -737,9 +632,7 @@ HRESULT WINAPI BaseDirect3DDevice9::GetLightEnable(DWORD Index,BOOL* pEnable)
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::SetClipPlane(DWORD Index,CONST float* pPlane)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "SetClipPlane" << std::endl;
-#endif
+	LOG_CALL("SetClipPlane");
 
 	return m_pDevice->SetClipPlane(Index, pPlane);
 }
@@ -749,9 +642,7 @@ HRESULT WINAPI BaseDirect3DDevice9::SetClipPlane(DWORD Index,CONST float* pPlane
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::GetClipPlane(DWORD Index,float* pPlane)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "GetClipPlane" << std::endl;
-#endif
+	LOG_CALL("GetClipPlane");
 
 	return m_pDevice->GetClipPlane(Index, pPlane);
 }
@@ -761,9 +652,7 @@ HRESULT WINAPI BaseDirect3DDevice9::GetClipPlane(DWORD Index,float* pPlane)
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::SetRenderState(D3DRENDERSTATETYPE State,DWORD Value)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "SetRenderState" << std::endl;
-#endif
+	LOG_CALL("SetRenderState");
 
 	return m_pDevice->SetRenderState(State, Value);
 }
@@ -773,9 +662,7 @@ HRESULT WINAPI BaseDirect3DDevice9::SetRenderState(D3DRENDERSTATETYPE State,DWOR
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::GetRenderState(D3DRENDERSTATETYPE State,DWORD* pValue)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "GetRenderState" << std::endl;
-#endif
+	LOG_CALL("GetRenderState");
 
 	return m_pDevice->GetRenderState(State, pValue);
 }
@@ -785,9 +672,7 @@ HRESULT WINAPI BaseDirect3DDevice9::GetRenderState(D3DRENDERSTATETYPE State,DWOR
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::CreateStateBlock(D3DSTATEBLOCKTYPE Type,IDirect3DStateBlock9** ppSB)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "CreateStateBlock" << std::endl;
-#endif
+	LOG_CALL("CreateStateBlock");
 
 	return m_pDevice->CreateStateBlock(Type, ppSB);
 }
@@ -797,9 +682,7 @@ HRESULT WINAPI BaseDirect3DDevice9::CreateStateBlock(D3DSTATEBLOCKTYPE Type,IDir
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::BeginStateBlock()
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "BeginStateBlock" << std::endl;
-#endif
+	LOG_CALL("BeginStateBlock");
 
 	return m_pDevice->BeginStateBlock();
 }
@@ -809,9 +692,7 @@ HRESULT WINAPI BaseDirect3DDevice9::BeginStateBlock()
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::EndStateBlock(IDirect3DStateBlock9** ppSB)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "EndStateBlock" << std::endl;
-#endif
+	LOG_CALL("EndStateBlock");
 
 	return m_pDevice->EndStateBlock(ppSB);
 }
@@ -821,9 +702,7 @@ HRESULT WINAPI BaseDirect3DDevice9::EndStateBlock(IDirect3DStateBlock9** ppSB)
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::SetClipStatus(CONST D3DCLIPSTATUS9* pClipStatus)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "SetClipStatus" << std::endl;
-#endif
+	LOG_CALL("SetClipStatus");
 
 	return m_pDevice->SetClipStatus(pClipStatus);
 }
@@ -833,9 +712,7 @@ HRESULT WINAPI BaseDirect3DDevice9::SetClipStatus(CONST D3DCLIPSTATUS9* pClipSta
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::GetClipStatus(D3DCLIPSTATUS9* pClipStatus)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "GetClipStatus" << std::endl;
-#endif
+	LOG_CALL("GetClipStatus");
 
 	return m_pDevice->GetClipStatus(pClipStatus);
 }
@@ -845,9 +722,7 @@ HRESULT WINAPI BaseDirect3DDevice9::GetClipStatus(D3DCLIPSTATUS9* pClipStatus)
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::GetTexture(DWORD Stage,IDirect3DBaseTexture9** ppTexture)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "GetTexture" << std::endl;
-#endif
+	LOG_CALL("GetTexture");
 
 	return m_pDevice->GetTexture(Stage, ppTexture);
 }
@@ -857,9 +732,7 @@ HRESULT WINAPI BaseDirect3DDevice9::GetTexture(DWORD Stage,IDirect3DBaseTexture9
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::SetTexture(DWORD Stage,IDirect3DBaseTexture9* pTexture)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "SetTexture" << std::endl;
-#endif
+	LOG_CALL("SetTexture");
 
 	return m_pDevice->SetTexture(Stage, pTexture);
 }
@@ -869,9 +742,7 @@ HRESULT WINAPI BaseDirect3DDevice9::SetTexture(DWORD Stage,IDirect3DBaseTexture9
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::GetTextureStageState(DWORD Stage,D3DTEXTURESTAGESTATETYPE Type,DWORD* pValue)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "GetTextureStageState" << std::endl;
-#endif
+	LOG_CALL("GetTextureStageState");
 
 	return m_pDevice->GetTextureStageState(Stage, Type, pValue);
 }
@@ -881,9 +752,7 @@ HRESULT WINAPI BaseDirect3DDevice9::GetTextureStageState(DWORD Stage,D3DTEXTURES
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::SetTextureStageState(DWORD Stage,D3DTEXTURESTAGESTATETYPE Type,DWORD Value)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "SetTextureStageState" << std::endl;
-#endif
+	LOG_CALL("SetTextureStageState");
 
 	return m_pDevice->SetTextureStageState(Stage, Type, Value);
 }
@@ -893,9 +762,7 @@ HRESULT WINAPI BaseDirect3DDevice9::SetTextureStageState(DWORD Stage,D3DTEXTURES
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::GetSamplerState(DWORD Sampler,D3DSAMPLERSTATETYPE Type,DWORD* pValue)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "GetSamplerState" << std::endl;
-#endif
+	LOG_CALL("GetSamplerState");
 
 	return m_pDevice->GetSamplerState(Sampler, Type, pValue);
 }
@@ -905,9 +772,7 @@ HRESULT WINAPI BaseDirect3DDevice9::GetSamplerState(DWORD Sampler,D3DSAMPLERSTAT
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::SetSamplerState(DWORD Sampler,D3DSAMPLERSTATETYPE Type,DWORD Value)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "SetSamplerState" << std::endl;
-#endif
+	LOG_CALL("SetSamplerState");
 
 	return m_pDevice->SetSamplerState(Sampler, Type, Value);
 }
@@ -917,9 +782,7 @@ HRESULT WINAPI BaseDirect3DDevice9::SetSamplerState(DWORD Sampler,D3DSAMPLERSTAT
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::ValidateDevice(DWORD* pNumPasses)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "ValidateDevice" << std::endl;
-#endif
+	LOG_CALL("ValidateDevice");
 
 	return m_pDevice->ValidateDevice(pNumPasses);
 }
@@ -929,9 +792,7 @@ HRESULT WINAPI BaseDirect3DDevice9::ValidateDevice(DWORD* pNumPasses)
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::SetPaletteEntries(UINT PaletteNumber,CONST PALETTEENTRY* pEntries)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "SetPaletteEntries" << std::endl;
-#endif
+	LOG_CALL("SetPaletteEntries");
 
 	return m_pDevice->SetPaletteEntries(PaletteNumber, pEntries);
 }
@@ -941,9 +802,7 @@ HRESULT WINAPI BaseDirect3DDevice9::SetPaletteEntries(UINT PaletteNumber,CONST P
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::GetPaletteEntries(UINT PaletteNumber,PALETTEENTRY* pEntries)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "GetPaletteEntries" << std::endl;
-#endif
+	LOG_CALL("GetPaletteEntries");
 
 	return m_pDevice->GetPaletteEntries(PaletteNumber, pEntries);
 }
@@ -953,9 +812,7 @@ HRESULT WINAPI BaseDirect3DDevice9::GetPaletteEntries(UINT PaletteNumber,PALETTE
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::SetCurrentTexturePalette(UINT PaletteNumber)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "SetCurrentTexturePalette" << std::endl;
-#endif
+	LOG_CALL("SetCurrentTexturePalette");
 
 	return m_pDevice->SetCurrentTexturePalette(PaletteNumber);
 }
@@ -965,9 +822,7 @@ HRESULT WINAPI BaseDirect3DDevice9::SetCurrentTexturePalette(UINT PaletteNumber)
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::GetCurrentTexturePalette(UINT *PaletteNumber)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "GetCurrentTexturePalette" << std::endl;
-#endif
+	LOG_CALL("GetCurrentTexturePalette");
 
 	return m_pDevice->GetCurrentTexturePalette(PaletteNumber);
 }
@@ -977,9 +832,7 @@ HRESULT WINAPI BaseDirect3DDevice9::GetCurrentTexturePalette(UINT *PaletteNumber
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::SetScissorRect(CONST RECT* pRect)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "SetScissorRect" << std::endl;
-#endif
+	LOG_CALL("SetScissorRect");
 
 	return m_pDevice->SetScissorRect(pRect);
 }
@@ -989,9 +842,7 @@ HRESULT WINAPI BaseDirect3DDevice9::SetScissorRect(CONST RECT* pRect)
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::GetScissorRect(RECT* pRect)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "GetScissorRect" << std::endl;
-#endif
+	LOG_CALL("GetScissorRect");
 
 	return m_pDevice->GetScissorRect(pRect);
 }
@@ -1001,9 +852,7 @@ HRESULT WINAPI BaseDirect3DDevice9::GetScissorRect(RECT* pRect)
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::SetSoftwareVertexProcessing(BOOL bSoftware)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "SetSoftwareVertexProcessing" << std::endl;
-#endif
+	LOG_CALL("SetSoftwareVertexProcessing");
 
 	return m_pDevice->SetSoftwareVertexProcessing(bSoftware);
 }
@@ -1013,9 +862,7 @@ HRESULT WINAPI BaseDirect3DDevice9::SetSoftwareVertexProcessing(BOOL bSoftware)
 ***/
 BOOL WINAPI BaseDirect3DDevice9::GetSoftwareVertexProcessing()
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "GetSoftwareVertexProcessing" << std::endl;
-#endif
+	LOG_CALL("GetSoftwareVertexProcessing");
 
 	return m_pDevice->GetSoftwareVertexProcessing();
 }
@@ -1025,9 +872,7 @@ BOOL WINAPI BaseDirect3DDevice9::GetSoftwareVertexProcessing()
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::SetNPatchMode(float nSegments)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "SetNPatchMode" << std::endl;
-#endif
+	LOG_CALL("SetNPatchMode");
 
 	return m_pDevice->SetNPatchMode(nSegments);
 }
@@ -1037,9 +882,7 @@ HRESULT WINAPI BaseDirect3DDevice9::SetNPatchMode(float nSegments)
 ***/
 float WINAPI BaseDirect3DDevice9::GetNPatchMode()
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "GetNPatchMode" << std::endl;
-#endif
+	LOG_CALL("GetNPatchMode");
 
 	return m_pDevice->GetNPatchMode();
 }
@@ -1049,9 +892,7 @@ float WINAPI BaseDirect3DDevice9::GetNPatchMode()
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::DrawPrimitive(D3DPRIMITIVETYPE PrimitiveType,UINT StartVertex,UINT PrimitiveCount)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "DrawPrimitive" << std::endl;
-#endif
+	LOG_CALL("DrawPrimitive");
 
 	return m_pDevice->DrawPrimitive(PrimitiveType, StartVertex, PrimitiveCount);
 }
@@ -1061,9 +902,7 @@ HRESULT WINAPI BaseDirect3DDevice9::DrawPrimitive(D3DPRIMITIVETYPE PrimitiveType
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::DrawIndexedPrimitive(D3DPRIMITIVETYPE PrimitiveType,INT BaseVertexIndex,UINT MinVertexIndex,UINT NumVertices,UINT startIndex,UINT primCount)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "DrawIndexedPrimitive" << std::endl;
-#endif
+	LOG_CALL("DrawIndexedPrimitive");
 
 	return m_pDevice->DrawIndexedPrimitive(PrimitiveType, BaseVertexIndex, MinVertexIndex, NumVertices, startIndex, primCount);
 }
@@ -1073,9 +912,7 @@ HRESULT WINAPI BaseDirect3DDevice9::DrawIndexedPrimitive(D3DPRIMITIVETYPE Primit
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::DrawPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType,UINT PrimitiveCount,CONST void* pVertexStreamZeroData,UINT VertexStreamZeroStride)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "DrawPrimitiveUP" << std::endl;
-#endif
+	LOG_CALL("DrawPrimitiveUP");
 
 	return m_pDevice->DrawPrimitiveUP(PrimitiveType, PrimitiveCount, pVertexStreamZeroData, VertexStreamZeroStride);
 }
@@ -1085,9 +922,7 @@ HRESULT WINAPI BaseDirect3DDevice9::DrawPrimitiveUP(D3DPRIMITIVETYPE PrimitiveTy
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::DrawIndexedPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType,UINT MinVertexIndex,UINT NumVertices,UINT PrimitiveCount,CONST void* pIndexData,D3DFORMAT IndexDataFormat,CONST void* pVertexStreamZeroData,UINT VertexStreamZeroStride)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "DrawIndexedPrimitiveUP" << std::endl;
-#endif
+	LOG_CALL("DrawIndexedPrimitiveUP");
 
 	return m_pDevice->DrawIndexedPrimitiveUP(PrimitiveType, MinVertexIndex, NumVertices, PrimitiveCount, pIndexData, IndexDataFormat, pVertexStreamZeroData, VertexStreamZeroStride);
 }
@@ -1097,9 +932,7 @@ HRESULT WINAPI BaseDirect3DDevice9::DrawIndexedPrimitiveUP(D3DPRIMITIVETYPE Prim
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::ProcessVertices(UINT SrcStartIndex,UINT DestIndex,UINT VertexCount,IDirect3DVertexBuffer9* pDestBuffer,IDirect3DVertexDeclaration9* pVertexDecl,DWORD Flags)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "ProcessVertices" << std::endl;
-#endif
+	LOG_CALL("ProcessVertices");
 
 	return m_pDevice->ProcessVertices(SrcStartIndex, DestIndex, VertexCount, pDestBuffer, pVertexDecl, Flags);
 }
@@ -1109,9 +942,7 @@ HRESULT WINAPI BaseDirect3DDevice9::ProcessVertices(UINT SrcStartIndex,UINT Dest
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::CreateVertexDeclaration(CONST D3DVERTEXELEMENT9* pVertexElements,IDirect3DVertexDeclaration9** ppDecl)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "CreateVertexDeclaration" << std::endl;
-#endif
+	LOG_CALL("CreateVertexDeclaration");
 
 	return m_pDevice->CreateVertexDeclaration(pVertexElements, ppDecl);
 }
@@ -1121,9 +952,7 @@ HRESULT WINAPI BaseDirect3DDevice9::CreateVertexDeclaration(CONST D3DVERTEXELEME
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::SetVertexDeclaration(IDirect3DVertexDeclaration9* pDecl)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "SetVertexDeclaration" << std::endl;
-#endif
+	LOG_CALL("SetVertexDeclaration");
 
 	return m_pDevice->SetVertexDeclaration(pDecl);
 }
@@ -1133,9 +962,7 @@ HRESULT WINAPI BaseDirect3DDevice9::SetVertexDeclaration(IDirect3DVertexDeclarat
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::GetVertexDeclaration(IDirect3DVertexDeclaration9** ppDecl)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "GetVertexDeclaration" << std::endl;
-#endif
+	LOG_CALL("GetVertexDeclaration");
 
 	return m_pDevice->GetVertexDeclaration(ppDecl);
 }
@@ -1145,9 +972,7 @@ HRESULT WINAPI BaseDirect3DDevice9::GetVertexDeclaration(IDirect3DVertexDeclarat
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::SetFVF(DWORD FVF)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "SetFVF" << std::endl;
-#endif
+	LOG_CALL("SetFVF");
 
 	return m_pDevice->SetFVF(FVF);
 }
@@ -1157,9 +982,7 @@ HRESULT WINAPI BaseDirect3DDevice9::SetFVF(DWORD FVF)
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::GetFVF(DWORD* pFVF)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "GetFVF" << std::endl;
-#endif
+	LOG_CALL("GetFVF");
 
 	return m_pDevice->GetFVF(pFVF);
 }
@@ -1169,9 +992,7 @@ HRESULT WINAPI BaseDirect3DDevice9::GetFVF(DWORD* pFVF)
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::CreateVertexShader(CONST DWORD* pFunction,IDirect3DVertexShader9** ppShader)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "CreateVertexShader" << std::endl;
-#endif
+	LOG_CALL("CreateVertexShader");
 
 	return m_pDevice->CreateVertexShader(pFunction, ppShader);
 }
@@ -1181,9 +1002,7 @@ HRESULT WINAPI BaseDirect3DDevice9::CreateVertexShader(CONST DWORD* pFunction,ID
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::SetVertexShader(IDirect3DVertexShader9* pShader)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "SetVertexShader" << std::endl;
-#endif
+	LOG_CALL("SetVertexShader");
 
 	return m_pDevice->SetVertexShader(pShader);
 }
@@ -1193,9 +1012,7 @@ HRESULT WINAPI BaseDirect3DDevice9::SetVertexShader(IDirect3DVertexShader9* pSha
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::GetVertexShader(IDirect3DVertexShader9** ppShader)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "GetVertexShader" << std::endl;
-#endif
+	LOG_CALL("GetVertexShader");
 
 	return m_pDevice->GetVertexShader(ppShader);
 }
@@ -1205,9 +1022,7 @@ HRESULT WINAPI BaseDirect3DDevice9::GetVertexShader(IDirect3DVertexShader9** ppS
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::SetVertexShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "SetVertexShaderConstantF" << std::endl;
-#endif
+	LOG_CALL("SetVertexShaderConstantF");
 
 	return m_pDevice->SetVertexShaderConstantF(StartRegister, pConstantData, Vector4fCount);
 }
@@ -1217,9 +1032,7 @@ HRESULT WINAPI BaseDirect3DDevice9::SetVertexShaderConstantF(UINT StartRegister,
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::GetVertexShaderConstantF(UINT StartRegister,float* pConstantData,UINT Vector4fCount)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "GetVertexShaderConstantF" << std::endl;
-#endif
+	LOG_CALL("GetVertexShaderConstantF");
 
 	return m_pDevice->GetVertexShaderConstantF(StartRegister, pConstantData, Vector4fCount);
 }
@@ -1229,9 +1042,7 @@ HRESULT WINAPI BaseDirect3DDevice9::GetVertexShaderConstantF(UINT StartRegister,
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::SetVertexShaderConstantI(UINT StartRegister,CONST int* pConstantData,UINT Vector4iCount)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "SetVertexShaderConstantI" << std::endl;
-#endif
+	LOG_CALL("SetVertexShaderConstantI");
 
 	return m_pDevice->SetVertexShaderConstantI(StartRegister, pConstantData, Vector4iCount);
 }
@@ -1241,9 +1052,7 @@ HRESULT WINAPI BaseDirect3DDevice9::SetVertexShaderConstantI(UINT StartRegister,
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::GetVertexShaderConstantI(UINT StartRegister,int* pConstantData,UINT Vector4iCount)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "GetVertexShaderConstantI" << std::endl;
-#endif
+	LOG_CALL("GetVertexShaderConstantI");
 
 	return m_pDevice->GetVertexShaderConstantI(StartRegister, pConstantData, Vector4iCount);
 }
@@ -1253,9 +1062,7 @@ HRESULT WINAPI BaseDirect3DDevice9::GetVertexShaderConstantI(UINT StartRegister,
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::SetVertexShaderConstantB(UINT StartRegister,CONST BOOL* pConstantData,UINT  BoolCount)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "SetVertexShaderConstantB" << std::endl;
-#endif
+	LOG_CALL("SetVertexShaderConstantB");
 
 	return m_pDevice->SetVertexShaderConstantB(StartRegister, pConstantData, BoolCount);
 }
@@ -1265,9 +1072,7 @@ HRESULT WINAPI BaseDirect3DDevice9::SetVertexShaderConstantB(UINT StartRegister,
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::GetVertexShaderConstantB(UINT StartRegister,BOOL* pConstantData,UINT BoolCount)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "GetVertexShaderConstantB" << std::endl;
-#endif
+	LOG_CALL("GetVertexShaderConstantB");
 
 	return m_pDevice->GetVertexShaderConstantB(StartRegister, pConstantData, BoolCount);
 }
@@ -1277,9 +1082,7 @@ HRESULT WINAPI BaseDirect3DDevice9::GetVertexShaderConstantB(UINT StartRegister,
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::SetStreamSource(UINT StreamNumber,IDirect3DVertexBuffer9* pStreamData,UINT OffsetInBytes,UINT Stride)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "SetStreamSource" << std::endl;
-#endif
+	LOG_CALL("SetStreamSource");
 
 	return m_pDevice->SetStreamSource(StreamNumber, pStreamData, OffsetInBytes, Stride);
 }
@@ -1289,9 +1092,7 @@ HRESULT WINAPI BaseDirect3DDevice9::SetStreamSource(UINT StreamNumber,IDirect3DV
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::GetStreamSource(UINT StreamNumber,IDirect3DVertexBuffer9** ppStreamData,UINT* pOffsetInBytes,UINT* pStride)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "GetStreamSource" << std::endl;
-#endif
+	LOG_CALL("GetStreamSource");
 
 	return m_pDevice->GetStreamSource(StreamNumber, ppStreamData, pOffsetInBytes, pStride);
 }
@@ -1301,9 +1102,7 @@ HRESULT WINAPI BaseDirect3DDevice9::GetStreamSource(UINT StreamNumber,IDirect3DV
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::SetStreamSourceFreq(UINT StreamNumber,UINT Setting)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "SetStreamSourceFreq" << std::endl;
-#endif
+	LOG_CALL("SetStreamSourceFreq");
 
 	return m_pDevice->SetStreamSourceFreq(StreamNumber, Setting);
 }
@@ -1313,9 +1112,7 @@ HRESULT WINAPI BaseDirect3DDevice9::SetStreamSourceFreq(UINT StreamNumber,UINT S
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::GetStreamSourceFreq(UINT StreamNumber,UINT* pSetting)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "GetStreamSourceFreq" << std::endl;
-#endif
+	LOG_CALL("GetStreamSourceFreq");
 
 	return m_pDevice->GetStreamSourceFreq(StreamNumber, pSetting);
 }
@@ -1325,9 +1122,7 @@ HRESULT WINAPI BaseDirect3DDevice9::GetStreamSourceFreq(UINT StreamNumber,UINT* 
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::SetIndices(IDirect3DIndexBuffer9* pIndexData)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "SetIndices" << std::endl;
-#endif
+	LOG_CALL("SetIndices");
 
 	return m_pDevice->SetIndices(pIndexData);
 }
@@ -1337,9 +1132,7 @@ HRESULT WINAPI BaseDirect3DDevice9::SetIndices(IDirect3DIndexBuffer9* pIndexData
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::GetIndices(IDirect3DIndexBuffer9** ppIndexData)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "GetIndices" << std::endl;
-#endif
+	LOG_CALL("GetIndices");
 
 	return m_pDevice->GetIndices(ppIndexData);
 }
@@ -1349,9 +1142,7 @@ HRESULT WINAPI BaseDirect3DDevice9::GetIndices(IDirect3DIndexBuffer9** ppIndexDa
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::CreatePixelShader(CONST DWORD* pFunction,IDirect3DPixelShader9** ppShader)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "CreatePixelShader" << std::endl;
-#endif
+	LOG_CALL("CreatePixelShader");
 
 	return m_pDevice->CreatePixelShader(pFunction, ppShader);
 }
@@ -1361,9 +1152,7 @@ HRESULT WINAPI BaseDirect3DDevice9::CreatePixelShader(CONST DWORD* pFunction,IDi
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::SetPixelShader(IDirect3DPixelShader9* pShader)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "SetPixelShader" << std::endl;
-#endif
+	LOG_CALL("SetPixelShader");
 
 	return m_pDevice->SetPixelShader(pShader);
 }
@@ -1373,9 +1162,7 @@ HRESULT WINAPI BaseDirect3DDevice9::SetPixelShader(IDirect3DPixelShader9* pShade
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::GetPixelShader(IDirect3DPixelShader9** ppShader)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "GetPixelShader" << std::endl;
-#endif
+	LOG_CALL("GetPixelShader");
 
 	return m_pDevice->GetPixelShader(ppShader);
 }
@@ -1385,9 +1172,7 @@ HRESULT WINAPI BaseDirect3DDevice9::GetPixelShader(IDirect3DPixelShader9** ppSha
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::SetPixelShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "SetPixelShaderConstantF" << std::endl;
-#endif
+	LOG_CALL("SetPixelShaderConstantF");
 
 	return m_pDevice->SetPixelShaderConstantF(StartRegister, pConstantData, Vector4fCount);
 }
@@ -1397,9 +1182,7 @@ HRESULT WINAPI BaseDirect3DDevice9::SetPixelShaderConstantF(UINT StartRegister,C
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::GetPixelShaderConstantF(UINT StartRegister,float* pConstantData,UINT Vector4fCount)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "GetPixelShaderConstantF" << std::endl;
-#endif
+	LOG_CALL("GetPixelShaderConstantF");
 
 	return m_pDevice->GetPixelShaderConstantF(StartRegister, pConstantData, Vector4fCount);
 }
@@ -1409,9 +1192,7 @@ HRESULT WINAPI BaseDirect3DDevice9::GetPixelShaderConstantF(UINT StartRegister,f
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::SetPixelShaderConstantI(UINT StartRegister,CONST int* pConstantData,UINT Vector4iCount)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "SetPixelShaderConstantI" << std::endl;
-#endif
+	LOG_CALL("SetPixelShaderConstantI");
 
 	return m_pDevice->SetPixelShaderConstantI(StartRegister, pConstantData, Vector4iCount);
 }
@@ -1421,9 +1202,7 @@ HRESULT WINAPI BaseDirect3DDevice9::SetPixelShaderConstantI(UINT StartRegister,C
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::GetPixelShaderConstantI(UINT StartRegister,int* pConstantData,UINT Vector4iCount)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "GetPixelShaderConstantI" << std::endl;
-#endif
+	LOG_CALL("GetPixelShaderConstantI");
 
 	return m_pDevice->GetPixelShaderConstantI(StartRegister, pConstantData, Vector4iCount);
 }
@@ -1433,9 +1212,7 @@ HRESULT WINAPI BaseDirect3DDevice9::GetPixelShaderConstantI(UINT StartRegister,i
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::SetPixelShaderConstantB(UINT StartRegister,CONST BOOL* pConstantData,UINT  BoolCount)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "SetPixelShaderConstantB" << std::endl;
-#endif
+	LOG_CALL("SetPixelShaderConstantB");
 
 	return m_pDevice->SetPixelShaderConstantB(StartRegister, pConstantData, BoolCount);
 }
@@ -1445,9 +1222,7 @@ HRESULT WINAPI BaseDirect3DDevice9::SetPixelShaderConstantB(UINT StartRegister,C
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::GetPixelShaderConstantB(UINT StartRegister,BOOL* pConstantData,UINT BoolCount)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "GetPixelShaderConstantB" << std::endl;
-#endif
+	LOG_CALL("GetPixelShaderConstantB");
 
 	return m_pDevice->GetPixelShaderConstantB(StartRegister, pConstantData, BoolCount);
 }
@@ -1457,10 +1232,7 @@ HRESULT WINAPI BaseDirect3DDevice9::GetPixelShaderConstantB(UINT StartRegister,B
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::DrawRectPatch(UINT Handle,CONST float* pNumSegs,CONST D3DRECTPATCH_INFO* pRectPatchInfo)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "DrawRectPatch" << std::endl;
-
-#endif
+	LOG_CALL("DrawRectPatch");
 	return m_pDevice->DrawRectPatch(Handle, pNumSegs, pRectPatchInfo);
 }
 
@@ -1469,9 +1241,7 @@ HRESULT WINAPI BaseDirect3DDevice9::DrawRectPatch(UINT Handle,CONST float* pNumS
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::DrawTriPatch(UINT Handle,CONST float* pNumSegs,CONST D3DTRIPATCH_INFO* pTriPatchInfo)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "DrawTriPatch" << std::endl;
-#endif
+	LOG_CALL("DrawTriPatch");
 
 	return m_pDevice->DrawTriPatch(Handle, pNumSegs, pTriPatchInfo);
 }
@@ -1481,9 +1251,7 @@ HRESULT WINAPI BaseDirect3DDevice9::DrawTriPatch(UINT Handle,CONST float* pNumSe
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::DeletePatch(UINT Handle)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "DeletePatch" << std::endl;
-#endif
+	LOG_CALL("DeletePatch");
 
 	return m_pDevice->DeletePatch(Handle);
 }
@@ -1493,9 +1261,7 @@ HRESULT WINAPI BaseDirect3DDevice9::DeletePatch(UINT Handle)
 ***/
 HRESULT WINAPI BaseDirect3DDevice9::CreateQuery(D3DQUERYTYPE Type,IDirect3DQuery9** ppQuery)
 {
-#ifdef _EXPORT_LOGFILE
-	m_logFile << "CreateQuery" << std::endl;
-#endif
+	LOG_CALL("CreateQuery");
 
 	return m_pDevice->CreateQuery(Type, ppQuery);
 }

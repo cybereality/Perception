@@ -34,6 +34,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "StereoViewFactory.h"
 #include "MotionTrackerFactory.h"
 #include "HMDisplayInfoFactory.h"
+#include "VireioUtil.h"
 #include <typeinfo>
 #include <assert.h>
 #include <comdef.h>
@@ -55,8 +56,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define PI 3.141592654
 #define RADIANS_TO_DEGREES(rad) ((float) rad * (float) (180.0 / PI))
 
-#define OUTPUT_HRESULT(hr) { _com_error err(hr); LPCTSTR errMsg = err.ErrorMessage(); OutputDebugString(errMsg); }
-
 #define MAX_PIXEL_SHADER_CONST_2_0 32
 #define MAX_PIXEL_SHADER_CONST_2_X 32
 #define MAX_PIXEL_SHADER_CONST_3_0 224
@@ -64,96 +63,32 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 using namespace VRBoost;
 using namespace vireio;
 
-/**
-* Returns the mouse wheel scroll lines.
-***/
-UINT GetMouseScrollLines()
-{
-	SHOW_CALL("GetMouseScrollLines");
-	
-	int nScrollLines = 3;
-	HKEY hKey;
-
-	if (RegOpenKeyEx(HKEY_CURRENT_USER,  _T("Control Panel\\Desktop"),
-		0, KEY_QUERY_VALUE, &hKey) == ERROR_SUCCESS)
-	{
-		TCHAR szData[128];
-		DWORD dwKeyDataType;
-		DWORD dwDataBufSize = sizeof(szData);
-
-		if (RegQueryValueEx(hKey, _T("WheelScrollLines"), NULL, &dwKeyDataType,
-			(LPBYTE) &szData, &dwDataBufSize) == ERROR_SUCCESS)
-		{
-			nScrollLines = _tcstoul(szData, NULL, 10);
-		}
-
-		RegCloseKey(hKey);
-	}
-
-	return nScrollLines;
-}
 
 std::string VRboostAxisString(UINT axis)
 {
 	switch (axis)
 	{
-	case VRboostAxis::TrackerYaw:
-		return "Yaw";
-		break;
-	case VRboostAxis::TrackerYaw2:
-		return "Yaw2";
-		break;
-	case VRboostAxis::TrackerPitch:
-		return "Pitch";
-		break;
-	case VRboostAxis::TrackerRoll:
-		return "Roll";
-		break;
-	case VRboostAxis::Zero:
-		return "Zero";
-		break;
-	case VRboostAxis::One:
-		return "One";
-		break;
-	case VRboostAxis::WorldFOV:
-		return "WorldFOV";
-		break;
-	case VRboostAxis::PlayerFOV:
-		return "PlayerFOV";
-		break;
-	case VRboostAxis::FarPlaneFOV:
-		return "FarPlaneFOV";
-		break;
-	case VRboostAxis::CameraTranslateX:
-		return "CameraTranslateX";
-		break;
-	case VRboostAxis::CameraTranslateY:
-		return "CameraTranslateY";
-		break;
-	case VRboostAxis::CameraTranslateZ:
-		return "CameraTranslateZ";
-		break;
-	case VRboostAxis::CameraDistance:
-		return "CameraDistance";
-		break;
-	case VRboostAxis::CameraZoom:
-		return "CameraZoom";
-		break;
-	case VRboostAxis::CameraHorizonAdjustment:
-		return "CameraHorizonAdjustment";
-		break;
-	case VRboostAxis::ConstantValue1:
-		return "ConstantValue1";
-		break;
-	case VRboostAxis::ConstantValue2:
-		return "ConstantValue2";
-		break;
-	case VRboostAxis::ConstantValue3:
-		return "ConstantValue3";
-		break;
+	case VRboostAxis::TrackerYaw:       return "Yaw";
+	case VRboostAxis::TrackerYaw2:      return "Yaw2";
+	case VRboostAxis::TrackerPitch:     return "Pitch";
+	case VRboostAxis::TrackerRoll:      return "Roll";
+	case VRboostAxis::Zero:             return "Zero";
+	case VRboostAxis::One:              return "One";
+	case VRboostAxis::WorldFOV:         return "WorldFOV";
+	case VRboostAxis::PlayerFOV:        return "PlayerFOV";
+	case VRboostAxis::FarPlaneFOV:      return "FarPlaneFOV";
+	case VRboostAxis::CameraTranslateX: return "CameraTranslateX";
+	case VRboostAxis::CameraTranslateY: return "CameraTranslateY";
+	case VRboostAxis::CameraTranslateZ: return "CameraTranslateZ";
+	case VRboostAxis::CameraDistance:   return "CameraDistance";
+	case VRboostAxis::CameraZoom:       return "CameraZoom";
+	case VRboostAxis::CameraHorizonAdjustment: return "CameraHorizonAdjustment";
+	case VRboostAxis::ConstantValue1:   return "ConstantValue1";
+	case VRboostAxis::ConstantValue2:   return "ConstantValue2";
+	case VRboostAxis::ConstantValue3:   return "ConstantValue3";
+	default:
+		return "UnknownAxis";
 	}
-
-	return "UnknownAxis";
 }
 
 /**
@@ -462,7 +397,7 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 		LONG openRes = RegOpenKeyEx(HKEY_CURRENT_USER, "SOFTWARE\\Vireio\\Perception", 0, KEY_ALL_ACCESS , &hKey);
 		if (openRes==ERROR_SUCCESS)
 		{
-			RegSetValueEx(hKey, "FPS", 0, REG_SZ, fpsString.c_str(), fpsString.length()+1);
+			RegSetValueEx(hKey, "FPS", 0, REG_SZ, (LPBYTE)fpsString.c_str(), fpsString.length()+1);
 			RegCloseKey(hKey);
 		}
 	}
@@ -1183,7 +1118,6 @@ HRESULT WINAPI D3DProxyDevice::Clear(DWORD Count,CONST D3DRECT* pRects,DWORD Fla
 	return result;
 }
 
- 
 
 /**
 * Catches transform for stored proxy state block accordingly or updates proxy device.
@@ -1227,12 +1161,8 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 		// If capturing state block capture without updating proxy device
 		if (m_pCapturingStateTo) {
 			m_pCapturingStateTo->SelectAndCaptureViewTransform(tempLeft, tempRight);
-			if (m_currentRenderingSide == vireio::Left) {
-				pViewToSet = &tempLeft;
-			}
-			else {
-				pViewToSet = &tempRight;
-			}
+			pViewToSet = (m_currentRenderingSide == vireio::Left)
+				? &tempLeft : &tempRight;
 		}
 		else { // otherwise update proxy device
 
@@ -1240,33 +1170,28 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 			m_leftView = tempLeft;
 			m_rightView = tempRight;
 
-			if (m_currentRenderingSide == vireio::Left) {
-				m_pCurrentView = &m_leftView;
-			}
-			else {
-				m_pCurrentView = &m_rightView;
-			}
+			m_pCurrentView = (m_currentRenderingSide == vireio::Left)
+				? &m_leftView : &m_rightView;
 
 			pViewToSet = m_pCurrentView;
 		}
 
 		return BaseDirect3DDevice9::SetTransform(State, pViewToSet);
-
 	}
 	else if(State == D3DTS_PROJECTION)
 	{
-
 		D3DXMATRIX tempLeft;
 		D3DXMATRIX tempRight;
 		D3DXMATRIX* pProjectionToSet = NULL;
 		bool tempIsTransformSet = false;
 
-		if (!pMatrix) {
-
+		if (!pMatrix)
+		{
 			D3DXMatrixIdentity(&tempLeft);
 			D3DXMatrixIdentity(&tempRight);
 		}
-		else {
+		else
+		{
 			D3DXMATRIX sourceMatrix(*pMatrix);
 
 			// world scale mode ? in case, add all possible actual game x scale units
@@ -1290,25 +1215,20 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 				D3DXMatrixIdentity(&tempLeft);
 				D3DXMatrixIdentity(&tempRight);
 			}
-			else {
-
+			else
+			{
 				tempLeft = sourceMatrix;
 				tempRight = sourceMatrix;
 
 				tempIsTransformSet = true;
-			}			
+			}
 		}
 
 		// If capturing state block capture without updating proxy device
 		if (m_pCapturingStateTo) {
 
 			m_pCapturingStateTo->SelectAndCaptureProjectionTransform(tempLeft, tempRight);
-			if (m_currentRenderingSide == vireio::Left) {
-				pProjectionToSet = &tempLeft;
-			}
-			else {
-				pProjectionToSet = &tempRight;
-			}
+			pProjectionToSet = (m_currentRenderingSide == vireio::Left) ? &tempRight : &tempRight;
 		}
 		else { // otherwise update proxy device
 
@@ -1316,20 +1236,19 @@ HRESULT WINAPI D3DProxyDevice::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D
 			m_leftProjection = tempLeft;
 			m_rightProjection = tempRight;
 
-			if (m_currentRenderingSide == vireio::Left) {
-				m_pCurrentProjection = &m_leftProjection;
-			}
-			else {
-				m_pCurrentProjection = &m_rightProjection;
-			}
+			m_pCurrentProjection = (m_currentRenderingSide == vireio::Left)
+				? &m_leftProjection
+				: &m_rightProjection;
 
 			pProjectionToSet = m_pCurrentProjection;
 		}
 
 		return BaseDirect3DDevice9::SetTransform(State, pProjectionToSet);
 	}
-
-	return BaseDirect3DDevice9::SetTransform(State, pMatrix);
+	else
+	{
+		return BaseDirect3DDevice9::SetTransform(State, pMatrix);
+	}
 }
 
 /**
@@ -1372,7 +1291,6 @@ HRESULT WINAPI D3DProxyDevice::SetViewport(CONST D3DVIEWPORT9* pViewport)
 		}
 	}
 
-	
 	if (m_bViewportIsSquished)
 		SetGUIViewport();
 	
@@ -1735,7 +1653,7 @@ HRESULT WINAPI D3DProxyDevice::CreateVertexShader(CONST DWORD* pFunction,IDirect
 		ID3DXBuffer *pBuffer = NULL;
 		ProxyHelper ph;
 		std::string shaderCodeFilename = ph.GetBaseDir() + std::string("shader_replacements\\") + shaderReplacementCode;
-		OutputDebugString(("ReplaceShaderCode: " + shaderCodeFilename).c_str());
+		debugf("ReplaceShaderCode: %s", shaderCodeFilename.c_str());
 		HRESULT hr = D3DXAssembleShaderFromFile(shaderCodeFilename.c_str(), NULL, NULL, 0, &pBuffer, NULL);
 		if (FAILED(hr))
 		{
@@ -3163,10 +3081,8 @@ bool D3DProxyDevice::setDrawingSide(vireio::RenderPosition side)
 
 			// if stereo texture
 			if (pActualRightTexture != NULL) { 
-				if (side == vireio::Left) 
-					result = BaseDirect3DDevice9::SetTexture(it->first, pActualLeftTexture); 
-				else 
-					result = BaseDirect3DDevice9::SetTexture(it->first, pActualRightTexture);
+				result = BaseDirect3DDevice9::SetTexture(it->first,
+					(side == vireio::Left) ? pActualLeftTexture : pActualRightTexture);
 			}
 			// else the texture is mono and doesn't need changing. It will always be set initially and then won't need changing
 
@@ -3176,28 +3092,16 @@ bool D3DProxyDevice::setDrawingSide(vireio::RenderPosition side)
 	}
 
 	// update view transform for new side 
-	if (m_bViewTransformSet) {
-
-		if (side == vireio::Left) {
-			m_pCurrentView = &m_leftView;
-		}
-		else {
-			m_pCurrentView = &m_rightView;
-		}
-
+	if (m_bViewTransformSet)
+	{
+		m_pCurrentView = (side == vireio::Left) ? &m_leftView : &m_rightView;
 		BaseDirect3DDevice9::SetTransform(D3DTS_VIEW, m_pCurrentView);
 	}
 
 	// update projection transform for new side 
-	if (m_bProjectionTransformSet) {
-
-		if (side == vireio::Left) {
-			m_pCurrentProjection = &m_leftProjection;
-		}
-		else {
-			m_pCurrentProjection = &m_rightProjection;
-		}
-
+	if (m_bProjectionTransformSet)
+	{
+		m_pCurrentProjection = (side == vireio::Left) ? &m_leftProjection : &m_rightProjection;
 		BaseDirect3DDevice9::SetTransform(D3DTS_PROJECTION, m_pCurrentProjection);
 	}
 
@@ -3476,9 +3380,9 @@ void D3DProxyDevice::ReleaseEverything()
 		m_pActiveVertexDeclaration = NULL;
 	}
 }
+
 /**
 * Comparison made against active primary render target.
-*
 ***/
 bool D3DProxyDevice::isViewportDefaultForMainRT(CONST D3DVIEWPORT9* pViewport)
 {
@@ -3513,12 +3417,7 @@ HRESULT D3DProxyDevice::SetStereoViewTransform(D3DXMATRIX pLeftMatrix, D3DXMATRI
 	m_leftView = pLeftMatrix;
 	m_rightView = pRightMatrix;
 
-	if (m_currentRenderingSide == vireio::Left) {
-		m_pCurrentView = &m_leftView;
-	}
-	else {
-		m_pCurrentView = &m_rightView;
-	}
+	m_pCurrentView = (m_currentRenderingSide == vireio::Left) ? &m_leftView : &m_rightView;
 
 	if (apply)
 		return BaseDirect3DDevice9::SetTransform(D3DTS_VIEW, m_pCurrentView);
@@ -3547,12 +3446,7 @@ HRESULT D3DProxyDevice::SetStereoProjectionTransform(D3DXMATRIX pLeftMatrix, D3D
 	m_leftProjection = pLeftMatrix;
 	m_rightProjection = pRightMatrix;
 
-	if (m_currentRenderingSide == vireio::Left) {
-		m_pCurrentProjection = &m_leftProjection;
-	}
-	else {
-		m_pCurrentProjection = &m_rightProjection;
-	}
+	m_pCurrentProjection = (m_currentRenderingSide == vireio::Left) ? &m_leftProjection : &m_rightProjection;
 
 	if (apply)
 		return BaseDirect3DDevice9::SetTransform(D3DTS_PROJECTION, m_pCurrentProjection);
@@ -3600,10 +3494,6 @@ void D3DProxyDevice::SetGUIViewport()
 	int originalY = (int)(vOut.y+centerY);
 	if(m_bfloatingMenu && (tracker->getStatus() >= MTS_OK))
 	{
-		/*char buf[64];
-		LPCSTR psz = NULL;
-		sprintf_s(buf, "yaw: %f, pitch: %f\n", tracker->primaryYaw, tracker->primaryPitch);
-		psz = buf;*/		
 		m_ViewportIfSquished.X = (int)(vOut.x+centerX-(((m_fFloatingYaw - tracker->primaryYaw) * floatMultiplier) * (180 / PI)));
 		m_ViewportIfSquished.Y = (int)(vOut.y+centerY-(((m_fFloatingPitch - tracker->primaryPitch) * floatMultiplier) * (180 / PI)));
 	}
@@ -3753,7 +3643,6 @@ bool D3DProxyDevice::InitTracker()
 
 	return false;
 }
-
 
 
 void D3DProxyDevice::DeferedSaveConfig()

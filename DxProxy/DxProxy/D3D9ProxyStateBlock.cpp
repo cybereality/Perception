@@ -197,18 +197,16 @@ HRESULT WINAPI D3D9ProxyStateBlock::Apply()
 		// when the sides are mixed, so we use the normal Set methods in that case.)
 
 		// Apply non-indexed states
-		auto itSelected = m_selectedStates.begin();
-		while (itSelected != m_selectedStates.end()) {
+		for(auto itSelected = m_selectedStates.begin(); itSelected != m_selectedStates.end(); ++itSelected)
+		{
 			Apply(*itSelected, reApplyStereo);
-			++itSelected;
 		}
 
 
 
 		// Apply non-stereo indexed states
-		auto itVertexBuffer = m_storedVertexBuffers.begin();
-		while (itVertexBuffer != m_storedVertexBuffers.end()) {
-
+		for (auto itVertexBuffer = m_storedVertexBuffers.begin(); itVertexBuffer != m_storedVertexBuffers.end(); ++itVertexBuffer)
+		{
 			// Remove and Release existing buffer in proxy device
 			if (m_pWrappedDevice->m_activeVertexBuffers.count(itVertexBuffer->first) == 1) {
 
@@ -224,8 +222,6 @@ HRESULT WINAPI D3D9ProxyStateBlock::Apply()
 			if (inserted.second && inserted.first->second) {
 				inserted.first->second->AddRef();
 			}
-
-			++itVertexBuffer;
 		}
 
 
@@ -267,11 +263,9 @@ HRESULT WINAPI D3D9ProxyStateBlock::Apply()
 		if (reApplyStereo) {
 
 			// Textures
-			auto itTextures = m_storedTextureStages.begin();
-			while (itTextures != m_storedTextureStages.end()) {
-
+			for (auto itTextures = m_storedTextureStages.begin(); itTextures != m_storedTextureStages.end(); ++itTextures)
+			{
 				m_pWrappedDevice->SetTexture(itTextures->first, itTextures->second);
-				++itTextures;
 			}
 		}
 		// Update the internal state of the proxy device for the above indexed stereo states without applying to the actual device (actual stateblock will
@@ -279,8 +273,8 @@ HRESULT WINAPI D3D9ProxyStateBlock::Apply()
 		else {
 
 			// Textures 
-			auto itTextures = m_storedTextureStages.begin();
-			while (itTextures != m_storedTextureStages.end()) {
+			for (auto itTextures = m_storedTextureStages.begin(); itTextures != m_storedTextureStages.end(); ++itTextures)
+			{
 
 				// Remove and Release existing active texture in proxy device
 				if (m_pWrappedDevice->m_activeTextureStages.count(itTextures->first) == 1) {
@@ -298,7 +292,6 @@ HRESULT WINAPI D3D9ProxyStateBlock::Apply()
 					inserted.first->second->AddRef();
 				}
 
-				++itTextures;
 			}
 		}
 	}
@@ -626,10 +619,9 @@ void D3D9ProxyStateBlock::CaptureSelectedFromProxyDevice()
 
 
 	// 'Copy' (actually just keeping a reference) all selected (non-indexed) states to ProxyStateBlock from ProxyDevice
-	auto itSelected = m_selectedStates.begin();
-	while (itSelected != m_selectedStates.end()) {
+	for (auto itSelected = m_selectedStates.begin(); itSelected != m_selectedStates.end(); ++itSelected)
+	{
 		Capture(*itSelected);
-		++itSelected;
 	}
 
 	// Copy indexed states
@@ -644,12 +636,11 @@ void D3D9ProxyStateBlock::CaptureSelectedFromProxyDevice()
 			// TODO Do we need to copy Textures rather than just keeping reference. Textures could be changed (have new data stretched/copied into them) 
 			// TODO Check actual behaviour of state block. Is it saving a reference to the texture or a copy of the texture??
 			// Need to increase ref count on all copied textures
-			auto itTextures = m_storedTextureStages.begin();
-			while (itTextures != m_storedTextureStages.end()) {
+			for(auto itTextures = m_storedTextureStages.begin(); itTextures != m_storedTextureStages.end(); ++itTextures)
+			{
 				if (itTextures->second != NULL) {
 					itTextures->second->AddRef();
 				}
-				++itTextures;
 			}
 
 
@@ -658,12 +649,11 @@ void D3D9ProxyStateBlock::CaptureSelectedFromProxyDevice()
 
 			// TODO same question as for Textures above
 			// Need to increase ref count on all copied vbs
-			auto itVB = m_storedVertexBuffers.begin();
-			while (itVB != m_storedVertexBuffers.end()) {
+			for (auto itVB = m_storedVertexBuffers.begin(); itVB != m_storedVertexBuffers.end(); ++itVB)
+			{
 				if (itVB->second != NULL) {
 					itVB->second->AddRef();
 				}
-				++itVB;
 			}
 
 
@@ -693,9 +683,8 @@ void D3D9ProxyStateBlock::CaptureSelectedFromProxyDevice()
 		{
 			// if selected - iterate m_selectedTextureSamplers, m_selectedVertexStreams and m_selectedVertexConstantRegistersF and copy as selected.
 
-			auto itSelectedTextures = m_selectedTextureSamplers.begin();
-			while (itSelectedTextures != m_selectedTextureSamplers.end()) {
-
+			for (auto itSelectedTextures = m_selectedTextureSamplers.begin(); itSelectedTextures != m_selectedTextureSamplers.end(); ++itSelectedTextures)
+			{
 				if (m_pWrappedDevice->m_activeTextureStages.count(*itSelectedTextures) == 1) {
 
 					auto inserted = m_storedTextureStages.insert(std::pair<DWORD, IDirect3DBaseTexture9*>(*itSelectedTextures, m_pWrappedDevice->m_activeTextureStages[*itSelectedTextures]));
@@ -708,14 +697,11 @@ void D3D9ProxyStateBlock::CaptureSelectedFromProxyDevice()
 						//TODO aaaaa why does this get spammed
 					}
 				}
-
-				++itSelectedTextures;
 			}
 
 
-			auto itSelectedVertexStreams = m_selectedVertexStreams.begin();
-			while (itSelectedVertexStreams != m_selectedVertexStreams.end()) {
-
+			for (auto itSelectedVertexStreams = m_selectedVertexStreams.begin(); itSelectedVertexStreams != m_selectedVertexStreams.end(); ++itSelectedVertexStreams)
+			{
 				if (m_pWrappedDevice->m_activeVertexBuffers.count(*itSelectedVertexStreams) == 1) {
 
 					auto inserted = m_storedVertexBuffers.insert(std::pair<UINT, BaseDirect3DVertexBuffer9*>(*itSelectedVertexStreams, m_pWrappedDevice->m_activeVertexBuffers[*itSelectedVertexStreams]));
@@ -728,33 +714,27 @@ void D3D9ProxyStateBlock::CaptureSelectedFromProxyDevice()
 						//OutputDebugString("Vertex buffer capture to StateBlock failed");
 					}
 				}
-
-				++itSelectedVertexStreams;
 			}
 
 
 
 			// Vertex Shader constants
 			float currentRegister [4];
-			auto itSelectedVertexConstants = m_selectedVertexConstantRegistersF.begin();
-			while (itSelectedVertexConstants != m_selectedVertexConstantRegistersF.end()) {
-
+			for (auto itSelectedVertexConstants = m_selectedVertexConstantRegistersF.begin(); itSelectedVertexConstants != m_selectedVertexConstantRegistersF.end(); ++itSelectedVertexConstants)
+			{
 				m_pWrappedDevice->m_spManagedShaderRegisters->GetVertexShaderConstantF(*itSelectedVertexConstants, currentRegister, 1);
 
 				m_storedSelectedVSRegistersF.insert(std::pair<UINT, D3DXVECTOR4>(*itSelectedVertexConstants, currentRegister));
 
-				++itSelectedVertexConstants;
 			}
 
 			// Pixel Shader constants
-			auto itSelectedPixelConstants = m_selectedPixelConstantRegistersF.begin();
-			while (itSelectedPixelConstants != m_selectedPixelConstantRegistersF.end()) {
-
+			for (auto itSelectedPixelConstants = m_selectedPixelConstantRegistersF.begin(); itSelectedPixelConstants != m_selectedPixelConstantRegistersF.end(); ++itSelectedPixelConstants)
+			{
 				m_pWrappedDevice->m_spManagedShaderRegisters->GetPixelShaderConstantF(*itSelectedPixelConstants, currentRegister, 1);
 
 				m_storedSelectedPSRegistersF.insert(std::pair<UINT, D3DXVECTOR4>(*itSelectedPixelConstants, currentRegister));
 
-				++itSelectedPixelConstants;
 			}
 
 			break;
@@ -857,19 +837,17 @@ void D3D9ProxyStateBlock::Capture(CaptureableState toCap)
 ***/
 void D3D9ProxyStateBlock::ClearCapturedData()
 {
-	auto it = m_storedTextureStages.begin();
-	while (it != m_storedTextureStages.end()) {
+	for (auto it = m_storedTextureStages.begin(); it != m_storedTextureStages.end(); ++it)
+	{
 		if (it->second)
 			it->second->Release();
-		++it;
 	}
 	m_storedTextureStages.clear();
 
-	auto it2 = m_storedVertexBuffers.begin();
-	while (it2 != m_storedVertexBuffers.end()) {
+	for (auto it2 = m_storedVertexBuffers.begin(); it2 != m_storedVertexBuffers.end(); ++it2)
+	{
 		if (it2->second)
 			it2->second->Release();
-		++it2;
 	}
 	m_storedVertexBuffers.clear();
 

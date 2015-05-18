@@ -225,9 +225,10 @@ void ShaderRegisters::SetFromStateBlockPixelShader(D3D9ProxyPixelShader* storedP
 void ShaderRegisters::SetFromStateBlockData(std::map<UINT, D3DXVECTOR4> * storedVSRegisters, std::map<UINT, D3DXVECTOR4> * storedPSRegisters)
 {
 	// vertex shader registers
-	auto itNewRegsVS = storedVSRegisters->begin();
-	while (itNewRegsVS != storedVSRegisters->end()) {
-
+	for (auto itNewRegsVS = storedVSRegisters->begin();
+	     itNewRegsVS != storedVSRegisters->end();
+	     ++itNewRegsVS)
+	{
 		if ((RegisterIndex(itNewRegsVS->first) + VECTOR_LENGTH) >= m_vsRegistersF.size())
 			throw std::out_of_range("Register from stateblock is out of range, implosion imminent");
 
@@ -241,15 +242,15 @@ void ShaderRegisters::SetFromStateBlockData(std::map<UINT, D3DXVECTOR4> * stored
 
 		// register is clean (now matches device state - unless it's stereo in which case it might not, that is handled at the end)
 		dirtyVSRegisters.MarkClean(itNewRegsVS->first);
-		++itNewRegsVS;
 	}
 
 	MarkAllVSStereoConstantsDirty();
 
 	// pixel shader registers
-	auto itNewRegsPS = storedPSRegisters->begin();
-	while (itNewRegsPS != storedPSRegisters->end()) {
-
+	for (auto itNewRegsPS = storedPSRegisters->begin();
+	    itNewRegsPS != storedPSRegisters->end();
+	    ++itNewRegsPS)
+	{
 		if ((RegisterIndex(itNewRegsPS->first) + VECTOR_LENGTH) >= m_psRegistersF.size())
 			throw std::out_of_range("Register from stateblock is out of range, implosion imminent");
 
@@ -262,7 +263,6 @@ void ShaderRegisters::SetFromStateBlockData(std::map<UINT, D3DXVECTOR4> * stored
 
 		// register is clean (now matches device state - unless it's stereo in which case it might not, that is handled at the end)
 		dirtyPSRegisters.MarkClean(itNewRegsPS->first);
-		++itNewRegsPS;
 	}
 
 	MarkAllPSStereoConstantsDirty();
@@ -394,9 +394,10 @@ void ShaderRegisters::ActiveVertexShaderChanged(D3D9ProxyVertexShader* pNewVerte
 			pOldShaderModConstants = m_pActiveVertexShader->ModifiedConstants();
 
 		// Update the data in new shader constants with data from matching constants from last shader.
-		auto itNewConstants = pNewShaderModConstants->begin();
-		while (itNewConstants != pNewShaderModConstants->end()) {
-
+		for (auto itNewConstants = pNewShaderModConstants->begin();
+		    itNewConstants != pNewShaderModConstants->end();
+		    ++itNewConstants)
+		{
 			bool mightBeDirty = true;
 
 			if (pOldShaderModConstants) {
@@ -414,11 +415,7 @@ void ShaderRegisters::ActiveVertexShaderChanged(D3D9ProxyVertexShader* pNewVerte
 			if (mightBeDirty) {
 				dirtyVSRegisters.MarkDirty(itNewConstants->first);
 			}
-
-			++itNewConstants;
 		}
-
-
 	}
 
 	_SAFE_RELEASE(m_pActiveVertexShader);
@@ -446,9 +443,10 @@ void ShaderRegisters::ActivePixelShaderChanged(D3D9ProxyPixelShader* pNewPixelSh
 			pOldShaderModConstants = m_pActivePixelShader->ModifiedConstants();
 
 		// Update the data in new shader constants with data from matching constants from last shader.
-		auto itNewConstants = pNewShaderModConstants->begin();
-		while (itNewConstants != pNewShaderModConstants->end()) {
-
+		for (auto itNewConstants = pNewShaderModConstants->begin();
+		     itNewConstants != pNewShaderModConstants->end();
+			++itNewConstants)
+		{
 			bool mightBeDirty = true;
 
 			if (pOldShaderModConstants) {
@@ -466,11 +464,7 @@ void ShaderRegisters::ActivePixelShaderChanged(D3D9ProxyPixelShader* pNewPixelSh
 			if (mightBeDirty) {
 				dirtyPSRegisters.MarkDirty(itNewConstants->first);
 			}
-
-			++itNewConstants;
 		}
-
-
 	}
 
 	_SAFE_RELEASE(m_pActivePixelShader);
@@ -502,9 +496,10 @@ void ShaderRegisters::ApplyStereoConstantsVS(vireio::RenderPosition currentSide,
 	if (!m_pActiveVertexShader)
 		return;
 
-	auto itStereoConstant = m_pActiveVertexShader->ModifiedConstants()->begin();
-	while (itStereoConstant != m_pActiveVertexShader->ModifiedConstants()->end()) {
-
+	for (auto itStereoConstant = m_pActiveVertexShader->ModifiedConstants()->begin();
+	    itStereoConstant != m_pActiveVertexShader->ModifiedConstants()->end();
+		++itStereoConstant)
+	{
 		// if any of the registers that make up this constant are dirty update before setting
 		if (dirtyVSRegisters.AnyDirty(itStereoConstant->second.StartRegister(), itStereoConstant->second.Count()))
 		{
@@ -525,8 +520,6 @@ void ShaderRegisters::ApplyStereoConstantsVS(vireio::RenderPosition currentSide,
 			// Apply this constant to device
 			m_pActualDevice->SetVertexShaderConstantF(itStereoConstant->second.StartRegister(), (currentSide == vireio::Left) ? itStereoConstant->second.DataLeftPointer() : itStereoConstant->second.DataRightPointer(), itStereoConstant->second.Count());
 		}
-
-		++itStereoConstant;
 	}
 }
 
@@ -540,8 +533,10 @@ void ShaderRegisters::ApplyStereoConstantsPS(vireio::RenderPosition currentSide,
 	if (!m_pActivePixelShader)
 		return;
 
-	auto itStereoConstant = m_pActivePixelShader->ModifiedConstants()->begin();
-	while (itStereoConstant != m_pActivePixelShader->ModifiedConstants()->end()) {
+	for (auto itStereoConstant = m_pActivePixelShader->ModifiedConstants()->begin();
+	    itStereoConstant != m_pActivePixelShader->ModifiedConstants()->end();
+		++itStereoConstant)
+	{
 
 		// if any of the registers that make up this constant are dirty update before setting
 		if ( dirtyPSRegisters.AnyDirty(itStereoConstant->second.StartRegister(), itStereoConstant->second.Count()))
@@ -563,8 +558,6 @@ void ShaderRegisters::ApplyStereoConstantsPS(vireio::RenderPosition currentSide,
 			// Apply this constant to device
 			m_pActualDevice->SetPixelShaderConstantF(itStereoConstant->second.StartRegister(), (currentSide == vireio::Left) ? itStereoConstant->second.DataLeftPointer() : itStereoConstant->second.DataRightPointer(), itStereoConstant->second.Count());
 		}
-
-		++itStereoConstant;
 	}
 }
 
@@ -593,11 +586,11 @@ void ShaderRegisters::MarkAllPSStereoConstantsDirty()
 	// pixel shader
 	if (m_pActivePixelShader) {
 		// Mark all StereoShaderConstants dirty so they are updated before drawing
-		auto itStereoConstant = m_pActivePixelShader->ModifiedConstants()->begin();
-		while (itStereoConstant != m_pActivePixelShader->ModifiedConstants()->end()) {
-
+		for (auto itStereoConstant = m_pActivePixelShader->ModifiedConstants()->begin();
+		    itStereoConstant != m_pActivePixelShader->ModifiedConstants()->end();
+			++itStereoConstant)
+		{
 			dirtyPSRegisters.MarkDirty(itStereoConstant->first);
-			++itStereoConstant;
 		}
 	}
 }

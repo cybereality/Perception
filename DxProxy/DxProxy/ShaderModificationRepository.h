@@ -148,15 +148,13 @@ private:
 			{
 			case D3DXPARAMETER_CLASS::D3DXPC_MATRIX_COLUMNS:
 				return "MatrixC";
-				break;
 			case D3DXPARAMETER_CLASS::D3DXPC_MATRIX_ROWS:
 				return "MatrixR";
-				break;
 			case D3DXPARAMETER_CLASS::D3DXPC_VECTOR:
 				return "Vector";
-				break;
+			default:
+				return "Unknown";
 			}
-			return "Unknown";
 		}
 
 		/**

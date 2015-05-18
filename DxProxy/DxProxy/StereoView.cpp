@@ -496,11 +496,8 @@ void StereoView::InitTextureBuffers()
 	backBuffer->GetDesc(&pDesc);
 
 #ifdef _DEBUG
-	debugf("viewport width: %d",viewport.Width);
-	OutputDebugString("\n");
-
-	debugf("backbuffer width: %d",pDesc.Width);
-	OutputDebugString("\n");
+	debugf("viewport width: %d\n", viewport.Width);
+	debugf("backbuffer width: %d\n", pDesc.Width);
 #endif
 
 	m_pActualDevice->CreateTexture(pDesc.Width, pDesc.Height, 0, D3DUSAGE_RENDERTARGET, pDesc.Format, D3DPOOL_DEFAULT, &leftTexture, NULL);
