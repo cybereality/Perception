@@ -267,7 +267,8 @@ public:
 	{
 		GEOMETRY = 1,
 		ZBUFFER = 2,
-		MONOSCOPIC = 3
+		MONOSCOPIC = 3,
+		RECONSTRUCTION_ENUM_RANGE = 4
 	};
 
 	/**

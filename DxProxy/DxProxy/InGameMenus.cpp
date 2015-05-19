@@ -377,6 +377,17 @@ std::string DepthModeToString(D3DProxyDevice::GUI_3D_Depth_Modes mode)
 	}
 }
 
+std::string ReconstructionModeToString(D3DProxyDevice::Reconstruction_Type mode)
+{
+	switch(mode)
+	{
+		case D3DProxyDevice::MONOSCOPIC: return "Monoscopic";
+		case D3DProxyDevice::ZBUFFER:   return "Z-Buffer";
+		case D3DProxyDevice::GEOMETRY:   return "Geometry";		
+		default: return "???";
+	}
+}
+
 
 /**
 * Main Menu method.
@@ -618,10 +629,10 @@ void D3DProxyDevice::VPMENU_WorldScale()
 void D3DProxyDevice::VPMENU_3DReconstruction()
 {
 	SHOW_CALL("VPMENU_3DReconstruction");
-	//inWorldScaleMenu = true;
+	inWorldScaleMenu = true;
 	
 	// base values
-	/*static UINT gameXScaleUnitIndex = 0;
+	static UINT gameXScaleUnitIndex = 0;
 
 	// sort the game unit vector
 	std::sort (m_gameXScaleUnits.begin(), m_gameXScaleUnits.end());
@@ -642,27 +653,35 @@ void D3DProxyDevice::VPMENU_3DReconstruction()
 			if ((gameXScaleUnitIndex != 0) && (gameXScaleUnitIndex >= m_gameXScaleUnits.size()))
 				gameXScaleUnitIndex = m_gameXScaleUnits.size()-1;
 		}
-	}*/
+	}
 	
 	MenuBuilder *menu = VPMENU_NewFrame();
 	VPMENU_StartDrawing(menu, "Settings - 3D Reconstruction");
 	
-	menu->AddAdjustment("World Scale : %1.3f", &config.worldScaleFactor,
-		defaultConfig.worldScaleFactor, 0.001f, [=]()
+	menu->AddEnumPicker("3D Reconstruction Type : %s", (int*)&m_3DReconstructionMode,
+		Reconstruction_Type::RECONSTRUCTION_ENUM_RANGE, [](int val) {
+			return ReconstructionModeToString((Reconstruction_Type)val);
+		}, [=](int newValue) {
+			if(newValue == 0)
+				newValue = 1;
+			m_3DReconstructionMode = newValue;
+			stereoView->m_3DReconstructionMode = m_3DReconstructionMode;			
+		});
+
+	menu->AddAdjustment("Projected FOV : %1.1f", &config.PFOV,
+		defaultConfig.PFOV, 0.05f, [=]()
 	{
-		m_spShaderViewAdjustment->ChangeWorldScale(config.worldScaleFactor);
 		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, config.PFOV);		
 	});	
 	
-	menu->AddBackButtons();
-	VPMENU_FinishDrawing(menu);
-	/*
-	VPMENU_StartDrawing_NonMenu();	
-	
+	menu->AddAdjustment("World Scale : %1.3f", &config.worldScaleFactor,
+		defaultConfig.worldScaleFactor, 0.001f, [=]()
+	{
+		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, config.PFOV);		
+	});	
+
 	// Draw
 	// standard hud size, will be scaled later to actual viewport
-	int width = VPMENU_PIXEL_WIDTH;
-	int height = VPMENU_PIXEL_HEIGHT;
 	float gameUnit = config.worldScaleFactor;
 
 	// actual game unit chosen ... in case game has called SetTransform(>projection<);
@@ -678,8 +697,7 @@ void D3DProxyDevice::VPMENU_3DReconstruction()
 		// gameUnit = (driverWorldScale * driverXScale) /  gameXScale
 		gameUnit = (config.worldScaleFactor * driverXScale) / gameXScale;
 
-		DrawTextShadowed(width*0.45f, height*0.77f, retprintf("Actual Units %u/%u",
-			gameXScaleUnitIndex, m_gameXScaleUnits.size()));
+		menu->DrawItem(retprintf("Actual Units %u/%u",gameXScaleUnitIndex, m_gameXScaleUnits.size()).c_str(),D3DCOLOR_RGBA(255,255,255,255));
 	}
 
 	//Column 1:                        Column 2:
@@ -695,20 +713,22 @@ void D3DProxyDevice::VPMENU_3DReconstruction()
 	float gameUnitsToFoot = gameUnit / 3.2808399f;
 	float gameUnitsToInches = gameUnit / 39.3700787f;
 	
-
-	float unitsLeft = width*0.28f;
-	float unitsTop = height*0.6f;
-	float unitsSpacing = 35.0f;
-	DrawTextShadowed(unitsLeft, unitsTop,                 retprintf("1 Game Unit = %g Meters", meters).c_str());
-	DrawTextShadowed(unitsLeft, unitsTop+unitsSpacing*1,  retprintf("1 Game Unit = %g CM", centimeters));
-	DrawTextShadowed(unitsLeft, unitsTop+unitsSpacing*2,  retprintf("1 Game Unit = %g Feet", feet));
-	DrawTextShadowed(unitsLeft, unitsTop+unitsSpacing*3,  retprintf("1 Game Unit = %g In.", inches));
-
-	float unitsLeft2 = width*0.52f;
-	DrawTextShadowed(unitsLeft2, unitsTop, retprintf("1 Meter      = %g Game Units", gameUnit));
-	DrawTextShadowed(unitsLeft2, unitsTop+unitsSpacing*1, retprintf("1 CM         = %g Game Units", gameUnitsToCentimeter));
-	DrawTextShadowed(unitsLeft2, unitsTop+unitsSpacing*2, retprintf("1 Foot       = %g Game Units", gameUnitsToFoot));
-	DrawTextShadowed(unitsLeft2, unitsTop+unitsSpacing*3, retprintf("1 Inch       = %g Game Units", gameUnitsToInches));
+	menu->DrawItem(retprintf("1 Game Unit = %g Meters", meters).c_str(),D3DCOLOR_RGBA(255,255,255,255));
+	menu->DrawItem(retprintf("1 Game Unit = %g CM", centimeters).c_str(),D3DCOLOR_RGBA(255,255,255,255));
+	//menu->DrawItem(retprintf("1 Game Unit = %g Feet", feet).c_str(),D3DCOLOR_RGBA(255,255,255,255));
+	//menu->DrawItem(retprintf("1 Game Unit = %g In.", inches).c_str(),D3DCOLOR_RGBA(255,255,255,255));
+		 
+	menu->DrawItem(retprintf("1 Meter      = %g Game Units", gameUnit).c_str(),D3DCOLOR_RGBA(255,255,255,255));
+	menu->DrawItem(retprintf("1 CM         = %g Game Units", gameUnitsToCentimeter).c_str(),D3DCOLOR_RGBA(255,255,255,255));
+	//menu->DrawItem(retprintf("1 Foot       = %g Game Units", gameUnitsToFoot).c_str(),D3DCOLOR_RGBA(255,255,255,255));
+	//menu->DrawItem(retprintf("1 Inch       = %g Game Units", gameUnitsToInches).c_str(),D3DCOLOR_RGBA(255,255,255,255));
+	
+	menu->AddBackButtons();
+	VPMENU_FinishDrawing(menu);
+	/*
+	VPMENU_StartDrawing_NonMenu();	
+	
+	
 
 	VPMENU_FinishDrawing(menu);*/
 }
