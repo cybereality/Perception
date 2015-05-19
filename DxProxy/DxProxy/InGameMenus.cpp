@@ -1523,9 +1523,9 @@ void D3DProxyDevice::VPMENU_UpdateDeviceSettings()
 	if (config.game_type.length() == 8)
 	{
 		if (config.game_type[1] >= '0' && config.game_type[1] <= '3')
-			m_deviceBehavior.whenToRenderVPMENU = (DeviceBehavior::WhenToDo)(config.game_type[1]);
+			m_deviceBehavior.whenToRenderVPMENU = (DeviceBehavior::WhenToDo)(config.game_type[1] - '0');
 		if (config.game_type[2] >= '0' && config.game_type[2] <= '3')
-			m_deviceBehavior.whenToHandleHeadTracking = (DeviceBehavior::WhenToDo)(config.game_type[2]);
+			m_deviceBehavior.whenToHandleHeadTracking = (DeviceBehavior::WhenToDo)(config.game_type[2] - '0');
 	}
 }
 

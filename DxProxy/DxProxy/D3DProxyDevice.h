@@ -99,8 +99,16 @@ class ShaderRegisters;
 class GameHandler;
 struct HMDisplayInfo;
 
+struct CallLogger
+{
+	CallLogger(std::string call) {OutputDebugString(("Called " + call).c_str()); m_call = call;}
+	~CallLogger() {OutputDebugString(("Exited " + m_call).c_str());}
+private:
+	std::string m_call;
+};
+
 #ifdef SHOW_CALLS
-	#define SHOW_CALL(name) OutputDebugString("Called " name)
+	#define SHOW_CALL(name) CallLogger call(name)
 #else
 	#define SHOW_CALL(name)
 #endif

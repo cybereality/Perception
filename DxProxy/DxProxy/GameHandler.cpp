@@ -36,8 +36,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * Almost empty constructor.
 ***/
 GameHandler::GameHandler() :
-	m_ShaderModificationRepository(nullptr),
-	m_gameType(0)
+	m_ShaderModificationRepository(nullptr)
 {
 
 }
