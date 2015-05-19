@@ -168,6 +168,9 @@ public:
 	//Current Depth Level
 	float m_fZBufferFilter;
 
+	//Visualisation Mode
+	bool m_bZBufferVisualisationMode;
+
 protected:
 	/*** StereoView protected methods ***/
 	virtual void InitTextureBuffers();

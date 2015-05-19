@@ -669,6 +669,13 @@ void D3DProxyDevice::VPMENU_3DReconstruction()
 			stereoView->m_3DReconstructionMode = m_3DReconstructionMode;			
 		});
 
+	
+	menu->AddNavigation("Z Buffer Settings >\n", [=]() { VPMENU_ZBufferSettings(); });
+
+	menu->AddToggle("Projected FOV : %s", "ON", "OFF", &config.PFOVToggle, defaultConfig.PFOVToggle, [=]() {
+		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, config.PFOV);
+	});
+	
 	menu->AddAdjustment("Projected FOV : %1.1f", &config.PFOV,
 		defaultConfig.PFOV, 0.05f, [=]()
 	{
@@ -714,25 +721,74 @@ void D3DProxyDevice::VPMENU_3DReconstruction()
 	float gameUnitsToFoot = gameUnit / 3.2808399f;
 	float gameUnitsToInches = gameUnit / 39.3700787f;
 	
-	menu->DrawItem(retprintf("1 Game Unit = %g Meters", meters).c_str(),D3DCOLOR_RGBA(255,255,255,255));
-	menu->DrawItem(retprintf("1 Game Unit = %g CM", centimeters).c_str(),D3DCOLOR_RGBA(255,255,255,255));
+	menu->DrawItem(retprintf("1 Game Unit = %g Meters", meters).c_str(),COLOR_MENU_TEXT);
+	menu->DrawItem(retprintf("1 Game Unit = %g CM", centimeters).c_str(),COLOR_MENU_TEXT);
 	//menu->DrawItem(retprintf("1 Game Unit = %g Feet", feet).c_str(),D3DCOLOR_RGBA(255,255,255,255));
 	//menu->DrawItem(retprintf("1 Game Unit = %g In.", inches).c_str(),D3DCOLOR_RGBA(255,255,255,255));
 		 
-	menu->DrawItem(retprintf("1 Meter      = %g Game Units", gameUnit).c_str(),D3DCOLOR_RGBA(255,255,255,255));
-	menu->DrawItem(retprintf("1 CM         = %g Game Units", gameUnitsToCentimeter).c_str(),D3DCOLOR_RGBA(255,255,255,255));
+	menu->DrawItem(retprintf("1 Meter      = %g Game Units", gameUnit).c_str(),COLOR_MENU_TEXT);
+	menu->DrawItem(retprintf("1 CM         = %g Game Units", gameUnitsToCentimeter).c_str(),COLOR_MENU_TEXT);
 	//menu->DrawItem(retprintf("1 Foot       = %g Game Units", gameUnitsToFoot).c_str(),D3DCOLOR_RGBA(255,255,255,255));
 	//menu->DrawItem(retprintf("1 Inch       = %g Game Units", gameUnitsToInches).c_str(),D3DCOLOR_RGBA(255,255,255,255));
 	
 	menu->AddBackButtons();
-	VPMENU_FinishDrawing(menu);
-	/*
-	VPMENU_StartDrawing_NonMenu();	
-	
-	
-
-	VPMENU_FinishDrawing(menu);*/
+	VPMENU_FinishDrawing(menu);	
 }
+
+/**
+* Z Buffer Reconstruction Settings
+***/
+void D3DProxyDevice::VPMENU_ZBufferSettings()
+{
+	SHOW_CALL("VPMENU_ZBufferSettings");
+	MenuBuilder *menu = VPMENU_NewFrame();
+	VPMENU_StartDrawing(menu, "Settings - Z Buffer Settings");
+	
+	menu->AddAdjustment("Z Buffer Strength : %1.1f", &config.zbufferStrength,
+		defaultConfig.zbufferStrength, 1.00f, [=]()
+	{
+		stereoView->m_fZBufferStrength = config.zbufferStrength;
+		stereoView->PostReset();		
+	});	
+	
+	menu->AddToggle("Depth Visualisation Mode : %s", "ON", "OFF", &stereoView->m_bZBufferVisualisationMode, false, [=]() {
+		if(stereoView->m_bZBufferVisualisationMode)
+		{
+			stereoView->m_bZBufferFilterMode = false;
+		}
+		stereoView->PostReset();
+	});
+
+	menu->AddAdjustment("Z Buffer Depth (Low) : %1.6f", &config.zbufferDepthLow,
+		defaultConfig.zbufferDepthLow, 0.00010f, [=]()
+	{
+		
+	});	
+
+	menu->AddAdjustment("Z Buffer Depth (High) : %1.6f", &config.zbufferDepthHigh,
+		defaultConfig.zbufferDepthHigh, 0.00010f, [=]()
+	{
+		
+	});	
+	
+	menu->AddToggle("Depth Filter Mode : %s", "ON", "OFF", &stereoView->m_bZBufferFilterMode, false, [=]() {
+		if(stereoView->m_bZBufferFilterMode)
+		{
+			stereoView->m_bZBufferVisualisationMode = false;
+		}
+		stereoView->PostReset();
+	});
+
+	//stereoView->m_bZBufferFilterMode
+	//stereoView->m_bZBufferFilterMode
+	
+		
+
+	menu->AddNavigation("Return to 3D Reconstruction Menu\n", [=]() { VPMENU_3DReconstruction(); });
+	menu->AddBackButtons();
+	VPMENU_FinishDrawing(menu);	
+}
+
 void D3DProxyDevice::VPMENU_Convergence()
 {
 	SHOW_CALL("VPMENU_PosTracking");

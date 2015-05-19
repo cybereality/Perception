@@ -24,8 +24,11 @@ float ZoomScale;
 //Z Buffer Variables
 bool ZBuffer;
 bool ZBufferFilterMode;
+bool ZBufferVisualisationMode;
 float ZBufferStrength;
 float ZBufferFilter;
+float ZBufferDepthLow;
+float ZBufferDepthHigh;
 
 // Warp operates on left view, for right, mirror x texture coord
 // before and after calling.  in02 contains the chromatic aberration
@@ -159,7 +162,7 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 		depthValue = z;	
 		if(depthValue > 0.0f)
 		{
-			depthValue = (depthValue - 0.995999) / 0.004001;
+			depthValue = (depthValue - ZBufferDepthLow) / (ZBufferDepthHigh - ZBufferDepthLow);
 		}
 		tcBlue = ApplyZBuffer(tcBlue,Tex,depthValue);	
 	}	
@@ -203,7 +206,19 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 	if (any(clamp(tcBlue.xy, float2(0.0,0.0), float2(1.0, 1.0)) - tcBlue.xy))
 		return 0;
 
-	if (Tex.x > 0.5f)
+	if (ZBufferVisualisationMode && ZBuffer) 
+	{
+		outColor = float4(1.0f - depthValue, 0.0, depthValue, 1.0f);
+		/*if(depthValue > ZBufferStrength && depthValue < (ZBufferStrength + 0.0001f))
+		{
+			outColor = float4(0.0, 0.0, depthValue, 1.0f);				
+		}
+		else
+		{
+			outColor = float4(0.0, 0.0, 0.0, 0.0f);				
+		}*/
+	}
+	else if (Tex.x > 0.5f)
 	{
 		outColor.r =  tex2D(TexMap1,   tcRed.xy).r;
 		outColor.g =  tex2D(TexMap1, tcGreen.xy).g;

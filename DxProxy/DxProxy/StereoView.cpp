@@ -57,6 +57,12 @@ StereoView::StereoView(ProxyConfig *config)
 	m_screenViewGlideFactor = 1.0f;
 	XOffset = 0;
 	game_type = config->game_type;
+
+	m_fZBufferStrength = config->zbufferStrength;	
+	m_bZBufferFilterMode = false;
+	m_bZBufferVisualisationMode = false;
+	m_fZBufferFilter = 0.0f;
+
 	chromaticAberrationCorrection = true;
 	m_vignetteStyle = NONE;
 	m_rotation = 0.0f;
@@ -177,10 +183,7 @@ void StereoView::Init(IDirect3DDevice9* pActualDevice)
 	}
 
 	m_pActualDevice = pActualDevice;
-	m_fZBufferStrength = 500.0f;	
-	m_bZBufferFilterMode = false;
-	m_fZBufferFilter = 0.0f;
-
+	
 	InitShaderEffects();
 	InitTextureBuffers();
 	InitVertexBuffers();

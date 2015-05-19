@@ -1038,6 +1038,11 @@ void HandleGameProfile(ProxyHelper::ConfigTransferDirection dir, xml_node &node,
 	HANDLE_SETTING(ComfortModeRightKey,      Key(VK_RIGHT) || Axis(InputControls::RightStickX, true, COMFORT_MODE_STICK_THRESHOLD));
 
 	HANDLE_SETTING(PFOV,					110.0f);
+	HANDLE_SETTING(PFOVToggle,				true);
+	
+	HANDLE_SETTING(zbufferStrength,			500.0f);
+	HANDLE_SETTING(zbufferDepthLow,			0.995999f);
+	HANDLE_SETTING(zbufferDepthHigh,		1.000000f);
 
 	HANDLE_SETTING(draw_shadows,			true);
 	HANDLE_SETTING(draw_fog,				true);

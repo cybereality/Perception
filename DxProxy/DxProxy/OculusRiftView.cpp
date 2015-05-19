@@ -103,6 +103,9 @@ void OculusRiftView::SetViewEffectInitialValues()
 	viewEffect->SetFloat("ZBufferStrength", m_fZBufferStrength);
 	viewEffect->SetBool("ZBufferFilterMode", m_bZBufferFilterMode);
 	viewEffect->SetFloat("ZBufferFilter", m_fZBufferFilter);	
+	viewEffect->SetBool("ZBufferVisualisationMode", m_bZBufferVisualisationMode);
+	viewEffect->SetFloat("ZBufferDepthLow", config->zbufferDepthLow);
+	viewEffect->SetFloat("ZBufferDepthHigh", config->zbufferDepthHigh);
 
 	//Local static for controlling vignette in telescopic sight mode
 	static float vignette_val = 1.0f;
