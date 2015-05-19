@@ -736,7 +736,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 		// Handle most of the settings
 		HandleGameProfile(CONFIG_LOAD, gameProfile, config);
 		
-		debugf("gameType: %d\n", gameProfile.attribute("game_type").as_int());
+		debugf("gameType: %d\n", gameProfile.attribute("game_type").as_string());
 
 		//SB: This will need to be changed back when the memory modification stuff is updated, but for now
 		//I am disabling the restore of the camera translation as it is causing confusion for a lot of people when
@@ -976,7 +976,7 @@ void HandleGameProfile(ProxyHelper::ConfigTransferDirection dir, xml_node &node,
 
 	HANDLE_SETTING_ATTR("minVRboostShaderCount", VRboostMinShaderCount, 0);
 	HANDLE_SETTING_ATTR("maxVRboostShaderCount", VRboostMaxShaderCount, 999999);
-	HANDLE_SETTING(game_type,                0);
+	HANDLE_SETTING(game_type,                "");
 	HANDLE_SETTING(rollImpl,                 0);
 	HANDLE_SETTING(worldScaleFactor,         1.0f);
 

@@ -1516,79 +1516,16 @@ void D3DProxyDevice::VPMENU_UpdateDeviceSettings()
 	VRBoostValue[VRboostAxis::ConstantValue1] = config.ConstantValue1;
 	VRBoostValue[VRboostAxis::ConstantValue2] = config.ConstantValue2;
 	VRBoostValue[VRboostAxis::ConstantValue3] = config.ConstantValue3;
-	
-	m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::BEFORE_COMPOSITING;
 
 	// set behavior accordingly to game type
-	int gameType = config.game_type;
-	switch(gameType)
+	m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::BEFORE_COMPOSITING;
+	m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
+	if (config.game_type.length() == 8)
 	{
-	case D3DProxyDevice::FIXED:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		break;
-	case D3DProxyDevice::SOURCE:
-	case D3DProxyDevice::SOURCE_L4D:
-	case D3DProxyDevice::SOURCE_ESTER:
-	case D3DProxyDevice::SOURCE_STANLEY:
-	case D3DProxyDevice::SOURCE_ZENO:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::END_SCENE;
-		break;
-	case D3DProxyDevice::SOURCE_HL2:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		break;
-	case D3DProxyDevice::UNREAL:
-	case D3DProxyDevice::UNREAL_MIRROR:
-	case D3DProxyDevice::UNREAL_UT3:
-	case D3DProxyDevice::UNREAL_BIOSHOCK:
-	case D3DProxyDevice::UNREAL_BIOSHOCK2:
-	case D3DProxyDevice::UNREAL_BORDERLANDS:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::END_SCENE;
-		break;
-	case D3DProxyDevice::UNREAL_BETRAYER:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		break;
-	case D3DProxyDevice::EGO:
-	case D3DProxyDevice::EGO_DIRT:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::END_SCENE;
-		break;
-	case D3DProxyDevice::REALV:
-	case D3DProxyDevice::REALV_ARMA:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		break;
-	case D3DProxyDevice::UNITY:
-	case D3DProxyDevice::UNITY_SLENDER:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		break;
-	case D3DProxyDevice::UNITY_AMONG_THE_SLEEP:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		break;
-	case D3DProxyDevice::CRYENGINE:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		break;
-	case D3DProxyDevice::CRYENGINE_WARHEAD:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		break;
-	case D3DProxyDevice::GAMEBRYO:
-	case D3DProxyDevice::GAMEBRYO_SKYRIM:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		break;
-	case D3DProxyDevice::LFS:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		break;
-	case D3DProxyDevice::CDC:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::END_SCENE;
-		break;
-	case D3DProxyDevice::CDC_TOMB_RAIDER:
-		//WIthout doing this, we get no VP Menu
-		m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::END_SCENE;
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::END_SCENE;
-		break;
-	case D3DProxyDevice::CHROME:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		break;
-	default:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		break;
+		if (config.game_type[1] >= '0' && config.game_type[1] <= '3')
+			m_deviceBehavior.whenToRenderVPMENU = (DeviceBehavior::WhenToDo)(config.game_type[1]);
+		if (config.game_type[2] >= '0' && config.game_type[2] <= '3')
+			m_deviceBehavior.whenToHandleHeadTracking = (DeviceBehavior::WhenToDo)(config.game_type[2]);
 	}
 }
 

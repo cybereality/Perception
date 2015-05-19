@@ -441,7 +441,7 @@ void D3DProxyDevice::HandleControls()
 				else if(m_pGameHandler->intDuplicateCubeTexture == 2)
 					cubeDuplicationDescription = "Always True";
 				else if(m_pGameHandler->intDuplicateCubeTexture == 3)
-					cubeDuplicationDescription = "Always IS_RENDER_TARGET(Usage)";
+					cubeDuplicationDescription = "IS_RENDER_TARGET(Usage)";
 			}
 			else
 			{
@@ -460,13 +460,13 @@ void D3DProxyDevice::HandleControls()
 			{
 				m_pGameHandler->intDuplicateTexture++;
 				if(m_pGameHandler->intDuplicateTexture == 1)
-					textureDuplicationDescription = "Method 1";
-				else if(m_pGameHandler->intDuplicateTexture == 2)
-					textureDuplicationDescription = "Method 2 (1 + Width and Height)";
-				else if(m_pGameHandler->intDuplicateTexture == 3)
 					textureDuplicationDescription = "Always False";
-				else if(m_pGameHandler->intDuplicateTexture == 4)
+				else if(m_pGameHandler->intDuplicateTexture == 2)
 					textureDuplicationDescription = "Always True";
+				else if(m_pGameHandler->intDuplicateTexture == 3)
+					textureDuplicationDescription = "IS_RENDER_TARGET";
+				else if(m_pGameHandler->intDuplicateTexture == 4)
+					textureDuplicationDescription = "IS_RENDER_TARGET + Width and Height)";
 			}
 			else
 			{

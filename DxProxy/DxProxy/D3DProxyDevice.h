@@ -196,45 +196,7 @@ public:
 	void HotkeyCooldown(float duration);
 	bool HotkeysActive();
 
-	/**
-	* Game Types.
-	* We use these ProxyTypes to determine either to draw VPMENU in EndScene() or in Present().
-	* Will be also used for any game- or engine-specific things.
-	***/
-	enum ProxyTypes
-	{
-		MONO = 0,                  /**<  !! */
-		FIXED = 10,                /**< Default driver behavior. */
-		SOURCE = 100,              /**< Source is a 3D video game engine developed by Valve Corporation. */
-		SOURCE_L4D = 101,          /**<  !! */
-		SOURCE_ESTER = 102,        /**<  !! */
-		SOURCE_STANLEY = 103,      /**<  !! */
-		SOURCE_ZENO = 104,		   /**<  !! */
-		SOURCE_HL2 = 105,		   /**<  !! */
-		UNREAL = 200,              /**< The Unreal Engine is a game engine developed by Epic Games, first illustrated in the 1998 first-person shooter game Unreal. */
-		UNREAL_MIRROR = 201,       /**<  !! */
-		UNREAL_UT3 = 202,          /**<  !! */
-		UNREAL_BIOSHOCK = 203,     /**<  !! */
-		UNREAL_BIOSHOCK2 = 204,     /**<  !! */
-		UNREAL_BORDERLANDS = 210,  /**< Borderlands(TM) */
-		UNREAL_BETRAYER= 211,	   /**< Betrayer(TM) */
-		EGO = 300,                 /**< Ego Game Technology Engine (more commonly referred to as Ego Engine or EGO, stylised ego) is a video game engine developed by Codemasters. */
-		EGO_DIRT = 301,            /**<  !! */
-		REALV = 400,               /**< Real Virtuality is a proprietary computer game engine developed by Bohemia Interactive (BI), originally called Poseidon. */
-		REALV_ARMA = 401,          /**<  !! */
-		UNITY = 500,               /**< Unity is a cross-platform game engine with a built-in IDE developed by Unity Technologies. */
-		UNITY_SLENDER = 501,       /**<  !! */
-		UNITY_AMONG_THE_SLEEP = 502, /**<  !! */
-		CRYENGINE = 550,           /**< CryEngine is a game engine designed by the German/Turkish game developer Crytek. */
-		CRYENGINE_WARHEAD = 551,   /**< CryEngine is a game engine designed by the German/Turkish game developer Crytek (modified for Warhead). */
-		GAMEBRYO = 600,            /**< Gamebryo 3D and LightSpeed engines are owned by Gamebase Co., Ltd. and Gamebase USA and have been used by several video game developers. */
-		GAMEBRYO_SKYRIM = 601,     /**< Skyrim's Creation Engine still has at least some Gamebryo in it. */
-		LFS = 700,                 /**< Live for Speed (LFS) is a racing simulator developed by a three person team comprising Scawen Roberts, Eric Bailey, and Victor van Vlaardingen. */
-		CDC = 800,                 /**< Proprietary game engine developed by Crystal Dynamics. */
-		CDC_TOMB_RAIDER = 801,     /**< Proprietary game engine developed by Crystal Dynamics. */
-		CHROME = 900,              /**< Chrome Engine (Dead Island / Call of Juarez). */
-		DEBUG_LOG_FILE = 99999     /**< Debug log file output game type. For development causes. Do not use since slows down game extremely. */
-	};
+
 	/**
 	* HUD scale enumeration.
 	* ENUM_RANGE = range of the enum

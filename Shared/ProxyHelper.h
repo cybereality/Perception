@@ -57,7 +57,7 @@ struct ProxyConfig
 	UINT        VRboostMinShaderCount;      /**< Minimum Vertex Shader Count to apply VRboost (security) */
 	UINT        VRboostMaxShaderCount;      /**< Maximum Vertex Shader Count to apply VRboost (security) */
 	bool		is64bit;					/**< The game cpu-architecture, true for 64-bit games */
-	int         game_type;                  /**< Game type enumeration. Matching D3DProxyDevice::ProxyTypes. */
+	std::string game_type;                  /**< Game type enumeration. Matching D3DProxyDevice::ProxyTypes. */
 	int         rollImpl;                   /**< 0 - NONE, 1 - Matrix Roll, 2 - Pixel Shader Roll */
 	float       worldScaleFactor;           /**< Value the eye seperation is to be multiplied with. (mm * worldScaleFactor = mm in game units). */
 	
