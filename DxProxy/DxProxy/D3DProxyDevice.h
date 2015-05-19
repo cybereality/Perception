@@ -457,6 +457,7 @@ protected:
 	void VPMENU_HUD();
 	void VPMENU_GUI();
 	void VPMENU_Settings();
+	void VPMENU_Drawing();
 	
 	void VPMENU_PosTracking();
 	void VPMENU_DuckAndCover();

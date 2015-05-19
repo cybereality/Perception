@@ -1039,6 +1039,12 @@ void HandleGameProfile(ProxyHelper::ConfigTransferDirection dir, xml_node &node,
 
 	HANDLE_SETTING(PFOV,					110.0f);
 
+	HANDLE_SETTING(draw_shadows,			true);
+	HANDLE_SETTING(draw_fog,				true);
+	HANDLE_SETTING(draw_clothes,			true);
+	HANDLE_SETTING(draw_player,				true);
+	HANDLE_SETTING(draw_reticule,			true);
+	HANDLE_SETTING(draw_sky,				true);
 
 	HANDLE_SETTING(WorldFOV,                95.0f);
 	HANDLE_SETTING(PlayerFOV,               125.0f);
