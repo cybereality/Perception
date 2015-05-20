@@ -94,6 +94,24 @@ StereoView::StereoView(ProxyConfig *config)
 	{
 		howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;
 	}
+
+	if(howToSaveRenderStates == HowToSaveRenderStates::ALL_STATES_MANUALLY)
+	{
+		OutputDebugString( "HowToSaveRenderStates = ALL_STATES_MANUALLY");
+	}
+	else if(howToSaveRenderStates == HowToSaveRenderStates::DO_NOT_SAVE_AND_RESTORE)
+	{
+		OutputDebugString( "HowToSaveRenderStates = DO_NOT_SAVE_AND_RESTORE");
+	}
+	else if(howToSaveRenderStates == HowToSaveRenderStates::SELECTED_STATES_MANUALLY)
+	{
+		OutputDebugString( "HowToSaveRenderStates = SELECTED_STATES_MANUALLY");
+	}
+	else if(howToSaveRenderStates == HowToSaveRenderStates::STATE_BLOCK)
+	{
+		OutputDebugString( "HowToSaveRenderStates = STATE_BLOCK");
+	}
+
 }
 
 /**
