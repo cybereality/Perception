@@ -65,6 +65,8 @@ public:
 	/*** Getters for pre-computed matrices ***/
 	
 	D3DXMATRIX PositionMatrix()              { return matPosition; }
+	D3DXMATRIX ScreenSpacePositionLeft()     { return matScreenSpacePositionLeft; }
+	D3DXMATRIX ScreenSpacePositionRight()    { return matScreenSpacePositionRight; }
 	D3DXMATRIX LeftAdjustmentMatrix()        { return matViewProjTransformLeft; }
 	D3DXMATRIX RightAdjustmentMatrix()       { return matViewProjTransformRight; }
 	D3DXMATRIX LeftAdjustmentMatrixNoRoll()  { return matViewProjTransformLeftNoRoll; }
@@ -93,6 +95,9 @@ public:
 	D3DXMATRIX GatheredMatrixLeft()          { return matGatheredLeft; }
 	D3DXMATRIX GatheredMatrixRight()         { return matGatheredRight; }
 	
+	void SetPerspective(D3DXMATRIX matrix);
+	D3DXMATRIX gamePerspective, gamePerspectiveInv;
+	
 	void          GatherMatrix(D3DXMATRIX& matrixLeft, D3DXMATRIX& matrixRight);
 	float         ChangeWorldScale(float toAdd);
 	float         SetConvergence(float newConvergence);
@@ -115,14 +120,20 @@ public:
 private:
 	ProxyConfig *config;
 	
+	float yaw, pitch, roll;
+	float xPosition, yPosition, zPosition;
 	bool m_usePFOV;
 	
 	D3DXVECTOR3 positionTransformVec;
 
 	/**
-	* Positional translation matrix
+	* World-space positional translation matrix
 	**/
 	D3DXMATRIX matPosition;
+	/**
+	* Left and right screen-space positional translation matrices.
+	*/
+	D3DXMATRIX matScreenSpacePositionLeft, matScreenSpacePositionRight;
 	/**
 	* Projection matrix - basic with no PFOV
 	***/

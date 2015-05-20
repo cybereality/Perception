@@ -932,5 +932,6 @@ private:
 };
 
 std::string VRboostAxisString(UINT axis);
+std::string MatrixToString(const D3DXMATRIX *matrix);
 
 #endif

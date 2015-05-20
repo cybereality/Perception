@@ -67,14 +67,10 @@ public:
 		// in * rollMatrix
 		outLeft = in
 			* m_spAdjustmentMatrices->LeftAdjustmentMatrixNoRoll()
-			* m_spAdjustmentMatrices->ProjectionInverse()
-			* m_spAdjustmentMatrices->PositionMatrix()
-			* m_spAdjustmentMatrices->Projection();
+			* m_spAdjustmentMatrices->ScreenSpacePositionLeft();
 		outright = in
 			* m_spAdjustmentMatrices->RightAdjustmentMatrixNoRoll()
-			* m_spAdjustmentMatrices->ProjectionInverse()
-			* m_spAdjustmentMatrices->PositionMatrix()
-			* m_spAdjustmentMatrices->Projection();
+			* m_spAdjustmentMatrices->ScreenSpacePositionRight();
 	};
 };
 #endif

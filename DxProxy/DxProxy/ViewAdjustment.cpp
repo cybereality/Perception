@@ -29,7 +29,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "ViewAdjustment.h"
+#include "D3DProxyDevice.h"
+#include "VireioUtil.h"
+#include "ShaderConstantmodification.h"
 #include "ConfigDefaults.h"
+using namespace vireio;
 
 #define PI 3.141592654
 
@@ -59,6 +63,8 @@ ViewAdjustment::ViewAdjustment(HMDisplayInfo *displayInfo, ProxyConfig *config) 
 	D3DXMatrixIdentity(&matBasicProjection);
 	D3DXMatrixIdentity(&matPosition);
 	D3DXMatrixIdentity(&matProjectionInv);
+	D3DXMatrixIdentity(&gamePerspective);
+	D3DXMatrixIdentity(&gamePerspectiveInv);
 	D3DXMatrixIdentity(&projectPFOV);
 	D3DXMatrixIdentity(&transformLeft);
 	D3DXMatrixIdentity(&transformRight);
@@ -197,6 +203,8 @@ void ViewAdjustment::UpdateProjectionMatrices(float aspectRatio, float fov_horiz
 		//And left and right (identical in this case)
 		D3DXMatrixPerspectiveFovLH(&projectPFOV, fov_vert, aspectRatio, n, f);
 	}
+	
+	ComputeViewTransforms();
 }
 
 /**
@@ -221,6 +229,37 @@ void ViewAdjustment::SetGameSpecificPositionalScaling(D3DXVECTOR3 scalingVec)
 ***/
 void ViewAdjustment::UpdatePosition(float yaw, float pitch, float roll, float xPosition, float yPosition, float zPosition)
 {
+	this->yaw = yaw;
+	this->pitch = pitch;
+	
+	// FIXME: The roll UpdatePosition gets is ignored; roll comes through UpdateRoll.
+	//this->roll = roll;
+	
+	this->xPosition = xPosition;
+	this->yPosition = yPosition;
+	this->zPosition = zPosition;
+	ComputeViewTransforms();
+}
+
+void ViewAdjustment::SetPerspective(D3DXMATRIX matrix)
+{
+	if (!MatrixIsOrtho(matrix))
+	{
+		gamePerspective = matrix;
+		D3DXMatrixInverse(&gamePerspectiveInv, 0, &gamePerspective);
+		
+		ComputeViewTransforms();
+	}
+}
+
+/**
+* Gets the view-projection transform matrices left and right.
+* Unprojects, shifts view position left/right (using same matricies as (Left/Right)ViewRollAndShift)
+* and reprojects using left/right projection.
+* (matrix = projectionInverse * transform * projection)
+***/
+void ViewAdjustment::ComputeViewTransforms()
+{
 	D3DXMATRIX rotationMatrixPitch;
 	D3DXMATRIX rotationMatrixYaw;
 	D3DXMATRIX rotationMatrixRoll;
@@ -239,7 +278,7 @@ void ViewAdjustment::UpdatePosition(float yaw, float pitch, float roll, float xP
 
 	D3DXMATRIX rotationMatrixPitchYaw;
 	D3DXMatrixIdentity(&rotationMatrixPitchYaw);
-	D3DXMatrixMultiply(&rotationMatrixPitchYaw, &rotationMatrixPitch, &rotationMatrixYaw);
+	D3DXMatrixMultiply(&rotationMatrixPitchYaw, &rotationMatrixYaw, &rotationMatrixPitch);
 
 	D3DXVec3TransformNormal(&positionTransformVec, &positionTransformVec, &rotationMatrixPitchYaw);
 
@@ -256,16 +295,11 @@ void ViewAdjustment::UpdatePosition(float yaw, float pitch, float roll, float xP
 	D3DXVec3TransformNormal(&positionTransformVec, &positionTransformVec, &gamescalingmatrix);
 	
 	D3DXMatrixTranslation(&matPosition, positionTransformVec.x, positionTransformVec.y, positionTransformVec.z);
-}
-
-/**
-* Gets the view-projection transform matrices left and right.
-* Unprojects, shifts view position left/right (using same matricies as (Left/Right)ViewRollAndShift)
-* and reprojects using left/right projection.
-* (matrix = projectionInverse * transform * projection)
-***/
-void ViewAdjustment::ComputeViewTransforms()
-{
+	
+	// Make screen-space position correction matrix with game perspective matrix
+	matScreenSpacePositionLeft = gamePerspectiveInv * matPosition * gamePerspective;
+	matScreenSpacePositionRight = gamePerspectiveInv * matPosition * gamePerspective;
+	
 	//Pixel shader roll needs to apply stereo separation adjusted for the tilted horizon
 	if (config->rollImpl == 2)
 	{

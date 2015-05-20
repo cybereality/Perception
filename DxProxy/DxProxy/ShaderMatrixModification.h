@@ -107,14 +107,10 @@ protected:
 	{
 		outLeft = in
 			* m_spAdjustmentMatrices->LeftAdjustmentMatrix()
-			* m_spAdjustmentMatrices->ProjectionInverse()
-			* m_spAdjustmentMatrices->PositionMatrix()
-			* m_spAdjustmentMatrices->Projection();
+			* m_spAdjustmentMatrices->ScreenSpacePositionLeft();
 		outright = in
 			* m_spAdjustmentMatrices->RightAdjustmentMatrix()
-			* m_spAdjustmentMatrices->ProjectionInverse()
-			* m_spAdjustmentMatrices->PositionMatrix()
-			* m_spAdjustmentMatrices->Projection();
+			* m_spAdjustmentMatrices->ScreenSpacePositionRight();
 	}
 
 	/**

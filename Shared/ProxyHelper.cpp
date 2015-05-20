@@ -989,10 +989,10 @@ void HandleGameProfile(ProxyHelper::ConfigTransferDirection dir, xml_node &node,
 	HANDLE_SETTING(yaw_multiplier,           DEFAULT_YAW_MULTIPLIER);
 	HANDLE_SETTING(pitch_multiplier,         DEFAULT_PITCH_MULTIPLIER);
 	HANDLE_SETTING(roll_multiplier,          1.0f);
-	HANDLE_SETTING(position_multiplier,      1.0f);
-	HANDLE_SETTING(position_x_multiplier,    DEFAULT_POS_TRACKING_X_MULT);
-	HANDLE_SETTING(position_y_multiplier,    DEFAULT_POS_TRACKING_Y_MULT);
-	HANDLE_SETTING(position_z_multiplier,    DEFAULT_POS_TRACKING_Z_MULT);
+	HANDLE_SETTING(position_multiplier,      50.0f); // Empirically determined and probably wrong
+	HANDLE_SETTING(position_x_multiplier,    1.0f);
+	HANDLE_SETTING(position_y_multiplier,    1.0f);
+	HANDLE_SETTING(position_z_multiplier,    1.0f);
 	HANDLE_SETTING_ATTR("distortion_scale",  DistortionScale, 0.0f);
 	
 	HANDLE_SETTING_ATTR("hud_3D_depth_mode", hud3DDepthMode, 0);
