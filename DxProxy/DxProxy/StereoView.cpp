@@ -90,75 +90,34 @@ StereoView::StereoView(ProxyConfig *config)
 	viewEffect = NULL;
 	sb = NULL;
 	m_bLeftSideActive = false;
-	// set behavior accordingly to game type
-	switch(config->game_type)
+
+	int value = 0;
+	if (ProxyHelper::ParseGameType(config->game_type, ProxyHelper::StateBlockSaveRestoreType, value))
 	{
-	case D3DProxyDevice::FIXED:
-		howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;		
-		break;
-	case D3DProxyDevice::SOURCE:
-	case D3DProxyDevice::SOURCE_L4D:
-	case D3DProxyDevice::SOURCE_ESTER:
-	case D3DProxyDevice::SOURCE_STANLEY:
-		howToSaveRenderStates = HowToSaveRenderStates::SELECTED_STATES_MANUALLY;
-		break;
-	case D3DProxyDevice::SOURCE_HL2:
-	case D3DProxyDevice::SOURCE_ZENO:
-		howToSaveRenderStates = HowToSaveRenderStates::ALL_STATES_MANUALLY;
-		break;
-	case D3DProxyDevice::UNREAL:
-		howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;
-		break;
-	case D3DProxyDevice::UNREAL_MIRROR:
-	case D3DProxyDevice::UNREAL_UT3:
-	case D3DProxyDevice::UNREAL_BIOSHOCK:
-		howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;		
-		break;
-	case D3DProxyDevice::UNREAL_BIOSHOCK2:
-	case D3DProxyDevice::UNREAL_BORDERLANDS:
-		howToSaveRenderStates = HowToSaveRenderStates::DO_NOT_SAVE_AND_RESTORE;
-		m_bLeftSideActive = true;
-		break;
-	case D3DProxyDevice::EGO:
-	case D3DProxyDevice::EGO_DIRT:
-		howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;
-		break;
-	case D3DProxyDevice::REALV:
-	case D3DProxyDevice::REALV_ARMA:
-		howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;
-		break;
-	case D3DProxyDevice::UNITY:
-	case D3DProxyDevice::UNITY_SLENDER:
-	case D3DProxyDevice::UNITY_AMONG_THE_SLEEP:
-		howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;
-		break;
-	case D3DProxyDevice::CRYENGINE:
-		howToSaveRenderStates = HowToSaveRenderStates::ALL_STATES_MANUALLY;
-		break;
-	case D3DProxyDevice::CRYENGINE_WARHEAD:
-		howToSaveRenderStates = HowToSaveRenderStates::ALL_STATES_MANUALLY;
-		break;
-	case D3DProxyDevice::GAMEBRYO:
-	case D3DProxyDevice::GAMEBRYO_SKYRIM:
-		howToSaveRenderStates = HowToSaveRenderStates::SELECTED_STATES_MANUALLY;
-		m_bLeftSideActive = true;
-		break;
-	case D3DProxyDevice::LFS:
-		howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;
-		break;
-	case D3DProxyDevice::CDC:
-		howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;
-		break;
-	case D3DProxyDevice::CDC_TOMB_RAIDER:
-		howToSaveRenderStates = HowToSaveRenderStates::ALL_STATES_MANUALLY;
-		break;
-	case D3DProxyDevice::CHROME:
-		howToSaveRenderStates = HowToSaveRenderStates::ALL_STATES_MANUALLY;
-		break;
-	default:
-		howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;
-		break;
+		howToSaveRenderStates = (HowToSaveRenderStates)(value);
 	}
+	else
+	{
+		howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;
+	}
+
+	if(howToSaveRenderStates == HowToSaveRenderStates::ALL_STATES_MANUALLY)
+	{
+		OutputDebugString( "HowToSaveRenderStates = ALL_STATES_MANUALLY");
+	}
+	else if(howToSaveRenderStates == HowToSaveRenderStates::DO_NOT_SAVE_AND_RESTORE)
+	{
+		OutputDebugString( "HowToSaveRenderStates = DO_NOT_SAVE_AND_RESTORE");
+	}
+	else if(howToSaveRenderStates == HowToSaveRenderStates::SELECTED_STATES_MANUALLY)
+	{
+		OutputDebugString( "HowToSaveRenderStates = SELECTED_STATES_MANUALLY");
+	}
+	else if(howToSaveRenderStates == HowToSaveRenderStates::STATE_BLOCK)
+	{
+		OutputDebugString( "HowToSaveRenderStates = STATE_BLOCK");
+	}
+
 }
 
 /**
@@ -686,9 +645,8 @@ void StereoView::SetState()
 	m_pActualDevice->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
 	m_pActualDevice->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);  
 
-	if(game_type == D3DProxyDevice::SOURCE_L4D ||
-		game_type == D3DProxyDevice::SOURCE_ESTER || 
-		game_type == D3DProxyDevice::SOURCE_STANLEY)
+	int value = 0;
+	if (ProxyHelper::ParseGameType(config->game_type, ProxyHelper::DeviceStateFlags, value) && (value & 2))
 	{
 		m_pActualDevice->SetSamplerState(0, D3DSAMP_SRGBTEXTURE, ssSrgb);
 		m_pActualDevice->SetSamplerState(1, D3DSAMP_SRGBTEXTURE, ssSrgb);

@@ -76,9 +76,6 @@
     <ClCompile Include="MotionTracker.cpp">
       <Filter>Tracking</Filter>
     </ClCompile>
-    <ClCompile Include="pugixml.cpp">
-      <Filter>XML</Filter>
-    </ClCompile>
     <ClCompile Include="MotionTrackerFactory.cpp">
       <Filter>Tracking</Filter>
     </ClCompile>
@@ -223,6 +220,27 @@
     </ClCompile>
     <ClCompile Include="Hotkeys.cpp">
       <Filter>Direct3D9</Filter>
+    </ClCompile>
+    <ClCompile Include="DirectXInputControls.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Shared\pugixml.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Shared\VireioUtil.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Shared\InputControls.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Shared\json\json_reader.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Shared\json\json_value.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Shared\json\json_writer.cpp">
+      <Filter>Main</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -505,6 +523,21 @@
     <ClInclude Include="ShaderObjectType.h">
       <Filter>Direct3D9Vireio</Filter>
     </ClInclude>
+    <ClInclude Include="DirectXInputControls.h" />
+    <ClInclude Include="..\..\Shared\Version.h" />
+    <ClInclude Include="..\..\Shared\VireioUtil.h" />
+    <ClInclude Include="..\..\Shared\InputControls.h" />
+    <ClInclude Include="..\..\Shared\json\assertions.h" />
+    <ClInclude Include="..\..\Shared\json\autolink.h" />
+    <ClInclude Include="..\..\Shared\json\config.h" />
+    <ClInclude Include="..\..\Shared\json\features.h" />
+    <ClInclude Include="..\..\Shared\json\forwards.h" />
+    <ClInclude Include="..\..\Shared\json\json.h" />
+    <ClInclude Include="..\..\Shared\json\json_tool.h" />
+    <ClInclude Include="..\..\Shared\json\reader.h" />
+    <ClInclude Include="..\..\Shared\json\value.h" />
+    <ClInclude Include="..\..\Shared\json\version.h" />
+    <ClInclude Include="..\..\Shared\json\writer.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\Release\Perception\cfg\profiles.xml">

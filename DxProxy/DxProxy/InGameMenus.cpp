@@ -1134,13 +1134,29 @@ void D3DProxyDevice::VPMENU_Drawing()
 	MenuBuilder *menu = VPMENU_NewFrame();
 	VPMENU_StartDrawing(menu, "Drawing Options - General");
 	menu->OnClose([=]() { VPMENU_UpdateConfigSettings(); });
+	
+	ShaderModificationRepository *pRepo = m_pGameHandler->GetShaderModificationRepository();
 
-	menu->AddToggle("Draw Shadows : %s", "True", "False", &config.draw_shadows, defaultConfig.draw_shadows);
-	menu->AddToggle("Draw Fog/Smoke : %s", "True", "False", &config.draw_fog, defaultConfig.draw_fog);
-	menu->AddToggle("Draw Clothes : %s", "True", "False", &config.draw_clothes, defaultConfig.draw_clothes);
-	menu->AddToggle("Draw Player : %s", "True", "False", &config.draw_player, defaultConfig.draw_player);
-	menu->AddToggle("Draw Aiming Reticule : %s", "True", "False", &config.draw_reticule, defaultConfig.draw_reticule);
-	menu->AddToggle("Draw Skybox : %s", "True", "False", &config.draw_sky, defaultConfig.draw_sky);
+	if (pRepo)
+	{
+		if (pRepo->GameHasShaderObjectType(ShaderObjectTypeShadows))
+			menu->AddToggle("Draw Shadows : %s", "True", "False", &config.draw_shadows, defaultConfig.draw_shadows);
+
+		if (pRepo->GameHasShaderObjectType(ShaderObjectTypeFog))
+			menu->AddToggle("Draw Fog/Smoke : %s", "True", "False", &config.draw_fog, defaultConfig.draw_fog);
+
+		if (pRepo->GameHasShaderObjectType(ShaderObjectTypeClothes))
+			menu->AddToggle("Draw Clothes : %s", "True", "False", &config.draw_clothes, defaultConfig.draw_clothes);
+
+		if (pRepo->GameHasShaderObjectType(ShaderObjectTypePlayer))
+			menu->AddToggle("Draw Player : %s", "True", "False", &config.draw_player, defaultConfig.draw_player);
+
+		if (pRepo->GameHasShaderObjectType(ShaderObjectTypeReticule))
+			menu->AddToggle("Draw Aiming Reticule : %s", "True", "False", &config.draw_reticule, defaultConfig.draw_reticule);
+
+		if (pRepo->GameHasShaderObjectType(ShaderObjectTypeSky))
+			menu->AddToggle("Draw Skybox : %s", "True", "False", &config.draw_sky, defaultConfig.draw_sky);
+	}
 	
 	menu->AddBackButtons();
 	VPMENU_FinishDrawing(menu);
@@ -1592,80 +1608,15 @@ void D3DProxyDevice::VPMENU_UpdateDeviceSettings()
 	VRBoostValue[VRboostAxis::ConstantValue1] = config.ConstantValue1;
 	VRBoostValue[VRboostAxis::ConstantValue2] = config.ConstantValue2;
 	VRBoostValue[VRboostAxis::ConstantValue3] = config.ConstantValue3;
-	
-	m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::BEFORE_COMPOSITING;
 
 	// set behavior accordingly to game type
-	int gameType = config.game_type;
-	switch(gameType)
-	{
-	case D3DProxyDevice::FIXED:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		break;
-	case D3DProxyDevice::SOURCE:
-	case D3DProxyDevice::SOURCE_L4D:
-	case D3DProxyDevice::SOURCE_ESTER:
-	case D3DProxyDevice::SOURCE_STANLEY:
-	case D3DProxyDevice::SOURCE_ZENO:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::END_SCENE;
-		break;
-	case D3DProxyDevice::SOURCE_HL2:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		break;
-	case D3DProxyDevice::UNREAL:
-	case D3DProxyDevice::UNREAL_MIRROR:
-	case D3DProxyDevice::UNREAL_UT3:
-	case D3DProxyDevice::UNREAL_BIOSHOCK:
-	case D3DProxyDevice::UNREAL_BIOSHOCK2:
-	case D3DProxyDevice::UNREAL_BORDERLANDS:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::END_SCENE;
-		break;
-	case D3DProxyDevice::UNREAL_BETRAYER:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		break;
-	case D3DProxyDevice::EGO:
-	case D3DProxyDevice::EGO_DIRT:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::END_SCENE;
-		break;
-	case D3DProxyDevice::REALV:
-	case D3DProxyDevice::REALV_ARMA:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		break;
-	case D3DProxyDevice::UNITY:
-	case D3DProxyDevice::UNITY_SLENDER:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		break;
-	case D3DProxyDevice::UNITY_AMONG_THE_SLEEP:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		break;
-	case D3DProxyDevice::CRYENGINE:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		break;
-	case D3DProxyDevice::CRYENGINE_WARHEAD:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		break;
-	case D3DProxyDevice::GAMEBRYO:
-	case D3DProxyDevice::GAMEBRYO_SKYRIM:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		break;
-	case D3DProxyDevice::LFS:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		break;
-	case D3DProxyDevice::CDC:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::END_SCENE;
-		break;
-	case D3DProxyDevice::CDC_TOMB_RAIDER:
-		//WIthout doing this, we get no VP Menu
-		m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::END_SCENE;
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::END_SCENE;
-		break;
-	case D3DProxyDevice::CHROME:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		break;
-	default:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		break;
-	}
+	m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::BEFORE_COMPOSITING;
+	m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
+	int temp = 0;
+	if (ProxyHelper::ParseGameType(config.game_type, ProxyHelper::WhenToRenderVPMENU, temp))
+		m_deviceBehavior.whenToRenderVPMENU = (DeviceBehavior::WhenToDo)(temp);
+	if (ProxyHelper::ParseGameType(config.game_type, ProxyHelper::WhenToHandleTracking, temp))
+		m_deviceBehavior.whenToHandleHeadTracking = (DeviceBehavior::WhenToDo)(temp);
 }
 
 /**

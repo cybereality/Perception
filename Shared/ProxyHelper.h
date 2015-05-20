@@ -57,7 +57,7 @@ struct ProxyConfig
 	UINT        VRboostMinShaderCount;      /**< Minimum Vertex Shader Count to apply VRboost (security) */
 	UINT        VRboostMaxShaderCount;      /**< Maximum Vertex Shader Count to apply VRboost (security) */
 	bool		is64bit;					/**< The game cpu-architecture, true for 64-bit games */
-	int         game_type;                  /**< Game type enumeration. Matching D3DProxyDevice::ProxyTypes. */
+	std::string game_type;                  /**< Game type enumeration. Matching D3DProxyDevice::ProxyTypes. */
 	int         rollImpl;                   /**< 0 - NONE, 1 - Matrix Roll, 2 - Pixel Shader Roll */
 	float       worldScaleFactor;           /**< Value the eye seperation is to be multiplied with. (mm * worldScaleFactor = mm in game units). */
 	
@@ -223,6 +223,20 @@ public:
 	bool  SaveConfig(ProxyConfig& config);
 	bool  HasProfile(const char* name, const char *path);
 	bool  GetProfile(char* name, char *path, bool _64bit, ProxyConfig& config);
+
+	enum GameTypeEntry
+	{
+		StateBlockSaveRestoreType,					//State Block Save/Restore type (HowToSaveRenderStates enum)
+		WhenToRenderVPMENU,							//When to render VPMENU (0-3 when to do enum)
+		WhenToHandleTracking,						//When to handle tracking (0-3 when to do enum)
+		ShouldDuplicateRenderTargetOrDepthStencil,	//Should duplicate render target & depth stencil surface mode (0 - false, 1 - true, 2 - Width != height)
+		ShouldDuplicateTexture,						//Should duplicate texture mode (0 - false, 1 - true, 2 - Is Render Target?, 3 - Is Render Target and Width != Height)
+		ShouldDuplicateCubeTexture,					//Should duplicate cube texture mode (0 - false, 1 - true, 2 - Is Render Target?)
+		DeviceStateFlags							//	Bit 1 - Sampler State flags (0 D3DSAMP_SRGBTEXTURE = 0, 1 - D3DSAMP_SRGBTEXTURE = ssSrgb)
+													//	Bit 0 - Disable Scissor Test state before draw
+	};
+
+	static bool ParseGameType(std::string gameType, GameTypeEntry entry, int &value);
 	/**
 	* The following is used by the dll symlink installer to identify which game is in the
 	* scanned folder
