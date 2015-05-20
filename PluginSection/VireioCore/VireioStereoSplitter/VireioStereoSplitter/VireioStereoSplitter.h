@@ -167,6 +167,7 @@ private:
 	/*** StereoSplitter private D3D9 methods ***/
 	void                    SetRenderTarget(IDirect3DDevice9* pcDevice, DWORD dwRenderTargetIndex, IDirect3DSurface9* pcRenderTarget);
 	void                    SetDepthStencilSurface(IDirect3DDevice9* pcDevice, IDirect3DSurface9* pNewZStencil);
+	void                    Clear(IDirect3DDevice9* pcDevice, DWORD dwCount, D3DRECT *pRects, DWORD dwFlags, D3DCOLOR sColor, float fZ, DWORD dwStencil);
 	void                    SetTexture(IDirect3DDevice9* pcDevice, DWORD Stage,IDirect3DBaseTexture9* pcTexture);
 	void                    DrawPrimitive(IDirect3DDevice9* pcDevice, D3DPRIMITIVETYPE ePrimitiveType, UINT dwStartVertex, UINT dwPrimitiveCount);
 	void                    DrawIndexedPrimitive(IDirect3DDevice9* pcDevice, D3DPRIMITIVETYPE ePrimitiveType, INT nBaseVertexIndex, UINT dwMinVertexIndex, UINT dwNumVertices, UINT dwStartIndex, UINT dwPrimCount);

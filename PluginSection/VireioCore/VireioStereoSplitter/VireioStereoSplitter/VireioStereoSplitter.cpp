@@ -46,6 +46,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define	METHOD_IDIRECT3DDEVICE9_PRESENT                     17
 #define METHOD_IDIRECT3DDEVICE9_SETRENDERTARGET             37
 #define METHOD_IDIRECT3DDEVICE9_SETDEPTHSTENCILSURFACE      39 
+#define METHOD_IDIRECT3DDEVICE9_CLEAR                       43
 #define METHOD_IDIRECT3DDEVICE9_SETTEXTURE                  65
 #define METHOD_IDIRECT3DDEVICE9_DRAWPRIMITIVE               81
 #define METHOD_IDIRECT3DDEVICE9_DRAWINDEXEDPRIMITIVE        82 
@@ -650,6 +651,7 @@ bool StereoSplitter::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 			if ((nD3DMethod == METHOD_IDIRECT3DDEVICE9_PRESENT) ||
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_SETRENDERTARGET) ||
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_SETDEPTHSTENCILSURFACE) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_CLEAR) ||
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_SETTEXTURE) ||
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_DRAWPRIMITIVE) ||
 				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_DRAWINDEXEDPRIMITIVE) ||
@@ -705,6 +707,27 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 					// call method
 					SetDepthStencilSurface((LPDIRECT3DDEVICE9)pThis, pcNewZStencil);
+				}	
+				return nullptr;
+			case METHOD_IDIRECT3DDEVICE9_CLEAR:
+				if (m_bPresent)
+				{
+					// get data
+					DWORD dwCount = 0;
+					if (m_pdwCount) dwCount = *m_pdwCount; else return nullptr;
+					D3DRECT* pRects = nullptr;
+					if (m_ppsRects) pRects = *m_ppsRects; else return nullptr;
+					DWORD dwFlags = 0;
+					if (m_pdwFlags) dwFlags = *m_pdwFlags; else return nullptr;
+					D3DCOLOR sColor = 0;
+					if (m_psColor) sColor = *m_psColor; else return nullptr;
+					float fZ = 0.0f;
+					if (m_pfZ) fZ = *m_pfZ; else return nullptr;
+					DWORD dwStencil = 0;
+					if (m_pdwStencil) dwStencil = *m_pdwStencil; else return nullptr;
+
+					// call method
+					Clear((LPDIRECT3DDEVICE9)pThis, dwCount, pRects, dwFlags, sColor, fZ, dwStencil);
 				}	
 				return nullptr;
 			case METHOD_IDIRECT3DDEVICE9_SETTEXTURE:
@@ -1272,6 +1295,22 @@ void StereoSplitter::SetTexture(IDirect3DDevice9* pcDevice, DWORD Stage,IDirect3
 	}
 
 	m_bControlUpdate = true;
+}
+
+/**
+* Incoming Clear() call.
+***/
+void StereoSplitter::Clear(IDirect3DDevice9* pcDevice, DWORD dwCount, D3DRECT *pRects, DWORD dwFlags, D3DCOLOR sColor, float fZ, DWORD dwStencil)
+{
+	// Always draw first on the right side, the left (original) side
+	// will be drawn at the end
+	SetDrawingSide(pcDevice, RenderPosition::Right);
+
+	// draw
+	pcDevice->Clear(dwCount, pRects, dwFlags, sColor, fZ, dwStencil);
+
+	// Allways switch back to the left (original) side here !
+	SetDrawingSide(pcDevice, RenderPosition::Left);
 }
 
 /**
