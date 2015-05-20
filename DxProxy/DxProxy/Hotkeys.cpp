@@ -426,7 +426,7 @@ void D3DProxyDevice::HandleControls()
 				_str = stereoView->CycleRenderState(true);
 			}
 			ShowPopup(VPT_ADJUSTER, VPS_TOAST, 1000,
-				retprintf("%s :: New Render State", _str.c_str()));
+				retprintf("New Render State :: %s", _str.c_str()));
 		}
 
 		// Toggle Through Cube Renders -> ALt + 1

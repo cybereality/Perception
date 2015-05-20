@@ -85,13 +85,14 @@ StereoView::StereoView(ProxyConfig *config)
 	sb = NULL;
 	m_bLeftSideActive = false;
 
-	if (config->game_type.length() != 7 || config->game_type[0] < '0' || config->game_type[0] > '3')
+	int value = 0;
+	if (ProxyHelper::ParseGameType(config->game_type, ProxyHelper::StateBlockSaveRestoreType, value))
 	{
-		howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;
+		howToSaveRenderStates = (HowToSaveRenderStates)(value);
 	}
 	else
 	{
-		howToSaveRenderStates = (HowToSaveRenderStates)(config->game_type[0]);
+		howToSaveRenderStates = HowToSaveRenderStates::STATE_BLOCK;
 	}
 }
 
@@ -623,7 +624,8 @@ void StereoView::SetState()
 	m_pActualDevice->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
 	m_pActualDevice->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);  
 
-	if (config->game_type.length() == 8 && config->game_type[6] == '1')
+	int value = 0;
+	if (ProxyHelper::ParseGameType(config->game_type, ProxyHelper::DeviceStateFlags, value) && (value & 2))
 	{
 		m_pActualDevice->SetSamplerState(0, D3DSAMP_SRGBTEXTURE, ssSrgb);
 		m_pActualDevice->SetSamplerState(1, D3DSAMP_SRGBTEXTURE, ssSrgb);

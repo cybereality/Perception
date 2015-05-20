@@ -45,9 +45,11 @@ D3DProxyDevice* D3DProxyDeviceFactory::Get(ProxyConfig& config, ProxyHelper::Use
 {
 	D3DProxyDevice* newDev = NULL;
 
+	int value = 0;
+
 	if (userConfig.shaderAnalyser)
 		newDev = new DataGatherer(dev, pCreatedBy);
-	else if (config.game_type.length() == 8 && config.game_type[7] == '1')
+	else if (ProxyHelper::ParseGameType(config.game_type, ProxyHelper::DeviceStateFlags, value) && (value & 1))
 		newDev = new D3DProxyDeviceAdv(dev, pCreatedBy);
 	else if (config.game_type == "0000000")
 		newDev = new D3DProxyDeviceDebug(dev, pCreatedBy);

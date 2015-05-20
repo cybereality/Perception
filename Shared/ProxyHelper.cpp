@@ -1089,6 +1089,27 @@ void HandleGameProfile(ProxyHelper::ConfigTransferDirection dir, xml_node &node,
 	HANDLE_SETTING(HotkeyNextRenderState,   LAlt + Key(VK_RIGHT));
 }
 
+//Centralised location for validation of the game type string
+bool ProxyHelper::ParseGameType(std::string gameType, ProxyHelper::GameTypeEntry entry, int &value)
+{
+	if (gameType.length() == 7)
+	{
+		char min = '0';
+		char max = '3';
+
+		if (entry == ProxyHelper::ShouldDuplicateRenderTargetOrDepthStencil || 
+			entry == ProxyHelper::ShouldDuplicateCubeTexture)
+			max = '2';
+
+		if (gameType[(int)entry] < min || gameType[(int)entry] > max)
+			return false;
+
+		value = (gameType[(int)entry] - min);
+		return true;
+	}
+
+	return false;
+}
 
 /**
 * True if process has a configuration profile.

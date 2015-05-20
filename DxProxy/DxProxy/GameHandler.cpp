@@ -117,9 +117,10 @@ bool GameHandler::Save(ProxyConfig& cfg, std::shared_ptr<ViewAdjustment> spShade
 bool GameHandler::ShouldDuplicateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample, DWORD MultisampleQuality,BOOL Lockable, bool isSwapChainBackBuffer)
 {
 	//Get duplicate render target entry from the game type
-	if (m_gameType.length() == 8 && m_gameType[3] >= '0' && m_gameType[3] <= '2')
+	int value = 0;
+	if (ProxyHelper::ParseGameType(m_gameType, ProxyHelper::ShouldDuplicateRenderTargetOrDepthStencil, value))
 	{
-		switch(m_gameType[3] - '0')
+		switch(value)
 		{
 		case 0:
 			return false;
@@ -143,9 +144,10 @@ bool GameHandler::ShouldDuplicateRenderTarget(UINT Width, UINT Height, D3DFORMAT
 ***/
 bool GameHandler::ShouldDuplicateDepthStencilSurface(UINT Width,UINT Height,D3DFORMAT Format,D3DMULTISAMPLE_TYPE MultiSample,DWORD MultisampleQuality,BOOL Discard)
 {
-	if (m_gameType.length() == 8 && m_gameType[3] >= '0' && m_gameType[3] <= '2')
+	int value = 0;
+	if (ProxyHelper::ParseGameType(m_gameType, ProxyHelper::ShouldDuplicateRenderTargetOrDepthStencil, value))
 	{
-		switch(m_gameType[3] - '0')
+		switch(value)
 		{
 		case 0:
 			return false;
@@ -174,14 +176,7 @@ bool GameHandler::ShouldDuplicateTexture(UINT Width,UINT Height,UINT Levels,DWOR
 	}
 	else
 	{
-		if (m_gameType.length() != 8 || m_gameType[4] < '0' || m_gameType[4] > '3')
-		{
-			//Drop out to default
-		}
-		else
-		{
-			duplicateTexture = m_gameType[4] - '0';
-		}
+		ProxyHelper::ParseGameType(m_gameType, ProxyHelper::ShouldDuplicateTexture, duplicateTexture);
 	}
 
 	switch (duplicateTexture)
@@ -222,14 +217,7 @@ bool GameHandler::ShouldDuplicateCubeTexture(UINT EdgeLength, UINT Levels, DWORD
 	}
 	else
 	{
-		if (m_gameType.length() != 8 || m_gameType[5] < '0' || m_gameType[5] > '2')
-		{
-			//Drop out to default
-		}
-		else
-		{
-			duplicateCubeTexture = m_gameType[5] - '0';
-		}
+		ProxyHelper::ParseGameType(m_gameType, ProxyHelper::ShouldDuplicateCubeTexture, duplicateCubeTexture);
 	}
 
 	switch(duplicateCubeTexture)

@@ -1520,13 +1520,11 @@ void D3DProxyDevice::VPMENU_UpdateDeviceSettings()
 	// set behavior accordingly to game type
 	m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::BEFORE_COMPOSITING;
 	m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-	if (config.game_type.length() == 8)
-	{
-		if (config.game_type[1] >= '0' && config.game_type[1] <= '3')
-			m_deviceBehavior.whenToRenderVPMENU = (DeviceBehavior::WhenToDo)(config.game_type[1] - '0');
-		if (config.game_type[2] >= '0' && config.game_type[2] <= '3')
-			m_deviceBehavior.whenToHandleHeadTracking = (DeviceBehavior::WhenToDo)(config.game_type[2] - '0');
-	}
+	int temp = 0;
+	if (ProxyHelper::ParseGameType(config.game_type, ProxyHelper::WhenToRenderVPMENU, temp))
+		m_deviceBehavior.whenToRenderVPMENU = (DeviceBehavior::WhenToDo)(temp);
+	if (ProxyHelper::ParseGameType(config.game_type, ProxyHelper::WhenToHandleTracking, temp))
+		m_deviceBehavior.whenToHandleHeadTracking = (DeviceBehavior::WhenToDo)(temp);
 }
 
 /**
