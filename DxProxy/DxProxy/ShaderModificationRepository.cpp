@@ -33,6 +33,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace vireio;
 
+static std::string D3DXParameterClassToString(D3DXPARAMETER_CLASS paramClass);
+
 /**
 * Constructor.
 * Creates identity matrix.
@@ -360,16 +362,17 @@ bool ShaderModificationRepository::AddRule(std::string constantName, bool allowP
 bool ShaderModificationRepository::ModifyRule(std::string constantName, UINT operationToApply, bool transpose)
 {
 	bool rulePresent = false;
-	auto itModificationRules = m_AllModificationRules.begin();
-	while (itModificationRules != m_AllModificationRules.end())
+	
+	for (auto itModificationRules = m_AllModificationRules.begin();
+	     itModificationRules != m_AllModificationRules.end();
+	     ++itModificationRules)
 	{
-		if (constantName.compare(itModificationRules->second.m_constantName) == 0) 
+		if (constantName.compare(itModificationRules->second.m_constantName) == 0)
 		{
 			itModificationRules->second.m_operationToApply = operationToApply;
 			itModificationRules->second.m_transpose = transpose;
 			rulePresent = true;
 		}
-		++itModificationRules;
 	}
 
 	return rulePresent;
@@ -433,20 +436,22 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 	if (m_shaderSpecificModificationRuleIDs.count(hash) == 1) {
 
 		// There are specific modification rules to use with this shader
-		auto itRules = m_shaderSpecificModificationRuleIDs[hash].begin();
-		while (itRules != m_shaderSpecificModificationRuleIDs[hash].end()) {
+		for (auto itRules = m_shaderSpecificModificationRuleIDs[hash].begin();
+		     itRules != m_shaderSpecificModificationRuleIDs[hash].end();
+		     ++itRules)
+		{
 			rulesToApply.push_back(&(m_AllModificationRules[*itRules]));
-			++itRules;
 		}
 	}
 	
 	if (rulesToApply.size() == 0)
 	{
 		// No specific rules, use general rules
-		auto itRules = m_defaultModificationRuleIDs.begin();
-		while (itRules != m_defaultModificationRuleIDs.end()) {
+		for (auto itRules = m_defaultModificationRuleIDs.begin();
+		     itRules != m_defaultModificationRuleIDs.end();
+		     ++itRules)
+		{
 			rulesToApply.push_back(&(m_AllModificationRules[*itRules]));
-			++itRules;
 		}
 	}
 
@@ -525,21 +530,7 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 
 #ifdef _DEBUG
 								// output shader constant + index 
-								switch(pConstantDesc[j].Class)
-								{
-								case D3DXPC_VECTOR:
-									OutputDebugString("PS: D3DXPC_VECTOR");
-									break;
-								case D3DXPC_MATRIX_ROWS:
-									OutputDebugString("PS: D3DXPC_MATRIX_ROWS");
-									break;
-								case D3DXPC_MATRIX_COLUMNS:
-									OutputDebugString("PS: D3DXPC_MATRIX_COLUMNS");
-									break;
-								default:
-									OutputDebugString("PS: UNKNOWN_CONSTANT");
-									break;
-								}
+								debugf("PS: %s\b", D3DXParameterClassToString(pConstantDesc[j].Class).c_str());
 								debugf("Register Index: %d", pConstantDesc[j].RegisterIndex);
 #endif // DEBUG
 
@@ -704,21 +695,7 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 			{
 #ifdef _DEBUG
 				// output shader constant + index 
-				switch(pConstantDesc[j].Class)
-				{
-				case D3DXPC_VECTOR:
-					OutputDebugString("VS1: D3DXPC_VECTOR");
-					break;
-				case D3DXPC_MATRIX_ROWS:
-					OutputDebugString("VS1: D3DXPC_MATRIX_ROWS");
-					break;
-				case D3DXPC_MATRIX_COLUMNS:
-					OutputDebugString("VS1: D3DXPC_MATRIX_COLUMNS");
-					break;
-				default:
-					OutputDebugString("VS1: UNKNOWN_CONSTANT_TYPE");
-					break;
-				}
+				debugf("VS1: %s\n", D3DXParameterClassToString(pConstantDesc[j].Class).c_str());
 #endif // DEBUG
 				// We are only modifying selected float vectors/matricies.
 				if (pConstantDesc[j].RegisterSet != D3DXRS_FLOAT4)
@@ -769,21 +746,7 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 
 #ifdef _DEBUG
 								// output shader constant + index 
-								switch(pConstantDesc[j].Class)
-								{
-								case D3DXPC_VECTOR:
-									OutputDebugString("VS2: D3DXPC_VECTOR");
-									break;
-								case D3DXPC_MATRIX_ROWS:
-									OutputDebugString("VS2: D3DXPC_MATRIX_ROWS");
-									break;
-								case D3DXPC_MATRIX_COLUMNS:
-									OutputDebugString("VS2: D3DXPC_MATRIX_COLUMNS");
-									break;
-								default:
-									OutputDebugString("VS2: UNKNOWN_CONSTANTTYPE");
-									break;
-								}
+								debugf("VS2: %s\n", D3DXParameterClassToString(pConstantDesc[j].Class).c_str());
 								debugf("Register Index: %d", pConstantDesc[j].RegisterIndex);
 #endif // DEBUG
 
@@ -998,35 +961,34 @@ UINT ShaderModificationRepository::GetUniqueRuleID()
 ***/
 bool ShaderModificationRepository::ConstantHasRule(std::string constantName, std::string& constantRule, UINT& operation, bool& isTransposed)
 {
-	auto iRules = m_AllModificationRules.begin();
-	while (iRules !=m_AllModificationRules.end())
+	for (auto iRules = m_AllModificationRules.begin();
+	     iRules !=m_AllModificationRules.end();
+	     ++iRules)
 	{
-		if (iRules->second.m_constantName.compare(constantName) == 0)
+		if (iRules->second.m_constantName.compare(constantName) != 0)
+			continue;
+		
+		isTransposed = iRules->second.m_transpose;
+		operation = iRules->second.m_operationToApply;
+		
+		// put this to factory ?
+		// get the string name of the rule
+		switch (iRules->second.m_constantType)
 		{
-			isTransposed = iRules->second.m_transpose;
-			operation = iRules->second.m_operationToApply;
-			
-			// put this to factory ?
-			// get the string name of the rule
-			switch (iRules->second.m_constantType)
-			{
-			case D3DXPC_VECTOR:
-				constantRule = ShaderConstantModificationFactory::Vector4ModificationTypeToString((ShaderConstantModificationFactory::Vector4ModificationTypes)operation);
-				break;
+		case D3DXPC_VECTOR:
+			constantRule = ShaderConstantModificationFactory::Vector4ModificationTypeToString((ShaderConstantModificationFactory::Vector4ModificationTypes)operation);
+			break;
 
-			case D3DXPC_MATRIX_ROWS:
-			case D3DXPC_MATRIX_COLUMNS:
-				constantRule = ShaderConstantModificationFactory::MatrixModificationTypeToString((ShaderConstantModificationFactory::MatrixModificationTypes)operation);
-				break;
+		case D3DXPC_MATRIX_ROWS:
+		case D3DXPC_MATRIX_COLUMNS:
+			constantRule = ShaderConstantModificationFactory::MatrixModificationTypeToString((ShaderConstantModificationFactory::MatrixModificationTypes)operation);
+			break;
 
-			default:
-				throw 69; // unhandled type
-				break;
-			}
-			return true;
+		default:
+			throw 69; // unhandled type
+			break;
 		}
-
-		++iRules;
+		return true;
 	}
 	return false;
 }
@@ -1080,3 +1042,14 @@ StereoShaderConstant<> ShaderModificationRepository::CreateStereoConstantFrom(co
 	}
 }
 
+
+std::string D3DXParameterClassToString(D3DXPARAMETER_CLASS paramClass)
+{
+	switch(paramClass)
+	{
+		case D3DXPC_VECTOR:         return "D3DXPC_VECTOR";
+		case D3DXPC_MATRIX_ROWS:    return "D3DXPC_MATRIX_ROWS";
+		case D3DXPC_MATRIX_COLUMNS: return "D3DXPC_MATRIX_COLUMNS";
+		default:                    return "UNKNOWN_CONSTANTTYPE";
+	}
+}
