@@ -29,6 +29,7 @@ float ZBufferStrength;
 float ZBufferFilter;
 float ZBufferDepthLow;
 float ZBufferDepthHigh;
+bool ZBufferSwitch;
 
 // Warp operates on left view, for right, mirror x texture coord
 // before and after calling.  in02 contains the chromatic aberration
@@ -168,6 +169,11 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 		{
 			depthValue = (depthValue - ZBufferDepthLow) / (ZBufferDepthHigh - ZBufferDepthLow);
 		}
+		
+		if(ZBufferSwitch) {
+			depthValue = 1.0f - depthValue;
+		}
+
 		outColor.r =  tex2D(TexMap0,   tcBlue.xy).r;
 		outColor.g =  tex2D(TexMap0, tcBlue.xy).g;
 		outColor.b =  tex2D(TexMap0,  tcBlue.xy).b;

@@ -756,6 +756,10 @@ void D3DProxyDevice::VPMENU_ZBufferSettings()
 	MenuBuilder *menu = VPMENU_NewFrame();
 	VPMENU_StartDrawing(menu, "Settings - Z Buffer Settings");
 	
+	menu->AddToggle("Flip Depths : %s", "ON", "OFF", &config.zbufferSwitch, false, [=]() {
+		
+	});
+
 	menu->AddAdjustment("Z Buffer Strength : %1.1f", &config.zbufferStrength,
 		defaultConfig.zbufferStrength, 1.00f, [=]()
 	{

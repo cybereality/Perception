@@ -1040,6 +1040,7 @@ void HandleGameProfile(ProxyHelper::ConfigTransferDirection dir, xml_node &node,
 	HANDLE_SETTING(PFOV,					110.0f);
 	HANDLE_SETTING(PFOVToggle,				true);
 	
+	HANDLE_SETTING(zbufferSwitch,			false);
 	HANDLE_SETTING(zbufferStrength,			500.0f);
 	HANDLE_SETTING(zbufferDepthLow,			0.995999f);
 	HANDLE_SETTING(zbufferDepthHigh,		1.000000f);
