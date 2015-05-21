@@ -233,7 +233,7 @@ void ViewAdjustment::UpdatePosition(float yaw, float pitch, float roll, float xP
 
 	D3DXMATRIX rotationMatrixPitchYaw;
 	D3DXMatrixIdentity(&rotationMatrixPitchYaw);
-	D3DXMatrixMultiply(&rotationMatrixPitchYaw, &rotationMatrixPitch, &rotationMatrixYaw);
+	D3DXMatrixMultiply(&rotationMatrixPitchYaw, &rotationMatrixYaw, &rotationMatrixPitch);
 
 	D3DXVec3TransformNormal(&positionTransformVec, &positionTransformVec, &rotationMatrixPitchYaw);
 

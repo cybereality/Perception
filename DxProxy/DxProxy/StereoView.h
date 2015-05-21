@@ -159,9 +159,6 @@ public:
 	//DK2 black smear correction (0.0f if disabled)
 	float m_blackSmearCorrection;		
 
-	//Separation in subpixels
-	float m_fZBufferStrength;
-	
 	//Depth Filter Mode
 	bool m_bZBufferFilterMode;
 

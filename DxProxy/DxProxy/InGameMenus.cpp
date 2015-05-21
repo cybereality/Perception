@@ -173,8 +173,17 @@ void D3DProxyDevice::VPMENU_DrawBorder(int top)
 	rect.x2 = (int)viewportWidth;
 	rect.y1 = (int)top;
 	rect.y2 = (int)(top+viewportHeight*0.04f);
-	ClearEmptyRect(vireio::RenderPosition::Left, rect, COLOR_MENU_BORDER, 2);
-	ClearEmptyRect(vireio::RenderPosition::Right, rect, COLOR_MENU_BORDER, 2);
+	if(stereoView->m_3DReconstructionMode != Reconstruction_Type::ZBUFFER ||
+	  !stereoView->m_bZBufferFilterMode)
+	{
+		ClearEmptyRect(vireio::RenderPosition::Left, rect, COLOR_MENU_BORDER, 2);
+		ClearEmptyRect(vireio::RenderPosition::Right, rect, COLOR_MENU_BORDER, 2);
+	}
+	else
+	{
+		ClearEmptyRect(vireio::RenderPosition::Left, rect, COLOR_TEXT_ZBUFFER, 2);
+		ClearEmptyRect(vireio::RenderPosition::Right, rect, COLOR_TEXT_ZBUFFER, 2);
+	}
 }
 
 /**
@@ -228,7 +237,10 @@ void D3DProxyDevice::VPMENU_DrawTitle(const char *pageTitle)
 	clearRect.y1 = (int)(335*fScaleY);
 	clearRect.x2 = viewportWidth;
 	clearRect.y2 = (int)(340*fScaleY);
-	Clear(1, &clearRect, D3DCLEAR_TARGET, COLOR_MENU_BORDER, 0, 0);
+	if(stereoView->m_3DReconstructionMode != Reconstruction_Type::ZBUFFER)
+		Clear(1, &clearRect, D3DCLEAR_TARGET, COLOR_MENU_BORDER, 0, 0);
+	else
+		Clear(1, &clearRect, D3DCLEAR_TARGET, COLOR_TEXT_ZBUFFER, 0, 0);
 }
 
 bool D3DProxyDevice::VPMENU_Input_Selected()
@@ -747,8 +759,7 @@ void D3DProxyDevice::VPMENU_ZBufferSettings()
 	menu->AddAdjustment("Z Buffer Strength : %1.1f", &config.zbufferStrength,
 		defaultConfig.zbufferStrength, 1.00f, [=]()
 	{
-		stereoView->m_fZBufferStrength = config.zbufferStrength;
-		stereoView->PostReset();		
+		
 	});	
 	
 	menu->AddToggle("Depth Visualisation Mode : %s", "ON", "OFF", &stereoView->m_bZBufferVisualisationMode, false, [=]() {
@@ -778,6 +789,12 @@ void D3DProxyDevice::VPMENU_ZBufferSettings()
 		}
 		stereoView->PostReset();
 	});
+
+	menu->AddAdjustment("Filter Depth (+0.0005f) : %1.6f", &stereoView->m_fZBufferFilter,
+		config.zbufferDepthLow, 0.00010f, [=]()
+	{
+		
+	});	
 
 	//stereoView->m_bZBufferFilterMode
 	//stereoView->m_bZBufferFilterMode
