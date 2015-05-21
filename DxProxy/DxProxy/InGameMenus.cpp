@@ -779,6 +779,12 @@ void D3DProxyDevice::VPMENU_ZBufferSettings()
 		stereoView->PostReset();
 	});
 
+	menu->AddAdjustment("Filter Depth (+0.0005f) : %1.6f", &stereoView->m_fZBufferFilter,
+		0.0000f, 0.00010f, [=]()
+	{
+		
+	});	
+
 	//stereoView->m_bZBufferFilterMode
 	//stereoView->m_bZBufferFilterMode
 	
