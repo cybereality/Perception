@@ -2330,7 +2330,7 @@ void D3DProxyDevice::Init(ProxyConfig& cfg)
 	m_bSurpressHeadtracking = false;
 	m_bSurpressPositionaltracking = false;
 
-	debugf("type: %d, aspect: %s\n", config.game_type.c_str(), config.aspect_multiplier);
+	debugf("type: %s, aspect: %s\n", config.game_type.c_str(), config.aspect_multiplier);
 
 	// first time configuration
 	m_spShaderViewAdjustment->Load(config);
