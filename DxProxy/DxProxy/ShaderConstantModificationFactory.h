@@ -38,22 +38,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Vector4SimpleTranslate.h"
 #include "Vector4EyeShiftUnity.h"
 #include "Vector4DeadIslandScaled.h"
-#include "MatrixIgnoreOrtho.h"
-#include "MatrixDoNothing.h"
-#include "MatrixHudSlide.h"
-#include "MatrixGuiSquash.h"
-#include "MatrixOrthoSquash.h"
-#include "MatrixOrthoSquashHud.h"
-#include "MatrixOrthoSquashShifted.h"
-#include "MatrixSurfaceRefractionTransform.h"
-#include "MatrixGatheredOrhoSquash.h"
-#include "MatrixConvOffsetAdjustment.h"
-#include "MatrixRollOnly.h"
-#include "MatrixRollOnlyNegative.h"
-#include "MatrixRollOnlyHalf.h"
-#include "MatrixNoRoll.h"
-#include "MatrixNoPositional.h"
-#include "MatrixNoStereoSeparate.h"
 
 /**
 * Shader constant modification helper class.

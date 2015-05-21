@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -308,24 +308,9 @@
     <ClInclude Include="HMDisplayInfoFactory.h" />
     <ClInclude Include="HMDisplayInfo_Default.h" />
     <ClInclude Include="HMDisplayInfo_OculusRift.h" />
-    <ClInclude Include="MatrixDoNothing.h" />
-    <ClInclude Include="MatrixGatheredOrhoSquash.h" />
-    <ClInclude Include="MatrixGuiSquash.h" />
-    <ClInclude Include="MatrixHudSlide.h" />
-    <ClInclude Include="MatrixNoPositional.h" />
-    <ClInclude Include="MatrixNoRoll.h" />
-    <ClInclude Include="MatrixNoStereoSeparate.h" />
-    <ClInclude Include="MatrixOrthoSquash.h" />
-    <ClInclude Include="MatrixOrthoSquashHud.h" />
-    <ClInclude Include="MatrixOrthoSquashShifted.h" />
-    <ClInclude Include="MatrixConvOffsetAdjustment.h" />
-    <ClInclude Include="MatrixRollOnly.h" />
-    <ClInclude Include="MatrixRollOnlyHalf.h" />
-    <ClInclude Include="MatrixRollOnlyNegative.h" />
-    <ClInclude Include="MatrixSurfaceRefractionTransform.h" />
+    <ClInclude Include="InGameMenus.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="ShaderMatrixModification.h" />
-    <ClInclude Include="MatrixIgnoreOrtho.h" />
     <ClInclude Include="ShaderObjectType.h" />
     <ClInclude Include="Vector4DeadIslandScaled.h" />
     <ClInclude Include="Vector4EyeShiftUnity.h" />
@@ -388,6 +373,7 @@
     <ClInclude Include="..\..\Shared\json\value.h" />
     <ClInclude Include="..\..\Shared\json\version.h" />
     <ClInclude Include="..\..\Shared\json\writer.h" />
+    <ClInclude Include="VireioPopup.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\Release\Perception\cfg\config.xml">

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Main">
@@ -75,9 +75,6 @@
     </ClCompile>
     <ClCompile Include="MotionTracker.cpp">
       <Filter>Tracking</Filter>
-    </ClCompile>
-    <ClCompile Include="pugixml.cpp">
-      <Filter>XML</Filter>
     </ClCompile>
     <ClCompile Include="MotionTrackerFactory.cpp">
       <Filter>Tracking</Filter>
@@ -226,6 +223,27 @@
     </ClCompile>
     <ClCompile Include="Hotkeys.cpp">
       <Filter>Direct3D9</Filter>
+    </ClCompile>
+    <ClCompile Include="DirectXInputControls.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Shared\pugixml.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Shared\VireioUtil.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Shared\InputControls.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Shared\json\json_reader.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Shared\json\json_value.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Shared\json\json_writer.cpp">
+      <Filter>Main</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -408,35 +426,11 @@
     <ClInclude Include="Vector4SimpleTranslate.h">
       <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
     </ClInclude>
-    <ClInclude Include="MatrixDoNothing.h">
-      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
-    </ClInclude>
     <ClInclude Include="ViewAdjustment.h">
       <Filter>Direct3D9Vireio</Filter>
     </ClInclude>
-    <ClInclude Include="ShaderMatrixModification.h">
-      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
-    </ClInclude>
-    <ClInclude Include="MatrixIgnoreOrtho.h">
-      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
-    </ClInclude>
-    <ClInclude Include="MatrixOrthoSquash.h">
-      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
-    </ClInclude>
     <ClInclude Include="D3D9ProxyPixelShader.h">
       <Filter>Direct3D9Vireio</Filter>
-    </ClInclude>
-    <ClInclude Include="MatrixGatheredOrhoSquash.h">
-      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
-    </ClInclude>
-    <ClInclude Include="MatrixSurfaceRefractionTransform.h">
-      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
-    </ClInclude>
-    <ClInclude Include="MatrixOrthoSquashHud.h">
-      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
-    </ClInclude>
-    <ClInclude Include="MatrixOrthoSquashShifted.h">
-      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
     </ClInclude>
     <ClInclude Include="Direct3D9Ex.h">
       <Filter>Direct3D9</Filter>
@@ -445,27 +439,6 @@
       <Filter>Direct3D9</Filter>
     </ClInclude>
     <ClInclude Include="Vector4EyeShiftUnity.h">
-      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
-    </ClInclude>
-    <ClInclude Include="MatrixConvOffsetAdjustment.h">
-      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
-    </ClInclude>
-    <ClInclude Include="MatrixGuiSquash.h">
-      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
-    </ClInclude>
-    <ClInclude Include="MatrixHudSlide.h">
-      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
-    </ClInclude>
-    <ClInclude Include="MatrixRollOnly.h">
-      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
-    </ClInclude>
-    <ClInclude Include="MatrixRollOnlyNegative.h">
-      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
-    </ClInclude>
-    <ClInclude Include="MatrixRollOnlyHalf.h">
-      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
-    </ClInclude>
-    <ClInclude Include="MatrixNoRoll.h">
       <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
     </ClInclude>
     <ClInclude Include="D3DProxyDeviceAdv.h">
@@ -496,17 +469,31 @@
     <ClInclude Include="Vector4DeadIslandScaled.h">
       <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
     </ClInclude>
-    <ClInclude Include="MatrixNoPositional.h">
-      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
-    </ClInclude>
-    <ClInclude Include="MatrixNoStereoSeparate.h">
-      <Filter>Direct3D9Vireio\ShaderConstantModification</Filter>
-    </ClInclude>
     <ClInclude Include="Resource.h">
       <Filter>Main</Filter>
     </ClInclude>
     <ClInclude Include="ShaderObjectType.h">
       <Filter>Direct3D9Vireio</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectXInputControls.h" />
+    <ClInclude Include="ShaderMatrixModification.h" />
+    <ClInclude Include="..\..\Shared\Version.h" />
+    <ClInclude Include="..\..\Shared\VireioUtil.h" />
+    <ClInclude Include="..\..\Shared\InputControls.h" />
+    <ClInclude Include="..\..\Shared\json\assertions.h" />
+    <ClInclude Include="..\..\Shared\json\autolink.h" />
+    <ClInclude Include="..\..\Shared\json\config.h" />
+    <ClInclude Include="..\..\Shared\json\features.h" />
+    <ClInclude Include="..\..\Shared\json\forwards.h" />
+    <ClInclude Include="..\..\Shared\json\json.h" />
+    <ClInclude Include="..\..\Shared\json\json_tool.h" />
+    <ClInclude Include="..\..\Shared\json\reader.h" />
+    <ClInclude Include="..\..\Shared\json\value.h" />
+    <ClInclude Include="..\..\Shared\json\version.h" />
+    <ClInclude Include="..\..\Shared\json\writer.h" />
+    <ClInclude Include="VireioPopup.h" />
+    <ClInclude Include="InGameMenus.h">
+      <Filter>Direct3D9</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
