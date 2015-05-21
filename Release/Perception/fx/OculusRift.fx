@@ -127,6 +127,7 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 	float2 tcBlue;
 	float angle = Rotation;
 	float3 outColor;	
+	float z;
 	float depthValue = 0.0f;
 	bool applyDepthFunctions;
 	applyDepthFunctions = false;
@@ -159,8 +160,9 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 	tcBlue = ScalePoint(ZoomScale, tcBlue);	
 	if(ZBuffer)
 	{
+		//TODO Try sampling from other texture to see if that makes any difference (that makes no sense since they are identical but worhth a try)
 		float3 rawval = floor( 255.0 * tex2D(TexMap0, tcBlue).arg + 0.5);
-		float z = dot( rawval, float3(0.996093809371817670572857294849,0.0038909914428586627756752238080039,1.5199185323666651467481343000015e-5) / 255.0);
+		z = dot( rawval, float3(0.996093809371817670572857294849,0.0038909914428586627756752238080039,1.5199185323666651467481343000015e-5) / 255.0);
 		depthValue = z;	
 		if(depthValue > 0.0f)
 		{
@@ -229,10 +231,9 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 	{
 		if(applyDepthFunctions)
 		{
-			//TODO Change to Raw Depth Value (possibly z)
-			if(depthValue > ZBufferFilter && depthValue < (ZBufferFilter + 0.0005f))
+			if(z > ZBufferFilter && z < (ZBufferFilter + 0.0005f))
 			{
-				outColor = float4(0.0, 0.0, depthValue, 1.0f);				
+				outColor = float4(0.0, 0.0, 1.0f, 1.0f);				
 			}
 			else
 			{
