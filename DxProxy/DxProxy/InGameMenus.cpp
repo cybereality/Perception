@@ -1427,6 +1427,7 @@ void D3DProxyDevice::VPMENU_EditKeybind(std::string description, InputBindingRef
 	
 	menu->AddButton(addHotkeyDescription.c_str(), [=]() {
 		hotkeyCatch = true;
+		HotkeyCooldown(COOLDOWN_LONG);
 		onBindKey = [=](InputBindingRef key) {
 			std::vector<InputBindingRef> newAlternatives = alternatives;
 			newAlternatives.insert(newAlternatives.begin(), key);
