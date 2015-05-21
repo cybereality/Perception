@@ -47,15 +47,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class MatrixOrthoSquashHud : public ShaderMatrixModification
 {
 public:
-	/**
-	* Constructor, sets attributes and such.
-	* @param modID The id for this matrix modification.
-	* @param adjustmentMatrices The matricies to be adjusted
-	* @param transpose Decides if the matrices should be transposed (aka: have rows and columns interchanged)
-	*/
-	MatrixOrthoSquashHud(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatrices, bool transpose) 
-		: ShaderMatrixModification(modID, adjustmentMatrices, transpose) 
-	{};
+	MatrixOrthoSquashHud(ShaderMatrixModificationParams params) : ShaderMatrixModification(params)
+	{
+	}
 
 	/**
 	* Matrix modification does multiply: shiftprojection * squash (for GUI), scale * transform * distance (for HUD).

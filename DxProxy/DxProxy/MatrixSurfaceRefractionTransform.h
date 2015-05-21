@@ -54,8 +54,8 @@ public:
 	* @param adjustmentMatrices The matricies to be adjusted
 	* @param transpose Decides if the matrices should be transposed (aka: have rows and columns interchanged)
 	*/
-	MatrixSurfaceRefractionTransform(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatrices, bool transpose) 
-		: ShaderMatrixModification(modID, adjustmentMatrices, transpose) 
+	MatrixSurfaceRefractionTransform(ShaderMatrixModificationParams params)
+		: ShaderMatrixModification(params)
 	{
 		D3DXMatrixTranslation(&translateUV, 0.5f, 0.5f, 0.5f);
 		D3DXMatrixScaling(&scaleUV, 0.5f, 0.5f, 0.0f);

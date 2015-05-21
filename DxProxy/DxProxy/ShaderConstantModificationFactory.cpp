@@ -71,58 +71,60 @@ std::shared_ptr<ShaderConstantModification<>> ShaderConstantModificationFactory:
 ***/
 std::shared_ptr<ShaderConstantModification<>> ShaderConstantModificationFactory::CreateMatrixModification(MatrixModificationTypes mod, std::shared_ptr<ViewAdjustment> adjustmentMatrices, bool transpose)
 {
+	ShaderMatrixModificationParams params(mod, adjustmentMatrices, transpose);
+	
 	switch (mod)
 	{
 	case MatDoNothing:
-		return std::make_shared<MatrixDoNothing>(mod, adjustmentMatrices);
+		return std::make_shared<MatrixDoNothing>(params);
 
 	case MatSimpleTranslate:
-		return std::make_shared<ShaderMatrixModification>(mod, adjustmentMatrices, transpose);
+		return std::make_shared<ShaderMatrixModification>(params);
 
 	case MatOrthographicSquash:
-		return std::make_shared<MatrixOrthoSquash>(mod, adjustmentMatrices, transpose);
+		return std::make_shared<MatrixOrthoSquash>(params);
 
 	case MatHudSlide:
-		return std::make_shared<MatrixHudSlide>(mod, adjustmentMatrices, transpose);
+		return std::make_shared<MatrixHudSlide>(params);
 
 	case MatGuiSquash:
-		return std::make_shared<MatrixGuiSquash>(mod, adjustmentMatrices, transpose);
+		return std::make_shared<MatrixGuiSquash>(params);
 
 	case MatSurfaceRefractionTransform:
-		return std::make_shared<MatrixSurfaceRefractionTransform>(mod, adjustmentMatrices, transpose);
+		return std::make_shared<MatrixSurfaceRefractionTransform>(params);
 
 	case MatGatheredOrthographicSquash:
-		return std::make_shared<MatrixGatheredOrthoSquash>(mod, adjustmentMatrices, transpose);
+		return std::make_shared<MatrixGatheredOrthoSquash>(params);
 
 	case MatOrthographicSquashShifted:
-		return std::make_shared<MatrixOrthoSquashShifted>(mod, adjustmentMatrices, transpose);
+		return std::make_shared<MatrixOrthoSquashShifted>(params);
 
 	case MatOrthographicSquashHud:
-		return std::make_shared<MatrixOrthoSquashHud>(mod, adjustmentMatrices, transpose);
+		return std::make_shared<MatrixOrthoSquashHud>(params);
 
 	case MatConvergenceOffset:
-		return std::make_shared<MatrixConvOffsetAdjustment>(mod, adjustmentMatrices, transpose);
+		return std::make_shared<MatrixConvOffsetAdjustment>(params);
 
 	case MatSimpleTranslateIgnoreOrtho:
-		return std::make_shared<MatrixIgnoreOrtho>(mod, adjustmentMatrices, transpose);
+		return std::make_shared<MatrixIgnoreOrtho>(params);
 
 	case MatRollOnly:
-		return std::make_shared<MatrixRollOnly>(mod, adjustmentMatrices, transpose);
+		return std::make_shared<MatrixRollOnly>(params);
 
 	case MatRollOnlyNegative:
-		return std::make_shared<MatrixRollOnlyNegative>(mod, adjustmentMatrices, transpose);
+		return std::make_shared<MatrixRollOnlyNegative>(params);
 
 	case MatRollOnlyHalf:
-		return std::make_shared<MatrixRollOnlyHalf>(mod, adjustmentMatrices, transpose);
+		return std::make_shared<MatrixRollOnlyHalf>(params);
 
 	case MatNoRoll:
-		return std::make_shared<MatrixNoRoll>(mod, adjustmentMatrices, transpose);
+		return std::make_shared<MatrixNoRoll>(params);
 
 	case MatSimpleTranslateNoPositional:
-		return std::make_shared<MatrixNoPositional>(mod, adjustmentMatrices, transpose);
+		return std::make_shared<MatrixNoPositional>(params);
 	
 	case MatNoStereoSeparate:
-		return std::make_shared<MatrixNoStereoSeparate>(mod, adjustmentMatrices, transpose);
+		return std::make_shared<MatrixNoStereoSeparate>(params);
 	
 	default:
 		OutputDebugString("Nonexistant matrix modification\n");

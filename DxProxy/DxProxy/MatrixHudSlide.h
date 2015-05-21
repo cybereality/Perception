@@ -47,15 +47,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class MatrixHudSlide : public ShaderMatrixModification
 {
 public:
-	/**
-	* Constructor, sets attributes and such.
-	* @param modID The id for this matrix modification.
-	* @param adjustmentMatrices The matricies to be adjusted
-	* @param transpose Decides if the matrices should be transposed (aka: have rows and columns interchanged)
-	*/
-	MatrixHudSlide(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatrices, bool transpose) 
-		: ShaderMatrixModification(modID, adjustmentMatrices, transpose) 
-	{};
+	MatrixHudSlide(ShaderMatrixModificationParams params) : ShaderMatrixModification(params)
+	{
+	}
 
 	/**
 	* Slides the HUD into the HMD output.

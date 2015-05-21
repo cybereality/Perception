@@ -1,7 +1,7 @@
 #include "MatrixNoShowModification.h"
 
-MatrixNoShowModification::MatrixNoShowModification(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatrices, bool transpose)
-	: ShaderMatrixModification(modID, adjustmentMatrices, transpose)
+MatrixNoShowModification::MatrixNoShowModification(ShaderMatrixModificationParams params)
+	: ShaderMatrixModification(params)
 { }
 
 void MatrixNoShowModification::DoMatrixModification(D3DXMATRIX in, D3DXMATRIX& outLeft, D3DXMATRIX& outRight)

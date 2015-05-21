@@ -43,9 +43,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class MatrixNoPositional : public ShaderMatrixModification
 {
 public:
-	MatrixNoPositional(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatrices, bool transpose) : 
-		ShaderMatrixModification(modID, adjustmentMatrices, transpose)
-		{};
+	MatrixNoPositional(ShaderMatrixModificationParams params)
+		: ShaderMatrixModification(params)
+	{}
 
 	/**
 	* Default modification is simple translate. Override to do actual modification. 

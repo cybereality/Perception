@@ -46,13 +46,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class MatrixDoNothing : public ShaderMatrixModification
 {
 public:
-	/**
-	* Just sets the class values that correspond to the parameters. 
-	* @param modID The modification ID
-	* @param adjustmentMatrices The matricies to do the adjustments to.
-	***/
-	MatrixDoNothing(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatrices) : 
-		ShaderMatrixModification(modID, adjustmentMatrices, false) { };
+	MatrixDoNothing(ShaderMatrixModificationParams params) : ShaderMatrixModification(params)
+	{
+	}
 
 	/**
 	* Simply returns True.

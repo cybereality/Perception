@@ -36,6 +36,26 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ShaderConstantModification.h"
 #include "Vireio.h"
 
+struct ShaderMatrixModificationParams
+{
+	ShaderMatrixModificationParams(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatrices, bool transpose)
+	{
+		this->modID = modID;
+		this->adjustmentMatrices = adjustmentMatrices;
+		this->transpose = transpose;
+	}
+	
+	/// The ID for this matrix modification
+	UINT modID;
+	
+	/// A collection of precomputed matrices to use, which gets updated every
+	/// frame or so.
+	std::shared_ptr<ViewAdjustment> adjustmentMatrices;
+	
+	/// Whether the matrix should be transposed before and after applying this modification
+	bool transpose;
+};
+
 /**
 * Shader matrix modification parent class.
 * These classes contain the shader modification rules and are called by ShaderRegisters.
@@ -45,10 +65,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class ShaderMatrixModification : public ShaderConstantModification<float>
 {
 public:
-	ShaderMatrixModification(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatrices, bool transpose) : 
-		ShaderConstantModification(modID, adjustmentMatrices),
-		m_bTranspose(transpose)
-		{};
+	ShaderMatrixModification(ShaderMatrixModificationParams params)
+		: ShaderConstantModification(params.modID, params.adjustmentMatrices),
+		m_bTranspose(params.transpose)
+	{
+	};
 	
 	/**
 	* Applies modification to registers.

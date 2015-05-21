@@ -17,7 +17,7 @@
 class MatrixNoShowModification : public ShaderMatrixModification
 {
 public:
-	MatrixNoShowModification(UINT modID, std::shared_ptr<ViewAdjustment> adjustementMatrices, bool transpose);
+	MatrixNoShowModification(ShaderMatrixModificationParams params);
 	virtual void DoMatrixModification(D3DXMATRIX in, D3DXMATRIX& outLeft, D3DXMATRIX& outRight);
 
 private:

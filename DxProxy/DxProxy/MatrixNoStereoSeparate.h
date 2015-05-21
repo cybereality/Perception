@@ -43,9 +43,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class MatrixNoStereoSeparate : public ShaderMatrixModification
 {
 public:
-	MatrixNoStereoSeparate(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatrices, bool transpose) : 
-		ShaderMatrixModification(modID, adjustmentMatrices, transpose)
-		{};
+	MatrixNoStereoSeparate(ShaderMatrixModificationParams params) : ShaderMatrixModification(params)
+	{
+	}
 
 	/**
 	* Default modification is simple translate. Override to do actual modification. 
