@@ -58,6 +58,7 @@ ShaderModificationRepository::~ShaderModificationRepository()
 	m_spAdjustmentMatrices.reset();
 }
 
+
 /**
 * Loads shader modification rules.
 * True if load succeeds, false otherwise.  
@@ -92,94 +93,92 @@ bool ShaderModificationRepository::LoadRules(std::string rulesPath)
 		OutputDebugString("No 'rules' node found, malformed shader rules doc.\n"); 
 		return false;
 	}
-	else {
-		for (pugi::xml_node rule = xmlRules.child("rule"); rule; rule = rule.next_sibling("rule")) {
+	
+	for (pugi::xml_node rule = xmlRules.child("rule"); rule; rule = rule.next_sibling("rule"))
+	{
+		static ConstantModificationRule newRule;
 
-			static ConstantModificationRule newRule;
-
-			//This section is specifically for the shaders that have no constant table so parsing
-			//of the disassembled shader code is required
-			{
-				newRule.m_shaderCodeFindPattern = rule.attribute("shaderCodeFindPattern").as_string();
-				newRule.m_shaderCodeRegSub = rule.attribute("shaderCodeRegSub").as_string();
-				newRule.m_registerCount = rule.attribute("registerCount").as_uint(4);
-			}
-			newRule.m_constantName = rule.attribute("constantName").as_string();
-			newRule.m_constantType = ConstantModificationRule::ConstantTypeFrom(rule.attribute("constantType").as_string());
-			newRule.m_modificationRuleID = rule.attribute("id").as_uint();
-			newRule.m_operationToApply = rule.attribute("modToApply").as_uint();
-			newRule.m_startRegIndex = rule.attribute("startReg").as_uint(UINT_MAX);
-			newRule.m_allowPartialNameMatch = rule.attribute("partialName").as_bool(false);
-			newRule.m_transpose = rule.attribute("transpose").as_bool(false);
-
-			if (!(m_AllModificationRules.insert(std::make_pair<UINT, ConstantModificationRule>((UINT)int(newRule.m_modificationRuleID), (ShaderModificationRepository::ConstantModificationRule)newRule)).second)) {
-				OutputDebugString("Two rules found with the same 'id'. Only the first will be applied.\n"); 
-			}
-		}
-
-		// default rules (these are optional but will most likely exist for 99% of profiles)
-		pugi::xml_node defaultRules = xmlShaderConfig.child("defaultRuleIDs");
-		if (defaultRules) {
-			for (pugi::xml_node ruleId = defaultRules.child("ruleID"); ruleId; ruleId = ruleId.next_sibling("ruleID")) {
-
-				m_defaultModificationRuleIDs.push_back(ruleId.attribute("id").as_uint());
-			}
-		}
-		else {
-			OutputDebugString("No default rules found, did you do this intentionally?\n");
-		}
-
-		// Shader specific rules (optional)
-		for (pugi::xml_node shader = xmlShaderConfig.child("shaderSpecificRuleIDs"); shader; shader = shader.next_sibling("shaderSpecificRuleIDs"))
+		//This section is specifically for the shaders that have no constant table so parsing
+		//of the disassembled shader code is required
 		{
-			uint32_t hash = shader.attribute("shaderHash").as_uint(0);
+			newRule.m_shaderCodeFindPattern = rule.attribute("shaderCodeFindPattern").as_string();
+			newRule.m_shaderCodeRegSub = rule.attribute("shaderCodeRegSub").as_string();
+			newRule.m_registerCount = rule.attribute("registerCount").as_uint(4);
+		}
+		newRule.m_constantName = rule.attribute("constantName").as_string();
+		newRule.m_constantType = ConstantModificationRule::ConstantTypeFrom(rule.attribute("constantType").as_string());
+		newRule.m_modificationRuleID = rule.attribute("id").as_uint();
+		newRule.m_operationToApply = rule.attribute("modToApply").as_uint();
+		newRule.m_startRegIndex = rule.attribute("startReg").as_uint(UINT_MAX);
+		newRule.m_allowPartialNameMatch = rule.attribute("partialName").as_bool(false);
+		newRule.m_transpose = rule.attribute("transpose").as_bool(false);
 
-			if (hash == 0) {
-				OutputDebugString("Shader specific rule with invalid/no hash. Skipping rule.\n");
-				continue;
+		if (!(m_AllModificationRules.insert(std::make_pair<UINT, ConstantModificationRule>((UINT)int(newRule.m_modificationRuleID), (ShaderModificationRepository::ConstantModificationRule)newRule)).second)) {
+			OutputDebugString("Two rules found with the same 'id'. Only the first will be applied.\n"); 
+		}
+	}
+
+	// default rules (these are optional but will most likely exist for 99% of profiles)
+	pugi::xml_node defaultRules = xmlShaderConfig.child("defaultRuleIDs");
+	if (defaultRules) {
+		for (pugi::xml_node ruleId = defaultRules.child("ruleID"); ruleId; ruleId = ruleId.next_sibling("ruleID"))
+		{
+			m_defaultModificationRuleIDs.push_back(ruleId.attribute("id").as_uint());
+		}
+	}
+	else {
+		OutputDebugString("No default rules found, did you do this intentionally?\n");
+	}
+
+	// Shader specific rules (optional)
+	for (pugi::xml_node shader = xmlShaderConfig.child("shaderSpecificRuleIDs"); shader; shader = shader.next_sibling("shaderSpecificRuleIDs"))
+	{
+		uint32_t hash = shader.attribute("shaderHash").as_uint(0);
+
+		if (hash == 0) {
+			OutputDebugString("Shader specific rule with invalid/no hash. Skipping rule.\n");
+			continue;
+		}
+
+		bool squishViewport = shader.attribute("squishViewport").as_bool(false);
+		if (squishViewport)
+			m_shaderViewportSquashIDs.push_back(hash);
+
+		std::string objectType = shader.attribute("ObjectType").as_string();
+
+		ShaderObjectType type = ShaderObjectTypeUnknown;
+		if (objectType == "DoNotDraw")
+			type = ShaderObjectTypeDoNotDraw;
+		else if (objectType == "Player")
+			type = ShaderObjectTypePlayer;
+		else if (objectType == "Sky")
+			type = ShaderObjectTypeSky;
+		else if (objectType == "Shadows")
+			type = ShaderObjectTypeShadows;
+		else if (objectType == "Fog")
+			type = ShaderObjectTypeFog;
+		else if (objectType == "Clothes")
+			type = ShaderObjectTypeClothes;
+
+		//Save type to the registry
+		m_shaderObjectTypes[hash] = type;
+
+		std::string replaceShaderCode = shader.attribute("replaceShaderCode").as_string();
+		if (replaceShaderCode.length())
+			m_replaceShaderCode[hash] = replaceShaderCode;
+		
+
+		std::vector<UINT> shaderRules;
+
+		for (pugi::xml_node ruleId = shader.child("ruleID"); ruleId; ruleId = ruleId.next_sibling("ruleID")) {
+			shaderRules.push_back(ruleId.attribute("id").as_uint());
+		}
+
+		if (shaderRules.size())
+		{
+			if (!(m_shaderSpecificModificationRuleIDs.insert(std::pair<uint32_t, std::vector<UINT>>(hash, shaderRules)).second)) {
+				OutputDebugString("Two sets of rules found with the same 'shaderHash'. Only the first will be applied.\n"); 
 			}
-
-			bool squishViewport = shader.attribute("squishViewport").as_bool(false);
-			if (squishViewport)
-				m_shaderViewportSquashIDs.push_back(hash);
-
-			std::string objectType = shader.attribute("ObjectType").as_string();
-
-			ShaderObjectType type = ShaderObjectTypeUnknown;
-			if (objectType == "DoNotDraw")
-				type = ShaderObjectTypeDoNotDraw;
-			else if (objectType == "Player")
-				type = ShaderObjectTypePlayer;
-			else if (objectType == "Sky")
-				type = ShaderObjectTypeSky;
-			else if (objectType == "Shadows")
-				type = ShaderObjectTypeShadows;
-			else if (objectType == "Fog")
-				type = ShaderObjectTypeFog;
-			else if (objectType == "Clothes")
-				type = ShaderObjectTypeClothes;
-
-			//Save type to the registry
-			m_shaderObjectTypes[hash] = type;
-
-			std::string replaceShaderCode = shader.attribute("replaceShaderCode").as_string();
-			if (replaceShaderCode.length())
-				m_replaceShaderCode[hash] = replaceShaderCode;
-			
-
-			std::vector<UINT> shaderRules;
-
-			for (pugi::xml_node ruleId = shader.child("ruleID"); ruleId; ruleId = ruleId.next_sibling("ruleID")) {
-				shaderRules.push_back(ruleId.attribute("id").as_uint());
-			}
-
-			if (shaderRules.size())
-			{
-				if (!(m_shaderSpecificModificationRuleIDs.insert(std::pair<uint32_t, std::vector<UINT>>(hash, shaderRules)).second)) {
-					OutputDebugString("Two sets of rules found with the same 'shaderHash'. Only the first will be applied.\n"); 
-				}
-			}
-
 		}
 	}
 
@@ -218,8 +217,9 @@ bool ShaderModificationRepository::SaveRules(std::string rulesPath)
 		return false;
 	}
 	else {
-		auto itModificationRules = m_AllModificationRules.begin();
-		while (itModificationRules != m_AllModificationRules.end())
+		for (auto itModificationRules = m_AllModificationRules.begin();
+		     itModificationRules != m_AllModificationRules.end();
+		     itModificationRules++)
 		{
 			pugi::xml_node xmlRule = xmlRules.append_child("rule");
 
@@ -231,22 +231,19 @@ bool ShaderModificationRepository::SaveRules(std::string rulesPath)
 			xmlRule.append_attribute("modToApply") = itModificationRules->second.m_operationToApply;
 			xmlRule.append_attribute("startReg") = itModificationRules->second.m_startRegIndex;
 			xmlRule.append_attribute("transpose") = itModificationRules->second.m_transpose;
-
-			++itModificationRules;
 		}
 
 		// default rules (these are optional but will most likely exist for 99% of profiles)
 		pugi::xml_node defaultRules = xmlShaderConfig.child("defaultRuleIDs");
 		if (defaultRules) {
-			auto itDefaultRules = m_defaultModificationRuleIDs.begin();
-			while (itDefaultRules != m_defaultModificationRuleIDs.end())
+			for (auto itDefaultRules = m_defaultModificationRuleIDs.begin();
+			     itDefaultRules != m_defaultModificationRuleIDs.end();
+			     ++itDefaultRules)
 			{
 				pugi::xml_node ruleId = defaultRules.append_child("ruleID");
 
 				// set id attribute
 				ruleId.append_attribute("id") = *itDefaultRules;
-
-				++itDefaultRules;
 			}
 		}
 		else {
@@ -254,8 +251,9 @@ bool ShaderModificationRepository::SaveRules(std::string rulesPath)
 		}
 
 		// Shader specific rules (optional)
-		auto itSpecificRules = m_shaderSpecificModificationRuleIDs.begin();
-		while (itSpecificRules != m_shaderSpecificModificationRuleIDs.end())
+		for (auto itSpecificRules = m_shaderSpecificModificationRuleIDs.begin();
+		     itSpecificRules != m_shaderSpecificModificationRuleIDs.end();
+		     ++itSpecificRules)
 		{
 			// create shader node
 			pugi::xml_node shader = xmlShaderConfig.append_child("shaderSpecificRuleIDs");
@@ -296,20 +294,18 @@ bool ShaderModificationRepository::SaveRules(std::string rulesPath)
 
 			// save ids
 			std::vector<UINT> shaderRules = itSpecificRules->second;
-			auto itRules = shaderRules.begin();
-			while (itRules != shaderRules.end())
+			for (auto itRules = shaderRules.begin(); itRules != shaderRules.end(); ++itRules)
 			{
 				pugi::xml_node ruleID = shader.append_child("ruleID");
 				ruleID.append_attribute("id") = *itRules;
-				++itRules;
 			}
-			++itSpecificRules;
 		}
 	}
 
 	// return saving xml file
 	return rulesFile.save_file(rulesPath.c_str());
 }
+
 
 /**
 * Adds a default shader rule specified by parameters if that rule is not already present.
@@ -318,8 +314,9 @@ bool ShaderModificationRepository::SaveRules(std::string rulesPath)
 bool ShaderModificationRepository::AddRule(std::string constantName, bool allowPartialNameMatch, UINT startRegIndex, D3DXPARAMETER_CLASS constantType, UINT operationToApply, UINT modificationRuleID, bool transpose)
 {
 	UINT rulePresent = false;
-	auto itModificationRules = m_AllModificationRules.begin();
-	while (itModificationRules != m_AllModificationRules.end())
+	for (auto itModificationRules = m_AllModificationRules.begin();
+	     itModificationRules != m_AllModificationRules.end();
+	     ++itModificationRules)
 	{
 		if ((constantName.compare(itModificationRules->second.m_constantName) == 0) &&
 			(allowPartialNameMatch == itModificationRules->second.m_allowPartialNameMatch) &&
@@ -327,9 +324,9 @@ bool ShaderModificationRepository::AddRule(std::string constantName, bool allowP
 			(constantType == itModificationRules->second.m_constantType) &&
 			(operationToApply == itModificationRules->second.m_operationToApply) &&
 			(transpose == itModificationRules->second.m_transpose))
+		{
 			rulePresent = true;
-
-		++itModificationRules;
+		}
 	}
 
 	// add if rule is not present
@@ -400,6 +397,7 @@ bool ShaderModificationRepository::DeleteRule(std::string constantName)
 
 	return rulePresent;
 }
+
 
 /**
 * Returns a collection of modified constants for the specified shader. 
@@ -486,64 +484,62 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 					continue;
 
 				if ( ((pConstantDesc[j].Class == D3DXPC_VECTOR) && (pConstantDesc[j].RegisterCount == 1))
-					|| (((pConstantDesc[j].Class == D3DXPC_MATRIX_ROWS) || (pConstantDesc[j].Class == D3DXPC_MATRIX_COLUMNS)) && (pConstantDesc[j].RegisterCount == 4)) ) {
-						// Check if any rules match this constant
-						auto itRules = rulesToApply.begin();
-						while (itRules != rulesToApply.end()) {
+					|| (((pConstantDesc[j].Class == D3DXPC_MATRIX_ROWS) || (pConstantDesc[j].Class == D3DXPC_MATRIX_COLUMNS)) && (pConstantDesc[j].RegisterCount == 4)) )
+				{
+					// Check if any rules match this constant
+					for (auto itRules = rulesToApply.begin();
+					     itRules != rulesToApply.end();
+					     ++itRules)
+					{
 
-							// Type match
-							if ((*itRules)->m_constantType == pConstantDesc[j].Class) {
-								// name match required
-								if ((*itRules)->m_constantName.size() > 0) {
-									bool nameMatch = false;
-									if ((*itRules)->m_allowPartialNameMatch) {
-										nameMatch = std::strstr(pConstantDesc[j].Name, (*itRules)->m_constantName.c_str()) != NULL;
+						// Type match
+						if ((*itRules)->m_constantType == pConstantDesc[j].Class) {
+							// name match required
+							if ((*itRules)->m_constantName.size() > 0) {
+								bool nameMatch = false;
+								if ((*itRules)->m_allowPartialNameMatch) {
+									nameMatch = std::strstr(pConstantDesc[j].Name, (*itRules)->m_constantName.c_str()) != NULL;
 
-										/*if (nameMatch) {
+									/*if (nameMatch) {
 										OutputDebugString("Match\n");
-										}
-										else {
+									} else {
 										OutputDebugString("No Match\n");
-										}*/
-									}
-									else {
-										nameMatch = (*itRules)->m_constantName.compare(pConstantDesc[j].Name) == 0;
+									}*/
+								}
+								else {
+									nameMatch = (*itRules)->m_constantName.compare(pConstantDesc[j].Name) == 0;
 
-										//OutputDebugString("Full name match only\n");
-									}
-
-									if (!nameMatch) {
-										// no match
-										++itRules;
-										continue;
-									}
+									//OutputDebugString("Full name match only\n");
 								}
 
-								// register match required
-								if ((*itRules)->m_startRegIndex != UINT_MAX) {
-									if ((*itRules)->m_startRegIndex != pConstantDesc[j].RegisterIndex) {
-										// no match
-										++itRules;
-										continue;
-									}
+								if (!nameMatch) {
+									// no match
+									continue;
 								}
-
-#ifdef _DEBUG
-								// output shader constant + index 
-								debugf("PS: %s\b", D3DXParameterClassToString(pConstantDesc[j].Class).c_str());
-								debugf("Register Index: %d", pConstantDesc[j].RegisterIndex);
-#endif // DEBUG
-
-								// Create StereoShaderConstant<float> and add to result
-								result.insert(std::pair<UINT, StereoShaderConstant<>>(pConstantDesc[j].RegisterIndex, CreateStereoConstantFrom(*itRules, pConstantDesc[j].RegisterIndex, pConstantDesc[j].RegisterCount)));
-
-								// only the first matching rule is applied to a constant
-								break;
 							}
 
-							++itRules;
+							// register match required
+							if ((*itRules)->m_startRegIndex != UINT_MAX) {
+								if ((*itRules)->m_startRegIndex != pConstantDesc[j].RegisterIndex) {
+									// no match
+									continue;
+								}
+							}
+
+#ifdef _DEBUG
+							// output shader constant + index 
+							debugf("PS: %s\b", D3DXParameterClassToString(pConstantDesc[j].Class).c_str());
+							debugf("Register Index: %d", pConstantDesc[j].RegisterIndex);
+#endif // DEBUG
+
+							// Create StereoShaderConstant<float> and add to result
+							result.insert(std::pair<UINT, StereoShaderConstant<>>(pConstantDesc[j].RegisterIndex, CreateStereoConstantFrom(*itRules, pConstantDesc[j].RegisterIndex, pConstantDesc[j].RegisterCount)));
+
+							// only the first matching rule is applied to a constant
+							break;
 						}
-				}	
+					}
+				}
 			}
 		}
 	}
@@ -555,8 +551,9 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 		D3DXDisassembleShader(reinterpret_cast<DWORD*>(pData),NULL,NULL,&bOut); 
 
 		//Iterate through the rules and see if the parse strings match any of the disassembled code
-		auto itRules = rulesToApply.begin();
-		while (itRules != rulesToApply.end()) 
+		for (auto itRules = rulesToApply.begin();
+		     itRules != rulesToApply.end();
+		     ++itRules)
 		{
 			//Pointer into the shader code buffer
 			char *codeBuffer = static_cast<char*>(bOut->GetBufferPointer());
@@ -564,7 +561,6 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 			std::string shaderCodeFindPattern = (*itRules)->m_shaderCodeFindPattern;
 			if (shaderCodeFindPattern.length() == 0)
 			{
-				++itRules;
 				continue;
 			}
 
@@ -601,8 +597,6 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 					break;
 				}
 			}
-
-			++itRules;
 		}
 	}
 
@@ -702,65 +696,63 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 					continue;
 
 				if ( ((pConstantDesc[j].Class == D3DXPC_VECTOR) && (pConstantDesc[j].RegisterCount == 1 || pConstantDesc[j].RegisterCount == 4))
-					|| (((pConstantDesc[j].Class == D3DXPC_MATRIX_ROWS) || (pConstantDesc[j].Class == D3DXPC_MATRIX_COLUMNS)) && (pConstantDesc[j].RegisterCount == 4)) ) {
-						// Check if any rules match this constant
-						auto itRules = rulesToApply.begin();
-						while (itRules != rulesToApply.end()) {
+					|| (((pConstantDesc[j].Class == D3DXPC_MATRIX_ROWS) || (pConstantDesc[j].Class == D3DXPC_MATRIX_COLUMNS)) && (pConstantDesc[j].RegisterCount == 4)) )
+				{
+					// Check if any rules match this constant
+					for (auto itRules = rulesToApply.begin();
+					     itRules != rulesToApply.end();
+					     ++itRules)
+					{
+						// Type match
+						if ((*itRules)->m_constantType == pConstantDesc[j].Class) {
+							// name match required
+							if ((*itRules)->m_constantName.size() > 0) {
+								bool nameMatch = false;
+								if ((*itRules)->m_allowPartialNameMatch) {
+									nameMatch = std::strstr(pConstantDesc[j].Name, (*itRules)->m_constantName.c_str()) != NULL;
 
-							// Type match
-							if ((*itRules)->m_constantType == pConstantDesc[j].Class) {
-								// name match required
-								if ((*itRules)->m_constantName.size() > 0) {
-									bool nameMatch = false;
-									if ((*itRules)->m_allowPartialNameMatch) {
-										nameMatch = std::strstr(pConstantDesc[j].Name, (*itRules)->m_constantName.c_str()) != NULL;
-
-										/*if (nameMatch) {
-										OutputDebugString("Match\n");
-										}
-										else {
-										OutputDebugString("No Match\n");
-										}*/
+									/*if (nameMatch) {
+									OutputDebugString("Match\n");
 									}
 									else {
-										nameMatch = (*itRules)->m_constantName.compare(pConstantDesc[j].Name) == 0;
+									OutputDebugString("No Match\n");
+									}*/
+								}
+								else {
+									nameMatch = (*itRules)->m_constantName.compare(pConstantDesc[j].Name) == 0;
 
-										//OutputDebugString("Full name match only\n");
-									}
-
-									if (!nameMatch) {
-										// no match
-										++itRules;
-										continue;
-									}
+									//OutputDebugString("Full name match only\n");
 								}
 
-								// register match required
-								if ((*itRules)->m_startRegIndex != UINT_MAX) {
-									if ((*itRules)->m_startRegIndex != pConstantDesc[j].RegisterIndex) {
-										// no match
-										++itRules;
-										continue;
-									}
+								if (!nameMatch) {
+									// no match
+									continue;
 								}
-
-#ifdef _DEBUG
-								// output shader constant + index 
-								debugf("VS2: %s\n", D3DXParameterClassToString(pConstantDesc[j].Class).c_str());
-								debugf("Register Index: %d", pConstantDesc[j].RegisterIndex);
-#endif // DEBUG
-
-								// Create StereoShaderConstant<float> and add to result
-
-								result.insert(std::pair<UINT, StereoShaderConstant<>>(pConstantDesc[j].RegisterIndex, CreateStereoConstantFrom(*itRules, pConstantDesc[j].RegisterIndex, pConstantDesc[j].RegisterCount)));
-
-								// only the first matching rule is applied to a constant
-								break;
 							}
 
-							++itRules;
+							// register match required
+							if ((*itRules)->m_startRegIndex != UINT_MAX) {
+								if ((*itRules)->m_startRegIndex != pConstantDesc[j].RegisterIndex) {
+									// no match
+									continue;
+								}
+							}
+
+#ifdef _DEBUG
+							// output shader constant + index 
+							debugf("VS2: %s\n", D3DXParameterClassToString(pConstantDesc[j].Class).c_str());
+							debugf("Register Index: %d", pConstantDesc[j].RegisterIndex);
+#endif // DEBUG
+
+							// Create StereoShaderConstant<float> and add to result
+
+							result.insert(std::pair<UINT, StereoShaderConstant<>>(pConstantDesc[j].RegisterIndex, CreateStereoConstantFrom(*itRules, pConstantDesc[j].RegisterIndex, pConstantDesc[j].RegisterCount)));
+
+							// only the first matching rule is applied to a constant
+							break;
 						}
-				}	
+					}
+				}
 			}
 		}
 	}
@@ -770,8 +762,9 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 		D3DXDisassembleShader(reinterpret_cast<DWORD*>(pData),NULL,NULL,&bOut); 
 
 		//Iterate through the rules and see if the parse strings match any of the disassembled code
-		auto itRules = rulesToApply.begin();
-		while (itRules != rulesToApply.end()) 
+		for (auto itRules = rulesToApply.begin();
+		     itRules != rulesToApply.end();
+		     ++itRules)
 		{
 			//Pointer into the shader code buffer
 			char *codeBuffer = static_cast<char*>(bOut->GetBufferPointer());
@@ -779,7 +772,6 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 			std::string shaderCodeFindPattern = (*itRules)->m_shaderCodeFindPattern;
 			if (shaderCodeFindPattern.length() == 0)
 			{
-				++itRules;
 				continue;
 			}
 
@@ -816,8 +808,6 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 					break;
 				}
 			}
-
-			++itRules;
 		}
 	}
 

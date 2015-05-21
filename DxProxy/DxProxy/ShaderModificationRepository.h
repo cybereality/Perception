@@ -207,7 +207,7 @@ private:
 		***/
 		bool m_transpose;
 	};
-
+	
 	/*** ShaderModificationRepository private methods ***/
 	StereoShaderConstant<float> CreateStereoConstantFrom(const ConstantModificationRule* rule, UINT StartReg, UINT Count);
 
@@ -247,4 +247,5 @@ private:
 	***/
 	std::unordered_map<UINT, std::string> m_replaceShaderCode;
 };
+
 #endif
