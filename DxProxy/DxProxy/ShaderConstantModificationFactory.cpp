@@ -762,3 +762,58 @@ std::shared_ptr<ShaderConstantModification<>> ShaderConstantModificationFactory:
 		throw std::out_of_range ("Nonexistant matrix modification");
 	}
 }
+
+
+std::string ShaderConstantModificationFactory::MatrixModificationTypeToString(MatrixModificationTypes type)
+{
+	if (type == ShaderConstantModificationFactory::MatDoNothing)
+		return "MatDoNothing";
+	else if (type == ShaderConstantModificationFactory::MatSimpleTranslate)
+		return "MatSimpleTranslate";
+	else if (type == ShaderConstantModificationFactory::MatOrthographicSquash)
+		return "MatOrthographicSquash";
+	else if (type == ShaderConstantModificationFactory::MatHudSlide)
+		return "MatHudSlide";
+	else if (type == ShaderConstantModificationFactory::MatGuiSquash)
+		return "MatGuiSquash";
+	else if (type == ShaderConstantModificationFactory::MatSurfaceRefractionTransform)
+		return "MatSurfaceRefractionTransform";
+	else if (type == ShaderConstantModificationFactory::MatGatheredOrthographicSquash)
+		return "MatGatheredOrthographicSquash";
+	else if (type == ShaderConstantModificationFactory::MatOrthographicSquashShifted)
+		return "MatOrthographicSquashShifted";
+	else if (type == ShaderConstantModificationFactory::MatOrthographicSquashHud)
+		return "MatOrthographicSquashHud";
+	else if (type == ShaderConstantModificationFactory::MatConvergenceOffset)
+		return "MatConvergenceOffset";
+	else if (type == ShaderConstantModificationFactory::MatSimpleTranslateIgnoreOrtho)
+		return "MatSimpleTranslateIgnoreOrtho";
+	else if (type == ShaderConstantModificationFactory::MatRollOnly)
+		return "MatRollOnly";
+	else if (type == ShaderConstantModificationFactory::MatRollOnlyNegative)
+		return "MatRollOnlyNegative";
+	else if (type == ShaderConstantModificationFactory::MatRollOnlyHalf)
+		return "MatRollOnlyHalf";
+	else if (type == ShaderConstantModificationFactory::MatNoRoll)
+		return "MatNoRoll";
+	else if (type == ShaderConstantModificationFactory::MatSimpleTranslateNoPositional)
+		return "MatSimpleTranslateNoPositional";
+	else if (type == ShaderConstantModificationFactory::MatNoStereoSeparate)
+		return "MatNoStereoSeparate";
+	else
+		return "MatRuleUnknown";
+}
+
+std::string ShaderConstantModificationFactory::Vector4ModificationTypeToString(Vector4ModificationTypes type)
+{
+	if (type == ShaderConstantModificationFactory::Vec4DoNothing)
+		return "Vec4DoNothing";
+	else if (type == ShaderConstantModificationFactory::Vec4SimpleTranslate)
+		return "Vec4SimpleTranslate";
+	else if (type == ShaderConstantModificationFactory::Vec4EyeShiftUnity)
+		return "Vec4EyeShiftUnity";
+	else if (type == ShaderConstantModificationFactory::Vec4DeadIslandScaled)
+		return "Vec4DeadIslandScaled";
+	else
+		return "Vec4RuleUnknown";
+}

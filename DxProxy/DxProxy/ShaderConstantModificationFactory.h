@@ -84,5 +84,9 @@ public:
 	static std::shared_ptr<ShaderConstantModification<>> CreateVector4Modification(Vector4ModificationTypes mod, std::shared_ptr<ViewAdjustment> adjustmentMatrices);
 	static std::shared_ptr<ShaderConstantModification<>> CreateMatrixModification(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatrices, bool transpose);
 	static std::shared_ptr<ShaderConstantModification<>> CreateMatrixModification(MatrixModificationTypes mod, std::shared_ptr<ViewAdjustment> adjustmentMatrices, bool transpose);
+	
+	static std::string MatrixModificationTypeToString(MatrixModificationTypes type);
+	static std::string Vector4ModificationTypeToString(Vector4ModificationTypes type);
 };
+
 #endif

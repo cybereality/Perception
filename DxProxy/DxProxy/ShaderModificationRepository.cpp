@@ -656,21 +656,22 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 	if (m_shaderSpecificModificationRuleIDs.count(hash) == 1) {
 
 		// There are specific modification rules to use with this shader
-		auto itRules = m_shaderSpecificModificationRuleIDs[hash].begin();
-		while (itRules != m_shaderSpecificModificationRuleIDs[hash].end()) {
+		for(auto itRules = m_shaderSpecificModificationRuleIDs[hash].begin();
+		    itRules != m_shaderSpecificModificationRuleIDs[hash].end();
+			++itRules)
+		{
 			rulesToApply.push_back(&(m_AllModificationRules[*itRules]));
-			++itRules;
 		}
 	}
 	
 	if (rulesToApply.size() == 0)
 	{
-
 		// No specific rules, use general rules
-		auto itRules = m_defaultModificationRuleIDs.begin();
-		while (itRules != m_defaultModificationRuleIDs.end()) {
+		for (auto itRules = m_defaultModificationRuleIDs.begin();
+		     itRules != m_defaultModificationRuleIDs.end();
+			++itRules)
+		{
 			rulesToApply.push_back(&(m_AllModificationRules[*itRules]));
-			++itRules;
 		}
 	}
 
@@ -723,7 +724,7 @@ std::map<UINT, StereoShaderConstant<float>> ShaderModificationRepository::GetMod
 				if (pConstantDesc[j].RegisterSet != D3DXRS_FLOAT4)
 					continue;
 
-				if ( ((pConstantDesc[j].Class == D3DXPC_VECTOR) && (pConstantDesc[j].RegisterCount == 1 || pConstantDesc[j].RegisterCount == 4)) 								
+				if ( ((pConstantDesc[j].Class == D3DXPC_VECTOR) && (pConstantDesc[j].RegisterCount == 1 || pConstantDesc[j].RegisterCount == 4))
 					|| (((pConstantDesc[j].Class == D3DXPC_MATRIX_ROWS) || (pConstantDesc[j].Class == D3DXPC_MATRIX_COLUMNS)) && (pConstantDesc[j].RegisterCount == 4)) ) {
 						// Check if any rules match this constant
 						auto itRules = rulesToApply.begin();
@@ -978,11 +979,12 @@ ShaderObjectType ShaderModificationRepository::GetShaderObjectType(IDirect3DPixe
 UINT ShaderModificationRepository::GetUniqueRuleID()
 {
 	UINT result = 1;
-	auto itModificationRules = m_AllModificationRules.begin();
-	while (itModificationRules != m_AllModificationRules.end())
+	for(auto itModificationRules = m_AllModificationRules.begin();
+		itModificationRules != m_AllModificationRules.end();
+		++itModificationRules)
 	{
-		if (itModificationRules->first >= result) result = itModificationRules->first+1;
-		++itModificationRules;
+		if (itModificationRules->first >= result)
+			result = itModificationRules->first+1;
 	}
 
 	return result;
@@ -1001,65 +1003,26 @@ bool ShaderModificationRepository::ConstantHasRule(std::string constantName, std
 	{
 		if (iRules->second.m_constantName.compare(constantName) == 0)
 		{
+			isTransposed = iRules->second.m_transpose;
+			operation = iRules->second.m_operationToApply;
+			
 			// put this to factory ?
 			// get the string name of the rule
 			switch (iRules->second.m_constantType)
 			{
 			case D3DXPC_VECTOR:
-				if (iRules->second.m_operationToApply == ShaderConstantModificationFactory::Vec4DoNothing)
-					constantRule = "Vec4DoNothing";
-				else if (iRules->second.m_operationToApply == ShaderConstantModificationFactory::Vec4SimpleTranslate)
-					constantRule = "Vec4SimpleTranslate";
-				else if (iRules->second.m_operationToApply == ShaderConstantModificationFactory::Vec4EyeShiftUnity)
-					constantRule = "Vec4EyeShiftUnity";
-				else if (iRules->second.m_operationToApply == ShaderConstantModificationFactory::Vec4DeadIslandScaled)
-					constantRule = "Vec4DeadIslandScaled";
+				constantRule = ShaderConstantModificationFactory::Vector4ModificationTypeToString((ShaderConstantModificationFactory::Vector4ModificationTypes)operation);
 				break;
 
 			case D3DXPC_MATRIX_ROWS:
 			case D3DXPC_MATRIX_COLUMNS:
-				if (iRules->second.m_operationToApply == ShaderConstantModificationFactory::MatDoNothing)
-					constantRule = "MatDoNothing";
-				else if (iRules->second.m_operationToApply == ShaderConstantModificationFactory::MatSimpleTranslate)
-					constantRule = "MatSimpleTranslate";
-				else if (iRules->second.m_operationToApply == ShaderConstantModificationFactory::MatOrthographicSquash)
-					constantRule = "MatOrthographicSquash";
-				else if (iRules->second.m_operationToApply == ShaderConstantModificationFactory::MatHudSlide)
-					constantRule = "MatHudSlide";
-				else if (iRules->second.m_operationToApply == ShaderConstantModificationFactory::MatGuiSquash)
-					constantRule = "MatGuiSquash";
-				else if (iRules->second.m_operationToApply == ShaderConstantModificationFactory::MatSurfaceRefractionTransform)
-					constantRule = "MatSurfaceRefractionTransform";
-				else if (iRules->second.m_operationToApply == ShaderConstantModificationFactory::MatGatheredOrthographicSquash)
-					constantRule = "MatGatheredOrthographicSquash";
-				else if (iRules->second.m_operationToApply == ShaderConstantModificationFactory::MatOrthographicSquashShifted)
-					constantRule = "MatOrthographicSquashShifted";
-				else if (iRules->second.m_operationToApply == ShaderConstantModificationFactory::MatOrthographicSquashHud)
-					constantRule = "MatOrthographicSquashHud";				
-				else if (iRules->second.m_operationToApply == ShaderConstantModificationFactory::MatConvergenceOffset)
-					constantRule = "MatConvergenceOffset";				
-				else if (iRules->second.m_operationToApply == ShaderConstantModificationFactory::MatSimpleTranslateIgnoreOrtho)
-					constantRule = "MatSimpleTranslateIgnoreOrtho";
-				else if (iRules->second.m_operationToApply == ShaderConstantModificationFactory::MatRollOnly)
-					constantRule = "MatRollOnly";
-				else if (iRules->second.m_operationToApply == ShaderConstantModificationFactory::MatRollOnlyNegative)
-					constantRule = "MatRollOnlyNegative";
-				else if (iRules->second.m_operationToApply == ShaderConstantModificationFactory::MatRollOnlyHalf)
-					constantRule = "MatRollOnlyHalf";
-				else if (iRules->second.m_operationToApply == ShaderConstantModificationFactory::MatNoRoll)
-					constantRule = "MatNoRoll";
-				else if (iRules->second.m_operationToApply == ShaderConstantModificationFactory::MatSimpleTranslateNoPositional)
-					constantRule = "MatSimpleTranslateNoPositional";
-				else if (iRules->second.m_operationToApply == ShaderConstantModificationFactory::MatNoStereoSeparate)
-					constantRule = "MatNoStereoSeparate";
+				constantRule = ShaderConstantModificationFactory::MatrixModificationTypeToString((ShaderConstantModificationFactory::MatrixModificationTypes)operation);
 				break;
 
 			default:
 				throw 69; // unhandled type
 				break;
 			}
-			isTransposed = iRules->second.m_transpose;
-			operation = iRules->second.m_operationToApply;
 			return true;
 		}
 
@@ -1116,3 +1079,4 @@ StereoShaderConstant<> ShaderModificationRepository::CreateStereoConstantFrom(co
 		break;
 	}
 }
+
