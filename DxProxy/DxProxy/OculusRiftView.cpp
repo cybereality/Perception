@@ -100,7 +100,7 @@ void OculusRiftView::SetViewEffectInitialValues()
 	else
 		viewEffect->SetBool("ZBuffer", false);
 	
-	viewEffect->SetFloat("ZBufferStrength", m_fZBufferStrength);
+	viewEffect->SetFloat("ZBufferStrength", config->zbufferStrength);
 	viewEffect->SetBool("ZBufferFilterMode", m_bZBufferFilterMode);
 	viewEffect->SetFloat("ZBufferFilter", m_fZBufferFilter);	
 	viewEffect->SetBool("ZBufferVisualisationMode", m_bZBufferVisualisationMode);

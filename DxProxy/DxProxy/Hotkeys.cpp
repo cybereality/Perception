@@ -78,6 +78,7 @@ InputBindingRef hotkeyOpenVPMenu = (LCtrl+Key('Q')) || (LShift+Key(VK_MULTIPLY))
 InputBindingRef hotkeyWheelYOffset = LCtrl+Key(VK_TAB);
 InputBindingRef hotkeyWheelIPDOffset = LCtrl+LShift;
 InputBindingRef hotkeyWheelWorldScale = LCtrl+LAlt;
+InputBindingRef hotkeyWheelZBuffer = LCtrl+Key(0x5A);
 InputBindingRef hotkeyWheelPFOV = LCtrl+Key(VK_SPACE);
 InputBindingRef hotkeyWheelZoomScale = LCtrl;
 
@@ -874,6 +875,29 @@ void D3DProxyDevice::HandleControls()
 				this->stereoView->PostReset();
 				DeferedSaveConfig();
 				ShowAdjusterToast(retprintf("Y-Offset: %1.3f", config.YOffset), 500);
+			}
+			else if(hotkeyWheelZBuffer->IsHeld(controls))
+			{
+				if(stereoView->m_bZBufferFilterMode)
+				{
+					this->stereoView->m_fZBufferFilter += 0.0005f * wheelSign;
+					clamp(&this->stereoView->m_fZBufferFilter, 0.01f, 1.0f);
+					this->stereoView->PostReset();
+					ShowAdjusterToast(retprintf("ZBuffer Depth Filter: %1.6f", this->stereoView->m_fZBufferFilter), 500);
+				}
+				else if(stereoView->m_bZBufferVisualisationMode)
+				{
+					config.zbufferDepthLow += 0.0005f * wheelSign;
+					clamp(&config.zbufferDepthLow, 0.01f, 1.0f);					
+					DeferedSaveConfig();
+					ShowAdjusterToast(retprintf("ZBuffer Depth Bound Low: %1.6f", config.zbufferDepthLow), 500);
+				}
+				else
+				{
+					config.zbufferStrength += 1.0000f * wheelSign;
+					DeferedSaveConfig();
+					ShowAdjusterToast(retprintf("ZBuffer Seperation Strength: %1.6f", config.zbufferStrength), 500);
+				}												
 			}
 			else if(hotkeyWheelIPDOffset->IsHeld(controls))
 			{

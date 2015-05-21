@@ -243,13 +243,16 @@ void D3DProxyDevice::DrawTextShadowed(ID3DXFont* font, LPD3DXSPRITE sprite, LPCS
 	
 	if (lprc->top < 0 || lprc->top > viewportHeight)
 		return;
-	//if(stereoView->m_3DReconstructionMode != Reconstruction_Type::ZBUFFER)
-	//{
-		lprc->left+=2; lprc->right+=2; lprc->top+=2; lprc->bottom+=2;
-		font->DrawText(sprite, lpchText, -1, lprc, format, COLOR_TEXT_SHADOW);
-	//}
+	lprc->left+=2; lprc->right+=2; lprc->top+=2; lprc->bottom+=2;
+	font->DrawText(sprite, lpchText, -1, lprc, format, COLOR_TEXT_SHADOW);
+
 	lprc->left-=2; lprc->right-=2; lprc->top-=2; lprc->bottom-=2;
-	font->DrawText(sprite, lpchText, -1, lprc, format, color);
+	if(stereoView->m_3DReconstructionMode != Reconstruction_Type::ZBUFFER || 
+		!stereoView->m_bZBufferFilterMode)
+		font->DrawText(sprite, lpchText, -1, lprc, format, color);
+	else
+		font->DrawText(sprite, lpchText, -1, lprc, format, COLOR_TEXT_ZBUFFER);
+	
 }
 
 void D3DProxyDevice::DrawTextShadowed(ID3DXFont* font, LPD3DXSPRITE sprite, const char *text, LPRECT rect, D3DCOLOR color)

@@ -128,6 +128,8 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 	float angle = Rotation;
 	float3 outColor;	
 	float depthValue = 0.0f;
+	bool applyDepthFunctions;
+	applyDepthFunctions = false;
 	
 	//blit the VP logo to the top left corner
 	if (Tex.x <= 0.2f   &&   Tex.y <= 0.05f)
@@ -163,6 +165,15 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 		if(depthValue > 0.0f)
 		{
 			depthValue = (depthValue - ZBufferDepthLow) / (ZBufferDepthHigh - ZBufferDepthLow);
+		}
+		outColor.r =  tex2D(TexMap0,   tcBlue.xy).r;
+		outColor.g =  tex2D(TexMap0, tcBlue.xy).g;
+		outColor.b =  tex2D(TexMap0,  tcBlue.xy).b;
+		if(outColor.r < 0.995f || 
+		   outColor.g > 0.005f || 
+		   outColor.b < 0.995f)
+		{
+			applyDepthFunctions = true;
 		}
 		tcBlue = ApplyZBuffer(tcBlue,Tex,depthValue);	
 	}	
@@ -206,17 +217,28 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 	if (any(clamp(tcBlue.xy, float2(0.0,0.0), float2(1.0, 1.0)) - tcBlue.xy))
 		return 0;
 
+	
 	if (ZBufferVisualisationMode && ZBuffer) 
 	{
-		outColor = float4(1.0f - depthValue, 0.0, depthValue, 1.0f);
-		/*if(depthValue > ZBufferStrength && depthValue < (ZBufferStrength + 0.0001f))
+		if(applyDepthFunctions)
 		{
-			outColor = float4(0.0, 0.0, depthValue, 1.0f);				
+			outColor = float4(1.0f - depthValue, 0.0, depthValue, 1.0f);		
 		}
-		else
+	}
+	else if (ZBufferFilterMode && ZBuffer) 
+	{
+		if(applyDepthFunctions)
 		{
-			outColor = float4(0.0, 0.0, 0.0, 0.0f);				
-		}*/
+			//TODO Change to Raw Depth Value (possibly z)
+			if(depthValue > ZBufferFilter && depthValue < (ZBufferFilter + 0.0005f))
+			{
+				outColor = float4(0.0, 0.0, depthValue, 1.0f);				
+			}
+			else
+			{
+				outColor = float4(0.0, 0.0, 0.0, 0.0f);				
+			}
+		}
 	}
 	else if (Tex.x > 0.5f)
 	{

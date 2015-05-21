@@ -58,10 +58,10 @@ StereoView::StereoView(ProxyConfig *config)
 	XOffset = 0;
 	game_type = config->game_type;
 
-	m_fZBufferStrength = config->zbufferStrength;	
 	m_bZBufferFilterMode = false;
 	m_bZBufferVisualisationMode = false;
 	m_fZBufferFilter = 0.0f;
+	m_fZBufferFilter = config->zbufferDepthLow;
 
 	chromaticAberrationCorrection = true;
 	m_vignetteStyle = NONE;
