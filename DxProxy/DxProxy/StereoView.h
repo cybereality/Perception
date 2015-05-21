@@ -103,7 +103,7 @@ public:
 	/**
 	* Type of the game or engine as configured in cfg file.
 	***/
-	int game_type;
+	std::string game_type;
 	/**
 	* True if stereo is enabled.
 	***/

@@ -39,7 +39,8 @@ enum ShaderObjectType
 	ShaderObjectTypeSky, // For any shader that is part of the skybox, including clouds, sun, moon etc
 	ShaderObjectTypeShadows, // Shadows, so user can elect to turn shadows on or off themselves (they might have a mod that makes shadows look ok)
 	ShaderObjectTypeFog, // Fog, so issues with fog or other particles can be turned off
-	ShaderObjectTypeClothes // Clothes, so user can elect to turn clothes off (naughty user!)
+	ShaderObjectTypeClothes, // Clothes, so user can elect to turn clothes off (naughty user!)
+	ShaderObjectType_Count // Not used, records number of items in enum
 };
 
 #endif

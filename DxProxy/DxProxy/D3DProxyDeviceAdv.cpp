@@ -36,7 +36,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * @param pCreatedBy Pointer to the object that created the device.
 ***/
 D3DProxyDeviceAdv::D3DProxyDeviceAdv(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy) : D3DProxyDevice(pDevice, pCreatedBy)
-{ }
+{ OutputDebugString("Created D3DProxyDeviceAdv");}
 
 /**
 * Destructor.

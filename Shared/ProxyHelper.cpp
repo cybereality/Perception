@@ -736,7 +736,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 		// Handle most of the settings
 		HandleGameProfile(CONFIG_LOAD, gameProfile, config);
 		
-		debugf("gameType: %d\n", gameProfile.attribute("game_type").as_int());
+		debugf("gameType: %d\n", gameProfile.attribute("game_type").as_string());
 
 		//SB: This will need to be changed back when the memory modification stuff is updated, but for now
 		//I am disabling the restore of the camera translation as it is causing confusion for a lot of people when
@@ -976,7 +976,7 @@ void HandleGameProfile(ProxyHelper::ConfigTransferDirection dir, xml_node &node,
 
 	HANDLE_SETTING_ATTR("minVRboostShaderCount", VRboostMinShaderCount, 0);
 	HANDLE_SETTING_ATTR("maxVRboostShaderCount", VRboostMaxShaderCount, 999999);
-	HANDLE_SETTING(game_type,                0);
+	HANDLE_SETTING(game_type,                "");
 	HANDLE_SETTING(rollImpl,                 0);
 	HANDLE_SETTING(worldScaleFactor,         1.0f);
 
@@ -1094,6 +1094,27 @@ void HandleGameProfile(ProxyHelper::ConfigTransferDirection dir, xml_node &node,
 	HANDLE_SETTING(HotkeyNextRenderState,   LAlt + Key(VK_RIGHT));
 }
 
+//Centralised location for validation of the game type string
+bool ProxyHelper::ParseGameType(std::string gameType, ProxyHelper::GameTypeEntry entry, int &value)
+{
+	if (gameType.length() == 7)
+	{
+		char min = '0';
+		char max = '3';
+
+		if (entry == ProxyHelper::ShouldDuplicateRenderTargetOrDepthStencil || 
+			entry == ProxyHelper::ShouldDuplicateCubeTexture)
+			max = '2';
+
+		if (gameType[(int)entry] < min || gameType[(int)entry] > max)
+			return false;
+
+		value = (gameType[(int)entry] - min);
+		return true;
+	}
+
+	return false;
+}
 
 /**
 * True if process has a configuration profile.

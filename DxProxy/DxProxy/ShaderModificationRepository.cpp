@@ -45,6 +45,7 @@ ShaderModificationRepository::ShaderModificationRepository(std::shared_ptr<ViewA
 	m_spAdjustmentMatrices(adjustmentMatrices)
 {
 	D3DXMatrixIdentity(&m_identity);
+	memset(m_hasShaderObjectType, 0, sizeof(bool) * ShaderObjectType_Count);
 }
 
 /**
@@ -159,6 +160,7 @@ bool ShaderModificationRepository::LoadRules(std::string rulesPath)
 
 			//Save type to the registry
 			m_shaderObjectTypes[hash] = type;
+			m_hasShaderObjectType[type] = true;
 
 			std::string replaceShaderCode = shader.attribute("replaceShaderCode").as_string();
 			if (replaceShaderCode.length())
@@ -945,6 +947,11 @@ bool ShaderModificationRepository::ReplaceShaderCode(IDirect3DVertexShader9* pAc
 	} 
 
 	return false;
+}
+
+bool ShaderModificationRepository::GameHasShaderObjectType(ShaderObjectType type)
+{
+	return m_hasShaderObjectType[type];
 }
 
 /**

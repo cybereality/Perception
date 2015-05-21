@@ -82,6 +82,6 @@ private:
 	/**
 	* The game type as loaded by the configuration.
 	***/
-	int m_gameType;
+	std::string m_gameType;
 };
 #endif
