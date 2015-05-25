@@ -1294,15 +1294,6 @@ void D3DProxyDevice::VPMENU_ComfortMode()
 	VPMENU_StartDrawing(menu, "Settings - Comfort Mode");
 	menu->OnClose([=]() { VPMENU_UpdateConfigSettings(); });
 
-	bool isEnabled = (VRBoostValue[VRboostAxis::ComfortMode] != 0.0f);
-	// FIXME: This setting needs reset-to-default handling
-	menu->AddButton(retprintf("Comfort Mode : %s", isEnabled?"Enabled":"Disabled"), [=]()
-	{
-		VRBoostValue[VRboostAxis::ComfortMode] = 1.0f - VRBoostValue[VRboostAxis::ComfortMode];
-		//Reset Yaw to avoid complications
-		m_comfortModeYaw = 0.0f;
-	});
-
 	menu->AddKeybind("Turn Left Key",  &config.ComfortModeLeftKey,  defaultConfig.ComfortModeLeftKey);
 	menu->AddKeybind("Turn Right Key", &config.ComfortModeRightKey, defaultConfig.ComfortModeRightKey);
 
@@ -1363,7 +1354,6 @@ void D3DProxyDevice::VPMENU_Hotkeys()
 	menu->AddKeybind("Telescope Mode",      &config.HotkeyTelescopeMode, defaultConfig.HotkeyTelescopeMode);
 	
 	menu->AddKeybind("Toggle Free Pitch",   &config.HotkeyToggleFreePitch, defaultConfig.HotkeyToggleFreePitch);
-	menu->AddKeybind("Toggle Comfort Mode", &config.HotkeyComfortMode, defaultConfig.HotkeyComfortMode);
 	menu->AddKeybind("Toggle VR Mouse",     &config.HotkeyVRMouse, defaultConfig.HotkeyVRMouse);
 	menu->AddKeybind("Toggle Floaty Menus", &config.HotkeyFloatyMenus, defaultConfig.HotkeyFloatyMenus);
 	

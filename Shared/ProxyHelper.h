@@ -143,7 +143,6 @@ struct ProxyConfig
 	InputBindingRef HotkeyScreenshot;
 	InputBindingRef HotkeyTelescopeMode;
 	InputBindingRef HotkeyToggleFreePitch;
-	InputBindingRef HotkeyComfortMode;
 	InputBindingRef HotkeyVRMouse;
 	InputBindingRef HotkeyFloatyMenus;
 	

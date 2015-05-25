@@ -171,8 +171,7 @@ void D3DProxyDevice::HandleControls()
 	}
 
 	//If we are in comfort mode and user has pushed left or right, then change yaw
-	if (VRBoostValue[VRboostAxis::ComfortMode] != 0.0f  &&
-		VRBoostStatus.VRBoost_Active &&
+	if (VRBoostStatus.VRBoost_Active &&
 		HotkeysActive())
 	{
 		if (config.ComfortModeLeftKey->IsPressed(controls))
@@ -636,27 +635,6 @@ void D3DProxyDevice::HandleControls()
 			
 			ShowAdjusterToast(retprintf("Pitch Free-look Enabled",
 				(VRBoostValue[VRboostAxis::FreePitch] != 0.0f) ? "Enabled" : "Disabled"), 1000);
-		}
-
-		//Enabled/Disable Comfort Mode - LSHIFT + M
-		if (VRBoostStatus.VRBoost_Active && 
-			config.HotkeyComfortMode->IsPressed(controls) &&
-			HotkeysActive())
-		{
-			if (VRBoostValue[VRboostAxis::ComfortMode] != 0.0f)
-			{
-				//Disable Comfort Mode
-				VRBoostValue[VRboostAxis::ComfortMode] = 0.0f;
-			}
-			else
-			{
-				//Enable Comfort Mode
-				VRBoostValue[VRboostAxis::ComfortMode] = 1.0f;
-			}
-			
-			m_comfortModeYaw = 0.0f;
-			ShowAdjusterToast(retprintf("Comfort Mode %s",
-				(VRBoostValue[VRboostAxis::ComfortMode]!=0.0f) ? "Enabled" : "Disabled"), 1000);
 		}
 
 		//Enabled/Disable Black Smear Correction for DK2 (default is disabled), LSHIFT + B

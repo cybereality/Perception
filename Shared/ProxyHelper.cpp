@@ -1071,7 +1071,6 @@ void HandleGameProfile(ProxyHelper::ConfigTransferDirection dir, xml_node &node,
 	HANDLE_SETTING(HotkeyScreenshot,        Key(VK_RCONTROL) + Key(VK_MULTIPLY));
 	HANDLE_SETTING(HotkeyTelescopeMode,     Key(VK_LMENU) + Key(VK_MBUTTON));
 	HANDLE_SETTING(HotkeyToggleFreePitch,   LShift+Key('X'));
-	HANDLE_SETTING(HotkeyComfortMode,       LShift+Key('M'));
 	HANDLE_SETTING(HotkeyVRMouse,           Key(VK_NUMPAD0));
 	HANDLE_SETTING(HotkeyFloatyMenus,       LCtrl+Key(VK_NUMPAD1));
 	
