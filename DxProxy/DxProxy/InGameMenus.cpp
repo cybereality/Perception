@@ -1325,18 +1325,18 @@ void D3DProxyDevice::VPMENU_VRBoostValues()
 	MenuBuilder *menu = VPMENU_NewFrame();
 	VPMENU_StartDrawing(menu, "Settings - VRBoost");
 
-	menu->AddAdjustment("World FOV : %g",          &VRBoostValue[24], defaultConfig.WorldFOV, 0.5f);
-	menu->AddAdjustment("Player FOV : %g",         &VRBoostValue[25], defaultConfig.PlayerFOV, 0.5f);
-	menu->AddAdjustment("Far Plane FOV : %g",      &VRBoostValue[26], defaultConfig.FarPlaneFOV, 0.5f);
-	menu->AddAdjustment("Camera Translate X : %g", &VRBoostValue[27], defaultConfig.CameraTranslateX, 0.1f);
-	menu->AddAdjustment("Camera Translate Y : %g", &VRBoostValue[28], defaultConfig.CameraTranslateY, 0.1f);
-	menu->AddAdjustment("Camera Translate Z : %g", &VRBoostValue[29], defaultConfig.CameraTranslateZ, 0.1f);
-	menu->AddAdjustment("Camera Distance : %g",    &VRBoostValue[30], defaultConfig.CameraDistance, 0.1f);
-	menu->AddAdjustment("Camera Zoom : %g",        &VRBoostValue[31], defaultConfig.CameraZoom, 0.1f);
-	menu->AddAdjustment("Camera Horizon Adjustment : %g", &VRBoostValue[32], 0.0f, 0.1f);
-	menu->AddAdjustment("Constant Value 1 : %g",   &VRBoostValue[33], defaultConfig.ConstantValue1, 0.1f);
-	menu->AddAdjustment("Constant Value 2 : %g",   &VRBoostValue[34], defaultConfig.ConstantValue2, 0.1f);
-	menu->AddAdjustment("Constant Value 2 : %g",   &VRBoostValue[35], defaultConfig.ConstantValue3, 0.1f);
+	menu->AddAdjustment("World FOV : %g",          &VRBoostValue[VRboostAxis::WorldFOV], defaultConfig.WorldFOV, 0.5f);
+	menu->AddAdjustment("Player FOV : %g",         &VRBoostValue[VRboostAxis::PlayerFOV], defaultConfig.PlayerFOV, 0.5f);
+	menu->AddAdjustment("Far Plane FOV : %g",      &VRBoostValue[VRboostAxis::FarPlaneFOV], defaultConfig.FarPlaneFOV, 0.5f);
+	menu->AddAdjustment("Camera Translate X : %g", &VRBoostValue[VRboostAxis::CameraTranslateX], defaultConfig.CameraTranslateX, 0.1f);
+	menu->AddAdjustment("Camera Translate Y : %g", &VRBoostValue[VRboostAxis::CameraTranslateY], defaultConfig.CameraTranslateY, 0.1f);
+	menu->AddAdjustment("Camera Translate Z : %g", &VRBoostValue[VRboostAxis::CameraTranslateZ], defaultConfig.CameraTranslateZ, 0.1f);
+	menu->AddAdjustment("Camera Distance : %g",    &VRBoostValue[VRboostAxis::CameraDistance], defaultConfig.CameraDistance, 0.1f);
+	menu->AddAdjustment("Camera Zoom : %g",        &VRBoostValue[VRboostAxis::CameraZoom], defaultConfig.CameraZoom, 0.1f);
+	menu->AddAdjustment("Camera Horizon Adjustment : %g", &VRBoostValue[VRboostAxis::CameraHorizonAdjustment], 0.0f, 0.1f);
+	menu->AddAdjustment("Constant Value 1 : %g",   &VRBoostValue[VRboostAxis::ConstantValue1], defaultConfig.ConstantValue1, 0.1f);
+	menu->AddAdjustment("Constant Value 2 : %g",   &VRBoostValue[VRboostAxis::ConstantValue2], defaultConfig.ConstantValue2, 0.1f);
+	menu->AddAdjustment("Constant Value 2 : %g",   &VRBoostValue[VRboostAxis::ConstantValue3], defaultConfig.ConstantValue3, 0.1f);
 
 	menu->AddBackButtons();
 	VPMENU_FinishDrawing(menu);

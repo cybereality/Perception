@@ -3612,9 +3612,9 @@ bool D3DProxyDevice::InitVRBoost()
 	ZeroMemory(&VRBoostValue[0], MAX_VRBOOST_VALUES*sizeof(float));
 	VRBoostValue[VRboostAxis::Zero] = 0.0f;
 	VRBoostValue[VRboostAxis::One] = 1.0f;
-	VRBoostValue[VRboostAxis::WorldFOV] = 95.0f;
-	VRBoostValue[VRboostAxis::PlayerFOV] = 125.0f;
-	VRBoostValue[VRboostAxis::FarPlaneFOV] = 95.0f;
+	VRBoostValue[VRboostAxis::WorldFOV] = defaultConfig.WorldFOV;
+	VRBoostValue[VRboostAxis::PlayerFOV] = defaultConfig.PlayerFOV;
+	VRBoostValue[VRboostAxis::FarPlaneFOV] = defaultConfig.FarPlaneFOV;
 	return initSuccess;
 }
 
