@@ -5,8 +5,9 @@
 using namespace vireio;
 
 
-DirectXInputControls::DirectXInputControls()
+DirectXInputControls::DirectXInputControls(ProxyConfig *config)
 {
+	this->config = config;
 	Reset();
 }
 
@@ -26,7 +27,7 @@ void DirectXInputControls::UpdateInputs()
 		currentState.keyState[ii] = GetAsyncKeyState(ii)?1:0;
 	
 	// Get the gamepad state
-	DWORD Result = XInputGetState(NULL, &currentState.xInputState);
+	DWORD Result = XInputGetState(config->GamepadIndex, &currentState.xInputState);
 
 	if(Result == ERROR_SUCCESS)
 	{

@@ -1031,6 +1031,7 @@ void HandleGameProfile(ProxyHelper::ConfigTransferDirection dir, xml_node &node,
 	HANDLE_SETTING_ATTR("gui_key_full",      guiHotkeys[3], Unbound());
 
 	HANDLE_SETTING_ATTR("VRBoost_key_reset", VRBoostResetHotkey, Unbound());
+	HANDLE_SETTING(GamepadIndex,             0);
 	HANDLE_SETTING_ATTR("edge_peek_key",     EdgePeekHotkey, Key(VK_MBUTTON) || (Key(VK_LCONTROL)+Key(VK_NUMPAD2)));
 
 	HANDLE_SETTING(ComfortModeYawIncrement,  90.0f);

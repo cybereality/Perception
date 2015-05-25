@@ -3,6 +3,7 @@
 #include <WinUser.h>
 #include <XInput.h>
 #include "InputControls.h"
+#include "ProxyHelper.h"
 
 class DirectXInputControls;
 
@@ -33,7 +34,7 @@ class DirectXInputControls
 	:public InputControls
 {
 public:
-	DirectXInputControls();
+	DirectXInputControls(ProxyConfig *config);
 	virtual ~DirectXInputControls();
 	
 	void UpdateInputs();
@@ -44,6 +45,8 @@ public:
 	
 
 private:
+	ProxyConfig *config;
+	
 	DirectXInputControlState currentState;
 	DirectXInputControlState prevState;
 };

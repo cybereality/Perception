@@ -112,7 +112,7 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	m_activeSwapChains(),
 	m_gameXScaleUnits(),
 	m_telescopicSightMode(false),
-	controls(),
+	controls(&config),
 	dinput(),
 	activePopup(VPT_NONE),
 	show_fps(FPS_NONE),

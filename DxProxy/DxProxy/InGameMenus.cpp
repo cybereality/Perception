@@ -1348,6 +1348,21 @@ void D3DProxyDevice::VPMENU_Hotkeys()
 	MenuBuilder *menu = VPMENU_NewFrame();
 	VPMENU_StartDrawing(menu, "Settings - Hotkeys");
 	
+	std::string whichGamepad;
+	if(config.GamepadIndex >= 0) {
+		// Setting numbers gamepads starting at 0, but display starting at 1
+		whichGamepad = retprintf("%i", config.GamepadIndex+1);
+	} else {
+		whichGamepad = "None";
+	}
+	menu->AddButton(retprintf("Which Gamepad: %s", whichGamepad.c_str()), [=]()
+	{
+		if (config.GamepadIndex<3)
+			config.GamepadIndex++;
+		else
+			config.GamepadIndex = -1;
+	});
+	
 	menu->AddKeybind("Reset Orientation",   &config.HotkeyResetOrientation, defaultConfig.HotkeyResetOrientation);
 	menu->AddKeybind("Show FPS Hotkey",     &config.HotkeyShowFPS, defaultConfig.HotkeyShowFPS);
 	menu->AddKeybind("Screenshot",          &config.HotkeyScreenshot, defaultConfig.HotkeyScreenshot);

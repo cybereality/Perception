@@ -99,6 +99,10 @@ struct ProxyConfig
 	InputBindingRef VRBoostResetHotkey;     /**< Hotkey option to reset VRBoost. */
 	InputBindingRef EdgePeekHotkey;			/**< Hotkey option to toggle disconnected screen view. */
 
+	/// Which gamepad (XBox controller) to check for input. If -1, don't use
+	/// any controller. Otherwise the ID of the controller to check, 0-3.
+	int GamepadIndex;
+	
 	///Draw Options - do we draw things?
 	bool        draw_shadows;
 	bool        draw_fog;
