@@ -388,7 +388,6 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 	// (this can break if device present is followed by present on another swap chain... or not work well anyway)
 	m_isFirstBeginSceneOfFrame = true; 
 
-	HandleLandmarkMoment(DeviceBehavior::WhenToDo::AFTER_COMPOSITING);
 	VPMENU_UpdateCooldowns();
 
 	//Now calculate frames per second
@@ -416,6 +415,7 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 	if (tracker)
 		tracker->EndFrame();
 
+	HandleLandmarkMoment(DeviceBehavior::WhenToDo::AFTER_COMPOSITING);
 	return hr;
 }
 
