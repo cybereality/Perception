@@ -182,9 +182,6 @@ void D3DProxyDevice::VPMENU_DrawBorder(int top)
 */
 void D3DProxyDevice::VPMENU_StartDrawing(MenuBuilder *menu, const char *pageTitle)
 {
-	float borderDrawHeight = menuTop + menuEntryHeight*(menuState.selectedIndex+menuState.animationOffset-menuState.scrollOffset);
-	VPMENU_DrawBorder((int)borderDrawHeight);
-
 	hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
 
 	D3DXMATRIX matScale;
@@ -1064,6 +1061,9 @@ void D3DProxyDevice::VPMENU_PosTracking()
 			m_spShaderViewAdjustment->UpdatePosition(0.0f, 0.0f, 0.0f);
 	}, MenuBuilder::GreenOrRed);
 	
+	menu->AddText("Position-tracking multiplier scales position-tracking relative to the world.");
+	menu->AddText("If it's too low, then the world will seem to move opposite your head motion.");
+	menu->AddText("If it's too high, then the world will seem to move together with your head motion.");
 	menu->AddAdjustment("Position Tracking multiplier : %g", &config.position_multiplier, defaultConfig.position_multiplier, 0.01f);
 	menu->AddAdjustment("Position X-Tracking multiplier : %g", &config.position_x_multiplier, defaultConfig.position_x_multiplier, 0.01f);
 	menu->AddAdjustment("Position Y-Tracking multiplier : %g", &config.position_y_multiplier, defaultConfig.position_y_multiplier, 0.01f);
@@ -1733,6 +1733,13 @@ void MenuBuilder::DrawItem(const char *text, D3DCOLOR color)
 	{
 		device->DrawTextShadowed(device->hudFont, device->hudMainMenu, text, &drawPosition, color);
 	}
+	
+	if(menuConstructionCurrentEntry == device->menuState.selectedIndex)
+	{
+		float borderDrawTop = drawPosition.top + device->menuEntryHeight*device->menuState.animationOffset - 5.0f;
+		device->VPMENU_DrawBorder(borderDrawTop);
+	}
+	
 	drawPosition.top += MENU_ITEM_SEPARATION;
 	menuConstructionCurrentEntry++;
 }
@@ -1909,12 +1916,15 @@ void MenuBuilder::AddEnumPicker(const char *formatString, int *currentValue, int
 	device->DrawSelection(vireio::RenderPosition::Right, rect, COLOR_QUICK_SETTING, *currentValue, maxValue);
 }
 
+/// Draw text in the middle of a menu (ie, help text or a section heading)
 void MenuBuilder::AddText(const char *text)
 {
-	// TODO: Draw text in the middle of a menu (ie, help text or a section
-	// heading). The main trickiness is that this has to not mess up the
-	// border positioning, which was previously assuming you could convert
-	// between y-position and entry index by simple multiplication.
+	if(drawPosition.top+40 >= 0
+	   && drawPosition.top <= device->viewportHeight)
+	{
+		device->DrawTextShadowed(device->hudFont, device->hudMainMenu, text, &drawPosition, COLOR_MENU_TEXT);
+	}
+	drawPosition.top += MENU_ITEM_SEPARATION;
 }
 
 void MenuBuilder::AddBackButtons()
