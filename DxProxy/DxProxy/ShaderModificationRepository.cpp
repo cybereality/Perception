@@ -143,20 +143,7 @@ bool ShaderModificationRepository::LoadRules(std::string rulesPath)
 				m_shaderViewportSquashIDs.push_back(hash);
 
 			std::string objectType = shader.attribute("ObjectType").as_string();
-
-			ShaderObjectType type = ShaderObjectTypeUnknown;
-			if (objectType == "DoNotDraw")
-				type = ShaderObjectTypeDoNotDraw;
-			else if (objectType == "Player")
-				type = ShaderObjectTypePlayer;
-			else if (objectType == "Sky")
-				type = ShaderObjectTypeSky;
-			else if (objectType == "Shadows")
-				type = ShaderObjectTypeShadows;
-			else if (objectType == "Fog")
-				type = ShaderObjectTypeFog;
-			else if (objectType == "Clothes")
-				type = ShaderObjectTypeClothes;
+			ShaderObjectType type = GetShaderObjectTypeEnum(objectType);
 
 			//Save type to the registry
 			m_shaderObjectTypes[hash] = type;
@@ -273,19 +260,7 @@ bool ShaderModificationRepository::SaveRules(std::string rulesPath)
 			std::string type;
 			if (m_shaderObjectTypes.find(hash) != m_shaderObjectTypes.end())
 			{
-				if (m_shaderObjectTypes[hash] == ShaderObjectTypeDoNotDraw)
-					type = "DoNotDraw";
-				else if (m_shaderObjectTypes[hash] == ShaderObjectTypePlayer)
-					type = "Player";
-				else if (m_shaderObjectTypes[hash] == ShaderObjectTypeSky)
-					type = "Sky";
-				else if (m_shaderObjectTypes[hash] == ShaderObjectTypeShadows)
-					type = "Shadows";
-				else if (m_shaderObjectTypes[hash] == ShaderObjectTypeFog)
-					type = "Fog";
-				else if (m_shaderObjectTypes[hash] == ShaderObjectTypeClothes)
-					type = "Clothes";
-
+				type = GetShaderObjectTypeStrng(m_shaderObjectTypes[hash]);
 				shader.append_attribute("ObjectType") = type.c_str();
 			}
 

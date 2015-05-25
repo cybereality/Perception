@@ -1161,22 +1161,22 @@ void D3DProxyDevice::VPMENU_Drawing()
 	if (pRepo)
 	{
 		if (pRepo->GameHasShaderObjectType(ShaderObjectTypeShadows))
-			menu->AddToggle("Draw Shadows : %s", "True", "False", &config.draw_shadows, defaultConfig.draw_shadows);
+			menu->AddToggle("Draw Shadows : %s", "Yes", "No", &config.draw_shadows, defaultConfig.draw_shadows);
 
 		if (pRepo->GameHasShaderObjectType(ShaderObjectTypeFog))
-			menu->AddToggle("Draw Fog/Smoke : %s", "True", "False", &config.draw_fog, defaultConfig.draw_fog);
+			menu->AddToggle("Draw Fog/Smoke : %s", "Yes", "No", &config.draw_fog, defaultConfig.draw_fog);
 
 		if (pRepo->GameHasShaderObjectType(ShaderObjectTypeClothes))
-			menu->AddToggle("Draw Clothes : %s", "True", "False", &config.draw_clothes, defaultConfig.draw_clothes);
+			menu->AddToggle("Draw Clothes : %s", "Yes", "No", &config.draw_clothes, defaultConfig.draw_clothes);
 
 		if (pRepo->GameHasShaderObjectType(ShaderObjectTypePlayer))
-			menu->AddToggle("Draw Player : %s", "True", "False", &config.draw_player, defaultConfig.draw_player);
+			menu->AddToggle("Draw Player : %s", "Yes", "No", &config.draw_player, defaultConfig.draw_player);
 
 		if (pRepo->GameHasShaderObjectType(ShaderObjectTypeReticule))
-			menu->AddToggle("Draw Aiming Reticule : %s", "True", "False", &config.draw_reticule, defaultConfig.draw_reticule);
+			menu->AddToggle("Draw Aiming Reticule : %s", "Yes", "No", &config.draw_reticule, defaultConfig.draw_reticule);
 
 		if (pRepo->GameHasShaderObjectType(ShaderObjectTypeSky))
-			menu->AddToggle("Draw Skybox : %s", "True", "False", &config.draw_sky, defaultConfig.draw_sky);
+			menu->AddToggle("Draw Skybox : %s", "Yes", "No", &config.draw_sky, defaultConfig.draw_sky);
 	}
 	
 	menu->AddBackButtons();
