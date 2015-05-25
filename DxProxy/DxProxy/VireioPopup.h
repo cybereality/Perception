@@ -63,43 +63,24 @@ enum VireioPopupSeverity
 	VPS_ERROR
 };
 
+#define POPUP_MAX_LINES 7
+
 struct VireioPopup
 {
-	VireioPopup(VireioPopupType type, VireioPopupSeverity sev = VPS_INFO, long duration = -1) :
-		popupType(type),
-		severity(sev),
-		popupDuration(duration)
-	{
-		if (duration != -1)
-			setDuration(duration);
+	VireioPopup(VireioPopupType type, VireioPopupSeverity sev = VPS_INFO, long duration = -1);
 
-		memset(line, 0, 7 * 256);
-	}
-
-	void setDuration(long duration_ms)
-	{
-		popupDuration = (long)GetTickCount() + duration_ms;
-	}
-
-	bool expired()
-	{
-		if (popupDuration != -1 && 
-			((long)GetTickCount()) > popupDuration)
-			return true;
-		return false;
-	}
-
-	void reset()
-	{
-		popupType = VPT_NONE;
-		popupDuration = -1;
-		memset(line, 0, 7 * 256);
-	}
+	void SetDuration(long duration_ms);
+	bool IsExpired();
+	void Reset();
+	void SetMessage(std::string message);
+	std::string GetLine(int lineNumber);
 
 	VireioPopupType popupType;
 	VireioPopupSeverity severity;
 	long popupDuration;
-	char line[7][256];
+
+private:
+	char line[POPUP_MAX_LINES][256];
 };
 
 #endif

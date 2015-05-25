@@ -30,6 +30,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
 #include "D3DProxyDevice.h"
+#include "VireioUtil.h"
+using namespace vireio;
 
 //Logic for popup, need some priority logic here
 void D3DProxyDevice::ShowPopup(VireioPopup &popup)
@@ -56,29 +58,7 @@ void D3DProxyDevice::ShowPopup(VireioPopup &popup)
 void D3DProxyDevice::ShowPopup(VireioPopupType type, VireioPopupSeverity sev, long duration, std::string message)
 {
 	VireioPopup popup(type, sev, duration);
-	int newlinesInMessage = 0;
-	for(size_t ii=0; ii<message.size(); ii++) {
-		if(message[ii] == '\n')
-			newlinesInMessage++;
-	}
-	int line = 0;
-	size_t messageStartPos = 0;
-	
-	// Single-line messages are on line 2 (the third line) for aesthetic/centering reasons
-	if(newlinesInMessage==0)
-		line = 2;
-	
-	for(size_t ii=0; ii<message.size(); ii++)
-	{
-		if(message[ii] == '\n') {
-			strcpy_s(popup.line[line++], message.substr(messageStartPos, ii-messageStartPos).c_str());
-			messageStartPos = ii+1;
-		}
-	}
-	if(messageStartPos < message.size()) {
-		strcpy_s(popup.line[line++], message.substr(messageStartPos, message.size()-messageStartPos).c_str());
-	}
-	
+	popup.SetMessage(message);
 	ShowPopup(popup);
 }
 
@@ -97,7 +77,7 @@ void D3DProxyDevice::ShowAdjusterToast(std::string message, int duration)
 void D3DProxyDevice::DismissPopup(VireioPopupType popupType)
 {
 	if (activePopup.popupType == popupType)
-		activePopup.reset();
+		activePopup.Reset();
 }
 
 void D3DProxyDevice::DisplayCurrentPopup()
@@ -125,11 +105,14 @@ void D3DProxyDevice::DisplayCurrentPopup()
 
 	if (activePopup.popupType == VPT_STATS && config.stereo_mode >= 100)
 	{
-		sprintf_s(activePopup.line[0], "HMD Description: %s", tracker->GetTrackerDescription()); 
-		sprintf_s(activePopup.line[1], "Yaw: %.3f Pitch: %.3f Roll: %.3f", tracker->primaryYaw, tracker->primaryPitch, tracker->primaryRoll); 
-		sprintf_s(activePopup.line[2], "X: %.3f Y: %.3f Z: %.3f", tracker->primaryX, tracker->primaryY, tracker->primaryZ); 
+		std::string popupMessage = retprintf(
+			"HMD Description: %s\n",
+			"Yaw: %.3f Pitch: %.3f Roll: %.3f\n",
+			"X: %.3f Y: %.3f Z: %.3f\n",
+			tracker->GetTrackerDescription(),
+			tracker->primaryYaw, tracker->primaryPitch, tracker->primaryRoll,
+			tracker->primaryX, tracker->primaryY, tracker->primaryZ);
 
-		
 		if (VRBoostStatus.VRBoost_Active)
 		{
 			ActiveAxisInfo axes[30];
@@ -144,29 +127,31 @@ void D3DProxyDevice::DisplayCurrentPopup()
 					break;
 				axisNames += VRboostAxisString(axes[i].Axis) + " ";
 				i++;
-			}				
+			}
 
-			sprintf_s(activePopup.line[3], "VRBoost Active: TRUE     Axes: %s", 
+			popupMessage += retprintf(
+				"VRBoost Active: TRUE     Axes: %s\n",
 				axisNames.c_str());
 		}
 		else
 		{
-			strcpy_s(activePopup.line[3], "VRBoost Active: FALSE");
+			popupMessage += retprintf("VRBoost Active: FALSE\n");
 		}
 
-		if (m_bPosTrackingToggle)
-			strcpy_s(activePopup.line[4], "HMD Positional Tracking Enabled");
-		else
-			strcpy_s(activePopup.line[4], "HMD Positional Tracking Disabled");
+		popupMessage += retprintf(
+			"HMD Positional Tracking %s\n"
+			"Current VShader Count : %u\n",
+			m_bPosTrackingToggle ? "Enabled" : "Disabled",
+				m_VertexShaderCountLastFrame);
 
-		sprintf_s(activePopup.line[5],"Current VShader Count : %u", m_VertexShaderCountLastFrame);
+		activePopup.SetMessage(popupMessage);
 	}
 
-	if (activePopup.expired())
+	if (activePopup.IsExpired())
 	{
 		//Ensure we stop showing this popup
 		activePopup.popupType = VPT_NONE;
-		activePopup.reset();
+		activePopup.Reset();
 	}
 
 	UINT format = 0;
@@ -203,20 +188,21 @@ void D3DProxyDevice::DisplayCurrentPopup()
 			break;
 	}
 
-	for (int i = 0; i <= 6; ++i)
+	for (int i=0; i<POPUP_MAX_LINES; ++i)
 	{
-		if (strlen(activePopup.line[i]))
-			DrawTextShadowed(pFont, hudMainMenu, activePopup.line[i], -1, &drawPosition, format, popupColour);
+		std::string line = activePopup.GetLine(i);
+		if (line.size() > 0)
+			DrawTextShadowed(pFont, hudMainMenu, line.c_str(), -1, &drawPosition, format, popupColour);
 		drawPosition.top += MENU_ITEM_SEPARATION;
 	}
 	
 	if (show_fps != FPS_NONE)
 	{
-		char buffer[256];
+		std::string framerateString;
 		if (show_fps == FPS_COUNT)
-			sprintf_s(buffer, "FPS: %.1f", fps);
+			framerateString = retprintf("FPS: %.1f", fps);
 		else if (show_fps == FPS_TIME)
-			sprintf_s(buffer, "Frame Time: %.2f ms", 1000.0f / fps);
+			framerateString = retprintf("Frame Time: %.2f ms", 1000.0f / fps);
 
 		D3DCOLOR colour = COLOR_WHITE;
 		if (fps <= 40)
@@ -226,7 +212,7 @@ void D3DProxyDevice::DisplayCurrentPopup()
 
 		drawPosition.top = 800;
 		drawPosition.left = 0;
-		hudFont->DrawText(hudMainMenu, buffer, -1, &drawPosition, DT_CENTER, colour);
+		hudFont->DrawText(hudMainMenu, framerateString.c_str(), -1, &drawPosition, DT_CENTER, colour);
 	}
 
 	VPMENU_FinishDrawing(NULL);
@@ -274,4 +260,67 @@ void D3DProxyDevice::DrawTextShadowed(float left, float top, std::string text)
 {
 	RECT rect = {(int)left, (int)top, VPMENU_PIXEL_WIDTH, VPMENU_PIXEL_HEIGHT};
 	DrawTextShadowed(hudFont, hudMainMenu, text.c_str(), &rect, COLOR_MENU_TEXT);
+}
+
+
+VireioPopup::VireioPopup(VireioPopupType type, VireioPopupSeverity sev, long duration) :
+	popupType(type),
+	severity(sev),
+	popupDuration(duration)
+{
+	if (duration != -1)
+		SetDuration(duration);
+
+	memset(line, 0, POPUP_MAX_LINES * 256);
+}
+
+void VireioPopup::SetDuration(long duration_ms)
+{
+	popupDuration = (long)GetTickCount() + duration_ms;
+}
+
+bool VireioPopup::IsExpired()
+{
+	if (popupDuration != -1 &&
+		((long)GetTickCount()) > popupDuration)
+		return true;
+	return false;
+}
+
+void VireioPopup::Reset()
+{
+	popupType = VPT_NONE;
+	popupDuration = -1;
+	memset(line, 0, POPUP_MAX_LINES * 256);
+}
+
+void VireioPopup::SetMessage(std::string message)
+{
+	int newlinesInMessage = 0;
+	for(size_t ii=0; ii<message.size(); ii++) {
+		if(message[ii] == '\n')
+			newlinesInMessage++;
+	}
+	int lineNumber = 0;
+	size_t messageStartPos = 0;
+	
+	// Single-line messages are on line 2 (the third line) for aesthetic/centering reasons
+	if(newlinesInMessage==0)
+		lineNumber = 2;
+	
+	for(size_t ii=0; ii<message.size(); ii++)
+	{
+		if(message[ii] == '\n') {
+			strcpy_s(line[lineNumber++], message.substr(messageStartPos, ii-messageStartPos).c_str());
+			messageStartPos = ii+1;
+		}
+	}
+	if(messageStartPos < message.size()) {
+		strcpy_s(line[lineNumber++], message.substr(messageStartPos, message.size()-messageStartPos).c_str());
+	}
+}
+
+std::string VireioPopup::GetLine(int lineNumber)
+{
+	return line[lineNumber];
 }

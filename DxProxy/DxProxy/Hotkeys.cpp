@@ -368,12 +368,10 @@ void D3DProxyDevice::HandleControls()
 			{
 				if (VRBoostStatus.VRBoost_Active)
 				{
-					VireioPopup popup(VPT_NOTIFICATION, VPS_INFO, 10000);
-				
 					ActiveAxisInfo axes[30];
 					memset(axes, 0xFF, sizeof(ActiveAxisInfo) * 30);
 					UINT count = m_pVRboost_GetActiveRuleAxes((ActiveAxisInfo**)&axes);
-					sprintf_s(popup.line[0], "VRBoost Axis Addresses: %i", count);
+					std::string popupMessage = retprintf("VRBoost Axis Addresses: %i\n", count);
 
 					UINT i = 0;
 					while (i < count)
@@ -382,12 +380,14 @@ void D3DProxyDevice::HandleControls()
 							break;
 
 						std::string axisName = VRboostAxisString(axes[i].Axis);
-						sprintf_s(popup.line[i+1], "      %s:      0x%"PR_SIZET"x", axisName.c_str(), axes[i].Address);
+						popupMessage += retprintf(
+							"      %s:      0x%"PR_SIZET"x\n",
+							axisName.c_str(), axes[i].Address);
 
 						i++;
 					}
-			
-					ShowPopup(popup);
+					
+					ShowPopup(VPT_NOTIFICATION, VPS_INFO, 10000, popupMessage);
 				}
 			}
 		}
@@ -506,24 +506,25 @@ void D3DProxyDevice::HandleControls()
 		//When to poll headtracking (Alt + Down)
 		if (config.HotkeyWhenToPollHeadtracking->IsPressed(controls) && HotkeysActive())
 		{
-			VireioPopup popup(VPT_ADJUSTER, VPS_TOAST, 1000);
+			std::string popupMessage = "";
+			
 			if(m_deviceBehavior.whenToHandleHeadTracking == DeviceBehavior::BEGIN_SCENE)
 			{
 				m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::END_SCENE;
-				sprintf_s(popup.line[2], "HEADTRACKING = END_SCENE");
+				popupMessage = "\n\nHEADTRACKING = END_SCENE";
 			}
 			else if(m_deviceBehavior.whenToHandleHeadTracking == DeviceBehavior::END_SCENE)
 			{
 				m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::BEGIN_SCENE;
-				sprintf_s(popup.line[2], "HEADTRACKING = BEGIN SCENE");
+				popupMessage = "\n\nHEADTRACKING = BEGIN_SCENE";
 			}
 			/*else if(m_deviceBehavior.whenToHandleHeadTracking == DeviceBehavior::BEFORE_COMPOSITING)
 			{
 				m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::BEGIN_SCENE;
-				sprintf_s(popup.line[2], "HEADTRACKING = BEGIN SCENE");
+				popupMessage = "\n\nHEADTRACKING = BEGIN_SCENE";
 			}//TODO This Crashes for some reason - problem for another day*/
 		
-			ShowPopup(popup);
+			ShowPopup(VPT_ADJUSTER, VPS_TOAST, 1000, popupMessage);
 		}
 
 		// Initiate VRBoost Memory Scan (NUMPAD5 or <LCTRL> + </> )
@@ -921,7 +922,7 @@ void D3DProxyDevice::HandleControls()
 			//CTRL + SPACE + Mouse Wheel - adjust projection fov dynamically
 			else if(hotkeyWheelPFOV->IsHeld(controls))
 			{
-				config.PFOV += 0.5*wheelSign;
+				config.PFOV += 0.5f*wheelSign;
 
 				m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, config.PFOV);
 				
