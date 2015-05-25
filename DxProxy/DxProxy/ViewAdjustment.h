@@ -114,7 +114,6 @@ public:
 	//int           RollImpl();
 	//void          SetRollImpl(int rollImpl);
 	//int			  GetStereoType();
-	void		  SetUsePFOV(bool);
 	HMDisplayInfo* HMDInfo();	
 
 private:

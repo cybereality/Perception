@@ -78,6 +78,7 @@ InputBindingRef hotkeyOpenVPMenu = (LCtrl+Key('Q')) || (LShift+Key(VK_MULTIPLY))
 InputBindingRef hotkeyWheelYOffset = LCtrl+Key(VK_TAB);
 InputBindingRef hotkeyWheelIPDOffset = LCtrl+LShift;
 InputBindingRef hotkeyWheelWorldScale = LCtrl+LAlt;
+InputBindingRef hotkeyWheelZBuffer = LCtrl+Key(0x5A);
 InputBindingRef hotkeyWheelPFOV = LCtrl+Key(VK_SPACE);
 InputBindingRef hotkeyWheelZoomScale = LCtrl;
 
@@ -426,7 +427,7 @@ void D3DProxyDevice::HandleControls()
 				_str = stereoView->CycleRenderState(true);
 			}
 			ShowPopup(VPT_ADJUSTER, VPS_TOAST, 1000,
-				retprintf("%s :: New Render State", _str.c_str()));
+				retprintf("New Render State :: %s", _str.c_str()));
 		}
 
 		// Toggle Through Cube Renders -> ALt + 1
@@ -441,7 +442,7 @@ void D3DProxyDevice::HandleControls()
 				else if(m_pGameHandler->intDuplicateCubeTexture == 2)
 					cubeDuplicationDescription = "Always True";
 				else if(m_pGameHandler->intDuplicateCubeTexture == 3)
-					cubeDuplicationDescription = "Always IS_RENDER_TARGET(Usage)";
+					cubeDuplicationDescription = "IS_RENDER_TARGET(Usage)";
 			}
 			else
 			{
@@ -460,13 +461,13 @@ void D3DProxyDevice::HandleControls()
 			{
 				m_pGameHandler->intDuplicateTexture++;
 				if(m_pGameHandler->intDuplicateTexture == 1)
-					textureDuplicationDescription = "Method 1";
-				else if(m_pGameHandler->intDuplicateTexture == 2)
-					textureDuplicationDescription = "Method 2 (1 + Width and Height)";
-				else if(m_pGameHandler->intDuplicateTexture == 3)
 					textureDuplicationDescription = "Always False";
-				else if(m_pGameHandler->intDuplicateTexture == 4)
+				else if(m_pGameHandler->intDuplicateTexture == 2)
 					textureDuplicationDescription = "Always True";
+				else if(m_pGameHandler->intDuplicateTexture == 3)
+					textureDuplicationDescription = "IS_RENDER_TARGET";
+				else if(m_pGameHandler->intDuplicateTexture == 4)
+					textureDuplicationDescription = "IS_RENDER_TARGET + Width and Height)";
 			}
 			else
 			{
@@ -874,6 +875,29 @@ void D3DProxyDevice::HandleControls()
 				this->stereoView->PostReset();
 				DeferedSaveConfig();
 				ShowAdjusterToast(retprintf("Y-Offset: %1.3f", config.YOffset), 500);
+			}
+			else if(hotkeyWheelZBuffer->IsHeld(controls))
+			{
+				if(stereoView->m_bZBufferFilterMode)
+				{
+					this->stereoView->m_fZBufferFilter += 0.0005f * wheelSign;
+					clamp(&this->stereoView->m_fZBufferFilter, 0.01f, 1.0f);
+					this->stereoView->PostReset();
+					ShowAdjusterToast(retprintf("ZBuffer Depth Filter: %1.6f", this->stereoView->m_fZBufferFilter), 500);
+				}
+				else if(stereoView->m_bZBufferVisualisationMode)
+				{
+					config.zbufferDepthLow += 0.0005f * wheelSign;
+					clamp(&config.zbufferDepthLow, 0.01f, 1.0f);					
+					DeferedSaveConfig();
+					ShowAdjusterToast(retprintf("ZBuffer Depth Bound Low: %1.6f", config.zbufferDepthLow), 500);
+				}
+				else
+				{
+					config.zbufferStrength += 1.0000f * wheelSign;
+					DeferedSaveConfig();
+					ShowAdjusterToast(retprintf("ZBuffer Seperation Strength: %1.6f", config.zbufferStrength), 500);
+				}												
 			}
 			else if(hotkeyWheelIPDOffset->IsHeld(controls))
 			{

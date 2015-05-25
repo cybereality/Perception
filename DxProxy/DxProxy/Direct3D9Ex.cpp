@@ -211,7 +211,7 @@ HRESULT WINAPI BaseDirect3D9Ex::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType
 
 	OutputDebugString("[OK] Stereo mode is enabled.\n");
 
-	debugf("Config type: %d", cfg.game_type);
+	debugf("Config type: %s", cfg.game_type.c_str());
 	OutputDebugString("\n");
 
 	// Create and return proxy TODO !!

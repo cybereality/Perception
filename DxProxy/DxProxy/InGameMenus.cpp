@@ -173,8 +173,17 @@ void D3DProxyDevice::VPMENU_DrawBorder(int top)
 	rect.x2 = (int)viewportWidth;
 	rect.y1 = (int)top;
 	rect.y2 = (int)(top+viewportHeight*0.04f);
-	ClearEmptyRect(vireio::RenderPosition::Left, rect, COLOR_MENU_BORDER, 2);
-	ClearEmptyRect(vireio::RenderPosition::Right, rect, COLOR_MENU_BORDER, 2);
+	if(stereoView->m_3DReconstructionMode != Reconstruction_Type::ZBUFFER ||
+	  !stereoView->m_bZBufferFilterMode)
+	{
+		ClearEmptyRect(vireio::RenderPosition::Left, rect, COLOR_MENU_BORDER, 2);
+		ClearEmptyRect(vireio::RenderPosition::Right, rect, COLOR_MENU_BORDER, 2);
+	}
+	else
+	{
+		ClearEmptyRect(vireio::RenderPosition::Left, rect, COLOR_TEXT_ZBUFFER, 2);
+		ClearEmptyRect(vireio::RenderPosition::Right, rect, COLOR_TEXT_ZBUFFER, 2);
+	}
 }
 
 /**
@@ -225,7 +234,10 @@ void D3DProxyDevice::VPMENU_DrawTitle(const char *pageTitle)
 	clearRect.y1 = (int)(335*fScaleY);
 	clearRect.x2 = viewportWidth;
 	clearRect.y2 = (int)(340*fScaleY);
-	Clear(1, &clearRect, D3DCLEAR_TARGET, COLOR_MENU_BORDER, 0, 0);
+	if(stereoView->m_3DReconstructionMode != Reconstruction_Type::ZBUFFER)
+		Clear(1, &clearRect, D3DCLEAR_TARGET, COLOR_MENU_BORDER, 0, 0);
+	else
+		Clear(1, &clearRect, D3DCLEAR_TARGET, COLOR_TEXT_ZBUFFER, 0, 0);
 }
 
 bool D3DProxyDevice::VPMENU_Input_Selected()
@@ -374,6 +386,17 @@ std::string DepthModeToString(D3DProxyDevice::GUI_3D_Depth_Modes mode)
 	}
 }
 
+std::string ReconstructionModeToString(D3DProxyDevice::Reconstruction_Type mode)
+{
+	switch(mode)
+	{
+		case D3DProxyDevice::MONOSCOPIC: return "Monoscopic";
+		case D3DProxyDevice::ZBUFFER:   return "Z-Buffer";
+		case D3DProxyDevice::GEOMETRY:   return "Geometry";		
+		default: return "???";
+	}
+}
+
 
 /**
 * Main Menu method.
@@ -415,6 +438,7 @@ void D3DProxyDevice::VPMENU_MainMenu()
 	menu->AddNavigation("Overall Settings\n", [=]() { VPMENU_Settings(); });
 	menu->AddNavigation("VRBoost Values\n", [=]() { VPMENU_VRBoostValues(); });
 	menu->AddNavigation("Position Tracking Configuration\n", [=]() { VPMENU_PosTracking(); });
+	menu->AddNavigation("Drawing Options\n", [=]() { VPMENU_Drawing(); });
 	menu->AddNavigation("General Hotkeys\n", [=]() { VPMENU_Hotkeys(); });
 	menu->AddNavigation("Debug Hotkeys\n", [=]() { VPMENU_Debug(); });
 	menu->AddNavigation("3D Adjustment Hotkeys\n", [=]() { VPMENU_AdjustmentHotkeys(); });
@@ -615,10 +639,10 @@ void D3DProxyDevice::VPMENU_WorldScale()
 void D3DProxyDevice::VPMENU_3DReconstruction()
 {
 	SHOW_CALL("VPMENU_3DReconstruction");
-	//inWorldScaleMenu = true;
+	inWorldScaleMenu = true;
 	
 	// base values
-	/*static UINT gameXScaleUnitIndex = 0;
+	static UINT gameXScaleUnitIndex = 0;
 
 	// sort the game unit vector
 	std::sort (m_gameXScaleUnits.begin(), m_gameXScaleUnits.end());
@@ -639,27 +663,42 @@ void D3DProxyDevice::VPMENU_3DReconstruction()
 			if ((gameXScaleUnitIndex != 0) && (gameXScaleUnitIndex >= m_gameXScaleUnits.size()))
 				gameXScaleUnitIndex = m_gameXScaleUnits.size()-1;
 		}
-	}*/
+	}
 	
 	MenuBuilder *menu = VPMENU_NewFrame();
 	VPMENU_StartDrawing(menu, "Settings - 3D Reconstruction");
 	
-	menu->AddAdjustment("World Scale : %1.3f", &config.worldScaleFactor,
-		defaultConfig.worldScaleFactor, 0.001f, [=]()
+	menu->AddEnumPicker("3D Reconstruction Type : %s", (int*)&m_3DReconstructionMode,
+		Reconstruction_Type::RECONSTRUCTION_ENUM_RANGE, [](int val) {
+			return ReconstructionModeToString((Reconstruction_Type)val);
+		}, [=](int newValue) {
+			if(newValue == 0)
+				newValue = 1;
+			m_3DReconstructionMode = newValue;
+			stereoView->m_3DReconstructionMode = m_3DReconstructionMode;			
+		});
+
+	
+	menu->AddNavigation("Z Buffer Settings >\n", [=]() { VPMENU_ZBufferSettings(); });
+
+	menu->AddToggle("Projected FOV : %s", "ON", "OFF", &config.PFOVToggle, defaultConfig.PFOVToggle, [=]() {
+		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, config.PFOV);
+	});
+	
+	menu->AddAdjustment("Projected FOV : %1.1f", &config.PFOV,
+		defaultConfig.PFOV, 0.05f, [=]()
 	{
-		m_spShaderViewAdjustment->ChangeWorldScale(config.worldScaleFactor);
 		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, config.PFOV);		
 	});	
 	
-	menu->AddBackButtons();
-	VPMENU_FinishDrawing(menu);
-	/*
-	VPMENU_StartDrawing_NonMenu();	
-	
+	menu->AddAdjustment("World Scale : %1.3f", &config.worldScaleFactor,
+		defaultConfig.worldScaleFactor, 0.001f, [=]()
+	{
+		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, config.PFOV);		
+	});	
+
 	// Draw
 	// standard hud size, will be scaled later to actual viewport
-	int width = VPMENU_PIXEL_WIDTH;
-	int height = VPMENU_PIXEL_HEIGHT;
 	float gameUnit = config.worldScaleFactor;
 
 	// actual game unit chosen ... in case game has called SetTransform(>projection<);
@@ -675,8 +714,7 @@ void D3DProxyDevice::VPMENU_3DReconstruction()
 		// gameUnit = (driverWorldScale * driverXScale) /  gameXScale
 		gameUnit = (config.worldScaleFactor * driverXScale) / gameXScale;
 
-		DrawTextShadowed(width*0.45f, height*0.77f, retprintf("Actual Units %u/%u",
-			gameXScaleUnitIndex, m_gameXScaleUnits.size()));
+		menu->DrawItem(retprintf("Actual Units %u/%u",gameXScaleUnitIndex, m_gameXScaleUnits.size()).c_str(),D3DCOLOR_RGBA(255,255,255,255));
 	}
 
 	//Column 1:                        Column 2:
@@ -692,23 +730,83 @@ void D3DProxyDevice::VPMENU_3DReconstruction()
 	float gameUnitsToFoot = gameUnit / 3.2808399f;
 	float gameUnitsToInches = gameUnit / 39.3700787f;
 	
-
-	float unitsLeft = width*0.28f;
-	float unitsTop = height*0.6f;
-	float unitsSpacing = 35.0f;
-	DrawTextShadowed(unitsLeft, unitsTop,                 retprintf("1 Game Unit = %g Meters", meters).c_str());
-	DrawTextShadowed(unitsLeft, unitsTop+unitsSpacing*1,  retprintf("1 Game Unit = %g CM", centimeters));
-	DrawTextShadowed(unitsLeft, unitsTop+unitsSpacing*2,  retprintf("1 Game Unit = %g Feet", feet));
-	DrawTextShadowed(unitsLeft, unitsTop+unitsSpacing*3,  retprintf("1 Game Unit = %g In.", inches));
-
-	float unitsLeft2 = width*0.52f;
-	DrawTextShadowed(unitsLeft2, unitsTop, retprintf("1 Meter      = %g Game Units", gameUnit));
-	DrawTextShadowed(unitsLeft2, unitsTop+unitsSpacing*1, retprintf("1 CM         = %g Game Units", gameUnitsToCentimeter));
-	DrawTextShadowed(unitsLeft2, unitsTop+unitsSpacing*2, retprintf("1 Foot       = %g Game Units", gameUnitsToFoot));
-	DrawTextShadowed(unitsLeft2, unitsTop+unitsSpacing*3, retprintf("1 Inch       = %g Game Units", gameUnitsToInches));
-
-	VPMENU_FinishDrawing(menu);*/
+	menu->DrawItem(retprintf("1 Game Unit = %g Meters", meters).c_str(),COLOR_MENU_TEXT);
+	menu->DrawItem(retprintf("1 Game Unit = %g CM", centimeters).c_str(),COLOR_MENU_TEXT);
+	//menu->DrawItem(retprintf("1 Game Unit = %g Feet", feet).c_str(),D3DCOLOR_RGBA(255,255,255,255));
+	//menu->DrawItem(retprintf("1 Game Unit = %g In.", inches).c_str(),D3DCOLOR_RGBA(255,255,255,255));
+		 
+	menu->DrawItem(retprintf("1 Meter      = %g Game Units", gameUnit).c_str(),COLOR_MENU_TEXT);
+	menu->DrawItem(retprintf("1 CM         = %g Game Units", gameUnitsToCentimeter).c_str(),COLOR_MENU_TEXT);
+	//menu->DrawItem(retprintf("1 Foot       = %g Game Units", gameUnitsToFoot).c_str(),D3DCOLOR_RGBA(255,255,255,255));
+	//menu->DrawItem(retprintf("1 Inch       = %g Game Units", gameUnitsToInches).c_str(),D3DCOLOR_RGBA(255,255,255,255));
+	
+	menu->AddBackButtons();
+	VPMENU_FinishDrawing(menu);	
 }
+
+/**
+* Z Buffer Reconstruction Settings
+***/
+void D3DProxyDevice::VPMENU_ZBufferSettings()
+{
+	SHOW_CALL("VPMENU_ZBufferSettings");
+	MenuBuilder *menu = VPMENU_NewFrame();
+	VPMENU_StartDrawing(menu, "Settings - Z Buffer Settings");
+	
+	menu->AddToggle("Flip Depths : %s", "ON", "OFF", &config.zbufferSwitch, false, [=]() {
+		
+	});
+
+	menu->AddAdjustment("Z Buffer Strength : %1.1f", &config.zbufferStrength,
+		defaultConfig.zbufferStrength, 1.00f, [=]()
+	{
+		
+	});	
+	
+	menu->AddToggle("Depth Visualisation Mode : %s", "ON", "OFF", &stereoView->m_bZBufferVisualisationMode, false, [=]() {
+		if(stereoView->m_bZBufferVisualisationMode)
+		{
+			stereoView->m_bZBufferFilterMode = false;
+		}
+		stereoView->PostReset();
+	});
+
+	menu->AddAdjustment("Z Buffer Depth (Low) : %1.6f", &config.zbufferDepthLow,
+		defaultConfig.zbufferDepthLow, 0.00010f, [=]()
+	{
+		
+	});	
+
+	menu->AddAdjustment("Z Buffer Depth (High) : %1.6f", &config.zbufferDepthHigh,
+		defaultConfig.zbufferDepthHigh, 0.00010f, [=]()
+	{
+		
+	});	
+	
+	menu->AddToggle("Depth Filter Mode : %s", "ON", "OFF", &stereoView->m_bZBufferFilterMode, false, [=]() {
+		if(stereoView->m_bZBufferFilterMode)
+		{
+			stereoView->m_bZBufferVisualisationMode = false;
+		}
+		stereoView->PostReset();
+	});
+
+	menu->AddAdjustment("Filter Depth (+0.0005f) : %1.6f", &stereoView->m_fZBufferFilter,
+		config.zbufferDepthLow, 0.00010f, [=]()
+	{
+		
+	});	
+
+	//stereoView->m_bZBufferFilterMode
+	//stereoView->m_bZBufferFilterMode
+	
+		
+
+	menu->AddNavigation("Return to 3D Reconstruction Menu\n", [=]() { VPMENU_3DReconstruction(); });
+	menu->AddBackButtons();
+	VPMENU_FinishDrawing(menu);	
+}
+
 void D3DProxyDevice::VPMENU_Convergence()
 {
 	SHOW_CALL("VPMENU_PosTracking");
@@ -1045,7 +1143,42 @@ void D3DProxyDevice::VPMENU_Settings()
 	VPMENU_FinishDrawing(menu);
 }
 
+/**
+* Drawing options.
+***/
+void D3DProxyDevice::VPMENU_Drawing()
+{
+	SHOW_CALL("VPMENU_Drawing");
+	MenuBuilder *menu = VPMENU_NewFrame();
+	VPMENU_StartDrawing(menu, "Drawing Options - General");
+	menu->OnClose([=]() { VPMENU_UpdateConfigSettings(); });
+	
+	ShaderModificationRepository *pRepo = m_pGameHandler->GetShaderModificationRepository();
 
+	if (pRepo)
+	{
+		if (pRepo->GameHasShaderObjectType(ShaderObjectTypeShadows))
+			menu->AddToggle("Draw Shadows : %s", "Yes", "No", &config.draw_shadows, defaultConfig.draw_shadows);
+
+		if (pRepo->GameHasShaderObjectType(ShaderObjectTypeFog))
+			menu->AddToggle("Draw Fog/Smoke : %s", "Yes", "No", &config.draw_fog, defaultConfig.draw_fog);
+
+		if (pRepo->GameHasShaderObjectType(ShaderObjectTypeClothes))
+			menu->AddToggle("Draw Clothes : %s", "Yes", "No", &config.draw_clothes, defaultConfig.draw_clothes);
+
+		if (pRepo->GameHasShaderObjectType(ShaderObjectTypePlayer))
+			menu->AddToggle("Draw Player : %s", "Yes", "No", &config.draw_player, defaultConfig.draw_player);
+
+		if (pRepo->GameHasShaderObjectType(ShaderObjectTypeReticule))
+			menu->AddToggle("Draw Aiming Reticule : %s", "Yes", "No", &config.draw_reticule, defaultConfig.draw_reticule);
+
+		if (pRepo->GameHasShaderObjectType(ShaderObjectTypeSky))
+			menu->AddToggle("Draw Skybox : %s", "Yes", "No", &config.draw_sky, defaultConfig.draw_sky);
+	}
+	
+	menu->AddBackButtons();
+	VPMENU_FinishDrawing(menu);
+}
 /**
 * Positional Tracking Settings.
 ***/
@@ -1294,6 +1427,7 @@ void D3DProxyDevice::VPMENU_EditKeybind(std::string description, InputBindingRef
 	
 	menu->AddButton(addHotkeyDescription.c_str(), [=]() {
 		hotkeyCatch = true;
+		HotkeyCooldown(COOLDOWN_LONG);
 		onBindKey = [=](InputBindingRef key) {
 			std::vector<InputBindingRef> newAlternatives = alternatives;
 			newAlternatives.insert(newAlternatives.begin(), key);
@@ -1496,80 +1630,15 @@ void D3DProxyDevice::VPMENU_UpdateDeviceSettings()
 	VRBoostValue[VRboostAxis::ConstantValue1] = config.ConstantValue1;
 	VRBoostValue[VRboostAxis::ConstantValue2] = config.ConstantValue2;
 	VRBoostValue[VRboostAxis::ConstantValue3] = config.ConstantValue3;
-	
-	m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::BEFORE_COMPOSITING;
 
 	// set behavior accordingly to game type
-	int gameType = config.game_type;
-	switch(gameType)
-	{
-	case D3DProxyDevice::FIXED:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		break;
-	case D3DProxyDevice::SOURCE:
-	case D3DProxyDevice::SOURCE_L4D:
-	case D3DProxyDevice::SOURCE_ESTER:
-	case D3DProxyDevice::SOURCE_STANLEY:
-	case D3DProxyDevice::SOURCE_ZENO:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::END_SCENE;
-		break;
-	case D3DProxyDevice::SOURCE_HL2:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		break;
-	case D3DProxyDevice::UNREAL:
-	case D3DProxyDevice::UNREAL_MIRROR:
-	case D3DProxyDevice::UNREAL_UT3:
-	case D3DProxyDevice::UNREAL_BIOSHOCK:
-	case D3DProxyDevice::UNREAL_BIOSHOCK2:
-	case D3DProxyDevice::UNREAL_BORDERLANDS:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::END_SCENE;
-		break;
-	case D3DProxyDevice::UNREAL_BETRAYER:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		break;
-	case D3DProxyDevice::EGO:
-	case D3DProxyDevice::EGO_DIRT:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::END_SCENE;
-		break;
-	case D3DProxyDevice::REALV:
-	case D3DProxyDevice::REALV_ARMA:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		break;
-	case D3DProxyDevice::UNITY:
-	case D3DProxyDevice::UNITY_SLENDER:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		break;
-	case D3DProxyDevice::UNITY_AMONG_THE_SLEEP:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		break;
-	case D3DProxyDevice::CRYENGINE:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		break;
-	case D3DProxyDevice::CRYENGINE_WARHEAD:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		break;
-	case D3DProxyDevice::GAMEBRYO:
-	case D3DProxyDevice::GAMEBRYO_SKYRIM:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		break;
-	case D3DProxyDevice::LFS:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		break;
-	case D3DProxyDevice::CDC:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::END_SCENE;
-		break;
-	case D3DProxyDevice::CDC_TOMB_RAIDER:
-		//WIthout doing this, we get no VP Menu
-		m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::END_SCENE;
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::END_SCENE;
-		break;
-	case D3DProxyDevice::CHROME:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		break;
-	default:
-		m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
-		break;
-	}
+	m_deviceBehavior.whenToRenderVPMENU = DeviceBehavior::WhenToDo::BEFORE_COMPOSITING;
+	m_deviceBehavior.whenToHandleHeadTracking = DeviceBehavior::WhenToDo::BEGIN_SCENE;
+	int temp = 0;
+	if (ProxyHelper::ParseGameType(config.game_type, ProxyHelper::WhenToRenderVPMENU, temp))
+		m_deviceBehavior.whenToRenderVPMENU = (DeviceBehavior::WhenToDo)(temp);
+	if (ProxyHelper::ParseGameType(config.game_type, ProxyHelper::WhenToHandleTracking, temp))
+		m_deviceBehavior.whenToHandleHeadTracking = (DeviceBehavior::WhenToDo)(temp);
 }
 
 /**

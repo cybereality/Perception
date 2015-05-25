@@ -27,26 +27,45 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#ifndef SHADEROBJECTTYPE_H_INCLUDED
-#define SHADEROBJECTTYPE_H_INCLUDED
+#include "ShaderObjectType.h"
 
-#include <string>
-
-enum ShaderObjectType
+std::string GetShaderObjectTypeStrng(ShaderObjectType objectType)
 {
-	ShaderObjectTypeUnknown, //The default, it is undefined and doesn't matter
-	ShaderObjectTypeDoNotDraw, //Specifically always avoid drawing this shader
-	ShaderObjectTypeReticule, //Allow user to prevent drawing of aiming reticule for games that support it
-	ShaderObjectTypePlayer,  //This is used for players arms body etc, so we can use a different projection FOV
-	ShaderObjectTypeSky, // For any shader that is part of the skybox, including clouds, sun, moon etc
-	ShaderObjectTypeShadows, // Shadows, so user can elect to turn shadows on or off themselves (they might have a mod that makes shadows look ok)
-	ShaderObjectTypeFog, // Fog, so issues with fog or other particles can be turned off
-	ShaderObjectTypeClothes, // Clothes, so user can elect to turn clothes off (naughty user!)
-	ShaderObjectType_Count // Not used, records number of items in enum
-};
+	std::string type;
+	if (objectType == ShaderObjectTypeDoNotDraw)
+		type = "DoNotDraw";
+	else if (objectType == ShaderObjectTypeReticule)
+		type = "Reticule";
+	else if (objectType == ShaderObjectTypePlayer)
+		type = "Player";
+	else if (objectType == ShaderObjectTypeSky)
+		type = "Sky";
+	else if (objectType == ShaderObjectTypeShadows)
+		type = "Shadows";
+	else if (objectType == ShaderObjectTypeFog)
+		type = "Fog";
+	else if (objectType == ShaderObjectTypeClothes)
+		type = "Clothes";
 
-//Utility methods for conversion
-std::string GetShaderObjectTypeStrng(ShaderObjectType objectType);
-ShaderObjectType GetShaderObjectTypeEnum(std::string objectType);
+	return type;
+}
 
-#endif
+ShaderObjectType GetShaderObjectTypeEnum(std::string objectType)
+{
+	ShaderObjectType type = ShaderObjectTypeUnknown;
+	if (objectType == "DoNotDraw")
+		type = ShaderObjectTypeDoNotDraw;
+	else if (objectType == "Reticule")
+		type = ShaderObjectTypeReticule;
+	else if (objectType == "Player")
+		type = ShaderObjectTypePlayer;
+	else if (objectType == "Sky")
+		type = ShaderObjectTypeSky;
+	else if (objectType == "Shadows")
+		type = ShaderObjectTypeShadows;
+	else if (objectType == "Fog")
+		type = ShaderObjectTypeFog;
+	else if (objectType == "Clothes")
+		type = ShaderObjectTypeClothes;
+	return type;
+}

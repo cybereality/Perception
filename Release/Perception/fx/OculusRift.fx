@@ -24,8 +24,12 @@ float ZoomScale;
 //Z Buffer Variables
 bool ZBuffer;
 bool ZBufferFilterMode;
+bool ZBufferVisualisationMode;
 float ZBufferStrength;
 float ZBufferFilter;
+float ZBufferDepthLow;
+float ZBufferDepthHigh;
+bool ZBufferSwitch;
 
 // Warp operates on left view, for right, mirror x texture coord
 // before and after calling.  in02 contains the chromatic aberration
@@ -124,7 +128,10 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 	float2 tcBlue;
 	float angle = Rotation;
 	float3 outColor;	
+	float z;
 	float depthValue = 0.0f;
+	bool applyDepthFunctions;
+	applyDepthFunctions = false;
 	
 	//blit the VP logo to the top left corner
 	if (Tex.x <= 0.2f   &&   Tex.y <= 0.05f)
@@ -154,12 +161,27 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 	tcBlue = ScalePoint(ZoomScale, tcBlue);	
 	if(ZBuffer)
 	{
+		//TODO Try sampling from other texture to see if that makes any difference (that makes no sense since they are identical but worhth a try)
 		float3 rawval = floor( 255.0 * tex2D(TexMap0, tcBlue).arg + 0.5);
-		float z = dot( rawval, float3(0.996093809371817670572857294849,0.0038909914428586627756752238080039,1.5199185323666651467481343000015e-5) / 255.0);
+		z = dot( rawval, float3(0.996093809371817670572857294849,0.0038909914428586627756752238080039,1.5199185323666651467481343000015e-5) / 255.0);
 		depthValue = z;	
 		if(depthValue > 0.0f)
 		{
-			depthValue = (depthValue - 0.995999) / 0.004001;
+			depthValue = (depthValue - ZBufferDepthLow) / (ZBufferDepthHigh - ZBufferDepthLow);
+		}
+		
+		if(ZBufferSwitch) {
+			depthValue = 1.0f - depthValue;
+		}
+
+		outColor.r =  tex2D(TexMap0,   tcBlue.xy).r;
+		outColor.g =  tex2D(TexMap0, tcBlue.xy).g;
+		outColor.b =  tex2D(TexMap0,  tcBlue.xy).b;
+		if(outColor.r < 0.995f || 
+		   outColor.g > 0.005f || 
+		   outColor.b < 0.995f)
+		{
+			applyDepthFunctions = true;
 		}
 		tcBlue = ApplyZBuffer(tcBlue,Tex,depthValue);	
 	}	
@@ -203,7 +225,29 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 	if (any(clamp(tcBlue.xy, float2(0.0,0.0), float2(1.0, 1.0)) - tcBlue.xy))
 		return 0;
 
-	if (Tex.x > 0.5f)
+	
+	if (ZBufferVisualisationMode && ZBuffer) 
+	{
+		if(applyDepthFunctions)
+		{
+			outColor = float4(1.0f - depthValue, 0.0, depthValue, 1.0f);		
+		}
+	}
+	else if (ZBufferFilterMode && ZBuffer) 
+	{
+		if(applyDepthFunctions)
+		{
+			if(z > ZBufferFilter && z < (ZBufferFilter + 0.0005f))
+			{
+				outColor = float4(0.0, 0.0, 1.0f, 1.0f);				
+			}
+			else
+			{
+				outColor = float4(0.0, 0.0, 0.0, 0.0f);				
+			}
+		}
+	}
+	else if (Tex.x > 0.5f)
 	{
 		outColor.r =  tex2D(TexMap1,   tcRed.xy).r;
 		outColor.g =  tex2D(TexMap1, tcGreen.xy).g;

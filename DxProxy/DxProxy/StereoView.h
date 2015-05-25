@@ -103,7 +103,7 @@ public:
 	/**
 	* Type of the game or engine as configured in cfg file.
 	***/
-	int game_type;
+	std::string game_type;
 	/**
 	* True if stereo is enabled.
 	***/
@@ -159,14 +159,14 @@ public:
 	//DK2 black smear correction (0.0f if disabled)
 	float m_blackSmearCorrection;		
 
-	//Separation in subpixels
-	float m_fZBufferStrength;
-	
 	//Depth Filter Mode
 	bool m_bZBufferFilterMode;
 
 	//Current Depth Level
 	float m_fZBufferFilter;
+
+	//Visualisation Mode
+	bool m_bZBufferVisualisationMode;
 
 protected:
 	/*** StereoView protected methods ***/

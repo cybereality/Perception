@@ -48,8 +48,7 @@ const float maxConvergence = 100.0f;
 ViewAdjustment::ViewAdjustment(HMDisplayInfo *displayInfo, ProxyConfig *config) :
 	config(config),
 	hmdInfo(displayInfo),
-	m_roll(0.0f),
-	m_usePFOV(true)
+	m_roll(0.0f)
 {
 	convergence = 100.0f;
 
@@ -116,11 +115,6 @@ void ViewAdjustment::Save(ProxyConfig& cfg)
 	cfg.ipd = ipd;
 }
 
-void ViewAdjustment::SetUsePFOV(bool use)
-{
-	m_usePFOV = use;
-}
-
 
 /**
 * Updates left and right projection matrices.
@@ -150,7 +144,7 @@ void ViewAdjustment::UpdateProjectionMatrices(float aspectRatio, float fov_horiz
 	D3DXMatrixInverse(&matProjectionInv, 0, &matBasicProjection);
 
 	// if not HMD, set values to fullscreen defaults
-	if (config->stereo_mode<100 || !m_usePFOV)   //stereo type > 100 reserved specifically for HMDs
+	if (config->stereo_mode<100 || !config->PFOVToggle)   //stereo type > 100 reserved specifically for HMDs
 	{
 		// assumption here :
 		// end user is placed 1 meter away from screen

@@ -36,8 +36,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * Almost empty constructor.
 ***/
 GameHandler::GameHandler() :
-	m_ShaderModificationRepository(nullptr),
-	m_gameType(0)
+	m_ShaderModificationRepository(nullptr)
 {
 
 }
@@ -117,89 +116,25 @@ bool GameHandler::Save(ProxyConfig& cfg, std::shared_ptr<ViewAdjustment> spShade
 ***/
 bool GameHandler::ShouldDuplicateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample, DWORD MultisampleQuality,BOOL Lockable, bool isSwapChainBackBuffer)
 {
-	switch(m_gameType)
+	//Get duplicate render target entry from the game type
+	int value = 0;
+	if (ProxyHelper::ParseGameType(m_gameType, ProxyHelper::ShouldDuplicateRenderTargetOrDepthStencil, value))
 	{
-	case D3DProxyDevice::ProxyTypes::SOURCE:
-		if (isSwapChainBackBuffer) {
+		switch(value)
+		{
+		case 0:
+			return false;
+		case 1: 
 			return true;
+		case 2:
+			if (isSwapChainBackBuffer) {
+				return true;
+			}
+			return Width != Height;
 		}
-		return Width != Height;
-
-	case D3DProxyDevice::ProxyTypes::SOURCE_L4D:
-		if (isSwapChainBackBuffer) {
-			return true;
-		}
-		return Width != Height;
-
-	case D3DProxyDevice::ProxyTypes::SOURCE_ESTER:
-	case D3DProxyDevice::ProxyTypes::SOURCE_STANLEY:
-	case D3DProxyDevice::ProxyTypes::SOURCE_ZENO:
-	case D3DProxyDevice::ProxyTypes::SOURCE_HL2:
-		return true;
-
-	case D3DProxyDevice::ProxyTypes::UNREAL:
-	case D3DProxyDevice::ProxyTypes::UNREAL_MIRROR:
-	case D3DProxyDevice::ProxyTypes::UNREAL_UT3:
-	case D3DProxyDevice::ProxyTypes::UNREAL_BIOSHOCK:
-	case D3DProxyDevice::ProxyTypes::UNREAL_BIOSHOCK2:
-	case D3DProxyDevice::ProxyTypes::UNREAL_BORDERLANDS:
-	case D3DProxyDevice::ProxyTypes::UNREAL_BETRAYER:
-		if (isSwapChainBackBuffer) {
-			return true;
-		}
-		return Width != Height;
-	case D3DProxyDevice::ProxyTypes::EGO:
-		return true;  
-
-	case D3DProxyDevice::ProxyTypes::EGO_DIRT:
-		return true; 
-
-	case D3DProxyDevice::ProxyTypes::REALV:
-		// NOT TESTED NOW !
-		return true;
-
-	case D3DProxyDevice::ProxyTypes::REALV_ARMA:
-		// NOT TESTED NOW !
-		return true;
-
-	case D3DProxyDevice::ProxyTypes::UNITY:
-		// NOT TESTED NOW !
-		return true;
-
-	case D3DProxyDevice::ProxyTypes::UNITY_SLENDER:
-		// NOT TESTED NOW !
-		return true;
-
-	case D3DProxyDevice::ProxyTypes::UNITY_AMONG_THE_SLEEP:
-		// NOT TESTED NOW !
-		return true;
-
-	case D3DProxyDevice::ProxyTypes::CRYENGINE:
-	case D3DProxyDevice::ProxyTypes::CRYENGINE_WARHEAD:
-		// NOT TESTED NOW !
-		return true;
-
-	case D3DProxyDevice::ProxyTypes::GAMEBRYO:
-		// NOT TESTED NOW !
-		return true;
-
-	case D3DProxyDevice::ProxyTypes::GAMEBRYO_SKYRIM:
-		// NOT TESTED NOW !
-		return true;
-
-	case D3DProxyDevice::ProxyTypes::LFS:
-		// NOT TESTED NOW !
-		return true;
-
-	case D3DProxyDevice::ProxyTypes::CDC:
-	case D3DProxyDevice::ProxyTypes::CDC_TOMB_RAIDER:
-		// NOT TESTED NOW !
-		return true;
-
-	default:
-		return true;
-
 	}
+
+	return true;
 }
 
 /**
@@ -209,85 +144,21 @@ bool GameHandler::ShouldDuplicateRenderTarget(UINT Width, UINT Height, D3DFORMAT
 ***/
 bool GameHandler::ShouldDuplicateDepthStencilSurface(UINT Width,UINT Height,D3DFORMAT Format,D3DMULTISAMPLE_TYPE MultiSample,DWORD MultisampleQuality,BOOL Discard)
 {
-	switch(m_gameType)
+	int value = 0;
+	if (ProxyHelper::ParseGameType(m_gameType, ProxyHelper::ShouldDuplicateRenderTargetOrDepthStencil, value))
 	{
-	case D3DProxyDevice::ProxyTypes::SOURCE:
-		return Width != Height;
-
-	case D3DProxyDevice::ProxyTypes::SOURCE_L4D:
-		return Width != Height;
-
-	case D3DProxyDevice::ProxyTypes::SOURCE_ESTER:
-	case D3DProxyDevice::ProxyTypes::SOURCE_STANLEY:
-	case D3DProxyDevice::ProxyTypes::SOURCE_ZENO:
-	case D3DProxyDevice::ProxyTypes::SOURCE_HL2:
-		return true;
-
-	case D3DProxyDevice::ProxyTypes::UNREAL:
-	case D3DProxyDevice::ProxyTypes::UNREAL_MIRROR:
-	case D3DProxyDevice::ProxyTypes::UNREAL_UT3:
-	case D3DProxyDevice::ProxyTypes::UNREAL_BIOSHOCK:
-	case D3DProxyDevice::ProxyTypes::UNREAL_BIOSHOCK2:
-	case D3DProxyDevice::ProxyTypes::UNREAL_BORDERLANDS:
-	case D3DProxyDevice::ProxyTypes::UNREAL_BETRAYER:
-		return Width != Height;
-
-	case D3DProxyDevice::ProxyTypes::EGO:
-		return true;
-
-	case D3DProxyDevice::ProxyTypes::EGO_DIRT:
-		return true;
-
-	case D3DProxyDevice::ProxyTypes::REALV:
-		// NOT TESTED NOW !
-		return true;
-
-	case D3DProxyDevice::ProxyTypes::REALV_ARMA:
-		// NOT TESTED NOW !
-		return true;
-
-	case D3DProxyDevice::ProxyTypes::UNITY:
-		// NOT TESTED NOW !
-		return true;
-
-	case D3DProxyDevice::ProxyTypes::UNITY_SLENDER:
-		// NOT TESTED NOW !
-		return true;
-
-	case D3DProxyDevice::ProxyTypes::UNITY_AMONG_THE_SLEEP:
-		// NOT TESTED NOW !
-		return true;
-
-	case D3DProxyDevice::ProxyTypes::CRYENGINE:
-	case D3DProxyDevice::ProxyTypes::CRYENGINE_WARHEAD:
-		// NOT TESTED NOW !
-		return true;
-
-	case D3DProxyDevice::ProxyTypes::GAMEBRYO:
-		// NOT TESTED NOW !
-		return true;
-
-	case D3DProxyDevice::ProxyTypes::GAMEBRYO_SKYRIM:
-		// NOT TESTED NOW !
-		return true;
-
-	case D3DProxyDevice::ProxyTypes::LFS:
-		// NOT TESTED NOW !
-		return true;
-
-	case D3DProxyDevice::ProxyTypes::CDC:
-	case D3DProxyDevice::ProxyTypes::CDC_TOMB_RAIDER:
-		// NOT TESTED NOW !
-		return true;
-	
-	case D3DProxyDevice::ProxyTypes::CHROME:
-		// NOT TESTED NOW !
-		return true;
-
-	default:
-		return true;
-
+		switch(value)
+		{
+		case 0:
+			return false;
+		case 1: 
+			return true;
+		case 2:
+			return Width != Height;
+		}
 	}
+
+	return true;
 }
 
 /**
@@ -297,155 +168,37 @@ bool GameHandler::ShouldDuplicateDepthStencilSurface(UINT Width,UINT Height,D3DF
 ***/
 bool GameHandler::ShouldDuplicateTexture(UINT Width,UINT Height,UINT Levels,DWORD Usage, D3DFORMAT Format,D3DPOOL Pool)
 {
+	//Default behaviour
+	int duplicateTexture = 2;
 	if(intDuplicateTexture > 0)
 	{
-		switch(intDuplicateTexture)
-		{
-			case 1:
-				if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-					return true;
-				return IS_RENDER_TARGET(Usage);
-			case 2: 
-				if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-					return true;
-				return IS_RENDER_TARGET(Usage) && (Width != Height);
-			case 3: 
-				return false;
-			case 4: 
-				return true;
-		}
+		duplicateTexture = intDuplicateTexture - 1;
 	}
 	else
 	{
-		switch(m_gameType)
-		{
-		case D3DProxyDevice::ProxyTypes::SOURCE:
-			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-				return true;
-			return IS_RENDER_TARGET(Usage) && (Width != Height);
-
-		case D3DProxyDevice::ProxyTypes::SOURCE_L4D:
-			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-				return true;
-			return IS_RENDER_TARGET(Usage) && (Width != Height);
-
-		case D3DProxyDevice::ProxyTypes::SOURCE_ESTER:
-			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-				return true;
-			return IS_RENDER_TARGET(Usage);
-
-		case D3DProxyDevice::ProxyTypes::SOURCE_STANLEY:
-			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-				return true;
-			return IS_RENDER_TARGET(Usage);
-
-		case D3DProxyDevice::ProxyTypes::SOURCE_ZENO:
-			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-				return true;
-			return IS_RENDER_TARGET(Usage);
-
-		case D3DProxyDevice::ProxyTypes::SOURCE_HL2:
-			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-				return true;
-			return IS_RENDER_TARGET(Usage);
-
-		case D3DProxyDevice::ProxyTypes::UNREAL:
-		case D3DProxyDevice::ProxyTypes::UNREAL_UT3:
-		case D3DProxyDevice::ProxyTypes::UNREAL_BIOSHOCK2:			
-		case D3DProxyDevice::ProxyTypes::UNREAL_BORDERLANDS:
-		case D3DProxyDevice::ProxyTypes::UNREAL_BETRAYER:
-			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-				return true;
-			return IS_RENDER_TARGET(Usage) && (Width != Height);
-
-		case D3DProxyDevice::ProxyTypes::UNREAL_MIRROR:
-		case D3DProxyDevice::ProxyTypes::UNREAL_BIOSHOCK:
-			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-				return true;
-			return IS_RENDER_TARGET(Usage);
-
-		case D3DProxyDevice::ProxyTypes::EGO:
-			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-				return true;
-			return IS_RENDER_TARGET(Usage);
-
-		case D3DProxyDevice::ProxyTypes::EGO_DIRT:
-			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-				return true;
-			return IS_RENDER_TARGET(Usage);
-
-		case D3DProxyDevice::ProxyTypes::REALV:
-			// NOT TESTED NOW !
-			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-				return true;
-			return IS_RENDER_TARGET(Usage);
-
-		case D3DProxyDevice::ProxyTypes::REALV_ARMA:
-			// NOT TESTED NOW !
-			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-				return true;
-			return IS_RENDER_TARGET(Usage);
-
-		case D3DProxyDevice::ProxyTypes::UNITY:
-			// NOT TESTED NOW !
-			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-				return true;
-			return IS_RENDER_TARGET(Usage);
-
-		case D3DProxyDevice::ProxyTypes::UNITY_SLENDER:
-			// NOT TESTED NOW !
-			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-				return true;
-			return IS_RENDER_TARGET(Usage);
-
-		case D3DProxyDevice::ProxyTypes::UNITY_AMONG_THE_SLEEP:
-			return false;
-
-		case D3DProxyDevice::ProxyTypes::CRYENGINE:
-		case D3DProxyDevice::ProxyTypes::CRYENGINE_WARHEAD:
-			// NOT TESTED NOW !
-			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-				return true;
-			return IS_RENDER_TARGET(Usage);
-
-		case D3DProxyDevice::ProxyTypes::GAMEBRYO:
-			// NOT TESTED NOW !
-			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-				return true;
-			return IS_RENDER_TARGET(Usage);
-
-		case D3DProxyDevice::ProxyTypes::GAMEBRYO_SKYRIM:
-			// NOT TESTED NOW !
-			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-				return true;
-			return IS_RENDER_TARGET(Usage);
-
-		case D3DProxyDevice::ProxyTypes::LFS:
-			// NOT TESTED NOW !
-			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-				return true;
-			return IS_RENDER_TARGET(Usage);
-
-		case D3DProxyDevice::ProxyTypes::CDC:
-		case D3DProxyDevice::ProxyTypes::CDC_TOMB_RAIDER:
-			// NOT TESTED NOW !
-			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-				return true;
-			return IS_RENDER_TARGET(Usage);
-
-		case D3DProxyDevice::ProxyTypes::CHROME:
-			// NOT TESTED NOW !
-			if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
-				return true;
-			return IS_RENDER_TARGET(Usage);
-		}
+		ProxyHelper::ParseGameType(m_gameType, ProxyHelper::ShouldDuplicateTexture, duplicateTexture);
 	}
 
-	//Default
+	switch (duplicateTexture)
+	{
+	case 0:
+		return false;
+	case 1:
+		return true;
+	case 2:
+		if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
+			return true;
+		return IS_RENDER_TARGET(Usage);
+	case 3:
+		if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
+			return true;
+		return IS_RENDER_TARGET(Usage) && (Width != Height);
+	}
+
+	//Default - Won't ever get here
 	if ((Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL)
 		return true;
 	return IS_RENDER_TARGET(Usage);
-
 }
 
 /**
@@ -455,104 +208,28 @@ bool GameHandler::ShouldDuplicateTexture(UINT Width,UINT Height,UINT Levels,DWOR
 ***/
 bool GameHandler::ShouldDuplicateCubeTexture(UINT EdgeLength, UINT Levels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool)
 {
+	//Default behaviour
+	int duplicateCubeTexture = 2;
+
 	if(intDuplicateCubeTexture > 0)
 	{
-		switch(intDuplicateCubeTexture)
-		{
-			case 1:
-				return false;
-			case 2: 
-				return true;
-			case 3: 
-				return IS_RENDER_TARGET(Usage);
-		}
+		duplicateCubeTexture = intDuplicateCubeTexture - 1;
 	}
 	else
 	{
-		switch(m_gameType)
-		{
-		case D3DProxyDevice::ProxyTypes::SOURCE:
-			return false;
-
-		case D3DProxyDevice::ProxyTypes::SOURCE_L4D:
-			return false;
-
-		case D3DProxyDevice::ProxyTypes::SOURCE_ESTER:
-			return IS_RENDER_TARGET(Usage);
-
-		case D3DProxyDevice::ProxyTypes::SOURCE_STANLEY:
-			return IS_RENDER_TARGET(Usage);
-
-		case D3DProxyDevice::ProxyTypes::SOURCE_ZENO:
-			return IS_RENDER_TARGET(Usage);
-
-		case D3DProxyDevice::ProxyTypes::SOURCE_HL2:
-			return IS_RENDER_TARGET(Usage);
-	
-		case D3DProxyDevice::ProxyTypes::UNREAL:
-		case D3DProxyDevice::ProxyTypes::UNREAL_MIRROR:
-		case D3DProxyDevice::ProxyTypes::UNREAL_UT3:
-		case D3DProxyDevice::ProxyTypes::UNREAL_BIOSHOCK:
-		case D3DProxyDevice::ProxyTypes::UNREAL_BIOSHOCK2:
-		case D3DProxyDevice::ProxyTypes::UNREAL_BORDERLANDS:
-		case D3DProxyDevice::ProxyTypes::UNREAL_BETRAYER:
-			return false;
-
-		case D3DProxyDevice::ProxyTypes::EGO:
-			return IS_RENDER_TARGET(Usage);
-
-		case D3DProxyDevice::ProxyTypes::EGO_DIRT:
-			return IS_RENDER_TARGET(Usage);
-
-		case D3DProxyDevice::ProxyTypes::REALV:
-			// NOT TESTED NOW !
-			return IS_RENDER_TARGET(Usage);
-
-		case D3DProxyDevice::ProxyTypes::REALV_ARMA:
-			// NOT TESTED NOW !
-			return IS_RENDER_TARGET(Usage);
-
-		case D3DProxyDevice::ProxyTypes::UNITY:
-			// NOT TESTED NOW !
-			return IS_RENDER_TARGET(Usage);
-
-		case D3DProxyDevice::ProxyTypes::UNITY_SLENDER:
-			// NOT TESTED NOW !
-			return IS_RENDER_TARGET(Usage);
-
-		case D3DProxyDevice::ProxyTypes::UNITY_AMONG_THE_SLEEP:
-			// NOT TESTED NOW !
-			return false;
-
-		case D3DProxyDevice::ProxyTypes::CRYENGINE:
-		case D3DProxyDevice::ProxyTypes::CRYENGINE_WARHEAD:
-			// NOT TESTED NOW !
-			return IS_RENDER_TARGET(Usage);
-
-		case D3DProxyDevice::ProxyTypes::GAMEBRYO:
-			// NOT TESTED NOW !
-			return IS_RENDER_TARGET(Usage);
-
-		case D3DProxyDevice::ProxyTypes::GAMEBRYO_SKYRIM:
-			// NOT TESTED NOW !
-			return IS_RENDER_TARGET(Usage);
-
-		case D3DProxyDevice::ProxyTypes::LFS:
-			// NOT TESTED NOW !
-			return IS_RENDER_TARGET(Usage);
-
-		case D3DProxyDevice::ProxyTypes::CDC:
-		case D3DProxyDevice::ProxyTypes::CDC_TOMB_RAIDER:
-			// NOT TESTED NOW !
-			return IS_RENDER_TARGET(Usage);
-
-		case D3DProxyDevice::ProxyTypes::CHROME:
-			// NOT TESTED NOW !
-			return IS_RENDER_TARGET(Usage);
-		}
+		ProxyHelper::ParseGameType(m_gameType, ProxyHelper::ShouldDuplicateCubeTexture, duplicateCubeTexture);
 	}
 
-	//Default
+	switch(duplicateCubeTexture)
+	{
+	case 0:
+		return false;
+	case 1:
+		return true;
+	case 2:
+		return IS_RENDER_TARGET(Usage);
+	}
+
 	return IS_RENDER_TARGET(Usage);
 }
 
