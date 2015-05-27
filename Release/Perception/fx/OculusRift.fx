@@ -1,8 +1,13 @@
-// Combines two images into one warped Side-by-Side image
+// OculusRift.fx
+// Pixel shader to combine two eye-buffer images into one warped Side-by-Side image
+
+// Left eye buffer
 sampler2D TexMap0;
+
+// Right eye buffer
 sampler2D TexMap1;
 
-//This is the logo
+// Vireio Perception logo
 sampler2D TexMap2;
 
 
@@ -60,7 +65,7 @@ float2 HmdWarpLeft(float2 inPoint, float2 chromaCoef)
 	return theta1;
 }
 
-float2 rotatePoint(float angle, float2 coord)
+float2 RotatePoint(float angle, float2 coord)
 {
 	if (angle == 0.0f)
 		return coord;
@@ -129,7 +134,7 @@ float2 HmdWarp(float2 inPoint, float2 chromaCoef)
 	}
 	
 	// Rotate
-	result = rotatePoint(rotationAngle, result);
+	result = RotatePoint(rotationAngle, result);
 	
 	// Apply view offset
 	result.x = result.x - ViewportXOffset;
@@ -158,7 +163,6 @@ float2 ApplyZBuffer(float2 coord,float2 origCoord, float depth)
 
 float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 {
-	float2 newPos = Tex;
 	float2 tcRed;
 	float2 tcGreen;
 	float2 tcBlue;
@@ -178,7 +182,10 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 	}
 
 	// Chromatic Aberation Correction using coefs from SDK.
-	tcBlue = HmdWarp(newPos, float2(Chroma.z, Chroma.w));
+	tcBlue  = HmdWarp(Tex, float2(Chroma.z, Chroma.w));
+	tcRed   = HmdWarp(Tex, float2(Chroma.x, Chroma.y));
+	tcGreen = HmdWarp(Tex, float2(0.0f, 0.0f));
+	
 	if(ZBuffer)
 	{
 		//TODO Try sampling from other texture to see if that makes any difference (that makes no sense since they are identical but worhth a try)
@@ -211,28 +218,20 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 	if (any(clamp(tcBlue.xy, float2(0.0,0.0), float2(1.0, 1.0)) - tcBlue.xy))
 		return 0;
 
-	// Chromatic Aberation Correction using coefs from SDK.
-	tcRed = HmdWarp(newPos, float2(Chroma.x, Chroma.y));
 	if(ZBuffer)
 	{
-		tcRed = ApplyZBuffer(tcRed,Tex,depthValue);	
-	}	
-
-	tcGreen = HmdWarp(newPos, float2(0.0f, 0.0f));
-	if(ZBuffer)
-	{
-		tcGreen = ApplyZBuffer(tcGreen,Tex,depthValue);	
-	}	
+		tcRed = ApplyZBuffer(tcRed,Tex,depthValue);
+		tcGreen = ApplyZBuffer(tcGreen,Tex,depthValue);
+	}
 
 	if (any(clamp(tcBlue.xy, float2(0.0,0.0), float2(1.0, 1.0)) - tcBlue.xy))
 		return 0;
 
-	
-	if (ZBufferVisualisationMode && ZBuffer) 
+	if (ZBufferVisualisationMode && ZBuffer)
 	{
 		if(applyDepthFunctions)
 		{
-			outColor = float4(1.0f - depthValue, 0.0, depthValue, 1.0f);		
+			outColor = float4(1.0f - depthValue, 0.0, depthValue, 1.0f);
 		}
 	}
 	else if (ZBufferFilterMode && ZBuffer) 
@@ -241,11 +240,11 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 		{
 			if(z > ZBufferFilter && z < (ZBufferFilter + 0.0005f))
 			{
-				outColor = float4(0.0, 0.0, 1.0f, 1.0f);				
+				outColor = float4(0.0, 0.0, 1.0f, 1.0f);
 			}
 			else
 			{
-				outColor = float4(0.0, 0.0, 0.0, 0.0f);				
+				outColor = float4(0.0, 0.0, 0.0, 0.0f);
 			}
 		}
 	}
@@ -260,7 +259,7 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 		outColor.r =  tex2D(TexMap0,   tcRed.xy).r;
 		outColor.g =  tex2D(TexMap0, tcGreen.xy).g;
 		outColor.b =  tex2D(TexMap0,  tcBlue.xy).b;
-	}	
+	}
 
 	//If we are showing VR mouse, then draw a little circle in its location
 	if (MousePosition.x != 0.0f &&
