@@ -72,16 +72,9 @@ private:
 	***/
 	float ViewportXOffset;
 	float ViewportYOffset;
-	/**
-	* Scales image, Oculus Rift vertex shader constant.
-	***/
-	float Scale[2];
-	/**
-	* Maps texture coordinates, Oculus Rift vertex shader constant.
-	* ScaleIn maps texture coordinates to Scales to ([-1, 1]), although top/bottom will be larger 
-	* due to aspect ratio.
-	***/
-	float ScaleIn[2];
+	
+	float EyeBufferAspectRatio;
+	float ScaleFactor;
 
 	/**
 	* Resolution of the display
