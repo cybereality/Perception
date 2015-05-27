@@ -14,8 +14,7 @@ sampler2D TexMap2;
 float ViewportXOffset;
 float ViewportYOffset;
 float2 LensCenter;
-float2 Scale;
-float2 ScaleIn;
+float ScaleFactor;
 float4 Chroma;
 float2 Resolution;
 float4 HmdWarpParam;
@@ -24,6 +23,7 @@ float Rotation;
 float SmearCorrection;
 float2 MousePosition;
 float ZoomScale;
+float EyeBufferAspectRatio;
 
 //Z Buffer Variables
 bool ZBuffer;
@@ -35,11 +35,24 @@ float ZBufferDepthLow;
 float ZBufferDepthHigh;
 bool ZBufferSwitch;
 
-// Warp operates on left view. For right view, mirror texture X-coord
-// before and after calling.
+bool BeforeAfterToggle;
+
+/// Warp a point for the left-eye view. For the right eye view, mirror texture
+/// X coordinates before and after calling.
+/// inPoint: x in [0,0.5]; y in [0,1].
 float2 HmdWarpLeft(float2 inPoint, float2 chromaCoef)
 {
-	float2 theta  = (inPoint - LensCenter) * ScaleIn;
+	// scaleIn: Vector to switch coordinate space from
+	//   ([-0.25,0.25], [-0.5,0.5]) to
+	//   ([-1,1], [-1,1])
+	float2 scaleIn = float2(4.0f, 2.0f);
+	
+	// scaleOut: Vector to switch from the previous [-1,1] coordinate space,
+	// into something like texture space, accounting for the fact that the
+	// eye-buffer texture has, in effect, non-square pixels.
+	float2 scaleOut = ScaleFactor * float2(0.25f, 1.0f);
+	
+	float2 theta  = (inPoint - LensCenter) * scaleIn;
 	float  rSq    = theta.x*theta.x + theta.y*theta.y;
 	
 	float2 theta1 = theta
@@ -52,7 +65,7 @@ float2 HmdWarpLeft(float2 inPoint, float2 chromaCoef)
 		   HmdWarpParam.z * rSq * rSq+
 		   HmdWarpParam.w * rSq * rSq * rSq);
 
-	theta1 = (Scale * theta1) + LensCenter;
+	theta1 = (scaleOut * theta1) + LensCenter;
 	theta1.x = theta1.x - (LensCenter.x-0.25f);
 	theta1.y = theta1.y - (LensCenter.y-0.5f);
 	
@@ -110,6 +123,12 @@ float2 ScalePoint(float scale, float2 coord)
 	return newPos;
 }
 
+/// Transform a point from side-by-side image coordinates to eye-buffer texture
+/// coordinates.
+/// inPoint: Coordinates of a point in the side-by-side image, x and y in [0,1]
+/// chromaCoef: The chromatic aberration correction coefficients for this color
+/// channel.
+/// 
 float2 HmdWarp(float2 inPoint, float2 chromaCoef)
 {
 	float2 mirroredPoint;
@@ -180,7 +199,7 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 		pos.y *= 20.0f;
 		return tex2D(TexMap2, pos.xy);
 	}
-
+	
 	// Chromatic Aberation Correction using coefs from SDK.
 	tcBlue  = HmdWarp(Tex, float2(Chroma.z, Chroma.w));
 	tcRed   = HmdWarp(Tex, float2(Chroma.x, Chroma.y));

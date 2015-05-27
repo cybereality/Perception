@@ -70,9 +70,9 @@ void OculusRiftView::SetViewEffectInitialValues()
 	SHOW_CALL("OculusRiftView::SetViewEffectInitialValues\n");
 
 	viewEffect->SetFloatArray("LensCenter", LensCenter, 2);
-	viewEffect->SetFloatArray("Scale", Scale, 2);
-	viewEffect->SetFloatArray("ScaleIn", ScaleIn, 2);
+	viewEffect->SetFloat("ScaleFactor", ScaleFactor);
 	viewEffect->SetFloat("ZoomScale", m_zoom);
+	viewEffect->SetFloat("EyeBufferAspectRatio", EyeBufferAspectRatio);
 	viewEffect->SetFloat("ViewportXOffset", -ViewportXOffset);
 	viewEffect->SetFloat("ViewportYOffset", -ViewportYOffset);
 	if (chromaticAberrationCorrection)
@@ -107,6 +107,7 @@ void OculusRiftView::SetViewEffectInitialValues()
 	viewEffect->SetFloat("ZBufferDepthLow", config->zbufferDepthLow);
 	viewEffect->SetFloat("ZBufferDepthHigh", config->zbufferDepthHigh);
 	viewEffect->SetBool("ZBufferSwitch", config->zbufferSwitch);
+	viewEffect->SetBool("BeforeAfterToggle", config->BeforeAfterToggle);
 
 	//Local static for controlling vignette in telescopic sight mode
 	static float vignette_val = 1.0f;
@@ -175,10 +176,12 @@ void OculusRiftView::CalculateShaderVariables()
 
 	// Center of half screen is 0.25 in x (halfscreen x input in 0 to 0.5 range)
 	// Lens offset is in a -1 to 1 range. Using in shader with a 0 to 0.5 range so use 25% of the value.
-	LensCenter[0] = 0.25f + (hmdInfo->GetLensXCenterOffset() * 0.25f) - (hmdInfo->GetLensIPDCenterOffset() - config->IPDOffset);
+	LensCenter[0] = 0.25f + (hmdInfo->GetLensXCenterOffset() * 0.25f)
+		- hmdInfo->GetLensIPDCenterOffset()
+		+ config->IPDOffset;
 
 	// Center of halfscreen range is 0.5 in y (halfscreen y input in 0 to 1 range)
-	LensCenter[1] = hmdInfo->GetLensYCenterOffset() - config->YOffset; 
+	LensCenter[1] = hmdInfo->GetLensYCenterOffset() - config->YOffset;
 		
 	ViewportXOffset = XOffset;
 	ViewportYOffset = HeadYOffset;
@@ -187,7 +190,7 @@ void OculusRiftView::CalculateShaderVariables()
 	D3DSURFACE_DESC eyeTextureDescriptor;
 	leftSurface->GetDesc(&eyeTextureDescriptor);
 
-	float inputTextureAspectRatio = (float)eyeTextureDescriptor.Width / (float)eyeTextureDescriptor.Height;
+	EyeBufferAspectRatio = (float)eyeTextureDescriptor.Width / (float)eyeTextureDescriptor.Height;
 
 	//Set the mouse position for VR Mouse
 	if (m_mousePos.x != 0 && m_mousePos.y != 0)
@@ -205,15 +208,7 @@ void OculusRiftView::CalculateShaderVariables()
 		m_mouseTexLocation[1]=0.0f;
 	}
 	
-	// Note: The range is shifted using the LensCenter in the shader before the scale is applied so you actually end up with a -1 to 1 range
-	// in the distortion function rather than the 0 to 2 I mention below.
-	// Input texture scaling to sample the 0 to 0.5 x range of the half screen area in the correct aspect ratio in the distortion function
-	// x is changed from 0 to 0.5 to 0 to 2.
-	ScaleIn[0] = 4.0f;
-	// y is changed from 0 to 1 to 0 to 2 and scaled to account for aspect ratio
-	ScaleIn[1] = 2.0f / (inputTextureAspectRatio * 0.5f); // 1/2 aspect ratio for differing input ranges
-	
-	float scaleFactor = (1.0f / (hmdInfo->GetScaleToFillHorizontal() + config->DistortionScale));
+	ScaleFactor = (1.0f / (hmdInfo->GetScaleToFillHorizontal() + config->DistortionScale));
 	float glide = (sinf(1 + (-cosf(m_screenViewGlideFactor * 3.142f) / 2)) - 0.5f) * 2.0f;
 
 	//GB This should change the zoom - not the scale factor
@@ -233,15 +228,9 @@ void OculusRiftView::CalculateShaderVariables()
 			m_screenViewGlideFactor += 0.04f;
 	}
 
-	// Scale from 0 to 2 to 0 to 1  for x and y 
-	// Then use scaleFactor to fill horizontal space in line with the lens and adjust for aspect ratio for y.
-	Scale[0] = (1.0f / 4.0f) * scaleFactor;
-	Scale[1] = (1.0f / 2.0f) * scaleFactor * inputTextureAspectRatio;
-
 	//Set resolution  0 = Horizontal, 1 = Vertical
 	Resolution[0] = (float)hmdInfo->GetResolution().first;
 	Resolution[1] = (float)hmdInfo->GetResolution().second;
-
 }
 
 /**
