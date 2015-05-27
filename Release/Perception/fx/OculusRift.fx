@@ -1,5 +1,4 @@
 // Combines two images into one warped Side-by-Side image
-
 sampler2D TexMap0;
 sampler2D TexMap1;
 
@@ -31,21 +30,22 @@ float ZBufferDepthLow;
 float ZBufferDepthHigh;
 bool ZBufferSwitch;
 
-// Warp operates on left view, for right, mirror x texture coord
-// before and after calling.  in02 contains the chromatic aberration
-// correction coefficients.
-float2 HmdWarp(float2 in01, float2 in02)
+// Warp operates on left view. For right view, mirror texture X-coord
+// before and after calling.
+float2 HmdWarpLeft(float2 inPoint, float2 chromaCoef)
 {
-	float2 theta = (in01 - LensCenter) * ScaleIn;
-	float  rSq= theta.x * theta.x + theta.y * theta.y;
+	float2 theta  = (inPoint - LensCenter) * ScaleIn;
+	float  rSq    = theta.x*theta.x + theta.y*theta.y;
+	
 	float2 theta1 = theta
-
-		* ((1.0f + in02.x) + in02.y * rSq) // correct chromatic aberr.
-
-		* (HmdWarpParam.x +       // correct lens distortion
-		HmdWarpParam.y * rSq +
-		HmdWarpParam.z * rSq * rSq +
-		HmdWarpParam.w * rSq * rSq * rSq);
+		// correct chromatic aberr.
+		* ((1.0f + chromaCoef.x) + chromaCoef.y * rSq)
+		
+		// correct lens distortion
+		* (HmdWarpParam.x +
+		   HmdWarpParam.y * rSq +
+		   HmdWarpParam.z * rSq * rSq+
+		   HmdWarpParam.w * rSq * rSq * rSq);
 
 	theta1 = (Scale * theta1) + LensCenter;
 	theta1.x = theta1.x - (LensCenter.x-0.25f);
@@ -105,6 +105,42 @@ float2 ScalePoint(float scale, float2 coord)
 	return newPos;
 }
 
+float2 HmdWarp(float2 inPoint, float2 chromaCoef)
+{
+	float2 mirroredPoint;
+	float2 distortedPoint;
+	float2 result;
+	float rotationAngle;
+	
+	if (inPoint.x > 0.5f) { // Right side?
+		mirroredPoint = float2(1.0f - inPoint.x, inPoint.y);
+		rotationAngle = -Rotation;
+	} else {
+		mirroredPoint = float2(inPoint.x, inPoint.y);
+		rotationAngle = Rotation;
+	}
+	
+	distortedPoint = HmdWarpLeft(mirroredPoint, chromaCoef);
+	
+	if (inPoint.x > 0.5f) { // Right side?
+		result = float2(1.0f - distortedPoint.x, distortedPoint.y);
+	} else {
+		result = float2(distortedPoint.x, distortedPoint.y);
+	}
+	
+	// Rotate
+	result = rotatePoint(rotationAngle, result);
+	
+	// Apply view offset
+	result.x = result.x - ViewportXOffset;
+	result.y = result.y - ViewportYOffset;
+	
+	// Scale
+	result = ScalePoint(ZoomScale, result);
+	
+	return result;
+}
+
 float2 ApplyZBuffer(float2 coord,float2 origCoord, float depth)
 {
 	float2 newPos = coord;
@@ -126,8 +162,7 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 	float2 tcRed;
 	float2 tcGreen;
 	float2 tcBlue;
-	float angle = Rotation;
-	float3 outColor;	
+	float3 outColor;
 	float z;
 	float depthValue = 0.0f;
 	bool applyDepthFunctions;
@@ -142,23 +177,8 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 		return tex2D(TexMap2, pos.xy);
 	}
 
-	if (Tex.x > 0.5f) {
-		// mirror to get the right-eye distortion
-		newPos.x = 1.0f - newPos.x;
-		angle = -Rotation;
-	}  
-
 	// Chromatic Aberation Correction using coefs from SDK.
 	tcBlue = HmdWarp(newPos, float2(Chroma.z, Chroma.w));
-	tcBlue = rotatePoint(angle, tcBlue);
-	if (Tex.x > 0.5f)
-	{
-		// unmirror the right-eye coords
-		tcBlue.x = 1 - tcBlue.x;
-	}	
-	tcBlue.x = tcBlue.x - ViewportXOffset;
-	tcBlue.y = tcBlue.y - ViewportYOffset;
-	tcBlue = ScalePoint(ZoomScale, tcBlue);	
 	if(ZBuffer)
 	{
 		//TODO Try sampling from other texture to see if that makes any difference (that makes no sense since they are identical but worhth a try)
@@ -193,30 +213,12 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 
 	// Chromatic Aberation Correction using coefs from SDK.
 	tcRed = HmdWarp(newPos, float2(Chroma.x, Chroma.y));
-	tcRed = rotatePoint(angle, tcRed);
-	if (Tex.x > 0.5f)
-	{
-		// unmirror the right-eye coords
-		tcRed.x = 1 - tcRed.x;
-	}	
-	tcRed.x = tcRed.x - ViewportXOffset;
-	tcRed.y = tcRed.y - ViewportYOffset;
-	tcRed = ScalePoint(ZoomScale, tcRed);	
 	if(ZBuffer)
 	{
 		tcRed = ApplyZBuffer(tcRed,Tex,depthValue);	
 	}	
 
 	tcGreen = HmdWarp(newPos, float2(0.0f, 0.0f));
-	tcGreen = rotatePoint(angle, tcGreen);
-	if (Tex.x > 0.5f)
-	{
-		// unmirror the right-eye coords
-		tcGreen.x = 1 - tcGreen.x;
-	}	
-	tcGreen.x = tcGreen.x - ViewportXOffset;
-	tcGreen.y = tcGreen.y - ViewportYOffset;
-	tcGreen = ScalePoint(ZoomScale, tcGreen);	
 	if(ZBuffer)
 	{
 		tcGreen = ApplyZBuffer(tcGreen,Tex,depthValue);	
@@ -297,8 +299,8 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 	{
 		//x is halved by subtracting 0.5 if greater than 0.5, y needs to be halved by dividing by 2
 		float2 newPos = float2(Tex.x, Tex.y / 2);
-			if (Tex.x > 0.5)
-				newPos.x = newPos.x - 0.5;
+		if (Tex.x > 0.5)
+			newPos.x = newPos.x - 0.5;
 		newPos = float2(abs(newPos.x - 0.25f), abs(newPos.y - 0.25f));
 
 		//Get the position on a scale of 0 to 1 for x and y
