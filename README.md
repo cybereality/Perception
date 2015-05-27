@@ -10,9 +10,9 @@ Built using the [Microsoft DirectX SDK (June 2010)](http://www.microsoft.com/en-
 Download libfreespace [libfreespace-0.6rc0-win32-vs2010.zip](https://launchpad.net/libfreespace/+download)  
 Extract it to a folder
 
-Download [Oculus SDK v0.4.2](https://developer.oculusvr.com "Oculus VR")
+Download [Oculus SDK v0.6.x](https://developer.oculusvr.com "Oculus VR").
 
-Extract and copy LibOVR to project directory.
+Extract and copy the LibOVR and LibOVRKernel directories into the project directory.
 
 1. Click Start, Control Panel, System (in System and Security), Advanced System Settings, Environment Variables
 Create environment variables:   

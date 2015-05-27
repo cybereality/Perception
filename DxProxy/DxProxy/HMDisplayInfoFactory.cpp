@@ -36,11 +36,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <utility>
 #include <sstream>
 
-#include "..\..\LibOVR\include\OVR.h"
-#include "..\..\LibOVR\Src\OVR_Stereo.h"
-#include "..\..\LibOVR\Src\OVR_Profile.h"
-#include "..\..\LibOVR\Src\CAPI\CAPI_HMDState.h"
-#include "..\..\LibOVR\Src\Sensors\OVR_DeviceConstants.h"
+#include <OVR.h>
+//#include <OVR_Stereo.h>
+//#include <OVR_Profile.h>
+//#include <CAPI/CAPI_HMDState.h>
+//#include <Sensors/OVR_DeviceConstants.h>
 
 #include "HMDisplayInfo.h"
 #include "HMDisplayInfo_Default.h"

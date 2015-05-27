@@ -102,7 +102,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ModuleDefinitionFile>hijackdll.def</ModuleDefinitionFile>
       <AdditionalDependencies>shlwapi.lib;d3d9.lib;libfreespace.lib;libovr.lib;Winmm.lib;DxErr.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(DXSDK_DIR)\Lib\x86;$(DX)\Lib\x86;$(FREESPACE)\lib;$(ProjectDir)\..\..\DxProxy\DxProxy;$(ProjectDir)\..\..\DxProxy\DxProxy\$(Configuration);$(ProjectDir)\..\..\LibOVR\Lib\Win32\VS2012;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(DXSDK_DIR)\Lib\x86;$(DX)\Lib\x86;$(FREESPACE)\lib;$(ProjectDir)\..\..\DxProxy\DxProxy;$(ProjectDir)\..\..\DxProxy\DxProxy\$(Configuration);$(ProjectDir)\..\..\LibOVR\Lib\Windows\Win32\Release\VS2012;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <OutputFile>$(SolutionDir)$(Configuration)\Perception\bin\$(TargetName)$(TargetExt)</OutputFile>
       <ForceFileOutput>
       </ForceFileOutput>
@@ -142,7 +142,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ModuleDefinitionFile>hijackdll.def</ModuleDefinitionFile>
       <AdditionalDependencies>shlwapi.lib;d3d9.lib;libfreespace.lib;libovr.lib;Winmm.lib;DxErr.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(DXSDK_DIR)\Lib\x86;$(DX)\Lib\x86;$(FREESPACE)\lib;$(ProjectDir)\..\..\DxProxy\DxProxy;$(ProjectDir)\..\..\DxProxy\DxProxy\$(Configuration);$(ProjectDir)\..\..\LibOVR\Lib\Win32\VS2012;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(DXSDK_DIR)\Lib\x86;$(DX)\Lib\x86;$(FREESPACE)\lib;$(ProjectDir)\..\..\DxProxy\DxProxy;$(ProjectDir)\..\..\DxProxy\DxProxy\$(Configuration);$(ProjectDir)\..\..\LibOVR\Lib\Windows\Win32\Release\VS2012;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <OutputFile>$(SolutionDir)$(Configuration)\Perception\bin\$(TargetName)$(TargetExt)</OutputFile>
       <ForceFileOutput>
       </ForceFileOutput>
@@ -186,7 +186,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <ModuleDefinitionFile>hijackdll.def</ModuleDefinitionFile>
       <AdditionalDependencies>shlwapi.lib;d3d9.lib;libfreespace.lib;libovr.lib;Winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(DXSDK_DIR)\Lib\x86;$(DX)\Lib\x86;$(FREESPACE)\lib;..\..\DxProxy\DxProxy\$(Configuration);..\..\LibOVR\Lib\Win32\VS2012;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(DXSDK_DIR)\Lib\x86;$(DX)\Lib\x86;$(FREESPACE)\lib;..\..\DxProxy\DxProxy\$(Configuration);..\..\LibOVR\Lib\Windows\Win32\Release\VS2012;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <OutputFile>$(SolutionDir)$(Configuration)\Perception\bin\$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <PostBuildEvent>
@@ -211,7 +211,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <ModuleDefinitionFile>hijackdll64.def</ModuleDefinitionFile>
       <AdditionalDependencies>shlwapi.lib;d3d9.lib;libfreespace.lib;libovr.lib;Winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(DXSDK_DIR)\Lib\x86;$(DX)\Lib\x86;$(FREESPACE)\lib;..\..\DxProxy\DxProxy\$(Configuration);..\..\LibOVR\Lib\Win32\VS2012;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(DXSDK_DIR)\Lib\x86;$(DX)\Lib\x86;$(FREESPACE)\lib;..\..\DxProxy\DxProxy\$(Configuration);..\..\LibOVR\Lib\Windows\Win32\Release\VS2012;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <OutputFile>$(SolutionDir)$(Configuration)\Perception\bin\$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <PostBuildEvent>

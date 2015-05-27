@@ -32,11 +32,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "D3DProxyDevice.h"
 #include <string>
 
-#include "..\..\LibOVR\include\OVR.h"
-#include "..\..\LibOVR\Src\OVR_Stereo.h"
-#include "..\..\LibOVR\Src\OVR_Profile.h"
-#include "..\..\LibOVR\Src\CAPI\CAPI_HMDState.h"
-#include "..\..\LibOVR\Src\Sensors\OVR_DeviceConstants.h"
+#include <OVR.h>
+//#include <OVR_Stereo.h>
+//#include <OVR_Profile.h>
+//#include <CAPI/CAPI_HMDState.h>
+//#include <Sensors/OVR_DeviceConstants.h>
 
 using namespace vireio;
 
@@ -67,16 +67,19 @@ OculusTracker::~OculusTracker()
 void OculusTracker::init()
 {
 	OutputDebugString("OculusTracker Start");
+	hmd = NULL;
 	status = MTS_INITIALISING;
-	ovrBool res = ovr_Initialize(); // start LibOVR
+	ovrResult res = ovr_Initialize(NULL); // start LibOVR
 
-	if (res)
+	if (OVR_SUCCESS(res))
 	{
-		OutputDebugString("OculusTracker Initialize");
+		debugf("OculusTracker Initialized");
 	}
 	else
 	{
-		OutputDebugString("OculusTracker Initialize call failed");
+		ovrErrorInfo errorInfo;
+		ovr_GetLastErrorInfo(&errorInfo);
+		debugf("OculusTracker Initialize call failed: %s", errorInfo.ErrorString);
 		status = MTS_DRIVERFAIL;
 		return;
 	}
@@ -85,17 +88,16 @@ void OculusTracker::init()
 	if (detected == 0)
 	{
 		OutputDebugString("No HMD detected, use a dummy DK1");
-		hmd=ovrHmd_CreateDebug(ovrHmd_DK1);
+		ovrHmd_CreateDebug(ovrHmd_DK1, &hmd);
 		status = MTS_NOHMDDETECTED;
 		strcpy_s(trackerDescription, "No HMD Detected");
 		return;
 	}
 	else
 	{
-		hmd=ovrHmd_Create(0);
+		ovrHmd_Create(0, &hmd);
 		strcpy_s(trackerDescription, (std::string(hmd->ProductName) + "   Serial: " + hmd->SerialNumber).c_str());
-		OVR::CAPI::HMDState *pHMDState = (OVR::CAPI::HMDState*)(hmd->Handle);
-		if (pHMDState->OurHMDInfo.HmdType == OVR::HmdType_DK2)
+		if (hmd->Type == ovrHmd_DK2)
 			supportsPositional = true;
 	}
 
@@ -139,22 +141,27 @@ void OculusTracker::BeginFrame()
 	if (status >= MTS_OK  && useSDKPosePrediction)
 	{
 		FrameRef=ovrHmd_BeginFrameTiming(hmd,frameID++);
+		ovrHmd_GetFrameTiming(hmd, frameID++);
 	}
 }
 
 void OculusTracker::WaitTillTime()
 {
-	if (status >= MTS_OK && useSDKPosePrediction)
+	// Commented out when updating SDK to 0.6, as TimewarpPointSeconds is no longer
+	// a member of FrameRef. This is okay because WaitTillTime was never called. I
+	// believe this is the remnant of an incompleted attempt to implement the thing
+	// where you wait until close to scanout to do your distortion.
+	/*if (status >= MTS_OK && useSDKPosePrediction)
 	{
 		ovr_WaitTillTime(FrameRef.TimewarpPointSeconds);
-	}
+	}*/
 }
 
 void OculusTracker::EndFrame()
 {
 	if (status >= MTS_OK && useSDKPosePrediction)
 	{
-		ovrHmd_EndFrameTiming(hmd);
+		//ovrHmd_EndFrameTiming(hmd);
 	}
 }
 
@@ -246,7 +253,7 @@ int OculusTracker::getOrientationAndPosition(float* yaw, float* pitch, float* ro
 {
 	SHOW_CALL("OculusTracker getOrientationAndPosition\n");
 
-	ovrTrackingState ts = ovrHmd_GetTrackingState(hmd, useSDKPosePrediction ? FrameRef.ScanoutMidpointSeconds : ovr_GetTimeInSeconds());
+	ovrTrackingState ts = ovrHmd_GetTrackingState(hmd, useSDKPosePrediction ? FrameRef.DisplayMidpointSeconds : ovr_GetTimeInSeconds());
 
 	if (ts.StatusFlags & ovrStatus_OrientationTracked)
 	{
