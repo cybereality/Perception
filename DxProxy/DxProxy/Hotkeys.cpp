@@ -313,6 +313,13 @@ void D3DProxyDevice::HandleControls()
 			}
 			tracker->resetOrientationAndPosition();
 		}
+		
+		if(config.HotkeyBeforeAfterToggle->IsPressed(controls) && HotkeysActive())
+		{
+			config.BeforeAfterToggle = !config.BeforeAfterToggle;
+			ShowAdjusterToast(config.BeforeAfterToggle ? "OLD VERSION" : "NEW VERSION", 1000);
+			DeferedSaveConfig();
+		}
 
 		//Duck and cover - trigger crouch and prone keys if Y position of HMD moves appropriately
 		if (m_DuckAndCover.dfcStatus > DAC_INACTIVE &&

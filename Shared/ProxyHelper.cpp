@@ -1052,6 +1052,8 @@ void HandleGameProfile(ProxyHelper::ConfigTransferDirection dir, xml_node &node,
 	HANDLE_SETTING(draw_player,				true);
 	HANDLE_SETTING(draw_reticule,			true);
 	HANDLE_SETTING(draw_sky,				true);
+	HANDLE_SETTING(BeforeAfterToggle,       true);
+	HANDLE_SETTING(HotkeyBeforeAfterToggle, LShift + Key('T'));
 
 	HANDLE_SETTING(WorldFOV,                95.0f);
 	HANDLE_SETTING(PlayerFOV,               125.0f);

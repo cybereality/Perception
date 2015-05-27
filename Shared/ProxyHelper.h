@@ -111,6 +111,12 @@ struct ProxyConfig
 	bool        draw_player;
 	bool        draw_sky;
 
+	/// Debug setting for testing fixes. Only meaningful in the forgotten space
+	/// between commits, where mortals dare not tread. True for 'after', false
+	/// for 'before'.
+	bool BeforeAfterToggle;
+	InputBindingRef HotkeyBeforeAfterToggle;
+	
 	/// Angle (in degrees) to turn by when a snap-turn button is pressed
 	float ComfortModeYawIncrement;
 	
