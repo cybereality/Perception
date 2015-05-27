@@ -1034,7 +1034,7 @@ void HandleGameProfile(ProxyHelper::ConfigTransferDirection dir, xml_node &node,
 	HANDLE_SETTING(GamepadIndex,             0);
 	HANDLE_SETTING_ATTR("edge_peek_key",     EdgePeekHotkey, Key(VK_MBUTTON) || (Key(VK_LCONTROL)+Key(VK_NUMPAD2)));
 
-	HANDLE_SETTING(ComfortModeYawIncrement,  90.0f);
+	HANDLE_SETTING(ComfortModeYawIncrement,  45.0f);
 	HANDLE_SETTING(ComfortModeLeftKey,       Key(VK_LEFT)  || Axis(InputControls::RightStickX, false, -COMFORT_MODE_STICK_THRESHOLD));
 	HANDLE_SETTING(ComfortModeRightKey,      Key(VK_RIGHT) || Axis(InputControls::RightStickX, true, COMFORT_MODE_STICK_THRESHOLD));
 
