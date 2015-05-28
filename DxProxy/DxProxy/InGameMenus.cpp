@@ -72,6 +72,9 @@ InputBindingRef hotkeyMenuAdjustmentMuchSlower = Key(VK_MENU);
 
 InputBindingRef hotkeyScaleUnitReverse = Key(VK_LSHIFT);
 
+#define BIND_HOTKEY_SETTING(description, name) \
+	menu->AddKeybind(description, &config.name, defaultConfig.name)
+
 /*** D3DProxyDevice menu functions *******************************************/
 
 bool D3DProxyDevice::InitVPMENU()
@@ -1111,8 +1114,8 @@ void D3DProxyDevice::VPMENU_Settings()
 		}
 	});
 	
-	menu->AddKeybind("Hotkey >Toggle VRBoost<",      &config.VRBoostResetHotkey, defaultConfig.VRBoostResetHotkey);
-	menu->AddKeybind("Hotkey >Disconnected Screen<", &config.EdgePeekHotkey, defaultConfig.EdgePeekHotkey);
+	BIND_HOTKEY_SETTING("Hotkey >Toggle VRBoost<",      VRBoostResetHotkey);
+	BIND_HOTKEY_SETTING("Hotkey >Disconnected Screen<", EdgePeekHotkey);
 	
 	menu->AddBackButtons();
 	VPMENU_FinishDrawing(menu);
@@ -1265,8 +1268,8 @@ void D3DProxyDevice::VPMENU_ComfortMode()
 	MenuBuilder *menu = VPMENU_NewFrame("Settings - Comfort Mode");
 	menu->OnClose([=]() { VPMENU_UpdateConfigSettings(); });
 
-	menu->AddKeybind("Turn Left Key",  &config.ComfortModeLeftKey,  defaultConfig.ComfortModeLeftKey);
-	menu->AddKeybind("Turn Right Key", &config.ComfortModeRightKey, defaultConfig.ComfortModeRightKey);
+	BIND_HOTKEY_SETTING("Turn Left Key",  ComfortModeLeftKey);
+	BIND_HOTKEY_SETTING("Turn Right Key", ComfortModeRightKey);
 
 	// FIXME: This setting needs reset-to-default handling
 	menu->AddButton(retprintf("Yaw Rotation Increment : %.1f", config.ComfortModeYawIncrement), [=]()
@@ -1334,14 +1337,13 @@ void D3DProxyDevice::VPMENU_Hotkeys()
 	
 	menu->AddNavigation("Hotkey Rebindings", [=]() { VPMENU_Rebindings(); });
 	
-	menu->AddKeybind("Reset Orientation",   &config.HotkeyResetOrientation, defaultConfig.HotkeyResetOrientation);
-	menu->AddKeybind("Show FPS Hotkey",     &config.HotkeyShowFPS, defaultConfig.HotkeyShowFPS);
-	menu->AddKeybind("Screenshot",          &config.HotkeyScreenshot, defaultConfig.HotkeyScreenshot);
-	menu->AddKeybind("Telescope Mode",      &config.HotkeyTelescopeMode, defaultConfig.HotkeyTelescopeMode);
-	
-	menu->AddKeybind("Toggle Free Pitch",   &config.HotkeyToggleFreePitch, defaultConfig.HotkeyToggleFreePitch);
-	menu->AddKeybind("Toggle VR Mouse",     &config.HotkeyVRMouse, defaultConfig.HotkeyVRMouse);
-	menu->AddKeybind("Toggle Floaty Menus", &config.HotkeyFloatyMenus, defaultConfig.HotkeyFloatyMenus);
+	BIND_HOTKEY_SETTING("Reset Orientation",   HotkeyResetOrientation);
+	BIND_HOTKEY_SETTING("Show FPS Hotkey",     HotkeyShowFPS);
+	BIND_HOTKEY_SETTING("Screenshot",          HotkeyScreenshot);
+	BIND_HOTKEY_SETTING("Telescope Mode",      HotkeyTelescopeMode);
+	BIND_HOTKEY_SETTING("Toggle Free Pitch",   HotkeyToggleFreePitch);
+	BIND_HOTKEY_SETTING("Toggle VR Mouse",     HotkeyVRMouse);
+	BIND_HOTKEY_SETTING("Toggle Floaty Menus", HotkeyFloatyMenus);
 	
 	menu->AddBackButtons();
 	VPMENU_FinishDrawing(menu);
@@ -1400,12 +1402,12 @@ void D3DProxyDevice::VPMENU_Debug()
 {
 	SHOW_CALL("VPMENU_Debug");
 	MenuBuilder *menu = VPMENU_NewFrame("Settings - Debug Hotkeys");
-	menu->AddKeybind("Toggle Cube Renderers", &config.HotkeyToggleCubeRenders, defaultConfig.HotkeyToggleCubeRenders);
-	menu->AddKeybind("Toggle Texture Renderers", &config.HotkeyToggleTextureRenders, defaultConfig.HotkeyToggleTextureRenders);
-	menu->AddKeybind("Toggle When to Render Menu", &config.HotkeyWhenToRenderMenu, defaultConfig.HotkeyWhenToRenderMenu);
-	menu->AddKeybind("Toggle When to Poll Headtracking", &config.HotkeyWhenToPollHeadtracking, defaultConfig.HotkeyWhenToPollHeadtracking);
-	menu->AddKeybind("Prev Render State", &config.HotkeyPrevRenderState, defaultConfig.HotkeyPrevRenderState);
-	menu->AddKeybind("Next Render State", &config.HotkeyNextRenderState, defaultConfig.HotkeyNextRenderState);
+	BIND_HOTKEY_SETTING("Toggle Cube Renderers",      HotkeyToggleCubeRenders);
+	BIND_HOTKEY_SETTING("Toggle Texture Renderers",   HotkeyToggleTextureRenders);
+	BIND_HOTKEY_SETTING("Toggle When to Render Menu", HotkeyWhenToRenderMenu);
+	BIND_HOTKEY_SETTING("Toggle When to Poll Headtracking", HotkeyWhenToPollHeadtracking);
+	BIND_HOTKEY_SETTING("Prev Render State",          HotkeyPrevRenderState);
+	BIND_HOTKEY_SETTING("Next Render State",          HotkeyNextRenderState);
 	menu->AddBackButtons();
 	VPMENU_FinishDrawing(menu);
 }
@@ -1415,18 +1417,18 @@ void D3DProxyDevice::VPMENU_AdjustmentHotkeys()
 	SHOW_CALL("VPMENU_AdjustmentHotkeys");
 	MenuBuilder *menu = VPMENU_NewFrame("Settings - Adjustment Hotkeys");
 	
-	menu->AddKeybind("Switch 2D Depth Mode", &config.HotkeySwitch2DDepthMode, defaultConfig.HotkeySwitch2DDepthMode);
-	menu->AddKeybind("Swap Sides Hotkey", &config.HotkeySwapSides, defaultConfig.HotkeySwapSides);
-	menu->AddKeybind("Initiate VRBoost Memory Scan", &config.HotkeyInitiateScan, defaultConfig.HotkeyInitiateScan);
-	menu->AddKeybind("DK2 Black Smear Correction", &config.HotkeyBlackSmear, defaultConfig.HotkeyBlackSmear);
-	menu->AddKeybind("Reset IPD Offset", &config.HotkeyResetIPDOffset, defaultConfig.HotkeyResetIPDOffset);
-	menu->AddKeybind("Show HMD Stats", &config.HotkeyShowHMDStats, defaultConfig.HotkeyShowHMDStats);
-	menu->AddKeybind("Show Axes", &config.HotkeyShowAxes, defaultConfig.HotkeyShowAxes);
-	menu->AddKeybind("Toggle Positional Tracking", &config.HotkeyTogglePositionalTracking, defaultConfig.HotkeyTogglePositionalTracking);
-	menu->AddKeybind("Toggle Pose Prediction", &config.HotkeyTogglePosePrediction, defaultConfig.HotkeyTogglePosePrediction);
-	menu->AddKeybind("Toggle Chromatic Abberation Correction", &config.HotkeyToggleChromaticAbberationCorrection, defaultConfig.HotkeyToggleChromaticAbberationCorrection);
-	menu->AddKeybind("Distortion Scale Plus", &config.HotkeyDistortionScalePlus, defaultConfig.HotkeyDistortionScalePlus);
-	menu->AddKeybind("Distortion Scale Minus", &config.HotkeyDistortionScaleMinus, defaultConfig.HotkeyDistortionScaleMinus);
+	BIND_HOTKEY_SETTING("Switch 2D Depth Mode",         HotkeySwitch2DDepthMode);
+	BIND_HOTKEY_SETTING("Swap Sides Hotkey",            HotkeySwapSides);
+	BIND_HOTKEY_SETTING("Initiate VRBoost Memory Scan", HotkeyInitiateScan);
+	BIND_HOTKEY_SETTING("DK2 Black Smear Correction",   HotkeyBlackSmear);
+	BIND_HOTKEY_SETTING("Reset IPD Offset",             HotkeyResetIPDOffset);
+	BIND_HOTKEY_SETTING("Show HMD Stats",               HotkeyShowHMDStats);
+	BIND_HOTKEY_SETTING("Show Axes",                    HotkeyShowAxes);
+	BIND_HOTKEY_SETTING("Toggle Positional Tracking",   HotkeyTogglePositionalTracking);
+	BIND_HOTKEY_SETTING("Toggle Pose Prediction",       HotkeyTogglePosePrediction);
+	BIND_HOTKEY_SETTING("Toggle Chromatic Abberation Correction", HotkeyToggleChromaticAbberationCorrection);
+	BIND_HOTKEY_SETTING("Distortion Scale Plus",        HotkeyDistortionScalePlus);
+	BIND_HOTKEY_SETTING("Distortion Scale Minus",       HotkeyDistortionScaleMinus);
 	
 	menu->AddBackButtons();
 	VPMENU_FinishDrawing(menu);
