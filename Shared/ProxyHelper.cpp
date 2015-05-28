@@ -880,7 +880,7 @@ bool ProxyHelper::SaveConfig(ProxyConfig& config)
 }
 
 
-void HandleSetting(ProxyHelper::ConfigTransferDirection dir,xml_node &node, const char *key, std::string *setting, const char *defaultValue)
+void HandleSetting(ProxyHelper::ConfigTransferDirection dir, xml_node &node, const char *key, std::string *setting, const char *defaultValue)
 {
 	if(dir == ProxyHelper::CONFIG_SAVE) {
 		set_attribute(node, key, setting->c_str());
@@ -894,7 +894,7 @@ void HandleSetting(ProxyHelper::ConfigTransferDirection dir,xml_node &node, cons
 	}
 }
 
-void HandleSetting(ProxyHelper::ConfigTransferDirection dir,xml_node &node, const char *key, float *setting, float defaultValue=0.0f)
+void HandleSetting(ProxyHelper::ConfigTransferDirection dir, xml_node &node, const char *key, float *setting, float defaultValue=0.0f)
 {
 	if(dir == ProxyHelper::CONFIG_SAVE) {
 		set_attribute(node, key, *setting);
@@ -908,7 +908,7 @@ void HandleSetting(ProxyHelper::ConfigTransferDirection dir,xml_node &node, cons
 	}
 }
 
-void HandleSetting(ProxyHelper::ConfigTransferDirection dir,xml_node &node, const char *key, int *setting, int defaultValue=0)
+void HandleSetting(ProxyHelper::ConfigTransferDirection dir, xml_node &node, const char *key, int *setting, int defaultValue=0)
 {
 	if(dir == ProxyHelper::CONFIG_SAVE) {
 		set_attribute(node, key, *setting);
@@ -923,7 +923,7 @@ void HandleSetting(ProxyHelper::ConfigTransferDirection dir,xml_node &node, cons
 	}
 }
 
-void HandleSetting(ProxyHelper::ConfigTransferDirection dir,xml_node &node, const char *key, UINT *setting, UINT defaultValue=0)
+void HandleSetting(ProxyHelper::ConfigTransferDirection dir, xml_node &node, const char *key, UINT *setting, UINT defaultValue=0)
 {
 	if(dir == ProxyHelper::CONFIG_SAVE) {
 		set_attribute(node, key, *setting);
@@ -937,7 +937,7 @@ void HandleSetting(ProxyHelper::ConfigTransferDirection dir,xml_node &node, cons
 	}
 }
 
-void HandleSetting(ProxyHelper::ConfigTransferDirection dir,xml_node &node, const char *key, bool *setting, bool defaultValue=false)
+void HandleSetting(ProxyHelper::ConfigTransferDirection dir, xml_node &node, const char *key, bool *setting, bool defaultValue=false)
 {
 	if(dir == ProxyHelper::CONFIG_SAVE) {
 		set_attribute(node, key, *setting);
@@ -951,7 +951,34 @@ void HandleSetting(ProxyHelper::ConfigTransferDirection dir,xml_node &node, cons
 	}
 }
 
-void HandleSetting(ProxyHelper::ConfigTransferDirection dir,xml_node &node, const char *key, InputBindingRef *setting, InputBindingRef defaultValue=Unbound())
+void HandleSetting(ProxyHelper::ConfigTransferDirection dir, xml_node &node, const char *key, HotkeyRemappingSet *setting, HotkeyRemappingSet defaultValue)
+{
+	if(dir == ProxyHelper::CONFIG_SAVE) {
+		Json::Value json = setting->ToJson();
+		std::string str = Json::FastWriter().write(json);
+		set_attribute(node, key, str.c_str());
+	} else if(dir == ProxyHelper::CONFIG_LOAD) {
+		if(node.attribute(key).empty())
+		{
+			*setting = defaultValue;
+			return;
+		}
+		
+		std::string jsonStr = node.attribute(key).as_string();
+		Json::Value json;
+		Json::Reader reader;
+		if(reader.parse(jsonStr, json)) {
+			*setting = HotkeyRemappingSet(json);
+		} else {
+			debugf("Error parsing JSON for setting: %s", key);
+			*setting = defaultValue;
+		}
+	} else if(dir == ProxyHelper::CONFIG_RESET_DEFAULT) {
+		*setting = defaultValue;
+	}
+}
+
+void HandleSetting(ProxyHelper::ConfigTransferDirection dir, xml_node &node, const char *key, InputBindingRef *setting, InputBindingRef defaultValue=Unbound())
 {
 	if(dir == ProxyHelper::CONFIG_SAVE) {
 		SaveHotkey(node, key, *setting);
@@ -1031,8 +1058,10 @@ void HandleGameProfile(ProxyHelper::ConfigTransferDirection dir, xml_node &node,
 	HANDLE_SETTING_ATTR("gui_key_full",      guiHotkeys[3], Unbound());
 
 	HANDLE_SETTING_ATTR("VRBoost_key_reset", VRBoostResetHotkey, Unbound());
-	HANDLE_SETTING(GamepadIndex,             0);
 	HANDLE_SETTING_ATTR("edge_peek_key",     EdgePeekHotkey, Key(VK_MBUTTON) || (Key(VK_LCONTROL)+Key(VK_NUMPAD2)));
+	
+	HANDLE_SETTING(GamepadIndex,             0);
+	HANDLE_SETTING(HotkeyRemappings,         HotkeyRemappingSet());
 
 	HANDLE_SETTING(ComfortModeYawIncrement,  45.0f);
 	HANDLE_SETTING(ComfortModeLeftKey,       Key(VK_LEFT)  || Axis(InputControls::RightStickX, false, -COMFORT_MODE_STICK_THRESHOLD));

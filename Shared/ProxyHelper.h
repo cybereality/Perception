@@ -103,6 +103,11 @@ struct ProxyConfig
 	/// any controller. Otherwise the ID of the controller to check, 0-3.
 	int GamepadIndex;
 	
+	/// Hotkey remappings. These take keys (or, especially, gamepad buttons) and
+	/// translate them into different keys/buttons that're then given to the
+	/// game.
+	HotkeyRemappingSet HotkeyRemappings;
+	
 	///Draw Options - do we draw things?
 	bool        draw_shadows;
 	bool        draw_fog;

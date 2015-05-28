@@ -140,7 +140,7 @@ void OculusTracker::BeginFrame()
 	//return;
 	if (status >= MTS_OK  && useSDKPosePrediction)
 	{
-		FrameRef=ovrHmd_BeginFrameTiming(hmd,frameID++);
+		//FrameRef=ovrHmd_BeginFrameTiming(hmd,frameID++);
 		ovrHmd_GetFrameTiming(hmd, frameID++);
 	}
 }

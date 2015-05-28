@@ -197,6 +197,8 @@ public:
 	virtual void   Init(ProxyConfig& cfg);
 	void           SetupHUD();
 	virtual void   HandleControls(void);
+	void           HandleRemappings(void);
+	void           SendKeyToGame(byte key, bool isUp);
 	void           HandleTracking(void);
 	void           HandleUpdateExtern();
 	void		   SetGameWindow(HWND hMainGameWindow);
@@ -436,6 +438,8 @@ protected:
 	void VPMENU_ComfortMode();
 	void VPMENU_VRBoostValues();
 	void VPMENU_Hotkeys();
+	void VPMENU_Rebindings();
+	void VPMENU_EditRemapping(HotkeyRemapping *remapping);
 	void VPMENU_Debug();
 	void VPMENU_AdjustmentHotkeys();
 	

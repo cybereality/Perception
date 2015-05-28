@@ -324,11 +324,6 @@ void D3DProxyDevice::VPMENU()
 		return;
 	}
 	
-	if (hotkeyCloseMenu->IsPressed(controls))
-	{
-		VPMENU_Close();
-		return;
-	}
 	if (hotkeyCatch && hotkeyCooldown == 0.0f)
 	{
 		std::vector<InputBindingRef> heldInputs = controls.GetCurrentState()->GetHeldInputs();
@@ -353,6 +348,11 @@ void D3DProxyDevice::VPMENU()
 					bindingHotkeysHeld.push_back(heldInputs[ii]);
 			}
 		}
+	}
+	else if (hotkeyCloseMenu->IsPressed(controls))
+	{
+		VPMENU_Close();
+		return;
 	}
 	
 	if(!hudFont)
@@ -1363,6 +1363,8 @@ void D3DProxyDevice::VPMENU_Hotkeys()
 			config.GamepadIndex = -1;
 	});
 	
+	menu->AddNavigation("Hotkey Rebindings", [=]() { VPMENU_Rebindings(); });
+	
 	menu->AddKeybind("Reset Orientation",   &config.HotkeyResetOrientation, defaultConfig.HotkeyResetOrientation);
 	menu->AddKeybind("Show FPS Hotkey",     &config.HotkeyShowFPS, defaultConfig.HotkeyShowFPS);
 	menu->AddKeybind("Screenshot",          &config.HotkeyScreenshot, defaultConfig.HotkeyScreenshot);
@@ -1371,6 +1373,57 @@ void D3DProxyDevice::VPMENU_Hotkeys()
 	menu->AddKeybind("Toggle Free Pitch",   &config.HotkeyToggleFreePitch, defaultConfig.HotkeyToggleFreePitch);
 	menu->AddKeybind("Toggle VR Mouse",     &config.HotkeyVRMouse, defaultConfig.HotkeyVRMouse);
 	menu->AddKeybind("Toggle Floaty Menus", &config.HotkeyFloatyMenus, defaultConfig.HotkeyFloatyMenus);
+	
+	menu->AddBackButtons();
+	VPMENU_FinishDrawing(menu);
+}
+
+void D3DProxyDevice::VPMENU_Rebindings()
+{
+	SHOW_CALL("VPMENU_Rebindings");
+	MenuBuilder *menu = VPMENU_NewFrame();
+	VPMENU_StartDrawing(menu, "Settings - Key Rebindings");
+	
+	menu->AddButton("Add Binding", [=]()
+	{
+		config.HotkeyRemappings.Remappings.push_back(HotkeyRemapping());
+		HotkeyRemapping *newMapping = &config.HotkeyRemappings.Remappings[config.HotkeyRemappings.Remappings.size()-1];
+		VPMENU_NavigateTo([=]() {
+			VPMENU_EditRemapping(newMapping);
+		});
+	});
+	
+	for(size_t ii=0; ii<config.HotkeyRemappings.Remappings.size(); ii++)
+	{
+		HotkeyRemapping *mapping = &config.HotkeyRemappings.Remappings[ii];
+		
+		menu->AddItem(mapping->ToString(), [=]()
+		{
+			if (VPMENU_Input_Selected())
+			{
+				VPMENU_NavigateTo([=]() { VPMENU_EditRemapping(mapping); });
+			}
+			if (hotkeyClearHotkey->IsPressed(controls)
+			   || hotkeyResetToDefault->IsPressed(controls))
+			{
+				config.HotkeyRemappings.Remappings.erase(config.HotkeyRemappings.Remappings.begin() + ii);
+			}
+		});
+	}
+	
+	menu->AddBackButtons();
+	VPMENU_FinishDrawing(menu);
+}
+
+void D3DProxyDevice::VPMENU_EditRemapping(HotkeyRemapping *remapping)
+{
+	SHOW_CALL("VPMENU_Rebindings");
+	MenuBuilder *menu = VPMENU_NewFrame();
+	VPMENU_StartDrawing(menu, "Settings - Key Rebindings");
+	
+	menu->AddKeybind("Key", &remapping->Key, Unbound());
+	menu->AddGameKeypress("Bind to", &remapping->BoundTo);
+	menu->AddKeybind("Exclude", &remapping->ExcludeKey, Unbound());
 	
 	menu->AddBackButtons();
 	VPMENU_FinishDrawing(menu);

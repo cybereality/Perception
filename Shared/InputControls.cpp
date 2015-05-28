@@ -459,6 +459,66 @@ Json::Value AxisThresholdBinding::ToJson()
 }
 
 
+HotkeyRemapping::HotkeyRemapping()
+{
+	Key = HotkeyExpressions::Unbound();
+	ExcludeKey = HotkeyExpressions::Unbound();
+	BoundTo = 0;
+	IsHeld = false;
+}
+
+HotkeyRemapping::HotkeyRemapping(Json::Value json)
+{
+	if(!json.isObject())
+		throw std::exception("Malformed JSON: HotkeyRemapping should be an object");
+	
+	Key = HotkeyExpressions::HotkeyFromJson(json["key"]);
+	ExcludeKey = HotkeyExpressions::HotkeyFromJson(json["exclude"]);
+	BoundTo = json["boundTo"].asInt();
+}
+
+std::string HotkeyRemapping::ToString()
+{
+	return retprintf("%s => %s",
+		Key->ToString().c_str(),
+		HotkeyExpressions::Key(BoundTo)->ToString().c_str());
+}
+
+Json::Value HotkeyRemapping::ToJson()
+{
+	Json::Value obj = Json::Value(Json::objectValue);
+	obj["key"] = Key->ToJson();
+	obj["exclude"] = ExcludeKey->ToJson();
+	obj["boundTo"] = (int)BoundTo;
+	return obj;
+}
+
+
+HotkeyRemappingSet::HotkeyRemappingSet()
+{
+}
+
+HotkeyRemappingSet::HotkeyRemappingSet(Json::Value json)
+{
+	if(!json.isArray()) {
+		throw std::exception("Malformed JSON: HotkeyRemappingSet should be an array");
+	}
+	
+	for(size_t ii=0; ii<json.size(); ii++)
+		Remappings.push_back(HotkeyRemapping(json[ii]));
+}
+
+Json::Value HotkeyRemappingSet::ToJson()
+{
+	Json::Value arr = Json::Value(Json::arrayValue);
+	for(size_t ii=0; ii<Remappings.size(); ii++)
+	{
+		arr.append(Remappings[ii].ToJson());
+	}
+	return arr;
+}
+
+
 InputBindingRef HotkeyExpressions::Key(int keyIndex)
 {
 	return InputBindingRef(new SimpleKeyBinding(keyIndex));

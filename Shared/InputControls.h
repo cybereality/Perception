@@ -154,6 +154,30 @@ private:
 	float threshold;
 };
 
+class HotkeyRemapping
+{
+public:
+	HotkeyRemapping();
+	HotkeyRemapping(Json::Value json);
+	std::string ToString();
+	Json::Value ToJson();
+	
+	InputBindingRef Key;
+	InputBindingRef ExcludeKey;
+	unsigned char BoundTo;
+	bool IsHeld;
+};
+
+class HotkeyRemappingSet
+{
+public:
+	HotkeyRemappingSet();
+	HotkeyRemappingSet(Json::Value json);
+	Json::Value ToJson();
+	
+	std::vector<HotkeyRemapping> Remappings;
+};
+
 
 namespace HotkeyExpressions
 {

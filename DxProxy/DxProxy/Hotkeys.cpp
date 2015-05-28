@@ -109,6 +109,8 @@ void D3DProxyDevice::HandleControls()
 		ChangeGUI3DDepthMode(newMode);
 	}
 	
+	HandleRemappings();
+	
 	// loop through hotkeys
 	for (int i=0; i<4; i++)
 	{
@@ -997,6 +999,67 @@ void D3DProxyDevice::HandleControls()
 			}
 		}
 	}
+}
+
+void D3DProxyDevice::HandleRemappings()
+{
+	for(size_t ii=0; ii<config.HotkeyRemappings.Remappings.size(); ii++)
+	{
+		HotkeyRemapping *mapping = &config.HotkeyRemappings.Remappings[ii];
+		if (mapping->Key->IsHeld(controls)
+		    && !mapping->ExcludeKey->IsHeld(controls)
+		    && !VPMENU_IsOpen())
+		{
+			if(!mapping->IsHeld)
+			{
+				debugf("Sending %i DOWN", (int)mapping->BoundTo);
+				SendKeyToGame(mapping->BoundTo, false);
+				mapping->IsHeld = true;
+			}
+		}
+		else if (mapping->IsHeld)
+		{
+			debugf("Sending %i UP", (int)mapping->BoundTo);
+			SendKeyToGame(mapping->BoundTo, true);
+			mapping->IsHeld = false;
+		}
+	}
+}
+
+void D3DProxyDevice::SendKeyToGame(byte key, bool isUp)
+{
+	bool isExtendedKey = false;
+	
+	// Some scancodes have "extended keys", which means it's a different
+	// key depending whether you set the KEYEVENTF_EXTENDEDKEY flag. In the
+	// case of the arrow keys, for example, the Extended Key flag is the
+	// difference between arrow keys and numpad keys. Unfortunately,
+	// MapVirtualKey does not report this. As a hack, this is a list of some
+	// keys that I know require the Extended Key flag. This is not a complete
+	// list and someone should figure this out for real. --Jim
+	switch(key)
+	{
+	case VK_LEFT:
+	case VK_RIGHT:
+	case VK_UP:
+	case VK_DOWN:
+		isExtendedKey = true;
+	}
+	
+	INPUT ip;
+	ip.type = INPUT_KEYBOARD;
+	ip.ki.wScan = MapVirtualKey(key, MAPVK_VK_TO_VSC);
+	ip.ki.time = 0;
+	ip.ki.dwExtraInfo = 0;
+	ip.ki.wVk = key;
+	ip.ki.dwFlags = 0;
+	if (isUp) {
+		ip.ki.dwFlags |= KEYEVENTF_KEYUP;
+	}
+	if (isExtendedKey) {
+		ip.ki.dwFlags |= KEYEVENTF_EXTENDEDKEY;
+	}
+	SendInput(1, &ip, sizeof(INPUT));
 }
 
 void D3DProxyDevice::HotkeyCooldown(float duration)

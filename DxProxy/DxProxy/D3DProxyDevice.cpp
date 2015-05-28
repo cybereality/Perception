@@ -2429,17 +2429,9 @@ void D3DProxyDevice::HandleTracking()
 				//Should we jump?
 				if (tracker->y > m_DuckAndCover.yPos_Jump)
 				{
-					//Trigger jump
-					INPUT ip;
-					ip.type = INPUT_KEYBOARD;
-					ip.ki.wScan = MapVirtualKey(m_DuckAndCover.jumpKey, MAPVK_VK_TO_VSC);
-					ip.ki.time = 0;
-					ip.ki.dwExtraInfo = 0;
-					ip.ki.wVk = 0;
-					ip.ki.dwFlags = KEYEVENTF_SCANCODE;
-					SendInput(1, &ip, sizeof(INPUT));
-					ip.ki.dwFlags = KEYEVENTF_SCANCODE|KEYEVENTF_KEYUP;
-					SendInput(1, &ip, sizeof(INPUT));
+					//Trigger jump (press the jump key and immediately release it)
+					SendKeyToGame(m_DuckAndCover.jumpKey, false);
+					SendKeyToGame(m_DuckAndCover.jumpKey, true);
 				}
 
 				//trigger crouching
@@ -2449,18 +2441,10 @@ void D3DProxyDevice::HandleTracking()
 					ShowPopup(VPT_NOTIFICATION, VPS_INFO, 250, "Crouch\n");
 
 					//Trigger crouch button
-					INPUT ip;
-					ip.type = INPUT_KEYBOARD;
-					ip.ki.wScan = MapVirtualKey(m_DuckAndCover.crouchKey, MAPVK_VK_TO_VSC);
-					ip.ki.time = 0;
-					ip.ki.dwExtraInfo = 0;
-					ip.ki.wVk = 0;
-					ip.ki.dwFlags = KEYEVENTF_SCANCODE;
-					SendInput(1, &ip, sizeof(INPUT));
+					SendKeyToGame(m_DuckAndCover.crouchKey, false);
 					if (m_DuckAndCover.crouchToggle)
 					{
-						ip.ki.dwFlags = KEYEVENTF_SCANCODE|KEYEVENTF_KEYUP;
-						SendInput(1, &ip, sizeof(INPUT));
+						SendKeyToGame(m_DuckAndCover.crouchKey, true);
 					}
 				}
 			}
@@ -2472,19 +2456,11 @@ void D3DProxyDevice::HandleTracking()
 					m_DuckAndCover.dfcStatus = DAC_STANDING;
 					ShowPopup(VPT_NOTIFICATION, VPS_INFO, 250, "Standing\n");
 
-					INPUT ip;
-					ip.type = INPUT_KEYBOARD;
-					ip.ki.wScan = MapVirtualKey(m_DuckAndCover.crouchKey, MAPVK_VK_TO_VSC);
-					ip.ki.time = 0;
-					ip.ki.dwExtraInfo = 0;
-					ip.ki.wVk = 0;
-					ip.ki.dwFlags = KEYEVENTF_SCANCODE;
 					if (m_DuckAndCover.crouchToggle)
 					{
-						SendInput(1, &ip, sizeof(INPUT));
+						SendKeyToGame(m_DuckAndCover.crouchKey, false);
 					}
-					ip.ki.dwFlags = KEYEVENTF_SCANCODE|KEYEVENTF_KEYUP;
-					SendInput(1, &ip, sizeof(INPUT));
+					SendKeyToGame(m_DuckAndCover.crouchKey, true);
 				}
 				else if (m_DuckAndCover.proneEnabled && 
 					tracker->y < (m_DuckAndCover.yPos_Crouch + m_DuckAndCover.yPos_Prone * 0.55f))
@@ -2492,28 +2468,17 @@ void D3DProxyDevice::HandleTracking()
 					m_DuckAndCover.dfcStatus = DAC_PRONE;
 					ShowPopup(VPT_NOTIFICATION, VPS_INFO, 250, "Prone\n");
 
-					INPUT ip;
-					ip.type = INPUT_KEYBOARD;
-					ip.ki.time = 0;
-					ip.ki.dwExtraInfo = 0;
-					ip.ki.wVk = 0;
-
 					//If crouch isn't toggle, then we need to release crouch key before going prone
 					if (!m_DuckAndCover.crouchToggle)
 					{
-						ip.ki.wScan = MapVirtualKey(m_DuckAndCover.crouchKey, MAPVK_VK_TO_VSC);
-						ip.ki.dwFlags = KEYEVENTF_SCANCODE|KEYEVENTF_KEYUP;
-						SendInput(1, &ip, sizeof(INPUT));
+						SendKeyToGame(m_DuckAndCover.crouchToggle, true);
 					}
 
 					//Trigger prone button
-					ip.ki.wScan = MapVirtualKey(m_DuckAndCover.proneKey, MAPVK_VK_TO_VSC);
-					ip.ki.dwFlags = KEYEVENTF_SCANCODE;
-					SendInput(1, &ip, sizeof(INPUT));
+					SendKeyToGame(m_DuckAndCover.proneKey, false);
 					if (m_DuckAndCover.proneToggle)
 					{
-						ip.ki.dwFlags = KEYEVENTF_SCANCODE|KEYEVENTF_KEYUP;
-						SendInput(1, &ip, sizeof(INPUT));
+						SendKeyToGame(m_DuckAndCover.proneKey, true);
 					}
 				}
 			}
@@ -2527,28 +2492,16 @@ void D3DProxyDevice::HandleTracking()
 					ShowPopup(VPT_NOTIFICATION, VPS_INFO, 250, "Crouch\n");
 
 					//Trigger prone button
-					INPUT ip;
-					ip.type = INPUT_KEYBOARD;
-					ip.ki.wScan = MapVirtualKey(m_DuckAndCover.proneKey, MAPVK_VK_TO_VSC);
-					ip.ki.time = 0;
-					ip.ki.dwExtraInfo = 0;
-					ip.ki.wVk = 0;
-					ip.ki.dwFlags = KEYEVENTF_SCANCODE;
 					if (m_DuckAndCover.proneToggle)
 					{
-						SendInput(1, &ip, sizeof(INPUT));
+						SendKeyToGame(m_DuckAndCover.proneKey, false);
 					}
-					ip.ki.dwFlags = KEYEVENTF_SCANCODE|KEYEVENTF_KEYUP;
-					SendInput(1, &ip, sizeof(INPUT));
+					SendKeyToGame(m_DuckAndCover.proneKey, true);
 
 					//If crouch isn't toggle, then we need to crouch key before going prone
-					ip.ki.wScan = MapVirtualKey(m_DuckAndCover.crouchKey, MAPVK_VK_TO_VSC);
-					ip.ki.dwFlags = KEYEVENTF_SCANCODE;
-					SendInput(1, &ip, sizeof(INPUT));
 					if (m_DuckAndCover.crouchToggle)
 					{
-						ip.ki.dwFlags = KEYEVENTF_SCANCODE|KEYEVENTF_KEYUP;
-						SendInput(1, &ip, sizeof(INPUT));
+						SendKeyToGame(m_DuckAndCover.crouchKey, true);
 					}
 				}
 			}
