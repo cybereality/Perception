@@ -59,7 +59,7 @@ struct TrackData
 class SharedMemoryTracker : public MotionTracker
 {
 public:
-	SharedMemoryTracker(void);
+	SharedMemoryTracker(ProxyConfig *config);
 	~SharedMemoryTracker(void);
 
 	/*** SharedMemoryTracker public methods ***/

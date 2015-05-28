@@ -42,7 +42,8 @@ using namespace vireio;
 * Constructor.
 * Calls init function.
 ***/ 
-FreeSpaceTracker::FreeSpaceTracker(void):MotionTracker()
+FreeSpaceTracker::FreeSpaceTracker(ProxyConfig *config)
+	: MotionTracker(config)
 {
 	OutputDebugString("Free Tracker Created\n");
 	init();

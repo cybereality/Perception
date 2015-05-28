@@ -40,7 +40,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class FreeTrackTracker : public MotionTracker
 {
 public:
-	FreeTrackTracker(void);
+	FreeTrackTracker(ProxyConfig *config);
 	~FreeTrackTracker(void);
 
 	/*** FreeTrackTracker public methods ***/

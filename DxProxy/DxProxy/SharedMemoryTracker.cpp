@@ -29,6 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "SharedMemoryTracker.h"
+#include "ProxyHelper.h"
 
 #include <string>
 #include <iostream>
@@ -42,7 +43,8 @@ TCHAR szName[]=TEXT("VireioSMTrack");
 * Constructor.
 * Calls init function.
 ***/ 
-SharedMemoryTracker::SharedMemoryTracker(void):MotionTracker()
+SharedMemoryTracker::SharedMemoryTracker(ProxyConfig *config)
+	:MotionTracker(config)
 {
 	OutputDebugString("Socket Tracker Created\n");
 	hMapFile = NULL;
@@ -124,12 +126,12 @@ void SharedMemoryTracker::updateOrientationAndPosition()
 		if(fabs(deltaPitch) > 4.0f) deltaPitch = 0.0f;
 
 		// Pass to mouse data (long integer).
-		mouseData.mi.dx = (long)(deltaYaw*multiplierYaw);
-		mouseData.mi.dy = (long)(deltaPitch*multiplierPitch);
+		mouseData.mi.dx = (long)(deltaYaw*config->yaw_multiplier);
+		mouseData.mi.dy = (long)(deltaPitch*config->pitch_multiplier);
 
 		// Keep fractional difference in the delta so it's added to the next update.
-		deltaYaw -= ((float)mouseData.mi.dx)/multiplierYaw;
-		deltaPitch -= ((float)mouseData.mi.dy)/multiplierPitch;
+		deltaYaw -= ((float)mouseData.mi.dx)/config->yaw_multiplier;
+		deltaPitch -= ((float)mouseData.mi.dy)/config->pitch_multiplier;
 
 #ifdef _DEBUG
 		OutputDebugString("Motion Tracker SendInput\n");
@@ -141,7 +143,7 @@ void SharedMemoryTracker::updateOrientationAndPosition()
 		// Set current data.
 		currentYaw = yaw;
 		currentPitch = pitch;
-		currentRoll = (float)( roll * (PI/180.0) * multiplierRoll);	// convert from deg to radians then apply mutiplier
+		currentRoll = (float)( roll * (PI/180.0) * config->roll_multiplier);	// convert from deg to radians then apply mutiplier
 	}
 }
 

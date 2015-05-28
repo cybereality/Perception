@@ -52,7 +52,7 @@ using namespace OVR;
 class OculusTracker : public MotionTracker
 {
 public:
-	OculusTracker(void);
+	OculusTracker(ProxyConfig *config);
 	virtual ~OculusTracker(void);
 
 	/*** OculusTracker public methods ***/

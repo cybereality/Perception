@@ -39,7 +39,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class FreeSpaceTracker : public MotionTracker
 {
 public:
-	FreeSpaceTracker(void);
+	FreeSpaceTracker(ProxyConfig *config);
 	~FreeSpaceTracker(void);
 
 	/*** FreeSpaceTracker public methods ***/

@@ -28,7 +28,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define DEFAULT_BUFLEN 512
 #define DEFAULT_PORT 49015
 
-SocketTracker::SocketTracker(void):MotionTracker()
+SocketTracker::SocketTracker(ProxyConfig *config)
+	:MotionTracker(config)
 {
 	OutputDebugString("Socket Tracker Created\n");
 	init();

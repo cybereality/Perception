@@ -36,6 +36,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <math.h>
 #include <windows.h>
 
+struct ProxyConfig;
+
 enum MotionTrackerStatus
 {
 	MTS_NOTINIT,
@@ -57,8 +59,8 @@ enum MotionTrackerStatus
 class MotionTracker
 {
 public:
-	MotionTracker(void);
-	virtual ~MotionTracker(void);
+	MotionTracker(ProxyConfig *config);
+	virtual ~MotionTracker();
 
 	/*** MotionTracker virtual public methods ***/
 	virtual void init();
@@ -67,7 +69,6 @@ public:
 	virtual int  getOrientationAndPosition(float* yaw, float* pitch, float* roll, float* x, float* y, float* z);
 	virtual void updateOrientationAndPosition();
 	virtual MotionTrackerStatus getStatus();
-	virtual void setMultipliers(float yaw, float pitch, float roll);
 	virtual bool setMouseEmulation(bool emulateMouse);
 	virtual bool getMouseEmulation();
 	virtual void BeginFrame() {}
@@ -116,18 +117,6 @@ public:
 	***/
 	float deltaPitch;
 	/**
-	* Game specific yaw angle multiplier.
-	***/
-	float multiplierYaw;
-	/**
-	* Game specific pitch angle multiplier.
-	***/
-	float multiplierPitch;
-	/**
-	* Game specific roll angle multiplier.
-	***/
-	float multiplierRoll;
-	/**
 	* Mouse data, to be passed to the game.
 	***/
 	INPUT mouseData;
@@ -164,6 +153,8 @@ protected:
 	* True if mouse emulation is on.
 	***/
 	bool mouseEmulation;
+	
+	ProxyConfig *config;
 };
 
 #endif

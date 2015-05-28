@@ -48,31 +48,31 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 *  Get motion tracker. 
 *  Creates the currently selected motion tracker class pointer.
 ***/
-MotionTracker* MotionTrackerFactory::Get(ProxyConfig& config)
+MotionTracker* MotionTrackerFactory::Get(ProxyConfig *config)
 {
 	MotionTracker* newTracker = NULL;
 
-	switch(config.tracker_mode)
+	switch(config->tracker_mode)
 	{
 	case MotionTracker::DISABLED:
-		newTracker = new MotionTracker();
+		newTracker = new MotionTracker(config);
 		break;
 #ifndef x64
 	case MotionTracker::HILLCREST:
-		newTracker = new FreeSpaceTracker();
+		newTracker = new FreeSpaceTracker(config);
 		break;
 #endif
 	case MotionTracker::FREETRACK:
-		newTracker = new FreeTrackTracker();
+		newTracker = new FreeTrackTracker(config);
 		break;
 	case MotionTracker::SHAREDMEMTRACK:
-		newTracker = new SharedMemoryTracker();
+		newTracker = new SharedMemoryTracker(config);
 		break;
 	case MotionTracker::OCULUSTRACK:
-		newTracker = new OculusTracker();
+		newTracker = new OculusTracker(config);
 		break;
 	default:
-		newTracker = new MotionTracker();
+		newTracker = new MotionTracker(config);
 		break;
 	}
 

@@ -34,9 +34,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * Constructor.
 * Calls init function.
 ***/ 
-MotionTracker::MotionTracker() :
-	useSDKPosePrediction(true)
+MotionTracker::MotionTracker(ProxyConfig *config)
+	: useSDKPosePrediction(true)
 {
+	this->config = config;
 	OutputDebugString("Motion Tracker Created\n");
 	init();
 }
@@ -65,10 +66,6 @@ void MotionTracker::init()
 
 	deltaYaw = 0.0f;
 	deltaPitch = 0.0f;
-
-	multiplierYaw = DEFAULT_YAW_MULTIPLIER;
-	multiplierPitch = DEFAULT_PITCH_MULTIPLIER;
-	multiplierRoll = 1.0f;
 
 	offsetYaw = 0.0f;
 	offsetPitch = 0.0f;
@@ -123,8 +120,8 @@ void MotionTracker::updateOrientationAndPosition()
 			// Convert yaw, pitch to positive degrees, multiply by multiplier.
 			// (-180.0f...0.0f -> 180.0f....360.0f)
 			// (0.0f...180.0f -> 0.0f...180.0f)
-			yaw = fmodf(RADIANS_TO_DEGREES(yaw) + 360.0f, 360.0f)*multiplierYaw;
-			pitch = -fmodf(RADIANS_TO_DEGREES(pitch) + 360.0f, 360.0f)*multiplierPitch;
+			yaw = fmodf(RADIANS_TO_DEGREES(yaw) + 360.0f, 360.0f)*config->yaw_multiplier;
+			pitch = -fmodf(RADIANS_TO_DEGREES(pitch) + 360.0f, 360.0f)*config->pitch_multiplier;
 
 			// Get difference.
 			deltaYaw += yaw - currentYaw;
@@ -153,7 +150,7 @@ void MotionTracker::updateOrientationAndPosition()
 		// Set current data.
 		currentYaw = yaw;
 		currentPitch = pitch;
-		currentRoll = roll*multiplierRoll;
+		currentRoll = roll*config->roll_multiplier;
 	}
 
 }
@@ -166,22 +163,6 @@ MotionTrackerStatus MotionTracker::getStatus()
 {
 	//Default tracker is just fine thanks
 	return MTS_OK;
-}
-
-/**
-* Set game-specific angle multipliers.
-* @param yaw Yaw Degree multiplier.
-* @param pitch Pitch Degree multiplier.
-* @param roll Roll Radian multiplier.
-***/
-void MotionTracker::setMultipliers(float yaw, float pitch, float roll)
-{
-	multiplierYaw = yaw;
-	multiplierPitch = pitch;
-	multiplierRoll = roll;
-	currentYaw = 0.0f;
-	currentPitch = 0.0f;
-	currentRoll = 0.0f;
 }
 
 /**

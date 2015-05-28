@@ -27,14 +27,15 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#include "FreeTrackTracker.h"
 #include <windows.h>
+#include "FreeTrackTracker.h"
 
 /**
 * Constructor.
 * Calls init function.
 ***/ 
-FreeTrackTracker::FreeTrackTracker(void):MotionTracker()
+FreeTrackTracker::FreeTrackTracker(ProxyConfig *config)
+	: MotionTracker(config)
 {
 	OutputDebugString("FreeTrack Tracker Created\n");
 	init();

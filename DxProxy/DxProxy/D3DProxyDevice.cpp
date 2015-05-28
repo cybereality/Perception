@@ -3583,13 +3583,10 @@ bool D3DProxyDevice::InitTracker()
 	if (config.VRboostPath != "") m_VRboostRulesPresent = true; else m_VRboostRulesPresent = false;
  
 	OutputDebugString("GB - Try to init Tracker\n");
-	tracker.reset(MotionTrackerFactory::Get(config));
+	tracker.reset(MotionTrackerFactory::Get(&config));
 	if (tracker && tracker->getStatus() >= MTS_OK)
 	{
-		OutputDebugString("Tracker Got\n");
-		OutputDebugString("Setting Multipliers\n");
-		tracker->setMultipliers(config.yaw_multiplier, config.pitch_multiplier, config.roll_multiplier);
-		OutputDebugString("Setting Mouse EMu\n");
+		debugf("Tracker is online\n");
 		tracker->setMouseEmulation((!m_VRboostRulesPresent) || (hmVRboost==NULL));
 
 		//Set the default timewarp prediction behaviour for this game - this will have no effect on non-Oculus trackers

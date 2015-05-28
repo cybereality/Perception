@@ -1029,15 +1029,15 @@ void D3DProxyDevice::VPMENU_Settings()
 		VPMENU_CloseWithoutSaving();
 	});
 	*/
-	menu->AddAdjustment("Yaw multiplier : %g", &tracker->multiplierYaw, defaultConfig.yaw_multiplier, 0.05f);
-	menu->AddAdjustment("Pitch multiplier : %g", &tracker->multiplierPitch, defaultConfig.pitch_multiplier, 0.05f);
-	menu->AddAdjustment("Roll multiplier : %g", &tracker->multiplierRoll, defaultConfig.roll_multiplier, 0.05f);
+	menu->AddAdjustment("Yaw multiplier : %g", &config.yaw_multiplier, defaultConfig.yaw_multiplier, 0.05f);
+	menu->AddAdjustment("Pitch multiplier : %g", &config.pitch_multiplier, defaultConfig.pitch_multiplier, 0.05f);
+	menu->AddAdjustment("Roll multiplier : %g", &config.roll_multiplier, defaultConfig.roll_multiplier, 0.05f);
 	
 	menu->AddButton("Reset Multipliers", [=]()
 	{
-		tracker->multiplierYaw   = defaultConfig.yaw_multiplier;
-		tracker->multiplierPitch = defaultConfig.pitch_multiplier;
-		tracker->multiplierRoll  = defaultConfig.roll_multiplier;
+		config.yaw_multiplier   = defaultConfig.yaw_multiplier;
+		config.pitch_multiplier = defaultConfig.pitch_multiplier;
+		config.roll_multiplier  = defaultConfig.roll_multiplier;
 	});
 	
 	std::string rollImplDescription = "?";
@@ -1601,9 +1601,6 @@ void D3DProxyDevice::VPMENU_UpdateConfigSettings()
 	
 	ProxyHelper* helper = new ProxyHelper();
 
-	config.roll_multiplier = tracker->multiplierRoll;
-	config.yaw_multiplier = tracker->multiplierYaw;
-	config.pitch_multiplier = tracker->multiplierPitch;
 	config.hud3DDepthMode = (int)hud3DDepthMode;
 	config.gui3DDepthMode = (int)gui3DDepthMode;
 	config.WorldFOV = VRBoostValue[VRboostAxis::WorldFOV];
