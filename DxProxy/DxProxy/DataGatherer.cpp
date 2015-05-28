@@ -726,8 +726,7 @@ void DataGatherer::Init(ProxyConfig& cfg)
 void DataGatherer::VPMENU_ShaderSubMenu()
 {
 	SHOW_CALL("VPMENU_ShaderSubMenu");
-	MenuBuilder *menu = VPMENU_NewFrame();
-	VPMENU_StartDrawing(menu, "Shader Analyser");
+	MenuBuilder *menu = VPMENU_NewFrame("Shader Analyser");
 
 	menu->AddButton("Create new Shader Rules", [=]() {
 		// create relevant shader constant table
@@ -849,8 +848,7 @@ void DataGatherer::VPMENU_ChangeRules()
 		constantIndex++;
 	}
 
-	MenuBuilder *menu = VPMENU_NewFrame();
-	VPMENU_StartDrawing(menu, NULL);
+	MenuBuilder *menu = VPMENU_NewFrame("Change Shader Rules");
 	
 	for (UINT i=0; i<menuEntries.size(); i++)
 	menu->AddItem(menuEntries[i], menuColor[i], [i,this,&menuID]()
@@ -1170,10 +1168,8 @@ void DataGatherer::VPMENU_ShowActiveShaders()
 			m_knownPShaders[itPShaderCurrentHash->first] = itPShaderCurrentHash->second;
 	}
 
-	MenuBuilder *menu = VPMENU_NewFrame();
-
 	// output menu
-	VPMENU_StartDrawing(menu, NULL);
+	MenuBuilder *menu = VPMENU_NewFrame("Active Shaders");
 
 	for (UINT i = 0; i < menuEntries.size(); i++)
 	{

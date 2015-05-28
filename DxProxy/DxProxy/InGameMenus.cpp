@@ -160,11 +160,20 @@ bool D3DProxyDevice::VPMENU_IsOpen()
 /**
 * VP menu helper to setup new frame.
 ***/
-MenuBuilder *D3DProxyDevice::VPMENU_NewFrame()
+MenuBuilder *D3DProxyDevice::VPMENU_NewFrame(const char *pageTitle)
 {
 	SHOW_CALL("VPMENU_NewFrame");
 	
-	return new MenuBuilder(this);
+	MenuBuilder *menuBuilder = new MenuBuilder(this);
+	VPMENU_SetupDrawingState();
+	
+	if(pageTitle != NULL)
+	{
+		VPMENU_DrawTitle(pageTitle);
+	}
+	
+	menuBuilder->ResetDrawPosition();
+	return menuBuilder;
 }
 
 void D3DProxyDevice::VPMENU_DrawBorder(int top)
@@ -188,22 +197,7 @@ void D3DProxyDevice::VPMENU_DrawBorder(int top)
 	}
 }
 
-/**
-* 
-*/
-void D3DProxyDevice::VPMENU_StartDrawing(MenuBuilder *menu, const char *pageTitle)
-{
-	hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
-
-	D3DXMATRIX matScale;
-	D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
-	hudMainMenu->SetTransform(&matScale);
-
-	VPMENU_DrawTitle(pageTitle);
-	menu->ResetDrawPosition();
-}
-
-void D3DProxyDevice::VPMENU_StartDrawing_NonMenu()
+void D3DProxyDevice::VPMENU_SetupDrawingState()
 {
 	hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
 
@@ -411,9 +405,7 @@ std::string ReconstructionModeToString(D3DProxyDevice::Reconstruction_Type mode)
 void D3DProxyDevice::VPMENU_MainMenu()
 {
 	SHOW_CALL("VPMENU_MainMenu");
-	
-	MenuBuilder *menu = VPMENU_NewFrame();
-	VPMENU_StartDrawing(menu, "Settings");
+	MenuBuilder *menu = VPMENU_NewFrame("Settings");
 
 	if (userConfig.shaderAnalyser)
 	{
@@ -521,8 +513,7 @@ void D3DProxyDevice::VPMENU_WorldScale()
 	int width = VPMENU_PIXEL_WIDTH;
 	int height = VPMENU_PIXEL_HEIGHT;
 
-	MenuBuilder *menu = VPMENU_NewFrame();
-	VPMENU_StartDrawing_NonMenu();
+	MenuBuilder *menu = VPMENU_NewFrame(NULL);
 
 	// arbitrary formular... TODO !! find a more nifty solution
 	float BlueLineCenterAsPercentage = m_spShaderViewAdjustment->HMDInfo()->GetLensXCenterOffset() * 0.2f;
@@ -612,7 +603,7 @@ void D3DProxyDevice::VPMENU_WorldScale()
 	VPMENU_FinishDrawing(menu);
 
 	// draw description text box
-	VPMENU_StartDrawing_NonMenu();
+	VPMENU_SetupDrawingState();
 	RECT rec8 = {620, (int)(menuState.borderTopHeight), 1300, 400};
 	DrawTextShadowed(hudFont, hudTextBox,
 		"In the right eye view, walk up as close as\n"
@@ -673,8 +664,7 @@ void D3DProxyDevice::VPMENU_3DReconstruction()
 		}
 	}
 	
-	MenuBuilder *menu = VPMENU_NewFrame();
-	VPMENU_StartDrawing(menu, "Settings - 3D Reconstruction");
+	MenuBuilder *menu = VPMENU_NewFrame("Settings - 3D Reconstruction");
 	
 	menu->AddEnumPicker("3D Reconstruction Type : %s", (int*)&m_3DReconstructionMode,
 		Reconstruction_Type::RECONSTRUCTION_ENUM_RANGE, [](int val) {
@@ -758,18 +748,12 @@ void D3DProxyDevice::VPMENU_3DReconstruction()
 void D3DProxyDevice::VPMENU_ZBufferSettings()
 {
 	SHOW_CALL("VPMENU_ZBufferSettings");
-	MenuBuilder *menu = VPMENU_NewFrame();
-	VPMENU_StartDrawing(menu, "Settings - Z Buffer Settings");
+	MenuBuilder *menu = VPMENU_NewFrame("Settings - Z Buffer Settings");
 	
-	menu->AddToggle("Flip Depths : %s", "ON", "OFF", &config.zbufferSwitch, false, [=]() {
-		
-	});
+	menu->AddToggle("Flip Depths : %s", "ON", "OFF", &config.zbufferSwitch, false);
 
 	menu->AddAdjustment("Z Buffer Strength : %1.1f", &config.zbufferStrength,
-		defaultConfig.zbufferStrength, 1.00f, [=]()
-	{
-		
-	});	
+		defaultConfig.zbufferStrength, 1.00f);	
 	
 	menu->AddToggle("Depth Visualisation Mode : %s", "ON", "OFF", &stereoView->m_bZBufferVisualisationMode, false, [=]() {
 		if(stereoView->m_bZBufferVisualisationMode)
@@ -780,16 +764,10 @@ void D3DProxyDevice::VPMENU_ZBufferSettings()
 	});
 
 	menu->AddAdjustment("Z Buffer Depth (Low) : %1.6f", &config.zbufferDepthLow,
-		defaultConfig.zbufferDepthLow, 0.00010f, [=]()
-	{
-		
-	});	
+		defaultConfig.zbufferDepthLow, 0.00010f);
 
 	menu->AddAdjustment("Z Buffer Depth (High) : %1.6f", &config.zbufferDepthHigh,
-		defaultConfig.zbufferDepthHigh, 0.00010f, [=]()
-	{
-		
-	});	
+		defaultConfig.zbufferDepthHigh, 0.00010f);
 	
 	menu->AddToggle("Depth Filter Mode : %s", "ON", "OFF", &stereoView->m_bZBufferFilterMode, false, [=]() {
 		if(stereoView->m_bZBufferFilterMode)
@@ -800,26 +778,19 @@ void D3DProxyDevice::VPMENU_ZBufferSettings()
 	});
 
 	menu->AddAdjustment("Filter Depth (+0.0005f) : %1.6f", &stereoView->m_fZBufferFilter,
-		config.zbufferDepthLow, 0.00010f, [=]()
-	{
-		
-	});	
+		config.zbufferDepthLow, 0.00010f);
 
 	//stereoView->m_bZBufferFilterMode
 	//stereoView->m_bZBufferFilterMode
-	
 		
-
-	menu->AddNavigation("Return to 3D Reconstruction Menu\n", [=]() { VPMENU_3DReconstruction(); });
 	menu->AddBackButtons();
-	VPMENU_FinishDrawing(menu);	
+	VPMENU_FinishDrawing(menu);
 }
 
 void D3DProxyDevice::VPMENU_Convergence()
 {
 	SHOW_CALL("VPMENU_PosTracking");
-	MenuBuilder *menu = VPMENU_NewFrame();
-	VPMENU_StartDrawing(menu, "Settings - Convergence");
+	MenuBuilder *menu = VPMENU_NewFrame("Settings - Convergence");
 	menu->OnClose([=]() { VPMENU_UpdateConfigSettings(); });
 
 	menu->AddText(
@@ -873,8 +844,7 @@ void D3DProxyDevice::VPMENU_ConvergenceCalibrator()
 	int width = VPMENU_PIXEL_WIDTH;
 	int height = VPMENU_PIXEL_HEIGHT;
 
-	MenuBuilder *menu = VPMENU_NewFrame();
-	VPMENU_StartDrawing_NonMenu();
+	MenuBuilder *menu = VPMENU_NewFrame(NULL);
 
 	// arbitrary formular... TODO !! find a more nifty solution
 	float BlueLineCenterAsPercentage = m_spShaderViewAdjustment->HMDInfo()->GetLensXCenterOffset() * 0.2f;
@@ -932,7 +902,7 @@ void D3DProxyDevice::VPMENU_ConvergenceCalibrator()
 	VPMENU_FinishDrawing(menu);
 
 	// draw description text box
-	VPMENU_StartDrawing_NonMenu();
+	VPMENU_SetupDrawingState();
 	RECT rec8 = {620, (int)(menuState.borderTopHeight), 1300, 400};
 	DrawTextShadowed(hudFont, hudTextBox,
 		"Note that the Convergence Screens distance\n"
@@ -964,8 +934,7 @@ void D3DProxyDevice::VPMENU_ConvergenceCalibrator()
 void D3DProxyDevice::VPMENU_HUD()
 {
 	SHOW_CALL("VPMENU_HUD");
-	MenuBuilder *menu = VPMENU_NewFrame();
-	VPMENU_StartDrawing(menu, "Settings - HUD");
+	MenuBuilder *menu = VPMENU_NewFrame("Settings - HUD");
 	menu->OnClose([=]() { VPMENU_UpdateConfigSettings(); });
 
 	menu->AddEnumPicker("HUD : %s", (int*)&hud3DDepthMode,
@@ -1004,8 +973,7 @@ void D3DProxyDevice::VPMENU_HUD()
 void D3DProxyDevice::VPMENU_GUI()
 {
 	SHOW_CALL("VPMENU_GUI");
-	MenuBuilder *menu = VPMENU_NewFrame();
-	VPMENU_StartDrawing(menu, "Settings - GUI");
+	MenuBuilder *menu = VPMENU_NewFrame("Settings - GUI");
 	menu->OnClose([=]() { VPMENU_UpdateConfigSettings(); });
 
 	menu->AddEnumPicker("GUI : %s", (int*)&gui3DDepthMode,
@@ -1044,8 +1012,7 @@ void D3DProxyDevice::VPMENU_GUI()
 void D3DProxyDevice::VPMENU_Settings()
 {
 	SHOW_CALL("VPMENU_Settings");
-	MenuBuilder *menu = VPMENU_NewFrame();
-	VPMENU_StartDrawing(menu, "Settings - General");
+	MenuBuilder *menu = VPMENU_NewFrame("Settings - General");
 	menu->OnClose([=]() { VPMENU_UpdateConfigSettings(); });
 
 	menu->AddToggle("Swap Eyes : %s", "True", "False", &config.swap_eyes, defaultConfig.swap_eyes);
@@ -1157,8 +1124,7 @@ void D3DProxyDevice::VPMENU_Settings()
 void D3DProxyDevice::VPMENU_Drawing()
 {
 	SHOW_CALL("VPMENU_Drawing");
-	MenuBuilder *menu = VPMENU_NewFrame();
-	VPMENU_StartDrawing(menu, "Drawing Options - General");
+	MenuBuilder *menu = VPMENU_NewFrame("Drawing Options - General");
 	menu->OnClose([=]() { VPMENU_UpdateConfigSettings(); });
 	
 	ShaderModificationRepository *pRepo = m_pGameHandler->GetShaderModificationRepository();
@@ -1193,8 +1159,7 @@ void D3DProxyDevice::VPMENU_Drawing()
 void D3DProxyDevice::VPMENU_PosTracking()
 {
 	SHOW_CALL("VPMENU_PosTracking");
-	MenuBuilder *menu = VPMENU_NewFrame();
-	VPMENU_StartDrawing(menu, "Settings - Positional Tracking");
+	MenuBuilder *menu = VPMENU_NewFrame("Settings - Positional Tracking");
 	menu->OnClose([=]() { VPMENU_UpdateConfigSettings(); });
 
 	menu->AddToggle("Positional Tracking (CTRL+P) : %s", "On", "Off", &m_bPosTrackingToggle, true, [=]() {
@@ -1226,8 +1191,7 @@ void D3DProxyDevice::VPMENU_DuckAndCover()
 {
 	SHOW_CALL("VPMENU_DuckAndCover");
 
-	MenuBuilder *menu = VPMENU_NewFrame();
-	VPMENU_StartDrawing(menu, "Settings - Duck-and-Cover");
+	MenuBuilder *menu = VPMENU_NewFrame("Settings - Duck-and-Cover");
 	menu->OnClose([=]() { VPMENU_UpdateConfigSettings(); });
 	
 	menu->AddToggle("Crouch : %s", "Toggle", "Hold", &m_DuckAndCover.crouchToggle, false, [=]() {
@@ -1298,8 +1262,7 @@ void D3DProxyDevice::VPMENU_ComfortMode()
 {
 	SHOW_CALL("VPMENU_ComfortMode");
 	
-	MenuBuilder *menu = VPMENU_NewFrame();
-	VPMENU_StartDrawing(menu, "Settings - Comfort Mode");
+	MenuBuilder *menu = VPMENU_NewFrame("Settings - Comfort Mode");
 	menu->OnClose([=]() { VPMENU_UpdateConfigSettings(); });
 
 	menu->AddKeybind("Turn Left Key",  &config.ComfortModeLeftKey,  defaultConfig.ComfortModeLeftKey);
@@ -1330,8 +1293,7 @@ void D3DProxyDevice::VPMENU_ComfortMode()
 void D3DProxyDevice::VPMENU_VRBoostValues()
 {
 	SHOW_CALL("VPMENU_VRBoostValues");
-	MenuBuilder *menu = VPMENU_NewFrame();
-	VPMENU_StartDrawing(menu, "Settings - VRBoost");
+	MenuBuilder *menu = VPMENU_NewFrame("Settings - VRBoost");
 
 	menu->AddAdjustment("World FOV : %g",          &VRBoostValue[VRboostAxis::WorldFOV], defaultConfig.WorldFOV, 0.5f);
 	menu->AddAdjustment("Player FOV : %g",         &VRBoostValue[VRboostAxis::PlayerFOV], defaultConfig.PlayerFOV, 0.5f);
@@ -1353,8 +1315,7 @@ void D3DProxyDevice::VPMENU_VRBoostValues()
 void D3DProxyDevice::VPMENU_Hotkeys()
 {
 	SHOW_CALL("VPMENU_Hotkeys");
-	MenuBuilder *menu = VPMENU_NewFrame();
-	VPMENU_StartDrawing(menu, "Settings - Hotkeys");
+	MenuBuilder *menu = VPMENU_NewFrame("Settings - Hotkeys");
 	
 	std::string whichGamepad;
 	if(config.GamepadIndex >= 0) {
@@ -1389,8 +1350,7 @@ void D3DProxyDevice::VPMENU_Hotkeys()
 void D3DProxyDevice::VPMENU_Rebindings()
 {
 	SHOW_CALL("VPMENU_Rebindings");
-	MenuBuilder *menu = VPMENU_NewFrame();
-	VPMENU_StartDrawing(menu, "Settings - Key Rebindings");
+	MenuBuilder *menu = VPMENU_NewFrame("Settings - Key Rebindings");
 	
 	menu->AddButton("Add Binding", [=]()
 	{
@@ -1426,8 +1386,7 @@ void D3DProxyDevice::VPMENU_Rebindings()
 void D3DProxyDevice::VPMENU_EditRemapping(HotkeyRemapping *remapping)
 {
 	SHOW_CALL("VPMENU_Rebindings");
-	MenuBuilder *menu = VPMENU_NewFrame();
-	VPMENU_StartDrawing(menu, "Settings - Key Rebindings");
+	MenuBuilder *menu = VPMENU_NewFrame("Settings - Key Rebindings");
 	
 	menu->AddKeybind("Key", &remapping->Key, Unbound());
 	menu->AddGameKeypress("Bind to", &remapping->BoundTo);
@@ -1440,8 +1399,7 @@ void D3DProxyDevice::VPMENU_EditRemapping(HotkeyRemapping *remapping)
 void D3DProxyDevice::VPMENU_Debug()
 {
 	SHOW_CALL("VPMENU_Debug");
-	MenuBuilder *menu = VPMENU_NewFrame();
-	VPMENU_StartDrawing(menu, "Settings - Debug Hotkeys");	
+	MenuBuilder *menu = VPMENU_NewFrame("Settings - Debug Hotkeys");
 	menu->AddKeybind("Toggle Cube Renderers", &config.HotkeyToggleCubeRenders, defaultConfig.HotkeyToggleCubeRenders);
 	menu->AddKeybind("Toggle Texture Renderers", &config.HotkeyToggleTextureRenders, defaultConfig.HotkeyToggleTextureRenders);
 	menu->AddKeybind("Toggle When to Render Menu", &config.HotkeyWhenToRenderMenu, defaultConfig.HotkeyWhenToRenderMenu);
@@ -1455,8 +1413,7 @@ void D3DProxyDevice::VPMENU_Debug()
 void D3DProxyDevice::VPMENU_AdjustmentHotkeys()
 {
 	SHOW_CALL("VPMENU_AdjustmentHotkeys");
-	MenuBuilder *menu = VPMENU_NewFrame();
-	VPMENU_StartDrawing(menu, "Settings - Adjustment Hotkeys");
+	MenuBuilder *menu = VPMENU_NewFrame("Settings - Adjustment Hotkeys");
 	
 	menu->AddKeybind("Switch 2D Depth Mode", &config.HotkeySwitch2DDepthMode, defaultConfig.HotkeySwitch2DDepthMode);
 	menu->AddKeybind("Swap Sides Hotkey", &config.HotkeySwapSides, defaultConfig.HotkeySwapSides);
@@ -1471,7 +1428,6 @@ void D3DProxyDevice::VPMENU_AdjustmentHotkeys()
 	menu->AddKeybind("Distortion Scale Plus", &config.HotkeyDistortionScalePlus, defaultConfig.HotkeyDistortionScalePlus);
 	menu->AddKeybind("Distortion Scale Minus", &config.HotkeyDistortionScaleMinus, defaultConfig.HotkeyDistortionScaleMinus);
 	
-	
 	menu->AddBackButtons();
 	VPMENU_FinishDrawing(menu);
 }
@@ -1479,8 +1435,7 @@ void D3DProxyDevice::VPMENU_AdjustmentHotkeys()
 
 void D3DProxyDevice::VPMENU_EditKeybind(std::string description, InputBindingRef *binding)
 {
-	MenuBuilder *menu = VPMENU_NewFrame();
-	VPMENU_StartDrawing(menu, retprintf("Bind Key - %s", description.c_str()).c_str());
+	MenuBuilder *menu = VPMENU_NewFrame(retprintf("Bind Key - %s", description.c_str()).c_str());
 	std::vector<InputBindingRef> alternatives;
 	HotkeyExpressions::UnpackAlternation(*binding, &alternatives);
 	
@@ -1532,11 +1487,7 @@ void D3DProxyDevice::VPMENU_UpdateCooldowns()
 		D3DXCreateSprite(this, &hackSprite);
 		if (hudFont && hackSprite)
 		{
-			hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
-		
-			D3DXMATRIX matScale;
-			D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
-			hudMainMenu->SetTransform(&matScale);
+			VPMENU_SetupDrawingState();
 			
 			RECT apostropheDrawPos = { 0, 0, 50, 50 };
 			hudFont->DrawText(hackSprite, "'", -1, &apostropheDrawPos, DT_LEFT, COLOR_RED);

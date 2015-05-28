@@ -97,11 +97,7 @@ void D3DProxyDevice::DisplayCurrentPopup()
 	}
 	
 	// output menu
-	hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
-
-	D3DXMATRIX matScale;
-	D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
-	hudMainMenu->SetTransform(&matScale);
+	VPMENU_SetupDrawingState();
 
 	if (activePopup.popupType == VPT_STATS && config.stereo_mode >= 100)
 	{

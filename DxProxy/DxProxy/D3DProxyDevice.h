@@ -403,10 +403,9 @@ protected:
 	void VPMENU_OpenMainMenu();
 	void VPMENU_NavigateTo(std::function<void()> menuHandler);
 	bool VPMENU_IsOpen();
-	MenuBuilder *VPMENU_NewFrame();
+	MenuBuilder *VPMENU_NewFrame(const char *pageTitle);
 	void VPMENU_DrawBorder(int top);
-	void VPMENU_StartDrawing(MenuBuilder *menu, const char *pageTitle);
-	void VPMENU_StartDrawing_NonMenu();
+	void VPMENU_SetupDrawingState();
 	void VPMENU_FinishDrawing(MenuBuilder *menu);
 	void VPMENU_DrawTitle(const char *pageTitle);
 	bool VPMENU_Input_Selected();
