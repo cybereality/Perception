@@ -52,6 +52,7 @@ using namespace VRBoost;
 using namespace vireio;
 using namespace HotkeyExpressions;
 
+InputBindingRef hotkeyMenuBack = Button(13);
 InputBindingRef hotkeyCloseMenu = Key(VK_ESCAPE);
 InputBindingRef hotkeyResetToDefault = Key(VK_BACK);
 InputBindingRef hotkeyClearHotkey = Key(VK_LSHIFT)+Key(VK_BACK);
@@ -59,7 +60,7 @@ InputBindingRef hotkeyMenuUp = Key(VK_UP) || Key('I') || Axis(InputControls::Gam
 InputBindingRef hotkeyMenuDown = Key(VK_DOWN) || Key('K') || Axis(InputControls::GamepadAxis::LeftStickY, false, -MENU_SELECTION_STICK_DEADZONE);
 InputBindingRef hotkeyMenuUpFaster = Key(VK_PRIOR) || Key('U');
 InputBindingRef hotkeyMenuDownFaster = Key(VK_NEXT) || Key('O');
-InputBindingRef hotkeyMenuSelect = Key(VK_RETURN) || Key(VK_RSHIFT) || Button(0x0c);
+InputBindingRef hotkeyMenuSelect = Key(VK_RETURN) || Key(VK_RSHIFT) || Button(12);
 InputBindingRef hotkeyAdjustLeft = Key(VK_LEFT) || Key('J');
 InputBindingRef hotkeyAdjustAxisLeft = Axis(InputControls::LeftStickX, false, -MENU_ADJUSTMENT_STICK_DEADZONE);
 InputBindingRef hotkeyAdjustRight = Key(VK_RIGHT) || Key('L');
@@ -105,6 +106,7 @@ bool D3DProxyDevice::InitVPMENU()
 
 void D3DProxyDevice::VPMENU_Close()
 {
+	menuStatesStack.empty();
 	menuState.onClose();
 	VPMENU_CloseWithoutSaving();
 	VPMENU_UpdateConfigSettings();
@@ -122,7 +124,7 @@ void D3DProxyDevice::VPMENU_CloseWithoutSaving()
 
 void D3DProxyDevice::VPMENU_Back()
 {
-	if(menuStatesStack.size() == 0) {
+	if(menuStatesStack.size() == 1) {
 		VPMENU_Close();
 	} else {
 		menuState.onClose();
@@ -349,6 +351,11 @@ void D3DProxyDevice::VPMENU()
 			}
 		}
 	}
+	else if (hotkeyMenuBack->IsPressed(controls))
+	{
+		VPMENU_Back();
+		return;
+	}
 	else if (hotkeyCloseMenu->IsPressed(controls))
 	{
 		VPMENU_Close();
@@ -435,6 +442,7 @@ void D3DProxyDevice::VPMENU_MainMenu()
 		}, [=]() {
 			VPMENU_NavigateTo([=](){ VPMENU_GUI(); });
 		});
+	 
 	menu->AddNavigation("Overall Settings\n", [=]() { VPMENU_Settings(); });
 	menu->AddNavigation("VRBoost Values\n", [=]() { VPMENU_VRBoostValues(); });
 	menu->AddNavigation("Position Tracking Configuration\n", [=]() { VPMENU_PosTracking(); });
@@ -1501,7 +1509,11 @@ void D3DProxyDevice::VPMENU_EditKeybind(std::string description, InputBindingRef
 			*binding = HotkeyExpressions::PackAlternation(newAlternatives);
 		});
 	}
-	menu->AddButton("Back", [=]() { VPMENU_Back(); });
+	if (alternatives.size() == 0)
+	{
+		menu->AddText("No hotkeys assigned", COLOR_MENU_GRAYED);
+	}
+	menu->AddButton("Done", [=]() { VPMENU_Back(); });
 	
 	VPMENU_FinishDrawing(menu);
 }
@@ -2044,19 +2056,19 @@ void MenuBuilder::AddEnumPicker(const char *formatString, int *currentValue, int
 }
 
 /// Draw text in the middle of a menu (ie, help text or a section heading)
-void MenuBuilder::AddText(const char *text)
+void MenuBuilder::AddText(const char *text, D3DCOLOR color)
 {
 	if(drawPosition.top+40 >= 0
 	   && drawPosition.top <= device->viewportHeight)
 	{
-		device->DrawTextShadowed(device->hudFont, device->hudMainMenu, text, &drawPosition, COLOR_MENU_TEXT);
+		device->DrawTextShadowed(device->hudFont, device->hudMainMenu, text, &drawPosition, color);
 	}
 	drawPosition.top += MENU_ITEM_SEPARATION;
 }
 
 void MenuBuilder::AddBackButtons()
 {
-	AddButton("Back to Main Menu", [=]() {
+	AddButton("Back", [=]() {
 		device->VPMENU_Back();
 	});
 	AddButton("Back to Game", [=]() {

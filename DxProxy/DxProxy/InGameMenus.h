@@ -7,8 +7,9 @@
 #define COLOR_LIGHTRED D3DCOLOR_ARGB(255, 255, 128, 128)
 
 #define COLOR_MENU_TEXT     COLOR_WHITE
+#define COLOR_MENU_GRAYED   D3DCOLOR_ARGB(255, 128, 128, 128)
 #define COLOR_TEXT_SHADOW   D3DCOLOR_ARGB(255, 64, 64, 64)
-#define COLOR_TEXT_ZBUFFER   D3DCOLOR_ARGB(255, 255, 0, 255)
+#define COLOR_TEXT_ZBUFFER  D3DCOLOR_ARGB(255, 255, 0, 255)
 #define COLOR_MENU_BORDER   D3DCOLOR_ARGB(255, 255, 128, 128)
 #define COLOR_MENU_DISABLED D3DCOLOR_ARGB(255, 255, 64, 64)
 #define COLOR_MENU_ENABLED  D3DCOLOR_ARGB(255, 64, 255, 64)
@@ -45,7 +46,7 @@ public:
 	void AddKeybind(std::string text, InputBindingRef *binding, InputBindingRef defaultBinding);
 	void AddAdjustment(const char *formatString, float *value, float defaultValue, float rate, std::function<void()> onChange=[](){});
 	void AddEnumPicker(const char *formatString, int *currentValue, int maxValue, std::function<std::string(int)> getDescription, std::function<void(int)> onChange, std::function<void()> onActivate=[](){});
-	void AddText(const char *text);
+	void AddText(const char *text, D3DCOLOR color=COLOR_MENU_TEXT);
 	void AddBackButtons();
 	void OnClose(std::function<void()> onClose);
 	
