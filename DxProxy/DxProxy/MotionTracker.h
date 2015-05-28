@@ -78,8 +78,7 @@ public:
 	virtual bool SupportsPositionTracking() {return false;}
 
 	/*** MotionTracker public methods ***/
-	bool isEqual(float a, float b){ return abs(a-b) < 0.001; };
-
+	
 	/**
 	* Orientation, as received from tracker.
 	***/

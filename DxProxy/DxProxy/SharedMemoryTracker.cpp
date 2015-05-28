@@ -83,7 +83,7 @@ int  SharedMemoryTracker::getOrientationAndPosition(float* yaw, float* pitch, fl
 #endif
 
 	if(pTrackBuf == NULL)
-		return 1;						// error no buffer
+		return MTS_INITFAIL; // error no buffer
 
 	//Initial values should now be in radians to match OVR and VRBoost requirements
 	primaryYaw = pTrackBuf->Yaw;
@@ -95,7 +95,7 @@ int  SharedMemoryTracker::getOrientationAndPosition(float* yaw, float* pitch, fl
 	*roll = -RADIANS_TO_DEGREES(pTrackBuf->Roll);
 
 
-	return 0; 
+	return MTS_OK;
 }
 
 /**
@@ -109,7 +109,7 @@ void SharedMemoryTracker::updateOrientationAndPosition()
 #endif
 
 	// Get orientation from shared memory.
-	if(getOrientationAndPosition(&yaw, &pitch, &roll, &x, &y, &z) == 0)
+	if(getOrientationAndPosition(&yaw, &pitch, &roll, &x, &y, &z) >= MTS_OK)
 	{
 		// Convert yaw, pitch to positive degrees.
 		// (-180.0f...0.0f -> 180.0f....360.0f)
@@ -118,7 +118,7 @@ void SharedMemoryTracker::updateOrientationAndPosition()
 		pitch = -fmodf(pitch + 360.0f, 360.0f);
 
 		// Get difference.
-		deltaYaw += yaw - currentYaw;
+		deltaYaw   += yaw - currentYaw;
 		deltaPitch += pitch - currentPitch;
 
 		// hack to avoid errors while translating over 360/0
@@ -132,12 +132,8 @@ void SharedMemoryTracker::updateOrientationAndPosition()
 		deltaYaw -= ((float)adjustedYaw)/config->yaw_multiplier;
 		deltaPitch -= ((float)adjustedPitch)/config->pitch_multiplier;
 
-#ifdef _DEBUG
-		OutputDebugString("Motion Tracker SendInput\n");
-#endif
 		// Send to mouse input
-		if (mouseEmulation)
-			InjectMouseMotion(adjustedYaw, adjustedPitch);
+		InjectMouseMotion(adjustedYaw, adjustedPitch);
 
 		// Set current data.
 		currentYaw = yaw;

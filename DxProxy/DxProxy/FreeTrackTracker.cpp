@@ -115,7 +115,7 @@ int FreeTrackTracker::getOrientationAndPosition(float* yaw, float* pitch, float*
 	OutputDebugString("FreeTrack Tracker updateOrientation\n");
 #endif
 
-	return 0;
+	return MTS_OK;
 }
 
 /**

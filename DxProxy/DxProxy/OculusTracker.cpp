@@ -314,8 +314,6 @@ int OculusTracker::getOrientationAndPosition(float* yaw, float* pitch, float* ro
 ***/
 void OculusTracker::updateOrientationAndPosition()
 {
-	SHOW_CALL("OculusTracker updateOrientation\n");
-
 	// Get orientation from Oculus tracker.
 	if (getOrientationAndPosition(&yaw, &pitch, &roll, &x, &y, &z) >= MTS_OK)
 	{
@@ -326,7 +324,7 @@ void OculusTracker::updateOrientationAndPosition()
 		pitch = -fmodf(pitch + 360.0f, 360.0f);
 
 		// Get difference.
-		deltaYaw += yaw - currentYaw;
+		deltaYaw   += yaw - currentYaw;
 		deltaPitch += pitch - currentPitch;
 
 		// hack to avoid errors while translating over 360/0
@@ -340,21 +338,13 @@ void OculusTracker::updateOrientationAndPosition()
 		deltaYaw -= ((float)adjustedYaw)/config->yaw_multiplier;
 		deltaPitch -= ((float)adjustedPitch)/config->pitch_multiplier;
 
-#ifdef SHOW_CALLS
-		OutputDebugString("Motion Tracker SendInput\n");
-#endif
 		// Send to mouse input.
-		if (mouseEmulation)
-			InjectMouseMotion(adjustedYaw, adjustedPitch);
+		InjectMouseMotion(adjustedYaw, adjustedPitch);
 
 		// Set current data.
 		currentYaw = yaw;
 		currentPitch = pitch;
 		currentRoll = (float)( roll * (PI/180.0) * config->roll_multiplier);	// convert from deg to radians then apply mutiplier
-#ifdef SHOW_CALLS
-		debugf("roll: %.4f, multiplier: %.4f", roll, config.roll_multiplier); 
-		debugf("currentYaw: %.4f currentPitch: %.4f currentRoll: %.4f", currentYaw, currentPitch, currentRoll); 
-#endif
 	}
 }
 

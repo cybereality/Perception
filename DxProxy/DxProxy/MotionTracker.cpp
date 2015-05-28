@@ -29,6 +29,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "MotionTracker.h"
 #include "D3DProxyDevice.h"
+#include "Vireio.h"
+using namespace vireio;
 
 /**
 * Constructor.
@@ -80,14 +82,11 @@ void MotionTracker::init()
 
 /**
 * Tracker specific orientation/position update.
-* returns -1 in base class.
+* returns error (MTS_NOTINIT) in base class.
 ***/
-int  MotionTracker::getOrientationAndPosition(float* yaw, float* pitch, float* roll, float* x, float* y, float* z)
+int MotionTracker::getOrientationAndPosition(float* yaw, float* pitch, float* roll, float* x, float* y, float* z)
 {
-#ifdef _DEBUG
-	OutputDebugString("Motion Tracker getOrient\n");
-#endif
-	return -1;
+	return MTS_NOTINIT;
 }
 
 
@@ -97,47 +96,40 @@ int  MotionTracker::getOrientationAndPosition(float* yaw, float* pitch, float* r
 ***/
 void MotionTracker::updateOrientationAndPosition()
 {
-#ifdef _DEBUG
-	OutputDebugString("Motion Tracker updateOrientationAndPosition\n");
-#endif
 	// Get orientation from derived tracker.
-	if(getOrientationAndPosition(&yaw, &pitch, &roll, &x, &y, &z) == 0)
+	if(getOrientationAndPosition(&yaw, &pitch, &roll, &x, &y, &z) >= MTS_OK)
 	{
-#ifdef _DEBUG
-		OutputDebugString("Motion Tracker getOrientation == 0\n");
-#endif
 		// Skip empty input data.
-		if(!isEqual(currentYaw, 0.0f) && !isEqual(currentPitch, 0.0f))
-		{
-			// Convert yaw, pitch to positive degrees, multiply by multiplier.
-			// (-180.0f...0.0f -> 180.0f....360.0f)
-			// (0.0f...180.0f -> 0.0f...180.0f)
-			yaw = fmodf(RADIANS_TO_DEGREES(yaw) + 360.0f, 360.0f)*config->yaw_multiplier;
-			pitch = -fmodf(RADIANS_TO_DEGREES(pitch) + 360.0f, 360.0f)*config->pitch_multiplier;
+		if(AlmostSame(currentYaw, 0.0f, .001f) && AlmostSame(currentPitch, 0.0f, .001f))
+			return;
+		
+	
+		// Convert yaw, pitch to positive degrees, multiply by multiplier.
+		// (-180.0f...0.0f -> 180.0f....360.0f)
+		// (0.0f...180.0f -> 0.0f...180.0f)
+		yaw = fmodf(RADIANS_TO_DEGREES(yaw) + 360.0f, 360.0f)*config->yaw_multiplier;
+		pitch = -fmodf(RADIANS_TO_DEGREES(pitch) + 360.0f, 360.0f)*config->pitch_multiplier;
 
-			// Get difference.
-			deltaYaw += yaw - currentYaw;
-			deltaPitch += pitch - currentPitch;
+		// Get difference.
+		deltaYaw   += yaw   - currentYaw;
+		deltaPitch += pitch - currentPitch;
 
-			// Set limits.
-			if(fabs(deltaYaw) > 100.0f) deltaYaw = 0.0f;
-			if(fabs(deltaPitch) > 100.0f) deltaPitch = 0.0f;
+		// Set limits.
+		if(fabs(deltaYaw) > 100.0f) deltaYaw = 0.0f;
+		if(fabs(deltaPitch) > 100.0f) deltaPitch = 0.0f;
 
-			// Send to mouse input.
-			if (mouseEmulation)
-				InjectMouseMotion((long)deltaYaw, (long)deltaPitch);
+		// Send to mouse input.
+		InjectMouseMotion((long)deltaYaw, (long)deltaPitch);
 
-			// Keep fractional difference in the delta so it's added to the next update.
-			deltaYaw -= (float)(long)deltaYaw;
-			deltaPitch -= (float)(long)deltaPitch;
-		}
+		// Keep fractional difference in the delta so it's added to the next update.
+		deltaYaw -= (float)(long)deltaYaw;
+		deltaPitch -= (float)(long)deltaPitch;
 
 		// Set current data.
 		currentYaw = yaw;
 		currentPitch = pitch;
 		currentRoll = roll*config->roll_multiplier;
 	}
-
 }
 
 /**
@@ -182,10 +174,7 @@ void MotionTracker::InjectMouseMotion(long deltaYaw, long deltaPitch)
 	mouseData.mi.dx = (long)deltaYaw;
 	mouseData.mi.dy = (long)deltaPitch;
 
-#ifdef _DEBUG
-	//OutputDebugString("MotionTracker SendInput\n");
-#endif
-
 	// Send to mouse input.
-	SendInput(1, &mouseData, sizeof(INPUT));
+	if (mouseEmulation)
+		SendInput(1, &mouseData, sizeof(INPUT));
 }

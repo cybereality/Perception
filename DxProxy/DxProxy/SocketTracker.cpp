@@ -73,14 +73,17 @@ int SocketTracker::init()
 }
 
 
-int SocketTracker::getOrientation(float* yaw, float* pitch, float* roll) 
+int SocketTracker::getOrientationAndPosition(float* yaw, float* pitch, float* roll, float* x, float* y, float* z)
 {
 	OutputDebugString("Socket Tracker getOrient\n");
 
 	*roll = this->roll;
 	*pitch = this->pitch;
 	*yaw = this->yaw;
-	return 0; 
+	*x = 0;
+	*y = 0;
+	*z = 0;
+	return MTS_OK;
 }
 
 bool SocketTracker::isAvailable()
@@ -91,13 +94,12 @@ bool SocketTracker::isAvailable()
 
 void SocketTracker::updateOrientation()
 {
-	OutputDebugString("Motion Tracker updateOrientation\n");
-
 	// need to add multipliers...
 
-	if(getOrientation(&yaw, &pitch, &roll) == 0)
+	float x, y, z;
+	if(getOrientationAndPosition(&yaw, &pitch, &roll, &x, &y, &z) >= MTS_OK)
 	{
-		deltaYaw = yaw - currentYaw;
+		deltaYaw   = yaw - currentYaw;
 		deltaPitch = pitch - currentPitch;
 
 		InjectMouseMotion(deltaYaw, deltaPitch);

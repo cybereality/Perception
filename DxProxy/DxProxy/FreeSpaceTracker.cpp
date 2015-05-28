@@ -243,7 +243,7 @@ int FreeSpaceTracker::getOrientationAndPosition(float* yaw, float* pitch, float*
 			*roll = atan2f(m23, m33);
 			*pitch = asinf(-m13);
 			*yaw = atan2f(m12, m11);
-			return 0;   
+			return MTS_OK;
 		}
 
 		// any other message types will just fall through and keep looping until the timeout is reached
@@ -253,10 +253,10 @@ int FreeSpaceTracker::getOrientationAndPosition(float* yaw, float* pitch, float*
 #ifdef _DEBUG
 		debugf("Freespace Error: devID = %d, err == %d\n", DeviceID, err);
 #endif
-		return err;  // return on timeouts or serious errors
+		return MTS_DRIVERFAIL;  // return on timeouts or serious errors
 	}
 
-	return FREESPACE_ERROR_TIMEOUT;  // The function returns gracefully without values
+	return MTS_DRIVERFAIL;  // The function returns gracefully without values
 
 }
 

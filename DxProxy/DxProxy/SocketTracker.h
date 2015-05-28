@@ -30,7 +30,7 @@ public:
 	~SocketTracker(void);
 
 
-	int getOrientation(float* yaw, float* pitch, float* roll);
+	int getOrientationAndPosition(float* yaw, float* pitch, float* roll, float* x, float* y, float* z);
 	bool isAvailable();
 	void updateOrientation();
 	int init();
