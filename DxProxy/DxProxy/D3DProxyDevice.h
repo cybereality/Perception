@@ -434,13 +434,10 @@ protected:
 	
 	void VPMENU_PosTracking();
 	void VPMENU_DuckAndCover();
-	void VPMENU_ComfortMode();
 	void VPMENU_VRBoostValues();
 	void VPMENU_Hotkeys();
 	void VPMENU_Rebindings();
 	void VPMENU_EditRemapping(HotkeyRemapping *remapping);
-	void VPMENU_Debug();
-	void VPMENU_AdjustmentHotkeys();
 	
 	void VPMENU_UpdateCooldowns();
 	void VPMENU_UpdateBorder(int menuEntryCount);

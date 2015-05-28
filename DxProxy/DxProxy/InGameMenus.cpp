@@ -416,6 +416,7 @@ void D3DProxyDevice::VPMENU_MainMenu()
 	}
 	
 	menu->AddNavigation("3D Reconstruction Settings\n", [=]() { VPMENU_3DReconstruction(); });
+	
 	if(config.stereo_mode < 100)
 	{
 		menu->AddNavigation("Convergence Adjustment\n", [=]() { VPMENU_Convergence(); });
@@ -438,14 +439,11 @@ void D3DProxyDevice::VPMENU_MainMenu()
 			VPMENU_NavigateTo([=](){ VPMENU_GUI(); });
 		});
 	 
+	menu->AddNavigation("Hotkeys\n", [=]() { VPMENU_Hotkeys(); });
 	menu->AddNavigation("Overall Settings\n", [=]() { VPMENU_Settings(); });
 	menu->AddNavigation("VRBoost Values\n", [=]() { VPMENU_VRBoostValues(); });
 	menu->AddNavigation("Position Tracking Configuration\n", [=]() { VPMENU_PosTracking(); });
 	menu->AddNavigation("Drawing Options\n", [=]() { VPMENU_Drawing(); });
-	menu->AddNavigation("General Hotkeys\n", [=]() { VPMENU_Hotkeys(); });
-	menu->AddNavigation("Debug Hotkeys\n", [=]() { VPMENU_Debug(); });
-	menu->AddNavigation("3D Adjustment Hotkeys\n", [=]() { VPMENU_AdjustmentHotkeys(); });
-	menu->AddNavigation("Comfort Mode Configuration\n", [=]() { VPMENU_ComfortMode(); });
 	
 	menu->AddButton("Restore Configuration\n", [=]() {
 		// first, backup all strings
@@ -959,12 +957,6 @@ void D3DProxyDevice::VPMENU_HUD()
 		0.002f, [=]() {
 			ChangeHUD3DDepthMode((HUD_3D_Depth_Modes)hud3DDepthMode);
 		});
-	
-	menu->AddKeybind("Hotkey >Switch<",  &config.hudSwitchHotkey, defaultConfig.hudSwitchHotkey);
-	menu->AddKeybind("Hotkey >Default<", &config.hudHotkeys[0],   defaultConfig.hudHotkeys[0]);
-	menu->AddKeybind("Hotkey >Small<",   &config.hudHotkeys[1],   defaultConfig.hudHotkeys[1]);
-	menu->AddKeybind("Hotkey >Large<",   &config.hudHotkeys[2],   defaultConfig.hudHotkeys[2]);
-	menu->AddKeybind("Hotkey >Full<",    &config.hudHotkeys[3],   defaultConfig.hudHotkeys[3]);
 
 	menu->AddBackButtons();
 	VPMENU_FinishDrawing(menu);
@@ -998,12 +990,6 @@ void D3DProxyDevice::VPMENU_GUI()
 		0.002f, [=]() {
 			ChangeGUI3DDepthMode((GUI_3D_Depth_Modes)gui3DDepthMode);
 		});
-	
-	menu->AddKeybind("Hotkey >Switch<",  &config.guiSwitchHotkey, defaultConfig.guiSwitchHotkey);
-	menu->AddKeybind("Hotkey >Default<", &config.guiHotkeys[1],   defaultConfig.guiHotkeys[1]);
-	menu->AddKeybind("Hotkey >Small<",   &config.guiHotkeys[2],   defaultConfig.guiHotkeys[2]);
-	menu->AddKeybind("Hotkey >Large<",   &config.guiHotkeys[3],   defaultConfig.guiHotkeys[3]);
-	menu->AddKeybind("Hotkey >Full<",    &config.guiHotkeys[4],   defaultConfig.guiHotkeys[4]);
 	
 	menu->AddBackButtons();
 	VPMENU_FinishDrawing(menu);
@@ -1114,9 +1100,6 @@ void D3DProxyDevice::VPMENU_Settings()
 		}
 	});
 	
-	BIND_HOTKEY_SETTING("Hotkey >Toggle VRBoost<",      VRBoostResetHotkey);
-	BIND_HOTKEY_SETTING("Hotkey >Disconnected Screen<", EdgePeekHotkey);
-	
 	menu->AddBackButtons();
 	VPMENU_FinishDrawing(menu);
 }
@@ -1156,6 +1139,7 @@ void D3DProxyDevice::VPMENU_Drawing()
 	menu->AddBackButtons();
 	VPMENU_FinishDrawing(menu);
 }
+
 /**
 * Positional Tracking Settings.
 ***/
@@ -1259,38 +1243,6 @@ void D3DProxyDevice::VPMENU_DuckAndCover()
 }
 
 /**
-* configure Comfort Mode.
-***/
-void D3DProxyDevice::VPMENU_ComfortMode()
-{
-	SHOW_CALL("VPMENU_ComfortMode");
-	
-	MenuBuilder *menu = VPMENU_NewFrame("Settings - Comfort Mode");
-	menu->OnClose([=]() { VPMENU_UpdateConfigSettings(); });
-
-	BIND_HOTKEY_SETTING("Turn Left Key",  ComfortModeLeftKey);
-	BIND_HOTKEY_SETTING("Turn Right Key", ComfortModeRightKey);
-
-	// FIXME: This setting needs reset-to-default handling
-	menu->AddButton(retprintf("Yaw Rotation Increment : %.1f", config.ComfortModeYawIncrement), [=]()
-	{
-		if (config.ComfortModeYawIncrement == 30.0f)
-			config.ComfortModeYawIncrement = 45.0f;
-		else if (config.ComfortModeYawIncrement == 45.0f)
-			config.ComfortModeYawIncrement = 60.0f;
-		else if (config.ComfortModeYawIncrement == 60.0f)
-			config.ComfortModeYawIncrement = 90.0f;
-		else if (config.ComfortModeYawIncrement == 90.0f)
-			config.ComfortModeYawIncrement = 30.0f;
-		else
-			config.ComfortModeYawIncrement = 30.0f;
-	});
-
-	menu->AddBackButtons();
-	VPMENU_FinishDrawing(menu);
-}
-
-/**
 * VRBoost constant value sub-menu.
 ***/
 void D3DProxyDevice::VPMENU_VRBoostValues()
@@ -1320,30 +1272,114 @@ void D3DProxyDevice::VPMENU_Hotkeys()
 	SHOW_CALL("VPMENU_Hotkeys");
 	MenuBuilder *menu = VPMENU_NewFrame("Settings - Hotkeys");
 	
+	menu->AddNavigation("Remap Game Hotkeys", [=]() {
+		VPMENU_Rebindings();
+	});
+	
+	menu->AddNavigation("Perception Hotkeys", [=]() {
+		MenuBuilder *menu = VPMENU_NewFrame("Settings - Perception Hotkeys");
+		
+		BIND_HOTKEY_SETTING("Turn Left Key",  ComfortModeLeftKey);
+		BIND_HOTKEY_SETTING("Turn Right Key", ComfortModeRightKey);
+	
+		// FIXME: This setting needs reset-to-default handling
+		menu->AddButton(retprintf("Turn Size : %.1f deg", config.ComfortModeYawIncrement), [=]()
+		{
+			if (config.ComfortModeYawIncrement == 30.0f)
+				config.ComfortModeYawIncrement = 45.0f;
+			else if (config.ComfortModeYawIncrement == 45.0f)
+				config.ComfortModeYawIncrement = 60.0f;
+			else if (config.ComfortModeYawIncrement == 60.0f)
+				config.ComfortModeYawIncrement = 90.0f;
+			else if (config.ComfortModeYawIncrement == 90.0f)
+				config.ComfortModeYawIncrement = 30.0f;
+			else
+				config.ComfortModeYawIncrement = 30.0f;
+		});
+		
+		BIND_HOTKEY_SETTING("Reset Orientation",   HotkeyResetOrientation);
+		BIND_HOTKEY_SETTING("Disconnected Screen Mode", EdgePeekHotkey);
+		BIND_HOTKEY_SETTING("Show Framerate",      HotkeyShowFPS);
+		BIND_HOTKEY_SETTING("Screenshot",          HotkeyScreenshot);
+		BIND_HOTKEY_SETTING("Telescope Mode",      HotkeyTelescopeMode);
+		BIND_HOTKEY_SETTING("Toggle VRBoost",      VRBoostResetHotkey);
+		BIND_HOTKEY_SETTING("Toggle Free Pitch",   HotkeyToggleFreePitch);
+		BIND_HOTKEY_SETTING("Toggle VR Mouse",     HotkeyVRMouse);
+		BIND_HOTKEY_SETTING("Toggle Floaty Menus", HotkeyFloatyMenus);
+		
+		menu->AddBackButtons();
+		VPMENU_FinishDrawing(menu);
+	});
+	
+	menu->AddNavigation("HUD/GUI Hotkeys", [=]() {
+		MenuBuilder *menu = VPMENU_NewFrame("Settings - Perception Hotkeys");
+		
+		menu->AddText("HUD Mode", COLOR_MENU_GRAYED);
+		BIND_HOTKEY_SETTING("    Switch",  hudSwitchHotkey);
+		BIND_HOTKEY_SETTING("    Default", hudHotkeys[0]);
+		BIND_HOTKEY_SETTING("    Small",   hudHotkeys[1]);
+		BIND_HOTKEY_SETTING("    Large",   hudHotkeys[2]);
+		BIND_HOTKEY_SETTING("    Full",    hudHotkeys[3]);
+		
+		menu->AddText("GUI Mode", COLOR_MENU_GRAYED);
+		BIND_HOTKEY_SETTING("    Switch",  guiSwitchHotkey);
+		BIND_HOTKEY_SETTING("    Default", guiHotkeys[1]);
+		BIND_HOTKEY_SETTING("    Small",   guiHotkeys[2]);
+		BIND_HOTKEY_SETTING("    Large",   guiHotkeys[3]);
+		BIND_HOTKEY_SETTING("    Full",    guiHotkeys[4]);
+		
+		menu->AddBackButtons();
+		VPMENU_FinishDrawing(menu);
+	});
+	
+	menu->AddNavigation("3D Adjustment Hotkeys", [=]() {
+		MenuBuilder *menu = VPMENU_NewFrame("Settings - 3D Adjustment Hotkeys");
+		
+		BIND_HOTKEY_SETTING("Switch 2D Depth Mode",         HotkeySwitch2DDepthMode);
+		BIND_HOTKEY_SETTING("Swap Sides Hotkey",            HotkeySwapSides);
+		BIND_HOTKEY_SETTING("Initiate VRBoost Memory Scan", HotkeyInitiateScan);
+		BIND_HOTKEY_SETTING("DK2 Black Smear Correction",   HotkeyBlackSmear);
+		BIND_HOTKEY_SETTING("Reset IPD Offset",             HotkeyResetIPDOffset);
+		BIND_HOTKEY_SETTING("Show HMD Stats",               HotkeyShowHMDStats);
+		BIND_HOTKEY_SETTING("Show Axes",                    HotkeyShowAxes);
+		BIND_HOTKEY_SETTING("Toggle Positional Tracking",   HotkeyTogglePositionalTracking);
+		BIND_HOTKEY_SETTING("Toggle Pose Prediction",       HotkeyTogglePosePrediction);
+		BIND_HOTKEY_SETTING("Toggle Chromatic Abberation Correction", HotkeyToggleChromaticAbberationCorrection);
+		BIND_HOTKEY_SETTING("Distortion Scale Plus",        HotkeyDistortionScalePlus);
+		BIND_HOTKEY_SETTING("Distortion Scale Minus",       HotkeyDistortionScaleMinus);
+		
+		menu->AddBackButtons();
+		VPMENU_FinishDrawing(menu);
+	});
+	
+	menu->AddNavigation("Debug Hotkeys", [=]() {
+		MenuBuilder *menu = VPMENU_NewFrame("Settings - Debug Hotkeys");
+		
+		BIND_HOTKEY_SETTING("Toggle Cube Renderers",      HotkeyToggleCubeRenders);
+		BIND_HOTKEY_SETTING("Toggle Texture Renderers",   HotkeyToggleTextureRenders);
+		BIND_HOTKEY_SETTING("Toggle When to Render Menu", HotkeyWhenToRenderMenu);
+		BIND_HOTKEY_SETTING("Toggle When to Poll Headtracking", HotkeyWhenToPollHeadtracking);
+		BIND_HOTKEY_SETTING("Prev Render State",          HotkeyPrevRenderState);
+		BIND_HOTKEY_SETTING("Next Render State",          HotkeyNextRenderState);
+		
+		menu->AddBackButtons();
+		VPMENU_FinishDrawing(menu);
+	});
+	
 	std::string whichGamepad;
 	if(config.GamepadIndex >= 0) {
 		// Setting numbers gamepads starting at 0, but display starting at 1
-		whichGamepad = retprintf("%i", config.GamepadIndex+1);
+		whichGamepad = retprintf("Player %i", config.GamepadIndex+1);
 	} else {
 		whichGamepad = "None";
 	}
-	menu->AddButton(retprintf("Which Gamepad: %s", whichGamepad.c_str()), [=]()
+	menu->AddButton(retprintf("Use Which Gamepad: %s", whichGamepad.c_str()), [=]()
 	{
 		if (config.GamepadIndex<3)
 			config.GamepadIndex++;
 		else
 			config.GamepadIndex = -1;
 	});
-	
-	menu->AddNavigation("Hotkey Rebindings", [=]() { VPMENU_Rebindings(); });
-	
-	BIND_HOTKEY_SETTING("Reset Orientation",   HotkeyResetOrientation);
-	BIND_HOTKEY_SETTING("Show FPS Hotkey",     HotkeyShowFPS);
-	BIND_HOTKEY_SETTING("Screenshot",          HotkeyScreenshot);
-	BIND_HOTKEY_SETTING("Telescope Mode",      HotkeyTelescopeMode);
-	BIND_HOTKEY_SETTING("Toggle Free Pitch",   HotkeyToggleFreePitch);
-	BIND_HOTKEY_SETTING("Toggle VR Mouse",     HotkeyVRMouse);
-	BIND_HOTKEY_SETTING("Toggle Floaty Menus", HotkeyFloatyMenus);
 	
 	menu->AddBackButtons();
 	VPMENU_FinishDrawing(menu);
@@ -1397,43 +1433,6 @@ void D3DProxyDevice::VPMENU_EditRemapping(HotkeyRemapping *remapping)
 	menu->AddBackButtons();
 	VPMENU_FinishDrawing(menu);
 }
-
-void D3DProxyDevice::VPMENU_Debug()
-{
-	SHOW_CALL("VPMENU_Debug");
-	MenuBuilder *menu = VPMENU_NewFrame("Settings - Debug Hotkeys");
-	BIND_HOTKEY_SETTING("Toggle Cube Renderers",      HotkeyToggleCubeRenders);
-	BIND_HOTKEY_SETTING("Toggle Texture Renderers",   HotkeyToggleTextureRenders);
-	BIND_HOTKEY_SETTING("Toggle When to Render Menu", HotkeyWhenToRenderMenu);
-	BIND_HOTKEY_SETTING("Toggle When to Poll Headtracking", HotkeyWhenToPollHeadtracking);
-	BIND_HOTKEY_SETTING("Prev Render State",          HotkeyPrevRenderState);
-	BIND_HOTKEY_SETTING("Next Render State",          HotkeyNextRenderState);
-	menu->AddBackButtons();
-	VPMENU_FinishDrawing(menu);
-}
-
-void D3DProxyDevice::VPMENU_AdjustmentHotkeys()
-{
-	SHOW_CALL("VPMENU_AdjustmentHotkeys");
-	MenuBuilder *menu = VPMENU_NewFrame("Settings - Adjustment Hotkeys");
-	
-	BIND_HOTKEY_SETTING("Switch 2D Depth Mode",         HotkeySwitch2DDepthMode);
-	BIND_HOTKEY_SETTING("Swap Sides Hotkey",            HotkeySwapSides);
-	BIND_HOTKEY_SETTING("Initiate VRBoost Memory Scan", HotkeyInitiateScan);
-	BIND_HOTKEY_SETTING("DK2 Black Smear Correction",   HotkeyBlackSmear);
-	BIND_HOTKEY_SETTING("Reset IPD Offset",             HotkeyResetIPDOffset);
-	BIND_HOTKEY_SETTING("Show HMD Stats",               HotkeyShowHMDStats);
-	BIND_HOTKEY_SETTING("Show Axes",                    HotkeyShowAxes);
-	BIND_HOTKEY_SETTING("Toggle Positional Tracking",   HotkeyTogglePositionalTracking);
-	BIND_HOTKEY_SETTING("Toggle Pose Prediction",       HotkeyTogglePosePrediction);
-	BIND_HOTKEY_SETTING("Toggle Chromatic Abberation Correction", HotkeyToggleChromaticAbberationCorrection);
-	BIND_HOTKEY_SETTING("Distortion Scale Plus",        HotkeyDistortionScalePlus);
-	BIND_HOTKEY_SETTING("Distortion Scale Minus",       HotkeyDistortionScaleMinus);
-	
-	menu->AddBackButtons();
-	VPMENU_FinishDrawing(menu);
-}
-
 
 void D3DProxyDevice::VPMENU_EditKeybind(std::string description, InputBindingRef *binding)
 {
@@ -1829,7 +1828,7 @@ void MenuBuilder::DrawItem(const char *text, D3DCOLOR color)
 	if(menuConstructionCurrentEntry == device->menuState.selectedIndex)
 	{
 		float borderDrawTop = drawPosition.top + device->menuEntryHeight*device->menuState.animationOffset - 5.0f;
-		device->VPMENU_DrawBorder(borderDrawTop);
+		device->VPMENU_DrawBorder((int)borderDrawTop);
 	}
 	
 	drawPosition.top += MENU_ITEM_SEPARATION;
@@ -2009,6 +2008,8 @@ void MenuBuilder::AddEnumPicker(const char *formatString, int *currentValue, int
 }
 
 /// Draw text in the middle of a menu (ie, help text or a section heading)
+/// TODO: Handle newlines in text
+/// TODO: Do word wrapping
 void MenuBuilder::AddText(const char *text, D3DCOLOR color)
 {
 	if(drawPosition.top+40 >= 0
