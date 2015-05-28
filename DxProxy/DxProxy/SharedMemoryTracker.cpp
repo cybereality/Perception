@@ -125,20 +125,19 @@ void SharedMemoryTracker::updateOrientationAndPosition()
 		if(fabs(deltaYaw) > 4.0f) deltaYaw = 0.0f;
 		if(fabs(deltaPitch) > 4.0f) deltaPitch = 0.0f;
 
-		// Pass to mouse data (long integer).
-		mouseData.mi.dx = (long)(deltaYaw*config->yaw_multiplier);
-		mouseData.mi.dy = (long)(deltaPitch*config->pitch_multiplier);
+		float adjustedYaw = deltaYaw*config->yaw_multiplier;
+		float adjustedPitch = deltaPitch*config->pitch_multiplier;
 
 		// Keep fractional difference in the delta so it's added to the next update.
-		deltaYaw -= ((float)mouseData.mi.dx)/config->yaw_multiplier;
-		deltaPitch -= ((float)mouseData.mi.dy)/config->pitch_multiplier;
+		deltaYaw -= ((float)adjustedYaw)/config->yaw_multiplier;
+		deltaPitch -= ((float)adjustedPitch)/config->pitch_multiplier;
 
 #ifdef _DEBUG
 		OutputDebugString("Motion Tracker SendInput\n");
 #endif
 		// Send to mouse input
 		if (mouseEmulation)
-			SendInput(1, &mouseData, sizeof(INPUT));
+			InjectMouseMotion(adjustedYaw, adjustedPitch);
 
 		// Set current data.
 		currentYaw = yaw;

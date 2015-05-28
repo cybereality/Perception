@@ -100,11 +100,8 @@ void SocketTracker::updateOrientation()
 		deltaYaw = yaw - currentYaw;
 		deltaPitch = pitch - currentPitch;
 
-		mouseData.mi.dx = (long)(deltaYaw);
-		mouseData.mi.dy = (long)(deltaPitch);
+		InjectMouseMotion(deltaYaw, deltaPitch);
 		
-		OutputDebugString("Motion Tracker SendInput\n");
-		SendInput(1, &mouseData, sizeof(INPUT));
 		currentYaw = yaw;
 		currentPitch = pitch;
 		currentRoll = roll;

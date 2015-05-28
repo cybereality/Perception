@@ -116,10 +116,6 @@ public:
 	* Pitch difference, to be passed to game mouse input.
 	***/
 	float deltaPitch;
-	/**
-	* Mouse data, to be passed to the game.
-	***/
-	INPUT mouseData;
 
 	/**
 	* Orientation offset, used to "reset" orientation
@@ -149,6 +145,8 @@ public:
 	};
 
 protected:
+	void InjectMouseMotion(long deltaYaw, long deltaPitch);
+	
 	/**
 	* True if mouse emulation is on.
 	***/
