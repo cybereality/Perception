@@ -138,11 +138,10 @@ float2 HmdWarp(float2 inPoint, float2 chromaCoef)
 	
 	if (inPoint.x > 0.5f) { // Right side?
 		mirroredPoint = float2(1.0f - inPoint.x, inPoint.y);
-		rotationAngle = -Rotation;
 	} else {
 		mirroredPoint = float2(inPoint.x, inPoint.y);
-		rotationAngle = Rotation;
 	}
+	rotationAngle = Rotation;
 	
 	distortedPoint = HmdWarpLeft(mirroredPoint, chromaCoef);
 	
