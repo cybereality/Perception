@@ -32,7 +32,6 @@ public:
 
 	int getOrientationAndPosition(float* yaw, float* pitch, float* roll, float* x, float* y, float* z);
 	bool isAvailable();
-	void updateOrientation();
 	int init();
 
 	bool ListenOnPort(int portNum);

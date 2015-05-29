@@ -29,9 +29,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef SHAREDMEMORY_TRACKER_H_INCLUDED
 #define SHAREDMEMORY_TRACKER_H_INCLUDED
 
-#define PI 3.141592654
-#define RADIANS_TO_DEGREES(rad) ((float) rad * (float) (180.0 / PI))
-
 #include "MotionTracker.h"
 
 #include <string>
@@ -65,7 +62,6 @@ public:
 	/*** SharedMemoryTracker public methods ***/
 	void init();
 	int  getOrientationAndPosition(float* yaw, float* pitch, float* roll, float* x, float* y, float* z);
-	void updateOrientationAndPosition();
 	MotionTrackerStatus getStatus();
 	char* GetTrackerDescription() {return "SharedMemoryTracker";}
 	

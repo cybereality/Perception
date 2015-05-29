@@ -3,6 +3,10 @@
 
 #include <string>
 
+#define PI 3.141592654
+#define RADIANS_TO_DEGREES(rad) ((float)(rad) * (float) (180.0 / PI))
+#define DEGREES_TO_RADIANS(deg) ((float)(deg) * (float) (PI / 180.0))
+
 namespace vireio
 {
 	/**
@@ -17,6 +21,9 @@ namespace vireio
 	
 	std::string retprintf(const char *fmt, ...);
 	void debugf(const char *fmt, ...);
+	
+	float AngleDifferenceDeg(float a, float b);
+	float AngleDifferenceRad(float a, float b);
 }
 
 #endif

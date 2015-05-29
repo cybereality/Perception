@@ -53,9 +53,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SMALL_FLOAT 0.001f
 #define	SLIGHTLY_LESS_THAN_ONE 0.999f
 
-#define PI 3.141592654
-#define RADIANS_TO_DEGREES(rad) ((float) rad * (float) (180.0 / PI))
-
 #define MAX_PIXEL_SHADER_CONST_2_0 32
 #define MAX_PIXEL_SHADER_CONST_2_X 32
 #define MAX_PIXEL_SHADER_CONST_3_0 224
@@ -2321,11 +2318,12 @@ void D3DProxyDevice::HandleTracking()
 						"TRACKER DRIVER FAILED TO INITIALISE");
 					break;
 				default:
+					ShowPopup(VPT_NO_HMD_DETECTED, VPS_ERROR, 10000,
+						"UNRECOGNIZED TRACKER ERROR");
 					break;
 			}
 		}
 
-		tracker->currentRoll = 0;
 		return;
 	}
 
@@ -2393,7 +2391,7 @@ void D3DProxyDevice::HandleTracking()
 			case 1:
 				{
 					if (tracker)
-						m_spShaderViewAdjustment->UpdateRoll(tracker->currentRoll);
+						m_spShaderViewAdjustment->UpdateRoll(tracker->getRollRad());
 					stereoView->m_rotation = 0.0f;
 				}
 				break;
@@ -2402,8 +2400,8 @@ void D3DProxyDevice::HandleTracking()
 					//Set rotation on the stereo view and on the shader adjustment
 					if (tracker)
 					{
-						stereoView->m_rotation = tracker->currentRoll;
-						m_spShaderViewAdjustment->UpdateRoll(tracker->currentRoll);
+						stereoView->m_rotation = tracker->getRollRad();
+						m_spShaderViewAdjustment->UpdateRoll(tracker->getRollRad());
 					}
 				}
 				break;
@@ -2413,21 +2411,21 @@ void D3DProxyDevice::HandleTracking()
 				&& !m_bSurpressPositionaltracking)
 			{
 				//Use reduced Y-position tracking in DFC mode, user should be triggering crouch by moving up and down
-				float yPosition = (VRBoostValue[VRboostAxis::CameraTranslateY] / 20.0f) + tracker->primaryY;
+				float yPosition = (VRBoostValue[VRboostAxis::CameraTranslateY] / 20.0f) + tracker->getY();
 				if (m_DuckAndCover.dfcStatus >= DAC_STANDING)
 					yPosition *= 0.25f;
 
-				m_spShaderViewAdjustment->UpdatePosition(tracker->primaryYaw, tracker->primaryPitch, tracker->primaryRoll,
-					(VRBoostValue[VRboostAxis::CameraTranslateX] / 20.0f) + tracker->primaryX, 
+				m_spShaderViewAdjustment->UpdatePosition(tracker->getYawRad(), tracker->getPitchRad(), tracker->getRollRad(),
+					(VRBoostValue[VRboostAxis::CameraTranslateX] / 20.0f) + tracker->getX(), 
 					yPosition,
-					(VRBoostValue[VRboostAxis::CameraTranslateZ] / 20.0f) + tracker->primaryZ);
+					(VRBoostValue[VRboostAxis::CameraTranslateZ] / 20.0f) + tracker->getZ());
 			}
 
 			//Now we test for whether we are using "duck for cover" (for crouch and prone)
 			if (m_DuckAndCover.dfcStatus == DAC_STANDING)
 			{
 				//Should we jump?
-				if (tracker->y > m_DuckAndCover.yPos_Jump)
+				if (tracker->getY() > m_DuckAndCover.yPos_Jump)
 				{
 					//Trigger jump (press the jump key and immediately release it)
 					SendKeyToGame(m_DuckAndCover.jumpKey, false);
@@ -2435,7 +2433,7 @@ void D3DProxyDevice::HandleTracking()
 				}
 
 				//trigger crouching
-				if (tracker->y < (m_DuckAndCover.yPos_Crouch * 0.55f))
+				if (tracker->getY() < (m_DuckAndCover.yPos_Crouch * 0.55f))
 				{
 					m_DuckAndCover.dfcStatus = DAC_CROUCH;
 					ShowPopup(VPT_NOTIFICATION, VPS_INFO, 250, "Crouch\n");
@@ -2450,7 +2448,7 @@ void D3DProxyDevice::HandleTracking()
 			}
 			else if (m_DuckAndCover.dfcStatus == DAC_CROUCH)
 			{
-				if (tracker->y > (m_DuckAndCover.yPos_Crouch * 0.45f))
+				if (tracker->getY() > (m_DuckAndCover.yPos_Crouch * 0.45f))
 				{
 					//back to standing
 					m_DuckAndCover.dfcStatus = DAC_STANDING;
@@ -2463,7 +2461,7 @@ void D3DProxyDevice::HandleTracking()
 					SendKeyToGame(m_DuckAndCover.crouchKey, true);
 				}
 				else if (m_DuckAndCover.proneEnabled && 
-					tracker->y < (m_DuckAndCover.yPos_Crouch + m_DuckAndCover.yPos_Prone * 0.55f))
+					tracker->getY() < (m_DuckAndCover.yPos_Crouch + m_DuckAndCover.yPos_Prone * 0.55f))
 				{
 					m_DuckAndCover.dfcStatus = DAC_PRONE;
 					ShowPopup(VPT_NOTIFICATION, VPS_INFO, 250, "Prone\n");
@@ -2485,7 +2483,7 @@ void D3DProxyDevice::HandleTracking()
 			else if (m_DuckAndCover.proneEnabled &&
 				m_DuckAndCover.dfcStatus == DAC_PRONE)
 			{
-				if (tracker->y > (m_DuckAndCover.yPos_Crouch + m_DuckAndCover.yPos_Prone * 0.45f))
+				if (tracker->getY() > (m_DuckAndCover.yPos_Crouch + m_DuckAndCover.yPos_Prone * 0.45f))
 				{
 					//back to crouching
 					m_DuckAndCover.dfcStatus = DAC_CROUCH;
@@ -2540,18 +2538,18 @@ void D3DProxyDevice::HandleTracking()
 		bool createNSave = false;
 
 		// apply VRboost memory rules if present
-		float yaw = tracker->primaryYaw;
-		if ((m_comfortModeYaw == 180.f && tracker->primaryYaw > 0.0f) ||
-			(m_comfortModeYaw == -180.f && tracker->primaryYaw < 0.0f))
-			yaw += ((-m_comfortModeYaw / 180.0f) * (float)PI);
+		float yaw = tracker->getYawRad();
+		if ((m_comfortModeYaw == 180.f && yaw > 0.0f) ||
+			(m_comfortModeYaw == -180.f && yaw < 0.0f))
+			yaw += DEGREES_TO_RADIANS(-m_comfortModeYaw);
 		else
-			yaw += ((m_comfortModeYaw / 180.0f) * (float)PI);
+			yaw += DEGREES_TO_RADIANS(m_comfortModeYaw);
 
 		VRBoostValue[VRboostAxis::TrackerYaw] = yaw;
 		//This might be used by games that have a second yaw address for other modes of transport for example
 		VRBoostValue[VRboostAxis::TrackerYaw2] = yaw;
-		VRBoostValue[VRboostAxis::TrackerPitch] = tracker->primaryPitch;
-		VRBoostValue[VRboostAxis::TrackerRoll] = tracker->primaryRoll;
+		VRBoostValue[VRboostAxis::TrackerPitch] = tracker->getPitchRad();
+		VRBoostValue[VRboostAxis::TrackerRoll] = tracker->getRollRad();
 
 		//Telescopic sight mode implementation
 		if (m_telescopeTargetFOV != FLT_MAX)
@@ -3455,8 +3453,8 @@ void D3DProxyDevice::SetGUIViewport()
 	int originalY = (int)(vOut.y+centerY);
 	if(m_bfloatingMenu && (tracker->getStatus() >= MTS_OK))
 	{
-		m_ViewportIfSquished.X = (int)(vOut.x+centerX-(((m_fFloatingYaw - tracker->primaryYaw) * floatMultiplier) * (180 / PI)));
-		m_ViewportIfSquished.Y = (int)(vOut.y+centerY-(((m_fFloatingPitch - tracker->primaryPitch) * floatMultiplier) * (180 / PI)));
+		m_ViewportIfSquished.X = (int)(vOut.x+centerX-(RADIANS_TO_DEGREES((m_fFloatingYaw - tracker->getYawRad()) * floatMultiplier)));
+		m_ViewportIfSquished.Y = (int)(vOut.y+centerY-(RADIANS_TO_DEGREES((m_fFloatingPitch - tracker->getPitchRad()) * floatMultiplier)));
 	}
 	else
 	{

@@ -23,4 +23,22 @@ namespace vireio
 		va_end(args);
 		OutputDebugString(buf);
 	}
+	
+	/// Returns the difference between two angles in [-180,180)
+	float AngleDifferenceDeg(float a, float b)
+	{
+		float result = a-b;
+		while(result<-180) result += 360;
+		while(result>=180) result -= 360;
+		return result;
+	}
+	
+	/// Returns the difference between two angles in [-pi,pi)
+	float AngleDifferenceRad(float a, float b)
+	{
+		float result = a-b;
+		while(result<-PI) result += (float)(2*PI);
+		while(result>=PI) result -= (float)(2*PI);
+		return result;
+	}
 }

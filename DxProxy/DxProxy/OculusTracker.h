@@ -30,9 +30,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef OCULUSTRACKER_H_INCLUDED
 #define OCULUSTRACKER_H_INCLUDED
 
-#define PI 3.141592654
-#define RADIANS_TO_DEGREES(rad) ((float) rad * (float) (180.0 / PI))
-
 #include "MotionTracker.h"
 #include <OVR.h>
 
@@ -60,7 +57,6 @@ public:
 	void resetOrientationAndPosition();
 	void resetPosition();
 	int  getOrientationAndPosition(float* yaw, float* pitch, float* roll, float* x, float* y, float* z);
-	void updateOrientationAndPosition();
 	MotionTrackerStatus getStatus();	
 	virtual char* GetTrackerDescription();
 	virtual bool SupportsPositionTracking();

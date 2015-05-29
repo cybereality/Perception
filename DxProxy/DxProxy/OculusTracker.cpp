@@ -134,7 +134,6 @@ bool OculusTracker::SupportsPositionTracking()
 }
 
 
-
 void OculusTracker::BeginFrame()
 {
 	static unsigned int frameID = 0;
@@ -260,15 +259,10 @@ int OculusTracker::getOrientationAndPosition(float* yaw, float* pitch, float* ro
 	{
 		Quatf hmdOrient=ts.HeadPose.ThePose.Orientation;
 		hmdOrient.GetEulerAngles<Axis_Y,Axis_X,Axis_Z>(yaw, pitch, roll);
+		
+		*roll = -*roll;
+		*pitch = -*pitch;
 
-		// set primary orientations
-		primaryYaw = *yaw - offsetYaw;
-		//As per oculus vr, roll and pitch should not be reset, only yaw/x/y/z
-		primaryPitch = *pitch;// - offsetPitch;
-		primaryRoll = *roll;// - offsetRoll;
-		*yaw = -RadToDegree(*yaw - offsetYaw);
-		*pitch = RadToDegree(*pitch);// - offsetPitch);
-		*roll = -RadToDegree(*roll);// - offsetRoll);
 		status = MTS_OK;
 	}
 	else
@@ -286,66 +280,16 @@ int OculusTracker::getOrientationAndPosition(float* yaw, float* pitch, float* ro
 		}
 		else if (ts.StatusFlags & ovrStatus_PositionTracked)
 		{
-			*x = ts.HeadPose.ThePose.Position.x - offsetX;
-			*y = ts.HeadPose.ThePose.Position.y - offsetY;
-			*z = ts.HeadPose.ThePose.Position.z - offsetZ;
-			primaryX = *x;
-			primaryY = *y;
-			primaryZ = *z;
+			*x = ts.HeadPose.ThePose.Position.x;
+			*y = ts.HeadPose.ThePose.Position.y;
+			*z = ts.HeadPose.ThePose.Position.z;
 			status = MTS_OK;
 		}
 		else
 			status = MTS_LOSTPOSITIONAL;
 	}
 
-#ifdef SHOW_CALLS
-	debugf("Yaw: %.4f Pitch: %.4f Roll: %.4f", primaryYaw, primaryPitch, primaryRoll); 
-	debugf("X: %.4f Y: %.4f Z: %.4f", primaryX, primaryY, primaryZ); 
-
-	debugf("getOrientationAndPosition: %i", (int)status);
-#endif
-
 	return (int)status; 
-}
-
-/**
-* Update Oculus tracker orientation.
-* Updates tracker orientation and passes it to game mouse input accordingly.
-***/
-void OculusTracker::updateOrientationAndPosition()
-{
-	// Get orientation from Oculus tracker.
-	if (getOrientationAndPosition(&yaw, &pitch, &roll, &x, &y, &z) >= MTS_OK)
-	{
-		// Convert yaw, pitch to positive degrees
-		// (-180.0f...0.0f -> 180.0f....360.0f)
-		// (0.0f...180.0f -> 0.0f...180.0f)
-		yaw = fmodf(yaw + 360.0f, 360.0f);
-		pitch = -fmodf(pitch + 360.0f, 360.0f);
-
-		// Get difference.
-		deltaYaw   += yaw - currentYaw;
-		deltaPitch += pitch - currentPitch;
-
-		// hack to avoid errors while translating over 360/0
-		if(fabs(deltaYaw) > 4.0f) deltaYaw = 0.0f;
-		if(fabs(deltaPitch) > 4.0f) deltaPitch = 0.0f;
-
-		float adjustedYaw = deltaYaw*config->yaw_multiplier;
-		float adjustedPitch = deltaPitch*config->pitch_multiplier;
-
-		// Keep fractional difference in the delta so it's added to the next update.
-		deltaYaw -= ((float)adjustedYaw)/config->yaw_multiplier;
-		deltaPitch -= ((float)adjustedPitch)/config->pitch_multiplier;
-
-		// Send to mouse input.
-		InjectMouseMotion(adjustedYaw, adjustedPitch);
-
-		// Set current data.
-		currentYaw = yaw;
-		currentPitch = pitch;
-		currentRoll = (float)( roll * (PI/180.0) * config->roll_multiplier);	// convert from deg to radians then apply mutiplier
-	}
 }
 
 /**

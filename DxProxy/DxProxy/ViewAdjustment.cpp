@@ -219,7 +219,7 @@ void ViewAdjustment::SetGameSpecificPositionalScaling(D3DXVECTOR3 scalingVec)
 }
 
 /**
-* Updates the position matrix
+* Updates the position matrix. Angles are in radians.
 ***/
 void ViewAdjustment::UpdatePosition(float yaw, float pitch, float roll, float xPosition, float yPosition, float zPosition)
 {

@@ -32,6 +32,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Vireio.h"
 using namespace vireio;
 
+
+
 /**
 * Constructor.
 * Calls init function.
@@ -59,8 +61,6 @@ void MotionTracker::init()
 {
 	OutputDebugString("Motion Tracker Init\n");
 
-	currentYaw = 0.0f;
-	currentPitch = 0.0f;
 	currentRoll = 0.0f;
 	primaryYaw = 0.0f;
 	primaryPitch = 0.0f;
@@ -75,9 +75,8 @@ void MotionTracker::init()
 	offsetX = 0.0f;
 	offsetY = 0.0f;
 	offsetZ = 0.0f;
-	primaryX = 0;
-	primaryY = 0;
-	primaryZ = 0;
+	
+	mouseEmulation = false;
 }
 
 /**
@@ -96,39 +95,57 @@ int MotionTracker::getOrientationAndPosition(float* yaw, float* pitch, float* ro
 ***/
 void MotionTracker::updateOrientationAndPosition()
 {
+	float yaw=0, pitch=0, roll=0;
+	float x=0, y=0, z=0;
+	
 	// Get orientation from derived tracker.
 	if(getOrientationAndPosition(&yaw, &pitch, &roll, &x, &y, &z) >= MTS_OK)
 	{
-		// Skip empty input data.
-		if(AlmostSame(currentYaw, 0.0f, .001f) && AlmostSame(currentPitch, 0.0f, .001f))
-			return;
-		
-	
 		// Convert yaw, pitch to positive degrees, multiply by multiplier.
 		// (-180.0f...0.0f -> 180.0f....360.0f)
 		// (0.0f...180.0f -> 0.0f...180.0f)
-		yaw = fmodf(RADIANS_TO_DEGREES(yaw) + 360.0f, 360.0f)*config->yaw_multiplier;
-		pitch = -fmodf(RADIANS_TO_DEGREES(pitch) + 360.0f, 360.0f)*config->pitch_multiplier;
+		yaw = fmodf(RADIANS_TO_DEGREES(yaw) + 360.0f, 360.0f);
+		pitch = -fmodf(RADIANS_TO_DEGREES(pitch) + 360.0f, 360.0f);
+		
+		// Get the difference between the new old yaw, and add it to the accumulated
+		// deltas (which include any rotation that wasn't applied last frame because
+		// the corresponding mouse movement was smaller than a pixel)
+		deltaYaw   += AngleDifferenceDeg(primaryYaw, yaw);
+		deltaPitch += AngleDifferenceDeg(primaryPitch, pitch);
 
-		// Get difference.
-		deltaYaw   += yaw   - currentYaw;
-		deltaPitch += pitch - currentPitch;
+		// Update state
+		adjustedX = x - offsetX;
+		adjustedY = y - offsetY;
+		adjustedZ = z - offsetZ;
+		primaryYaw = yaw;
+		primaryPitch = pitch;
+		primaryRoll = roll;
+		adjustedYaw = yaw - offsetYaw;
+		currentRoll = roll * (PI/180.0f) * config->roll_multiplier;
 
-		// Set limits.
-		if(fabs(deltaYaw) > 100.0f) deltaYaw = 0.0f;
-		if(fabs(deltaPitch) > 100.0f) deltaPitch = 0.0f;
+		// Maximum accumulated turn size. If it seems like there's a pitch/yaw
+		// bigger than this, it probably means we're recovering from list tracking
+		// or something.
+		if (fabs(AngleDifferenceDeg(0, deltaYaw)) > 100.0f)
+			deltaYaw = 0;
+		if (fabs(AngleDifferenceDeg(0, deltaPitch)) > 100.0f)
+			deltaPitch = 0;
 
 		// Send to mouse input.
-		InjectMouseMotion((long)deltaYaw, (long)deltaPitch);
+		if (mouseEmulation) {
+			long deltaYawPixels = (long)(deltaYaw * config->yaw_multiplier);
+			long deltaPitchPixels = (long)(deltaPitch * config->pitch_multiplier);
+			
+			InjectMouseMotion((long)deltaYawPixels, (long)deltaPitchPixels);
 
-		// Keep fractional difference in the delta so it's added to the next update.
-		deltaYaw -= (float)(long)deltaYaw;
-		deltaPitch -= (float)(long)deltaPitch;
-
-		// Set current data.
-		currentYaw = yaw;
-		currentPitch = pitch;
-		currentRoll = roll*config->roll_multiplier;
+			// Keep fractional (smaller-than-pixel sized) difference in the delta
+			// so it's added to the next update.
+			deltaYaw -= ((float)deltaYawPixels) / config->yaw_multiplier;
+			deltaPitch -= ((float)deltaPitchPixels) / config->pitch_multiplier;
+		} else {
+			deltaYaw = 0.0f;
+			deltaPitch = 0.0f;
+		}
 	}
 }
 
@@ -175,6 +192,5 @@ void MotionTracker::InjectMouseMotion(long deltaYaw, long deltaPitch)
 	mouseData.mi.dy = (long)deltaPitch;
 
 	// Send to mouse input.
-	if (mouseEmulation)
-		SendInput(1, &mouseData, sizeof(INPUT));
+	SendInput(1, &mouseData, sizeof(INPUT));
 }

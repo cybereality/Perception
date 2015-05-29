@@ -106,8 +106,8 @@ void D3DProxyDevice::DisplayCurrentPopup()
 			"Yaw: %.3f Pitch: %.3f Roll: %.3f\n",
 			"X: %.3f Y: %.3f Z: %.3f\n",
 			tracker->GetTrackerDescription(),
-			tracker->primaryYaw, tracker->primaryPitch, tracker->primaryRoll,
-			tracker->primaryX, tracker->primaryY, tracker->primaryZ);
+			tracker->getYawDeg(), tracker->getPitchDeg(), tracker->getRollDeg(),
+			tracker->getX(), tracker->getY(), tracker->getZ());
 
 		if (VRBoostStatus.VRBoost_Active)
 		{

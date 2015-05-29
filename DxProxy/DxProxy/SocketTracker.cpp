@@ -92,24 +92,6 @@ bool SocketTracker::isAvailable()
 	return true;
 }
 
-void SocketTracker::updateOrientation()
-{
-	// need to add multipliers...
-
-	float x, y, z;
-	if(getOrientationAndPosition(&yaw, &pitch, &roll, &x, &y, &z) >= MTS_OK)
-	{
-		deltaYaw   = yaw - currentYaw;
-		deltaPitch = pitch - currentPitch;
-
-		InjectMouseMotion(deltaYaw, deltaPitch);
-		
-		currentYaw = yaw;
-		currentPitch = pitch;
-		currentRoll = roll;
-	}
-}
-
 bool SocketTracker::ListenOnPort(int portNum)
 {
 	// convert int portNum to string

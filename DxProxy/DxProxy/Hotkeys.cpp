@@ -257,9 +257,9 @@ void D3DProxyDevice::HandleControls()
 			m_bSurpressPositionaltracking = bSurpressPositionaltracking;
 			if (tracker->getStatus() >= MTS_OK)
 			{
-				m_fFloatingScreenPitch = tracker->primaryPitch;
-				m_fFloatingScreenYaw = tracker->primaryYaw;
-				m_fFloatingScreenZ = tracker->z;
+				m_fFloatingScreenPitch = tracker->getPitchRad();
+				m_fFloatingScreenYaw = tracker->getYawRad();
+				m_fFloatingScreenZ = tracker->getZ();
 			}
 		}
 
@@ -274,9 +274,9 @@ void D3DProxyDevice::HandleControls()
 	{
 		if (tracker->getStatus() >= MTS_OK)
 		{
-			this->stereoView->HeadYOffset = (m_fFloatingScreenPitch - tracker->primaryPitch) * screenFloatMultiplierY + (0.5f * tracker->y);
-			this->stereoView->XOffset = (m_fFloatingScreenYaw - tracker->primaryYaw) * screenFloatMultiplierX + (0.5f * tracker->x);
-			this->stereoView->HeadZOffset = (m_fFloatingScreenZ - tracker->z) * screenFloatMultiplierZ;
+			this->stereoView->HeadYOffset = AngleDifferenceRad(m_fFloatingScreenPitch, tracker->getPitchRad()) * screenFloatMultiplierY + (0.5f * tracker->getY());
+			this->stereoView->XOffset = AngleDifferenceRad(m_fFloatingScreenYaw, tracker->getYawRad()) * screenFloatMultiplierX + (0.5f * tracker->getX());
+			this->stereoView->HeadZOffset = (m_fFloatingScreenZ - tracker->getZ()) * screenFloatMultiplierZ;
 			this->stereoView->PostReset();
 		}
 	}
@@ -285,9 +285,9 @@ void D3DProxyDevice::HandleControls()
 		if (this->stereoView->m_screenViewGlideFactor < 1.0f)
 		{
 			float drift = (sinf(1 + (-cosf((1.0f - this->stereoView->m_screenViewGlideFactor) * 3.142f) / 2)) - 0.5f) * 2.0f;
-			this->stereoView->HeadYOffset = ((m_fFloatingScreenPitch - tracker->primaryPitch) * screenFloatMultiplierY) 
+			this->stereoView->HeadYOffset = (AngleDifferenceRad(m_fFloatingScreenPitch, tracker->getPitchRad()) * screenFloatMultiplierY) 
 				* drift;
-			this->stereoView->XOffset = ((m_fFloatingScreenYaw - tracker->primaryYaw) * screenFloatMultiplierX) 
+			this->stereoView->XOffset = (AngleDifferenceRad(m_fFloatingScreenYaw, tracker->getYawRad()) * screenFloatMultiplierX) 
 				* drift;
 
 			this->stereoView->PostReset();
@@ -338,15 +338,15 @@ void D3DProxyDevice::HandleControls()
 				}
 				else if (m_DuckAndCover.dfcStatus == DAC_CAL_CROUCHING)
 				{
-					m_DuckAndCover.yPos_Crouch = tracker->y;
+					m_DuckAndCover.yPos_Crouch = tracker->getY();
 					//Slightly randomly decided on this
-					m_DuckAndCover.yPos_Jump = fabs(tracker->y) / 3.0f;
+					m_DuckAndCover.yPos_Jump = fabs(tracker->getY()) / 3.0f;
 					m_DuckAndCover.dfcStatus = DAC_CAL_PRONE;
 				}
 				else if (m_DuckAndCover.dfcStatus == DAC_CAL_PRONE)
 				{
 					m_DuckAndCover.proneEnabled = true;
-					m_DuckAndCover.yPos_Prone = tracker->y - m_DuckAndCover.yPos_Crouch;
+					m_DuckAndCover.yPos_Prone = tracker->getY() - m_DuckAndCover.yPos_Crouch;
 					m_DuckAndCover.dfcStatus = DAC_CAL_COMPLETE;
 				}
 				else if (m_DuckAndCover.dfcStatus == DAC_CAL_COMPLETE)
@@ -798,8 +798,8 @@ void D3DProxyDevice::HandleControls()
 				m_bfloatingMenu = true;
 				if (tracker->getStatus() >= MTS_OK)
 				{
-					m_fFloatingPitch = tracker->primaryPitch;
-					m_fFloatingYaw = tracker->primaryYaw;			
+					m_fFloatingPitch = tracker->getPitchRad();
+					m_fFloatingYaw = tracker->getYawRad();
 				}
 			}
 

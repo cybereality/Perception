@@ -86,60 +86,13 @@ int  SharedMemoryTracker::getOrientationAndPosition(float* yaw, float* pitch, fl
 		return MTS_INITFAIL; // error no buffer
 
 	//Initial values should now be in radians to match OVR and VRBoost requirements
-	primaryYaw = pTrackBuf->Yaw;
-	primaryPitch = pTrackBuf->Pitch;
-	primaryRoll = pTrackBuf->Roll;
 	// Then converted to Degrees
-	*yaw = -RADIANS_TO_DEGREES(pTrackBuf->Yaw);
-	*pitch = RADIANS_TO_DEGREES(pTrackBuf->Pitch);
-	*roll = -RADIANS_TO_DEGREES(pTrackBuf->Roll);
+	*yaw = -pTrackBuf->Yaw;
+	*pitch = pTrackBuf->Pitch;
+	*roll = -pTrackBuf->Roll;
 
 
 	return MTS_OK;
-}
-
-/**
-* Update shared memory tracker orientation.
-* Updates tracker orientation and passes it to game mouse input accordingly.
-***/
-void SharedMemoryTracker::updateOrientationAndPosition()
-{
-#ifdef _DEBUG
-	OutputDebugString("Motion Tracker updateOrientation\n");
-#endif
-
-	// Get orientation from shared memory.
-	if(getOrientationAndPosition(&yaw, &pitch, &roll, &x, &y, &z) >= MTS_OK)
-	{
-		// Convert yaw, pitch to positive degrees.
-		// (-180.0f...0.0f -> 180.0f....360.0f)
-		// (0.0f...180.0f -> 0.0f...180.0f)
-		yaw = fmodf(yaw + 360.0f, 360.0f);
-		pitch = -fmodf(pitch + 360.0f, 360.0f);
-
-		// Get difference.
-		deltaYaw   += yaw - currentYaw;
-		deltaPitch += pitch - currentPitch;
-
-		// hack to avoid errors while translating over 360/0
-		if(fabs(deltaYaw) > 4.0f) deltaYaw = 0.0f;
-		if(fabs(deltaPitch) > 4.0f) deltaPitch = 0.0f;
-
-		float adjustedYaw = deltaYaw*config->yaw_multiplier;
-		float adjustedPitch = deltaPitch*config->pitch_multiplier;
-
-		// Keep fractional difference in the delta so it's added to the next update.
-		deltaYaw -= ((float)adjustedYaw)/config->yaw_multiplier;
-		deltaPitch -= ((float)adjustedPitch)/config->pitch_multiplier;
-
-		// Send to mouse input
-		InjectMouseMotion(adjustedYaw, adjustedPitch);
-
-		// Set current data.
-		currentYaw = yaw;
-		currentPitch = pitch;
-		currentRoll = (float)( roll * (PI/180.0) * config->roll_multiplier);	// convert from deg to radians then apply mutiplier
-	}
 }
 
 /**
