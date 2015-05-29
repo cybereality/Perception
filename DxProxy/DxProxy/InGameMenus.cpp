@@ -1359,8 +1359,8 @@ void D3DProxyDevice::VPMENU_Hotkeys()
 		BIND_HOTKEY_SETTING("Toggle Texture Renderers",   HotkeyToggleTextureRenders);
 		BIND_HOTKEY_SETTING("Toggle When to Render Menu", HotkeyWhenToRenderMenu);
 		BIND_HOTKEY_SETTING("Toggle When to Poll Headtracking", HotkeyWhenToPollHeadtracking);
-		BIND_HOTKEY_SETTING("Prev Render State",          HotkeyPrevRenderState);
-		BIND_HOTKEY_SETTING("Next Render State",          HotkeyNextRenderState);
+		BIND_HOTKEY_SETTING("Prev Render State Save Method", HotkeyPrevStateSaveMethod);
+		BIND_HOTKEY_SETTING("Next Render State Save Method", HotkeyNextStateSaveMethod);
 		
 		menu->AddBackButtons();
 		VPMENU_FinishDrawing(menu);

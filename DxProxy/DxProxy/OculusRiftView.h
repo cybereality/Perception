@@ -42,7 +42,6 @@ class OculusRiftView : public StereoView
 public:
 	OculusRiftView(ProxyConfig *config, HMDisplayInfo *hmd);
 	
-	/*** OculusRiftView public methods ***/
 	virtual void SetViewEffectInitialValues();
 	virtual void PostViewEffectCleanup(); 
 	virtual void CalculateShaderVariables( );
@@ -59,17 +58,8 @@ private:
 	* VR mouse position in texture
 	*/
 	float m_mouseTexLocation[2];
-	/**
-	* VR Mouse Squish Param
-	*/
 	float m_VRMouseSquish;
-	/**
-	* zoom
-	*/
 	float m_zoom;
-	/**
-	* XOffset
-	***/
 	float ViewportXOffset;
 	float ViewportYOffset;
 	

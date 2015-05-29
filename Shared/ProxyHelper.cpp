@@ -1120,10 +1120,10 @@ void HandleGameProfile(ProxyHelper::ConfigTransferDirection dir, xml_node &node,
 	HANDLE_SETTING(HotkeyTogglePositionalTracking, Key(VK_F11) || (LShift+Key('P')) || (LCtrl+Key('P')));
 	HANDLE_SETTING(HotkeyTogglePosePrediction, LShift+Key(VK_DELETE));
 	HANDLE_SETTING(HotkeyToggleChromaticAbberationCorrection, (LShift+Key('J')) || (LCtrl+Key('J')));
-	HANDLE_SETTING(HotkeyDistortionScalePlus, LCtrl+Key(VK_ADD));
+	HANDLE_SETTING(HotkeyDistortionScalePlus,  LCtrl+Key(VK_ADD));
 	HANDLE_SETTING(HotkeyDistortionScaleMinus, LCtrl+Key(VK_SUBTRACT));
-	HANDLE_SETTING(HotkeyPrevRenderState,   LAlt + Key(VK_LEFT));
-	HANDLE_SETTING(HotkeyNextRenderState,   LAlt + Key(VK_RIGHT));
+	HANDLE_SETTING(HotkeyPrevStateSaveMethod,  LAlt + Key(VK_LEFT));
+	HANDLE_SETTING(HotkeyNextStateSaveMethod,  LAlt + Key(VK_RIGHT));
 }
 
 //Centralised location for validation of the game type string

@@ -38,6 +38,66 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include <assert.h>
 
+class SavedRenderState
+{
+public:
+	SavedRenderState();
+	~SavedRenderState();
+	void ReleaseEverything();
+	
+	void Save(IDirect3DDevice9 *device);
+	void Restore(IDirect3DDevice9 *device);
+	
+private:
+	DWORD tssColorOp;
+	DWORD tssColorArg1;
+	DWORD tssAlphaOp;
+	DWORD tssAlphaArg1;
+	DWORD tssConstant;
+	
+	DWORD rsAlphaEnable;
+	DWORD rsZWriteEnable;
+	DWORD rsZEnable;
+	
+	DWORD rsSrgbEnable;
+public:
+	DWORD ssSrgb;
+private:
+	DWORD ssSrgb1;
+	
+	DWORD ssAddressU;
+	DWORD ssAddressV;
+	DWORD ssAddressW;
+
+	DWORD ssMag0;
+	DWORD ssMag1;
+	DWORD ssMin0;
+	DWORD ssMin1;
+	DWORD ssMip0;
+	DWORD ssMip1;
+	
+	// These were declared but unused before refactoring. Should they be saved? -Jim
+	//DWORD rsDepthBias;
+	//DWORD rsSlopeScaleDepthBias;
+	
+	/// Saved game texture 0 to be restored after drawing stereoscopic.
+	IDirect3DBaseTexture9* lastTexture;
+	/// Saved game texture 1 to be restored after drawing stereoscopic.
+	IDirect3DBaseTexture9* lastTexture1;
+	
+	/// Saved game vertex shader to be restored after drawing stereoscopic.
+	IDirect3DVertexShader9* lastVertexShader;
+	/// Saved game pixel shader to be restored after drawing stereoscopic.
+	IDirect3DPixelShader9* lastPixelShader;
+	/// Saved game vertex declaration to be restored after drawing stereoscopic.
+	IDirect3DVertexDeclaration9* lastVertexDeclaration;
+	
+	/// Saved game render target 0 to be restored after drawing stereoscopic.
+	IDirect3DSurface9* lastRenderTarget0;
+	/// Saved game render target 1 to be restored after drawing stereoscopic.
+	IDirect3DSurface9* lastRenderTarget1;
+};
+
 /**
 * Stereo-view render class.
 * Basic class to render in stereo.
@@ -47,17 +107,19 @@ class StereoView
 public:
 	StereoView(ProxyConfig *config);
 	virtual ~StereoView();
-
-	/*** StereoView public methods ***/
 	virtual void Init(IDirect3DDevice9* pActualDevice);
 	virtual void ReleaseEverything();
+	
 	virtual void Draw(D3D9ProxySurface* stereoCapableSurface);
-	virtual void SaveScreen();
-	virtual void SaveLastScreen();
-	virtual std::string CycleRenderState(bool blnBackwards);
+	virtual void SaveScreenshot();
+	virtual std::string CycleStateSaveMethod(bool blnBackwards);
 	virtual void PostReset();
 	virtual void SetVRMouseSquish(float squish){}
+	
+private:
 	IDirect3DSurface9* GetBackBuffer();
+	
+public:
 	/**
 	* Stereo render options.
 	***/
@@ -80,59 +142,34 @@ public:
 		DIY_RIFT = 100,                      /**< For do-it-yourself Oculus Rift kits. */
 		OCULUS_RIFT = 110					/**< Standard Oculus Rift render method. */
 	};
-	/**
-	* Left and right enumeration.
-	***/
-	static enum Eyes
-	{
-		LEFT_EYE,
-		RIGHT_EYE
-	};
-	/**
-	* Current Direct3D Viewport.
-	***/
+	
+	/// Current Direct3D Viewport.
 	D3DVIEWPORT9 viewport;
-	/**
-	* Option to suppress chromatic abberation correction for HMD
-	*/
+	
+	/// Option to suppress chromatic abberation correction for HMD
 	bool chromaticAberrationCorrection;
-	/**
-	* True if class is initialized. Needed since initialization is not done in constructor.
-	***/
+	
+	/// True if class is initialized. Needed since initialization is not done in constructor.
 	bool initialized;
-	/**
-	* Type of the game or engine as configured in cfg file.
-	***/
-	std::string game_type;
-	/**
-	* True if stereo is enabled.
-	***/
+	
+	/// True if stereo is enabled.
 	bool stereoEnabled() { return (config->stereo_mode != DISABLED); }; 
-	/**
-	* Floaty Screen Y Offset
-	***/
-	float HeadYOffset;	
-	/**
-	* Floaty Screen Z Offset
-	***/
-	float HeadZOffset;	
+	
+	/// Floaty Screen Y and Z offsets
+	float HeadYOffset, HeadZOffset;
 
-	/**
-	* Controls how zoomed the picture is (not just the distortion)
-	***/
-	float ZoomOutScale;	
-	/**
-	* Offset the screen horizontally
-	***/
-	float XOffset;	
-	/**
-	* Used to glide the disconnected screen view in and out
-	*/
+	/// Controls how zoomed the picture is (not just the distortion)
+	float ZoomOutScale;
+	
+	/// Offset the screen horizontally
+	float XOffset;
+	
+	/// Used to glide the disconnected screen view in and out
 	float m_screenViewGlideFactor;
-	/**
-	* What 3D mode is used
-	**/
+	
+	/// What 3D mode is used
 	int m_3DReconstructionMode;
+	
 	bool m_bLeftSideActive;
 
 	enum VignetteStyle
@@ -142,30 +179,25 @@ public:
 		TELESCOPIC_SIGHT
 	};
 
-	/**
-	* Whether Vignette is enabled (also used for telescopic sight mode)
-	*/
+	/// Whether Vignette is enabled (also used for telescopic sight mode)
 	VignetteStyle m_vignetteStyle;
 	
-	/**
-	* Mouse position for VRMouse
-	*/
+	/// Mouse position for VRMouse
 	POINT m_mousePos;
 
-
-	//The amount of rotation to apply if using pixel shader implementation of roll
+	/// The amount of rotation to apply if using pixel shader implementation of roll
 	float m_rotation;
 
-	//DK2 black smear correction (0.0f if disabled)
-	float m_blackSmearCorrection;		
+	/// DK2 black smear correction enabled?
+	bool m_blackSmearCorrection;
 
-	//Depth Filter Mode
+	/// Depth Filter Mode
 	bool m_bZBufferFilterMode;
 
-	//Current Depth Level
+	/// Current Depth Level
 	float m_fZBufferFilter;
 
-	//Visualisation Mode
+	/// Visualisation Mode
 	bool m_bZBufferVisualisationMode;
 
 protected:
@@ -176,119 +208,47 @@ protected:
 	virtual void SetViewEffectInitialValues(); 
 	virtual void PostViewEffectCleanup(); 
 	virtual void CalculateShaderVariables();
-	virtual void SaveState();
 	virtual void SetState();
-	virtual void RestoreState();
 	virtual void SaveAllRenderStates(LPDIRECT3DDEVICE9 pDevice);
 	virtual void SetAllRenderStatesDefault(LPDIRECT3DDEVICE9 pDevice);
 	virtual void RestoreAllRenderStates(LPDIRECT3DDEVICE9 pDevice);
 	
 	ProxyConfig *config;
 
-	/**
-	* The actual, unwrapped Direct3D Device. 
-	* Class cannot be initialized with wrapped device.
-	***/
+	/// The actual, unwrapped Direct3D Device.
+	/// Class cannot be initialized with wrapped device.
 	IDirect3DDevice9* m_pActualDevice;
-	/**
-	* Saved game vertex shader to be restored after drawing stereoscopic.
-	***/
-	IDirect3DVertexShader9* lastVertexShader;
-	/**
-	* Saved game pixel shader to be restored after drawing stereoscopic.
-	***/
-	IDirect3DPixelShader9* lastPixelShader;
-	/**
-	* Saved game texture 0 to be restored after drawing stereoscopic.
-	***/
-	IDirect3DBaseTexture9* lastTexture;
-	/**
-	* Saved game texture 1 to be restored after drawing stereoscopic.
-	***/
-	IDirect3DBaseTexture9* lastTexture1;
-	/**
-	* Saved game vertex declaration to be restored after drawing stereoscopic.
-	***/
-	IDirect3DVertexDeclaration9* lastVertexDeclaration;
-	/**
-	* Saved game render target 0 to be restored after drawing stereoscopic.
-	***/
-	IDirect3DSurface9* lastRenderTarget0;
-	/**
-	* Saved game render target 1 to be restored after drawing stereoscopic.
-	***/
-	IDirect3DSurface9* lastRenderTarget1;
-	/**
-	* Left eye (or upper) target texture buffer.
-	* Surface data from D3D9ProxySurface is copied on that. To be swapped with right texture if swap_eyes set to true.
-	***/
-	IDirect3DTexture9* leftTexture;
-	/**
-	* Right eye (or lower) target texture buffer.
-	* Surface data from D3D9ProxySurface is copied on that. To be swapped with left texture if swap_eyes set to true.
-	***/
-	IDirect3DTexture9* rightTexture;
-	/**
-	* Current render target.
-	***/
+	
+	/// Left and right eye (or upper and lower) target texture buffer.
+	/// Surface data from D3D9ProxySurface is copied on that. To be swapped if
+	/// swap_eyes set to true.
+	IDirect3DTexture9* leftTexture, *rightTexture;
+	
+	/// Current render target.
 	IDirect3DSurface9* backBuffer;
-	/**
-	* Surface of the left eye texture.
-	***/
-	IDirect3DSurface9* leftSurface;
-	/**
-	* Surface of the right eye texture.
-	***/
-	IDirect3DSurface9* rightSurface;
-	/**
-	* Full screen render vertex buffer containing 4 vertices.
-	***/
+	
+	/// Surface of the left and right eye textures.
+	IDirect3DSurface9* leftSurface, *rightSurface;
+	
+	/// Full screen render vertex buffer containing 4 vertices.
 	IDirect3DVertexBuffer9* screenVertexBuffer;
-	/**
-	* Render state block.
-	* Stores all render states to be restored after drawing stereoscopic.
-	* To be renamed.
-	***/
+	
+	/// Render state block.
+	/// Stores all render states to be restored after drawing stereoscopic.
+	/// To be renamed.
 	IDirect3DStateBlock9* sb;
-	/**
-	* Stores render states.
-	* For games (Half Life 2?) that do not work with direct 3d state block for some reason.
-	***/
+	
+	/// Stores render states.
+	/// For games (Half Life 2?) that do not work with direct 3d state block for some reason.
 	DWORD renderStates[256];
-	/**
-	* View effect according to the stereo mode preset in stereo_mode.
-	***/
+	
+	/// View effect according to the stereo mode preset in stereo_mode.
 	ID3DXEffect* viewEffect;
 	
-	/**
-	* Map of the shader effect file names.
-	***/
+	/// Map of the shader effect file names.
 	std::map<int, std::string> shaderEffect;
-	DWORD tssColorOp;            /**< Various states. */
-	DWORD tssColorArg1;          /**< Various states. */
-	DWORD tssAlphaOp;            /**< Various states. */
-	DWORD tssAlphaArg1;          /**< Various states. */
-	DWORD tssConstant;           /**< Various states. */
-	DWORD rsAlphaEnable;         /**< Various states. */
-	DWORD rsZEnable;             /**< Various states. */
-	DWORD rsZWriteEnable;        /**< Various states. */
-	DWORD rsDepthBias;           /**< Various states. */
-	DWORD rsSlopeScaleDepthBias; /**< Various states. */
-	DWORD rsSrgbEnable;          /**< Various states. */
-	DWORD ssSrgb;                /**< Various states. */  
-	DWORD ssSrgb1;               /**< Various states. */
-	DWORD ssAddressU;            /**< Various states. */
-	DWORD ssAddressV;            /**< Various states. */
-	DWORD ssAddressW;            /**< Various states. */
-	DWORD ssMag0;                /**< Various states. */
-	DWORD ssMag1;                /**< Various states. */
-	DWORD ssMin0;                /**< Various states. */
-	DWORD ssMin1;                /**< Various states. */
-	DWORD ssMip0;                /**< Various states. */
-	DWORD ssMip1;                /**< Various states. */
-	/**
-	* Determines how to save render states for stereo view output.
-	***/
+	
+	/// Determines how to save render states for stereo view output.
 	enum HowToSaveRenderStates
 	{
 		STATE_BLOCK,
@@ -296,12 +256,15 @@ protected:
 		ALL_STATES_MANUALLY,
 		DO_NOT_SAVE_AND_RESTORE,
 	} howToSaveRenderStates;
+	
+	SavedRenderState SavedState;
 };
 
 /**
 * Declaration of texture vertex used for full screen render.
 ***/
 const DWORD D3DFVF_TEXVERTEX = D3DFVF_XYZRHW | D3DFVF_TEX1;
+
 /**
 * Texture vertex used for full screen render.
 ***/

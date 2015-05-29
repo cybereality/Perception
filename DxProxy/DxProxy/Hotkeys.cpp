@@ -423,16 +423,16 @@ void D3DProxyDevice::HandleControls()
 		}
 
 		// cycle Render States
-		if ((config.HotkeyNextRenderState->IsPressed(controls) || config.HotkeyPrevRenderState->IsPressed(controls))&& HotkeysActive())
+		if ((config.HotkeyNextStateSaveMethod->IsPressed(controls) || config.HotkeyPrevStateSaveMethod->IsPressed(controls))&& HotkeysActive())
 		{
 			std::string _str = "";
-			if(config.HotkeyPrevRenderState->IsPressed(controls))
+			if(config.HotkeyPrevStateSaveMethod->IsPressed(controls))
 			{
-				_str = stereoView->CycleRenderState(false);
+				_str = stereoView->CycleStateSaveMethod(false);
 			}
-			else if(config.HotkeyNextRenderState->IsPressed(controls))
+			else if(config.HotkeyNextStateSaveMethod->IsPressed(controls))
 			{
-				_str = stereoView->CycleRenderState(true);
+				_str = stereoView->CycleStateSaveMethod(true);
 			}
 			ShowPopup(VPT_ADJUSTER, VPS_TOAST, 1000,
 				retprintf("New Render State :: %s", _str.c_str()));
@@ -651,14 +651,11 @@ void D3DProxyDevice::HandleControls()
 			config.HotkeyBlackSmear->IsPressed(controls) && 
 			HotkeysActive())
 		{
-			if (stereoView->m_blackSmearCorrection != 0.0f)
-				stereoView->m_blackSmearCorrection = 0.0f;
-			else
-				stereoView->m_blackSmearCorrection = 0.02f;
+			stereoView->m_blackSmearCorrection = !stereoView->m_blackSmearCorrection;
 			
 			stereoView->PostReset();
 			ShowAdjusterToast(retprintf("DK2 Black Smear Correction %s",
-				stereoView->m_blackSmearCorrection!=0.0f ? "Enabled" : "Disabled"), 1000);
+				stereoView->m_blackSmearCorrection ? "Enabled" : "Disabled"), 1000);
 		}
 
 

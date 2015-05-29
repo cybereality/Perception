@@ -90,7 +90,10 @@ void OculusRiftView::SetViewEffectInitialValues()
 	viewEffect->SetFloat("Rotation", m_rotation);
 
 	//Set the black smear corection - 0.0f will do nothing
-	viewEffect->SetFloat("SmearCorrection", m_blackSmearCorrection);
+	if (m_blackSmearCorrection)
+		viewEffect->SetFloat("SmearCorrection", 0.02f);
+	else
+		viewEffect->SetFloat("SmearCorrection", 0.0f);
 
 	//Set mouse position for VR Mouse
 	viewEffect->SetFloatArray("MousePosition", m_mouseTexLocation, 2);

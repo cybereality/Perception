@@ -1041,7 +1041,7 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 		if (screenshot>0)
 		{
 			if (screenshot==1)
-				stereoView->SaveScreen();
+				stereoView->SaveScreenshot();
 			screenshot--;
 		}
 

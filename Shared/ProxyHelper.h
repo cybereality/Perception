@@ -179,8 +179,8 @@ struct ProxyConfig
 	InputBindingRef HotkeyToggleChromaticAbberationCorrection;
 	InputBindingRef HotkeyDistortionScalePlus;
 	InputBindingRef HotkeyDistortionScaleMinus;
-	InputBindingRef HotkeyPrevRenderState;
-	InputBindingRef HotkeyNextRenderState;
+	InputBindingRef HotkeyPrevStateSaveMethod;
+	InputBindingRef HotkeyNextStateSaveMethod;
 	
 	vireio::RenderPosition MaybeSwap(vireio::RenderPosition whichEye);
 };
