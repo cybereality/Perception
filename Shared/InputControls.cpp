@@ -176,9 +176,9 @@ static std::array<std::string, 256> GetKeyNameList()
 	return keyNameList;
 }
 
-static std::array<std::string, 16> GetButtonNameList()
+static std::array<std::string, 18> GetButtonNameList()
 {
-	std::array<std::string, 16> buttonNameList;
+	std::array<std::string, 18> buttonNameList;
 	buttonNameList[0] = "Dpad Up";
 	buttonNameList[1] = "Dpad Down";
 	buttonNameList[2] = "Dpad Left";
@@ -195,6 +195,8 @@ static std::array<std::string, 16> GetButtonNameList()
 	buttonNameList[13] = "BtnB";
 	buttonNameList[14] = "BtnX";
 	buttonNameList[15] = "BtnY";
+	buttonNameList[16] = "LTrig";
+	buttonNameList[17] = "RTrig";
 	return buttonNameList;
 }
 
@@ -214,7 +216,7 @@ static std::vector<InputBindingRef> GetBindableAxes()
 
 // Virtual keys name list (used for BRASSA menu)
 static std::array<std::string, 256> KeyNameList = GetKeyNameList();
-static std::array<std::string, 16> ButtonNameList = GetButtonNameList();
+static std::array<std::string, 18> ButtonNameList = GetButtonNameList();
 
 // List of bind-able axes
 static std::vector<InputBindingRef> BindableAxes = GetBindableAxes();
@@ -240,7 +242,7 @@ std::vector<InputBindingRef> InputControlState::GetHeldInputs()
 		}
 	}
 	
-	for(int ii=0; ii<16; ii++)
+	for(int ii=0; ii<GetNumButtons(); ii++)
 	{
 		if(GetButtonState(ii))
 		{
@@ -321,7 +323,7 @@ bool SimpleButtonBinding::StateIsHeld(InputControlState *state)
 
 std::string SimpleButtonBinding::ToString()
 {
-	if(buttonIndex<0 || buttonIndex>=16)
+	if(buttonIndex<0 || buttonIndex>=18)
 		return retprintf("Btn%i", (int)buttonIndex);
 	else
 		return ButtonNameList[buttonIndex];

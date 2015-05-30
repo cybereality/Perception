@@ -35,10 +35,13 @@ void DirectXInputControls::UpdateInputs()
 		for(DWORD i = 0; i < 16; ++i)
 		{
 			if((currentState.xInputState.Gamepad.wButtons >> i) & 1)
-				currentState.xButtonsStatus[i] = true;
+				currentState.buttonsHeld[i] = true;
 			else
-				currentState.xButtonsStatus[i] = false;
+				currentState.buttonsHeld[i] = false;
 		}
+		
+		currentState.buttonsHeld[16] = (bool)currentState.xInputState.Gamepad.bLeftTrigger;
+		currentState.buttonsHeld[17] = (bool)currentState.xInputState.Gamepad.bRightTrigger;
 	}
 }
 
@@ -69,8 +72,8 @@ void DirectXInputControlState::Reset()
 {
 	for(int ii=0; ii<256; ii++)
 		keyState[ii] = 0;
-	for(int ii=0; ii<16; ii++)
-		xButtonsStatus[ii] = 0;
+	for(int ii=0; ii<18; ii++)
+		buttonsHeld[ii] = 0;
 	ZeroMemory(&xInputState, sizeof(XINPUT_STATE));
 }
 
@@ -83,9 +86,14 @@ bool DirectXInputControlState::GetKeyState(int virtualKeyCode)
 
 bool DirectXInputControlState::GetButtonState(int button)
 {
-	if(button<0 || button>=16)
+	if(button<0 || button>=GetNumButtons())
 		return false;
-	return xButtonsStatus[button];
+	return buttonsHeld[button];
+}
+
+int DirectXInputControlState::GetNumButtons()
+{
+	return 18;
 }
 
 float DirectXInputControlState::GetAxis(InputControls::GamepadAxis axis)

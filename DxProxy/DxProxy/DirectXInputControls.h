@@ -15,11 +15,12 @@ public:
 	void Reset();
 	bool GetKeyState(int virtualKeyCode);
 	bool GetButtonState(int button);
+	int GetNumButtons();
 	float GetAxis(InputControls::GamepadAxis axis);
 	
 private:
 	/// XInput controller button statuses.
-	bool xButtonsStatus[16];
+	bool buttonsHeld[18];
 	
 	/// XInput controller state.
 	XINPUT_STATE xInputState;

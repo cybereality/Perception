@@ -135,6 +135,9 @@ public:
 	/// Whether a button is pressed
 	virtual bool GetButtonState(int button)=0;
 	
+	/// The number of buttons there are.
+	virtual int GetNumButtons()=0;
+	
 	/// Get the stick position of a gamepad axis, scaled from -1.0f to 1.0f.
 	virtual float GetAxis(InputControls::GamepadAxis axis)=0;
 };
