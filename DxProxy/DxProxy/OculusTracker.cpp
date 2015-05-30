@@ -216,7 +216,7 @@ void OculusTracker::resetOrientationAndPosition()
 ***/
 void OculusTracker::resetPosition()
 {
-	SHOW_CALL("OculusTracker resetOrientationAndPosition\n");
+	SHOW_CALL("OculusTracker resetPosition\n");
 
 	offsetX = 0.0f;
 	offsetY = 0.0f;
@@ -241,7 +241,7 @@ void OculusTracker::resetPosition()
 
 #ifdef SHOW_CALLS
 	debugf("resetPosition: %i", (int)status);
-#endif 
+#endif
 }
 
 /**

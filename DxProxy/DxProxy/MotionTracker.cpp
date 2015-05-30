@@ -107,6 +107,8 @@ void MotionTracker::updateOrientationAndPosition()
 		yaw = fmodf(RADIANS_TO_DEGREES(yaw) + 360.0f, 360.0f);
 		pitch = -fmodf(RADIANS_TO_DEGREES(pitch) + 360.0f, 360.0f);
 		
+		if(pitch < -180) pitch += 360.0f;
+		
 		// Get the difference between the new old yaw, and add it to the accumulated
 		// deltas (which include any rotation that wasn't applied last frame because
 		// the corresponding mouse movement was smaller than a pixel)
