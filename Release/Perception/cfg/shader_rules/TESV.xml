@@ -109,9 +109,7 @@
     <ruleID id="11" />HANDS/ARMS SHADER ! SIMPLE MODIFICATION !</shaderSpecificRuleIDs>
   <shaderSpecificRuleIDs shaderHash="186708600" ObjectType="Shadows">
      <ruleID id="10" />SHADOW SHADER ! SIMPLE MODIFICATION !</shaderSpecificRuleIDs>
-	
-  <shaderSpecificRuleIDs shaderHash="440425232" ObjectType="Reticule" />	
-	
+
 	<!-- The following shaders cause the strange fog/smoke issue on AMD cards, defining here so they can be disabled -->
   <shaderSpecificRuleIDs shaderHash="952982412" ObjectType="Fog">
     <ruleID id="10" /></shaderSpecificRuleIDs>	
