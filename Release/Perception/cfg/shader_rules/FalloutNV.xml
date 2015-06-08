@@ -14,6 +14,7 @@
     <rule constantName="ModelViewProj" partialName="true" id="11" constantType="MatrixR" modToApply="1" startReg="9" transpose="true" />
     <rule constantName="ModelViewProj" partialName="true" id="12" constantType="MatrixR" modToApply="4" startReg="0" transpose="true" />
     <rule constantName="ModelViewProj" partialName="true" id="13" constantType="MatrixR" modToApply="9" startReg="0" transpose="true" />
+    <rule constantName="ModelViewProj" partialName="true" id="14" constantType="MatrixR" modToApply="15" startReg="0" transpose="true" />
   </rules>
   <defaultRuleIDs>
     <ruleID id="1" />
@@ -32,6 +33,12 @@
     <ruleID id="12" />
   </shaderSpecificRuleIDs>
   <shaderSpecificRuleIDs shaderHash="2056078029">
+    <ruleID id="13" />
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="1138888547">
+    <ruleID id="12" />
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="3520222568" doNotDraw="true">
     <ruleID id="13" />
   </shaderSpecificRuleIDs>
 </shaderConfig>
