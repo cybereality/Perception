@@ -71,7 +71,7 @@ public:
 		std::stringstream sstm;
 
 		//Get some details from OVR SDK
-/*		OVR::CAPI::HMDState *pHMDState = (OVR::CAPI::HMDState*)(hmd->Handle);
+		OVR::CAPI::HMDState *pHMDState = (OVR::CAPI::HMDState*)(hmd->Handle);
 		std::string user = OVR::ProfileManager::GetInstance()->GetUser(0);
 		OVR::ProfileDeviceKey pdk(&(pHMDState->OurHMDInfo));
 		OVR::Profile* profile = OVR::ProfileManager::GetInstance()->GetProfile(pdk, user.c_str());
@@ -87,9 +87,8 @@ public:
 		{
 			sstm << "No Oculus Profile Defined!!" << std::endl;
 		}
-		*/
 
-		switch (OVR::HmdType_DK2)
+		switch (pHMDState->OurHMDInfo.HmdType)
 		{
 		case OVR::HmdType_DK1:
 			{
@@ -187,7 +186,6 @@ public:
 	***/
 	virtual float GetPhysicalLensSeparation()
 	{
-		return 0.0635f;
 		OVR::CAPI::HMDState *pHMDState = (OVR::CAPI::HMDState*)(hmd->Handle);
 		std::string user = OVR::ProfileManager::GetInstance()->GetUser(0);
 		OVR::ProfileDeviceKey pdk(&(pHMDState->OurHMDInfo));

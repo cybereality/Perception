@@ -362,7 +362,7 @@ HRESULT WINAPI BaseDirect3DDevice9::CreateTexture(UINT Width,UINT Height,UINT Le
 	if (SUCCEEDED(m_pDevice->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))))
 	{
 		//Must use default pool for DX9Ex 
-		hr = pDirect3DDevice9Ex->CreateTexture(Width, Height, Levels, Usage, Format, Pool, ppTexture, pSharedHandle);
+		hr = pDirect3DDevice9Ex->CreateTexture(Width, Height, Levels, Usage, Format, D3DPOOL_DEFAULT, ppTexture, pSharedHandle);
 		pDirect3DDevice9Ex->Release();
 	}
 	else
@@ -395,7 +395,7 @@ HRESULT WINAPI BaseDirect3DDevice9::CreateVolumeTexture(UINT Width,UINT Height,U
 	if (SUCCEEDED(m_pDevice->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))))
 	{
 		//Must use default pool for DX9Ex 
-		hr = pDirect3DDevice9Ex->CreateVolumeTexture(Width, Height, Depth, Levels, Usage, Format, Pool, ppVolumeTexture, pSharedHandle);
+		hr = pDirect3DDevice9Ex->CreateVolumeTexture(Width, Height, Depth, Levels, Usage, Format, D3DPOOL_DEFAULT, ppVolumeTexture, pSharedHandle);
 		pDirect3DDevice9Ex->Release();
 	}
 	else
@@ -427,7 +427,7 @@ HRESULT WINAPI BaseDirect3DDevice9::CreateCubeTexture(UINT EdgeLength,UINT Level
 	if (SUCCEEDED(m_pDevice->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))))
 	{
 		//Must use default pool for DX9Ex 
-		hr = pDirect3DDevice9Ex->CreateCubeTexture(EdgeLength, Levels, Usage, Format, Pool, ppCubeTexture, pSharedHandle);
+		hr = pDirect3DDevice9Ex->CreateCubeTexture(EdgeLength, Levels, Usage, Format, D3DPOOL_DEFAULT, ppCubeTexture, pSharedHandle);
 		pDirect3DDevice9Ex->Release();
 	}
 	else
@@ -460,7 +460,7 @@ HRESULT WINAPI BaseDirect3DDevice9::CreateVertexBuffer(UINT Length,DWORD Usage,D
 	if (SUCCEEDED(m_pDevice->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))))
 	{
 		//Must use default pool for DX9Ex 
-		hr = pDirect3DDevice9Ex->CreateVertexBuffer(Length, Usage, FVF, Pool, ppVertexBuffer, pSharedHandle);
+		hr = pDirect3DDevice9Ex->CreateVertexBuffer(Length, Usage, FVF, D3DPOOL_DEFAULT, ppVertexBuffer, pSharedHandle);
 		pDirect3DDevice9Ex->Release();
 	}
 	else
@@ -493,7 +493,7 @@ HRESULT WINAPI BaseDirect3DDevice9::CreateIndexBuffer(UINT Length,DWORD Usage,D3
 	if (SUCCEEDED(m_pDevice->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))))
 	{
 		//Must use default pool for DX9Ex 
-		hr = pDirect3DDevice9Ex->CreateIndexBuffer(Length, Usage, Format, Pool, ppIndexBuffer, pSharedHandle);
+		hr = pDirect3DDevice9Ex->CreateIndexBuffer(Length, Usage, Format, D3DPOOL_DEFAULT, ppIndexBuffer, pSharedHandle);
 		pDirect3DDevice9Ex->Release();
 	}
 	else

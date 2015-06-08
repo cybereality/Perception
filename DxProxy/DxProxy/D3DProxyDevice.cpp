@@ -337,8 +337,8 @@ D3DProxyDevice::~D3DProxyDevice()
 
 	FreeLibrary(hmVRboost);
 
-	//DestroyWindow(m_pMirrorWindow->window_handle);
-	//delete m_pMirrorWindow;
+	DestroyWindow(m_pMirrorWindow->window_handle);
+	delete m_pMirrorWindow;
 
 	// always do this last
 	auto it = m_activeSwapChains.begin();
