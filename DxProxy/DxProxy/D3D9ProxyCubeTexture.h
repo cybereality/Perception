@@ -60,7 +60,7 @@ struct hash_CubeSurfaceKey {
 class D3D9ProxyCubeTexture : public BaseDirect3DCubeTexture9, public IStereoCapableWrapper<IDirect3DCubeTexture9>
 {
 public:
-	D3D9ProxyCubeTexture(IDirect3DCubeTexture9* pActualTextureLeft, IDirect3DCubeTexture9* pActualTextureRight, BaseDirect3DDevice9* pOwningDevice);
+	D3D9ProxyCubeTexture(UINT Width, UINT Height, D3DFORMAT Format, IDirect3DCubeTexture9* pActualTextureLeft, IDirect3DCubeTexture9* pActualTextureRight, BaseDirect3DDevice9* pOwningDevice);
 	virtual ~D3D9ProxyCubeTexture();	
 	
 	/*** IDirect3DBaseTexture9 methods ***/
@@ -97,5 +97,12 @@ protected:
 	* The actual right cube texture embedded. 
 	***/
 	IDirect3DCubeTexture9* const m_pActualTextureRight;
+
+	UINT m_Width;
+	UINT m_Height;
+	D3DFORMAT m_Format;
+	std::unordered_map<UINT, RECT> lockedRectFaces;
+	std::unordered_map<UINT, bool> fullSurfaceFaces;
+	std::unordered_map<UINT, std::pair<IDirect3DSurface9*, IDirect3DSurface9*>> lockedSurfaceFaces;
 };
 #endif

@@ -34,11 +34,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * Constructor.
 * @see D3D9ProxySurface::D3D9ProxySurface
 ***/
-D3D9ProxyTexture::D3D9ProxyTexture(IDirect3DTexture9* pActualTextureLeft, IDirect3DTexture9* pActualTextureRight, BaseDirect3DDevice9* pOwningDevice) :
+D3D9ProxyTexture::D3D9ProxyTexture(UINT Width, UINT Height, D3DFORMAT Format, IDirect3DTexture9* pActualTextureLeft, IDirect3DTexture9* pActualTextureRight, BaseDirect3DDevice9* pOwningDevice) :
 	BaseDirect3DTexture9(pActualTextureLeft),
 	m_pActualTextureRight(pActualTextureRight),
 	m_wrappedSurfaceLevels(),
-	m_pOwningDevice(pOwningDevice)
+	m_pOwningDevice(pOwningDevice),
+	m_Width(Width),
+	m_Height(Height),
+	m_Format(Format)
 {
 	#ifdef SHOW_CALLS
 		OutputDebugString("called D3D9ProxyTexture::D3D9ProxyTexture");
@@ -261,7 +264,7 @@ HRESULT WINAPI D3D9ProxyTexture::GetSurfaceLevel(UINT Level, IDirect3DSurface9**
 
 		if (SUCCEEDED(leftResult)) {
 
-			D3D9ProxySurface* pWrappedSurfaceLevel = new D3D9ProxySurface(pActualSurfaceLevelLeft, pActualSurfaceLevelRight, m_pOwningDevice, this, NULL, NULL);
+			D3D9ProxySurface* pWrappedSurfaceLevel = new D3D9ProxySurface(m_Width, m_Height, m_Format, pActualSurfaceLevelLeft, pActualSurfaceLevelRight, m_pOwningDevice, this, NULL, NULL);
 
 			if(m_wrappedSurfaceLevels.insert(std::pair<ULONG, D3D9ProxySurface*>(Level, pWrappedSurfaceLevel)).second) {
 				// insertion of wrapped surface level into m_wrappedSurfaceLevels succeeded
@@ -289,6 +292,7 @@ HRESULT WINAPI D3D9ProxyTexture::GetSurfaceLevel(UINT Level, IDirect3DSurface9**
 		}
 	}
 
+	OutputDebugString("exit D3D9ProxyTexture::GetSurfaceLevel");
 	return finalResult;
 }
 
@@ -300,21 +304,61 @@ HRESULT WINAPI D3D9ProxyTexture::LockRect(UINT Level, D3DLOCKED_RECT* pLockedRec
 	#ifdef SHOW_CALLS
 		OutputDebugString("called D3D9ProxyTexture::LockRect");
 	#endif
-	if (IsStereo() && m_pActualTextureRight)
-		m_pActualTextureRight->LockRect(Level, pLockedRect, pRect, Flags);
 
-	HRESULT hr =  m_pActualTexture->LockRect(Level, pLockedRect, pRect, Flags);
-	#ifdef SHOW_CALLS
-		if (FAILED(hr))
+	if (fullSurfaceLevels.find(Level) == fullSurfaceLevels.end())
+	{
+		//new level/surface, reset
+		//Reset rectangle
+		lockedRectLevels[Level].left = MAXDWORD;
+		lockedRectLevels[Level].right = 0;
+		lockedRectLevels[Level].top = MAXDWORD;
+		lockedRectLevels[Level].bottom = 0;
+		fullSurfaceLevels[Level] = false;	
+	}
+
+	//Create lockable system memory surfaces
+	if (pRect && !fullSurfaceLevels[Level])
+	{
+		if (lockedRectLevels[Level].top == MAXDWORD)
+			lockedRectLevels[Level] = *pRect;
+		else
 		{
-			char buffer[32];
-			sprintf_s(buffer, "0x%0.8x", hr);
-			OutputDebugString(buffer);
+			if (lockedRectLevels[Level].left > pRect->left) lockedRectLevels[Level].left = pRect->left;
+			if (lockedRectLevels[Level].right < pRect->right) lockedRectLevels[Level].right = pRect->right;
+			if (lockedRectLevels[Level].top > pRect->top) lockedRectLevels[Level].top = pRect->top;
+			if (lockedRectLevels[Level].bottom < pRect->bottom) lockedRectLevels[Level].bottom = pRect->bottom;
+		}
+		fullSurfaceLevels[Level] = false;
+	}
+	else
+		fullSurfaceLevels[Level] = true;
+
+	if (!lockedSurfaceLevels[Level].first)
+	{
+		m_pOwningDevice->getActual()->CreateOffscreenPlainSurface(m_Width, m_Height, m_Format, D3DPOOL_SYSTEMMEM, &(lockedSurfaceLevels[Level].first), NULL);
+		IDirect3DSurface9* surfaceLevel = NULL;
+		m_pActualTexture->GetSurfaceLevel(Level, &surfaceLevel);
+		m_pOwningDevice->getActual()->GetRenderTargetData(surfaceLevel, lockedSurfaceLevels[Level].first);
+		surfaceLevel->Release();
+		surfaceLevel = NULL;
+	}
+
+	if (IsStereo())
+	{
+		if (!lockedSurfaceLevels[Level].second)
+		{
+			m_pOwningDevice->getActual()->CreateOffscreenPlainSurface(m_Width, m_Height, m_Format, D3DPOOL_SYSTEMMEM, &(lockedSurfaceLevels[Level].second), NULL);
+			IDirect3DSurface9* surfaceLevel = NULL;
+			m_pActualTextureRight->GetSurfaceLevel(Level, &surfaceLevel);
+			m_pOwningDevice->getActual()->GetRenderTargetData(surfaceLevel, lockedSurfaceLevels[Level].second);
+			surfaceLevel->Release();
+			surfaceLevel = NULL;
 		}
 
-		OutputDebugString("called D3D9ProxyTexture::LockRect - Exit");
-	#endif
-	return S_OK;//hr;
+		lockedSurfaceLevels[Level].second->LockRect(pLockedRect, pRect, Flags);
+	}
+
+	return lockedSurfaceLevels[Level].first->LockRect(pLockedRect, pRect, Flags);
 }
 	
 /**
@@ -325,10 +369,65 @@ HRESULT WINAPI D3D9ProxyTexture::UnlockRect(UINT Level)
 	#ifdef SHOW_CALLS
 		OutputDebugString("called D3D9ProxyTexture::UnlockRect");
 	#endif
-	if (IsStereo() && m_pActualTextureRight)
-		m_pActualTextureRight->UnlockRect(Level);
+	if (IsStereo())
+	{
+		lockedSurfaceLevels[Level].second->UnlockRect();
+		if (fullSurfaceLevels[Level])
+		{
+			IDirect3DSurface9* surfaceLevel = NULL;
+			m_pActualTextureRight->GetSurfaceLevel(Level, &surfaceLevel);
+			m_pOwningDevice->getActual()->UpdateSurface(lockedSurfaceLevels[Level].second, NULL, surfaceLevel, NULL);
+			surfaceLevel->Release();
+			surfaceLevel = NULL;
+		}
+		else
+		{
+			POINT p;
+			p.x = lockedRectLevels[Level].left;
+			p.y = lockedRectLevels[Level].top;
+			IDirect3DSurface9* surfaceLevel = NULL;
+			m_pActualTextureRight->GetSurfaceLevel(Level, &surfaceLevel);
+			m_pOwningDevice->getActual()->UpdateSurface(lockedSurfaceLevels[Level].second, &lockedRectLevels[Level], surfaceLevel, &p);
+			surfaceLevel->Release();
+			surfaceLevel = NULL;
+		}
 
-	return m_pActualTexture->UnlockRect(Level);
+		lockedSurfaceLevels[Level].second->Release();
+		lockedSurfaceLevels[Level].second = NULL;
+	}
+
+	HRESULT hr = lockedSurfaceLevels[Level].first->UnlockRect();
+	if (fullSurfaceLevels[Level])
+	{
+		IDirect3DSurface9* surfaceLevel = NULL;
+		m_pActualTexture->GetSurfaceLevel(Level, &surfaceLevel);
+		m_pOwningDevice->getActual()->UpdateSurface(lockedSurfaceLevels[Level].first, NULL, surfaceLevel, NULL);
+		surfaceLevel->Release();
+		surfaceLevel = NULL;
+	}
+	else
+	{
+		POINT p;
+		p.x = lockedRectLevels[Level].left;
+		p.y = lockedRectLevels[Level].top;
+		IDirect3DSurface9* surfaceLevel = NULL;
+		m_pActualTexture->GetSurfaceLevel(Level, &surfaceLevel);
+		m_pOwningDevice->getActual()->UpdateSurface(lockedSurfaceLevels[Level].first, &lockedRectLevels[Level], surfaceLevel, &p);
+		surfaceLevel->Release();
+		surfaceLevel = NULL;
+	}
+
+	lockedSurfaceLevels[Level].first->Release();
+	lockedSurfaceLevels[Level].first = NULL;
+
+
+	//Reset rectangle
+	lockedRectLevels[Level].left = MAXDWORD;
+	lockedRectLevels[Level].right = 0;
+	lockedRectLevels[Level].top = MAXDWORD;
+	lockedRectLevels[Level].bottom = 0;
+	fullSurfaceLevels[Level] = false;
+	return hr;
 }
 
 /**

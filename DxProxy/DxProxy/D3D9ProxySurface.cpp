@@ -36,13 +36,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * and that count is managed by forwarding release and addref to the container. In this case the
 * container must delete this surface when the ref count reaches 0.
 ***/ 
-D3D9ProxySurface::D3D9ProxySurface(IDirect3DSurface9* pActualSurfaceLeft, IDirect3DSurface9* pActualSurfaceRight, BaseDirect3DDevice9* pOwningDevice, IUnknown* pWrappedContainer, HANDLE SharedHandleLeft, HANDLE SharedHandleRight) :
+D3D9ProxySurface::D3D9ProxySurface(UINT Width, UINT Height, D3DFORMAT Format, IDirect3DSurface9* pActualSurfaceLeft, IDirect3DSurface9* pActualSurfaceRight, 
+								   BaseDirect3DDevice9* pOwningDevice, IUnknown* pWrappedContainer, HANDLE SharedHandleLeft, HANDLE SharedHandleRight) :
 	BaseDirect3DSurface9(pActualSurfaceLeft),
 	m_pActualSurfaceRight(pActualSurfaceRight),
 	m_pOwningDevice(pOwningDevice),
 	m_pWrappedContainer(pWrappedContainer),
 	m_SharedHandleLeft(SharedHandleLeft),
-	m_SharedHandleRight(SharedHandleRight)
+	m_SharedHandleRight(SharedHandleRight),
+	m_Width(Width),
+	m_Height(Height),
+	m_Format(Format)
 {
 	assert (pOwningDevice != NULL);
 
@@ -54,6 +58,14 @@ D3D9ProxySurface::D3D9ProxySurface(IDirect3DSurface9* pActualSurfaceLeft, IDirec
 	// pWrappedContainer->AddRef(); is not called here as container add/release is handled
 	// by the container. The ref could be added here but as the release and destruction is
 	// hanlded by the container we leave it all in the same place (the container)	
+
+	lockedSurfaces.first = NULL;
+	lockedSurfaces.second = NULL;
+	lockedRect.left = MAXDWORD;
+	lockedRect.right = 0;
+	lockedRect.top = MAXDWORD;
+	lockedRect.bottom = 0;
+	fullSurface = false;
 }
 
 /**
@@ -219,10 +231,47 @@ HRESULT WINAPI D3D9ProxySurface::GetContainer(REFIID riid, LPVOID* ppContainer)
 ***/
 HRESULT WINAPI D3D9ProxySurface::LockRect(D3DLOCKED_RECT* pLockedRect, CONST RECT* pRect, DWORD Flags)
 {
-	if (IsStereo())
-		m_pActualSurfaceRight->LockRect(pLockedRect, pRect, Flags);
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxySurface::LockRect");
+	#endif
+	//Create lockable system memory surfaces
+	if (pRect && !fullSurface)
+	{
+		if (lockedRect.top == MAXDWORD)
+			lockedRect = *pRect;
+		else
+		{
+			if (lockedRect.left > pRect->left) lockedRect.left = pRect->left;
+			if (lockedRect.right < pRect->right) lockedRect.right = pRect->right;
+			if (lockedRect.top > pRect->top) lockedRect.top = pRect->top;
+			if (lockedRect.bottom < pRect->bottom) lockedRect.bottom = pRect->bottom;
+		}
+		fullSurface = false;
+	}
+	else
+		fullSurface = true;
 
-	return BaseDirect3DSurface9::LockRect(pLockedRect, pRect, Flags);
+	if (IsStereo())
+	{
+		if (!lockedSurfaces.second)
+		{
+			m_pOwningDevice->getActual()->CreateOffscreenPlainSurface(m_Width, m_Height, m_Format, D3DPOOL_SYSTEMMEM, &(lockedSurfaces.second), NULL);
+			m_pOwningDevice->getActual()->GetRenderTargetData(m_pActualSurfaceRight, lockedSurfaces.second);
+		}
+
+		lockedSurfaces.second->LockRect(pLockedRect, pRect, Flags);
+	}
+
+	if (!lockedSurfaces.first)
+	{
+		m_pOwningDevice->getActual()->CreateOffscreenPlainSurface(m_Width, m_Height, m_Format, D3DPOOL_SYSTEMMEM, &(lockedSurfaces.first), NULL);
+		m_pOwningDevice->getActual()->GetRenderTargetData(m_pActualSurface, lockedSurfaces.first);
+	}
+	HRESULT hr = lockedSurfaces.first->LockRect(pLockedRect, pRect, Flags);
+
+		OutputDebugString("exit D3D9ProxySurface::LockRect");
+
+	return hr;
 }
 
 /**
@@ -230,10 +279,48 @@ HRESULT WINAPI D3D9ProxySurface::LockRect(D3DLOCKED_RECT* pLockedRect, CONST REC
 ***/
 HRESULT WINAPI D3D9ProxySurface::UnlockRect()
 {
+	#ifdef SHOW_CALLS
+		OutputDebugString("called D3D9ProxySurface::UnlockRect");
+	#endif
 	if (IsStereo())
-		m_pActualSurfaceRight->UnlockRect();
+	{
+		lockedSurfaces.second->UnlockRect();
+		if (fullSurface)
+			m_pOwningDevice->getActual()->UpdateSurface(lockedSurfaces.second, NULL, m_pActualSurfaceRight, NULL);
+		else
+		{
+			POINT p;
+			p.x = lockedRect.left;
+			p.y = lockedRect.top;
+			m_pOwningDevice->getActual()->UpdateSurface(lockedSurfaces.second, &lockedRect, m_pActualSurfaceRight, &p);
+		}
 
-	return BaseDirect3DSurface9::UnlockRect();
+		lockedSurfaces.second->Release();
+		lockedSurfaces.second = NULL;
+	}
+
+	HRESULT hr = lockedSurfaces.first->UnlockRect();
+	if (fullSurface)
+		m_pOwningDevice->getActual()->UpdateSurface(lockedSurfaces.first, NULL, m_pActualSurface, NULL);
+	else
+	{
+		POINT p;
+		p.x = lockedRect.left;
+		p.y = lockedRect.top;
+		m_pOwningDevice->getActual()->UpdateSurface(lockedSurfaces.first, &lockedRect, m_pActualSurface, &p);
+	}
+
+	lockedSurfaces.first->Release();
+	lockedSurfaces.first = NULL;
+
+
+	//Reset rectangle
+	lockedRect.left = MAXDWORD;
+	lockedRect.right = 0;
+	lockedRect.top = MAXDWORD;
+	lockedRect.bottom = 0;
+	fullSurface = false;
+	return hr;
 }
 
 /**

@@ -688,7 +688,7 @@ HRESULT WINAPI D3DProxyDevice::CreateTexture(UINT Width,UINT Height,UINT Levels,
 		pDirect3DDevice9Ex->Release();
 
 	if (SUCCEEDED(creationResult))
-		*ppTexture = new D3D9ProxyTexture(pLeftTexture, pRightTexture, this);
+		*ppTexture = new D3D9ProxyTexture(Width, Height, Format, pLeftTexture, pRightTexture, this);
 
 	return creationResult;
 }
@@ -767,7 +767,7 @@ HRESULT WINAPI D3DProxyDevice::CreateCubeTexture(UINT EdgeLength, UINT Levels, D
 	}
 
 	if (SUCCEEDED(creationResult))
-		*ppCubeTexture = new D3D9ProxyCubeTexture(pLeftCubeTexture, pRightCubeTexture, this);
+		*ppCubeTexture = new D3D9ProxyCubeTexture(EdgeLength, EdgeLength, Format, pLeftCubeTexture, pRightCubeTexture, this);
 
 	return creationResult;
 }
@@ -879,7 +879,7 @@ HRESULT WINAPI D3DProxyDevice::CreateDepthStencilSurface(UINT Width,UINT Height,
 	}
 
 	if (SUCCEEDED(creationResult))
-		*ppSurface = new D3D9ProxySurface(pDepthStencilSurfaceLeft, pDepthStencilSurfaceRight, this, NULL, NULL, NULL);
+		*ppSurface = new D3D9ProxySurface(Width, Height, Format, pDepthStencilSurfaceLeft, pDepthStencilSurfaceRight, this, NULL, NULL, NULL);
 
 	return creationResult;
 }
@@ -975,24 +975,30 @@ HRESULT WINAPI D3DProxyDevice::UpdateTexture(IDirect3DBaseTexture9* pSourceTextu
 HRESULT WINAPI D3DProxyDevice::GetRenderTargetData(IDirect3DSurface9* pRenderTarget,IDirect3DSurface9* pDestSurface)
 {
 	#ifdef SHOW_CALLS
-		OutputDebugString("called GetRenderTarget");
+		OutputDebugString("called GetRenderTargetData");
 	#endif
 	if ((pDestSurface == NULL) || (pRenderTarget == NULL))
 		return D3DERR_INVALIDCALL;
 
+	OutputDebugString("1");
+
 	D3D9ProxySurface* pWrappedRenderTarget = static_cast<D3D9ProxySurface*>(pRenderTarget);
 	D3D9ProxySurface* pWrappedDest = static_cast<D3D9ProxySurface*>(pDestSurface);
+	OutputDebugString("2");
 
 	IDirect3DSurface9* pRenderTargetLeft = pWrappedRenderTarget->getActualLeft();
 	IDirect3DSurface9* pRenderTargetRight = pWrappedRenderTarget->getActualRight();
+	OutputDebugString("3");
 	IDirect3DSurface9* pDestSurfaceLeft = pWrappedDest->getActualLeft();
 	IDirect3DSurface9* pDestSurfaceRight = pWrappedDest->getActualRight();
 
 	HRESULT result = BaseDirect3DDevice9::GetRenderTargetData(pRenderTargetLeft, pDestSurfaceLeft);
+	OutputDebugString("4");
 
 	if (SUCCEEDED(result)) {
 		if (!pRenderTargetRight && pDestSurfaceRight) {
 			//OutputDebugString("INFO: GetRenderTargetData - Source is not stereo, destination is stereo. Copying source to both sides of destination.\n");
+	OutputDebugString("5");
 
 			if (FAILED(BaseDirect3DDevice9::GetRenderTargetData(pRenderTargetLeft, pDestSurfaceRight))) {
 				OutputDebugString("ERROR: GetRenderTargetData - Failed to copy source left to destination right.\n");
@@ -1008,6 +1014,7 @@ HRESULT WINAPI D3DProxyDevice::GetRenderTargetData(IDirect3DSurface9* pRenderTar
 		}
 	}
 
+		OutputDebugString("exit GetRenderTargetData");
 	return result;
 }
 
@@ -1119,7 +1126,7 @@ HRESULT WINAPI D3DProxyDevice::CreateOffscreenPlainSurface(UINT Width,UINT Heigh
 	HRESULT creationResult = BaseDirect3DDevice9::CreateOffscreenPlainSurface(Width, Height, Format, Pool, &pActualSurface, pSharedHandle);
 
 	if (SUCCEEDED(creationResult))
-		*ppSurface = new D3D9ProxySurface(pActualSurface, NULL, this, NULL, NULL, NULL);
+		*ppSurface = new D3D9ProxySurface(Width, Height, Format, pActualSurface, NULL, this, NULL, NULL, NULL);
 
 	return creationResult;
 }
@@ -2583,9 +2590,9 @@ HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFO
 
 	if (SUCCEEDED(creationResult)) {
 		if (!isSwapChainBackBuffer)
-			*ppSurface = new D3D9ProxySurface(pLeftRenderTarget, pRightRenderTarget, this, NULL, sharedHandleLeft, sharedHandleRight);
+			*ppSurface = new D3D9ProxySurface(Width, Height, Format, pLeftRenderTarget, pRightRenderTarget, this, NULL, sharedHandleLeft, sharedHandleRight);
 		else
-			*ppSurface = new StereoBackBuffer(pLeftRenderTarget, pRightRenderTarget, this, sharedHandleLeft, sharedHandleRight);
+			*ppSurface = new StereoBackBuffer(Width, Height, Format, pLeftRenderTarget, pRightRenderTarget, this, sharedHandleLeft, sharedHandleRight);
 	}
 
 	if (pDirect3DDevice9Ex)

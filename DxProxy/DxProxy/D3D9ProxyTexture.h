@@ -43,7 +43,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class D3D9ProxyTexture : public BaseDirect3DTexture9, public IStereoCapableWrapper<IDirect3DTexture9>
 {
 public:
-	D3D9ProxyTexture(IDirect3DTexture9* pActualTextureLeft, IDirect3DTexture9* pActualTextureRight, BaseDirect3DDevice9* pOwningDevice);
+	D3D9ProxyTexture(UINT Width, UINT Height, D3DFORMAT Format, IDirect3DTexture9* pActualTextureLeft, IDirect3DTexture9* pActualTextureRight, BaseDirect3DDevice9* pOwningDevice);
 	virtual ~D3D9ProxyTexture();
 
 	/*** IUnknown methods ***/
@@ -83,5 +83,12 @@ protected:
 	* The actual right texture embedded. 
 	***/
 	IDirect3DTexture9* const m_pActualTextureRight;
+
+	UINT m_Width;
+	UINT m_Height;
+	D3DFORMAT m_Format;
+	std::unordered_map<UINT, RECT> lockedRectLevels;
+	std::unordered_map<UINT, bool> fullSurfaceLevels;
+	std::unordered_map<UINT, std::pair<IDirect3DSurface9*, IDirect3DSurface9*>> lockedSurfaceLevels;
 };
 #endif

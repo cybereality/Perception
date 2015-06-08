@@ -47,7 +47,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class StereoBackBuffer : public D3D9ProxySurface
 {
 public:
-	StereoBackBuffer(IDirect3DSurface9* pActualSurfaceLeft, IDirect3DSurface9* pActualSurfaceRight, BaseDirect3DDevice9* pOwningDevice, HANDLE SharedHandleLeft, HANDLE SharedHandleRight);
+	StereoBackBuffer(UINT Width, UINT Height, D3DFORMAT Format, IDirect3DSurface9* pActualSurfaceLeft, IDirect3DSurface9* pActualSurfaceRight, BaseDirect3DDevice9* pOwningDevice, HANDLE SharedHandleLeft, HANDLE SharedHandleRight);
 	virtual ~StereoBackBuffer();
 	
 	/*** StereoBackBuffer public methods ***/
