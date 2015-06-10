@@ -111,8 +111,8 @@ protected:
 	UINT m_Width;
 	UINT m_Height;
 	D3DFORMAT m_Format;
-	RECT lockedRect;
+	std::vector<RECT> lockedRects;
 	bool fullSurface;
-	std::pair<IDirect3DSurface9*, IDirect3DSurface9*> lockedSurfaces;
+	IDirect3DTexture9* lockedTexture;
 };
 #endif

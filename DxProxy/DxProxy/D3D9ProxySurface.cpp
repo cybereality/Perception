@@ -46,7 +46,9 @@ D3D9ProxySurface::D3D9ProxySurface(UINT Width, UINT Height, D3DFORMAT Format, ID
 	m_SharedHandleRight(SharedHandleRight),
 	m_Width(Width),
 	m_Height(Height),
-	m_Format(Format)
+	m_Format(Format),
+	lockedTexture(NULL),
+	fullSurface(false)
 {
 	assert (pOwningDevice != NULL);
 
@@ -59,12 +61,6 @@ D3D9ProxySurface::D3D9ProxySurface(UINT Width, UINT Height, D3DFORMAT Format, ID
 	// by the container. The ref could be added here but as the release and destruction is
 	// hanlded by the container we leave it all in the same place (the container)	
 
-	lockedSurfaces.first = NULL;
-	lockedSurfaces.second = NULL;
-	lockedRect.left = MAXDWORD;
-	lockedRect.right = 0;
-	lockedRect.top = MAXDWORD;
-	lockedRect.bottom = 0;
 	fullSurface = false;
 }
 
@@ -237,39 +233,33 @@ HRESULT WINAPI D3D9ProxySurface::LockRect(D3DLOCKED_RECT* pLockedRect, CONST REC
 	//Create lockable system memory surfaces
 	if (pRect && !fullSurface)
 	{
-		if (lockedRect.top == MAXDWORD)
-			lockedRect = *pRect;
-		else
-		{
-			if (lockedRect.left > pRect->left) lockedRect.left = pRect->left;
-			if (lockedRect.right < pRect->right) lockedRect.right = pRect->right;
-			if (lockedRect.top > pRect->top) lockedRect.top = pRect->top;
-			if (lockedRect.bottom < pRect->bottom) lockedRect.bottom = pRect->bottom;
-		}
-		fullSurface = false;
+		lockedRects.push_back(*pRect);
 	}
 	else
+	{
+		lockedRects.clear();
 		fullSurface = true;
-
-	if (IsStereo())
-	{
-		if (!lockedSurfaces.second)
-		{
-			m_pOwningDevice->getActual()->CreateOffscreenPlainSurface(m_Width, m_Height, m_Format, D3DPOOL_SYSTEMMEM, &(lockedSurfaces.second), NULL);
-			m_pOwningDevice->getActual()->GetRenderTargetData(m_pActualSurfaceRight, lockedSurfaces.second);
-		}
-
-		lockedSurfaces.second->LockRect(pLockedRect, pRect, Flags);
 	}
 
-	if (!lockedSurfaces.first)
+	HRESULT hr = D3DERR_INVALIDCALL;
+	IDirect3DSurface9 *pSurface = NULL;
+	if (!lockedTexture)
 	{
-		m_pOwningDevice->getActual()->CreateOffscreenPlainSurface(m_Width, m_Height, m_Format, D3DPOOL_SYSTEMMEM, &(lockedSurfaces.first), NULL);
-		m_pOwningDevice->getActual()->GetRenderTargetData(m_pActualSurface, lockedSurfaces.first);
+		hr = m_pOwningDevice->getActual()->CreateTexture(m_Width, m_Height, 1, 0, 
+			m_Format, D3DPOOL_SYSTEMMEM, &lockedTexture, NULL);
+		if (FAILED(hr))
+			return hr;
+		lockedTexture->GetSurfaceLevel(0, &pSurface);
+		hr = m_pOwningDevice->getActual()->GetRenderTargetData(m_pActualSurface, pSurface);
+		if (FAILED(hr))
+			return hr;
+		hr = pSurface->LockRect(pLockedRect, pRect, Flags);
+		if (FAILED(hr))
+			return hr;
+		pSurface->Release();
 	}
-	HRESULT hr = lockedSurfaces.first->LockRect(pLockedRect, pRect, Flags);
 
-		OutputDebugString("exit D3D9ProxySurface::LockRect");
+	OutputDebugString("exit D3D9ProxySurface::LockRect");
 
 	return hr;
 }
@@ -282,43 +272,68 @@ HRESULT WINAPI D3D9ProxySurface::UnlockRect()
 	#ifdef SHOW_CALLS
 		OutputDebugString("called D3D9ProxySurface::UnlockRect");
 	#endif
+
+	if (lockedRects.size() == 0 && !fullSurface)
+		return D3DERR_INVALIDCALL;
+
+	HRESULT hr = lockedTexture ? lockedTexture->UnlockRect(0) : D3DERR_INVALIDCALL;
+	if (FAILED(hr))
+		return hr;
+
+	IDirect3DSurface9 *pSurface = NULL;
+	hr = lockedTexture->GetSurfaceLevel(0, &pSurface);
+	if (FAILED(hr))
+		return hr;
+
 	if (IsStereo())
 	{
-		lockedSurfaces.second->UnlockRect();
 		if (fullSurface)
-			m_pOwningDevice->getActual()->UpdateSurface(lockedSurfaces.second, NULL, m_pActualSurfaceRight, NULL);
+		{
+			hr = m_pOwningDevice->getActual()->UpdateSurface(pSurface, NULL, m_pActualSurfaceRight, NULL);
+			if (FAILED(hr))
+				return hr;
+		}
 		else
 		{
-			POINT p;
-			p.x = lockedRect.left;
-			p.y = lockedRect.top;
-			m_pOwningDevice->getActual()->UpdateSurface(lockedSurfaces.second, &lockedRect, m_pActualSurfaceRight, &p);
+			std::vector<RECT>::iterator rectIter = lockedRects.begin();
+			while (rectIter != lockedRects.end())
+			{
+				POINT p;
+				p.x = rectIter->left;
+				p.y = rectIter->top;
+				hr = m_pOwningDevice->getActual()->UpdateSurface(pSurface, &(*rectIter), m_pActualSurfaceRight, &p);
+				if (FAILED(hr))
+					return hr;
+				rectIter++;
+			}
 		}
-
-		lockedSurfaces.second->Release();
-		lockedSurfaces.second = NULL;
 	}
 
-	HRESULT hr = lockedSurfaces.first->UnlockRect();
 	if (fullSurface)
-		m_pOwningDevice->getActual()->UpdateSurface(lockedSurfaces.first, NULL, m_pActualSurface, NULL);
+	{
+		hr = m_pOwningDevice->getActual()->UpdateSurface(pSurface, NULL, m_pActualSurface, NULL);
+		if (FAILED(hr))
+			return hr;
+	}
 	else
 	{
-		POINT p;
-		p.x = lockedRect.left;
-		p.y = lockedRect.top;
-		m_pOwningDevice->getActual()->UpdateSurface(lockedSurfaces.first, &lockedRect, m_pActualSurface, &p);
+		std::vector<RECT>::iterator rectIter = lockedRects.begin();
+		while (rectIter != lockedRects.end())
+		{
+			POINT p;
+			p.x = rectIter->left;
+			p.y = rectIter->top;
+			hr = m_pOwningDevice->getActual()->UpdateSurface(pSurface, &(*rectIter), m_pActualSurface, &p);
+			if (FAILED(hr))
+				return hr;
+			rectIter++;
+		}
 	}
 
-	lockedSurfaces.first->Release();
-	lockedSurfaces.first = NULL;
+	pSurface->Release();
+	lockedTexture->Release();
+	lockedTexture = NULL;
 
-
-	//Reset rectangle
-	lockedRect.left = MAXDWORD;
-	lockedRect.right = 0;
-	lockedRect.top = MAXDWORD;
-	lockedRect.bottom = 0;
 	fullSurface = false;
 	return hr;
 }

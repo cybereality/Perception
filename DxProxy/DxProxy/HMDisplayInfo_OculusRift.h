@@ -72,21 +72,6 @@ public:
 
 		//Get some details from OVR SDK
 		OVR::CAPI::HMDState *pHMDState = (OVR::CAPI::HMDState*)(hmd->Handle);
-		std::string user = OVR::ProfileManager::GetInstance()->GetUser(0);
-		OVR::ProfileDeviceKey pdk(&(pHMDState->OurHMDInfo));
-		OVR::Profile* profile = OVR::ProfileManager::GetInstance()->GetProfile(pdk, user.c_str());
-		if (profile)
-		{
-			sstm << "Using Oculus Profile: " << std::endl;
-			sstm << OVR_KEY_USER << ": " << profile->GetValue(OVR_KEY_USER)  << std::endl;
-			sstm << "HmdType: " << (int)pHMDState->OurHMDInfo.HmdType  << std::endl;
-			//clean up
-			delete profile;
-		}
-		else
-		{
-			sstm << "No Oculus Profile Defined!!" << std::endl;
-		}
 
 		switch (pHMDState->OurHMDInfo.HmdType)
 		{
@@ -186,12 +171,7 @@ public:
 	***/
 	virtual float GetPhysicalLensSeparation()
 	{
-		OVR::CAPI::HMDState *pHMDState = (OVR::CAPI::HMDState*)(hmd->Handle);
-		std::string user = OVR::ProfileManager::GetInstance()->GetUser(0);
-		OVR::ProfileDeviceKey pdk(&(pHMDState->OurHMDInfo));
-		OVR::Profile* profile = OVR::ProfileManager::GetInstance()->GetProfile(pdk, user.c_str());
-		OVR::HmdRenderInfo renderInfo = OVR::GenerateHmdRenderInfoFromHmdInfo(pHMDState->OurHMDInfo, profile, OVR::DistortionEqnType::Distortion_CatmullRom10);
-		return renderInfo.LensSeparationInMeters;
+		return 63.5;
 	}
 	
 	/**

@@ -87,8 +87,8 @@ protected:
 	UINT m_Width;
 	UINT m_Height;
 	D3DFORMAT m_Format;
-	std::unordered_map<UINT, RECT> lockedRectLevels;
-	std::unordered_map<UINT, bool> fullSurfaceLevels;
-	std::unordered_map<UINT, std::pair<IDirect3DSurface9*, IDirect3DSurface9*>> lockedSurfaceLevels;
+	std::unordered_map<UINT, std::vector<RECT>> lockedRects;
+	std::unordered_map<UINT, bool> fullSurfaces;
+	std::unordered_map<UINT, IDirect3DTexture9*> lockedTextures;
 };
 #endif
