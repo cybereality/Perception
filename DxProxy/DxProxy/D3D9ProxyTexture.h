@@ -43,7 +43,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class D3D9ProxyTexture : public BaseDirect3DTexture9, public IStereoCapableWrapper<IDirect3DTexture9>
 {
 public:
-	D3D9ProxyTexture(UINT Width, UINT Height, D3DFORMAT Format, IDirect3DTexture9* pActualTextureLeft, IDirect3DTexture9* pActualTextureRight, BaseDirect3DDevice9* pOwningDevice);
+	D3D9ProxyTexture(UINT Width, UINT Height, D3DFORMAT Format, bool lockable, IDirect3DTexture9* pActualTextureLeft, IDirect3DTexture9* pActualTextureRight, BaseDirect3DDevice9* pOwningDevice);
 	virtual ~D3D9ProxyTexture();
 
 	/*** IUnknown methods ***/
@@ -84,9 +84,11 @@ protected:
 	***/
 	IDirect3DTexture9* const m_pActualTextureRight;
 
+	//Special handling required for locking rectangles if we are using Dx9Ex
 	UINT m_Width;
 	UINT m_Height;
 	D3DFORMAT m_Format;
+	bool m_lockable;
 	std::unordered_map<UINT, std::vector<RECT>> lockedRects;
 	std::unordered_map<UINT, bool> fullSurfaces;
 	std::unordered_map<UINT, IDirect3DTexture9*> lockedTextures;

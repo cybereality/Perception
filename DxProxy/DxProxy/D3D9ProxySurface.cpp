@@ -36,7 +36,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * and that count is managed by forwarding release and addref to the container. In this case the
 * container must delete this surface when the ref count reaches 0.
 ***/ 
-D3D9ProxySurface::D3D9ProxySurface(UINT Width, UINT Height, D3DFORMAT Format, IDirect3DSurface9* pActualSurfaceLeft, IDirect3DSurface9* pActualSurfaceRight, 
+D3D9ProxySurface::D3D9ProxySurface(UINT Width, UINT Height, D3DFORMAT Format, bool lockable, IDirect3DSurface9* pActualSurfaceLeft, IDirect3DSurface9* pActualSurfaceRight, 
 								   BaseDirect3DDevice9* pOwningDevice, IUnknown* pWrappedContainer, HANDLE SharedHandleLeft, HANDLE SharedHandleRight) :
 	BaseDirect3DSurface9(pActualSurfaceLeft),
 	m_pActualSurfaceRight(pActualSurfaceRight),
@@ -48,7 +48,8 @@ D3D9ProxySurface::D3D9ProxySurface(UINT Width, UINT Height, D3DFORMAT Format, ID
 	m_Height(Height),
 	m_Format(Format),
 	lockedTexture(NULL),
-	fullSurface(false)
+	fullSurface(false),
+	m_lockable(lockable)
 {
 	assert (pOwningDevice != NULL);
 
@@ -60,8 +61,6 @@ D3D9ProxySurface::D3D9ProxySurface(UINT Width, UINT Height, D3DFORMAT Format, ID
 	// pWrappedContainer->AddRef(); is not called here as container add/release is handled
 	// by the container. The ref could be added here but as the release and destruction is
 	// hanlded by the container we leave it all in the same place (the container)	
-
-	fullSurface = false;
 }
 
 /**
@@ -230,6 +229,13 @@ HRESULT WINAPI D3D9ProxySurface::LockRect(D3DLOCKED_RECT* pLockedRect, CONST REC
 	#ifdef SHOW_CALLS
 		OutputDebugString("called D3D9ProxySurface::LockRect");
 	#endif
+
+	if (m_lockable)
+	{
+		//Can't really handle stereo for this, so just lock on the original texture
+		return m_pActualSurface->LockRect(pLockedRect, pRect, Flags);
+	}
+
 	//Create lockable system memory surfaces
 	if (pRect && !fullSurface)
 	{
@@ -245,7 +251,7 @@ HRESULT WINAPI D3D9ProxySurface::LockRect(D3DLOCKED_RECT* pLockedRect, CONST REC
 	IDirect3DSurface9 *pSurface = NULL;
 	if (!lockedTexture)
 	{
-		hr = m_pOwningDevice->getActual()->CreateTexture(m_Width, m_Height, 1, 0, 
+		hr = m_pOwningDevice->getActual()->CreateTexture(m_Width, m_Height, 1, D3DUSAGE_RENDERTARGET, 
 			m_Format, D3DPOOL_SYSTEMMEM, &lockedTexture, NULL);
 		if (FAILED(hr))
 			return hr;

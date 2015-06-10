@@ -653,25 +653,28 @@ HRESULT WINAPI D3DProxyDevice::CreateTexture(UINT Width,UINT Height,UINT Levels,
 	HANDLE sharedHandleLeft = NULL;
 	HANDLE sharedHandleRight = NULL;
 
+	D3DPOOL newPool = Pool;
+
 	HRESULT hr = S_OK;
 	IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
 	if (SUCCEEDED(getActual()->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))) &&
+		Pool == D3DPOOL_MANAGED &&
 		(Usage|D3DUSAGE_RENDERTARGET) == D3DUSAGE_RENDERTARGET)
 	{
-		Pool = D3DPOOL_DEFAULT;
+		newPool = D3DPOOL_DEFAULT;
 		pSharedHandle = &sharedHandleLeft;
 	}
 
 	// try and create left
-	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateTexture(Width, Height, Levels, Usage, Format, Pool, &pLeftTexture, pSharedHandle))) {
+	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateTexture(Width, Height, Levels, Usage, Format, newPool, &pLeftTexture, pSharedHandle))) {
 
 		// Does this Texture need duplicating?
-		if (!m_b2dDepthMode && m_pGameHandler->ShouldDuplicateTexture(Width, Height, Levels, Usage, Format, Pool)) {
+		if (!m_b2dDepthMode && m_pGameHandler->ShouldDuplicateTexture(Width, Height, Levels, Usage, Format, newPool)) {
 
 			if (pDirect3DDevice9Ex)
 				pSharedHandle = &sharedHandleRight;
 
-			if (FAILED(BaseDirect3DDevice9::CreateTexture(Width, Height, Levels, Usage, Format, Pool, &pRightTexture, pSharedHandle))) {
+			if (FAILED(BaseDirect3DDevice9::CreateTexture(Width, Height, Levels, Usage, Format, newPool, &pRightTexture, pSharedHandle))) {
 				OutputDebugString("Failed to create right eye texture while attempting to create stereo pair, falling back to mono\n");
 				pRightTexture = NULL;
 			}
@@ -688,7 +691,7 @@ HRESULT WINAPI D3DProxyDevice::CreateTexture(UINT Width,UINT Height,UINT Levels,
 		pDirect3DDevice9Ex->Release();
 
 	if (SUCCEEDED(creationResult))
-		*ppTexture = new D3D9ProxyTexture(Width, Height, Format, pLeftTexture, pRightTexture, this);
+		*ppTexture = new D3D9ProxyTexture(Width, Height, Format, Pool != D3DPOOL_MANAGED, pLeftTexture, pRightTexture, this);
 
 	return creationResult;
 }
@@ -707,6 +710,7 @@ HRESULT WINAPI D3DProxyDevice::CreateVolumeTexture(UINT Width,UINT Height,UINT D
 	HRESULT hr = S_OK;
 	IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
 	if (SUCCEEDED(getActual()->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))) &&
+		Pool == D3DPOOL_MANAGED &&
 		(Usage|D3DUSAGE_RENDERTARGET) == D3DUSAGE_RENDERTARGET)
 	{
 		Pool = D3DPOOL_DEFAULT;
@@ -734,12 +738,15 @@ HRESULT WINAPI D3DProxyDevice::CreateCubeTexture(UINT EdgeLength, UINT Levels, D
 		OutputDebugString("called CreateCubeTexture");
 	#endif
 
+	D3DPOOL newPool = Pool;
+
 	HRESULT hr = S_OK;
 	IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
 	if (SUCCEEDED(getActual()->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))) &&
+		Pool == D3DPOOL_MANAGED &&
 		(Usage|D3DUSAGE_RENDERTARGET) == D3DUSAGE_RENDERTARGET)
 	{
-		Pool = D3DPOOL_DEFAULT;
+		newPool = D3DPOOL_DEFAULT;
 		pDirect3DDevice9Ex->Release();
 	}
 
@@ -751,12 +758,12 @@ HRESULT WINAPI D3DProxyDevice::CreateCubeTexture(UINT EdgeLength, UINT Levels, D
 		return D3D_OK;
 
 	// try and create left
-	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateCubeTexture(EdgeLength, Levels, Usage, Format, Pool, &pLeftCubeTexture, pSharedHandle))) {
+	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateCubeTexture(EdgeLength, Levels, Usage, Format, newPool, &pLeftCubeTexture, pSharedHandle))) {
 
 		// Does this Texture need duplicating?
-		if (!m_b2dDepthMode && m_pGameHandler->ShouldDuplicateCubeTexture(EdgeLength, Levels, Usage, Format, Pool)) {
+		if (!m_b2dDepthMode && m_pGameHandler->ShouldDuplicateCubeTexture(EdgeLength, Levels, Usage, Format, newPool)) {
 
-			if (FAILED(BaseDirect3DDevice9::CreateCubeTexture(EdgeLength, Levels, Usage, Format, Pool, &pRightCubeTexture, pSharedHandle))) {
+			if (FAILED(BaseDirect3DDevice9::CreateCubeTexture(EdgeLength, Levels, Usage, Format, newPool, &pRightCubeTexture, pSharedHandle))) {
 				OutputDebugString("Failed to create right eye texture while attempting to create stereo pair, falling back to mono\n");
 				pRightCubeTexture = NULL;
 			}
@@ -767,7 +774,7 @@ HRESULT WINAPI D3DProxyDevice::CreateCubeTexture(UINT EdgeLength, UINT Levels, D
 	}
 
 	if (SUCCEEDED(creationResult))
-		*ppCubeTexture = new D3D9ProxyCubeTexture(EdgeLength, EdgeLength, Format, pLeftCubeTexture, pRightCubeTexture, this);
+		*ppCubeTexture = new D3D9ProxyCubeTexture(EdgeLength, EdgeLength, Format, Pool != D3DPOOL_MANAGED, pLeftCubeTexture, pRightCubeTexture, this);
 
 	return creationResult;
 }
@@ -785,6 +792,7 @@ HRESULT WINAPI D3DProxyDevice::CreateVertexBuffer(UINT Length, DWORD Usage, DWOR
 	HRESULT hr = S_OK;
 	IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
 	if (SUCCEEDED(getActual()->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))) &&
+		Pool == D3DPOOL_MANAGED &&
 		(Usage|D3DUSAGE_RENDERTARGET) == D3DUSAGE_RENDERTARGET)
 	{
 		Pool = D3DPOOL_DEFAULT;
@@ -813,6 +821,7 @@ HRESULT WINAPI D3DProxyDevice::CreateIndexBuffer(UINT Length,DWORD Usage,D3DFORM
 	HRESULT hr = S_OK;
 	IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
 	if (SUCCEEDED(getActual()->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))) &&
+		Pool == D3DPOOL_MANAGED &&
 		(Usage|D3DUSAGE_RENDERTARGET) == D3DUSAGE_RENDERTARGET)
 	{
 		Pool = D3DPOOL_DEFAULT;
@@ -879,7 +888,7 @@ HRESULT WINAPI D3DProxyDevice::CreateDepthStencilSurface(UINT Width,UINT Height,
 	}
 
 	if (SUCCEEDED(creationResult))
-		*ppSurface = new D3D9ProxySurface(Width, Height, Format, pDepthStencilSurfaceLeft, pDepthStencilSurfaceRight, this, NULL, NULL, NULL);
+		*ppSurface = new D3D9ProxySurface(Width, Height, Format, false, pDepthStencilSurfaceLeft, pDepthStencilSurfaceRight, this, NULL, NULL, NULL);
 
 	return creationResult;
 }
@@ -1121,12 +1130,22 @@ HRESULT WINAPI D3DProxyDevice::CreateOffscreenPlainSurface(UINT Width,UINT Heigh
 		OutputDebugString("called CreateOffscreenPlainSurface");
 	#endif
 
+	D3DPOOL newPool = Pool;
+
 	HRESULT hr = S_OK;
+	IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
+	if (SUCCEEDED(getActual()->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))) &&
+		Pool == D3DPOOL_MANAGED)
+	{
+		newPool = D3DPOOL_DEFAULT;
+		pDirect3DDevice9Ex->Release();
+	}
+
 	IDirect3DSurface9* pActualSurface = NULL;
-	HRESULT creationResult = BaseDirect3DDevice9::CreateOffscreenPlainSurface(Width, Height, Format, Pool, &pActualSurface, pSharedHandle);
+	HRESULT creationResult = BaseDirect3DDevice9::CreateOffscreenPlainSurface(Width, Height, Format, newPool, &pActualSurface, pSharedHandle);
 
 	if (SUCCEEDED(creationResult))
-		*ppSurface = new D3D9ProxySurface(Width, Height, Format, pActualSurface, NULL, this, NULL, NULL, NULL);
+		*ppSurface = new D3D9ProxySurface(Width, Height, Format, Pool != D3DPOOL_MANAGED, pActualSurface, NULL, this, NULL, NULL, NULL);
 
 	return creationResult;
 }
@@ -2590,9 +2609,9 @@ HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFO
 
 	if (SUCCEEDED(creationResult)) {
 		if (!isSwapChainBackBuffer)
-			*ppSurface = new D3D9ProxySurface(Width, Height, Format, pLeftRenderTarget, pRightRenderTarget, this, NULL, sharedHandleLeft, sharedHandleRight);
+			*ppSurface = new D3D9ProxySurface(Width, Height, Format, false, pLeftRenderTarget, pRightRenderTarget, this, NULL, sharedHandleLeft, sharedHandleRight);
 		else
-			*ppSurface = new StereoBackBuffer(Width, Height, Format, pLeftRenderTarget, pRightRenderTarget, this, sharedHandleLeft, sharedHandleRight);
+			*ppSurface = new StereoBackBuffer(Width, Height, Format, false, pLeftRenderTarget, pRightRenderTarget, this, sharedHandleLeft, sharedHandleRight);
 	}
 
 	if (pDirect3DDevice9Ex)
