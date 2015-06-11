@@ -33,8 +33,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /**
 * Constructor, creates parent D3D9ProxySurface.
 ***/
-StereoBackBuffer::StereoBackBuffer(UINT Width, UINT Height, D3DFORMAT Format, bool lockable, IDirect3DSurface9* pActualSurfaceLeft, IDirect3DSurface9* pActualSurfaceRight, BaseDirect3DDevice9* pOwningDevice, HANDLE SharedHandleLeft, HANDLE SharedHandleRight) :
-	D3D9ProxySurface(Width, Height, Format, lockable, pActualSurfaceLeft, pActualSurfaceRight, pOwningDevice, NULL, SharedHandleLeft, SharedHandleRight)
+StereoBackBuffer::StereoBackBuffer(IDirect3DSurface9* pActualSurfaceLeft, IDirect3DSurface9* pActualSurfaceRight, BaseDirect3DDevice9* pOwningDevice, HANDLE SharedHandleLeft, HANDLE SharedHandleRight) :
+	D3D9ProxySurface(pActualSurfaceLeft, pActualSurfaceRight, pOwningDevice, NULL, SharedHandleLeft, SharedHandleRight)
 {
 }
 

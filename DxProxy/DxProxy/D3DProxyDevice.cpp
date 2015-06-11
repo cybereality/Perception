@@ -658,8 +658,7 @@ HRESULT WINAPI D3DProxyDevice::CreateTexture(UINT Width,UINT Height,UINT Levels,
 	HRESULT hr = S_OK;
 	IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
 	if (SUCCEEDED(getActual()->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))) &&
-		Pool == D3DPOOL_MANAGED &&
-		(Usage|D3DUSAGE_RENDERTARGET) == D3DUSAGE_RENDERTARGET)
+		Pool == D3DPOOL_MANAGED)
 	{
 		newPool = D3DPOOL_DEFAULT;
 		pSharedHandle = &sharedHandleLeft;
@@ -691,7 +690,7 @@ HRESULT WINAPI D3DProxyDevice::CreateTexture(UINT Width,UINT Height,UINT Levels,
 		pDirect3DDevice9Ex->Release();
 
 	if (SUCCEEDED(creationResult))
-		*ppTexture = new D3D9ProxyTexture(Width, Height, Format, Pool != D3DPOOL_MANAGED, pLeftTexture, pRightTexture, this);
+		*ppTexture = new D3D9ProxyTexture(pLeftTexture, pRightTexture, this);
 
 	return creationResult;
 }
@@ -710,8 +709,7 @@ HRESULT WINAPI D3DProxyDevice::CreateVolumeTexture(UINT Width,UINT Height,UINT D
 	HRESULT hr = S_OK;
 	IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
 	if (SUCCEEDED(getActual()->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))) &&
-		Pool == D3DPOOL_MANAGED &&
-		(Usage|D3DUSAGE_RENDERTARGET) == D3DUSAGE_RENDERTARGET)
+		Pool == D3DPOOL_MANAGED)
 	{
 		Pool = D3DPOOL_DEFAULT;
 		pDirect3DDevice9Ex->Release();
@@ -743,8 +741,7 @@ HRESULT WINAPI D3DProxyDevice::CreateCubeTexture(UINT EdgeLength, UINT Levels, D
 	HRESULT hr = S_OK;
 	IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
 	if (SUCCEEDED(getActual()->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))) &&
-		Pool == D3DPOOL_MANAGED &&
-		(Usage|D3DUSAGE_RENDERTARGET) == D3DUSAGE_RENDERTARGET)
+		Pool == D3DPOOL_MANAGED)
 	{
 		newPool = D3DPOOL_DEFAULT;
 		pDirect3DDevice9Ex->Release();
@@ -774,7 +771,7 @@ HRESULT WINAPI D3DProxyDevice::CreateCubeTexture(UINT EdgeLength, UINT Levels, D
 	}
 
 	if (SUCCEEDED(creationResult))
-		*ppCubeTexture = new D3D9ProxyCubeTexture(EdgeLength, EdgeLength, Format, Pool != D3DPOOL_MANAGED, pLeftCubeTexture, pRightCubeTexture, this);
+		*ppCubeTexture = new D3D9ProxyCubeTexture(pLeftCubeTexture, pRightCubeTexture, this);
 
 	return creationResult;
 }
@@ -792,8 +789,7 @@ HRESULT WINAPI D3DProxyDevice::CreateVertexBuffer(UINT Length, DWORD Usage, DWOR
 	HRESULT hr = S_OK;
 	IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
 	if (SUCCEEDED(getActual()->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))) &&
-		Pool == D3DPOOL_MANAGED &&
-		(Usage|D3DUSAGE_RENDERTARGET) == D3DUSAGE_RENDERTARGET)
+		Pool == D3DPOOL_MANAGED)
 	{
 		Pool = D3DPOOL_DEFAULT;
 		pDirect3DDevice9Ex->Release();
@@ -821,8 +817,7 @@ HRESULT WINAPI D3DProxyDevice::CreateIndexBuffer(UINT Length,DWORD Usage,D3DFORM
 	HRESULT hr = S_OK;
 	IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
 	if (SUCCEEDED(getActual()->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))) &&
-		Pool == D3DPOOL_MANAGED &&
-		(Usage|D3DUSAGE_RENDERTARGET) == D3DUSAGE_RENDERTARGET)
+		Pool == D3DPOOL_MANAGED)
 	{
 		Pool = D3DPOOL_DEFAULT;
 		pDirect3DDevice9Ex->Release();
@@ -888,7 +883,7 @@ HRESULT WINAPI D3DProxyDevice::CreateDepthStencilSurface(UINT Width,UINT Height,
 	}
 
 	if (SUCCEEDED(creationResult))
-		*ppSurface = new D3D9ProxySurface(Width, Height, Format, false, pDepthStencilSurfaceLeft, pDepthStencilSurfaceRight, this, NULL, NULL, NULL);
+		*ppSurface = new D3D9ProxySurface(pDepthStencilSurfaceLeft, pDepthStencilSurfaceRight, this, NULL, NULL, NULL);
 
 	return creationResult;
 }
@@ -1145,7 +1140,7 @@ HRESULT WINAPI D3DProxyDevice::CreateOffscreenPlainSurface(UINT Width,UINT Heigh
 	HRESULT creationResult = BaseDirect3DDevice9::CreateOffscreenPlainSurface(Width, Height, Format, newPool, &pActualSurface, pSharedHandle);
 
 	if (SUCCEEDED(creationResult))
-		*ppSurface = new D3D9ProxySurface(Width, Height, Format, Pool != D3DPOOL_MANAGED, pActualSurface, NULL, this, NULL, NULL, NULL);
+		*ppSurface = new D3D9ProxySurface(pActualSurface, NULL, this, NULL, NULL, NULL);
 
 	return creationResult;
 }
@@ -2609,9 +2604,9 @@ HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFO
 
 	if (SUCCEEDED(creationResult)) {
 		if (!isSwapChainBackBuffer)
-			*ppSurface = new D3D9ProxySurface(Width, Height, Format, false, pLeftRenderTarget, pRightRenderTarget, this, NULL, sharedHandleLeft, sharedHandleRight);
+			*ppSurface = new D3D9ProxySurface(pLeftRenderTarget, pRightRenderTarget, this, NULL, sharedHandleLeft, sharedHandleRight);
 		else
-			*ppSurface = new StereoBackBuffer(Width, Height, Format, false, pLeftRenderTarget, pRightRenderTarget, this, sharedHandleLeft, sharedHandleRight);
+			*ppSurface = new StereoBackBuffer(pLeftRenderTarget, pRightRenderTarget, this, sharedHandleLeft, sharedHandleRight);
 	}
 
 	if (pDirect3DDevice9Ex)

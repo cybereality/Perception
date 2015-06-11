@@ -357,19 +357,8 @@ HRESULT WINAPI BaseDirect3DDevice9::CreateTexture(UINT Width,UINT Height,UINT Le
 	m_logFile << "CreateTexture" << std::endl;
 #endif
 
-	HRESULT hr = S_OK;
-	IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
-	if (SUCCEEDED(m_pDevice->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))))
-	{
-		//Must use default pool for DX9Ex 
-		hr = pDirect3DDevice9Ex->CreateTexture(Width, Height, Levels, Usage, Format, D3DPOOL_DEFAULT, ppTexture, pSharedHandle);
-		pDirect3DDevice9Ex->Release();
-	}
-	else
-	{
-		hr = m_pDevice->CreateTexture(Width, Height, Levels, Usage, Format, Pool, ppTexture, pSharedHandle);
-	}
-	
+	HRESULT hr = m_pDevice->CreateTexture(Width, Height, Levels, Usage, Format, Pool, ppTexture, pSharedHandle);
+
 	if (FAILED(hr))
 	{
 		char buffer[256];
@@ -391,17 +380,7 @@ HRESULT WINAPI BaseDirect3DDevice9::CreateVolumeTexture(UINT Width,UINT Height,U
 
 
 	HRESULT hr = S_OK;
-	IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
-	if (SUCCEEDED(m_pDevice->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))))
-	{
-		//Must use default pool for DX9Ex 
-		hr = pDirect3DDevice9Ex->CreateVolumeTexture(Width, Height, Depth, Levels, Usage, Format, D3DPOOL_DEFAULT, ppVolumeTexture, pSharedHandle);
-		pDirect3DDevice9Ex->Release();
-	}
-	else
-	{
-		hr = m_pDevice->CreateVolumeTexture(Width, Height, Depth, Levels, Usage, Format, Pool, ppVolumeTexture, pSharedHandle);
-	}
+	hr = m_pDevice->CreateVolumeTexture(Width, Height, Depth, Levels, Usage, Format, Pool, ppVolumeTexture, pSharedHandle);
 	
 	if (FAILED(hr))
 	{
@@ -423,17 +402,7 @@ HRESULT WINAPI BaseDirect3DDevice9::CreateCubeTexture(UINT EdgeLength,UINT Level
 #endif
 
 	HRESULT hr = S_OK;
-	IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
-	if (SUCCEEDED(m_pDevice->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))))
-	{
-		//Must use default pool for DX9Ex 
-		hr = pDirect3DDevice9Ex->CreateCubeTexture(EdgeLength, Levels, Usage, Format, D3DPOOL_DEFAULT, ppCubeTexture, pSharedHandle);
-		pDirect3DDevice9Ex->Release();
-	}
-	else
-	{
-		hr = m_pDevice->CreateCubeTexture(EdgeLength, Levels, Usage, Format, Pool, ppCubeTexture, pSharedHandle);
-	}
+	hr = m_pDevice->CreateCubeTexture(EdgeLength, Levels, Usage, Format, Pool, ppCubeTexture, pSharedHandle);
 	
 	if (FAILED(hr))
 	{
@@ -456,17 +425,7 @@ HRESULT WINAPI BaseDirect3DDevice9::CreateVertexBuffer(UINT Length,DWORD Usage,D
 
 
 	HRESULT hr = S_OK;
-	IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
-	if (SUCCEEDED(m_pDevice->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))))
-	{
-		//Must use default pool for DX9Ex 
-		hr = pDirect3DDevice9Ex->CreateVertexBuffer(Length, Usage, FVF, D3DPOOL_DEFAULT, ppVertexBuffer, pSharedHandle);
-		pDirect3DDevice9Ex->Release();
-	}
-	else
-	{
-		hr = m_pDevice->CreateVertexBuffer(Length, Usage, FVF, Pool, ppVertexBuffer, pSharedHandle);
-	}
+	hr = m_pDevice->CreateVertexBuffer(Length, Usage, FVF, Pool, ppVertexBuffer, pSharedHandle);
 	
 	if (FAILED(hr))
 	{
@@ -489,17 +448,7 @@ HRESULT WINAPI BaseDirect3DDevice9::CreateIndexBuffer(UINT Length,DWORD Usage,D3
 
 
 	HRESULT hr = S_OK;
-	IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
-	if (SUCCEEDED(m_pDevice->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))))
-	{
-		//Must use default pool for DX9Ex 
-		hr = pDirect3DDevice9Ex->CreateIndexBuffer(Length, Usage, Format, D3DPOOL_DEFAULT, ppIndexBuffer, pSharedHandle);
-		pDirect3DDevice9Ex->Release();
-	}
-	else
-	{
-		hr = m_pDevice->CreateIndexBuffer(Length, Usage, Format, Pool, ppIndexBuffer, pSharedHandle);
-	}
+	hr = m_pDevice->CreateIndexBuffer(Length, Usage, Format, Pool, ppIndexBuffer, pSharedHandle);
 	
 	if (FAILED(hr))
 	{
@@ -618,17 +567,7 @@ HRESULT WINAPI BaseDirect3DDevice9::CreateOffscreenPlainSurface(UINT Width,UINT 
 
 
 	HRESULT hr = S_OK;
-	IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
-	if (SUCCEEDED(m_pDevice->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))))
-	{
-		//Must use default pool for DX9Ex 
-		hr = pDirect3DDevice9Ex->CreateOffscreenPlainSurface(Width, Height, Format, D3DPOOL_DEFAULT, ppSurface, pSharedHandle);
-		pDirect3DDevice9Ex->Release();
-	}
-	else
-	{
-		hr = m_pDevice->CreateOffscreenPlainSurface(Width, Height, Format, Pool, ppSurface, pSharedHandle);
-	}
+	hr = m_pDevice->CreateOffscreenPlainSurface(Width, Height, Format, Pool, ppSurface, pSharedHandle);
 	
 	if (FAILED(hr))
 	{

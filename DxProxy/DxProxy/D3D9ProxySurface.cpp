@@ -36,7 +36,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * and that count is managed by forwarding release and addref to the container. In this case the
 * container must delete this surface when the ref count reaches 0.
 ***/ 
-D3D9ProxySurface::D3D9ProxySurface(UINT Width, UINT Height, D3DFORMAT Format, bool lockable, IDirect3DSurface9* pActualSurfaceLeft, IDirect3DSurface9* pActualSurfaceRight, 
+D3D9ProxySurface::D3D9ProxySurface(IDirect3DSurface9* pActualSurfaceLeft, IDirect3DSurface9* pActualSurfaceRight, 
 								   BaseDirect3DDevice9* pOwningDevice, IUnknown* pWrappedContainer, HANDLE SharedHandleLeft, HANDLE SharedHandleRight) :
 	BaseDirect3DSurface9(pActualSurfaceLeft),
 	m_pActualSurfaceRight(pActualSurfaceRight),
@@ -44,12 +44,8 @@ D3D9ProxySurface::D3D9ProxySurface(UINT Width, UINT Height, D3DFORMAT Format, bo
 	m_pWrappedContainer(pWrappedContainer),
 	m_SharedHandleLeft(SharedHandleLeft),
 	m_SharedHandleRight(SharedHandleRight),
-	m_Width(Width),
-	m_Height(Height),
-	m_Format(Format),
-	lockedTexture(NULL),
-	fullSurface(false),
-	m_lockable(lockable)
+	lockableSysMemTexture(NULL),
+	fullSurface(false)
 {
 	assert (pOwningDevice != NULL);
 
@@ -76,6 +72,11 @@ D3D9ProxySurface::~D3D9ProxySurface()
 
 	if (m_pActualSurfaceRight)
 		m_pActualSurfaceRight->Release();
+
+	if (lockableSysMemTexture)
+		lockableSysMemTexture->Release();
+	lockableSysMemTexture = NULL;
+
 }
 
 /**
@@ -230,10 +231,17 @@ HRESULT WINAPI D3D9ProxySurface::LockRect(D3DLOCKED_RECT* pLockedRect, CONST REC
 		OutputDebugString("called D3D9ProxySurface::LockRect");
 	#endif
 
-	if (m_lockable)
+	D3DSURFACE_DESC desc;
+	m_pActualSurface->GetDesc(&desc);
+	if (desc.Pool != D3DPOOL_DEFAULT)
 	{
 		//Can't really handle stereo for this, so just lock on the original texture
 		return m_pActualSurface->LockRect(pLockedRect, pRect, Flags);
+	}
+
+	if (fullSurface || lockedRects.size() > 0)
+	{
+		OutputDebugString("LockRect called more than once for surface");
 	}
 
 	//Create lockable system memory surfaces
@@ -249,17 +257,27 @@ HRESULT WINAPI D3D9ProxySurface::LockRect(D3DLOCKED_RECT* pLockedRect, CONST REC
 
 	HRESULT hr = D3DERR_INVALIDCALL;
 	IDirect3DSurface9 *pSurface = NULL;
-	if (!lockedTexture)
+	if (!lockableSysMemTexture)
 	{
-		hr = m_pOwningDevice->getActual()->CreateTexture(m_Width, m_Height, 1, D3DUSAGE_RENDERTARGET, 
-			m_Format, D3DPOOL_SYSTEMMEM, &lockedTexture, NULL);
+		hr = m_pOwningDevice->getActual()->CreateTexture(desc.Width, desc.Height, 1, 0, 
+			desc.Format, D3DPOOL_SYSTEMMEM, &lockableSysMemTexture, NULL);
+
 		if (FAILED(hr))
 			return hr;
-		lockedTexture->GetSurfaceLevel(0, &pSurface);
+		lockableSysMemTexture->GetSurfaceLevel(0, &pSurface);
+
 		hr = m_pOwningDevice->getActual()->GetRenderTargetData(m_pActualSurface, pSurface);
 		if (FAILED(hr))
-			return hr;
-		hr = pSurface->LockRect(pLockedRect, pRect, Flags);
+		{
+			OutputDebugString("D3DProxySurface::LockRect: Could not GetRenderTargetData");
+			hr = m_pOwningDevice->getActual()->UpdateSurface(m_pActualSurface, NULL, pSurface, NULL);
+			if (FAILED(hr))
+			{
+				OutputDebugString("D3DProxySurface::LockRect: Could not StretchRect");
+			}
+		}
+
+		hr = pSurface->LockRect(pLockedRect, pRect, 0);
 		if (FAILED(hr))
 			return hr;
 		pSurface->Release();
@@ -279,15 +297,23 @@ HRESULT WINAPI D3D9ProxySurface::UnlockRect()
 		OutputDebugString("called D3D9ProxySurface::UnlockRect");
 	#endif
 
-	if (lockedRects.size() == 0 && !fullSurface)
-		return D3DERR_INVALIDCALL;
+	D3DSURFACE_DESC desc;
+	m_pActualSurface->GetDesc(&desc);
+	if (desc.Pool != D3DPOOL_DEFAULT)
+	{
+		return m_pActualSurface->UnlockRect();
+	}
 
-	HRESULT hr = lockedTexture ? lockedTexture->UnlockRect(0) : D3DERR_INVALIDCALL;
+	//This would mean nothing to do
+	if (lockedRects.size() == 0 && !fullSurface)
+		return S_OK;
+
+	HRESULT hr = lockableSysMemTexture ? lockableSysMemTexture->UnlockRect(0) : D3DERR_INVALIDCALL;
 	if (FAILED(hr))
 		return hr;
 
 	IDirect3DSurface9 *pSurface = NULL;
-	hr = lockedTexture->GetSurfaceLevel(0, &pSurface);
+	hr = lockableSysMemTexture->GetSurfaceLevel(0, &pSurface);
 	if (FAILED(hr))
 		return hr;
 
@@ -337,8 +363,6 @@ HRESULT WINAPI D3D9ProxySurface::UnlockRect()
 	}
 
 	pSurface->Release();
-	lockedTexture->Release();
-	lockedTexture = NULL;
 
 	fullSurface = false;
 	return hr;

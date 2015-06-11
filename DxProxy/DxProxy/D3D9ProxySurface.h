@@ -44,7 +44,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class D3D9ProxySurface : public BaseDirect3DSurface9, public IStereoCapableWrapper<IDirect3DSurface9>
 {
 public:
-	D3D9ProxySurface(UINT Width, UINT Height, D3DFORMAT Format, bool lockable, IDirect3DSurface9* pActualSurfaceLeft, IDirect3DSurface9* pActualSurfaceRight, BaseDirect3DDevice9* pOwningDevice, IUnknown* pWrappedContainer, 
+	D3D9ProxySurface(IDirect3DSurface9* pActualSurfaceLeft, IDirect3DSurface9* pActualSurfaceRight, BaseDirect3DDevice9* pOwningDevice, IUnknown* pWrappedContainer, 
 		HANDLE SharedHandleLeft, HANDLE SharedHandleRight);
 	virtual ~D3D9ProxySurface();
 
@@ -109,12 +109,8 @@ protected:
 	HANDLE m_SharedHandleRight;
 
 	//Special handling required for locking rectangles if we are using Dx9Ex
-	UINT m_Width;
-	UINT m_Height;
-	D3DFORMAT m_Format;
-	bool m_lockable;
 	std::vector<RECT> lockedRects;
 	bool fullSurface;
-	IDirect3DTexture9* lockedTexture;
+	IDirect3DTexture9* lockableSysMemTexture;
 };
 #endif

@@ -34,15 +34,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * Constructor.
 * @see D3D9ProxySurface::D3D9ProxySurface
 ***/
-D3D9ProxyCubeTexture::D3D9ProxyCubeTexture(UINT Width, UINT Height, D3DFORMAT Format, bool lockable, IDirect3DCubeTexture9* pActualTextureLeft, IDirect3DCubeTexture9* pActualTextureRight, BaseDirect3DDevice9* pOwningDevice) :
+D3D9ProxyCubeTexture::D3D9ProxyCubeTexture(IDirect3DCubeTexture9* pActualTextureLeft, IDirect3DCubeTexture9* pActualTextureRight, BaseDirect3DDevice9* pOwningDevice) :
 	BaseDirect3DCubeTexture9(pActualTextureLeft),
 	m_pActualTextureRight(pActualTextureRight),
 	m_wrappedSurfaceLevels(),
-	m_pOwningDevice(pOwningDevice),
-	m_Width(Width),
-	m_Height(Height),
-	m_Format(Format),
-	m_lockable(lockable)
+	m_pOwningDevice(pOwningDevice)
 {
 	assert (pOwningDevice != NULL);
 
@@ -201,7 +197,7 @@ HRESULT WINAPI D3D9ProxyCubeTexture::GetCubeMapSurface(D3DCUBEMAP_FACES FaceType
 
 		if (SUCCEEDED(leftResult)) {
 
-			D3D9ProxySurface* pWrappedSurfaceLevel = new D3D9ProxySurface(m_Width, m_Height, m_Format, m_lockable, pActualSurfaceLevelLeft, pActualSurfaceLevelRight, m_pOwningDevice, this, NULL, NULL);
+			D3D9ProxySurface* pWrappedSurfaceLevel = new D3D9ProxySurface(pActualSurfaceLevelLeft, pActualSurfaceLevelRight, m_pOwningDevice, this, NULL, NULL);
 
 			if(m_wrappedSurfaceLevels.insert(std::pair<CubeSurfaceKey, D3D9ProxySurface*>(key, pWrappedSurfaceLevel)).second) {
 				// insertion of wrapped surface level into m_wrappedSurfaceLevels succeeded
@@ -241,7 +237,9 @@ HRESULT WINAPI D3D9ProxyCubeTexture::LockRect(D3DCUBEMAP_FACES FaceType, UINT Le
 		OutputDebugString("called D3D9ProxyCubeTexture::LockRect");
 	#endif
 
-	if (m_lockable)
+	D3DSURFACE_DESC desc;
+	m_pActualTexture->GetLevelDesc(Level, &desc);
+	if (desc.Pool != D3DPOOL_DEFAULT)
 	{
 		//Can't really handle stereo for this, so just lock on the original texture
 		return m_pActualTexture->LockRect(FaceType, Level, pLockedRect, pRect, Flags);
@@ -249,8 +247,8 @@ HRESULT WINAPI D3D9ProxyCubeTexture::LockRect(D3DCUBEMAP_FACES FaceType, UINT Le
 
 	UINT key = (Level * 6) + (UINT)(FaceType);
 
-	if (lockedTextures.find(key) == lockedTextures.end())
-		lockedTextures[key] = NULL;
+	if (lockableSysMemTextures.find(key) == lockableSysMemTextures.end())
+		lockableSysMemTextures[key] = NULL;
 
 	//Create lockable system memory surfaces
 	if (pRect && !fullSurfaces[key])
@@ -265,13 +263,13 @@ HRESULT WINAPI D3D9ProxyCubeTexture::LockRect(D3DCUBEMAP_FACES FaceType, UINT Le
 
 	HRESULT hr = D3DERR_INVALIDCALL;
 	IDirect3DSurface9 *pSurface = NULL;
-	if (!lockedTextures[key])
+	if (!lockableSysMemTextures[key])
 	{
-		hr = m_pOwningDevice->getActual()->CreateTexture(m_Width, m_Height, 1, D3DUSAGE_RENDERTARGET, 
-			m_Format, D3DPOOL_SYSTEMMEM, &lockedTextures[key], NULL);
+		hr = m_pOwningDevice->getActual()->CreateTexture(desc.Width, desc.Height, 1, 0, 
+			desc.Format, D3DPOOL_SYSTEMMEM, &lockableSysMemTextures[key], NULL);
 		if (FAILED(hr))
 			return hr;
-		hr = lockedTextures[key]->GetSurfaceLevel(0, &pSurface);
+		hr = lockableSysMemTextures[key]->GetSurfaceLevel(0, &pSurface);
 		if (FAILED(hr))
 			return hr;
 
@@ -281,7 +279,7 @@ HRESULT WINAPI D3D9ProxyCubeTexture::LockRect(D3DCUBEMAP_FACES FaceType, UINT Le
 			return hr;
 		hr = m_pOwningDevice->getActual()->GetRenderTargetData(pActualSurface, pSurface);
 		if (FAILED(hr))
-			return hr;
+			OutputDebugString("D3DProxySurface::LockRect: Could not GetRenderTargetData");
 
 		hr = pSurface->LockRect(pLockedRect, pRect, Flags);
 		if (FAILED(hr))
@@ -303,17 +301,25 @@ HRESULT WINAPI D3D9ProxyCubeTexture::UnlockRect(D3DCUBEMAP_FACES FaceType, UINT 
 	#ifdef SHOW_CALLS
 		OutputDebugString("called D3D9ProxyCubeTexture::UnlockRect");
 	#endif
+
+	D3DSURFACE_DESC desc;
+	m_pActualTexture->GetLevelDesc(Level, &desc);
+	if (desc.Pool = D3DPOOL_SYSTEMMEM)
+	{
+		return m_pActualTexture->UnlockRect(FaceType, Level);
+	}
+
 	UINT key = (Level * 6) + (UINT)(FaceType);
 
 	if (lockedRects[key].size() == 0 && !fullSurfaces[key])
 		return D3DERR_INVALIDCALL;
 
-	HRESULT hr = lockedTextures[key] ? lockedTextures[key]->UnlockRect(0) : D3DERR_INVALIDCALL;
+	HRESULT hr = lockableSysMemTextures[key] ? lockableSysMemTextures[key]->UnlockRect(0) : D3DERR_INVALIDCALL;
 	if (FAILED(hr))
 		return hr;
 
 	IDirect3DSurface9 *pSurface = NULL;
-	hr = lockedTextures[key]->GetSurfaceLevel(0, &pSurface);
+	hr = lockableSysMemTextures[key]->GetSurfaceLevel(0, &pSurface);
 	if (FAILED(hr))
 		return hr;
 
@@ -376,8 +382,8 @@ HRESULT WINAPI D3D9ProxyCubeTexture::UnlockRect(D3DCUBEMAP_FACES FaceType, UINT 
 	//Release everything
 	pActualSurface->Release();
 	pSurface->Release();
-	lockedTextures[key]->Release();
-	lockedTextures[key] = NULL;
+	lockableSysMemTextures[key]->Release();
+	lockableSysMemTextures[key] = NULL;
 	
 	fullSurfaces[key] = false;
 	return hr;

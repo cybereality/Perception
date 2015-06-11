@@ -34,15 +34,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * Constructor.
 * @see D3D9ProxySurface::D3D9ProxySurface
 ***/
-D3D9ProxyTexture::D3D9ProxyTexture(UINT Width, UINT Height, D3DFORMAT Format, bool lockable, IDirect3DTexture9* pActualTextureLeft, IDirect3DTexture9* pActualTextureRight, BaseDirect3DDevice9* pOwningDevice) :
+D3D9ProxyTexture::D3D9ProxyTexture(IDirect3DTexture9* pActualTextureLeft, IDirect3DTexture9* pActualTextureRight, BaseDirect3DDevice9* pOwningDevice) :
 	BaseDirect3DTexture9(pActualTextureLeft),
 	m_pActualTextureRight(pActualTextureRight),
 	m_wrappedSurfaceLevels(),
-	m_pOwningDevice(pOwningDevice),
-	m_Width(Width),
-	m_Height(Height),
-	m_Format(Format),
-	m_lockable(lockable)
+	m_pOwningDevice(pOwningDevice)
 {
 	#ifdef SHOW_CALLS
 		OutputDebugString("called D3D9ProxyTexture::D3D9ProxyTexture");
@@ -234,7 +230,9 @@ void WINAPI D3D9ProxyTexture::GenerateMipSubLevels()
 HRESULT WINAPI D3D9ProxyTexture::GetSurfaceLevel(UINT Level, IDirect3DSurface9** ppSurfaceLevel)
 {
 	#ifdef SHOW_CALLS
-		OutputDebugString("called D3D9ProxyTexture::GetSurfaceLevel");
+		char buffer[256];
+		sprintf_s(buffer, "called D3D9ProxyTexture::GetSurfaceLevel(%i)", Level);
+		OutputDebugString(buffer);
 	#endif
 	HRESULT finalResult;
 
@@ -265,7 +263,7 @@ HRESULT WINAPI D3D9ProxyTexture::GetSurfaceLevel(UINT Level, IDirect3DSurface9**
 
 		if (SUCCEEDED(leftResult)) {
 
-			D3D9ProxySurface* pWrappedSurfaceLevel = new D3D9ProxySurface(m_Width, m_Height, m_Format, m_lockable, pActualSurfaceLevelLeft, pActualSurfaceLevelRight, m_pOwningDevice, this, NULL, NULL);
+			D3D9ProxySurface* pWrappedSurfaceLevel = new D3D9ProxySurface(pActualSurfaceLevelLeft, pActualSurfaceLevelRight, m_pOwningDevice, this, NULL, NULL);
 
 			if(m_wrappedSurfaceLevels.insert(std::pair<ULONG, D3D9ProxySurface*>(Level, pWrappedSurfaceLevel)).second) {
 				// insertion of wrapped surface level into m_wrappedSurfaceLevels succeeded
@@ -306,14 +304,16 @@ HRESULT WINAPI D3D9ProxyTexture::LockRect(UINT Level, D3DLOCKED_RECT* pLockedRec
 		OutputDebugString("called D3D9ProxyTexture::LockRect");
 	#endif
 
-	if (m_lockable)
+	D3DSURFACE_DESC desc;
+	m_pActualTexture->GetLevelDesc(Level, &desc);
+	if (desc.Pool != D3DPOOL_DEFAULT)
 	{
 		//Can't really handle stereo for this, so just lock on the original texture
 		return m_pActualTexture->LockRect(Level, pLockedRect, pRect, Flags);
 	}
 
-	if (lockedTextures.find(Level) == lockedTextures.end())
-		lockedTextures[Level] = NULL;
+	if (lockableSysMemTextures.find(Level) == lockableSysMemTextures.end())
+		lockableSysMemTextures[Level] = NULL;
 
 	//Create lockable system memory surfaces
 	if (pRect && !fullSurfaces[Level])
@@ -328,13 +328,13 @@ HRESULT WINAPI D3D9ProxyTexture::LockRect(UINT Level, D3DLOCKED_RECT* pLockedRec
 
 	HRESULT hr = D3DERR_INVALIDCALL;
 	IDirect3DSurface9 *pSurface = NULL;
-	if (!lockedTextures[Level])
+	if (!lockableSysMemTextures[Level])
 	{
-		hr = m_pOwningDevice->getActual()->CreateTexture(m_Width, m_Height, 1, D3DUSAGE_RENDERTARGET, 
-			m_Format, D3DPOOL_SYSTEMMEM, &lockedTextures[Level], NULL);
+		hr = m_pOwningDevice->getActual()->CreateTexture(desc.Width, desc.Height, 1, 0, 
+			desc.Format, D3DPOOL_SYSTEMMEM, &lockableSysMemTextures[Level], NULL);
 		if (FAILED(hr))
 			return hr;
-		hr = lockedTextures[Level]->GetSurfaceLevel(0, &pSurface);
+		hr = lockableSysMemTextures[Level]->GetSurfaceLevel(0, &pSurface);
 		if (FAILED(hr))
 			return hr;
 
@@ -344,7 +344,7 @@ HRESULT WINAPI D3D9ProxyTexture::LockRect(UINT Level, D3DLOCKED_RECT* pLockedRec
 			return hr;
 		hr = m_pOwningDevice->getActual()->GetRenderTargetData(pActualSurface, pSurface);
 		if (FAILED(hr))
-			return hr;
+			OutputDebugString("D3DProxyTexture::LockRect: Could not GetRenderTargetData");
 
 		hr = pSurface->LockRect(pLockedRect, pRect, Flags);
 		if (FAILED(hr))
@@ -367,15 +367,22 @@ HRESULT WINAPI D3D9ProxyTexture::UnlockRect(UINT Level)
 		OutputDebugString("called D3D9ProxyTexture::UnlockRect");
 	#endif
 
+	D3DSURFACE_DESC desc;
+	m_pActualTexture->GetLevelDesc(Level, &desc);
+	if (desc.Pool != D3DPOOL_DEFAULT)
+	{
+		return m_pActualTexture->UnlockRect(Level);
+	}
+
 	if (lockedRects[Level].size() == 0 && !fullSurfaces[Level])
 		return D3DERR_INVALIDCALL;
 
-	HRESULT hr = lockedTextures[Level] ? lockedTextures[Level]->UnlockRect(0) : D3DERR_INVALIDCALL;
+	HRESULT hr = lockableSysMemTextures[Level] ? lockableSysMemTextures[Level]->UnlockRect(0) : D3DERR_INVALIDCALL;
 	if (FAILED(hr))
 		return hr;
 
 	IDirect3DSurface9 *pSurface = NULL;
-	hr = lockedTextures[Level]->GetSurfaceLevel(0, &pSurface);
+	hr = lockableSysMemTextures[Level]->GetSurfaceLevel(0, &pSurface);
 	if (FAILED(hr))
 		return hr;
 
@@ -438,8 +445,8 @@ HRESULT WINAPI D3D9ProxyTexture::UnlockRect(UINT Level)
 	//Release everything
 	pActualSurface->Release();
 	pSurface->Release();
-	lockedTextures[Level]->Release();
-	lockedTextures[Level] = NULL;
+	lockableSysMemTextures[Level]->Release();
+	lockableSysMemTextures[Level] = NULL;
 	
 	fullSurfaces[Level] = false;
 	return hr;
