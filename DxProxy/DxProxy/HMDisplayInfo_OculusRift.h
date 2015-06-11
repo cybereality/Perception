@@ -171,7 +171,7 @@ public:
 	***/
 	virtual float GetPhysicalLensSeparation()
 	{
-		return 63.5;
+		return 0.0635;
 	}
 	
 	/**

@@ -248,7 +248,16 @@ HRESULT WINAPI D3D9ProxyCubeTexture::LockRect(D3DCUBEMAP_FACES FaceType, UINT Le
 	UINT key = (Level * 6) + (UINT)(FaceType);
 
 	if (lockableSysMemTextures.find(key) == lockableSysMemTextures.end())
+	{
 		lockableSysMemTextures[key] = NULL;
+		fullSurfaces[key] = false;
+		lockedRects[key].clear();
+	}
+
+	if (fullSurfaces[key])
+	{
+		OutputDebugString("LockRect called more than once for full surface");
+	}
 
 	//Create lockable system memory surfaces
 	if (pRect && !fullSurfaces[key])
@@ -262,6 +271,7 @@ HRESULT WINAPI D3D9ProxyCubeTexture::LockRect(D3DCUBEMAP_FACES FaceType, UINT Le
 	}
 
 	HRESULT hr = D3DERR_INVALIDCALL;
+	bool createdTexture = false;
 	IDirect3DSurface9 *pSurface = NULL;
 	if (!lockableSysMemTextures[key])
 	{
@@ -269,26 +279,33 @@ HRESULT WINAPI D3D9ProxyCubeTexture::LockRect(D3DCUBEMAP_FACES FaceType, UINT Le
 			desc.Format, D3DPOOL_SYSTEMMEM, &lockableSysMemTextures[key], NULL);
 		if (FAILED(hr))
 			return hr;
-		hr = lockableSysMemTextures[key]->GetSurfaceLevel(0, &pSurface);
-		if (FAILED(hr))
-			return hr;
+		createdTexture = true;
+	}
 
+	hr = lockableSysMemTextures[key]->GetSurfaceLevel(0, &pSurface);
+	if (FAILED(hr))
+		return hr;
+
+	if (createdTexture)
+	{
 		IDirect3DSurface9 *pActualSurface = NULL;
 		hr = m_pActualTexture->GetCubeMapSurface(FaceType, Level, &pActualSurface);
 		if (FAILED(hr))
 			return hr;
 		hr = m_pOwningDevice->getActual()->GetRenderTargetData(pActualSurface, pSurface);
-		if (FAILED(hr))
-			OutputDebugString("D3DProxySurface::LockRect: Could not GetRenderTargetData");
-
-		hr = pSurface->LockRect(pLockedRect, pRect, Flags);
-		if (FAILED(hr))
-			return hr;
+//		if (FAILED(hr))
+//			OutputDebugString("D3DProxySurface::LockRect: Could not GetRenderTargetData");
 		pActualSurface->Release();
-		pSurface->Release();
 	}
 
-	OutputDebugString("exit D3D9ProxySurface::LockRect");
+	if (((Flags|D3DLOCK_NO_DIRTY_UPDATE) != D3DLOCK_NO_DIRTY_UPDATE) &&
+		((Flags|D3DLOCK_READONLY) != D3DLOCK_READONLY))
+		hr = AddDirtyRect(FaceType, pRect);
+
+	hr = pSurface->LockRect(pLockedRect, pRect, Flags);
+	if (FAILED(hr))
+		return hr;
+	pSurface->Release();
 
 	return hr;
 }
@@ -304,7 +321,7 @@ HRESULT WINAPI D3D9ProxyCubeTexture::UnlockRect(D3DCUBEMAP_FACES FaceType, UINT 
 
 	D3DSURFACE_DESC desc;
 	m_pActualTexture->GetLevelDesc(Level, &desc);
-	if (desc.Pool = D3DPOOL_SYSTEMMEM)
+	if (desc.Pool != D3DPOOL_DEFAULT)
 	{
 		return m_pActualTexture->UnlockRect(FaceType, Level);
 	}
@@ -312,16 +329,17 @@ HRESULT WINAPI D3D9ProxyCubeTexture::UnlockRect(D3DCUBEMAP_FACES FaceType, UINT 
 	UINT key = (Level * 6) + (UINT)(FaceType);
 
 	if (lockedRects[key].size() == 0 && !fullSurfaces[key])
-		return D3DERR_INVALIDCALL;
-
-	HRESULT hr = lockableSysMemTextures[key] ? lockableSysMemTextures[key]->UnlockRect(0) : D3DERR_INVALIDCALL;
-	if (FAILED(hr))
-		return hr;
+		return S_OK;
 
 	IDirect3DSurface9 *pSurface = NULL;
-	hr = lockableSysMemTextures[key]->GetSurfaceLevel(0, &pSurface);
+	HRESULT hr = lockableSysMemTextures[key] ? lockableSysMemTextures[key]->GetSurfaceLevel(0, &pSurface) : D3DERR_INVALIDCALL;
 	if (FAILED(hr))
 		return hr;
+
+	hr = pSurface->UnlockRect();
+	if (FAILED(hr))
+		return hr;
+
 
 	if (IsStereo())
 	{

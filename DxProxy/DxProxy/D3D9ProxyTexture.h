@@ -88,5 +88,6 @@ protected:
 	std::unordered_map<UINT, std::vector<RECT>> lockedRects;
 	std::unordered_map<UINT, bool> fullSurfaces;
 	std::unordered_map<UINT, IDirect3DTexture9*> lockableSysMemTextures;
+	D3DLOCKED_RECT lockedRect;
 };
 #endif

@@ -291,7 +291,6 @@ HRESULT WINAPI D3D9ProxyTexture::GetSurfaceLevel(UINT Level, IDirect3DSurface9**
 		}
 	}
 
-	OutputDebugString("exit D3D9ProxyTexture::GetSurfaceLevel");
 	return finalResult;
 }
 
@@ -313,7 +312,16 @@ HRESULT WINAPI D3D9ProxyTexture::LockRect(UINT Level, D3DLOCKED_RECT* pLockedRec
 	}
 
 	if (lockableSysMemTextures.find(Level) == lockableSysMemTextures.end())
+	{
 		lockableSysMemTextures[Level] = NULL;
+		fullSurfaces[Level] = false;
+		lockedRects[Level].clear();
+	}
+
+	if (fullSurfaces[Level])
+	{
+		OutputDebugString("LockRect called more than once for full surface");
+	}
 
 	//Create lockable system memory surfaces
 	if (pRect && !fullSurfaces[Level])
@@ -326,6 +334,7 @@ HRESULT WINAPI D3D9ProxyTexture::LockRect(UINT Level, D3DLOCKED_RECT* pLockedRec
 		fullSurfaces[Level] = true;
 	}
 
+	bool createdTexture = false;
 	HRESULT hr = D3DERR_INVALIDCALL;
 	IDirect3DSurface9 *pSurface = NULL;
 	if (!lockableSysMemTextures[Level])
@@ -334,26 +343,39 @@ HRESULT WINAPI D3D9ProxyTexture::LockRect(UINT Level, D3DLOCKED_RECT* pLockedRec
 			desc.Format, D3DPOOL_SYSTEMMEM, &lockableSysMemTextures[Level], NULL);
 		if (FAILED(hr))
 			return hr;
-		hr = lockableSysMemTextures[Level]->GetSurfaceLevel(0, &pSurface);
-		if (FAILED(hr))
-			return hr;
+		createdTexture = true;
+	}
+	
+	hr = lockableSysMemTextures[Level]->GetSurfaceLevel(0, &pSurface);
+	if (FAILED(hr))
+		return hr;
 
+	if (createdTexture)
+	{
 		IDirect3DSurface9 *pActualSurface = NULL;
 		hr = m_pActualTexture->GetSurfaceLevel(Level, &pActualSurface);
 		if (FAILED(hr))
 			return hr;
-		hr = m_pOwningDevice->getActual()->GetRenderTargetData(pActualSurface, pSurface);
-		if (FAILED(hr))
-			OutputDebugString("D3DProxyTexture::LockRect: Could not GetRenderTargetData");
 
-		hr = pSurface->LockRect(pLockedRect, pRect, Flags);
-		if (FAILED(hr))
-			return hr;
+		//This step doesn't always work!
+		hr = m_pOwningDevice->getActual()->GetRenderTargetData(pActualSurface, pSurface);
+//		if (FAILED(hr))
+//			OutputDebugString("D3DProxyTexture::LockRect: Could not GetRenderTargetData");
 		pActualSurface->Release();
-		pSurface->Release();
 	}
 
-	OutputDebugString("exit D3D9ProxySurface::LockRect");
+
+	if (((Flags|D3DLOCK_NO_DIRTY_UPDATE) != D3DLOCK_NO_DIRTY_UPDATE) &&
+		((Flags|D3DLOCK_READONLY) != D3DLOCK_READONLY))
+		hr = AddDirtyRect(pRect);
+
+	hr = pSurface->LockRect(pLockedRect, pRect, Flags);
+
+	lockedRect = *pLockedRect;
+
+	if (FAILED(hr))
+		return hr;
+	pSurface->Release();
 
 	return hr;
 }
@@ -375,14 +397,14 @@ HRESULT WINAPI D3D9ProxyTexture::UnlockRect(UINT Level)
 	}
 
 	if (lockedRects[Level].size() == 0 && !fullSurfaces[Level])
-		return D3DERR_INVALIDCALL;
+		return S_OK;
 
-	HRESULT hr = lockableSysMemTextures[Level] ? lockableSysMemTextures[Level]->UnlockRect(0) : D3DERR_INVALIDCALL;
+	IDirect3DSurface9 *pSurface = NULL;
+	HRESULT hr = lockableSysMemTextures[Level] ? lockableSysMemTextures[Level]->GetSurfaceLevel(0, &pSurface) : D3DERR_INVALIDCALL;
 	if (FAILED(hr))
 		return hr;
 
-	IDirect3DSurface9 *pSurface = NULL;
-	hr = lockableSysMemTextures[Level]->GetSurfaceLevel(0, &pSurface);
+	pSurface->UnlockRect();
 	if (FAILED(hr))
 		return hr;
 
@@ -398,6 +420,7 @@ HRESULT WINAPI D3D9ProxyTexture::UnlockRect(UINT Level)
 			hr = m_pOwningDevice->getActual()->UpdateSurface(pSurface, NULL, pActualSurfaceRight, NULL);
 			if (FAILED(hr))
 				return hr;
+
 		}
 		else
 		{

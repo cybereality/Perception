@@ -112,5 +112,6 @@ protected:
 	std::vector<RECT> lockedRects;
 	bool fullSurface;
 	IDirect3DTexture9* lockableSysMemTexture;
+	D3DLOCKED_RECT lockedRect;
 };
 #endif
