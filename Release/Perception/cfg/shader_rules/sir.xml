@@ -1,23 +1,9 @@
 <?xml version="1.0"?>
 <shaderConfig>
   <rules>
-    <rule id="1" shaderCodeFindPattern="dp4 o0.x, v0, c0" constantType="MatrixR" modToApply="1" startReg="0" registerCount="4" transpose="false"/>
-
-    <rule id="2" shaderCodeFindPattern="dp4 r0.x, %s, c0" shaderCodeRegSub="v%i" constantType="MatrixR" modToApply="2" startReg="0" registerCount="4" transpose="true"/>
-    <rule id="3" shaderCodeFindPattern="dp4 r0.x, %s, c2" shaderCodeRegSub="v%i" constantType="MatrixR" modToApply="2" startReg="2" registerCount="4" transpose="true"/>
-    <rule id="7" shaderCodeFindPattern="dp4 r0.x, %s, c4" shaderCodeRegSub="v%i" constantType="MatrixR" modToApply="2" startReg="4" registerCount="4" transpose="true"/>
-    <rule id="4" shaderCodeFindPattern="dp4 r0.x, %s, c5" shaderCodeRegSub="v%i" constantType="MatrixR" modToApply="2" startReg="5" registerCount="4" transpose="true"/>
-    <rule id="5" shaderCodeFindPattern="dp4 r0.x, %s, c12" shaderCodeRegSub="r%i" constantType="MatrixR" modToApply="2" startReg="12" registerCount="4" transpose="true"/>
-    <rule id="6" shaderCodeFindPattern="dp4 r0.x, %s, c13" shaderCodeRegSub="r%i" constantType="MatrixR" modToApply="2" startReg="13" registerCount="4" transpose="true"/>
   </rules>
 
-  <defaultRuleIDs>
-    <ruleID id="2" />
-    <ruleID id="3" />
-    <ruleID id="4" />
-    <ruleID id="5" />
-    <ruleID id="6" />
-    <ruleID id="7" />
+  <defaultRuleIDs>    
   </defaultRuleIDs>
 
   <!-- Removes most dodgy shadows -->   
