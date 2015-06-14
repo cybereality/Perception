@@ -29,6 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "D3D9ProxySwapChain.h"
 #include <assert.h>
+#include "D3DProxyDevice.h"
 
 /**
 * Debug output helper.
@@ -51,6 +52,8 @@ D3D9ProxySwapChain::D3D9ProxySwapChain(IDirect3DSwapChain9* pActualSwapChain, D3
 		BaseDirect3DSwapChain9(pActualSwapChain, pWrappedOwningDevice, isAdditionalChain),
 		m_backBuffers()
 {
+	SHOW_CALL("D3D9ProxySwapChain::D3D9ProxySwapChain");
+
 	// Get creation parameters for backbuffers.
 	D3DPRESENT_PARAMETERS params;
 	pActualSwapChain->GetPresentParameters(&params);
@@ -70,8 +73,14 @@ D3D9ProxySwapChain::D3D9ProxySwapChain(IDirect3DSwapChain9* pActualSwapChain, D3
 
 	// Create stereo backbuffers to use in place of actual backbuffers
 	for (UINT i = 0; i < bbCount; i++) {
-		IDirect3DSurface9* pTemp;
-		pWrappedOwningDevice->CreateRenderTarget(backDesc.Width, backDesc.Height, backDesc.Format, backDesc.MultiSampleType, backDesc.MultiSampleQuality, false, &pTemp, NULL, true);
+		IDirect3DSurface9* pTemp = NULL;
+		HRESULT hr = pWrappedOwningDevice->CreateRenderTarget(backDesc.Width, backDesc.Height, backDesc.Format, backDesc.MultiSampleType, backDesc.MultiSampleQuality, false, &pTemp, NULL, true);
+		if (FAILED(hr))
+		{
+			vireio::debugf("Failed: pWrappedOwningDevice->CreateRenderTarget hr = 0x%0.8x", hr);
+			exit(99);
+		}
+
 		m_backBuffers.push_back(static_cast<D3D9ProxySurface*>(pTemp));
 	}
 }
@@ -82,6 +91,8 @@ D3D9ProxySwapChain::D3D9ProxySwapChain(IDirect3DSwapChain9* pActualSwapChain, D3
 ***/
 D3D9ProxySwapChain::~D3D9ProxySwapChain()
 {
+	SHOW_CALL("D3D9ProxySwapChain::~D3D9ProxySwapChain");
+
 	auto it = m_backBuffers.begin();
 	while (it != m_backBuffers.end()) {
 		if (*it) {
@@ -103,6 +114,8 @@ D3D9ProxySwapChain::~D3D9ProxySwapChain()
 ***/
 HRESULT WINAPI D3D9ProxySwapChain::Present(CONST RECT* pSourceRect, CONST RECT* pDestRect, HWND hDestWindowOverride, CONST RGNDATA* pDirtyRegion, DWORD dwFlags)
 {
+	SHOW_CALL("D3D9ProxySwapChain::Present");
+
 #ifdef _DEBUG
 	OutputDebugString(__FUNCTION__);
 	OutputDebugString("\n");
@@ -140,6 +153,8 @@ HRESULT WINAPI D3D9ProxySwapChain::Present(CONST RECT* pSourceRect, CONST RECT* 
 ***/
 HRESULT WINAPI D3D9ProxySwapChain::GetFrontBufferData(IDirect3DSurface9* pDestSurface) 
 {
+	SHOW_CALL("D3D9ProxySwapChain::GetFrontBufferData");
+
 	D3D9ProxySurface* pWrappedDestSurface = static_cast<D3D9ProxySurface*>(pDestSurface);
 
 	HRESULT result;
@@ -167,6 +182,8 @@ HRESULT WINAPI D3D9ProxySwapChain::GetFrontBufferData(IDirect3DSurface9* pDestSu
 ***/
 HRESULT WINAPI D3D9ProxySwapChain::GetBackBuffer(UINT iBackBuffer, D3DBACKBUFFER_TYPE Type, IDirect3DSurface9** ppBackBuffer) 
 {
+	SHOW_CALL("D3D9ProxySwapChain::GetBackBuffer");
+
 	if ((iBackBuffer < 0) || (iBackBuffer >= m_backBuffers.size())) 
 		return D3DERR_INVALIDCALL;
 

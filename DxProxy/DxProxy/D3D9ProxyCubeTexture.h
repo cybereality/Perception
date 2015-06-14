@@ -33,6 +33,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <d3d9.h>
 #include <unordered_map>
 #include "Direct3DCubeTexture9.h"
+#include "D3DProxyDevice.h"
 #include "D3D9ProxySurface.h"
 #include "IStereoCapableWrapper.h"
 #include <functional>
@@ -97,5 +98,11 @@ protected:
 	* The actual right cube texture embedded. 
 	***/
 	IDirect3DCubeTexture9* const m_pActualTextureRight;
+
+
+	//Special handling required for locking rectangles if we are using Dx9Ex
+//	std::unordered_map<UINT, std::vector<RECT>> lockedRects;
+	std::unordered_map<UINT, bool> newSurface;
+	IDirect3DCubeTexture9* lockableSysMemTexture;
 };
 #endif

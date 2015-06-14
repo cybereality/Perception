@@ -78,7 +78,7 @@ HRESULT WINAPI BaseDirect3DDevice9Ex::QueryInterface(REFIID riid, LPVOID* ppv)
 ULONG WINAPI BaseDirect3DDevice9Ex::AddRef()
 {	 
 #ifdef _EXPORT_LOGFILE
-	m_logFile << "AddRef" << std::endl;
+	m_logFile << "BaseDirect3DDevice9Ex::AddRef" << std::endl;
 #endif
 
 	return ++m_nRefCount;

@@ -41,7 +41,7 @@ BaseDirect3DDevice9::BaseDirect3DDevice9(IDirect3DDevice9* pDevice, BaseDirect3D
 	m_nRefCount(1)
 {
 #ifdef _EXPORT_LOGFILE
-	m_logFile.open("logD3DDevice.txt", std::ios::out);
+	m_logFile.open("F:\\GitHub\\Perception\\logD3DDevice.txt", std::ios::out);
 #endif
 }
 
@@ -78,7 +78,7 @@ HRESULT WINAPI BaseDirect3DDevice9::QueryInterface(REFIID riid, LPVOID* ppv)
 ULONG WINAPI BaseDirect3DDevice9::AddRef()
 {	 
 #ifdef _EXPORT_LOGFILE
-	m_logFile << "AddRef" << std::endl;
+	m_logFile << "BaseDirect3DDevice9::AddRef" << std::endl;
 #endif
 
 	return ++m_nRefCount;
@@ -357,7 +357,16 @@ HRESULT WINAPI BaseDirect3DDevice9::CreateTexture(UINT Width,UINT Height,UINT Le
 	m_logFile << "CreateTexture" << std::endl;
 #endif
 
-	return m_pDevice->CreateTexture(Width, Height, Levels, Usage, Format, Pool, ppTexture, pSharedHandle);
+	HRESULT hr = m_pDevice->CreateTexture(Width, Height, Levels, Usage, Format, Pool, ppTexture, pSharedHandle);
+
+	if (FAILED(hr))
+	{
+		char buffer[256];
+		sprintf_s(buffer, "CreateTexture - Failed: 0x%0.8x", hr);
+		OutputDebugString(buffer);
+	}
+
+	return hr;
 }
 
 /**
@@ -369,7 +378,18 @@ HRESULT WINAPI BaseDirect3DDevice9::CreateVolumeTexture(UINT Width,UINT Height,U
 	m_logFile << "CreateVolumeTexture" << std::endl;
 #endif
 
-	return m_pDevice->CreateVolumeTexture(Width, Height, Depth, Levels, Usage, Format, Pool, ppVolumeTexture, pSharedHandle);
+
+	HRESULT hr = S_OK;
+	hr = m_pDevice->CreateVolumeTexture(Width, Height, Depth, Levels, Usage, Format, Pool, ppVolumeTexture, pSharedHandle);
+	
+	if (FAILED(hr))
+	{
+		char buffer[256];
+		sprintf_s(buffer, "CreateVolumeTexture - Failed: 0x%0.8x", hr);
+		OutputDebugString(buffer);
+	}
+
+	return hr;
 }
 
 /**
@@ -381,7 +401,17 @@ HRESULT WINAPI BaseDirect3DDevice9::CreateCubeTexture(UINT EdgeLength,UINT Level
 	m_logFile << "CreateCubeTexture" << std::endl;
 #endif
 
-	return m_pDevice->CreateCubeTexture(EdgeLength, Levels, Usage, Format, Pool, ppCubeTexture, pSharedHandle);
+	HRESULT hr = S_OK;
+	hr = m_pDevice->CreateCubeTexture(EdgeLength, Levels, Usage, Format, Pool, ppCubeTexture, pSharedHandle);
+	
+	if (FAILED(hr))
+	{
+		char buffer[256];
+		sprintf_s(buffer, "CreateCubeTexture - Failed: 0x%0.8x", hr);
+		OutputDebugString(buffer);
+	}
+
+	return hr;
 }
 
 /**
@@ -393,7 +423,18 @@ HRESULT WINAPI BaseDirect3DDevice9::CreateVertexBuffer(UINT Length,DWORD Usage,D
 	m_logFile << "CreateVertexBuffer" << std::endl;
 #endif
 
-	return m_pDevice->CreateVertexBuffer(Length, Usage, FVF, Pool, ppVertexBuffer, pSharedHandle);
+
+	HRESULT hr = S_OK;
+	hr = m_pDevice->CreateVertexBuffer(Length, Usage, FVF, Pool, ppVertexBuffer, pSharedHandle);
+	
+	if (FAILED(hr))
+	{
+		char buffer[256];
+		sprintf_s(buffer, "CreateVertexBuffer - Failed: 0x%0.8x", hr);
+		OutputDebugString(buffer);
+	}
+
+	return hr;
 }
 
 /**
@@ -405,7 +446,18 @@ HRESULT WINAPI BaseDirect3DDevice9::CreateIndexBuffer(UINT Length,DWORD Usage,D3
 	m_logFile << "CreateIndexBuffer" << std::endl;
 #endif
 
-	return m_pDevice->CreateIndexBuffer(Length, Usage, Format, Pool, ppIndexBuffer, pSharedHandle);
+
+	HRESULT hr = S_OK;
+	hr = m_pDevice->CreateIndexBuffer(Length, Usage, Format, Pool, ppIndexBuffer, pSharedHandle);
+	
+	if (FAILED(hr))
+	{
+		char buffer[256];
+		sprintf_s(buffer, "CreateIndexBuffer - Failed: 0x%0.8x", hr);
+		OutputDebugString(buffer);
+	}
+
+	return hr;
 }
 
 /**
@@ -513,7 +565,18 @@ HRESULT WINAPI BaseDirect3DDevice9::CreateOffscreenPlainSurface(UINT Width,UINT 
 	m_logFile << "CreateOffscreenPlainSurface" << std::endl;
 #endif
 
-	return m_pDevice->CreateOffscreenPlainSurface(Width, Height, Format, Pool, ppSurface, pSharedHandle);
+
+	HRESULT hr = S_OK;
+	hr = m_pDevice->CreateOffscreenPlainSurface(Width, Height, Format, Pool, ppSurface, pSharedHandle);
+	
+	if (FAILED(hr))
+	{
+		char buffer[256];
+		sprintf_s(buffer, "CreateOffscreenPlainSurface - Failed: 0x%0.8x", hr);
+		OutputDebugString(buffer);
+	}
+
+	return hr;
 }
 
 /**

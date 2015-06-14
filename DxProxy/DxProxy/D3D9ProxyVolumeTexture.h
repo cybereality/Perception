@@ -32,6 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <d3d9.h>
 #include <unordered_map>
+#include "D3DProxyDevice.h"
 #include "Direct3DVolumeTexture9.h"
 #include "D3D9ProxyVolume.h"
 
@@ -46,8 +47,25 @@ public:
 	virtual ~D3D9ProxyVolumeTexture();
 		
 	/*** IDirect3DBaseTexture9 methods ***/
-	virtual HRESULT WINAPI GetDevice(IDirect3DDevice9** ppDevice);
-	virtual HRESULT WINAPI GetVolumeLevel(UINT Level, IDirect3DVolume9** ppVolumeLevel);
+	virtual HRESULT              WINAPI GetDevice(IDirect3DDevice9** ppDevice);
+	virtual HRESULT              WINAPI SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags);
+	virtual HRESULT              WINAPI GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData);
+	virtual HRESULT              WINAPI FreePrivateData(REFGUID refguid);
+	virtual DWORD                WINAPI SetPriority(DWORD PriorityNew);
+	virtual DWORD                WINAPI GetPriority();
+	virtual void                 WINAPI PreLoad();
+	virtual D3DRESOURCETYPE      WINAPI GetType();
+	virtual DWORD                WINAPI SetLOD(DWORD LODNew);
+	virtual DWORD                WINAPI GetLOD();
+	virtual DWORD                WINAPI GetLevelCount();
+	virtual HRESULT              WINAPI SetAutoGenFilterType(D3DTEXTUREFILTERTYPE FilterType);
+	virtual D3DTEXTUREFILTERTYPE WINAPI GetAutoGenFilterType();
+	virtual void                 WINAPI GenerateMipSubLevels();
+	virtual HRESULT              WINAPI GetLevelDesc(UINT Level, D3DVOLUME_DESC *pDesc);
+	virtual HRESULT              WINAPI GetVolumeLevel(UINT Level, IDirect3DVolume9 **ppVolumeLevel);
+	virtual HRESULT              WINAPI LockBox(UINT Level, D3DLOCKED_BOX *pLockedVolume, const D3DBOX *pBox, DWORD Flags);
+	virtual HRESULT              WINAPI UnlockBox(UINT Level);
+	virtual HRESULT              WINAPI AddDirtyBox(const D3DBOX *pDirtyBox);
 
 	/*** IDirect3DVolumeTexture9 public methods ***/
 	IDirect3DVolumeTexture9* getActual();	
@@ -62,5 +80,8 @@ protected:
 	* @see D3D9ProxySurface::m_pOwningDevice
 	***/
 	BaseDirect3DDevice9* const m_pOwningDevice;
+
+	//Special handling required for locking boxes if we are using Dx9Ex
+	IDirect3DVolumeTexture9* lockableSysMemVolume;
 };
 #endif

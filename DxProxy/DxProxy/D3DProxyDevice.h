@@ -99,10 +99,31 @@ class ShaderRegisters;
 class GameHandler;
 struct HMDisplayInfo;
 
+static void Log(const char* str, ...)
+{
+	static FILE* pFile = NULL;
+	if(!pFile)
+	{
+		ProxyHelper ph;
+		std::string dir = ph.GetBaseDir();
+		fopen_s(&pFile, (dir + "\\Vireio_ShowCalls.log").c_str(), "w");
+	}
+
+//	OutputDebugString(str);
+//	OutputDebugString("\n\r");
+	if(pFile) {
+		fwrite(str, 1, strlen(str), pFile);
+		fwrite("\n\r", 1, 2, pFile);
+		fflush(pFile);
+	} else {
+		OutputDebugString("Couldn't open log file for writing.\n");
+	}
+}
+
 struct CallLogger
 {
-	CallLogger(std::string call) {OutputDebugString(("Called " + call).c_str()); m_call = call;}
-	~CallLogger() {OutputDebugString(("Exited " + m_call).c_str());}
+	CallLogger(std::string call) {Log(("Called " + call).c_str()); m_call = call;}
+	~CallLogger() {Log(("Exited " + m_call).c_str());}
 private:
 	std::string m_call;
 };
@@ -199,8 +220,7 @@ public:
 	virtual void   HandleControls(void);
 	void           HandleTracking(void);
 	void           HandleUpdateExtern();
-	void		   SetGameWindow(HWND hMainGameWindow);
-	
+
 	void HotkeyCooldown(float duration);
 	bool HotkeysActive();
 
@@ -507,23 +527,23 @@ protected:
 	virtual void VPMENU_ChangeRules(){}
 	virtual void VPMENU_PickRules(){}
 	virtual void VPMENU_ShowActiveShaders(){}
-	
+
 	/*** Popup.cpp ***********************************************************/
 
 	void ShowPopup(VireioPopup &popup);
 	void ShowPopup(VireioPopupType type, VireioPopupSeverity sev, long duration, std::string message);
 	void ShowPopup(VireioPopupType type, VireioPopupSeverity sev, std::string message);
-	
+
 	void ShowAdjusterToast(std::string message, int duration);
 	void DismissPopup(VireioPopupType popupType);
 	void DisplayCurrentPopup();
-	
+
 	void DrawTextShadowed(ID3DXFont* font, LPD3DXSPRITE sprite, LPCSTR lpchText, int cchText, LPRECT lprc, UINT format, D3DCOLOR color);
 	void DrawTextShadowed(ID3DXFont* font, LPD3DXSPRITE sprite, const char *text, LPRECT lprc, D3DCOLOR color);
 	void DrawTextShadowed(ID3DXFont* font, LPD3DXSPRITE sprite, std::string text, LPRECT lprc, D3DCOLOR color);
 	void DrawTextShadowed(std::string text, LPRECT lprc);
 	void DrawTextShadowed(float left, float top, std::string text);
-	
+
 	VireioPopup activePopup;
 
 	/********************************/
@@ -651,7 +671,7 @@ protected:
 		WhenToDo whenToHandleHeadTracking;
 
 	} m_deviceBehavior;
-	
+
 	void HandleLandmarkMoment(DeviceBehavior::WhenToDo when);
 
 private:

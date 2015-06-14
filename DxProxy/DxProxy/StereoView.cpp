@@ -277,6 +277,7 @@ void StereoView::ReleaseEverything()
 ***/
 void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 {
+	OutputDebugString("StereoView::Draw\n");
 	// Copy left and right surfaces to textures to use as shader input
 	// TODO match aspect ratio of source in target ? 
 	IDirect3DSurface9* leftImage;
@@ -440,6 +441,7 @@ void StereoView::SaveScreen()
 
 IDirect3DSurface9* StereoView::GetBackBuffer()
 {
+	OutputDebugString("StereoView::GetBackBuffer\n");
 	return backBuffer;
 }
 
@@ -448,6 +450,7 @@ IDirect3DSurface9* StereoView::GetBackBuffer()
 ***/
 void StereoView::PostReset()
 {
+	OutputDebugString("StereoView::PostReset\n");
 	CalculateShaderVariables();
 	viewEffect->OnResetDevice();
 }
@@ -458,6 +461,7 @@ void StereoView::PostReset()
 ***/
 void StereoView::InitTextureBuffers()
 {
+	OutputDebugString("StereoView::InitTextureBuffers\n");
 	m_pActualDevice->GetViewport(&viewport);
 	D3DSURFACE_DESC pDesc = D3DSURFACE_DESC();
 	m_pActualDevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &backBuffer);
@@ -485,8 +489,27 @@ void StereoView::InitVertexBuffers()
 {
 	OutputDebugString("SteroView initVertexBuffers\n");
 
-	m_pActualDevice->CreateVertexBuffer(sizeof(TEXVERTEX) * 4, NULL,
-		D3DFVF_TEXVERTEX, D3DPOOL_MANAGED, &screenVertexBuffer, NULL);
+	HRESULT hr = S_OK;
+	IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
+	if (SUCCEEDED(m_pActualDevice->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))))
+	{
+		//Must use default pool for DX9Ex 
+		hr = pDirect3DDevice9Ex->CreateVertexBuffer(sizeof(TEXVERTEX) * 4, NULL,
+			D3DFVF_TEXVERTEX, D3DPOOL_DEFAULT, &screenVertexBuffer, NULL);
+		pDirect3DDevice9Ex->Release();
+	}
+	else
+	{
+		hr = m_pActualDevice->CreateVertexBuffer(sizeof(TEXVERTEX) * 4, NULL,
+			D3DFVF_TEXVERTEX, D3DPOOL_MANAGED, &screenVertexBuffer, NULL);
+	}
+
+	if (FAILED(hr))
+	{
+		char buffer[256];
+		sprintf_s(buffer, "CreateVertexBuffer - Failed: 0x%0.8x", hr);
+		OutputDebugString(buffer);
+	}
 
 	TEXVERTEX* vertices;
 
@@ -537,6 +560,7 @@ void StereoView::InitVertexBuffers()
 ***/
 void StereoView::InitShaderEffects()
 {
+	OutputDebugString("StereoView::InitShaderEffects\n");
 	shaderEffect[ANAGLYPH_RED_CYAN] = "AnaglyphRedCyan.fx";
 	shaderEffect[ANAGLYPH_RED_CYAN_GRAY] = "AnaglyphRedCyanGray.fx";
 	shaderEffect[ANAGLYPH_YELLOW_BLUE] = "AnaglyphYellowBlue.fx";
@@ -579,6 +603,7 @@ void StereoView::CalculateShaderVariables() {}
 ***/
 void StereoView::SaveState()
 {
+	OutputDebugString("StereoView::SaveState\n");
 	m_pActualDevice->GetTextureStageState(0, D3DTSS_COLOROP, &tssColorOp);
 	m_pActualDevice->GetTextureStageState(0, D3DTSS_COLORARG1, &tssColorArg1);
 	m_pActualDevice->GetTextureStageState(0, D3DTSS_ALPHAOP, &tssAlphaOp);
@@ -622,6 +647,7 @@ void StereoView::SaveState()
 ***/
 void StereoView::SetState()
 {
+	OutputDebugString("StereoView::SetState\n");
 	D3DXMATRIX	identity;
 	m_pActualDevice->SetTransform(D3DTS_WORLD, D3DXMatrixIdentity(&identity));
 	m_pActualDevice->SetTransform(D3DTS_VIEW, &identity);
@@ -697,6 +723,7 @@ void StereoView::SetState()
 ***/
 void StereoView::RestoreState()
 {
+	OutputDebugString("StereoView::RestoreState\n");
 	m_pActualDevice->SetTextureStageState(0, D3DTSS_COLOROP, tssColorOp);
 	m_pActualDevice->SetTextureStageState(0, D3DTSS_COLORARG1, tssColorArg1);
 	m_pActualDevice->SetTextureStageState(0, D3DTSS_ALPHAOP, tssAlphaOp);
@@ -764,6 +791,7 @@ void StereoView::RestoreState()
 ***/
 void StereoView::SaveAllRenderStates(LPDIRECT3DDEVICE9 pDevice)
 {
+	OutputDebugString("StereoView::SaveAllRenderStates\n");
 	// save all Direct3D 9 RenderStates 
 	DWORD dwCount = 0;
 	pDevice->GetRenderState(D3DRS_ZENABLE                     , &renderStates[dwCount++]); 
@@ -877,6 +905,7 @@ void StereoView::SaveAllRenderStates(LPDIRECT3DDEVICE9 pDevice)
 ***/
 void StereoView::SetAllRenderStatesDefault(LPDIRECT3DDEVICE9 pDevice)
 {
+	OutputDebugString("StereoView::SetAllRenderStatesDefault\n");
 	// set all Direct3D 9 RenderStates to default values
 	float fData = 0.0f;
 	double dData = 0.0f;
@@ -1007,6 +1036,7 @@ void StereoView::SetAllRenderStatesDefault(LPDIRECT3DDEVICE9 pDevice)
 ***/
 void StereoView::RestoreAllRenderStates(LPDIRECT3DDEVICE9 pDevice)
 {
+	OutputDebugString("StereoView::RestoreAllRenderStates\n");
 	// set all Direct3D 9 RenderStates to saved values
 	DWORD dwCount = 0;
 	pDevice->SetRenderState(D3DRS_ZENABLE                     , renderStates[dwCount++]); 

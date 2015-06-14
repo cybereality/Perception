@@ -191,6 +191,7 @@ public:
 		bool warnCameraMalfunction;
 		bool obsStreamHack;
 		bool shaderAnalyser;
+		bool dx9ex;
 	};
 
 	/**
