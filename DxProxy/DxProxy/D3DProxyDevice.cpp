@@ -73,6 +73,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 using namespace VRBoost;
 using namespace vireio;
 
+//This is set from the config.xml, don't set this here
+bool CallLogger::show_calls = false;
+
 /**
 * Returns the mouse wheel scroll lines.
 ***/
@@ -207,6 +210,7 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	// rift info
 	ProxyHelper helper = ProxyHelper();
 	helper.LoadUserConfig(userConfig);
+	CallLogger::show_calls = userConfig.show_calls;
 	hmdInfo = HMDisplayInfoFactory::CreateHMDisplayInfo(static_cast<StereoView::StereoTypes>(userConfig.mode)); 
 	OutputDebugString(("Created HMD Info for: " + hmdInfo->GetHMDName()).c_str());
 
@@ -717,7 +721,7 @@ HRESULT WINAPI D3DProxyDevice::CreateIndexBuffer(UINT Length,DWORD Usage,D3DFORM
 HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample,
 												  DWORD MultisampleQuality,BOOL Lockable,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle)
 {
-	SHOW_CALL("CreateRenderTarget");
+	SHOW_CALL("CreateRenderTarget1");
 	
 	// call public overloaded function
 	return CreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, ppSurface, pSharedHandle, false);
@@ -739,14 +743,27 @@ HRESULT WINAPI D3DProxyDevice::CreateDepthStencilSurface(UINT Width,UINT Height,
 	IDirect3DSurface9* pDepthStencilSurfaceLeft = NULL;
 	IDirect3DSurface9* pDepthStencilSurfaceRight = NULL;
 	HRESULT creationResult;
+
+	//Override multisampling if DX9Ex
+	D3DMULTISAMPLE_TYPE newMultiSample = MultiSample;
+	DWORD newMultisampleQuality = MultisampleQuality;
+
+
+	HRESULT hr = S_OK;
+	IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
+	if (SUCCEEDED(getActual()->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))))
+	{
+		newMultiSample = D3DMULTISAMPLE_NONE;
+		newMultisampleQuality = 0;
+	}
 	
 	// create left/mono
-	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateDepthStencilSurface(Width, Height, Format, MultiSample, MultisampleQuality, Discard, &pDepthStencilSurfaceLeft, pSharedHandle))) {
+	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateDepthStencilSurface(Width, Height, Format, newMultiSample, newMultisampleQuality, Discard, &pDepthStencilSurfaceLeft, pSharedHandle))) {
 
 		// TODO Should we always duplicated Depth stencils? I think yes, but there may be exceptions
-		if (m_3DReconstructionMode == Reconstruction_Type::GEOMETRY && m_pGameHandler->ShouldDuplicateDepthStencilSurface(Width, Height, Format, MultiSample, MultisampleQuality, Discard)) 
+		if (m_3DReconstructionMode == Reconstruction_Type::GEOMETRY && m_pGameHandler->ShouldDuplicateDepthStencilSurface(Width, Height, Format, newMultiSample, newMultisampleQuality, Discard)) 
 		{
-			if (FAILED(BaseDirect3DDevice9::CreateDepthStencilSurface(Width, Height, Format, MultiSample, MultisampleQuality, Discard, &pDepthStencilSurfaceRight, pSharedHandle))) {
+			if (FAILED(BaseDirect3DDevice9::CreateDepthStencilSurface(Width, Height, Format, newMultiSample, newMultisampleQuality, Discard, &pDepthStencilSurfaceRight, pSharedHandle))) {
 				OutputDebugString("Failed to create right eye Depth Stencil Surface while attempting to create stereo pair, falling back to mono\n");
 				pDepthStencilSurfaceRight = NULL;
 			}
@@ -2372,7 +2389,7 @@ HRESULT WINAPI D3DProxyDevice::CreateQuery(D3DQUERYTYPE Type,IDirect3DQuery9** p
 HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample,
 												  DWORD MultisampleQuality,BOOL Lockable,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle, bool isSwapChainBackBuffer)
 {
-	SHOW_CALL("CreateRenderTarget");
+	SHOW_CALL("CreateRenderTarget2");
 	
 	IDirect3DSurface9* pLeftRenderTarget = NULL;
 	IDirect3DSurface9* pRightRenderTarget = NULL;
@@ -2384,12 +2401,21 @@ HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFO
 	HANDLE sharedHandleLeft = NULL;
 	HANDLE sharedHandleRight = NULL;
 
+	//Override multisampling if DX9Ex
+	D3DMULTISAMPLE_TYPE newMultiSample = MultiSample;
+	DWORD newMultisampleQuality = MultisampleQuality;
+
+
 	HRESULT hr = S_OK;
 	IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
 	if (SUCCEEDED(getActual()->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))))
+	{
 		pSharedHandle = &sharedHandleLeft;
+		newMultiSample = D3DMULTISAMPLE_NONE;
+		newMultisampleQuality = 0;
+	}
 
-	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, &pLeftRenderTarget, pSharedHandle))) {
+	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateRenderTarget(Width, Height, Format, newMultiSample, newMultisampleQuality, Lockable, &pLeftRenderTarget, pSharedHandle))) {
 
 		char buffer[256];
 		sprintf_s(buffer, "Shared Handle Left: 0x%0.8x", sharedHandleLeft);
@@ -2398,12 +2424,12 @@ HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFO
 		/* "If Needed" heuristic is the complicated part here.
 		Fixed heuristics (based on type, format, size, etc) + game specific overrides + isForcedMono + magic? */
 		// TODO Should we duplicate this Render Target? Replace "true" with heuristic
-		if (m_3DReconstructionMode == Reconstruction_Type::GEOMETRY && m_pGameHandler->ShouldDuplicateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, isSwapChainBackBuffer))
+		if (m_3DReconstructionMode == Reconstruction_Type::GEOMETRY && m_pGameHandler->ShouldDuplicateRenderTarget(Width, Height, Format, newMultiSample, newMultisampleQuality, Lockable, isSwapChainBackBuffer))
 		{
 			if (pDirect3DDevice9Ex)
 				pSharedHandle = &sharedHandleRight;
 
-			if (FAILED(BaseDirect3DDevice9::CreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, &pRightRenderTarget, pSharedHandle))) {
+			if (FAILED(BaseDirect3DDevice9::CreateRenderTarget(Width, Height, Format, newMultiSample, newMultisampleQuality, Lockable, &pRightRenderTarget, pSharedHandle))) {
 				OutputDebugString("Failed to create right eye render target while attempting to create stereo pair, falling back to mono\n");
 				pRightRenderTarget = NULL;
 			}

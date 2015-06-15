@@ -285,10 +285,6 @@ HRESULT WINAPI D3D9ProxyTexture::GetSurfaceLevel(UINT Level, IDirect3DSurface9**
 HRESULT WINAPI D3D9ProxyTexture::LockRect(UINT Level, D3DLOCKED_RECT* pLockedRect, CONST RECT* pRect, DWORD Flags)
 {
 	SHOW_CALL("D3D9ProxyTexture::LockRect");
-	vireio::debugf("D3D9ProxyTexture::LockRect  this = %0.8x", this);
-	vireio::debugf("D3D9ProxyTexture::LockRect  Level = %0.8x", Level);
-	vireio::debugf("D3D9ProxyTexture::LockRect  pRect = %0.8x", pRect);
-	vireio::debugf("D3D9ProxyTexture::LockRect  Flags = %0.8x", Flags);
 
 	D3DSURFACE_DESC desc;
 	m_pActualTexture->GetLevelDesc(Level, &desc);
@@ -297,10 +293,6 @@ HRESULT WINAPI D3D9ProxyTexture::LockRect(UINT Level, D3DLOCKED_RECT* pLockedRec
 		//Can't really handle stereo for this, so just lock on the original texture
 		return m_pActualTexture->LockRect(Level, pLockedRect, pRect, Flags);
 	}
-
-	vireio::debugf("D3D9ProxyTexture::LockRect  desc.Width = %0.8x", desc.Width);
-	vireio::debugf("D3D9ProxyTexture::LockRect  desc.Height = %0.8x", desc.Height);
-	vireio::debugf("D3D9ProxyTexture::LockRect  desc.Format = %0.8x", desc.Format);
 
 	if (lockableSysMemTexture.find(Level) == lockableSysMemTexture.end())
 	{
@@ -328,9 +320,11 @@ HRESULT WINAPI D3D9ProxyTexture::LockRect(UINT Level, D3DLOCKED_RECT* pLockedRec
 			vireio::debugf("Failed: m_pOwningDevice->getActual()->CreateTexture hr = 0x%0.8x", hr);
 
 			//Dummy this system texture by allocating some memory and returning as if nothing bad had happened
+			vireio::debugf("D3D9ProxyTexture::LockRect  Allocating dummy memory texture");
 			pLockedRect->Pitch = desc.Width * 4;
 			allocatedSysMem[Level] = new char[pLockedRect->Pitch * desc.Height];
 			pLockedRect->pBits = allocatedSysMem[Level];
+			vireio::debugf("D3D9ProxyTexture::LockRect  bits = %0.8x", pLockedRect->pBits);
 			return S_OK;
 		}
 	}
@@ -384,8 +378,6 @@ HRESULT WINAPI D3D9ProxyTexture::LockRect(UINT Level, D3DLOCKED_RECT* pLockedRec
 	}
 	pSurface->Release();
 
-	vireio::debugf("D3D9ProxyTexture::LockRect  bits = %0.8x", pLockedRect->pBits);
-
 	return hr;
 }
 	
@@ -409,8 +401,11 @@ HRESULT WINAPI D3D9ProxyTexture::UnlockRect(UINT Level)
 	//Check to see if we hacked it
 	if (allocatedSysMem.find(Level) != allocatedSysMem.end())
 	{
-		delete allocatedSysMem[Level];
+		vireio::debugf("D3D9ProxyTexture::UnlockRect  Deleting Mem Block %0.8x", (int)allocatedSysMem[Level]);
+		delete []allocatedSysMem[Level];
+		vireio::debugf("D3D9ProxyTexture::UnlockRect  Removing from allocation table");
 		allocatedSysMem.erase(allocatedSysMem.find(Level));
+		vireio::debugf("D3D9ProxyTexture::UnlockRect  return S_OK");
 		return S_OK;
 	}
 

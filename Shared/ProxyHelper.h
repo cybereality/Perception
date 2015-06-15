@@ -192,6 +192,7 @@ public:
 		bool obsStreamHack;
 		bool shaderAnalyser;
 		bool dx9ex;
+		bool show_calls;
 	};
 
 	/**

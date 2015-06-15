@@ -107,32 +107,42 @@ static void Log(const char* str, ...)
 		ProxyHelper ph;
 		std::string dir = ph.GetBaseDir();
 		fopen_s(&pFile, (dir + "\\Vireio_ShowCalls.log").c_str(), "w");
+		if (!pFile)
+		{
+			OutputDebugString("Couldn't open log file for writing.\n");
+		}
 	}
 
-//	OutputDebugString(str);
-//	OutputDebugString("\n\r");
 	if(pFile) {
 		fwrite(str, 1, strlen(str), pFile);
 		fwrite("\n\r", 1, 2, pFile);
 		fflush(pFile);
-	} else {
-		OutputDebugString("Couldn't open log file for writing.\n");
 	}
 }
 
 struct CallLogger
 {
-	CallLogger(std::string call) {Log(("Called " + call).c_str()); m_call = call;}
-	~CallLogger() {Log(("Exited " + m_call).c_str());}
+	CallLogger(std::string call)
+	{
+		if (show_calls)
+		{
+			Log(("Called " + call).c_str()); m_call = call;
+		}
+	}
+	~CallLogger() 
+	{
+		if (show_calls)
+			Log(("Exited " + m_call).c_str());
+	}
+
+	//Set by the device
+	static bool show_calls;
+
 private:
 	std::string m_call;
 };
 
-#ifdef SHOW_CALLS
-	#define SHOW_CALL(name) CallLogger call(name)
-#else
-	#define SHOW_CALL(name)
-#endif
+#define SHOW_CALL(name) CallLogger call(name)
 
 
 /**

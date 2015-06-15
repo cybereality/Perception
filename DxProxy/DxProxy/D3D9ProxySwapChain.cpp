@@ -78,7 +78,12 @@ D3D9ProxySwapChain::D3D9ProxySwapChain(IDirect3DSwapChain9* pActualSwapChain, D3
 		if (FAILED(hr))
 		{
 			vireio::debugf("Failed: pWrappedOwningDevice->CreateRenderTarget hr = 0x%0.8x", hr);
-			exit(99);
+			HRESULT hr = pWrappedOwningDevice->CreateRenderTarget(backDesc.Width, backDesc.Height, backDesc.Format, D3DMULTISAMPLE_NONE, 0, false, &pTemp, NULL, true);
+			if (FAILED(hr))
+			{
+				vireio::debugf("Failed: pWrappedOwningDevice->CreateRenderTarget hr = 0x%0.8x", hr);
+				exit(99);
+			}
 		}
 
 		m_backBuffers.push_back(static_cast<D3D9ProxySurface*>(pTemp));
