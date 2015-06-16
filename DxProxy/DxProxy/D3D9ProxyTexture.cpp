@@ -67,11 +67,20 @@ D3D9ProxyTexture::~D3D9ProxyTexture()
 
 	//Cleanup 
 	auto it2 = lockableSysMemTexture.begin();
-	while (it2 != lockableSysMemTexture.end()) {
+	while (it2 != lockableSysMemTexture.end())
+	{
 		if (it2->second) it2->second->Release();
-		it2++;
+		++it2;
 	}
-	lockableSysMemTexture.clear();
+
+	//Cleanup 
+	auto it3 = allocatedSysMem.begin();
+	while (it3 != allocatedSysMem.end())
+	{
+		//Some of these may still be locked if the game engine is lazy
+		if (!it3->second.locked)
+			delete []((char*)(((it3++)->second).lr.pBits));
+	}
 
 	if (m_pActualTextureRight)
 		m_pActualTextureRight->Release();
@@ -294,6 +303,10 @@ HRESULT WINAPI D3D9ProxyTexture::LockRect(UINT Level, D3DLOCKED_RECT* pLockedRec
 		return m_pActualTexture->LockRect(Level, pLockedRect, pRect, Flags);
 	}
 
+	//Guard against multithreaded access as this could be causing us problems
+	std::lock_guard<std::mutex> lck (m_mtx);
+
+	//Initialise
 	if (lockableSysMemTexture.find(Level) == lockableSysMemTexture.end())
 	{
 		lockableSysMemTexture[Level] = NULL;
@@ -317,17 +330,22 @@ HRESULT WINAPI D3D9ProxyTexture::LockRect(UINT Level, D3DLOCKED_RECT* pLockedRec
 
 		if (FAILED(hr))
 		{
-			vireio::debugf("Failed: m_pOwningDevice->getActual()->CreateTexture hr = 0x%0.8x", hr);
-
 			//Dummy this system texture by allocating some memory and returning as if nothing bad had happened
 			vireio::debugf("D3D9ProxyTexture::LockRect  Allocating dummy memory texture");
-			pLockedRect->Pitch = desc.Width * 4;
-			allocatedSysMem[Level] = new char[pLockedRect->Pitch * desc.Height];
-			pLockedRect->pBits = allocatedSysMem[Level];
-			vireio::debugf("D3D9ProxyTexture::LockRect  bits = %0.8x", pLockedRect->pBits);
+			if (allocatedSysMem.find(Level) == allocatedSysMem.end())
+			{
+				LockedRect memLockedRect;
+				memLockedRect.locked = true;
+				memLockedRect.lr.pBits = new char[desc.Width * desc.Height * 8];
+				memset(memLockedRect.lr.pBits, 0, desc.Width * desc.Height * 8);
+				memLockedRect.lr.Pitch = desc.Width * 8;
+				allocatedSysMem[Level] = memLockedRect;
+			}
+			*pLockedRect = allocatedSysMem[Level].lr;
 			return S_OK;
 		}
 	}
+
 	
 	IDirect3DSurface9 *pSurface = NULL;
 	hr = lockableSysMemTexture[Level]->GetSurfaceLevel(0, &pSurface);
@@ -395,17 +413,17 @@ HRESULT WINAPI D3D9ProxyTexture::UnlockRect(UINT Level)
 		return m_pActualTexture->UnlockRect(Level);
 	}
 
+	//Guard against multithreaded access as this could be causing us problems
+	std::lock_guard<std::mutex> lck (m_mtx);
+
 	if (lockableSysMemTexture.find(Level) == lockableSysMemTexture.end())
 		return S_OK;
 
 	//Check to see if we hacked it
 	if (allocatedSysMem.find(Level) != allocatedSysMem.end())
 	{
-		vireio::debugf("D3D9ProxyTexture::UnlockRect  Deleting Mem Block %0.8x", (int)allocatedSysMem[Level]);
-		delete []allocatedSysMem[Level];
-		vireio::debugf("D3D9ProxyTexture::UnlockRect  Removing from allocation table");
-		allocatedSysMem.erase(allocatedSysMem.find(Level));
-		vireio::debugf("D3D9ProxyTexture::UnlockRect  return S_OK");
+		//Mark as unlocked
+		allocatedSysMem[Level].locked = false;
 		return S_OK;
 	}
 

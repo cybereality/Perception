@@ -75,6 +75,7 @@ using namespace vireio;
 
 //This is set from the config.xml, don't set this here
 bool CallLogger::show_calls = false;
+UINT CallLogger::callID = 0;
 
 /**
 * Returns the mouse wheel scroll lines.

@@ -65,6 +65,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <stack>
 #include <memory>
 #include <ctime>
+#include <mutex>
 #include <functional>
 #include "Vireio.h"
 #include "VireioUtil.h"
@@ -126,13 +127,17 @@ struct CallLogger
 	{
 		if (show_calls)
 		{
-			Log(("Called " + call).c_str()); m_call = call;
+			{
+				std::lock_guard<std::mutex> lck (m_mtx);
+				sprintf_s(thread, "[Thread: %0.4x  Call ID: %0.8x]: ", GetCurrentThreadId(), callID++);
+			}
+			Log((std::string(thread) + "Call " + call).c_str()); m_call = call;
 		}
 	}
 	~CallLogger() 
 	{
 		if (show_calls)
-			Log(("Exited " + m_call).c_str());
+			Log((std::string(thread) + "Exit " + m_call).c_str());
 	}
 
 	//Set by the device
@@ -140,6 +145,9 @@ struct CallLogger
 
 private:
 	std::string m_call;
+	char thread[64];
+	static UINT callID;
+	std::mutex m_mtx;
 };
 
 #define SHOW_CALL(name) CallLogger call(name)

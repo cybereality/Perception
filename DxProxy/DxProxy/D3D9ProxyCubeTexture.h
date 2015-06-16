@@ -38,6 +38,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "IStereoCapableWrapper.h"
 #include <functional>
 #include <utility>
+#include <mutex>
 
 /**
 * Pair to use as key for storing surface levels.
@@ -101,7 +102,7 @@ protected:
 
 
 	//Special handling required for locking rectangles if we are using Dx9Ex
-//	std::unordered_map<UINT, std::vector<RECT>> lockedRects;
+	std::mutex m_mtx;
 	std::unordered_map<UINT, bool> newSurface;
 	IDirect3DCubeTexture9* lockableSysMemTexture;
 };

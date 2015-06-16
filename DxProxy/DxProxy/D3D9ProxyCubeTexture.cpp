@@ -255,6 +255,9 @@ HRESULT WINAPI D3D9ProxyCubeTexture::LockRect(D3DCUBEMAP_FACES FaceType, UINT Le
 		return m_pActualTexture->LockRect(FaceType, Level, pLockedRect, pRect, Flags);
 	}
 
+	//Guard against multithreaded access as this could be causing us problems
+	std::lock_guard<std::mutex> lck (m_mtx);
+
 	UINT key = (10 * Level) + (UINT)(FaceType);
 	if (newSurface.find(key) == newSurface.end())
 	{
@@ -283,8 +286,7 @@ HRESULT WINAPI D3D9ProxyCubeTexture::LockRect(D3DCUBEMAP_FACES FaceType, UINT Le
 			return hr;
 
 		hr = m_pOwningDevice->getActual()->GetRenderTargetData(pActualSurface, pSurface);
-//		if (FAILED(hr))
-//			OutputDebugString("D3DProxySurface::LockRect: Could not GetRenderTargetData");
+
 		pSurface->Release();
 		pActualSurface->Release();
 	}
@@ -311,6 +313,9 @@ HRESULT WINAPI D3D9ProxyCubeTexture::UnlockRect(D3DCUBEMAP_FACES FaceType, UINT 
 	{
 		return m_pActualTexture->UnlockRect(FaceType, Level);
 	}
+
+	//Guard against multithreaded access as this could be causing us problems
+	std::lock_guard<std::mutex> lck (m_mtx);
 
 	if (newSurface.size() == 0)
 		return S_OK;

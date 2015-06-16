@@ -35,7 +35,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Direct3DDevice9.h"
 #include "IStereoCapableWrapper.h"
 #include <stdio.h>
-
+#include <mutex>
 
 /**
 *  Direct 3D proxy surface class. 
@@ -109,6 +109,7 @@ protected:
 	HANDLE m_SharedHandleRight;
 
 	//Special handling required for locking rectangles if we are using Dx9Ex
+	std::mutex m_mtx;
 	std::vector<RECT> lockedRects;
 	bool fullSurface;
 	IDirect3DTexture9* lockableSysMemTexture;

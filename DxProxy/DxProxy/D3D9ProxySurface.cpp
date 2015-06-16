@@ -244,6 +244,9 @@ HRESULT WINAPI D3D9ProxySurface::LockRect(D3DLOCKED_RECT* pLockedRect, CONST REC
 		return m_pActualSurface->LockRect(pLockedRect, pRect, Flags);
 	}
 
+	//Guard against multithreaded access as this could be causing us problems
+	std::lock_guard<std::mutex> lck (m_mtx);
+
 	//Create lockable system memory surfaces
 	if (pRect && !fullSurface)
 	{
@@ -306,6 +309,9 @@ HRESULT WINAPI D3D9ProxySurface::UnlockRect()
 	{
 		return m_pActualSurface->UnlockRect();
 	}
+
+	//Guard against multithreaded access as this could be causing us problems
+	std::lock_guard<std::mutex> lck (m_mtx);
 
 	//This would mean nothing to do
 	if (lockedRects.size() == 0 && !fullSurface)
