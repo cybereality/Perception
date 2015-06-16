@@ -331,14 +331,33 @@ HRESULT WINAPI D3D9ProxyTexture::LockRect(UINT Level, D3DLOCKED_RECT* pLockedRec
 		if (FAILED(hr))
 		{
 			//Dummy this system texture by allocating some memory and returning as if nothing bad had happened
-			vireio::debugf("D3D9ProxyTexture::LockRect  Allocating dummy memory texture");
+			vireio::debugf("D3D9ProxyTexture::LockRect  Allocating dummy memory texture (W:%i H:%i F%i)", desc.Width, desc.Height, desc.Format);
 			if (allocatedSysMem.find(Level) == allocatedSysMem.end())
 			{
+				UINT BYTES=8;
 				LockedRect memLockedRect;
+				switch (desc.Format)
+				{
+				case D3DFMT_DXT1:
+					if (desc.Width < 4) desc.Width = 4;
+					if (desc.Height < 4) desc.Height = 4;
+					memLockedRect.lr.Pitch = (desc.Width / 4) * 8;
+					break;
+				case D3DFMT_DXT2:
+				case D3DFMT_DXT3:
+				case D3DFMT_DXT4:
+				case D3DFMT_DXT5:
+					if (desc.Width < 4) desc.Width = 4;
+					if (desc.Height < 4) desc.Height = 4;
+					memLockedRect.lr.Pitch = (desc.Width / 4) * 16;
+					break;
+				default:
+					memLockedRect.lr.Pitch = desc.Width * BYTES;
+				}
+
 				memLockedRect.locked = true;
-				memLockedRect.lr.pBits = new char[desc.Width * desc.Height * 8];
-				memset(memLockedRect.lr.pBits, 0, desc.Width * desc.Height * 8);
-				memLockedRect.lr.Pitch = desc.Width * 8;
+				memLockedRect.lr.pBits = new char[desc.Width * desc.Height * BYTES];
+				memset(memLockedRect.lr.pBits, 0, desc.Width * desc.Height * BYTES);
 				allocatedSysMem[Level] = memLockedRect;
 			}
 			*pLockedRect = allocatedSysMem[Level].lr;
