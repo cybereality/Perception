@@ -565,9 +565,6 @@ HRESULT WINAPI D3DProxyDevice::CreateTexture(UINT Width,UINT Height,UINT Levels,
 				pRightTexture = NULL;
 			}
 		}
-		else {
-			OutputDebugString("NOT DUPLICATING texture\n"); 
-	}
 	}
 	else {
 		OutputDebugString("Failed to create texture\n"); 

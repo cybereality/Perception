@@ -261,7 +261,7 @@ void OculusDirectToRiftView::InitShaderEffects()
 {
 	SHOW_CALL("OculusDirectToRiftView::InitShaderEffects");
 
-	shaderEffect[OCULUS_RIFT] = "OculusRift.fx";
+	shaderEffect[OCULUS_DIRECT_TO_RIFT] = "OculusRift.fx";
 
 	ProxyHelper helper = ProxyHelper();
 	std::string viewPath = helper.GetPath("fx\\") + shaderEffect[config->stereo_mode];

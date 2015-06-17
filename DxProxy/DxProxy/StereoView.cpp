@@ -479,7 +479,7 @@ void StereoView::SaveScreen()
 
 IDirect3DSurface9* StereoView::GetBackBuffer()
 {
-	OutputDebugString("StereoView::GetBackBuffer\n");
+	SHOW_CALL("StereoView::GetBackBuffer\n");
 	return backBuffer;
 }
 
@@ -488,7 +488,7 @@ IDirect3DSurface9* StereoView::GetBackBuffer()
 ***/
 void StereoView::PostReset()
 {
-	OutputDebugString("StereoView::PostReset\n");
+	SHOW_CALL("StereoView::PostReset\n");
 	CalculateShaderVariables();
 	viewEffect->OnResetDevice();
 }
@@ -499,7 +499,7 @@ void StereoView::PostReset()
 ***/
 void StereoView::InitTextureBuffers()
 {
-	OutputDebugString("StereoView::InitTextureBuffers\n");
+	SHOW_CALL("StereoView::InitTextureBuffers\n");
 	m_pActualDevice->GetViewport(&viewport);
 	D3DSURFACE_DESC pDesc = D3DSURFACE_DESC();
 	m_pActualDevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &backBuffer);
@@ -528,7 +528,7 @@ void StereoView::InitTextureBuffers()
 ***/
 void StereoView::InitVertexBuffers()
 {
-	OutputDebugString("SteroView initVertexBuffers\n");
+	SHOW_CALL("StereoView::initVertexBuffers\n");
 
 	HRESULT hr = S_OK;
 	IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
@@ -601,7 +601,8 @@ void StereoView::InitVertexBuffers()
 ***/
 void StereoView::InitShaderEffects()
 {
-	OutputDebugString("StereoView::InitShaderEffects\n");
+	SHOW_CALL("StereoView::InitShaderEffects\n");
+
 	shaderEffect[ANAGLYPH_RED_CYAN] = "AnaglyphRedCyan.fx";
 	shaderEffect[ANAGLYPH_RED_CYAN_GRAY] = "AnaglyphRedCyanGray.fx";
 	shaderEffect[ANAGLYPH_YELLOW_BLUE] = "AnaglyphYellowBlue.fx";

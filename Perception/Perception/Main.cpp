@@ -608,6 +608,7 @@ bool InitModes()
 	stereoModes[11] = comboPos++;
 	stereoModes[100] = comboPos++;
 	stereoModes[110] = comboPos++;
+	stereoModes[111] = comboPos++;
 
 	comboPos = 0;
 	trackerModes[0] = comboPos++;
