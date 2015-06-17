@@ -2,8 +2,8 @@
 Vireio Perception: Open-Source Stereoscopic 3D Driver
 Copyright (C) 2012 Andres Hernandez
 
-File <OculusRiftView.cpp> and
-Class <OculusRiftView> :
+File <OculusDirectToRiftView.cpp> and
+Class <OculusDirectToRiftView> :
 Copyright (C) 2012 Andres Hernandez
 Modifications Copyright (C) 2013 Chris Drain
 
@@ -28,10 +28,11 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#include "OculusRiftView.h"
+#include "OculusDirectToRiftView.h"
 #include "StereoView.h"
 #include "D3DProxyDevice.h"
 #include "Resource.h"
+#include "OculusTracker.h"
 
 #define DLL_NAME "d3d9.dll"
 
@@ -40,15 +41,24 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * @param config Game configuration.
 * @param hmd Oculus Rift Head Mounted Display info.
 ***/ 
-OculusRiftView::OculusRiftView(ProxyConfig *config, HMDisplayInfo *hmd) : StereoView(config),
+OculusDirectToRiftView::OculusDirectToRiftView(ProxyConfig *config, HMDisplayInfo *hmd, MotionTracker *motionTracker) : 
+	StereoView(config),
 	hmdInfo(hmd),
+	tracker(motionTracker),
 	m_logoTexture(NULL),
 	m_prevTexture(NULL)
 {
-	OutputDebugString("Created OculusRiftView\n");
+	OutputDebugString("Created OculusDirectToRiftView\n");
+
+	if (tracker &&
+		config->tracker_mode == MotionTracker::OCULUSTRACK)
+	{
+		OculusTracker *pOculusTracker = static_cast<OculusTracker*>(tracker);
+		ovrHmd hmd = pOculusTracker->GetOVRHmd();
+	}
 }
 
-void OculusRiftView::ReleaseEverything()
+void OculusDirectToRiftView::ReleaseEverything()
 {
 	//Release the texture we loaded
 	if (m_logoTexture)
@@ -65,9 +75,9 @@ void OculusRiftView::ReleaseEverything()
 /**
 * Sets vertex shader constants.
 ***/ 
-void OculusRiftView::SetViewEffectInitialValues() 
+void OculusDirectToRiftView::SetViewEffectInitialValues() 
 {
-	SHOW_CALL("OculusRiftView::SetViewEffectInitialValues\n");
+	SHOW_CALL("OculusDirectToRiftView::SetViewEffectInitialValues\n");
 
 	viewEffect->SetFloatArray("LensCenter", LensCenter, 2);
 	viewEffect->SetFloatArray("Scale", Scale, 2);
@@ -150,7 +160,7 @@ void OculusRiftView::SetViewEffectInitialValues()
 
 }
 
-void OculusRiftView::PostViewEffectCleanup()
+void OculusDirectToRiftView::PostViewEffectCleanup()
 {
 	if (m_prevTexture)
 	{
@@ -161,7 +171,7 @@ void OculusRiftView::PostViewEffectCleanup()
 	}	
 }
 
-void OculusRiftView::SetVRMouseSquish(float squish)
+void OculusDirectToRiftView::SetVRMouseSquish(float squish)
 {
 	m_VRMouseSquish = squish;
 }
@@ -169,13 +179,13 @@ void OculusRiftView::SetVRMouseSquish(float squish)
 /**
 * Calculate all vertex shader constants.
 ***/ 
-void OculusRiftView::CalculateShaderVariables()
+void OculusDirectToRiftView::CalculateShaderVariables()
 {
-	SHOW_CALL("OculusRiftView::CalculateShaderVariables");
+	SHOW_CALL("OculusDirectToRiftView::CalculateShaderVariables");
 
 	// Center of half screen is 0.25 in x (halfscreen x input in 0 to 0.5 range)
 	// Lens offset is in a -1 to 1 range. Using in shader with a 0 to 0.5 range so use 25% of the value.
-	LensCenter[0] = 0.25f + (hmdInfo->GetLensXCenterOffset() * 0.25f) + config->IPDOffset;
+	LensCenter[0] = 0.25f + (hmdInfo->GetLensXCenterOffset() * 0.25f) +config->IPDOffset;
 
 	// Center of halfscreen range is 0.5 in y (halfscreen y input in 0 to 1 range)
 	LensCenter[1] = hmdInfo->GetLensYCenterOffset() - config->YOffset; 
@@ -247,9 +257,9 @@ void OculusRiftView::CalculateShaderVariables()
 /**
 * Loads Oculus Rift shader effect files.
 ***/ 
-void OculusRiftView::InitShaderEffects()
+void OculusDirectToRiftView::InitShaderEffects()
 {
-	SHOW_CALL("OculusRiftView::InitShaderEffects");
+	SHOW_CALL("OculusDirectToRiftView::InitShaderEffects");
 
 	shaderEffect[OCULUS_RIFT] = "OculusRift.fx";
 

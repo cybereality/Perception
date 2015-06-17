@@ -78,7 +78,8 @@ public:
 
 		//Reserve numbers over 100 for HMDs as many more could be added in the future
 		DIY_RIFT = 100,                      /**< For do-it-yourself Oculus Rift kits. */
-		OCULUS_RIFT = 110					/**< Standard Oculus Rift render method. */
+		OCULUS_RIFT = 110,					/**< Standard Oculus Rift render method - Extended Mode */
+		OCULUS_DIRECT_TO_RIFT = 111			/**< Oculus Direct-to-Rift render method */
 	};
 	/**
 	* Left and right enumeration.

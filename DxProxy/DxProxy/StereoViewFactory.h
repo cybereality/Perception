@@ -33,6 +33,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ProxyHelper.h"
 #include "StereoView.h"
 
+class MotionTracker;
+
 /**
 *  Stereo view factory class. 
 *  Class to retrieve the currently selected stereo view.
@@ -41,6 +43,6 @@ class StereoViewFactory
 {
 public:
 	/*** StereoViewFactory public methods ***/
-	static StereoView* Get(ProxyConfig *config, HMDisplayInfo *hmd);
+	static StereoView* Get(ProxyConfig *config, HMDisplayInfo *hmd, MotionTracker *tracker);
 };
 #endif

@@ -33,10 +33,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 
 #include "..\..\LibOVR\include\OVR.h"
-#include "..\..\LibOVR\Src\OVR_Stereo.h"
-#include "..\..\LibOVR\Src\OVR_Profile.h"
-#include "..\..\LibOVR\Src\CAPI\CAPI_HMDState.h"
-#include "..\..\LibOVR\Src\Sensors\OVR_DeviceConstants.h"
+
 
 using namespace vireio;
 
@@ -94,8 +91,7 @@ void OculusTracker::init()
 	{
 		hmd=ovrHmd_Create(0);
 		strcpy_s(trackerDescription, (std::string(hmd->ProductName) + "   Serial: " + hmd->SerialNumber).c_str());
-		OVR::CAPI::HMDState *pHMDState = (OVR::CAPI::HMDState*)(hmd->Handle);
-		if (pHMDState->OurHMDInfo.HmdType == OVR::HmdType_DK2)
+		if (hmd->Type == ovrHmd_DK2)
 			supportsPositional = true;
 	}
 

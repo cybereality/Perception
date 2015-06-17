@@ -226,6 +226,7 @@ public:
 	bool  SaveConfig(ProxyConfig& config);
 	bool  HasProfile(const char* name, const char *path);
 	bool  GetProfile(char* name, char *path, bool _64bit, ProxyConfig& config);
+	static bool IsProcessRunning(const char *processName);
 
 	enum GameTypeEntry
 	{

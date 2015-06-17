@@ -115,6 +115,19 @@ public:
 
 	}
 
+	int get_selection()
+	{
+		char string[120];
+		int selection = (int)SendMessage(combobox_handle, CB_GETCURSEL, 0, 0);
+		if ( selection != CB_ERR ) {
+			SendMessage(combobox_handle, CB_GETLBTEXT, selection, (LPARAM)string);
+			int length = 0;
+			char * s = string;
+			while ( *s++ != '\t' ) length++;
+			return atoi(s);
+		}
+	}
+
 	void new_selection() {
 		char string[120];
 		int selection = (int)SendMessage(combobox_handle, CB_GETCURSEL, 0, 0);
@@ -374,7 +387,20 @@ public:
 						This->combobox->new_selection();
 						This->combobox2->new_selection2();
 						This->combobox3->new_selection3();
-					} 
+					}
+
+					//Disable other controls if selection is direct-to-rift
+/*					if (This->combobox->get_selection() == 111)
+					{
+						ShowWindow(This->combobox2->combobox_handle, SW_HIDE);
+						ShowWindow(This->combobox3->combobox_handle, SW_HIDE);
+					}
+					else
+					{
+						ShowWindow(This->combobox2->combobox_handle, SW_SHOW);
+						ShowWindow(This->combobox3->combobox_handle, SW_SHOW);
+					}*/
+
 					return 0;
 				}
 			case WM_CLOSE:   
@@ -439,7 +465,8 @@ int WINAPI wWinMain(HINSTANCE instance_handle, HINSTANCE, LPWSTR, INT) {
 	main_window.add_item("Anaglyph (Green/Magenta)\t10");
 	main_window.add_item("Anaglyph (Green/Magenta) B+W\t11");
 	main_window.add_item("DIY Rift\t100");
-	main_window.add_item("Oculus Rift (All Variants)\t110");
+	main_window.add_item("Oculus Rift: Extended Mode\t110");
+	main_window.add_item("Oculus Rift: Direct-to-HMD\t111");
 
 	main_window.add_item2("No Tracking\t0");
 	main_window.add_item2("Hillcrest Labs\t10");
@@ -484,9 +511,9 @@ int WINAPI wWinMain(HINSTANCE instance_handle, HINSTANCE, LPWSTR, INT) {
 			wcstombs_s(&countConverted, monitorFriendlyDeviceName, 256, deviceName.monitorFriendlyDeviceName, 256);
 
 			std::string adapterStr(monitorFriendlyDeviceName);
-			if (adapterNum == 0) adapterStr = "Primary Monitor: " + adapterStr + "\t";
-			if (adapterNum == 1) adapterStr = "Secondary Monitor: " + adapterStr + "\t";
-			if (adapterNum == 2) adapterStr = "Tertiary Monitor: " + adapterStr + "\t";
+			if (adapterNum == 0) adapterStr = "Primary Monitor: " + adapterStr + "\t0";
+			if (adapterNum == 1) adapterStr = "Secondary Monitor: " + adapterStr + "\t1";
+			if (adapterNum == 2) adapterStr = "Tertiary Monitor: " + adapterStr + "\t2";
 			main_window.add_item3(adapterStr.c_str());
 			adapterNum++;
 		}

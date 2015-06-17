@@ -2483,7 +2483,9 @@ void D3DProxyDevice::Init(ProxyConfig& cfg)
 	// first time configuration
 	m_spShaderViewAdjustment->Load(config);
 	m_pGameHandler->Load(config, m_spShaderViewAdjustment);
-	stereoView = StereoViewFactory::Get(&config, m_spShaderViewAdjustment->HMDInfo());
+
+	InitTracker();
+	stereoView = StereoViewFactory::Get(&config, m_spShaderViewAdjustment->HMDInfo(), tracker.get());
 	stereoView->HeadYOffset = 0;
 	stereoView->HeadZOffset = FLT_MAX;
 	stereoView->m_3DReconstructionMode = 1;	
@@ -2582,6 +2584,7 @@ void D3DProxyDevice::HandleTracking()
 {
 	SHOW_CALL("HandleTracking");
 
+	//Should have been initialised in Init, but give it another chance
 	if(!tracker)
 	{
 		InitTracker();

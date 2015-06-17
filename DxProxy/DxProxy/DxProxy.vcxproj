@@ -266,6 +266,7 @@
     <ClCompile Include="MotionTracker.cpp" />
     <ClCompile Include="MotionTrackerFactory.cpp" />
     <ClCompile Include="MurmurHash3.cpp" />
+    <ClCompile Include="OculusDirectToRiftView.cpp" />
     <ClCompile Include="OculusRiftView.cpp" />
     <ClCompile Include="OculusTracker.cpp" />
     <ClCompile Include="Popup.cpp" />
@@ -323,6 +324,7 @@
     <ClInclude Include="MatrixRollOnlyHalf.h" />
     <ClInclude Include="MatrixRollOnlyNegative.h" />
     <ClInclude Include="MatrixSurfaceRefractionTransform.h" />
+    <ClInclude Include="OculusDirectToRiftView.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="ShaderMatrixModification.h" />
     <ClInclude Include="MatrixIgnoreOrtho.h" />

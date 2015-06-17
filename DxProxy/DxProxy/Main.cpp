@@ -30,7 +30,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Main.h"
 #include "Direct3D9.h"
 #include <windows.h>
-#include <shlwapi.h>
+#include <Shlwapi.h>
+
 #include <d3d9.h>
 #include <stdio.h>
 
@@ -175,7 +176,7 @@ IDirect3D9* WINAPI Direct3DCreate9(UINT nSDKVersion)
 	IDirect3D9Ex *pD3DEx = NULL;
 	HRESULT hr = E_NOTIMPL;
 
-	if (userCfg.dx9ex)
+	if (userCfg.dx9ex && ProxyHelper::IsProcessRunning("Perception.exe"))
 	{
 		//Try to create an ex interface
 		Log("g_pfnDirect3DCreate9Ex\n");

@@ -65,6 +65,8 @@ public:
 	virtual char* GetTrackerDescription();
 	virtual bool SupportsPositionTracking();
 
+	ovrHmd GetOVRHmd() {return hmd;}
+
 
 	void BeginFrame();
 	void EndFrame();

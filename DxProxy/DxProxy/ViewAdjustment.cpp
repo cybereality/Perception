@@ -146,12 +146,6 @@ void ViewAdjustment::UpdateProjectionMatrices(float aspectRatio, float fov_horiz
 		float nearClippingPlaneDistance = 1;
 		float physicalScreenSizeInMeters = 1;
 
-		if (config->stereo_mode<100)
-		{
-			nearClippingPlaneDistance = hmdInfo->GetEyeToScreenDistance(); 
-			physicalScreenSizeInMeters = hmdInfo->GetPhysicalScreenSize().first / 2; 
-		}
-
 		// convergence frustum adjustment, based on NVidia explanations
 		//
 		// It is evident that the ratio of frustum shift to the near clipping plane is equal to the ratio of 
