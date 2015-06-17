@@ -277,7 +277,7 @@ void StereoView::ReleaseEverything()
 ***/
 void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 {
-	OutputDebugString("StereoView::Draw\n");
+	SHOW_CALL("StereoView::Draw");
 	// Copy left and right surfaces to textures to use as shader input
 	// TODO match aspect ratio of source in target ? 
 	IDirect3DSurface9* leftImage;
@@ -306,6 +306,46 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 		m_pActualDevice->StretchRect(rightImage, NULL, rightSurface, NULL, D3DTEXF_NONE);
 	else
 		m_pActualDevice->StretchRect(leftImage, NULL, rightSurface, NULL, D3DTEXF_NONE);
+
+	m_pActualDevice->GetViewport(&viewport);
+	D3DSURFACE_DESC pDesc = D3DSURFACE_DESC();
+	m_pActualDevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &backBuffer);
+	backBuffer->GetDesc(&pDesc);
+	
+	bool setTexture = false;
+	/*IDirect3DSurface9* depthSurface;
+	IDirect3DSurface9* depthStencilSurface;
+	IDirect3DTexture9* depthTexture; 
+	IDirect3DTexture9* depthStencilTexture; 
+	
+	//if (FAILED(m_pActualDevice->CreateOffscreenPlainSurface (pDesc.Width, pDesc.Height, D3DFMT_D16_LOCKABLE, D3DPOOL_DEFAULT, &depthSurface, NULL))) {
+	if (FAILED(m_pActualDevice->CreateTexture(pDesc.Width, pDesc.Height, 0, D3DUSAGE_RENDERTARGET, pDesc.Format, D3DPOOL_DEFAULT, &depthTexture, NULL))) {	
+		OutputDebugString("CreateOffscreenPlainSurface (ZBuffer Texture) failed\n");
+	}
+	else
+	{
+		depthTexture->GetSurfaceLevel(0, &depthSurface);
+		if (FAILED(m_pActualDevice->GetDepthStencilSurface (&depthStencilSurface))) {
+			OutputDebugString("GetDepthStencilSurface (ZBuffer) failed\n");
+		}
+		else
+		{
+			if (FAILED(m_pActualDevice->UpdateSurface (depthStencilSurface, NULL, depthSurface, NULL))) {
+				OutputDebugString("UpdateSurface (ZBuffer) failed\n");
+			}
+			else
+			{				
+				//m_pActualDevice->CreateTexture(pDesc.Width, pDesc.Height, 0, D3DUSAGE_RENDERTARGET, pDesc.Format, D3DPOOL_DEFAULT, &depthTexture, NULL);
+				//depthTexture->GetSurfaceLevel(0, &depthSurface);
+				m_pActualDevice->SetTexture(3, depthTexture);
+				setTexture = true;
+			}
+		}
+	}	*/
+	if(!setTexture)
+	{
+		m_pActualDevice->SetTexture(3, leftTexture);
+	}
 
 
 	// how to save (backup) render states ?	
@@ -343,9 +383,7 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 		m_pActualDevice->SetTexture(0, rightTexture);
 		m_pActualDevice->SetTexture(1, leftTexture);		
 	}
-	/*LPDIRECT3DSURFACE9 pZBuffer;
-	m_pActualDevice->GetDepthStencilSurface( &pZBuffer );*/
-	
+		
 	if (FAILED(m_pActualDevice->SetRenderTarget(0, backBuffer))) {
 		OutputDebugString("SetRenderTarget backbuffer failed\n");
 	}
@@ -466,6 +504,7 @@ void StereoView::InitTextureBuffers()
 	D3DSURFACE_DESC pDesc = D3DSURFACE_DESC();
 	m_pActualDevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &backBuffer);
 	backBuffer->GetDesc(&pDesc);
+	
 
 #ifdef _DEBUG
 	debugf("viewport width: %d",viewport.Width);
@@ -480,6 +519,8 @@ void StereoView::InitTextureBuffers()
 
 	m_pActualDevice->CreateTexture(pDesc.Width, pDesc.Height, 0, D3DUSAGE_RENDERTARGET, pDesc.Format, D3DPOOL_DEFAULT, &rightTexture, NULL);
 	rightTexture->GetSurfaceLevel(0, &rightSurface);
+
+
 }
 
 /**
@@ -603,7 +644,7 @@ void StereoView::CalculateShaderVariables() {}
 ***/
 void StereoView::SaveState()
 {
-	OutputDebugString("StereoView::SaveState\n");
+	SHOW_CALL("StereoView::SaveState");
 	m_pActualDevice->GetTextureStageState(0, D3DTSS_COLOROP, &tssColorOp);
 	m_pActualDevice->GetTextureStageState(0, D3DTSS_COLORARG1, &tssColorArg1);
 	m_pActualDevice->GetTextureStageState(0, D3DTSS_ALPHAOP, &tssAlphaOp);
@@ -647,7 +688,7 @@ void StereoView::SaveState()
 ***/
 void StereoView::SetState()
 {
-	OutputDebugString("StereoView::SetState\n");
+	SHOW_CALL("StereoView::SetState");
 	D3DXMATRIX	identity;
 	m_pActualDevice->SetTransform(D3DTS_WORLD, D3DXMatrixIdentity(&identity));
 	m_pActualDevice->SetTransform(D3DTS_VIEW, &identity);
@@ -723,7 +764,7 @@ void StereoView::SetState()
 ***/
 void StereoView::RestoreState()
 {
-	OutputDebugString("StereoView::RestoreState\n");
+	SHOW_CALL("StereoView::RestoreState");
 	m_pActualDevice->SetTextureStageState(0, D3DTSS_COLOROP, tssColorOp);
 	m_pActualDevice->SetTextureStageState(0, D3DTSS_COLORARG1, tssColorArg1);
 	m_pActualDevice->SetTextureStageState(0, D3DTSS_ALPHAOP, tssAlphaOp);
@@ -791,7 +832,7 @@ void StereoView::RestoreState()
 ***/
 void StereoView::SaveAllRenderStates(LPDIRECT3DDEVICE9 pDevice)
 {
-	OutputDebugString("StereoView::SaveAllRenderStates\n");
+	SHOW_CALL("StereoView::SaveAllRenderStates\n");
 	// save all Direct3D 9 RenderStates 
 	DWORD dwCount = 0;
 	pDevice->GetRenderState(D3DRS_ZENABLE                     , &renderStates[dwCount++]); 
@@ -905,7 +946,7 @@ void StereoView::SaveAllRenderStates(LPDIRECT3DDEVICE9 pDevice)
 ***/
 void StereoView::SetAllRenderStatesDefault(LPDIRECT3DDEVICE9 pDevice)
 {
-	OutputDebugString("StereoView::SetAllRenderStatesDefault\n");
+	SHOW_CALL("StereoView::SetAllRenderStatesDefault\n");
 	// set all Direct3D 9 RenderStates to default values
 	float fData = 0.0f;
 	double dData = 0.0f;
@@ -1036,7 +1077,7 @@ void StereoView::SetAllRenderStatesDefault(LPDIRECT3DDEVICE9 pDevice)
 ***/
 void StereoView::RestoreAllRenderStates(LPDIRECT3DDEVICE9 pDevice)
 {
-	OutputDebugString("StereoView::RestoreAllRenderStates\n");
+	SHOW_CALL("StereoView::RestoreAllRenderStates\n");
 	// set all Direct3D 9 RenderStates to saved values
 	DWORD dwCount = 0;
 	pDevice->SetRenderState(D3DRS_ZENABLE                     , renderStates[dwCount++]); 
