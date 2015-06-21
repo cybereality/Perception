@@ -34,6 +34,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Resource.h"
 #include "OculusTracker.h"
 
+#define DLL_NAME "d3d9.dll"
+
 //------------------------------------------------------------
 // ovrSwapTextureSet wrapper class that also maintains the render target views
 // needed for D3D11 rendering.
@@ -116,7 +118,7 @@ struct VoidScene
  	VoidScene(ID3D11Texture2D *pTexture) :
 		m_pTexture(pTexture)
     {
-		SHOW_CALL("VoidScene()");
+		SHOW_CALL("VoidScene::VoidScene()");
 
 		//We have a hold of this
 		m_pTexture->AddRef();
@@ -129,12 +131,12 @@ struct VoidScene
 
 		float aspect = (float)(desc.Width) / (float)(desc.Height);
 		texture = new VireioTexture(pTexture, false, Sizei(desc.Width, desc.Height));
-		screen = new Model(texture, -1.0f * aspect, 0.0f, 2.0f, aspect);
+		screen = new Model(texture, -1.0f * aspect, 0.0f, aspect, 2.0f);
     }
 
 	~VoidScene()
 	{
-		SHOW_CALL("~VoidScene()");
+		SHOW_CALL("VoidScene::~VoidScene()");
 		m_pTexture->Release();
 		delete texture;
 		delete screen;
@@ -142,8 +144,7 @@ struct VoidScene
 
    void Render(Matrix4f projView, float R, float G, float B, float A, bool standardUniforms)
     {   
-		SHOW_CALL("Render()");
-		//DIRECTX.Context->CopyResource(texture->Tex, m_pTexture);
+		SHOW_CALL("VoidScene::Render()");
 		screen->Render(projView,R,G,B,A,standardUniforms);    
 	}
 
@@ -159,6 +160,7 @@ private:
 ***/ 
 OculusDirectToRiftView::OculusDirectToRiftView(ProxyConfig *config, HMDisplayInfo *hmd, MotionTracker *motionTracker) : 
 	StereoView(config),
+	m_logoTexture(NULL),
 	hmdInfo(hmd)
 {
 	SHOW_CALL("OculusDirectToRiftView::OculusDirectToRiftView()");
@@ -193,6 +195,13 @@ void OculusDirectToRiftView::ReleaseEverything()
 {
 	SHOW_CALL("OculusDirectToRiftView::ReleaseEverything()");
 
+	//Release the texture we loaded
+	if (m_logoTexture)
+	{
+		m_logoTexture->Release();
+		m_logoTexture = NULL;
+	}
+
 	if (m_pScene[0])
 	{
 		delete m_pScene[0];
@@ -213,16 +222,12 @@ void OculusDirectToRiftView::ReleaseEverything()
 
 void OculusDirectToRiftView::Draw(D3D9ProxySurface* stereoCapableSurface)
 {
-    // Get both eye poses simultaneously, with IPD offset already included. 
+	SHOW_CALL("OculusDirectToRiftView::Draw()");
+
+	// Get both eye poses simultaneously, with IPD offset already included. 
     ovrPosef         EyeRenderPose[2];
     ovrVector3f      HmdToEyeViewOffset[2] = { eyeRenderDesc[0].HmdToEyeViewOffset,
                                                 eyeRenderDesc[1].HmdToEyeViewOffset };
-
-	if (m_disconnectedScreenView)
-	{
-		HmdToEyeViewOffset[0].x = 0.0f;
-		HmdToEyeViewOffset[1].x = 0.0f;
-	}
 
 	//If we aren't in disconnected mode, we want to render here mono-scopically
 	ovr_CalcEyePoses(m_pOculusTracker->GetOvrTrackingState().HeadPose.ThePose, HmdToEyeViewOffset, EyeRenderPose);
@@ -242,14 +247,7 @@ void OculusDirectToRiftView::Draw(D3D9ProxySurface* stereoCapableSurface)
 		{
 			ID3D11Resource *tempResource11 = NULL;
 			HANDLE textHandle = NULL;
-			if (config->swap_eyes)
-			{
-				textHandle = eye == 0 ? stereoCapableSurface->getHandleRight() : stereoCapableSurface->getHandleLeft();
-			}
-			else
-			{
-				textHandle = eye == 0 ? stereoCapableSurface->getHandleLeft() : stereoCapableSurface->getHandleRight();
-			}
+			textHandle = eye == 0 ? stereoCapableSurface->getHandleLeft() : stereoCapableSurface->getHandleRight();
 
 			IID iid = __uuidof(ID3D11Resource);
 			if (FAILED(DIRECTX.Device->OpenSharedResource(textHandle, iid, (void**)(&tempResource11))))
@@ -263,7 +261,7 @@ void OculusDirectToRiftView::Draw(D3D9ProxySurface* stereoCapableSurface)
 			tempResource11->QueryInterface(__uuidof(ID3D11Texture2D), (void**)(&pDX9Texture)); 
 			tempResource11->Release();
 
-			//Create the void scene
+			//Create the void scene for this eye, setting the DX9 shared texture as the screen source
 			m_pScene[eye] = new VoidScene(pDX9Texture);
 
 			//We don't need to keep the ref here now
@@ -272,7 +270,7 @@ void OculusDirectToRiftView::Draw(D3D9ProxySurface* stereoCapableSurface)
 
 
         // View and projection matrices for the main camera
-		Camera mainCam(Vector3f(0.0f, 1.0f, ZoomOutScale + m_screenViewGlideFactor), Matrix4f::RotationY(0.0f));
+		Camera mainCam(Vector3f(0.0f, 1.1f + config->YOffset, (2.25f - ZoomOutScale) + m_screenViewGlideFactor), Matrix4f::RotationY(0.0f));
 
         // View and projection matrices for the stereo camera
         Camera finalCam(mainCam.Pos + mainCam.Rot.Transform(EyeRenderPose[eye].Position),
@@ -282,7 +280,11 @@ void OculusDirectToRiftView::Draw(D3D9ProxySurface* stereoCapableSurface)
 		Matrix4f view = m_disconnectedScreenView ? finalCam.GetViewMatrix() : mainCam.GetViewMatrix();
         Matrix4f proj = ovrMatrix4f_Projection(eyeRenderDesc[eye].Fov, 0.2f, 1000.0f, ovrProjection_RightHanded);
 		
-		m_pScene[eye]->Render(proj*view, 1, 1, 1, 1, true);
+		int sceneIndex = eye;
+		if (config->swap_eyes)
+			sceneIndex = 1 - eye;
+
+		m_pScene[sceneIndex]->Render(proj*view, 1, 1, 1, 1, true);
     }
 
     // Initialize our single full screen Fov layer.
@@ -306,6 +308,24 @@ void OculusDirectToRiftView::Draw(D3D9ProxySurface* stereoCapableSurface)
 	IDirect3DSurface9* leftImage = stereoCapableSurface->getActualLeft();
 	m_pActualDevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &backBuffer);
 	m_pActualDevice->StretchRect(leftImage, NULL, backBuffer, NULL, D3DTEXF_NONE);
+
+	//Draw the Vireio logo to the top left of the screen
+	if (!m_logoTexture)
+		D3DXCreateTextureFromResource(m_pActualDevice, GetModuleHandle(DLL_NAME), MAKEINTRESOURCE(IDB_IMAGE), &m_logoTexture);
+
+	if (m_logoTexture)
+	{
+		IDirect3DSurface9 *pSurface = NULL;
+		if (SUCCEEDED(m_logoTexture->GetSurfaceLevel(0, &pSurface)))
+		{
+			RECT r;
+			r.left = 0; r.top = 0; r.right = 300; r.bottom = 75;
+			SHOW_CALL("m_pActualDevice->StretchRect()");
+			m_pActualDevice->StretchRect(pSurface, NULL, backBuffer, &r, D3DTEXF_NONE);
+			pSurface->Release();
+		}
+	}
+
 	backBuffer->Release();
 }
 
@@ -321,10 +341,12 @@ void OculusDirectToRiftView::SetViewEffectInitialValues()
 
 void OculusDirectToRiftView::PostViewEffectCleanup()
 {
+	SHOW_CALL("OculusDirectToRiftView::PostViewEffectCleanup()");
 }
 
 void OculusDirectToRiftView::SetVRMouseSquish(float squish)
 {
+	SHOW_CALL("OculusDirectToRiftView::SetVRMouseSquish()");
 }
 
 /**

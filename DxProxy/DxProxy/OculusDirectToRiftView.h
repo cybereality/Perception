@@ -75,6 +75,8 @@ private:
 	***/
 	OculusTracker *m_pOculusTracker;
 
+	IDirect3DTexture9 *m_logoTexture;
+
 	//The rift!
 	ovrHmd rift;
 
