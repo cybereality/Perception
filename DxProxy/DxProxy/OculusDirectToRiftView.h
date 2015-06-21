@@ -42,7 +42,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "OVR_CAPI_D3D.h"
 using namespace OVR;
 
-struct OculusTexture;
+struct OculusTextureSet;
 class OculusTracker;
 struct VoidScene;
 
@@ -79,7 +79,7 @@ private:
 	ovrHmd rift;
 
 	// Make the eye render buffers (caution if actual size < requested due to HW limits). 
-	OculusTexture  * pEyeRenderTexture[2];
+	OculusTextureSet  * pEyeRenderTexture[2];
 	DepthBuffer    * pEyeDepthBuffer[2];
 	ovrEyeRenderDesc eyeRenderDesc[2];
 

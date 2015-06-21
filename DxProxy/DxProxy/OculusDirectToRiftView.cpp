@@ -37,12 +37,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //------------------------------------------------------------
 // ovrSwapTextureSet wrapper class that also maintains the render target views
 // needed for D3D11 rendering.
-struct OculusTexture
+struct OculusTextureSet
 {
     ovrSwapTextureSet      * TextureSet;
     ID3D11RenderTargetView * TexRtv[3];
 
-    OculusTexture(ovrHmd hmd, Sizei size)
+    OculusTextureSet(ovrHmd hmd, Sizei size)
     {
         D3D11_TEXTURE2D_DESC dsDesc;
         dsDesc.Width            = size.w;
@@ -75,11 +75,43 @@ struct OculusTexture
     }
 };
 
+//An extension to the Texture Class provided in the OVR Samples
+struct VireioTexture : public Texture
+{
+    VireioTexture(ID3D11Texture2D *pTexture, bool rendertarget, Sizei size) :
+		Texture(rendertarget, size)
+    {
+		SHOW_CALL("VireioTexture()");
+		
+		//Release the texture created by the base class
+		if(Tex)
+		{
+			Tex->Release();
+			Tex = pTexture;
+		}
+
+		if(rendertarget)
+		{
+			TexRtv->Release();
+			TexRtv = NULL;
+		}
+
+		if(TexSv)
+		{
+			TexSv->Release();
+			TexSv = NULL;
+		}
+
+        DIRECTX.Device->CreateShaderResourceView(pTexture, NULL, &TexSv);
+		if (rendertarget) DIRECTX.Device->CreateRenderTargetView(Tex, NULL, &TexRtv);
+   }
+};
+
 //------------------------------------------------------------------------- 
 struct VoidScene  
 {
     Model * screen;
-	Texture *texture;
+	VireioTexture *texture;
 
  	VoidScene(ID3D11Texture2D *pTexture) :
 		m_pTexture(pTexture)
@@ -96,14 +128,13 @@ struct VoidScene
 #endif
 
 		float aspect = (float)(desc.Width) / (float)(desc.Height);
-		texture = new Texture(false, Sizei(desc.Width, desc.Height));
+		texture = new VireioTexture(pTexture, false, Sizei(desc.Width, desc.Height));
 		screen = new Model(texture, -1.0f * aspect, 0.0f, 2.0f, aspect);
     }
 
 	~VoidScene()
 	{
 		SHOW_CALL("~VoidScene()");
-		texture->Tex->Release();
 		m_pTexture->Release();
 		delete texture;
 		delete screen;
@@ -112,7 +143,7 @@ struct VoidScene
    void Render(Matrix4f projView, float R, float G, float B, float A, bool standardUniforms)
     {   
 		SHOW_CALL("Render()");
-		DIRECTX.Context->CopyResource(texture->Tex, m_pTexture);
+		//DIRECTX.Context->CopyResource(texture->Tex, m_pTexture);
 		screen->Render(projView,R,G,B,A,standardUniforms);    
 	}
 
@@ -144,7 +175,7 @@ OculusDirectToRiftView::OculusDirectToRiftView(ProxyConfig *config, HMDisplayInf
 		for (int eye = 0; eye < 2; eye++)
 		{
 			Sizei idealSize = ovrHmd_GetFovTextureSize(rift, (ovrEyeType)eye, rift->DefaultEyeFov[eye], 1.0f);
-			pEyeRenderTexture[eye]      = new OculusTexture(rift, idealSize);
+			pEyeRenderTexture[eye]      = new OculusTextureSet(rift, idealSize);
 			pEyeDepthBuffer[eye]        = new DepthBuffer(DIRECTX.Device, idealSize);
 			eyeRenderViewport[eye].Pos  = Vector2i(0, 0);
 			eyeRenderViewport[eye].Size = idealSize;
@@ -186,6 +217,12 @@ void OculusDirectToRiftView::Draw(D3D9ProxySurface* stereoCapableSurface)
     ovrPosef         EyeRenderPose[2];
     ovrVector3f      HmdToEyeViewOffset[2] = { eyeRenderDesc[0].HmdToEyeViewOffset,
                                                 eyeRenderDesc[1].HmdToEyeViewOffset };
+
+	if (m_disconnectedScreenView)
+	{
+		HmdToEyeViewOffset[0].x = 0.0f;
+		HmdToEyeViewOffset[1].x = 0.0f;
+	}
 
 	//If we aren't in disconnected mode, we want to render here mono-scopically
 	ovr_CalcEyePoses(m_pOculusTracker->GetOvrTrackingState().HeadPose.ThePose, HmdToEyeViewOffset, EyeRenderPose);
