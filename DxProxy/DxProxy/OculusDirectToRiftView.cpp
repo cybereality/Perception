@@ -232,7 +232,7 @@ void OculusDirectToRiftView::Draw(D3D9ProxySurface* stereoCapableSurface)
 	//If we aren't in disconnected mode, we want to render here mono-scopically
 	ovr_CalcEyePoses(m_pOculusTracker->GetOvrTrackingState().HeadPose.ThePose, HmdToEyeViewOffset, EyeRenderPose);
 
-    // Render Scene to Eye Buffers
+    // Initialise Eye Buffers
     for (int eye = 0; eye < 2; eye++)
     {
         // Increment to use next texture, just before writing
@@ -247,7 +247,11 @@ void OculusDirectToRiftView::Draw(D3D9ProxySurface* stereoCapableSurface)
 		{
 			ID3D11Resource *tempResource11 = NULL;
 			HANDLE textHandle = NULL;
-			textHandle = eye == 0 ? stereoCapableSurface->getHandleLeft() : stereoCapableSurface->getHandleRight();
+
+			if (config->swap_eyes)
+				textHandle = eye == 0 ? stereoCapableSurface->getHandleRight() : stereoCapableSurface->getHandleLeft();
+			else
+				textHandle = eye == 0 ? stereoCapableSurface->getHandleLeft() : stereoCapableSurface->getHandleRight();
 
 			IID iid = __uuidof(ID3D11Resource);
 			if (FAILED(DIRECTX.Device->OpenSharedResource(textHandle, iid, (void**)(&tempResource11))))
@@ -268,8 +272,7 @@ void OculusDirectToRiftView::Draw(D3D9ProxySurface* stereoCapableSurface)
 			pDX9Texture->Release();
 		}
 
-
-        // View and projection matrices for the main camera
+		// View and projection matrices for the main camera
 		Camera mainCam(Vector3f(0.0f, 1.1f + config->YOffset, (2.25f - ZoomOutScale) + m_screenViewGlideFactor), Matrix4f::RotationY(0.0f));
 
         // View and projection matrices for the stereo camera
@@ -280,11 +283,7 @@ void OculusDirectToRiftView::Draw(D3D9ProxySurface* stereoCapableSurface)
 		Matrix4f view = m_disconnectedScreenView ? finalCam.GetViewMatrix() : mainCam.GetViewMatrix();
         Matrix4f proj = ovrMatrix4f_Projection(eyeRenderDesc[eye].Fov, 0.2f, 1000.0f, ovrProjection_RightHanded);
 		
-		int sceneIndex = eye;
-		if (config->swap_eyes)
-			sceneIndex = 1 - eye;
-
-		m_pScene[sceneIndex]->Render(proj*view, 1, 1, 1, 1, true);
+		m_pScene[eye]->Render(proj*view, 1, 1, 1, 1, true);
     }
 
     // Initialize our single full screen Fov layer.
