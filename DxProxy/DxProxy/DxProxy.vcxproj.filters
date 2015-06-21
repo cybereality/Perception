@@ -245,6 +245,9 @@
     <ClCompile Include="ShaderObjectType.cpp">
       <Filter>Direct3D9Vireio</Filter>
     </ClCompile>
+    <ClCompile Include="DepthTexture.cpp">
+      <Filter>Direct3D9Vireio</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Exports.def">
@@ -541,6 +544,9 @@
     <ClInclude Include="..\..\Shared\json\value.h" />
     <ClInclude Include="..\..\Shared\json\version.h" />
     <ClInclude Include="..\..\Shared\json\writer.h" />
+    <ClInclude Include="DepthTexture.h">
+      <Filter>Direct3D9Vireio</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\Release\Perception\cfg\profiles.xml">
@@ -589,6 +595,9 @@
       <Filter>cfg</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\Release\Perception\fx\OculusRift.fx">
+      <Filter>fx</Filter>
+    </CustomBuild>
+    <CustomBuild Include="DirectDepthAccess.fx">
       <Filter>fx</Filter>
     </CustomBuild>
   </ItemGroup>

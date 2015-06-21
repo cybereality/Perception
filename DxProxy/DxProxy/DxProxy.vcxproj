@@ -237,6 +237,7 @@
     <ClCompile Include="D3DProxyDeviceEgo.cpp" />
     <ClCompile Include="D3DProxyDeviceFactory.cpp" />
     <ClCompile Include="D3D9ProxySurface.cpp" />
+    <ClCompile Include="DepthTexture.cpp" />
     <ClCompile Include="Direct3D9.cpp" />
     <ClCompile Include="Direct3D9Ex.cpp" />
     <ClCompile Include="Direct3DCubeTexture9.cpp" />
@@ -299,6 +300,7 @@
     <ClInclude Include="D3D9ProxyStateBlock.h" />
     <ClInclude Include="D3DProxyDeviceDebug.h" />
     <ClInclude Include="DataGatherer.h" />
+    <ClInclude Include="DepthTexture.h" />
     <ClInclude Include="Direct3D9Ex.h" />
     <ClInclude Include="Direct3DDevice9Ex.h" />
     <ClInclude Include="DirectInput.h" />
@@ -570,6 +572,11 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="DXProxy.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="DirectDepthAccess.fx">
+      <FileType>Document</FileType>
+    </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

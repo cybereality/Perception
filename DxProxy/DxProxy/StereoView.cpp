@@ -45,6 +45,26 @@ inline void releaseCheck(char* object, int newRefCount)
 #endif
 }
 
+//--------------------------------------------------------------------------------------
+// This is the vertex format used with the quad during post-process.
+struct PPVERT
+{
+	float x, y, z, rhw;
+	float tu, tv;       // Texcoord for post-process source
+	float tu2, tv2;     // Texcoord for the original scene
+
+	const static D3DVERTEXELEMENT9 Decl[4];
+};
+
+// Vertex declaration for post-processing
+const D3DVERTEXELEMENT9 PPVERT::Decl[4] =
+{
+	{ 0, 0,  D3DDECLTYPE_FLOAT4, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITIONT, 0 },
+	{ 0, 16, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD,  0 },
+	{ 0, 24, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD,  1 },
+	D3DDECL_END()
+};
+
 /**
 * Constructor.
 * Sets game configuration data. Sets all member pointers to NULL to prevent uninitialized objects being used.
@@ -75,6 +95,8 @@ StereoView::StereoView(ProxyConfig *config)
 	backBuffer = NULL;
 	leftTexture = NULL;
 	rightTexture = NULL;
+	depthTexture = NULL;
+	g_pVertDeclPP = NULL;
 	
 	leftSurface = NULL;
 	rightSurface = NULL;	
@@ -142,7 +164,13 @@ void StereoView::Init(IDirect3DDevice9* pActualDevice)
 	}
 
 	m_pActualDevice = pActualDevice;
+	m_pActualDevice->GetDirect3D(&m_pActual3D9);
 	
+	if( FAILED( m_pActualDevice->CreateVertexDeclaration( PPVERT::Decl, &g_pVertDeclPP ) ) )
+	{
+		OutputDebugString("No Vertex Declaration");
+	}
+
 	InitShaderEffects();
 	InitTextureBuffers();
 	InitVertexBuffers();
@@ -226,6 +254,10 @@ void StereoView::ReleaseEverything()
 	if(leftTexture)
 		releaseCheck("leftTexture", leftTexture->Release());
 	leftTexture = NULL;
+
+	if(depthTexture)
+		delete depthTexture;
+	depthTexture = NULL;
 
 	if(rightTexture)
 		releaseCheck("rightTexture", rightTexture->Release());
@@ -342,6 +374,8 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 		m_pActualDevice->SetTexture(0, rightTexture);
 		m_pActualDevice->SetTexture(1, leftTexture);		
 	}
+	
+
 	/*LPDIRECT3DSURFACE9 pZBuffer;
 	m_pActualDevice->GetDepthStencilSurface( &pZBuffer );*/
 	
@@ -360,7 +394,7 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 	}
 
 	SetViewEffectInitialValues();
-
+	
 	// now, render
 	if (FAILED(viewEffect->Begin(&cPasses, 0))) {
 		OutputDebugString("Begin failed\n");
@@ -386,6 +420,41 @@ void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
 	}
 
 	PostViewEffectCleanup();
+
+	
+	if (depthTexture->isSupported())
+	{
+		// Resolve depth
+		depthTexture->resolveDepth(m_pActualDevice);
+		
+		// Render a screen-sized quad
+		const float scale = 0.35f;
+		float width = 1920 * scale;
+		float height = 1080 * scale;
+		PPVERT quad[4] =
+		{
+			{ -0.5f,		-0.5f,          0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+			{ width - 0.5f, -0.5f,			0.5f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f },
+			{ -0.5f,		height - 0.5f,	0.5f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f },
+			{ width - 0.5f, height - 0.5f,	0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f }
+		};
+
+		m_pActualDevice->SetVertexDeclaration( g_pVertDeclPP );
+		
+					
+		viewDepthEffect->SetTechnique( "ShowUnmodified" );
+		/*
+		viewDepthEffect->SetTexture( g_hTextureDepthTexture, depthTexture->getTexture() );
+		UINT cPasses;
+		viewDepthEffect->Begin( &cPasses, 0 );
+		for( size_t p = 0; p < cPasses; ++p )
+		{
+			viewDepthEffect->BeginPass( p );
+			m_pActualDevice->DrawPrimitiveUP( D3DPT_TRIANGLESTRIP, 2, quad, sizeof( PPVERT ) );
+			viewDepthEffect->EndPass();
+		}
+		viewDepthEffect->End();		*/
+	}
 	
 	// how to restore render states ?
 	switch(howToSaveRenderStates)
@@ -470,6 +539,17 @@ void StereoView::InitTextureBuffers()
 	debugf("backbuffer width: %d",pDesc.Width);
 	OutputDebugString("\n");
 #endif
+
+	m_pActualDevice->GetDirect3D(&m_pActual3D9);
+	depthTexture = new DepthTexture(m_pActual3D9);
+	if (depthTexture->isSupported())
+	{
+		depthTexture->createTexture(m_pActualDevice, pDesc.Width, pDesc.Height);
+
+		//const char* techniqueName = depthTexture->isINTZ() ? "ShowUnmodified" : "ShowUnmodifiedRAWZ";
+		//g_hTShowUnmodified = g_pEffect->GetTechniqueByName( techniqueName );
+		//g_hTextureDepthTexture = g_pEffect->GetParameterByName( NULL, "DepthTargetTexture" );
+	}
 
 	m_pActualDevice->CreateTexture(pDesc.Width, pDesc.Height, 0, D3DUSAGE_RENDERTARGET, pDesc.Format, D3DPOOL_DEFAULT, &leftTexture, NULL);
 	leftTexture->GetSurfaceLevel(0, &leftSurface);

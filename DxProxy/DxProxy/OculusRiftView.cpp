@@ -100,6 +100,11 @@ void OculusRiftView::SetViewEffectInitialValues()
 	else
 		viewEffect->SetBool("ZBuffer", false);
 	
+	if(depthTexture->isINTZ())
+		viewEffect->SetBool("UseRAWZ", true);
+	else
+		viewEffect->SetBool("UseRAWZ", false);
+
 	viewEffect->SetFloat("ZBufferStrength", config->zbufferStrength);
 	viewEffect->SetBool("ZBufferFilterMode", m_bZBufferFilterMode);
 	viewEffect->SetFloat("ZBufferFilter", m_fZBufferFilter);	
@@ -147,6 +152,8 @@ void OculusRiftView::SetViewEffectInitialValues()
 		m_pActualDevice->GetTexture(2, &m_prevTexture);
 		m_pActualDevice->SetTexture(2, m_logoTexture);
 	}
+
+	
 
 }
 
@@ -257,6 +264,9 @@ void OculusRiftView::InitShaderEffects()
 	std::string viewPath = helper.GetPath("fx\\") + shaderEffect[config->stereo_mode];
 
 	D3DXCreateEffectFromFile(m_pActualDevice, viewPath.c_str(), NULL, NULL, 0, NULL, &viewEffect, NULL);
+	
+	viewPath = helper.GetPath("fx\\") + "DirectDepthAccess.fx";
+	D3DXCreateEffectFromFile(m_pActualDevice, viewPath.c_str(), NULL, NULL, 0, NULL, &viewDepthEffect, NULL);
 }
 
 

@@ -32,6 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "ProxyHelper.h"
 #include "D3DProxyDevice.h"
+#include "DepthTexture.h"
 #include <d3d9.h>
 #include <d3dx9.h>
 #include <map>
@@ -45,6 +46,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class StereoView
 {
 public:
+	
+
 	StereoView(ProxyConfig *config);
 	virtual ~StereoView();
 
@@ -190,6 +193,10 @@ protected:
 	* Class cannot be initialized with wrapped device.
 	***/
 	IDirect3DDevice9* m_pActualDevice;
+
+	IDirect3D9* m_pActual3D9;
+	IDirect3DVertexDeclaration9*    g_pVertDeclPP; // Vertex decl for post-processing
+
 	/**
 	* Saved game vertex shader to be restored after drawing stereoscopic.
 	***/
@@ -229,6 +236,10 @@ protected:
 	***/
 	IDirect3DTexture9* rightTexture;
 	/**
+	* Depth Texture to Sample From
+	***/
+	DepthTexture* depthTexture;
+	/**
 	* Current render target.
 	***/
 	IDirect3DSurface9* backBuffer;
@@ -259,6 +270,7 @@ protected:
 	* View effect according to the stereo mode preset in stereo_mode.
 	***/
 	ID3DXEffect* viewEffect;
+	ID3DXEffect* viewDepthEffect;
 	
 	/**
 	* Map of the shader effect file names.

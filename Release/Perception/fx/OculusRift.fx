@@ -6,7 +6,6 @@ sampler2D TexMap1;
 //This is the logo
 sampler2D TexMap2;
 
-
 float ViewportXOffset;
 float ViewportYOffset;
 float2 LensCenter;
@@ -30,6 +29,7 @@ float ZBufferFilter;
 float ZBufferDepthLow;
 float ZBufferDepthHigh;
 bool ZBufferSwitch;
+bool UseRAWZ;
 
 // Warp operates on left view, for right, mirror x texture coord
 // before and after calling.  in02 contains the chromatic aberration
@@ -162,27 +162,26 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 	if(ZBuffer)
 	{
 		//TODO Try sampling from other texture to see if that makes any difference (that makes no sense since they are identical but worhth a try)
-		float3 rawval = floor( 255.0 * tex2D(TexMap0, tcBlue).arg + 0.5);
-		z = dot( rawval, float3(0.996093809371817670572857294849,0.0038909914428586627756752238080039,1.5199185323666651467481343000015e-5) / 255.0);
-		depthValue = z;	
-		if(depthValue > 0.0f)
+		if(UseRAWZ)
 		{
-			depthValue = (depthValue - ZBufferDepthLow) / (ZBufferDepthHigh - ZBufferDepthLow);
+			float3 rawval = floor( 255.0 * tex2D(TexMap0, tcBlue).arg + 0.5);
+			z = dot( rawval, float3(0.996093809371817670572857294849,0.0038909914428586627756752238080039,1.5199185323666651467481343000015e-5) / 255.0);
+			depthValue = z;	
+			if(depthValue > 0.0f)
+			{
+				depthValue = (depthValue - ZBufferDepthLow) / (ZBufferDepthHigh - ZBufferDepthLow);
+			}
+		}
+		else
+		{
+			depthValue = 0.0f;
 		}
 		
 		if(ZBufferSwitch) {
 			depthValue = 1.0f - depthValue;
 		}
 
-		outColor.r =  tex2D(TexMap0,   tcBlue.xy).r;
-		outColor.g =  tex2D(TexMap0, tcBlue.xy).g;
-		outColor.b =  tex2D(TexMap0,  tcBlue.xy).b;
-		if(outColor.r < 0.995f || 
-		   outColor.g > 0.005f || 
-		   outColor.b < 0.995f)
-		{
-			applyDepthFunctions = true;
-		}
+		applyDepthFunctions = true;		
 		tcBlue = ApplyZBuffer(tcBlue,Tex,depthValue);	
 	}	
 
@@ -237,13 +236,20 @@ float4 SBSRift(float2 Tex : TEXCOORD0) : COLOR
 	{
 		if(applyDepthFunctions)
 		{
-			if(z > ZBufferFilter && z < (ZBufferFilter + 0.0005f))
+			if(!UseRAWZ)
 			{
-				outColor = float4(0.0, 0.0, 1.0f, 1.0f);				
+				return tex2D(TexMap0, Tex);
 			}
 			else
 			{
-				outColor = float4(0.0, 0.0, 0.0, 0.0f);				
+				if(z > ZBufferFilter && z < (ZBufferFilter + 0.0005f))
+				{
+					outColor = float4(0.0, 0.0, 1.0f, 1.0f);				
+				}
+				else
+				{
+					outColor = float4(0.0, 0.0, 0.0, 0.0f);				
+				}
 			}
 		}
 	}
