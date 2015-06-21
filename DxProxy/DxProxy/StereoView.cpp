@@ -38,11 +38,11 @@ using namespace vireio;
 ***/
 inline void releaseCheck(char* object, int newRefCount)
 {
-#ifdef _DEBUG
+//#ifdef _DEBUG
 	if (newRefCount > 0) {
 		debugf("Error: %s count = %d\n", object, newRefCount);
 	}
-#endif
+//#endif
 }
 
 /**
@@ -51,8 +51,9 @@ inline void releaseCheck(char* object, int newRefCount)
 ***/ 
 StereoView::StereoView(ProxyConfig *config)	
 {
+	SHOW_CALL("StereoView::StereoView()\n");
+
 	this->config = config;
-	OutputDebugString("Created SteroView\n");
 	initialized = false;
 	m_screenViewGlideFactor = 1.0f;
 	XOffset = 0;
@@ -91,6 +92,9 @@ StereoView::StereoView(ProxyConfig *config)
 	sb = NULL;
 	m_bLeftSideActive = false;
 
+	//Start in DSV mode
+	m_disconnectedScreenView = true;
+
 	int value = 0;
 	if (ProxyHelper::ParseGameType(config->game_type, ProxyHelper::StateBlockSaveRestoreType, value))
 	{
@@ -125,7 +129,7 @@ StereoView::StereoView(ProxyConfig *config)
 ***/
 StereoView::~StereoView()
 {
-	OutputDebugString("Destroyed SteroView\n");
+	SHOW_CALL("StereoView::~StereoView()");
 }
 
 /**
@@ -134,7 +138,7 @@ StereoView::~StereoView()
 ***/
 void StereoView::Init(IDirect3DDevice9* pActualDevice)
 {
-	OutputDebugString("SteroView Init\n");
+	SHOW_CALL("StereoView::Init");
 
 	if (initialized) {
 		OutputDebugString("SteroView already Init'd\n");
@@ -214,7 +218,7 @@ std::string StereoView::CycleRenderState(bool blnBackwards)
 ***/
 void StereoView::ReleaseEverything()
 {
-	OutputDebugString("SteroView Reset\n");
+	SHOW_CALL("StereoView::ReleaseEverything()");
 
 	if(!initialized)
 		OutputDebugString("SteroView is already reset\n");
@@ -267,7 +271,8 @@ void StereoView::ReleaseEverything()
 		releaseCheck("lastRenderTarget1", lastRenderTarget1->Release());
 	lastRenderTarget1 = NULL;
 
-	viewEffect->OnLostDevice();
+	if (viewEffect)
+		viewEffect->OnLostDevice();
 
 	initialized = false;
 }
@@ -490,7 +495,8 @@ void StereoView::PostReset()
 {
 	SHOW_CALL("StereoView::PostReset\n");
 	CalculateShaderVariables();
-	viewEffect->OnResetDevice();
+	if (viewEffect)
+		viewEffect->OnResetDevice();
 }
 
 /**

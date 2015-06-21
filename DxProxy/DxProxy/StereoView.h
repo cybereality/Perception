@@ -58,6 +58,7 @@ public:
 	virtual void PostReset();
 	virtual void SetVRMouseSquish(float squish){}
 	IDirect3DSurface9* GetBackBuffer();
+
 	/**
 	* Stereo render options.
 	***/
@@ -109,6 +110,11 @@ public:
 	* True if stereo is enabled.
 	***/
 	bool stereoEnabled() { return (config->stereo_mode != DISABLED); }; 
+
+	/**
+	* Are we useing DSV?
+	*/
+	bool m_disconnectedScreenView;
 	/**
 	* Floaty Screen Y Offset
 	***/

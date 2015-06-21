@@ -72,6 +72,8 @@ public:
 	void EndFrame();
 	void WaitTillTime();
 
+	ovrTrackingState& GetOvrTrackingState() {return ts;}
+
 private:
 
 	/**
@@ -91,6 +93,8 @@ private:
 	*/
 	MotionTrackerStatus status;
 
+	//OVR Specific tracking info
+	ovrTrackingState ts;
 	ovrFrameTiming FrameRef;
  };
 

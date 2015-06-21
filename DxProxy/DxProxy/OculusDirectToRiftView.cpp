@@ -34,7 +34,92 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Resource.h"
 #include "OculusTracker.h"
 
-#define DLL_NAME "d3d9.dll"
+//------------------------------------------------------------
+// ovrSwapTextureSet wrapper class that also maintains the render target views
+// needed for D3D11 rendering.
+struct OculusTexture
+{
+    ovrSwapTextureSet      * TextureSet;
+    ID3D11RenderTargetView * TexRtv[3];
+
+    OculusTexture(ovrHmd hmd, Sizei size)
+    {
+        D3D11_TEXTURE2D_DESC dsDesc;
+        dsDesc.Width            = size.w;
+        dsDesc.Height           = size.h;
+        dsDesc.MipLevels        = 1;
+        dsDesc.ArraySize        = 1;
+        dsDesc.Format           = DXGI_FORMAT_B8G8R8A8_UNORM;
+        dsDesc.SampleDesc.Count = 1;   // No multi-sampling allowed
+        dsDesc.SampleDesc.Quality = 0;
+        dsDesc.Usage            = D3D11_USAGE_DEFAULT;
+        dsDesc.CPUAccessFlags   = 0;
+        dsDesc.MiscFlags        = 0;
+        dsDesc.BindFlags        = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+
+        ovrHmd_CreateSwapTextureSetD3D11(hmd, DIRECTX.Device, &dsDesc, &TextureSet);
+        for (int i = 0; i < TextureSet->TextureCount; ++i)
+        {
+            ovrD3D11Texture* tex = (ovrD3D11Texture*)&TextureSet->Textures[i];
+            DIRECTX.Device->CreateRenderTargetView(tex->D3D11.pTexture, NULL, &TexRtv[i]);
+        }
+    }
+
+    void AdvanceToNextTexture()
+    {
+        TextureSet->CurrentIndex = (TextureSet->CurrentIndex + 1) % TextureSet->TextureCount;
+    }
+    void Release(ovrHmd hmd)
+    {
+        ovrHmd_DestroySwapTextureSet(hmd, TextureSet);
+    }
+};
+
+//------------------------------------------------------------------------- 
+struct VoidScene  
+{
+    Model * screen;
+	Texture *texture;
+
+ 	VoidScene(ID3D11Texture2D *pTexture) :
+		m_pTexture(pTexture)
+    {
+		SHOW_CALL("VoidScene()");
+
+		//We have a hold of this
+		m_pTexture->AddRef();
+
+		D3D11_TEXTURE2D_DESC desc;
+		pTexture->GetDesc(&desc);
+#if _DEBUG
+		vireio::debugf("Texture Format: %i", desc.Format);
+#endif
+
+		float aspect = (float)(desc.Width) / (float)(desc.Height);
+		texture = new Texture(false, Sizei(desc.Width, desc.Height));
+		screen = new Model(texture, -1.0f * aspect, 0.0f, 2.0f, aspect);
+    }
+
+	~VoidScene()
+	{
+		SHOW_CALL("~VoidScene()");
+		texture->Tex->Release();
+		m_pTexture->Release();
+		delete texture;
+		delete screen;
+	}
+
+   void Render(Matrix4f projView, float R, float G, float B, float A, bool standardUniforms)
+    {   
+		SHOW_CALL("Render()");
+		DIRECTX.Context->CopyResource(texture->Tex, m_pTexture);
+		screen->Render(projView,R,G,B,A,standardUniforms);    
+	}
+
+private:
+	ID3D11Texture2D *m_pTexture;
+
+};
 
 /**
 * Constructor.
@@ -43,33 +128,150 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***/ 
 OculusDirectToRiftView::OculusDirectToRiftView(ProxyConfig *config, HMDisplayInfo *hmd, MotionTracker *motionTracker) : 
 	StereoView(config),
-	hmdInfo(hmd),
-	tracker(motionTracker),
-	m_logoTexture(NULL),
-	m_prevTexture(NULL)
+	hmdInfo(hmd)
 {
-	OutputDebugString("Created OculusDirectToRiftView\n");
+	SHOW_CALL("OculusDirectToRiftView::OculusDirectToRiftView()");
 
-	if (tracker &&
+	if (motionTracker &&
 		config->tracker_mode == MotionTracker::OCULUSTRACK)
 	{
-		OculusTracker *pOculusTracker = static_cast<OculusTracker*>(tracker);
-		ovrHmd hmd = pOculusTracker->GetOVRHmd();
+		m_pOculusTracker = static_cast<OculusTracker*>(motionTracker);
+		rift = m_pOculusTracker->GetOVRHmd();
+
+		bool initialized = DIRECTX.InitWindowAndDevice(NULL, Recti(0, 0, 0, 0), L"Vireio Perception - Ignore this dialog");
+		VALIDATE(initialized, "Unable to initialize window and D3D11 device.");
+
+		for (int eye = 0; eye < 2; eye++)
+		{
+			Sizei idealSize = ovrHmd_GetFovTextureSize(rift, (ovrEyeType)eye, rift->DefaultEyeFov[eye], 1.0f);
+			pEyeRenderTexture[eye]      = new OculusTexture(rift, idealSize);
+			pEyeDepthBuffer[eye]        = new DepthBuffer(DIRECTX.Device, idealSize);
+			eyeRenderViewport[eye].Pos  = Vector2i(0, 0);
+			eyeRenderViewport[eye].Size = idealSize;
+
+			vireio::debugf("Eye: %i, Size(%i, %i)", eye, idealSize.h, idealSize.w);
+		}	
+
+		// Setup VR components, filling out description
+		eyeRenderDesc[0] = ovrHmd_GetRenderDesc(rift, ovrEye_Left, rift->DefaultEyeFov[0]);
+		eyeRenderDesc[1] = ovrHmd_GetRenderDesc(rift, ovrEye_Right, rift->DefaultEyeFov[1]);
 	}
 }
 
 void OculusDirectToRiftView::ReleaseEverything()
 {
-	//Release the texture we loaded
-	if (m_logoTexture)
+	SHOW_CALL("OculusDirectToRiftView::ReleaseEverything()");
+
+	if (m_pScene[0])
 	{
-		m_logoTexture->Release();
-		m_logoTexture = NULL;
+		delete m_pScene[0];
+		m_pScene[0] = NULL;
 	}
+
+	if (m_pScene[1])
+	{
+		delete m_pScene[1];
+		m_pScene[1] = NULL;
+	}
+
 
 	//Call base class
 	StereoView::ReleaseEverything();
 }
+
+
+void OculusDirectToRiftView::Draw(D3D9ProxySurface* stereoCapableSurface)
+{
+    // Get both eye poses simultaneously, with IPD offset already included. 
+    ovrPosef         EyeRenderPose[2];
+    ovrVector3f      HmdToEyeViewOffset[2] = { eyeRenderDesc[0].HmdToEyeViewOffset,
+                                                eyeRenderDesc[1].HmdToEyeViewOffset };
+
+	//If we aren't in disconnected mode, we want to render here mono-scopically
+	ovr_CalcEyePoses(m_pOculusTracker->GetOvrTrackingState().HeadPose.ThePose, HmdToEyeViewOffset, EyeRenderPose);
+
+    // Render Scene to Eye Buffers
+    for (int eye = 0; eye < 2; eye++)
+    {
+        // Increment to use next texture, just before writing
+        pEyeRenderTexture[eye]->AdvanceToNextTexture();
+
+        // Clear and set up rendertarget
+        int texIndex = pEyeRenderTexture[eye]->TextureSet->CurrentIndex;
+        DIRECTX.SetAndClearRenderTarget(pEyeRenderTexture[eye]->TexRtv[texIndex], pEyeDepthBuffer[eye]);
+        DIRECTX.SetViewport(Recti(eyeRenderViewport[eye]));
+
+		if (!m_pScene[eye])
+		{
+			ID3D11Resource *tempResource11 = NULL;
+			HANDLE textHandle = NULL;
+			if (config->swap_eyes)
+			{
+				textHandle = eye == 0 ? stereoCapableSurface->getHandleRight() : stereoCapableSurface->getHandleLeft();
+			}
+			else
+			{
+				textHandle = eye == 0 ? stereoCapableSurface->getHandleLeft() : stereoCapableSurface->getHandleRight();
+			}
+
+			IID iid = __uuidof(ID3D11Resource);
+			if (FAILED(DIRECTX.Device->OpenSharedResource(textHandle, iid, (void**)(&tempResource11))))
+			{
+				vireio::debugf("Failed to open shared resource");
+				return;
+			}
+
+			//QI for the texture
+			ID3D11Texture2D *pDX9Texture = NULL;
+			tempResource11->QueryInterface(__uuidof(ID3D11Texture2D), (void**)(&pDX9Texture)); 
+			tempResource11->Release();
+
+			//Create the void scene
+			m_pScene[eye] = new VoidScene(pDX9Texture);
+
+			//We don't need to keep the ref here now
+			pDX9Texture->Release();
+		}
+
+
+        // View and projection matrices for the main camera
+		Camera mainCam(Vector3f(0.0f, 1.0f, ZoomOutScale + m_screenViewGlideFactor), Matrix4f::RotationY(0.0f));
+
+        // View and projection matrices for the stereo camera
+        Camera finalCam(mainCam.Pos + mainCam.Rot.Transform(EyeRenderPose[eye].Position),
+            mainCam.Rot * Matrix4f(EyeRenderPose[eye].Orientation));
+
+		//View matrix is a monoscopic straight ahead camera is not in disconnected screen view mode
+		Matrix4f view = m_disconnectedScreenView ? finalCam.GetViewMatrix() : mainCam.GetViewMatrix();
+        Matrix4f proj = ovrMatrix4f_Projection(eyeRenderDesc[eye].Fov, 0.2f, 1000.0f, ovrProjection_RightHanded);
+		
+		m_pScene[eye]->Render(proj*view, 1, 1, 1, 1, true);
+    }
+
+    // Initialize our single full screen Fov layer.
+    ovrLayerEyeFov ld;
+    ld.Header.Type  = ovrLayerType_EyeFov;
+    ld.Header.Flags = 0;
+
+    for (int eye = 0; eye < 2; eye++)
+    {
+        ld.ColorTexture[eye] = pEyeRenderTexture[eye]->TextureSet;
+        ld.Viewport[eye]     = eyeRenderViewport[eye];
+        ld.Fov[eye]          = rift->DefaultEyeFov[eye];
+		ld.RenderPose[eye]   = EyeRenderPose[eye];
+    }
+
+    ovrLayerHeader* layers = &ld.Header;
+    ovrResult result = ovrHmd_SubmitFrame(rift, 0, nullptr, &layers, 1);
+
+
+	//Screen output
+	IDirect3DSurface9* leftImage = stereoCapableSurface->getActualLeft();
+	m_pActualDevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &backBuffer);
+	m_pActualDevice->StretchRect(leftImage, NULL, backBuffer, NULL, D3DTEXF_NONE);
+	backBuffer->Release();
+}
+
 
 
 /**
@@ -78,102 +280,14 @@ void OculusDirectToRiftView::ReleaseEverything()
 void OculusDirectToRiftView::SetViewEffectInitialValues() 
 {
 	SHOW_CALL("OculusDirectToRiftView::SetViewEffectInitialValues\n");
-
-	viewEffect->SetFloatArray("LensCenter", LensCenter, 2);
-	viewEffect->SetFloatArray("Scale", Scale, 2);
-	viewEffect->SetFloatArray("ScaleIn", ScaleIn, 2);
-	viewEffect->SetFloat("ZoomScale", m_zoom);
-	viewEffect->SetFloat("ViewportXOffset", -ViewportXOffset);
-	viewEffect->SetFloat("ViewportYOffset", -ViewportYOffset);
-	if (chromaticAberrationCorrection)
-		viewEffect->SetFloatArray("Chroma", hmdInfo->GetDistortionCoefficientsChroma(), 4);
-	else
-	{
-		static float noChroma[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-		viewEffect->SetFloatArray("Chroma", noChroma, 4);
-	}
-
-	viewEffect->SetFloatArray("Resolution", Resolution, 2);
-	viewEffect->SetFloatArray("HmdWarpParam", hmdInfo->GetDistortionCoefficients(), 4);
-
-	//Set rotation, this will only be non-zero if we have pixel shader roll enabled
-	viewEffect->SetFloat("Rotation", m_rotation);
-
-	//Set the black smear corection - 0.0f will do nothing
-	viewEffect->SetFloat("SmearCorrection", m_blackSmearCorrection);
-
-	//Set mouse position for VR Mouse
-	viewEffect->SetFloatArray("MousePosition", m_mouseTexLocation, 2);
-
-	if(m_3DReconstructionMode == 2)
-		viewEffect->SetBool("ZBuffer", true);
-	else
-		viewEffect->SetBool("ZBuffer", false);
-	
-	viewEffect->SetFloat("ZBufferStrength", config->zbufferStrength);
-	viewEffect->SetBool("ZBufferFilterMode", m_bZBufferFilterMode);
-	viewEffect->SetFloat("ZBufferFilter", m_fZBufferFilter);	
-	viewEffect->SetBool("ZBufferVisualisationMode", m_bZBufferVisualisationMode);
-	viewEffect->SetFloat("ZBufferDepthLow", config->zbufferDepthLow);
-	viewEffect->SetFloat("ZBufferDepthHigh", config->zbufferDepthHigh);
-	viewEffect->SetBool("ZBufferSwitch", config->zbufferSwitch);
-
-	//Local static for controlling vignette in telescopic sight mode
-	static float vignette_val = 1.0f;
-
-	switch (m_vignetteStyle)
-	{
-	case NONE:
-		{
-			//This also controls the zooming out of telescope mode
-			if (vignette_val < 1.0f)
-				vignette_val += 0.02f;
-			float vignette[3] = {vignette_val, 0.05f, 0.0f};
-			viewEffect->SetFloatArray("Vignette", vignette, 3);
-		}
-		break;
-	case SOFT_EDGE:
-		{
-			//Soft edge implementation - Not used
-			float vignette[3] = {0.9f, 0.1f, 0.275f};
-			viewEffect->SetFloatArray("Vignette", vignette, 3);
-		}
-		break;
-	case TELESCOPIC_SIGHT:
-		{
-			if (vignette_val > 0.44f)
-				vignette_val -= 0.02f;
-			float vignette[3] = {vignette_val, 0.05f, 0.0f};
-			viewEffect->SetFloatArray("Vignette", vignette, 3);
-		}
-		break;
-	}
-
-	if (!m_logoTexture)
-		D3DXCreateTextureFromResource(m_pActualDevice, GetModuleHandle(DLL_NAME), MAKEINTRESOURCE(IDB_IMAGE), &m_logoTexture);
-
-	if (m_logoTexture)
-	{
-		m_pActualDevice->GetTexture(2, &m_prevTexture);
-		m_pActualDevice->SetTexture(2, m_logoTexture);
-	}
-
 }
 
 void OculusDirectToRiftView::PostViewEffectCleanup()
 {
-	if (m_prevTexture)
-	{
-		m_pActualDevice->SetTexture(2, m_prevTexture);
-		//Does GetTexture increase ref count?!?
-		m_prevTexture->Release();
-		m_prevTexture = NULL;
-	}	
 }
 
 void OculusDirectToRiftView::SetVRMouseSquish(float squish)
 {
-	m_VRMouseSquish = squish;
 }
 
 /**
@@ -183,74 +297,17 @@ void OculusDirectToRiftView::CalculateShaderVariables()
 {
 	SHOW_CALL("OculusDirectToRiftView::CalculateShaderVariables");
 
-	// Center of half screen is 0.25 in x (halfscreen x input in 0 to 0.5 range)
-	// Lens offset is in a -1 to 1 range. Using in shader with a 0 to 0.5 range so use 25% of the value.
-	LensCenter[0] = 0.25f + (hmdInfo->GetLensXCenterOffset() * 0.25f) +config->IPDOffset;
-
-	// Center of halfscreen range is 0.5 in y (halfscreen y input in 0 to 1 range)
-	LensCenter[1] = hmdInfo->GetLensYCenterOffset() - config->YOffset; 
-		
-	ViewportXOffset = XOffset;
-	ViewportYOffset = HeadYOffset;
-	
-
-	D3DSURFACE_DESC eyeTextureDescriptor;
-	leftSurface->GetDesc(&eyeTextureDescriptor);
-
-	float inputTextureAspectRatio = (float)eyeTextureDescriptor.Width / (float)eyeTextureDescriptor.Height;
-
-	//Set the mouse position for VR Mouse
-	if (m_mousePos.x != 0 && m_mousePos.y != 0)
+	if (!m_disconnectedScreenView)
 	{
-		//X mouse pos on the texture
-		m_mousePos.x = abs((long)(m_mousePos.x % eyeTextureDescriptor.Width));
-		m_mousePos.y = abs((long)(m_mousePos.y % eyeTextureDescriptor.Height));
-
-		m_mouseTexLocation[0] = ((1.0f - m_VRMouseSquish) / 2.0f) + (m_VRMouseSquish * ((float)m_mousePos.x / (float)eyeTextureDescriptor.Width)) - (0.125f * m_VRMouseSquish);
-		m_mouseTexLocation[1] = ((1.0f - m_VRMouseSquish) / 2.0f) + (m_VRMouseSquish * ((float)m_mousePos.y / (float)eyeTextureDescriptor.Height));
-	}
-	else
-	{
-		m_mouseTexLocation[0]=0.0f;
-		m_mouseTexLocation[1]=0.0f;
-	}
-	
-	// Note: The range is shifted using the LensCenter in the shader before the scale is applied so you actually end up with a -1 to 1 range
-	// in the distortion function rather than the 0 to 2 I mention below.
-	// Input texture scaling to sample the 0 to 0.5 x range of the half screen area in the correct aspect ratio in the distortion function
-	// x is changed from 0 to 0.5 to 0 to 2.
-	ScaleIn[0] = 4.0f;
-	// y is changed from 0 to 1 to 0 to 2 and scaled to account for aspect ratio
-	ScaleIn[1] = 2.0f / (inputTextureAspectRatio * 0.5f); // 1/2 aspect ratio for differing input ranges
-	
-	float scaleFactor = (1.0f / (hmdInfo->GetScaleToFillHorizontal() + config->DistortionScale));
-	float glide = (sinf(1 + (-cosf(m_screenViewGlideFactor * 3.142f) / 2)) - 0.5f) * 2.0f;
-
-	//GB This should change the zoom - not the scale factor
-	//This change will gently glide the disconnected screen view in and out
-	if (HeadZOffset != FLT_MAX)
-	{
-		m_zoom = (ZoomOutScale * ((glide * 0.333f) + 0.666f)) + HeadZOffset;
-		m_zoom = (float)max(0.4, m_zoom);
 		if (m_screenViewGlideFactor > 0.0f)
 			m_screenViewGlideFactor -= 0.04f;
 	}
 	else
 	{
 		//Disconnected screen view not active
-		m_zoom = (ZoomOutScale * ((glide * 0.333f) + 0.666f));
 		if (m_screenViewGlideFactor < 1.0f)
 			m_screenViewGlideFactor += 0.04f;
 	}
-
-	// Scale from 0 to 2 to 0 to 1  for x and y 
-	// Then use scaleFactor to fill horizontal space in line with the lens and adjust for aspect ratio for y.
-	Scale[0] = (1.0f / 4.0f) * scaleFactor;
-	Scale[1] = (1.0f / 2.0f) * scaleFactor * inputTextureAspectRatio;
-
-	//Set resolution  0 = Horizontal, 1 = Vertical
-	Resolution[0] = (float)hmdInfo->GetResolution().first;
-	Resolution[1] = (float)hmdInfo->GetResolution().second;
 
 }
 
@@ -260,13 +317,6 @@ void OculusDirectToRiftView::CalculateShaderVariables()
 void OculusDirectToRiftView::InitShaderEffects()
 {
 	SHOW_CALL("OculusDirectToRiftView::InitShaderEffects");
-
-	shaderEffect[OCULUS_DIRECT_TO_RIFT] = "OculusRift.fx";
-
-	ProxyHelper helper = ProxyHelper();
-	std::string viewPath = helper.GetPath("fx\\") + shaderEffect[config->stereo_mode];
-
-	D3DXCreateEffectFromFile(m_pActualDevice, viewPath.c_str(), NULL, NULL, 0, NULL, &viewEffect, NULL);
 }
 
 

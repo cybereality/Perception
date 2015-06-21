@@ -34,6 +34,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "HMDisplayInfo.h"
 #include "MotionTracker.h"
 
+// Include DirectX
+#include "Win32_DirectXAppUtil.h" 
+
+// Include the Oculus SDK
+#define   OVR_D3D_VERSION 11
+#include "OVR_CAPI_D3D.h"
+using namespace OVR;
+
+struct OculusTexture;
+class OculusTracker;
+struct VoidScene;
+
+
 /**
 * Oculus direct-to-rift render class.
 */
@@ -49,45 +62,9 @@ public:
 	virtual void InitShaderEffects();
 	virtual void ReleaseEverything();
 	virtual void SetVRMouseSquish(float squish);
+	virtual void Draw(D3D9ProxySurface* stereoCapableSurface);
 
 private:
-	/**
-	* Lens center position, Oculus Rift vertex shader constant.
-	***/
-	float LensCenter[2];
-	/**
-	* VR mouse position in texture
-	*/
-	float m_mouseTexLocation[2];
-	/**
-	* VR Mouse Squish Param
-	*/
-	float m_VRMouseSquish;
-	/**
-	* zoom
-	*/
-	float m_zoom;
-	/**
-	* XOffset
-	***/
-	float ViewportXOffset;
-	float ViewportYOffset;
-	/**
-	* Scales image, Oculus Rift vertex shader constant.
-	***/
-	float Scale[2];
-	/**
-	* Maps texture coordinates, Oculus Rift vertex shader constant.
-	* ScaleIn maps texture coordinates to Scales to ([-1, 1]), although top/bottom will be larger 
-	* due to aspect ratio.
-	***/
-	float ScaleIn[2];
-
-	/**
-	* Resolution of the display
-	*/
-	float Resolution[2];
-
 	/**
 	* Predefined Oculus Rift Head Mounted Display info.
 	* Contains distortionCoefficients, needed as vertex shader constants
@@ -96,10 +73,20 @@ private:
 
 	/**
 	***/
-	MotionTracker *tracker;
+	OculusTracker *m_pOculusTracker;
 
-	IDirect3DTexture9 *m_logoTexture;
-	IDirect3DBaseTexture9 *m_prevTexture;
+	//The rift!
+	ovrHmd rift;
+
+	// Make the eye render buffers (caution if actual size < requested due to HW limits). 
+	OculusTexture  * pEyeRenderTexture[2];
+	DepthBuffer    * pEyeDepthBuffer[2];
+	ovrEyeRenderDesc eyeRenderDesc[2];
+
+	// Create the screen model, one per eye as they use different textures for the screen
+	VoidScene *m_pScene[2];
+
+	ovrRecti         eyeRenderViewport[2];
 };
 
 #endif //OCULUSDIRECTTORIFTVIEW_H_INCLUDED

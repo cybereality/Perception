@@ -37,6 +37,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***/
 StereoView* StereoViewFactory::Get(ProxyConfig *config, HMDisplayInfo *hmd, MotionTracker *tracker)
 {
+	SHOW_CALL("StereoViewFactory::Get");
+
 	switch(config->stereo_mode)
 	{
 	case StereoView::ANAGLYPH_RED_CYAN:

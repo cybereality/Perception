@@ -2460,7 +2460,7 @@ HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFO
 * Anything that needs to be done before the device is used by the actual application should happen here.
 * @param The game (or engine) specific configuration.
 ***/
-void D3DProxyDevice::Init(ProxyConfig& cfg)
+void D3DProxyDevice::Init(ProxyConfig& cfg, ProxyHelper::UserConfig& userConfig)
 {
 	SHOW_CALL("Init");
 	
@@ -2471,11 +2471,12 @@ void D3DProxyDevice::Init(ProxyConfig& cfg)
 	m_configBackup = cfg;
 
 	m_bfloatingMenu = false;
-	m_bfloatingScreen = false;
-	m_bSurpressHeadtracking = false;
 	m_bSurpressPositionaltracking = false;
 
-	debugf("type: %s, aspect: %d\n", config.game_type.c_str(), config.aspect_multiplier);
+	//Start in disconnected screen mode now
+	m_bSurpressGameHeadtracking = true;
+
+	debugf("type: %s, aspect: %d stereo mode: %i\n", config.game_type.c_str(), config.aspect_multiplier, userConfig.mode);
 
 	// first time configuration
 	m_spShaderViewAdjustment->Load(config);
@@ -2869,7 +2870,7 @@ void D3DProxyDevice::HandleTracking()
 	static bool scanFailed = false;
 
 	// update vrboost, if present, tracker available and shader count higher than the minimum
-	if ((!m_bSurpressHeadtracking) 
+	if ((!m_bSurpressGameHeadtracking) 
 		&& (!m_bForceMouseEmulation || !VRBoostStatus.VRBoost_HasOrientation || VRBoostStatus.VRBoost_Scanning) 
 		&& (hmVRboost) && (m_VRboostRulesPresent) 
 		&& (tracker->getStatus() >= MTS_OK) && (m_bVRBoostToggle)

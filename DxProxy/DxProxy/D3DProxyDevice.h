@@ -233,7 +233,7 @@ public:
 
 	/*** D3DProxyDevice public methods ***/
 	HRESULT WINAPI CreateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample, DWORD MultisampleQuality,BOOL Lockable,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle, bool isBackBufferOfPrimarySwapChain);
-	virtual void   Init(ProxyConfig& cfg);
+	virtual void   Init(ProxyConfig& cfg, ProxyHelper::UserConfig& userConfig);
 	void           SetupHUD();
 	virtual void   HandleControls(void);
 	void           HandleTracking(void);
@@ -389,11 +389,10 @@ public:
 	/**
 	* floating screen activated
 	**/
-	bool m_bfloatingScreen;
 	float m_fFloatingScreenPitch;
 	float m_fFloatingScreenYaw;
 	float m_fFloatingScreenZ;
-	bool m_bSurpressHeadtracking;
+	bool m_bSurpressGameHeadtracking;
 	bool m_bSurpressPositionaltracking;
 	DirectXInputControls controls;
 	DirectInput dinput;

@@ -48,21 +48,26 @@ public:
 		m_status(HMD_STATUS_OK)
 	{
 		OutputDebugString("HMDisplayInfo_OculusRift()\n");
-		ovr_Initialize();
+		ovrResult res = ovr_Initialize(NULL);
 
-		int detected = ovrHmd_Detect();
-		if (detected == 0)
+		if (!OVR_SUCCESS(res))
+		{
+			throw std::exception("Failed to initialise OVR");
+		}
+
+		ovrResult result = ovrHmd_Detect();
+		if (!OVR_SUCCESS(result))
 		{
 			OutputDebugString("No HMD Detected - Creating Debug DK2\n");
-			hmd=ovrHmd_CreateDebug(ovrHmd_DK2);
+			ovrHmd_CreateDebug(ovrHmd_DK2, &hmd);
 		}
 		else
 		{
-			hmd=ovrHmd_Create(0);
+			ovrHmd_Create(0, &hmd);
 			if (!hmd)
 			{
 				OutputDebugString("Unable to create HMD of correct type - Creating Debug DK2\n");
-				hmd=ovrHmd_CreateDebug(ovrHmd_DK2);
+				ovrHmd_CreateDebug(ovrHmd_DK2, &hmd);
 			}
 		}
 
