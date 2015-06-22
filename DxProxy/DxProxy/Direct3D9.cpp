@@ -245,8 +245,12 @@ HRESULT WINAPI BaseDirect3D9::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, 
 	IDirect3D9Ex *pDirect3D9Ex = NULL;
 	if (SUCCEEDED(m_pD3D->QueryInterface(IID_IDirect3D9Ex, reinterpret_cast<void**>(&pDirect3D9Ex))))
 	{
+		//Force no VSYNC in DX9Ex mode
+		D3DPRESENT_PARAMETERS presentationParameters = *pPresentationParameters;
+		presentationParameters.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
+
 		hResult = pDirect3D9Ex->CreateDevice(m_perceptionRunning ? cfg->display_adapter : Adapter, DeviceType, hFocusWindow, BehaviorFlags,
-			pPresentationParameters, ppReturnedDeviceInterface);
+			&presentationParameters, ppReturnedDeviceInterface);
 
 		if (*ppReturnedDeviceInterface)
 		{

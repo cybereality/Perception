@@ -67,11 +67,6 @@ public:
 
 	ovrHmd GetOVRHmd() {return hmd;}
 
-
-	void BeginFrame();
-	void EndFrame();
-	void WaitTillTime();
-
 	ovrTrackingState& GetOvrTrackingState() {return ts;}
 
 private:

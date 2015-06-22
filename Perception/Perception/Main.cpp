@@ -115,6 +115,11 @@ public:
 
 	}
 
+	void set_selection(int sel)
+	{
+		SendMessage(combobox_handle, CB_SETCURSEL, sel, 0);
+	}
+
 	int get_selection()
 	{
 		char string[120];
@@ -126,6 +131,8 @@ public:
 			while ( *s++ != '\t' ) length++;
 			return atoi(s);
 		}
+
+		return -1;
 	}
 
 	void new_selection() {
@@ -383,23 +390,24 @@ public:
 				}
 			case WM_COMMAND:
 				{
-					if ( HIWORD(wparam) == CBN_SELCHANGE ) {
+					if ( HIWORD(wparam) == CBN_SELCHANGE )
+					{
+						//Disable other controls if selection is direct-to-rift
+						if (This->combobox->get_selection() == 111)
+						{
+							ShowWindow(This->combobox2->combobox_handle, SW_HIDE);
+							//Select oculus track
+							This->combobox2->set_selection(4);
+						}
+						else
+						{
+							ShowWindow(This->combobox2->combobox_handle, SW_SHOW);
+						}
+
 						This->combobox->new_selection();
 						This->combobox2->new_selection2();
 						This->combobox3->new_selection3();
 					}
-
-					//Disable other controls if selection is direct-to-rift
-/*					if (This->combobox->get_selection() == 111)
-					{
-						ShowWindow(This->combobox2->combobox_handle, SW_HIDE);
-						ShowWindow(This->combobox3->combobox_handle, SW_HIDE);
-					}
-					else
-					{
-						ShowWindow(This->combobox2->combobox_handle, SW_SHOW);
-						ShowWindow(This->combobox3->combobox_handle, SW_SHOW);
-					}*/
 
 					return 0;
 				}
@@ -526,7 +534,14 @@ int WINAPI wWinMain(HINSTANCE instance_handle, HINSTANCE, LPWSTR, INT) {
 	helper.LoadUserConfig(userConfig);
 
 	SendMessage(main_window.combobox->combobox_handle, CB_SETCURSEL, stereoModes[userConfig.mode], 0);
-	SendMessage(main_window.combobox2->combobox_handle, CB_SETCURSEL, trackerModes[userConfig.mode2], 0);
+	if (main_window.combobox->get_selection() == 111)
+	{
+		ShowWindow(main_window.combobox2->combobox_handle, SW_HIDE);
+		//Select oculus track
+		main_window.combobox2->set_selection(4);
+	}
+	else
+		SendMessage(main_window.combobox2->combobox_handle, CB_SETCURSEL, trackerModes[userConfig.mode2], 0);
 
 	//If an HMD is unplugged we may not actually be able to select it
 	if (userConfig.adapter >= adapterNum)

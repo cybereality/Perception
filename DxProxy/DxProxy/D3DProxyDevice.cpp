@@ -482,7 +482,6 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 		lastFPSTick = GetTickCount();
 		char buffer[256];
 		sprintf_s(buffer, "%.1f", fps);
-		//OutputDebugString((std::string("FPS: ") + buffer).c_str());
 
 		//Now write FPS to the registry for the Perception App (hopefully this is a very quick operation)
 		HKEY hKey;
@@ -495,9 +494,17 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 	}
 
 	HRESULT hr =  BaseDirect3DDevice9::Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);	
-
-	if (tracker)
-		tracker->EndFrame();
+	
+	try {
+		IDirect3DSurface9* pWrappedBackBuffer = NULL;
+		m_activeSwapChains.at(0)->GetBackBuffer(0, D3DBACKBUFFER_TYPE_MONO, &pWrappedBackBuffer);
+		if (stereoView->initialized)
+			stereoView->PostPresent(static_cast<D3D9ProxySurface*>(pWrappedBackBuffer));
+		pWrappedBackBuffer->Release();
+	}
+	catch (std::out_of_range) {
+		OutputDebugString("Present: No primary swap chain found. (Present probably called before device has been reset)");
+	}
 
 	return hr;
 }
@@ -1215,9 +1222,6 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 			//Make sure we don't come back in here
 			m_saveConfigTimer = MAXDWORD;
 		}
-
-		if (tracker)
-			tracker->BeginFrame();
 
 		// save screenshot before first clear() is called
 		if (screenshot>0)

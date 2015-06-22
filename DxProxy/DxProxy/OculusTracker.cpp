@@ -127,34 +127,6 @@ bool OculusTracker::SupportsPositionTracking()
 	return supportsPositional;
 }
 
-
-
-void OculusTracker::BeginFrame()
-{
-	static unsigned int frameID = 0;
-	//return;
-	if (status >= MTS_OK  && useSDKPosePrediction)
-	{
-		//FrameRef=ovrHmd_BeginFrameTiming(hmd,frameID++);
-	}
-}
-
-void OculusTracker::WaitTillTime()
-{
-	if (status >= MTS_OK && useSDKPosePrediction)
-	{
-		//ovr_WaitTillTime(FrameRef.TimewarpPointSeconds);
-	}
-}
-
-void OculusTracker::EndFrame()
-{
-	if (status >= MTS_OK && useSDKPosePrediction)
-	{
-		//ovrHmd_EndFrameTiming(hmd);
-	}
-}
-
 /**
 * Oculus reset.
 * Resets the orientation - As per Oculus VR, only yaw/x/y/z should be reset
@@ -165,26 +137,6 @@ void OculusTracker::resetOrientationAndPosition()
 
 	//Force OVR positional reset
 	ovrHmd_RecenterPose(hmd);
-/*
-	ts = ovrHmd_GetTrackingState(hmd, ovr_GetTimeInSeconds());
-	
-	if (ts.StatusFlags & ovrStatus_OrientationTracked)
-	{
-		Quatf hmdOrient=ts.HeadPose.ThePose.Orientation;
-		hmdOrient.GetEulerAngles<Axis_Y,Axis_X,Axis_Z>(&offsetYaw, &offsetPitch, &offsetRoll);
-	}
-	else
-		status = MTS_NOORIENTATION;
-	
-	if (ts.StatusFlags & ovrStatus_PositionConnected)
-	{
-		if (!(ts.StatusFlags & ovrStatus_PositionTracked))
-			status = MTS_LOSTPOSITIONAL;
-	}
-
-#ifdef SHOW_CALLS
-	debugf("resetOrientationAndPosition: %i", (int)status);
-#endif */
 }
 
 /**
@@ -201,22 +153,6 @@ void OculusTracker::resetPosition()
 
 	//Force OVR positional reset
 	ovrHmd_RecenterPose(hmd);
-/*
-	ts = ovrHmd_GetTrackingState(hmd, ovr_GetTimeInSeconds());
-	
-	if (ts.StatusFlags & ovrStatus_PositionConnected)
-	{
-		if (ts.StatusFlags & ovrStatus_PositionTracked)
-		{
-			offsetX = ts.HeadPose.ThePose.Position.x;
-			offsetY = ts.HeadPose.ThePose.Position.y;
-			offsetZ = ts.HeadPose.ThePose.Position.z;
-		}
-		else
-			status = MTS_LOSTPOSITIONAL;
-	}
-
-*/
 }
 
 /**

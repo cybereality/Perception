@@ -63,6 +63,7 @@ public:
 	virtual void ReleaseEverything();
 	virtual void SetVRMouseSquish(float squish);
 	virtual void Draw(D3D9ProxySurface* stereoCapableSurface);
+	virtual void PostPresent(D3D9ProxySurface* stereoCapableSurface);
 
 private:
 	/**

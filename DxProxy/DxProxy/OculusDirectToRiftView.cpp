@@ -115,7 +115,7 @@ struct VoidScene
     Model * screen;
 	VireioTexture *texture;
 
- 	VoidScene(ID3D11Texture2D *pTexture) :
+ 	VoidScene(ID3D11Texture2D *pTexture, float aspect) :
 		m_pTexture(pTexture)
     {
 		SHOW_CALL("VoidScene::VoidScene()");
@@ -129,9 +129,9 @@ struct VoidScene
 		vireio::debugf("Texture Format: %i", desc.Format);
 #endif
 
-		float aspect = (float)(desc.Width) / (float)(desc.Height);
+		//float aspect = //(float)(desc.Width) / (float)(desc.Height);
 		texture = new VireioTexture(pTexture, false, Sizei(desc.Width, desc.Height));
-		screen = new Model(texture, -1.0f * aspect, 0.0f, aspect, 2.0f);
+		screen = new Model(texture, -2.0f, -2.0f / aspect, 2.0f, 2.0f / aspect);
     }
 
 	~VoidScene()
@@ -219,10 +219,9 @@ void OculusDirectToRiftView::ReleaseEverything()
 	StereoView::ReleaseEverything();
 }
 
-
-void OculusDirectToRiftView::Draw(D3D9ProxySurface* stereoCapableSurface)
+void OculusDirectToRiftView::PostPresent(D3D9ProxySurface* stereoCapableSurface)
 {
-	SHOW_CALL("OculusDirectToRiftView::Draw()");
+	SHOW_CALL("OculusDirectToRiftView::PostPresent()");
 
 	// Get both eye poses simultaneously, with IPD offset already included. 
     ovrPosef         EyeRenderPose[2];
@@ -266,21 +265,22 @@ void OculusDirectToRiftView::Draw(D3D9ProxySurface* stereoCapableSurface)
 			tempResource11->Release();
 
 			//Create the void scene for this eye, setting the DX9 shared texture as the screen source
-			m_pScene[eye] = new VoidScene(pDX9Texture);
+			std::pair<float, float> size = hmdInfo->GetPhysicalScreenSize();
+			m_pScene[eye] = new VoidScene(pDX9Texture, size.first / size.second);
 
 			//We don't need to keep the ref here now
 			pDX9Texture->Release();
 		}
 
 		// View and projection matrices for the main camera
-		Camera mainCam(Vector3f(0.0f, 1.1f + config->YOffset, (2.25f - ZoomOutScale) + m_screenViewGlideFactor), Matrix4f::RotationY(0.0f));
+		Camera mainCam(Vector3f(0.0f, 0.1+config->YOffset, (2.2f - ZoomOutScale) + m_screenViewGlideFactor), Matrix4f::RotationY(0.0f));
 
         // View and projection matrices for the stereo camera
         Camera finalCam(mainCam.Pos + mainCam.Rot.Transform(EyeRenderPose[eye].Position),
             mainCam.Rot * Matrix4f(EyeRenderPose[eye].Orientation));
 
 		//View matrix is a monoscopic straight ahead camera is not in disconnected screen view mode
-		Matrix4f view = m_disconnectedScreenView ? finalCam.GetViewMatrix() : mainCam.GetViewMatrix();
+		Matrix4f view = (m_disconnectedScreenView || m_screenViewGlideFactor > 0.0f) ? finalCam.GetViewMatrix() : mainCam.GetViewMatrix();
         Matrix4f proj = ovrMatrix4f_Projection(eyeRenderDesc[eye].Fov, 0.2f, 1000.0f, ovrProjection_RightHanded);
 		
 		m_pScene[eye]->Render(proj*view, 1, 1, 1, 1, true);
@@ -301,7 +301,11 @@ void OculusDirectToRiftView::Draw(D3D9ProxySurface* stereoCapableSurface)
 
     ovrLayerHeader* layers = &ld.Header;
     ovrResult result = ovrHmd_SubmitFrame(rift, 0, nullptr, &layers, 1);
+}
 
+void OculusDirectToRiftView::Draw(D3D9ProxySurface* stereoCapableSurface)
+{
+	SHOW_CALL("OculusDirectToRiftView::Draw()");
 
 	//Screen output
 	IDirect3DSurface9* leftImage = stereoCapableSurface->getActualLeft();
@@ -318,8 +322,7 @@ void OculusDirectToRiftView::Draw(D3D9ProxySurface* stereoCapableSurface)
 		if (SUCCEEDED(m_logoTexture->GetSurfaceLevel(0, &pSurface)))
 		{
 			RECT r;
-			r.left = 0; r.top = 0; r.right = 300; r.bottom = 75;
-			SHOW_CALL("m_pActualDevice->StretchRect()");
+			r.left = 0; r.top = 0; r.right = 350; r.bottom = 75;
 			m_pActualDevice->StretchRect(pSurface, NULL, backBuffer, &r, D3DTEXF_NONE);
 			pSurface->Release();
 		}

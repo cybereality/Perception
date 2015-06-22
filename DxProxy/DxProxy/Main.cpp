@@ -176,7 +176,8 @@ IDirect3D9* WINAPI Direct3DCreate9(UINT nSDKVersion)
 	IDirect3D9Ex *pD3DEx = NULL;
 	HRESULT hr = E_NOTIMPL;
 
-	if (userCfg.dx9ex && ProxyHelper::IsProcessRunning("Perception.exe"))
+	//OCULUS_DIRECT_TO_RIFT mode 111 - Need to define this somewhere central
+	if (userCfg.mode == 111 && ProxyHelper::IsProcessRunning("Perception.exe"))
 	{
 		//Try to create an ex interface
 		Log("g_pfnDirect3DCreate9Ex\n");
