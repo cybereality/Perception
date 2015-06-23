@@ -263,32 +263,13 @@ HRESULT    D3D9ProxyVolumeTexture::LockBox(UINT Level, D3DLOCKED_BOX *pLockedVol
 
 	//Create lockable system memory surfaces
 	HRESULT hr = D3DERR_INVALIDCALL;
-//	bool createdTexture = false;
-//	IDirect3DVolume9 *pVolume= NULL;
 	if (!lockableSysMemVolume)
 	{
 		hr = m_pOwningDevice->getActual()->CreateVolumeTexture(desc.Width, desc.Height, desc.Depth, 1, 0, 
 			desc.Format, D3DPOOL_SYSTEMMEM, &lockableSysMemVolume, NULL);
 		if (FAILED(hr))
 			return hr;
-//		createdTexture = true;
 	}
-
-//	hr = lockableSysMemVolumes[Level]->GetVolumeLevel(0, &pVolume);
-//	if (FAILED(hr))
-//		return hr;
-
-/*	if (createdTexture)
-	{
-		IDirect3DSurface9 *pActualSurface = NULL;
-		hr = m_pActualTexture->GetCubeMapSurface(FaceType, Level, &pActualSurface);
-		if (FAILED(hr))
-			return hr;
-		hr = m_pOwningDevice->getActual()->GetVol(pActualSurface, pSurface);
-//		if (FAILED(hr))
-//			OutputDebugString("D3DProxySurface::LockRect: Could not GetRenderTargetData");
-		pActualSurface->Release();
-	}*/
 
 	if (((Flags|D3DLOCK_NO_DIRTY_UPDATE) != D3DLOCK_NO_DIRTY_UPDATE) &&
 		((Flags|D3DLOCK_READONLY) != D3DLOCK_READONLY))
@@ -297,8 +278,6 @@ HRESULT    D3D9ProxyVolumeTexture::LockBox(UINT Level, D3DLOCKED_BOX *pLockedVol
 	hr = lockableSysMemVolume->LockBox(Level, pLockedVolume, pBox, Flags);
 	if (FAILED(hr))
 		return hr;
-
-//	pVolume->Release();
 
 	return hr;
 }

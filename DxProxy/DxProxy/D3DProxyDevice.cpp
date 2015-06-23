@@ -453,16 +453,15 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 	
 	HandleLandmarkMoment(DeviceBehavior::WhenToDo::BEFORE_COMPOSITING);
 	
+	IDirect3DSurface9* pWrappedBackBuffer = NULL;
 	try {
-		IDirect3DSurface9* pWrappedBackBuffer = NULL;
 		m_activeSwapChains.at(0)->GetBackBuffer(0, D3DBACKBUFFER_TYPE_MONO, &pWrappedBackBuffer);
 		if (stereoView->initialized)
-			stereoView->Draw(static_cast<D3D9ProxySurface*>(pWrappedBackBuffer));
-				
-		pWrappedBackBuffer->Release();
+			stereoView->PrePresent(static_cast<D3D9ProxySurface*>(pWrappedBackBuffer));
 	}
 	catch (std::out_of_range) {
 		OutputDebugString("Present: No primary swap chain found. (Present probably called before device has been reset)");
+		return S_OK;
 	}
 
 	// did set this now also in proxy swap chain ? solved ?
@@ -493,18 +492,33 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 		}
 	}
 
-	HRESULT hr =  BaseDirect3DDevice9::Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);	
+	HRESULT hr = S_OK;
+	IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
+	if (SUCCEEDED(getActual()->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))))
+	{
+		//In here, if the DX9 device is still in the middle of drawing, then let the stereo view know, in case it can do
+		//something constructive, like timewarp
+		int loopCount = 0;
+		hr = S_FALSE;
+		while (hr != S_OK)
+		{
+			//Great idea, but doesn't seem to return anything but S_OK
+			hr =  pDirect3DDevice9Ex->PresentEx(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion, D3DPRESENT_DONOTWAIT);
+			if (hr == D3DERR_WASSTILLDRAWING)
+				stereoView->GPUBusy();
+		}
+
+		pDirect3DDevice9Ex->Release();
+	}
+	else
+	{
+		//Old skool
+		hr =  BaseDirect3DDevice9::Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);	
+	}
 	
-	try {
-		IDirect3DSurface9* pWrappedBackBuffer = NULL;
-		m_activeSwapChains.at(0)->GetBackBuffer(0, D3DBACKBUFFER_TYPE_MONO, &pWrappedBackBuffer);
-		if (stereoView->initialized)
-			stereoView->PostPresent(static_cast<D3D9ProxySurface*>(pWrappedBackBuffer));
-		pWrappedBackBuffer->Release();
-	}
-	catch (std::out_of_range) {
-		OutputDebugString("Present: No primary swap chain found. (Present probably called before device has been reset)");
-	}
+	if (stereoView->initialized)
+		stereoView->PostPresent(static_cast<D3D9ProxySurface*>(pWrappedBackBuffer));
+	pWrappedBackBuffer->Release();
 
 	return hr;
 }
@@ -543,10 +557,6 @@ HRESULT WINAPI D3DProxyDevice::CreateTexture(UINT Width,UINT Height,UINT Levels,
 	IDirect3DTexture9* pLeftTexture = NULL;
 	IDirect3DTexture9* pRightTexture = NULL;	
 
-	// create left/mono
-	HANDLE sharedHandleLeft = NULL;
-	HANDLE sharedHandleRight = NULL;
-
 	D3DPOOL newPool = Pool;
 
 	HRESULT hr = S_OK;
@@ -555,33 +565,30 @@ HRESULT WINAPI D3DProxyDevice::CreateTexture(UINT Width,UINT Height,UINT Levels,
 		Pool == D3DPOOL_MANAGED)
 	{
 		newPool = D3DPOOL_DEFAULT;
-		pSharedHandle = &sharedHandleLeft;
+		pDirect3DDevice9Ex->Release();
 	}
 
 	// try and create left
-	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateTexture(Width, Height, Levels, Usage, Format, newPool, &pLeftTexture, pSharedHandle))) {
-
+	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateTexture(Width, Height, Levels, Usage, Format, newPool, &pLeftTexture, pSharedHandle))) 
+	{
 		// Does this Texture need duplicating?
-		if (m_3DReconstructionMode == Reconstruction_Type::GEOMETRY && m_pGameHandler->ShouldDuplicateTexture(Width, Height, Levels, Usage, Format, Pool)) {
-
-			if (pDirect3DDevice9Ex)
-				pSharedHandle = &sharedHandleRight;
-
+		if (m_3DReconstructionMode == Reconstruction_Type::GEOMETRY && m_pGameHandler->ShouldDuplicateTexture(Width, Height, Levels, Usage, Format, Pool)) 
+		{
 			if (FAILED(BaseDirect3DDevice9::CreateTexture(Width, Height, Levels, Usage, Format, newPool, &pRightTexture, pSharedHandle))) {
 				OutputDebugString("Failed to create right eye texture while attempting to create stereo pair, falling back to mono\n");
 				pRightTexture = NULL;
 			}
 		}
 	}
-	else {
+	else 
+	{
 		OutputDebugString("Failed to create texture\n"); 
 	}
 
-	if (pDirect3DDevice9Ex)
-		pDirect3DDevice9Ex->Release();
-
 	if (SUCCEEDED(creationResult))
+	{
 		*ppTexture = new D3D9ProxyTexture(pLeftTexture, pRightTexture, this);
+	}
 
 	return creationResult;
 }
@@ -906,7 +913,6 @@ HRESULT WINAPI D3DProxyDevice::GetRenderTargetData(IDirect3DSurface9* pRenderTar
 		}
 	}
 
-		OutputDebugString("exit GetRenderTargetData");
 	return result;
 }
 

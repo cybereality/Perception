@@ -62,10 +62,14 @@ public:
 	virtual void InitShaderEffects();
 	virtual void ReleaseEverything();
 	virtual void SetVRMouseSquish(float squish);
-	virtual void Draw(D3D9ProxySurface* stereoCapableSurface);
+	virtual void PrePresent(D3D9ProxySurface* stereoCapableSurface);
+	virtual void GPUBusy();
 	virtual void PostPresent(D3D9ProxySurface* stereoCapableSurface);
 
 private:
+
+	bool InitDevice(Sizei sz);
+
 	/**
 	* Predefined Oculus Rift Head Mounted Display info.
 	* Contains distortionCoefficients, needed as vertex shader constants
@@ -82,9 +86,10 @@ private:
 	ovrHmd rift;
 
 	// Make the eye render buffers (caution if actual size < requested due to HW limits). 
-	OculusTextureSet  * pEyeRenderTexture[2];
-	DepthBuffer    * pEyeDepthBuffer[2];
-	ovrEyeRenderDesc eyeRenderDesc[2];
+	OculusTextureSet  * m_pEyeRenderTexture[2];
+	DepthBuffer    * m_pEyeDepthBuffer[2];
+	ovrEyeRenderDesc m_eyeRenderDesc[2];
+    ovrPosef         m_EyeRenderPose[2];
 
 	// Create the screen model, one per eye as they use different textures for the screen
 	VoidScene *m_pScene[2];

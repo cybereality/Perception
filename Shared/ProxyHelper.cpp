@@ -385,7 +385,6 @@ bool ProxyHelper::LoadUserConfig(UserConfig &userConfig)
 		userConfig.warnPosLost = (xml_config.attribute("warn_positional_lost").as_int(1) != 0);
 		userConfig.warnCameraMalfunction = (xml_config.attribute("warn_camera_malfunction").as_int(1) != 0);
 		userConfig.shaderAnalyser = (xml_config.attribute("shader_analyser").as_int(0) != 0);
-		userConfig.dx9ex = (xml_config.attribute("dx9ex").as_int(0) == 1);
 		userConfig.show_calls = (xml_config.attribute("show_calls").as_int(0) == 1);
 
 		//Thhis triggers the "hack" to get obs streaming the game without stereo and distortion

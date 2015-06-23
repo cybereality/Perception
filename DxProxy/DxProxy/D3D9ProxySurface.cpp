@@ -277,10 +277,12 @@ HRESULT WINAPI D3D9ProxySurface::LockRect(D3DLOCKED_RECT* pLockedRect, CONST REC
 	//Only copy the render taget (if possible) on the creation of the memory texture
 	if (createdTexture)
 	{
-		hr = m_pOwningDevice->getActual()->GetRenderTargetData(m_pActualSurface, pSurface);
+		hr = D3DXLoadSurfaceFromSurface(pSurface, NULL, NULL, m_pActualSurface, NULL, NULL, D3DX_DEFAULT, 0);
 		if (FAILED(hr))
 		{
-//			OutputDebugString("D3DProxySurface::LockRect: Could not GetRenderTargetData");
+#ifdef _DEBUG
+			vireio::debugf("Failed: D3DXLoadSurfaceFromSurface hr = 0x%0.8x", hr);
+#endif
 		}
 	}
 

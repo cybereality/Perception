@@ -278,11 +278,11 @@ void StereoView::ReleaseEverything()
 }
 
 /**
-* Draws stereoscopic frame.
+* Draws stereoscopic frame, called before present
 ***/
-void StereoView::Draw(D3D9ProxySurface* stereoCapableSurface)
+void StereoView::PrePresent(D3D9ProxySurface* stereoCapableSurface)
 {
-	SHOW_CALL("StereoView::Draw");
+	SHOW_CALL("StereoView::PrePresent");
 	// Copy left and right surfaces to textures to use as shader input
 	// TODO match aspect ratio of source in target ? 
 	IDirect3DSurface9* leftImage;

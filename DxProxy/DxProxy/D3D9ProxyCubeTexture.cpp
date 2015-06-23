@@ -285,7 +285,13 @@ HRESULT WINAPI D3D9ProxyCubeTexture::LockRect(D3DCUBEMAP_FACES FaceType, UINT Le
 		if (FAILED(hr))
 			return hr;
 
-		hr = m_pOwningDevice->getActual()->GetRenderTargetData(pActualSurface, pSurface);
+		hr = D3DXLoadSurfaceFromSurface(pSurface, NULL, NULL, pActualSurface, NULL, NULL, D3DX_DEFAULT, 0);
+		if (FAILED(hr))
+		{
+#ifdef _DEBUG
+			vireio::debugf("Failed: D3DXLoadSurfaceFromSurface hr = 0x%0.8x", hr);
+#endif
+		}
 
 		pSurface->Release();
 		pActualSurface->Release();

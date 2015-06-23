@@ -171,14 +171,14 @@ OculusDirectToRiftView::OculusDirectToRiftView(ProxyConfig *config, HMDisplayInf
 		m_pOculusTracker = static_cast<OculusTracker*>(motionTracker);
 		rift = m_pOculusTracker->GetOVRHmd();
 
-		bool initialized = DIRECTX.InitWindowAndDevice(NULL, Recti(0, 0, 0, 0), L"Vireio Perception - Ignore this dialog");
+		bool initialized = InitDevice(Sizei(hmdInfo->GetResolution().first, hmdInfo->GetResolution().second));
 		VALIDATE(initialized, "Unable to initialize window and D3D11 device.");
 
 		for (int eye = 0; eye < 2; eye++)
 		{
 			Sizei idealSize = ovrHmd_GetFovTextureSize(rift, (ovrEyeType)eye, rift->DefaultEyeFov[eye], 1.0f);
-			pEyeRenderTexture[eye]      = new OculusTextureSet(rift, idealSize);
-			pEyeDepthBuffer[eye]        = new DepthBuffer(DIRECTX.Device, idealSize);
+			m_pEyeRenderTexture[eye]      = new OculusTextureSet(rift, idealSize);
+			m_pEyeDepthBuffer[eye]        = new DepthBuffer(DIRECTX.Device, idealSize);
 			eyeRenderViewport[eye].Pos  = Vector2i(0, 0);
 			eyeRenderViewport[eye].Size = idealSize;
 
@@ -186,9 +186,51 @@ OculusDirectToRiftView::OculusDirectToRiftView(ProxyConfig *config, HMDisplayInf
 		}	
 
 		// Setup VR components, filling out description
-		eyeRenderDesc[0] = ovrHmd_GetRenderDesc(rift, ovrEye_Left, rift->DefaultEyeFov[0]);
-		eyeRenderDesc[1] = ovrHmd_GetRenderDesc(rift, ovrEye_Right, rift->DefaultEyeFov[1]);
+		m_eyeRenderDesc[0] = ovrHmd_GetRenderDesc(rift, ovrEye_Left, rift->DefaultEyeFov[0]);
+		m_eyeRenderDesc[1] = ovrHmd_GetRenderDesc(rift, ovrEye_Right, rift->DefaultEyeFov[1]);
 	}
+}
+
+bool OculusDirectToRiftView::InitDevice(Sizei sz)
+{
+    IDXGIFactory * DXGIFactory;
+    IDXGIAdapter * Adapter;
+    if (FAILED(CreateDXGIFactory1(__uuidof(IDXGIFactory), (void**)(&DXGIFactory))))
+        return(false);
+    if (FAILED(DXGIFactory->EnumAdapters(0, &Adapter)))
+        return(false);
+    if (FAILED(D3D11CreateDevice(Adapter, Adapter ? D3D_DRIVER_TYPE_UNKNOWN : D3D_DRIVER_TYPE_HARDWARE,
+        NULL, 0, NULL, 0, D3D11_SDK_VERSION, &DIRECTX.Device, NULL, &DIRECTX.Context)))
+        return(false);
+
+    // Main depth buffer
+    DIRECTX.MainDepthBuffer = new DepthBuffer(DIRECTX.Device, sz);
+    DIRECTX.Context->OMSetRenderTargets(1, &DIRECTX.BackBufferRT, DIRECTX.MainDepthBuffer->TexDsv);
+
+    // Buffer for shader constants
+    DIRECTX.UniformBufferGen = new DataBuffer(DIRECTX.Device, D3D11_BIND_CONSTANT_BUFFER, NULL, UNIFORM_DATA_SIZE);
+    DIRECTX.Context->VSSetConstantBuffers(0, 1, &DIRECTX.UniformBufferGen->D3DBuffer);
+
+    // Set a standard blend state, ie transparency from alpha
+    D3D11_BLEND_DESC bm;
+    memset(&bm, 0, sizeof(bm));
+    bm.RenderTarget[0].BlendEnable = TRUE;
+    bm.RenderTarget[0].BlendOp = bm.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+    bm.RenderTarget[0].SrcBlend = bm.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
+    bm.RenderTarget[0].DestBlend = bm.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
+    bm.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+    ID3D11BlendState * BlendState;
+    DIRECTX.Device->CreateBlendState(&bm, &BlendState);
+    DIRECTX.Context->OMSetBlendState(BlendState, NULL, 0xffffffff);
+
+    // Set max frame latency to 1
+    IDXGIDevice1* DXGIDevice1 = NULL;
+    HRESULT hr = DIRECTX.Device->QueryInterface(__uuidof(IDXGIDevice1), (void**)&DXGIDevice1);
+    if (FAILED(hr) | (DXGIDevice1 == NULL)) return(false);
+    DXGIDevice1->SetMaximumFrameLatency(1);
+    DXGIDevice1->Release();
+
+    return(true);
 }
 
 void OculusDirectToRiftView::ReleaseEverything()
@@ -219,27 +261,53 @@ void OculusDirectToRiftView::ReleaseEverything()
 	StereoView::ReleaseEverything();
 }
 
+void OculusDirectToRiftView::GPUBusy()
+{
+	//Don't do anything before we are set up
+	if (!m_pScene[0])
+		return;
+
+    // Initialize our single full screen Fov layer.
+    ovrLayerEyeFov ld;
+    ld.Header.Type  = ovrLayerType_EyeFov;
+    ld.Header.Flags = 0;
+
+    for (int eye = 0; eye < 2; eye++)
+    {
+        ld.ColorTexture[eye] = m_pEyeRenderTexture[eye]->TextureSet;
+        ld.Viewport[eye]     = eyeRenderViewport[eye];
+        ld.Fov[eye]          = rift->DefaultEyeFov[eye];
+		ld.RenderPose[eye]   = m_EyeRenderPose[eye];
+    }
+
+    ovrLayerHeader* layers = &ld.Header;
+    ovrResult result = ovrHmd_SubmitFrame(rift, 0, nullptr, &layers, 1);
+}
+
+
 void OculusDirectToRiftView::PostPresent(D3D9ProxySurface* stereoCapableSurface)
 {
 	SHOW_CALL("OculusDirectToRiftView::PostPresent()");
 
+	//This is bad, but currently stops the flashing 
+	Sleep(2);
+
 	// Get both eye poses simultaneously, with IPD offset already included. 
-    ovrPosef         EyeRenderPose[2];
-    ovrVector3f      HmdToEyeViewOffset[2] = { eyeRenderDesc[0].HmdToEyeViewOffset,
-                                                eyeRenderDesc[1].HmdToEyeViewOffset };
+    ovrVector3f      HmdToEyeViewOffset[2] = { m_eyeRenderDesc[0].HmdToEyeViewOffset,
+                                                m_eyeRenderDesc[1].HmdToEyeViewOffset };
 
 	//If we aren't in disconnected mode, we want to render here mono-scopically
-	ovr_CalcEyePoses(m_pOculusTracker->GetOvrTrackingState().HeadPose.ThePose, HmdToEyeViewOffset, EyeRenderPose);
+	ovr_CalcEyePoses(m_pOculusTracker->GetOvrTrackingState().HeadPose.ThePose, HmdToEyeViewOffset, m_EyeRenderPose);
 
     // Initialise Eye Buffers
     for (int eye = 0; eye < 2; eye++)
     {
         // Increment to use next texture, just before writing
-        pEyeRenderTexture[eye]->AdvanceToNextTexture();
+        m_pEyeRenderTexture[eye]->AdvanceToNextTexture();
 
         // Clear and set up rendertarget
-        int texIndex = pEyeRenderTexture[eye]->TextureSet->CurrentIndex;
-        DIRECTX.SetAndClearRenderTarget(pEyeRenderTexture[eye]->TexRtv[texIndex], pEyeDepthBuffer[eye]);
+        int texIndex = m_pEyeRenderTexture[eye]->TextureSet->CurrentIndex;
+        DIRECTX.SetAndClearRenderTarget(m_pEyeRenderTexture[eye]->TexRtv[texIndex], m_pEyeDepthBuffer[eye]);
         DIRECTX.SetViewport(Recti(eyeRenderViewport[eye]));
 
 		if (!m_pScene[eye])
@@ -273,15 +341,15 @@ void OculusDirectToRiftView::PostPresent(D3D9ProxySurface* stereoCapableSurface)
 		}
 
 		// View and projection matrices for the main camera
-		Camera mainCam(Vector3f(0.0f, 0.1+config->YOffset, (2.2f - ZoomOutScale) + m_screenViewGlideFactor), Matrix4f::RotationY(0.0f));
+		Camera mainCam(Vector3f(0.0f, config->YOffset + 0.1, (2.4f - ZoomOutScale) + m_screenViewGlideFactor), Matrix4f::RotationY(0.0f));
 
         // View and projection matrices for the stereo camera
-        Camera finalCam(mainCam.Pos + mainCam.Rot.Transform(EyeRenderPose[eye].Position),
-            mainCam.Rot * Matrix4f(EyeRenderPose[eye].Orientation));
+        Camera finalCam(mainCam.Pos + mainCam.Rot.Transform(m_EyeRenderPose[eye].Position),
+            mainCam.Rot * Matrix4f(m_EyeRenderPose[eye].Orientation));
 
 		//View matrix is a monoscopic straight ahead camera is not in disconnected screen view mode
 		Matrix4f view = (m_disconnectedScreenView || m_screenViewGlideFactor > 0.0f) ? finalCam.GetViewMatrix() : mainCam.GetViewMatrix();
-        Matrix4f proj = ovrMatrix4f_Projection(eyeRenderDesc[eye].Fov, 0.2f, 1000.0f, ovrProjection_RightHanded);
+        Matrix4f proj = ovrMatrix4f_Projection(m_eyeRenderDesc[eye].Fov, 0.2f, 1000.0f, ovrProjection_RightHanded);
 		
 		m_pScene[eye]->Render(proj*view, 1, 1, 1, 1, true);
     }
@@ -293,19 +361,19 @@ void OculusDirectToRiftView::PostPresent(D3D9ProxySurface* stereoCapableSurface)
 
     for (int eye = 0; eye < 2; eye++)
     {
-        ld.ColorTexture[eye] = pEyeRenderTexture[eye]->TextureSet;
+        ld.ColorTexture[eye] = m_pEyeRenderTexture[eye]->TextureSet;
         ld.Viewport[eye]     = eyeRenderViewport[eye];
         ld.Fov[eye]          = rift->DefaultEyeFov[eye];
-		ld.RenderPose[eye]   = EyeRenderPose[eye];
+		ld.RenderPose[eye]   = m_EyeRenderPose[eye];
     }
 
     ovrLayerHeader* layers = &ld.Header;
     ovrResult result = ovrHmd_SubmitFrame(rift, 0, nullptr, &layers, 1);
 }
 
-void OculusDirectToRiftView::Draw(D3D9ProxySurface* stereoCapableSurface)
+void OculusDirectToRiftView::PrePresent(D3D9ProxySurface* stereoCapableSurface)
 {
-	SHOW_CALL("OculusDirectToRiftView::Draw()");
+	SHOW_CALL("OculusDirectToRiftView::PrePresent()");
 
 	//Screen output
 	IDirect3DSurface9* leftImage = stereoCapableSurface->getActualLeft();

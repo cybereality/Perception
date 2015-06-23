@@ -384,12 +384,11 @@ HRESULT WINAPI D3D9ProxyTexture::LockRect(UINT Level, D3DLOCKED_RECT* pLockedRec
 			return hr;
 		}
 
-		//This step doesn't always work!
-		hr = m_pOwningDevice->getActual()->GetRenderTargetData(pActualSurface, pSurface);
+		hr = D3DXLoadSurfaceFromSurface(pSurface, NULL, NULL, pActualSurface, NULL, NULL, D3DX_DEFAULT, 0);
 		if (FAILED(hr))
 		{
 #ifdef _DEBUG
-			vireio::debugf("Failed: m_pOwningDevice->getActual()->GetRenderTargetData hr = 0x%0.8x", hr);
+			vireio::debugf("Failed: D3DXLoadSurfaceFromSurface hr = 0x%0.8x", hr);
 #endif
 		}
 		pActualSurface->Release();

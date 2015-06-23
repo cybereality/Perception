@@ -51,7 +51,8 @@ public:
 	/*** StereoView public methods ***/
 	virtual void Init(IDirect3DDevice9* pActualDevice);
 	virtual void ReleaseEverything();
-	virtual void Draw(D3D9ProxySurface* stereoCapableSurface);
+	virtual void PrePresent(D3D9ProxySurface* stereoCapableSurface);
+	virtual void GPUBusy() {}
 	virtual void PostPresent(D3D9ProxySurface* stereoCapableSurface) {}
 	virtual void SaveScreen();
 	virtual void SaveLastScreen();

@@ -136,7 +136,7 @@ HRESULT WINAPI D3D9ProxySwapChain::Present(CONST RECT* pSourceRect, CONST RECT* 
 		GetBackBuffer(0, D3DBACKBUFFER_TYPE_MONO, &pWrappedBackBuffer);
 
 		if (pD3DProxyDev->stereoView->initialized)
-			pD3DProxyDev->stereoView->Draw(static_cast<D3D9ProxySurface*>(pWrappedBackBuffer));
+			pD3DProxyDev->stereoView->PrePresent(static_cast<D3D9ProxySurface*>(pWrappedBackBuffer));
 
 		pWrappedBackBuffer->Release();
 	}
