@@ -214,7 +214,7 @@ void D3DProxyDevice::DisplayCurrentPopup()
 	{
 		char buffer[256];
 		if (show_fps == FPS_COUNT)
-			sprintf_s(buffer, "FPS: %.1f", fps);
+			sprintf_s(buffer, "FPS: %.1f     %s", fps, stereoView->GetAdditionalFPSInfo().c_str());
 		else if (show_fps == FPS_TIME)
 			sprintf_s(buffer, "Frame Time: %.2f ms", 1000.0f / fps);
 

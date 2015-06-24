@@ -164,8 +164,9 @@ int OculusTracker::getOrientationAndPosition(float* yaw, float* pitch, float* ro
 {
 	SHOW_CALL("OculusTracker getOrientationAndPosition\n");
 
-    ovrFrameTiming   ftiming  = ovrHmd_GetFrameTiming(hmd, 0);
-    ts = ovrHmd_GetTrackingState(hmd, ftiming.DisplayMidpointSeconds);
+	//Have to use time "now", otherwise it mucks up the timewarp logic
+//	ovrFrameTiming   ftiming  = ovrHmd_GetFrameTiming(hmd, 0);
+	ts = ovrHmd_GetTrackingState(hmd, 0.0);//ftiming.DisplayMidpointSeconds);
 
 	if (ts.StatusFlags & ovrStatus_OrientationTracked)
 	{

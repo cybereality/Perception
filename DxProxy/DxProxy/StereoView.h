@@ -52,7 +52,6 @@ public:
 	virtual void Init(IDirect3DDevice9* pActualDevice);
 	virtual void ReleaseEverything();
 	virtual void PrePresent(D3D9ProxySurface* stereoCapableSurface);
-	virtual void GPUBusy() {}
 	virtual void PostPresent(D3D9ProxySurface* stereoCapableSurface) {}
 	virtual void SaveScreen();
 	virtual void SaveLastScreen();
@@ -60,6 +59,8 @@ public:
 	virtual void PostReset();
 	virtual void SetVRMouseSquish(float squish){}
 	IDirect3DSurface9* GetBackBuffer();
+
+	virtual std::string GetAdditionalFPSInfo() {return "";}
 
 	/**
 	* Stereo render options.

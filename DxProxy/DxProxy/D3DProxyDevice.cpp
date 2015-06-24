@@ -496,18 +496,7 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 	IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
 	if (SUCCEEDED(getActual()->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))))
 	{
-		//In here, if the DX9 device is still in the middle of drawing, then let the stereo view know, in case it can do
-		//something constructive, like timewarp
-		int loopCount = 0;
-		hr = S_FALSE;
-		while (hr != S_OK)
-		{
-			//Great idea, but doesn't seem to return anything but S_OK
-			hr =  pDirect3DDevice9Ex->PresentEx(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion, D3DPRESENT_DONOTWAIT);
-			if (hr == D3DERR_WASSTILLDRAWING)
-				stereoView->GPUBusy();
-		}
-
+		hr = pDirect3DDevice9Ex->PresentEx(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion, 0);
 		pDirect3DDevice9Ex->Release();
 	}
 	else

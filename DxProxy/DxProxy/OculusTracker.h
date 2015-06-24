@@ -34,7 +34,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define RADIANS_TO_DEGREES(rad) ((float) rad * (float) (180.0 / PI))
 
 #include "MotionTracker.h"
-#include "..\..\LibOVR\Include\OVR.h"  
+#include "..\..\LibOVR\Include\OVR.h"
+
+#include <mutex>
 
 using namespace OVR;
 
@@ -66,8 +68,6 @@ public:
 	virtual bool SupportsPositionTracking();
 
 	ovrHmd GetOVRHmd() {return hmd;}
-
-	ovrTrackingState& GetOvrTrackingState() {return ts;}
 
 private:
 

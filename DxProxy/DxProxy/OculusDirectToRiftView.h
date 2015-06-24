@@ -54,6 +54,7 @@ class OculusDirectToRiftView : public StereoView
 {
 public:
 	OculusDirectToRiftView(ProxyConfig *config, HMDisplayInfo *hmd, MotionTracker *tracker);
+	virtual ~OculusDirectToRiftView();
 	
 	/*** OculusRiftView public methods ***/
 	virtual void SetViewEffectInitialValues();
@@ -63,12 +64,42 @@ public:
 	virtual void ReleaseEverything();
 	virtual void SetVRMouseSquish(float squish);
 	virtual void PrePresent(D3D9ProxySurface* stereoCapableSurface);
-	virtual void GPUBusy();
 	virtual void PostPresent(D3D9ProxySurface* stereoCapableSurface);
+	virtual std::string GetAdditionalFPSInfo();
+
+	//This has to be public as it is called from the new thread method
+	void DX11RenderThread_Main();
 
 private:
 
-	bool InitDevice(Sizei sz);
+	bool DX11RenderThread_Init();
+	bool DX11RenderThread_InitDevice(Sizei sz);
+	void DX11RenderThread_TimewarpLastFrame();
+	void DX11RenderThread_ReleaseEverything();
+	void DX11RenderThread_RenderNewFrame();
+
+	enum ThreadEvents
+	{
+		NONE,
+		TERMINATE_THREAD,
+		RELEASE_EVERYTHING,
+		NEW_FRAME
+	} m_eventFlag;
+
+	std::mutex m_mtx;
+
+	void SetEventFlag(ThreadEvents evt);
+	ThreadEvents GetEventFlag();
+
+	//Flags for when the event flag has been reset
+	HANDLE m_EventFlagProcessed;
+	HANDLE m_EventFlagRaised;
+
+	D3D9ProxySurface* m_stereoCapableSurface;
+
+	void CalcFPS();
+	float hmdFPS;
+
 
 	/**
 	* Predefined Oculus Rift Head Mounted Display info.
