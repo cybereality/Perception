@@ -106,8 +106,6 @@ void OculusTracker::init()
 		status = MTS_INITFAIL;
 	}
 
-//	resetOrientationAndPosition();
-
 	OutputDebugString("oculus tracker initted");
 	if (status == MTS_INITIALISING)
 		status = MTS_OK;
@@ -164,9 +162,9 @@ int OculusTracker::getOrientationAndPosition(float* yaw, float* pitch, float* ro
 {
 	SHOW_CALL("OculusTracker getOrientationAndPosition\n");
 
-	//Have to use time "now", otherwise it mucks up the timewarp logic
-//	ovrFrameTiming   ftiming  = ovrHmd_GetFrameTiming(hmd, 0);
-	ts = ovrHmd_GetTrackingState(hmd, 0.0);//ftiming.DisplayMidpointSeconds);
+	//Use next frame's display mid point, better than "now" was I think
+	ovrFrameTiming  ftiming  = ovrHmd_GetFrameTiming(hmd, 0);
+	ts = ovrHmd_GetTrackingState(hmd, ftiming.DisplayMidpointSeconds);
 
 	if (ts.StatusFlags & ovrStatus_OrientationTracked)
 	{
