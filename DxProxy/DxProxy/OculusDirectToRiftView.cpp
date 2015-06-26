@@ -234,7 +234,8 @@ OculusDirectToRiftView::OculusDirectToRiftView(ProxyConfig *config, HMDisplayInf
 	m_EventFlagProcessed = CreateEvent(NULL, FALSE, FALSE, "m_EventFlagProcessed");
 	m_EventFlagRaised = CreateEvent(NULL, FALSE, FALSE, "m_EventFlagRaised");
 
-	CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)&DX11RenderThread, (void*)this, 0, NULL);
+	HANDLE dx11Thread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)&DX11RenderThread, (void*)this, 0, NULL);
+	SetThreadPriority(dx11Thread, THREAD_PRIORITY_HIGHEST);
 }
 
 OculusDirectToRiftView::~OculusDirectToRiftView()
@@ -426,18 +427,18 @@ void OculusDirectToRiftView::DX11RenderThread_RenderNewFrame()
 		pDX9Texture->Release();
 	}
 
-	//If we get here, then the DX9 thread can be released (since we have local copies of the textures now)
-	SetEvent(m_EventFlagProcessed);
-
 	// Get both eye poses simultaneously, with IPD offset already included. 
     ovrVector3f      HmdToEyeViewOffset[2] = { m_eyeRenderDesc[0].HmdToEyeViewOffset,
                                                 m_eyeRenderDesc[1].HmdToEyeViewOffset };
 
-	ovrFrameTiming   ftiming = ovrHmd_GetFrameTiming(rift, 0);
-	ovrTrackingState trackingState = ovrHmd_GetTrackingState(rift, ftiming.DisplayMidpointSeconds);
+	//Get the tracking state for the frame we are about to show
+	ovrTrackingState trackingState = m_pOculusTracker->GetTrackingState();
 	ovr_CalcEyePoses(trackingState.HeadPose.ThePose, HmdToEyeViewOffset, m_EyeRenderPose);
 
-    // Initialise Eye Buffers
+	//If we get here, then the DX9 thread can be released (since we have local copies of the textures now)
+	SetEvent(m_EventFlagProcessed);
+
+	// Initialise Eye Buffers
     for (int eye = 0; eye < 2; eye++)
     {
         // Increment to use next texture, just before writing
@@ -529,8 +530,7 @@ void OculusDirectToRiftView::DX11RenderThread_Main()
 	while (eventFlag != TERMINATE_THREAD)
 	{
 		//Can't do antyhing immediately, sleep for a very small timeout period (hopefullly wake before next vsync)
-		int sleepMS = 1;
-		DWORD result = WaitForSingleObject(m_EventFlagRaised, sleepMS);
+		DWORD result = WaitForSingleObject(m_EventFlagRaised, 0);
 		if (result == WAIT_TIMEOUT)
 		{
 			//If we've not had a frame update from DX9, then just timewarp the last frame

@@ -69,6 +69,9 @@ public:
 
 	ovrHmd GetOVRHmd() {return hmd;}
 
+	//Returns the last sampled tracking state
+	ovrTrackingState GetTrackingState() {return ts;}
+
 private:
 
 	/**
