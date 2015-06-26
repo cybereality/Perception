@@ -250,7 +250,7 @@ bool OculusDirectToRiftView::DX11RenderThread_Init()
 {
 	bool initialized = DX11RenderThread_InitDevice(Sizei(hmdInfo->GetResolution().first, hmdInfo->GetResolution().second));
 	VALIDATE(initialized, "Unable to initialize D3D11 device.");
-
+	ovrHmd_SetBool(rift, "QueueAheadEnabled", true);
 	for (int eye = 0; eye < 2; eye++)
 	{
 		Sizei idealSize = ovrHmd_GetFovTextureSize(rift, (ovrEyeType)eye, rift->DefaultEyeFov[eye], 1.0f);
@@ -290,7 +290,7 @@ bool OculusDirectToRiftView::DX11RenderThread_InitDevice(Sizei sz)
     DIRECTX.Context->VSSetConstantBuffers(0, 1, &DIRECTX.UniformBufferGen->D3DBuffer);
 
     // Set a standard blend state, ie transparency from alpha
-    D3D11_BLEND_DESC bm;
+    /*D3D11_BLEND_DESC bm;
     memset(&bm, 0, sizeof(bm));
     bm.RenderTarget[0].BlendEnable = TRUE;
     bm.RenderTarget[0].BlendOp = bm.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
@@ -299,7 +299,7 @@ bool OculusDirectToRiftView::DX11RenderThread_InitDevice(Sizei sz)
     bm.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
     ID3D11BlendState * BlendState;
     DIRECTX.Device->CreateBlendState(&bm, &BlendState);
-    DIRECTX.Context->OMSetBlendState(BlendState, NULL, 0xffffffff);
+    DIRECTX.Context->OMSetBlendState(BlendState, NULL, 0xffffffff);*/
 
     // Set max frame latency to 1
     IDXGIDevice1* DXGIDevice1 = NULL;
@@ -495,6 +495,7 @@ void OculusDirectToRiftView::PrePresent(D3D9ProxySurface* stereoCapableSurface)
 	SHOW_CALL("OculusDirectToRiftView::PrePresent()");
 
 	//Screen output
+	
 	IDirect3DSurface9* leftImage = stereoCapableSurface->getActualLeft();
 	m_pActualDevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &backBuffer);
 	m_pActualDevice->StretchRect(leftImage, NULL, backBuffer, NULL, D3DTEXF_NONE);
