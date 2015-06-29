@@ -1452,32 +1452,6 @@ void D3DProxyDevice::VPMENU_EditKeybind(std::string description, InputBindingRef
 void D3DProxyDevice::VPMENU_UpdateCooldowns()
 {
 	SHOW_CALL("VPMENU_UpdateCooldowns");
-	
-	//If this is enabled, then draw an apostrophe in the top left corner of the screen at all times
-	//this results in obs only picking up the left eye's texture for some reason (total hack, but some users make use of this for streaming
-	//using OBS
-	if (userConfig.obsStreamHack)
-	{
-		LPD3DXSPRITE hackSprite = NULL;
-		D3DXCreateSprite(this, &hackSprite);
-		if (hudFont && hackSprite)
-		{
-			hudMainMenu->Begin(D3DXSPRITE_ALPHABLEND);
-		
-			D3DXMATRIX matScale;
-			D3DXMatrixScaling(&matScale, fScaleX, fScaleY, 1.0f);
-			hudMainMenu->SetTransform(&matScale);
-			
-			RECT apostropheDrawPos = { 0, 0, 50, 50 };
-			hudFont->DrawText(hackSprite, "'", -1, &apostropheDrawPos, DT_LEFT, COLOR_RED);
-			D3DXVECTOR3 vPos( 0.0f, 0.0f, 0.0f);
-			hackSprite->Draw(NULL, &apostropheDrawPos, NULL, &vPos, COLOR_WHITE);
-			hackSprite->End();
-			hackSprite->Release();
-			hackSprite = NULL;
-		}		
-	}
-
 	// first, calculate a time scale to adjust the menu speed for the frame speed of the game
 	float timeStamp = (float)GetTickCount()/1000.0f;
 	menuLastFrameLength = timeStamp-menuLastUpdateTime;

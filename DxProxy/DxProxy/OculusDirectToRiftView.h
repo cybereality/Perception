@@ -84,12 +84,14 @@ private:
 		TERMINATE_THREAD,
 		RELEASE_EVERYTHING,
 		NEW_FRAME
-	} m_eventFlag;
+	};
+	
+	int m_eventFlag;
 
 	std::mutex m_mtx;
 
 	void SetEventFlag(ThreadEvents evt);
-	ThreadEvents GetEventFlag();
+	void GetEventFlag(ThreadEvents &evt);
 
 	//Flags for when the event flag has been reset
 	HANDLE m_EventFlagProcessed;

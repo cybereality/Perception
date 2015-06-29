@@ -2402,7 +2402,6 @@ HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFO
 	D3DMULTISAMPLE_TYPE newMultiSample = MultiSample;
 	DWORD newMultisampleQuality = MultisampleQuality;
 
-
 	HRESULT hr = S_OK;
 	IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
 	if (SUCCEEDED(getActual()->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))))
@@ -2413,10 +2412,6 @@ HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFO
 	}
 
 	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateRenderTarget(Width, Height, Format, newMultiSample, newMultisampleQuality, Lockable, &pLeftRenderTarget, pSharedHandle))) {
-
-		char buffer[256];
-		sprintf_s(buffer, "Shared Handle Left: 0x%0.8x", sharedHandleLeft);
-		OutputDebugString(buffer);
 
 		/* "If Needed" heuristic is the complicated part here.
 		Fixed heuristics (based on type, format, size, etc) + game specific overrides + isForcedMono + magic? */
@@ -2430,8 +2425,6 @@ HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFO
 				OutputDebugString("Failed to create right eye render target while attempting to create stereo pair, falling back to mono\n");
 				pRightRenderTarget = NULL;
 			}
-			sprintf_s(buffer, "Shared Handle Right: 0x%0.8x", sharedHandleRight);
-			OutputDebugString(buffer);
 		}
 	}
 	else {

@@ -93,11 +93,5 @@ protected:
 	std::unordered_map<UINT, bool> fullSurfaces;
 	std::unordered_map<UINT, bool> newSurface;
 	std::unordered_map<UINT, IDirect3DTexture9*> lockableSysMemTexture;
-	struct LockedRect
-	{
-		bool locked;
-		D3DLOCKED_RECT lr;
-	};
-	std::unordered_map<UINT, LockedRect> allocatedSysMem;
 };
 #endif

@@ -387,9 +387,6 @@ bool ProxyHelper::LoadUserConfig(UserConfig &userConfig)
 		userConfig.shaderAnalyser = (xml_config.attribute("shader_analyser").as_int(0) != 0);
 		userConfig.show_calls = (xml_config.attribute("show_calls").as_int(0) == 1);
 
-		//Thhis triggers the "hack" to get obs streaming the game without stereo and distortion
-		userConfig.obsStreamHack = (xml_config.attribute("obs_stream_hack").as_int(0) != 0);
-
 		return true;
 	}
 

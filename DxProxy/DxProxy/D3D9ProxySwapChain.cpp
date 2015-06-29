@@ -130,24 +130,8 @@ HRESULT WINAPI D3D9ProxySwapChain::Present(CONST RECT* pSourceRect, CONST RECT* 
 	// This test allowed deus ex menus and videos to work correctly. Lots of model rendering issues in game though
 	D3DProxyDevice* pD3DProxyDev = static_cast<D3DProxyDevice*>(m_pOwningDevice);
 
-	IDirect3DSurface9* pWrappedBackBuffer;
-
-	try {
-		GetBackBuffer(0, D3DBACKBUFFER_TYPE_MONO, &pWrappedBackBuffer);
-
-		if (pD3DProxyDev->stereoView->initialized)
-			pD3DProxyDev->stereoView->PrePresent(static_cast<D3D9ProxySurface*>(pWrappedBackBuffer));
-
-		pWrappedBackBuffer->Release();
-	}
-	catch (std::out_of_range) {
-		OutputDebugString("Present: No primary swap chain found. (Present probably called before device has been reset)");
-	}
-
-	// call proxy device present update
-	pD3DProxyDev->HandleUpdateExtern();
-
-	return m_pActualSwapChain->Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion, dwFlags);
+	//Bit of a hack, but just call through to the proxy device's present (and ignore flags for now)
+	return pD3DProxyDev->Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
 }
 
 /**

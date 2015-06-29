@@ -75,6 +75,7 @@ void OculusDirectToRiftView::SetEventFlag(ThreadEvents evt)
 	{
 		std::lock_guard<std::mutex> lock(m_mtx);
 		m_eventFlag = evt;
+//		vireio::debugf("SetEventFlag: %i", evt);
 	}
 
 	//Signal that we have raised a flag, and then wait for indication it has been processed
@@ -82,15 +83,15 @@ void OculusDirectToRiftView::SetEventFlag(ThreadEvents evt)
 	SignalObjectAndWait(m_EventFlagRaised, m_EventFlagProcessed, 200, FALSE);
 }
 
-OculusDirectToRiftView::ThreadEvents OculusDirectToRiftView::GetEventFlag()
+void OculusDirectToRiftView::GetEventFlag(ThreadEvents &evt)
 {
-	ThreadEvents evt = NONE;
 	{
 		std::lock_guard<std::mutex> lock(m_mtx);
-		evt = m_eventFlag;
+//		vireio::debugf("GetEventFlag: %i", m_eventFlag);
+		evt = (ThreadEvents)m_eventFlag;
+		//reset
 		m_eventFlag = NONE;
 	}
-	return evt;
 }
 
 DWORD DX11RenderThread(void *pParam)
@@ -224,7 +225,8 @@ struct VoidScene
 OculusDirectToRiftView::OculusDirectToRiftView(ProxyConfig *config, HMDisplayInfo *hmd, MotionTracker *motionTracker) : 
 	StereoView(config),
 	m_logoTexture(NULL),
-	hmdInfo(hmd)
+	hmdInfo(hmd),
+	m_eventFlag(0)
 {
 	SHOW_CALL("OculusDirectToRiftView::OculusDirectToRiftView()");
 
@@ -342,6 +344,9 @@ void OculusDirectToRiftView::DX11RenderThread_ReleaseEverything()
 			m_pScene[eye] = NULL;
 		}
 	}
+
+	//Signal the DX9 thread can now continue		
+	SetEvent(m_EventFlagProcessed);
 }
 
 void OculusDirectToRiftView::DX11RenderThread_TimewarpLastFrame()
@@ -538,19 +543,17 @@ void OculusDirectToRiftView::DX11RenderThread_Main()
 		}
 		else
 		{
-			eventFlag = GetEventFlag();
+			GetEventFlag(eventFlag);
 			switch (eventFlag)
 			{
 			case NONE:
 				{
-					vireio::debugf("NONE event flag from a signalled state - SHOULD NOT BE POSSIBLE");
+					vireio::debugf("eventFlag = NONE, WaitForSingleObject = %0.8x", result);
 				}
 				break;
 			case NEW_FRAME:
 				{
 					DX11RenderThread_RenderNewFrame();
-					//Continue, as the set event occured in the render frame call
-					continue;
 				}
 				break;
 			case RELEASE_EVERYTHING:
@@ -562,9 +565,6 @@ void OculusDirectToRiftView::DX11RenderThread_Main()
 				//Do nothing here
 				break;
 			}
-
-			//Signal the DX9 thread can now continue		
-			SetEvent(m_EventFlagProcessed);
 		}
 	}
 }

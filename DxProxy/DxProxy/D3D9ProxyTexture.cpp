@@ -73,15 +73,6 @@ D3D9ProxyTexture::~D3D9ProxyTexture()
 		++it2;
 	}
 
-	//Cleanup 
-	auto it3 = allocatedSysMem.begin();
-	while (it3 != allocatedSysMem.end())
-	{
-		//Some of these may still be locked if the game engine is lazy
-		if (!it3->second.locked)
-			delete []((char*)(((it3++)->second).lr.pBits));
-	}
-
 	if (m_pActualTextureRight)
 		m_pActualTextureRight->Release();
 
@@ -330,38 +321,18 @@ HRESULT WINAPI D3D9ProxyTexture::LockRect(UINT Level, D3DLOCKED_RECT* pLockedRec
 
 		if (FAILED(hr))
 		{
-			//Dummy this system texture by allocating some memory and returning as if nothing bad had happened
-			vireio::debugf("D3D9ProxyTexture::LockRect  Allocating dummy memory texture (W:%i H:%i F%i)", desc.Width, desc.Height, desc.Format);
-			if (allocatedSysMem.find(Level) == allocatedSysMem.end())
+			//DXT textures can't be less than 4 pixels in either width or height
+			if (desc.Width < 4) desc.Width = 4;
+			if (desc.Height < 4) desc.Height = 4;
+			hr = m_pOwningDevice->getActual()->CreateTexture(desc.Width, desc.Height, 1, 0, 
+				desc.Format, D3DPOOL_SYSTEMMEM, &lockableSysMemTexture[Level], NULL);
+			newTexture = true;
+			if (FAILED(hr))
 			{
-				UINT BYTES=8;
-				LockedRect memLockedRect;
-				switch (desc.Format)
-				{
-				case D3DFMT_DXT1:
-					if (desc.Width < 4) desc.Width = 4;
-					if (desc.Height < 4) desc.Height = 4;
-					memLockedRect.lr.Pitch = (desc.Width / 4) * 8;
-					break;
-				case D3DFMT_DXT2:
-				case D3DFMT_DXT3:
-				case D3DFMT_DXT4:
-				case D3DFMT_DXT5:
-					if (desc.Width < 4) desc.Width = 4;
-					if (desc.Height < 4) desc.Height = 4;
-					memLockedRect.lr.Pitch = (desc.Width / 4) * 16;
-					break;
-				default:
-					memLockedRect.lr.Pitch = desc.Width * BYTES;
-				}
-
-				memLockedRect.locked = true;
-				memLockedRect.lr.pBits = new char[desc.Width * desc.Height * BYTES];
-				memset(memLockedRect.lr.pBits, 0, desc.Width * desc.Height * BYTES);
-				allocatedSysMem[Level] = memLockedRect;
+				vireio::debugf("Failed: m_pOwningDevice->getActual()->CreateTexture hr = 0x%0.8x", hr);
+				return hr;
 			}
-			*pLockedRect = allocatedSysMem[Level].lr;
-			return S_OK;
+
 		}
 	}
 
@@ -438,14 +409,6 @@ HRESULT WINAPI D3D9ProxyTexture::UnlockRect(UINT Level)
 
 	if (lockableSysMemTexture.find(Level) == lockableSysMemTexture.end())
 		return S_OK;
-
-	//Check to see if we hacked it
-	if (allocatedSysMem.find(Level) != allocatedSysMem.end())
-	{
-		//Mark as unlocked
-		allocatedSysMem[Level].locked = false;
-		return S_OK;
-	}
 
 	IDirect3DSurface9 *pSurface = NULL;
 	HRESULT hr = lockableSysMemTexture[Level] ? lockableSysMemTexture[Level]->GetSurfaceLevel(0, &pSurface) : D3DERR_INVALIDCALL;
