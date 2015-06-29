@@ -103,13 +103,16 @@ struct HMDisplayInfo;
 static void Log(const char* str, ...)
 {
 	static FILE* pFile = NULL;
-	if(!pFile)
+	static bool fileValid = true;
+	if(!pFile && fileValid)
 	{
 		ProxyHelper ph;
 		std::string dir = ph.GetBaseDir();
 		fopen_s(&pFile, (dir + "\\Vireio_ShowCalls.log").c_str(), "w");
 		if (!pFile)
 		{
+			//Don't write this more than once
+			fileValid = false;
 			OutputDebugString("Couldn't open log file for writing.\n");
 		}
 	}

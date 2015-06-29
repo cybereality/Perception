@@ -427,10 +427,12 @@ HRESULT WINAPI D3D9ProxyTexture::UnlockRect(UINT Level)
 		if (fullSurfaces[Level])
 		{
 			hr = m_pOwningDevice->getActual()->UpdateSurface(pSurface, NULL, pActualSurfaceRight, NULL);
-			//hr = m_pOwningDevice->getActual()->UpdateTexture(lockableSysMemTexture, m_pActualTextureRight);
 			if (FAILED(hr))
-				return hr;
-
+			{
+				vireio::debugf("Failed: m_pOwningDevice->getActual()->UpdateSurface hr = 0x%0.8x", hr);
+				//Just ignore the failed copy back, not much we can do
+				hr = S_OK;
+			}
 		}
 		else
 		{
@@ -442,7 +444,11 @@ HRESULT WINAPI D3D9ProxyTexture::UnlockRect(UINT Level)
 				p.y = rectIter->top;
 				hr = m_pOwningDevice->getActual()->UpdateSurface(pSurface, &(*rectIter), pActualSurfaceRight, &p);
 				if (FAILED(hr))
-					return hr;
+				{
+					vireio::debugf("Failed: m_pOwningDevice->getActual()->UpdateSurface hr = 0x%0.8x", hr);
+					//Just ignore the failed copy back, not much we can do
+					hr = S_OK;
+				}
 				rectIter++;
 			}
 		}
@@ -457,9 +463,12 @@ HRESULT WINAPI D3D9ProxyTexture::UnlockRect(UINT Level)
 	if (fullSurfaces[Level])
 	{
 		hr = m_pOwningDevice->getActual()->UpdateSurface(pSurface, NULL, pActualSurface, NULL);
-		//hr = m_pOwningDevice->getActual()->UpdateTexture(lockableSysMemTexture, m_pActualTexture);
 		if (FAILED(hr))
-			return hr;
+		{
+			vireio::debugf("Failed: m_pOwningDevice->getActual()->UpdateSurface hr = 0x%0.8x", hr);
+			//Just ignore the failed copy back, not much we can do
+			hr = S_OK;
+		}
 	}
 	else
 	{
@@ -471,7 +480,11 @@ HRESULT WINAPI D3D9ProxyTexture::UnlockRect(UINT Level)
 			p.y = rectIter->top;
 			hr = m_pOwningDevice->getActual()->UpdateSurface(pSurface, &(*rectIter), pActualSurface, &p);
 			if (FAILED(hr))
-				return hr;
+			{
+				vireio::debugf("Failed: m_pOwningDevice->getActual()->UpdateSurface hr = 0x%0.8x", hr);
+				//Just ignore the failed copy back, not much we can do
+				hr = S_OK;
+			}
 			rectIter++;
 		}
 	}
