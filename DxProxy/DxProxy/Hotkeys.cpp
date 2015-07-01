@@ -232,15 +232,12 @@ void D3DProxyDevice::HandleControls()
 	//Disconnected Screen View Mode
 	if (config.EdgePeekHotkey->IsPressed(controls) && HotkeysActive())
 	{
-		static bool bSurpressPositionaltracking = true;
 		static bool bForceMouseEmulation = false;
 		if (this->stereoView->m_disconnectedScreenView)
 		{
 			this->stereoView->m_disconnectedScreenView = false;
-			m_bSurpressGameHeadtracking = false;
 			tracker->setMouseEmulation(bForceMouseEmulation);
-			bSurpressPositionaltracking = m_bSurpressPositionaltracking;
-			m_bSurpressPositionaltracking = false;
+
 			//TODO Change this back to initial
 			this->stereoView->HeadYOffset = 0;
 			this->stereoView->HeadZOffset = FLT_MAX;
@@ -251,9 +248,7 @@ void D3DProxyDevice::HandleControls()
 		{
 			//Suspend in-game movement whilst showing disconnected screen view
 			this->stereoView->m_disconnectedScreenView = true;
-			m_bSurpressGameHeadtracking = true;
 			bForceMouseEmulation = tracker->setMouseEmulation(false);
-			m_bSurpressPositionaltracking = bSurpressPositionaltracking;
 			if (tracker->getStatus() >= MTS_OK)
 			{
 				m_fFloatingScreenPitch = tracker->primaryPitch;
@@ -261,9 +256,6 @@ void D3DProxyDevice::HandleControls()
 				m_fFloatingScreenZ = tracker->z;
 			}
 		}
-
-		ShowAdjusterToast(retprintf("Disconnected Screen %s",
-			this->stereoView->m_disconnectedScreenView ? "Enabled" : "Disabled"), 700);
 	}
 
 	float screenFloatMultiplierY = 0.75;

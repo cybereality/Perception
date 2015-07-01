@@ -269,6 +269,9 @@ bool OculusDirectToRiftView::DX11RenderThread_Init()
 	m_eyeRenderDesc[0] = ovrHmd_GetRenderDesc(rift, ovrEye_Left, rift->DefaultEyeFov[0]);
 	m_eyeRenderDesc[1] = ovrHmd_GetRenderDesc(rift, ovrEye_Right, rift->DefaultEyeFov[1]);
 
+	//Turn on performance HUD if set in config.xml
+	ovrHmd_SetInt(rift, "PerfHudMode", (int)config->PerfHudMode);
+
 	return initialized;
 }
 
@@ -436,6 +439,11 @@ void OculusDirectToRiftView::DX11RenderThread_RenderNewFrame()
     ovrVector3f      HmdToEyeViewOffset[2] = { m_eyeRenderDesc[0].HmdToEyeViewOffset,
                                                 m_eyeRenderDesc[1].HmdToEyeViewOffset };
 
+	//If DSV is not enabled, then we don't want to use stereo separation, since this is already done
+	//in the DX9 rendering, simply glide the IPD separation in and out as we change from DSV rather than a sudden switch
+	HmdToEyeViewOffset[ovrEye_Left].x *= m_screenViewGlideFactor;
+	HmdToEyeViewOffset[ovrEye_Right].x *= m_screenViewGlideFactor;
+
 	//Get the tracking state for the frame we are about to show
 	ovrTrackingState trackingState = m_pOculusTracker->GetTrackingState();
 	ovr_CalcEyePoses(trackingState.HeadPose.ThePose, HmdToEyeViewOffset, m_EyeRenderPose);
@@ -455,17 +463,18 @@ void OculusDirectToRiftView::DX11RenderThread_RenderNewFrame()
         DIRECTX.SetViewport(Recti(eyeRenderViewport[eye]));
 
 		// View and projection matrices for the main camera
-		Camera mainCam(Vector3f(0.0f, 0.2f - config->YOffset, (2.4f - ZoomOutScale) + m_screenViewGlideFactor), Matrix4f::RotationY(0.0f));
+		Camera mainCam(Vector3f(0.0f, 0.2f - config->YOffset, (2.3f - ZoomOutScale) + (m_screenViewGlideFactor > 0.5f ? 1.2f : 0.0f)), Matrix4f::Identity());
 
-        // View and projection matrices for the stereo camera
-        Camera finalCam(mainCam.Pos + mainCam.Rot.Transform(m_EyeRenderPose[eye].Position),
+        // View and projection matrices for the camera using HMD orientation
+       Camera finalCam(mainCam.Pos + mainCam.Rot.Transform(m_EyeRenderPose[eye].Position),
             mainCam.Rot * Matrix4f(m_EyeRenderPose[eye].Orientation));
 
-		//View matrix is a monoscopic straight ahead camera is not in disconnected screen view mode
-		Matrix4f view = (m_disconnectedScreenView || m_screenViewGlideFactor > 0.0f) ? finalCam.GetViewMatrix() : mainCam.GetViewMatrix();
+		Matrix4f view = (m_screenViewGlideFactor >= 0.5f) ? finalCam.GetViewMatrix() : mainCam.GetViewMatrix();
         Matrix4f proj = ovrMatrix4f_Projection(m_eyeRenderDesc[eye].Fov, 0.2f, 1000.0f, ovrProjection_RightHanded);
+
+		float fade = fabs(m_screenViewGlideFactor - 0.5f) * 2.0f;
 		
-		m_pScene[eye]->Render(proj*view, 1, 1, 1, 1, true);
+		m_pScene[eye]->Render(proj*view, fade, fade, fade, 1, true);
     }
 
     // Initialize our single full screen Fov layer.
@@ -534,6 +543,18 @@ void OculusDirectToRiftView::DX11RenderThread_Main()
 	ThreadEvents eventFlag = NONE;
 	while (eventFlag != TERMINATE_THREAD)
 	{
+		//Adjust screen view glide factor on this thread, then it will be consistent regardless of DX9 framerate
+		if (!m_disconnectedScreenView)
+		{
+			if (m_screenViewGlideFactor > 0.0f)
+				m_screenViewGlideFactor -= 0.05f;
+		}
+		else
+		{
+			if (m_screenViewGlideFactor < 1.0f)
+				m_screenViewGlideFactor += 0.05f;
+		}
+
 		//Can't do antyhing immediately, sleep for a very small timeout period (hopefullly wake before next vsync)
 		DWORD result = WaitForSingleObject(m_EventFlagRaised, 0);
 		if (result == WAIT_TIMEOUT)
@@ -590,19 +611,6 @@ void OculusDirectToRiftView::SetVRMouseSquish(float squish)
 void OculusDirectToRiftView::CalculateShaderVariables()
 {
 	SHOW_CALL("OculusDirectToRiftView::CalculateShaderVariables");
-
-	if (!m_disconnectedScreenView)
-	{
-		if (m_screenViewGlideFactor > 0.0f)
-			m_screenViewGlideFactor -= 0.05f;
-	}
-	else
-	{
-		//Disconnected screen view not active
-		if (m_screenViewGlideFactor < 1.0f)
-			m_screenViewGlideFactor += 0.05f;
-	}
-
 }
 
 /**

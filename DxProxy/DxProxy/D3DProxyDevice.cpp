@@ -2463,10 +2463,6 @@ void D3DProxyDevice::Init(ProxyConfig& cfg, ProxyHelper::UserConfig& userConfig)
 	m_configBackup = cfg;
 
 	m_bfloatingMenu = false;
-	m_bSurpressPositionaltracking = false;
-
-	//Start in disconnected screen mode now
-	m_bSurpressGameHeadtracking = true;
 
 	debugf("type: %s, aspect: %d stereo mode: %i\n", config.game_type.c_str(), config.aspect_multiplier, userConfig.mode);
 
@@ -2638,7 +2634,7 @@ void D3DProxyDevice::HandleTracking()
 		else 
 		{
 			//Only report positional tracking errors if positional tracking is turned on
-			if (!m_bSurpressPositionaltracking)
+			if (m_bPosTrackingToggle)
 			{
 				if (tracker->getStatus() == MTS_CAMERAMALFUNCTION)
 				{
@@ -2669,35 +2665,44 @@ void D3DProxyDevice::HandleTracking()
 		// update view adjustment class
 		if (tracker->getStatus() >= MTS_OK)
 		{
-			//Roll implementation
-			switch (config.rollImpl)
+			if (!stereoView->m_disconnectedScreenView)
 			{
-			case 0:
+				//Roll implementation
+				switch (config.rollImpl)
 				{
-					//Ensure this is 0, presumably VRBoost taking care of business
-					stereoView->m_rotation = 0.0f;
-				}
-			case 1:
-				{
-					if (tracker)
-						m_spShaderViewAdjustment->UpdateRoll(tracker->currentRoll);
-					stereoView->m_rotation = 0.0f;
-				}
-				break;
-			case 2:
-				{
-					//Set rotation on the stereo view and on the shader adjustment
-					if (tracker)
+				case 0:
 					{
-						stereoView->m_rotation = tracker->currentRoll;
-						m_spShaderViewAdjustment->UpdateRoll(tracker->currentRoll);
+						//Ensure this is 0, presumably VRBoost taking care of business
+						stereoView->m_rotation = 0.0f;
 					}
+				case 1:
+					{
+						if (tracker)
+							m_spShaderViewAdjustment->UpdateRoll(tracker->currentRoll);
+						stereoView->m_rotation = 0.0f;
+					}
+					break;
+				case 2:
+					{
+						//Set rotation on the stereo view and on the shader adjustment
+						if (tracker)
+						{
+							stereoView->m_rotation = tracker->currentRoll;
+							m_spShaderViewAdjustment->UpdateRoll(tracker->currentRoll);
+						}
+					}
+					break;
 				}
-				break;
+			}
+			else
+			{
+				//No roll applied in DSV mode
+				m_spShaderViewAdjustment->UpdateRoll(0.0f);
+				stereoView->m_rotation = 0.0f;
 			}
 
 			if (m_bPosTrackingToggle && tracker->getStatus() != MTS_LOSTPOSITIONAL
-				&& !m_bSurpressPositionaltracking)
+				&& !stereoView->m_disconnectedScreenView)
 			{
 				//Use reduced Y-position tracking in DFC mode, user should be triggering crouch by moving up and down
 				float yPosition = (VRBoostValue[VRboostAxis::CameraTranslateY] / 20.0f) + tracker->primaryY;
@@ -2862,7 +2867,7 @@ void D3DProxyDevice::HandleTracking()
 	static bool scanFailed = false;
 
 	// update vrboost, if present, tracker available and shader count higher than the minimum
-	if ((!m_bSurpressGameHeadtracking) 
+	if ((!stereoView->m_disconnectedScreenView) 
 		&& (!m_bForceMouseEmulation || !VRBoostStatus.VRBoost_HasOrientation || VRBoostStatus.VRBoost_Scanning) 
 		&& (hmVRboost) && (m_VRboostRulesPresent) 
 		&& (tracker->getStatus() >= MTS_OK) && (m_bVRBoostToggle)

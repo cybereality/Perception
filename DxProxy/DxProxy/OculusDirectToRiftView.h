@@ -102,7 +102,6 @@ private:
 	void CalcFPS();
 	float hmdFPS;
 
-
 	/**
 	* Predefined Oculus Rift Head Mounted Display info.
 	* Contains distortionCoefficients, needed as vertex shader constants

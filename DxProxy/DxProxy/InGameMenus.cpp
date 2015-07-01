@@ -1101,7 +1101,7 @@ void D3DProxyDevice::VPMENU_Settings()
 		{
 			m_bForceMouseEmulation = !m_bForceMouseEmulation;
 
-			if ((m_bForceMouseEmulation) && (tracker->getStatus() >= MTS_OK) && (!m_bSurpressGameHeadtracking))
+			if ((m_bForceMouseEmulation) && (tracker->getStatus() >= MTS_OK) && (!stereoView->m_disconnectedScreenView))
 				tracker->setMouseEmulation(true);
 
 			if ((!m_bForceMouseEmulation) && (hmVRboost) && (m_VRboostRulesPresent)  && (tracker->getStatus() >= MTS_OK))

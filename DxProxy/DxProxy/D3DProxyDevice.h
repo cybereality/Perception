@@ -395,8 +395,7 @@ public:
 	float m_fFloatingScreenPitch;
 	float m_fFloatingScreenYaw;
 	float m_fFloatingScreenZ;
-	bool m_bSurpressGameHeadtracking;
-	bool m_bSurpressPositionaltracking;
+
 	DirectXInputControls controls;
 	DirectInput dinput;
 
