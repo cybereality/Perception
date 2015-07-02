@@ -386,6 +386,7 @@ bool ProxyHelper::LoadUserConfig(UserConfig &userConfig)
 		userConfig.warnCameraMalfunction = (xml_config.attribute("warn_camera_malfunction").as_int(1) != 0);
 		userConfig.shaderAnalyser = (xml_config.attribute("shader_analyser").as_int(0) != 0);
 		userConfig.show_calls = (xml_config.attribute("show_calls").as_int(0) == 1);
+		userConfig.PerfHudMode = xml_config.attribute("PerfHudMode").as_int(0);
 
 		return true;
 	}
@@ -692,6 +693,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 		LoadSetting(xml_config, "aspect_multiplier", &config.aspect_multiplier);
 		LoadSetting(xml_config, "tracker_mode", &config.tracker_mode);
 		LoadSetting(xml_config, "display_adapter", &config.display_adapter);
+		LoadSetting(xml_config, "PerfHudMode", &config.PerfHudMode);
 
 		fileFound = true;
 	}
@@ -1261,6 +1263,7 @@ ProxyConfig::ProxyConfig()
 	ipd = IPD_DEFAULT;
 	aspect_multiplier = 1.0f;
 	display_adapter = 0;
+	PerfHudMode = 0;
 }
 
 /**

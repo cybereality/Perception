@@ -135,6 +135,7 @@ struct ProxyConfig
 	float       ipd;                        /**< IPD, which stands for interpupillary distance (distance between your pupils - in meters...default = 0.064). Also called the interocular distance (or just Interocular). */
 	float       aspect_multiplier;          /**< Currently unused aspect multiplier. Aspect multiplier allows adjusting aspect ratio consistently for Stereo/NoStereo. */
 	UINT		display_adapter;			/**< The display adapter to use - 0 = Primary Display, 1 = Secondary and so on.. */
+	int			PerfHudMode;
 	
 	/****** Misc Hotkeys *****************************************************/
 	
@@ -191,6 +192,7 @@ public:
 		bool warnCameraMalfunction;
 		bool shaderAnalyser;
 		bool show_calls;
+		int	PerfHudMode;
 	};
 
 	/**
