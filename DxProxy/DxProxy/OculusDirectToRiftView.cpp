@@ -463,7 +463,7 @@ void OculusDirectToRiftView::DX11RenderThread_RenderNewFrame()
         DIRECTX.SetViewport(Recti(eyeRenderViewport[eye]));
 
 		// View and projection matrices for the main camera
-		Camera mainCam(Vector3f(0.0f, 0.2f - config->YOffset, (2.3f - ZoomOutScale) + (m_screenViewGlideFactor > 0.5f ? 1.2f : 0.0f)), Matrix4f::Identity());
+		Camera mainCam(Vector3f(0.0f, 0.1f - config->YOffset, (2.25f - ZoomOutScale) + (m_screenViewGlideFactor > 0.5f ? 1.2f : 0.0f)), Matrix4f::Identity());
 
         // View and projection matrices for the camera using HMD orientation
        Camera finalCam(mainCam.Pos + mainCam.Rot.Transform(m_EyeRenderPose[eye].Position),
