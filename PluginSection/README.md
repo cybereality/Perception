@@ -25,7 +25,7 @@ Create environment variables:
 
     * DXSDK_DIR : Your DirectX SDK folder (already set automatically by the June 2010 DirectX SDK)
 
-    * OCULUS_SDK_ROOT_DIR : Your Oculus SDK folder
+    * OVRSDKROOT : Your Oculus SDK folder
 
 2. Open the VireioPlugins.sln solution file. It contains all the Plugin projects with their dependencies set correctly. 
 
