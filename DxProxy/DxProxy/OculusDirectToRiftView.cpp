@@ -434,7 +434,7 @@ void OculusDirectToRiftView::DX11RenderThread_RenderNextFrame()
 	}
 
     ovrLayerHeader* layers = &ld.Header;
-    ovrResult result = ovrHmd_SubmitFrame(rift, m_pLastScene->frameIndex, nullptr, &layers, 1);
+    ovrResult result = ovrHmd_SubmitFrame(rift, 0/*m_pLastScene->frameIndex*/, nullptr, &layers, 1);
 
 	CalcFPS();
 }
@@ -541,7 +541,7 @@ void OculusDirectToRiftView::PostPresent(D3D9ProxySurface* stereoCapableSurface,
 	//Get the tracking state for the frame we are going to (hopefully!) hit
 	pVRScene->frameIndex = ftiming.DisplayFrameIndex + frameIndexOffset;
 	ftiming = ovrHmd_GetFrameTiming(rift, pVRScene->frameIndex);
-	pVRScene->m_trackingState = ovrHmd_GetTrackingState(rift, ftiming.DisplayMidpointSeconds);
+	pVRScene->m_trackingState = ovrHmd_GetTrackingState(rift, ovr_GetTimeInSeconds());//ftiming.DisplayMidpointSeconds);
 
 	vireio::debugf("Target frameIndex = %u", pVRScene->frameIndex); 
 	vireio::debugf("Target DisplayMidpointSeconds = %0.8f", ftiming.DisplayMidpointSeconds); 
