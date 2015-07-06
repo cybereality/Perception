@@ -523,7 +523,8 @@ void OculusDirectToRiftView::PostPresent(D3D9ProxySurface* stereoCapableSurface,
 	//Get the frame timing for the very next frame - we'll use the information therein to estimate the
 	//actual frame we are going to hit
 	ovrFrameTiming ftiming = ovrHmd_GetFrameTiming(rift, 0);
-	
+
+#ifdef TIMING_LOG
 	//Write out timing info - might reveal something!
 	vireio::debugf("**********  START *****************"); 
 	vireio::debugf("ftiming.DisplayMidpointSeconds = %0.8f", ftiming.DisplayMidpointSeconds); 
@@ -532,22 +533,24 @@ void OculusDirectToRiftView::PostPresent(D3D9ProxySurface* stereoCapableSurface,
 	vireio::debugf("ftiming.FrameIntervalSeconds = %0.8f", ftiming.FrameIntervalSeconds); 
 	vireio::debugf("ovr_GetTimeInSeconds() = %0.8f", ovr_GetTimeInSeconds()); 
 	vireio::debugf("lastFrameTime (ms) = %0.8f", pProxyDevice->getLastFrameTime() * 1000.0f); 
+#endif
 
 	//Calculate the frame index of the frame we are most likely to be ready for, use last frame time
 	//as our guide, can't think of anything better right now
-	int frameIndexOffset = (((pProxyDevice->getLastFrameTime() - (ftiming.DisplayMidpointSeconds - ovr_GetTimeInSeconds())) 
-		/ ftiming.FrameIntervalSeconds) + 1.0);
+	//int frameIndexOffset = (((pProxyDevice->getLastFrameTime() - (ftiming.DisplayMidpointSeconds - ovr_GetTimeInSeconds())) / ftiming.FrameIntervalSeconds) + 1.0);
 
 	//Get the tracking state for the frame we are going to (hopefully!) hit
-	pVRScene->frameIndex = ftiming.DisplayFrameIndex + frameIndexOffset;
-	ftiming = ovrHmd_GetFrameTiming(rift, pVRScene->frameIndex);
-	pVRScene->m_trackingState = ovrHmd_GetTrackingState(rift, ovr_GetTimeInSeconds());//ftiming.DisplayMidpointSeconds);
+	//pVRScene->frameIndex = ftiming.DisplayFrameIndex + frameIndexOffset;
+	//ftiming = ovrHmd_GetFrameTiming(rift, pVRScene->frameIndex);
+	pVRScene->m_trackingState = ovrHmd_GetTrackingState(rift, ovr_GetTimeInSeconds());
 
+#ifdef TIMING_LOG
 	vireio::debugf("Target frameIndex = %u", pVRScene->frameIndex); 
 	vireio::debugf("Target DisplayMidpointSeconds = %0.8f", ftiming.DisplayMidpointSeconds); 
 	vireio::debugf("Target AppFrameIndex = %u", ftiming.AppFrameIndex); 
 	vireio::debugf("Target DisplayFrameIndex = %u", ftiming.DisplayFrameIndex); 
 	vireio::debugf("Target FrameIntervalSeconds = %0.8f", ftiming.FrameIntervalSeconds); 
+#endif
 
 	// Get both eye poses simultaneously, with IPD offset already included. 
 	ovrVector3f      HmdToEyeViewOffset[2] = { m_eyeRenderDesc[0].HmdToEyeViewOffset,
