@@ -3547,7 +3547,7 @@ float D3DProxyDevice::CalcFPS()
 
 	float FPS = (float)((double)MAXSAMPLES / ((double)ticksum / (double)perffreq.QuadPart));
 
-	m_lastFrameTime = (float)((double)newtick / (double)perffreq.QuadPart);
+	m_lastFrameTime = ((double)newtick / (double)perffreq.QuadPart);
 
     return FPS;
 }

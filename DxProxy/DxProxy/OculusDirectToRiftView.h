@@ -226,20 +226,16 @@ private:
 
 	struct ThreadSafeSceneStore
 	{
-		ThreadSafeSceneStore() {m_frameID = 0;m_VRScene = NULL;m_used = false;}
+		ThreadSafeSceneStore() {m_VRScene = NULL;m_used = false;}
 
 		void push(VireioVRScene* &eyeScenes);
 		VireioVRScene* retrieve();
 		bool hasScene();
 		bool getUsed();
 
-		void IncFrameID();
-		DWORD GetNextFrameID();
 		void ReleaseEverything();
 
 	private:
-		//Used by ovr frame timing
-		DWORD m_frameID;
 		//Flags whether this store has ever been used
 		bool m_used;
 		std::mutex m_mtx;
