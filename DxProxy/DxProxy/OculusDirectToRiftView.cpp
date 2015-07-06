@@ -36,9 +36,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define DLL_NAME "d3d9.dll"
 
+//#define BLEND
+
 //FPS Calculator
 
-#define MAXSAMPLES 100
+#define MAXSAMPLES 10
 
 void OculusDirectToRiftView::CalcFPS()
 {
@@ -75,7 +77,6 @@ void OculusDirectToRiftView::SetEventFlag(ThreadEvents evt)
 	{
 		std::lock_guard<std::mutex> lock(m_mtx);
 		m_eventFlag = evt;
-//		vireio::debugf("SetEventFlag: %i", evt);
 	}
 
 	//Signal that we have raised a flag, and then wait for indication it has been processed
@@ -83,15 +84,15 @@ void OculusDirectToRiftView::SetEventFlag(ThreadEvents evt)
 	SignalObjectAndWait(m_EventFlagRaised, m_EventFlagProcessed, 200, FALSE);
 }
 
-void OculusDirectToRiftView::GetEventFlag(ThreadEvents &evt)
+OculusDirectToRiftView::ThreadEvents OculusDirectToRiftView::GetEventFlag()
 {
+	ThreadEvents evt = NONE;
 	{
 		std::lock_guard<std::mutex> lock(m_mtx);
-//		vireio::debugf("GetEventFlag: %i", m_eventFlag);
-		evt = (ThreadEvents)m_eventFlag;
-		//reset
+		evt = m_eventFlag;
 		m_eventFlag = NONE;
 	}
+	return evt;
 }
 
 DWORD DX11RenderThread(void *pParam)
@@ -145,78 +146,6 @@ struct OculusTextureSet
     }
 };
 
-//An extension to the Texture Class provided in the OVR Samples
-struct VireioTexture : public Texture
-{
-    VireioTexture(ID3D11Texture2D *pTexture, bool rendertarget, Sizei size) :
-		Texture(rendertarget, size)
-    {
-		SHOW_CALL("VireioTexture()");
-		
-		//Release the texture created by the base class
-		if(Tex)
-		{
-			Tex->Release();
-			Tex = pTexture;
-		}
-
-		if(rendertarget)
-		{
-			TexRtv->Release();
-			TexRtv = NULL;
-		}
-
-		if(TexSv)
-		{
-			TexSv->Release();
-			TexSv = NULL;
-		}
-
-        DIRECTX.Device->CreateShaderResourceView(pTexture, NULL, &TexSv);
-		if (rendertarget) DIRECTX.Device->CreateRenderTargetView(Tex, NULL, &TexRtv);
-   }
-};
-
-//------------------------------------------------------------------------- 
-struct VoidScene  
-{
-    Model * screen;
-	VireioTexture *texture;
-
- 	VoidScene(ID3D11Texture2D *pTexture, float aspect) :
-		m_pTexture(pTexture)
-    {
-		SHOW_CALL("VoidScene::VoidScene()");
-
-		D3D11_TEXTURE2D_DESC desc;
-		pTexture->GetDesc(&desc);
-#if _DEBUG
-		vireio::debugf("Texture Format: %i", desc.Format);
-#endif
-
-		//float aspect = //(float)(desc.Width) / (float)(desc.Height);
-		texture = new VireioTexture(pTexture, false, Sizei(desc.Width, desc.Height));
-		screen = new Model(texture, -2.0f, -2.0f / aspect, 2.0f, 2.0f / aspect);
-    }
-
-	~VoidScene()
-	{
-		SHOW_CALL("VoidScene::~VoidScene()");
-		m_pTexture->Release();
-		delete texture;
-		delete screen;
-	}
-
-   void Render(Matrix4f projView, float R, float G, float B, float A, bool standardUniforms)
-    {   
-		SHOW_CALL("VoidScene::Render()");
-		screen->Render(projView,R,G,B,A,standardUniforms);    
-	}
-
-
-	ID3D11Texture2D *m_pTexture;
-};
-
 /**
 * Constructor.
 * @param config Game configuration.
@@ -226,7 +155,7 @@ OculusDirectToRiftView::OculusDirectToRiftView(ProxyConfig *config, HMDisplayInf
 	StereoView(config),
 	m_logoTexture(NULL),
 	hmdInfo(hmd),
-	m_eventFlag(0)
+	m_pLastScene(NULL)
 {
 	SHOW_CALL("OculusDirectToRiftView::OculusDirectToRiftView()");
 
@@ -236,8 +165,9 @@ OculusDirectToRiftView::OculusDirectToRiftView(ProxyConfig *config, HMDisplayInf
 	m_EventFlagProcessed = CreateEvent(NULL, FALSE, FALSE, "m_EventFlagProcessed");
 	m_EventFlagRaised = CreateEvent(NULL, FALSE, FALSE, "m_EventFlagRaised");
 
-	HANDLE dx11Thread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)&DX11RenderThread, (void*)this, 0, NULL);
-	SetThreadPriority(dx11Thread, THREAD_PRIORITY_HIGHEST);
+	HANDLE ThreadHandle = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)&DX11RenderThread, (void*)this, 0, NULL);
+	//Bump the priority of the DX11 rendering thread
+	SetThreadPriority(ThreadHandle, THREAD_PRIORITY_HIGHEST);
 }
 
 OculusDirectToRiftView::~OculusDirectToRiftView()
@@ -251,9 +181,9 @@ OculusDirectToRiftView::~OculusDirectToRiftView()
 
 bool OculusDirectToRiftView::DX11RenderThread_Init()
 {
-	bool initialized = DX11RenderThread_InitDevice(Sizei(hmdInfo->GetResolution().first, hmdInfo->GetResolution().second));
+	bool initialized = DX11RenderThread_InitDevices(Sizei(hmdInfo->GetResolution().first, hmdInfo->GetResolution().second));
 	VALIDATE(initialized, "Unable to initialize D3D11 device.");
-	ovrHmd_SetBool(rift, "QueueAheadEnabled", true);
+
 	for (int eye = 0; eye < 2; eye++)
 	{
 		Sizei idealSize = ovrHmd_GetFovTextureSize(rift, (ovrEyeType)eye, rift->DefaultEyeFov[eye], 1.0f);
@@ -269,13 +199,19 @@ bool OculusDirectToRiftView::DX11RenderThread_Init()
 	m_eyeRenderDesc[0] = ovrHmd_GetRenderDesc(rift, ovrEye_Left, rift->DefaultEyeFov[0]);
 	m_eyeRenderDesc[1] = ovrHmd_GetRenderDesc(rift, ovrEye_Right, rift->DefaultEyeFov[1]);
 
+	//Turn on the "queue ahead"
+	ovrHmd_SetBool(rift, "QueueAheadEnabled", true);
+
 	//Turn on performance HUD if set in config.xml
 	ovrHmd_SetInt(rift, "PerfHudMode", (int)config->PerfHudMode);
+		
+	//Initialise Frame Index
+	ovrHmd_ResetFrameTiming(rift, m_safeSceneStore.GetNextFrameID());
 
 	return initialized;
 }
 
-bool OculusDirectToRiftView::DX11RenderThread_InitDevice(Sizei sz)
+bool OculusDirectToRiftView::DX11RenderThread_InitDevices(Sizei sz)
 {
     IDXGIFactory * DXGIFactory;
     IDXGIAdapter * Adapter;
@@ -283,36 +219,78 @@ bool OculusDirectToRiftView::DX11RenderThread_InitDevice(Sizei sz)
         return(false);
     if (FAILED(DXGIFactory->EnumAdapters(0, &Adapter)))
         return(false);
-    if (FAILED(D3D11CreateDevice(Adapter, Adapter ? D3D_DRIVER_TYPE_UNKNOWN : D3D_DRIVER_TYPE_HARDWARE,
-        NULL, 0, NULL, 0, D3D11_SDK_VERSION, &DIRECTX.Device, NULL, &DIRECTX.Context)))
-        return(false);
 
-    // Main depth buffer
-    DIRECTX.MainDepthBuffer = new DepthBuffer(DIRECTX.Device, sz);
-    DIRECTX.Context->OMSetRenderTargets(1, &DIRECTX.BackBufferRT, DIRECTX.MainDepthBuffer->TexDsv);
+	//Create the Main DX11 device for rendering to the rift
+	{
+		if (FAILED(D3D11CreateDevice(Adapter, Adapter ? D3D_DRIVER_TYPE_UNKNOWN : D3D_DRIVER_TYPE_HARDWARE,
+			NULL, 0, NULL, 0, D3D11_SDK_VERSION, &DIRECTX.Device, NULL, &DIRECTX.Context)))
+			return(false);
 
-    // Buffer for shader constants
-    DIRECTX.UniformBufferGen = new DataBuffer(DIRECTX.Device, D3D11_BIND_CONSTANT_BUFFER, NULL, UNIFORM_DATA_SIZE);
-    DIRECTX.Context->VSSetConstantBuffers(0, 1, &DIRECTX.UniformBufferGen->D3DBuffer);
+		// Main depth buffer
+		DIRECTX.MainDepthBuffer = new DepthBuffer(DIRECTX.Device, sz);
+		DIRECTX.Context->OMSetRenderTargets(1, &DIRECTX.BackBufferRT, DIRECTX.MainDepthBuffer->TexDsv);
 
-    // Set a standard blend state, ie transparency from alpha
-    /*D3D11_BLEND_DESC bm;
-    memset(&bm, 0, sizeof(bm));
-    bm.RenderTarget[0].BlendEnable = TRUE;
-    bm.RenderTarget[0].BlendOp = bm.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-    bm.RenderTarget[0].SrcBlend = bm.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
-    bm.RenderTarget[0].DestBlend = bm.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
-    bm.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-    ID3D11BlendState * BlendState;
-    DIRECTX.Device->CreateBlendState(&bm, &BlendState);
-    DIRECTX.Context->OMSetBlendState(BlendState, NULL, 0xffffffff);*/
+		// Buffer for shader constants
+		DIRECTX.UniformBufferGen = new DataBuffer(DIRECTX.Device, D3D11_BIND_CONSTANT_BUFFER, NULL, UNIFORM_DATA_SIZE);
+		DIRECTX.Context->VSSetConstantBuffers(0, 1, &DIRECTX.UniformBufferGen->D3DBuffer);
 
-    // Set max frame latency to 1
-    IDXGIDevice1* DXGIDevice1 = NULL;
-    HRESULT hr = DIRECTX.Device->QueryInterface(__uuidof(IDXGIDevice1), (void**)&DXGIDevice1);
-    if (FAILED(hr) | (DXGIDevice1 == NULL)) return(false);
-    DXGIDevice1->SetMaximumFrameLatency(1);
-    DXGIDevice1->Release();
+#ifdef BLEND
+		// Set a standard blend state, ie transparency from alpha
+	    D3D11_BLEND_DESC bm;
+		memset(&bm, 0, sizeof(bm));
+		bm.RenderTarget[0].BlendEnable = TRUE;
+		bm.RenderTarget[0].BlendOp = bm.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+		bm.RenderTarget[0].SrcBlend = bm.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
+		bm.RenderTarget[0].DestBlend = bm.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
+		bm.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+		ID3D11BlendState * BlendState;
+		DIRECTX.Device->CreateBlendState(&bm, &BlendState);
+		DIRECTX.Context->OMSetBlendState(BlendState, NULL, 0xffffffff);
+#endif 
+
+		// Set max frame latency to 1
+		IDXGIDevice1* DXGIDevice1 = NULL;
+		HRESULT hr = DIRECTX.Device->QueryInterface(__uuidof(IDXGIDevice1), (void**)&DXGIDevice1);
+		if (FAILED(hr) | (DXGIDevice1 == NULL)) return(false);
+		DXGIDevice1->SetMaximumFrameLatency(1);
+		DXGIDevice1->Release();
+	}
+
+	//CReate a second DX11 device solely for copying textures
+	{
+		if (FAILED(D3D11CreateDevice(Adapter, Adapter ? D3D_DRIVER_TYPE_UNKNOWN : D3D_DRIVER_TYPE_HARDWARE,
+			NULL, 0, NULL, 0, D3D11_SDK_VERSION, &m_copyDX11.Device, NULL, &m_copyDX11.Context)))
+			return(false);
+
+		// Main depth buffer
+		m_copyDX11.MainDepthBuffer = new DepthBuffer(m_copyDX11.Device, sz);
+		m_copyDX11.Context->OMSetRenderTargets(1, &m_copyDX11.BackBufferRT, m_copyDX11.MainDepthBuffer->TexDsv);
+
+		// Buffer for shader constants
+		m_copyDX11.UniformBufferGen = new DataBuffer(m_copyDX11.Device, D3D11_BIND_CONSTANT_BUFFER, NULL, UNIFORM_DATA_SIZE);
+		m_copyDX11.Context->VSSetConstantBuffers(0, 1, &m_copyDX11.UniformBufferGen->D3DBuffer);
+
+#ifdef BLEND
+		// Set a standard blend state, ie transparency from alpha
+	    D3D11_BLEND_DESC bm;
+		memset(&bm, 0, sizeof(bm));
+		bm.RenderTarget[0].BlendEnable = TRUE;
+		bm.RenderTarget[0].BlendOp = bm.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+		bm.RenderTarget[0].SrcBlend = bm.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
+		bm.RenderTarget[0].DestBlend = bm.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
+		bm.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+		ID3D11BlendState * BlendState;
+		m_copyDX11.Device->CreateBlendState(&bm, &BlendState);
+		m_copyDX11.Context->OMSetBlendState(BlendState, NULL, 0xffffffff);
+#endif
+	
+		// Set max frame latency to 1
+		IDXGIDevice1* DXGIDevice1 = NULL;
+		HRESULT hr = m_copyDX11.Device->QueryInterface(__uuidof(IDXGIDevice1), (void**)&DXGIDevice1);
+		if (FAILED(hr) | (DXGIDevice1 == NULL)) return(false);
+		DXGIDevice1->SetMaximumFrameLatency(1);
+		DXGIDevice1->Release();
+	}
 
     return(true);
 }
@@ -339,170 +317,266 @@ void OculusDirectToRiftView::DX11RenderThread_ReleaseEverything()
 {
 	SHOW_CALL("OculusDirectToRiftView::DX11RenderThread_ReleaseEverything()");
 
-	for (int eye = 0; eye < 2; ++eye)
-	{
-		if (m_pScene[eye])
-		{
-			delete m_pScene[eye];
-			m_pScene[eye] = NULL;
-		}
-	}
-
-	//Signal the DX9 thread can now continue		
-	SetEvent(m_EventFlagProcessed);
-}
-
-void OculusDirectToRiftView::DX11RenderThread_TimewarpLastFrame()
-{
-	SHOW_CALL("OculusDirectToRiftView::DX11RenderThread_TimewarpLastFrame()");
-
-	//Don't do anything if we haven't got the scene ready yet
-	if (!m_pScene[0])
-		return;
-
-    // Initialize our single full screen Fov layer.
-    ovrLayerEyeFov ld;
-    ld.Header.Type  = ovrLayerType_EyeFov;
-    ld.Header.Flags = 0;
-
-    for (int eye = 0; eye < 2; eye++)
-    {
-        ld.ColorTexture[eye] = m_pEyeRenderTexture[eye]->TextureSet;
-        ld.Viewport[eye]     = eyeRenderViewport[eye];
-        ld.Fov[eye]          = rift->DefaultEyeFov[eye];
-		ld.RenderPose[eye]   = m_EyeRenderPose[eye];
-    }
-
-	ovrLayerHeader* layers = &ld.Header;
-    ovrResult result = ovrHmd_SubmitFrame(rift, 0, nullptr, &layers, 1);
-
-	CalcFPS();
+	//Reset scenes
+	m_safeSceneStore.ReleaseEverything();
 }
 
 std::string OculusDirectToRiftView::GetAdditionalFPSInfo()
 {
-	return vireio::retprintf("Async Timewarp FPS: %.1f", hmdFPS);
+	return vireio::retprintf("Async-Timewarp FPS: %.1f", hmdFPS);
+}
+
+void OculusDirectToRiftView::ThreadSafeSceneStore::push(VireioVRScene* &vrScene)
+{
+	std::lock_guard<std::mutex> lock(m_mtx);
+	if (m_VRScene != NULL)
+	{
+		delete m_VRScene;
+	}
+	m_used = true;
+	m_VRScene = vrScene;
+}
+
+bool OculusDirectToRiftView::ThreadSafeSceneStore::hasScene()
+{
+	std::lock_guard<std::mutex> lock(m_mtx);
+	return (m_VRScene != NULL);
+}
+
+VireioVRScene* OculusDirectToRiftView::ThreadSafeSceneStore::retrieve()
+{
+	std::lock_guard<std::mutex> lock(m_mtx);
+
+	//Doesn't matter if m_VRScene is NULL
+	VireioVRScene *vrScene = m_VRScene;
+	m_VRScene = NULL;
+	return vrScene;
+}
+
+bool OculusDirectToRiftView::ThreadSafeSceneStore::getUsed()
+{
+	bool used = false;
+	{
+		std::lock_guard<std::mutex> lock(m_mtx);
+		used = m_used;
+	}
+	return used;
+}
+
+DWORD OculusDirectToRiftView::ThreadSafeSceneStore::GetNextFrameID()
+{
+	DWORD fid = 0;
+	{
+		std::lock_guard<std::mutex> lock(m_mtx);
+		fid = m_frameID;
+	}
+	return fid;
+}
+
+void OculusDirectToRiftView::ThreadSafeSceneStore::IncFrameID()
+{
+	{
+		std::lock_guard<std::mutex> lock(m_mtx);
+		++m_frameID;
+	}
+}
+
+void OculusDirectToRiftView::ThreadSafeSceneStore::ReleaseEverything()
+{
+	std::lock_guard<std::mutex> lock(m_mtx);
+	delete m_VRScene;
+	m_VRScene = NULL;
+	m_frameID = 0;
+	m_used = false;
 }
 
 
-void OculusDirectToRiftView::DX11RenderThread_RenderNewFrame()
+void OculusDirectToRiftView::DX11RenderThread_RenderNextFrame()
 {
-	SHOW_CALL("OculusDirectToRiftView::DX11RenderThread_RenderNewFrame()");
+	SHOW_CALL("OculusDirectToRiftView::DX11RenderThread_RenderNextFrame()");
 
-	// Initialise Eye Buffers
-	for (int eye = 0; eye < 2; eye++)
+	//If we've never put anything in the store, then we don't have a next frame to render or timewarp
+	if (!m_safeSceneStore.getUsed())
+		return;
+
+	VireioVRScene *vrScene = m_safeSceneStore.retrieve();
+	if (vrScene != NULL)
 	{
-		ID3D11Resource *tempResource11 = NULL;
-		HANDLE textHandle = (eye == (!config->swap_eyes ? ovrEye_Left : ovrEye_Right)) ? m_stereoCapableSurface->getHandleLeft() : m_stereoCapableSurface->getHandleRight();
+		//Save this as the last scene (for future timewarping)
+		m_pLastScene = vrScene;
 
-		IID iid = __uuidof(ID3D11Resource);
-		if (FAILED(DIRECTX.Device->OpenSharedResource(textHandle, iid, (void**)(&tempResource11))))
+		// Initialise Eye Buffers
+		for (int eye = 0; eye < 2; eye++)
 		{
-			vireio::debugf("Failed to open shared resource");
-			return;
+			// Increment to use next texture, just before writing
+			m_pEyeRenderTexture[eye]->AdvanceToNextTexture();
+
+			// Clear and set up rendertarget
+			int texIndex = m_pEyeRenderTexture[eye]->TextureSet->CurrentIndex;
+			DIRECTX.SetAndClearRenderTarget(m_pEyeRenderTexture[eye]->TexRtv[texIndex], m_pEyeDepthBuffer[eye]);
+			DIRECTX.SetViewport(Recti(eyeRenderViewport[eye]));
+
+			// View and projection matrices for the main camera
+			Camera mainCam(Vector3f(0.0f, 0.1f - config->YOffset, (2.25f - ZoomOutScale) + (m_screenViewGlideFactor > 0.5f ? 1.2f : 0.0f)), Matrix4f::Identity());
+
+			// View and projection matrices for the camera using HMD orientation
+			Camera finalCam(mainCam.Pos + mainCam.Rot.Transform(vrScene->m_eyePoses[eye].Position),
+				mainCam.Rot * Matrix4f(vrScene->m_eyePoses[eye].Orientation));
+
+			Matrix4f view = (m_screenViewGlideFactor >= 0.5f) ? finalCam.GetViewMatrix() : mainCam.GetViewMatrix();
+			Matrix4f proj = ovrMatrix4f_Projection(m_eyeRenderDesc[eye].Fov, 0.2f, 1000.0f, ovrProjection_RightHanded);
+
+			float fade = fabs(m_screenViewGlideFactor - 0.5f) * 2.0f;
+		
+			vrScene->m_pScene[eye]->Render(proj*view, fade, fade, fade, 1, true);
 		}
 
-		//QI for the texture
-		ID3D11Texture2D *pDX9Texture = NULL;
-		tempResource11->QueryInterface(__uuidof(ID3D11Texture2D), (void**)(&pDX9Texture)); 
-		tempResource11->Release();
-
-		//Have to create scene if we don't already have one
-		if (!m_pScene[eye])
-		{
-			vireio::debugf("Creating scene for %s eye", eye == 0 ? "Left" : "Right");
-			//Create local instances of the textures and then copy the data into them
-			D3D11_TEXTURE2D_DESC dsDesc;
-			pDX9Texture->GetDesc(&dsDesc);
-			ID3D11Texture2D *pDX11Texture = NULL;
-			if (SUCCEEDED(DIRECTX.Device->CreateTexture2D(&dsDesc, NULL, &pDX11Texture)))
-			{
-				//Create the void scene for this eye, setting the DX9 shared texture as the screen source
-				std::pair<float, float> size = hmdInfo->GetPhysicalScreenSize();
-				m_pScene[eye] = new VoidScene(pDX11Texture, size.first / size.second);
-			}
-			else
-			{
-				vireio::debugf("Failed to create Dx11 texture");
-			}
-		}
-
-		//Copy and flush immediately
-		DIRECTX.Context->CopyResource(m_pScene[eye]->m_pTexture, pDX9Texture);
-		DIRECTX.Context->Flush();
-
-		//We don't need to keep the ref here now
-		pDX9Texture->Release();
+		//Clean up
+		m_unusedVireioVRScenePool.push(vrScene);
+	}
+	else
+	{
+#ifdef _DEBUG
+		vireio::debugf("No available DX9 scene - Timewarping Previous Frame");
+#endif
 	}
 
+    // Initialize our single full screen Fov layer.
+    ovrLayerEyeFov ld;
+    ld.Header.Type  = ovrLayerType_EyeFov;
+    //ld.Header.Type  = (vrScene != NULL) ? ovrLayerType_EyeFov : ovrLayerType_Disabled;
+    ld.Header.Flags = 0;
+
+	for (int eye = 0; eye < 2; eye++)
+	{
+		ld.ColorTexture[eye] = m_pEyeRenderTexture[eye]->TextureSet;
+		ld.Viewport[eye]     = eyeRenderViewport[eye];
+		ld.Fov[eye]          = rift->DefaultEyeFov[eye];
+		ld.RenderPose[eye]   = m_pLastScene->m_eyePoses[eye];
+	}
+
+
+ 	//Get the details from the tracker for the frame we are rendering
+    ovrLayerHeader* layers = &ld.Header;
+    ovrResult result = ovrHmd_SubmitFrame(rift, m_pLastScene->frameIndex, nullptr, &layers, 1);
+
+	//Now increment the frame index
+	m_safeSceneStore.IncFrameID();
+
+	CalcFPS();
+}
+
+void OculusDirectToRiftView::PostPresent(D3D9ProxySurface* stereoCapableSurface, D3DProxyDevice* pProxyDevice)
+{
+	SHOW_CALL("OculusDirectToRiftView::PostPresent()");
+
+	//If we already have a scene for this frame, then we don't need to do anything
+	if (m_safeSceneStore.hasScene())
+		return;
+
+	// Initialise a new VRScene
+	VireioVRScene *pVRScene = m_unusedVireioVRScenePool.pop();
+
+	if (pVRScene)
+	{
+		for (int eye = 0; eye < 2; eye++)
+		{
+			ID3D11Resource *tempResource11 = NULL;
+			HANDLE textHandle = (eye == (!config->swap_eyes ? ovrEye_Left : ovrEye_Right)) ? stereoCapableSurface->getHandleLeft() : stereoCapableSurface->getHandleRight();
+
+			IID iid = __uuidof(ID3D11Resource);
+			if (FAILED(m_copyDX11.Device->OpenSharedResource(textHandle, iid, (void**)(&tempResource11))))
+			{
+				vireio::debugf("Failed to open shared resource");
+				return;
+			}
+
+			//QI for the texture
+			ID3D11Texture2D *pDX9Texture = NULL;
+			tempResource11->QueryInterface(__uuidof(ID3D11Texture2D), (void**)(&pDX9Texture)); 
+			tempResource11->Release();
+
+			//Copy 
+			{
+				if (pVRScene->m_pScene[eye] == NULL)
+				{
+					//Create local instances of the textures and then copy the data into them
+					D3D11_TEXTURE2D_DESC dsDesc;
+					pDX9Texture->GetDesc(&dsDesc);
+
+					ID3D11Texture2D *pDX11Texture = NULL;
+					HRESULT hr = m_copyDX11.Device->CreateTexture2D(&dsDesc, NULL, &pDX11Texture);
+					if (SUCCEEDED(hr))
+					{
+						//Need to get the shared handle
+						IDXGIResource *pIDXGIResource = NULL;
+						pDX11Texture->QueryInterface(__uuidof(IDXGIResource), (void**)(&pIDXGIResource)); 
+						HANDLE sharedHandle = NULL;
+						vireio::debugf("pIDXGIResource->GetSharedHandle");
+						hr = pIDXGIResource->GetSharedHandle(&sharedHandle);
+						pIDXGIResource->Release();
+
+						if (SUCCEEDED(hr) && sharedHandle != NULL)
+						{
+							//Create the void scene for this eye, setting the DX9 shared texture as the screen source
+							std::pair<float, float> size = hmdInfo->GetPhysicalScreenSize();
+							pVRScene->m_pScene[eye] = new VoidScene(pDX11Texture, sharedHandle, size.first / size.second);
+						}
+						else
+						{
+							vireio::debugf("Failed to get shared handle for Dx11 texture: %0.8x", hr);
+							//Just return, can't do anything else
+							return;
+						}
+					}
+					else
+					{
+						vireio::debugf("Failed to create Dx11 texture: %0.8x", hr);
+						//Just return, can't do anything else
+						return;
+					}
+				}
+
+				//Copy and flush
+				m_copyDX11.Context->CopyResource(pVRScene->m_pScene[eye]->m_pTexture, pDX9Texture);
+				m_copyDX11.Context->Flush();
+			}
+
+			//We don't need to keep the ref here now
+			pDX9Texture->Release();
+		}
+	}
+
+	//Save tracking states to the tracker
+	//Get the tracking state for the next frame
+	pVRScene->frameIndex = m_safeSceneStore.GetNextFrameID();
+	ovrFrameTiming ftiming = ovrHmd_GetFrameTiming(rift, pVRScene->frameIndex);
+	pVRScene->m_trackingState = ovrHmd_GetTrackingState(rift, ftiming.DisplayMidpointSeconds);
+	
+
+	//Write out timing info - might reveal something!
+	vireio::debugf("ftiming.DisplayMidpointSeconds = %0.4g", ftiming.DisplayMidpointSeconds); 
+	vireio::debugf("ftiming.AppFrameIndex = %i", ftiming.AppFrameIndex); 
+	vireio::debugf("ftiming.DisplayFrameIndex = %i", ftiming.DisplayFrameIndex); 
+	vireio::debugf("ftiming.FrameIntervalSeconds = %0.4g", ftiming.FrameIntervalSeconds); 
+	vireio::debugf("ovr_GetTimeInSeconds() = %0.4g", ovr_GetTimeInSeconds()); 
+	vireio::debugf("lastFrameTime (ms) = %0.4g", pProxyDevice->getLastFrameTime() * 1000.0f); 
+	vireio::debugf("pVRScene->frameIndex = %i", pVRScene->frameIndex); 
+
 	// Get both eye poses simultaneously, with IPD offset already included. 
-    ovrVector3f      HmdToEyeViewOffset[2] = { m_eyeRenderDesc[0].HmdToEyeViewOffset,
-                                                m_eyeRenderDesc[1].HmdToEyeViewOffset };
+	ovrVector3f      HmdToEyeViewOffset[2] = { m_eyeRenderDesc[0].HmdToEyeViewOffset,
+												m_eyeRenderDesc[1].HmdToEyeViewOffset };
 
 	//If DSV is not enabled, then we don't want to use stereo separation, since this is already done
 	//in the DX9 rendering, simply glide the IPD separation in and out as we change from DSV rather than a sudden switch
 	HmdToEyeViewOffset[ovrEye_Left].x *= m_screenViewGlideFactor;
 	HmdToEyeViewOffset[ovrEye_Right].x *= m_screenViewGlideFactor;
 
-	//Get the tracking state for the frame we are about to show
-	ovrTrackingState trackingState = m_pOculusTracker->GetTrackingState();
-	ovr_CalcEyePoses(trackingState.HeadPose.ThePose, HmdToEyeViewOffset, m_EyeRenderPose);
+	ovr_CalcEyePoses(pVRScene->m_trackingState.HeadPose.ThePose, HmdToEyeViewOffset, pVRScene->m_eyePoses);
+	m_pOculusTracker->SetFrameHMDData(pVRScene->m_trackingState);
 
-	//If we get here, then the DX9 thread can be released (since we have local copies of the textures now)
-	SetEvent(m_EventFlagProcessed);
-
-	// Initialise Eye Buffers
-    for (int eye = 0; eye < 2; eye++)
-    {
-        // Increment to use next texture, just before writing
-        m_pEyeRenderTexture[eye]->AdvanceToNextTexture();
-
-        // Clear and set up rendertarget
-        int texIndex = m_pEyeRenderTexture[eye]->TextureSet->CurrentIndex;
-        DIRECTX.SetAndClearRenderTarget(m_pEyeRenderTexture[eye]->TexRtv[texIndex], m_pEyeDepthBuffer[eye]);
-        DIRECTX.SetViewport(Recti(eyeRenderViewport[eye]));
-
-		// View and projection matrices for the main camera
-		Camera mainCam(Vector3f(0.0f, 0.1f - config->YOffset, (2.25f - ZoomOutScale) + (m_screenViewGlideFactor > 0.5f ? 1.2f : 0.0f)), Matrix4f::Identity());
-
-        // View and projection matrices for the camera using HMD orientation
-       Camera finalCam(mainCam.Pos + mainCam.Rot.Transform(m_EyeRenderPose[eye].Position),
-            mainCam.Rot * Matrix4f(m_EyeRenderPose[eye].Orientation));
-
-		Matrix4f view = (m_screenViewGlideFactor >= 0.5f) ? finalCam.GetViewMatrix() : mainCam.GetViewMatrix();
-        Matrix4f proj = ovrMatrix4f_Projection(m_eyeRenderDesc[eye].Fov, 0.2f, 1000.0f, ovrProjection_RightHanded);
-
-		float fade = fabs(m_screenViewGlideFactor - 0.5f) * 2.0f;
-		
-		m_pScene[eye]->Render(proj*view, fade, fade, fade, 1, true);
-    }
-
-    // Initialize our single full screen Fov layer.
-    ovrLayerEyeFov ld;
-    ld.Header.Type  = ovrLayerType_EyeFov;
-    ld.Header.Flags = 0;
-
-    for (int eye = 0; eye < 2; eye++)
-    {
-        ld.ColorTexture[eye] = m_pEyeRenderTexture[eye]->TextureSet;
-        ld.Viewport[eye]     = eyeRenderViewport[eye];
-        ld.Fov[eye]          = rift->DefaultEyeFov[eye];
-		ld.RenderPose[eye]   = m_EyeRenderPose[eye];
-    }
-
-    ovrLayerHeader* layers = &ld.Header;
-    ovrResult result = ovrHmd_SubmitFrame(rift, 0, nullptr, &layers, 1);
-
-	CalcFPS();
-}
-
-void OculusDirectToRiftView::PostPresent(D3D9ProxySurface* stereoCapableSurface)
-{
-	SHOW_CALL("OculusDirectToRiftView::PostPresent()");
-
-	//Flag the arrival of the new frame and wait
-	m_stereoCapableSurface = stereoCapableSurface;
-	SetEventFlag(NEW_FRAME);
+	//Now push the new scene into our safe store - This will indicate to the DX11 thread a new scene is available
+	m_safeSceneStore.push(pVRScene);
 }
 
 void OculusDirectToRiftView::PrePresent(D3D9ProxySurface* stereoCapableSurface)
@@ -510,7 +584,6 @@ void OculusDirectToRiftView::PrePresent(D3D9ProxySurface* stereoCapableSurface)
 	SHOW_CALL("OculusDirectToRiftView::PrePresent()");
 
 	//Screen output
-	
 	IDirect3DSurface9* leftImage = stereoCapableSurface->getActualLeft();
 	m_pActualDevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &backBuffer);
 	m_pActualDevice->StretchRect(leftImage, NULL, backBuffer, NULL, D3DTEXF_NONE);
@@ -555,26 +628,22 @@ void OculusDirectToRiftView::DX11RenderThread_Main()
 				m_screenViewGlideFactor += 0.05f;
 		}
 
-		//Can't do antyhing immediately, sleep for a very small timeout period (hopefullly wake before next vsync)
+		//Check for non-rendering flag (such as terminate or release), this will return immediately if
+		//there isn't one reaised
 		DWORD result = WaitForSingleObject(m_EventFlagRaised, 0);
 		if (result == WAIT_TIMEOUT)
 		{
-			//If we've not had a frame update from DX9, then just timewarp the last frame
-			DX11RenderThread_TimewarpLastFrame();
+			//This will just do the timewarp if there's no new frame
+			DX11RenderThread_RenderNextFrame();
 		}
 		else
 		{
-			GetEventFlag(eventFlag);
+			eventFlag = GetEventFlag();
 			switch (eventFlag)
 			{
 			case NONE:
 				{
-					vireio::debugf("eventFlag = NONE, WaitForSingleObject = %0.8x", result);
-				}
-				break;
-			case NEW_FRAME:
-				{
-					DX11RenderThread_RenderNewFrame();
+					vireio::debugf("NONE event flag from a signalled state - SHOULD NOT BE POSSIBLE");
 				}
 				break;
 			case RELEASE_EVERYTHING:
@@ -582,10 +651,18 @@ void OculusDirectToRiftView::DX11RenderThread_Main()
 					DX11RenderThread_ReleaseEverything();
 				}
 				break;
+			case TERMINATE_THREAD:
+				{
+					vireio::debugf("TERMINATE_THREAD event flag");
+				}
+				break;
 			default:
 				//Do nothing here
 				break;
 			}
+
+			//Signal the DX9 thread can now continue		
+			SetEvent(m_EventFlagProcessed);
 		}
 	}
 }

@@ -44,8 +44,135 @@ using namespace OVR;
 
 struct OculusTextureSet;
 class OculusTracker;
-struct VoidScene;
 
+
+//An extension to the Texture Class provided in the OVR Samples
+struct VireioTexture : public Texture
+{
+    VireioTexture(ID3D11Texture2D *pTexture, bool rendertarget, Sizei size) :
+		Texture(rendertarget, size)
+    {
+		SHOW_CALL("VireioTexture()");
+
+		cleanup(rendertarget);		
+		Tex = pTexture;
+
+        DIRECTX.Device->CreateShaderResourceView(pTexture, NULL, &TexSv);
+		if (rendertarget) DIRECTX.Device->CreateRenderTargetView(Tex, NULL, &TexRtv);
+   }
+
+	//sort of destructor
+	void cleanup(bool rendertarget)
+	{
+		//Release the texture created by the base class
+		if(Tex)
+		{
+			Tex->Release();
+			Tex = NULL;
+		}
+
+		if(rendertarget)
+		{
+			TexRtv->Release();
+			TexRtv = NULL;
+		}
+
+		if(TexSv)
+		{
+			TexSv->Release();
+			TexSv = NULL;
+		}
+	}
+};
+
+//------------------------------------------------------------------------- 
+struct VoidScene  
+{
+    Model * screen;
+	VireioTexture *texture;
+
+ 	VoidScene(ID3D11Texture2D *pTexture, HANDLE sharedHandle, float aspect) :
+		m_pTexture(pTexture),
+		m_sharedHandle(sharedHandle),
+		m_pSharedTexture(NULL),
+		m_aspect(aspect)
+    {
+		SHOW_CALL("VoidScene::VoidScene()");
+    }
+
+	~VoidScene()
+	{
+		SHOW_CALL("VoidScene::~VoidScene()");
+		m_pSharedTexture->Release();
+		texture->cleanup(false);
+		delete texture;
+		delete screen;
+	}
+
+   void Render(Matrix4f projView, float R, float G, float B, float A, bool standardUniforms)
+    {   
+		SHOW_CALL("VoidScene::Render()");
+
+		//Before we render, we need to get the texture from the shader resource if
+		//we haven't already done this
+		if (m_pSharedTexture == NULL)
+		{
+			ID3D11Resource *tempResource11 = NULL;
+			IID iid = __uuidof(ID3D11Resource);
+			if (FAILED(DIRECTX.Device->OpenSharedResource(m_sharedHandle, iid, (void**)(&tempResource11))))
+			{
+				vireio::debugf("Failed to open shared DX11 resource, HANDLE=%0.8x", m_sharedHandle);
+				return;
+			}
+
+			//QI for the texture
+			tempResource11->QueryInterface(__uuidof(ID3D11Texture2D), (void**)(&m_pSharedTexture)); 
+			tempResource11->Release();
+
+			//Now we can realise the scene
+			D3D11_TEXTURE2D_DESC desc;
+			m_pSharedTexture->GetDesc(&desc);
+#if _DEBUG
+			vireio::debugf("Texture Format: %i", desc.Format);
+#endif
+
+			float aspect = (m_aspect == 0.0f) ? (float)(desc.Width) / (float)(desc.Height) : m_aspect;
+			texture = new VireioTexture(m_pSharedTexture, false, Sizei(desc.Width, desc.Height));
+			screen = new Model(texture, -2.0f, -2.0f / aspect, 2.0f, 2.0f / aspect);
+		}
+
+		screen->Render(projView,R,G,B,A,standardUniforms);    
+	}
+
+
+	ID3D11Texture2D *m_pTexture;
+	ID3D11Texture2D *m_pSharedTexture;
+	HANDLE m_sharedHandle;
+	float m_aspect;
+};
+
+//This object will contain the scene for both eyes (with each texture) and the tracking state taken at the time the scene was generated
+struct VireioVRScene
+{
+	VireioVRScene()
+	{
+		SHOW_CALL("VireioVRScene()");
+		m_pScene[ovrEye_Left] = NULL;
+		m_pScene[ovrEye_Right] = NULL;
+	}
+
+	~VireioVRScene()
+	{
+		SHOW_CALL("~VireioVRScene()");
+		delete m_pScene[ovrEye_Left];
+		delete m_pScene[ovrEye_Right];
+	}
+
+	VoidScene*	m_pScene[2];
+	ovrTrackingState m_trackingState;
+	UINT frameIndex;
+	ovrPosef m_eyePoses[2];
+};
 
 /**
 * Oculus direct-to-rift render class.
@@ -64,7 +191,7 @@ public:
 	virtual void ReleaseEverything();
 	virtual void SetVRMouseSquish(float squish);
 	virtual void PrePresent(D3D9ProxySurface* stereoCapableSurface);
-	virtual void PostPresent(D3D9ProxySurface* stereoCapableSurface);
+	virtual void PostPresent(D3D9ProxySurface* stereoCapableSurface, D3DProxyDevice* pProxyDevice);
 	virtual std::string GetAdditionalFPSInfo();
 
 	//This has to be public as it is called from the new thread method
@@ -73,34 +200,82 @@ public:
 private:
 
 	bool DX11RenderThread_Init();
-	bool DX11RenderThread_InitDevice(Sizei sz);
+	bool DX11RenderThread_InitDevices(Sizei sz);
 	void DX11RenderThread_TimewarpLastFrame();
 	void DX11RenderThread_ReleaseEverything();
-	void DX11RenderThread_RenderNewFrame();
+	void DX11RenderThread_RenderNextFrame();
 
 	enum ThreadEvents
 	{
 		NONE,
 		TERMINATE_THREAD,
-		RELEASE_EVERYTHING,
-		NEW_FRAME
-	};
-	
-	int m_eventFlag;
+		RELEASE_EVERYTHING
+	} m_eventFlag;
 
 	std::mutex m_mtx;
 
 	void SetEventFlag(ThreadEvents evt);
-	void GetEventFlag(ThreadEvents &evt);
+	ThreadEvents GetEventFlag();
 
 	//Flags for when the event flag has been reset
 	HANDLE m_EventFlagProcessed;
 	HANDLE m_EventFlagRaised;
 
-	D3D9ProxySurface* m_stereoCapableSurface;
-
 	void CalcFPS();
 	float hmdFPS;
+
+	struct ThreadSafeSceneStore
+	{
+		ThreadSafeSceneStore() {m_frameID = 0;m_VRScene = NULL;m_used = false;}
+
+		void push(VireioVRScene* &eyeScenes);
+		VireioVRScene* retrieve();
+		bool hasScene();
+		bool getUsed();
+
+		void IncFrameID();
+		DWORD GetNextFrameID();
+		void ReleaseEverything();
+
+	private:
+		//Used by ovr frame timing
+		DWORD m_frameID;
+		//Flags whether this store has ever been used
+		bool m_used;
+		std::mutex m_mtx;
+		VireioVRScene* m_VRScene;
+	} m_safeSceneStore;
+
+	struct ThreadSafePool : private std::deque<VireioVRScene*>
+	{
+		ThreadSafePool() {}
+
+		void push(VireioVRScene* &vrScene)
+		{
+			std::lock_guard<std::mutex> lck(m_mtx);
+			push_back(vrScene);
+		}
+		VireioVRScene* pop()
+		{
+			std::lock_guard<std::mutex> lck(m_mtx);
+			if (size() == 0)
+				return new VireioVRScene();
+
+			VireioVRScene *vrScene = back();
+			pop_back();
+			return vrScene;
+		}
+		
+		static void deleter(VireioVRScene* p) {delete p;}
+		void ReleaseEverything()
+		{
+			std::for_each(begin(), end(), deleter);
+			clear();
+		}
+
+	private:
+		std::mutex m_mtx;
+	} m_unusedVireioVRScenePool;
 
 	/**
 	* Predefined Oculus Rift Head Mounted Display info.
@@ -117,15 +292,16 @@ private:
 	//The rift!
 	ovrHmd rift;
 
+	//The last scene we showed (just kept for eye poses)
+	VireioVRScene *m_pLastScene;
+
+	//Second DX11 device for copying textures
+	DirectX11 m_copyDX11;
+
 	// Make the eye render buffers (caution if actual size < requested due to HW limits). 
 	OculusTextureSet  * m_pEyeRenderTexture[2];
 	DepthBuffer    * m_pEyeDepthBuffer[2];
 	ovrEyeRenderDesc m_eyeRenderDesc[2];
-    ovrPosef         m_EyeRenderPose[2];
-
-	// Create the screen model, one per eye as they use different textures for the screen
-	VoidScene *m_pScene[2];
-
 	ovrRecti         eyeRenderViewport[2];
 };
 

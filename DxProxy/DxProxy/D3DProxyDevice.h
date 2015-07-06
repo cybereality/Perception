@@ -245,6 +245,7 @@ public:
 	void HotkeyCooldown(float duration);
 	bool HotkeysActive();
 
+	double getLastFrameTime(){	return m_lastFrameTime; }
 
 	/**
 	* HUD scale enumeration.
@@ -574,6 +575,8 @@ protected:
 		FPS_TIME
 	};
 	FPS_TYPE show_fps;
+	//Store the time it took to produce the last frame
+	double m_lastFrameTime;
 
 	/** Whether the calibrate tracker message is to be shown */
 	bool calibrate_tracker;
@@ -935,11 +938,6 @@ private:
 	* True if screenshot is taken next frame.
 	***/
 	int screenshot;
-	/**
-	* Variables related to skipping a frame if FPS is low
-	***/
-	float fMinFPS;
-	bool bSkipFrame;	
 };
 
 std::string VRboostAxisString(UINT axis);
