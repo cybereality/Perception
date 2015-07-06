@@ -65,6 +65,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <stack>
 #include <memory>
 #include <ctime>
+#include <mutex>
 #include <functional>
 #include "Vireio.h"
 #include "VireioUtil.h"
@@ -99,19 +100,60 @@ class ShaderRegisters;
 class GameHandler;
 struct HMDisplayInfo;
 
+static void Log(const char* str, ...)
+{
+	static FILE* pFile = NULL;
+	static bool fileValid = true;
+	if(!pFile && fileValid)
+	{
+		ProxyHelper ph;
+		std::string dir = ph.GetBaseDir();
+		fopen_s(&pFile, (dir + "\\Vireio_ShowCalls.log").c_str(), "w");
+		if (!pFile)
+		{
+			//Don't write this more than once
+			fileValid = false;
+			OutputDebugString("Couldn't open log file for writing.\n");
+		}
+	}
+
+	if(pFile) {
+		fwrite(str, 1, strlen(str), pFile);
+		fwrite("\n\r", 1, 2, pFile);
+		fflush(pFile);
+	}
+}
+
 struct CallLogger
 {
-	CallLogger(std::string call) {OutputDebugString(("Called " + call).c_str()); m_call = call;}
-	~CallLogger() {OutputDebugString(("Exited " + m_call).c_str());}
+	CallLogger(std::string call)
+	{
+		if (show_calls)
+		{
+			{
+				std::lock_guard<std::mutex> lck (m_mtx);
+				sprintf_s(thread, "[Thread: %0.4x  Call ID: %0.8x]: ", GetCurrentThreadId(), callID++);
+			}
+			Log((std::string(thread) + "Call " + call).c_str()); m_call = call;
+		}
+	}
+	~CallLogger() 
+	{
+		if (show_calls)
+			Log((std::string(thread) + "Exit " + m_call).c_str());
+	}
+
+	//Set by the device
+	static bool show_calls;
+
 private:
 	std::string m_call;
+	char thread[64];
+	static UINT callID;
+	std::mutex m_mtx;
 };
 
-#ifdef SHOW_CALLS
-	#define SHOW_CALL(name) CallLogger call(name)
-#else
-	#define SHOW_CALL(name)
-#endif
+#define SHOW_CALL(name) CallLogger call(name)
 
 
 /**
@@ -194,13 +236,12 @@ public:
 
 	/*** D3DProxyDevice public methods ***/
 	HRESULT WINAPI CreateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample, DWORD MultisampleQuality,BOOL Lockable,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle, bool isBackBufferOfPrimarySwapChain);
-	virtual void   Init(ProxyConfig& cfg);
+	virtual void   Init(ProxyConfig& cfg, ProxyHelper::UserConfig& userConfig);
 	void           SetupHUD();
 	virtual void   HandleControls(void);
 	void           HandleTracking(void);
 	void           HandleUpdateExtern();
-	void		   SetGameWindow(HWND hMainGameWindow);
-	
+
 	void HotkeyCooldown(float duration);
 	bool HotkeysActive();
 
@@ -351,12 +392,10 @@ public:
 	/**
 	* floating screen activated
 	**/
-	bool m_bfloatingScreen;
 	float m_fFloatingScreenPitch;
 	float m_fFloatingScreenYaw;
 	float m_fFloatingScreenZ;
-	bool m_bSurpressHeadtracking;
-	bool m_bSurpressPositionaltracking;
+
 	DirectXInputControls controls;
 	DirectInput dinput;
 
@@ -507,23 +546,23 @@ protected:
 	virtual void VPMENU_ChangeRules(){}
 	virtual void VPMENU_PickRules(){}
 	virtual void VPMENU_ShowActiveShaders(){}
-	
+
 	/*** Popup.cpp ***********************************************************/
 
 	void ShowPopup(VireioPopup &popup);
 	void ShowPopup(VireioPopupType type, VireioPopupSeverity sev, long duration, std::string message);
 	void ShowPopup(VireioPopupType type, VireioPopupSeverity sev, std::string message);
-	
+
 	void ShowAdjusterToast(std::string message, int duration);
 	void DismissPopup(VireioPopupType popupType);
 	void DisplayCurrentPopup();
-	
+
 	void DrawTextShadowed(ID3DXFont* font, LPD3DXSPRITE sprite, LPCSTR lpchText, int cchText, LPRECT lprc, UINT format, D3DCOLOR color);
 	void DrawTextShadowed(ID3DXFont* font, LPD3DXSPRITE sprite, const char *text, LPRECT lprc, D3DCOLOR color);
 	void DrawTextShadowed(ID3DXFont* font, LPD3DXSPRITE sprite, std::string text, LPRECT lprc, D3DCOLOR color);
 	void DrawTextShadowed(std::string text, LPRECT lprc);
 	void DrawTextShadowed(float left, float top, std::string text);
-	
+
 	VireioPopup activePopup;
 
 	/********************************/
@@ -651,7 +690,7 @@ protected:
 		WhenToDo whenToHandleHeadTracking;
 
 	} m_deviceBehavior;
-	
+
 	void HandleLandmarkMoment(DeviceBehavior::WhenToDo when);
 
 private:

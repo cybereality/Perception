@@ -30,12 +30,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Main.h"
 #include "Direct3D9.h"
 #include <windows.h>
-#include <shlwapi.h>
+#include <Shlwapi.h>
+
 #include <d3d9.h>
 #include <stdio.h>
 
 // Function pointer trypedefs
 typedef IDirect3D9* (WINAPI *LPDirect3DCreate9)(UINT nSDKVersion);
+typedef HRESULT (WINAPI *LPDirect3DCreate9Ex)(UINT sdk_version, IDirect3D9Ex**);
 
 typedef int (WINAPI *LPD3DPERF_BeginEvent)( D3DCOLOR col, LPCWSTR wszName );
 typedef int (WINAPI *LPD3DPERF_EndEvent)( void );
@@ -48,6 +50,7 @@ typedef DWORD (WINAPI *LPD3DPERF_GetStatus)( void );
 // Globals from d3d9.dll
 HMODULE g_hDll = NULL;
 LPDirect3DCreate9 g_pfnDirect3DCreate9 = NULL;
+LPDirect3DCreate9Ex g_pfnDirect3DCreate9Ex = NULL;
 
 LPD3DPERF_BeginEvent g_pfnD3DPERF_BeginEvent = NULL;
 LPD3DPERF_EndEvent g_pfnD3DPERF_EndEvent = NULL;
@@ -129,12 +132,17 @@ static bool LoadDll()
 	strcat(szBuff, "\\d3d9.dll");
 	g_hDll = LoadLibrary(szBuff);
 	if(!g_hDll)
+	{
+		Log("Failed to load DLL");
 		return false;
+	}
 
 	// Get function addresses
 	g_pfnDirect3DCreate9 = (LPDirect3DCreate9)GetProcAddress(g_hDll, "Direct3DCreate9");
-	if(!g_pfnDirect3DCreate9)
+	g_pfnDirect3DCreate9Ex = (LPDirect3DCreate9Ex)GetProcAddress(g_hDll, "Direct3DCreate9Ex");
+	if (!g_pfnDirect3DCreate9 || !g_pfnDirect3DCreate9Ex)
 	{
+		Log("Failed to get function addresses");
 		FreeLibrary(g_hDll);
 		return false;
 	}
@@ -160,10 +168,39 @@ IDirect3D9* WINAPI Direct3DCreate9(UINT nSDKVersion)
 	if(!LoadDll())
 		return NULL;
 
-	// Create real interface
-	IDirect3D9* pD3D = g_pfnDirect3DCreate9(nSDKVersion);
-	if(!pD3D)
-		return NULL;
+	ProxyHelper helper;
+	ProxyHelper::UserConfig userCfg;
+	helper.LoadUserConfig(userCfg);
+
+	IDirect3D9* pD3D = NULL;
+	IDirect3D9Ex *pD3DEx = NULL;
+	HRESULT hr = E_NOTIMPL;
+
+	//OCULUS_DIRECT_TO_RIFT mode 111 - Need to define this somewhere central
+	if (userCfg.mode == 111 && ProxyHelper::IsProcessRunning("Perception.exe"))
+	{
+		//Try to create an ex interface
+		Log("g_pfnDirect3DCreate9Ex\n");
+		hr = g_pfnDirect3DCreate9Ex(nSDKVersion, &pD3DEx);
+	}
+
+	if (FAILED(hr))
+	{
+		// Create real interface
+		Log("g_pfnDirect3DCreate9\n");
+		pD3D = g_pfnDirect3DCreate9(nSDKVersion);
+		if(!pD3D)
+			return NULL;
+	}
+	else
+	{
+		Log("Direct3DCreate9Ex - Succeeded\n");
+		hr = pD3DEx->QueryInterface(IID_IDirect3D9, reinterpret_cast<void**>(&pD3D));
+		if (FAILED(hr))
+		{
+			Log("pD3DEx->QueryInterface(IID_IDirect3D9, reinterpret_cast<void**>(&pD3D)); - Failed\n");
+		}
+	}
 
 	// Create and return proxy interface
 	BaseDirect3D9* pWrapper = new BaseDirect3D9(pD3D);
@@ -216,7 +253,7 @@ void Log(const char* szFormat, ...)
 
 	static FILE* pFile = NULL;
 	if(!pFile)
-		pFile = fopen("C:/D3D9Proxy.log", "w");
+		pFile = fopen("F:\\GitHub\\Perception\\D3D9Proxy.log", "w");
 
 	OutputDebugString(szBuff);
 	OutputDebugString("\n");

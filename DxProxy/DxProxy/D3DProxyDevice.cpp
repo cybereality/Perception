@@ -38,6 +38,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <assert.h>
 #include <comdef.h>
 #include <tchar.h>
+#include <WinUser.h>
 #include "Resource.h"
 #include <D3DX9Shader.h>
 
@@ -61,8 +62,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MAX_PIXEL_SHADER_CONST_2_X 32
 #define MAX_PIXEL_SHADER_CONST_3_0 224
 
+#define MENU_ITEM_SEPARATION  40
+
+#ifdef x64
+#define PR_SIZET "I64"
+#else
+#define PR_SIZET ""
+#endif
+
 using namespace VRBoost;
 using namespace vireio;
+
+//This is set from the config.xml, don't set this here
+bool CallLogger::show_calls = false;
+UINT CallLogger::callID = 0;
 
 /**
 * Returns the mouse wheel scroll lines.
@@ -91,6 +104,16 @@ UINT GetMouseScrollLines()
 	}
 
 	return nScrollLines;
+}
+
+
+BOOL CALLBACK MonitorEnumProc( HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData )
+{
+	static int index = 0;
+	std::map<int, RECT> *pMonitorRectVec = (std::map<int, RECT> *)(dwData);
+	if (lprcMonitor && pMonitorRectVec)
+		pMonitorRectVec->insert(std::make_pair(index++, RECT(*lprcMonitor)));
+	return TRUE;
 }
 
 std::string VRboostAxisString(UINT axis)
@@ -188,6 +211,7 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	// rift info
 	ProxyHelper helper = ProxyHelper();
 	helper.LoadUserConfig(userConfig);
+	CallLogger::show_calls = userConfig.show_calls;
 	hmdInfo = HMDisplayInfoFactory::CreateHMDisplayInfo(static_cast<StereoView::StereoTypes>(userConfig.mode)); 
 	OutputDebugString(("Created HMD Info for: " + hmdInfo->GetHMDName()).c_str());
 
@@ -267,6 +291,9 @@ D3DProxyDevice::~D3DProxyDevice()
 	m_spManagedShaderRegisters.reset();
 
 	FreeLibrary(hmVRboost);
+
+//	DestroyWindow(m_pMirrorWindow->window_handle);
+//	delete m_pMirrorWindow;
 
 	// always do this last
 	auto it = m_activeSwapChains.begin();
@@ -426,16 +453,15 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 	
 	HandleLandmarkMoment(DeviceBehavior::WhenToDo::BEFORE_COMPOSITING);
 	
+	IDirect3DSurface9* pWrappedBackBuffer = NULL;
 	try {
-		IDirect3DSurface9* pWrappedBackBuffer = NULL;
 		m_activeSwapChains.at(0)->GetBackBuffer(0, D3DBACKBUFFER_TYPE_MONO, &pWrappedBackBuffer);
 		if (stereoView->initialized)
-			stereoView->Draw(static_cast<D3D9ProxySurface*>(pWrappedBackBuffer));
-				
-		pWrappedBackBuffer->Release();
+			stereoView->PrePresent(static_cast<D3D9ProxySurface*>(pWrappedBackBuffer));
 	}
 	catch (std::out_of_range) {
 		OutputDebugString("Present: No primary swap chain found. (Present probably called before device has been reset)");
+		return S_OK;
 	}
 
 	// did set this now also in proxy swap chain ? solved ?
@@ -455,7 +481,6 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 		lastFPSTick = GetTickCount();
 		char buffer[256];
 		sprintf_s(buffer, "%.1f", fps);
-		//OutputDebugString((std::string("FPS: ") + buffer).c_str());
 
 		//Now write FPS to the registry for the Perception App (hopefully this is a very quick operation)
 		HKEY hKey;
@@ -466,10 +491,23 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 			RegCloseKey(hKey);
 		}
 	}
-	HRESULT hr =  BaseDirect3DDevice9::Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);	
 
-	if (tracker)
-		tracker->EndFrame();
+	HRESULT hr = S_OK;
+	IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
+	if (SUCCEEDED(getActual()->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))))
+	{
+		hr = pDirect3DDevice9Ex->PresentEx(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion, 0);
+		pDirect3DDevice9Ex->Release();
+	}
+	else
+	{
+		//Old skool
+		hr =  BaseDirect3DDevice9::Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);	
+	}
+	
+	if (stereoView->initialized)
+		stereoView->PostPresent(static_cast<D3D9ProxySurface*>(pWrappedBackBuffer));
+	pWrappedBackBuffer->Release();
 
 	return hr;
 }
@@ -508,24 +546,38 @@ HRESULT WINAPI D3DProxyDevice::CreateTexture(UINT Width,UINT Height,UINT Levels,
 	IDirect3DTexture9* pLeftTexture = NULL;
 	IDirect3DTexture9* pRightTexture = NULL;	
 
+	D3DPOOL newPool = Pool;
+
+	HRESULT hr = S_OK;
+	IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
+	if (SUCCEEDED(getActual()->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))) &&
+		Pool == D3DPOOL_MANAGED)
+	{
+		newPool = D3DPOOL_DEFAULT;
+		pDirect3DDevice9Ex->Release();
+	}
+
 	// try and create left
-	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateTexture(Width, Height, Levels, Usage, Format, Pool, &pLeftTexture, pSharedHandle))) {
-
+	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateTexture(Width, Height, Levels, Usage, Format, newPool, &pLeftTexture, pSharedHandle))) 
+	{
 		// Does this Texture need duplicating?
-		if (m_3DReconstructionMode == Reconstruction_Type::GEOMETRY && m_pGameHandler->ShouldDuplicateTexture(Width, Height, Levels, Usage, Format, Pool)) {
-
-			if (FAILED(BaseDirect3DDevice9::CreateTexture(Width, Height, Levels, Usage, Format, Pool, &pRightTexture, pSharedHandle))) {
+		if (m_3DReconstructionMode == Reconstruction_Type::GEOMETRY && m_pGameHandler->ShouldDuplicateTexture(Width, Height, Levels, Usage, Format, Pool)) 
+		{
+			if (FAILED(BaseDirect3DDevice9::CreateTexture(Width, Height, Levels, Usage, Format, newPool, &pRightTexture, pSharedHandle))) {
 				OutputDebugString("Failed to create right eye texture while attempting to create stereo pair, falling back to mono\n");
 				pRightTexture = NULL;
 			}
 		}
 	}
-	else {
+	else 
+	{
 		OutputDebugString("Failed to create texture\n"); 
 	}
 
 	if (SUCCEEDED(creationResult))
+	{
 		*ppTexture = new D3D9ProxyTexture(pLeftTexture, pRightTexture, this);
+	}
 
 	return creationResult;
 }
@@ -538,6 +590,16 @@ HRESULT WINAPI D3DProxyDevice::CreateTexture(UINT Width,UINT Height,UINT Levels,
 HRESULT WINAPI D3DProxyDevice::CreateVolumeTexture(UINT Width,UINT Height,UINT Depth,UINT Levels,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool,IDirect3DVolumeTexture9** ppVolumeTexture,HANDLE* pSharedHandle)
 {
 	SHOW_CALL("CreateVolumeTexture");
+
+	HRESULT hr = S_OK;
+	IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
+	if (SUCCEEDED(getActual()->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))) &&
+		Pool == D3DPOOL_MANAGED)
+	{
+		Pool = D3DPOOL_DEFAULT;
+		pDirect3DDevice9Ex->Release();
+	}
+
 	
 	IDirect3DVolumeTexture9* pActualTexture = NULL;
 	HRESULT creationResult = BaseDirect3DDevice9::CreateVolumeTexture(Width, Height, Depth, Levels, Usage, Format, Pool, &pActualTexture, pSharedHandle);
@@ -557,7 +619,19 @@ HRESULT WINAPI D3DProxyDevice::CreateVolumeTexture(UINT Width,UINT Height,UINT D
 HRESULT WINAPI D3DProxyDevice::CreateCubeTexture(UINT EdgeLength, UINT Levels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool, IDirect3DCubeTexture9** ppCubeTexture, HANDLE* pSharedHandle)
 {
 	SHOW_CALL("CreateCubeTexture");
-	
+
+	D3DPOOL newPool = Pool;
+
+	HRESULT hr = S_OK;
+	IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
+	if (SUCCEEDED(getActual()->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))) &&
+		Pool == D3DPOOL_MANAGED)
+	{
+		newPool = D3DPOOL_DEFAULT;
+		pDirect3DDevice9Ex->Release();
+	}
+
+
 	HRESULT creationResult;
 	IDirect3DCubeTexture9* pLeftCubeTexture = NULL;
 	IDirect3DCubeTexture9* pRightCubeTexture = NULL;	
@@ -566,12 +640,12 @@ HRESULT WINAPI D3DProxyDevice::CreateCubeTexture(UINT EdgeLength, UINT Levels, D
 		return D3D_OK;
 
 	// try and create left
-	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateCubeTexture(EdgeLength, Levels, Usage, Format, Pool, &pLeftCubeTexture, pSharedHandle))) {
+	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateCubeTexture(EdgeLength, Levels, Usage, Format, newPool, &pLeftCubeTexture, pSharedHandle))) {
 
 		// Does this Texture need duplicating?
 		if (m_3DReconstructionMode == Reconstruction_Type::GEOMETRY && m_pGameHandler->ShouldDuplicateCubeTexture(EdgeLength, Levels, Usage, Format, Pool)) {
 
-			if (FAILED(BaseDirect3DDevice9::CreateCubeTexture(EdgeLength, Levels, Usage, Format, Pool, &pRightCubeTexture, pSharedHandle))) {
+			if (FAILED(BaseDirect3DDevice9::CreateCubeTexture(EdgeLength, Levels, Usage, Format, newPool, &pRightCubeTexture, pSharedHandle))) {
 				OutputDebugString("Failed to create right eye texture while attempting to create stereo pair, falling back to mono\n");
 				pRightCubeTexture = NULL;
 			}
@@ -594,6 +668,16 @@ HRESULT WINAPI D3DProxyDevice::CreateCubeTexture(UINT EdgeLength, UINT Levels, D
 HRESULT WINAPI D3DProxyDevice::CreateVertexBuffer(UINT Length, DWORD Usage, DWORD FVF, D3DPOOL Pool, IDirect3DVertexBuffer9** ppVertexBuffer, HANDLE* pSharedHandle)
 {
 	SHOW_CALL("CreateVertexBuffer");
+		
+	HRESULT hr = S_OK;
+	IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
+	if (SUCCEEDED(getActual()->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))) &&
+		Pool == D3DPOOL_MANAGED)
+	{
+		Pool = D3DPOOL_DEFAULT;
+		pDirect3DDevice9Ex->Release();
+	}
+
 	
 	IDirect3DVertexBuffer9* pActualBuffer = NULL;
 	HRESULT creationResult = BaseDirect3DDevice9::CreateVertexBuffer(Length, Usage, FVF, Pool, &pActualBuffer, pSharedHandle);
@@ -611,6 +695,15 @@ HRESULT WINAPI D3DProxyDevice::CreateVertexBuffer(UINT Length, DWORD Usage, DWOR
 HRESULT WINAPI D3DProxyDevice::CreateIndexBuffer(UINT Length,DWORD Usage,D3DFORMAT Format,D3DPOOL Pool,IDirect3DIndexBuffer9** ppIndexBuffer,HANDLE* pSharedHandle)
 {
 	SHOW_CALL("CreateIndexBuffer");
+
+	HRESULT hr = S_OK;
+	IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
+	if (SUCCEEDED(getActual()->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))) &&
+		Pool == D3DPOOL_MANAGED)
+	{
+		Pool = D3DPOOL_DEFAULT;
+		pDirect3DDevice9Ex->Release();
+	}
 	
 	IDirect3DIndexBuffer9* pActualBuffer = NULL;
 	HRESULT creationResult = BaseDirect3DDevice9::CreateIndexBuffer(Length, Usage, Format, Pool, &pActualBuffer, pSharedHandle);
@@ -629,7 +722,7 @@ HRESULT WINAPI D3DProxyDevice::CreateIndexBuffer(UINT Length,DWORD Usage,D3DFORM
 HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample,
 												  DWORD MultisampleQuality,BOOL Lockable,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle)
 {
-	SHOW_CALL("CreateRenderTarget");
+	SHOW_CALL("CreateRenderTarget1");
 	
 	// call public overloaded function
 	return CreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, ppSurface, pSharedHandle, false);
@@ -651,14 +744,27 @@ HRESULT WINAPI D3DProxyDevice::CreateDepthStencilSurface(UINT Width,UINT Height,
 	IDirect3DSurface9* pDepthStencilSurfaceLeft = NULL;
 	IDirect3DSurface9* pDepthStencilSurfaceRight = NULL;
 	HRESULT creationResult;
+
+	//Override multisampling if DX9Ex
+	D3DMULTISAMPLE_TYPE newMultiSample = MultiSample;
+	DWORD newMultisampleQuality = MultisampleQuality;
+
+
+	HRESULT hr = S_OK;
+	IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
+	if (SUCCEEDED(getActual()->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))))
+	{
+		newMultiSample = D3DMULTISAMPLE_NONE;
+		newMultisampleQuality = 0;
+	}
 	
 	// create left/mono
-	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateDepthStencilSurface(Width, Height, Format, MultiSample, MultisampleQuality, Discard, &pDepthStencilSurfaceLeft, pSharedHandle))) {
+	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateDepthStencilSurface(Width, Height, Format, newMultiSample, newMultisampleQuality, Discard, &pDepthStencilSurfaceLeft, pSharedHandle))) {
 
 		// TODO Should we always duplicated Depth stencils? I think yes, but there may be exceptions
-		if (m_3DReconstructionMode == Reconstruction_Type::GEOMETRY && m_pGameHandler->ShouldDuplicateDepthStencilSurface(Width, Height, Format, MultiSample, MultisampleQuality, Discard)) 
+		if (m_3DReconstructionMode == Reconstruction_Type::GEOMETRY && m_pGameHandler->ShouldDuplicateDepthStencilSurface(Width, Height, Format, newMultiSample, newMultisampleQuality, Discard)) 
 		{
-			if (FAILED(BaseDirect3DDevice9::CreateDepthStencilSurface(Width, Height, Format, MultiSample, MultisampleQuality, Discard, &pDepthStencilSurfaceRight, pSharedHandle))) {
+			if (FAILED(BaseDirect3DDevice9::CreateDepthStencilSurface(Width, Height, Format, newMultiSample, newMultisampleQuality, Discard, &pDepthStencilSurfaceRight, pSharedHandle))) {
 				OutputDebugString("Failed to create right eye Depth Stencil Surface while attempting to create stereo pair, falling back to mono\n");
 				pDepthStencilSurfaceRight = NULL;
 			}
@@ -669,7 +775,7 @@ HRESULT WINAPI D3DProxyDevice::CreateDepthStencilSurface(UINT Width,UINT Height,
 	}
 
 	if (SUCCEEDED(creationResult))
-		*ppSurface = new D3D9ProxySurface(pDepthStencilSurfaceLeft, pDepthStencilSurfaceRight, this, NULL);
+		*ppSurface = new D3D9ProxySurface(pDepthStencilSurfaceLeft, pDepthStencilSurfaceRight, this, NULL, NULL, NULL);
 
 	return creationResult;
 }
@@ -772,6 +878,7 @@ HRESULT WINAPI D3DProxyDevice::GetRenderTargetData(IDirect3DSurface9* pRenderTar
 
 	IDirect3DSurface9* pRenderTargetLeft = pWrappedRenderTarget->getActualLeft();
 	IDirect3DSurface9* pRenderTargetRight = pWrappedRenderTarget->getActualRight();
+
 	IDirect3DSurface9* pDestSurfaceLeft = pWrappedDest->getActualLeft();
 	IDirect3DSurface9* pDestSurfaceRight = pWrappedDest->getActualRight();
 
@@ -896,11 +1003,22 @@ HRESULT WINAPI D3DProxyDevice::CreateOffscreenPlainSurface(UINT Width,UINT Heigh
 {	
 	SHOW_CALL("CreateOffscreenPlainSurface");
 	
+	D3DPOOL newPool = Pool;
+
+	HRESULT hr = S_OK;
+	IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
+	if (SUCCEEDED(getActual()->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))) &&
+		Pool == D3DPOOL_MANAGED)
+	{
+		newPool = D3DPOOL_DEFAULT;
+		pDirect3DDevice9Ex->Release();
+	}
+
 	IDirect3DSurface9* pActualSurface = NULL;
-	HRESULT creationResult = BaseDirect3DDevice9::CreateOffscreenPlainSurface(Width, Height, Format, Pool, &pActualSurface, pSharedHandle);
+	HRESULT creationResult = BaseDirect3DDevice9::CreateOffscreenPlainSurface(Width, Height, Format, newPool, &pActualSurface, pSharedHandle);
 
 	if (SUCCEEDED(creationResult))
-		*ppSurface = new D3D9ProxySurface(pActualSurface, NULL, this, NULL);
+		*ppSurface = new D3D9ProxySurface(pActualSurface, NULL, this, NULL, NULL, NULL);
 
 	return creationResult;
 }
@@ -1043,7 +1161,7 @@ HRESULT WINAPI D3DProxyDevice::GetDepthStencilSurface(IDirect3DSurface9** ppZSte
 HRESULT WINAPI D3DProxyDevice::BeginScene()
 {
 	SHOW_CALL("BeginScene");
-	
+
 	if (m_isFirstBeginSceneOfFrame)
 	{
 		static int spashtick = GetTickCount();
@@ -1100,9 +1218,6 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 			m_saveConfigTimer = MAXDWORD;
 		}
 
-		if (tracker)
-			tracker->BeginFrame();
-
 		// save screenshot before first clear() is called
 		if (screenshot>0)
 		{
@@ -1133,7 +1248,7 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 		}*/
 
 		HandleLandmarkMoment(DeviceBehavior::WhenToDo::BEGIN_SCENE);
-		
+
 		// handle controls
 		HandleControls();
 
@@ -1150,9 +1265,9 @@ HRESULT WINAPI D3DProxyDevice::BeginScene()
 HRESULT WINAPI D3DProxyDevice::EndScene()
 {
 	SHOW_CALL("EndScene");
-	
+
 	HandleLandmarkMoment(DeviceBehavior::WhenToDo::END_SCENE);
-	
+
 	return BaseDirect3DDevice9::EndScene();
 }
 
@@ -1355,7 +1470,7 @@ HRESULT WINAPI D3DProxyDevice::MultiplyTransform(D3DTRANSFORMSTATETYPE State,CON
 * @see m_bActiveViewportIsDefault
 ***/
 HRESULT WINAPI D3DProxyDevice::SetViewport(CONST D3DVIEWPORT9* pViewport)
-{
+{	
 	SHOW_CALL("SetViewport");
 	
 	HRESULT result = BaseDirect3DDevice9::SetViewport(pViewport);
@@ -1934,7 +2049,7 @@ HRESULT WINAPI D3DProxyDevice::GetVertexShaderConstantF(UINT StartRegister,float
 * @see D3D9ProxyStateBlock::SelectAndCaptureState()
 ***/
 HRESULT WINAPI D3DProxyDevice::SetStreamSource(UINT StreamNumber, IDirect3DVertexBuffer9* pStreamData, UINT OffsetInBytes, UINT Stride)
-{
+{	
 	SHOW_CALL("SetStreamSource");
 	
 	BaseDirect3DVertexBuffer9* pCastStreamData = static_cast<BaseDirect3DVertexBuffer9*>(pStreamData);
@@ -2271,7 +2386,7 @@ HRESULT WINAPI D3DProxyDevice::CreateQuery(D3DQUERYTYPE Type,IDirect3DQuery9** p
 HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample,
 												  DWORD MultisampleQuality,BOOL Lockable,IDirect3DSurface9** ppSurface,HANDLE* pSharedHandle, bool isSwapChainBackBuffer)
 {
-	SHOW_CALL("CreateRenderTarget");
+	SHOW_CALL("CreateRenderTarget2");
 	
 	IDirect3DSurface9* pLeftRenderTarget = NULL;
 	IDirect3DSurface9* pRightRenderTarget = NULL;
@@ -2280,14 +2395,33 @@ HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFO
 		return D3D_OK;
 
 	// create left/mono
-	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, &pLeftRenderTarget, pSharedHandle))) {
+	HANDLE sharedHandleLeft = NULL;
+	HANDLE sharedHandleRight = NULL;
+
+	//Override multisampling if DX9Ex
+	D3DMULTISAMPLE_TYPE newMultiSample = MultiSample;
+	DWORD newMultisampleQuality = MultisampleQuality;
+
+	HRESULT hr = S_OK;
+	IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
+	if (SUCCEEDED(getActual()->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))))
+	{
+		pSharedHandle = &sharedHandleLeft;
+		newMultiSample = D3DMULTISAMPLE_NONE;
+		newMultisampleQuality = 0;
+	}
+
+	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateRenderTarget(Width, Height, Format, newMultiSample, newMultisampleQuality, Lockable, &pLeftRenderTarget, pSharedHandle))) {
 
 		/* "If Needed" heuristic is the complicated part here.
 		Fixed heuristics (based on type, format, size, etc) + game specific overrides + isForcedMono + magic? */
 		// TODO Should we duplicate this Render Target? Replace "true" with heuristic
-		if (m_3DReconstructionMode == Reconstruction_Type::GEOMETRY && m_pGameHandler->ShouldDuplicateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, isSwapChainBackBuffer))
+		if (m_3DReconstructionMode == Reconstruction_Type::GEOMETRY && m_pGameHandler->ShouldDuplicateRenderTarget(Width, Height, Format, newMultiSample, newMultisampleQuality, Lockable, isSwapChainBackBuffer))
 		{
-			if (FAILED(BaseDirect3DDevice9::CreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, &pRightRenderTarget, pSharedHandle))) {
+			if (pDirect3DDevice9Ex)
+				pSharedHandle = &sharedHandleRight;
+
+			if (FAILED(BaseDirect3DDevice9::CreateRenderTarget(Width, Height, Format, newMultiSample, newMultisampleQuality, Lockable, &pRightRenderTarget, pSharedHandle))) {
 				OutputDebugString("Failed to create right eye render target while attempting to create stereo pair, falling back to mono\n");
 				pRightRenderTarget = NULL;
 			}
@@ -2299,10 +2433,13 @@ HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFO
 
 	if (SUCCEEDED(creationResult)) {
 		if (!isSwapChainBackBuffer)
-			*ppSurface = new D3D9ProxySurface(pLeftRenderTarget, pRightRenderTarget, this, NULL);
+			*ppSurface = new D3D9ProxySurface(pLeftRenderTarget, pRightRenderTarget, this, NULL, sharedHandleLeft, sharedHandleRight);
 		else
-			*ppSurface = new StereoBackBuffer(pLeftRenderTarget, pRightRenderTarget, this);
+			*ppSurface = new StereoBackBuffer(pLeftRenderTarget, pRightRenderTarget, this, sharedHandleLeft, sharedHandleRight);
 	}
+
+	if (pDirect3DDevice9Ex)
+		pDirect3DDevice9Ex->Release();
 
 	return creationResult;
 }
@@ -2315,7 +2452,7 @@ HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFO
 * Anything that needs to be done before the device is used by the actual application should happen here.
 * @param The game (or engine) specific configuration.
 ***/
-void D3DProxyDevice::Init(ProxyConfig& cfg)
+void D3DProxyDevice::Init(ProxyConfig& cfg, ProxyHelper::UserConfig& userConfig)
 {
 	SHOW_CALL("Init");
 	
@@ -2326,16 +2463,15 @@ void D3DProxyDevice::Init(ProxyConfig& cfg)
 	m_configBackup = cfg;
 
 	m_bfloatingMenu = false;
-	m_bfloatingScreen = false;
-	m_bSurpressHeadtracking = false;
-	m_bSurpressPositionaltracking = false;
 
-	debugf("type: %s, aspect: %d\n", config.game_type.c_str(), config.aspect_multiplier);
+	debugf("type: %s, aspect: %d stereo mode: %i\n", config.game_type.c_str(), config.aspect_multiplier, userConfig.mode);
 
 	// first time configuration
 	m_spShaderViewAdjustment->Load(config);
 	m_pGameHandler->Load(config, m_spShaderViewAdjustment);
-	stereoView = StereoViewFactory::Get(&config, m_spShaderViewAdjustment->HMDInfo());
+
+	InitTracker();
+	stereoView = StereoViewFactory::Get(&config, m_spShaderViewAdjustment->HMDInfo(), tracker.get());
 	stereoView->HeadYOffset = 0;
 	stereoView->HeadZOffset = FLT_MAX;
 	stereoView->m_3DReconstructionMode = 1;	
@@ -2434,6 +2570,7 @@ void D3DProxyDevice::HandleTracking()
 {
 	SHOW_CALL("HandleTracking");
 
+	//Should have been initialised in Init, but give it another chance
 	if(!tracker)
 	{
 		InitTracker();
@@ -2497,7 +2634,7 @@ void D3DProxyDevice::HandleTracking()
 		else 
 		{
 			//Only report positional tracking errors if positional tracking is turned on
-			if (!m_bSurpressPositionaltracking)
+			if (m_bPosTrackingToggle)
 			{
 				if (tracker->getStatus() == MTS_CAMERAMALFUNCTION)
 				{
@@ -2528,35 +2665,44 @@ void D3DProxyDevice::HandleTracking()
 		// update view adjustment class
 		if (tracker->getStatus() >= MTS_OK)
 		{
-			//Roll implementation
-			switch (config.rollImpl)
+			if (!stereoView->m_disconnectedScreenView)
 			{
-			case 0:
+				//Roll implementation
+				switch (config.rollImpl)
 				{
-					//Ensure this is 0, presumably VRBoost taking care of business
-					stereoView->m_rotation = 0.0f;
-				}
-			case 1:
-				{
-					if (tracker)
-						m_spShaderViewAdjustment->UpdateRoll(tracker->currentRoll);
-					stereoView->m_rotation = 0.0f;
-				}
-				break;
-			case 2:
-				{
-					//Set rotation on the stereo view and on the shader adjustment
-					if (tracker)
+				case 0:
 					{
-						stereoView->m_rotation = tracker->currentRoll;
-						m_spShaderViewAdjustment->UpdateRoll(tracker->currentRoll);
+						//Ensure this is 0, presumably VRBoost taking care of business
+						stereoView->m_rotation = 0.0f;
 					}
+				case 1:
+					{
+						if (tracker)
+							m_spShaderViewAdjustment->UpdateRoll(tracker->currentRoll);
+						stereoView->m_rotation = 0.0f;
+					}
+					break;
+				case 2:
+					{
+						//Set rotation on the stereo view and on the shader adjustment
+						if (tracker)
+						{
+							stereoView->m_rotation = tracker->currentRoll;
+							m_spShaderViewAdjustment->UpdateRoll(tracker->currentRoll);
+						}
+					}
+					break;
 				}
-				break;
+			}
+			else
+			{
+				//No roll applied in DSV mode
+				m_spShaderViewAdjustment->UpdateRoll(0.0f);
+				stereoView->m_rotation = 0.0f;
 			}
 
 			if (m_bPosTrackingToggle && tracker->getStatus() != MTS_LOSTPOSITIONAL
-				&& !m_bSurpressPositionaltracking)
+				&& !stereoView->m_disconnectedScreenView)
 			{
 				//Use reduced Y-position tracking in DFC mode, user should be triggering crouch by moving up and down
 				float yPosition = (VRBoostValue[VRboostAxis::CameraTranslateY] / 20.0f) + tracker->primaryY;
@@ -2712,7 +2858,7 @@ void D3DProxyDevice::HandleTracking()
 
 		stereoView->PostReset();
 	}
-
+		
 	m_spShaderViewAdjustment->ComputeViewTransforms();
 
 	m_isFirstBeginSceneOfFrame = false;
@@ -2721,7 +2867,7 @@ void D3DProxyDevice::HandleTracking()
 	static bool scanFailed = false;
 
 	// update vrboost, if present, tracker available and shader count higher than the minimum
-	if ((!m_bSurpressHeadtracking) 
+	if ((!stereoView->m_disconnectedScreenView) 
 		&& (!m_bForceMouseEmulation || !VRBoostStatus.VRBoost_HasOrientation || VRBoostStatus.VRBoost_Scanning) 
 		&& (hmVRboost) && (m_VRboostRulesPresent) 
 		&& (tracker->getStatus() >= MTS_OK) && (m_bVRBoostToggle)
@@ -3100,7 +3246,7 @@ void D3DProxyDevice::HandleUpdateExtern()
 * passed back to actual application by CreateDevice) and after a successful device Reset.
 ***/
 void D3DProxyDevice::OnCreateOrRestore()
-{
+{	
 	SHOW_CALL("OnCreateOrRestore");
 	
 	m_currentRenderingSide = vireio::Left;
@@ -3149,6 +3295,7 @@ void D3DProxyDevice::OnCreateOrRestore()
 
 	m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, config.PFOV);
 	m_spShaderViewAdjustment->ComputeViewTransforms();
+
 
 	// set VP main values
 	viewportWidth = stereoView->viewport.Width;
@@ -3397,7 +3544,6 @@ void D3DProxyDevice::DuckAndCoverCalibrate()
 		break;
 	}
 }
-
 
 //FPS Calculator
 
@@ -3709,7 +3855,7 @@ bool D3DProxyDevice::InitVRBoost()
 	VRBoostStatus.VRBoost_Candidates = false;
 	//Assume VRBoost will have orientation (it probably will)
 	VRBoostStatus.VRBoost_HasOrientation = true;
-	
+
 	if (hmVRboost == NULL)
 	{
 		// Failed to load the DLL. Return false to indicate failure.
@@ -3717,9 +3863,9 @@ bool D3DProxyDevice::InitVRBoost()
 	}
 
 	// get VRboost methods
-	OutputDebugString("VR Boost Loaded\n");
+		OutputDebugString("VR Boost Loaded\n");
 	
-	// get methods explicit
+		// get methods explicit
 	std::vector<std::string> missingFunctions;
 	#define LOAD_FUNCTION(name, type) \
 		m_p##name = (type)GetProcAddress(hmVRboost, #name); \
@@ -3740,58 +3886,58 @@ bool D3DProxyDevice::InitVRBoost()
 	LOAD_FUNCTION(VRboost_GetScanAssist, LPVRBOOST_GetScanAssist);
 	
 	if (missingFunctions.size() > 0)
-	{
-		hmVRboost = NULL;
-		m_bForceMouseEmulation = false;
-		FreeLibrary(hmVRboost);
-		OutputDebugString("FAILED loading VRboost methods:");
+		{
+			hmVRboost = NULL;
+			m_bForceMouseEmulation = false;
+			FreeLibrary(hmVRboost);
+			OutputDebugString("FAILED loading VRboost methods:");
 		
 		for(std::vector<std::string>::iterator ii=missingFunctions.begin(); ii!=missingFunctions.end(); ii++)
 		{
 			OutputDebugString(ii->c_str());
 		}
-	}
-	else
-	{
-		initSuccess = true;
-		m_bForceMouseEmulation = true;
-		VRBoostStatus.VRBoost_Active = true;
-		OutputDebugString("Success loading VRboost methods.");
-	}
+		}
+		else
+		{
+			initSuccess = true;
+			m_bForceMouseEmulation = true;
+			VRBoostStatus.VRBoost_Active = true;
+			OutputDebugString("Success loading VRboost methods.");
+		}
 
-	m_VRboostRulesPresent = false;
-	m_VertexShaderCount = 0;
-	m_VertexShaderCountLastFrame = 0;
+		m_VRboostRulesPresent = false;
+		m_VertexShaderCount = 0;
+		m_VertexShaderCountLastFrame = 0;
 
-	// set common default VRBoost values
-	ZeroMemory(&VRBoostValue[0], MAX_VRBOOST_VALUES*sizeof(float));
-	VRBoostValue[VRboostAxis::Zero] = 0.0f;
-	VRBoostValue[VRboostAxis::One] = 1.0f;
-	VRBoostValue[VRboostAxis::WorldFOV] = 95.0f;
-	VRBoostValue[VRboostAxis::PlayerFOV] = 125.0f;
-	VRBoostValue[VRboostAxis::FarPlaneFOV] = 95.0f;
+		// set common default VRBoost values
+		ZeroMemory(&VRBoostValue[0], MAX_VRBOOST_VALUES*sizeof(float));
+		VRBoostValue[VRboostAxis::Zero] = 0.0f;
+		VRBoostValue[VRboostAxis::One] = 1.0f;
+		VRBoostValue[VRboostAxis::WorldFOV] = 95.0f;
+		VRBoostValue[VRboostAxis::PlayerFOV] = 125.0f;
+		VRBoostValue[VRboostAxis::FarPlaneFOV] = 95.0f;
 	return initSuccess;
 }
 
 /*
- * Initializes the tracker, setting the tracker initialized status.
- * @return true if tracker was initialized, false otherwise
- */
-bool D3DProxyDevice::InitTracker()
-{
+  * Initializes the tracker, setting the tracker initialized status.
+  * @return true if tracker was initialized, false otherwise
+  */
+ bool D3DProxyDevice::InitTracker()
+ {
 	SHOW_CALL("InitTracker");
 	 
-	// VRboost rules present ?
-	if (config.VRboostPath != "") m_VRboostRulesPresent = true; else m_VRboostRulesPresent = false;
+ 	// VRboost rules present ?
+ 	if (config.VRboostPath != "") m_VRboostRulesPresent = true; else m_VRboostRulesPresent = false;
  
-	OutputDebugString("GB - Try to init Tracker\n");
-	tracker.reset(MotionTrackerFactory::Get(config));
+ 	OutputDebugString("GB - Try to init Tracker\n");
+ 	tracker.reset(MotionTrackerFactory::Get(config));
 	if (tracker && tracker->getStatus() >= MTS_OK)
-	{
+ 	{
 		OutputDebugString("Tracker Got\n");
-		OutputDebugString("Setting Multipliers\n");
+ 		OutputDebugString("Setting Multipliers\n");
 		tracker->setMultipliers(config.yaw_multiplier, config.pitch_multiplier, config.roll_multiplier);
-		OutputDebugString("Setting Mouse EMu\n");
+ 		OutputDebugString("Setting Mouse EMu\n");
 		tracker->setMouseEmulation((!m_VRboostRulesPresent) || (hmVRboost==NULL));
 
 		//Set the default timewarp prediction behaviour for this game - this will have no effect on non-Oculus trackers
@@ -3802,10 +3948,10 @@ bool D3DProxyDevice::InitTracker()
 			calibrate_tracker = true;
 
 		return true;
-	}
+ 	}
 
-	return false;
-}
+ 	return false;
+ }
 
 
 

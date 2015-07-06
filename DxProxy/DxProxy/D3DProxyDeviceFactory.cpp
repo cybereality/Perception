@@ -56,7 +56,7 @@ D3DProxyDevice* D3DProxyDeviceFactory::Get(ProxyConfig& config, ProxyHelper::Use
 	else 
 		newDev = new D3DProxyDevice(dev, pCreatedBy);
 
-	newDev->Init(config);
+	newDev->Init(config, userConfig);
 
 	return newDev;
 }

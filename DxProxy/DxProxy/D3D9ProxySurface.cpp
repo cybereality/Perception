@@ -29,6 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <assert.h>
 #include "D3D9ProxySurface.h"
+#include "D3DProxyDevice.h"
 
 /**
 * Constructor.
@@ -36,12 +37,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * and that count is managed by forwarding release and addref to the container. In this case the
 * container must delete this surface when the ref count reaches 0.
 ***/ 
-D3D9ProxySurface::D3D9ProxySurface(IDirect3DSurface9* pActualSurfaceLeft, IDirect3DSurface9* pActualSurfaceRight, BaseDirect3DDevice9* pOwningDevice, IUnknown* pWrappedContainer) :
+D3D9ProxySurface::D3D9ProxySurface(IDirect3DSurface9* pActualSurfaceLeft, IDirect3DSurface9* pActualSurfaceRight, 
+								   BaseDirect3DDevice9* pOwningDevice, IUnknown* pWrappedContainer, HANDLE SharedHandleLeft, HANDLE SharedHandleRight) :
 	BaseDirect3DSurface9(pActualSurfaceLeft),
 	m_pActualSurfaceRight(pActualSurfaceRight),
 	m_pOwningDevice(pOwningDevice),
-	m_pWrappedContainer(pWrappedContainer)
+	m_pWrappedContainer(pWrappedContainer),
+	m_SharedHandleLeft(SharedHandleLeft),
+	m_SharedHandleRight(SharedHandleRight),
+	lockableSysMemTexture(NULL),
+	fullSurface(false)
 {
+	SHOW_CALL("D3D9ProxySurface::D3D9ProxySurface()");
+
 	assert (pOwningDevice != NULL);
 
 
@@ -61,9 +69,13 @@ D3D9ProxySurface::D3D9ProxySurface(IDirect3DSurface9* pActualSurfaceLeft, IDirec
 ***/
 D3D9ProxySurface::~D3D9ProxySurface()
 {
+	SHOW_CALL("D3D9ProxySurface::~D3D9ProxySurface()");
 	if (!m_pWrappedContainer) { 
 		m_pOwningDevice->Release();
 	}
+
+	if (lockableSysMemTexture)
+		lockableSysMemTexture->Release();
 
 	if (m_pActualSurfaceRight)
 		m_pActualSurfaceRight->Release();
@@ -130,6 +142,7 @@ HRESULT WINAPI D3D9ProxySurface::GetDevice(IDirect3DDevice9** ppDevice)
 ***/
 HRESULT WINAPI D3D9ProxySurface::SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags)
 {
+	SHOW_CALL("D3D9ProxySurface::SetPrivateData");
 	if (IsStereo())
 		m_pActualSurfaceRight->SetPrivateData(refguid, pData, SizeOfData, Flags);
 
@@ -141,6 +154,7 @@ HRESULT WINAPI D3D9ProxySurface::SetPrivateData(REFGUID refguid, CONST void* pDa
 ***/
 HRESULT WINAPI D3D9ProxySurface::FreePrivateData(REFGUID refguid)
 {
+	SHOW_CALL("D3D9ProxySurface::FreePrivateData");
 	if (IsStereo())
 		m_pActualSurfaceRight->FreePrivateData(refguid);
 
@@ -152,6 +166,7 @@ HRESULT WINAPI D3D9ProxySurface::FreePrivateData(REFGUID refguid)
 ***/
 DWORD WINAPI D3D9ProxySurface::SetPriority(DWORD PriorityNew)
 {
+	SHOW_CALL("D3D9ProxySurface::SetPriority");
 	if (IsStereo())
 		m_pActualSurfaceRight->SetPriority(PriorityNew);
 
@@ -163,6 +178,7 @@ DWORD WINAPI D3D9ProxySurface::SetPriority(DWORD PriorityNew)
 ***/
 void WINAPI D3D9ProxySurface::PreLoad()
 {
+	SHOW_CALL("D3D9ProxySurface::PreLoad");
 	if (IsStereo())
 		m_pActualSurfaceRight->PreLoad();
 
@@ -185,6 +201,7 @@ void WINAPI D3D9ProxySurface::PreLoad()
 ***/
 HRESULT WINAPI D3D9ProxySurface::GetContainer(REFIID riid, LPVOID* ppContainer)
 {
+	SHOW_CALL("D3D9ProxySurface::GetContainer");
 	if (!m_pWrappedContainer) {
 		m_pOwningDevice->AddRef();
 		*ppContainer = m_pOwningDevice;
@@ -217,10 +234,68 @@ HRESULT WINAPI D3D9ProxySurface::GetContainer(REFIID riid, LPVOID* ppContainer)
 ***/
 HRESULT WINAPI D3D9ProxySurface::LockRect(D3DLOCKED_RECT* pLockedRect, CONST RECT* pRect, DWORD Flags)
 {
-	if (IsStereo())
-		m_pActualSurfaceRight->LockRect(pLockedRect, pRect, Flags);
+	SHOW_CALL("D3D9ProxySurface::LockRect");
 
-	return BaseDirect3DSurface9::LockRect(pLockedRect, pRect, Flags);
+	D3DSURFACE_DESC desc;
+	m_pActualSurface->GetDesc(&desc);
+	if (desc.Pool != D3DPOOL_DEFAULT)
+	{
+		//Can't really handle stereo for this, so just lock on the original texture
+		return m_pActualSurface->LockRect(pLockedRect, pRect, Flags);
+	}
+
+	//Guard against multithreaded access as this could be causing us problems
+	std::lock_guard<std::mutex> lck (m_mtx);
+
+	//Create lockable system memory surfaces
+	if (pRect && !fullSurface)
+	{
+		lockedRects.push_back(*pRect);
+	}
+	else
+	{
+		lockedRects.clear();
+		fullSurface = true;
+	}
+
+	HRESULT hr = D3DERR_INVALIDCALL;
+	IDirect3DSurface9 *pSurface = NULL;
+	bool createdTexture = false;
+	if (!lockableSysMemTexture)
+	{
+		hr = m_pOwningDevice->getActual()->CreateTexture(desc.Width, desc.Height, 1, 0, 
+			desc.Format, D3DPOOL_SYSTEMMEM, &lockableSysMemTexture, NULL);
+
+		if (FAILED(hr))
+			return hr;
+
+		createdTexture = true;
+	}
+
+	lockableSysMemTexture->GetSurfaceLevel(0, &pSurface);
+
+	//Only copy the render taget (if possible) on the creation of the memory texture
+	if (createdTexture)
+	{
+		hr = D3DXLoadSurfaceFromSurface(pSurface, NULL, NULL, m_pActualSurface, NULL, NULL, D3DX_DEFAULT, 0);
+		if (FAILED(hr))
+		{
+#ifdef _DEBUG
+			vireio::debugf("Failed: D3DXLoadSurfaceFromSurface hr = 0x%0.8x", hr);
+#endif
+		}
+	}
+
+	//And finally, lock the memory surface
+	hr = pSurface->LockRect(pLockedRect, pRect, Flags);
+	if (FAILED(hr))
+		return hr;
+
+	lockedRect = *pLockedRect;
+
+	pSurface->Release();
+
+	return hr;
 }
 
 /**
@@ -228,10 +303,78 @@ HRESULT WINAPI D3D9ProxySurface::LockRect(D3DLOCKED_RECT* pLockedRect, CONST REC
 ***/
 HRESULT WINAPI D3D9ProxySurface::UnlockRect()
 {
-	if (IsStereo())
-		m_pActualSurfaceRight->UnlockRect();
+	SHOW_CALL("D3D9ProxySurface::UnlockRect");
 
-	return BaseDirect3DSurface9::UnlockRect();
+	D3DSURFACE_DESC desc;
+	m_pActualSurface->GetDesc(&desc);
+	if (desc.Pool != D3DPOOL_DEFAULT)
+	{
+		return m_pActualSurface->UnlockRect();
+	}
+
+	//Guard against multithreaded access as this could be causing us problems
+	std::lock_guard<std::mutex> lck (m_mtx);
+
+	//This would mean nothing to do
+	if (lockedRects.size() == 0 && !fullSurface)
+		return S_OK;
+
+	IDirect3DSurface9 *pSurface = NULL;
+	HRESULT hr = lockableSysMemTexture ? lockableSysMemTexture->GetSurfaceLevel(0, &pSurface) : D3DERR_INVALIDCALL;
+	if (FAILED(hr))
+		return hr;
+
+	hr = pSurface->UnlockRect();
+
+	if (IsStereo())
+	{
+		if (fullSurface)
+		{
+			hr = m_pOwningDevice->getActual()->UpdateSurface(pSurface, NULL, m_pActualSurfaceRight, NULL);
+			if (FAILED(hr))
+				return hr;
+		}
+		else
+		{
+			std::vector<RECT>::iterator rectIter = lockedRects.begin();
+			while (rectIter != lockedRects.end())
+			{
+				POINT p;
+				p.x = rectIter->left;
+				p.y = rectIter->top;
+				hr = m_pOwningDevice->getActual()->UpdateSurface(pSurface, &(*rectIter), m_pActualSurfaceRight, &p);
+				if (FAILED(hr))
+					return hr;
+				rectIter++;
+			}
+		}
+	}
+
+	if (fullSurface)
+	{
+		hr = m_pOwningDevice->getActual()->UpdateSurface(pSurface, NULL, m_pActualSurface, NULL);
+		if (FAILED(hr))
+			return hr;
+	}
+	else
+	{
+		std::vector<RECT>::iterator rectIter = lockedRects.begin();
+		while (rectIter != lockedRects.end())
+		{
+			POINT p;
+			p.x = rectIter->left;
+			p.y = rectIter->top;
+			hr = m_pOwningDevice->getActual()->UpdateSurface(pSurface, &(*rectIter), m_pActualSurface, &p);
+			if (FAILED(hr))
+				return hr;
+			rectIter++;
+		}
+	}
+
+	pSurface->Release();
+
+	fullSurface = false;
+	return hr;
 }
 
 /**
@@ -239,6 +382,7 @@ HRESULT WINAPI D3D9ProxySurface::UnlockRect()
 ***/
 HRESULT WINAPI D3D9ProxySurface::ReleaseDC(HDC hdc)
 {
+	SHOW_CALL("D3D9ProxySurface::ReleaseDC");
 	if (IsStereo())
 		m_pActualSurfaceRight->ReleaseDC(hdc);
 
@@ -268,6 +412,17 @@ IDirect3DSurface9* D3D9ProxySurface::getActualRight()
 {
 	return m_pActualSurfaceRight;
 }
+
+HANDLE D3D9ProxySurface::getHandleLeft()
+{
+	return m_SharedHandleLeft;
+}
+
+HANDLE D3D9ProxySurface::getHandleRight()
+{
+	return m_SharedHandleRight;
+}
+
 
 /**
 * True if right surface present.

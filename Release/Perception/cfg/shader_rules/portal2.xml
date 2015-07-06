@@ -17,5 +17,5 @@
     <ruleID id="2" />
     <ruleID id="4" />
   </shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="3546995421" ObjectType="Shadows">
+  <shaderSpecificRuleIDs shaderHash="3546995421" ObjectType="Shadows"/>
 </shaderConfig>

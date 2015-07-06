@@ -37,10 +37,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <sstream>
 
 #include "..\..\LibOVR\include\OVR.h"
-#include "..\..\LibOVR\Src\OVR_Stereo.h"
-#include "..\..\LibOVR\Src\OVR_Profile.h"
-#include "..\..\LibOVR\Src\CAPI\CAPI_HMDState.h"
-#include "..\..\LibOVR\Src\Sensors\OVR_DeviceConstants.h"
 
 #include "HMDisplayInfo.h"
 #include "HMDisplayInfo_Default.h"
@@ -67,6 +63,7 @@ HMDisplayInfo* HMDisplayInfoFactory::CreateHMDisplayInfo(int /*StereoView::Stere
 		return new HMDisplayInfo_Default();
 		break;
 	case StereoView::OCULUS_RIFT:
+	case StereoView::OCULUS_DIRECT_TO_RIFT:
 		return new HMDisplayInfo_OculusRift();
 		break;	
 	default:

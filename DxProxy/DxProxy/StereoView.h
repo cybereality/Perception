@@ -51,13 +51,17 @@ public:
 	/*** StereoView public methods ***/
 	virtual void Init(IDirect3DDevice9* pActualDevice);
 	virtual void ReleaseEverything();
-	virtual void Draw(D3D9ProxySurface* stereoCapableSurface);
+	virtual void PrePresent(D3D9ProxySurface* stereoCapableSurface);
+	virtual void PostPresent(D3D9ProxySurface* stereoCapableSurface) {}
 	virtual void SaveScreen();
 	virtual void SaveLastScreen();
 	virtual std::string CycleRenderState(bool blnBackwards);
 	virtual void PostReset();
 	virtual void SetVRMouseSquish(float squish){}
 	IDirect3DSurface9* GetBackBuffer();
+
+	virtual std::string GetAdditionalFPSInfo() {return "";}
+
 	/**
 	* Stereo render options.
 	***/
@@ -78,7 +82,8 @@ public:
 
 		//Reserve numbers over 100 for HMDs as many more could be added in the future
 		DIY_RIFT = 100,                      /**< For do-it-yourself Oculus Rift kits. */
-		OCULUS_RIFT = 110					/**< Standard Oculus Rift render method. */
+		OCULUS_RIFT = 110,					/**< Standard Oculus Rift render method - Extended Mode */
+		OCULUS_DIRECT_TO_RIFT = 111			/**< Oculus Direct-to-Rift render method */
 	};
 	/**
 	* Left and right enumeration.
@@ -108,6 +113,11 @@ public:
 	* True if stereo is enabled.
 	***/
 	bool stereoEnabled() { return (config->stereo_mode != DISABLED); }; 
+
+	/**
+	* Are we useing DSV?
+	*/
+	bool m_disconnectedScreenView;
 	/**
 	* Floaty Screen Y Offset
 	***/

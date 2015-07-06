@@ -31,7 +31,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "VireioUtil.h"
 #include "ConfigDefaults.h"
 #include "json/json.h"
-
+#include <tlhelp32.h>
 #include <algorithm>
 #include <stdarg.h>
 
@@ -68,6 +68,28 @@ void EraseCharacter(string& string, char character)
 		string.erase(found,1);
 		found=string.find(character);
 	}
+}
+
+/*!
+\brief Check if a process is running
+\param [in] processName Name of process to check if is running
+\returns \c True if the process is running, or \c False if the process is not running
+*/
+bool ProxyHelper::IsProcessRunning(const char *processName)
+{
+    bool exists = false;
+    PROCESSENTRY32 entry;
+    entry.dwSize = sizeof(PROCESSENTRY32);
+
+    HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, NULL);
+
+    if (Process32First(snapshot, &entry))
+        while (Process32Next(snapshot, &entry))
+            if (!strcmp(entry.szExeFile, processName))
+                exists = true;
+
+    CloseHandle(snapshot);
+    return exists;
 }
 
 /**
@@ -363,9 +385,8 @@ bool ProxyHelper::LoadUserConfig(UserConfig &userConfig)
 		userConfig.warnPosLost = (xml_config.attribute("warn_positional_lost").as_int(1) != 0);
 		userConfig.warnCameraMalfunction = (xml_config.attribute("warn_camera_malfunction").as_int(1) != 0);
 		userConfig.shaderAnalyser = (xml_config.attribute("shader_analyser").as_int(0) != 0);
-
-		//Thhis triggers the "hack" to get obs streaming the game without stereo and distortion
-		userConfig.obsStreamHack = (xml_config.attribute("obs_stream_hack").as_int(0) != 0);
+		userConfig.show_calls = (xml_config.attribute("show_calls").as_int(0) == 1);
+		userConfig.PerfHudMode = xml_config.attribute("PerfHudMode").as_int(0);
 
 		return true;
 	}
@@ -672,6 +693,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 		LoadSetting(xml_config, "aspect_multiplier", &config.aspect_multiplier);
 		LoadSetting(xml_config, "tracker_mode", &config.tracker_mode);
 		LoadSetting(xml_config, "display_adapter", &config.display_adapter);
+		LoadSetting(xml_config, "PerfHudMode", &config.PerfHudMode);
 
 		fileFound = true;
 	}
@@ -1241,6 +1263,7 @@ ProxyConfig::ProxyConfig()
 	ipd = IPD_DEFAULT;
 	aspect_multiplier = 1.0f;
 	display_adapter = 0;
+	PerfHudMode = 0;
 }
 
 /**

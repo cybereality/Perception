@@ -103,11 +103,6 @@ public:
 	virtual std::pair<float, float> GetPhysicalScreenSize() = 0;
 
 	/**
-	* Currently constant eye to screen distance (according to rift dev kit 1)
-	***/
-	virtual float GetEyeToScreenDistance() = 0;
-
-	/**
 	* Physical lens seperation (currently constant rift dev kit 1 value=default ipd 0.064f).
 	***/
 	virtual float GetPhysicalLensSeparation() = 0;
@@ -132,12 +127,6 @@ public:
 	* the screen on Y axis
 	***/
 	virtual float GetLensYCenterOffset() = 0;
-
-	/**
-	* The distance in a -1 to 1 range that offsets the center of each lens is from the center of each half of
-	* the screen on X axis
-	***/
-	virtual float GetLensIPDCenterOffset() = 0;
 
 	/**
 	* The minimum distortion scale allowed, varies between headsets (-1.0 is fine for DK1, whereas -0.5 is better for RiftUp)

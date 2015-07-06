@@ -13,9 +13,12 @@
     <rule constantName="EyePosition" partialName="true" id="10" constantType="Vector" modToApply="1" startReg="16" transpose="false" />
     <rule constantName="ModelViewProj" partialName="true" id="11" constantType="MatrixR" modToApply="1" startReg="9" transpose="true" />
     <rule constantName="ModelViewProj" partialName="true" id="12" constantType="MatrixR" modToApply="4" startReg="0" transpose="true" />
+
     <rule constantName="ModelViewProj" partialName="true" id="13" constantType="MatrixR" modToApply="9" startReg="0" transpose="true" />
     <rule constantName="ModelViewProj" partialName="true" id="14" constantType="MatrixR" modToApply="15" startReg="0" transpose="true" />
-  </rules>
+    <rule constantName="SkinModelViewProj" partialName="true" id="15" constantType="MatrixR" modToApply="9" startReg="1" transpose="true" />
+
+</rules>
   <defaultRuleIDs>
     <ruleID id="1" />
     <ruleID id="2" />
@@ -32,13 +35,76 @@
   <shaderSpecificRuleIDs shaderHash="70962678">
     <ruleID id="12" />
   </shaderSpecificRuleIDs>
+
+  <shaderSpecificRuleIDs shaderHash="1138888547">
+    <ruleID id="12" />
+  </shaderSpecificRuleIDs>
+
+  <!-- SKY -->
   <shaderSpecificRuleIDs shaderHash="2056078029">
     <ruleID id="13" />
   </shaderSpecificRuleIDs>
+<<<<<<< HEAD
   <shaderSpecificRuleIDs shaderHash="1138888547">
     <ruleID id="12" />
   </shaderSpecificRuleIDs>
   <shaderSpecificRuleIDs shaderHash="3520222568" doNotDraw="true">
     <ruleID id="13" />
   </shaderSpecificRuleIDs>
+=======
+  <shaderSpecificRuleIDs shaderHash="3520222568">
+    <ruleID id="13" />
+  </shaderSpecificRuleIDs>
+
+
+  <!-- FIX Positional Elements
+  <shaderSpecificRuleIDs shaderHash="3627428318">
+    <ruleID id="14" />
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="4174485260">
+    <ruleID id="14" />
+  </shaderSpecificRuleIDs>
+  fIX PIPbOY
+  <shaderSpecificRuleIDs shaderHash="2317964289">
+    <ruleID id="15" />
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="1834707753">
+    <ruleID id="15" />
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="829900650">
+    <ruleID id="13" />
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="960338823">
+    <ruleID id="13" />
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="1142508199">
+    <ruleID id="13" />
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="1440829553">
+    <ruleID id="13" />
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="1468322353">
+    <ruleID id="15" />
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="1801339234">
+    <ruleID id="13" />
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="3627428318">
+    <ruleID id="13" />
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="4238010816">
+    <ruleID id="15" />
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="716997900">
+    <ruleID id="15" />
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="710143625" doNotDraw="true">
+    
+  </shaderSpecificRuleIDs>
+  <shaderSpecificRuleIDs shaderHash="2941745803">
+    <ruleID id="13" />
+  </shaderSpecificRuleIDs>
+  -->
+
+>>>>>>> origin/DX9Ex
 </shaderConfig>

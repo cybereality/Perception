@@ -32,9 +32,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <d3d9.h>
 #include <unordered_map>
+#include "D3DProxyDevice.h"
 #include "Direct3DTexture9.h"
 #include "D3D9ProxySurface.h"
 #include "IStereoCapableWrapper.h"
+
+#include <mutex>
 
 /**
 *  Direct 3D proxy texture class. 
@@ -83,5 +86,12 @@ protected:
 	* The actual right texture embedded. 
 	***/
 	IDirect3DTexture9* const m_pActualTextureRight;
+
+	//Special handling required for locking rectangles if we are using Dx9Ex
+	std::mutex m_mtx;
+	std::unordered_map<UINT, std::vector<RECT>> lockedRects;
+	std::unordered_map<UINT, bool> fullSurfaces;
+	std::unordered_map<UINT, bool> newSurface;
+	std::unordered_map<UINT, IDirect3DTexture9*> lockableSysMemTexture;
 };
 #endif

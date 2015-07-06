@@ -95,14 +95,6 @@ public:
 	}
 
 	/**
-	* Currently constant eye to screen distance (according to rift dev kit 1)
-	***/
-	virtual float GetEyeToScreenDistance()
-	{
-		return 0.041f;
-	}
-
-	/**
 	* Physical lens seperation (currently constant rift dev kit 1 value=default ipd 0.064f).
 	***/
 	virtual float GetPhysicalLensSeparation()
@@ -117,15 +109,6 @@ public:
 	virtual float GetLensYCenterOffset()
 	{
 		return 0.5f;
-	}
-
-	/**
-	* The distance in a -1 to 1 range that offsets the center of each lens is from the center of each half of
-	* the screen on X axis
-	***/
-	virtual float GetLensIPDCenterOffset()
-	{
-		return 0.0f;
 	}
 
 	/**

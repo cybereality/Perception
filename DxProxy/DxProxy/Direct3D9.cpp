@@ -34,31 +34,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Vireio.h"
 #include <cstdio>
 #include <windows.h>
-#include <tlhelp32.h>
 
 using namespace vireio;
 
-/*!
-\brief Check if a process is running
-\param [in] processName Name of process to check if is running
-\returns \c True if the process is running, or \c False if the process is not running
-*/
-bool IsProcessRunning(const char *processName)
-{
-    bool exists = false;
-    PROCESSENTRY32 entry;
-    entry.dwSize = sizeof(PROCESSENTRY32);
 
-    HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, NULL);
-
-    if (Process32First(snapshot, &entry))
-        while (Process32Next(snapshot, &entry))
-            if (!strcmp(entry.szExeFile, processName))
-                exists = true;
-
-    CloseHandle(snapshot);
-    return exists;
-}
 
 /**
 * Constructor. 
@@ -71,7 +50,7 @@ BaseDirect3D9::BaseDirect3D9(IDirect3D9* pD3D) :
 {
 	cfg = new ProxyConfig();
 	
-	if(!IsProcessRunning("Perception.exe")) {
+	if(!ProxyHelper::IsProcessRunning("Perception.exe")) {
 		OutputDebugString("[WARN] Perception Application is not running. Vireio will not be active.\n");
 	}
 	else
@@ -80,7 +59,7 @@ BaseDirect3D9::BaseDirect3D9(IDirect3D9* pD3D) :
 		m_perceptionRunning = true;
 
 		// load configuration file
-		ProxyHelper helper = ProxyHelper();
+		ProxyHelper helper;
 		ProxyHelper::OculusProfile oculusProfile;
 		configLoaded = true;
 		if(!helper.LoadConfig(*cfg, oculusProfile)) {
@@ -260,14 +239,50 @@ HMONITOR WINAPI BaseDirect3D9::GetAdapterMonitor(UINT Adapter)
 ***/
 HRESULT WINAPI BaseDirect3D9::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, HWND hFocusWindow,DWORD BehaviorFlags, D3DPRESENT_PARAMETERS* pPresentationParameters,IDirect3DDevice9** ppReturnedDeviceInterface)
 {
+	OutputDebugString("BaseDirect3D9::CreateDevice\n");
+
 	HRESULT hResult = S_OK;
-	hResult = m_pD3D->CreateDevice(m_perceptionRunning ? cfg->display_adapter : Adapter, DeviceType, hFocusWindow, BehaviorFlags,
+	IDirect3D9Ex *pDirect3D9Ex = NULL;
+	if (SUCCEEDED(m_pD3D->QueryInterface(IID_IDirect3D9Ex, reinterpret_cast<void**>(&pDirect3D9Ex))))
+	{
+		//Force no VSYNC in DX9Ex mode
+		D3DPRESENT_PARAMETERS presentationParameters = *pPresentationParameters;
+		presentationParameters.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
+
+		hResult = pDirect3D9Ex->CreateDevice(m_perceptionRunning ? cfg->display_adapter : Adapter, DeviceType, hFocusWindow, BehaviorFlags,
+			&presentationParameters, ppReturnedDeviceInterface);
+
+		if (*ppReturnedDeviceInterface)
+		{
+			IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
+			if (SUCCEEDED((*ppReturnedDeviceInterface)->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))))
+			{
+				if (SUCCEEDED(hResult))
+					OutputDebugString("[OK] Direct3DDevice9Ex created\n");
+	
+				pDirect3DDevice9Ex->Release();
+			}
+			else
+			{
+				OutputDebugString("[OK] Normal D3D device created\n");
+			}
+		}
+	}
+	else
+	{
+		OutputDebugString("F\n");
+		hResult = m_pD3D->CreateDevice(m_perceptionRunning ? cfg->display_adapter : Adapter, DeviceType, hFocusWindow, BehaviorFlags,
 		pPresentationParameters, ppReturnedDeviceInterface);
+		if (SUCCEEDED(hResult))
+			OutputDebugString("[OK] Normal D3D device created\n");
+	}
+
 	if(FAILED(hResult))
+	{
+		OutputDebugString("[ERROR] No D3DDevice9 Created\n");
 		return hResult;
+	}
 
-
-	OutputDebugString("[OK] Normal D3D device created\n");
 
 	debugf("Number of back buffers = %d\n", pPresentationParameters->BackBufferCount);
 	debugf("Format of back buffers = %x\n", pPresentationParameters->BackBufferFormat);
@@ -322,7 +337,7 @@ HRESULT WINAPI BaseDirect3D9::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, 
 	OutputDebugString("[OK] Stereo mode is enabled.\n");
 
 	debugf("Config type: %s", cfg->game_type.c_str());
-	OutputDebugString("\n");
+	debugf("Stereo: %i", userConfig.mode);
 
 	// Create and return proxy
 	*ppReturnedDeviceInterface = D3DProxyDeviceFactory::Get(*cfg, userConfig, *ppReturnedDeviceInterface, this);

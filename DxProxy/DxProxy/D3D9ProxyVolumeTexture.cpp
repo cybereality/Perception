@@ -37,8 +37,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 D3D9ProxyVolumeTexture::D3D9ProxyVolumeTexture(IDirect3DVolumeTexture9* pActualVolumeTexture, BaseDirect3DDevice9* pOwningDevice) :
 	BaseDirect3DVolumeTexture9(pActualVolumeTexture),
 	m_wrappedVolumeLevels(),
-	m_pOwningDevice(pOwningDevice)
+	m_pOwningDevice(pOwningDevice),
+	lockableSysMemVolume(NULL)
 {
+	SHOW_CALL("D3D9ProxyVolumeTexture::D3D9ProxyVolumeTexture");
 	assert (pOwningDevice != NULL);
 
 	m_pOwningDevice->AddRef();
@@ -50,6 +52,7 @@ D3D9ProxyVolumeTexture::D3D9ProxyVolumeTexture(IDirect3DVolumeTexture9* pActualV
 ***/
 D3D9ProxyVolumeTexture::~D3D9ProxyVolumeTexture()
 {
+	SHOW_CALL("D3D9ProxyVolumeTexture::~D3D9ProxyVolumeTexture");
 	// delete all surfaces in m_levels
 	auto it = m_wrappedVolumeLevels.begin();
 	while (it != m_wrappedVolumeLevels.end()) {
@@ -58,6 +61,9 @@ D3D9ProxyVolumeTexture::~D3D9ProxyVolumeTexture()
 		delete it->second;
 		it = m_wrappedVolumeLevels.erase(it);
 	}
+
+	if (lockableSysMemVolume)
+		lockableSysMemVolume->Release();
 
 	if (m_pOwningDevice)
 		m_pOwningDevice->Release();
@@ -72,8 +78,9 @@ D3D9ProxyVolumeTexture::~D3D9ProxyVolumeTexture()
 * Failure to call IUnknown::Release when finished using this IDirect3DDevice9 interface results in a 
 * memory leak.
 */
-HRESULT WINAPI D3D9ProxyVolumeTexture::GetDevice(IDirect3DDevice9** ppDevice)
+HRESULT D3D9ProxyVolumeTexture::GetDevice(IDirect3DDevice9** ppDevice)
 {
+	SHOW_CALL("D3D9ProxyVolumeTexture::GetDevice");
 	if (!m_pOwningDevice)
 		return D3DERR_INVALIDCALL;
 	else {
@@ -88,8 +95,9 @@ HRESULT WINAPI D3D9ProxyVolumeTexture::GetDevice(IDirect3DDevice9** ppDevice)
 * If proxy volume is already stored on this level, return this one, otherwise create it.
 * To create a new stored volume level, call the method on both (left/right) actual volumes.
 ***/
-HRESULT WINAPI D3D9ProxyVolumeTexture::GetVolumeLevel(UINT Level, IDirect3DVolume9** ppVolumeLevel)
+HRESULT D3D9ProxyVolumeTexture::GetVolumeLevel(UINT Level, IDirect3DVolume9** ppVolumeLevel)
 {
+	SHOW_CALL("D3D9ProxyVolumeTexture::GetVolumeLevel");
 	HRESULT finalResult;
 
 	// Have we already got a Proxy for this surface level?
@@ -141,6 +149,195 @@ HRESULT WINAPI D3D9ProxyVolumeTexture::GetVolumeLevel(UINT Level, IDirect3DVolum
 	}
 
 	return finalResult;
+}
+
+
+HRESULT              D3D9ProxyVolumeTexture::SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags)
+{
+	SHOW_CALL("D3D9ProxyVolumeTexture::SetPrivateData");
+	return m_pActualTexture->SetPrivateData(refguid, pData, SizeOfData, Flags);
+}
+
+HRESULT              D3D9ProxyVolumeTexture::GetPrivateData(REFGUID refguid, void* pData, DWORD* pSizeOfData)
+{
+	SHOW_CALL("D3D9ProxyVolumeTexture::GetPrivateData");
+	return m_pActualTexture->GetPrivateData(refguid, pData, pSizeOfData);
+
+}
+
+HRESULT              D3D9ProxyVolumeTexture::FreePrivateData(REFGUID refguid)
+{
+	SHOW_CALL("D3D9ProxyVolumeTexture::FreePrivateData");
+	return m_pActualTexture->FreePrivateData(refguid);
+
+}
+
+DWORD                D3D9ProxyVolumeTexture::SetPriority(DWORD PriorityNew)
+{
+	SHOW_CALL("D3D9ProxyVolumeTexture::SetPriority");
+	return m_pActualTexture->SetPriority(PriorityNew);
+
+}
+
+DWORD                D3D9ProxyVolumeTexture::GetPriority()
+{
+	SHOW_CALL("D3D9ProxyVolumeTexture::GetPriority");
+	return m_pActualTexture->GetPriority();
+
+}
+
+void                 D3D9ProxyVolumeTexture::PreLoad()
+{
+	SHOW_CALL("D3D9ProxyVolumeTexture::PreLoad");
+	return m_pActualTexture->PreLoad();
+
+}
+
+D3DRESOURCETYPE      D3D9ProxyVolumeTexture::GetType()
+{
+	SHOW_CALL("D3D9ProxyVolumeTexture::GetType");
+	return m_pActualTexture->GetType();
+
+}
+
+DWORD                D3D9ProxyVolumeTexture::SetLOD(DWORD LODNew)
+{
+	SHOW_CALL("D3D9ProxyVolumeTexture::SetLOD");
+	return m_pActualTexture->SetLOD(LODNew);
+
+}
+
+DWORD                D3D9ProxyVolumeTexture::GetLOD()
+{
+	SHOW_CALL("D3D9ProxyVolumeTexture::GetLOD");
+	return m_pActualTexture->GetLOD();
+
+}
+
+DWORD                D3D9ProxyVolumeTexture::GetLevelCount()
+{
+	SHOW_CALL("D3D9ProxyVolumeTexture::GetLevelCount");
+	return m_pActualTexture->GetLevelCount();
+
+}
+
+HRESULT              D3D9ProxyVolumeTexture::SetAutoGenFilterType(D3DTEXTUREFILTERTYPE FilterType)
+{
+	SHOW_CALL("D3D9ProxyVolumeTexture::SetAutoGenFilterType");
+	return m_pActualTexture->SetAutoGenFilterType(FilterType);
+
+}
+
+D3DTEXTUREFILTERTYPE D3D9ProxyVolumeTexture::GetAutoGenFilterType()
+{
+	SHOW_CALL("D3D9ProxyVolumeTexture::GetAutoGenFilterType");
+	return m_pActualTexture->GetAutoGenFilterType();
+
+}
+
+void                 D3D9ProxyVolumeTexture::GenerateMipSubLevels()
+{
+	SHOW_CALL("D3D9ProxyVolumeTexture::GenerateMipSubLevels");
+	return m_pActualTexture->GenerateMipSubLevels();
+
+}
+
+HRESULT              D3D9ProxyVolumeTexture::GetLevelDesc(UINT Level, D3DVOLUME_DESC *pDesc)
+{
+	SHOW_CALL("D3D9ProxyVolumeTexture::GetLevelDesc");
+	return m_pActualTexture->GetLevelDesc(Level, pDesc);
+
+}
+
+HRESULT    D3D9ProxyVolumeTexture::LockBox(UINT Level, D3DLOCKED_BOX *pLockedVolume, const D3DBOX *pBox, DWORD Flags)
+{
+	SHOW_CALL("D3D9ProxyVolumeTexture::LockBox");
+
+	D3DVOLUME_DESC desc;
+	m_pActualTexture->GetLevelDesc(Level, &desc);
+	if (desc.Pool != D3DPOOL_DEFAULT)
+	{
+		//Can't really handle stereo for this, so just lock on the original texture
+		return m_pActualTexture->LockBox(Level, pLockedVolume, pBox, Flags);
+	}
+
+	//Create lockable system memory surfaces
+	HRESULT hr = D3DERR_INVALIDCALL;
+	if (!lockableSysMemVolume)
+	{
+		hr = m_pOwningDevice->getActual()->CreateVolumeTexture(desc.Width, desc.Height, desc.Depth, 1, 0, 
+			desc.Format, D3DPOOL_SYSTEMMEM, &lockableSysMemVolume, NULL);
+		if (FAILED(hr))
+			return hr;
+	}
+
+	if (((Flags|D3DLOCK_NO_DIRTY_UPDATE) != D3DLOCK_NO_DIRTY_UPDATE) &&
+		((Flags|D3DLOCK_READONLY) != D3DLOCK_READONLY))
+		hr = m_pActualTexture->AddDirtyBox(pBox);
+
+	hr = lockableSysMemVolume->LockBox(Level, pLockedVolume, pBox, Flags);
+	if (FAILED(hr))
+		return hr;
+
+	return hr;
+}
+
+HRESULT D3D9ProxyVolumeTexture::UnlockBox(UINT Level)
+{
+	SHOW_CALL("D3D9ProxyVolumeTexture::UnlockBox");
+	D3DVOLUME_DESC desc;
+	m_pActualTexture->GetLevelDesc(Level, &desc);
+	if (desc.Pool != D3DPOOL_DEFAULT)
+	{
+		return m_pActualTexture->UnlockBox(Level);
+	}
+
+//	IDirect3DVolume9 *pVolume= NULL;
+//	HRESULT hr = lockableSysMemVolumes[Level] ? lockableSysMemVolumes[Level]->GetVolumeLevel(0, &pVolume) : D3DERR_INVALIDCALL;
+//	if (FAILED(hr))
+//		return hr;
+
+	HRESULT hr = lockableSysMemVolume->UnlockBox(Level);
+	if (FAILED(hr))
+		return hr;
+
+//	IDirect3DSurface9 *pActualSurface = NULL;
+//	hr = m_pActualTexture->GetSurfaceLevel(Level, &pActualSurface);
+//	if (FAILED(hr))
+//		return hr;
+//	if (fullSurfaces[Level])
+	{
+		hr = m_pOwningDevice->getActual()->UpdateTexture(lockableSysMemVolume, m_pActualTexture);
+		if (FAILED(hr))
+			return hr;
+	}
+/*	else
+	{
+		std::vector<RECT>::iterator rectIter = lockedRects[Level].begin();
+		while (rectIter != lockedRects[Level].end())
+		{
+			POINT p;
+			p.x = rectIter->left;
+			p.y = rectIter->top;
+			hr = m_pOwningDevice->getActual()->UpdateSurface(pSurface, &(*rectIter), pActualSurface, &p);
+			if (FAILED(hr))
+				return hr;
+			rectIter++;
+		}
+	}*/
+
+	//Release everything
+	//pActualSurface->Release();
+//	pSurface->Release();
+	
+//	fullSurfaces[Level] = false;
+	return hr;
+}
+
+HRESULT              D3D9ProxyVolumeTexture::AddDirtyBox(const D3DBOX *pDirtyBox)
+{
+	SHOW_CALL("D3D9ProxyVolumeTexture::AddDirtyBox");
+	return m_pActualTexture->AddDirtyBox(pDirtyBox);
 }
 
 /**

@@ -33,10 +33,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 
 #include "..\..\LibOVR\include\OVR.h"
-#include "..\..\LibOVR\Src\OVR_Stereo.h"
-#include "..\..\LibOVR\Src\OVR_Profile.h"
-#include "..\..\LibOVR\Src\CAPI\CAPI_HMDState.h"
-#include "..\..\LibOVR\Src\Sensors\OVR_DeviceConstants.h"
+
 
 using namespace vireio;
 
@@ -68,9 +65,9 @@ void OculusTracker::init()
 {
 	OutputDebugString("OculusTracker Start");
 	status = MTS_INITIALISING;
-	ovrBool res = ovr_Initialize(); // start LibOVR
+	ovrResult res = ovr_Initialize(NULL); // start LibOVR
 
-	if (res)
+	if (OVR_SUCCESS(res))
 	{
 		OutputDebugString("OculusTracker Initialize");
 	}
@@ -81,35 +78,33 @@ void OculusTracker::init()
 		return;
 	}
 	 
-	int detected = ovrHmd_Detect();
-	if (detected == 0)
+	res = ovrHmd_Detect();
+	if (!OVR_SUCCESS(res))
 	{
 		OutputDebugString("No HMD detected, use a dummy DK1");
-		hmd=ovrHmd_CreateDebug(ovrHmd_DK1);
+		ovrHmd_CreateDebug(ovrHmd_DK1, &hmd);
 		status = MTS_NOHMDDETECTED;
 		strcpy_s(trackerDescription, "No HMD Detected");
 		return;
 	}
 	else
 	{
-		hmd=ovrHmd_Create(0);
+		ovrHmd_Create(0, &hmd);
 		strcpy_s(trackerDescription, (std::string(hmd->ProductName) + "   Serial: " + hmd->SerialNumber).c_str());
-		OVR::CAPI::HMDState *pHMDState = (OVR::CAPI::HMDState*)(hmd->Handle);
-		if (pHMDState->OurHMDInfo.HmdType == OVR::HmdType_DK2)
+		if (hmd->Type == ovrHmd_DK2)
 			supportsPositional = true;
 	}
 
+	ovrHmd_SetEnabledCaps(hmd, ovrHmdCap_LowPersistence | ovrHmdCap_DynamicPrediction);
 
 	unsigned int trackingCaps = ovrTrackingCap_Orientation | ovrTrackingCap_MagYawCorrection | ovrTrackingCap_Position;
-	ovrBool success = ovrHmd_ConfigureTracking(hmd, trackingCaps, 0);
+	res = ovrHmd_ConfigureTracking(hmd, trackingCaps, 0);
 
-	if (!success)
+	if (!OVR_SUCCESS(res))
 	{
 		OutputDebugString("oculus tracker failed to initialise tracking");
 		status = MTS_INITFAIL;
 	}
-
-	resetOrientationAndPosition();
 
 	OutputDebugString("oculus tracker initted");
 	if (status == MTS_INITIALISING)
@@ -130,34 +125,6 @@ bool OculusTracker::SupportsPositionTracking()
 	return supportsPositional;
 }
 
-
-
-void OculusTracker::BeginFrame()
-{
-	static unsigned int frameID = 0;
-	//return;
-	if (status >= MTS_OK  && useSDKPosePrediction)
-	{
-		FrameRef=ovrHmd_BeginFrameTiming(hmd,frameID++);
-	}
-}
-
-void OculusTracker::WaitTillTime()
-{
-	if (status >= MTS_OK && useSDKPosePrediction)
-	{
-		ovr_WaitTillTime(FrameRef.TimewarpPointSeconds);
-	}
-}
-
-void OculusTracker::EndFrame()
-{
-	if (status >= MTS_OK && useSDKPosePrediction)
-	{
-		ovrHmd_EndFrameTiming(hmd);
-	}
-}
-
 /**
 * Oculus reset.
 * Resets the orientation - As per Oculus VR, only yaw/x/y/z should be reset
@@ -166,41 +133,8 @@ void OculusTracker::resetOrientationAndPosition()
 {
 	SHOW_CALL("OculusTracker resetOrientationAndPosition\n");
 
-	offsetYaw = 0.0f;
-	offsetPitch = 0.0f;
-	offsetRoll = 0.0f;
-	offsetX = 0.0f;
-	offsetY = 0.0f;
-	offsetZ = 0.0f;
-
 	//Force OVR positional reset
 	ovrHmd_RecenterPose(hmd);
-
-	ovrTrackingState ts = ovrHmd_GetTrackingState(hmd, ovr_GetTimeInSeconds());
-	
-	if (ts.StatusFlags & ovrStatus_OrientationTracked)
-	{
-		Quatf hmdOrient=ts.HeadPose.ThePose.Orientation;
-		hmdOrient.GetEulerAngles<Axis_Y,Axis_X,Axis_Z>(&offsetYaw, &offsetPitch, &offsetRoll);
-	}
-	else
-		status = MTS_NOORIENTATION;
-	
-	if (ts.StatusFlags & ovrStatus_PositionConnected)
-	{
-		if (ts.StatusFlags & ovrStatus_PositionTracked)
-		{
-			offsetX = ts.HeadPose.ThePose.Position.x;
-			offsetY = ts.HeadPose.ThePose.Position.y;
-			offsetZ = ts.HeadPose.ThePose.Position.z;
-		}
-		else
-			status = MTS_LOSTPOSITIONAL;
-	}
-
-#ifdef SHOW_CALLS
-	debugf("resetOrientationAndPosition: %i", (int)status);
-#endif 
 }
 
 /**
@@ -217,24 +151,6 @@ void OculusTracker::resetPosition()
 
 	//Force OVR positional reset
 	ovrHmd_RecenterPose(hmd);
-
-	ovrTrackingState ts = ovrHmd_GetTrackingState(hmd, ovr_GetTimeInSeconds());
-	
-	if (ts.StatusFlags & ovrStatus_PositionConnected)
-	{
-		if (ts.StatusFlags & ovrStatus_PositionTracked)
-		{
-			offsetX = ts.HeadPose.ThePose.Position.x;
-			offsetY = ts.HeadPose.ThePose.Position.y;
-			offsetZ = ts.HeadPose.ThePose.Position.z;
-		}
-		else
-			status = MTS_LOSTPOSITIONAL;
-	}
-
-#ifdef SHOW_CALLS
-	debugf("resetPosition: %i", (int)status);
-#endif 
 }
 
 /**
@@ -246,7 +162,9 @@ int OculusTracker::getOrientationAndPosition(float* yaw, float* pitch, float* ro
 {
 	SHOW_CALL("OculusTracker getOrientationAndPosition\n");
 
-	ovrTrackingState ts = ovrHmd_GetTrackingState(hmd, useSDKPosePrediction ? FrameRef.ScanoutMidpointSeconds : ovr_GetTimeInSeconds());
+	//Use next frame's display mid point, better than "now" was I think
+	ovrFrameTiming  ftiming  = ovrHmd_GetFrameTiming(hmd, 0);
+	ts = ovrHmd_GetTrackingState(hmd, ftiming.DisplayMidpointSeconds);
 
 	if (ts.StatusFlags & ovrStatus_OrientationTracked)
 	{
@@ -256,11 +174,11 @@ int OculusTracker::getOrientationAndPosition(float* yaw, float* pitch, float* ro
 		// set primary orientations
 		primaryYaw = *yaw - offsetYaw;
 		//As per oculus vr, roll and pitch should not be reset, only yaw/x/y/z
-		primaryPitch = *pitch;// - offsetPitch;
-		primaryRoll = *roll;// - offsetRoll;
+		primaryPitch = *pitch;
+		primaryRoll = *roll;
 		*yaw = -RadToDegree(*yaw - offsetYaw);
-		*pitch = RadToDegree(*pitch);// - offsetPitch);
-		*roll = -RadToDegree(*roll);// - offsetRoll);
+		*pitch = RadToDegree(*pitch);
+		*roll = -RadToDegree(*roll);
 		status = MTS_OK;
 	}
 	else
@@ -289,13 +207,6 @@ int OculusTracker::getOrientationAndPosition(float* yaw, float* pitch, float* ro
 		else
 			status = MTS_LOSTPOSITIONAL;
 	}
-
-#ifdef SHOW_CALLS
-	debugf("Yaw: %.4f Pitch: %.4f Roll: %.4f", primaryYaw, primaryPitch, primaryRoll); 
-	debugf("X: %.4f Y: %.4f Z: %.4f", primaryX, primaryY, primaryZ); 
-
-	debugf("getOrientationAndPosition: %i", (int)status);
-#endif
 
 	return (int)status; 
 }
@@ -333,9 +244,6 @@ void OculusTracker::updateOrientationAndPosition()
 		deltaYaw -= ((float)mouseData.mi.dx)/multiplierYaw;
 		deltaPitch -= ((float)mouseData.mi.dy)/multiplierPitch;
 
-#ifdef SHOW_CALLS
-		OutputDebugString("Motion Tracker SendInput\n");
-#endif
 		// Send to mouse input.
 		if (mouseEmulation)
 			SendInput(1, &mouseData, sizeof(INPUT));
@@ -344,10 +252,6 @@ void OculusTracker::updateOrientationAndPosition()
 		currentYaw = yaw;
 		currentPitch = pitch;
 		currentRoll = (float)( roll * (PI/180.0) * multiplierRoll);	// convert from deg to radians then apply mutiplier
-#ifdef SHOW_CALLS
-		debugf("roll: %.4f multiplierRoll: %.4f", roll, multiplierRoll); 
-		debugf("currentYaw: %.4f currentPitch: %.4f currentRoll: %.4f", currentYaw, currentPitch, currentRoll); 
-#endif
 	}
 }
 

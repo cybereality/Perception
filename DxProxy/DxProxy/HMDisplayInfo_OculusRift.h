@@ -42,69 +42,38 @@ public:
 #pragma warning( push )
 #pragma warning( disable : 4351 ) //disable "new behaviour warning for default initialised array" for this constructor
 
-	/**
-	* All rift values from OVR_Win32_HMDDevice.cpp in LibOVR
-	* Default constructing with Rift DK1 values.
-	***/
 	HMDisplayInfo_OculusRift() :
 	   //Just use the constructor of the base class
 		HMDisplayInfo(),
 		m_status(HMD_STATUS_OK)
 	{
 		OutputDebugString("HMDisplayInfo_OculusRift()\n");
-		ovr_Initialize();
+		ovrResult res = ovr_Initialize(NULL);
 
-		int detected = ovrHmd_Detect();
-		if (detected == 0)
+		if (!OVR_SUCCESS(res))
+		{
+			throw std::exception("Failed to initialise OVR");
+		}
+
+		ovrResult result = ovrHmd_Detect();
+		if (!OVR_SUCCESS(result))
 		{
 			OutputDebugString("No HMD Detected - Creating Debug DK2\n");
-			hmd=ovrHmd_CreateDebug(ovrHmd_DK2);
+			ovrHmd_CreateDebug(ovrHmd_DK2, &hmd);
 		}
 		else
 		{
-			hmd=ovrHmd_Create(0);
+			ovrHmd_Create(0, &hmd);
 			if (!hmd)
 			{
 				OutputDebugString("Unable to create HMD of correct type - Creating Debug DK2\n");
-				hmd=ovrHmd_CreateDebug(ovrHmd_DK2);
+				ovrHmd_CreateDebug(ovrHmd_DK2, &hmd);
 			}
 		}
-		std::stringstream sstm;
 
-		//Get some details from OVR SDK
-		OVR::CAPI::HMDState *pHMDState = (OVR::CAPI::HMDState*)(hmd->Handle);
-		const char *pUserStr = OVR::ProfileManager::GetInstance()->GetUser(0);
-		
-		try
+		switch (hmd->Type)
 		{
-			if (pUserStr)
-			{
-				std::string user = pUserStr;
-				OVR::ProfileDeviceKey pdk(&(pHMDState->OurHMDInfo));
-				OVR::Profile* profile = OVR::ProfileManager::GetInstance()->GetProfile(pdk, user.c_str());
-				if (profile)
-				{
-					sstm << "Using Oculus Profile: " << std::endl;
-					sstm << OVR_KEY_USER << ": " << profile->GetValue(OVR_KEY_USER)  << std::endl;
-					sstm << "HmdType: " << (int)pHMDState->OurHMDInfo.HmdType  << std::endl;
-					//clean up
-					delete profile;
-				}
-				else
-					throw std::exception("No Oculus Profile Defined!!");
-			}
-			else
-				throw std::exception("No Oculus Profile Defined!!");
-		}
-		catch (std::exception e)
-		{
-			sstm << e.what() << std::endl;
-			m_status = HMD_STATUS_ERROR;
-		}
-
-		switch (pHMDState->OurHMDInfo.HmdType)
-		{
-		case OVR::HmdType_DK1:
+		case ovrHmd_DK1:
 			{
 				// Rift dev kit 
 				distortionCoefficients[0] = 1.0f;
@@ -119,7 +88,7 @@ public:
 				chromaCoefficients[3]        =  0.0f;
 			}
 			break;
-		case OVR::HmdType_DKHD2Proto:
+		case ovrHmd_DKHD:
 			{
 				// RiftUp!
 				distortionCoefficients[0] = 1.0f;
@@ -134,7 +103,7 @@ public:
 				chromaCoefficients[3]        =  0.0f;
 			}
 			break;
-		case OVR::HmdType_DK2:
+		case ovrHmd_DK2:
 			{
 				// Rift dev kit 2 OVR_Stereo.cpp
 				distortionCoefficients[0] = 1.0f;
@@ -152,9 +121,8 @@ public:
 		}
 
 		//std::stringstream sstm;
-		sstm << "scaleToFillHorizontal: " << GetScaleToFillHorizontal() << std::endl;
-		OutputDebugString(sstm.str().c_str()); 
-	}
+		vireio::debugf("scaleToFillHorizontal: %f\n", GetScaleToFillHorizontal());
+ 	}
 
 	~HMDisplayInfo_OculusRift()
 	{
@@ -179,20 +147,14 @@ public:
 	***/
 	virtual std::pair<float, float> GetPhysicalScreenSize()
 	{
-		static std::pair<float, float> physicalScreenSize;
-		
-		OVR::CAPI::HMDState *pHMDState = (OVR::CAPI::HMDState*)(hmd->Handle);
-		physicalScreenSize.first = pHMDState->OurHMDInfo.ScreenSizeInMeters.w;
-		physicalScreenSize.second = pHMDState->OurHMDInfo.ScreenSizeInMeters.h;
-		return physicalScreenSize;
-	}
-
-	/**
-	* Currently constant eye to screen distance (according to rift dev kit 1)
-	***/
-	virtual float GetEyeToScreenDistance()
-	{
-		return 0.041f;
+		switch (hmd->Type)
+		{
+		case ovrHmd_DK1: return std::pair<float,float>(0.1498f, 0.0936f);
+		case ovrHmd_DKHD: return std::pair<float,float>(0.12576f, 0.07074f);
+		case ovrHmd_DK2: return std::pair<float,float>(0.12576f, 0.07074f);
+		default:
+			throw std::exception("Unrecognized HMD type; could not get screen size");
+		}
 	}
 
 	/**
@@ -200,42 +162,8 @@ public:
 	***/
 	virtual float GetPhysicalLensSeparation()
 	{
-		static float separation = 0.0f;
-		if (separation == 0.0f)
-		{
-			try
-			{
-				//Get some details from OVR SDK
-				OVR::CAPI::HMDState *pHMDState = (OVR::CAPI::HMDState*)(hmd->Handle);
-				const char *pUserStr = OVR::ProfileManager::GetInstance()->GetUser(0);
-				if (pUserStr)
-				{
-					std::string user = pUserStr;
-					OVR::ProfileDeviceKey pdk(&(pHMDState->OurHMDInfo));
-					OVR::Profile* profile = OVR::ProfileManager::GetInstance()->GetProfile(pdk, user.c_str());
-					if (profile)
-					{
-						OVR::ProfileDeviceKey pdk(&(pHMDState->OurHMDInfo));
-						OVR::Profile* profile = OVR::ProfileManager::GetInstance()->GetProfile(pdk, user.c_str());
-						OVR::HmdRenderInfo renderInfo = OVR::GenerateHmdRenderInfoFromHmdInfo(pHMDState->OurHMDInfo, profile, OVR::DistortionEqnType::Distortion_CatmullRom10);
-						separation = renderInfo.LensSeparationInMeters;
-						//clean up
-						delete profile;
-					}
-					else
-						throw std::exception("No Oculus Profile Defined!!");
-				}
-				else
-					throw std::exception("No Oculus Profile Defined!!");
-			}
-			catch (std::exception e)
-			{
-				separation = 0.064f;
-				OutputDebugString(e.what());
-				m_status = HMD_STATUS_ERROR;
-			}
-		}
-
+		static float separation = 0.0635f;
+		//Hard-coded for now
 		return separation;
 	}
 	
@@ -246,15 +174,6 @@ public:
 	virtual float GetLensYCenterOffset()
 	{
 		return 0.5f;
-	}
-
-	/**
-	* The distance in a -1 to 1 range that offsets the center of each lens is from the center of each half of
-	* the screen on X axis
-	***/
-	virtual float GetLensIPDCenterOffset()
-	{
-		return 0.0f;
 	}
 
 	/**

@@ -30,6 +30,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "D3D9ProxyTexture.h"
 #include <assert.h>
 
+#include <VireioUtil.h>
+
 /**
 * Constructor.
 * @see D3D9ProxySurface::D3D9ProxySurface
@@ -38,8 +40,10 @@ D3D9ProxyTexture::D3D9ProxyTexture(IDirect3DTexture9* pActualTextureLeft, IDirec
 	BaseDirect3DTexture9(pActualTextureLeft),
 	m_pActualTextureRight(pActualTextureRight),
 	m_wrappedSurfaceLevels(),
-	m_pOwningDevice(pOwningDevice)
+	m_pOwningDevice(pOwningDevice),
+	lockableSysMemTexture(NULL)
 {
+	SHOW_CALL("D3D9ProxyTexture::D3D9ProxyTexture");
 	assert (pOwningDevice != NULL);
 
 	m_pOwningDevice->AddRef();
@@ -51,6 +55,7 @@ D3D9ProxyTexture::D3D9ProxyTexture(IDirect3DTexture9* pActualTextureLeft, IDirec
 ***/
 D3D9ProxyTexture::~D3D9ProxyTexture()
 {
+	SHOW_CALL("D3D9ProxyTexture::~D3D9ProxyTexture");
 	// delete all surfaces in m_levels
 	auto it = m_wrappedSurfaceLevels.begin();
 	while (it != m_wrappedSurfaceLevels.end()) {
@@ -58,6 +63,14 @@ D3D9ProxyTexture::~D3D9ProxyTexture()
 		// calling back to the container Release.
 		delete it->second;
 		it = m_wrappedSurfaceLevels.erase(it);
+	}
+
+	//Cleanup 
+	auto it2 = lockableSysMemTexture.begin();
+	while (it2 != lockableSysMemTexture.end())
+	{
+		if (it2->second) it2->second->Release();
+		++it2;
 	}
 
 	if (m_pActualTextureRight)
@@ -76,6 +89,7 @@ D3D9ProxyTexture::~D3D9ProxyTexture()
 ***/
 HRESULT WINAPI D3D9ProxyTexture::QueryInterface(REFIID riid, LPVOID* ppv)
 {
+	SHOW_CALL("D3D9ProxyTexture::QueryInterface");
 	/* IID_IDirect3DTexture9 */
 	/* {85C31227-3DE5-4f00-9B3A-F11AC38C18B5} */
 	IF_GUID(riid,0x85c31227,0x3de5,0x4f00,0x9b,0x3a,0xf1,0x1a)
@@ -104,6 +118,7 @@ HRESULT WINAPI D3D9ProxyTexture::QueryInterface(REFIID riid, LPVOID* ppv)
 */
 HRESULT WINAPI D3D9ProxyTexture::GetDevice(IDirect3DDevice9** ppDevice)
 {
+	SHOW_CALL("D3D9ProxyTexture::GetDevice");
 	if (!m_pOwningDevice)
 		return D3DERR_INVALIDCALL;
 	else {
@@ -118,7 +133,8 @@ HRESULT WINAPI D3D9ProxyTexture::GetDevice(IDirect3DDevice9** ppDevice)
 ***/
 HRESULT WINAPI D3D9ProxyTexture::SetPrivateData(REFGUID refguid, CONST void* pData, DWORD SizeOfData, DWORD Flags)
 {
-	if (IsStereo())
+	SHOW_CALL("D3D9ProxyTexture::SetPrivateData");
+	if (IsStereo() && m_pActualTextureRight)
 		m_pActualTextureRight->SetPrivateData(refguid, pData, SizeOfData, Flags);
 
 	return m_pActualTexture->SetPrivateData(refguid, pData, SizeOfData, Flags);
@@ -129,7 +145,8 @@ HRESULT WINAPI D3D9ProxyTexture::SetPrivateData(REFGUID refguid, CONST void* pDa
 ***/
 HRESULT WINAPI D3D9ProxyTexture::FreePrivateData(REFGUID refguid)
 {
-	if (IsStereo())
+	SHOW_CALL("D3D9ProxyTexture::FreePrivateData");
+	if (IsStereo() && m_pActualTextureRight)
 		m_pActualTextureRight->FreePrivateData(refguid);
 
 	return m_pActualTexture->FreePrivateData(refguid);
@@ -140,7 +157,8 @@ HRESULT WINAPI D3D9ProxyTexture::FreePrivateData(REFGUID refguid)
 ***/
 DWORD WINAPI D3D9ProxyTexture::SetPriority(DWORD PriorityNew)
 {
-	if (IsStereo())
+	SHOW_CALL("D3D9ProxyTexture::SetPriority");
+	if (IsStereo() && m_pActualTextureRight)
 		m_pActualTextureRight->SetPriority(PriorityNew);
 
 	return m_pActualTexture->SetPriority(PriorityNew);
@@ -151,7 +169,8 @@ DWORD WINAPI D3D9ProxyTexture::SetPriority(DWORD PriorityNew)
 ***/
 void WINAPI D3D9ProxyTexture::PreLoad()
 {
-	if (IsStereo())
+	SHOW_CALL("D3D9ProxyTexture::PreLoad");
+	if (IsStereo() && m_pActualTextureRight)
 		m_pActualTextureRight->PreLoad();
 
 	return m_pActualTexture->PreLoad();
@@ -162,7 +181,8 @@ void WINAPI D3D9ProxyTexture::PreLoad()
 ***/
 DWORD WINAPI D3D9ProxyTexture::SetLOD(DWORD LODNew)
 {
-	if (IsStereo())
+	SHOW_CALL("D3D9ProxyTexture::SetLOD");
+	if (IsStereo() && m_pActualTextureRight)
 		m_pActualTextureRight->SetLOD(LODNew);
 
 	return m_pActualTexture->SetLOD(LODNew);
@@ -173,7 +193,8 @@ DWORD WINAPI D3D9ProxyTexture::SetLOD(DWORD LODNew)
 ***/
 HRESULT WINAPI D3D9ProxyTexture::SetAutoGenFilterType(D3DTEXTUREFILTERTYPE FilterType)
 {
-	if (IsStereo())
+	SHOW_CALL("D3D9ProxyTexture::SetAutoGenFilterType");
+	if (IsStereo() && m_pActualTextureRight)
 		m_pActualTextureRight->SetAutoGenFilterType(FilterType);
 
 	return m_pActualTexture->SetAutoGenFilterType(FilterType);
@@ -184,7 +205,8 @@ HRESULT WINAPI D3D9ProxyTexture::SetAutoGenFilterType(D3DTEXTUREFILTERTYPE Filte
 ***/
 void WINAPI D3D9ProxyTexture::GenerateMipSubLevels()
 {
-	if (IsStereo())
+	SHOW_CALL("D3D9ProxyTexture::GenerateMipSubLevels");
+	if (IsStereo() && m_pActualTextureRight)
 		m_pActualTextureRight->GenerateMipSubLevels();
 
 	return m_pActualTexture->GenerateMipSubLevels();
@@ -196,6 +218,7 @@ void WINAPI D3D9ProxyTexture::GenerateMipSubLevels()
 ***/
 HRESULT WINAPI D3D9ProxyTexture::GetSurfaceLevel(UINT Level, IDirect3DSurface9** ppSurfaceLevel)
 {
+	SHOW_CALL("D3D9ProxyTexture::GetSurfaceLevel");
 	HRESULT finalResult;
 
 	// Have we already got a Proxy for this surface level?
@@ -217,7 +240,7 @@ HRESULT WINAPI D3D9ProxyTexture::GetSurfaceLevel(UINT Level, IDirect3DSurface9**
 
 		HRESULT leftResult = m_pActualTexture->GetSurfaceLevel(Level, &pActualSurfaceLevelLeft);
 
-		if (IsStereo()) {
+		if (IsStereo() && m_pActualTextureRight) {
 			HRESULT resultRight = m_pActualTextureRight->GetSurfaceLevel(Level, &pActualSurfaceLevelRight);
 			assert (leftResult == resultRight);
 		}
@@ -225,7 +248,7 @@ HRESULT WINAPI D3D9ProxyTexture::GetSurfaceLevel(UINT Level, IDirect3DSurface9**
 
 		if (SUCCEEDED(leftResult)) {
 
-			D3D9ProxySurface* pWrappedSurfaceLevel = new D3D9ProxySurface(pActualSurfaceLevelLeft, pActualSurfaceLevelRight, m_pOwningDevice, this);
+			D3D9ProxySurface* pWrappedSurfaceLevel = new D3D9ProxySurface(pActualSurfaceLevelLeft, pActualSurfaceLevelRight, m_pOwningDevice, this, NULL, NULL);
 
 			if(m_wrappedSurfaceLevels.insert(std::pair<ULONG, D3D9ProxySurface*>(Level, pWrappedSurfaceLevel)).second) {
 				// insertion of wrapped surface level into m_wrappedSurfaceLevels succeeded
@@ -261,10 +284,110 @@ HRESULT WINAPI D3D9ProxyTexture::GetSurfaceLevel(UINT Level, IDirect3DSurface9**
 ***/
 HRESULT WINAPI D3D9ProxyTexture::LockRect(UINT Level, D3DLOCKED_RECT* pLockedRect, CONST RECT* pRect, DWORD Flags)
 {
-	if (IsStereo())
-		m_pActualTextureRight->LockRect(Level, pLockedRect, pRect, Flags);
+	SHOW_CALL("D3D9ProxyTexture::LockRect");
 
-	return m_pActualTexture->LockRect(Level, pLockedRect, pRect, Flags);
+	D3DSURFACE_DESC desc;
+	m_pActualTexture->GetLevelDesc(Level, &desc);
+	if (desc.Pool != D3DPOOL_DEFAULT)
+	{
+		//Can't really handle stereo for this, so just lock on the original texture
+		return m_pActualTexture->LockRect(Level, pLockedRect, pRect, Flags);
+	}
+
+	//Guard against multithreaded access as this could be causing us problems
+	std::lock_guard<std::mutex> lck (m_mtx);
+
+	//Initialise
+	if (lockableSysMemTexture.find(Level) == lockableSysMemTexture.end())
+	{
+		lockableSysMemTexture[Level] = NULL;
+		fullSurfaces[Level] = false;
+	}
+
+	if (!pRect)
+		fullSurfaces[Level] = true;
+	else if (!fullSurfaces[Level])
+	{
+		lockedRects[Level].push_back(*pRect);
+	}
+
+	bool newTexture = false;
+	HRESULT hr = D3DERR_INVALIDCALL;
+	if (!lockableSysMemTexture[Level])
+	{
+		hr = m_pOwningDevice->getActual()->CreateTexture(desc.Width, desc.Height, 1, 0, 
+			desc.Format, D3DPOOL_SYSTEMMEM, &lockableSysMemTexture[Level], NULL);
+		newTexture = true;
+
+		if (FAILED(hr))
+		{
+			//DXT textures can't be less than 4 pixels in either width or height
+			if (desc.Width < 4) desc.Width = 4;
+			if (desc.Height < 4) desc.Height = 4;
+			hr = m_pOwningDevice->getActual()->CreateTexture(desc.Width, desc.Height, 1, 0, 
+				desc.Format, D3DPOOL_SYSTEMMEM, &lockableSysMemTexture[Level], NULL);
+			newTexture = true;
+			if (FAILED(hr))
+			{
+				vireio::debugf("Failed: m_pOwningDevice->getActual()->CreateTexture hr = 0x%0.8x", hr);
+				return hr;
+			}
+
+		}
+	}
+
+	
+	IDirect3DSurface9 *pSurface = NULL;
+	hr = lockableSysMemTexture[Level]->GetSurfaceLevel(0, &pSurface);
+	if (FAILED(hr))
+	{
+		vireio::debugf("Failed: lockableSysMemTexture[Level]->GetSurfaceLevel hr = 0x%0.8x", hr);
+		return hr;
+	}
+
+	if (newTexture)
+	{
+		IDirect3DSurface9 *pActualSurface = NULL;
+		hr = m_pActualTexture->GetSurfaceLevel(Level, &pActualSurface);
+		if (FAILED(hr))
+		{
+			vireio::debugf("Failed: m_pActualTexture->GetSurfaceLevel hr = 0x%0.8x", hr);
+			return hr;
+		}
+
+		hr = D3DXLoadSurfaceFromSurface(pSurface, NULL, NULL, pActualSurface, NULL, NULL, D3DX_DEFAULT, 0);
+		if (FAILED(hr))
+		{
+#ifdef _DEBUG
+			vireio::debugf("Failed: D3DXLoadSurfaceFromSurface hr = 0x%0.8x", hr);
+#endif
+		}
+		pActualSurface->Release();
+
+		//Not a new level any more
+		newSurface[Level] = false;
+	}
+
+	if (((Flags|D3DLOCK_NO_DIRTY_UPDATE) != D3DLOCK_NO_DIRTY_UPDATE) &&
+		((Flags|D3DLOCK_READONLY) != D3DLOCK_READONLY))
+	{
+		hr = m_pActualTexture->AddDirtyRect(pRect);
+		if (FAILED(hr))
+		{
+			vireio::debugf("Failed: m_pActualTexture->AddDirtyRect hr = 0x%0.8x", hr);
+			return hr;
+		}
+	}
+
+	hr = pSurface->LockRect(pLockedRect, pRect, Flags);
+	if (FAILED(hr))
+	{
+		vireio::debugf("Failed: pSurface->LockRect hr = 0x%0.8x", hr);
+		return hr;
+	}
+	pSurface->Release();
+
+	return hr;
 }
 	
 /**
@@ -272,10 +395,106 @@ HRESULT WINAPI D3D9ProxyTexture::LockRect(UINT Level, D3DLOCKED_RECT* pLockedRec
 ***/
 HRESULT WINAPI D3D9ProxyTexture::UnlockRect(UINT Level)
 {
-	if (IsStereo())
-		m_pActualTextureRight->UnlockRect(Level);
+	SHOW_CALL("D3D9ProxyTexture::UnlockRect");
 
-	return m_pActualTexture->UnlockRect(Level);
+	D3DSURFACE_DESC desc;
+	m_pActualTexture->GetLevelDesc(Level, &desc);
+	if (desc.Pool != D3DPOOL_DEFAULT)
+	{
+		return m_pActualTexture->UnlockRect(Level);
+	}
+
+	//Guard against multithreaded access as this could be causing us problems
+	std::lock_guard<std::mutex> lck (m_mtx);
+
+	if (lockableSysMemTexture.find(Level) == lockableSysMemTexture.end())
+		return S_OK;
+
+	IDirect3DSurface9 *pSurface = NULL;
+	HRESULT hr = lockableSysMemTexture[Level] ? lockableSysMemTexture[Level]->GetSurfaceLevel(0, &pSurface) : D3DERR_INVALIDCALL;
+	if (FAILED(hr))
+		return hr;
+
+	pSurface->UnlockRect();
+
+	if (IsStereo())
+	{
+		IDirect3DSurface9 *pActualSurfaceRight = NULL;
+		hr = m_pActualTextureRight->GetSurfaceLevel(Level, &pActualSurfaceRight);
+		if (FAILED(hr))
+			return hr;
+
+		if (fullSurfaces[Level])
+		{
+			hr = m_pOwningDevice->getActual()->UpdateSurface(pSurface, NULL, pActualSurfaceRight, NULL);
+			if (FAILED(hr))
+			{
+				vireio::debugf("Failed: m_pOwningDevice->getActual()->UpdateSurface hr = 0x%0.8x", hr);
+				//Just ignore the failed copy back, not much we can do
+				hr = S_OK;
+			}
+		}
+		else
+		{
+			std::vector<RECT>::iterator rectIter = lockedRects[Level].begin();
+			while (rectIter != lockedRects[Level].end())
+			{
+				POINT p;
+				p.x = rectIter->left;
+				p.y = rectIter->top;
+				hr = m_pOwningDevice->getActual()->UpdateSurface(pSurface, &(*rectIter), pActualSurfaceRight, &p);
+				if (FAILED(hr))
+				{
+					vireio::debugf("Failed: m_pOwningDevice->getActual()->UpdateSurface hr = 0x%0.8x", hr);
+					//Just ignore the failed copy back, not much we can do
+					hr = S_OK;
+				}
+				rectIter++;
+			}
+		}
+
+		pActualSurfaceRight->Release();
+	}
+
+	IDirect3DSurface9 *pActualSurface = NULL;
+	hr = m_pActualTexture->GetSurfaceLevel(Level, &pActualSurface);
+	if (FAILED(hr))
+		return hr;
+	if (fullSurfaces[Level])
+	{
+		hr = m_pOwningDevice->getActual()->UpdateSurface(pSurface, NULL, pActualSurface, NULL);
+		if (FAILED(hr))
+		{
+			vireio::debugf("Failed: m_pOwningDevice->getActual()->UpdateSurface hr = 0x%0.8x", hr);
+			//Just ignore the failed copy back, not much we can do
+			hr = S_OK;
+		}
+	}
+	else
+	{
+		std::vector<RECT>::iterator rectIter = lockedRects[Level].begin();
+		while (rectIter != lockedRects[Level].end())
+		{
+			POINT p;
+			p.x = rectIter->left;
+			p.y = rectIter->top;
+			hr = m_pOwningDevice->getActual()->UpdateSurface(pSurface, &(*rectIter), pActualSurface, &p);
+			if (FAILED(hr))
+			{
+				vireio::debugf("Failed: m_pOwningDevice->getActual()->UpdateSurface hr = 0x%0.8x", hr);
+				//Just ignore the failed copy back, not much we can do
+				hr = S_OK;
+			}
+			rectIter++;
+		}
+	}
+
+	//Release everything
+	pActualSurface->Release();
+	pSurface->Release();
+	
+	fullSurfaces[Level] = false;
+	return hr;
 }
 
 /**
@@ -283,7 +502,8 @@ HRESULT WINAPI D3D9ProxyTexture::UnlockRect(UINT Level)
 ***/
 HRESULT WINAPI D3D9ProxyTexture::AddDirtyRect(CONST RECT* pDirtyRect)
 {
-	if (IsStereo())
+	SHOW_CALL("D3D9ProxyTexture::AddDirtyRect");
+	if (IsStereo() && m_pActualTextureRight)
 		m_pActualTextureRight->AddDirtyRect(pDirtyRect);
 
 	return m_pActualTexture->AddDirtyRect(pDirtyRect);

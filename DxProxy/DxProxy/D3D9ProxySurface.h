@@ -35,7 +35,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Direct3DDevice9.h"
 #include "IStereoCapableWrapper.h"
 #include <stdio.h>
-
+#include <mutex>
 
 /**
 *  Direct 3D proxy surface class. 
@@ -44,7 +44,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class D3D9ProxySurface : public BaseDirect3DSurface9, public IStereoCapableWrapper<IDirect3DSurface9>
 {
 public:
-	D3D9ProxySurface(IDirect3DSurface9* pActualSurfaceLeft, IDirect3DSurface9* pActualSurfaceRight, BaseDirect3DDevice9* pOwningDevice, IUnknown* pWrappedContainer);
+	D3D9ProxySurface(IDirect3DSurface9* pActualSurfaceLeft, IDirect3DSurface9* pActualSurfaceRight, BaseDirect3DDevice9* pOwningDevice, IUnknown* pWrappedContainer, 
+		HANDLE SharedHandleLeft, HANDLE SharedHandleRight);
 	virtual ~D3D9ProxySurface();
 
 	/*** IUnknown methods ***/
@@ -67,6 +68,8 @@ public:
 	virtual IDirect3DSurface9* getActualLeft();
 	virtual IDirect3DSurface9* getActualRight();
 	virtual bool               IsStereo();
+	virtual HANDLE getHandleLeft();
+	virtual HANDLE getHandleRight();
 
 protected:
 	/**
@@ -98,5 +101,18 @@ protected:
 	* NULL for surfaces that aren't being duplicated.
 	***/
 	IDirect3DSurface9* const m_pActualSurfaceRight;
+
+	/**
+	* Handles for shared access
+	*/
+	HANDLE m_SharedHandleLeft;
+	HANDLE m_SharedHandleRight;
+
+	//Special handling required for locking rectangles if we are using Dx9Ex
+	std::mutex m_mtx;
+	std::vector<RECT> lockedRects;
+	bool fullSurface;
+	IDirect3DTexture9* lockableSysMemTexture;
+	D3DLOCKED_RECT lockedRect;
 };
 #endif

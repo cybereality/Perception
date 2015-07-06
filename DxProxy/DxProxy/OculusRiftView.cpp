@@ -175,7 +175,7 @@ void OculusRiftView::CalculateShaderVariables()
 
 	// Center of half screen is 0.25 in x (halfscreen x input in 0 to 0.5 range)
 	// Lens offset is in a -1 to 1 range. Using in shader with a 0 to 0.5 range so use 25% of the value.
-	LensCenter[0] = 0.25f + (hmdInfo->GetLensXCenterOffset() * 0.25f) - (hmdInfo->GetLensIPDCenterOffset() - config->IPDOffset);
+	LensCenter[0] = 0.25f + (hmdInfo->GetLensXCenterOffset() * 0.25f) + config->IPDOffset;
 
 	// Center of halfscreen range is 0.5 in y (halfscreen y input in 0 to 1 range)
 	LensCenter[1] = hmdInfo->GetLensYCenterOffset() - config->YOffset; 
