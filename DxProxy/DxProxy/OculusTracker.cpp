@@ -153,6 +153,11 @@ void OculusTracker::resetPosition()
 	ovrHmd_RecenterPose(hmd);
 }
 
+void OculusTracker::SetFrameHMDData(ovrTrackingState &ts)
+{
+	m_ts = ts;
+}
+
 /**
 * Retrieve Oculus tracker orientation.
 * Reads device input and returns orientation (yaw and roll negated). All Orientations are in degrees.
@@ -162,13 +167,9 @@ int OculusTracker::getOrientationAndPosition(float* yaw, float* pitch, float* ro
 {
 	SHOW_CALL("OculusTracker getOrientationAndPosition\n");
 
-	//Use next frame's display mid point, better than "now" was I think
-	ovrFrameTiming  ftiming  = ovrHmd_GetFrameTiming(hmd, 0);
-	ts = ovrHmd_GetTrackingState(hmd, ftiming.DisplayMidpointSeconds);
-
-	if (ts.StatusFlags & ovrStatus_OrientationTracked)
+	if (m_ts.StatusFlags & ovrStatus_OrientationTracked)
 	{
-		Quatf hmdOrient=ts.HeadPose.ThePose.Orientation;
+		Quatf hmdOrient=m_ts.HeadPose.ThePose.Orientation;
 		hmdOrient.GetEulerAngles<Axis_Y,Axis_X,Axis_Z>(yaw, pitch, roll);
 
 		// set primary orientations
@@ -184,9 +185,9 @@ int OculusTracker::getOrientationAndPosition(float* yaw, float* pitch, float* ro
 	else
 		status = MTS_NOORIENTATION;
 
-	if (ts.StatusFlags & ovrStatus_PositionConnected && status == MTS_OK)
+	if (m_ts.StatusFlags & ovrStatus_PositionConnected && status == MTS_OK)
 	{
-		if (!(ts.StatusFlags & ovrStatus_CameraPoseTracked))
+		if (!(m_ts.StatusFlags & ovrStatus_CameraPoseTracked))
 		{
 			//Camera still initialising/calibrating
 			//Should probably warn user if this doesn't get set after a period of time
@@ -194,11 +195,11 @@ int OculusTracker::getOrientationAndPosition(float* yaw, float* pitch, float* ro
 			if (((tick - GetTickCount()) / 1000) > 15)
 				status = MTS_CAMERAMALFUNCTION;
 		}
-		else if (ts.StatusFlags & ovrStatus_PositionTracked)
+		else if (m_ts.StatusFlags & ovrStatus_PositionTracked)
 		{
-			*x = ts.HeadPose.ThePose.Position.x - offsetX;
-			*y = ts.HeadPose.ThePose.Position.y - offsetY;
-			*z = ts.HeadPose.ThePose.Position.z - offsetZ;
+			*x = m_ts.HeadPose.ThePose.Position.x - offsetX;
+			*y = m_ts.HeadPose.ThePose.Position.y - offsetY;
+			*z = m_ts.HeadPose.ThePose.Position.z - offsetZ;
 			primaryX = *x;
 			primaryY = *y;
 			primaryZ = *z;

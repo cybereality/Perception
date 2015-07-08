@@ -52,7 +52,7 @@ public:
 	virtual void Init(IDirect3DDevice9* pActualDevice);
 	virtual void ReleaseEverything();
 	virtual void PrePresent(D3D9ProxySurface* stereoCapableSurface);
-	virtual void PostPresent(D3D9ProxySurface* stereoCapableSurface) {}
+	virtual void PostPresent(D3D9ProxySurface* stereoCapableSurface, D3DProxyDevice* pProxyDevice) {}
 	virtual void SaveScreen();
 	virtual void SaveLastScreen();
 	virtual std::string CycleRenderState(bool blnBackwards);

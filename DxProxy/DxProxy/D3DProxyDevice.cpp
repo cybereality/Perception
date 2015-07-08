@@ -223,9 +223,6 @@ D3DProxyDevice::D3DProxyDevice(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreate
 	BaseDirect3DDevice9::GetDeviceCaps(&capabilities);
 	DWORD maxRenderTargets = capabilities.NumSimultaneousRTs;
 	m_activeRenderTargets.resize(maxRenderTargets, NULL);
-	fMinFPS = 73;
-	
-	bSkipFrame = false;
 	m_3DReconstructionMode = Reconstruction_Type::GEOMETRY;
 
 	D3DXMatrixIdentity(&m_leftView);
@@ -471,6 +468,19 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 	HandleLandmarkMoment(DeviceBehavior::WhenToDo::AFTER_COMPOSITING);
 	VPMENU_UpdateCooldowns();
 
+	HRESULT hr = S_OK;
+	IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
+	if (SUCCEEDED(getActual()->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))))
+	{
+		hr = pDirect3DDevice9Ex->PresentEx(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion, 0);
+		pDirect3DDevice9Ex->Release();
+	}
+	else
+	{
+		//Old skool
+		hr =  BaseDirect3DDevice9::Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);	
+	}
+	
 	//Now calculate frames per second
 	fps = CalcFPS();
 
@@ -492,21 +502,9 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 		}
 	}
 
-	HRESULT hr = S_OK;
-	IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
-	if (SUCCEEDED(getActual()->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))))
-	{
-		hr = pDirect3DDevice9Ex->PresentEx(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion, 0);
-		pDirect3DDevice9Ex->Release();
-	}
-	else
-	{
-		//Old skool
-		hr =  BaseDirect3DDevice9::Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);	
-	}
-	
 	if (stereoView->initialized)
-		stereoView->PostPresent(static_cast<D3D9ProxySurface*>(pWrappedBackBuffer));
+		stereoView->PostPresent(static_cast<D3D9ProxySurface*>(pWrappedBackBuffer), this);
+
 	pWrappedBackBuffer->Release();
 
 	return hr;
@@ -636,9 +634,6 @@ HRESULT WINAPI D3DProxyDevice::CreateCubeTexture(UINT EdgeLength, UINT Levels, D
 	IDirect3DCubeTexture9* pLeftCubeTexture = NULL;
 	IDirect3DCubeTexture9* pRightCubeTexture = NULL;	
 
-	if(bSkipFrame)
-		return D3D_OK;
-
 	// try and create left
 	if (SUCCEEDED(creationResult = BaseDirect3DDevice9::CreateCubeTexture(EdgeLength, Levels, Usage, Format, newPool, &pLeftCubeTexture, pSharedHandle))) {
 
@@ -738,9 +733,6 @@ HRESULT WINAPI D3DProxyDevice::CreateDepthStencilSurface(UINT Width,UINT Height,
 {
 	SHOW_CALL("CreateDepthStencilSurface");
 	
-	if(bSkipFrame)
-		return D3D_OK;
-		
 	IDirect3DSurface9* pDepthStencilSurfaceLeft = NULL;
 	IDirect3DSurface9* pDepthStencilSurfaceRight = NULL;
 	HRESULT creationResult;
@@ -977,9 +969,6 @@ HRESULT WINAPI D3DProxyDevice::ColorFill(IDirect3DSurface9* pSurface,CONST RECT*
 	
 	HRESULT result;
 	
-	if(bSkipFrame)
-		return D3D_OK;
-
 	D3D9ProxySurface* pDerivedSurface = static_cast<D3D9ProxySurface*> (pSurface);
 	if (SUCCEEDED(result = BaseDirect3DDevice9::ColorFill(pDerivedSurface->getActualLeft(), pRect, color)))
 	{
@@ -1683,9 +1672,6 @@ HRESULT WINAPI D3DProxyDevice::DrawPrimitive(D3DPRIMITIVETYPE PrimitiveType,UINT
 {
 	SHOW_CALL("DrawPrimitive");
 	
-	if(bSkipFrame)
-		return D3D_OK;
-
 	//If we shouldn't draw this shader, then just return immediately
 	if (m_bDoNotDrawVShader || m_bDoNotDrawPShader)
 		return S_OK;
@@ -1709,9 +1695,6 @@ HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitive(D3DPRIMITIVETYPE PrimitiveTy
 {
 	SHOW_CALL("DrawIndexedPrimitive");
 	
-	if(bSkipFrame)
-		return D3D_OK;
-
 	//If we shouldn't draw this shader, then just return immediately
 	if (m_bDoNotDrawVShader || m_bDoNotDrawPShader)
 		return S_OK;
@@ -1738,9 +1721,6 @@ HRESULT WINAPI D3DProxyDevice::DrawPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType,UI
 {
 	SHOW_CALL("DrawPrimitiveUP");
 	
-	if(bSkipFrame)
-		return D3D_OK;
-
 	//If we shouldn't draw this shader, then just return immediately
 	if (m_bDoNotDrawVShader || m_bDoNotDrawPShader)
 		return S_OK;
@@ -1764,9 +1744,6 @@ HRESULT WINAPI D3DProxyDevice::DrawIndexedPrimitiveUP(D3DPRIMITIVETYPE Primitive
 {
 	SHOW_CALL("DrawIndexedPrimitiveUP");
 	
-	if(bSkipFrame)
-		return D3D_OK;
-
 	//If we shouldn't draw this shader, then just return immediately
 	if (m_bDoNotDrawVShader || m_bDoNotDrawPShader)
 		return S_OK;
@@ -2319,9 +2296,6 @@ HRESULT WINAPI D3DProxyDevice::DrawRectPatch(UINT Handle,CONST float* pNumSegs,C
 {
 	SHOW_CALL("DrawRectPatch");
 	
-	if(bSkipFrame)
-		return D3D_OK;
-
 	m_spManagedShaderRegisters->ApplyAllDirty(m_currentRenderingSide);
 
 	HRESULT result;
@@ -2341,9 +2315,6 @@ HRESULT WINAPI D3DProxyDevice::DrawTriPatch(UINT Handle,CONST float* pNumSegs,CO
 {
 	SHOW_CALL("DrawTriPatch");
 	
-	if(bSkipFrame)
-		return D3D_OK;
-
 	m_spManagedShaderRegisters->ApplyAllDirty(m_currentRenderingSide);
 
 	HRESULT result;
@@ -2391,8 +2362,6 @@ HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFO
 	IDirect3DSurface9* pLeftRenderTarget = NULL;
 	IDirect3DSurface9* pRightRenderTarget = NULL;
 	HRESULT creationResult;
-	if(bSkipFrame)
-		return D3D_OK;
 
 	// create left/mono
 	HANDLE sharedHandleLeft = NULL;
@@ -3547,7 +3516,7 @@ void D3DProxyDevice::DuckAndCoverCalibrate()
 
 //FPS Calculator
 
-#define MAXSAMPLES 100
+#define MAXSAMPLES 10
 
 float D3DProxyDevice::CalcFPS()
 {
@@ -3566,16 +3535,19 @@ float D3DProxyDevice::CalcFPS()
 	}
 
 	//Get the new tick
-	LARGE_INTEGER newtick;
-	QueryPerformanceCounter(&newtick);
-	
+	LARGE_INTEGER newPerfCount;
+	QueryPerformanceCounter(&newPerfCount);
+
+	LONGLONG newtick = newPerfCount.QuadPart - prevTick;
 	ticksum -= ticklist[tickindex];
-    ticksum += newtick.QuadPart - prevTick;
-    ticklist[tickindex] = newtick.QuadPart - prevTick;
+    ticksum += newtick;
+    ticklist[tickindex] = newtick;
     tickindex = ++tickindex % MAXSAMPLES;
-	prevTick = newtick.QuadPart;
+	prevTick = newPerfCount.QuadPart;
 
 	float FPS = (float)((double)MAXSAMPLES / ((double)ticksum / (double)perffreq.QuadPart));
+
+	m_lastFrameTime = ((double)newtick / (double)perffreq.QuadPart);
 
     return FPS;
 }
