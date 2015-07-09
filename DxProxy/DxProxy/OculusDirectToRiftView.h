@@ -171,7 +171,6 @@ struct VireioVRScene
 	VoidScene*	m_pScene[2];
 	ovrTrackingState m_trackingState;
 	UINT frameIndex;
-	ovrFrameTiming frameTiming;
 	ovrPosef m_eyePoses[2];
 };
 
@@ -230,7 +229,6 @@ private:
 		ThreadSafeSceneStore() {m_VRScene = NULL;m_used = false;}
 
 		void push(VireioVRScene* &eyeScenes);
-		VireioVRScene* peek();
 		VireioVRScene* retrieve();
 		bool hasScene();
 		bool getUsed();
@@ -289,8 +287,6 @@ private:
 
 	//The rift!
 	ovrHmd rift;
-
-	UINT appFrameIndex;
 
 	//The last scene we showed (just kept for eye poses)
 	VireioVRScene *m_pLastScene;
