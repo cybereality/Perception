@@ -314,7 +314,8 @@ void OculusDirectToRiftView::DX11RenderThread_ReleaseEverything()
 {
 	SHOW_CALL("OculusDirectToRiftView::DX11RenderThread_ReleaseEverything()");
 
-	//Reset scenes
+	//Reset scenes	
+	m_unusedVireioVRScenePool.ReleaseEverything();
 	m_safeSceneStore.ReleaseEverything();
 }
 
@@ -323,21 +324,17 @@ std::string OculusDirectToRiftView::GetAdditionalFPSInfo()
 	return vireio::retprintf("Async-Timewarp FPS: %.1f", hmdFPS);
 }
 
-void OculusDirectToRiftView::ThreadSafeSceneStore::push(VireioVRScene* &vrScene)
+VireioVRScene* OculusDirectToRiftView::ThreadSafeSceneStore::push(VireioVRScene* &vrScene)
 {
 	std::lock_guard<std::mutex> lock(m_mtx);
+	VireioVRScene* pReturnScene = NULL;
 	if (m_VRScene != NULL)
-	{
-		delete m_VRScene;
-	}
+		pReturnScene = m_VRScene;
+
 	m_used = true;
 	m_VRScene = vrScene;
-}
 
-bool OculusDirectToRiftView::ThreadSafeSceneStore::hasScene()
-{
-	std::lock_guard<std::mutex> lock(m_mtx);
-	return (m_VRScene != NULL);
+	return pReturnScene;
 }
 
 VireioVRScene* OculusDirectToRiftView::ThreadSafeSceneStore::retrieve()
@@ -442,10 +439,6 @@ void OculusDirectToRiftView::DX11RenderThread_RenderNextFrame()
 void OculusDirectToRiftView::PostPresent(D3D9ProxySurface* stereoCapableSurface, D3DProxyDevice* pProxyDevice)
 {
 	SHOW_CALL("OculusDirectToRiftView::PostPresent()");
-
-	//If we already have a scene for this frame, then we don't need to do anything
-	if (m_safeSceneStore.hasScene())
-		return;
 
 	// Initialise a new VRScene
 	VireioVRScene *pVRScene = m_unusedVireioVRScenePool.pop();
@@ -565,7 +558,10 @@ void OculusDirectToRiftView::PostPresent(D3D9ProxySurface* stereoCapableSurface,
 	m_pOculusTracker->SetFrameHMDData(pVRScene->m_trackingState);
 
 	//Now push the new scene into our safe store - This will indicate to the DX11 thread a new scene is available
-	m_safeSceneStore.push(pVRScene);
+	VireioVRScene *pOldVRScene = m_safeSceneStore.push(pVRScene);
+	//And save the old one in the pool for re-use
+	if (pOldVRScene)
+		m_unusedVireioVRScenePool.push(pOldVRScene);
 }
 
 void OculusDirectToRiftView::PrePresent(D3D9ProxySurface* stereoCapableSurface)

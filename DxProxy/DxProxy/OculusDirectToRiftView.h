@@ -228,9 +228,9 @@ private:
 	{
 		ThreadSafeSceneStore() {m_VRScene = NULL;m_used = false;}
 
-		void push(VireioVRScene* &eyeScenes);
+		//Returns the existing one if there is already one there
+		VireioVRScene* push(VireioVRScene* &vrScene);
 		VireioVRScene* retrieve();
-		bool hasScene();
 		bool getUsed();
 
 		void ReleaseEverything();
