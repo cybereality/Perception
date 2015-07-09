@@ -682,7 +682,7 @@ void D3DProxyDevice::VPMENU_3DReconstruction()
 		});
 
 	
-	menu->AddNavigation("Z Buffer Settings >\n", [=]() { VPMENU_ZBufferSettings(); });
+	//menu->AddNavigation("Z Buffer Settings >\n", [=]() { VPMENU_ZBufferSettings(); });
 
 	menu->AddToggle("Projected FOV : %s", "ON", "OFF", &config.PFOVToggle, defaultConfig.PFOVToggle, [=]() {
 		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, config.PFOV);
@@ -1364,8 +1364,8 @@ void D3DProxyDevice::VPMENU_Hotkeys()
 	
 	menu->AddKeybind("Toggle Free Pitch",   &config.HotkeyToggleFreePitch, defaultConfig.HotkeyToggleFreePitch);
 	menu->AddKeybind("Toggle Comfort Mode", &config.HotkeyComfortMode, defaultConfig.HotkeyComfortMode);
-	menu->AddKeybind("Toggle VR Mouse",     &config.HotkeyVRMouse, defaultConfig.HotkeyVRMouse);
-	menu->AddKeybind("Toggle Floaty Menus", &config.HotkeyFloatyMenus, defaultConfig.HotkeyFloatyMenus);
+	//menu->AddKeybind("Toggle VR Mouse",     &config.HotkeyVRMouse, defaultConfig.HotkeyVRMouse);
+	//menu->AddKeybind("Toggle Floaty Menus", &config.HotkeyFloatyMenus, defaultConfig.HotkeyFloatyMenus);
 	
 	menu->AddBackButtons();
 	VPMENU_FinishDrawing(menu);
@@ -1392,10 +1392,10 @@ void D3DProxyDevice::VPMENU_AdjustmentHotkeys()
 	MenuBuilder *menu = VPMENU_NewFrame();
 	VPMENU_StartDrawing(menu, "Settings - Adjustment Hotkeys");
 	
-	menu->AddKeybind("Switch 2D Depth Mode", &config.HotkeySwitch2DDepthMode, defaultConfig.HotkeySwitch2DDepthMode);
-	menu->AddKeybind("Swap Sides Hotkey", &config.HotkeySwapSides, defaultConfig.HotkeySwapSides);
+	//menu->AddKeybind("Switch 2D Depth Mode", &config.HotkeySwitch2DDepthMode, defaultConfig.HotkeySwitch2DDepthMode);
+	//menu->AddKeybind("Swap Sides Hotkey", &config.HotkeySwapSides, defaultConfig.HotkeySwapSides);
 	menu->AddKeybind("Initiate VRBoost Memory Scan", &config.HotkeyInitiateScan, defaultConfig.HotkeyInitiateScan);
-	menu->AddKeybind("DK2 Black Smear Correction", &config.HotkeyBlackSmear, defaultConfig.HotkeyBlackSmear);
+	//menu->AddKeybind("DK2 Black Smear Correction", &config.HotkeyBlackSmear, defaultConfig.HotkeyBlackSmear);
 	menu->AddKeybind("Reset IPD Offset", &config.HotkeyResetIPDOffset, defaultConfig.HotkeyResetIPDOffset);
 	menu->AddKeybind("Show HMD Stats", &config.HotkeyShowHMDStats, defaultConfig.HotkeyShowHMDStats);
 	menu->AddKeybind("Show Axes", &config.HotkeyShowAxes, defaultConfig.HotkeyShowAxes);
