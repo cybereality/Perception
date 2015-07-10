@@ -1,0 +1,213 @@
+﻿/********************************************************************
+Vireio Perception: Open-Source Stereoscopic 3D Driver
+Copyright (C) 2012 Andres Hernandez
+
+Vireio Oculus Direct Mode - Oculus Rift Direct Mode Node Plugin
+Copyright (C) 2015 Denis Reischl
+
+File <OculusDirectMode.h> and
+Class <OculusDirectMode> :
+Copyright (C) 2015 Denis Reischl
+
+The stub class <AQU_Nodus> is the only public class from the Aquilinus 
+repository and permitted to be used for open source plugins of any kind. 
+Read the Aquilinus documentation for further information.
+
+Vireio Perception Version History:
+v1.0.0 2012 by Andres Hernandez
+v1.0.X 2013 by John Hicks, Neil Schneider
+v1.1.x 2013 by Primary Coding Author: Chris Drain
+Team Support: John Hicks, Phil Larkson, Neil Schneider
+v2.0.x 2013 by Denis Reischl, Neil Schneider, Joshua Brown
+v2.0.4 onwards 2014 by Grant Bagwell, Simon Brown and Neil Schneider
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+********************************************************************/
+
+#include"AQU_Nodus.h"
+#include"Resources.h"
+#include<sstream>
+
+#include <d3d9.h>
+#pragma comment(lib, "d3d9.lib")
+
+#include <d3dx9.h>
+#pragma comment(lib, "d3dx9.lib")
+
+#include "Extras/OVR_Math.h"
+#define OVR_D3D_VERSION 11
+#include"OVR_CAPI_D3D.h"
+
+#define PNT_FLOAT_PLUG_TYPE                          104
+#define PNT_INT_PLUG_TYPE                            107 
+#define PNT_UINT_PLUG_TYPE                           112
+#define PNT_D3DMATRIX_PLUG_TYPE                     2017
+#define PNT_VECTOR3F_PLUG_TYPE                      2061
+#define PNT_VECTOR4F_PLUG_TYPE                      2063
+#define PPNT_IDIRECT3DINDEXBUFFER9_PLUG_TYPE        3041
+#define PPNT_IDIRECT3DVERTEXBUFFER9_PLUG_TYPE       3049
+#define PPNT_IDIRECT3DVERTEXDECLARATION9_PLUG_TYPE  3050
+
+#define NUMBER_OF_DECOMMANDERS                         2
+
+/**
+* Node Commander Enumeration.
+***/
+enum ORN_Decommanders
+{
+	LeftTexture,
+	RightTexture,
+};
+
+/**
+* Simple depth buffer structure.
+* Taken from the OculusRoomTiny demo for simplicity.
+* (libOVR 0.6.1)
+***/
+struct DepthBuffer
+{
+	ID3D11DepthStencilView * TexDsv;
+
+	DepthBuffer(ID3D11Device * Device, OVR::Sizei size, int sampleCount = 1)
+	{
+		DXGI_FORMAT format = DXGI_FORMAT_D32_FLOAT;
+		D3D11_TEXTURE2D_DESC dsDesc;
+		dsDesc.Width = size.w;
+		dsDesc.Height = size.h;
+		dsDesc.MipLevels = 1;
+		dsDesc.ArraySize = 1;
+		dsDesc.Format = format;
+		dsDesc.SampleDesc.Count = sampleCount;
+		dsDesc.SampleDesc.Quality = 0;
+		dsDesc.Usage = D3D11_USAGE_DEFAULT;
+		dsDesc.CPUAccessFlags = 0;
+		dsDesc.MiscFlags = 0;
+		dsDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+		ID3D11Texture2D * Tex;
+		Device->CreateTexture2D(&dsDesc, NULL, &Tex);
+		Device->CreateDepthStencilView(Tex, NULL, &TexDsv);
+	}
+};
+
+/**
+* ovrSwapTextureSet wrapper class that also maintains the render target views
+* needed for D3D11 rendering.
+* Taken from the OculusRoomTiny demo for simplicity.
+* (libOVR 0.6.1)
+***/
+struct OculusTexture
+{
+	ovrSwapTextureSet      * TextureSet;
+	ID3D11RenderTargetView * TexRtv[3];
+
+	OculusTexture(ID3D11Device* pcDevice, ovrHmd hmd, OVR::Sizei size)
+	{
+		D3D11_TEXTURE2D_DESC dsDesc;
+		dsDesc.Width            = size.w;
+		dsDesc.Height           = size.h;
+		dsDesc.MipLevels        = 1;
+		dsDesc.ArraySize        = 1;
+		dsDesc.Format           = DXGI_FORMAT_B8G8R8A8_UNORM;
+		dsDesc.SampleDesc.Count = 1;   // No multi-sampling allowed
+		dsDesc.SampleDesc.Quality = 0;
+		dsDesc.Usage            = D3D11_USAGE_DEFAULT;
+		dsDesc.CPUAccessFlags   = 0;
+		dsDesc.MiscFlags        = 0;
+		dsDesc.BindFlags        = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+
+		ovrResult nOvrResult = ovrHmd_CreateSwapTextureSetD3D11(hmd, pcDevice, &dsDesc, &TextureSet);
+		if (OVR_SUCCESS(nOvrResult))
+		{
+			for (int i = 0; i < TextureSet->TextureCount; ++i)
+			{
+				ovrD3D11Texture* tex = (ovrD3D11Texture*)&TextureSet->Textures[i];
+				pcDevice->CreateRenderTargetView(tex->D3D11.pTexture, NULL, &TexRtv[i]);
+			}
+		}
+	}
+
+	void AdvanceToNextTexture()
+	{
+		TextureSet->CurrentIndex = (TextureSet->CurrentIndex + 1) % TextureSet->TextureCount;
+	}
+	void Release(ovrHmd hmd)
+	{
+		ovrHmd_DestroySwapTextureSet(hmd, TextureSet);
+	}
+};
+
+
+/**
+* Oculus DirectMode Node Plugin (Direct3D 9).
+***/
+class OculusDirectMode : public AQU_Nodus
+{
+public:
+	OculusDirectMode();
+	virtual ~OculusDirectMode();
+
+	/*** OculusDirectMode public methods ***/
+	virtual const char*     GetNodeType();
+	virtual UINT            GetNodeTypeId();
+	virtual LPWSTR          GetCategory();
+	virtual HBITMAP         GetLogo();
+	virtual HBITMAP         GetControl();
+	virtual DWORD           GetNodeWidth() { return 4+256+4; }
+	virtual DWORD           GetNodeHeight() { return 128; }
+	virtual DWORD           GetDecommandersNumber() { return NUMBER_OF_DECOMMANDERS; }
+	virtual LPWSTR          GetDecommanderName(DWORD dwDecommanderIndex);
+	virtual DWORD           GetDecommanderType(DWORD dwDecommanderIndex);
+	virtual void            SetInputPointer(DWORD dwDecommanderIndex, void* pData);
+	virtual bool            SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod);
+	virtual void*           Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex);
+
+private:
+	/**
+	* True if OVR is initialized.
+	***/
+	bool m_bInit;
+	/**
+	* The handle of the headset.
+	***/
+	ovrHmd m_hHMD;
+	/**
+	* The mirror texture (of the whole Oculus frame) to be shown on main window.
+	***/
+	ovrTexture* m_pcMirrorTexture;
+	/**
+	* The Oculus swapchain. (for both eyes)
+	***/
+	OculusTexture* m_psEyeRenderTexture[2];
+	/**
+	* The Oculus depth buffer. (for both eyes)
+	***/
+	DepthBuffer* m_psEyeDepthBuffer[2];
+	/**
+	* The Oculus render viewport. (for both eyes)
+	***/
+	ovrRecti m_psEyeRenderViewport[2];
+	/**
+	* The Oculus render description. (for both eyes)
+	***/
+	ovrEyeRenderDesc m_psEyeRenderDesc[2];
+};
+
+/**
+* Exported Constructor Method.
+***/
+extern "C" __declspec(dllexport) AQU_Nodus* AQU_Nodus_Create()
+{
+	OculusDirectMode* pOculusDirectMode = new OculusDirectMode();
+	return static_cast<AQU_Nodus*>(pOculusDirectMode);
+}

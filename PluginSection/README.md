@@ -62,4 +62,5 @@ If you need help, please post on the Official Vireio Perception Forums on [MTBS3
 
 * Vireio Oculus Renderer - DevNr 2006 - PluginNr 258
 
+* Vireio Oculus Direct Mode - DevNr 2006 - PluginNr 259
 
