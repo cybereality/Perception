@@ -119,7 +119,7 @@ HBITMAP OculusTracker::GetControl()
 		// create bitmap, set control update to true
 		HWND hwnd = GetActiveWindow();
 		HDC hdc = GetDC(hwnd);
-		m_hBitmapControl = CreateCompatibleBitmap(hdc, 1024, 1800);
+		m_hBitmapControl = CreateCompatibleBitmap(hdc, 1024, 1700);
 		if (!m_hBitmapControl)
 			OutputDebugString(L"Failed to create bitmap!");
 		m_bControlUpdate = true;
@@ -134,7 +134,7 @@ HBITMAP OculusTracker::GetControl()
 
 		// clear the background
 		RECT rc;
-		SetRect(&rc, 0, 0, 1024, 1800);
+		SetRect(&rc, 0, 0, 1024, 1700);
 		FillRect(hdcImage, &rc, (HBRUSH)CreateSolidBrush(RGB(10,92,10)));
 
 		// create font
@@ -199,7 +199,7 @@ HBITMAP OculusTracker::GetControl()
 			TextOut(hdcImage, 750, nY, L"Position Z", 10);
 			TextOut(hdcImage, 392, nY, szBuffer.str().c_str(), szBuffer.str().length());
 			nY+=64; szBuffer = std::wstringstream();
-				
+
 			// camera frustum
 			wchar_t szBufferW[128];
 			if (m_hHMD)
@@ -234,7 +234,6 @@ HBITMAP OculusTracker::GetControl()
 			// caps
 			TextOut(hdcImage, 770, nY,  L"HmdCaps", 7); nY+=64;
 			TextOut(hdcImage, 690, nY,  L"TrackingCaps", 12); nY+=64;
-			TextOut(hdcImage, 660, nY,  L"DistortionCaps", 14); nY+=64;
 
 			// resolution
 			if (m_hHMD)
@@ -320,8 +319,6 @@ LPWSTR OculusTracker::GetCommanderName(DWORD dwCommanderIndex)
 		return L"HmdCaps";
 	case OTR_Commanders::TrackingCaps:
 		return L"TrackingCaps";
-	case OTR_Commanders::DistortionCaps:
-		return L"DistortionCaps";
 	case OTR_Commanders::ResolutionW:
 		return L"Texture Resolution Width";
 	case OTR_Commanders::ResolutionH:
@@ -381,8 +378,6 @@ DWORD OculusTracker::GetCommanderType(DWORD dwCommanderIndex)
 	case OTR_Commanders::HmdCaps:
 		return PNT_UINT_PLUG_TYPE;
 	case OTR_Commanders::TrackingCaps:
-		return PNT_UINT_PLUG_TYPE;
-	case OTR_Commanders::DistortionCaps:
 		return PNT_UINT_PLUG_TYPE;
 	case OTR_Commanders::ResolutionW:
 		return PNT_INT_PLUG_TYPE;
@@ -447,13 +442,13 @@ void* OculusTracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DM
 {
 	// return if wrong call - TODO !! NEED THIS ??
 	/*if ((eD3D >= (int)AQU_DirectXVersion::DirectX_9_0) &&
-		(eD3D <= (int)AQU_DirectXVersion::DirectX_9_29))
+	(eD3D <= (int)AQU_DirectXVersion::DirectX_9_29))
 	{
-		if ( !(eD3DInterface == INTERFACE_IDIRECT3DDEVICE9) && !(eD3DInterface == INTERFACE_IDIRECT3DSWAPCHAIN9))
-			return nullptr;
+	if ( !(eD3DInterface == INTERFACE_IDIRECT3DDEVICE9) && !(eD3DInterface == INTERFACE_IDIRECT3DSWAPCHAIN9))
+	return nullptr;
 	}
 	else
-		return nullptr;*/
+	return nullptr;*/
 
 	if (m_hHMD)
 	{
@@ -633,8 +628,16 @@ void* OculusTracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DM
 	else
 	{
 		// Initialize LibOVR, and the Rift... then create hmd handle
-		ovr_Initialize();
-		m_hHMD = ovrHmd_Create(0);
+		ovrResult result = ovr_Initialize(nullptr);
+		if (!OVR_SUCCESS(result)) 
+		{
+			OutputDebugString(L"Failed to initialize libOVR.");
+			return nullptr;
+		}
+		ovrResult actualHMD = ovrHmd_Create(0, &m_hHMD);
+		if (!OVR_SUCCESS(actualHMD)) result = ovrHmd_CreateDebug(ovrHmd_DK2, &m_hHMD); // Use debug one, if no genuine Rift available
+		if (!OVR_SUCCESS(result)) OutputDebugString(L"Oculus Rift not detected.");
+		if (m_hHMD->ProductName[0] != '\0') OutputDebugString(L"Rift detected, display not enabled.");
 
 		if (m_hHMD)
 		{
@@ -692,10 +695,7 @@ void* OculusTracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DM
 					break;
 				case OTR_Commanders::TrackingCaps:
 					m_paOutput[dwCommanderIndex] =  (void*)&m_hHMD->TrackingCaps;
-					break;
-				case OTR_Commanders::DistortionCaps:
-					m_paOutput[dwCommanderIndex] =  (void*)&m_hHMD->DistortionCaps;
-					break;
+					break;				
 				case OTR_Commanders::ResolutionW:
 					m_paOutput[dwCommanderIndex] =  (void*)&m_nRenderTextureWidth;
 					break;

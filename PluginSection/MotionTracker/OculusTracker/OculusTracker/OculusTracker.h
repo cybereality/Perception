@@ -57,7 +57,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define PPNT_IDIRECT3DVERTEXBUFFER9_PLUG_TYPE       3049
 #define PPNT_IDIRECT3DVERTEXDECLARATION9_PLUG_TYPE  3050
 
-#define NUMBER_OF_COMMANDERS                          25
+#define NUMBER_OF_COMMANDERS                          24
 
 #define MATH_FLOAT_PI                (3.1415926f)
 #define MATH_FLOAT_TWOPI             (2.0f *MATH_FLOAT_PI)
@@ -211,7 +211,6 @@ enum OTR_Commanders
 	CameraFrustumFarZInMeters,   /**<  The distance from the position tracking camera to the far frustum bounds. **/
 	HmdCaps,                     /**<  HMD capability bits described by ovrHmdCaps. **/
 	TrackingCaps,                /**<  Tracking capability bits describing whether orientation, position tracking, and yaw drift correction are supported. **/
-	DistortionCaps,              /**<  Distortion capability bits describing whether timewarp and chromatic aberration correction are supported. **/
 	ResolutionW,                 /**<  Device Resolution Width. **/
 	ResolutionH,                 /**<  Device Resolution Height. **/
 	DefaultEyeFovLeft,           /**<  Recommended optical ﬁeld of view for each eye. (Left) **/
@@ -224,18 +223,19 @@ enum OTR_Commanders
 
 /**
 * Vertex declaration for the oculus distortion vertex.
+* OLD.... OBSOLETE starting with SDK 0.6.x... to be deleted after updating
 ***/
-static const D3DVERTEXELEMENT9 VertexElements[7] =	{
+/*static const D3DVERTEXELEMENT9 VertexElements[7] =	{
 	{ 0,  0, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
 	{ 0,  8, D3DDECLTYPE_FLOAT1, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 1 },
 	{ 0, 12, D3DDECLTYPE_FLOAT1, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 2 },
 	{ 0, 16, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0 },
 	{ 0, 24, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 1 },
 	{ 0, 32, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 2 },
-	D3DDECL_END()	};
+	D3DDECL_END()	};*/
 
 /**
-* Oculus Tracker Node Plugin (Direct3D 9).
+* Oculus Tracker Node Plugin.
 ***/
 class OculusTracker : public AQU_Nodus
 {
