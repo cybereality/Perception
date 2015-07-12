@@ -50,6 +50,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * Constructor.
 ***/
 OculusDirectMode::OculusDirectMode() : AQU_Nodus(),
+	m_pcDeviceTemporary(nullptr),
+	m_pcContextTemporary(nullptr),
+	m_psMainDepthBuffer(nullptr),
+	m_psUniformBufferGen(nullptr),
+	m_pcBackBuffer(nullptr),
+	m_pcBackBufferRT(nullptr),
 	m_bInit(false),
 	m_pcMirrorTexture(nullptr)
 {	
@@ -60,6 +66,12 @@ OculusDirectMode::OculusDirectMode() : AQU_Nodus(),
 ***/
 OculusDirectMode::~OculusDirectMode()
 {
+	if (m_pcContextTemporary) m_pcContextTemporary->Release();
+	if (m_pcDeviceTemporary) m_pcDeviceTemporary->Release();
+	if (m_psMainDepthBuffer) delete m_psMainDepthBuffer;
+	if (m_psUniformBufferGen) delete m_psUniformBufferGen;
+	if (m_pcBackBuffer) m_pcBackBuffer->Release();
+	if (m_pcBackBufferRT) m_pcBackBufferRT->Release();
 }
 
 /**
@@ -210,6 +222,52 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 		D3D11_VIEWPORT sViewport[16];
 		pcContext->RSGetViewports(&dwNumViewports, sViewport);
 
+		// create temporary (OVR) device
+		IDXGIFactory * DXGIFactory;
+		IDXGIAdapter * Adapter;
+		if (FAILED(CreateDXGIFactory1(__uuidof(IDXGIFactory), (void**)(&DXGIFactory))))
+			return(false);
+		if (FAILED(DXGIFactory->EnumAdapters(0, &Adapter)))
+			return(false);
+		if (FAILED(D3D11CreateDevice(Adapter, Adapter ? D3D_DRIVER_TYPE_UNKNOWN : D3D_DRIVER_TYPE_HARDWARE,
+			NULL, 0, NULL, 0, D3D11_SDK_VERSION, &m_pcDeviceTemporary, NULL, &m_pcContextTemporary)))
+			return(false);
+
+		// Create backbuffer
+		if (FAILED(pcSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&m_pcBackBuffer))) return(false);
+		if (FAILED(pcDevice->CreateRenderTargetView(m_pcBackBuffer, NULL, &m_pcBackBufferRT)))         return(false);
+
+		// Main depth buffer
+		OVR::Sizei sz;
+		sz.w = (int)sViewport[0].Width;
+		sz.h = (int)sViewport[0].Height;
+		m_psMainDepthBuffer = new DepthBuffer(pcDevice, sz);
+		pcContext->OMSetRenderTargets(1, &m_pcBackBufferRT, m_psMainDepthBuffer->TexDsv);
+
+		// Buffer for shader constants
+		// #define                  UNIFORM_DATA_SIZE 2000  // Fixed size buffer for shader constants, before copied into buffer
+		m_psUniformBufferGen = new DataBuffer(pcDevice, D3D11_BIND_CONSTANT_BUFFER, NULL, 2000 /*UNIFORM_DATA_SIZE*/);
+		pcContext->VSSetConstantBuffers(0, 1, &m_psUniformBufferGen->D3DBuffer);
+
+		// Set a standard blend state, ie transparency from alpha
+		D3D11_BLEND_DESC bm;
+		memset(&bm, 0, sizeof(bm));
+		bm.RenderTarget[0].BlendEnable = TRUE;
+		bm.RenderTarget[0].BlendOp = bm.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+		bm.RenderTarget[0].SrcBlend = bm.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
+		bm.RenderTarget[0].DestBlend = bm.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
+		bm.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+		ID3D11BlendState * BlendState;
+		m_pcDeviceTemporary->CreateBlendState(&bm, &BlendState);
+		m_pcContextTemporary->OMSetBlendState(BlendState, NULL, 0xffffffff);
+
+		// Set max frame latency to 1
+		IDXGIDevice1* DXGIDevice1 = NULL;
+		HRESULT hr = m_pcDeviceTemporary->QueryInterface(__uuidof(IDXGIDevice1), (void**)&DXGIDevice1);
+		if (FAILED(hr) | (DXGIDevice1 == NULL)) return(false);
+		DXGIDevice1->SetMaximumFrameLatency(1);
+		DXGIDevice1->Release();
+
 		// Initialize LibOVR, and the Rift... then create hmd handle
 		ovrResult result = ovr_Initialize(nullptr);
 		if (!OVR_SUCCESS(result)) 
@@ -228,8 +286,9 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 		for (int eye = 0; eye < 2; eye++)
 		{
 			OVR::Sizei idealSize = ovrHmd_GetFovTextureSize(m_hHMD, (ovrEyeType)eye, m_hHMD->DefaultEyeFov[eye], 1.0f);
-			m_psEyeRenderTexture[eye]      = new OculusTexture(pcDevice, m_hHMD, idealSize);
-			m_psEyeDepthBuffer[eye]        = new DepthBuffer(pcDevice, idealSize);
+
+			m_psEyeRenderTexture[eye]      = new OculusTexture(m_pcDeviceTemporary, m_hHMD, idealSize);
+			m_psEyeDepthBuffer[eye]        = new DepthBuffer(m_pcDeviceTemporary, idealSize);
 			m_psEyeRenderViewport[eye].Pos  = OVR::Vector2i(0, 0);
 			m_psEyeRenderViewport[eye].Size = idealSize;
 		}
@@ -243,7 +302,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 		td.Usage            = D3D11_USAGE_DEFAULT;
 		td.SampleDesc.Count = 1;
 		td.MipLevels        = 1;
-		ovrHmd_CreateMirrorTextureD3D11(m_hHMD, pcDevice, &td, &m_pcMirrorTexture);
+		ovrHmd_CreateMirrorTextureD3D11(m_hHMD, m_pcDeviceTemporary, &td, &m_pcMirrorTexture);
 
 		// Setup VR components, filling out description
 		m_psEyeRenderDesc[0] = ovrHmd_GetRenderDesc(m_hHMD, ovrEye_Left, m_hHMD->DefaultEyeFov[0]);
@@ -256,7 +315,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 		}
 		if (pDepthStencilView) { pDepthStencilView->Release(); pDepthStencilView = nullptr; }
 
-		// release d3d11 device + context
+		// release d3d11 device + context... 
 		pcContext->Release();
 		pcDevice->Release();
 
@@ -264,10 +323,13 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 	}
 	else
 	{
-		// TODO !! basic code here taken from OculusRoomTiny example
-
-		/*ovrVector3f      HmdToEyeViewOffset[2] = { m_psEyeRenderDesc[0].HmdToEyeViewOffset,
-		m_psEyeRenderDesc[1].HmdToEyeViewOffset };
+		// basic code here taken from OculusRoomTiny example
+		ovrVector3f      HmdToEyeViewOffset[2] = { m_psEyeRenderDesc[0].HmdToEyeViewOffset,
+			m_psEyeRenderDesc[1].HmdToEyeViewOffset };
+		ovrPosef         EyeRenderPose[2];
+		ovrFrameTiming   ftiming  = ovrHmd_GetFrameTiming(m_hHMD, 0);
+		ovrTrackingState hmdState = ovrHmd_GetTrackingState(m_hHMD, ftiming.DisplayMidpointSeconds);
+		ovr_CalcEyePoses(hmdState.HeadPose.ThePose, HmdToEyeViewOffset, EyeRenderPose);
 
 		// Initialize our single full screen Fov layer.
 		ovrLayerEyeFov ld;
@@ -276,10 +338,10 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 
 		for (int eye = 0; eye < 2; eye++)
 		{
-		ld.ColorTexture[eye] = m_psEyeRenderTexture[eye]->TextureSet;
-		ld.Viewport[eye]     = m_psEyeRenderViewport[eye];
-		ld.Fov[eye]          = m_hHMD->DefaultEyeFov[eye];
-		ld.RenderPose[eye]   = EyeRenderPose[eye];
+			ld.ColorTexture[eye] = m_psEyeRenderTexture[eye]->TextureSet;
+			ld.Viewport[eye]     = m_psEyeRenderViewport[eye];
+			ld.Fov[eye]          = m_hHMD->DefaultEyeFov[eye];
+			ld.RenderPose[eye]   = EyeRenderPose[eye];
 		}
 
 		// Set up positional data.
@@ -289,7 +351,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 		viewScaleDesc.HmdToEyeViewOffset[1] = HmdToEyeViewOffset[1];
 
 		ovrLayerHeader* layers = &ld.Header;
-		ovrResult result = ovrHmd_SubmitFrame(m_hHMD, 0, &viewScaleDesc, &layers, 1);*/
+		ovrResult result = ovrHmd_SubmitFrame(m_hHMD, 0, &viewScaleDesc, &layers, 1);
 	}
 	return nullptr;
 }

@@ -39,6 +39,24 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"Resources.h"
 #include<sstream>
 
+#include <DXGI.h>
+#pragma comment(lib, "DXGI.lib")
+
+#include <d3d11_1.h>
+#pragma comment(lib, "d3d11.lib")
+
+#include <d3d11.h>
+#pragma comment(lib, "d3d11.lib")
+
+#include <d3d10_1.h>
+#pragma comment(lib, "d3d10_1.lib")
+
+#include <d3d10.h>
+#pragma comment(lib, "d3d10.lib")
+
+#include <d3dx10.h>
+#pragma comment(lib, "d3dx10.lib")
+
 #include <d3d9.h>
 #pragma comment(lib, "d3d9.lib")
 
@@ -101,6 +119,30 @@ struct DepthBuffer
 };
 
 /**
+* Simple data buffer structure.
+* Taken from the OculusRoomTiny demo for simplicity.
+* (libOVR 0.6.1)
+***/
+struct DataBuffer
+{
+    ID3D11Buffer * D3DBuffer;
+    size_t         Size;
+
+    DataBuffer(ID3D11Device * Device, D3D11_BIND_FLAG use, const void* buffer, size_t size) : Size(size)
+    {
+        D3D11_BUFFER_DESC desc;   memset(&desc, 0, sizeof(desc));
+        desc.Usage = D3D11_USAGE_DYNAMIC;
+        desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+        desc.BindFlags = use;
+        desc.ByteWidth = (unsigned)size;
+        D3D11_SUBRESOURCE_DATA sr;
+        sr.pSysMem = buffer;
+        sr.SysMemPitch = sr.SysMemSlicePitch = 0;
+        Device->CreateBuffer(&desc, buffer ? &sr : NULL, &D3DBuffer);
+    }
+};
+
+/**
 * ovrSwapTextureSet wrapper class that also maintains the render target views
 * needed for D3D11 rendering.
 * Taken from the OculusRoomTiny demo for simplicity.
@@ -127,6 +169,7 @@ struct OculusTexture
 		dsDesc.BindFlags        = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
 
 		ovrResult nOvrResult = ovrHmd_CreateSwapTextureSetD3D11(hmd, pcDevice, &dsDesc, &TextureSet);
+
 		if (OVR_SUCCESS(nOvrResult))
 		{
 			for (int i = 0; i < TextureSet->TextureCount; ++i)
@@ -201,6 +244,30 @@ private:
 	* The Oculus render description. (for both eyes)
 	***/
 	ovrEyeRenderDesc m_psEyeRenderDesc[2];
+	/**
+	* Temporary directx 11 device for the oculus sdk.
+	***/
+	ID3D11Device* m_pcDeviceTemporary;
+	/**
+	* Temporary directx 11 device context for the oculus sdk.
+	***/
+	ID3D11DeviceContext* m_pcContextTemporary;
+	/**
+	* Depth buffer for the oculus sdk.
+	***/
+	DepthBuffer* m_psMainDepthBuffer;
+	/**
+	* Constant buffer for the oculus sdk.
+	***/
+	DataBuffer* m_psUniformBufferGen;
+	/**
+	* In-game back buffer.
+	***/
+	ID3D11Texture2D* m_pcBackBuffer;
+	/**
+	* Back buffer render target view.
+	***/
+    ID3D11RenderTargetView* m_pcBackBufferRT;
 };
 
 /**
