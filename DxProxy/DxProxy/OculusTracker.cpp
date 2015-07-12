@@ -153,10 +153,20 @@ void OculusTracker::resetPosition()
 	ovrHmd_RecenterPose(hmd);
 }
 
-void OculusTracker::SetFrameHMDData(ovrTrackingState &ts)
+void OculusTracker::SetFrameHMDData(UINT &frameIndex, ovrFrameTiming &timing, ovrTrackingState &ts)
 {
+	m_frameIndex = frameIndex;
+	m_timing = timing;
 	m_ts = ts;
 }
+
+void OculusTracker::GetFrameHMDData(UINT &frameIndex, ovrFrameTiming &timing, ovrTrackingState &ts)
+{
+	frameIndex = m_frameIndex;
+	timing = m_timing;
+	ts = m_ts;
+}
+
 
 /**
 * Retrieve Oculus tracker orientation.

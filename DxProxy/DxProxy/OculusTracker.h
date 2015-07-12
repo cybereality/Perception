@@ -68,7 +68,8 @@ public:
 	virtual bool SupportsPositionTracking();
 
 	ovrHmd GetOVRHmd() {return hmd;}
-	void SetFrameHMDData(ovrTrackingState &ts);
+	void SetFrameHMDData(UINT &frameIndex, ovrFrameTiming &timing, ovrTrackingState &ts);
+	void GetFrameHMDData(UINT &frameIndex, ovrFrameTiming &timing, ovrTrackingState &ts);
 
 private:
 
@@ -90,6 +91,8 @@ private:
 	MotionTrackerStatus status;
 
 	//OVR Specific tracking info
+	UINT m_frameIndex;
+	ovrFrameTiming m_timing;
 	ovrTrackingState m_ts;
  };
 

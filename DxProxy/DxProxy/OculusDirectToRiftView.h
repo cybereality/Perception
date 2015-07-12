@@ -154,11 +154,12 @@ struct VoidScene
 //This object will contain the scene for both eyes (with each texture) and the tracking state taken at the time the scene was generated
 struct VireioVRScene
 {
-	VireioVRScene()
+	VireioVRScene(UINT id)
 	{
 		SHOW_CALL("VireioVRScene()");
 		m_pScene[ovrEye_Left] = NULL;
 		m_pScene[ovrEye_Right] = NULL;
+		sceneID = id;
 	}
 
 	~VireioVRScene()
@@ -170,7 +171,9 @@ struct VireioVRScene
 
 	VoidScene*	m_pScene[2];
 	ovrTrackingState m_trackingState;
+	ovrFrameTiming m_frameTiming;
 	UINT frameIndex;
+	UINT sceneID;
 	ovrPosef m_eyePoses[2];
 };
 
@@ -228,9 +231,8 @@ private:
 	{
 		ThreadSafeSceneStore() {m_VRScene = NULL;m_used = false;}
 
-		void push(VireioVRScene* &eyeScenes);
-		VireioVRScene* retrieve();
-		bool hasScene();
+		VireioVRScene* push(VireioVRScene* &eyeScenes);
+		VireioVRScene* retrieve(bool remove);
 		bool getUsed();
 
 		void ReleaseEverything();
@@ -255,10 +257,13 @@ private:
 		{
 			std::lock_guard<std::mutex> lck(m_mtx);
 			if (size() == 0)
-				return new VireioVRScene();
+			{
+				static UINT sceneID = 1;
+				return new VireioVRScene(sceneID++);
+			}
 
-			VireioVRScene *vrScene = back();
-			pop_back();
+			VireioVRScene *vrScene = front();
+			pop_front();
 			return vrScene;
 		}
 		
@@ -287,6 +292,8 @@ private:
 
 	//The rift!
 	ovrHmd rift;
+
+	UINT appFrameIndex;
 
 	//The last scene we showed (just kept for eye poses)
 	VireioVRScene *m_pLastScene;
