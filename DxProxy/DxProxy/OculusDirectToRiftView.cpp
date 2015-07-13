@@ -361,10 +361,6 @@ void OculusDirectToRiftView::DX11RenderThread_RenderNextFrame()
 {
 	SHOW_CALL("OculusDirectToRiftView::DX11RenderThread_RenderNextFrame()");
 
-	//If we've never had a scene before, just return
-	if (!m_pCurrentScene)
-		return;
-
 	//If not using SDK pose pred, then just take from the store, if we are then we'll just get 
 	//a pointer to the scene to check if it is time to submit it yet
 	VireioVRScene *vrScene = m_safeSceneStore.retrieve(!m_pOculusTracker->useSDKPosePrediction);
@@ -375,7 +371,7 @@ void OculusDirectToRiftView::DX11RenderThread_RenderNextFrame()
 		if (m_pOculusTracker->useSDKPosePrediction)
 		{
 			//Now check to see if we should submit this scene yet (we don't want to do it too early, that makes judder)
-			if (vrScene->m_frameTiming.DisplayMidpointSeconds < (ovr_GetTimeInSeconds() + vrScene->m_frameTiming.FrameIntervalSeconds))
+			if (vrScene->m_frameTiming.DisplayMidpointSeconds < ovr_GetTimeInSeconds())
 			{
 				vrScene = m_safeSceneStore.retrieve(true);
 			}
@@ -437,6 +433,10 @@ void OculusDirectToRiftView::DX11RenderThread_RenderNextFrame()
 		}
 	}
 
+	//If we've never had a scene before, just return
+	if (!m_pCurrentScene)
+		return;
+
     // Initialize our single full screen Fov layer.
     ovrLayerEyeFov ld;
     ld.Header.Type  = ovrLayerType_EyeFov;
@@ -477,6 +477,10 @@ void OculusDirectToRiftView::PostPresent(D3D9ProxySurface* stereoCapableSurface,
 
 	if (pVRScene)
 	{
+		//HACK
+		if (m_sleep > 0)
+			Sleep(m_sleep);
+
 		//We'll use this to wait for GPU to finish the copy
 		D3D11_QUERY_DESC QueryDesc;
 		QueryDesc.Query = D3D11_QUERY_EVENT;
@@ -525,7 +529,7 @@ void OculusDirectToRiftView::PostPresent(D3D9ProxySurface* stereoCapableSurface,
 						{
 							//Create the void scene for this eye, setting the DX9 shared texture as the screen source
 							std::pair<float, float> size = hmdInfo->GetPhysicalScreenSize();
-							pVRScene->m_pScene[eye] = new VoidScene(pDX11Texture, sharedHandle, size.first / size.second);
+							pVRScene->m_pScene[eye] = new VoidScene(pDX11Texture, sharedHandle, 1.8);
 						}
 						else
 						{
@@ -544,6 +548,7 @@ void OculusDirectToRiftView::PostPresent(D3D9ProxySurface* stereoCapableSurface,
 
 				//Copy
 				m_copyDX11.Context->CopyResource(pVRScene->m_pScene[eye]->m_pTexture, pDX9Texture);
+				m_copyDX11.Context->Flush();
 			}
 
 			//We don't need to keep the ref here now
@@ -551,7 +556,6 @@ void OculusDirectToRiftView::PostPresent(D3D9ProxySurface* stereoCapableSurface,
 		}
 
 		//FLsuh all commands, then wait for completion
-		m_copyDX11.Context->Flush();
 		m_copyDX11.Context->End(pEventQuery);
 
 		//Now wait for the flush to complete

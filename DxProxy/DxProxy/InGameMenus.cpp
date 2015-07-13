@@ -1056,12 +1056,21 @@ void D3DProxyDevice::VPMENU_Settings()
 		clamp(&config.YOffset, -0.1f, 0.1f);
 		this->stereoView->PostReset();
 	});
+
+	menu->AddAdjustment("Post Render Sleep : %u", &stereoView->m_sleep,
+		0, 1, [=]()
+	{
+		if (stereoView->m_sleep > 10)
+			stereoView->m_sleep = 0;
+	});
+
+	/*
 	menu->AddAdjustment("Distortion Scale : %g", &config.DistortionScale,
 		defaultConfig.DistortionScale, 0.01f, [=]()
 	{
 		this->stereoView->PostReset();
 	});
-	/*
+	
 	AddButton("Stereo Screenshots", [=]() {
 		// render 3 frames to get screenshots without menu
 		screenshot = 3;
@@ -1901,6 +1910,24 @@ void MenuBuilder::AddKeybind(std::string text, InputBindingRef *binding, InputBi
 void MenuBuilder::AddAdjustment(const char *formatString, float *value, float defaultValue, float rate, std::function<void()> onChange)
 {
 	std::string label = retprintf(formatString, device->RoundVireioValue(*value));
+	
+	AddItem(label, [=]() {
+		if (hotkeyResetToDefault->IsPressed(device->controls) && device->HotkeysActive())
+		{
+			*value = defaultValue;
+			onChange();
+		}
+		if (device->VPMENU_Input_IsAdjustment() && device->HotkeysActive())
+		{
+			*value += rate * device->VPMENU_Input_GetAdjustment();
+			onChange();
+		}
+	});
+}
+
+void MenuBuilder::AddAdjustment(const char *formatString, UINT *value, UINT defaultValue, UINT rate, std::function<void()> onChange)
+{
+	std::string label = retprintf(formatString, *value);
 	
 	AddItem(label, [=]() {
 		if (hotkeyResetToDefault->IsPressed(device->controls) && device->HotkeysActive())

@@ -57,6 +57,7 @@ StereoView::StereoView(ProxyConfig *config)
 	initialized = false;
 	m_screenViewGlideFactor = 1.0f;
 	XOffset = 0;
+	m_sleep = 0;
 	game_type = config->game_type;
 
 	m_bZBufferFilterMode = false;
