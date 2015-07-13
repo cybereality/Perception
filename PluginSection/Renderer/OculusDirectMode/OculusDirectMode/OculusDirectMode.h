@@ -98,9 +98,9 @@ struct TexturedVertex
 };
 
 /**
-* Font Vertex Shader DX10.
+* 2D Vertex Shader DX10+.
 ***/
-static const char* VS2DFont =
+static const char* VS2D =
 	"struct VS_IN\n"  
 	"{\n"  
 	"float4 Position  : POSITION;\n"  
@@ -122,9 +122,9 @@ static const char* VS2DFont =
 	"}\n";
 
 /**
-* Font Pixel Shader DX10.
+* 2D Pixel Shader DX10+.
 ***/
-static const char* PS2DFont = 
+static const char* PS2D = 
 	"Texture2D fontTexture : register(t0);\n"
 	"SamplerState fontSampler : register(s0);\n"
 
@@ -137,7 +137,8 @@ static const char* PS2DFont =
 	"float4 PS( VS_OUT vtx ) : SV_Target\n"
 	"{\n"
 	//"    return fontTexture.Sample( fontSampler, vtx.TexCoord );\n"
-	"    return float4(1.0, 0.4, 0.3, 1.0);\n"
+	"    return float4(fontTexture.Sample( fontSampler, vtx.TexCoord ).xyz, 1.0);\n"
+	//"    return float4(1.0, 0.4, 0.3, 1.0);\n"
 	"}\n";
 
 /**
@@ -305,45 +306,36 @@ private:
 	***/
 	ID3D11DeviceContext* m_pcContextTemporary;
 	/**
-	* Depth buffer for the oculus sdk.
-	***/
-	DepthBuffer* m_psMainDepthBuffer;
-	/**
-	* Constant buffer for the oculus sdk.
-	***/
-	DataBuffer* m_psUniformBufferGen;
-	/**
 	* In-game back buffer.
 	***/
 	ID3D11Texture2D* m_pcBackBuffer;
 	/**
-	* Back buffer render target view.
+	* The direct mode vertex shader.
+	* Simple 2D vertex shader.
 	***/
-	ID3D11RenderTargetView* m_pcBackBufferRT;
+	ID3D11VertexShader* m_pcVertexShaderDirect;
 	/**
-	* The vertex shader.
+	* The direct mode pixel shader.
+	* Simple Texture pixel shader.
 	***/
-	ID3D11VertexShader* m_pcVertexShader11;
+	ID3D11PixelShader* m_pcPixelShaderDirect;
 	/**
-	* The pixel shader.
+	* The direct mode vertex layout.
 	***/
-	ID3D11PixelShader* m_pcPixelShader11;
+	ID3D11InputLayout* m_pcVertexLayoutDirect;
 	/**
-	* The vertex layout.
+	* The direct mode vertex buffer.
+	* Simple full-screen vertex buffer, containing 6 vertices.
 	***/
-	ID3D11InputLayout* m_pcVertexLayout11;
-	/**
-	* The vertex buffer.
-	***/
-	ID3D11Buffer* m_pcVertexBuffer11;
+	ID3D11Buffer* m_pcVertexBufferDirect;
 	/**
 	* The test texture.
 	***/
-	ID3D11Texture2D* m_pcTexture11;
+	ID3D11Texture2D* m_pcTextureDirect;
 	/**
 	* The test texture view.
 	***/
-	ID3D11ShaderResourceView* m_pcTextureView11;
+	ID3D11ShaderResourceView* m_pcTextureViewDirect;
 };
 
 /**
