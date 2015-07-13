@@ -89,6 +89,58 @@ enum ORN_Decommanders
 };
 
 /**
+* Simple texture vertex structure.
+***/
+struct TexturedVertex
+{
+	D3DXVECTOR4 sPos;
+	D3DXVECTOR2 sTex;
+};
+
+/**
+* Font Vertex Shader DX10.
+***/
+static const char* VS2DFont =
+	"struct VS_IN\n"  
+	"{\n"  
+	"float4 Position  : POSITION;\n"  
+	"float2 TexCoord : TEXCOORD0;\n"  
+	"};\n"
+
+	"struct VS_OUT\n"  
+	"{\n"  
+	"float4 Position  : SV_POSITION;\n"  
+	"float2 TexCoord : TEXCOORD0;\n"  
+	"};\n"
+
+	"VS_OUT VS( VS_IN vtx )\n"
+	"{\n"
+	"    VS_OUT Out = (VS_OUT)0;\n"
+	"    Out.Position = vtx.Position;\n"
+	"    Out.TexCoord = vtx.TexCoord;\n"
+	"    return Out;\n"
+	"}\n";
+
+/**
+* Font Pixel Shader DX10.
+***/
+static const char* PS2DFont = 
+	"Texture2D fontTexture : register(t0);\n"
+	"SamplerState fontSampler : register(s0);\n"
+
+	"struct VS_OUT\n"  
+	"{\n"  
+	"float4 Position  : SV_POSITION;\n"  
+	"float2 TexCoord : TEXCOORD0;\n"  
+	"};\n"
+
+	"float4 PS( VS_OUT vtx ) : SV_Target\n"
+	"{\n"
+	//"    return fontTexture.Sample( fontSampler, vtx.TexCoord );\n"
+	"    return float4(1.0, 0.4, 0.3, 1.0);\n"
+	"}\n";
+
+/**
 * Simple depth buffer structure.
 * Taken from the OculusRoomTiny demo for simplicity.
 * (libOVR 0.6.1)
@@ -125,21 +177,21 @@ struct DepthBuffer
 ***/
 struct DataBuffer
 {
-    ID3D11Buffer * D3DBuffer;
-    size_t         Size;
+	ID3D11Buffer * D3DBuffer;
+	size_t         Size;
 
-    DataBuffer(ID3D11Device * Device, D3D11_BIND_FLAG use, const void* buffer, size_t size) : Size(size)
-    {
-        D3D11_BUFFER_DESC desc;   memset(&desc, 0, sizeof(desc));
-        desc.Usage = D3D11_USAGE_DYNAMIC;
-        desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-        desc.BindFlags = use;
-        desc.ByteWidth = (unsigned)size;
-        D3D11_SUBRESOURCE_DATA sr;
-        sr.pSysMem = buffer;
-        sr.SysMemPitch = sr.SysMemSlicePitch = 0;
-        Device->CreateBuffer(&desc, buffer ? &sr : NULL, &D3DBuffer);
-    }
+	DataBuffer(ID3D11Device * Device, D3D11_BIND_FLAG use, const void* buffer, size_t size) : Size(size)
+	{
+		D3D11_BUFFER_DESC desc;   memset(&desc, 0, sizeof(desc));
+		desc.Usage = D3D11_USAGE_DYNAMIC;
+		desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		desc.BindFlags = use;
+		desc.ByteWidth = (unsigned)size;
+		D3D11_SUBRESOURCE_DATA sr;
+		sr.pSysMem = buffer;
+		sr.SysMemPitch = sr.SysMemSlicePitch = 0;
+		Device->CreateBuffer(&desc, buffer ? &sr : NULL, &D3DBuffer);
+	}
 };
 
 /**
@@ -267,7 +319,31 @@ private:
 	/**
 	* Back buffer render target view.
 	***/
-    ID3D11RenderTargetView* m_pcBackBufferRT;
+	ID3D11RenderTargetView* m_pcBackBufferRT;
+	/**
+	* The vertex shader.
+	***/
+	ID3D11VertexShader* m_pcVertexShader11;
+	/**
+	* The pixel shader.
+	***/
+	ID3D11PixelShader* m_pcPixelShader11;
+	/**
+	* The vertex layout.
+	***/
+	ID3D11InputLayout* m_pcVertexLayout11;
+	/**
+	* The vertex buffer.
+	***/
+	ID3D11Buffer* m_pcVertexBuffer11;
+	/**
+	* The test texture.
+	***/
+	ID3D11Texture2D* m_pcTexture11;
+	/**
+	* The test texture view.
+	***/
+	ID3D11ShaderResourceView* m_pcTextureView11;
 };
 
 /**

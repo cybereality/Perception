@@ -56,6 +56,12 @@ OculusDirectMode::OculusDirectMode() : AQU_Nodus(),
 	m_psUniformBufferGen(nullptr),
 	m_pcBackBuffer(nullptr),
 	m_pcBackBufferRT(nullptr),
+	m_pcVertexShader11(nullptr),
+	m_pcPixelShader11(nullptr),
+	m_pcVertexLayout11(nullptr),
+	m_pcVertexBuffer11(nullptr),
+	m_pcTexture11(nullptr),
+	m_pcTextureView11(nullptr),
 	m_bInit(false),
 	m_pcMirrorTexture(nullptr)
 {	
@@ -72,6 +78,13 @@ OculusDirectMode::~OculusDirectMode()
 	if (m_psUniformBufferGen) delete m_psUniformBufferGen;
 	if (m_pcBackBuffer) m_pcBackBuffer->Release();
 	if (m_pcBackBufferRT) m_pcBackBufferRT->Release();
+
+	if (m_pcVertexShader11) m_pcVertexShader11->Release();
+	if (m_pcPixelShader11) m_pcPixelShader11->Release();
+	if (m_pcVertexLayout11) m_pcVertexLayout11->Release();
+	if (m_pcVertexBuffer11) m_pcVertexBuffer11->Release();
+	if (m_pcTexture11) m_pcTexture11->Release();
+	if (m_pcTextureView11) m_pcTextureView11->Release();
 }
 
 /**
@@ -282,6 +295,10 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 
 		ovrHmd_SetEnabledCaps(m_hHMD, ovrHmdCap_LowPersistence|ovrHmdCap_DynamicPrediction);
 
+		// Start the sensor which informs of the Rift's pose and motion
+		result = ovrHmd_ConfigureTracking(m_hHMD, ovrTrackingCap_Orientation | ovrTrackingCap_MagYawCorrection |
+			ovrTrackingCap_Position, 0);
+
 		// Make the eye render buffers (caution if actual size < requested due to HW limits). 
 		for (int eye = 0; eye < 2; eye++)
 		{
@@ -308,6 +325,104 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 		m_psEyeRenderDesc[0] = ovrHmd_GetRenderDesc(m_hHMD, ovrEye_Left, m_hHMD->DefaultEyeFov[0]);
 		m_psEyeRenderDesc[1] = ovrHmd_GetRenderDesc(m_hHMD, ovrEye_Right, m_hHMD->DefaultEyeFov[1]);
 
+		// create vertex shader
+		if (!m_pcVertexShader11)
+		{
+			ID3D10Blob* pcShader;
+
+			// compile and create shader
+			if (SUCCEEDED(D3DX10CompileFromMemory(VS2DFont,strlen(VS2DFont),NULL,NULL,NULL,"VS","vs_4_0",NULL,NULL,NULL, &pcShader,NULL,NULL)))
+			{
+				OutputDebugString(L"HelloWorldDx10 Node : Vertex Shader compiled !");
+				m_pcDeviceTemporary->CreateVertexShader(pcShader->GetBufferPointer(), pcShader->GetBufferSize(), NULL, &m_pcVertexShader11);
+
+				if (m_pcVertexShader11) 
+				{
+					OutputDebugString(L"HelloWorldDx10 Node : Create Input Layout !");
+					// Define the input layout
+					D3D11_INPUT_ELEMENT_DESC layout[] =
+					{
+						{ "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+						{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 16, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+					};
+					UINT numElements = sizeof( layout ) / sizeof( layout[0] );
+
+					m_pcDeviceTemporary->CreateInputLayout( layout, numElements, pcShader->GetBufferPointer(), pcShader->GetBufferSize(), &m_pcVertexLayout11 );
+				}
+				pcShader->Release();
+			}
+		}
+
+		// create pixel shader
+		if (!m_pcPixelShader11)
+		{
+			ID3D10Blob* pcShader;
+
+			// compile and create shader
+			if (SUCCEEDED(D3DX10CompileFromMemory(PS2DFont,strlen(PS2DFont),NULL,NULL,NULL,"PS","ps_4_0",NULL,NULL,NULL, &pcShader,NULL,NULL)))
+			{
+				OutputDebugString(L"HelloWorldDx10 Node : Pixel Shader compiled !");
+				m_pcDeviceTemporary->CreatePixelShader(pcShader->GetBufferPointer(), pcShader->GetBufferSize(), NULL, &m_pcPixelShader11);
+				pcShader->Release();
+			}
+		}
+
+		// Create vertex buffer
+		if (!m_pcVertexBuffer11)
+		{
+			// Create vertex buffer
+			TexturedVertex vertices[] =
+			{
+				{ D3DXVECTOR4( -0.3f, 0.15f, 0.5f, 1.0f ), D3DXVECTOR2( 0.0f, 0.0f ) },
+				{ D3DXVECTOR4(  0.3f, 0.14f, 0.5f, 1.0f  ), D3DXVECTOR2( 1.0f, 0.0f ) },
+				{ D3DXVECTOR4( -0.01f, -0.3f, 0.5f, 1.0f), D3DXVECTOR2( 1.0f, 1.0f ) },
+
+				{ D3DXVECTOR4( 0.01f, 0.3f, 0.5f, 1.0f ), D3DXVECTOR2( 0.0f, 0.0f ) },
+				{ D3DXVECTOR4(  0.3f, -0.14f, 0.5f, 1.0f  ), D3DXVECTOR2( 1.0f, 0.0f ) },
+				{ D3DXVECTOR4( -0.3f, -0.15f, 0.5f, 1.0f), D3DXVECTOR2( 1.0f, 1.0f ) },
+			};
+			D3D11_BUFFER_DESC bd;
+			bd.Usage = D3D11_USAGE_DEFAULT;
+			bd.ByteWidth = sizeof( TexturedVertex ) * 6;
+			bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+			bd.CPUAccessFlags = 0;
+			bd.MiscFlags = 0;
+			D3D11_SUBRESOURCE_DATA InitData;
+			InitData.pSysMem = vertices;
+			m_pcDeviceTemporary->CreateBuffer( &bd, &InitData, &m_pcVertexBuffer11 );
+		}
+
+		// and render, pass first frame by creating tex
+		if (!m_pcTexture11)
+		{
+			// create font texture
+			D3D11_TEXTURE2D_DESC sDesc;
+			ZeroMemory(&sDesc, sizeof(sDesc));
+			sDesc.Width = 1024;
+			sDesc.Height = 1024;
+			sDesc.MipLevels = sDesc.ArraySize = 1;
+			sDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+			sDesc.SampleDesc.Count = 1;
+			sDesc.Usage = D3D11_USAGE_DEFAULT;
+			sDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+			if (FAILED(m_pcDeviceTemporary->CreateTexture2D( &sDesc, nullptr, &m_pcTexture11 )))
+				OutputDebugString(L"Failed to create Texture DEFAULT.");
+
+
+			if (m_pcTexture11)
+			{
+				D3D11_SHADER_RESOURCE_VIEW_DESC sDesc;
+				ZeroMemory(&sDesc, sizeof(sDesc));
+				sDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+				sDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+				sDesc.Texture2D.MostDetailedMip = 0;
+				sDesc.Texture2D.MipLevels = 1;
+
+				if ((FAILED(m_pcDeviceTemporary->CreateShaderResourceView((ID3D11Resource*)m_pcTexture11, &sDesc, &m_pcTextureView11))))
+					OutputDebugString(L"Failed to create texture view!");
+			}
+		}
+
 		// finish up
 		for (int i = 0; i < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT; i++)
 		{
@@ -327,9 +442,57 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 		ovrVector3f      HmdToEyeViewOffset[2] = { m_psEyeRenderDesc[0].HmdToEyeViewOffset,
 			m_psEyeRenderDesc[1].HmdToEyeViewOffset };
 		ovrPosef         EyeRenderPose[2];
+		ovrPosef         ZeroPose; ZeroMemory(&ZeroPose, sizeof(ovrPosef));
 		ovrFrameTiming   ftiming  = ovrHmd_GetFrameTiming(m_hHMD, 0);
 		ovrTrackingState hmdState = ovrHmd_GetTrackingState(m_hHMD, ftiming.DisplayMidpointSeconds);
 		ovr_CalcEyePoses(hmdState.HeadPose.ThePose, HmdToEyeViewOffset, EyeRenderPose);
+		
+		//m_pcContextTemporary->ClearState();
+
+		// render
+		for (int eye = 0; eye < 2; eye++)
+		{
+			// Increment to use next texture, just before writing
+			m_psEyeRenderTexture[eye]->AdvanceToNextTexture();
+
+			// clear and set render target
+			int texIndex = m_psEyeRenderTexture[eye]->TextureSet->CurrentIndex;
+			float ClearColor[4] = { 0.1f, 0.125f, 0.3f, 0.0f }; // red,green,blue,alpha
+			m_pcContextTemporary->ClearRenderTargetView(m_psEyeRenderTexture[eye]->TexRtv[texIndex], ClearColor);
+			//m_pcContextTemporary->ClearDepthStencilView( m_psMainDepthBuffer->TexDsv, D3D11_CLEAR_DEPTH, 1.0, 0 ); // SOMETHING HERE CAUSES DEVICE REMOVAL !!!
+			m_pcContextTemporary->OMSetRenderTargets(1, &m_psEyeRenderTexture[eye]->TexRtv[texIndex], nullptr);//m_psMainDepthBuffer->TexDsv);
+
+			// set viewport
+			D3D11_VIEWPORT D3Dvp;
+			D3Dvp.Width = (float)m_psEyeRenderViewport[eye].Size.w;    
+			D3Dvp.Height = (float)m_psEyeRenderViewport[eye].Size.h;
+			D3Dvp.MinDepth = 0;           
+			D3Dvp.MaxDepth = 1;
+			D3Dvp.TopLeftX = (float)m_psEyeRenderViewport[eye].Pos.x; 
+			D3Dvp.TopLeftY = (float)m_psEyeRenderViewport[eye].Pos.y;
+			m_pcContextTemporary->RSSetViewports(1, &D3Dvp);
+			
+			// Set the input layout
+			m_pcContextTemporary->IASetInputLayout( m_pcVertexLayout11 );
+
+			// Set vertex buffer
+			UINT stride = sizeof( TexturedVertex );
+			UINT offset = 0;
+			m_pcContextTemporary->IASetVertexBuffers( 0, 1, &m_pcVertexBuffer11, &stride, &offset );
+
+			// Set primitive topology
+			m_pcContextTemporary->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
+
+			// set texture
+			m_pcContextTemporary->PSSetShaderResources(0, 1, &m_pcTextureView11);
+
+			// set shaders
+			m_pcContextTemporary->VSSetShader(m_pcVertexShader11, 0, 0);
+			m_pcContextTemporary->PSSetShader(m_pcPixelShader11, 0, 0);
+
+			// Render a triangle
+			m_pcContextTemporary->Draw( 6, 0 );
+		}
 
 		// Initialize our single full screen Fov layer.
 		ovrLayerEyeFov ld;
@@ -345,13 +508,13 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 		}
 
 		// Set up positional data.
-		ovrViewScaleDesc viewScaleDesc;
+		/*ovrViewScaleDesc viewScaleDesc;
 		viewScaleDesc.HmdSpaceToWorldScaleInMeters = 1.0f;
 		viewScaleDesc.HmdToEyeViewOffset[0] = HmdToEyeViewOffset[0];
 		viewScaleDesc.HmdToEyeViewOffset[1] = HmdToEyeViewOffset[1];
-
+*/
 		ovrLayerHeader* layers = &ld.Header;
-		ovrResult result = ovrHmd_SubmitFrame(m_hHMD, 0, &viewScaleDesc, &layers, 1);
+		ovrResult result = ovrHmd_SubmitFrame(m_hHMD, 0, /*&viewScaleDesc*/nullptr, &layers, 1);
 	}
 	return nullptr;
 }
