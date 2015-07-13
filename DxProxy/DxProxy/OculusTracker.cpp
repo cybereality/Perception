@@ -41,7 +41,8 @@ using namespace vireio;
 * Constructor.
 * Calls init function.
 ***/ 
-OculusTracker::OculusTracker()
+OculusTracker::OculusTracker() :
+	m_latestFrameIndex(0)
 {
 	status = MTS_NOTINIT;
 	init();
@@ -153,18 +154,37 @@ void OculusTracker::resetPosition()
 	ovrHmd_RecenterPose(hmd);
 }
 
-void OculusTracker::SetFrameHMDData(UINT &frameIndex, ovrFrameTiming &timing, ovrTrackingState &ts)
+void OculusTracker::SetFrameHMDData(UINT frameIndex, ovrFrameTiming &timing, ovrTrackingState &ts)
 {
-	m_frameIndex = frameIndex;
-	m_timing = timing;
-	m_ts = ts;
+	std::lock_guard<std::mutex> lock(m_mtx);
+
+	//Retain the timing state for this frame index
+	m_latestFrameIndex = frameIndex;
+	m_frameData[frameIndex].m_timing = timing;
+	m_frameData[frameIndex].m_ts = ts;
 }
 
-void OculusTracker::GetFrameHMDData(UINT &frameIndex, ovrFrameTiming &timing, ovrTrackingState &ts)
+void OculusTracker::GetFrameHMDData(UINT frameIndex, ovrFrameTiming &timing, ovrTrackingState &ts)
 {
-	frameIndex = m_frameIndex;
-	timing = m_timing;
-	ts = m_ts;
+	std::lock_guard<std::mutex> lock(m_mtx);
+
+	timing = m_frameData[frameIndex].m_timing;
+	ts = m_frameData[frameIndex].m_ts;
+}
+
+void OculusTracker::CleanupFrameHMDData(UINT frameIndex)
+{
+	std::lock_guard<std::mutex> lock(m_mtx);
+
+	//Need to remove all with a frame index less/equal than the one just acquired
+	std::map<UINT, HMDFrameData>::iterator iter = m_frameData.begin();
+	while (iter != m_frameData.end())
+	{
+		if (iter->first <= frameIndex)
+			iter = m_frameData.erase(iter);
+		else
+			iter++;
+	}
 }
 
 
@@ -177,17 +197,27 @@ int OculusTracker::getOrientationAndPosition(float* yaw, float* pitch, float* ro
 {
 	SHOW_CALL("OculusTracker getOrientationAndPosition\n");
 
-	if (m_ts.StatusFlags & ovrStatus_OrientationTracked)
+	if (m_latestFrameIndex == 0)
+		return 0;
+
+	//Protect against multi thread access to the frame data collection
+	HMDFrameData frameData;
 	{
-		Quatf hmdOrient=m_ts.HeadPose.ThePose.Orientation;
+		std::lock_guard<std::mutex> lock(m_mtx);
+		frameData = m_frameData[m_latestFrameIndex];
+	}
+
+	if (frameData.m_ts.StatusFlags & ovrStatus_OrientationTracked)
+	{
+		Quatf hmdOrient=frameData.m_ts.HeadPose.ThePose.Orientation;
 		hmdOrient.GetEulerAngles<Axis_Y,Axis_X,Axis_Z>(yaw, pitch, roll);
 
 		// set primary orientations
-		primaryYaw = *yaw - offsetYaw;
+		primaryYaw = *yaw;
 		//As per oculus vr, roll and pitch should not be reset, only yaw/x/y/z
 		primaryPitch = *pitch;
 		primaryRoll = *roll;
-		*yaw = -RadToDegree(*yaw - offsetYaw);
+		*yaw = -RadToDegree(*yaw);
 		*pitch = RadToDegree(*pitch);
 		*roll = -RadToDegree(*roll);
 		status = MTS_OK;
@@ -195,9 +225,9 @@ int OculusTracker::getOrientationAndPosition(float* yaw, float* pitch, float* ro
 	else
 		status = MTS_NOORIENTATION;
 
-	if (m_ts.StatusFlags & ovrStatus_PositionConnected && status == MTS_OK)
+	if (frameData.m_ts.StatusFlags & ovrStatus_PositionConnected && status == MTS_OK)
 	{
-		if (!(m_ts.StatusFlags & ovrStatus_CameraPoseTracked))
+		if (!(frameData.m_ts.StatusFlags & ovrStatus_CameraPoseTracked))
 		{
 			//Camera still initialising/calibrating
 			//Should probably warn user if this doesn't get set after a period of time
@@ -205,11 +235,11 @@ int OculusTracker::getOrientationAndPosition(float* yaw, float* pitch, float* ro
 			if (((tick - GetTickCount()) / 1000) > 15)
 				status = MTS_CAMERAMALFUNCTION;
 		}
-		else if (m_ts.StatusFlags & ovrStatus_PositionTracked)
+		else if (frameData.m_ts.StatusFlags & ovrStatus_PositionTracked)
 		{
-			*x = m_ts.HeadPose.ThePose.Position.x - offsetX;
-			*y = m_ts.HeadPose.ThePose.Position.y - offsetY;
-			*z = m_ts.HeadPose.ThePose.Position.z - offsetZ;
+			*x = frameData.m_ts.HeadPose.ThePose.Position.x - offsetX;
+			*y = frameData.m_ts.HeadPose.ThePose.Position.y - offsetY;
+			*z = frameData.m_ts.HeadPose.ThePose.Position.z - offsetZ;
 			primaryX = *x;
 			primaryY = *y;
 			primaryZ = *z;

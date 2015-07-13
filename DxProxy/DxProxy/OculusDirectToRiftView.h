@@ -225,21 +225,18 @@ private:
 	HANDLE m_EventFlagRaised;
 
 	void CalcFPS();
-	float hmdFPS;
+	float asyncFPS;
 
 	struct ThreadSafeSceneStore
 	{
-		ThreadSafeSceneStore() {m_VRScene = NULL;m_used = false;}
+		ThreadSafeSceneStore() {m_VRScene = NULL;}
 
 		VireioVRScene* push(VireioVRScene* &eyeScenes);
 		VireioVRScene* retrieve(bool remove);
-		bool getUsed();
 
 		void ReleaseEverything();
 
 	private:
-		//Flags whether this store has ever been used
-		bool m_used;
 		std::mutex m_mtx;
 		VireioVRScene* m_VRScene;
 	} m_safeSceneStore;
@@ -296,7 +293,7 @@ private:
 	UINT appFrameIndex;
 
 	//The last scene we showed (just kept for eye poses)
-	VireioVRScene *m_pLastScene;
+	VireioVRScene *m_pCurrentScene;
 
 	//Second DX11 device for copying textures
 	DirectX11 m_copyDX11;
