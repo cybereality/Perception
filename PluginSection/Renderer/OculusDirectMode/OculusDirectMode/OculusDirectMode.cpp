@@ -352,13 +352,13 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 			// Create vertex buffer
 			TexturedVertex vertices[] =
 			{
-				{ D3DXVECTOR4( -0.3f, 0.15f, 0.5f, 1.0f ), D3DXVECTOR2( 0.0f, 0.0f ) },
-				{ D3DXVECTOR4(  0.3f, 0.14f, 0.5f, 1.0f  ), D3DXVECTOR2( 1.0f, 0.0f ) },
-				{ D3DXVECTOR4( -0.01f, -0.3f, 0.5f, 1.0f), D3DXVECTOR2( 1.0f, 1.0f ) },
+				{ D3DXVECTOR4( -2.0f, 2.0f, 0.5f, 1.0f ), D3DXVECTOR2( 0.0f, 0.0f ) }, // top left
+				{ D3DXVECTOR4(  2.0f, 2.0f, 0.5f, 1.0f  ), D3DXVECTOR2( 1.0f, 0.0f ) }, // top right
+				{ D3DXVECTOR4( -2.0f, -2.0f, 0.5f, 1.0f), D3DXVECTOR2( 0.0f, 1.0f ) }, // bottom left
 
-				{ D3DXVECTOR4( 0.01f, 0.3f, 0.5f, 1.0f ), D3DXVECTOR2( 0.0f, 0.0f ) },
-				{ D3DXVECTOR4(  0.3f, -0.14f, 0.5f, 1.0f  ), D3DXVECTOR2( 1.0f, 0.0f ) },
-				{ D3DXVECTOR4( -0.3f, -0.15f, 0.5f, 1.0f), D3DXVECTOR2( 1.0f, 1.0f ) },
+				{ D3DXVECTOR4( -2.0f, -2.0f, 0.5f, 1.0f ), D3DXVECTOR2( 0.0f, 1.0f ) }, // bottom left
+				{ D3DXVECTOR4(  2.0f, 2.0f, 0.5f, 1.0f  ), D3DXVECTOR2( 1.0f, 0.0f ) }, // top right
+				{ D3DXVECTOR4( 2.0f, -2.0f, 0.5f, 1.0f), D3DXVECTOR2( 1.0f, 1.0f ) }, // bottom right
 			};
 			D3D11_BUFFER_DESC bd;
 			bd.Usage = D3D11_USAGE_DEFAULT;
@@ -507,9 +507,15 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 			ld.RenderPose[eye]   = EyeRenderPose[eye];
 		}
 
+		// Set up positional data.
+		ovrViewScaleDesc viewScaleDesc;
+		viewScaleDesc.HmdSpaceToWorldScaleInMeters = 1.0f;
+		viewScaleDesc.HmdToEyeViewOffset[0] = HmdToEyeViewOffset[0];
+		viewScaleDesc.HmdToEyeViewOffset[1] = HmdToEyeViewOffset[1];
+
 		// submit the frame
 		ovrLayerHeader* layers = &ld.Header;
-		ovrResult result = ovrHmd_SubmitFrame(m_hHMD, 0, nullptr, &layers, 1);
+		ovrResult result = ovrHmd_SubmitFrame(m_hHMD, 0, nullptr/*&viewScaleDesc*/, &layers, 1);
 	}
 
 	// release frame texture+view
