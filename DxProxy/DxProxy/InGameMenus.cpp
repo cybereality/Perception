@@ -1044,12 +1044,7 @@ void D3DProxyDevice::VPMENU_Settings()
 	menu->OnClose([=]() { VPMENU_UpdateConfigSettings(); });
 
 	menu->AddToggle("Swap Eyes : %s", "True", "False", &config.swap_eyes, defaultConfig.swap_eyes);
-	menu->AddAdjustment("IPD-Offset : %1.3f", &config.IPDOffset,
-		defaultConfig.IPDOffset, 0.001f, [=]()
-	{
-		clamp(&config.IPDOffset, -0.1f, 0.1f);
-		this->stereoView->PostReset();
-	});
+
 	menu->AddAdjustment("Y-Offset : %1.3f", &config.YOffset,
 		defaultConfig.YOffset, 0.001f, [=]()
 	{
@@ -1057,11 +1052,11 @@ void D3DProxyDevice::VPMENU_Settings()
 		this->stereoView->PostReset();
 	});
 
-	menu->AddAdjustment("Post Render Sleep : %u", &stereoView->m_sleep,
+	menu->AddAdjustment("Post-Present Sleep : %u", &config.sleep,
 		0, 1, [=]()
 	{
-		if (stereoView->m_sleep > 10)
-			stereoView->m_sleep = 0;
+		if (config.sleep > 10)
+			config.sleep = 0;
 	});
 
 	/*
@@ -1405,7 +1400,6 @@ void D3DProxyDevice::VPMENU_AdjustmentHotkeys()
 	menu->AddKeybind("Swap Sides Hotkey", &config.HotkeySwapSides, defaultConfig.HotkeySwapSides);
 	menu->AddKeybind("Initiate VRBoost Memory Scan", &config.HotkeyInitiateScan, defaultConfig.HotkeyInitiateScan);
 	menu->AddKeybind("DK2 Black Smear Correction", &config.HotkeyBlackSmear, defaultConfig.HotkeyBlackSmear);
-	menu->AddKeybind("Reset IPD Offset", &config.HotkeyResetIPDOffset, defaultConfig.HotkeyResetIPDOffset);
 	menu->AddKeybind("Show HMD Stats", &config.HotkeyShowHMDStats, defaultConfig.HotkeyShowHMDStats);
 	menu->AddKeybind("Show Axes", &config.HotkeyShowAxes, defaultConfig.HotkeyShowAxes);
 	menu->AddKeybind("Toggle Positional Tracking", &config.HotkeyTogglePositionalTracking, defaultConfig.HotkeyTogglePositionalTracking);

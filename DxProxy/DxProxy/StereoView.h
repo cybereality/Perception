@@ -145,11 +145,6 @@ public:
 	int m_3DReconstructionMode;
 	bool m_bLeftSideActive;
 
-	/**
-	* Sleep post-render - can reduce flicker at cost of DX9 performance
-	*/
-	UINT m_sleep;
-
 	enum VignetteStyle
 	{
 		NONE,

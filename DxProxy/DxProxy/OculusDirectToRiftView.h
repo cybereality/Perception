@@ -204,7 +204,6 @@ private:
 
 	bool DX11RenderThread_Init();
 	bool DX11RenderThread_InitDevices(Sizei sz);
-	void DX11RenderThread_TimewarpLastFrame();
 	void DX11RenderThread_ReleaseEverything();
 	void DX11RenderThread_RenderNextFrame();
 
@@ -253,7 +252,7 @@ private:
 		VireioVRScene* pop()
 		{
 			std::lock_guard<std::mutex> lck(m_mtx);
-			if (size() == 0)
+			if (size() < 3)
 			{
 				static UINT sceneID = 1;
 				return new VireioVRScene(sceneID++);

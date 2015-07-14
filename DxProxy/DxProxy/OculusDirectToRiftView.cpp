@@ -371,7 +371,7 @@ void OculusDirectToRiftView::DX11RenderThread_RenderNextFrame()
 		if (m_pOculusTracker->useSDKPosePrediction)
 		{
 			//Now check to see if we should submit this scene yet (we don't want to do it too early, that makes judder)
-			if (vrScene->m_frameTiming.DisplayMidpointSeconds < ovr_GetTimeInSeconds())
+			if (vrScene->m_frameTiming.DisplayMidpointSeconds < (ovr_GetTimeInSeconds() + vrScene->m_frameTiming.FrameIntervalSeconds))
 			{
 				vrScene = m_safeSceneStore.retrieve(true);
 			}
@@ -418,7 +418,7 @@ void OculusDirectToRiftView::DX11RenderThread_RenderNextFrame()
 			DIRECTX.SetViewport(Recti(eyeRenderViewport[eye]));
 
 			// View and projection matrices for the main camera
-			Camera mainCam(Vector3f(0.0f, 0.1f - config->YOffset, (2.25f - ZoomOutScale) + (m_screenViewGlideFactor > 0.5f ? 1.2f : 0.0f)), Matrix4f::Identity());
+			Camera mainCam(Vector3f(0.0f, 0.15f - config->YOffset, (2.25f - ZoomOutScale) + (m_screenViewGlideFactor > 0.5f ? 1.2f : 0.0f)), Matrix4f::Identity());
 
 			// View and projection matrices for the camera using HMD orientation
 			Camera finalCam(mainCam.Pos + mainCam.Rot.Transform(vrScene->m_eyePoses[eye].Position),
@@ -477,9 +477,9 @@ void OculusDirectToRiftView::PostPresent(D3D9ProxySurface* stereoCapableSurface,
 
 	if (pVRScene)
 	{
-		//HACK
-		if (m_sleep > 0)
-			Sleep(m_sleep);
+		//artificially create a delay before we copy (configurable)
+		if (config->sleep > 0)
+			Sleep(config->sleep);
 
 		//We'll use this to wait for GPU to finish the copy
 		D3D11_QUERY_DESC QueryDesc;
@@ -529,7 +529,7 @@ void OculusDirectToRiftView::PostPresent(D3D9ProxySurface* stereoCapableSurface,
 						{
 							//Create the void scene for this eye, setting the DX9 shared texture as the screen source
 							std::pair<float, float> size = hmdInfo->GetPhysicalScreenSize();
-							pVRScene->m_pScene[eye] = new VoidScene(pDX11Texture, sharedHandle, 1.8);
+							pVRScene->m_pScene[eye] = new VoidScene(pDX11Texture, sharedHandle, 1.75);
 						}
 						else
 						{
