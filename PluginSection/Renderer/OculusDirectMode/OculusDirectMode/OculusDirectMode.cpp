@@ -58,6 +58,7 @@ OculusDirectMode::OculusDirectMode() : AQU_Nodus(),
 	m_pcVertexLayoutDirect(nullptr),
 	m_pcVertexBufferDirect(nullptr),
 	m_pcTextureDirect(nullptr),
+	m_pcBackBufferCopy(nullptr),
 	m_pcTextureViewDirect(nullptr),
 	m_bInit(false),
 	m_pcMirrorTexture(nullptr)
@@ -79,6 +80,7 @@ OculusDirectMode::~OculusDirectMode()
 	if (m_pcVertexBufferDirect) m_pcVertexBufferDirect->Release();
 	if (m_pcTextureDirect) m_pcTextureDirect->Release();
 	if (m_pcTextureViewDirect) m_pcTextureViewDirect->Release();
+	if (m_pcBackBufferCopy) m_pcBackBufferCopy->Release();
 }
 
 /**
@@ -369,33 +371,25 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 			m_pcDeviceTemporary->CreateBuffer( &bd, &InitData, &m_pcVertexBufferDirect );
 		}
 
-		// create a test texture
+		// create the back buffer copy texture
 		if (!m_pcTextureDirect)
 		{
-			// create test texture
-			D3D11_TEXTURE2D_DESC sDesc;
-			ZeroMemory(&sDesc, sizeof(sDesc));
-			sDesc.Width = 1024;
-			sDesc.Height = 1024;
-			sDesc.MipLevels = sDesc.ArraySize = 1;
-			sDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-			sDesc.SampleDesc.Count = 1;
-			sDesc.Usage = D3D11_USAGE_DEFAULT;
-			sDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-			if (FAILED(m_pcDeviceTemporary->CreateTexture2D( &sDesc, nullptr, &m_pcTextureDirect )))
-				OutputDebugString(L"Failed to create Texture DEFAULT.");
-
-			if (m_pcTextureDirect)
+			// first, get the back buffer surface
+			if (SUCCEEDED(pcSwapChain->GetBuffer( 0, __uuidof( ID3D11Texture2D ), ( LPVOID* )&m_pcBackBuffer )))
 			{
-				D3D11_SHADER_RESOURCE_VIEW_DESC sDesc;
-				ZeroMemory(&sDesc, sizeof(sDesc));
-				sDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-				sDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-				sDesc.Texture2D.MostDetailedMip = 0;
-				sDesc.Texture2D.MipLevels = 1;
+				D3D11_TEXTURE2D_DESC sDesc;
+				m_pcBackBuffer->GetDesc(&sDesc);
 
-				if ((FAILED(m_pcDeviceTemporary->CreateShaderResourceView((ID3D11Resource*)m_pcTextureDirect, &sDesc, &m_pcTextureViewDirect))))
-					OutputDebugString(L"Failed to create texture view!");
+				// create a "STAGING" texture as copy buffer
+				D3D11_TEXTURE2D_DESC sDesc1 =
+				{
+					sDesc.Width, sDesc.Height, 1, 1, sDesc.Format,
+					{ 1, 0 }, 
+					D3D11_USAGE_STAGING,
+					0, D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE, 0
+				};
+				if (FAILED(pcDevice->CreateTexture2D( &sDesc1, nullptr, &m_pcBackBufferCopy )))
+					OutputDebugString(L"Failed to create Texture (back buffer copy).");
 			}
 		}
 
@@ -411,6 +405,50 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 		ovrFrameTiming   ftiming  = ovrHmd_GetFrameTiming(m_hHMD, 0);
 		ovrTrackingState hmdState = ovrHmd_GetTrackingState(m_hHMD, ftiming.DisplayMidpointSeconds);
 		ovr_CalcEyePoses(hmdState.HeadPose.ThePose, HmdToEyeViewOffset, EyeRenderPose);
+
+		// copy the current frame to the (cpu write/read enabled) back buffer copy texture
+		pcContext->CopyResource((ID3D11Resource*)m_pcBackBufferCopy, (ID3D11Resource*)m_pcBackBuffer);
+
+		// map the back buffer copy texture and create the current frame texture from the raw data
+		D3D11_MAPPED_SUBRESOURCE sMappedResource;
+		m_pcTextureViewDirect = nullptr;
+		m_pcTextureDirect = nullptr;
+		if (SUCCEEDED(pcContext->Map((ID3D11Resource*)m_pcBackBufferCopy, 0, D3D11_MAP_READ, 0, &sMappedResource)))
+		{
+			// get the back buffer surface
+			if (SUCCEEDED(pcSwapChain->GetBuffer( 0, __uuidof( ID3D11Texture2D ), ( LPVOID* )&m_pcBackBuffer )))
+			{
+				// create the frame texture by back buffer description
+				D3D11_TEXTURE2D_DESC sDesc;
+				m_pcBackBuffer->GetDesc(&sDesc);
+				sDesc.Usage = D3D11_USAGE_DEFAULT;
+				sDesc.CPUAccessFlags = 0;
+				D3D11_SUBRESOURCE_DATA sData;
+				ZeroMemory(&sData, sizeof(sData));
+				sData.pSysMem = sMappedResource.pData;
+				sData.SysMemPitch = sMappedResource.RowPitch;
+				if (FAILED(m_pcDeviceTemporary->CreateTexture2D( &sDesc, &sData, &m_pcTextureDirect )))
+					OutputDebugString(L"Failed to create Texture.");
+
+				// release the back buffer
+				m_pcBackBuffer->Release();
+
+				// create the frame texture view
+				if (m_pcTextureDirect)
+				{
+					D3D11_SHADER_RESOURCE_VIEW_DESC sDesc1;
+					ZeroMemory(&sDesc1, sizeof(sDesc1));
+					sDesc1.Format = sDesc.Format;
+					sDesc1.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+					sDesc1.Texture2D.MostDetailedMip = 0;
+					sDesc1.Texture2D.MipLevels = 1;
+
+					if ((FAILED(m_pcDeviceTemporary->CreateShaderResourceView((ID3D11Resource*)m_pcTextureDirect, &sDesc1, &m_pcTextureViewDirect))))
+						OutputDebugString(L"Failed to create texture view!");
+				}
+			}
+			pcContext->Unmap((ID3D11Resource*)m_pcBackBufferCopy, 0);
+		}
 
 		// render
 		for (int eye = 0; eye < 2; eye++)
@@ -473,6 +511,10 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 		ovrLayerHeader* layers = &ld.Header;
 		ovrResult result = ovrHmd_SubmitFrame(m_hHMD, 0, nullptr, &layers, 1);
 	}
+
+	// release frame texture+view
+	if (m_pcTextureViewDirect) { m_pcTextureViewDirect->Release(); m_pcTextureViewDirect = nullptr; }
+	if (m_pcTextureDirect) { m_pcTextureDirect->Release(); m_pcTextureDirect = nullptr; }
 
 	// finish up
 	for (int i = 0; i < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT; i++)

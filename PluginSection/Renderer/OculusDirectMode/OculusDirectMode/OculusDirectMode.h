@@ -310,6 +310,10 @@ private:
 	***/
 	ID3D11Texture2D* m_pcBackBuffer;
 	/**
+	* Back buffer copy.
+	***/
+	ID3D11Texture2D* m_pcBackBufferCopy;
+	/**
 	* The direct mode vertex shader.
 	* Simple 2D vertex shader.
 	***/
@@ -329,11 +333,11 @@ private:
 	***/
 	ID3D11Buffer* m_pcVertexBufferDirect;
 	/**
-	* The test texture.
+	* The shared full-screen texture.
 	***/
 	ID3D11Texture2D* m_pcTextureDirect;
 	/**
-	* The test texture view.
+	* The shared full-screen texture view.
 	***/
 	ID3D11ShaderResourceView* m_pcTextureViewDirect;
 };
