@@ -57,8 +57,13 @@ OculusDirectMode::OculusDirectMode() : AQU_Nodus(),
 	m_pcPixelShaderDirect(nullptr),
 	m_pcVertexLayoutDirect(nullptr),
 	m_pcVertexBufferDirect(nullptr),
+	m_pcVertexShaderMirror(nullptr),
+	m_pcPixelShaderMirror(nullptr),
+	m_pcVertexLayoutMirror(nullptr),
+	m_pcVertexBufferMirror(nullptr),
 	m_pcTextureDirect(nullptr),
 	m_pcBackBufferCopy(nullptr),
+	m_pcMirrorCopy(nullptr),
 	m_pcTextureViewDirect(nullptr),
 	m_bInit(false),
 	m_pcMirrorTexture(nullptr)
@@ -78,9 +83,14 @@ OculusDirectMode::~OculusDirectMode()
 	if (m_pcPixelShaderDirect) m_pcPixelShaderDirect->Release();
 	if (m_pcVertexLayoutDirect) m_pcVertexLayoutDirect->Release();
 	if (m_pcVertexBufferDirect) m_pcVertexBufferDirect->Release();
+	if (m_pcVertexShaderMirror) m_pcVertexShaderMirror->Release();
+	if (m_pcPixelShaderMirror) m_pcPixelShaderMirror->Release();
+	if (m_pcVertexLayoutMirror) m_pcVertexLayoutMirror->Release();
+	if (m_pcVertexBufferMirror) m_pcVertexBufferMirror->Release();
 	if (m_pcTextureDirect) m_pcTextureDirect->Release();
 	if (m_pcTextureViewDirect) m_pcTextureViewDirect->Release();
 	if (m_pcBackBufferCopy) m_pcBackBufferCopy->Release();
+	if (m_pcMirrorCopy) m_pcMirrorCopy->Release();
 }
 
 /**
@@ -220,6 +230,10 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 		return nullptr;
 	}
 
+	// backup all states
+	D3DX11_STATE_BLOCK sStateBlock;
+	CreateStateblock(pcContext, &sStateBlock);
+
 	// get render target view
 	ID3D11RenderTargetView* ppRenderTargetView[D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT];
 	ID3D11DepthStencilView* pDepthStencilView = nullptr;
@@ -230,6 +244,32 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 
 	if (!m_bInit)
 	{
+		// first, get the back buffer surface
+		D3D11_TEXTURE2D_DESC sDesc;
+		if (SUCCEEDED(pcSwapChain->GetBuffer( 0, __uuidof( ID3D11Texture2D ), ( LPVOID* )&m_pcBackBuffer )))
+		{
+			m_pcBackBuffer->GetDesc(&sDesc);
+		}
+		else
+		{
+			// release frame texture+view
+			if (m_pcTextureViewDirect) { m_pcTextureViewDirect->Release(); m_pcTextureViewDirect = nullptr; }
+			if (m_pcTextureDirect) { m_pcTextureDirect->Release(); m_pcTextureDirect = nullptr; }
+
+			// finish up
+			for (int i = 0; i < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT; i++)
+			{
+				if (ppRenderTargetView[i]) { ppRenderTargetView[i]->Release(); ppRenderTargetView[i] = nullptr; }
+			}
+			if (pDepthStencilView) { pDepthStencilView->Release(); pDepthStencilView = nullptr; }
+
+			// release d3d11 device + context... 
+			pcContext->Release();
+			pcDevice->Release();
+
+			return nullptr;
+		}
+
 		// create temporary (OVR) device
 		IDXGIFactory * DXGIFactory;
 		IDXGIAdapter * Adapter;
@@ -293,12 +333,23 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 		D3D11_TEXTURE2D_DESC td = { };
 		td.ArraySize        = 1;
 		td.Format           = DXGI_FORMAT_B8G8R8A8_UNORM;
-		td.Width            = (UINT)sViewport[0].Width;
-		td.Height           = (UINT)sViewport[0].Height;
+		td.Width            = (UINT)sDesc.Width;
+		td.Height           = (UINT)sDesc.Height;
 		td.Usage            = D3D11_USAGE_DEFAULT;
 		td.SampleDesc.Count = 1;
 		td.MipLevels        = 1;
 		ovrHmd_CreateMirrorTextureD3D11(m_hHMD, m_pcDeviceTemporary, &td, &m_pcMirrorTexture);
+		// create a "STAGING" texture as copy buffer
+		D3D11_TEXTURE2D_DESC sDesc1 =
+		{
+			td.Width, td.Height, 1, 1, td.Format,
+			{ 1, 0 }, 
+			D3D11_USAGE_STAGING,
+			0, D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE, 0
+		};
+		if (FAILED(m_pcDeviceTemporary->CreateTexture2D( &sDesc1, nullptr, &m_pcMirrorCopy )))
+			OutputDebugString(L"Failed to create Texture (mirror copy).");
+
 
 		// Setup VR components, filling out description
 		m_psEyeRenderDesc[0] = ovrHmd_GetRenderDesc(m_hHMD, ovrEye_Left, m_hHMD->DefaultEyeFov[0]);
@@ -313,6 +364,8 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 			if (SUCCEEDED(D3DX10CompileFromMemory(VS2D,strlen(VS2D),NULL,NULL,NULL,"VS","vs_4_0",NULL,NULL,NULL, &pcShader,NULL,NULL)))
 			{
 				OutputDebugString(L"HelloWorldDx10 Node : Vertex Shader compiled !");
+
+				// create direct mode vertex shader
 				m_pcDeviceTemporary->CreateVertexShader(pcShader->GetBufferPointer(), pcShader->GetBufferSize(), NULL, &m_pcVertexShaderDirect);
 
 				if (m_pcVertexShaderDirect) 
@@ -328,6 +381,24 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 
 					m_pcDeviceTemporary->CreateInputLayout( layout, numElements, pcShader->GetBufferPointer(), pcShader->GetBufferSize(), &m_pcVertexLayoutDirect );
 				}
+
+				// create mirror vertex shader (same as direct mode shader, but for game device)
+				pcDevice->CreateVertexShader(pcShader->GetBufferPointer(), pcShader->GetBufferSize(), NULL, &m_pcVertexShaderMirror);
+
+				if (m_pcVertexShaderMirror) 
+				{
+					OutputDebugString(L"HelloWorldDx10 Node : Create Input Layout !");
+					// Define the input layout
+					D3D11_INPUT_ELEMENT_DESC layout[] =
+					{
+						{ "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+						{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 16, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+					};
+					UINT numElements = sizeof( layout ) / sizeof( layout[0] );
+
+					pcDevice->CreateInputLayout( layout, numElements, pcShader->GetBufferPointer(), pcShader->GetBufferSize(), &m_pcVertexLayoutMirror );
+				}
+
 				pcShader->Release();
 			}
 		}
@@ -341,7 +412,9 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 			if (SUCCEEDED(D3DX10CompileFromMemory(PS2D,strlen(PS2D),NULL,NULL,NULL,"PS","ps_4_0",NULL,NULL,NULL, &pcShader,NULL,NULL)))
 			{
 				OutputDebugString(L"HelloWorldDx10 Node : Pixel Shader compiled !");
+				// create both, direct mode and mirror pixel shader
 				m_pcDeviceTemporary->CreatePixelShader(pcShader->GetBufferPointer(), pcShader->GetBufferSize(), NULL, &m_pcPixelShaderDirect);
+				pcDevice->CreatePixelShader(pcShader->GetBufferPointer(), pcShader->GetBufferSize(), NULL, &m_pcPixelShaderMirror);
 				pcShader->Release();
 			}
 		}
@@ -352,13 +425,20 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 			// Create vertex buffer
 			TexturedVertex vertices[] =
 			{
-				{ D3DXVECTOR4( -2.0f, 2.0f, 0.5f, 1.0f ), D3DXVECTOR2( 0.0f, 0.0f ) }, // top left
+				{ D3DXVECTOR4( -1.0f, 1.0f, 0.5f, 1.0f ), D3DXVECTOR2( 0.0f, 0.0f ) }, // top left
+				{ D3DXVECTOR4(  1.0f, 1.0f, 0.5f, 1.0f  ), D3DXVECTOR2( 1.0f, 0.0f ) }, // top right
+				{ D3DXVECTOR4( -1.0f, -1.0f, 0.5f, 1.0f), D3DXVECTOR2( 0.0f, 1.0f ) }, // bottom left
+
+				{ D3DXVECTOR4( -1.0f, -1.0f, 0.5f, 1.0f ), D3DXVECTOR2( 0.0f, 1.0f ) }, // bottom left
+				{ D3DXVECTOR4(  1.0f, 1.0f, 0.5f, 1.0f  ), D3DXVECTOR2( 1.0f, 0.0f ) }, // top right
+				{ D3DXVECTOR4( 1.0f, -1.0f, 0.5f, 1.0f), D3DXVECTOR2( 1.0f, 1.0f ) }, // bottom right
+				/*{ D3DXVECTOR4( -2.0f, 2.0f, 0.5f, 1.0f ), D3DXVECTOR2( 0.0f, 0.0f ) }, // top left
 				{ D3DXVECTOR4(  2.0f, 2.0f, 0.5f, 1.0f  ), D3DXVECTOR2( 1.0f, 0.0f ) }, // top right
 				{ D3DXVECTOR4( -2.0f, -2.0f, 0.5f, 1.0f), D3DXVECTOR2( 0.0f, 1.0f ) }, // bottom left
 
 				{ D3DXVECTOR4( -2.0f, -2.0f, 0.5f, 1.0f ), D3DXVECTOR2( 0.0f, 1.0f ) }, // bottom left
 				{ D3DXVECTOR4(  2.0f, 2.0f, 0.5f, 1.0f  ), D3DXVECTOR2( 1.0f, 0.0f ) }, // top right
-				{ D3DXVECTOR4( 2.0f, -2.0f, 0.5f, 1.0f), D3DXVECTOR2( 1.0f, 1.0f ) }, // bottom right
+				{ D3DXVECTOR4( 2.0f, -2.0f, 0.5f, 1.0f), D3DXVECTOR2( 1.0f, 1.0f ) }, // bottom right*/
 			};
 			D3D11_BUFFER_DESC bd;
 			bd.Usage = D3D11_USAGE_DEFAULT;
@@ -368,30 +448,27 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 			bd.MiscFlags = 0;
 			D3D11_SUBRESOURCE_DATA InitData;
 			InitData.pSysMem = vertices;
+
+			// create both, direct mode and mirror buffer
 			m_pcDeviceTemporary->CreateBuffer( &bd, &InitData, &m_pcVertexBufferDirect );
+			pcDevice->CreateBuffer( &bd, &InitData, &m_pcVertexBufferMirror );
 		}
 
 		// create the back buffer copy texture
 		if (!m_pcTextureDirect)
 		{
-			// first, get the back buffer surface
-			if (SUCCEEDED(pcSwapChain->GetBuffer( 0, __uuidof( ID3D11Texture2D ), ( LPVOID* )&m_pcBackBuffer )))
+			// create a "STAGING" texture as copy buffer
+			D3D11_TEXTURE2D_DESC sDesc1 =
 			{
-				D3D11_TEXTURE2D_DESC sDesc;
-				m_pcBackBuffer->GetDesc(&sDesc);
-
-				// create a "STAGING" texture as copy buffer
-				D3D11_TEXTURE2D_DESC sDesc1 =
-				{
-					sDesc.Width, sDesc.Height, 1, 1, sDesc.Format,
-					{ 1, 0 }, 
-					D3D11_USAGE_STAGING,
-					0, D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE, 0
-				};
-				if (FAILED(pcDevice->CreateTexture2D( &sDesc1, nullptr, &m_pcBackBufferCopy )))
-					OutputDebugString(L"Failed to create Texture (back buffer copy).");
-			}
+				sDesc.Width, sDesc.Height, 1, 1, sDesc.Format,
+				{ 1, 0 }, 
+				D3D11_USAGE_STAGING,
+				0, D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE, 0
+			};
+			if (FAILED(pcDevice->CreateTexture2D( &sDesc1, nullptr, &m_pcBackBufferCopy )))
+				OutputDebugString(L"Failed to create Texture (back buffer copy).");
 		}
+
 
 		m_bInit = true;
 	}
@@ -518,6 +595,81 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 		ovrResult result = ovrHmd_SubmitFrame(m_hHMD, 0, nullptr/*&viewScaleDesc*/, &layers, 1);
 	}
 
+	// mirror the oculus screen to the main window game screen
+	if (true)
+	{
+		// clear all states, set targets
+		pcContext->ClearState();
+
+		// clear and set render target
+		float ClearColor[4] = { 0.1f, 0.125f, 0.3f, 0.0f }; // red,green,blue,alpha
+		pcContext->ClearRenderTargetView(ppRenderTargetView[0], ClearColor);
+		pcContext->OMSetRenderTargets(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, ppRenderTargetView, nullptr);
+
+		// set viewport
+		pcContext->RSSetViewports(dwNumViewports, sViewport);
+
+		// Set the input layout
+		pcContext->IASetInputLayout( m_pcVertexLayoutMirror );
+
+		// Set vertex buffer
+		UINT stride = sizeof( TexturedVertex );
+		UINT offset = 0;
+		pcContext->IASetVertexBuffers( 0, 1, &m_pcVertexBufferMirror, &stride, &offset );
+
+		// Set primitive topology
+		pcContext->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
+
+		// create and set texture
+		ovrD3D11Texture* tex = (ovrD3D11Texture*)m_pcMirrorTexture;
+		m_pcContextTemporary->CopyResource((ID3D11Resource*)m_pcMirrorCopy, (ID3D11Resource*)tex->D3D11.pTexture);
+		D3D11_MAPPED_SUBRESOURCE sMappedResource;
+		ID3D11ShaderResourceView* pcTextureViewMirror(nullptr);
+		ID3D11Texture2D* pcTextureMirror(nullptr);
+		if (SUCCEEDED(m_pcContextTemporary->Map((ID3D11Resource*)m_pcMirrorCopy, 0, D3D11_MAP_READ, 0, &sMappedResource)))
+		{
+			// create the frame mirror texture by back buffer description
+			D3D11_TEXTURE2D_DESC sDesc;
+			tex->D3D11.pTexture->GetDesc(&sDesc);
+			sDesc.Usage = D3D11_USAGE_DEFAULT;
+			sDesc.CPUAccessFlags = 0;
+			D3D11_SUBRESOURCE_DATA sData;
+			ZeroMemory(&sData, sizeof(sData));
+			sData.pSysMem = sMappedResource.pData;
+			sData.SysMemPitch = sMappedResource.RowPitch;
+			if (FAILED(pcDevice->CreateTexture2D( &sDesc, &sData, &pcTextureMirror )))
+				OutputDebugString(L"Failed to create Texture.");
+
+			// create the frame mirror texture view
+			if (pcTextureMirror)
+			{
+				D3D11_SHADER_RESOURCE_VIEW_DESC sDesc1;
+				ZeroMemory(&sDesc1, sizeof(sDesc1));
+				sDesc1.Format = sDesc.Format;
+				sDesc1.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+				sDesc1.Texture2D.MostDetailedMip = 0;
+				sDesc1.Texture2D.MipLevels = 1;
+
+				if ((FAILED(pcDevice->CreateShaderResourceView((ID3D11Resource*)pcTextureMirror, &sDesc1, &pcTextureViewMirror))))
+					OutputDebugString(L"Failed to create texture view!");
+			}
+
+			m_pcContextTemporary->Unmap((ID3D11Resource*)m_pcMirrorCopy, 0);
+		}
+		pcContext->PSSetShaderResources(0, 1, &pcTextureViewMirror);
+
+		// set shaders
+		pcContext->VSSetShader(m_pcVertexShaderMirror, 0, 0);
+		pcContext->PSSetShader(m_pcPixelShaderMirror, 0, 0);
+
+		// Render a triangle
+		pcContext->Draw( 6, 0 );
+
+		// release textures
+		if (pcTextureViewMirror) pcTextureViewMirror->Release();
+		if (pcTextureMirror) pcTextureMirror->Release();
+	}
+
 	// release frame texture+view
 	if (m_pcTextureViewDirect) { m_pcTextureViewDirect->Release(); m_pcTextureViewDirect = nullptr; }
 	if (m_pcTextureDirect) { m_pcTextureDirect->Release(); m_pcTextureDirect = nullptr; }
@@ -529,9 +681,172 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 	}
 	if (pDepthStencilView) { pDepthStencilView->Release(); pDepthStencilView = nullptr; }
 
+	// apply state block
+	ApplyStateblock(pcContext, &sStateBlock);
+
 	// release d3d11 device + context... 
 	pcContext->Release();
 	pcDevice->Release();
 
 	return nullptr;
+}
+
+/**
+* Create dx11 stateblocks.
+***/
+void OculusDirectMode::CreateStateblock(ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
+{
+	memset(sb, 0, sizeof(D3DX11_STATE_BLOCK));
+
+	dc->VSGetShader(&sb->VS, sb->VSInterfaces, &sb->VSInterfaceCount);
+	dc->VSGetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, sb->VSSamplers);
+	dc->VSGetShaderResources(0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, sb->VSShaderResources);
+	dc->VSGetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, sb->VSConstantBuffers);
+
+	dc->GSGetShader(&sb->GS, sb->GSInterfaces, &sb->GSInterfaceCount);
+	dc->GSGetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, sb->GSSamplers);
+	dc->GSGetShaderResources(0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, sb->GSShaderResources);
+	dc->GSGetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, sb->GSConstantBuffers);
+
+	dc->HSGetShader(&sb->HS, sb->HSInterfaces, &sb->HSInterfaceCount);
+	dc->HSGetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, sb->HSSamplers);
+	dc->HSGetShaderResources(0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, sb->HSShaderResources);
+	dc->HSGetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, sb->HSConstantBuffers);
+
+	dc->DSGetShader(&sb->DS, sb->DSInterfaces, &sb->DSInterfaceCount);
+	dc->DSGetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, sb->DSSamplers);
+	dc->DSGetShaderResources(0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, sb->DSShaderResources);
+	dc->DSGetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, sb->DSConstantBuffers);
+
+	dc->PSGetShader(&sb->PS, sb->PSInterfaces, &sb->PSInterfaceCount);
+	dc->PSGetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, sb->PSSamplers);
+	dc->PSGetShaderResources(0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, sb->PSShaderResources);
+	dc->PSGetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, sb->PSConstantBuffers);
+
+	dc->CSGetShader(&sb->CS, sb->CSInterfaces, &sb->CSInterfaceCount);
+	dc->CSGetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, sb->CSSamplers);
+	dc->CSGetShaderResources(0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, sb->CSShaderResources);
+	dc->CSGetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, sb->CSConstantBuffers);
+	dc->CSGetUnorderedAccessViews(0, D3D11_PS_CS_UAV_REGISTER_COUNT, sb->CSUnorderedAccessViews);
+
+	dc->IAGetVertexBuffers(0, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT, sb->IAVertexBuffers, sb->IAVertexBuffersStrides, sb->IAVertexBuffersOffsets);
+	dc->IAGetIndexBuffer(&sb->IAIndexBuffer, &sb->IAIndexBufferFormat, &sb->IAIndexBufferOffset);
+	dc->IAGetInputLayout(&sb->IAInputLayout);
+	dc->IAGetPrimitiveTopology(&sb->IAPrimitiveTopology);
+
+	dc->OMGetRenderTargetsAndUnorderedAccessViews(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, sb->OMRenderTargets, &sb->OMRenderTargetStencilView, 0, D3D11_PS_CS_UAV_REGISTER_COUNT, sb->OMUnorderedAccessViews);
+	dc->OMGetDepthStencilState(&sb->OMDepthStencilState, &sb->OMDepthStencilRef);
+	dc->OMGetBlendState(&sb->OMBlendState, sb->OMBlendFactor, &sb->OMSampleMask);
+
+	sb->RSViewportCount = D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE;
+	dc->RSGetViewports(&sb->RSViewportCount, sb->RSViewports);
+	sb->RSScissorRectCount = D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE;
+	dc->RSGetScissorRects(&sb->RSScissorRectCount, sb->RSScissorRects);
+	dc->RSGetState(&sb->RSRasterizerState);
+
+	dc->SOGetTargets(4, sb->SOBuffers);
+	dc->GetPredication(&sb->Predication, &sb->PredicationValue);
+}
+
+/**
+* Apply dx11 stateblocks.
+***/
+void OculusDirectMode::ApplyStateblock(ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
+{
+	UINT minus_one[D3D11_PS_CS_UAV_REGISTER_COUNT];
+	memset(minus_one, -1, sizeof(minus_one));
+	dc->VSSetShader(sb->VS, sb->VSInterfaces, sb->VSInterfaceCount);
+	UINT VSSamplerCount = calc_count(sb->VSSamplers, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT);
+	if (VSSamplerCount)
+		dc->VSSetSamplers(0, VSSamplerCount, sb->VSSamplers);
+	UINT VSShaderResourceCount = calc_count(sb->VSShaderResources, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
+	if (VSShaderResourceCount)
+		dc->VSSetShaderResources(0, VSShaderResourceCount, sb->VSShaderResources);
+	UINT VSConstantBufferCount = calc_count(sb->VSConstantBuffers, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT);
+	if (VSConstantBufferCount)
+		dc->VSSetConstantBuffers(0, VSConstantBufferCount, sb->VSConstantBuffers);
+
+	dc->GSSetShader(sb->GS, sb->GSInterfaces, sb->GSInterfaceCount);
+	UINT GSSamplerCount = calc_count(sb->GSSamplers, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT);
+	if (GSSamplerCount)
+		dc->GSSetSamplers(0, GSSamplerCount, sb->GSSamplers);
+	UINT GSShaderResourceCount = calc_count(sb->GSShaderResources, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
+	if (GSShaderResourceCount)
+		dc->GSSetShaderResources(0, GSShaderResourceCount, sb->GSShaderResources);
+	UINT GSConstantBufferCount = calc_count(sb->GSConstantBuffers, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT);
+	if (GSConstantBufferCount)
+		dc->GSSetConstantBuffers(0, GSConstantBufferCount, sb->GSConstantBuffers);
+
+	dc->HSSetShader(sb->HS, sb->HSInterfaces, sb->HSInterfaceCount);
+	UINT HSSamplerCount = calc_count(sb->HSSamplers, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT);
+	if (HSSamplerCount)
+		dc->HSSetSamplers(0, HSSamplerCount, sb->HSSamplers);
+	UINT HSShaderResourceCount = calc_count(sb->HSShaderResources, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
+	if (HSShaderResourceCount)
+		dc->HSSetShaderResources(0, HSShaderResourceCount, sb->HSShaderResources);
+	UINT HSConstantBufferCount = calc_count(sb->HSConstantBuffers, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT);
+	if (HSConstantBufferCount)
+		dc->HSSetConstantBuffers(0, HSConstantBufferCount, sb->HSConstantBuffers);
+
+	dc->DSSetShader(sb->DS, sb->DSInterfaces, sb->DSInterfaceCount);
+	UINT DSSamplerCount = calc_count(sb->DSSamplers, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT);
+	if (DSSamplerCount)
+		dc->DSSetSamplers(0, DSSamplerCount, sb->DSSamplers);
+	UINT DSShaderResourceCount = calc_count(sb->DSShaderResources, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
+	if (DSShaderResourceCount)
+		dc->DSSetShaderResources(0, DSShaderResourceCount, sb->DSShaderResources);
+	UINT DSConstantBufferCount = calc_count(sb->DSConstantBuffers, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT);
+	if (DSConstantBufferCount)
+		dc->DSSetConstantBuffers(0, DSConstantBufferCount, sb->DSConstantBuffers);
+
+	dc->PSSetShader(sb->PS, sb->PSInterfaces, sb->PSInterfaceCount);
+	UINT PSSamplerCount = calc_count(sb->PSSamplers, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT);
+	if (PSSamplerCount)
+		dc->PSSetSamplers(0, PSSamplerCount, sb->PSSamplers);
+	UINT PSShaderResourceCount = calc_count(sb->PSShaderResources, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
+	if (PSShaderResourceCount)
+		dc->PSSetShaderResources(0, PSShaderResourceCount, sb->PSShaderResources);
+	UINT PSConstantBufferCount = calc_count(sb->PSConstantBuffers, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT);
+	if (PSConstantBufferCount)
+		dc->PSSetConstantBuffers(0, PSConstantBufferCount, sb->PSConstantBuffers);
+
+	dc->CSSetShader(sb->CS, sb->CSInterfaces, sb->CSInterfaceCount);
+	UINT CSSamplerCount = calc_count(sb->CSSamplers, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT);
+	if (CSSamplerCount)
+		dc->CSSetSamplers(0, CSSamplerCount, sb->CSSamplers);
+	UINT CSShaderResourceCount = calc_count(sb->CSShaderResources, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
+	if (CSShaderResourceCount)
+		dc->CSSetShaderResources(0, CSShaderResourceCount, sb->CSShaderResources);
+	UINT CSConstantBufferCount = calc_count(sb->CSConstantBuffers, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT);
+	if (CSConstantBufferCount)
+		dc->CSSetConstantBuffers(0, CSConstantBufferCount, sb->CSConstantBuffers);
+	//dc->CSSetUnorderedAccessViews(0, D3D11_PS_CS_UAV_REGISTER_COUNT, sb->CSUnorderedAccessViews, minus_one);
+
+	UINT IAVertexBufferCount = calc_count(sb->IAVertexBuffers, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT);
+	if (IAVertexBufferCount)
+		dc->IASetVertexBuffers(0, IAVertexBufferCount, sb->IAVertexBuffers, sb->IAVertexBuffersStrides, sb->IAVertexBuffersOffsets);
+	dc->IASetIndexBuffer(sb->IAIndexBuffer, sb->IAIndexBufferFormat, sb->IAIndexBufferOffset);
+	dc->IASetInputLayout(sb->IAInputLayout);
+	dc->IASetPrimitiveTopology(sb->IAPrimitiveTopology);
+
+	//dc->OMSetRenderTargetsAndUnorderedAccessViews(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, sb->OMRenderTargets, sb->OMRenderTargetStencilView, 0, D3D11_PS_CS_UAV_REGISTER_COUNT, sb->OMUnorderedAccessViews, minus_one);
+	UINT OMRenderTargetCount = calc_count(sb->OMRenderTargets, D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT);
+	if (OMRenderTargetCount)
+		dc->OMSetRenderTargets(OMRenderTargetCount, sb->OMRenderTargets, sb->OMRenderTargetStencilView);
+	dc->OMSetDepthStencilState(sb->OMDepthStencilState, sb->OMDepthStencilRef);
+	dc->OMSetBlendState(sb->OMBlendState, sb->OMBlendFactor, sb->OMSampleMask);
+
+	dc->RSSetViewports(sb->RSViewportCount, sb->RSViewports);
+	dc->RSSetScissorRects(sb->RSScissorRectCount, sb->RSScissorRects);
+	dc->RSSetState(sb->RSRasterizerState);
+
+	UINT SOBuffersOffsets[4] = { 0 }; /* (sizeof(sb->SOBuffers) / sizeof(sb->SOBuffers[0])) * 0,
+									  (sizeof(sb->SOBuffers) / sizeof(sb->SOBuffers[0])) * 1, 
+									  (sizeof(sb->SOBuffers) / sizeof(sb->SOBuffers[0])) * 2, 
+									  (sizeof(sb->SOBuffers) / sizeof(sb->SOBuffers[0])) * 3 };*/
+
+	UINT SOBufferCount = calc_count(sb->SOBuffers, 4);
+	if (SOBufferCount)
+		dc->SOSetTargets(SOBufferCount, sb->SOBuffers, SOBuffersOffsets);
+	dc->SetPredication(sb->Predication, sb->PredicationValue);
 }
