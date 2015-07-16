@@ -102,10 +102,11 @@ struct TexturedVertex
 * 2D Vertex Shader DX10+.
 ***/
 static const char* VS2D =
+	"float4x4 ProjView;\n"
 	"struct VS_IN\n"  
 	"{\n"  
 	"float4 Position  : POSITION;\n"  
-	"float2 TexCoord : TEXCOORD0;\n"  
+	"float2 TexCoord : TEXCOORD0;\n"
 	"};\n"
 
 	"struct VS_OUT\n"  
@@ -117,7 +118,8 @@ static const char* VS2D =
 	"VS_OUT VS( VS_IN vtx )\n"
 	"{\n"
 	"    VS_OUT Out = (VS_OUT)0;\n"
-	"    Out.Position = vtx.Position;\n"
+	//"    Out.Position = vtx.Position;\n"
+	"    Out.Position = mul( vtx.Position, ProjView );\n"
 	"    Out.TexCoord = vtx.TexCoord;\n"
 	"    return Out;\n"
 	"}\n";
@@ -323,6 +325,11 @@ private:
 	***/
 	ID3D11VertexShader* m_pcVertexShaderDirect;
 	/**
+	* The constant buffer for the vertex shader.
+	* Contains only ProjView matrix.
+	***/
+	ID3D11Buffer* m_pcConstantBufferDirect;
+	/**
 	* The direct mode pixel shader.
 	* Simple Texture pixel shader.
 	***/
@@ -341,6 +348,11 @@ private:
 	* Simple 2D vertex shader.
 	***/
 	ID3D11VertexShader* m_pcVertexShaderMirror;
+	/**
+	* The constant buffer for the vertex shader.
+	* Contains only ProjView matrix.
+	***/
+	ID3D11Buffer* m_pcConstantBufferMirror;
 	/**
 	* The Mirror pixel shader, to mirror the Oculus screen to the game screen.
 	* Simple Texture pixel shader.

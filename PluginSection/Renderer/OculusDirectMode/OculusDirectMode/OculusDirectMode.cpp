@@ -66,7 +66,9 @@ OculusDirectMode::OculusDirectMode() : AQU_Nodus(),
 	m_pcMirrorCopy(nullptr),
 	m_pcTextureViewDirect(nullptr),
 	m_bInit(false),
-	m_pcMirrorTexture(nullptr)
+	m_pcMirrorTexture(nullptr),
+	m_pcConstantBufferDirect(nullptr),
+	m_pcConstantBufferMirror(nullptr)
 {	
 }
 
@@ -91,6 +93,9 @@ OculusDirectMode::~OculusDirectMode()
 	if (m_pcTextureViewDirect) m_pcTextureViewDirect->Release();
 	if (m_pcBackBufferCopy) m_pcBackBufferCopy->Release();
 	if (m_pcMirrorCopy) m_pcMirrorCopy->Release();
+
+	if (m_pcConstantBufferDirect) m_pcConstantBufferDirect->Release();
+	if (m_pcConstantBufferMirror) m_pcConstantBufferMirror->Release();
 }
 
 /**
@@ -386,6 +391,28 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 				}
 
 				pcShader->Release();
+
+				// init data
+				OVR::Matrix4f mWorldViewProj = OVR::Matrix4f::Identity();
+
+				// Fill in a buffer description.
+				D3D11_BUFFER_DESC cbDesc;
+				cbDesc.ByteWidth = sizeof( D3DMATRIX );
+				cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+				cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+				cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+				cbDesc.MiscFlags = 0;
+				cbDesc.StructureByteStride = 0;
+
+				// Fill in the subresource data.
+				D3D11_SUBRESOURCE_DATA InitData;
+				InitData.pSysMem = &mWorldViewProj;
+				InitData.SysMemPitch = 0;
+				InitData.SysMemSlicePitch = 0;
+
+				// Create the buffer.
+				m_pcDeviceTemporary->CreateBuffer( &cbDesc, &InitData, &m_pcConstantBufferDirect);
+				pcDevice->CreateBuffer( &cbDesc, &InitData, &m_pcConstantBufferMirror);
 			}
 		}
 
@@ -538,6 +565,9 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 			UINT offset = 0;
 			m_pcContextTemporary->IASetVertexBuffers( 0, 1, &m_pcVertexBufferDirect, &stride, &offset );
 
+			// Set constant buffer
+			m_pcContextTemporary->VSSetConstantBuffers(0, 1, &m_pcConstantBufferDirect);
+
 			// Set primitive topology
 			m_pcContextTemporary->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
 
@@ -617,6 +647,9 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 		UINT stride = sizeof( TexturedVertex );
 		UINT offset = 0;
 		pcContext->IASetVertexBuffers( 0, 1, &m_pcVertexBufferMirror, &stride, &offset );
+
+		// Set constant buffer
+		pcContext->VSSetConstantBuffers(0, 1, &m_pcConstantBufferMirror);
 
 		// Set primitive topology
 		pcContext->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
