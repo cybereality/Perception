@@ -397,15 +397,16 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 
 				// Fill in a buffer description.
 				D3D11_BUFFER_DESC cbDesc;
+				ZeroMemory(&cbDesc, sizeof(D3D11_BUFFER_DESC));
 				cbDesc.ByteWidth = sizeof( D3DMATRIX );
-				cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+				cbDesc.Usage = D3D11_USAGE_DEFAULT;
 				cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-				cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 				cbDesc.MiscFlags = 0;
 				cbDesc.StructureByteStride = 0;
 
 				// Fill in the subresource data.
 				D3D11_SUBRESOURCE_DATA InitData;
+				ZeroMemory(&InitData, sizeof(D3D11_SUBRESOURCE_DATA));
 				InitData.pSysMem = &mWorldViewProj;
 				InitData.SysMemPitch = 0;
 				InitData.SysMemSlicePitch = 0;
@@ -543,7 +544,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 
 			// clear and set render target
 			int texIndex = m_psEyeRenderTexture[eye]->TextureSet->CurrentIndex;
-			float ClearColor[4] = { 0.1f, 0.125f, 0.3f, 0.0f }; // red,green,blue,alpha
+			float ClearColor[4] = { 0.0f, 0.0f, 0.0f, 0.0f }; // red,green,blue,alpha
 			m_pcContextTemporary->ClearRenderTargetView(m_psEyeRenderTexture[eye]->TexRtv[texIndex], ClearColor);
 			m_pcContextTemporary->OMSetRenderTargets(1, &m_psEyeRenderTexture[eye]->TexRtv[texIndex], nullptr);
 
@@ -565,7 +566,9 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 			UINT offset = 0;
 			m_pcContextTemporary->IASetVertexBuffers( 0, 1, &m_pcVertexBufferDirect, &stride, &offset );
 
-			// Set constant buffer
+			// Set constant buffer, first update it
+			OVR::Matrix4f proj = OVR::Matrix4f::Translation(0.35f-eye*0.7f,0,0);
+			m_pcContextTemporary->UpdateSubresource((ID3D11Resource*)m_pcConstantBufferDirect, 0, NULL, &proj, 0, 0);
 			m_pcContextTemporary->VSSetConstantBuffers(0, 1, &m_pcConstantBufferDirect);
 
 			// Set primitive topology
