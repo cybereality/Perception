@@ -66,6 +66,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Extras/OVR_Math.h"
 #define OVR_D3D_VERSION 11
 #include"OVR_CAPI_D3D.h"
+#include"..\..\..\Include\Vireio_DX11StateBlock.h"
 
 #define PNT_FLOAT_PLUG_TYPE                          104
 #define PNT_INT_PLUG_TYPE                            107 
@@ -244,96 +245,6 @@ struct OculusTexture
 };
 
 /**
-* Tiny helper.
-***/
-template<class T>
-UINT calc_count(T** arr, UINT max_count)
-{
-    for (size_t i = 0; i < max_count; ++i)
-        if (arr[i] == 0)
-            return i;
-    return max_count;
-}
-
-/**
-* DirectX 11 state block structure.
-* (D3D11 has no state blocks any more...)
-***/
-struct D3DX11_STATE_BLOCK
-{
-	ID3D11VertexShader*       VS;
-	ID3D11SamplerState*       VSSamplers[D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT];
-	ID3D11ShaderResourceView* VSShaderResources[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT];
-	ID3D11Buffer*             VSConstantBuffers[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT];
-	ID3D11ClassInstance*      VSInterfaces[D3D11_SHADER_MAX_INTERFACES];
-	UINT                      VSInterfaceCount;
-
-	ID3D11GeometryShader*     GS;
-	ID3D11SamplerState*       GSSamplers[D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT];
-	ID3D11ShaderResourceView* GSShaderResources[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT];
-	ID3D11Buffer*             GSConstantBuffers[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT];
-	ID3D11ClassInstance*      GSInterfaces[D3D11_SHADER_MAX_INTERFACES];
-	UINT                      GSInterfaceCount;
-
-	ID3D11HullShader*         HS;
-	ID3D11SamplerState*       HSSamplers[D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT];
-	ID3D11ShaderResourceView* HSShaderResources[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT];
-	ID3D11Buffer*             HSConstantBuffers[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT];
-	ID3D11ClassInstance*      HSInterfaces[D3D11_SHADER_MAX_INTERFACES];
-	UINT                      HSInterfaceCount;
-
-	ID3D11DomainShader*       DS;
-	ID3D11SamplerState*       DSSamplers[D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT];
-	ID3D11ShaderResourceView* DSShaderResources[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT];
-	ID3D11Buffer*             DSConstantBuffers[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT];
-	ID3D11ClassInstance*      DSInterfaces[D3D11_SHADER_MAX_INTERFACES];
-	UINT                      DSInterfaceCount;
-
-	ID3D11PixelShader*        PS;
-	ID3D11SamplerState*       PSSamplers[D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT];
-	ID3D11ShaderResourceView* PSShaderResources[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT];
-	ID3D11Buffer*             PSConstantBuffers[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT];
-	ID3D11ClassInstance*      PSInterfaces[D3D11_SHADER_MAX_INTERFACES];
-	UINT                      PSInterfaceCount;
-
-	ID3D11ComputeShader*      CS;
-	ID3D11SamplerState*       CSSamplers[D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT];
-	ID3D11ShaderResourceView* CSShaderResources[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT];
-	ID3D11Buffer*             CSConstantBuffers[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT];
-	ID3D11ClassInstance*      CSInterfaces[D3D11_SHADER_MAX_INTERFACES];
-	UINT                      CSInterfaceCount;
-	ID3D11UnorderedAccessView*CSUnorderedAccessViews[D3D11_PS_CS_UAV_REGISTER_COUNT];
-
-	ID3D11Buffer*             IAVertexBuffers[D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT];
-	UINT                      IAVertexBuffersStrides[D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT];
-	UINT                      IAVertexBuffersOffsets[D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT];
-	ID3D11Buffer*             IAIndexBuffer;
-	DXGI_FORMAT               IAIndexBufferFormat;
-	UINT                      IAIndexBufferOffset;
-	ID3D11InputLayout*        IAInputLayout;
-	D3D11_PRIMITIVE_TOPOLOGY  IAPrimitiveTopology;
-
-	ID3D11RenderTargetView*   OMRenderTargets[D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT];
-	ID3D11DepthStencilView*   OMRenderTargetStencilView;
-	ID3D11UnorderedAccessView*OMUnorderedAccessViews[D3D11_PS_CS_UAV_REGISTER_COUNT];
-	ID3D11DepthStencilState*  OMDepthStencilState;
-	UINT                      OMDepthStencilRef;
-	ID3D11BlendState*         OMBlendState;
-	FLOAT                     OMBlendFactor[4];
-	UINT                      OMSampleMask;
-
-	UINT                      RSViewportCount;
-	D3D11_VIEWPORT            RSViewports[D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
-	UINT                      RSScissorRectCount;
-	D3D11_RECT                RSScissorRects[D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
-	ID3D11RasterizerState*    RSRasterizerState;
-	ID3D11Buffer*             SOBuffers[4];
-	ID3D11Predicate*          Predication;
-	BOOL                      PredicationValue;
-};
-
-
-/**
 * Oculus DirectMode Node Plugin (Direct3D 9).
 ***/
 class OculusDirectMode : public AQU_Nodus
@@ -358,9 +269,6 @@ public:
 	virtual void*           Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex);
 
 private:
-	void                CreateStateblock(ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb);
-	void                ApplyStateblock(ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb);
-
 	/**
 	* True if OVR is initialized.
 	***/
