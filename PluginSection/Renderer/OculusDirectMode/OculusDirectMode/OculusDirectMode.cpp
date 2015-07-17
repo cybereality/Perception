@@ -9,6 +9,12 @@ File <OculusDirectMode.cpp> and
 Class <OculusDirectMode> :
 Copyright (C) 2015 Denis Reischl
 
+Parts of this class directly derive from the Oculus Rift sample
+>OculusRoomTiny< (Author Tom Heath - Copyright :
+                  Copyright 2012 Oculus, Inc. All Rights reserved.)
+and from the Vireio source code originally authored by Simon Brown.
+                 (class OculusDirectToRiftView v3.0.0 2015).
+
 The stub class <AQU_Nodus> is the only public class from the Aquilinus 
 repository and permitted to be used for open source plugins of any kind. 
 Read the Aquilinus documentation for further information.

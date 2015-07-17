@@ -52,7 +52,8 @@ If you need help, please post on the Official Vireio Perception Forums on [MTBS3
 ####Plugin List
 
 * Vireio Stereo Splitter - DevNr 2006 - PluginNr 64
-* Vireio Stereo Presenter - DevNr 2006 - PluginNr 65
+* Vireio Stereo Splitter DX10+ - DevNr 2006 - PluginNr 65
+* Vireio Stereo Presenter - DevNr 2006 - PluginNr 70
 
 
 

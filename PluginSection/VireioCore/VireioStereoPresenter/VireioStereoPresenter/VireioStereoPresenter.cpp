@@ -67,7 +67,7 @@ const char* StereoPresenter::GetNodeType()
 UINT StereoPresenter::GetNodeTypeId()
 {
 #define DEVELOPER_IDENTIFIER 2006
-#define MY_PLUGIN_IDENTIFIER 65
+#define MY_PLUGIN_IDENTIFIER 70
 	return ((DEVELOPER_IDENTIFIER << 16) + MY_PLUGIN_IDENTIFIER);
 }
 

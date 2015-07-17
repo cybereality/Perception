@@ -13,6 +13,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VireioStereoSplitter", "Vir
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OculusDirectMode", "Renderer\OculusDirectMode\OculusDirectMode\OculusDirectMode.vcxproj", "{BABF4D36-8963-4B98-B457-1C8D64250CA9}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VireioStereoSplitterDx10", "VireioCore\VireioStereoSplitterDx10\VireioStereoSplitterDx10\VireioStereoSplitterDx10.vcxproj", "{1927D2CC-B50D-4706-8AA7-17BD229F5987}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -43,6 +45,10 @@ Global
 		{BABF4D36-8963-4B98-B457-1C8D64250CA9}.Debug|Win32.Build.0 = Debug|Win32
 		{BABF4D36-8963-4B98-B457-1C8D64250CA9}.Release|Win32.ActiveCfg = Release|Win32
 		{BABF4D36-8963-4B98-B457-1C8D64250CA9}.Release|Win32.Build.0 = Release|Win32
+		{1927D2CC-B50D-4706-8AA7-17BD229F5987}.Debug|Win32.ActiveCfg = Debug|Win32
+		{1927D2CC-B50D-4706-8AA7-17BD229F5987}.Debug|Win32.Build.0 = Debug|Win32
+		{1927D2CC-B50D-4706-8AA7-17BD229F5987}.Release|Win32.ActiveCfg = Release|Win32
+		{1927D2CC-B50D-4706-8AA7-17BD229F5987}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

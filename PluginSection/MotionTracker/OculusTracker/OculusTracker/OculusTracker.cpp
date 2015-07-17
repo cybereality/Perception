@@ -135,7 +135,7 @@ HBITMAP OculusTracker::GetControl()
 		// clear the background
 		RECT rc;
 		SetRect(&rc, 0, 0, 1024, 1700);
-		FillRect(hdcImage, &rc, (HBRUSH)CreateSolidBrush(RGB(10,92,10)));
+		FillRect(hdcImage, &rc, (HBRUSH)CreateSolidBrush(RGB(240,160,192)));
 
 		// create font
 		if (!m_hFont)
@@ -151,8 +151,8 @@ HBITMAP OculusTracker::GetControl()
 			std::wstringstream szBuffer;
 			//char szBuffer[256];
 
-			SetTextColor(hdcImage, RGB(240,240,240));
-			SetBkColor(hdcImage, RGB(10,92,10));
+			SetTextColor(hdcImage, RGB(64,0,48));
+			SetBkColor(hdcImage, RGB(240,160,192));
 
 			// display the values suiteable to the data commanders... first yaw pitch roll
 			szBuffer << m_fYaw;
