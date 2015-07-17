@@ -1055,8 +1055,12 @@ void D3DProxyDevice::VPMENU_Settings()
 	menu->AddAdjustment("Post-Present Sleep : %u", &config.sleep,
 		0, 1, [=]()
 	{
-		if (config.sleep > 10)
+		//Won't ever scroll up this high, this is to check if we have gone below 0
+		if (config.sleep > 100)
 			config.sleep = 0;
+
+		if (config.sleep > 20)
+			config.sleep = 20;
 	});
 
 	/*

@@ -1005,8 +1005,8 @@ void HandleGameProfile(ProxyHelper::ConfigTransferDirection dir, xml_node &node,
 	HANDLE_SETTING(convergenceEnabled,       false);
 	HANDLE_SETTING(convergence,              0.0f);
 	HANDLE_SETTING(swap_eyes,                false);
-	HANDLE_SETTING_ATTR("ipd_offset",              IPDOffset, 0.0f);
-	HANDLE_SETTING_ATTR("use_sdk_pose_prediction", useSDKPosePrediction, true);
+	HANDLE_SETTING_ATTR("postpresent_sleep",              sleep, 0);
+	HANDLE_SETTING_ATTR("use_sdk_pose_prediction", useSDKPosePrediction, false);
 	HANDLE_SETTING_ATTR("y_offset",                YOffset, 0.0f);
 	HANDLE_SETTING(yaw_multiplier,           DEFAULT_YAW_MULTIPLIER);
 	HANDLE_SETTING(pitch_multiplier,         DEFAULT_PITCH_MULTIPLIER);
@@ -1105,7 +1105,6 @@ void HandleGameProfile(ProxyHelper::ConfigTransferDirection dir, xml_node &node,
 	HANDLE_SETTING(HotkeyWhenToPollHeadtracking, LAlt+Key(VK_DOWN));
 	HANDLE_SETTING(HotkeyInitiateScan,      Key(VK_NUMPAD5) || (LCtrl+Key(VK_OEM_2)));
 	HANDLE_SETTING(HotkeyBlackSmear,        LShift+Key('B'));
-	HANDLE_SETTING(HotkeyResetIPDOffset,    Key(VK_F8) || (LShift+Key('I')));
 	HANDLE_SETTING(HotkeyShowHMDStats,      (LShift+Key('H')) || (LCtrl+Key('H')));
 	HANDLE_SETTING(HotkeyShowAxes,          LShift + Key('V'));
 	HANDLE_SETTING(HotkeyTogglePositionalTracking, Key(VK_F11) || (LShift+Key('P')) || (LCtrl+Key('P')));

@@ -389,6 +389,19 @@ HRESULT WINAPI D3D9ProxyTexture::LockRect(UINT Level, D3DLOCKED_RECT* pLockedRec
 
 	return hr;
 }
+
+void WriteDesc(UINT Level, D3DSURFACE_DESC &desc)
+{
+	vireio::debugf("Actual Texture Level = 0x%0.8x", Level);
+	vireio::debugf("Actual Texture Format = 0x%0.8x", desc.Format);
+	vireio::debugf("Actual Texture Height = 0x%0.8x", desc.Height);
+	vireio::debugf("Actual Texture Width = 0x%0.8x", desc.Width);
+	vireio::debugf("Actual Texture MultiSampleQuality = 0x%0.8x", desc.MultiSampleQuality);
+	vireio::debugf("Actual Texture MultiSampleType = 0x%0.8x", desc.MultiSampleType);
+	vireio::debugf("Actual Texture Pool = 0x%0.8x", desc.Pool);
+	vireio::debugf("Actual Texture Type = 0x%0.8x", desc.Type);
+	vireio::debugf("Actual Texture Usage = 0x%0.8x", desc.Usage);
+}
 	
 /**
 * Unlocks rectangle on both (left/right) textures.
@@ -430,6 +443,7 @@ HRESULT WINAPI D3D9ProxyTexture::UnlockRect(UINT Level)
 			if (FAILED(hr))
 			{
 				vireio::debugf("Failed: m_pOwningDevice->getActual()->UpdateSurface hr = 0x%0.8x", hr);
+				WriteDesc(Level, desc);
 				//Just ignore the failed copy back, not much we can do
 				hr = S_OK;
 			}
@@ -446,6 +460,7 @@ HRESULT WINAPI D3D9ProxyTexture::UnlockRect(UINT Level)
 				if (FAILED(hr))
 				{
 					vireio::debugf("Failed: m_pOwningDevice->getActual()->UpdateSurface hr = 0x%0.8x", hr);
+					WriteDesc(Level, desc);
 					//Just ignore the failed copy back, not much we can do
 					hr = S_OK;
 				}
@@ -466,6 +481,8 @@ HRESULT WINAPI D3D9ProxyTexture::UnlockRect(UINT Level)
 		if (FAILED(hr))
 		{
 			vireio::debugf("Failed: m_pOwningDevice->getActual()->UpdateSurface hr = 0x%0.8x", hr);
+			WriteDesc(Level, desc);
+
 			//Just ignore the failed copy back, not much we can do
 			hr = S_OK;
 		}
@@ -482,6 +499,8 @@ HRESULT WINAPI D3D9ProxyTexture::UnlockRect(UINT Level)
 			if (FAILED(hr))
 			{
 				vireio::debugf("Failed: m_pOwningDevice->getActual()->UpdateSurface hr = 0x%0.8x", hr);
+				WriteDesc(Level, desc);
+
 				//Just ignore the failed copy back, not much we can do
 				hr = S_OK;
 			}

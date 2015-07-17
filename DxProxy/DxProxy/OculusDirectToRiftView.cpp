@@ -170,6 +170,18 @@ OculusDirectToRiftView::OculusDirectToRiftView(ProxyConfig *config, HMDisplayInf
 	HANDLE ThreadHandle = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)&DX11RenderThread, (void*)this, 0, NULL);
 	//Bump the priority of the DX11 rendering thread
 	SetThreadPriority(ThreadHandle, THREAD_PRIORITY_HIGHEST);
+
+	//Now wait for the DX11 initialisation to complete
+	DWORD result = WaitForSingleObject(m_EventFlagProcessed, 5000);
+	if (result == WAIT_TIMEOUT)
+	{
+		vireio::debugf("TIMEOUT EXPIRED IN DX11 INITIALISATION");
+		exit(87);
+	}
+	else
+	{
+		vireio::debugf("DX11 Thread Initialised and running...");
+	}
 }
 
 OculusDirectToRiftView::~OculusDirectToRiftView()
@@ -206,6 +218,9 @@ bool OculusDirectToRiftView::DX11RenderThread_Init()
 
 	//Turn on performance HUD if set in config.xml
 	ovrHmd_SetInt(rift, "PerfHudMode", (int)config->PerfHudMode);
+
+	//Let main thread know we are done initialising
+	SetEvent(m_EventFlagProcessed);
 		
 	return initialized;
 }

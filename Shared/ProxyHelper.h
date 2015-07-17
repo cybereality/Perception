@@ -84,7 +84,7 @@ struct ProxyConfig
 	float		zbufferDepthHigh;			/**< Highest Value of Depth Reading **/
 	bool		zbufferSwitch;				/**< Inverse Depth **/
 	float		YOffset;					/**< The Y offset from the centre of the screen on the Y-axis **/
-	float		IPDOffset;					/**< The IPD offset from the centre of the screen on the X-axis **/
+	UINT		sleep;						/**< The duration to sleep (in ms) before we copy the DX9 textures to the DX11 textures in direct-mode **/
 	bool		useSDKPosePrediction;		/**< Whether the SDK pose prediction should be used for this game **/
 	int         hud3DDepthMode;             /**< Current HUD mode. */
 	float       hud3DDepthPresets[4];       /**< HUD 3D Depth presets.*/
@@ -158,7 +158,6 @@ struct ProxyConfig
 	InputBindingRef HotkeyWhenToPollHeadtracking;
 	InputBindingRef HotkeyInitiateScan;
 	InputBindingRef HotkeyBlackSmear;
-	InputBindingRef HotkeyResetIPDOffset;
 	InputBindingRef HotkeyShowHMDStats;
 	InputBindingRef HotkeyShowAxes;
 	InputBindingRef HotkeyTogglePositionalTracking;
