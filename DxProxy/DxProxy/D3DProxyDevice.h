@@ -35,6 +35,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define VPMENU_PIXEL_WIDTH 1920
 #define VPMENU_PIXEL_HEIGHT 1080
 
+#pragma warning (disable : 4005)
+
 #include "Direct3DDevice9.h"
 
 #include "D3D9ProxySurface.h"
