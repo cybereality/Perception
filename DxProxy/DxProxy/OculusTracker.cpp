@@ -176,11 +176,11 @@ void OculusTracker::CleanupFrameHMDData(UINT frameIndex)
 {
 	std::lock_guard<std::mutex> lock(m_mtx);
 
-	//Need to remove all with a frame index less/equal than the one just acquired
+	//Need to remove all with a frame index less than the one just acquired
 	std::map<UINT, HMDFrameData>::iterator iter = m_frameData.begin();
 	while (iter != m_frameData.end())
 	{
-		if (iter->first <= frameIndex)
+		if (iter->first < frameIndex)
 			iter = m_frameData.erase(iter);
 		else
 			iter++;

@@ -157,12 +157,14 @@ OculusDirectToRiftView::OculusDirectToRiftView(ProxyConfig *config, HMDisplayInf
 	m_logoTexture(NULL),
 	hmdInfo(hmd),
 	m_pCurrentScene(NULL),
-	appFrameIndex(0)
+	m_pNextScene(NULL)
 {
 	SHOW_CALL("OculusDirectToRiftView::OculusDirectToRiftView()");
 
 	m_pOculusTracker = static_cast<OculusTracker*>(motionTracker);
 	rift = m_pOculusTracker->GetOVRHmd();
+
+	appFrameIndex.index = 0;
 
 	m_EventFlagProcessed = CreateEvent(NULL, FALSE, FALSE, "m_EventFlagProcessed");
 	m_EventFlagRaised = CreateEvent(NULL, FALSE, FALSE, "m_EventFlagRaised");
@@ -336,6 +338,8 @@ void OculusDirectToRiftView::DX11RenderThread_ReleaseEverything()
 	m_safeSceneStore.ReleaseEverything();
 	delete m_pCurrentScene;
 	m_pCurrentScene = NULL;
+	delete m_pNextScene;
+	m_pNextScene = NULL;
 }
 
 std::string OculusDirectToRiftView::GetAdditionalFPSInfo()
@@ -378,28 +382,12 @@ void OculusDirectToRiftView::DX11RenderThread_RenderNextFrame()
 
 	//If not using SDK pose pred, then just take from the store, if we are then we'll just get 
 	//a pointer to the scene to check if it is time to submit it yet
-	VireioVRScene *vrScene = m_safeSceneStore.retrieve(!m_pOculusTracker->useSDKPosePrediction);
+	VireioVRScene *vrScene = m_safeSceneStore.retrieve(true);
 	if (vrScene)
 	{
 		//Get the frame HMD data for this scene from the tracker
 		m_pOculusTracker->GetFrameHMDData(vrScene->frameIndex, vrScene->m_frameTiming, vrScene->m_trackingState);
-		if (m_pOculusTracker->useSDKPosePrediction)
-		{
-			//Now check to see if we should submit this scene yet (we don't want to do it too early, that makes judder)
-			if (vrScene->m_frameTiming.DisplayMidpointSeconds < (ovr_GetTimeInSeconds() + vrScene->m_frameTiming.FrameIntervalSeconds))
-			{
-				vrScene = m_safeSceneStore.retrieve(true);
-			}
-			else
-			{
-				//We are early with this scene, just use last one for now
-				vrScene = NULL;
-			}
-		}
-	}
 
-	if (vrScene)
-	{
 		//We are now finished with the previous scene, so put it on the unused pool
 		if (m_pCurrentScene)
 			m_unusedVireioVRScenePool.push(m_pCurrentScene);
@@ -487,8 +475,8 @@ void OculusDirectToRiftView::PostPresent(D3D9ProxySurface* stereoCapableSurface,
 {
 	SHOW_CALL("OculusDirectToRiftView::PostPresent()");
 
-	// Initialise a new VRScene
-	VireioVRScene *pVRScene = m_unusedVireioVRScenePool.pop();
+	// Get the "next" scene
+	VireioVRScene *pVRScene = m_pNextScene == NULL ? m_unusedVireioVRScenePool.pop() : m_pNextScene;
 
 	if (pVRScene)
 	{
@@ -581,9 +569,6 @@ void OculusDirectToRiftView::PostPresent(D3D9ProxySurface* stereoCapableSurface,
 		}
 		//All done
 		pEventQuery->Release();
-
-		//Set the correct frame index
-		pVRScene->frameIndex = appFrameIndex;
 	}
 
 	//Now push the new scene into our safe store - This will indicate to the DX11 thread a new scene is available
@@ -595,36 +580,41 @@ void OculusDirectToRiftView::PostPresent(D3D9ProxySurface* stereoCapableSurface,
 	}
 
 	//Only enter this code if we aren't using pose prediction, or if it is the first scene of this frame
-	if (!m_pOculusTracker->useSDKPosePrediction || !pOldScene)
+//	if (!m_pOculusTracker->useSDKPosePrediction || !pOldScene)
 	{
-		//No current scene in the store, in which case, get the frame timing for the new scene we are creating
+		//get the frame timing for the new scene we are creating
 		//and provide to the tracker
+		m_pNextScene = m_unusedVireioVRScenePool.pop();
+		//Set the correct frame index
+		{
+			//std::lock_guard<std::mutex> lock(appFrameIndex.m_mtx);
+			m_pNextScene->frameIndex = ++appFrameIndex.index;
 
-		/**********************************
-		**  FRAME TIMING LOGIC
-		**********************************/
+			/**********************************
+			**  FRAME TIMING LOGIC
+			**********************************/
 
-		//Now we get the orientation prediction for the next scene
-		appFrameIndex++;
-		ovrFrameTiming frameTiming = ovrHmd_GetFrameTiming(rift, appFrameIndex);
-		ovrTrackingState trackingState;
-		if (m_pOculusTracker->useSDKPosePrediction)
-			trackingState = ovrHmd_GetTrackingState(rift, frameTiming.DisplayMidpointSeconds);
-		else
-			//This will just get the position for now
-			trackingState = ovrHmd_GetTrackingState(rift, ovr_GetTimeInSeconds());
+			//Now we get the orientation prediction for the next scene
+			ovrFrameTiming frameTiming = ovrHmd_GetFrameTiming(rift, appFrameIndex.index);
+			ovrTrackingState trackingState;
+			if (m_pOculusTracker->useSDKPosePrediction)
+				trackingState = ovrHmd_GetTrackingState(rift, frameTiming.DisplayMidpointSeconds);
+			else
+				//This will just get the position for now
+				trackingState = ovrHmd_GetTrackingState(rift, ovr_GetTimeInSeconds());
 
-		//Write out timing info - might reveal something!
+			//Write out timing info - might reveal something!
 #ifdef TIMING_LOG
-		vireio::debugf("**********  START *****************"); 
-		vireio::debugf("appFrameIndex = %u", appFrameIndex); 
-		vireio::debugf("ftiming.DisplayMidpointSeconds = %0.8f", frameTiming.DisplayMidpointSeconds); 
-		vireio::debugf("ftiming.AppFrameIndex = %u", frameTiming.AppFrameIndex); 
-		vireio::debugf("ftiming.DisplayFrameIndex = %u", frameTiming.DisplayFrameIndex); 
-		vireio::debugf("ovr_GetTimeInSeconds() = %0.8f", ovr_GetTimeInSeconds()); 
-		vireio::debugf("lastFrameTime (ms) = %0.8f", pProxyDevice->getLastFrameTime() * 1000.0f); 
+			vireio::debugf("**********  START *****************"); 
+			vireio::debugf("appFrameIndex.index = %u", appFrameIndex.index); 
+			vireio::debugf("ftiming.DisplayMidpointSeconds = %0.8f", frameTiming.DisplayMidpointSeconds); 
+			vireio::debugf("ftiming.AppFrameIndex = %u", frameTiming.AppFrameIndex); 
+			vireio::debugf("ftiming.DisplayFrameIndex = %u", frameTiming.DisplayFrameIndex); 
+			vireio::debugf("ovr_GetTimeInSeconds() = %0.8f", ovr_GetTimeInSeconds()); 
+			vireio::debugf("lastFrameTime (ms) = %0.8f", pProxyDevice->getLastFrameTime() * 1000.0f); 
 #endif
-		m_pOculusTracker->SetFrameHMDData(appFrameIndex, frameTiming, trackingState);
+			m_pOculusTracker->SetFrameHMDData(appFrameIndex.index, frameTiming, trackingState);
+		}
 	}
 }
 

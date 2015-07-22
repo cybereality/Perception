@@ -289,10 +289,16 @@ private:
 	//The rift!
 	ovrHmd rift;
 
-	UINT appFrameIndex;
+	struct
+	{
+		std::mutex m_mtx;
+		UINT index;
+	} appFrameIndex;
 
 	//The last scene we showed (just kept for eye poses)
 	VireioVRScene *m_pCurrentScene;
+	//The next scene we are working on
+	VireioVRScene *m_pNextScene;
 
 	//Second DX11 device for copying textures
 	DirectX11 m_copyDX11;
