@@ -532,7 +532,7 @@ void OculusDirectToRiftView::PostPresent(D3D9ProxySurface* stereoCapableSurface,
 						{
 							//Create the void scene for this eye, setting the DX9 shared texture as the screen source
 							//Aspect ratio is a bit of a guess, but this figure seems to reduce the warping effect considerably
-							pVRScene->m_pScene[eye] = new VoidScene(pDX11Texture, sharedHandle, 1.666f);
+							pVRScene->m_pScene[eye] = new VoidScene(pDX11Texture, sharedHandle, 1.7f);
 						}
 						else
 						{
