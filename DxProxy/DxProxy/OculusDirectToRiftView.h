@@ -154,11 +154,12 @@ struct VoidScene
 //This object will contain the scene for both eyes (with each texture) and the tracking state taken at the time the scene was generated
 struct VireioVRScene
 {
-	VireioVRScene()
+	VireioVRScene(UINT id)
 	{
 		SHOW_CALL("VireioVRScene()");
 		m_pScene[ovrEye_Left] = NULL;
 		m_pScene[ovrEye_Right] = NULL;
+		sceneID = id;
 	}
 
 	~VireioVRScene()
@@ -170,7 +171,9 @@ struct VireioVRScene
 
 	VoidScene*	m_pScene[2];
 	ovrTrackingState m_trackingState;
+	ovrFrameTiming m_frameTiming;
 	UINT frameIndex;
+	UINT sceneID;
 	ovrPosef m_eyePoses[2];
 };
 
@@ -201,7 +204,6 @@ private:
 
 	bool DX11RenderThread_Init();
 	bool DX11RenderThread_InitDevices(Sizei sz);
-	void DX11RenderThread_TimewarpLastFrame();
 	void DX11RenderThread_ReleaseEverything();
 	void DX11RenderThread_RenderNextFrame();
 
@@ -222,22 +224,18 @@ private:
 	HANDLE m_EventFlagRaised;
 
 	void CalcFPS();
-	float hmdFPS;
+	float asyncFPS;
 
 	struct ThreadSafeSceneStore
 	{
-		ThreadSafeSceneStore() {m_VRScene = NULL;m_used = false;}
+		ThreadSafeSceneStore() {m_VRScene = NULL;}
 
-		//Returns the existing one if there is already one there
-		VireioVRScene* push(VireioVRScene* &vrScene);
-		VireioVRScene* retrieve();
-		bool getUsed();
+		VireioVRScene* push(VireioVRScene* &eyeScenes);
+		VireioVRScene* retrieve(bool remove);
 
 		void ReleaseEverything();
 
 	private:
-		//Flags whether this store has ever been used
-		bool m_used;
 		std::mutex m_mtx;
 		VireioVRScene* m_VRScene;
 	} m_safeSceneStore;
@@ -254,11 +252,14 @@ private:
 		VireioVRScene* pop()
 		{
 			std::lock_guard<std::mutex> lck(m_mtx);
-			if (size() == 0)
-				return new VireioVRScene();
+			if (size() < 3)
+			{
+				static UINT sceneID = 1;
+				return new VireioVRScene(sceneID++);
+			}
 
-			VireioVRScene *vrScene = back();
-			pop_back();
+			VireioVRScene *vrScene = front();
+			pop_front();
 			return vrScene;
 		}
 		
@@ -288,8 +289,16 @@ private:
 	//The rift!
 	ovrHmd rift;
 
+	struct
+	{
+		std::mutex m_mtx;
+		UINT index;
+	} appFrameIndex;
+
 	//The last scene we showed (just kept for eye poses)
-	VireioVRScene *m_pLastScene;
+	VireioVRScene *m_pCurrentScene;
+	//The next scene we are working on
+	VireioVRScene *m_pNextScene;
 
 	//Second DX11 device for copying textures
 	DirectX11 m_copyDX11;

@@ -44,6 +44,7 @@ public:
 	void AddGameKeypress(std::string text, byte *binding);
 	void AddKeybind(std::string text, InputBindingRef *binding, InputBindingRef defaultBinding);
 	void AddAdjustment(const char *formatString, float *value, float defaultValue, float rate, std::function<void()> onChange=[](){});
+	void AddAdjustment(const char *formatString, UINT *value, UINT defaultValue, UINT rate, std::function<void()> onChange=[](){});
 	void AddEnumPicker(const char *formatString, int *currentValue, int maxValue, std::function<std::string(int)> getDescription, std::function<void(int)> onChange, std::function<void()> onActivate=[](){});
 	void AddText(const char *text);
 	void AddBackButtons();

@@ -16,9 +16,11 @@
 
     <rule constantName="ModelViewProj" partialName="true" id="13" constantType="MatrixR" modToApply="9" startReg="0" transpose="true" />
     <rule constantName="ModelViewProj" partialName="true" id="14" constantType="MatrixR" modToApply="15" startReg="0" transpose="true" />
+
     <rule constantName="SkinModelViewProj" partialName="true" id="15" constantType="MatrixR" modToApply="9" startReg="1" transpose="true" />
 
-</rules>
+
+  </rules>
   <defaultRuleIDs>
     <ruleID id="1" />
     <ruleID id="2" />
@@ -44,14 +46,6 @@
   <shaderSpecificRuleIDs shaderHash="2056078029">
     <ruleID id="13" />
   </shaderSpecificRuleIDs>
-<<<<<<< HEAD
-  <shaderSpecificRuleIDs shaderHash="1138888547">
-    <ruleID id="12" />
-  </shaderSpecificRuleIDs>
-  <shaderSpecificRuleIDs shaderHash="3520222568" doNotDraw="true">
-    <ruleID id="13" />
-  </shaderSpecificRuleIDs>
-=======
   <shaderSpecificRuleIDs shaderHash="3520222568">
     <ruleID id="13" />
   </shaderSpecificRuleIDs>
@@ -106,5 +100,4 @@
   </shaderSpecificRuleIDs>
   -->
 
->>>>>>> origin/DX9Ex
 </shaderConfig>

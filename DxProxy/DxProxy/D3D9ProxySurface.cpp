@@ -229,6 +229,18 @@ HRESULT WINAPI D3D9ProxySurface::GetContainer(REFIID riid, LPVOID* ppContainer)
 	//return m_pActualSurface->GetContainer(riid, ppContainer);
 }
 
+void WriteDesc(D3DSURFACE_DESC &desc)
+{
+	vireio::debugf("Actual Surface Format = 0x%0.8x", desc.Format);
+	vireio::debugf("Actual Surface Height = 0x%0.8x", desc.Height);
+	vireio::debugf("Actual Surface Width = 0x%0.8x", desc.Width);
+	vireio::debugf("Actual Surface MultiSampleQuality = 0x%0.8x", desc.MultiSampleQuality);
+	vireio::debugf("Actual Surface MultiSampleType = 0x%0.8x", desc.MultiSampleType);
+	vireio::debugf("Actual Surface Pool = 0x%0.8x", desc.Pool);
+	vireio::debugf("Actual Surface Type = 0x%0.8x", desc.Type);
+	vireio::debugf("Actual Surface Usage = 0x%0.8x", desc.Usage);
+}
+
 /**
 * Locks rectangle on both (left/right) surfaces.
 ***/
@@ -332,7 +344,7 @@ HRESULT WINAPI D3D9ProxySurface::UnlockRect()
 		{
 			hr = m_pOwningDevice->getActual()->UpdateSurface(pSurface, NULL, m_pActualSurfaceRight, NULL);
 			if (FAILED(hr))
-				return hr;
+				WriteDesc(desc);
 		}
 		else
 		{
@@ -344,7 +356,7 @@ HRESULT WINAPI D3D9ProxySurface::UnlockRect()
 				p.y = rectIter->top;
 				hr = m_pOwningDevice->getActual()->UpdateSurface(pSurface, &(*rectIter), m_pActualSurfaceRight, &p);
 				if (FAILED(hr))
-					return hr;
+					WriteDesc(desc);
 				rectIter++;
 			}
 		}
@@ -354,7 +366,7 @@ HRESULT WINAPI D3D9ProxySurface::UnlockRect()
 	{
 		hr = m_pOwningDevice->getActual()->UpdateSurface(pSurface, NULL, m_pActualSurface, NULL);
 		if (FAILED(hr))
-			return hr;
+			WriteDesc(desc);
 	}
 	else
 	{
@@ -366,7 +378,7 @@ HRESULT WINAPI D3D9ProxySurface::UnlockRect()
 			p.y = rectIter->top;
 			hr = m_pOwningDevice->getActual()->UpdateSurface(pSurface, &(*rectIter), m_pActualSurface, &p);
 			if (FAILED(hr))
-				return hr;
+				WriteDesc(desc);
 			rectIter++;
 		}
 	}

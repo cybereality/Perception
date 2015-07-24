@@ -665,17 +665,6 @@ void D3DProxyDevice::HandleControls()
 				stereoView->m_blackSmearCorrection!=0.0f ? "Enabled" : "Disabled"), 1000);
 		}
 
-
-		//Reset IPD Offset to 0  -  F8  or  LSHIFT+I
-		if (config.HotkeyResetIPDOffset->IsPressed(controls) && HotkeysActive() && config.IPDOffset != 0.0)
-		{
-			config.IPDOffset = 0.0;
-			this->stereoView->PostReset();		
-
-			ShowAdjusterToast(retprintf("IPD-Offset: %1.3f", config.IPDOffset), 500);
-			DeferedSaveConfig();
-		}
-
 		//Show FPS Counter / Frame Time counter LSHIFT+F
 		if (config.HotkeyShowFPS->IsPressed(controls) && HotkeysActive())
 		{
@@ -890,15 +879,6 @@ void D3DProxyDevice::HandleControls()
 					DeferedSaveConfig();
 					ShowAdjusterToast(retprintf("ZBuffer Seperation Strength: %1.6f", config.zbufferStrength), 500);
 				}												
-			}
-			else if(hotkeyWheelIPDOffset->IsHeld(controls))
-			{
-				config.IPDOffset += 0.001f * wheelSign;
-				clamp(&config.IPDOffset, -0.1f, 0.1f);
-
-				this->stereoView->PostReset();
-				ShowAdjusterToast(retprintf("IPD-Offset: %1.3f", config.IPDOffset), 500);
-				DeferedSaveConfig();
 			}
 			//CTRL + ALT + Mouse Wheel - adjust World Scale dynamically
 			else if (hotkeyWheelWorldScale->IsHeld(controls))

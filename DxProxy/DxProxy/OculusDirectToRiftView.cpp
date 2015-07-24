@@ -37,10 +37,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define DLL_NAME "d3d9.dll"
 
 //#define BLEND
+//#define TIMING_LOG
 
 //FPS Calculator
 
-#define MAXSAMPLES 10
+#define MAXSAMPLES 20
 
 void OculusDirectToRiftView::CalcFPS()
 {
@@ -68,7 +69,7 @@ void OculusDirectToRiftView::CalcFPS()
     tickindex = ++tickindex % MAXSAMPLES;
 	prevTick = newtick.QuadPart;
 
-	hmdFPS = (float)((double)MAXSAMPLES / ((double)ticksum / (double)perffreq.QuadPart));
+	asyncFPS = (float)((double)MAXSAMPLES / ((double)ticksum / (double)perffreq.QuadPart));
 }
 
 
@@ -155,12 +156,15 @@ OculusDirectToRiftView::OculusDirectToRiftView(ProxyConfig *config, HMDisplayInf
 	StereoView(config),
 	m_logoTexture(NULL),
 	hmdInfo(hmd),
-	m_pLastScene(NULL)
+	m_pCurrentScene(NULL),
+	m_pNextScene(NULL)
 {
 	SHOW_CALL("OculusDirectToRiftView::OculusDirectToRiftView()");
 
 	m_pOculusTracker = static_cast<OculusTracker*>(motionTracker);
 	rift = m_pOculusTracker->GetOVRHmd();
+
+	appFrameIndex.index = 0;
 
 	m_EventFlagProcessed = CreateEvent(NULL, FALSE, FALSE, "m_EventFlagProcessed");
 	m_EventFlagRaised = CreateEvent(NULL, FALSE, FALSE, "m_EventFlagRaised");
@@ -168,6 +172,18 @@ OculusDirectToRiftView::OculusDirectToRiftView(ProxyConfig *config, HMDisplayInf
 	HANDLE ThreadHandle = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)&DX11RenderThread, (void*)this, 0, NULL);
 	//Bump the priority of the DX11 rendering thread
 	SetThreadPriority(ThreadHandle, THREAD_PRIORITY_HIGHEST);
+
+	//Now wait for the DX11 initialisation to complete
+	DWORD result = WaitForSingleObject(m_EventFlagProcessed, 5000);
+	if (result == WAIT_TIMEOUT)
+	{
+		vireio::debugf("TIMEOUT EXPIRED IN DX11 INITIALISATION");
+		exit(87);
+	}
+	else
+	{
+		vireio::debugf("DX11 Thread Initialised and running...");
+	}
 }
 
 OculusDirectToRiftView::~OculusDirectToRiftView()
@@ -200,10 +216,13 @@ bool OculusDirectToRiftView::DX11RenderThread_Init()
 	m_eyeRenderDesc[1] = ovrHmd_GetRenderDesc(rift, ovrEye_Right, rift->DefaultEyeFov[1]);
 
 	//Turn on the "queue ahead"
-	ovrHmd_SetBool(rift, "QueueAheadEnabled", true);
+	//ovrHmd_SetBool(rift, "QueueAheadEnabled", false);
 
 	//Turn on performance HUD if set in config.xml
 	ovrHmd_SetInt(rift, "PerfHudMode", (int)config->PerfHudMode);
+
+	//Let main thread know we are done initialising
+	SetEvent(m_EventFlagProcessed);
 		
 	return initialized;
 }
@@ -314,14 +333,18 @@ void OculusDirectToRiftView::DX11RenderThread_ReleaseEverything()
 {
 	SHOW_CALL("OculusDirectToRiftView::DX11RenderThread_ReleaseEverything()");
 
-	//Reset scenes	
+	//Reset scenes
 	m_unusedVireioVRScenePool.ReleaseEverything();
 	m_safeSceneStore.ReleaseEverything();
+	delete m_pCurrentScene;
+	m_pCurrentScene = NULL;
+	delete m_pNextScene;
+	m_pNextScene = NULL;
 }
 
 std::string OculusDirectToRiftView::GetAdditionalFPSInfo()
 {
-	return vireio::retprintf("Async-Timewarp FPS: %.1f", hmdFPS);
+	return vireio::retprintf("Async-Timewarp FPS: %.1f", asyncFPS);
 }
 
 VireioVRScene* OculusDirectToRiftView::ThreadSafeSceneStore::push(VireioVRScene* &vrScene)
@@ -330,31 +353,19 @@ VireioVRScene* OculusDirectToRiftView::ThreadSafeSceneStore::push(VireioVRScene*
 	VireioVRScene* pReturnScene = NULL;
 	if (m_VRScene != NULL)
 		pReturnScene = m_VRScene;
-
-	m_used = true;
 	m_VRScene = vrScene;
-
 	return pReturnScene;
 }
 
-VireioVRScene* OculusDirectToRiftView::ThreadSafeSceneStore::retrieve()
+VireioVRScene* OculusDirectToRiftView::ThreadSafeSceneStore::retrieve(bool remove)
 {
 	std::lock_guard<std::mutex> lock(m_mtx);
 
 	//Doesn't matter if m_VRScene is NULL
 	VireioVRScene *vrScene = m_VRScene;
-	m_VRScene = NULL;
+	if (remove)
+		m_VRScene = NULL;
 	return vrScene;
-}
-
-bool OculusDirectToRiftView::ThreadSafeSceneStore::getUsed()
-{
-	bool used = false;
-	{
-		std::lock_guard<std::mutex> lock(m_mtx);
-		used = m_used;
-	}
-	return used;
 }
 
 void OculusDirectToRiftView::ThreadSafeSceneStore::ReleaseEverything()
@@ -362,7 +373,6 @@ void OculusDirectToRiftView::ThreadSafeSceneStore::ReleaseEverything()
 	std::lock_guard<std::mutex> lock(m_mtx);
 	delete m_VRScene;
 	m_VRScene = NULL;
-	m_used = false;
 }
 
 
@@ -370,15 +380,34 @@ void OculusDirectToRiftView::DX11RenderThread_RenderNextFrame()
 {
 	SHOW_CALL("OculusDirectToRiftView::DX11RenderThread_RenderNextFrame()");
 
-	//If we've never put anything in the store, then we don't have a next frame to render or timewarp
-	if (!m_safeSceneStore.getUsed())
-		return;
-
-	VireioVRScene *vrScene = m_safeSceneStore.retrieve();
-	if (vrScene != NULL)
+	//If not using SDK pose pred, then just take from the store, if we are then we'll just get 
+	//a pointer to the scene to check if it is time to submit it yet
+	VireioVRScene *vrScene = m_safeSceneStore.retrieve(true);
+	if (vrScene)
 	{
-		//Save this as the last scene (for future timewarping)
-		m_pLastScene = vrScene;
+		//Get the frame HMD data for this scene from the tracker
+		m_pOculusTracker->GetFrameHMDData(vrScene->frameIndex, vrScene->m_frameTiming, vrScene->m_trackingState);
+
+		//We are now finished with the previous scene, so put it on the unused pool
+		if (m_pCurrentScene)
+			m_unusedVireioVRScenePool.push(m_pCurrentScene);
+
+		//Save this as the current VR scene (for future timewarping)
+		m_pCurrentScene = vrScene;
+
+		//Can now cleanup the tracker, we have all we need for this scene
+		m_pOculusTracker->CleanupFrameHMDData(vrScene->frameIndex);
+
+		// Get both eye poses simultaneously, with IPD offset already included. 
+		ovrVector3f      HmdToEyeViewOffset[2] = { m_eyeRenderDesc[0].HmdToEyeViewOffset,
+													m_eyeRenderDesc[1].HmdToEyeViewOffset };
+
+		//If DSV is not enabled, then we don't want to use stereo separation, since this is already done
+		//in the DX9 rendering, simply glide the IPD separation in and out as we change from DSV rather than a sudden switch
+		HmdToEyeViewOffset[ovrEye_Left].x *= m_screenViewGlideFactor;
+		HmdToEyeViewOffset[ovrEye_Right].x *= m_screenViewGlideFactor;
+
+		ovr_CalcEyePoses(vrScene->m_trackingState.HeadPose.ThePose, HmdToEyeViewOffset, vrScene->m_eyePoses);
 
 		// Initialise Eye Buffers
 		for (int eye = 0; eye < 2; eye++)
@@ -392,7 +421,7 @@ void OculusDirectToRiftView::DX11RenderThread_RenderNextFrame()
 			DIRECTX.SetViewport(Recti(eyeRenderViewport[eye]));
 
 			// View and projection matrices for the main camera
-			Camera mainCam(Vector3f(0.0f, 0.1f - config->YOffset, (2.25f - ZoomOutScale) + (m_screenViewGlideFactor > 0.5f ? 1.2f : 0.0f)), Matrix4f::Identity());
+			Camera mainCam(Vector3f(0.0f, 0.15f - config->YOffset, (2.25f - ZoomOutScale) + (m_screenViewGlideFactor > 0.5f ? 1.2f : 0.0f)), Matrix4f::Identity());
 
 			// View and projection matrices for the camera using HMD orientation
 			Camera finalCam(mainCam.Pos + mainCam.Rot.Transform(vrScene->m_eyePoses[eye].Position),
@@ -405,21 +434,15 @@ void OculusDirectToRiftView::DX11RenderThread_RenderNextFrame()
 		
 			vrScene->m_pScene[eye]->Render(proj*view, fade, fade, fade, 1, true);
 		}
+	}
 
-		//Clean up
-		m_unusedVireioVRScenePool.push(vrScene);
-	}
-	else
-	{
-#ifdef _DEBUG
-		vireio::debugf("No available DX9 scene - Timewarping Previous Frame");
-#endif
-	}
+	//If we've never had a scene before, just return
+	if (!m_pCurrentScene)
+		return;
 
     // Initialize our single full screen Fov layer.
     ovrLayerEyeFov ld;
     ld.Header.Type  = ovrLayerType_EyeFov;
-    //ld.Header.Type  = (vrScene != NULL) ? ovrLayerType_EyeFov : ovrLayerType_Disabled;
     ld.Header.Flags = 0;
 
 	for (int eye = 0; eye < 2; eye++)
@@ -427,11 +450,23 @@ void OculusDirectToRiftView::DX11RenderThread_RenderNextFrame()
 		ld.ColorTexture[eye] = m_pEyeRenderTexture[eye]->TextureSet;
 		ld.Viewport[eye]     = eyeRenderViewport[eye];
 		ld.Fov[eye]          = rift->DefaultEyeFov[eye];
-		ld.RenderPose[eye]   = m_pLastScene->m_eyePoses[eye];
+		ld.RenderPose[eye]   = m_pCurrentScene->m_eyePoses[eye];
 	}
 
     ovrLayerHeader* layers = &ld.Header;
-    ovrResult result = ovrHmd_SubmitFrame(rift, 0/*m_pLastScene->frameIndex*/, nullptr, &layers, 1);
+	if (m_pOculusTracker->useSDKPosePrediction)
+	{
+#ifdef TIMING_LOG
+		vireio::debugf("Submitting Scene ID: %u, Frame Index: %u at time: %0.8f, Tracking State read time: %0.8f", m_pCurrentScene->sceneID, 
+			m_pCurrentScene->frameIndex, ovr_GetTimeInSeconds(), m_pCurrentScene->m_trackingState.RawSensorData.TimeInSeconds);
+#endif
+		ovrHmd_SubmitFrame(rift, m_pCurrentScene->frameIndex, nullptr, &layers, 1);
+	}
+	else
+	{
+		ovrHmd_SubmitFrame(rift, 0, nullptr, &layers, 1);
+	}
+	
 
 	CalcFPS();
 }
@@ -440,11 +475,22 @@ void OculusDirectToRiftView::PostPresent(D3D9ProxySurface* stereoCapableSurface,
 {
 	SHOW_CALL("OculusDirectToRiftView::PostPresent()");
 
-	// Initialise a new VRScene
-	VireioVRScene *pVRScene = m_unusedVireioVRScenePool.pop();
+	// Get the "next" scene
+	VireioVRScene *pVRScene = m_pNextScene == NULL ? m_unusedVireioVRScenePool.pop() : m_pNextScene;
 
 	if (pVRScene)
 	{
+		//artificially create a delay before we copy (configurable)
+		if (config->sleep > 0)
+			Sleep(config->sleep);
+
+		//We'll use this to wait for GPU to finish the copy
+		D3D11_QUERY_DESC QueryDesc;
+		QueryDesc.Query = D3D11_QUERY_EVENT;
+		QueryDesc.MiscFlags = 0;
+		ID3D11Query *pEventQuery = NULL;
+		m_copyDX11.Device->CreateQuery( &QueryDesc, &pEventQuery);
+
 		for (int eye = 0; eye < 2; eye++)
 		{
 			ID3D11Resource *tempResource11 = NULL;
@@ -485,8 +531,8 @@ void OculusDirectToRiftView::PostPresent(D3D9ProxySurface* stereoCapableSurface,
 						if (SUCCEEDED(hr) && sharedHandle != NULL)
 						{
 							//Create the void scene for this eye, setting the DX9 shared texture as the screen source
-							std::pair<float, float> size = hmdInfo->GetPhysicalScreenSize();
-							pVRScene->m_pScene[eye] = new VoidScene(pDX11Texture, sharedHandle, size.first / size.second);
+							//Aspect ratio is a bit of a guess, but this figure seems to reduce the warping effect considerably
+							pVRScene->m_pScene[eye] = new VoidScene(pDX11Texture, sharedHandle, 1.666f);
 						}
 						else
 						{
@@ -503,7 +549,7 @@ void OculusDirectToRiftView::PostPresent(D3D9ProxySurface* stereoCapableSurface,
 					}
 				}
 
-				//Copy and flush
+				//Copy
 				m_copyDX11.Context->CopyResource(pVRScene->m_pScene[eye]->m_pTexture, pDX9Texture);
 				m_copyDX11.Context->Flush();
 			}
@@ -511,57 +557,65 @@ void OculusDirectToRiftView::PostPresent(D3D9ProxySurface* stereoCapableSurface,
 			//We don't need to keep the ref here now
 			pDX9Texture->Release();
 		}
+
+		//FLsuh all commands, then wait for completion
+		m_copyDX11.Context->End(pEventQuery);
+
+		//Now wait for the flush to complete
+		while( m_copyDX11.Context->GetData( pEventQuery, NULL, 0, 0 ) == S_FALSE )
+		{
+			//Waiting.. - just spin the CPU, not a lot else we can do
+			//We have to wait for this copy to complete, or we get strange flicker
+		}
+		//All done
+		pEventQuery->Release();
 	}
 
-	//Get the frame timing for the very next frame - we'll use the information therein to estimate the
-	//actual frame we are going to hit
-	ovrFrameTiming ftiming = ovrHmd_GetFrameTiming(rift, 0);
-
-#ifdef TIMING_LOG
-	//Write out timing info - might reveal something!
-	vireio::debugf("**********  START *****************"); 
-	vireio::debugf("ftiming.DisplayMidpointSeconds = %0.8f", ftiming.DisplayMidpointSeconds); 
-	vireio::debugf("ftiming.AppFrameIndex = %u", ftiming.AppFrameIndex); 
-	vireio::debugf("ftiming.DisplayFrameIndex = %u", ftiming.DisplayFrameIndex); 
-	vireio::debugf("ftiming.FrameIntervalSeconds = %0.8f", ftiming.FrameIntervalSeconds); 
-	vireio::debugf("ovr_GetTimeInSeconds() = %0.8f", ovr_GetTimeInSeconds()); 
-	vireio::debugf("lastFrameTime (ms) = %0.8f", pProxyDevice->getLastFrameTime() * 1000.0f); 
-#endif
-
-	//Calculate the frame index of the frame we are most likely to be ready for, use last frame time
-	//as our guide, can't think of anything better right now
-	//int frameIndexOffset = (((pProxyDevice->getLastFrameTime() - (ftiming.DisplayMidpointSeconds - ovr_GetTimeInSeconds())) / ftiming.FrameIntervalSeconds) + 1.0);
-
-	//Get the tracking state for the frame we are going to (hopefully!) hit
-	//pVRScene->frameIndex = ftiming.DisplayFrameIndex + frameIndexOffset;
-	//ftiming = ovrHmd_GetFrameTiming(rift, pVRScene->frameIndex);
-	pVRScene->m_trackingState = ovrHmd_GetTrackingState(rift, ovr_GetTimeInSeconds());
-
-#ifdef TIMING_LOG
-	vireio::debugf("Target frameIndex = %u", pVRScene->frameIndex); 
-	vireio::debugf("Target DisplayMidpointSeconds = %0.8f", ftiming.DisplayMidpointSeconds); 
-	vireio::debugf("Target AppFrameIndex = %u", ftiming.AppFrameIndex); 
-	vireio::debugf("Target DisplayFrameIndex = %u", ftiming.DisplayFrameIndex); 
-	vireio::debugf("Target FrameIntervalSeconds = %0.8f", ftiming.FrameIntervalSeconds); 
-#endif
-
-	// Get both eye poses simultaneously, with IPD offset already included. 
-	ovrVector3f      HmdToEyeViewOffset[2] = { m_eyeRenderDesc[0].HmdToEyeViewOffset,
-												m_eyeRenderDesc[1].HmdToEyeViewOffset };
-
-	//If DSV is not enabled, then we don't want to use stereo separation, since this is already done
-	//in the DX9 rendering, simply glide the IPD separation in and out as we change from DSV rather than a sudden switch
-	HmdToEyeViewOffset[ovrEye_Left].x *= m_screenViewGlideFactor;
-	HmdToEyeViewOffset[ovrEye_Right].x *= m_screenViewGlideFactor;
-
-	ovr_CalcEyePoses(pVRScene->m_trackingState.HeadPose.ThePose, HmdToEyeViewOffset, pVRScene->m_eyePoses);
-	m_pOculusTracker->SetFrameHMDData(pVRScene->m_trackingState);
-
 	//Now push the new scene into our safe store - This will indicate to the DX11 thread a new scene is available
-	VireioVRScene *pOldVRScene = m_safeSceneStore.push(pVRScene);
-	//And save the old one in the pool for re-use
-	if (pOldVRScene)
-		m_unusedVireioVRScenePool.push(pOldVRScene);
+	VireioVRScene* pOldScene = m_safeSceneStore.push(pVRScene);
+	if (pOldScene)
+	{
+		//If we had an older scene which we've superceded, just push this into the unused pool
+		m_unusedVireioVRScenePool.push(pOldScene);
+	}
+
+	//Only enter this code if we aren't using pose prediction, or if it is the first scene of this frame
+//	if (!m_pOculusTracker->useSDKPosePrediction || !pOldScene)
+	{
+		//get the frame timing for the new scene we are creating
+		//and provide to the tracker
+		m_pNextScene = m_unusedVireioVRScenePool.pop();
+		//Set the correct frame index
+		{
+			//std::lock_guard<std::mutex> lock(appFrameIndex.m_mtx);
+			m_pNextScene->frameIndex = ++appFrameIndex.index;
+
+			/**********************************
+			**  FRAME TIMING LOGIC
+			**********************************/
+
+			//Now we get the orientation prediction for the next scene
+			ovrFrameTiming frameTiming = ovrHmd_GetFrameTiming(rift, appFrameIndex.index);
+			ovrTrackingState trackingState;
+			if (m_pOculusTracker->useSDKPosePrediction)
+				trackingState = ovrHmd_GetTrackingState(rift, frameTiming.DisplayMidpointSeconds);
+			else
+				//This will just get the position for now
+				trackingState = ovrHmd_GetTrackingState(rift, ovr_GetTimeInSeconds());
+
+			//Write out timing info - might reveal something!
+#ifdef TIMING_LOG
+			vireio::debugf("**********  START *****************"); 
+			vireio::debugf("appFrameIndex.index = %u", appFrameIndex.index); 
+			vireio::debugf("ftiming.DisplayMidpointSeconds = %0.8f", frameTiming.DisplayMidpointSeconds); 
+			vireio::debugf("ftiming.AppFrameIndex = %u", frameTiming.AppFrameIndex); 
+			vireio::debugf("ftiming.DisplayFrameIndex = %u", frameTiming.DisplayFrameIndex); 
+			vireio::debugf("ovr_GetTimeInSeconds() = %0.8f", ovr_GetTimeInSeconds()); 
+			vireio::debugf("lastFrameTime (ms) = %0.8f", pProxyDevice->getLastFrameTime() * 1000.0f); 
+#endif
+			m_pOculusTracker->SetFrameHMDData(appFrameIndex.index, frameTiming, trackingState);
+		}
+	}
 }
 
 void OculusDirectToRiftView::PrePresent(D3D9ProxySurface* stereoCapableSurface)

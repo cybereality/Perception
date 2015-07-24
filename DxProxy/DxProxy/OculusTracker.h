@@ -37,6 +37,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "..\..\LibOVR\Include\OVR.h"
 
 #include <mutex>
+#include <map>
 
 using namespace OVR;
 
@@ -68,7 +69,9 @@ public:
 	virtual bool SupportsPositionTracking();
 
 	ovrHmd GetOVRHmd() {return hmd;}
-	void SetFrameHMDData(ovrTrackingState &ts);
+	void SetFrameHMDData(UINT frameIndex, ovrFrameTiming &timing, ovrTrackingState &ts);
+	void GetFrameHMDData(UINT frameIndex, ovrFrameTiming &timing, ovrTrackingState &ts);
+	void CleanupFrameHMDData(UINT frameIndex);
 
 private:
 
@@ -90,7 +93,15 @@ private:
 	MotionTrackerStatus status;
 
 	//OVR Specific tracking info
-	ovrTrackingState m_ts;
+	struct HMDFrameData
+	{
+		ovrFrameTiming m_timing;
+		ovrTrackingState m_ts;
+	};
+
+	std::mutex m_mtx;
+	std::map<UINT, HMDFrameData> m_frameData;
+	UINT m_latestFrameIndex;
  };
 
 #endif

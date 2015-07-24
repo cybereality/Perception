@@ -3516,7 +3516,7 @@ void D3DProxyDevice::DuckAndCoverCalibrate()
 
 //FPS Calculator
 
-#define MAXSAMPLES 10
+#define MAXSAMPLES 20
 
 float D3DProxyDevice::CalcFPS()
 {

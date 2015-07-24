@@ -682,7 +682,7 @@ void D3DProxyDevice::VPMENU_3DReconstruction()
 		});
 
 	
-	//menu->AddNavigation("Z Buffer Settings >\n", [=]() { VPMENU_ZBufferSettings(); });
+	menu->AddNavigation("Z Buffer Settings >\n", [=]() { VPMENU_ZBufferSettings(); });
 
 	menu->AddToggle("Projected FOV : %s", "ON", "OFF", &config.PFOVToggle, defaultConfig.PFOVToggle, [=]() {
 		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, config.PFOV);
@@ -1044,24 +1044,32 @@ void D3DProxyDevice::VPMENU_Settings()
 	menu->OnClose([=]() { VPMENU_UpdateConfigSettings(); });
 
 	menu->AddToggle("Swap Eyes : %s", "True", "False", &config.swap_eyes, defaultConfig.swap_eyes);
-	menu->AddAdjustment("IPD-Offset : %1.3f", &config.IPDOffset,
-		defaultConfig.IPDOffset, 0.001f, [=]()
-	{
-		clamp(&config.IPDOffset, -0.1f, 0.1f);
-		this->stereoView->PostReset();
-	});
+
 	menu->AddAdjustment("Y-Offset : %1.3f", &config.YOffset,
 		defaultConfig.YOffset, 0.001f, [=]()
 	{
 		clamp(&config.YOffset, -0.1f, 0.1f);
 		this->stereoView->PostReset();
 	});
+
+	menu->AddAdjustment("Post-Present Sleep : %u", &config.sleep,
+		0, 1, [=]()
+	{
+		//Won't ever scroll up this high, this is to check if we have gone below 0
+		if (config.sleep > 100)
+			config.sleep = 0;
+
+		if (config.sleep > 20)
+			config.sleep = 20;
+	});
+
+	/*
 	menu->AddAdjustment("Distortion Scale : %g", &config.DistortionScale,
 		defaultConfig.DistortionScale, 0.01f, [=]()
 	{
 		this->stereoView->PostReset();
 	});
-	/*
+	
 	AddButton("Stereo Screenshots", [=]() {
 		// render 3 frames to get screenshots without menu
 		screenshot = 3;
@@ -1364,8 +1372,8 @@ void D3DProxyDevice::VPMENU_Hotkeys()
 	
 	menu->AddKeybind("Toggle Free Pitch",   &config.HotkeyToggleFreePitch, defaultConfig.HotkeyToggleFreePitch);
 	menu->AddKeybind("Toggle Comfort Mode", &config.HotkeyComfortMode, defaultConfig.HotkeyComfortMode);
-	//menu->AddKeybind("Toggle VR Mouse",     &config.HotkeyVRMouse, defaultConfig.HotkeyVRMouse);
-	//menu->AddKeybind("Toggle Floaty Menus", &config.HotkeyFloatyMenus, defaultConfig.HotkeyFloatyMenus);
+	menu->AddKeybind("Toggle VR Mouse",     &config.HotkeyVRMouse, defaultConfig.HotkeyVRMouse);
+	menu->AddKeybind("Toggle Floaty Menus", &config.HotkeyFloatyMenus, defaultConfig.HotkeyFloatyMenus);
 	
 	menu->AddBackButtons();
 	VPMENU_FinishDrawing(menu);
@@ -1392,11 +1400,10 @@ void D3DProxyDevice::VPMENU_AdjustmentHotkeys()
 	MenuBuilder *menu = VPMENU_NewFrame();
 	VPMENU_StartDrawing(menu, "Settings - Adjustment Hotkeys");
 	
-	//menu->AddKeybind("Switch 2D Depth Mode", &config.HotkeySwitch2DDepthMode, defaultConfig.HotkeySwitch2DDepthMode);
-	//menu->AddKeybind("Swap Sides Hotkey", &config.HotkeySwapSides, defaultConfig.HotkeySwapSides);
+	menu->AddKeybind("Switch 2D Depth Mode", &config.HotkeySwitch2DDepthMode, defaultConfig.HotkeySwitch2DDepthMode);
+	menu->AddKeybind("Swap Sides Hotkey", &config.HotkeySwapSides, defaultConfig.HotkeySwapSides);
 	menu->AddKeybind("Initiate VRBoost Memory Scan", &config.HotkeyInitiateScan, defaultConfig.HotkeyInitiateScan);
-	//menu->AddKeybind("DK2 Black Smear Correction", &config.HotkeyBlackSmear, defaultConfig.HotkeyBlackSmear);
-	menu->AddKeybind("Reset IPD Offset", &config.HotkeyResetIPDOffset, defaultConfig.HotkeyResetIPDOffset);
+	menu->AddKeybind("DK2 Black Smear Correction", &config.HotkeyBlackSmear, defaultConfig.HotkeyBlackSmear);
 	menu->AddKeybind("Show HMD Stats", &config.HotkeyShowHMDStats, defaultConfig.HotkeyShowHMDStats);
 	menu->AddKeybind("Show Axes", &config.HotkeyShowAxes, defaultConfig.HotkeyShowAxes);
 	menu->AddKeybind("Toggle Positional Tracking", &config.HotkeyTogglePositionalTracking, defaultConfig.HotkeyTogglePositionalTracking);
@@ -1901,6 +1908,24 @@ void MenuBuilder::AddKeybind(std::string text, InputBindingRef *binding, InputBi
 void MenuBuilder::AddAdjustment(const char *formatString, float *value, float defaultValue, float rate, std::function<void()> onChange)
 {
 	std::string label = retprintf(formatString, device->RoundVireioValue(*value));
+	
+	AddItem(label, [=]() {
+		if (hotkeyResetToDefault->IsPressed(device->controls) && device->HotkeysActive())
+		{
+			*value = defaultValue;
+			onChange();
+		}
+		if (device->VPMENU_Input_IsAdjustment() && device->HotkeysActive())
+		{
+			*value += rate * device->VPMENU_Input_GetAdjustment();
+			onChange();
+		}
+	});
+}
+
+void MenuBuilder::AddAdjustment(const char *formatString, UINT *value, UINT defaultValue, UINT rate, std::function<void()> onChange)
+{
+	std::string label = retprintf(formatString, *value);
 	
 	AddItem(label, [=]() {
 		if (hotkeyResetToDefault->IsPressed(device->controls) && device->HotkeysActive())
