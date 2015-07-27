@@ -193,9 +193,13 @@ OculusDirectToRiftView::~OculusDirectToRiftView()
 {
 	SHOW_CALL("OculusDirectToRiftView::~OculusDirectToRiftView()");
 
-
 	//Terminate the rendering thread and wait for it to go away
 	SetEventFlag(TERMINATE_THREAD);
+
+	ovrHmd_DestroyMirrorTexture(rift, mirrorTexture);
+
+	for (int eye = 0; eye < 2; eye++)
+		m_pEyeRenderTexture[eye]->Release(rift);
 }
 
 bool OculusDirectToRiftView::DX11RenderThread_Init()
@@ -357,9 +361,6 @@ void OculusDirectToRiftView::DX11RenderThread_ReleaseEverything()
 {
 	SHOW_CALL("OculusDirectToRiftView::DX11RenderThread_ReleaseEverything()");
 
-	ovrHmd_DestroyMirrorTexture(rift, mirrorTexture);
-
-
 	//Reset scenes
 	m_unusedVireioVRScenePool.ReleaseEverything();
 	m_safeSceneStore.ReleaseEverything();
@@ -405,7 +406,8 @@ void OculusDirectToRiftView::ThreadSafeSceneStore::ReleaseEverything()
 
 void OculusDirectToRiftView::DX11RenderThread_RenderNextFrame()
 {
-	SHOW_CALL("OculusDirectToRiftView::DX11RenderThread_RenderNextFrame()");
+	//Removed this one, as it was swamping the log!
+	//SHOW_CALL("OculusDirectToRiftView::DX11RenderThread_RenderNextFrame()");
 
 	//If not using SDK pose pred, then just take from the store, if we are then we'll just get 
 	//a pointer to the scene to check if it is time to submit it yet
@@ -500,7 +502,8 @@ void OculusDirectToRiftView::DX11RenderThread_RenderNextFrame()
 
 void OculusDirectToRiftView::PostPresent(D3D9ProxySurface* stereoCapableSurface, D3DProxyDevice* pProxyDevice)
 {
-	SHOW_CALL("OculusDirectToRiftView::PostPresent()");
+	//Removed this one as it was swamping the log
+	//SHOW_CALL("OculusDirectToRiftView::PostPresent()");
 
 	// Get the "next" scene
 	VireioVRScene *pVRScene = m_pNextScene == NULL ? m_unusedVireioVRScenePool.pop() : m_pNextScene;
@@ -646,7 +649,8 @@ void OculusDirectToRiftView::PostPresent(D3D9ProxySurface* stereoCapableSurface,
 
 void OculusDirectToRiftView::PrePresent(D3D9ProxySurface* stereoCapableSurface)
 {
-	SHOW_CALL("OculusDirectToRiftView::PrePresent()");
+	//Switch off for now
+	//SHOW_CALL("OculusDirectToRiftView::PrePresent()");
 
 	//Screen output
 	IDirect3DSurface9* leftImage = stereoCapableSurface->getActualLeft();
@@ -656,13 +660,10 @@ void OculusDirectToRiftView::PrePresent(D3D9ProxySurface* stereoCapableSurface)
 	{
 		if (!mirrorTexture)
 		{
-			vireio::debugf("Get Back Buffer");
 			m_pActualDevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &backBuffer);
-			vireio::debugf("Got Back Buffer1");
 			D3DSURFACE_DESC desc;
 			backBuffer->GetDesc(&desc);
 			backBuffer->Release();
-			vireio::debugf("Got Back Buffer2");
 
 			// Create a mirror, to see Rift output on a monitor
 			D3D11_TEXTURE2D_DESC td = {};
@@ -700,10 +701,6 @@ void OculusDirectToRiftView::PrePresent(D3D9ProxySurface* stereoCapableSurface)
 			pDXGIResource->Release();
 
 			IDirect3DTexture9 *pD3D9_DX11Texture = NULL;
-			vireio::debugf("desc.Width = %0.8x", desc.Width);
-			vireio::debugf("desc.Height = %0.8x", desc.Height);
-			vireio::debugf("desc.Format = %0.8x", desc.Format);
-			vireio::debugf("sharedHandle = %0.8x", sharedHandle);
 			IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
 			if (SUCCEEDED(m_pActualDevice->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))))
 			{
@@ -716,11 +713,8 @@ void OculusDirectToRiftView::PrePresent(D3D9ProxySurface* stereoCapableSurface)
 					return;
 				}
 			
-
 				IDirect3DSurface9 *pSurface = NULL;
 				pD3D9_DX11Texture->GetSurfaceLevel(0, &pSurface);
-
-
 				m_pActualDevice->StretchRect(pSurface, NULL, backBuffer, NULL, D3DTEXF_NONE);
 				pD3D9_DX11Texture->Release();
 				pSurface->Release();
@@ -730,6 +724,7 @@ void OculusDirectToRiftView::PrePresent(D3D9ProxySurface* stereoCapableSurface)
 	}
 	else
 	{
+		//Simple, just copy the left image!
 		m_pActualDevice->StretchRect(leftImage, NULL, backBuffer, NULL, D3DTEXF_NONE);
 	}
 
