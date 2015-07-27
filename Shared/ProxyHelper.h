@@ -133,9 +133,10 @@ struct ProxyConfig
 	int         stereo_mode;                /**< Stereo render mode enumeration. Matching StereoView::StereoTypes. */
 	int         tracker_mode;               /**< Tracking mode enumeration. Matching MotionTracker::TrackingTypes. */
 	float       ipd;                        /**< IPD, which stands for interpupillary distance (distance between your pupils - in meters...default = 0.064). Also called the interocular distance (or just Interocular). */
-	float       aspect_multiplier;          /**< Currently unused aspect multiplier. Aspect multiplier allows adjusting aspect ratio consistently for Stereo/NoStereo. */
+	float       aspect_multiplier;          /**< Aspect multiplier allows adjusting virtual screen aspect ratio. */
 	UINT		display_adapter;			/**< The display adapter to use - 0 = Primary Display, 1 = Secondary and so on.. */
 	int			PerfHudMode;
+	int			mirror_mode;
 	
 	/****** Misc Hotkeys *****************************************************/
 	
@@ -147,6 +148,7 @@ struct ProxyConfig
 	InputBindingRef HotkeyComfortMode;
 	InputBindingRef HotkeyVRMouse;
 	InputBindingRef HotkeyFloatyMenus;
+	InputBindingRef HotkeyMirrorMode;
 	
 	/****** Adjuster Hotkeys *************************************************/
 	
@@ -192,6 +194,7 @@ public:
 		bool shaderAnalyser;
 		bool show_calls;
 		int	PerfHudMode;
+		int	mirror_mode;
 	};
 
 	/**
@@ -216,7 +219,8 @@ public:
 	std::string GetTargetPath();
 	std::string GetTargetPath(char* path);
 	bool  LoadUserConfig(UserConfig &userConfig);
-	bool  SaveUserConfig(int mode = -1, float aspect = -1.0f);
+	bool  SaveUserConfig(int mode = -1);
+	bool  SaveUserConfigMirrorMode(int mode);
 	bool  LoadUserConfig(ProxyConfig& config, OculusProfile& oculusProfile);
 	bool  SaveUserConfig(float ipd = IPD_DEFAULT);
 	bool  SaveTrackerMode(int mode = -1);

@@ -147,8 +147,7 @@ public:
 			// save the stereo mode to xml file
 			ProxyHelper helper = ProxyHelper();
 			int mode = atoi(s);
-			float aspect = mode == 25 ? 0.5f : 1.0f;
-			helper.SaveUserConfig(mode, aspect);
+			helper.SaveUserConfig(mode);
 		}
 	}
 	void new_selection2() {

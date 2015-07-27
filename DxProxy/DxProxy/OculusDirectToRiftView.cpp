@@ -164,6 +164,9 @@ OculusDirectToRiftView::OculusDirectToRiftView(ProxyConfig *config, HMDisplayInf
 	m_pOculusTracker = static_cast<OculusTracker*>(motionTracker);
 	rift = m_pOculusTracker->GetOVRHmd();
 
+	mirrorTexture = nullptr;
+
+
 	appFrameIndex.index = 0;
 
 	m_EventFlagProcessed = CreateEvent(NULL, FALSE, FALSE, "m_EventFlagProcessed");
@@ -225,6 +228,27 @@ bool OculusDirectToRiftView::DX11RenderThread_Init()
 	SetEvent(m_EventFlagProcessed);
 		
 	return initialized;
+}
+
+DXGI_FORMAT getDX11Format(D3DFORMAT dx9Format)
+{
+	switch (dx9Format)
+	{
+	case D3DFMT_A8R8G8B8:
+		return DXGI_FORMAT_B8G8R8A8_UNORM;
+	case D3DFMT_X8R8G8B8:
+		return DXGI_FORMAT_B8G8R8X8_UNORM;
+	case D3DFMT_R5G6B5:
+		return DXGI_FORMAT_B5G6R5_UNORM;
+	case D3DFMT_A1R5G5B5:
+		return DXGI_FORMAT_B5G5R5A1_UNORM;
+	case D3DFMT_A8B8G8R8	:
+		return DXGI_FORMAT_R8G8B8A8_UNORM;
+	case D3DFMT_A16B16G16R16: 
+		return DXGI_FORMAT_R16G16B16A16_UNORM;
+	}
+
+	return DXGI_FORMAT_UNKNOWN;
 }
 
 bool OculusDirectToRiftView::DX11RenderThread_InitDevices(Sizei sz)
@@ -332,6 +356,9 @@ void OculusDirectToRiftView::ReleaseEverything()
 void OculusDirectToRiftView::DX11RenderThread_ReleaseEverything()
 {
 	SHOW_CALL("OculusDirectToRiftView::DX11RenderThread_ReleaseEverything()");
+
+	ovrHmd_DestroyMirrorTexture(rift, mirrorTexture);
+
 
 	//Reset scenes
 	m_unusedVireioVRScenePool.ReleaseEverything();
@@ -524,7 +551,6 @@ void OculusDirectToRiftView::PostPresent(D3D9ProxySurface* stereoCapableSurface,
 						IDXGIResource *pIDXGIResource = NULL;
 						pDX11Texture->QueryInterface(__uuidof(IDXGIResource), (void**)(&pIDXGIResource)); 
 						HANDLE sharedHandle = NULL;
-						vireio::debugf("pIDXGIResource->GetSharedHandle");
 						hr = pIDXGIResource->GetSharedHandle(&sharedHandle);
 						pIDXGIResource->Release();
 
@@ -532,7 +558,7 @@ void OculusDirectToRiftView::PostPresent(D3D9ProxySurface* stereoCapableSurface,
 						{
 							//Create the void scene for this eye, setting the DX9 shared texture as the screen source
 							//Aspect ratio is a bit of a guess, but this figure seems to reduce the warping effect considerably
-							pVRScene->m_pScene[eye] = new VoidScene(pDX11Texture, sharedHandle, 1.7f);
+							pVRScene->m_pScene[eye] = new VoidScene(pDX11Texture, sharedHandle, config->aspect_multiplier);
 						}
 						else
 						{
@@ -625,7 +651,87 @@ void OculusDirectToRiftView::PrePresent(D3D9ProxySurface* stereoCapableSurface)
 	//Screen output
 	IDirect3DSurface9* leftImage = stereoCapableSurface->getActualLeft();
 	m_pActualDevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &backBuffer);
-	m_pActualDevice->StretchRect(leftImage, NULL, backBuffer, NULL, D3DTEXF_NONE);
+
+	if ((int)config->mirror_mode == 1)
+	{
+		if (!mirrorTexture)
+		{
+			vireio::debugf("Get Back Buffer");
+			m_pActualDevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &backBuffer);
+			vireio::debugf("Got Back Buffer1");
+			D3DSURFACE_DESC desc;
+			backBuffer->GetDesc(&desc);
+			backBuffer->Release();
+			vireio::debugf("Got Back Buffer2");
+
+			// Create a mirror, to see Rift output on a monitor
+			D3D11_TEXTURE2D_DESC td = {};
+			td.ArraySize = 1;
+			td.Format = getDX11Format(desc.Format);
+			td.Width = desc.Width;
+			td.Height = desc.Height;
+			td.Usage = D3D11_USAGE_DEFAULT;
+			td.MiscFlags = D3D11_RESOURCE_MISC_SHARED;
+			td.SampleDesc.Count = 1;
+			td.MipLevels = 1;
+			ovrResult res = ovrHmd_CreateMirrorTextureD3D11(rift, DIRECTX.Device, &td, &mirrorTexture);
+			if (OVR_FAILURE(res))
+			{
+				vireio::debugf("Failed to create mirror texture");
+				config->mirror_mode = 0;
+			}
+		}
+
+		//Switch on mirroring mode
+		if (mirrorTexture)
+		{
+			D3DSURFACE_DESC desc;
+			backBuffer->GetDesc(&desc);
+
+			HANDLE sharedHandle = NULL;
+			IDXGIResource* pDXGIResource = NULL;
+			ovrD3D11Texture* tex = (ovrD3D11Texture*)mirrorTexture;
+			tex->D3D11.pTexture->QueryInterface(__uuidof(IDXGIResource), (LPVOID*) &pDXGIResource);
+			if (FAILED(pDXGIResource->GetSharedHandle(&sharedHandle)))
+			{
+				vireio::debugf("Failed to get shared handle");
+				return;
+			}
+			pDXGIResource->Release();
+
+			IDirect3DTexture9 *pD3D9_DX11Texture = NULL;
+			vireio::debugf("desc.Width = %0.8x", desc.Width);
+			vireio::debugf("desc.Height = %0.8x", desc.Height);
+			vireio::debugf("desc.Format = %0.8x", desc.Format);
+			vireio::debugf("sharedHandle = %0.8x", sharedHandle);
+			IDirect3DDevice9Ex *pDirect3DDevice9Ex = NULL;
+			if (SUCCEEDED(m_pActualDevice->QueryInterface(IID_IDirect3DDevice9Ex, reinterpret_cast<void**>(&pDirect3DDevice9Ex))))
+			{
+				HRESULT hr = pDirect3DDevice9Ex->CreateTexture(desc.Width, desc.Height, 1, D3DUSAGE_RENDERTARGET, desc.Format, D3DPOOL_DEFAULT, &pD3D9_DX11Texture, &sharedHandle);
+				if (FAILED(hr))
+				{
+					vireio::debugf("Failed m_pActualDevice->CreateTexture = %0.8x", hr);
+					//Just do the old copy
+					m_pActualDevice->StretchRect(leftImage, NULL, backBuffer, NULL, D3DTEXF_NONE);
+					return;
+				}
+			
+
+				IDirect3DSurface9 *pSurface = NULL;
+				pD3D9_DX11Texture->GetSurfaceLevel(0, &pSurface);
+
+
+				m_pActualDevice->StretchRect(pSurface, NULL, backBuffer, NULL, D3DTEXF_NONE);
+				pD3D9_DX11Texture->Release();
+				pSurface->Release();
+				pDirect3DDevice9Ex->Release();
+			}
+		}
+	}
+	else
+	{
+		m_pActualDevice->StretchRect(leftImage, NULL, backBuffer, NULL, D3DTEXF_NONE);
+	}
 
 	//Draw the Vireio logo to the top left of the screen
 	if (!m_logoTexture)

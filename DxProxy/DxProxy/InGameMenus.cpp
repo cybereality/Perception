@@ -1411,6 +1411,7 @@ void D3DProxyDevice::VPMENU_AdjustmentHotkeys()
 	menu->AddKeybind("Toggle Chromatic Abberation Correction", &config.HotkeyToggleChromaticAbberationCorrection, defaultConfig.HotkeyToggleChromaticAbberationCorrection);
 	menu->AddKeybind("Distortion Scale Plus", &config.HotkeyDistortionScalePlus, defaultConfig.HotkeyDistortionScalePlus);
 	menu->AddKeybind("Distortion Scale Minus", &config.HotkeyDistortionScaleMinus, defaultConfig.HotkeyDistortionScaleMinus);
+	menu->AddKeybind("Mirroring Mode", &config.HotkeyMirrorMode, defaultConfig.HotkeyMirrorMode);
 	
 	
 	menu->AddBackButtons();

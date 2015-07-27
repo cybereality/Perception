@@ -304,6 +304,7 @@ private:
 	DirectX11 m_copyDX11;
 
 	// Make the eye render buffers (caution if actual size < requested due to HW limits). 
+    ovrTexture * mirrorTexture;
 	OculusTextureSet  * m_pEyeRenderTexture[2];
 	DepthBuffer    * m_pEyeDepthBuffer[2];
 	ovrEyeRenderDesc m_eyeRenderDesc[2];
