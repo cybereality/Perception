@@ -2,9 +2,6 @@
 Vireio Perception: Open-Source Stereoscopic 3D Driver
 Copyright (C) 2012 Andres Hernandez
 
-Vireio Oculus Direct Mode - Oculus Rift Direct Mode Node Plugin
-Copyright (C) 2015 Denis Reischl
-
 File <Vireio_DX11StateBlock.h> :
 Copyright (C) 2015 Denis Reischl
 (based on structure D3DX11_STATE_BLOCK + methods of unknown origin)
@@ -53,7 +50,7 @@ UINT calc_count(T** arr, UINT max_count)
 {
     for (size_t i = 0; i < max_count; ++i)
         if (arr[i] == 0)
-            return i;
+            return (UINT)i;
     return max_count;
 }
 

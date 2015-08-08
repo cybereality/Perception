@@ -62,6 +62,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <d3dx10.h>
 #pragma comment(lib, "d3dx10.lib")
 
+#include"..\..\..\Include\Vireio_DX11Basics.h"
+
 #define	FLOAT_PLUG_TYPE                                4
 #define INT_PLUG_TYPE                                  7 
 #define UINT_PLUG_TYPE                                12
@@ -243,9 +245,44 @@ private:
 	/**
 	* Active back buffer.
 	* The back buffer surface that is currently in use.
-	* (IUnknown*) for campatibility to DX10+DX11.
 	***/
-	IUnknown* m_pcActiveBackBufferSurface;
+	union
+	{
+		ID3D10Texture2D* m_pcActiveBackBuffer10;
+		ID3D11Texture2D* m_pcActiveBackBuffer11;
+	};
+	/**
+	* Twin for active back buffer.
+	* The back buffer surface that is currently in use.
+	* Entry ALLWAYS also exist in m_apcStereoTwinTextures.
+	***/
+	union
+	{
+		ID3D10Texture2D* m_pcActiveStereoTwinBackBuffer10;
+		ID3D11Texture2D* m_pcActiveStereoTwinBackBuffer11;
+	};
+	/**
+	* The index of the current back buffer view in m_apcMonitoredViews.
+	***/
+	int m_nBackBufferIndex;
+	/**
+	* Active output textures (shader bind flag), for both eyes.
+	* The back buffer surface copies.
+	***/
+	union
+	{
+		ID3D10Texture2D* m_pcTex10[2];
+		ID3D11Texture2D* m_pcTex11[2];
+	};
+	/**
+	* Active back buffer view, for both eyes.
+	* The back buffer surface copy views.
+	***/
+	union
+	{
+		ID3D10ShaderResourceView* m_pcTexView10[2];
+		ID3D11ShaderResourceView* m_pcTexView11[2];
+	};
 	/**
 	* Monitored stored views (both render target and depth stencil).
 	* The render targets that are currently watched or monitored.
@@ -259,7 +296,7 @@ private:
 	* Each entry in this vector corresponds as the stereo twin
 	* of the render target stored in m_apcMonitoredViews
 	* with the same index.
-	* (IUnknown*) for campatibility to DX10+DX11.
+	* (IUnknown*) for compatibility to DX10+DX11.
 	***/
 	std::vector<IUnknown*> m_apcStereoTwinViews;
 	/**
@@ -267,7 +304,7 @@ private:
 	* Each entry in this vector corresponds as the the texture of
 	* the stereo twin surface with the same index (stored in
 	* m_apcStereoTwinViews).
-	* (IUnknown*) for campatibility to DX10+DX11.
+	* (IUnknown*) for compatibility to DX10+DX11.
 	***/
 	std::vector<IUnknown*> m_apcStereoTwinTextures;
 	/**
@@ -288,11 +325,6 @@ private:
 	* (IUnknown*) for campatibility to DX10+DX11.
 	***/
 	IUnknown* m_pcActiveStereoTwinDepthStencilView;
-	/**
-	* Twin for active back buffer.
-	* Entry ALLWAYS also exist in m_apcStereoTwinViews.
-	***/
-	//IUnknown* m_pcActiveStereoTwinBackBuffers;
 	/**
 	* Monitored render targets check time counter.
 	* Each index of the vector array represents the frame counter
@@ -318,12 +350,12 @@ private:
 	* To be taken as new render targets if needed.
 	* (IUnknown*) for campatibility to DX10+DX11.
 	***/
-	std::vector<IUnknown*> apcStereoTwinRenderTargetViewClipboard;
+	std::vector<IUnknown*> m_apcStereoTwinRenderTargetViewClipboard;
 	/**
 	* Currently unused render textures (=clipboard).
 	* Each entry in this vector corresponds as the the texture of
 	* the stereo twin view with the same clipboard index.
-	* (apcStereoTwinRenderTargetViewClipboard)
+	* (m_apcStereoTwinRenderTargetViewClipboard)
 	* (IUnknown*) for campatibility to DX10+DX11.
 	***/
 	std::vector<IUnknown*> m_apcStereoTwinRenderTextureClipboard;
@@ -379,6 +411,55 @@ private:
 	* The output surface (right).
 	***/
 	//LPDIRECT3DSURFACE9 m_pcStereoOutputSurfaceRight;
+
+
+	/*** Optional draw operation fields ***/
+
+	/**
+	* The back buffer render target view (DX11).
+	***/
+	ID3D11RenderTargetView* m_pcBackBufferView;
+	/**
+	* The 2D vertex shader.
+	***/
+	union
+	{
+		ID3D10VertexShader* m_pcVertexShader10;
+		ID3D11VertexShader* m_pcVertexShader11;
+	};
+	/**
+	* The 2D pixel shader.
+	***/
+	union
+	{
+		ID3D10PixelShader* m_pcPixelShader10;
+		ID3D11PixelShader* m_pcPixelShader11;
+	};
+	/**
+	* The 2D vertex layout.
+	***/
+	union
+	{
+		ID3D10InputLayout* m_pcVertexLayout10;
+		ID3D11InputLayout* m_pcVertexLayout11;
+	};
+	/**
+	* The 2D vertex buffer.
+	***/
+	union
+	{
+		ID3D10Buffer* m_pcVertexBuffer10;
+		ID3D11Buffer* m_pcVertexBuffer11;
+	};
+	/**
+	* The constant buffer for the vertex shader matrix.
+	* Contains only ProjView matrix.
+	***/
+	union
+	{
+		ID3D10Buffer* m_pcConstantBufferDirect10;
+		ID3D11Buffer* m_pcConstantBufferDirect11;
+	};
 };
 
 /**
