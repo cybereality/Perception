@@ -483,36 +483,85 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					// set node behavior to "double call" for this method
 					// node that this is only supported by drawing methods
 					nProvokerIndex = -1;
+
+					// switch the drawing side before the second draw call is done
+					if (m_eCurrentRenderingSide == RenderPosition::Left)
+						SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Right);
+					else if (m_eCurrentRenderingSide == RenderPosition::Right)
+						SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Left);
+
 					return nullptr;
 				case METHOD_ID3D11DEVICECONTEXT_DRAW:
 					// set node behavior to "double call" for this method
 					// node that this is only supported by drawing methods
 					nProvokerIndex = -1;
+
+					// switch the drawing side before the second draw call is done
+					if (m_eCurrentRenderingSide == RenderPosition::Left)
+						SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Right);
+					else if (m_eCurrentRenderingSide == RenderPosition::Right)
+						SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Left);
+
 					return nullptr;
 				case METHOD_ID3D11DEVICECONTEXT_DRAWINDEXEDINSTANCED:
 					// set node behavior to "double call" for this method
 					// node that this is only supported by drawing methods
 					nProvokerIndex = -1;
+
+					// switch the drawing side before the second draw call is done
+					if (m_eCurrentRenderingSide == RenderPosition::Left)
+						SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Right);
+					else if (m_eCurrentRenderingSide == RenderPosition::Right)
+						SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Left);
+
 					return nullptr;
 				case METHOD_ID3D11DEVICECONTEXT_DRAWINSTANCED:
 					// set node behavior to "double call" for this method
 					// node that this is only supported by drawing methods
 					nProvokerIndex = -1;
+
+					// switch the drawing side before the second draw call is done
+					if (m_eCurrentRenderingSide == RenderPosition::Left)
+						SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Right);
+					else if (m_eCurrentRenderingSide == RenderPosition::Right)
+						SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Left);
+
 					return nullptr;
 				case METHOD_ID3D11DEVICECONTEXT_DRAWAUTO:
 					// set node behavior to "double call" for this method
 					// node that this is only supported by drawing methods
 					nProvokerIndex = -1;
+
+					// switch the drawing side before the second draw call is done
+					if (m_eCurrentRenderingSide == RenderPosition::Left)
+						SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Right);
+					else if (m_eCurrentRenderingSide == RenderPosition::Right)
+						SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Left);
+
 					return nullptr;
 				case METHOD_ID3D11DEVICECONTEXT_DRAWINDEXEDINSTANCEDINDIRECT:
 					// set node behavior to "double call" for this method
 					// node that this is only supported by drawing methods
 					nProvokerIndex = -1;
+
+					// switch the drawing side before the second draw call is done
+					if (m_eCurrentRenderingSide == RenderPosition::Left)
+						SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Right);
+					else if (m_eCurrentRenderingSide == RenderPosition::Right)
+						SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Left);
+
 					return nullptr;
 				case METHOD_ID3D11DEVICECONTEXT_DRAWINSTANCEDINDIRECT:
 					// set node behavior to "double call" for this method
 					// node that this is only supported by drawing methods
 					nProvokerIndex = -1;
+
+					// switch the drawing side before the second draw call is done
+					if (m_eCurrentRenderingSide == RenderPosition::Left)
+						SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Right);
+					else if (m_eCurrentRenderingSide == RenderPosition::Right)
+						SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Left);
+
 					return nullptr;
 				case METHOD_ID3D11DEVICECONTEXT_OMSETRENDERTARGETS:
 					if (m_bPresent)
@@ -1092,6 +1141,8 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 				break;
 			case Direct3D11:
 			{
+				if ((m_nBackBufferIndex == -1) || (!m_pcActiveBackBuffer11)) break;
+
 				// get device and context
 				ID3D11Device* pcDevice = nullptr;
 				ID3D11DeviceContext* pcContext = nullptr;
@@ -1107,12 +1158,10 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 				if ((m_pcTex11[0]) && (m_pcActiveBackBuffer11)) pcContext->CopyResource((ID3D11Resource*)m_pcTex11[0], (ID3D11Resource*)m_pcActiveBackBuffer11);
 				if ((m_pcTex11[1]) && (m_pcActiveBackBuffer11)) pcContext->CopyResource((ID3D11Resource*)m_pcTex11[1], (ID3D11Resource*)m_pcActiveStereoTwinBackBuffer11);
 
-				// get the render target
-				ID3D11RenderTargetView* ppcRenderTargetView[D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT];
-				ID3D11DepthStencilView* pcDepthStencilView = nullptr;
+				// get the viewport
 				UINT dwNumViewports = 1;
 				D3D11_VIEWPORT psViewport[16];
-				GetRenderTarget(pcContext, ppcRenderTargetView, &pcDepthStencilView, &dwNumViewports, psViewport);
+				pcContext->RSGetViewports(&dwNumViewports, psViewport);
 
 				// backup all states
 				D3DX11_STATE_BLOCK sStateBlock;
@@ -1121,18 +1170,8 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 				// clear all states, set targets
 				pcContext->ClearState();
 
-				// no render target present ? get from swapchain
-				if (!ppcRenderTargetView[0])
-				{
-					if (!m_pcBackBufferView)
-					{
-						SetFirstRenderTargetBySwapChain(pcDevice, pcContext, pcSwapChain, &m_pcBackBufferView, pcDepthStencilView);
-					}
-					else
-						pcContext->OMSetRenderTargets(1, &m_pcBackBufferView, pcDepthStencilView);
-				}
-				else
-					pcContext->OMSetRenderTargets(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, ppcRenderTargetView, pcDepthStencilView);
+				// set first active render target - the stored back buffer
+				pcContext->OMSetRenderTargets(1, (ID3D11RenderTargetView**)&m_apcMonitoredViews[m_nBackBufferIndex], (ID3D11DepthStencilView*)m_pcActiveDepthStencilView);
 				pcContext->RSSetViewports(dwNumViewports, psViewport);
 
 				// create all bool
@@ -1166,6 +1205,15 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 
 				if (bAllCreated)
 				{
+					// Clear ? TODO !! DELETE... NO CLEAR FOR FULLSCREEN RENDERING
+					if (false)
+					{
+						float ClearColor[4] = { 0.6f, 0.125f, 0.3f, 0.0f }; // red,green,blue,alpha
+						if (m_apcMonitoredViews[m_nBackBufferIndex])
+							pcContext->ClearRenderTargetView((ID3D11RenderTargetView*)m_apcMonitoredViews[m_nBackBufferIndex], ClearColor);
+					}
+					pcContext->ClearDepthStencilView((ID3D11DepthStencilView*)m_pcActiveDepthStencilView, D3D11_CLEAR_DEPTH, 1.0, 0);
+
 					for (int nEye = 0; nEye < 2; nEye++)
 					{
 						// Set the input layout
@@ -1196,18 +1244,6 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 						// set texture
 						pcContext->PSSetShaderResources(0, 1, &m_pcTexView11[nEye]);
 
-						// Clear ?
-						if (false)
-						{
-							float ClearColor[4] = { 0.6f, 0.125f, 0.3f, 1.0f }; // red,green,blue,alpha
-							for (int i = 0; i < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT; i++)
-							{
-								if (ppcRenderTargetView[i])
-									pcContext->ClearRenderTargetView(ppcRenderTargetView[i], ClearColor);
-							}
-						}
-						pcContext->ClearDepthStencilView(pcDepthStencilView, D3D11_CLEAR_DEPTH, 1.0, 0);
-
 						// set shaders
 						pcContext->VSSetShader(m_pcVertexShader11, 0, 0);
 						pcContext->PSSetShader(m_pcPixelShader11, 0, 0);
@@ -1216,13 +1252,6 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 						pcContext->Draw(6, 0);
 					}
 				}
-
-				// finish up
-				for (int i = 0; i < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT; i++)
-				{
-					if (ppcRenderTargetView[i]) { ppcRenderTargetView[i]->Release(); ppcRenderTargetView[i] = nullptr; }
-				}
-				if (pcDepthStencilView) { pcDepthStencilView->Release(); pcDepthStencilView = nullptr; }
 
 				// set back device
 				ApplyStateblock(pcContext, &sStateBlock);
@@ -1237,7 +1266,23 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 	}
 	else
 	{
-		// TODO !! UPDATE OUTPUT TEXTURES HERE !!
+		// get device and context
+		ID3D11Device* pcDevice = nullptr;
+		ID3D11DeviceContext* pcContext = nullptr;
+		if (FAILED(GetDeviceAndContext(pcSwapChain, &pcDevice, &pcContext)))
+		{
+			// release frame texture+view
+			if (pcDevice) { pcDevice->Release(); pcDevice = nullptr; }
+			if (pcContext) { pcContext->Release(); pcContext = nullptr; }
+			return;
+		}
+
+		// update the output textures
+		if ((m_pcTex11[0]) && (m_pcActiveBackBuffer11)) pcContext->CopyResource((ID3D11Resource*)m_pcTex11[0], (ID3D11Resource*)m_pcActiveBackBuffer11);
+		if ((m_pcTex11[1]) && (m_pcActiveBackBuffer11)) pcContext->CopyResource((ID3D11Resource*)m_pcTex11[1], (ID3D11Resource*)m_pcActiveStereoTwinBackBuffer11);
+
+		if (pcDevice) { pcDevice->Release(); pcDevice = nullptr; }
+		if (pcContext) { pcContext->Release(); pcContext = nullptr; }
 	}
 #pragma endregion
 
@@ -1473,40 +1518,18 @@ void StereoSplitter::MonitorView(IUnknown* pcView)
 *
 * Derives D3DProxyDevice::setDrawingSide() from the Vireio 2.x.x driver code.
 *
+* DX10 method !!
+*
+* @param pcDevice The D3D 10 device.
+* @param eSide The destination side to set.
 * @return True if change succeeded, false if it fails.
 * Attempting to switch to a side when that side is already the active side will return true without making any changes.
 ***/
-bool StereoSplitter::SetDrawingSide(RenderPosition eSide)
+bool StereoSplitter::SetDrawingSide(ID3D10Device* pcDevice, RenderPosition eSide)
 {
 	// Already on the correct eye
-	/*if (eSide == m_eCurrentRenderingSide)
-	return true;
-
-	// state block was applied ?
-	if (m_bApply)
-	{
-	// verify the render targets
-	for(std::vector<IDirect3DSurface9*>::size_type i = 0; i < m_apcActiveRenderTargetViews.size(); i++)
-	{
-	// get the render target for this index
-	LPDIRECT3DSURFACE9 pcRenderTarget;
-	pcDevice->GetRenderTarget((DWORD)i, &pcRenderTarget);
-
-	// is this render target stored ?
-	if (pcRenderTarget != m_apcActiveRenderTargetViews[i])
-	{
-	SetRenderTarget(pcDevice, (DWORD)i, pcRenderTarget);
-	}
-
-	// ..and release
-	pcRenderTarget->Release();
-	}
-
-	// TODO !! TEXTURES
-
-	// state block is handled
-	m_bApply = false;
-	}
+	if (eSide == m_eCurrentRenderingSide)
+		return true;
 
 	// Everything hasn't changed yet but we set this first so we don't accidentally use the member instead of the local and break
 	// things, as I have already managed twice.
@@ -1514,59 +1537,19 @@ bool StereoSplitter::SetDrawingSide(RenderPosition eSide)
 
 	// switch render targets to new eSide
 	bool renderTargetChanged = false;
-	HRESULT hr = D3D_OK;
-	for(std::vector<IDirect3DSurface9*>::size_type i = 0; i < m_dwRenderTargetNumber; i++)
-	{
+	HRESULT hr = S_OK;
 	if (eSide == RenderPosition::Left)
-	{
-	if (m_apcActiveRenderTargetViews[i])
-	hr = pcDevice->SetRenderTarget(i, m_apcActiveRenderTargetViews[i]);
+		pcDevice->OMSetRenderTargets(m_dwRenderTargetNumber, (ID3D10RenderTargetView**)&m_apcActiveRenderTargetViews[0], (ID3D10DepthStencilView*)m_pcActiveDepthStencilView);
 	else
-	hr = pcDevice->SetRenderTarget(i, NULL);
-	}
-	else
-	{
-	if (i < m_apcActiveStereoTwinViews.size())
-	{
-	if (m_apcActiveStereoTwinViews[i])
-	hr = pcDevice->SetRenderTarget(i, m_apcActiveStereoTwinViews[i]);
-	else
-	// never set first render target to NULL
-	if (i > 0)
-	hr = pcDevice->SetRenderTarget(i, NULL);
-	}
-	}
-
-	if (hr != D3D_OK)
-	{
-	OutputDebugString(L"Error trying to set one of the Render Targets while switching between active eyes for drawing.\n");
-	}
-	else
-	{
-	renderTargetChanged = true;
-	}
-	}
+		pcDevice->OMSetRenderTargets(m_dwRenderTargetNumber, (ID3D10RenderTargetView**)&m_apcActiveStereoTwinViews[0], (ID3D10DepthStencilView*)m_pcActiveStereoTwinDepthStencilView);
 
 	// if a non-fullsurface viewport is active and a rendertarget changed we need to reapply the viewport - TODO !!
 	/*if (renderTargetChanged && !m_bActiveViewportIsDefault) {
 	BaseDirect3DDevice9::SetViewport(&m_LastViewportSet);
 	}*/
 
-	/*// switch depth stencil to new side
-	if (m_pcActiveDepthStencilView != NULL) {
-	if (eSide == RenderPosition::Left)
-	hr = pcDevice->SetDepthStencilSurface(m_pcActiveDepthStencilView);
-	else
-	{
-	if (m_pcActiveStereoTwinDepthStencil)
-	hr = pcDevice->SetDepthStencilSurface(m_pcActiveStereoTwinDepthStencil);
-	else
-	hr = pcDevice->SetDepthStencilSurface(NULL);
-	}
-	}
-
 	// switch textures to new side
-	for(std::vector<IDirect3DSurface9*>::size_type i = 0; i < m_dwTextureNumber; i++)
+	/*for(std::vector<IDirect3DSurface9*>::size_type i = 0; i < m_dwTextureNumber; i++)
 	{
 	// if stereo texture
 	if (m_apcActiveStereoTwinTextures[i] != NULL)
@@ -1588,8 +1571,72 @@ bool StereoSplitter::SetDrawingSide(RenderPosition eSide)
 	}
 
 	// TODO !!
-	// the rest of the code from the original method from the Vireio 2.x.x D3DProxyDevice
-	*/
+	// the rest of the code from the original method from the Vireio 2.x.x D3DProxyDevice*/
+
+	return true;
+}
+
+/**
+* Switches rendering to which ever side is specified by side.
+* Use to specify the side that you want to draw to.
+*
+* Derives D3DProxyDevice::setDrawingSide() from the Vireio 2.x.x driver code.
+*
+* DX11 method !!
+*
+* @param pcContext The D3D 11 device context.
+* @param eSide The destination side to set.
+* @return True if change succeeded, false if it fails.
+* Attempting to switch to a side when that side is already the active side will return true without making any changes.
+***/
+bool StereoSplitter::SetDrawingSide(ID3D11DeviceContext* pcContext, RenderPosition eSide)
+{
+	// Already on the correct eye
+	if (eSide == m_eCurrentRenderingSide)
+		return true;
+
+	// Everything hasn't changed yet but we set this first so we don't accidentally use the member instead of the local and break
+	// things, as I have already managed twice.
+	m_eCurrentRenderingSide = eSide;
+
+	// switch render targets to new eSide
+	bool renderTargetChanged = false;
+	HRESULT hr = S_OK;
+	if (eSide == RenderPosition::Left)
+		pcContext->OMSetRenderTargets(m_dwRenderTargetNumber, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews[0], (ID3D11DepthStencilView*)m_pcActiveDepthStencilView);
+	else
+		pcContext->OMSetRenderTargets(m_dwRenderTargetNumber, (ID3D11RenderTargetView**)&m_apcActiveStereoTwinViews[0], (ID3D11DepthStencilView*)m_pcActiveStereoTwinDepthStencilView);
+
+	// if a non-fullsurface viewport is active and a rendertarget changed we need to reapply the viewport - TODO !!
+	/*if (renderTargetChanged && !m_bActiveViewportIsDefault) {
+	BaseDirect3DDevice9::SetViewport(&m_LastViewportSet);
+	}*/
+
+	// switch textures to new side
+	/*for(std::vector<IDirect3DSurface9*>::size_type i = 0; i < m_dwTextureNumber; i++)
+	{
+	// if stereo texture
+	if (m_apcActiveStereoTwinTextures[i] != NULL)
+	{
+	if (eSide == RenderPosition::Left)
+	{
+	if (m_apcActiveTextures[i])
+	hr = pcDevice->SetTexture(i, m_apcActiveTextures[i]);
+	else
+	hr = pcDevice->SetTexture(i, NULL);
+	}
+	else
+	hr = pcDevice->SetTexture(i, m_apcActiveStereoTwinTextures[i]);
+	}
+	// else the texture is mono and doesn't need changing. It will always be set initially and then won't need changing
+
+	if (hr != D3D_OK)
+	OutputDebugString(L"Error trying to set one of the textures while switching between active eyes for drawing.\n");
+	}
+
+	// TODO !!
+	// the rest of the code from the original method from the Vireio 2.x.x D3DProxyDevice*/
+
 	return true;
 }
 

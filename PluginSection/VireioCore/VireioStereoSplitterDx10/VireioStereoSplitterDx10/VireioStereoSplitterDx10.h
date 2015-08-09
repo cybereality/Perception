@@ -194,7 +194,8 @@ private:
 	/*** StereoSplitter private methods ***/
 	int                     CheckIfMonitored(IUnknown* pcView);
 	void                    MonitorView(IUnknown* pcView);
-	bool                    SetDrawingSide(RenderPosition side);
+	bool                    SetDrawingSide(ID3D10Device* pcDevice, RenderPosition side);
+	bool                    SetDrawingSide(ID3D11DeviceContext* pcContext, RenderPosition side);
 
 	/**
 	* Input pointers.
