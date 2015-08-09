@@ -38,12 +38,27 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
+#define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"%u", a); OutputDebugString(buf); }
+#define DEBUG_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"%x", a); OutputDebugString(buf); }
+
 #include"VireioStereoSplitterDx10.h"
 
 #define INTERFACE_ID3D10DEVICE                                   7
 #define INTERFACE_ID3D11DEVICECONTEXT                            11
 #define INTERFACE_IDXGISWAPCHAIN                                 29
+
+#define METHOD_ID3D10DEVICE_DRAWINDEXED                          8
+#define METHOD_ID3D10DEVICE_DRAW                                 9
+#define METHOD_ID3D10DEVICE_DRAWINDEXEDINSTANCED                 14
+#define METHOD_ID3D10DEVICE_DRAWINSTANCED                        15
 #define METHOD_ID3D10DEVICE_OMSETRENDERTARGETS                   24
+#define METHOD_ID3D10DEVICE_DRAWAUTO                             28
+#define METHOD_ID3D10DEVICE_COPYSUBRESOURCEREGION                32
+#define METHOD_ID3D10DEVICE_COPYRESOURCE                         33
+#define METHOD_ID3D10DEVICE_UPDATESUBRESOURCE                    34
+#define METHOD_ID3D10DEVICE_CLEARRENDERTARGETVIEW                35
+#define METHOD_ID3D10DEVICE_CLEARDEPTHSTENCILVIEW                36
+#define METHOD_ID3D10DEVICE_CLEARSTATE                           69
 #define METHOD_ID3D11DEVICECONTEXT_DRAWINDEXED                   12
 #define METHOD_ID3D11DEVICECONTEXT_DRAW                          13
 #define METHOD_ID3D11DEVICECONTEXT_DRAWINDEXEDINSTANCED          20
@@ -52,6 +67,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define METHOD_ID3D11DEVICECONTEXT_DRAWAUTO                      38
 #define METHOD_ID3D11DEVICECONTEXT_DRAWINDEXEDINSTANCEDINDIRECT  39
 #define METHOD_ID3D11DEVICECONTEXT_DRAWINSTANCEDINDIRECT         40
+#define METHOD_ID3D11DEVICECONTEXT_COPYSUBRESOURCEREGION         46
+#define METHOD_ID3D11DEVICECONTEXT_COPYRESOURCE                  47
+#define METHOD_ID3D11DEVICECONTEXT_UPDATESUBRESOURCE             48
+#define METHOD_ID3D11DEVICECONTEXT_CLEARRENDERTARGETVIEW         50
+#define METHOD_ID3D11DEVICECONTEXT_CLEARDEPTHSTENCILVIEW         53
+#define METHOD_ID3D11DEVICECONTEXT_CLEARSTATE                    110
 #define METHOD_IDXGISWAPCHAIN_PRESENT                            8
 
 #define SAFE_RELEASE(a) if (a) { a->Release(); a = nullptr; }
@@ -320,8 +341,31 @@ LPWSTR StereoSplitter::GetDecommanderName(DWORD dwDecommanderIndex)
 		case pDepthStencilView_DX11:
 			return L"pDepthStencilView_DX11";
 			break;
+		case pRenderTargetView_DX10:
+			return L"pRenderTargetView_DX10";
+			break;
+		case pRenderTargetView_DX11:
+			return L"pRenderTargetView_DX11";
+			break;
+		case ColorRGBA:
+			return L"ColorRGBA";
+			break;
+		case pDepthStencilView__DX10:
+			return L"pDepthStencilView__DX10";
+			break;
+		case pDepthStencilView__DX11:
+			return L"pDepthStencilView__DX11";
+			break;
+		case ClearFlags:
+			return L"ClearFlags";
+			break;
+		case Depth:
+			return L"Depth";
+			break;
+		case Stencil:
+			return L"Stencil";
+			break;
 		default:
-			return L"";
 			break;
 	}
 
@@ -358,9 +402,32 @@ DWORD StereoSplitter::GetDecommanderType(DWORD dwDecommanderIndex)
 		case pDepthStencilView_DX11:
 			return PNT_ID3D11DEPTHSTENCILVIEW;
 			break;
+		case pRenderTargetView_DX10:
+			return PNT_ID3D10RENDERTARGETVIEW_TYPE;
+			break;
+		case pRenderTargetView_DX11:
+			return PNT_ID3D11RENDERTARGETVIEW_TYPE;
+			break;
+		case ColorRGBA:
+			return VECTOR4F_PLUG_TYPE;
+			break;
+		case pDepthStencilView__DX10:
+			return PNT_ID3D10DEPTHSTENCILVIEW;
+			break;
+		case pDepthStencilView__DX11:
+			return PNT_ID3D11DEPTHSTENCILVIEW;
+			break;
+		case ClearFlags:
+			return UINT_PLUG_TYPE;
+			break;
+		case Depth:
+			return FLOAT_PLUG_TYPE;
+			break;
+		case Stencil:
+			return BYTE_PLUG_TYPE;
+			break;
 		default:
 			break;
-
 	}
 
 	return 0;
@@ -391,19 +458,43 @@ void StereoSplitter::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 	switch ((STS_Decommanders)dwDecommanderIndex)
 	{
 		case NumViews:
-			m_pdwNumViews = (DWORD*)pData;                                 /** Number of render targets to bind. **/
+			m_pdwNumViews = (DWORD*)pData;                                             /** Number of render targets to bind. **/
 			break;
 		case ppRenderTargetViews_DX10:
-			m_pppcRenderTargetViews_DX10 = (IUnknown***)pData;             /** Pointer to an array of render targets (see ID3D10RenderTargetView) to bind to the device. **/
+			m_pppcRenderTargetViews_DX10 = (IUnknown***)pData;                         /** Pointer to an array of render targets (see ID3D10RenderTargetView) to bind to the device. **/
 			break;
 		case pDepthStencilView_DX10:
-			m_ppcDepthStencilView_DX10 = (IUnknown**)pData;                /** Pointer to a depth-stencil view (see ID3D10DepthStencilView) to bind to the device.**/
+			m_ppcDepthStencilView_DX10 = (IUnknown**)pData;                            /** Pointer to a depth-stencil view (see ID3D10DepthStencilView) to bind to the device.**/
 			break;
 		case ppRenderTargetViews_DX11:
-			m_pppcRenderTargetViews_DX11 = (IUnknown**)pData;              /** Pointer to an array of ID3D11RenderTargetView that represent the render targets to bind to the device. **/
+			m_pppcRenderTargetViews_DX11 = (IUnknown**)pData;                          /** Pointer to an array of ID3D11RenderTargetView that represent the render targets to bind to the device. **/
 			break;
 		case pDepthStencilView_DX11:
-			m_ppcDepthStencilView_DX11 = (IUnknown**)pData;                /** Pointer to a ID3D11DepthStencilView that represents the depth-stencil view to bind to the device. **/
+			m_ppcDepthStencilView_DX11 = (IUnknown**)pData;                            /** Pointer to a ID3D11DepthStencilView that represents the depth-stencil view to bind to the device. **/
+			break;
+		case pRenderTargetView_DX10:
+			m_ppcRenderTargetView_DX10 = (ID3D10RenderTargetView**)pData;              /** Pointer to the render target. */
+			break;
+		case pRenderTargetView_DX11:
+			m_ppcRenderTargetView_DX11 = (ID3D11RenderTargetView**)pData;              /** Pointer to the render target. */
+			break;
+		case ColorRGBA:
+			m_ppfColorRGBA = (float**)pData;                                           /** A 4-component array that represents the color to fill the render target with. */
+			break;
+		case pDepthStencilView__DX10:
+			m_ppcDepthStencilViewClear_DX10 = (ID3D10DepthStencilView**)pData;         /** Pointer to the depth stencil to be cleared. */
+			break;
+		case pDepthStencilView__DX11:
+			m_ppcDepthStencilViewClear_DX11 = (ID3D11DepthStencilView**)pData;         /** Pointer to the depth stencil to be cleared. */
+			break;
+		case ClearFlags:
+			m_pdwClearFlags = (UINT*)pData;                                            /** Identify the type of data to clear */
+			break;
+		case Depth:
+			m_pfDepth = (FLOAT*)pData;                                                 /** Clear the depth buffer with this value. This value will be clamped between 0 and 1. */
+			break;
+		case Stencil:
+			m_pchStencil = (UINT8*)pData;                                               /** Clear the stencil buffer with this value. */
 			break;
 		default:
 			break;
@@ -434,7 +525,13 @@ bool StereoSplitter::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_OMSETRENDERTARGETS) ||
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_DRAWAUTO) ||
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_DRAWINDEXEDINSTANCEDINDIRECT) ||
-				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_DRAWINSTANCEDINDIRECT))
+				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_DRAWINSTANCEDINDIRECT) ||
+				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_COPYSUBRESOURCEREGION) ||
+				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_COPYRESOURCE) ||
+				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_UPDATESUBRESOURCE) ||
+				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_CLEARRENDERTARGETVIEW) ||
+				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_CLEARDEPTHSTENCILVIEW) ||
+				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_CLEARSTATE))
 				return true;
 		}
 		else if (nD3DInterface == INTERFACE_IDXGISWAPCHAIN)
@@ -451,6 +548,10 @@ bool StereoSplitter::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 ***/
 void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)
 {
+	// set node behavior to "double call" for this method
+	// node that this is only supported by drawing methods
+	nProvokerIndex = -1;
+
 	switch (eD3DInterface)
 	{
 		case INTERFACE_ID3D10DEVICE:
@@ -480,10 +581,6 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			switch (eD3DMethod)
 			{
 				case METHOD_ID3D11DEVICECONTEXT_DRAWINDEXED:
-					// set node behavior to "double call" for this method
-					// node that this is only supported by drawing methods
-					nProvokerIndex = -1;
-
 					// switch the drawing side before the second draw call is done
 					if (m_eCurrentRenderingSide == RenderPosition::Left)
 						SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Right);
@@ -492,10 +589,6 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 					return nullptr;
 				case METHOD_ID3D11DEVICECONTEXT_DRAW:
-					// set node behavior to "double call" for this method
-					// node that this is only supported by drawing methods
-					nProvokerIndex = -1;
-
 					// switch the drawing side before the second draw call is done
 					if (m_eCurrentRenderingSide == RenderPosition::Left)
 						SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Right);
@@ -504,10 +597,6 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 					return nullptr;
 				case METHOD_ID3D11DEVICECONTEXT_DRAWINDEXEDINSTANCED:
-					// set node behavior to "double call" for this method
-					// node that this is only supported by drawing methods
-					nProvokerIndex = -1;
-
 					// switch the drawing side before the second draw call is done
 					if (m_eCurrentRenderingSide == RenderPosition::Left)
 						SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Right);
@@ -516,10 +605,6 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 					return nullptr;
 				case METHOD_ID3D11DEVICECONTEXT_DRAWINSTANCED:
-					// set node behavior to "double call" for this method
-					// node that this is only supported by drawing methods
-					nProvokerIndex = -1;
-
 					// switch the drawing side before the second draw call is done
 					if (m_eCurrentRenderingSide == RenderPosition::Left)
 						SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Right);
@@ -528,10 +613,6 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 					return nullptr;
 				case METHOD_ID3D11DEVICECONTEXT_DRAWAUTO:
-					// set node behavior to "double call" for this method
-					// node that this is only supported by drawing methods
-					nProvokerIndex = -1;
-
 					// switch the drawing side before the second draw call is done
 					if (m_eCurrentRenderingSide == RenderPosition::Left)
 						SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Right);
@@ -540,10 +621,6 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 					return nullptr;
 				case METHOD_ID3D11DEVICECONTEXT_DRAWINDEXEDINSTANCEDINDIRECT:
-					// set node behavior to "double call" for this method
-					// node that this is only supported by drawing methods
-					nProvokerIndex = -1;
-
 					// switch the drawing side before the second draw call is done
 					if (m_eCurrentRenderingSide == RenderPosition::Left)
 						SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Right);
@@ -552,16 +629,83 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 					return nullptr;
 				case METHOD_ID3D11DEVICECONTEXT_DRAWINSTANCEDINDIRECT:
-					// set node behavior to "double call" for this method
-					// node that this is only supported by drawing methods
-					nProvokerIndex = -1;
-
 					// switch the drawing side before the second draw call is done
 					if (m_eCurrentRenderingSide == RenderPosition::Left)
 						SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Right);
 					else if (m_eCurrentRenderingSide == RenderPosition::Right)
 						SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Left);
 
+					return nullptr;
+				case METHOD_ID3D11DEVICECONTEXT_COPYSUBRESOURCEREGION:
+					// TODO !! check if render target / monitored texture, in case update twin at next present call
+					return nullptr;
+				case METHOD_ID3D11DEVICECONTEXT_COPYRESOURCE:
+					// TODO !! check if render target / monitored texture, in case update twin at next present call
+					return nullptr;
+				case METHOD_ID3D11DEVICECONTEXT_UPDATESUBRESOURCE:
+					// TODO !! check if render target / monitored texture, in case update twin at next present call
+					return nullptr;
+				case METHOD_ID3D11DEVICECONTEXT_CLEARRENDERTARGETVIEW:
+					if (m_bPresent)
+					{
+						ID3D11RenderTargetView* pcRenderTargetView = nullptr;
+						if (m_ppcRenderTargetView_DX11) pcRenderTargetView = (ID3D11RenderTargetView*)*m_ppcRenderTargetView_DX11; else return nullptr;
+						float* pfColor;
+						if (m_ppfColorRGBA) pfColor = (float*)*m_ppfColorRGBA; else return nullptr;
+
+						if (pcRenderTargetView)
+						{
+							// check wether this depth stencil is actually monitored.. 
+							int nIndex = CheckIfMonitored((IUnknown*)pcRenderTargetView);
+							if (nIndex == -1)
+								// not monitored, so start
+								MonitorView(pcRenderTargetView);
+							else
+							{
+								if (nIndex < (int)m_apcStereoTwinViews.size())
+								{
+									if (m_apcStereoTwinViews[nIndex])
+										// clear twin render target
+										((ID3D11DeviceContext*)pThis)->ClearRenderTargetView((ID3D11RenderTargetView*)m_apcStereoTwinViews[nIndex], (const FLOAT*)pfColor);
+								}
+							}
+						}
+					}
+					return nullptr;
+				case METHOD_ID3D11DEVICECONTEXT_CLEARDEPTHSTENCILVIEW:
+					if (m_bPresent)
+					{
+						ID3D11DepthStencilView* pcDepthStencilView = nullptr;
+						if (m_ppcDepthStencilViewClear_DX11) pcDepthStencilView = (ID3D11DepthStencilView*)*m_ppcDepthStencilViewClear_DX11; else return nullptr;
+						UINT dwClearFlags;
+						if (m_pdwClearFlags) dwClearFlags = (UINT)*m_pdwClearFlags; else return nullptr;
+						FLOAT fDepth;
+						if (m_pfDepth) fDepth = (FLOAT)*m_pfDepth; else return nullptr;
+						UINT8 chStencil;
+						if (m_pchStencil) chStencil = (UINT8)*m_pchStencil; else return nullptr;
+
+						if (pcDepthStencilView)
+						{
+							// check wether this depth stencil is actually monitored.. 
+							int nIndex = CheckIfMonitored((IUnknown*)pcDepthStencilView);
+							if (nIndex == -1)
+								// not monitored, so start
+								MonitorView(pcDepthStencilView);
+							else
+							{
+								if (nIndex < (int)m_apcStereoTwinViews.size())
+								{
+									if (m_apcStereoTwinViews[nIndex])
+										// clear twin render target
+										((ID3D11DeviceContext*)pThis)->ClearDepthStencilView((ID3D11DepthStencilView*)m_apcStereoTwinViews[nIndex], dwClearFlags, fDepth, chStencil);
+								}
+							}
+						}
+					}
+					return nullptr;
+				case METHOD_ID3D11DEVICECONTEXT_CLEARSTATE:
+					OMSetRenderTargets(0, NULL, NULL);
+					// TODO !! TEXTURES
 					return nullptr;
 				case METHOD_ID3D11DEVICECONTEXT_OMSETRENDERTARGETS:
 					if (m_bPresent)

@@ -64,6 +64,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include"..\..\..\Include\Vireio_DX11Basics.h"
 
+#define BYTE_PLUG_TYPE                                 1
 #define	FLOAT_PLUG_TYPE                                4
 #define INT_PLUG_TYPE                                  7 
 #define UINT_PLUG_TYPE                                12
@@ -74,6 +75,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define	D3DCOLOR_PLUG_TYPE                          1004
 #define D3DFORMAT_PLUG_TYPE                         1011
 #define D3DPRIMITIVETYPE_PLUG_TYPE                  1021
+#define VECTOR4F_PLUG_TYPE                          1063
 #define PNT_D3DRECT_PLUG_TYPE                       2024
 #define PNT_ID3D10DEPTHSTENCILVIEW                  8021
 #define PNT_ID3D10RENDERTARGETVIEW_TYPE             8022
@@ -85,7 +87,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define PPNT_ID3D11RENDERTARGETVIEW                12026
 
 #define NUMBER_OF_COMMANDERS                           2
-#define NUMBER_OF_DECOMMANDERS                         5
+#define NUMBER_OF_DECOMMANDERS                         13
 
 /**
 * Node Commander Enumeration.
@@ -107,25 +109,16 @@ enum STS_Decommanders
 	pDepthStencilView_DX10,                                /** Pointer to a depth-stencil view (see ID3D10DepthStencilView) to bind to the device.**/
 	ppRenderTargetViews_DX11,                              /** Pointer to an array of ID3D11RenderTargetView that represent the render targets to bind to the device. **/
 	pDepthStencilView_DX11,                                /** Pointer to a ID3D11DepthStencilView that represents the depth-stencil view to bind to the device. **/
-	/*** All Draw methods ***/
-	DrawIndexed_IndexCount,                                /** Number of indices to draw. */
-	DrawIndexed_StartIndexLocation,                        /** The location of the first index */
-	DrawIndexed_BaseVertexLocation,                        /** A value added to each index. */
-	Draw_VertexCount,                                      /** Number of vertices to draw. */
-	Draw_StartVertexLocation,                              /** Index of the first vertex */
-	DrawIndexedInstanced_IndexCountPerInstance,            /** Number of indices read */
-	DrawIndexedInstanced_InstanceCount,                    /** Number of instances to draw. */
-	DrawIndexedInstanced_StartIndexLocation,               /** The location of the first index read. */
-	DrawIndexedInstanced_BaseVertexLocation,               /** A value added to each index. */
-	DrawIndexedInstanced_StartInstanceLocation,            /** A value added to each index */
-	DrawInstanced_VertexCountPerInstance,                  /** Number of vertices to draw */
-	DrawInstanced_InstanceCount,                           /** Number of instances to draw */
-	DrawInstanced_StartVertexLocation,                     /** Index of the first vertex */
-	DrawInstanced_StartInstanceLocation,                   /** A value added to each index */
-	DrawIndexedInstancedIndirect_pBufferForArgs,           /** A pointer to an ID3D11Buffer, which is a buffer containing the GPU generated primitives. */
-	DrawIndexedInstancedIndirect_AlignedByteOffsetForArgs, /** Offset in pBufferForArgs to the start of the GPU generated primitives. */
-	DrawInstancedIndirect_pBufferForArgs,                  /** A pointer to an ID3D11Buffer, which is a buffer containing the GPU generated primitives. */
-	DrawInstancedIndirect_AlignedByteOffsetForArgs,        /** Offset in pBufferForArgs to the start of the GPU generated primitives. */
+	/*** ClearRenderTargetView ***/
+	pRenderTargetView_DX10,                                /** Pointer to the render target. */
+	pRenderTargetView_DX11,                                /** Pointer to the render target. */
+	ColorRGBA,                                             /** A 4-component array that represents the color to fill the render target with. */
+	/*** ClearDepthStencilView ***/
+	pDepthStencilView__DX10,                               /** Pointer to the depth stencil to be cleared. */
+	pDepthStencilView__DX11,                               /** Pointer to the depth stencil to be cleared. */
+	ClearFlags,                                            /** Identify the type of data to clear */
+	Depth,                                                 /** Clear the depth buffer with this value. This value will be clamped between 0 and 1. */
+	Stencil,                                               /** Clear the stencil buffer with this value. */
 };
 
 /**
@@ -205,24 +198,14 @@ private:
 	IUnknown** m_ppcDepthStencilView_DX10;                            /** Pointer to a depth-stencil view (see ID3D10DepthStencilView) to bind to the device.**/
 	IUnknown** m_pppcRenderTargetViews_DX11;                          /** Pointer to an array of ID3D11RenderTargetView that represent the render targets to bind to the device. **/
 	IUnknown** m_ppcDepthStencilView_DX11;                            /** Pointer to a ID3D11DepthStencilView that represents the depth-stencil view to bind to the device. **/
-	UINT* m_pdwDrawIndexed_IndexCount;                                /** Number of indices to draw. */
-	UINT* m_pdwDrawIndexed_StartIndexLocation;                        /** The location of the first index */
-	INT* m_pnDrawIndexed_BaseVertexLocation;                          /** A value added to each index. */
-	UINT* m_pdwDraw_VertexCount;                                      /** Number of vertices to draw. */
-	UINT* m_pdwDraw_StartVertexLocation;                              /** Index of the first vertex */
-	UINT* m_pdwDrawIndexedInstanced_IndexCountPerInstance;            /** Number of indices read */
-	UINT* m_pdwDrawIndexedInstanced_InstanceCount;                    /** Number of instances to draw. */
-	UINT* m_pdwDrawIndexedInstanced_StartIndexLocation;               /** The location of the first index read. */
-	INT* m_pnDrawIndexedInstanced_BaseVertexLocation;                 /** A value added to each index. */
-	UINT* m_pdwDrawIndexedInstanced_StartInstanceLocation;            /** A value added to each index */
-	UINT* m_pdwDrawInstanced_VertexCountPerInstance;                  /** Number of vertices to draw */
-	UINT* m_pdwDrawInstanced_InstanceCount;                           /** Number of instances to draw */
-	UINT* m_pdwDrawInstanced_StartVertexLocation;                     /** Index of the first vertex */
-	UINT* m_pdwDrawInstanced_StartInstanceLocation;                   /** A value added to each index */
-	ID3D11Buffer** m_ppcDrawIndexedInstancedIndirect_pBufferForArgs;  /** A pointer to an ID3D11Buffer, which is a buffer containing the GPU generated primitives. */
-	UINT* m_pdwDrawIndexedInstancedIndirect_AlignedByteOffsetForArgs; /** Offset in pBufferForArgs to the start of the GPU generated primitives. */
-	ID3D11Buffer** m_ppcDrawInstancedIndirect_pBufferForArgs;         /** A pointer to an ID3D11Buffer, which is a buffer containing the GPU generated primitives. */
-	UINT* m_pdwDrawInstancedIndirect_AlignedByteOffsetForArgs;        /** Offset in pBufferForArgs to the start of the GPU generated primitives. */
+	ID3D10RenderTargetView** m_ppcRenderTargetView_DX10;              /** Pointer to the render target. */
+	ID3D11RenderTargetView** m_ppcRenderTargetView_DX11;              /** Pointer to the render target. */
+	float** m_ppfColorRGBA;                                           /** A 4-component array that represents the color to fill the render target with. */
+	ID3D10DepthStencilView** m_ppcDepthStencilViewClear_DX10;         /** Pointer to the depth stencil to be cleared. */
+	ID3D11DepthStencilView** m_ppcDepthStencilViewClear_DX11;         /** Pointer to the depth stencil to be cleared. */
+	UINT* m_pdwClearFlags;                                            /** Identify the type of data to clear */
+	FLOAT* m_pfDepth;                                                 /** Clear the depth buffer with this value. This value will be clamped between 0 and 1. */
+	UINT8* m_pchStencil;                                              /** Clear the stencil buffer with this value. */
 
 	/**
 	* Active stored render target views.
