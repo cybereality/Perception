@@ -1166,44 +1166,55 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 
 				if (bAllCreated)
 				{
-					// Set the input layout
-					pcContext->IASetInputLayout(m_pcVertexLayout11);
-
-					// Set vertex buffer
-					UINT stride = sizeof(TexturedVertex);
-					UINT offset = 0;
-					pcContext->IASetVertexBuffers(0, 1, &m_pcVertexBuffer11, &stride, &offset);
-
-					// Set constant buffer, first update it
-					D3DXMATRIX sProj;
-					D3DXMatrixScaling(&sProj, 0.5f, 1.0f, 1.0f);
-					pcContext->UpdateSubresource((ID3D11Resource*)m_pcConstantBufferDirect11, 0, NULL, &sProj, 0, 0);
-					pcContext->VSSetConstantBuffers(0, 1, &m_pcConstantBufferDirect11);
-
-					// Set primitive topology
-					pcContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-					// set texture
-					pcContext->PSSetShaderResources(0, 1, &m_pcTexView11[0]);
-
-					// Clear ?
-					if (false)
+					for (int nEye = 0; nEye < 2; nEye++)
 					{
-						float ClearColor[4] = { 0.6f, 0.125f, 0.3f, 1.0f }; // red,green,blue,alpha
-						for (int i = 0; i < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT; i++)
+						// Set the input layout
+						pcContext->IASetInputLayout(m_pcVertexLayout11);
+
+						// Set vertex buffer
+						UINT stride = sizeof(TexturedVertex);
+						UINT offset = 0;
+						pcContext->IASetVertexBuffers(0, 1, &m_pcVertexBuffer11, &stride, &offset);
+
+						// Set constant buffer, first update it... scale and translate the left and right image
+						D3DXMATRIX sScale;
+						D3DXMatrixScaling(&sScale, 0.5f, 1.0f, 1.0f);
+						D3DXMATRIX sTrans;
+						if (nEye == 0)
+							D3DXMatrixTranslation(&sTrans, -0.5f, 0.0f, 0.0f);
+						else
+							D3DXMatrixTranslation(&sTrans, 0.5f, 0.0f, 0.0f);
+						D3DXMatrixTranspose(&sTrans, &sTrans);
+						D3DXMATRIX sProj;
+						D3DXMatrixMultiply(&sProj, &sTrans, &sScale);
+						pcContext->UpdateSubresource((ID3D11Resource*)m_pcConstantBufferDirect11, 0, NULL, &sProj, 0, 0);
+						pcContext->VSSetConstantBuffers(0, 1, &m_pcConstantBufferDirect11);
+
+						// Set primitive topology
+						pcContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+						// set texture
+						pcContext->PSSetShaderResources(0, 1, &m_pcTexView11[nEye]);
+
+						// Clear ?
+						if (false)
 						{
-							if (ppcRenderTargetView[i])
-								pcContext->ClearRenderTargetView(ppcRenderTargetView[i], ClearColor);
+							float ClearColor[4] = { 0.6f, 0.125f, 0.3f, 1.0f }; // red,green,blue,alpha
+							for (int i = 0; i < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT; i++)
+							{
+								if (ppcRenderTargetView[i])
+									pcContext->ClearRenderTargetView(ppcRenderTargetView[i], ClearColor);
+							}
 						}
+						pcContext->ClearDepthStencilView(pcDepthStencilView, D3D11_CLEAR_DEPTH, 1.0, 0);
+
+						// set shaders
+						pcContext->VSSetShader(m_pcVertexShader11, 0, 0);
+						pcContext->PSSetShader(m_pcPixelShader11, 0, 0);
+
+						// Render a triangle
+						pcContext->Draw(6, 0);
 					}
-					pcContext->ClearDepthStencilView(pcDepthStencilView, D3D11_CLEAR_DEPTH, 1.0, 0);
-
-					// set shaders
-					pcContext->VSSetShader(m_pcVertexShader11, 0, 0);
-					pcContext->PSSetShader(m_pcPixelShader11, 0, 0);
-
-					// Render a triangle
-					pcContext->Draw(6, 0);
 				}
 
 				// finish up
