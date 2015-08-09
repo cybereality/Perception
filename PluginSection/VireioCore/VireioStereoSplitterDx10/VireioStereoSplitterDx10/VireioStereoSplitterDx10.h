@@ -87,7 +87,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define PPNT_ID3D11RENDERTARGETVIEW                12026
 
 #define NUMBER_OF_COMMANDERS                           2
-#define NUMBER_OF_DECOMMANDERS                         13
+#define NUMBER_OF_DECOMMANDERS                         16
 
 /**
 * Node Commander Enumeration.
@@ -109,13 +109,17 @@ enum STS_Decommanders
 	pDepthStencilView_DX10,                                /** Pointer to a depth-stencil view (see ID3D10DepthStencilView) to bind to the device.**/
 	ppRenderTargetViews_DX11,                              /** Pointer to an array of ID3D11RenderTargetView that represent the render targets to bind to the device. **/
 	pDepthStencilView_DX11,                                /** Pointer to a ID3D11DepthStencilView that represents the depth-stencil view to bind to the device. **/
+	/*** OMSetRenderTargetsAndUnorderedAccessViews ***/
+	NumRTVs,                                               /** Number of render targets to bind. **/
+	ppRenderTargetViewsUAV_DX11,                           /** Pointer to an array of ID3D11RenderTargetView that represent the render targets to bind to the device. **/
+	pDepthStencilViewUAV_DX11,                             /** Pointer to a ID3D11DepthStencilView that represents the depth-stencil view to bind to the device. **/
 	/*** ClearRenderTargetView ***/
 	pRenderTargetView_DX10,                                /** Pointer to the render target. */
 	pRenderTargetView_DX11,                                /** Pointer to the render target. */
 	ColorRGBA,                                             /** A 4-component array that represents the color to fill the render target with. */
 	/*** ClearDepthStencilView ***/
-	pDepthStencilView__DX10,                               /** Pointer to the depth stencil to be cleared. */
-	pDepthStencilView__DX11,                               /** Pointer to the depth stencil to be cleared. */
+	pDepthStencilViewCDS_DX10,                             /** Pointer to the depth stencil to be cleared. */
+	pDepthStencilViewCDS_DX11,                             /** Pointer to the depth stencil to be cleared. */
 	ClearFlags,                                            /** Identify the type of data to clear */
 	Depth,                                                 /** Clear the depth buffer with this value. This value will be clamped between 0 and 1. */
 	Stencil,                                               /** Clear the stencil buffer with this value. */
@@ -196,8 +200,11 @@ private:
 	DWORD* m_pdwNumViews;                                             /** Number of render targets to bind. **/
 	IUnknown*** m_pppcRenderTargetViews_DX10;                         /** Pointer to an array of render targets (see ID3D10RenderTargetView) to bind to the device. **/
 	IUnknown** m_ppcDepthStencilView_DX10;                            /** Pointer to a depth-stencil view (see ID3D10DepthStencilView) to bind to the device.**/
-	IUnknown** m_pppcRenderTargetViews_DX11;                          /** Pointer to an array of ID3D11RenderTargetView that represent the render targets to bind to the device. **/
+	IUnknown*** m_pppcRenderTargetViews_DX11;                         /** Pointer to an array of ID3D11RenderTargetView that represent the render targets to bind to the device. **/
 	IUnknown** m_ppcDepthStencilView_DX11;                            /** Pointer to a ID3D11DepthStencilView that represents the depth-stencil view to bind to the device. **/
+	DWORD* m_pdwNumRTVs;                                              /** Number of render targets to bind. **/
+	IUnknown*** m_pppcRenderTargetViewsUAV_DX11;                      /** Pointer to an array of ID3D11RenderTargetView that represent the render targets to bind to the device. **/
+	IUnknown** m_ppcDepthStencilViewUAV_DX11;                         /** Pointer to a ID3D11DepthStencilView that represents the depth-stencil view to bind to the device. **/
 	ID3D10RenderTargetView** m_ppcRenderTargetView_DX10;              /** Pointer to the render target. */
 	ID3D11RenderTargetView** m_ppcRenderTargetView_DX11;              /** Pointer to the render target. */
 	float** m_ppfColorRGBA;                                           /** A 4-component array that represents the color to fill the render target with. */

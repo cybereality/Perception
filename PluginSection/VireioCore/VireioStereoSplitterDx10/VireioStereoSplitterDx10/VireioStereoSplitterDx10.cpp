@@ -43,37 +43,38 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include"VireioStereoSplitterDx10.h"
 
-#define INTERFACE_ID3D10DEVICE                                   7
-#define INTERFACE_ID3D11DEVICECONTEXT                            11
-#define INTERFACE_IDXGISWAPCHAIN                                 29
+#define INTERFACE_ID3D10DEVICE                                               7
+#define INTERFACE_ID3D11DEVICECONTEXT                                        11
+#define INTERFACE_IDXGISWAPCHAIN                                             29
 
-#define METHOD_ID3D10DEVICE_DRAWINDEXED                          8
-#define METHOD_ID3D10DEVICE_DRAW                                 9
-#define METHOD_ID3D10DEVICE_DRAWINDEXEDINSTANCED                 14
-#define METHOD_ID3D10DEVICE_DRAWINSTANCED                        15
-#define METHOD_ID3D10DEVICE_OMSETRENDERTARGETS                   24
-#define METHOD_ID3D10DEVICE_DRAWAUTO                             28
-#define METHOD_ID3D10DEVICE_COPYSUBRESOURCEREGION                32
-#define METHOD_ID3D10DEVICE_COPYRESOURCE                         33
-#define METHOD_ID3D10DEVICE_UPDATESUBRESOURCE                    34
-#define METHOD_ID3D10DEVICE_CLEARRENDERTARGETVIEW                35
-#define METHOD_ID3D10DEVICE_CLEARDEPTHSTENCILVIEW                36
-#define METHOD_ID3D10DEVICE_CLEARSTATE                           69
-#define METHOD_ID3D11DEVICECONTEXT_DRAWINDEXED                   12
-#define METHOD_ID3D11DEVICECONTEXT_DRAW                          13
-#define METHOD_ID3D11DEVICECONTEXT_DRAWINDEXEDINSTANCED          20
-#define METHOD_ID3D11DEVICECONTEXT_DRAWINSTANCED                 21
-#define METHOD_ID3D11DEVICECONTEXT_OMSETRENDERTARGETS            33
-#define METHOD_ID3D11DEVICECONTEXT_DRAWAUTO                      38
-#define METHOD_ID3D11DEVICECONTEXT_DRAWINDEXEDINSTANCEDINDIRECT  39
-#define METHOD_ID3D11DEVICECONTEXT_DRAWINSTANCEDINDIRECT         40
-#define METHOD_ID3D11DEVICECONTEXT_COPYSUBRESOURCEREGION         46
-#define METHOD_ID3D11DEVICECONTEXT_COPYRESOURCE                  47
-#define METHOD_ID3D11DEVICECONTEXT_UPDATESUBRESOURCE             48
-#define METHOD_ID3D11DEVICECONTEXT_CLEARRENDERTARGETVIEW         50
-#define METHOD_ID3D11DEVICECONTEXT_CLEARDEPTHSTENCILVIEW         53
-#define METHOD_ID3D11DEVICECONTEXT_CLEARSTATE                    110
-#define METHOD_IDXGISWAPCHAIN_PRESENT                            8
+#define METHOD_ID3D10DEVICE_DRAWINDEXED                                      8
+#define METHOD_ID3D10DEVICE_DRAW                                             9
+#define METHOD_ID3D10DEVICE_DRAWINDEXEDINSTANCED                             14
+#define METHOD_ID3D10DEVICE_DRAWINSTANCED                                    15
+#define METHOD_ID3D10DEVICE_OMSETRENDERTARGETS                               24
+#define METHOD_ID3D10DEVICE_DRAWAUTO                                         28
+#define METHOD_ID3D10DEVICE_COPYSUBRESOURCEREGION                            32
+#define METHOD_ID3D10DEVICE_COPYRESOURCE                                     33
+#define METHOD_ID3D10DEVICE_UPDATESUBRESOURCE                                34
+#define METHOD_ID3D10DEVICE_CLEARRENDERTARGETVIEW                            35
+#define METHOD_ID3D10DEVICE_CLEARDEPTHSTENCILVIEW                            36
+#define METHOD_ID3D10DEVICE_CLEARSTATE                                       69
+#define METHOD_ID3D11DEVICECONTEXT_DRAWINDEXED                               12
+#define METHOD_ID3D11DEVICECONTEXT_DRAW                                      13
+#define METHOD_ID3D11DEVICECONTEXT_DRAWINDEXEDINSTANCED                      20
+#define METHOD_ID3D11DEVICECONTEXT_DRAWINSTANCED                             21
+#define METHOD_ID3D11DEVICECONTEXT_OMSETRENDERTARGETS                        33
+#define METHOD_ID3D11DEVICECONTEXT_OMSETRENDERTARGETSANDUNORDEREDACCESSVIEWS 34
+#define METHOD_ID3D11DEVICECONTEXT_DRAWAUTO                                  38
+#define METHOD_ID3D11DEVICECONTEXT_DRAWINDEXEDINSTANCEDINDIRECT              39
+#define METHOD_ID3D11DEVICECONTEXT_DRAWINSTANCEDINDIRECT                     40
+#define METHOD_ID3D11DEVICECONTEXT_COPYSUBRESOURCEREGION                     46
+#define METHOD_ID3D11DEVICECONTEXT_COPYRESOURCE                              47
+#define METHOD_ID3D11DEVICECONTEXT_UPDATESUBRESOURCE                         48
+#define METHOD_ID3D11DEVICECONTEXT_CLEARRENDERTARGETVIEW                     50
+#define METHOD_ID3D11DEVICECONTEXT_CLEARDEPTHSTENCILVIEW                     53
+#define METHOD_ID3D11DEVICECONTEXT_CLEARSTATE                                110
+#define METHOD_IDXGISWAPCHAIN_PRESENT                                        8
 
 #define SAFE_RELEASE(a) if (a) { a->Release(); a = nullptr; }
 
@@ -233,6 +234,17 @@ HBITMAP StereoSplitter::GetControl()
 			TextOut(hdcImage, 50, nY, L"pDepthStencilView DX10", 22); nY += 64;
 			TextOut(hdcImage, 50, nY, L"ppRenderTargetViews DX11", 24); nY += 64;
 			TextOut(hdcImage, 50, nY, L"pDepthStencilView DX11", 22); nY += 64;
+			TextOut(hdcImage, 50, nY, L"NumRTVs", 7); nY += 64;
+			TextOut(hdcImage, 50, nY, L"ppRenderTargetViews_DX11", 24); nY += 64;
+			TextOut(hdcImage, 50, nY, L"pDepthStencilView_DX11", 22); nY += 64;
+			TextOut(hdcImage, 50, nY, L"pRenderTargetView_DX10", 22); nY += 64;
+			TextOut(hdcImage, 50, nY, L"pRenderTargetView_DX11", 22); nY += 64;
+			TextOut(hdcImage, 50, nY, L"ColorRGBA", 9); nY += 64;
+			TextOut(hdcImage, 50, nY, L"pDepthStencilView__DX10", 23); nY += 64;
+			TextOut(hdcImage, 50, nY, L"pDepthStencilView__DX11", 23); nY += 64;
+			TextOut(hdcImage, 50, nY, L"ClearFlags", 9); nY += 64;
+			TextOut(hdcImage, 50, nY, L"Depth", 5); nY += 64;
+			TextOut(hdcImage, 50, nY, L"Stencil", 7); nY += 64;
 			TextOut(hdcImage, 600, nY, L"Left Texture", 12); nY += 64;
 			TextOut(hdcImage, 600, nY, L"Right Texture", 13); nY += 128;
 
@@ -324,6 +336,7 @@ LPWSTR StereoSplitter::GetCommanderName(DWORD dwCommanderIndex)
 ***/
 LPWSTR StereoSplitter::GetDecommanderName(DWORD dwDecommanderIndex)
 {
+
 	switch ((STS_Decommanders)dwDecommanderIndex)
 	{
 		case NumViews:
@@ -341,6 +354,15 @@ LPWSTR StereoSplitter::GetDecommanderName(DWORD dwDecommanderIndex)
 		case pDepthStencilView_DX11:
 			return L"pDepthStencilView_DX11";
 			break;
+		case NumRTVs:
+			return L"NumRTVs";
+			break;
+		case ppRenderTargetViewsUAV_DX11:
+			return L"ppRenderTargetViews_DX11";
+			break;
+		case pDepthStencilViewUAV_DX11:
+			return L"pDepthStencilView_DX11";
+			break;
 		case pRenderTargetView_DX10:
 			return L"pRenderTargetView_DX10";
 			break;
@@ -350,10 +372,10 @@ LPWSTR StereoSplitter::GetDecommanderName(DWORD dwDecommanderIndex)
 		case ColorRGBA:
 			return L"ColorRGBA";
 			break;
-		case pDepthStencilView__DX10:
+		case pDepthStencilViewCDS_DX10:
 			return L"pDepthStencilView__DX10";
 			break;
-		case pDepthStencilView__DX11:
+		case pDepthStencilViewCDS_DX11:
 			return L"pDepthStencilView__DX11";
 			break;
 		case ClearFlags:
@@ -402,6 +424,15 @@ DWORD StereoSplitter::GetDecommanderType(DWORD dwDecommanderIndex)
 		case pDepthStencilView_DX11:
 			return PNT_ID3D11DEPTHSTENCILVIEW;
 			break;
+		case NumRTVs:
+			return UINT_PLUG_TYPE;
+			break;
+		case ppRenderTargetViewsUAV_DX11:
+			return PPNT_ID3D11RENDERTARGETVIEW;
+			break;
+		case pDepthStencilViewUAV_DX11:
+			return PNT_ID3D11DEPTHSTENCILVIEW;
+			break;
 		case pRenderTargetView_DX10:
 			return PNT_ID3D10RENDERTARGETVIEW_TYPE;
 			break;
@@ -411,10 +442,10 @@ DWORD StereoSplitter::GetDecommanderType(DWORD dwDecommanderIndex)
 		case ColorRGBA:
 			return VECTOR4F_PLUG_TYPE;
 			break;
-		case pDepthStencilView__DX10:
+		case pDepthStencilViewCDS_DX10:
 			return PNT_ID3D10DEPTHSTENCILVIEW;
 			break;
-		case pDepthStencilView__DX11:
+		case pDepthStencilViewCDS_DX11:
 			return PNT_ID3D11DEPTHSTENCILVIEW;
 			break;
 		case ClearFlags:
@@ -467,10 +498,19 @@ void StereoSplitter::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 			m_ppcDepthStencilView_DX10 = (IUnknown**)pData;                            /** Pointer to a depth-stencil view (see ID3D10DepthStencilView) to bind to the device.**/
 			break;
 		case ppRenderTargetViews_DX11:
-			m_pppcRenderTargetViews_DX11 = (IUnknown**)pData;                          /** Pointer to an array of ID3D11RenderTargetView that represent the render targets to bind to the device. **/
+			m_pppcRenderTargetViews_DX11 = (IUnknown***)pData;                         /** Pointer to an array of ID3D11RenderTargetView that represent the render targets to bind to the device. **/
 			break;
 		case pDepthStencilView_DX11:
 			m_ppcDepthStencilView_DX11 = (IUnknown**)pData;                            /** Pointer to a ID3D11DepthStencilView that represents the depth-stencil view to bind to the device. **/
+			break;
+		case NumRTVs:
+			m_pdwNumRTVs = (DWORD*)pData;                                              /** Number of render targets to bind. **/
+			break;
+		case ppRenderTargetViewsUAV_DX11:
+			m_pppcRenderTargetViewsUAV_DX11 = (IUnknown***)pData;                      /** Pointer to an array of ID3D11RenderTargetView that represent the render targets to bind to the device. **/
+			break;
+		case pDepthStencilViewUAV_DX11:
+			m_ppcDepthStencilViewUAV_DX11 = (IUnknown**)pData;                         /** Pointer to a ID3D11DepthStencilView that represents the depth-stencil view to bind to the device. **/
 			break;
 		case pRenderTargetView_DX10:
 			m_ppcRenderTargetView_DX10 = (ID3D10RenderTargetView**)pData;              /** Pointer to the render target. */
@@ -481,10 +521,10 @@ void StereoSplitter::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 		case ColorRGBA:
 			m_ppfColorRGBA = (float**)pData;                                           /** A 4-component array that represents the color to fill the render target with. */
 			break;
-		case pDepthStencilView__DX10:
+		case pDepthStencilViewCDS_DX10:
 			m_ppcDepthStencilViewClear_DX10 = (ID3D10DepthStencilView**)pData;         /** Pointer to the depth stencil to be cleared. */
 			break;
-		case pDepthStencilView__DX11:
+		case pDepthStencilViewCDS_DX11:
 			m_ppcDepthStencilViewClear_DX11 = (ID3D11DepthStencilView**)pData;         /** Pointer to the depth stencil to be cleared. */
 			break;
 		case ClearFlags:
@@ -522,7 +562,7 @@ bool StereoSplitter::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_DRAW) ||
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_DRAWINDEXEDINSTANCED) ||
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_DRAWINSTANCED) ||
-				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_OMSETRENDERTARGETS) ||
+				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_OMSETRENDERTARGETSANDUNORDEREDACCESSVIEWS) ||
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_DRAWAUTO) ||
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_DRAWINDEXEDINSTANCEDINDIRECT) ||
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_DRAWINSTANCEDINDIRECT) ||
@@ -717,6 +757,23 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						if (m_pppcRenderTargetViews_DX11) ppcRenderTargetViews = (ID3D11RenderTargetView**)*m_pppcRenderTargetViews_DX11; else ppcRenderTargetViews = nullptr;
 						ID3D11DepthStencilView* pcDepthStencilView = nullptr;
 						if (m_ppcDepthStencilView_DX11) pcDepthStencilView = (ID3D11DepthStencilView*)*m_ppcDepthStencilView_DX11; else pcDepthStencilView = nullptr;
+
+						// call method
+						OMSetRenderTargets(dwNumViews, (IUnknown**)ppcRenderTargetViews, (IUnknown*)pcDepthStencilView);
+					}
+					// ensure D3D11 is set
+					m_eD3DVersion = D3DVersion::Direct3D11;
+					return nullptr;
+				case METHOD_ID3D11DEVICECONTEXT_OMSETRENDERTARGETSANDUNORDEREDACCESSVIEWS:
+					if (m_bPresent)
+					{
+						// get data
+						DWORD dwNumViews = 0;
+						if (m_pdwNumRTVs) dwNumViews = *m_pdwNumRTVs; else return nullptr;
+						ID3D11RenderTargetView** ppcRenderTargetViews = nullptr;
+						if (m_pppcRenderTargetViewsUAV_DX11) ppcRenderTargetViews = (ID3D11RenderTargetView**)*m_pppcRenderTargetViewsUAV_DX11; else ppcRenderTargetViews = nullptr;
+						ID3D11DepthStencilView* pcDepthStencilView = nullptr;
+						if (m_ppcDepthStencilViewUAV_DX11) pcDepthStencilView = (ID3D11DepthStencilView*)*m_ppcDepthStencilViewUAV_DX11; else pcDepthStencilView = nullptr;
 
 						// call method
 						OMSetRenderTargets(dwNumViews, (IUnknown**)ppcRenderTargetViews, (IUnknown*)pcDepthStencilView);
@@ -1055,7 +1112,7 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 											pcResource->GetDesc(&sDesc);
 											pcResource->Release();
 
-											if (FAILED(pcDevice->CreateTexture2D(&sDesc, NULL, (ID3D11Texture2D**)&pcStereoTwinTexture10)))
+											if (FAILED(pcDevice->CreateTexture2D(&sDesc, NULL, (ID3D11Texture2D**)&pcStereoTwinTexture11)))
 												OutputDebugString(L"StereoSplitterDX10 : Failed to create twin texture !");
 											else
 											{
@@ -1086,7 +1143,7 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 											pcResource->GetDesc(&sDesc);
 											pcResource->Release();
 
-											if (FAILED(pcDevice->CreateTexture2D(&sDesc, NULL, (ID3D11Texture2D**)&pcStereoTwinTexture10)))
+											if (FAILED(pcDevice->CreateTexture2D(&sDesc, NULL, (ID3D11Texture2D**)&pcStereoTwinTexture11)))
 												OutputDebugString(L"StereoSplitterDX10 : Failed to create twin texture !");
 											else
 											{
@@ -1116,6 +1173,9 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 						break;
 				}
 			}
+
+			if (!pcStereoTwinView10) OutputDebugString(L"StereoSplitter: Could not create twin view !");
+			if (!pcStereoTwinTexture10) OutputDebugString(L"StereoSplitter: Could not create twin texture !");
 
 			// add to stereo twin render targets
 			m_apcStereoTwinViews.push_back(pcStereoTwinView10);
