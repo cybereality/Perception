@@ -902,6 +902,7 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 					((ID3D10DepthStencilView*)pcView)->GetDesc(&sDescDS10);
 					break;
 				case D3D10_SHADER_RESOURCE_VIEW:
+					OutputDebugString(L"NotImplemented: D3D10_SHADER_RESOURCE_VIEW");
 					break;
 				case D3D11_RENDER_TARGET_VIEW:
 					((ID3D11RenderTargetView*)pcView)->GetDesc(&sDescRT11);
@@ -910,6 +911,7 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 					((ID3D11DepthStencilView*)pcView)->GetDesc(&sDescDS11);
 					break;
 				case D3D11_SHADER_RESOURCE_VIEW:
+					OutputDebugString(L"NotImplemented: D3D11_SHADER_RESOURCE_VIEW");
 					break;
 				default:
 					break;
@@ -1022,12 +1024,16 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 				switch (sDescRT10.ViewDimension)
 				{
 					case D3D10_RTV_DIMENSION_UNKNOWN:
+						OutputDebugString(L"NotImplemented: D3D10_RTV_DIMENSION_UNKNOWN");
 						break;
 					case D3D10_RTV_DIMENSION_BUFFER:
+						OutputDebugString(L"NotImplemented: D3D10_RTV_DIMENSION_BUFFER");
 						break;
 					case D3D10_RTV_DIMENSION_TEXTURE1D:
+						OutputDebugString(L"NotImplemented: D3D10_RTV_DIMENSION_TEXTURE1D");
 						break;
 					case D3D10_RTV_DIMENSION_TEXTURE1DARRAY:
+						OutputDebugString(L"NotImplemented: D3D10_RTV_DIMENSION_TEXTURE1DARRAY");
 						break;
 					case D3D10_RTV_DIMENSION_TEXTURE2D:
 						switch (eD3DViewType)
@@ -1093,6 +1099,7 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 								}
 								break;
 							case D3D10_SHADER_RESOURCE_VIEW:
+								OutputDebugString(L"NotImplemented: D3D10_SHADER_RESOURCE_VIEW");
 								break;
 							case D3D11_RENDER_TARGET_VIEW:
 								if (true)
@@ -1157,19 +1164,26 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 								}
 								break;
 							case D3D11_SHADER_RESOURCE_VIEW:
+								OutputDebugString(L"NotImplemented: D3D11_SHADER_RESOURCE_VIEW");
 								break;
 							default:
+								OutputDebugString(L"NotImplemented: UNKNOWN TYPE");
 								break;
 						}
 					case D3D10_RTV_DIMENSION_TEXTURE2DARRAY:
+						OutputDebugString(L"NotImplemented: D3D10_RTV_DIMENSION_TEXTURE2DARRAY");
 						break;
 					case D3D10_RTV_DIMENSION_TEXTURE2DMS:
+						OutputDebugString(L"NotImplemented: D3D10_RTV_DIMENSION_TEXTURE2DMS");
 						break;
 					case D3D10_RTV_DIMENSION_TEXTURE2DMSARRAY:
+						OutputDebugString(L"NotImplemented: D3D10_RTV_DIMENSION_TEXTURE2DMSARRAY");
 						break;
 					case D3D10_RTV_DIMENSION_TEXTURE3D:
+						OutputDebugString(L"NotImplemented: D3D10_RTV_DIMENSION_TEXTURE3D");
 						break;
 					default:
+						OutputDebugString(L"NotImplemented: UNKNOWN DIMENSION");
 						break;
 				}
 			}
@@ -1591,8 +1605,10 @@ void StereoSplitter::OMSetRenderTargets(UINT NumViews, IUnknown *const *ppRender
 			if (nIndex < (int)m_apcStereoTwinViews.size())
 				m_pcActiveStereoTwinDepthStencilView = m_apcStereoTwinViews[nIndex];
 			else
+			{
 				// set twin surface to null meanwhile
 				m_pcActiveStereoTwinDepthStencilView = NULL;
+			}
 		}
 	}
 
@@ -1811,6 +1827,8 @@ bool StereoSplitter::SetDrawingSide(ID3D11DeviceContext* pcContext, RenderPositi
 		pcContext->OMSetRenderTargets(m_dwRenderTargetNumber, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews[0], (ID3D11DepthStencilView*)m_pcActiveDepthStencilView);
 	else
 		pcContext->OMSetRenderTargets(m_dwRenderTargetNumber, (ID3D11RenderTargetView**)&m_apcActiveStereoTwinViews[0], (ID3D11DepthStencilView*)m_pcActiveStereoTwinDepthStencilView);
+
+	// if ((!m_pcActiveStereoTwinDepthStencilView) && (m_pcActiveDepthStencilView)) OutputDebugString(L"No stereo depth buffer!");
 
 	// if a non-fullsurface viewport is active and a rendertarget changed we need to reapply the viewport - TODO !!
 	/*if (renderTargetChanged && !m_bActiveViewportIsDefault) {
