@@ -1532,6 +1532,9 @@ void StereoSplitter::OMSetRenderTargets(UINT NumViews, IUnknown *const *ppRender
 					}
 					else
 					{
+						// set the target
+						m_apcActiveRenderTargetViews[i] = ppRenderTargetViews[i];
+
 						// check wether this render target is actually monitored
 						int nIndex = CheckIfMonitored(ppRenderTargetViews[i]);
 						if (nIndex == -1)
@@ -1562,17 +1565,16 @@ void StereoSplitter::OMSetRenderTargets(UINT NumViews, IUnknown *const *ppRender
 		}
 	}
 
-	// now, the back buffer... set NULL manually, otherwise just set the render target :
+	// now, the back buffer... set NULL manually, otherwise just set 
 	if (!pDepthStencilView)
+	{
 		m_pcActiveDepthStencilView = NULL;
-	else
-		m_pcActiveDepthStencilView = pDepthStencilView;
-
-	// set NULL twin if NULL
-	if (!pDepthStencilView)
 		m_pcActiveStereoTwinDepthStencilView = NULL;
+	}
 	else
 	{
+		m_pcActiveDepthStencilView = pDepthStencilView;
+
 		// check wether this depth stencil is actually monitored.. 
 		int nIndex = CheckIfMonitored(pDepthStencilView);
 		if (nIndex == -1)
@@ -1804,7 +1806,6 @@ bool StereoSplitter::SetDrawingSide(ID3D11DeviceContext* pcContext, RenderPositi
 	m_eCurrentRenderingSide = eSide;
 
 	// switch render targets to new eSide
-	bool renderTargetChanged = false;
 	HRESULT hr = S_OK;
 	if (eSide == RenderPosition::Left)
 		pcContext->OMSetRenderTargets(m_dwRenderTargetNumber, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews[0], (ID3D11DepthStencilView*)m_pcActiveDepthStencilView);
