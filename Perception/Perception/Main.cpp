@@ -718,7 +718,11 @@ std::string getCurrentPath(void)
 bool LoadAquilinusRTE()
 {
 	// explicit Aquilinus Runtime Environment dll import
-	g_hmAquilinusRTE = LoadLibrary("AquilinusRTE.dll");
+#ifdef _WIN64
+	g_hmAquilinusRTE = LoadLibrary("AquilinusRTE_x64.dll");
+#else
+	g_hmAquilinusRTE = LoadLibrary("AquilinusRTE_Win32.dll");
+#endif
 
 	// get Aquilinus Runtime Environment methods
 	if (g_hmAquilinusRTE != NULL)
