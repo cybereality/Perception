@@ -745,6 +745,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					return nullptr;
 				case METHOD_ID3D11DEVICECONTEXT_CLEARSTATE:
 					OMSetRenderTargets(0, NULL, NULL);
+					SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Left);
 					// TODO !! TEXTURES
 					return nullptr;
 				case METHOD_ID3D11DEVICECONTEXT_OMSETRENDERTARGETS:
@@ -1034,6 +1035,58 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 						break;
 					case D3D10_RTV_DIMENSION_TEXTURE1DARRAY:
 						OutputDebugString(L"NotImplemented: D3D10_RTV_DIMENSION_TEXTURE1DARRAY");
+						switch (eD3DViewType)
+						{
+							case D3D10_RENDER_TARGET_VIEW:
+								OutputDebugString(L"NotImplemented: D3D10_RENDER_TARGET_VIEW");
+								break;
+							case D3D10_DEPTH_STENCIL_VIEW:
+								OutputDebugString(L"NotImplemented: D3D10_DEPTH_STENCIL_VIEW");
+								break;
+							case D3D10_SHADER_RESOURCE_VIEW:
+								OutputDebugString(L"NotImplemented: D3D10_SHADER_RESOURCE_VIEW");
+								break;
+							case D3D11_RENDER_TARGET_VIEW:
+								OutputDebugString(L"NotImplemented: D3D11_RENDER_TARGET_VIEW");
+								break;
+							case D3D11_DEPTH_STENCIL_VIEW:
+								if (true)
+								{
+									// get device
+									ID3D11Device* pcDevice = nullptr;
+									pcSwapChain->GetDevice(__uuidof(ID3D11Device), (void**)&pcDevice);
+									if (pcDevice)
+									{
+										// get the texture
+										ID3D11Texture1D* pcResource = nullptr;
+										((ID3D11DepthStencilView*)pcView)->GetResource((ID3D11Resource**)&pcResource);
+										if (pcResource)
+										{
+											// get the description and create the twin texture
+											D3D11_TEXTURE1D_DESC sDesc;
+											pcResource->GetDesc(&sDesc);
+											pcResource->Release();
+
+											if (FAILED(pcDevice->CreateTexture1D(&sDesc, NULL, (ID3D11Texture1D**)&pcStereoTwinTexture11)))
+												OutputDebugString(L"StereoSplitterDX10 : Failed to create twin texture !");
+											else
+											{
+												// create twin render target view
+												if (FAILED(pcDevice->CreateDepthStencilView((ID3D11Resource*)pcStereoTwinTexture11, &sDescDS11, (ID3D11DepthStencilView**)&pcStereoTwinView11)))
+													OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view !");
+											}
+										}
+										pcDevice->Release();
+									}
+								}
+								break;
+							case D3D11_SHADER_RESOURCE_VIEW:
+								OutputDebugString(L"NotImplemented: D3D11_SHADER_RESOURCE_VIEW");
+								break;
+							default:
+								OutputDebugString(L"NotImplemented: UNKNOWN TYPE");
+								break;
+						}
 						break;
 					case D3D10_RTV_DIMENSION_TEXTURE2D:
 						switch (eD3DViewType)
@@ -1170,6 +1223,7 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 								OutputDebugString(L"NotImplemented: UNKNOWN TYPE");
 								break;
 						}
+						break;
 					case D3D10_RTV_DIMENSION_TEXTURE2DARRAY:
 						OutputDebugString(L"NotImplemented: D3D10_RTV_DIMENSION_TEXTURE2DARRAY");
 						break;
@@ -1374,7 +1428,7 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 
 				// update the output textures
 				if ((m_pcTex11[0]) && (m_pcActiveBackBuffer11)) pcContext->CopyResource((ID3D11Resource*)m_pcTex11[0], (ID3D11Resource*)m_pcActiveBackBuffer11);
-				if ((m_pcTex11[1]) && (m_pcActiveBackBuffer11)) pcContext->CopyResource((ID3D11Resource*)m_pcTex11[1], (ID3D11Resource*)m_pcActiveStereoTwinBackBuffer11);
+				if ((m_pcTex11[1]) && (m_pcActiveStereoTwinBackBuffer11)) pcContext->CopyResource((ID3D11Resource*)m_pcTex11[1], (ID3D11Resource*)m_pcActiveStereoTwinBackBuffer11);
 
 				// get the viewport
 				UINT dwNumViewports = 1;
@@ -1430,7 +1484,7 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 						if (m_apcMonitoredViews[m_nBackBufferIndex])
 							pcContext->ClearRenderTargetView((ID3D11RenderTargetView*)m_apcMonitoredViews[m_nBackBufferIndex], ClearColor);
 					}
-					pcContext->ClearDepthStencilView((ID3D11DepthStencilView*)m_pcActiveDepthStencilView, D3D11_CLEAR_DEPTH, 1.0, 0);
+					//pcContext->ClearDepthStencilView((ID3D11DepthStencilView*)m_pcActiveDepthStencilView, D3D11_CLEAR_DEPTH, 1.0, 0);
 
 					for (int nEye = 0; nEye < 2; nEye++)
 					{
@@ -1517,6 +1571,9 @@ void StereoSplitter::OMSetRenderTargets(UINT NumViews, IUnknown *const *ppRender
 	// set the number of render targets set
 	// for DX10 and DX11 all render targets above this number are set to NULL
 	m_dwRenderTargetNumber = (DWORD)NumViews;
+
+	// drawing side is automatically set to "left"
+	m_eCurrentRenderingSide = RenderPosition::Left;
 
 	// set the render target internally
 	if (NumViews < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT)
