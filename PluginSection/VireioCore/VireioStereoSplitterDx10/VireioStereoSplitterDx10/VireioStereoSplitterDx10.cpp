@@ -58,6 +58,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define METHOD_ID3D10DEVICE_UPDATESUBRESOURCE                                34
 #define METHOD_ID3D10DEVICE_CLEARRENDERTARGETVIEW                            35
 #define METHOD_ID3D10DEVICE_CLEARDEPTHSTENCILVIEW                            36
+#define METHOD_ID3D10DEVICE_OMGETRENDERTARGETS                               56
 #define METHOD_ID3D10DEVICE_CLEARSTATE                                       69
 #define METHOD_ID3D11DEVICECONTEXT_DRAWINDEXED                               12
 #define METHOD_ID3D11DEVICECONTEXT_DRAW                                      13
@@ -73,6 +74,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define METHOD_ID3D11DEVICECONTEXT_UPDATESUBRESOURCE                         48
 #define METHOD_ID3D11DEVICECONTEXT_CLEARRENDERTARGETVIEW                     50
 #define METHOD_ID3D11DEVICECONTEXT_CLEARDEPTHSTENCILVIEW                     53
+#define METHOD_ID3D11DEVICECONTEXT_OMGETRENDERTARGETS                        89
+#define METHOD_ID3D11DEVICECONTEXT_OMGETRENDERTARGETSANDUNORDEREDACCESSVIEWS 90
 #define METHOD_ID3D11DEVICECONTEXT_CLEARSTATE                                110
 #define METHOD_IDXGISWAPCHAIN_PRESENT                                        8
 
@@ -571,6 +574,8 @@ bool StereoSplitter::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_UPDATESUBRESOURCE) ||
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_CLEARRENDERTARGETVIEW) ||
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_CLEARDEPTHSTENCILVIEW) ||
+				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_OMGETRENDERTARGETS) ||
+				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_OMGETRENDERTARGETSANDUNORDEREDACCESSVIEWS) ||
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_CLEARSTATE))
 				return true;
 		}
@@ -781,6 +786,14 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					}
 					// ensure D3D11 is set
 					m_eD3DVersion = D3DVersion::Direct3D11;
+					return nullptr;
+				case METHOD_ID3D11DEVICECONTEXT_OMGETRENDERTARGETS:
+					// if the app tries to get the render targets ensure the left render side is set
+					SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Left);
+					return nullptr;
+				case METHOD_ID3D11DEVICECONTEXT_OMGETRENDERTARGETSANDUNORDEREDACCESSVIEWS:
+					// if the app tries to get the render targets ensure the left render side is set
+					SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Left);
 					return nullptr;
 			}
 			return nullptr;
