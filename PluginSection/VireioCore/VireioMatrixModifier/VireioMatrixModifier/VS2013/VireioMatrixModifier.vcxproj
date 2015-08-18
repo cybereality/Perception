@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -19,34 +19,34 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{1927D2CC-B50D-4706-8AA7-17BD229F5987}</ProjectGuid>
-    <RootNamespace>VireioStereoSplitterDx10</RootNamespace>
-    <ProjectName>VireioStereoSplitterDx10</ProjectName>
+    <ProjectGuid>{08DE0036-DCA5-430C-9999-327D9D8DE387}</ProjectGuid>
+    <RootNamespace>VireioMatrixModifier</RootNamespace>
+    <ProjectName>VireioMatrixModifier</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -151,18 +151,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\..\Include\Vireio_DX11Basics.h" />
+    <ClInclude Include="..\..\..\..\Include\Vireio_DX11StateBlock.h" />
     <ClInclude Include="..\AQU_Nodus.h" />
-    <ClInclude Include="..\VireioStereoSplitterDx10.h" />
+    <ClInclude Include="..\VireioMatrixModifier.h" />
     <ClInclude Include="..\Resources.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\VireioStereoSplitterDx10.cpp" />
+    <ClCompile Include="..\VireioMatrixModifier.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\AQU_Nodus.def" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\VireioStereoSplitter_Resources.rc" />
+    <ResourceCompile Include="..\VireioMatrixModifier_Resources.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

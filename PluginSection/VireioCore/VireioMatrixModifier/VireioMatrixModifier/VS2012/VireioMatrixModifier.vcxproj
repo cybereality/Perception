@@ -19,9 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{1927D2CC-B50D-4706-8AA7-17BD229F5987}</ProjectGuid>
-    <RootNamespace>VireioStereoSplitterDx10</RootNamespace>
-    <ProjectName>VireioStereoSplitterDx10</ProjectName>
+    <ProjectGuid>{08DE0036-DCA5-430C-9999-327D9D8DE387}</ProjectGuid>
+    <RootNamespace>VireioMatrixModifier</RootNamespace>
+    <ProjectName>VireioMatrixModifier</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -152,17 +152,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\AQU_Nodus.h" />
-    <ClInclude Include="..\VireioStereoSplitterDx10.h" />
+    <ClInclude Include="..\VireioMatrixModifier.h" />
     <ClInclude Include="..\Resources.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\VireioStereoSplitterDx10.cpp" />
+    <ClCompile Include="..\VireioMatrixModifier.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\AQU_Nodus.def" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\VireioStereoSplitter_Resources.rc" />
+    <ResourceCompile Include="..\VireioMatrixModifier_Resources.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
