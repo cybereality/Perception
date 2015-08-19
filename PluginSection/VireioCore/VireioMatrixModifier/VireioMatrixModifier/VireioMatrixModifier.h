@@ -99,6 +99,68 @@ enum STS_Commanders
 ***/
 enum STS_Decommanders
 {
+	/*** D3D9 methods ***/
+	pShader_Vertex, // SetVertexShader(IDirect3DVertexShader9 *pShader);
+	pShader_Pixel, // SetPixelShader(IDirect3DPixelShader9 *pShader);
+	State, // SetTransform(D3DTRANSFORMSTATETYPE State, CONST D3DMATRIX* pMatrix);
+	pMatrix,
+	State_Multiply, // MultiplyTransform(D3DTRANSFORMSTATETYPE State,CONST D3DMATRIX* pMatrix);
+	pMatrix_Multiply,
+	StartRegister_VertexShader, // SetVertexShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
+	pConstantData_VertexShader,
+	Vector4fCount_VertexShader,
+	StartRegister_PixelShader, // SetPixelShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
+	pConstantData_PixelShader,
+	Vector4fCount_PixelShader,
+	// GetVertexShaderConstantF(UINT StartRegister,float* pData,UINT Vector4fCount);
+	// GetPixelShaderConstantF(UINT StartRegister,float* pData,UINT Vector4fCount);
+	// IDirect3DStateBlock::Apply();
+	/*** D3D10 + D3D11 methods ***/
+	pVertexShader_10, // ID3D10Device::VSSetShader(ID3D10VertexShader *pVertexShader);
+	pVertexShader_11, // ID3D11DeviceContext::VSSetShader(ID3D11VertexShader *pVertexShader, ID3D11ClassInstance *const *ppClassInstances, UINT NumClassInstances);
+	pPixelShader_10, // ID3D10Device::PSSetShader(ID3D10PixelShader *pPixelShader);
+	pPixelShader_11, // ID3D11DeviceContext::PSSetShader(ID3D11PixelShader *pPixelShader, ID3D11ClassInstance *const *ppClassInstances, UINT NumClassInstances);
+	pDesc_DX10, // ID3D10Device::CreateBuffer(const D3D10_BUFFER_DESC *pDesc, D3D10_SUBRESOURCE_DATA *pInitialData, ID3D10Buffer **ppBuffer);
+	pInitialData_DX10,
+	ppBuffer_DX10,
+	pDesc_DX11, // ID3D11Device::CreateBuffer(const D3D11_BUFFER_DESC *pDesc, D3D11_SUBRESOURCE_DATA *pInitialData, ID3D11Buffer **ppBuffer);
+	pInitialData_DX11,
+	ppBuffer_DX11,
+	StartSlot_VertexShader, // ID3D10Device::VSSetConstantBuffers(UINT StartSlot, UINT NumBuffers, ID3D10Buffer *const *ppConstantBuffers);
+	NumBuffers_VertexShader,
+	ppConstantBuffers_DX10_VertexShader,
+	ppConstantBuffers_DX11_VertexShader, // ID3D11DeviceContext::VSSetConstantBuffers(UINT StartSlot, UINT NumBuffers, ID3D11Buffer *const *ppConstantBuffers);
+	StartSlot_PixelShader, // ID3D10Device::PSSetConstantBuffers(UINT StartSlot, UINT NumBuffers, ID3D10Buffer *const *ppConstantBuffers);
+	NumBuffers_PixelShader,
+	ppConstantBuffers_DX10_PixelShader,
+	ppConstantBuffers_DX11_PixelShader, // ID3D11DeviceContext::PSSetConstantBuffers(UINT StartSlot, UINT NumBuffers, ID3D11Buffer *const *ppConstantBuffers);
+	pDstResource_DX10, // ID3D10Device::UpdateSubresource(ID3D10Resource *pDstResource, UINT DstSubresource, const D3D10_BOX *pDstBox, const void *pSrcData, UINT SrcRowPitch, UINT SrcDepthPitch);
+	pDstResource_DX11, // ID3D11DeviceContext::UpdateSubresource(ID3D11Resource *pDstResource, UINT DstSubresource, const D3D11_BOX *pDstBox, const void *pSrcData, UINT SrcRowPitch, UINT SrcDepthPitch);
+	DstSubresource, 
+	pDstBox_DX10, 
+	pDstBox_DX11, 
+	pSrcData, 
+	SrcRowPitch, 
+	SrcDepthPitch,
+	pDstResource_DX10_Copy, // ID3D10Device::CopyResource(ID3D10Resource *pDstResource, ID3D10Resource *pSrcResource);
+	pSrcResource_DX10_Copy,
+	pDstResource_DX11_Copy, // ID3D11DeviceContext::CopyResource(ID3D11Resource *pDstResource, ID3D11Resource *pSrcResource);
+	pSrcResource_DX11_Copy,
+	pDstResource_DX10_CopySub, // ID3D10Device::CopySubresourceRegion(ID3D10Resource *pDstResource, UINT DstSubresource, UINT DstX, UINT DstY, UINT DstZ, ID3D10Resource *pSrcResource, UINT SrcSubresource, const D3D10_BOX *pSrcBox);
+	pDstResource_DX11_CopySub, // ID3D11DeviceContext::CopySubresourceRegion(ID3D11Resource *pDstResource, UINT DstSubresource, UINT DstX, UINT DstY, UINT DstZ, ID3D11Resource *pSrcResource, UINT SrcSubresource, const D3D11_BOX *pSrcBox);
+	DstSubresource_CopySub,
+	DstX,
+	DstY,
+	DstZ,
+	pSrcResource_DX10_CopySub,
+	pSrcResource_DX11_CopySub,
+	SrcSubresource,
+	pSrcBox_DX10,
+	pSrcBox_DX11,
+	// ID3D10Device::VSGetConstantBuffers(UINT StartSlot, UINT NumBuffers, ID3D10Buffer **ppConstantBuffers);
+	// ID3D11DeviceContext::VSGetConstantBuffers(UINT StartSlot, UINT NumBuffers, ID3D11Buffer **ppConstantBuffers);
+	// ID3D10Device::PSGetConstantBuffers(UINT StartSlot, UINT NumBuffers, ID3D10Buffer **ppConstantBuffers);
+	// ID3D11DeviceContext::PSGetConstantBuffers(UINT StartSlot, UINT NumBuffers, ID3D11Buffer **ppConstantBuffers);
 };
 
 /**
