@@ -62,6 +62,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <d3dx10.h>
 #pragma comment(lib, "d3dx10.lib")
 
+#include <d3d9.h>
+#pragma comment(lib, "d3d9.lib")
+
+#include <d3dx9.h>
+#pragma comment(lib, "d3dx9.lib")
+
 #define BYTE_PLUG_TYPE                                 1
 #define	FLOAT_PLUG_TYPE                                4
 #define INT_PLUG_TYPE                                  7 
@@ -73,19 +79,37 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define	D3DCOLOR_PLUG_TYPE                          1004
 #define D3DFORMAT_PLUG_TYPE                         1011
 #define D3DPRIMITIVETYPE_PLUG_TYPE                  1021
+#define D3DTRANSFORMSTATETYPE_PLUG_TYPE             1032
 #define VECTOR4F_PLUG_TYPE                          1063
+#define PNT_D3DMATRIX_PLUG_TYPE                     2017
 #define PNT_D3DRECT_PLUG_TYPE                       2024
+#define PNT_IDIRECT3DPIXELSHADER9_PLUG_TYPE         2042
+#define PNT_IDIRECT3DVERTEXSHADER9_PLUG_TYPE        2051
+#define PNT_ID3D10BUFFER_PLUG_TYPE                  8020
 #define PNT_ID3D10DEPTHSTENCILVIEW                  8021
 #define PNT_ID3D10RENDERTARGETVIEW_TYPE             8022
+#define PNT_ID3D10RESOURCE_PLUG_TYPE                8023
+#define PNT_ID3D10PIXELSHADER_PLUG_TYPE             8031
+#define PNT_ID3D10VERTEXSHADER_PLUG_TYPE            8037
+#define PNT_D3D10_BOX_PLUG_TYPE                     8059
+#define PNT_D3D10_BUFFER_DESC_PLUG_TYPE             8112
+#define PNT_D3D10_SUBRESOURCE_DATA_PLUG_TYPE        8119
+#define PPNT_ID3D10BUFFER_PLUG_TYPE                 9020
 #define PPNT_ID3D10DEPTHSTENCILVIEW                 9021
 #define PPNT_ID3D10RENDERTARGETVIEW                 9022
 #define PNT_ID3D11DEPTHSTENCILVIEW                 11025
 #define PNT_ID3D11RENDERTARGETVIEW_TYPE            11026
+#define PNT_ID3D11RESOURCE_PLUG_TYPE               11028
+#define PNT_ID3D11VERTEXSHADER_PLUG_TYPE           11060
+#define PNT_D3D11_BOX_PLUG_TYPE                    11094
+#define PNT_D3D11_BUFFER_DESC_PLUG_TYPE            11177
+#define PNT_D3D11_SUBRESOURCE_DATA_PLUG_TYPE       11189
+#define PPNT_ID3D11BUFFER_PLUG_TYPE                12024
 #define PPNT_ID3D11DEPTHSTENCILVIEW                12025
 #define PPNT_ID3D11RENDERTARGETVIEW                12026
 
 #define NUMBER_OF_COMMANDERS                           1
-#define NUMBER_OF_DECOMMANDERS                         1
+#define NUMBER_OF_DECOMMANDERS                        53
 
 /**
 * Node Commander Enumeration.
@@ -194,6 +218,61 @@ public:
 
 private:
 	/*** MatrixModifier private methods ***/
+
+	/*** MatrixModifier input pointers ***/
+	IDirect3DVertexShader9** m_ppcShader_Vertex;
+	IDirect3DPixelShader9** m_ppcShader_Pixel;
+	D3DTRANSFORMSTATETYPE* m_psState;
+	D3DMATRIX** m_ppsMatrix;
+	D3DTRANSFORMSTATETYPE* m_psState_Multiply;
+	D3DMATRIX** m_ppsMatrix_Multiply;
+	UINT* m_pdwStartRegister_VertexShader;
+	float** m_ppfConstantData_VertexShader;
+	UINT* m_pdwVector4fCount_VertexShader;
+	UINT* m_pdwStartRegister_PixelShader;
+	float** m_ppfConstantData_PixelShader;
+	UINT* m_pdwVector4fCount_PixelShader;
+	ID3D10VertexShader** m_ppcVertexShader_10;
+	ID3D11VertexShader** m_ppcVertexShader_11;
+	ID3D10PixelShader** m_ppcPixelShader_10;
+	ID3D11VertexShader** m_ppcPixelShader_11;
+	D3D10_BUFFER_DESC** m_ppsDesc_DX10;
+	D3D10_SUBRESOURCE_DATA** m_ppsInitialData_DX10;
+	ID3D10Buffer*** m_pppcBuffer_DX10;
+	D3D11_BUFFER_DESC** m_ppsDesc_DX11;
+	D3D11_SUBRESOURCE_DATA** m_ppsInitialData_DX11;
+	ID3D11Buffer*** m_pppcBuffer_DX11;
+	UINT* m_pdwStartSlot_VertexShader;
+	UINT* m_pdwNumBuffers_VertexShader;
+	ID3D10Buffer*** m_pppcConstantBuffers_DX10_VertexShader;
+	ID3D11Buffer*** m_pppcConstantBuffers_DX11_VertexShader;
+	UINT* m_pdwStartSlot_PixelShader;
+	UINT* m_pdwNumBuffers_PixelShader;
+	ID3D10Buffer*** m_pppcConstantBuffers_DX10_PixelShader;
+	ID3D11Buffer*** m_pppcConstantBuffers_DX11_PixelShader;
+	ID3D10Resource** m_ppcDstResource_DX10;
+	ID3D11Resource** m_ppcDstResource_DX11;
+	UINT* m_pdwDstSubresource;
+	D3D10_BOX** m_ppsDstBox_DX10; 
+	D3D11_BOX** m_ppsDstBox_DX11; 
+	void** m_ppvSrcData; 
+	UINT* m_pdwSrcRowPitch; 
+	UINT* m_pdwSrcDepthPitch;
+	ID3D10Resource** m_ppcDstResource_DX10_Copy;
+	ID3D10Resource** m_ppcSrcResource_DX10_Copy;
+	ID3D11Resource** m_ppcDstResource_DX11_Copy;
+	ID3D11Resource** m_ppcSrcResource_DX11_Copy;
+	ID3D10Resource** m_ppcDstResource_DX10_CopySub;
+	ID3D11Resource** m_ppcDstResource_DX11_CopySub;
+	UINT* m_pdwDstSubresource_CopySub;
+	UINT* m_pdwDstX;
+	UINT* m_pdwDstY;
+	UINT* m_pdwDstZ;
+	ID3D10Resource** m_ppcSrcResource_DX10_CopySub;
+	ID3D11Resource** m_ppcSrcResource_DX11_CopySub;
+	UINT* m_pdwSrcSubresource;
+	D3D10_BOX** m_ppsSrcBox_DX10;
+	D3D10_BOX** m_ppsSrcBox_DX11;
 };
 
 /**
