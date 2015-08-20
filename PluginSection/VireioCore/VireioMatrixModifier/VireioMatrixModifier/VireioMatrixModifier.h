@@ -44,6 +44,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"AQU_Nodus.h"
 #include"Resources.h"
 
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 #include <DXGI.h>
 #pragma comment(lib, "DXGI.lib")
 
@@ -61,12 +62,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <d3dx10.h>
 #pragma comment(lib, "d3dx10.lib")
-
+#elif defined(VIREIO_D3D9)
 #include <d3d9.h>
 #pragma comment(lib, "d3d9.lib")
 
 #include <d3dx9.h>
 #pragma comment(lib, "d3dx9.lib")
+#endif
 
 #define BYTE_PLUG_TYPE                                 1
 #define	FLOAT_PLUG_TYPE                                4
@@ -108,8 +110,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define PPNT_ID3D11DEPTHSTENCILVIEW                12025
 #define PPNT_ID3D11RENDERTARGETVIEW                12026
 
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 #define NUMBER_OF_COMMANDERS                           1
-#define NUMBER_OF_DECOMMANDERS                        53
+#define NUMBER_OF_DECOMMANDERS                        41
+#elif defined(VIREIO_D3D9)
+#define NUMBER_OF_COMMANDERS                           1
+#define NUMBER_OF_DECOMMANDERS                        12
+#endif
+
+
 
 /**
 * Node Commander Enumeration.
@@ -123,22 +132,7 @@ enum STS_Commanders
 ***/
 enum STS_Decommanders
 {
-	/*** D3D9 methods ***/
-	pShader_Vertex, // SetVertexShader(IDirect3DVertexShader9 *pShader);
-	pShader_Pixel, // SetPixelShader(IDirect3DPixelShader9 *pShader);
-	State, // SetTransform(D3DTRANSFORMSTATETYPE State, CONST D3DMATRIX* pMatrix);
-	pMatrix,
-	State_Multiply, // MultiplyTransform(D3DTRANSFORMSTATETYPE State,CONST D3DMATRIX* pMatrix);
-	pMatrix_Multiply,
-	StartRegister_VertexShader, // SetVertexShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
-	pConstantData_VertexShader,
-	Vector4fCount_VertexShader,
-	StartRegister_PixelShader, // SetPixelShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
-	pConstantData_PixelShader,
-	Vector4fCount_PixelShader,
-	// GetVertexShaderConstantF(UINT StartRegister,float* pData,UINT Vector4fCount);
-	// GetPixelShaderConstantF(UINT StartRegister,float* pData,UINT Vector4fCount);
-	// IDirect3DStateBlock::Apply();
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	/*** D3D10 + D3D11 methods ***/
 	pVertexShader_10, // ID3D10Device::VSSetShader(ID3D10VertexShader *pVertexShader);
 	pVertexShader_11, // ID3D11DeviceContext::VSSetShader(ID3D11VertexShader *pVertexShader, ID3D11ClassInstance *const *ppClassInstances, UINT NumClassInstances);
@@ -185,6 +179,24 @@ enum STS_Decommanders
 	// ID3D11DeviceContext::VSGetConstantBuffers(UINT StartSlot, UINT NumBuffers, ID3D11Buffer **ppConstantBuffers);
 	// ID3D10Device::PSGetConstantBuffers(UINT StartSlot, UINT NumBuffers, ID3D10Buffer **ppConstantBuffers);
 	// ID3D11DeviceContext::PSGetConstantBuffers(UINT StartSlot, UINT NumBuffers, ID3D11Buffer **ppConstantBuffers);
+#elif defined(VIREIO_D3D9)
+	/*** D3D9 methods ***/
+	pShader_Vertex, // SetVertexShader(IDirect3DVertexShader9 *pShader);
+	pShader_Pixel, // SetPixelShader(IDirect3DPixelShader9 *pShader);
+	State, // SetTransform(D3DTRANSFORMSTATETYPE State, CONST D3DMATRIX* pMatrix);
+	pMatrix,
+	State_Multiply, // MultiplyTransform(D3DTRANSFORMSTATETYPE State,CONST D3DMATRIX* pMatrix);
+	pMatrix_Multiply,
+	StartRegister_VertexShader, // SetVertexShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
+	pConstantData_VertexShader,
+	Vector4fCount_VertexShader,
+	StartRegister_PixelShader, // SetPixelShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
+	pConstantData_PixelShader,
+	Vector4fCount_PixelShader,
+	// GetVertexShaderConstantF(UINT StartRegister,float* pData,UINT Vector4fCount);
+	// GetPixelShaderConstantF(UINT StartRegister,float* pData,UINT Vector4fCount);
+	// IDirect3DStateBlock::Apply();
+#endif
 };
 
 /**
@@ -220,18 +232,7 @@ private:
 	/*** MatrixModifier private methods ***/
 
 	/*** MatrixModifier input pointers ***/
-	IDirect3DVertexShader9** m_ppcShader_Vertex;
-	IDirect3DPixelShader9** m_ppcShader_Pixel;
-	D3DTRANSFORMSTATETYPE* m_psState;
-	D3DMATRIX** m_ppsMatrix;
-	D3DTRANSFORMSTATETYPE* m_psState_Multiply;
-	D3DMATRIX** m_ppsMatrix_Multiply;
-	UINT* m_pdwStartRegister_VertexShader;
-	float** m_ppfConstantData_VertexShader;
-	UINT* m_pdwVector4fCount_VertexShader;
-	UINT* m_pdwStartRegister_PixelShader;
-	float** m_ppfConstantData_PixelShader;
-	UINT* m_pdwVector4fCount_PixelShader;
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	ID3D10VertexShader** m_ppcVertexShader_10;
 	ID3D11VertexShader** m_ppcVertexShader_11;
 	ID3D10PixelShader** m_ppcPixelShader_10;
@@ -273,6 +274,20 @@ private:
 	UINT* m_pdwSrcSubresource;
 	D3D10_BOX** m_ppsSrcBox_DX10;
 	D3D10_BOX** m_ppsSrcBox_DX11;
+#elif defined(VIREIO_D3D9)
+	IDirect3DVertexShader9** m_ppcShader_Vertex;
+	IDirect3DPixelShader9** m_ppcShader_Pixel;
+	D3DTRANSFORMSTATETYPE* m_psState;
+	D3DMATRIX** m_ppsMatrix;
+	D3DTRANSFORMSTATETYPE* m_psState_Multiply;
+	D3DMATRIX** m_ppsMatrix_Multiply;
+	UINT* m_pdwStartRegister_VertexShader;
+	float** m_ppfConstantData_VertexShader;
+	UINT* m_pdwVector4fCount_VertexShader;
+	UINT* m_pdwStartRegister_PixelShader;
+	float** m_ppfConstantData_PixelShader;
+	UINT* m_pdwVector4fCount_PixelShader;
+#endif
 };
 
 /**

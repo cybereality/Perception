@@ -70,7 +70,11 @@ MatrixModifier::~MatrixModifier()
 ***/
 const char* MatrixModifier::GetNodeType()
 {
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+	return "Matrix ModifierDx10";
+#elif defined(VIREIO_D3D9)
 	return "Matrix Modifier";
+#endif
 }
 
 /**
@@ -79,7 +83,11 @@ const char* MatrixModifier::GetNodeType()
 UINT MatrixModifier::GetNodeTypeId()
 {
 #define DEVELOPER_IDENTIFIER 2006
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+#define MY_PLUGIN_IDENTIFIER 76
+#elif defined(VIREIO_D3D9)
 #define MY_PLUGIN_IDENTIFIER 75
+#endif
 	return ((DEVELOPER_IDENTIFIER << 16) + MY_PLUGIN_IDENTIFIER);
 }
 
@@ -96,7 +104,11 @@ LPWSTR MatrixModifier::GetCategory()
 ***/
 HBITMAP MatrixModifier::GetLogo()
 {
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+	HMODULE hModule = GetModuleHandle(L"VireioMatrixModifierDx10.dll");
+#elif defined(VIREIO_D3D9)
 	HMODULE hModule = GetModuleHandle(L"VireioMatrixModifier.dll");
+#endif
 	HBITMAP hBitmap = LoadBitmap(hModule, MAKEINTRESOURCE(IMG_LOGO01));
 	return hBitmap;
 }
@@ -129,32 +141,9 @@ LPWSTR MatrixModifier::GetCommanderName(DWORD dwCommanderIndex)
 ***/
 LPWSTR MatrixModifier::GetDecommanderName(DWORD dwDecommanderIndex)
 {
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	switch ((STS_Decommanders)dwDecommanderIndex)
 	{
-	case pShader_Vertex:
-		return L"pShader_Vertex";
-	case pShader_Pixel:
-		return L"pShader_Pixel";
-	case State:
-		return L"State";
-	case pMatrix:
-		return L"pMatrix";
-	case State_Multiply:
-		return L"State_Multiply";
-	case pMatrix_Multiply:
-		return L"pMatrix_Multiply";
-	case StartRegister_VertexShader:
-		return L"StartRegister_VS";
-	case pConstantData_VertexShader:
-		return L"pConstantData_VS";
-	case Vector4fCount_VertexShader:
-		return L"Vector4fCount_VS";
-	case StartRegister_PixelShader:
-		return L"StartRegister_PS";
-	case pConstantData_PixelShader:
-		return L"pConstantData_PS";
-	case Vector4fCount_PixelShader:
-		return L"Vector4fCount_PS";
 	case pVertexShader_10:
 		return L"pVertexShader_10";
 	case pVertexShader_11:
@@ -240,7 +229,35 @@ LPWSTR MatrixModifier::GetDecommanderName(DWORD dwDecommanderIndex)
 	default:
 		return L"UNTITLED";
 	}
-
+#elif defined(VIREIO_D3D9)
+	switch ((STS_Decommanders)dwDecommanderIndex)
+	{
+	case pShader_Vertex:
+		return L"pShader_Vertex";
+	case pShader_Pixel:
+		return L"pShader_Pixel";
+	case State:
+		return L"State";
+	case pMatrix:
+		return L"pMatrix";
+	case State_Multiply:
+		return L"State_Multiply";
+	case pMatrix_Multiply:
+		return L"pMatrix_Multiply";
+	case StartRegister_VertexShader:
+		return L"StartRegister_VS";
+	case pConstantData_VertexShader:
+		return L"pConstantData_VS";
+	case Vector4fCount_VertexShader:
+		return L"Vector4fCount_VS";
+	case StartRegister_PixelShader:
+		return L"StartRegister_PS";
+	case pConstantData_PixelShader:
+		return L"pConstantData_PS";
+	case Vector4fCount_PixelShader:
+		return L"Vector4fCount_PS";
+	}
+#endif
 	return L"UNTITLED";
 }
 
@@ -257,32 +274,9 @@ DWORD MatrixModifier::GetCommanderType(DWORD dwCommanderIndex)
 ***/
 DWORD MatrixModifier::GetDecommanderType(DWORD dwDecommanderIndex)
 {
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	switch ((STS_Decommanders)dwDecommanderIndex)
 	{
-	case pShader_Vertex:
-		return PNT_IDIRECT3DVERTEXSHADER9_PLUG_TYPE;
-	case pShader_Pixel:
-		return PNT_IDIRECT3DPIXELSHADER9_PLUG_TYPE;
-	case State:
-		return D3DTRANSFORMSTATETYPE_PLUG_TYPE;
-	case pMatrix:
-		return PNT_D3DMATRIX_PLUG_TYPE;
-	case State_Multiply:
-		return D3DTRANSFORMSTATETYPE_PLUG_TYPE;
-	case pMatrix_Multiply:
-		return PNT_D3DMATRIX_PLUG_TYPE;
-	case StartRegister_VertexShader:
-		return UINT_PLUG_TYPE;
-	case pConstantData_VertexShader:
-		return PNT_FLOAT_PLUG_TYPE;
-	case Vector4fCount_VertexShader:
-		return UINT_PLUG_TYPE;
-	case StartRegister_PixelShader:
-		return UINT_PLUG_TYPE;
-	case pConstantData_PixelShader:
-		return PNT_FLOAT_PLUG_TYPE;
-	case Vector4fCount_PixelShader:
-		return UINT_PLUG_TYPE;
 	case pVertexShader_10:
 		return PNT_ID3D10VERTEXSHADER_PLUG_TYPE;
 	case pVertexShader_11:
@@ -368,7 +362,35 @@ DWORD MatrixModifier::GetDecommanderType(DWORD dwDecommanderIndex)
 	default:
 		break;
 	}
-
+#elif defined(VIREIO_D3D9)
+	switch ((STS_Decommanders)dwDecommanderIndex)
+	{
+	case pShader_Vertex:
+		return PNT_IDIRECT3DVERTEXSHADER9_PLUG_TYPE;
+	case pShader_Pixel:
+		return PNT_IDIRECT3DPIXELSHADER9_PLUG_TYPE;
+	case State:
+		return D3DTRANSFORMSTATETYPE_PLUG_TYPE;
+	case pMatrix:
+		return PNT_D3DMATRIX_PLUG_TYPE;
+	case State_Multiply:
+		return D3DTRANSFORMSTATETYPE_PLUG_TYPE;
+	case pMatrix_Multiply:
+		return PNT_D3DMATRIX_PLUG_TYPE;
+	case StartRegister_VertexShader:
+		return UINT_PLUG_TYPE;
+	case pConstantData_VertexShader:
+		return PNT_FLOAT_PLUG_TYPE;
+	case Vector4fCount_VertexShader:
+		return UINT_PLUG_TYPE;
+	case StartRegister_PixelShader:
+		return UINT_PLUG_TYPE;
+	case pConstantData_PixelShader:
+		return PNT_FLOAT_PLUG_TYPE;
+	case Vector4fCount_PixelShader:
+		return UINT_PLUG_TYPE;
+	}
+#endif
 	return 0;
 }
 
@@ -393,44 +415,9 @@ void* MatrixModifier::GetOutputPointer(DWORD dwCommanderIndex)
 ***/
 void MatrixModifier::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 {
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	switch ((STS_Decommanders)dwDecommanderIndex)
 	{
-	case pShader_Vertex:
-		m_ppcShader_Vertex = (IDirect3DVertexShader9**)pData;
-		break;
-	case pShader_Pixel:
-		m_ppcShader_Pixel = (IDirect3DPixelShader9**)pData;
-		break;
-	case State:
-		m_psState = (D3DTRANSFORMSTATETYPE*)pData;
-		break;
-	case pMatrix:
-		m_ppsMatrix = (D3DMATRIX**)pData;
-		break;
-	case State_Multiply:
-		m_psState_Multiply = (D3DTRANSFORMSTATETYPE*)pData;
-		break;
-	case pMatrix_Multiply:
-		m_ppsMatrix_Multiply = (D3DMATRIX**)pData;
-		break;
-	case StartRegister_VertexShader:
-		m_pdwStartRegister_VertexShader = (UINT*)pData;
-		break;
-	case pConstantData_VertexShader:
-		m_ppfConstantData_VertexShader = (float** )pData;
-		break;
-	case Vector4fCount_VertexShader:
-		m_pdwVector4fCount_VertexShader = (UINT*)pData;
-		break;
-	case StartRegister_PixelShader:
-		m_pdwStartRegister_PixelShader = (UINT* )pData;
-		break;
-	case pConstantData_PixelShader:
-		m_ppfConstantData_PixelShader = (float**)pData;
-		break;
-	case Vector4fCount_PixelShader:
-		m_pdwVector4fCount_PixelShader = (UINT*)pData;
-		break;
 	case pVertexShader_10:
 		m_ppcVertexShader_10 = (ID3D10VertexShader** )pData;
 		break;
@@ -557,6 +544,47 @@ void MatrixModifier::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 	default:
 		break;
 	}
+#elif defined(VIREIO_D3D9)
+	switch ((STS_Decommanders)dwDecommanderIndex)
+	{
+	case pShader_Vertex:
+		m_ppcShader_Vertex = (IDirect3DVertexShader9**)pData;
+		break;
+	case pShader_Pixel:
+		m_ppcShader_Pixel = (IDirect3DPixelShader9**)pData;
+		break;
+	case State:
+		m_psState = (D3DTRANSFORMSTATETYPE*)pData;
+		break;
+	case pMatrix:
+		m_ppsMatrix = (D3DMATRIX**)pData;
+		break;
+	case State_Multiply:
+		m_psState_Multiply = (D3DTRANSFORMSTATETYPE*)pData;
+		break;
+	case pMatrix_Multiply:
+		m_ppsMatrix_Multiply = (D3DMATRIX**)pData;
+		break;
+	case StartRegister_VertexShader:
+		m_pdwStartRegister_VertexShader = (UINT*)pData;
+		break;
+	case pConstantData_VertexShader:
+		m_ppfConstantData_VertexShader = (float** )pData;
+		break;
+	case Vector4fCount_VertexShader:
+		m_pdwVector4fCount_VertexShader = (UINT*)pData;
+		break;
+	case StartRegister_PixelShader:
+		m_pdwStartRegister_PixelShader = (UINT* )pData;
+		break;
+	case pConstantData_PixelShader:
+		m_ppfConstantData_PixelShader = (float**)pData;
+		break;
+	case Vector4fCount_PixelShader:
+		m_pdwVector4fCount_PixelShader = (UINT*)pData;
+		break;
+	}
+#endif
 }
 
 /**
