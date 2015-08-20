@@ -43,11 +43,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include"VireioMatrixModifier.h"
 
+#define INTERFACE_ID3D11DEVICE                                               6
 #define INTERFACE_ID3D10DEVICE                                               7
 #define INTERFACE_ID3D11DEVICECONTEXT                                        11
 #define INTERFACE_IDXGISWAPCHAIN                                             29
 
 #define METHOD_IDXGISWAPCHAIN_PRESENT                                        8
+#define METHOD_ID3D11DEVICE_CREATEVERTEXSHADER                               12
 
 #define SAFE_RELEASE(a) if (a) { a->Release(); a = nullptr; }
 
@@ -133,7 +135,7 @@ LPWSTR MatrixModifier::GetCommanderName(DWORD dwCommanderIndex)
 	return L"XXX";
 	}*/
 
-	return L"A";
+	return L"UNTITLED";
 }
 
 /**
@@ -144,6 +146,26 @@ LPWSTR MatrixModifier::GetDecommanderName(DWORD dwDecommanderIndex)
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	switch ((STS_Decommanders)dwDecommanderIndex)
 	{
+	case pShaderBytecode_VertexShader:
+		return L"pShaderBytecode_VS";
+	case BytecodeLength_VertexShader:
+		return L"BytecodeLength_VS";
+	case pClassLinkage_VertexShader:
+		return L"pClassLinkage_VertexShader";
+	case ppVertexShader_DX10:
+		return L"ppVertexShader_DX10";
+	case ppVertexShader_DX11:
+		return L"ppVertexShader_DX11";
+	case pShaderBytecode_PixelShader:
+		return L"pShaderBytecode_PS";
+	case BytecodeLength_PixelShader:
+		return L"BytecodeLength_PS";
+	case pClassLinkage_PixelShader:
+		return L"pClassLinkage_PixelShader";
+	case ppPixelShader_DX10:
+		return L"ppPixelShader_DX10";
+	case ppPixelShader_DX11:
+		return L"ppPixelShader_DX11";
 	case pVertexShader_10:
 		return L"pVertexShader_10";
 	case pVertexShader_11:
@@ -277,6 +299,26 @@ DWORD MatrixModifier::GetDecommanderType(DWORD dwDecommanderIndex)
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	switch ((STS_Decommanders)dwDecommanderIndex)
 	{
+	case pShaderBytecode_VertexShader:
+		return PNT_VOID_PLUG_TYPE;
+	case BytecodeLength_VertexShader:
+		return SIZE_T_PLUG_TYPE;
+	case pClassLinkage_VertexShader:
+		return PNT_ID3D11CLASSLINKAGE_PLUG_TYPE;
+	case ppVertexShader_DX10:
+		return PPNT_ID3D10VERTEXSHADER_PLUG_TYPE;
+	case ppVertexShader_DX11:
+		return PPNT_ID3D11VERTEXSHADER_PLUG_TYPE;
+	case pShaderBytecode_PixelShader:
+		return PNT_VOID_PLUG_TYPE;
+	case BytecodeLength_PixelShader:
+		return SIZE_T_PLUG_TYPE;
+	case pClassLinkage_PixelShader:
+		return PNT_ID3D11CLASSLINKAGE_PLUG_TYPE;
+	case ppPixelShader_DX10:
+		return PPNT_ID3D10PIXELSHADER_PLUG_TYPE;
+	case ppPixelShader_DX11:
+		return PPNT_ID3D11PIXELSHADER_PLUG_TYPE;
 	case pVertexShader_10:
 		return PNT_ID3D10VERTEXSHADER_PLUG_TYPE;
 	case pVertexShader_11:
@@ -418,86 +460,116 @@ void MatrixModifier::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	switch ((STS_Decommanders)dwDecommanderIndex)
 	{
+	case pShaderBytecode_VertexShader:
+		m_ppvShaderBytecode_VertexShader = (void**)pData;
+		break;
+	case BytecodeLength_VertexShader:
+		m_pnBytecodeLength_VertexShader = (SIZE_T*)pData;
+		break;
+	case pClassLinkage_VertexShader:
+		m_ppcClassLinkage_VertexShader = (ID3D11ClassLinkage**)pData;
+		break;
+	case ppVertexShader_DX10:
+		m_pppcVertexShader_DX10 = (ID3D10VertexShader***)pData;
+		break;
+	case ppVertexShader_DX11:
+		m_pppcVertexShader_DX11 = (ID3D11VertexShader***)pData;
+		break;
+	case pShaderBytecode_PixelShader:
+		m_ppvShaderBytecode_PixelShader = (void**)pData;
+		break;
+	case BytecodeLength_PixelShader:
+		m_pnBytecodeLength_PixelShader = (SIZE_T*)pData;
+		break;
+	case pClassLinkage_PixelShader:
+		m_ppcClassLinkage_PixelShader = (ID3D11ClassLinkage**)pData;
+		break;
+	case ppPixelShader_DX10:
+		m_pppcPixelShader_DX10 = (ID3D10PixelShader***)pData;
+		break;
+	case ppPixelShader_DX11:
+		m_pppcPixelShader_DX11 = (ID3D11PixelShader***)pData;
+		break;
 	case pVertexShader_10:
-		m_ppcVertexShader_10 = (ID3D10VertexShader** )pData;
+		m_ppcVertexShader_10 = (ID3D10VertexShader**)pData;
 		break;
 	case pVertexShader_11:
 		m_ppcVertexShader_11 = (ID3D11VertexShader**)pData;
 		break;
 	case pPixelShader_10:
-		m_ppcPixelShader_10 = (ID3D10PixelShader** )pData;
+		m_ppcPixelShader_10 = (ID3D10PixelShader**)pData;
 		break;
 	case pPixelShader_11:
-		m_ppcPixelShader_11 = (ID3D11VertexShader** )pData;
+		m_ppcPixelShader_11 = (ID3D11VertexShader**)pData;
 		break;
 	case pDesc_DX10:
-		m_ppsDesc_DX10 = (D3D10_BUFFER_DESC** )pData;
+		m_ppsDesc_DX10 = (D3D10_BUFFER_DESC**)pData;
 		break;
 	case pInitialData_DX10:
-		m_ppsInitialData_DX10 = (D3D10_SUBRESOURCE_DATA** )pData;
+		m_ppsInitialData_DX10 = (D3D10_SUBRESOURCE_DATA**)pData;
 		break;
 	case ppBuffer_DX10:
-		m_pppcBuffer_DX10 = (ID3D10Buffer*** )pData;
+		m_pppcBuffer_DX10 = (ID3D10Buffer***)pData;
 		break;
 	case pDesc_DX11:
-		m_ppsDesc_DX11 = (D3D11_BUFFER_DESC** )pData;
+		m_ppsDesc_DX11 = (D3D11_BUFFER_DESC**)pData;
 		break;
 	case pInitialData_DX11:
 		m_ppsInitialData_DX11 = (D3D11_SUBRESOURCE_DATA**)pData;
 		break;
 	case ppBuffer_DX11:
-		m_pppcBuffer_DX11 = (ID3D11Buffer*** )pData;
+		m_pppcBuffer_DX11 = (ID3D11Buffer***)pData;
 		break;
 	case StartSlot_VertexShader:
 		m_pdwStartSlot_VertexShader = (UINT*)pData;
 		break;
 	case NumBuffers_VertexShader:
-		m_pdwNumBuffers_VertexShader = (UINT* )pData;
+		m_pdwNumBuffers_VertexShader = (UINT*)pData;
 		break;
 	case ppConstantBuffers_DX10_VertexShader:
-		m_pppcConstantBuffers_DX10_VertexShader = (ID3D10Buffer*** )pData;
+		m_pppcConstantBuffers_DX10_VertexShader = (ID3D10Buffer***)pData;
 		break;
 	case ppConstantBuffers_DX11_VertexShader:
 		m_pppcConstantBuffers_DX11_VertexShader = (ID3D11Buffer***)pData;
 		break;
 	case StartSlot_PixelShader:
-		m_pdwStartSlot_PixelShader = (UINT* )pData;
+		m_pdwStartSlot_PixelShader = (UINT*)pData;
 		break;
 	case NumBuffers_PixelShader:
-		m_pdwNumBuffers_PixelShader = (UINT* )pData;
+		m_pdwNumBuffers_PixelShader = (UINT*)pData;
 		break;
 	case ppConstantBuffers_DX10_PixelShader:
-		m_pppcConstantBuffers_DX10_PixelShader = (ID3D10Buffer*** )pData;
+		m_pppcConstantBuffers_DX10_PixelShader = (ID3D10Buffer***)pData;
 		break;
 	case ppConstantBuffers_DX11_PixelShader:
-		m_pppcConstantBuffers_DX11_PixelShader = (ID3D11Buffer*** )pData;
+		m_pppcConstantBuffers_DX11_PixelShader = (ID3D11Buffer***)pData;
 		break;
 	case pDstResource_DX10:
-		m_ppcDstResource_DX10 = (ID3D10Resource** )pData;
+		m_ppcDstResource_DX10 = (ID3D10Resource**)pData;
 		break;
 	case pDstResource_DX11:
-		m_ppcDstResource_DX11 = (ID3D11Resource** )pData;
+		m_ppcDstResource_DX11 = (ID3D11Resource**)pData;
 		break;
 	case DstSubresource:
-		m_pdwDstSubresource = (UINT* )pData;
+		m_pdwDstSubresource = (UINT*)pData;
 		break;
 	case pDstBox_DX10:
-		m_ppsDstBox_DX10 = (D3D10_BOX** )pData; 
+		m_ppsDstBox_DX10 = (D3D10_BOX**)pData; 
 		break;
 	case pDstBox_DX11:
-		m_ppsDstBox_DX11 = (D3D11_BOX** )pData; 
+		m_ppsDstBox_DX11 = (D3D11_BOX**)pData; 
 		break;
 	case pSrcData:
-		m_ppvSrcData = (void** )pData; 
+		m_ppvSrcData = (void**)pData; 
 		break;
 	case SrcRowPitch:
-		m_pdwSrcRowPitch = (UINT* )pData; 
+		m_pdwSrcRowPitch = (UINT*)pData; 
 		break;
 	case SrcDepthPitch:
-		m_pdwSrcDepthPitch = (UINT* )pData;
+		m_pdwSrcDepthPitch = (UINT*)pData;
 		break;
 	case pDstResource_DX10_Copy:
-		m_ppcDstResource_DX10_Copy = (ID3D10Resource** )pData;
+		m_ppcDstResource_DX10_Copy = (ID3D10Resource**)pData;
 		break;
 	case pSrcResource_DX10_Copy:
 		m_ppcSrcResource_DX10_Copy = (ID3D10Resource**)pData;
@@ -530,13 +602,13 @@ void MatrixModifier::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 		m_ppcSrcResource_DX10_CopySub = (ID3D10Resource**)pData;
 		break;
 	case pSrcResource_DX11_CopySub:
-		m_ppcSrcResource_DX11_CopySub = (ID3D11Resource** )pData;
+		m_ppcSrcResource_DX11_CopySub = (ID3D11Resource**)pData;
 		break;
 	case SrcSubresource:
-		m_pdwSrcSubresource = (UINT* )pData;
+		m_pdwSrcSubresource = (UINT*)pData;
 		break;
 	case pSrcBox_DX10:
-		m_ppsSrcBox_DX10 = (D3D10_BOX** )pData;
+		m_ppsSrcBox_DX10 = (D3D10_BOX**)pData;
 		break;
 	case pSrcBox_DX11:
 		m_ppsSrcBox_DX11 = (D3D10_BOX**)pData;
@@ -569,13 +641,13 @@ void MatrixModifier::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 		m_pdwStartRegister_VertexShader = (UINT*)pData;
 		break;
 	case pConstantData_VertexShader:
-		m_ppfConstantData_VertexShader = (float** )pData;
+		m_ppfConstantData_VertexShader = (float**)pData;
 		break;
 	case Vector4fCount_VertexShader:
 		m_pdwVector4fCount_VertexShader = (UINT*)pData;
 		break;
 	case StartRegister_PixelShader:
-		m_pdwStartRegister_PixelShader = (UINT* )pData;
+		m_pdwStartRegister_PixelShader = (UINT*)pData;
 		break;
 	case pConstantData_PixelShader:
 		m_ppfConstantData_PixelShader = (float**)pData;
@@ -593,11 +665,24 @@ void MatrixModifier::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 bool MatrixModifier::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod)
 {
 	if ((nD3DVersion >= (int)AQU_DirectXVersion::DirectX_10) &&
-		(nD3DVersion <= (int)AQU_DirectXVersion::DirectX_11_2))
+		(nD3DVersion <= (int)AQU_DirectXVersion::DirectX_10_1))
 	{
 		if (nD3DInterface == INTERFACE_ID3D10DEVICE)
 		{
 
+		}
+		else if (nD3DInterface == INTERFACE_IDXGISWAPCHAIN)
+		{
+
+		}
+	}
+	else if ((nD3DVersion >= (int)AQU_DirectXVersion::DirectX_11) &&
+		(nD3DVersion <= (int)AQU_DirectXVersion::DirectX_11_2))
+	{
+		if (nD3DInterface == INTERFACE_ID3D11DEVICE)
+		{
+			if (nD3DMethod == METHOD_ID3D11DEVICE_CREATEVERTEXSHADER)
+				return true;
 		}
 		else if (nD3DInterface == INTERFACE_ID3D11DEVICECONTEXT)
 		{

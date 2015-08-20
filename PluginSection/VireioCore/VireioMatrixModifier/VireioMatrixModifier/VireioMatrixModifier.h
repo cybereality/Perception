@@ -72,7 +72,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define BYTE_PLUG_TYPE                                 1
 #define	FLOAT_PLUG_TYPE                                4
-#define INT_PLUG_TYPE                                  7 
+#define INT_PLUG_TYPE                                  7
+#define SIZE_T_PLUG_TYPE                              11
 #define UINT_PLUG_TYPE                                12
 #define PNT_FLOAT_PLUG_TYPE                          104
 #define PNT_INT_PLUG_TYPE                            107 
@@ -88,7 +89,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define PNT_IDIRECT3DPIXELSHADER9_PLUG_TYPE         2042
 #define PNT_IDIRECT3DVERTEXSHADER9_PLUG_TYPE        2051
 #define PNT_ID3D10BUFFER_PLUG_TYPE                  8020
-#define PNT_ID3D10DEPTHSTENCILVIEW                  8021
+#define PNT_ID3D10DEPTHSTENCILVIEW_PLUG_TYPE        8021
 #define PNT_ID3D10RENDERTARGETVIEW_TYPE             8022
 #define PNT_ID3D10RESOURCE_PLUG_TYPE                8023
 #define PNT_ID3D10PIXELSHADER_PLUG_TYPE             8031
@@ -97,33 +98,42 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define PNT_D3D10_BUFFER_DESC_PLUG_TYPE             8112
 #define PNT_D3D10_SUBRESOURCE_DATA_PLUG_TYPE        8119
 #define PPNT_ID3D10BUFFER_PLUG_TYPE                 9020
-#define PPNT_ID3D10DEPTHSTENCILVIEW                 9021
-#define PPNT_ID3D10RENDERTARGETVIEW                 9022
-#define PNT_ID3D11DEPTHSTENCILVIEW                 11025
+#define PPNT_ID3D10DEPTHSTENCILVIEW_PLUG_TYPE       9021
+#define PPNT_ID3D10RENDERTARGETVIEW_PLUG_TYPE       9022
+#define PPNT_ID3D10PIXELSHADER_PLUG_TYPE            9031
+#define PPNT_ID3D10VERTEXSHADER_PLUG_TYPE           9037
+#define PNT_ID3D11DEPTHSTENCILVIEW_PLUG_TYPE       11025
 #define PNT_ID3D11RENDERTARGETVIEW_TYPE            11026
 #define PNT_ID3D11RESOURCE_PLUG_TYPE               11028
+#define PNT_ID3D11CLASSLINKAGE_PLUG_TYPE           11040
+#define PNT_ID3D11PIXELSHADER_PLUG_TYPE            11053
 #define PNT_ID3D11VERTEXSHADER_PLUG_TYPE           11060
 #define PNT_D3D11_BOX_PLUG_TYPE                    11094
 #define PNT_D3D11_BUFFER_DESC_PLUG_TYPE            11177
 #define PNT_D3D11_SUBRESOURCE_DATA_PLUG_TYPE       11189
 #define PPNT_ID3D11BUFFER_PLUG_TYPE                12024
-#define PPNT_ID3D11DEPTHSTENCILVIEW                12025
-#define PPNT_ID3D11RENDERTARGETVIEW                12026
+#define PPNT_ID3D11DEPTHSTENCILVIEW_PLUG_TYPE      12025
+#define PPNT_ID3D11RENDERTARGETVIEW_PLUG_TYPE      12026
+#define PPNT_ID3D11PIXELSHADER_PLUG_TYPE           12053
+#define PPNT_ID3D11VERTEXSHADER_PLUG_TYPE          12060
+
+#define	PROVOKING_TYPE                                 2                     /**< Provoking type is 2 - just invoker, no provoker **/
+#define METHOD_REPLACEMENT                         false                     /**< This node does NOT replace the D3D call (default) **/
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-#define NUMBER_OF_COMMANDERS                           1
-#define NUMBER_OF_DECOMMANDERS                        41
+#define NUMBER_OF_COMMANDERS                           0
+#define NUMBER_OF_DECOMMANDERS                        43
 #elif defined(VIREIO_D3D9)
-#define NUMBER_OF_COMMANDERS                           1
+#define NUMBER_OF_COMMANDERS                           0
 #define NUMBER_OF_DECOMMANDERS                        12
 #endif
 
 
 
-/**
-* Node Commander Enumeration.
-***/
-enum STS_Commanders
+	/**
+	* Node Commander Enumeration.
+	***/
+	enum STS_Commanders
 {
 };
 
@@ -134,6 +144,20 @@ enum STS_Decommanders
 {
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	/*** D3D10 + D3D11 methods ***/
+	// ID3D10Device::CreateVertexShader(const void *pShaderBytecode, SIZE_T BytecodeLength, ID3D10VertexShader **ppVertexShader);
+	// ID3D11Device::CreateVertexShader(const void *pShaderBytecode, SIZE_T BytecodeLength, ID3D11ClassLinkage *pClassLinkage, ID3D11VertexShader **ppVertexShader);
+	pShaderBytecode_VertexShader,
+	BytecodeLength_VertexShader,
+	pClassLinkage_VertexShader,
+	ppVertexShader_DX10,
+	ppVertexShader_DX11,
+	// ID3D10Device::CreatePixelShader(const void *pShaderBytecode, SIZE_T BytecodeLength, ID3D10PixelShader **ppPixelShader);
+	// ID3D11Device::CreatePixelShader(const void *pShaderBytecode, SIZE_T BytecodeLength, ID3D11ClassLinkage *pClassLinkage, ID3D11PixelShader **ppPixelShader);
+	pShaderBytecode_PixelShader,
+	BytecodeLength_PixelShader,
+	pClassLinkage_PixelShader,
+	ppPixelShader_DX10,
+	ppPixelShader_DX11,
 	pVertexShader_10, // ID3D10Device::VSSetShader(ID3D10VertexShader *pVertexShader);
 	pVertexShader_11, // ID3D11DeviceContext::VSSetShader(ID3D11VertexShader *pVertexShader, ID3D11ClassInstance *const *ppClassInstances, UINT NumClassInstances);
 	pPixelShader_10, // ID3D10Device::PSSetShader(ID3D10PixelShader *pPixelShader);
@@ -217,6 +241,8 @@ public:
 	virtual HBITMAP         GetControl();
 	virtual DWORD           GetNodeWidth() { return 4 + 256 + 4; }
 	virtual DWORD           GetNodeHeight() { return 128; }
+	virtual int             GetProvokingType() { return PROVOKING_TYPE; }
+	virtual bool            GetMethodReplacement() { return METHOD_REPLACEMENT; }
 	virtual DWORD           GetCommandersNumber() { return NUMBER_OF_COMMANDERS; }
 	virtual DWORD           GetDecommandersNumber() { return NUMBER_OF_DECOMMANDERS; }
 	virtual LPWSTR          GetCommanderName(DWORD dwCommanderIndex);
@@ -233,6 +259,16 @@ private:
 
 	/*** MatrixModifier input pointers ***/
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+	void** m_ppvShaderBytecode_VertexShader;
+	SIZE_T* m_pnBytecodeLength_VertexShader;
+	ID3D11ClassLinkage** m_ppcClassLinkage_VertexShader;
+	ID3D10VertexShader*** m_pppcVertexShader_DX10;
+	ID3D11VertexShader*** m_pppcVertexShader_DX11;
+	void** m_ppvShaderBytecode_PixelShader;
+	SIZE_T* m_pnBytecodeLength_PixelShader;
+	ID3D11ClassLinkage** m_ppcClassLinkage_PixelShader;
+	ID3D10PixelShader*** m_pppcPixelShader_DX10;
+	ID3D11PixelShader*** m_pppcPixelShader_DX11;
 	ID3D10VertexShader** m_ppcVertexShader_10;
 	ID3D11VertexShader** m_ppcVertexShader_11;
 	ID3D10PixelShader** m_ppcPixelShader_10;
