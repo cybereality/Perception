@@ -49,7 +49,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define INTERFACE_IDXGISWAPCHAIN                                             29
 
 #define METHOD_IDXGISWAPCHAIN_PRESENT                                        8
+#define METHOD_ID3D11DEVICE_CREATEBUFFER                                     3
 #define METHOD_ID3D11DEVICE_CREATEVERTEXSHADER                               12
+#define METHOD_ID3D11DEVICECONTEXT_VSSETCONSTANTBUFFERS                      7
+#define METHOD_ID3D11DEVICECONTEXT_PSSETSHADER                               9
+#define METHOD_ID3D11DEVICECONTEXT_VSSETSHADER                               11
+#define METHOD_ID3D11DEVICECONTEXT_PSSETCONSTANTBUFFERS                      16
+#define METHOD_ID3D11DEVICECONTEXT_COPYSUBRESOURCEREGION                     46
+#define METHOD_ID3D11DEVICECONTEXT_COPYRESOURCE                              47
+#define METHOD_ID3D11DEVICECONTEXT_UPDATESUBRESOURCE                         48
+#define METHOD_ID3D11DEVICECONTEXT_VSGETCONSTANTBUFFERS                      72
+#define METHOD_ID3D11DEVICECONTEXT_PSGETCONSTANTBUFFERS                      77
+#define METHOD_ID3D10DEVICE_COPYSUBRESOURCEREGION                            32
+#define METHOD_ID3D10DEVICE_COPYRESOURCE                                     33
+#define METHOD_ID3D10DEVICE_UPDATESUBRESOURCE                                34
 
 #define SAFE_RELEASE(a) if (a) { a->Release(); a = nullptr; }
 
@@ -58,6 +71,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***/
 MatrixModifier::MatrixModifier() : AQU_Nodus()
 {
+	// create a new HRESULT pointer
+	m_pvReturn = (void*)new HRESULT();
 }
 
 /**
@@ -664,6 +679,7 @@ void MatrixModifier::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 ***/
 bool MatrixModifier::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod)
 {
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	if ((nD3DVersion >= (int)AQU_DirectXVersion::DirectX_10) &&
 		(nD3DVersion <= (int)AQU_DirectXVersion::DirectX_10_1))
 	{
@@ -686,13 +702,16 @@ bool MatrixModifier::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 		}
 		else if (nD3DInterface == INTERFACE_ID3D11DEVICECONTEXT)
 		{
-
+			if (nD3DMethod == METHOD_ID3D11DEVICECONTEXT_VSSETSHADER)
+				return true;
 		}
 		else if (nD3DInterface == INTERFACE_IDXGISWAPCHAIN)
 		{
 
 		}
 	}
+#elif defined(VIREIO_D3D9)
+#endif
 	return false;
 }
 
@@ -701,5 +720,61 @@ bool MatrixModifier::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 ***/
 void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)
 {
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+	switch (eD3DInterface)
+	{
+	case INTERFACE_ID3D11DEVICE:
+		switch (eD3DMethod)
+		{
+		case METHOD_ID3D11DEVICE_CREATEVERTEXSHADER:
+			// CreateVertexShader(const void *pShaderBytecode, SIZE_T BytecodeLength, ID3D11ClassLinkage *pClassLinkage, ID3D11VertexShader **ppVertexShader);
+			if (!pThis) return nullptr;
+			if (!m_ppvShaderBytecode_VertexShader) return nullptr;
+			if (!m_pnBytecodeLength_VertexShader) return nullptr;
+			if (!m_ppcClassLinkage_VertexShader) return nullptr;
+			if (!m_pppcVertexShader_DX11) return nullptr;
+
+			*(HRESULT*)m_pvReturn = ((ID3D11Device*)pThis)->CreateVertexShader(*m_ppvShaderBytecode_VertexShader,
+				*m_pnBytecodeLength_VertexShader,
+				*m_ppcClassLinkage_VertexShader,
+				*m_pppcVertexShader_DX11);
+
+			ID3D11VertexShader* pcShader = nullptr;
+			if (*m_pppcVertexShader_DX11)
+				if (**m_pppcVertexShader_DX11)
+					pcShader = **m_pppcVertexShader_DX11;
+			if (pcShader)
+			{
+				Vireio_ID3D11VertexShader_Data sShaderData;
+				CopyMemory(sShaderData.szName, L"VireioTestShader", sizeof(wchar_t)*16);
+				sShaderData.szName[16] = 0;
+				pcShader->SetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, sizeof(sShaderData), (void*)&sShaderData);
+
+			}
+
+			// method replaced, immediately return (= behavior -16)
+			nProvokerIndex = -16;
+			return m_pvReturn;
+		}
+		return nullptr;
+	case INTERFACE_ID3D11DEVICECONTEXT:
+		switch(eD3DMethod)
+		{
+		case METHOD_ID3D11DEVICECONTEXT_VSSETSHADER:
+			if (!m_ppcVertexShader_11) return nullptr;
+			if (!*m_ppcVertexShader_11) return nullptr;
+
+			Vireio_ID3D11VertexShader_Data sShaderData;
+			UINT dwDataSize =  sizeof(sShaderData);
+			(*(m_ppcVertexShader_11))->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sShaderData);
+			wchar_t buffer[64]; wsprintf(buffer, L"%u", dwDataSize); OutputDebugString(buffer);
+			OutputDebugString(sShaderData.szName);
+			return nullptr;
+		}
+		return nullptr;
+	}
+#elif defined(VIREIO_D3D9)
+#endif
+
 	return nullptr;
 }

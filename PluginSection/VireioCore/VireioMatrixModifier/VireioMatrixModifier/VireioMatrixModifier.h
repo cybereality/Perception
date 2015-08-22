@@ -43,6 +43,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include"AQU_Nodus.h"
 #include"Resources.h"
+#include"VireioMatrixModifierDataStructures.h"
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 #include <DXGI.h>
@@ -69,6 +70,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <d3dx9.h>
 #pragma comment(lib, "d3dx9.lib")
 #endif
+
+// PDID_ID3D11VertexShader_Vireio_Data : 3bffbfc5-7baa-4534-9f4a-06be7d3df832
+const GUID PDID_ID3D11VertexShader_Vireio_Data = {0x3bffbfc5, 0x7baa, 0x4534, {0x9f, 0x4a, 0x06, 0xbe, 0x7d, 0x3d, 0xf8, 0x32}};
 
 #define BYTE_PLUG_TYPE                                 1
 #define	FLOAT_PLUG_TYPE                                4
@@ -130,10 +134,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 
-	/**
-	* Node Commander Enumeration.
-	***/
-	enum STS_Commanders
+/**
+* Node Commander Enumeration.
+***/
+enum STS_Commanders
 {
 };
 
@@ -253,6 +257,11 @@ public:
 	virtual void            SetInputPointer(DWORD dwDecommanderIndex, void* pData);
 	virtual bool            SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod);
 	virtual void*           Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex);
+
+	/**
+	* Return value pointer (HRESULT).
+	***/
+	void* m_pvReturn;
 
 private:
 	/*** MatrixModifier private methods ***/

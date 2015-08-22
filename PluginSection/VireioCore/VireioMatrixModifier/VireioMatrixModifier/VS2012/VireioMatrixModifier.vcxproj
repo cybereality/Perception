@@ -158,6 +158,7 @@
     <ClInclude Include="..\AQU_Nodus.h" />
     <ClInclude Include="..\VireioMatrixModifier.h" />
     <ClInclude Include="..\Resources.h" />
+    <ClInclude Include="..\VireioMatrixModifierDataStructures.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\VireioMatrixModifier.cpp" />

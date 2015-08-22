@@ -4,6 +4,7 @@
     <ClInclude Include="..\AQU_Nodus.h" />
     <ClInclude Include="..\Resources.h" />
     <ClInclude Include="..\VireioMatrixModifier.h" />
+    <ClInclude Include="..\VireioMatrixModifierDataStructures.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\AQU_Nodus.def" />
