@@ -35,11 +35,62 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
+#include<d3d11_1.h>
+#include<d3d11.h>
+#include<d3d10_1.h>
+#include<d3d10.h>
+#include<d3d9.h>
+#include<stdio.h>
+#include<vector>
+
+#define VIREIO_MAX_VARIABLE_NAME_LENGTH 64     /**< We restrict variable names to 64 characters. ***/
+
 /**
-* Vireio ID3D11VertexShader private data field.
+* D3D11 Shader variable (or constant) description.
+***/
+struct Vireio_D3D11_Shader_Variable
+{
+    CHAR                    szName[VIREIO_MAX_VARIABLE_NAME_LENGTH];       /**< Name of the variable ***/
+    UINT                    dwStartOffset;                                 /**< Offset in constant buffer's backing store ***/
+    UINT                    dwSize;                                        /**< Size of variable (in bytes) ***/
+	BYTE                    pcDefaultValue[sizeof(D3DMATRIX)];             /**< Raw default value data... maximum size of a matrix ***/
+};
+
+/**
+* D3D11 Shader constant buffer description.
+***/
+struct Vireio_D3D11_Constant_Buffer
+{
+    CHAR                                      szName[VIREIO_MAX_VARIABLE_NAME_LENGTH];      /**< Name of the variable ***/
+    D3D_CBUFFER_TYPE                          eType;			                            /**< Indicates type of buffer content ***/
+    UINT                                      dwVariables;                                  /**< Number of member variables ***/
+    UINT                                      dwSize;                                       /**< Size of CB (in bytes) ***/
+    UINT                                      dwFlags;                                      /**< Buffer description flags ***/
+	std::vector<Vireio_D3D11_Shader_Variable> asVariables;                                  /**< The Vireio shader variables descriptions ***/
+};
+
+/**
+* Vireio D3D11 shader description.
 * Structure containing all necessary data for the ID3D11VertexShader interface.
 ***/
-struct Vireio_ID3D11VertexShader_Data
+struct Vireio_D3D11_Shader
 {
-	wchar_t szName[64];
+	UINT                                      dwVersion;                               /**< Shader version ***/
+    CHAR                                      szCreator[VIREIO_MAX_VARIABLE_NAME_LENGTH];   /**< Creator string ***/
+	UINT                                      dwConstantBuffers;                       /**< Number of constant buffers ***/
+    UINT                                      dwBoundResources;                        /**< Number of bound resources ***/
+    UINT                                      dwInputParameters;                       /**< Number of parameters in the input signature ***/
+    UINT                                      dwOutputParameters;                      /**< Number of parameters in the output signature ***/
+	std::vector<Vireio_D3D11_Constant_Buffer> asBuffers;                               /**< The Vireio shader constant buffers descriptions (max D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT) ***/                   
+};
+
+/**
+* Vireio shader private data field.
+* Short data field directly set to the shader interface.
+* Contains only shader hash and shader description index.
+***/
+struct Vireio_Shader_Private_Data
+{
+	UINT dwHash;   /**< The shader hash code. ***/
+	UINT dwIndex;  /**< The shader description index. ***/
 };

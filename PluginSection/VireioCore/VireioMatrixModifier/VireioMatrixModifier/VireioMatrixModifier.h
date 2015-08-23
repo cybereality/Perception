@@ -71,6 +71,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma comment(lib, "d3dx9.lib")
 #endif
 
+#include<d3dcompiler.h>
+#pragma comment(lib, "d3dcompiler.lib")
+#pragma comment(lib, "dxguid.lib")
+
 // PDID_ID3D11VertexShader_Vireio_Data : 3bffbfc5-7baa-4534-9f4a-06be7d3df832
 const GUID PDID_ID3D11VertexShader_Vireio_Data = {0x3bffbfc5, 0x7baa, 0x4534, {0x9f, 0x4a, 0x06, 0xbe, 0x7d, 0x3d, 0xf8, 0x32}};
 
@@ -132,7 +136,8 @@ const GUID PDID_ID3D11VertexShader_Vireio_Data = {0x3bffbfc5, 0x7baa, 0x4534, {0
 #define NUMBER_OF_DECOMMANDERS                        12
 #endif
 
-
+#define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"%u", a); OutputDebugString(buf); }
+#define DEBUG_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"%x", a); OutputDebugString(buf); }
 
 /**
 * Node Commander Enumeration.
@@ -333,6 +338,12 @@ private:
 	float** m_ppfConstantData_PixelShader;
 	UINT* m_pdwVector4fCount_PixelShader;
 #endif
+
+	/**
+	* The d3d11 shader description vector.
+	* Contains all enumerated shader data structures.
+	***/
+	std::vector<Vireio_D3D11_Shader> m_asShaders;
 };
 
 /**

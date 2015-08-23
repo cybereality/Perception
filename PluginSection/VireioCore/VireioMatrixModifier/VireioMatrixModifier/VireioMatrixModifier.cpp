@@ -745,11 +745,102 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					pcShader = **m_pppcVertexShader_DX11;
 			if (pcShader)
 			{
-				Vireio_ID3D11VertexShader_Data sShaderData;
-				CopyMemory(sShaderData.szName, L"VireioTestShader", sizeof(wchar_t)*16);
-				sShaderData.szName[16] = 0;
-				pcShader->SetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, sizeof(sShaderData), (void*)&sShaderData);
+				// create reflection class
+				ID3D11ShaderReflection* pcReflector = NULL;
+				if (SUCCEEDED(D3DReflect(*m_ppvShaderBytecode_VertexShader,
+					*m_pnBytecodeLength_VertexShader,
+					IID_ID3D11ShaderReflection,
+					(void**) &pcReflector)))
+				{
+					// get desc
+					D3D11_SHADER_DESC sDesc;
+					pcReflector->GetDesc( &sDesc );
 
+					// fill shader data
+					Vireio_D3D11_Shader sShaderData;
+					sShaderData.dwConstantBuffers = sDesc.ConstantBuffers;
+					sShaderData.dwVersion = sDesc.Version;
+					sShaderData.dwBoundResources = sDesc.BoundResources;
+					sShaderData.dwInputParameters = sDesc.InputParameters;
+					sShaderData.dwOutputParameters = sDesc.OutputParameters; 
+
+					// get name size, max to VIREIO_MAX_VARIABLE_NAME_LENGTH
+					UINT dwLen = (UINT)strnlen_s(sDesc.Creator, VIREIO_MAX_VARIABLE_NAME_LENGTH - 1);
+					CopyMemory(sShaderData.szCreator, sDesc.Creator, sizeof(CHAR)*dwLen);
+					sShaderData.szCreator[dwLen] = 0;
+
+					for (UINT dwIndex = 0; dwIndex < sDesc.ConstantBuffers; dwIndex++)
+					{
+						// get next constant buffer
+						ID3D11ShaderReflectionConstantBuffer* pcConstantBuffer = pcReflector->GetConstantBufferByIndex(dwIndex);
+						if (pcConstantBuffer)
+						{
+							// get desc
+							D3D11_SHADER_BUFFER_DESC sDescBuffer;
+							pcConstantBuffer->GetDesc(&sDescBuffer);
+							//OutputDebugStringA(sDescBuffer.Name);
+
+							// fill buffer data
+							Vireio_D3D11_Constant_Buffer sBufferData;
+							sBufferData.eType = sDescBuffer.Type;
+							sBufferData.dwVariables = sDescBuffer.Variables;
+							sBufferData.dwSize = sDescBuffer.Size;
+							sBufferData.dwFlags = sDescBuffer.uFlags;
+
+							// get name size, max to VIREIO_MAX_VARIABLE_NAME_LENGTH
+							dwLen = (UINT)strnlen_s(sDescBuffer.Name, VIREIO_MAX_VARIABLE_NAME_LENGTH - 1);
+							CopyMemory(sBufferData.szName, sDescBuffer.Name, sizeof(CHAR)*dwLen);
+							sBufferData.szName[dwLen] = 0;
+
+							// enumerate variables
+							for (UINT dwIndexVariable = 0; dwIndexVariable < sDescBuffer.Variables; dwIndexVariable++)
+							{
+								ID3D11ShaderReflectionVariable* pcVariable = pcConstantBuffer->GetVariableByIndex(dwIndexVariable);
+								if (pcVariable)
+								{
+									// get desc
+									D3D11_SHADER_VARIABLE_DESC sDescVariable;
+									pcVariable->GetDesc(&sDescVariable);
+									//OutputDebugStringA(sDescVariable.Name);
+
+									// fill variable data
+									Vireio_D3D11_Shader_Variable sVariableData;
+									sVariableData.dwSize = sDescVariable.Size;
+									sVariableData.dwStartOffset = sDescVariable.StartOffset;
+
+									// get name size, max to VIREIO_MAX_VARIABLE_NAME_LENGTH
+									dwLen = (UINT)strnlen_s(sDescVariable.Name, VIREIO_MAX_VARIABLE_NAME_LENGTH - 1);
+									CopyMemory(sVariableData.szName, sDescVariable.Name, sizeof(CHAR)*dwLen);
+									sVariableData.szName[dwLen] = 0;
+
+									// TODO !! FILL DEFAULT VALUE sVariableData.pcDefaultValue
+
+									// and add to buffer desc
+									sBufferData.asVariables.push_back(sVariableData);
+								}
+							}
+
+							// and add to shader desc
+							sShaderData.asBuffers.push_back(sBufferData);
+						}
+					}
+
+					// and add to shader vector
+					m_asShaders.push_back(sShaderData);
+
+					// create and set private shader data
+					Vireio_Shader_Private_Data sPrivateData;
+					sPrivateData.dwHash = 0x010101; // TODO !! SHADER HASH
+					sPrivateData.dwIndex = (UINT)m_asShaders.size() - 1;
+
+					pcShader->SetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, sizeof(sPrivateData), (void*)&sPrivateData);
+
+					pcReflector->Release();
+
+					// debug output
+					OutputDebugStringA(sShaderData.szCreator);
+					DEBUG_UINT(sPrivateData.dwIndex);
+				}
 			}
 
 			// method replaced, immediately return (= behavior -16)
@@ -764,11 +855,10 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			if (!m_ppcVertexShader_11) return nullptr;
 			if (!*m_ppcVertexShader_11) return nullptr;
 
-			Vireio_ID3D11VertexShader_Data sShaderData;
-			UINT dwDataSize =  sizeof(sShaderData);
-			(*(m_ppcVertexShader_11))->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sShaderData);
-			wchar_t buffer[64]; wsprintf(buffer, L"%u", dwDataSize); OutputDebugString(buffer);
-			OutputDebugString(sShaderData.szName);
+			Vireio_Shader_Private_Data sPrivateData;
+			UINT dwDataSize =  sizeof(sPrivateData);
+			(*(m_ppcVertexShader_11))->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
+			OutputDebugStringA(m_asShaders[sPrivateData.dwIndex].szCreator);
 			return nullptr;
 		}
 		return nullptr;
