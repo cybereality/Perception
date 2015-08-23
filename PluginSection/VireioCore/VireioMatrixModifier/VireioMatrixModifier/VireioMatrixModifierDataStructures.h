@@ -46,6 +46,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define VIREIO_MAX_VARIABLE_NAME_LENGTH 64     /**< We restrict variable names to 64 characters. ***/
 
 /**
+* Get hash code helper.
+***/ 
+inline DWORD GetHashCode(BYTE* pcData, DWORD dwSize)
+{
+	DWORD h = 0;
+
+	// create hash
+	for (DWORD i = 0; i < dwSize; i++) 
+	{
+		h = 31*h + pcData[i];
+	}
+
+	return h;
+}
+
+/**
 * D3D11 Shader variable (or constant) description.
 ***/
 struct Vireio_D3D11_Shader_Variable
@@ -81,7 +97,8 @@ struct Vireio_D3D11_Shader
     UINT                                      dwBoundResources;                        /**< Number of bound resources ***/
     UINT                                      dwInputParameters;                       /**< Number of parameters in the input signature ***/
     UINT                                      dwOutputParameters;                      /**< Number of parameters in the output signature ***/
-	std::vector<Vireio_D3D11_Constant_Buffer> asBuffers;                               /**< The Vireio shader constant buffers descriptions (max D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT) ***/                   
+	std::vector<Vireio_D3D11_Constant_Buffer> asBuffers;                               /**< The Vireio shader constant buffers descriptions (max D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT) ***/
+	UINT                                      dwHashCode;                              /**< This shaders hash code. ***/
 };
 
 /**

@@ -745,6 +745,32 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					pcShader = **m_pppcVertexShader_DX11;
 			if (pcShader)
 			{
+				// get the hash code
+				DWORD dwHashCode = GetHashCode((BYTE*)*m_ppvShaderBytecode_VertexShader, (DWORD)*m_pnBytecodeLength_VertexShader);
+
+				// is this shader already enumerated ?
+				for (size_t nShaderDescIndex = 0; nShaderDescIndex < m_asShaders.size(); nShaderDescIndex++)
+				{
+					if (dwHashCode == m_asShaders[nShaderDescIndex].dwHashCode)
+					{
+						// create and set private shader data
+						Vireio_Shader_Private_Data sPrivateData;
+						sPrivateData.dwHash = dwHashCode;
+						sPrivateData.dwIndex = (UINT)nShaderDescIndex;
+
+						pcShader->SetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, sizeof(sPrivateData), (void*)&sPrivateData);
+
+						// debug output
+						OutputDebugStringA(m_asShaders[nShaderDescIndex].szCreator);
+						DEBUG_UINT(sPrivateData.dwIndex);
+						DEBUG_UINT(sPrivateData.dwHash);
+
+						// method replaced, immediately return (= behavior -16)
+						nProvokerIndex = -16;
+						return m_pvReturn;
+					}
+				}
+
 				// create reflection class
 				ID3D11ShaderReflection* pcReflector = NULL;
 				if (SUCCEEDED(D3DReflect(*m_ppvShaderBytecode_VertexShader,
@@ -763,6 +789,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					sShaderData.dwBoundResources = sDesc.BoundResources;
 					sShaderData.dwInputParameters = sDesc.InputParameters;
 					sShaderData.dwOutputParameters = sDesc.OutputParameters; 
+					sShaderData.dwHashCode = dwHashCode;
 
 					// get name size, max to VIREIO_MAX_VARIABLE_NAME_LENGTH
 					UINT dwLen = (UINT)strnlen_s(sDesc.Creator, VIREIO_MAX_VARIABLE_NAME_LENGTH - 1);
@@ -830,7 +857,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 					// create and set private shader data
 					Vireio_Shader_Private_Data sPrivateData;
-					sPrivateData.dwHash = 0x010101; // TODO !! SHADER HASH
+					sPrivateData.dwHash = dwHashCode;
 					sPrivateData.dwIndex = (UINT)m_asShaders.size() - 1;
 
 					pcShader->SetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, sizeof(sPrivateData), (void*)&sPrivateData);
@@ -840,6 +867,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					// debug output
 					OutputDebugStringA(sShaderData.szCreator);
 					DEBUG_UINT(sPrivateData.dwIndex);
+					DEBUG_UINT(sPrivateData.dwHash);
 				}
 			}
 
@@ -858,7 +886,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			Vireio_Shader_Private_Data sPrivateData;
 			UINT dwDataSize =  sizeof(sPrivateData);
 			(*(m_ppcVertexShader_11))->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
-			OutputDebugStringA(m_asShaders[sPrivateData.dwIndex].szCreator);
+			//OutputDebugStringA(m_asShaders[sPrivateData.dwIndex].szCreator);
 			return nullptr;
 		}
 		return nullptr;
