@@ -71,12 +71,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma comment(lib, "d3dx9.lib")
 #endif
 
-#include<d3dcompiler.h>
-#pragma comment(lib, "d3dcompiler.lib")
-#pragma comment(lib, "dxguid.lib")
-
-// PDID_ID3D11VertexShader_Vireio_Data : 3bffbfc5-7baa-4534-9f4a-06be7d3df832
-const GUID PDID_ID3D11VertexShader_Vireio_Data = {0x3bffbfc5, 0x7baa, 0x4534, {0x9f, 0x4a, 0x06, 0xbe, 0x7d, 0x3d, 0xf8, 0x32}};
+#include"..\..\..\Include\Vireio_GUIDs.h"
 
 #define BYTE_PLUG_TYPE                                 1
 #define	FLOAT_PLUG_TYPE                                4
@@ -129,7 +124,7 @@ const GUID PDID_ID3D11VertexShader_Vireio_Data = {0x3bffbfc5, 0x7baa, 0x4534, {0
 #define METHOD_REPLACEMENT                         false                     /**< This node does NOT replace the D3D call (default) **/
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-#define NUMBER_OF_COMMANDERS                           0
+#define NUMBER_OF_COMMANDERS                           4
 #define NUMBER_OF_DECOMMANDERS                        43
 #elif defined(VIREIO_D3D9)
 #define NUMBER_OF_COMMANDERS                           0
@@ -144,6 +139,13 @@ const GUID PDID_ID3D11VertexShader_Vireio_Data = {0x3bffbfc5, 0x7baa, 0x4534, {0
 ***/
 enum STS_Commanders
 {
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+	ppActiveConstantBuffers_DX10_VertexShader,
+	ppActiveConstantBuffers_DX11_VertexShader, // active constant buffers output
+	ppActiveConstantBuffers_DX10_PixelShader,
+	ppActiveConstantBuffers_DX11_PixelShader, // active constant buffers output
+#elif defined(VIREIO_D3D9)
+#endif
 };
 
 /**
@@ -271,8 +273,8 @@ public:
 private:
 	/*** MatrixModifier private methods ***/
 
-	/*** MatrixModifier input pointers ***/
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+	/*** MatrixModifier input pointers ***/
 	void** m_ppvShaderBytecode_VertexShader;
 	SIZE_T* m_pnBytecodeLength_VertexShader;
 	ID3D11ClassLinkage** m_ppcClassLinkage_VertexShader;
@@ -324,7 +326,12 @@ private:
 	UINT* m_pdwSrcSubresource;
 	D3D10_BOX** m_ppsSrcBox_DX10;
 	D3D10_BOX** m_ppsSrcBox_DX11;
+
+	/*** MatrixModifier output pointers ***/
+	void* m_pvOutput[NUMBER_OF_COMMANDERS];
+
 #elif defined(VIREIO_D3D9)
+	/*** MatrixModifier input pointers ***/
 	IDirect3DVertexShader9** m_ppcShader_Vertex;
 	IDirect3DPixelShader9** m_ppcShader_Pixel;
 	D3DTRANSFORMSTATETYPE* m_psState;
@@ -344,6 +351,10 @@ private:
 	* Contains all enumerated shader data structures.
 	***/
 	std::vector<Vireio_D3D11_Shader> m_asShaders;
+	/**
+	* The d3d11 constant buffer vector.
+	***/
+	std::vector<ID3D11Buffer*> m_apcActiveConstantBuffers11;
 };
 
 /**

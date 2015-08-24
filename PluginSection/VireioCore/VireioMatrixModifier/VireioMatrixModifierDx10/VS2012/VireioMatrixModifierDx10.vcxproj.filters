@@ -5,6 +5,7 @@
     <ClInclude Include="..\..\VireioMatrixModifier\Resources.h" />
     <ClInclude Include="..\..\VireioMatrixModifier\VireioMatrixModifier.h" />
     <ClInclude Include="..\..\VireioMatrixModifier\VireioMatrixModifierDataStructures.h" />
+    <ClInclude Include="..\..\..\..\Include\Vireio_GUIDs.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\VireioMatrixModifier\AQU_Nodus.def" />

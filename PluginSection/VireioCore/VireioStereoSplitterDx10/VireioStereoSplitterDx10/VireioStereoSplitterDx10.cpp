@@ -115,7 +115,8 @@ m_pcPixelShader10(nullptr),
 m_pcVertexLayout10(nullptr),
 m_pcVertexBuffer10(nullptr),
 m_pcConstantBufferDirect10(nullptr),
-m_eCurrentRenderingSide(RenderPosition::Left)
+m_eCurrentRenderingSide(RenderPosition::Left),
+m_appcActiveConstantBuffers11(nullptr)
 {
 	m_pcTexView10[0] = nullptr;
 	m_pcTexView10[1] = nullptr;
@@ -339,57 +340,48 @@ LPWSTR StereoSplitter::GetCommanderName(DWORD dwCommanderIndex)
 ***/
 LPWSTR StereoSplitter::GetDecommanderName(DWORD dwDecommanderIndex)
 {
-
 	switch ((STS_Decommanders)dwDecommanderIndex)
 	{
 		case NumViews:
 			return L"NumViews";
-			break;
 		case ppRenderTargetViews_DX10:
 			return L"ppRenderTargetViews_DX10";
-			break;
 		case pDepthStencilView_DX10:
 			return L"pDepthStencilView_DX10";
-			break;
 		case ppRenderTargetViews_DX11:
 			return L"ppRenderTargetViews_DX11";
-			break;
 		case pDepthStencilView_DX11:
 			return L"pDepthStencilView_DX11";
-			break;
 		case NumRTVs:
 			return L"NumRTVs";
-			break;
 		case ppRenderTargetViewsUAV_DX11:
 			return L"ppRenderTargetViews_DX11";
-			break;
 		case pDepthStencilViewUAV_DX11:
 			return L"pDepthStencilView_DX11";
-			break;
 		case pRenderTargetView_DX10:
 			return L"pRenderTargetView_DX10";
-			break;
 		case pRenderTargetView_DX11:
 			return L"pRenderTargetView_DX11";
-			break;
 		case ColorRGBA:
 			return L"ColorRGBA";
-			break;
 		case pDepthStencilViewCDS_DX10:
 			return L"pDepthStencilView__DX10";
-			break;
 		case pDepthStencilViewCDS_DX11:
 			return L"pDepthStencilView__DX11";
-			break;
 		case ClearFlags:
 			return L"ClearFlags";
-			break;
 		case Depth:
 			return L"Depth";
-			break;
 		case Stencil:
 			return L"Stencil";
-			break;
+		case ppActiveConstantBuffers_DX10_VertexShader:
+			return L"ppConstantBuffers_DX10_VS";
+		case ppActiveConstantBuffers_DX11_VertexShader:
+			return L"ppConstantBuffers_DX11_VS";
+		case ppActiveConstantBuffers_DX10_PixelShader:
+			return L"ppConstantBuffers_DX10_PS";
+		case ppActiveConstantBuffers_DX11_PixelShader:
+			return L"ppConstantBuffers_DX11_PS";
 		default:
 			break;
 	}
@@ -414,52 +406,44 @@ DWORD StereoSplitter::GetDecommanderType(DWORD dwDecommanderIndex)
 	{
 		case NumViews:
 			return UINT_PLUG_TYPE;
-			break;
 		case ppRenderTargetViews_DX10:
 			return PPNT_ID3D10RENDERTARGETVIEW;
-			break;
 		case pDepthStencilView_DX10:
 			return PNT_ID3D10DEPTHSTENCILVIEW;
-			break;
 		case ppRenderTargetViews_DX11:
 			return PPNT_ID3D11RENDERTARGETVIEW;
-			break;
 		case pDepthStencilView_DX11:
 			return PNT_ID3D11DEPTHSTENCILVIEW;
-			break;
 		case NumRTVs:
 			return UINT_PLUG_TYPE;
-			break;
 		case ppRenderTargetViewsUAV_DX11:
 			return PPNT_ID3D11RENDERTARGETVIEW;
-			break;
 		case pDepthStencilViewUAV_DX11:
 			return PNT_ID3D11DEPTHSTENCILVIEW;
-			break;
 		case pRenderTargetView_DX10:
 			return PNT_ID3D10RENDERTARGETVIEW_TYPE;
-			break;
 		case pRenderTargetView_DX11:
 			return PNT_ID3D11RENDERTARGETVIEW_TYPE;
-			break;
 		case ColorRGBA:
 			return VECTOR4F_PLUG_TYPE;
-			break;
 		case pDepthStencilViewCDS_DX10:
 			return PNT_ID3D10DEPTHSTENCILVIEW;
-			break;
 		case pDepthStencilViewCDS_DX11:
 			return PNT_ID3D11DEPTHSTENCILVIEW;
-			break;
 		case ClearFlags:
 			return UINT_PLUG_TYPE;
-			break;
 		case Depth:
 			return FLOAT_PLUG_TYPE;
-			break;
 		case Stencil:
 			return BYTE_PLUG_TYPE;
-			break;
+		case ppActiveConstantBuffers_DX10_VertexShader:
+			return PPNT_ID3D10BUFFER_PLUG_TYPE;
+		case ppActiveConstantBuffers_DX11_VertexShader:
+			return PPNT_ID3D11BUFFER_PLUG_TYPE;
+		case ppActiveConstantBuffers_DX10_PixelShader:
+			return PPNT_ID3D10BUFFER_PLUG_TYPE;
+		case ppActiveConstantBuffers_DX11_PixelShader:
+			return PPNT_ID3D11BUFFER_PLUG_TYPE;
 		default:
 			break;
 	}
@@ -538,6 +522,15 @@ void StereoSplitter::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 			break;
 		case Stencil:
 			m_pchStencil = (UINT8*)pData;                                               /** Clear the stencil buffer with this value. */
+			break;
+		case ppActiveConstantBuffers_DX10_VertexShader:
+			break;
+		case ppActiveConstantBuffers_DX11_VertexShader:
+			m_appcActiveConstantBuffers11 = (ID3D11Buffer***)pData;
+			break;
+		case ppActiveConstantBuffers_DX10_PixelShader:
+			break;
+		case ppActiveConstantBuffers_DX11_PixelShader:
 			break;
 		default:
 			break;
@@ -1898,13 +1891,6 @@ bool StereoSplitter::SetDrawingSide(ID3D11DeviceContext* pcContext, RenderPositi
 	else
 		pcContext->OMSetRenderTargets(m_dwRenderTargetNumber, (ID3D11RenderTargetView**)&m_apcActiveStereoTwinViews[0], (ID3D11DepthStencilView*)m_pcActiveStereoTwinDepthStencilView);
 
-	// if ((!m_pcActiveStereoTwinDepthStencilView) && (m_pcActiveDepthStencilView)) OutputDebugString(L"No stereo depth buffer!");
-
-	// if a non-fullsurface viewport is active and a rendertarget changed we need to reapply the viewport - TODO !!
-	/*if (renderTargetChanged && !m_bActiveViewportIsDefault) {
-	BaseDirect3DDevice9::SetViewport(&m_LastViewportSet);
-	}*/
-
 	// switch textures to new side
 	/*for(std::vector<IDirect3DSurface9*>::size_type i = 0; i < m_dwTextureNumber; i++)
 	{
@@ -1925,10 +1911,41 @@ bool StereoSplitter::SetDrawingSide(ID3D11DeviceContext* pcContext, RenderPositi
 
 	if (hr != D3D_OK)
 	OutputDebugString(L"Error trying to set one of the textures while switching between active eyes for drawing.\n");
-	}
+	}*/
 
-	// TODO !!
-	// the rest of the code from the original method from the Vireio 2.x.x D3DProxyDevice*/
+	// switch constant buffers
+	if (m_appcActiveConstantBuffers11)
+		if (*m_appcActiveConstantBuffers11)
+		{
+			// DEBUG_HEX(*m_appcActiveConstantBuffers11[0]);
+
+			// has the buffer private data set ?
+			if ((*m_appcActiveConstantBuffers11)[0])
+			{
+				// test for private data
+				Vireio_Shader_Private_Data sPrivateData;
+				UINT dwDataSize = sizeof(sPrivateData);
+				((*m_appcActiveConstantBuffers11)[0])->GetPrivateData(PDID_ID3D11Buffer_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
+				if (!dwDataSize)
+				{
+					// no data, so set new.. first get active vertex shader
+					ID3D11VertexShader* pcShader = nullptr;
+					pcContext->VSGetShader(&pcShader, NULL, NULL);
+					if (pcShader)
+					{
+						dwDataSize = sizeof(sPrivateData);
+						pcShader->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
+
+						if (dwDataSize)
+						{
+							// set the ASSOCIATED VERTEX SHADER DATA to the CONSTANT BUFFER
+							((*m_appcActiveConstantBuffers11)[0])->SetPrivateData(PDID_ID3D11Buffer_Vireio_Data, sizeof(sPrivateData), (void*)&sPrivateData);
+						}
+						pcShader->Release();
+					}
+				}
+			}
+		}
 
 	return true;
 }

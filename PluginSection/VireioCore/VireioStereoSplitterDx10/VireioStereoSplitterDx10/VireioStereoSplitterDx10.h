@@ -63,6 +63,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma comment(lib, "d3dx10.lib")
 
 #include"..\..\..\Include\Vireio_DX11Basics.h"
+#include"..\..\..\Include\Vireio_GUIDs.h"
 
 #define BYTE_PLUG_TYPE                                 1
 #define	FLOAT_PLUG_TYPE                                4
@@ -79,15 +80,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define PNT_D3DRECT_PLUG_TYPE                       2024
 #define PNT_ID3D10DEPTHSTENCILVIEW                  8021
 #define PNT_ID3D10RENDERTARGETVIEW_TYPE             8022
+#define PPNT_ID3D10BUFFER_PLUG_TYPE                 9020
 #define PPNT_ID3D10DEPTHSTENCILVIEW                 9021
 #define PPNT_ID3D10RENDERTARGETVIEW                 9022
 #define PNT_ID3D11DEPTHSTENCILVIEW                 11025
 #define PNT_ID3D11RENDERTARGETVIEW_TYPE            11026
+#define PPNT_ID3D11BUFFER_PLUG_TYPE                12024
 #define PPNT_ID3D11DEPTHSTENCILVIEW                12025
 #define PPNT_ID3D11RENDERTARGETVIEW                12026
 
 #define NUMBER_OF_COMMANDERS                           2
-#define NUMBER_OF_DECOMMANDERS                         16
+#define NUMBER_OF_DECOMMANDERS                         20
 
 /**
 * Node Commander Enumeration.
@@ -123,6 +126,11 @@ enum STS_Decommanders
 	ClearFlags,                                            /** Identify the type of data to clear */
 	Depth,                                                 /** Clear the depth buffer with this value. This value will be clamped between 0 and 1. */
 	Stencil,                                               /** Clear the stencil buffer with this value. */
+	/*** Active constant buffers ***/
+	ppActiveConstantBuffers_DX10_VertexShader,
+	ppActiveConstantBuffers_DX11_VertexShader, 
+	ppActiveConstantBuffers_DX10_PixelShader,
+	ppActiveConstantBuffers_DX11_PixelShader,
 };
 
 /**
@@ -143,6 +151,19 @@ enum D3DVersion
 	NotDefined,
 	Direct3D10,
 	Direct3D11,
+};
+
+/**
+* Vireio shader private data field.
+* Short data field directly set to the shader interface.
+* Contains only shader hash and shader description index.
+* (from MatrixModifier node to be set as constant buffer
+* private data)
+***/
+struct Vireio_Shader_Private_Data
+{
+	UINT dwHash;   /**< The shader hash code. ***/
+	UINT dwIndex;  /**< The shader description index. ***/
 };
 
 /**
@@ -213,6 +234,7 @@ private:
 	UINT* m_pdwClearFlags;                                            /** Identify the type of data to clear */
 	FLOAT* m_pfDepth;                                                 /** Clear the depth buffer with this value. This value will be clamped between 0 and 1. */
 	UINT8* m_pchStencil;                                              /** Clear the stencil buffer with this value. */
+	ID3D11Buffer*** m_appcActiveConstantBuffers11;                    /** The d3d11 constant buffer array. ***/
 
 	/**
 	* Active stored render target views.

@@ -69,10 +69,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /**
 * Constructor.
 ***/
-MatrixModifier::MatrixModifier() : AQU_Nodus()
+MatrixModifier::MatrixModifier() : AQU_Nodus(),
+	m_apcActiveConstantBuffers11(D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, nullptr)
 {
 	// create a new HRESULT pointer
 	m_pvReturn = (void*)new HRESULT();
+
+	// create output pointers
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+	m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX10_VertexShader] = (void*)&m_apcActiveConstantBuffers11[0];
+#endif
 }
 
 /**
@@ -144,11 +150,22 @@ HBITMAP MatrixModifier::GetControl()
 ***/
 LPWSTR MatrixModifier::GetCommanderName(DWORD dwCommanderIndex)
 {
-	/*switch ((STS_Commanders)dwCommanderIndex)
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+	switch ((STS_Commanders)dwCommanderIndex)
 	{
-	case STS_Commanders::XXX:
-	return L"XXX";
-	}*/
+	case ppActiveConstantBuffers_DX10_VertexShader:
+		return L"ppConstantBuffers_DX10_VS";
+	case ppActiveConstantBuffers_DX11_VertexShader:
+		return L"ppConstantBuffers_DX11_VS";
+	case ppActiveConstantBuffers_DX10_PixelShader:
+		return L"ppConstantBuffers_DX10_PS";
+	case ppActiveConstantBuffers_DX11_PixelShader:
+		return L"ppConstantBuffers_DX11_PS";
+	default:
+		break;
+	}
+#elif defined(VIREIO_D3D9)
+#endif
 
 	return L"UNTITLED";
 }
@@ -303,6 +320,23 @@ LPWSTR MatrixModifier::GetDecommanderName(DWORD dwDecommanderIndex)
 ***/
 DWORD MatrixModifier::GetCommanderType(DWORD dwCommanderIndex)
 {
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+	switch ((STS_Commanders)dwCommanderIndex)
+	{
+	case ppActiveConstantBuffers_DX10_VertexShader:
+		return PPNT_ID3D10BUFFER_PLUG_TYPE;
+	case ppActiveConstantBuffers_DX11_VertexShader:
+		return PPNT_ID3D11BUFFER_PLUG_TYPE;
+	case ppActiveConstantBuffers_DX10_PixelShader:
+		return PPNT_ID3D10BUFFER_PLUG_TYPE;
+	case ppActiveConstantBuffers_DX11_PixelShader:
+		return PPNT_ID3D11BUFFER_PLUG_TYPE;
+	default:
+		break;
+	}
+#elif defined(VIREIO_D3D9)
+#endif
+
 	return NULL;
 }
 
@@ -456,13 +490,22 @@ DWORD MatrixModifier::GetDecommanderType(DWORD dwDecommanderIndex)
 ***/
 void* MatrixModifier::GetOutputPointer(DWORD dwCommanderIndex)
 {
-	//switch((STS_Commanders)dwCommanderIndex)
-	//{
-	///*case STS_Commanders::StereoTextureLeft:
-	//	return (void*)&m_pcStereoOutputLeft;
-	//case STS_Commanders::StereoTextureRight:
-	//	return (void*)&m_pcStereoOutputRight;*/
-	//}
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+	switch ((STS_Commanders)dwCommanderIndex)
+	{
+	case ppActiveConstantBuffers_DX10_VertexShader:
+		break;
+	case ppActiveConstantBuffers_DX11_VertexShader:
+		return (void*)&m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX10_VertexShader];//m_apcActiveConstantBuffers11[0];
+	case ppActiveConstantBuffers_DX10_PixelShader:
+		break;
+	case ppActiveConstantBuffers_DX11_PixelShader:
+		break;
+	default:
+		break;
+	}
+#elif defined(VIREIO_D3D9)
+#endif
 
 	return nullptr;
 }
@@ -702,7 +745,8 @@ bool MatrixModifier::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 		}
 		else if (nD3DInterface == INTERFACE_ID3D11DEVICECONTEXT)
 		{
-			if (nD3DMethod == METHOD_ID3D11DEVICECONTEXT_VSSETSHADER)
+			if ((nD3DMethod == METHOD_ID3D11DEVICECONTEXT_VSSETSHADER) ||
+				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_VSSETCONSTANTBUFFERS))
 				return true;
 		}
 		else if (nD3DInterface == INTERFACE_IDXGISWAPCHAIN)
@@ -760,10 +804,10 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 						pcShader->SetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, sizeof(sPrivateData), (void*)&sPrivateData);
 
-						// debug output
-						OutputDebugStringA(m_asShaders[nShaderDescIndex].szCreator);
-						DEBUG_UINT(sPrivateData.dwIndex);
-						DEBUG_UINT(sPrivateData.dwHash);
+						//// debug output
+						//OutputDebugStringA(m_asShaders[nShaderDescIndex].szCreator);
+						//DEBUG_UINT(sPrivateData.dwIndex);
+						//DEBUG_UINT(sPrivateData.dwHash);
 
 						// method replaced, immediately return (= behavior -16)
 						nProvokerIndex = -16;
@@ -864,10 +908,10 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 					pcReflector->Release();
 
-					// debug output
-					OutputDebugStringA(sShaderData.szCreator);
-					DEBUG_UINT(sPrivateData.dwIndex);
-					DEBUG_UINT(sPrivateData.dwHash);
+					//// debug output
+					//OutputDebugStringA(sShaderData.szCreator);
+					//DEBUG_UINT(sPrivateData.dwIndex);
+					//DEBUG_UINT(sPrivateData.dwHash);
 				}
 			}
 
@@ -882,11 +926,43 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 		case METHOD_ID3D11DEVICECONTEXT_VSSETSHADER:
 			if (!m_ppcVertexShader_11) return nullptr;
 			if (!*m_ppcVertexShader_11) return nullptr;
+			else
+			{
+				Vireio_Shader_Private_Data sPrivateData;
+				UINT dwDataSize =  sizeof(sPrivateData);
+				(*(m_ppcVertexShader_11))->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
+				//OutputDebugStringA(m_asShaders[sPrivateData.dwIndex].szCreator);
+			}
+			return nullptr;
+		case METHOD_ID3D11DEVICECONTEXT_VSSETCONSTANTBUFFERS:
+			if (!m_pdwStartSlot_VertexShader) return nullptr;
+			if (!m_pdwNumBuffers_VertexShader) return nullptr;
+			if (!m_pppcConstantBuffers_DX11_VertexShader) return nullptr;
+			if (!*m_pppcConstantBuffers_DX11_VertexShader) return nullptr;
+			if (!**m_pppcConstantBuffers_DX11_VertexShader) return nullptr;
+			
+			// loop through the new buffers
+			for (UINT dwIndex = 0; dwIndex < *m_pdwNumBuffers_VertexShader; dwIndex++)
+			{
+				// get internal index
+				UINT dwInternalIndex = dwIndex+*m_pdwStartSlot_VertexShader;
+				
+				// in range ? set buffer internally 
+				if (dwInternalIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT)
+				{
+					m_apcActiveConstantBuffers11[dwInternalIndex] = ((*m_pppcConstantBuffers_DX11_VertexShader)[dwIndex]);
 
-			Vireio_Shader_Private_Data sPrivateData;
-			UINT dwDataSize =  sizeof(sPrivateData);
-			(*(m_ppcVertexShader_11))->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
-			//OutputDebugStringA(m_asShaders[sPrivateData.dwIndex].szCreator);
+					// has this buffer private data set ? test for private data
+					if (m_apcActiveConstantBuffers11[dwInternalIndex])
+					{
+						Vireio_Shader_Private_Data sPrivateData;
+						UINT dwDataSize =  sizeof(sPrivateData);
+						m_apcActiveConstantBuffers11[dwInternalIndex]->GetPrivateData(PDID_ID3D11Buffer_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
+						if (!dwDataSize)
+							OutputDebugString(L"MatrixModifier: Buffer has NO private data set !");
+					}
+				}
+			}
 			return nullptr;
 		}
 		return nullptr;

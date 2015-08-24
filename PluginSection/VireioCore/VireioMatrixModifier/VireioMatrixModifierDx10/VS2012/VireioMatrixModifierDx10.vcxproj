@@ -155,6 +155,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\..\Include\Vireio_GUIDs.h" />
     <ClInclude Include="..\..\VireioMatrixModifier\AQU_Nodus.h" />
     <ClInclude Include="..\..\VireioMatrixModifier\VireioMatrixModifier.h" />
     <ClInclude Include="..\..\VireioMatrixModifier\Resources.h" />
