@@ -1917,34 +1917,33 @@ bool StereoSplitter::SetDrawingSide(ID3D11DeviceContext* pcContext, RenderPositi
 	if (m_appcActiveConstantBuffers11)
 		if (*m_appcActiveConstantBuffers11)
 		{
-			// DEBUG_HEX(*m_appcActiveConstantBuffers11[0]);
-
-			// has the buffer private data set ?
-			if ((*m_appcActiveConstantBuffers11)[0])
-			{
-				// test for private data
-				Vireio_Shader_Private_Data sPrivateData;
-				UINT dwDataSize = sizeof(sPrivateData);
-				((*m_appcActiveConstantBuffers11)[0])->GetPrivateData(PDID_ID3D11Buffer_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
-				if (!dwDataSize)
+			for (UINT dwIndex = 0; dwIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; dwIndex++)
+				// has the buffer private data set ?
+				if ((*m_appcActiveConstantBuffers11)[dwIndex])
 				{
-					// no data, so set new.. first get active vertex shader
-					ID3D11VertexShader* pcShader = nullptr;
-					pcContext->VSGetShader(&pcShader, NULL, NULL);
-					if (pcShader)
+					// test for private data
+					Vireio_Shader_Private_Data sPrivateData;
+					UINT dwDataSize = sizeof(sPrivateData);
+					((*m_appcActiveConstantBuffers11)[dwIndex])->GetPrivateData(PDID_ID3D11Buffer_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
+					if (!dwDataSize)
 					{
-						dwDataSize = sizeof(sPrivateData);
-						pcShader->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
-
-						if (dwDataSize)
+						// no data, so set new.. first get active vertex shader
+						ID3D11VertexShader* pcShader = nullptr;
+						pcContext->VSGetShader(&pcShader, NULL, NULL);
+						if (pcShader)
 						{
-							// set the ASSOCIATED VERTEX SHADER DATA to the CONSTANT BUFFER
-							((*m_appcActiveConstantBuffers11)[0])->SetPrivateData(PDID_ID3D11Buffer_Vireio_Data, sizeof(sPrivateData), (void*)&sPrivateData);
+							dwDataSize = sizeof(sPrivateData);
+							pcShader->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
+
+							if (dwDataSize)
+							{
+								// set the ASSOCIATED VERTEX SHADER DATA to the CONSTANT BUFFER
+								((*m_appcActiveConstantBuffers11)[dwIndex])->SetPrivateData(PDID_ID3D11Buffer_Vireio_Data, sizeof(sPrivateData), (void*)&sPrivateData);
+							}
+							pcShader->Release();
 						}
-						pcShader->Release();
 					}
 				}
-			}
 		}
 
 	return true;
