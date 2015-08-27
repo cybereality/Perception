@@ -355,6 +355,48 @@ private:
 	* The d3d11 constant buffer vector.
 	***/
 	std::vector<ID3D11Buffer*> m_apcActiveConstantBuffers11;
+
+	/*** Matrix Modifier matrices ***/
+	/**
+	* Projection matrix.
+	***/
+	D3DXMATRIX matProjection;
+	/**
+	* Projection inverse matrix.
+	***/
+	D3DXMATRIX matProjectionInv;
+	/**
+	* The shifted left projection matrix.
+	***/
+	D3DXMATRIX projectLeft;
+	/**
+	* The shifted right projection matrix.
+	***/
+	D3DXMATRIX projectRight;
+	/**
+	* Left matrix used to roll (if roll enabled) and shift view for ipd.
+	***/
+	D3DXMATRIX transformLeft;
+	/**
+	* Right matrix used to roll (if roll enabled) and shift view for ipd.
+	***/
+	D3DXMATRIX transformRight;
+	/**
+	* Left view projection matrix.
+	***/
+	D3DXMATRIX matViewProjLeft;
+	/**
+	* Right view projection matrix.
+	***/
+	D3DXMATRIX matViewProjRight;
+	/**
+	* Left view projection transform matrix.
+	***/
+	D3DXMATRIX matViewProjTransformLeft;
+	/**
+	* Right view projection transform matrix.
+	***/
+	D3DXMATRIX matViewProjTransformRight;
 };
 
 /**

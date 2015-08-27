@@ -75,6 +75,62 @@ MatrixModifier::MatrixModifier() : AQU_Nodus(),
 	// create a new HRESULT pointer
 	m_pvReturn = (void*)new HRESULT();
 
+	// create first matrices.... TODO !! include class from main driver
+	float fAspectRatio = 1920.0f/1080.0f;
+	float n = 0.1f;     /**< Minimum z-value of the view volume. */
+	float f = 10.0f;    /**< Maximum z-value of the view volume. */
+	float l = -0.5f;    /**< Minimum x-value of the view volume. */
+	float r = 0.5f;     /**< Maximum x-value of the view volume. */
+	float t = 0.5f / fAspectRatio;   /**< Minimum y-value of the view volume. */
+	float b = -0.5f / fAspectRatio;  /**< Maximum y-value of the view volume. */
+	D3DXMatrixPerspectiveOffCenterLH(&matProjection, l, r, b, t, n, f);
+	D3DXMatrixInverse(&matProjectionInv, 0, &matProjection);
+
+	// ALL stated in meters here ! screen size = horizontal size
+
+	// assumption here :
+	// end user is placed 1 meter away from screen
+	// end user screen is 1 meter in horizontal size
+	float nearClippingPlaneDistance = 1;
+	float physicalScreenSizeInMeters = 1;
+	float convergence = 3.0f;
+	float ipd = 0.064f;
+
+	// convergence frustum adjustment, based on NVidia explanations
+	//
+	// It is evident that the ratio of frustum shift to the near clipping plane is equal to the ratio of 
+	// IOD/2 to the distance from the screenplane. (IOD=IPD) 
+	// frustumAsymmetryInMeters = ((IPD/2) * nearClippingPlaneDistance) / convergence
+	// <http://www.orthostereo.com/geometryopengl.html>
+	//
+	// (near clipping plane distance = physical screen distance)
+	// (convergence = virtual screen distance)
+	if (convergence <= nearClippingPlaneDistance) convergence = nearClippingPlaneDistance + 0.001f;
+	float frustumAsymmetryInMeters = ((ipd/2) * nearClippingPlaneDistance) / convergence;
+
+	// divide the frustum asymmetry by the assumed physical size of the physical screen
+	float frustumAsymmetryLeftInMeters = (frustumAsymmetryInMeters * -1.0f ) / physicalScreenSizeInMeters;
+	float frustumAsymmetryRightInMeters = (frustumAsymmetryInMeters * 1.0f ) / physicalScreenSizeInMeters;
+
+	// get the horizontal screen space size and compute screen space adjustment
+	float screenSpaceXSize = abs(l)+abs(r);
+	float multiplier = screenSpaceXSize/1; // = 1 meter
+	float frustumAsymmetryLeft = frustumAsymmetryLeftInMeters * multiplier;
+	float frustumAsymmetryRight = frustumAsymmetryRightInMeters * multiplier;
+
+	// now, create the re-projection matrices for both eyes using this frustum asymmetry
+	D3DXMatrixPerspectiveOffCenterLH(&projectLeft, l+frustumAsymmetryLeft, r+frustumAsymmetryLeft, b, t, n, f);
+	D3DXMatrixPerspectiveOffCenterLH(&projectRight, l+frustumAsymmetryRight, r+frustumAsymmetryRight, b, t, n, f);
+
+	// separation settings are overall (HMD and desktop), since they are based on physical IPD
+	float separation = 3.0f;
+	D3DXMatrixTranslation(&transformLeft, separation * -1.0f, 0, 0);
+	D3DXMatrixTranslation(&transformRight, separation * 1.0f, 0, 0);
+
+	// projection transform
+	matViewProjTransformLeft = matProjectionInv * transformLeft * projectLeft;
+	matViewProjTransformRight = matProjectionInv * transformRight * projectRight;
+
 	// create output pointers
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX10_VertexShader] = (void*)&m_apcActiveConstantBuffers11[0];
@@ -747,7 +803,8 @@ bool MatrixModifier::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 		else if (nD3DInterface == INTERFACE_ID3D11DEVICECONTEXT)
 		{
 			if ((nD3DMethod == METHOD_ID3D11DEVICECONTEXT_VSSETSHADER) ||
-				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_VSSETCONSTANTBUFFERS))
+				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_VSSETCONSTANTBUFFERS) ||
+				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_UPDATESUBRESOURCE))
 				return true;
 		}
 		else if (nD3DInterface == INTERFACE_IDXGISWAPCHAIN)
@@ -771,6 +828,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 	case INTERFACE_ID3D11DEVICE:
 		switch (eD3DMethod)
 		{
+#pragma region ID3D11Device::CreateVertexShader
 		case METHOD_ID3D11DEVICE_CREATEVERTEXSHADER:
 			// CreateVertexShader(const void *pShaderBytecode, SIZE_T BytecodeLength, ID3D11ClassLinkage *pClassLinkage, ID3D11VertexShader **ppVertexShader);
 
@@ -912,6 +970,8 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 				nProvokerIndex = -16;
 				return m_pvReturn;
 			}
+#pragma endregion
+#pragma region ID3D11Device::CreateBuffer
 		case METHOD_ID3D11DEVICE_CREATEBUFFER:
 			if (!m_ppsDesc_DX11) return nullptr;
 			if (!m_ppsInitialData_DX11) return nullptr;
@@ -959,11 +1019,139 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 				return m_pvReturn;
 			}
 			else return nullptr;
+#pragma endregion		
 		}
 		return nullptr;
 	case INTERFACE_ID3D11DEVICECONTEXT:
 		switch(eD3DMethod)
 		{
+#pragma region ID3D11DeviceContext::UpdateSubresource
+		case METHOD_ID3D11DEVICECONTEXT_UPDATESUBRESOURCE:
+			if (!m_ppcDstResource_DX11) return nullptr;
+			if (!m_pdwDstSubresource) return nullptr;
+			if (!m_ppsDstBox_DX11) return nullptr;
+			if (!m_ppvSrcData) return nullptr;
+			if (!m_pdwSrcRowPitch) return nullptr;
+			if (!m_pdwSrcDepthPitch) return nullptr;
+			if (!*m_ppcDstResource_DX11) return nullptr;
+			if (!*m_ppvSrcData) return nullptr;
+
+			// is this a buffer ?
+			D3D11_RESOURCE_DIMENSION sDimension;
+			(*m_ppcDstResource_DX11)->GetType(&sDimension);
+			if (sDimension == D3D11_RESOURCE_DIMENSION::D3D11_RESOURCE_DIMENSION_BUFFER)
+			{
+				// is this a constant buffer ?
+				D3D11_BUFFER_DESC sDesc;
+				((ID3D11Buffer*)*m_ppcDstResource_DX11)->GetDesc(&sDesc);
+				if ((sDesc.BindFlags & D3D11_BIND_CONSTANT_BUFFER) == D3D11_BIND_CONSTANT_BUFFER)
+				{
+					// has this buffer private data set ? test for private data
+					Vireio_Constant_Buffer_Private_Data sPrivateData;
+					UINT dwDataSize =  sizeof(sPrivateData);
+					((ID3D11Buffer*)*m_ppcDstResource_DX11)->GetPrivateData(PDID_ID3D11Buffer_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
+#ifdef _DEBUG
+					if (!dwDataSize)
+						OutputDebugString(L"MatrixModifier: Buffer has NO private data set !");
+#endif
+					bool bModified = false;
+					if (dwDataSize)
+					{
+						// assoziated shader data is set ?
+						if (sPrivateData.dwIndexBuffer < m_asShaders[sPrivateData.dwIndex].asBuffers.size())
+						{
+							// loop through the shader constants
+							for (size_t nConstant = 0; nConstant < m_asShaders[sPrivateData.dwIndex].asBuffers[sPrivateData.dwIndexBuffer].asVariables.size(); nConstant++)
+							{
+								// test for projection matrix
+								if (std::strstr(m_asShaders[sPrivateData.dwIndex].asBuffers[sPrivateData.dwIndexBuffer].asVariables[nConstant].szName, "ViewProjectionMatrix"))
+								{
+									D3DXMATRIX sMatrix;
+									if (m_asShaders[sPrivateData.dwIndex].asBuffers[sPrivateData.dwIndexBuffer].asVariables[nConstant].dwSize == sizeof(D3DMATRIX))
+									{
+										// test separation, first get private data interfaces
+										ID3D11Buffer* pcBufferLeft = nullptr;
+										ID3D11Buffer* pcBufferRight = nullptr;
+
+										// get the stereo private data interfaces
+										UINT dwSizeLeft = sizeof(pcBufferLeft);
+										UINT dwSizeRight = sizeof(pcBufferLeft);
+										((ID3D11Buffer*)*m_ppcDstResource_DX11)->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Left, &dwSizeLeft, &pcBufferLeft);
+										((ID3D11Buffer*)*m_ppcDstResource_DX11)->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSizeRight, &pcBufferRight);
+
+										if ((dwSizeLeft) && (dwSizeRight) && (pcBufferLeft) && (pcBufferRight))
+										{
+											// and apply the left and right separation, first get the matrix data and create a second matrix to be modified
+											UINT_PTR pv = (UINT_PTR)(*m_ppvSrcData) + m_asShaders[sPrivateData.dwIndex].asBuffers[sPrivateData.dwIndexBuffer].asVariables[nConstant].dwStartOffset;
+											D3DXMATRIX sMatrix = D3DXMATRIX((CONST FLOAT*)pv);
+											D3DXMATRIX sMatrixModified = D3DXMATRIX(sMatrix);
+
+											// apply left 
+											sMatrixModified = sMatrix * matViewProjTransformLeft *	matProjectionInv * matProjection;
+											memcpy((void*)pv, &sMatrixModified, sizeof(D3DXMATRIX));
+											((ID3D11DeviceContext*)pThis)->UpdateSubresource((ID3D11Resource*)pcBufferLeft, *m_pdwDstSubresource, *m_ppsDstBox_DX11, *m_ppvSrcData, *m_pdwSrcRowPitch, *m_pdwSrcDepthPitch);
+
+											// apply right
+											sMatrixModified = sMatrix * matViewProjTransformRight *	matProjectionInv * matProjection;
+											memcpy((void*)pv, &sMatrixModified, sizeof(D3DXMATRIX));
+											((ID3D11DeviceContext*)pThis)->UpdateSubresource((ID3D11Resource*)pcBufferRight, *m_pdwDstSubresource, *m_ppsDstBox_DX11, *m_ppvSrcData, *m_pdwSrcRowPitch, *m_pdwSrcDepthPitch);
+
+											// set back data
+											memcpy((void*)pv, &sMatrix, sizeof(D3DXMATRIX));
+
+											// set modification bool
+											bModified = true;
+										}
+
+										SAFE_RELEASE(pcBufferLeft);
+										SAFE_RELEASE(pcBufferRight);
+
+										//((ID3D11DeviceContext*)pThis)->UpdateSubresource(*m_ppcDstResource_DX11, *m_pdwDstSubresource, *m_ppsDstBox_DX11, *m_ppvSrcData, *m_pdwSrcRowPitch, *m_pdwSrcDepthPitch);
+
+									}
+									else
+									{
+										OutputDebugString(L"MatrixModifier: Wrong variable size.... NOT the size of a matrix !");
+										wchar_t buf[128];
+										wsprintf(buf, L"This size %u ; Matrix size %u", m_asShaders[sPrivateData.dwIndex].asBuffers[sPrivateData.dwIndexBuffer].asVariables[nConstant].dwSize, sizeof(D3DMATRIX));
+										OutputDebugString(buf);
+										OutputDebugStringA(m_asShaders[sPrivateData.dwIndex].asBuffers[sPrivateData.dwIndexBuffer].asVariables[nConstant].szName);
+									}
+								}
+							}
+
+						}
+#ifdef _DEBUG
+						// TODO !! assoziate another shader here !! buffer not used by this assoziated shader 
+						//else
+						//OutputDebugString(L"MatrixModifier: Constant Buffer data NOT enumerated!");
+#endif
+					}
+					else
+					{
+						ID3D11Buffer* pcBufferLeft = nullptr;
+						ID3D11Buffer* pcBufferRight = nullptr;
+					
+						// get the stereo private data interfaces
+						UINT dwSizeLeft = sizeof(pcBufferLeft);
+						UINT dwSizeRight = sizeof(pcBufferLeft);
+						((ID3D11Buffer*)*m_ppcDstResource_DX11)->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Left, &dwSizeLeft, &pcBufferLeft);
+						((ID3D11Buffer*)*m_ppcDstResource_DX11)->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSizeRight, &pcBufferRight);
+
+						if (pcBufferLeft)
+							((ID3D11DeviceContext*)pThis)->UpdateSubresource((ID3D11Resource*)pcBufferLeft, *m_pdwDstSubresource, *m_ppsDstBox_DX11, *m_ppvSrcData, *m_pdwSrcRowPitch, *m_pdwSrcDepthPitch);
+						if (pcBufferRight)
+							((ID3D11DeviceContext*)pThis)->UpdateSubresource((ID3D11Resource*)pcBufferRight, *m_pdwDstSubresource, *m_ppsDstBox_DX11, *m_ppvSrcData, *m_pdwSrcRowPitch, *m_pdwSrcDepthPitch);
+
+						SAFE_RELEASE(pcBufferLeft);
+						SAFE_RELEASE(pcBufferRight);
+					}
+
+				}
+			}
+			return nullptr;
+#pragma endregion
+#pragma region ID3D11DeviceContext::VSSetShader
 		case METHOD_ID3D11DEVICECONTEXT_VSSETSHADER:
 			if (!m_ppcVertexShader_11) return nullptr;
 			if (!*m_ppcVertexShader_11) return nullptr;
@@ -975,6 +1163,8 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 				//OutputDebugStringA(m_asShaders[sPrivateData.dwIndex].szCreator);
 			}
 			return nullptr;
+#pragma endregion
+#pragma region ID3D11DeviceContext::VSSetConstantBuffers
 		case METHOD_ID3D11DEVICECONTEXT_VSSETCONSTANTBUFFERS:
 			if (!m_pdwStartSlot_VertexShader) return nullptr;
 			if (!m_pdwNumBuffers_VertexShader) return nullptr;
@@ -992,25 +1182,10 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 				if (dwInternalIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT)
 				{
 					m_apcActiveConstantBuffers11[dwInternalIndex] = ((*m_pppcConstantBuffers_DX11_VertexShader)[dwIndex]);
-
-					// has this buffer private data set ? test for private data
-					if (m_apcActiveConstantBuffers11[dwInternalIndex])
-					{
-						Vireio_Shader_Private_Data sPrivateData;
-						UINT dwDataSize =  sizeof(sPrivateData);
-						m_apcActiveConstantBuffers11[dwInternalIndex]->GetPrivateData(PDID_ID3D11Buffer_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
-#ifdef _DEBUG
-						if (!dwDataSize)
-							OutputDebugString(L"MatrixModifier: Buffer has NO private data set !");
-#endif
-						if (dwDataSize)
-						{
-							// TODO !! GET THE CONSTANT TABLE DESC AND SET AS PRIVATE DATA
-						}
-					}
 				}
 			}
 			return nullptr;
+#pragma endregion
 		}
 		return nullptr;
 	}

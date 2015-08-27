@@ -111,3 +111,16 @@ struct Vireio_Shader_Private_Data
 	UINT dwHash;   /**< The shader hash code. ***/
 	UINT dwIndex;  /**< The shader description index. ***/
 };
+
+/**
+* Vireio constant buffer private data field.
+* Short data field directly set to the buffer interface.
+* Contains only shader hash, shader description index
+* and the index of the buffer set in active buffers.
+***/
+struct Vireio_Constant_Buffer_Private_Data
+{
+	UINT dwHash;        /**< The shader hash code. ***/
+	UINT dwIndex;       /**< The shader description index. ***/
+	UINT dwIndexBuffer; /**< The index of the buffer set. ***/
+};

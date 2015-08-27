@@ -1922,7 +1922,7 @@ bool StereoSplitter::SetDrawingSide(ID3D11DeviceContext* pcContext, RenderPositi
 				if ((*m_appcActiveConstantBuffers11)[dwIndex])
 				{
 					// test for private data
-					Vireio_Shader_Private_Data sPrivateData;
+					Vireio_Constant_Buffer_Private_Data sPrivateData;
 					UINT dwDataSize = sizeof(sPrivateData);
 					((*m_appcActiveConstantBuffers11)[dwIndex])->GetPrivateData(PDID_ID3D11Buffer_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
 					if (!dwDataSize)
@@ -1932,17 +1932,33 @@ bool StereoSplitter::SetDrawingSide(ID3D11DeviceContext* pcContext, RenderPositi
 						pcContext->VSGetShader(&pcShader, NULL, NULL);
 						if (pcShader)
 						{
-							dwDataSize = sizeof(sPrivateData);
-							pcShader->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
+							Vireio_Shader_Private_Data sPrivateDataShader;
+							dwDataSize = sizeof(sPrivateDataShader);
+							pcShader->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateDataShader);
 
 							if (dwDataSize)
 							{
-								// set the ASSOCIATED VERTEX SHADER DATA to the CONSTANT BUFFER
+								// set the private constant buffer data
+								sPrivateData.dwHash = sPrivateDataShader.dwHash;
+								sPrivateData.dwIndex = sPrivateDataShader.dwIndex;
+								sPrivateData.dwIndexBuffer = dwIndex;
 								((*m_appcActiveConstantBuffers11)[dwIndex])->SetPrivateData(PDID_ID3D11Buffer_Vireio_Data, sizeof(sPrivateData), (void*)&sPrivateData);
 							}
 							pcShader->Release();
 						}
 					}
+
+					// get the private data interfaces and set the current drawing side
+					ID3D11Buffer* pcBuffer = nullptr;
+					UINT dwSize = sizeof(pcBuffer);
+					if (eSide == RenderPosition::Left)
+						((*m_appcActiveConstantBuffers11)[dwIndex])->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Left, &dwSize, (void*)&pcBuffer);
+					else
+						((*m_appcActiveConstantBuffers11)[dwIndex])->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcBuffer);
+
+					// TODO !! eventually set all buffers in one call
+					if (pcBuffer)
+						pcContext->VSSetConstantBuffers(dwIndex, 1, &pcBuffer);
 				}
 		}
 
