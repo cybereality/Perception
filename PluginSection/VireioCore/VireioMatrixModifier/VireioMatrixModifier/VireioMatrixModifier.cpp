@@ -85,6 +85,9 @@ MatrixModifier::MatrixModifier() : AQU_Nodus()
 	D3DXMatrixPerspectiveOffCenterLH(&matProjection, l, r, b, t, n, f);
 	D3DXMatrixInverse(&matProjectionInv, 0, &matProjection);
 
+	// drawing side set to left... changed only in VireioStereioSplitter::SetDrawingSide()
+	m_eCurrentRenderingSide = RenderPosition::Left;
+
 	// ALL stated in meters here ! screen size = horizontal size
 
 	// assumption here :
@@ -211,6 +214,8 @@ LPWSTR MatrixModifier::GetCommanderName(DWORD dwCommanderIndex)
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	switch ((STS_Commanders)dwCommanderIndex)
 	{
+	case eDrawingSide:
+		return L"Stereo Drawing Side";
 	case ppActiveConstantBuffers_DX10_VertexShader:
 		return L"ppConstantBuffers_DX10_VS";
 	case ppActiveConstantBuffers_DX11_VertexShader:
@@ -381,6 +386,8 @@ DWORD MatrixModifier::GetCommanderType(DWORD dwCommanderIndex)
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	switch ((STS_Commanders)dwCommanderIndex)
 	{
+	case eDrawingSide:
+		return INT_PLUG_TYPE;
 	case ppActiveConstantBuffers_DX10_VertexShader:
 		return PPNT_ID3D10BUFFER_PLUG_TYPE;
 	case ppActiveConstantBuffers_DX11_VertexShader:
@@ -551,6 +558,9 @@ void* MatrixModifier::GetOutputPointer(DWORD dwCommanderIndex)
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	switch ((STS_Commanders)dwCommanderIndex)
 	{
+	case eDrawingSide:
+		return (void*)&m_eCurrentRenderingSide;
+		break;
 	case ppActiveConstantBuffers_DX10_VertexShader:
 		break;
 	case ppActiveConstantBuffers_DX11_VertexShader:
@@ -1138,10 +1148,67 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					}
 				}
 			}
+
+			// get a copy of the active buffers
+			std::vector<ID3D11Buffer*> apcActiveConstantBuffers11 = std::vector<ID3D11Buffer*>(m_apcActiveConstantBuffers11);
+
+			// loop through the new buffers
+			for (UINT dwIndex = 0; dwIndex < *m_pdwNumBuffers_VertexShader; dwIndex++)
+			{
+				// get internal index
+				UINT dwInternalIndex = dwIndex+*m_pdwStartSlot_VertexShader;
+
+				// in range ? 
+				if (dwInternalIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT)
+				{
+					if ((m_apcActiveConstantBuffers11)[dwInternalIndex])
+					{
+						// get the private data interfaces and set the current drawing side
+						ID3D11Buffer* pcBuffer = nullptr;
+						UINT dwSize = sizeof(pcBuffer);
+						if (m_eCurrentRenderingSide == RenderPosition::Left)
+							m_apcActiveConstantBuffers11[dwInternalIndex]->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Left, &dwSize, (void*)&pcBuffer);
+						else
+							m_apcActiveConstantBuffers11[dwInternalIndex]->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcBuffer);
+
+						if (pcBuffer)
+						{
+							apcActiveConstantBuffers11[dwInternalIndex] = pcBuffer;					
+
+							// "If the data returned is a pointer to an IUnknown, or one of its derivative classes,
+							// previously set by IDXGIObject::SetPrivateDataInterface, you must call::Release() on 
+							// the pointer before the pointer is freed to decrement the reference count." (Microsoft)
+							pcBuffer->Release();
+						}
+					}
+				}
+			}
+
+			// call super method
+			((ID3D11DeviceContext*)pThis)->VSSetConstantBuffers(*m_pdwStartSlot_VertexShader,
+				*m_pdwNumBuffers_VertexShader,
+				(ID3D11Buffer**)&m_apcActiveConstantBuffers11[*m_pdwStartSlot_VertexShader]);
+
+			// method replaced, immediately return (= behavior -16)
+			nProvokerIndex = -16;
 			return nullptr;
+#pragma endregion
+#pragma region ID3D11DeviceContext::VSGetConstantBuffers
+			// ID3D11DeviceContext::VSGetConstantBuffers(UINT StartSlot, UINT NumBuffers, ID3D11Buffer **ppConstantBuffers);
+			// return a poiner to the active constant buffers
+#pragma endregion
+#pragma region ID3D11DeviceContext::PSGetConstantBuffers
+			// ID3D11DeviceContext::PSGetConstantBuffers(UINT StartSlot, UINT NumBuffers, ID3D11Buffer **ppConstantBuffers);
+			// return a poiner to the active constant buffers
 #pragma endregion
 		}
 		return nullptr;
+#pragma region ID3D10Device::VSGetConstantBuffers
+		// ID3D10Device::VSGetConstantBuffers(UINT StartSlot, UINT NumBuffers, ID3D10Buffer **ppConstantBuffers);
+#pragma endregion
+#pragma region ID3D10Device::PSGetConstantBuffers
+		// ID3D10Device::PSGetConstantBuffers(UINT StartSlot, UINT NumBuffers, ID3D10Buffer **ppConstantBuffers);
+#pragma endregion
 	}
 #elif defined(VIREIO_D3D9)
 #endif
@@ -1161,7 +1228,7 @@ void MatrixModifier::UpdateConstantBuffer(ID3D11DeviceContext* pcContext, ID3D11
 	// first get the current shader data
 	Vireio_Shader_Private_Data sPrivateData;
 	UINT dwDataSize = sizeof(sPrivateData);
-	
+
 	if (m_pcActiveVertexShader11)
 		m_pcActiveVertexShader11->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
 	else return;
