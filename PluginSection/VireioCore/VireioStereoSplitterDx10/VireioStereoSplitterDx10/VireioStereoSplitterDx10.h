@@ -153,33 +153,33 @@ enum D3DVersion
 	Direct3D11,
 };
 
-/**
-* Vireio shader private data field.
-* Short data field directly set to the shader interface.
-* Contains only shader hash and shader description index.
-* (from MatrixModifier node to assoziate the shader to 
-* the constant buffer)
-***/
-struct Vireio_Shader_Private_Data
-{
-	UINT dwHash;   /**< The shader hash code. ***/
-	UINT dwIndex;  /**< The shader description index. ***/
-};
-
-/**
-* Vireio constant buffer private data field.
-* Short data field directly set to the buffer interface.
-* Contains only shader hash, shader description index
-* and the index of the buffer set in active buffers.
-* (from MatrixModifier node to assoziate the shader to
-* the constant buffer)
-***/
-struct Vireio_Constant_Buffer_Private_Data
-{
-	UINT dwHash;        /**< The shader hash code. ***/
-	UINT dwIndex;       /**< The shader description index. ***/
-	UINT dwIndexBuffer; /**< The index of the buffer set. ***/
-};
+///**
+//* Vireio shader private data field.
+//* Short data field directly set to the shader interface.
+//* Contains only shader hash and shader description index.
+//* (from MatrixModifier node to assoziate the shader to 
+//* the constant buffer)
+//***/
+//struct Vireio_Shader_Private_Data
+//{
+//	UINT dwHash;   /**< The shader hash code. ***/
+//	UINT dwIndex;  /**< The shader description index. ***/
+//};
+//
+///**
+//* Vireio constant buffer private data field.
+//* Short data field directly set to the buffer interface.
+//* Contains only shader hash, shader description index
+//* and the index of the buffer set in active buffers.
+//* (from MatrixModifier node to assoziate the shader to
+//* the constant buffer)
+//***/
+//struct Vireio_Constant_Buffer_Private_Data
+//{
+//	UINT dwHash;        /**< The shader hash code. ***/
+//	UINT dwIndex;       /**< The shader description index. ***/
+//	UINT dwIndexBuffer; /**< The index of the buffer set. ***/
+//};
 
 /**
 * Vireio Stereo Splitter Node Plugin (Direct3D 9).

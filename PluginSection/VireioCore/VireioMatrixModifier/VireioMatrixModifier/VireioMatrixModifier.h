@@ -271,7 +271,12 @@ public:
 	void* m_pvReturn;
 
 private:
+
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	/*** MatrixModifier private methods ***/
+	void UpdateConstantBuffer(ID3D11DeviceContext* pcContext, ID3D11Resource *pcDstResource, UINT dwDstSubresource, const D3D11_BOX *psDstBox, const void *pvSrcData, UINT dwSrcRowPitch, UINT dwSrcDepthPitch, UINT dwBufferIndex, UINT dwBufferSize);
+#elif defined(VIREIO_D3D9)
+#endif
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	/*** MatrixModifier input pointers ***/
@@ -327,8 +332,35 @@ private:
 	D3D10_BOX** m_ppsSrcBox_DX10;
 	D3D10_BOX** m_ppsSrcBox_DX11;
 
-	/*** MatrixModifier output pointers ***/
+	/*** 
+	* MatrixModifier output pointers 
+	***/
 	void* m_pvOutput[NUMBER_OF_COMMANDERS];
+	/**
+	* The d3d11 shader description vector.
+	* Contains all enumerated shader data structures.
+	***/
+	std::vector<Vireio_D3D11_Shader> m_asShaders;
+	/**
+	* The d3d11 constant buffer vector.
+	***/
+	std::vector<ID3D11Buffer*> m_apcActiveConstantBuffers11;
+	/**
+	* The active vertex shader.
+	***/
+	union
+	{
+		ID3D10VertexShader* m_pcActiveVertexShader10;
+		ID3D11VertexShader* m_pcActiveVertexShader11;
+	};
+	/**
+	* Constant Buffer private data buffer.
+	***/
+	union
+	{
+		BYTE m_pchBuffer10[D3D10_REQ_CONSTANT_BUFFER_ELEMENT_COUNT];
+		BYTE m_pchBuffer11[D3D11_REQ_CONSTANT_BUFFER_ELEMENT_COUNT];
+	};
 
 #elif defined(VIREIO_D3D9)
 	/*** MatrixModifier input pointers ***/
@@ -345,16 +377,6 @@ private:
 	float** m_ppfConstantData_PixelShader;
 	UINT* m_pdwVector4fCount_PixelShader;
 #endif
-
-	/**
-	* The d3d11 shader description vector.
-	* Contains all enumerated shader data structures.
-	***/
-	std::vector<Vireio_D3D11_Shader> m_asShaders;
-	/**
-	* The d3d11 constant buffer vector.
-	***/
-	std::vector<ID3D11Buffer*> m_apcActiveConstantBuffers11;
 
 	/*** Matrix Modifier matrices ***/
 	/**

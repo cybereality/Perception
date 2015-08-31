@@ -757,6 +757,32 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						ID3D11DepthStencilView* pcDepthStencilView = nullptr;
 						if (m_ppcDepthStencilView_DX11) pcDepthStencilView = (ID3D11DepthStencilView*)*m_ppcDepthStencilView_DX11; else pcDepthStencilView = nullptr;
 
+						// switch constant buffers to left side
+						if (m_appcActiveConstantBuffers11)
+							if (*m_appcActiveConstantBuffers11)
+							{
+								// loop through the buffers
+								for (UINT dwIndex = 0; dwIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; dwIndex++)
+									if ((*m_appcActiveConstantBuffers11)[dwIndex])
+									{
+										// get the private data interfaces and set the current drawing side
+										ID3D11Buffer* pcBuffer = nullptr;
+										UINT dwSize = sizeof(pcBuffer);
+										((*m_appcActiveConstantBuffers11)[dwIndex])->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Left, &dwSize, (void*)&pcBuffer);
+
+										// TODO !! eventually set all buffers in one call
+										if (pcBuffer)
+										{
+											((ID3D11DeviceContext*)pThis)->VSSetConstantBuffers(dwIndex, 1, &pcBuffer);
+
+											// "If the data returned is a pointer to an IUnknown, or one of its derivative classes,
+											// previously set by IDXGIObject::SetPrivateDataInterface, you must call::Release() on 
+											// the pointer before the pointer is freed to decrement the reference count." (Microsoft)
+											pcBuffer->Release();
+										}
+									}
+							}
+
 						// call method
 						OMSetRenderTargets(dwNumViews, (IUnknown**)ppcRenderTargetViews, (IUnknown*)pcDepthStencilView);
 					}
@@ -773,6 +799,32 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						if (m_pppcRenderTargetViewsUAV_DX11) ppcRenderTargetViews = (ID3D11RenderTargetView**)*m_pppcRenderTargetViewsUAV_DX11; else ppcRenderTargetViews = nullptr;
 						ID3D11DepthStencilView* pcDepthStencilView = nullptr;
 						if (m_ppcDepthStencilViewUAV_DX11) pcDepthStencilView = (ID3D11DepthStencilView*)*m_ppcDepthStencilViewUAV_DX11; else pcDepthStencilView = nullptr;
+
+						// switch constant buffers to left side
+						if (m_appcActiveConstantBuffers11)
+							if (*m_appcActiveConstantBuffers11)
+							{
+								// loop through the buffers
+								for (UINT dwIndex = 0; dwIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; dwIndex++)
+									if ((*m_appcActiveConstantBuffers11)[dwIndex])
+									{
+										// get the private data interfaces and set the current drawing side
+										ID3D11Buffer* pcBuffer = nullptr;
+										UINT dwSize = sizeof(pcBuffer);
+										((*m_appcActiveConstantBuffers11)[dwIndex])->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Left, &dwSize, (void*)&pcBuffer);
+
+										// TODO !! eventually set all buffers in one call
+										if (pcBuffer)
+										{
+											((ID3D11DeviceContext*)pThis)->VSSetConstantBuffers(dwIndex, 1, &pcBuffer);
+
+											// "If the data returned is a pointer to an IUnknown, or one of its derivative classes,
+											// previously set by IDXGIObject::SetPrivateDataInterface, you must call::Release() on 
+											// the pointer before the pointer is freed to decrement the reference count." (Microsoft)
+											pcBuffer->Release();
+										}
+									}
+							}
 
 						// call method
 						OMSetRenderTargets(dwNumViews, (IUnknown**)ppcRenderTargetViews, (IUnknown*)pcDepthStencilView);
@@ -1887,7 +1939,8 @@ bool StereoSplitter::SetDrawingSide(ID3D11DeviceContext* pcContext, RenderPositi
 	// switch render targets to new eSide
 	HRESULT hr = S_OK;
 	if (eSide == RenderPosition::Left)
-		pcContext->OMSetRenderTargets(m_dwRenderTargetNumber, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews[0], (ID3D11DepthStencilView*)m_pcActiveDepthStencilView);
+		pcContext->OMSetRenderTargets(m_dwRenderTargetNumber, (ID3D11RenderTargetView**)&m_apcActiveStereoTwinViews[0], (ID3D11DepthStencilView*)m_pcActiveStereoTwinDepthStencilView);
+	//pcContext->OMSetRenderTargets(m_dwRenderTargetNumber, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews[0], (ID3D11DepthStencilView*)m_pcActiveDepthStencilView);
 	else
 		pcContext->OMSetRenderTargets(m_dwRenderTargetNumber, (ID3D11RenderTargetView**)&m_apcActiveStereoTwinViews[0], (ID3D11DepthStencilView*)m_pcActiveStereoTwinDepthStencilView);
 
@@ -1917,37 +1970,10 @@ bool StereoSplitter::SetDrawingSide(ID3D11DeviceContext* pcContext, RenderPositi
 	if (m_appcActiveConstantBuffers11)
 		if (*m_appcActiveConstantBuffers11)
 		{
+			// loop through the buffers
 			for (UINT dwIndex = 0; dwIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; dwIndex++)
-				// has the buffer private data set ?
 				if ((*m_appcActiveConstantBuffers11)[dwIndex])
 				{
-					// test for private data
-					Vireio_Constant_Buffer_Private_Data sPrivateData;
-					UINT dwDataSize = sizeof(sPrivateData);
-					((*m_appcActiveConstantBuffers11)[dwIndex])->GetPrivateData(PDID_ID3D11Buffer_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
-					if (!dwDataSize)
-					{
-						// no data, so set new.. first get active vertex shader
-						ID3D11VertexShader* pcShader = nullptr;
-						pcContext->VSGetShader(&pcShader, NULL, NULL);
-						if (pcShader)
-						{
-							Vireio_Shader_Private_Data sPrivateDataShader;
-							dwDataSize = sizeof(sPrivateDataShader);
-							pcShader->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateDataShader);
-
-							if (dwDataSize)
-							{
-								// set the private constant buffer data
-								sPrivateData.dwHash = sPrivateDataShader.dwHash;
-								sPrivateData.dwIndex = sPrivateDataShader.dwIndex;
-								sPrivateData.dwIndexBuffer = dwIndex;
-								((*m_appcActiveConstantBuffers11)[dwIndex])->SetPrivateData(PDID_ID3D11Buffer_Vireio_Data, sizeof(sPrivateData), (void*)&sPrivateData);
-							}
-							pcShader->Release();
-						}
-					}
-
 					// get the private data interfaces and set the current drawing side
 					ID3D11Buffer* pcBuffer = nullptr;
 					UINT dwSize = sizeof(pcBuffer);
@@ -1958,7 +1984,14 @@ bool StereoSplitter::SetDrawingSide(ID3D11DeviceContext* pcContext, RenderPositi
 
 					// TODO !! eventually set all buffers in one call
 					if (pcBuffer)
+					{
 						pcContext->VSSetConstantBuffers(dwIndex, 1, &pcBuffer);
+
+						// "If the data returned is a pointer to an IUnknown, or one of its derivative classes,
+						// previously set by IDXGIObject::SetPrivateDataInterface, you must call::Release() on 
+						// the pointer before the pointer is freed to decrement the reference count." (Microsoft)
+						pcBuffer->Release();
+					}
 				}
 		}
 
