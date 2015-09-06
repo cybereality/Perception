@@ -38,8 +38,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"%u", a); OutputDebugString(buf); }
-#define DEBUG_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"%x", a); OutputDebugString(buf); }
+#define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"- %u", a); OutputDebugString(buf); }
+#define DEBUG_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"- %x", a); OutputDebugString(buf); }
 
 #include"VireioStereoSplitterDx10.h"
 
@@ -604,7 +604,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 	// set node behavior to "double call" for this method
 	// node that this is only supported by drawing methods
 	nProvokerIndex = -1;
-
+	
 	switch (eD3DInterface)
 	{
 #pragma region ID3D10DEVICE
@@ -1765,12 +1765,14 @@ void StereoSplitter::OMSetRenderTargets(UINT NumViews, IUnknown *const *ppRender
 	// set the number of render targets set
 	// for DX10 and DX11 all render targets above this number are set to NULL
 	m_dwRenderTargetNumber = (DWORD)NumViews;
+	if (m_dwRenderTargetNumber > D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT)
+		m_dwRenderTargetNumber = D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT;
 
 	// drawing side is automatically set to "left"
 	SetDrawingSideField(RenderPosition::Left);
 
 	// set the render target internally
-	if (NumViews < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT)
+	if (NumViews <= D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT)
 	{
 		// set NULL manually, otherwise just set the render target :
 		if (!ppRenderTargetViews)
