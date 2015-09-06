@@ -90,7 +90,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define PPNT_ID3D11RENDERTARGETVIEW                12026
 
 #define NUMBER_OF_COMMANDERS                           2
-#define NUMBER_OF_DECOMMANDERS                         20
+#define NUMBER_OF_DECOMMANDERS                         21
 
 /**
 * Node Commander Enumeration.
@@ -127,10 +127,11 @@ enum STS_Decommanders
 	Depth,                                                 /** Clear the depth buffer with this value. This value will be clamped between 0 and 1. */
 	Stencil,                                               /** Clear the stencil buffer with this value. */
 	/*** Active constant buffers ***/
-	ppActiveConstantBuffers_DX10_VertexShader,
-	ppActiveConstantBuffers_DX11_VertexShader, 
-	ppActiveConstantBuffers_DX10_PixelShader,
-	ppActiveConstantBuffers_DX11_PixelShader,
+	eDrawingSide,                                          /**< Left/Right drawing side enumeration. Switches once per draw call ***/
+	ppActiveConstantBuffers_DX10_VertexShader,             /**< Active D3D10 vertex shader constant buffers ***/
+	ppActiveConstantBuffers_DX11_VertexShader,             /**< Active D3D11 vertex shader constant buffers ***/
+	ppActiveConstantBuffers_DX10_PixelShader,              /**< Active D3D10 pixel shader constant buffers ***/
+	ppActiveConstantBuffers_DX11_PixelShader,              /**< Active D3D11 pixel shader constant buffers ***/
 };
 
 /**
@@ -152,34 +153,6 @@ enum D3DVersion
 	Direct3D10,
 	Direct3D11,
 };
-
-///**
-//* Vireio shader private data field.
-//* Short data field directly set to the shader interface.
-//* Contains only shader hash and shader description index.
-//* (from MatrixModifier node to assoziate the shader to 
-//* the constant buffer)
-//***/
-//struct Vireio_Shader_Private_Data
-//{
-//	UINT dwHash;   /**< The shader hash code. ***/
-//	UINT dwIndex;  /**< The shader description index. ***/
-//};
-//
-///**
-//* Vireio constant buffer private data field.
-//* Short data field directly set to the buffer interface.
-//* Contains only shader hash, shader description index
-//* and the index of the buffer set in active buffers.
-//* (from MatrixModifier node to assoziate the shader to
-//* the constant buffer)
-//***/
-//struct Vireio_Constant_Buffer_Private_Data
-//{
-//	UINT dwHash;        /**< The shader hash code. ***/
-//	UINT dwIndex;       /**< The shader description index. ***/
-//	UINT dwIndexBuffer; /**< The index of the buffer set. ***/
-//};
 
 /**
 * Vireio Stereo Splitter Node Plugin (Direct3D 9).
@@ -229,6 +202,7 @@ private:
 	void                    MonitorView(IUnknown* pcView);
 	bool                    SetDrawingSide(ID3D10Device* pcDevice, RenderPosition side);
 	bool                    SetDrawingSide(ID3D11DeviceContext* pcContext, RenderPosition side);
+	void                    SetDrawingSideField(RenderPosition eSide) { m_eCurrentRenderingSide = eSide; if (m_peDrawingSide) *m_peDrawingSide = eSide; }
 
 	/**
 	* Input pointers.
@@ -249,6 +223,7 @@ private:
 	UINT* m_pdwClearFlags;                                            /** Identify the type of data to clear */
 	FLOAT* m_pfDepth;                                                 /** Clear the depth buffer with this value. This value will be clamped between 0 and 1. */
 	UINT8* m_pchStencil;                                              /** Clear the stencil buffer with this value. */
+	RenderPosition* m_peDrawingSide;                                  /** Pointer to the extern drawing side bool. The extern bool will be updated depending on m_eCurrentRenderingSide ***/
 	ID3D11Buffer*** m_appcActiveConstantBuffers11;                    /** The d3d11 constant buffer array. ***/
 
 	/**
@@ -423,22 +398,6 @@ private:
 	* The used Direct3D version.
 	***/
 	D3DVersion m_eD3DVersion;
-	/**
-	* The output texture (left). TO BE MOVED TO PRESENTER
-	***/
-	//LPDIRECT3DTEXTURE9 m_pcStereoOutputLeft;
-	/**
-	* The output texture (right).
-	***/
-	//LPDIRECT3DTEXTURE9 m_pcStereoOutputRight;
-	/**
-	* The output surface (left).
-	***/
-	//LPDIRECT3DSURFACE9 m_pcStereoOutputSurfaceLeft;
-	/**
-	* The output surface (right).
-	***/
-	//LPDIRECT3DSURFACE9 m_pcStereoOutputSurfaceRight;
 
 
 	/*** Optional draw operation fields ***/

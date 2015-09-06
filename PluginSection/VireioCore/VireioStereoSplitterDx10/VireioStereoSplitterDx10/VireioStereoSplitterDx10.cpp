@@ -60,6 +60,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define METHOD_ID3D10DEVICE_CLEARDEPTHSTENCILVIEW                            36
 #define METHOD_ID3D10DEVICE_OMGETRENDERTARGETS                               56
 #define METHOD_ID3D10DEVICE_CLEARSTATE                                       69
+#define METHOD_ID3D11DEVICECONTEXT_PSSETSHADERRESOURCES                       8
 #define METHOD_ID3D11DEVICECONTEXT_DRAWINDEXED                               12
 #define METHOD_ID3D11DEVICECONTEXT_DRAW                                      13
 #define METHOD_ID3D11DEVICECONTEXT_DRAWINDEXEDINSTANCED                      20
@@ -116,7 +117,8 @@ m_pcVertexLayout10(nullptr),
 m_pcVertexBuffer10(nullptr),
 m_pcConstantBufferDirect10(nullptr),
 m_eCurrentRenderingSide(RenderPosition::Left),
-m_appcActiveConstantBuffers11(nullptr)
+m_appcActiveConstantBuffers11(nullptr),
+m_peDrawingSide(nullptr)
 {
 	m_pcTexView10[0] = nullptr;
 	m_pcTexView10[1] = nullptr;
@@ -249,6 +251,11 @@ HBITMAP StereoSplitter::GetControl()
 			TextOut(hdcImage, 50, nY, L"ClearFlags", 9); nY += 64;
 			TextOut(hdcImage, 50, nY, L"Depth", 5); nY += 64;
 			TextOut(hdcImage, 50, nY, L"Stencil", 7); nY += 64;
+			TextOut(hdcImage, 50, nY, L"Stereo Drawing Side", 19); nY += 64;
+			TextOut(hdcImage, 50, nY, L"ppActiveConstantBuffers_DX10_VS", 31); nY += 64;
+			TextOut(hdcImage, 50, nY, L"ppActiveConstantBuffers_DX11_VS", 31); nY += 64;
+			TextOut(hdcImage, 50, nY, L"ppActiveConstantBuffers_DX10_PS", 31); nY += 64;
+			TextOut(hdcImage, 50, nY, L"ppActiveConstantBuffers_DX11_PS", 31); nY += 64;
 			TextOut(hdcImage, 600, nY, L"Left Texture", 12); nY += 64;
 			TextOut(hdcImage, 600, nY, L"Right Texture", 13); nY += 128;
 
@@ -374,6 +381,8 @@ LPWSTR StereoSplitter::GetDecommanderName(DWORD dwDecommanderIndex)
 			return L"Depth";
 		case Stencil:
 			return L"Stencil";
+		case eDrawingSide:
+			return L"Stereo Drawing Side";
 		case ppActiveConstantBuffers_DX10_VertexShader:
 			return L"ppConstantBuffers_DX10_VS";
 		case ppActiveConstantBuffers_DX11_VertexShader:
@@ -436,6 +445,8 @@ DWORD StereoSplitter::GetDecommanderType(DWORD dwDecommanderIndex)
 			return FLOAT_PLUG_TYPE;
 		case Stencil:
 			return BYTE_PLUG_TYPE;
+		case eDrawingSide:
+			return INT_PLUG_TYPE;
 		case ppActiveConstantBuffers_DX10_VertexShader:
 			return PPNT_ID3D10BUFFER_PLUG_TYPE;
 		case ppActiveConstantBuffers_DX11_VertexShader:
@@ -523,6 +534,9 @@ void StereoSplitter::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 		case Stencil:
 			m_pchStencil = (UINT8*)pData;                                               /** Clear the stencil buffer with this value. */
 			break;
+		case eDrawingSide:
+			m_peDrawingSide = (RenderPosition*)pData;
+			break;
 		case ppActiveConstantBuffers_DX10_VertexShader:
 			break;
 		case ppActiveConstantBuffers_DX11_VertexShader:
@@ -554,6 +568,7 @@ bool StereoSplitter::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 		else if (nD3DInterface == INTERFACE_ID3D11DEVICECONTEXT)
 		{
 			if ((nD3DMethod == METHOD_ID3D11DEVICECONTEXT_OMSETRENDERTARGETS) ||
+				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_PSSETSHADERRESOURCES) ||
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_DRAWINDEXED) ||
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_DRAW) ||
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_DRAWINDEXEDINSTANCED) ||
@@ -592,6 +607,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 	switch (eD3DInterface)
 	{
+#pragma region ID3D10DEVICE
 		case INTERFACE_ID3D10DEVICE:
 			switch (eD3DMethod)
 			{
@@ -614,10 +630,94 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					return nullptr;
 			}
 			return nullptr;
-
+#pragma endregion
+#pragma region ID3D11DEVICECONTEXT
 		case INTERFACE_ID3D11DEVICECONTEXT:
 			switch (eD3DMethod)
 			{
+#pragma region PSSETSHADERRESOURCES
+				case METHOD_ID3D11DEVICECONTEXT_PSSETSHADERRESOURCES:
+					// TODO !! IMPLEMENT !!
+
+					/*void StereoSplitter::SetTexture(IDirect3DDevice9* pcDevice, DWORD Stage,IDirect3DBaseTexture9* pcTexture)
+					{
+					// set the texture internally
+					if (Stage < MAX_SIMULTANEOUS_TEXTURES_D3D9)
+					{
+					// set NULL manually, otherwise just set the render target :
+					if (!pcTexture)
+					{
+					m_apcActiveTextures[Stage] = NULL;
+
+					// set number of textures
+					m_dwTextureNumber = 0;
+					for(std::vector<IDirect3DSurface9*>::size_type i = 0; i < m_apcActiveTextures.size(); i++)
+					if (m_apcActiveTextures[i] != NULL) m_dwTextureNumber = (DWORD)i + 1;
+					}
+					else
+					{
+					m_apcActiveTextures[Stage] = pcTexture;
+
+					// set number of textures
+					if (Stage >= m_dwTextureNumber) m_dwTextureNumber = Stage + 1;
+					}
+					}
+					else return;
+
+					// set NULL twin if NULL
+					if (!pcTexture)
+					m_apcActiveStereoTwinTextures[Stage] = NULL;
+					else
+					{
+					// get the surface
+					IDirect3DSurface9* pcSurface = nullptr;
+					D3DRESOURCETYPE type = pcTexture->GetType();
+					switch (type)
+					{
+					case D3DRTYPE_TEXTURE:
+					{
+					IDirect3DTexture9* pcDerivedTexture = static_cast<IDirect3DTexture9*> (pcTexture);
+					pcDerivedTexture->GetSurfaceLevel(0, &pcSurface);
+					break;
+					}
+					case D3DRTYPE_VOLUMETEXTURE:
+					{
+					IDirect3DVolumeTexture9* pDerivedTexture = static_cast<IDirect3DVolumeTexture9*> (pcTexture);
+					// TODO !! handle volume textures
+					break;
+					}
+					case D3DRTYPE_CUBETEXTURE:
+					{
+					IDirect3DCubeTexture9* pDerivedTexture = static_cast<IDirect3DCubeTexture9*> (pcTexture);
+					// TODO !! handle cube textures
+					break;
+					}
+					}
+
+					// set twin texture, if monitored
+					int nIndex = CheckIfMonitored(pcSurface);
+					if (nIndex == -1)
+					{
+					// set stereo texture to null meanwhile
+					m_apcActiveStereoTwinTextures[Stage] = NULL;
+					}
+					else
+					{
+					// set twin surface if twin in created
+					if (nIndex < (int)m_apcStereoTwinTextures.size())
+					// set twin surface
+					m_apcActiveStereoTwinTextures[Stage] = m_apcStereoTwinTextures[nIndex];
+					else
+					// set stereo texture to null meanwhile
+					m_apcActiveStereoTwinTextures[Stage] = NULL;
+					}
+					}
+
+					m_bControlUpdate = true;
+					}*/
+					return nullptr;
+#pragma endregion
+#pragma region DRAWINDEXED
 				case METHOD_ID3D11DEVICECONTEXT_DRAWINDEXED:
 					// switch the drawing side before the second draw call is done
 					if (m_eCurrentRenderingSide == RenderPosition::Left)
@@ -626,6 +726,8 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Left);
 
 					return nullptr;
+#pragma endregion
+#pragma region DRAW
 				case METHOD_ID3D11DEVICECONTEXT_DRAW:
 					// switch the drawing side before the second draw call is done
 					if (m_eCurrentRenderingSide == RenderPosition::Left)
@@ -634,6 +736,8 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Left);
 
 					return nullptr;
+#pragma endregion
+#pragma region DRAWINDEXEDINSTANCED
 				case METHOD_ID3D11DEVICECONTEXT_DRAWINDEXEDINSTANCED:
 					// switch the drawing side before the second draw call is done
 					if (m_eCurrentRenderingSide == RenderPosition::Left)
@@ -642,6 +746,8 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Left);
 
 					return nullptr;
+#pragma endregion
+#pragma region DRAWINSTANCED
 				case METHOD_ID3D11DEVICECONTEXT_DRAWINSTANCED:
 					// switch the drawing side before the second draw call is done
 					if (m_eCurrentRenderingSide == RenderPosition::Left)
@@ -650,6 +756,8 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Left);
 
 					return nullptr;
+#pragma endregion
+#pragma region DRAWAUTO
 				case METHOD_ID3D11DEVICECONTEXT_DRAWAUTO:
 					// switch the drawing side before the second draw call is done
 					if (m_eCurrentRenderingSide == RenderPosition::Left)
@@ -658,6 +766,8 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Left);
 
 					return nullptr;
+#pragma endregion
+#pragma region DRAWINDEXEDINSTANCEDINDIRECT
 				case METHOD_ID3D11DEVICECONTEXT_DRAWINDEXEDINSTANCEDINDIRECT:
 					// switch the drawing side before the second draw call is done
 					if (m_eCurrentRenderingSide == RenderPosition::Left)
@@ -666,6 +776,8 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Left);
 
 					return nullptr;
+#pragma endregion
+#pragma region DRAWINSTANCEDINDIRECT
 				case METHOD_ID3D11DEVICECONTEXT_DRAWINSTANCEDINDIRECT:
 					// switch the drawing side before the second draw call is done
 					if (m_eCurrentRenderingSide == RenderPosition::Left)
@@ -674,15 +786,23 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Left);
 
 					return nullptr;
+#pragma endregion
+#pragma region COPYSUBRESOURCEREGION
 				case METHOD_ID3D11DEVICECONTEXT_COPYSUBRESOURCEREGION:
 					// TODO !! check if render target / monitored texture, in case update twin at next present call
 					return nullptr;
+#pragma endregion
+#pragma region COPYRESOURCE
 				case METHOD_ID3D11DEVICECONTEXT_COPYRESOURCE:
 					// TODO !! check if render target / monitored texture, in case update twin at next present call
 					return nullptr;
+#pragma endregion
+#pragma region UPDATESUBRESOURCE
 				case METHOD_ID3D11DEVICECONTEXT_UPDATESUBRESOURCE:
 					// TODO !! check if render target / monitored texture, in case update twin at next present call
 					return nullptr;
+#pragma endregion
+#pragma region CLEARRENDERTARGETVIEW
 				case METHOD_ID3D11DEVICECONTEXT_CLEARRENDERTARGETVIEW:
 					if (m_bPresent)
 					{
@@ -693,7 +813,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 						if (pcRenderTargetView)
 						{
-							// check wether this depth stencil is actually monitored.. 
+							// check wether this depth stencil is actually monitored..
 							int nIndex = CheckIfMonitored((IUnknown*)pcRenderTargetView);
 							if (nIndex == -1)
 								// not monitored, so start
@@ -710,6 +830,8 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						}
 					}
 					return nullptr;
+#pragma endregion
+#pragma region CLEARDEPTHSTENCILVIEW
 				case METHOD_ID3D11DEVICECONTEXT_CLEARDEPTHSTENCILVIEW:
 					if (m_bPresent)
 					{
@@ -724,7 +846,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 						if (pcDepthStencilView)
 						{
-							// check wether this depth stencil is actually monitored.. 
+							// check wether this depth stencil is actually monitored..
 							int nIndex = CheckIfMonitored((IUnknown*)pcDepthStencilView);
 							if (nIndex == -1)
 								// not monitored, so start
@@ -741,11 +863,15 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						}
 					}
 					return nullptr;
+#pragma endregion
+#pragma region CLEARSTATE
 				case METHOD_ID3D11DEVICECONTEXT_CLEARSTATE:
 					OMSetRenderTargets(0, NULL, NULL);
 					SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Left);
 					// TODO !! TEXTURES
 					return nullptr;
+#pragma endregion
+#pragma region OMSETRENDERTARGETS
 				case METHOD_ID3D11DEVICECONTEXT_OMSETRENDERTARGETS:
 					if (m_bPresent)
 					{
@@ -776,7 +902,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 											((ID3D11DeviceContext*)pThis)->VSSetConstantBuffers(dwIndex, 1, &pcBuffer);
 
 											// "If the data returned is a pointer to an IUnknown, or one of its derivative classes,
-											// previously set by IDXGIObject::SetPrivateDataInterface, you must call::Release() on 
+											// previously set by IDXGIObject::SetPrivateDataInterface, you must call::Release() on
 											// the pointer before the pointer is freed to decrement the reference count." (Microsoft)
 											pcBuffer->Release();
 										}
@@ -789,6 +915,8 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					// ensure D3D11 is set
 					m_eD3DVersion = D3DVersion::Direct3D11;
 					return nullptr;
+#pragma endregion
+#pragma region OMSETRENDERTARGETSANDUNORDEREDACCESSVIEWS
 				case METHOD_ID3D11DEVICECONTEXT_OMSETRENDERTARGETSANDUNORDEREDACCESSVIEWS:
 					if (m_bPresent)
 					{
@@ -819,7 +947,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 											((ID3D11DeviceContext*)pThis)->VSSetConstantBuffers(dwIndex, 1, &pcBuffer);
 
 											// "If the data returned is a pointer to an IUnknown, or one of its derivative classes,
-											// previously set by IDXGIObject::SetPrivateDataInterface, you must call::Release() on 
+											// previously set by IDXGIObject::SetPrivateDataInterface, you must call::Release() on
 											// the pointer before the pointer is freed to decrement the reference count." (Microsoft)
 											pcBuffer->Release();
 										}
@@ -832,20 +960,28 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					// ensure D3D11 is set
 					m_eD3DVersion = D3DVersion::Direct3D11;
 					return nullptr;
+#pragma endregion
+#pragma region OMGETRENDERTARGETS
 				case METHOD_ID3D11DEVICECONTEXT_OMGETRENDERTARGETS:
 					// if the app tries to get the render targets ensure the left render side is set
 					SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Left);
 					return nullptr;
+#pragma endregion
+#pragma region OMGETRENDERTARGETSANDUNORDEREDACCESSVIEWS
 				case METHOD_ID3D11DEVICECONTEXT_OMGETRENDERTARGETSANDUNORDEREDACCESSVIEWS:
 					// if the app tries to get the render targets ensure the left render side is set
 					SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Left);
 					return nullptr;
+#pragma endregion
 			}
 			return nullptr;
+#pragma endregion
+#pragma region IDXGISWAPCHAIN
 		case INTERFACE_IDXGISWAPCHAIN:
 			if (eD3DMethod == METHOD_IDXGISWAPCHAIN_PRESENT)
 				Present((IDXGISwapChain*)pThis);
 			return nullptr;
+#pragma endregion
 	}
 	return nullptr;
 }
@@ -1631,7 +1767,7 @@ void StereoSplitter::OMSetRenderTargets(UINT NumViews, IUnknown *const *ppRender
 	m_dwRenderTargetNumber = (DWORD)NumViews;
 
 	// drawing side is automatically set to "left"
-	m_eCurrentRenderingSide = RenderPosition::Left;
+	SetDrawingSideField(RenderPosition::Left);
 
 	// set the render target internally
 	if (NumViews < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT)
@@ -1731,90 +1867,6 @@ void StereoSplitter::OMSetRenderTargets(UINT NumViews, IUnknown *const *ppRender
 }
 
 /**
-* Incoming SetTexture() call.
-***/
-/*void StereoSplitter::SetTexture(IDirect3DDevice9* pcDevice, DWORD Stage,IDirect3DBaseTexture9* pcTexture)
-{
-// set the texture internally
-if (Stage < MAX_SIMULTANEOUS_TEXTURES_D3D9)
-{
-// set NULL manually, otherwise just set the render target :
-if (!pcTexture)
-{
-m_apcActiveTextures[Stage] = NULL;
-
-// set number of textures
-m_dwTextureNumber = 0;
-for(std::vector<IDirect3DSurface9*>::size_type i = 0; i < m_apcActiveTextures.size(); i++)
-if (m_apcActiveTextures[i] != NULL) m_dwTextureNumber = (DWORD)i + 1;
-}
-else
-{
-m_apcActiveTextures[Stage] = pcTexture;
-
-// set number of textures
-if (Stage >= m_dwTextureNumber) m_dwTextureNumber = Stage + 1;
-}
-}
-else return;
-
-// set NULL twin if NULL
-if (!pcTexture)
-m_apcActiveStereoTwinTextures[Stage] = NULL;
-else
-{
-// get the surface
-IDirect3DSurface9* pcSurface = nullptr;
-D3DRESOURCETYPE type = pcTexture->GetType();
-switch (type)
-{
-case D3DRTYPE_TEXTURE:
-{
-IDirect3DTexture9* pcDerivedTexture = static_cast<IDirect3DTexture9*> (pcTexture);
-pcDerivedTexture->GetSurfaceLevel(0, &pcSurface);
-break;
-}
-case D3DRTYPE_VOLUMETEXTURE:
-{
-IDirect3DVolumeTexture9* pDerivedTexture = static_cast<IDirect3DVolumeTexture9*> (pcTexture);
-// TODO !! handle volume textures
-break;
-}
-case D3DRTYPE_CUBETEXTURE:
-{
-IDirect3DCubeTexture9* pDerivedTexture = static_cast<IDirect3DCubeTexture9*> (pcTexture);
-// TODO !! handle cube textures
-break;
-}
-}
-
-// set twin texture, if monitored
-int nIndex = CheckIfMonitored(pcSurface);
-if (nIndex == -1)
-{
-// set stereo texture to null meanwhile
-m_apcActiveStereoTwinTextures[Stage] = NULL;
-}
-else
-{
-// set twin surface if twin in created
-if (nIndex < (int)m_apcStereoTwinTextures.size())
-// set twin surface
-m_apcActiveStereoTwinTextures[Stage] = m_apcStereoTwinTextures[nIndex];
-else
-// set stereo texture to null meanwhile
-m_apcActiveStereoTwinTextures[Stage] = NULL;
-}
-}
-
-m_bControlUpdate = true;
-}
-
-/**
-* Incoming Clear() call.
-***/
-
-/**
 * Index of the monitored surface in m_apcMonitoredViews, -1 if not monitored.
 ***/
 int StereoSplitter::CheckIfMonitored(IUnknown* pcView)
@@ -1870,7 +1922,7 @@ bool StereoSplitter::SetDrawingSide(ID3D10Device* pcDevice, RenderPosition eSide
 
 	// Everything hasn't changed yet but we set this first so we don't accidentally use the member instead of the local and break
 	// things, as I have already managed twice.
-	m_eCurrentRenderingSide = eSide;
+	SetDrawingSideField(eSide);
 
 	// switch render targets to new eSide
 	bool renderTargetChanged = false;
@@ -1934,7 +1986,7 @@ bool StereoSplitter::SetDrawingSide(ID3D11DeviceContext* pcContext, RenderPositi
 
 	// Everything hasn't changed yet but we set this first so we don't accidentally use the member instead of the local and break
 	// things, as I have already managed twice.
-	m_eCurrentRenderingSide = eSide;
+	SetDrawingSideField(eSide);
 
 	// switch render targets to new eSide
 	HRESULT hr = S_OK;
