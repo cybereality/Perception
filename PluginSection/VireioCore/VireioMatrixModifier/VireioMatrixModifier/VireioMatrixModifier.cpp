@@ -1110,9 +1110,17 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					// if constant buffer, continue
 					if ((sDescDst.BindFlags & D3D11_BIND_CONSTANT_BUFFER) == D3D11_BIND_CONSTANT_BUFFER)
 					{
-						// get private data from source buffer
+						// get description from source buffer
 						D3D11_BUFFER_DESC sDescSrc;
 						((ID3D11Buffer*)*m_ppcSrcResource_DX11_CopySub)->GetDesc(&sDescSrc);
+
+						// can we map this surface ? in case update private data field
+						if ((sDescSrc.CPUAccessFlags & D3D11_CPU_ACCESS_WRITE) == D3D11_CPU_ACCESS_WRITE)
+						{
+							OutputDebugString(L"Mappable resource constant buffer !");
+						}
+
+						// get private data from source buffer
 						UINT dwSize = sDescSrc.ByteWidth;
 						((ID3D11Buffer*)*m_ppcSrcResource_DX11_CopySub)->GetPrivateData(PDID_ID3D11Buffer_Vireio_Data, &dwSize, m_pchBuffer11);
 
@@ -1183,6 +1191,12 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						// if source size not equal to destination size, return
 						if (sDescSrc.ByteWidth != sDescDst.ByteWidth) return nullptr;
 
+						// can we map this surface ? in case update private data field
+						if ((sDescSrc.CPUAccessFlags & D3D11_CPU_ACCESS_WRITE) == D3D11_CPU_ACCESS_WRITE)
+						{
+							OutputDebugString(L"Mappable resource constant buffer !");
+						}
+
 						// get private data from source buffer
 						UINT dwSize = sDescSrc.ByteWidth;
 						((ID3D11Buffer*)*m_ppcSrcResource_DX11_Copy)->GetPrivateData(PDID_ID3D11Buffer_Vireio_Data, &dwSize, m_pchBuffer11);
@@ -1229,9 +1243,17 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 				for (UINT dwIndex = 0; dwIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; dwIndex++)
 					if (m_apcActiveConstantBuffers11[dwIndex])
 					{
-						// get private data from buffer
+						// get description from buffer
 						D3D11_BUFFER_DESC sDesc;
 						m_apcActiveConstantBuffers11[dwIndex]->GetDesc(&sDesc);
+
+						// can we map this surface ? in case update private data field
+						if ((sDesc.CPUAccessFlags & D3D11_CPU_ACCESS_WRITE) == D3D11_CPU_ACCESS_WRITE)
+						{
+							OutputDebugString(L"Mappable resource constant buffer !");
+						}
+
+						// get private data from buffer
 						UINT dwSize = sDesc.ByteWidth;
 						m_apcActiveConstantBuffers11[dwIndex]->GetPrivateData(PDID_ID3D11Buffer_Vireio_Data, &dwSize, m_pchBuffer11);
 
