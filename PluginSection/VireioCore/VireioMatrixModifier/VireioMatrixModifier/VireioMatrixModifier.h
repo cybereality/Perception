@@ -125,7 +125,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 #define NUMBER_OF_COMMANDERS                           5
-#define NUMBER_OF_DECOMMANDERS                        43
+#define NUMBER_OF_DECOMMANDERS                        51
 #elif defined(VIREIO_D3D9)
 #define NUMBER_OF_COMMANDERS                           0
 #define NUMBER_OF_DECOMMANDERS                        12
@@ -191,7 +191,7 @@ enum STS_Decommanders
 	pDstBox_DX11,                            /**< ID3D10Device/ID3D11DeviceContext::UpdateSubresource ***/
 	pSrcData,                                /**< ID3D10Device/ID3D11DeviceContext::UpdateSubresource ***/ 
 	SrcRowPitch,                             /**< ID3D10Device/ID3D11DeviceContext::UpdateSubresource ***/ 
-	SrcDepthPitch,                           /**< ID3D10Device/ID3D11DeviceContext::CopyResource ***/
+	SrcDepthPitch,                           /**< ID3D10Device/ID3D11DeviceContext::UpdateSubresource ***/
 	pDstResource_DX10_Copy,                  /**< ID3D10Device/ID3D11DeviceContext::CopyResource ***/
 	pSrcResource_DX10_Copy,                  /**< ID3D10Device/ID3D11DeviceContext::CopyResource ***/
 	pDstResource_DX11_Copy,                  /**< ID3D10Device/ID3D11DeviceContext::CopyResource ***/
@@ -367,6 +367,15 @@ private:
 	{
 		BYTE m_pchBuffer10[D3D10_REQ_CONSTANT_BUFFER_ELEMENT_COUNT];
 		BYTE m_pchBuffer11[D3D11_REQ_CONSTANT_BUFFER_ELEMENT_COUNT];
+	};
+	/**
+	* Constant Buffer private data buffer temporary.
+	* Second buffer data needed for CopySubresourceRegion().
+	***/
+	union
+	{
+		BYTE m_pchBuffer10Temp[D3D10_REQ_CONSTANT_BUFFER_ELEMENT_COUNT];
+		BYTE m_pchBuffer11Temp[D3D11_REQ_CONSTANT_BUFFER_ELEMENT_COUNT];
 	};
 
 #elif defined(VIREIO_D3D9)

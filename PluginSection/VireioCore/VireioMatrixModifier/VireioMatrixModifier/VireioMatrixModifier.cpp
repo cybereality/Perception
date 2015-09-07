@@ -63,6 +63,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define METHOD_ID3D10DEVICE_COPYSUBRESOURCEREGION                            32
 #define METHOD_ID3D10DEVICE_COPYRESOURCE                                     33
 #define METHOD_ID3D10DEVICE_UPDATESUBRESOURCE                                34
+// TODO !! ID3D10Device::Map ID3D11DeviceContext::Map
 
 #define SAFE_RELEASE(a) if (a) { a->Release(); a = nullptr; }
 
@@ -514,7 +515,7 @@ DWORD MatrixModifier::GetDecommanderType(DWORD dwDecommanderIndex)
 	case pSrcBox_DX10:
 		return PNT_D3D10_BOX_PLUG_TYPE;
 	case pSrcBox_DX11:
-		return PNT_D3D10_BOX_PLUG_TYPE;
+		return PNT_D3D11_BOX_PLUG_TYPE;
 	default:
 		break;
 	}
@@ -816,6 +817,8 @@ bool MatrixModifier::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 		{
 			if ((nD3DMethod == METHOD_ID3D11DEVICECONTEXT_VSSETSHADER) ||
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_VSSETCONSTANTBUFFERS) ||
+				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_COPYSUBRESOURCEREGION) ||
+				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_COPYRESOURCE) ||
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_UPDATESUBRESOURCE))
 				return true;
 		}
@@ -1076,6 +1079,131 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 								UpdateConstantBuffer((ID3D11DeviceContext*)pThis, (ID3D11Resource*)m_apcActiveConstantBuffers11[dwIndex], 0, NULL, *m_ppvSrcData, 0, 0, dwIndex, sDesc.ByteWidth);
 							}
 						}
+				}
+			}
+			return nullptr;
+#pragma endregion
+#pragma region ID3D11DeviceContext::CopySubresourceRegion
+		case METHOD_ID3D11DEVICECONTEXT_COPYSUBRESOURCEREGION:
+			if (!m_ppcDstResource_DX11_CopySub) return nullptr;
+			if (!m_pdwDstSubresource_CopySub) return nullptr;
+			if (!m_pdwDstX) return nullptr;
+			if (!m_pdwDstY) return nullptr;
+			if (!m_pdwDstZ) return nullptr;
+			if (!m_ppcSrcResource_DX11_CopySub) return nullptr;
+			if (!m_pdwSrcSubresource) return nullptr;
+			if (!m_ppsSrcBox_DX11) return nullptr;
+			if (!*m_ppcDstResource_DX11_CopySub) return nullptr;
+			if (!*m_ppcSrcResource_DX11_CopySub) return nullptr;
+			if (!*m_ppsSrcBox_DX11) return nullptr;
+			{
+				// get destination resource type
+				D3D11_RESOURCE_DIMENSION eDimension;
+				(*m_ppcDstResource_DX11_CopySub)->GetType(&eDimension);
+
+				// if buffer, get desc
+				if (eDimension == D3D11_RESOURCE_DIMENSION::D3D11_RESOURCE_DIMENSION_BUFFER)
+				{
+					D3D11_BUFFER_DESC sDescDst;
+					((ID3D11Buffer*)*m_ppcDstResource_DX11_CopySub)->GetDesc(&sDescDst);
+
+					// if constant buffer, continue
+					if ((sDescDst.BindFlags & D3D11_BIND_CONSTANT_BUFFER) == D3D11_BIND_CONSTANT_BUFFER)
+					{
+						// get private data from source buffer
+						D3D11_BUFFER_DESC sDescSrc;
+						((ID3D11Buffer*)*m_ppcSrcResource_DX11_CopySub)->GetDesc(&sDescSrc);
+						UINT dwSize = sDescSrc.ByteWidth;
+						((ID3D11Buffer*)*m_ppcSrcResource_DX11_CopySub)->GetPrivateData(PDID_ID3D11Buffer_Vireio_Data, &dwSize, m_pchBuffer11);
+
+						if (dwSize)
+						{
+							// get (byte) offsets and length
+							UINT dwOffsetSrc = (*m_ppsSrcBox_DX11)->left;
+							UINT dwOffsetDst = (*m_pdwDstX);
+							UINT dwLength = (*m_ppsSrcBox_DX11)->right;
+
+							// return if out of bounds
+							if ((dwOffsetSrc + dwLength) > sDescSrc.ByteWidth) return nullptr;
+							if ((dwOffsetDst + dwLength) > sDescDst.ByteWidth) return nullptr;
+
+							// get private data from destination buffer
+							dwSize = sDescDst.ByteWidth;
+							((ID3D11Buffer*)*m_ppcDstResource_DX11_CopySub)->GetPrivateData(PDID_ID3D11Buffer_Vireio_Data, &dwSize, m_pchBuffer11Temp);
+
+							// clear buffer if no private data present
+							if (!dwSize) ZeroMemory(m_pchBuffer11Temp, sDescDst.ByteWidth);
+
+							// perform memory copy
+							memcpy(&m_pchBuffer11Temp[dwOffsetDst], &m_pchBuffer11[dwOffsetSrc], dwLength);
+
+							// set back private data for the destination buffer
+							((ID3D11Buffer*)*m_ppcDstResource_DX11_CopySub)->SetPrivateData(PDID_ID3D11Buffer_Vireio_Data, sDescDst.ByteWidth, m_pchBuffer11Temp);
+
+							// loop through active buffers, if this one is active update stereo buffers
+							for (UINT dwIndex = 0; dwIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; dwIndex++)
+								if (m_apcActiveConstantBuffers11[dwIndex])
+								{
+									if (*m_ppcDstResource_DX11_CopySub == m_apcActiveConstantBuffers11[dwIndex])
+									{
+										//  and update the stereo buffers
+										UpdateConstantBuffer((ID3D11DeviceContext*)pThis, (ID3D11Resource*)m_apcActiveConstantBuffers11[dwIndex], 0, NULL, m_pchBuffer11Temp, 0, 0, dwIndex, sDescDst.ByteWidth);
+									}
+								}
+						}
+					}
+				}
+			}
+			return nullptr;
+#pragma endregion
+#pragma region ID3D11DeviceContext::CopyResource
+		case METHOD_ID3D11DEVICECONTEXT_COPYRESOURCE:
+			if (!m_ppcDstResource_DX11_Copy) return nullptr;
+			if (!m_ppcSrcResource_DX11_Copy) return nullptr;
+			if (!*m_ppcDstResource_DX11_Copy) return nullptr;
+			if (!*m_ppcSrcResource_DX11_Copy) return nullptr;
+			{
+				// get destination resource type
+				D3D11_RESOURCE_DIMENSION eDimension;
+				(*m_ppcDstResource_DX11_Copy)->GetType(&eDimension);
+
+				// if buffer, get desc
+				if (eDimension == D3D11_RESOURCE_DIMENSION::D3D11_RESOURCE_DIMENSION_BUFFER)
+				{
+					D3D11_BUFFER_DESC sDescDst;
+					((ID3D11Buffer*)*m_ppcDstResource_DX11_Copy)->GetDesc(&sDescDst);
+
+					// if constant buffer, continue
+					if ((sDescDst.BindFlags & D3D11_BIND_CONSTANT_BUFFER) == D3D11_BIND_CONSTANT_BUFFER)
+					{
+						// get description from source buffer
+						D3D11_BUFFER_DESC sDescSrc;
+						((ID3D11Buffer*)*m_ppcSrcResource_DX11_Copy)->GetDesc(&sDescSrc);
+
+						// if source size not equal to destination size, return
+						if (sDescSrc.ByteWidth != sDescDst.ByteWidth) return nullptr;
+
+						// get private data from source buffer
+						UINT dwSize = sDescSrc.ByteWidth;
+						((ID3D11Buffer*)*m_ppcSrcResource_DX11_Copy)->GetPrivateData(PDID_ID3D11Buffer_Vireio_Data, &dwSize, m_pchBuffer11);
+
+						if (dwSize)
+						{
+							// set private data for the destination buffer
+							((ID3D11Buffer*)*m_ppcDstResource_DX11_Copy)->SetPrivateData(PDID_ID3D11Buffer_Vireio_Data, sDescDst.ByteWidth, m_pchBuffer11);
+
+							// loop through active buffers, if this one is active update stereo buffers
+							for (UINT dwIndex = 0; dwIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; dwIndex++)
+								if (m_apcActiveConstantBuffers11[dwIndex])
+								{
+									if (*m_ppcDstResource_DX11_Copy == m_apcActiveConstantBuffers11[dwIndex])
+									{
+										//  and update the stereo buffers
+										UpdateConstantBuffer((ID3D11DeviceContext*)pThis, (ID3D11Resource*)m_apcActiveConstantBuffers11[dwIndex], 0, NULL, m_pchBuffer11, 0, 0, dwIndex, sDescDst.ByteWidth);
+									}
+								}
+						}
+					}
 				}
 			}
 			return nullptr;
