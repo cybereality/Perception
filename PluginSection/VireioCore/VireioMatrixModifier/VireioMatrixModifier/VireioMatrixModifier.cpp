@@ -63,7 +63,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define METHOD_ID3D10DEVICE_COPYSUBRESOURCEREGION                            32
 #define METHOD_ID3D10DEVICE_COPYRESOURCE                                     33
 #define METHOD_ID3D10DEVICE_UPDATESUBRESOURCE                                34
-// TODO !! ID3D10Device::Map ID3D11DeviceContext::Map
 
 #define SAFE_RELEASE(a) if (a) { a->Release(); a = nullptr; }
 
@@ -1378,80 +1377,88 @@ void MatrixModifier::UpdateConstantBuffer(ID3D11DeviceContext* pcContext, ID3D11
 	// first get the current shader data
 	Vireio_Shader_Private_Data sPrivateData;
 	UINT dwDataSize = sizeof(sPrivateData);
-
 	if (m_pcActiveVertexShader11)
 		m_pcActiveVertexShader11->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
 	else return;
-	if (!dwDataSize) return;
 
-	// shader has this buffer index ?
-	if (dwBufferIndex < m_asShaders[sPrivateData.dwIndex].asBuffers.size())
+	// private data present ?
+	if (dwDataSize)
 	{
-		// loop through the shader constants
-		for (size_t nConstant = 0; nConstant < m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables.size(); nConstant++)
+		// shader has this buffer index ?
+		if (dwBufferIndex < m_asShaders[sPrivateData.dwIndex].asBuffers.size())
 		{
-			// test for projection matrix
-			if ((std::strstr(m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, "ProjectionMatrix")) &&
-				(!std::strstr(m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, "Inv")))
+			// loop through the shader constants
+			for (size_t nConstant = 0; nConstant < m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables.size(); nConstant++)
 			{
-				D3DXMATRIX sMatrix;
-				if (m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwSize == sizeof(D3DMATRIX))
+				// test for projection matrix
+				if ((std::strstr(m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, "ProjectionMatrix")) &&
+					(!std::strstr(m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, "Inv")))
 				{
-					// test separation, first get private data interfaces
-					ID3D11Buffer* pcBufferLeft = nullptr;
-					ID3D11Buffer* pcBufferRight = nullptr;
-
-					// get the stereo private data interfaces
-					UINT dwSizeLeft = sizeof(pcBufferLeft);
-					UINT dwSizeRight = sizeof(pcBufferLeft);
-					pcDstResource->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Left, &dwSizeLeft, &pcBufferLeft);
-					pcDstResource->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSizeRight, &pcBufferRight);
-
-					if ((dwSizeLeft) && (dwSizeRight) && (pcBufferLeft) && (pcBufferRight) && (dwBufferSize >= (m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset+sizeof(D3DMATRIX))))
+					D3DXMATRIX sMatrix;
+					if (m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwSize == sizeof(D3DMATRIX))
 					{
-						bool bTranspose = false;
+						// test separation, first get private data interfaces
+						ID3D11Buffer* pcBufferLeft = nullptr;
+						ID3D11Buffer* pcBufferRight = nullptr;
 
-						// and apply the left and right separation, first get the matrix data and create a second matrix to be modified
-						UINT_PTR pv = (UINT_PTR)pvSrcData + m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset;
-						D3DXMATRIX sMatrix = D3DXMATRIX((CONST FLOAT*)pv);
-						D3DXMATRIX sMatrixModified;
+						// get the stereo private data interfaces
+						UINT dwSizeLeft = sizeof(pcBufferLeft);
+						UINT dwSizeRight = sizeof(pcBufferLeft);
+						pcDstResource->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Left, &dwSizeLeft, &pcBufferLeft);
+						pcDstResource->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSizeRight, &pcBufferRight);
 
-						if (bTranspose) D3DXMatrixTranspose(&sMatrix, &sMatrix);
+						if ((dwSizeLeft) && (dwSizeRight) && (pcBufferLeft) && (pcBufferRight) && (dwBufferSize >= (m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset+sizeof(D3DMATRIX))))
+						{
+							bool bTranspose = true;
 
-						// apply left 
-						sMatrixModified = sMatrix * matViewProjTransformLeft * matProjectionInv * matProjection;
-						if (bTranspose) D3DXMatrixTranspose(&sMatrixModified, &sMatrixModified);
-						memcpy((void*)pv, &sMatrixModified, sizeof(D3DXMATRIX));
-						pcContext->UpdateSubresource((ID3D11Resource*)pcBufferLeft, dwDstSubresource, psDstBox, pvSrcData, dwSrcRowPitch, dwSrcDepthPitch);
+							// and apply the left and right separation, first get the matrix data and create a second matrix to be modified
+							UINT_PTR pv = (UINT_PTR)pvSrcData + m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset;
+							D3DXMATRIX sMatrix = D3DXMATRIX((CONST FLOAT*)pv);
+							D3DXMATRIX sMatrixModified;
 
-						// apply right
-						sMatrixModified = sMatrix * matViewProjTransformRight *	matProjectionInv * matProjection;
-						if (bTranspose) D3DXMatrixTranspose(&sMatrixModified, &sMatrixModified);
-						memcpy((void*)pv, &sMatrixModified, sizeof(D3DXMATRIX));
-						pcContext->UpdateSubresource((ID3D11Resource*)pcBufferRight, dwDstSubresource, psDstBox, pvSrcData, dwSrcRowPitch, dwSrcDepthPitch);
+							if (bTranspose) D3DXMatrixTranspose(&sMatrix, &sMatrix);
 
-						// set back data
-						if (bTranspose) D3DXMatrixTranspose(&sMatrix, &sMatrix);
-						memcpy((void*)pv, &sMatrix, sizeof(D3DXMATRIX));
+							// apply left 
+							sMatrixModified = sMatrix * matViewProjTransformLeft * matProjectionInv * matProjection;
+							if (bTranspose) D3DXMatrixTranspose(&sMatrixModified, &sMatrixModified);
+							memcpy((void*)pv, &sMatrixModified, sizeof(D3DXMATRIX));
+							pcContext->UpdateSubresource((ID3D11Resource*)pcBufferLeft, dwDstSubresource, psDstBox, pvSrcData, dwSrcRowPitch, dwSrcDepthPitch);
 
-						// set modification bool
-						bModified = true;
+							// apply right
+							sMatrixModified = sMatrix * matViewProjTransformRight *	matProjectionInv * matProjection;
+							if (bTranspose) D3DXMatrixTranspose(&sMatrixModified, &sMatrixModified);
+							memcpy((void*)pv, &sMatrixModified, sizeof(D3DXMATRIX));
+							pcContext->UpdateSubresource((ID3D11Resource*)pcBufferRight, dwDstSubresource, psDstBox, pvSrcData, dwSrcRowPitch, dwSrcDepthPitch);
+
+							// set back data
+							if (bTranspose) D3DXMatrixTranspose(&sMatrix, &sMatrix);
+							memcpy((void*)pv, &sMatrix, sizeof(D3DXMATRIX));
+
+							// set modification bool
+							bModified = true;
+						}
+
+						SAFE_RELEASE(pcBufferLeft);
+						SAFE_RELEASE(pcBufferRight);
 					}
-
-					SAFE_RELEASE(pcBufferLeft);
-					SAFE_RELEASE(pcBufferRight);
-				}
-				else
-				{
-					OutputDebugString(L"MatrixModifier: Wrong variable size.... NOT the size of a matrix !");
-					wchar_t buf[128];
-					wsprintf(buf, L"This size %u ; Matrix size %u", m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwSize, sizeof(D3DMATRIX));
-					OutputDebugString(buf);
-					OutputDebugStringA(m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName);
+					else
+					{
+						OutputDebugString(L"MatrixModifier: Wrong variable size.... NOT the size of a matrix !");
+						wchar_t buf[128];
+						wsprintf(buf, L"This size %u ; Matrix size %u", m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwSize, sizeof(D3DMATRIX));
+						OutputDebugString(buf);
+						OutputDebugStringA(m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName);
+					}
 				}
 			}
 		}
+	}
+	else
+	{
+		// TODO !! ASSIGN PRIVATE DATA FIELD BY CREAETING A READABLE COPY OF THE BUFFER
 
+		// for some reason this is possible....
+		// OutputDebugString(L"MatrixModifier: NO private data field set in constant buffer");
 	}
 
 	// if we did not modify this buffer, set unmodified constants to the stereo buffers
