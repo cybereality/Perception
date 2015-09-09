@@ -604,7 +604,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 	// set node behavior to "double call" for this method
 	// node that this is only supported by drawing methods
 	nProvokerIndex = -1;
-	
+
 	switch (eD3DInterface)
 	{
 #pragma region ID3D10DEVICE
@@ -1574,7 +1574,16 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 					}
 					else
 					{
+#ifdef _DEBUG
 						OutputDebugString(L"VireioStereoSplitter: Back buffer not monitored !");
+#endif
+						// not monitored, so start
+						MonitorView((IUnknown*)pcBackBuffer);
+
+						// set twin surface to null meanwhile
+						m_pcActiveBackBuffer11 = NULL;
+						m_pcActiveStereoTwinBackBuffer11 = NULL;
+
 						pcBackBuffer->Release();
 					}
 				}

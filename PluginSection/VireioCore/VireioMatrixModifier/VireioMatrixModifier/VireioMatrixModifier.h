@@ -40,6 +40,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include<stdio.h>
 #include<vector>
+#include<ctime>
 
 #include"AQU_Nodus.h"
 #include"Resources.h"
@@ -284,6 +285,7 @@ private:
 	void UpdateConstantBuffer(ID3D11DeviceContext* pcContext, ID3D11Resource *pcDstResource, UINT dwDstSubresource, const D3D11_BOX *psDstBox, const void *pvSrcData, UINT dwSrcRowPitch, UINT dwSrcDepthPitch, UINT dwBufferIndex, UINT dwBufferSize);
 #elif defined(VIREIO_D3D9)
 #endif
+	void ComputeViewTransforms(float fSeparation);
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	/*** MatrixModifier input pointers ***/
@@ -376,6 +378,22 @@ private:
 	{
 		BYTE m_pchBuffer10Temp[D3D10_REQ_CONSTANT_BUFFER_ELEMENT_COUNT];
 		BYTE m_pchBuffer11Temp[D3D11_REQ_CONSTANT_BUFFER_ELEMENT_COUNT];
+	};
+	/**
+	* Constant Buffer private data buffer left eye.
+	***/
+	union
+	{
+		BYTE m_pchBuffer10Left[D3D10_REQ_CONSTANT_BUFFER_ELEMENT_COUNT];
+		BYTE m_pchBuffer11Left[D3D11_REQ_CONSTANT_BUFFER_ELEMENT_COUNT];
+	};
+	/**
+	* Constant Buffer private data buffer right eye.
+	***/
+	union
+	{
+		BYTE m_pchBuffer10Right[D3D10_REQ_CONSTANT_BUFFER_ELEMENT_COUNT];
+		BYTE m_pchBuffer11Right[D3D11_REQ_CONSTANT_BUFFER_ELEMENT_COUNT];
 	};
 
 #elif defined(VIREIO_D3D9)
