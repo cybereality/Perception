@@ -1371,15 +1371,26 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 ***/
 void MatrixModifier::UpdateConstantBuffer(ID3D11DeviceContext* pcContext, ID3D11Resource *pcDstResource, UINT dwDstSubresource, const D3D11_BOX *psDstBox, const void *pvSrcData, UINT dwSrcRowPitch, UINT dwSrcDepthPitch, UINT dwBufferIndex, UINT dwBufferSize)
 {
-	// will we modify this buffer ?
-	bool bModified = false;
-
 	// first get the current shader data
 	Vireio_Shader_Private_Data sPrivateData;
 	UINT dwDataSize = sizeof(sPrivateData);
 	if (m_pcActiveVertexShader11)
 		m_pcActiveVertexShader11->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
 	else return;
+
+	// get private data interfaces (stereo constant buffers)
+	ID3D11Buffer* pcBufferLeft = nullptr;
+	ID3D11Buffer* pcBufferRight = nullptr;
+
+	// get the stereo private data interfaces
+	UINT dwSizeLeft = sizeof(pcBufferLeft);
+	UINT dwSizeRight = sizeof(pcBufferLeft);
+	pcDstResource->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Left, &dwSizeLeft, &pcBufferLeft);
+	pcDstResource->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSizeRight, &pcBufferRight);
+
+	// copy the data to left and right constant buffer data buffers
+	memcpy(m_pchBuffer11Left, pvSrcData, dwBufferSize); 
+	memcpy(m_pchBuffer11Right, pvSrcData, dwBufferSize); 
 
 	// private data present ?
 	if (dwDataSize)
@@ -1397,22 +1408,17 @@ void MatrixModifier::UpdateConstantBuffer(ID3D11DeviceContext* pcContext, ID3D11
 					D3DXMATRIX sMatrix;
 					if (m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwSize == sizeof(D3DMATRIX))
 					{
-						// test separation, first get private data interfaces
-						ID3D11Buffer* pcBufferLeft = nullptr;
-						ID3D11Buffer* pcBufferRight = nullptr;
-
-						// get the stereo private data interfaces
-						UINT dwSizeLeft = sizeof(pcBufferLeft);
-						UINT dwSizeRight = sizeof(pcBufferLeft);
-						pcDstResource->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Left, &dwSizeLeft, &pcBufferLeft);
-						pcDstResource->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSizeRight, &pcBufferRight);
-
+						// is this modification in range ?
 						if ((dwSizeLeft) && (dwSizeRight) && (pcBufferLeft) && (pcBufferRight) && (dwBufferSize >= (m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset+sizeof(D3DMATRIX))))
 						{
-							bool bTranspose = true;
+							bool bTranspose = false;
 
-							// and apply the left and right separation, first get the matrix data and create a second matrix to be modified
+							// get pointers to the matrix (left+right)
 							UINT_PTR pv = (UINT_PTR)pvSrcData + m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset;
+							UINT_PTR pvLeft = (UINT_PTR)m_pchBuffer11Left + m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset;
+							UINT_PTR pvRight = (UINT_PTR)m_pchBuffer11Right + m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset;
+							
+							// get the matrix
 							D3DXMATRIX sMatrix = D3DXMATRIX((CONST FLOAT*)pv);
 							D3DXMATRIX sMatrixModified;
 
@@ -1421,25 +1427,13 @@ void MatrixModifier::UpdateConstantBuffer(ID3D11DeviceContext* pcContext, ID3D11
 							// apply left 
 							sMatrixModified = sMatrix * matViewProjTransformLeft * matProjectionInv * matProjection;
 							if (bTranspose) D3DXMatrixTranspose(&sMatrixModified, &sMatrixModified);
-							memcpy((void*)pv, &sMatrixModified, sizeof(D3DXMATRIX));
-							pcContext->UpdateSubresource((ID3D11Resource*)pcBufferLeft, dwDstSubresource, psDstBox, pvSrcData, dwSrcRowPitch, dwSrcDepthPitch);
+							memcpy((void*)pvLeft, &sMatrixModified, sizeof(D3DXMATRIX));
 
 							// apply right
 							sMatrixModified = sMatrix * matViewProjTransformRight *	matProjectionInv * matProjection;
 							if (bTranspose) D3DXMatrixTranspose(&sMatrixModified, &sMatrixModified);
-							memcpy((void*)pv, &sMatrixModified, sizeof(D3DXMATRIX));
-							pcContext->UpdateSubresource((ID3D11Resource*)pcBufferRight, dwDstSubresource, psDstBox, pvSrcData, dwSrcRowPitch, dwSrcDepthPitch);
-
-							// set back data
-							if (bTranspose) D3DXMatrixTranspose(&sMatrix, &sMatrix);
-							memcpy((void*)pv, &sMatrix, sizeof(D3DXMATRIX));
-
-							// set modification bool
-							bModified = true;
+							memcpy((void*)pvRight, &sMatrixModified, sizeof(D3DXMATRIX));
 						}
-
-						SAFE_RELEASE(pcBufferLeft);
-						SAFE_RELEASE(pcBufferRight);
 					}
 					else
 					{
@@ -1461,26 +1455,15 @@ void MatrixModifier::UpdateConstantBuffer(ID3D11DeviceContext* pcContext, ID3D11
 		// OutputDebugString(L"MatrixModifier: NO private data field set in constant buffer");
 	}
 
-	// if we did not modify this buffer, set unmodified constants to the stereo buffers
-	if (!bModified)
-	{
-		ID3D11Buffer* pcBufferLeft = nullptr;
-		ID3D11Buffer* pcBufferRight = nullptr;
+	// finally, update the stereo constant buffers
+	if (pcBufferLeft)
+		pcContext->UpdateSubresource((ID3D11Resource*)pcBufferLeft, dwDstSubresource, psDstBox, m_pchBuffer11Left, dwSrcRowPitch, dwSrcDepthPitch);
+	if (pcBufferRight)
+		pcContext->UpdateSubresource((ID3D11Resource*)pcBufferRight, dwDstSubresource, psDstBox, m_pchBuffer11Right, dwSrcRowPitch, dwSrcDepthPitch);
 
-		// get the stereo private data interfaces
-		UINT dwSizeLeft = sizeof(pcBufferLeft);
-		UINT dwSizeRight = sizeof(pcBufferLeft);
-		pcDstResource->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Left, &dwSizeLeft, &pcBufferLeft);
-		pcDstResource->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSizeRight, &pcBufferRight);
-
-		if (pcBufferLeft)
-			pcContext->UpdateSubresource((ID3D11Resource*)pcBufferLeft, dwDstSubresource, psDstBox, pvSrcData, dwSrcRowPitch, dwSrcDepthPitch);
-		if (pcBufferRight)
-			pcContext->UpdateSubresource((ID3D11Resource*)pcBufferRight, dwDstSubresource, psDstBox, pvSrcData, dwSrcRowPitch, dwSrcDepthPitch);
-
-		SAFE_RELEASE(pcBufferLeft);
-		SAFE_RELEASE(pcBufferRight);
-	}
+	// and release them
+	SAFE_RELEASE(pcBufferLeft);
+	SAFE_RELEASE(pcBufferRight);
 }
 #elif defined(VIREIO_D3D9)
 #endif
