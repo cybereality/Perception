@@ -124,14 +124,8 @@ MatrixModifier::MatrixModifier() : AQU_Nodus()
 	D3DXMatrixPerspectiveOffCenterLH(&projectLeft, l+frustumAsymmetryLeft, r+frustumAsymmetryLeft, b, t, n, f);
 	D3DXMatrixPerspectiveOffCenterLH(&projectRight, l+frustumAsymmetryRight, r+frustumAsymmetryRight, b, t, n, f);
 
-	// separation settings are overall (HMD and desktop), since they are based on physical IPD
-	float separation = 0.001f;
-	D3DXMatrixTranslation(&transformLeft, separation * -1.0f, 0, 0);
-	D3DXMatrixTranslation(&transformRight, separation * 1.0f, 0, 0);
-
-	// projection transform
-	matViewProjTransformLeft = matProjectionInv * transformLeft * projectLeft;
-	matViewProjTransformRight = matProjectionInv * transformRight * projectRight;
+	// compute view transforms
+	ComputeViewTransforms(0.1f);
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	// create buffer vectors
@@ -1046,6 +1040,15 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 		{
 #pragma region ID3D11DeviceContext::UpdateSubresource
 		case METHOD_ID3D11DEVICECONTEXT_UPDATESUBRESOURCE:
+			///// TEST - TO BE DELETED
+			{
+				time_t t = time(0);   // get time now
+				struct tm * now = localtime( & t );
+				float fSeparation = (float)(now->tm_sec % 5);
+				fSeparation /= 2.0f;
+				ComputeViewTransforms(fSeparation);
+			}
+			///// TEST END
 			if (!m_ppcDstResource_DX11) return nullptr;
 			if (!m_pdwDstSubresource) return nullptr;
 			if (!m_ppsDstBox_DX11) return nullptr;
@@ -1417,7 +1420,7 @@ void MatrixModifier::UpdateConstantBuffer(ID3D11DeviceContext* pcContext, ID3D11
 							UINT_PTR pv = (UINT_PTR)pvSrcData + m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset;
 							UINT_PTR pvLeft = (UINT_PTR)m_pchBuffer11Left + m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset;
 							UINT_PTR pvRight = (UINT_PTR)m_pchBuffer11Right + m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset;
-							
+
 							// get the matrix
 							D3DXMATRIX sMatrix = D3DXMATRIX((CONST FLOAT*)pv);
 							D3DXMATRIX sMatrixModified;
@@ -1467,3 +1470,18 @@ void MatrixModifier::UpdateConstantBuffer(ID3D11DeviceContext* pcContext, ID3D11
 }
 #elif defined(VIREIO_D3D9)
 #endif
+
+/**
+* Computes the view transform.
+* To be deleted after including "ViewAdjustment" class from base driver.
+***/
+void MatrixModifier::ComputeViewTransforms(float fSeparation)
+{
+	// separation settings are overall (HMD and desktop), since they are based on physical IPD
+	D3DXMatrixTranslation(&transformLeft, fSeparation * -1.0f, 0, 0);
+	D3DXMatrixTranslation(&transformRight, fSeparation * 1.0f, 0, 0);
+
+	// projection transform
+	matViewProjTransformLeft = matProjectionInv * transformLeft * projectLeft;
+	matViewProjTransformRight = matProjectionInv * transformRight * projectRight;
+}
