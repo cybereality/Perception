@@ -94,13 +94,14 @@ m_pcActiveStereoTwinDepthStencilView(nullptr),
 m_pcActiveDepthStencilView(nullptr),
 m_pcActiveBackBuffer10(nullptr),
 m_pcActiveStereoTwinBackBuffer10(nullptr),
-m_nBackBufferIndex(-1),
+/*m_nBackBufferIndex(-1),
 m_apcMonitoredViews(0, nullptr),
 m_apcStereoTwinViews(0, nullptr),
 m_apcStereoTwinTextures(0, nullptr),
 m_anMonitoredRenderTargetsCheckTimeCounter(0, 0),
 m_apcStereoTwinRenderTargetViewClipboard(0, nullptr),
 m_apcStereoTwinRenderTextureClipboard(0, nullptr),
+m_nChecktimeFrameConstant(30),  */                        /**< Set this constant to 30 frames, later we should be able to change this value on the node. ***/
 m_dwNewStereoTwinRenderTargets(0),
 m_hBitmapControl(nullptr),
 m_bControlUpdate(false),
@@ -109,7 +110,6 @@ m_bPresent(false),
 m_dwTextureNumber(0),
 m_dwRenderTargetNumber(0),
 m_eD3DVersion(D3DVersion::NotDefined),
-m_nChecktimeFrameConstant(30),                          /**< Set this constant to 30 frames, later we should be able to change this value on the node. ***/
 m_pcBackBufferView(nullptr),
 m_pcVertexShader10(nullptr),
 m_pcPixelShader10(nullptr),
@@ -131,14 +131,14 @@ m_peDrawingSide(nullptr)
 ***/
 StereoSplitter::~StereoSplitter()
 {
-	for (int i = 0; i < (int)m_apcStereoTwinViews.size(); i++)
+	/*for (int i = 0; i < (int)m_apcStereoTwinViews.size(); i++)
 		SAFE_RELEASE(m_apcStereoTwinViews[i]);
-	for (int i = 0; i < (int)m_apcStereoTwinTextures.size(); i++)
+		for (int i = 0; i < (int)m_apcStereoTwinTextures.size(); i++)
 		SAFE_RELEASE(m_apcStereoTwinTextures[i]);
-	for (int i = 0; i < (int)m_apcStereoTwinRenderTargetViewClipboard.size(); i++)
+		for (int i = 0; i < (int)m_apcStereoTwinRenderTargetViewClipboard.size(); i++)
 		SAFE_RELEASE(m_apcStereoTwinRenderTargetViewClipboard[i]);
-	for (int i = 0; i < (int)m_apcStereoTwinRenderTextureClipboard.size(); i++)
-		SAFE_RELEASE(m_apcStereoTwinRenderTextureClipboard[i]);
+		for (int i = 0; i < (int)m_apcStereoTwinRenderTextureClipboard.size(); i++)
+		SAFE_RELEASE(m_apcStereoTwinRenderTextureClipboard[i]);*/
 
 	SAFE_RELEASE(m_pcTexView10[0]);
 	SAFE_RELEASE(m_pcTexView10[1]);
@@ -265,41 +265,41 @@ HBITMAP StereoSplitter::GetControl()
 			int nLen = (int)wcslen(szBuffer); if (nLen > 11) nLen = 11;
 			TextOut(hdcImage, 720, nY, szBuffer, nLen); nY += 64;
 
-			// output the number of currently monitored render targets
-			TextOut(hdcImage, 50, nY, L"Monitored Render Target Views : ", 32);
-			wsprintf(szBuffer, L"%u", (UINT)m_apcMonitoredViews.size());
-			nLen = (int)wcslen(szBuffer); if (nLen > 11) nLen = 11;
-			TextOut(hdcImage, 720, nY, szBuffer, nLen); nY += 64;
+			//// output the number of currently monitored render targets
+			//TextOut(hdcImage, 50, nY, L"Monitored Render Target Views : ", 32);
+			//wsprintf(szBuffer, L"%u", (UINT)m_apcMonitoredViews.size());
+			//nLen = (int)wcslen(szBuffer); if (nLen > 11) nLen = 11;
+			//TextOut(hdcImage, 720, nY, szBuffer, nLen); nY += 64;
 
-			// output the number of check time counters - this number should match monitored render targets number
-			TextOut(hdcImage, 50, nY, L"Check Time Counters : ", 22);
-			wsprintf(szBuffer, L"%u", (UINT)m_anMonitoredRenderTargetsCheckTimeCounter.size());
-			nLen = (int)wcslen(szBuffer); if (nLen > 11) nLen = 11;
-			TextOut(hdcImage, 720, nY, szBuffer, nLen); nY += 64;
+			//// output the number of check time counters - this number should match monitored render targets number
+			//TextOut(hdcImage, 50, nY, L"Check Time Counters : ", 22);
+			//wsprintf(szBuffer, L"%u", (UINT)m_anMonitoredRenderTargetsCheckTimeCounter.size());
+			//nLen = (int)wcslen(szBuffer); if (nLen > 11) nLen = 11;
+			//TextOut(hdcImage, 720, nY, szBuffer, nLen); nY += 64;
 
-			// output the number of Stereo Twin Targets
-			TextOut(hdcImage, 50, nY, L"Stereo Twin Target Views : ", 27);
-			wsprintf(szBuffer, L"%u", (UINT)m_apcStereoTwinViews.size());
-			nLen = (int)wcslen(szBuffer); if (nLen > 11) nLen = 11;
-			TextOut(hdcImage, 720, nY, szBuffer, nLen); nY += 64;
+			//// output the number of Stereo Twin Targets
+			//TextOut(hdcImage, 50, nY, L"Stereo Twin Target Views : ", 27);
+			//wsprintf(szBuffer, L"%u", (UINT)m_apcStereoTwinViews.size());
+			//nLen = (int)wcslen(szBuffer); if (nLen > 11) nLen = 11;
+			//TextOut(hdcImage, 720, nY, szBuffer, nLen); nY += 64;
 
-			// output the number of Stereo Twin Textures
-			TextOut(hdcImage, 50, nY, L"Stereo Twin Textures : ", 23);
-			wsprintf(szBuffer, L"%u", (UINT)m_apcStereoTwinTextures.size());
-			nLen = (int)wcslen(szBuffer); if (nLen > 11) nLen = 11;
-			TextOut(hdcImage, 720, nY, szBuffer, nLen); nY += 64;
+			//// output the number of Stereo Twin Textures
+			//TextOut(hdcImage, 50, nY, L"Stereo Twin Textures : ", 23);
+			//wsprintf(szBuffer, L"%u", (UINT)m_apcStereoTwinTextures.size());
+			//nLen = (int)wcslen(szBuffer); if (nLen > 11) nLen = 11;
+			//TextOut(hdcImage, 720, nY, szBuffer, nLen); nY += 64;
 
-			// output the number of check time counters - this number should match monitored render targets number
-			TextOut(hdcImage, 50, nY, L"Twin Target View Clipboard : ", 29);
-			wsprintf(szBuffer, L"%u", (UINT)m_apcStereoTwinRenderTargetViewClipboard.size());
-			nLen = (int)wcslen(szBuffer); if (nLen > 11) nLen = 11;
-			TextOut(hdcImage, 720, nY, szBuffer, nLen); nY += 64;
+			//// output the number of check time counters - this number should match monitored render targets number
+			//TextOut(hdcImage, 50, nY, L"Twin Target View Clipboard : ", 29);
+			//wsprintf(szBuffer, L"%u", (UINT)m_apcStereoTwinRenderTargetViewClipboard.size());
+			//nLen = (int)wcslen(szBuffer); if (nLen > 11) nLen = 11;
+			//TextOut(hdcImage, 720, nY, szBuffer, nLen); nY += 64;
 
-			// output the number of check time counters - this number should match monitored render targets number
-			TextOut(hdcImage, 50, nY, L"Twin Textures Clipboard : ", 26);
-			wsprintf(szBuffer, L"%u", (UINT)m_apcStereoTwinRenderTextureClipboard.size());
-			nLen = (int)wcslen(szBuffer); if (nLen > 11) nLen = 11;
-			TextOut(hdcImage, 720, nY, szBuffer, nLen); nY += 64;
+			//// output the number of check time counters - this number should match monitored render targets number
+			//TextOut(hdcImage, 50, nY, L"Twin Textures Clipboard : ", 26);
+			//wsprintf(szBuffer, L"%u", (UINT)m_apcStereoTwinRenderTextureClipboard.size());
+			//nLen = (int)wcslen(szBuffer); if (nLen > 11) nLen = 11;
+			//TextOut(hdcImage, 720, nY, szBuffer, nLen); nY += 64;
 
 			//// debug output for back buffer
 			//if (m_pcActiveBackBufferSurface)
@@ -811,23 +811,23 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						float* pfColor;
 						if (m_ppfColorRGBA) pfColor = (float*)*m_ppfColorRGBA; else return nullptr;
 
-						if (pcRenderTargetView)
-						{
-							// check wether this depth stencil is actually monitored..
-							int nIndex = CheckIfMonitored((IUnknown*)pcRenderTargetView);
-							if (nIndex == -1)
-								// not monitored, so start
-								MonitorView(pcRenderTargetView);
-							else
-							{
-								if (nIndex < (int)m_apcStereoTwinViews.size())
-								{
-									if (m_apcStereoTwinViews[nIndex])
-										// clear twin render target
-										((ID3D11DeviceContext*)pThis)->ClearRenderTargetView((ID3D11RenderTargetView*)m_apcStereoTwinViews[nIndex], (const FLOAT*)pfColor);
-								}
-							}
-						}
+						//if (pcRenderTargetView)
+						//{
+						//	// check wether this depth stencil is actually monitored..
+						//	int nIndex = CheckIfMonitored((IUnknown*)pcRenderTargetView);
+						//	if (nIndex == -1)
+						//		// not monitored, so start
+						//		MonitorView(pcRenderTargetView);
+						//	else
+						//	{
+						//		if (nIndex < (int)m_apcStereoTwinViews.size())
+						//		{
+						//			if (m_apcStereoTwinViews[nIndex])
+						//				// clear twin render target
+						//				((ID3D11DeviceContext*)pThis)->ClearRenderTargetView((ID3D11RenderTargetView*)m_apcStereoTwinViews[nIndex], (const FLOAT*)pfColor);
+						//		}
+						//	}
+						//}
 					}
 					return nullptr;
 #pragma endregion
@@ -844,23 +844,23 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						UINT8 chStencil;
 						if (m_pchStencil) chStencil = (UINT8)*m_pchStencil; else return nullptr;
 
-						if (pcDepthStencilView)
-						{
-							// check wether this depth stencil is actually monitored..
-							int nIndex = CheckIfMonitored((IUnknown*)pcDepthStencilView);
-							if (nIndex == -1)
-								// not monitored, so start
-								MonitorView(pcDepthStencilView);
-							else
-							{
-								if (nIndex < (int)m_apcStereoTwinViews.size())
-								{
-									if (m_apcStereoTwinViews[nIndex])
-										// clear twin render target
-										((ID3D11DeviceContext*)pThis)->ClearDepthStencilView((ID3D11DepthStencilView*)m_apcStereoTwinViews[nIndex], dwClearFlags, fDepth, chStencil);
-								}
-							}
-						}
+						//if (pcDepthStencilView)
+						//{
+						//	// check wether this depth stencil is actually monitored..
+						//	int nIndex = CheckIfMonitored((IUnknown*)pcDepthStencilView);
+						//	if (nIndex == -1)
+						//		// not monitored, so start
+						//		MonitorView(pcDepthStencilView);
+						//	else
+						//	{
+						//		if (nIndex < (int)m_apcStereoTwinViews.size())
+						//		{
+						//			if (m_apcStereoTwinViews[nIndex])
+						//				// clear twin render target
+						//				((ID3D11DeviceContext*)pThis)->ClearDepthStencilView((ID3D11DepthStencilView*)m_apcStereoTwinViews[nIndex], dwClearFlags, fDepth, chStencil);
+						//		}
+						//	}
+						//}
 					}
 					return nullptr;
 #pragma endregion
@@ -994,516 +994,516 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 {
 	if (!m_eD3DVersion) return;
 
-#pragma region create or assign
-	// create new stereo twin render targets or assign from clipboard
-	for (DWORD i = 0; i < m_dwNewStereoTwinRenderTargets; i++)
-	{
-		// get monitored render target a twin needs to be found for
-		DWORD dwIndex = (DWORD)m_apcMonitoredViews.size() - (m_dwNewStereoTwinRenderTargets - i);
-
-		// m_apcMonitoredViews[dwIndex] = ID3D10/ID3D11RenderTargetView or ID3D10/ID3D11DepthStencilView
-		IUnknown* pcView = m_apcMonitoredViews[dwIndex];
-
-		// all possible view types enumeration
-		enum D3DViewType
-		{
-			D3D10_RENDER_TARGET_VIEW,
-			D3D10_DEPTH_STENCIL_VIEW,
-			D3D10_SHADER_RESOURCE_VIEW,
-			D3D11_RENDER_TARGET_VIEW,
-			D3D11_DEPTH_STENCIL_VIEW,
-			D3D11_SHADER_RESOURCE_VIEW,
-		} eD3DViewType = D3DViewType::D3D10_RENDER_TARGET_VIEW;
-
-		// determine the type of the view
-		LPVOID pvObject = nullptr;
-		switch (m_eD3DVersion)
-		{
-			case Direct3D10:
-				if (FAILED(pcView->QueryInterface(__uuidof(ID3D10RenderTargetView), &pvObject)))
-				{
-					if (FAILED(pcView->QueryInterface(__uuidof(ID3D10DepthStencilView), &pvObject)))
-					{
-						if (FAILED(pcView->QueryInterface(__uuidof(ID3D10ShaderResourceView), &pvObject)))
-						{
-							OutputDebugString(L"StereoSplitterDX10: Failed to determine d3d view type !");
-						}
-						else
-						{
-							eD3DViewType = D3DViewType::D3D10_SHADER_RESOURCE_VIEW;
-							((IUnknown*)pvObject)->Release();
-						}
-					}
-					else
-					{
-						eD3DViewType = D3DViewType::D3D10_DEPTH_STENCIL_VIEW;
-						((IUnknown*)pvObject)->Release();
-					}
-				}
-				else
-				{
-					eD3DViewType = D3DViewType::D3D10_RENDER_TARGET_VIEW;
-					((IUnknown*)pvObject)->Release();
-				}
-				break;
-			case Direct3D11:
-				if (FAILED(pcView->QueryInterface(__uuidof(ID3D11RenderTargetView), &pvObject)))
-				{
-					if (FAILED(pcView->QueryInterface(__uuidof(ID3D11DepthStencilView), &pvObject)))
-					{
-						if (FAILED(pcView->QueryInterface(__uuidof(ID3D11ShaderResourceView), &pvObject)))
-						{
-							OutputDebugString(L"StereoSplitterDX10: Failed to determine d3d view type !");
-						}
-						else
-						{
-							eD3DViewType = D3DViewType::D3D11_SHADER_RESOURCE_VIEW;
-							((IUnknown*)pvObject)->Release();
-						}
-					}
-					else
-					{
-						eD3DViewType = D3DViewType::D3D11_DEPTH_STENCIL_VIEW;
-						((IUnknown*)pvObject)->Release();
-					}
-				}
-				else
-				{
-					eD3DViewType = D3DViewType::D3D11_RENDER_TARGET_VIEW;
-					((IUnknown*)pvObject)->Release();
-				}
-				break;
-		}
-
-		// all possible description union
-		union
-		{
-			D3D10_RENDER_TARGET_VIEW_DESC sDescRT10;
-			D3D10_DEPTH_STENCIL_VIEW_DESC sDescDS10;
-			D3D10_SHADER_RESOURCE_VIEW_DESC sDescSR10;
-			D3D11_RENDER_TARGET_VIEW_DESC sDescRT11;
-			D3D11_DEPTH_STENCIL_VIEW_DESC sDescDS11;
-			D3D11_SHADER_RESOURCE_VIEW_DESC sDescSR11;
-		};
-		if (pcView)
-		{
-			// get description
-			switch (eD3DViewType)
-			{
-				case D3D10_RENDER_TARGET_VIEW:
-					((ID3D10RenderTargetView*)pcView)->GetDesc(&sDescRT10);
-					break;
-				case D3D10_DEPTH_STENCIL_VIEW:
-					((ID3D10DepthStencilView*)pcView)->GetDesc(&sDescDS10);
-					break;
-				case D3D10_SHADER_RESOURCE_VIEW:
-					OutputDebugString(L"NotImplemented: D3D10_SHADER_RESOURCE_VIEW");
-					break;
-				case D3D11_RENDER_TARGET_VIEW:
-					((ID3D11RenderTargetView*)pcView)->GetDesc(&sDescRT11);
-					break;
-				case D3D11_DEPTH_STENCIL_VIEW:
-					((ID3D11DepthStencilView*)pcView)->GetDesc(&sDescDS11);
-					break;
-				case D3D11_SHADER_RESOURCE_VIEW:
-					OutputDebugString(L"NotImplemented: D3D11_SHADER_RESOURCE_VIEW");
-					break;
-				default:
-					break;
-			}
-
-			// target pointers, both tex + view
-			union
-			{
-				ID3D10Resource* pcStereoTwinTexture10;
-				ID3D11Resource* pcStereoTwinTexture11;
-			};
-			pcStereoTwinTexture10 = nullptr;
-			union
-			{
-				ID3D10View* pcStereoTwinView10;
-				ID3D11View* pcStereoTwinView11;
-			};
-			pcStereoTwinView10 = nullptr;
-
-			// loop through the clipboard, try to find useable stereo twin view
-			int nIndex = 0;
-			auto it = m_apcStereoTwinRenderTargetViewClipboard.begin();
-			while (it < m_apcStereoTwinRenderTargetViewClipboard.end())
-			{
-				// all possible description union
-				union
-				{
-					D3D10_RENDER_TARGET_VIEW_DESC sDescClipboardRT10;
-					D3D10_DEPTH_STENCIL_VIEW_DESC sDescClipboardDS10;
-					D3D10_SHADER_RESOURCE_VIEW_DESC sDescClipboardSR10;
-					D3D11_RENDER_TARGET_VIEW_DESC sDescClipboardRT11;
-					D3D11_DEPTH_STENCIL_VIEW_DESC sDescClipboardDS11;
-					D3D11_SHADER_RESOURCE_VIEW_DESC sDescClipboardSR11;
-				};
-
-				// get description, compare to monitored view
-				bool bViewCompare = false;
-				if (*it)
-				{
-					switch (eD3DViewType)
-					{
-						case D3D10_RENDER_TARGET_VIEW:
-							((ID3D10RenderTargetView*)(*it))->GetDesc(&sDescClipboardRT10);
-							if (memcmp(&sDescClipboardRT10, &sDescRT10, sizeof(D3D10_RENDER_TARGET_VIEW_DESC)) == NULL)
-								bViewCompare = true;
-							break;
-						case D3D10_DEPTH_STENCIL_VIEW:
-							((ID3D10DepthStencilView*)(*it))->GetDesc(&sDescClipboardDS10);
-							if (memcmp(&sDescClipboardDS10, &sDescDS10, sizeof(D3D10_DEPTH_STENCIL_VIEW_DESC)) == NULL)
-								bViewCompare = true;
-							break;
-						case D3D10_SHADER_RESOURCE_VIEW:
-							break;
-						case D3D11_RENDER_TARGET_VIEW:
-							if (SUCCEEDED((*it)->QueryInterface(__uuidof(ID3D11RenderTargetView), &pvObject)))
-							{
-								((IUnknown*)pvObject)->Release();
-								((ID3D11RenderTargetView*)(*it))->GetDesc(&sDescClipboardRT11);
-								if (memcmp(&sDescClipboardRT11, &sDescRT11, sizeof(D3D11_RENDER_TARGET_VIEW_DESC)) == NULL)
-									bViewCompare = true;
-							}
-							break;
-						case D3D11_DEPTH_STENCIL_VIEW:
-							if (SUCCEEDED((*it)->QueryInterface(__uuidof(ID3D11DepthStencilView), &pvObject)))
-							{
-								((IUnknown*)pvObject)->Release();
-								((ID3D11DepthStencilView*)(*it))->GetDesc(&sDescClipboardDS11);
-								if (memcmp(&sDescClipboardDS11, &sDescDS11, sizeof(D3D11_DEPTH_STENCIL_VIEW_DESC)) == NULL)
-									bViewCompare = true;
-							}
-							break;
-						case D3D11_SHADER_RESOURCE_VIEW:
-							break;
-						default:
-							break;
-					}
-				}
-
-				// take this target if all matches
-				if (bViewCompare)
-				{
-					// first, set the new stereo twins from the clipboard
-					// note that ID3D10View can be ID3D11View (same for ID3D10/ID3D11Resource)
-					pcStereoTwinView10 = (ID3D10View*)m_apcStereoTwinRenderTargetViewClipboard[nIndex];
-					pcStereoTwinTexture10 = (ID3D10Resource*)m_apcStereoTwinRenderTextureClipboard[nIndex];
-
-					// erase render target iterator for both clipboard vectors
-					m_apcStereoTwinRenderTargetViewClipboard.erase(m_apcStereoTwinRenderTargetViewClipboard.begin() + nIndex);
-					m_apcStereoTwinRenderTextureClipboard.erase(m_apcStereoTwinRenderTextureClipboard.begin() + nIndex);
-
-					// end loop
-					it = m_apcStereoTwinRenderTargetViewClipboard.end();
-				}
-				else
-				{
-					// increase index
-					nIndex++;
-
-					// increase iterator
-					it++;
-				}
-			}
-
-			// if no render target (texture) is found on the clipboard, create a new
-			if (pcStereoTwinView10 == nullptr)
-			{
-				// note that D3D10_RTV_DIMENSION == D3D11_RTV_DIMENSION
-				// and D3D10_DSV_DIMENSION == D3D11_DSV_DIMENSION but has
-				// no 3D texture type as D3D10_RTV_DIMENSION (sDesc.ViewDimension)
-				switch (sDescRT10.ViewDimension)
-				{
-					case D3D10_RTV_DIMENSION_UNKNOWN:
-						OutputDebugString(L"NotImplemented: D3D10_RTV_DIMENSION_UNKNOWN");
-						break;
-					case D3D10_RTV_DIMENSION_BUFFER:
-						OutputDebugString(L"NotImplemented: D3D10_RTV_DIMENSION_BUFFER");
-						break;
-					case D3D10_RTV_DIMENSION_TEXTURE1D:
-						OutputDebugString(L"NotImplemented: D3D10_RTV_DIMENSION_TEXTURE1D");
-						break;
-					case D3D10_RTV_DIMENSION_TEXTURE1DARRAY:
-						OutputDebugString(L"NotImplemented: D3D10_RTV_DIMENSION_TEXTURE1DARRAY");
-						switch (eD3DViewType)
-						{
-							case D3D10_RENDER_TARGET_VIEW:
-								OutputDebugString(L"NotImplemented: D3D10_RENDER_TARGET_VIEW");
-								break;
-							case D3D10_DEPTH_STENCIL_VIEW:
-								OutputDebugString(L"NotImplemented: D3D10_DEPTH_STENCIL_VIEW");
-								break;
-							case D3D10_SHADER_RESOURCE_VIEW:
-								OutputDebugString(L"NotImplemented: D3D10_SHADER_RESOURCE_VIEW");
-								break;
-							case D3D11_RENDER_TARGET_VIEW:
-								OutputDebugString(L"NotImplemented: D3D11_RENDER_TARGET_VIEW");
-								break;
-							case D3D11_DEPTH_STENCIL_VIEW:
-								if (true)
-								{
-									// get device
-									ID3D11Device* pcDevice = nullptr;
-									pcSwapChain->GetDevice(__uuidof(ID3D11Device), (void**)&pcDevice);
-									if (pcDevice)
-									{
-										// get the texture
-										ID3D11Texture1D* pcResource = nullptr;
-										((ID3D11DepthStencilView*)pcView)->GetResource((ID3D11Resource**)&pcResource);
-										if (pcResource)
-										{
-											// get the description and create the twin texture
-											D3D11_TEXTURE1D_DESC sDesc;
-											pcResource->GetDesc(&sDesc);
-											pcResource->Release();
-
-											if (FAILED(pcDevice->CreateTexture1D(&sDesc, NULL, (ID3D11Texture1D**)&pcStereoTwinTexture11)))
-												OutputDebugString(L"StereoSplitterDX10 : Failed to create twin texture !");
-											else
-											{
-												// create twin render target view
-												if (FAILED(pcDevice->CreateDepthStencilView((ID3D11Resource*)pcStereoTwinTexture11, &sDescDS11, (ID3D11DepthStencilView**)&pcStereoTwinView11)))
-													OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view !");
-											}
-										}
-										pcDevice->Release();
-									}
-								}
-								break;
-							case D3D11_SHADER_RESOURCE_VIEW:
-								OutputDebugString(L"NotImplemented: D3D11_SHADER_RESOURCE_VIEW");
-								break;
-							default:
-								OutputDebugString(L"NotImplemented: UNKNOWN TYPE");
-								break;
-						}
-						break;
-					case D3D10_RTV_DIMENSION_TEXTURE2D:
-						switch (eD3DViewType)
-						{
-							case D3D10_RENDER_TARGET_VIEW:
-								if (true)
-								{
-									// get device
-									ID3D10Device* pcDevice = nullptr;
-									pcSwapChain->GetDevice(__uuidof(ID3D10Device), (void**)&pcDevice);
-									if (pcDevice)
-									{
-										// get the texture
-										ID3D10Texture2D* pcResource = nullptr;
-										((ID3D10RenderTargetView*)pcView)->GetResource((ID3D10Resource**)&pcResource);
-										if (pcResource)
-										{
-											// get the description and create the twin texture
-											D3D10_TEXTURE2D_DESC sDesc;
-											pcResource->GetDesc(&sDesc);
-											pcResource->Release();
-											if (FAILED(pcDevice->CreateTexture2D(&sDesc, NULL, (ID3D10Texture2D**)&pcStereoTwinTexture10)))
-												OutputDebugString(L"StereoSplitterDX10 : Failed to create twin texture !");
-											else
-											{
-												// create twin render target view
-												if (FAILED(pcDevice->CreateRenderTargetView((ID3D10Resource*)pcStereoTwinTexture10, &sDescRT10, (ID3D10RenderTargetView**)&pcStereoTwinView10)))
-													OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view !");
-											}
-										}
-										pcDevice->Release();
-									}
-								}
-								break;
-							case D3D10_DEPTH_STENCIL_VIEW:
-								if (true)
-								{
-									// get device
-									ID3D10Device* pcDevice = nullptr;
-									pcSwapChain->GetDevice(__uuidof(ID3D10Device), (void**)&pcDevice);
-									if (pcDevice)
-									{
-										// get the texture
-										ID3D10Texture2D* pcResource = nullptr;
-										((ID3D10DepthStencilView*)pcView)->GetResource((ID3D10Resource**)&pcResource);
-										if (pcResource)
-										{
-											// get the description and create the twin texture
-											D3D10_TEXTURE2D_DESC sDesc;
-											pcResource->GetDesc(&sDesc);
-											pcResource->Release();
-											if (FAILED(pcDevice->CreateTexture2D(&sDesc, NULL, (ID3D10Texture2D**)&pcStereoTwinTexture10)))
-												OutputDebugString(L"StereoSplitterDX10 : Failed to create twin texture !");
-											else
-											{
-												// create twin render target view
-												if (FAILED(pcDevice->CreateDepthStencilView((ID3D10Resource*)pcStereoTwinTexture10, &sDescDS10, (ID3D10DepthStencilView**)&pcStereoTwinView10)))
-													OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view !");
-											}
-										}
-										pcDevice->Release();
-									}
-								}
-								break;
-							case D3D10_SHADER_RESOURCE_VIEW:
-								OutputDebugString(L"NotImplemented: D3D10_SHADER_RESOURCE_VIEW");
-								break;
-							case D3D11_RENDER_TARGET_VIEW:
-								if (true)
-								{
-									// get device
-									ID3D11Device* pcDevice = nullptr;
-									pcSwapChain->GetDevice(__uuidof(ID3D11Device), (void**)&pcDevice);
-									if (pcDevice)
-									{
-										// get the texture
-										ID3D11Texture2D* pcResource = nullptr;
-										((ID3D11RenderTargetView*)pcView)->GetResource((ID3D11Resource**)&pcResource);
-										if (pcResource)
-										{
-											// get the description and create the twin texture
-											D3D11_TEXTURE2D_DESC sDesc;
-											pcResource->GetDesc(&sDesc);
-											pcResource->Release();
-
-											if (FAILED(pcDevice->CreateTexture2D(&sDesc, NULL, (ID3D11Texture2D**)&pcStereoTwinTexture11)))
-												OutputDebugString(L"StereoSplitterDX10 : Failed to create twin texture !");
-											else
-											{
-												// create twin render target view
-												if (FAILED(pcDevice->CreateRenderTargetView((ID3D11Resource*)pcStereoTwinTexture11, &sDescRT11, (ID3D11RenderTargetView**)&pcStereoTwinView11)))
-													OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view !");
-											}
-										}
-										pcDevice->Release();
-									}
-								}
-								break;
-							case D3D11_DEPTH_STENCIL_VIEW:
-								if (true)
-								{
-									// get device
-									ID3D11Device* pcDevice = nullptr;
-									pcSwapChain->GetDevice(__uuidof(ID3D11Device), (void**)&pcDevice);
-									if (pcDevice)
-									{
-										// get the texture
-										ID3D11Texture2D* pcResource = nullptr;
-										((ID3D11DepthStencilView*)pcView)->GetResource((ID3D11Resource**)&pcResource);
-										if (pcResource)
-										{
-											// get the description and create the twin texture
-											D3D11_TEXTURE2D_DESC sDesc;
-											pcResource->GetDesc(&sDesc);
-											pcResource->Release();
-
-											if (FAILED(pcDevice->CreateTexture2D(&sDesc, NULL, (ID3D11Texture2D**)&pcStereoTwinTexture11)))
-												OutputDebugString(L"StereoSplitterDX10 : Failed to create twin texture !");
-											else
-											{
-												// create twin render target view
-												if (FAILED(pcDevice->CreateDepthStencilView((ID3D11Resource*)pcStereoTwinTexture11, &sDescDS11, (ID3D11DepthStencilView**)&pcStereoTwinView11)))
-													OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view !");
-											}
-										}
-										pcDevice->Release();
-									}
-								}
-								break;
-							case D3D11_SHADER_RESOURCE_VIEW:
-								OutputDebugString(L"NotImplemented: D3D11_SHADER_RESOURCE_VIEW");
-								break;
-							default:
-								OutputDebugString(L"NotImplemented: UNKNOWN TYPE");
-								break;
-						}
-						break;
-					case D3D10_RTV_DIMENSION_TEXTURE2DARRAY:
-						OutputDebugString(L"NotImplemented: D3D10_RTV_DIMENSION_TEXTURE2DARRAY");
-						break;
-					case D3D10_RTV_DIMENSION_TEXTURE2DMS:
-						OutputDebugString(L"NotImplemented: D3D10_RTV_DIMENSION_TEXTURE2DMS");
-						break;
-					case D3D10_RTV_DIMENSION_TEXTURE2DMSARRAY:
-						OutputDebugString(L"NotImplemented: D3D10_RTV_DIMENSION_TEXTURE2DMSARRAY");
-						break;
-					case D3D10_RTV_DIMENSION_TEXTURE3D:
-						OutputDebugString(L"NotImplemented: D3D10_RTV_DIMENSION_TEXTURE3D");
-						break;
-					default:
-						OutputDebugString(L"NotImplemented: UNKNOWN DIMENSION");
-						break;
-				}
-			}
-
-			if (!pcStereoTwinView10) OutputDebugString(L"StereoSplitter: Could not create twin view !");
-			if (!pcStereoTwinTexture10) OutputDebugString(L"StereoSplitter: Could not create twin texture !");
-
-			// add to stereo twin render targets
-			m_apcStereoTwinViews.push_back(pcStereoTwinView10);
-			m_apcStereoTwinTextures.push_back(pcStereoTwinTexture10);
-
-			// update control
-			m_bControlUpdate = true;
-		}
-		else
-		{
-			// code failure, null pointer render target
-			OutputDebugString(L"VireioStereoSplitterDx10 code failure ! Null pointer monitored view !");
-			m_apcStereoTwinViews.push_back(nullptr);
-			m_apcStereoTwinTextures.push_back(nullptr);
-
-			// update control
-			m_bControlUpdate = true;
-		}
-	}
-
-	// finally, clear new render targets number
-	m_dwNewStereoTwinRenderTargets = 0;
-#pragma endregion
-
-#pragma region check time counter
-	// loop through check time vector, decrease check time counter for each render target..
-	{
-		int nIndex = 0;
-		auto it = m_anMonitoredRenderTargetsCheckTimeCounter.begin();
-		while (it < m_anMonitoredRenderTargetsCheckTimeCounter.end())
-		{
-			// decrease counter
-			auto i = *it; i--; *it = i;
-
-			// remove render target (+counter) from list if counter <= zero
-			if (*it <= 0)
-			{
-				// first, move the stereo twin of this render target to the clipboard
-				m_apcStereoTwinRenderTargetViewClipboard.push_back(m_apcStereoTwinViews[nIndex]);
-				m_apcStereoTwinRenderTextureClipboard.push_back(m_apcStereoTwinTextures[nIndex]);
-
-				// erase render target iterator for all 3 vectors (original, stereo twin, stereo twin texture)
-				m_apcMonitoredViews.erase(m_apcMonitoredViews.begin() + nIndex);
-				m_apcStereoTwinViews.erase(m_apcStereoTwinViews.begin() + nIndex);
-				m_apcStereoTwinTextures.erase(m_apcStereoTwinTextures.begin() + nIndex);
-
-				// erase check time counter
-				m_anMonitoredRenderTargetsCheckTimeCounter.erase(it);
-
-				// end loop
-				it = m_anMonitoredRenderTargetsCheckTimeCounter.end();
-
-				// update control
-				m_bControlUpdate = true;
-			}
-			else
-			{
-				// increase index
-				nIndex++;
-
-				// increase iterator
-				it++;
-			}
-		}
-	}
-#pragma endregion
+	//#pragma region create or assign
+	//	// create new stereo twin render targets or assign from clipboard
+	//	for (DWORD i = 0; i < m_dwNewStereoTwinRenderTargets; i++)
+	//	{
+	//		// get monitored render target a twin needs to be found for
+	//		DWORD dwIndex = (DWORD)m_apcMonitoredViews.size() - (m_dwNewStereoTwinRenderTargets - i);
+	//
+	//		// m_apcMonitoredViews[dwIndex] = ID3D10/ID3D11RenderTargetView or ID3D10/ID3D11DepthStencilView
+	//		IUnknown* pcView = m_apcMonitoredViews[dwIndex];
+	//
+	//		// all possible view types enumeration
+	//		enum D3DViewType
+	//		{
+	//			D3D10_RENDER_TARGET_VIEW,
+	//			D3D10_DEPTH_STENCIL_VIEW,
+	//			D3D10_SHADER_RESOURCE_VIEW,
+	//			D3D11_RENDER_TARGET_VIEW,
+	//			D3D11_DEPTH_STENCIL_VIEW,
+	//			D3D11_SHADER_RESOURCE_VIEW,
+	//		} eD3DViewType = D3DViewType::D3D10_RENDER_TARGET_VIEW;
+	//
+	//		// determine the type of the view
+	//		LPVOID pvObject = nullptr;
+	//		switch (m_eD3DVersion)
+	//		{
+	//			case Direct3D10:
+	//				if (FAILED(pcView->QueryInterface(__uuidof(ID3D10RenderTargetView), &pvObject)))
+	//				{
+	//					if (FAILED(pcView->QueryInterface(__uuidof(ID3D10DepthStencilView), &pvObject)))
+	//					{
+	//						if (FAILED(pcView->QueryInterface(__uuidof(ID3D10ShaderResourceView), &pvObject)))
+	//						{
+	//							OutputDebugString(L"StereoSplitterDX10: Failed to determine d3d view type !");
+	//						}
+	//						else
+	//						{
+	//							eD3DViewType = D3DViewType::D3D10_SHADER_RESOURCE_VIEW;
+	//							((IUnknown*)pvObject)->Release();
+	//						}
+	//					}
+	//					else
+	//					{
+	//						eD3DViewType = D3DViewType::D3D10_DEPTH_STENCIL_VIEW;
+	//						((IUnknown*)pvObject)->Release();
+	//					}
+	//				}
+	//				else
+	//				{
+	//					eD3DViewType = D3DViewType::D3D10_RENDER_TARGET_VIEW;
+	//					((IUnknown*)pvObject)->Release();
+	//				}
+	//				break;
+	//			case Direct3D11:
+	//				if (FAILED(pcView->QueryInterface(__uuidof(ID3D11RenderTargetView), &pvObject)))
+	//				{
+	//					if (FAILED(pcView->QueryInterface(__uuidof(ID3D11DepthStencilView), &pvObject)))
+	//					{
+	//						if (FAILED(pcView->QueryInterface(__uuidof(ID3D11ShaderResourceView), &pvObject)))
+	//						{
+	//							OutputDebugString(L"StereoSplitterDX10: Failed to determine d3d view type !");
+	//						}
+	//						else
+	//						{
+	//							eD3DViewType = D3DViewType::D3D11_SHADER_RESOURCE_VIEW;
+	//							((IUnknown*)pvObject)->Release();
+	//						}
+	//					}
+	//					else
+	//					{
+	//						eD3DViewType = D3DViewType::D3D11_DEPTH_STENCIL_VIEW;
+	//						((IUnknown*)pvObject)->Release();
+	//					}
+	//				}
+	//				else
+	//				{
+	//					eD3DViewType = D3DViewType::D3D11_RENDER_TARGET_VIEW;
+	//					((IUnknown*)pvObject)->Release();
+	//				}
+	//				break;
+	//		}
+	//
+	//		// all possible description union
+	//		union
+	//		{
+	//			D3D10_RENDER_TARGET_VIEW_DESC sDescRT10;
+	//			D3D10_DEPTH_STENCIL_VIEW_DESC sDescDS10;
+	//			D3D10_SHADER_RESOURCE_VIEW_DESC sDescSR10;
+	//			D3D11_RENDER_TARGET_VIEW_DESC sDescRT11;
+	//			D3D11_DEPTH_STENCIL_VIEW_DESC sDescDS11;
+	//			D3D11_SHADER_RESOURCE_VIEW_DESC sDescSR11;
+	//		};
+	//		if (pcView)
+	//		{
+	//			// get description
+	//			switch (eD3DViewType)
+	//			{
+	//				case D3D10_RENDER_TARGET_VIEW:
+	//					((ID3D10RenderTargetView*)pcView)->GetDesc(&sDescRT10);
+	//					break;
+	//				case D3D10_DEPTH_STENCIL_VIEW:
+	//					((ID3D10DepthStencilView*)pcView)->GetDesc(&sDescDS10);
+	//					break;
+	//				case D3D10_SHADER_RESOURCE_VIEW:
+	//					OutputDebugString(L"NotImplemented: D3D10_SHADER_RESOURCE_VIEW");
+	//					break;
+	//				case D3D11_RENDER_TARGET_VIEW:
+	//					((ID3D11RenderTargetView*)pcView)->GetDesc(&sDescRT11);
+	//					break;
+	//				case D3D11_DEPTH_STENCIL_VIEW:
+	//					((ID3D11DepthStencilView*)pcView)->GetDesc(&sDescDS11);
+	//					break;
+	//				case D3D11_SHADER_RESOURCE_VIEW:
+	//					OutputDebugString(L"NotImplemented: D3D11_SHADER_RESOURCE_VIEW");
+	//					break;
+	//				default:
+	//					break;
+	//			}
+	//
+	//			// target pointers, both tex + view
+	//			union
+	//			{
+	//				ID3D10Resource* pcStereoTwinTexture10;
+	//				ID3D11Resource* pcStereoTwinTexture11;
+	//			};
+	//			pcStereoTwinTexture10 = nullptr;
+	//			union
+	//			{
+	//				ID3D10View* pcStereoTwinView10;
+	//				ID3D11View* pcStereoTwinView11;
+	//			};
+	//			pcStereoTwinView10 = nullptr;
+	//
+	//			// loop through the clipboard, try to find useable stereo twin view
+	//			int nIndex = 0;
+	//			auto it = m_apcStereoTwinRenderTargetViewClipboard.begin();
+	//			while (it < m_apcStereoTwinRenderTargetViewClipboard.end())
+	//			{
+	//				// all possible description union
+	//				union
+	//				{
+	//					D3D10_RENDER_TARGET_VIEW_DESC sDescClipboardRT10;
+	//					D3D10_DEPTH_STENCIL_VIEW_DESC sDescClipboardDS10;
+	//					D3D10_SHADER_RESOURCE_VIEW_DESC sDescClipboardSR10;
+	//					D3D11_RENDER_TARGET_VIEW_DESC sDescClipboardRT11;
+	//					D3D11_DEPTH_STENCIL_VIEW_DESC sDescClipboardDS11;
+	//					D3D11_SHADER_RESOURCE_VIEW_DESC sDescClipboardSR11;
+	//				};
+	//
+	//				// get description, compare to monitored view
+	//				bool bViewCompare = false;
+	//				if (*it)
+	//				{
+	//					switch (eD3DViewType)
+	//					{
+	//						case D3D10_RENDER_TARGET_VIEW:
+	//							((ID3D10RenderTargetView*)(*it))->GetDesc(&sDescClipboardRT10);
+	//							if (memcmp(&sDescClipboardRT10, &sDescRT10, sizeof(D3D10_RENDER_TARGET_VIEW_DESC)) == NULL)
+	//								bViewCompare = true;
+	//							break;
+	//						case D3D10_DEPTH_STENCIL_VIEW:
+	//							((ID3D10DepthStencilView*)(*it))->GetDesc(&sDescClipboardDS10);
+	//							if (memcmp(&sDescClipboardDS10, &sDescDS10, sizeof(D3D10_DEPTH_STENCIL_VIEW_DESC)) == NULL)
+	//								bViewCompare = true;
+	//							break;
+	//						case D3D10_SHADER_RESOURCE_VIEW:
+	//							break;
+	//						case D3D11_RENDER_TARGET_VIEW:
+	//							if (SUCCEEDED((*it)->QueryInterface(__uuidof(ID3D11RenderTargetView), &pvObject)))
+	//							{
+	//								((IUnknown*)pvObject)->Release();
+	//								((ID3D11RenderTargetView*)(*it))->GetDesc(&sDescClipboardRT11);
+	//								if (memcmp(&sDescClipboardRT11, &sDescRT11, sizeof(D3D11_RENDER_TARGET_VIEW_DESC)) == NULL)
+	//									bViewCompare = true;
+	//							}
+	//							break;
+	//						case D3D11_DEPTH_STENCIL_VIEW:
+	//							if (SUCCEEDED((*it)->QueryInterface(__uuidof(ID3D11DepthStencilView), &pvObject)))
+	//							{
+	//								((IUnknown*)pvObject)->Release();
+	//								((ID3D11DepthStencilView*)(*it))->GetDesc(&sDescClipboardDS11);
+	//								if (memcmp(&sDescClipboardDS11, &sDescDS11, sizeof(D3D11_DEPTH_STENCIL_VIEW_DESC)) == NULL)
+	//									bViewCompare = true;
+	//							}
+	//							break;
+	//						case D3D11_SHADER_RESOURCE_VIEW:
+	//							break;
+	//						default:
+	//							break;
+	//					}
+	//				}
+	//
+	//				// take this target if all matches
+	//				if (bViewCompare)
+	//				{
+	//					// first, set the new stereo twins from the clipboard
+	//					// note that ID3D10View can be ID3D11View (same for ID3D10/ID3D11Resource)
+	//					pcStereoTwinView10 = (ID3D10View*)m_apcStereoTwinRenderTargetViewClipboard[nIndex];
+	//					pcStereoTwinTexture10 = (ID3D10Resource*)m_apcStereoTwinRenderTextureClipboard[nIndex];
+	//
+	//					// erase render target iterator for both clipboard vectors
+	//					m_apcStereoTwinRenderTargetViewClipboard.erase(m_apcStereoTwinRenderTargetViewClipboard.begin() + nIndex);
+	//					m_apcStereoTwinRenderTextureClipboard.erase(m_apcStereoTwinRenderTextureClipboard.begin() + nIndex);
+	//
+	//					// end loop
+	//					it = m_apcStereoTwinRenderTargetViewClipboard.end();
+	//				}
+	//				else
+	//				{
+	//					// increase index
+	//					nIndex++;
+	//
+	//					// increase iterator
+	//					it++;
+	//				}
+	//			}
+	//
+	//			// if no render target (texture) is found on the clipboard, create a new
+	//			if (pcStereoTwinView10 == nullptr)
+	//			{
+	//				// note that D3D10_RTV_DIMENSION == D3D11_RTV_DIMENSION
+	//				// and D3D10_DSV_DIMENSION == D3D11_DSV_DIMENSION but has
+	//				// no 3D texture type as D3D10_RTV_DIMENSION (sDesc.ViewDimension)
+	//				switch (sDescRT10.ViewDimension)
+	//				{
+	//					case D3D10_RTV_DIMENSION_UNKNOWN:
+	//						OutputDebugString(L"NotImplemented: D3D10_RTV_DIMENSION_UNKNOWN");
+	//						break;
+	//					case D3D10_RTV_DIMENSION_BUFFER:
+	//						OutputDebugString(L"NotImplemented: D3D10_RTV_DIMENSION_BUFFER");
+	//						break;
+	//					case D3D10_RTV_DIMENSION_TEXTURE1D:
+	//						OutputDebugString(L"NotImplemented: D3D10_RTV_DIMENSION_TEXTURE1D");
+	//						break;
+	//					case D3D10_RTV_DIMENSION_TEXTURE1DARRAY:
+	//						OutputDebugString(L"NotImplemented: D3D10_RTV_DIMENSION_TEXTURE1DARRAY");
+	//						switch (eD3DViewType)
+	//						{
+	//							case D3D10_RENDER_TARGET_VIEW:
+	//								OutputDebugString(L"NotImplemented: D3D10_RENDER_TARGET_VIEW");
+	//								break;
+	//							case D3D10_DEPTH_STENCIL_VIEW:
+	//								OutputDebugString(L"NotImplemented: D3D10_DEPTH_STENCIL_VIEW");
+	//								break;
+	//							case D3D10_SHADER_RESOURCE_VIEW:
+	//								OutputDebugString(L"NotImplemented: D3D10_SHADER_RESOURCE_VIEW");
+	//								break;
+	//							case D3D11_RENDER_TARGET_VIEW:
+	//								OutputDebugString(L"NotImplemented: D3D11_RENDER_TARGET_VIEW");
+	//								break;
+	//							case D3D11_DEPTH_STENCIL_VIEW:
+	//								if (true)
+	//								{
+	//									// get device
+	//									ID3D11Device* pcDevice = nullptr;
+	//									pcSwapChain->GetDevice(__uuidof(ID3D11Device), (void**)&pcDevice);
+	//									if (pcDevice)
+	//									{
+	//										// get the texture
+	//										ID3D11Texture1D* pcResource = nullptr;
+	//										((ID3D11DepthStencilView*)pcView)->GetResource((ID3D11Resource**)&pcResource);
+	//										if (pcResource)
+	//										{
+	//											// get the description and create the twin texture
+	//											D3D11_TEXTURE1D_DESC sDesc;
+	//											pcResource->GetDesc(&sDesc);
+	//											pcResource->Release();
+	//
+	//											if (FAILED(pcDevice->CreateTexture1D(&sDesc, NULL, (ID3D11Texture1D**)&pcStereoTwinTexture11)))
+	//												OutputDebugString(L"StereoSplitterDX10 : Failed to create twin texture !");
+	//											else
+	//											{
+	//												// create twin render target view
+	//												if (FAILED(pcDevice->CreateDepthStencilView((ID3D11Resource*)pcStereoTwinTexture11, &sDescDS11, (ID3D11DepthStencilView**)&pcStereoTwinView11)))
+	//													OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view !");
+	//											}
+	//										}
+	//										pcDevice->Release();
+	//									}
+	//								}
+	//								break;
+	//							case D3D11_SHADER_RESOURCE_VIEW:
+	//								OutputDebugString(L"NotImplemented: D3D11_SHADER_RESOURCE_VIEW");
+	//								break;
+	//							default:
+	//								OutputDebugString(L"NotImplemented: UNKNOWN TYPE");
+	//								break;
+	//						}
+	//						break;
+	//					case D3D10_RTV_DIMENSION_TEXTURE2D:
+	//						switch (eD3DViewType)
+	//						{
+	//							case D3D10_RENDER_TARGET_VIEW:
+	//								if (true)
+	//								{
+	//									// get device
+	//									ID3D10Device* pcDevice = nullptr;
+	//									pcSwapChain->GetDevice(__uuidof(ID3D10Device), (void**)&pcDevice);
+	//									if (pcDevice)
+	//									{
+	//										// get the texture
+	//										ID3D10Texture2D* pcResource = nullptr;
+	//										((ID3D10RenderTargetView*)pcView)->GetResource((ID3D10Resource**)&pcResource);
+	//										if (pcResource)
+	//										{
+	//											// get the description and create the twin texture
+	//											D3D10_TEXTURE2D_DESC sDesc;
+	//											pcResource->GetDesc(&sDesc);
+	//											pcResource->Release();
+	//											if (FAILED(pcDevice->CreateTexture2D(&sDesc, NULL, (ID3D10Texture2D**)&pcStereoTwinTexture10)))
+	//												OutputDebugString(L"StereoSplitterDX10 : Failed to create twin texture !");
+	//											else
+	//											{
+	//												// create twin render target view
+	//												if (FAILED(pcDevice->CreateRenderTargetView((ID3D10Resource*)pcStereoTwinTexture10, &sDescRT10, (ID3D10RenderTargetView**)&pcStereoTwinView10)))
+	//													OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view !");
+	//											}
+	//										}
+	//										pcDevice->Release();
+	//									}
+	//								}
+	//								break;
+	//							case D3D10_DEPTH_STENCIL_VIEW:
+	//								if (true)
+	//								{
+	//									// get device
+	//									ID3D10Device* pcDevice = nullptr;
+	//									pcSwapChain->GetDevice(__uuidof(ID3D10Device), (void**)&pcDevice);
+	//									if (pcDevice)
+	//									{
+	//										// get the texture
+	//										ID3D10Texture2D* pcResource = nullptr;
+	//										((ID3D10DepthStencilView*)pcView)->GetResource((ID3D10Resource**)&pcResource);
+	//										if (pcResource)
+	//										{
+	//											// get the description and create the twin texture
+	//											D3D10_TEXTURE2D_DESC sDesc;
+	//											pcResource->GetDesc(&sDesc);
+	//											pcResource->Release();
+	//											if (FAILED(pcDevice->CreateTexture2D(&sDesc, NULL, (ID3D10Texture2D**)&pcStereoTwinTexture10)))
+	//												OutputDebugString(L"StereoSplitterDX10 : Failed to create twin texture !");
+	//											else
+	//											{
+	//												// create twin render target view
+	//												if (FAILED(pcDevice->CreateDepthStencilView((ID3D10Resource*)pcStereoTwinTexture10, &sDescDS10, (ID3D10DepthStencilView**)&pcStereoTwinView10)))
+	//													OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view !");
+	//											}
+	//										}
+	//										pcDevice->Release();
+	//									}
+	//								}
+	//								break;
+	//							case D3D10_SHADER_RESOURCE_VIEW:
+	//								OutputDebugString(L"NotImplemented: D3D10_SHADER_RESOURCE_VIEW");
+	//								break;
+	//							case D3D11_RENDER_TARGET_VIEW:
+	//								if (true)
+	//								{
+	//									// get device
+	//									ID3D11Device* pcDevice = nullptr;
+	//									pcSwapChain->GetDevice(__uuidof(ID3D11Device), (void**)&pcDevice);
+	//									if (pcDevice)
+	//									{
+	//										// get the texture
+	//										ID3D11Texture2D* pcResource = nullptr;
+	//										((ID3D11RenderTargetView*)pcView)->GetResource((ID3D11Resource**)&pcResource);
+	//										if (pcResource)
+	//										{
+	//											// get the description and create the twin texture
+	//											D3D11_TEXTURE2D_DESC sDesc;
+	//											pcResource->GetDesc(&sDesc);
+	//											pcResource->Release();
+	//
+	//											if (FAILED(pcDevice->CreateTexture2D(&sDesc, NULL, (ID3D11Texture2D**)&pcStereoTwinTexture11)))
+	//												OutputDebugString(L"StereoSplitterDX10 : Failed to create twin texture !");
+	//											else
+	//											{
+	//												// create twin render target view
+	//												if (FAILED(pcDevice->CreateRenderTargetView((ID3D11Resource*)pcStereoTwinTexture11, &sDescRT11, (ID3D11RenderTargetView**)&pcStereoTwinView11)))
+	//													OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view !");
+	//											}
+	//										}
+	//										pcDevice->Release();
+	//									}
+	//								}
+	//								break;
+	//							case D3D11_DEPTH_STENCIL_VIEW:
+	//								if (true)
+	//								{
+	//									// get device
+	//									ID3D11Device* pcDevice = nullptr;
+	//									pcSwapChain->GetDevice(__uuidof(ID3D11Device), (void**)&pcDevice);
+	//									if (pcDevice)
+	//									{
+	//										// get the texture
+	//										ID3D11Texture2D* pcResource = nullptr;
+	//										((ID3D11DepthStencilView*)pcView)->GetResource((ID3D11Resource**)&pcResource);
+	//										if (pcResource)
+	//										{
+	//											// get the description and create the twin texture
+	//											D3D11_TEXTURE2D_DESC sDesc;
+	//											pcResource->GetDesc(&sDesc);
+	//											pcResource->Release();
+	//
+	//											if (FAILED(pcDevice->CreateTexture2D(&sDesc, NULL, (ID3D11Texture2D**)&pcStereoTwinTexture11)))
+	//												OutputDebugString(L"StereoSplitterDX10 : Failed to create twin texture !");
+	//											else
+	//											{
+	//												// create twin render target view
+	//												if (FAILED(pcDevice->CreateDepthStencilView((ID3D11Resource*)pcStereoTwinTexture11, &sDescDS11, (ID3D11DepthStencilView**)&pcStereoTwinView11)))
+	//													OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view !");
+	//											}
+	//										}
+	//										pcDevice->Release();
+	//									}
+	//								}
+	//								break;
+	//							case D3D11_SHADER_RESOURCE_VIEW:
+	//								OutputDebugString(L"NotImplemented: D3D11_SHADER_RESOURCE_VIEW");
+	//								break;
+	//							default:
+	//								OutputDebugString(L"NotImplemented: UNKNOWN TYPE");
+	//								break;
+	//						}
+	//						break;
+	//					case D3D10_RTV_DIMENSION_TEXTURE2DARRAY:
+	//						OutputDebugString(L"NotImplemented: D3D10_RTV_DIMENSION_TEXTURE2DARRAY");
+	//						break;
+	//					case D3D10_RTV_DIMENSION_TEXTURE2DMS:
+	//						OutputDebugString(L"NotImplemented: D3D10_RTV_DIMENSION_TEXTURE2DMS");
+	//						break;
+	//					case D3D10_RTV_DIMENSION_TEXTURE2DMSARRAY:
+	//						OutputDebugString(L"NotImplemented: D3D10_RTV_DIMENSION_TEXTURE2DMSARRAY");
+	//						break;
+	//					case D3D10_RTV_DIMENSION_TEXTURE3D:
+	//						OutputDebugString(L"NotImplemented: D3D10_RTV_DIMENSION_TEXTURE3D");
+	//						break;
+	//					default:
+	//						OutputDebugString(L"NotImplemented: UNKNOWN DIMENSION");
+	//						break;
+	//				}
+	//			}
+	//
+	//			if (!pcStereoTwinView10) OutputDebugString(L"StereoSplitter: Could not create twin view !");
+	//			if (!pcStereoTwinTexture10) OutputDebugString(L"StereoSplitter: Could not create twin texture !");
+	//
+	//			// add to stereo twin render targets
+	//			m_apcStereoTwinViews.push_back(pcStereoTwinView10);
+	//			m_apcStereoTwinTextures.push_back(pcStereoTwinTexture10);
+	//
+	//			// update control
+	//			m_bControlUpdate = true;
+	//		}
+	//		else
+	//		{
+	//			// code failure, null pointer render target
+	//			OutputDebugString(L"VireioStereoSplitterDx10 code failure ! Null pointer monitored view !");
+	//			m_apcStereoTwinViews.push_back(nullptr);
+	//			m_apcStereoTwinTextures.push_back(nullptr);
+	//
+	//			// update control
+	//			m_bControlUpdate = true;
+	//		}
+	//	}
+	//
+	//	// finally, clear new render targets number
+	//	m_dwNewStereoTwinRenderTargets = 0;
+	//#pragma endregion
+	//
+	//#pragma region check time counter
+	//	// loop through check time vector, decrease check time counter for each render target..
+	//	{
+	//		int nIndex = 0;
+	//		auto it = m_anMonitoredRenderTargetsCheckTimeCounter.begin();
+	//		while (it < m_anMonitoredRenderTargetsCheckTimeCounter.end())
+	//		{
+	//			// decrease counter
+	//			auto i = *it; i--; *it = i;
+	//
+	//			// remove render target (+counter) from list if counter <= zero
+	//			if (*it <= 0)
+	//			{
+	//				// first, move the stereo twin of this render target to the clipboard
+	//				m_apcStereoTwinRenderTargetViewClipboard.push_back(m_apcStereoTwinViews[nIndex]);
+	//				m_apcStereoTwinRenderTextureClipboard.push_back(m_apcStereoTwinTextures[nIndex]);
+	//
+	//				// erase render target iterator for all 3 vectors (original, stereo twin, stereo twin texture)
+	//				m_apcMonitoredViews.erase(m_apcMonitoredViews.begin() + nIndex);
+	//				m_apcStereoTwinViews.erase(m_apcStereoTwinViews.begin() + nIndex);
+	//				m_apcStereoTwinTextures.erase(m_apcStereoTwinTextures.begin() + nIndex);
+	//
+	//				// erase check time counter
+	//				m_anMonitoredRenderTargetsCheckTimeCounter.erase(it);
+	//
+	//				// end loop
+	//				it = m_anMonitoredRenderTargetsCheckTimeCounter.end();
+	//
+	//				// update control
+	//				m_bControlUpdate = true;
+	//			}
+	//			else
+	//			{
+	//				// increase index
+	//				nIndex++;
+	//
+	//				// increase iterator
+	//				it++;
+	//			}
+	//		}
+	//	}
+	//#pragma endregion
 
 #pragma region get back buffer
 	// finally, provide pointers to the left and right render target
@@ -1527,75 +1527,73 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 					SAFE_RELEASE(m_pcTex11[1]);
 
 					// get view from monitored views, actually the current back buffer should be monitored
-					m_nBackBufferIndex = -1;
+					/*m_nBackBufferIndex = -1;
 					for (size_t nI = 0; nI < m_apcMonitoredViews.size(); nI++)
 					{
-						ID3D11Resource* pcResource;
-						((ID3D11View*)m_apcMonitoredViews[nI])->GetResource(&pcResource);
-						if (pcResource == pcBackBuffer)
-							m_nBackBufferIndex = (int)nI;
-					}
+					ID3D11Resource* pcResource;
+					((ID3D11View*)m_apcMonitoredViews[nI])->GetResource(&pcResource);
+					if (pcResource == pcBackBuffer)
+					m_nBackBufferIndex = (int)nI;
+					}*/
 
-					// set stereo twin back buffer and create output textures
-					if (m_nBackBufferIndex > -1)
-					{
-						m_pcActiveBackBuffer11 = pcBackBuffer;
-						m_pcActiveStereoTwinBackBuffer11 = (ID3D11Texture2D*)m_apcStereoTwinTextures[m_nBackBufferIndex];
-
-						// get device
-						ID3D11Device* pcDevice = nullptr;
-						pcSwapChain->GetDevice(__uuidof(ID3D11Device), (void**)&pcDevice);
-						if (pcDevice)
-						{
-							// create target textures by description
-							D3D11_SHADER_RESOURCE_VIEW_DESC sDesc;
-							ZeroMemory(&sDesc, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
-							D3D11_TEXTURE2D_DESC sDescRT;
-							pcBackBuffer->GetDesc(&sDescRT);
-							sDescRT.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-
-							if (FAILED(pcDevice->CreateTexture2D(&sDescRT, NULL, &m_pcTex11[0])))
-								OutputDebugString(L"VireioStereoSplitter: Failed to create Texture.");
-							if (FAILED(pcDevice->CreateTexture2D(&sDescRT, NULL, &m_pcTex11[1])))
-								OutputDebugString(L"VireioStereoSplitter: Failed to create Texture.");
-
-							// ...and the views
-							sDesc.Format = sDescRT.Format;
-							sDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-							sDesc.Texture2D.MostDetailedMip = 0;
-							sDesc.Texture2D.MipLevels = 1;
-
-							if ((FAILED(pcDevice->CreateShaderResourceView((ID3D11Resource*)m_pcTex11[0], &sDesc, &m_pcTexView11[0]))))
-								OutputDebugString(L"VireioStereoSplitter: Failed to create texture view!");
-							if ((FAILED(pcDevice->CreateShaderResourceView((ID3D11Resource*)m_pcTex11[1], &sDesc, &m_pcTexView11[1]))))
-								OutputDebugString(L"VireioStereoSplitter: Failed to create texture view!");
-							pcDevice->Release();
-						}
-					}
-					else
-					{
-#ifdef _DEBUG
-						OutputDebugString(L"VireioStereoSplitter: Back buffer not monitored !");
-#endif
-						// not monitored, so start
-						MonitorView((IUnknown*)pcBackBuffer);
-
-						// set twin surface to null meanwhile
-						m_pcActiveBackBuffer11 = NULL;
-						m_pcActiveStereoTwinBackBuffer11 = NULL;
-
-						pcBackBuffer->Release();
-					}
+					//					// set stereo twin back buffer and create output textures
+					//					if (m_nBackBufferIndex > -1)
+					//					{
+					//						m_pcActiveBackBuffer11 = pcBackBuffer;
+					//						m_pcActiveStereoTwinBackBuffer11 = (ID3D11Texture2D*)m_apcStereoTwinTextures[m_nBackBufferIndex];
+					//
+					//						// get device
+					//						ID3D11Device* pcDevice = nullptr;
+					//						pcSwapChain->GetDevice(__uuidof(ID3D11Device), (void**)&pcDevice);
+					//						if (pcDevice)
+					//						{
+					//							// create target textures by description
+					//							D3D11_SHADER_RESOURCE_VIEW_DESC sDesc;
+					//							ZeroMemory(&sDesc, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
+					//							D3D11_TEXTURE2D_DESC sDescRT;
+					//							pcBackBuffer->GetDesc(&sDescRT);
+					//							sDescRT.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+					//
+					//							if (FAILED(pcDevice->CreateTexture2D(&sDescRT, NULL, &m_pcTex11[0])))
+					//								OutputDebugString(L"VireioStereoSplitter: Failed to create Texture.");
+					//							if (FAILED(pcDevice->CreateTexture2D(&sDescRT, NULL, &m_pcTex11[1])))
+					//								OutputDebugString(L"VireioStereoSplitter: Failed to create Texture.");
+					//
+					//							// ...and the views
+					//							sDesc.Format = sDescRT.Format;
+					//							sDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+					//							sDesc.Texture2D.MostDetailedMip = 0;
+					//							sDesc.Texture2D.MipLevels = 1;
+					//
+					//							if ((FAILED(pcDevice->CreateShaderResourceView((ID3D11Resource*)m_pcTex11[0], &sDesc, &m_pcTexView11[0]))))
+					//								OutputDebugString(L"VireioStereoSplitter: Failed to create texture view!");
+					//							if ((FAILED(pcDevice->CreateShaderResourceView((ID3D11Resource*)m_pcTex11[1], &sDesc, &m_pcTexView11[1]))))
+					//								OutputDebugString(L"VireioStereoSplitter: Failed to create texture view!");
+					//							pcDevice->Release();
+					//						}
+					//					}
+					//					else
+					//					{
+					//#ifdef _DEBUG
+					//						OutputDebugString(L"VireioStereoSplitter: Back buffer not monitored !");
+					//#endif
+					//						// not monitored, so start
+					//						MonitorView((IUnknown*)pcBackBuffer);
+					//
+					//						// set twin surface to null meanwhile
+					//						m_pcActiveBackBuffer11 = NULL;
+					//						m_pcActiveStereoTwinBackBuffer11 = NULL;
+					//					}
 				}
-				else
-					pcBackBuffer->Release();
+
+				pcBackBuffer->Release();
 			}
 			else
 			{
 				// no backbuffer present ? should not be...
 				OutputDebugString(L"VireioStereoSplitter: No back buffer present !");
 				if (m_pcActiveBackBuffer11) m_pcActiveBackBuffer11->Release();
-				m_nBackBufferIndex = -1;
+				//m_nBackBufferIndex = -1;
 				m_pcActiveBackBuffer11 = NULL;
 				m_pcActiveStereoTwinBackBuffer11 = NULL;
 			}
@@ -1616,7 +1614,8 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 				break;
 			case Direct3D11:
 			{
-				if ((m_nBackBufferIndex == -1) || (!m_pcActiveBackBuffer11)) break;
+				//if ((m_nBackBufferIndex == -1) || (!m_pcActiveBackBuffer11)) break;
+				if (!m_pcActiveBackBuffer11) break;
 
 				// get device and context
 				ID3D11Device* pcDevice = nullptr;
@@ -1646,7 +1645,7 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 				pcContext->ClearState();
 
 				// set first active render target - the stored back buffer
-				pcContext->OMSetRenderTargets(1, (ID3D11RenderTargetView**)&m_apcMonitoredViews[m_nBackBufferIndex], (ID3D11DepthStencilView*)m_pcActiveDepthStencilView);
+				//pcContext->OMSetRenderTargets(1, (ID3D11RenderTargetView**)&m_apcMonitoredViews[m_nBackBufferIndex], (ID3D11DepthStencilView*)m_pcActiveDepthStencilView);
 				pcContext->RSSetViewports(dwNumViewports, psViewport);
 
 				// create all bool
@@ -1684,8 +1683,8 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 					if (false)
 					{
 						float ClearColor[4] = { 0.6f, 0.125f, 0.3f, 0.0f }; // red,green,blue,alpha
-						if (m_apcMonitoredViews[m_nBackBufferIndex])
-							pcContext->ClearRenderTargetView((ID3D11RenderTargetView*)m_apcMonitoredViews[m_nBackBufferIndex], ClearColor);
+						/*if (m_apcMonitoredViews[m_nBackBufferIndex])
+							pcContext->ClearRenderTargetView((ID3D11RenderTargetView*)m_apcMonitoredViews[m_nBackBufferIndex], ClearColor);*/
 					}
 					//pcContext->ClearDepthStencilView((ID3D11DepthStencilView*)m_pcActiveDepthStencilView, D3D11_CLEAR_DEPTH, 1.0, 0);
 
@@ -1811,25 +1810,25 @@ void StereoSplitter::OMSetRenderTargets(UINT NumViews, IUnknown *const *ppRender
 						// set the target
 						m_apcActiveRenderTargetViews[i] = ppRenderTargetViews[i];
 
-						// check wether this render target is actually monitored
-						int nIndex = CheckIfMonitored(ppRenderTargetViews[i]);
-						if (nIndex == -1)
-						{
-							// not monitored, so start
-							MonitorView((IUnknown*)ppRenderTargetViews[i]);
+						//// check wether this render target is actually monitored
+						//int nIndex = CheckIfMonitored(ppRenderTargetViews[i]);
+						//if (nIndex == -1)
+						//{
+						//	// not monitored, so start
+						//	MonitorView((IUnknown*)ppRenderTargetViews[i]);
 
-							// set twin surface to null meanwhile
-							m_apcActiveStereoTwinViews[i] = NULL;
-						}
-						else
-						{
-							// set twin surface if twin created
-							if (nIndex < (int)m_apcStereoTwinViews.size())
-								m_apcActiveStereoTwinViews[i] = m_apcStereoTwinViews[nIndex];
-							else
-								// set twin surface to null meanwhile
-								m_apcActiveStereoTwinViews[i] = NULL;
-						}
+						//	// set twin surface to null meanwhile
+						//	m_apcActiveStereoTwinViews[i] = NULL;
+						//}
+						//else
+						//{
+						//	// set twin surface if twin created
+						//	if (nIndex < (int)m_apcStereoTwinViews.size())
+						//		m_apcActiveStereoTwinViews[i] = m_apcStereoTwinViews[nIndex];
+						//	else
+						//		// set twin surface to null meanwhile
+						//		m_apcActiveStereoTwinViews[i] = NULL;
+						//}
 					}
 				}
 				else
@@ -1851,27 +1850,27 @@ void StereoSplitter::OMSetRenderTargets(UINT NumViews, IUnknown *const *ppRender
 	{
 		m_pcActiveDepthStencilView = pDepthStencilView;
 
-		// check wether this depth stencil is actually monitored.. 
-		int nIndex = CheckIfMonitored(pDepthStencilView);
-		if (nIndex == -1)
-		{
-			// not monitored, so start
-			MonitorView(pDepthStencilView);
+		//// check wether this depth stencil is actually monitored.. 
+		//int nIndex = CheckIfMonitored(pDepthStencilView);
+		//if (nIndex == -1)
+		//{
+		//	// not monitored, so start
+		//	MonitorView(pDepthStencilView);
 
-			// set twin surface to null meanwhile
-			m_pcActiveStereoTwinDepthStencilView = NULL;
-		}
-		else
-		{
-			// set twin surface if twin created
-			if (nIndex < (int)m_apcStereoTwinViews.size())
-				m_pcActiveStereoTwinDepthStencilView = m_apcStereoTwinViews[nIndex];
-			else
-			{
-				// set twin surface to null meanwhile
-				m_pcActiveStereoTwinDepthStencilView = NULL;
-			}
-		}
+		//	// set twin surface to null meanwhile
+		//	m_pcActiveStereoTwinDepthStencilView = NULL;
+		//}
+		//else
+		//{
+		//	// set twin surface if twin created
+		//	if (nIndex < (int)m_apcStereoTwinViews.size())
+		//		m_pcActiveStereoTwinDepthStencilView = m_apcStereoTwinViews[nIndex];
+		//	else
+		//	{
+		//		// set twin surface to null meanwhile
+		//		m_pcActiveStereoTwinDepthStencilView = NULL;
+		//	}
+		//}
 	}
 
 	m_bControlUpdate = true;
@@ -1880,37 +1879,37 @@ void StereoSplitter::OMSetRenderTargets(UINT NumViews, IUnknown *const *ppRender
 /**
 * Index of the monitored surface in m_apcMonitoredViews, -1 if not monitored.
 ***/
-int StereoSplitter::CheckIfMonitored(IUnknown* pcView)
+/*int StereoSplitter::CheckIfMonitored(IUnknown* pcView)
 {
-	auto it = std::find(m_apcMonitoredViews.begin(), m_apcMonitoredViews.end(), (IUnknown*)pcView);
-	if (it != m_apcMonitoredViews.end())
-	{
-		// set check time counter if this render target is actually monitored
-		auto index = it - m_apcMonitoredViews.begin();
-		if (m_anMonitoredRenderTargetsCheckTimeCounter.size() > (size_t)index)
-		{
-			m_anMonitoredRenderTargetsCheckTimeCounter[index] = m_nChecktimeFrameConstant;
-			return (int)index;
-		}
-	}
-	return -1;
+auto it = std::find(m_apcMonitoredViews.begin(), m_apcMonitoredViews.end(), (IUnknown*)pcView);
+if (it != m_apcMonitoredViews.end())
+{
+// set check time counter if this render target is actually monitored
+auto index = it - m_apcMonitoredViews.begin();
+if (m_anMonitoredRenderTargetsCheckTimeCounter.size() > (size_t)index)
+{
+m_anMonitoredRenderTargetsCheckTimeCounter[index] = m_nChecktimeFrameConstant;
+return (int)index;
 }
+}
+return -1;
+}*/
 
 /**
 * Start to monitor surface.
 ***/
-void StereoSplitter::MonitorView(IUnknown* pcView)
+/*void StereoSplitter::MonitorView(IUnknown* pcView)
 {
-	// add new render target + check time frame constant
-	m_apcMonitoredViews.push_back(pcView);
-	m_anMonitoredRenderTargetsCheckTimeCounter.push_back(m_nChecktimeFrameConstant);
+// add new render target + check time frame constant
+m_apcMonitoredViews.push_back(pcView);
+m_anMonitoredRenderTargetsCheckTimeCounter.push_back(m_nChecktimeFrameConstant);
 
-	// increase new render targets number, stereo twin will be created in Present() call
-	m_dwNewStereoTwinRenderTargets++;
+// increase new render targets number, stereo twin will be created in Present() call
+m_dwNewStereoTwinRenderTargets++;
 
-	// update control
-	m_bControlUpdate = true;
-}
+// update control
+m_bControlUpdate = true;
+}*/
 
 /**
 * Switches rendering to which ever side is specified by side.

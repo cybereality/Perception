@@ -49,4 +49,13 @@ const GUID PDIID_ID3D11Buffer_Constant_Buffer_Right = {0x8c5b3ad0, 0xd6fa, 0x4ef
 // PDID_ID3D11VertexShader_Vireio_Data : 3bffbfc5-7baa-4534-9f4a-06be7d3df832
 const GUID PDID_ID3D11VertexShader_Vireio_Data = {0x3bffbfc5, 0x7baa, 0x4534, {0x9f, 0x4a, 0x06, 0xbe, 0x7d, 0x3d, 0xf8, 0x32}};
 
+// PDIID_ID3D11Texture2D_Stereo_Twin : 65fbac52-33fe-4ece-8756-6a11675c42dc
+const GUID PDIID_ID3D11Texture2D_Stereo_Twin = { 0x65fbac52, 0x33fe, 0x4ece, { 0x87, 0x56, 0x6a, 0x11, 0x67, 0x5c, 0x42, 0xdc } };
+
+// PDIID_ID3D11Texture2D_RenderTargetView : c1e52c2b-d618-41d8-bb42-9bb371b1b28a
+const GUID PDIID_ID3D11Texture2D_RenderTargetView = { 0xc1e52c2b, 0xd618, 0x41d8, { 0xbb, 0x42, 0x9b, 0xb3, 0x71, 0xb1, 0xb2, 0x8a } };
+
+// PDIID_ID3D11RenderTargetView_Stereo_Twin : bc121462-d0b4-42d5-8429-2f7b194c8d20
+const GUID PDIID_ID3D11RenderTargetView_Stereo_Twin = { 0xbc121462, 0xd0b4, 0x42d5, { 0x84, 0x29, 0x2f, 0x7b, 0x19, 0x4c, 0x8d, 0x20 } };
+
 #pragma endregion

@@ -198,8 +198,8 @@ private:
 	void                    DrawInstancedIndirect(ID3D11DeviceContext *pcThis, ID3D11Buffer *pBufferForArgs, UINT AlignedByteOffsetForArgs);
 
 	/*** StereoSplitter private methods ***/
-	int                     CheckIfMonitored(IUnknown* pcView);
-	void                    MonitorView(IUnknown* pcView);
+	//int                     CheckIfMonitored(IUnknown* pcView);
+	//void                    MonitorView(IUnknown* pcView);
 	bool                    SetDrawingSide(ID3D10Device* pcDevice, RenderPosition side);
 	bool                    SetDrawingSide(ID3D11DeviceContext* pcContext, RenderPosition side);
 	void                    SetDrawingSideField(RenderPosition eSide) { m_eCurrentRenderingSide = eSide; if (m_peDrawingSide) *m_peDrawingSide = eSide; }
@@ -229,22 +229,39 @@ private:
 	/**
 	* Active stored render target views.
 	* The render targets that are currently in use.
-	* (IUnknown*) for campatibility to DX10+DX11.
+	* (IUnknown*) for compatibility to DX10+DX11.
 	***/
 	std::vector<IUnknown *> m_apcActiveRenderTargetViews;
 	/**
 	* Active stored textures.
 	* The textures that are currently in use.
-	* (IUnknown*) for campatibility to DX10+DX11.
-	* TODO !! TEXTURE VIEW ???
+	* (IUnknown*) for compatibility to DX10+DX11.
 	***/
 	std::vector<IUnknown*> m_apcActiveTextures;
 	/**
 	* Active stored depth stencil view.
 	* The depth stencil surface that is currently in use.
-	* (IUnknown*) for campatibility to DX10+DX11.
+	* (IUnknown*) for compatibility to DX10+DX11.
 	***/
 	IUnknown* m_pcActiveDepthStencilView;
+	/**
+	* Twin for active render target.
+	* Entries ALLWAYS also exist in m_apcStereoTwinViews.
+	* (IUnknown*) for compatibility to DX10+DX11.
+	***/
+	std::vector<IUnknown*> m_apcActiveStereoTwinViews;
+	/**
+	* Twin for active texture.
+	* Entries ALLWAYS also exist in m_apcStereoTwinTextures.
+	* (IUnknown*) for compatibility to DX10+DX11.
+	***/
+	std::vector<IUnknown*> m_apcActiveStereoTwinTextures;
+	/**
+	* Twin for active depth stencil.
+	* Entry ALLWAYS also exist in m_apcStereoTwinViews.
+	* (IUnknown*) for compatibility to DX10+DX11.
+	***/
+	IUnknown* m_pcActiveStereoTwinDepthStencilView;
 	/**
 	* Active back buffer.
 	* The back buffer surface that is currently in use.
@@ -264,10 +281,10 @@ private:
 		ID3D10Texture2D* m_pcActiveStereoTwinBackBuffer10;
 		ID3D11Texture2D* m_pcActiveStereoTwinBackBuffer11;
 	};
-	/**
-	* The index of the current back buffer view in m_apcMonitoredViews.
-	***/
-	int m_nBackBufferIndex;
+	///**
+	//* The index of the current back buffer view in m_apcMonitoredViews.
+	//***/
+	//int m_nBackBufferIndex;
 	/**
 	* Active output textures (shader bind flag), for both eyes.
 	* The back buffer surface copies.
@@ -291,9 +308,9 @@ private:
 	* The render targets that are currently watched or monitored.
 	* These render targets have been used for the last period of
 	* frames.
-	* (IUnknown*) for campatibility to DX10+DX11.
+	* (IUnknown*) for compatibility to DX10+DX11.
 	***/
-	std::vector<IUnknown*> m_apcMonitoredViews;
+	//std::vector<IUnknown*> m_apcMonitoredViews;
 	/**
 	* Stereo twin render targets.
 	* Each entry in this vector corresponds as the stereo twin
@@ -301,7 +318,7 @@ private:
 	* with the same index.
 	* (IUnknown*) for compatibility to DX10+DX11.
 	***/
-	std::vector<IUnknown*> m_apcStereoTwinViews;
+	//std::vector<IUnknown*> m_apcStereoTwinViews;
 	/**
 	* Stereo twin render textures.
 	* Each entry in this vector corresponds as the the texture of
@@ -309,25 +326,7 @@ private:
 	* m_apcStereoTwinViews).
 	* (IUnknown*) for compatibility to DX10+DX11.
 	***/
-	std::vector<IUnknown*> m_apcStereoTwinTextures;
-	/**
-	* Twin for active render target.
-	* Entries ALLWAYS also exist in m_apcStereoTwinViews.
-	* (IUnknown*) for campatibility to DX10+DX11.
-	***/
-	std::vector<IUnknown*> m_apcActiveStereoTwinViews;
-	/**
-	* Twin for active texture.
-	* Entries ALLWAYS also exist in m_apcStereoTwinTextures.
-	* (IUnknown*) for campatibility to DX10+DX11.
-	***/
-	std::vector<IUnknown*> m_apcActiveStereoTwinTextures;
-	/**
-	* Twin for active depth stencil.
-	* Entry ALLWAYS also exist in m_apcStereoTwinViews.
-	* (IUnknown*) for campatibility to DX10+DX11.
-	***/
-	IUnknown* m_pcActiveStereoTwinDepthStencilView;
+	//std::vector<IUnknown*> m_apcStereoTwinTextures;
 	/**
 	* Monitored render targets check time counter.
 	* Each index of the vector array represents the frame counter
@@ -336,14 +335,14 @@ private:
 	* will be set to the check time counter constant set in
 	* m_nChecktimeFrameConstant.
 	***/
-	std::vector<int> m_anMonitoredRenderTargetsCheckTimeCounter;
+	//std::vector<int> m_anMonitoredRenderTargetsCheckTimeCounter;
 	/**
 	* Monitored render target check time constant (in frames).
 	* Time (in frames) any render target will be (at least) monitored.
 	* If any render target is set again, its check time counter
 	* will be resetted to this value.
 	***/
-	int m_nChecktimeFrameConstant;
+	//int m_nChecktimeFrameConstant;
 	/**
 	* The number of stereo twin render targets to be verified this frame.
 	***/
@@ -351,17 +350,17 @@ private:
 	/**
 	* Currently unused render target views (=clipboard).
 	* To be taken as new render targets if needed.
-	* (IUnknown*) for campatibility to DX10+DX11.
+	* (IUnknown*) for compatibility to DX10+DX11.
 	***/
-	std::vector<IUnknown*> m_apcStereoTwinRenderTargetViewClipboard;
+	//std::vector<IUnknown*> m_apcStereoTwinRenderTargetViewClipboard;
 	/**
 	* Currently unused render textures (=clipboard).
 	* Each entry in this vector corresponds as the the texture of
 	* the stereo twin view with the same clipboard index.
 	* (m_apcStereoTwinRenderTargetViewClipboard)
-	* (IUnknown*) for campatibility to DX10+DX11.
+	* (IUnknown*) for compatibility to DX10+DX11.
 	***/
-	std::vector<IUnknown*> m_apcStereoTwinRenderTextureClipboard;
+	//std::vector<IUnknown*> m_apcStereoTwinRenderTextureClipboard;
 	/**
 	* True if Present() was called at least once.
 	* Game can crash if Present() is not connected,
