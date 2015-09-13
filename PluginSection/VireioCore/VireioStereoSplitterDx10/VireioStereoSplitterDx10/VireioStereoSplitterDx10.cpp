@@ -976,55 +976,13 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 					}
 					else
 					{
-						// no render target view present, create one
+						// no render target view present ? return
 						OutputDebugString(L"StereoSplitter: No back buffer render target view present!");
 
-						// get device
-						ID3D11Device* pcDevice = nullptr;
-						pcSwapChain->GetDevice(__uuidof(ID3D11Device), (void**)&pcDevice);
-						if (pcDevice)
-						{
-							// create a first twin render target view... will be released by the interface
-							// whenever the back buffer is set as render target
-							ID3D11RenderTargetView* pcRenderTargetView = nullptr;
-							ID3D11RenderTargetView* pcRenderTargetTwinView = nullptr;
-							ID3D11Texture2D* pcTwinTexture = nullptr;
-							if (FAILED(pcDevice->CreateRenderTargetView((ID3D11Resource*)pcBackBuffer, NULL, &pcRenderTargetView)))
-							{
-								OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view !");
-								pcDevice->Release();
-								pcBackBuffer->Release();
-								return;
-							}
-
-							// get the description and create the twin texture
-							D3D11_TEXTURE2D_DESC sDesc;
-							pcBackBuffer->GetDesc(&sDesc);
-
-							if (FAILED(pcDevice->CreateTexture2D(&sDesc, NULL, (ID3D11Texture2D**)&pcTwinTexture)))
-								OutputDebugString(L"StereoSplitterDX10 : Failed to create twin texture !");
-							else
-							{
-								// create twin render target view
-								if (FAILED(pcDevice->CreateRenderTargetView((ID3D11Resource*)pcTwinTexture, NULL, (ID3D11RenderTargetView**)&pcRenderTargetTwinView)))
-									OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view !");
-							}
-							// assign stereo private data interfaces, first the render target view to the texture
-							pcBackBuffer->SetPrivateDataInterface(PDIID_ID3D11TextureXD_RenderTargetView, pcRenderTargetView);
-							// now assign the stereo texture twin interface
-							pcBackBuffer->SetPrivateDataInterface(PDIID_ID3D11TextureXD_Stereo_Twin, pcTwinTexture);
-							// last, the stereo twin render target view
-							pcRenderTargetView->SetPrivateDataInterface(PDIID_ID3D11RenderTargetView_Stereo_Twin, pcRenderTargetTwinView);
-
-							// release all private data fields and the device
-							pcRenderTargetTwinView->Release();
-							pcRenderTargetView->Release();
-							pcTwinTexture->Release();
-							pcDevice->Release();
-						}
-
 						pcBackBuffer->Release();
+						m_pcActiveBackBuffer11 = nullptr;
 						m_pcActiveStereoTwinBackBuffer11 = nullptr;
+						m_bPresent = true; /**< do not forget to set present bool here !! ***/
 						return;
 					}
 				}
