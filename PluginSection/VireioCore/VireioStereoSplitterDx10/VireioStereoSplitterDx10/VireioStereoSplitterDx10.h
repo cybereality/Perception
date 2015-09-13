@@ -188,7 +188,7 @@ private:
 	void                    Present(IDXGISwapChain* pcSwapChain);
 
 	/*** StereoSplitter private D3D10+ methods ***/
-	void                    OMSetRenderTargets(UINT NumViews, IUnknown *const *ppRenderTargetViews, IUnknown *pDepthStencilView);
+	void                    OMSetRenderTargets(IUnknown* pcDeviceOrContext, UINT NumViews, IUnknown *const *ppRenderTargetViews, IUnknown *pDepthStencilView);
 	void                    DrawIndexed(ID3D11DeviceContext *pcThis, UINT IndexCount, UINT StartIndexLocation, INT BaseVertexLocation);
 	void                    Draw(ID3D11DeviceContext *pcThis, UINT VertexCount, UINT StartVertexLocation);
 	void                    DrawIndexedInstanced(ID3D11DeviceContext *pcThis, UINT IndexCountPerInstance, UINT InstanceCount, UINT StartIndexLocation, INT BaseVertexLocation, UINT StartInstanceLocation);
@@ -198,8 +198,9 @@ private:
 	void                    DrawInstancedIndirect(ID3D11DeviceContext *pcThis, ID3D11Buffer *pBufferForArgs, UINT AlignedByteOffsetForArgs);
 
 	/*** StereoSplitter private methods ***/
-	//int                     CheckIfMonitored(IUnknown* pcView);
-	//void                    MonitorView(IUnknown* pcView);
+	void                    CreateStereoView(IUnknown* pcDevice, ID3D11View* pcView);
+	ID3D11RenderTargetView* VerifyPrivateDataInterfaces(ID3D11RenderTargetView* pcRenderTargetView);
+	ID3D11DepthStencilView* VerifyPrivateDataInterfaces(ID3D11DepthStencilView* pcDepthStencilView);
 	bool                    SetDrawingSide(ID3D10Device* pcDevice, RenderPosition side);
 	bool                    SetDrawingSide(ID3D11DeviceContext* pcContext, RenderPosition side);
 	void                    SetDrawingSideField(RenderPosition eSide) { m_eCurrentRenderingSide = eSide; if (m_peDrawingSide) *m_peDrawingSide = eSide; }
@@ -251,14 +252,12 @@ private:
 	***/
 	std::vector<IUnknown*> m_apcActiveStereoTwinViews;
 	/**
-	* Twin for active texture.
-	* Entries ALLWAYS also exist in m_apcStereoTwinTextures.
+	* Stereo twin for active texture.
 	* (IUnknown*) for compatibility to DX10+DX11.
 	***/
 	std::vector<IUnknown*> m_apcActiveStereoTwinTextures;
 	/**
-	* Twin for active depth stencil.
-	* Entry ALLWAYS also exist in m_apcStereoTwinViews.
+	* Stereo twin for active depth stencil.
 	* (IUnknown*) for compatibility to DX10+DX11.
 	***/
 	IUnknown* m_pcActiveStereoTwinDepthStencilView;
@@ -272,19 +271,14 @@ private:
 		ID3D11Texture2D* m_pcActiveBackBuffer11;
 	};
 	/**
-	* Twin for active back buffer.
+	* Stereo twin for active back buffer.
 	* The back buffer surface that is currently in use.
-	* Entry ALLWAYS also exist in m_apcStereoTwinTextures.
 	***/
 	union
 	{
 		ID3D10Texture2D* m_pcActiveStereoTwinBackBuffer10;
 		ID3D11Texture2D* m_pcActiveStereoTwinBackBuffer11;
 	};
-	///**
-	//* The index of the current back buffer view in m_apcMonitoredViews.
-	//***/
-	//int m_nBackBufferIndex;
 	/**
 	* Active output textures (shader bind flag), for both eyes.
 	* The back buffer surface copies.
@@ -304,63 +298,15 @@ private:
 		ID3D11ShaderResourceView* m_pcTexView11[2];
 	};
 	/**
-	* Monitored stored views (both render target and depth stencil).
-	* The render targets that are currently watched or monitored.
-	* These render targets have been used for the last period of
-	* frames.
-	* (IUnknown*) for compatibility to DX10+DX11.
+	* New depth stencils.
+	* Processed in next Present() call.
 	***/
-	//std::vector<IUnknown*> m_apcMonitoredViews;
+	std::vector<ID3D11DepthStencilView*> m_apcNewDepthStencilViews11;
 	/**
-	* Stereo twin render targets.
-	* Each entry in this vector corresponds as the stereo twin
-	* of the render target stored in m_apcMonitoredViews
-	* with the same index.
-	* (IUnknown*) for compatibility to DX10+DX11.
+	* New render targets.
+	* Processed in next Present() call.
 	***/
-	//std::vector<IUnknown*> m_apcStereoTwinViews;
-	/**
-	* Stereo twin render textures.
-	* Each entry in this vector corresponds as the the texture of
-	* the stereo twin surface with the same index (stored in
-	* m_apcStereoTwinViews).
-	* (IUnknown*) for compatibility to DX10+DX11.
-	***/
-	//std::vector<IUnknown*> m_apcStereoTwinTextures;
-	/**
-	* Monitored render targets check time counter.
-	* Each index of the vector array represents the frame counter
-	* the render target stored in m_pcMonitoredRenderTargets will
-	* be watched. If this render target is in use again this counter
-	* will be set to the check time counter constant set in
-	* m_nChecktimeFrameConstant.
-	***/
-	//std::vector<int> m_anMonitoredRenderTargetsCheckTimeCounter;
-	/**
-	* Monitored render target check time constant (in frames).
-	* Time (in frames) any render target will be (at least) monitored.
-	* If any render target is set again, its check time counter
-	* will be resetted to this value.
-	***/
-	//int m_nChecktimeFrameConstant;
-	/**
-	* The number of stereo twin render targets to be verified this frame.
-	***/
-	DWORD m_dwNewStereoTwinRenderTargets;
-	/**
-	* Currently unused render target views (=clipboard).
-	* To be taken as new render targets if needed.
-	* (IUnknown*) for compatibility to DX10+DX11.
-	***/
-	//std::vector<IUnknown*> m_apcStereoTwinRenderTargetViewClipboard;
-	/**
-	* Currently unused render textures (=clipboard).
-	* Each entry in this vector corresponds as the the texture of
-	* the stereo twin view with the same clipboard index.
-	* (m_apcStereoTwinRenderTargetViewClipboard)
-	* (IUnknown*) for compatibility to DX10+DX11.
-	***/
-	//std::vector<IUnknown*> m_apcStereoTwinRenderTextureClipboard;
+	std::vector<ID3D11RenderTargetView*> m_apcNewRenderTargetViews11;
 	/**
 	* True if Present() was called at least once.
 	* Game can crash if Present() is not connected,
