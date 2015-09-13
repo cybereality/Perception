@@ -540,7 +540,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 	// set node behavior to "double call" for this method
 	// node that this is only supported by drawing methods
 	nProvokerIndex = -1;
-
+	
 	switch (eD3DInterface)
 	{
 #pragma region ID3D10DEVICE
@@ -782,7 +782,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					// get the stored private data twin view
 					ID3D11DepthStencilView* pcViewStereoTwin = nullptr;
 					UINT dwSize = sizeof(pcViewStereoTwin);
-					(*m_ppcRenderTargetView_DX11)->GetPrivateData(PDIID_ID3D11DepthStencilView_Stereo_Twin, &dwSize, (void*)&pcViewStereoTwin);
+					(*m_ppcDepthStencilViewClear_DX11)->GetPrivateData(PDIID_ID3D11DepthStencilView_Stereo_Twin, &dwSize, (void*)&pcViewStereoTwin);
 
 					if (dwSize)
 					{
@@ -984,7 +984,8 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 						pcSwapChain->GetDevice(__uuidof(ID3D11Device), (void**)&pcDevice);
 						if (pcDevice)
 						{
-							// create twin render target view
+							// create a first twin render target view... will be released by the interface
+							// whenever the back buffer is set as render target
 							ID3D11RenderTargetView* pcRenderTargetView = nullptr;
 							ID3D11RenderTargetView* pcRenderTargetTwinView = nullptr;
 							ID3D11Texture2D* pcTwinTexture = nullptr;
@@ -1030,6 +1031,14 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 				else
 				{
 					// verify back buffer ??
+					UINT dwSize = sizeof(m_pcActiveStereoTwinBackBuffer11);
+					pcBackBuffer->GetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, &dwSize, (void*)&m_pcActiveStereoTwinBackBuffer11);
+					if (m_pcActiveStereoTwinBackBuffer11)
+					{
+						m_pcActiveStereoTwinBackBuffer11->Release();
+					}
+					else
+						OutputDebugString(L"StereoSplitter: No back buffer stereo texture present !");
 				}
 				pcBackBuffer->Release();
 			}
@@ -1037,7 +1046,6 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 			{
 				// no backbuffer present ? should not be...
 				OutputDebugString(L"VireioStereoSplitter: No back buffer present !");
-				if (m_pcActiveBackBuffer11) m_pcActiveBackBuffer11->Release();
 				m_pcActiveBackBuffer11 = NULL;
 				m_pcActiveStereoTwinBackBuffer11 = NULL;
 			}
@@ -1245,29 +1253,29 @@ void StereoSplitter::OMSetRenderTargets(IUnknown* pcDeviceOrContext, UINT NumVie
 
 	// switch constant buffers to left side
 	if (m_appcActiveConstantBuffers11)
-	if (*m_appcActiveConstantBuffers11)
-	{
-		// loop through the buffers
-		for (UINT dwIndex = 0; dwIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; dwIndex++)
-		if ((*m_appcActiveConstantBuffers11)[dwIndex])
+		if (*m_appcActiveConstantBuffers11)
 		{
-			// get the private data interfaces and set the current drawing side
-			ID3D11Buffer* pcBuffer = nullptr;
-			UINT dwSize = sizeof(pcBuffer);
-			((*m_appcActiveConstantBuffers11)[dwIndex])->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Left, &dwSize, (void*)&pcBuffer);
+			// loop through the buffers
+			for (UINT dwIndex = 0; dwIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; dwIndex++)
+				if ((*m_appcActiveConstantBuffers11)[dwIndex])
+				{
+					// get the private data interfaces and set the current drawing side
+					ID3D11Buffer* pcBuffer = nullptr;
+					UINT dwSize = sizeof(pcBuffer);
+					((*m_appcActiveConstantBuffers11)[dwIndex])->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Left, &dwSize, (void*)&pcBuffer);
 
-			// TODO !! eventually set all buffers in one call
-			if (pcBuffer)
-			{
-				((ID3D11DeviceContext*)pcDeviceOrContext)->VSSetConstantBuffers(dwIndex, 1, &pcBuffer);
+					// TODO !! eventually set all buffers in one call
+					if (pcBuffer)
+					{
+						((ID3D11DeviceContext*)pcDeviceOrContext)->VSSetConstantBuffers(dwIndex, 1, &pcBuffer);
 
-				// "If the data returned is a pointer to an IUnknown, or one of its derivative classes,
-				// previously set by IDXGIObject::SetPrivateDataInterface, you must call::Release() on
-				// the pointer before the pointer is freed to decrement the reference count." (Microsoft)
-				pcBuffer->Release();
-			}
+						// "If the data returned is a pointer to an IUnknown, or one of its derivative classes,
+						// previously set by IDXGIObject::SetPrivateDataInterface, you must call::Release() on
+						// the pointer before the pointer is freed to decrement the reference count." (Microsoft)
+						pcBuffer->Release();
+					}
+				}
 		}
-	}
 
 	// set the render target internally
 	if (NumViews <= D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT)
@@ -1751,16 +1759,20 @@ ID3D11RenderTargetView* StereoSplitter::VerifyPrivateDataInterfaces(ID3D11Render
 	else
 	{
 		// is this render target already present in "new" list ?
+		bool bInList = false;
 		auto it = m_apcNewRenderTargetViews11.begin();
 		while (it != m_apcNewRenderTargetViews11.end())
 		{
 			if (pcRenderTargetView == *it)
+			{
+				bInList = true;
 				break;
+			}
 			it++;
 		}
 
 		// add to new render targets list vector
-		if (it == m_apcNewRenderTargetViews11.end())
+		if (!bInList)
 			m_apcNewRenderTargetViews11.push_back(pcRenderTargetView);
 
 		return nullptr;
@@ -1789,16 +1801,20 @@ ID3D11DepthStencilView* StereoSplitter::VerifyPrivateDataInterfaces(ID3D11DepthS
 	else
 	{
 		// is this depth stencil already present in "new" list ?
+		bool bInList = false;
 		auto it = m_apcNewDepthStencilViews11.begin();
 		while (it != m_apcNewDepthStencilViews11.end())
 		{
 			if (pcDepthStencilView == *it)
+			{
+				bInList = true;
 				break;
+			}
 			it++;
 		}
 
 		// add to new depth stencil list vector
-		if (it == m_apcNewDepthStencilViews11.end())
+		if (!bInList)
 			m_apcNewDepthStencilViews11.push_back(pcDepthStencilView);
 
 		return nullptr;
@@ -1923,32 +1939,32 @@ bool StereoSplitter::SetDrawingSide(ID3D11DeviceContext* pcContext, RenderPositi
 
 	// switch constant buffers
 	if (m_appcActiveConstantBuffers11)
-	if (*m_appcActiveConstantBuffers11)
-	{
-		// loop through the buffers
-		for (UINT dwIndex = 0; dwIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; dwIndex++)
-		if ((*m_appcActiveConstantBuffers11)[dwIndex])
+		if (*m_appcActiveConstantBuffers11)
 		{
-			// get the private data interfaces and set the current drawing side
-			ID3D11Buffer* pcBuffer = nullptr;
-			UINT dwSize = sizeof(pcBuffer);
-			if (eSide == RenderPosition::Left)
-				((*m_appcActiveConstantBuffers11)[dwIndex])->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Left, &dwSize, (void*)&pcBuffer);
-			else
-				((*m_appcActiveConstantBuffers11)[dwIndex])->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcBuffer);
+			// loop through the buffers
+			for (UINT dwIndex = 0; dwIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; dwIndex++)
+				if ((*m_appcActiveConstantBuffers11)[dwIndex])
+				{
+					// get the private data interfaces and set the current drawing side
+					ID3D11Buffer* pcBuffer = nullptr;
+					UINT dwSize = sizeof(pcBuffer);
+					if (eSide == RenderPosition::Left)
+						((*m_appcActiveConstantBuffers11)[dwIndex])->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Left, &dwSize, (void*)&pcBuffer);
+					else
+						((*m_appcActiveConstantBuffers11)[dwIndex])->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcBuffer);
 
-			// TODO !! eventually set all buffers in one call
-			if (pcBuffer)
-			{
-				pcContext->VSSetConstantBuffers(dwIndex, 1, &pcBuffer);
+					// TODO !! eventually set all buffers in one call
+					if (pcBuffer)
+					{
+						pcContext->VSSetConstantBuffers(dwIndex, 1, &pcBuffer);
 
-				// "If the data returned is a pointer to an IUnknown, or one of its derivative classes,
-				// previously set by IDXGIObject::SetPrivateDataInterface, you must call::Release() on 
-				// the pointer before the pointer is freed to decrement the reference count." (Microsoft)
-				pcBuffer->Release();
-			}
+						// "If the data returned is a pointer to an IUnknown, or one of its derivative classes,
+						// previously set by IDXGIObject::SetPrivateDataInterface, you must call::Release() on 
+						// the pointer before the pointer is freed to decrement the reference count." (Microsoft)
+						pcBuffer->Release();
+					}
+				}
 		}
-	}
 
 	return true;
 }
