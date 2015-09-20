@@ -317,6 +317,14 @@ LPWSTR StereoSplitter::GetDecommanderName(DWORD dwDecommanderIndex)
 		return L"Depth";
 		case Stencil:
 		return L"Stencil";
+		case StartSlot:
+		return L"StartSlot";
+		case NumSRVs:
+		return L"NumSRVs";
+		case ppShaderResourceViews_DX10:
+		return L"ppShaderResourceViews_DX10";
+		case ppShaderResourceViews_DX11:
+		return L"ppShaderResourceViews_DX11";
 		case eDrawingSide:
 		return L"Stereo Drawing Side";
 		case ppActiveConstantBuffers_DX10_VertexShader:
@@ -350,47 +358,55 @@ DWORD StereoSplitter::GetDecommanderType(DWORD dwDecommanderIndex)
 	switch ((STS_Decommanders)dwDecommanderIndex)
 	{
 		case NumViews:
-		return UINT_PLUG_TYPE;
+		return NOD_Plugtype::AQU_UINT;
 		case ppRenderTargetViews_DX10:
-		return PPNT_ID3D10RENDERTARGETVIEW;
+		return NOD_Plugtype::AQU_PPNT_ID3D10RENDERTARGETVIEW;
 		case pDepthStencilView_DX10:
-		return PNT_ID3D10DEPTHSTENCILVIEW;
+		return NOD_Plugtype::AQU_PNT_ID3D10DEPTHSTENCILVIEW;
 		case ppRenderTargetViews_DX11:
-		return PPNT_ID3D11RENDERTARGETVIEW;
+		return NOD_Plugtype::AQU_PPNT_ID3D11RENDERTARGETVIEW;
 		case pDepthStencilView_DX11:
-		return PNT_ID3D11DEPTHSTENCILVIEW;
+		return NOD_Plugtype::AQU_PNT_ID3D11DEPTHSTENCILVIEW;
 		case NumRTVs:
-		return UINT_PLUG_TYPE;
+		return NOD_Plugtype::AQU_UINT;
 		case ppRenderTargetViewsUAV_DX11:
-		return PPNT_ID3D11RENDERTARGETVIEW;
+		return NOD_Plugtype::AQU_PPNT_ID3D11RENDERTARGETVIEW;
 		case pDepthStencilViewUAV_DX11:
-		return PNT_ID3D11DEPTHSTENCILVIEW;
+		return NOD_Plugtype::AQU_PNT_ID3D11DEPTHSTENCILVIEW;
 		case pRenderTargetView_DX10:
-		return PNT_ID3D10RENDERTARGETVIEW_TYPE;
+		return NOD_Plugtype::AQU_PNT_ID3D10RENDERTARGETVIEW;
 		case pRenderTargetView_DX11:
-		return PNT_ID3D11RENDERTARGETVIEW_TYPE;
+		return NOD_Plugtype::AQU_PNT_ID3D11RENDERTARGETVIEW;
 		case ColorRGBA:
-		return VECTOR4F_PLUG_TYPE;
+		return NOD_Plugtype::AQU_VECTOR4F;
 		case pDepthStencilViewCDS_DX10:
-		return PNT_ID3D10DEPTHSTENCILVIEW;
+		return NOD_Plugtype::AQU_PNT_ID3D10DEPTHSTENCILVIEW;
 		case pDepthStencilViewCDS_DX11:
-		return PNT_ID3D11DEPTHSTENCILVIEW;
+		return NOD_Plugtype::AQU_PNT_ID3D11DEPTHSTENCILVIEW;
 		case ClearFlags:
-		return UINT_PLUG_TYPE;
+		return NOD_Plugtype::AQU_UINT;
 		case Depth:
-		return FLOAT_PLUG_TYPE;
+		return NOD_Plugtype::AQU_FLOAT;
 		case Stencil:
-		return BYTE_PLUG_TYPE;
+		return NOD_Plugtype::AQU_BYTE;
+		case StartSlot:
+		return NOD_Plugtype::AQU_UINT;
+		case NumSRVs:
+		return NOD_Plugtype::AQU_UINT;
+		case ppShaderResourceViews_DX10:
+		return NOD_Plugtype::AQU_PPNT_ID3D10SHADERRESOURCEVIEW;
+		case ppShaderResourceViews_DX11:
+		return NOD_Plugtype::AQU_PPNT_ID3D11SHADERRESOURCEVIEW;
 		case eDrawingSide:
-		return INT_PLUG_TYPE;
+		return NOD_Plugtype::AQU_INT;
 		case ppActiveConstantBuffers_DX10_VertexShader:
-		return PPNT_ID3D10BUFFER_PLUG_TYPE;
+		return NOD_Plugtype::AQU_PPNT_ID3D10BUFFER;
 		case ppActiveConstantBuffers_DX11_VertexShader:
-		return PPNT_ID3D11BUFFER_PLUG_TYPE;
+		return NOD_Plugtype::AQU_PPNT_ID3D11BUFFER;
 		case ppActiveConstantBuffers_DX10_PixelShader:
-		return PPNT_ID3D10BUFFER_PLUG_TYPE;
+		return NOD_Plugtype::AQU_PPNT_ID3D10BUFFER;
 		case ppActiveConstantBuffers_DX11_PixelShader:
-		return PPNT_ID3D11BUFFER_PLUG_TYPE;
+		return NOD_Plugtype::AQU_PPNT_ID3D11BUFFER;
 		default:
 		break;
 	}
@@ -470,6 +486,18 @@ void StereoSplitter::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 		case Stencil:
 		m_pchStencil = (UINT8*)pData;                                               /** Clear the stencil buffer with this value. */
 		break;
+		case StartSlot:
+		m_pdwStartSlot = (UINT*)pData;
+		break;
+		case NumSRVs:
+		m_pdwNumViewsSRVs = (UINT*)pData;
+		break;
+		case ppShaderResourceViews_DX10:
+		m_pppcShaderResourceViews10 = (ID3D10ShaderResourceView***)pData;
+		break;
+		case ppShaderResourceViews_DX11:
+		m_pppcShaderResourceViews11 = (ID3D11ShaderResourceView***)pData;
+		break;
 		case eDrawingSide:
 		m_peDrawingSide = (RenderPosition*)pData;
 		break;
@@ -540,7 +568,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 	// set node behavior to "double call" for this method
 	// node that this is only supported by drawing methods
 	nProvokerIndex = -1;
-	
+
 	switch (eD3DInterface)
 	{
 #pragma region ID3D10DEVICE

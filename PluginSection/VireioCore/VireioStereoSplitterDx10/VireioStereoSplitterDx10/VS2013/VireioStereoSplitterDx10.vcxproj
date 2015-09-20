@@ -154,6 +154,7 @@
     <ClInclude Include="..\..\..\..\Include\Vireio_DX11Basics.h" />
     <ClInclude Include="..\..\..\..\Include\Vireio_DX11StateBlock.h" />
     <ClInclude Include="..\..\..\..\Include\Vireio_GUIDs.h" />
+    <ClInclude Include="..\..\..\..\Include\Vireio_Node_Plugtypes.h" />
     <ClInclude Include="..\AQU_Nodus.h" />
     <ClInclude Include="..\VireioStereoSplitterDx10.h" />
     <ClInclude Include="..\Resources.h" />

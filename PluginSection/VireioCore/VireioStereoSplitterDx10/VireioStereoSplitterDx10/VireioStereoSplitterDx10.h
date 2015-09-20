@@ -64,30 +64,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include"..\..\..\Include\Vireio_DX11Basics.h"
 #include"..\..\..\Include\Vireio_GUIDs.h"
-
-#define BYTE_PLUG_TYPE                                 1
-#define	FLOAT_PLUG_TYPE                                4
-#define INT_PLUG_TYPE                                  7 
-#define UINT_PLUG_TYPE                                12
-#define PNT_FLOAT_PLUG_TYPE                          104
-#define PNT_INT_PLUG_TYPE                            107 
-#define PNT_UINT_PLUG_TYPE                           112
-#define PNT_VOID_PLUG_TYPE                           114
-#define	D3DCOLOR_PLUG_TYPE                          1004
-#define D3DFORMAT_PLUG_TYPE                         1011
-#define D3DPRIMITIVETYPE_PLUG_TYPE                  1021
-#define VECTOR4F_PLUG_TYPE                          1063
-#define PNT_D3DRECT_PLUG_TYPE                       2024
-#define PNT_ID3D10DEPTHSTENCILVIEW                  8021
-#define PNT_ID3D10RENDERTARGETVIEW_TYPE             8022
-#define PPNT_ID3D10BUFFER_PLUG_TYPE                 9020
-#define PPNT_ID3D10DEPTHSTENCILVIEW                 9021
-#define PPNT_ID3D10RENDERTARGETVIEW                 9022
-#define PNT_ID3D11DEPTHSTENCILVIEW                 11025
-#define PNT_ID3D11RENDERTARGETVIEW_TYPE            11026
-#define PPNT_ID3D11BUFFER_PLUG_TYPE                12024
-#define PPNT_ID3D11DEPTHSTENCILVIEW                12025
-#define PPNT_ID3D11RENDERTARGETVIEW                12026
+#include"..\..\..\Include\Vireio_Node_Plugtypes.h"
 
 #define NUMBER_OF_COMMANDERS                           2
 #define NUMBER_OF_DECOMMANDERS                         21
@@ -126,6 +103,11 @@ enum STS_Decommanders
 	ClearFlags,                                            /** Identify the type of data to clear */
 	Depth,                                                 /** Clear the depth buffer with this value. This value will be clamped between 0 and 1. */
 	Stencil,                                               /** Clear the stencil buffer with this value. */
+	/*** PSSetShaderResources ***/
+	StartSlot,                                             /** Index into the device's zero-based array to begin setting shader resources to (ranges from 0 to D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - 1). **/
+	NumSRVs,                                               /** Number of shader resources to set. Up to a maximum of 128 slots are available for shader resources (ranges from 0 to D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - StartSlot). **/
+	ppShaderResourceViews_DX10,                            /** Array of shader resource view interfaces to set to the device. **/
+	ppShaderResourceViews_DX11,                            /** Array of shader resource view interfaces to set to the device. **/
 	/*** Active constant buffers ***/
 	eDrawingSide,                                          /**< Left/Right drawing side enumeration. Switches once per draw call ***/
 	ppActiveConstantBuffers_DX10_VertexShader,             /**< Active D3D10 vertex shader constant buffers ***/
@@ -226,6 +208,10 @@ private:
 	UINT8* m_pchStencil;                                              /** Clear the stencil buffer with this value. */
 	RenderPosition* m_peDrawingSide;                                  /** Pointer to the extern drawing side bool. The extern bool will be updated depending on m_eCurrentRenderingSide ***/
 	ID3D11Buffer*** m_appcActiveConstantBuffers11;                    /** The d3d11 constant buffer array. ***/
+	UINT* m_pdwStartSlot;                                             /** Index into the device's zero-based array to begin setting shader resources to (ranges from 0 to D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - 1). **/
+	UINT* m_pdwNumViewsSRVs;                                          /** Number of shader resources to set. Up to a maximum of 128 slots are available for shader resources (ranges from 0 to D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - StartSlot). **/
+	ID3D10ShaderResourceView*** m_pppcShaderResourceViews10;           /** Array of shader resource view interfaces to set to the device. **/
+	ID3D11ShaderResourceView*** m_pppcShaderResourceViews11;           /** Array of shader resource view interfaces to set to the device. **/
 
 	/**
 	* Active stored render target views.
