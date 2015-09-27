@@ -73,53 +73,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 #include"..\..\..\Include\Vireio_GUIDs.h"
-
-#define BYTE_PLUG_TYPE                                 1
-#define	FLOAT_PLUG_TYPE                                4
-#define INT_PLUG_TYPE                                  7
-#define SIZE_T_PLUG_TYPE                              11
-#define UINT_PLUG_TYPE                                12
-#define PNT_FLOAT_PLUG_TYPE                          104
-#define PNT_INT_PLUG_TYPE                            107 
-#define PNT_UINT_PLUG_TYPE                           112
-#define PNT_VOID_PLUG_TYPE                           114
-#define	D3DCOLOR_PLUG_TYPE                          1004
-#define D3DFORMAT_PLUG_TYPE                         1011
-#define D3DPRIMITIVETYPE_PLUG_TYPE                  1021
-#define D3DTRANSFORMSTATETYPE_PLUG_TYPE             1032
-#define VECTOR4F_PLUG_TYPE                          1063
-#define PNT_D3DMATRIX_PLUG_TYPE                     2017
-#define PNT_D3DRECT_PLUG_TYPE                       2024
-#define PNT_IDIRECT3DPIXELSHADER9_PLUG_TYPE         2042
-#define PNT_IDIRECT3DVERTEXSHADER9_PLUG_TYPE        2051
-#define PNT_ID3D10BUFFER_PLUG_TYPE                  8020
-#define PNT_ID3D10DEPTHSTENCILVIEW_PLUG_TYPE        8021
-#define PNT_ID3D10RENDERTARGETVIEW_TYPE             8022
-#define PNT_ID3D10RESOURCE_PLUG_TYPE                8023
-#define PNT_ID3D10PIXELSHADER_PLUG_TYPE             8031
-#define PNT_ID3D10VERTEXSHADER_PLUG_TYPE            8037
-#define PNT_D3D10_BOX_PLUG_TYPE                     8059
-#define PNT_D3D10_BUFFER_DESC_PLUG_TYPE             8112
-#define PNT_D3D10_SUBRESOURCE_DATA_PLUG_TYPE        8119
-#define PPNT_ID3D10BUFFER_PLUG_TYPE                 9020
-#define PPNT_ID3D10DEPTHSTENCILVIEW_PLUG_TYPE       9021
-#define PPNT_ID3D10RENDERTARGETVIEW_PLUG_TYPE       9022
-#define PPNT_ID3D10PIXELSHADER_PLUG_TYPE            9031
-#define PPNT_ID3D10VERTEXSHADER_PLUG_TYPE           9037
-#define PNT_ID3D11DEPTHSTENCILVIEW_PLUG_TYPE       11025
-#define PNT_ID3D11RENDERTARGETVIEW_TYPE            11026
-#define PNT_ID3D11RESOURCE_PLUG_TYPE               11028
-#define PNT_ID3D11CLASSLINKAGE_PLUG_TYPE           11040
-#define PNT_ID3D11PIXELSHADER_PLUG_TYPE            11053
-#define PNT_ID3D11VERTEXSHADER_PLUG_TYPE           11060
-#define PNT_D3D11_BOX_PLUG_TYPE                    11094
-#define PNT_D3D11_BUFFER_DESC_PLUG_TYPE            11177
-#define PNT_D3D11_SUBRESOURCE_DATA_PLUG_TYPE       11189
-#define PPNT_ID3D11BUFFER_PLUG_TYPE                12024
-#define PPNT_ID3D11DEPTHSTENCILVIEW_PLUG_TYPE      12025
-#define PPNT_ID3D11RENDERTARGETVIEW_PLUG_TYPE      12026
-#define PPNT_ID3D11PIXELSHADER_PLUG_TYPE           12053
-#define PPNT_ID3D11VERTEXSHADER_PLUG_TYPE          12060
+#include"..\..\..\Include\Vireio_Node_Plugtypes.h"
 
 #define	PROVOKING_TYPE                                 2                     /**< Provoking type is 2 - just invoker, no provoker **/
 #define METHOD_REPLACEMENT                         false                     /**< This node does NOT replace the D3D call (default) **/
@@ -283,6 +237,7 @@ private:
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	/*** MatrixModifier private methods ***/
 	void UpdateConstantBuffer(ID3D11DeviceContext* pcContext, ID3D11Resource *pcDstResource, UINT dwDstSubresource, const D3D11_BOX *psDstBox, const void *pvSrcData, UINT dwSrcRowPitch, UINT dwSrcDepthPitch, UINT dwBufferIndex, UINT dwBufferSize);
+	void CreateStereoConstantBuffer(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, ID3D11Buffer* pcBuffer, D3D11_BUFFER_DESC *pDesc, D3D11_SUBRESOURCE_DATA *pInitialData, bool bCopyData);
 #elif defined(VIREIO_D3D9)
 #endif
 	void ComputeViewTransforms(float fSeparation);
@@ -339,7 +294,7 @@ private:
 	ID3D11Resource** m_ppcSrcResource_DX11_CopySub;
 	UINT* m_pdwSrcSubresource;
 	D3D10_BOX** m_ppsSrcBox_DX10;
-	D3D10_BOX** m_ppsSrcBox_DX11;
+	D3D11_BOX** m_ppsSrcBox_DX11;
 
 	/*** 
 	* MatrixModifier output pointers 
@@ -351,7 +306,7 @@ private:
 	***/
 	std::vector<Vireio_D3D11_Shader> m_asShaders;
 	/**
-	* The d3d11 constant buffer vector.
+	* The d3d11 active constant buffer vector.
 	***/
 	std::vector<ID3D11Buffer*> m_apcActiveConstantBuffers11;
 	/**

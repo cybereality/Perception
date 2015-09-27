@@ -98,6 +98,7 @@ m_hBitmapControl(nullptr),
 m_bControlUpdate(false),
 m_hFont(nullptr),
 m_bPresent(false),
+m_bVerifyShaderResources(false),
 m_dwTextureNumber(0),
 m_dwRenderTargetNumber(0),
 m_eD3DVersion(D3DVersion::NotDefined),
@@ -233,6 +234,10 @@ HBITMAP StereoSplitter::GetControl()
 			TextOut(hdcImage, 50, nY, L"ClearFlags", 9); nY += 64;
 			TextOut(hdcImage, 50, nY, L"Depth", 5); nY += 64;
 			TextOut(hdcImage, 50, nY, L"Stencil", 7); nY += 64;
+			TextOut(hdcImage, 50, nY, L"StartSlot", 9); nY += 64;
+			TextOut(hdcImage, 50, nY, L"NumSRVs", 7); nY += 64;
+			TextOut(hdcImage, 50, nY, L"ppShaderResourceViews_DX10", 26); nY += 64;
+			TextOut(hdcImage, 50, nY, L"ppShaderResourceViews_DX11", 26); nY += 64;
 			TextOut(hdcImage, 50, nY, L"Stereo Drawing Side", 19); nY += 64;
 			TextOut(hdcImage, 50, nY, L"ppActiveConstantBuffers_DX10_VS", 31); nY += 64;
 			TextOut(hdcImage, 50, nY, L"ppActiveConstantBuffers_DX11_VS", 31); nY += 64;
@@ -541,9 +546,6 @@ bool StereoSplitter::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_DRAWAUTO) ||
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_DRAWINDEXEDINSTANCEDINDIRECT) ||
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_DRAWINSTANCEDINDIRECT) ||
-				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_COPYSUBRESOURCEREGION) ||
-				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_COPYRESOURCE) ||
-				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_UPDATESUBRESOURCE) ||
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_CLEARRENDERTARGETVIEW) ||
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_CLEARDEPTHSTENCILVIEW) ||
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_OMGETRENDERTARGETS) ||
@@ -601,84 +603,140 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 		{
 #pragma region PSSETSHADERRESOURCES
 			case METHOD_ID3D11DEVICECONTEXT_PSSETSHADERRESOURCES:
-			// TODO !! IMPLEMENT !!
+			if (m_bPresent)
+			{
+				// verify node pointers
+				if (!m_pdwStartSlot) return nullptr;
+				if (!m_pdwNumViewsSRVs) return nullptr;
+				if (!m_pppcShaderResourceViews11) return nullptr;
+				if (!*m_pppcShaderResourceViews11) return nullptr;
+				if (!**m_pppcShaderResourceViews11) return nullptr;
+				if (*m_pdwStartSlot + *m_pdwNumViewsSRVs > D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT) return nullptr;
 
-			/*void StereoSplitter::SetTexture(IDirect3DDevice9* pcDevice, DWORD Stage,IDirect3DBaseTexture9* pcTexture)
-			{
-			// set the texture internally
-			if (Stage < MAX_SIMULTANEOUS_TEXTURES_D3D9)
-			{
-			// set NULL manually, otherwise just set the render target :
-			if (!pcTexture)
-			{
-			m_apcActiveTextures[Stage] = NULL;
+				// set texture number TODO !! verify by official documentation....
+				if (*m_pdwStartSlot + *m_pdwNumViewsSRVs > m_dwTextureNumber)
+					m_dwTextureNumber = (DWORD)(*m_pdwStartSlot + *m_pdwNumViewsSRVs);
+				else if (*m_pdwStartSlot + *m_pdwNumViewsSRVs < m_dwTextureNumber)
+					m_bVerifyShaderResources = true;
 
-			// set number of textures
-			m_dwTextureNumber = 0;
-			for(std::vector<IDirect3DSurface9*>::size_type i = 0; i < m_apcActiveTextures.size(); i++)
-			if (m_apcActiveTextures[i] != NULL) m_dwTextureNumber = (DWORD)i + 1;
+				// delete all if zero ? TODO !! verify by official documentation
+				if (!m_dwTextureNumber)
+				{
+					// clear texture vectors and number ?
+					m_apcActiveTextures = std::vector<IUnknown*>(D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, nullptr);
+					m_apcActiveStereoTwinTextures = std::vector<IUnknown*>(D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, nullptr);
+				}
+
+				// loop through new resource views
+				for (UINT dwIndex = 0; dwIndex < *m_pdwNumViewsSRVs; dwIndex++)
+				{
+					// get and verify index
+					DWORD dwIndexActive = *m_pdwStartSlot + dwIndex;
+					if (!((*m_pppcShaderResourceViews11)[dwIndex]))
+					{
+						// set shader resource view for both sides
+						m_apcActiveTextures[dwIndexActive] = nullptr;
+						m_apcActiveStereoTwinTextures[dwIndexActive] = nullptr;
+						
+						continue;
+					}
+
+					// get description
+					D3D11_SHADER_RESOURCE_VIEW_DESC sDesc;
+					((*m_pppcShaderResourceViews11)[dwIndex])->GetDesc(&sDesc);
+
+					// is texture ? 
+					if ((sDesc.ViewDimension >= D3D11_SRV_DIMENSION_TEXTURE1D) &&
+						(sDesc.ViewDimension <= D3D11_SRV_DIMENSION_TEXTURECUBEARRAY))
+					{
+						// set active texture
+						m_apcActiveTextures[dwIndexActive] = ((*m_pppcShaderResourceViews11)[dwIndex]);
+
+						// get resource
+						ID3D11Resource* pcResource;
+						((*m_pppcShaderResourceViews11)[dwIndex])->GetResource(&pcResource);
+						if (pcResource)
+						{
+							// get the stereo twin of the resource (texture)
+							ID3D11Resource* pcResourceTwin = nullptr;
+							UINT dwSize = sizeof(pcResourceTwin);
+							pcResource->GetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, &dwSize, (void*)&pcResourceTwin);
+							if (pcResourceTwin)
+							{
+								// has a shader resource view ?
+								ID3D11ShaderResourceView* pcShaderResourceView = nullptr;
+								dwSize = sizeof(pcShaderResourceView);
+								pcResourceTwin->GetPrivateData(PDIID_ID3D11TextureXD_ShaderResourceView, &dwSize, (void*)&pcShaderResourceView);
+								if (pcShaderResourceView)
+								{
+									// set twin shader resouce view
+									m_apcActiveStereoTwinTextures[dwIndexActive] = pcShaderResourceView;
+
+									pcShaderResourceView->Release();
+								}
+								else
+								{
+									// set mono
+									m_apcActiveStereoTwinTextures[dwIndexActive] = ((*m_pppcShaderResourceViews11)[dwIndex]);
+
+									// add to vector for new views, just if not present
+									auto it = std::find(m_apcNewShaderResourceViews11.begin(), m_apcNewShaderResourceViews11.end(), ((*m_pppcShaderResourceViews11)[dwIndex]));
+									if (it == m_apcNewShaderResourceViews11.end())
+										m_apcNewShaderResourceViews11.push_back(((*m_pppcShaderResourceViews11)[dwIndex]));
+								}
+
+								pcResourceTwin->Release();
+							}
+							else
+							{
+								// no resource twin ? no render target texture, set mono
+								m_apcActiveStereoTwinTextures[dwIndexActive] = ((*m_pppcShaderResourceViews11)[dwIndex]);
+
+								// is this texture to be set to stereo ?
+								BOOL bNew = FALSE;
+								dwSize = sizeof(BOOL);
+								pcResource->GetPrivateData(PDID_ID3D11TextureXD_ShaderResouceView_Create_New, &dwSize, (void*)&bNew);
+								if ((dwSize) && (bNew))
+								{
+									// bool to create a new view here is set to "TRUE", so add to new shader resource views list
+									// (for these - currently mono views - ALL stereo fields will be created new)
+
+									// add to vector for new views, just if not present
+									auto it = std::find(m_apcNewShaderResourceViews11.begin(), m_apcNewShaderResourceViews11.end(), ((*m_pppcShaderResourceViews11)[dwIndex]));
+									if (it == m_apcNewShaderResourceViews11.end())
+										m_apcNewShaderResourceViews11.push_back(((*m_pppcShaderResourceViews11)[dwIndex]));
+
+									// set private data to "FALSE"
+									bNew = FALSE;
+									pcResource->SetPrivateData(PDID_ID3D11TextureXD_ShaderResouceView_Create_New, sizeof(BOOL), &bNew);
+								}
+							}
+
+							pcResource->Release();
+						}
+						else
+							// no resource ? shouldn't be.. set shader resource view for both sides
+							m_apcActiveStereoTwinTextures[dwIndexActive] = ((*m_pppcShaderResourceViews11)[dwIndex]);
+					}
+					else
+					{
+						// set shader resource view for both sides
+						m_apcActiveTextures[dwIndexActive] = ((*m_pppcShaderResourceViews11)[dwIndex]);
+						m_apcActiveStereoTwinTextures[dwIndexActive] = ((*m_pppcShaderResourceViews11)[dwIndex]);
+					}
+				}
 			}
 			else
 			{
-			m_apcActiveTextures[Stage] = pcTexture;
-
-			// set number of textures
-			if (Stage >= m_dwTextureNumber) m_dwTextureNumber = Stage + 1;
-			}
-			}
-			else return;
-
-			// set NULL twin if NULL
-			if (!pcTexture)
-			m_apcActiveStereoTwinTextures[Stage] = NULL;
-			else
-			{
-			// get the surface
-			IDirect3DSurface9* pcSurface = nullptr;
-			D3DRESOURCETYPE type = pcTexture->GetType();
-			switch (type)
-			{
-			case D3DRTYPE_TEXTURE:
-			{
-			IDirect3DTexture9* pcDerivedTexture = static_cast<IDirect3DTexture9*> (pcTexture);
-			pcDerivedTexture->GetSurfaceLevel(0, &pcSurface);
-			break;
-			}
-			case D3DRTYPE_VOLUMETEXTURE:
-			{
-			IDirect3DVolumeTexture9* pDerivedTexture = static_cast<IDirect3DVolumeTexture9*> (pcTexture);
-			// TODO !! handle volume textures
-			break;
-			}
-			case D3DRTYPE_CUBETEXTURE:
-			{
-			IDirect3DCubeTexture9* pDerivedTexture = static_cast<IDirect3DCubeTexture9*> (pcTexture);
-			// TODO !! handle cube textures
-			break;
-			}
+				// TODO !! catch active resources before first present call
 			}
 
-			// set twin texture, if monitored
-			int nIndex = CheckIfMonitored(pcSurface);
-			if (nIndex == -1)
-			{
-			// set stereo texture to null meanwhile
-			m_apcActiveStereoTwinTextures[Stage] = NULL;
-			}
-			else
-			{
-			// set twin surface if twin in created
-			if (nIndex < (int)m_apcStereoTwinTextures.size())
-			// set twin surface
-			m_apcActiveStereoTwinTextures[Stage] = m_apcStereoTwinTextures[nIndex];
-			else
-			// set stereo texture to null meanwhile
-			m_apcActiveStereoTwinTextures[Stage] = NULL;
-			}
-			}
+			// force drawing side to left
+			SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Left, true, true, true);
 
-			m_bControlUpdate = true;
-			}*/
+			// ensure D3D11 is set
+			m_eD3DVersion = D3DVersion::Direct3D11;
+
 			return nullptr;
 #pragma endregion
 #pragma region DRAWINDEXED
@@ -751,21 +809,6 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 			return nullptr;
 #pragma endregion
-#pragma region COPYSUBRESOURCEREGION
-			case METHOD_ID3D11DEVICECONTEXT_COPYSUBRESOURCEREGION:
-			// TODO !! check if render target / monitored texture, in case update twin at next present call
-			return nullptr;
-#pragma endregion
-#pragma region COPYRESOURCE
-			case METHOD_ID3D11DEVICECONTEXT_COPYRESOURCE:
-			// TODO !! check if render target / monitored texture, in case update twin at next present call
-			return nullptr;
-#pragma endregion
-#pragma region UPDATESUBRESOURCE
-			case METHOD_ID3D11DEVICECONTEXT_UPDATESUBRESOURCE:
-			// TODO !! check if render target / monitored texture, in case update twin at next present call
-			return nullptr;
-#pragma endregion
 #pragma region CLEARRENDERTARGETVIEW
 			case METHOD_ID3D11DEVICECONTEXT_CLEARRENDERTARGETVIEW:
 			if (m_bPresent)
@@ -829,9 +872,16 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region CLEARSTATE
 			case METHOD_ID3D11DEVICECONTEXT_CLEARSTATE:
+			// clear texture vectors and number
+			m_apcActiveTextures = std::vector<IUnknown*>(D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, nullptr);
+			m_apcActiveStereoTwinTextures = std::vector<IUnknown*>(D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, nullptr);
+			m_dwTextureNumber = 0;
+
+			// clear render targets
 			OMSetRenderTargets((IUnknown*)pThis, 0, NULL, NULL);
+
+			// set render target side to >left<
 			SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Left);
-			// TODO !! TEXTURES
 			return nullptr;
 #pragma endregion
 #pragma region OMSETRENDERTARGETS
@@ -899,8 +949,10 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 {
 	if (!m_eD3DVersion) return;
 
+	// TODO !! verify active shader resource views !
+
 #pragma region create new
-	if ((m_apcNewRenderTargetViews11.size()) || (m_apcNewDepthStencilViews11.size()))
+	if ((m_apcNewRenderTargetViews11.size()) || (m_apcNewDepthStencilViews11.size()) || (m_apcNewShaderResourceViews11.size()))
 	{
 		// get device
 		ID3D11Device* pcDevice = nullptr;
@@ -923,6 +975,51 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 				m_apcNewDepthStencilViews11.erase(m_apcNewDepthStencilViews11.begin());
 			}
 
+			// create new shader resource view
+			if (m_apcNewShaderResourceViews11.size())
+			{
+				// get the description
+				D3D11_SHADER_RESOURCE_VIEW_DESC sDesc;
+				m_apcNewShaderResourceViews11[0]->GetDesc(&sDesc);
+
+				// get resource
+				ID3D11Resource* pcResource;
+				m_apcNewShaderResourceViews11[0]->GetResource(&pcResource);
+				if (pcResource)
+				{
+					// get the stereo twin of the resource (texture)
+					ID3D11Resource* pcResourceTwin = nullptr;
+					UINT dwSize = sizeof(pcResourceTwin);
+					pcResource->GetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, &dwSize, (void*)&pcResourceTwin);
+					if (pcResourceTwin)
+					{
+						ID3D11ShaderResourceView* pcShaderResourceView = nullptr;
+						if ((FAILED(pcDevice->CreateShaderResourceView((ID3D11Resource*)pcResourceTwin, &sDesc, &pcShaderResourceView))))
+							OutputDebugString(L"VireioStereoSplitter: Failed to create texture view!");
+						else
+						{
+							// set private data interface
+							pcResourceTwin->SetPrivateDataInterface(PDIID_ID3D11TextureXD_ShaderResourceView, pcShaderResourceView);
+
+							// release resource view, reference now only in the resource present
+							pcShaderResourceView->Release();
+						}
+
+						pcResourceTwin->Release();
+					}
+					else
+					{
+						// create new stereo view
+						CreateStereoView((IUnknown*)pcDevice, m_apcNewShaderResourceViews11[0]);
+					}
+
+					pcResource->Release();
+				}
+
+				// and update the new vector
+				m_apcNewShaderResourceViews11.erase(m_apcNewShaderResourceViews11.begin());
+			}
+
 			pcDevice->Release();
 		}
 	}
@@ -935,7 +1032,7 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 		case Direct3D10:
 		break;
 		case Direct3D11:
-		if (true) // TODO !! FORMATING BUG IN VS2013 EXPRESS
+		if (true)
 		{
 			// get back buffer
 			ID3D11Texture2D* pcBackBuffer = NULL;
@@ -1235,33 +1332,7 @@ void StereoSplitter::OMSetRenderTargets(IUnknown* pcDeviceOrContext, UINT NumVie
 		m_dwRenderTargetNumber = D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT;
 
 	// drawing side is automatically set to "left"
-	SetDrawingSideField(RenderPosition::Left);
-
-	// switch constant buffers to left side
-	if (m_appcActiveConstantBuffers11)
-		if (*m_appcActiveConstantBuffers11)
-		{
-			// loop through the buffers
-			for (UINT dwIndex = 0; dwIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; dwIndex++)
-				if ((*m_appcActiveConstantBuffers11)[dwIndex])
-				{
-					// get the private data interfaces and set the current drawing side
-					ID3D11Buffer* pcBuffer = nullptr;
-					UINT dwSize = sizeof(pcBuffer);
-					((*m_appcActiveConstantBuffers11)[dwIndex])->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Left, &dwSize, (void*)&pcBuffer);
-
-					// TODO !! eventually set all buffers in one call
-					if (pcBuffer)
-					{
-						((ID3D11DeviceContext*)pcDeviceOrContext)->VSSetConstantBuffers(dwIndex, 1, &pcBuffer);
-
-						// "If the data returned is a pointer to an IUnknown, or one of its derivative classes,
-						// previously set by IDXGIObject::SetPrivateDataInterface, you must call::Release() on
-						// the pointer before the pointer is freed to decrement the reference count." (Microsoft)
-						pcBuffer->Release();
-					}
-				}
-		}
+	SetDrawingSide((ID3D11DeviceContext*)pcDeviceOrContext, RenderPosition::Left, true, true, true);
 
 	// set the render target internally
 	if (NumViews <= D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT)
@@ -1438,7 +1509,7 @@ void StereoSplitter::CreateStereoView(IUnknown* pcDevice, ID3D11View* pcView)
 		((ID3D11DepthStencilView*)pcView)->GetDesc(&sDescDS11);
 		break;
 		case D3D11_SHADER_RESOURCE_VIEW:
-		OutputDebugString(L"NotImplemented: D3D11_SHADER_RESOURCE_VIEW");
+		((ID3D11ShaderResourceView*)pcView)->GetDesc(&sDescSR11);
 		break;
 		default:
 		break;
@@ -1689,7 +1760,42 @@ void StereoSplitter::CreateStereoView(IUnknown* pcDevice, ID3D11View* pcView)
 				}
 				break;
 				case D3D11_SHADER_RESOURCE_VIEW:
-				OutputDebugString(L"NotImplemented: D3D11_SHADER_RESOURCE_VIEW");
+				if (true)
+				{
+					if (pcDevice)
+					{
+						// get the texture
+						ID3D11Texture2D* pcResource = nullptr;
+						((ID3D11DepthStencilView*)pcView)->GetResource((ID3D11Resource**)&pcResource);
+						if (pcResource)
+						{
+							// get the description and create the twin texture
+							D3D11_TEXTURE2D_DESC sDesc;
+							pcResource->GetDesc(&sDesc);
+
+							if (FAILED(((ID3D11Device*)pcDevice)->CreateTexture2D(&sDesc, NULL, (ID3D11Texture2D**)&pcStereoTwinTexture11)))
+								OutputDebugString(L"StereoSplitterDX10 : Failed to create twin texture !");
+							else
+							{
+								// create twin shader resource view
+								if (FAILED(((ID3D11Device*)pcDevice)->CreateShaderResourceView((ID3D11Resource*)pcStereoTwinTexture11, &sDescSR11, (ID3D11ShaderResourceView**)&pcStereoTwinView11)))
+									OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view !");
+							}
+
+							if ((pcStereoTwinTexture11) && (pcStereoTwinView11))
+							{
+								// assign stereo private data interfaces, first the depth stencil view to the texture
+								pcResource->SetPrivateDataInterface(PDIID_ID3D11TextureXD_ShaderResourceView, pcView);
+								// now assign the stereo texture twin interface
+								pcResource->SetPrivateDataInterface(PDIID_ID3D11TextureXD_Stereo_Twin, pcStereoTwinTexture11);
+								// last, the stereo twin depth stencil TODO !! create GUID for this ? need this ?
+								// pcView->SetPrivateDataInterface(PDIID_ID3D11ShaderResourceView_Stereo_Twin, pcStereoTwinView11);
+							}
+							pcResource->Release();
+						}
+
+					}
+				}
 				break;
 				default:
 				OutputDebugString(L"NotImplemented: UNKNOWN TYPE");
@@ -1872,6 +1978,15 @@ bool StereoSplitter::SetDrawingSide(ID3D10Device* pcDevice, RenderPosition eSide
 }
 
 /**
+*
+***/
+bool StereoSplitter::SetDrawingSide(ID3D10Device* pcDevice, RenderPosition eSide, bool bRenderTargets, bool bShaderResources, bool bConstantBuffers)
+{
+	(ERROR_CALL_NOT_IMPLEMENTED);
+	return false;
+}
+
+/**
 * Switches rendering to which ever side is specified by side.
 * Use to specify the side that you want to draw to.
 *
@@ -1894,64 +2009,168 @@ bool StereoSplitter::SetDrawingSide(ID3D11DeviceContext* pcContext, RenderPositi
 	// things, as I have already managed twice.
 	SetDrawingSideField(eSide);
 
-	// switch render targets to new eSide
-	HRESULT hr = S_OK;
+	// switch render targets to new side
 	if (eSide == RenderPosition::Left)
 		pcContext->OMSetRenderTargets(m_dwRenderTargetNumber, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews[0], (ID3D11DepthStencilView*)m_pcActiveDepthStencilView);
 	else
 		pcContext->OMSetRenderTargets(m_dwRenderTargetNumber, (ID3D11RenderTargetView**)&m_apcActiveStereoTwinViews[0], (ID3D11DepthStencilView*)m_pcActiveStereoTwinDepthStencilView);
 
-	// switch textures to new side
-	/*for(std::vector<IDirect3DSurface9*>::size_type i = 0; i < m_dwTextureNumber; i++)
+	// verify shader resources ?
+	if (m_bVerifyShaderResources)
 	{
-	// if stereo texture
-	if (m_apcActiveStereoTwinTextures[i] != NULL)
-	{
-	if (eSide == RenderPosition::Left)
-	{
-	if (m_apcActiveTextures[i])
-	hr = pcDevice->SetTexture(i, m_apcActiveTextures[i]);
-	else
-	hr = pcDevice->SetTexture(i, NULL);
-	}
-	else
-	hr = pcDevice->SetTexture(i, m_apcActiveStereoTwinTextures[i]);
-	}
-	// else the texture is mono and doesn't need changing. It will always be set initially and then won't need changing
+		// get and loop throug resources, verify
+		pcContext->PSGetShaderResources(0, m_dwTextureNumber, (ID3D11ShaderResourceView**)&m_apcActiveTextures[0]);
+		for (int i = 0; i < (int)m_dwTextureNumber; i++)
+		{
+			if (!m_apcActiveTextures[i]) 
+				m_apcActiveStereoTwinTextures[i] = nullptr;
+			else m_apcActiveTextures[i]->Release();
+		}
 
-	if (hr != D3D_OK)
-	OutputDebugString(L"Error trying to set one of the textures while switching between active eyes for drawing.\n");
-	}*/
+		m_bVerifyShaderResources = false;
+	}
+
+	// switch textures to new side
+	if (eSide == RenderPosition::Left)
+		pcContext->PSSetShaderResources(0, m_dwTextureNumber, (ID3D11ShaderResourceView**)&m_apcActiveTextures[0]);
+	else
+		pcContext->PSSetShaderResources(0, m_dwTextureNumber, (ID3D11ShaderResourceView**)&m_apcActiveStereoTwinTextures[0]);
+
+	// get the current vertex shader private data
+	ID3D11VertexShader* pcVertexShader = nullptr;
+	pcContext->VSGetShader(&pcVertexShader, nullptr, nullptr);
+	Vireio_Shader_Private_Data sPrivateData;
+	UINT dwDataSize = sizeof(sPrivateData);
+	if (pcVertexShader)
+		pcVertexShader->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
 
 	// switch constant buffers
 	if (m_appcActiveConstantBuffers11)
-		if (*m_appcActiveConstantBuffers11)
+	if (*m_appcActiveConstantBuffers11)
+	{
+		// loop through the buffers
+		for (UINT dwIndex = 0; dwIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; dwIndex++)
+		if ((*m_appcActiveConstantBuffers11)[dwIndex])
 		{
-			// loop through the buffers
-			for (UINT dwIndex = 0; dwIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; dwIndex++)
-				if ((*m_appcActiveConstantBuffers11)[dwIndex])
-				{
-					// get the private data interfaces and set the current drawing side
-					ID3D11Buffer* pcBuffer = nullptr;
-					UINT dwSize = sizeof(pcBuffer);
-					if (eSide == RenderPosition::Left)
-						((*m_appcActiveConstantBuffers11)[dwIndex])->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Left, &dwSize, (void*)&pcBuffer);
-					else
-						((*m_appcActiveConstantBuffers11)[dwIndex])->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcBuffer);
+			// set the current shader data as private data to the buffer
+			if ((pcVertexShader) && (dwDataSize))
+				((*m_appcActiveConstantBuffers11)[dwIndex])->SetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, sizeof(sPrivateData), (void*)&sPrivateData);
 
-					// TODO !! eventually set all buffers in one call
-					if (pcBuffer)
-					{
-						pcContext->VSSetConstantBuffers(dwIndex, 1, &pcBuffer);
+			// get the private data interfaces and set the current drawing side
+			ID3D11Buffer* pcBuffer = nullptr;
+			UINT dwSize = sizeof(pcBuffer);
+			if (eSide == RenderPosition::Left)
+				((*m_appcActiveConstantBuffers11)[dwIndex])->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Left, &dwSize, (void*)&pcBuffer);
+			else
+				((*m_appcActiveConstantBuffers11)[dwIndex])->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcBuffer);
 
-						// "If the data returned is a pointer to an IUnknown, or one of its derivative classes,
-						// previously set by IDXGIObject::SetPrivateDataInterface, you must call::Release() on 
-						// the pointer before the pointer is freed to decrement the reference count." (Microsoft)
-						pcBuffer->Release();
-					}
-				}
+			// TODO !! eventually set all buffers in one call
+			if (pcBuffer)
+			{
+				pcContext->VSSetConstantBuffers(dwIndex, 1, &pcBuffer);
+
+				// "If the data returned is a pointer to an IUnknown, or one of its derivative classes,
+				// previously set by IDXGIObject::SetPrivateDataInterface, you must call::Release() on 
+				// the pointer before the pointer is freed to decrement the reference count." (Microsoft)
+				pcBuffer->Release();
+			}
 		}
+	}
+
+	if (pcVertexShader)
+		pcVertexShader->Release();
 
 	return true;
 }
 
+/**
+* Switches rendering to which ever side is specified by side.
+* Use to specify the side that you want to draw to.
+*
+* Derives D3DProxyDevice::setDrawingSide() from the Vireio 2.x.x driver code.
+*
+* DX11 method !!
+*
+* @param pcContext The D3D 11 device context.
+* @param bRenderTargets True if rendertargets should be set for left side.
+* @param bShaderResources True if shader resources should be set for left side.
+* @param bConstantBuffers True if constant buffers should be set for left side.
+* @return True if change succeeded, false if it fails.
+***/
+bool StereoSplitter::SetDrawingSide(ID3D11DeviceContext* pcContext, RenderPosition eSide, bool bRenderTargets, bool bShaderResources, bool bConstantBuffers)
+{
+	// Already on the correct eye
+	if (eSide == m_eCurrentRenderingSide)
+		return true;
+
+	// Everything hasn't changed yet but we set this first so we don't accidentally use the member instead of the local and break
+	// things, as I have already managed twice.
+	SetDrawingSideField(eSide);
+
+	// switch render targets to new side
+	if (bRenderTargets)
+	{
+		if (eSide == RenderPosition::Left)
+			pcContext->OMSetRenderTargets(m_dwRenderTargetNumber, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews[0], (ID3D11DepthStencilView*)m_pcActiveDepthStencilView);
+		else
+			pcContext->OMSetRenderTargets(m_dwRenderTargetNumber, (ID3D11RenderTargetView**)&m_apcActiveStereoTwinViews[0], (ID3D11DepthStencilView*)m_pcActiveStereoTwinDepthStencilView);
+	}
+
+	// verify shader resources ?
+	if (m_bVerifyShaderResources)
+	{
+		// get and loop throug resources, verify
+		pcContext->PSGetShaderResources(0, m_dwTextureNumber, (ID3D11ShaderResourceView**)&m_apcActiveTextures[0]);
+		for (int i = 0; i < (int)m_dwTextureNumber; i++)
+		{
+			if (!m_apcActiveTextures[i])
+				m_apcActiveStereoTwinTextures[i] = nullptr;
+			else m_apcActiveTextures[i]->Release();
+		}
+
+		m_bVerifyShaderResources = false;
+	}
+
+	// switch textures to new side
+	if (bShaderResources)
+	{
+		if (eSide == RenderPosition::Left)
+			pcContext->PSSetShaderResources(0, m_dwTextureNumber, (ID3D11ShaderResourceView**)&m_apcActiveTextures[0]);
+		else
+			pcContext->PSSetShaderResources(0, m_dwTextureNumber, (ID3D11ShaderResourceView**)&m_apcActiveStereoTwinTextures[0]);
+	}
+
+	// switch constant buffers
+	if (bConstantBuffers)
+	{
+		if (m_appcActiveConstantBuffers11)
+		if (*m_appcActiveConstantBuffers11)
+		{
+			// loop through the buffers
+			for (UINT dwIndex = 0; dwIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; dwIndex++)
+			if ((*m_appcActiveConstantBuffers11)[dwIndex])
+			{
+				// get the private data interfaces and set the current drawing side
+				ID3D11Buffer* pcBuffer = nullptr;
+				UINT dwSize = sizeof(pcBuffer);
+				if (eSide == RenderPosition::Left)
+					((*m_appcActiveConstantBuffers11)[dwIndex])->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Left, &dwSize, (void*)&pcBuffer);
+				else
+					((*m_appcActiveConstantBuffers11)[dwIndex])->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcBuffer);
+
+				// TODO !! eventually set all buffers in one call
+				if (pcBuffer)
+				{
+					pcContext->VSSetConstantBuffers(dwIndex, 1, &pcBuffer);
+
+					// "If the data returned is a pointer to an IUnknown, or one of its derivative classes,
+					// previously set by IDXGIObject::SetPrivateDataInterface, you must call::Release() on 
+					// the pointer before the pointer is freed to decrement the reference count." (Microsoft)
+					pcBuffer->Release();
+				}
+			}
+		}
+	}
+
+	return true;
+}

@@ -4,8 +4,8 @@
     <ClInclude Include="..\AQU_Nodus.h" />
     <ClInclude Include="..\Resources.h" />
     <ClInclude Include="..\VireioMatrixModifier.h" />
-    <ClInclude Include="..\..\..\..\Include\Vireio_DX11StateBlock.h" />
-    <ClInclude Include="..\..\..\..\Include\Vireio_DX11Basics.h" />
+    <ClInclude Include="..\VireioMatrixModifierDataStructures.h" />
+    <ClInclude Include="..\..\..\..\Include\Vireio_GUIDs.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\AQU_Nodus.def" />
