@@ -40,8 +40,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // PDID_ID3D11Buffer_Vireio_Data : 9661ee48-d331-478d-aa3e-5663ec612473
 const GUID PDID_ID3D11Buffer_Vireio_Data = {0x9661ee48, 0xd331, 0x478d, {0xaa, 0x3e, 0x56, 0x63, 0xec, 0x61, 0x24, 0x73}};
 
-// PDID_ID3D11TextureXD_ShaderResouceView_Create_New : d5e494b4-6b30-4214-baaf-1b87e75cd299 // TODO !! create own GUID
-const GUID PDID_ID3D11TextureXD_ShaderResouceView_Create_New = { 0xd5e494b4, 0x6b30, 0x4214, { 0xba, 0xaf, 0x1b, 0x87, 0xe7, 0x5c, 0xd2, 0x99 } };
+// PDID_ID3D11TextureXD_ShaderResouceView_Create_New : 7371d160-5b35-471c-b2ae-e5e9d942b776
+const GUID PDID_ID3D11TextureXD_ShaderResouceView_Create_New = { 0x7371d160, 0x5b35, 0x471c, { 0xb2, 0xae, 0xe5, 0xe9, 0xd9, 0x42, 0xb7, 0x76 } };
 
 // PDIID_ID3D11Buffer_Constant_Buffer_Left : a48d2fc5-f947-444c-9e93-470d66cb5b71
 const GUID PDIID_ID3D11Buffer_Constant_Buffer_Left = {0xa48d2fc5, 0xf947, 0x444c, {0x9e, 0x93, 0x47, 0x0d, 0x66, 0xcb, 0x5b, 0x71}};
@@ -61,8 +61,8 @@ const GUID PDIID_ID3D11TextureXD_RenderTargetView = { 0xc1e52c2b, 0xd618, 0x41d8
 // PDIID_ID3D11TextureXD_DepthStencilView : d5e494b4-6b30-4214-baaf-1b87e75cd213
 const GUID PDIID_ID3D11TextureXD_DepthStencilView = { 0xd5e494b4, 0x6b30, 0x4214, { 0xba, 0xaf, 0x1b, 0x87, 0xe7, 0x5c, 0xd2, 0x13 } };
 
-// PDIID_ID3D11TextureXD_ShaderResourceView : d5e494b4-6b30-4214-baaf-1b87e75cd233 // TODO !! create own GUID
-const GUID PDIID_ID3D11TextureXD_ShaderResourceView = { 0xd5e494b4, 0x6b30, 0x4214, { 0xba, 0xaf, 0x1b, 0x87, 0xe7, 0x5c, 0xd2, 0x33 } };
+// PDIID_ID3D11TextureXD_ShaderResourceView : 54785d84-c099-4cb7-8006-0f7ad3921f8b
+const GUID PDIID_ID3D11TextureXD_ShaderResourceView = { 0x54785d84, 0xc099, 0x4cb7, { 0x80, 0x06, 0x0f, 0x7a, 0xd3, 0x92, 0x1f, 0x8b } };
 
 // PDIID_ID3D11RenderTargetView_Stereo_Twin : bc121462-d0b4-42d5-8429-2f7b194c8d20
 const GUID PDIID_ID3D11RenderTargetView_Stereo_Twin = { 0xbc121462, 0xd0b4, 0x42d5, { 0x84, 0x29, 0x2f, 0x7b, 0x19, 0x4c, 0x8d, 0x20 } };
