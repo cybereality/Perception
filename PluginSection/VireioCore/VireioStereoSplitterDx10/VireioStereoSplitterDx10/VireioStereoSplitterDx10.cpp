@@ -569,7 +569,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 {
 	// set node behavior to "double call" for this method
 	// node that this is only supported by drawing methods
-	nProvokerIndex = -1;
+	nProvokerIndex |= AQU_PluginFlags::DoubleCallFlag;
 
 	switch (eD3DInterface)
 	{

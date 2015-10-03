@@ -5,7 +5,7 @@ Copyright (C) 2012 Andres Hernandez
 File <Vireio_Node_Plugtypes.h> :
 Copyright (C) 2015 Denis Reischl
 
-The enumeration <NOD_Plugtype> is the public node plugtype enumeration 
+The enumerations <AQU_PluginFlags> and <NOD_Plugtype> are public enumerations 
 from the Aquilinus repository and permitted to be used for open source 
 plugins of any kind.
 Read the Aquilinus documentation for further information.
@@ -31,6 +31,15 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
+
+/**
+* Plugin flags.
+**/
+enum AQU_PluginFlags
+{
+	DoubleCallFlag = 512,       /** Double call : call D3D method -> provoke -> call D3D method **/
+	ImmediateReturnFlag = 1024, /** Immediate return : D3D method call replaced by plugin **/
+};
 
 /**
 * Node plug type enumeration.

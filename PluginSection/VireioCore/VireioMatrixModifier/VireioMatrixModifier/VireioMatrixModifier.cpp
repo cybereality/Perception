@@ -878,8 +878,8 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 									pcShader->SetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, sizeof(sPrivateData), (void*)&sPrivateData);
 
-									// method replaced, immediately return (= behavior -16)
-									nProvokerIndex = -16;
+									// method replaced, immediately return 
+									nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
 									return m_pvReturn;
 								}
 							}
@@ -983,8 +983,8 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						}
 						else OutputDebugString(L"MatrixModifier: Failed to reflect vertex shader !");
 
-						// method replaced, immediately return (= behavior -16)
-						nProvokerIndex = -16;
+						// method replaced, immediately return
+						nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
 						return m_pvReturn;
 					}
 #pragma endregion
@@ -1010,8 +1010,8 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 							CreateStereoConstantBuffer((ID3D11Device*)pThis, nullptr, (**m_pppcBuffer_DX11), *m_ppsDesc_DX11, *m_ppsInitialData_DX11, false);
 						}
 
-						// method replaced, immediately return (= behavior -16)
-						nProvokerIndex = -16;
+						// method replaced, immediately return
+						nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
 						return m_pvReturn;
 					}
 					else return nullptr;
@@ -1438,8 +1438,8 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 							*m_pdwNumBuffers_VertexShader,
 							(ID3D11Buffer**)&apcActiveConstantBuffers11[*m_pdwStartSlot_VertexShader]);
 
-						// method replaced, immediately return (= behavior -16)
-						nProvokerIndex = -16;
+						// method replaced, immediately return
+						nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
 					}
 					return nullptr;
 #pragma endregion
