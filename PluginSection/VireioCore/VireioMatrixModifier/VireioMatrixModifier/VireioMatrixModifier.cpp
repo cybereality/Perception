@@ -812,7 +812,9 @@ bool MatrixModifier::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_VSSETCONSTANTBUFFERS) ||
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_COPYSUBRESOURCEREGION) ||
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_COPYRESOURCE) ||
-				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_UPDATESUBRESOURCE))
+				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_UPDATESUBRESOURCE) ||
+				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_VSGETCONSTANTBUFFERS) ||
+				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_PSGETCONSTANTBUFFERS))
 				return true;
 		}
 		else if (nD3DInterface == INTERFACE_IDXGISWAPCHAIN)
@@ -1040,9 +1042,9 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					if (!*m_ppvSrcData) return nullptr;
 
 					// is this a buffer ?
-					D3D11_RESOURCE_DIMENSION sDimension;
-					(*m_ppcDstResource_DX11)->GetType(&sDimension);
-					if (sDimension == D3D11_RESOURCE_DIMENSION::D3D11_RESOURCE_DIMENSION_BUFFER)
+					D3D11_RESOURCE_DIMENSION eDimension;
+					(*m_ppcDstResource_DX11)->GetType(&eDimension);
+					if (eDimension == D3D11_RESOURCE_DIMENSION::D3D11_RESOURCE_DIMENSION_BUFFER)
 					{
 						// is this a constant buffer ?
 						D3D11_BUFFER_DESC sDesc;
@@ -1063,6 +1065,20 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 									}
 								}
 						}
+					}
+					else if (eDimension <= D3D11_RESOURCE_DIMENSION::D3D11_RESOURCE_DIMENSION_TEXTURE3D)
+					{
+						// get the stereo twin of the resource (texture)
+						ID3D11Resource* pcResourceTwin = nullptr;
+						UINT dwSize = sizeof(pcResourceTwin);
+						((ID3D11Resource*)*m_ppcDstResource_DX11)->GetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, &dwSize, (void*)&pcResourceTwin);
+						if (pcResourceTwin)
+						{
+							// update stereo twin
+							((ID3D11DeviceContext*)pThis)->UpdateSubresource(pcResourceTwin, *m_pdwDstSubresource, *m_ppsDstBox_DX11, *m_ppvSrcData, *m_pdwSrcRowPitch, *m_pdwSrcDepthPitch);
+							pcResourceTwin->Release();
+						}
+
 					}
 					return nullptr;
 #pragma endregion
@@ -1171,24 +1187,35 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 										*m_ppsSrcBox_DX11);
 
 									pcResourceTwinDst->Release();
-
-									// OutputDebugString(L"Copy stereo resource textures");
 								}
 								else
 								{
 									// set private data "create new" BOOL
 									BOOL bTrue = TRUE;
 									((ID3D11Resource*)*m_ppcDstResource_DX11_CopySub)->SetPrivateData(PDID_ID3D11TextureXD_ShaderResouceView_Create_New, sizeof(BOOL), &bTrue);
-
-									// OutputDebugString(L"Trying to copy from stereo to mono texture");
 								}
 								pcResourceTwinSrc->Release();
 							}
 							else
 							{
-								// TODO !! copy mono src to stereo dest texture
+								// get the stereo twin of the destination
+								ID3D11Resource* pcResourceTwinDst = nullptr;
+								dwSize = sizeof(pcResourceTwinDst);
+								((ID3D11Resource*)*m_ppcDstResource_DX11_CopySub)->GetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, &dwSize, (void*)&pcResourceTwinDst);
+								if (pcResourceTwinDst)
+								{
+									// do the copy call on the stereo twins of these textures
+									((ID3D11DeviceContext*)pThis)->CopySubresourceRegion(pcResourceTwinDst,
+										*m_pdwDstSubresource_CopySub,
+										*m_pdwDstX,
+										*m_pdwDstY,
+										*m_pdwDstZ,
+										*m_ppcSrcResource_DX11_CopySub,
+										*m_pdwSrcSubresource,
+										*m_ppsSrcBox_DX11);
 
-								// OutputDebugString(L"Trying to copy from mono to stereo texture");
+									pcResourceTwinDst->Release();
+								}
 							}
 						}
 					}
@@ -1267,24 +1294,27 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 									// do the copy call on the stereo twins of these textures
 									((ID3D11DeviceContext*)pThis)->CopyResource(pcResourceTwinDst, pcResourceTwinSrc);
 									pcResourceTwinDst->Release();
-
-									// OutputDebugString(L"Copy stereo resource textures");
 								}
 								else
 								{
 									// set private data "create new" BOOL
 									BOOL bTrue = TRUE;
 									((ID3D11Resource*)*m_ppcDstResource_DX11_Copy)->SetPrivateData(PDID_ID3D11TextureXD_ShaderResouceView_Create_New, sizeof(BOOL), &bTrue);
-
-									// OutputDebugString(L"Trying to copy from stereo to mono texture");
 								}
 								pcResourceTwinSrc->Release();
 							}
 							else
 							{
-								// TODO !! copy mono src to stereo dest texture
-
-								// OutputDebugString(L"Trying to copy from mono to stereo texture");
+								// get the stereo twin of the destination
+								ID3D11Resource* pcResourceTwinDst = nullptr;
+								dwSize = sizeof(pcResourceTwinDst);
+								((ID3D11Resource*)*m_ppcDstResource_DX11_Copy)->GetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, &dwSize, (void*)&pcResourceTwinDst);
+								if (pcResourceTwinDst)
+								{
+									// do the copy call on the stereo twins of these textures
+									((ID3D11DeviceContext*)pThis)->CopyResource(pcResourceTwinDst, *m_ppcSrcResource_DX11_Copy);
+									pcResourceTwinDst->Release();
+								}								
 							}
 						}
 					}
@@ -1367,57 +1397,65 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						}
 					}
 
-					// get a copy of the active buffers
-					std::vector<ID3D11Buffer*> apcActiveConstantBuffers11 = std::vector<ID3D11Buffer*>(m_apcActiveConstantBuffers11);
-
-					// loop through the new buffers
-					for (UINT dwIndex = 0; dwIndex < *m_pdwNumBuffers_VertexShader; dwIndex++)
 					{
-						// get internal index
-						UINT dwInternalIndex = dwIndex + *m_pdwStartSlot_VertexShader;
+						// get a copy of the active buffers
+						std::vector<ID3D11Buffer*> apcActiveConstantBuffers11 = std::vector<ID3D11Buffer*>(m_apcActiveConstantBuffers11);
 
-						// in range ? 
-						if (dwInternalIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT)
+						// loop through the new buffers
+						for (UINT dwIndex = 0; dwIndex < *m_pdwNumBuffers_VertexShader; dwIndex++)
 						{
-							if ((m_apcActiveConstantBuffers11)[dwInternalIndex])
+							// get internal index
+							UINT dwInternalIndex = dwIndex + *m_pdwStartSlot_VertexShader;
+
+							// in range ? 
+							if (dwInternalIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT)
 							{
-								// get the private data interfaces and set the current drawing side
-								ID3D11Buffer* pcBuffer = nullptr;
-								UINT dwSize = sizeof(pcBuffer);
-								if (m_eCurrentRenderingSide == RenderPosition::Left)
-									m_apcActiveConstantBuffers11[dwInternalIndex]->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Left, &dwSize, (void*)&pcBuffer);
-								else
-									m_apcActiveConstantBuffers11[dwInternalIndex]->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcBuffer);
-
-								if (pcBuffer)
+								if ((m_apcActiveConstantBuffers11)[dwInternalIndex])
 								{
-									apcActiveConstantBuffers11[dwInternalIndex] = pcBuffer;
+									// get the private data interfaces and set the current drawing side
+									ID3D11Buffer* pcBuffer = nullptr;
+									UINT dwSize = sizeof(pcBuffer);
+									if (m_eCurrentRenderingSide == RenderPosition::Left)
+										m_apcActiveConstantBuffers11[dwInternalIndex]->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Left, &dwSize, (void*)&pcBuffer);
+									else
+										m_apcActiveConstantBuffers11[dwInternalIndex]->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcBuffer);
 
-									// "If the data returned is a pointer to an IUnknown, or one of its derivative classes,
-									// previously set by IDXGIObject::SetPrivateDataInterface, you must call::Release() on 
-									// the pointer before the pointer is freed to decrement the reference count." (Microsoft)
-									pcBuffer->Release();
+									if (pcBuffer)
+									{
+										apcActiveConstantBuffers11[dwInternalIndex] = pcBuffer;
+
+										// "If the data returned is a pointer to an IUnknown, or one of its derivative classes,
+										// previously set by IDXGIObject::SetPrivateDataInterface, you must call::Release() on 
+										// the pointer before the pointer is freed to decrement the reference count." (Microsoft)
+										pcBuffer->Release();
+									}
 								}
 							}
 						}
+
+						// call super method
+						((ID3D11DeviceContext*)pThis)->VSSetConstantBuffers(*m_pdwStartSlot_VertexShader,
+							*m_pdwNumBuffers_VertexShader,
+							(ID3D11Buffer**)&apcActiveConstantBuffers11[*m_pdwStartSlot_VertexShader]);
+
+						// method replaced, immediately return (= behavior -16)
+						nProvokerIndex = -16;
 					}
-
-					// call super method
-					((ID3D11DeviceContext*)pThis)->VSSetConstantBuffers(*m_pdwStartSlot_VertexShader,
-						*m_pdwNumBuffers_VertexShader,
-						(ID3D11Buffer**)&apcActiveConstantBuffers11[*m_pdwStartSlot_VertexShader]);
-
-					// method replaced, immediately return (= behavior -16)
-					nProvokerIndex = -16;
 					return nullptr;
 #pragma endregion
 #pragma region ID3D11DeviceContext::VSGetConstantBuffers
+				case METHOD_ID3D11DEVICECONTEXT_VSGETCONSTANTBUFFERS:
+					OutputDebugString(L"METHOD_ID3D11DEVICECONTEXT_VSGETCONSTANTBUFFERS");
 					// ID3D11DeviceContext::VSGetConstantBuffers(UINT StartSlot, UINT NumBuffers, ID3D11Buffer **ppConstantBuffers);
 					// return a poiner to the active constant buffers
+					break;
 #pragma endregion
 #pragma region ID3D11DeviceContext::PSGetConstantBuffers
+				case METHOD_ID3D11DEVICECONTEXT_PSGETCONSTANTBUFFERS:
 					// ID3D11DeviceContext::PSGetConstantBuffers(UINT StartSlot, UINT NumBuffers, ID3D11Buffer **ppConstantBuffers);
+					OutputDebugString(L"METHOD_ID3D11DEVICECONTEXT_PSGETCONSTANTBUFFERS");
 					// return a poiner to the active constant buffers
+					break;
 #pragma endregion
 			}
 			return nullptr;
@@ -1432,7 +1470,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #endif
 
 	return nullptr;
-}
+	}
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 /**
