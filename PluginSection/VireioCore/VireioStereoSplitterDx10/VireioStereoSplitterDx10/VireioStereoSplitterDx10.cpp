@@ -75,6 +75,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define METHOD_ID3D11DEVICECONTEXT_UPDATESUBRESOURCE                         48
 #define METHOD_ID3D11DEVICECONTEXT_CLEARRENDERTARGETVIEW                     50
 #define METHOD_ID3D11DEVICECONTEXT_CLEARDEPTHSTENCILVIEW                     53
+#define METHOD_ID3D11DEVICECONTEXT_PSGETSHADERRESOURCES                      73
 #define METHOD_ID3D11DEVICECONTEXT_OMGETRENDERTARGETS                        89
 #define METHOD_ID3D11DEVICECONTEXT_OMGETRENDERTARGETSANDUNORDEREDACCESSVIEWS 90
 #define METHOD_ID3D11DEVICECONTEXT_CLEARSTATE                                110
@@ -549,6 +550,7 @@ bool StereoSplitter::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_CLEARRENDERTARGETVIEW) ||
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_CLEARDEPTHSTENCILVIEW) ||
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_OMGETRENDERTARGETS) ||
+				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_PSGETSHADERRESOURCES) ||
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_OMGETRENDERTARGETSANDUNORDEREDACCESSVIEWS) ||
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_CLEARSTATE))
 				return true;
@@ -605,12 +607,57 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 				case METHOD_ID3D11DEVICECONTEXT_PSSETSHADERRESOURCES:
 					if (m_bPresent)
 					{
+						// ensure D3D11 is set
+						m_eD3DVersion = D3DVersion::Direct3D11;
+
 						// verify node pointers
 						if (!m_pdwStartSlot) return nullptr;
 						if (!m_pdwNumViewsSRVs) return nullptr;
 						if (!m_pppcShaderResourceViews11) return nullptr;
-						if (!*m_pppcShaderResourceViews11) return nullptr;
-						if (!**m_pppcShaderResourceViews11) return nullptr;
+						if (!*m_pppcShaderResourceViews11)
+						{
+							// loop through new resource views
+							for (UINT dwIndex = 0; dwIndex < *m_pdwNumViewsSRVs; dwIndex++)
+							{
+								// get and verify index
+								DWORD dwIndexActive = *m_pdwStartSlot + dwIndex;
+								// set shader resource view for both sides
+								m_apcActiveTextures[dwIndexActive] = nullptr;
+								m_apcActiveStereoTwinTextures[dwIndexActive] = nullptr;
+
+								// replace the call
+								if (m_eCurrentRenderingSide == RenderPosition::Left)
+									((ID3D11DeviceContext*)pThis)->PSSetShaderResources(*m_pdwStartSlot, *m_pdwNumViewsSRVs, (ID3D11ShaderResourceView**)&m_apcActiveTextures[*m_pdwStartSlot]);
+								else
+									((ID3D11DeviceContext*)pThis)->PSSetShaderResources(*m_pdwStartSlot, *m_pdwNumViewsSRVs, (ID3D11ShaderResourceView**)&m_apcActiveStereoTwinTextures[*m_pdwStartSlot]);
+
+								// method replaced, immediately return
+								nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+							}
+							return nullptr;
+						}
+						if (!**m_pppcShaderResourceViews11)
+						{
+							// loop through new resource views
+							for (UINT dwIndex = 0; dwIndex < *m_pdwNumViewsSRVs; dwIndex++)
+							{
+								// get and verify index
+								DWORD dwIndexActive = *m_pdwStartSlot + dwIndex;
+								// set shader resource view for both sides
+								m_apcActiveTextures[dwIndexActive] = nullptr;
+								m_apcActiveStereoTwinTextures[dwIndexActive] = nullptr;
+
+								// replace the call
+								if (m_eCurrentRenderingSide == RenderPosition::Left)
+									((ID3D11DeviceContext*)pThis)->PSSetShaderResources(*m_pdwStartSlot, *m_pdwNumViewsSRVs, (ID3D11ShaderResourceView**)&m_apcActiveTextures[*m_pdwStartSlot]);
+								else
+									((ID3D11DeviceContext*)pThis)->PSSetShaderResources(*m_pdwStartSlot, *m_pdwNumViewsSRVs, (ID3D11ShaderResourceView**)&m_apcActiveStereoTwinTextures[*m_pdwStartSlot]);
+
+								// method replaced, immediately return
+								nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+							}
+							return nullptr;
+						}
 						if (*m_pdwStartSlot + *m_pdwNumViewsSRVs > D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT) return nullptr;
 
 						// set texture number TODO !! verify by official documentation....
@@ -729,14 +776,12 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					else
 					{
 						// TODO !! catch active resources before first present call
+						return nullptr;
 					}
-
-					// ensure D3D11 is set
-					m_eD3DVersion = D3DVersion::Direct3D11;
 
 					// replace the call
 					if (m_eCurrentRenderingSide == RenderPosition::Left)
-						((ID3D11DeviceContext*)pThis)->PSSetShaderResources(*m_pdwStartSlot, *m_pdwNumViewsSRVs, *m_pppcShaderResourceViews11);
+						((ID3D11DeviceContext*)pThis)->PSSetShaderResources(*m_pdwStartSlot, *m_pdwNumViewsSRVs, (ID3D11ShaderResourceView**)&m_apcActiveTextures[*m_pdwStartSlot]);
 					else
 						((ID3D11DeviceContext*)pThis)->PSSetShaderResources(*m_pdwStartSlot, *m_pdwNumViewsSRVs, (ID3D11ShaderResourceView**)&m_apcActiveStereoTwinTextures[*m_pdwStartSlot]);
 
@@ -904,10 +949,10 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 						// call intern method
 						OMSetRenderTargets((IUnknown*)pThis, *m_pdwNumViews, *m_pppcRenderTargetViews_DX11, *m_ppcDepthStencilView_DX11);
-					
-						// replace the call
+
+						// switch render targets to new side
 						if (m_eCurrentRenderingSide == RenderPosition::Left)
-							((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(*m_pdwNumViews, (ID3D11RenderTargetView**)m_pppcRenderTargetViews_DX11, (ID3D11DepthStencilView*)m_ppcDepthStencilView_DX11);
+							((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(*m_pdwNumViews, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews[0], (ID3D11DepthStencilView*)m_pcActiveDepthStencilView);
 						else
 							((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(*m_pdwNumViews, (ID3D11RenderTargetView**)&m_apcActiveStereoTwinViews[0], (ID3D11DepthStencilView*)m_pcActiveStereoTwinDepthStencilView);
 
@@ -930,10 +975,25 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 						// call intern method
 						OMSetRenderTargets((IUnknown*)pThis, *m_pdwNumRTVs, *m_pppcRenderTargetViewsUAV_DX11, *m_ppcDepthStencilViewUAV_DX11);
-
+						
 						// TODO !! METHOD REPLACEMENT... meanwhile force to left
 						SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Left);
+
+						// replace the call
+						/*if (m_eCurrentRenderingSide == RenderPosition::Left)
+							((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(*m_pdwNumRTVs, (ID3D11RenderTargetView**)*m_pppcRenderTargetViewsUAV_DX11, (ID3D11DepthStencilView*)*m_ppcDepthStencilViewUAV_DX11);
+							else
+							((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(*m_pdwNumRTVs, (ID3D11RenderTargetView**)&m_apcActiveStereoTwinViews[0], (ID3D11DepthStencilView*)m_pcActiveStereoTwinDepthStencilView);
+
+							// method replaced, immediately return
+							nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;*/
 					}
+					return nullptr;
+#pragma endregion
+#pragma region PSGETSHADERRESOURCES
+				case METHOD_ID3D11DEVICECONTEXT_PSGETSHADERRESOURCES:
+					// if the app tries to get the shader resources ensure the left render side is set
+					SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Left);
 					return nullptr;
 #pragma endregion
 #pragma region OMGETRENDERTARGETS
@@ -1136,6 +1196,7 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 						// verify back buffer ??
 						UINT dwSize = sizeof(m_pcActiveStereoTwinBackBuffer11);
 						pcBackBuffer->GetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, &dwSize, (void*)&m_pcActiveStereoTwinBackBuffer11);
+
 						if (m_pcActiveStereoTwinBackBuffer11)
 						{
 							m_pcActiveStereoTwinBackBuffer11->Release();
