@@ -185,9 +185,7 @@ private:
 	ID3D11RenderTargetView* VerifyPrivateDataInterfaces(ID3D11RenderTargetView* pcRenderTargetView);
 	ID3D11DepthStencilView* VerifyPrivateDataInterfaces(ID3D11DepthStencilView* pcDepthStencilView);
 	bool                    SetDrawingSide(ID3D10Device* pcDevice, RenderPosition side);
-	bool                    SetDrawingSide(ID3D10Device* pcDevice, RenderPosition side, bool bRenderTargets, bool bShaderResources, bool bConstantBuffers);
 	bool                    SetDrawingSide(ID3D11DeviceContext* pcContext, RenderPosition side);
-	bool                    SetDrawingSide(ID3D11DeviceContext* pcContext, RenderPosition side, bool bRenderTargets, bool bShaderResources, bool bConstantBuffers);
 	void                    SetDrawingSideField(RenderPosition eSide) { m_eCurrentRenderingSide = eSide; if (m_peDrawingSide) *m_peDrawingSide = eSide; }
 
 	/**
@@ -307,10 +305,6 @@ private:
 	* so this is added for security.
 	***/
 	bool m_bPresent;
-	/**
-	* True if shader resources should be verified.
-	***/
-	bool m_bVerifyShaderResources;
 	/**
 	* Number of set textures.
 	* Number of textures not set to NULL.
