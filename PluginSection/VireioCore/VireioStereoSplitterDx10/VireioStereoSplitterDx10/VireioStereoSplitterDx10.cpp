@@ -962,17 +962,8 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						// call intern method
 						OMSetRenderTargets((IUnknown*)pThis, *m_pdwNumRTVs, *m_pppcRenderTargetViewsUAV_DX11, *m_ppcDepthStencilViewUAV_DX11);
 
-						// TODO !! METHOD REPLACEMENT... meanwhile force to left
+						// as long as we do not handle stereo UAViews we need to set the left side here
 						SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Left);
-
-						// replace the call
-						/*if (m_eCurrentRenderingSide == RenderPosition::Left)
-							((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(*m_pdwNumRTVs, (ID3D11RenderTargetView**)*m_pppcRenderTargetViewsUAV_DX11, (ID3D11DepthStencilView*)*m_ppcDepthStencilViewUAV_DX11);
-							else
-							((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(*m_pdwNumRTVs, (ID3D11RenderTargetView**)&m_apcActiveStereoTwinViews[0], (ID3D11DepthStencilView*)m_pcActiveStereoTwinDepthStencilView);
-
-							// method replaced, immediately return
-							nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;*/
 					}
 					return nullptr;
 #pragma endregion
@@ -1014,8 +1005,6 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 {
 	if (!m_eD3DVersion) return;
-
-	// TODO !! verify active shader resource views !
 
 #pragma region create new
 	if ((m_apcNewRenderTargetViews11.size()) || (m_apcNewDepthStencilViews11.size()) || (m_apcNewShaderResourceViews11.size()))
@@ -1207,8 +1196,8 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 #pragma endregion
 
 #pragma region draw (optionally)
-	// draw stereo target to screen (optionally)
-	if (true) // TODO !! OPTION TO SET DRAWING ON/OFF
+	// draw stereo target to screen (optionally) // TODO !! OPTION TO SET DRAWING ON/OFF, TOBEDONE WHEN DOING THE GUI OF THIS NODE
+	if (true)
 	{
 		switch (m_eD3DVersion)
 		{
@@ -1294,15 +1283,7 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 
 					if (bAllCreated)
 					{
-						// Clear ? TODO !! DELETE... NO CLEAR FOR FULLSCREEN RENDERING
-						if (false)
-						{
-							float ClearColor[4] = { 0.6f, 0.125f, 0.3f, 0.0f }; // red,green,blue,alpha
-							if (pcView)
-								pcContext->ClearRenderTargetView((ID3D11RenderTargetView*)pcView, ClearColor);
-						}
-						//pcContext->ClearDepthStencilView((ID3D11DepthStencilView*)m_pcActiveDepthStencilView, D3D11_CLEAR_DEPTH, 1.0, 0);
-
+						// left/right eye
 						for (int nEye = 0; nEye < 2; nEye++)
 						{
 							// Set the input layout
@@ -2008,35 +1989,7 @@ bool StereoSplitter::SetDrawingSide(ID3D10Device* pcDevice, RenderPosition eSide
 	else
 		pcDevice->OMSetRenderTargets(m_dwRenderTargetNumber, (ID3D10RenderTargetView**)&m_apcActiveStereoTwinViews[0], (ID3D10DepthStencilView*)m_pcActiveStereoTwinDepthStencilView);
 
-	// if a non-fullsurface viewport is active and a rendertarget changed we need to reapply the viewport - TODO !!
-	/*if (renderTargetChanged && !m_bActiveViewportIsDefault) {
-	BaseDirect3DDevice9::SetViewport(&m_LastViewportSet);
-	}*/
-
-	// switch textures to new side
-	/*for(std::vector<IDirect3DSurface9*>::size_type i = 0; i < m_dwTextureNumber; i++)
-	{
-	// if stereo texture
-	if (m_apcActiveStereoTwinTextures[i] != NULL)
-	{
-	if (eSide == RenderPosition::Left)
-	{
-	if (m_apcActiveTextures[i])
-	hr = pcDevice->SetTexture(i, m_apcActiveTextures[i]);
-	else
-	hr = pcDevice->SetTexture(i, NULL);
-	}
-	else
-	hr = pcDevice->SetTexture(i, m_apcActiveStereoTwinTextures[i]);
-	}
-	// else the texture is mono and doesn't need changing. It will always be set initially and then won't need changing
-
-	if (hr != D3D_OK)
-	OutputDebugString(L"Error trying to set one of the textures while switching between active eyes for drawing.\n");
-	}
-
-	// TODO !!
-	// the rest of the code from the original method from the Vireio 2.x.x D3DProxyDevice*/
+	// TODO !! port DX11 code back to DX10
 
 	return true;
 }
@@ -2085,6 +2038,7 @@ bool StereoSplitter::SetDrawingSide(ID3D11DeviceContext* pcContext, RenderPositi
 		pcVertexShader->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
 
 	// switch constant buffers
+	static std::vector<ID3D11Buffer*> acConstantBuffers = std::vector<ID3D11Buffer*>(D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, nullptr);
 	if (m_appcActiveConstantBuffers11)
 		if (*m_appcActiveConstantBuffers11)
 		{
@@ -2097,25 +2051,22 @@ bool StereoSplitter::SetDrawingSide(ID3D11DeviceContext* pcContext, RenderPositi
 						((*m_appcActiveConstantBuffers11)[dwIndex])->SetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, sizeof(sPrivateData), (void*)&sPrivateData);
 
 					// get the private data interfaces and set the current drawing side
-					ID3D11Buffer* pcBuffer = nullptr;
-					UINT dwSize = sizeof(pcBuffer);
+					UINT dwSize = sizeof(ID3D11Buffer*);
 					if (eSide == RenderPosition::Left)
-						((*m_appcActiveConstantBuffers11)[dwIndex])->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Left, &dwSize, (void*)&pcBuffer);
+						((*m_appcActiveConstantBuffers11)[dwIndex])->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Left, &dwSize, (void*)&acConstantBuffers[dwIndex]);
 					else
-						((*m_appcActiveConstantBuffers11)[dwIndex])->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcBuffer);
+						((*m_appcActiveConstantBuffers11)[dwIndex])->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&acConstantBuffers[dwIndex]);
 
-					// TODO !! eventually set all buffers in one call
-					if (pcBuffer)
-					{
-						pcContext->VSSetConstantBuffers(dwIndex, 1, &pcBuffer);
-
-						// "If the data returned is a pointer to an IUnknown, or one of its derivative classes,
-						// previously set by IDXGIObject::SetPrivateDataInterface, you must call::Release() on 
-						// the pointer before the pointer is freed to decrement the reference count." (Microsoft)
-						pcBuffer->Release();
-					}
+					// "If the data returned is a pointer to an IUnknown, or one of its derivative classes,
+					// previously set by IDXGIObject::SetPrivateDataInterface, you must call::Release() on 
+					// the pointer before the pointer is freed to decrement the reference count." (Microsoft)
+					if (acConstantBuffers[dwIndex])
+						acConstantBuffers[dwIndex]->Release();
 				}
 		}
+
+	// finally set all constant buffers for the left or right side
+	pcContext->VSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &acConstantBuffers[0]);
 
 	if (pcVertexShader)
 		pcVertexShader->Release();
