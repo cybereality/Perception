@@ -79,8 +79,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define METHOD_REPLACEMENT                         false                     /**< This node does NOT replace the D3D call (default) **/
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-#define NUMBER_OF_COMMANDERS                           5
+#define NUMBER_OF_COMMANDERS                           6
 #define NUMBER_OF_DECOMMANDERS                        51
+#define CONSTANT_BUFFER_VERIFICATION_FRAME_NUMBER   6000                     /**< If no shader data is present, the constant buffers are verified for 6000 frames. ***/
 #elif defined(VIREIO_D3D9)
 #define NUMBER_OF_COMMANDERS                           0
 #define NUMBER_OF_DECOMMANDERS                        12
@@ -100,6 +101,7 @@ enum STS_Commanders
 	ppActiveConstantBuffers_DX11_VertexShader,                              /**< Active D3D11 vertex shader constant buffers ***/
 	ppActiveConstantBuffers_DX10_PixelShader,                               /**< Active D3D10 pixel shader constant buffers ***/
 	ppActiveConstantBuffers_DX11_PixelShader,                               /**< Active D3D11 pixel shader constant buffers ***/
+	dwVerifyConstantBuffers,                                                /**< Connect this commander to the stereo splitter to verify constant buffers ***/
 #elif defined(VIREIO_D3D9)
 #endif
 };
@@ -350,6 +352,11 @@ private:
 		BYTE m_pchBuffer10Right[D3D10_REQ_CONSTANT_BUFFER_ELEMENT_COUNT];
 		BYTE m_pchBuffer11Right[D3D11_REQ_CONSTANT_BUFFER_ELEMENT_COUNT];
 	};
+	/**
+	* The number of frames the constant buffers are to be verified.
+	* Set to zero to optimize StereoSplitter->SetDrawingSide()
+	***/
+	UINT m_dwVerifyConstantBuffers;
 
 #elif defined(VIREIO_D3D9)
 	/*** MatrixModifier input pointers ***/

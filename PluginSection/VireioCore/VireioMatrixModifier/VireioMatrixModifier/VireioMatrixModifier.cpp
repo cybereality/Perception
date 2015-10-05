@@ -133,6 +133,9 @@ MatrixModifier::MatrixModifier() : AQU_Nodus()
 
 	// create output pointers
 	m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_VertexShader] = (void*)&m_apcActiveConstantBuffers11[0];
+
+	// set constant buffer verification at startup (first 30 frames)
+	m_dwVerifyConstantBuffers = CONSTANT_BUFFER_VERIFICATION_FRAME_NUMBER;
 #endif
 }
 
@@ -218,6 +221,8 @@ LPWSTR MatrixModifier::GetCommanderName(DWORD dwCommanderIndex)
 			return L"ppConstantBuffers_DX10_PS";
 		case ppActiveConstantBuffers_DX11_PixelShader:
 			return L"ppConstantBuffers_DX11_PS";
+		case dwVerifyConstantBuffers:
+			return L"Verify Constant Buffers";
 		default:
 			break;
 	}
@@ -390,6 +395,8 @@ DWORD MatrixModifier::GetCommanderType(DWORD dwCommanderIndex)
 			return NOD_Plugtype::AQU_PPNT_ID3D10BUFFER;
 		case ppActiveConstantBuffers_DX11_PixelShader:
 			return NOD_Plugtype::AQU_PPNT_ID3D11BUFFER;
+		case dwVerifyConstantBuffers:
+			return NOD_Plugtype::AQU_UINT;
 		default:
 			break;
 	}
@@ -563,6 +570,8 @@ void* MatrixModifier::GetOutputPointer(DWORD dwCommanderIndex)
 			break;
 		case ppActiveConstantBuffers_DX11_PixelShader:
 			break;
+		case dwVerifyConstantBuffers:
+			return (void*)&m_dwVerifyConstantBuffers;
 		default:
 			break;
 	}
@@ -951,12 +960,13 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 												CopyMemory(sVariableData.szName, sDescVariable.Name, sizeof(CHAR)*dwLen);
 												sVariableData.szName[dwLen] = 0;
 
-												// TODO !! FILL DEFAULT VALUE sVariableData.pcDefaultValue
+												// TODO !! FILL DEFAULT VALUE sVariableData.pcDefaultValue (maybe we need this later)
 
+#ifdef _GET_PROJECTION_MATRICES
 												// quickly search for projection matrices here
-												//if (std::strstr(sDescVariable.Name, "roj"))
-												/*if (dwIndexVariable == 0)
-												OutputDebugStringA(sDescVariable.Name);*/
+												if (std::strstr(sDescVariable.Name, "roj"))
+													OutputDebugStringA(sDescVariable.Name);
+#endif
 
 												// and add to buffer desc
 												sBufferData.asVariables.push_back(sVariableData);
@@ -1023,15 +1033,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			{
 #pragma region ID3D11DeviceContext::UpdateSubresource
 				case METHOD_ID3D11DEVICECONTEXT_UPDATESUBRESOURCE:
-					/*///// TEST - TO BE DELETED
-					{
-					time_t t = time(0);   // get time now
-					struct tm * now = localtime(&t);
-					float fSeparation = (float)(now->tm_sec % 5);
-					fSeparation /= 2.0f;
-					ComputeViewTransforms(fSeparation);
-					}
-					///// TEST END */
+					// verify pointers
 					if (!m_ppcDstResource_DX11) return nullptr;
 					if (!m_pdwDstSubresource) return nullptr;
 					if (!m_ppsDstBox_DX11) return nullptr;
@@ -1314,7 +1316,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 									// do the copy call on the stereo twins of these textures
 									((ID3D11DeviceContext*)pThis)->CopyResource(pcResourceTwinDst, *m_ppcSrcResource_DX11_Copy);
 									pcResourceTwinDst->Release();
-								}								
+								}
 							}
 						}
 					}
@@ -1470,7 +1472,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #endif
 
 	return nullptr;
-	}
+}
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 /**
@@ -1492,6 +1494,16 @@ void MatrixModifier::UpdateConstantBuffer(ID3D11DeviceContext* pcContext, ID3D11
 	{
 		dwDataSize = sizeof(sPrivateData);
 		pcDstResource->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
+
+		if (dwDataSize)
+		{
+			// has this shader relevant information about this buffer ?
+			if (dwBufferIndex >= m_asShaders[sPrivateData.dwIndex].asBuffers.size())
+			{
+				// this shader has no constant buffer data ! clear shader data for this constant buffer
+				pcDstResource->SetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, 0, 0);
+			}
+		}
 	}
 
 	// get private data interfaces (stereo constant buffers)
@@ -1566,7 +1578,11 @@ void MatrixModifier::UpdateConstantBuffer(ID3D11DeviceContext* pcContext, ID3D11
 	else
 	{
 		// Both Vertex Shader and Constant buffer have no private shader data !
+		// set the number of frames the constant buffers have to be verified
+		m_dwVerifyConstantBuffers = CONSTANT_BUFFER_VERIFICATION_FRAME_NUMBER;
+#ifdef _DEBUG
 		OutputDebugString(L"MatrixModifier: Both Vertex Shader and Constant buffer have no private shader data ! ");
+#endif
 	}
 
 	if ((!dwSizeLeft) || (!dwSizeRight))

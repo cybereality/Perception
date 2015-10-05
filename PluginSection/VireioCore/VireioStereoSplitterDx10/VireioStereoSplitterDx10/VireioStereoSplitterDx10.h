@@ -68,7 +68,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"..\..\VireioMatrixModifier\VireioMatrixModifier\VireioMatrixModifierDataStructures.h"
 
 #define NUMBER_OF_COMMANDERS                           2
-#define NUMBER_OF_DECOMMANDERS                         25
+#define NUMBER_OF_DECOMMANDERS                         26
 
 /**
 * Node Commander Enumeration.
@@ -115,6 +115,8 @@ enum STS_Decommanders
 	ppActiveConstantBuffers_DX11_VertexShader,             /**< Active D3D11 vertex shader constant buffers ***/
 	ppActiveConstantBuffers_DX10_PixelShader,              /**< Active D3D10 pixel shader constant buffers ***/
 	ppActiveConstantBuffers_DX11_PixelShader,              /**< Active D3D11 pixel shader constant buffers ***/
+	/*** Additional parameters ***/
+	dwVerifyConstantBuffers,                               /**< The number of frames the constant buffers are to be verified **/
 };
 
 /**
@@ -211,8 +213,9 @@ private:
 	ID3D11Buffer*** m_appcActiveConstantBuffers11;                    /** The d3d11 constant buffer array. ***/
 	UINT* m_pdwStartSlot;                                             /** Index into the device's zero-based array to begin setting shader resources to (ranges from 0 to D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - 1). **/
 	UINT* m_pdwNumViewsSRVs;                                          /** Number of shader resources to set. Up to a maximum of 128 slots are available for shader resources (ranges from 0 to D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - StartSlot). **/
-	ID3D10ShaderResourceView*** m_pppcShaderResourceViews10;           /** Array of shader resource view interfaces to set to the device. **/
-	ID3D11ShaderResourceView*** m_pppcShaderResourceViews11;           /** Array of shader resource view interfaces to set to the device. **/
+	ID3D10ShaderResourceView*** m_pppcShaderResourceViews10;          /** Array of shader resource view interfaces to set to the device. **/
+	ID3D11ShaderResourceView*** m_pppcShaderResourceViews11;          /** Array of shader resource view interfaces to set to the device. **/
+	UINT* m_pdwVerifyConstantBuffers;                                 /** The number of frames the constant buffers are to be verified. ***/
 
 	/**
 	* Active stored render target views.
@@ -335,7 +338,10 @@ private:
 	* The used Direct3D version.
 	***/
 	D3DVersion m_eD3DVersion;
-
+	/**
+	* The number of frames the constant buffers are to be verified.
+	***/
+	UINT m_dwVerifyConstantBuffers;
 
 	/*** Optional draw operation fields ***/
 
