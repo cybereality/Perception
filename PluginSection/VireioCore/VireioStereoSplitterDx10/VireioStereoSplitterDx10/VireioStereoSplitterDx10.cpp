@@ -1654,7 +1654,7 @@ void StereoSplitter::CreateStereoView(IUnknown* pcDevice, ID3D11View* pcView)
 									{
 										// create twin render target view
 										if (FAILED(((ID3D11Device*)pcDevice)->CreateDepthStencilView((ID3D11Resource*)pcStereoTwinTexture11, &sDescDS11, (ID3D11DepthStencilView**)&pcStereoTwinView11)))
-											OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view !");
+											OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view D3D11_DEPTH_STENCIL_VIEW !");
 									}
 
 									if ((pcStereoTwinTexture11) && (pcStereoTwinView11))
@@ -1704,7 +1704,7 @@ void StereoSplitter::CreateStereoView(IUnknown* pcDevice, ID3D11View* pcView)
 									{
 										// create twin render target view
 										if (FAILED(((ID3D10Device*)pcDevice)->CreateRenderTargetView((ID3D10Resource*)pcStereoTwinTexture10, &sDescRT10, (ID3D10RenderTargetView**)&pcStereoTwinView10)))
-											OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view !");
+											OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view D3D10_RENDER_TARGET_VIEW !");
 									}
 
 									if ((pcStereoTwinTexture11) && (pcStereoTwinView11))
@@ -1743,7 +1743,7 @@ void StereoSplitter::CreateStereoView(IUnknown* pcDevice, ID3D11View* pcView)
 									{
 										// create twin render target view
 										if (FAILED(((ID3D10Device*)pcDevice)->CreateDepthStencilView((ID3D10Resource*)pcStereoTwinTexture10, &sDescDS10, (ID3D10DepthStencilView**)&pcStereoTwinView10)))
-											OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view !");
+											OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view D3D10_DEPTH_STENCIL_VIEW !");
 									}
 									// TODO !! ASSIGN PRIVATE DATA INTERFACES
 									pcResource->Release();
@@ -1773,9 +1773,13 @@ void StereoSplitter::CreateStereoView(IUnknown* pcDevice, ID3D11View* pcView)
 										OutputDebugString(L"StereoSplitterDX10 : Failed to create twin texture !");
 									else
 									{
+										// handle sRGB formats
+										if (sDesc.Format == DXGI_FORMAT_R8G8B8A8_UNORM_SRGB)
+											sDescRT11.Format = sDesc.Format;
+
 										// create twin render target view
 										if (FAILED(((ID3D11Device*)pcDevice)->CreateRenderTargetView((ID3D11Resource*)pcStereoTwinTexture11, &sDescRT11, (ID3D11RenderTargetView**)&pcStereoTwinView11)))
-											OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view !");
+											OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view D3D11_RENDER_TARGET_VIEW !");
 									}
 									if ((pcStereoTwinTexture11) && (pcStereoTwinView11))
 									{
@@ -1811,7 +1815,7 @@ void StereoSplitter::CreateStereoView(IUnknown* pcDevice, ID3D11View* pcView)
 									{
 										// create twin render target view
 										if (FAILED(((ID3D11Device*)pcDevice)->CreateDepthStencilView((ID3D11Resource*)pcStereoTwinTexture11, &sDescDS11, (ID3D11DepthStencilView**)&pcStereoTwinView11)))
-											OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view !");
+											OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view D3D11_DEPTH_STENCIL_VIEW !");
 									}
 
 									if ((pcStereoTwinTexture11) && (pcStereoTwinView11))
@@ -1849,7 +1853,7 @@ void StereoSplitter::CreateStereoView(IUnknown* pcDevice, ID3D11View* pcView)
 									{
 										// create twin shader resource view
 										if (FAILED(((ID3D11Device*)pcDevice)->CreateShaderResourceView((ID3D11Resource*)pcStereoTwinTexture11, &sDescSR11, (ID3D11ShaderResourceView**)&pcStereoTwinView11)))
-											OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view !");
+											OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view D3D11_SHADER_RESOURCE_VIEW!");
 									}
 
 									if ((pcStereoTwinTexture11) && (pcStereoTwinView11))
