@@ -2097,10 +2097,10 @@ bool StereoSplitter::SetDrawingSide(ID3D11DeviceContext* pcContext, RenderPositi
 						if (acConstantBuffers[dwIndex])
 							acConstantBuffers[dwIndex]->Release();
 					}
+			
+				// finally set all constant buffers for the left or right side
+				pcContext->VSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &acConstantBuffers[0]);
 			}
-
-		// finally set all constant buffers for the left or right side
-		pcContext->VSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &acConstantBuffers[0]);
 
 		if (pcVertexShader)
 			pcVertexShader->Release();
@@ -2128,10 +2128,10 @@ bool StereoSplitter::SetDrawingSide(ID3D11DeviceContext* pcContext, RenderPositi
 						if (acConstantBuffers[dwIndex])
 							acConstantBuffers[dwIndex]->Release();
 					}
-			}
 
-		// finally set all constant buffers for the left or right side
-		pcContext->VSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &acConstantBuffers[0]);
+				// finally set all constant buffers for the left or right side
+				pcContext->VSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &acConstantBuffers[0]);
+			}
 	}
 
 	return true;
