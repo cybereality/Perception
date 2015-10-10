@@ -1308,6 +1308,10 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 
 					if (bAllCreated)
 					{
+						// eventually set option to clear the depth stencil view
+						if (true)
+							pcContext->ClearDepthStencilView((ID3D11DepthStencilView*)m_pcActiveDepthStencilView, D3D11_CLEAR_DEPTH, 1.0, 0);
+
 						// left/right eye
 						for (int nEye = 0; nEye < 2; nEye++)
 						{
@@ -2097,7 +2101,7 @@ bool StereoSplitter::SetDrawingSide(ID3D11DeviceContext* pcContext, RenderPositi
 						if (acConstantBuffers[dwIndex])
 							acConstantBuffers[dwIndex]->Release();
 					}
-			
+
 				// finally set all constant buffers for the left or right side
 				pcContext->VSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &acConstantBuffers[0]);
 			}
