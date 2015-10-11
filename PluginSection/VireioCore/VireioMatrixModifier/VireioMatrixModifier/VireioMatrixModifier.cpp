@@ -66,6 +66,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define SAFE_RELEASE(a) if (a) { a->Release(); a = nullptr; }
 
+#define TO_DO_ADD_BOOL_HERE_TRUE                                           true
+#define TO_DO_ADD_BOOL_HERE_FALSE                                         false
+
 /**
 * Constructor.
 ***/
@@ -1490,7 +1493,7 @@ void MatrixModifier::UpdateConstantBuffer(ID3D11DeviceContext* pcContext, ID3D11
 	// no private data ? in this case the active shader was created
 	// before the Vireio profile injected... get shader data from
 	// the buffer (actually set in StereoSplitterDx10->SetDrawingSide() )
-	if (!dwDataSize)
+	if ((!dwDataSize) && (TO_DO_ADD_BOOL_HERE_TRUE))
 	{
 		dwDataSize = sizeof(sPrivateData);
 		pcDstResource->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
@@ -1502,7 +1505,19 @@ void MatrixModifier::UpdateConstantBuffer(ID3D11DeviceContext* pcContext, ID3D11
 			{
 				// this shader has no constant buffer data ! clear shader data for this constant buffer
 				pcDstResource->SetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, 0, 0);
+
+				// should i automatically assigne the shader hash from the buffer ?
+				if (TO_DO_ADD_BOOL_HERE_TRUE)
+				{
+					m_pcActiveVertexShader11->SetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, 0, nullptr);
+				}
 			}
+			else
+				// should i automatically assigne the shader hash from the buffer ?
+				if (TO_DO_ADD_BOOL_HERE_TRUE)
+				{
+					m_pcActiveVertexShader11->SetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, sizeof(sPrivateData), (void*)&sPrivateData);
+				}
 		}
 	}
 
@@ -1616,7 +1631,7 @@ void MatrixModifier::UpdateConstantBuffer(ID3D11DeviceContext* pcContext, ID3D11
 	// and release them
 	SAFE_RELEASE(pcBufferLeft);
 	SAFE_RELEASE(pcBufferRight);
-}
+	}
 
 /**
 * Creates a stereo buffer out of a buffer.
