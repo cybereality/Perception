@@ -579,8 +579,9 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 {
 	// set node behavior to "double call" for this method
 	// node that this is only supported by drawing methods
-	nProvokerIndex |= AQU_PluginFlags::DoubleCallFlag;
-
+	if (m_bPresent)
+		nProvokerIndex |= AQU_PluginFlags::DoubleCallFlag;
+	
 	switch (eD3DInterface)
 	{
 #pragma region ID3D10DEVICE
@@ -918,16 +919,19 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region CLEARSTATE
 				case METHOD_ID3D11DEVICECONTEXT_CLEARSTATE:
-					// clear texture vectors and number
-					m_apcActiveTextures = std::vector<IUnknown*>(D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, nullptr);
-					m_apcActiveStereoTwinTextures = std::vector<IUnknown*>(D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, nullptr);
-					m_dwTextureNumber = 0;
+					if (m_bPresent)
+					{
+						// clear texture vectors and number
+						m_apcActiveTextures = std::vector<IUnknown*>(D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, nullptr);
+						m_apcActiveStereoTwinTextures = std::vector<IUnknown*>(D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, nullptr);
+						m_dwTextureNumber = 0;
 
-					// clear render targets
-					OMSetRenderTargets((IUnknown*)pThis, 0, NULL, NULL);
+						// clear render targets
+						OMSetRenderTargets((IUnknown*)pThis, 0, NULL, NULL);
 
-					// set render target side to >left<
-					SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Left);
+						// set render target side to >left<
+						SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Left);
+					}
 					return nullptr;
 #pragma endregion
 #pragma region OMSETRENDERTARGETS
@@ -1489,7 +1493,8 @@ void StereoSplitter::CreateStereoView(IUnknown* pcDevice, ID3D11View* pcView)
 		D3D11_RENDER_TARGET_VIEW,
 		D3D11_DEPTH_STENCIL_VIEW,
 		D3D11_SHADER_RESOURCE_VIEW,
-	} eD3DViewType = D3DViewType::D3D10_RENDER_TARGET_VIEW;
+		UNSUPPORTED,
+	} eD3DViewType = D3DViewType::UNSUPPORTED;
 
 	// determine the type of the view
 	LPVOID pvObject = nullptr;
@@ -1529,7 +1534,15 @@ void StereoSplitter::CreateStereoView(IUnknown* pcDevice, ID3D11View* pcView)
 				{
 					if (FAILED(pcView->QueryInterface(__uuidof(ID3D11ShaderResourceView), &pvObject)))
 					{
-						OutputDebugString(L"StereoSplitterDX10: Failed to determine d3d view type !");
+						if (FAILED(pcView->QueryInterface(__uuidof(ID3D11UnorderedAccessView), &pvObject)))
+						{
+							OutputDebugString(L"StereoSplitterDX10: Failed to determine d3d view type !");
+						}
+						else
+						{
+							OutputDebugString(L"StereoSplitterDX10: Unsupported view type: ID3D11UnorderedAccessView !");
+							eD3DViewType = D3DViewType::UNSUPPORTED;
+						}
 					}
 					else
 					{
