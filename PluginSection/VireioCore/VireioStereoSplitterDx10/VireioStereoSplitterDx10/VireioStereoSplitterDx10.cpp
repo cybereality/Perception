@@ -81,6 +81,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define METHOD_ID3D11DEVICECONTEXT_CLEARSTATE                                110
 #define METHOD_IDXGISWAPCHAIN_PRESENT                                        8
 
+#define TODO_ADD_BOOL_HERE                                                   true
+
 #define SAFE_RELEASE(a) if (a) { a->Release(); a = nullptr; }
 
 /**
@@ -95,10 +97,12 @@ m_pcActiveStereoTwinDepthStencilView(nullptr),
 m_pcActiveDepthStencilView(nullptr),
 m_pcActiveBackBuffer10(nullptr),
 m_pcActiveStereoTwinBackBuffer10(nullptr),
+m_pcActiveStereoTwinBackBufferView10(nullptr),
 m_hBitmapControl(nullptr),
 m_bControlUpdate(false),
 m_hFont(nullptr),
 m_bPresent(false),
+m_eBackBufferVerified(NotVerified),
 m_dwTextureNumber(0),
 m_dwRenderTargetNumber(0),
 m_eD3DVersion(D3DVersion::NotDefined),
@@ -581,7 +585,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 	// node that this is only supported by drawing methods
 	if (m_bPresent)
 		nProvokerIndex |= AQU_PluginFlags::DoubleCallFlag;
-	
+
 	switch (eD3DInterface)
 	{
 #pragma region ID3D10DEVICE
@@ -1146,6 +1150,18 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 							pcBackBuffer->GetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, &dwSize, (void*)&m_pcActiveStereoTwinBackBuffer11);
 							if (m_pcActiveStereoTwinBackBuffer11)
 							{
+								// get render target twin
+								ID3D11RenderTargetView* pcViewTwin = nullptr;
+								dwSize = sizeof(pcViewTwin);
+								pcView->GetPrivateData(PDIID_ID3D11RenderTargetView_Stereo_Twin, &dwSize, (void*)&pcViewTwin);
+								if (dwSize)
+								{
+									// set as private data interfaces to the swapchain
+									pcSwapChain->SetPrivateDataInterface(PDIID_IDXGISwapChain_TextureXD_Stereo_Twin, m_pcActiveStereoTwinBackBuffer11);
+									pcSwapChain->SetPrivateDataInterface(PDIID_IDXGISwapChain_RenderTargetView_Stereo_Twin, pcViewTwin);
+
+									pcViewTwin->Release();
+								}
 								m_pcActiveStereoTwinBackBuffer11->Release();
 							}
 							else
@@ -1395,8 +1411,9 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 	}
 #pragma endregion
 
-	// set present() bool to true
+	// set present() bool to true, back buffer not picked for the next frame
 	m_bPresent = true;
+	m_eBackBufferVerified = NotVerified;
 }
 
 /**
@@ -1406,6 +1423,84 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 ***/
 void StereoSplitter::OMSetRenderTargets(IUnknown* pcDeviceOrContext, UINT NumViews, IUnknown *const *ppRenderTargetViews, IUnknown *pDepthStencilView)
 {
+	// is the back buffer verified for the current frame ?
+	if ((TODO_ADD_BOOL_HERE) && (!m_eBackBufferVerified))
+	{
+		// seems a bit odd here but for some scenarious (DXGI_USAGE_DISCARD_ON_PRESENT)
+		// we need to verify the stereo back buffers
+		switch (m_eD3DVersion)
+		{
+			case NotDefined:
+				break;
+			case Direct3D10:
+				break;
+			case Direct3D11:
+				if (true)
+				{
+					// get the render target
+					ID3D11RenderTargetView* pRenderTargetView = nullptr;
+					ID3D11DepthStencilView* pDepthStencilView = nullptr;
+					((ID3D11DeviceContext*)pcDeviceOrContext)->OMGetRenderTargets(1, &pRenderTargetView, &pDepthStencilView);
+
+					if (pRenderTargetView)
+					{
+						// get the buffer texture
+						ID3D11Texture2D* pBuffer = nullptr;
+						pRenderTargetView->GetResource((ID3D11Resource**)(&pBuffer));
+						if (pBuffer)
+						{
+							// get the buffer surface
+							IDXGISurface* pSurface = nullptr;
+							if (SUCCEEDED(pBuffer->QueryInterface(__uuidof(IDXGISurface), (void**)(&pSurface))))
+							{
+								// and finally get the swapchain
+								IDXGISwapChain* pSwapChain = nullptr;
+								if (SUCCEEDED(pSurface->GetParent(__uuidof(IDXGISwapChain), (void**)(&pSwapChain))))
+								{
+									// get back buffer
+									ID3D11Texture2D* pcBackBuffer = nullptr;
+									pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pcBackBuffer);
+									if (pcBackBuffer)
+									{
+										// get the stereo twins from the swapchain
+										ID3D11Texture2D* pcBackBufferTwin = nullptr;
+										UINT dwSize = sizeof(pcBackBufferTwin);
+										pSwapChain->GetPrivateData(PDIID_IDXGISwapChain_TextureXD_Stereo_Twin, &dwSize, &pcBackBufferTwin);
+										if (dwSize)
+										{
+											// now, the view
+											ID3D11RenderTargetView* pcBackBufferTwinView;
+											dwSize = sizeof(pcBackBufferTwinView);
+											pSwapChain->GetPrivateData(PDIID_IDXGISwapChain_RenderTargetView_Stereo_Twin, &dwSize, &pcBackBufferTwinView);
+											if (dwSize)
+											{
+												// set the active back buffer
+												m_pcActiveBackBuffer11 = pcBackBuffer;
+												m_pcActiveStereoTwinBackBuffer11 = pcBackBufferTwin;
+												m_pcActiveStereoTwinBackBufferView11 = pcBackBufferTwinView;
+
+												m_eBackBufferVerified = BackBufferVerificationState::NewBuffer;
+											}
+											pcBackBufferTwin->Release();
+										}
+										pcBackBuffer->Release();
+									}
+									pSwapChain->Release();
+								}
+								pSurface->Release();
+							}
+							pBuffer->Release();
+						}
+						pRenderTargetView->Release();
+					}
+					if (pDepthStencilView) { pDepthStencilView->Release(); pDepthStencilView = nullptr; }
+				}
+				break;
+			default:
+				break;
+		}
+	}
+
 	// set the number of render targets set
 	// for DX10 and DX11 all render targets above this number are set to NULL
 	m_dwRenderTargetNumber = (DWORD)NumViews;
@@ -1941,6 +2036,36 @@ ID3D11RenderTargetView* StereoSplitter::VerifyPrivateDataInterfaces(ID3D11Render
 	}
 	else
 	{
+		// is the back buffer verified for this frame ?
+		if (TODO_ADD_BOOL_HERE)
+		{
+			if (m_eBackBufferVerified == BackBufferVerificationState::NewBuffer)
+			{
+				// get the resource for this view and compare to active back buffer
+				ID3D11Resource* pcResource = nullptr;
+				pcRenderTargetView->GetResource(&pcResource);
+				if (pcResource)
+				{
+					if (pcResource == m_pcActiveBackBuffer11)
+					{
+						// assign stereo private data interfaces, first the render target view to the texture
+						pcResource->SetPrivateDataInterface(PDIID_ID3D11TextureXD_RenderTargetView, pcRenderTargetView);
+						// now assign the stereo texture twin interface
+						pcResource->SetPrivateDataInterface(PDIID_ID3D11TextureXD_Stereo_Twin, m_pcActiveStereoTwinBackBuffer11);
+						// last, the stereo twin render target view
+						pcRenderTargetView->SetPrivateDataInterface(PDIID_ID3D11RenderTargetView_Stereo_Twin, m_pcActiveStereoTwinBackBufferView11);
+
+						// set private data interfaces to this view
+						m_eBackBufferVerified = BackBufferVerificationState::Verified;
+
+						pcResource->Release();
+						return m_pcActiveStereoTwinBackBufferView11;
+					}
+					pcResource->Release();
+				}
+			}
+		}
+
 		// is this render target already present in "new" list ?
 		bool bInList = false;
 		auto it = m_apcNewRenderTargetViews11.begin();

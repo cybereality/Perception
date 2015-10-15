@@ -70,4 +70,10 @@ const GUID PDIID_ID3D11RenderTargetView_Stereo_Twin = { 0xbc121462, 0xd0b4, 0x42
 // PDIID_ID3D11DepthStencilView_Stereo_Twin : fae991b6-6c7f-474b-afe3-369861002ae7
 const GUID PDIID_ID3D11DepthStencilView_Stereo_Twin = { 0xfae991b6, 0x6c7f, 0x474b, { 0xaf, 0xe3, 0x36, 0x98, 0x61, 0x00, 0x2a, 0xe7 } };
 
+// PDIID_IDXGISwapChain_TextureXD_Stereo_Twin : 4458d508-c9b4-4eec-a41e-f7be6e873179
+const GUID PDIID_IDXGISwapChain_TextureXD_Stereo_Twin = { 0x4458d508, 0xc9b4, 0x4eec, { 0xa4, 0x1e, 0xf7, 0xbe, 0x6e, 0x87, 0x31, 0x79 } };
+
+// PDIID_IDXGISwapChain_RenderTargetView_Stereo_Twin : 814ea333-0f87-485e-b264-faac42d62faf
+const GUID PDIID_IDXGISwapChain_RenderTargetView_Stereo_Twin = { 0x814ea333, 0x0f87, 0x485e, { 0xb2, 0x64, 0xfa, 0xac, 0x42, 0xd6, 0x2f, 0xaf } };
+
 #pragma endregion

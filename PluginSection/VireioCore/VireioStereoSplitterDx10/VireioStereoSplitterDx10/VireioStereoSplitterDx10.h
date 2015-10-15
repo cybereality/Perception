@@ -270,6 +270,15 @@ private:
 		ID3D11Texture2D* m_pcActiveStereoTwinBackBuffer11;
 	};
 	/**
+	* Stereo twin view for active back buffer.
+	* The back buffer surface view that is currently in use.
+	***/
+	union
+	{
+		ID3D10RenderTargetView* m_pcActiveStereoTwinBackBufferView10;
+		ID3D11RenderTargetView* m_pcActiveStereoTwinBackBufferView11;
+	};
+	/**
 	* Active output textures (shader bind flag), for both eyes.
 	* The back buffer surface copies.
 	***/
@@ -308,6 +317,17 @@ private:
 	* so this is added for security.
 	***/
 	bool m_bPresent;
+	/**
+	* State of the back buffer verification process.
+	* Eventually this will be optional, only relevant
+	* if back buffer gets discarded for each frame.
+	***/
+	enum BackBufferVerificationState
+	{
+		NotVerified = 0,                       /**< The back buffer is not verified for the current frame. ***/
+		NewBuffer = 1,                         /**< The back buffer is new for this frame, stereo buffer interfaces to be assigned. ***/
+		Verified = 2,                          /**< The current back buffer is stereo. ***/
+	} m_eBackBufferVerified;
 	/**
 	* Number of set textures.
 	* Number of textures not set to NULL.
