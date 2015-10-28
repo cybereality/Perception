@@ -63,6 +63,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define METHOD_ID3D11DEVICECONTEXT_PSSETSHADERRESOURCES                       8
 #define METHOD_ID3D11DEVICECONTEXT_DRAWINDEXED                               12
 #define METHOD_ID3D11DEVICECONTEXT_DRAW                                      13
+#define METHOD_ID3D11DEVICECONTEXT_MAP                                       14
+#define METHOD_ID3D11DEVICECONTEXT_UNMAP                                     15
 #define METHOD_ID3D11DEVICECONTEXT_DRAWINDEXEDINSTANCED                      20
 #define METHOD_ID3D11DEVICECONTEXT_DRAWINSTANCED                             21
 #define METHOD_ID3D11DEVICECONTEXT_OMSETRENDERTARGETS                        33
@@ -115,7 +117,11 @@ m_pcConstantBufferDirect10(nullptr),
 m_eCurrentRenderingSide(RenderPosition::Left),
 m_appcActiveConstantBuffers11(nullptr),
 m_peDrawingSide(nullptr),
-m_dwVerifyConstantBuffers(0)
+m_dwVerifyConstantBuffers(0),
+m_ppcResource(nullptr),
+m_pdwSubresource(nullptr),
+m_ppcResource_Unmap(nullptr),
+m_pdwSubresource_Unmap(nullptr)
 {
 	m_pcTexView10[0] = nullptr;
 	m_pcTexView10[1] = nullptr;
@@ -188,7 +194,7 @@ HBITMAP StereoSplitter::GetControl()
 		// create bitmap, set control update to true
 		HWND hwnd = GetActiveWindow();
 		HDC hdc = GetDC(hwnd);
-		m_hBitmapControl = CreateCompatibleBitmap(hdc, 1024, 1920);
+		m_hBitmapControl = CreateCompatibleBitmap(hdc, 1024, 2200);
 		if (!m_hBitmapControl)
 			OutputDebugString(L"Failed to create bitmap!");
 		m_bControlUpdate = true;
@@ -203,7 +209,7 @@ HBITMAP StereoSplitter::GetControl()
 
 		// clear the background
 		RECT rc;
-		SetRect(&rc, 0, 0, 1024, 1920);
+		SetRect(&rc, 0, 0, 1024, 2200);
 		FillRect(hdcImage, &rc, (HBRUSH)CreateSolidBrush(RGB(160, 160, 200)));
 
 		// create font
@@ -243,6 +249,10 @@ HBITMAP StereoSplitter::GetControl()
 			TextOut(hdcImage, 50, nY, L"NumSRVs", 7); nY += 64;
 			TextOut(hdcImage, 50, nY, L"ppShaderResourceViews_DX10", 26); nY += 64;
 			TextOut(hdcImage, 50, nY, L"ppShaderResourceViews_DX11", 26); nY += 64;
+			TextOut(hdcImage, 50, nY, L"pResource", 3); nY += 64;
+			TextOut(hdcImage, 50, nY, L"Subresource", 5); nY += 64;
+			TextOut(hdcImage, 50, nY, L"pResource", 3); nY += 64;
+			TextOut(hdcImage, 50, nY, L"Subresource", 5); nY += 64;
 			TextOut(hdcImage, 50, nY, L"Stereo Drawing Side", 19); nY += 64;
 			TextOut(hdcImage, 50, nY, L"ppActiveConstantBuffers_DX10_VS", 31); nY += 64;
 			TextOut(hdcImage, 50, nY, L"ppActiveConstantBuffers_DX11_VS", 31); nY += 64;
@@ -337,6 +347,14 @@ LPWSTR StereoSplitter::GetDecommanderName(DWORD dwDecommanderIndex)
 			return L"ppShaderResourceViews_DX10";
 		case ppShaderResourceViews_DX11:
 			return L"ppShaderResourceViews_DX11";
+		case pResource:
+			return L"pResource";
+		case Subresource:
+			return L"Subresource";
+		case pResource_Unmap:
+			return L"pResource_Unmap";
+		case Subresource_Unmap:
+			return L"Subresource_Unmap";
 		case eDrawingSide:
 			return L"Stereo Drawing Side";
 		case ppActiveConstantBuffers_DX10_VertexShader:
@@ -411,6 +429,14 @@ DWORD StereoSplitter::GetDecommanderType(DWORD dwDecommanderIndex)
 			return NOD_Plugtype::AQU_PPNT_ID3D10SHADERRESOURCEVIEW;
 		case ppShaderResourceViews_DX11:
 			return NOD_Plugtype::AQU_PPNT_ID3D11SHADERRESOURCEVIEW;
+		case pResource:
+			return NOD_Plugtype::AQU_PNT_ID3D11RESOURCE;
+		case Subresource:
+			return NOD_Plugtype::AQU_UINT;
+		case pResource_Unmap:
+			return NOD_Plugtype::AQU_PNT_ID3D11RESOURCE;
+		case Subresource_Unmap:
+			return NOD_Plugtype::AQU_UINT;
 		case eDrawingSide:
 			return NOD_Plugtype::AQU_INT;
 		case ppActiveConstantBuffers_DX10_VertexShader:
@@ -514,6 +540,18 @@ void StereoSplitter::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 		case ppShaderResourceViews_DX11:
 			m_pppcShaderResourceViews11 = (ID3D11ShaderResourceView***)pData;
 			break;
+		case pResource:
+			m_ppcResource = (ID3D11Resource**)pData;
+			break;
+		case Subresource:
+			m_pdwSubresource = (UINT*)pData;
+			break;
+		case pResource_Unmap:
+			m_ppcResource_Unmap = (ID3D11Resource**)pData;
+			break;
+		case Subresource_Unmap:
+			m_pdwSubresource_Unmap = (UINT*)pData;
+			break;
 		case eDrawingSide:
 			m_peDrawingSide = (RenderPosition*)pData;
 			break;
@@ -564,6 +602,8 @@ bool StereoSplitter::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_OMGETRENDERTARGETS) ||
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_PSGETSHADERRESOURCES) ||
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_OMGETRENDERTARGETSANDUNORDEREDACCESSVIEWS) ||
+				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_MAP) ||
+				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_UNMAP) ||
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_CLEARSTATE))
 				return true;
 		}
@@ -747,7 +787,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 										{
 											// bool to create a new view here is set to "TRUE", so add to new shader resource views list
 											// (for these - currently mono views - ALL stereo fields will be created new)
-
+											
 											// add to vector for new views, just if not present
 											auto it = std::find(m_apcNewShaderResourceViews11.begin(), m_apcNewShaderResourceViews11.end(), ((*m_pppcShaderResourceViews11)[dwIndex]));
 											if (it == m_apcNewShaderResourceViews11.end())
@@ -992,6 +1032,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region OMGETRENDERTARGETS
 				case METHOD_ID3D11DEVICECONTEXT_OMGETRENDERTARGETS:
+					OutputDebugString(L"OMGetRenderTargets");
 					// if the app tries to get the render targets ensure the left render side is set
 					SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Left);
 					return nullptr;
@@ -1000,6 +1041,56 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 				case METHOD_ID3D11DEVICECONTEXT_OMGETRENDERTARGETSANDUNORDEREDACCESSVIEWS:
 					// if the app tries to get the render targets ensure the left render side is set
 					SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Left);
+					return nullptr;
+#pragma endregion
+#pragma region MAP
+				case METHOD_ID3D11DEVICECONTEXT_MAP:
+					return nullptr;
+#pragma endregion
+#pragma region UNMAP
+				case METHOD_ID3D11DEVICECONTEXT_UNMAP:
+					if ((m_ppcResource_Unmap) && (m_pdwSubresource_Unmap))
+					{
+						// first, do the ->Unmap() call
+						((ID3D11DeviceContext*)pThis)->Unmap(*m_ppcResource_Unmap, *m_pdwSubresource_Unmap);
+
+						// get the resource type
+						D3D11_RESOURCE_DIMENSION eResourceDimension;
+						(*m_ppcResource_Unmap)->GetType(&eResourceDimension);
+						
+						// handle textures and buffers
+						ID3D11Resource* pcResourceTwin = nullptr;
+						UINT dwSize = sizeof(pcResourceTwin);
+						UINT dwI = 0;
+						switch (eResourceDimension)
+						{
+							case D3D11_RESOURCE_DIMENSION_UNKNOWN:
+								break;
+							case D3D11_RESOURCE_DIMENSION_BUFFER:
+								break;
+							case D3D11_RESOURCE_DIMENSION_TEXTURE1D:
+							case D3D11_RESOURCE_DIMENSION_TEXTURE2D:
+							case D3D11_RESOURCE_DIMENSION_TEXTURE3D:
+								// get the stereo twin of the resource (texture)
+								(*m_ppcResource_Unmap)->GetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, &dwSize, (void*)&pcResourceTwin);
+
+								// if stereo twin is present, copy the whole texture... TODO ! HANDLE BY SUBRESOURCE INDEX
+								if (dwSize)
+								{
+									// copy the whole texture
+									((ID3D11DeviceContext*)pThis)->CopyResource(pcResourceTwin, (*m_ppcResource_Unmap));
+
+									// and release
+									pcResourceTwin->Release();
+								}
+								break;
+							default:
+								break;
+						}
+
+						// method replaced, immediately return
+						nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+					}
 					return nullptr;
 #pragma endregion
 			}

@@ -68,7 +68,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"..\..\VireioMatrixModifier\VireioMatrixModifier\VireioMatrixModifierDataStructures.h"
 
 #define NUMBER_OF_COMMANDERS                           2
-#define NUMBER_OF_DECOMMANDERS                         26
+#define NUMBER_OF_DECOMMANDERS                         30
 
 /**
 * Node Commander Enumeration.
@@ -109,6 +109,12 @@ enum STS_Decommanders
 	NumSRVs,                                               /** Number of shader resources to set. Up to a maximum of 128 slots are available for shader resources (ranges from 0 to D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - StartSlot). **/
 	ppShaderResourceViews_DX10,                            /** Array of shader resource view interfaces to set to the device. **/
 	ppShaderResourceViews_DX11,                            /** Array of shader resource view interfaces to set to the device. **/
+	/*** Map ***/
+	pResource,
+	Subresource, 
+	/*** Unmap ***/
+	pResource_Unmap, 
+	Subresource_Unmap,
 	/*** Active constant buffers ***/
 	eDrawingSide,                                          /**< Left/Right drawing side enumeration. Switches once per draw call ***/
 	ppActiveConstantBuffers_DX10_VertexShader,             /**< Active D3D10 vertex shader constant buffers ***/
@@ -215,6 +221,10 @@ private:
 	UINT* m_pdwNumViewsSRVs;                                          /** Number of shader resources to set. Up to a maximum of 128 slots are available for shader resources (ranges from 0 to D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - StartSlot). **/
 	ID3D10ShaderResourceView*** m_pppcShaderResourceViews10;          /** Array of shader resource view interfaces to set to the device. **/
 	ID3D11ShaderResourceView*** m_pppcShaderResourceViews11;          /** Array of shader resource view interfaces to set to the device. **/
+	ID3D11Resource **m_ppcResource;
+	UINT *m_pdwSubresource;
+	ID3D11Resource **m_ppcResource_Unmap;
+	UINT *m_pdwSubresource_Unmap;
 	UINT* m_pdwVerifyConstantBuffers;                                 /** The number of frames the constant buffers are to be verified. ***/
 
 	/**
