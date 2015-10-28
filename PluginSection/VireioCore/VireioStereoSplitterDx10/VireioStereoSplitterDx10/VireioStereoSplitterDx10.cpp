@@ -787,7 +787,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 										{
 											// bool to create a new view here is set to "TRUE", so add to new shader resource views list
 											// (for these - currently mono views - ALL stereo fields will be created new)
-											
+
 											// add to vector for new views, just if not present
 											auto it = std::find(m_apcNewShaderResourceViews11.begin(), m_apcNewShaderResourceViews11.end(), ((*m_pppcShaderResourceViews11)[dwIndex]));
 											if (it == m_apcNewShaderResourceViews11.end())
@@ -1057,11 +1057,10 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						// get the resource type
 						D3D11_RESOURCE_DIMENSION eResourceDimension;
 						(*m_ppcResource_Unmap)->GetType(&eResourceDimension);
-						
+
 						// handle textures and buffers
 						ID3D11Resource* pcResourceTwin = nullptr;
 						UINT dwSize = sizeof(pcResourceTwin);
-						UINT dwI = 0;
 						switch (eResourceDimension)
 						{
 							case D3D11_RESOURCE_DIMENSION_UNKNOWN:
@@ -1803,6 +1802,13 @@ void StereoSplitter::CreateStereoView(IUnknown* pcDevice, ID3D11View* pcView)
 		ID3D11View* pcStereoTwinView11;
 	};
 	pcStereoTwinView10 = nullptr;
+	union
+	{
+		ID3D10Texture2D* pcResource10;
+		ID3D11Texture2D* pcResource11;
+	};
+	pcResource10 = nullptr;
+
 
 	// create a new render target texture
 	if (pcStereoTwinView10 == nullptr)
@@ -1822,261 +1828,224 @@ void StereoSplitter::CreateStereoView(IUnknown* pcDevice, ID3D11View* pcView)
 				OutputDebugString(L"NotImplemented: D3D10_RTV_DIMENSION_TEXTURE1D");
 				break;
 			case D3D10_RTV_DIMENSION_TEXTURE1DARRAY:
-				OutputDebugString(L"NotImplemented: D3D10_RTV_DIMENSION_TEXTURE1DARRAY");
-				switch (eD3DViewType)
+				if ((int)eD3DViewType < 3)
 				{
-					case D3D10_RENDER_TARGET_VIEW:
-						OutputDebugString(L"NotImplemented: D3D10_RENDER_TARGET_VIEW");
-						break;
-					case D3D10_DEPTH_STENCIL_VIEW:
-						OutputDebugString(L"NotImplemented: D3D10_DEPTH_STENCIL_VIEW");
-						break;
-					case D3D10_SHADER_RESOURCE_VIEW:
-						OutputDebugString(L"NotImplemented: D3D10_SHADER_RESOURCE_VIEW");
-						break;
-					case D3D11_RENDER_TARGET_VIEW:
-						OutputDebugString(L"NotImplemented: D3D11_RENDER_TARGET_VIEW");
-						break;
-					case D3D11_DEPTH_STENCIL_VIEW:
-						if (true)
+					switch (eD3DViewType)
+					{
+						case D3D10_RENDER_TARGET_VIEW:
+							OutputDebugString(L"NotImplemented: D3D10_RENDER_TARGET_VIEW");
+							break;
+						case D3D10_DEPTH_STENCIL_VIEW:
+							OutputDebugString(L"NotImplemented: D3D10_DEPTH_STENCIL_VIEW");
+							break;
+						case D3D10_SHADER_RESOURCE_VIEW:
+							OutputDebugString(L"NotImplemented: D3D10_SHADER_RESOURCE_VIEW");
+							break;
+						default:
+							OutputDebugString(L"NotImplemented: UNKNOWN TYPE");
+							break;
+					}
+				}
+				else
+				{
+					// get the texture
+					((ID3D11View*)pcView)->GetResource((ID3D11Resource**)&pcResource11);
+					if ((pcResource11) && (pcDevice))
+					{
+						// has this texture already a stereo twin ?
+						UINT dwSize = sizeof(pcStereoTwinTexture11);
+						pcResource11->GetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, &dwSize, (void*)&pcStereoTwinTexture11);
+						if (!dwSize)
 						{
-							if (pcDevice)
+							// get the description and create the twin texture
+							D3D11_TEXTURE2D_DESC sDesc;
+							pcResource11->GetDesc(&sDesc);
+
+							if (FAILED(((ID3D11Device*)pcDevice)->CreateTexture2D(&sDesc, NULL, (ID3D11Texture2D**)&pcStereoTwinTexture11)))
 							{
-								// get the texture
-								ID3D11Texture2D* pcResource = nullptr;
-								((ID3D11DepthStencilView*)pcView)->GetResource((ID3D11Resource**)&pcResource);
-								if (pcResource)
-								{
-									// get the description and create the twin texture
-									D3D11_TEXTURE2D_DESC sDesc;
-									pcResource->GetDesc(&sDesc);
-
-									if (FAILED(((ID3D11Device*)pcDevice)->CreateTexture2D(&sDesc, NULL, (ID3D11Texture2D**)&pcStereoTwinTexture11)))
-										OutputDebugString(L"StereoSplitterDX10 : Failed to create twin texture !");
-									else
-									{
-										// create twin render target view
-										if (FAILED(((ID3D11Device*)pcDevice)->CreateDepthStencilView((ID3D11Resource*)pcStereoTwinTexture11, &sDescDS11, (ID3D11DepthStencilView**)&pcStereoTwinView11)))
-											OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view D3D11_DEPTH_STENCIL_VIEW !");
-									}
-
-									if ((pcStereoTwinTexture11) && (pcStereoTwinView11))
-									{
-										// assign stereo private data interfaces, first the depth stencil view to the texture
-										pcResource->SetPrivateDataInterface(PDIID_ID3D11TextureXD_DepthStencilView, pcView);
-										// now assign the stereo texture twin interface
-										pcResource->SetPrivateDataInterface(PDIID_ID3D11TextureXD_Stereo_Twin, pcStereoTwinTexture11);
-										// last, the stereo twin depth stencil
-										pcView->SetPrivateDataInterface(PDIID_ID3D11DepthStencilView_Stereo_Twin, pcStereoTwinView11);
-									}
-
-									pcResource->Release();
-								}
-
+								OutputDebugString(L"StereoSplitterDX10 : Failed to create twin texture !");
+								break;
 							}
 						}
-						break;
-					case D3D11_SHADER_RESOURCE_VIEW:
-						OutputDebugString(L"NotImplemented: D3D11_SHADER_RESOURCE_VIEW");
-						break;
-					default:
-						OutputDebugString(L"NotImplemented: UNKNOWN TYPE");
-						break;
+
+						// create view and apply stereo twins
+						switch (eD3DViewType)
+						{
+							case D3D11_RENDER_TARGET_VIEW:
+								OutputDebugString(L"NotImplemented: D3D11_RENDER_TARGET_VIEW");
+								break;
+							case D3D11_DEPTH_STENCIL_VIEW:
+								// create twin render target view
+								if (FAILED(((ID3D11Device*)pcDevice)->CreateDepthStencilView((ID3D11Resource*)pcStereoTwinTexture11, &sDescDS11, (ID3D11DepthStencilView**)&pcStereoTwinView11)))
+									OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view D3D11_DEPTH_STENCIL_VIEW !");
+
+								if ((pcStereoTwinTexture11) && (pcStereoTwinView11))
+								{
+									// assign stereo private data interfaces, first the depth stencil view to the texture
+									pcResource11->SetPrivateDataInterface(PDIID_ID3D11TextureXD_DepthStencilView, pcView);
+									// now assign the stereo texture twin interface
+									pcResource11->SetPrivateDataInterface(PDIID_ID3D11TextureXD_Stereo_Twin, pcStereoTwinTexture11);
+									// last, the stereo twin depth stencil
+									pcView->SetPrivateDataInterface(PDIID_ID3D11DepthStencilView_Stereo_Twin, pcStereoTwinView11);
+								}
+								break;
+							case D3D11_SHADER_RESOURCE_VIEW:
+								OutputDebugString(L"NotImplemented: D3D11_SHADER_RESOURCE_VIEW");
+								break;
+							default:
+								OutputDebugString(L"NotImplemented: UNKNOWN TYPE");
+								break;
+						}
+
+						SAFE_RELEASE(pcResource11);
+					}
+					else
+						SAFE_RELEASE(pcResource11);
 				}
 				break;
 			case D3D10_RTV_DIMENSION_TEXTURE2D:
-				switch (eD3DViewType)
+				if ((int)eD3DViewType < 3)
 				{
-					case D3D10_RENDER_TARGET_VIEW:
-						if (true)
+					// get the texture
+					((ID3D10View*)pcView)->GetResource((ID3D10Resource**)&pcResource10);
+					if ((pcResource10) && (pcDevice))
+					{
+						// has this texture already a stereo twin ?
+						UINT dwSize = sizeof(pcStereoTwinTexture11);
+						pcResource10->GetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, &dwSize, (void*)&pcStereoTwinTexture10);
+						if (!dwSize)
 						{
-							if (pcDevice)
+							// get the description and create the twin texture
+							D3D10_TEXTURE2D_DESC sDesc;
+							pcResource10->GetDesc(&sDesc);
+
+							if (FAILED(((ID3D10Device*)pcDevice)->CreateTexture2D(&sDesc, NULL, (ID3D10Texture2D**)&pcStereoTwinTexture10)))
 							{
-								// get the texture
-								ID3D10Texture2D* pcResource = nullptr;
-								((ID3D10RenderTargetView*)pcView)->GetResource((ID3D10Resource**)&pcResource);
-								if (pcResource)
-								{
-									// get the description and create the twin texture
-									D3D10_TEXTURE2D_DESC sDesc;
-									pcResource->GetDesc(&sDesc);
-
-									if (FAILED(((ID3D10Device*)pcDevice)->CreateTexture2D(&sDesc, NULL, (ID3D10Texture2D**)&pcStereoTwinTexture10)))
-										OutputDebugString(L"StereoSplitterDX10 : Failed to create twin texture !");
-									else
-									{
-										// create twin render target view
-										if (FAILED(((ID3D10Device*)pcDevice)->CreateRenderTargetView((ID3D10Resource*)pcStereoTwinTexture10, &sDescRT10, (ID3D10RenderTargetView**)&pcStereoTwinView10)))
-											OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view D3D10_RENDER_TARGET_VIEW !");
-									}
-
-									if ((pcStereoTwinTexture11) && (pcStereoTwinView11))
-									{
-										// assign stereo private data interfaces, first the render target view to the texture
-										pcResource->SetPrivateDataInterface(PDIID_ID3D11TextureXD_RenderTargetView, pcView);
-										// now assign the stereo texture twin interface
-										pcResource->SetPrivateDataInterface(PDIID_ID3D11TextureXD_Stereo_Twin, pcStereoTwinTexture11);
-										// last, the stereo twin render target view
-										pcView->SetPrivateDataInterface(PDIID_ID3D11RenderTargetView_Stereo_Twin, pcStereoTwinView11);
-									}
-
-									pcResource->Release();
-								}
-
+								OutputDebugString(L"StereoSplitterDX10 : Failed to create twin texture !");
+								break;
 							}
 						}
-						break;
-					case D3D10_DEPTH_STENCIL_VIEW:
-						if (true)
-						{
-							if (pcDevice)
-							{
-								// get the texture
-								ID3D10Texture2D* pcResource = nullptr;
-								((ID3D10DepthStencilView*)pcView)->GetResource((ID3D10Resource**)&pcResource);
-								if (pcResource)
-								{
-									// get the description and create the twin texture
-									D3D10_TEXTURE2D_DESC sDesc;
-									pcResource->GetDesc(&sDesc);
 
-									if (FAILED(((ID3D10Device*)pcDevice)->CreateTexture2D(&sDesc, NULL, (ID3D10Texture2D**)&pcStereoTwinTexture10)))
-										OutputDebugString(L"StereoSplitterDX10 : Failed to create twin texture !");
-									else
-									{
-										// create twin render target view
-										if (FAILED(((ID3D10Device*)pcDevice)->CreateDepthStencilView((ID3D10Resource*)pcStereoTwinTexture10, &sDescDS10, (ID3D10DepthStencilView**)&pcStereoTwinView10)))
-											OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view D3D10_DEPTH_STENCIL_VIEW !");
-									}
-									// TODO !! ASSIGN PRIVATE DATA INTERFACES
-									pcResource->Release();
+						// create view and apply stereo twins
+						switch (eD3DViewType)
+						{
+							case D3D10_RENDER_TARGET_VIEW:
+								// create twin render target view
+								if (FAILED(((ID3D10Device*)pcDevice)->CreateRenderTargetView((ID3D10Resource*)pcStereoTwinTexture10, &sDescRT10, (ID3D10RenderTargetView**)&pcStereoTwinView10)))
+									OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view D3D10_RENDER_TARGET_VIEW !");
+
+								if ((pcStereoTwinTexture10) && (pcStereoTwinView10))
+								{
+									// assign stereo private data interfaces, first the render target view to the texture
+									pcResource10->SetPrivateDataInterface(PDIID_ID3D11TextureXD_RenderTargetView, pcView);
+									// now assign the stereo texture twin interface
+									pcResource10->SetPrivateDataInterface(PDIID_ID3D11TextureXD_Stereo_Twin, pcStereoTwinTexture10);
+									// last, the stereo twin render target view
+									pcView->SetPrivateDataInterface(PDIID_ID3D11RenderTargetView_Stereo_Twin, pcStereoTwinView10);
 								}
 
-							}
+								break;
+							case D3D10_DEPTH_STENCIL_VIEW:
+								// create twin render target view
+								if (FAILED(((ID3D10Device*)pcDevice)->CreateDepthStencilView((ID3D10Resource*)pcStereoTwinTexture10, &sDescDS10, (ID3D10DepthStencilView**)&pcStereoTwinView10)))
+									OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view D3D10_DEPTH_STENCIL_VIEW !");
+								// TODO !! ASSIGN PRIVATE DATA INTERFACES
+								break;
+							case D3D10_SHADER_RESOURCE_VIEW:
+								OutputDebugString(L"NotImplemented: D3D10_SHADER_RESOURCE_VIEW");
+								break;
+							default:
+								OutputDebugString(L"NotImplemented: UNKNOWN TYPE");
+								break;
 						}
-						break;
-					case D3D10_SHADER_RESOURCE_VIEW:
-						OutputDebugString(L"NotImplemented: D3D10_SHADER_RESOURCE_VIEW");
-						break;
-					case D3D11_RENDER_TARGET_VIEW:
-						if (true)
+
+						SAFE_RELEASE(pcResource10);
+					}
+					else
+						SAFE_RELEASE(pcResource10);
+				}
+				else
+				{
+					// get the texture
+					((ID3D11View*)pcView)->GetResource((ID3D11Resource**)&pcResource11);
+					if ((pcResource11) && (pcDevice))
+					{
+						// get the description and create the twin texture
+						D3D11_TEXTURE2D_DESC sDesc;
+						pcResource11->GetDesc(&sDesc);
+
+						// handle sRGB formats
+						if (sDesc.Format == DXGI_FORMAT_R8G8B8A8_UNORM_SRGB)
+							sDescRT11.Format = sDesc.Format;
+
+						// has this texture already a stereo twin ?
+						UINT dwSize = sizeof(pcStereoTwinTexture11);
+						pcResource11->GetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, &dwSize, (void*)&pcStereoTwinTexture11);
+						if (!dwSize)
 						{
-							if (pcDevice)
+							if (FAILED(((ID3D11Device*)pcDevice)->CreateTexture2D(&sDesc, NULL, (ID3D11Texture2D**)&pcStereoTwinTexture11)))
 							{
-								// get the texture
-								ID3D11Texture2D* pcResource = nullptr;
-								((ID3D11RenderTargetView*)pcView)->GetResource((ID3D11Resource**)&pcResource);
-								if (pcResource)
-								{
-									// get the description and create the twin texture
-									D3D11_TEXTURE2D_DESC sDesc;
-									pcResource->GetDesc(&sDesc);
-
-									if (FAILED(((ID3D11Device*)pcDevice)->CreateTexture2D(&sDesc, NULL, (ID3D11Texture2D**)&pcStereoTwinTexture11)))
-										OutputDebugString(L"StereoSplitterDX10 : Failed to create twin texture !");
-									else
-									{
-										// handle sRGB formats
-										if (sDesc.Format == DXGI_FORMAT_R8G8B8A8_UNORM_SRGB)
-											sDescRT11.Format = sDesc.Format;
-
-										// create twin render target view
-										if (FAILED(((ID3D11Device*)pcDevice)->CreateRenderTargetView((ID3D11Resource*)pcStereoTwinTexture11, &sDescRT11, (ID3D11RenderTargetView**)&pcStereoTwinView11)))
-											OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view D3D11_RENDER_TARGET_VIEW !");
-									}
-									if ((pcStereoTwinTexture11) && (pcStereoTwinView11))
-									{
-										// assign stereo private data interfaces, first the render target view to the texture
-										pcResource->SetPrivateDataInterface(PDIID_ID3D11TextureXD_RenderTargetView, pcView);
-										// now assign the stereo texture twin interface
-										pcResource->SetPrivateDataInterface(PDIID_ID3D11TextureXD_Stereo_Twin, pcStereoTwinTexture11);
-										// last, the stereo twin render target view
-										pcView->SetPrivateDataInterface(PDIID_ID3D11RenderTargetView_Stereo_Twin, pcStereoTwinView11);
-									}
-									pcResource->Release();
-								}
+								OutputDebugString(L"StereoSplitterDX10 : Failed to create twin texture !");
+								break;
 							}
 						}
-						break;
-					case D3D11_DEPTH_STENCIL_VIEW:
-						if (true)
+
+						// create view and apply stereo twins
+						switch (eD3DViewType)
 						{
-							if (pcDevice)
-							{
-								// get the texture
-								ID3D11Texture2D* pcResource = nullptr;
-								((ID3D11DepthStencilView*)pcView)->GetResource((ID3D11Resource**)&pcResource);
-								if (pcResource)
+							case D3D11_RENDER_TARGET_VIEW:
+								// create twin render target view
+								if (FAILED(((ID3D11Device*)pcDevice)->CreateRenderTargetView((ID3D11Resource*)pcStereoTwinTexture11, &sDescRT11, (ID3D11RenderTargetView**)&pcStereoTwinView11)))
+									OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view D3D11_RENDER_TARGET_VIEW !");
+
+								if ((pcStereoTwinTexture11) && (pcStereoTwinView11))
 								{
-									// get the description and create the twin texture
-									D3D11_TEXTURE2D_DESC sDesc;
-									pcResource->GetDesc(&sDesc);
-
-									if (FAILED(((ID3D11Device*)pcDevice)->CreateTexture2D(&sDesc, NULL, (ID3D11Texture2D**)&pcStereoTwinTexture11)))
-										OutputDebugString(L"StereoSplitterDX10 : Failed to create twin texture !");
-									else
-									{
-										// create twin render target view
-										if (FAILED(((ID3D11Device*)pcDevice)->CreateDepthStencilView((ID3D11Resource*)pcStereoTwinTexture11, &sDescDS11, (ID3D11DepthStencilView**)&pcStereoTwinView11)))
-											OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view D3D11_DEPTH_STENCIL_VIEW !");
-									}
-
-									if ((pcStereoTwinTexture11) && (pcStereoTwinView11))
-									{
-										// assign stereo private data interfaces, first the depth stencil view to the texture
-										pcResource->SetPrivateDataInterface(PDIID_ID3D11TextureXD_DepthStencilView, pcView);
-										// now assign the stereo texture twin interface
-										pcResource->SetPrivateDataInterface(PDIID_ID3D11TextureXD_Stereo_Twin, pcStereoTwinTexture11);
-										// last, the stereo twin depth stencil
-										pcView->SetPrivateDataInterface(PDIID_ID3D11DepthStencilView_Stereo_Twin, pcStereoTwinView11);
-									}
-									pcResource->Release();
+									// assign stereo private data interfaces, first the render target view to the texture
+									pcResource11->SetPrivateDataInterface(PDIID_ID3D11TextureXD_RenderTargetView, pcView);
+									// now assign the stereo texture twin interface
+									pcResource11->SetPrivateDataInterface(PDIID_ID3D11TextureXD_Stereo_Twin, pcStereoTwinTexture11);
+									// last, the stereo twin render target view
+									pcView->SetPrivateDataInterface(PDIID_ID3D11RenderTargetView_Stereo_Twin, pcStereoTwinView11);
 								}
+								break;
+							case D3D11_DEPTH_STENCIL_VIEW:
+								// create depth stencil view
+								if (FAILED(((ID3D11Device*)pcDevice)->CreateDepthStencilView((ID3D11Resource*)pcStereoTwinTexture11, &sDescDS11, (ID3D11DepthStencilView**)&pcStereoTwinView11)))
+									OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view D3D11_DEPTH_STENCIL_VIEW !");
 
-							}
-						}
-						break;
-					case D3D11_SHADER_RESOURCE_VIEW:
-						if (true)
-						{
-							if (pcDevice)
-							{
-								// get the texture
-								ID3D11Texture2D* pcResource = nullptr;
-								((ID3D11DepthStencilView*)pcView)->GetResource((ID3D11Resource**)&pcResource);
-								if (pcResource)
+								if ((pcStereoTwinTexture11) && (pcStereoTwinView11))
 								{
-									// get the description and create the twin texture
-									D3D11_TEXTURE2D_DESC sDesc;
-									pcResource->GetDesc(&sDesc);
-
-									if (FAILED(((ID3D11Device*)pcDevice)->CreateTexture2D(&sDesc, NULL, (ID3D11Texture2D**)&pcStereoTwinTexture11)))
-										OutputDebugString(L"StereoSplitterDX10 : Failed to create twin texture !");
-									else
-									{
-										// create twin shader resource view
-										if (FAILED(((ID3D11Device*)pcDevice)->CreateShaderResourceView((ID3D11Resource*)pcStereoTwinTexture11, &sDescSR11, (ID3D11ShaderResourceView**)&pcStereoTwinView11)))
-											OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view D3D11_SHADER_RESOURCE_VIEW!");
-									}
-
-									if ((pcStereoTwinTexture11) && (pcStereoTwinView11))
-									{
-										// assign stereo private data interfaces, first the depth stencil view to the texture
-										pcResource->SetPrivateDataInterface(PDIID_ID3D11TextureXD_ShaderResourceView, pcView);
-										// now assign the stereo texture twin interface
-										pcResource->SetPrivateDataInterface(PDIID_ID3D11TextureXD_Stereo_Twin, pcStereoTwinTexture11);
-										// last, the stereo twin depth stencil TODO !! create GUID for this ? need this ?
-										// pcView->SetPrivateDataInterface(PDIID_ID3D11ShaderResourceView_Stereo_Twin, pcStereoTwinView11);
-									}
-									pcResource->Release();
+									// assign stereo private data interfaces, first the depth stencil view to the texture
+									pcResource11->SetPrivateDataInterface(PDIID_ID3D11TextureXD_DepthStencilView, pcView);
+									// now assign the stereo texture twin interface
+									pcResource11->SetPrivateDataInterface(PDIID_ID3D11TextureXD_Stereo_Twin, pcStereoTwinTexture11);
+									// last, the stereo twin depth stencil
+									pcView->SetPrivateDataInterface(PDIID_ID3D11DepthStencilView_Stereo_Twin, pcStereoTwinView11);
 								}
+								break;
+							case D3D11_SHADER_RESOURCE_VIEW:
+								if (FAILED(((ID3D11Device*)pcDevice)->CreateShaderResourceView((ID3D11Resource*)pcStereoTwinTexture11, &sDescSR11, (ID3D11ShaderResourceView**)&pcStereoTwinView11)))
+									OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view D3D11_SHADER_RESOURCE_VIEW!");
 
-							}
+								if ((pcStereoTwinTexture11) && (pcStereoTwinView11))
+								{
+									// assign stereo private data interfaces, first the depth stencil view to the texture
+									pcResource11->SetPrivateDataInterface(PDIID_ID3D11TextureXD_ShaderResourceView, pcView);
+									// now assign the stereo texture twin interface
+									pcResource11->SetPrivateDataInterface(PDIID_ID3D11TextureXD_Stereo_Twin, pcStereoTwinTexture11);
+									// last, the stereo twin depth stencil TODO !! create GUID for this ? need this ?
+									// pcView->SetPrivateDataInterface(PDIID_ID3D11ShaderResourceView_Stereo_Twin, pcStereoTwinView11);
+								}
+								break;
+							default:
+								OutputDebugString(L"NotImplemented: UNKNOWN TYPE");
+								break;
 						}
-						break;
-					default:
-						OutputDebugString(L"NotImplemented: UNKNOWN TYPE");
-						break;
+
+						SAFE_RELEASE(pcResource11);
+					}
+					else
+						SAFE_RELEASE(pcResource11);
 				}
 				break;
 			case D3D10_RTV_DIMENSION_TEXTURE2DARRAY:
