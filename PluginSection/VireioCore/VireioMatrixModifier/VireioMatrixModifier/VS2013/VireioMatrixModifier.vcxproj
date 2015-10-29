@@ -155,6 +155,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\..\Include\Vireio_GUI.h" />
     <ClInclude Include="..\..\..\..\Include\Vireio_GUIDs.h" />
     <ClInclude Include="..\AQU_Nodus.h" />
     <ClInclude Include="..\VireioMatrixModifier.h" />
@@ -162,6 +163,7 @@
     <ClInclude Include="..\VireioMatrixModifierDataStructures.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\..\Include\Vireio_GUI.cpp" />
     <ClCompile Include="..\VireioMatrixModifier.cpp" />
   </ItemGroup>
   <ItemGroup>

@@ -6,12 +6,14 @@
     <ClInclude Include="..\..\VireioMatrixModifier\VireioMatrixModifier.h" />
     <ClInclude Include="..\..\VireioMatrixModifier\VireioMatrixModifierDataStructures.h" />
     <ClInclude Include="..\..\..\..\Include\Vireio_GUIDs.h" />
+    <ClInclude Include="..\..\..\..\Include\Vireio_GUI.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\VireioMatrixModifier\AQU_Nodus.def" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\VireioMatrixModifier\VireioMatrixModifier.cpp" />
+    <ClCompile Include="..\..\..\..\Include\Vireio_GUI.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\VireioMatrixModifier\VireioMatrixModifier_Resources.rc" />

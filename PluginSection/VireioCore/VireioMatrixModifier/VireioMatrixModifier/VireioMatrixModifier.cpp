@@ -77,6 +77,9 @@ MatrixModifier::MatrixModifier() : AQU_Nodus()
 	// create a new HRESULT pointer
 	m_pvReturn = (void*)new HRESULT();
 
+	// Vireio GUI is always null at begin... since in a compiled profile it is never used
+	m_pcVireioGUI = nullptr;
+
 	// create first matrices.... TODO !! include class from main driver
 	float fAspectRatio = 1920.0f / 1080.0f;
 	float n = 0.1f;     /**< Minimum z-value of the view volume. */
@@ -203,6 +206,16 @@ HBITMAP MatrixModifier::GetLogo()
 ***/
 HBITMAP MatrixModifier::GetControl()
 {
+	// here we create the Vireio GUI.... if this runs under a compiled profile this method is never called
+	if (!m_pcVireioGUI)
+	{
+		SIZE sSizeOfThis;
+		sSizeOfThis.cx = 1024; sSizeOfThis.cx = 2200;
+		m_pcVireioGUI = new Vireio_GUI(sSizeOfThis, L"Arial", 64, RGB(64, 192, 192), RGB(64, 64, 0));
+	}
+	else
+		return m_pcVireioGUI->GetControl();
+
 	return nullptr;
 }
 
@@ -833,11 +846,11 @@ bool MatrixModifier::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 		{
 
 		}
-	}
+		}
 #elif defined(VIREIO_D3D9)
 #endif
 	return false;
-}
+	}
 
 /**
 * Handle Stereo Render Targets (+Depth Buffers).
@@ -1631,7 +1644,7 @@ void MatrixModifier::UpdateConstantBuffer(ID3D11DeviceContext* pcContext, ID3D11
 	// and release them
 	SAFE_RELEASE(pcBufferLeft);
 	SAFE_RELEASE(pcBufferRight);
-	}
+}
 
 /**
 * Creates a stereo buffer out of a buffer.

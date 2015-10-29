@@ -72,6 +72,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma comment(lib, "d3dx9.lib")
 #endif
 
+#include"..\..\..\Include\Vireio_GUI.h"
 #include"..\..\..\Include\Vireio_GUIDs.h"
 #include"..\..\..\Include\Vireio_Node_Plugtypes.h"
 
@@ -233,6 +234,10 @@ public:
 	* Current drawing side, only changed in VireioStereoSplitter::SetDrawingSide().
 	**/
 	RenderPosition m_eCurrentRenderingSide;
+	/**
+	* Vireio Graphical User Interface class.
+	***/
+	Vireio_GUI* m_pcVireioGUI;
 
 private:
 
