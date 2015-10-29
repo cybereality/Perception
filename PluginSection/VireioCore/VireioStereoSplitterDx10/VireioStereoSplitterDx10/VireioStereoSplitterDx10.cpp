@@ -1032,7 +1032,6 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region OMGETRENDERTARGETS
 				case METHOD_ID3D11DEVICECONTEXT_OMGETRENDERTARGETS:
-					OutputDebugString(L"OMGetRenderTargets");
 					// if the app tries to get the render targets ensure the left render side is set
 					SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Left);
 					return nullptr;
@@ -1904,6 +1903,9 @@ void StereoSplitter::CreateStereoView(IUnknown* pcDevice, ID3D11View* pcView)
 				}
 				break;
 			case D3D10_RTV_DIMENSION_TEXTURE2D:
+			case D3D10_RTV_DIMENSION_TEXTURE2DARRAY:
+			case D3D10_RTV_DIMENSION_TEXTURE2DMS:
+			case D3D10_RTV_DIMENSION_TEXTURE2DMSARRAY:
 				if ((int)eD3DViewType < 3)
 				{
 					// get the texture
@@ -1975,6 +1977,7 @@ void StereoSplitter::CreateStereoView(IUnknown* pcDevice, ID3D11View* pcView)
 						pcResource11->GetDesc(&sDesc);
 
 						// handle sRGB formats
+						// there was an error creating textures with one game... can't remember which one... hmm... this fixed it
 						if (sDesc.Format == DXGI_FORMAT_R8G8B8A8_UNORM_SRGB)
 							sDescRT11.Format = sDesc.Format;
 
@@ -2047,15 +2050,6 @@ void StereoSplitter::CreateStereoView(IUnknown* pcDevice, ID3D11View* pcView)
 					else
 						SAFE_RELEASE(pcResource11);
 				}
-				break;
-			case D3D10_RTV_DIMENSION_TEXTURE2DARRAY:
-				OutputDebugString(L"NotImplemented: D3D10_RTV_DIMENSION_TEXTURE2DARRAY");
-				break;
-			case D3D10_RTV_DIMENSION_TEXTURE2DMS:
-				OutputDebugString(L"NotImplemented: D3D10_RTV_DIMENSION_TEXTURE2DMS");
-				break;
-			case D3D10_RTV_DIMENSION_TEXTURE2DMSARRAY:
-				OutputDebugString(L"NotImplemented: D3D10_RTV_DIMENSION_TEXTURE2DMSARRAY");
 				break;
 			case D3D10_RTV_DIMENSION_TEXTURE3D:
 				OutputDebugString(L"NotImplemented: D3D10_RTV_DIMENSION_TEXTURE3D");
