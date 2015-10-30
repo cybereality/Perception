@@ -210,11 +210,41 @@ HBITMAP MatrixModifier::GetControl()
 	if (!m_pcVireioGUI)
 	{
 		SIZE sSizeOfThis;
-		sSizeOfThis.cx = 1024; sSizeOfThis.cx = 2200;
-		m_pcVireioGUI = new Vireio_GUI(sSizeOfThis, L"Arial", 64, RGB(64, 192, 192), RGB(64, 64, 0));
+		sSizeOfThis.cx = 1024; sSizeOfThis.cy = 4000;
+		m_pcVireioGUI = new Vireio_GUI(sSizeOfThis, L"Cambria", TRUE, 64, RGB(110, 105, 95), RGB(254, 249, 240));
+
+		// add first page and control
+		UINT dwMainPage = m_pcVireioGUI->AddPage();
+		Vireio_Control sControl;
+		static std::vector<std::wstring> sEntriesCommanders;
+		static std::vector<std::wstring> sEntriesDecommanders;
+		ZeroMemory(&sControl, sizeof(Vireio_Control));
+
+		// create the decommanders list
+		sControl.m_eControlType = Vireio_Control_Type::StaticListBox;
+		sControl.m_sPosition.x = 16;
+		sControl.m_sPosition.y = 0;
+		sControl.m_sSize.cx = 1000;
+		sControl.m_sSize.cy = NUMBER_OF_DECOMMANDERS * 64;
+		sControl.m_sStaticListBox.m_bSelectable = false;
+		sControl.m_sStaticListBox.m_paszEntries = &sEntriesDecommanders;
+		UINT dwDecommandersList = m_pcVireioGUI->AddControl(dwMainPage, sControl);
+
+		// create the commanders list out of the decommanders list
+		sControl.m_sPosition.y += NUMBER_OF_DECOMMANDERS * 64;
+		sControl.m_sPosition.x = 300;
+		sControl.m_sSize.cy = NUMBER_OF_COMMANDERS * 64;
+		sControl.m_sStaticListBox.m_paszEntries = &sEntriesCommanders;
+		UINT dwCommandersList = m_pcVireioGUI->AddControl(dwMainPage, sControl);
+
+		// and add all entries
+		for (int i = 0; i < NUMBER_OF_DECOMMANDERS; i++)
+			m_pcVireioGUI->AddEntry(dwDecommandersList, this->GetDecommanderName(i));
+		for (int i = 0; i < NUMBER_OF_COMMANDERS; i++)
+			m_pcVireioGUI->AddEntry(dwCommandersList, this->GetCommanderName(i));
 	}
 	else
-		return m_pcVireioGUI->GetControl();
+		return m_pcVireioGUI->GetGUI();
 
 	return nullptr;
 }
@@ -846,11 +876,11 @@ bool MatrixModifier::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 		{
 
 		}
-		}
+	}
 #elif defined(VIREIO_D3D9)
 #endif
 	return false;
-	}
+}
 
 /**
 * Handle Stereo Render Targets (+Depth Buffers).

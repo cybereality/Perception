@@ -32,6 +32,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdio.h>
 #include <vector>
 
+#define MAX_CONTROLS_PER_PAGE 2048
+
 /**
 * Vireio control types enumeration.
 * All types of possible GUI controls are listed here.
@@ -83,6 +85,15 @@ struct Vireio_Control
 };
 
 /**
+* Vireio page structure.
+* All data for a single page is stored here.
+***/
+struct Vireio_Page
+{
+	std::vector<Vireio_Control> m_asControls; /**< All stored controls for that page. ***/
+};
+
+/**
 * Vireio general Graphical User Interface class.
 * This class provides and handles a windows bitmap
 * as a configurable User Interface.
@@ -90,12 +101,19 @@ struct Vireio_Control
 class Vireio_GUI
 {
 public:
-	Vireio_GUI(SIZE sSize, LPCWSTR szFont, DWORD dwFontSize, COLORREF dwColorFront, COLORREF dwColorBack);
+	Vireio_GUI(SIZE sSize, LPCWSTR szFont, BOOL bItalic, DWORD dwFontSize, COLORREF dwColorFront, COLORREF dwColorBack);
 	~Vireio_GUI();
 
-	HBITMAP GetControl();
+	HBITMAP GetGUI();
+	UINT AddPage() { Vireio_Page sPage; ZeroMemory(&sPage, sizeof(sPage)); m_asPages.push_back(sPage); return (UINT)m_asPages.size() - 1; } /**< Adds a new page. ***/
+	UINT AddControl(UINT dwPage, Vireio_Control& sControl);
+	void AddEntry(UINT dwControl, LPCWSTR szString);
 
 private:
+	/**
+	* All stored pages for that GUI.
+	***/
+	std::vector<Vireio_Page> m_asPages;
 	/**
 	* The constant size of this GUI, in pixel space.
 	***/

@@ -33,7 +33,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /**
 * Constructor.
 ***/
-Vireio_GUI::Vireio_GUI(SIZE sSize, LPCWSTR szFont, DWORD dwFontSize, COLORREF dwColorFront, COLORREF dwColorBack)
+Vireio_GUI::Vireio_GUI(SIZE sSize, LPCWSTR szFont, BOOL bItalic, DWORD dwFontSize, COLORREF dwColorFront, COLORREF dwColorBack)
 {
 	// set the size, colors, font size and the font name
 	CopyMemory(&m_sGUISize, &sSize, sizeof(SIZE));
@@ -51,7 +51,7 @@ Vireio_GUI::Vireio_GUI(SIZE sSize, LPCWSTR szFont, DWORD dwFontSize, COLORREF dw
 	m_bControlUpdate = true;
 
 	// create the font
-	m_hFont = CreateFont(dwFontSize, 0, 0, 0, 0, FALSE,
+	m_hFont = CreateFont(dwFontSize, 0, 0, 0, 0, bItalic,
 		FALSE, FALSE, ANSI_CHARSET, OUT_DEFAULT_PRECIS,
 		CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH,
 		m_szFontName.c_str());
@@ -66,7 +66,7 @@ Vireio_GUI::~Vireio_GUI() {}
 * Provides the rendered bitmap for the current frame.
 * @returns The current GUI bitmap, nullptr if no changes.
 ***/
-HBITMAP Vireio_GUI::GetControl()
+HBITMAP Vireio_GUI::GetGUI()
 {
 	if (!m_hBitmapControl)
 	{
@@ -104,7 +104,49 @@ HBITMAP Vireio_GUI::GetControl()
 			SetTextColor(hdcImage, m_dwColorFront);
 			SetBkColor(hdcImage, m_dwColorBack);
 
-			// TODO !! loop through controls for this page, draw them
+			// loop through controls for this page, draw them
+			if (m_asPages.size())
+				for (UINT dwI = 0; dwI < (UINT)m_asPages[0/*TODO:ADD_INDEX*/].m_asControls.size(); dwI++)
+				{
+					// render control depending on type
+					switch (m_asPages[0/*TODO:ADD_INDEX*/].m_asControls[dwI].m_eControlType)
+					{
+						case StaticListBox:
+						{
+							POINT* psPos = &m_asPages[0/*TODO:ADD_INDEX*/].m_asControls[dwI].m_sPosition;
+							SIZE* psSize = &m_asPages[0/*TODO:ADD_INDEX*/].m_asControls[dwI].m_sSize;
+							int nY = (int)psPos->y;
+
+							// loop through entries
+							if (m_asPages[0/*TODO:ADD_INDEX*/].m_asControls[dwI].m_sStaticListBox.m_paszEntries)
+								for (UINT dwJ = 0; dwJ < (UINT)m_asPages[0/*TODO:ADD_INDEX*/].m_asControls[dwI].m_sStaticListBox.m_paszEntries->size(); dwJ++)
+								{
+									// output the list entry text
+									TextOut(hdcImage,
+										psPos->x,
+										nY,
+										((*(m_asPages[0/*TODO:ADD_INDEX*/].m_asControls[dwI].m_sStaticListBox.m_paszEntries))[dwJ]).c_str(),
+										((*(m_asPages[0/*TODO:ADD_INDEX*/].m_asControls[dwI].m_sStaticListBox.m_paszEntries))[dwJ]).length());
+
+									// next line
+									nY += (int)m_dwFontSize;
+								}
+						}
+						break;
+						case ListBox:
+							break;
+						case SpinControl:
+							break;
+						case EditLine:
+							break;
+						case Slider:
+							break;
+						case CheckBox:
+							break;
+						default:
+							break;
+					}
+				}
 
 			// Restore the original font.        
 			SelectObject(hdcImage, hOldFont);
@@ -119,4 +161,69 @@ HBITMAP Vireio_GUI::GetControl()
 	}
 
 	return nullptr;
+}
+
+/**
+* Adds a Vireio Control to the specified page.
+* @param dwPage The index of the page the control will be added. (=id)
+***/
+UINT Vireio_GUI::AddControl(UINT dwPage, Vireio_Control& sControl)
+{
+	// page present ?
+	if (dwPage < (UINT)m_asPages.size())
+	{
+		// add control
+		if (m_asPages[dwPage].m_asControls.size() < MAX_CONTROLS_PER_PAGE)
+			m_asPages[dwPage].m_asControls.push_back(sControl);
+
+		// create id and return
+		return (UINT)(dwPage << 16) + m_asPages[dwPage].m_asControls.size() - 1;
+	}
+	else return 0;
+}
+
+/**
+* Adds an entry to the specified control.
+* @param dwControl The id of the control.
+***/
+void Vireio_GUI::AddEntry(UINT dwControl, LPCWSTR szString)
+{
+	// decode id to page and index
+	UINT dwPage = dwControl >> 16;
+	UINT dwIndex = dwControl & 65535;
+
+	// page present ?
+	if (dwPage < (UINT)m_asPages.size())
+	{
+		// control present ?
+		if (dwIndex < (UINT)m_asPages[dwPage].m_asControls.size())
+		{
+			// add the string depending on the control type
+			std::wstring sz = std::wstring(szString);
+			switch (m_asPages[dwPage].m_asControls[dwIndex].m_eControlType)
+			{
+				case StaticListBox:
+					if (m_asPages[dwPage].m_asControls[dwIndex].m_sStaticListBox.m_paszEntries)
+						m_asPages[dwPage].m_asControls[dwIndex].m_sStaticListBox.m_paszEntries->push_back(sz);
+					else OutputDebugString(L"Faulty code: Entry vector nullptr !");
+					break;
+				case ListBox:
+					if (m_asPages[dwPage].m_asControls[dwIndex].m_sListBox.m_paszEntries)
+						m_asPages[dwPage].m_asControls[dwIndex].m_sListBox.m_paszEntries->push_back(sz);
+					else OutputDebugString(L"Faulty code: Entry vector nullptr !");
+					break;
+				case SpinControl:
+					break;
+				case EditLine:
+					break;
+				case Slider:
+					break;
+				case CheckBox:
+					break;
+				default:
+					break;
+			}
+
+		}
+	}
 }
