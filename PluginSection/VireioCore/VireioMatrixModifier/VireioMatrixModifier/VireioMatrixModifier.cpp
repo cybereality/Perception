@@ -242,6 +242,11 @@ HBITMAP MatrixModifier::GetControl()
 			m_pcVireioGUI->AddEntry(dwDecommandersList, this->GetDecommanderName(i));
 		for (int i = 0; i < NUMBER_OF_COMMANDERS; i++)
 			m_pcVireioGUI->AddEntry(dwCommandersList, this->GetCommanderName(i));
+
+		// add second page and control
+		UINT dwInfoPage = m_pcVireioGUI->AddPage();
+		m_pcVireioGUI->AddPage();
+		m_pcVireioGUI->AddPage();
 	}
 	else
 		return m_pcVireioGUI->GetGUI();
@@ -1518,6 +1523,14 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #endif
 
 	return nullptr;
+}
+
+/**
+* There's some windows event on our node.
+***/
+void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	m_pcVireioGUI->WindowsEvent(msg, wParam, lParam);
 }
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)

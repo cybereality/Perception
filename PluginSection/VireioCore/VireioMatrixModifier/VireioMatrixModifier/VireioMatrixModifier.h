@@ -225,6 +225,7 @@ public:
 	virtual void            SetInputPointer(DWORD dwDecommanderIndex, void* pData);
 	virtual bool            SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod);
 	virtual void*           Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex);
+	virtual void            WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam);
 
 	/**
 	* Return value pointer (HRESULT).

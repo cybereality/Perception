@@ -33,7 +33,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /**
 * Constructor.
 ***/
-Vireio_GUI::Vireio_GUI(SIZE sSize, LPCWSTR szFont, BOOL bItalic, DWORD dwFontSize, COLORREF dwColorFront, COLORREF dwColorBack)
+Vireio_GUI::Vireio_GUI(SIZE sSize, LPCWSTR szFont, BOOL bItalic, DWORD dwFontSize, COLORREF dwColorFront, COLORREF dwColorBack) :
+m_bMouseBoundToControl(false),
+m_dwCurrentPage(0)
 {
 	// set the size, colors, font size and the font name
 	CopyMemory(&m_sGUISize, &sSize, sizeof(SIZE));
@@ -104,29 +106,32 @@ HBITMAP Vireio_GUI::GetGUI()
 			SetTextColor(hdcImage, m_dwColorFront);
 			SetBkColor(hdcImage, m_dwColorBack);
 
+			// verify page index
+			if (m_dwCurrentPage >= (UINT)m_asPages.size()) m_dwCurrentPage = (UINT)m_asPages.size() - 1;
+
 			// loop through controls for this page, draw them
 			if (m_asPages.size())
-				for (UINT dwI = 0; dwI < (UINT)m_asPages[0/*TODO:ADD_INDEX*/].m_asControls.size(); dwI++)
+				for (UINT dwI = 0; dwI < (UINT)m_asPages[m_dwCurrentPage].m_asControls.size(); dwI++)
 				{
 					// render control depending on type
-					switch (m_asPages[0/*TODO:ADD_INDEX*/].m_asControls[dwI].m_eControlType)
+					switch (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_eControlType)
 					{
 						case StaticListBox:
 						{
-							POINT* psPos = &m_asPages[0/*TODO:ADD_INDEX*/].m_asControls[dwI].m_sPosition;
-							SIZE* psSize = &m_asPages[0/*TODO:ADD_INDEX*/].m_asControls[dwI].m_sSize;
+							POINT* psPos = &m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sPosition;
+							SIZE* psSize = &m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSize;
 							int nY = (int)psPos->y;
 
 							// loop through entries
-							if (m_asPages[0/*TODO:ADD_INDEX*/].m_asControls[dwI].m_sStaticListBox.m_paszEntries)
-								for (UINT dwJ = 0; dwJ < (UINT)m_asPages[0/*TODO:ADD_INDEX*/].m_asControls[dwI].m_sStaticListBox.m_paszEntries->size(); dwJ++)
+							if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sStaticListBox.m_paszEntries)
+								for (UINT dwJ = 0; dwJ < (UINT)m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sStaticListBox.m_paszEntries->size(); dwJ++)
 								{
 									// output the list entry text
 									TextOut(hdcImage,
 										psPos->x,
 										nY,
-										((*(m_asPages[0/*TODO:ADD_INDEX*/].m_asControls[dwI].m_sStaticListBox.m_paszEntries))[dwJ]).c_str(),
-										((*(m_asPages[0/*TODO:ADD_INDEX*/].m_asControls[dwI].m_sStaticListBox.m_paszEntries))[dwJ]).length());
+										((*(m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sStaticListBox.m_paszEntries))[dwJ]).c_str(),
+										((*(m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sStaticListBox.m_paszEntries))[dwJ]).length());
 
 									// next line
 									nY += (int)m_dwFontSize;
@@ -151,6 +156,62 @@ HBITMAP Vireio_GUI::GetGUI()
 			// Restore the original font.        
 			SelectObject(hdcImage, hOldFont);
 		}
+
+		// draw the arrows... first, the arrow background
+		RECT sRect;
+		sRect.top = m_sGUISize.cy - m_dwFontSize * 4;
+		sRect.bottom = m_sGUISize.cy;
+		sRect.left = 0;
+		sRect.right = m_sGUISize.cx;
+		FillRect(hdcImage, &sRect, (HBRUSH)(COLOR_SCROLLBAR + 1));
+
+		// left arrow.. arrows are adjusted by the font size and GUI size
+		POINT asPoints[3];
+		asPoints[0].x = m_sGUISize.cx >> 4;
+		asPoints[0].y = sRect.top + m_dwFontSize * 2;
+		asPoints[1].x = (m_sGUISize.cx >> 1) - (m_sGUISize.cx >> 3);
+		asPoints[1].y = sRect.top + (m_dwFontSize >> 2);
+		asPoints[2].x = asPoints[1].x;
+		asPoints[2].y = sRect.bottom - (m_dwFontSize >> 2);
+		SelectObject(hdcImage, GetStockObject(DC_PEN));
+		SelectObject(hdcImage, GetStockObject(DC_BRUSH));
+		if ((m_bMouseBoundToControl) && (sMouseCoords.y > (LONG)(m_sGUISize.cy - m_dwFontSize * 4)) && (sMouseCoords.x < (LONG)(m_sGUISize.cx >> 1)))
+		{
+			SetDCPenColor(hdcImage, m_dwColorFront ^ m_dwColorFront);
+			SetDCBrushColor(hdcImage, m_dwColorFront ^ m_dwColorFront);
+		}
+		else
+		{
+			SetDCPenColor(hdcImage, m_dwColorFront);
+			SetDCBrushColor(hdcImage, m_dwColorFront);
+		}
+		if (m_dwCurrentPage > 0)
+			Polygon(hdcImage, asPoints, 3);
+
+		// right arrow
+		asPoints[0].x = m_sGUISize.cx - (m_sGUISize.cx >> 4);
+		asPoints[0].y = sRect.top + m_dwFontSize * 2;
+		asPoints[1].x = (m_sGUISize.cx >> 1) + (m_sGUISize.cx >> 3);
+		asPoints[1].y = sRect.top + (m_dwFontSize >> 2);
+		asPoints[2].x = asPoints[1].x;
+		asPoints[2].y = sRect.bottom - (m_dwFontSize >> 2);
+		if ((m_bMouseBoundToControl) && (sMouseCoords.y > (LONG)(m_sGUISize.cy - m_dwFontSize * 4)) && (sMouseCoords.x >= (LONG)(m_sGUISize.cx >> 1)))
+		{
+			SetDCPenColor(hdcImage, m_dwColorFront ^ m_dwColorFront);
+			SetDCBrushColor(hdcImage, m_dwColorFront ^ m_dwColorFront);
+		}
+		else
+		{
+			SetDCPenColor(hdcImage, m_dwColorFront);
+			SetDCBrushColor(hdcImage, m_dwColorFront);
+		}
+		if ((m_asPages.size() > 1) && (m_dwCurrentPage < (m_asPages.size() - 1)))
+			Polygon(hdcImage, asPoints, 3);
+
+		// line between
+		sRect.left = (m_sGUISize.cx >> 1) - (m_sGUISize.cx >> 7);
+		sRect.right = (m_sGUISize.cx >> 1) + (m_sGUISize.cx >> 7);
+		FillRect(hdcImage, &sRect, (HBRUSH)(COLOR_BACKGROUND + 1));
 
 		SelectObject(hdcImage, hbmOld);
 		DeleteDC(hdcImage);
@@ -226,4 +287,65 @@ void Vireio_GUI::AddEntry(UINT dwControl, LPCWSTR szString)
 
 		}
 	}
+}
+
+/**
+* Windows event for the GUI.
+***/
+Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	// create empty return value
+	Vireio_GUI_Event sRet;
+	ZeroMemory(&sRet, sizeof(Vireio_GUI_Event));
+	sRet.eType = Vireio_GUI_Event_Type::NoEvent;
+
+	// get local mouse cursor
+	sMouseCoords.x = GET_X_LPARAM(lParam) * 4;
+	sMouseCoords.y = GET_Y_LPARAM(lParam) * 4;
+
+	// update control
+	m_bControlUpdate = true;
+
+	switch (msg)
+	{
+		// left mouse button down ?
+		case WM_LBUTTONDOWN:
+			// mouse currently bound to any control ?
+			if (!m_bMouseBoundToControl)
+			{
+				// next/previous page ?
+				if (sMouseCoords.y > (LONG)(m_sGUISize.cy - m_dwFontSize * 4))
+				{
+					// left/right ?
+					if (sMouseCoords.x < (LONG)(m_sGUISize.cx >> 1))
+					{
+						if (m_dwCurrentPage > 0) m_dwCurrentPage--;
+					}
+					else
+					{
+						if (m_dwCurrentPage < (UINT)(m_asPages.size() - 1)) m_dwCurrentPage++;
+					}
+					m_bMouseBoundToControl = true;
+				}
+				// loop through active controls for this page
+				else
+					for (UINT dwI = 0; dwI < (UINT)m_asPages[m_dwCurrentPage].m_asControls.size(); dwI++)
+					{
+
+					}
+			}
+			break;
+			// left mouse button up ?
+		case WM_LBUTTONUP:
+			m_bMouseBoundToControl = false;
+			break;
+			// mouse move ?
+		case WM_MOUSEMOVE:
+			if (wParam & MK_LBUTTON) m_bMouseBoundToControl = false;
+			break;
+		case WM_RBUTTONDOWN:
+			break;
+	}
+
+	return sRet;
 }

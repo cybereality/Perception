@@ -29,10 +29,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
 #include <Windows.h>
+#include <windowsx.h>
 #include <stdio.h>
 #include <vector>
 
 #define MAX_CONTROLS_PER_PAGE 2048
+
+#define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"%u", a); OutputDebugString(buf); }
+#define DEBUG_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"%x", a); OutputDebugString(buf); }
 
 /**
 * Vireio control types enumeration.
@@ -46,6 +50,38 @@ enum Vireio_Control_Type
 	EditLine,
 	Slider,
 	CheckBox,
+};
+
+/**
+* Vireio GUI event as returned to the calling class.
+***/
+enum Vireio_GUI_Event_Type
+{
+	NoEvent,
+	ChangedToNext,
+	ChangedToPrevious,
+	ChangedToValue,
+	ChangedToText,
+	Pressed
+};
+
+/**
+* Vireio GUI event as returned to the calling class.
+***/
+struct Vireio_GUI_Event
+{
+	Vireio_GUI_Event_Type eType;
+	UINT dwIndexOfPage;
+	UINT dwIndexOfControl;
+	UINT dwIndexOfEntry;
+	UINT dwIndexOfSubentry;
+	union
+	{
+		UINT dwNewValueUINT;
+		INT nNewValueINT;
+		FLOAT fNewValueFLOAT;
+		std::wstring* pszNewValueWSTRING;
+	};
 };
 
 /**
@@ -104,16 +140,21 @@ public:
 	Vireio_GUI(SIZE sSize, LPCWSTR szFont, BOOL bItalic, DWORD dwFontSize, COLORREF dwColorFront, COLORREF dwColorBack);
 	~Vireio_GUI();
 
-	HBITMAP GetGUI();
-	UINT AddPage() { Vireio_Page sPage; ZeroMemory(&sPage, sizeof(sPage)); m_asPages.push_back(sPage); return (UINT)m_asPages.size() - 1; } /**< Adds a new page. ***/
-	UINT AddControl(UINT dwPage, Vireio_Control& sControl);
-	void AddEntry(UINT dwControl, LPCWSTR szString);
+	HBITMAP          GetGUI();
+	UINT             AddPage() { Vireio_Page sPage; ZeroMemory(&sPage, sizeof(sPage)); m_asPages.push_back(sPage); return (UINT)m_asPages.size() - 1; } /**< Adds a new page. ***/
+	UINT             AddControl(UINT dwPage, Vireio_Control& sControl);
+	void             AddEntry(UINT dwControl, LPCWSTR szString);
+	Vireio_GUI_Event WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam);
 
 private:
 	/**
 	* All stored pages for that GUI.
 	***/
 	std::vector<Vireio_Page> m_asPages;
+	/**
+	* Current page index
+	***/
+	UINT m_dwCurrentPage;
 	/**
 	* The constant size of this GUI, in pixel space.
 	***/
@@ -146,4 +187,13 @@ private:
 	* The control update bool.
 	***/
 	bool m_bControlUpdate;
+	/**
+	* True if the mouse is currently bound to a control.
+	* (in case left mouse button is down)
+	***/
+	bool m_bMouseBoundToControl;
+	/**
+	* Mouse coords.
+	***/
+	POINT sMouseCoords;
 };
