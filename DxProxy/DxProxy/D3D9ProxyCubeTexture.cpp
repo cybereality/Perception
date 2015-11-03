@@ -248,7 +248,7 @@ HRESULT WINAPI D3D9ProxyCubeTexture::LockRect(D3DCUBEMAP_FACES FaceType, UINT Le
 	SHOW_CALL("D3D9ProxyCubeTexture::LockRect");
 
 	D3DSURFACE_DESC desc;
-	m_pActualTexture->GetLevelDesc(Level, &desc);
+	m_pActualTexture->GetLevelDesc(0, &desc);
 	if (desc.Pool != D3DPOOL_DEFAULT)
 	{
 		//Can't really handle stereo for this, so just lock on the original texture
@@ -271,7 +271,10 @@ HRESULT WINAPI D3D9ProxyCubeTexture::LockRect(D3DCUBEMAP_FACES FaceType, UINT Le
 			m_pActualTexture->GetLevelCount(), 0, 
 			desc.Format, D3DPOOL_SYSTEMMEM, &lockableSysMemTexture, NULL);
 		if (FAILED(hr))
+		{
+			vireio::debugf("Failed: m_pOwningDevice->getActual()->CreateCubeTexture hr = 0x%0.8x", hr);
 			return hr;
+		}
 	}
 
 	if (newSurface[key])
@@ -279,11 +282,17 @@ HRESULT WINAPI D3D9ProxyCubeTexture::LockRect(D3DCUBEMAP_FACES FaceType, UINT Le
 		IDirect3DSurface9 *pActualSurface = NULL;
 		hr = m_pActualTexture->GetCubeMapSurface(FaceType, Level, &pActualSurface);
 		if (FAILED(hr))
+		{
+			vireio::debugf("Failed: m_pActualTexture->GetCubeMapSurface hr = 0x%0.8x", hr);
 			return hr;
+		}
 		IDirect3DSurface9 *pSurface = NULL;
 		hr = lockableSysMemTexture->GetCubeMapSurface(FaceType, Level, &pSurface);
 		if (FAILED(hr))
+		{
+			vireio::debugf("Failed: lockableSysMemTexture->GetCubeMapSurface hr = 0x%0.8x", hr);
 			return hr;
+		}
 
 		hr = D3DXLoadSurfaceFromSurface(pSurface, NULL, NULL, pActualSurface, NULL, NULL, D3DX_DEFAULT, 0);
 		if (FAILED(hr))
@@ -302,6 +311,10 @@ HRESULT WINAPI D3D9ProxyCubeTexture::LockRect(D3DCUBEMAP_FACES FaceType, UINT Le
 		hr = m_pActualTexture->AddDirtyRect(FaceType, pRect);
 
 	hr = lockableSysMemTexture->LockRect(FaceType, Level, pLockedRect, pRect, Flags);
+	if (FAILED(hr))
+	{
+		vireio::debugf("Failed: lockableSysMemTexture->LockRect hr = 0x%0.8x", hr);
+	}
 
 	return hr;
 }

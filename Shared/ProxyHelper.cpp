@@ -387,6 +387,30 @@ bool ProxyHelper::LoadUserConfig(UserConfig &userConfig)
 		userConfig.shaderAnalyser = (xml_config.attribute("shader_analyser").as_int(0) != 0);
 		userConfig.show_calls = (xml_config.attribute("show_calls").as_int(0) == 1);
 		userConfig.PerfHudMode = xml_config.attribute("PerfHudMode").as_int(0);
+		userConfig.mirror_mode = xml_config.attribute("mirror_mode").as_int(0);
+
+		return true;
+	}
+
+	return false;
+}
+
+bool  ProxyHelper::SaveUserConfigMirrorMode(int mode)
+{
+	// get global config
+	string configPath = GetPath("cfg\\config.xml");
+
+	xml_document docConfig;
+	xml_parse_result resultConfig = docConfig.load_file(configPath.c_str());
+
+	if(resultConfig.status == status_ok)
+	{
+		xml_node xml_config = docConfig.child("config");
+
+		if(mode >= 0)
+			xml_config.attribute("mirror_mode") = mode;
+
+		docConfig.save_file(configPath.c_str());
 
 		return true;
 	}
@@ -399,7 +423,7 @@ bool ProxyHelper::LoadUserConfig(UserConfig &userConfig)
 * @param mode The chosen stereo mode option.
 * @param aspect The aspect multiplier.
 ***/
-bool ProxyHelper::SaveUserConfig(int mode, float aspect)
+bool ProxyHelper::SaveUserConfig(int mode)
 {
 	// get global config
 	string configPath = GetPath("cfg\\config.xml");
@@ -413,8 +437,6 @@ bool ProxyHelper::SaveUserConfig(int mode, float aspect)
 
 		if(mode >= 0)
 			xml_config.attribute("stereo_mode") = mode;
-		if(aspect >= 0.0f)
-			xml_config.attribute("aspect_multiplier") = aspect;
 
 		docConfig.save_file(configPath.c_str());
 
@@ -694,6 +716,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 		LoadSetting(xml_config, "tracker_mode", &config.tracker_mode);
 		LoadSetting(xml_config, "display_adapter", &config.display_adapter);
 		LoadSetting(xml_config, "PerfHudMode", &config.PerfHudMode);
+		LoadSetting(xml_config, "mirror_mode", &config.mirror_mode);
 
 		fileFound = true;
 	}
@@ -1096,6 +1119,7 @@ void HandleGameProfile(ProxyHelper::ConfigTransferDirection dir, xml_node &node,
 	HANDLE_SETTING(HotkeyComfortMode,       LShift+Key('M'));
 	HANDLE_SETTING(HotkeyVRMouse,           Key(VK_NUMPAD0));
 	HANDLE_SETTING(HotkeyFloatyMenus,       LCtrl+Key(VK_NUMPAD1));
+	HANDLE_SETTING(HotkeyMirrorMode,		LShift + Key(VK_HOME));
 	
 	HANDLE_SETTING(HotkeySwitch2DDepthMode, LShift + (Key('O') || Key(VK_NUMPAD9)));
 	HANDLE_SETTING(HotkeySwapSides,         LAlt+Key('O'));
@@ -1260,9 +1284,10 @@ ProxyConfig::ProxyConfig()
 	stereo_mode = 0;
 	tracker_mode = 0;
 	ipd = IPD_DEFAULT;
-	aspect_multiplier = 1.0f;
+	aspect_multiplier = 1.7f;
 	display_adapter = 0;
 	PerfHudMode = 0;
+	mirror_mode = 0;
 }
 
 /**
