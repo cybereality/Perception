@@ -28,6 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <windowsx.h>
 #include <string>
 #include "hijackdll.h"
 #include <CommCtrl.h> 
@@ -38,15 +39,40 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Resource.h"
 #include "Version.h"
 
+#define APP_SIZE_WIDTH 585
+#define APP_SIZE_HEIGHT 270
+#define APP_SIZE_HEIGHT_EXTENDED 334
 
 using namespace std;
 
 bool InitConfig(void);
 bool InitModes(void);
 std::string getCurrentPath(void);
+bool LoadAquilinusRTE();
 void LoadDLL(void);
 HINSTANCE hD3D9;
 ProxyHelper::OculusProfile oculusProfile;
+
+/*** Aquilinus Runtime Environment type definitions ***/
+typedef void (WINAPI *AQUILINUS_Init)();
+typedef void (WINAPI *AQUILINUS_Close)();
+typedef void (WINAPI *AQUILINUS_ForceIdle)();
+typedef void (WINAPI *AQUILINUS_LoadProfile)();
+
+/*** Aquilinus Runtime Environment methods ***/
+AQUILINUS_Init g_pAquilinus_Init;
+AQUILINUS_Close g_pAquilinus_Close;
+AQUILINUS_ForceIdle g_pAquilinus_ForceIdle;
+AQUILINUS_LoadProfile g_pAquilinus_LoadProfile;
+
+/**
+* Handle to the Aquilinus Runtime Environment.
+***/
+HMODULE g_hmAquilinusRTE = NULL;
+/**
+* True if Aquilinus profile to be loaded.
+***/
+bool g_bLoadAquilinusProfile = false;
 
 class static_control;
 
@@ -105,8 +131,8 @@ public:
 			DeleteObject(back_brush);
 			SetBkColor(item->hDC, back_colour);
 			SetTextColor(item->hDC, RGB(0, 0, 0));
-			}      
-		
+		}      
+
 		HFONT font = CreateFont(0, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
 			DEFAULT_QUALITY, DEFAULT_PITCH, "Calibri");
 		HFONT oldFont = (HFONT)SelectObject(item->hDC, font);
@@ -209,6 +235,7 @@ private:
 	HWND window_handle;
 	HWND header_handle;
 	RECT client_rectangle;
+	RECT extended_profile_rectangle;
 	static_control * text;
 	HBITMAP logo_bitmap;
 public:
@@ -227,15 +254,31 @@ public:
 
 		window_class.hIcon = LoadIcon(instance_handle, MAKEINTRESOURCE(IDI_ICON_BIG));
 
-		RegisterClass(&window_class);   
-		window_handle = CreateWindowEx(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE | WS_EX_TOPMOST,    
-			window_class_name,    
-			"Vireio Perception", 
-			WS_OVERLAPPEDWINDOW & ~(WS_THICKFRAME | WS_MAXIMIZEBOX), 
-			//WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,   
-			(screen_width-585)/2, (screen_height-240)/2, 
-			585, 270,
-			NULL, NULL, instance_handle, NULL);
+		RegisterClass(&window_class);
+
+		// aquilinus runtinme environment present ? create larger window area in case
+		if (g_hmAquilinusRTE)
+		{
+			window_handle = CreateWindowEx(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE | WS_EX_TOPMOST,    
+				window_class_name,    
+				"Vireio Perception", 
+				WS_OVERLAPPEDWINDOW & ~(WS_THICKFRAME | WS_MAXIMIZEBOX), 
+				//WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,   
+				(screen_width-585)/2, (screen_height-240)/2, 
+				APP_SIZE_WIDTH, APP_SIZE_HEIGHT_EXTENDED,
+				NULL, NULL, instance_handle, NULL);
+		}
+		else
+		{
+			window_handle = CreateWindowEx(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE | WS_EX_TOPMOST,    
+				window_class_name,    
+				"Vireio Perception", 
+				WS_OVERLAPPEDWINDOW & ~(WS_THICKFRAME | WS_MAXIMIZEBOX), 
+				//WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,   
+				(screen_width-585)/2, (screen_height-240)/2, 
+				APP_SIZE_WIDTH, APP_SIZE_HEIGHT,
+				NULL, NULL, instance_handle, NULL);
+		}
 		SetWindowLongPtr(window_handle, GWL_USERDATA, (LONG)this);  
 		GetClientRect(window_handle, &client_rectangle);
 		int width = client_rectangle.right - client_rectangle.left;
@@ -282,12 +325,43 @@ public:
 					InvalidateRect(window_handle, &client_rect, FALSE);
 					break;
 				}
+			case WM_LBUTTONDOWN:
+				{
+					if (g_hmAquilinusRTE)
+					{
+						// get the mouse cursor
+						LONG nMouseCursorX = (LONG)GET_X_LPARAM(lparam);
+						LONG nMouseCursorY = (LONG)GET_Y_LPARAM(lparam);
+
+						// load profile ?
+						if ((nMouseCursorX >= This->extended_profile_rectangle.left) &&
+							(nMouseCursorX <= This->extended_profile_rectangle.right) &&
+							(nMouseCursorY >= This->extended_profile_rectangle.top) &&
+							(nMouseCursorY <= This->extended_profile_rectangle.bottom))
+							g_bLoadAquilinusProfile = true;
+					}
+					break;
+				}
+			case WM_LBUTTONUP:
+				{
+					if (g_hmAquilinusRTE)
+					{
+						if (g_bLoadAquilinusProfile)
+						{
+							OutputDebugString("Vireio Perception: Load Aquilinus Profile!");
+
+							// load aquilinus profile
+							g_pAquilinus_LoadProfile();
+							g_bLoadAquilinusProfile = false;
+						}
+					}
+				}
 			case WM_PAINT:   
 				{   
 					PAINTSTRUCT paint_structure;   
 					RECT client_rect;   
 					HDC paint_device_context, paint_dc;   
-					HBITMAP bitmap;   
+					HBITMAP bitmap;
 
 					paint_device_context = BeginPaint(window_handle, &paint_structure);   
 					paint_dc = CreateCompatibleDC(paint_device_context);   
@@ -314,8 +388,7 @@ public:
 					DeleteObject(bitmap);   
 
 					SelectObject(paint_dc, This->logo_bitmap);   
-					//BitBlt(paint_device_context,0,0,600,140,paint_dc,0,0,SRCCOPY);
-					StretchBlt(paint_device_context,0,0,565,68,paint_dc,0,0,470, 68, SRCCOPY);
+					BitBlt(paint_device_context,0,0,565,68,paint_dc,0,0,SRCCOPY);
 
 					std::string date(__DATE__);
 					std::string buildDate = date.substr(4, 2) + "-" + date.substr(0, 3) + "-" + date.substr(7, 4);
@@ -329,7 +402,8 @@ public:
 					TextOut (paint_device_context,290,149,"Oculus Profile:",15);
 					TextOut (paint_device_context,420,149,oculusProfile.Name.c_str(),oculusProfile.Name.size());
 					TextOut (paint_device_context,290,183,"Current FPS:",12);
-					//Now get FPS from the registry
+
+					// Now get FPS from the registry
 					HKEY hKey;
 					LONG openRes = RegOpenKeyEx(HKEY_CURRENT_USER, "SOFTWARE\\Vireio\\Perception", 0, KEY_ALL_ACCESS, &hKey);
 					if (openRes==ERROR_SUCCESS)
@@ -349,10 +423,21 @@ public:
 							TextOut (paint_device_context,420,183,"--", 2);
 					}
 
+					// output extended profile data if aquilinus runtime environment present
+					if (g_hmAquilinusRTE)
+					{						
+						SetRect(&This->extended_profile_rectangle, 16, 190, 272, 254);
+
+						Rectangle(paint_structure.hdc, 
+							This->extended_profile_rectangle.left, 
+							This->extended_profile_rectangle.top, 
+							This->extended_profile_rectangle.right, 
+							This->extended_profile_rectangle.bottom); 
+					}
 
 					DeleteObject(SelectObject(paint_device_context, oldFont));
 					DeleteDC(paint_dc);   
-					EndPaint(window_handle, &paint_structure);   
+					EndPaint(window_handle, &paint_structure);
 					return 0;   
 				}   
 			case WM_ERASEBKGND:   
@@ -413,7 +498,12 @@ public:
 				}
 			case WM_CLOSE:   
 				{   
-					PostQuitMessage(0);   
+					PostQuitMessage(0);
+					if (g_hmAquilinusRTE)
+					{
+						g_pAquilinus_Close();
+						FreeLibrary(g_hmAquilinusRTE);
+					}
 					return 0;   
 				}   
 			}   
@@ -441,19 +531,26 @@ public:
 	}
 };  
 
+/**
+* Map of Vireio Perception Stereo View Render Modes.
+***/
 map<int, int> stereoModes;
+/**
+* Map of Vireio Perception Head Tracker Modes.
+***/
 map<int, int> trackerModes;
 
 int WINAPI wWinMain(HINSTANCE instance_handle, HINSTANCE, LPWSTR, INT) {  
 
 	// avoid double driver window
 	HWND window = FindWindow( "perception", "Vireio Perception");
-    if( window != 0 )
-    {
+	if( window != 0 )
+	{
 		OutputDebugString("Vireio Perception is already present !");
 		return 0;
-    }
+	}
 
+	if (LoadAquilinusRTE()) OutputDebugString("Vireio Perception : Using Aquilinus Runtime Environment.");
 	InitConfig();
 	InitModes();
 	InstallHook();
@@ -483,19 +580,19 @@ int WINAPI wWinMain(HINSTANCE instance_handle, HINSTANCE, LPWSTR, INT) {
 	main_window.add_item2("OculusTrack\t40");
 
 
-    UINT32 num_of_paths = 0;
-    UINT32 num_of_modes = 0;
-    DISPLAYCONFIG_PATH_INFO* displayPaths = NULL; 
-    DISPLAYCONFIG_MODE_INFO* displayModes = NULL;
+	UINT32 num_of_paths = 0;
+	UINT32 num_of_modes = 0;
+	DISPLAYCONFIG_PATH_INFO* displayPaths = NULL; 
+	DISPLAYCONFIG_MODE_INFO* displayModes = NULL;
 	GetDisplayConfigBufferSizes(QDC_ALL_PATHS, &num_of_paths, &num_of_modes);
 
-    
-    // Allocate paths and modes dynamically
-    displayPaths = (DISPLAYCONFIG_PATH_INFO*)calloc((int)num_of_paths, sizeof(DISPLAYCONFIG_PATH_INFO));
-    displayModes = (DISPLAYCONFIG_MODE_INFO*)calloc((int)num_of_modes, sizeof(DISPLAYCONFIG_MODE_INFO));
-    
-    // Query for the information 
-    QueryDisplayConfig(QDC_ONLY_ACTIVE_PATHS, &num_of_paths, displayPaths, &num_of_modes, displayModes, NULL);
+
+	// Allocate paths and modes dynamically
+	displayPaths = (DISPLAYCONFIG_PATH_INFO*)calloc((int)num_of_paths, sizeof(DISPLAYCONFIG_PATH_INFO));
+	displayModes = (DISPLAYCONFIG_MODE_INFO*)calloc((int)num_of_modes, sizeof(DISPLAYCONFIG_MODE_INFO));
+
+	// Query for the information 
+	QueryDisplayConfig(QDC_ONLY_ACTIVE_PATHS, &num_of_paths, displayPaths, &num_of_modes, displayModes, NULL);
 
 	UINT32 index = 0;
 	int adapterNum = 0;
@@ -654,4 +751,42 @@ std::string getCurrentPath(void)
 	}
 
 	return basePath;
+}
+
+/**
+* Loads the Aquilinus runtime environment, if present.
+* @returns True if the Aquilinus runtime environment is present and loaded.
+***/
+bool LoadAquilinusRTE()
+{
+	// explicit Aquilinus Runtime Environment dll import
+#ifdef _WIN64
+	g_hmAquilinusRTE = LoadLibrary("AquilinusRTE_x64.dll");
+#else
+	g_hmAquilinusRTE = LoadLibrary("AquilinusRTE_Win32.dll");
+#endif
+
+	// get Aquilinus Runtime Environment methods
+	if (g_hmAquilinusRTE != NULL)
+	{
+		// get methods explicit
+		g_pAquilinus_Init = (AQUILINUS_Init)GetProcAddress(g_hmAquilinusRTE, "Aquilinus_Init");
+		g_pAquilinus_Close = (AQUILINUS_Close)GetProcAddress(g_hmAquilinusRTE, "Aquilinus_Close");
+		g_pAquilinus_ForceIdle = (AQUILINUS_ForceIdle)GetProcAddress(g_hmAquilinusRTE, "Aquilinus_ForceIdle");
+		g_pAquilinus_LoadProfile = (AQUILINUS_LoadProfile)GetProcAddress(g_hmAquilinusRTE, "Aquilinus_LoadProfile");
+
+		if ((!g_pAquilinus_Init) || (!g_pAquilinus_Close) || (!g_pAquilinus_ForceIdle) || (!g_pAquilinus_LoadProfile))
+		{
+			OutputDebugString("Aquilinus Runtime Environment method(s) not found !");
+			FreeLibrary(g_hmAquilinusRTE);
+			g_hmAquilinusRTE = NULL;
+			return false;
+		}
+		else
+			g_pAquilinus_Init();
+	}
+	else 
+		return false;
+
+	return true;
 }

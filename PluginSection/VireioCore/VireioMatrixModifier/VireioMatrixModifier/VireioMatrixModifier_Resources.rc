@@ -1,0 +1,6 @@
+#define IMG_LOGO01 100
+
+#include "Resources.h"
+
+IMG_LOGO01 BITMAP "matrix_modifier_logo.bmp"
+
