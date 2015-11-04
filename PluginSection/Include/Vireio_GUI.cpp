@@ -117,28 +117,10 @@ HBITMAP Vireio_GUI::GetGUI()
 					switch (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_eControlType)
 					{
 						case StaticListBox:
-						{
-							POINT* psPos = &m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sPosition;
-							SIZE* psSize = &m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSize;
-							int nY = (int)psPos->y;
-
-							// loop through entries
-							if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sStaticListBox.m_paszEntries)
-								for (UINT dwJ = 0; dwJ < (UINT)m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sStaticListBox.m_paszEntries->size(); dwJ++)
-								{
-									// output the list entry text
-									TextOut(hdcImage,
-										psPos->x,
-										nY,
-										((*(m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sStaticListBox.m_paszEntries))[dwJ]).c_str(),
-										((*(m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sStaticListBox.m_paszEntries))[dwJ]).length());
-
-									// next line
-									nY += (int)m_dwFontSize;
-								}
-						}
-						break;
+							DrawStaticListBox(hdcImage, m_asPages[m_dwCurrentPage].m_asControls[dwI]);
+							break;
 						case ListBox:
+							DrawListBox(hdcImage, m_asPages[m_dwCurrentPage].m_asControls[dwI]);
 							break;
 						case SpinControl:
 							break;
@@ -225,6 +207,102 @@ HBITMAP Vireio_GUI::GetGUI()
 }
 
 /**
+* Draws a static list box.
+* @param hdc The handle to a device context (DC) for the client area.
+* @param sControl The list box control (both static and versatile).
+***/
+void Vireio_GUI::DrawStaticListBox(HDC hdc, Vireio_Control& sControl)
+{
+	// only list box controls
+	if ((sControl.m_eControlType != Vireio_Control_Type::ListBox) &&
+		(sControl.m_eControlType != Vireio_Control_Type::StaticListBox))
+		return;
+
+	// get position and size pointers
+	POINT* psPos = &sControl.m_sPosition;
+	SIZE* psSize = &sControl.m_sSize;
+	int nY = (int)psPos->y;
+	if (sControl.m_eControlType == Vireio_Control_Type::ListBox) { nY -= (int)sControl.m_sListBox.m_fScrollPosY; }
+
+	// loop through entries
+	if (sControl.m_sStaticListBox.m_paszEntries)
+		for (UINT dwJ = 0; dwJ < (UINT)sControl.m_sStaticListBox.m_paszEntries->size(); dwJ++)
+		{
+			if ((nY >= (int(m_dwFontSize) * -1)) && (nY <= int(psPos->y + psSize->cy)))
+				// output the list entry text
+				TextOut(hdc,
+				psPos->x,
+				nY,
+				((*(sControl.m_sStaticListBox.m_paszEntries))[dwJ]).c_str(),
+				(int)((*(sControl.m_sStaticListBox.m_paszEntries))[dwJ]).length());
+
+			// next line
+			nY += (int)m_dwFontSize;
+		}
+
+	// draw an empty field at the bottom of the list
+	RECT sRect;
+	sRect.top = (LONG)psPos->y + psSize->cy;
+	sRect.bottom = (LONG)psPos->y + psSize->cy + m_dwFontSize + 1;
+	sRect.left = (LONG)psPos->x;
+	sRect.right = (LONG)psPos->x + psSize->cx;
+	FillRect(hdc, &sRect, (HBRUSH)CreateSolidBrush(m_dwColorBack));
+
+	// and an empty field at the right side of the list
+	sRect.top = (LONG)psPos->y;
+	sRect.bottom = (LONG)psPos->y + psSize->cy + m_dwFontSize + 1;
+	sRect.left = (LONG)psPos->x + psSize->cx;
+	sRect.right = m_sGUISize.cx;
+	FillRect(hdc, &sRect, (HBRUSH)CreateSolidBrush(m_dwColorBack));
+}
+
+/**
+* Draws a static list box.
+* @param hdc The handle to a device context (DC) for the client area.
+* @param sControl The list box control.
+***/
+void Vireio_GUI::DrawListBox(HDC hdc, Vireio_Control& sControl)
+{
+	// first, draw the text using the static list box drawing method
+	DrawStaticListBox(hdc, sControl);
+	
+	// get position and size pointers
+	POINT* psPos = &sControl.m_sPosition;
+	SIZE* psSize = &sControl.m_sSize;
+
+	// draw the scroll bar
+	UINT dwFullTextSizeY = (UINT)sControl.m_sListBox.m_paszEntries->size() * m_dwFontSize;
+	if (dwFullTextSizeY > (UINT)psSize->cy)
+	{
+		float fBarSizeY;
+		INT nBarSizeY;
+		fBarSizeY = ((float)psSize->cy / (float)dwFullTextSizeY) * psSize->cy;
+		if (fBarSizeY >= 0)
+			nBarSizeY = (int)(fBarSizeY + 0.5);
+		else
+			nBarSizeY = (int)(fBarSizeY - 0.5);
+			DEBUG_UINT(nBarSizeY);
+		float fBarPosY;
+		INT nBarPosY;
+		fBarPosY = (((float)psSize->cy - fBarSizeY) / sControl.m_sListBox.m_fScrollPosY) * ((float)psSize->cy - fBarSizeY);
+		if (fBarPosY >= 0)
+			nBarPosY = (int)DWORD(fBarPosY + 0.5);
+		else
+			nBarPosY = 0;
+		DEBUG_UINT(fBarPosY);
+		DEBUG_UINT(nBarPosY);
+
+		// and draw
+		RECT sRect;
+		sRect.top = (LONG)psPos->y + (LONG)nBarPosY;
+		sRect.bottom = (LONG)psPos->y + (LONG)nBarPosY + (LONG)nBarSizeY + 1;
+		sRect.left = (LONG)psPos->x + psSize->cx;
+		sRect.right = (LONG)psPos->x + psSize->cx + m_dwFontSize;
+		FillRect(hdc, &sRect, (HBRUSH)CreateSolidBrush(m_dwColorFront));
+	}
+}
+
+/**
 * Adds a Vireio Control to the specified page.
 * @param dwPage The index of the page the control will be added. (=id)
 ***/
@@ -238,7 +316,7 @@ UINT Vireio_GUI::AddControl(UINT dwPage, Vireio_Control& sControl)
 			m_asPages[dwPage].m_asControls.push_back(sControl);
 
 		// create id and return
-		return (UINT)(dwPage << 16) + m_asPages[dwPage].m_asControls.size() - 1;
+		return (UINT)(dwPage << 16) + (UINT)m_asPages[dwPage].m_asControls.size() - 1;
 	}
 	else return 0;
 }

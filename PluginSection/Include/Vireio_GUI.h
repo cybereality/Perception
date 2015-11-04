@@ -101,7 +101,7 @@ struct Vireio_StaticListBox_Data
 ***/
 struct Vireio_ListBox_Data : public Vireio_StaticListBox_Data
 {
-
+	float m_fScrollPosY;                     /**< The position of the scroll bar. ***/
 };
 
 /**
@@ -141,6 +141,8 @@ public:
 	~Vireio_GUI();
 
 	HBITMAP          GetGUI();
+	void             DrawStaticListBox(HDC hdc, Vireio_Control& sControl);
+	void             DrawListBox(HDC hdc, Vireio_Control& sControl);
 	UINT             AddPage() { Vireio_Page sPage; ZeroMemory(&sPage, sizeof(sPage)); m_asPages.push_back(sPage); return (UINT)m_asPages.size() - 1; } /**< Adds a new page. ***/
 	UINT             AddControl(UINT dwPage, Vireio_Control& sControl);
 	void             AddEntry(UINT dwControl, LPCWSTR szString);

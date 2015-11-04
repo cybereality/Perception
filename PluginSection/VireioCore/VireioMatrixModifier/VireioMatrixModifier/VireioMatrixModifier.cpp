@@ -245,8 +245,21 @@ HBITMAP MatrixModifier::GetControl()
 
 		// add second page and control
 		UINT dwInfoPage = m_pcVireioGUI->AddPage();
+
+		// TEST... to be deleted
 		m_pcVireioGUI->AddPage();
 		m_pcVireioGUI->AddPage();
+		static std::vector<std::wstring> sEntriesTEST;
+		sControl.m_eControlType = Vireio_Control_Type::ListBox;
+		sControl.m_sPosition.x = 16;
+		sControl.m_sPosition.y = 0;
+		sControl.m_sSize.cx = 900;
+		sControl.m_sSize.cy = 2000;
+		sControl.m_sStaticListBox.m_paszEntries = &sEntriesTEST;
+		UINT dwTestList = m_pcVireioGUI->AddControl(dwInfoPage, sControl);
+		for (int i = 0; i < 200; i++)
+			m_pcVireioGUI->AddEntry(dwTestList, L"ThisIsATestThisIsATestThisIsATestThisIsATest");
+
 	}
 	else
 		return m_pcVireioGUI->GetGUI();
@@ -1654,7 +1667,7 @@ void MatrixModifier::UpdateConstantBuffer(ID3D11DeviceContext* pcContext, ID3D11
 #ifdef _DEBUG
 		OutputDebugString(L"MatrixModifier: Both Vertex Shader and Constant buffer have no private shader data ! ");
 #endif
-	}
+}
 
 	if ((!dwSizeLeft) || (!dwSizeRight))
 	{
