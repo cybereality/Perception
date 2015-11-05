@@ -47,89 +47,15 @@ public:
 		HMDisplayInfo(),
 		m_status(HMD_STATUS_OK)
 	{
-		OutputDebugString("HMDisplayInfo_OculusRift()\n");
-		ovrResult res = ovr_Initialize(NULL);
 
-		if (!OVR_SUCCESS(res))
-		{
-			throw std::exception("Failed to initialise OVR");
-		}
-
-		ovrResult result = ovrHmd_Detect();
-		if (!OVR_SUCCESS(result))
-		{
-			OutputDebugString("No HMD Detected - Creating Debug DK2\n");
-			ovrHmd_CreateDebug(ovrHmd_DK2, &hmd);
-		}
-		else
-		{
-			ovrHmd_Create(0, &hmd);
-			if (!hmd)
-			{
-				OutputDebugString("Unable to create HMD of correct type - Creating Debug DK2\n");
-				ovrHmd_CreateDebug(ovrHmd_DK2, &hmd);
-			}
-		}
-
-		switch (hmd->Type)
-		{
-		case ovrHmd_DK1:
-			{
-				// Rift dev kit 
-				distortionCoefficients[0] = 1.0f;
-				distortionCoefficients[1] = 0.22f;
-				distortionCoefficients[2] = 0.24f;
-				distortionCoefficients[3] = 0.0f;		
-
-				//From Oculus SDK OVR_Stereo.cpp
-				chromaCoefficients[0]        = -0.006f;
-				chromaCoefficients[1]        =  0.0f;
-				chromaCoefficients[2]        =  0.014f;
-				chromaCoefficients[3]        =  0.0f;
-			}
-			break;
-		case ovrHmd_DKHD:
-			{
-				// RiftUp!
-				distortionCoefficients[0] = 1.0f;
-				distortionCoefficients[1] = 0.18f;
-				distortionCoefficients[2] = 0.115f;
-				distortionCoefficients[3] = 0.0f;			
-
-				//From Oculus SDK OVR_Stereo.cpp
-				chromaCoefficients[0]        = -0.006f;
-				chromaCoefficients[1]        =  0.0f;
-				chromaCoefficients[2]        =  0.014f;
-				chromaCoefficients[3]        =  0.0f;
-			}
-			break;
-		case ovrHmd_DK2:
-			{
-				// Rift dev kit 2 OVR_Stereo.cpp
-				distortionCoefficients[0] = 1.0f;
-				distortionCoefficients[1] = 0.15f;
-				distortionCoefficients[2] = 0.05f;
-				distortionCoefficients[3] = 0.0f;
-
-				//From Oculus SDK OVR_Stereo.cpp
-				chromaCoefficients[0]        = -0.0112f;
-				chromaCoefficients[1]        = -0.015f;
-				chromaCoefficients[2]        =  0.0187f;
-				chromaCoefficients[3]        =  0.015f;
-			}
-			break;
-		}
-
-		//std::stringstream sstm;
-		vireio::debugf("scaleToFillHorizontal: %f\n", GetScaleToFillHorizontal());
  	}
 
 	~HMDisplayInfo_OculusRift()
 	{
-		ovrHmd_Destroy(hmd);
+
 	}
 
-	virtual std::string GetHMDName() {return std::string(hmd->ProductName);}
+	virtual std::string GetHMDName() {return "Oculus";}
 
 
 	/**
@@ -138,7 +64,7 @@ public:
 	***/
 	virtual std::pair<UINT, UINT> GetResolution()
 	{
-		return std::make_pair<UINT, UINT>((UINT)hmd->Resolution.w, (UINT)hmd->Resolution.h);
+		return std::make_pair<UINT, UINT>((UINT)1920, (UINT)1080);
 	}
 
 	/**
@@ -147,14 +73,7 @@ public:
 	***/
 	virtual std::pair<float, float> GetPhysicalScreenSize()
 	{
-		switch (hmd->Type)
-		{
-		case ovrHmd_DK1: return std::pair<float,float>(0.1498f, 0.0936f);
-		case ovrHmd_DKHD: return std::pair<float,float>(0.12576f, 0.07074f);
-		case ovrHmd_DK2: return std::pair<float,float>(0.12576f, 0.07074f);
-		default:
-			throw std::exception("Unrecognized HMD type; could not get screen size");
-		}
+		return std::pair<float,float>(0.12576f, 0.07074f);
 	}
 
 	/**
