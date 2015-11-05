@@ -45,6 +45,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"AQU_Nodus.h"
 #include"Resources.h"
 #include"VireioMatrixModifierDataStructures.h"
+#include"..\..\..\..\DxProxy\DxProxy\ViewAdjustment.h"
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 #include <DXGI.h>

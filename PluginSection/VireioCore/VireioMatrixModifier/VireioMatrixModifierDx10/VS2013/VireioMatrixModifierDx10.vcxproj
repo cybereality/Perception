@@ -92,7 +92,7 @@
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>VIREIO_D3D10;VIREIO_D3D11;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>VIREIO_MATRIX_MODIFIER;VIREIO_D3D10;VIREIO_D3D11;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -107,7 +107,7 @@
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>VIREIO_D3D10;VIREIO_D3D11;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>VIREIO_MATRIX_MODIFIER;VIREIO_D3D10;VIREIO_D3D11;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -124,7 +124,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>VIREIO_D3D10;VIREIO_D3D11;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>VIREIO_MATRIX_MODIFIER;VIREIO_D3D10;VIREIO_D3D11;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -143,7 +143,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>VIREIO_D3D10;VIREIO_D3D11;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>VIREIO_MATRIX_MODIFIER;VIREIO_D3D10;VIREIO_D3D11;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -155,6 +155,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\ViewAdjustment.h" />
     <ClInclude Include="..\..\..\..\Include\Vireio_GUI.h" />
     <ClInclude Include="..\..\..\..\Include\Vireio_GUIDs.h" />
     <ClInclude Include="..\..\VireioMatrixModifier\AQU_Nodus.h" />
@@ -163,6 +164,7 @@
     <ClInclude Include="..\..\VireioMatrixModifier\VireioMatrixModifierDataStructures.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\..\..\DxProxy\DxProxy\ViewAdjustment.cpp" />
     <ClCompile Include="..\..\..\..\Include\Vireio_GUI.cpp" />
     <ClCompile Include="..\..\VireioMatrixModifier\VireioMatrixModifier.cpp" />
   </ItemGroup>
