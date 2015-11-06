@@ -35,8 +35,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "d3d9.h"
 #include "d3dx9.h"
 #include "HMDisplayInfo.h"
+#ifdef VIREIO_MATRIX_MODIFIER
+#include"..\..\PluginSection\Include\Vireio_GameConfig.h"
+#else
 #include "Vireio.h"
 #include "ProxyHelper.h"
+#endif
 
 #define LEFT_CONSTANT -1
 #define RIGHT_CONSTANT 1
@@ -45,31 +49,37 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * Class for eye and head roll adjustment matrix calculation.
 * Calculates left and right view projection transform matrices.
 *
-* ALL MATRICES are identity matrices if worldScaleFactor in game configuration not set (==zero). 
+* ALL MATRICES are identity matrices if worldScaleFactor in game configuration not set (==zero).
 * @see ShaderConstantModification
 */
 class ViewAdjustment
 {
-public:	
-	ViewAdjustment(HMDisplayInfo *hmdInfo, ProxyConfig *config);
+public:
+#ifdef VIREIO_MATRIX_MODIFIER
+	ViewAdjustment(HMDisplayInfo *displayInfo, Vireio_GameConfiguration *config);
+#else
+	ViewAdjustment(HMDisplayInfo *displayInfo, ProxyConfig *config);
+#endif
 	virtual ~ViewAdjustment();
 
 	/*** ViewAdjustment public methods ***/
+#ifndef VIREIO_MATRIX_MODIFIER
 	void          Load(ProxyConfig& cfg);
 	void          Save(ProxyConfig& cfg);
+#endif
 	void          UpdateProjectionMatrices(float aspectRatio, float fov_horiz);
 	void          UpdateRoll(float roll);
 	void		  UpdatePosition(float yaw, float pitch, float roll, float xPosition = 0.0f, float yPosition = 0.0f, float zPosition = 0.0f);
-	void          ComputeViewTransforms(); 
+	void          ComputeViewTransforms();
 	D3DXMATRIX    PositionMatrix();
 	D3DXMATRIX    LeftAdjustmentMatrix();
 	D3DXMATRIX    RightAdjustmentMatrix();
 	D3DXMATRIX    LeftAdjustmentMatrixNoRoll();
 	D3DXMATRIX    RightAdjustmentMatrixNoRoll();
 	D3DXMATRIX    LeftView();
-	D3DXMATRIX    RightView();	
+	D3DXMATRIX    RightView();
 	D3DXMATRIX    LeftViewTransform();
-	D3DXMATRIX    RightViewTransform();	
+	D3DXMATRIX    RightViewTransform();
 	D3DXMATRIX    Projection();
 	D3DXMATRIX    ProjectionInverse();
 	D3DXMATRIX    RollMatrix();
@@ -105,13 +115,24 @@ public:
 	//int           RollImpl();
 	//void          SetRollImpl(int rollImpl);
 	//int			  GetStereoType();
-	HMDisplayInfo* HMDInfo();	
+	HMDisplayInfo* HMDInfo();
 
 private:
+#ifdef VIREIO_MATRIX_MODIFIER
+	/**
+	* Vireio v4.x game configuration.
+	***/
+	Vireio_GameConfiguration *config;
+#else
+	/**
+	* Vireio v1.x -> v3.x game configuration.
+	***/
 	ProxyConfig *config;
-	
+#endif
+	/**
+	*
+	***/
 	D3DXVECTOR3 positionTransformVec;
-
 	/**
 	* Positional translation matrix
 	**/
@@ -213,27 +234,27 @@ private:
 	***/
 	D3DXMATRIX matHudDistance;
 	/**
-	* HUD 3d depth matrix, to be used in HUD separation matrices. 
+	* HUD 3d depth matrix, to be used in HUD separation matrices.
 	***/
 	D3DXMATRIX matLeftHud3DDepth;
 	/**
-	* HUD 3d depth matrix, to be used in HUD separation matrices. 
+	* HUD 3d depth matrix, to be used in HUD separation matrices.
 	***/
 	D3DXMATRIX matRightHud3DDepth;
 	/**
-	* HUD 3d depth matrix, to be used in HUD separation matrices. 
+	* HUD 3d depth matrix, to be used in HUD separation matrices.
 	***/
 	D3DXMATRIX matLeftHud3DDepthShifted;
 	/**
-	* HUD 3d depth matrix, to be used in HUD separation matrices. 
+	* HUD 3d depth matrix, to be used in HUD separation matrices.
 	***/
 	D3DXMATRIX matRightHud3DDepthShifted;
 	/**
-	* HUD 3d depth matrix, to be used in HUD separation matrices. 
+	* HUD 3d depth matrix, to be used in HUD separation matrices.
 	***/
 	D3DXMATRIX matLeftGui3DDepth;
 	/**
-	* HUD 3d depth matrix, to be used in HUD separation matrices. 
+	* HUD 3d depth matrix, to be used in HUD separation matrices.
 	***/
 	D3DXMATRIX matRightGui3DDepth;
 	/**

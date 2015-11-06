@@ -29,9 +29,35 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "ViewAdjustment.h"
-#include "ConfigDefaults.h"
+#include "..\..\Shared\ConfigDefaults.h"
 
 #define PI 3.141592654
+
+#ifdef VIREIO_MATRIX_MODIFIER
+/**
+* Returns true if two values are almost equal, with limit value epsilon.
+* @param [in] a First value.
+* @param [in] b Second value.
+* @param [in] epsilon The limit value.
+***/
+inline bool AlmostSame(float a, float b, float epsilon)
+{
+	return fabs(a - b) < epsilon;
+}
+
+/**
+* Clamps the specified value to the specified minimum and maximum range.
+* @param pfToClamp [in, out] A pointer to a value to clamp.
+* @param min [in] The specified minimum range.
+* @param max [in] The specified maximum range.
+***/
+inline void clamp(float* pfToClamp, float min, float max)
+{
+	*pfToClamp > max ? *pfToClamp = max : (*pfToClamp < min ? *pfToClamp = min : *pfToClamp = *pfToClamp);
+}
+#else
+using namespace vireio;
+#endif
 
 // TODO : max, min convergence; arbitrary now
 const float minConvergence = -10.0f;
@@ -41,10 +67,14 @@ const float maxConvergence = 100.0f;
 * Constructor.
 * Sets class constants, identity matrices and a projection matrix.
 ***/
+#ifdef VIREIO_MATRIX_MODIFIER
+ViewAdjustment::ViewAdjustment(HMDisplayInfo *displayInfo, Vireio_GameConfiguration *config) :
+#else
 ViewAdjustment::ViewAdjustment(HMDisplayInfo *displayInfo, ProxyConfig *config) :
-	config(config),
-	hmdInfo(displayInfo),
-	m_roll(0.0f)
+#endif
+config(config),
+hmdInfo(displayInfo),
+m_roll(0.0f)
 {
 	convergence = 100.0f;
 
@@ -83,15 +113,16 @@ ViewAdjustment::ViewAdjustment(HMDisplayInfo *displayInfo, ProxyConfig *config) 
 /**
 * Empty destructor.
 ***/
-ViewAdjustment::~ViewAdjustment() 
+ViewAdjustment::~ViewAdjustment()
 {
 }
 
+#ifndef VIREIO_MATRIX_MODIFIER
 /**
 * Loads game configuration data.
 * @param cfg Game configuration to load.
 ***/
-void ViewAdjustment::Load(ProxyConfig& cfg) 
+void ViewAdjustment::Load(ProxyConfig& cfg)
 {
 	convergence = cfg.convergence;
 	ipd = cfg.ipd;
@@ -101,13 +132,14 @@ void ViewAdjustment::Load(ProxyConfig& cfg)
 * Saves game configuration data.
 * @param cfg The game configuration to be saved to.
 ***/
-void ViewAdjustment::Save(ProxyConfig& cfg) 
+void ViewAdjustment::Save(ProxyConfig& cfg)
 {
 	cfg.convergence = convergence;
 
 	//worldscale and ipd are not normally edited;
 	cfg.ipd = ipd;
 }
+#endif
 
 
 /**
@@ -156,11 +188,11 @@ void ViewAdjustment::UpdateProjectionMatrices(float aspectRatio, float fov_horiz
 		// (near clipping plane distance = physical screen distance)
 		// (convergence = virtual screen distance)
 		if (convergence <= nearClippingPlaneDistance) convergence = nearClippingPlaneDistance + 0.001f;
-		float frustumAsymmetryInMeters = ((ipd/2) * nearClippingPlaneDistance) / convergence;
-		
+		float frustumAsymmetryInMeters = ((ipd / 2) * nearClippingPlaneDistance) / convergence;
+
 		// Convergence being disabled is equivalent to an infinite convergence distance,
 		// or zero asymmetry.
-		if(!config->convergenceEnabled)
+		if (!config->convergenceEnabled)
 			frustumAsymmetryInMeters = 0.0f;
 
 		// divide the frustum asymmetry by the assumed physical size of the physical screen
@@ -168,19 +200,19 @@ void ViewAdjustment::UpdateProjectionMatrices(float aspectRatio, float fov_horiz
 		float frustumAsymmetryRightInMeters = (frustumAsymmetryInMeters * RIGHT_CONSTANT) / physicalScreenSizeInMeters;
 
 		// get the horizontal screen space size and compute screen space adjustment
-		float screenSpaceXSize = abs(l)+abs(r);
-		float multiplier = screenSpaceXSize/1; // = 1 meter
+		float screenSpaceXSize = abs(l) + abs(r);
+		float multiplier = screenSpaceXSize / 1; // = 1 meter
 		float frustumAsymmetryLeft = frustumAsymmetryLeftInMeters * multiplier;
 		float frustumAsymmetryRight = frustumAsymmetryRightInMeters * multiplier;
 
 		// now, create the re-projection matrices for both eyes using this frustum asymmetry
-		D3DXMatrixPerspectiveOffCenterLH(&projectLeftConverge, l+frustumAsymmetryLeft, r+frustumAsymmetryLeft, b, t, n, f);
-		D3DXMatrixPerspectiveOffCenterLH(&projectRightConverge, l+frustumAsymmetryRight, r+frustumAsymmetryRight, b, t, n, f);
+		D3DXMatrixPerspectiveOffCenterLH(&projectLeftConverge, l + frustumAsymmetryLeft, r + frustumAsymmetryLeft, b, t, n, f);
+		D3DXMatrixPerspectiveOffCenterLH(&projectRightConverge, l + frustumAsymmetryRight, r + frustumAsymmetryRight, b, t, n, f);
 	}
 	else
 	{
 		//Calculate vertical fov from provided horizontal
-		float fov_vert = 2.0f * atan( tan(D3DXToRadian(fov_horiz) / 2.0f) * aspectRatio);
+		float fov_vert = 2.0f * atan(tan(D3DXToRadian(fov_horiz) / 2.0f) * aspectRatio);
 
 		//And left and right (identical in this case)
 		D3DXMatrixPerspectiveFovLH(&projectPFOV, fov_vert, aspectRatio, n, f);
@@ -201,7 +233,7 @@ void ViewAdjustment::UpdateRoll(float roll)
 }
 void ViewAdjustment::SetGameSpecificPositionalScaling(D3DXVECTOR3 scalingVec)
 {
-	gameScaleVec  = scalingVec;
+	gameScaleVec = scalingVec;
 }
 
 /**
@@ -242,7 +274,7 @@ void ViewAdjustment::UpdatePosition(float yaw, float pitch, float roll, float xP
 	D3DXMATRIX gamescalingmatrix;
 	D3DXMatrixScaling(&gamescalingmatrix, config->position_x_multiplier, config->position_y_multiplier, config->position_z_multiplier);
 	D3DXVec3TransformNormal(&positionTransformVec, &positionTransformVec, &gamescalingmatrix);
-	
+
 	D3DXMatrixTranslation(&matPosition, positionTransformVec.x, positionTransformVec.y, positionTransformVec.z);
 }
 
@@ -272,15 +304,16 @@ void ViewAdjustment::ComputeViewTransforms()
 		D3DXMatrixTranslation(&transformLeft, SeparationInWorldUnits() * LEFT_CONSTANT, 0, 0);
 		D3DXMatrixTranslation(&transformRight, SeparationInWorldUnits() * RIGHT_CONSTANT, 0, 0);
 	}
-	
+
 	// projection transform, no roll
 	if (config->PFOVToggle)
 	{
 		matViewProjTransformLeftNoRoll = matProjectionInv * transformLeft * projectPFOV;
 		matViewProjTransformRightNoRoll = matProjectionInv * transformRight * projectPFOV;
-	
+
 		// head roll - only if using translation implementation
-		if (config->rollImpl == 1) {
+		if (config->rollImpl == 1)
+		{
 			D3DXMatrixMultiply(&transformLeft, &rollMatrix, &transformLeft);
 			D3DXMatrixMultiply(&transformRight, &rollMatrix, &transformRight);
 
@@ -304,7 +337,8 @@ void ViewAdjustment::ComputeViewTransforms()
 		matViewProjTransformLeftNoRoll = matProjectionInv * transformLeft * projectLeftConverge;
 		matViewProjTransformRightNoRoll = matProjectionInv * transformRight * projectRightConverge;
 		// head roll - only if using translation implementation
-		if (config->rollImpl == 1) {
+		if (config->rollImpl == 1)
+		{
 			D3DXMatrixMultiply(&transformLeft, &rollMatrix, &transformLeft);
 			D3DXMatrixMultiply(&transformRight, &rollMatrix, &transformRight);
 
@@ -326,15 +360,16 @@ void ViewAdjustment::ComputeViewTransforms()
 
 
 	// now, create HUD/GUI helper matrices
-
+#ifndef VIREIO_MATRIX_MODIFIER
 	// if not HMD, set HUD/GUI to fullscreen
-	if (config->stereo_mode <100)   //stereo type > 100 reserved specifically for HMDs
+	if (config->stereo_mode < 100)   //stereo type > 100 reserved specifically for HMDs
 	{
 		squash = 1.0f;
 		gui3DDepth = 0.0f;
 		hudDistance = 0.0f;
 		hud3DDepth = 0.0f;
 	}
+#endif
 
 	// squash
 	D3DXMatrixScaling(&matSquash, squash, squash, 1);
@@ -345,16 +380,16 @@ void ViewAdjustment::ComputeViewTransforms()
 	// hud3DDepth
 	D3DXMatrixTranslation(&matLeftHud3DDepth, hud3DDepth, 0, 0);
 	D3DXMatrixTranslation(&matRightHud3DDepth, -hud3DDepth, 0, 0);
-	float additionalSeparation = (1.5f-hudDistance)*hmdInfo->GetLensXCenterOffset();
-	D3DXMatrixTranslation(&matLeftHud3DDepthShifted, hud3DDepth+additionalSeparation, 0, 0);
-	D3DXMatrixTranslation(&matRightHud3DDepthShifted, -hud3DDepth-additionalSeparation, 0, 0);
-	D3DXMatrixTranslation(&matLeftGui3DDepth, gui3DDepth+SeparationIPDAdjustment(), 0, 0);
-	D3DXMatrixTranslation(&matRightGui3DDepth, -(gui3DDepth+SeparationIPDAdjustment()), 0, 0);
+	float additionalSeparation = (1.5f - hudDistance)*hmdInfo->GetLensXCenterOffset();
+	D3DXMatrixTranslation(&matLeftHud3DDepthShifted, hud3DDepth + additionalSeparation, 0, 0);
+	D3DXMatrixTranslation(&matRightHud3DDepthShifted, -hud3DDepth - additionalSeparation, 0, 0);
+	D3DXMatrixTranslation(&matLeftGui3DDepth, gui3DDepth + SeparationIPDAdjustment(), 0, 0);
+	D3DXMatrixTranslation(&matRightGui3DDepth, -(gui3DDepth + SeparationIPDAdjustment()), 0, 0);
 
 	// gui/hud matrices - JUst use the default projection not the PFOV
 	matHudLeft = matProjectionInv * matLeftHud3DDepth * transformLeft * matHudDistance *  matBasicProjection;
 	matHudRight = matProjectionInv * matRightHud3DDepth * transformRight * matHudDistance * matBasicProjection;
-	matGuiLeft =  matProjectionInv * matLeftGui3DDepth * matSquash * matBasicProjection;
+	matGuiLeft = matProjectionInv * matLeftGui3DDepth * matSquash * matBasicProjection;
 	matGuiRight = matProjectionInv * matRightGui3DDepth * matSquash * matBasicProjection;
 }
 
@@ -596,8 +631,10 @@ void ViewAdjustment::GatherMatrix(D3DXMATRIX& matrixLeft, D3DXMATRIX& matrixRigh
 ***/
 float ViewAdjustment::ChangeWorldScale(float toAdd)
 {
-	config->worldScaleFactor+= toAdd;
-	vireio::clamp(&config->worldScaleFactor, 0.000001f, 1000000.0f);
+	config->worldScaleFactor += toAdd;
+
+	clamp(&config->worldScaleFactor, 0.000001f, 1000000.0f);
+
 	return config->worldScaleFactor;
 }
 
@@ -614,8 +651,8 @@ float ViewAdjustment::ChangeConvergence(float toAdd)
 {
 	convergence += toAdd;
 
-	vireio::clamp(&convergence, minConvergence, maxConvergence);
-
+	clamp(&convergence, minConvergence, maxConvergence);
+	
 	return convergence;
 }
 
@@ -636,8 +673,8 @@ void ViewAdjustment::ChangeGUI3DDepth(float newGui3DDepth)
 {
 	gui3DDepth = newGui3DDepth;
 
-	D3DXMatrixTranslation(&matLeftGui3DDepth, gui3DDepth+SeparationIPDAdjustment(), 0, 0);
-	D3DXMatrixTranslation(&matRightGui3DDepth, -(gui3DDepth+SeparationIPDAdjustment()), 0, 0);
+	D3DXMatrixTranslation(&matLeftGui3DDepth, gui3DDepth + SeparationIPDAdjustment(), 0, 0);
+	D3DXMatrixTranslation(&matRightGui3DDepth, -(gui3DDepth + SeparationIPDAdjustment()), 0, 0);
 }
 
 /**
@@ -659,9 +696,9 @@ void ViewAdjustment::ChangeHUD3DDepth(float newHud3DDepth)
 
 	D3DXMatrixTranslation(&matLeftHud3DDepth, -hud3DDepth, 0, 0);
 	D3DXMatrixTranslation(&matRightHud3DDepth, hud3DDepth, 0, 0);
-	float additionalSeparation = (1.5f-hudDistance)*hmdInfo->GetLensXCenterOffset();
-	D3DXMatrixTranslation(&matLeftHud3DDepthShifted, hud3DDepth+additionalSeparation, 0, 0);
-	D3DXMatrixTranslation(&matRightHud3DDepthShifted, -hud3DDepth-additionalSeparation, 0, 0);
+	float additionalSeparation = (1.5f - hudDistance)*hmdInfo->GetLensXCenterOffset();
+	D3DXMatrixTranslation(&matLeftHud3DDepthShifted, hud3DDepth + additionalSeparation, 0, 0);
+	D3DXMatrixTranslation(&matRightHud3DDepthShifted, -hud3DDepth - additionalSeparation, 0, 0);
 }
 
 /**
@@ -684,7 +721,7 @@ float ViewAdjustment::ConvergenceInWorldUnits()
 * Returns the separation being used for view adjustments in game units.
 ***/
 float ViewAdjustment::SeparationInWorldUnits()
-{ 
+{
 	return  (ipd / 2.0f) * config->worldScaleFactor;
 }
 
@@ -694,7 +731,7 @@ float ViewAdjustment::SeparationInWorldUnits()
 ***/
 float ViewAdjustment::SeparationIPDAdjustment()
 {
-	return  ((ipd-IPD_DEFAULT) / 2.0f) * config->worldScaleFactor;
+	return  ((ipd - IPD_DEFAULT) / 2.0f) * config->worldScaleFactor;
 }
 
 /**

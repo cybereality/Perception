@@ -193,7 +193,6 @@ OculusDirectToRiftView::~OculusDirectToRiftView()
 {
 	SHOW_CALL("OculusDirectToRiftView::~OculusDirectToRiftView()");
 
-
 	//Terminate the rendering thread and wait for it to go away
 	SetEventFlag(TERMINATE_THREAD);
 
@@ -555,7 +554,6 @@ void OculusDirectToRiftView::PostPresent(D3D9ProxySurface* stereoCapableSurface,
 						IDXGIResource *pIDXGIResource = NULL;
 						pDX11Texture->QueryInterface(__uuidof(IDXGIResource), (void**)(&pIDXGIResource)); 
 						HANDLE sharedHandle = NULL;
-						vireio::debugf("pIDXGIResource->GetSharedHandle");
 						hr = pIDXGIResource->GetSharedHandle(&sharedHandle);
 						pIDXGIResource->Release();
 
@@ -563,7 +561,7 @@ void OculusDirectToRiftView::PostPresent(D3D9ProxySurface* stereoCapableSurface,
 						{
 							//Create the void scene for this eye, setting the DX9 shared texture as the screen source
 							//Aspect ratio is a bit of a guess, but this figure seems to reduce the warping effect considerably
-							pVRScene->m_pScene[eye] = new VoidScene(pDX11Texture, sharedHandle, 1.666f);
+							pVRScene->m_pScene[eye] = new VoidScene(pDX11Texture, sharedHandle, config->aspect_multiplier);
 						}
 						else
 						{

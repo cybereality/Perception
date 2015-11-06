@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Express 2012 for Windows Desktop
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VireioStereoSplitterDx10", "..\VireioStereoSplitterDx10\VS2012\VireioStereoSplitterDx10.vcxproj", "{08DE0036-DCA5-430C-9999-327D9D8DE387}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
+		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{08DE0036-DCA5-430C-9999-327D9D8DE387}.Debug|Win32.ActiveCfg = Debug|Win32
+		{08DE0036-DCA5-430C-9999-327D9D8DE387}.Debug|Win32.Build.0 = Debug|Win32
+		{08DE0036-DCA5-430C-9999-327D9D8DE387}.Debug|x64.ActiveCfg = Debug|x64
+		{08DE0036-DCA5-430C-9999-327D9D8DE387}.Debug|x64.Build.0 = Debug|x64
+		{08DE0036-DCA5-430C-9999-327D9D8DE387}.Release|Win32.ActiveCfg = Release|Win32
+		{08DE0036-DCA5-430C-9999-327D9D8DE387}.Release|Win32.Build.0 = Release|Win32
+		{08DE0036-DCA5-430C-9999-327D9D8DE387}.Release|x64.ActiveCfg = Release|x64
+		{08DE0036-DCA5-430C-9999-327D9D8DE387}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,10 @@
+#define IMG_LOGO01 100
+#define IMG_BACKGROUND01 200
+#define IMG_BACKGROUND02 300
+
+#include "Resources.h"
+
+IMG_LOGO01 BITMAP "oculus_renderer_logo.bmp"
+IMG_BACKGROUND01 BITMAP "test_card_left.bmp"
+IMG_BACKGROUND02 BITMAP "test_card_right.bmp"
+
