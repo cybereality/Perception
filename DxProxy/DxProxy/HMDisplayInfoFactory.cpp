@@ -62,8 +62,7 @@ HMDisplayInfo* HMDisplayInfoFactory::CreateHMDisplayInfo(int /*StereoView::Stere
 	case StereoView::DIY_RIFT:
 		return new HMDisplayInfo_Default();
 		break;
-	case StereoView::OCULUS_RIFT:
-	case StereoView::OCULUS_DIRECT_TO_RIFT:
+	case StereoView::OCULUS_DIRECT_MODE:
 		return new HMDisplayInfo_OculusRift();
 		break;	
 	default:

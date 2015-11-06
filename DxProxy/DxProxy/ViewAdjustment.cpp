@@ -74,7 +74,7 @@ ViewAdjustment::ViewAdjustment(HMDisplayInfo *displayInfo, ProxyConfig *config) 
 	D3DXMatrixIdentity(&matGatheredLeft);
 	D3DXMatrixIdentity(&matGatheredRight);
 
-	UpdateProjectionMatrices(displayInfo->GetScreenAspectRatio(), 110.0f);
+	UpdateProjectionMatrices(config->aspect_multiplier, 110.0f);
 	D3DXMatrixIdentity(&rollMatrix);
 	D3DXMatrixIdentity(&rollMatrixNegative);
 	ComputeViewTransforms();
@@ -138,7 +138,7 @@ void ViewAdjustment::UpdateProjectionMatrices(float aspectRatio, float fov_horiz
 	D3DXMatrixInverse(&matProjectionInv, 0, &matBasicProjection);
 
 	// if not HMD, set values to fullscreen defaults
-	if (config->stereo_mode<100 || !config->PFOVToggle)   //stereo type > 100 reserved specifically for HMDs
+	if (!config->PFOVToggle)   //Can't use convergence and projection FOV at the same time
 	{
 		// assumption here :
 		// end user is placed 1 meter away from screen

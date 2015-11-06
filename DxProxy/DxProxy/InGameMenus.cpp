@@ -417,7 +417,9 @@ void D3DProxyDevice::VPMENU_MainMenu()
 	}
 	
 	menu->AddNavigation("3D Reconstruction Settings\n", [=]() { VPMENU_3DReconstruction(); });
-	if(config.stereo_mode < 100)
+
+	//You can't use convergence if PFOV is turned on
+	if(!config.PFOVToggle)
 	{
 		menu->AddNavigation("Convergence Adjustment\n", [=]() { VPMENU_Convergence(); });
 	}
@@ -812,7 +814,7 @@ void D3DProxyDevice::VPMENU_ZBufferSettings()
 
 void D3DProxyDevice::VPMENU_Convergence()
 {
-	SHOW_CALL("VPMENU_PosTracking");
+	SHOW_CALL("VPMENU_Convergence");
 	MenuBuilder *menu = VPMENU_NewFrame();
 	VPMENU_StartDrawing(menu, "Settings - Convergence");
 	menu->OnClose([=]() { VPMENU_UpdateConfigSettings(); });
@@ -827,8 +829,8 @@ void D3DProxyDevice::VPMENU_Convergence()
 	
 	if(config.convergenceEnabled)
 	{
-		menu->AddAdjustment("Distance Adjustment : %g", &config.convergence, defaultConfig.convergence, 0.05f, [=]() {
-			vireio::clamp(&config.convergence, -10.0f, 10.0f);
+		menu->AddAdjustment("Distance Adjustment : %g", &config.convergence, defaultConfig.convergence, 0.01f, [=]() {
+			vireio::clamp(&config.convergence, 0.0f, 10.0f);
 			m_spShaderViewAdjustment->SetConvergence(config.convergence);
 			m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, config.PFOV);
 		});
@@ -1411,6 +1413,7 @@ void D3DProxyDevice::VPMENU_AdjustmentHotkeys()
 	menu->AddKeybind("Toggle Chromatic Abberation Correction", &config.HotkeyToggleChromaticAbberationCorrection, defaultConfig.HotkeyToggleChromaticAbberationCorrection);
 	menu->AddKeybind("Distortion Scale Plus", &config.HotkeyDistortionScalePlus, defaultConfig.HotkeyDistortionScalePlus);
 	menu->AddKeybind("Distortion Scale Minus", &config.HotkeyDistortionScaleMinus, defaultConfig.HotkeyDistortionScaleMinus);
+	menu->AddKeybind("Mirroring Mode", &config.HotkeyMirrorMode, defaultConfig.HotkeyMirrorMode);
 	
 	
 	menu->AddBackButtons();

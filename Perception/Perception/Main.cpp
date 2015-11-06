@@ -147,8 +147,7 @@ public:
 			// save the stereo mode to xml file
 			ProxyHelper helper = ProxyHelper();
 			int mode = atoi(s);
-			float aspect = mode == 25 ? 0.5f : 1.0f;
-			helper.SaveUserConfig(mode, aspect);
+			helper.SaveUserConfig(mode);
 		}
 	}
 	void new_selection2() {
@@ -473,7 +472,7 @@ int WINAPI wWinMain(HINSTANCE instance_handle, HINSTANCE, LPWSTR, INT) {
 	main_window.add_item("Anaglyph (Green/Magenta)\t10");
 	main_window.add_item("Anaglyph (Green/Magenta) B+W\t11");
 	main_window.add_item("DIY Rift\t100");
-	main_window.add_item("Oculus Rift: Direct-to-HMD\t111");
+	main_window.add_item("Oculus Rift: Direct Mode\t111");
 
 	main_window.add_item2("No Tracking\t0");
 	main_window.add_item2("Hillcrest Labs\t10");

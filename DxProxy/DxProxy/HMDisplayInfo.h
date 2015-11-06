@@ -72,35 +72,7 @@ public:
 	virtual std::string GetHMDName() = 0;
 
 #pragma warning( pop )
-	/**
-	* Screen resolution, in pixels.
-	* <horizontal, vertical>
-	***/
-	virtual std::pair<UINT, UINT>  GetResolution() = 0;
 
-	/**
-	* Screen aspect ratio, computed using resolution.
-	***/
-	virtual float GetScreenAspectRatio()
-	{
-		std::pair<UINT, UINT>resolution = GetResolution();
-		return (float)resolution.first / (float)resolution.second;
-	}
-
-	/**
-	* Half screen aspect ratio, computed using resolution (half width) .
-	***/
-	virtual float GetHalfScreenAspectRatio()
-	{
-		std::pair<UINT, UINT>resolution = GetResolution();
-		return ((float)resolution.first * 0.5f) / (float)resolution.second;
-	}
-
-	/**
-	* Physical characteristics are in meters.
-	* <horizontal, vertical> 
-	***/
-	virtual std::pair<float, float> GetPhysicalScreenSize() = 0;
 
 	/**
 	* Physical lens seperation (currently constant rift dev kit 1 value=default ipd 0.064f).
@@ -115,18 +87,9 @@ public:
 	***/
 	virtual float GetLensXCenterOffset()
 	{
-		std::pair<float, float>physicalScreenSize = GetPhysicalScreenSize();
-		float physicalViewCenter = physicalScreenSize.first * 0.25f; 
-		float physicalOffset = physicalViewCenter - GetPhysicalLensSeparation() * 0.5f;	
-		// Range at this point would be -0.25 to 0.25 units. So multiply the last step by 4 to get the offset in a -1 to 1  range
-		return 4.0f * physicalOffset / physicalScreenSize.first;
+		//Simple default
+		return 0.5;
 	}
-
-	/**
-	* The distance in a 0 to 1 range that the center of each lens is from the center of each half of
-	* the screen on Y axis
-	***/
-	virtual float GetLensYCenterOffset() = 0;
 
 	/**
 	* The minimum distortion scale allowed, varies between headsets (-1.0 is fine for DK1, whereas -0.5 is better for RiftUp)

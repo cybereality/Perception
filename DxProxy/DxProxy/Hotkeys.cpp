@@ -698,6 +698,19 @@ void D3DProxyDevice::HandleControls()
 				m_spShaderViewAdjustment->UpdatePosition(0.0f, 0.0f, 0.0f);
 		}
 
+		//Toggle mirror mode
+		if (config.HotkeyMirrorMode->IsPressed(controls) && HotkeysActive())
+		{
+			config.mirror_mode = 1 - config.mirror_mode;
+
+			ShowPopup(VPT_NOTIFICATION, VPS_TOAST, 1200,
+				retprintf("Mirroring Mode %s",
+					config.mirror_mode ? "Distorted Rift View" : "Undistorted"));
+
+			ProxyHelper ph;
+			ph.SaveUserConfigMirrorMode(config.mirror_mode);
+		}
+
 		//Toggle SDK Pose Prediction- LSHIFT + DELETE
 		if (hmdInfo->GetHMDManufacturer() == HMD_OCULUS	&&
 			config.HotkeyTogglePosePrediction->IsPressed(controls) && HotkeysActive() && tracker)

@@ -47,33 +47,11 @@ public:
 		HMDisplayInfo(),
 		m_status(HMD_STATUS_OK)
 	{
-
  	}
 
-	~HMDisplayInfo_OculusRift()
+	virtual std::string GetHMDName() 
 	{
-
-	}
-
-	virtual std::string GetHMDName() {return "Oculus";}
-
-
-	/**
-	* Screen resolution, in pixels.
-	* <horizontal, vertical>
-	***/
-	virtual std::pair<UINT, UINT> GetResolution()
-	{
-		return std::make_pair<UINT, UINT>((UINT)1920, (UINT)1080);
-	}
-
-	/**
-	* Physical characteristics are in meters.
-	* <horizontal, vertical> 
-	***/
-	virtual std::pair<float, float> GetPhysicalScreenSize()
-	{
-		return std::pair<float,float>(0.12576f, 0.07074f);
+		return "Oculus";
 	}
 
 	/**
@@ -81,18 +59,8 @@ public:
 	***/
 	virtual float GetPhysicalLensSeparation()
 	{
-		static float separation = 0.0635f;
 		//Hard-coded for now
-		return separation;
-	}
-	
-	/**
-	* The distance in a 0 to 1 range that the center of each lens is from the center of each half of
-	* the screen on Y axis
-	***/
-	virtual float GetLensYCenterOffset()
-	{
-		return 0.5f;
+		return 0.0635f;
 	}
 
 	/**
@@ -100,11 +68,6 @@ public:
 	***/
 	virtual float GetMinDistortionScale()
 	{
-		if (hmd->ProductId == ovrHmd_DK1)
-		{
-			return -1.0f;
-		}
-
 		return -0.5f;
 	}
 
@@ -137,12 +100,7 @@ public:
 	}
 
 
-private:
-	/**
-	* Oculus head mounted display device.
-	***/
-    ovrHmd hmd;
-    
+private:    
     HMDStatus m_status;
 
 	float MaxRadius;
