@@ -71,7 +71,7 @@ public:
 
 		std::stringstream sstm;
 		sstm << "scaleToFillHorizontal: " << GetScaleToFillHorizontal() << std::endl;
-		OutputDebugString(sstm.str().c_str());
+		OutputDebugStringA(sstm.str().c_str());
 	}
 
 	virtual std::string GetHMDName() {return "Default";}

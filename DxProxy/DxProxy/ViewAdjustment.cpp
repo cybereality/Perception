@@ -117,7 +117,30 @@ ViewAdjustment::~ViewAdjustment()
 {
 }
 
-#ifndef VIREIO_MATRIX_MODIFIER
+#ifdef VIREIO_MATRIX_MODIFIER
+/**
+* Loads game configuration data.
+* @param cfg Game configuration to load.
+***/
+void ViewAdjustment::Load(Vireio_GameConfiguration& cfg)
+{
+	config = &cfg;
+	convergence = cfg.convergence;
+	ipd = cfg.ipd;
+}
+
+/**
+* Saves game configuration data.
+* @param cfg The game configuration to be saved to.
+***/
+void ViewAdjustment::Save(Vireio_GameConfiguration& cfg)
+{
+	cfg.convergence = convergence;
+
+	//worldscale and ipd are not normally edited;
+	cfg.ipd = ipd;
+}
+#else
 /**
 * Loads game configuration data.
 * @param cfg Game configuration to load.
@@ -231,6 +254,10 @@ void ViewAdjustment::UpdateRoll(float roll)
 	D3DXMatrixRotationZ(&rollMatrixHalf, roll * 0.5f);
 	m_roll = roll;
 }
+
+/**
+* Set Game-specific scaling vector.
+***/
 void ViewAdjustment::SetGameSpecificPositionalScaling(D3DXVECTOR3 scalingVec)
 {
 	gameScaleVec = scalingVec;
@@ -393,7 +420,9 @@ void ViewAdjustment::ComputeViewTransforms()
 	matGuiRight = matProjectionInv * matRightGui3DDepth * matSquash * matBasicProjection;
 }
 
-
+/**
+* Get Position translation matrix.
+***/
 D3DXMATRIX ViewAdjustment::PositionMatrix()
 {
 	return matPosition;
@@ -615,7 +644,6 @@ D3DXMATRIX ViewAdjustment::GatheredMatrixRight()
 	return matGatheredRight;
 }
 
-
 /**
 * Gathers a matrix to be used in modifications.
 ***/
@@ -638,6 +666,9 @@ float ViewAdjustment::ChangeWorldScale(float toAdd)
 	return config->worldScaleFactor;
 }
 
+/**
+* Set new convergence setting.
+***/
 float ViewAdjustment::SetConvergence(float newConvergence)
 {
 	this->convergence = newConvergence;
@@ -652,7 +683,7 @@ float ViewAdjustment::ChangeConvergence(float toAdd)
 	convergence += toAdd;
 
 	clamp(&convergence, minConvergence, maxConvergence);
-	
+
 	return convergence;
 }
 

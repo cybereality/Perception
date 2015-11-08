@@ -47,6 +47,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"Resources.h"
 #include"VireioMatrixModifierDataStructures.h"
 #include"..\..\..\..\DxProxy\DxProxy\ViewAdjustment.h"
+#include"..\..\..\..\DxProxy\DxProxy\HMDisplayInfo.h"
+#include "..\..\..\..\DxProxy\DxProxy\HMDisplayInfo_Default.h"
+#include "..\..\..\..\DxProxy\DxProxy\HMDisplayInfo_OculusRift.h"
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 #include <DXGI.h>
@@ -217,6 +220,9 @@ public:
 	virtual DWORD           GetNodeHeight() { return 128; }
 	virtual int             GetProvokingType() { return PROVOKING_TYPE; }
 	virtual bool            GetMethodReplacement() { return METHOD_REPLACEMENT; }
+	virtual DWORD           GetSaveDataSize() { return sizeof(Vireio_GameConfiguration); }
+	virtual char*           GetSaveData(UINT* pdwSizeOfData) { if (pdwSizeOfData) *pdwSizeOfData = sizeof(Vireio_GameConfiguration); return (char*)&m_sGameConfiguration; }
+	virtual void            InitNodeData(char* pData, UINT dwSizeOfData);
 	virtual DWORD           GetCommandersNumber() { return NUMBER_OF_COMMANDERS; }
 	virtual DWORD           GetDecommandersNumber() { return NUMBER_OF_DECOMMANDERS; }
 	virtual LPWSTR          GetCommanderName(DWORD dwCommanderIndex);
@@ -250,7 +256,7 @@ private:
 	void CreateStereoConstantBuffer(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, ID3D11Buffer* pcBuffer, D3D11_BUFFER_DESC *pDesc, D3D11_SUBRESOURCE_DATA *pInitialData, bool bCopyData);
 #elif defined(VIREIO_D3D9)
 #endif
-	void ComputeViewTransforms(float fSeparation);
+	//void ComputeViewTransforms(float fSeparation);
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	/*** MatrixModifier input pointers ***/
@@ -382,47 +388,61 @@ private:
 	UINT* m_pdwVector4fCount_PixelShader;
 #endif
 
-	/*** Matrix Modifier matrices ***/
 	/**
-	* Projection matrix.
-	***/
-	D3DXMATRIX matProjection;
+	* View matrix adjustment class.
+	* @see ViewAdjustment
+	**/
+	ViewAdjustment* m_pcShaderViewAdjustment;
 	/**
-	* Projection inverse matrix.
+	* The game configuration for the current game.
 	***/
-	D3DXMATRIX matProjectionInv;
+	Vireio_GameConfiguration m_sGameConfiguration;
 	/**
-	* The shifted left projection matrix.
-	***/
-	D3DXMATRIX projectLeft;
-	/**
-	* The shifted right projection matrix.
-	***/
-	D3DXMATRIX projectRight;
-	/**
-	* Left matrix used to roll (if roll enabled) and shift view for ipd.
-	***/
-	D3DXMATRIX transformLeft;
-	/**
-	* Right matrix used to roll (if roll enabled) and shift view for ipd.
-	***/
-	D3DXMATRIX transformRight;
-	/**
-	* Left view projection matrix.
-	***/
-	D3DXMATRIX matViewProjLeft;
-	/**
-	* Right view projection matrix.
-	***/
-	D3DXMATRIX matViewProjRight;
-	/**
-	* Left view projection transform matrix.
-	***/
-	D3DXMATRIX matViewProjTransformLeft;
-	/**
-	* Right view projection transform matrix.
-	***/
-	D3DXMATRIX matViewProjTransformRight;
+	* Pointer to the hmd info
+	*/
+	HMDisplayInfo* m_psHmdInfo;
+
+	///*** Matrix Modifier matrices ***/
+	///**
+	//* Projection matrix.
+	//***/
+	//D3DXMATRIX matProjection;
+	///**
+	//* Projection inverse matrix.
+	//***/
+	//D3DXMATRIX matProjectionInv;
+	///**
+	//* The shifted left projection matrix.
+	//***/
+	//D3DXMATRIX projectLeft;
+	///**
+	//* The shifted right projection matrix.
+	//***/
+	//D3DXMATRIX projectRight;
+	///**
+	//* Left matrix used to roll (if roll enabled) and shift view for ipd.
+	//***/
+	//D3DXMATRIX transformLeft;
+	///**
+	//* Right matrix used to roll (if roll enabled) and shift view for ipd.
+	//***/
+	//D3DXMATRIX transformRight;
+	///**
+	//* Left view projection matrix.
+	//***/
+	//D3DXMATRIX matViewProjLeft;
+	///**
+	//* Right view projection matrix.
+	//***/
+	//D3DXMATRIX matViewProjRight;
+	///**
+	//* Left view projection transform matrix.
+	//***/
+	//D3DXMATRIX matViewProjTransformLeft;
+	///**
+	//* Right view projection transform matrix.
+	//***/
+	//D3DXMATRIX matViewProjTransformRight;
 };
 
 /**

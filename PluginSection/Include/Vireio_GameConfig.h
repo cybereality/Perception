@@ -35,6 +35,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 struct Vireio_GameConfiguration
 {
 	float       worldScaleFactor;           /**< Value the eye seperation is to be multiplied with. (mm * worldScaleFactor = mm in game units). */
+	float       convergence;                /**< Convergence or Neutral Point distance, in meters. **/
+	float       ipd;                        /**< IPD, which stands for interpupillary distance (distance between your pupils - in meters...default = 0.064). Also called the interocular distance (or just Interocular). */
+	float       aspect_multiplier;          /**< Aspect multiplier allows adjusting virtual screen aspect ratio. */
 	UINT        VRboostMinShaderCount;      /**< Minimum Vertex Shader Count to apply VRboost (security) */
 	UINT        VRboostMaxShaderCount;      /**< Maximum Vertex Shader Count to apply VRboost (security) */
 	bool		is64bit;					/**< The game cpu-architecture, true for 64-bit games */
@@ -50,5 +53,4 @@ struct Vireio_GameConfiguration
 	float		DistortionScale;			/**< The scale to apply distortion. **/
 	float		PFOV;						/**< Projection FOV, alternative to modifying game's FOV **/
 	bool		PFOVToggle;					/**< Projection FOV, toggle for above **/
-	float       aspect_multiplier;          /**< ***/
 };
