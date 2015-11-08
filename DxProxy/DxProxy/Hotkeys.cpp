@@ -906,7 +906,7 @@ void D3DProxyDevice::HandleControls()
 			//CTRL + SPACE + Mouse Wheel - adjust projection fov dynamically
 			else if(hotkeyWheelPFOV->IsHeld(controls))
 			{
-				config.PFOV += 0.5*wheelSign;
+				config.PFOV += 0.5f*wheelSign;
 
 				m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, config.PFOV);
 				

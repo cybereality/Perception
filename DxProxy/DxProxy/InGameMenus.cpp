@@ -1938,7 +1938,7 @@ void MenuBuilder::AddAdjustment(const char *formatString, UINT *value, UINT defa
 		}
 		if (device->VPMENU_Input_IsAdjustment() && device->HotkeysActive())
 		{
-			*value += rate * device->VPMENU_Input_GetAdjustment();
+			*value += UINT((float)rate * device->VPMENU_Input_GetAdjustment());
 			onChange();
 		}
 	});
