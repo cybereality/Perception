@@ -258,8 +258,11 @@ HBITMAP MatrixModifier::GetControl()
 		sControl.m_sStaticListBox.m_paszEntries = &sEntriesTEST;
 		UINT dwTestList = m_pcVireioGUI->AddControl(dwInfoPage, sControl);
 		for (int i = 0; i < 200; i++)
-			m_pcVireioGUI->AddEntry(dwTestList, L"ThisIsATestThisIsATestThisIsATestThisIsATest");
-
+		{
+			std::wstringstream ss;
+			ss << L"Line : " << i;
+			m_pcVireioGUI->AddEntry(dwTestList, ss.str().c_str());
+		}
 	}
 	else
 		return m_pcVireioGUI->GetGUI();
@@ -932,8 +935,8 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						// get the shader pointer
 						ID3D11VertexShader* pcShader = nullptr;
 						if (*m_pppcVertexShader_DX11)
-							if (**m_pppcVertexShader_DX11)
-								pcShader = **m_pppcVertexShader_DX11;
+						if (**m_pppcVertexShader_DX11)
+							pcShader = **m_pppcVertexShader_DX11;
 						if (pcShader)
 						{
 							// get the hash code
@@ -1122,14 +1125,14 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 							// loop through active buffers, if this one is active update stereo buffers
 							for (UINT dwIndex = 0; dwIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; dwIndex++)
-								if (m_apcActiveConstantBuffers11[dwIndex])
+							if (m_apcActiveConstantBuffers11[dwIndex])
+							{
+								if (*m_ppcDstResource_DX11 == m_apcActiveConstantBuffers11[dwIndex])
 								{
-									if (*m_ppcDstResource_DX11 == m_apcActiveConstantBuffers11[dwIndex])
-									{
-										//  and update the stereo buffers
-										UpdateConstantBuffer((ID3D11DeviceContext*)pThis, (ID3D11Resource*)m_apcActiveConstantBuffers11[dwIndex], 0, NULL, *m_ppvSrcData, 0, 0, dwIndex, sDesc.ByteWidth);
-									}
+									//  and update the stereo buffers
+									UpdateConstantBuffer((ID3D11DeviceContext*)pThis, (ID3D11Resource*)m_apcActiveConstantBuffers11[dwIndex], 0, NULL, *m_ppvSrcData, 0, 0, dwIndex, sDesc.ByteWidth);
 								}
+							}
 						}
 					}
 					else if (eDimension <= D3D11_RESOURCE_DIMENSION::D3D11_RESOURCE_DIMENSION_TEXTURE3D)
@@ -1216,14 +1219,14 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 									// loop through active buffers, if this one is active update stereo buffers
 									for (UINT dwIndex = 0; dwIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; dwIndex++)
-										if (m_apcActiveConstantBuffers11[dwIndex])
+									if (m_apcActiveConstantBuffers11[dwIndex])
+									{
+										if (*m_ppcDstResource_DX11_CopySub == m_apcActiveConstantBuffers11[dwIndex])
 										{
-											if (*m_ppcDstResource_DX11_CopySub == m_apcActiveConstantBuffers11[dwIndex])
-											{
-												//  and update the stereo buffers
-												UpdateConstantBuffer((ID3D11DeviceContext*)pThis, (ID3D11Resource*)m_apcActiveConstantBuffers11[dwIndex], 0, NULL, m_pchBuffer11Temp, 0, 0, dwIndex, sDescDst.ByteWidth);
-											}
+											//  and update the stereo buffers
+											UpdateConstantBuffer((ID3D11DeviceContext*)pThis, (ID3D11Resource*)m_apcActiveConstantBuffers11[dwIndex], 0, NULL, m_pchBuffer11Temp, 0, 0, dwIndex, sDescDst.ByteWidth);
 										}
+									}
 								}
 							}
 						}
@@ -1331,14 +1334,14 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 									// loop through active buffers, if this one is active update stereo buffers
 									for (UINT dwIndex = 0; dwIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; dwIndex++)
-										if (m_apcActiveConstantBuffers11[dwIndex])
+									if (m_apcActiveConstantBuffers11[dwIndex])
+									{
+										if (*m_ppcDstResource_DX11_Copy == m_apcActiveConstantBuffers11[dwIndex])
 										{
-											if (*m_ppcDstResource_DX11_Copy == m_apcActiveConstantBuffers11[dwIndex])
-											{
-												//  and update the stereo buffers
-												UpdateConstantBuffer((ID3D11DeviceContext*)pThis, (ID3D11Resource*)m_apcActiveConstantBuffers11[dwIndex], 0, NULL, m_pchBuffer11, 0, 0, dwIndex, sDescDst.ByteWidth);
-											}
+											//  and update the stereo buffers
+											UpdateConstantBuffer((ID3D11DeviceContext*)pThis, (ID3D11Resource*)m_apcActiveConstantBuffers11[dwIndex], 0, NULL, m_pchBuffer11, 0, 0, dwIndex, sDescDst.ByteWidth);
 										}
+									}
 								}
 							}
 						}
@@ -1405,26 +1408,26 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 						// loop through active constant buffers, get private data and update them accordingly to the new shader
 						for (UINT dwIndex = 0; dwIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; dwIndex++)
-							if (m_apcActiveConstantBuffers11[dwIndex])
+						if (m_apcActiveConstantBuffers11[dwIndex])
+						{
+							// get description from buffer
+							D3D11_BUFFER_DESC sDesc;
+							m_apcActiveConstantBuffers11[dwIndex]->GetDesc(&sDesc);
+
+							// can we map this surface ? in case update private data field
+							if ((sDesc.CPUAccessFlags & D3D11_CPU_ACCESS_WRITE) == D3D11_CPU_ACCESS_WRITE)
 							{
-								// get description from buffer
-								D3D11_BUFFER_DESC sDesc;
-								m_apcActiveConstantBuffers11[dwIndex]->GetDesc(&sDesc);
-
-								// can we map this surface ? in case update private data field
-								if ((sDesc.CPUAccessFlags & D3D11_CPU_ACCESS_WRITE) == D3D11_CPU_ACCESS_WRITE)
-								{
-									OutputDebugString(L"Mappable resource constant buffer !");
-								}
-
-								// get private data from buffer
-								UINT dwSize = sDesc.ByteWidth;
-								m_apcActiveConstantBuffers11[dwIndex]->GetPrivateData(PDID_ID3D11Buffer_Vireio_Data, &dwSize, m_pchBuffer11);
-
-								//  and update the stereo buffers
-								if (dwSize)
-									UpdateConstantBuffer((ID3D11DeviceContext*)pThis, (ID3D11Resource*)m_apcActiveConstantBuffers11[dwIndex], 0, NULL, &m_pchBuffer11[0], 0, 0, dwIndex, sDesc.ByteWidth);
+								OutputDebugString(L"Mappable resource constant buffer !");
 							}
+
+							// get private data from buffer
+							UINT dwSize = sDesc.ByteWidth;
+							m_apcActiveConstantBuffers11[dwIndex]->GetPrivateData(PDID_ID3D11Buffer_Vireio_Data, &dwSize, m_pchBuffer11);
+
+							//  and update the stereo buffers
+							if (dwSize)
+								UpdateConstantBuffer((ID3D11DeviceContext*)pThis, (ID3D11Resource*)m_apcActiveConstantBuffers11[dwIndex], 0, NULL, &m_pchBuffer11[0], 0, 0, dwIndex, sDesc.ByteWidth);
+						}
 					}
 					return nullptr;
 #pragma endregion
@@ -1583,10 +1586,10 @@ void MatrixModifier::UpdateConstantBuffer(ID3D11DeviceContext* pcContext, ID3D11
 			}
 			else
 				// should i automatically assigne the shader hash from the buffer ?
-				if (TO_DO_ADD_BOOL_HERE_TRUE)
-				{
-					m_pcActiveVertexShader11->SetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, sizeof(sPrivateData), (void*)&sPrivateData);
-				}
+			if (TO_DO_ADD_BOOL_HERE_TRUE)
+			{
+				m_pcActiveVertexShader11->SetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, sizeof(sPrivateData), (void*)&sPrivateData);
+			}
 		}
 	}
 
@@ -1667,7 +1670,7 @@ void MatrixModifier::UpdateConstantBuffer(ID3D11DeviceContext* pcContext, ID3D11
 #ifdef _DEBUG
 		OutputDebugString(L"MatrixModifier: Both Vertex Shader and Constant buffer have no private shader data ! ");
 #endif
-}
+	}
 
 	if ((!dwSizeLeft) || (!dwSizeRight))
 	{

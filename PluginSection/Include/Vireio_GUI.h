@@ -36,6 +36,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MAX_CONTROLS_PER_PAGE 2048
 
 #define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"%u", a); OutputDebugString(buf); }
+#define DEBUG_INT(a) { wchar_t buf[128]; wsprintf(buf, L"%i", a); OutputDebugString(buf); }
 #define DEBUG_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"%x", a); OutputDebugString(buf); }
 
 /**
@@ -50,6 +51,16 @@ enum Vireio_Control_Type
 	EditLine,
 	Slider,
 	CheckBox,
+};
+
+/**
+* Vireio control action enumeration.
+* Type of action the active control is bound to.
+***/
+enum Vireio_Control_Action
+{
+	None,
+	ScrollBar,
 };
 
 /**
@@ -186,6 +197,14 @@ private:
 	***/
 	HBITMAP m_hBitmapControl;
 	/**
+	* The active control index.
+	***/
+	UINT m_dwActiveControl;
+	/**
+	* The current control action.
+	***/
+	Vireio_Control_Action m_eActiveControlAction;
+	/**
 	* The control update bool.
 	***/
 	bool m_bControlUpdate;
@@ -197,5 +216,5 @@ private:
 	/**
 	* Mouse coords.
 	***/
-	POINT sMouseCoords;
+	POINT m_sMouseCoords;
 };

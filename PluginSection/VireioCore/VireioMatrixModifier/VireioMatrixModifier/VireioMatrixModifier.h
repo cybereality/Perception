@@ -40,6 +40,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include<stdio.h>
 #include<vector>
+#include<sstream>
 #include<ctime>
 
 #include"AQU_Nodus.h"

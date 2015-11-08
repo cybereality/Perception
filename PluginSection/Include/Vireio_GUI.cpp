@@ -31,9 +31,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Vireio_GUI.h"
 
 /**
+* Small control helper.
+***/
+bool InRect(RECT rc, POINT pt)
+{
+	return (pt.x >= rc.left) && (pt.y >= rc.top) && (pt.x <= rc.right) && (pt.y <= rc.bottom);
+}
+
+/**
 * Constructor.
 ***/
 Vireio_GUI::Vireio_GUI(SIZE sSize, LPCWSTR szFont, BOOL bItalic, DWORD dwFontSize, COLORREF dwColorFront, COLORREF dwColorBack) :
+m_eActiveControlAction(Vireio_Control_Action::None),
+m_dwActiveControl(0),
 m_bMouseBoundToControl(false),
 m_dwCurrentPage(0)
 {
@@ -111,29 +121,29 @@ HBITMAP Vireio_GUI::GetGUI()
 
 			// loop through controls for this page, draw them
 			if (m_asPages.size())
-				for (UINT dwI = 0; dwI < (UINT)m_asPages[m_dwCurrentPage].m_asControls.size(); dwI++)
+			for (UINT dwI = 0; dwI < (UINT)m_asPages[m_dwCurrentPage].m_asControls.size(); dwI++)
+			{
+				// render control depending on type
+				switch (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_eControlType)
 				{
-					// render control depending on type
-					switch (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_eControlType)
-					{
-						case StaticListBox:
-							DrawStaticListBox(hdcImage, m_asPages[m_dwCurrentPage].m_asControls[dwI]);
-							break;
-						case ListBox:
-							DrawListBox(hdcImage, m_asPages[m_dwCurrentPage].m_asControls[dwI]);
-							break;
-						case SpinControl:
-							break;
-						case EditLine:
-							break;
-						case Slider:
-							break;
-						case CheckBox:
-							break;
-						default:
-							break;
-					}
+					case StaticListBox:
+						DrawStaticListBox(hdcImage, m_asPages[m_dwCurrentPage].m_asControls[dwI]);
+						break;
+					case ListBox:
+						DrawListBox(hdcImage, m_asPages[m_dwCurrentPage].m_asControls[dwI]);
+						break;
+					case SpinControl:
+						break;
+					case EditLine:
+						break;
+					case Slider:
+						break;
+					case CheckBox:
+						break;
+					default:
+						break;
 				}
+			}
 
 			// Restore the original font.        
 			SelectObject(hdcImage, hOldFont);
@@ -157,7 +167,7 @@ HBITMAP Vireio_GUI::GetGUI()
 		asPoints[2].y = sRect.bottom - (m_dwFontSize >> 2);
 		SelectObject(hdcImage, GetStockObject(DC_PEN));
 		SelectObject(hdcImage, GetStockObject(DC_BRUSH));
-		if ((m_bMouseBoundToControl) && (sMouseCoords.y > (LONG)(m_sGUISize.cy - m_dwFontSize * 4)) && (sMouseCoords.x < (LONG)(m_sGUISize.cx >> 1)))
+		if ((m_bMouseBoundToControl) && (m_sMouseCoords.y > (LONG)(m_sGUISize.cy - m_dwFontSize * 4)) && (m_sMouseCoords.x < (LONG)(m_sGUISize.cx >> 1)))
 		{
 			SetDCPenColor(hdcImage, m_dwColorFront ^ m_dwColorFront);
 			SetDCBrushColor(hdcImage, m_dwColorFront ^ m_dwColorFront);
@@ -177,7 +187,7 @@ HBITMAP Vireio_GUI::GetGUI()
 		asPoints[1].y = sRect.top + (m_dwFontSize >> 2);
 		asPoints[2].x = asPoints[1].x;
 		asPoints[2].y = sRect.bottom - (m_dwFontSize >> 2);
-		if ((m_bMouseBoundToControl) && (sMouseCoords.y > (LONG)(m_sGUISize.cy - m_dwFontSize * 4)) && (sMouseCoords.x >= (LONG)(m_sGUISize.cx >> 1)))
+		if ((m_bMouseBoundToControl) && (m_sMouseCoords.y > (LONG)(m_sGUISize.cy - m_dwFontSize * 4)) && (m_sMouseCoords.x >= (LONG)(m_sGUISize.cx >> 1)))
 		{
 			SetDCPenColor(hdcImage, m_dwColorFront ^ m_dwColorFront);
 			SetDCBrushColor(hdcImage, m_dwColorFront ^ m_dwColorFront);
@@ -226,19 +236,19 @@ void Vireio_GUI::DrawStaticListBox(HDC hdc, Vireio_Control& sControl)
 
 	// loop through entries
 	if (sControl.m_sStaticListBox.m_paszEntries)
-		for (UINT dwJ = 0; dwJ < (UINT)sControl.m_sStaticListBox.m_paszEntries->size(); dwJ++)
-		{
-			if ((nY >= (int(m_dwFontSize) * -1)) && (nY <= int(psPos->y + psSize->cy)))
-				// output the list entry text
-				TextOut(hdc,
-				psPos->x,
-				nY,
-				((*(sControl.m_sStaticListBox.m_paszEntries))[dwJ]).c_str(),
-				(int)((*(sControl.m_sStaticListBox.m_paszEntries))[dwJ]).length());
+	for (UINT dwJ = 0; dwJ < (UINT)sControl.m_sStaticListBox.m_paszEntries->size(); dwJ++)
+	{
+		if ((nY >= (int(m_dwFontSize) * -1)) && (nY <= int(psPos->y + psSize->cy)))
+			// output the list entry text
+			TextOut(hdc,
+			psPos->x,
+			nY,
+			((*(sControl.m_sStaticListBox.m_paszEntries))[dwJ]).c_str(),
+			(int)((*(sControl.m_sStaticListBox.m_paszEntries))[dwJ]).length());
 
-			// next line
-			nY += (int)m_dwFontSize;
-		}
+		// next line
+		nY += (int)m_dwFontSize;
+	}
 
 	// draw an empty field at the bottom of the list
 	RECT sRect;
@@ -265,7 +275,7 @@ void Vireio_GUI::DrawListBox(HDC hdc, Vireio_Control& sControl)
 {
 	// first, draw the text using the static list box drawing method
 	DrawStaticListBox(hdc, sControl);
-	
+
 	// get position and size pointers
 	POINT* psPos = &sControl.m_sPosition;
 	SIZE* psSize = &sControl.m_sSize;
@@ -274,23 +284,20 @@ void Vireio_GUI::DrawListBox(HDC hdc, Vireio_Control& sControl)
 	UINT dwFullTextSizeY = (UINT)sControl.m_sListBox.m_paszEntries->size() * m_dwFontSize;
 	if (dwFullTextSizeY > (UINT)psSize->cy)
 	{
+		// get max scrollbar y position
+		float fMaxScrollBarY = (float)dwFullTextSizeY - (float)psSize->cy;
+
+		// the bar size
 		float fBarSizeY;
 		INT nBarSizeY;
 		fBarSizeY = ((float)psSize->cy / (float)dwFullTextSizeY) * psSize->cy;
-		if (fBarSizeY >= 0)
-			nBarSizeY = (int)(fBarSizeY + 0.5);
-		else
-			nBarSizeY = (int)(fBarSizeY - 0.5);
-			DEBUG_UINT(nBarSizeY);
+		nBarSizeY = (INT)UINT(fBarSizeY);
+
+		// and position,
 		float fBarPosY;
 		INT nBarPosY;
-		fBarPosY = (((float)psSize->cy - fBarSizeY) / sControl.m_sListBox.m_fScrollPosY) * ((float)psSize->cy - fBarSizeY);
-		if (fBarPosY >= 0)
-			nBarPosY = (int)DWORD(fBarPosY + 0.5);
-		else
-			nBarPosY = 0;
-		DEBUG_UINT(fBarPosY);
-		DEBUG_UINT(nBarPosY);
+		fBarPosY = (sControl.m_sListBox.m_fScrollPosY / fMaxScrollBarY) * ((float)psSize->cy - fBarSizeY);
+		nBarPosY = (INT)UINT(fBarPosY);
 
 		// and draw
 		RECT sRect;
@@ -372,14 +379,17 @@ void Vireio_GUI::AddEntry(UINT dwControl, LPCWSTR szString)
 ***/
 Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 {
+	static POINT sMouseCoordsOld;
+	static float fScrollBarPosYBackup;
+
 	// create empty return value
 	Vireio_GUI_Event sRet;
 	ZeroMemory(&sRet, sizeof(Vireio_GUI_Event));
 	sRet.eType = Vireio_GUI_Event_Type::NoEvent;
 
 	// get local mouse cursor
-	sMouseCoords.x = GET_X_LPARAM(lParam) * 4;
-	sMouseCoords.y = GET_Y_LPARAM(lParam) * 4;
+	m_sMouseCoords.x = GET_X_LPARAM(lParam) * 4;
+	m_sMouseCoords.y = GET_Y_LPARAM(lParam) * 4;
 
 	// update control
 	m_bControlUpdate = true;
@@ -392,10 +402,10 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 			if (!m_bMouseBoundToControl)
 			{
 				// next/previous page ?
-				if (sMouseCoords.y > (LONG)(m_sGUISize.cy - m_dwFontSize * 4))
+				if (m_sMouseCoords.y > (LONG)(m_sGUISize.cy - m_dwFontSize * 4))
 				{
 					// left/right ?
-					if (sMouseCoords.x < (LONG)(m_sGUISize.cx >> 1))
+					if (m_sMouseCoords.x < (LONG)(m_sGUISize.cx >> 1))
 					{
 						if (m_dwCurrentPage > 0) m_dwCurrentPage--;
 					}
@@ -407,10 +417,54 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 				}
 				// loop through active controls for this page
 				else
-					for (UINT dwI = 0; dwI < (UINT)m_asPages[m_dwCurrentPage].m_asControls.size(); dwI++)
+				for (UINT dwI = 0; dwI < (UINT)m_asPages[m_dwCurrentPage].m_asControls.size(); dwI++)
+				{
+					// is this a control with a side- scrollbar ?
+					if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_eControlType == Vireio_Control_Type::ListBox)
 					{
+						// get position and size pointers, full text size
+						POINT* psPos = &m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sPosition;
+						SIZE* psSize = &m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSize;
+						UINT dwFullTextSizeY = (UINT)m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_paszEntries->size() * m_dwFontSize;
+						if (dwFullTextSizeY >(UINT)psSize->cy)
+						{
+						// get max scrollbar y position
+							float fMaxScrollBarY = (float)dwFullTextSizeY - (float)psSize->cy;
 
+							// get scroll bar size
+							float fBarSizeY;
+							INT nBarSizeY;
+							fBarSizeY = ((float)psSize->cy / (float)dwFullTextSizeY) * psSize->cy;
+							nBarSizeY = (INT)UINT(fBarSizeY);
+
+							// and postion
+							float fBarPosY;
+							INT nBarPosY;
+							fBarPosY = (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_fScrollPosY / fMaxScrollBarY) * ((float)psSize->cy - fBarSizeY);
+							nBarPosY = (INT)UINT(fBarPosY);
+
+							// get rectangle and test mouse position
+							RECT sRect;
+							sRect.top = (LONG)psPos->y + (LONG)nBarPosY;
+							sRect.bottom = (LONG)psPos->y + (LONG)nBarPosY + (LONG)nBarSizeY + 1;
+							sRect.left = (LONG)psPos->x + psSize->cx;
+							sRect.right = (LONG)psPos->x + psSize->cx + m_dwFontSize;
+							if (InRect(sRect, m_sMouseCoords))
+							{
+								// set control to active, control action to ScrollBar and mouse bound bool
+								m_dwActiveControl = dwI;
+								m_bMouseBoundToControl = true;
+								m_eActiveControlAction = Vireio_Control_Action::ScrollBar;
+
+								// set old mouse coords and backup the scroll bar position
+								sMouseCoordsOld.x = m_sMouseCoords.x;
+								sMouseCoordsOld.y = m_sMouseCoords.y;
+								fScrollBarPosYBackup = m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_fScrollPosY;
+							}
+
+						}
 					}
+				}
 			}
 			break;
 			// left mouse button up ?
@@ -419,7 +473,46 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 			break;
 			// mouse move ?
 		case WM_MOUSEMOVE:
-			if (wParam & MK_LBUTTON) m_bMouseBoundToControl = false;
+			if (!(wParam & MK_LBUTTON)) m_bMouseBoundToControl = false;
+			if (m_bMouseBoundToControl)
+			{
+				switch (m_eActiveControlAction)
+				{
+					case None:
+						break;
+					case ScrollBar:
+					{
+									  // get y difference
+									  INT nYDiff = (INT)m_sMouseCoords.y - (INT)sMouseCoordsOld.y;
+									 
+									  // get control position and size
+									  POINT* psPos = &m_asPages[m_dwCurrentPage].m_asControls[m_dwActiveControl].m_sPosition;
+									  SIZE* psSize = &m_asPages[m_dwCurrentPage].m_asControls[m_dwActiveControl].m_sSize;
+									  UINT dwFullTextSizeY = (UINT)m_asPages[m_dwCurrentPage].m_asControls[m_dwActiveControl].m_sListBox.m_paszEntries->size() * m_dwFontSize;
+
+									  // get scroll bar size
+									  float fBarSizeY;
+									  fBarSizeY = ((float)psSize->cy / (float)dwFullTextSizeY) * psSize->cy;
+
+									  // get the maximum scroll bar position in pixel
+									  float fMaxScrollBarYInPix = (float)psSize->cy - fBarSizeY;
+									  float fMaxScrollBarY = (float)dwFullTextSizeY - (float)psSize->cy;
+									  
+									  // set new scroll bar position
+									  m_asPages[m_dwCurrentPage].m_asControls[m_dwActiveControl].m_sListBox.m_fScrollPosY = fScrollBarPosYBackup + (float)nYDiff * (fMaxScrollBarY / fMaxScrollBarYInPix);
+
+									  // and clamp
+									  if (m_asPages[m_dwCurrentPage].m_asControls[m_dwActiveControl].m_sListBox.m_fScrollPosY < 0.0f) m_asPages[m_dwCurrentPage].m_asControls[m_dwActiveControl].m_sListBox.m_fScrollPosY = 0.0f;
+									  if (m_asPages[m_dwCurrentPage].m_asControls[m_dwActiveControl].m_sListBox.m_fScrollPosY > fMaxScrollBarY) m_asPages[m_dwCurrentPage].m_asControls[m_dwActiveControl].m_sListBox.m_fScrollPosY = fMaxScrollBarY;
+
+									  // update control
+									  m_bControlUpdate = true;
+					}
+						break;
+					default:
+						break;
+				}
+			}
 			break;
 		case WM_RBUTTONDOWN:
 			break;

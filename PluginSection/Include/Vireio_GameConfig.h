@@ -50,4 +50,5 @@ struct Vireio_GameConfiguration
 	float		DistortionScale;			/**< The scale to apply distortion. **/
 	float		PFOV;						/**< Projection FOV, alternative to modifying game's FOV **/
 	bool		PFOVToggle;					/**< Projection FOV, toggle for above **/
+	float       aspect_multiplier;          /**< ***/
 };
