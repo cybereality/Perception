@@ -104,7 +104,7 @@ m_roll(0.0f)
 	D3DXMatrixIdentity(&matGatheredLeft);
 	D3DXMatrixIdentity(&matGatheredRight);
 
-	UpdateProjectionMatrices(displayInfo->GetScreenAspectRatio(), 110.0f);
+	UpdateProjectionMatrices(config->aspect_multiplier, 110.0f);
 	D3DXMatrixIdentity(&rollMatrix);
 	D3DXMatrixIdentity(&rollMatrixNegative);
 	ComputeViewTransforms();

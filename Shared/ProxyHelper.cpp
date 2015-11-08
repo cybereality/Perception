@@ -1284,7 +1284,7 @@ ProxyConfig::ProxyConfig()
 	stereo_mode = 0;
 	tracker_mode = 0;
 	ipd = IPD_DEFAULT;
-	aspect_multiplier = 1.7f;
+	aspect_multiplier = 1.777f;
 	display_adapter = 0;
 	PerfHudMode = 0;
 	mirror_mode = 0;

@@ -177,7 +177,7 @@ OculusDirectToRiftView::OculusDirectToRiftView(ProxyConfig *config, HMDisplayInf
 	SetThreadPriority(ThreadHandle, THREAD_PRIORITY_HIGHEST);
 
 	//Now wait for the DX11 initialisation to complete
-	DWORD result = WaitForSingleObject(m_EventFlagProcessed, 5000);
+	DWORD result = WaitForSingleObject(m_EventFlagProcessed, 60000);
 	if (result == WAIT_TIMEOUT)
 	{
 		vireio::debugf("TIMEOUT EXPIRED IN DX11 INITIALISATION");
@@ -204,7 +204,7 @@ OculusDirectToRiftView::~OculusDirectToRiftView()
 
 bool OculusDirectToRiftView::DX11RenderThread_Init()
 {
-	bool initialized = DX11RenderThread_InitDevices(Sizei(hmdInfo->GetResolution().first, hmdInfo->GetResolution().second));
+	bool initialized = DX11RenderThread_InitDevices(Sizei(rift->Resolution.w, rift->Resolution.h));
 	VALIDATE(initialized, "Unable to initialize D3D11 device.");
 
 	for (int eye = 0; eye < 2; eye++)
@@ -300,7 +300,7 @@ bool OculusDirectToRiftView::DX11RenderThread_InitDevices(Sizei sz)
 		DXGIDevice1->Release();
 	}
 
-	//CReate a second DX11 device solely for copying textures
+	//Create a second DX11 device solely for copying textures
 	{
 		if (FAILED(D3D11CreateDevice(Adapter, Adapter ? D3D_DRIVER_TYPE_UNKNOWN : D3D_DRIVER_TYPE_HARDWARE,
 			NULL, 0, NULL, 0, D3D11_SDK_VERSION, &m_copyDX11.Device, NULL, &m_copyDX11.Context)))

@@ -88,9 +88,6 @@
     <ClCompile Include="OculusTracker.cpp">
       <Filter>Tracking</Filter>
     </ClCompile>
-    <ClCompile Include="OculusRiftView.cpp">
-      <Filter>Stereo</Filter>
-    </ClCompile>
     <ClCompile Include="D3DProxyDevice.cpp">
       <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>
     </ClCompile>
@@ -317,9 +314,6 @@
     </ClInclude>
     <ClInclude Include="OculusTracker.h">
       <Filter>Tracking</Filter>
-    </ClInclude>
-    <ClInclude Include="OculusRiftView.h">
-      <Filter>Stereo</Filter>
     </ClInclude>
     <ClInclude Include="D3DProxyDevice.h">
       <Filter>Direct3D9Vireio\Direct3DDevice9</Filter>

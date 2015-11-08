@@ -267,7 +267,6 @@
     <ClCompile Include="MotionTrackerFactory.cpp" />
     <ClCompile Include="MurmurHash3.cpp" />
     <ClCompile Include="OculusDirectToRiftView.cpp" />
-    <ClCompile Include="OculusRiftView.cpp" />
     <ClCompile Include="OculusTracker.cpp" />
     <ClCompile Include="Popup.cpp" />
     <ClCompile Include="DataGatherer.cpp" />
@@ -363,7 +362,6 @@
     <ClInclude Include="FreeTrackTracker.h" />
     <ClInclude Include="Main.h" />
     <ClInclude Include="MotionTrackerFactory.h" />
-    <ClInclude Include="OculusRiftView.h" />
     <ClInclude Include="OculusTracker.h" />
     <ClInclude Include="SharedMemoryTracker.h" />
     <ClInclude Include="IStereoCapableWrapper.h" />

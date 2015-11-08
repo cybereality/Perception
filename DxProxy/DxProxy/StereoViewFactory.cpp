@@ -29,7 +29,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "StereoViewFactory.h"
 #include "StereoViewInterleave.h"
-#include "OculusRiftView.h"
 #include "OculusDirectToRiftView.h"
 /**
 *  Get stereo view. 
@@ -52,10 +51,7 @@ StereoView* StereoViewFactory::Get(ProxyConfig *config, HMDisplayInfo *hmd, Moti
 	case StereoView::OVER_UNDER:
 		return new StereoView(config);
 		break;
-	case StereoView::OCULUS_RIFT:
-		return new OculusRiftView(config, hmd);
-		break;
-	case StereoView::OCULUS_DIRECT_TO_RIFT:
+	case StereoView::OCULUS_DIRECT_MODE:
 		return new OculusDirectToRiftView(config, hmd, tracker);
 		break;	
 	case StereoView::INTERLEAVE_HORZ:

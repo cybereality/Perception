@@ -77,38 +77,11 @@ public:
 	virtual std::string GetHMDName() {return "Default";}
 
 	/**
-	* Screen resolution, in pixels.
-	* <horizontal, vertical>
-	***/
-	virtual std::pair<UINT, UINT>  GetResolution()
-	{
-		return std::make_pair<UINT, UINT>(1280, 800);
-	}
-
-	/**
-	* Physical characteristics are in meters.
-	* <horizontal, vertical> 
-	***/
-	virtual std::pair<float, float> GetPhysicalScreenSize()
-	{
-		return std::make_pair<float, float>(0.14976f, 0.0935f);
-	}
-
-	/**
 	* Physical lens seperation (currently constant rift dev kit 1 value=default ipd 0.064f).
 	***/
 	virtual float GetPhysicalLensSeparation()
 	{
 		return 0.064f;
-	}
-	
-	/**
-	* The distance in a 0 to 1 range that the center of each lens is from the center of each half of
-	* the screen on Y axis
-	***/
-	virtual float GetLensYCenterOffset()
-	{
-		return 0.5f;
 	}
 
 	/**
