@@ -88,66 +88,13 @@ MatrixModifier::MatrixModifier() : AQU_Nodus()
 	ZeroMemory(&m_sGameConfiguration, sizeof(Vireio_GameConfiguration));
 	m_sGameConfiguration.convergence = 3.0f;
 	m_sGameConfiguration.ipd = IPD_DEFAULT;
-	m_sGameConfiguration.worldScaleFactor = 3.0f;
+	m_sGameConfiguration.worldScaleFactor = -32.0f;
 	m_sGameConfiguration.PFOV = 110.0f;
 	m_pcShaderViewAdjustment = new ViewAdjustment(m_psHmdInfo, &m_sGameConfiguration);
 
 	// init
 	m_pcShaderViewAdjustment->UpdateProjectionMatrices((float)1920.0f / (float)1080.0f, m_sGameConfiguration.PFOV);
 	m_pcShaderViewAdjustment->ComputeViewTransforms();
-
-	//// create first matrices.... TODO !! include class from main driver
-	//float fAspectRatio = 1920.0f / 1080.0f;
-	//float n = 0.1f;     /**< Minimum z-value of the view volume. */
-	//float f = 10.0f;    /**< Maximum z-value of the view volume. */
-	//float l = -0.5f;    /**< Minimum x-value of the view volume. */
-	//float r = 0.5f;     /**< Maximum x-value of the view volume. */
-	//float t = 0.5f / fAspectRatio;   /**< Minimum y-value of the view volume. */
-	//float b = -0.5f / fAspectRatio;  /**< Maximum y-value of the view volume. */
-	//D3DXMatrixPerspectiveOffCenterLH(&matProjection, l, r, b, t, n, f);
-	//D3DXMatrixInverse(&matProjectionInv, 0, &matProjection);
-
-	//// drawing side set to left... changed only in VireioStereioSplitter::SetDrawingSide()
-	//m_eCurrentRenderingSide = RenderPosition::Left;
-
-	//// ALL stated in meters here ! screen size = horizontal size
-
-	//// assumption here :
-	//// end user is placed 1 meter away from screen
-	//// end user screen is 1 meter in horizontal size
-	//float nearClippingPlaneDistance = 1;
-	//float physicalScreenSizeInMeters = 1;
-	//float convergence = 3.0f;
-	//float ipd = 0.064f;
-
-	//// convergence frustum adjustment, based on NVidia explanations
-	////
-	//// It is evident that the ratio of frustum shift to the near clipping plane is equal to the ratio of 
-	//// IOD/2 to the distance from the screenplane. (IOD=IPD) 
-	//// frustumAsymmetryInMeters = ((IPD/2) * nearClippingPlaneDistance) / convergence
-	//// <http://www.orthostereo.com/geometryopengl.html>
-	////
-	//// (near clipping plane distance = physical screen distance)
-	//// (convergence = virtual screen distance)
-	//if (convergence <= nearClippingPlaneDistance) convergence = nearClippingPlaneDistance + 0.001f;
-	//float frustumAsymmetryInMeters = ((ipd / 2) * nearClippingPlaneDistance) / convergence;
-
-	//// divide the frustum asymmetry by the assumed physical size of the physical screen
-	//float frustumAsymmetryLeftInMeters = (frustumAsymmetryInMeters * -1.0f) / physicalScreenSizeInMeters;
-	//float frustumAsymmetryRightInMeters = (frustumAsymmetryInMeters * 1.0f) / physicalScreenSizeInMeters;
-
-	//// get the horizontal screen space size and compute screen space adjustment
-	//float screenSpaceXSize = abs(l) + abs(r);
-	//float multiplier = screenSpaceXSize / 1; // = 1 meter
-	//float frustumAsymmetryLeft = frustumAsymmetryLeftInMeters * multiplier;
-	//float frustumAsymmetryRight = frustumAsymmetryRightInMeters * multiplier;
-
-	//// now, create the re-projection matrices for both eyes using this frustum asymmetry
-	//D3DXMatrixPerspectiveOffCenterLH(&projectLeft, l + frustumAsymmetryLeft, r + frustumAsymmetryLeft, b, t, n, f);
-	//D3DXMatrixPerspectiveOffCenterLH(&projectRight, l + frustumAsymmetryRight, r + frustumAsymmetryRight, b, t, n, f);
-
-	// compute view transforms
-	//ComputeViewTransforms(-1.0f);
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	// create buffer vectors
@@ -1548,9 +1495,13 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region ID3D11DeviceContext::VSGetConstantBuffers
 				case METHOD_ID3D11DEVICECONTEXT_VSGETCONSTANTBUFFERS:
-					OutputDebugString(L"METHOD_ID3D11DEVICECONTEXT_VSGETCONSTANTBUFFERS");
-					// ID3D11DeviceContext::VSGetConstantBuffers(UINT StartSlot, UINT NumBuffers, ID3D11Buffer **ppConstantBuffers);
-					// return a poiner to the active constant buffers
+					// currently, we set the main buffers to avoid that the game gets the 
+					// stereo buffers assioziated with the main buffers as private data interfaces.
+					// if there is a game that flickers (should not be) we need to replace the whole
+					// method (using AQU_PluginFlags::ImmediateReturnFlag)
+					((ID3D11DeviceContext*)pThis)->VSSetConstantBuffers(0,
+						D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT,
+						(ID3D11Buffer**)&m_apcActiveConstantBuffers11[0]);
 					break;
 #pragma endregion
 #pragma region ID3D11DeviceContext::PSGetConstantBuffers
@@ -1788,18 +1739,3 @@ void MatrixModifier::CreateStereoConstantBuffer(ID3D11Device* pcDevice, ID3D11De
 
 #elif defined(VIREIO_D3D9)
 #endif
-
-///**
-//* Computes the view transform.
-//* To be deleted after including "ViewAdjustment" class from base driver.
-//***/
-//void MatrixModifier::ComputeViewTransforms(float fSeparation)
-//{
-//	// separation settings are overall (HMD and desktop), since they are based on physical IPD
-//	D3DXMatrixTranslation(&transformLeft, fSeparation * -1.0f, 0, 0);
-//	D3DXMatrixTranslation(&transformRight, fSeparation * 1.0f, 0, 0);
-//
-//	// projection transform
-//	matViewProjTransformLeft = matProjectionInv * transformLeft * projectLeft;
-//	matViewProjTransformRight = matProjectionInv * transformRight * projectRight;
-//}

@@ -256,7 +256,6 @@ private:
 	void CreateStereoConstantBuffer(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, ID3D11Buffer* pcBuffer, D3D11_BUFFER_DESC *pDesc, D3D11_SUBRESOURCE_DATA *pInitialData, bool bCopyData);
 #elif defined(VIREIO_D3D9)
 #endif
-	//void ComputeViewTransforms(float fSeparation);
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	/*** MatrixModifier input pointers ***/
@@ -401,48 +400,6 @@ private:
 	* Pointer to the hmd info
 	*/
 	HMDisplayInfo* m_psHmdInfo;
-
-	///*** Matrix Modifier matrices ***/
-	///**
-	//* Projection matrix.
-	//***/
-	//D3DXMATRIX matProjection;
-	///**
-	//* Projection inverse matrix.
-	//***/
-	//D3DXMATRIX matProjectionInv;
-	///**
-	//* The shifted left projection matrix.
-	//***/
-	//D3DXMATRIX projectLeft;
-	///**
-	//* The shifted right projection matrix.
-	//***/
-	//D3DXMATRIX projectRight;
-	///**
-	//* Left matrix used to roll (if roll enabled) and shift view for ipd.
-	//***/
-	//D3DXMATRIX transformLeft;
-	///**
-	//* Right matrix used to roll (if roll enabled) and shift view for ipd.
-	//***/
-	//D3DXMATRIX transformRight;
-	///**
-	//* Left view projection matrix.
-	//***/
-	//D3DXMATRIX matViewProjLeft;
-	///**
-	//* Right view projection matrix.
-	//***/
-	//D3DXMATRIX matViewProjRight;
-	///**
-	//* Left view projection transform matrix.
-	//***/
-	//D3DXMATRIX matViewProjTransformLeft;
-	///**
-	//* Right view projection transform matrix.
-	//***/
-	//D3DXMATRIX matViewProjTransformRight;
 };
 
 /**
