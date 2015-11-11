@@ -54,6 +54,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define METHOD_ID3D11DEVICECONTEXT_VSSETCONSTANTBUFFERS                      7
 #define METHOD_ID3D11DEVICECONTEXT_PSSETSHADER                               9
 #define METHOD_ID3D11DEVICECONTEXT_VSSETSHADER                               11
+#define METHOD_ID3D11DEVICECONTEXT_MAP                                       14
+#define METHOD_ID3D11DEVICECONTEXT_UNMAP                                     15
 #define METHOD_ID3D11DEVICECONTEXT_PSSETCONSTANTBUFFERS                      16
 #define METHOD_ID3D11DEVICECONTEXT_COPYSUBRESOURCEREGION                     46
 #define METHOD_ID3D11DEVICECONTEXT_COPYRESOURCE                              47
@@ -105,6 +107,72 @@ MatrixModifier::MatrixModifier() : AQU_Nodus()
 
 	// set constant buffer verification at startup (first 30 frames)
 	m_dwVerifyConstantBuffers = CONSTANT_BUFFER_VERIFICATION_FRAME_NUMBER;
+
+	// nullptr for all dx10/11 input fields
+	m_ppvShaderBytecode_VertexShader = nullptr;
+	m_pnBytecodeLength_VertexShader = nullptr;
+	m_ppcClassLinkage_VertexShader = nullptr;
+	m_pppcVertexShader_DX10 = nullptr;
+	m_pppcVertexShader_DX11 = nullptr;
+	m_ppvShaderBytecode_PixelShader = nullptr;
+	m_pnBytecodeLength_PixelShader = nullptr;
+	m_ppcClassLinkage_PixelShader = nullptr;
+	m_pppcPixelShader_DX10 = nullptr;
+	m_pppcPixelShader_DX11 = nullptr;
+	m_ppcVertexShader_10 = nullptr;
+	m_ppcVertexShader_11 = nullptr;
+	m_ppcPixelShader_10 = nullptr;
+	m_ppcPixelShader_11 = nullptr;
+	m_ppsDesc_DX10 = nullptr;
+	m_ppsInitialData_DX10 = nullptr;
+	m_pppcBuffer_DX10 = nullptr;
+	m_ppsDesc_DX11 = nullptr;
+	m_ppsInitialData_DX11 = nullptr;
+	m_pppcBuffer_DX11 = nullptr;
+	m_pdwStartSlot_VertexShader = nullptr;
+	m_pdwNumBuffers_VertexShader = nullptr;
+	m_pppcConstantBuffers_DX10_VertexShader = nullptr;
+	m_pppcConstantBuffers_DX11_VertexShader = nullptr;
+	m_pdwStartSlot_PixelShader = nullptr;
+	m_pdwNumBuffers_PixelShader = nullptr;
+	m_pppcConstantBuffers_DX10_PixelShader = nullptr;
+	m_pppcConstantBuffers_DX11_PixelShader = nullptr;
+	m_ppcDstResource_DX10 = nullptr;
+	m_ppcDstResource_DX11 = nullptr;
+	m_pdwDstSubresource = nullptr;
+	m_ppsDstBox_DX10 = nullptr;
+	m_ppsDstBox_DX11 = nullptr;
+	m_ppvSrcData = nullptr;
+	m_pdwSrcRowPitch = nullptr;
+	m_pdwSrcDepthPitch = nullptr;
+	m_ppcDstResource_DX10_Copy = nullptr;
+	m_ppcSrcResource_DX10_Copy = nullptr;
+	m_ppcDstResource_DX11_Copy = nullptr;
+	m_ppcSrcResource_DX11_Copy = nullptr;
+	m_ppcDstResource_DX10_CopySub = nullptr;
+	m_ppcDstResource_DX11_CopySub = nullptr;
+	m_pdwDstSubresource_CopySub = nullptr;
+	m_pdwDstX = nullptr;
+	m_pdwDstY = nullptr;
+	m_pdwDstZ = nullptr;
+	m_ppcSrcResource_DX10_CopySub = nullptr;
+	m_ppcSrcResource_DX11_CopySub = nullptr;
+	m_pdwSrcSubresource = nullptr;
+	m_ppsSrcBox_DX10 = nullptr;
+	m_ppsSrcBox_DX11 = nullptr;
+	m_pdwStartSlot_VertexShader = nullptr;
+	m_pdwNumBuffers_VertexShader = nullptr;
+	m_pppcConstantBuffers_VertexShader = nullptr;
+	m_pdwStartSlot_PixelShader = nullptr;
+	m_pdwNumBuffers_PixelShader = nullptr;
+	m_pppcConstantBuffers_PixelShader = nullptr;
+	m_ppcResource_Map = nullptr;
+	m_pdwSubresource_Map = nullptr;
+	m_psMapType = nullptr;
+	m_pdwMapFlags = nullptr;
+	m_ppsMappedResource = nullptr;
+	m_ppcResource_Unmap = nullptr;
+	m_pdwSubresource_Unmap = nullptr;
 #endif
 }
 
@@ -173,7 +241,7 @@ HBITMAP MatrixModifier::GetControl()
 	if (!m_pcVireioGUI)
 	{
 		SIZE sSizeOfThis;
-		sSizeOfThis.cx = 1024; sSizeOfThis.cy = 4000;
+		sSizeOfThis.cx = GUI_WIDTH; sSizeOfThis.cy = GUI_HEIGHT;
 		m_pcVireioGUI = new Vireio_GUI(sSizeOfThis, L"Cambria", TRUE, 64, RGB(110, 105, 95), RGB(254, 249, 240));
 
 		// add first page and control
@@ -390,6 +458,36 @@ LPWSTR MatrixModifier::GetDecommanderName(DWORD dwDecommanderIndex)
 			return L"pSrcBox_DX10";
 		case pSrcBox_DX11:
 			return L"pSrcBox_DX11";
+		case StartSlot_Get_VertexShader:
+			return L"StartSlot_Get_VertexShader";
+		case NumBuffers_Get_VertexShader:
+			return L"NumBuffers_Get_VertexShader";
+		case ppConstantBuffers_DX10_Get_VertexShader:
+			return L"ppConstantBuffers_DX10_Get_VS";
+		case ppConstantBuffers_DX11_Get_VertexShader:
+			return L"ppConstantBuffers_DX11_Get_VS";
+		case StartSlot_Get_PixelShader:
+			return L"StartSlot_Get_PixelShader";
+		case NumBuffers_Get_PixelShader:
+			return L"NumBuffers_Get_PixelShader";
+		case ppConstantBuffers_DX10_Get_PixelShader:
+			return L"ppConstantBuffers_DX10_Get_PS";
+		case ppConstantBuffers_DX11_Get_PixelShader:
+			return L"ppConstantBuffers_DX11_Get_PS";
+		case pResource:
+			return L"pResource";
+		case Subresource:
+			return L"Subresource";
+		case MapType:
+			return L"MapType";
+		case MapFlags:
+			return L"MapFlags";
+		case pMappedResource:
+			return L"pMappedResource";
+		case pResource_Unmap:
+			return L"pResource_Unmap";
+		case Subresource_Unmap:
+			return L"Subresource_Unmap";
 		default:
 			return L"UNTITLED";
 	}
@@ -564,6 +662,36 @@ DWORD MatrixModifier::GetDecommanderType(DWORD dwDecommanderIndex)
 			return NOD_Plugtype::AQU_PNT_D3D10_BOX;
 		case pSrcBox_DX11:
 			return NOD_Plugtype::AQU_PNT_D3D11_BOX;
+		case StartSlot_Get_VertexShader:
+			return NOD_Plugtype::AQU_UINT;
+		case NumBuffers_Get_VertexShader:
+			return NOD_Plugtype::AQU_UINT;
+		case ppConstantBuffers_DX10_Get_VertexShader:
+			return NOD_Plugtype::AQU_PPNT_ID3D10BUFFER;
+		case ppConstantBuffers_DX11_Get_VertexShader:
+			return NOD_Plugtype::AQU_PPNT_ID3D11BUFFER;
+		case StartSlot_Get_PixelShader:
+			return NOD_Plugtype::AQU_UINT;
+		case NumBuffers_Get_PixelShader:
+			return NOD_Plugtype::AQU_UINT;
+		case ppConstantBuffers_DX10_Get_PixelShader:
+			return NOD_Plugtype::AQU_PPNT_ID3D10BUFFER;
+		case ppConstantBuffers_DX11_Get_PixelShader:
+			return NOD_Plugtype::AQU_PPNT_ID3D11BUFFER;
+		case pResource:
+			return NOD_Plugtype::AQU_PNT_ID3D11RESOURCE;
+		case Subresource:
+			return NOD_Plugtype::AQU_UINT;
+		case MapType:
+			return NOD_Plugtype::AQU_D3D11_MAP;
+		case MapFlags:
+			return NOD_Plugtype::AQU_UINT;
+		case pMappedResource:
+			return NOD_Plugtype::AQU_PNT_D3D11_MAPPED_SUBRESOURCE;
+		case pResource_Unmap:
+			return NOD_Plugtype::AQU_PNT_ID3D11RESOURCE;
+		case Subresource_Unmap:
+			return NOD_Plugtype::AQU_UINT;
 		default:
 			break;
 	}
@@ -790,6 +918,36 @@ void MatrixModifier::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 		case pSrcBox_DX11:
 			m_ppsSrcBox_DX11 = (D3D11_BOX**)pData;
 			break;
+		case StartSlot_Get_VertexShader:
+			m_pdwStartSlot_VertexShader_Get = (UINT*)pData;
+		case NumBuffers_Get_VertexShader:
+			m_pdwNumBuffers_VertexShader_Get = (UINT*)pData;
+		case ppConstantBuffers_DX10_Get_VertexShader:
+			break;
+		case ppConstantBuffers_DX11_Get_VertexShader:
+			m_pppcConstantBuffers_VertexShader = (ID3D11Buffer***)pData;
+		case StartSlot_Get_PixelShader:
+			m_pdwStartSlot_PixelShader_Get = (UINT*)pData;
+		case NumBuffers_Get_PixelShader:
+			m_pdwNumBuffers_PixelShader_Get = (UINT*)pData;
+		case ppConstantBuffers_DX10_Get_PixelShader:
+			break;
+		case ppConstantBuffers_DX11_Get_PixelShader:
+			m_pppcConstantBuffers_PixelShader = (ID3D11Buffer***)pData;
+		case pResource:
+			m_ppcResource_Map = (ID3D11Resource**)pData;
+		case Subresource:
+			m_pdwSubresource_Map = (UINT*)pData;
+		case MapType:
+			m_psMapType = (D3D11_MAP*)pData;
+		case MapFlags:
+			m_pdwMapFlags = (UINT*)pData;
+		case pMappedResource:
+			m_ppsMappedResource = (D3D11_MAPPED_SUBRESOURCE**)pData;
+		case pResource_Unmap:
+			m_ppcResource_Unmap = (ID3D11Resource**)pData;
+		case Subresource_Unmap:
+			m_pdwSubresource_Unmap = (UINT*)pData;
 		default:
 			break;
 	}
@@ -867,6 +1025,8 @@ bool MatrixModifier::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 		{
 			if ((nD3DMethod == METHOD_ID3D11DEVICECONTEXT_VSSETSHADER) ||
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_VSSETCONSTANTBUFFERS) ||
+				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_MAP) ||
+				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_UNMAP) ||
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_COPYSUBRESOURCEREGION) ||
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_COPYRESOURCE) ||
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_UPDATESUBRESOURCE) ||
@@ -1509,6 +1669,14 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					// ID3D11DeviceContext::PSGetConstantBuffers(UINT StartSlot, UINT NumBuffers, ID3D11Buffer **ppConstantBuffers);
 					OutputDebugString(L"METHOD_ID3D11DEVICECONTEXT_PSGETCONSTANTBUFFERS");
 					// return a poiner to the active constant buffers
+					break;
+#pragma endregion
+#pragma region ID3D11DeviceContext::Map
+				case METHOD_ID3D11DEVICECONTEXT_MAP:
+					break;
+#pragma endregion
+#pragma region ID3D11DeviceContext::Unmap
+				case METHOD_ID3D11DEVICECONTEXT_UNMAP:
 					break;
 #pragma endregion
 			}

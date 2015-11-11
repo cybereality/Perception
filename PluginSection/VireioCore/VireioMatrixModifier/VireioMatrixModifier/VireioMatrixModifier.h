@@ -86,11 +86,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 #define NUMBER_OF_COMMANDERS                           6
-#define NUMBER_OF_DECOMMANDERS                        51
+#define NUMBER_OF_DECOMMANDERS                        66
+#define GUI_WIDTH                                   1024                      
+#define GUI_HEIGHT                                  5000                      
 #define CONSTANT_BUFFER_VERIFICATION_FRAME_NUMBER   6000                     /**< If no shader data is present, the constant buffers are verified for 6000 frames. ***/
 #elif defined(VIREIO_D3D9)
 #define NUMBER_OF_COMMANDERS                           0
 #define NUMBER_OF_DECOMMANDERS                        12
+#define GUI_WIDTH                                   1024                      
+#define GUI_HEIGHT                                  2000     
 #endif
 
 #define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"%u", a); OutputDebugString(buf); }
@@ -129,11 +133,11 @@ enum STS_Decommanders
 	pClassLinkage_PixelShader,               /**< ID3D10Device/ID3D11Device::CreatePixelShader **/
 	ppPixelShader_DX10,                      /**< ID3D10Device/ID3D11Device::CreatePixelShader ***/
 	ppPixelShader_DX11,                      /**< ID3D10Device/ID3D11Device::CreatePixelShader ***/
-	pVertexShader_10,                        /**< ID3D10Device/ID3D11DeviceContext::VSSetShader ***/ 
-	pVertexShader_11,                        /**< ID3D10Device/ID3D11DeviceContext::VSSetShader ***/ 
+	pVertexShader_10,                        /**< ID3D10Device/ID3D11DeviceContext::VSSetShader ***/
+	pVertexShader_11,                        /**< ID3D10Device/ID3D11DeviceContext::VSSetShader ***/
 	pPixelShader_10,                         /**< ID3D10Device/ID3D11DeviceContext::PSSetShader ***/
 	pPixelShader_11,                         /**< ID3D10Device/ID3D11DeviceContext::PSSetShader ***/
-	pDesc_DX10,                              /**< ID3D10Device/ID3D11Device::CreateBuffer ***/ 
+	pDesc_DX10,                              /**< ID3D10Device/ID3D11Device::CreateBuffer ***/
 	pInitialData_DX10,                       /**< ID3D10Device/ID3D11Device::CreateBuffer ***/
 	ppBuffer_DX10,                           /**< ID3D10Device/ID3D11Device::CreateBuffer ***/
 	pDesc_DX11,                              /**< ID3D10Device/ID3D11Device::CreateBuffer ***/
@@ -149,11 +153,11 @@ enum STS_Decommanders
 	ppConstantBuffers_DX11_PixelShader,      /**< ID3D10Device/ID3D11DeviceContext::PSSetConstantBuffers ***/
 	pDstResource_DX10,                       /**< ID3D10Device/ID3D11DeviceContext::UpdateSubresource ***/
 	pDstResource_DX11,                       /**< ID3D10Device/ID3D11DeviceContext::UpdateSubresource ***/
-	DstSubresource,                          /**< ID3D10Device/ID3D11DeviceContext::UpdateSubresource ***/ 
-	pDstBox_DX10,                            /**< ID3D10Device/ID3D11DeviceContext::UpdateSubresource ***/ 
+	DstSubresource,                          /**< ID3D10Device/ID3D11DeviceContext::UpdateSubresource ***/
+	pDstBox_DX10,                            /**< ID3D10Device/ID3D11DeviceContext::UpdateSubresource ***/
 	pDstBox_DX11,                            /**< ID3D10Device/ID3D11DeviceContext::UpdateSubresource ***/
-	pSrcData,                                /**< ID3D10Device/ID3D11DeviceContext::UpdateSubresource ***/ 
-	SrcRowPitch,                             /**< ID3D10Device/ID3D11DeviceContext::UpdateSubresource ***/ 
+	pSrcData,                                /**< ID3D10Device/ID3D11DeviceContext::UpdateSubresource ***/
+	SrcRowPitch,                             /**< ID3D10Device/ID3D11DeviceContext::UpdateSubresource ***/
 	SrcDepthPitch,                           /**< ID3D10Device/ID3D11DeviceContext::UpdateSubresource ***/
 	pDstResource_DX10_Copy,                  /**< ID3D10Device/ID3D11DeviceContext::CopyResource ***/
 	pSrcResource_DX10_Copy,                  /**< ID3D10Device/ID3D11DeviceContext::CopyResource ***/
@@ -170,6 +174,21 @@ enum STS_Decommanders
 	SrcSubresource,                          /**< ID3D10Device/ID3D11DeviceContext::CopySubresourceRegion ***/
 	pSrcBox_DX10,                            /**< ID3D10Device/ID3D11DeviceContext::CopySubresourceRegion ***/
 	pSrcBox_DX11,                            /**< ID3D10Device/ID3D11DeviceContext::CopySubresourceRegion ***/
+	StartSlot_Get_VertexShader,              /**< ID3D10Device/ID3D11DeviceContext::VSGetConstantBuffers ***/
+	NumBuffers_Get_VertexShader,             /**< ID3D10Device/ID3D11DeviceContext::VSGetConstantBuffers ***/
+	ppConstantBuffers_DX10_Get_VertexShader, /**< ID3D10Device/ID3D11DeviceContext::VSGetConstantBuffers ***/
+	ppConstantBuffers_DX11_Get_VertexShader, /**< ID3D10Device/ID3D11DeviceContext::VSGetConstantBuffers ***/
+	StartSlot_Get_PixelShader,               /**< ID3D10Device/ID3D11DeviceContext::PSGetConstantBuffers ***/
+	NumBuffers_Get_PixelShader,              /**< ID3D10Device/ID3D11DeviceContext::PSGetConstantBuffers ***/
+	ppConstantBuffers_DX10_Get_PixelShader,  /**< ID3D10Device/ID3D11DeviceContext::PSGetConstantBuffers ***/
+	ppConstantBuffers_DX11_Get_PixelShader,  /**< ID3D10Device/ID3D11DeviceContext::PSGetConstantBuffers ***/
+	pResource,                               /**< ID3D11DeviceContext::Map ***/
+	Subresource,                             /**< ID3D11DeviceContext::Map ***/
+	MapType,                                 /**< ID3D11DeviceContext::Map ***/
+	MapFlags,                                /**< ID3D11DeviceContext::Map ***/
+	pMappedResource,                         /**< ID3D11DeviceContext::Map ***/
+	pResource_Unmap,                         /**< ID3D11DeviceContext::Unmap ***/
+	Subresource_Unmap,                       /**< ID3D11DeviceContext::Unmap ***/
 #elif defined(VIREIO_D3D9)
 	/*** D3D9 methods ***/
 	pShader_Vertex, // SetVertexShader(IDirect3DVertexShader9 *pShader);
@@ -290,10 +309,10 @@ private:
 	ID3D10Resource** m_ppcDstResource_DX10;
 	ID3D11Resource** m_ppcDstResource_DX11;
 	UINT* m_pdwDstSubresource;
-	D3D10_BOX** m_ppsDstBox_DX10; 
-	D3D11_BOX** m_ppsDstBox_DX11; 
-	void** m_ppvSrcData; 
-	UINT* m_pdwSrcRowPitch; 
+	D3D10_BOX** m_ppsDstBox_DX10;
+	D3D11_BOX** m_ppsDstBox_DX11;
+	void** m_ppvSrcData;
+	UINT* m_pdwSrcRowPitch;
 	UINT* m_pdwSrcDepthPitch;
 	ID3D10Resource** m_ppcDstResource_DX10_Copy;
 	ID3D10Resource** m_ppcSrcResource_DX10_Copy;
@@ -310,9 +329,22 @@ private:
 	UINT* m_pdwSrcSubresource;
 	D3D10_BOX** m_ppsSrcBox_DX10;
 	D3D11_BOX** m_ppsSrcBox_DX11;
+	UINT* m_pdwStartSlot_VertexShader_Get;
+	UINT* m_pdwNumBuffers_VertexShader_Get;
+	ID3D11Buffer*** m_pppcConstantBuffers_VertexShader;
+	UINT* m_pdwStartSlot_PixelShader_Get;
+	UINT* m_pdwNumBuffers_PixelShader_Get;
+	ID3D11Buffer*** m_pppcConstantBuffers_PixelShader;
+	ID3D11Resource** m_ppcResource_Map;
+	UINT* m_pdwSubresource_Map;
+	D3D11_MAP* m_psMapType;
+	UINT* m_pdwMapFlags;
+	D3D11_MAPPED_SUBRESOURCE** m_ppsMappedResource;
+	ID3D11Resource** m_ppcResource_Unmap;
+	UINT* m_pdwSubresource_Unmap;
 
-	/*** 
-	* MatrixModifier output pointers 
+	/***
+	* MatrixModifier output pointers
 	***/
 	void* m_pvOutput[NUMBER_OF_COMMANDERS];
 	/**
