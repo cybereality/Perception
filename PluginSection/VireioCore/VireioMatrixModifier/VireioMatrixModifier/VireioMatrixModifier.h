@@ -382,6 +382,15 @@ private:
 		BYTE m_pchBuffer11Temp[D3D11_REQ_CONSTANT_BUFFER_ELEMENT_COUNT];
 	};
 	/**
+	* Constant Buffer private data buffer temporary 2.
+	* Second buffer data needed for Map().
+	***/
+	union
+	{
+		BYTE m_pchBuffer10Temp2[D3D10_REQ_CONSTANT_BUFFER_ELEMENT_COUNT];
+		BYTE m_pchBuffer11Temp2[D3D11_REQ_CONSTANT_BUFFER_ELEMENT_COUNT];
+	};
+	/**
 	* Constant Buffer private data buffer left eye.
 	***/
 	union
@@ -397,6 +406,26 @@ private:
 		BYTE m_pchBuffer10Right[D3D10_REQ_CONSTANT_BUFFER_ELEMENT_COUNT];
 		BYTE m_pchBuffer11Right[D3D11_REQ_CONSTANT_BUFFER_ELEMENT_COUNT];
 	};
+	/**
+	* Stored mapped resource pointer. (DX11 only)
+	***/
+	ID3D11Resource* m_pcMappedResource;
+	/**
+	* Stored mapped resource data pointer.
+	***/
+	void* m_pMappedResourceData;
+	/**
+	* Stored mapped resource data size (in bytes).
+	***/
+	UINT m_dwMappedResourceDataSize;
+	/**
+	* Stored map type.
+	***/
+	D3D11_MAP m_eMapType;
+	/**
+	* Stored map flags.
+	***/
+	UINT m_dwMapFlags;
 	/**
 	* The number of frames the constant buffers are to be verified.
 	* Set to zero to optimize StereoSplitter->SetDrawingSide()
