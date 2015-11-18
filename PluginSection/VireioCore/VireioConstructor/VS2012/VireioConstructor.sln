@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Express 2012 for Windows Desktop
+Project("{6DB84815-4D6E-4BA5-BE35-4A8144D8F5F0}") = "VireioConstructorDx11", "..\VireioConstructor\VS2012\VireioConstructorDx11.vcxproj", "{6DB84815-4D6E-4BA5-BE35-4A8144D8F5F0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6DB84815-4D6E-4BA5-BE35-4A8144D8F5F0}.Debug|Win32.ActiveCfg = Debug|Win32
+		{6DB84815-4D6E-4BA5-BE35-4A8144D8F5F0}.Debug|Win32.Build.0 = Debug|Win32
+		{6DB84815-4D6E-4BA5-BE35-4A8144D8F5F0}.Release|Win32.ActiveCfg = Release|Win32
+		{6DB84815-4D6E-4BA5-BE35-4A8144D8F5F0}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
