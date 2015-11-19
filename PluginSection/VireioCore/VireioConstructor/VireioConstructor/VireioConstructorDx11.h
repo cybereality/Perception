@@ -51,7 +51,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define	PROVOKING_TYPE                                 2                     /**< Provoking type is 2 - just invoker, no provoker **/
 #define METHOD_REPLACEMENT                         false                     /**< This node does NOT replace the D3D call (default) **/
 
-#define NUMBER_OF_DECOMMANDERS                         11
+#define NUMBER_OF_DECOMMANDERS                         12
 
 #define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"%u", a); OutputDebugString(buf); }
 #define DEBUG_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"%x", a); OutputDebugString(buf); }
@@ -72,6 +72,7 @@ enum STS_Decommanders
 	pDesc_DX11,                              /**< ID3D11Device::CreateBuffer ***/
 	pInitialData_DX11,                       /**< ID3D11Device::CreateBuffer ***/
 	ppBuffer_DX11,                           /**< ID3D11Device::CreateBuffer ***/
+	asShaderData,                            /**< The shader data vector initialized in the matrix modifier ***/
 };
 
 /**
@@ -130,7 +131,7 @@ private:
 	* The d3d11 shader description vector.
 	* Contains all enumerated shader data structures.
 	***/
-	std::vector<Vireio_D3D11_Shader> m_asShaders;
+	std::vector<Vireio_D3D11_Shader>* m_pasShaders;
 };
 
 /**

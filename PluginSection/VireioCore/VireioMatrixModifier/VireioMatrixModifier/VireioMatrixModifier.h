@@ -85,8 +85,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define METHOD_REPLACEMENT                         false                     /**< This node does NOT replace the D3D call (default) **/
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-#define NUMBER_OF_COMMANDERS                           6
-#define NUMBER_OF_DECOMMANDERS                        66
+#define NUMBER_OF_COMMANDERS                           7
+#define NUMBER_OF_DECOMMANDERS                        61
 #define GUI_WIDTH                                   1024                      
 #define GUI_HEIGHT                                  5000                      
 #define CONSTANT_BUFFER_VERIFICATION_FRAME_NUMBER   6000                     /**< If no shader data is present, the constant buffers are verified for 6000 frames. ***/
@@ -112,6 +112,7 @@ enum STS_Commanders
 	ppActiveConstantBuffers_DX10_PixelShader,                               /**< Active D3D10 pixel shader constant buffers ***/
 	ppActiveConstantBuffers_DX11_PixelShader,                               /**< Active D3D11 pixel shader constant buffers ***/
 	dwVerifyConstantBuffers,                                                /**< Connect this commander to the stereo splitter to verify constant buffers ***/
+	asShaderData,                                                           /**< The shader data vector. ***/
 #elif defined(VIREIO_D3D9)
 #endif
 };
@@ -127,12 +128,10 @@ enum STS_Decommanders
 	BytecodeLength_VertexShader,             /**< ID3D10Device/ID3D11Device::CreateVertexShader ***/
 	pClassLinkage_VertexShader,              /**< ID3D10Device/ID3D11Device::CreateVertexShader ***/
 	ppVertexShader_DX10,                     /**< ID3D10Device/ID3D11Device::CreateVertexShader ***/
-	ppVertexShader_DX11,                     /**< ID3D10Device/ID3D11Device::CreateVertexShader ***/
 	pShaderBytecode_PixelShader,             /**< ID3D10Device/ID3D11Device::CreatePixelShader ***/
 	BytecodeLength_PixelShader,              /**< ID3D10Device/ID3D11Device::CreatePixelShader ***/
 	pClassLinkage_PixelShader,               /**< ID3D10Device/ID3D11Device::CreatePixelShader **/
 	ppPixelShader_DX10,                      /**< ID3D10Device/ID3D11Device::CreatePixelShader ***/
-	ppPixelShader_DX11,                      /**< ID3D10Device/ID3D11Device::CreatePixelShader ***/
 	pVertexShader_10,                        /**< ID3D10Device/ID3D11DeviceContext::VSSetShader ***/
 	pVertexShader_11,                        /**< ID3D10Device/ID3D11DeviceContext::VSSetShader ***/
 	pPixelShader_10,                         /**< ID3D10Device/ID3D11DeviceContext::PSSetShader ***/
@@ -140,9 +139,6 @@ enum STS_Decommanders
 	pDesc_DX10,                              /**< ID3D10Device/ID3D11Device::CreateBuffer ***/
 	pInitialData_DX10,                       /**< ID3D10Device/ID3D11Device::CreateBuffer ***/
 	ppBuffer_DX10,                           /**< ID3D10Device/ID3D11Device::CreateBuffer ***/
-	pDesc_DX11,                              /**< ID3D10Device/ID3D11Device::CreateBuffer ***/
-	pInitialData_DX11,                       /**< ID3D10Device/ID3D11Device::CreateBuffer ***/
-	ppBuffer_DX11,                           /**< ID3D10Device/ID3D11Device::CreateBuffer ***/
 	StartSlot_VertexShader,                  /**< ID3D10Device/ID3D11DeviceContext::VSSetConstantBuffers ***/
 	NumBuffers_VertexShader,                 /**< ID3D10Device/ID3D11DeviceContext::VSSetConstantBuffers ***/
 	ppConstantBuffers_DX10_VertexShader,     /**< ID3D10Device/ID3D11DeviceContext::VSSetConstantBuffers ***/
@@ -282,12 +278,10 @@ private:
 	SIZE_T* m_pnBytecodeLength_VertexShader;
 	ID3D11ClassLinkage** m_ppcClassLinkage_VertexShader;
 	ID3D10VertexShader*** m_pppcVertexShader_DX10;
-	ID3D11VertexShader*** m_pppcVertexShader_DX11;
 	void** m_ppvShaderBytecode_PixelShader;
 	SIZE_T* m_pnBytecodeLength_PixelShader;
 	ID3D11ClassLinkage** m_ppcClassLinkage_PixelShader;
 	ID3D10PixelShader*** m_pppcPixelShader_DX10;
-	ID3D11PixelShader*** m_pppcPixelShader_DX11;
 	ID3D10VertexShader** m_ppcVertexShader_10;
 	ID3D11VertexShader** m_ppcVertexShader_11;
 	ID3D10PixelShader** m_ppcPixelShader_10;
@@ -295,9 +289,6 @@ private:
 	D3D10_BUFFER_DESC** m_ppsDesc_DX10;
 	D3D10_SUBRESOURCE_DATA** m_ppsInitialData_DX10;
 	ID3D10Buffer*** m_pppcBuffer_DX10;
-	D3D11_BUFFER_DESC** m_ppsDesc_DX11;
-	D3D11_SUBRESOURCE_DATA** m_ppsInitialData_DX11;
-	ID3D11Buffer*** m_pppcBuffer_DX11;
 	UINT* m_pdwStartSlot_VertexShader;
 	UINT* m_pdwNumBuffers_VertexShader;
 	ID3D10Buffer*** m_pppcConstantBuffers_DX10_VertexShader;

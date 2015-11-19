@@ -66,6 +66,9 @@ VireioConstructorDx11::VireioConstructorDx11() :AQU_Nodus()
 	m_ppsDesc_DX11 = nullptr;
 	m_ppsInitialData_DX11 = nullptr;
 	m_pppcBuffer_DX11 = nullptr;
+
+	// shader vector initialized in matrix modifier
+	m_pasShaders = nullptr;
 }
 
 /**
@@ -149,6 +152,8 @@ LPWSTR VireioConstructorDx11::GetDecommanderName(DWORD dwDecommanderIndex)
 			return L"pInitialData_DX11";
 		case ppBuffer_DX11:
 			return L"ppBuffer_DX11";
+		case asShaderData:
+			return L"Shader Data Array";
 	}
 
 	return L"";
@@ -183,6 +188,8 @@ DWORD VireioConstructorDx11::GetDecommanderType(DWORD dwDecommanderIndex)
 			return NOD_Plugtype::AQU_PNT_D3D11_SUBRESOURCE_DATA;
 		case ppBuffer_DX11:
 			return NOD_Plugtype::AQU_PPNT_ID3D11BUFFER;
+		case asShaderData:
+			return NOD_Plugtype::AQU_VOID;
 	}
 
 	return 0;
@@ -228,6 +235,9 @@ void VireioConstructorDx11::SetInputPointer(DWORD dwDecommanderIndex, void* pDat
 		case ppBuffer_DX11:
 			m_pppcBuffer_DX11 = (ID3D11Buffer***)pData;
 			break;
+		case asShaderData:
+			m_pasShaders = (std::vector<Vireio_D3D11_Shader>*)pData;
+			break;
 	}
 }
 
@@ -259,7 +269,7 @@ void* VireioConstructorDx11::Provoke(void* pThis, int eD3D, int eD3DInterface, i
 #pragma region ID3D11Device::CreateVertexShader
 		case METHOD_ID3D11DEVICE_CREATEVERTEXSHADER:
 			// CreateVertexShader(const void *pShaderBytecode, SIZE_T BytecodeLength, ID3D11ClassLinkage *pClassLinkage, ID3D11VertexShader **ppVertexShader);
-
+			if (!m_pasShaders) return nullptr;
 			if (!pThis) return nullptr;
 			if (!m_ppvShaderBytecode_VertexShader) return nullptr;
 			if (!m_pnBytecodeLength_VertexShader) return nullptr;
@@ -284,9 +294,9 @@ void* VireioConstructorDx11::Provoke(void* pThis, int eD3D, int eD3DInterface, i
 					DWORD dwHashCode = GetHashCode((BYTE*)*m_ppvShaderBytecode_VertexShader, (DWORD)*m_pnBytecodeLength_VertexShader);
 
 					// is this shader already enumerated ?
-					for (size_t nShaderDescIndex = 0; nShaderDescIndex < m_asShaders.size(); nShaderDescIndex++)
+					for (size_t nShaderDescIndex = 0; nShaderDescIndex < (*m_pasShaders).size(); nShaderDescIndex++)
 					{
-						if (dwHashCode == m_asShaders[nShaderDescIndex].dwHashCode)
+						if (dwHashCode == (*m_pasShaders)[nShaderDescIndex].dwHashCode)
 						{
 							// create and set private shader data
 							Vireio_Shader_Private_Data sPrivateData;
@@ -387,12 +397,12 @@ void* VireioConstructorDx11::Provoke(void* pThis, int eD3D, int eD3DInterface, i
 						}
 
 						// and add to shader vector
-						m_asShaders.push_back(sShaderData);
+						(*m_pasShaders).push_back(sShaderData);
 
 						// create and set private shader data
 						Vireio_Shader_Private_Data sPrivateData;
 						sPrivateData.dwHash = dwHashCode;
-						sPrivateData.dwIndex = (UINT)m_asShaders.size() - 1;
+						sPrivateData.dwIndex = (UINT)(*m_pasShaders).size() - 1;
 
 						pcShader->SetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, sizeof(sPrivateData), (void*)&sPrivateData);
 
