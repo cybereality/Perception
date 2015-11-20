@@ -315,7 +315,10 @@ void MatrixModifier::InitNodeData(char* pData, UINT dwSizeOfData)
 		memcpy(&m_sGameConfiguration, pData, dwSizeOfData);
 
 		// set to ipd using vireio presenter.... // TODO !! currently set ipd to default
+		m_sGameConfiguration.convergence = 3.0f;
 		m_sGameConfiguration.ipd = IPD_DEFAULT;
+		m_sGameConfiguration.worldScaleFactor = -32.0f;
+		m_sGameConfiguration.PFOV = 110.0f;
 		m_pcShaderViewAdjustment->Load(m_sGameConfiguration);
 		m_pcShaderViewAdjustment->UpdateProjectionMatrices((float)1920.0f / (float)1080.0f, m_sGameConfiguration.PFOV);
 		m_pcShaderViewAdjustment->ComputeViewTransforms();
@@ -1653,8 +1656,8 @@ void MatrixModifier::UpdateConstantBuffer(ID3D11DeviceContext* pcContext, ID3D11
 			for (size_t nConstant = 0; nConstant < m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables.size(); nConstant++)
 			{
 				// test for projection matrix
-				if (false)/*((std::strstr(m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, "ProjectionMatrix")) &&
-					(!std::strstr(m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, "Inv")))*/
+				if ((std::strstr(m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, "ProjectionMatrix")) &&
+					(!std::strstr(m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, "Inv")))
 				{
 					D3DXMATRIX sMatrix;
 					if (m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwSize == sizeof(D3DMATRIX))
