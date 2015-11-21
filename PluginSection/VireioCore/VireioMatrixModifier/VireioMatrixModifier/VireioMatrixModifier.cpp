@@ -1072,7 +1072,10 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 								if (*m_ppcDstResource_DX11 == m_apcActiveConstantBuffers11[dwIndex])
 								{
 									//  and update the stereo buffers
-									UpdateConstantBuffer((ID3D11DeviceContext*)pThis, (ID3D11Resource*)m_apcActiveConstantBuffers11[dwIndex], 0, NULL, *m_ppvSrcData, 0, 0, dwIndex, sDesc.ByteWidth);
+									if ((sDesc.CPUAccessFlags & D3D11_CPU_ACCESS_WRITE) == D3D11_CPU_ACCESS_WRITE)
+										UpdateConstantBuffer((ID3D11DeviceContext*)pThis, (ID3D11Resource*)m_apcActiveConstantBuffers11[dwIndex], 0, NULL, *m_ppvSrcData, 0, 0, dwIndex, sDesc.ByteWidth, true);
+									else
+										UpdateConstantBuffer((ID3D11DeviceContext*)pThis, (ID3D11Resource*)m_apcActiveConstantBuffers11[dwIndex], 0, NULL, *m_ppvSrcData, 0, 0, dwIndex, sDesc.ByteWidth, false);
 								}
 							}
 						}
@@ -1125,12 +1128,6 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 								D3D11_BUFFER_DESC sDescSrc;
 								((ID3D11Buffer*)*m_ppcSrcResource_DX11_CopySub)->GetDesc(&sDescSrc);
 
-								// can we map this surface ? in case update private data field
-								/*if ((sDescSrc.CPUAccessFlags & D3D11_CPU_ACCESS_WRITE) == D3D11_CPU_ACCESS_WRITE)
-								{
-								OutputDebugString(L"Mappable resource constant buffer !");
-								}*/
-
 								// get private data from source buffer
 								UINT dwSize = sDescSrc.ByteWidth;
 								((ID3D11Buffer*)*m_ppcSrcResource_DX11_CopySub)->GetPrivateData(PDID_ID3D11Buffer_Vireio_Data, &dwSize, m_pchBuffer11);
@@ -1166,7 +1163,10 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 										if (*m_ppcDstResource_DX11_CopySub == m_apcActiveConstantBuffers11[dwIndex])
 										{
 											//  and update the stereo buffers
-											UpdateConstantBuffer((ID3D11DeviceContext*)pThis, (ID3D11Resource*)m_apcActiveConstantBuffers11[dwIndex], 0, NULL, m_pchBuffer11Temp, 0, 0, dwIndex, sDescDst.ByteWidth);
+											if ((sDescDst.CPUAccessFlags & D3D11_CPU_ACCESS_WRITE) == D3D11_CPU_ACCESS_WRITE)
+												UpdateConstantBuffer((ID3D11DeviceContext*)pThis, (ID3D11Resource*)m_apcActiveConstantBuffers11[dwIndex], 0, NULL, m_pchBuffer11Temp, 0, 0, dwIndex, sDescDst.ByteWidth, true);
+											else
+												UpdateConstantBuffer((ID3D11DeviceContext*)pThis, (ID3D11Resource*)m_apcActiveConstantBuffers11[dwIndex], 0, NULL, m_pchBuffer11Temp, 0, 0, dwIndex, sDescDst.ByteWidth, false);
 										}
 									}
 								}
@@ -1259,12 +1259,6 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 								// if source size not equal to destination size, return
 								if (sDescSrc.ByteWidth != sDescDst.ByteWidth) return nullptr;
 
-								//// can we map this surface ? in case update private data field
-								//if ((sDescSrc.CPUAccessFlags & D3D11_CPU_ACCESS_WRITE) == D3D11_CPU_ACCESS_WRITE)
-								//{
-								//	OutputDebugString(L"Mappable resource constant buffer !");
-								//}
-
 								// get private data from source buffer
 								UINT dwSize = sDescSrc.ByteWidth;
 								((ID3D11Buffer*)*m_ppcSrcResource_DX11_Copy)->GetPrivateData(PDID_ID3D11Buffer_Vireio_Data, &dwSize, m_pchBuffer11);
@@ -1281,7 +1275,10 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 										if (*m_ppcDstResource_DX11_Copy == m_apcActiveConstantBuffers11[dwIndex])
 										{
 											//  and update the stereo buffers
-											UpdateConstantBuffer((ID3D11DeviceContext*)pThis, (ID3D11Resource*)m_apcActiveConstantBuffers11[dwIndex], 0, NULL, m_pchBuffer11, 0, 0, dwIndex, sDescDst.ByteWidth);
+											if ((sDescDst.CPUAccessFlags & D3D11_CPU_ACCESS_WRITE) == D3D11_CPU_ACCESS_WRITE)
+												UpdateConstantBuffer((ID3D11DeviceContext*)pThis, (ID3D11Resource*)m_apcActiveConstantBuffers11[dwIndex], 0, NULL, m_pchBuffer11, 0, 0, dwIndex, sDescDst.ByteWidth, true);
+											else
+												UpdateConstantBuffer((ID3D11DeviceContext*)pThis, (ID3D11Resource*)m_apcActiveConstantBuffers11[dwIndex], 0, NULL, m_pchBuffer11, 0, 0, dwIndex, sDescDst.ByteWidth, false);
 										}
 									}
 								}
@@ -1356,19 +1353,18 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 							D3D11_BUFFER_DESC sDesc;
 							m_apcActiveConstantBuffers11[dwIndex]->GetDesc(&sDesc);
 
-							//// can we map this surface ? in case update private data field
-							//if ((sDesc.CPUAccessFlags & D3D11_CPU_ACCESS_WRITE) == D3D11_CPU_ACCESS_WRITE)
-							//{
-							//	OutputDebugString(L"Mappable resource constant buffer !");
-							//}
-
 							// get private data from buffer
 							UINT dwSize = sDesc.ByteWidth;
 							m_apcActiveConstantBuffers11[dwIndex]->GetPrivateData(PDID_ID3D11Buffer_Vireio_Data, &dwSize, m_pchBuffer11);
 
 							//  and update the stereo buffers
 							if (dwSize)
-								UpdateConstantBuffer((ID3D11DeviceContext*)pThis, (ID3D11Resource*)m_apcActiveConstantBuffers11[dwIndex], 0, NULL, &m_pchBuffer11[0], 0, 0, dwIndex, sDesc.ByteWidth);
+							{
+								if ((sDesc.CPUAccessFlags & D3D11_CPU_ACCESS_WRITE) == D3D11_CPU_ACCESS_WRITE)
+									UpdateConstantBuffer((ID3D11DeviceContext*)pThis, (ID3D11Resource*)m_apcActiveConstantBuffers11[dwIndex], 0, NULL, &m_pchBuffer11[0], 0, 0, dwIndex, sDesc.ByteWidth, true);
+								else
+									UpdateConstantBuffer((ID3D11DeviceContext*)pThis, (ID3D11Resource*)m_apcActiveConstantBuffers11[dwIndex], 0, NULL, &m_pchBuffer11[0], 0, 0, dwIndex, sDesc.ByteWidth, false);
+							}
 						}
 					}
 					return nullptr;
@@ -1403,7 +1399,12 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 								//  and update the stereo buffers
 								if (dwSize)
-									UpdateConstantBuffer((ID3D11DeviceContext*)pThis, (ID3D11Resource*)m_apcActiveConstantBuffers11[dwInternalIndex], 0, NULL, &m_pchBuffer11[0], 0, 0, dwInternalIndex, sDesc.ByteWidth);
+								{
+									if ((sDesc.CPUAccessFlags & D3D11_CPU_ACCESS_WRITE) == D3D11_CPU_ACCESS_WRITE)
+										UpdateConstantBuffer((ID3D11DeviceContext*)pThis, (ID3D11Resource*)m_apcActiveConstantBuffers11[dwInternalIndex], 0, NULL, &m_pchBuffer11[0], 0, 0, dwInternalIndex, sDesc.ByteWidth, true);
+									else
+										UpdateConstantBuffer((ID3D11DeviceContext*)pThis, (ID3D11Resource*)m_apcActiveConstantBuffers11[dwInternalIndex], 0, NULL, &m_pchBuffer11[0], 0, 0, dwInternalIndex, sDesc.ByteWidth, false);
+								}
 							}
 						}
 					}
@@ -1549,7 +1550,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 								if (*m_ppcResource_Unmap == m_apcActiveConstantBuffers11[dwIndex])
 								{
 									//  and update the stereo buffers
-									UpdateConstantBuffer((ID3D11DeviceContext*)pThis, *m_ppcResource_Unmap, 0, NULL, m_pchBuffer11Temp2, 0, 0, dwIndex, m_dwMappedResourceDataSize);
+									UpdateConstantBuffer((ID3D11DeviceContext*)pThis, *m_ppcResource_Unmap, 0, NULL, m_pchBuffer11Temp2, 0, 0, dwIndex, m_dwMappedResourceDataSize, true);
 								}
 							}
 
@@ -1592,7 +1593,7 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 /**
 * Modifies all constants and updates the stereo constant buffer.
 ***/
-void MatrixModifier::UpdateConstantBuffer(ID3D11DeviceContext* pcContext, ID3D11Resource *pcDstResource, UINT dwDstSubresource, const D3D11_BOX *psDstBox, const void *pvSrcData, UINT dwSrcRowPitch, UINT dwSrcDepthPitch, UINT dwBufferIndex, UINT dwBufferSize)
+void MatrixModifier::UpdateConstantBuffer(ID3D11DeviceContext* pcContext, ID3D11Resource *pcDstResource, UINT dwDstSubresource, const D3D11_BOX *psDstBox, const void *pvSrcData, UINT dwSrcRowPitch, UINT dwSrcDepthPitch, UINT dwBufferIndex, UINT dwBufferSize, bool bMapBuffer)
 {
 	// first get the current shader data
 	Vireio_Shader_Private_Data sPrivateData;
@@ -1735,11 +1736,36 @@ void MatrixModifier::UpdateConstantBuffer(ID3D11DeviceContext* pcContext, ID3D11
 			OutputDebugString(L"MatrixModifier: Code error, not a constant buffer !");
 	}
 
-	// finally, update the stereo constant buffers
-	if (pcBufferLeft)
-		pcContext->UpdateSubresource((ID3D11Resource*)pcBufferLeft, dwDstSubresource, psDstBox, m_pchBuffer11Left, dwSrcRowPitch, dwSrcDepthPitch);
-	if (pcBufferRight)
-		pcContext->UpdateSubresource((ID3D11Resource*)pcBufferRight, dwDstSubresource, psDstBox, m_pchBuffer11Right, dwSrcRowPitch, dwSrcDepthPitch);
+	// directly write to mappable buffers, otherwise call UpdateResource()
+	if (bMapBuffer)
+	{
+		if (pcBufferLeft)
+		{
+			D3D11_MAPPED_SUBRESOURCE sMapped;
+			if (SUCCEEDED(pcContext->Map((ID3D11Resource*)pcBufferLeft, dwDstSubresource, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, NULL, &sMapped)))
+			{
+				memcpy(sMapped.pData, m_pchBuffer11Left, dwBufferSize);
+				pcContext->Unmap((ID3D11Resource*)pcBufferLeft, dwDstSubresource);
+			}
+		}
+		if (pcBufferRight)
+		{
+			D3D11_MAPPED_SUBRESOURCE sMapped;
+			if (SUCCEEDED(pcContext->Map((ID3D11Resource*)pcBufferRight, dwDstSubresource, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, NULL, &sMapped)))
+			{
+				memcpy(sMapped.pData, m_pchBuffer11Right, dwBufferSize);
+				pcContext->Unmap((ID3D11Resource*)pcBufferRight, dwDstSubresource);
+			}
+		}
+	}
+	else
+	{
+		// finally, update the stereo constant buffers
+		if (pcBufferLeft)
+			pcContext->UpdateSubresource((ID3D11Resource*)pcBufferLeft, dwDstSubresource, psDstBox, m_pchBuffer11Left, dwSrcRowPitch, dwSrcDepthPitch);
+		if (pcBufferRight)
+			pcContext->UpdateSubresource((ID3D11Resource*)pcBufferRight, dwDstSubresource, psDstBox, m_pchBuffer11Right, dwSrcRowPitch, dwSrcDepthPitch);
+	}
 
 	// and release them
 	SAFE_RELEASE(pcBufferLeft);
