@@ -1803,6 +1803,8 @@ void StereoSplitter::CreateStereoView(IUnknown* pcDevice, ID3D11View* pcView)
 	pcStereoTwinView10 = nullptr;
 	union
 	{
+		ID3D10Texture1D* pcResource10_1D;
+		ID3D11Texture1D* pcResource11_1D;
 		ID3D10Texture2D* pcResource10;
 		ID3D11Texture2D* pcResource11;
 	};
@@ -1824,7 +1826,92 @@ void StereoSplitter::CreateStereoView(IUnknown* pcDevice, ID3D11View* pcView)
 				OutputDebugString(L"NotImplemented: D3D10_RTV_DIMENSION_BUFFER");
 				break;
 			case D3D10_RTV_DIMENSION_TEXTURE1D:
-				OutputDebugString(L"NotImplemented: D3D10_RTV_DIMENSION_TEXTURE1D");
+				if ((int)eD3DViewType < 3)
+				{
+					switch (eD3DViewType)
+					{
+						case D3D10_RENDER_TARGET_VIEW:
+							OutputDebugString(L"NotImplemented: D3D10_RENDER_TARGET_VIEW");
+							break;
+						case D3D10_DEPTH_STENCIL_VIEW:
+							OutputDebugString(L"NotImplemented: D3D10_DEPTH_STENCIL_VIEW");
+							break;
+						case D3D10_SHADER_RESOURCE_VIEW:
+							OutputDebugString(L"NotImplemented: D3D10_SHADER_RESOURCE_VIEW");
+							break;
+						default:
+							OutputDebugString(L"NotImplemented: UNKNOWN TYPE");
+							break;
+					}
+				}
+				else
+				{
+					// get the texture
+					((ID3D11View*)pcView)->GetResource((ID3D11Resource**)&pcResource11);
+					if ((pcResource11) && (pcDevice))
+					{
+						// has this texture already a stereo twin ?
+						UINT dwSize = sizeof(pcStereoTwinTexture11);
+						pcResource11_1D->GetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, &dwSize, (void*)&pcStereoTwinTexture11);
+						if (!dwSize)
+						{
+							// get the description and create the twin texture
+							D3D11_TEXTURE1D_DESC sDesc;
+							pcResource11_1D->GetDesc(&sDesc);
+
+							if (FAILED(((ID3D11Device*)pcDevice)->CreateTexture1D(&sDesc, NULL, (ID3D11Texture1D**)&pcStereoTwinTexture11)))
+							{
+								OutputDebugString(L"StereoSplitterDX10 : Failed to create twin texture !");
+								break;
+							}
+						}
+
+						// create view and apply stereo twins
+						switch (eD3DViewType)
+						{
+							case D3D11_RENDER_TARGET_VIEW:
+								// create twin render target view
+								if (FAILED(((ID3D11Device*)pcDevice)->CreateRenderTargetView((ID3D11Resource*)pcStereoTwinTexture11, &sDescRT11, (ID3D11RenderTargetView**)&pcStereoTwinView11)))
+									OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view D3D11_RENDER_TARGET_VIEW !");
+
+								if ((pcStereoTwinTexture11) && (pcStereoTwinView11))
+								{
+									// assign stereo private data interfaces, first the render target view to the texture
+									pcResource11_1D->SetPrivateDataInterface(PDIID_ID3D11TextureXD_RenderTargetView, pcView);
+									// now assign the stereo texture twin interface
+									pcResource11_1D->SetPrivateDataInterface(PDIID_ID3D11TextureXD_Stereo_Twin, pcStereoTwinTexture11);
+									// last, the stereo twin render target view
+									pcView->SetPrivateDataInterface(PDIID_ID3D11RenderTargetView_Stereo_Twin, pcStereoTwinView11);
+								}
+								break;
+							case D3D11_DEPTH_STENCIL_VIEW:
+								// create twin render target view
+								if (FAILED(((ID3D11Device*)pcDevice)->CreateDepthStencilView((ID3D11Resource*)pcStereoTwinTexture11, &sDescDS11, (ID3D11DepthStencilView**)&pcStereoTwinView11)))
+									OutputDebugString(L"StereoSplitterDX10 : Failed to create twin view D3D11_DEPTH_STENCIL_VIEW !");
+
+								if ((pcStereoTwinTexture11) && (pcStereoTwinView11))
+								{
+									// assign stereo private data interfaces, first the depth stencil view to the texture
+									pcResource11->SetPrivateDataInterface(PDIID_ID3D11TextureXD_DepthStencilView, pcView);
+									// now assign the stereo texture twin interface
+									pcResource11->SetPrivateDataInterface(PDIID_ID3D11TextureXD_Stereo_Twin, pcStereoTwinTexture11);
+									// last, the stereo twin depth stencil
+									pcView->SetPrivateDataInterface(PDIID_ID3D11DepthStencilView_Stereo_Twin, pcStereoTwinView11);
+								}
+								break;
+							case D3D11_SHADER_RESOURCE_VIEW:
+								OutputDebugString(L"NotImplemented: D3D11_SHADER_RESOURCE_VIEW");
+								break;
+							default:
+								OutputDebugString(L"NotImplemented: UNKNOWN TYPE");
+								break;
+						}
+
+						SAFE_RELEASE(pcResource11_1D);
+					}
+					else
+						SAFE_RELEASE(pcResource11_1D);
+				}
 				break;
 			case D3D10_RTV_DIMENSION_TEXTURE1DARRAY:
 				if ((int)eD3DViewType < 3)
