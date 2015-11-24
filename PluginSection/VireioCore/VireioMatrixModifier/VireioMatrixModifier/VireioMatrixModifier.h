@@ -215,6 +215,50 @@ enum RenderPosition
 	Right = 2
 };
 
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+/**
+* Vireio Map DX10/11 data structure.
+* Contains all data for a mapped constant buffer.
+***/
+struct Vireio_Map_Data
+{
+	/**
+	* Stored mapped resource pointer. (DX11 only)
+	***/
+	ID3D11Resource* m_pcMappedResource;
+	/**
+	* Stored mapped resource description.
+	***/
+	D3D11_MAPPED_SUBRESOURCE* m_psMappedResource;
+	/**
+	* Stored mapped resource data pointer.
+	***/
+	void* m_pMappedResourceData;
+	/**
+	* Stored mapped resource data size (in bytes).
+	***/
+	UINT m_dwMappedResourceDataSize;
+	/**
+	* Stored map type.
+	***/
+	D3D11_MAP m_eMapType;
+	/**
+	* Stored map flags.
+	***/
+	UINT m_dwMapFlags;
+	/**
+	* Constant Buffer private data buffer.
+	* Buffer data needed for Map().
+	***/
+	union
+	{
+		BYTE m_pchBuffer10[D3D10_REQ_CONSTANT_BUFFER_ELEMENT_COUNT * D3D10_VS_INPUT_REGISTER_COMPONENTS * (D3D10_VS_INPUT_REGISTER_COMPONENT_BIT_COUNT >> 3)];
+		BYTE m_pchBuffer11[D3D11_REQ_CONSTANT_BUFFER_ELEMENT_COUNT * D3D11_VS_INPUT_REGISTER_COMPONENTS * (D3D11_VS_INPUT_REGISTER_COMPONENT_BIT_COUNT >> 3)];
+	};
+};
+#elif defined(VIREIO_D3D9)
+#endif
+
 /**
 * Vireio Matrix Modifier (DX9/10/11).
 * Vireio Perception Stereo Matrix Modification Handler.
@@ -262,6 +306,14 @@ public:
 	* Vireio Graphical User Interface class.
 	***/
 	Vireio_GUI* m_pcVireioGUI;
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+	/**
+	* Constant Buffer Map data vector
+	* Contains all data for all currently mapped constant buffers.
+	* The size of this vector can be higher than m_dwMappedBuffers;
+	***/
+	std::vector<Vireio_Map_Data> m_asMappedBuffers;
+#endif
 
 private:
 
@@ -356,6 +408,10 @@ private:
 		ID3D11VertexShader* m_pcActiveVertexShader11;
 	};
 	/**
+	* The number of actively mapped constant buffers.
+	***/
+	UINT m_dwMappedBuffers;
+	/**
 	* Constant Buffer private data buffer.
 	***/
 	union
@@ -373,15 +429,6 @@ private:
 		BYTE m_pchBuffer11Temp[D3D11_REQ_CONSTANT_BUFFER_ELEMENT_COUNT * D3D11_VS_INPUT_REGISTER_COMPONENTS * (D3D11_VS_INPUT_REGISTER_COMPONENT_BIT_COUNT >> 3)];
 	};
 	/**
-	* Constant Buffer private data buffer temporary 2.
-	* Second buffer data needed for Map().
-	***/
-	union
-	{
-		BYTE m_pchBuffer10Temp2[D3D10_REQ_CONSTANT_BUFFER_ELEMENT_COUNT * D3D10_VS_INPUT_REGISTER_COMPONENTS * (D3D10_VS_INPUT_REGISTER_COMPONENT_BIT_COUNT >> 3)];
-		BYTE m_pchBuffer11Temp2[D3D11_REQ_CONSTANT_BUFFER_ELEMENT_COUNT * D3D11_VS_INPUT_REGISTER_COMPONENTS * (D3D11_VS_INPUT_REGISTER_COMPONENT_BIT_COUNT >> 3)];
-	};
-	/**
 	* Constant Buffer private data buffer left eye.
 	***/
 	union
@@ -397,26 +444,6 @@ private:
 		BYTE m_pchBuffer10Right[D3D10_REQ_CONSTANT_BUFFER_ELEMENT_COUNT * D3D10_VS_INPUT_REGISTER_COMPONENTS * (D3D10_VS_INPUT_REGISTER_COMPONENT_BIT_COUNT >> 3)];
 		BYTE m_pchBuffer11Right[D3D11_REQ_CONSTANT_BUFFER_ELEMENT_COUNT * D3D11_VS_INPUT_REGISTER_COMPONENTS * (D3D11_VS_INPUT_REGISTER_COMPONENT_BIT_COUNT >> 3)];
 	};
-	/**
-	* Stored mapped resource pointer. (DX11 only)
-	***/
-	ID3D11Resource* m_pcMappedResource;
-	/**
-	* Stored mapped resource data pointer.
-	***/
-	void* m_pMappedResourceData;
-	/**
-	* Stored mapped resource data size (in bytes).
-	***/
-	UINT m_dwMappedResourceDataSize;
-	/**
-	* Stored map type.
-	***/
-	D3D11_MAP m_eMapType;
-	/**
-	* Stored map flags.
-	***/
-	UINT m_dwMapFlags;
 	/**
 	* The number of frames the constant buffers are to be verified.
 	* Set to zero to optimize StereoSplitter->SetDrawingSide()
