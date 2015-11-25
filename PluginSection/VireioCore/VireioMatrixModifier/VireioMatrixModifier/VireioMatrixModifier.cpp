@@ -1526,10 +1526,10 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 									m_asMappedBuffers[dwIndex].m_eMapType = *m_psMapType;
 									m_asMappedBuffers[dwIndex].m_dwMapFlags = *m_pdwMapFlags;
 
-									// set the buffer field... BUG HERE !! m_pchBuffer11 changes.... set to 0x??????00 !!!
-									/**DEBUG_UINT(dwIndex);
-									DEBUG_HEX(m_asMappedBuffers[dwIndex].m_pchBuffer11);**/
-									(**m_ppsMappedResource).pData = m_asMappedBuffers[dwIndex].m_pchBuffer11;
+									// make buffer address homogenous
+									UINT_PTR dwAddress = (UINT_PTR)m_asMappedBuffers[dwIndex].m_pchBuffer11;
+									dwAddress |= 0xff; dwAddress++;
+									(**m_ppsMappedResource).pData = (LPVOID)dwAddress;
 
 									// update number of mapped Buffers
 									m_dwMappedBuffers++;
@@ -1558,15 +1558,19 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 								// continue only if mapped resource data present and the resource pointer matches the stored pointer
 								if ((m_asMappedBuffers[dwI].m_pcMappedResource) && (*m_ppcResource_Unmap == m_asMappedBuffers[dwI].m_pcMappedResource))
 								{
+									// get homogenous address
+									UINT_PTR dwAddress = (UINT_PTR)m_asMappedBuffers[dwI].m_pchBuffer11;
+									dwAddress |= 0xff; dwAddress++;
+									
 									// copy the stored data... 
-									if (TO_DO_ADD_BOOL_HERE_FALSE)
-										memcpy(m_asMappedBuffers[dwI].m_pMappedResourceData, m_asMappedBuffers[dwI].m_pchBuffer11, m_asMappedBuffers[dwI].m_dwMappedResourceDataSize);
+									if (TO_DO_ADD_BOOL_HERE_TRUE)
+										memcpy(m_asMappedBuffers[dwI].m_pMappedResourceData, (LPVOID)dwAddress, m_asMappedBuffers[dwI].m_dwMappedResourceDataSize);
 
 									// do the unmap call..
 									((ID3D11DeviceContext*)pThis)->Unmap(*m_ppcResource_Unmap, *m_pdwSubresource_Unmap);
 
 									// set new data as private data
-									(*m_ppcResource_Unmap)->SetPrivateData(PDID_ID3D11Buffer_Vireio_Data, m_asMappedBuffers[dwI].m_dwMappedResourceDataSize, m_asMappedBuffers[dwI].m_pchBuffer11);
+									(*m_ppcResource_Unmap)->SetPrivateData(PDID_ID3D11Buffer_Vireio_Data, m_asMappedBuffers[dwI].m_dwMappedResourceDataSize, (LPVOID)dwAddress);
 
 									// loop through active buffers, if this one is active update stereo buffers
 									for (UINT dwIndex = 0; dwIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; dwIndex++)
@@ -1575,7 +1579,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 										if (*m_ppcResource_Unmap == m_apcActiveConstantBuffers11[dwIndex])
 										{
 											//  and update the stereo buffers
-											UpdateConstantBuffer((ID3D11DeviceContext*)pThis, *m_ppcResource_Unmap, 0, NULL, m_asMappedBuffers[dwI].m_pchBuffer11, 0, 0, dwIndex, m_asMappedBuffers[dwI].m_dwMappedResourceDataSize, true);
+											UpdateConstantBuffer((ID3D11DeviceContext*)pThis, *m_ppcResource_Unmap, 0, NULL, (LPVOID)dwAddress, 0, 0, dwIndex, m_asMappedBuffers[dwI].m_dwMappedResourceDataSize, true);
 										}
 									}
 
