@@ -42,7 +42,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define METHOD_ID3D11DEVICE_CREATEBUFFER                                     3
 #define METHOD_ID3D11DEVICE_CREATEVERTEXSHADER                               12
 
-//void* VireioConstructorDx11::m_pvReturn;
+#define TO_DO_ADD_BOOL_HERE_TRUE                                           true
+#define TO_DO_ADD_BOOL_HERE_FALSE                                         false
 
 /**
 * Constructor.
@@ -418,6 +419,7 @@ void* VireioConstructorDx11::Provoke(void* pThis, int eD3D, int eD3DInterface, i
 #pragma endregion
 #pragma region ID3D11Device::CreateBuffer
 		case METHOD_ID3D11DEVICE_CREATEBUFFER:
+			if (!TO_DO_ADD_BOOL_HERE_FALSE) return nullptr; // add option to enable stereo constant buffer creation
 			if (!m_ppsDesc_DX11) return nullptr;
 			if (!m_ppsInitialData_DX11) return nullptr;
 			if (!m_pppcBuffer_DX11) return nullptr;

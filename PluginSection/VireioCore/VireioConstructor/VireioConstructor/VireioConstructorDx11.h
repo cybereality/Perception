@@ -105,7 +105,7 @@ public:
 	/**
 	* Return value pointer (HRESULT).
 	***/
-	/*static*/ void* m_pvReturn;
+	void* m_pvReturn;
 
 private:
 
