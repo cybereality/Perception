@@ -276,31 +276,10 @@ HBITMAP MatrixModifier::GetControl()
 		for (int i = 0; i < NUMBER_OF_COMMANDERS; i++)
 			m_pcVireioGUI->AddEntry(dwCommandersList, this->GetCommanderName(i));
 
-		// add second page and control
-		UINT dwInfoPage = m_pcVireioGUI->AddPage();
-
-		// TEST... to be deleted
-		m_pcVireioGUI->AddPage();
-		m_pcVireioGUI->AddPage();
-		static std::vector<std::wstring> sEntriesTEST;
-		sControl.m_eControlType = Vireio_Control_Type::ListBox;
-		sControl.m_sPosition.x = 16;
-		sControl.m_sPosition.y = 0;
-		sControl.m_sSize.cx = 900;
-		sControl.m_sSize.cy = 2000;
-		sControl.m_sStaticListBox.m_paszEntries = &sEntriesTEST;
-		UINT dwTestList = m_pcVireioGUI->AddControl(dwInfoPage, sControl);
-		for (int i = 0; i < 200; i++)
-		{
-			std::wstringstream ss;
-			ss << L"Line : " << i;
-			m_pcVireioGUI->AddEntry(dwTestList, ss.str().c_str());
-		}
-
 		// last page: the debug page
 		UINT dwDebugPage = m_pcVireioGUI->AddPage();
 		static std::vector<std::wstring> sEntriesDebugOptions;
-		sEntriesDebugOptions.push_back(L"Constant Float 4 THISISATESTTHISISATESTTHISISATESTTHISISATESTTHISISATEST");
+		sEntriesDebugOptions.push_back(L"Constant Float 4");
 		sEntriesDebugOptions.push_back(L"Constant Float 8");
 		sEntriesDebugOptions.push_back(L"Constant Float 16");
 		sEntriesDebugOptions.push_back(L"Constant Float 32");
@@ -313,6 +292,25 @@ HBITMAP MatrixModifier::GetControl()
 		sControl.m_sSpinControl.m_dwCurrentSelection = 0;
 		sControl.m_sSpinControl.m_paszEntries = &sEntriesDebugOptions;
 		UINT dwDebugSpin = m_pcVireioGUI->AddControl(dwDebugPage, sControl);
+
+		sControl.m_eControlType = Vireio_Control_Type::Button;
+		sControl.m_sPosition.x = 64;
+		sControl.m_sPosition.y = 64 + 92;
+		sControl.m_sSize.cx = 512;
+		sControl.m_sSize.cy = 64 + 16;
+		static std::wstring szButtonText = std::wstring(L"Grab Constant Data");
+		sControl.m_sButton.m_pszText = &szButtonText;
+		UINT dwDebugGrab = m_pcVireioGUI->AddControl(dwDebugPage, sControl);
+
+		sControl.m_eControlType = Vireio_Control_Type::Switch;
+		sControl.m_sPosition.x = 64;
+		sControl.m_sPosition.y = 64 + 92 + 92;
+		sControl.m_sSize.cx = 512;
+		sControl.m_sSize.cy = 64 + 16;
+		static std::wstring szTestText = std::wstring(L"This is a TestThis is a TestThis is a TestThis is a TestThis is a Test");
+		sControl.m_sSwitch.m_pszText = &szTestText;
+		UINT dwTest = m_pcVireioGUI->AddControl(dwDebugPage, sControl);
+
 	}
 	else
 		return m_pcVireioGUI->GetGUI();
@@ -1578,7 +1576,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 									// get homogenous address
 									UINT_PTR dwAddress = (UINT_PTR)m_asMappedBuffers[dwI].m_pchBuffer11;
 									dwAddress |= 0xff; dwAddress++;
-									
+
 									// copy the stored data... 
 									if (TO_DO_ADD_BOOL_HERE_TRUE)
 										memcpy(m_asMappedBuffers[dwI].m_pMappedResourceData, (LPVOID)dwAddress, m_asMappedBuffers[dwI].m_dwMappedResourceDataSize);
@@ -1713,7 +1711,7 @@ void MatrixModifier::UpdateConstantBuffer(ID3D11DeviceContext* pcContext, ID3D11
 					(!std::strstr(m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, "Inv")))*/
 				if (((std::strstr(m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, "ViewProj")) &&
 					(!std::strstr(m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, "Inv"))) ||
-					(std::strstr(m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, "mvp"))) 
+					(std::strstr(m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, "mvp")))
 				{
 					D3DXMATRIX sMatrix;
 					if (m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwSize == sizeof(D3DMATRIX))

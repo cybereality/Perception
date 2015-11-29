@@ -45,12 +45,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***/
 enum Vireio_Control_Type
 {
-	StaticListBox,
-	ListBox,
-	SpinControl,
-	EditLine,
-	Slider,
-	CheckBox,
+	StaticListBox, /**< Static list output ***/
+	ListBox,       /**< List output with right scrollbar up/down ***/
+	SpinControl,   /**< Entry selection by up/down arrows ***/
+	EditLine,      /**< Text input, parsed to chosen input type ***/
+	Button,        /**< Simple button ***/
+	Switch,        /**< True/False switch ***/
 };
 
 /**
@@ -127,6 +127,25 @@ struct Vireio_SpinControl_Data
 };
 
 /**
+* Vireio button data structure.
+* Stores all data necessary for a button control.
+***/
+struct Vireio_Button_Data
+{
+	std::wstring* m_pszText;                  /**< Text to be drawn on the button ***/
+	bool m_bPressed;                          /**< True if currently pressed. ***/
+};
+
+/**
+* Vireio switch data structure.
+* Stores all data necessary for a switch control.
+***/
+struct Vireio_Switch_Data : public Vireio_Button_Data
+{
+	bool m_bTrue;                            /**< True if control is locked. ***/
+};
+
+/**
 * Vireio control structure.
 * All data for a single GUI control is stored here.
 ***/
@@ -140,6 +159,8 @@ struct Vireio_Control
 		Vireio_StaticListBox_Data m_sStaticListBox;
 		Vireio_ListBox_Data m_sListBox;
 		Vireio_SpinControl_Data m_sSpinControl;
+		Vireio_Button_Data m_sButton;
+		Vireio_Switch_Data m_sSwitch;
 	};
 };
 
@@ -167,6 +188,8 @@ public:
 	void             DrawStaticListBox(HDC hdc, Vireio_Control& sControl);
 	void             DrawListBox(HDC hdc, Vireio_Control& sControl);
 	void             DrawSpinControl(HDC hdc, Vireio_Control& sControl);
+	void             DrawButton(HDC hdc, Vireio_Control& sControl);
+	void             DrawSwitch(HDC hdc, Vireio_Control& sControl);
 	UINT             AddPage() { Vireio_Page sPage; ZeroMemory(&sPage, sizeof(sPage)); m_asPages.push_back(sPage); return (UINT)m_asPages.size() - 1; } /**< Adds a new page. ***/
 	UINT             AddControl(UINT dwPage, Vireio_Control& sControl);
 	void             AddEntry(UINT dwControl, LPCWSTR szString);

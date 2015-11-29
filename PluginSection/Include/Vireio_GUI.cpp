@@ -137,9 +137,11 @@ HBITMAP Vireio_GUI::GetGUI()
 						break;
 					case EditLine:
 						break;
-					case Slider:
+					case Button:
+						DrawButton(hdcImage, m_asPages[m_dwCurrentPage].m_asControls[dwI]);
 						break;
-					case CheckBox:
+					case Switch:
+						DrawSwitch(hdcImage, m_asPages[m_dwCurrentPage].m_asControls[dwI]);
 						break;
 					default:
 						break;
@@ -393,6 +395,97 @@ void Vireio_GUI::DrawSpinControl(HDC hdc, Vireio_Control& sControl)
 }
 
 /**
+* Draws a button.
+* @param hdc The handle to a device context (DC) for the client area.
+* @param sControl The list box control.
+***/
+void Vireio_GUI::DrawButton(HDC hdc, Vireio_Control& sControl)
+{
+	if (sControl.m_eControlType != Vireio_Control_Type::Button)
+		return;
+
+	// get position and size pointers
+	POINT* psPos = &sControl.m_sPosition;
+	SIZE* psSize = &sControl.m_sSize;
+
+	// output the text
+	TextOut(hdc,
+		psPos->x + (m_dwFontSize >> 4),
+		psPos->y + (m_dwFontSize >> 4),
+		sControl.m_sButton.m_pszText->c_str(),
+		sControl.m_sButton.m_pszText->size());
+
+	// clear field right of the text
+	RECT sRect;
+	SetRect(&sRect, psPos->x + psSize->cx, psPos->y, m_sGUISize.cx, psPos->y + psSize->cy);
+	FillRect(hdc, &sRect, (HBRUSH)CreateSolidBrush(m_dwColorBack));
+
+	// select color wether pressed or not
+	UINT dwColor = m_dwColorFront;
+	if (sControl.m_sButton.m_bPressed)
+		dwColor = m_dwColorFront ^ m_dwColorFront;
+
+	// draw the border
+	SetRect(&sRect, psPos->x, psPos->y, psPos->x + psSize->cx, psPos->y + (m_dwFontSize >> 4));
+	FillRect(hdc, &sRect, (HBRUSH)CreateSolidBrush(dwColor));
+	SetRect(&sRect, psPos->x, psPos->y + psSize->cy - (m_dwFontSize >> 4), psPos->x + psSize->cx, psPos->y + psSize->cy);
+	FillRect(hdc, &sRect, (HBRUSH)CreateSolidBrush(dwColor));
+	SetRect(&sRect, psPos->x, psPos->y, psPos->x + (m_dwFontSize >> 4), psPos->y + psSize->cy);
+	FillRect(hdc, &sRect, (HBRUSH)CreateSolidBrush(dwColor));
+	SetRect(&sRect, psPos->x + psSize->cx - (m_dwFontSize >> 4), psPos->y, psPos->x + psSize->cx, psPos->y + psSize->cy);
+	FillRect(hdc, &sRect, (HBRUSH)CreateSolidBrush(dwColor));
+}
+
+/**
+* Draws a switch.
+* @param hdc The handle to a device context (DC) for the client area.
+* @param sControl The list box control.
+***/
+void Vireio_GUI::DrawSwitch(HDC hdc, Vireio_Control& sControl)
+{
+	if (sControl.m_eControlType != Vireio_Control_Type::Switch)
+		return;
+
+	// get position and size pointers
+	POINT* psPos = &sControl.m_sPosition;
+	SIZE* psSize = &sControl.m_sSize;
+
+	// output the text
+	TextOut(hdc,
+		psPos->x + (m_dwFontSize >> 4),
+		psPos->y + (m_dwFontSize >> 4),
+		sControl.m_sSwitch.m_pszText->c_str(),
+		sControl.m_sSwitch.m_pszText->size());
+
+	// clear field right of the text
+	RECT sRect;
+	SetRect(&sRect, (psPos->x + psSize->cx) - m_dwFontSize, psPos->y, m_sGUISize.cx, psPos->y + psSize->cy);
+	FillRect(hdc, &sRect, (HBRUSH)CreateSolidBrush(m_dwColorBack));
+
+	// draw the true/false indicator
+	if (sControl.m_sSwitch.m_bTrue)
+	{
+		SetRect(&sRect, psPos->x + psSize->cx - ((m_dwFontSize >> 2) * 3), psPos->y + (m_dwFontSize >> 2), psPos->x + psSize->cx - (m_dwFontSize >> 2), psPos->y + psSize->cy - (m_dwFontSize >> 2));
+		FillRect(hdc, &sRect, (HBRUSH)CreateSolidBrush(m_dwColorFront));
+	}
+
+	// select color wether pressed or not
+	UINT dwColor = m_dwColorFront;
+	if (sControl.m_sSwitch.m_bPressed)
+		dwColor = m_dwColorFront ^ m_dwColorFront;
+
+	// draw the border
+	SetRect(&sRect, psPos->x, psPos->y, psPos->x + psSize->cx, psPos->y + (m_dwFontSize >> 4));
+	FillRect(hdc, &sRect, (HBRUSH)CreateSolidBrush(dwColor));
+	SetRect(&sRect, psPos->x, psPos->y + psSize->cy - (m_dwFontSize >> 4), psPos->x + psSize->cx, psPos->y + psSize->cy);
+	FillRect(hdc, &sRect, (HBRUSH)CreateSolidBrush(dwColor));
+	SetRect(&sRect, psPos->x, psPos->y, psPos->x + (m_dwFontSize >> 4), psPos->y + psSize->cy);
+	FillRect(hdc, &sRect, (HBRUSH)CreateSolidBrush(dwColor));
+	SetRect(&sRect, psPos->x + psSize->cx - (m_dwFontSize >> 4), psPos->y, psPos->x + psSize->cx, psPos->y + psSize->cy);
+	FillRect(hdc, &sRect, (HBRUSH)CreateSolidBrush(dwColor));
+}
+
+/**
 * Adds a Vireio Control to the specified page.
 * @param dwPage The index of the page the control will be added. (=id)
 ***/
@@ -442,12 +535,9 @@ void Vireio_GUI::AddEntry(UINT dwControl, LPCWSTR szString)
 					else OutputDebugString(L"Faulty code: Entry vector nullptr !");
 					break;
 				case SpinControl:
-					break;
-				case EditLine:
-					break;
-				case Slider:
-					break;
-				case CheckBox:
+					if (m_asPages[dwPage].m_asControls[dwIndex].m_sSpinControl.m_paszEntries)
+						m_asPages[dwPage].m_asControls[dwIndex].m_sSpinControl.m_paszEntries->push_back(sz);
+					else OutputDebugString(L"Faulty code: Entry vector nullptr !");
 					break;
 				default:
 					break;
@@ -562,7 +652,7 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 						SetRect(&sRect, (psPos->x + psSize->cx) - m_dwFontSize, psPos->y, psPos->x + psSize->cx, psPos->y + psSize->cy);
 						if (InRect(sRect, m_sMouseCoords))
 						{
-							// set control to active, control action to ScrollBar and mouse bound bool
+							// set control to active, control action to SpinControlArrows and mouse bound bool
 							m_dwActiveControl = dwI;
 							m_bMouseBoundToControl = true;
 							m_eActiveControlAction = Vireio_Control_Action::SpinControlArrows;
@@ -581,11 +671,60 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 						}
 					}
 #pragma endregion
+#pragma region Button
+					// is this a button?
+					else if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_eControlType == Vireio_Control_Type::Button)
+					{
+						// get position and size pointers, full text size
+						POINT* psPos = &m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sPosition;
+						SIZE* psSize = &m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSize;
+
+						// get the rectangle of the button
+						RECT sRect;
+						SetRect(&sRect, psPos->x, psPos->y, psPos->x + psSize->cx, psPos->y + psSize->cy);
+						if (InRect(sRect, m_sMouseCoords))
+						{
+							// set this control active
+							m_dwActiveControl = dwI;
+							m_bMouseBoundToControl = true;
+							m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sButton.m_bPressed = true;
+						}
+					}
+#pragma endregion
+#pragma region Button
+					// is this a button?
+					else if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_eControlType == Vireio_Control_Type::Switch)
+					{
+						// get position and size pointers, full text size
+						POINT* psPos = &m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sPosition;
+						SIZE* psSize = &m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSize;
+
+						// get the rectangle of the button
+						RECT sRect;
+						SetRect(&sRect, psPos->x, psPos->y, psPos->x + psSize->cx, psPos->y + psSize->cy);
+						if (InRect(sRect, m_sMouseCoords))
+						{
+							// set this control active
+							m_dwActiveControl = dwI;
+							m_bMouseBoundToControl = true;
+							m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSwitch.m_bTrue =
+								!m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSwitch.m_bTrue;
+							m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSwitch.m_bPressed = true;
+						}
+					}
+#pragma endregion
 				}
 			}
 			break;
 			// left mouse button up ?
 		case WM_LBUTTONUP:
+			// set all buttons to not pressed
+			for (UINT dwI = 0; dwI < (UINT)m_asPages[m_dwCurrentPage].m_asControls.size(); dwI++)
+			{
+				if ((m_asPages[m_dwCurrentPage].m_asControls[dwI].m_eControlType == Vireio_Control_Type::Button) ||
+					(m_asPages[m_dwCurrentPage].m_asControls[dwI].m_eControlType == Vireio_Control_Type::Switch))
+					m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sButton.m_bPressed = false;
+			}
 			m_eActiveControlAction = Vireio_Control_Action::None;
 			m_bMouseBoundToControl = false;
 			break;
