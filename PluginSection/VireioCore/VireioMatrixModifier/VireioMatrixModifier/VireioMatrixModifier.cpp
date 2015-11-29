@@ -75,7 +75,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /**
 * Constructor.
 ***/
-MatrixModifier::MatrixModifier() : AQU_Nodus()
+MatrixModifier::MatrixModifier() : AQU_Nodus(),
+m_adwPageIDs(0, 0)
 {
 	// create a new HRESULT pointer
 	m_pvReturn = (void*)new HRESULT();
@@ -110,6 +111,7 @@ MatrixModifier::MatrixModifier() : AQU_Nodus()
 
 	// init shader vector
 	m_asShaders = std::vector<Vireio_D3D11_Shader>();
+	m_dwShaders = 0;
 
 	// mapped resource data
 	m_asMappedBuffers = std::vector<Vireio_Map_Data>();
@@ -239,6 +241,32 @@ HBITMAP MatrixModifier::GetLogo()
 ***/
 HBITMAP MatrixModifier::GetControl()
 {
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+	// test the shader constant list for updates 
+	if (m_dwShaders < (UINT)m_asShaders.size())
+	{
+		// loop through new shaders
+		for (UINT dwI = m_dwShaders; dwI < (UINT)m_asShaders.size(); dwI++)
+		{
+			// loop through shader buffers
+			for (UINT dwJ = 0; dwJ < (UINT)m_asShaders[dwI].asBuffers.size(); dwJ++)
+			{
+				for (UINT dwK = 0; dwK < (UINT)m_asShaders[dwI].asBuffers[dwJ].asVariables.size(); dwK++)
+				{
+					// convert to wstring
+					std::string szNameA = std::string(m_asShaders[dwI].asBuffers[dwJ].asVariables[dwK].szName);
+					std::wstring szName(szNameA.begin(), szNameA.end());
+
+					// constant available in list ?
+					if ( std::find(m_aszShaderConstants.begin(), m_aszShaderConstants.end(), szName) == m_aszShaderConstants.end() )
+						m_aszShaderConstants.push_back(szName);
+				}
+			}
+		}
+		m_dwShaders = (UINT)m_asShaders.size();
+	}
+#endif
+
 	// here we create the Vireio GUI.... if this runs under a compiled profile this method is never called
 	if (!m_pcVireioGUI)
 	{
@@ -246,8 +274,14 @@ HBITMAP MatrixModifier::GetControl()
 		sSizeOfThis.cx = GUI_WIDTH; sSizeOfThis.cy = GUI_HEIGHT;
 		m_pcVireioGUI = new Vireio_GUI(sSizeOfThis, L"Cambria", TRUE, 64, RGB(110, 105, 95), RGB(254, 249, 240));
 
-		// add first page and control
-		UINT dwMainPage = m_pcVireioGUI->AddPage();
+		// first, add all pages
+		for (int i = 0; i < (int)GUI_Pages::NumberOfPages; i++)
+		{
+			UINT dwPage = m_pcVireioGUI->AddPage();
+			m_adwPageIDs.push_back(dwPage);
+		}
+
+		// control structure
 		Vireio_Control sControl;
 		static std::vector<std::wstring> sEntriesCommanders;
 		static std::vector<std::wstring> sEntriesDecommanders;
@@ -257,18 +291,18 @@ HBITMAP MatrixModifier::GetControl()
 		sControl.m_eControlType = Vireio_Control_Type::StaticListBox;
 		sControl.m_sPosition.x = 16;
 		sControl.m_sPosition.y = 0;
-		sControl.m_sSize.cx = 1000;
+		sControl.m_sSize.cx = GUI_WIDTH - 64;
 		sControl.m_sSize.cy = NUMBER_OF_DECOMMANDERS * 64;
 		sControl.m_sStaticListBox.m_bSelectable = false;
 		sControl.m_sStaticListBox.m_paszEntries = &sEntriesDecommanders;
-		UINT dwDecommandersList = m_pcVireioGUI->AddControl(dwMainPage, sControl);
+		UINT dwDecommandersList = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::MainPage], sControl);
 
 		// create the commanders list out of the decommanders list
 		sControl.m_sPosition.y += NUMBER_OF_DECOMMANDERS * 64;
 		sControl.m_sPosition.x = 300;
 		sControl.m_sSize.cy = NUMBER_OF_COMMANDERS * 64;
 		sControl.m_sStaticListBox.m_paszEntries = &sEntriesCommanders;
-		UINT dwCommandersList = m_pcVireioGUI->AddControl(dwMainPage, sControl);
+		UINT dwCommandersList = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::MainPage], sControl);
 
 		// and add all entries
 		for (int i = 0; i < NUMBER_OF_DECOMMANDERS; i++)
@@ -276,23 +310,33 @@ HBITMAP MatrixModifier::GetControl()
 		for (int i = 0; i < NUMBER_OF_COMMANDERS; i++)
 			m_pcVireioGUI->AddEntry(dwCommandersList, this->GetCommanderName(i));
 
-		// last page: the debug page
-		UINT dwDebugPage = m_pcVireioGUI->AddPage();
-		static std::vector<std::wstring> sEntriesDebugOptions;
-		sEntriesDebugOptions.push_back(L"Constant Float 4");
-		sEntriesDebugOptions.push_back(L"Constant Float 8");
-		sEntriesDebugOptions.push_back(L"Constant Float 16");
-		sEntriesDebugOptions.push_back(L"Constant Float 32");
-		sEntriesDebugOptions.push_back(L"Constant Float 64");
+		// add debug options
+		ZeroMemory(&sControl, sizeof(Vireio_Control));
+		sControl.m_eControlType = Vireio_Control_Type::ListBox;
+		sControl.m_sPosition.x = 64;
+		sControl.m_sPosition.y = 64 + 92 + 92;
+		sControl.m_sSize.cx = GUI_WIDTH - 64 - 92;
+		sControl.m_sSize.cy = GUI_HEIGHT >> 1;
+		sControl.m_sListBox.m_paszEntries = &m_aszShaderConstants;
+		sControl.m_sListBox.m_bSelectable = true;
+		m_dwShaderConstantsDebug = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::DebugPage], sControl);
+
+		ZeroMemory(&sControl, sizeof(Vireio_Control));
+		m_aszDebugOptions.push_back(L"Constant Float 4");
+		m_aszDebugOptions.push_back(L"Constant Float 8");
+		m_aszDebugOptions.push_back(L"Constant Float 16");
+		m_aszDebugOptions.push_back(L"Constant Float 32");
+		m_aszDebugOptions.push_back(L"Constant Float 64");
 		sControl.m_eControlType = Vireio_Control_Type::SpinControl;
 		sControl.m_sPosition.x = 64;
 		sControl.m_sPosition.y = 64;
 		sControl.m_sSize.cx = 512;
 		sControl.m_sSize.cy = 64 + 16;
 		sControl.m_sSpinControl.m_dwCurrentSelection = 0;
-		sControl.m_sSpinControl.m_paszEntries = &sEntriesDebugOptions;
-		UINT dwDebugSpin = m_pcVireioGUI->AddControl(dwDebugPage, sControl);
+		sControl.m_sSpinControl.m_paszEntries = &m_aszDebugOptions;
+		m_dwDebugSpin = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::DebugPage], sControl);
 
+		ZeroMemory(&sControl, sizeof(Vireio_Control));
 		sControl.m_eControlType = Vireio_Control_Type::Button;
 		sControl.m_sPosition.x = 64;
 		sControl.m_sPosition.y = 64 + 92;
@@ -300,17 +344,8 @@ HBITMAP MatrixModifier::GetControl()
 		sControl.m_sSize.cy = 64 + 16;
 		static std::wstring szButtonText = std::wstring(L"Grab Constant Data");
 		sControl.m_sButton.m_pszText = &szButtonText;
-		UINT dwDebugGrab = m_pcVireioGUI->AddControl(dwDebugPage, sControl);
-
-		sControl.m_eControlType = Vireio_Control_Type::Switch;
-		sControl.m_sPosition.x = 64;
-		sControl.m_sPosition.y = 64 + 92 + 92;
-		sControl.m_sSize.cx = 512;
-		sControl.m_sSize.cy = 64 + 16;
-		static std::wstring szTestText = std::wstring(L"This is a TestThis is a TestThis is a TestThis is a TestThis is a Test");
-		sControl.m_sSwitch.m_pszText = &szTestText;
-		UINT dwTest = m_pcVireioGUI->AddControl(dwDebugPage, sControl);
-
+		m_dwDebugGrab = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::DebugPage], sControl);
+			
 	}
 	else
 		return m_pcVireioGUI->GetGUI();

@@ -215,6 +215,17 @@ enum RenderPosition
 	Right = 2
 };
 
+/**
+* All GUI pages for the Matrix Modifier.
+* Must be created in following order.
+***/
+enum GUI_Pages
+{
+	MainPage = 0,
+	DebugPage = 1,
+	NumberOfPages = 2,
+};
+
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 /**
 * Vireio Map DX10/11 data structure.
@@ -396,6 +407,11 @@ private:
 	***/
 	std::vector<Vireio_D3D11_Shader> m_asShaders;
 	/**
+	* The old size of m_asShaders.
+	* To be used to update the shader constant list.
+	***/
+	UINT m_dwShaders;
+	/**
 	* The d3d11 active constant buffer vector.
 	***/
 	std::vector<ID3D11Buffer*> m_apcActiveConstantBuffers11;
@@ -411,6 +427,11 @@ private:
 	* The number of actively mapped constant buffers.
 	***/
 	UINT m_dwMappedBuffers;
+	/**
+	* The number of frames the constant buffers are to be verified.
+	* Set to zero to optimize StereoSplitter->SetDrawingSide()
+	***/
+	UINT m_dwVerifyConstantBuffers;
 	/**
 	* Constant Buffer private data buffer.
 	***/
@@ -444,12 +465,7 @@ private:
 		BYTE m_pchBuffer10Right[D3D10_REQ_CONSTANT_BUFFER_ELEMENT_COUNT * D3D10_VS_INPUT_REGISTER_COMPONENTS * (D3D10_VS_INPUT_REGISTER_COMPONENT_BIT_COUNT >> 3)];
 		BYTE m_pchBuffer11Right[D3D11_REQ_CONSTANT_BUFFER_ELEMENT_COUNT * D3D11_VS_INPUT_REGISTER_COMPONENTS * (D3D11_VS_INPUT_REGISTER_COMPONENT_BIT_COUNT >> 3)];
 	};
-	/**
-	* The number of frames the constant buffers are to be verified.
-	* Set to zero to optimize StereoSplitter->SetDrawingSide()
-	***/
-	UINT m_dwVerifyConstantBuffers;
-
+	
 #elif defined(VIREIO_D3D9)
 	/*** MatrixModifier input pointers ***/
 	IDirect3DVertexShader9** m_ppcShader_Vertex;
@@ -479,6 +495,44 @@ private:
 	* Pointer to the hmd info
 	*/
 	HMDisplayInfo* m_psHmdInfo;
+	/**
+	* All GUI pages IDs.
+	***/
+	std::vector<DWORD> m_adwPageIDs;
+	/**
+	* List of available Debug Options (ID).
+	***/
+	UINT m_dwDebugOptions;
+	/**
+	* List of available Debug Options (Entries).
+	***/
+	std::vector<std::wstring> m_aszDebugOptions;
+	/**
+	* Debug spin control. (ID)
+	* Select debug options in this spin control.
+	**/
+	UINT m_dwDebugSpin;
+	/**
+	* Debug grab button. (ID)
+	* Activate to grab shader constant data for the
+	* specified shader constant.
+	**/
+	UINT m_dwDebugGrab;
+	/**
+	* List of available shader constants (ID - debug page)
+	***/
+	UINT m_dwShaderConstantsDebug;
+	/**
+	* List of available shader constants (ID - shader modification page)
+	***/
+	UINT m_dwShaderConstants;
+	/**
+	* List of all available shader constant names.
+	* To be used on the shader modifaction page, the debug page
+	* and to create shader rules.
+	***/
+	std::vector<std::wstring> m_aszShaderConstants;
+	
 };
 
 /**

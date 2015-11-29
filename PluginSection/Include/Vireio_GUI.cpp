@@ -261,6 +261,13 @@ void Vireio_GUI::DrawStaticListBox(HDC hdc, Vireio_Control& sControl)
 	sRect.right = (LONG)psPos->x + psSize->cx;
 	FillRect(hdc, &sRect, (HBRUSH)CreateSolidBrush(m_dwColorBack));
 
+	// and one at the top (only if list box since text can scroll upwards)
+	if (sControl.m_eControlType == Vireio_Control_Type::ListBox)
+	{
+		SetRect(&sRect, 0, 0, m_sGUISize.cx, (LONG)psPos->y);
+		FillRect(hdc, &sRect, (HBRUSH)CreateSolidBrush(m_dwColorBack));
+	}
+
 	// and an empty field at the right side of the list
 	sRect.top = (LONG)psPos->y;
 	sRect.bottom = (LONG)psPos->y + psSize->cy + m_dwFontSize + 1;
