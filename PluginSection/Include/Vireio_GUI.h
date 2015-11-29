@@ -61,6 +61,7 @@ enum Vireio_Control_Action
 {
 	None,
 	ScrollBar,
+	SpinControlArrows,
 };
 
 /**
@@ -102,7 +103,7 @@ struct Vireio_GUI_Event
 struct Vireio_StaticListBox_Data
 {
 	bool m_bSelectable;                       /**< True if this list box is used as a selectable menu. ***/
-	INT m_dwCurrentSelection;                 /**< Current selection, -1 if nothing is selected. ***/
+	INT m_nCurrentSelection;                  /**< Current selection, -1 if nothing is selected. ***/
 	std::vector<std::wstring>* m_paszEntries; /**< Pointer to Vector of entries in the current list. ***/
 };
 
@@ -113,6 +114,16 @@ struct Vireio_StaticListBox_Data
 struct Vireio_ListBox_Data : public Vireio_StaticListBox_Data
 {
 	float m_fScrollPosY;                     /**< The position of the scroll bar. ***/
+};
+
+/**
+* Vireio spin control data structure.
+* Stores all data necessary for a list box control.
+***/
+struct Vireio_SpinControl_Data
+{
+	UINT m_dwCurrentSelection;                /**< Current selection. ***/
+	std::vector<std::wstring>* m_paszEntries; /**< Pointer to Vector of entries in the current spin control. ***/
 };
 
 /**
@@ -128,6 +139,7 @@ struct Vireio_Control
 	{
 		Vireio_StaticListBox_Data m_sStaticListBox;
 		Vireio_ListBox_Data m_sListBox;
+		Vireio_SpinControl_Data m_sSpinControl;
 	};
 };
 
@@ -154,6 +166,7 @@ public:
 	HBITMAP          GetGUI();
 	void             DrawStaticListBox(HDC hdc, Vireio_Control& sControl);
 	void             DrawListBox(HDC hdc, Vireio_Control& sControl);
+	void             DrawSpinControl(HDC hdc, Vireio_Control& sControl);
 	UINT             AddPage() { Vireio_Page sPage; ZeroMemory(&sPage, sizeof(sPage)); m_asPages.push_back(sPage); return (UINT)m_asPages.size() - 1; } /**< Adds a new page. ***/
 	UINT             AddControl(UINT dwPage, Vireio_Control& sControl);
 	void             AddEntry(UINT dwControl, LPCWSTR szString);

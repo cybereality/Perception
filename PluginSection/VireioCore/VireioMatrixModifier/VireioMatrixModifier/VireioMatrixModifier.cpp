@@ -296,6 +296,23 @@ HBITMAP MatrixModifier::GetControl()
 			ss << L"Line : " << i;
 			m_pcVireioGUI->AddEntry(dwTestList, ss.str().c_str());
 		}
+
+		// last page: the debug page
+		UINT dwDebugPage = m_pcVireioGUI->AddPage();
+		static std::vector<std::wstring> sEntriesDebugOptions;
+		sEntriesDebugOptions.push_back(L"Constant Float 4 THISISATESTTHISISATESTTHISISATESTTHISISATESTTHISISATEST");
+		sEntriesDebugOptions.push_back(L"Constant Float 8");
+		sEntriesDebugOptions.push_back(L"Constant Float 16");
+		sEntriesDebugOptions.push_back(L"Constant Float 32");
+		sEntriesDebugOptions.push_back(L"Constant Float 64");
+		sControl.m_eControlType = Vireio_Control_Type::SpinControl;
+		sControl.m_sPosition.x = 64;
+		sControl.m_sPosition.y = 64;
+		sControl.m_sSize.cx = 512;
+		sControl.m_sSize.cy = 64 + 16;
+		sControl.m_sSpinControl.m_dwCurrentSelection = 0;
+		sControl.m_sSpinControl.m_paszEntries = &sEntriesDebugOptions;
+		UINT dwDebugSpin = m_pcVireioGUI->AddControl(dwDebugPage, sControl);
 	}
 	else
 		return m_pcVireioGUI->GetGUI();
@@ -1692,8 +1709,11 @@ void MatrixModifier::UpdateConstantBuffer(ID3D11DeviceContext* pcContext, ID3D11
 			for (size_t nConstant = 0; nConstant < m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables.size(); nConstant++)
 			{
 				// test for projection matrix
-				if ((std::strstr(m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, "ProjectionMatrix")) &&
-					(!std::strstr(m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, "Inv")))
+				/*if ((std::strstr(m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, "ProjectionMatrix")) &&
+					(!std::strstr(m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, "Inv")))*/
+				if (((std::strstr(m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, "ViewProj")) &&
+					(!std::strstr(m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, "Inv"))) ||
+					(std::strstr(m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, "mvp"))) 
 				{
 					D3DXMATRIX sMatrix;
 					if (m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwSize == sizeof(D3DMATRIX))

@@ -133,6 +133,7 @@ HBITMAP Vireio_GUI::GetGUI()
 						DrawListBox(hdcImage, m_asPages[m_dwCurrentPage].m_asControls[dwI]);
 						break;
 					case SpinControl:
+						DrawSpinControl(hdcImage, m_asPages[m_dwCurrentPage].m_asControls[dwI]);
 						break;
 					case EditLine:
 						break;
@@ -310,6 +311,88 @@ void Vireio_GUI::DrawListBox(HDC hdc, Vireio_Control& sControl)
 }
 
 /**
+* Draws a spin control.
+* @param hdc The handle to a device context (DC) for the client area.
+* @param sControl The list box control.
+***/
+void Vireio_GUI::DrawSpinControl(HDC hdc, Vireio_Control& sControl)
+{
+	if (sControl.m_eControlType != Vireio_Control_Type::SpinControl)
+		return;
+
+	// get position and size pointers
+	POINT* psPos = &sControl.m_sPosition;
+	SIZE* psSize = &sControl.m_sSize;
+
+	// output the entry text
+	if (sControl.m_sSpinControl.m_dwCurrentSelection < (UINT)sControl.m_sSpinControl.m_paszEntries->size())
+	{
+		TextOut(hdc,
+			psPos->x + (m_dwFontSize >> 4),
+			psPos->y + (m_dwFontSize >> 4),
+			((*(sControl.m_sSpinControl.m_paszEntries))[sControl.m_sSpinControl.m_dwCurrentSelection]).c_str(),
+			(int)((*(sControl.m_sSpinControl.m_paszEntries))[sControl.m_sSpinControl.m_dwCurrentSelection]).length());
+	}
+
+	// clear field right of the text
+	RECT sRect;
+	SetRect(&sRect, (psPos->x + psSize->cx) - m_dwFontSize, psPos->y, m_sGUISize.cx, psPos->y + psSize->cy);
+	FillRect(hdc, &sRect, (HBRUSH)CreateSolidBrush(m_dwColorBack));
+	sRect.right = psPos->x + psSize->cx;
+
+	// draw the arrows... up arrow first
+	POINT asPoints[3];
+	asPoints[0].x = (psPos->x + psSize->cx) - (m_dwFontSize >> 1);
+	asPoints[0].y = psPos->y + (m_dwFontSize >> 3);
+	asPoints[1].x = (psPos->x + psSize->cx) - ((m_dwFontSize >> 3) * 7);
+	asPoints[1].y = psPos->y + ((m_dwFontSize >> 5) * 15);
+	asPoints[2].x = (psPos->x + psSize->cx) - (m_dwFontSize >> 3);
+	asPoints[2].y = psPos->y + ((m_dwFontSize >> 5) * 15);
+	SelectObject(hdc, GetStockObject(DC_PEN));
+	SelectObject(hdc, GetStockObject(DC_BRUSH));
+	sRect.bottom -= psSize->cy >> 1;
+	if ((m_eActiveControlAction == Vireio_Control_Action::SpinControlArrows) && InRect(sRect, m_sMouseCoords))
+	{
+		SetDCPenColor(hdc, m_dwColorFront ^ m_dwColorFront);
+		SetDCBrushColor(hdc, m_dwColorFront ^ m_dwColorFront);
+	}
+	else
+	{
+		SetDCPenColor(hdc, m_dwColorFront);
+		SetDCBrushColor(hdc, m_dwColorFront);
+	}
+	if (sControl.m_sSpinControl.m_dwCurrentSelection > 0)
+		Polygon(hdc, asPoints, 3);
+	asPoints[0].y = (psPos->y + psSize->cy) - (m_dwFontSize >> 3);
+	asPoints[1].y = (psPos->y + psSize->cy) - ((m_dwFontSize >> 5) * 15);
+	asPoints[2].y = (psPos->y + psSize->cy) - ((m_dwFontSize >> 5) * 15);
+	sRect.bottom += psSize->cy >> 1;
+	sRect.top += psSize->cy >> 1;
+	if ((m_eActiveControlAction == Vireio_Control_Action::SpinControlArrows) && InRect(sRect, m_sMouseCoords))
+	{
+		SetDCPenColor(hdc, m_dwColorFront ^ m_dwColorFront);
+		SetDCBrushColor(hdc, m_dwColorFront ^ m_dwColorFront);
+	}
+	else
+	{
+		SetDCPenColor(hdc, m_dwColorFront);
+		SetDCBrushColor(hdc, m_dwColorFront);
+	}
+	if (sControl.m_sSpinControl.m_dwCurrentSelection < (sControl.m_sSpinControl.m_paszEntries->size() - 1))
+		Polygon(hdc, asPoints, 3);
+
+	// draw the border
+	SetRect(&sRect, psPos->x, psPos->y, psPos->x + psSize->cx, psPos->y + (m_dwFontSize >> 4));
+	FillRect(hdc, &sRect, (HBRUSH)CreateSolidBrush(m_dwColorFront));
+	SetRect(&sRect, psPos->x, psPos->y + psSize->cy - (m_dwFontSize >> 4), psPos->x + psSize->cx, psPos->y + psSize->cy);
+	FillRect(hdc, &sRect, (HBRUSH)CreateSolidBrush(m_dwColorFront));
+	SetRect(&sRect, psPos->x, psPos->y, psPos->x + (m_dwFontSize >> 4), psPos->y + psSize->cy);
+	FillRect(hdc, &sRect, (HBRUSH)CreateSolidBrush(m_dwColorFront));
+	SetRect(&sRect, psPos->x + psSize->cx - (m_dwFontSize >> 4), psPos->y, psPos->x + psSize->cx, psPos->y + psSize->cy);
+	FillRect(hdc, &sRect, (HBRUSH)CreateSolidBrush(m_dwColorFront));
+}
+
+/**
 * Adds a Vireio Control to the specified page.
 * @param dwPage The index of the page the control will be added. (=id)
 ***/
@@ -419,6 +502,7 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 				else
 				for (UINT dwI = 0; dwI < (UINT)m_asPages[m_dwCurrentPage].m_asControls.size(); dwI++)
 				{
+#pragma region List Box
 					// is this a control with a side- scrollbar ?
 					if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_eControlType == Vireio_Control_Type::ListBox)
 					{
@@ -428,7 +512,7 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 						UINT dwFullTextSizeY = (UINT)m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_paszEntries->size() * m_dwFontSize;
 						if (dwFullTextSizeY >(UINT)psSize->cy)
 						{
-						// get max scrollbar y position
+							// get max scrollbar y position
 							float fMaxScrollBarY = (float)dwFullTextSizeY - (float)psSize->cy;
 
 							// get scroll bar size
@@ -464,11 +548,45 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 
 						}
 					}
+#pragma endregion
+#pragma region Spin Control
+					// is this a control with a side- scrollbar ?
+					else if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_eControlType == Vireio_Control_Type::SpinControl)
+					{
+						// get position and size pointers, full text size
+						POINT* psPos = &m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sPosition;
+						SIZE* psSize = &m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSize;
+
+						// get the rectangle of the up/down arrows
+						RECT sRect;
+						SetRect(&sRect, (psPos->x + psSize->cx) - m_dwFontSize, psPos->y, psPos->x + psSize->cx, psPos->y + psSize->cy);
+						if (InRect(sRect, m_sMouseCoords))
+						{
+							// set control to active, control action to ScrollBar and mouse bound bool
+							m_dwActiveControl = dwI;
+							m_bMouseBoundToControl = true;
+							m_eActiveControlAction = Vireio_Control_Action::SpinControlArrows;
+
+							// update selection
+							if (m_sMouseCoords.y < psPos->y + (psSize->cy >> 1))
+							{
+								if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSpinControl.m_dwCurrentSelection > 0)
+									m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSpinControl.m_dwCurrentSelection--;
+							}
+							else
+							{
+								if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSpinControl.m_dwCurrentSelection < (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSpinControl.m_paszEntries->size() - 1))
+									m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSpinControl.m_dwCurrentSelection++;
+							}
+						}
+					}
+#pragma endregion
 				}
 			}
 			break;
 			// left mouse button up ?
 		case WM_LBUTTONUP:
+			m_eActiveControlAction = Vireio_Control_Action::None;
 			m_bMouseBoundToControl = false;
 			break;
 			// mouse move ?
@@ -484,7 +602,7 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 					{
 									  // get y difference
 									  INT nYDiff = (INT)m_sMouseCoords.y - (INT)sMouseCoordsOld.y;
-									 
+
 									  // get control position and size
 									  POINT* psPos = &m_asPages[m_dwCurrentPage].m_asControls[m_dwActiveControl].m_sPosition;
 									  SIZE* psSize = &m_asPages[m_dwCurrentPage].m_asControls[m_dwActiveControl].m_sSize;
@@ -497,7 +615,7 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 									  // get the maximum scroll bar position in pixel
 									  float fMaxScrollBarYInPix = (float)psSize->cy - fBarSizeY;
 									  float fMaxScrollBarY = (float)dwFullTextSizeY - (float)psSize->cy;
-									  
+
 									  // set new scroll bar position
 									  m_asPages[m_dwCurrentPage].m_asControls[m_dwActiveControl].m_sListBox.m_fScrollPosY = fScrollBarPosYBackup + (float)nYDiff * (fMaxScrollBarY / fMaxScrollBarYInPix);
 
