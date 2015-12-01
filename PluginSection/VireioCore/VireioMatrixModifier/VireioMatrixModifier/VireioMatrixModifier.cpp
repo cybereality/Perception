@@ -76,6 +76,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * Constructor.
 ***/
 MatrixModifier::MatrixModifier() : AQU_Nodus(),
+m_eDebugOption(Debug_Grab_Options::Debug_ConstantFloat4),
+m_bGrabDebug(false),
 m_adwPageIDs(0, 0)
 {
 	// create a new HRESULT pointer
@@ -258,7 +260,7 @@ HBITMAP MatrixModifier::GetControl()
 					std::wstring szName(szNameA.begin(), szNameA.end());
 
 					// constant available in list ?
-					if ( std::find(m_aszShaderConstants.begin(), m_aszShaderConstants.end(), szName) == m_aszShaderConstants.end() )
+					if (std::find(m_aszShaderConstants.begin(), m_aszShaderConstants.end(), szName) == m_aszShaderConstants.end())
 						m_aszShaderConstants.push_back(szName);
 				}
 			}
@@ -272,7 +274,7 @@ HBITMAP MatrixModifier::GetControl()
 	{
 		SIZE sSizeOfThis;
 		sSizeOfThis.cx = GUI_WIDTH; sSizeOfThis.cy = GUI_HEIGHT;
-		m_pcVireioGUI = new Vireio_GUI(sSizeOfThis, L"Cambria", TRUE, 64, RGB(110, 105, 95), RGB(254, 249, 240));
+		m_pcVireioGUI = new Vireio_GUI(sSizeOfThis, L"Cambria", TRUE, GUI_CONTROL_FONTSIZE, RGB(110, 105, 95), RGB(254, 249, 240));
 
 		// first, add all pages
 		for (int i = 0; i < (int)GUI_Pages::NumberOfPages; i++)
@@ -289,9 +291,9 @@ HBITMAP MatrixModifier::GetControl()
 
 		// create the decommanders list
 		sControl.m_eControlType = Vireio_Control_Type::StaticListBox;
-		sControl.m_sPosition.x = 16;
+		sControl.m_sPosition.x = GUI_CONTROL_FONTBORDER;
 		sControl.m_sPosition.y = 0;
-		sControl.m_sSize.cx = GUI_WIDTH - 64;
+		sControl.m_sSize.cx = GUI_WIDTH - GUI_CONTROL_BORDER;
 		sControl.m_sSize.cy = NUMBER_OF_DECOMMANDERS * 64;
 		sControl.m_sStaticListBox.m_bSelectable = false;
 		sControl.m_sStaticListBox.m_paszEntries = &sEntriesDecommanders;
@@ -299,7 +301,7 @@ HBITMAP MatrixModifier::GetControl()
 
 		// create the commanders list out of the decommanders list
 		sControl.m_sPosition.y += NUMBER_OF_DECOMMANDERS * 64;
-		sControl.m_sPosition.x = 300;
+		sControl.m_sPosition.x = GUI_WIDTH >> 2;
 		sControl.m_sSize.cy = NUMBER_OF_COMMANDERS * 64;
 		sControl.m_sStaticListBox.m_paszEntries = &sEntriesCommanders;
 		UINT dwCommandersList = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::MainPage], sControl);
@@ -310,17 +312,29 @@ HBITMAP MatrixModifier::GetControl()
 		for (int i = 0; i < NUMBER_OF_COMMANDERS; i++)
 			m_pcVireioGUI->AddEntry(dwCommandersList, this->GetCommanderName(i));
 
-		// add debug options
+		// add debug options, first the debug trace (bottom list ALWAYS first for each page)
 		ZeroMemory(&sControl, sizeof(Vireio_Control));
 		sControl.m_eControlType = Vireio_Control_Type::ListBox;
-		sControl.m_sPosition.x = 64;
-		sControl.m_sPosition.y = 64 + 92 + 92;
-		sControl.m_sSize.cx = GUI_WIDTH - 64 - 92;
+		sControl.m_sPosition.x = GUI_CONTROL_BORDER;
+		sControl.m_sPosition.y = GUI_CONTROL_BORDER + GUI_CONTROL_LINE * 4 + (GUI_HEIGHT >> 1);
+		sControl.m_sSize.cx = GUI_WIDTH - GUI_CONTROL_BORDER - GUI_CONTROL_LINE;
+		sControl.m_sSize.cy = GUI_HEIGHT - sControl.m_sPosition.y - GUI_CONTROL_FONTSIZE * 4; // (GUI_CONTROL_FONTSIZE * 4) = size of the bottom arrows of the page
+		sControl.m_sListBox.m_paszEntries = &m_aszDebugTrace;
+		sControl.m_sListBox.m_bSelectable = false;
+		m_dwDebugTrace = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::DebugPage], sControl);
+
+		// shader constant debug list (lists always first from bottom to top!)
+		ZeroMemory(&sControl, sizeof(Vireio_Control));
+		sControl.m_eControlType = Vireio_Control_Type::ListBox;
+		sControl.m_sPosition.x = GUI_CONTROL_BORDER;
+		sControl.m_sPosition.y = GUI_CONTROL_BORDER + GUI_CONTROL_LINE * 3;
+		sControl.m_sSize.cx = GUI_WIDTH - GUI_CONTROL_BORDER - GUI_CONTROL_LINE;
 		sControl.m_sSize.cy = GUI_HEIGHT >> 1;
 		sControl.m_sListBox.m_paszEntries = &m_aszShaderConstants;
 		sControl.m_sListBox.m_bSelectable = true;
 		m_dwShaderConstantsDebug = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::DebugPage], sControl);
 
+		// debug type spin control
 		ZeroMemory(&sControl, sizeof(Vireio_Control));
 		m_aszDebugOptions.push_back(L"Constant Float 4");
 		m_aszDebugOptions.push_back(L"Constant Float 8");
@@ -328,24 +342,35 @@ HBITMAP MatrixModifier::GetControl()
 		m_aszDebugOptions.push_back(L"Constant Float 32");
 		m_aszDebugOptions.push_back(L"Constant Float 64");
 		sControl.m_eControlType = Vireio_Control_Type::SpinControl;
-		sControl.m_sPosition.x = 64;
-		sControl.m_sPosition.y = 64;
-		sControl.m_sSize.cx = 512;
-		sControl.m_sSize.cy = 64 + 16;
-		sControl.m_sSpinControl.m_dwCurrentSelection = 0;
+		sControl.m_sPosition.x = GUI_CONTROL_BORDER;
+		sControl.m_sPosition.y = GUI_CONTROL_BORDER;
+		sControl.m_sSize.cx = GUI_CONTROL_BUTTONSIZE;
+		sControl.m_sSize.cy = GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER;
+		sControl.m_sSpinControl.m_dwCurrentSelection = (DWORD)m_eDebugOption;
 		sControl.m_sSpinControl.m_paszEntries = &m_aszDebugOptions;
 		m_dwDebugSpin = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::DebugPage], sControl);
 
+		// debug "grab" button
 		ZeroMemory(&sControl, sizeof(Vireio_Control));
 		sControl.m_eControlType = Vireio_Control_Type::Button;
-		sControl.m_sPosition.x = 64;
-		sControl.m_sPosition.y = 64 + 92;
-		sControl.m_sSize.cx = 512;
-		sControl.m_sSize.cy = 64 + 16;
-		static std::wstring szButtonText = std::wstring(L"Grab Constant Data");
+		sControl.m_sPosition.x = GUI_CONTROL_BORDER;
+		sControl.m_sPosition.y = GUI_CONTROL_BORDER + GUI_CONTROL_LINE;
+		sControl.m_sSize.cx = GUI_CONTROL_BUTTONSIZE;
+		sControl.m_sSize.cy = GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER;
+		static std::wstring szButtonText = std::wstring(L"Grab Debug Data");
 		sControl.m_sButton.m_pszText = &szButtonText;
 		m_dwDebugGrab = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::DebugPage], sControl);
-			
+
+		// debug "clear" button
+		ZeroMemory(&sControl, sizeof(Vireio_Control));
+		sControl.m_eControlType = Vireio_Control_Type::Button;
+		sControl.m_sPosition.x = GUI_CONTROL_BORDER;
+		sControl.m_sPosition.y = GUI_CONTROL_BORDER + GUI_CONTROL_LINE * 2;
+		sControl.m_sSize.cx = GUI_CONTROL_BUTTONSIZE;
+		sControl.m_sSize.cy = GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER;
+		static std::wstring szButtonClear = std::wstring(L"Clear Debug Trace");
+		sControl.m_sButton.m_pszText = &szButtonClear;
+		m_dwClearDebug = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::DebugPage], sControl);
 	}
 	else
 		return m_pcVireioGUI->GetGUI();
@@ -1671,7 +1696,43 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 ***/
 void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	m_pcVireioGUI->WindowsEvent(msg, wParam, lParam);
+	Vireio_GUI_Event sEvent = m_pcVireioGUI->WindowsEvent(msg, wParam, lParam);
+
+	switch (sEvent.eType)
+	{
+		case NoEvent:
+			break;
+		case ChangedToNext:
+			break;
+		case ChangedToPrevious:
+			break;
+		case ChangedToValue:
+			break;
+		case ChangedToText:
+			break;
+		case Pressed:
+			if (sEvent.dwIndexOfPage == m_adwPageIDs[GUI_Pages::DebugPage])
+			{
+				if (sEvent.dwIndexOfControl == m_dwDebugGrab)
+				{
+					// set the grab debug bool to true
+					m_bGrabDebug = true;
+				}
+				else if (sEvent.dwIndexOfControl == m_dwClearDebug)
+				{
+					// clear debug string list
+					m_aszDebugTrace = std::vector<std::wstring>();
+				}
+				else if (sEvent.dwIndexOfControl == m_dwDebugSpin)
+				{
+					// new debug option chosen
+					m_eDebugOption = (Debug_Grab_Options)sEvent.dwNewValue;
+				}
+			}
+			break;
+		default:
+			break;
+	}
 }
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
@@ -1741,6 +1802,45 @@ void MatrixModifier::UpdateConstantBuffer(ID3D11DeviceContext* pcContext, ID3D11
 			// loop through the shader constants
 			for (size_t nConstant = 0; nConstant < m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables.size(); nConstant++)
 			{
+				// grab debug data ? TODO !! optimize grab event
+				if (m_bGrabDebug)
+				{
+					// add the debug data by type
+					switch (m_eDebugOption)
+					{
+						case Debug_ConstantFloat4:
+							break;
+						case Debug_ConstantFloat8:
+							break;
+						case Debug_ConstantFloat16:
+							break;
+						case Debug_ConstantFloat32:
+							if (std::strstr(m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, "ProjectionMatrix"))
+							{
+								UINT dwSize = sizeof(float) * 4 * 8;
+
+								// is this modification in range ?
+								if ((dwSizeLeft) && (dwSizeRight) && (pcBufferLeft) && (pcBufferRight) && (dwBufferSize >= (m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset + dwSize)))
+								{
+									// get pointers to the data
+									UINT_PTR pv = (UINT_PTR)pvSrcData + m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset;
+									D3DXVECTOR4 sVector4 = D3DXVECTOR4((CONST FLOAT*)pv);
+
+									std::wstringstream strStream;
+									strStream << L"X:" << sVector4.x << L"::Y:" << sVector4.y << L"::Z:" << sVector4.z << L"::W:" << sVector4.w;
+									m_aszDebugTrace.push_back(strStream.str().c_str());
+								}
+
+								m_bGrabDebug = false;
+							}
+							break;
+						case Debug_ConstantFloat64:
+							break;
+						default:
+							break;
+					}
+				}
+
 				// test for projection matrix
 				/*if ((std::strstr(m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, "ProjectionMatrix")) &&
 					(!std::strstr(m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, "Inv")))*/

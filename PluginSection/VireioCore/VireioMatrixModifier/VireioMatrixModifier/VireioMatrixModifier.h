@@ -88,7 +88,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define NUMBER_OF_COMMANDERS                           7
 #define NUMBER_OF_DECOMMANDERS                        61
 #define GUI_WIDTH                                   1024                      
-#define GUI_HEIGHT                                  5000                      
+#define GUI_HEIGHT                                  5000               
 #define CONSTANT_BUFFER_VERIFICATION_FRAME_NUMBER   6000                     /**< If no shader data is present, the constant buffers are verified for 6000 frames. ***/
 #elif defined(VIREIO_D3D9)
 #define NUMBER_OF_COMMANDERS                           0
@@ -96,6 +96,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define GUI_WIDTH                                   1024                      
 #define GUI_HEIGHT                                  2000     
 #endif
+#define GUI_CONTROL_BORDER                            64
+#define GUI_CONTROL_FONTSIZE                          64
+#define GUI_CONTROL_FONTBORDER                        16
+#define GUI_CONTROL_LINE                              92
+#define GUI_CONTROL_BUTTONSIZE                       512
 
 #define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"%u", a); OutputDebugString(buf); }
 #define DEBUG_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"%x", a); OutputDebugString(buf); }
@@ -224,6 +229,19 @@ enum GUI_Pages
 	MainPage = 0,
 	DebugPage = 1,
 	NumberOfPages = 2,
+};
+
+/**
+* Debug grab options.
+* Enumeration must match the strings added to spin control : m_dwDebugSpin (ID).
+**/
+enum Debug_Grab_Options
+{
+	Debug_ConstantFloat4,
+	Debug_ConstantFloat8,
+	Debug_ConstantFloat16,
+	Debug_ConstantFloat32,
+	Debug_ConstantFloat64,
 };
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
@@ -465,7 +483,7 @@ private:
 		BYTE m_pchBuffer10Right[D3D10_REQ_CONSTANT_BUFFER_ELEMENT_COUNT * D3D10_VS_INPUT_REGISTER_COMPONENTS * (D3D10_VS_INPUT_REGISTER_COMPONENT_BIT_COUNT >> 3)];
 		BYTE m_pchBuffer11Right[D3D11_REQ_CONSTANT_BUFFER_ELEMENT_COUNT * D3D11_VS_INPUT_REGISTER_COMPONENTS * (D3D11_VS_INPUT_REGISTER_COMPONENT_BIT_COUNT >> 3)];
 	};
-	
+
 #elif defined(VIREIO_D3D9)
 	/*** MatrixModifier input pointers ***/
 	IDirect3DVertexShader9** m_ppcShader_Vertex;
@@ -519,9 +537,17 @@ private:
 	**/
 	UINT m_dwDebugGrab;
 	/**
+	* Clear debug console button (ID)
+	***/
+	UINT m_dwClearDebug;
+	/**
 	* List of available shader constants (ID - debug page)
 	***/
 	UINT m_dwShaderConstantsDebug;
+	/**
+	* Debug trace (ID)
+	***/
+	UINT m_dwDebugTrace;
 	/**
 	* List of available shader constants (ID - shader modification page)
 	***/
@@ -532,7 +558,20 @@ private:
 	* and to create shader rules.
 	***/
 	std::vector<std::wstring> m_aszShaderConstants;
-	
+	/**
+	* Debug trace string list.
+	* Contains all strings for the debug trace.
+	***/
+	std::vector<std::wstring> m_aszDebugTrace;
+	/**
+	* Currently chosen option to grab debug text.
+	***/
+	Debug_Grab_Options m_eDebugOption;
+	/**
+	* If true debug text will be grabbed by the chosen debug option (m_eDebugOption)
+	***/
+	bool m_bGrabDebug;
+
 };
 
 /**

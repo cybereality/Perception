@@ -89,10 +89,11 @@ struct Vireio_GUI_Event
 	UINT dwIndexOfSubentry;
 	union
 	{
-		UINT dwNewValueUINT;
-		INT nNewValueINT;
-		FLOAT fNewValueFLOAT;
-		std::wstring* pszNewValueWSTRING;
+		bool bNewValue;
+		UINT dwNewValue;
+		INT nNewValue;
+		FLOAT fNewValue;
+		std::wstring* pszNewValue;
 	};
 };
 

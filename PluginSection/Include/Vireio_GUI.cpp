@@ -599,117 +599,108 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 				else
 				for (UINT dwI = 0; dwI < (UINT)m_asPages[m_dwCurrentPage].m_asControls.size(); dwI++)
 				{
-#pragma region List Box
-					// is this a control with a side- scrollbar ?
-					if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_eControlType == Vireio_Control_Type::ListBox)
+					// get position and size pointers, full text size
+					POINT* psPos = &m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sPosition;
+					SIZE* psSize = &m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSize;
+
+					// get the rectangle of the control (+ font size to the right)
+					RECT sRect;
+					SetRect(&sRect, psPos->x, psPos->y, psPos->x + psSize->cx + m_dwFontSize, psPos->y + psSize->cy);
+					if (InRect(sRect, m_sMouseCoords))
 					{
-						// get position and size pointers, full text size
-						POINT* psPos = &m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sPosition;
-						SIZE* psSize = &m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSize;
-						UINT dwFullTextSizeY = (UINT)m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_paszEntries->size() * m_dwFontSize;
-						if (dwFullTextSizeY >(UINT)psSize->cy)
+						// set to pressed only if within borders without font size
+						if (m_sMouseCoords.x < psPos->x + psSize->cx)
 						{
-							// get max scrollbar y position
-							float fMaxScrollBarY = (float)dwFullTextSizeY - (float)psSize->cy;
-
-							// get scroll bar size
-							float fBarSizeY;
-							INT nBarSizeY;
-							fBarSizeY = ((float)psSize->cy / (float)dwFullTextSizeY) * psSize->cy;
-							nBarSizeY = (INT)UINT(fBarSizeY);
-
-							// and postion
-							float fBarPosY;
-							INT nBarPosY;
-							fBarPosY = (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_fScrollPosY / fMaxScrollBarY) * ((float)psSize->cy - fBarSizeY);
-							nBarPosY = (INT)UINT(fBarPosY);
-
-							// get rectangle and test mouse position
-							RECT sRect;
-							sRect.top = (LONG)psPos->y + (LONG)nBarPosY;
-							sRect.bottom = (LONG)psPos->y + (LONG)nBarPosY + (LONG)nBarSizeY + 1;
-							sRect.left = (LONG)psPos->x + psSize->cx;
-							sRect.right = (LONG)psPos->x + psSize->cx + m_dwFontSize;
-							if (InRect(sRect, m_sMouseCoords))
-							{
-								// set control to active, control action to ScrollBar and mouse bound bool
-								m_dwActiveControl = dwI;
-								m_bMouseBoundToControl = true;
-								m_eActiveControlAction = Vireio_Control_Action::ScrollBar;
-
-								// set old mouse coords and backup the scroll bar position
-								sMouseCoordsOld.x = m_sMouseCoords.x;
-								sMouseCoordsOld.y = m_sMouseCoords.y;
-								fScrollBarPosYBackup = m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_fScrollPosY;
-							}
-
+							// set event to "pressed"
+							sRet.eType = Vireio_GUI_Event_Type::Pressed;
+							sRet.dwIndexOfPage = m_dwCurrentPage;
+							sRet.dwIndexOfControl = (UINT)(m_dwCurrentPage << 16) + dwI;
 						}
-					}
+#pragma region List Box
+						// is this a control with a side- scrollbar ?
+						if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_eControlType == Vireio_Control_Type::ListBox)
+						{
+							// get position and size pointers, full text size
+							UINT dwFullTextSizeY = (UINT)m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_paszEntries->size() * m_dwFontSize;
+							if (dwFullTextSizeY > (UINT)psSize->cy)
+							{
+								// get max scrollbar y position
+								float fMaxScrollBarY = (float)dwFullTextSizeY - (float)psSize->cy;
+
+								// get scroll bar size
+								float fBarSizeY;
+								INT nBarSizeY;
+								fBarSizeY = ((float)psSize->cy / (float)dwFullTextSizeY) * psSize->cy;
+								nBarSizeY = (INT)UINT(fBarSizeY);
+
+								// and postion
+								float fBarPosY;
+								INT nBarPosY;
+								fBarPosY = (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_fScrollPosY / fMaxScrollBarY) * ((float)psSize->cy - fBarSizeY);
+								nBarPosY = (INT)UINT(fBarPosY);
+
+								// get scroll bar rectangle and test mouse position
+								sRect.top = (LONG)psPos->y + (LONG)nBarPosY;
+								sRect.bottom = (LONG)psPos->y + (LONG)nBarPosY + (LONG)nBarSizeY + 1;
+								sRect.left = (LONG)psPos->x + psSize->cx;
+								sRect.right = (LONG)psPos->x + psSize->cx + m_dwFontSize;
+								if (InRect(sRect, m_sMouseCoords))
+								{
+									// set control to active, control action to ScrollBar and mouse bound bool
+									m_dwActiveControl = dwI;
+									m_bMouseBoundToControl = true;
+									m_eActiveControlAction = Vireio_Control_Action::ScrollBar;
+
+									// set old mouse coords and backup the scroll bar position
+									sMouseCoordsOld.x = m_sMouseCoords.x;
+									sMouseCoordsOld.y = m_sMouseCoords.y;
+									fScrollBarPosYBackup = m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_fScrollPosY;
+								}
+
+							}
+						}
 #pragma endregion
 #pragma region Spin Control
-					// is this a control with a side- scrollbar ?
-					else if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_eControlType == Vireio_Control_Type::SpinControl)
-					{
-						// get position and size pointers, full text size
-						POINT* psPos = &m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sPosition;
-						SIZE* psSize = &m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSize;
-
-						// get the rectangle of the up/down arrows
-						RECT sRect;
-						SetRect(&sRect, (psPos->x + psSize->cx) - m_dwFontSize, psPos->y, psPos->x + psSize->cx, psPos->y + psSize->cy);
-						if (InRect(sRect, m_sMouseCoords))
+						// is this a control with a side- scrollbar ?
+						else if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_eControlType == Vireio_Control_Type::SpinControl)
 						{
-							// set control to active, control action to SpinControlArrows and mouse bound bool
-							m_dwActiveControl = dwI;
-							m_bMouseBoundToControl = true;
-							m_eActiveControlAction = Vireio_Control_Action::SpinControlArrows;
+							// get the rectangle of the up/down arrows
+							SetRect(&sRect, (psPos->x + psSize->cx) - m_dwFontSize, psPos->y, psPos->x + psSize->cx, psPos->y + psSize->cy);
+							if (InRect(sRect, m_sMouseCoords))
+							{
+								// set control to active, control action to SpinControlArrows and mouse bound bool
+								m_dwActiveControl = dwI;
+								m_bMouseBoundToControl = true;
+								m_eActiveControlAction = Vireio_Control_Action::SpinControlArrows;
 
-							// update selection
-							if (m_sMouseCoords.y < psPos->y + (psSize->cy >> 1))
-							{
-								if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSpinControl.m_dwCurrentSelection > 0)
-									m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSpinControl.m_dwCurrentSelection--;
-							}
-							else
-							{
-								if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSpinControl.m_dwCurrentSelection < (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSpinControl.m_paszEntries->size() - 1))
-									m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSpinControl.m_dwCurrentSelection++;
+								// update selection
+								if (m_sMouseCoords.y < psPos->y + (psSize->cy >> 1))
+								{
+									if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSpinControl.m_dwCurrentSelection > 0)
+										m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSpinControl.m_dwCurrentSelection--;
+								}
+								else
+								{
+									if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSpinControl.m_dwCurrentSelection < (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSpinControl.m_paszEntries->size() - 1))
+										m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSpinControl.m_dwCurrentSelection++;
+								}
+								sRet.dwNewValue = m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSpinControl.m_dwCurrentSelection;
 							}
 						}
-					}
 #pragma endregion
 #pragma region Button
-					// is this a button?
-					else if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_eControlType == Vireio_Control_Type::Button)
-					{
-						// get position and size pointers, full text size
-						POINT* psPos = &m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sPosition;
-						SIZE* psSize = &m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSize;
-
-						// get the rectangle of the button
-						RECT sRect;
-						SetRect(&sRect, psPos->x, psPos->y, psPos->x + psSize->cx, psPos->y + psSize->cy);
-						if (InRect(sRect, m_sMouseCoords))
+						// is this a button?
+						else if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_eControlType == Vireio_Control_Type::Button)
 						{
 							// set this control active
 							m_dwActiveControl = dwI;
 							m_bMouseBoundToControl = true;
 							m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sButton.m_bPressed = true;
 						}
-					}
 #pragma endregion
-#pragma region Button
-					// is this a button?
-					else if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_eControlType == Vireio_Control_Type::Switch)
-					{
-						// get position and size pointers, full text size
-						POINT* psPos = &m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sPosition;
-						SIZE* psSize = &m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSize;
-
-						// get the rectangle of the button
-						RECT sRect;
-						SetRect(&sRect, psPos->x, psPos->y, psPos->x + psSize->cx, psPos->y + psSize->cy);
-						if (InRect(sRect, m_sMouseCoords))
+#pragma region Switch
+						// is this a switch?
+						else if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_eControlType == Vireio_Control_Type::Switch)
 						{
 							// set this control active
 							m_dwActiveControl = dwI;
@@ -717,9 +708,11 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 							m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSwitch.m_bTrue =
 								!m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSwitch.m_bTrue;
 							m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSwitch.m_bPressed = true;
+
+							sRet.bNewValue = m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSwitch.m_bTrue;
 						}
-					}
 #pragma endregion
+					}
 				}
 			}
 			break;
