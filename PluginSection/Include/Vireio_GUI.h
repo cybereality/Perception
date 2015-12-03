@@ -194,6 +194,7 @@ public:
 	UINT             AddPage() { Vireio_Page sPage; ZeroMemory(&sPage, sizeof(sPage)); m_asPages.push_back(sPage); return (UINT)m_asPages.size() - 1; } /**< Adds a new page. ***/
 	UINT             AddControl(UINT dwPage, Vireio_Control& sControl);
 	void             AddEntry(UINT dwControl, LPCWSTR szString);
+	INT              GetCurrentSelection(UINT dwControlId);
 	Vireio_GUI_Event WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam);
 
 private:

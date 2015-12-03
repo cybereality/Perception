@@ -241,6 +241,17 @@ void Vireio_GUI::DrawStaticListBox(HDC hdc, Vireio_Control& sControl)
 	if (sControl.m_sStaticListBox.m_paszEntries)
 	for (UINT dwJ = 0; dwJ < (UINT)sControl.m_sStaticListBox.m_paszEntries->size(); dwJ++)
 	{
+		// if selection, invert colors and draw rectangle
+		if ((sControl.m_sStaticListBox.m_bSelectable) && (dwJ == (UINT)sControl.m_sStaticListBox.m_nCurrentSelection))
+		{
+			RECT sRect;
+			SetRect(&sRect, psPos->x, nY, psPos->x + psSize->cx - 1, nY + m_dwFontSize);
+			FillRect(hdc, &sRect, (HBRUSH)CreateSolidBrush(m_dwColorFront));
+
+			SetTextColor(hdc, m_dwColorBack);
+			SetBkColor(hdc, m_dwColorFront);
+		}
+
 		if ((nY >= (int(m_dwFontSize) * -1)) && (nY <= int(psPos->y + psSize->cy)))
 			// output the list entry text
 			TextOut(hdc,
@@ -248,6 +259,13 @@ void Vireio_GUI::DrawStaticListBox(HDC hdc, Vireio_Control& sControl)
 			nY,
 			((*(sControl.m_sStaticListBox.m_paszEntries))[dwJ]).c_str(),
 			(int)((*(sControl.m_sStaticListBox.m_paszEntries))[dwJ]).length());
+
+		// and invert back
+		if ((sControl.m_sStaticListBox.m_bSelectable) && (dwJ == (UINT)sControl.m_sStaticListBox.m_nCurrentSelection))
+		{
+			SetTextColor(hdc, m_dwColorFront);
+			SetBkColor(hdc, m_dwColorBack);
+		}
 
 		// next line
 		nY += (int)m_dwFontSize;
@@ -555,6 +573,24 @@ void Vireio_GUI::AddEntry(UINT dwControl, LPCWSTR szString)
 }
 
 /**
+* Get the current selection index from a selectable list box.
+* @param dwControlId The identifier of the control, must be a static or non-static list box.
+* @returns The current selection of the list box.
+***/
+INT Vireio_GUI::GetCurrentSelection(UINT dwControlId)
+{
+	// decode id to page and index
+	UINT dwPage = dwControlId >> 16;
+	UINT dwIndex = dwControlId & 65535;
+
+	// return -1 (== no selection) if not list box or static list box
+	if ((m_asPages[dwPage].m_asControls[dwIndex].m_eControlType != Vireio_Control_Type::ListBox) && (m_asPages[dwPage].m_asControls[dwIndex].m_eControlType != Vireio_Control_Type::StaticListBox))
+		return -1;
+
+	return m_asPages[dwPage].m_asControls[dwIndex].m_sStaticListBox.m_nCurrentSelection;
+}
+
+/**
 * Windows event for the GUI.
 ***/
 Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
@@ -620,6 +656,19 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 						// is this a control with a side- scrollbar ?
 						if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_eControlType == Vireio_Control_Type::ListBox)
 						{
+							// within borders ? list box selectable ?
+							if ((m_sMouseCoords.x < psPos->x + psSize->cx) && (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_bSelectable))
+							{
+								// set new selection
+								float fYPos = (float)m_sMouseCoords.y - (float)psPos->y + m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_fScrollPosY;
+								m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_nCurrentSelection =
+									(INT)fYPos / m_dwFontSize;
+
+								// clamp
+								if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_nCurrentSelection >= (INT)m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_paszEntries->size())
+									m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_nCurrentSelection = -1;
+							}
+
 							// get position and size pointers, full text size
 							UINT dwFullTextSizeY = (UINT)m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_paszEntries->size() * m_dwFontSize;
 							if (dwFullTextSizeY > (UINT)psSize->cy)

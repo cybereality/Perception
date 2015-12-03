@@ -76,6 +76,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * Constructor.
 ***/
 MatrixModifier::MatrixModifier() : AQU_Nodus(),
+m_aszShaderConstantsA(),
+m_aszShaderConstants(),
 m_eDebugOption(Debug_Grab_Options::Debug_ConstantFloat4),
 m_bGrabDebug(false),
 m_adwPageIDs(0, 0)
@@ -261,7 +263,10 @@ HBITMAP MatrixModifier::GetControl()
 
 					// constant available in list ?
 					if (std::find(m_aszShaderConstants.begin(), m_aszShaderConstants.end(), szName) == m_aszShaderConstants.end())
+					{
 						m_aszShaderConstants.push_back(szName);
+						m_aszShaderConstantsA.push_back(szNameA);
+					}
 				}
 			}
 		}
@@ -1799,48 +1804,15 @@ void MatrixModifier::UpdateConstantBuffer(ID3D11DeviceContext* pcContext, ID3D11
 		// shader has this buffer index ?
 		if (dwBufferIndex < m_asShaders[sPrivateData.dwIndex].asBuffers.size())
 		{
+			// debug output ?
+			if (m_bGrabDebug)
+			{
+				DebugOutput(pvSrcData, sPrivateData.dwIndex, dwBufferIndex, dwBufferSize);
+			}
+
 			// loop through the shader constants
 			for (size_t nConstant = 0; nConstant < m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables.size(); nConstant++)
 			{
-				// grab debug data ? TODO !! optimize grab event
-				if (m_bGrabDebug)
-				{
-					// add the debug data by type
-					switch (m_eDebugOption)
-					{
-						case Debug_ConstantFloat4:
-							break;
-						case Debug_ConstantFloat8:
-							break;
-						case Debug_ConstantFloat16:
-							break;
-						case Debug_ConstantFloat32:
-							if (std::strstr(m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, "ProjectionMatrix"))
-							{
-								UINT dwSize = sizeof(float) * 4 * 8;
-
-								// is this modification in range ?
-								if ((dwSizeLeft) && (dwSizeRight) && (pcBufferLeft) && (pcBufferRight) && (dwBufferSize >= (m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset + dwSize)))
-								{
-									// get pointers to the data
-									UINT_PTR pv = (UINT_PTR)pvSrcData + m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset;
-									D3DXVECTOR4 sVector4 = D3DXVECTOR4((CONST FLOAT*)pv);
-
-									std::wstringstream strStream;
-									strStream << L"X:" << sVector4.x << L"::Y:" << sVector4.y << L"::Z:" << sVector4.z << L"::W:" << sVector4.w;
-									m_aszDebugTrace.push_back(strStream.str().c_str());
-								}
-
-								m_bGrabDebug = false;
-							}
-							break;
-						case Debug_ConstantFloat64:
-							break;
-						default:
-							break;
-					}
-				}
-
 				// test for projection matrix
 				/*if ((std::strstr(m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, "ProjectionMatrix")) &&
 					(!std::strstr(m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, "Inv")))*/
@@ -2007,3 +1979,62 @@ void MatrixModifier::CreateStereoConstantBuffer(ID3D11Device* pcDevice, ID3D11De
 
 #elif defined(VIREIO_D3D9)
 #endif
+
+/**
+* Handles the debug trace.
+***/
+void MatrixModifier::DebugOutput(const void *pvSrcData, UINT dwShaderIndex, UINT dwBufferIndex, UINT dwBufferSize)
+{
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+	INT nSelection = 0;
+
+	// loop through the shader constants
+	for (size_t nConstant = 0; nConstant < m_asShaders[dwShaderIndex].asBuffers[dwBufferIndex].asVariables.size(); nConstant++)
+	{
+		// add the debug data by type
+		switch (m_eDebugOption)
+		{
+			case Debug_ConstantFloat4:
+				break;
+			case Debug_ConstantFloat8:
+				break;
+			case Debug_ConstantFloat16:
+				break;
+			case Debug_ConstantFloat32:
+				// get current selection of the shader constant list
+				nSelection = m_pcVireioGUI->GetCurrentSelection(m_dwShaderConstantsDebug);
+				if ((nSelection < 0) || (nSelection >= (INT)m_aszShaderConstantsA.size()))
+				{
+					m_bGrabDebug = false;
+					return;
+				}
+
+				// test the name of the constant
+				if (std::strstr(m_asShaders[dwShaderIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, m_aszShaderConstantsA[nSelection].c_str()))
+				{
+					UINT dwSize = sizeof(float)* 4 * 8;
+
+					// is this modification in range ?
+					if (dwBufferSize >= (m_asShaders[dwShaderIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset + dwSize))
+					{
+						// get pointers to the data
+						UINT_PTR pv = (UINT_PTR)pvSrcData + m_asShaders[dwShaderIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset;
+						D3DXVECTOR4 sVector4 = D3DXVECTOR4((CONST FLOAT*)pv);
+
+						std::wstringstream strStream;
+						strStream << L"X:" << sVector4.x << L"::Y:" << sVector4.y << L"::Z:" << sVector4.z << L"::W:" << sVector4.w;
+						m_aszDebugTrace.push_back(strStream.str().c_str());
+					}
+
+					m_bGrabDebug = false;
+				}
+				break;
+			case Debug_ConstantFloat64:
+				break;
+			default:
+				break;
+		}
+	}
+#elif defined(VIREIO_D3D9)
+#endif
+}

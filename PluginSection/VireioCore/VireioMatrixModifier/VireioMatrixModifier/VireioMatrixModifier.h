@@ -352,6 +352,7 @@ private:
 	void CreateStereoConstantBuffer(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, ID3D11Buffer* pcBuffer, D3D11_BUFFER_DESC *pDesc, D3D11_SUBRESOURCE_DATA *pInitialData, bool bCopyData);
 #elif defined(VIREIO_D3D9)
 #endif
+	void DebugOutput(const void *pvSrcData, UINT dwShaderIndex, UINT dwBufferIndex, UINT dwBufferSize);
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	/*** MatrixModifier input pointers ***/
@@ -553,11 +554,17 @@ private:
 	***/
 	UINT m_dwShaderConstants;
 	/**
-	* List of all available shader constant names.
+	* List of all available shader constant names (std::wstring).
 	* To be used on the shader modifaction page, the debug page
 	* and to create shader rules.
 	***/
 	std::vector<std::wstring> m_aszShaderConstants;
+	/**
+	* List of all available shader constant names (std::string).
+	* To be used on the shader modifaction page, the debug page
+	* and to create shader rules.
+	***/
+	std::vector<std::string> m_aszShaderConstantsA;
 	/**
 	* Debug trace string list.
 	* Contains all strings for the debug trace.
