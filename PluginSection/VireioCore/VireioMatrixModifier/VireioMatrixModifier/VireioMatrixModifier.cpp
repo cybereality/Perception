@@ -1988,6 +1988,14 @@ void MatrixModifier::DebugOutput(const void *pvSrcData, UINT dwShaderIndex, UINT
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	INT nSelection = 0;
 
+	// get current selection of the shader constant list
+	nSelection = m_pcVireioGUI->GetCurrentSelection(m_dwShaderConstantsDebug);
+	if ((nSelection < 0) || (nSelection >= (INT)m_aszShaderConstantsA.size()))
+	{
+		m_bGrabDebug = false;
+		return;
+	}
+
 	// loop through the shader constants
 	for (size_t nConstant = 0; nConstant < m_asShaders[dwShaderIndex].asBuffers[dwBufferIndex].asVariables.size(); nConstant++)
 	{
@@ -1995,26 +2003,12 @@ void MatrixModifier::DebugOutput(const void *pvSrcData, UINT dwShaderIndex, UINT
 		switch (m_eDebugOption)
 		{
 			case Debug_ConstantFloat4:
-				break;
-			case Debug_ConstantFloat8:
-				break;
-			case Debug_ConstantFloat16:
-				break;
-			case Debug_ConstantFloat32:
-				// get current selection of the shader constant list
-				nSelection = m_pcVireioGUI->GetCurrentSelection(m_dwShaderConstantsDebug);
-				if ((nSelection < 0) || (nSelection >= (INT)m_aszShaderConstantsA.size()))
-				{
-					m_bGrabDebug = false;
-					return;
-				}
-
 				// test the name of the constant
 				if (std::strstr(m_asShaders[dwShaderIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, m_aszShaderConstantsA[nSelection].c_str()))
 				{
-					UINT dwSize = sizeof(float)* 4 * 8;
+					UINT dwSize = sizeof(float)* 4;
 
-					// is this modification in range ?
+					// is this  in range ?
 					if (dwBufferSize >= (m_asShaders[dwShaderIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset + dwSize))
 					{
 						// get pointers to the data
@@ -2027,7 +2021,64 @@ void MatrixModifier::DebugOutput(const void *pvSrcData, UINT dwShaderIndex, UINT
 					}
 
 					m_bGrabDebug = false;
+					return;
 				}
+				break;
+			case Debug_ConstantFloat8:
+				// test the name of the constant
+				if (std::strstr(m_asShaders[dwShaderIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, m_aszShaderConstantsA[nSelection].c_str()))
+				{
+					UINT dwSize = sizeof(float)* 4 *2;
+
+					// is this  in range ?
+					if (dwBufferSize >= (m_asShaders[dwShaderIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset + dwSize))
+					{
+						// get pointers to the data
+						UINT_PTR pv = (UINT_PTR)pvSrcData + m_asShaders[dwShaderIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset;
+						D3DXVECTOR4 sVector4 = D3DXVECTOR4((CONST FLOAT*)pv);
+						pv = (UINT_PTR)pvSrcData + m_asShaders[dwShaderIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset + sizeof(D3DVECTOR);
+						D3DXVECTOR4 sVector4_1 = D3DXVECTOR4((CONST FLOAT*)pv);
+
+						std::wstringstream strStream;
+						strStream << L"11:" << sVector4.x << L"::12:" << sVector4.y << L"::13:" << sVector4.z << L"::14:" << sVector4.w;
+						m_aszDebugTrace.push_back(strStream.str().c_str()); strStream = std::wstringstream();
+						strStream << L"21:" << sVector4_1.x << L"::22:" << sVector4_1.y << L"::23:" << sVector4_1.z << L"::24:" << sVector4_1.w;
+						m_aszDebugTrace.push_back(strStream.str().c_str());
+					}
+
+					m_bGrabDebug = false;
+					return;
+				}
+				break;
+			case Debug_ConstantFloat16:
+				// test the name of the constant
+				if (std::strstr(m_asShaders[dwShaderIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, m_aszShaderConstantsA[nSelection].c_str()))
+				{
+					UINT dwSize = sizeof(float)* 4 * 4;
+
+					// is this  in range ?
+					if (dwBufferSize >= (m_asShaders[dwShaderIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset + dwSize))
+					{
+						// get pointers to the data
+						UINT_PTR pv = (UINT_PTR)pvSrcData + m_asShaders[dwShaderIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset;
+						D3DXMATRIX sMatrix = D3DXMATRIX((CONST FLOAT*)pv);
+
+						std::wstringstream strStream;
+						strStream << L"11:" << sMatrix._11 << L"::12:" << sMatrix._12 << L"::13:" << sMatrix._13 << L"::14:" << sMatrix._14;
+						m_aszDebugTrace.push_back(strStream.str().c_str()); strStream = std::wstringstream();
+						strStream << L"21:" << sMatrix._21 << L"::22:" << sMatrix._22 << L"::23:" << sMatrix._23 << L"::24:" << sMatrix._24;
+						m_aszDebugTrace.push_back(strStream.str().c_str()); strStream = std::wstringstream();
+						strStream << L"31:" << sMatrix._31 << L"::32:" << sMatrix._32 << L"::33:" << sMatrix._33 << L"::34:" << sMatrix._34;
+						m_aszDebugTrace.push_back(strStream.str().c_str()); strStream = std::wstringstream();
+						strStream << L"41:" << sMatrix._41 << L"::42:" << sMatrix._42 << L"::43:" << sMatrix._43 << L"::44:" << sMatrix._44;
+						m_aszDebugTrace.push_back(strStream.str().c_str()); 
+					}
+
+					m_bGrabDebug = false;
+					return;
+				}
+				break;
+			case Debug_ConstantFloat32:
 				break;
 			case Debug_ConstantFloat64:
 				break;
