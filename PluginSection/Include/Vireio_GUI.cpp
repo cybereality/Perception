@@ -438,7 +438,7 @@ void Vireio_GUI::DrawButton(HDC hdc, Vireio_Control& sControl)
 		psPos->x + (m_dwFontSize >> 4),
 		psPos->y + (m_dwFontSize >> 4),
 		sControl.m_sButton.m_pszText->c_str(),
-		sControl.m_sButton.m_pszText->size());
+		(int)sControl.m_sButton.m_pszText->size());
 
 	// clear field right of the text
 	RECT sRect;
@@ -480,7 +480,7 @@ void Vireio_GUI::DrawSwitch(HDC hdc, Vireio_Control& sControl)
 		psPos->x + (m_dwFontSize >> 4),
 		psPos->y + (m_dwFontSize >> 4),
 		sControl.m_sSwitch.m_pszText->c_str(),
-		sControl.m_sSwitch.m_pszText->size());
+		(int)sControl.m_sSwitch.m_pszText->size());
 
 	// clear field right of the text
 	RECT sRect;
@@ -606,10 +606,7 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 	// get local mouse cursor
 	m_sMouseCoords.x = GET_X_LPARAM(lParam) * 4;
 	m_sMouseCoords.y = GET_Y_LPARAM(lParam) * 4;
-
-	// update control
-	m_bControlUpdate = true;
-
+	
 	switch (msg)
 	{
 		// left mouse button down ?
@@ -651,6 +648,9 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 							sRet.eType = Vireio_GUI_Event_Type::Pressed;
 							sRet.dwIndexOfPage = m_dwCurrentPage;
 							sRet.dwIndexOfControl = (UINT)(m_dwCurrentPage << 16) + dwI;
+
+							// update control
+							m_bControlUpdate = true;
 						}
 #pragma region List Box
 						// is this a control with a side- scrollbar ?
@@ -704,6 +704,9 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 									sMouseCoordsOld.x = m_sMouseCoords.x;
 									sMouseCoordsOld.y = m_sMouseCoords.y;
 									fScrollBarPosYBackup = m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_fScrollPosY;
+
+									// update control
+									m_bControlUpdate = true;
 								}
 
 							}
@@ -734,6 +737,9 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 										m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSpinControl.m_dwCurrentSelection++;
 								}
 								sRet.dwNewValue = m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSpinControl.m_dwCurrentSelection;
+
+								// update control
+								m_bControlUpdate = true;
 							}
 						}
 #pragma endregion
