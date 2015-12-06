@@ -312,6 +312,28 @@ void* VireioConstructorDx11::Provoke(void* pThis, int eD3D, int eD3DInterface, i
 						}
 					}
 
+					// output shader code ?
+					if (TO_DO_ADD_BOOL_HERE_FALSE)
+					{
+						// optionally, output shader code to "VS(hash).txt"
+						char buf[32]; ZeroMemory(&buf[0], 32);
+						sprintf_s(buf, "VS%u.txt", dwHashCode);
+						std::ofstream oLogFile(buf, std::ios::ate);
+
+						if (oLogFile.is_open())
+						{
+							ID3DBlob* pcIDisassembly = nullptr;
+							HRESULT hr = D3DDisassemble(*m_ppvShaderBytecode_VertexShader, (DWORD)*m_pnBytecodeLength_VertexShader, D3D_DISASM_ENABLE_DEFAULT_VALUE_PRINTS, 0, &pcIDisassembly);
+							if (SUCCEEDED(hr))
+							{
+								oLogFile << static_cast<char*>(pcIDisassembly->GetBufferPointer()) << std::endl;
+								oLogFile << std::endl << std::endl;
+								oLogFile << "// Shader Hash   : " << dwHashCode << std::endl;
+							}
+							oLogFile.close();
+						}
+					}
+
 					// create reflection class
 					ID3D11ShaderReflection* pcReflector = NULL;
 					if (SUCCEEDED(D3DReflect(*m_ppvShaderBytecode_VertexShader,
@@ -386,7 +408,6 @@ void* VireioConstructorDx11::Provoke(void* pThis, int eD3D, int eD3DInterface, i
 										if (std::strstr(sDescVariable.Name, "roj"))
 											OutputDebugStringA(sDescVariable.Name);
 #endif
-
 										// and add to buffer desc
 										sBufferData.asVariables.push_back(sVariableData);
 									}
