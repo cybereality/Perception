@@ -312,25 +312,41 @@ void* VireioConstructorDx11::Provoke(void* pThis, int eD3D, int eD3DInterface, i
 						}
 					}
 
-					// output shader code ?
-					if (TO_DO_ADD_BOOL_HERE_FALSE)
-					{
-						// optionally, output shader code to "VS(hash).txt"
-						char buf[32]; ZeroMemory(&buf[0], 32);
-						sprintf_s(buf, "VS%u.txt", dwHashCode);
-						std::ofstream oLogFile(buf, std::ios::ate);
+					// shader data for each shader
+					Vireio_D3D11_Shader sShaderData = { 0 };
 
-						if (oLogFile.is_open())
+					// first, disassemble shader
+					ID3DBlob* pcIDisassembly = nullptr;
+					HRESULT hr = D3DDisassemble(*m_ppvShaderBytecode_VertexShader, (DWORD)*m_pnBytecodeLength_VertexShader, D3D_DISASM_ENABLE_DEFAULT_VALUE_PRINTS, 0, &pcIDisassembly);
+
+					// get the shader code to a stringstream
+					std::stringstream szStream = std::stringstream();
+					szStream << static_cast<char*>(pcIDisassembly->GetBufferPointer());
+					std::string szLine;
+
+					// get all constant buffers from the stream
+					while (std::getline(szStream, szLine))
+					{
+						if (szLine.find("dcl_constantbuffer") != std::string::npos)
 						{
-							ID3DBlob* pcIDisassembly = nullptr;
-							HRESULT hr = D3DDisassemble(*m_ppvShaderBytecode_VertexShader, (DWORD)*m_pnBytecodeLength_VertexShader, D3D_DISASM_ENABLE_DEFAULT_VALUE_PRINTS, 0, &pcIDisassembly);
-							if (SUCCEEDED(hr))
-							{
-								oLogFile << static_cast<char*>(pcIDisassembly->GetBufferPointer()) << std::endl;
-								oLogFile << std::endl << std::endl;
-								oLogFile << "// Shader Hash   : " << dwHashCode << std::endl;
-							}
-							oLogFile.close();
+							Vireio_D3D11_Constant_Buffer_Unaccounted sBufferUnaccounted;
+
+							// dcl_constantbuffer cb12[37], immediateIndexed
+							std::stringstream szLineStream(szLine);
+							std::string szTemp;
+							std::getline(szLineStream, szTemp, ' ');
+							std::getline(szLineStream, szTemp, '[');
+							std::stringstream szIndex(szTemp);
+							szIndex.ignore(2);
+							szIndex >> sBufferUnaccounted.dwRegister;
+
+							// get size between '[' and ']'
+							std::getline(szLineStream, szTemp, ']');
+							std::stringstream szSize(szTemp);
+							szSize >> sBufferUnaccounted.dwSize;
+
+							// store the unaccounted buffer
+							sShaderData.asBuffersUnaccounted.push_back(sBufferUnaccounted);
 						}
 					}
 
@@ -346,7 +362,6 @@ void* VireioConstructorDx11::Provoke(void* pThis, int eD3D, int eD3DInterface, i
 						pcReflector->GetDesc(&sDesc);
 
 						// fill shader data
-						Vireio_D3D11_Shader sShaderData;
 						sShaderData.dwConstantBuffers = sDesc.ConstantBuffers;
 						sShaderData.dwVersion = sDesc.Version;
 						sShaderData.dwBoundResources = sDesc.BoundResources;
@@ -418,17 +433,43 @@ void* VireioConstructorDx11::Provoke(void* pThis, int eD3D, int eD3DInterface, i
 							}
 						}
 
-						// and add to shader vector
-						(*m_pasShaders).push_back(sShaderData);
-
-						// create and set private shader data
-						Vireio_Shader_Private_Data sPrivateData;
-						sPrivateData.dwHash = dwHashCode;
-						sPrivateData.dwIndex = (UINT)(*m_pasShaders).size() - 1;
-
-						pcShader->SetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, sizeof(sPrivateData), (void*)&sPrivateData);
-
 						pcReflector->Release();
+					}
+
+					// and add to shader vector
+					(*m_pasShaders).push_back(sShaderData);
+
+					// create and set private shader data
+					Vireio_Shader_Private_Data sPrivateData;
+					sPrivateData.dwHash = dwHashCode;
+					sPrivateData.dwIndex = (UINT)(*m_pasShaders).size() - 1;
+
+					pcShader->SetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, sizeof(sPrivateData), (void*)&sPrivateData);
+
+					// output shader code ?
+					if (TO_DO_ADD_BOOL_HERE_FALSE)
+					{
+						// optionally, output shader code to "VS(hash).txt"
+						char buf[32]; ZeroMemory(&buf[0], 32);
+						sprintf_s(buf, "VS%u.txt", dwHashCode);
+						std::ofstream oLogFile(buf, std::ios::ate);
+
+						if (oLogFile.is_open())
+						{
+							if (SUCCEEDED(hr))
+							{
+								oLogFile << static_cast<char*>(pcIDisassembly->GetBufferPointer()) << std::endl;
+								oLogFile << std::endl << std::endl;
+								oLogFile << "// Shader Hash   : " << dwHashCode << std::endl;
+							}
+							oLogFile << std::endl;
+							for (int i = 0; i < (int)sShaderData.asBuffers.size(); i++)
+							{
+								for (int j = 0; j < (int)sShaderData.asBuffers[i].asVariables.size(); j++)
+									oLogFile << "// Shader Constant : Buffer - " << i << " - Variable - " << j << " - " << sShaderData.asBuffers[i].asVariables[j].szName << " " << sShaderData.asBuffers[i].asVariables[j].dwStartOffset << " " << sShaderData.asBuffers[i].asVariables[j].dwSize << std::endl;
+							}
+							oLogFile.close();
+						}
 					}
 				}
 				else OutputDebugString(L"MatrixModifier: Failed to reflect vertex shader !");

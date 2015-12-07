@@ -47,15 +47,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
 * Get hash code helper.
-***/ 
+***/
 inline DWORD GetHashCode(BYTE* pcData, DWORD dwSize)
 {
 	DWORD h = 0;
 
 	// create hash
-	for (DWORD i = 0; i < dwSize; i++) 
+	for (DWORD i = 0; i < dwSize; i++)
 	{
-		h = 31*h + pcData[i];
+		h = 31 * h + pcData[i];
 	}
 
 	return h;
@@ -66,9 +66,9 @@ inline DWORD GetHashCode(BYTE* pcData, DWORD dwSize)
 ***/
 struct Vireio_D3D11_Shader_Variable
 {
-    CHAR                    szName[VIREIO_MAX_VARIABLE_NAME_LENGTH];       /**< Name of the variable ***/
-    UINT                    dwStartOffset;                                 /**< Offset in constant buffer's backing store ***/
-    UINT                    dwSize;                                        /**< Size of variable (in bytes) ***/
+	CHAR                    szName[VIREIO_MAX_VARIABLE_NAME_LENGTH];       /**< Name of the variable ***/
+	UINT                    dwStartOffset;                                 /**< Offset in constant buffer's backing store ***/
+	UINT                    dwSize;                                        /**< Size of variable (in bytes) ***/
 	BYTE                    pcDefaultValue[sizeof(D3DMATRIX)];             /**< Raw default value data... maximum size of a matrix ***/
 };
 
@@ -77,12 +77,27 @@ struct Vireio_D3D11_Shader_Variable
 ***/
 struct Vireio_D3D11_Constant_Buffer
 {
-    CHAR                                      szName[VIREIO_MAX_VARIABLE_NAME_LENGTH];      /**< Name of the variable ***/
-    D3D_CBUFFER_TYPE                          eType;			                            /**< Indicates type of buffer content ***/
-    UINT                                      dwVariables;                                  /**< Number of member variables ***/
-    UINT                                      dwSize;                                       /**< Size of CB (in bytes) ***/
-    UINT                                      dwFlags;                                      /**< Buffer description flags ***/
+	CHAR                                      szName[VIREIO_MAX_VARIABLE_NAME_LENGTH];      /**< Name of the variable ***/
+	D3D_CBUFFER_TYPE                          eType;			                            /**< Indicates type of buffer content ***/
+	UINT                                      dwVariables;                                  /**< Number of member variables ***/
+	UINT                                      dwSize;                                       /**< Size of CB (in bytes) ***/
+	UINT                                      dwFlags;                                      /**< Buffer description flags ***/
 	std::vector<Vireio_D3D11_Shader_Variable> asVariables;                                  /**< The Vireio shader variables descriptions ***/
+};
+
+/**
+* D3D11 Shader constant buffer description for unaccounted buffers.
+* Unaccounted constant buffers are buffers which are not reflected by the DX11 shader reflection class.
+***/
+struct Vireio_D3D11_Constant_Buffer_Unaccounted
+{
+	UINT                                      dwRegister;                 /**< The index of the shader constant register. ***/
+	UINT                                      dwSize;                     /**< The number of float constants in that buffer. ***/
+	enum D3D11_Constant_Buffer_AccessPattern
+	{
+		immediateIndexed,
+		dynamicIndexed,
+	}                                         eAccessPattern;             /**< The way that the buffer will be accessed by shader code. ***/
 };
 
 /**
@@ -91,14 +106,15 @@ struct Vireio_D3D11_Constant_Buffer
 ***/
 struct Vireio_D3D11_Shader
 {
-	UINT                                      dwVersion;                               /**< Shader version ***/
-    CHAR                                      szCreator[VIREIO_MAX_VARIABLE_NAME_LENGTH];   /**< Creator string ***/
-	UINT                                      dwConstantBuffers;                       /**< Number of constant buffers ***/
-    UINT                                      dwBoundResources;                        /**< Number of bound resources ***/
-    UINT                                      dwInputParameters;                       /**< Number of parameters in the input signature ***/
-    UINT                                      dwOutputParameters;                      /**< Number of parameters in the output signature ***/
-	std::vector<Vireio_D3D11_Constant_Buffer> asBuffers;                               /**< The Vireio shader constant buffers descriptions (max D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT) ***/
-	UINT                                      dwHashCode;                              /**< This shaders hash code. ***/
+	UINT                                                  dwVersion;                                    /**< Shader version ***/
+	CHAR                                                  szCreator[VIREIO_MAX_VARIABLE_NAME_LENGTH];   /**< Creator string ***/
+	UINT                                                  dwConstantBuffers;                            /**< Number of constant buffers ***/
+	UINT                                                  dwBoundResources;                             /**< Number of bound resources ***/
+	UINT                                                  dwInputParameters;                            /**< Number of parameters in the input signature ***/
+	UINT                                                  dwOutputParameters;                           /**< Number of parameters in the output signature ***/
+	std::vector<Vireio_D3D11_Constant_Buffer>             asBuffers;                                    /**< The Vireio shader constant buffers descriptions (max D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT) ***/
+	std::vector<Vireio_D3D11_Constant_Buffer_Unaccounted> asBuffersUnaccounted;                         /**< The Vireio shader constant buffers descriptions (max D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT) ***/
+	UINT                                                  dwHashCode;                                   /**< This shaders hash code. ***/
 };
 
 /**

@@ -1801,37 +1801,26 @@ void MatrixModifier::UpdateConstantBuffer(ID3D11DeviceContext* pcContext, ID3D11
 	// private data present ?
 	if (dwDataSize)
 	{
-		// shader has this buffer index ?
-		if (dwBufferIndex < m_asShaders[sPrivateData.dwIndex].asBuffers.size())
+		if (TO_DO_ADD_BOOL_HERE_TRUE)
 		{
-			// debug output ?
-			if (m_bGrabDebug)
+			// loop through the unnaccounted buffers
+			for (size_t nBuffer = 0; nBuffer < m_asShaders[sPrivateData.dwIndex].asBuffersUnaccounted.size(); nBuffer++)
 			{
-				DebugOutput(pvSrcData, sPrivateData.dwIndex, dwBufferIndex, dwBufferSize);
-			}
-
-			// loop through the shader constants
-			for (size_t nConstant = 0; nConstant < m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables.size(); nConstant++)
-			{
-				// test for projection matrix
-				/*if ((std::strstr(m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, "ProjectionMatrix")) &&
-					(!std::strstr(m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, "Inv")))*/
-				if (((std::strstr(m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, "Proj")) &&
-					(!std::strstr(m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, "Inv"))) ||
-					(std::strstr(m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, "mvp")))
+				// buffer matches index ?
+				if ((dwBufferIndex == /*TODO : F4 ONLY*/ 12) && (m_asShaders[sPrivateData.dwIndex].asBuffersUnaccounted[nBuffer].dwRegister == /*TODO : F4 ONLY*/ 12))
 				{
 					D3DXMATRIX sMatrix;
-					if (m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwSize == sizeof(D3DMATRIX))
+					if (m_asShaders[sPrivateData.dwIndex].asBuffersUnaccounted[nBuffer].dwSize >= /*TODO : F4 ONLY*/ 8 + 4)
 					{
 						// is this modification in range ?
-						if ((dwSizeLeft) && (dwSizeRight) && (pcBufferLeft) && (pcBufferRight) && (dwBufferSize >= (m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset + sizeof(D3DMATRIX))))
+						if ((dwSizeLeft) && (dwSizeRight) && (pcBufferLeft) && (pcBufferRight) && (dwBufferSize >= (/*TODO : F4 ONLY*/ 8 * 4 * sizeof(float) + sizeof(D3DMATRIX))))
 						{
 							bool bTranspose = true;
 
 							// get pointers to the matrix (left+right)
-							UINT_PTR pv = (UINT_PTR)pvSrcData + m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset;
-							UINT_PTR pvLeft = (UINT_PTR)m_pchBuffer11Left + m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset;
-							UINT_PTR pvRight = (UINT_PTR)m_pchBuffer11Right + m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset;
+							UINT_PTR pv = (UINT_PTR)pvSrcData + /*TODO : F4 ONLY*/ 8 * 4 * sizeof(float);
+							UINT_PTR pvLeft = (UINT_PTR)m_pchBuffer11Left + /*TODO : F4 ONLY*/ 8 * 4 * sizeof(float);
+							UINT_PTR pvRight = (UINT_PTR)m_pchBuffer11Right + /*TODO : F4 ONLY*/ 8 * 4 * sizeof(float);
 
 							// get the matrix
 							D3DXMATRIX sMatrix = D3DXMATRIX((CONST FLOAT*)pv);
@@ -1852,46 +1841,103 @@ void MatrixModifier::UpdateConstantBuffer(ID3D11DeviceContext* pcContext, ID3D11
 							memcpy((void*)pvRight, &sMatrixModified, sizeof(D3DXMATRIX));
 						}
 					}
-					else if (m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwSize == (sizeof(D3DXMATRIX)>>1))
+				}
+			}
+		}
+		else
+		{
+			// shader has this buffer index ?
+			if (dwBufferIndex < m_asShaders[sPrivateData.dwIndex].asBuffers.size())
+			{
+				// debug output ?
+				if (m_bGrabDebug)
+				{
+					DebugOutput(pvSrcData, sPrivateData.dwIndex, dwBufferIndex, dwBufferSize);
+				}
+
+				// loop through the shader constants
+				for (size_t nConstant = 0; nConstant < m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables.size(); nConstant++)
+				{
+					// test for projection matrix
+					/*if ((std::strstr(m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, "ProjectionMatrix")) &&
+						(!std::strstr(m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, "Inv")))*/
+					if (((std::strstr(m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, "Proj")) &&
+						(!std::strstr(m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, "Inv"))) ||
+						(std::strstr(m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, "mvp")))
 					{
-						// is this modification in range ?
-						if ((dwSizeLeft) && (dwSizeRight) && (pcBufferLeft) && (pcBufferRight) && (dwBufferSize >= (m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset + (sizeof(D3DXMATRIX)>>1))))
+						D3DXMATRIX sMatrix;
+						if (m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwSize == sizeof(D3DMATRIX))
 						{
-							bool bTranspose = true;
+							// is this modification in range ?
+							if ((dwSizeLeft) && (dwSizeRight) && (pcBufferLeft) && (pcBufferRight) && (dwBufferSize >= (m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset + sizeof(D3DMATRIX))))
+							{
+								bool bTranspose = true;
 
-							// get pointers to the matrix (left+right)
-							UINT_PTR pv = (UINT_PTR)pvSrcData + m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset;
-							UINT_PTR pvLeft = (UINT_PTR)m_pchBuffer11Left + m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset;
-							UINT_PTR pvRight = (UINT_PTR)m_pchBuffer11Right + m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset;
+								// get pointers to the matrix (left+right)
+								UINT_PTR pv = (UINT_PTR)pvSrcData + m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset;
+								UINT_PTR pvLeft = (UINT_PTR)m_pchBuffer11Left + m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset;
+								UINT_PTR pvRight = (UINT_PTR)m_pchBuffer11Right + m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset;
 
-							// get the matrix
-							D3DXMATRIX sMatrix; 
-							D3DXMatrixIdentity(&sMatrix);
-							memcpy(&sMatrix.m[0][0], (void*)pv, (sizeof(D3DXMATRIX)>>1));
-							D3DXMATRIX sMatrixModified;
+								// get the matrix
+								D3DXMATRIX sMatrix = D3DXMATRIX((CONST FLOAT*)pv);
+								D3DXMATRIX sMatrixModified;
 
-							if (bTranspose) D3DXMatrixTranspose(&sMatrix, &sMatrix);
+								if (bTranspose) D3DXMatrixTranspose(&sMatrix, &sMatrix);
 
-							// apply left 
-							sMatrixModified = sMatrix *  m_pcShaderViewAdjustment->LeftAdjustmentMatrix()*
-								m_pcShaderViewAdjustment->ProjectionInverse() * m_pcShaderViewAdjustment->PositionMatrix() * m_pcShaderViewAdjustment->Projection();
-							if (bTranspose) D3DXMatrixTranspose(&sMatrixModified, &sMatrixModified);
-							memcpy((void*)pvLeft, &sMatrixModified, (sizeof(D3DXMATRIX)>>1));
+								// apply left 
+								sMatrixModified = sMatrix *  m_pcShaderViewAdjustment->LeftAdjustmentMatrix()*
+									m_pcShaderViewAdjustment->ProjectionInverse() * m_pcShaderViewAdjustment->PositionMatrix() * m_pcShaderViewAdjustment->Projection();
+								if (bTranspose) D3DXMatrixTranspose(&sMatrixModified, &sMatrixModified);
+								memcpy((void*)pvLeft, &sMatrixModified, sizeof(D3DXMATRIX));
 
-							// apply right
-							sMatrixModified = sMatrix *  m_pcShaderViewAdjustment->RightAdjustmentMatrix()*
-								m_pcShaderViewAdjustment->ProjectionInverse() * m_pcShaderViewAdjustment->PositionMatrix() * m_pcShaderViewAdjustment->Projection();
-							if (bTranspose) D3DXMatrixTranspose(&sMatrixModified, &sMatrixModified);
-							memcpy((void*)pvRight, &sMatrixModified, (sizeof(D3DXMATRIX)>>1));
+								// apply right
+								sMatrixModified = sMatrix *  m_pcShaderViewAdjustment->RightAdjustmentMatrix()*
+									m_pcShaderViewAdjustment->ProjectionInverse() * m_pcShaderViewAdjustment->PositionMatrix() * m_pcShaderViewAdjustment->Projection();
+								if (bTranspose) D3DXMatrixTranspose(&sMatrixModified, &sMatrixModified);
+								memcpy((void*)pvRight, &sMatrixModified, sizeof(D3DXMATRIX));
+							}
 						}
-					}
-					else
-					{
-						OutputDebugString(L"MatrixModifier: Wrong variable size.... NOT the size of a matrix !");
-						wchar_t buf[128];
-						wsprintf(buf, L"This size %u ; Matrix size %u", m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwSize, sizeof(D3DMATRIX));
-						OutputDebugString(buf);
-						OutputDebugStringA(m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName);
+						else if (m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwSize == (sizeof(D3DXMATRIX) >> 1))
+						{
+							// is this modification in range ?
+							if ((dwSizeLeft) && (dwSizeRight) && (pcBufferLeft) && (pcBufferRight) && (dwBufferSize >= (m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset + (sizeof(D3DXMATRIX) >> 1))))
+							{
+								bool bTranspose = true;
+
+								// get pointers to the matrix (left+right)
+								UINT_PTR pv = (UINT_PTR)pvSrcData + m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset;
+								UINT_PTR pvLeft = (UINT_PTR)m_pchBuffer11Left + m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset;
+								UINT_PTR pvRight = (UINT_PTR)m_pchBuffer11Right + m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset;
+
+								// get the matrix
+								D3DXMATRIX sMatrix;
+								D3DXMatrixIdentity(&sMatrix);
+								memcpy(&sMatrix.m[0][0], (void*)pv, (sizeof(D3DXMATRIX) >> 1));
+								D3DXMATRIX sMatrixModified;
+
+								if (bTranspose) D3DXMatrixTranspose(&sMatrix, &sMatrix);
+
+								// apply left 
+								sMatrixModified = sMatrix *  m_pcShaderViewAdjustment->LeftAdjustmentMatrix()*
+									m_pcShaderViewAdjustment->ProjectionInverse() * m_pcShaderViewAdjustment->PositionMatrix() * m_pcShaderViewAdjustment->Projection();
+								if (bTranspose) D3DXMatrixTranspose(&sMatrixModified, &sMatrixModified);
+								memcpy((void*)pvLeft, &sMatrixModified, (sizeof(D3DXMATRIX) >> 1));
+
+								// apply right
+								sMatrixModified = sMatrix *  m_pcShaderViewAdjustment->RightAdjustmentMatrix()*
+									m_pcShaderViewAdjustment->ProjectionInverse() * m_pcShaderViewAdjustment->PositionMatrix() * m_pcShaderViewAdjustment->Projection();
+								if (bTranspose) D3DXMatrixTranspose(&sMatrixModified, &sMatrixModified);
+								memcpy((void*)pvRight, &sMatrixModified, (sizeof(D3DXMATRIX) >> 1));
+							}
+						}
+						else
+						{
+							OutputDebugString(L"MatrixModifier: Wrong variable size.... NOT the size of a matrix !");
+							wchar_t buf[128];
+							wsprintf(buf, L"This size %u ; Matrix size %u", m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwSize, sizeof(D3DMATRIX));
+							OutputDebugString(buf);
+							OutputDebugStringA(m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName);
+						}
 					}
 				}
 			}
@@ -2061,7 +2107,7 @@ void MatrixModifier::DebugOutput(const void *pvSrcData, UINT dwShaderIndex, UINT
 				// test the name of the constant
 				if (std::strstr(m_asShaders[dwShaderIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, m_aszShaderConstantsA[nSelection].c_str()))
 				{
-					UINT dwSize = sizeof(float)* 4 *2;
+					UINT dwSize = sizeof(float)* 4 * 2;
 
 					// is this  in range ?
 					if (dwBufferSize >= (m_asShaders[dwShaderIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset + dwSize))
@@ -2104,7 +2150,7 @@ void MatrixModifier::DebugOutput(const void *pvSrcData, UINT dwShaderIndex, UINT
 						strStream << L"31:" << sMatrix._31 << L"::32:" << sMatrix._32 << L"::33:" << sMatrix._33 << L"::34:" << sMatrix._34;
 						m_aszDebugTrace.push_back(strStream.str().c_str()); strStream = std::wstringstream();
 						strStream << L"41:" << sMatrix._41 << L"::42:" << sMatrix._42 << L"::43:" << sMatrix._43 << L"::44:" << sMatrix._44;
-						m_aszDebugTrace.push_back(strStream.str().c_str()); 
+						m_aszDebugTrace.push_back(strStream.str().c_str());
 					}
 
 					m_bGrabDebug = false;

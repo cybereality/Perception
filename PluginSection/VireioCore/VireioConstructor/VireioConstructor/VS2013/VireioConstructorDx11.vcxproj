@@ -74,7 +74,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>$(WindowsSDK_IncludePath);$(DXSDK_DIR)Include;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSDK_IncludePath);</IncludePath>
     <LibraryPath>$(DXSDK_DIR)Lib\x64;$(VCInstallDir)lib\amd64;$(VCInstallDir)atlmfc\lib\amd64;$(WindowsSDK_LibraryPath_x64);</LibraryPath>
-    <OutDir>$(USERPROFILE)\Documents\my games\Aquilinus\My Nodes x64</OutDir>
+    <OutDir>$(USERPROFILE)\Documents\my games\Aquilinus\My Nodes x64\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(USERPROFILE)\Documents\my games\Aquilinus\My Nodes Win32\</OutDir>
@@ -84,7 +84,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>$(WindowsSDK_IncludePath);$(DXSDK_DIR)Include;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSDK_IncludePath);</IncludePath>
     <LibraryPath>$(DXSDK_DIR)Lib\x64;$(VCInstallDir)lib\amd64;$(VCInstallDir)atlmfc\lib\amd64;$(WindowsSDK_LibraryPath_x64);</LibraryPath>
-    <OutDir>$(USERPROFILE)\Documents\my games\Aquilinus\My Nodes x64</OutDir>
+    <OutDir>$(USERPROFILE)\Documents\my games\Aquilinus\My Nodes x64\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
