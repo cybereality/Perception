@@ -419,9 +419,8 @@ bool  ProxyHelper::SaveUserConfigMirrorMode(int mode)
 }
 
 /**
-* Saves the global Vireio Perception configuration (stereo mode and aspect multiplier).
+* Saves the global Vireio Perception configuration (stereo mode).
 * @param mode The chosen stereo mode option.
-* @param aspect The aspect multiplier.
 ***/
 bool ProxyHelper::SaveUserConfig(int mode)
 {
@@ -1171,7 +1170,7 @@ bool ProxyHelper::HasProfile(const char* name, const char *path)
 	// get the profile
 	bool profileFound = false;
 	string profilePath = GetPath("cfg\\profiles.xml");
-
+	
 	xml_document docProfiles;
 	xml_parse_result resultProfiles = docProfiles.load_file(profilePath.c_str());
 	xml_node profile;

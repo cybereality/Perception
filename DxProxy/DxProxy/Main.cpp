@@ -77,7 +77,7 @@ void SaveExeName(char* data, char* path)
 
 	LPCTSTR value = TEXT("TargetExe");
 
-	LONG setRes = RegSetValueEx(hKey, value, 0, REG_SZ, (LPBYTE)data, strlen(data)+1);
+	LONG setRes = RegSetValueEx(hKey, value, 0, REG_SZ, (LPBYTE)data, (DWORD)strlen(data)+1);
 
 	if (setRes == ERROR_SUCCESS) {
 		OutputDebugString("Hx // Success writing to Registry.\n");
@@ -87,7 +87,7 @@ void SaveExeName(char* data, char* path)
 
 	value = TEXT("TargetPath");
 
-	setRes = RegSetValueEx(hKey, value, 0, REG_SZ, (LPBYTE)path, strlen(path)+1);
+	setRes = RegSetValueEx(hKey, value, 0, REG_SZ, (LPBYTE)path, (DWORD)strlen(path)+1);
 
 	if (setRes == ERROR_SUCCESS) {
 		OutputDebugString("Hx // Success writing to Registry.\n");
@@ -177,7 +177,11 @@ IDirect3D9* WINAPI Direct3DCreate9(UINT nSDKVersion)
 	HRESULT hr = E_NOTIMPL;
 
 	//OCULUS_DIRECT_TO_RIFT mode 111 - Need to define this somewhere central
-	if (userCfg.mode == 111 && ProxyHelper::IsProcessRunning("Perception.exe"))
+#ifdef _WIN64
+	if (userCfg.mode == 111 && ProxyHelper::IsProcessRunning("Perception_x64.exe"))
+#else
+	if (userCfg.mode == 111 && ProxyHelper::IsProcessRunning("Perception_Win32.exe"))
+#endif
 	{
 		//Try to create an ex interface
 		Log("g_pfnDirect3DCreate9Ex\n");

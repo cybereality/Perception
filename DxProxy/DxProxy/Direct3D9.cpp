@@ -50,7 +50,11 @@ BaseDirect3D9::BaseDirect3D9(IDirect3D9* pD3D) :
 {
 	cfg = new ProxyConfig();
 	
-	if(!ProxyHelper::IsProcessRunning("Perception.exe")) {
+#ifdef _WIN64
+	if(!ProxyHelper::IsProcessRunning("Perception_x64.exe")) {
+#else
+	if (!ProxyHelper::IsProcessRunning("Perception_Win32.exe"))	{
+#endif
 		OutputDebugString("[WARN] Perception Application is not running. Vireio will not be active.\n");
 	}
 	else

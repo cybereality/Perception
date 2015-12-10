@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Express 2012 for Windows Desktop
+# Visual Studio Express 2013 for Windows Desktop
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Perception", "Perception\Perception\Perception - VS2013.vcxproj", "{4941495B-2BB1-4A79-BDC9-09635D57F93C}"
 	ProjectSection(ProjectDependencies) = postProject
 		{16A8AA38-36D3-437F-922A-B808F654AAAA} = {16A8AA38-36D3-437F-922A-B808F654AAAA}
@@ -32,6 +34,7 @@ Global
 		{4941495B-2BB1-4A79-BDC9-09635D57F93C}.Release|Win32.ActiveCfg = Release|Win32
 		{4941495B-2BB1-4A79-BDC9-09635D57F93C}.Release|Win32.Build.0 = Release|Win32
 		{4941495B-2BB1-4A79-BDC9-09635D57F93C}.Release|x64.ActiveCfg = Release|x64
+		{4941495B-2BB1-4A79-BDC9-09635D57F93C}.Release|x64.Build.0 = Release|x64
 		{16A8AA38-36D3-437F-922A-B808F654AAAA}.Debug|Win32.ActiveCfg = Debug|Win32
 		{16A8AA38-36D3-437F-922A-B808F654AAAA}.Debug|Win32.Build.0 = Debug|Win32
 		{16A8AA38-36D3-437F-922A-B808F654AAAA}.Debug|x64.ActiveCfg = Debug|x64

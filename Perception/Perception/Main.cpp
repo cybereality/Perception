@@ -35,13 +35,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <ctime>  
 #include <cstdlib>  
 #include "ProxyHelper.h"
-#include <map>
+#include <vector>
 #include "Resource.h"
 #include "Version.h"
+#include "..\PluginSection\Include\Vireio_GUI.h"
 
-#define APP_SIZE_WIDTH 585
-#define APP_SIZE_HEIGHT 270
-#define APP_SIZE_HEIGHT_EXTENDED 334
+#define APP_SIZE_WIDTH 800
+#define APP_SIZE_HEIGHT 360
+#define APP_SIZE_FONT 32
+#define APP_COLOR_FONT RGB(180, 120, 60)
+#define APP_COLOR_BACK RGB(40, 40, 100)
+#define APP_FONT L"Candara"
+#define APP_FONT_ITALIC TRUE
+
+#define DEBUG_UINT_A(a) { char buf[128]; wsprintf(buf, "%u", a); OutputDebugString(buf); }
 
 using namespace std;
 
@@ -73,586 +80,500 @@ HMODULE g_hmAquilinusRTE = NULL;
 * True if Aquilinus profile to be loaded.
 ***/
 bool g_bLoadAquilinusProfile = false;
+/**
+* Vector of Vireio Perception Stereo View Render Modes.
+***/
+vector<int> anStereoModes;
+/**
+* Vector of Vireio Perception Head Tracker Modes.
+***/
+vector<int> anTrackerModes;
+/**
+* Vector of installed Monitors.
+***/
+vector<int> anMonitors;
 
-class static_control;
 
-class combobox_control {
+/**
+* Vireio Perception Window Class
+***/
+class Vireio_Perception_Main_Window
+{
 private:
+	LPCSTR    window_class_name;
 	HINSTANCE instance_handle;
-	char * window_class_name;
-	HWND parent_handle;
-	static_control * text;
+	HCURSOR   cursor_arrow;
+	HWND      window_handle;
+	HWND      header_handle;
+	RECT      client_rectangle;
+	RECT      extended_profile_rectangle;
+	static HBITMAP     logo_bitmap;
+	static POINT       m_ptMouseCursor;            /**< The current mouse cursor. **/
+	static Vireio_GUI* m_pcVireioGUI;              /**< Vireio Graphical User Interface class. **/
+	static UINT        m_dwSpinStereoView;         /**< Main driver stereo view selection. ***/
+	static UINT        m_dwSpinTracker;            /**< Main driver tracker selection. ***/
+	static UINT        m_dwSpinMonitor;            /**< Main driver monitor selection. ***/
+	static UINT        m_dwLoadAquilinusProfile;   /**< The Load Profile Button. (184x69 - same as 'Steam' thumbnails)  ***/
+	static UINT        m_dwExit;                   /**< Exit button. ***/
 public:
-	HWND combobox_handle;
-	combobox_control(HINSTANCE instance, HWND parent, static_control * text_area, int cx, int cy, int menuId) 
-		: instance_handle(instance), parent_handle(parent), text(text_area) {
-			combobox_handle = CreateWindowEx(WS_EX_CLIENTEDGE, "Combobox", NULL,
-				WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_VSCROLL |
-				CBS_DROPDOWNLIST | CBS_OWNERDRAWFIXED | 
-				CBS_HASSTRINGS | CBS_SORT, cx, cy, 250, 200, // 20, 81, 250, 200, 
-				parent_handle, (HMENU)menuId, instance_handle, NULL);
-			SetWindowLongPtr(combobox_handle, GWL_USERDATA, (LONG)this);
-	}
-	static LRESULT combobox_window_proc(HWND hwnd, UINT message,    
-		WPARAM wparam, LPARAM lparam) {
-			combobox_control * This = (combobox_control *)GetWindowLongPtr(hwnd, GWL_USERDATA);
-			return DefWindowProc(hwnd, message, wparam, lparam);
-	}
-	void add_item(char * string) {
-		int index = (int)SendMessage(combobox_handle, CB_INSERTSTRING, -1, (LPARAM)string);
-		if ( index == 0 ) {
-			SendMessage(combobox_handle, CB_SETCURSEL, index, 0);
-		}
-	}
-	void measure_item(LPMEASUREITEMSTRUCT item) {
-		item->itemHeight = 20;
-		item->itemWidth = 200;
-	}
-	void draw_item(LPDRAWITEMSTRUCT item) {
-		char string[120];
-		if ( item->itemID == -1 ) return;
-		SendMessage(combobox_handle, CB_GETLBTEXT, item->itemID, (LPARAM)string);
-		int length = 0;
-		char * s = string;
-		while ( *s++ != '\t' ) length++;
-		COLORREF back_colour;
-		if ( item->itemState & ODS_SELECTED ) {
-			back_colour = RGB(25, 25, 25);
-			HBRUSH back_brush = CreateSolidBrush(back_colour);
-			FillRect(item->hDC, &item->rcItem, back_brush);
-			DeleteObject(back_brush);
-			SetBkColor(item->hDC, back_colour);
-			SetTextColor(item->hDC, RGB(255, 255, 255));
-		}
-		else {
-			back_colour = RGB(255, 255, 255);
-			HBRUSH back_brush = CreateSolidBrush(back_colour);
-			FillRect(item->hDC, &item->rcItem, back_brush);
-			DeleteObject(back_brush);
-			SetBkColor(item->hDC, back_colour);
-			SetTextColor(item->hDC, RGB(0, 0, 0));
-		}      
-
-		HFONT font = CreateFont(0, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
-			DEFAULT_QUALITY, DEFAULT_PITCH, "Calibri");
-		HFONT oldFont = (HFONT)SelectObject(item->hDC, font);
-		DrawText(item->hDC, string, length, &item->rcItem, DT_LEFT|DT_SINGLELINE);
-		DeleteObject(SelectObject(item->hDC, oldFont));
-
-	}
-
-	void set_selection(int sel)
+	/**
+	* Window Constructor.
+	***/
+	Vireio_Perception_Main_Window(LPCSTR window_class_identity) :
+		window_class_name(window_class_identity)
 	{
-		SendMessage(combobox_handle, CB_SETCURSEL, sel, 0);
-	}
+		// get screen and module handle
+		int screen_width = GetSystemMetrics(SM_CXFULLSCREEN);
+		int screen_height = GetSystemMetrics(SM_CYFULLSCREEN);
+		instance_handle = GetModuleHandle(NULL);
 
-	int get_selection()
-	{
-		char string[120];
-		int selection = (int)SendMessage(combobox_handle, CB_GETCURSEL, 0, 0);
-		if ( selection != CB_ERR ) {
-			SendMessage(combobox_handle, CB_GETLBTEXT, selection, (LPARAM)string);
-			int length = 0;
-			char * s = string;
-			while ( *s++ != '\t' ) length++;
-			return atoi(s);
-		}
-
-		return -1;
-	}
-
-	void new_selection() {
-		char string[120];
-		int selection = (int)SendMessage(combobox_handle, CB_GETCURSEL, 0, 0);
-		if ( selection != CB_ERR ) {
-			SendMessage(combobox_handle, CB_GETLBTEXT, selection, (LPARAM)string);
-			int length = 0;
-			char * s = string;
-			while ( *s++ != '\t' ) length++;
-			//text->set_text(s);
-			// save the stereo mode to xml file
-			ProxyHelper helper = ProxyHelper();
-			int mode = atoi(s);
-			helper.SaveUserConfig(mode);
-		}
-	}
-	void new_selection2() {
-		char string[120];
-		int selection = (int)SendMessage(combobox_handle, CB_GETCURSEL, 0, 0);
-		if ( selection != CB_ERR ) {
-			SendMessage(combobox_handle, CB_GETLBTEXT, selection, (LPARAM)string);
-			int length = 0;
-			char * s = string;
-			while ( *s++ != '\t' ) length++;
-			// save the tracker mode to xml file
-			ProxyHelper helper = ProxyHelper();
-			int mode = atoi(s);
-			helper.SaveTrackerMode(mode);
-		}
-	}
-
-	void new_selection3() {
-		int selection = (int)SendMessage(combobox_handle, CB_GETCURSEL, 0, 0);
-		if ( selection != CB_ERR ) {
-			// save the adapter to xml file
-			ProxyHelper helper = ProxyHelper();
-			helper.SaveDisplayAdapter(selection);
-		}
-	}
-};
-
-class static_control {
-private:
-	HINSTANCE instance_handle;
-	wchar_t * window_class_name;
-	HWND parent_handle;
-	HWND static_handle;
-public:
-	static_control(HINSTANCE instance, HWND parent) 
-		: instance_handle(instance), parent_handle(parent) {
-			static_handle = CreateWindowEx(0, "Static", NULL,
-				WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN, 
-				280, 164, 200, 22, 
-				parent_handle, NULL, instance_handle, NULL);
-			SetWindowLongPtr(static_handle, GWL_USERDATA, (LONG)this);
-	}
-	static LRESULT combobox_window_proc(HWND hwnd, UINT message,    
-		WPARAM wparam, LPARAM lparam) {
-			static_control * This = (static_control *)GetWindowLongPtr(hwnd, GWL_USERDATA);
-			return DefWindowProc(hwnd, message, wparam, lparam);
-	}
-	void set_text(char * string) {
-		SetWindowText(static_handle, string);
-	}
-};
-
-class frame_window {
-private:
-	LPCSTR window_class_name;  
-	HINSTANCE instance_handle;  
-	HCURSOR cursor_arrow;  
-	HWND window_handle;
-	HWND header_handle;
-	RECT client_rectangle;
-	RECT extended_profile_rectangle;
-	static_control * text;
-	HBITMAP logo_bitmap;
-public:
-	combobox_control* combobox;
-	combobox_control* combobox2;
-	combobox_control* combobox3;
-	frame_window(LPCSTR window_class_identity) : window_class_name(window_class_identity) {         
-		int screen_width = GetSystemMetrics(SM_CXFULLSCREEN);  
-		int screen_height = GetSystemMetrics(SM_CYFULLSCREEN);  
-		instance_handle = GetModuleHandle(NULL);  
-
-		WNDCLASS window_class = { CS_OWNDC, main_window_proc, 0, 0,    
-			instance_handle, NULL,    
-			NULL, NULL, NULL,    
-			window_class_name };   
+		// register window class
+		WNDCLASS window_class = { CS_OWNDC, main_window_proc, 0, 0,
+			instance_handle, NULL,
+			NULL, NULL, NULL,
+			window_class_name };
 
 		window_class.hIcon = LoadIcon(instance_handle, MAKEINTRESOURCE(IDI_ICON_BIG));
-
 		RegisterClass(&window_class);
 
-		// aquilinus runtinme environment present ? create larger window area in case
-		if (g_hmAquilinusRTE)
-		{
-			window_handle = CreateWindowEx(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE | WS_EX_TOPMOST,    
-				window_class_name,    
-				"Vireio Perception", 
-				WS_OVERLAPPEDWINDOW & ~(WS_THICKFRAME | WS_MAXIMIZEBOX), 
-				//WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,   
-				(screen_width-585)/2, (screen_height-240)/2, 
-				APP_SIZE_WIDTH, APP_SIZE_HEIGHT_EXTENDED,
-				NULL, NULL, instance_handle, NULL);
-		}
-		else
-		{
-			window_handle = CreateWindowEx(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE | WS_EX_TOPMOST,    
-				window_class_name,    
-				"Vireio Perception", 
-				WS_OVERLAPPEDWINDOW & ~(WS_THICKFRAME | WS_MAXIMIZEBOX), 
-				//WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,   
-				(screen_width-585)/2, (screen_height-240)/2, 
-				APP_SIZE_WIDTH, APP_SIZE_HEIGHT,
-				NULL, NULL, instance_handle, NULL);
-		}
-		SetWindowLongPtr(window_handle, GWL_USERDATA, (LONG)this);  
+		// create the window
+		window_handle = CreateWindowEx(WS_EX_COMPOSITED,
+			window_class_name,
+			"Vireio Perception",
+			WS_POPUP | WS_BORDER,
+			(screen_width - 585) / 2, (screen_height - 240) / 2,
+			APP_SIZE_WIDTH, APP_SIZE_HEIGHT,
+			NULL, NULL, instance_handle, NULL);
+
 		GetClientRect(window_handle, &client_rectangle);
 		int width = client_rectangle.right - client_rectangle.left;
 		int height = client_rectangle.bottom - client_rectangle.top;
-		text = new static_control(instance_handle, window_handle);
-		combobox = new combobox_control(instance_handle, window_handle, text, 20, 81, 1001);
-		combobox2 = new combobox_control(instance_handle, window_handle, text, 20, 115, 1002);
-		combobox3 = new combobox_control(instance_handle, window_handle, text, 20, 149, 1003);
 
+		// load proxy config
 		ProxyHelper helper = ProxyHelper();
-		std::string viewPath = helper.GetPath("img\\logo.bmp");
-
-		logo_bitmap = (HBITMAP)LoadImage(NULL,viewPath.c_str(),IMAGE_BITMAP,0,0,LR_LOADFROMFILE);
-		OutputDebugString("Load the bitmap\n");
-
 		ProxyConfig cfg;
 		helper.LoadUserConfig(cfg, oculusProfile);
 
-		SetCursor(LoadCursor(NULL, IDC_ARROW)); 
-		ShowWindow(window_handle, SW_SHOW);   
-		UpdateWindow(window_handle); 
+		// create the vireio gui
+		SIZE sSizeOfThis;
+		sSizeOfThis.cx = APP_SIZE_WIDTH; sSizeOfThis.cy = APP_SIZE_HEIGHT;
+		m_pcVireioGUI = new Vireio_GUI(sSizeOfThis, APP_FONT, APP_FONT_ITALIC, APP_SIZE_FONT, APP_COLOR_FONT, APP_COLOR_BACK);
+		UINT dwPage = m_pcVireioGUI->AddPage();
+
+		// control structure
+		Vireio_Control sControl;
+
+		// spin control - stereo view
+		static std::vector<std::wstring> m_aszStereoViewOptions;
+		ZeroMemory(&sControl, sizeof(Vireio_Control));
+		m_aszStereoViewOptions.push_back(L"Disabled - 0");
+		m_aszStereoViewOptions.push_back(L"Side by Side - 20");
+		m_aszStereoViewOptions.push_back(L"Over Under - 30");
+		m_aszStereoViewOptions.push_back(L"Horizontal Interleave - 40");
+		m_aszStereoViewOptions.push_back(L"Vertical Interleave - 50");
+		m_aszStereoViewOptions.push_back(L"Checkerboard - 60");
+		m_aszStereoViewOptions.push_back(L"Anaglyph (Red/Cyan) - 1");
+		m_aszStereoViewOptions.push_back(L"Anaglyph (Red/Cyan) B+W - 2");
+		m_aszStereoViewOptions.push_back(L"Anaglyph (Yellow/Blue) - 5");
+		m_aszStereoViewOptions.push_back(L"Anaglyph (Yellow/Blue) B+W - 6");
+		m_aszStereoViewOptions.push_back(L"Anaglyph (Green/Magenta) - 10");
+		m_aszStereoViewOptions.push_back(L"Anaglyph (Green/Magenta) B+W - 11");
+		m_aszStereoViewOptions.push_back(L"DIY Rift - 100");
+		m_aszStereoViewOptions.push_back(L"Oculus Rift: Direct Mode - 111");
+		sControl.m_eControlType = Vireio_Control_Type::SpinControl;
+		sControl.m_sPosition.x = 16;
+		sControl.m_sPosition.y = 128;
+		sControl.m_sSize.cx = 420;
+		sControl.m_sSize.cy = APP_SIZE_FONT + 16;
+		sControl.m_sSpinControl.m_dwCurrentSelection = 0;
+		sControl.m_sSpinControl.m_paszEntries = &m_aszStereoViewOptions;
+		m_dwSpinStereoView = m_pcVireioGUI->AddControl(dwPage, sControl);
+
+		// spin control - tracker
+		static std::vector<std::wstring> m_aszTrackerOptions;
+		ZeroMemory(&sControl, sizeof(Vireio_Control));
+		m_aszTrackerOptions.push_back(L"No Tracking - 0");
+		m_aszTrackerOptions.push_back(L"Hillcrest Labs - 10");
+		m_aszTrackerOptions.push_back(L"FreeTrack - 20");
+		m_aszTrackerOptions.push_back(L"Shared Memory Tracker - 30");
+		m_aszTrackerOptions.push_back(L"OculusTrack - 40");
+		sControl.m_eControlType = Vireio_Control_Type::SpinControl;
+		sControl.m_sPosition.x = 16;
+		sControl.m_sPosition.y = 188;
+		sControl.m_sSize.cx = 420;
+		sControl.m_sSize.cy = APP_SIZE_FONT + 16;
+		sControl.m_sSpinControl.m_dwCurrentSelection = 0;
+		sControl.m_sSpinControl.m_paszEntries = &m_aszTrackerOptions;
+		m_dwSpinTracker = m_pcVireioGUI->AddControl(dwPage, sControl);
+
+		// spin control - monitors
+		static std::vector<std::wstring> m_aszMonitorOptions;
+		ZeroMemory(&sControl, sizeof(Vireio_Control));
+
+		// start to query for monitors
+		UINT32 num_of_paths = 0;
+		UINT32 num_of_modes = 0;
+		DISPLAYCONFIG_PATH_INFO* displayPaths = NULL;
+		DISPLAYCONFIG_MODE_INFO* displayModes = NULL;
+		GetDisplayConfigBufferSizes(QDC_ALL_PATHS, &num_of_paths, &num_of_modes);
+
+		// Allocate paths and modes dynamically
+		displayPaths = (DISPLAYCONFIG_PATH_INFO*)calloc((int)num_of_paths, sizeof(DISPLAYCONFIG_PATH_INFO));
+		displayModes = (DISPLAYCONFIG_MODE_INFO*)calloc((int)num_of_modes, sizeof(DISPLAYCONFIG_MODE_INFO));
+
+		// Query for the information 
+		QueryDisplayConfig(QDC_ONLY_ACTIVE_PATHS, &num_of_paths, displayPaths, &num_of_modes, displayModes, NULL);
+
+		UINT32 index = 0;
+		int adapterNum = 0;
+		while (index < num_of_modes)
+		{
+			if (displayModes[index].infoType == DISPLAYCONFIG_MODE_INFO_TYPE_TARGET)
+			{
+				DISPLAYCONFIG_TARGET_DEVICE_NAME deviceName;
+				DISPLAYCONFIG_DEVICE_INFO_HEADER header;
+				header.size = sizeof(DISPLAYCONFIG_TARGET_DEVICE_NAME);
+				header.adapterId = displayModes[index].adapterId;
+				header.id = displayModes[index].id;
+				header.type = DISPLAYCONFIG_DEVICE_INFO_GET_TARGET_NAME;
+				deviceName.header = header;
+				DisplayConfigGetDeviceInfo((DISPLAYCONFIG_DEVICE_INFO_HEADER*)&deviceName);
+
+				char monitorFriendlyDeviceName[256];
+				ZeroMemory(monitorFriendlyDeviceName, 256);
+
+				size_t countConverted = 0;
+				wcstombs_s(&countConverted, monitorFriendlyDeviceName, 256, deviceName.monitorFriendlyDeviceName, 256);
+
+				std::string szAdapter(monitorFriendlyDeviceName);
+				std::wstring szAdapterW(szAdapter.begin(), szAdapter.end());
+				if (adapterNum == 0) szAdapterW = L"Primary Monitor: " + szAdapterW + L" - 0";
+				if (adapterNum == 1) szAdapterW = L"Secondary Monitor: " + szAdapterW + L" - 1";
+				if (adapterNum == 2) szAdapterW = L"Tertiary Monitor: " + szAdapterW + L" - 2";
+				m_aszMonitorOptions.push_back(szAdapterW);
+				anMonitors.push_back(adapterNum);
+				adapterNum++;
+			}
+
+			index++;
+		}
+
+		sControl.m_eControlType = Vireio_Control_Type::SpinControl;
+		sControl.m_sPosition.x = 16;
+		sControl.m_sPosition.y = 248;
+		sControl.m_sSize.cx = 420;
+		sControl.m_sSize.cy = APP_SIZE_FONT + 16;
+		sControl.m_sSpinControl.m_dwCurrentSelection = 0;
+		sControl.m_sSpinControl.m_paszEntries = &m_aszMonitorOptions;
+		m_dwSpinMonitor = m_pcVireioGUI->AddControl(dwPage, sControl);
+
+		// create the main entries
+		ZeroMemory(&sControl, sizeof(Vireio_Control));
+		static std::vector<std::wstring> sEntriesVersion;
+		sControl.m_eControlType = Vireio_Control_Type::StaticListBox;
+		sControl.m_sPosition.x = 450;
+		sControl.m_sPosition.y = 300;
+		sControl.m_sSize.cx = APP_SIZE_WIDTH;
+		sControl.m_sSize.cy = APP_SIZE_HEIGHT - 100;
+		sControl.m_sStaticListBox.m_bSelectable = false;
+		sControl.m_sStaticListBox.m_paszEntries = &sEntriesVersion;
+		UINT dwVersion = m_pcVireioGUI->AddControl(dwPage, sControl);
+
+		std::string date(__DATE__);
+		std::string buildDate = date.substr(4, 2) + "-" + date.substr(0, 3) + "-" + date.substr(7, 4);
+
+		// and add all entries
+		std::wstringstream szStream = std::wstringstream();
+		szStream << L"v" << APP_VERSION << " " << buildDate.c_str();
+		m_pcVireioGUI->AddEntry(dwVersion, szStream.str().c_str());
+
+		ZeroMemory(&sControl, sizeof(Vireio_Control));
+		static std::vector<std::wstring> sEntriesOculus;
+		sControl.m_eControlType = Vireio_Control_Type::StaticListBox;
+		sControl.m_sPosition.x = 16;
+		sControl.m_sPosition.y = 300;
+		sControl.m_sSize.cx = APP_SIZE_WIDTH;
+		sControl.m_sSize.cy = APP_SIZE_HEIGHT - 100;
+		sControl.m_sStaticListBox.m_bSelectable = false;
+		sControl.m_sStaticListBox.m_paszEntries = &sEntriesOculus;
+		UINT dwOculus = m_pcVireioGUI->AddControl(dwPage, sControl);
+		szStream = std::wstringstream();
+		szStream << "Oculus Profile : " << oculusProfile.Name.c_str();
+		m_pcVireioGUI->AddEntry(dwOculus, szStream.str().c_str());
+
+		// create the 'Load Aquilinus Profile' button
+		ZeroMemory(&sControl, sizeof(Vireio_Control));
+		static std::wstring szLoadProfile = std::wstring(L"Vireio Profile");
+		sControl.m_eControlType = Vireio_Control_Type::Button;
+		sControl.m_sPosition.x = 452;
+		sControl.m_sPosition.y = 128;
+		sControl.m_sSize.cx = 184 + 8; /**< +8 == border **/
+		sControl.m_sSize.cy = 69 + 8; /**< +8 == border **/
+		sControl.m_sButton.m_pszText = &szLoadProfile;
+		m_dwLoadAquilinusProfile = m_pcVireioGUI->AddControl(dwPage, sControl);
+
+		// create the 'x'(=exit) button
+		ZeroMemory(&sControl, sizeof(Vireio_Control));
+		static std::wstring szX = std::wstring(L"x");
+		sControl.m_eControlType = Vireio_Control_Type::Button;
+		sControl.m_sPosition.x = APP_SIZE_WIDTH - 18;
+		sControl.m_sPosition.y = 85;
+		sControl.m_sSize.cx = 30;
+		sControl.m_sSize.cy = 30;
+		sControl.m_sButton.m_pszText = &szX;
+		m_dwExit = m_pcVireioGUI->AddControl(dwPage, sControl);
+
+		// load the logo
+		logo_bitmap = (HBITMAP)LoadImage(NULL, "..//img//logo.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+		OutputDebugString("Load the bitmap\n");
+
+		SetCursor(LoadCursor(NULL, IDC_ARROW));
+		ShowWindow(window_handle, SW_SHOW);
+		UpdateWindow(window_handle);
 
 		//Refresh on timer for FPS readings
 		SetTimer(window_handle, 1, 500, NULL);
-	}  
-	~frame_window() {  
-		UnregisterClass(window_class_name, instance_handle);   
-	}  
-
-	static LRESULT WINAPI main_window_proc(HWND window_handle, UINT message,    
-		WPARAM wparam, LPARAM lparam) {  
-			frame_window *This = (frame_window *)GetWindowLongPtr(window_handle, GWL_USERDATA); 
-
-			switch ( message ) {  
-			case WM_CREATE:
-				{
-					OutputDebugString("Create Window\n");
-					break;
-				}
-			case WM_TIMER:
-				{
-					RECT client_rect;   
-					GetClientRect(window_handle, &client_rect);   
-					InvalidateRect(window_handle, &client_rect, FALSE);
-					break;
-				}
-			case WM_LBUTTONDOWN:
-				{
-					if (g_hmAquilinusRTE)
-					{
-						// get the mouse cursor
-						LONG nMouseCursorX = (LONG)GET_X_LPARAM(lparam);
-						LONG nMouseCursorY = (LONG)GET_Y_LPARAM(lparam);
-
-						// load profile ?
-						if ((nMouseCursorX >= This->extended_profile_rectangle.left) &&
-							(nMouseCursorX <= This->extended_profile_rectangle.right) &&
-							(nMouseCursorY >= This->extended_profile_rectangle.top) &&
-							(nMouseCursorY <= This->extended_profile_rectangle.bottom))
-							g_bLoadAquilinusProfile = true;
-					}
-					break;
-				}
-			case WM_LBUTTONUP:
-				{
-					if (g_hmAquilinusRTE)
-					{
-						if (g_bLoadAquilinusProfile)
-						{
-							OutputDebugString("Vireio Perception: Load Aquilinus Profile!");
-
-							// load aquilinus profile
-							g_pAquilinus_LoadProfile();
-							g_bLoadAquilinusProfile = false;
-						}
-					}
-				}
-			case WM_PAINT:   
-				{   
-					PAINTSTRUCT paint_structure;   
-					RECT client_rect;   
-					HDC paint_device_context, paint_dc;   
-					HBITMAP bitmap;
-
-					paint_device_context = BeginPaint(window_handle, &paint_structure);   
-					paint_dc = CreateCompatibleDC(paint_device_context);   
-
-					HFONT font = CreateFont(0, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
-						DEFAULT_QUALITY, DEFAULT_PITCH, "Calibri");
-					HFONT oldFont = (HFONT)SelectObject(paint_device_context, font);
-
-					GetClientRect(window_handle, &client_rect);   
-					int window_width = client_rect.right - client_rect.left;  
-					int window_height = client_rect.bottom - client_rect.top;  
-					bitmap = CreateBitmap(window_width, window_height, 1, 32, NULL);  
-					HGDIOBJ old_bitmap = SelectObject(paint_dc, bitmap);  
-
-					// Fill the client aread with the user selected face colour  
-					HBRUSH light_brush = CreateSolidBrush(GetSysColor(COLOR_BTNFACE));  
-					FillRect(paint_dc, &paint_structure.rcPaint, light_brush);  
-					DeleteObject(light_brush);
-					BitBlt(paint_device_context, 0, 0,    
-						client_rect.right-client_rect.left,   
-						client_rect.bottom-client_rect.top,   
-						paint_dc, 0, 0, SRCCOPY);   
-					SelectObject(paint_dc, old_bitmap);   
-					DeleteObject(bitmap);   
-
-					SelectObject(paint_dc, This->logo_bitmap);   
-					BitBlt(paint_device_context,0,0,565,68,paint_dc,0,0,SRCCOPY);
-
-					std::string date(__DATE__);
-					std::string buildDate = date.substr(4, 2) + "-" + date.substr(0, 3) + "-" + date.substr(7, 4);
-
-					// Output user profile data
-					SetBkMode(paint_device_context, TRANSPARENT);
-					TextOut (paint_device_context,290,81,"Version:",8);
-					TextOut (paint_device_context,420,81,std::string(APP_VERSION).c_str(),std::string(APP_VERSION).size());
-					TextOut (paint_device_context,290,115,"Build Date:",11);
-					TextOut (paint_device_context,420,115,buildDate.c_str(),buildDate.size());
-					TextOut (paint_device_context,290,149,"Oculus Profile:",15);
-					TextOut (paint_device_context,420,149,oculusProfile.Name.c_str(),oculusProfile.Name.size());
-					TextOut (paint_device_context,290,183,"Current FPS:",12);
-
-					// Now get FPS from the registry
-					HKEY hKey;
-					LONG openRes = RegOpenKeyEx(HKEY_CURRENT_USER, "SOFTWARE\\Vireio\\Perception", 0, KEY_ALL_ACCESS, &hKey);
-					if (openRes==ERROR_SUCCESS)
-					{
-						char fpsBuffer[10];
-						memset(fpsBuffer, 0, 10);
-						DWORD dwDataSize = 10;
-						LONG lResult = RegGetValue(hKey, NULL, "FPS", RRF_RT_REG_SZ, NULL, (LPVOID)&fpsBuffer, &dwDataSize);
-						if (lResult == ERROR_SUCCESS)
-						{
-							TextOut (paint_device_context,420,183,fpsBuffer, strlen(fpsBuffer));
-							//Now delete, if this isn't refreshed, then we'll report blank next time round
-							RegDeleteValue(hKey, "FPS");
-							RegCloseKey(hKey);
-						}
-						else
-							TextOut (paint_device_context,420,183,"--", 2);
-					}
-
-					// output extended profile data if aquilinus runtime environment present
-					if (g_hmAquilinusRTE)
-					{						
-						SetRect(&This->extended_profile_rectangle, 16, 190, 272, 254);
-
-						Rectangle(paint_structure.hdc, 
-							This->extended_profile_rectangle.left, 
-							This->extended_profile_rectangle.top, 
-							This->extended_profile_rectangle.right, 
-							This->extended_profile_rectangle.bottom); 
-					}
-
-					DeleteObject(SelectObject(paint_device_context, oldFont));
-					DeleteDC(paint_dc);   
-					EndPaint(window_handle, &paint_structure);
-					return 0;   
-				}   
-			case WM_ERASEBKGND:   
-				{   
-					return TRUE;   
-				}
-			case WM_SIZE:   
-				{
-					InvalidateRect(window_handle, NULL, TRUE);   
-					return 0;   
-				}
-			case WM_MEASUREITEM:
-				{
-					This->combobox->measure_item((LPMEASUREITEMSTRUCT)lparam);
-					This->combobox2->measure_item((LPMEASUREITEMSTRUCT)lparam);
-					This->combobox3->measure_item((LPMEASUREITEMSTRUCT)lparam);
-					return TRUE;
-				}
-			case WM_DRAWITEM:
-				{
-					LPDRAWITEMSTRUCT Item = (LPDRAWITEMSTRUCT)lparam;
-					if (Item->CtlID == 1001)
-					{
-						This->combobox->draw_item((LPDRAWITEMSTRUCT)lparam);
-					} 
-					else if (Item->CtlID == 1002)
-					{
-						This->combobox2->draw_item((LPDRAWITEMSTRUCT)lparam);
-					}
-					else if (Item->CtlID == 1003)
-					{
-						This->combobox3->draw_item((LPDRAWITEMSTRUCT)lparam);
-					}
-					return TRUE;
-				}
-			case WM_COMMAND:
-				{
-					if ( HIWORD(wparam) == CBN_SELCHANGE )
-					{
-						//Disable other controls if selection is direct-to-rift
-						if (This->combobox->get_selection() == 111)
-						{
-							ShowWindow(This->combobox2->combobox_handle, SW_HIDE);
-							//Select oculus track
-							This->combobox2->set_selection(4);
-						}
-						else
-						{
-							ShowWindow(This->combobox2->combobox_handle, SW_SHOW);
-						}
-
-						This->combobox->new_selection();
-						This->combobox2->new_selection2();
-						This->combobox3->new_selection3();
-					}
-
-					return 0;
-				}
-			case WM_CLOSE:   
-				{   
-					PostQuitMessage(0);
-					if (g_hmAquilinusRTE)
-					{
-						g_pAquilinus_Close();
-						FreeLibrary(g_hmAquilinusRTE);
-					}
-					return 0;   
-				}   
-			}   
-			return DefWindowProc(window_handle, message, wparam, lparam);   
+	}
+	~Vireio_Perception_Main_Window() {
+		UnregisterClass(window_class_name, instance_handle);
 	}
 
-	void run() {  
-		MSG window_message;   
-		while ( GetMessage(&window_message, NULL, 0, 0) ) {   
-			TranslateMessage(&window_message);   
-			DispatchMessage(&window_message);   
-		}   
-	} 
+	/*** Vireio_Perception_Main_Window public members ***/
+	static LRESULT WINAPI main_window_proc(HWND window_handle, UINT message, WPARAM wparam, LPARAM lparam);
+	void                  run() { MSG window_message; while (GetMessage(&window_message, NULL, 0, 0)) { TranslateMessage(&window_message); DispatchMessage(&window_message); } }
+};
 
-	void add_item(char * string) {
-		combobox->add_item(string);
-	}
-
-	void add_item2(char * string) {
-		combobox2->add_item(string);
-	}
-
-	void add_item3(const char * string) {
-		combobox3->add_item(const_cast<char*>(string));
-	}
-};  
+/*** Vireio_Perception_Main_Window static fields ***/
+POINT       Vireio_Perception_Main_Window::m_ptMouseCursor;
+HBITMAP     Vireio_Perception_Main_Window::logo_bitmap;
+Vireio_GUI* Vireio_Perception_Main_Window::m_pcVireioGUI;
+UINT        Vireio_Perception_Main_Window::m_dwSpinStereoView;
+UINT        Vireio_Perception_Main_Window::m_dwSpinTracker;
+UINT        Vireio_Perception_Main_Window::m_dwSpinMonitor;
+UINT        Vireio_Perception_Main_Window::m_dwLoadAquilinusProfile;
+UINT        Vireio_Perception_Main_Window::m_dwExit;
 
 /**
-* Map of Vireio Perception Stereo View Render Modes.
+* Main window procedure.
 ***/
-map<int, int> stereoModes;
-/**
-* Map of Vireio Perception Head Tracker Modes.
-***/
-map<int, int> trackerModes;
+LRESULT WINAPI Vireio_Perception_Main_Window::main_window_proc(HWND window_handle, UINT message, WPARAM wparam, LPARAM lparam)
+{
+	// call vireio gui class for all mouse actions
+	if ((message == WM_LBUTTONDOWN) || (message == WM_LBUTTONUP) || (message == WM_MOUSEMOVE))
+	{
+		Vireio_GUI_Event sEvent = m_pcVireioGUI->WindowsEvent(message, wparam, lparam, 1);
 
-int WINAPI wWinMain(HINSTANCE instance_handle, HINSTANCE, LPWSTR, INT) {  
+		switch (sEvent.eType)
+		{
+			case ChangedToNext:
+			case ChangedToPrevious:
+				if (sEvent.dwIndexOfControl == m_dwSpinStereoView)
+				{
+					ProxyHelper helper = ProxyHelper();
+					helper.SaveUserConfig(anStereoModes[sEvent.dwNewValue]);
+				}
+				else if (sEvent.dwIndexOfControl == m_dwSpinTracker)
+				{
+					ProxyHelper helper = ProxyHelper();
+					helper.SaveTrackerMode(anTrackerModes[sEvent.dwNewValue]);
+				}
+				else if (sEvent.dwIndexOfControl == m_dwSpinMonitor)
+				{
+					ProxyHelper helper = ProxyHelper();
+					helper.SaveDisplayAdapter(anMonitors[sEvent.dwNewValue]);
+				}
+				break;
+			case Pressed:
+				if (sEvent.dwIndexOfControl == m_dwExit)
+					SendMessage(window_handle, WM_CLOSE, 0, 0);
+				else if (sEvent.dwIndexOfControl == m_dwLoadAquilinusProfile)
+					g_bLoadAquilinusProfile = true;
+				break;
+			default:
+				break;
+		}
+
+		// send WM_PAINT
+		if (message != WM_MOUSEMOVE)
+			UpdateWindow(window_handle);
+	}
+
+	switch (message)
+	{
+		case WM_MOUSEMOVE:
+			// move the window ?
+			if (wparam & MK_LBUTTON)
+			{
+				// get new mouse cursor point
+				LONG nX = (LONG)GET_X_LPARAM(lparam);
+				LONG nY = (LONG)GET_Y_LPARAM(lparam);
+
+				// get the difference to the old position set only in WM_LBUTTONDOWN
+				nX -= m_ptMouseCursor.x;
+				nY -= m_ptMouseCursor.y;
+
+				// get the old window position
+				RECT rcWnd;
+				GetWindowRect(window_handle, &rcWnd);
+
+				// set the new window position
+				SetWindowPos(window_handle, HWND_TOPMOST, rcWnd.left + nX, rcWnd.top + nY, 0, 0, SWP_NOSIZE);
+			}
+			else
+			{
+				// get the mouse cursor
+				m_ptMouseCursor.x = (LONG)GET_X_LPARAM(lparam);
+				m_ptMouseCursor.y = (LONG)GET_Y_LPARAM(lparam);
+			}
+			UpdateWindow(window_handle);
+			return 0;
+		case WM_CREATE:
+		{
+						  OutputDebugString("Create Window\n");
+						  break;
+		}
+		case WM_TIMER:
+		{
+						 RECT client_rect;
+						 GetClientRect(window_handle, &client_rect);
+						 InvalidateRect(window_handle, &client_rect, FALSE);
+						 return 0;
+		}
+		case WM_LBUTTONDOWN:
+		{
+							   break;
+		}
+		case WM_LBUTTONUP:
+		{
+							 if (g_hmAquilinusRTE)
+							 {
+								 if (g_bLoadAquilinusProfile)
+								 {
+									 OutputDebugString("Vireio Perception: Load Aquilinus Profile!");
+
+									 // load aquilinus profile
+									 g_pAquilinus_LoadProfile();
+									 g_bLoadAquilinusProfile = false;
+								 }
+							 }
+							 break;
+		}
+		case WM_PAINT:
+		{
+						 PAINTSTRUCT 	ps;
+						 HDC 			hdc;
+						 BITMAP 		bitmap;
+						 HDC 			hdcMem;
+
+						 hdc = BeginPaint(window_handle, &ps);
+
+						 hdcMem = CreateCompatibleDC(hdc);
+						 HBITMAP hGUI = m_pcVireioGUI->GetGUI(true, false, true, true);
+						 SelectObject(hdcMem, hGUI);
+
+						 GetObject(hGUI, sizeof(bitmap), &bitmap);
+						 BitBlt(hdc, 0, 0, bitmap.bmWidth, bitmap.bmHeight, hdcMem, 0, 0, SRCCOPY);
+
+						 SelectObject(hdcMem, logo_bitmap);
+
+						 GetObject(logo_bitmap, sizeof(bitmap), &bitmap);
+						 BitBlt(hdc, 0, 0, bitmap.bmWidth, bitmap.bmHeight, hdcMem, 0, 0, SRCCOPY);
+						 DeleteDC(hdcMem);
+
+						 EndPaint(window_handle, &ps);
+
+						 /*
+						 // Now get FPS from the registry
+						 HKEY hKey;
+						 LONG openRes = RegOpenKeyEx(HKEY_CURRENT_USER, "SOFTWARE\\Vireio\\Perception", 0, KEY_ALL_ACCESS, &hKey);
+						 if (openRes == ERROR_SUCCESS)
+						 {
+						 char fpsBuffer[10];
+						 memset(fpsBuffer, 0, 10);
+						 DWORD dwDataSize = 10;
+						 LONG lResult = RegGetValue(hKey, NULL, "FPS", RRF_RT_REG_SZ, NULL, (LPVOID)&fpsBuffer, &dwDataSize);
+						 if (lResult == ERROR_SUCCESS)
+						 {
+						 TextOut(paint_device_context, 420, 183, fpsBuffer, (int)strlen(fpsBuffer));
+						 //Now delete, if this isn't refreshed, then we'll report blank next time round
+						 RegDeleteValue(hKey, "FPS");
+						 RegCloseKey(hKey);
+						 }
+						 else
+						 TextOut(paint_device_context, 420, 183, "--", 2);
+						 }
+
+						 // output extended profile data if aquilinus runtime environment present
+						 if (g_hmAquilinusRTE)
+						 {
+						 SetRect(&This->extended_profile_rectangle, 16, 190, 272, 254);
+						 }
+
+						 */
+						 return 0;
+		}
+		case WM_SIZE:
+		{
+						InvalidateRect(window_handle, NULL, TRUE);
+						break;
+		}
+		case WM_CLOSE:
+		{
+						 PostQuitMessage(0);
+						 if (g_hmAquilinusRTE)
+						 {
+							 g_pAquilinus_Close();
+							 FreeLibrary(g_hmAquilinusRTE);
+						 }
+						 break;
+		}
+	}
+	return DefWindowProc(window_handle, message, wparam, lparam);
+};
+
+/**
+* Main windows entry point
+***/
+int WINAPI wWinMain(HINSTANCE instance_handle, HINSTANCE, LPWSTR, INT) {
 
 	// avoid double driver window
-	HWND window = FindWindow( "perception", "Vireio Perception");
-	if( window != 0 )
+	HWND window = FindWindow("perception", "Vireio Perception");
+	if (window != 0)
 	{
 		OutputDebugString("Vireio Perception is already present !");
 		return 0;
 	}
 
+	// load Aquilinus Runtime Environment, init driver
 	if (LoadAquilinusRTE()) OutputDebugString("Vireio Perception : Using Aquilinus Runtime Environment.");
 	InitConfig();
 	InitModes();
+#ifndef _WIN64
 	InstallHook();
+#endif
 
+	// create window entries
+	Vireio_Perception_Main_Window main_window("perception");
 
-	frame_window main_window("perception");
-	main_window.add_item("Disabled\t0");
-	main_window.add_item("Side by Side\t20");
-	main_window.add_item("Over Under\t30");
-	main_window.add_item("Horizontal Interleave\t40");
-	main_window.add_item("Vertical Interleave\t50");
-	main_window.add_item("Checkerboard\t60");
-	main_window.add_item("Anaglyph (Red/Cyan)\t1");
-	main_window.add_item("Anaglyph (Red/Cyan) B+W\t2");
-	main_window.add_item("Anaglyph (Yellow/Blue)\t5");
-	main_window.add_item("Anaglyph (Yellow/Blue) B+W\t6");
-	main_window.add_item("Anaglyph (Green/Magenta)\t10");
-	main_window.add_item("Anaglyph (Green/Magenta) B+W\t11");
-	main_window.add_item("DIY Rift\t100");
-	main_window.add_item("Oculus Rift: Direct Mode\t111");
-
-	main_window.add_item2("No Tracking\t0");
-	main_window.add_item2("Hillcrest Labs\t10");
-	main_window.add_item2("FreeTrack\t20");
-	main_window.add_item2("Shared Memory Tracker\t30");
-	main_window.add_item2("OculusTrack\t40");
-
-
-	UINT32 num_of_paths = 0;
-	UINT32 num_of_modes = 0;
-	DISPLAYCONFIG_PATH_INFO* displayPaths = NULL; 
-	DISPLAYCONFIG_MODE_INFO* displayModes = NULL;
-	GetDisplayConfigBufferSizes(QDC_ALL_PATHS, &num_of_paths, &num_of_modes);
-
-
-	// Allocate paths and modes dynamically
-	displayPaths = (DISPLAYCONFIG_PATH_INFO*)calloc((int)num_of_paths, sizeof(DISPLAYCONFIG_PATH_INFO));
-	displayModes = (DISPLAYCONFIG_MODE_INFO*)calloc((int)num_of_modes, sizeof(DISPLAYCONFIG_MODE_INFO));
-
-	// Query for the information 
-	QueryDisplayConfig(QDC_ONLY_ACTIVE_PATHS, &num_of_paths, displayPaths, &num_of_modes, displayModes, NULL);
-
-	UINT32 index = 0;
-	int adapterNum = 0;
-	while (index < num_of_modes)
-	{
-		if (displayModes[index].infoType == DISPLAYCONFIG_MODE_INFO_TYPE_TARGET)
-		{
-			DISPLAYCONFIG_TARGET_DEVICE_NAME deviceName;
-			DISPLAYCONFIG_DEVICE_INFO_HEADER header;
-			header.size = sizeof(DISPLAYCONFIG_TARGET_DEVICE_NAME);
-			header.adapterId = displayModes[index].adapterId;
-			header.id = displayModes[index].id;
-			header.type = DISPLAYCONFIG_DEVICE_INFO_GET_TARGET_NAME;
-			deviceName.header = header;
-			DisplayConfigGetDeviceInfo( (DISPLAYCONFIG_DEVICE_INFO_HEADER*) &deviceName );
-
-			char monitorFriendlyDeviceName[256];
-			ZeroMemory(monitorFriendlyDeviceName, 256);
-
-			size_t countConverted = 0;
-			wcstombs_s(&countConverted, monitorFriendlyDeviceName, 256, deviceName.monitorFriendlyDeviceName, 256);
-
-			std::string adapterStr(monitorFriendlyDeviceName);
-			if (adapterNum == 0) adapterStr = "Primary Monitor: " + adapterStr + "\t0";
-			if (adapterNum == 1) adapterStr = "Secondary Monitor: " + adapterStr + "\t1";
-			if (adapterNum == 2) adapterStr = "Tertiary Monitor: " + adapterStr + "\t2";
-			main_window.add_item3(adapterStr.c_str());
-			adapterNum++;
-		}
-
-		index++;
-	}
-
+	// load the user configuration
 	ProxyHelper helper = ProxyHelper();
 	ProxyHelper::UserConfig userConfig;
 	helper.LoadUserConfig(userConfig);
 
-	SendMessage(main_window.combobox->combobox_handle, CB_SETCURSEL, stereoModes[userConfig.mode], 0);
-	if (main_window.combobox->get_selection() == 111)
-	{
-		ShowWindow(main_window.combobox2->combobox_handle, SW_HIDE);
-		//Select oculus track
-		main_window.combobox2->set_selection(4);
-	}
-	else
-		SendMessage(main_window.combobox2->combobox_handle, CB_SETCURSEL, trackerModes[userConfig.mode2], 0);
-
-	//If an HMD is unplugged we may not actually be able to select it
-	if (userConfig.adapter >= adapterNum)
-	{
-		userConfig.adapter = 0;
-		helper.SaveDisplayAdapter(0);
-	}
-	SendMessage(main_window.combobox3->combobox_handle, CB_SETCURSEL, userConfig.adapter, 0);
-
+	// run main window
 	main_window.run();
 
+#ifndef _WIN64
+	// remove hook, exit
 	RemoveHook();
+#endif
 
-	return 0;   
+	return 0;
 }
 
+/**
+* Init registry configuration.
+***/
 bool InitConfig(void)
 {
 	std::string basePath = getCurrentPath();
@@ -665,80 +586,103 @@ bool InitConfig(void)
 
 	LONG createRes = RegCreateKeyEx(HKEY_CURRENT_USER, sk, 0, NULL, 0, 0, NULL, &hKey, NULL);
 
-	if (createRes == ERROR_SUCCESS) {
+	if (createRes == ERROR_SUCCESS)
+	{
 		OutputDebugString("Success creating Registry.\n");
-	} else {
+	}
+	else
+	{
 		OutputDebugString("Error creating Registry.\n");
 	}
 
-	LONG openRes = RegOpenKeyEx(HKEY_CURRENT_USER, sk, 0, KEY_ALL_ACCESS , &hKey);
+	LONG openRes = RegOpenKeyEx(HKEY_CURRENT_USER, sk, 0, KEY_ALL_ACCESS, &hKey);
 
-	if (openRes==ERROR_SUCCESS) {
+	if (openRes == ERROR_SUCCESS)
+	{
 		OutputDebugString("Success opening key.\n");
-	} else {
+	}
+	else
+	{
 		OutputDebugString("Error opening key.\n");
 	}
 
 	LPCTSTR value = TEXT("BasePath");
 	LPCTSTR data = basePath.c_str();
 
-	LONG setRes = RegSetValueEx(hKey, value, 0, REG_SZ, (LPBYTE)data, strlen(data)+1);
+	LONG setRes = RegSetValueEx(hKey, value, 0, REG_SZ, (LPBYTE)data, (int)strlen(data) + 1);
 
-	if (setRes == ERROR_SUCCESS) {
+	if (setRes == ERROR_SUCCESS)
+	{
 		OutputDebugString("Success writing to Registry.\n");
-	} else {
+	}
+	else
+	{
 		OutputDebugString("Error writing to Registry.\n");
 	}
 
 	LONG closeOut = RegCloseKey(hKey);
 
-	if (closeOut == ERROR_SUCCESS) {
+	if (closeOut == ERROR_SUCCESS)
+	{
 		OutputDebugString("Success closing key.\n");
-	} else {
+	}
+	else
+	{
 		OutputDebugString("Error closing key.\n");
 	}
 
 	return true;
 }
 
+/**
+* Creates simple vectors to easily set the Vireio proxy config.
+***/
 bool InitModes()
 {
-	int comboPos = 0;
-	stereoModes[0] = comboPos++;
-	stereoModes[20] = comboPos++;
-	stereoModes[30] = comboPos++;
-	stereoModes[40] = comboPos++;
-	stereoModes[50] = comboPos++;
-	stereoModes[60] = comboPos++;
-	stereoModes[1] = comboPos++;
-	stereoModes[2] = comboPos++;
-	stereoModes[5] = comboPos++;
-	stereoModes[6] = comboPos++;
-	stereoModes[10] = comboPos++;
-	stereoModes[11] = comboPos++;
-	stereoModes[100] = comboPos++;
-	stereoModes[111] = comboPos++;
+	anStereoModes.push_back(0);
+	anStereoModes.push_back(20);
+	anStereoModes.push_back(30);
+	anStereoModes.push_back(40);
+	anStereoModes.push_back(50);
+	anStereoModes.push_back(60);
+	anStereoModes.push_back(1);
+	anStereoModes.push_back(2);
+	anStereoModes.push_back(5);
+	anStereoModes.push_back(6);
+	anStereoModes.push_back(10);
+	anStereoModes.push_back(11);
+	anStereoModes.push_back(100);
+	anStereoModes.push_back(111);
 
-	comboPos = 0;
-	trackerModes[0] = comboPos++;
-	trackerModes[10] = comboPos++;
-	trackerModes[20] = comboPos++;
-	trackerModes[30] = comboPos++;
-	trackerModes[40] = comboPos++;
+	anTrackerModes.push_back(0);
+	anTrackerModes.push_back(10);
+	anTrackerModes.push_back(20);
+	anTrackerModes.push_back(30);
+	anTrackerModes.push_back(40);
 
 	return true;
 }
 
+/**
+* Returns the path of Vireio Perception.
+***/
 std::string getCurrentPath(void)
 {
 	TCHAR fullPath[1024];
 	int len = 1024;
 	int bytes = GetModuleFileName(NULL, fullPath, len);
-	if(bytes == 0)
+	if (bytes == 0)
+	{
+		OutputDebugString("GetModuleFileName FAILS !");
 		return false;
+	}
 
 	std::string pathName = std::string(fullPath);
-	std::string exeName = "bin\\Perception.exe";
+#ifdef _WIN64
+	std::string exeName = "bin\\Perception_x64.exe";
+#else
+	std::string exeName = "bin\\Perception_Win32.exe";
+#endif
 	std::string basePath = "";
 	size_t found = pathName.find(exeName);
 
@@ -782,8 +726,11 @@ bool LoadAquilinusRTE()
 		else
 			g_pAquilinus_Init();
 	}
-	else 
+	else
+	{
+		OutputDebugString("Aquilinus Runtime not found !");
 		return false;
+	}
 
 	return true;
 }

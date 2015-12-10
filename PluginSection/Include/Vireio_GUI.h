@@ -185,17 +185,17 @@ public:
 	Vireio_GUI(SIZE sSize, LPCWSTR szFont, BOOL bItalic, DWORD dwFontSize, COLORREF dwColorFront, COLORREF dwColorBack);
 	~Vireio_GUI();
 
-	HBITMAP          GetGUI();
-	void             DrawStaticListBox(HDC hdc, Vireio_Control& sControl);
-	void             DrawListBox(HDC hdc, Vireio_Control& sControl);
-	void             DrawSpinControl(HDC hdc, Vireio_Control& sControl);
-	void             DrawButton(HDC hdc, Vireio_Control& sControl);
-	void             DrawSwitch(HDC hdc, Vireio_Control& sControl);
+	HBITMAP          GetGUI(bool bForceRedraw, bool bDarkenButtons, bool bUpperRim, bool bLowerRim);
+	void             DrawStaticListBox(HDC hdc, Vireio_Control& sControl, bool bDarkenButtons, bool bUpperRim, bool bLowerRim);
+	void             DrawListBox(HDC hdc, Vireio_Control& sControl, bool bDarkenButtons, bool bUpperRim, bool bLowerRim);
+	void             DrawSpinControl(HDC hdc, Vireio_Control& sControl, bool bDarkenButtons, bool bUpperRim, bool bLowerRim);
+	void             DrawButton(HDC hdc, Vireio_Control& sControl, bool bDarkenButtons, bool bUpperRim, bool bLowerRim);
+	void             DrawSwitch(HDC hdc, Vireio_Control& sControl, bool bDarkenButtons, bool bUpperRim, bool bLowerRim);
 	UINT             AddPage() { Vireio_Page sPage; ZeroMemory(&sPage, sizeof(sPage)); m_asPages.push_back(sPage); return (UINT)m_asPages.size() - 1; } /**< Adds a new page. ***/
 	UINT             AddControl(UINT dwPage, Vireio_Control& sControl);
 	void             AddEntry(UINT dwControl, LPCWSTR szString);
 	INT              GetCurrentSelection(UINT dwControlId);
-	Vireio_GUI_Event WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam);
+	Vireio_GUI_Event WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam, UINT dwMultiplyMouseCoords);
 
 private:
 	/**
@@ -234,6 +234,10 @@ private:
 	* The control bitmap.
 	***/
 	HBITMAP m_hBitmapControl;
+	/**
+	* The background brush.
+	***/
+	HBRUSH m_hBrush;
 	/**
 	* The active control index.
 	***/

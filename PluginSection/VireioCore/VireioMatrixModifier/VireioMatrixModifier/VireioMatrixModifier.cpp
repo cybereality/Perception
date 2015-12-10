@@ -378,7 +378,7 @@ HBITMAP MatrixModifier::GetControl()
 		m_dwClearDebug = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::DebugPage], sControl);
 	}
 	else
-		return m_pcVireioGUI->GetGUI();
+		return m_pcVireioGUI->GetGUI(false, true, false, false);
 
 	return nullptr;
 }
@@ -1701,7 +1701,8 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 ***/
 void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	Vireio_GUI_Event sEvent = m_pcVireioGUI->WindowsEvent(msg, wParam, lParam);
+	// multiply mouse coords by 4 due to Aquilinus workspace architecture
+	Vireio_GUI_Event sEvent = m_pcVireioGUI->WindowsEvent(msg, wParam, lParam, 4);
 
 	switch (sEvent.eType)
 	{
@@ -1813,7 +1814,7 @@ void MatrixModifier::UpdateConstantBuffer(ID3D11DeviceContext* pcContext, ID3D11
 					if (m_asShaders[sPrivateData.dwIndex].asBuffersUnaccounted[nBuffer].dwSize >= /*TODO : F4 ONLY*/ 8 + 4)
 					{
 						// is this modification in range ?
-						if ((dwSizeLeft) && (dwSizeRight) && (pcBufferLeft) && (pcBufferRight) && (dwBufferSize >= (/*TODO : F4 ONLY*/ 8 * 4 * sizeof(float) + sizeof(D3DMATRIX))))
+						if ((dwSizeLeft) && (dwSizeRight) && (pcBufferLeft) && (pcBufferRight) && (dwBufferSize >= (/*TODO : F4 ONLY*/ 8 * 4 * sizeof(float)+sizeof(D3DMATRIX))))
 						{
 							bool bTranspose = true;
 

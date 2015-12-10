@@ -45,7 +45,8 @@ Vireio_GUI::Vireio_GUI(SIZE sSize, LPCWSTR szFont, BOOL bItalic, DWORD dwFontSiz
 m_eActiveControlAction(Vireio_Control_Action::None),
 m_dwActiveControl(0),
 m_bMouseBoundToControl(false),
-m_dwCurrentPage(0)
+m_dwCurrentPage(0),
+m_hBrush(nullptr)
 {
 	// set the size, colors, font size and the font name
 	CopyMemory(&m_sGUISize, &sSize, sizeof(SIZE));
@@ -59,11 +60,11 @@ m_dwCurrentPage(0)
 	HDC hdc = GetDC(hwnd);
 	m_hBitmapControl = CreateCompatibleBitmap(hdc, (int)sSize.cx, (int)sSize.cy);
 	if (!m_hBitmapControl)
-		OutputDebugString(L"Failed to create bitmap!");
+		OutputDebugStringW(L"Failed to create bitmap!");
 	m_bControlUpdate = true;
 
 	// create the font
-	m_hFont = CreateFont(dwFontSize, 0, 0, 0, 0, bItalic,
+	m_hFont = CreateFontW(dwFontSize, 0, 0, 0, 0, bItalic,
 		FALSE, FALSE, ANSI_CHARSET, OUT_DEFAULT_PRECIS,
 		CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH,
 		m_szFontName.c_str());
@@ -72,13 +73,16 @@ m_dwCurrentPage(0)
 /**
 * Destructor.
 ***/
-Vireio_GUI::~Vireio_GUI() {}
+Vireio_GUI::~Vireio_GUI()
+{
+	DeleteObject(m_hBrush);
+}
 
 /**
 * Provides the rendered bitmap for the current frame.
 * @returns The current GUI bitmap, nullptr if no changes.
 ***/
-HBITMAP Vireio_GUI::GetGUI()
+HBITMAP Vireio_GUI::GetGUI(bool bForceRedraw, bool bDarkenButtons, bool bUpperRim, bool bLowerRim)
 {
 	if (!m_hBitmapControl)
 	{
@@ -87,11 +91,11 @@ HBITMAP Vireio_GUI::GetGUI()
 		HDC hdc = GetDC(hwnd);
 		m_hBitmapControl = CreateCompatibleBitmap(hdc, (int)m_sGUISize.cx, (int)m_sGUISize.cy);
 		if (!m_hBitmapControl)
-			OutputDebugString(L"Failed to create bitmap!");
+			OutputDebugStringW(L"Failed to create bitmap!");
 		m_bControlUpdate = true;
 	}
 
-	if (m_bControlUpdate)
+	if ((m_bControlUpdate) || (bForceRedraw))
 	{
 		// get control bitmap dc
 		HDC hdcImage = CreateCompatibleDC(NULL);
@@ -101,11 +105,12 @@ HBITMAP Vireio_GUI::GetGUI()
 		// clear the background
 		RECT rc;
 		SetRect(&rc, 0, 0, (int)m_sGUISize.cx, (int)m_sGUISize.cy);
-		FillRect(hdcImage, &rc, (HBRUSH)CreateSolidBrush(m_dwColorBack));
+		if (!m_hBrush) m_hBrush = (HBRUSH)CreateSolidBrush(m_dwColorBack);
+		FillRect(hdcImage, &rc, m_hBrush);
 
 		// create font
 		if (!m_hFont)
-			m_hFont = CreateFont(m_dwFontSize, 0, 0, 0, 0, FALSE,
+			m_hFont = CreateFontW(m_dwFontSize, 0, 0, 0, 0, FALSE,
 			FALSE, FALSE, ANSI_CHARSET, OUT_DEFAULT_PRECIS,
 			CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH,
 			m_szFontName.c_str());
@@ -115,6 +120,7 @@ HBITMAP Vireio_GUI::GetGUI()
 		{
 			SetTextColor(hdcImage, m_dwColorFront);
 			SetBkColor(hdcImage, m_dwColorBack);
+			SetBkMode(hdcImage, TRANSPARENT);
 
 			// verify page index
 			if (m_dwCurrentPage >= (UINT)m_asPages.size()) m_dwCurrentPage = (UINT)m_asPages.size() - 1;
@@ -127,21 +133,21 @@ HBITMAP Vireio_GUI::GetGUI()
 				switch (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_eControlType)
 				{
 					case StaticListBox:
-						DrawStaticListBox(hdcImage, m_asPages[m_dwCurrentPage].m_asControls[dwI]);
+						DrawStaticListBox(hdcImage, m_asPages[m_dwCurrentPage].m_asControls[dwI], bDarkenButtons, bUpperRim, bLowerRim);
 						break;
 					case ListBox:
-						DrawListBox(hdcImage, m_asPages[m_dwCurrentPage].m_asControls[dwI]);
+						DrawListBox(hdcImage, m_asPages[m_dwCurrentPage].m_asControls[dwI], bDarkenButtons, bUpperRim, bLowerRim);
 						break;
 					case SpinControl:
-						DrawSpinControl(hdcImage, m_asPages[m_dwCurrentPage].m_asControls[dwI]);
+						DrawSpinControl(hdcImage, m_asPages[m_dwCurrentPage].m_asControls[dwI], bDarkenButtons, bUpperRim, bLowerRim);
 						break;
 					case EditLine:
 						break;
 					case Button:
-						DrawButton(hdcImage, m_asPages[m_dwCurrentPage].m_asControls[dwI]);
+						DrawButton(hdcImage, m_asPages[m_dwCurrentPage].m_asControls[dwI], bDarkenButtons, bUpperRim, bLowerRim);
 						break;
 					case Switch:
-						DrawSwitch(hdcImage, m_asPages[m_dwCurrentPage].m_asControls[dwI]);
+						DrawSwitch(hdcImage, m_asPages[m_dwCurrentPage].m_asControls[dwI], bDarkenButtons, bUpperRim, bLowerRim);
 						break;
 					default:
 						break;
@@ -152,61 +158,64 @@ HBITMAP Vireio_GUI::GetGUI()
 			SelectObject(hdcImage, hOldFont);
 		}
 
-		// draw the arrows... first, the arrow background
-		RECT sRect;
-		sRect.top = m_sGUISize.cy - m_dwFontSize * 4;
-		sRect.bottom = m_sGUISize.cy;
-		sRect.left = 0;
-		sRect.right = m_sGUISize.cx;
-		FillRect(hdcImage, &sRect, (HBRUSH)(COLOR_SCROLLBAR + 1));
+		if (m_asPages.size() > 1)
+		{
+			// draw the arrows... first, the arrow background
+			RECT sRect;
+			sRect.top = m_sGUISize.cy - m_dwFontSize * 4;
+			sRect.bottom = m_sGUISize.cy;
+			sRect.left = 0;
+			sRect.right = m_sGUISize.cx;
+			FillRect(hdcImage, &sRect, (HBRUSH)(COLOR_SCROLLBAR + 1));
 
-		// left arrow.. arrows are adjusted by the font size and GUI size
-		POINT asPoints[3];
-		asPoints[0].x = m_sGUISize.cx >> 4;
-		asPoints[0].y = sRect.top + m_dwFontSize * 2;
-		asPoints[1].x = (m_sGUISize.cx >> 1) - (m_sGUISize.cx >> 3);
-		asPoints[1].y = sRect.top + (m_dwFontSize >> 2);
-		asPoints[2].x = asPoints[1].x;
-		asPoints[2].y = sRect.bottom - (m_dwFontSize >> 2);
-		SelectObject(hdcImage, GetStockObject(DC_PEN));
-		SelectObject(hdcImage, GetStockObject(DC_BRUSH));
-		if ((m_bMouseBoundToControl) && (m_sMouseCoords.y > (LONG)(m_sGUISize.cy - m_dwFontSize * 4)) && (m_sMouseCoords.x < (LONG)(m_sGUISize.cx >> 1)))
-		{
-			SetDCPenColor(hdcImage, m_dwColorFront ^ m_dwColorFront);
-			SetDCBrushColor(hdcImage, m_dwColorFront ^ m_dwColorFront);
-		}
-		else
-		{
-			SetDCPenColor(hdcImage, m_dwColorFront);
-			SetDCBrushColor(hdcImage, m_dwColorFront);
-		}
-		if (m_dwCurrentPage > 0)
-			Polygon(hdcImage, asPoints, 3);
+			// left arrow.. arrows are adjusted by the font size and GUI size
+			POINT asPoints[3];
+			asPoints[0].x = m_sGUISize.cx >> 4;
+			asPoints[0].y = sRect.top + m_dwFontSize * 2;
+			asPoints[1].x = (m_sGUISize.cx >> 1) - (m_sGUISize.cx >> 3);
+			asPoints[1].y = sRect.top + (m_dwFontSize >> 2);
+			asPoints[2].x = asPoints[1].x;
+			asPoints[2].y = sRect.bottom - (m_dwFontSize >> 2);
+			SelectObject(hdcImage, GetStockObject(DC_PEN));
+			SelectObject(hdcImage, GetStockObject(DC_BRUSH));
+			if ((bDarkenButtons) && (m_bMouseBoundToControl) && (m_sMouseCoords.y > (LONG)(m_sGUISize.cy - m_dwFontSize * 4)) && (m_sMouseCoords.x < (LONG)(m_sGUISize.cx >> 1)))
+			{
+				SetDCPenColor(hdcImage, m_dwColorFront ^ m_dwColorFront);
+				SetDCBrushColor(hdcImage, m_dwColorFront ^ m_dwColorFront);
+			}
+			else
+			{
+				SetDCPenColor(hdcImage, m_dwColorFront);
+				SetDCBrushColor(hdcImage, m_dwColorFront);
+			}
+			if (m_dwCurrentPage > 0)
+				Polygon(hdcImage, asPoints, 3);
 
-		// right arrow
-		asPoints[0].x = m_sGUISize.cx - (m_sGUISize.cx >> 4);
-		asPoints[0].y = sRect.top + m_dwFontSize * 2;
-		asPoints[1].x = (m_sGUISize.cx >> 1) + (m_sGUISize.cx >> 3);
-		asPoints[1].y = sRect.top + (m_dwFontSize >> 2);
-		asPoints[2].x = asPoints[1].x;
-		asPoints[2].y = sRect.bottom - (m_dwFontSize >> 2);
-		if ((m_bMouseBoundToControl) && (m_sMouseCoords.y > (LONG)(m_sGUISize.cy - m_dwFontSize * 4)) && (m_sMouseCoords.x >= (LONG)(m_sGUISize.cx >> 1)))
-		{
-			SetDCPenColor(hdcImage, m_dwColorFront ^ m_dwColorFront);
-			SetDCBrushColor(hdcImage, m_dwColorFront ^ m_dwColorFront);
-		}
-		else
-		{
-			SetDCPenColor(hdcImage, m_dwColorFront);
-			SetDCBrushColor(hdcImage, m_dwColorFront);
-		}
-		if ((m_asPages.size() > 1) && (m_dwCurrentPage < (m_asPages.size() - 1)))
-			Polygon(hdcImage, asPoints, 3);
+			// right arrow
+			asPoints[0].x = m_sGUISize.cx - (m_sGUISize.cx >> 4);
+			asPoints[0].y = sRect.top + m_dwFontSize * 2;
+			asPoints[1].x = (m_sGUISize.cx >> 1) + (m_sGUISize.cx >> 3);
+			asPoints[1].y = sRect.top + (m_dwFontSize >> 2);
+			asPoints[2].x = asPoints[1].x;
+			asPoints[2].y = sRect.bottom - (m_dwFontSize >> 2);
+			if ((bDarkenButtons) && (m_bMouseBoundToControl) && (m_sMouseCoords.y > (LONG)(m_sGUISize.cy - m_dwFontSize * 4)) && (m_sMouseCoords.x >= (LONG)(m_sGUISize.cx >> 1)))
+			{
+				SetDCPenColor(hdcImage, m_dwColorFront ^ m_dwColorFront);
+				SetDCBrushColor(hdcImage, m_dwColorFront ^ m_dwColorFront);
+			}
+			else
+			{
+				SetDCPenColor(hdcImage, m_dwColorFront);
+				SetDCBrushColor(hdcImage, m_dwColorFront);
+			}
+			if ((m_asPages.size() > 1) && (m_dwCurrentPage < (m_asPages.size() - 1)))
+				Polygon(hdcImage, asPoints, 3);
 
-		// line between
-		sRect.left = (m_sGUISize.cx >> 1) - (m_sGUISize.cx >> 7);
-		sRect.right = (m_sGUISize.cx >> 1) + (m_sGUISize.cx >> 7);
-		FillRect(hdcImage, &sRect, (HBRUSH)(COLOR_BACKGROUND + 1));
+			// line between
+			sRect.left = (m_sGUISize.cx >> 1) - (m_sGUISize.cx >> 7);
+			sRect.right = (m_sGUISize.cx >> 1) + (m_sGUISize.cx >> 7);
+			FillRect(hdcImage, &sRect, (HBRUSH)(COLOR_BACKGROUND + 1));
+		}
 
 		SelectObject(hdcImage, hbmOld);
 		DeleteDC(hdcImage);
@@ -224,7 +233,7 @@ HBITMAP Vireio_GUI::GetGUI()
 * @param hdc The handle to a device context (DC) for the client area.
 * @param sControl The list box control (both static and versatile).
 ***/
-void Vireio_GUI::DrawStaticListBox(HDC hdc, Vireio_Control& sControl)
+void Vireio_GUI::DrawStaticListBox(HDC hdc, Vireio_Control& sControl, bool bDarkenButtons, bool bUpperRim, bool bLowerRim)
 {
 	// only list box controls
 	if ((sControl.m_eControlType != Vireio_Control_Type::ListBox) &&
@@ -246,19 +255,55 @@ void Vireio_GUI::DrawStaticListBox(HDC hdc, Vireio_Control& sControl)
 		{
 			RECT sRect;
 			SetRect(&sRect, psPos->x, nY, psPos->x + psSize->cx - 1, nY + m_dwFontSize);
-			FillRect(hdc, &sRect, (HBRUSH)CreateSolidBrush(m_dwColorFront));
+			HBRUSH hBrush = (HBRUSH)CreateSolidBrush(m_dwColorFront);
+			FillRect(hdc, &sRect, hBrush);
+			DeleteObject(hBrush);
 
 			SetTextColor(hdc, m_dwColorBack);
 			SetBkColor(hdc, m_dwColorFront);
 		}
 
 		if ((nY >= (int(m_dwFontSize) * -1)) && (nY <= int(psPos->y + psSize->cy)))
-			// output the list entry text
-			TextOut(hdc,
-			psPos->x,
-			nY,
-			((*(sControl.m_sStaticListBox.m_paszEntries))[dwJ]).c_str(),
-			(int)((*(sControl.m_sStaticListBox.m_paszEntries))[dwJ]).length());
+		{
+			// output the list entry text - firt draw rims
+			if (bUpperRim)
+			{
+				COLORREF dwColorFront = GetTextColor(hdc);
+				COLORREF dwColorBack = GetBkColor(hdc);
+				BYTE nR = (GetRValue(dwColorFront) >> 1) + (GetRValue(dwColorBack) >> 1);
+				BYTE nG = (GetGValue(dwColorFront) >> 1) + (GetGValue(dwColorBack) >> 1);
+				BYTE nB = (GetBValue(dwColorFront) >> 1) + (GetBValue(dwColorBack) >> 1);
+				COLORREF dwColorTmp = RGB(nR, nG, nB);
+				SetTextColor(hdc, dwColorTmp);
+				TextOutW(hdc,
+					psPos->x - 1,
+					nY - 1,
+					((*(sControl.m_sStaticListBox.m_paszEntries))[dwJ]).c_str(),
+					(int)((*(sControl.m_sStaticListBox.m_paszEntries))[dwJ]).length());
+				SetTextColor(hdc, dwColorFront);
+			}
+			if (bLowerRim)
+			{
+				COLORREF dwColorFront = GetTextColor(hdc);
+				COLORREF dwColorBack = GetBkColor(hdc);
+				BYTE nR = GetRValue(dwColorFront); if (GetRValue(dwColorBack) < nR) nR = GetRValue(dwColorBack);
+				BYTE nG = GetGValue(dwColorFront); if (GetGValue(dwColorBack) < nG) nG = GetGValue(dwColorBack);
+				BYTE nB = GetBValue(dwColorFront); if (GetBValue(dwColorBack) < nB) nB = GetBValue(dwColorBack);
+				COLORREF dwColorTmp = RGB(nR, nG, nB);
+				SetTextColor(hdc, dwColorTmp);
+				TextOutW(hdc,
+					psPos->x + 2,
+					nY + 2,
+					((*(sControl.m_sStaticListBox.m_paszEntries))[dwJ]).c_str(),
+					(int)((*(sControl.m_sStaticListBox.m_paszEntries))[dwJ]).length());
+				SetTextColor(hdc, dwColorFront);
+			}
+			TextOutW(hdc,
+				psPos->x,
+				nY,
+				((*(sControl.m_sStaticListBox.m_paszEntries))[dwJ]).c_str(),
+				(int)((*(sControl.m_sStaticListBox.m_paszEntries))[dwJ]).length());
+		}
 
 		// and invert back
 		if ((sControl.m_sStaticListBox.m_bSelectable) && (dwJ == (UINT)sControl.m_sStaticListBox.m_nCurrentSelection))
@@ -277,13 +322,13 @@ void Vireio_GUI::DrawStaticListBox(HDC hdc, Vireio_Control& sControl)
 	sRect.bottom = (LONG)psPos->y + psSize->cy + m_dwFontSize + 1;
 	sRect.left = (LONG)psPos->x;
 	sRect.right = (LONG)psPos->x + psSize->cx;
-	FillRect(hdc, &sRect, (HBRUSH)CreateSolidBrush(m_dwColorBack));
+	FillRect(hdc, &sRect, m_hBrush);
 
 	// and one at the top (only if list box since text can scroll upwards)
 	if (sControl.m_eControlType == Vireio_Control_Type::ListBox)
 	{
 		SetRect(&sRect, 0, 0, m_sGUISize.cx, (LONG)psPos->y);
-		FillRect(hdc, &sRect, (HBRUSH)CreateSolidBrush(m_dwColorBack));
+		FillRect(hdc, &sRect, m_hBrush);
 	}
 
 	// and an empty field at the right side of the list
@@ -291,7 +336,7 @@ void Vireio_GUI::DrawStaticListBox(HDC hdc, Vireio_Control& sControl)
 	sRect.bottom = (LONG)psPos->y + psSize->cy + m_dwFontSize + 1;
 	sRect.left = (LONG)psPos->x + psSize->cx;
 	sRect.right = m_sGUISize.cx;
-	FillRect(hdc, &sRect, (HBRUSH)CreateSolidBrush(m_dwColorBack));
+	FillRect(hdc, &sRect, m_hBrush);
 }
 
 /**
@@ -299,10 +344,10 @@ void Vireio_GUI::DrawStaticListBox(HDC hdc, Vireio_Control& sControl)
 * @param hdc The handle to a device context (DC) for the client area.
 * @param sControl The list box control.
 ***/
-void Vireio_GUI::DrawListBox(HDC hdc, Vireio_Control& sControl)
+void Vireio_GUI::DrawListBox(HDC hdc, Vireio_Control& sControl, bool bDarkenButtons, bool bUpperRim, bool bLowerRim)
 {
 	// first, draw the text using the static list box drawing method
-	DrawStaticListBox(hdc, sControl);
+	DrawStaticListBox(hdc, sControl, bDarkenButtons, bUpperRim, bLowerRim);
 
 	// get position and size pointers
 	POINT* psPos = &sControl.m_sPosition;
@@ -333,7 +378,9 @@ void Vireio_GUI::DrawListBox(HDC hdc, Vireio_Control& sControl)
 		sRect.bottom = (LONG)psPos->y + (LONG)nBarPosY + (LONG)nBarSizeY + 1;
 		sRect.left = (LONG)psPos->x + psSize->cx;
 		sRect.right = (LONG)psPos->x + psSize->cx + m_dwFontSize;
-		FillRect(hdc, &sRect, (HBRUSH)CreateSolidBrush(m_dwColorFront));
+		HBRUSH hBrush = (HBRUSH)CreateSolidBrush(m_dwColorFront);
+		FillRect(hdc, &sRect, hBrush);
+		DeleteObject(hBrush);
 	}
 }
 
@@ -342,7 +389,7 @@ void Vireio_GUI::DrawListBox(HDC hdc, Vireio_Control& sControl)
 * @param hdc The handle to a device context (DC) for the client area.
 * @param sControl The list box control.
 ***/
-void Vireio_GUI::DrawSpinControl(HDC hdc, Vireio_Control& sControl)
+void Vireio_GUI::DrawSpinControl(HDC hdc, Vireio_Control& sControl, bool bDarkenButtons, bool bUpperRim, bool bLowerRim)
 {
 	if (sControl.m_eControlType != Vireio_Control_Type::SpinControl)
 		return;
@@ -354,9 +401,42 @@ void Vireio_GUI::DrawSpinControl(HDC hdc, Vireio_Control& sControl)
 	// output the entry text
 	if (sControl.m_sSpinControl.m_dwCurrentSelection < (UINT)sControl.m_sSpinControl.m_paszEntries->size())
 	{
-		TextOut(hdc,
-			psPos->x + (m_dwFontSize >> 4),
-			psPos->y + (m_dwFontSize >> 4),
+		// first draw rims
+		if (bUpperRim)
+		{
+			COLORREF dwColorFront = GetTextColor(hdc);
+			COLORREF dwColorBack = GetBkColor(hdc);
+			BYTE nR = (GetRValue(dwColorFront) >> 1) + (GetRValue(dwColorBack) >> 1);
+			BYTE nG = (GetGValue(dwColorFront) >> 1) + (GetGValue(dwColorBack) >> 1);
+			BYTE nB = (GetBValue(dwColorFront) >> 1) + (GetBValue(dwColorBack) >> 1);
+			COLORREF dwColorTmp = RGB(nR, nG, nB);
+			SetTextColor(hdc, dwColorTmp);
+			TextOutW(hdc,
+				psPos->x + (m_dwFontSize >> 2) - 1,
+				psPos->y + (m_dwFontSize >> 3) - 1,
+				((*(sControl.m_sSpinControl.m_paszEntries))[sControl.m_sSpinControl.m_dwCurrentSelection]).c_str(),
+				(int)((*(sControl.m_sSpinControl.m_paszEntries))[sControl.m_sSpinControl.m_dwCurrentSelection]).length());
+			SetTextColor(hdc, dwColorFront);
+		}
+		if (bLowerRim)
+		{
+			COLORREF dwColorFront = GetTextColor(hdc);
+			COLORREF dwColorBack = GetBkColor(hdc);
+			BYTE nR = GetRValue(dwColorFront); if (GetRValue(dwColorBack) < nR) nR = GetRValue(dwColorBack);
+			BYTE nG = GetGValue(dwColorFront); if (GetGValue(dwColorBack) < nG) nG = GetGValue(dwColorBack);
+			BYTE nB = GetBValue(dwColorFront); if (GetBValue(dwColorBack) < nB) nB = GetBValue(dwColorBack);
+			COLORREF dwColorTmp = RGB(nR, nG, nB);
+			SetTextColor(hdc, dwColorTmp);
+			TextOutW(hdc,
+				psPos->x + (m_dwFontSize >> 2) + 2,
+				psPos->y + (m_dwFontSize >> 3) + 2,
+				((*(sControl.m_sSpinControl.m_paszEntries))[sControl.m_sSpinControl.m_dwCurrentSelection]).c_str(),
+				(int)((*(sControl.m_sSpinControl.m_paszEntries))[sControl.m_sSpinControl.m_dwCurrentSelection]).length());
+			SetTextColor(hdc, dwColorFront);
+		}
+		TextOutW(hdc,
+			psPos->x + (m_dwFontSize >> 2),
+			psPos->y + (m_dwFontSize >> 3),
 			((*(sControl.m_sSpinControl.m_paszEntries))[sControl.m_sSpinControl.m_dwCurrentSelection]).c_str(),
 			(int)((*(sControl.m_sSpinControl.m_paszEntries))[sControl.m_sSpinControl.m_dwCurrentSelection]).length());
 	}
@@ -364,7 +444,7 @@ void Vireio_GUI::DrawSpinControl(HDC hdc, Vireio_Control& sControl)
 	// clear field right of the text
 	RECT sRect;
 	SetRect(&sRect, (psPos->x + psSize->cx) - m_dwFontSize, psPos->y, m_sGUISize.cx, psPos->y + psSize->cy);
-	FillRect(hdc, &sRect, (HBRUSH)CreateSolidBrush(m_dwColorBack));
+	FillRect(hdc, &sRect, m_hBrush);
 	sRect.right = psPos->x + psSize->cx;
 
 	// draw the arrows... up arrow first
@@ -372,13 +452,13 @@ void Vireio_GUI::DrawSpinControl(HDC hdc, Vireio_Control& sControl)
 	asPoints[0].x = (psPos->x + psSize->cx) - (m_dwFontSize >> 1);
 	asPoints[0].y = psPos->y + (m_dwFontSize >> 3);
 	asPoints[1].x = (psPos->x + psSize->cx) - ((m_dwFontSize >> 3) * 7);
-	asPoints[1].y = psPos->y + ((m_dwFontSize >> 5) * 15);
+	asPoints[1].y = psPos->y + ((m_dwFontSize >> 5) * 20);
 	asPoints[2].x = (psPos->x + psSize->cx) - (m_dwFontSize >> 3);
-	asPoints[2].y = psPos->y + ((m_dwFontSize >> 5) * 15);
+	asPoints[2].y = psPos->y + ((m_dwFontSize >> 5) * 20);
 	SelectObject(hdc, GetStockObject(DC_PEN));
 	SelectObject(hdc, GetStockObject(DC_BRUSH));
 	sRect.bottom -= psSize->cy >> 1;
-	if ((m_eActiveControlAction == Vireio_Control_Action::SpinControlArrows) && InRect(sRect, m_sMouseCoords))
+	if ((m_eActiveControlAction == Vireio_Control_Action::SpinControlArrows) && InRect(sRect, m_sMouseCoords) && (bDarkenButtons))
 	{
 		SetDCPenColor(hdc, m_dwColorFront ^ m_dwColorFront);
 		SetDCBrushColor(hdc, m_dwColorFront ^ m_dwColorFront);
@@ -391,11 +471,11 @@ void Vireio_GUI::DrawSpinControl(HDC hdc, Vireio_Control& sControl)
 	if (sControl.m_sSpinControl.m_dwCurrentSelection > 0)
 		Polygon(hdc, asPoints, 3);
 	asPoints[0].y = (psPos->y + psSize->cy) - (m_dwFontSize >> 3);
-	asPoints[1].y = (psPos->y + psSize->cy) - ((m_dwFontSize >> 5) * 15);
-	asPoints[2].y = (psPos->y + psSize->cy) - ((m_dwFontSize >> 5) * 15);
+	asPoints[1].y = (psPos->y + psSize->cy) - ((m_dwFontSize >> 5) * 20);
+	asPoints[2].y = (psPos->y + psSize->cy) - ((m_dwFontSize >> 5) * 20);
 	sRect.bottom += psSize->cy >> 1;
 	sRect.top += psSize->cy >> 1;
-	if ((m_eActiveControlAction == Vireio_Control_Action::SpinControlArrows) && InRect(sRect, m_sMouseCoords))
+	if ((m_eActiveControlAction == Vireio_Control_Action::SpinControlArrows) && InRect(sRect, m_sMouseCoords) && (bDarkenButtons))
 	{
 		SetDCPenColor(hdc, m_dwColorFront ^ m_dwColorFront);
 		SetDCBrushColor(hdc, m_dwColorFront ^ m_dwColorFront);
@@ -409,14 +489,16 @@ void Vireio_GUI::DrawSpinControl(HDC hdc, Vireio_Control& sControl)
 		Polygon(hdc, asPoints, 3);
 
 	// draw the border
+	HBRUSH hBrush = CreateSolidBrush(m_dwColorFront);
 	SetRect(&sRect, psPos->x, psPos->y, psPos->x + psSize->cx, psPos->y + (m_dwFontSize >> 4));
-	FillRect(hdc, &sRect, (HBRUSH)CreateSolidBrush(m_dwColorFront));
+	FillRect(hdc, &sRect, hBrush);
 	SetRect(&sRect, psPos->x, psPos->y + psSize->cy - (m_dwFontSize >> 4), psPos->x + psSize->cx, psPos->y + psSize->cy);
-	FillRect(hdc, &sRect, (HBRUSH)CreateSolidBrush(m_dwColorFront));
+	FillRect(hdc, &sRect, hBrush);
 	SetRect(&sRect, psPos->x, psPos->y, psPos->x + (m_dwFontSize >> 4), psPos->y + psSize->cy);
-	FillRect(hdc, &sRect, (HBRUSH)CreateSolidBrush(m_dwColorFront));
+	FillRect(hdc, &sRect, hBrush);
 	SetRect(&sRect, psPos->x + psSize->cx - (m_dwFontSize >> 4), psPos->y, psPos->x + psSize->cx, psPos->y + psSize->cy);
-	FillRect(hdc, &sRect, (HBRUSH)CreateSolidBrush(m_dwColorFront));
+	FillRect(hdc, &sRect, hBrush);
+	DeleteObject(hBrush);
 }
 
 /**
@@ -424,7 +506,7 @@ void Vireio_GUI::DrawSpinControl(HDC hdc, Vireio_Control& sControl)
 * @param hdc The handle to a device context (DC) for the client area.
 * @param sControl The list box control.
 ***/
-void Vireio_GUI::DrawButton(HDC hdc, Vireio_Control& sControl)
+void Vireio_GUI::DrawButton(HDC hdc, Vireio_Control& sControl, bool bDarkenButtons, bool bUpperRim, bool bLowerRim)
 {
 	if (sControl.m_eControlType != Vireio_Control_Type::Button)
 		return;
@@ -433,8 +515,40 @@ void Vireio_GUI::DrawButton(HDC hdc, Vireio_Control& sControl)
 	POINT* psPos = &sControl.m_sPosition;
 	SIZE* psSize = &sControl.m_sSize;
 
-	// output the text
-	TextOut(hdc,
+	// output the text - first draw rims
+	if (bUpperRim)
+	{
+		COLORREF dwColorFront = GetTextColor(hdc);
+		COLORREF dwColorBack = GetBkColor(hdc);
+		BYTE nR = (GetRValue(dwColorFront) >> 1) + (GetRValue(dwColorBack) >> 1);
+		BYTE nG = (GetGValue(dwColorFront) >> 1) + (GetGValue(dwColorBack) >> 1);
+		BYTE nB = (GetBValue(dwColorFront) >> 1) + (GetBValue(dwColorBack) >> 1);
+		COLORREF dwColorTmp = RGB(nR, nG, nB);
+		SetTextColor(hdc, dwColorTmp);
+		TextOutW(hdc,
+			psPos->x + (m_dwFontSize >> 4) - 1,
+			psPos->y + (m_dwFontSize >> 4) - 1,
+			sControl.m_sButton.m_pszText->c_str(),
+			(int)sControl.m_sButton.m_pszText->size());
+		SetTextColor(hdc, dwColorFront);
+	}
+	if (bLowerRim)
+	{
+		COLORREF dwColorFront = GetTextColor(hdc);
+		COLORREF dwColorBack = GetBkColor(hdc);
+		BYTE nR = GetRValue(dwColorFront); if (GetRValue(dwColorBack) < nR) nR = GetRValue(dwColorBack);
+		BYTE nG = GetGValue(dwColorFront); if (GetGValue(dwColorBack) < nG) nG = GetGValue(dwColorBack);
+		BYTE nB = GetBValue(dwColorFront); if (GetBValue(dwColorBack) < nB) nB = GetBValue(dwColorBack);
+		COLORREF dwColorTmp = RGB(nR, nG, nB);
+		SetTextColor(hdc, dwColorTmp);
+		TextOutW(hdc,
+			psPos->x + (m_dwFontSize >> 4) + 2,
+			psPos->y + (m_dwFontSize >> 4) + 2,
+			sControl.m_sButton.m_pszText->c_str(),
+			(int)sControl.m_sButton.m_pszText->size());
+		SetTextColor(hdc, dwColorFront);
+	}
+	TextOutW(hdc,
 		psPos->x + (m_dwFontSize >> 4),
 		psPos->y + (m_dwFontSize >> 4),
 		sControl.m_sButton.m_pszText->c_str(),
@@ -443,22 +557,24 @@ void Vireio_GUI::DrawButton(HDC hdc, Vireio_Control& sControl)
 	// clear field right of the text
 	RECT sRect;
 	SetRect(&sRect, psPos->x + psSize->cx, psPos->y, m_sGUISize.cx, psPos->y + psSize->cy);
-	FillRect(hdc, &sRect, (HBRUSH)CreateSolidBrush(m_dwColorBack));
+	FillRect(hdc, &sRect, m_hBrush);
 
 	// select color wether pressed or not
 	UINT dwColor = m_dwColorFront;
-	if (sControl.m_sButton.m_bPressed)
+	if ((sControl.m_sButton.m_bPressed) && (bDarkenButtons))
 		dwColor = m_dwColorFront ^ m_dwColorFront;
 
 	// draw the border
+	HBRUSH hBrush = CreateSolidBrush(dwColor);
 	SetRect(&sRect, psPos->x, psPos->y, psPos->x + psSize->cx, psPos->y + (m_dwFontSize >> 4));
-	FillRect(hdc, &sRect, (HBRUSH)CreateSolidBrush(dwColor));
+	FillRect(hdc, &sRect, hBrush);
 	SetRect(&sRect, psPos->x, psPos->y + psSize->cy - (m_dwFontSize >> 4), psPos->x + psSize->cx, psPos->y + psSize->cy);
-	FillRect(hdc, &sRect, (HBRUSH)CreateSolidBrush(dwColor));
+	FillRect(hdc, &sRect, hBrush);
 	SetRect(&sRect, psPos->x, psPos->y, psPos->x + (m_dwFontSize >> 4), psPos->y + psSize->cy);
-	FillRect(hdc, &sRect, (HBRUSH)CreateSolidBrush(dwColor));
+	FillRect(hdc, &sRect, hBrush);
 	SetRect(&sRect, psPos->x + psSize->cx - (m_dwFontSize >> 4), psPos->y, psPos->x + psSize->cx, psPos->y + psSize->cy);
-	FillRect(hdc, &sRect, (HBRUSH)CreateSolidBrush(dwColor));
+	FillRect(hdc, &sRect, hBrush);
+	DeleteObject(hBrush);
 }
 
 /**
@@ -466,7 +582,7 @@ void Vireio_GUI::DrawButton(HDC hdc, Vireio_Control& sControl)
 * @param hdc The handle to a device context (DC) for the client area.
 * @param sControl The list box control.
 ***/
-void Vireio_GUI::DrawSwitch(HDC hdc, Vireio_Control& sControl)
+void Vireio_GUI::DrawSwitch(HDC hdc, Vireio_Control& sControl, bool bDarkenButtons, bool bUpperRim, bool bLowerRim)
 {
 	if (sControl.m_eControlType != Vireio_Control_Type::Switch)
 		return;
@@ -475,8 +591,40 @@ void Vireio_GUI::DrawSwitch(HDC hdc, Vireio_Control& sControl)
 	POINT* psPos = &sControl.m_sPosition;
 	SIZE* psSize = &sControl.m_sSize;
 
-	// output the text
-	TextOut(hdc,
+	// output the text - first draw rims
+	if (bUpperRim)
+	{
+		COLORREF dwColorFront = GetTextColor(hdc);
+		COLORREF dwColorBack = GetBkColor(hdc);
+		BYTE nR = (GetRValue(dwColorFront) >> 1) + (GetRValue(dwColorBack) >> 1);
+		BYTE nG = (GetGValue(dwColorFront) >> 1) + (GetGValue(dwColorBack) >> 1);
+		BYTE nB = (GetBValue(dwColorFront) >> 1) + (GetBValue(dwColorBack) >> 1);
+		COLORREF dwColorTmp = RGB(nR, nG, nB);
+		SetTextColor(hdc, dwColorTmp);
+		TextOutW(hdc,
+			psPos->x + (m_dwFontSize >> 4) - 1,
+			psPos->y + (m_dwFontSize >> 4) - 1,
+			sControl.m_sSwitch.m_pszText->c_str(),
+			(int)sControl.m_sSwitch.m_pszText->size());
+		SetTextColor(hdc, dwColorFront);
+	}
+	if (bLowerRim)
+	{
+		COLORREF dwColorFront = GetTextColor(hdc);
+		COLORREF dwColorBack = GetBkColor(hdc);
+		BYTE nR = GetRValue(dwColorFront); if (GetRValue(dwColorBack) < nR) nR = GetRValue(dwColorBack);
+		BYTE nG = GetGValue(dwColorFront); if (GetGValue(dwColorBack) < nG) nG = GetGValue(dwColorBack);
+		BYTE nB = GetBValue(dwColorFront); if (GetBValue(dwColorBack) < nB) nB = GetBValue(dwColorBack);
+		COLORREF dwColorTmp = RGB(nR, nG, nB);
+		SetTextColor(hdc, dwColorTmp);
+		TextOutW(hdc,
+			psPos->x + (m_dwFontSize >> 4) + 2,
+			psPos->y + (m_dwFontSize >> 4) + 2,
+			sControl.m_sSwitch.m_pszText->c_str(),
+			(int)sControl.m_sSwitch.m_pszText->size());
+		SetTextColor(hdc, dwColorFront);
+	}
+	TextOutW(hdc,
 		psPos->x + (m_dwFontSize >> 4),
 		psPos->y + (m_dwFontSize >> 4),
 		sControl.m_sSwitch.m_pszText->c_str(),
@@ -485,29 +633,33 @@ void Vireio_GUI::DrawSwitch(HDC hdc, Vireio_Control& sControl)
 	// clear field right of the text
 	RECT sRect;
 	SetRect(&sRect, (psPos->x + psSize->cx) - m_dwFontSize, psPos->y, m_sGUISize.cx, psPos->y + psSize->cy);
-	FillRect(hdc, &sRect, (HBRUSH)CreateSolidBrush(m_dwColorBack));
+	FillRect(hdc, &sRect, m_hBrush);
 
 	// draw the true/false indicator
 	if (sControl.m_sSwitch.m_bTrue)
 	{
 		SetRect(&sRect, psPos->x + psSize->cx - ((m_dwFontSize >> 2) * 3), psPos->y + (m_dwFontSize >> 2), psPos->x + psSize->cx - (m_dwFontSize >> 2), psPos->y + psSize->cy - (m_dwFontSize >> 2));
-		FillRect(hdc, &sRect, (HBRUSH)CreateSolidBrush(m_dwColorFront));
+		HBRUSH hBrush = (HBRUSH)CreateSolidBrush(m_dwColorFront);
+		FillRect(hdc, &sRect, hBrush);
+		DeleteObject(hBrush);
 	}
 
 	// select color wether pressed or not
 	UINT dwColor = m_dwColorFront;
-	if (sControl.m_sSwitch.m_bPressed)
+	if ((sControl.m_sSwitch.m_bPressed) && (bDarkenButtons))
 		dwColor = m_dwColorFront ^ m_dwColorFront;
 
 	// draw the border
+	HBRUSH hBrush = CreateSolidBrush(dwColor);
 	SetRect(&sRect, psPos->x, psPos->y, psPos->x + psSize->cx, psPos->y + (m_dwFontSize >> 4));
-	FillRect(hdc, &sRect, (HBRUSH)CreateSolidBrush(dwColor));
+	FillRect(hdc, &sRect, hBrush);
 	SetRect(&sRect, psPos->x, psPos->y + psSize->cy - (m_dwFontSize >> 4), psPos->x + psSize->cx, psPos->y + psSize->cy);
-	FillRect(hdc, &sRect, (HBRUSH)CreateSolidBrush(dwColor));
+	FillRect(hdc, &sRect, hBrush);
 	SetRect(&sRect, psPos->x, psPos->y, psPos->x + (m_dwFontSize >> 4), psPos->y + psSize->cy);
-	FillRect(hdc, &sRect, (HBRUSH)CreateSolidBrush(dwColor));
+	FillRect(hdc, &sRect, hBrush);
 	SetRect(&sRect, psPos->x + psSize->cx - (m_dwFontSize >> 4), psPos->y, psPos->x + psSize->cx, psPos->y + psSize->cy);
-	FillRect(hdc, &sRect, (HBRUSH)CreateSolidBrush(dwColor));
+	FillRect(hdc, &sRect, hBrush);
+	DeleteObject(hBrush);
 }
 
 /**
@@ -552,17 +704,17 @@ void Vireio_GUI::AddEntry(UINT dwControl, LPCWSTR szString)
 				case StaticListBox:
 					if (m_asPages[dwPage].m_asControls[dwIndex].m_sStaticListBox.m_paszEntries)
 						m_asPages[dwPage].m_asControls[dwIndex].m_sStaticListBox.m_paszEntries->push_back(sz);
-					else OutputDebugString(L"Faulty code: Entry vector nullptr !");
+					else OutputDebugStringW(L"Faulty code: Entry vector nullptr !");
 					break;
 				case ListBox:
 					if (m_asPages[dwPage].m_asControls[dwIndex].m_sListBox.m_paszEntries)
 						m_asPages[dwPage].m_asControls[dwIndex].m_sListBox.m_paszEntries->push_back(sz);
-					else OutputDebugString(L"Faulty code: Entry vector nullptr !");
+					else OutputDebugStringW(L"Faulty code: Entry vector nullptr !");
 					break;
 				case SpinControl:
 					if (m_asPages[dwPage].m_asControls[dwIndex].m_sSpinControl.m_paszEntries)
 						m_asPages[dwPage].m_asControls[dwIndex].m_sSpinControl.m_paszEntries->push_back(sz);
-					else OutputDebugString(L"Faulty code: Entry vector nullptr !");
+					else OutputDebugStringW(L"Faulty code: Entry vector nullptr !");
 					break;
 				default:
 					break;
@@ -593,7 +745,7 @@ INT Vireio_GUI::GetCurrentSelection(UINT dwControlId)
 /**
 * Windows event for the GUI.
 ***/
-Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
+Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam, UINT dwMultiplyMouseCoords)
 {
 	static POINT sMouseCoordsOld;
 	static float fScrollBarPosYBackup;
@@ -604,9 +756,9 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 	sRet.eType = Vireio_GUI_Event_Type::NoEvent;
 
 	// get local mouse cursor
-	m_sMouseCoords.x = GET_X_LPARAM(lParam) * 4;
-	m_sMouseCoords.y = GET_Y_LPARAM(lParam) * 4;
-	
+	m_sMouseCoords.x = GET_X_LPARAM(lParam) * dwMultiplyMouseCoords;
+	m_sMouseCoords.y = GET_Y_LPARAM(lParam) * dwMultiplyMouseCoords;
+
 	switch (msg)
 	{
 		// left mouse button down ?
@@ -615,7 +767,7 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 			if (!m_bMouseBoundToControl)
 			{
 				// next/previous page ?
-				if (m_sMouseCoords.y > (LONG)(m_sGUISize.cy - m_dwFontSize * 4))
+				if ((m_sMouseCoords.y > (LONG)(m_sGUISize.cy - m_dwFontSize * 4)) && (m_asPages.size() > 1))
 				{
 					// left/right ?
 					if (m_sMouseCoords.x < (LONG)(m_sGUISize.cx >> 1))
@@ -729,12 +881,20 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 								if (m_sMouseCoords.y < psPos->y + (psSize->cy >> 1))
 								{
 									if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSpinControl.m_dwCurrentSelection > 0)
+									{
 										m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSpinControl.m_dwCurrentSelection--;
+										sRet.eType = Vireio_GUI_Event_Type::ChangedToPrevious;
+										sRet.dwNewValue = m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSpinControl.m_dwCurrentSelection;
+									}
 								}
 								else
 								{
 									if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSpinControl.m_dwCurrentSelection < (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSpinControl.m_paszEntries->size() - 1))
+									{
 										m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSpinControl.m_dwCurrentSelection++;
+										sRet.eType = Vireio_GUI_Event_Type::ChangedToNext;
+										sRet.dwNewValue = m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSpinControl.m_dwCurrentSelection;
+									}
 								}
 								sRet.dwNewValue = m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSpinControl.m_dwCurrentSelection;
 

@@ -48,6 +48,9 @@
     <ClCompile Include="..\..\Shared\json\json_writer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\PluginSection\Include\Vireio_GUI.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Shared\ProxyHelper.h">
@@ -105,6 +108,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Shared\json\writer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\PluginSection\Include\Vireio_GUI.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

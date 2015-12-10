@@ -21,6 +21,6 @@ namespace vireio
 		char buf[8192];
 		vsnprintf_s(buf, 8192, fmt, args);
 		va_end(args);
-		OutputDebugString(buf);
+		OutputDebugStringA(buf);
 	}
 }
