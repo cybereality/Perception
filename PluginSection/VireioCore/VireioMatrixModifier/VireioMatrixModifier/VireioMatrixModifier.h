@@ -89,7 +89,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define NUMBER_OF_DECOMMANDERS                        61
 #define GUI_WIDTH                                   1024                      
 #define GUI_HEIGHT                                  5000               
-#define CONSTANT_BUFFER_VERIFICATION_FRAME_NUMBER   6000                     /**< If no shader data is present, the constant buffers are verified for 6000 frames. ***/
+#define CONSTANT_BUFFER_VERIFICATION_FRAME_NUMBER    500                     /**< If no shader data is present, the constant buffers are verified for 500 frames. ***/
 #elif defined(VIREIO_D3D9)
 #define NUMBER_OF_COMMANDERS                           0
 #define NUMBER_OF_DECOMMANDERS                        12
@@ -501,6 +501,22 @@ private:
 	UINT* m_pdwVector4fCount_PixelShader;
 #endif
 
+	/**
+	* All constant rules loaded for that game.
+	***/
+	std::vector<Vireio_Constant_Modification_Rule> m_asConstantRules;
+	/**
+	* Global constant rule indices array.
+	***/
+	std::vector<UINT> m_adwGlobalConstantRuleIndices;
+	/**
+	* Shader-specific constant rule indices array.
+	***/
+	std::vector<Vireio_Shader_Constant_Rule_Index> m_asShaderSpecificRuleIndices;
+	/**
+	* Indices for constant buffer addressed shader rules.
+	***/
+	std::vector<std::vector<Vireio_Constant_Rule_Index>> m_aasConstantBufferRuleIndices;
 	/**
 	* View matrix adjustment class.
 	* @see ViewAdjustment

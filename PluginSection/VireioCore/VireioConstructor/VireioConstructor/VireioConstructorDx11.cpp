@@ -345,6 +345,9 @@ void* VireioConstructorDx11::Provoke(void* pThis, int eD3D, int eD3DInterface, i
 							std::stringstream szSize(szTemp);
 							szSize >> sBufferUnaccounted.dwSize;
 
+							// no constant rules addressed at shader creation
+							sBufferUnaccounted.nConstantRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
+
 							// store the unaccounted buffer
 							sShaderData.asBuffersUnaccounted.push_back(sBufferUnaccounted);
 						}
@@ -428,6 +431,9 @@ void* VireioConstructorDx11::Provoke(void* pThis, int eD3D, int eD3DInterface, i
 									}
 								}
 
+								// no constant rules addressed at shader creation
+								sBufferData.nConstantRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
+
 								// and add to shader desc
 								sShaderData.asBuffers.push_back(sBufferData);
 							}
@@ -435,7 +441,7 @@ void* VireioConstructorDx11::Provoke(void* pThis, int eD3D, int eD3DInterface, i
 
 						pcReflector->Release();
 					}
-
+					
 					// and add to shader vector
 					(*m_pasShaders).push_back(sShaderData);
 
