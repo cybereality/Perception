@@ -58,27 +58,23 @@ struct ProxyConfig
 	UINT        VRboostMaxShaderCount;      /**< Maximum Vertex Shader Count to apply VRboost (security) */
 	bool		is64bit;					/**< The game cpu-architecture, true for 64-bit games */
 	std::string game_type;                  /**< Game type enumeration. Matching D3DProxyDevice::ProxyTypes. */
-	int         rollImpl;                   /**< 0 - NONE, 1 - Matrix Roll, 2 - Pixel Shader Roll */
-	float       worldScaleFactor;           /**< Value the eye seperation is to be multiplied with. (mm * worldScaleFactor = mm in game units). */
+	int         nRollImpl;                  /**< 0 - NONE, 1 - Matrix Roll, 2 - Pixel Shader Roll */
+	float       fWorldScaleFactor;          /**< Value the eye seperation is to be multiplied with. (mm * worldScaleFactor = mm in game units). */
 	
-	/// Convergence or Neutral Point distance, in meters.
-	float convergence;
-	
-	/// Whether convergence is enabled. Typically on for 3D monitors, off for
-	/// head-mounted displays.
-	bool convergenceEnabled;
+	float       fConvergence;               /**< Convergence or Neutral Point distance, in meters. */
+	bool        bConvergenceEnabled;        /** Whether convergence is enabled. Typically on for 3D monitors, off for head-mounted displays */
 	
 	bool        swap_eyes;                  /**< Option to swap the eye output for different 3D systems. */
 	float       yaw_multiplier;             /**< Game-specific tracking multiplier (yaw). */
 	float       pitch_multiplier;           /**< Game-specific tracking multiplier (pitch). */
 	float       roll_multiplier;            /**< Game-specific tracking multiplier (roll). */
-	float		position_multiplier;		/**< Game-specific position overall multiplier (for X, Y and Z). */
-	float		position_x_multiplier;		/**< Game-specific position multiplier for X*/
-	float		position_y_multiplier;		/**< Game-specific position multiplier for Y*/
-	float		position_z_multiplier;		/**< Game-specific position multiplier for Z*/
+	float		fPositionMultiplier;		/**< Game-specific position overall multiplier (for X, Y and Z). */
+	float		fPositionXMultiplier;		/**< Game-specific position multiplier for X*/
+	float		fPositionYMultiplier;		/**< Game-specific position multiplier for Y*/
+	float		fPositionZMultiplier;		/**< Game-specific position multiplier for Z*/
 	float		DistortionScale;			/**< The scale to apply distortion. **/
-	float		PFOV;						/**< Projection FOV, alternative to modifying game's FOV **/
-	bool		PFOVToggle;					/**< Projection FOV, toggle for above **/
+	float		fPFOV;                      /**< Projection FOV, alternative to modifying game's FOV **/
+	bool		bPFOVToggle;                /**< Projection FOV, toggle for above **/
 	float		zbufferStrength;			/**< Strength of separation **/
 	float		zbufferDepthLow;			/**< Lowest Value of Depth Reading **/
 	float		zbufferDepthHigh;			/**< Highest Value of Depth Reading **/
@@ -132,8 +128,8 @@ struct ProxyConfig
 	/****** General Settings *************************************************/
 	int         stereo_mode;                /**< Stereo render mode enumeration. Matching StereoView::StereoTypes. */
 	int         tracker_mode;               /**< Tracking mode enumeration. Matching MotionTracker::TrackingTypes. */
-	float       ipd;                        /**< IPD, which stands for interpupillary distance (distance between your pupils - in meters...default = 0.064). Also called the interocular distance (or just Interocular). */
-	float       aspect_multiplier;          /**< Aspect multiplier allows adjusting virtual screen aspect ratio. */
+	float       fIPD;                       /**< IPD, which stands for interpupillary distance (distance between your pupils - in meters...default = 0.064). Also called the interocular distance (or just Interocular). */
+	float       fAspectMultiplier;          /**< Aspect multiplier allows adjusting virtual screen aspect ratio. */
 	UINT		display_adapter;			/**< The display adapter to use - 0 = Primary Display, 1 = Secondary and so on.. */
 	int			PerfHudMode;
 	int			mirror_mode;

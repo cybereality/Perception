@@ -97,14 +97,14 @@ m_aasConstantBufferRuleIndices()
 
 	// at start, set the view adjustment class to basic config
 	ZeroMemory(&m_sGameConfiguration, sizeof(Vireio_GameConfiguration));
-	m_sGameConfiguration.convergence = 3.0f;
-	m_sGameConfiguration.ipd = IPD_DEFAULT;
-	m_sGameConfiguration.worldScaleFactor = -32.0f;
-	m_sGameConfiguration.PFOV = 110.0f;
+	m_sGameConfiguration.fConvergence = 3.0f;
+	m_sGameConfiguration.fIPD = IPD_DEFAULT;
+	m_sGameConfiguration.fWorldScaleFactor = -32.0f;
+	m_sGameConfiguration.fPFOV = 110.0f;
 	m_pcShaderViewAdjustment = new ViewAdjustment(m_psHmdInfo, &m_sGameConfiguration);
 
 	// init
-	m_pcShaderViewAdjustment->UpdateProjectionMatrices((float)1920.0f / (float)1080.0f, m_sGameConfiguration.PFOV);
+	m_pcShaderViewAdjustment->UpdateProjectionMatrices((float)1920.0f / (float)1080.0f, m_sGameConfiguration.fPFOV);
 	m_pcShaderViewAdjustment->ComputeViewTransforms();
 
 	// TEST !! ADD A TEST RULE
@@ -255,7 +255,7 @@ HBITMAP MatrixModifier::GetLogo()
 HBITMAP MatrixModifier::GetControl()
 {
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-	// test the shader constant list for updates 
+	// test the shader constant list for updates... TODO !! add button to do this
 	if (m_dwShaders < (UINT)m_asShaders.size())
 	{
 		// loop through new shaders
@@ -285,107 +285,7 @@ HBITMAP MatrixModifier::GetControl()
 
 	// here we create the Vireio GUI.... if this runs under a compiled profile this method is never called
 	if (!m_pcVireioGUI)
-	{
-		SIZE sSizeOfThis;
-		sSizeOfThis.cx = GUI_WIDTH; sSizeOfThis.cy = GUI_HEIGHT;
-		m_pcVireioGUI = new Vireio_GUI(sSizeOfThis, L"Cambria", TRUE, GUI_CONTROL_FONTSIZE, RGB(110, 105, 95), RGB(254, 249, 240));
-
-		// first, add all pages
-		for (int i = 0; i < (int)GUI_Pages::NumberOfPages; i++)
-		{
-			UINT dwPage = m_pcVireioGUI->AddPage();
-			m_adwPageIDs.push_back(dwPage);
-		}
-
-		// control structure
-		Vireio_Control sControl;
-		static std::vector<std::wstring> sEntriesCommanders;
-		static std::vector<std::wstring> sEntriesDecommanders;
-		ZeroMemory(&sControl, sizeof(Vireio_Control));
-
-		// create the decommanders list
-		sControl.m_eControlType = Vireio_Control_Type::StaticListBox;
-		sControl.m_sPosition.x = GUI_CONTROL_FONTBORDER;
-		sControl.m_sPosition.y = 0;
-		sControl.m_sSize.cx = GUI_WIDTH - GUI_CONTROL_BORDER;
-		sControl.m_sSize.cy = NUMBER_OF_DECOMMANDERS * 64;
-		sControl.m_sStaticListBox.m_bSelectable = false;
-		sControl.m_sStaticListBox.m_paszEntries = &sEntriesDecommanders;
-		UINT dwDecommandersList = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::MainPage], sControl);
-
-		// create the commanders list out of the decommanders list
-		sControl.m_sPosition.y += NUMBER_OF_DECOMMANDERS * 64;
-		sControl.m_sPosition.x = GUI_WIDTH >> 2;
-		sControl.m_sSize.cy = NUMBER_OF_COMMANDERS * 64;
-		sControl.m_sStaticListBox.m_paszEntries = &sEntriesCommanders;
-		UINT dwCommandersList = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::MainPage], sControl);
-
-		// and add all entries
-		for (int i = 0; i < NUMBER_OF_DECOMMANDERS; i++)
-			m_pcVireioGUI->AddEntry(dwDecommandersList, this->GetDecommanderName(i));
-		for (int i = 0; i < NUMBER_OF_COMMANDERS; i++)
-			m_pcVireioGUI->AddEntry(dwCommandersList, this->GetCommanderName(i));
-
-		// add debug options, first the debug trace (bottom list ALWAYS first for each page)
-		ZeroMemory(&sControl, sizeof(Vireio_Control));
-		sControl.m_eControlType = Vireio_Control_Type::ListBox;
-		sControl.m_sPosition.x = GUI_CONTROL_BORDER;
-		sControl.m_sPosition.y = GUI_CONTROL_BORDER + GUI_CONTROL_LINE * 4 + (GUI_HEIGHT >> 1);
-		sControl.m_sSize.cx = GUI_WIDTH - GUI_CONTROL_BORDER - GUI_CONTROL_LINE;
-		sControl.m_sSize.cy = GUI_HEIGHT - sControl.m_sPosition.y - GUI_CONTROL_FONTSIZE * 4; // (GUI_CONTROL_FONTSIZE * 4) = size of the bottom arrows of the page
-		sControl.m_sListBox.m_paszEntries = &m_aszDebugTrace;
-		sControl.m_sListBox.m_bSelectable = false;
-		m_dwDebugTrace = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::DebugPage], sControl);
-
-		// shader constant debug list (lists always first from bottom to top!)
-		ZeroMemory(&sControl, sizeof(Vireio_Control));
-		sControl.m_eControlType = Vireio_Control_Type::ListBox;
-		sControl.m_sPosition.x = GUI_CONTROL_BORDER;
-		sControl.m_sPosition.y = GUI_CONTROL_BORDER + GUI_CONTROL_LINE * 3;
-		sControl.m_sSize.cx = GUI_WIDTH - GUI_CONTROL_BORDER - GUI_CONTROL_LINE;
-		sControl.m_sSize.cy = GUI_HEIGHT >> 1;
-		sControl.m_sListBox.m_paszEntries = &m_aszShaderConstants;
-		sControl.m_sListBox.m_bSelectable = true;
-		m_dwShaderConstantsDebug = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::DebugPage], sControl);
-
-		// debug type spin control
-		ZeroMemory(&sControl, sizeof(Vireio_Control));
-		m_aszDebugOptions.push_back(L"Constant Float 4");
-		m_aszDebugOptions.push_back(L"Constant Float 8");
-		m_aszDebugOptions.push_back(L"Constant Float 16");
-		m_aszDebugOptions.push_back(L"Constant Float 32");
-		m_aszDebugOptions.push_back(L"Constant Float 64");
-		sControl.m_eControlType = Vireio_Control_Type::SpinControl;
-		sControl.m_sPosition.x = GUI_CONTROL_BORDER;
-		sControl.m_sPosition.y = GUI_CONTROL_BORDER;
-		sControl.m_sSize.cx = GUI_CONTROL_BUTTONSIZE;
-		sControl.m_sSize.cy = GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER;
-		sControl.m_sSpinControl.m_dwCurrentSelection = (DWORD)m_eDebugOption;
-		sControl.m_sSpinControl.m_paszEntries = &m_aszDebugOptions;
-		m_dwDebugSpin = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::DebugPage], sControl);
-
-		// debug "grab" button
-		ZeroMemory(&sControl, sizeof(Vireio_Control));
-		sControl.m_eControlType = Vireio_Control_Type::Button;
-		sControl.m_sPosition.x = GUI_CONTROL_BORDER;
-		sControl.m_sPosition.y = GUI_CONTROL_BORDER + GUI_CONTROL_LINE;
-		sControl.m_sSize.cx = GUI_CONTROL_BUTTONSIZE;
-		sControl.m_sSize.cy = GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER;
-		static std::wstring szButtonText = std::wstring(L"Grab Debug Data");
-		sControl.m_sButton.m_pszText = &szButtonText;
-		m_dwDebugGrab = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::DebugPage], sControl);
-
-		// debug "clear" button
-		ZeroMemory(&sControl, sizeof(Vireio_Control));
-		sControl.m_eControlType = Vireio_Control_Type::Button;
-		sControl.m_sPosition.x = GUI_CONTROL_BORDER;
-		sControl.m_sPosition.y = GUI_CONTROL_BORDER + GUI_CONTROL_LINE * 2;
-		sControl.m_sSize.cx = GUI_CONTROL_BUTTONSIZE;
-		sControl.m_sSize.cy = GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER;
-		static std::wstring szButtonClear = std::wstring(L"Clear Debug Trace");
-		sControl.m_sButton.m_pszText = &szButtonClear;
-		m_dwClearDebug = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::DebugPage], sControl);
-	}
+		CreateGUI();
 	else
 		return m_pcVireioGUI->GetGUI(false, true, false, false);
 
@@ -403,12 +303,12 @@ void MatrixModifier::InitNodeData(char* pData, UINT dwSizeOfData)
 		memcpy(&m_sGameConfiguration, pData, dwSizeOfData);
 
 		// set to ipd using vireio presenter.... // TODO !! currently set ipd to default
-		m_sGameConfiguration.convergence = 3.0f;
-		m_sGameConfiguration.ipd = IPD_DEFAULT;
-		m_sGameConfiguration.worldScaleFactor = -32.0f;
-		m_sGameConfiguration.PFOV = 110.0f;
+		m_sGameConfiguration.fConvergence = 3.0f;
+		m_sGameConfiguration.fIPD = IPD_DEFAULT;
+		m_sGameConfiguration.fWorldScaleFactor = -32.0f;
+		m_sGameConfiguration.fPFOV = 110.0f;
 		m_pcShaderViewAdjustment->Load(m_sGameConfiguration);
-		m_pcShaderViewAdjustment->UpdateProjectionMatrices((float)1920.0f / (float)1080.0f, m_sGameConfiguration.PFOV);
+		m_pcShaderViewAdjustment->UpdateProjectionMatrices((float)1920.0f / (float)1080.0f, m_sGameConfiguration.fPFOV);
 		m_pcShaderViewAdjustment->ComputeViewTransforms();
 	}
 }
@@ -1813,7 +1713,7 @@ void MatrixModifier::UpdateConstantBuffer(ID3D11DeviceContext* pcContext, ID3D11
 	{
 		// get the register size of the buffer
 		UINT dwBufferRegisterSize = dwBufferSize >> 5;
-		
+
 		// constant rules addressed ? 
 		INT nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
 
@@ -1825,7 +1725,7 @@ void MatrixModifier::UpdateConstantBuffer(ID3D11DeviceContext* pcContext, ID3D11
 		if ((nRulesIndex == VIREIO_CONSTANT_RULES_NOT_ADDRESSED) && (dwBufferIndex < m_asShaders[sPrivateData.dwIndex].asBuffersUnaccounted.size()))
 			// get the new rule index
 			nRulesIndex = m_asShaders[sPrivateData.dwIndex].asBuffersUnaccounted[dwBufferIndex].nConstantRulesIndex;
-			
+
 		// still not addressed ? address
 		if (nRulesIndex == VIREIO_CONSTANT_RULES_NOT_ADDRESSED)
 		{
@@ -1972,12 +1872,12 @@ void MatrixModifier::UpdateConstantBuffer(ID3D11DeviceContext* pcContext, ID3D11
 					m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].nConstantRulesIndex = nRulesIndex;
 				if (dwBufferIndex < m_asShaders[sPrivateData.dwIndex].asBuffersUnaccounted.size())
 					m_asShaders[sPrivateData.dwIndex].asBuffersUnaccounted[dwBufferIndex].nConstantRulesIndex = nRulesIndex;
-					
+
 				// and add
 				m_aasConstantBufferRuleIndices.push_back(asConstantBufferRules);
 			}
 		}
-		
+
 		// do modifications
 		if (nRulesIndex >= 0)
 		{
@@ -2242,4 +2142,199 @@ void MatrixModifier::DebugOutput(const void *pvSrcData, UINT dwShaderIndex, UINT
 	}
 #elif defined(VIREIO_D3D9)
 #endif
+}
+
+/**
+* Creates the Graphical User Interface for this node.
+***/
+void MatrixModifier::CreateGUI()
+{
+	SIZE sSizeOfThis;
+	sSizeOfThis.cx = GUI_WIDTH; sSizeOfThis.cy = GUI_HEIGHT;
+	m_pcVireioGUI = new Vireio_GUI(sSizeOfThis, L"Cambria", TRUE, GUI_CONTROL_FONTSIZE, RGB(110, 105, 95), RGB(254, 249, 240));
+
+	// first, add all pages
+	for (int i = 0; i < (int)GUI_Pages::NumberOfPages; i++)
+	{
+		UINT dwPage = m_pcVireioGUI->AddPage();
+		m_adwPageIDs.push_back(dwPage);
+	}
+
+	// control structure
+	Vireio_Control sControl;
+	ZeroMemory(&sControl, sizeof(Vireio_Control));
+
+#pragma region Main Page
+	static std::vector<std::wstring> sEntriesCommanders;
+	static std::vector<std::wstring> sEntriesDecommanders;
+
+	// create the decommanders list
+	sControl.m_eControlType = Vireio_Control_Type::StaticListBox;
+	sControl.m_sPosition.x = GUI_CONTROL_FONTBORDER;
+	sControl.m_sPosition.y = 0;
+	sControl.m_sSize.cx = GUI_WIDTH - GUI_CONTROL_BORDER;
+	sControl.m_sSize.cy = NUMBER_OF_DECOMMANDERS * 64;
+	sControl.m_sStaticListBox.m_bSelectable = false;
+	sControl.m_sStaticListBox.m_paszEntries = &sEntriesDecommanders;
+	UINT dwDecommandersList = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::MainPage], sControl);
+
+	// create the commanders list out of the decommanders list
+	sControl.m_sPosition.y += NUMBER_OF_DECOMMANDERS * 64;
+	sControl.m_sPosition.x = GUI_WIDTH >> 2;
+	sControl.m_sSize.cy = NUMBER_OF_COMMANDERS * 64;
+	sControl.m_sStaticListBox.m_paszEntries = &sEntriesCommanders;
+	UINT dwCommandersList = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::MainPage], sControl);
+
+	// and add all entries
+	for (int i = 0; i < NUMBER_OF_DECOMMANDERS; i++)
+		m_pcVireioGUI->AddEntry(dwDecommandersList, this->GetDecommanderName(i));
+	for (int i = 0; i < NUMBER_OF_COMMANDERS; i++)
+		m_pcVireioGUI->AddEntry(dwCommandersList, this->GetCommanderName(i));
+#pragma endregion
+
+#pragma region Description Page
+	static std::vector<std::wstring> sEntriesDescription;
+
+	// create the decommanders list
+	sControl.m_eControlType = Vireio_Control_Type::StaticListBox;
+	sControl.m_sPosition.x = GUI_CONTROL_FONTBORDER;
+	sControl.m_sPosition.y = 0;
+	sControl.m_sSize.cx = GUI_WIDTH - GUI_CONTROL_BORDER;
+	sControl.m_sSize.cy = (NUMBER_OF_DECOMMANDERS + NUMBER_OF_COMMANDERS) * 64;
+	sControl.m_sStaticListBox.m_bSelectable = false;
+	sControl.m_sStaticListBox.m_paszEntries = &sEntriesDescription;
+	UINT dwDescriptionList = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::DescriptionPage], sControl);
+
+	// and add all entries
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"ID3D10Device::CreateVertexShader");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L".");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L".");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"--------------------------------------------");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"ID3D10Device::CreatePixelShader");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L".");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L".");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"--------------------------------------------");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"ID3D10/ID3D11::VSSetShader");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"--------------------------------------------");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"ID3D10/ID3D11::PSSetShader");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"--------------------------------------------");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"ID3D10Device::CreateBuffer");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L".");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"--------------------------------------------");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"ID3D10/ID3D11::VSSetConstantBuffers");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L".");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L".");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"--------------------------------------------");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"ID3D10/ID3D11::PSSetConstantBuffers");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L".");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L".");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"--------------------------------------------");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"ID3D10/ID3D11::UpdateSubresource");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L".");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L".");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L".");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L".");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L".");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L".");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"--------------------------------------------");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"ID3D10/ID3D11::CopyResource");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L".");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L".");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"--------------------------------------------");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"ID3D10/ID3D11::CopySubresourceRegion");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L".");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L".");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L".");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L".");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L".");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L".");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L".");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L".");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L".");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"--------------------------------------------");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"ID3D10/ID3D11::VSGetConstantBuffers");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L".");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L".");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"--------------------------------------------");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"ID3D10/ID3D11::PSGetConstantBuffers");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L".");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L".");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"--------------------------------------------");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"ID3D11DeviceContext::Map");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L".");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L".");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L".");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"--------------------------------------------");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"ID3D11DeviceContext::Unmap");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"--------------------------------------------");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"Splitter switches Left/Right per draw call");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"D3D10 VS constant buffers");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"D3D11 VS constant buffers");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"D3D10 PS constant buffers");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"D3D11 PS constant buffers");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"Splitter verifies constant buffers if needed");
+	m_pcVireioGUI->AddEntry(dwDescriptionList, L"D3D11 Vireio Constructor Data");
+#pragma endregion
+
+#pragma region Debug Page
+	// add debug options, first the debug trace (bottom list ALWAYS first for each page)
+	ZeroMemory(&sControl, sizeof(Vireio_Control));
+	sControl.m_eControlType = Vireio_Control_Type::ListBox;
+	sControl.m_sPosition.x = GUI_CONTROL_BORDER;
+	sControl.m_sPosition.y = GUI_CONTROL_BORDER + GUI_CONTROL_LINE * 4 + (GUI_HEIGHT >> 1);
+	sControl.m_sSize.cx = GUI_WIDTH - GUI_CONTROL_BORDER - GUI_CONTROL_LINE;
+	sControl.m_sSize.cy = GUI_HEIGHT - sControl.m_sPosition.y - GUI_CONTROL_FONTSIZE * 4; // (GUI_CONTROL_FONTSIZE * 4) = size of the bottom arrows of the page
+	sControl.m_sListBox.m_paszEntries = &m_aszDebugTrace;
+	sControl.m_sListBox.m_bSelectable = false;
+	m_dwDebugTrace = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::DebugPage], sControl);
+
+	// shader constant debug list (lists always first from bottom to top!)
+	ZeroMemory(&sControl, sizeof(Vireio_Control));
+	sControl.m_eControlType = Vireio_Control_Type::ListBox;
+	sControl.m_sPosition.x = GUI_CONTROL_BORDER;
+	sControl.m_sPosition.y = GUI_CONTROL_BORDER + GUI_CONTROL_LINE * 3;
+	sControl.m_sSize.cx = GUI_WIDTH - GUI_CONTROL_BORDER - GUI_CONTROL_LINE;
+	sControl.m_sSize.cy = GUI_HEIGHT >> 1;
+	sControl.m_sListBox.m_paszEntries = &m_aszShaderConstants;
+	sControl.m_sListBox.m_bSelectable = true;
+	m_dwShaderConstantsDebug = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::DebugPage], sControl);
+
+	// debug type spin control
+	ZeroMemory(&sControl, sizeof(Vireio_Control));
+	m_aszDebugOptions.push_back(L"Constant Float 4");
+	m_aszDebugOptions.push_back(L"Constant Float 8");
+	m_aszDebugOptions.push_back(L"Constant Float 16");
+	m_aszDebugOptions.push_back(L"Constant Float 32");
+	m_aszDebugOptions.push_back(L"Constant Float 64");
+	sControl.m_eControlType = Vireio_Control_Type::SpinControl;
+	sControl.m_sPosition.x = GUI_CONTROL_BORDER;
+	sControl.m_sPosition.y = GUI_CONTROL_BORDER;
+	sControl.m_sSize.cx = GUI_CONTROL_BUTTONSIZE;
+	sControl.m_sSize.cy = GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER;
+	sControl.m_sSpinControl.m_dwCurrentSelection = (DWORD)m_eDebugOption;
+	sControl.m_sSpinControl.m_paszEntries = &m_aszDebugOptions;
+	m_dwDebugSpin = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::DebugPage], sControl);
+
+	// debug "grab" button
+	ZeroMemory(&sControl, sizeof(Vireio_Control));
+	sControl.m_eControlType = Vireio_Control_Type::Button;
+	sControl.m_sPosition.x = GUI_CONTROL_BORDER;
+	sControl.m_sPosition.y = GUI_CONTROL_BORDER + GUI_CONTROL_LINE;
+	sControl.m_sSize.cx = GUI_CONTROL_BUTTONSIZE;
+	sControl.m_sSize.cy = GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER;
+	static std::wstring szButtonText = std::wstring(L"Grab Debug Data");
+	sControl.m_sButton.m_pszText = &szButtonText;
+	m_dwDebugGrab = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::DebugPage], sControl);
+
+	// debug "clear" button
+	ZeroMemory(&sControl, sizeof(Vireio_Control));
+	sControl.m_eControlType = Vireio_Control_Type::Button;
+	sControl.m_sPosition.x = GUI_CONTROL_BORDER;
+	sControl.m_sPosition.y = GUI_CONTROL_BORDER + GUI_CONTROL_LINE * 2;
+	sControl.m_sSize.cx = GUI_CONTROL_BUTTONSIZE;
+	sControl.m_sSize.cy = GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER;
+	static std::wstring szButtonClear = std::wstring(L"Clear Debug Trace");
+	sControl.m_sButton.m_pszText = &szButtonClear;
+	m_dwClearDebug = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::DebugPage], sControl);
+#pragma endregion
 }

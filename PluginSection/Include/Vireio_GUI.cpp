@@ -799,10 +799,7 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 							// set event to "pressed"
 							sRet.eType = Vireio_GUI_Event_Type::Pressed;
 							sRet.dwIndexOfPage = m_dwCurrentPage;
-							sRet.dwIndexOfControl = (UINT)(m_dwCurrentPage << 16) + dwI;
-
-							// update control
-							m_bControlUpdate = true;
+							sRet.dwIndexOfControl = (UINT)(m_dwCurrentPage << 16) + dwI;							
 						}
 #pragma region List Box
 						// is this a control with a side- scrollbar ?
@@ -856,11 +853,7 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 									sMouseCoordsOld.x = m_sMouseCoords.x;
 									sMouseCoordsOld.y = m_sMouseCoords.y;
 									fScrollBarPosYBackup = m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_fScrollPosY;
-
-									// update control
-									m_bControlUpdate = true;
 								}
-
 							}
 						}
 #pragma endregion
@@ -897,9 +890,6 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 									}
 								}
 								sRet.dwNewValue = m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSpinControl.m_dwCurrentSelection;
-
-								// update control
-								m_bControlUpdate = true;
 							}
 						}
 #pragma endregion
@@ -930,6 +920,8 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 					}
 				}
 			}
+			// update control
+			m_bControlUpdate = true;
 			break;
 			// left mouse button up ?
 		case WM_LBUTTONUP:
@@ -942,6 +934,9 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 			}
 			m_eActiveControlAction = Vireio_Control_Action::None;
 			m_bMouseBoundToControl = false;
+
+			// update control
+			m_bControlUpdate = true;
 			break;
 			// mouse move ?
 		case WM_MOUSEMOVE:

@@ -899,18 +899,18 @@ void D3DProxyDevice::HandleControls()
 				float separationChange = 0.05f * wheelSign;
 				m_spShaderViewAdjustment->ChangeWorldScale(separationChange);
 
-				m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, config.PFOV);
-				ShowAdjusterToast(retprintf("Stereo Separation (World Scale): %1.3f", config.worldScaleFactor), 500);
+				m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, config.fPFOV);
+				ShowAdjusterToast(retprintf("Stereo Separation (World Scale): %1.3f", config.fWorldScaleFactor), 500);
 				DeferedSaveConfig();
 			}
 			//CTRL + SPACE + Mouse Wheel - adjust projection fov dynamically
 			else if(hotkeyWheelPFOV->IsHeld(controls))
 			{
-				config.PFOV += 0.5f*wheelSign;
+				config.fPFOV += 0.5f*wheelSign;
 
-				m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, config.PFOV);
+				m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, config.fPFOV);
 				
-				ShowAdjusterToast(retprintf("Projection FOV: %1.3f", config.PFOV), 500);
+				ShowAdjusterToast(retprintf("Projection FOV: %1.3f", config.fPFOV), 500);
 				DeferedSaveConfig();
 			}
 			else if(hotkeyWheelZoomScale->IsHeld(controls))

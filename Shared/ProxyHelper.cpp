@@ -461,7 +461,7 @@ bool ProxyHelper::LoadUserConfig(ProxyConfig& config, OculusProfile& oculusProfi
 	xml_node users;
 	xml_node userProfile;
 
-	config.ipd = IPD_DEFAULT;
+	config.fIPD = IPD_DEFAULT;
 
 	// first, load user settings stored in "cfg\users.xml"
 	if(resultUsers.status == status_ok)
@@ -475,7 +475,7 @@ bool ProxyHelper::LoadUserConfig(ProxyConfig& config, OculusProfile& oculusProfi
 				OutputDebugString("Load the specific user!!!\n");
 				userProfile = user_profile;
 				userFound = true;
-				config.ipd = userProfile.attribute("ipd").as_float(IPD_DEFAULT);
+				config.fIPD = userProfile.attribute("ipd").as_float(IPD_DEFAULT);
 				break;
 			}
 		}
@@ -497,7 +497,7 @@ bool ProxyHelper::LoadUserConfig(ProxyConfig& config, OculusProfile& oculusProfi
 	// set default data
 	oculusProfile.Name = "Default";
 	oculusProfile.Gender = "Unspecified";
-	oculusProfile.IPD = config.ipd;
+	oculusProfile.IPD = config.fIPD;
 	oculusProfile.PlayerHeight = 1.0f;
 	oculusProfile.RiftVersion = "None";		
 
@@ -575,7 +575,7 @@ bool ProxyHelper::LoadUserConfig(ProxyConfig& config, OculusProfile& oculusProfi
 	}
 
 	// set and save ipd
-	config.ipd = oculusProfile.IPD;
+	config.fIPD = oculusProfile.IPD;
 	SaveUserConfig(oculusProfile.IPD);
 
 	// output data to debug console
@@ -711,7 +711,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 		xml_node xml_config = docConfig.child("config");
 
 		LoadSetting(xml_config, "stereo_mode", &config.stereo_mode);
-		LoadSetting(xml_config, "aspect_multiplier", &config.aspect_multiplier);
+		LoadSetting(xml_config, "aspect_multiplier", &config.fAspectMultiplier);
 		LoadSetting(xml_config, "tracker_mode", &config.tracker_mode);
 		LoadSetting(xml_config, "display_adapter", &config.display_adapter);
 		LoadSetting(xml_config, "PerfHudMode", &config.PerfHudMode);
@@ -794,11 +794,11 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 		if(config.yaw_multiplier == 0.0f) config.yaw_multiplier = defaultConfig.yaw_multiplier;
 		if(config.pitch_multiplier == 0.0f) config.pitch_multiplier = defaultConfig.pitch_multiplier;
 		if(config.roll_multiplier == 0.0f) config.roll_multiplier = defaultConfig.roll_multiplier;
-		if(config.position_multiplier == 0.0f) config.position_multiplier = defaultConfig.position_multiplier;
+		if(config.fPositionMultiplier == 0.0f) config.fPositionMultiplier = defaultConfig.fPositionMultiplier;
 
-		if(config.position_x_multiplier == 0.0f) config.position_x_multiplier = defaultConfig.position_x_multiplier;
-		if(config.position_y_multiplier == 0.0f) config.position_y_multiplier = defaultConfig.position_y_multiplier;
-		if(config.position_z_multiplier == 0.0f) config.position_z_multiplier = defaultConfig.position_z_multiplier;
+		if(config.fPositionXMultiplier == 0.0f) config.fPositionXMultiplier = defaultConfig.fPositionXMultiplier;
+		if(config.fPositionYMultiplier == 0.0f) config.fPositionYMultiplier = defaultConfig.fPositionYMultiplier;
+		if(config.fPositionZMultiplier == 0.0f) config.fPositionZMultiplier = defaultConfig.fPositionZMultiplier;
 
 		// get shader rules file name
 		string shaderRulesFileName = gameProfile.attribute("shaderModRules").as_string("");
@@ -920,7 +920,7 @@ bool ProxyHelper::SaveConfig(ProxyConfig& config)
 		profileSaved = true;
 	}
 
-	return (profileSaved || SaveUserConfig(config.ipd));
+	return (profileSaved || SaveUserConfig(config.fIPD));
 }
 
 
@@ -1021,11 +1021,11 @@ void HandleGameProfile(ProxyHelper::ConfigTransferDirection dir, xml_node &node,
 	HANDLE_SETTING_ATTR("minVRboostShaderCount", VRboostMinShaderCount, 0);
 	HANDLE_SETTING_ATTR("maxVRboostShaderCount", VRboostMaxShaderCount, 999999);
 	HANDLE_SETTING(game_type,                "");
-	HANDLE_SETTING(rollImpl,                 0);
-	HANDLE_SETTING(worldScaleFactor,         1.0f);
+	HANDLE_SETTING(nRollImpl,                0);
+	HANDLE_SETTING(fWorldScaleFactor,        1.0f);
 
-	HANDLE_SETTING(convergenceEnabled,       false);
-	HANDLE_SETTING(convergence,              0.0f);
+	HANDLE_SETTING(bConvergenceEnabled,      false);
+	HANDLE_SETTING(fConvergence,             0.0f);
 	HANDLE_SETTING(swap_eyes,                false);
 	HANDLE_SETTING_ATTR("postpresent_sleep",              sleep, 0);
 	HANDLE_SETTING_ATTR("use_sdk_pose_prediction", useSDKPosePrediction, false);
@@ -1033,10 +1033,10 @@ void HandleGameProfile(ProxyHelper::ConfigTransferDirection dir, xml_node &node,
 	HANDLE_SETTING(yaw_multiplier,           DEFAULT_YAW_MULTIPLIER);
 	HANDLE_SETTING(pitch_multiplier,         DEFAULT_PITCH_MULTIPLIER);
 	HANDLE_SETTING(roll_multiplier,          1.0f);
-	HANDLE_SETTING(position_multiplier,      1.0f);
-	HANDLE_SETTING(position_x_multiplier,    DEFAULT_POS_TRACKING_X_MULT);
-	HANDLE_SETTING(position_y_multiplier,    DEFAULT_POS_TRACKING_Y_MULT);
-	HANDLE_SETTING(position_z_multiplier,    DEFAULT_POS_TRACKING_Z_MULT);
+	HANDLE_SETTING(fPositionMultiplier,      1.0f);
+	HANDLE_SETTING(fPositionXMultiplier,     DEFAULT_POS_TRACKING_X_MULT);
+	HANDLE_SETTING(fPositionYMultiplier,     DEFAULT_POS_TRACKING_Y_MULT);
+	HANDLE_SETTING(fPositionZMultiplier,     DEFAULT_POS_TRACKING_Z_MULT);
 	HANDLE_SETTING_ATTR("distortion_scale",  DistortionScale, 0.0f);
 	
 	HANDLE_SETTING_ATTR("hud_3D_depth_mode", hud3DDepthMode, 0);
@@ -1081,8 +1081,8 @@ void HandleGameProfile(ProxyHelper::ConfigTransferDirection dir, xml_node &node,
 	HANDLE_SETTING(ComfortModeLeftKey,       Key(VK_LEFT)  || Axis(InputControls::RightStickX, false, -COMFORT_MODE_STICK_THRESHOLD));
 	HANDLE_SETTING(ComfortModeRightKey,      Key(VK_RIGHT) || Axis(InputControls::RightStickX, true, COMFORT_MODE_STICK_THRESHOLD));
 
-	HANDLE_SETTING(PFOV,					110.0f);
-	HANDLE_SETTING(PFOVToggle,				true);
+	HANDLE_SETTING(fPFOV,					110.0f);
+	HANDLE_SETTING(bPFOVToggle,				true);
 	
 	HANDLE_SETTING(zbufferSwitch,			false);
 	HANDLE_SETTING(zbufferStrength,			500.0f);
@@ -1282,8 +1282,8 @@ ProxyConfig::ProxyConfig()
 	
 	stereo_mode = 0;
 	tracker_mode = 0;
-	ipd = IPD_DEFAULT;
-	aspect_multiplier = 1.777f;
+	fIPD = IPD_DEFAULT;
+	fAspectMultiplier = 1.777f;
 	display_adapter = 0;
 	PerfHudMode = 0;
 	mirror_mode = 0;

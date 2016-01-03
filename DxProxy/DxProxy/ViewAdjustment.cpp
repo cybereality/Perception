@@ -104,7 +104,7 @@ m_roll(0.0f)
 	D3DXMatrixIdentity(&matGatheredLeft);
 	D3DXMatrixIdentity(&matGatheredRight);
 
-	UpdateProjectionMatrices(config->aspect_multiplier, 110.0f);
+	UpdateProjectionMatrices(config->fAspectMultiplier, 110.0f);
 	D3DXMatrixIdentity(&rollMatrix);
 	D3DXMatrixIdentity(&rollMatrixNegative);
 	ComputeViewTransforms();
@@ -125,8 +125,8 @@ ViewAdjustment::~ViewAdjustment()
 void ViewAdjustment::Load(Vireio_GameConfiguration& cfg)
 {
 	config = &cfg;
-	convergence = cfg.convergence;
-	ipd = cfg.ipd;
+	convergence = cfg.fConvergence;
+	ipd = cfg.fIPD;
 }
 
 /**
@@ -135,10 +135,10 @@ void ViewAdjustment::Load(Vireio_GameConfiguration& cfg)
 ***/
 void ViewAdjustment::Save(Vireio_GameConfiguration& cfg)
 {
-	cfg.convergence = convergence;
+	cfg.fConvergence = convergence;
 
 	//worldscale and ipd are not normally edited;
-	cfg.ipd = ipd;
+	cfg.fIPD = ipd;
 }
 #else
 /**
@@ -147,8 +147,8 @@ void ViewAdjustment::Save(Vireio_GameConfiguration& cfg)
 ***/
 void ViewAdjustment::Load(ProxyConfig& cfg)
 {
-	convergence = cfg.convergence;
-	ipd = cfg.ipd;
+	convergence = cfg.fConvergence;
+	ipd = cfg.fIPD;
 }
 
 /**
@@ -157,10 +157,10 @@ void ViewAdjustment::Load(ProxyConfig& cfg)
 ***/
 void ViewAdjustment::Save(ProxyConfig& cfg)
 {
-	cfg.convergence = convergence;
+	cfg.fConvergence = convergence;
 
 	//worldscale and ipd are not normally edited;
-	cfg.ipd = ipd;
+	cfg.fIPD = ipd;
 }
 #endif
 
@@ -193,7 +193,7 @@ void ViewAdjustment::UpdateProjectionMatrices(float aspectRatio, float fov_horiz
 	D3DXMatrixInverse(&matProjectionInv, 0, &matBasicProjection);
 
 	// if not HMD, set values to fullscreen defaults
-	if (!config->PFOVToggle)   //Can't use convergence and projection FOV at the same time
+	if (!config->bPFOVToggle)   //Can't use convergence and projection FOV at the same time
 	{
 		// assumption here :
 		// end user is placed 1 meter away from screen
@@ -215,7 +215,7 @@ void ViewAdjustment::UpdateProjectionMatrices(float aspectRatio, float fov_horiz
 
 		// Convergence being disabled is equivalent to an infinite convergence distance,
 		// or zero asymmetry.
-		if (!config->convergenceEnabled)
+		if (!config->bConvergenceEnabled)
 			frustumAsymmetryInMeters = 0.0f;
 
 		// divide the frustum asymmetry by the assumed physical size of the physical screen
@@ -280,7 +280,7 @@ void ViewAdjustment::UpdatePosition(float yaw, float pitch, float roll, float xP
 	D3DXVECTOR3 vec(xPosition, yPosition, zPosition);
 
 	D3DXMATRIX worldScale;
-	float scaler = config->position_multiplier * config->worldScaleFactor;
+	float scaler = config->fPositionMultiplier * config->fWorldScaleFactor;
 	D3DXMatrixScaling(&worldScale, -1.0f*scaler, -1.0f*scaler, scaler);
 	D3DXVec3TransformNormal(&positionTransformVec, &vec, &worldScale);
 
@@ -292,14 +292,14 @@ void ViewAdjustment::UpdatePosition(float yaw, float pitch, float roll, float xP
 
 	//Still need to apply the roll, as the "no roll" param is just whether we use matrix roll translation or if
 	//memory modification, either way, the view still rolls, unless using the pixel shader roll approach
-	if (config->rollImpl != 2)
+	if (config->nRollImpl != 2)
 	{
 		D3DXVec3TransformNormal(&positionTransformVec, &positionTransformVec, &rotationMatrixRoll);
 	}
 
 	//Now apply game specific scaling for the X/Y/Z
 	D3DXMATRIX gamescalingmatrix;
-	D3DXMatrixScaling(&gamescalingmatrix, config->position_x_multiplier, config->position_y_multiplier, config->position_z_multiplier);
+	D3DXMatrixScaling(&gamescalingmatrix, config->fPositionXMultiplier, config->fPositionYMultiplier, config->fPositionZMultiplier);
 	D3DXVec3TransformNormal(&positionTransformVec, &positionTransformVec, &gamescalingmatrix);
 
 	D3DXMatrixTranslation(&matPosition, positionTransformVec.x, positionTransformVec.y, positionTransformVec.z);
@@ -314,7 +314,7 @@ void ViewAdjustment::UpdatePosition(float yaw, float pitch, float roll, float xP
 void ViewAdjustment::ComputeViewTransforms()
 {
 	//Pixel shader roll needs to apply stereo separation adjusted for the tilted horizon
-	if (config->rollImpl == 2)
+	if (config->nRollImpl == 2)
 	{
 		float xLeftSeparation = cos(-m_roll) * SeparationInWorldUnits() * LEFT_CONSTANT;
 		float yLeftSeparation = sin(-m_roll) * SeparationInWorldUnits() * LEFT_CONSTANT;
@@ -333,13 +333,13 @@ void ViewAdjustment::ComputeViewTransforms()
 	}
 
 	// projection transform, no roll
-	if (config->PFOVToggle)
+	if (config->bPFOVToggle)
 	{
 		matViewProjTransformLeftNoRoll = matProjectionInv * transformLeft * projectPFOV;
 		matViewProjTransformRightNoRoll = matProjectionInv * transformRight * projectPFOV;
 
 		// head roll - only if using translation implementation
-		if (config->rollImpl == 1)
+		if (config->nRollImpl == 1)
 		{
 			D3DXMatrixMultiply(&transformLeft, &rollMatrix, &transformLeft);
 			D3DXMatrixMultiply(&transformRight, &rollMatrix, &transformRight);
@@ -364,7 +364,7 @@ void ViewAdjustment::ComputeViewTransforms()
 		matViewProjTransformLeftNoRoll = matProjectionInv * transformLeft * projectLeftConverge;
 		matViewProjTransformRightNoRoll = matProjectionInv * transformRight * projectRightConverge;
 		// head roll - only if using translation implementation
-		if (config->rollImpl == 1)
+		if (config->nRollImpl == 1)
 		{
 			D3DXMatrixMultiply(&transformLeft, &rollMatrix, &transformLeft);
 			D3DXMatrixMultiply(&transformRight, &rollMatrix, &transformRight);
@@ -659,11 +659,11 @@ void ViewAdjustment::GatherMatrix(D3DXMATRIX& matrixLeft, D3DXMATRIX& matrixRigh
 ***/
 float ViewAdjustment::ChangeWorldScale(float toAdd)
 {
-	config->worldScaleFactor += toAdd;
+	config->fWorldScaleFactor += toAdd;
 
-	clamp(&config->worldScaleFactor, 0.000001f, 1000000.0f);
+	clamp(&config->fWorldScaleFactor, 0.000001f, 1000000.0f);
 
-	return config->worldScaleFactor;
+	return config->fWorldScaleFactor;
 }
 
 /**
@@ -745,7 +745,7 @@ float ViewAdjustment::Convergence()
 ***/
 float ViewAdjustment::ConvergenceInWorldUnits()
 {
-	return convergence * config->worldScaleFactor;
+	return convergence * config->fWorldScaleFactor;
 }
 
 /**
@@ -753,7 +753,7 @@ float ViewAdjustment::ConvergenceInWorldUnits()
 ***/
 float ViewAdjustment::SeparationInWorldUnits()
 {
-	return  (ipd / 2.0f) * config->worldScaleFactor;
+	return  (ipd / 2.0f) * config->fWorldScaleFactor;
 }
 
 /**
@@ -762,7 +762,7 @@ float ViewAdjustment::SeparationInWorldUnits()
 ***/
 float ViewAdjustment::SeparationIPDAdjustment()
 {
-	return  ((ipd - IPD_DEFAULT) / 2.0f) * config->worldScaleFactor;
+	return  ((ipd - IPD_DEFAULT) / 2.0f) * config->fWorldScaleFactor;
 }
 
 /**

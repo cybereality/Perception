@@ -497,7 +497,7 @@ HRESULT WINAPI D3DProxyDevice::Present(CONST RECT* pSourceRect,CONST RECT* pDest
 		LONG openRes = RegOpenKeyEx(HKEY_CURRENT_USER, "SOFTWARE\\Vireio\\Perception", 0, KEY_ALL_ACCESS , &hKey);
 		if (openRes==ERROR_SUCCESS)
 		{
-			RegSetValueEx(hKey, "FPS", 0, REG_SZ, (LPBYTE)buffer, strlen(buffer)+1);
+			RegSetValueEx(hKey, "FPS", 0, REG_SZ, (LPBYTE)buffer, (DWORD)strlen(buffer)+1);
 			RegCloseKey(hKey);
 		}
 	}
@@ -2433,7 +2433,7 @@ void D3DProxyDevice::Init(ProxyConfig& cfg, ProxyHelper::UserConfig& userConfig)
 
 	m_bfloatingMenu = false;
 
-	debugf("type: %s, aspect: %d stereo mode: %i\n", config.game_type.c_str(), config.aspect_multiplier, userConfig.mode);
+	debugf("type: %s, aspect: %d stereo mode: %i\n", config.game_type.c_str(), config.fAspectMultiplier, userConfig.mode);
 
 	// first time configuration
 	m_spShaderViewAdjustment->Load(config);
@@ -2486,7 +2486,7 @@ void D3DProxyDevice::DuckAndCover::SaveToRegistry()
 	{
 		char buffer[128];
 		sprintf_s(buffer, "%i %i %i %i %i %i %i", (int)jumpKey, jumpEnabled ? 1 : 0, (int)crouchKey, crouchToggle ? 1 : 0, (int)proneKey, proneEnabled ? 1 : 0, proneToggle ? 1 : 0);
-		RegSetValueEx(hKey, _T("DuckAndCOver"), 0, REG_SZ, (LPBYTE)buffer, strlen(buffer)+1);
+		RegSetValueEx(hKey, _T("DuckAndCOver"), 0, REG_SZ, (LPBYTE)buffer, (DWORD)strlen(buffer)+1);
 		RegCloseKey(hKey);
 	}
 }
@@ -2637,7 +2637,7 @@ void D3DProxyDevice::HandleTracking()
 			if (!stereoView->m_disconnectedScreenView)
 			{
 				//Roll implementation
-				switch (config.rollImpl)
+				switch (config.nRollImpl)
 				{
 				case 0:
 					{
@@ -3262,7 +3262,7 @@ void D3DProxyDevice::OnCreateOrRestore()
 
 	stereoView->Init(getActual());
 
-	m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, config.PFOV);
+	m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, config.fPFOV);
 	m_spShaderViewAdjustment->ComputeViewTransforms();
 
 
@@ -3315,9 +3315,9 @@ bool D3DProxyDevice::setDrawingSide(vireio::RenderPosition side)
 		if ((pCurrentRT = m_activeRenderTargets[i]) != NULL) {
 
 			if (side == vireio::Left) 
-				result = BaseDirect3DDevice9::SetRenderTarget(i, pCurrentRT->getActualLeft()); 
+				result = BaseDirect3DDevice9::SetRenderTarget((DWORD)i, pCurrentRT->getActualLeft());
 			else 
-				result = BaseDirect3DDevice9::SetRenderTarget(i, pCurrentRT->getActualRight());
+				result = BaseDirect3DDevice9::SetRenderTarget((DWORD)i, pCurrentRT->getActualRight());
 
 			if (result != D3D_OK) {
 				OutputDebugString("Error trying to set one of the Render Targets while switching between active eyes for drawing.\n");

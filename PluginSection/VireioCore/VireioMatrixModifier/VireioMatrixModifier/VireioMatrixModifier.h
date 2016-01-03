@@ -129,21 +129,21 @@ enum STS_Decommanders
 {
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	/*** D3D10 + D3D11 methods ***/
-	pShaderBytecode_VertexShader,            /**< ID3D10Device/ID3D11Device::CreateVertexShader ***/
-	BytecodeLength_VertexShader,             /**< ID3D10Device/ID3D11Device::CreateVertexShader ***/
-	pClassLinkage_VertexShader,              /**< ID3D10Device/ID3D11Device::CreateVertexShader ***/
-	ppVertexShader_DX10,                     /**< ID3D10Device/ID3D11Device::CreateVertexShader ***/
-	pShaderBytecode_PixelShader,             /**< ID3D10Device/ID3D11Device::CreatePixelShader ***/
-	BytecodeLength_PixelShader,              /**< ID3D10Device/ID3D11Device::CreatePixelShader ***/
-	pClassLinkage_PixelShader,               /**< ID3D10Device/ID3D11Device::CreatePixelShader **/
-	ppPixelShader_DX10,                      /**< ID3D10Device/ID3D11Device::CreatePixelShader ***/
+	pShaderBytecode_VertexShader,            /**< ID3D10Device::CreateVertexShader ***/
+	BytecodeLength_VertexShader,             /**< ID3D10Device::CreateVertexShader ***/
+	pClassLinkage_VertexShader,              /**< ID3D10Device::CreateVertexShader ***/
+	ppVertexShader_DX10,                     /**< ID3D10Device::CreateVertexShader ***/
+	pShaderBytecode_PixelShader,             /**< ID3D10Device::CreatePixelShader ***/
+	BytecodeLength_PixelShader,              /**< ID3D10Device::CreatePixelShader ***/
+	pClassLinkage_PixelShader,               /**< ID3D10Device::CreatePixelShader **/
+	ppPixelShader_DX10,                      /**< ID3D10Device::CreatePixelShader ***/
 	pVertexShader_10,                        /**< ID3D10Device/ID3D11DeviceContext::VSSetShader ***/
 	pVertexShader_11,                        /**< ID3D10Device/ID3D11DeviceContext::VSSetShader ***/
 	pPixelShader_10,                         /**< ID3D10Device/ID3D11DeviceContext::PSSetShader ***/
 	pPixelShader_11,                         /**< ID3D10Device/ID3D11DeviceContext::PSSetShader ***/
-	pDesc_DX10,                              /**< ID3D10Device/ID3D11Device::CreateBuffer ***/
-	pInitialData_DX10,                       /**< ID3D10Device/ID3D11Device::CreateBuffer ***/
-	ppBuffer_DX10,                           /**< ID3D10Device/ID3D11Device::CreateBuffer ***/
+	pDesc_DX10,                              /**< ID3D10Device::CreateBuffer ***/
+	pInitialData_DX10,                       /**< ID3D10Device::CreateBuffer ***/
+	ppBuffer_DX10,                           /**< ID3D10Device::CreateBuffer ***/
 	StartSlot_VertexShader,                  /**< ID3D10Device/ID3D11DeviceContext::VSSetConstantBuffers ***/
 	NumBuffers_VertexShader,                 /**< ID3D10Device/ID3D11DeviceContext::VSSetConstantBuffers ***/
 	ppConstantBuffers_DX10_VertexShader,     /**< ID3D10Device/ID3D11DeviceContext::VSSetConstantBuffers ***/
@@ -222,13 +222,17 @@ enum RenderPosition
 
 /**
 * All GUI pages for the Matrix Modifier.
-* Must be created in following order.
+* Must be added in following order.
 ***/
 enum GUI_Pages
 {
 	MainPage = 0,
-	DebugPage = 1,
-	NumberOfPages = 2,
+	DescriptionPage = 1,
+	GameSettingsPage = 2,
+	ShadersPage = 3,
+	ShaderRulesPage = 4,
+	DebugPage = 5,
+	NumberOfPages = 6,
 };
 
 /**
@@ -353,6 +357,7 @@ private:
 #elif defined(VIREIO_D3D9)
 #endif
 	void DebugOutput(const void *pvSrcData, UINT dwShaderIndex, UINT dwBufferIndex, UINT dwBufferSize);
+	void CreateGUI();
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	/*** MatrixModifier input pointers ***/

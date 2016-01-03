@@ -419,7 +419,7 @@ void D3DProxyDevice::VPMENU_MainMenu()
 	menu->AddNavigation("3D Reconstruction Settings\n", [=]() { VPMENU_3DReconstruction(); });
 
 	//You can't use convergence if PFOV is turned on
-	if(!config.PFOVToggle)
+	if(!config.bPFOVToggle)
 	{
 		menu->AddNavigation("Convergence Adjustment\n", [=]() { VPMENU_Convergence(); });
 	}
@@ -666,7 +666,7 @@ void D3DProxyDevice::VPMENU_3DReconstruction()
 			
 			// game unit index out of range ?
 			if ((gameXScaleUnitIndex != 0) && (gameXScaleUnitIndex >= m_gameXScaleUnits.size()))
-				gameXScaleUnitIndex = m_gameXScaleUnits.size()-1;
+				gameXScaleUnitIndex = (DWORD)m_gameXScaleUnits.size() - 1;
 		}
 	}
 	
@@ -686,25 +686,25 @@ void D3DProxyDevice::VPMENU_3DReconstruction()
 	
 	menu->AddNavigation("Z Buffer Settings >\n", [=]() { VPMENU_ZBufferSettings(); });
 
-	menu->AddToggle("Projected FOV : %s", "ON", "OFF", &config.PFOVToggle, defaultConfig.PFOVToggle, [=]() {
-		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, config.PFOV);
+	menu->AddToggle("Projected FOV : %s", "ON", "OFF", &config.bPFOVToggle, defaultConfig.bPFOVToggle, [=]() {
+		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, config.fPFOV);
 	});
 	
-	menu->AddAdjustment("Projected FOV : %1.1f", &config.PFOV,
-		defaultConfig.PFOV, 0.05f, [=]()
+	menu->AddAdjustment("Projected FOV : %1.1f", &config.fPFOV,
+		defaultConfig.fPFOV, 0.05f, [=]()
 	{
-		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, config.PFOV);		
+		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, config.fPFOV);		
 	});	
 	
-	menu->AddAdjustment("World Scale : %1.3f", &config.worldScaleFactor,
-		defaultConfig.worldScaleFactor, 0.001f, [=]()
+	menu->AddAdjustment("World Scale : %1.3f", &config.fWorldScaleFactor,
+		defaultConfig.fWorldScaleFactor, 0.001f, [=]()
 	{
-		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, config.PFOV);		
+		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, config.fPFOV);		
 	});	
 
 	// Draw
 	// standard hud size, will be scaled later to actual viewport
-	float gameUnit = config.worldScaleFactor;
+	float gameUnit = config.fWorldScaleFactor;
 
 	// actual game unit chosen ... in case game has called SetTransform(>projection<);
 	if (m_bProjectionTransformSet)
@@ -717,7 +717,7 @@ void D3DProxyDevice::VPMENU_3DReconstruction()
 		float driverXScale = driverProjection._11;
 
 		// gameUnit = (driverWorldScale * driverXScale) /  gameXScale
-		gameUnit = (config.worldScaleFactor * driverXScale) / gameXScale;
+		gameUnit = (config.fWorldScaleFactor * driverXScale) / gameXScale;
 
 		menu->DrawItem(retprintf("Actual Units %u/%u",gameXScaleUnitIndex, m_gameXScaleUnits.size()).c_str(),D3DCOLOR_RGBA(255,255,255,255));
 	}
@@ -823,16 +823,16 @@ void D3DProxyDevice::VPMENU_Convergence()
 		"Convergence rotates the eye images inward. It should\n"
 		"be enabled for 3D monitors, and disabled for head-mounted\n"
 		"displays.");
-	menu->AddToggle("Convergence : %s", "ON", "OFF", &config.convergenceEnabled, defaultConfig.convergenceEnabled, [=]() {
-		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, config.PFOV);
+	menu->AddToggle("Convergence : %s", "ON", "OFF", &config.bConvergenceEnabled, defaultConfig.bConvergenceEnabled, [=]() {
+		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, config.fPFOV);
 	});
 	
-	if(config.convergenceEnabled)
+	if(config.bConvergenceEnabled)
 	{
-		menu->AddAdjustment("Distance Adjustment : %g", &config.convergence, defaultConfig.convergence, 0.01f, [=]() {
-			vireio::clamp(&config.convergence, 0.0f, 10.0f);
-			m_spShaderViewAdjustment->SetConvergence(config.convergence);
-			m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, config.PFOV);
+		menu->AddAdjustment("Distance Adjustment : %g", &config.fConvergence, defaultConfig.fConvergence, 0.01f, [=]() {
+			vireio::clamp(&config.fConvergence, 0.0f, 10.0f);
+			m_spShaderViewAdjustment->SetConvergence(config.fConvergence);
+			m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, config.fPFOV);
 		});
 		
 		menu->AddNavigation("Adjustment Test Pattern", [=]() { VPMENU_ConvergenceCalibrator(); });
@@ -854,7 +854,7 @@ void D3DProxyDevice::VPMENU_ConvergenceCalibrator()
 	{
 		float convergenceChange = 0.05f * VPMENU_Input_GetAdjustment();
 		m_spShaderViewAdjustment->ChangeConvergence(convergenceChange);
-		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, config.PFOV);
+		m_spShaderViewAdjustment->UpdateProjectionMatrices((float)stereoView->viewport.Width/(float)stereoView->viewport.Height, config.fPFOV);
 	}
 	
 
@@ -1090,7 +1090,7 @@ void D3DProxyDevice::VPMENU_Settings()
 	});
 	
 	std::string rollImplDescription = "?";
-	switch (config.rollImpl)
+	switch (config.nRollImpl)
 	{
 		case 0: rollImplDescription = "Not Enabled"; break;
 		case 1: rollImplDescription = "Matrix Translation"; break;
@@ -1099,7 +1099,7 @@ void D3DProxyDevice::VPMENU_Settings()
 	// FIXME: This should have a reset-to-default
 	menu->AddButton(retprintf("Roll : %s", rollImplDescription.c_str()), [=]()
 	{
-		config.rollImpl = (config.rollImpl+1) % 3;
+		config.nRollImpl = (config.nRollImpl+1) % 3;
 	});
 	
 	menu->AddItem(retprintf("Force Mouse Emulation HT : %s",
@@ -1207,10 +1207,10 @@ void D3DProxyDevice::VPMENU_PosTracking()
 			m_spShaderViewAdjustment->UpdatePosition(0.0f, 0.0f, 0.0f);
 	}, MenuBuilder::GreenOrRed);
 	
-	menu->AddAdjustment("Position Tracking multiplier : %g", &config.position_multiplier, defaultConfig.position_multiplier, 0.01f);
-	menu->AddAdjustment("Position X-Tracking multiplier : %g", &config.position_x_multiplier, defaultConfig.position_x_multiplier, 0.01f);
-	menu->AddAdjustment("Position Y-Tracking multiplier : %g", &config.position_y_multiplier, defaultConfig.position_y_multiplier, 0.01f);
-	menu->AddAdjustment("Position Z-Tracking multiplier : %g", &config.position_z_multiplier, defaultConfig.position_z_multiplier, 0.01f);
+	menu->AddAdjustment("Position Tracking multiplier : %g", &config.fPositionMultiplier, defaultConfig.fPositionMultiplier, 0.01f);
+	menu->AddAdjustment("Position X-Tracking multiplier : %g", &config.fPositionXMultiplier, defaultConfig.fPositionXMultiplier, 0.01f);
+	menu->AddAdjustment("Position Y-Tracking multiplier : %g", &config.fPositionYMultiplier, defaultConfig.fPositionYMultiplier, 0.01f);
+	menu->AddAdjustment("Position Z-Tracking multiplier : %g", &config.fPositionZMultiplier, defaultConfig.fPositionZMultiplier, 0.01f);
 	
 	menu->AddButton("Reset HMD Orientation (LSHIFT + R)", [=]() {
 		tracker->resetOrientationAndPosition();

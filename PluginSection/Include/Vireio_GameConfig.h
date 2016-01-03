@@ -34,23 +34,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***/
 struct Vireio_GameConfiguration
 {
-	float       worldScaleFactor;           /**< Value the eye seperation is to be multiplied with. (mm * worldScaleFactor = mm in game units). */
-	float       convergence;                /**< Convergence or Neutral Point distance, in meters. **/
-	float       ipd;                        /**< IPD, which stands for interpupillary distance (distance between your pupils - in meters...default = 0.064). Also called the interocular distance (or just Interocular). */
-	float       aspect_multiplier;          /**< Aspect multiplier allows adjusting virtual screen aspect ratio. */
-	UINT        VRboostMinShaderCount;      /**< Minimum Vertex Shader Count to apply VRboost (security) */
-	UINT        VRboostMaxShaderCount;      /**< Maximum Vertex Shader Count to apply VRboost (security) */
-	bool		is64bit;					/**< The game cpu-architecture, true for 64-bit games */
-	int         rollImpl;                   /**< 0 - NONE, 1 - Matrix Roll, 2 - Pixel Shader Roll */
-	bool        convergenceEnabled;         /**< Whether convergence is enabled. Typically on for 3D monitors, off for head-mounted displays. **/
-	float       yaw_multiplier;             /**< Game-specific tracking multiplier (yaw). */
-	float       pitch_multiplier;           /**< Game-specific tracking multiplier (pitch). */
-	float       roll_multiplier;            /**< Game-specific tracking multiplier (roll). */
-	float		position_multiplier;		/**< Game-specific position overall multiplier (for X, Y and Z). */
-	float		position_x_multiplier;		/**< Game-specific position multiplier for X*/
-	float		position_y_multiplier;		/**< Game-specific position multiplier for Y*/
-	float		position_z_multiplier;		/**< Game-specific position multiplier for Z*/
-	float		DistortionScale;			/**< The scale to apply distortion. **/
-	float		PFOV;						/**< Projection FOV, alternative to modifying game's FOV **/
-	bool		PFOVToggle;					/**< Projection FOV, toggle for above **/
+	float       fWorldScaleFactor;           /**< Value the eye seperation is to be multiplied with. (mm * worldScaleFactor = mm in game units). */
+	float       fConvergence;                /**< Convergence or Neutral Point distance, in meters. **/
+	float       fIPD;                        /**< IPD, which stands for interpupillary distance (distance between your pupils - in meters...default = 0.064). Also called the interocular distance (or just Interocular). */
+	float       fAspectMultiplier;           /**< Aspect multiplier allows adjusting virtual screen aspect ratio. */
+	UINT        dwVRboostMinShaderCount;     /**< Minimum Vertex Shader Count to apply VRboost (security) */
+	UINT        dwVRboostMaxShaderCount;     /**< Maximum Vertex Shader Count to apply VRboost (security) */
+	bool		bIs64bit;                    /**< The game cpu-architecture, true for 64-bit games */
+	int         nRollImpl;                   /**< 0 - NONE, 1 - Matrix Roll, 2 - Pixel Shader Roll */
+	bool        bConvergenceEnabled;         /**< Whether convergence is enabled. Typically on for 3D monitors, off for head-mounted displays. **/
+	float       fYawMultiplier;              /**< Game-specific tracking multiplier (yaw). */
+	float       fPitchMultiplier;            /**< Game-specific tracking multiplier (pitch). */
+	float       fRollMultiplier;             /**< Game-specific tracking multiplier (roll). */
+	float		fPositionMultiplier;         /**< Game-specific position overall multiplier (for X, Y and Z). */
+	float		fPositionXMultiplier;        /**< Game-specific position multiplier for X*/
+	float		fPositionYMultiplier;        /**< Game-specific position multiplier for Y*/
+	float		fPositionZMultiplier;        /**< Game-specific position multiplier for Z*/
+	float		fDistortionScale;            /**< The scale to apply distortion. **/
+	float		fPFOV;                       /**< Projection FOV, alternative to modifying game's FOV **/
+	bool		bPFOVToggle;                 /**< Projection FOV, toggle for above **/
 };
