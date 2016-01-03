@@ -431,11 +431,6 @@ private:
 	***/
 	std::vector<Vireio_D3D11_Shader> m_asShaders;
 	/**
-	* The old size of m_asShaders.
-	* To be used to update the shader constant list.
-	***/
-	UINT m_dwShaders;
-	/**
 	* The d3d11 active constant buffer vector.
 	***/
 	std::vector<ID3D11Buffer*> m_apcActiveConstantBuffers11;
@@ -540,6 +535,10 @@ private:
 	***/
 	std::vector<DWORD> m_adwPageIDs;
 	/**
+	* Current shader chosen from list (hash code)
+	***/
+	UINT m_dwCurrentChosenShaderHashCode;
+	/**
 	* List of available Debug Options (ID).
 	***/
 	UINT m_dwDebugOptions;
@@ -547,6 +546,15 @@ private:
 	* List of available Debug Options (Entries).
 	***/
 	std::vector<std::wstring> m_aszDebugOptions;
+	/**
+	* Shader data update button. (ID)
+	* Activate to update all shader data.
+	**/
+	UINT m_dwShaderUpdate;
+	/**
+	* List of all shaders control. (ID)
+	***/
+	UINT m_dwShadersListVS;
 	/**
 	* Debug spin control. (ID)
 	* Select debug options in this spin control.
@@ -574,6 +582,20 @@ private:
 	* List of available shader constants (ID - shader modification page)
 	***/
 	UINT m_dwShaderConstants;
+	/**
+	* List of all available shader hash codes (std::wstring).
+	* To be used on the shader page, the debug page
+	* and to create shader rules.
+	* Each entry MUST MATCH same entry in m_adwShaderHashCodes.
+	***/
+	std::vector<std::wstring> m_aszShaderHashCodes;
+	/**
+	* List of all available shader hash codes (UINT).
+	* To be used on the shader page, the debug page
+	* and to create shader rules.
+	* Each entry MUST MATCH same entry in m_aszShaderHashCodes.
+	***/
+	std::vector<UINT> m_adwShaderHashCodes;
 	/**
 	* List of all available shader constant names (std::wstring).
 	* To be used on the shader modifaction page, the debug page

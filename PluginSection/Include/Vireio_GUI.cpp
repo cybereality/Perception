@@ -250,21 +250,22 @@ void Vireio_GUI::DrawStaticListBox(HDC hdc, Vireio_Control& sControl, bool bDark
 	if (sControl.m_sStaticListBox.m_paszEntries)
 	for (UINT dwJ = 0; dwJ < (UINT)sControl.m_sStaticListBox.m_paszEntries->size(); dwJ++)
 	{
-		// if selection, invert colors and draw rectangle
-		if ((sControl.m_sStaticListBox.m_bSelectable) && (dwJ == (UINT)sControl.m_sStaticListBox.m_nCurrentSelection))
-		{
-			RECT sRect;
-			SetRect(&sRect, psPos->x, nY, psPos->x + psSize->cx - 1, nY + m_dwFontSize);
-			HBRUSH hBrush = (HBRUSH)CreateSolidBrush(m_dwColorFront);
-			FillRect(hdc, &sRect, hBrush);
-			DeleteObject(hBrush);
-
-			SetTextColor(hdc, m_dwColorBack);
-			SetBkColor(hdc, m_dwColorFront);
-		}
-
+		// text within borders ?
 		if ((nY >= (int(m_dwFontSize) * -1)) && (nY <= int(psPos->y + psSize->cy)))
 		{
+			// if selection, invert colors and draw rectangle
+			if ((sControl.m_sStaticListBox.m_bSelectable) && (dwJ == (UINT)sControl.m_sStaticListBox.m_nCurrentSelection))
+			{
+				RECT sRect;
+				SetRect(&sRect, psPos->x, nY, psPos->x + psSize->cx - 1, nY + m_dwFontSize);
+				HBRUSH hBrush = (HBRUSH)CreateSolidBrush(m_dwColorFront);
+				FillRect(hdc, &sRect, hBrush);
+				DeleteObject(hBrush);
+
+				SetTextColor(hdc, m_dwColorBack);
+				SetBkColor(hdc, m_dwColorFront);
+			}
+
 			// output the list entry text - firt draw rims
 			if (bUpperRim)
 			{
@@ -303,13 +304,13 @@ void Vireio_GUI::DrawStaticListBox(HDC hdc, Vireio_Control& sControl, bool bDark
 				nY,
 				((*(sControl.m_sStaticListBox.m_paszEntries))[dwJ]).c_str(),
 				(int)((*(sControl.m_sStaticListBox.m_paszEntries))[dwJ]).length());
-		}
 
-		// and invert back
-		if ((sControl.m_sStaticListBox.m_bSelectable) && (dwJ == (UINT)sControl.m_sStaticListBox.m_nCurrentSelection))
-		{
-			SetTextColor(hdc, m_dwColorFront);
-			SetBkColor(hdc, m_dwColorBack);
+			// and invert back
+			if ((sControl.m_sStaticListBox.m_bSelectable) && (dwJ == (UINT)sControl.m_sStaticListBox.m_nCurrentSelection))
+			{
+				SetTextColor(hdc, m_dwColorFront);
+				SetBkColor(hdc, m_dwColorBack);
+			}
 		}
 
 		// next line
@@ -340,7 +341,7 @@ void Vireio_GUI::DrawStaticListBox(HDC hdc, Vireio_Control& sControl, bool bDark
 }
 
 /**
-* Draws a static list box.
+* Draws a list box.
 * @param hdc The handle to a device context (DC) for the client area.
 * @param sControl The list box control.
 ***/
@@ -382,6 +383,19 @@ void Vireio_GUI::DrawListBox(HDC hdc, Vireio_Control& sControl, bool bDarkenButt
 		FillRect(hdc, &sRect, hBrush);
 		DeleteObject(hBrush);
 	}
+
+	// and a border
+	HBRUSH hBrush = CreateSolidBrush(m_dwColorFront);
+	RECT sRect;
+	SetRect(&sRect, psPos->x, psPos->y, psPos->x + psSize->cx, psPos->y + (m_dwFontSize >> 4));
+	FillRect(hdc, &sRect, hBrush);
+	SetRect(&sRect, psPos->x, psPos->y + psSize->cy - (m_dwFontSize >> 4), psPos->x + psSize->cx, psPos->y + psSize->cy);
+	FillRect(hdc, &sRect, hBrush);
+	SetRect(&sRect, psPos->x, psPos->y, psPos->x + (m_dwFontSize >> 4), psPos->y + psSize->cy);
+	FillRect(hdc, &sRect, hBrush);
+	SetRect(&sRect, psPos->x + psSize->cx - (m_dwFontSize >> 4), psPos->y, psPos->x + psSize->cx, psPos->y + psSize->cy);
+	FillRect(hdc, &sRect, hBrush);
+	DeleteObject(hBrush);
 }
 
 /**
@@ -799,7 +813,7 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 							// set event to "pressed"
 							sRet.eType = Vireio_GUI_Event_Type::Pressed;
 							sRet.dwIndexOfPage = m_dwCurrentPage;
-							sRet.dwIndexOfControl = (UINT)(m_dwCurrentPage << 16) + dwI;							
+							sRet.dwIndexOfControl = (UINT)(m_dwCurrentPage << 16) + dwI;
 						}
 #pragma region List Box
 						// is this a control with a side- scrollbar ?
@@ -808,9 +822,14 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 							// within borders ? list box selectable ?
 							if ((m_sMouseCoords.x < psPos->x + psSize->cx) && (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_bSelectable))
 							{
-								// set new selection
+								// get y position
 								float fYPos = (float)m_sMouseCoords.y - (float)psPos->y + m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_fScrollPosY;
-								m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_nCurrentSelection =
+
+								// set new selection, deselect if current selection is chosen
+								if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_nCurrentSelection == ((INT)fYPos / m_dwFontSize))
+									m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_nCurrentSelection = -1;
+								else
+									m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sListBox.m_nCurrentSelection =
 									(INT)fYPos / m_dwFontSize;
 
 								// clamp
