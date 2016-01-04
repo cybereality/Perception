@@ -51,6 +51,7 @@ enum Vireio_Control_Type
 	EditLine,      /**< Text input, parsed to chosen input type ***/
 	Button,        /**< Simple button ***/
 	Switch,        /**< True/False switch ***/
+	FloatInput,    /**< FLOAT input control ***/
 };
 
 /**
@@ -147,11 +148,34 @@ struct Vireio_Switch_Data : public Vireio_Button_Data
 };
 
 /**
+* Vireio float input data structure.
+* Simple FLOAT input control.
+***/
+struct Vireio_Float_Data
+{
+	std::wstring* m_pszText;                  /**< Text to be drawn below the float value ***/
+	float m_fValue;                           /**< Float value to be changed by the control ***/
+};
+
+/**
 * Vireio control structure.
 * All data for a single GUI control is stored here.
 ***/
 struct Vireio_Control
 {
+	/**
+	* Verify the control size accordingly to the type.
+	***/
+	void VerifySize(UINT dwFontSize)
+	{
+		// Float control min size : 12*font/3*font
+		if (m_eControlType == Vireio_Control_Type::FloatInput)                              
+		{
+			if (m_sSize.cx < ((LONG)dwFontSize * 12)) m_sSize.cx = (LONG)dwFontSize * 12;
+			if (m_sSize.cy < ((LONG)dwFontSize * 3)) m_sSize.cy = (LONG)dwFontSize * 3;
+		}
+	}
+
 	POINT m_sPosition;                   /**< The position of the control in pixel space. ***/
 	SIZE m_sSize;                        /**< The size of the control in pixel space. ***/
 	Vireio_Control_Type m_eControlType;  /**< The type of the control. ***/
@@ -162,6 +186,7 @@ struct Vireio_Control
 		Vireio_SpinControl_Data m_sSpinControl;
 		Vireio_Button_Data m_sButton;
 		Vireio_Switch_Data m_sSwitch;
+		Vireio_Float_Data m_sFloat;
 	};
 };
 
@@ -191,10 +216,12 @@ public:
 	void             DrawSpinControl(HDC hdc, Vireio_Control& sControl, bool bDarkenButtons, bool bUpperRim, bool bLowerRim);
 	void             DrawButton(HDC hdc, Vireio_Control& sControl, bool bDarkenButtons, bool bUpperRim, bool bLowerRim);
 	void             DrawSwitch(HDC hdc, Vireio_Control& sControl, bool bDarkenButtons, bool bUpperRim, bool bLowerRim);
+	void             DrawFloat(HDC hdc, Vireio_Control& sControl);
 	UINT             AddPage() { Vireio_Page sPage; ZeroMemory(&sPage, sizeof(sPage)); m_asPages.push_back(sPage); return (UINT)m_asPages.size() - 1; } /**< Adds a new page. ***/
 	UINT             AddControl(UINT dwPage, Vireio_Control& sControl);
 	void             AddEntry(UINT dwControl, LPCWSTR szString);
 	INT              GetCurrentSelection(UINT dwControlId);
+	void             UnselectCurrentSelection(UINT dwControlId);
 	Vireio_GUI_Event WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam, UINT dwMultiplyMouseCoords);
 
 private:

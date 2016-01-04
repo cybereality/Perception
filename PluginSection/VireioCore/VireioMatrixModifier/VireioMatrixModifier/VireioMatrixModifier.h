@@ -51,6 +51,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "..\..\..\..\DxProxy\DxProxy\HMDisplayInfo_Default.h"
 #include "..\..\..\..\DxProxy\DxProxy\HMDisplayInfo_OculusRift.h"
 
+
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 #include <DXGI.h>
 #pragma comment(lib, "DXGI.lib")
@@ -552,9 +553,13 @@ private:
 	**/
 	UINT m_dwShaderUpdate;
 	/**
-	* List of all shaders control. (ID)
+	* List of all vertex shaders control. (ID)
 	***/
 	UINT m_dwShadersListVS;
+	/**
+	* List of all shader constants for the currently chosen shaders. (ID)
+	***/
+	UINT m_dwCurrentShaderConstantsVS;
 	/**
 	* Debug spin control. (ID)
 	* Select debug options in this spin control.
@@ -608,6 +613,12 @@ private:
 	* and to create shader rules.
 	***/
 	std::vector<std::string> m_aszShaderConstantsA;
+	/**
+	* List of shader constant names for the currently chosen shader. (std::wstring).
+	* To be used on the shader modifaction page
+	* and to create shader rules.
+	***/
+	std::vector<std::wstring> m_aszShaderConstantsCurrent;
 	/**
 	* Debug trace string list.
 	* Contains all strings for the debug trace.

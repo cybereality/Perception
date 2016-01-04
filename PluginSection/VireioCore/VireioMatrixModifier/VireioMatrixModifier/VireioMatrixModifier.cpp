@@ -96,7 +96,8 @@ m_dwShaderConstants(0),
 m_dwShaderConstantsDebug(0),
 m_dwShaderUpdate(0),
 m_dwShadersListVS(0),
-m_dwCurrentChosenShaderHashCode(0)
+m_dwCurrentChosenShaderHashCode(0),
+m_dwCurrentShaderConstantsVS(0)
 {
 	// create a new HRESULT pointer
 	m_pvReturn = (void*)new HRESULT();
@@ -1345,7 +1346,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 								if (m_pcActiveVertexShader11)
 									m_pcActiveVertexShader11->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
 
-									// set null shader if hash matches
+								// set null shader if hash matches
 								if (m_dwCurrentChosenShaderHashCode == sPrivateData.dwHash)
 								{
 									// call super method
@@ -1691,12 +1692,42 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 					nSelection = m_pcVireioGUI->GetCurrentSelection(m_dwShadersListVS);
 
 					if ((nSelection >= 0) && (nSelection < (INT)m_adwShaderHashCodes.size()))
-					{
 						m_dwCurrentChosenShaderHashCode = m_adwShaderHashCodes[nSelection];
-						DEBUG_UINT(m_dwCurrentChosenShaderHashCode);
-					}
 					else
 						m_dwCurrentChosenShaderHashCode = 0;
+
+					// fill current shader constant list, first unselect a possible selection
+					m_pcVireioGUI->UnselectCurrentSelection(m_dwCurrentShaderConstantsVS);
+					m_aszShaderConstantsCurrent = std::vector<std::wstring>();
+
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+					if (m_dwCurrentChosenShaderHashCode)
+					{
+						// find the hash code in the shader list
+						UINT dwIndex = 0;
+						for (UINT dwI = 0; dwI < (UINT)m_asShaders.size(); dwI++)
+						{
+							if (m_dwCurrentChosenShaderHashCode == m_asShaders[dwI].dwHashCode)
+							{
+								dwIndex = dwI;
+								dwI = (UINT)m_asShaders.size();
+							}
+						}
+
+						// add all constant names to the current shader constant list
+						for (UINT dwJ = 0; dwJ < (UINT)m_asShaders[dwIndex].asBuffers.size(); dwJ++)
+						{
+							for (UINT dwK = 0; dwK < (UINT)m_asShaders[dwIndex].asBuffers[dwJ].asVariables.size(); dwK++)
+							{
+								// convert to wstring
+								std::string szNameA = std::string(m_asShaders[dwIndex].asBuffers[dwJ].asVariables[dwK].szName);
+								std::wstring szName(szNameA.begin(), szNameA.end());
+
+								m_aszShaderConstantsCurrent.push_back(szName);
+							}
+						}
+					}
+#endif
 				}
 			}
 			break;
@@ -2246,9 +2277,34 @@ void MatrixModifier::CreateGUI()
 		m_pcVireioGUI->AddEntry(dwCommandersList, this->GetCommanderName(i));
 #pragma endregion
 
-#pragma region Shader Page
+#pragma region Game setting page
+	// game separation float value
 	ZeroMemory(&sControl, sizeof(Vireio_Control));
+	sControl.m_eControlType = Vireio_Control_Type::FloatInput;
+	sControl.m_sPosition.x = GUI_CONTROL_BORDER;
+	sControl.m_sPosition.y = GUI_CONTROL_BORDER;
+	sControl.m_sSize.cx = GUI_CONTROL_FONTSIZE * 12;                     /**< Standard for float controls ***/
+	sControl.m_sSize.cy = GUI_CONTROL_FONTSIZE * 3;                      /**< Standard for float controls ***/
+	sControl.m_sFloat.m_fValue = 3.19785f;
+	static std::wstring szGameSeparationText = std::wstring(L"Game Separation");
+	sControl.m_sFloat.m_pszText = &szGameSeparationText;
+	UINT dwFloat = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::GameSettingsPage], sControl);
+#pragma endregion
+
+#pragma region Vertex Shader Page
+	// shader constant list (lists always first from bottom to top!)
+	ZeroMemory(&sControl, sizeof(Vireio_Control));
+	sControl.m_eControlType = Vireio_Control_Type::ListBox;
+	sControl.m_sPosition.x = GUI_CONTROL_FONTBORDER;
+	sControl.m_sPosition.y = (GUI_HEIGHT >> 1) + (GUI_CONTROL_BORDER >> 1);
+	sControl.m_sSize.cx = GUI_WIDTH - GUI_CONTROL_BORDER;
+	sControl.m_sSize.cy = ((GUI_HEIGHT - GUI_CONTROL_FONTSIZE * 4) >> 2) - GUI_CONTROL_LINE;
+	sControl.m_sListBox.m_paszEntries = &m_aszShaderConstantsCurrent;
+	sControl.m_sListBox.m_bSelectable = true;
+	m_dwCurrentShaderConstantsVS = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::ShadersPage], sControl);
+
 	// create the shader list
+	ZeroMemory(&sControl, sizeof(Vireio_Control));
 	sControl.m_eControlType = Vireio_Control_Type::ListBox;
 	sControl.m_sPosition.x = GUI_CONTROL_FONTBORDER;
 	sControl.m_sPosition.y = GUI_CONTROL_BORDER >> 1;

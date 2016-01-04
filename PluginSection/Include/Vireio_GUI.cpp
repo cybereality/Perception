@@ -149,6 +149,9 @@ HBITMAP Vireio_GUI::GetGUI(bool bForceRedraw, bool bDarkenButtons, bool bUpperRi
 					case Switch:
 						DrawSwitch(hdcImage, m_asPages[m_dwCurrentPage].m_asControls[dwI], bDarkenButtons, bUpperRim, bLowerRim);
 						break;
+					case FloatInput:
+						DrawFloat(hdcImage, m_asPages[m_dwCurrentPage].m_asControls[dwI]);
+						break;
 					default:
 						break;
 				}
@@ -677,11 +680,106 @@ void Vireio_GUI::DrawSwitch(HDC hdc, Vireio_Control& sControl, bool bDarkenButto
 }
 
 /**
+* Draws a float control.
+* Control width MUST be 12*fontsize, control height MUST be 3*fontsize
+* @param hdc The handle to a device context (DC) for the client area.
+* @param sControl The list box control.
+***/
+void Vireio_GUI::DrawFloat(HDC hdc, Vireio_Control& sControl)
+{
+	if (sControl.m_eControlType != Vireio_Control_Type::FloatInput)
+		return;
+
+	// get position and size pointers
+	POINT* psPos = &sControl.m_sPosition;
+	SIZE* psSize = &sControl.m_sSize;
+
+	// first get the base polygons
+	POINT asPoints[3];
+	asPoints[0].x = psPos->x + (m_dwFontSize >> 1);
+	asPoints[0].y = psPos->y;
+	asPoints[1].x = psPos->x;
+	asPoints[1].y = psPos->y + (m_dwFontSize >> 2);
+	asPoints[2].x = psPos->x + m_dwFontSize;
+	asPoints[2].y = psPos->y + (m_dwFontSize >> 2);
+	SelectObject(hdc, GetStockObject(DC_PEN));
+	SelectObject(hdc, GetStockObject(DC_BRUSH));
+	SetDCPenColor(hdc, m_dwColorFront);
+	SetDCBrushColor(hdc, m_dwColorFront);
+
+	// get a divisor and an absolute value
+	float fDivisor = 100000.0f;
+	float fValue = sControl.m_sFloat.m_fValue;
+	if (fValue < 0.0f) fValue *= -1.0f;
+	WCHAR aszBuffer[5];
+
+	// loop through digits, draw upper arrows
+	for (int n = 0; n < 12; n++)
+	{
+		// get an intermediar
+		float fIntermediar = sControl.m_sFloat.m_fValue / fDivisor;
+		UINT dwIntermediar = (UINT)fIntermediar;
+
+		// get the single number for that digit
+		UINT dwSingleNumber = dwIntermediar % 10;
+		_itow_s((int)dwSingleNumber, aszBuffer, 5, 10);
+
+		// draw the single number
+		TextOutW(hdc,
+			asPoints[1].x + (m_dwFontSize >> 2),
+			psPos->y + (m_dwFontSize >> 1),
+			aszBuffer,
+			1);
+
+		// update divisor for next digit
+		fDivisor /= 10.0f;
+
+		Polygon(hdc, asPoints, 3);
+		asPoints[0].x += m_dwFontSize;
+		asPoints[1].x += m_dwFontSize;
+		asPoints[2].x += m_dwFontSize;
+	}
+	// draw lower arrows
+	asPoints[0].x = psPos->x + (m_dwFontSize >> 1);
+	asPoints[0].y = psPos->y + (m_dwFontSize << 1);
+	asPoints[1].x = psPos->x;
+	asPoints[1].y = psPos->y + (m_dwFontSize << 1) - (m_dwFontSize >> 2);
+	asPoints[2].x = psPos->x + m_dwFontSize;
+	asPoints[2].y = psPos->y + (m_dwFontSize << 1) - (m_dwFontSize >> 2);
+	for (int n = 0; n < 12; n++)
+	{
+		Polygon(hdc, asPoints, 3);
+		asPoints[0].x += m_dwFontSize;
+		asPoints[1].x += m_dwFontSize;
+		asPoints[2].x += m_dwFontSize;
+	}
+
+	// draw comma
+	asPoints[0].x = psPos->x + (m_dwFontSize * 6) - (m_dwFontSize >> 3);
+	asPoints[0].y = psPos->y + m_dwFontSize + (m_dwFontSize >> 2);
+	asPoints[1].x = psPos->x + (m_dwFontSize * 6);
+	asPoints[1].y = psPos->y + m_dwFontSize + (m_dwFontSize >> 2);
+	asPoints[2].x = psPos->x + (m_dwFontSize * 6) - (m_dwFontSize >> 3);
+	asPoints[2].y = psPos->y + m_dwFontSize + (m_dwFontSize >> 1);
+	Polygon(hdc, asPoints, 3);
+
+	// draw the text below the control
+	TextOutW(hdc,
+		psPos->x + (m_dwFontSize >> 4),
+		psPos->y + (m_dwFontSize << 1),
+		sControl.m_sFloat.m_pszText->c_str(),
+		(int)sControl.m_sFloat.m_pszText->size());
+}
+
+/**
 * Adds a Vireio Control to the specified page.
 * @param dwPage The index of the page the control will be added. (=id)
 ***/
 UINT Vireio_GUI::AddControl(UINT dwPage, Vireio_Control& sControl)
 {
+	// verify control size
+	sControl.VerifySize(m_dwFontSize);
+
 	// page present ?
 	if (dwPage < (UINT)m_asPages.size())
 	{
@@ -757,6 +855,19 @@ INT Vireio_GUI::GetCurrentSelection(UINT dwControlId)
 }
 
 /**
+* Unselect current selection for that list.
+***/
+void Vireio_GUI::UnselectCurrentSelection(UINT dwControlId)
+{
+	// decode id to page and index
+	UINT dwPage = dwControlId >> 16;
+	UINT dwIndex = dwControlId & 65535;
+
+	if (m_asPages[dwPage].m_asControls[dwIndex].m_eControlType == Vireio_Control_Type::ListBox)
+		m_asPages[dwPage].m_asControls[dwIndex].m_sListBox.m_nCurrentSelection = -1;
+}
+
+/**
 * Windows event for the GUI.
 ***/
 Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam, UINT dwMultiplyMouseCoords)
@@ -775,6 +886,7 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 
 	switch (msg)
 	{
+#pragma region WM_LBUTTONDOWN
 		// left mouse button down ?
 		case WM_LBUTTONDOWN:
 			// mouse currently bound to any control ?
@@ -942,6 +1054,8 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 			// update control
 			m_bControlUpdate = true;
 			break;
+#pragma endregion
+#pragma region WM_LBUTTONUP
 			// left mouse button up ?
 		case WM_LBUTTONUP:
 			// set all buttons to not pressed
@@ -957,6 +1071,8 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 			// update control
 			m_bControlUpdate = true;
 			break;
+#pragma endregion
+#pragma region WM_MOUSEMOVE
 			// mouse move ?
 		case WM_MOUSEMOVE:
 			if (!(wParam & MK_LBUTTON)) m_bMouseBoundToControl = false;
@@ -1000,8 +1116,7 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 				}
 			}
 			break;
-		case WM_RBUTTONDOWN:
-			break;
+#pragma endregion
 	}
 
 	return sRet;
