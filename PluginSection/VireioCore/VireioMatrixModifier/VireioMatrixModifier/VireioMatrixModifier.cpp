@@ -87,17 +87,7 @@ m_asConstantRules(),
 m_adwGlobalConstantRuleIndices(),
 m_asShaderSpecificRuleIndices(),
 m_aasConstantBufferRuleIndices(),
-m_dwClearDebug(0),
-m_dwDebugGrab(0),
-m_dwDebugOptions(0),
-m_dwDebugSpin(0),
-m_dwDebugTrace(0),
-m_dwShaderConstants(0),
-m_dwShaderConstantsDebug(0),
-m_dwShaderUpdate(0),
-m_dwShadersListVS(0),
-m_dwCurrentChosenShaderHashCode(0),
-m_dwCurrentShaderConstantsVS(0)
+m_dwCurrentChosenShaderHashCode(0)
 {
 	// create a new HRESULT pointer
 	m_pvReturn = (void*)new HRESULT();
@@ -112,13 +102,18 @@ m_dwCurrentShaderConstantsVS(0)
 	ZeroMemory(&m_sGameConfiguration, sizeof(Vireio_GameConfiguration));
 	m_sGameConfiguration.fConvergence = 3.0f;
 	m_sGameConfiguration.fIPD = IPD_DEFAULT;
-	m_sGameConfiguration.fWorldScaleFactor = -32.0f;
+	m_sGameConfiguration.fWorldScaleFactor = 0.0f;
 	m_sGameConfiguration.fPFOV = 110.0f;
 	m_pcShaderViewAdjustment = new ViewAdjustment(m_psHmdInfo, &m_sGameConfiguration);
 
 	// init
 	m_pcShaderViewAdjustment->UpdateProjectionMatrices((float)1920.0f / (float)1080.0f, m_sGameConfiguration.fPFOV);
 	m_pcShaderViewAdjustment->ComputeViewTransforms();
+
+	// clear GUI page structures
+	ZeroMemory(&m_sPageDebug, sizeof(PageDebug));
+	ZeroMemory(&m_sPageGameSettings, sizeof(PageGameSettings));
+	ZeroMemory(&m_sPageVertexShader, sizeof(PageVertexShader));
 
 	// TEST !! ADD A TEST RULE
 	Vireio_Constant_Modification_Rule sRule = Vireio_Constant_Modification_Rule("NoName", 12, 0, 8, false, false, true, false, true, 4, 0, 0, true);
@@ -288,7 +283,7 @@ void MatrixModifier::InitNodeData(char* pData, UINT dwSizeOfData)
 		// set to ipd using vireio presenter.... // TODO !! currently set ipd to default
 		m_sGameConfiguration.fConvergence = 3.0f;
 		m_sGameConfiguration.fIPD = IPD_DEFAULT;
-		m_sGameConfiguration.fWorldScaleFactor = -32.0f;
+		m_sGameConfiguration.fWorldScaleFactor = 0.0f;
 		m_sGameConfiguration.fPFOV = 110.0f;
 		m_pcShaderViewAdjustment->Load(m_sGameConfiguration);
 		m_pcShaderViewAdjustment->UpdateProjectionMatrices((float)1920.0f / (float)1080.0f, m_sGameConfiguration.fPFOV);
@@ -1625,23 +1620,33 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 		case ChangedToPrevious:
 			break;
 		case ChangedToValue:
+			if (sEvent.dwIndexOfPage == m_adwPageIDs[GUI_Pages::GameSettingsPage])
+			{
+				if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwGameSeparation)
+				{
+					m_sGameConfiguration.fWorldScaleFactor = sEvent.fNewValue;
+					m_pcShaderViewAdjustment->Load(m_sGameConfiguration);
+					m_pcShaderViewAdjustment->UpdateProjectionMatrices((float)1920.0f / (float)1080.0f, m_sGameConfiguration.fPFOV);
+					m_pcShaderViewAdjustment->ComputeViewTransforms();
+				}
+			}
 			break;
 		case ChangedToText:
 			break;
 		case Pressed:
 			if (sEvent.dwIndexOfPage == m_adwPageIDs[GUI_Pages::DebugPage])
 			{
-				if (sEvent.dwIndexOfControl == m_dwDebugGrab)
+				if (sEvent.dwIndexOfControl == m_sPageDebug.m_dwGrab)
 				{
 					// set the grab debug bool to true
 					m_bGrabDebug = true;
 				}
-				else if (sEvent.dwIndexOfControl == m_dwClearDebug)
+				else if (sEvent.dwIndexOfControl == m_sPageDebug.m_dwClear)
 				{
 					// clear debug string list
 					m_aszDebugTrace = std::vector<std::wstring>();
 				}
-				else if (sEvent.dwIndexOfControl == m_dwDebugSpin)
+				else if (sEvent.dwIndexOfControl == m_sPageDebug.m_dwOptions)
 				{
 					// new debug option chosen
 					m_eDebugOption = (Debug_Grab_Options)sEvent.dwNewValue;
@@ -1649,7 +1654,7 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 			else if (sEvent.dwIndexOfPage == m_adwPageIDs[GUI_Pages::ShadersPage])
 			{
-				if (sEvent.dwIndexOfControl == m_dwShaderUpdate)
+				if (sEvent.dwIndexOfControl == m_sPageVertexShader.m_dwUpdate)
 				{
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 					// test the shader constant list for updates... TODO !! add button to do this
@@ -1684,12 +1689,12 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 					}
 #endif
 				}
-				else if (sEvent.dwIndexOfControl == m_dwShadersListVS)
+				else if (sEvent.dwIndexOfControl == m_sPageVertexShader.m_dwHashCodes)
 				{
 					INT nSelection = 0;
 
 					// get current selection of the shader constant list
-					nSelection = m_pcVireioGUI->GetCurrentSelection(m_dwShadersListVS);
+					nSelection = m_pcVireioGUI->GetCurrentSelection(m_sPageVertexShader.m_dwHashCodes);
 
 					if ((nSelection >= 0) && (nSelection < (INT)m_adwShaderHashCodes.size()))
 						m_dwCurrentChosenShaderHashCode = m_adwShaderHashCodes[nSelection];
@@ -1697,7 +1702,7 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 						m_dwCurrentChosenShaderHashCode = 0;
 
 					// fill current shader constant list, first unselect a possible selection
-					m_pcVireioGUI->UnselectCurrentSelection(m_dwCurrentShaderConstantsVS);
+					m_pcVireioGUI->UnselectCurrentSelection(m_sPageVertexShader.m_dwCurrentConstants);
 					m_aszShaderConstantsCurrent = std::vector<std::wstring>();
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
@@ -2129,7 +2134,7 @@ void MatrixModifier::DebugOutput(const void *pvSrcData, UINT dwShaderIndex, UINT
 	INT nSelection = 0;
 
 	// get current selection of the shader constant list
-	nSelection = m_pcVireioGUI->GetCurrentSelection(m_dwShaderConstantsDebug);
+	nSelection = m_pcVireioGUI->GetCurrentSelection(m_sPageDebug.m_dwShaderConstants);
 	if ((nSelection < 0) || (nSelection >= (INT)m_aszShaderConstantsA.size()))
 	{
 		m_bGrabDebug = false;
@@ -2285,10 +2290,10 @@ void MatrixModifier::CreateGUI()
 	sControl.m_sPosition.y = GUI_CONTROL_BORDER;
 	sControl.m_sSize.cx = GUI_CONTROL_FONTSIZE * 12;                     /**< Standard for float controls ***/
 	sControl.m_sSize.cy = GUI_CONTROL_FONTSIZE * 3;                      /**< Standard for float controls ***/
-	sControl.m_sFloat.m_fValue = 3.19785f;
+	sControl.m_sFloat.m_fValue = m_sGameConfiguration.fWorldScaleFactor;
 	static std::wstring szGameSeparationText = std::wstring(L"Game Separation");
 	sControl.m_sFloat.m_pszText = &szGameSeparationText;
-	UINT dwFloat = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::GameSettingsPage], sControl);
+	m_sPageGameSettings.m_dwGameSeparation = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::GameSettingsPage], sControl);
 #pragma endregion
 
 #pragma region Vertex Shader Page
@@ -2301,7 +2306,7 @@ void MatrixModifier::CreateGUI()
 	sControl.m_sSize.cy = ((GUI_HEIGHT - GUI_CONTROL_FONTSIZE * 4) >> 2) - GUI_CONTROL_LINE;
 	sControl.m_sListBox.m_paszEntries = &m_aszShaderConstantsCurrent;
 	sControl.m_sListBox.m_bSelectable = true;
-	m_dwCurrentShaderConstantsVS = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::ShadersPage], sControl);
+	m_sPageVertexShader.m_dwCurrentConstants = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::ShadersPage], sControl);
 
 	// create the shader list
 	ZeroMemory(&sControl, sizeof(Vireio_Control));
@@ -2313,7 +2318,7 @@ void MatrixModifier::CreateGUI()
 	sControl.m_sListBox.m_bSelectable = true;
 	sControl.m_sListBox.m_nCurrentSelection = -1;                                                   /**< Set to -1 means 'No Selection' at startup ***/
 	sControl.m_sListBox.m_paszEntries = &m_aszShaderHashCodes;                                      /**< All list entries stored in m_aszShaderHashCodes ***/
-	m_dwShadersListVS = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::ShadersPage], sControl);
+	m_sPageVertexShader.m_dwHashCodes = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::ShadersPage], sControl);
 
 	// "update shader data" button
 	ZeroMemory(&sControl, sizeof(Vireio_Control));
@@ -2324,7 +2329,7 @@ void MatrixModifier::CreateGUI()
 	sControl.m_sSize.cy = GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER;
 	static std::wstring szButtonUpdateShaderDataText = std::wstring(L"Update Data");
 	sControl.m_sButton.m_pszText = &szButtonUpdateShaderDataText;
-	m_dwShaderUpdate = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::ShadersPage], sControl);
+	m_sPageVertexShader.m_dwUpdate = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::ShadersPage], sControl);
 #pragma endregion
 
 #pragma region Description Page
@@ -2422,7 +2427,7 @@ void MatrixModifier::CreateGUI()
 	sControl.m_sSize.cy = GUI_HEIGHT - sControl.m_sPosition.y - GUI_CONTROL_FONTSIZE * 4; // (GUI_CONTROL_FONTSIZE * 4) = size of the bottom arrows of the page
 	sControl.m_sListBox.m_paszEntries = &m_aszDebugTrace;
 	sControl.m_sListBox.m_bSelectable = false;
-	m_dwDebugTrace = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::DebugPage], sControl);
+	m_sPageDebug.m_dwTrace = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::DebugPage], sControl);
 
 	// shader constant debug list (lists always first from bottom to top!)
 	ZeroMemory(&sControl, sizeof(Vireio_Control));
@@ -2433,7 +2438,7 @@ void MatrixModifier::CreateGUI()
 	sControl.m_sSize.cy = GUI_HEIGHT >> 1;
 	sControl.m_sListBox.m_paszEntries = &m_aszShaderConstants;
 	sControl.m_sListBox.m_bSelectable = true;
-	m_dwShaderConstantsDebug = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::DebugPage], sControl);
+	m_sPageDebug.m_dwShaderConstants = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::DebugPage], sControl);
 
 	// debug type spin control
 	ZeroMemory(&sControl, sizeof(Vireio_Control));
@@ -2449,7 +2454,7 @@ void MatrixModifier::CreateGUI()
 	sControl.m_sSize.cy = GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER;
 	sControl.m_sSpinControl.m_dwCurrentSelection = (DWORD)m_eDebugOption;
 	sControl.m_sSpinControl.m_paszEntries = &m_aszDebugOptions;
-	m_dwDebugSpin = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::DebugPage], sControl);
+	m_sPageDebug.m_dwOptions = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::DebugPage], sControl);
 
 	// debug "grab" button
 	ZeroMemory(&sControl, sizeof(Vireio_Control));
@@ -2460,7 +2465,7 @@ void MatrixModifier::CreateGUI()
 	sControl.m_sSize.cy = GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER;
 	static std::wstring szButtonText = std::wstring(L"Grab Debug Data");
 	sControl.m_sButton.m_pszText = &szButtonText;
-	m_dwDebugGrab = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::DebugPage], sControl);
+	m_sPageDebug.m_dwGrab = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::DebugPage], sControl);
 
 	// debug "clear" button
 	ZeroMemory(&sControl, sizeof(Vireio_Control));
@@ -2471,6 +2476,6 @@ void MatrixModifier::CreateGUI()
 	sControl.m_sSize.cy = GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER;
 	static std::wstring szButtonClear = std::wstring(L"Clear Debug Trace");
 	sControl.m_sButton.m_pszText = &szButtonClear;
-	m_dwClearDebug = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::DebugPage], sControl);
+	m_sPageDebug.m_dwClear = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::DebugPage], sControl);
 #pragma endregion
 }

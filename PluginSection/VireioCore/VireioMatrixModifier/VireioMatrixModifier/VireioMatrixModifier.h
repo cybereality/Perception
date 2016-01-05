@@ -540,53 +540,39 @@ private:
 	***/
 	UINT m_dwCurrentChosenShaderHashCode;
 	/**
-	* List of available Debug Options (ID).
-	***/
-	UINT m_dwDebugOptions;
-	/**
 	* List of available Debug Options (Entries).
 	***/
 	std::vector<std::wstring> m_aszDebugOptions;
 	/**
-	* Shader data update button. (ID)
-	* Activate to update all shader data.
-	**/
-	UINT m_dwShaderUpdate;
-	/**
-	* List of all vertex shaders control. (ID)
+	* Vertex Shader page control IDs
+	* Structure contains all control IDs for the vertex shader page.
 	***/
-	UINT m_dwShadersListVS;
+	struct PageVertexShader
+	{
+		UINT m_dwUpdate;                           /**< [Button] : Activate to update all vertex shader data (ID) ***/
+		UINT m_dwHashCodes;                        /**< [List] : Contains ALL vertex shader hash codes (ID) ***/
+		UINT m_dwCurrentConstants;                 /**< [List] : Contains all constants for the chosen vertex shader (ID) ***/
+	} m_sPageVertexShader;
 	/**
-	* List of all shader constants for the currently chosen shaders. (ID)
+	* Debug page control IDs
+	* Structure contains all control IDs for the debug page.
 	***/
-	UINT m_dwCurrentShaderConstantsVS;
+	struct PageDebug
+	{
+		UINT m_dwOptions;                          /**< [Spin] The debug options (ID) ***/
+		UINT m_dwGrab;                             /**< [Button] Grabs debug data to trace (ID) **/
+		UINT m_dwClear;                            /**< [Button] Clears the debug trace (ID) ***/
+		UINT m_dwShaderConstants;                  /**< [List] Contains ALL possible shader constants (ID) ***/
+		UINT m_dwTrace;                            /**< [List] Debug output trace (ID) ***/
+	} m_sPageDebug;
 	/**
-	* Debug spin control. (ID)
-	* Select debug options in this spin control.
-	**/
-	UINT m_dwDebugSpin;
-	/**
-	* Debug grab button. (ID)
-	* Activate to grab shader constant data for the
-	* specified shader constant.
-	**/
-	UINT m_dwDebugGrab;
-	/**
-	* Clear debug console button (ID)
+	* Game Settings page control IDs.
+	* Structure contains all control IDs for the game settings page.
 	***/
-	UINT m_dwClearDebug;
-	/**
-	* List of available shader constants (ID - debug page)
-	***/
-	UINT m_dwShaderConstantsDebug;
-	/**
-	* Debug trace (ID)
-	***/
-	UINT m_dwDebugTrace;
-	/**
-	* List of available shader constants (ID - shader modification page)
-	***/
-	UINT m_dwShaderConstants;
+	struct PageGameSettings
+	{
+		UINT m_dwGameSeparation;                   /**< [Float] Game Stereo Separation (ID) ***/
+	} m_sPageGameSettings;
 	/**
 	* List of all available shader hash codes (std::wstring).
 	* To be used on the shader page, the debug page

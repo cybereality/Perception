@@ -1074,6 +1074,10 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 								float fIncrementer = 100000.0f / fIncrementerDivisor;
 								
 								m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sFloat.m_fValue += fIncrementer;
+
+								// set return value
+								sRet.eType = Vireio_GUI_Event_Type::ChangedToValue;
+								sRet.fNewValue = m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sFloat.m_fValue;
 								
 							}
 							else if (m_sMouseCoords.y < (LONG)(psPos->y + (m_dwFontSize << 1) - (m_dwFontSize >> 2)))
@@ -1094,6 +1098,9 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 								
 								m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sFloat.m_fValue -= fDecrementer;
 								
+								// set return value
+								sRet.eType = Vireio_GUI_Event_Type::ChangedToValue;
+								sRet.fNewValue = m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sFloat.m_fValue;
 							}
 						}
 #pragma endregion
