@@ -717,7 +717,7 @@ void Vireio_GUI::DrawFloat(HDC hdc, Vireio_Control& sControl)
 	for (int n = 0; n < 12; n++)
 	{
 		// get an intermediar
-		float fIntermediar = sControl.m_sFloat.m_fValue / fDivisor;
+		float fIntermediar = fValue / fDivisor;
 		UINT dwIntermediar = (UINT)fIntermediar;
 
 		// get the single number for that digit
@@ -762,6 +762,12 @@ void Vireio_GUI::DrawFloat(HDC hdc, Vireio_Control& sControl)
 	asPoints[2].x = psPos->x + (m_dwFontSize * 6) - (m_dwFontSize >> 3);
 	asPoints[2].y = psPos->y + m_dwFontSize + (m_dwFontSize >> 1);
 	Polygon(hdc, asPoints, 3);
+
+	// is negative ? draw minus
+	if (sControl.m_sFloat.m_fValue < 0.0f)
+	{
+		Rectangle(hdc, (int)psPos->x, (int)psPos->y + (int)m_dwFontSize, (int)psPos->x + 16, (int)psPos->y + (int)m_dwFontSize + 4);
+	}
 
 	// draw the text below the control
 	TextOutW(hdc,
@@ -884,6 +890,9 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 	m_sMouseCoords.x = GET_X_LPARAM(lParam) * dwMultiplyMouseCoords;
 	m_sMouseCoords.y = GET_Y_LPARAM(lParam) * dwMultiplyMouseCoords;
 
+	// border adjustment
+	m_sMouseCoords.x -= 16;
+
 	switch (msg)
 	{
 #pragma region WM_LBUTTONDOWN
@@ -910,7 +919,7 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 				else
 				for (UINT dwI = 0; dwI < (UINT)m_asPages[m_dwCurrentPage].m_asControls.size(); dwI++)
 				{
-					// get position and size pointers, full text size
+					// get position and size pointers
 					POINT* psPos = &m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sPosition;
 					SIZE* psSize = &m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSize;
 
@@ -1046,6 +1055,46 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 							m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSwitch.m_bPressed = true;
 
 							sRet.bNewValue = m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSwitch.m_bTrue;
+						}
+#pragma endregion
+#pragma region Float
+						// is this a float control ?
+						else if (m_asPages[m_dwCurrentPage].m_asControls[dwI].m_eControlType == Vireio_Control_Type::FloatInput)
+						{
+							if (m_sMouseCoords.y < (LONG)(psPos->y + (m_dwFontSize >> 2)))
+							{
+								// upper arrows... get index of arrow
+								int nArrowIndex = (int)(m_sMouseCoords.x - psPos->x) / (int)m_dwFontSize;
+								if (nArrowIndex < 0) nArrowIndex = 0;
+								if (nArrowIndex > 11) nArrowIndex = 11;
+
+								// get incrementer divisor
+								float fIncrementerDivisor = 1.0f;
+								if (nArrowIndex > 0) fIncrementerDivisor = pow(10.0f, (float)nArrowIndex);
+								float fIncrementer = 100000.0f / fIncrementerDivisor;
+								
+								m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sFloat.m_fValue += fIncrementer;
+								
+							}
+							else if (m_sMouseCoords.y < (LONG)(psPos->y + (m_dwFontSize << 1) - (m_dwFontSize >> 2)))
+							{
+								// numbers output... TODO !! LOCK/UNLOCK the number
+							}
+							else if (m_sMouseCoords.y < (LONG)(psPos->y + (m_dwFontSize << 1)))
+							{
+								// lower arrows... get index of arrow
+								int nArrowIndex = (int)(m_sMouseCoords.x - psPos->x) / (int)m_dwFontSize;
+								if (nArrowIndex < 0) nArrowIndex = 0;
+								if (nArrowIndex > 11) nArrowIndex = 11;
+
+								// get decrementer divisor
+								float fDecrementerDivisor = 1.0f;
+								if (nArrowIndex > 0) fDecrementerDivisor = pow(10.0f, (float)nArrowIndex);
+								float fDecrementer = 100000.0f / fDecrementerDivisor;
+								
+								m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sFloat.m_fValue -= fDecrementer;
+								
+							}
 						}
 #pragma endregion
 					}
