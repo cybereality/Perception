@@ -156,6 +156,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\ViewAdjustment.h" />
+    <ClInclude Include="..\..\..\..\..\Shared\ConfigDefaults.h" />
     <ClInclude Include="..\..\..\..\Include\Vireio_GameConfig.h" />
     <ClInclude Include="..\..\..\..\Include\Vireio_GUI.h" />
     <ClInclude Include="..\..\..\..\Include\Vireio_GUIDs.h" />

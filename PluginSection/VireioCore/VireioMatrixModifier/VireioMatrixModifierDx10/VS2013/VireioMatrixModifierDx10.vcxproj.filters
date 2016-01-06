@@ -8,6 +8,8 @@
     <ClInclude Include="..\..\..\..\Include\Vireio_GUIDs.h" />
     <ClInclude Include="..\..\..\..\Include\Vireio_GUI.h" />
     <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\ViewAdjustment.h" />
+    <ClInclude Include="..\..\..\..\Include\Vireio_GameConfig.h" />
+    <ClInclude Include="..\..\..\..\..\Shared\ConfigDefaults.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\VireioMatrixModifier\AQU_Nodus.def" />

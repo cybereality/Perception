@@ -50,7 +50,6 @@ struct Vireio_GameConfiguration
 	float		fPositionXMultiplier;        /**< Game-specific position multiplier for X*/
 	float		fPositionYMultiplier;        /**< Game-specific position multiplier for Y*/
 	float		fPositionZMultiplier;        /**< Game-specific position multiplier for Z*/
-	float		fDistortionScale;            /**< The scale to apply distortion. **/
 	float		fPFOV;                       /**< Projection FOV, alternative to modifying game's FOV **/
 	bool		bPFOVToggle;                 /**< Projection FOV, toggle for above **/
 };

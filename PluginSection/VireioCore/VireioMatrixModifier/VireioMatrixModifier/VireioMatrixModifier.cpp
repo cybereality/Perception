@@ -70,7 +70,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define TO_DO_ADD_BOOL_HERE_TRUE                                           true
 #define TO_DO_ADD_BOOL_HERE_FALSE                                         false
-#define IPD_DEFAULT                                                      0.064f
 
 /**
 * Constructor.
@@ -100,10 +99,28 @@ m_dwCurrentChosenShaderHashCode(0)
 
 	// at start, set the view adjustment class to basic config
 	ZeroMemory(&m_sGameConfiguration, sizeof(Vireio_GameConfiguration));
-	m_sGameConfiguration.fConvergence = 3.0f;
-	m_sGameConfiguration.fIPD = IPD_DEFAULT;
 	m_sGameConfiguration.fWorldScaleFactor = 0.0f;
-	m_sGameConfiguration.fPFOV = 110.0f;
+	m_sGameConfiguration.fConvergence = DEFAULT_CONVERGENCE;
+	m_sGameConfiguration.fIPD = IPD_DEFAULT;
+	m_sGameConfiguration.fPFOV = DEFAULT_PFOV;
+	m_sGameConfiguration.fAspectMultiplier = DEFAULT_ASPECT_MULTIPLIER;
+	m_sGameConfiguration.dwVRboostMinShaderCount = 0;
+	m_sGameConfiguration.dwVRboostMaxShaderCount = 99999999;
+#ifdef _WIN64
+	m_sGameConfiguration.bIs64bit = true;
+#else
+	m_sGameConfiguration.bIs64bit = false;
+#endif
+	m_sGameConfiguration.nRollImpl = 0;
+	m_sGameConfiguration.bConvergenceEnabled = false;
+	m_sGameConfiguration.fYawMultiplier = DEFAULT_YAW_MULTIPLIER;
+	m_sGameConfiguration.fPitchMultiplier = DEFAULT_PITCH_MULTIPLIER;
+	m_sGameConfiguration.fRollMultiplier = DEFAULT_ROLL_MULTIPLIER;
+	m_sGameConfiguration.fPositionMultiplier = 1.0f;
+	m_sGameConfiguration.fPositionXMultiplier = DEFAULT_POS_TRACKING_X_MULT;
+	m_sGameConfiguration.fPositionYMultiplier = DEFAULT_POS_TRACKING_Y_MULT;
+	m_sGameConfiguration.fPositionZMultiplier = DEFAULT_POS_TRACKING_Z_MULT;
+	m_sGameConfiguration.bPFOVToggle = false;
 	m_pcShaderViewAdjustment = new ViewAdjustment(m_psHmdInfo, &m_sGameConfiguration);
 
 	// init
@@ -1623,12 +1640,42 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 			if (sEvent.dwIndexOfPage == m_adwPageIDs[GUI_Pages::GameSettingsPage])
 			{
 				if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwGameSeparation)
-				{
 					m_sGameConfiguration.fWorldScaleFactor = sEvent.fNewValue;
-					m_pcShaderViewAdjustment->Load(m_sGameConfiguration);
-					m_pcShaderViewAdjustment->UpdateProjectionMatrices((float)1920.0f / (float)1080.0f, m_sGameConfiguration.fPFOV);
-					m_pcShaderViewAdjustment->ComputeViewTransforms();
-				}
+				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwConvergence)
+					m_sGameConfiguration.fConvergence = sEvent.fNewValue;
+				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwAspectMultiplier)
+					m_sGameConfiguration.fAspectMultiplier = sEvent.fNewValue;
+				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwVRboostMinShaderCount)
+					m_sGameConfiguration.dwVRboostMinShaderCount = sEvent.dwNewValue;
+				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwVRboostMaxShaderCount)
+					m_sGameConfiguration.dwVRboostMaxShaderCount = sEvent.dwNewValue;
+				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwRollImpl)
+					m_sGameConfiguration.nRollImpl = sEvent.nNewValue;
+				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwConvergenceEnabled)
+					m_sGameConfiguration.bConvergenceEnabled = sEvent.bNewValue;
+				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwYawMultiplier)
+					m_sGameConfiguration.fYawMultiplier = sEvent.fNewValue;
+				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwPitchMultiplier)
+					m_sGameConfiguration.fPitchMultiplier = sEvent.fNewValue;
+				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwRollMultiplier)
+					m_sGameConfiguration.fRollMultiplier = sEvent.fNewValue;
+				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwPositionMultiplier)
+					m_sGameConfiguration.fPositionMultiplier = sEvent.fNewValue;
+				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwPositionXMultiplier)
+					m_sGameConfiguration.fPositionXMultiplier = sEvent.fNewValue;
+				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwPositionYMultiplier)
+					m_sGameConfiguration.fPositionYMultiplier = sEvent.fNewValue;
+				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwPositionZMultiplier)
+					m_sGameConfiguration.fPositionZMultiplier = sEvent.fNewValue;
+				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwPFOV)
+					m_sGameConfiguration.fPFOV = sEvent.fNewValue;
+				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwPFOVToggle)
+					m_sGameConfiguration.bPFOVToggle = sEvent.bNewValue;
+
+				// update view transform
+				m_pcShaderViewAdjustment->Load(m_sGameConfiguration);
+				m_pcShaderViewAdjustment->UpdateProjectionMatrices(((float)1920.0f / (float)1080.0f) * m_sGameConfiguration.fAspectMultiplier, m_sGameConfiguration.fPFOV);
+				m_pcShaderViewAdjustment->ComputeViewTransforms();
 			}
 			break;
 		case ChangedToText:
@@ -2253,6 +2300,30 @@ void MatrixModifier::CreateGUI()
 
 	// control structure
 	Vireio_Control sControl;
+
+#pragma region Static Text
+	static std::wstring szGameSeparationText = std::wstring(L"World Scale Factor");
+	static std::wstring szConvergence = std::wstring(L"Convergence");
+	static std::wstring szAspectMultiplier = std::wstring(L"Aspect Multiplier");
+	static std::wstring szYawMultiplier = std::wstring(L"Yaw Multiplier");
+	static std::wstring szPitchMultiplier = std::wstring(L"Pitch Multiplier");
+	static std::wstring szRollMultiplier = std::wstring(L"Roll Multiplier");
+	static std::wstring szPositionMultiplier = std::wstring(L"Position Multiplier");
+	static std::wstring szPositionXMultiplier = std::wstring(L"Position X Multiplier");
+	static std::wstring szPositionYMultiplier = std::wstring(L"Position Y Multiplier");
+	static std::wstring szPositionZMultiplier = std::wstring(L"Position Z Multiplier");
+	static std::wstring szPFOV = std::wstring(L"Projection FOV");
+	static std::wstring szConvergenceToggle = std::wstring(L"Convergence");
+	static std::wstring szPFOVToggle = std::wstring(L"ProjectionFOV");
+	std::wstring sz64bit;
+	if (m_sGameConfiguration.bIs64bit)
+		sz64bit = std::wstring(L"64 Bit");
+	else
+		sz64bit = std::wstring(L"32 Bit");
+	static std::vector<std::wstring> aszEntries64bit; aszEntries64bit.push_back(sz64bit);
+
+#pragma endregion
+
 #pragma region Main Page
 	ZeroMemory(&sControl, sizeof(Vireio_Control));
 	static std::vector<std::wstring> sEntriesCommanders;
@@ -2291,9 +2362,24 @@ void MatrixModifier::CreateGUI()
 	sControl.m_sSize.cx = GUI_CONTROL_FONTSIZE * 12;                     /**< Standard for float controls ***/
 	sControl.m_sSize.cy = GUI_CONTROL_FONTSIZE * 3;                      /**< Standard for float controls ***/
 	sControl.m_sFloat.m_fValue = m_sGameConfiguration.fWorldScaleFactor;
-	static std::wstring szGameSeparationText = std::wstring(L"Game Separation");
 	sControl.m_sFloat.m_pszText = &szGameSeparationText;
 	m_sPageGameSettings.m_dwGameSeparation = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::GameSettingsPage], sControl);
+	m_sPageGameSettings.m_dwConvergence = CreateFloatControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::GameSettingsPage], &szConvergence, m_sGameConfiguration.fConvergence, GUI_CONTROL_BORDER, GUI_CONTROL_BORDER + (GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER) * 3);
+	m_sPageGameSettings.m_dwAspectMultiplier = CreateFloatControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::GameSettingsPage], &szAspectMultiplier, m_sGameConfiguration.fAspectMultiplier, GUI_CONTROL_BORDER, GUI_CONTROL_BORDER + (GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER) * 6);
+	m_sPageGameSettings.m_dwYawMultiplier = CreateFloatControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::GameSettingsPage], &szYawMultiplier, m_sGameConfiguration.fYawMultiplier, GUI_CONTROL_BORDER, GUI_CONTROL_BORDER + (GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER) * 9);
+	m_sPageGameSettings.m_dwPitchMultiplier = CreateFloatControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::GameSettingsPage], &szPitchMultiplier, m_sGameConfiguration.fPitchMultiplier, GUI_CONTROL_BORDER, GUI_CONTROL_BORDER + (GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER) * 12);
+	m_sPageGameSettings.m_dwRollMultiplier = CreateFloatControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::GameSettingsPage], &szRollMultiplier, m_sGameConfiguration.fRollMultiplier, GUI_CONTROL_BORDER, GUI_CONTROL_BORDER + (GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER) * 15);
+	m_sPageGameSettings.m_dwPositionMultiplier = CreateFloatControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::GameSettingsPage], &szPositionMultiplier, m_sGameConfiguration.fPositionMultiplier, GUI_CONTROL_BORDER, GUI_CONTROL_BORDER + (GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER) * 18);
+	m_sPageGameSettings.m_dwPositionXMultiplier = CreateFloatControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::GameSettingsPage], &szPositionXMultiplier, m_sGameConfiguration.fPositionXMultiplier, GUI_CONTROL_BORDER, GUI_CONTROL_BORDER + (GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER) * 21);
+	m_sPageGameSettings.m_dwPositionYMultiplier = CreateFloatControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::GameSettingsPage], &szPositionYMultiplier, m_sGameConfiguration.fPositionYMultiplier, GUI_CONTROL_BORDER, GUI_CONTROL_BORDER + (GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER) * 24);
+	m_sPageGameSettings.m_dwPositionZMultiplier = CreateFloatControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::GameSettingsPage], &szPositionZMultiplier, m_sGameConfiguration.fPositionZMultiplier, GUI_CONTROL_BORDER, GUI_CONTROL_BORDER + (GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER) * 27);
+	m_sPageGameSettings.m_dwPFOV = CreateFloatControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::GameSettingsPage], &szPFOV, m_sGameConfiguration.fPFOV, GUI_CONTROL_BORDER, GUI_CONTROL_BORDER + (GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER) * 30);
+	m_sPageGameSettings.m_dwConvergenceEnabled = CreateSwitchControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::GameSettingsPage], &szConvergenceToggle, m_sGameConfiguration.bConvergenceEnabled, GUI_CONTROL_BORDER, GUI_CONTROL_BORDER + (GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER) * 33, GUI_CONTROL_BUTTONSIZE, GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
+	m_sPageGameSettings.m_dwPFOVToggle = CreateSwitchControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::GameSettingsPage], &szPFOVToggle, m_sGameConfiguration.bPFOVToggle, GUI_CONTROL_BORDER, GUI_CONTROL_BORDER + (GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER) * 33 + GUI_CONTROL_LINE, GUI_CONTROL_BUTTONSIZE, GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
+
+	m_sPageGameSettings.m_dwIs64bit = CreateStaticListControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::GameSettingsPage], &aszEntries64bit, GUI_CONTROL_BORDER, GUI_HEIGHT - GUI_CONTROL_BORDER - GUI_CONTROL_FONTSIZE - GUI_CONTROL_FONTSIZE * 4, GUI_CONTROL_BUTTONSIZE);
+	// TODO : dwVRboostMinShaderCount, dwVRboostMaxShaderCount, nRollImpl
+
 #pragma endregion
 
 #pragma region Vertex Shader Page

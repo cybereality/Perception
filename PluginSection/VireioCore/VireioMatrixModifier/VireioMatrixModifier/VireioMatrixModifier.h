@@ -48,8 +48,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"VireioMatrixModifierDataStructures.h"
 #include"..\..\..\..\DxProxy\DxProxy\ViewAdjustment.h"
 #include"..\..\..\..\DxProxy\DxProxy\HMDisplayInfo.h"
-#include "..\..\..\..\DxProxy\DxProxy\HMDisplayInfo_Default.h"
-#include "..\..\..\..\DxProxy\DxProxy\HMDisplayInfo_OculusRift.h"
+#include"..\..\..\..\DxProxy\DxProxy\HMDisplayInfo_Default.h"
+#include"..\..\..\..\DxProxy\DxProxy\HMDisplayInfo_OculusRift.h"
+#include"..\..\..\..\Shared\ConfigDefaults.h"
 
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
@@ -572,6 +573,22 @@ private:
 	struct PageGameSettings
 	{
 		UINT m_dwGameSeparation;                   /**< [Float] Game Stereo Separation (ID) ***/
+		UINT m_dwConvergence;                      /**< [Float] Convergence or Neutral Point distance, in meters. **/
+		UINT m_dwAspectMultiplier;                 /**< [Float] Aspect multiplier allows adjusting virtual screen aspect ratio. */
+		UINT m_dwVRboostMinShaderCount;            /**< Minimum Vertex Shader Count to apply VRboost (security) */
+		UINT m_dwVRboostMaxShaderCount;            /**< Maximum Vertex Shader Count to apply VRboost (security) */
+		UINT m_dwIs64bit;                          /**< [StaticList] The game cpu-architecture, true for 64-bit games */
+		UINT m_dwRollImpl;                         /**< [Spin] 0 - NONE, 1 - Matrix Roll, 2 - Pixel Shader Roll */
+		UINT m_dwConvergenceEnabled;               /**< [Switch] Whether convergence is enabled. Typically on for 3D monitors, off for head-mounted displays. **/
+		UINT m_dwYawMultiplier;                    /**< [Float] Game-specific tracking multiplier (yaw). */
+		UINT m_dwPitchMultiplier;                  /**< [Float] Game-specific tracking multiplier (pitch). */
+		UINT m_dwRollMultiplier;                   /**< [Float] Game-specific tracking multiplier (roll). */
+		UINT m_dwPositionMultiplier;               /**< [Float] Game-specific position overall multiplier (for X, Y and Z). */
+		UINT m_dwPositionXMultiplier;              /**< [Float] Game-specific position multiplier for X*/
+		UINT m_dwPositionYMultiplier;              /**< [Float] Game-specific position multiplier for Y*/
+		UINT m_dwPositionZMultiplier;              /**< [Float] Game-specific position multiplier for Z*/
+		UINT m_dwPFOV;                             /**< [Float] Projection FOV, alternative to modifying game's FOV **/
+		UINT m_dwPFOVToggle;                       /**< [Switch] Projection FOV, toggle for above **/
 	} m_sPageGameSettings;
 	/**
 	* List of all available shader hash codes (std::wstring).

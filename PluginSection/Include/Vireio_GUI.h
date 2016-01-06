@@ -223,6 +223,7 @@ public:
 	INT              GetCurrentSelection(UINT dwControlId);
 	void             UnselectCurrentSelection(UINT dwControlId);
 	Vireio_GUI_Event WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam, UINT dwMultiplyMouseCoords);
+	DWORD            GetFontSize() { return m_dwFontSize; }
 
 private:
 	/**
@@ -287,3 +288,57 @@ private:
 	***/
 	POINT m_sMouseCoords;
 };
+
+
+/**
+* Little helper to create a Vireio float control.
+* @returns The ID to the control.
+***/
+inline UINT CreateFloatControl(Vireio_GUI* pcGUI, UINT dwPage, std::wstring* pszText, float fValue, UINT dwPosX, UINT dwPosY)
+{
+	Vireio_Control sControl;
+	ZeroMemory(&sControl, sizeof(Vireio_Control));
+	sControl.m_eControlType = Vireio_Control_Type::FloatInput;
+	sControl.m_sPosition.x = dwPosX;
+	sControl.m_sPosition.y = dwPosY;
+	sControl.m_sSize.cx = pcGUI->GetFontSize() * 12;                     /**< Standard for float controls ***/
+	sControl.m_sSize.cy = pcGUI->GetFontSize() * 3;                      /**< Standard for float controls ***/
+	sControl.m_sFloat.m_fValue = fValue;
+	sControl.m_sFloat.m_pszText = pszText;
+	return pcGUI->AddControl(dwPage, sControl);
+}
+
+/**
+* Little helper to create a static text control.
+* @returns The ID to the control.
+***/
+inline UINT CreateStaticListControl(Vireio_GUI* pcGUI, UINT dwPage, std::vector<std::wstring>* paszText, UINT dwPosX, UINT dwPosY, UINT dwSizeX)
+{
+	Vireio_Control sControl;
+	ZeroMemory(&sControl, sizeof(Vireio_Control));
+	sControl.m_eControlType = Vireio_Control_Type::StaticListBox;
+	sControl.m_sPosition.x = dwPosX;
+	sControl.m_sPosition.y = dwPosY;
+	sControl.m_sSize.cx = dwSizeX;
+	sControl.m_sSize.cy = pcGUI->GetFontSize() * (LONG)paszText->size();
+	sControl.m_sStaticListBox.m_paszEntries = paszText;
+	return pcGUI->AddControl(dwPage, sControl);
+}
+
+/**
+* Little helper to create a switch control.
+* @returns The ID to the control.
+***/
+inline UINT CreateSwitchControl(Vireio_GUI* pcGUI, UINT dwPage, std::wstring* pszText, bool bTrue, UINT dwPosX, UINT dwPosY, UINT dwSizeX, UINT dwSizeY)
+{
+	Vireio_Control sControl;
+	ZeroMemory(&sControl, sizeof(Vireio_Control));
+	sControl.m_eControlType = Vireio_Control_Type::Switch;
+	sControl.m_sPosition.x = dwPosX;
+	sControl.m_sPosition.y = dwPosY;
+	sControl.m_sSize.cx = dwSizeX;
+	sControl.m_sSize.cy = dwSizeY;
+	sControl.m_sSwitch.m_bTrue = bTrue;
+	sControl.m_sSwitch.m_pszText = pszText;
+	return pcGUI->AddControl(dwPage, sControl);
+}

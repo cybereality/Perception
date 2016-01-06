@@ -1054,6 +1054,8 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 								!m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSwitch.m_bTrue;
 							m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSwitch.m_bPressed = true;
 
+							// set return value
+							sRet.eType = Vireio_GUI_Event_Type::ChangedToValue;
 							sRet.bNewValue = m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sSwitch.m_bTrue;
 						}
 #pragma endregion
