@@ -572,6 +572,7 @@ private:
 	***/
 	struct PageGameSettings
 	{
+		/*** PageGameSettings game configuration ***/
 		UINT m_dwGameSeparation;                   /**< [Float] Game Stereo Separation (ID) ***/
 		UINT m_dwConvergence;                      /**< [Float] Convergence or Neutral Point distance, in meters. **/
 		UINT m_dwAspectMultiplier;                 /**< [Float] Aspect multiplier allows adjusting virtual screen aspect ratio. */
@@ -589,7 +590,32 @@ private:
 		UINT m_dwPositionZMultiplier;              /**< [Float] Game-specific position multiplier for Z*/
 		UINT m_dwPFOV;                             /**< [Float] Projection FOV, alternative to modifying game's FOV **/
 		UINT m_dwPFOVToggle;                       /**< [Switch] Projection FOV, toggle for above **/
+
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+		/*** PageGameSettings technical options ***/
+		UINT m_dwUCB_UpdateSubresource;            /**< [Switch] Update the stereo constant buffers when UpdateSubresource() is called. ***/
+		UINT m_dwUCB_CopySubresourceRegion;        /**< [Switch] Update the stereo constant buffers when CopySubresourceRegion() is called. ***/
+		UINT m_dwUCB_CopyResource;                 /**< [Switch] Update the stereo constant buffers when CopyResource() is called. ***/
+		UINT m_dwUCB_VSSetShader;                  /**< [Switch] Update the stereo constant buffers when VSSetShader() is called. ***/
+		UINT m_dwUCB_VSSetConstantBuffers;         /**< [Switch] Update the stereo constant buffers when VSSetConstantBuffers() is called. ***/
+		UINT m_dwUCB_Unmap;                        /**< [Switch] Update the stereo constant buffers when Unmap() is called. ***/
+#endif
 	} m_sPageGameSettings;
+	/**
+	* This structure contains all DX version specific technical options
+	* you have to influence or optimize the way the MatrixModifier works.
+	***/
+	struct TechnicalOptions
+	{
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+		bool m_bUCB_UpdateSubresource;             /**< Update the stereo constant buffers when UpdateSubresource() is called. ***/
+		bool m_bUCB_CopySubresourceRegion;         /**< Update the stereo constant buffers when CopySubresourceRegion() is called. ***/
+		bool m_bUCB_CopyResource;                  /**< Update the stereo constant buffers when CopyResource() is called. ***/
+		bool m_bUCB_VSSetShader;                   /**< Update the stereo constant buffers when VSSetShader() is called. ***/
+		bool m_bUCB_VSSetConstantBuffers;          /**< Update the stereo constant buffers when VSSetConstantBuffers() is called. ***/
+		bool m_bUCB_Unmap;                         /**< Update the stereo constant buffers when Unmap() is called. ***/
+#endif
+	} m_sTechnicalOptions;
 	/**
 	* List of all available shader hash codes (std::wstring).
 	* To be used on the shader page, the debug page

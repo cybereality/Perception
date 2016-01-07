@@ -138,6 +138,14 @@ m_dwCurrentChosenShaderHashCode(0)
 	m_adwGlobalConstantRuleIndices.push_back(0);
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+	// set all "update constant buffers" bools to true
+	m_sTechnicalOptions.m_bUCB_CopyResource = true;
+	m_sTechnicalOptions.m_bUCB_CopySubresourceRegion = true;
+	m_sTechnicalOptions.m_bUCB_Unmap = true;
+	m_sTechnicalOptions.m_bUCB_UpdateSubresource = true;
+	m_sTechnicalOptions.m_bUCB_VSSetConstantBuffers = true;
+	m_sTechnicalOptions.m_bUCB_VSSetShader = true;
+
 	// create buffer vectors
 	m_apcActiveConstantBuffers11 = std::vector<ID3D11Buffer*>(D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, nullptr);
 
@@ -1052,7 +1060,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 							for (UINT dwIndex = 0; dwIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; dwIndex++)
 							if (m_apcActiveConstantBuffers11[dwIndex])
 							{
-								if (*m_ppcDstResource_DX11 == m_apcActiveConstantBuffers11[dwIndex])
+								if ((*m_ppcDstResource_DX11 == m_apcActiveConstantBuffers11[dwIndex]) && (m_sTechnicalOptions.m_bUCB_UpdateSubresource))
 								{
 									//  and update the stereo buffers
 									if ((sDesc.CPUAccessFlags & D3D11_CPU_ACCESS_WRITE) == D3D11_CPU_ACCESS_WRITE)
@@ -1143,7 +1151,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 									for (UINT dwIndex = 0; dwIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; dwIndex++)
 									if (m_apcActiveConstantBuffers11[dwIndex])
 									{
-										if (*m_ppcDstResource_DX11_CopySub == m_apcActiveConstantBuffers11[dwIndex])
+										if ((*m_ppcDstResource_DX11_CopySub == m_apcActiveConstantBuffers11[dwIndex]) && (m_sTechnicalOptions.m_bUCB_CopySubresourceRegion))
 										{
 											//  and update the stereo buffers
 											if ((sDescDst.CPUAccessFlags & D3D11_CPU_ACCESS_WRITE) == D3D11_CPU_ACCESS_WRITE)
@@ -1253,7 +1261,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 									// loop through active buffers, if this one is active update stereo buffers
 									for (UINT dwIndex = 0; dwIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; dwIndex++)
-									if (m_apcActiveConstantBuffers11[dwIndex])
+									if ((m_apcActiveConstantBuffers11[dwIndex]) && (m_sTechnicalOptions.m_bUCB_CopyResource))
 									{
 										if (*m_ppcDstResource_DX11_Copy == m_apcActiveConstantBuffers11[dwIndex])
 										{
@@ -1341,7 +1349,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 							m_apcActiveConstantBuffers11[dwIndex]->GetPrivateData(PDID_ID3D11Buffer_Vireio_Data, &dwSize, m_pchBuffer11);
 
 							//  and update the stereo buffers
-							if (dwSize)
+							if ((dwSize) && (m_sTechnicalOptions.m_bUCB_VSSetShader))
 							{
 								if ((sDesc.CPUAccessFlags & D3D11_CPU_ACCESS_WRITE) == D3D11_CPU_ACCESS_WRITE)
 									UpdateConstantBuffer((ID3D11DeviceContext*)pThis, (ID3D11Resource*)m_apcActiveConstantBuffers11[dwIndex], 0, NULL, &m_pchBuffer11[0], 0, 0, dwIndex, sDesc.ByteWidth, true);
@@ -1401,7 +1409,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 								m_apcActiveConstantBuffers11[dwInternalIndex]->GetPrivateData(PDID_ID3D11Buffer_Vireio_Data, &dwSize, m_pchBuffer11);
 
 								//  and update the stereo buffers
-								if (dwSize)
+								if ((dwSize) && (m_sTechnicalOptions.m_bUCB_VSSetConstantBuffers))
 								{
 									if ((sDesc.CPUAccessFlags & D3D11_CPU_ACCESS_WRITE) == D3D11_CPU_ACCESS_WRITE)
 										UpdateConstantBuffer((ID3D11DeviceContext*)pThis, (ID3D11Resource*)m_apcActiveConstantBuffers11[dwInternalIndex], 0, NULL, &m_pchBuffer11[0], 0, 0, dwInternalIndex, sDesc.ByteWidth, true);
@@ -1583,7 +1591,8 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 										if (*m_ppcResource_Unmap == m_apcActiveConstantBuffers11[dwIndex])
 										{
 											//  and update the stereo buffers
-											UpdateConstantBuffer((ID3D11DeviceContext*)pThis, *m_ppcResource_Unmap, 0, NULL, (LPVOID)dwAddress, 0, 0, dwIndex, m_asMappedBuffers[dwI].m_dwMappedResourceDataSize, true);
+											if (m_sTechnicalOptions.m_bUCB_Unmap)
+												UpdateConstantBuffer((ID3D11DeviceContext*)pThis, *m_ppcResource_Unmap, 0, NULL, (LPVOID)dwAddress, 0, 0, dwIndex, m_asMappedBuffers[dwI].m_dwMappedResourceDataSize, true);
 										}
 									}
 
@@ -1671,6 +1680,20 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 					m_sGameConfiguration.fPFOV = sEvent.fNewValue;
 				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwPFOVToggle)
 					m_sGameConfiguration.bPFOVToggle = sEvent.bNewValue;
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwUCB_CopyResource)
+					m_sTechnicalOptions.m_bUCB_CopyResource = sEvent.bNewValue;
+				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwUCB_CopySubresourceRegion)
+					m_sTechnicalOptions.m_bUCB_CopySubresourceRegion = sEvent.bNewValue;
+				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwUCB_Unmap)
+					m_sTechnicalOptions.m_bUCB_Unmap = sEvent.bNewValue;
+				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwUCB_UpdateSubresource)
+					m_sTechnicalOptions.m_bUCB_UpdateSubresource = sEvent.bNewValue;
+				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwUCB_VSSetConstantBuffers)
+					m_sTechnicalOptions.m_bUCB_VSSetConstantBuffers = sEvent.bNewValue;
+				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwUCB_VSSetShader)
+					m_sTechnicalOptions.m_bUCB_VSSetShader = sEvent.bNewValue;
+#endif
 
 				// update view transform
 				m_pcShaderViewAdjustment->Load(m_sGameConfiguration);
@@ -2322,6 +2345,12 @@ void MatrixModifier::CreateGUI()
 		sz64bit = std::wstring(L"32 Bit");
 	static std::vector<std::wstring> aszEntries64bit; aszEntries64bit.push_back(sz64bit);
 
+	static std::wstring szUCB_CopyResource = std::wstring(L"UCBCopyResource");
+	static std::wstring szUCB_CopySubresourceRegion = std::wstring(L"UCBCopySubresourceRegion");
+	static std::wstring szUCB_Unmap = std::wstring(L"UCBUnmap");
+	static std::wstring szUCB_UpdateSubresource = std::wstring(L"UCBUpdateSubresource");
+	static std::wstring szUCB_VSSetConstantBuffers = std::wstring(L"UCBVSSetConstantBuffers");
+	static std::wstring szUCB_VSSetShader = std::wstring(L"UCBVSSetShader");
 #pragma endregion
 
 #pragma region Main Page
@@ -2363,6 +2392,8 @@ void MatrixModifier::CreateGUI()
 	sControl.m_sSize.cy = GUI_CONTROL_FONTSIZE * 3;                      /**< Standard for float controls ***/
 	sControl.m_sFloat.m_fValue = m_sGameConfiguration.fWorldScaleFactor;
 	sControl.m_sFloat.m_pszText = &szGameSeparationText;
+
+	// game configuration
 	m_sPageGameSettings.m_dwGameSeparation = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::GameSettingsPage], sControl);
 	m_sPageGameSettings.m_dwConvergence = CreateFloatControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::GameSettingsPage], &szConvergence, m_sGameConfiguration.fConvergence, GUI_CONTROL_BORDER, GUI_CONTROL_BORDER + (GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER) * 3);
 	m_sPageGameSettings.m_dwAspectMultiplier = CreateFloatControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::GameSettingsPage], &szAspectMultiplier, m_sGameConfiguration.fAspectMultiplier, GUI_CONTROL_BORDER, GUI_CONTROL_BORDER + (GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER) * 6);
@@ -2376,6 +2407,16 @@ void MatrixModifier::CreateGUI()
 	m_sPageGameSettings.m_dwPFOV = CreateFloatControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::GameSettingsPage], &szPFOV, m_sGameConfiguration.fPFOV, GUI_CONTROL_BORDER, GUI_CONTROL_BORDER + (GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER) * 30);
 	m_sPageGameSettings.m_dwConvergenceEnabled = CreateSwitchControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::GameSettingsPage], &szConvergenceToggle, m_sGameConfiguration.bConvergenceEnabled, GUI_CONTROL_BORDER, GUI_CONTROL_BORDER + (GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER) * 33, GUI_CONTROL_BUTTONSIZE, GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
 	m_sPageGameSettings.m_dwPFOVToggle = CreateSwitchControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::GameSettingsPage], &szPFOVToggle, m_sGameConfiguration.bPFOVToggle, GUI_CONTROL_BORDER, GUI_CONTROL_BORDER + (GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER) * 33 + GUI_CONTROL_LINE, GUI_CONTROL_BUTTONSIZE, GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
+
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+	// technical options
+	m_sPageGameSettings.m_dwUCB_CopyResource = CreateSwitchControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::GameSettingsPage], &szUCB_CopyResource, m_sTechnicalOptions.m_bUCB_CopyResource, GUI_CONTROL_BORDER, GUI_CONTROL_BORDER + (GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER) * 49 + GUI_CONTROL_LINE, GUI_CONTROL_BUTTONSIZE, GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
+	m_sPageGameSettings.m_dwUCB_CopySubresourceRegion = CreateSwitchControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::GameSettingsPage], &szUCB_CopySubresourceRegion, m_sTechnicalOptions.m_bUCB_CopySubresourceRegion, GUI_CONTROL_BORDER, GUI_CONTROL_BORDER + (GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER) * 50 + GUI_CONTROL_LINE, GUI_CONTROL_BUTTONSIZE, GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
+	m_sPageGameSettings.m_dwUCB_Unmap = CreateSwitchControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::GameSettingsPage], &szUCB_Unmap, m_sTechnicalOptions.m_bUCB_Unmap, GUI_CONTROL_BORDER, GUI_CONTROL_BORDER + (GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER) * 51 + GUI_CONTROL_LINE, GUI_CONTROL_BUTTONSIZE, GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
+	m_sPageGameSettings.m_dwUCB_UpdateSubresource = CreateSwitchControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::GameSettingsPage], &szUCB_UpdateSubresource, m_sTechnicalOptions.m_bUCB_UpdateSubresource, GUI_CONTROL_BORDER, GUI_CONTROL_BORDER + (GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER) * 52 + GUI_CONTROL_LINE, GUI_CONTROL_BUTTONSIZE, GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
+	m_sPageGameSettings.m_dwUCB_VSSetConstantBuffers = CreateSwitchControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::GameSettingsPage], &szUCB_VSSetConstantBuffers, m_sTechnicalOptions.m_bUCB_VSSetConstantBuffers, GUI_CONTROL_BORDER, GUI_CONTROL_BORDER + (GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER) * 53 + GUI_CONTROL_LINE, GUI_CONTROL_BUTTONSIZE, GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
+	m_sPageGameSettings.m_dwUCB_VSSetShader = CreateSwitchControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::GameSettingsPage], &szUCB_VSSetShader, m_sTechnicalOptions.m_bUCB_VSSetShader, GUI_CONTROL_BORDER, GUI_CONTROL_BORDER + (GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER) * 54 + GUI_CONTROL_LINE, GUI_CONTROL_BUTTONSIZE, GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
+#endif
 
 	m_sPageGameSettings.m_dwIs64bit = CreateStaticListControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::GameSettingsPage], &aszEntries64bit, GUI_CONTROL_BORDER, GUI_HEIGHT - GUI_CONTROL_BORDER - GUI_CONTROL_FONTSIZE - GUI_CONTROL_FONTSIZE * 4, GUI_CONTROL_BUTTONSIZE);
 	// TODO : dwVRboostMinShaderCount, dwVRboostMaxShaderCount, nRollImpl
