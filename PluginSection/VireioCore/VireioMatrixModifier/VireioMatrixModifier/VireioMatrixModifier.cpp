@@ -1376,6 +1376,35 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 									nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
 								}
 							}
+
+							// sort shader list ?
+							if (m_bSortShaderList)
+							{
+								// get the current shader hash
+								Vireio_Shader_Private_Data sPrivateData;
+								UINT dwDataSize = sizeof(sPrivateData);
+								if (m_pcActiveVertexShader11)
+									m_pcActiveVertexShader11->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
+
+								// get shader index
+								for (UINT dwI = 1; dwI < (UINT)m_adwShaderHashCodes.size(); dwI++)
+								{
+									if (sPrivateData.dwHash == m_adwShaderHashCodes[dwI])
+									{
+										// move one forward
+										std::wstring szBuf = m_aszShaderHashCodes[dwI - 1];
+										m_aszShaderHashCodes[dwI - 1] = m_aszShaderHashCodes[dwI];
+										m_aszShaderHashCodes[dwI] = szBuf;
+
+										UINT dwBuf = m_adwShaderHashCodes[dwI - 1];
+										m_adwShaderHashCodes[dwI - 1] = m_adwShaderHashCodes[dwI];
+										m_adwShaderHashCodes[dwI] = dwBuf;
+
+										// end search;
+										dwI = (UINT)m_adwShaderHashCodes.size();
+									}
+								}
+							}
 						}
 					}
 					return nullptr;
@@ -1699,6 +1728,15 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 				m_pcShaderViewAdjustment->Load(m_sGameConfiguration);
 				m_pcShaderViewAdjustment->UpdateProjectionMatrices(((float)1920.0f / (float)1080.0f) * m_sGameConfiguration.fAspectMultiplier, m_sGameConfiguration.fPFOV);
 				m_pcShaderViewAdjustment->ComputeViewTransforms();
+			}
+			else if (sEvent.dwIndexOfPage == m_adwPageIDs[GUI_Pages::ShadersPage])
+			{
+				if (sEvent.dwIndexOfControl == m_sPageVertexShader.m_dwSort)
+				{
+					// set sorting bool
+					m_bSortShaderList = sEvent.bNewValue;
+
+				}
 			}
 			break;
 		case ChangedToText:
@@ -2351,6 +2389,8 @@ void MatrixModifier::CreateGUI()
 	static std::wstring szUCB_UpdateSubresource = std::wstring(L"UCBUpdateSubresource");
 	static std::wstring szUCB_VSSetConstantBuffers = std::wstring(L"UCBVSSetConstantBuffers");
 	static std::wstring szUCB_VSSetShader = std::wstring(L"UCBVSSetShader");
+
+	static std::wstring szSort = std::wstring(L"Sort");
 #pragma endregion
 
 #pragma region Main Page
@@ -2457,6 +2497,7 @@ void MatrixModifier::CreateGUI()
 	static std::wstring szButtonUpdateShaderDataText = std::wstring(L"Update Data");
 	sControl.m_sButton.m_pszText = &szButtonUpdateShaderDataText;
 	m_sPageVertexShader.m_dwUpdate = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::ShadersPage], sControl);
+	m_sPageVertexShader.m_dwSort = CreateSwitchControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::ShadersPage], &szSort, m_bSortShaderList, (GUI_CONTROL_FONTBORDER << 1) + GUI_CONTROL_BUTTONSIZE, (GUI_HEIGHT >> 1) - GUI_CONTROL_LINE, GUI_CONTROL_BUTTONSIZE, GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
 #pragma endregion
 
 #pragma region Description Page

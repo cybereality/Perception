@@ -102,7 +102,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define GUI_CONTROL_FONTSIZE                          64
 #define GUI_CONTROL_FONTBORDER                        16
 #define GUI_CONTROL_LINE                              92
-#define GUI_CONTROL_BUTTONSIZE                       512
+#define GUI_CONTROL_BUTTONSIZE                       488
 
 #define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"%u", a); OutputDebugString(buf); }
 #define DEBUG_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"%x", a); OutputDebugString(buf); }
@@ -551,6 +551,7 @@ private:
 	struct PageVertexShader
 	{
 		UINT m_dwUpdate;                           /**< [Button] : Activate to update all vertex shader data (ID) ***/
+		UINT m_dwSort;                             /**< [Switch] : Sort the shader list ***/         
 		UINT m_dwHashCodes;                        /**< [List] : Contains ALL vertex shader hash codes (ID) ***/
 		UINT m_dwCurrentConstants;                 /**< [List] : Contains all constants for the chosen vertex shader (ID) ***/
 	} m_sPageVertexShader;
@@ -661,7 +662,10 @@ private:
 	* If true debug text will be grabbed by the chosen debug option (m_eDebugOption)
 	***/
 	bool m_bGrabDebug;
-
+	/**
+	* True if the shader list is to be sorted. 
+	***/
+	bool m_bSortShaderList;
 };
 
 /**
