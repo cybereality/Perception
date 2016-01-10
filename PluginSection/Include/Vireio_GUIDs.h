@@ -36,6 +36,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // PDID_ID3D11Buffer_Vireio_Data : 9661ee48-d331-478d-aa3e-5663ec612473
 const GUID PDID_ID3D11Buffer_Vireio_Data = { 0x9661ee48, 0xd331, 0x478d, { 0xaa, 0x3e, 0x56, 0x63, 0xec, 0x61, 0x24, 0x73 } };
 
+// PDID_ID3D11Buffer_Vireio_Label : ecd95f38-0bfc-48a0-b752-0c9319ae7779
+const GUID PDID_ID3D11Buffer_Vireio_Label = { 0xecd95f38, 0x0bfc, 0x48a0, { 0xb7, 0x52, 0x0c, 0x93, 0x19, 0xae, 0x77, 0x79 } };
+
 // PDID_ID3D11TextureXD_ShaderResouceView_Create_New : 7371d160-5b35-471c-b2ae-e5e9d942b776
 const GUID PDID_ID3D11TextureXD_ShaderResouceView_Create_New = { 0x7371d160, 0x5b35, 0x471c, { 0xb2, 0xae, 0xe5, 0xe9, 0xd9, 0x42, 0xb7, 0x76 } };
 
