@@ -1087,6 +1087,21 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 							}
 #else
 							// do matrix modification for both sides
+
+							// update right buffer only if shader rule assigned !!
+
+							// get the private data interface
+							ID3D11Buffer* pcBuffer = nullptr;
+							UINT dwSize = sizeof(pcBuffer);
+							((ID3D11Buffer*)*m_ppcDstResource_DX11)->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcBuffer);
+
+							if (pcBuffer)
+							{
+								// currently just update stereo buffer with same data
+								((ID3D11DeviceContext*)pThis)->UpdateSubresource((ID3D11Resource*)pcBuffer, *m_pdwDstSubresource, *m_ppsDstBox_DX11, *m_ppvSrcData, *m_pdwSrcRowPitch, *m_pdwSrcDepthPitch);
+
+								pcBuffer->Release();
+							}
 #endif
 						}
 					}
@@ -1756,7 +1771,27 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 										(*m_ppcResource_Unmap)->SetPrivateData(PDID_ID3D11Buffer_Vireio_Label, sizeof(UINT), (const void*)&dwNull);
 									}
 #else
-									// do matrix modification for both sides
+									// do matrix modification for both sides BEFORE UNMAP CALL !! TODO !!
+
+									// update right buffer only if shader rule assigned !!
+
+									// get the private data interface
+									ID3D11Buffer* pcBuffer = nullptr;
+									UINT dwSize = sizeof(pcBuffer);
+									(*m_ppcResource_Unmap)->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcBuffer);
+
+									if (pcBuffer)
+									{
+										// currently just update stereo buffer with same data
+										D3D11_MAPPED_SUBRESOURCE sMapped;
+										if (SUCCEEDED(((ID3D11DeviceContext*)pThis)->Map((ID3D11Resource*)pcBuffer, *m_pdwSubresource_Unmap, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, NULL, &sMapped)))
+										{
+											memcpy(sMapped.pData, (LPVOID)dwAddress, m_asMappedBuffers[dwI].m_dwMappedResourceDataSize);
+											((ID3D11DeviceContext*)pThis)->Unmap((ID3D11Resource*)pcBuffer, *m_pdwSubresource_Unmap);
+										}
+
+										pcBuffer->Release();
+									}
 #endif
 
 									// set mapped resource data to zero
