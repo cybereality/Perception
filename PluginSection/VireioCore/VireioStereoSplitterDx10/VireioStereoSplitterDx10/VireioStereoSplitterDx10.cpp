@@ -2418,7 +2418,16 @@ bool StereoSplitter::SetDrawingSide(ID3D11DeviceContext* pcContext, RenderPositi
 		}
 	}
 #else
-
+	// switch constant buffers
+	if (m_appcActiveConstantBuffers11)
+	if (*m_appcActiveConstantBuffers11)
+	{
+		// set all constant buffers for the left or right side
+		if (eSide == RenderPosition::Left)
+			pcContext->VSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &(*m_appcActiveConstantBuffers11)[0]);
+		else
+			pcContext->VSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &(*m_appcActiveConstantBuffers11)[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT]);
+	}
 #endif
 
 	return true;

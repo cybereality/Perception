@@ -356,10 +356,10 @@ private:
 #if (defined(VIREIO_D3D11) || defined(VIREIO_D3D10)) && defined(_DEBUG_VIREIO)
 	/*** MatrixModifier private debug methods ***/
 	void UpdateConstantBuffer(ID3D11DeviceContext* pcContext, ID3D11Resource *pcDstResource, UINT dwDstSubresource, const D3D11_BOX *psDstBox, const void *pvSrcData, UINT dwSrcRowPitch, UINT dwSrcDepthPitch, UINT dwBufferIndex, UINT dwBufferSize, bool bMapBuffer, bool bNewData);
-	void CreateStereoConstantBuffer(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, ID3D11Buffer* pcBuffer, D3D11_BUFFER_DESC *pDesc, D3D11_SUBRESOURCE_DATA *pInitialData, bool bCopyData);
-#elif (defined(VIREIO_D3D11) || defined(VIREIO_D3D10))
+#endif
+#if (defined(VIREIO_D3D11) || defined(VIREIO_D3D10))
 	/*** MatrixModifier private methods ***/
-
+	void CreateStereoConstantBuffer(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, ID3D11Buffer* pcBuffer, D3D11_BUFFER_DESC *pDesc, D3D11_SUBRESOURCE_DATA *pInitialData, bool bCopyData);
 #endif
 #if defined(VIREIO_D3D9)
 #endif
@@ -441,6 +441,10 @@ private:
 	* The d3d11 active constant buffer vector.
 	***/
 	std::vector<ID3D11Buffer*> m_apcActiveConstantBuffers11;
+	/**
+	* True if constant buffers are initialized.
+	***/
+	bool m_bConstantBuffersInitialized;
 	/**
 	* The active vertex shader.
 	***/

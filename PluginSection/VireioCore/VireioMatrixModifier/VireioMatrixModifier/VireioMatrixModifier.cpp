@@ -146,14 +146,20 @@ m_dwCurrentChosenShaderHashCode(0)
 	m_sTechnicalOptions.m_bUCB_VSSetConstantBuffers = true;
 	m_sTechnicalOptions.m_bUCB_VSSetShader = true;
 
+#ifdef _DEBUG_VIREIO
 	// create buffer vectors
 	m_apcActiveConstantBuffers11 = std::vector<ID3D11Buffer*>(D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, nullptr);
+#else
+	// create buffer vectors ( * 2 for left/right side )
+	m_apcActiveConstantBuffers11 = std::vector<ID3D11Buffer*>(D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT * 2, nullptr);
+#endif
 
 	// create output pointers
 	m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_VertexShader] = (void*)&m_apcActiveConstantBuffers11[0];
 
 	// set constant buffer verification at startup (first 30 frames)
 	m_dwVerifyConstantBuffers = CONSTANT_BUFFER_VERIFICATION_FRAME_NUMBER;
+	m_bConstantBuffersInitialized = false;
 
 	// init shader vector
 	m_asShaders = std::vector<Vireio_D3D11_Shader>();
@@ -1080,7 +1086,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 								(*m_ppcDstResource_DX11)->SetPrivateData(PDID_ID3D11Buffer_Vireio_Label, sizeof(UINT), (const void*)&dwNull);
 							}
 #else
-
+							// do matrix modification for both sides
 #endif
 						}
 					}
@@ -1185,6 +1191,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 									}
 								}
 #else
+								// copy to both sides, if source is a mono buffer set source to stereo buffer
 #endif
 							}
 						}
@@ -1309,6 +1316,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 									}
 								}
 #else
+								// copy to both sides, if source is a mono buffer set source to stereo buffer
 #endif
 							}
 						}
@@ -1373,11 +1381,11 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						// set the active vertex shader
 						m_pcActiveVertexShader11 = *m_ppcVertexShader_11;
 
-#ifdef _DEBUG_VIREIO
 						// loop through active constant buffers, get private data and update them accordingly to the new shader
 						for (UINT dwIndex = 0; dwIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; dwIndex++)
 						if (m_apcActiveConstantBuffers11[dwIndex])
 						{
+#ifdef _DEBUG_VIREIO
 							// get description from buffer
 							D3D11_BUFFER_DESC sDesc;
 							m_apcActiveConstantBuffers11[dwIndex]->GetDesc(&sDesc);
@@ -1414,7 +1422,9 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 									nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
 								}
 							}
-
+#else
+							// get private label from buffer, verify
+#endif
 							// sort shader list ?
 							if (m_bSortShaderList)
 							{
@@ -1444,8 +1454,6 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 								}
 							}
 						}
-#else
-#endif
 					}
 					return nullptr;
 #pragma endregion
@@ -1534,6 +1542,77 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
 					}
 #else
+					// loop through the new buffers
+					for (UINT dwIndex = 0; dwIndex < *m_pdwNumBuffers_VertexShader; dwIndex++)
+					{
+						// get internal index
+						UINT dwInternalIndex = dwIndex + *m_pdwStartSlot_VertexShader;
+
+						// in range ? 
+						if (dwInternalIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT)
+						{
+							// set buffer internally 
+							m_apcActiveConstantBuffers11[dwInternalIndex] = ((*m_pppcConstantBuffers_DX11_VertexShader)[dwIndex]);
+
+							if (m_apcActiveConstantBuffers11[dwInternalIndex])
+							{
+								// get private label from buffer, verify
+
+								// set twin for right side, first get the private data interface
+								ID3D11Buffer* pcBuffer = nullptr;
+								UINT dwSize = sizeof(pcBuffer);
+								m_apcActiveConstantBuffers11[dwInternalIndex]->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcBuffer);
+
+								if (pcBuffer)
+								{
+									// set right buffer as active buffer
+									m_apcActiveConstantBuffers11[dwInternalIndex + D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = pcBuffer;
+
+									pcBuffer->Release();
+								}
+								else
+								{
+									// left = right side
+									m_apcActiveConstantBuffers11[dwInternalIndex + D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = m_apcActiveConstantBuffers11[dwInternalIndex];
+
+									// create stereo constant buffer, first get device
+									ID3D11Device* pcDevice = nullptr;
+									m_apcActiveConstantBuffers11[dwInternalIndex]->GetDevice(&pcDevice);
+									if (pcDevice)
+									{
+										D3D11_BUFFER_DESC sDesc;
+										m_apcActiveConstantBuffers11[dwInternalIndex]->GetDesc(&sDesc);
+										CreateStereoConstantBuffer(pcDevice, (ID3D11DeviceContext*)pThis, (ID3D11Buffer*)m_apcActiveConstantBuffers11[dwInternalIndex], &sDesc, NULL, true);
+										pcDevice->Release();
+									}
+								}
+							}
+							else
+								m_apcActiveConstantBuffers11[dwInternalIndex + D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = nullptr;
+						}
+					}
+
+					// call super method
+					if (m_eCurrentRenderingSide == RenderPosition::Left)
+					{
+						((ID3D11DeviceContext*)pThis)->VSSetConstantBuffers(*m_pdwStartSlot_VertexShader,
+							*m_pdwNumBuffers_VertexShader,
+							(ID3D11Buffer**)&m_apcActiveConstantBuffers11[*m_pdwStartSlot_VertexShader]);
+
+						// method replaced, immediately return
+						nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+					}
+					else
+					{
+						((ID3D11DeviceContext*)pThis)->VSSetConstantBuffers(*m_pdwStartSlot_VertexShader,
+							*m_pdwNumBuffers_VertexShader,
+							(ID3D11Buffer**)&m_apcActiveConstantBuffers11[(*m_pdwStartSlot_VertexShader) + D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT]);
+
+						// method replaced, immediately return
+						nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+					}
+
+
 #endif
 					return nullptr;
 #pragma endregion
@@ -1677,6 +1756,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 										(*m_ppcResource_Unmap)->SetPrivateData(PDID_ID3D11Buffer_Vireio_Label, sizeof(UINT), (const void*)&dwNull);
 									}
 #else
+									// do matrix modification for both sides
 #endif
 
 									// set mapped resource data to zero
@@ -2259,7 +2339,9 @@ void MatrixModifier::UpdateConstantBuffer(ID3D11DeviceContext* pcContext, ID3D11
 	SAFE_RELEASE(pcBufferLeft);
 	SAFE_RELEASE(pcBufferRight);
 }
+#endif
 
+#if (defined(VIREIO_D3D11) || defined(VIREIO_D3D10))
 /**
 * Creates a stereo buffer out of a buffer.
 * Assigns both left and right buffer to the main buffer
@@ -2305,7 +2387,6 @@ void MatrixModifier::CreateStereoConstantBuffer(ID3D11Device* pcDevice, ID3D11De
 	if (nRef != 1) OutputDebugString(L"MatrixModifier: Reference counter invalid !");
 }
 
-#elif (defined(VIREIO_D3D11) || defined(VIREIO_D3D10))
 
 #endif
 
