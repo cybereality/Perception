@@ -1053,6 +1053,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						((ID3D11Buffer*)*m_ppcDstResource_DX11)->GetDesc(&sDesc);
 						if ((sDesc.BindFlags & D3D11_BIND_CONSTANT_BUFFER) == D3D11_BIND_CONSTANT_BUFFER)
 						{
+#ifdef _DEBUG_VIREIO
 							// set constants as private data here
 							((ID3D11Buffer*)*m_ppcDstResource_DX11)->SetPrivateData(PDID_ID3D11Buffer_Vireio_Data, sDesc.ByteWidth, *m_ppvSrcData);
 
@@ -1078,6 +1079,9 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 								UINT dwNull = 0;
 								(*m_ppcDstResource_DX11)->SetPrivateData(PDID_ID3D11Buffer_Vireio_Label, sizeof(UINT), (const void*)&dwNull);
 							}
+#else
+
+#endif
 						}
 					}
 					else if (eDimension <= D3D11_RESOURCE_DIMENSION::D3D11_RESOURCE_DIMENSION_TEXTURE3D)
@@ -1124,6 +1128,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 							// if constant buffer, continue
 							if ((sDescDst.BindFlags & D3D11_BIND_CONSTANT_BUFFER) == D3D11_BIND_CONSTANT_BUFFER)
 							{
+#ifdef _DEBUG_VIREIO
 								// get description from source buffer
 								D3D11_BUFFER_DESC sDescSrc;
 								((ID3D11Buffer*)*m_ppcSrcResource_DX11_CopySub)->GetDesc(&sDescSrc);
@@ -1179,6 +1184,8 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 										(*m_ppcDstResource_DX11_CopySub)->SetPrivateData(PDID_ID3D11Buffer_Vireio_Label, sizeof(UINT), (const void*)&dwNull);
 									}
 								}
+#else
+#endif
 							}
 						}
 						// is this a texture ?
@@ -1261,6 +1268,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 							// if constant buffer, continue
 							if ((sDescDst.BindFlags & D3D11_BIND_CONSTANT_BUFFER) == D3D11_BIND_CONSTANT_BUFFER)
 							{
+#ifdef _DEBUG_VIREIO
 								// get description from source buffer
 								D3D11_BUFFER_DESC sDescSrc;
 								((ID3D11Buffer*)*m_ppcSrcResource_DX11_Copy)->GetDesc(&sDescSrc);
@@ -1300,6 +1308,8 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 										(*m_ppcDstResource_DX11_Copy)->SetPrivateData(PDID_ID3D11Buffer_Vireio_Label, sizeof(UINT), (const void*)&dwNull);
 									}
 								}
+#else
+#endif
 							}
 						}
 						// is this a texture ?
@@ -1363,6 +1373,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						// set the active vertex shader
 						m_pcActiveVertexShader11 = *m_ppcVertexShader_11;
 
+#ifdef _DEBUG_VIREIO
 						// loop through active constant buffers, get private data and update them accordingly to the new shader
 						for (UINT dwIndex = 0; dwIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; dwIndex++)
 						if (m_apcActiveConstantBuffers11[dwIndex])
@@ -1433,6 +1444,8 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 								}
 							}
 						}
+#else
+#endif
 					}
 					return nullptr;
 #pragma endregion
@@ -1443,7 +1456,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					if (!m_pppcConstantBuffers_DX11_VertexShader) return nullptr;
 					if (!*m_pppcConstantBuffers_DX11_VertexShader) return nullptr;
 					if (!**m_pppcConstantBuffers_DX11_VertexShader) return nullptr;
-
+#ifdef _DEBUG_VIREIO
 					// loop through the new buffers
 					for (UINT dwIndex = 0; dwIndex < *m_pdwNumBuffers_VertexShader; dwIndex++)
 					{
@@ -1520,6 +1533,8 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						// method replaced, immediately return
 						nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
 					}
+#else
+#endif
 					return nullptr;
 #pragma endregion
 #pragma region ID3D11DeviceContext::VSGetConstantBuffers
@@ -1636,7 +1651,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 									// do the unmap call..
 									((ID3D11DeviceContext*)pThis)->Unmap(*m_ppcResource_Unmap, *m_pdwSubresource_Unmap);
-
+#ifdef _DEBUG_VIREIO
 									// set new data as private data
 									(*m_ppcResource_Unmap)->SetPrivateData(PDID_ID3D11Buffer_Vireio_Data, m_asMappedBuffers[dwI].m_dwMappedResourceDataSize, (LPVOID)dwAddress);
 
@@ -1661,6 +1676,8 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 										UINT dwNull = 0;
 										(*m_ppcResource_Unmap)->SetPrivateData(PDID_ID3D11Buffer_Vireio_Label, sizeof(UINT), (const void*)&dwNull);
 									}
+#else
+#endif
 
 									// set mapped resource data to zero
 									m_asMappedBuffers[dwI].m_pcMappedResource = nullptr;
@@ -1886,7 +1903,7 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 	}
 }
 
-#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+#if (defined(VIREIO_D3D11) || defined(VIREIO_D3D10)) && defined(_DEBUG_VIREIO)
 /**
 * Modifies all constants and updates the stereo constant buffer.
 ***/
@@ -2288,7 +2305,11 @@ void MatrixModifier::CreateStereoConstantBuffer(ID3D11Device* pcDevice, ID3D11De
 	if (nRef != 1) OutputDebugString(L"MatrixModifier: Reference counter invalid !");
 }
 
-#elif defined(VIREIO_D3D9)
+#elif (defined(VIREIO_D3D11) || defined(VIREIO_D3D10))
+
+#endif
+
+#if defined(VIREIO_D3D9)
 #endif
 
 /**

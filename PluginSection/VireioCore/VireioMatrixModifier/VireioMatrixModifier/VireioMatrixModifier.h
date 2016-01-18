@@ -52,6 +52,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"..\..\..\..\DxProxy\DxProxy\HMDisplayInfo_OculusRift.h"
 #include"..\..\..\..\Shared\ConfigDefaults.h"
 
+// enable for debug -> #define _DEBUG_VIREIO
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 #include <DXGI.h>
@@ -352,11 +353,15 @@ public:
 
 private:
 
-#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-	/*** MatrixModifier private methods ***/
+#if (defined(VIREIO_D3D11) || defined(VIREIO_D3D10)) && defined(_DEBUG_VIREIO)
+	/*** MatrixModifier private debug methods ***/
 	void UpdateConstantBuffer(ID3D11DeviceContext* pcContext, ID3D11Resource *pcDstResource, UINT dwDstSubresource, const D3D11_BOX *psDstBox, const void *pvSrcData, UINT dwSrcRowPitch, UINT dwSrcDepthPitch, UINT dwBufferIndex, UINT dwBufferSize, bool bMapBuffer, bool bNewData);
 	void CreateStereoConstantBuffer(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, ID3D11Buffer* pcBuffer, D3D11_BUFFER_DESC *pDesc, D3D11_SUBRESOURCE_DATA *pInitialData, bool bCopyData);
-#elif defined(VIREIO_D3D9)
+#elif (defined(VIREIO_D3D11) || defined(VIREIO_D3D10))
+	/*** MatrixModifier private methods ***/
+
+#endif
+#if defined(VIREIO_D3D9)
 #endif
 	void DebugOutput(const void *pvSrcData, UINT dwShaderIndex, UINT dwBufferIndex, UINT dwBufferSize);
 	void CreateGUI();

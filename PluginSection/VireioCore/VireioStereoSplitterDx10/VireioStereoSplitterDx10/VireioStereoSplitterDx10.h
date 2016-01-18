@@ -70,6 +70,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define NUMBER_OF_COMMANDERS                           2
 #define NUMBER_OF_DECOMMANDERS                         30
 
+// enable for debug -> #define _DEBUG_VIREIO
+
 /**
 * Node Commander Enumeration.
 ***/
