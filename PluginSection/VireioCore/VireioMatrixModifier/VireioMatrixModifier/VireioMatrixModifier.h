@@ -283,6 +283,10 @@ struct Vireio_Map_Data
 	***/
 	UINT m_dwMapFlags;
 	/**
+	* The private data shader rules index for a mapped constant buffer.
+	***/
+	INT m_nMapRulesIndex;
+	/**
 	* Constant Buffer private data buffer.
 	* Buffer data needed for Map(). (+0xff to provide homogenous address)
 	***/
@@ -359,6 +363,8 @@ private:
 #endif
 #if (defined(VIREIO_D3D11) || defined(VIREIO_D3D10))
 	/*** MatrixModifier private methods ***/
+	void VerifyConstantBuffer(ID3D11Buffer *pcBuffer, UINT dwBufferIndex);
+	void DoBufferModification(INT nRulesIndex, UINT_PTR pdwLeft, UINT_PTR pdwRight, UINT dwBufferSize);
 	void CreateStereoConstantBuffer(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, ID3D11Buffer* pcBuffer, D3D11_BUFFER_DESC *pDesc, D3D11_SUBRESOURCE_DATA *pInitialData, bool bCopyData);
 #endif
 #if defined(VIREIO_D3D9)
