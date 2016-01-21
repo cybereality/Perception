@@ -133,7 +133,8 @@ m_dwCurrentChosenShaderHashCode(0)
 	ZeroMemory(&m_sPageVertexShader, sizeof(PageVertexShader));
 
 	// TEST !! ADD A TEST RULE
-	Vireio_Constant_Modification_Rule sRule = Vireio_Constant_Modification_Rule("NoName", 12, 0, 8, false, false, true, false, true, 4, 0, 0, true);
+	//Vireio_Constant_Modification_Rule sRule = Vireio_Constant_Modification_Rule("NoName", 12, 0, 8, false, false, true, false, true, 4, 0, 0, true);
+	Vireio_Constant_Modification_Rule sRule = Vireio_Constant_Modification_Rule("NoName", 0, 36, 0, false, false, false, true, true, 4, 0, 0, true);
 	m_asConstantRules.push_back(sRule);
 	m_adwGlobalConstantRuleIndices.push_back(0);
 
@@ -1518,7 +1519,10 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 									UpdateConstantBuffer((ID3D11DeviceContext*)pThis, (ID3D11Resource*)m_apcActiveConstantBuffers11[dwIndex], 0, NULL, &m_pchBuffer11[0], 0, 0, dwIndex, sDesc.ByteWidth, true, false);
 								else
 									UpdateConstantBuffer((ID3D11DeviceContext*)pThis, (ID3D11Resource*)m_apcActiveConstantBuffers11[dwIndex], 0, NULL, &m_pchBuffer11[0], 0, 0, dwIndex, sDesc.ByteWidth, false, false);
-							}
+							}														
+#else
+							// verify buffer
+							VerifyConstantBuffer(m_apcActiveConstantBuffers11[dwIndex], dwIndex);
 
 							// currently chosen ?
 							if (m_dwCurrentChosenShaderHashCode)
@@ -1539,9 +1543,6 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 									nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
 								}
 							}
-#else
-							// verify buffer
-							VerifyConstantBuffer(m_apcActiveConstantBuffers11[dwIndex], dwIndex);
 #endif
 							// sort shader list ?
 							if (m_bSortShaderList)
@@ -2541,9 +2542,11 @@ void MatrixModifier::VerifyConstantBuffer(ID3D11Buffer *pcBuffer, UINT dwBufferI
 	// get the current shader data
 	Vireio_Shader_Private_Data sPrivateData;
 	sPrivateData.dwHash = 0;
+	sPrivateData.dwIndex = 0;
 	UINT dwDataSize = sizeof(sPrivateData);
 	if (m_pcActiveVertexShader11)
 		m_pcActiveVertexShader11->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
+	else return;
 
 	// no private data ? in this case the active shader was created
 	// before the Vireio profile injected... get shader data from
@@ -2552,7 +2555,6 @@ void MatrixModifier::VerifyConstantBuffer(ID3D11Buffer *pcBuffer, UINT dwBufferI
 	{
 		dwDataSize = sizeof(sPrivateData);
 		pcBuffer->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
-
 		if (dwDataSize)
 		{
 			// has this shader relevant information about this buffer ?
@@ -2580,6 +2582,7 @@ void MatrixModifier::VerifyConstantBuffer(ID3D11Buffer *pcBuffer, UINT dwBufferI
 		if (dwBufferIndex < m_asShaders[sPrivateData.dwIndex].asBuffers.size())
 			// get the new rule index
 			nRulesIndex = m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].nConstantRulesIndex;
+
 		// shader has this unaccounted buffer index ?
 		if ((nRulesIndex == VIREIO_CONSTANT_RULES_NOT_ADDRESSED) && (dwBufferIndex < m_asShaders[sPrivateData.dwIndex].asBuffersUnaccounted.size()))
 			// get the new rule index
@@ -2619,7 +2622,7 @@ void MatrixModifier::VerifyConstantBuffer(ID3D11Buffer *pcBuffer, UINT dwBufferI
 				}
 
 				// use partial name ?
-				if (m_asConstantRules[m_adwGlobalConstantRuleIndices[dwI]].m_bUseName)
+				if (m_asConstantRules[m_adwGlobalConstantRuleIndices[dwI]].m_bUsePartialNameMatch)
 				{
 					// shader has this buffer index ?
 					if (dwBufferIndex < m_asShaders[sPrivateData.dwIndex].asBuffers.size())
@@ -2628,7 +2631,7 @@ void MatrixModifier::VerifyConstantBuffer(ID3D11Buffer *pcBuffer, UINT dwBufferI
 						for (UINT nConstant = 0; nConstant < (UINT)m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables.size(); nConstant++)
 						{
 							// test partial name matching
-							if (std::strstr(m_asConstantRules[m_adwGlobalConstantRuleIndices[dwI]].m_szConstantName.c_str(), m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName))
+							if (std::strstr(m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, m_asConstantRules[m_adwGlobalConstantRuleIndices[dwI]].m_szConstantName.c_str()))
 							{
 								// set this register to 'false' if not matching
 								UINT dwRegister = m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset >> 5;
@@ -2718,9 +2721,9 @@ void MatrixModifier::VerifyConstantBuffer(ID3D11Buffer *pcBuffer, UINT dwBufferI
 			{
 				nRulesIndex = VIREIO_CONSTANT_RULES_NOT_AVAILABLE;
 				if (dwBufferIndex < m_asShaders[sPrivateData.dwIndex].asBuffers.size())
-					m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].nConstantRulesIndex = nRulesIndex;
+				m_asShaders[sPrivateData.dwIndex].asBuffers[dwBufferIndex].nConstantRulesIndex = nRulesIndex;
 				if (dwBufferIndex < m_asShaders[sPrivateData.dwIndex].asBuffersUnaccounted.size())
-					m_asShaders[sPrivateData.dwIndex].asBuffersUnaccounted[dwBufferIndex].nConstantRulesIndex = nRulesIndex;
+				m_asShaders[sPrivateData.dwIndex].asBuffersUnaccounted[dwBufferIndex].nConstantRulesIndex = nRulesIndex;
 			}
 			// rules not present ?
 			else if (!bPresent)
@@ -2844,8 +2847,6 @@ void MatrixModifier::CreateStereoConstantBuffer(ID3D11Device* pcDevice, ID3D11De
 	nRef = pcBufferRight->Release();
 	if (nRef != 1) OutputDebugString(L"MatrixModifier: Reference counter invalid !");
 }
-
-
 #endif
 
 #if defined(VIREIO_D3D9)
