@@ -52,8 +52,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"..\..\..\..\DxProxy\DxProxy\HMDisplayInfo_OculusRift.h"
 #include"..\..\..\..\Shared\ConfigDefaults.h"
 
-// enable for debug -> #define _DEBUG_VIREIO
-
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 #include <DXGI.h>
 #pragma comment(lib, "DXGI.lib")
@@ -468,23 +466,6 @@ private:
 	* Set to zero to optimize StereoSplitter->SetDrawingSide()
 	***/
 	UINT m_dwVerifyConstantBuffers;
-	/**
-	* Constant Buffer private data buffer.
-	***/
-	union
-	{
-		BYTE m_pchBuffer10[D3D10_REQ_CONSTANT_BUFFER_ELEMENT_COUNT * D3D10_VS_INPUT_REGISTER_COMPONENTS * (D3D10_VS_INPUT_REGISTER_COMPONENT_BIT_COUNT >> 3)];
-		BYTE m_pchBuffer11[D3D11_REQ_CONSTANT_BUFFER_ELEMENT_COUNT * D3D11_VS_INPUT_REGISTER_COMPONENTS * (D3D11_VS_INPUT_REGISTER_COMPONENT_BIT_COUNT >> 3)];
-	};
-	/**
-	* Constant Buffer private data buffer temporary.
-	* Second buffer data needed for CopySubresourceRegion().
-	***/
-	union
-	{
-		BYTE m_pchBuffer10Temp[D3D10_REQ_CONSTANT_BUFFER_ELEMENT_COUNT * D3D10_VS_INPUT_REGISTER_COMPONENTS * (D3D10_VS_INPUT_REGISTER_COMPONENT_BIT_COUNT >> 3)];
-		BYTE m_pchBuffer11Temp[D3D11_REQ_CONSTANT_BUFFER_ELEMENT_COUNT * D3D11_VS_INPUT_REGISTER_COMPONENTS * (D3D11_VS_INPUT_REGISTER_COMPONENT_BIT_COUNT >> 3)];
-	};
 	/**
 	* Constant Buffer private data buffer left eye.
 	***/
