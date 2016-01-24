@@ -81,6 +81,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define METHOD_ID3D11DEVICECONTEXT_OMGETRENDERTARGETS                        89
 #define METHOD_ID3D11DEVICECONTEXT_OMGETRENDERTARGETSANDUNORDEREDACCESSVIEWS 90
 #define METHOD_ID3D11DEVICECONTEXT_CLEARSTATE                                110
+#define METHOD_ID3D11DEVICECONTEXT_DISPATCH  41
+#define METHOD_ID3D11DEVICECONTEXT_DISPATCHINDIRECT  42
+#define METHOD_ID3D11DEVICECONTEXT_CSSETSHADERRESOURCES 67
+#define METHOD_ID3D11DEVICECONTEXT_CSSETUNORDEREDACCESSVIEWS  68
+#define METHOD_ID3D11DEVICECONTEXT_CSSETSHADER  69
+#define METHOD_ID3D11DEVICECONTEXT_CSSETSAMPLERS  70
+#define METHOD_ID3D11DEVICECONTEXT_CSSETCONSTANTBUFFERS  71
 #define METHOD_IDXGISWAPCHAIN_PRESENT                                        8
 
 #define TODO_ADD_BOOL_HERE                                                   true
@@ -194,7 +201,7 @@ HBITMAP StereoSplitter::GetControl()
 		// create bitmap, set control update to true
 		HWND hwnd = GetActiveWindow();
 		HDC hdc = GetDC(hwnd);
-		m_hBitmapControl = CreateCompatibleBitmap(hdc, 1024, 2200);
+		m_hBitmapControl = CreateCompatibleBitmap(hdc, 1024, 4000);
 		if (!m_hBitmapControl)
 			OutputDebugString(L"Failed to create bitmap!");
 		m_bControlUpdate = true;
@@ -209,7 +216,7 @@ HBITMAP StereoSplitter::GetControl()
 
 		// clear the background
 		RECT rc;
-		SetRect(&rc, 0, 0, 1024, 2200);
+		SetRect(&rc, 0, 0, 1024, 4000);
 		FillRect(hdcImage, &rc, (HBRUSH)CreateSolidBrush(RGB(160, 160, 200)));
 
 		// create font
@@ -237,6 +244,10 @@ HBITMAP StereoSplitter::GetControl()
 			TextOut(hdcImage, 50, nY, L"NumRTVs", 7); nY += 64;
 			TextOut(hdcImage, 50, nY, L"ppRenderTargetViews_DX11", 24); nY += 64;
 			TextOut(hdcImage, 50, nY, L"pDepthStencilView_DX11", 22); nY += 64;
+			TextOut(hdcImage, 50, nY, L"UAVStartSlot", 12); nY += 64;
+			TextOut(hdcImage, 50, nY, L"NumUAVs", 7); nY += 64;
+			TextOut(hdcImage, 50, nY, L"ppUnorderedAccessViews", 22); nY += 64;
+			TextOut(hdcImage, 50, nY, L"pUAVInitialCounts", 17); nY += 64;
 			TextOut(hdcImage, 50, nY, L"pRenderTargetView_DX10", 22); nY += 64;
 			TextOut(hdcImage, 50, nY, L"pRenderTargetView_DX11", 22); nY += 64;
 			TextOut(hdcImage, 50, nY, L"ColorRGBA", 9); nY += 64;
@@ -249,10 +260,25 @@ HBITMAP StereoSplitter::GetControl()
 			TextOut(hdcImage, 50, nY, L"NumSRVs", 7); nY += 64;
 			TextOut(hdcImage, 50, nY, L"ppShaderResourceViews_DX10", 26); nY += 64;
 			TextOut(hdcImage, 50, nY, L"ppShaderResourceViews_DX11", 26); nY += 64;
-			TextOut(hdcImage, 50, nY, L"pResource", 3); nY += 64;
-			TextOut(hdcImage, 50, nY, L"Subresource", 5); nY += 64;
-			TextOut(hdcImage, 50, nY, L"pResource", 3); nY += 64;
-			TextOut(hdcImage, 50, nY, L"Subresource", 5); nY += 64;
+			TextOut(hdcImage, 50, nY, L"pResource", 9); nY += 64;
+			TextOut(hdcImage, 50, nY, L"Subresource", 11); nY += 64;
+			TextOut(hdcImage, 50, nY, L"pResource_Unmap", 15); nY += 64;
+			TextOut(hdcImage, 50, nY, L"Subresource_Unmap", 17); nY += 64;
+			TextOut(hdcImage, 50, nY, L"ThreadGroupCountX", 17); nY += 64;
+			TextOut(hdcImage, 50, nY, L"ThreadGroupCountY", 17); nY += 64;
+			TextOut(hdcImage, 50, nY, L"ThreadGroupCountZ", 17); nY += 64;
+			TextOut(hdcImage, 50, nY, L"pBufferForArgs", 14); nY += 64;
+			TextOut(hdcImage, 50, nY, L"AlignedByteOffsetForArgs", 24); nY += 64;
+			TextOut(hdcImage, 50, nY, L"StartSlot_CS", 12); nY += 64;
+			TextOut(hdcImage, 50, nY, L"NumViews_CS", 11); nY += 64;
+			TextOut(hdcImage, 50, nY, L"ppShaderResourceViews", 21); nY += 64;
+			TextOut(hdcImage, 50, nY, L"StartSlot_CSUAV", 15); nY += 64;
+			TextOut(hdcImage, 50, nY, L"NumUAVs_CS", 10); nY += 64;
+			TextOut(hdcImage, 50, nY, L"ppUnorderedAccessViews_CS", 25); nY += 64;
+			TextOut(hdcImage, 50, nY, L"pUAVInitialCounts_CS", 20); nY += 64;
+			TextOut(hdcImage, 50, nY, L"StartSlot_CSCB", 14); nY += 64;
+			TextOut(hdcImage, 50, nY, L"NumBuffers", 10); nY += 64;
+			TextOut(hdcImage, 50, nY, L"ppConstantBuffers", 17); nY += 64;
 			TextOut(hdcImage, 50, nY, L"Stereo Drawing Side", 19); nY += 64;
 			TextOut(hdcImage, 50, nY, L"ppActiveConstantBuffers_DX10_VS", 31); nY += 64;
 			TextOut(hdcImage, 50, nY, L"ppActiveConstantBuffers_DX11_VS", 31); nY += 64;
@@ -405,6 +431,14 @@ DWORD StereoSplitter::GetDecommanderType(DWORD dwDecommanderIndex)
 			return NOD_Plugtype::AQU_PPNT_ID3D11RENDERTARGETVIEW;
 		case pDepthStencilViewUAV_DX11:
 			return NOD_Plugtype::AQU_PNT_ID3D11DEPTHSTENCILVIEW;
+		case UAVStartSlot:
+			return NOD_Plugtype::AQU_UINT;
+		case NumUAVs:
+			return NOD_Plugtype::AQU_UINT;
+		case ppUnorderedAccessViews:
+			return NOD_Plugtype::AQU_PPNT_ID3D11UNORDEREDACCESSVIEW;
+		case pUAVInitialCounts:
+			return NOD_Plugtype::AQU_PNT_UINT;
 		case pRenderTargetView_DX10:
 			return NOD_Plugtype::AQU_PNT_ID3D10RENDERTARGETVIEW;
 		case pRenderTargetView_DX11:
@@ -437,6 +471,36 @@ DWORD StereoSplitter::GetDecommanderType(DWORD dwDecommanderIndex)
 			return NOD_Plugtype::AQU_PNT_ID3D11RESOURCE;
 		case Subresource_Unmap:
 			return NOD_Plugtype::AQU_UINT;
+		case ThreadGroupCountX:
+			return NOD_Plugtype::AQU_UINT;
+		case ThreadGroupCountY:
+			return NOD_Plugtype::AQU_UINT;
+		case ThreadGroupCountZ:
+			return NOD_Plugtype::AQU_UINT;
+		case pBufferForArgs:
+			return NOD_Plugtype::AQU_PNT_ID3D11BUFFER;
+		case AlignedByteOffsetForArgs:
+			return NOD_Plugtype::AQU_UINT;
+		case StartSlot_CS:
+			return NOD_Plugtype::AQU_UINT;
+		case NumViews_CS:
+			return NOD_Plugtype::AQU_UINT;
+		case ppShaderResourceViews:
+			return NOD_Plugtype::AQU_PPNT_ID3D11SHADERRESOURCEVIEW;
+		case StartSlot_CSUAV:
+			return NOD_Plugtype::AQU_UINT;
+		case NumUAVs_CS:
+			return NOD_Plugtype::AQU_UINT;
+		case ppUnorderedAccessViews_CS:
+			return NOD_Plugtype::AQU_PPNT_ID3D11UNORDEREDACCESSVIEW;
+		case pUAVInitialCounts_CS:
+			return NOD_Plugtype::AQU_PNT_UINT;
+		case StartSlot_CSCB:
+			return NOD_Plugtype::AQU_UINT;
+		case NumBuffers:
+			return NOD_Plugtype::AQU_UINT;
+		case ppConstantBuffers:
+			return NOD_Plugtype::AQU_PNT_ID3D11BUFFER;
 		case eDrawingSide:
 			return NOD_Plugtype::AQU_INT;
 		case ppActiveConstantBuffers_DX10_VertexShader:
@@ -504,6 +568,18 @@ void StereoSplitter::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 		case pDepthStencilViewUAV_DX11:
 			m_ppcDepthStencilViewUAV_DX11 = (IUnknown**)pData;                         /** Pointer to a ID3D11DepthStencilView that represents the depth-stencil view to bind to the device. **/
 			break;
+		case UAVStartSlot:
+			m_pdwUAVStartSlot = (UINT*)pData;
+			break;
+		case NumUAVs:
+			m_pdwNumUAVs = (UINT*)pData;
+			break;
+		case ppUnorderedAccessViews:
+			m_pppcUnorderedAccessViews = (ID3D11UnorderedAccessView***)pData;
+			break;
+		case pUAVInitialCounts:
+			m_ppdwUAVInitialCounts = (UINT**)pData;
+			break;
 		case pRenderTargetView_DX10:
 			m_ppcRenderTargetView_DX10 = (ID3D10RenderTargetView**)pData;              /** Pointer to the render target. */
 			break;
@@ -552,6 +628,51 @@ void StereoSplitter::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 		case Subresource_Unmap:
 			m_pdwSubresource_Unmap = (UINT*)pData;
 			break;
+		case ThreadGroupCountX:
+			m_pdwThreadGroupCountX = (UINT*)pData;
+			break;
+		case ThreadGroupCountY:
+			m_pdwThreadGroupCountY = (UINT*)pData;
+			break;
+		case ThreadGroupCountZ:
+			m_pdwThreadGroupCountZ = (UINT*)pData;
+			break;
+		case pBufferForArgs:
+			m_ppcBufferForArgs = (ID3D11Buffer**)pData;
+			break;
+		case AlignedByteOffsetForArgs:
+			m_pdwpAlignedByteOffsetForArgs = (UINT*)pData;
+			break;
+		case StartSlot_CS:
+			m_pdwStartSlot_CS = (UINT*)pData;
+			break;
+		case NumViews_CS:
+			m_pdwNumViews_CS = (UINT*)pData;
+			break;
+		case ppShaderResourceViews:
+			m_pppcShaderResourceViews = (ID3D11ShaderResourceView***)pData;
+			break;
+		case StartSlot_CSUAV:
+			m_pdwStartSlot_CSUAV = (UINT*)pData;
+			break;
+		case NumUAVs_CS:
+			m_pdwNumUAVs_CS = (UINT*)pData;
+			break;
+		case ppUnorderedAccessViews_CS:
+			m_pppcUnorderedAccessViews_CS = (ID3D11UnorderedAccessView***)pData;
+			break;
+		case pUAVInitialCounts_CS:
+			m_ppdwUAVInitialCounts_CS = (UINT**)pData;
+			break;
+		case StartSlot_CSCB:
+			m_pdwStartSlot_CSCB = (UINT*)pData;
+			break;
+		case NumBuffers:
+			m_pdwNumBuffers = (UINT*)pData;
+			break;
+		case ppConstantBuffers:
+			m_ppcConstantBuffers = (ID3D11Buffer***)pData;
+			break;
 		case eDrawingSide:
 			m_peDrawingSide = (RenderPosition*)pData;
 			break;
@@ -569,7 +690,6 @@ void StereoSplitter::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 		default:
 			break;
 	}
-
 }
 
 /**
@@ -604,7 +724,14 @@ bool StereoSplitter::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_OMGETRENDERTARGETSANDUNORDEREDACCESSVIEWS) ||
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_MAP) ||
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_UNMAP) ||
-				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_CLEARSTATE))
+				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_CLEARSTATE) ||
+				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_DISPATCH) ||
+				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_DISPATCHINDIRECT) ||
+				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_CSSETSHADERRESOURCES) ||
+				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_CSSETUNORDEREDACCESSVIEWS) ||
+				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_CSSETSHADER) ||
+				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_CSSETSAMPLERS) ||
+				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_CSSETCONSTANTBUFFERS))
 				return true;
 		}
 		else if (nD3DInterface == INTERFACE_IDXGISWAPCHAIN)
@@ -1015,12 +1142,23 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						if (!m_pdwNumRTVs) return nullptr;
 						if (!m_pppcRenderTargetViewsUAV_DX11) return nullptr;
 						if (!m_ppcDepthStencilViewUAV_DX11) return nullptr;
+						if (!m_pdwUAVStartSlot) return nullptr;
+						if (!m_pdwNumUAVs) return nullptr;
+						if (!m_pppcUnorderedAccessViews) return nullptr;
+						if (!m_ppdwUAVInitialCounts) return nullptr;
 
-						// call intern method
+						// call internal methods
 						OMSetRenderTargets((IUnknown*)pThis, *m_pdwNumRTVs, *m_pppcRenderTargetViewsUAV_DX11, *m_ppcDepthStencilViewUAV_DX11);
+						CSSetUnorderedAccessViews((ID3D11DeviceContext*)pThis, *m_pdwUAVStartSlot, *m_pdwNumUAVs, *m_pppcUnorderedAccessViews, *m_ppdwUAVInitialCounts);
 
-						// as long as we do not handle stereo UAViews we need to set the left side here
-						SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Left);
+						// switch render targets to new side
+						if (m_eCurrentRenderingSide == RenderPosition::Left)
+							((ID3D11DeviceContext*)pThis)->OMSetRenderTargetsAndUnorderedAccessViews(*m_pdwNumViews, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews[0], (ID3D11DepthStencilView*)m_pcActiveDepthStencilView, *m_pdwUAVStartSlot, *m_pdwNumUAVs, *m_pppcUnorderedAccessViews, *m_ppdwUAVInitialCounts);
+						else
+							((ID3D11DeviceContext*)pThis)->OMSetRenderTargetsAndUnorderedAccessViews(*m_pdwNumViews, (ID3D11RenderTargetView**)&m_apcActiveStereoTwinViews[0], (ID3D11DepthStencilView*)m_pcActiveStereoTwinDepthStencilView, *m_pdwUAVStartSlot, *m_pdwNumUAVs, *m_pppcUnorderedAccessViews, *m_ppdwUAVInitialCounts);
+
+						// method replaced, immediately return
+						nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
 					}
 					return nullptr;
 #pragma endregion
@@ -1089,6 +1227,44 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						// method replaced, immediately return
 						nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
 					}
+					return nullptr;
+#pragma endregion
+#pragma region DISPATCH
+				case METHOD_ID3D11DEVICECONTEXT_DISPATCH:
+					//UINT* m_pdwThreadGroupCountX;
+					//UINT* m_pdwThreadGroupCountY;
+					//UINT* m_pdwThreadGroupCountZ;
+					return nullptr;
+#pragma endregion
+#pragma region DISPATCHINDIRECT
+				case METHOD_ID3D11DEVICECONTEXT_DISPATCHINDIRECT:
+					//ID3D11Buffer** m_ppcBufferForArgs;
+					//UINT* m_pdwpAlignedByteOffsetForArgs;
+					return nullptr;
+#pragma endregion
+#pragma region CSSETSHADERRESOURCES
+				case METHOD_ID3D11DEVICECONTEXT_CSSETSHADERRESOURCES:
+					//UINT* m_pdwStartSlot_CS;
+					//UINT* m_pdwNumViews_CS;
+					//ID3D11ShaderResourceView*** m_pppcShaderResourceViews;
+					return nullptr;
+#pragma endregion
+#pragma region CSSETUNORDEREDACCESSVIEWS
+				case METHOD_ID3D11DEVICECONTEXT_CSSETUNORDEREDACCESSVIEWS:
+					if (!m_pdwStartSlot_CSUAV) return nullptr;
+					if (!m_pdwNumUAVs_CS) return nullptr;
+					if (!m_pppcUnorderedAccessViews_CS) return nullptr;
+					if (!m_ppdwUAVInitialCounts_CS) return nullptr;
+
+					// call internal method
+					CSSetUnorderedAccessViews((ID3D11DeviceContext*)pThis, *m_pdwStartSlot_CSUAV, *m_pdwNumUAVs_CS, *m_pppcUnorderedAccessViews_CS, *m_ppdwUAVInitialCounts_CS);
+					return nullptr;
+#pragma endregion
+#pragma region CSSETCONSTANTBUFFERS
+				case METHOD_ID3D11DEVICECONTEXT_CSSETCONSTANTBUFFERS:
+					//UINT* m_pdwStartSlot_CSCB;
+					//UINT* m_pdwNumBuffers;
+					//ID3D11Buffer*** m_ppcConstantBuffers;
 					return nullptr;
 #pragma endregion
 			}
@@ -1657,6 +1833,37 @@ void StereoSplitter::OMSetRenderTargets(IUnknown* pcDeviceOrContext, UINT NumVie
 	}
 
 	m_bControlUpdate = true;
+}
+
+/**
+* Incoming CSSetUnorderedAccessViews() call (D3D11).
+* Handle UAVs.
+* @param pcThis D3D11 Device Context.
+***/
+void StereoSplitter::CSSetUnorderedAccessViews(ID3D11DeviceContext *pcThis, UINT dwStartSlot, UINT dwNumUAVs, ID3D11UnorderedAccessView *const *ppcUnorderedAccessViews, const UINT *pdwUAVInitialCounts)
+{
+	// loop through the new buffers
+	for (UINT dwIndex = 0; dwIndex < dwNumUAVs; dwIndex++)
+	{
+		// get internal index
+		UINT dwInternalIndex = dwIndex + dwStartSlot;
+
+		// in range ? 
+		if (dwInternalIndex < D3D11_PS_CS_UAV_REGISTER_COUNT)
+		{
+			if (ppcUnorderedAccessViews[dwInternalIndex])
+			{
+				D3D11_UNORDERED_ACCESS_VIEW_DESC sDesc;
+				ppcUnorderedAccessViews[dwInternalIndex]->GetDesc(&sDesc);
+
+				// is a buffer ?
+				if (sDesc.ViewDimension == D3D11_UAV_DIMENSION::D3D11_UAV_DIMENSION_BUFFER)
+				{
+					OutputDebugString(L"D3D11_UAV_DIMENSION_BUFFER");
+				}
+			}
+		}
+	}
 }
 
 /**

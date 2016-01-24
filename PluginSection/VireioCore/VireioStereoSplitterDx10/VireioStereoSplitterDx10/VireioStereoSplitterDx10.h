@@ -68,7 +68,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"..\..\VireioMatrixModifier\VireioMatrixModifier\VireioMatrixModifierDataStructures.h"
 
 #define NUMBER_OF_COMMANDERS                           2
-#define NUMBER_OF_DECOMMANDERS                         30
+#define NUMBER_OF_DECOMMANDERS                         49
 
 // enable for debug -> #define _DEBUG_VIREIO
 
@@ -96,6 +96,10 @@ enum STS_Decommanders
 	NumRTVs,                                               /** Number of render targets to bind. **/
 	ppRenderTargetViewsUAV_DX11,                           /** Pointer to an array of ID3D11RenderTargetView that represent the render targets to bind to the device. **/
 	pDepthStencilViewUAV_DX11,                             /** Pointer to a ID3D11DepthStencilView that represents the depth-stencil view to bind to the device. **/
+	UAVStartSlot,
+	NumUAVs,
+	ppUnorderedAccessViews,
+	pUAVInitialCounts,
 	/*** ClearRenderTargetView ***/
 	pRenderTargetView_DX10,                                /** Pointer to the render target. */
 	pRenderTargetView_DX11,                                /** Pointer to the render target. */
@@ -113,10 +117,30 @@ enum STS_Decommanders
 	ppShaderResourceViews_DX11,                            /** Array of shader resource view interfaces to set to the device. **/
 	/*** Map ***/
 	pResource,
-	Subresource, 
+	Subresource,
 	/*** Unmap ***/
-	pResource_Unmap, 
+	pResource_Unmap,
 	Subresource_Unmap,
+	/*** Dispatch ***/
+	ThreadGroupCountX,
+	ThreadGroupCountY,
+	ThreadGroupCountZ,
+	/*** DispatchIndirect ***/
+	pBufferForArgs,
+	AlignedByteOffsetForArgs,
+	/*** CSSetShaderResources ***/
+	StartSlot_CS,
+	NumViews_CS,
+	ppShaderResourceViews,
+	/*** CSSetUnorderedAccessViews ***/
+	StartSlot_CSUAV,
+	NumUAVs_CS,
+	ppUnorderedAccessViews_CS,
+	pUAVInitialCounts_CS,
+	/*** CSSetConstantBuffers ***/
+	StartSlot_CSCB,
+	NumBuffers,
+	ppConstantBuffers,
 	/*** Active constant buffers ***/
 	eDrawingSide,                                          /**< Left/Right drawing side enumeration. Switches once per draw call ***/
 	ppActiveConstantBuffers_DX10_VertexShader,             /**< Active D3D10 vertex shader constant buffers ***/
@@ -182,13 +206,7 @@ private:
 
 	/*** StereoSplitter private D3D10+ methods ***/
 	void                    OMSetRenderTargets(IUnknown* pcDeviceOrContext, UINT NumViews, IUnknown *const *ppRenderTargetViews, IUnknown *pDepthStencilView);
-	void                    DrawIndexed(ID3D11DeviceContext *pcThis, UINT IndexCount, UINT StartIndexLocation, INT BaseVertexLocation);
-	void                    Draw(ID3D11DeviceContext *pcThis, UINT VertexCount, UINT StartVertexLocation);
-	void                    DrawIndexedInstanced(ID3D11DeviceContext *pcThis, UINT IndexCountPerInstance, UINT InstanceCount, UINT StartIndexLocation, INT BaseVertexLocation, UINT StartInstanceLocation);
-	void                    DrawInstanced(ID3D11DeviceContext *pcThis, UINT VertexCountPerInstance, UINT InstanceCount, UINT StartVertexLocation, UINT StartInstanceLocation);
-	void                    DrawAuto(ID3D11DeviceContext *pcThis);
-	void                    DrawIndexedInstancedIndirect(ID3D11DeviceContext *pcThis, ID3D11Buffer *pBufferForArgs, UINT AlignedByteOffsetForArgs);
-	void                    DrawInstancedIndirect(ID3D11DeviceContext *pcThis, ID3D11Buffer *pBufferForArgs, UINT AlignedByteOffsetForArgs);
+	void                    CSSetUnorderedAccessViews(ID3D11DeviceContext *pcThis, UINT dwStartSlot, UINT dwNumUAVs, ID3D11UnorderedAccessView *const *ppcUnorderedAccessViews, const UINT *pdwUAVInitialCounts);
 
 	/*** StereoSplitter private methods ***/
 	void                    CreateStereoView(IUnknown* pcDevice, ID3D11View* pcView);
@@ -227,6 +245,32 @@ private:
 	UINT *m_pdwSubresource;
 	ID3D11Resource **m_ppcResource_Unmap;
 	UINT *m_pdwSubresource_Unmap;
+
+	UINT* m_pdwUAVStartSlot;
+	UINT* m_pdwNumUAVs;
+	ID3D11UnorderedAccessView*** m_pppcUnorderedAccessViews;
+	UINT** m_ppdwUAVInitialCounts;
+
+	UINT* m_pdwThreadGroupCountX;
+	UINT* m_pdwThreadGroupCountY;
+	UINT* m_pdwThreadGroupCountZ;
+
+	ID3D11Buffer** m_ppcBufferForArgs;
+	UINT* m_pdwpAlignedByteOffsetForArgs;
+
+	UINT* m_pdwStartSlot_CS;
+	UINT* m_pdwNumViews_CS;
+	ID3D11ShaderResourceView*** m_pppcShaderResourceViews;
+
+	UINT* m_pdwStartSlot_CSUAV;
+	UINT* m_pdwNumUAVs_CS;
+	ID3D11UnorderedAccessView*** m_pppcUnorderedAccessViews_CS;
+	UINT** m_ppdwUAVInitialCounts_CS;
+
+	UINT* m_pdwStartSlot_CSCB;
+	UINT* m_pdwNumBuffers;
+	ID3D11Buffer*** m_ppcConstantBuffers;
+	
 	UINT* m_pdwVerifyConstantBuffers;                                 /** The number of frames the constant buffers are to be verified. ***/
 
 	/**
