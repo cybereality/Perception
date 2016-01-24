@@ -135,8 +135,8 @@ m_dwCurrentChosenShaderHashCode(0)
 	// TEST !! ADD A TEST RULE
 	// Vireio_Constant_Modification_Rule sRule = Vireio_Constant_Modification_Rule("NoName", 12, 0, 8, false, false, true, false, true, 4, 0, 0, true);
 	Vireio_Constant_Modification_Rule sRule = Vireio_Constant_Modification_Rule("NoName", 0, 816, 0, false, false, false, true, true, 4, 0, 0, true);
-	Vireio_Constant_Modification_Rule sRule1 = Vireio_Constant_Modification_Rule("NoName", 0, 816, 4, false, false, false, true, true, 4, 0, 0, true);
-	Vireio_Constant_Modification_Rule sRule2 = Vireio_Constant_Modification_Rule("NoName", 0, 816, 8, false, false, false, true, true, 4, 0, 0, true);
+	Vireio_Constant_Modification_Rule sRule1 = Vireio_Constant_Modification_Rule("NoName", 0, 1248, 0, false, false, false, true, true, 4, 0, 0, true);
+	Vireio_Constant_Modification_Rule sRule2 = Vireio_Constant_Modification_Rule("NoName", 0, 1152, 0, false, false, false, true, true, 4, 0, 0, true);
 	Vireio_Constant_Modification_Rule sRule3 = Vireio_Constant_Modification_Rule("NoName", 0, 816, 12, false, false, false, true, true, 4, 0, 0, true);
 	Vireio_Constant_Modification_Rule sRule4 = Vireio_Constant_Modification_Rule("NoName", 0, 1168, 0, false, false, false, true, true, 4, 0, 0, true);
 	Vireio_Constant_Modification_Rule sRule5 = Vireio_Constant_Modification_Rule("NoName", 0, 1136, 0, false, false, false, true, true, 4, 0, 0, true);
@@ -148,12 +148,12 @@ m_dwCurrentChosenShaderHashCode(0)
 	m_asConstantRules.push_back(sRule4);
 	m_asConstantRules.push_back(sRule5);
 	m_adwGlobalConstantRuleIndices.push_back(0);
-	//m_adwGlobalConstantRuleIndices.push_back(1);
-	//m_adwGlobalConstantRuleIndices.push_back(2);
+	m_adwGlobalConstantRuleIndices.push_back(1);
+	m_adwGlobalConstantRuleIndices.push_back(2);
 	//m_adwGlobalConstantRuleIndices.push_back(3);
 	m_adwGlobalConstantRuleIndices.push_back(4);
 	m_adwGlobalConstantRuleIndices.push_back(5);
-
+	// 1104 ?
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	// set all "update constant buffers" bools to true
 	m_sTechnicalOptions.m_bUCB_CopyResource = true;
@@ -1280,7 +1280,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						// get destination resource type
 						D3D11_RESOURCE_DIMENSION eDimension;
 						(*m_ppcDstResource_DX11_Copy)->GetType(&eDimension);
-						
+
 						// if buffer, get desc
 						if (eDimension == D3D11_RESOURCE_DIMENSION::D3D11_RESOURCE_DIMENSION_BUFFER)
 						{
@@ -1434,29 +1434,19 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 										dwChosenOld = m_dwCurrentChosenShaderHashCode;
 
-										if (m_apcActiveConstantBuffers11[0])
+										for (UINT dwI = 0; dwI < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; dwI++)
+										if (m_apcActiveConstantBuffers11[dwI])
 										{
 											// get shader rules index
 											INT nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
 											UINT dwDataSizeRulesIndex = sizeof(INT);
-											m_apcActiveConstantBuffers11[0]->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Index, &dwDataSizeRulesIndex, &nRulesIndex);
+											m_apcActiveConstantBuffers11[dwI]->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Index, &dwDataSizeRulesIndex, &nRulesIndex);
 
 											D3D11_BUFFER_DESC sDesc;
-											m_apcActiveConstantBuffers11[0]->GetDesc(&sDesc);
+											m_apcActiveConstantBuffers11[dwI]->GetDesc(&sDesc);
 											strStream = std::wstringstream();
-											strStream << L"Actual Size [0]:" << sDesc.ByteWidth << L" RuleInd:" << nRulesIndex;
+											strStream << L"Buffer Size [" << dwI << L"]:" << sDesc.ByteWidth << L" RuleInd:" << nRulesIndex;
 											m_aszDebugTrace.push_back(strStream.str().c_str());
-
-											// set twin for right side, first get the private data interface
-											ID3D11Buffer* pcBuffer = nullptr;
-											UINT dwSize1 = sizeof(pcBuffer);
-											m_apcActiveConstantBuffers11[0]->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize1, (void*)&pcBuffer);
-
-											if (pcBuffer)
-											{
-												m_aszDebugTrace.push_back(L"Has Twin");
-												pcBuffer->Release();
-											}
 										}
 									}
 
@@ -1507,89 +1497,125 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					if (!m_pppcConstantBuffers_DX11_VertexShader) return nullptr;
 					if (!*m_pppcConstantBuffers_DX11_VertexShader) return nullptr;
 					if (!**m_pppcConstantBuffers_DX11_VertexShader) return nullptr;
-
-					// loop through the new buffers
-					for (UINT dwIndex = 0; dwIndex < *m_pdwNumBuffers_VertexShader; dwIndex++)
 					{
-						// get internal index
-						UINT dwInternalIndex = dwIndex + *m_pdwStartSlot_VertexShader;
-
-						// in range ? 
-						if (dwInternalIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT)
+						// get current shader hash code if there is a shader chosen
+						static Vireio_Shader_Private_Data sPrivateData = { 0 };
+						static UINT dwChosenOld = 0;
+						if (m_dwCurrentChosenShaderHashCode)
 						{
-							// set buffer internally 
-							m_apcActiveConstantBuffers11[dwInternalIndex] = ((*m_pppcConstantBuffers_DX11_VertexShader)[dwIndex]);
+							// get the current shader hash
+							UINT dwDataSize = sizeof(sPrivateData);
+							if (m_pcActiveVertexShader11)
+								m_pcActiveVertexShader11->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
+							else ZeroMemory(&sPrivateData, sizeof(Vireio_Shader_Private_Data));
 
-							if (m_apcActiveConstantBuffers11[dwInternalIndex])
+							// output shader debug data as long as the chosen shader is set
+							if (dwChosenOld == 0) dwChosenOld = m_dwCurrentChosenShaderHashCode;
+							if ((dwChosenOld == m_dwCurrentChosenShaderHashCode) && (m_dwCurrentChosenShaderHashCode == sPrivateData.dwHash))
 							{
-								// get private rule index from buffer
-								INT nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
-								UINT dwDataSizeRulesIndex = sizeof(INT);
-								m_apcActiveConstantBuffers11[dwInternalIndex]->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Index, &dwDataSizeRulesIndex, &nRulesIndex);
+								std::wstringstream strStream = std::wstringstream();
+								strStream << L"VSSetConstantBuffers : " << sPrivateData.dwHash;
+								m_aszDebugTrace.push_back(strStream.str().c_str());
+							}
+						}
+						else dwChosenOld = 0;
 
-								// set twin for right side, first get the private data interface
-								ID3D11Buffer* pcBuffer = nullptr;
-								UINT dwSize = sizeof(pcBuffer);
-								m_apcActiveConstantBuffers11[dwInternalIndex]->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcBuffer);
+						// loop through the new buffers
+						for (UINT dwIndex = 0; dwIndex < *m_pdwNumBuffers_VertexShader; dwIndex++)
+						{
+							// get internal index
+							UINT dwInternalIndex = dwIndex + *m_pdwStartSlot_VertexShader;
 
-								// stereo buffer and rules index present ?
-								if ((pcBuffer) && (dwDataSizeRulesIndex) && (nRulesIndex >= 0))
+							// in range ? 
+							if (dwInternalIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT)
+							{
+								// set buffer internally 
+								m_apcActiveConstantBuffers11[dwInternalIndex] = ((*m_pppcConstantBuffers_DX11_VertexShader)[dwIndex]);
+
+								if (m_apcActiveConstantBuffers11[dwInternalIndex])
 								{
-									// set right buffer as active buffer
-									m_apcActiveConstantBuffers11[dwInternalIndex + D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = pcBuffer;
-								}
-								else
-								{
-									// no buffer or no shader rules assigned ? left = right side -> right = left side
-									m_apcActiveConstantBuffers11[dwInternalIndex + D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = m_apcActiveConstantBuffers11[dwInternalIndex];
+									// get private rule index from buffer
+									INT nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
+									UINT dwDataSizeRulesIndex = sizeof(INT);
+									m_apcActiveConstantBuffers11[dwInternalIndex]->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Index, &dwDataSizeRulesIndex, &nRulesIndex);
 
-									// verify buffer
-									if ((pcBuffer) && (nRulesIndex == VIREIO_CONSTANT_RULES_NOT_ADDRESSED))
-										VerifyConstantBuffer(m_apcActiveConstantBuffers11[dwInternalIndex], dwInternalIndex);
-								}
+									// set twin for right side, first get the private data interface
+									ID3D11Buffer* pcBuffer = nullptr;
+									UINT dwSize = sizeof(pcBuffer);
+									m_apcActiveConstantBuffers11[dwInternalIndex]->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcBuffer);
 
-								// no stereo buffer present ?
-								if (!pcBuffer)
-								{
-									// create stereo constant buffer, first get device
-									ID3D11Device* pcDevice = nullptr;
-									m_apcActiveConstantBuffers11[dwInternalIndex]->GetDevice(&pcDevice);
-									if (pcDevice)
+									// stereo buffer and rules index present ?
+									if ((pcBuffer) && (dwDataSizeRulesIndex) && (nRulesIndex >= 0))
 									{
-										D3D11_BUFFER_DESC sDesc;
-										m_apcActiveConstantBuffers11[dwInternalIndex]->GetDesc(&sDesc);
-										CreateStereoConstantBuffer(pcDevice, (ID3D11DeviceContext*)pThis, (ID3D11Buffer*)m_apcActiveConstantBuffers11[dwInternalIndex], &sDesc, NULL, true);
-										pcDevice->Release();
+										// set right buffer as active buffer
+										m_apcActiveConstantBuffers11[dwInternalIndex + D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = pcBuffer;
+									}
+									else
+									{
+										// no buffer or no shader rules assigned ? left = right side -> right = left side
+										m_apcActiveConstantBuffers11[dwInternalIndex + D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = m_apcActiveConstantBuffers11[dwInternalIndex];
+
+										// verify buffer
+										if ((pcBuffer) && (nRulesIndex == VIREIO_CONSTANT_RULES_NOT_ADDRESSED))
+											VerifyConstantBuffer(m_apcActiveConstantBuffers11[dwInternalIndex], dwInternalIndex);
+									}
+
+									// no stereo buffer present ?
+									if (!pcBuffer)
+									{
+										// create stereo constant buffer, first get device
+										ID3D11Device* pcDevice = nullptr;
+										m_apcActiveConstantBuffers11[dwInternalIndex]->GetDevice(&pcDevice);
+										if (pcDevice)
+										{
+											D3D11_BUFFER_DESC sDesc;
+											m_apcActiveConstantBuffers11[dwInternalIndex]->GetDesc(&sDesc);
+											CreateStereoConstantBuffer(pcDevice, (ID3D11DeviceContext*)pThis, (ID3D11Buffer*)m_apcActiveConstantBuffers11[dwInternalIndex], &sDesc, NULL, true);
+											pcDevice->Release();
+										}
+									}
+									else
+										pcBuffer->Release();
+
+									// currently chosen shader for debug output ?
+									if (m_dwCurrentChosenShaderHashCode)
+									{
+										if ((dwChosenOld == m_dwCurrentChosenShaderHashCode) && (m_dwCurrentChosenShaderHashCode == sPrivateData.dwHash))
+										{
+											// output buffer size to debug trace
+											D3D11_BUFFER_DESC sDesc;
+											m_apcActiveConstantBuffers11[dwInternalIndex]->GetDesc(&sDesc);
+											std::wstringstream strStream = std::wstringstream();
+											strStream << L"Index:" << dwInternalIndex << ":Size:" << sDesc.ByteWidth;
+											m_aszDebugTrace.push_back(strStream.str().c_str());
+										}
 									}
 								}
 								else
-									pcBuffer->Release();
+									m_apcActiveConstantBuffers11[dwInternalIndex + D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = nullptr;
 							}
-							else
-								m_apcActiveConstantBuffers11[dwInternalIndex + D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = nullptr;
+						}
+
+						// call super method
+						if (m_eCurrentRenderingSide == RenderPosition::Left)
+						{
+							((ID3D11DeviceContext*)pThis)->VSSetConstantBuffers(*m_pdwStartSlot_VertexShader,
+								*m_pdwNumBuffers_VertexShader,
+								(ID3D11Buffer**)&m_apcActiveConstantBuffers11[*m_pdwStartSlot_VertexShader]);
+
+							// method replaced, immediately return
+							nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+						}
+						else
+						{
+							((ID3D11DeviceContext*)pThis)->VSSetConstantBuffers(*m_pdwStartSlot_VertexShader,
+								*m_pdwNumBuffers_VertexShader,
+								(ID3D11Buffer**)&m_apcActiveConstantBuffers11[(*m_pdwStartSlot_VertexShader) + D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT]);
+
+							// method replaced, immediately return
+							nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
 						}
 					}
-
-					// call super method
-					if (m_eCurrentRenderingSide == RenderPosition::Left)
-					{
-						((ID3D11DeviceContext*)pThis)->VSSetConstantBuffers(*m_pdwStartSlot_VertexShader,
-							*m_pdwNumBuffers_VertexShader,
-							(ID3D11Buffer**)&m_apcActiveConstantBuffers11[*m_pdwStartSlot_VertexShader]);
-
-						// method replaced, immediately return
-						nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
-					}
-					else
-					{
-						((ID3D11DeviceContext*)pThis)->VSSetConstantBuffers(*m_pdwStartSlot_VertexShader,
-							*m_pdwNumBuffers_VertexShader,
-							(ID3D11Buffer**)&m_apcActiveConstantBuffers11[(*m_pdwStartSlot_VertexShader) + D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT]);
-
-						// method replaced, immediately return
-						nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
-					}
-
 					return nullptr;
 #pragma endregion
 #pragma region ID3D11DeviceContext::VSGetConstantBuffers
@@ -1950,6 +1976,9 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 						// add all constant names to the current shader constant list
 						for (UINT dwJ = 0; dwJ < (UINT)m_asShaders[dwIndex].asBuffers.size(); dwJ++)
 						{
+							std::wstringstream szNumber; szNumber << L"Buffer Index:" << dwJ;
+							m_aszShaderConstantsCurrent.push_back(szNumber.str());
+
 							for (UINT dwK = 0; dwK < (UINT)m_asShaders[dwIndex].asBuffers[dwJ].asVariables.size(); dwK++)
 							{
 								// convert to wstring
@@ -1990,7 +2019,7 @@ void MatrixModifier::VerifyConstantBuffer(ID3D11Buffer *pcBuffer, UINT dwBufferI
 	D3D11_BUFFER_DESC sDesc;
 	pcBuffer->GetDesc(&sDesc);
 	UINT dwBufferSize = sDesc.ByteWidth;
-	
+
 	// get the register size of the buffer
 	UINT dwBufferRegisterSize = dwBufferSize >> 5;
 
