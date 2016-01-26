@@ -48,6 +48,9 @@ const GUID PDID_ID3D11TextureXD_ShaderResouceView_Create_New = { 0x7371d160, 0x5
 // PDIID_ID3D11Buffer_Constant_Buffer_Right : 8c5b3ad0-d6fa-4ef2-b6ff-218ecde4072b
 const GUID PDIID_ID3D11Buffer_Constant_Buffer_Right = { 0x8c5b3ad0, 0xd6fa, 0x4ef2, { 0xb6, 0xff, 0x21, 0x8e, 0xcd, 0xe4, 0x07, 0x2b } };
 
+// PDIID_ID3D11Buffer_UAV_Right : 46b18cc4-43a9-4047-9887-034183bc5876
+const GUID PDIID_ID3D11Buffer_UAV_Right = { 0x46b18cc4, 0x43a9, 0x4047, { 0x98, 0x87, 0x03, 0x41, 0x83, 0xbc, 0x58, 0x76 } };
+
 // PDID_ID3D11VertexShader_Vireio_Data : 3bffbfc5-7baa-4534-9f4a-06be7d3df832
 const GUID PDID_ID3D11VertexShader_Vireio_Data = { 0x3bffbfc5, 0x7baa, 0x4534, { 0x9f, 0x4a, 0x06, 0xbe, 0x7d, 0x3d, 0xf8, 0x32 } };
 

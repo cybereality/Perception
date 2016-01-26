@@ -302,6 +302,14 @@ private:
 	***/
 	std::vector<ID3D11Buffer*> m_apcActiveCSConstantBuffers;
 	/**
+	* The d3d11 active unordered access views, for left and right side.
+	* 0 ------------------------------> D3D11_PS_CS_UAV_REGISTER_COUNT ----- Left views   (DX 11.0)
+	* D3D11_PS_CS_UAV_REGISTER_COUNT--> D3D11_PS_CS_UAV_REGISTER_COUNT * 2 - Right views. (DX 11.0)
+	* 0 ----------------------> D3D11_1_UAV_SLOT_COUNT ----- Left views   (DX 11.1)
+	* D3D11_1_UAV_SLOT_COUNT--> D3D11_1_UAV_SLOT_COUNT * 2 - Right views. (DX 11.1)
+	***/
+	std::vector<ID3D11UnorderedAccessView*> m_apcActiveUnorderedAccessViews;
+	/**
 	* Twin for active render target.
 	* (IUnknown*) for compatibility to DX10+DX11.
 	***/
