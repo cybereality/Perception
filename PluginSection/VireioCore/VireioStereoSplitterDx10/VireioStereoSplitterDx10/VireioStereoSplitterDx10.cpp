@@ -102,6 +102,9 @@ m_apcActiveRenderTargetViews(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, nullptr),
 m_apcActiveStereoTwinViews(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, nullptr),
 m_apcActiveTextures(D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, nullptr),
 m_apcActiveStereoTwinTextures(D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, nullptr),
+m_apcActiveCSTextures(D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, nullptr),
+m_apcActiveStereoTwinCSTextures(D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, nullptr),
+m_apcActiveCSConstantBuffers(D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT*2, nullptr),
 m_pcActiveStereoTwinDepthStencilView(nullptr),
 m_pcActiveDepthStencilView(nullptr),
 m_pcActiveBackBuffer10(nullptr),
@@ -500,7 +503,7 @@ DWORD StereoSplitter::GetDecommanderType(DWORD dwDecommanderIndex)
 		case NumBuffers:
 			return NOD_Plugtype::AQU_UINT;
 		case ppConstantBuffers:
-			return NOD_Plugtype::AQU_PNT_ID3D11BUFFER;
+			return NOD_Plugtype::AQU_PPNT_ID3D11BUFFER;
 		case eDrawingSide:
 			return NOD_Plugtype::AQU_INT;
 		case ppActiveConstantBuffers_DX10_VertexShader:
@@ -671,7 +674,7 @@ void StereoSplitter::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 			m_pdwNumBuffers = (UINT*)pData;
 			break;
 		case ppConstantBuffers:
-			m_ppcConstantBuffers = (ID3D11Buffer***)pData;
+			m_pppcConstantBuffers = (ID3D11Buffer***)pData;
 			break;
 		case eDrawingSide:
 			m_peDrawingSide = (RenderPosition*)pData;
@@ -1244,9 +1247,10 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region CSSETSHADERRESOURCES
 				case METHOD_ID3D11DEVICECONTEXT_CSSETSHADERRESOURCES:
-					//UINT* m_pdwStartSlot_CS;
-					//UINT* m_pdwNumViews_CS;
-					//ID3D11ShaderResourceView*** m_pppcShaderResourceViews;
+					if ((m_pdwStartSlot_CS) && (m_pdwNumViews_CS) && (m_pppcShaderResourceViews) && (m_bPresent))
+					{
+						// TODO !! use same method PSSetShaderResourceViews !!
+					}
 					return nullptr;
 #pragma endregion
 #pragma region CSSETUNORDEREDACCESSVIEWS
@@ -1262,9 +1266,73 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region CSSETCONSTANTBUFFERS
 				case METHOD_ID3D11DEVICECONTEXT_CSSETCONSTANTBUFFERS:
-					//UINT* m_pdwStartSlot_CSCB;
-					//UINT* m_pdwNumBuffers;
-					//ID3D11Buffer*** m_ppcConstantBuffers;
+					if ((m_pdwStartSlot_CSCB) && (m_pdwNumBuffers) && (m_pppcConstantBuffers))
+					{
+						if (!*m_pppcConstantBuffers) return nullptr;
+						if (!**m_pppcConstantBuffers) return nullptr;
+
+						// loop through the new buffers
+						for (UINT dwIndex = 0; dwIndex < *m_pdwNumBuffers; dwIndex++)
+						{
+							// get internal index
+							UINT dwInternalIndex = dwIndex + *m_pdwStartSlot_CSCB;
+
+							// in range ? 
+							if (dwInternalIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT)
+							{
+								// set buffer internally 
+								m_apcActiveCSConstantBuffers[dwInternalIndex] = ((*m_pppcConstantBuffers)[dwIndex]);
+
+								if (m_apcActiveCSConstantBuffers[dwInternalIndex])
+								{
+									// get private rule index from buffer
+									INT nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
+									UINT dwDataSizeRulesIndex = sizeof(INT);
+									m_apcActiveCSConstantBuffers[dwInternalIndex]->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Index, &dwDataSizeRulesIndex, &nRulesIndex);
+
+									// set twin for right side, first get the private data interface
+									ID3D11Buffer* pcBuffer = nullptr;
+									UINT dwSize = sizeof(pcBuffer);
+									m_apcActiveCSConstantBuffers[dwInternalIndex]->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcBuffer);
+
+									// stereo buffer and rules index present ?
+									if ((pcBuffer) && (dwDataSizeRulesIndex) && (nRulesIndex >= 0))
+									{
+										// set right buffer as active buffer
+										m_apcActiveCSConstantBuffers[dwInternalIndex + D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = pcBuffer;
+									}
+									else
+									{
+										// no buffer or no shader rules assigned ? left = right side -> right = left side
+										m_apcActiveCSConstantBuffers[dwInternalIndex + D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = m_apcActiveCSConstantBuffers[dwInternalIndex];
+
+										// verify buffer... TODO !! STILL POSSIBLE THAT A CONSTANT BUFFER NEVER ADDRESSED TO THE VERTEX SHADER BUT TO THE COMPUTE SHADER !!!
+										/*if ((pcBuffer) && (nRulesIndex == VIREIO_CONSTANT_RULES_NOT_ADDRESSED))
+											VerifyConstantBuffer(m_apcActiveConstantBuffers11[dwInternalIndex], dwInternalIndex);*/
+									}
+
+									// no stereo buffer present ?
+									if (!pcBuffer)
+									{
+										// create stereo constant buffer, first get device
+										ID3D11Device* pcDevice = nullptr;
+										m_apcActiveCSConstantBuffers[dwInternalIndex]->GetDevice(&pcDevice);
+										if (pcDevice)
+										{
+											D3D11_BUFFER_DESC sDesc;
+											m_apcActiveCSConstantBuffers[dwInternalIndex]->GetDesc(&sDesc);
+											CreateStereoConstantBuffer(pcDevice, (ID3D11DeviceContext*)pThis, (ID3D11Buffer*)m_apcActiveCSConstantBuffers[dwInternalIndex], &sDesc, NULL, true);
+											pcDevice->Release();
+										}
+									}
+									else
+										pcBuffer->Release();
+								}
+								else
+									m_apcActiveCSConstantBuffers[dwInternalIndex + D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = nullptr;
+							}
+						}
+					}
 					return nullptr;
 #pragma endregion
 			}

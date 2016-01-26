@@ -63,7 +63,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma comment(lib, "d3dx10.lib")
 
 #include"..\..\..\Include\Vireio_DX11Basics.h"
-#include"..\..\..\Include\Vireio_GUIDs.h"
 #include"..\..\..\Include\Vireio_Node_Plugtypes.h"
 #include"..\..\VireioMatrixModifier\VireioMatrixModifier\VireioMatrixModifierDataStructures.h"
 
@@ -269,7 +268,7 @@ private:
 
 	UINT* m_pdwStartSlot_CSCB;
 	UINT* m_pdwNumBuffers;
-	ID3D11Buffer*** m_ppcConstantBuffers;
+	ID3D11Buffer*** m_pppcConstantBuffers;
 	
 	UINT* m_pdwVerifyConstantBuffers;                                 /** The number of frames the constant buffers are to be verified. ***/
 
@@ -280,7 +279,7 @@ private:
 	***/
 	std::vector<IUnknown *> m_apcActiveRenderTargetViews;
 	/**
-	* Active stored textures.
+	* Active stored texture views.
 	* The textures that are currently in use.
 	* (IUnknown*) for compatibility to DX10+DX11.
 	***/
@@ -292,8 +291,18 @@ private:
 	***/
 	IUnknown* m_pcActiveDepthStencilView;
 	/**
+	* Active stored compute shader texture views.
+	* The textures (INPUT!!) that are currently in use.
+	***/
+	std::vector<ID3D11ShaderResourceView*> m_apcActiveCSTextures;
+	/**
+	* The d3d11 active constant buffer vector, for left and right side.
+	* 0 -------------------------------------------------> D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT ----- Left buffers
+	* D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT--> D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT * 2 - Right buffers.
+	***/
+	std::vector<ID3D11Buffer*> m_apcActiveCSConstantBuffers;
+	/**
 	* Twin for active render target.
-	* Entries ALLWAYS also exist in m_apcStereoTwinViews.
 	* (IUnknown*) for compatibility to DX10+DX11.
 	***/
 	std::vector<IUnknown*> m_apcActiveStereoTwinViews;
@@ -307,6 +316,11 @@ private:
 	* (IUnknown*) for compatibility to DX10+DX11.
 	***/
 	IUnknown* m_pcActiveStereoTwinDepthStencilView;
+	/**
+	* Stereo twins for active stored compute shader texture views.
+	* The textures (INPUT!!) that are currently in use.
+	***/
+	std::vector<ID3D11ShaderResourceView*> m_apcActiveStereoTwinCSTextures;
 	/**
 	* Active back buffer.
 	* The back buffer surface that is currently in use.
@@ -363,7 +377,7 @@ private:
 	***/
 	std::vector<ID3D11RenderTargetView*> m_apcNewRenderTargetViews11;
 	/**
-	* New resource views.
+	* New resource views (Texture).
 	* Processed in next Present() call.
 	***/
 	std::vector<ID3D11ShaderResourceView*> m_apcNewShaderResourceViews11;

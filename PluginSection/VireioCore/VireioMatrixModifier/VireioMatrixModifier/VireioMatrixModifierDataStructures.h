@@ -47,10 +47,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include<stdio.h>
 #include<vector>
 
+#include"..\..\..\Include\Vireio_GUIDs.h"
+
 #define VIREIO_MAX_VARIABLE_NAME_LENGTH      64  /**< We restrict variable names to 64 characters. ***/
 #define VIREIO_CONSTANT_RULES_NOT_ADDRESSED - 1  /**< No shader rules addressed for this shader. ***/
 #define VIREIO_CONSTANT_RULES_NOT_AVAILABLE - 2  /**< No shader rules available for this shader. ***/
 
+#pragma region inline helper
 /**
 * Get hash code helper.
 ***/
@@ -66,6 +69,42 @@ inline DWORD GetHashCode(BYTE* pcData, DWORD dwSize)
 
 	return h;
 }
+
+/**
+* Creates a stereo buffer out of a buffer.
+* Assigns a right buffer to the main buffer
+* as private data.
+* @param pcDevice The d3d11 device.
+* @param pcContext The d3d11 device context.
+* @param pcBuffer The mono constant buffer to assign stereo constant buffers.
+* @param pDesc Pointer to the buffer description.
+* @param pInitialData Pointer to the initial data, NULL if bCopyData is true.
+* @param bCopyData True if data from main buffer is to be copied to stereo buffers.
+***/
+inline void CreateStereoConstantBuffer(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, ID3D11Buffer* pcBuffer, D3D11_BUFFER_DESC *pDesc, D3D11_SUBRESOURCE_DATA *pInitialData, bool bCopyData)
+{
+	// create right buffer
+	ID3D11Buffer* pcBufferRight = nullptr;
+	if (FAILED(pcDevice->CreateBuffer(pDesc,
+		pInitialData,
+		&pcBufferRight)))
+		OutputDebugString(L"MatrixModifier: Failed to create right buffer!");
+
+	// copy resource ?
+	if (bCopyData)
+	{
+		//pcContext->CopyResource(pcBufferLeft, pcBuffer);
+		pcContext->CopyResource(pcBufferRight, pcBuffer);
+	}
+
+	// set as private data interface to the main buffer
+	pcBuffer->SetPrivateDataInterface(PDIID_ID3D11Buffer_Constant_Buffer_Right, pcBufferRight);
+
+	// reference counter must be 1 now (reference held by the main buffer)
+	ULONG nRef = pcBufferRight->Release();
+	if (nRef != 1) OutputDebugString(L"MatrixModifier: Reference counter invalid !");
+}
+#pragma endregion
 
 /**
 * Constant modification rule (v4+).

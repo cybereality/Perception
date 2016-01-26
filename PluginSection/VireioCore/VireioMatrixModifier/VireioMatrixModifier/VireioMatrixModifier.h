@@ -79,7 +79,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 #include"..\..\..\Include\Vireio_GUI.h"
-#include"..\..\..\Include\Vireio_GUIDs.h"
 #include"..\..\..\Include\Vireio_Node_Plugtypes.h"
 
 #define	PROVOKING_TYPE                                 2                     /**< Provoking type is 2 - just invoker, no provoker **/
@@ -363,7 +362,6 @@ private:
 	/*** MatrixModifier private methods ***/
 	void VerifyConstantBuffer(ID3D11Buffer *pcBuffer, UINT dwBufferIndex);
 	void DoBufferModification(INT nRulesIndex, UINT_PTR pdwLeft, UINT_PTR pdwRight, UINT dwBufferSize);
-	void CreateStereoConstantBuffer(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, ID3D11Buffer* pcBuffer, D3D11_BUFFER_DESC *pDesc, D3D11_SUBRESOURCE_DATA *pInitialData, bool bCopyData);
 #endif
 #if defined(VIREIO_D3D9)
 #endif
@@ -442,7 +440,9 @@ private:
 	***/
 	std::vector<Vireio_D3D11_Shader> m_asShaders;
 	/**
-	* The d3d11 active constant buffer vector.
+	* The d3d11 active constant buffer vector, for left and right side.
+	* 0 -------------------------------------------------> D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT ----- Left buffers
+	* D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT--> D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT * 2 - Right buffers.
 	***/
 	std::vector<ID3D11Buffer*> m_apcActiveConstantBuffers11;
 	/**

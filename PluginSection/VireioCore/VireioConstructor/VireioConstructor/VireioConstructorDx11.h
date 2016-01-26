@@ -49,7 +49,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <d3d11.h>
 #pragma comment(lib, "d3d11.lib")
 
-#include"..\..\..\Include\Vireio_GUIDs.h"
 #include"..\..\..\Include\Vireio_Node_Plugtypes.h"
 
 #define	PROVOKING_TYPE                                 2                     /**< Provoking type is 2 - just invoker, no provoker **/
@@ -112,9 +111,6 @@ public:
 	void* m_pvReturn;
 
 private:
-
-	/*** Constructor private methods ***/
-	void CreateStereoConstantBuffer(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, ID3D11Buffer* pcBuffer, D3D11_BUFFER_DESC *pDesc, D3D11_SUBRESOURCE_DATA *pInitialData, bool bCopyData);
 
 	/*** Constructor input pointers ***/
 	void** m_ppvShaderBytecode_VertexShader;
