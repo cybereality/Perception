@@ -57,6 +57,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define METHOD_ID3D11DEVICECONTEXT_MAP                                       14
 #define METHOD_ID3D11DEVICECONTEXT_UNMAP                                     15
 #define METHOD_ID3D11DEVICECONTEXT_PSSETCONSTANTBUFFERS                      16
+#define METHOD_ID3D11DEVICECONTEXT_HSSETCONSTANTBUFFERS  62
+#define METHOD_ID3D11DEVICECONTEXT_DSSETCONSTANTBUFFERS  66
+#define METHOD_ID3D11DEVICECONTEXT_GSSETCONSTANTBUFFERS  22
 #define METHOD_ID3D11DEVICECONTEXT_COPYSUBRESOURCEREGION                     46
 #define METHOD_ID3D11DEVICECONTEXT_COPYRESOURCE                              47
 #define METHOD_ID3D11DEVICECONTEXT_UPDATESUBRESOURCE                         48
@@ -155,24 +158,19 @@ m_dwCurrentChosenShaderHashCode(0)
 	m_adwGlobalConstantRuleIndices.push_back(5);
 	// 1104 ?
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-	// set all "update constant buffers" bools to true
-	m_sTechnicalOptions.m_bUCB_CopyResource = true;
-	m_sTechnicalOptions.m_bUCB_CopySubresourceRegion = true;
-	m_sTechnicalOptions.m_bUCB_Unmap = true;
-	m_sTechnicalOptions.m_bUCB_UpdateSubresource = true;
-	m_sTechnicalOptions.m_bUCB_VSSetConstantBuffers = true;
-	m_sTechnicalOptions.m_bUCB_VSSetShader = true;
-
-#ifdef _DEBUG_VIREIO
-	// create buffer vectors
-	m_apcActiveConstantBuffers11 = std::vector<ID3D11Buffer*>(D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, nullptr);
-#else
 	// create buffer vectors ( * 2 for left/right side )
-	m_apcActiveConstantBuffers11 = std::vector<ID3D11Buffer*>(D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT * 2, nullptr);
-#endif
+	m_apcVSActiveConstantBuffers11 = std::vector<ID3D11Buffer*>(D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT * 2, nullptr);
+	m_apcHSActiveConstantBuffers11 = std::vector<ID3D11Buffer*>(D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT * 2, nullptr);
+	m_apcDSActiveConstantBuffers11 = std::vector<ID3D11Buffer*>(D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT * 2, nullptr);
+	m_apcGSActiveConstantBuffers11 = std::vector<ID3D11Buffer*>(D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT * 2, nullptr);
+	m_apcPSActiveConstantBuffers11 = std::vector<ID3D11Buffer*>(D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT * 2, nullptr);
 
 	// create output pointers
-	m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_VertexShader] = (void*)&m_apcActiveConstantBuffers11[0];
+	m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_VertexShader] = (void*)&m_apcVSActiveConstantBuffers11[0];
+	m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_HullShader] = (void*)&m_apcHSActiveConstantBuffers11[0];
+	m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_DomainShader] = (void*)&m_apcDSActiveConstantBuffers11[0];
+	m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_GeometryShader] = (void*)&m_apcGSActiveConstantBuffers11[0];
+	m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_PixelShader] = (void*)&m_apcPSActiveConstantBuffers11[0];
 
 	// set constant buffer verification at startup (first 30 frames)
 	m_dwVerifyConstantBuffers = CONSTANT_BUFFER_VERIFICATION_FRAME_NUMBER;
@@ -201,10 +199,10 @@ m_dwCurrentChosenShaderHashCode(0)
 	m_ppsDesc_DX10 = nullptr;
 	m_ppsInitialData_DX10 = nullptr;
 	m_pppcBuffer_DX10 = nullptr;
-	m_pdwStartSlot_VertexShader = nullptr;
-	m_pdwNumBuffers_VertexShader = nullptr;
-	m_pppcConstantBuffers_DX10_VertexShader = nullptr;
-	m_pppcConstantBuffers_DX11_VertexShader = nullptr;
+	m_pdwStartSlot = nullptr;
+	m_pdwNumBuffers = nullptr;
+	m_pppcConstantBuffers_DX10 = nullptr;
+	m_pppcConstantBuffers_DX11 = nullptr;
 	m_pdwStartSlot_PixelShader = nullptr;
 	m_pdwNumBuffers_PixelShader = nullptr;
 	m_pppcConstantBuffers_DX10_PixelShader = nullptr;
@@ -232,8 +230,8 @@ m_dwCurrentChosenShaderHashCode(0)
 	m_pdwSrcSubresource = nullptr;
 	m_ppsSrcBox_DX10 = nullptr;
 	m_ppsSrcBox_DX11 = nullptr;
-	m_pdwStartSlot_VertexShader = nullptr;
-	m_pdwNumBuffers_VertexShader = nullptr;
+	m_pdwStartSlot = nullptr;
+	m_pdwNumBuffers = nullptr;
 	m_pppcConstantBuffers_VertexShader = nullptr;
 	m_pdwStartSlot_PixelShader = nullptr;
 	m_pdwNumBuffers_PixelShader = nullptr;
@@ -357,6 +355,14 @@ LPWSTR MatrixModifier::GetCommanderName(DWORD dwCommanderIndex)
 			return L"ppConstantBuffers_DX10_PS";
 		case ppActiveConstantBuffers_DX11_PixelShader:
 			return L"ppConstantBuffers_DX11_PS";
+		case ppActiveConstantBuffers_DX10_GeometryShader:
+			return L"ppConstantBuffers_DX10_GS";
+		case ppActiveConstantBuffers_DX11_GeometryShader:
+			return L"ppConstantBuffers_DX11_GS";
+		case ppActiveConstantBuffers_DX11_HullShader:
+			return L"ppConstantBuffers_DX11_HS";
+		case ppActiveConstantBuffers_DX11_DomainShader:
+			return L"ppConstantBuffers_DX11_DS";
 		case dwVerifyConstantBuffers:
 			return L"Verify Constant Buffers";
 		case asShaderData:
@@ -416,14 +422,14 @@ LPWSTR MatrixModifier::GetDecommanderName(DWORD dwDecommanderIndex)
 			return L"ppConstantBuffers_DX10_VS";
 		case ppConstantBuffers_DX11_VertexShader:
 			return L"ppConstantBuffers_DX11_VS";
-		case StartSlot_PixelShader:
-			return L"StartSlot_PS";
-		case NumBuffers_PixelShader:
-			return L"NumBuffers_PS";
-		case ppConstantBuffers_DX10_PixelShader:
-			return L"ppConstantBuffers_DX10_PS";
-		case ppConstantBuffers_DX11_PixelShader:
-			return L"ppConstantBuffers_DX11_PS";
+			//case StartSlot_PixelShader:
+			//	return L"StartSlot_PS";
+			//case NumBuffers_PixelShader:
+			//	return L"NumBuffers_PS";
+			//case ppConstantBuffers_DX10_PixelShader:
+			//	return L"ppConstantBuffers_DX10_PS";
+			//case ppConstantBuffers_DX11_PixelShader:
+			//	return L"ppConstantBuffers_DX11_PS";
 		case pDstResource_DX10:
 			return L"pDstResource_DX10";
 		case pDstResource_DX11:
@@ -478,14 +484,14 @@ LPWSTR MatrixModifier::GetDecommanderName(DWORD dwDecommanderIndex)
 			return L"ppConstantBuffers_DX10_Get_VS";
 		case ppConstantBuffers_DX11_Get_VertexShader:
 			return L"ppConstantBuffers_DX11_Get_VS";
-		case StartSlot_Get_PixelShader:
-			return L"StartSlot_Get_PixelShader";
-		case NumBuffers_Get_PixelShader:
-			return L"NumBuffers_Get_PixelShader";
-		case ppConstantBuffers_DX10_Get_PixelShader:
-			return L"ppConstantBuffers_DX10_Get_PS";
-		case ppConstantBuffers_DX11_Get_PixelShader:
-			return L"ppConstantBuffers_DX11_Get_PS";
+			//case StartSlot_Get_PixelShader:
+			//	return L"StartSlot_Get_PixelShader";
+			//case NumBuffers_Get_PixelShader:
+			//	return L"NumBuffers_Get_PixelShader";
+			//case ppConstantBuffers_DX10_Get_PixelShader:
+			//	return L"ppConstantBuffers_DX10_Get_PS";
+			//case ppConstantBuffers_DX11_Get_PixelShader:
+			//	return L"ppConstantBuffers_DX11_Get_PS";
 		case pResource:
 			return L"pResource";
 		case Subresource:
@@ -546,11 +552,13 @@ DWORD MatrixModifier::GetCommanderType(DWORD dwCommanderIndex)
 		case eDrawingSide:
 			return NOD_Plugtype::AQU_INT;
 		case ppActiveConstantBuffers_DX10_VertexShader:
-			return NOD_Plugtype::AQU_PPNT_ID3D10BUFFER;
-		case ppActiveConstantBuffers_DX11_VertexShader:
-			return NOD_Plugtype::AQU_PPNT_ID3D11BUFFER;
+		case ppActiveConstantBuffers_DX10_GeometryShader:
 		case ppActiveConstantBuffers_DX10_PixelShader:
 			return NOD_Plugtype::AQU_PPNT_ID3D10BUFFER;
+		case ppActiveConstantBuffers_DX11_VertexShader:
+		case ppActiveConstantBuffers_DX11_HullShader:
+		case ppActiveConstantBuffers_DX11_DomainShader:
+		case ppActiveConstantBuffers_DX11_GeometryShader:
 		case ppActiveConstantBuffers_DX11_PixelShader:
 			return NOD_Plugtype::AQU_PPNT_ID3D11BUFFER;
 		case dwVerifyConstantBuffers:
@@ -612,14 +620,14 @@ DWORD MatrixModifier::GetDecommanderType(DWORD dwDecommanderIndex)
 			return NOD_Plugtype::AQU_PPNT_ID3D10BUFFER;
 		case ppConstantBuffers_DX11_VertexShader:
 			return NOD_Plugtype::AQU_PPNT_ID3D11BUFFER;
-		case StartSlot_PixelShader:
-			return NOD_Plugtype::AQU_UINT;
-		case NumBuffers_PixelShader:
-			return NOD_Plugtype::AQU_UINT;
-		case ppConstantBuffers_DX10_PixelShader:
-			return NOD_Plugtype::AQU_PPNT_ID3D10BUFFER;
-		case ppConstantBuffers_DX11_PixelShader:
-			return NOD_Plugtype::AQU_PPNT_ID3D11BUFFER;
+			//case StartSlot_PixelShader:
+			//	return NOD_Plugtype::AQU_UINT;
+			//case NumBuffers_PixelShader:
+			//	return NOD_Plugtype::AQU_UINT;
+			//case ppConstantBuffers_DX10_PixelShader:
+			//	return NOD_Plugtype::AQU_PPNT_ID3D10BUFFER;
+			//case ppConstantBuffers_DX11_PixelShader:
+			//	return NOD_Plugtype::AQU_PPNT_ID3D11BUFFER;
 		case pDstResource_DX10:
 			return NOD_Plugtype::AQU_PNT_ID3D10RESOURCE;
 		case pDstResource_DX11:
@@ -674,14 +682,14 @@ DWORD MatrixModifier::GetDecommanderType(DWORD dwDecommanderIndex)
 			return NOD_Plugtype::AQU_PPNT_ID3D10BUFFER;
 		case ppConstantBuffers_DX11_Get_VertexShader:
 			return NOD_Plugtype::AQU_PPNT_ID3D11BUFFER;
-		case StartSlot_Get_PixelShader:
-			return NOD_Plugtype::AQU_UINT;
-		case NumBuffers_Get_PixelShader:
-			return NOD_Plugtype::AQU_UINT;
-		case ppConstantBuffers_DX10_Get_PixelShader:
-			return NOD_Plugtype::AQU_PPNT_ID3D10BUFFER;
-		case ppConstantBuffers_DX11_Get_PixelShader:
-			return NOD_Plugtype::AQU_PPNT_ID3D11BUFFER;
+			//case StartSlot_Get_PixelShader:
+			//	return NOD_Plugtype::AQU_UINT;
+			//case NumBuffers_Get_PixelShader:
+			//	return NOD_Plugtype::AQU_UINT;
+			//case ppConstantBuffers_DX10_Get_PixelShader:
+			//	return NOD_Plugtype::AQU_PPNT_ID3D10BUFFER;
+			//case ppConstantBuffers_DX11_Get_PixelShader:
+			//	return NOD_Plugtype::AQU_PPNT_ID3D11BUFFER;
 		case pResource:
 			return NOD_Plugtype::AQU_PNT_ID3D11RESOURCE;
 		case Subresource:
@@ -741,15 +749,25 @@ void* MatrixModifier::GetOutputPointer(DWORD dwCommanderIndex)
 	{
 		case eDrawingSide:
 			return (void*)&m_eCurrentRenderingSide;
-			break;
 		case ppActiveConstantBuffers_DX10_VertexShader:
+			//return (void*)&m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX10_VertexShader];
+			break;
+		case ppActiveConstantBuffers_DX10_GeometryShader:
+			//return (void*)&m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX10_GeometryShader];
+			break;
+		case ppActiveConstantBuffers_DX10_PixelShader:
+			//return (void*)&m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX10_PixelShader];
 			break;
 		case ppActiveConstantBuffers_DX11_VertexShader:
 			return (void*)&m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_VertexShader];
-		case ppActiveConstantBuffers_DX10_PixelShader:
-			break;
+		case ppActiveConstantBuffers_DX11_HullShader:
+			return (void*)&m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_HullShader];
+		case ppActiveConstantBuffers_DX11_DomainShader:
+			return (void*)&m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_DomainShader];
+		case ppActiveConstantBuffers_DX11_GeometryShader:
+			return (void*)&m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_GeometryShader];
 		case ppActiveConstantBuffers_DX11_PixelShader:
-			break;
+			return (void*)&m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_PixelShader];
 		case dwVerifyConstantBuffers:
 			return (void*)&m_dwVerifyConstantBuffers;
 		case asShaderData:
@@ -817,29 +835,29 @@ void MatrixModifier::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 			m_pppcBuffer_DX10 = (ID3D10Buffer***)pData;
 			break;
 		case StartSlot_VertexShader:
-			m_pdwStartSlot_VertexShader = (UINT*)pData;
+			m_pdwStartSlot = (UINT*)pData;
 			break;
 		case NumBuffers_VertexShader:
-			m_pdwNumBuffers_VertexShader = (UINT*)pData;
+			m_pdwNumBuffers = (UINT*)pData;
 			break;
 		case ppConstantBuffers_DX10_VertexShader:
-			m_pppcConstantBuffers_DX10_VertexShader = (ID3D10Buffer***)pData;
+			m_pppcConstantBuffers_DX10 = (ID3D10Buffer***)pData;
 			break;
 		case ppConstantBuffers_DX11_VertexShader:
-			m_pppcConstantBuffers_DX11_VertexShader = (ID3D11Buffer***)pData;
+			m_pppcConstantBuffers_DX11 = (ID3D11Buffer***)pData;
 			break;
-		case StartSlot_PixelShader:
-			m_pdwStartSlot_PixelShader = (UINT*)pData;
-			break;
-		case NumBuffers_PixelShader:
-			m_pdwNumBuffers_PixelShader = (UINT*)pData;
-			break;
-		case ppConstantBuffers_DX10_PixelShader:
-			m_pppcConstantBuffers_DX10_PixelShader = (ID3D10Buffer***)pData;
-			break;
-		case ppConstantBuffers_DX11_PixelShader:
-			m_pppcConstantBuffers_DX11_PixelShader = (ID3D11Buffer***)pData;
-			break;
+			//case StartSlot_PixelShader:
+			//	m_pdwStartSlot_PixelShader = (UINT*)pData;
+			//	break;
+			//case NumBuffers_PixelShader:
+			//	m_pdwNumBuffers_PixelShader = (UINT*)pData;
+			//	break;
+			//case ppConstantBuffers_DX10_PixelShader:
+			//	m_pppcConstantBuffers_DX10_PixelShader = (ID3D10Buffer***)pData;
+			//	break;
+			//case ppConstantBuffers_DX11_PixelShader:
+			//	m_pppcConstantBuffers_DX11_PixelShader = (ID3D11Buffer***)pData;
+			//	break;
 		case pDstResource_DX10:
 			m_ppcDstResource_DX10 = (ID3D10Resource**)pData;
 			break;
@@ -920,17 +938,17 @@ void MatrixModifier::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 		case ppConstantBuffers_DX11_Get_VertexShader:
 			m_pppcConstantBuffers_VertexShader = (ID3D11Buffer***)pData;
 			break;
-		case StartSlot_Get_PixelShader:
-			m_pdwStartSlot_PixelShader_Get = (UINT*)pData;
-			break;
-		case NumBuffers_Get_PixelShader:
-			m_pdwNumBuffers_PixelShader_Get = (UINT*)pData;
-			break;
-		case ppConstantBuffers_DX10_Get_PixelShader:
-			break;
-		case ppConstantBuffers_DX11_Get_PixelShader:
-			m_pppcConstantBuffers_PixelShader = (ID3D11Buffer***)pData;
-			break;
+			//case StartSlot_Get_PixelShader:
+			//	m_pdwStartSlot_PixelShader_Get = (UINT*)pData;
+			//	break;
+			//case NumBuffers_Get_PixelShader:
+			//	m_pdwNumBuffers_PixelShader_Get = (UINT*)pData;
+			//	break;
+			//case ppConstantBuffers_DX10_Get_PixelShader:
+			//	break;
+			//case ppConstantBuffers_DX11_Get_PixelShader:
+			//	m_pppcConstantBuffers_PixelShader = (ID3D11Buffer***)pData;
+			//	break;
 		case pResource:
 			m_ppcResource_Map = (ID3D11Resource**)pData;
 			break;
@@ -1029,7 +1047,10 @@ bool MatrixModifier::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_COPYRESOURCE) ||
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_UPDATESUBRESOURCE) ||
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_VSGETCONSTANTBUFFERS) ||
-				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_PSGETCONSTANTBUFFERS))
+				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_PSGETCONSTANTBUFFERS) ||
+				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_HSSETCONSTANTBUFFERS) ||
+				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_DSSETCONSTANTBUFFERS) ||
+				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_GSSETCONSTANTBUFFERS))
 				return true;
 		}
 		else if (nD3DInterface == INTERFACE_IDXGISWAPCHAIN)
@@ -1395,10 +1416,10 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 						// loop through active constant buffers, get private data and update them accordingly to the new shader
 						for (UINT dwIndex = 0; dwIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; dwIndex++)
-						if (m_apcActiveConstantBuffers11[dwIndex])
+						if (m_apcVSActiveConstantBuffers11[dwIndex])
 						{
 							// verify buffer
-							VerifyConstantBuffer(m_apcActiveConstantBuffers11[dwIndex], dwIndex);
+							VerifyConstantBuffer(m_apcVSActiveConstantBuffers11[dwIndex], dwIndex);
 
 							// currently chosen ?
 							if (m_dwCurrentChosenShaderHashCode)
@@ -1435,15 +1456,15 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 										dwChosenOld = m_dwCurrentChosenShaderHashCode;
 
 										for (UINT dwI = 0; dwI < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; dwI++)
-										if (m_apcActiveConstantBuffers11[dwI])
+										if (m_apcVSActiveConstantBuffers11[dwI])
 										{
 											// get shader rules index
 											INT nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
 											UINT dwDataSizeRulesIndex = sizeof(INT);
-											m_apcActiveConstantBuffers11[dwI]->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Index, &dwDataSizeRulesIndex, &nRulesIndex);
+											m_apcVSActiveConstantBuffers11[dwI]->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Index, &dwDataSizeRulesIndex, &nRulesIndex);
 
 											D3D11_BUFFER_DESC sDesc;
-											m_apcActiveConstantBuffers11[dwI]->GetDesc(&sDesc);
+											m_apcVSActiveConstantBuffers11[dwI]->GetDesc(&sDesc);
 											strStream = std::wstringstream();
 											strStream << L"Buffer Size [" << dwI << L"]:" << sDesc.ByteWidth << L" RuleInd:" << nRulesIndex;
 											m_aszDebugTrace.push_back(strStream.str().c_str());
@@ -1492,11 +1513,11 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region ID3D11DeviceContext::VSSetConstantBuffers
 				case METHOD_ID3D11DEVICECONTEXT_VSSETCONSTANTBUFFERS:
-					if (!m_pdwStartSlot_VertexShader) return nullptr;
-					if (!m_pdwNumBuffers_VertexShader) return nullptr;
-					if (!m_pppcConstantBuffers_DX11_VertexShader) return nullptr;
-					if (!*m_pppcConstantBuffers_DX11_VertexShader) return nullptr;
-					if (!**m_pppcConstantBuffers_DX11_VertexShader) return nullptr;
+					if (!m_pdwStartSlot) return nullptr;
+					if (!m_pdwNumBuffers) return nullptr;
+					if (!m_pppcConstantBuffers_DX11) return nullptr;
+					if (!*m_pppcConstantBuffers_DX11) return nullptr;
+					if (!**m_pppcConstantBuffers_DX11) return nullptr;
 					{
 						// get current shader hash code if there is a shader chosen
 						static Vireio_Shader_Private_Data sPrivateData = { 0 };
@@ -1520,97 +1541,156 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						}
 						else dwChosenOld = 0;
 
-						// loop through the new buffers
-						for (UINT dwIndex = 0; dwIndex < *m_pdwNumBuffers_VertexShader; dwIndex++)
-						{
-							// get internal index
-							UINT dwInternalIndex = dwIndex + *m_pdwStartSlot_VertexShader;
-
-							// in range ? 
-							if (dwInternalIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT)
-							{
-								// set buffer internally 
-								m_apcActiveConstantBuffers11[dwInternalIndex] = ((*m_pppcConstantBuffers_DX11_VertexShader)[dwIndex]);
-
-								if (m_apcActiveConstantBuffers11[dwInternalIndex])
-								{
-									// get private rule index from buffer
-									INT nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
-									UINT dwDataSizeRulesIndex = sizeof(INT);
-									m_apcActiveConstantBuffers11[dwInternalIndex]->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Index, &dwDataSizeRulesIndex, &nRulesIndex);
-
-									// set twin for right side, first get the private data interface
-									ID3D11Buffer* pcBuffer = nullptr;
-									UINT dwSize = sizeof(pcBuffer);
-									m_apcActiveConstantBuffers11[dwInternalIndex]->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcBuffer);
-
-									// stereo buffer and rules index present ?
-									if ((pcBuffer) && (dwDataSizeRulesIndex) && (nRulesIndex >= 0))
-									{
-										// set right buffer as active buffer
-										m_apcActiveConstantBuffers11[dwInternalIndex + D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = pcBuffer;
-									}
-									else
-									{
-										// no buffer or no shader rules assigned ? left = right side -> right = left side
-										m_apcActiveConstantBuffers11[dwInternalIndex + D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = m_apcActiveConstantBuffers11[dwInternalIndex];
-
-										// verify buffer
-										if ((pcBuffer) && (nRulesIndex == VIREIO_CONSTANT_RULES_NOT_ADDRESSED))
-											VerifyConstantBuffer(m_apcActiveConstantBuffers11[dwInternalIndex], dwInternalIndex);
-									}
-
-									// no stereo buffer present ?
-									if (!pcBuffer)
-									{
-										// create stereo constant buffer, first get device
-										ID3D11Device* pcDevice = nullptr;
-										m_apcActiveConstantBuffers11[dwInternalIndex]->GetDevice(&pcDevice);
-										if (pcDevice)
-										{
-											D3D11_BUFFER_DESC sDesc;
-											m_apcActiveConstantBuffers11[dwInternalIndex]->GetDesc(&sDesc);
-											CreateStereoConstantBuffer(pcDevice, (ID3D11DeviceContext*)pThis, (ID3D11Buffer*)m_apcActiveConstantBuffers11[dwInternalIndex], &sDesc, NULL, true);
-											pcDevice->Release();
-										}
-									}
-									else
-										pcBuffer->Release();
-
-									// currently chosen shader for debug output ?
-									if (m_dwCurrentChosenShaderHashCode)
-									{
-										if ((dwChosenOld == m_dwCurrentChosenShaderHashCode) && (m_dwCurrentChosenShaderHashCode == sPrivateData.dwHash))
-										{
-											// output buffer size to debug trace
-											D3D11_BUFFER_DESC sDesc;
-											m_apcActiveConstantBuffers11[dwInternalIndex]->GetDesc(&sDesc);
-											std::wstringstream strStream = std::wstringstream();
-											strStream << L"Index:" << dwInternalIndex << ":Size:" << sDesc.ByteWidth;
-											m_aszDebugTrace.push_back(strStream.str().c_str());
-										}
-									}
-								}
-								else
-									m_apcActiveConstantBuffers11[dwInternalIndex + D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = nullptr;
-							}
-						}
+						// call base method
+						XSSetConstantBuffers((ID3D11DeviceContext*)pThis, m_apcVSActiveConstantBuffers11, *m_pdwStartSlot, *m_pdwNumBuffers, *m_pppcConstantBuffers_DX11);
 
 						// call super method
 						if (m_eCurrentRenderingSide == RenderPosition::Left)
 						{
-							((ID3D11DeviceContext*)pThis)->VSSetConstantBuffers(*m_pdwStartSlot_VertexShader,
-								*m_pdwNumBuffers_VertexShader,
-								(ID3D11Buffer**)&m_apcActiveConstantBuffers11[*m_pdwStartSlot_VertexShader]);
+							((ID3D11DeviceContext*)pThis)->VSSetConstantBuffers(*m_pdwStartSlot,
+								*m_pdwNumBuffers,
+								(ID3D11Buffer**)&m_apcVSActiveConstantBuffers11[*m_pdwStartSlot]);
 
 							// method replaced, immediately return
 							nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
 						}
 						else
 						{
-							((ID3D11DeviceContext*)pThis)->VSSetConstantBuffers(*m_pdwStartSlot_VertexShader,
-								*m_pdwNumBuffers_VertexShader,
-								(ID3D11Buffer**)&m_apcActiveConstantBuffers11[(*m_pdwStartSlot_VertexShader) + D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT]);
+							((ID3D11DeviceContext*)pThis)->VSSetConstantBuffers(*m_pdwStartSlot,
+								*m_pdwNumBuffers,
+								(ID3D11Buffer**)&m_apcVSActiveConstantBuffers11[(*m_pdwStartSlot) + D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT]);
+
+							// method replaced, immediately return
+							nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+						}
+					}
+					return nullptr;
+#pragma endregion
+#pragma region ID3D11DeviceContext::HSSetConstantBuffers
+				case METHOD_ID3D11DEVICECONTEXT_HSSETCONSTANTBUFFERS:
+					if (!m_pdwStartSlot) return nullptr;
+					if (!m_pdwNumBuffers) return nullptr;
+					if (!m_pppcConstantBuffers_DX11) return nullptr;
+					if (!*m_pppcConstantBuffers_DX11) return nullptr;
+					if (!**m_pppcConstantBuffers_DX11) return nullptr;
+					{
+						// call base method
+						XSSetConstantBuffers((ID3D11DeviceContext*)pThis, m_apcHSActiveConstantBuffers11, *m_pdwStartSlot, *m_pdwNumBuffers, *m_pppcConstantBuffers_DX11);
+
+						// call super method
+						if (m_eCurrentRenderingSide == RenderPosition::Left)
+						{
+							((ID3D11DeviceContext*)pThis)->HSSetConstantBuffers(*m_pdwStartSlot,
+								*m_pdwNumBuffers,
+								(ID3D11Buffer**)&m_apcHSActiveConstantBuffers11[*m_pdwStartSlot]);
+
+							// method replaced, immediately return
+							nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+						}
+						else
+						{
+							((ID3D11DeviceContext*)pThis)->HSSetConstantBuffers(*m_pdwStartSlot,
+								*m_pdwNumBuffers,
+								(ID3D11Buffer**)&m_apcHSActiveConstantBuffers11[(*m_pdwStartSlot) + D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT]);
+
+							// method replaced, immediately return
+							nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+						}
+					}
+					return nullptr;
+#pragma endregion
+#pragma region ID3D11DeviceContext::DSSetConstantBuffers
+				case METHOD_ID3D11DEVICECONTEXT_DSSETCONSTANTBUFFERS:
+					if (!m_pdwStartSlot) return nullptr;
+					if (!m_pdwNumBuffers) return nullptr;
+					if (!m_pppcConstantBuffers_DX11) return nullptr;
+					if (!*m_pppcConstantBuffers_DX11) return nullptr;
+					if (!**m_pppcConstantBuffers_DX11) return nullptr;
+					{
+						// call base method
+						XSSetConstantBuffers((ID3D11DeviceContext*)pThis, m_apcDSActiveConstantBuffers11, *m_pdwStartSlot, *m_pdwNumBuffers, *m_pppcConstantBuffers_DX11);
+
+						// call super method
+						if (m_eCurrentRenderingSide == RenderPosition::Left)
+						{
+							((ID3D11DeviceContext*)pThis)->DSSetConstantBuffers(*m_pdwStartSlot,
+								*m_pdwNumBuffers,
+								(ID3D11Buffer**)&m_apcDSActiveConstantBuffers11[*m_pdwStartSlot]);
+
+							// method replaced, immediately return
+							nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+						}
+						else
+						{
+							((ID3D11DeviceContext*)pThis)->DSSetConstantBuffers(*m_pdwStartSlot,
+								*m_pdwNumBuffers,
+								(ID3D11Buffer**)&m_apcDSActiveConstantBuffers11[(*m_pdwStartSlot) + D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT]);
+
+							// method replaced, immediately return
+							nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+						}
+					}
+					return nullptr;
+#pragma endregion
+#pragma region ID3D11DeviceContext::GSSetConstantBuffers
+				case METHOD_ID3D11DEVICECONTEXT_GSSETCONSTANTBUFFERS:
+					if (!m_pdwStartSlot) return nullptr;
+					if (!m_pdwNumBuffers) return nullptr;
+					if (!m_pppcConstantBuffers_DX11) return nullptr;
+					if (!*m_pppcConstantBuffers_DX11) return nullptr;
+					if (!**m_pppcConstantBuffers_DX11) return nullptr;
+					{
+						// call base method
+						XSSetConstantBuffers((ID3D11DeviceContext*)pThis, m_apcGSActiveConstantBuffers11, *m_pdwStartSlot, *m_pdwNumBuffers, *m_pppcConstantBuffers_DX11);
+
+						// call super method
+						if (m_eCurrentRenderingSide == RenderPosition::Left)
+						{
+							((ID3D11DeviceContext*)pThis)->GSSetConstantBuffers(*m_pdwStartSlot,
+								*m_pdwNumBuffers,
+								(ID3D11Buffer**)&m_apcGSActiveConstantBuffers11[*m_pdwStartSlot]);
+
+							// method replaced, immediately return
+							nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+						}
+						else
+						{
+							((ID3D11DeviceContext*)pThis)->GSSetConstantBuffers(*m_pdwStartSlot,
+								*m_pdwNumBuffers,
+								(ID3D11Buffer**)&m_apcGSActiveConstantBuffers11[(*m_pdwStartSlot) + D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT]);
+
+							// method replaced, immediately return
+							nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+						}
+					}
+					return nullptr;
+#pragma endregion
+#pragma region ID3D11DeviceContext::PSSetConstantBuffers
+				case METHOD_ID3D11DEVICECONTEXT_PSSETCONSTANTBUFFERS:
+					if (!m_pdwStartSlot) return nullptr;
+					if (!m_pdwNumBuffers) return nullptr;
+					if (!m_pppcConstantBuffers_DX11) return nullptr;
+					if (!*m_pppcConstantBuffers_DX11) return nullptr;
+					if (!**m_pppcConstantBuffers_DX11) return nullptr;
+					{
+						// call base method
+						XSSetConstantBuffers((ID3D11DeviceContext*)pThis, m_apcPSActiveConstantBuffers11, *m_pdwStartSlot, *m_pdwNumBuffers, *m_pppcConstantBuffers_DX11);
+
+						// call super method
+						if (m_eCurrentRenderingSide == RenderPosition::Left)
+						{
+							((ID3D11DeviceContext*)pThis)->PSSetConstantBuffers(*m_pdwStartSlot,
+								*m_pdwNumBuffers,
+								(ID3D11Buffer**)&m_apcPSActiveConstantBuffers11[*m_pdwStartSlot]);
+
+							// method replaced, immediately return
+							nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+						}
+						else
+						{
+							((ID3D11DeviceContext*)pThis)->PSSetConstantBuffers(*m_pdwStartSlot,
+								*m_pdwNumBuffers,
+								(ID3D11Buffer**)&m_apcPSActiveConstantBuffers11[(*m_pdwStartSlot) + D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT]);
 
 							// method replaced, immediately return
 							nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
@@ -1626,7 +1706,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					// method (using AQU_PluginFlags::ImmediateReturnFlag)
 					((ID3D11DeviceContext*)pThis)->VSSetConstantBuffers(0,
 						D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT,
-						(ID3D11Buffer**)&m_apcActiveConstantBuffers11[0]);
+						(ID3D11Buffer**)&m_apcVSActiveConstantBuffers11[0]);
 					break;
 #pragma endregion
 #pragma region ID3D11DeviceContext::PSGetConstantBuffers
@@ -1856,18 +1936,6 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwPFOVToggle)
 					m_sGameConfiguration.bPFOVToggle = sEvent.bNewValue;
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwUCB_CopyResource)
-					m_sTechnicalOptions.m_bUCB_CopyResource = sEvent.bNewValue;
-				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwUCB_CopySubresourceRegion)
-					m_sTechnicalOptions.m_bUCB_CopySubresourceRegion = sEvent.bNewValue;
-				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwUCB_Unmap)
-					m_sTechnicalOptions.m_bUCB_Unmap = sEvent.bNewValue;
-				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwUCB_UpdateSubresource)
-					m_sTechnicalOptions.m_bUCB_UpdateSubresource = sEvent.bNewValue;
-				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwUCB_VSSetConstantBuffers)
-					m_sTechnicalOptions.m_bUCB_VSSetConstantBuffers = sEvent.bNewValue;
-				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwUCB_VSSetShader)
-					m_sTechnicalOptions.m_bUCB_VSSetShader = sEvent.bNewValue;
 #endif
 
 				// update view transform
@@ -1999,6 +2067,75 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 }
 
 #if (defined(VIREIO_D3D11) || defined(VIREIO_D3D10))
+/**
+* Handles all constant buffer setting methods for all DX11 shaders.
+* Called by VSSetConstantBuffers, GSSetConstantBuffers, HSSetConstantBuffers, DSSetConstantBuffers and PSSetConstantBuffers.
+***/
+void MatrixModifier::XSSetConstantBuffers(ID3D11DeviceContext* pcContext, std::vector<ID3D11Buffer*> &apcActiveConstantBuffers, UINT dwStartSlot, UINT dwNumBuffers, ID3D11Buffer *const*ppcConstantBuffers)
+{
+	// loop through the new buffers
+	for (UINT dwIndex = 0; dwIndex < dwNumBuffers; dwIndex++)
+	{
+		// get internal index
+		UINT dwInternalIndex = dwIndex + dwStartSlot;
+
+		// in range ? 
+		if (dwInternalIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT)
+		{
+			// set buffer internally 
+			apcActiveConstantBuffers[dwInternalIndex] = ppcConstantBuffers[dwIndex];
+
+			if (apcActiveConstantBuffers[dwInternalIndex])
+			{
+				// get private rule index from buffer
+				INT nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
+				UINT dwDataSizeRulesIndex = sizeof(INT);
+				apcActiveConstantBuffers[dwInternalIndex]->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Index, &dwDataSizeRulesIndex, &nRulesIndex);
+
+				// set twin for right side, first get the private data interface
+				ID3D11Buffer* pcBuffer = nullptr;
+				UINT dwSize = sizeof(pcBuffer);
+				apcActiveConstantBuffers[dwInternalIndex]->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcBuffer);
+
+				// stereo buffer and rules index present ?
+				if ((pcBuffer) && (dwDataSizeRulesIndex) && (nRulesIndex >= 0))
+				{
+					// set right buffer as active buffer
+					apcActiveConstantBuffers[dwInternalIndex + D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = pcBuffer;
+				}
+				else
+				{
+					// no buffer or no shader rules assigned ? left = right side -> right = left side
+					apcActiveConstantBuffers[dwInternalIndex + D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = apcActiveConstantBuffers[dwInternalIndex];
+
+					// verify buffer
+					if ((pcBuffer) && (nRulesIndex == VIREIO_CONSTANT_RULES_NOT_ADDRESSED))
+						VerifyConstantBuffer(apcActiveConstantBuffers[dwInternalIndex], dwInternalIndex);
+				}
+
+				// no stereo buffer present ?
+				if (!pcBuffer)
+				{
+					// create stereo constant buffer, first get device
+					ID3D11Device* pcDevice = nullptr;
+					apcActiveConstantBuffers[dwInternalIndex]->GetDevice(&pcDevice);
+					if (pcDevice)
+					{
+						D3D11_BUFFER_DESC sDesc;
+						apcActiveConstantBuffers[dwInternalIndex]->GetDesc(&sDesc);
+						CreateStereoConstantBuffer(pcDevice, pcContext, (ID3D11Buffer*)apcActiveConstantBuffers[dwInternalIndex], &sDesc, NULL, true);
+						pcDevice->Release();
+					}
+				}
+				else
+					pcBuffer->Release();
+			}
+			else
+				apcActiveConstantBuffers[dwInternalIndex + D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = nullptr;
+		}
+	}
+}
+
 /**
 * Verifies a stereo constant buffer for shader rules and assigns them in case.
 * @param pcBuffer The constant buffer to be verified.
@@ -2446,12 +2583,6 @@ void MatrixModifier::CreateGUI()
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	// technical options
-	m_sPageGameSettings.m_dwUCB_CopyResource = CreateSwitchControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::GameSettingsPage], &szUCB_CopyResource, m_sTechnicalOptions.m_bUCB_CopyResource, GUI_CONTROL_BORDER, GUI_CONTROL_BORDER + (GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER) * 49 + GUI_CONTROL_LINE, GUI_CONTROL_BUTTONSIZE, GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
-	m_sPageGameSettings.m_dwUCB_CopySubresourceRegion = CreateSwitchControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::GameSettingsPage], &szUCB_CopySubresourceRegion, m_sTechnicalOptions.m_bUCB_CopySubresourceRegion, GUI_CONTROL_BORDER, GUI_CONTROL_BORDER + (GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER) * 50 + GUI_CONTROL_LINE, GUI_CONTROL_BUTTONSIZE, GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
-	m_sPageGameSettings.m_dwUCB_Unmap = CreateSwitchControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::GameSettingsPage], &szUCB_Unmap, m_sTechnicalOptions.m_bUCB_Unmap, GUI_CONTROL_BORDER, GUI_CONTROL_BORDER + (GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER) * 51 + GUI_CONTROL_LINE, GUI_CONTROL_BUTTONSIZE, GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
-	m_sPageGameSettings.m_dwUCB_UpdateSubresource = CreateSwitchControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::GameSettingsPage], &szUCB_UpdateSubresource, m_sTechnicalOptions.m_bUCB_UpdateSubresource, GUI_CONTROL_BORDER, GUI_CONTROL_BORDER + (GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER) * 52 + GUI_CONTROL_LINE, GUI_CONTROL_BUTTONSIZE, GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
-	m_sPageGameSettings.m_dwUCB_VSSetConstantBuffers = CreateSwitchControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::GameSettingsPage], &szUCB_VSSetConstantBuffers, m_sTechnicalOptions.m_bUCB_VSSetConstantBuffers, GUI_CONTROL_BORDER, GUI_CONTROL_BORDER + (GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER) * 53 + GUI_CONTROL_LINE, GUI_CONTROL_BUTTONSIZE, GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
-	m_sPageGameSettings.m_dwUCB_VSSetShader = CreateSwitchControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::GameSettingsPage], &szUCB_VSSetShader, m_sTechnicalOptions.m_bUCB_VSSetShader, GUI_CONTROL_BORDER, GUI_CONTROL_BORDER + (GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER) * 54 + GUI_CONTROL_LINE, GUI_CONTROL_BUTTONSIZE, GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
 #endif
 
 	m_sPageGameSettings.m_dwIs64bit = CreateStaticListControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::GameSettingsPage], &aszEntries64bit, GUI_CONTROL_BORDER, GUI_HEIGHT - GUI_CONTROL_BORDER - GUI_CONTROL_FONTSIZE - GUI_CONTROL_FONTSIZE * 4, GUI_CONTROL_BUTTONSIZE);

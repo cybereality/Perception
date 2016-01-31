@@ -85,11 +85,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define METHOD_REPLACEMENT                         false                     /**< This node does NOT replace the D3D call (default) **/
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-#define NUMBER_OF_COMMANDERS                           7
-#define NUMBER_OF_DECOMMANDERS                        61
+#define NUMBER_OF_COMMANDERS                          11
+#define NUMBER_OF_DECOMMANDERS                        53
 #define GUI_WIDTH                                   1024                      
 #define GUI_HEIGHT                                  5000               
-#define CONSTANT_BUFFER_VERIFICATION_FRAME_NUMBER    500                     /**< If no shader data is present, the constant buffers are verified for 500 frames. ***/
+#define CONSTANT_BUFFER_VERIFICATION_FRAME_NUMBER    100                     /**< If no shader data is present, the constant buffers are verified for 100 frames. ***/
 #elif defined(VIREIO_D3D9)
 #define NUMBER_OF_COMMANDERS                           0
 #define NUMBER_OF_DECOMMANDERS                        12
@@ -113,8 +113,12 @@ enum STS_Commanders
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	eDrawingSide,                                                           /**< Left/Right drawing side enumeration. Switches once per draw call ***/
 	ppActiveConstantBuffers_DX10_VertexShader,                              /**< Active D3D10 vertex shader constant buffers ***/
-	ppActiveConstantBuffers_DX11_VertexShader,                              /**< Active D3D11 vertex shader constant buffers ***/
+	ppActiveConstantBuffers_DX10_GeometryShader,                            /**< Active D3D10 geometry shader constant buffers ***/
 	ppActiveConstantBuffers_DX10_PixelShader,                               /**< Active D3D10 pixel shader constant buffers ***/
+	ppActiveConstantBuffers_DX11_VertexShader,                              /**< Active D3D11 vertex shader constant buffers ***/
+	ppActiveConstantBuffers_DX11_HullShader,                                /**< Active D3D11 hull shader constant buffers ***/
+	ppActiveConstantBuffers_DX11_DomainShader,                              /**< Active D3D11 domain shader constant buffers ***/
+	ppActiveConstantBuffers_DX11_GeometryShader,                            /**< Active D3D11 geometry shader constant buffers ***/
 	ppActiveConstantBuffers_DX11_PixelShader,                               /**< Active D3D11 pixel shader constant buffers ***/
 	dwVerifyConstantBuffers,                                                /**< Connect this commander to the stereo splitter to verify constant buffers ***/
 	asShaderData,                                                           /**< The shader data vector. ***/
@@ -144,14 +148,14 @@ enum STS_Decommanders
 	pDesc_DX10,                              /**< ID3D10Device::CreateBuffer ***/
 	pInitialData_DX10,                       /**< ID3D10Device::CreateBuffer ***/
 	ppBuffer_DX10,                           /**< ID3D10Device::CreateBuffer ***/
-	StartSlot_VertexShader,                  /**< ID3D10Device/ID3D11DeviceContext::VSSetConstantBuffers ***/
-	NumBuffers_VertexShader,                 /**< ID3D10Device/ID3D11DeviceContext::VSSetConstantBuffers ***/
-	ppConstantBuffers_DX10_VertexShader,     /**< ID3D10Device/ID3D11DeviceContext::VSSetConstantBuffers ***/
-	ppConstantBuffers_DX11_VertexShader,     /**< ID3D10Device/ID3D11DeviceContext::VSSetConstantBuffers ***/
-	StartSlot_PixelShader,                   /**< ID3D10Device/ID3D11DeviceContext::PSSetConstantBuffers ***/
-	NumBuffers_PixelShader,                  /**< ID3D10Device/ID3D11DeviceContext::PSSetConstantBuffers ***/
-	ppConstantBuffers_DX10_PixelShader,      /**< ID3D10Device/ID3D11DeviceContext::PSSetConstantBuffers ***/
-	ppConstantBuffers_DX11_PixelShader,      /**< ID3D10Device/ID3D11DeviceContext::PSSetConstantBuffers ***/
+	StartSlot_VertexShader,                  /**< ID3D10Device/ID3D11DeviceContext::XSSetConstantBuffers ***/
+	NumBuffers_VertexShader,                 /**< ID3D10Device/ID3D11DeviceContext::XSSetConstantBuffers ***/
+	ppConstantBuffers_DX10_VertexShader,     /**< ID3D10Device/ID3D11DeviceContext::XSSetConstantBuffers ***/
+	ppConstantBuffers_DX11_VertexShader,     /**< ID3D10Device/ID3D11DeviceContext::XSSetConstantBuffers ***/
+	//StartSlot_PixelShader,                   /**< ID3D10Device/ID3D11DeviceContext::PSSetConstantBuffers ***/
+	//NumBuffers_PixelShader,                  /**< ID3D10Device/ID3D11DeviceContext::PSSetConstantBuffers ***/
+	//ppConstantBuffers_DX10_PixelShader,      /**< ID3D10Device/ID3D11DeviceContext::PSSetConstantBuffers ***/
+	//ppConstantBuffers_DX11_PixelShader,      /**< ID3D10Device/ID3D11DeviceContext::PSSetConstantBuffers ***/
 	pDstResource_DX10,                       /**< ID3D10Device/ID3D11DeviceContext::UpdateSubresource ***/
 	pDstResource_DX11,                       /**< ID3D10Device/ID3D11DeviceContext::UpdateSubresource ***/
 	DstSubresource,                          /**< ID3D10Device/ID3D11DeviceContext::UpdateSubresource ***/
@@ -175,14 +179,14 @@ enum STS_Decommanders
 	SrcSubresource,                          /**< ID3D10Device/ID3D11DeviceContext::CopySubresourceRegion ***/
 	pSrcBox_DX10,                            /**< ID3D10Device/ID3D11DeviceContext::CopySubresourceRegion ***/
 	pSrcBox_DX11,                            /**< ID3D10Device/ID3D11DeviceContext::CopySubresourceRegion ***/
-	StartSlot_Get_VertexShader,              /**< ID3D10Device/ID3D11DeviceContext::VSGetConstantBuffers ***/
-	NumBuffers_Get_VertexShader,             /**< ID3D10Device/ID3D11DeviceContext::VSGetConstantBuffers ***/
-	ppConstantBuffers_DX10_Get_VertexShader, /**< ID3D10Device/ID3D11DeviceContext::VSGetConstantBuffers ***/
-	ppConstantBuffers_DX11_Get_VertexShader, /**< ID3D10Device/ID3D11DeviceContext::VSGetConstantBuffers ***/
-	StartSlot_Get_PixelShader,               /**< ID3D10Device/ID3D11DeviceContext::PSGetConstantBuffers ***/
-	NumBuffers_Get_PixelShader,              /**< ID3D10Device/ID3D11DeviceContext::PSGetConstantBuffers ***/
-	ppConstantBuffers_DX10_Get_PixelShader,  /**< ID3D10Device/ID3D11DeviceContext::PSGetConstantBuffers ***/
-	ppConstantBuffers_DX11_Get_PixelShader,  /**< ID3D10Device/ID3D11DeviceContext::PSGetConstantBuffers ***/
+	StartSlot_Get_VertexShader,              /**< ID3D10Device/ID3D11DeviceContext::XSGetConstantBuffers ***/
+	NumBuffers_Get_VertexShader,             /**< ID3D10Device/ID3D11DeviceContext::XSGetConstantBuffers ***/
+	ppConstantBuffers_DX10_Get_VertexShader, /**< ID3D10Device/ID3D11DeviceContext::XSGetConstantBuffers ***/
+	ppConstantBuffers_DX11_Get_VertexShader, /**< ID3D10Device/ID3D11DeviceContext::XSGetConstantBuffers ***/
+	//StartSlot_Get_PixelShader,               /**< ID3D10Device/ID3D11DeviceContext::PSGetConstantBuffers ***/
+	//NumBuffers_Get_PixelShader,              /**< ID3D10Device/ID3D11DeviceContext::PSGetConstantBuffers ***/
+	//ppConstantBuffers_DX10_Get_PixelShader,  /**< ID3D10Device/ID3D11DeviceContext::PSGetConstantBuffers ***/
+	//ppConstantBuffers_DX11_Get_PixelShader,  /**< ID3D10Device/ID3D11DeviceContext::PSGetConstantBuffers ***/
 	pResource,                               /**< ID3D11DeviceContext::Map ***/
 	Subresource,                             /**< ID3D11DeviceContext::Map ***/
 	MapType,                                 /**< ID3D11DeviceContext::Map ***/
@@ -354,12 +358,9 @@ public:
 
 private:
 
-#if (defined(VIREIO_D3D11) || defined(VIREIO_D3D10)) && defined(_DEBUG_VIREIO)
-	/*** MatrixModifier private debug methods ***/
-	void UpdateConstantBuffer(ID3D11DeviceContext* pcContext, ID3D11Resource *pcDstResource, UINT dwDstSubresource, const D3D11_BOX *psDstBox, const void *pvSrcData, UINT dwSrcRowPitch, UINT dwSrcDepthPitch, UINT dwBufferIndex, UINT dwBufferSize, bool bMapBuffer, bool bNewData);
-#endif
 #if (defined(VIREIO_D3D11) || defined(VIREIO_D3D10))
 	/*** MatrixModifier private methods ***/
+	void XSSetConstantBuffers(ID3D11DeviceContext* pcContext, std::vector<ID3D11Buffer*> &apcActiveConstantBuffers, UINT dwStartSlot, UINT dwNumBuffers, ID3D11Buffer *const*ppcConstantBuffers);
 	void VerifyConstantBuffer(ID3D11Buffer *pcBuffer, UINT dwBufferIndex);
 	void DoBufferModification(INT nRulesIndex, UINT_PTR pdwLeft, UINT_PTR pdwRight, UINT dwBufferSize);
 #endif
@@ -385,10 +386,10 @@ private:
 	D3D10_BUFFER_DESC** m_ppsDesc_DX10;
 	D3D10_SUBRESOURCE_DATA** m_ppsInitialData_DX10;
 	ID3D10Buffer*** m_pppcBuffer_DX10;
-	UINT* m_pdwStartSlot_VertexShader;
-	UINT* m_pdwNumBuffers_VertexShader;
-	ID3D10Buffer*** m_pppcConstantBuffers_DX10_VertexShader;
-	ID3D11Buffer*** m_pppcConstantBuffers_DX11_VertexShader;
+	UINT* m_pdwStartSlot;
+	UINT* m_pdwNumBuffers;
+	ID3D10Buffer*** m_pppcConstantBuffers_DX10;
+	ID3D11Buffer*** m_pppcConstantBuffers_DX11;
 	UINT* m_pdwStartSlot_PixelShader;
 	UINT* m_pdwNumBuffers_PixelShader;
 	ID3D10Buffer*** m_pppcConstantBuffers_DX10_PixelShader;
@@ -440,11 +441,35 @@ private:
 	***/
 	std::vector<Vireio_D3D11_Shader> m_asShaders;
 	/**
-	* The d3d11 active constant buffer vector, for left and right side.
+	* The d3d11 active Vertex Shader constant buffer vector, for left and right side.
 	* 0 -------------------------------------------------> D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT ----- Left buffers
 	* D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT--> D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT * 2 - Right buffers.
 	***/
-	std::vector<ID3D11Buffer*> m_apcActiveConstantBuffers11;
+	std::vector<ID3D11Buffer*> m_apcVSActiveConstantBuffers11;
+	/**
+	* The d3d11 active Hull Shader constant buffer vector, for left and right side.
+	* 0 -------------------------------------------------> D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT ----- Left buffers
+	* D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT--> D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT * 2 - Right buffers.
+	***/
+	std::vector<ID3D11Buffer*> m_apcHSActiveConstantBuffers11;
+	/**
+	* The d3d11 active Domain Shader constant buffer vector, for left and right side.
+	* 0 -------------------------------------------------> D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT ----- Left buffers
+	* D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT--> D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT * 2 - Right buffers.
+	***/
+	std::vector<ID3D11Buffer*> m_apcDSActiveConstantBuffers11;
+	/**
+	* The d3d11 active Geometry Shader constant buffer vector, for left and right side.
+	* 0 -------------------------------------------------> D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT ----- Left buffers
+	* D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT--> D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT * 2 - Right buffers.
+	***/
+	std::vector<ID3D11Buffer*> m_apcGSActiveConstantBuffers11;
+	/**
+	* The d3d11 active Pixel Shader constant buffer vector, for left and right side.
+	* 0 -------------------------------------------------> D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT ----- Left buffers
+	* D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT--> D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT * 2 - Right buffers.
+	***/
+	std::vector<ID3D11Buffer*> m_apcPSActiveConstantBuffers11;
 	/**
 	* True if constant buffers are initialized.
 	***/
@@ -590,12 +615,6 @@ private:
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 		/*** PageGameSettings technical options ***/
-		UINT m_dwUCB_UpdateSubresource;            /**< [Switch] Update the stereo constant buffers when UpdateSubresource() is called. ***/
-		UINT m_dwUCB_CopySubresourceRegion;        /**< [Switch] Update the stereo constant buffers when CopySubresourceRegion() is called. ***/
-		UINT m_dwUCB_CopyResource;                 /**< [Switch] Update the stereo constant buffers when CopyResource() is called. ***/
-		UINT m_dwUCB_VSSetShader;                  /**< [Switch] Update the stereo constant buffers when VSSetShader() is called. ***/
-		UINT m_dwUCB_VSSetConstantBuffers;         /**< [Switch] Update the stereo constant buffers when VSSetConstantBuffers() is called. ***/
-		UINT m_dwUCB_Unmap;                        /**< [Switch] Update the stereo constant buffers when Unmap() is called. ***/
 #endif
 	} m_sPageGameSettings;
 	/**
@@ -605,12 +624,7 @@ private:
 	struct TechnicalOptions
 	{
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-		bool m_bUCB_UpdateSubresource;             /**< Update the stereo constant buffers when UpdateSubresource() is called. ***/
-		bool m_bUCB_CopySubresourceRegion;         /**< Update the stereo constant buffers when CopySubresourceRegion() is called. ***/
-		bool m_bUCB_CopyResource;                  /**< Update the stereo constant buffers when CopyResource() is called. ***/
-		bool m_bUCB_VSSetShader;                   /**< Update the stereo constant buffers when VSSetShader() is called. ***/
-		bool m_bUCB_VSSetConstantBuffers;          /**< Update the stereo constant buffers when VSSetConstantBuffers() is called. ***/
-		bool m_bUCB_Unmap;                         /**< Update the stereo constant buffers when Unmap() is called. ***/
+	
 #endif
 	} m_sTechnicalOptions;
 	/**

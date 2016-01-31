@@ -67,7 +67,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"..\..\VireioMatrixModifier\VireioMatrixModifier\VireioMatrixModifierDataStructures.h"
 
 #define NUMBER_OF_COMMANDERS                           2
-#define NUMBER_OF_DECOMMANDERS                         49
+#define NUMBER_OF_DECOMMANDERS                         53
 
 // enable for debug -> #define _DEBUG_VIREIO
 
@@ -143,8 +143,12 @@ enum STS_Decommanders
 	/*** Active constant buffers ***/
 	eDrawingSide,                                          /**< Left/Right drawing side enumeration. Switches once per draw call ***/
 	ppActiveConstantBuffers_DX10_VertexShader,             /**< Active D3D10 vertex shader constant buffers ***/
-	ppActiveConstantBuffers_DX11_VertexShader,             /**< Active D3D11 vertex shader constant buffers ***/
+	ppActiveConstantBuffers_DX10_GeometryShader,           /**< Active D3D10 geometry shader constant buffers ***/
 	ppActiveConstantBuffers_DX10_PixelShader,              /**< Active D3D10 pixel shader constant buffers ***/
+	ppActiveConstantBuffers_DX11_VertexShader,             /**< Active D3D11 vertex shader constant buffers ***/
+	ppActiveConstantBuffers_DX11_HullShader,               /**< Active D3D11 hull shader constant buffers ***/
+	ppActiveConstantBuffers_DX11_DomainShader,             /**< Active D3D11 domain shader constant buffers ***/
+	ppActiveConstantBuffers_DX11_GeometryShader,           /**< Active D3D11 geometry shader constant buffers ***/
 	ppActiveConstantBuffers_DX11_PixelShader,              /**< Active D3D11 pixel shader constant buffers ***/
 	/*** Additional parameters ***/
 	dwVerifyConstantBuffers,                               /**< The number of frames the constant buffers are to be verified **/
@@ -235,7 +239,11 @@ private:
 	FLOAT* m_pfDepth;                                                 /** Clear the depth buffer with this value. This value will be clamped between 0 and 1. */
 	UINT8* m_pchStencil;                                              /** Clear the stencil buffer with this value. */
 	RenderPosition* m_peDrawingSide;                                  /** Pointer to the extern drawing side bool. The extern bool will be updated depending on m_eCurrentRenderingSide ***/
-	ID3D11Buffer*** m_appcActiveConstantBuffers11;                    /** The d3d11 constant buffer array. ***/
+	ID3D11Buffer*** m_appcVSActiveConstantBuffers11;                  /** The d3d11 vertex shader constant buffer array. ***/
+	ID3D11Buffer*** m_appcHSActiveConstantBuffers11;                  /** The d3d11 hull shader constant buffer array. ***/
+	ID3D11Buffer*** m_appcDSActiveConstantBuffers11;                  /** The d3d11 domain shader constant buffer array. ***/
+	ID3D11Buffer*** m_appcGSActiveConstantBuffers11;                  /** The d3d11 geometry shader constant buffer array. ***/
+	ID3D11Buffer*** m_appcPSActiveConstantBuffers11;                  /** The d3d11 pixel shader constant buffer array. ***/
 	UINT* m_pdwStartSlot;                                             /** Index into the device's zero-based array to begin setting shader resources to (ranges from 0 to D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - 1). **/
 	UINT* m_pdwNumViewsSRVs;                                          /** Number of shader resources to set. Up to a maximum of 128 slots are available for shader resources (ranges from 0 to D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - StartSlot). **/
 	ID3D10ShaderResourceView*** m_pppcShaderResourceViews10;          /** Array of shader resource view interfaces to set to the device. **/

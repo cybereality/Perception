@@ -126,7 +126,11 @@ m_pcVertexLayout10(nullptr),
 m_pcVertexBuffer10(nullptr),
 m_pcConstantBufferDirect10(nullptr),
 m_eCurrentRenderingSide(RenderPosition::Left),
-m_appcActiveConstantBuffers11(nullptr),
+m_appcVSActiveConstantBuffers11(nullptr),
+m_appcHSActiveConstantBuffers11(nullptr),
+m_appcDSActiveConstantBuffers11(nullptr),
+m_appcGSActiveConstantBuffers11(nullptr),
+m_appcPSActiveConstantBuffers11(nullptr),
 m_peDrawingSide(nullptr),
 m_dwVerifyConstantBuffers(0),
 m_ppcResource(nullptr),
@@ -284,10 +288,14 @@ HBITMAP StereoSplitter::GetControl()
 			TextOut(hdcImage, 50, nY, L"NumBuffers", 10); nY += 64;
 			TextOut(hdcImage, 50, nY, L"ppConstantBuffers", 17); nY += 64;
 			TextOut(hdcImage, 50, nY, L"Stereo Drawing Side", 19); nY += 64;
-			TextOut(hdcImage, 50, nY, L"ppActiveConstantBuffers_DX10_VS", 31); nY += 64;
-			TextOut(hdcImage, 50, nY, L"ppActiveConstantBuffers_DX11_VS", 31); nY += 64;
-			TextOut(hdcImage, 50, nY, L"ppActiveConstantBuffers_DX10_PS", 31); nY += 64;
-			TextOut(hdcImage, 50, nY, L"ppActiveConstantBuffers_DX11_PS", 31); nY += 64;
+			TextOut(hdcImage, 50, nY, L"VS Constant Buffers DX10", 24); nY += 64;
+			TextOut(hdcImage, 50, nY, L"GS Constant Buffers DX10", 24); nY += 64;
+			TextOut(hdcImage, 50, nY, L"PS Constant Buffers DX10", 24); nY += 64;
+			TextOut(hdcImage, 50, nY, L"VS Constant Buffers DX11", 24); nY += 64;
+			TextOut(hdcImage, 50, nY, L"HS Constant Buffers DX11", 24); nY += 64;
+			TextOut(hdcImage, 50, nY, L"DS Constant Buffers DX11", 24); nY += 64;
+			TextOut(hdcImage, 50, nY, L"GS Constant Buffers DX11", 24); nY += 64;
+			TextOut(hdcImage, 50, nY, L"PS Constant Buffers DX11", 24); nY += 64;
 			TextOut(hdcImage, 50, nY, L"Verify Constant Buffers", 23); nY += 64;
 			TextOut(hdcImage, 600, nY, L"Left Texture", 12); nY += 64;
 			TextOut(hdcImage, 600, nY, L"Right Texture", 13); nY += 128;
@@ -388,13 +396,21 @@ LPWSTR StereoSplitter::GetDecommanderName(DWORD dwDecommanderIndex)
 		case eDrawingSide:
 			return L"Stereo Drawing Side";
 		case ppActiveConstantBuffers_DX10_VertexShader:
-			return L"ppConstantBuffers_DX10_VS";
-		case ppActiveConstantBuffers_DX11_VertexShader:
-			return L"ppConstantBuffers_DX11_VS";
+			return L"VS Constant Buffers DX10";
+		case ppActiveConstantBuffers_DX10_GeometryShader:
+			return L"GS Constant Buffers DX10";
 		case ppActiveConstantBuffers_DX10_PixelShader:
-			return L"ppConstantBuffers_DX10_PS";
+			return L"PS Constant Buffers DX10";
+		case ppActiveConstantBuffers_DX11_VertexShader:
+			return L"VS Constant Buffers DX11";
+		case ppActiveConstantBuffers_DX11_HullShader:
+			return L"HS Constant Buffers DX11";
+		case ppActiveConstantBuffers_DX11_DomainShader:
+			return L"DS Constant Buffers DX11";
+		case ppActiveConstantBuffers_DX11_GeometryShader:
+			return L"GS Constant Buffers DX11";
 		case ppActiveConstantBuffers_DX11_PixelShader:
-			return L"ppConstantBuffers_DX11_PS";
+			return L"PS Constant Buffers DX11";
 		case dwVerifyConstantBuffers:
 			return L"Verify Constant Buffers";
 		default:
@@ -436,7 +452,6 @@ DWORD StereoSplitter::GetDecommanderType(DWORD dwDecommanderIndex)
 		case pDepthStencilViewUAV_DX11:
 			return NOD_Plugtype::AQU_PNT_ID3D11DEPTHSTENCILVIEW;
 		case UAVStartSlot:
-			return NOD_Plugtype::AQU_UINT;
 		case NumUAVs:
 			return NOD_Plugtype::AQU_UINT;
 		case ppUnorderedAccessViews:
@@ -460,7 +475,6 @@ DWORD StereoSplitter::GetDecommanderType(DWORD dwDecommanderIndex)
 		case Stencil:
 			return NOD_Plugtype::AQU_BYTE;
 		case StartSlot:
-			return NOD_Plugtype::AQU_UINT;
 		case NumSRVs:
 			return NOD_Plugtype::AQU_UINT;
 		case ppShaderResourceViews_DX10:
@@ -474,25 +488,19 @@ DWORD StereoSplitter::GetDecommanderType(DWORD dwDecommanderIndex)
 		case pResource_Unmap:
 			return NOD_Plugtype::AQU_PNT_ID3D11RESOURCE;
 		case Subresource_Unmap:
-			return NOD_Plugtype::AQU_UINT;
 		case ThreadGroupCountX:
-			return NOD_Plugtype::AQU_UINT;
 		case ThreadGroupCountY:
-			return NOD_Plugtype::AQU_UINT;
 		case ThreadGroupCountZ:
 			return NOD_Plugtype::AQU_UINT;
 		case pBufferForArgs:
 			return NOD_Plugtype::AQU_PNT_ID3D11BUFFER;
 		case AlignedByteOffsetForArgs:
-			return NOD_Plugtype::AQU_UINT;
 		case StartSlot_CS:
-			return NOD_Plugtype::AQU_UINT;
 		case NumViews_CS:
 			return NOD_Plugtype::AQU_UINT;
 		case ppShaderResourceViews:
 			return NOD_Plugtype::AQU_PPNT_ID3D11SHADERRESOURCEVIEW;
 		case StartSlot_CSUAV:
-			return NOD_Plugtype::AQU_UINT;
 		case NumUAVs_CS:
 			return NOD_Plugtype::AQU_UINT;
 		case ppUnorderedAccessViews_CS:
@@ -500,7 +508,6 @@ DWORD StereoSplitter::GetDecommanderType(DWORD dwDecommanderIndex)
 		case pUAVInitialCounts_CS:
 			return NOD_Plugtype::AQU_PNT_UINT;
 		case StartSlot_CSCB:
-			return NOD_Plugtype::AQU_UINT;
 		case NumBuffers:
 			return NOD_Plugtype::AQU_UINT;
 		case ppConstantBuffers:
@@ -508,11 +515,13 @@ DWORD StereoSplitter::GetDecommanderType(DWORD dwDecommanderIndex)
 		case eDrawingSide:
 			return NOD_Plugtype::AQU_INT;
 		case ppActiveConstantBuffers_DX10_VertexShader:
-			return NOD_Plugtype::AQU_PPNT_ID3D10BUFFER;
-		case ppActiveConstantBuffers_DX11_VertexShader:
-			return NOD_Plugtype::AQU_PPNT_ID3D11BUFFER;
+		case ppActiveConstantBuffers_DX10_GeometryShader:
 		case ppActiveConstantBuffers_DX10_PixelShader:
 			return NOD_Plugtype::AQU_PPNT_ID3D10BUFFER;
+		case ppActiveConstantBuffers_DX11_VertexShader:
+		case ppActiveConstantBuffers_DX11_HullShader:
+		case ppActiveConstantBuffers_DX11_DomainShader:
+		case ppActiveConstantBuffers_DX11_GeometryShader:
 		case ppActiveConstantBuffers_DX11_PixelShader:
 			return NOD_Plugtype::AQU_PPNT_ID3D11BUFFER;
 		case dwVerifyConstantBuffers:
@@ -682,12 +691,24 @@ void StereoSplitter::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 			break;
 		case ppActiveConstantBuffers_DX10_VertexShader:
 			break;
-		case ppActiveConstantBuffers_DX11_VertexShader:
-			m_appcActiveConstantBuffers11 = (ID3D11Buffer***)pData;
+		case ppActiveConstantBuffers_DX10_GeometryShader:
 			break;
 		case ppActiveConstantBuffers_DX10_PixelShader:
 			break;
+		case ppActiveConstantBuffers_DX11_VertexShader:
+			m_appcVSActiveConstantBuffers11 = (ID3D11Buffer***)pData;
+			break;
+		case ppActiveConstantBuffers_DX11_HullShader:
+			m_appcHSActiveConstantBuffers11 = (ID3D11Buffer***)pData;
+			break;
+		case ppActiveConstantBuffers_DX11_DomainShader:
+			m_appcDSActiveConstantBuffers11 = (ID3D11Buffer***)pData;
+			break;
+		case ppActiveConstantBuffers_DX11_GeometryShader:
+			m_appcGSActiveConstantBuffers11 = (ID3D11Buffer***)pData;
+			break;
 		case ppActiveConstantBuffers_DX11_PixelShader:
+			m_appcPSActiveConstantBuffers11 = (ID3D11Buffer***)pData;
 			break;
 		case dwVerifyConstantBuffers:
 			m_pdwVerifyConstantBuffers = (UINT*)pData;
@@ -2711,7 +2732,61 @@ bool StereoSplitter::SetDrawingSide(ID3D11DeviceContext* pcContext, RenderPositi
 	else
 		pcContext->PSSetShaderResources(0, m_dwTextureNumber, (ID3D11ShaderResourceView**)&m_apcActiveStereoTwinTextures[0]);
 
-#ifdef _DEBUG_VIREIO
+	// switch vertex shader constant buffers
+	if (m_appcVSActiveConstantBuffers11)
+	if (*m_appcVSActiveConstantBuffers11)
+	{
+		// set all constant buffers for the left or right side
+		if (eSide == RenderPosition::Left)
+			pcContext->VSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &(*m_appcVSActiveConstantBuffers11)[0]);
+		else
+			pcContext->VSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &(*m_appcVSActiveConstantBuffers11)[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT]);
+	}
+
+	// switch vertex shader constant buffers
+	if (m_appcHSActiveConstantBuffers11)
+	if (*m_appcHSActiveConstantBuffers11)
+	{
+		// set all constant buffers for the left or right side
+		if (eSide == RenderPosition::Left)
+			pcContext->HSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &(*m_appcHSActiveConstantBuffers11)[0]);
+		else
+			pcContext->HSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &(*m_appcHSActiveConstantBuffers11)[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT]);
+	}
+
+	// switch vertex shader constant buffers
+	if (m_appcDSActiveConstantBuffers11)
+	if (*m_appcDSActiveConstantBuffers11)
+	{
+		// set all constant buffers for the left or right side
+		if (eSide == RenderPosition::Left)
+			pcContext->DSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &(*m_appcDSActiveConstantBuffers11)[0]);
+		else
+			pcContext->DSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &(*m_appcDSActiveConstantBuffers11)[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT]);
+	}
+
+	// switch vertex shader constant buffers
+	if (m_appcGSActiveConstantBuffers11)
+	if (*m_appcGSActiveConstantBuffers11)
+	{
+		// set all constant buffers for the left or right side
+		if (eSide == RenderPosition::Left)
+			pcContext->GSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &(*m_appcGSActiveConstantBuffers11)[0]);
+		else
+			pcContext->GSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &(*m_appcGSActiveConstantBuffers11)[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT]);
+	}
+
+	// switch vertex shader constant buffers
+	if (m_appcPSActiveConstantBuffers11)
+	if (*m_appcPSActiveConstantBuffers11)
+	{
+		// set all constant buffers for the left or right side
+		if (eSide == RenderPosition::Left)
+			pcContext->PSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &(*m_appcPSActiveConstantBuffers11)[0]);
+		else
+			pcContext->PSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &(*m_appcPSActiveConstantBuffers11)[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT]);
+	}
+
 	// constant buffers are to be verified ?
 	if (m_dwVerifyConstantBuffers)
 	{
@@ -2723,79 +2798,22 @@ bool StereoSplitter::SetDrawingSide(ID3D11DeviceContext* pcContext, RenderPositi
 		if (pcVertexShader)
 			pcVertexShader->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
 
-		// switch constant buffers
-		if (m_appcActiveConstantBuffers11)
-		if (*m_appcActiveConstantBuffers11)
+		if (m_appcVSActiveConstantBuffers11)
+		if (*m_appcVSActiveConstantBuffers11)
 		{
 			// loop through the buffers
 			for (UINT dwIndex = 0; dwIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; dwIndex++)
-			if ((*m_appcActiveConstantBuffers11)[dwIndex])
+			if ((*m_appcVSActiveConstantBuffers11)[dwIndex])
 			{
 				// set the current shader data as private data to the buffer
 				if ((pcVertexShader) && (dwDataSize))
-					((*m_appcActiveConstantBuffers11)[dwIndex])->SetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, sizeof(sPrivateData), (void*)&sPrivateData);
-
-				// get the private data interfaces and set the current drawing side
-				UINT dwSize = sizeof(ID3D11Buffer*);
-				if (eSide == RenderPosition::Left)
-					((*m_appcActiveConstantBuffers11)[dwIndex])->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Left, &dwSize, (void*)&acConstantBuffers[dwIndex]);
-				else
-					((*m_appcActiveConstantBuffers11)[dwIndex])->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&acConstantBuffers[dwIndex]);
-
-				// "If the data returned is a pointer to an IUnknown, or one of its derivative classes,
-				// previously set by IDXGIObject::SetPrivateDataInterface, you must call::Release() on 
-				// the pointer before the pointer is freed to decrement the reference count." (Microsoft)
-				if (acConstantBuffers[dwIndex])
-					acConstantBuffers[dwIndex]->Release();
+					((*m_appcVSActiveConstantBuffers11)[dwIndex])->SetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, sizeof(sPrivateData), (void*)&sPrivateData);
 			}
-
-			// finally set all constant buffers for the left or right side
-			pcContext->VSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &acConstantBuffers[0]);
 		}
 
 		if (pcVertexShader)
 			pcVertexShader->Release();
 	}
-	else
-	{
-		// switch constant buffers
-		if (m_appcActiveConstantBuffers11)
-		if (*m_appcActiveConstantBuffers11)
-		{
-			// loop through the buffers
-			for (UINT dwIndex = 0; dwIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; dwIndex++)
-			if ((*m_appcActiveConstantBuffers11)[dwIndex])
-			{
-				// get the private data interfaces and set the current drawing side
-				UINT dwSize = sizeof(ID3D11Buffer*);
-				if (eSide == RenderPosition::Left)
-					((*m_appcActiveConstantBuffers11)[dwIndex])->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Left, &dwSize, (void*)&acConstantBuffers[dwIndex]);
-				else
-					((*m_appcActiveConstantBuffers11)[dwIndex])->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&acConstantBuffers[dwIndex]);
-
-				// "If the data returned is a pointer to an IUnknown, or one of its derivative classes,
-				// previously set by IDXGIObject::SetPrivateDataInterface, you must call::Release() on 
-				// the pointer before the pointer is freed to decrement the reference count." (Microsoft)
-				if (acConstantBuffers[dwIndex])
-					acConstantBuffers[dwIndex]->Release();
-			}
-
-			// finally set all constant buffers for the left or right side
-			pcContext->VSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &acConstantBuffers[0]);
-		}
-	}
-#else
-	// switch constant buffers
-	if (m_appcActiveConstantBuffers11)
-	if (*m_appcActiveConstantBuffers11)
-	{
-		// set all constant buffers for the left or right side
-		if (eSide == RenderPosition::Left)
-			pcContext->VSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &(*m_appcActiveConstantBuffers11)[0]);
-		else
-			pcContext->VSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &(*m_appcActiveConstantBuffers11)[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT]);
-	}
-#endif
 
 	return true;
 }
