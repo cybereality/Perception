@@ -137,12 +137,32 @@ m_dwCurrentChosenShaderHashCode(0)
 
 	// TEST !! ADD A TEST RULE
 	// Vireio_Constant_Modification_Rule sRule = Vireio_Constant_Modification_Rule("NoName", 12, 0, 8, false, false, true, false, true, 4, 0, 0, true);
-	Vireio_Constant_Modification_Rule sRule = Vireio_Constant_Modification_Rule("NoName", 0, 816, 0, false, false, false, true, true, 4, 0, 0, true);
+	Vireio_Constant_Modification_Rule sRule = Vireio_Constant_Modification_Rule("NoName", 12, 0, 0, false, false, true, false, true, 4, 0, 0, true);
 	Vireio_Constant_Modification_Rule sRule1 = Vireio_Constant_Modification_Rule("NoName", 0, 1248, 0, false, false, false, true, true, 4, 0, 0, true);
 	Vireio_Constant_Modification_Rule sRule2 = Vireio_Constant_Modification_Rule("NoName", 0, 1152, 0, false, false, false, true, true, 4, 0, 0, true);
-	Vireio_Constant_Modification_Rule sRule3 = Vireio_Constant_Modification_Rule("NoName", 0, 816, 12, false, false, false, true, true, 4, 0, 0, true);
+	Vireio_Constant_Modification_Rule sRule3 = Vireio_Constant_Modification_Rule("NoName", 0, 1184, 0, false, false, false, true, true, 4, 0, 0, true);
 	Vireio_Constant_Modification_Rule sRule4 = Vireio_Constant_Modification_Rule("NoName", 0, 1168, 0, false, false, false, true, true, 4, 0, 0, true);
 	Vireio_Constant_Modification_Rule sRule5 = Vireio_Constant_Modification_Rule("NoName", 0, 1136, 0, false, false, false, true, true, 4, 0, 0, true);
+	Vireio_Constant_Modification_Rule sRule6 = Vireio_Constant_Modification_Rule("NoName", 0, 1088, 0, false, false, false, true, true, 4, 0, 0, true);
+	Vireio_Constant_Modification_Rule sRule7 = Vireio_Constant_Modification_Rule("NoName", 0, 1536, 0, false, false, false, true, true, 4, 0, 0, true);
+	Vireio_Constant_Modification_Rule sRule8 = Vireio_Constant_Modification_Rule("NoName", 0, 1200, 0, false, false, false, true, true, 4, 0, 0, true);
+	Vireio_Constant_Modification_Rule sRule9 = Vireio_Constant_Modification_Rule("NoName", 0, 1104, 0, false, false, false, true, true, 4, 0, 0, true);
+	Vireio_Constant_Modification_Rule sRule10 = Vireio_Constant_Modification_Rule("NoName", 0, 448, 0, false, false, false, true, true, 4, 0, 0, true);
+	Vireio_Constant_Modification_Rule sRule11 = Vireio_Constant_Modification_Rule("NoName", 0, 352, 0, false, false, false, true, true, 4, 0, 0, true);
+	Vireio_Constant_Modification_Rule sRule12 = Vireio_Constant_Modification_Rule("NoName", 0, 1120, 0, false, false, false, true, true, 4, 0, 0, true);
+	Vireio_Constant_Modification_Rule sRule13 = Vireio_Constant_Modification_Rule("NoName", 0, 1216, 0, false, false, false, true, true, 4, 0, 0, true);
+	Vireio_Constant_Modification_Rule sRule14 = Vireio_Constant_Modification_Rule("NoName", 0, 1248, 0, false, false, false, true, true, 4, 0, 0, true);
+	Vireio_Constant_Modification_Rule sRule15 = Vireio_Constant_Modification_Rule("NoName", 0, 368, 0, false, false, false, true, true, 4, 0, 0, true);
+	Vireio_Constant_Modification_Rule sRule16 = Vireio_Constant_Modification_Rule("NoName", 0, 384, 0, false, false, false, true, true, 4, 0, 0, true);
+	Vireio_Constant_Modification_Rule sRule17 = Vireio_Constant_Modification_Rule("NoName", 0, 416, 0, false, false, false, true, true, 4, 0, 0, true);
+	Vireio_Constant_Modification_Rule sRule18 = Vireio_Constant_Modification_Rule("NoName", 0, 1264, 0, false, false, false, true, true, 4, 0, 0, true);
+	Vireio_Constant_Modification_Rule sRule19 = Vireio_Constant_Modification_Rule("NoName", 0, 432, 0, false, false, false, true, true, 4, 0, 0, true);
+	Vireio_Constant_Modification_Rule sRule20 = Vireio_Constant_Modification_Rule("NoName", 0, 1232, 0, false, false, false, true, true, 4, 0, 0, true);
+	Vireio_Constant_Modification_Rule sRule21 = Vireio_Constant_Modification_Rule("NoName", 0, 1280, 0, false, false, false, true, true, 4, 0, 0, true);
+	Vireio_Constant_Modification_Rule sRule22 = Vireio_Constant_Modification_Rule("NoName", 0, 464, 0, false, false, false, true, true, 4, 0, 0, true);
+	Vireio_Constant_Modification_Rule sRule23 = Vireio_Constant_Modification_Rule("NoName", 0, 480, 0, false, false, false, true, true, 4, 0, 0, true);
+	Vireio_Constant_Modification_Rule sRule24 = Vireio_Constant_Modification_Rule("NoName", 0, 496, 0, false, false, false, true, true, 4, 0, 0, true);
+	Vireio_Constant_Modification_Rule sRule25 = Vireio_Constant_Modification_Rule("NoName", 0, 512, 0, false, false, false, true, true, 4, 0, 0, true);
 	//4 8 14 18 22
 	m_asConstantRules.push_back(sRule);
 	m_asConstantRules.push_back(sRule1);
@@ -150,13 +170,52 @@ m_dwCurrentChosenShaderHashCode(0)
 	m_asConstantRules.push_back(sRule3);
 	m_asConstantRules.push_back(sRule4);
 	m_asConstantRules.push_back(sRule5);
+	m_asConstantRules.push_back(sRule6);
+	m_asConstantRules.push_back(sRule7);
+	m_asConstantRules.push_back(sRule8);
+	m_asConstantRules.push_back(sRule9);
+	m_asConstantRules.push_back(sRule10);
+	m_asConstantRules.push_back(sRule11);
+	m_asConstantRules.push_back(sRule12);
+	m_asConstantRules.push_back(sRule13);
+	m_asConstantRules.push_back(sRule14);
+	m_asConstantRules.push_back(sRule15);
+	m_asConstantRules.push_back(sRule16);
+	m_asConstantRules.push_back(sRule17);
+	m_asConstantRules.push_back(sRule18);
+	m_asConstantRules.push_back(sRule19);
+	m_asConstantRules.push_back(sRule20);
+	m_asConstantRules.push_back(sRule21);
+	m_asConstantRules.push_back(sRule22);
+	m_asConstantRules.push_back(sRule23);
+	m_asConstantRules.push_back(sRule24);
+	m_asConstantRules.push_back(sRule25);
 	m_adwGlobalConstantRuleIndices.push_back(0);
 	m_adwGlobalConstantRuleIndices.push_back(1);
 	m_adwGlobalConstantRuleIndices.push_back(2);
-	//m_adwGlobalConstantRuleIndices.push_back(3);
+	m_adwGlobalConstantRuleIndices.push_back(3);
 	m_adwGlobalConstantRuleIndices.push_back(4);
 	m_adwGlobalConstantRuleIndices.push_back(5);
-	// 1104 ?
+	m_adwGlobalConstantRuleIndices.push_back(6);
+	m_adwGlobalConstantRuleIndices.push_back(7);
+	m_adwGlobalConstantRuleIndices.push_back(8);
+	m_adwGlobalConstantRuleIndices.push_back(9);
+	m_adwGlobalConstantRuleIndices.push_back(10);
+	m_adwGlobalConstantRuleIndices.push_back(11);
+	m_adwGlobalConstantRuleIndices.push_back(12);
+	m_adwGlobalConstantRuleIndices.push_back(13);
+	m_adwGlobalConstantRuleIndices.push_back(14);
+	m_adwGlobalConstantRuleIndices.push_back(15);
+	m_adwGlobalConstantRuleIndices.push_back(16);
+	m_adwGlobalConstantRuleIndices.push_back(17);
+	m_adwGlobalConstantRuleIndices.push_back(18);
+	m_adwGlobalConstantRuleIndices.push_back(19);
+	m_adwGlobalConstantRuleIndices.push_back(20);
+	m_adwGlobalConstantRuleIndices.push_back(21);
+	m_adwGlobalConstantRuleIndices.push_back(22);
+	m_adwGlobalConstantRuleIndices.push_back(23);
+	m_adwGlobalConstantRuleIndices.push_back(24);
+	m_adwGlobalConstantRuleIndices.push_back(25);
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	// create buffer vectors ( * 2 for left/right side )
 	m_apcVSActiveConstantBuffers11 = std::vector<ID3D11Buffer*>(D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT * 2, nullptr);
@@ -329,7 +388,7 @@ void MatrixModifier::InitNodeData(char* pData, UINT dwSizeOfData)
 		// set to ipd using vireio presenter.... // TODO !! currently set ipd to default
 		m_sGameConfiguration.fConvergence = 3.0f;
 		m_sGameConfiguration.fIPD = IPD_DEFAULT;
-		m_sGameConfiguration.fWorldScaleFactor = 0.0f;
+		m_sGameConfiguration.fWorldScaleFactor = -2.0f;
 		m_sGameConfiguration.fPFOV = 110.0f;
 		m_pcShaderViewAdjustment->Load(m_sGameConfiguration);
 		m_pcShaderViewAdjustment->UpdateProjectionMatrices((float)1920.0f / (float)1080.0f, m_sGameConfiguration.fPFOV);
@@ -1419,92 +1478,92 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						if (m_apcVSActiveConstantBuffers11[dwIndex])
 						{
 							// verify buffer
-							VerifyConstantBuffer(m_apcVSActiveConstantBuffers11[dwIndex], dwIndex);
+							VerifyConstantBuffer(m_apcVSActiveConstantBuffers11[dwIndex], dwIndex);					
+						}
 
-							// currently chosen ?
-							if (m_dwCurrentChosenShaderHashCode)
+						// currently chosen ?
+						if (m_dwCurrentChosenShaderHashCode)
+						{
+							// get the current shader hash
+							Vireio_Shader_Private_Data sPrivateData;
+							UINT dwDataSize = sizeof(sPrivateData);
+							if (m_pcActiveVertexShader11)
+								m_pcActiveVertexShader11->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
+
+							// set null shader if hash matches
+							if (m_dwCurrentChosenShaderHashCode == sPrivateData.dwHash)
 							{
-								// get the current shader hash
-								Vireio_Shader_Private_Data sPrivateData;
-								UINT dwDataSize = sizeof(sPrivateData);
-								if (m_pcActiveVertexShader11)
-									m_pcActiveVertexShader11->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
-
-								// set null shader if hash matches
-								if (m_dwCurrentChosenShaderHashCode == sPrivateData.dwHash)
+								// output shader debug data
+								static UINT dwChosenOld = 0;
+								if (dwChosenOld != m_dwCurrentChosenShaderHashCode)
 								{
-									// output shader debug data
-									static UINT dwChosenOld = 0;
-									if (dwChosenOld != m_dwCurrentChosenShaderHashCode)
+									std::wstringstream strStream;
+									strStream << L"Hash:" << sPrivateData.dwHash;
+									m_aszDebugTrace.push_back(strStream.str().c_str());
+									for (UINT dwI = 0; dwI < (UINT)m_asShaders[sPrivateData.dwIndex].asBuffers.size(); dwI++)
 									{
-										std::wstringstream strStream;
-										strStream << L"Hash:" << sPrivateData.dwHash;
+										strStream = std::wstringstream();
+										strStream << L"Name:" << m_asShaders[sPrivateData.dwIndex].asBuffers[dwI].szName << L"::Size:" << m_asShaders[sPrivateData.dwIndex].asBuffers[dwI].dwSize;
 										m_aszDebugTrace.push_back(strStream.str().c_str());
-										for (UINT dwI = 0; dwI < (UINT)m_asShaders[sPrivateData.dwIndex].asBuffers.size(); dwI++)
-										{
-											strStream = std::wstringstream();
-											strStream << L"Name:" << m_asShaders[sPrivateData.dwIndex].asBuffers[dwI].szName << L"::Size:" << m_asShaders[sPrivateData.dwIndex].asBuffers[dwI].dwSize;
-											m_aszDebugTrace.push_back(strStream.str().c_str());
-										}
-										for (UINT dwI = 0; dwI < (UINT)m_asShaders[sPrivateData.dwIndex].asBuffersUnaccounted.size(); dwI++)
-										{
-											strStream = std::wstringstream();
-											strStream << L"Reg:" << m_asShaders[sPrivateData.dwIndex].asBuffersUnaccounted[dwI].dwRegister << L"::Size:" << m_asShaders[sPrivateData.dwIndex].asBuffersUnaccounted[dwI].dwSize;
-											m_aszDebugTrace.push_back(strStream.str().c_str());
-										}
-
-										dwChosenOld = m_dwCurrentChosenShaderHashCode;
-
-										for (UINT dwI = 0; dwI < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; dwI++)
-										if (m_apcVSActiveConstantBuffers11[dwI])
-										{
-											// get shader rules index
-											INT nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
-											UINT dwDataSizeRulesIndex = sizeof(INT);
-											m_apcVSActiveConstantBuffers11[dwI]->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Index, &dwDataSizeRulesIndex, &nRulesIndex);
-
-											D3D11_BUFFER_DESC sDesc;
-											m_apcVSActiveConstantBuffers11[dwI]->GetDesc(&sDesc);
-											strStream = std::wstringstream();
-											strStream << L"Buffer Size [" << dwI << L"]:" << sDesc.ByteWidth << L" RuleInd:" << nRulesIndex;
-											m_aszDebugTrace.push_back(strStream.str().c_str());
-										}
 									}
-
-									// call super method
-									((ID3D11DeviceContext*)pThis)->VSSetShader(nullptr, nullptr, NULL);
-
-									// method replaced, immediately return
-									nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
-								}
-							}
-
-							// sort shader list ?
-							if (m_bSortShaderList)
-							{
-								// get the current shader hash
-								Vireio_Shader_Private_Data sPrivateData;
-								UINT dwDataSize = sizeof(sPrivateData);
-								if (m_pcActiveVertexShader11)
-									m_pcActiveVertexShader11->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
-
-								// get shader index
-								for (UINT dwI = 1; dwI < (UINT)m_adwShaderHashCodes.size(); dwI++)
-								{
-									if (sPrivateData.dwHash == m_adwShaderHashCodes[dwI])
+									for (UINT dwI = 0; dwI < (UINT)m_asShaders[sPrivateData.dwIndex].asBuffersUnaccounted.size(); dwI++)
 									{
-										// move one forward
-										std::wstring szBuf = m_aszShaderHashCodes[dwI - 1];
-										m_aszShaderHashCodes[dwI - 1] = m_aszShaderHashCodes[dwI];
-										m_aszShaderHashCodes[dwI] = szBuf;
-
-										UINT dwBuf = m_adwShaderHashCodes[dwI - 1];
-										m_adwShaderHashCodes[dwI - 1] = m_adwShaderHashCodes[dwI];
-										m_adwShaderHashCodes[dwI] = dwBuf;
-
-										// end search;
-										dwI = (UINT)m_adwShaderHashCodes.size();
+										strStream = std::wstringstream();
+										strStream << L"Reg:" << m_asShaders[sPrivateData.dwIndex].asBuffersUnaccounted[dwI].dwRegister << L"::Size:" << m_asShaders[sPrivateData.dwIndex].asBuffersUnaccounted[dwI].dwSize;
+										m_aszDebugTrace.push_back(strStream.str().c_str());
 									}
+
+									dwChosenOld = m_dwCurrentChosenShaderHashCode;
+
+									for (UINT dwI = 0; dwI < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; dwI++)
+									if (m_apcVSActiveConstantBuffers11[dwI])
+									{
+										// get shader rules index
+										INT nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
+										UINT dwDataSizeRulesIndex = sizeof(INT);
+										m_apcVSActiveConstantBuffers11[dwI]->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Index, &dwDataSizeRulesIndex, &nRulesIndex);
+
+										D3D11_BUFFER_DESC sDesc;
+										m_apcVSActiveConstantBuffers11[dwI]->GetDesc(&sDesc);
+										strStream = std::wstringstream();
+										strStream << L"Buffer Size [" << dwI << L"]:" << sDesc.ByteWidth << L" RuleInd:" << nRulesIndex;
+										m_aszDebugTrace.push_back(strStream.str().c_str());
+									}
+								}
+
+								// call super method
+								((ID3D11DeviceContext*)pThis)->VSSetShader(nullptr, nullptr, NULL);
+
+								// method replaced, immediately return
+								nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+							}
+						}
+
+						// sort shader list ?
+						if (m_bSortShaderList)
+						{
+							// get the current shader hash
+							Vireio_Shader_Private_Data sPrivateData;
+							UINT dwDataSize = sizeof(sPrivateData);
+							if (m_pcActiveVertexShader11)
+								m_pcActiveVertexShader11->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
+
+							// get shader index
+							for (UINT dwI = 1; dwI < (UINT)m_adwShaderHashCodes.size(); dwI++)
+							{
+								if (sPrivateData.dwHash == m_adwShaderHashCodes[dwI])
+								{
+									// move one forward
+									std::wstring szBuf = m_aszShaderHashCodes[dwI - 1];
+									m_aszShaderHashCodes[dwI - 1] = m_aszShaderHashCodes[dwI];
+									m_aszShaderHashCodes[dwI] = szBuf;
+
+									UINT dwBuf = m_adwShaderHashCodes[dwI - 1];
+									m_adwShaderHashCodes[dwI - 1] = m_adwShaderHashCodes[dwI];
+									m_adwShaderHashCodes[dwI] = dwBuf;
+
+									// end search;
+									dwI = (UINT)m_adwShaderHashCodes.size();
 								}
 							}
 						}
@@ -2023,9 +2082,11 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 					else
 						m_dwCurrentChosenShaderHashCode = 0;
 
-					// fill current shader constant list, first unselect a possible selection
+					// fill current shader data lists, first unselect a possible selection
 					m_pcVireioGUI->UnselectCurrentSelection(m_sPageVertexShader.m_dwCurrentConstants);
+					m_pcVireioGUI->UnselectCurrentSelection(m_sPageVertexShader.m_dwCurrentBuffersizes);
 					m_aszShaderConstantsCurrent = std::vector<std::wstring>();
+					m_aszShaderBuffersizes = std::vector<std::wstring>();
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 					if (m_dwCurrentChosenShaderHashCode)
@@ -2044,8 +2105,8 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 						// add all constant names to the current shader constant list
 						for (UINT dwJ = 0; dwJ < (UINT)m_asShaders[dwIndex].asBuffers.size(); dwJ++)
 						{
-							std::wstringstream szNumber; szNumber << L"Buffer Index:" << dwJ;
-							m_aszShaderConstantsCurrent.push_back(szNumber.str());
+							std::wstringstream szSize; szSize << m_asShaders[dwIndex].asBuffers[dwJ].dwSize;
+							m_aszShaderBuffersizes.push_back(szSize.str());
 
 							for (UINT dwK = 0; dwK < (UINT)m_asShaders[dwIndex].asBuffers[dwJ].asVariables.size(); dwK++)
 							{
@@ -2055,6 +2116,53 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 
 								m_aszShaderConstantsCurrent.push_back(szName);
 							}
+						}
+					}
+#endif
+				}
+				else if (sEvent.dwIndexOfControl == m_sPageVertexShader.m_dwCurrentConstants)
+				{
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+					INT nSelection = 0;
+
+					// get current selection of the shader constant list
+					nSelection = m_pcVireioGUI->GetCurrentSelection(m_sPageVertexShader.m_dwCurrentConstants);
+
+					if ((nSelection >= 0) && (nSelection < (INT)m_aszShaderConstantsCurrent.size()))
+					{
+						// unselect and clear buffer size list
+						m_pcVireioGUI->UnselectCurrentSelection(m_sPageVertexShader.m_dwCurrentBuffersizes);
+						m_aszShaderBuffersizes = std::vector<std::wstring>();
+
+						// get a number vector
+						std::vector<UINT> adwBufferSizes;
+
+						// loop through buffers, compare all entries
+						for (UINT dwI = 0; dwI < (UINT)m_asShaders.size(); dwI++)
+						{
+							for (UINT dwJ = 0; dwJ < (UINT)m_asShaders[dwI].asBuffers.size(); dwJ++)
+							{
+								if (nSelection < (INT)m_asShaders[dwI].asBuffers[dwJ].asVariables.size())
+								{
+									// compare the two strings, first convert to wstring
+									std::string szNameA = std::string(m_asShaders[dwI].asBuffers[dwJ].asVariables[nSelection].szName);
+									std::wstring szName(szNameA.begin(), szNameA.end());
+									if (szName.compare(m_aszShaderConstantsCurrent[nSelection]) == 0)
+									{
+										UINT dwSize = m_asShaders[dwI].asBuffers[dwJ].dwSize;
+										// add buffer size to list if not present
+										if (std::find(adwBufferSizes.begin(), adwBufferSizes.end(), dwSize) == adwBufferSizes.end())
+											adwBufferSizes.push_back(dwSize);
+									}
+								}
+							}
+						}
+
+						// fill the buffer sizes entries new
+						for (UINT dwJ = 0; dwJ < (UINT)adwBufferSizes.size(); dwJ++)
+						{
+							std::wstringstream szSize; szSize << adwBufferSizes[dwJ];
+							m_aszShaderBuffersizes.push_back(szSize.str());
 						}
 					}
 #endif
@@ -2591,7 +2699,18 @@ void MatrixModifier::CreateGUI()
 #pragma endregion
 
 #pragma region Vertex Shader Page
-	// shader constant list (lists always first from bottom to top!)
+	// shader constant buffer size list (lists always first from bottom to top!)
+	ZeroMemory(&sControl, sizeof(Vireio_Control));
+	sControl.m_eControlType = Vireio_Control_Type::ListBox;
+	sControl.m_sPosition.x = GUI_CONTROL_FONTBORDER;
+	sControl.m_sPosition.y = (GUI_HEIGHT >> 2) + (GUI_HEIGHT >> 1) + (GUI_CONTROL_BORDER >> 1);
+	sControl.m_sSize.cx = GUI_WIDTH - GUI_CONTROL_BORDER;
+	sControl.m_sSize.cy = ((GUI_HEIGHT - GUI_CONTROL_FONTSIZE * 4) >> 3) - GUI_CONTROL_LINE;
+	sControl.m_sListBox.m_paszEntries = &m_aszShaderBuffersizes;
+	sControl.m_sListBox.m_bSelectable = true;
+	m_sPageVertexShader.m_dwCurrentBuffersizes = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::ShadersPage], sControl);
+
+	// shader constant list
 	ZeroMemory(&sControl, sizeof(Vireio_Control));
 	sControl.m_eControlType = Vireio_Control_Type::ListBox;
 	sControl.m_sPosition.x = GUI_CONTROL_FONTBORDER;

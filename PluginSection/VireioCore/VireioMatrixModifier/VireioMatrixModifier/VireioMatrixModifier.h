@@ -575,6 +575,7 @@ private:
 		UINT m_dwSort;                             /**< [Switch] : Sort the shader list ***/         
 		UINT m_dwHashCodes;                        /**< [List] : Contains ALL vertex shader hash codes (ID) ***/
 		UINT m_dwCurrentConstants;                 /**< [List] : Contains all constants for the chosen vertex shader (ID) ***/
+		UINT m_dwCurrentBuffersizes;               /**< [List] : Contains all constant buffer sizes for the chosen vertex shader (ID) ***/
 	} m_sPageVertexShader;
 	/**
 	* Debug page control IDs
@@ -659,6 +660,12 @@ private:
 	* and to create shader rules.
 	***/
 	std::vector<std::wstring> m_aszShaderConstantsCurrent;
+	/**
+	* List of shader buffer sizes for the currently chosen shader. (std::wstring).
+	* To be used on the shader modifaction page
+	* and to create shader rules.
+	***/
+	std::vector<std::wstring> m_aszShaderBuffersizes;
 	/**
 	* Debug trace string list.
 	* Contains all strings for the debug trace.
