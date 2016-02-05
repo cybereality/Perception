@@ -70,24 +70,24 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <TargetName>hijackdll</TargetName>
-    <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
+    <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
     <OutDir>$(IntDir)</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <TargetName>hijackdll</TargetName>
-    <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
+    <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <TargetName>hijackdll</TargetName>
-    <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
+    <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
     <OutDir>$(IntDir)</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <TargetName>hijackdll64</TargetName>
-    <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
+    <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -110,7 +110,7 @@
       </ForceFileOutput>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(TargetDir)hijackdll.dll" "C:\Program Files (x86)\Vireio\Perception\bin\hijackdll.dll"</Command>
+      <Command>copy /Y "$(SolutionDir)$(Configuration)\Perception\bin\$(TargetName)$(TargetExt)" "$(USERPROFILE)\Documents\Vireio\Perception\bin\$(TargetName)$(TargetExt)"</Command>
     </PostBuildEvent>
     <PreBuildEvent>
       <Command>
@@ -121,7 +121,7 @@
       </Message>
     </PreBuildEvent>
     <PreLinkEvent>
-      <Command>xcopy "$(SolutionDir)\Release\Perception\cfg\*.*" "$(SolutionDir)\$(Configuration)\Perception\cfg\" /S /Y</Command>
+      <Command>if not exist  $(USERPROFILE)\Documents\Vireio\Perception\bin md $(USERPROFILE)\Documents\Vireio\Perception\bin</Command>
     </PreLinkEvent>
     <PreLinkEvent>
       <Message>Copy config xml files from Release  to $(Configuration)</Message>
@@ -151,7 +151,7 @@
       </ForceFileOutput>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(TargetDir)hijackdll.dll" "C:\Program Files (x86)\Vireio\Perception\bin\hijackdll.dll"</Command>
+      <Command>copy /Y "$(SolutionDir)$(Configuration)\Perception\bin\$(TargetName)$(TargetExt)" "$(USERPROFILE)\Documents\Vireio\Perception\bin\$(TargetName)$(TargetExt)"</Command>
     </PostBuildEvent>
     <PreBuildEvent>
       <Command>
@@ -162,7 +162,7 @@
       </Message>
     </PreBuildEvent>
     <PreLinkEvent>
-      <Command>xcopy "$(SolutionDir)\Release\Perception\cfg\*.*" "$(SolutionDir)\$(Configuration)\Perception\cfg\" /S /Y</Command>
+      <Command>if not exist  $(USERPROFILE)\Documents\Vireio\Perception\bin md $(USERPROFILE)\Documents\Vireio\Perception\bin</Command>
     </PreLinkEvent>
     <PreLinkEvent>
       <Message>Copy config xml files from Release  to $(Configuration)</Message>
@@ -194,8 +194,11 @@
       <OutputFile>$(SolutionDir)$(Configuration)\Perception\bin\$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(TargetDir)hijackdll.dll" "C:\Program Files (x86)\Vireio\Perception\bin\hijackdll.dll"</Command>
+      <Command>copy /Y "$(SolutionDir)$(Configuration)\Perception\bin\$(TargetName)$(TargetExt)" "$(USERPROFILE)\Documents\Vireio\Perception\bin\$(TargetName)$(TargetExt)"</Command>
     </PostBuildEvent>
+    <PreLinkEvent>
+      <Command>if not exist  $(USERPROFILE)\Documents\Vireio\Perception\bin md $(USERPROFILE)\Documents\Vireio\Perception\bin</Command>
+    </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -220,8 +223,11 @@
       <OutputFile>$(SolutionDir)$(Configuration)\Perception\bin\$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(TargetDir)hijackdll.dll" "C:\Program Files (x86)\Vireio\Perception\bin\hijackdll.dll"</Command>
+      <Command>copy /Y "$(SolutionDir)$(Configuration)\Perception\bin\$(TargetName)$(TargetExt)" "$(USERPROFILE)\Documents\Vireio\Perception\bin\$(TargetName)$(TargetExt)"</Command>
     </PostBuildEvent>
+    <PreLinkEvent>
+      <Command>if not exist  $(USERPROFILE)\Documents\Vireio\Perception\bin md $(USERPROFILE)\Documents\Vireio\Perception\bin</Command>
+    </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="apihijack.cpp" />

@@ -96,6 +96,12 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>$(SolutionDir)$(Configuration)\Perception\bin\$(TargetName)$(TargetExt)</OutputFile>
     </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(SolutionDir)$(Configuration)\Perception\bin\$(TargetName)$(TargetExt)" "$(USERPROFILE)\Documents\Vireio\Perception\bin\$(TargetName)$(TargetExt)"</Command>
+    </PostBuildEvent>
+    <PreLinkEvent>
+      <Command>if not exist  $(USERPROFILE)\Documents\Vireio\Perception\bin md $(USERPROFILE)\Documents\Vireio\Perception\bin</Command>
+    </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -111,6 +117,12 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>$(SolutionDir)$(Configuration)\Perception\bin\$(TargetName)$(TargetExt)</OutputFile>
     </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(SolutionDir)$(Configuration)\Perception\bin\$(TargetName)$(TargetExt)" "$(USERPROFILE)\Documents\Vireio\Perception\bin\$(TargetName)$(TargetExt)"</Command>
+    </PostBuildEvent>
+    <PreLinkEvent>
+      <Command>if not exist  $(USERPROFILE)\Documents\Vireio\Perception\bin md $(USERPROFILE)\Documents\Vireio\Perception\bin</Command>
+    </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -135,6 +147,12 @@
     <PreBuildEvent>
       <Command>xcopy "$(ProjectDir)*.cmd" "$(SolutionDir)$(Configuration)\Perception\bin\" /Y</Command>
     </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>copy /Y "$(SolutionDir)$(Configuration)\Perception\bin\$(TargetName)$(TargetExt)" "$(USERPROFILE)\Documents\Vireio\Perception\bin\$(TargetName)$(TargetExt)"</Command>
+    </PostBuildEvent>
+    <PreLinkEvent>
+      <Command>if not exist  $(USERPROFILE)\Documents\Vireio\Perception\bin md $(USERPROFILE)\Documents\Vireio\Perception\bin</Command>
+    </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -159,6 +177,12 @@
     <PreBuildEvent>
       <Command>xcopy "$(ProjectDir)*.cmd" "$(SolutionDir)$(Configuration)\Perception\bin\" /Y</Command>
     </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>copy /Y "$(SolutionDir)$(Configuration)\Perception\bin\$(TargetName)$(TargetExt)" "$(USERPROFILE)\Documents\Vireio\Perception\bin\$(TargetName)$(TargetExt)"</Command>
+    </PostBuildEvent>
+    <PreLinkEvent>
+      <Command>if not exist  $(USERPROFILE)\Documents\Vireio\Perception\bin md $(USERPROFILE)\Documents\Vireio\Perception\bin</Command>
+    </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />

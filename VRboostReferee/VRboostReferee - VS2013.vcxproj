@@ -95,6 +95,16 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>$(SolutionDir)$(Configuration)\Perception\cfg\VRboost_rules\$(TargetName)$(TargetExt)</OutputFile>
     </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(SolutionDir)$(Configuration)\Perception\cfg\VRboost_rules\$(TargetName)$(TargetExt)" "$(USERPROFILE)\Documents\Vireio\Perception\cfg\VRboost_rules\$(TargetName)$(TargetExt)"</Command>
+    </PostBuildEvent>
+    <PreLinkEvent>
+      <Command>
+      </Command>
+    </PreLinkEvent>
+    <PreBuildEvent>
+      <Command>xcopy "$(SolutionDir)$(Configuration)\Perception\cfg\." "$(USERPROFILE)\Documents\Vireio\Perception\cfg\." /S /Y</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -110,6 +120,16 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>$(SolutionDir)$(Configuration)\Perception\cfg\VRboost_rules\$(TargetName)$(TargetExt)</OutputFile>
     </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(SolutionDir)$(Configuration)\Perception\cfg\VRboost_rules\$(TargetName)$(TargetExt)" "$(USERPROFILE)\Documents\Vireio\Perception\cfg\VRboost_rules\$(TargetName)$(TargetExt)"</Command>
+    </PostBuildEvent>
+    <PreLinkEvent>
+      <Command>
+      </Command>
+    </PreLinkEvent>
+    <PreBuildEvent>
+      <Command>xcopy "$(SolutionDir)$(Configuration)\Perception\cfg\." "$(USERPROFILE)\Documents\Vireio\Perception\cfg\." /S /Y</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -129,6 +149,16 @@
       <OptimizeReferences>true</OptimizeReferences>
       <OutputFile>$(SolutionDir)$(Configuration)\Perception\cfg\VRboost_rules\$(TargetName)$(TargetExt)</OutputFile>
     </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(SolutionDir)$(Configuration)\Perception\cfg\VRboost_rules\$(TargetName)$(TargetExt)" "$(USERPROFILE)\Documents\Vireio\Perception\cfg\VRboost_rules\$(TargetName)$(TargetExt)"</Command>
+    </PostBuildEvent>
+    <PreLinkEvent>
+      <Command>
+      </Command>
+    </PreLinkEvent>
+    <PreBuildEvent>
+      <Command>xcopy "$(SolutionDir)$(Configuration)\Perception\*" "$(USERPROFILE)\Documents\Vireio\Perception\" /D/E/C/Y</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -148,6 +178,16 @@
       <OptimizeReferences>true</OptimizeReferences>
       <OutputFile>$(SolutionDir)$(Configuration)\Perception\cfg\VRboost_rules\$(TargetName)$(TargetExt)</OutputFile>
     </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(SolutionDir)$(Configuration)\Perception\cfg\VRboost_rules\$(TargetName)$(TargetExt)" "$(USERPROFILE)\Documents\Vireio\Perception\cfg\VRboost_rules\$(TargetName)$(TargetExt)"</Command>
+    </PostBuildEvent>
+    <PreLinkEvent>
+      <Command>
+      </Command>
+    </PreLinkEvent>
+    <PreBuildEvent>
+      <Command>xcopy "$(SolutionDir)$(Configuration)\Perception\cfg\." "$(USERPROFILE)\Documents\Vireio\Perception\cfg\." /S /Y</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\Shared\pugiconfig.hpp" />
