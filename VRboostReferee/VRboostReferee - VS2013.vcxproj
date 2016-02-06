@@ -103,7 +103,7 @@
       </Command>
     </PreLinkEvent>
     <PreBuildEvent>
-      <Command>xcopy "$(SolutionDir)$(Configuration)\Perception\cfg\." "$(USERPROFILE)\Documents\Vireio\Perception\cfg\." /S /Y</Command>
+      <Command>xcopy "$(SolutionDir)$(Configuration)\Perception\*" "$(USERPROFILE)\Documents\Vireio\Perception\" /D/E/C/Y</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -128,7 +128,7 @@
       </Command>
     </PreLinkEvent>
     <PreBuildEvent>
-      <Command>xcopy "$(SolutionDir)$(Configuration)\Perception\cfg\." "$(USERPROFILE)\Documents\Vireio\Perception\cfg\." /S /Y</Command>
+      <Command>xcopy "$(SolutionDir)$(Configuration)\Perception\*" "$(USERPROFILE)\Documents\Vireio\Perception\" /D/E/C/Y</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -186,7 +186,7 @@
       </Command>
     </PreLinkEvent>
     <PreBuildEvent>
-      <Command>xcopy "$(SolutionDir)$(Configuration)\Perception\cfg\." "$(USERPROFILE)\Documents\Vireio\Perception\cfg\." /S /Y</Command>
+      <Command>xcopy "$(SolutionDir)$(Configuration)\Perception\*" "$(USERPROFILE)\Documents\Vireio\Perception\" /D/E/C/Y</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

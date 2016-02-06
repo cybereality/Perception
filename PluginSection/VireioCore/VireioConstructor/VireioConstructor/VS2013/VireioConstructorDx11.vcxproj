@@ -97,6 +97,12 @@
       <AdditionalLibraryDirectories>$(OCULUS_SDK_ROOT_DIR)LibOVR\Lib\Win32\VS2012</AdditionalLibraryDirectories>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PreLinkEvent>
+      <Command>if not exist  "$(USERPROFILE)\Documents\Vireio\Perception\bin\My Nodes Win32" md "$(USERPROFILE)\Documents\Vireio\Perception\bin\My Nodes Win32"</Command>
+    </PreLinkEvent>
+    <PostBuildEvent>
+      <Command>copy /Y "$(USERPROFILE)\Documents\my games\Aquilinus\My Nodes Win32\$(TargetName)$(TargetExt)" "$(USERPROFILE)\Documents\Vireio\Perception\bin\My Nodes Win32\$(TargetName)$(TargetExt)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -109,6 +115,9 @@
       <AdditionalLibraryDirectories>$(OCULUS_SDK_ROOT_DIR)LibOVR\Lib\Win32\VS2012</AdditionalLibraryDirectories>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PreLinkEvent>
+      <Command>if not exist  "$(USERPROFILE)\Documents\Vireio\Perception\bin\My Nodes x64" md "$(USERPROFILE)\Documents\Vireio\Perception\bin\My Nodes x64"</Command>
+    </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -125,6 +134,12 @@
       <AdditionalLibraryDirectories>$(OCULUS_SDK_ROOT_DIR)LibOVR\Lib\Win32\VS2012</AdditionalLibraryDirectories>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PreLinkEvent>
+      <Command>if not exist  "$(USERPROFILE)\Documents\Vireio\Perception\bin\My Nodes Win32" md "$(USERPROFILE)\Documents\Vireio\Perception\bin\My Nodes Win32"</Command>
+    </PreLinkEvent>
+    <PostBuildEvent>
+      <Command>copy /Y "$(USERPROFILE)\Documents\my games\Aquilinus\My Nodes Win32\$(TargetName)$(TargetExt)" "$(USERPROFILE)\Documents\Vireio\Perception\bin\My Nodes Win32\$(TargetName)$(TargetExt)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -141,6 +156,12 @@
       <AdditionalLibraryDirectories>$(OCULUS_SDK_ROOT_DIR)LibOVR\Lib\Win32\VS2012</AdditionalLibraryDirectories>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PreLinkEvent>
+      <Command>if not exist  "$(USERPROFILE)\Documents\Vireio\Perception\bin\My Nodes x64" md "$(USERPROFILE)\Documents\Vireio\Perception\bin\My Nodes x64"</Command>
+    </PreLinkEvent>
+    <PostBuildEvent>
+      <Command>copy /Y "$(USERPROFILE)\Documents\my games\Aquilinus\My Nodes x64\$(TargetName)$(TargetExt)" "$(USERPROFILE)\Documents\Vireio\Perception\bin\My Nodes x64\$(TargetName)$(TargetExt)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\AQU_Nodus.h" />
