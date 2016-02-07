@@ -1478,7 +1478,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						if (m_apcVSActiveConstantBuffers11[dwIndex])
 						{
 							// verify buffer
-							VerifyConstantBuffer(m_apcVSActiveConstantBuffers11[dwIndex], dwIndex);					
+							VerifyConstantBuffer(m_apcVSActiveConstantBuffers11[dwIndex], dwIndex);
 						}
 
 						// currently chosen ?
@@ -1960,8 +1960,10 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 		case ChangedToPrevious:
 			break;
 		case ChangedToValue:
+			// "Game Settings" page
 			if (sEvent.dwIndexOfPage == m_adwPageIDs[GUI_Pages::GameSettingsPage])
 			{
+				// get new value from the control
 				if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwGameSeparation)
 					m_sGameConfiguration.fWorldScaleFactor = sEvent.fNewValue;
 				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwConvergence)
@@ -2015,6 +2017,7 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 		case ChangedToText:
 			break;
 		case Pressed:
+			// "Debug" page
 			if (sEvent.dwIndexOfPage == m_adwPageIDs[GUI_Pages::DebugPage])
 			{
 				if (sEvent.dwIndexOfControl == m_sPageDebug.m_dwGrab)
@@ -2033,8 +2036,10 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 					m_eDebugOption = (Debug_Grab_Options)sEvent.dwNewValue;
 				}
 			}
+			// "Shaders" page
 			else if (sEvent.dwIndexOfPage == m_adwPageIDs[GUI_Pages::ShadersPage])
 			{
+				// "Update Shader Hash Code List" - Button
 				if (sEvent.dwIndexOfControl == m_sPageVertexShader.m_dwUpdate)
 				{
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
@@ -2070,6 +2075,126 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 					}
 #endif
 				}
+				// "-> To Name" - Button
+				else if (sEvent.dwIndexOfControl == m_sPageVertexShader.m_dwToName)
+				{
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+					INT nSelection = 0;
+
+					// get current selection of the shader constant list
+					nSelection = m_pcVireioGUI->GetCurrentSelection(m_sPageVertexShader.m_dwCurrentConstants);
+
+					if ((nSelection >= 0) && (nSelection < (INT)m_aszShaderConstantsCurrent.size()))
+					{
+						// set the name to the name control of the shader rules page
+						m_sPageGameShaderRules.m_szConstantName = m_aszShaderConstantsCurrent[nSelection];
+					}
+#endif
+				}
+				// "-> To Register" - Button
+				else if (sEvent.dwIndexOfControl == m_sPageVertexShader.m_dwToRegister)
+				{
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+					INT nSelection = 0;
+
+					// get current selection of the shader constant list
+					nSelection = m_pcVireioGUI->GetCurrentSelection(m_sPageVertexShader.m_dwHashCodes);
+
+					if ((nSelection >= 0) && (nSelection < (INT)m_adwShaderHashCodes.size()))
+						m_dwCurrentChosenShaderHashCode = m_adwShaderHashCodes[nSelection];
+					else
+						m_dwCurrentChosenShaderHashCode = 0;
+
+					if (m_dwCurrentChosenShaderHashCode)
+					{
+						// find the hash code in the shader list
+						UINT dwIndex = 0;
+						for (UINT dwI = 0; dwI < (UINT)m_asShaders.size(); dwI++)
+						{
+							if (m_dwCurrentChosenShaderHashCode == m_asShaders[dwI].dwHashCode)
+							{
+								dwIndex = dwI;
+								dwI = (UINT)m_asShaders.size();
+							}
+						}
+
+						INT nSelection = 0;
+
+						// get current selection of the shader constant list
+						nSelection = m_pcVireioGUI->GetCurrentSelection(m_sPageVertexShader.m_dwCurrentConstants);
+
+						if ((nSelection >= 0) && (nSelection < (INT)m_aszShaderConstantsCurrent.size()))
+						{
+							if (m_asShaders[dwIndex].asBuffers.size())
+							{
+								UINT dwBufferIndex = 0;
+
+								// get the buffer index
+								while (dwBufferIndex < (UINT)m_asShaders[dwIndex].asBuffers.size())
+								{
+									if (nSelection >= (INT)m_asShaders[dwIndex].asBuffers[dwBufferIndex].asVariables.size())
+									{
+										nSelection -= (INT)m_asShaders[dwIndex].asBuffers[dwBufferIndex].asVariables.size();
+										dwBufferIndex++;
+									}
+									else break;
+								}
+
+								// set data based on selection
+								if (nSelection < (INT)m_asShaders[dwIndex].asBuffers[dwBufferIndex].asVariables.size())
+								{
+									// set new start register string on the shader rules page (=offset/4)
+									std::wstringstream szStartOffset; szStartOffset << (m_asShaders[dwIndex].asBuffers[dwBufferIndex].asVariables[nSelection].dwStartOffset >> 2);
+									m_sPageGameShaderRules.m_szStartRegIndex = szStartOffset.str();
+
+									// also set the buffer index if present
+									if (dwBufferIndex < (UINT)m_asShaders[dwIndex].asBuffersUnaccounted.size())
+									{
+										// set the new register
+										std::wstringstream szStartRegister; szStartRegister << m_asShaders[dwIndex].asBuffersUnaccounted[dwBufferIndex].dwRegister;
+										m_sPageGameShaderRules.m_szBufferIndex = szStartRegister.str();
+									}
+								}
+							}
+						}
+
+
+					}
+#endif
+				}
+				// "-> To Buffer Size" - Button
+				else if (sEvent.dwIndexOfControl == m_sPageVertexShader.m_dwToBufferSize)
+				{
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+					INT nSelection = 0;
+
+					// get current selection of the shader constant list
+					nSelection = m_pcVireioGUI->GetCurrentSelection(m_sPageVertexShader.m_dwCurrentBuffersizes);
+
+					if ((nSelection >= 0) && (nSelection < (INT)m_aszShaderBuffersizes.size()))
+					{
+						// set the name to the name control of the shader rules page
+						m_sPageGameShaderRules.m_szBufferSize = m_aszShaderBuffersizes[nSelection];
+					}
+#endif
+				}
+				// "-> To Buffer Index" - Button
+				else if (sEvent.dwIndexOfControl == m_sPageVertexShader.m_dwToBufferIndex)
+				{
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+					INT nSelection = 0;
+
+					// get current selection of the shader constant list
+					nSelection = m_pcVireioGUI->GetCurrentSelection(m_sPageVertexShader.m_dwCurrentBuffersizes);
+
+					if ((nSelection >= 0) && (nSelection < (INT)m_aszShaderBuffersizes.size()))
+					{
+						// set the name to the name control of the shader rules page
+						m_sPageGameShaderRules.m_szBufferIndex = m_aszShaderBuffersizes[nSelection];
+					}
+#endif
+				}
+				// "Hash Codes" - List
 				else if (sEvent.dwIndexOfControl == m_sPageVertexShader.m_dwHashCodes)
 				{
 					INT nSelection = 0;
@@ -2117,9 +2242,21 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 								m_aszShaderConstantsCurrent.push_back(szName);
 							}
 						}
+
+						m_aszShaderBuffersizes.push_back(std::wstring(L">-----unaccounted:"));
+
+						// add all unaccounted buffer sizes to the buffer sizes list
+						for (UINT dwI = 0; dwI < (UINT)m_asShaders[dwIndex].asBuffersUnaccounted.size(); dwI++)
+						{
+							std::wstringstream szReg; szReg << m_asShaders[dwIndex].asBuffersUnaccounted[dwI].dwRegister;
+							m_aszShaderBuffersizes.push_back(szReg.str());
+							std::wstringstream szSize; szSize << m_asShaders[dwIndex].asBuffersUnaccounted[dwI].dwSize;
+							m_aszShaderBuffersizes.push_back(szSize.str());
+						}
 					}
 #endif
 				}
+				// "Shader Constants" - List
 				else if (sEvent.dwIndexOfControl == m_sPageVertexShader.m_dwCurrentConstants)
 				{
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
@@ -2604,6 +2741,7 @@ void MatrixModifier::CreateGUI()
 	Vireio_Control sControl;
 
 #pragma region Static Text
+	// game configuration
 	static std::wstring szGameSeparationText = std::wstring(L"World Scale Factor");
 	static std::wstring szConvergence = std::wstring(L"Convergence");
 	static std::wstring szAspectMultiplier = std::wstring(L"Aspect Multiplier");
@@ -2624,14 +2762,37 @@ void MatrixModifier::CreateGUI()
 		sz64bit = std::wstring(L"32 Bit");
 	static std::vector<std::wstring> aszEntries64bit; aszEntries64bit.push_back(sz64bit);
 
-	static std::wstring szUCB_CopyResource = std::wstring(L"UCBCopyResource");
-	static std::wstring szUCB_CopySubresourceRegion = std::wstring(L"UCBCopySubresourceRegion");
-	static std::wstring szUCB_Unmap = std::wstring(L"UCBUnmap");
-	static std::wstring szUCB_UpdateSubresource = std::wstring(L"UCBUpdateSubresource");
-	static std::wstring szUCB_VSSetConstantBuffers = std::wstring(L"UCBVSSetConstantBuffers");
-	static std::wstring szUCB_VSSetShader = std::wstring(L"UCBVSSetShader");
-
+	// vertex shader page
 	static std::wstring szSort = std::wstring(L"Sort");
+	static std::wstring szToName = std::wstring(L"-> Name");
+	static std::wstring szToRegister = std::wstring(L"-> Register");
+	static std::wstring szToBufferSize = std::wstring(L"-> Buffer Size");
+	static std::wstring szToBufferIndex = std::wstring(L"-> Buffer Index");
+
+	// shader rules page
+	static std::wstring szConstantName = std::wstring(L"Constant Name");
+	static std::wstring szPartialNameMatch = std::wstring(L"Partial Name");
+	static std::wstring szStartRegIndex = std::wstring(L"Start Register");
+	static std::wstring szBufferSize = std::wstring(L"Buffer Size");
+	static std::wstring szBufferIndex = std::wstring(L"Buffer Index");
+	static std::wstring szTranspose = std::wstring(L"Transpose");
+	static std::vector<std::wstring> aszEntriesShaderRulePage;
+	aszEntriesShaderRulePage.push_back(szConstantName); aszEntriesShaderRulePage.push_back(std::wstring()); aszEntriesShaderRulePage.push_back(std::wstring());
+	aszEntriesShaderRulePage.push_back(szPartialNameMatch); aszEntriesShaderRulePage.push_back(std::wstring()); aszEntriesShaderRulePage.push_back(std::wstring());
+	aszEntriesShaderRulePage.push_back(szStartRegIndex); aszEntriesShaderRulePage.push_back(std::wstring()); aszEntriesShaderRulePage.push_back(std::wstring());
+	aszEntriesShaderRulePage.push_back(szBufferSize); aszEntriesShaderRulePage.push_back(std::wstring()); aszEntriesShaderRulePage.push_back(std::wstring());
+	aszEntriesShaderRulePage.push_back(szBufferIndex); aszEntriesShaderRulePage.push_back(std::wstring()); aszEntriesShaderRulePage.push_back(std::wstring());
+
+	std::wstring szOperation1 = std::wstring(L"Simple Modification");
+	static std::vector<std::wstring> aszOperations; aszOperations.push_back(szOperation1);
+
+	std::wstring sz1 = std::wstring(L"1");
+	std::wstring sz2 = std::wstring(L"2");
+	std::wstring sz4 = std::wstring(L"4");
+	static std::vector<std::wstring> aszRegCounts;
+	aszRegCounts.push_back(sz1);
+	aszRegCounts.push_back(sz2);
+	aszRegCounts.push_back(sz4);
 #pragma endregion
 
 #pragma region Main Page
@@ -2694,7 +2855,6 @@ void MatrixModifier::CreateGUI()
 #endif
 
 	m_sPageGameSettings.m_dwIs64bit = CreateStaticListControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::GameSettingsPage], &aszEntries64bit, GUI_CONTROL_BORDER, GUI_HEIGHT - GUI_CONTROL_BORDER - GUI_CONTROL_FONTSIZE - GUI_CONTROL_FONTSIZE * 4, GUI_CONTROL_BUTTONSIZE);
-	// TODO : dwVRboostMinShaderCount, dwVRboostMaxShaderCount, nRollImpl
 
 #pragma endregion
 
@@ -2743,7 +2903,27 @@ void MatrixModifier::CreateGUI()
 	static std::wstring szButtonUpdateShaderDataText = std::wstring(L"Update Data");
 	sControl.m_sButton.m_pszText = &szButtonUpdateShaderDataText;
 	m_sPageVertexShader.m_dwUpdate = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::ShadersPage], sControl);
-	m_sPageVertexShader.m_dwSort = CreateSwitchControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::ShadersPage], &szSort, m_bSortShaderList, (GUI_CONTROL_FONTBORDER << 1) + GUI_CONTROL_BUTTONSIZE, (GUI_HEIGHT >> 1) - GUI_CONTROL_LINE, GUI_CONTROL_BUTTONSIZE, GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
+	m_sPageVertexShader.m_dwSort = CreateSwitchControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::ShadersPage], &szSort, m_bSortShaderList, GUI_CONTROL_FONTBORDER + GUI_CONTROL_BUTTONSIZE, (GUI_HEIGHT >> 1) - GUI_CONTROL_LINE, GUI_CONTROL_BUTTONSIZE, GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
+
+	m_sPageVertexShader.m_dwToName = CreateButtonControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::ShadersPage], &szToName, GUI_CONTROL_FONTBORDER, (GUI_HEIGHT >> 2) + (GUI_HEIGHT >> 1) - GUI_CONTROL_BORDER - GUI_CONTROL_FONTBORDER, GUI_CONTROL_BUTTONSIZE, GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
+	m_sPageVertexShader.m_dwToRegister = CreateButtonControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::ShadersPage], &szToRegister, GUI_CONTROL_FONTBORDER + GUI_CONTROL_BUTTONSIZE, (GUI_HEIGHT >> 2) + (GUI_HEIGHT >> 1) - GUI_CONTROL_BORDER - GUI_CONTROL_FONTBORDER, GUI_CONTROL_BUTTONSIZE, GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
+	m_sPageVertexShader.m_dwToBufferSize = CreateButtonControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::ShadersPage], &szToBufferSize, GUI_CONTROL_FONTBORDER, GUI_HEIGHT - GUI_CONTROL_FONTSIZE * 6, GUI_CONTROL_BUTTONSIZE, GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
+	m_sPageVertexShader.m_dwToBufferIndex = CreateButtonControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::ShadersPage], &szToBufferIndex, GUI_CONTROL_FONTBORDER + GUI_CONTROL_BUTTONSIZE, GUI_HEIGHT - GUI_CONTROL_FONTSIZE * 6, GUI_CONTROL_BUTTONSIZE, GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
+#pragma endregion
+
+#pragma region Shader Rule Page
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+	m_sPageGameShaderRules.m_dwTextlist = CreateStaticListControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::ShaderRulesPage], &aszEntriesShaderRulePage, GUI_CONTROL_BORDER, GUI_CONTROL_BORDER >> 1, GUI_CONTROL_BUTTONSIZE);
+
+	m_sPageGameShaderRules.m_dwConstantName = CreateSwitchControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::ShaderRulesPage], &m_sPageGameShaderRules.m_szConstantName, false, GUI_CONTROL_BORDER, (GUI_CONTROL_BORDER >> 1) + GUI_CONTROL_FONTSIZE, (GUI_CONTROL_BUTTONSIZE << 1) - (GUI_CONTROL_BUTTONSIZE >> 1), GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
+	m_sPageGameShaderRules.m_dwPartialName = CreateSwitchControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::ShaderRulesPage], &m_sPageGameShaderRules.m_szPartialName, false, GUI_CONTROL_BORDER, (GUI_CONTROL_BORDER >> 1) + GUI_CONTROL_FONTSIZE * 4, (GUI_CONTROL_BUTTONSIZE << 1) - (GUI_CONTROL_BUTTONSIZE >> 1), GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
+	m_sPageGameShaderRules.m_dwStartRegIndex = CreateSwitchControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::ShaderRulesPage], &m_sPageGameShaderRules.m_szStartRegIndex, false, GUI_CONTROL_BORDER, (GUI_CONTROL_BORDER >> 1) + GUI_CONTROL_FONTSIZE * 7, GUI_CONTROL_BUTTONSIZE, GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
+	m_sPageGameShaderRules.m_dwBufferSize = CreateSwitchControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::ShaderRulesPage], &m_sPageGameShaderRules.m_szBufferSize, false, GUI_CONTROL_BORDER, (GUI_CONTROL_BORDER >> 1) + GUI_CONTROL_FONTSIZE * 10, GUI_CONTROL_BUTTONSIZE, GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
+	m_sPageGameShaderRules.m_dwBufferIndex = CreateSwitchControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::ShaderRulesPage], &m_sPageGameShaderRules.m_szBufferIndex, false, GUI_CONTROL_BORDER, (GUI_CONTROL_BORDER >> 1) + GUI_CONTROL_FONTSIZE * 13, GUI_CONTROL_BUTTONSIZE, GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
+	m_sPageGameShaderRules.m_dwTranspose = CreateSwitchControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::ShaderRulesPage], &szTranspose, false, GUI_CONTROL_BORDER, (GUI_CONTROL_BORDER >> 1) + GUI_CONTROL_FONTSIZE * 16, GUI_CONTROL_BUTTONSIZE, GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
+	m_sPageGameShaderRules.m_dwOperationToApply = CreateSpinControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::ShaderRulesPage], &aszOperations, GUI_CONTROL_BORDER, (GUI_CONTROL_BORDER >> 1) + GUI_CONTROL_FONTSIZE * 18, (GUI_CONTROL_BUTTONSIZE << 1) - (GUI_CONTROL_BUTTONSIZE >> 1));
+	m_sPageGameShaderRules.m_dwRegisterCount = CreateSpinControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::ShaderRulesPage], &aszRegCounts, GUI_CONTROL_BORDER, (GUI_CONTROL_BORDER >> 1) + GUI_CONTROL_FONTSIZE * 20, GUI_CONTROL_BUTTONSIZE);
+#endif
 #pragma endregion
 
 #pragma region Description Page

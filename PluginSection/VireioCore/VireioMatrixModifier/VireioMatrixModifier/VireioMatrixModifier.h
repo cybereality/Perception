@@ -572,10 +572,14 @@ private:
 	struct PageVertexShader
 	{
 		UINT m_dwUpdate;                           /**< [Button] : Activate to update all vertex shader data (ID) ***/
-		UINT m_dwSort;                             /**< [Switch] : Sort the shader list ***/         
+		UINT m_dwSort;                             /**< [Switch] : Sort the shader list ***/
 		UINT m_dwHashCodes;                        /**< [List] : Contains ALL vertex shader hash codes (ID) ***/
 		UINT m_dwCurrentConstants;                 /**< [List] : Contains all constants for the chosen vertex shader (ID) ***/
 		UINT m_dwCurrentBuffersizes;               /**< [List] : Contains all constant buffer sizes for the chosen vertex shader (ID) ***/
+		UINT m_dwToName;                           /**< [Button] : Activate to fill the constant name control on the shader rule page (ID) ***/
+		UINT m_dwToRegister;                       /**< [Button] : Activate to fill the register control on the shader rule page (ID) ***/
+		UINT m_dwToBufferSize;                     /**< [Button] : Activate to fill the buffer size control on the shader rule page (ID) ***/
+		UINT m_dwToBufferIndex;                    /**< [Button] : Activate to fill the buffer index control on the shader rule page (ID) ***/
 	} m_sPageVertexShader;
 	/**
 	* Debug page control IDs
@@ -619,13 +623,39 @@ private:
 #endif
 	} m_sPageGameSettings;
 	/**
+	* Game Shader Rules page control IDs + text.
+	* Structure contains all control IDs for the game shader rules page.
+	***/
+	struct PageGameShaderRules
+	{
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+		UINT m_dwTextlist;
+
+		UINT m_dwConstantName;
+		UINT m_dwPartialName;
+		UINT m_dwBufferIndex;
+		UINT m_dwBufferSize;
+		UINT m_dwStartRegIndex;
+
+		UINT m_dwRegisterCount;
+		UINT m_dwOperationToApply;
+		UINT m_dwTranspose;
+
+		std::wstring m_szConstantName;
+		std::wstring m_szPartialName;
+		std::wstring m_szBufferIndex;
+		std::wstring m_szBufferSize;
+		std::wstring m_szStartRegIndex;
+#endif
+	} m_sPageGameShaderRules;
+	/**
 	* This structure contains all DX version specific technical options
 	* you have to influence or optimize the way the MatrixModifier works.
 	***/
 	struct TechnicalOptions
 	{
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-	
+
 #endif
 	} m_sTechnicalOptions;
 	/**
@@ -680,7 +710,7 @@ private:
 	***/
 	bool m_bGrabDebug;
 	/**
-	* True if the shader list is to be sorted. 
+	* True if the shader list is to be sorted.
 	***/
 	bool m_bSortShaderList;
 };

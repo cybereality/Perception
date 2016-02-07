@@ -342,3 +342,39 @@ inline UINT CreateSwitchControl(Vireio_GUI* pcGUI, UINT dwPage, std::wstring* ps
 	sControl.m_sSwitch.m_pszText = pszText;
 	return pcGUI->AddControl(dwPage, sControl);
 }
+
+/**
+* Little helper to create a spin control.
+* @returns The ID to the control.
+***/
+inline UINT CreateSpinControl(Vireio_GUI* pcGUI, UINT dwPage, std::vector<std::wstring>* paszText, UINT dwPosX, UINT dwPosY, UINT dwSizeX)
+{
+	Vireio_Control sControl;
+	ZeroMemory(&sControl, sizeof(Vireio_Control));
+	sControl.m_eControlType = Vireio_Control_Type::SpinControl;
+	sControl.m_sPosition.x = dwPosX;
+	sControl.m_sPosition.y = dwPosY;
+	sControl.m_sSize.cx = dwSizeX;
+	sControl.m_sSize.cy = pcGUI->GetFontSize() << 1;
+	sControl.m_sSpinControl.m_dwCurrentSelection = 0;
+	sControl.m_sSpinControl.m_paszEntries = paszText;
+	return pcGUI->AddControl(dwPage, sControl);
+}
+
+/**
+* Little helper to create a button control.
+* @returns The ID to the control.
+***/
+inline UINT CreateButtonControl(Vireio_GUI* pcGUI, UINT dwPage, std::wstring* pszText, UINT dwPosX, UINT dwPosY, UINT dwSizeX, UINT dwSizeY)
+{
+	Vireio_Control sControl;
+	ZeroMemory(&sControl, sizeof(Vireio_Control));
+	sControl.m_eControlType = Vireio_Control_Type::Button;
+	sControl.m_sPosition.x = dwPosX;
+	sControl.m_sPosition.y = dwPosY;
+	sControl.m_sSize.cx = dwSizeX;
+	sControl.m_sSize.cy = dwSizeY;
+	sControl.m_sButton.m_pszText = pszText;
+	return pcGUI->AddControl(dwPage, sControl);
+}
+
