@@ -6,8 +6,8 @@ File <Vireio_DX11StateBlock.h> :
 Copyright (C) 2015 Denis Reischl
 (based on structure D3DX11_STATE_BLOCK + methods of unknown origin)
 
-The stub class <AQU_Nodus> is the only public class from the Aquilinus 
-repository and permitted to be used for open source plugins of any kind. 
+The stub class <AQU_Nodus> is the only public class from the Aquilinus
+repository and permitted to be used for open source plugins of any kind.
 Read the Aquilinus documentation for further information.
 
 Vireio Perception Version History:
@@ -41,18 +41,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <d3d11.h>
 #pragma comment(lib, "d3d11.lib")
 #endif
-
-/**
-* Tiny helper.
-***/
-template<class T>
-UINT calc_count(T** arr, UINT max_count)
-{
-    for (size_t i = 0; i < max_count; ++i)
-        if (arr[i] == 0)
-            return (UINT)i;
-    return max_count;
-}
 
 /**
 * DirectX 11 state block structure.
@@ -132,161 +120,241 @@ struct D3DX11_STATE_BLOCK
 };
 
 /**
+* Small release helper.
+***/
+inline void SafeRelease(UINT dwCount, IUnknown** ppInterfaces)
+{
+	for (UINT dw = 0; dw < dwCount; dw++)
+	if (ppInterfaces[dw])
+		ppInterfaces[dw]->Release();
+}
+
+/**
 * Create dx11 stateblocks.
+* MS Docs about ->ClearState() :
+* This sets all
+*     - input/output resource slots,     -> shaders (different stages)
+*     - shaders,                         -> shaders (different stages)
+*     - input layouts,                   -> input assembler stage
+*     - predications,                    -> predications
+*     - scissor rectangles,              -> rasterizer stage
+*     - depth-stencil state,             -> output merger stage
+*     - rasterizer state,                -> rasterizer stage
+*     - blend state,                     -> output merger stage
+*     - sampler state,                   -> shaders (different stages)
+*     - and viewports                    -> rasterizer stage
+* to NULL.
+* The primitive topology is set to UNDEFINED.  -> input assembler stage
+*
+* Instantly RELEASE all IUnknown interfaces here since their ref count will be increased.
 ***/
 void CreateStateblock(ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
 {
+	UINT dw = 0;
 	memset(sb, 0, sizeof(D3DX11_STATE_BLOCK));
 
+	// vertex shader
 	dc->VSGetShader(&sb->VS, sb->VSInterfaces, &sb->VSInterfaceCount);
+	if (sb->VS) sb->VS->Release();
+	if (sb->VSInterfaceCount)
+	{
+		SafeRelease(sb->VSInterfaceCount, (IUnknown**)sb->VSInterfaces);
+	}
 	dc->VSGetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, sb->VSSamplers);
+	SafeRelease(D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, (IUnknown**)sb->VSSamplers);
 	dc->VSGetShaderResources(0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, sb->VSShaderResources);
+	SafeRelease(D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, (IUnknown**)sb->VSShaderResources);
 	dc->VSGetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, sb->VSConstantBuffers);
+	SafeRelease(D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, (IUnknown**)sb->VSConstantBuffers);
 
+	// geometry shader
 	dc->GSGetShader(&sb->GS, sb->GSInterfaces, &sb->GSInterfaceCount);
+	if (sb->GS) sb->GS->Release();
+	if (sb->GSInterfaceCount)
+	{
+		SafeRelease(sb->GSInterfaceCount, (IUnknown**)sb->GSInterfaces);
+	}
 	dc->GSGetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, sb->GSSamplers);
+	SafeRelease(D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, (IUnknown**)sb->GSSamplers);
 	dc->GSGetShaderResources(0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, sb->GSShaderResources);
+	SafeRelease(D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, (IUnknown**)sb->GSShaderResources);
 	dc->GSGetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, sb->GSConstantBuffers);
+	SafeRelease(D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, (IUnknown**)sb->GSConstantBuffers);
 
+	// hull shader
 	dc->HSGetShader(&sb->HS, sb->HSInterfaces, &sb->HSInterfaceCount);
+	if (sb->HS) sb->HS->Release();
+	if (sb->HSInterfaceCount)
+	{
+		SafeRelease(sb->HSInterfaceCount, (IUnknown**)sb->HSInterfaces);
+	}
 	dc->HSGetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, sb->HSSamplers);
+	SafeRelease(D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, (IUnknown**)sb->HSSamplers);
 	dc->HSGetShaderResources(0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, sb->HSShaderResources);
+	SafeRelease(D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, (IUnknown**)sb->HSShaderResources);
 	dc->HSGetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, sb->HSConstantBuffers);
+	SafeRelease(D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, (IUnknown**)sb->HSConstantBuffers);
 
+	// domain shader
 	dc->DSGetShader(&sb->DS, sb->DSInterfaces, &sb->DSInterfaceCount);
+	if (sb->DS) sb->DS->Release();
+	if (sb->DSInterfaceCount)
+	{
+		SafeRelease(sb->DSInterfaceCount, (IUnknown**)sb->DSInterfaces);
+	}
 	dc->DSGetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, sb->DSSamplers);
+	SafeRelease(D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, (IUnknown**)sb->DSSamplers);
 	dc->DSGetShaderResources(0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, sb->DSShaderResources);
+	SafeRelease(D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, (IUnknown**)sb->DSShaderResources);
 	dc->DSGetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, sb->DSConstantBuffers);
+	SafeRelease(D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, (IUnknown**)sb->DSConstantBuffers);
 
+	// pixel shader
 	dc->PSGetShader(&sb->PS, sb->PSInterfaces, &sb->PSInterfaceCount);
+	if (sb->PS) sb->PS->Release();
+	if (sb->PSInterfaceCount)
+	{
+		SafeRelease(sb->PSInterfaceCount, (IUnknown**)sb->PSInterfaces);
+	}
 	dc->PSGetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, sb->PSSamplers);
+	SafeRelease(D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, (IUnknown**)sb->PSSamplers);
 	dc->PSGetShaderResources(0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, sb->PSShaderResources);
+	SafeRelease(D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, (IUnknown**)sb->PSShaderResources);
 	dc->PSGetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, sb->PSConstantBuffers);
+	SafeRelease(D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, (IUnknown**)sb->PSConstantBuffers);
 
+	// compute shader
 	dc->CSGetShader(&sb->CS, sb->CSInterfaces, &sb->CSInterfaceCount);
+	if (sb->CS) sb->CS->Release();
+	if (sb->CSInterfaceCount)
+	{
+		SafeRelease(sb->CSInterfaceCount, (IUnknown**)sb->CSInterfaces);
+	}
 	dc->CSGetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, sb->CSSamplers);
+	SafeRelease(D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, (IUnknown**)sb->CSSamplers);
 	dc->CSGetShaderResources(0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, sb->CSShaderResources);
+	SafeRelease(D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, (IUnknown**)sb->CSShaderResources);
 	dc->CSGetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, sb->CSConstantBuffers);
-	dc->CSGetUnorderedAccessViews(0, D3D11_PS_CS_UAV_REGISTER_COUNT, sb->CSUnorderedAccessViews);
+	SafeRelease(D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, (IUnknown**)sb->CSConstantBuffers);
+	// can we ignore unordered access views here ? i assume we can...
+	// dc->CSGetUnorderedAccessViews(0, D3D11_PS_CS_UAV_REGISTER_COUNT, sb->CSUnorderedAccessViews);
 
+	// input assembler stage
 	dc->IAGetVertexBuffers(0, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT, sb->IAVertexBuffers, sb->IAVertexBuffersStrides, sb->IAVertexBuffersOffsets);
+	SafeRelease(D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT, (IUnknown**)sb->IAVertexBuffers);
 	dc->IAGetIndexBuffer(&sb->IAIndexBuffer, &sb->IAIndexBufferFormat, &sb->IAIndexBufferOffset);
+	if (sb->IAIndexBuffer) sb->IAIndexBuffer->Release();
 	dc->IAGetInputLayout(&sb->IAInputLayout);
+	if (sb->IAInputLayout) sb->IAInputLayout->Release();
 	dc->IAGetPrimitiveTopology(&sb->IAPrimitiveTopology);
 
-	dc->OMGetRenderTargetsAndUnorderedAccessViews(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, sb->OMRenderTargets, &sb->OMRenderTargetStencilView, 0, D3D11_PS_CS_UAV_REGISTER_COUNT, sb->OMUnorderedAccessViews);
+	// output merger stage // can we ignore unordered access views here ? i assume we can...
+	//dc->OMGetRenderTargetsAndUnorderedAccessViews(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, sb->OMRenderTargets, &sb->OMRenderTargetStencilView, 0, D3D11_PS_CS_UAV_REGISTER_COUNT, sb->OMUnorderedAccessViews);
+	dc->OMGetRenderTargets(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, sb->OMRenderTargets, &sb->OMRenderTargetStencilView);
+	SafeRelease(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, (IUnknown**)sb->OMRenderTargets);
 	dc->OMGetDepthStencilState(&sb->OMDepthStencilState, &sb->OMDepthStencilRef);
+	if (sb->OMDepthStencilState) sb->OMDepthStencilState->Release();
 	dc->OMGetBlendState(&sb->OMBlendState, sb->OMBlendFactor, &sb->OMSampleMask);
+	if (sb->OMBlendState) sb->OMBlendState->Release();
 
+	// rasterizer stage
 	sb->RSViewportCount = D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE;
 	dc->RSGetViewports(&sb->RSViewportCount, sb->RSViewports);
 	sb->RSScissorRectCount = D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE;
 	dc->RSGetScissorRects(&sb->RSScissorRectCount, sb->RSScissorRects);
 	dc->RSGetState(&sb->RSRasterizerState);
+	if (sb->RSRasterizerState) sb->RSRasterizerState->Release();
 
+	// stream-output stage, predications
 	dc->SOGetTargets(4, sb->SOBuffers);
+	SafeRelease(4, (IUnknown**)sb->SOBuffers);
 	dc->GetPredication(&sb->Predication, &sb->PredicationValue);
+	if (sb->Predication) sb->Predication->Release();
 }
 
 /**
 * Apply dx11 stateblocks.
+* MS Docs about ->ClearState() :
+* This sets all
+*     - input/output resource slots,     -> shaders (different stages)
+*     - shaders,                         -> shaders (different stages)
+*     - input layouts,                   -> input assembler stage
+*     - predications,                    -> predications
+*     - scissor rectangles,              -> rasterizer stage
+*     - depth-stencil state,             -> output merger stage
+*     - rasterizer state,                -> rasterizer stage
+*     - blend state,                     -> output merger stage
+*     - sampler state,                   -> shaders (different stages)
+*     - and viewports                    -> rasterizer stage
+* to NULL.
+* The primitive topology is set to UNDEFINED.  -> input assembler stage
 ***/
 void ApplyStateblock(ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
 {
-	UINT minus_one[D3D11_PS_CS_UAV_REGISTER_COUNT];
-	memset(minus_one, -1, sizeof(minus_one));
+	// can we ignore unordered access views here ? i assume we can...
+	// UINT minus_one[D3D11_PS_CS_UAV_REGISTER_COUNT];
+	// memset(minus_one, -1, sizeof(minus_one));
+
+	// vertex shader
 	dc->VSSetShader(sb->VS, sb->VSInterfaces, sb->VSInterfaceCount);
-	UINT VSSamplerCount = calc_count(sb->VSSamplers, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT);
-	if (VSSamplerCount)
-		dc->VSSetSamplers(0, VSSamplerCount, sb->VSSamplers);
-	UINT VSShaderResourceCount = calc_count(sb->VSShaderResources, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
-	if (VSShaderResourceCount)
-		dc->VSSetShaderResources(0, VSShaderResourceCount, sb->VSShaderResources);
-	UINT VSConstantBufferCount = calc_count(sb->VSConstantBuffers, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT);
-	if (VSConstantBufferCount)
-		dc->VSSetConstantBuffers(0, VSConstantBufferCount, sb->VSConstantBuffers);
+	dc->VSSetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, sb->VSSamplers);
+	dc->VSSetShaderResources(0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, sb->VSShaderResources);
+	dc->VSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, sb->VSConstantBuffers);
 
+	// geometry shader
 	dc->GSSetShader(sb->GS, sb->GSInterfaces, sb->GSInterfaceCount);
-	UINT GSSamplerCount = calc_count(sb->GSSamplers, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT);
-	if (GSSamplerCount)
-		dc->GSSetSamplers(0, GSSamplerCount, sb->GSSamplers);
-	UINT GSShaderResourceCount = calc_count(sb->GSShaderResources, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
-	if (GSShaderResourceCount)
-		dc->GSSetShaderResources(0, GSShaderResourceCount, sb->GSShaderResources);
-	UINT GSConstantBufferCount = calc_count(sb->GSConstantBuffers, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT);
-	if (GSConstantBufferCount)
-		dc->GSSetConstantBuffers(0, GSConstantBufferCount, sb->GSConstantBuffers);
+	dc->GSSetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, sb->GSSamplers);
+	dc->GSSetShaderResources(0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, sb->GSShaderResources);
+	dc->GSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, sb->GSConstantBuffers);
 
+	// hull shader
 	dc->HSSetShader(sb->HS, sb->HSInterfaces, sb->HSInterfaceCount);
-	UINT HSSamplerCount = calc_count(sb->HSSamplers, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT);
-	if (HSSamplerCount)
-		dc->HSSetSamplers(0, HSSamplerCount, sb->HSSamplers);
-	UINT HSShaderResourceCount = calc_count(sb->HSShaderResources, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
-	if (HSShaderResourceCount)
-		dc->HSSetShaderResources(0, HSShaderResourceCount, sb->HSShaderResources);
-	UINT HSConstantBufferCount = calc_count(sb->HSConstantBuffers, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT);
-	if (HSConstantBufferCount)
-		dc->HSSetConstantBuffers(0, HSConstantBufferCount, sb->HSConstantBuffers);
+	dc->HSSetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, sb->HSSamplers);
+	dc->HSSetShaderResources(0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, sb->HSShaderResources);
+	dc->HSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, sb->HSConstantBuffers);
 
+	// domain shader
 	dc->DSSetShader(sb->DS, sb->DSInterfaces, sb->DSInterfaceCount);
-	UINT DSSamplerCount = calc_count(sb->DSSamplers, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT);
-	if (DSSamplerCount)
-		dc->DSSetSamplers(0, DSSamplerCount, sb->DSSamplers);
-	UINT DSShaderResourceCount = calc_count(sb->DSShaderResources, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
-	if (DSShaderResourceCount)
-		dc->DSSetShaderResources(0, DSShaderResourceCount, sb->DSShaderResources);
-	UINT DSConstantBufferCount = calc_count(sb->DSConstantBuffers, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT);
-	if (DSConstantBufferCount)
-		dc->DSSetConstantBuffers(0, DSConstantBufferCount, sb->DSConstantBuffers);
+	dc->DSSetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, sb->DSSamplers);
+	dc->DSSetShaderResources(0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, sb->DSShaderResources);
+	dc->DSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, sb->DSConstantBuffers);
 
+	// pixel shader
 	dc->PSSetShader(sb->PS, sb->PSInterfaces, sb->PSInterfaceCount);
-	UINT PSSamplerCount = calc_count(sb->PSSamplers, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT);
-	if (PSSamplerCount)
-		dc->PSSetSamplers(0, PSSamplerCount, sb->PSSamplers);
-	UINT PSShaderResourceCount = calc_count(sb->PSShaderResources, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
-	if (PSShaderResourceCount)
-		dc->PSSetShaderResources(0, PSShaderResourceCount, sb->PSShaderResources);
-	UINT PSConstantBufferCount = calc_count(sb->PSConstantBuffers, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT);
-	if (PSConstantBufferCount)
-		dc->PSSetConstantBuffers(0, PSConstantBufferCount, sb->PSConstantBuffers);
+	dc->PSSetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, sb->PSSamplers);
+	dc->PSSetShaderResources(0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, sb->PSShaderResources);
+	dc->PSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, sb->PSConstantBuffers);
 
+	// compute shader
 	dc->CSSetShader(sb->CS, sb->CSInterfaces, sb->CSInterfaceCount);
-	UINT CSSamplerCount = calc_count(sb->CSSamplers, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT);
-	if (CSSamplerCount)
-		dc->CSSetSamplers(0, CSSamplerCount, sb->CSSamplers);
-	UINT CSShaderResourceCount = calc_count(sb->CSShaderResources, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
-	if (CSShaderResourceCount)
-		dc->CSSetShaderResources(0, CSShaderResourceCount, sb->CSShaderResources);
-	UINT CSConstantBufferCount = calc_count(sb->CSConstantBuffers, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT);
-	if (CSConstantBufferCount)
-		dc->CSSetConstantBuffers(0, CSConstantBufferCount, sb->CSConstantBuffers);
+	dc->CSSetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, sb->CSSamplers);
+	dc->CSSetShaderResources(0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, sb->CSShaderResources);
+	dc->CSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, sb->CSConstantBuffers);
 	//dc->CSSetUnorderedAccessViews(0, D3D11_PS_CS_UAV_REGISTER_COUNT, sb->CSUnorderedAccessViews, minus_one);
 
-	UINT IAVertexBufferCount = calc_count(sb->IAVertexBuffers, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT);
-	if (IAVertexBufferCount)
-		dc->IASetVertexBuffers(0, IAVertexBufferCount, sb->IAVertexBuffers, sb->IAVertexBuffersStrides, sb->IAVertexBuffersOffsets);
+	// input assembler stage
+	dc->IASetVertexBuffers(0, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT, sb->IAVertexBuffers, sb->IAVertexBuffersStrides, sb->IAVertexBuffersOffsets);
 	dc->IASetIndexBuffer(sb->IAIndexBuffer, sb->IAIndexBufferFormat, sb->IAIndexBufferOffset);
 	dc->IASetInputLayout(sb->IAInputLayout);
 	dc->IASetPrimitiveTopology(sb->IAPrimitiveTopology);
 
+	// output merger stage
 	//dc->OMSetRenderTargetsAndUnorderedAccessViews(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, sb->OMRenderTargets, sb->OMRenderTargetStencilView, 0, D3D11_PS_CS_UAV_REGISTER_COUNT, sb->OMUnorderedAccessViews, minus_one);
-	UINT OMRenderTargetCount = calc_count(sb->OMRenderTargets, D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT);
-	if (OMRenderTargetCount)
-		dc->OMSetRenderTargets(OMRenderTargetCount, sb->OMRenderTargets, sb->OMRenderTargetStencilView);
+	dc->OMSetRenderTargets(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, sb->OMRenderTargets, sb->OMRenderTargetStencilView);
 	dc->OMSetDepthStencilState(sb->OMDepthStencilState, sb->OMDepthStencilRef);
 	dc->OMSetBlendState(sb->OMBlendState, sb->OMBlendFactor, sb->OMSampleMask);
 
+	// rasterizer stage
 	dc->RSSetViewports(sb->RSViewportCount, sb->RSViewports);
 	dc->RSSetScissorRects(sb->RSScissorRectCount, sb->RSScissorRects);
 	dc->RSSetState(sb->RSRasterizerState);
 
+	// stream-output stage, predications
 	UINT SOBuffersOffsets[4] = { 0 }; /* (sizeof(sb->SOBuffers) / sizeof(sb->SOBuffers[0])) * 0,
-									  (sizeof(sb->SOBuffers) / sizeof(sb->SOBuffers[0])) * 1, 
-									  (sizeof(sb->SOBuffers) / sizeof(sb->SOBuffers[0])) * 2, 
+									  (sizeof(sb->SOBuffers) / sizeof(sb->SOBuffers[0])) * 1,
+									  (sizeof(sb->SOBuffers) / sizeof(sb->SOBuffers[0])) * 2,
 									  (sizeof(sb->SOBuffers) / sizeof(sb->SOBuffers[0])) * 3 };*/
 
-	UINT SOBufferCount = calc_count(sb->SOBuffers, 4);
-	if (SOBufferCount)
-		dc->SOSetTargets(SOBufferCount, sb->SOBuffers, SOBuffersOffsets);
+	dc->SOSetTargets(4, sb->SOBuffers, SOBuffersOffsets);
 	dc->SetPredication(sb->Predication, sb->PredicationValue);
 }
