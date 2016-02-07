@@ -368,6 +368,10 @@ private:
 #endif
 	void DebugOutput(const void *pvSrcData, UINT dwShaderIndex, UINT dwBufferIndex, UINT dwBufferSize);
 	void CreateGUI();
+	void FillShaderRuleIndices();
+	void FillShaderRuleData(UINT dwRuleIndex);
+	void FillShaderRuleGeneralIndices();
+	void FillShaderRuleShaderIndices();
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	/*** MatrixModifier input pointers ***/
@@ -629,18 +633,24 @@ private:
 	struct PageGameShaderRules
 	{
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-		UINT m_dwTextlist;
+		UINT m_dwTextlist;                          /**< [StaticList] **/
+		UINT m_dwRuleIndices;                       /**< [List] **/
+		UINT m_dwRuleData;                          /**< [List] **/
+		UINT m_dwGeneralIndices;                    /**< [List] **/
+		UINT m_dwShaderIndices;                     /**< [List] **/
 
-		UINT m_dwConstantName;
-		UINT m_dwPartialName;
-		UINT m_dwBufferIndex;
-		UINT m_dwBufferSize;
-		UINT m_dwStartRegIndex;
 
-		UINT m_dwRegisterCount;
-		UINT m_dwOperationToApply;
-		UINT m_dwTranspose;
+		UINT m_dwConstantName;                      /**< [Switch] **/
+		UINT m_dwPartialName;                       /**< [Switch] **/
+		UINT m_dwBufferIndex;                       /**< [Switch] **/
+		UINT m_dwBufferSize;                        /**< [Switch] **/
+		UINT m_dwStartRegIndex;                     /**< [Switch] **/
 
+		UINT m_dwRegisterCount;                     /**< [Spin] **/
+		UINT m_dwOperationToApply;                  /**< [Spin] **/
+		UINT m_dwTranspose;                         /**< [Switch] **/
+
+		// string entries for the switches above
 		std::wstring m_szConstantName;
 		std::wstring m_szPartialName;
 		std::wstring m_szBufferIndex;
@@ -696,6 +706,25 @@ private:
 	* and to create shader rules.
 	***/
 	std::vector<std::wstring> m_aszShaderBuffersizes;
+	/**
+	* List of all shader rule indices present. (std::wstring).
+	* To be used on the shader rules page.
+	***/
+	std::vector<std::wstring> m_aszShaderRuleIndices;
+	/**
+	* List of shader rule data for the chosen shader rule index (std::wstring).
+	* To be used on the shader rules page.
+	***/
+	std::vector<std::wstring> m_aszShaderRuleData;
+	/**
+	* List of all shader rule indices generally used. (std::wstring).
+	* To be used on the shader rules page.
+	***/
+	std::vector<std::wstring> m_aszShaderRuleGeneralIndices;
+	/**
+	* List of all shaderrule indices for the currently chosen shader on the shaders page. (std::wstring).
+	***/
+	std::vector<std::wstring> m_aszShaderRuleShaderIndices;
 	/**
 	* Debug trace string list.
 	* Contains all strings for the debug trace.

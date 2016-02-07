@@ -326,6 +326,25 @@ inline UINT CreateStaticListControl(Vireio_GUI* pcGUI, UINT dwPage, std::vector<
 }
 
 /**
+* Little helper to create a selectable list control.
+* @returns The ID to the control.
+***/
+inline UINT CreateListControlSelectable(Vireio_GUI* pcGUI, UINT dwPage, std::vector<std::wstring>* paszText, UINT dwPosX, UINT dwPosY, UINT dwSizeX, UINT dwSizeY)
+{
+	Vireio_Control sControl;
+	ZeroMemory(&sControl, sizeof(Vireio_Control));
+	sControl.m_eControlType = Vireio_Control_Type::ListBox;
+	sControl.m_sPosition.x = dwPosX;
+	sControl.m_sPosition.y = dwPosY;
+	sControl.m_sSize.cx = dwSizeX;
+	sControl.m_sSize.cy = dwSizeY;
+	sControl.m_sListBox.m_paszEntries = paszText;
+	sControl.m_sListBox.m_bSelectable = true;
+	sControl.m_sListBox.m_nCurrentSelection = -1; // !! -1 means "no selection"
+	return pcGUI->AddControl(dwPage, sControl);
+}
+
+/**
 * Little helper to create a switch control.
 * @returns The ID to the control.
 ***/

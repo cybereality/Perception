@@ -216,6 +216,7 @@ m_dwCurrentChosenShaderHashCode(0)
 	m_adwGlobalConstantRuleIndices.push_back(23);
 	m_adwGlobalConstantRuleIndices.push_back(24);
 	m_adwGlobalConstantRuleIndices.push_back(25);
+	FillShaderRuleIndices();
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	// create buffer vectors ( * 2 for left/right side )
 	m_apcVSActiveConstantBuffers11 = std::vector<ID3D11Buffer*>(D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT * 2, nullptr);
@@ -1960,6 +1961,7 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 		case ChangedToPrevious:
 			break;
 		case ChangedToValue:
+#pragma region ChangedToValue
 			// "Game Settings" page
 			if (sEvent.dwIndexOfPage == m_adwPageIDs[GUI_Pages::GameSettingsPage])
 			{
@@ -2006,6 +2008,7 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 			else if (sEvent.dwIndexOfPage == m_adwPageIDs[GUI_Pages::ShadersPage])
 			{
+				// "Sort Shader List" button
 				if (sEvent.dwIndexOfControl == m_sPageVertexShader.m_dwSort)
 				{
 					// set sorting bool
@@ -2013,10 +2016,15 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 
 				}
 			}
+			else if (sEvent.dwIndexOfPage == m_adwPageIDs[GUI_Pages::ShaderRulesPage])
+			{
+			}
 			break;
+#pragma endregion
 		case ChangedToText:
 			break;
 		case Pressed:
+#pragma region Pressed:
 			// "Debug" page
 			if (sEvent.dwIndexOfPage == m_adwPageIDs[GUI_Pages::DebugPage])
 			{
@@ -2213,6 +2221,12 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 					m_aszShaderConstantsCurrent = std::vector<std::wstring>();
 					m_aszShaderBuffersizes = std::vector<std::wstring>();
 
+					// init shader rule page lists
+					m_aszShaderRuleIndices = std::vector<std::wstring>();
+					m_aszShaderRuleData = std::vector<std::wstring>();
+					m_aszShaderRuleGeneralIndices = std::vector<std::wstring>();
+					m_aszShaderRuleShaderIndices = std::vector<std::wstring>();
+
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 					if (m_dwCurrentChosenShaderHashCode)
 					{
@@ -2305,7 +2319,28 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 #endif
 				}
 			}
+			// "Shader Rules" page
+			else if (sEvent.dwIndexOfPage == m_adwPageIDs[GUI_Pages::ShaderRulesPage])
+			{
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+				// "Rule Indices" list
+				if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwRuleIndices)
+				{
+					INT nSelection = 0;
+
+					// get current selection of the shader constant list
+					nSelection = m_pcVireioGUI->GetCurrentSelection(m_sPageGameShaderRules.m_dwRuleIndices);
+
+					if ((nSelection >= 0) && (nSelection < (INT)m_aszShaderRuleIndices.size()))
+					{
+						// call the method to fill the rule data
+						FillShaderRuleData((UINT)nSelection);
+					}
+				}
+#endif
+			}
 			break;
+#pragma endregion
 		default:
 			break;
 	}
@@ -2913,6 +2948,19 @@ void MatrixModifier::CreateGUI()
 
 #pragma region Shader Rule Page
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+	m_sPageGameShaderRules.m_dwShaderIndices = CreateListControlSelectable(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::ShaderRulesPage], &m_aszShaderRuleShaderIndices, GUI_CONTROL_FONTBORDER,
+		(GUI_HEIGHT >> 2) + (GUI_CONTROL_BORDER << 2) + ((GUI_HEIGHT >> 3) + (GUI_CONTROL_FONTSIZE << 1)) * 3,
+		GUI_WIDTH - GUI_CONTROL_BORDER, GUI_HEIGHT >> 3);
+	m_sPageGameShaderRules.m_dwGeneralIndices = CreateListControlSelectable(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::ShaderRulesPage], &m_aszShaderRuleGeneralIndices, GUI_CONTROL_FONTBORDER,
+		(GUI_HEIGHT >> 2) + (GUI_CONTROL_BORDER << 2) + (GUI_HEIGHT >> 2) + (GUI_CONTROL_FONTSIZE << 2),
+		GUI_WIDTH - GUI_CONTROL_BORDER, GUI_HEIGHT >> 3);
+	m_sPageGameShaderRules.m_dwRuleData = CreateListControlSelectable(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::ShaderRulesPage], &m_aszShaderRuleData, GUI_CONTROL_FONTBORDER,
+		(GUI_HEIGHT >> 2) + (GUI_CONTROL_BORDER << 2) + (GUI_HEIGHT >> 3) + (GUI_CONTROL_FONTSIZE << 1),
+		GUI_WIDTH - GUI_CONTROL_BORDER, GUI_HEIGHT >> 3);
+	m_sPageGameShaderRules.m_dwRuleIndices = CreateListControlSelectable(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::ShaderRulesPage], &m_aszShaderRuleIndices, GUI_CONTROL_FONTBORDER,
+		(GUI_HEIGHT >> 2) + (GUI_CONTROL_BORDER << 2),
+		GUI_WIDTH - GUI_CONTROL_BORDER, GUI_HEIGHT >> 3);
+
 	m_sPageGameShaderRules.m_dwTextlist = CreateStaticListControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::ShaderRulesPage], &aszEntriesShaderRulePage, GUI_CONTROL_BORDER, GUI_CONTROL_BORDER >> 1, GUI_CONTROL_BUTTONSIZE);
 
 	m_sPageGameShaderRules.m_dwConstantName = CreateSwitchControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::ShaderRulesPage], &m_sPageGameShaderRules.m_szConstantName, false, GUI_CONTROL_BORDER, (GUI_CONTROL_BORDER >> 1) + GUI_CONTROL_FONTSIZE, (GUI_CONTROL_BUTTONSIZE << 1) - (GUI_CONTROL_BUTTONSIZE >> 1), GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
@@ -3073,3 +3121,114 @@ void MatrixModifier::CreateGUI()
 	m_sPageDebug.m_dwClear = m_pcVireioGUI->AddControl(m_adwPageIDs[GUI_Pages::DebugPage], sControl);
 #pragma endregion
 }
+
+/**
+*
+***/
+void MatrixModifier::FillShaderRuleIndices()
+{
+	for (UINT dwI = 0; dwI < (UINT)m_asConstantRules.size(); dwI++)
+	{
+		// currently we use just the index as identifier
+		std::wstringstream szIndex; szIndex << L"Rule : " << dwI;
+		m_aszShaderRuleIndices.push_back(szIndex.str());
+	}
+}
+
+/**
+*
+***/
+void MatrixModifier::FillShaderRuleData(UINT dwRuleIndex)
+{
+	if (dwRuleIndex >= (UINT)m_asConstantRules.size())
+		return;
+
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+	// unselect and clear the shader rule data list
+	m_pcVireioGUI->UnselectCurrentSelection(m_sPageGameShaderRules.m_dwRuleData);
+	m_aszShaderRuleData = std::vector<std::wstring>();
+
+	// add the data strings
+	std::wstringstream szIndex;
+	szIndex << L"Rule : " << dwRuleIndex;
+	m_aszShaderRuleData.push_back(szIndex.str());
+
+	// name ?
+	if (m_asConstantRules[dwRuleIndex].m_bUseName)
+	{
+		std::wstringstream szName;
+		szName << L"Constant Name : " << m_asConstantRules[dwRuleIndex].m_szConstantName.c_str();
+		m_aszShaderRuleData.push_back(szName.str());
+	}
+
+	// partial name ?
+	if (m_asConstantRules[dwRuleIndex].m_bUsePartialNameMatch)
+	{
+		std::wstringstream szName;
+		szName << L"Partial Name : " << m_asConstantRules[dwRuleIndex].m_szConstantName.c_str();
+		m_aszShaderRuleData.push_back(szName.str());
+	}
+
+	// start reg index ?
+	if (m_asConstantRules[dwRuleIndex].m_bUseStartRegIndex)
+	{
+		std::wstringstream szRegIndex;
+		szRegIndex << L"Register : " << m_asConstantRules[dwRuleIndex].m_dwStartRegIndex;
+		m_aszShaderRuleData.push_back(szRegIndex.str());
+	}
+
+	// buffer index ?
+	if (m_asConstantRules[dwRuleIndex].m_bUseBufferIndex)
+	{
+		std::wstringstream szBufferIndex;
+		szBufferIndex << L"Buffer Index : " << m_asConstantRules[dwRuleIndex].m_dwBufferIndex;
+		m_aszShaderRuleData.push_back(szBufferIndex.str());
+	}
+
+	// buffer size ?
+	if (m_asConstantRules[dwRuleIndex].m_bUseBufferSize)
+	{
+		std::wstringstream szBufferSize;
+		szBufferSize << L"Buffer Size : " << m_asConstantRules[dwRuleIndex].m_dwBufferSize;
+		m_aszShaderRuleData.push_back(szBufferSize.str());
+	}
+
+	// reg count ?
+	{
+		std::wstringstream szRegCount;
+		szRegCount << L"Reg Count : " << m_asConstantRules[dwRuleIndex].m_dwRegisterCount;
+
+		if (m_asConstantRules[dwRuleIndex].m_dwRegisterCount == 1)
+			szRegCount << " (Vector4f)";
+		else if (m_asConstantRules[dwRuleIndex].m_dwRegisterCount == 4)
+			szRegCount << " (Matrix4x4f)";
+
+		m_aszShaderRuleData.push_back(szRegCount.str());
+	}
+
+	// transpose ?
+	{
+		std::wstringstream szTranspose;
+		if (m_asConstantRules[dwRuleIndex].m_bTranspose)
+			szTranspose << L"Transpose : TRUE";
+		else
+			szTranspose << L"Transpose : FALSE";
+		m_aszShaderRuleData.push_back(szTranspose.str());
+	}
+#endif
+}
+
+/**
+*
+***/
+void MatrixModifier::FillShaderRuleGeneralIndices()
+{
+}
+
+/**
+*
+***/
+void MatrixModifier::FillShaderRuleShaderIndices()
+{
+}
+
