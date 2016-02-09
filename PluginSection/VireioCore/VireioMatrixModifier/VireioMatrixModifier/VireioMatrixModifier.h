@@ -320,8 +320,8 @@ public:
 	virtual DWORD           GetNodeHeight() { return 128; }
 	virtual int             GetProvokingType() { return PROVOKING_TYPE; }
 	virtual bool            GetMethodReplacement() { return METHOD_REPLACEMENT; }
-	virtual DWORD           GetSaveDataSize() { return sizeof(Vireio_GameConfiguration); }
-	virtual char*           GetSaveData(UINT* pdwSizeOfData) { if (pdwSizeOfData) *pdwSizeOfData = sizeof(Vireio_GameConfiguration); return (char*)&m_sGameConfiguration; }
+	virtual DWORD           GetSaveDataSize();
+	virtual char*           GetSaveData(UINT* pdwSizeOfData);
 	virtual void            InitNodeData(char* pData, UINT dwSizeOfData);
 	virtual DWORD           GetCommandersNumber() { return NUMBER_OF_COMMANDERS; }
 	virtual DWORD           GetDecommandersNumber() { return NUMBER_OF_DECOMMANDERS; }

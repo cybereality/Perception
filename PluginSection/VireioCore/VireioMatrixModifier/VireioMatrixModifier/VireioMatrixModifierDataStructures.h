@@ -107,6 +107,25 @@ inline void CreateStereoConstantBuffer(ID3D11Device* pcDevice, ID3D11DeviceConte
 #pragma endregion
 
 /**
+* Constant modification rule (v4+) normalized.
+***/
+struct Vireio_Constant_Modification_Rule_Normalized
+{
+	char m_szConstantName[64];
+	UINT m_dwBufferIndex;
+	UINT m_dwBufferSize;
+	UINT m_dwStartRegIndex;
+	bool m_bUseName;
+	bool m_bUsePartialNameMatch;
+	bool m_bUseBufferIndex;
+	bool m_bUseBufferSize;
+	bool m_bUseStartRegIndex;
+	UINT m_dwRegisterCount;
+	UINT m_dwOperationToApply;
+	bool m_bTranspose;
+};
+
+/**
 * Constant modification rule (v4+).
 * Stores all data necessary for a
 * Original class <ConstantModificationRule> 2013 by Chris Drain.
@@ -129,8 +148,26 @@ struct Vireio_Constant_Modification_Rule
 	m_bUseStartRegIndex(false),
 	m_dwRegisterCount(0),
 	m_dwOperationToApply(0),
-	m_dwModificationRuleID(0),
 	m_bTranspose(false)
+	{};
+
+	/**
+	* Constructor.
+	* Creates rule out of a normalized one.
+	***/
+	Vireio_Constant_Modification_Rule(Vireio_Constant_Modification_Rule_Normalized* pRuleNormalized) :
+		m_szConstantName(pRuleNormalized->m_szConstantName),
+		m_dwBufferIndex(pRuleNormalized->m_dwBufferIndex),
+		m_dwBufferSize(pRuleNormalized->m_dwBufferSize),
+		m_dwStartRegIndex(pRuleNormalized->m_dwStartRegIndex),
+		m_bUseName(pRuleNormalized->m_bUseName),
+		m_bUsePartialNameMatch(pRuleNormalized->m_bUsePartialNameMatch),
+		m_bUseBufferIndex(pRuleNormalized->m_bUseBufferIndex),
+		m_bUseBufferSize(pRuleNormalized->m_bUseBufferSize),
+		m_bUseStartRegIndex(pRuleNormalized->m_bUseStartRegIndex),
+		m_dwRegisterCount(pRuleNormalized->m_dwRegisterCount),
+		m_dwOperationToApply(pRuleNormalized->m_dwOperationToApply),
+		m_bTranspose(pRuleNormalized->m_bTranspose)
 	{};
 
 	/**
@@ -147,11 +184,10 @@ struct Vireio_Constant_Modification_Rule
 	* @param bUseStartRegIndex True to use the constant start register to identify the constant.
 	* @param dwRegisterCount Constant size (in shader registers = vectors = 4*sizeof(float)).
 	* @param dwOperationToApply Modification identifier.
-	* @param dwModificationRuleID Unique (within a given set of rules) id for this modification rule.
 	* @param bTranspose True if input matrix should be bTransposed before modifying (and bTransposed back after).
 	***/
 	Vireio_Constant_Modification_Rule(std::string szConstantName, UINT dwBufferIndex, UINT dwBufferSize, UINT dwStartRegIndex, bool bUseName, bool bUsePartialNameMatch, bool bUseBufferIndex, bool bUseBufferSize, bool bUseStartRegIndex,
-		UINT dwRegisterCount, UINT dwOperationToApply, UINT dwModificationRuleID, bool bTranspose) :
+		UINT dwRegisterCount, UINT dwOperationToApply, bool bTranspose) :
 		m_szConstantName(szConstantName),
 		m_dwBufferIndex(dwBufferIndex),
 		m_dwBufferSize(dwBufferSize),
@@ -163,7 +199,6 @@ struct Vireio_Constant_Modification_Rule
 		m_bUseStartRegIndex(bUseStartRegIndex),
 		m_dwRegisterCount(dwRegisterCount),
 		m_dwOperationToApply(dwOperationToApply),
-		m_dwModificationRuleID(dwModificationRuleID),
 		m_bTranspose(bTranspose)
 	{};
 
@@ -215,10 +250,6 @@ struct Vireio_Constant_Modification_Rule
 	* Identifier (int that maps to a m_dwRegisterCount type indexed class) of the operation to apply.
 	***/
 	UINT m_dwOperationToApply;
-	/**
-	* Unique (within a given set of rules) id for this modification rule.
-	***/
-	UINT m_dwModificationRuleID;
 	/**
 	* True if input matrix should be transposed before modifying (and transposed back after).
 	***/

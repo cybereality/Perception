@@ -57,12 +57,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define METHOD_ID3D11DEVICECONTEXT_MAP                                       14
 #define METHOD_ID3D11DEVICECONTEXT_UNMAP                                     15
 #define METHOD_ID3D11DEVICECONTEXT_PSSETCONSTANTBUFFERS                      16
-#define METHOD_ID3D11DEVICECONTEXT_HSSETCONSTANTBUFFERS  62
-#define METHOD_ID3D11DEVICECONTEXT_DSSETCONSTANTBUFFERS  66
-#define METHOD_ID3D11DEVICECONTEXT_GSSETCONSTANTBUFFERS  22
+#define METHOD_ID3D11DEVICECONTEXT_GSSETCONSTANTBUFFERS                      22
 #define METHOD_ID3D11DEVICECONTEXT_COPYSUBRESOURCEREGION                     46
 #define METHOD_ID3D11DEVICECONTEXT_COPYRESOURCE                              47
 #define METHOD_ID3D11DEVICECONTEXT_UPDATESUBRESOURCE                         48
+#define METHOD_ID3D11DEVICECONTEXT_HSSETCONSTANTBUFFERS                      62
+#define METHOD_ID3D11DEVICECONTEXT_DSSETCONSTANTBUFFERS                      66
 #define METHOD_ID3D11DEVICECONTEXT_VSGETCONSTANTBUFFERS                      72
 #define METHOD_ID3D11DEVICECONTEXT_PSGETCONSTANTBUFFERS                      77
 #define METHOD_ID3D10DEVICE_COPYSUBRESOURCEREGION                            32
@@ -135,88 +135,6 @@ m_dwCurrentChosenShaderHashCode(0)
 	ZeroMemory(&m_sPageGameSettings, sizeof(PageGameSettings));
 	ZeroMemory(&m_sPageVertexShader, sizeof(PageVertexShader));
 
-	// TEST !! ADD A TEST RULE
-	// Vireio_Constant_Modification_Rule sRule = Vireio_Constant_Modification_Rule("NoName", 12, 0, 8, false, false, true, false, true, 4, 0, 0, true);
-	Vireio_Constant_Modification_Rule sRule = Vireio_Constant_Modification_Rule("NoName", 12, 0, 0, false, false, true, false, true, 4, 0, 0, true);
-	Vireio_Constant_Modification_Rule sRule1 = Vireio_Constant_Modification_Rule("NoName", 0, 1248, 0, false, false, false, true, true, 4, 0, 0, true);
-	Vireio_Constant_Modification_Rule sRule2 = Vireio_Constant_Modification_Rule("NoName", 0, 1152, 0, false, false, false, true, true, 4, 0, 0, true);
-	Vireio_Constant_Modification_Rule sRule3 = Vireio_Constant_Modification_Rule("NoName", 0, 1184, 0, false, false, false, true, true, 4, 0, 0, true);
-	Vireio_Constant_Modification_Rule sRule4 = Vireio_Constant_Modification_Rule("NoName", 0, 1168, 0, false, false, false, true, true, 4, 0, 0, true);
-	Vireio_Constant_Modification_Rule sRule5 = Vireio_Constant_Modification_Rule("NoName", 0, 1136, 0, false, false, false, true, true, 4, 0, 0, true);
-	Vireio_Constant_Modification_Rule sRule6 = Vireio_Constant_Modification_Rule("NoName", 0, 1088, 0, false, false, false, true, true, 4, 0, 0, true);
-	Vireio_Constant_Modification_Rule sRule7 = Vireio_Constant_Modification_Rule("NoName", 0, 1536, 0, false, false, false, true, true, 4, 0, 0, true);
-	Vireio_Constant_Modification_Rule sRule8 = Vireio_Constant_Modification_Rule("NoName", 0, 1200, 0, false, false, false, true, true, 4, 0, 0, true);
-	Vireio_Constant_Modification_Rule sRule9 = Vireio_Constant_Modification_Rule("NoName", 0, 1104, 0, false, false, false, true, true, 4, 0, 0, true);
-	Vireio_Constant_Modification_Rule sRule10 = Vireio_Constant_Modification_Rule("NoName", 0, 448, 0, false, false, false, true, true, 4, 0, 0, true);
-	Vireio_Constant_Modification_Rule sRule11 = Vireio_Constant_Modification_Rule("NoName", 0, 352, 0, false, false, false, true, true, 4, 0, 0, true);
-	Vireio_Constant_Modification_Rule sRule12 = Vireio_Constant_Modification_Rule("NoName", 0, 1120, 0, false, false, false, true, true, 4, 0, 0, true);
-	Vireio_Constant_Modification_Rule sRule13 = Vireio_Constant_Modification_Rule("NoName", 0, 1216, 0, false, false, false, true, true, 4, 0, 0, true);
-	Vireio_Constant_Modification_Rule sRule14 = Vireio_Constant_Modification_Rule("NoName", 0, 1248, 0, false, false, false, true, true, 4, 0, 0, true);
-	Vireio_Constant_Modification_Rule sRule15 = Vireio_Constant_Modification_Rule("NoName", 0, 368, 0, false, false, false, true, true, 4, 0, 0, true);
-	Vireio_Constant_Modification_Rule sRule16 = Vireio_Constant_Modification_Rule("NoName", 0, 384, 0, false, false, false, true, true, 4, 0, 0, true);
-	Vireio_Constant_Modification_Rule sRule17 = Vireio_Constant_Modification_Rule("NoName", 0, 416, 0, false, false, false, true, true, 4, 0, 0, true);
-	Vireio_Constant_Modification_Rule sRule18 = Vireio_Constant_Modification_Rule("NoName", 0, 1264, 0, false, false, false, true, true, 4, 0, 0, true);
-	Vireio_Constant_Modification_Rule sRule19 = Vireio_Constant_Modification_Rule("NoName", 0, 432, 0, false, false, false, true, true, 4, 0, 0, true);
-	Vireio_Constant_Modification_Rule sRule20 = Vireio_Constant_Modification_Rule("NoName", 0, 1232, 0, false, false, false, true, true, 4, 0, 0, true);
-	Vireio_Constant_Modification_Rule sRule21 = Vireio_Constant_Modification_Rule("NoName", 0, 1280, 0, false, false, false, true, true, 4, 0, 0, true);
-	Vireio_Constant_Modification_Rule sRule22 = Vireio_Constant_Modification_Rule("NoName", 0, 464, 0, false, false, false, true, true, 4, 0, 0, true);
-	Vireio_Constant_Modification_Rule sRule23 = Vireio_Constant_Modification_Rule("NoName", 0, 480, 0, false, false, false, true, true, 4, 0, 0, true);
-	Vireio_Constant_Modification_Rule sRule24 = Vireio_Constant_Modification_Rule("NoName", 0, 496, 0, false, false, false, true, true, 4, 0, 0, true);
-	Vireio_Constant_Modification_Rule sRule25 = Vireio_Constant_Modification_Rule("NoName", 0, 512, 0, false, false, false, true, true, 4, 0, 0, true);
-	//4 8 14 18 22
-	m_asConstantRules.push_back(sRule);
-	m_asConstantRules.push_back(sRule1);
-	m_asConstantRules.push_back(sRule2);
-	m_asConstantRules.push_back(sRule3);
-	m_asConstantRules.push_back(sRule4);
-	m_asConstantRules.push_back(sRule5);
-	m_asConstantRules.push_back(sRule6);
-	m_asConstantRules.push_back(sRule7);
-	m_asConstantRules.push_back(sRule8);
-	m_asConstantRules.push_back(sRule9);
-	m_asConstantRules.push_back(sRule10);
-	m_asConstantRules.push_back(sRule11);
-	m_asConstantRules.push_back(sRule12);
-	m_asConstantRules.push_back(sRule13);
-	m_asConstantRules.push_back(sRule14);
-	m_asConstantRules.push_back(sRule15);
-	m_asConstantRules.push_back(sRule16);
-	m_asConstantRules.push_back(sRule17);
-	m_asConstantRules.push_back(sRule18);
-	m_asConstantRules.push_back(sRule19);
-	m_asConstantRules.push_back(sRule20);
-	m_asConstantRules.push_back(sRule21);
-	m_asConstantRules.push_back(sRule22);
-	m_asConstantRules.push_back(sRule23);
-	m_asConstantRules.push_back(sRule24);
-	m_asConstantRules.push_back(sRule25);
-	m_adwGlobalConstantRuleIndices.push_back(0);
-	m_adwGlobalConstantRuleIndices.push_back(1);
-	m_adwGlobalConstantRuleIndices.push_back(2);
-	m_adwGlobalConstantRuleIndices.push_back(3);
-	m_adwGlobalConstantRuleIndices.push_back(4);
-	m_adwGlobalConstantRuleIndices.push_back(5);
-	m_adwGlobalConstantRuleIndices.push_back(6);
-	m_adwGlobalConstantRuleIndices.push_back(7);
-	m_adwGlobalConstantRuleIndices.push_back(8);
-	m_adwGlobalConstantRuleIndices.push_back(9);
-	m_adwGlobalConstantRuleIndices.push_back(10);
-	m_adwGlobalConstantRuleIndices.push_back(11);
-	m_adwGlobalConstantRuleIndices.push_back(12);
-	m_adwGlobalConstantRuleIndices.push_back(13);
-	m_adwGlobalConstantRuleIndices.push_back(14);
-	m_adwGlobalConstantRuleIndices.push_back(15);
-	m_adwGlobalConstantRuleIndices.push_back(16);
-	m_adwGlobalConstantRuleIndices.push_back(17);
-	m_adwGlobalConstantRuleIndices.push_back(18);
-	m_adwGlobalConstantRuleIndices.push_back(19);
-	m_adwGlobalConstantRuleIndices.push_back(20);
-	m_adwGlobalConstantRuleIndices.push_back(21);
-	m_adwGlobalConstantRuleIndices.push_back(22);
-	m_adwGlobalConstantRuleIndices.push_back(23);
-	m_adwGlobalConstantRuleIndices.push_back(24);
-	m_adwGlobalConstantRuleIndices.push_back(25);
-	FillShaderRuleIndices();
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	// create buffer vectors ( * 2 for left/right side )
 	m_apcVSActiveConstantBuffers11 = std::vector<ID3D11Buffer*>(D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT * 2, nullptr);
@@ -377,24 +295,164 @@ HBITMAP MatrixModifier::GetControl()
 }
 
 /**
+* Node data size.
+* 1) sizeof(Vireio_GameConfiguration)
+* 2) sizeof(UINT) = Number of Rules
+* 3) sizeof(Vireio_Constant_Modification_Rule_Normalized) * Number of Rules
+* 4) sizeof(UINT) = Number of General Indices
+* 5) sizeof(UINT) * Number of General Indices
+* TODO !! SHADER SPECIFIC INDICES
+***/
+DWORD MatrixModifier::GetSaveDataSize()
+{
+	DWORD dwSizeofData = sizeof(Vireio_GameConfiguration);
+	dwSizeofData += sizeof(UINT);
+	dwSizeofData += (DWORD)m_asConstantRules.size() * sizeof(Vireio_Constant_Modification_Rule_Normalized);
+	dwSizeofData += sizeof(UINT);
+	dwSizeofData += (DWORD)m_adwGlobalConstantRuleIndices.size() * sizeof(UINT);
+	// TODO !! SHADER SPECIFIC INDICES
+	return dwSizeofData;
+}
+
+/**
+* Save the data.
+***/
+char* MatrixModifier::GetSaveData(UINT* pdwSizeOfData)
+{
+	static std::stringstream acStream;
+	acStream = std::stringstream();
+
+	// write game config
+	acStream.write((char*)&m_sGameConfiguration, sizeof(Vireio_GameConfiguration));
+
+	// number of rules
+	UINT dwNumberOfRules = (UINT)m_asConstantRules.size();
+	acStream.write((char*)&dwNumberOfRules, sizeof(UINT));
+
+	// loop through rules, normalize each
+	for (UINT dwI = 0; dwI < dwNumberOfRules; dwI++)
+	{
+		Vireio_Constant_Modification_Rule_Normalized sRule = { 0 };
+
+		// normalize the constant string
+		UINT dwStringSize = (UINT)m_asConstantRules[dwI].m_szConstantName.size();
+		if (dwStringSize > 63) dwStringSize = 63;
+		memcpy(sRule.m_szConstantName, &m_asConstantRules[dwI].m_szConstantName[0], dwStringSize);
+
+		// parse the rest of the data
+		sRule.m_dwBufferIndex = m_asConstantRules[dwI].m_dwBufferIndex;
+		sRule.m_dwBufferSize = m_asConstantRules[dwI].m_dwBufferSize;
+		sRule.m_dwStartRegIndex = m_asConstantRules[dwI].m_dwStartRegIndex;
+		sRule.m_bUseName = m_asConstantRules[dwI].m_bUseName;
+		sRule.m_bUsePartialNameMatch = m_asConstantRules[dwI].m_bUsePartialNameMatch;
+		sRule.m_bUseBufferIndex = m_asConstantRules[dwI].m_bUseBufferIndex;
+		sRule.m_bUseBufferSize = m_asConstantRules[dwI].m_bUseBufferSize;
+		sRule.m_bUseStartRegIndex = m_asConstantRules[dwI].m_bUseStartRegIndex;
+		sRule.m_dwRegisterCount = m_asConstantRules[dwI].m_dwRegisterCount;
+		sRule.m_dwOperationToApply = m_asConstantRules[dwI].m_dwOperationToApply;
+		sRule.m_bTranspose = m_asConstantRules[dwI].m_bTranspose;
+
+		// write down the normalized rule
+		acStream.write((char*)&sRule, sizeof(Vireio_Constant_Modification_Rule_Normalized));
+	}
+
+	// general indices
+	UINT dwNumberOfIndices = (UINT)m_adwGlobalConstantRuleIndices.size();
+	acStream.write((char*)&dwNumberOfIndices, sizeof(UINT));
+	acStream.write((char*)&m_adwGlobalConstantRuleIndices[0], sizeof(UINT)*dwNumberOfIndices);
+
+	// set data size
+	*pdwSizeOfData = (UINT)acStream.str().size();
+
+	return (char*)&acStream.str()[0];
+}
+
+/**
 * Get node data from the profile file.
 ***/
 void MatrixModifier::InitNodeData(char* pData, UINT dwSizeOfData)
 {
-	if (dwSizeOfData == sizeof(Vireio_GameConfiguration))
+	UINT dwDataOffset = 0;
+	if (dwSizeOfData >= sizeof(Vireio_GameConfiguration))
 	{
 		// copy the game configuration data
-		memcpy(&m_sGameConfiguration, pData, dwSizeOfData);
+		memcpy(&m_sGameConfiguration, pData, sizeof(Vireio_GameConfiguration));
+		dwDataOffset += sizeof(Vireio_GameConfiguration);
 
+		// get the size of the rules data block
+		UINT dwSizeOfRules = dwSizeOfData - sizeof(Vireio_GameConfiguration);
+
+		if (dwSizeOfRules >= sizeof(UINT))
+		{
+			// get the number of rules
+			UINT dwNumRules;
+			memcpy(&dwNumRules, pData + dwDataOffset, sizeof(UINT));
+			dwDataOffset += sizeof(UINT);
+		
+			// data size correct ?
+			dwSizeOfRules -= sizeof(UINT);
+			if (dwSizeOfRules >= (sizeof(Vireio_Constant_Modification_Rule_Normalized)* dwNumRules))
+			{
+				// create the rules
+				for (UINT dwI = 0; dwI < dwNumRules; dwI++)
+				{
+					// read normalized data block
+					Vireio_Constant_Modification_Rule_Normalized sRuleNormalized;
+					memcpy(&sRuleNormalized, pData + dwDataOffset, sizeof(Vireio_Constant_Modification_Rule_Normalized));
+					dwDataOffset += sizeof(Vireio_Constant_Modification_Rule_Normalized);
+
+					// create rule
+					Vireio_Constant_Modification_Rule sRule = Vireio_Constant_Modification_Rule(&sRuleNormalized);
+					m_asConstantRules.push_back(sRule);
+
+					dwSizeOfRules -= sizeof(Vireio_Constant_Modification_Rule_Normalized);
+				}
+			}
+		}
+
+		// indices
+		if (dwSizeOfRules >= sizeof(UINT))
+		{
+			// get the number of rules
+			UINT dwNumIndices;
+			memcpy(&dwNumIndices, pData + dwDataOffset, sizeof(UINT));
+			dwDataOffset += sizeof(UINT);
+		
+			// data size correct ?
+			dwSizeOfRules -= sizeof(UINT);
+			if (dwSizeOfRules >= (sizeof(UINT)* dwNumIndices))
+			{
+				// create the indices
+				for (UINT dwI = 0; dwI < dwNumIndices; dwI++)
+				{
+					// read normalized data block
+					UINT dwIndex;
+					memcpy(&dwIndex, pData + dwDataOffset, sizeof(UINT));
+					dwDataOffset += sizeof(UINT);
+
+					// add index
+					m_adwGlobalConstantRuleIndices.push_back(dwIndex);
+
+					dwSizeOfRules -= sizeof(UINT);
+				}
+			}
+		}
+
+		// fill the string list
+		FillShaderRuleIndices();
+	}
+	else
+	{
 		// set to ipd using vireio presenter.... // TODO !! currently set ipd to default
 		m_sGameConfiguration.fConvergence = 3.0f;
 		m_sGameConfiguration.fIPD = IPD_DEFAULT;
-		m_sGameConfiguration.fWorldScaleFactor = -2.0f;
+		m_sGameConfiguration.fWorldScaleFactor = 0.0f;
 		m_sGameConfiguration.fPFOV = 110.0f;
-		m_pcShaderViewAdjustment->Load(m_sGameConfiguration);
-		m_pcShaderViewAdjustment->UpdateProjectionMatrices((float)1920.0f / (float)1080.0f, m_sGameConfiguration.fPFOV);
-		m_pcShaderViewAdjustment->ComputeViewTransforms();
 	}
+
+	m_pcShaderViewAdjustment->Load(m_sGameConfiguration);
+	m_pcShaderViewAdjustment->UpdateProjectionMatrices((float)1920.0f / (float)1080.0f, m_sGameConfiguration.fPFOV);
+	m_pcShaderViewAdjustment->ComputeViewTransforms();
 }
 
 /**
