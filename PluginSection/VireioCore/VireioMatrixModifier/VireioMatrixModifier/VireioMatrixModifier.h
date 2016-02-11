@@ -632,14 +632,13 @@ private:
 	***/
 	struct PageGameShaderRules
 	{
-#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 		UINT m_dwTextlist;                          /**< [StaticList] **/
 		UINT m_dwRuleIndices;                       /**< [List] **/
 		UINT m_dwRuleData;                          /**< [List] **/
 		UINT m_dwGeneralIndices;                    /**< [List] **/
 		UINT m_dwShaderIndices;                     /**< [List] **/
 
-
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 		UINT m_dwConstantName;                      /**< [Switch] **/
 		UINT m_dwPartialName;                       /**< [Switch] **/
 		UINT m_dwBufferIndex;                       /**< [Switch] **/
@@ -650,12 +649,27 @@ private:
 		UINT m_dwOperationToApply;                  /**< [Spin] **/
 		UINT m_dwTranspose;                         /**< [Switch] **/
 
+		UINT m_dwCreate;                            /**< [Button] **/
+		UINT m_dwDeleteLatest;                      /**< [Button] **/
+		UINT m_dwAddGeneral;                        /**< [Button] **/
+		UINT m_dwDeleteGeneral;                     /**< [Button] **/
+
 		// string entries for the switches above
 		std::wstring m_szConstantName;
 		std::wstring m_szPartialName;
 		std::wstring m_szBufferIndex;
 		std::wstring m_szBufferSize;
 		std::wstring m_szStartRegIndex;
+
+		// values of the controls
+		bool m_bConstantName;
+		bool m_bPartialName;
+		bool m_bBufferIndex;
+		bool m_bBufferSize;
+		bool m_bStartRegIndex;
+		bool m_bTranspose;
+		UINT m_dwOperationValue;
+		UINT m_dwRegCountValue;
 #endif
 	} m_sPageGameShaderRules;
 	/**

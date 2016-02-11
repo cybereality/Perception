@@ -366,7 +366,7 @@ inline UINT CreateSwitchControl(Vireio_GUI* pcGUI, UINT dwPage, std::wstring* ps
 * Little helper to create a spin control.
 * @returns The ID to the control.
 ***/
-inline UINT CreateSpinControl(Vireio_GUI* pcGUI, UINT dwPage, std::vector<std::wstring>* paszText, UINT dwPosX, UINT dwPosY, UINT dwSizeX)
+inline UINT CreateSpinControl(Vireio_GUI* pcGUI, UINT dwPage, std::vector<std::wstring>* paszText, UINT dwSelection, UINT dwPosX, UINT dwPosY, UINT dwSizeX)
 {
 	Vireio_Control sControl;
 	ZeroMemory(&sControl, sizeof(Vireio_Control));
@@ -375,7 +375,7 @@ inline UINT CreateSpinControl(Vireio_GUI* pcGUI, UINT dwPage, std::vector<std::w
 	sControl.m_sPosition.y = dwPosY;
 	sControl.m_sSize.cx = dwSizeX;
 	sControl.m_sSize.cy = pcGUI->GetFontSize() << 1;
-	sControl.m_sSpinControl.m_dwCurrentSelection = 0;
+	sControl.m_sSpinControl.m_dwCurrentSelection = dwSelection;
 	sControl.m_sSpinControl.m_paszEntries = paszText;
 	return pcGUI->AddControl(dwPage, sControl);
 }

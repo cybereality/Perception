@@ -869,6 +869,9 @@ void Vireio_GUI::UnselectCurrentSelection(UINT dwControlId)
 	UINT dwPage = dwControlId >> 16;
 	UINT dwIndex = dwControlId & 65535;
 
+	if (dwPage >= (UINT)m_asPages.size()) return;
+	if (dwIndex >= (UINT)m_asPages[dwPage].m_asControls.size()) return;
+
 	if (m_asPages[dwPage].m_asControls[dwIndex].m_eControlType == Vireio_Control_Type::ListBox)
 		m_asPages[dwPage].m_asControls[dwIndex].m_sListBox.m_nCurrentSelection = -1;
 }
