@@ -85,7 +85,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define METHOD_REPLACEMENT                         false                     /**< This node does NOT replace the D3D call (default) **/
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-#define NUMBER_OF_COMMANDERS                          11
+#define NUMBER_OF_COMMANDERS                          12
 #define NUMBER_OF_DECOMMANDERS                        53
 #define GUI_WIDTH                                   1024                      
 #define GUI_HEIGHT                                  5000               
@@ -121,7 +121,8 @@ enum STS_Commanders
 	ppActiveConstantBuffers_DX11_GeometryShader,                            /**< Active D3D11 geometry shader constant buffers ***/
 	ppActiveConstantBuffers_DX11_PixelShader,                               /**< Active D3D11 pixel shader constant buffers ***/
 	dwVerifyConstantBuffers,                                                /**< Connect this commander to the stereo splitter to verify constant buffers ***/
-	asShaderData,                                                           /**< The shader data vector. ***/
+	asVShaderData,                                                          /**< The shader data vector. ***/
+	asPShaderData,                                                          /**< The shader data vector. ***/
 #elif defined(VIREIO_D3D9)
 #endif
 };
@@ -297,6 +298,15 @@ struct Vireio_Map_Data
 		BYTE m_pchBuffer11[D3D11_REQ_CONSTANT_BUFFER_ELEMENT_COUNT * D3D11_VS_INPUT_REGISTER_COMPONENTS * (D3D11_VS_INPUT_REGISTER_COMPONENT_BIT_COUNT >> 3) + 0xff];
 	};
 };
+
+/**
+* Simple enumeration of supported Shaders.
+***/
+enum Vireio_Supported_Shaders
+{
+	VertexShader,
+	PixelShader
+};
 #elif defined(VIREIO_D3D9)
 #endif
 
@@ -440,10 +450,15 @@ private:
 	***/
 	void* m_pvOutput[NUMBER_OF_COMMANDERS];
 	/**
-	* The d3d11 shader description vector.
+	* The d3d11 vertex shader description vector.
 	* Contains all enumerated shader data structures.
 	***/
-	std::vector<Vireio_D3D11_Shader> m_asShaders;
+	std::vector<Vireio_D3D11_Shader> m_asVShaders;
+	/**
+	* The d3d11 pixel shader description vector.
+	* Contains all enumerated shader data structures.
+	***/
+	std::vector<Vireio_D3D11_Shader> m_asPShaders;
 	/**
 	* The d3d11 active Vertex Shader constant buffer vector, for left and right side.
 	* 0 -------------------------------------------------> D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT ----- Left buffers
@@ -500,6 +515,10 @@ private:
 	* Starts with "1" and increases for every newly added shader rule.
 	***/
 	UINT m_dwConstantRulesUpdateCounter;
+	/**
+	* Current chosen shader type.
+	***/
+	Vireio_Supported_Shaders m_eChosenShaderType;
 	/**
 	* Constant Buffer private data buffer left eye.
 	***/
@@ -575,21 +594,24 @@ private:
 	***/
 	std::vector<std::wstring> m_aszDebugOptions;
 	/**
-	* Vertex Shader page control IDs
+	* Shader page control IDs
 	* Structure contains all control IDs for the vertex shader page.
 	***/
-	struct PageVertexShader
+	struct PageShader
 	{
 		UINT m_dwUpdate;                           /**< [Button] : Activate to update all vertex shader data (ID) ***/
 		UINT m_dwSort;                             /**< [Switch] : Sort the shader list ***/
 		UINT m_dwHashCodes;                        /**< [List] : Contains ALL vertex shader hash codes (ID) ***/
 		UINT m_dwCurrentConstants;                 /**< [List] : Contains all constants for the chosen vertex shader (ID) ***/
-		UINT m_dwCurrentBuffersizes;               /**< [List] : Contains all constant buffer sizes for the chosen vertex shader (ID) ***/
 		UINT m_dwToName;                           /**< [Button] : Activate to fill the constant name control on the shader rule page (ID) ***/
 		UINT m_dwToRegister;                       /**< [Button] : Activate to fill the register control on the shader rule page (ID) ***/
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+		UINT m_dwCurrentBuffersizes;               /**< [List] : Contains all constant buffer sizes for the chosen vertex shader (ID) ***/
 		UINT m_dwToBufferSize;                     /**< [Button] : Activate to fill the buffer size control on the shader rule page (ID) ***/
 		UINT m_dwToBufferIndex;                    /**< [Button] : Activate to fill the buffer index control on the shader rule page (ID) ***/
-	} m_sPageVertexShader;
+		UINT m_dwShaderType;                       /**< [Spin] Currently chosen shader type (ID) ***/
+#endif
+	} m_sPageShader;
 	/**
 	* Debug page control IDs
 	* Structure contains all control IDs for the debug page.
@@ -637,27 +659,27 @@ private:
 	***/
 	struct PageGameShaderRules
 	{
-		UINT m_dwTextlist;                          /**< [StaticList] **/
-		UINT m_dwRuleIndices;                       /**< [List] **/
-		UINT m_dwRuleData;                          /**< [List] **/
-		UINT m_dwGeneralIndices;                    /**< [List] **/
-		UINT m_dwShaderIndices;                     /**< [List] **/
+		UINT m_dwTextlist;                          /**< [StaticList] The text of the controls. **/
+		UINT m_dwRuleIndices;                       /**< [List] List of all created shader rules **/
+		UINT m_dwRuleData;                          /**< [List] Data output for the chosen rule **/
+		UINT m_dwGeneralIndices;                    /**< [List] All general indices **/
+		UINT m_dwShaderIndices;                     /**< [List] All shader-specific indices **/
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-		UINT m_dwConstantName;                      /**< [Switch] **/
-		UINT m_dwPartialName;                       /**< [Switch] **/
-		UINT m_dwBufferIndex;                       /**< [Switch] **/
-		UINT m_dwBufferSize;                        /**< [Switch] **/
-		UINT m_dwStartRegIndex;                     /**< [Switch] **/
+		UINT m_dwConstantName;                      /**< [Switch] Shader constant name **/
+		UINT m_dwPartialName;                       /**< [Switch] Shader constant partial name **/
+		UINT m_dwBufferIndex;                       /**< [Switch] Buffer index **/
+		UINT m_dwBufferSize;                        /**< [Switch] Buffer size **/
+		UINT m_dwStartRegIndex;                     /**< [Switch] Start register index **/
 
-		UINT m_dwRegisterCount;                     /**< [Spin] **/
-		UINT m_dwOperationToApply;                  /**< [Spin] **/
-		UINT m_dwTranspose;                         /**< [Switch] **/
+		UINT m_dwRegisterCount;                     /**< [Spin] Register count **/
+		UINT m_dwOperationToApply;                  /**< [Spin] Operation to apply **/
+		UINT m_dwTranspose;                         /**< [Switch] Transpose Yes/No **/
 
-		UINT m_dwCreate;                            /**< [Button] **/
-		UINT m_dwDeleteLatest;                      /**< [Button] **/
-		UINT m_dwAddGeneral;                        /**< [Button] **/
-		UINT m_dwDeleteGeneral;                     /**< [Button] **/
+		UINT m_dwCreate;                            /**< [Button] Create a rule **/
+		UINT m_dwDeleteLatest;                      /**< [Button] Delete latest rule **/
+		UINT m_dwAddGeneral;                        /**< [Button] Add to general indices **/
+		UINT m_dwDeleteGeneral;                     /**< [Button] Delete chosen general index **/
 
 		// string entries for the switches above
 		std::wstring m_szConstantName;
@@ -688,19 +710,33 @@ private:
 #endif
 	} m_sTechnicalOptions;
 	/**
-	* List of all available shader hash codes (std::wstring).
+	* List of all available vertex shader hash codes (std::wstring).
 	* To be used on the shader page, the debug page
 	* and to create shader rules.
 	* Each entry MUST MATCH same entry in m_adwShaderHashCodes.
 	***/
-	std::vector<std::wstring> m_aszShaderHashCodes;
+	std::vector<std::wstring> m_aszVShaderHashCodes;
 	/**
-	* List of all available shader hash codes (UINT).
+	* List of all available vertex shader hash codes (UINT).
 	* To be used on the shader page, the debug page
 	* and to create shader rules.
 	* Each entry MUST MATCH same entry in m_aszShaderHashCodes.
 	***/
-	std::vector<UINT> m_adwShaderHashCodes;
+	std::vector<UINT> m_adwVShaderHashCodes;
+	/**
+	* List of all available pixel shader hash codes (std::wstring).
+	* To be used on the shader page, the debug page
+	* and to create shader rules.
+	* Each entry MUST MATCH same entry in m_adwShaderHashCodes.
+	***/
+	std::vector<std::wstring> m_aszPShaderHashCodes;
+	/**
+	* List of all available pixel shader hash codes (UINT).
+	* To be used on the shader page, the debug page
+	* and to create shader rules.
+	* Each entry MUST MATCH same entry in m_aszShaderHashCodes.
+	***/
+	std::vector<UINT> m_adwPShaderHashCodes;
 	/**
 	* List of all available shader constant names (std::wstring).
 	* To be used on the shader modifaction page, the debug page

@@ -35,6 +35,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
+#define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"%u", a); OutputDebugString(buf); }
+#define DEBUG_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"%x", a); OutputDebugString(buf); }
+
 #include"AQU_Nodus.h"
 #include"Resources.h"
 #include <stdio.h>
@@ -54,10 +57,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define	PROVOKING_TYPE                                 2                     /**< Provoking type is 2 - just invoker, no provoker **/
 #define METHOD_REPLACEMENT                         false                     /**< This node does NOT replace the D3D call (default) **/
 
-#define NUMBER_OF_DECOMMANDERS                         12
-
-#define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"%u", a); OutputDebugString(buf); }
-#define DEBUG_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"%x", a); OutputDebugString(buf); }
+#define NUMBER_OF_DECOMMANDERS                         13
 
 /**
 * Node Commander Enumeration.
@@ -75,7 +75,8 @@ enum STS_Decommanders
 	pDesc_DX11,                              /**< ID3D11Device::CreateBuffer ***/
 	pInitialData_DX11,                       /**< ID3D11Device::CreateBuffer ***/
 	ppBuffer_DX11,                           /**< ID3D11Device::CreateBuffer ***/
-	asShaderData,                            /**< The shader data vector initialized in the matrix modifier ***/
+	asVShaderData,                           /**< The vertex shader data vector initialized in the matrix modifier ***/
+	asPShaderData,                           /**< The pixel shader data vector initialized in the matrix modifier ***/
 };
 
 /**
@@ -112,6 +113,9 @@ public:
 
 private:
 
+	/*** Constructor private methods ***/
+	void CreateShader(std::vector<Vireio_D3D11_Shader>* pasShaders, const void *pcShaderBytecode, SIZE_T unBytecodeLength, ID3D11ClassLinkage *pcClassLinkage, ID3D11DeviceChild** ppcShader);
+
 	/*** Constructor input pointers ***/
 	void** m_ppvShaderBytecode_VertexShader;
 	SIZE_T* m_pnBytecodeLength_VertexShader;
@@ -128,10 +132,15 @@ private:
 	ID3D11Buffer*** m_pppcBuffer_DX11;
 
 	/**
-	* The d3d11 shader description vector.
+	* The d3d11 vertex shader description vector.
 	* Contains all enumerated shader data structures.
 	***/
-	std::vector<Vireio_D3D11_Shader>* m_pasShaders;
+	std::vector<Vireio_D3D11_Shader>* m_pasVShaders;
+	/**
+	* The d3d11 pixel shader description vector.
+	* Contains all enumerated shader data structures.
+	***/
+	std::vector<Vireio_D3D11_Shader>* m_pasPShaders;
 };
 
 /**

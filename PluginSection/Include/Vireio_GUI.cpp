@@ -877,6 +877,25 @@ void Vireio_GUI::UnselectCurrentSelection(UINT dwControlId)
 }
 
 /**
+* Set new text list for controls having one.
+***/
+void Vireio_GUI::SetNewTextList(UINT dwControlId, std::vector<std::wstring>* paszEntries)
+{
+	// decode id to page and index
+	UINT dwPage = dwControlId >> 16;
+	UINT dwIndex = dwControlId & 65535;
+
+	if (dwPage >= (UINT)m_asPages.size()) return;
+	if (dwIndex >= (UINT)m_asPages[dwPage].m_asControls.size()) return;
+
+	if ((m_asPages[dwPage].m_asControls[dwIndex].m_eControlType == Vireio_Control_Type::ListBox) ||
+		(m_asPages[dwPage].m_asControls[dwIndex].m_eControlType == Vireio_Control_Type::StaticListBox))
+		m_asPages[dwPage].m_asControls[dwIndex].m_sStaticListBox.m_paszEntries = paszEntries;
+	else if (m_asPages[dwPage].m_asControls[dwIndex].m_eControlType == Vireio_Control_Type::SpinControl)
+		m_asPages[dwPage].m_asControls[dwIndex].m_sSpinControl.m_paszEntries = paszEntries;
+}
+
+/**
 * Windows event for the GUI.
 ***/
 Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam, UINT dwMultiplyMouseCoords)
@@ -1077,13 +1096,13 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 								float fIncrementerDivisor = 1.0f;
 								if (nArrowIndex > 0) fIncrementerDivisor = pow(10.0f, (float)nArrowIndex);
 								float fIncrementer = 100000.0f / fIncrementerDivisor;
-								
+
 								m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sFloat.m_fValue += fIncrementer;
 
 								// set return value
 								sRet.eType = Vireio_GUI_Event_Type::ChangedToValue;
 								sRet.fNewValue = m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sFloat.m_fValue;
-								
+
 							}
 							else if (m_sMouseCoords.y < (LONG)(psPos->y + (m_dwFontSize << 1) - (m_dwFontSize >> 2)))
 							{
@@ -1100,9 +1119,9 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 								float fDecrementerDivisor = 1.0f;
 								if (nArrowIndex > 0) fDecrementerDivisor = pow(10.0f, (float)nArrowIndex);
 								float fDecrementer = 100000.0f / fDecrementerDivisor;
-								
+
 								m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sFloat.m_fValue -= fDecrementer;
-								
+
 								// set return value
 								sRet.eType = Vireio_GUI_Event_Type::ChangedToValue;
 								sRet.fNewValue = m_asPages[m_dwCurrentPage].m_asControls[dwI].m_sFloat.m_fValue;

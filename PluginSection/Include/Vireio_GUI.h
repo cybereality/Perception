@@ -222,6 +222,7 @@ public:
 	void             AddEntry(UINT dwControl, LPCWSTR szString);
 	INT              GetCurrentSelection(UINT dwControlId);
 	void             UnselectCurrentSelection(UINT dwControlId);
+	void             SetNewTextList(UINT dwControlId, std::vector<std::wstring>* paszEntries);
 	Vireio_GUI_Event WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam, UINT dwMultiplyMouseCoords);
 	DWORD            GetFontSize() { return m_dwFontSize; }
 
