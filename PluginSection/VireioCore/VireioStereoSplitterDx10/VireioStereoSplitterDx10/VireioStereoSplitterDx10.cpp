@@ -1315,9 +1315,11 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 								if (m_apcActiveCSConstantBuffers[dwInternalIndex])
 								{
 									// get private rule index from buffer
-									INT nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
-									UINT dwDataSizeRulesIndex = sizeof(INT);
-									m_apcActiveCSConstantBuffers[dwInternalIndex]->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Index, &dwDataSizeRulesIndex, &nRulesIndex);
+									Vireio_Buffer_Rules_Index sRulesIndex;
+									sRulesIndex.m_nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
+									sRulesIndex.m_dwUpdateCounter = 0;
+									UINT dwDataSizeRulesIndex = sizeof(Vireio_Buffer_Rules_Index);
+									m_apcActiveCSConstantBuffers[dwInternalIndex]->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Data, &dwDataSizeRulesIndex, &sRulesIndex);
 
 									// set twin for right side, first get the private data interface
 									ID3D11Buffer* pcBuffer = nullptr;
@@ -1325,7 +1327,7 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 									m_apcActiveCSConstantBuffers[dwInternalIndex]->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcBuffer);
 
 									// stereo buffer and rules index present ?
-									if ((pcBuffer) && (dwDataSizeRulesIndex) && (nRulesIndex >= 0))
+									if ((pcBuffer) && (dwDataSizeRulesIndex) && (sRulesIndex.m_nRulesIndex >= 0))
 									{
 										// set right buffer as active buffer
 										m_apcActiveCSConstantBuffers[dwInternalIndex + D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = pcBuffer;
@@ -1641,9 +1643,17 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 					D3D11_VIEWPORT psViewport[16];
 					pcContext->RSGetViewports(&dwNumViewports, psViewport);
 
+					/*OutputDebugString(L">-------");
+					UINT dwRef = pcContext->AddRef();
+					DEBUG_UINT(dwRef);*/
+
 					// backup all states
 					D3DX11_STATE_BLOCK sStateBlock;
 					CreateStateblock(pcContext, &sStateBlock);
+
+					/*dwRef = pcContext->Release();
+					DEBUG_UINT(dwRef);
+					OutputDebugString(L"-------<");*/
 
 					// clear all states, set targets
 					pcContext->ClearState();
@@ -1967,9 +1977,11 @@ void StereoSplitter::CSSetUnorderedAccessViews(ID3D11DeviceContext *pcThis, UINT
 					if (pcBuffer)
 					{
 						// get private rule index from buffer
-						INT nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
-						UINT dwDataSizeRulesIndex = sizeof(INT);
-						pcBuffer->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Index, &dwDataSizeRulesIndex, &nRulesIndex);
+						Vireio_Buffer_Rules_Index sRulesIndex;
+						sRulesIndex.m_nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
+						sRulesIndex.m_dwUpdateCounter = 0;
+						UINT dwDataSizeRulesIndex = sizeof(Vireio_Buffer_Rules_Index);
+						pcBuffer->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Data, &dwDataSizeRulesIndex, &sRulesIndex);
 
 						//////////////////////////////////////
 						/*D3D11_BUFFER_DESC sDesc1;
@@ -1979,7 +1991,7 @@ void StereoSplitter::CSSetUnorderedAccessViews(ID3D11DeviceContext *pcThis, UINT
 						//////////////////////////////////////
 
 						// set stereo buffer view only if shader rule assigned
-						if ((dwDataSizeRulesIndex) && (nRulesIndex >= 0))
+						if ((dwDataSizeRulesIndex) && (sRulesIndex.m_nRulesIndex >= 0))
 						{
 							// set twin for right side, first get the private data interface
 							ID3D11Buffer* pcStereoBuffer = nullptr;

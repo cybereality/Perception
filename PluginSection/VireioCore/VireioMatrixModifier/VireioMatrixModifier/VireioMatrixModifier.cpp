@@ -1206,7 +1206,8 @@ bool MatrixModifier::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_PSGETCONSTANTBUFFERS) ||
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_HSSETCONSTANTBUFFERS) ||
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_DSSETCONSTANTBUFFERS) ||
-				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_GSSETCONSTANTBUFFERS))
+				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_GSSETCONSTANTBUFFERS) ||
+				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_PSSETCONSTANTBUFFERS))
 				return true;
 		}
 		else if (nD3DInterface == INTERFACE_IDXGISWAPCHAIN)
@@ -1875,9 +1876,13 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region ID3D11DeviceContext::PSGetConstantBuffers
 				case METHOD_ID3D11DEVICECONTEXT_PSGETCONSTANTBUFFERS:
-					// ID3D11DeviceContext::PSGetConstantBuffers(UINT StartSlot, UINT NumBuffers, ID3D11Buffer **ppConstantBuffers);
-					OutputDebugString(L"METHOD_ID3D11DEVICECONTEXT_PSGETCONSTANTBUFFERS");
-					// return a poiner to the active constant buffers
+					// currently, we set the main buffers to avoid that the game gets the 
+					// stereo buffers assioziated with the main buffers as private data interfaces.
+					// if there is a game that flickers (should not be) we need to replace the whole
+					// method (using AQU_PluginFlags::ImmediateReturnFlag)
+					((ID3D11DeviceContext*)pThis)->PSSetConstantBuffers(0,
+						D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT,
+						(ID3D11Buffer**)&m_apcPSActiveConstantBuffers11[0]);
 					break;
 #pragma endregion
 #pragma region ID3D11DeviceContext::Map
@@ -2652,7 +2657,7 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 					// update the list
 					FillShaderRuleGeneralIndices();
 				}
-				else if(sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwDeleteGeneral)
+				else if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwDeleteGeneral)
 				{
 					// increase the update counter to reverify the constant buffers for rules
 					m_dwConstantRulesUpdateCounter++;
@@ -2730,15 +2735,20 @@ void MatrixModifier::XSSetConstantBuffers(ID3D11DeviceContext* pcContext, std::v
 				// no stereo buffer present ?
 				if (!pcBuffer)
 				{
-					// create stereo constant buffer, first get device
-					ID3D11Device* pcDevice = nullptr;
-					apcActiveConstantBuffers[dwInternalIndex]->GetDevice(&pcDevice);
-					if (pcDevice)
+					D3D11_BUFFER_DESC sDesc;
+					apcActiveConstantBuffers[dwInternalIndex]->GetDesc(&sDesc);
+
+					// ignore immutable buffers
+					if (sDesc.Usage != D3D11_USAGE_IMMUTABLE)
 					{
-						D3D11_BUFFER_DESC sDesc;
-						apcActiveConstantBuffers[dwInternalIndex]->GetDesc(&sDesc);
-						CreateStereoConstantBuffer(pcDevice, pcContext, (ID3D11Buffer*)apcActiveConstantBuffers[dwInternalIndex], &sDesc, NULL, true);
-						pcDevice->Release();
+						// create stereo constant buffer, first get device
+						ID3D11Device* pcDevice = nullptr;
+						apcActiveConstantBuffers[dwInternalIndex]->GetDevice(&pcDevice);
+						if (pcDevice)
+						{
+							CreateStereoConstantBuffer(pcDevice, pcContext, (ID3D11Buffer*)apcActiveConstantBuffers[dwInternalIndex], &sDesc, NULL, true);
+							pcDevice->Release();
+						}
 					}
 				}
 				else

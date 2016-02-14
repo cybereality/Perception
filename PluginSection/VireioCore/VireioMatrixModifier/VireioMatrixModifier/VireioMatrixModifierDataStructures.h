@@ -88,7 +88,17 @@ inline void CreateStereoConstantBuffer(ID3D11Device* pcDevice, ID3D11DeviceConte
 	if (FAILED(pcDevice->CreateBuffer(pDesc,
 		pInitialData,
 		&pcBufferRight)))
+	{
+		OutputDebugString(L"BindFlags;ByteWidth;CPUAccessFlags;MiscFlags;StructureByteStride;Usage");
+		DEBUG_UINT(pDesc->BindFlags);
+		DEBUG_UINT(pDesc->ByteWidth);
+		DEBUG_UINT(pDesc->CPUAccessFlags);
+		DEBUG_UINT(pDesc->MiscFlags);
+		DEBUG_UINT(pDesc->StructureByteStride);
+		DEBUG_UINT(pDesc->Usage);
 		OutputDebugString(L"MatrixModifier: Failed to create right buffer!");
+		return;
+	}
 
 	// copy resource ?
 	if (bCopyData)
