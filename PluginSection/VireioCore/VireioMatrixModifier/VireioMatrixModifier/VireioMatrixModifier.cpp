@@ -75,6 +75,37 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define TO_DO_ADD_BOOL_HERE_FALSE                                         false
 
 /**
+* Simple clipboard text helper.
+***/
+std::string GetClipboardText()
+{
+	// Try opening the clipboard
+	if (!OpenClipboard(nullptr))
+		return std::string();
+
+	// Get handle of clipboard object for ANSI text
+	HANDLE hData = GetClipboardData(CF_TEXT);
+	if (hData == nullptr)
+		return std::string();
+
+	// Lock the handle to get the actual text pointer
+	char * pszText = static_cast<char*>(GlobalLock(hData));
+	if (pszText == nullptr)
+		return std::string();
+
+	// Save text in a string class instance
+	std::string text(pszText);
+
+	// Release the lock
+	GlobalUnlock(hData);
+
+	// Release the clipboard
+	CloseClipboard();
+
+	return text;
+}
+
+/**
 * Constructor.
 ***/
 MatrixModifier::MatrixModifier() : AQU_Nodus(),
@@ -164,6 +195,9 @@ m_dwCurrentChosenShaderHashCode(0)
 
 	// reg count to 4 on shader page by default (=Matrix)
 	m_sPageGameShaderRules.m_dwRegCountValue = 4;
+
+	// constant rule buffer counter starts with 1 to init a first update
+	m_dwConstantRulesUpdateCounter = 1;
 
 	// nullptr for all dx10/11 input fields
 	m_ppvShaderBytecode_VertexShader = nullptr;
@@ -1220,12 +1254,14 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						if ((sDesc.BindFlags & D3D11_BIND_CONSTANT_BUFFER) == D3D11_BIND_CONSTANT_BUFFER)
 						{
 							// get shader rules index
-							INT nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
-							UINT dwDataSizeRulesIndex = sizeof(INT);
-							((ID3D11Buffer*)*m_ppcDstResource_DX11)->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Index, &dwDataSizeRulesIndex, &nRulesIndex);
+							Vireio_Buffer_Rules_Index sRulesIndex;
+							sRulesIndex.m_nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
+							sRulesIndex.m_dwUpdateCounter = 0;
+							UINT dwDataSizeRulesIndex = sizeof(Vireio_Buffer_Rules_Index);
+							((ID3D11Buffer*)*m_ppcDstResource_DX11)->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Data, &dwDataSizeRulesIndex, &sRulesIndex);
 
 							// do modification and update right buffer only if shader rule assigned !!
-							if ((dwDataSizeRulesIndex) && (nRulesIndex >= 0))
+							if ((dwDataSizeRulesIndex) && (sRulesIndex.m_nRulesIndex >= 0))
 							{
 								// get the private data interface
 								ID3D11Buffer* pcBuffer = nullptr;
@@ -1237,7 +1273,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 									// do the modification, first copy to buffers
 									memcpy(m_pchBuffer11Left, *m_ppvSrcData, sDesc.ByteWidth);
 									memcpy(m_pchBuffer11Right, *m_ppvSrcData, sDesc.ByteWidth);
-									DoBufferModification(nRulesIndex, (UINT_PTR)m_pchBuffer11Left, (UINT_PTR)m_pchBuffer11Right, sDesc.ByteWidth);
+									DoBufferModification(sRulesIndex.m_nRulesIndex, (UINT_PTR)m_pchBuffer11Left, (UINT_PTR)m_pchBuffer11Right, sDesc.ByteWidth);
 
 									// update left + right buffer
 									((ID3D11DeviceContext*)pThis)->UpdateSubresource(*m_ppcDstResource_DX11, *m_pdwDstSubresource, *m_ppsDstBox_DX11, m_pchBuffer11Left, *m_pdwSrcRowPitch, *m_pdwSrcDepthPitch);
@@ -1296,12 +1332,14 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 							if ((sDescDst.BindFlags & D3D11_BIND_CONSTANT_BUFFER) == D3D11_BIND_CONSTANT_BUFFER)
 							{
 								// set the same shader rules index (if present) for the destination as for the source
-								INT nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
-								UINT dwDataSizeRulesIndex = sizeof(INT);
-								((ID3D11Resource*)*m_ppcSrcResource_DX11_CopySub)->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Index, &dwDataSizeRulesIndex, &nRulesIndex);
-								if ((dwDataSizeRulesIndex) && (nRulesIndex >= 0))
+								Vireio_Buffer_Rules_Index sRulesIndex;
+								sRulesIndex.m_nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
+								sRulesIndex.m_dwUpdateCounter = 0;
+								UINT dwDataSizeRulesIndex = sizeof(Vireio_Buffer_Rules_Index);
+								((ID3D11Resource*)*m_ppcSrcResource_DX11_CopySub)->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Data, &dwDataSizeRulesIndex, &sRulesIndex);
+								if ((dwDataSizeRulesIndex) && (sRulesIndex.m_nRulesIndex >= 0))
 								{
-									((ID3D11Resource*)*m_ppcDstResource_DX11_CopySub)->SetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Index, sizeof(INT), &nRulesIndex);
+									((ID3D11Resource*)*m_ppcDstResource_DX11_CopySub)->SetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Data, sizeof(Vireio_Buffer_Rules_Index), &sRulesIndex);
 								}
 
 								// copy to both sides, if source is a mono buffer set source to stereo buffer
@@ -1434,12 +1472,14 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 							if ((sDescDst.BindFlags & D3D11_BIND_CONSTANT_BUFFER) == D3D11_BIND_CONSTANT_BUFFER)
 							{
 								// set the same shader rules index (if present) for the destination as for the source
-								INT nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
-								UINT dwDataSizeRulesIndex = sizeof(INT);
-								((ID3D11Resource*)*m_ppcSrcResource_DX11_Copy)->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Index, &dwDataSizeRulesIndex, &nRulesIndex);
-								if ((dwDataSizeRulesIndex) && (nRulesIndex >= 0))
+								Vireio_Buffer_Rules_Index sRulesIndex;
+								sRulesIndex.m_nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
+								sRulesIndex.m_dwUpdateCounter = 0;
+								UINT dwDataSizeRulesIndex = sizeof(Vireio_Buffer_Rules_Index);
+								((ID3D11Resource*)*m_ppcSrcResource_DX11_Copy)->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Data, &dwDataSizeRulesIndex, &sRulesIndex);
+								if ((dwDataSizeRulesIndex) && (sRulesIndex.m_nRulesIndex >= 0))
 								{
-									((ID3D11Resource*)*m_ppcDstResource_DX11_Copy)->SetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Index, sizeof(INT), &nRulesIndex);
+									((ID3D11Resource*)*m_ppcDstResource_DX11_Copy)->SetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Data, sizeof(Vireio_Buffer_Rules_Index), &sRulesIndex);
 								}
 
 								// copy to both sides, if source is a mono buffer set source to stereo buffer
@@ -1582,14 +1622,16 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 									if (m_apcVSActiveConstantBuffers11[dwI])
 									{
 										// get shader rules index
-										INT nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
-										UINT dwDataSizeRulesIndex = sizeof(INT);
-										m_apcVSActiveConstantBuffers11[dwI]->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Index, &dwDataSizeRulesIndex, &nRulesIndex);
+										Vireio_Buffer_Rules_Index sRulesIndex;
+										sRulesIndex.m_nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
+										sRulesIndex.m_dwUpdateCounter = 0;
+										UINT dwDataSizeRulesIndex = sizeof(Vireio_Buffer_Rules_Index);
+										m_apcVSActiveConstantBuffers11[dwI]->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Data, &dwDataSizeRulesIndex, &sRulesIndex);
 
 										D3D11_BUFFER_DESC sDesc;
 										m_apcVSActiveConstantBuffers11[dwI]->GetDesc(&sDesc);
 										strStream = std::wstringstream();
-										strStream << L"Buffer Size [" << dwI << L"]:" << sDesc.ByteWidth << L" RuleInd:" << nRulesIndex;
+										strStream << L"Buffer Size [" << dwI << L"]:" << sDesc.ByteWidth << L" RuleInd:" << sRulesIndex.m_nRulesIndex;
 										m_aszDebugTrace.push_back(strStream.str().c_str());
 									}
 								}
@@ -1875,12 +1917,14 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 								}
 
 								// get private data rule index from buffer
-								INT nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
-								UINT dwDataSizeRulesIndex = sizeof(INT);
-								((ID3D11Buffer*)*m_ppcResource_Map)->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Index, &dwDataSizeRulesIndex, &nRulesIndex);
+								Vireio_Buffer_Rules_Index sRulesIndex;
+								sRulesIndex.m_nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
+								sRulesIndex.m_dwUpdateCounter = 0;
+								UINT dwDataSizeRulesIndex = sizeof(Vireio_Buffer_Rules_Index);
+								((ID3D11Buffer*)*m_ppcResource_Map)->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Data, &dwDataSizeRulesIndex, &sRulesIndex);
 
 								// no private data ? rules not addressed
-								if (!dwDataSizeRulesIndex) nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
+								if (!dwDataSizeRulesIndex) sRulesIndex.m_nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
 
 								// do the map call..
 								*(HRESULT*)m_pvReturn = ((ID3D11DeviceContext*)pThis)->Map(*m_ppcResource_Map, *m_pdwSubresource_Map, *m_psMapType, *m_pdwMapFlags, *m_ppsMappedResource);
@@ -1899,7 +1943,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 									m_asMappedBuffers[dwIndex].m_dwMappedResourceDataSize = sDescDst.ByteWidth;
 									m_asMappedBuffers[dwIndex].m_eMapType = *m_psMapType;
 									m_asMappedBuffers[dwIndex].m_dwMapFlags = *m_pdwMapFlags;
-									m_asMappedBuffers[dwIndex].m_nMapRulesIndex = nRulesIndex;
+									m_asMappedBuffers[dwIndex].m_nMapRulesIndex = sRulesIndex.m_nRulesIndex;
 
 									// make buffer address homogenous
 									UINT_PTR dwAddress = (UINT_PTR)m_asMappedBuffers[dwIndex].m_pchBuffer11;
@@ -2082,15 +2126,122 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 			{
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 				if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwConstantName)
+				{
 					m_sPageGameShaderRules.m_bConstantName = sEvent.bNewValue;
+
+					// if true -> get string from clipboard
+					if (sEvent.bNewValue)
+					{
+						std::string szClipboard = GetClipboardText();
+						m_sPageGameShaderRules.m_szConstantName = std::wstring(szClipboard.begin(), szClipboard.end());
+					}
+					// if false -> delete current value
+					else
+					{
+						m_sPageGameShaderRules.m_szConstantName = std::wstring();
+					}
+				}
 				else if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwPartialName)
+				{
 					m_sPageGameShaderRules.m_bPartialName = sEvent.bNewValue;
+
+					// if true -> get string from clipboard
+					if (sEvent.bNewValue)
+					{
+						std::string szClipboard = GetClipboardText();
+						m_sPageGameShaderRules.m_szPartialName = std::wstring(szClipboard.begin(), szClipboard.end());
+					}
+					// if false -> delete current value
+					else
+					{
+						m_sPageGameShaderRules.m_szPartialName = std::wstring();
+					}
+				}
 				else if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwBufferIndex)
+				{
 					m_sPageGameShaderRules.m_bBufferIndex = sEvent.bNewValue;
+
+					// if true -> try to parse a number from the clipboard
+					if (sEvent.bNewValue)
+					{
+						// get the clipboard text as a stream
+						std::wstringstream szClipboard;
+						szClipboard << GetClipboardText().c_str();
+
+						// parse to a number
+						UINT dwValue = 0;
+						szClipboard >> dwValue;
+
+						// delete the stream, parse the number back to the stream
+						szClipboard = std::wstringstream();
+						szClipboard << dwValue;
+
+						// and set the text
+						m_sPageGameShaderRules.m_szBufferIndex = szClipboard.str();
+					}
+					// if false -> delete current value
+					else
+					{
+						m_sPageGameShaderRules.m_szBufferIndex = std::wstring();
+					}
+				}
 				else if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwBufferSize)
+				{
 					m_sPageGameShaderRules.m_bBufferSize = sEvent.bNewValue;
+
+					// if true -> try to parse a number from the clipboard
+					if (sEvent.bNewValue)
+					{
+						// get the clipboard text as a stream
+						std::wstringstream szClipboard;
+						szClipboard << GetClipboardText().c_str();
+
+						// parse to a number
+						UINT dwValue = 0;
+						szClipboard >> dwValue;
+
+						// delete the stream, parse the number back to the stream
+						szClipboard = std::wstringstream();
+						szClipboard << dwValue;
+
+						// and set the text
+						m_sPageGameShaderRules.m_szBufferSize = szClipboard.str();
+					}
+					// if false -> delete current value
+					else
+					{
+						m_sPageGameShaderRules.m_szBufferSize = std::wstring();
+					}
+				}
 				else if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwStartRegIndex)
+				{
+					// set new value
 					m_sPageGameShaderRules.m_bStartRegIndex = sEvent.bNewValue;
+
+					// if true -> try to parse a number from the clipboard
+					if (sEvent.bNewValue)
+					{
+						// get the clipboard text as a stream
+						std::wstringstream szClipboard;
+						szClipboard << GetClipboardText().c_str();
+
+						// parse to a number
+						UINT dwValue = 0;
+						szClipboard >> dwValue;
+
+						// delete the stream, parse the number back to the stream
+						szClipboard = std::wstringstream();
+						szClipboard << dwValue;
+
+						// and set the text
+						m_sPageGameShaderRules.m_szStartRegIndex = szClipboard.str();
+					}
+					// if false -> delete current value
+					else
+					{
+						m_sPageGameShaderRules.m_szStartRegIndex = std::wstring();
+					}
+				}
 				else if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwTranspose)
 					m_sPageGameShaderRules.m_bTranspose = sEvent.bNewValue;
 				else if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwRegisterCount)
@@ -2238,8 +2389,8 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 								// set data based on selection
 								if (nSelection < (INT)m_asShaders[dwIndex].asBuffers[dwBufferIndex].asVariables.size())
 								{
-									// set new start register string on the shader rules page (=offset/4)
-									std::wstringstream szStartOffset; szStartOffset << (m_asShaders[dwIndex].asBuffers[dwBufferIndex].asVariables[nSelection].dwStartOffset >> 2);
+									// set new start register string on the shader rules page (=offset/16)
+									std::wstringstream szStartOffset; szStartOffset << (m_asShaders[dwIndex].asBuffers[dwBufferIndex].asVariables[nSelection].dwStartOffset >> 4);
 									m_sPageGameShaderRules.m_szStartRegIndex = szStartOffset.str();
 
 									// also set the buffer index if present
@@ -2484,6 +2635,40 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 					// update the control string list
 					FillShaderRuleIndices();
 				}
+				else if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwAddGeneral)
+				{
+					// increase the update counter to reverify the constant buffers for rules
+					m_dwConstantRulesUpdateCounter++;
+
+					// get current selection of the shader constant list
+					INT nSelection = 0;
+					nSelection = m_pcVireioGUI->GetCurrentSelection(m_sPageGameShaderRules.m_dwRuleIndices);
+					if ((nSelection >= 0) && (nSelection < (INT)m_aszShaderRuleIndices.size()))
+					{
+						// add to general rules
+						m_adwGlobalConstantRuleIndices.push_back((UINT)nSelection);
+					}
+
+					// update the list
+					FillShaderRuleGeneralIndices();
+				}
+				else if(sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwDeleteGeneral)
+				{
+					// increase the update counter to reverify the constant buffers for rules
+					m_dwConstantRulesUpdateCounter++;
+
+					// get current selection of the shader constant list
+					INT nSelection = 0;
+					nSelection = m_pcVireioGUI->GetCurrentSelection(m_sPageGameShaderRules.m_dwGeneralIndices);
+					if ((nSelection >= 0) && (nSelection < (INT)m_aszShaderRuleGeneralIndices.size()))
+					{
+						// erase
+						m_adwGlobalConstantRuleIndices.erase(m_adwGlobalConstantRuleIndices.begin() + nSelection);
+					}
+
+					// update the list
+					FillShaderRuleGeneralIndices();
+				}
 #endif
 			}
 			break;
@@ -2515,9 +2700,11 @@ void MatrixModifier::XSSetConstantBuffers(ID3D11DeviceContext* pcContext, std::v
 			if (apcActiveConstantBuffers[dwInternalIndex])
 			{
 				// get private rule index from buffer
-				INT nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
-				UINT dwDataSizeRulesIndex = sizeof(INT);
-				apcActiveConstantBuffers[dwInternalIndex]->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Index, &dwDataSizeRulesIndex, &nRulesIndex);
+				Vireio_Buffer_Rules_Index sRulesIndex;
+				sRulesIndex.m_nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
+				sRulesIndex.m_dwUpdateCounter = 0;
+				UINT dwDataSizeRulesIndex = sizeof(Vireio_Buffer_Rules_Index);
+				apcActiveConstantBuffers[dwInternalIndex]->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Data, &dwDataSizeRulesIndex, &sRulesIndex);
 
 				// set twin for right side, first get the private data interface
 				ID3D11Buffer* pcBuffer = nullptr;
@@ -2525,7 +2712,7 @@ void MatrixModifier::XSSetConstantBuffers(ID3D11DeviceContext* pcContext, std::v
 				apcActiveConstantBuffers[dwInternalIndex]->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcBuffer);
 
 				// stereo buffer and rules index present ?
-				if ((pcBuffer) && (dwDataSizeRulesIndex) && (nRulesIndex >= 0))
+				if ((pcBuffer) && (dwDataSizeRulesIndex) && (sRulesIndex.m_nRulesIndex >= 0))
 				{
 					// set right buffer as active buffer
 					apcActiveConstantBuffers[dwInternalIndex + D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = pcBuffer;
@@ -2536,7 +2723,7 @@ void MatrixModifier::XSSetConstantBuffers(ID3D11DeviceContext* pcContext, std::v
 					apcActiveConstantBuffers[dwInternalIndex + D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = apcActiveConstantBuffers[dwInternalIndex];
 
 					// verify buffer
-					if ((pcBuffer) && (nRulesIndex == VIREIO_CONSTANT_RULES_NOT_ADDRESSED))
+					if ((pcBuffer) && (sRulesIndex.m_nRulesIndex == VIREIO_CONSTANT_RULES_NOT_ADDRESSED))
 						VerifyConstantBuffer(apcActiveConstantBuffers[dwInternalIndex], dwInternalIndex);
 				}
 
@@ -2570,15 +2757,22 @@ void MatrixModifier::XSSetConstantBuffers(ID3D11DeviceContext* pcContext, std::v
 void MatrixModifier::VerifyConstantBuffer(ID3D11Buffer *pcBuffer, UINT dwBufferIndex)
 {
 	// buffer already verified ?
-	INT nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
-	UINT dwDataSizeRulesIndex = sizeof(INT);
-	pcBuffer->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Index, &dwDataSizeRulesIndex, &nRulesIndex);
+	Vireio_Buffer_Rules_Index sRulesIndex;
+	sRulesIndex.m_nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
+	sRulesIndex.m_dwUpdateCounter = 0;
+	UINT dwDataSizeRulesIndex = sizeof(Vireio_Buffer_Rules_Index);
+	pcBuffer->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Data, &dwDataSizeRulesIndex, &sRulesIndex);
 	if (dwDataSizeRulesIndex)
 	{
+		// if the update counter has increased set to "NOT ADDRESSED"
+		if (sRulesIndex.m_dwUpdateCounter < m_dwConstantRulesUpdateCounter)
+			sRulesIndex.m_nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
+
 		// continue only if constant rules not addressed
-		if (nRulesIndex != VIREIO_CONSTANT_RULES_NOT_ADDRESSED)
+		if (sRulesIndex.m_nRulesIndex != VIREIO_CONSTANT_RULES_NOT_ADDRESSED)
 			return;
 	}
+
 	// get buffer size by description
 	D3D11_BUFFER_DESC sDesc;
 	pcBuffer->GetDesc(&sDesc);
@@ -2588,7 +2782,7 @@ void MatrixModifier::VerifyConstantBuffer(ID3D11Buffer *pcBuffer, UINT dwBufferI
 	UINT dwBufferRegisterSize = dwBufferSize >> 5;
 
 	// not addressed ? address
-	if (nRulesIndex == VIREIO_CONSTANT_RULES_NOT_ADDRESSED)
+	if (sRulesIndex.m_nRulesIndex == VIREIO_CONSTANT_RULES_NOT_ADDRESSED)
 	{
 		// create a vector for this constant buffer
 		std::vector<Vireio_Constant_Rule_Index> asConstantBufferRules = std::vector<Vireio_Constant_Rule_Index>();
@@ -2714,7 +2908,7 @@ void MatrixModifier::VerifyConstantBuffer(ID3D11Buffer *pcBuffer, UINT dwBufferI
 				if ((dwCount) && (dwCount == (UINT)asConstantBufferRules.size()))
 				{
 					// set existing constant rule indices
-					nRulesIndex = (INT)dwI;
+					sRulesIndex.m_nRulesIndex = (INT)dwI;
 					bPresent = true;
 				}
 			}
@@ -2723,21 +2917,22 @@ void MatrixModifier::VerifyConstantBuffer(ID3D11Buffer *pcBuffer, UINT dwBufferI
 		// no rules found ? set to unavailable
 		if (!asConstantBufferRules.size())
 		{
-			nRulesIndex = VIREIO_CONSTANT_RULES_NOT_AVAILABLE;
+			sRulesIndex.m_nRulesIndex = VIREIO_CONSTANT_RULES_NOT_AVAILABLE;
 		}
 		// rules not present ?
 		else if (!bPresent)
 		{
 			// set index... current vector size
-			nRulesIndex = (INT)m_aasConstantBufferRuleIndices.size();
+			sRulesIndex.m_nRulesIndex = (INT)m_aasConstantBufferRuleIndices.size();
 
 			// and add
 			m_aasConstantBufferRuleIndices.push_back(asConstantBufferRules);
 		}
 	}
 
-	// set the rules index as private data to the constant buffer
-	pcBuffer->SetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Index, sizeof(INT), &nRulesIndex);
+	// set the rules index as private data to the constant buffer, first update the update counter
+	sRulesIndex.m_dwUpdateCounter = m_dwConstantRulesUpdateCounter;
+	pcBuffer->SetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Data, sizeof(Vireio_Buffer_Rules_Index), &sRulesIndex);
 }
 
 /**
@@ -3384,6 +3579,16 @@ void MatrixModifier::FillShaderRuleData(UINT dwRuleIndex)
 ***/
 void MatrixModifier::FillShaderRuleGeneralIndices()
 {
+	// first, unselect and clear
+	if (m_pcVireioGUI)
+		m_pcVireioGUI->UnselectCurrentSelection(m_sPageGameShaderRules.m_dwGeneralIndices);
+	m_aszShaderRuleGeneralIndices = std::vector<std::wstring>();
+	for (UINT dwI = 0; dwI < (UINT)m_adwGlobalConstantRuleIndices.size(); dwI++)
+	{
+		// add text
+		std::wstringstream szIndex; szIndex << L"Rule : " << m_adwGlobalConstantRuleIndices[dwI];
+		m_aszShaderRuleGeneralIndices.push_back(szIndex.str());
+	}
 }
 
 /**

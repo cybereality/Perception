@@ -496,6 +496,11 @@ private:
 	***/
 	UINT m_dwVerifyConstantBuffers;
 	/**
+	* The constant rules update counter.
+	* Starts with "1" and increases for every newly added shader rule.
+	***/
+	UINT m_dwConstantRulesUpdateCounter;
+	/**
 	* Constant Buffer private data buffer left eye.
 	***/
 	union

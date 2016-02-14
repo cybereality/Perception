@@ -39,8 +39,8 @@ const GUID PDID_ID3D11Buffer_Vireio_Data = { 0x9661ee48, 0xd331, 0x478d, { 0xaa,
 // PDID_ID3D11Buffer_Vireio_Label : ecd95f38-0bfc-48a0-b752-0c9319ae7779
 const GUID PDID_ID3D11Buffer_Vireio_Label = { 0xecd95f38, 0x0bfc, 0x48a0, { 0xb7, 0x52, 0x0c, 0x93, 0x19, 0xae, 0x77, 0x79 } };
 
-// PDID_ID3D11Buffer_Vireio_Rules_Index : 16eb4347-0759-499f-9267-3601c5874a40
-const GUID PDID_ID3D11Buffer_Vireio_Rules_Index = { 0x16eb4347, 0x0759, 0x499f, { 0x92, 0x67, 0x36, 0x01, 0xc5, 0x87, 0x4a, 0x40 } };
+// PDID_ID3D11Buffer_Vireio_Rules_Data : 16eb4347-0759-499f-9267-3601c5874a40
+const GUID PDID_ID3D11Buffer_Vireio_Rules_Data = { 0x16eb4347, 0x0759, 0x499f, { 0x92, 0x67, 0x36, 0x01, 0xc5, 0x87, 0x4a, 0x40 } };
 
 // PDID_ID3D11TextureXD_ShaderResouceView_Create_New : 7371d160-5b35-471c-b2ae-e5e9d942b776
 const GUID PDID_ID3D11TextureXD_ShaderResouceView_Create_New = { 0x7371d160, 0x5b35, 0x471c, { 0xb2, 0xae, 0xe5, 0xe9, 0xd9, 0x42, 0xb7, 0x76 } };

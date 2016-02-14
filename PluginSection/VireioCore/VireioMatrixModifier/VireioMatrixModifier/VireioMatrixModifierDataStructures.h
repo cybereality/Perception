@@ -277,6 +277,17 @@ struct Vireio_Constant_Rule_Index
 };
 
 /**
+* Buffer specific rules index.
+* Stores the index of m_aasConstantBufferRuleIndices and
+* the rule update counter.
+***/
+struct Vireio_Buffer_Rules_Index
+{
+	INT m_nRulesIndex;
+	UINT m_dwUpdateCounter;
+};
+
+/**
 * D3D11 Shader variable (or constant) description.
 ***/
 struct Vireio_D3D11_Shader_Variable
