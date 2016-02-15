@@ -299,7 +299,7 @@ void* VireioConstructorDx11::Provoke(void* pThis, int eD3D, int eD3DInterface, i
 					*m_ppvShaderBytecode_VertexShader,
 					*m_pnBytecodeLength_VertexShader,
 					*m_ppcClassLinkage_VertexShader,
-					(ID3D11DeviceChild**)*m_pppcVertexShader_DX11);
+					(ID3D11DeviceChild**)*m_pppcVertexShader_DX11, false, 'V');
 
 				// method replaced, immediately return
 				nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
@@ -315,7 +315,7 @@ void* VireioConstructorDx11::Provoke(void* pThis, int eD3D, int eD3DInterface, i
 			if (!m_pnBytecodeLength_PixelShader) return nullptr;
 			if (!m_ppcClassLinkage_PixelShader) return nullptr;
 			if (!m_pppcPixelShader_DX11) return nullptr;
-			OutputDebugString(L"Create Pixel Shader");
+			
 			{
 				// create the shader
 				*(HRESULT*)m_pvReturn = ((ID3D11Device*)pThis)->CreatePixelShader(*m_ppvShaderBytecode_PixelShader,
@@ -328,7 +328,7 @@ void* VireioConstructorDx11::Provoke(void* pThis, int eD3D, int eD3DInterface, i
 					*m_ppvShaderBytecode_PixelShader,
 					*m_pnBytecodeLength_PixelShader,
 					*m_ppcClassLinkage_PixelShader,
-					(ID3D11DeviceChild**)*m_pppcPixelShader_DX11);
+					(ID3D11DeviceChild**)*m_pppcPixelShader_DX11, false, 'P');
 
 				// method replaced, immediately return
 				nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
@@ -371,7 +371,7 @@ void* VireioConstructorDx11::Provoke(void* pThis, int eD3D, int eD3DInterface, i
 /**
 * Handles CreateVertexShader() and CreatePixelShader() calls.
 ***/
-void VireioConstructorDx11::CreateShader(std::vector<Vireio_D3D11_Shader>* pasShaders, const void *pcShaderBytecode, SIZE_T unBytecodeLength, ID3D11ClassLinkage *pcClassLinkage, ID3D11DeviceChild** ppcShader)
+void VireioConstructorDx11::CreateShader(std::vector<Vireio_D3D11_Shader>* pasShaders, const void *pcShaderBytecode, SIZE_T unBytecodeLength, ID3D11ClassLinkage *pcClassLinkage, ID3D11DeviceChild** ppcShader, bool bOutputCode, char cPrefix)
 {
 	// get the shader pointer
 	ID3D11DeviceChild* pcShader = nullptr;
@@ -539,11 +539,12 @@ void VireioConstructorDx11::CreateShader(std::vector<Vireio_D3D11_Shader>* pasSh
 		pcShader->SetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, sizeof(sPrivateData), (void*)&sPrivateData);
 
 		// output shader code ?
-		if (TO_DO_ADD_BOOL_HERE_FALSE)
+		if (bOutputCode)
 		{
 			// optionally, output shader code to "VS(hash).txt"
 			char buf[32]; ZeroMemory(&buf[0], 32);
 			sprintf_s(buf, "VS%u.txt", dwHashCode);
+			buf[0] = cPrefix;
 			std::ofstream oLogFile(buf, std::ios::ate);
 
 			if (oLogFile.is_open())

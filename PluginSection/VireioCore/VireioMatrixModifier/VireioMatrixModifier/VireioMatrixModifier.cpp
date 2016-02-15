@@ -769,7 +769,7 @@ DWORD MatrixModifier::GetDecommanderType(DWORD dwDecommanderIndex)
 		case pPixelShader_10:
 			return NOD_Plugtype::AQU_PNT_ID3D10PIXELSHADER;
 		case pPixelShader_11:
-			return NOD_Plugtype::AQU_PNT_ID3D11VERTEXSHADER;
+			return NOD_Plugtype::AQU_PNT_ID3D11PIXELSHADER;
 		case pDesc_DX10:
 			return NOD_Plugtype::AQU_PNT_D3D10_BUFFER_DESC;
 		case pInitialData_DX10:
@@ -1206,6 +1206,7 @@ bool MatrixModifier::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 		if (nD3DInterface == INTERFACE_ID3D11DEVICECONTEXT)
 		{
 			if ((nD3DMethod == METHOD_ID3D11DEVICECONTEXT_VSSETSHADER) ||
+				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_PSSETSHADER) ||
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_VSSETCONSTANTBUFFERS) ||
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_MAP) ||
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_UNMAP) ||
@@ -1685,6 +1686,69 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						}
 					}
 					return nullptr;
+#pragma endregion
+#pragma region ID3D11DeviceContext::PSSetShader
+				case METHOD_ID3D11DEVICECONTEXT_PSSETSHADER:
+					if (!m_ppcPixelShader_11)
+					{
+						//m_pcActivePixelShader11 = nullptr;
+						return nullptr;
+					}
+					if (!*m_ppcPixelShader_11)
+					{
+						//m_pcActivePixelShader11 = nullptr;
+						return nullptr;
+					}
+					else
+					{
+						// currently chosen ?
+						if ((m_dwCurrentChosenShaderHashCode) && (m_eChosenShaderType == Vireio_Supported_Shaders::PixelShader))
+						{
+							// get the current shader hash
+							Vireio_Shader_Private_Data sPrivateData;
+							UINT dwDataSize = sizeof(sPrivateData);
+							(*m_ppcPixelShader_11)->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
+
+							// set null shader if hash matches
+							if (m_dwCurrentChosenShaderHashCode == sPrivateData.dwHash)
+							{
+								// call super method
+								((ID3D11DeviceContext*)pThis)->PSSetShader(nullptr, nullptr, NULL);
+
+								// method replaced, immediately return
+								nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+							}
+						}
+
+						// sort shader list ?
+						if (m_bSortShaderList)
+						{
+							// get the current shader hash
+							Vireio_Shader_Private_Data sPrivateData;
+							UINT dwDataSize = sizeof(sPrivateData);
+							(*m_ppcPixelShader_11)->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
+
+							// get shader index
+							for (UINT dwI = 1; dwI < (UINT)m_adwPShaderHashCodes.size(); dwI++)
+							{								
+								if (sPrivateData.dwHash == m_adwPShaderHashCodes[dwI])
+								{
+									// move one forward
+									std::wstring szBuf = m_aszPShaderHashCodes[dwI - 1];
+									m_aszPShaderHashCodes[dwI - 1] = m_aszPShaderHashCodes[dwI];
+									m_aszPShaderHashCodes[dwI] = szBuf;
+
+									UINT dwBuf = m_adwPShaderHashCodes[dwI - 1];
+									m_adwPShaderHashCodes[dwI - 1] = m_adwPShaderHashCodes[dwI];
+									m_adwPShaderHashCodes[dwI] = dwBuf;
+
+									// end search;
+									dwI = (UINT)m_adwPShaderHashCodes.size();
+								}
+							}
+						}
+					}
+					break;
 #pragma endregion
 #pragma region ID3D11DeviceContext::VSSetConstantBuffers
 				case METHOD_ID3D11DEVICECONTEXT_VSSETCONSTANTBUFFERS:

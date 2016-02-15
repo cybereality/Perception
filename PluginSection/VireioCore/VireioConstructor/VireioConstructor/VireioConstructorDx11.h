@@ -114,7 +114,7 @@ public:
 private:
 
 	/*** Constructor private methods ***/
-	void CreateShader(std::vector<Vireio_D3D11_Shader>* pasShaders, const void *pcShaderBytecode, SIZE_T unBytecodeLength, ID3D11ClassLinkage *pcClassLinkage, ID3D11DeviceChild** ppcShader);
+	void CreateShader(std::vector<Vireio_D3D11_Shader>* pasShaders, const void *pcShaderBytecode, SIZE_T unBytecodeLength, ID3D11ClassLinkage *pcClassLinkage, ID3D11DeviceChild** ppcShader, bool bOutputCode, char cPrefix);
 
 	/*** Constructor input pointers ***/
 	void** m_ppvShaderBytecode_VertexShader;
