@@ -33,6 +33,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma region D3D11
 
+/*** Vireio Matrix Modifier GUIDs ***/
+
 // PDID_ID3D11Buffer_Vireio_Data : 9661ee48-d331-478d-aa3e-5663ec612473
 const GUID PDID_ID3D11Buffer_Vireio_Data = { 0x9661ee48, 0xd331, 0x478d, { 0xaa, 0x3e, 0x56, 0x63, 0xec, 0x61, 0x24, 0x73 } };
 
@@ -54,6 +56,8 @@ const GUID PDIID_ID3D11Buffer_UAV_Right = { 0x46b18cc4, 0x43a9, 0x4047, { 0x98, 
 // PDID_ID3D11VertexShader_Vireio_Data : 3bffbfc5-7baa-4534-9f4a-06be7d3df832
 const GUID PDID_ID3D11VertexShader_Vireio_Data = { 0x3bffbfc5, 0x7baa, 0x4534, { 0x9f, 0x4a, 0x06, 0xbe, 0x7d, 0x3d, 0xf8, 0x32 } };
 
+/*** Vireio Stereo Splitter GUIDs ***/
+
 // PDIID_ID3D11TextureXD_Stereo_Twin : 65fbac52-33fe-4ece-8756-6a11675c42dc
 const GUID PDIID_ID3D11TextureXD_Stereo_Twin = { 0x65fbac52, 0x33fe, 0x4ece, { 0x87, 0x56, 0x6a, 0x11, 0x67, 0x5c, 0x42, 0xdc } };
 
@@ -66,11 +70,17 @@ const GUID PDIID_ID3D11TextureXD_DepthStencilView = { 0xd5e494b4, 0x6b30, 0x4214
 // PDIID_ID3D11TextureXD_ShaderResourceView : 54785d84-c099-4cb7-8006-0f7ad3921f8b
 const GUID PDIID_ID3D11TextureXD_ShaderResourceView = { 0x54785d84, 0xc099, 0x4cb7, { 0x80, 0x06, 0x0f, 0x7a, 0xd3, 0x92, 0x1f, 0x8b } };
 
+// PDIID_ID3D11TextureXD_UnorderedAccessView : aa30daa-99c9-42b4-b395-cbe6a8e5e364
+const GUID PDIID_ID3D11TextureXD_UnorderedAccessView = { 0xaa30daa, 0x99c9, 0x42b4, { 0xb3, 0x95, 0xcb, 0xe6, 0xa8, 0xe5, 0xe3, 0x64 } };
+
 // PDIID_ID3D11RenderTargetView_Stereo_Twin : bc121462-d0b4-42d5-8429-2f7b194c8d20
 const GUID PDIID_ID3D11RenderTargetView_Stereo_Twin = { 0xbc121462, 0xd0b4, 0x42d5, { 0x84, 0x29, 0x2f, 0x7b, 0x19, 0x4c, 0x8d, 0x20 } };
 
 // PDIID_ID3D11DepthStencilView_Stereo_Twin : fae991b6-6c7f-474b-afe3-369861002ae7
 const GUID PDIID_ID3D11DepthStencilView_Stereo_Twin = { 0xfae991b6, 0x6c7f, 0x474b, { 0xaf, 0xe3, 0x36, 0x98, 0x61, 0x00, 0x2a, 0xe7 } };
+
+// PDIID_ID3D11UnorderedAccessView_Stereo_Twin : 1e547289-77c7-4a94-a6e6-c77e87cb86ab
+const GUID PDIID_ID3D11UnorderedAccessView_Stereo_Twin = { 0x1e547289, 0x77c7, 0x4a94, { 0xa6, 0xe6, 0xc7, 0x7e, 0x87, 0xcb, 0x86, 0xab } };
 
 // PDIID_IDXGISwapChain_TextureXD_Stereo_Twin : 4458d508-c9b4-4eec-a41e-f7be6e873179
 const GUID PDIID_IDXGISwapChain_TextureXD_Stereo_Twin = { 0x4458d508, 0xc9b4, 0x4eec, { 0xa4, 0x1e, 0xf7, 0xbe, 0x6e, 0x87, 0x31, 0x79 } };

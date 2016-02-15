@@ -212,12 +212,13 @@ private:
 	void                    CSSetUnorderedAccessViews(ID3D11DeviceContext *pcThis, UINT dwStartSlot, UINT dwNumUAVs, ID3D11UnorderedAccessView *const *ppcUnorderedAccessViews, const UINT *pdwUAVInitialCounts);
 
 	/*** StereoSplitter private methods ***/
-	void                    CreateStereoView(IUnknown* pcDevice, ID3D11View* pcView);
-	ID3D11RenderTargetView* VerifyPrivateDataInterfaces(ID3D11RenderTargetView* pcRenderTargetView);
-	ID3D11DepthStencilView* VerifyPrivateDataInterfaces(ID3D11DepthStencilView* pcDepthStencilView);
-	bool                    SetDrawingSide(ID3D10Device* pcDevice, RenderPosition side);
-	bool                    SetDrawingSide(ID3D11DeviceContext* pcContext, RenderPosition side);
-	void                    SetDrawingSideField(RenderPosition eSide) { m_eCurrentRenderingSide = eSide; if (m_peDrawingSide) *m_peDrawingSide = eSide; }
+	void                       CreateStereoView(ID3D11Device* pcDevice, ID3D11View* pcView);
+	ID3D11RenderTargetView*    VerifyPrivateDataInterfaces(ID3D11RenderTargetView* pcRenderTargetView);
+	ID3D11DepthStencilView*    VerifyPrivateDataInterfaces(ID3D11DepthStencilView* pcDepthStencilView);
+	ID3D11UnorderedAccessView* VerifyPrivateDataInterfaces(ID3D11UnorderedAccessView* pcUnorderedAccessView);
+	bool                       SetDrawingSide(ID3D10Device* pcDevice, RenderPosition side);
+	bool                       SetDrawingSide(ID3D11DeviceContext* pcContext, RenderPosition side);
+	void                       SetDrawingSideField(RenderPosition eSide) { m_eCurrentRenderingSide = eSide; if (m_peDrawingSide) *m_peDrawingSide = eSide; }
 
 	/**
 	* Input pointers.
@@ -397,6 +398,11 @@ private:
 	* Processed in next Present() call.
 	***/
 	std::vector<ID3D11ShaderResourceView*> m_apcNewShaderResourceViews11;
+	/**
+	* New unordered access views (Texture).
+	* Processed in next Present() call.
+	***/
+	std::vector<ID3D11UnorderedAccessView*> m_apcNewUnorderedAccessViews11;
 	/**
 	* True if Present() was called at least once.
 	* Game can crash if Present() is not connected,
