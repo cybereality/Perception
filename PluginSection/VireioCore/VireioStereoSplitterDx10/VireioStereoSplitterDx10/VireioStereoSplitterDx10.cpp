@@ -1961,19 +1961,19 @@ void StereoSplitter::CSSetUnorderedAccessViews(ID3D11DeviceContext *pcThis, UINT
 		if (dwInternalIndex < D3D11_PS_CS_UAV_REGISTER_COUNT)
 		{
 			// set view internal
-			m_apcActiveUnorderedAccessViews[dwInternalIndex] = ppcUnorderedAccessViews[dwInternalIndex];
+			m_apcActiveUnorderedAccessViews[dwInternalIndex] = ppcUnorderedAccessViews[dwIndex];
 
-			if (ppcUnorderedAccessViews[dwInternalIndex])
+			if (m_apcActiveUnorderedAccessViews[dwInternalIndex])
 			{
 				D3D11_UNORDERED_ACCESS_VIEW_DESC sDesc;
-				ppcUnorderedAccessViews[dwInternalIndex]->GetDesc(&sDesc);
-				
+				m_apcActiveUnorderedAccessViews[dwInternalIndex]->GetDesc(&sDesc);
+
 				// is a buffer ?
 				if (sDesc.ViewDimension == D3D11_UAV_DIMENSION::D3D11_UAV_DIMENSION_BUFFER)
 				{
 					// get the resource
 					ID3D11Resource* pcBuffer = nullptr;
-					ppcUnorderedAccessViews[dwInternalIndex]->GetResource(&pcBuffer);
+					m_apcActiveUnorderedAccessViews[dwInternalIndex]->GetResource(&pcBuffer);
 					if (pcBuffer)
 					{
 						// get private rule index from buffer
@@ -2034,15 +2034,16 @@ void StereoSplitter::CSSetUnorderedAccessViews(ID3D11DeviceContext *pcThis, UINT
 										pcUAV->Release();
 									}
 									else
-										m_apcActiveUnorderedAccessViews[dwInternalIndex + D3D11_PS_CS_UAV_REGISTER_COUNT] = ppcUnorderedAccessViews[dwInternalIndex];
+										m_apcActiveUnorderedAccessViews[dwInternalIndex + D3D11_PS_CS_UAV_REGISTER_COUNT] = m_apcActiveUnorderedAccessViews[dwInternalIndex];
 								}
 
 								pcStereoBuffer->Release();
 							}
-							m_apcActiveUnorderedAccessViews[dwInternalIndex + D3D11_PS_CS_UAV_REGISTER_COUNT] = ppcUnorderedAccessViews[dwInternalIndex];
+							else
+								m_apcActiveUnorderedAccessViews[dwInternalIndex + D3D11_PS_CS_UAV_REGISTER_COUNT] = m_apcActiveUnorderedAccessViews[dwInternalIndex];
 						}
 						else
-							m_apcActiveUnorderedAccessViews[dwInternalIndex + D3D11_PS_CS_UAV_REGISTER_COUNT] = ppcUnorderedAccessViews[dwInternalIndex];
+							m_apcActiveUnorderedAccessViews[dwInternalIndex + D3D11_PS_CS_UAV_REGISTER_COUNT] = m_apcActiveUnorderedAccessViews[dwInternalIndex];
 
 
 						pcBuffer->Release();
@@ -2050,10 +2051,12 @@ void StereoSplitter::CSSetUnorderedAccessViews(ID3D11DeviceContext *pcThis, UINT
 				}
 				else
 				{
-					DEBUG_UINT(sDesc.ViewDimension);
-					DEBUG_HEX(sDesc.Format);
+					//DEBUG_UINT(sDesc.ViewDimension);
+					//DEBUG_HEX(sDesc.Format);
 				}
 			}
+			else
+				m_apcActiveUnorderedAccessViews[dwInternalIndex + D3D11_PS_CS_UAV_REGISTER_COUNT] = m_apcActiveUnorderedAccessViews[dwInternalIndex];
 		}
 		else OutputDebugString(L"[STS] Game uses DirectX 11.1 : D3D11_1_UAV_SLOT_COUNT");
 	}
@@ -2755,7 +2758,7 @@ bool StereoSplitter::SetDrawingSide(ID3D11DeviceContext* pcContext, RenderPositi
 			pcContext->VSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &(*m_appcVSActiveConstantBuffers11)[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT]);
 	}
 
-	// switch vertex shader constant buffers
+	// switch hull shader constant buffers
 	if (m_appcHSActiveConstantBuffers11)
 	if (*m_appcHSActiveConstantBuffers11)
 	{
@@ -2766,7 +2769,7 @@ bool StereoSplitter::SetDrawingSide(ID3D11DeviceContext* pcContext, RenderPositi
 			pcContext->HSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &(*m_appcHSActiveConstantBuffers11)[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT]);
 	}
 
-	// switch vertex shader constant buffers
+	// switch domain shader constant buffers
 	if (m_appcDSActiveConstantBuffers11)
 	if (*m_appcDSActiveConstantBuffers11)
 	{
@@ -2777,7 +2780,7 @@ bool StereoSplitter::SetDrawingSide(ID3D11DeviceContext* pcContext, RenderPositi
 			pcContext->DSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &(*m_appcDSActiveConstantBuffers11)[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT]);
 	}
 
-	// switch vertex shader constant buffers
+	// switch geometry shader constant buffers
 	if (m_appcGSActiveConstantBuffers11)
 	if (*m_appcGSActiveConstantBuffers11)
 	{
@@ -2788,7 +2791,7 @@ bool StereoSplitter::SetDrawingSide(ID3D11DeviceContext* pcContext, RenderPositi
 			pcContext->GSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &(*m_appcGSActiveConstantBuffers11)[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT]);
 	}
 
-	// switch vertex shader constant buffers
+	// switch pixel shader constant buffers
 	if (m_appcPSActiveConstantBuffers11)
 	if (*m_appcPSActiveConstantBuffers11)
 	{
