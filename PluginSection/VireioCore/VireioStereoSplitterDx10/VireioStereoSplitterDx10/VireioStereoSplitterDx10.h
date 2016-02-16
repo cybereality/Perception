@@ -454,6 +454,10 @@ private:
 	* The number of frames the constant buffers are to be verified.
 	***/
 	UINT m_dwVerifyConstantBuffers;
+	/**
+	* A needless field of "-1" UINTs needed for CSSetUnorderedAccessViews.
+	***/
+	UINT m_aunMinusOne[D3D11_PS_CS_UAV_REGISTER_COUNT];
 
 	/*** Optional draw operation fields ***/
 
