@@ -209,7 +209,8 @@ private:
 
 	/*** StereoSplitter private D3D10+ methods ***/
 	void                    OMSetRenderTargets(IUnknown* pcDeviceOrContext, UINT NumViews, IUnknown *const *ppRenderTargetViews, IUnknown *pDepthStencilView);
-	void                    CSSetUnorderedAccessViews(ID3D11DeviceContext *pcThis, UINT dwStartSlot, UINT dwNumUAVs, ID3D11UnorderedAccessView *const *ppcUnorderedAccessViews, const UINT *pdwUAVInitialCounts);
+	void                    CSSetUnorderedAccessViews(UINT dwStartSlot, UINT dwNumUAVs, ID3D11UnorderedAccessView *const *ppcUnorderedAccessViews, const UINT *pdwUAVInitialCounts);
+	void                    XSSetShaderResourceViews(std::vector<ID3D11ShaderResourceView*> &apcActiveShaderResourceViews, UINT& unNumViewsTotal, UINT unStartSlot, UINT unNumViews, ID3D11ShaderResourceView *const *ppShaderResourceViews);
 
 	/*** StereoSplitter private methods ***/
 	void                       CreateStereoView(ID3D11Device* pcDevice, ID3D11View* pcView);
@@ -278,32 +279,35 @@ private:
 	UINT* m_pdwStartSlot_CSCB;
 	UINT* m_pdwNumBuffers;
 	ID3D11Buffer*** m_pppcConstantBuffers;
-	
+
 	UINT* m_pdwVerifyConstantBuffers;                                 /** The number of frames the constant buffers are to be verified. ***/
 
 	/**
 	* Active stored render target views.
 	* The render targets that are currently in use.
 	* (IUnknown*) for compatibility to DX10+DX11.
+	* DX11 :
+	* 0---------------------------------------------> D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT ----- Left render target views
+	* D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT -------> D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT * 2 - Right render target views
 	***/
 	std::vector<IUnknown *> m_apcActiveRenderTargetViews;
 	/**
 	* Active stored texture views.
 	* The textures that are currently in use.
 	* (IUnknown*) for compatibility to DX10+DX11.
+	* DX11 :
+	* 0----------------------------------------------> D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT ----- Left shader resource views
+	* D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT---> D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT * 2 - Right shader resource views
 	***/
-	std::vector<IUnknown*> m_apcActiveTextures;
+	std::vector<ID3D11ShaderResourceView*> m_apcActivePSShaderResourceViews;
 	/**
-	* Active stored depth stencil view.
-	* The depth stencil surface that is currently in use.
-	* (IUnknown*) for compatibility to DX10+DX11.
+	* Active stored compute shader resource views.
+	* The textures (INPUT!!) and buffers that are currently in use.
+	* DX11 :
+	* 0----------------------------------------------> D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT ----- Left shader resource views
+	* D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT---> D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT * 2 - Right shader resource views
 	***/
-	IUnknown* m_pcActiveDepthStencilView;
-	/**
-	* Active stored compute shader texture views.
-	* The textures (INPUT!!) that are currently in use.
-	***/
-	std::vector<ID3D11ShaderResourceView*> m_apcActiveCSTextures;
+	std::vector<ID3D11ShaderResourceView*> m_apcActiveCSShaderResourceViews;
 	/**
 	* The d3d11 active constant buffer vector, for left and right side.
 	* 0 -------------------------------------------------> D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT ----- Left buffers
@@ -319,25 +323,16 @@ private:
 	***/
 	std::vector<ID3D11UnorderedAccessView*> m_apcActiveUnorderedAccessViews;
 	/**
-	* Twin for active render target.
+	* Active stored depth stencil view.
+	* The depth stencil surface that is currently in use.
 	* (IUnknown*) for compatibility to DX10+DX11.
 	***/
-	std::vector<IUnknown*> m_apcActiveStereoTwinViews;
-	/**
-	* Stereo twin for active texture.
-	* (IUnknown*) for compatibility to DX10+DX11.
-	***/
-	std::vector<IUnknown*> m_apcActiveStereoTwinTextures;
+	IUnknown* m_pcActiveDepthStencilView;
 	/**
 	* Stereo twin for active depth stencil.
 	* (IUnknown*) for compatibility to DX10+DX11.
 	***/
 	IUnknown* m_pcActiveStereoTwinDepthStencilView;
-	/**
-	* Stereo twins for active stored compute shader texture views.
-	* The textures (INPUT!!) that are currently in use.
-	***/
-	std::vector<ID3D11ShaderResourceView*> m_apcActiveStereoTwinCSTextures;
 	/**
 	* Active back buffer.
 	* The back buffer surface that is currently in use.
@@ -421,15 +416,20 @@ private:
 		Verified = 2,                          /**< The current back buffer is stereo. ***/
 	} m_eBackBufferVerified;
 	/**
-	* Number of set textures.
+	* Number of set PS Shader Resource Views.
 	* Number of textures not set to NULL.
 	***/
-	DWORD m_dwTextureNumber;
+	UINT m_dwPSShaderResourceViewsNumber;
+	/**
+	* Number of set CS Shader Resource Views.
+	* Number of textures not set to NULL.
+	***/
+	UINT m_dwCSShaderResourceViewsNumber;
 	/**
 	* Number of render targets.
 	* Number of render targets not set to NULL.
 	***/
-	DWORD m_dwRenderTargetNumber;
+	UINT m_dwRenderTargetNumber;
 	/**
 	* Current drawing side, only changed in SetDrawingSide().
 	**/
