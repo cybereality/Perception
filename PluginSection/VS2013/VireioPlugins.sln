@@ -9,6 +9,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VireioMatrixModifier", "..\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VireioConstructorDx11", "..\VireioCore\VireioConstructor\VireioConstructor\VS2013\VireioConstructorDx11.vcxproj", "{6DB84815-4D6E-4BA5-BE35-4A8144D8F5F0}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VireioMatrixModifierDx10", "..\VireioCore\VireioMatrixModifier\VireioMatrixModifierDx10\VS2013\VireioMatrixModifierDx10.vcxproj", "{5DC25A42-2D36-4D00-B65A-831B92579301}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -41,6 +43,14 @@ Global
 		{6DB84815-4D6E-4BA5-BE35-4A8144D8F5F0}.Release|Win32.Build.0 = Release|Win32
 		{6DB84815-4D6E-4BA5-BE35-4A8144D8F5F0}.Release|x64.ActiveCfg = Release|x64
 		{6DB84815-4D6E-4BA5-BE35-4A8144D8F5F0}.Release|x64.Build.0 = Release|x64
+		{5DC25A42-2D36-4D00-B65A-831B92579301}.Debug|Win32.ActiveCfg = Debug|Win32
+		{5DC25A42-2D36-4D00-B65A-831B92579301}.Debug|Win32.Build.0 = Debug|Win32
+		{5DC25A42-2D36-4D00-B65A-831B92579301}.Debug|x64.ActiveCfg = Debug|x64
+		{5DC25A42-2D36-4D00-B65A-831B92579301}.Debug|x64.Build.0 = Debug|x64
+		{5DC25A42-2D36-4D00-B65A-831B92579301}.Release|Win32.ActiveCfg = Release|Win32
+		{5DC25A42-2D36-4D00-B65A-831B92579301}.Release|Win32.Build.0 = Release|Win32
+		{5DC25A42-2D36-4D00-B65A-831B92579301}.Release|x64.ActiveCfg = Release|x64
+		{5DC25A42-2D36-4D00-B65A-831B92579301}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

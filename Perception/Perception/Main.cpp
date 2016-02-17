@@ -43,10 +43,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define APP_SIZE_WIDTH 800
 #define APP_SIZE_HEIGHT 360
 #define APP_SIZE_FONT 32
-#define APP_COLOR_FONT RGB(180, 120, 60)
-#define APP_COLOR_BACK RGB(40, 40, 100)
-#define APP_FONT L"Candara"
-#define APP_FONT_ITALIC TRUE
+#define APP_COLOR_FONT RGB(100, 40, 40)
+#define APP_COLOR_BACK RGB(30, 5, 5)
+#define APP_BUTTON_PENCOLOR RGB(0, 0, 0)
+#define APP_BUTTON_BRUSHCOLOR RGB(80, 60, 60)
+#define APP_FONT L"Constantia"
+#define APP_FONT_ITALIC FALSE
 
 #define DEBUG_UINT_A(a) { char buf[128]; wsprintf(buf, "%u", a); OutputDebugString(buf); }
 
@@ -303,7 +305,7 @@ public:
 
 		// create the 'Load Aquilinus Profile' button
 		ZeroMemory(&sControl, sizeof(Vireio_Control));
-		static std::wstring szLoadProfile = std::wstring(L"Vireio Profile");
+		static std::wstring szLoadProfile = std::wstring(L"   Vireio Profile");
 		sControl.m_eControlType = Vireio_Control_Type::Button;
 		sControl.m_sPosition.x = 452;
 		sControl.m_sPosition.y = 128;
@@ -467,18 +469,28 @@ LRESULT WINAPI Vireio_Perception_Main_Window::main_window_proc(HWND window_handl
 
 						 hdc = BeginPaint(window_handle, &ps);
 
+						 // draw GUI
 						 hdcMem = CreateCompatibleDC(hdc);
 						 HBITMAP hGUI = m_pcVireioGUI->GetGUI(true, false, true, true);
 						 SelectObject(hdcMem, hGUI);
-
 						 GetObject(hGUI, sizeof(bitmap), &bitmap);
 						 BitBlt(hdc, 0, 0, bitmap.bmWidth, bitmap.bmHeight, hdcMem, 0, 0, SRCCOPY);
 
+						 // draw logo
 						 SelectObject(hdcMem, logo_bitmap);
-
 						 GetObject(logo_bitmap, sizeof(bitmap), &bitmap);
 						 BitBlt(hdc, 0, 0, bitmap.bmWidth, bitmap.bmHeight, hdcMem, 0, 0, SRCCOPY);
 						 DeleteDC(hdcMem);
+
+						 // draw profile button + close icon
+						 SelectObject(hdc, GetStockObject(DC_PEN));
+						 SelectObject(hdc, GetStockObject(DC_BRUSH));
+						 SetDCPenColor(hdc, APP_BUTTON_PENCOLOR);
+						 SetDCBrushColor(hdc, APP_BUTTON_BRUSHCOLOR);
+						 Rectangle(hdc, 456, 132, 456 + 184, 132 + 69);
+						 Rectangle(hdc, APP_SIZE_WIDTH - 18, bitmap.bmHeight, APP_SIZE_WIDTH - 1, bitmap.bmHeight + 19);
+						 SetDCBrushColor(hdc, APP_BUTTON_PENCOLOR);
+						 Rectangle(hdc, APP_SIZE_WIDTH - 12, bitmap.bmHeight + 7, APP_SIZE_WIDTH - 7, bitmap.bmHeight + 12);
 
 						 EndPaint(window_handle, &ps);
 

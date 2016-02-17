@@ -553,9 +553,9 @@ void Vireio_GUI::DrawButton(HDC hdc, Vireio_Control& sControl, bool bDarkenButto
 	{
 		COLORREF dwColorFront = GetTextColor(hdc);
 		COLORREF dwColorBack = GetBkColor(hdc);
-		BYTE nR = GetRValue(dwColorFront); if (GetRValue(dwColorBack) < nR) nR = GetRValue(dwColorBack);
-		BYTE nG = GetGValue(dwColorFront); if (GetGValue(dwColorBack) < nG) nG = GetGValue(dwColorBack);
-		BYTE nB = GetBValue(dwColorFront); if (GetBValue(dwColorBack) < nB) nB = GetBValue(dwColorBack);
+		BYTE nR = GetRValue(dwColorFront); if (GetRValue(dwColorBack) < nR) nR = GetRValue(dwColorBack); nR = nR >> 1;
+		BYTE nG = GetGValue(dwColorFront); if (GetGValue(dwColorBack) < nG) nG = GetGValue(dwColorBack); nG = nG >> 1;
+		BYTE nB = GetBValue(dwColorFront); if (GetBValue(dwColorBack) < nB) nB = GetBValue(dwColorBack); nB = nB >> 1;
 		COLORREF dwColorTmp = RGB(nR, nG, nB);
 		SetTextColor(hdc, dwColorTmp);
 		TextOutW(hdc,
@@ -912,8 +912,9 @@ Vireio_GUI_Event Vireio_GUI::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam
 	m_sMouseCoords.x = GET_X_LPARAM(lParam) * dwMultiplyMouseCoords;
 	m_sMouseCoords.y = GET_Y_LPARAM(lParam) * dwMultiplyMouseCoords;
 
-	// border adjustment
-	m_sMouseCoords.x -= 16;
+	// border adjustment -> only if mouse coords are multiplied
+	if (dwMultiplyMouseCoords > 1)
+		m_sMouseCoords.x -= 16;
 
 	switch (msg)
 	{
