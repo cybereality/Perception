@@ -1684,6 +1684,47 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 								}
 							}
 						}
+
+						// TODO !! DELETE !! PRELIMINARY HOTKEYS !!
+						if (true)
+						{
+							if (GetAsyncKeyState(VK_F5))
+							{
+								m_sGameConfiguration.fWorldScaleFactor *= 0.9999f;
+
+								// update view transform
+								m_pcShaderViewAdjustment->Load(m_sGameConfiguration);
+								m_pcShaderViewAdjustment->UpdateProjectionMatrices(((float)1920.0f / (float)1080.0f) * m_sGameConfiguration.fAspectMultiplier, m_sGameConfiguration.fPFOV);
+								m_pcShaderViewAdjustment->ComputeViewTransforms();
+							}
+							if (GetAsyncKeyState(VK_F6))
+							{
+								m_sGameConfiguration.fWorldScaleFactor *= 1.0001f;
+
+								// update view transform
+								m_pcShaderViewAdjustment->Load(m_sGameConfiguration);
+								m_pcShaderViewAdjustment->UpdateProjectionMatrices(((float)1920.0f / (float)1080.0f) * m_sGameConfiguration.fAspectMultiplier, m_sGameConfiguration.fPFOV);
+								m_pcShaderViewAdjustment->ComputeViewTransforms();
+							}
+							if (GetAsyncKeyState(VK_F7))
+							{
+								m_sGameConfiguration.fConvergence *= 0.9999f;
+
+								// update view transform
+								m_pcShaderViewAdjustment->Load(m_sGameConfiguration);
+								m_pcShaderViewAdjustment->UpdateProjectionMatrices(((float)1920.0f / (float)1080.0f) * m_sGameConfiguration.fAspectMultiplier, m_sGameConfiguration.fPFOV);
+								m_pcShaderViewAdjustment->ComputeViewTransforms();
+							}
+							if (GetAsyncKeyState(VK_F8))
+							{
+								m_sGameConfiguration.fConvergence *= 1.0001f;
+
+								// update view transform
+								m_pcShaderViewAdjustment->Load(m_sGameConfiguration);
+								m_pcShaderViewAdjustment->UpdateProjectionMatrices(((float)1920.0f / (float)1080.0f) * m_sGameConfiguration.fAspectMultiplier, m_sGameConfiguration.fPFOV);
+								m_pcShaderViewAdjustment->ComputeViewTransforms();
+							}
+						}
 					}
 					return nullptr;
 #pragma endregion
@@ -1730,7 +1771,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 							// get shader index
 							for (UINT dwI = 1; dwI < (UINT)m_adwPShaderHashCodes.size(); dwI++)
-							{								
+							{
 								if (sPrivateData.dwHash == m_adwPShaderHashCodes[dwI])
 								{
 									// move one forward
