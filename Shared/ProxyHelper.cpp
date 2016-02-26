@@ -780,7 +780,7 @@ bool ProxyHelper::LoadConfig(ProxyConfig& config, OculusProfile& oculusProfile)
 		// Handle most of the settings
 		HandleGameProfile(CONFIG_LOAD, gameProfile, config);
 		
-		debugf("gameType: %d\n", gameProfile.attribute("game_type").as_string());
+		debugf("gameType: %s\n", gameProfile.attribute("game_type").as_string());
 
 		//SB: This will need to be changed back when the memory modification stuff is updated, but for now
 		//I am disabling the restore of the camera translation as it is causing confusion for a lot of people when
