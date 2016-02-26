@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClInclude Include="..\AQU_Nodus.h" />
+    <ClInclude Include="..\Resources.h" />
+    <ClInclude Include="..\OSVR-Tracker.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\AQU_Nodus.def" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\OSVR-Tracker.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\OSVR-Tracker_Resources.rc" />
+  </ItemGroup>
+</Project>
