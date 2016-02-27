@@ -9,8 +9,8 @@ File <OSVR-Tracker.cpp> and
 Class <OSVR-Tracker> :
 Copyright (C) 2015 Denis Reischl
 
-The stub class <AQU_Nodus> is the only public class from the Aquilinus 
-repository and permitted to be used for open source plugins of any kind. 
+The stub class <AQU_Nodus> is the only public class from the Aquilinus
+repository and permitted to be used for open source plugins of any kind.
 Read the Aquilinus documentation for further information.
 
 Vireio Perception Version History:
@@ -42,7 +42,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /**
 * Constructor.
 ***/
-OSVR_Tracker::OSVR_Tracker():AQU_Nodus()
+OSVR_Tracker::OSVR_Tracker() :AQU_Nodus(),
+m_psOSVR_ClientContext(nullptr),
+m_psOSVR_ClientInterface(nullptr)
 {
 }
 
@@ -51,14 +53,18 @@ OSVR_Tracker::OSVR_Tracker():AQU_Nodus()
 ***/
 OSVR_Tracker::~OSVR_Tracker()
 {
+	if (m_psOSVR_ClientInterface)
+		osvrClientFreeInterface(m_psOSVR_ClientContext, m_psOSVR_ClientInterface);
+	if (m_psOSVR_ClientContext)
+		osvrClientShutdown(m_psOSVR_ClientContext);
 }
 
 /**
 * Return the name of the  OSVR Tracker node.
 ***/
-const char* OSVR_Tracker::GetNodeType() 
+const char* OSVR_Tracker::GetNodeType()
 {
-	return "OSVR Tracker"; 
+	return "OSVR Tracker";
 }
 
 /**
@@ -82,14 +88,14 @@ LPWSTR OSVR_Tracker::GetCategory()
 /**
 * Returns a logo to be used for the OSVR Tracker node.
 ***/
-HBITMAP OSVR_Tracker::GetLogo() 
-{ 
+HBITMAP OSVR_Tracker::GetLogo()
+{
 	HMODULE hModule = GetModuleHandle(L"OSVR-Tracker.dll");
 	HBITMAP hBitmap = LoadBitmap(hModule, MAKEINTRESOURCE(IMG_LOGO01));
 	return hBitmap;
 }
 
-/** 
+/**
 * Returns the updated control for the OSVR Tracker node.
 * Allways return >nullptr< if there is no update for the control !!
 ***/
@@ -105,7 +111,7 @@ LPWSTR OSVR_Tracker::GetDecommanderName(DWORD dwDecommanderIndex)
 {
 	//switch ((STS_Decommanders)dwDecommanderIndex)
 	{
-	//case STS_Decommanders:::
+		//case STS_Decommanders:::
 		//return L"";
 	}
 
@@ -115,11 +121,11 @@ LPWSTR OSVR_Tracker::GetDecommanderName(DWORD dwDecommanderIndex)
 /**
 * Returns the plug type for the requested decommander.
 ***/
-DWORD OSVR_Tracker::GetDecommanderType(DWORD dwDecommanderIndex) 
+DWORD OSVR_Tracker::GetDecommanderType(DWORD dwDecommanderIndex)
 {
 	//switch ((STS_Decommanders)dwDecommanderIndex)
 	{
-	//case STS_Decommanders:::
+		//case STS_Decommanders:::
 		//return PNT_IDIRECT3DTEXTURE9_PLUG_TYPE;
 	}
 
@@ -136,15 +142,55 @@ void OSVR_Tracker::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 /**
 * Tracker supports any calls.
 ***/
-bool OSVR_Tracker::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod)  
-{ 
+bool OSVR_Tracker::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod)
+{
 	return true;
 }
 
 /**
 * Handle OSVR tracking.
 ***/
-void* OSVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)	
+void* OSVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)
 {
+	if ((!m_psOSVR_ClientContext) || (!m_psOSVR_ClientInterface))
+	{
+		// create client context handle
+		m_psOSVR_ClientContext =
+			osvrClientInit("com.mtbs3d.vireio.osvr.tracker", 0);
+
+		// get client interface
+		osvrClientGetInterface(m_psOSVR_ClientContext, /*"/me/hands/left"*/"/me/head", &m_psOSVR_ClientInterface);
+	}
+	else
+	{
+		// update the client context
+		osvrClientUpdate(m_psOSVR_ClientContext);
+
+		// let's read the tracker state.
+		OSVR_PoseState sState;
+		OSVR_TimeValue sTimestamp;
+		OSVR_ReturnCode cRet =
+			osvrGetPoseState(m_psOSVR_ClientInterface, &sTimestamp, &sState);
+		if (cRet != OSVR_RETURN_SUCCESS)
+		{
+			OutputDebugStringA("No pose state!\n");
+
+		}
+		else
+		{
+			// output debug data
+			std::wstringstream szPose;
+			szPose << L"Got POSE state: Position = ("
+				<< sState.translation.data[0] << L", "
+				<< sState.translation.data[1] << L", "
+				<< sState.translation.data[2] << L"), orientation = ("
+				<< osvrQuatGetW(&(sState.rotation)) << L", "
+				<< osvrQuatGetX(&(sState.rotation)) << L", "
+				<< osvrQuatGetY(&(sState.rotation)) << L", "
+				<< osvrQuatGetZ(&(sState.rotation)) << L")";
+			OutputDebugString(szPose.str().c_str());
+		}
+	}
+
 	return nullptr;
 }

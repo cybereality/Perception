@@ -37,12 +37,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include"AQU_Nodus.h"
 #include"Resources.h"
+#include<stdio.h>
+#include<sstream>
 
-#include <d3d9.h>
-#pragma comment(lib, "d3d9.lib")
-
-#include <d3dx9.h>
-#pragma comment(lib, "d3dx9.lib")
+#include <osvr/ClientKit/ContextC.h>
+#include <osvr/ClientKit/InterfaceC.h>
+#include <osvr/ClientKit/InterfaceStateC.h>
+#pragma comment(lib, "osvrClientKit.lib")
 
 #define PNT_FLOAT_PLUG_TYPE                          104
 #define PNT_INT_PLUG_TYPE                            107 
@@ -59,8 +60,7 @@ enum STS_Decommanders
 };
 
 /**
-* Vireio Stereo Presenter Node Plugin (Direct3D 9).
-* Vireio Perception Stereo Drawing Handler.
+* Vireio Open Source VR Tracker Node Plugin.
 ***/
 class OSVR_Tracker : public AQU_Nodus
 {
@@ -82,6 +82,15 @@ public:
 	virtual void            SetInputPointer(DWORD dwDecommanderIndex, void* pData);
 	virtual bool            SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod);
 	virtual void*           Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex);
+private:
+	/**
+	* The OSVR client context handle.
+	***/
+	OSVR_ClientContext m_psOSVR_ClientContext;
+	/**
+	* The OSVR client interface handle.
+	***/
+	OSVR_ClientInterface m_psOSVR_ClientInterface;
 };
 
 /**
