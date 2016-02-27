@@ -147,48 +147,48 @@ HBITMAP OSVR_Tracker::GetControl()
 
 			// display the values suiteable to the data commanders... first yaw pitch roll
 			szBuffer << m_fPitch;
-			TextOut(hdcImage, 830, nY, L"Pitch X", 7);
-			TextOut(hdcImage, 300, nY, szBuffer.str().c_str(), szBuffer.str().length());
+			TextOut(hdcImage, 730, nY, L"Pitch X", 7);
+			TextOut(hdcImage, 200, nY, szBuffer.str().c_str(), (int)szBuffer.str().length());
 			nY += 64; szBuffer = std::wstringstream();
 			szBuffer << m_fYaw;
-			TextOut(hdcImage, 830, nY, L"Yaw Y", 5);
-			TextOut(hdcImage, 300, nY, szBuffer.str().c_str(), szBuffer.str().length());
+			TextOut(hdcImage, 780, nY, L"Yaw Y", 5);
+			TextOut(hdcImage, 200, nY, szBuffer.str().c_str(), (int)szBuffer.str().length());
 			nY += 64; szBuffer = std::wstringstream();
 			szBuffer << m_fRoll;
-			TextOut(hdcImage, 830, nY, L"Roll Z", 6);
-			TextOut(hdcImage, 300, nY, szBuffer.str().c_str(), szBuffer.str().length());
+			TextOut(hdcImage, 765, nY, L"Roll Z", 6);
+			TextOut(hdcImage, 200, nY, szBuffer.str().c_str(), (int)szBuffer.str().length());
 			nY += 64; szBuffer = std::wstringstream();
 
 			// orientation
 			szBuffer << m_sState.rotation.data[0];
-			TextOut(hdcImage, 620, nY, L"Orientation W", 13);
-			TextOut(hdcImage, 300, nY, szBuffer.str().c_str(), szBuffer.str().length());
+			TextOut(hdcImage, 570, nY, L"Orientation W", 13);
+			TextOut(hdcImage, 200, nY, szBuffer.str().c_str(), (int)szBuffer.str().length());
 			nY += 64; szBuffer = std::wstringstream();
 			szBuffer << m_sState.rotation.data[1];
-			TextOut(hdcImage, 620, nY, L"Orientation X", 13);
-			TextOut(hdcImage, 300, nY, szBuffer.str().c_str(), szBuffer.str().length());
+			TextOut(hdcImage, 570, nY, L"Orientation X", 13);
+			TextOut(hdcImage, 200, nY, szBuffer.str().c_str(), (int)szBuffer.str().length());
 			nY += 64; szBuffer = std::wstringstream();
 			szBuffer << m_sState.rotation.data[2];
-			TextOut(hdcImage, 620, nY, L"Orientation Y", 13);
-			TextOut(hdcImage, 300, nY, szBuffer.str().c_str(), szBuffer.str().length());
+			TextOut(hdcImage, 570, nY, L"Orientation Y", 13);
+			TextOut(hdcImage, 200, nY, szBuffer.str().c_str(), (int)szBuffer.str().length());
 			nY += 64; szBuffer = std::wstringstream();
 			szBuffer << m_sState.rotation.data[3];
-			TextOut(hdcImage, 620, nY, L"Orientation Z", 13);
-			TextOut(hdcImage, 300, nY, szBuffer.str().c_str(), szBuffer.str().length());
+			TextOut(hdcImage, 570, nY, L"Orientation Z", 13);
+			TextOut(hdcImage, 200, nY, szBuffer.str().c_str(), (int)szBuffer.str().length());
 			nY += 64; szBuffer = std::wstringstream();
 
 			// position tracking
 			szBuffer << m_sState.translation.data[0];
-			TextOut(hdcImage, 700, nY, L"Position X", 10);
-			TextOut(hdcImage, 300, nY, szBuffer.str().c_str(), szBuffer.str().length());
+			TextOut(hdcImage, 650, nY, L"Position X", 10);
+			TextOut(hdcImage, 200, nY, szBuffer.str().c_str(), (int)szBuffer.str().length());
 			nY += 64; szBuffer = std::wstringstream();
 			szBuffer << m_sState.translation.data[1];
-			TextOut(hdcImage, 700, nY, L"Position Y", 10);
-			TextOut(hdcImage, 300, nY, szBuffer.str().c_str(), szBuffer.str().length());
+			TextOut(hdcImage, 650, nY, L"Position Y", 10);
+			TextOut(hdcImage, 200, nY, szBuffer.str().c_str(), (int)szBuffer.str().length());
 			nY += 64; szBuffer = std::wstringstream();
 			szBuffer << m_sState.translation.data[2];
-			TextOut(hdcImage, 700, nY, L"Position Z", 10);
-			TextOut(hdcImage, 300, nY, szBuffer.str().c_str(), szBuffer.str().length());
+			TextOut(hdcImage, 650, nY, L"Position Z", 10);
+			TextOut(hdcImage, 200, nY, szBuffer.str().c_str(), (int)szBuffer.str().length());
 			nY += 64; szBuffer = std::wstringstream();
 
 			// Restore the original font.
@@ -275,6 +275,30 @@ DWORD OSVR_Tracker::GetCommanderType(DWORD dwCommanderIndex)
 ***/
 void* OSVR_Tracker::GetOutputPointer(DWORD dwCommanderIndex)
 {
+	switch ((OSVR_Commanders)dwCommanderIndex)
+	{
+		case OSVR_Commanders::Pitch:
+			return (void*)&m_fPitch;
+		case OSVR_Commanders::Yaw:
+			return (void*)&m_fYaw;
+		case OSVR_Commanders::Roll:
+			return (void*)&m_fRoll;
+		case OSVR_Commanders::OrientationW:
+			return nullptr;
+		case OSVR_Commanders::OrientationX:
+			return nullptr;
+		case OSVR_Commanders::OrientationY:
+			return nullptr;
+		case OSVR_Commanders::OrientationZ:
+			return nullptr;
+		case OSVR_Commanders::PositionX:
+			return nullptr;
+		case OSVR_Commanders::PositionY:
+			return nullptr;
+		case OSVR_Commanders::PositionZ:
+			return nullptr;
+	}
+
 	return nullptr;
 }
 
