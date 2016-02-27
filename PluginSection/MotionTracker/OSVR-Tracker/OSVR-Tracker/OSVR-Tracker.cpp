@@ -44,8 +44,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***/
 OSVR_Tracker::OSVR_Tracker() :AQU_Nodus(),
 m_psOSVR_ClientContext(nullptr),
-m_psOSVR_ClientInterface(nullptr)
+m_psOSVR_ClientInterface(nullptr),
+m_hBitmapControl(nullptr),
+m_bControlUpdate(false),
+m_hFont(nullptr)
 {
+	ZeroMemory(&m_sState, sizeof(OSVR_PoseState));
+	ZeroMemory(&m_sTimestamp, sizeof(OSVR_TimeValue));
 }
 
 /**
@@ -101,42 +106,176 @@ HBITMAP OSVR_Tracker::GetLogo()
 ***/
 HBITMAP OSVR_Tracker::GetControl()
 {
-	return nullptr;
+	if (!m_hBitmapControl)
+	{
+		// create bitmap, set control update to true
+		HWND hwnd = GetActiveWindow();
+		HDC hdc = GetDC(hwnd);
+		m_hBitmapControl = CreateCompatibleBitmap(hdc, 1024, 1700);
+		if (!m_hBitmapControl)
+			OutputDebugString(L"Failed to create bitmap!");
+		m_bControlUpdate = true;
+	}
+
+	if (m_bControlUpdate)
+	{
+		// get control bitmap dc
+		HDC hdcImage = CreateCompatibleDC(NULL);
+		HBITMAP hbmOld = (HBITMAP)SelectObject(hdcImage, m_hBitmapControl);
+		HFONT hOldFont;
+
+		// clear the background
+		RECT rc;
+		SetRect(&rc, 0, 0, 1024, 1700);
+		FillRect(hdcImage, &rc, (HBRUSH)CreateSolidBrush(RGB(238, 238, 238)));
+
+		// create font
+		if (!m_hFont)
+			m_hFont = CreateFont(64, 0, 0, 0, 0, FALSE,
+			FALSE, FALSE, ANSI_CHARSET, OUT_DEFAULT_PRECIS,
+			CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH,
+			L"Consolas");
+
+		// Select the variable stock font into the specified device context. 
+		if ((hOldFont = (HFONT)SelectObject(hdcImage, m_hFont)) && (m_psOSVR_ClientContext))
+		{
+			int nY = 16;
+			std::wstringstream szBuffer;
+
+			SetTextColor(hdcImage, RGB(253, 128, 0));
+			SetBkColor(hdcImage, RGB(238, 238, 238));
+
+			// display the values suiteable to the data commanders... first yaw pitch roll
+			szBuffer << m_fPitch;
+			TextOut(hdcImage, 830, nY, L"Pitch X", 7);
+			TextOut(hdcImage, 300, nY, szBuffer.str().c_str(), szBuffer.str().length());
+			nY += 64; szBuffer = std::wstringstream();
+			szBuffer << m_fYaw;
+			TextOut(hdcImage, 830, nY, L"Yaw Y", 5);
+			TextOut(hdcImage, 300, nY, szBuffer.str().c_str(), szBuffer.str().length());
+			nY += 64; szBuffer = std::wstringstream();
+			szBuffer << m_fRoll;
+			TextOut(hdcImage, 830, nY, L"Roll Z", 6);
+			TextOut(hdcImage, 300, nY, szBuffer.str().c_str(), szBuffer.str().length());
+			nY += 64; szBuffer = std::wstringstream();
+
+			// orientation
+			szBuffer << m_sState.rotation.data[0];
+			TextOut(hdcImage, 620, nY, L"Orientation W", 13);
+			TextOut(hdcImage, 300, nY, szBuffer.str().c_str(), szBuffer.str().length());
+			nY += 64; szBuffer = std::wstringstream();
+			szBuffer << m_sState.rotation.data[1];
+			TextOut(hdcImage, 620, nY, L"Orientation X", 13);
+			TextOut(hdcImage, 300, nY, szBuffer.str().c_str(), szBuffer.str().length());
+			nY += 64; szBuffer = std::wstringstream();
+			szBuffer << m_sState.rotation.data[2];
+			TextOut(hdcImage, 620, nY, L"Orientation Y", 13);
+			TextOut(hdcImage, 300, nY, szBuffer.str().c_str(), szBuffer.str().length());
+			nY += 64; szBuffer = std::wstringstream();
+			szBuffer << m_sState.rotation.data[3];
+			TextOut(hdcImage, 620, nY, L"Orientation Z", 13);
+			TextOut(hdcImage, 300, nY, szBuffer.str().c_str(), szBuffer.str().length());
+			nY += 64; szBuffer = std::wstringstream();
+
+			// position tracking
+			szBuffer << m_sState.translation.data[0];
+			TextOut(hdcImage, 700, nY, L"Position X", 10);
+			TextOut(hdcImage, 300, nY, szBuffer.str().c_str(), szBuffer.str().length());
+			nY += 64; szBuffer = std::wstringstream();
+			szBuffer << m_sState.translation.data[1];
+			TextOut(hdcImage, 700, nY, L"Position Y", 10);
+			TextOut(hdcImage, 300, nY, szBuffer.str().c_str(), szBuffer.str().length());
+			nY += 64; szBuffer = std::wstringstream();
+			szBuffer << m_sState.translation.data[2];
+			TextOut(hdcImage, 700, nY, L"Position Z", 10);
+			TextOut(hdcImage, 300, nY, szBuffer.str().c_str(), szBuffer.str().length());
+			nY += 64; szBuffer = std::wstringstream();
+
+			// Restore the original font.
+			SelectObject(hdcImage, hOldFont);
+		}
+
+		SelectObject(hdcImage, hbmOld);
+		DeleteDC(hdcImage);
+
+		// next update only by request, return updated bitmap
+		m_bControlUpdate = false;
+		return m_hBitmapControl;
+	}
+	else
+		return nullptr;
 }
 
 /**
-* Provides the name of the requested decommander.
+* Provides the name of the requested commander.
 ***/
-LPWSTR OSVR_Tracker::GetDecommanderName(DWORD dwDecommanderIndex)
+LPWSTR OSVR_Tracker::GetCommanderName(DWORD dwCommanderIndex)
 {
-	//switch ((STS_Decommanders)dwDecommanderIndex)
+	switch ((OSVR_Commanders)dwCommanderIndex)
 	{
-		//case STS_Decommanders:::
-		//return L"";
+		case OSVR_Commanders::Pitch:
+			return L"Pitch";
+		case OSVR_Commanders::Yaw:
+			return L"Yaw";
+		case OSVR_Commanders::Roll:
+			return L"Roll";
+		case OSVR_Commanders::OrientationW:
+			return L"Orientation W";
+		case OSVR_Commanders::OrientationX:
+			return L"Orientation X";
+		case OSVR_Commanders::OrientationY:
+			return L"Orientation Y";
+		case OSVR_Commanders::OrientationZ:
+			return L"Orientation Z";
+		case OSVR_Commanders::PositionX:
+			return L"Position X";
+		case OSVR_Commanders::PositionY:
+			return L"Position Y";
+		case OSVR_Commanders::PositionZ:
+			return L"Position Z";
 	}
 
 	return L"";
 }
 
 /**
-* Returns the plug type for the requested decommander.
+* Provides the type of the requested commander.
 ***/
-DWORD OSVR_Tracker::GetDecommanderType(DWORD dwDecommanderIndex)
+DWORD OSVR_Tracker::GetCommanderType(DWORD dwCommanderIndex)
 {
-	//switch ((STS_Decommanders)dwDecommanderIndex)
+	switch ((OSVR_Commanders)dwCommanderIndex)
 	{
-		//case STS_Decommanders:::
-		//return PNT_IDIRECT3DTEXTURE9_PLUG_TYPE;
+		case OSVR_Commanders::Pitch:
+			return PNT_FLOAT_PLUG_TYPE;
+		case OSVR_Commanders::Yaw:
+			return PNT_FLOAT_PLUG_TYPE;
+		case OSVR_Commanders::Roll:
+			return PNT_FLOAT_PLUG_TYPE;
+		case OSVR_Commanders::OrientationW:
+			return PNT_FLOAT_PLUG_TYPE;
+		case OSVR_Commanders::OrientationX:
+			return PNT_FLOAT_PLUG_TYPE;
+		case OSVR_Commanders::OrientationY:
+			return PNT_FLOAT_PLUG_TYPE;
+		case OSVR_Commanders::OrientationZ:
+			return PNT_FLOAT_PLUG_TYPE;
+		case OSVR_Commanders::PositionX:
+			return PNT_FLOAT_PLUG_TYPE;
+		case OSVR_Commanders::PositionY:
+			return PNT_FLOAT_PLUG_TYPE;
+		case OSVR_Commanders::PositionZ:
+			return PNT_FLOAT_PLUG_TYPE;
 	}
 
 	return 0;
 }
 
 /**
-* Sets the input pointer for the requested decommander.
+* Provides the pointer of the requested commander.
 ***/
-void OSVR_Tracker::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
+void* OSVR_Tracker::GetOutputPointer(DWORD dwCommanderIndex)
 {
+	return nullptr;
 }
 
 /**
@@ -159,7 +298,7 @@ void* OSVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMe
 			osvrClientInit("com.mtbs3d.vireio.osvr.tracker", 0);
 
 		// get client interface
-		osvrClientGetInterface(m_psOSVR_ClientContext, /*"/me/hands/left"*/"/me/head", &m_psOSVR_ClientInterface);
+		osvrClientGetInterface(m_psOSVR_ClientContext, "/me/head", &m_psOSVR_ClientInterface);
 	}
 	else
 	{
@@ -167,28 +306,67 @@ void* OSVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMe
 		osvrClientUpdate(m_psOSVR_ClientContext);
 
 		// let's read the tracker state.
-		OSVR_PoseState sState;
-		OSVR_TimeValue sTimestamp;
 		OSVR_ReturnCode cRet =
-			osvrGetPoseState(m_psOSVR_ClientInterface, &sTimestamp, &sState);
+			osvrGetPoseState(m_psOSVR_ClientInterface, &m_sTimestamp, &m_sState);
 		if (cRet != OSVR_RETURN_SUCCESS)
 		{
 			OutputDebugStringA("No pose state!\n");
-
 		}
 		else
 		{
+			m_bControlUpdate = true;
+
+			// quaternion -> euler angles
+			const float w = (float)m_sState.rotation.data[0];
+			const float x = (float)m_sState.rotation.data[1];
+			const float y = (float)m_sState.rotation.data[2];
+			const float z = (float)m_sState.rotation.data[3];
+
+			float sqw = w*w;
+			float sqx = x*x;
+			float sqy = y*y;
+			float sqz = z*z;
+
+			float unit = sqx + sqy + sqz + sqw;
+			float test = x*y + z*w;
+
+			if (test > 0.499*unit)
+			{
+				// singularity at north pole
+				m_fYaw = 2 * atan2(x, w);
+				m_fRoll = FLOAT_PI / 2;
+				m_fPitch = 0;
+			}
+			else if (test < -0.499*unit)
+			{
+				// singularity at south pole
+				m_fYaw = -2 * atan2(x, w);
+				m_fRoll = -FLOAT_PI / 2;
+				m_fPitch = 0;
+			}
+			else
+			{
+				m_fYaw = atan2(2 * y*w - 2 * x*z, sqx - sqy - sqz + sqw);
+				m_fRoll = asin(2 * test / unit);
+				m_fPitch = atan2(2 * x * w - 2 * y * z, -sqx + sqy - sqz + sqw);
+			}
+
+			// PITCH = atan2(2.0 * (x * y + w * z), w * w + x * x - y * y - z * z);
+			// ROLL = atan2(2 * y * w - 2 * x * z, 1 - 2 * y * y - 2 * z * z);
+
+#ifdef _DEBUG
 			// output debug data
 			std::wstringstream szPose;
 			szPose << L"Got POSE state: Position = ("
-				<< sState.translation.data[0] << L", "
-				<< sState.translation.data[1] << L", "
-				<< sState.translation.data[2] << L"), orientation = ("
-				<< osvrQuatGetW(&(sState.rotation)) << L", "
-				<< osvrQuatGetX(&(sState.rotation)) << L", "
-				<< osvrQuatGetY(&(sState.rotation)) << L", "
-				<< osvrQuatGetZ(&(sState.rotation)) << L")";
+				<< m_sState.translation.data[0] << L", "
+				<< m_sState.translation.data[1] << L", "
+				<< m_sState.translation.data[2] << L"), orientation = ("
+				<< osvrQuatGetW(&(m_sState.rotation)) << L", "
+				<< osvrQuatGetX(&(m_sState.rotation)) << L", "
+				<< osvrQuatGetY(&(m_sState.rotation)) << L", "
+				<< osvrQuatGetZ(&(m_sState.rotation)) << L")";
 			OutputDebugString(szPose.str().c_str());
+#endif
 		}
 	}
 

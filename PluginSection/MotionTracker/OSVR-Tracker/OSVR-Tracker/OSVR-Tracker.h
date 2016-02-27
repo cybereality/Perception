@@ -49,14 +49,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define PNT_INT_PLUG_TYPE                            107 
 #define PNT_UINT_PLUG_TYPE                           112
 
-#define NUMBER_OF_DECOMMANDERS                         0
+#define NUMBER_OF_COMMANDERS                          10
+
+#define FLOAT_PI                            (3.1415926f)
 
 /**
 * Node Commander Enumeration.
 ***/
-enum STS_Decommanders
+enum OSVR_Commanders
 {
-	
+	Pitch,
+	Yaw,
+	Roll,
+	OrientationW,
+	OrientationX,
+	OrientationY,
+	OrientationZ,
+	PositionX,
+	PositionY,
+	PositionZ,
 };
 
 /**
@@ -76,10 +87,10 @@ public:
 	virtual HBITMAP         GetControl();
 	virtual DWORD           GetNodeWidth() { return 4+256+4; }
 	virtual DWORD           GetNodeHeight() { return 128; }
-	virtual DWORD           GetDecommandersNumber() { return NUMBER_OF_DECOMMANDERS; }
-	virtual LPWSTR          GetDecommanderName(DWORD dwDecommanderIndex);
-	virtual DWORD           GetDecommanderType(DWORD dwDecommanderIndex);
-	virtual void            SetInputPointer(DWORD dwDecommanderIndex, void* pData);
+	virtual DWORD           GetCommandersNumber() { return NUMBER_OF_COMMANDERS; }
+	virtual LPWSTR          GetCommanderName(DWORD dwCommanderIndex);
+	virtual DWORD           GetCommanderType(DWORD dwCommanderIndex);
+	virtual void*           GetOutputPointer(DWORD dwCommanderIndex);
 	virtual bool            SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod);
 	virtual void*           Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex);
 private:
@@ -91,6 +102,31 @@ private:
 	* The OSVR client interface handle.
 	***/
 	OSVR_ClientInterface m_psOSVR_ClientInterface;
+	/**
+	* The OSVR pose state.
+	* Contains both position and orientation.
+	***/
+	OSVR_PoseState m_sState;
+	/**
+	* The OSVR pose state time stamp.
+	***/
+	OSVR_TimeValue m_sTimestamp;
+	/**
+	* The control bitmap.
+	***/
+	HBITMAP m_hBitmapControl;
+	/**
+	* The control update bool.
+	***/
+	bool m_bControlUpdate;
+	/**
+	* The font used.
+	***/
+	HFONT m_hFont;
+	/**
+	* Euler angles.
+	***/
+	float m_fYaw, m_fRoll, m_fPitch;
 };
 
 /**
