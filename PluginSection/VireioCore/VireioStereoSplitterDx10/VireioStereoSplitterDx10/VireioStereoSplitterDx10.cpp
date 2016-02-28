@@ -1588,7 +1588,7 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 					// create pixel shader... TODO !! add option to switch output
 					if (!m_pcPixelShader11)
 					{
-						if (FAILED(CreateSimplePixelShader(pcDevice, &m_pcPixelShader11, PixelShaderTechnique::WarpSimple)))
+						if (FAILED(CreateSimplePixelShader(pcDevice, &m_pcPixelShader11, PixelShaderTechnique::DistortSimple)))
 							bAllCreated = false;
 					}
 					// Create vertex buffer
