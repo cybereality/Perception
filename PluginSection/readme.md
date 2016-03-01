@@ -7,9 +7,16 @@ Created using [Visual C++ 2013 Express for Windows Desktop]
 
     * FREESPACE      : The folder for libfreespace (Hillcrest Labs SDK).
     * DXSDK_DIR      : Your DirectX SDK folder (already set automatically by the June 2010 DirectX SDK).
+    * OVRSDKROOT     : Your Oculus SDK root directory.
+##### for OSVR-nodes:
+    * BOOST_ROOT     : Boost needed for the OSVR render manager
+    * OSVRRENDERMANAGER_INCLUDE_DIRS       : OSVR Render Manager include x64.
+    * OSVRRENDERMANAGER_INCLUDE_DIRS_Win32 : OSVR Render Manager include Win32.
+    * OSVRRENDERMANAGER_LIBRARIES          : OSVR Render Manager lib x64.
+    * OSVRRENDERMANAGER_LIBRARIES_Win32    : OSVR Render Manager lib Win32.
     * osvr_DIR       : Your OSVR core directory. (x64)
     * osvr_DIR_Win32 : Your OSVR core directory (Win32)
-    * OVRSDKROOT     : Your Oculus SDK root directory.
+    
 
 (use the command "setx -m osvr_DIR %~dp0" - f.i. OSVR core x64 - as administrator to quickly set an environment variable for new directories)
 

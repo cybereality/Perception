@@ -13,6 +13,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VireioMatrixModifierDx10", 
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OSVR-Tracker", "..\MotionTracker\OSVR-Tracker\OSVR-Tracker\VS2013\OSVR-Tracker.vcxproj", "{42FF1DFB-B8B3-4A03-B00A-C811D04344F8}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OSVR-DirectMode", "..\Renderer\OSVR-DirectMode\OSVR-DirectMode\VS2013\OSVR-DirectMode.vcxproj", "{99094EBA-A1FA-40C2-B081-AB0B25489FCC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -61,6 +63,14 @@ Global
 		{42FF1DFB-B8B3-4A03-B00A-C811D04344F8}.Release|Win32.Build.0 = Release|Win32
 		{42FF1DFB-B8B3-4A03-B00A-C811D04344F8}.Release|x64.ActiveCfg = Release|x64
 		{42FF1DFB-B8B3-4A03-B00A-C811D04344F8}.Release|x64.Build.0 = Release|x64
+		{99094EBA-A1FA-40C2-B081-AB0B25489FCC}.Debug|Win32.ActiveCfg = Debug|Win32
+		{99094EBA-A1FA-40C2-B081-AB0B25489FCC}.Debug|Win32.Build.0 = Debug|Win32
+		{99094EBA-A1FA-40C2-B081-AB0B25489FCC}.Debug|x64.ActiveCfg = Debug|x64
+		{99094EBA-A1FA-40C2-B081-AB0B25489FCC}.Debug|x64.Build.0 = Debug|x64
+		{99094EBA-A1FA-40C2-B081-AB0B25489FCC}.Release|Win32.ActiveCfg = Release|Win32
+		{99094EBA-A1FA-40C2-B081-AB0B25489FCC}.Release|Win32.Build.0 = Release|Win32
+		{99094EBA-A1FA-40C2-B081-AB0B25489FCC}.Release|x64.ActiveCfg = Release|x64
+		{99094EBA-A1FA-40C2-B081-AB0B25489FCC}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
