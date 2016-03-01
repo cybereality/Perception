@@ -3361,11 +3361,11 @@ bool D3DProxyDevice::setDrawingSide(vireio::RenderPosition side)
 					result = BaseDirect3DDevice9::SetTexture(it->first, pActualLeftTexture); 
 				else 
 					result = BaseDirect3DDevice9::SetTexture(it->first, pActualRightTexture);
+
+				if (result != D3D_OK)
+					OutputDebugString("Error trying to set one of the textures while switching between active eyes for drawing.\n");
 			}
 			// else the texture is mono and doesn't need changing. It will always be set initially and then won't need changing
-
-			if (result != D3D_OK)
-				OutputDebugString("Error trying to set one of the textures while switching between active eyes for drawing.\n");
 		}
 	}
 
