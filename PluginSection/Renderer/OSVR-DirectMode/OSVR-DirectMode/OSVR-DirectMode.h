@@ -9,8 +9,8 @@ File <OSVR-DirectMode.h> and
 Class <OSVR-DirectMode> :
 Copyright (C) 2015 Denis Reischl
 
-The stub class <AQU_Nodus> is the only public class from the Aquilinus 
-repository and permitted to be used for open source plugins of any kind. 
+The stub class <AQU_Nodus> is the only public class from the Aquilinus
+repository and permitted to be used for open source plugins of any kind.
 Read the Aquilinus documentation for further information.
 
 Vireio Perception Version History:
@@ -41,10 +41,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma comment(lib, "osvrClientKit.lib")
 #pragma comment(lib, "osvrRenderManager.lib")
 
+#include <d3d11.h>
+#pragma comment(lib, "d3d11.lib")
+
+// This must come after we include <d3d11.h> so its pointer types are defined.
+#include <osvr/RenderKit/GraphicsLibraryD3D11.h>
+
 #include"AQU_Nodus.h"
 #include"Resources.h"
-//#include<stdio.h>
-//#include<sstream>
 
 #define PNT_FLOAT_PLUG_TYPE                          104
 #define PNT_INT_PLUG_TYPE                            107 
@@ -56,8 +60,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * Node Commander Enumeration.
 ***/
 enum OSVR_Commanders
-{
-};
+{};
 
 /**
 * Vireio Open Source VR DirectMode Node Plugin.
@@ -74,7 +77,7 @@ public:
 	virtual LPWSTR          GetCategory();
 	virtual HBITMAP         GetLogo();
 	virtual HBITMAP         GetControl();
-	virtual DWORD           GetNodeWidth() { return 4+256+4; }
+	virtual DWORD           GetNodeWidth() { return 4 + 256 + 4; }
 	virtual DWORD           GetNodeHeight() { return 128; }
 	virtual DWORD           GetCommandersNumber() { return NUMBER_OF_COMMANDERS; }
 	virtual LPWSTR          GetCommanderName(DWORD dwCommanderIndex);
@@ -84,6 +87,15 @@ public:
 	virtual void*           Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex);
 private:
 
+	/*** OSVR_DirectMode private methods ***/
+	static void SetupDisplay(void* userData, osvr::renderkit::GraphicsLibrary cLibrary, osvr::renderkit::RenderBuffer cBuffers);
+	static void DrawWorld(void* userData, osvr::renderkit::GraphicsLibrary cLibrary, osvr::renderkit::RenderBuffer cBuffers,
+		osvr::renderkit::OSVR_ViewportDescription sViewport, OSVR_PoseState pose, osvr::renderkit::OSVR_ProjectionMatrix sProjection, OSVR_TimeValue deadline);
+
+	/**
+	* The OSVR render manager.
+	***/
+	osvr::renderkit::RenderManager* m_pcRenderManager;
 };
 
 /**

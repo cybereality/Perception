@@ -42,7 +42,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /**
 * Constructor.
 ***/
-OSVR_DirectMode::OSVR_DirectMode() :AQU_Nodus()
+OSVR_DirectMode::OSVR_DirectMode() :AQU_Nodus(),
+m_pcRenderManager(nullptr)
 {
 }
 
@@ -147,5 +148,113 @@ bool OSVR_DirectMode::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int 
 ***/
 void* OSVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)
 {
+	// Get an OSVR client context to use to access the devices
+	// that we need.
+	static osvr::clientkit::ClientContext m_pcClientContext = osvr::clientkit::ClientContext(
+		"com.mtbs3d.vireio.osvr.directmode");
+
+	if (m_pcRenderManager == nullptr)
+	{		
+		// Open Direct3D and set up the context for rendering to
+		// an HMD.  Do this using the OSVR RenderManager interface,
+		// which maps to the nVidia or other vendor direct mode
+		// to reduce the latency.
+		m_pcRenderManager = osvr::renderkit::createRenderManager(m_pcClientContext.get(), "Direct3D11");
+
+		if ((m_pcRenderManager == nullptr) || (!m_pcRenderManager->doingOkay()))
+		{
+			// Error
+			OutputDebugString(L"OSVR-DirectMode: [Error] No Render Manager available !");
+		}
+		else
+		{
+			// Set callback to handle setting up rendering in a display
+			m_pcRenderManager->SetDisplayCallback((osvr::renderkit::DisplayCallback)&OSVR_DirectMode::SetupDisplay);
+
+			// Register callback to render things in world space.
+			m_pcRenderManager->AddRenderCallback("/", (osvr::renderkit::RenderCallback)&OSVR_DirectMode::DrawWorld);
+
+			// Open the display and make sure this worked.
+			osvr::renderkit::RenderManager::OpenResults ret = m_pcRenderManager->OpenDisplay();
+			if (ret.status == osvr::renderkit::RenderManager::OpenStatus::FAILURE)
+			{
+				OutputDebugString(L"Could not open display");
+			}
+			if (ret.library.D3D11 == nullptr)
+			{
+				OutputDebugString(L"Attempted to run a Direct3D11 program with a config file that specified a different renderling library.");
+			}
+		}
+	}
+	else
+	{
+		// Update the context so we get our callbacks called and
+		// update tracker state.
+		m_pcClientContext.update();
+
+		if (!m_pcRenderManager->Render())
+		{
+			OutputDebugString(L"Render() returned false, maybe because it was asked to quit");
+		}
+	}
 	return nullptr;
+}
+
+/**
+* Callback to set up for rendering into a given display (which may have one or more eyes).
+***/
+void OSVR_DirectMode::SetupDisplay(void* userData, osvr::renderkit::GraphicsLibrary cLibrary, osvr::renderkit::RenderBuffer cBuffers)
+{
+	// Make sure our pointers are filled in correctly.  The config file selects
+	// the graphics library to use, and may not match our needs.
+	if (cLibrary.D3D11 == nullptr)
+	{
+		std::cerr << "SetupDisplay: No D3D11 GraphicsLibrary" << std::endl;
+		return;
+	}
+	if (cBuffers.D3D11 == nullptr)
+	{
+		std::cerr << "SetupDisplay: No D3D11 RenderBuffer" << std::endl;
+		return;
+	}
+
+	auto pcContext = cLibrary.D3D11->context;
+	auto renderTargetView = cBuffers.D3D11->colorBufferView;
+	auto depthStencilView = cBuffers.D3D11->depthStencilView;
+
+	// Set up to render to the textures for this eye
+	// RenderManager will have already set our render target to this
+	// eye's buffer, so we don't need to do that here.
+
+	// Perform a random colorfill.  This does not have to be random, but
+	// random draws attention if we leave any background showing.
+	FLOAT red = static_cast<FLOAT>((double)rand() / (double)RAND_MAX);
+	FLOAT green = static_cast<FLOAT>((double)rand() / (double)RAND_MAX);
+	FLOAT blue = static_cast<FLOAT>((double)rand() / (double)RAND_MAX);
+	FLOAT colorRgba[4] = { 0.3f * red, 0.3f * green, 0.3f * blue, 1.0f };
+	pcContext->ClearRenderTargetView(renderTargetView, colorRgba);
+	pcContext->ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+}
+
+/**
+* Callback to draw things in world space.
+***/
+void OSVR_DirectMode::DrawWorld(void* userData, osvr::renderkit::GraphicsLibrary cLibrary, osvr::renderkit::RenderBuffer cBuffers,
+	osvr::renderkit::OSVR_ViewportDescription sViewport, OSVR_PoseState pose, osvr::renderkit::OSVR_ProjectionMatrix sProjection, OSVR_TimeValue deadline)
+{
+	// Make sure our pointers are filled in correctly.  The config file selects
+	// the graphics library to use, and may not match our needs.
+	if (cLibrary.D3D11 == nullptr)
+	{
+		std::cerr << "SetupDisplay: No D3D11 GraphicsLibrary" << std::endl;
+		return;
+	}
+	if (cBuffers.D3D11 == nullptr)
+	{
+		std::cerr << "SetupDisplay: No D3D11 RenderBuffer" << std::endl;
+		return;
+	}
+
+	// auto pcContext = cLibrary.D3D11->context;
+	// auto device = cLibrary.D3D11->device;
 }
