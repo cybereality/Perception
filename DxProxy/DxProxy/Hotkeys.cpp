@@ -559,7 +559,7 @@ void D3DProxyDevice::HandleControls()
 							"VRBoost: StartMemoryScan - Failed");
 					}
 					//If initialising then we have successfully started a new scan
-					else if (vr = VRBOOST_SCAN_INITIALISING)
+					else if (vr == VRBOOST_SCAN_INITIALISING)
 					{
 						VRBoostStatus.VRBoost_Scanning = true;
 						//Definitely have no candidates at this point
