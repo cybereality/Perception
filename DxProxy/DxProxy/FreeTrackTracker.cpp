@@ -74,6 +74,7 @@ void FreeTrackTracker::init()
 	}
 	else
 	{
+		getData = NULL;
 		OutputDebugString("Failed to load FreeTrackClient.dll");
 	}
 }
