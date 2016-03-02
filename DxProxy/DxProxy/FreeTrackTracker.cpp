@@ -66,10 +66,16 @@ void FreeTrackTracker::init()
 	// Load DLL file
 	hinstLib = LoadLibrary("FreeTrackClient.dll");
 
-	// Get function pointer
-	getData = (importGetData)GetProcAddress(hinstLib, "FTGetData");
-
-	OutputDebugString("FreeTrack Tracker Init\n");
+	if (hinstLib != NULL)
+	{
+		// Get function pointer
+		getData = (importGetData)GetProcAddress(hinstLib, "FTGetData");
+		OutputDebugString("FreeTrack Tracker Init\n");
+	}
+	else
+	{
+		OutputDebugString("Failed to load FreeTrackClient.dll");
+	}
 }
 
 /**
