@@ -106,7 +106,6 @@ UINT GetMouseScrollLines()
 	return nScrollLines;
 }
 
-
 BOOL CALLBACK MonitorEnumProc( HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData )
 {
 	static int index = 0;
@@ -1287,8 +1286,6 @@ HRESULT WINAPI D3DProxyDevice::Clear(DWORD Count,CONST D3DRECT* pRects,DWORD Fla
 	return result;
 }
 
- 
-
 /**
 * Catches transform for stored proxy state block accordingly or updates proxy device.
 * @see D3D9ProxyStateBlock
@@ -2413,7 +2410,6 @@ HRESULT WINAPI D3DProxyDevice::CreateRenderTarget(UINT Width, UINT Height, D3DFO
 	return creationResult;
 }
 
-
 /**
 * This method must be called on the proxy device before the device is returned to the calling application.
 * Inits by game configuration.
@@ -2476,7 +2472,6 @@ void D3DProxyDevice::SetupHUD()
 	D3DXCreateSprite(this, &hudTextBox);
 }
 
-
 //Persist, just to the registry for now
 void D3DProxyDevice::DuckAndCover::SaveToRegistry()
 {
@@ -2518,7 +2513,6 @@ void D3DProxyDevice::DuckAndCover::LoadFromRegistry()
 		RegCloseKey(hKey);
 	}
 }
-
 
 void D3DProxyDevice::HandleLandmarkMoment(DeviceBehavior::WhenToDo when)
 {
@@ -3424,7 +3418,6 @@ bool D3DProxyDevice::switchDrawingSide()
 	return switched;
 }
 
-
 /**
 * Changes the HUD scale mode - also changes new scale in view adjustment class.
 ***/
@@ -3456,7 +3449,6 @@ void D3DProxyDevice::ChangeGUI3DDepthMode(GUI_3D_Depth_Modes newMode)
 	m_spShaderViewAdjustment->ChangeGUISquash(config.guiSquishPresets[(int)newMode]);
 	m_spShaderViewAdjustment->ChangeGUI3DDepth(config.gui3DDepthPresets[(int)newMode]);
 }
-
 
 void D3DProxyDevice::DuckAndCoverCalibrate()
 {
@@ -3858,36 +3850,37 @@ bool D3DProxyDevice::InitVRBoost()
 	LOAD_FUNCTION(VRboost_GetScanAssist, LPVRBOOST_GetScanAssist);
 	
 	if (missingFunctions.size() > 0)
-		{
-			hmVRboost = NULL;
-			m_bForceMouseEmulation = false;
-			FreeLibrary(hmVRboost);
-			OutputDebugString("FAILED loading VRboost methods:");
+	{
+		hmVRboost = NULL;
+		m_bForceMouseEmulation = false;
+		FreeLibrary(hmVRboost);
+		OutputDebugString("FAILED loading VRboost methods:");
 		
 		for(std::vector<std::string>::iterator ii=missingFunctions.begin(); ii!=missingFunctions.end(); ii++)
 		{
 			OutputDebugString(ii->c_str());
 		}
-		}
-		else
-		{
-			initSuccess = true;
-			m_bForceMouseEmulation = true;
-			VRBoostStatus.VRBoost_Active = true;
-			OutputDebugString("Success loading VRboost methods.");
-		}
+	}
+	else
+	{
+		initSuccess = true;
+		m_bForceMouseEmulation = true;
+		VRBoostStatus.VRBoost_Active = true;
+		OutputDebugString("Success loading VRboost methods.");
+	}
 
-		m_VRboostRulesPresent = false;
-		m_VertexShaderCount = 0;
-		m_VertexShaderCountLastFrame = 0;
+	m_VRboostRulesPresent = false;
+	m_VertexShaderCount = 0;
+	m_VertexShaderCountLastFrame = 0;
 
-		// set common default VRBoost values
-		ZeroMemory(&VRBoostValue[0], MAX_VRBOOST_VALUES*sizeof(float));
-		VRBoostValue[VRboostAxis::Zero] = 0.0f;
-		VRBoostValue[VRboostAxis::One] = 1.0f;
-		VRBoostValue[VRboostAxis::WorldFOV] = 95.0f;
-		VRBoostValue[VRboostAxis::PlayerFOV] = 125.0f;
-		VRBoostValue[VRboostAxis::FarPlaneFOV] = 95.0f;
+	// set common default VRBoost values
+	ZeroMemory(&VRBoostValue[0], MAX_VRBOOST_VALUES*sizeof(float));
+	VRBoostValue[VRboostAxis::Zero] = 0.0f;
+	VRBoostValue[VRboostAxis::One] = 1.0f;
+	VRBoostValue[VRboostAxis::WorldFOV] = 95.0f;
+	VRBoostValue[VRboostAxis::PlayerFOV] = 125.0f;
+	VRBoostValue[VRboostAxis::FarPlaneFOV] = 95.0f;
+	
 	return initSuccess;
 }
 
@@ -3924,9 +3917,7 @@ bool D3DProxyDevice::InitVRBoost()
 
  	return false;
  }
-
-
-
+ 
 void D3DProxyDevice::DeferedSaveConfig()
 {
 	m_saveConfigTimer = GetTickCount();
