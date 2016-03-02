@@ -37,7 +37,7 @@ int DirectInput::ReadMouse()
 			&mousestate);
 		if(FAILED(hr))
 		{
-			if(hr = DIERR_INPUTLOST)
+			if(hr == DIERR_INPUTLOST)
 			{
 				hr = lpdimouse->Acquire();
 				if(FAILED(hr))
