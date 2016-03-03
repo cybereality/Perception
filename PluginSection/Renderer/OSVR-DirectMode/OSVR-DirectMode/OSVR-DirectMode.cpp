@@ -380,7 +380,7 @@ void OSVR_DirectMode::DrawWorld(void* userData, osvr::renderkit::GraphicsLibrary
 	// create pixel shader... 
 	if (!m_pcPixelShader11)
 	{
-		if (FAILED(CreateSimplePixelShader(pcDevice, &m_pcPixelShader11, PixelShaderTechnique::SideBySide)))
+		if (FAILED(CreateSimplePixelShader(pcDevice, &m_pcPixelShader11, PixelShaderTechnique::FullscreenChangeAspectRatio)))
 			bAllCreated = false;
 	}
 	// Create vertex buffer
