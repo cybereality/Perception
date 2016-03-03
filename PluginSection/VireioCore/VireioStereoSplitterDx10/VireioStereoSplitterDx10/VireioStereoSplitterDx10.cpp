@@ -426,7 +426,7 @@ LPWSTR StereoSplitter::GetDecommanderName(DWORD dwDecommanderIndex)
 ***/
 DWORD StereoSplitter::GetCommanderType(DWORD dwCommanderIndex)
 {
-	return NULL;//PNT_IDIRECT3DTEXTURE9_PLUG_TYPE;
+	return NOD_Plugtype::AQU_PNT_ID3D11SHADERRESOURCEVIEW;
 }
 
 /**
@@ -539,14 +539,13 @@ DWORD StereoSplitter::GetDecommanderType(DWORD dwDecommanderIndex)
 ***/
 void* StereoSplitter::GetOutputPointer(DWORD dwCommanderIndex)
 {
-
-	//switch((STS_Commanders)dwCommanderIndex)
-	//{
-	///*case STS_Commanders::StereoTextureLeft:
-	//	return (void*)&m_pcStereoOutputLeft;
-	//case STS_Commanders::StereoTextureRight:
-	//	return (void*)&m_pcStereoOutputRight;*/
-	//}
+	switch((STS_Commanders)dwCommanderIndex)
+	{
+	case STS_Commanders::StereoTextureLeft:
+		return (void*)&m_pcTexView11[0];
+	case STS_Commanders::StereoTextureRight:
+		return (void*)&m_pcTexView11[1];
+	}
 
 	return nullptr;
 }
@@ -1513,7 +1512,7 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 
 #pragma region draw (optionally)
 	// draw stereo target to screen (optionally) // TODO !! OPTION TO SET DRAWING ON/OFF, TOBEDONE WHEN DOING THE GUI OF THIS NODE
-	if (true)
+	if (false)
 	{
 		switch (m_eD3DVersion)
 		{

@@ -77,12 +77,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define PNT_UINT_PLUG_TYPE                           112
 
 #define NUMBER_OF_COMMANDERS                           0
+#define NUMBER_OF_DECOMMANDERS                         2
 
 /**
 * Node Commander Enumeration.
 ***/
 enum OSVR_Commanders
 {};
+
+/**
+* Node Decommander Enumeration.
+***/
+enum OSVR_Decommanders
+{
+	LeftTexture,
+	RightTexture,
+};
 
 /**
 * Vireio Open Source VR DirectMode Node Plugin.
@@ -101,10 +111,10 @@ public:
 	virtual HBITMAP         GetControl();
 	virtual DWORD           GetNodeWidth() { return 4 + 256 + 4; }
 	virtual DWORD           GetNodeHeight() { return 128; }
-	virtual DWORD           GetCommandersNumber() { return NUMBER_OF_COMMANDERS; }
-	virtual LPWSTR          GetCommanderName(DWORD dwCommanderIndex);
-	virtual DWORD           GetCommanderType(DWORD dwCommanderIndex);
-	virtual void*           GetOutputPointer(DWORD dwCommanderIndex);
+	virtual DWORD           GetDecommandersNumber() { return NUMBER_OF_DECOMMANDERS; }
+	virtual LPWSTR          GetDecommanderName(DWORD dwDecommanderIndex);
+	virtual DWORD           GetDecommanderType(DWORD dwDecommanderIndex);
+	virtual void            SetInputPointer(DWORD dwDecommanderIndex, void* pData);
 	virtual bool            SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod);
 	virtual void*           Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex);
 private:
@@ -140,18 +150,16 @@ private:
 	***/
 	static ID3D11Buffer* m_pcConstantBufferDirect11;
 	/**
-	* A first test texture.
-	***/
-	static ID3D11Texture2D* m_pcTextureTest;
-	/**
-	* A first test texture view.
-	***/
-	static ID3D11ShaderResourceView* m_pcTextureTestView;
-	/**
 	* Basic sampler state.
 	***/
 	static ID3D11SamplerState* m_pcSamplerState;
-
+	/**
+	* Stereo Textures input. (DX11)
+	***/
+	static struct StereoTextureViews
+	{
+		ID3D11ShaderResourceView** m_ppcTexView11[2];
+	} m_sStereoTextureViews;
 };
 
 /**

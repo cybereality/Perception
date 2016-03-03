@@ -37,7 +37,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include"OSVR-DirectMode.h"
 
-#define INTERFACE_IDIRECT3DDEVICE9           8
+#define INTERFACE_IDIRECT3DDEVICE9                                           8
+#define INTERFACE_IDXGISWAPCHAIN                                             29
+
+#define METHOD_IDXGISWAPCHAIN_PRESENT                                        8
 
 #pragma region OSVR_DirectMode static fields
 ID3D11VertexShader* OSVR_DirectMode::m_pcVertexShader11;
@@ -45,9 +48,8 @@ ID3D11PixelShader* OSVR_DirectMode::m_pcPixelShader11;
 ID3D11InputLayout* OSVR_DirectMode::m_pcVertexLayout11;
 ID3D11Buffer* OSVR_DirectMode::m_pcVertexBuffer11;
 ID3D11Buffer* OSVR_DirectMode::m_pcConstantBufferDirect11;
-ID3D11Texture2D* OSVR_DirectMode::m_pcTextureTest;
-ID3D11ShaderResourceView* OSVR_DirectMode::m_pcTextureTestView;
 ID3D11SamplerState* OSVR_DirectMode::m_pcSamplerState;
+OSVR_DirectMode::StereoTextureViews OSVR_DirectMode::m_sStereoTextureViews;
 #pragma endregion
 
 /**
@@ -61,9 +63,9 @@ m_pcRenderManager(nullptr)
 	m_pcVertexLayout11 = nullptr;
 	m_pcVertexBuffer11 = nullptr;
 	m_pcConstantBufferDirect11 = nullptr;
-	m_pcTextureTest = nullptr;
-	m_pcTextureTestView = nullptr;
 	m_pcSamplerState = nullptr;
+	m_sStereoTextureViews.m_ppcTexView11[0] = nullptr;
+	m_sStereoTextureViews.m_ppcTexView11[1] = nullptr;
 }
 
 /**
@@ -119,39 +121,51 @@ HBITMAP OSVR_DirectMode::GetControl()
 }
 
 /**
-* Provides the name of the requested commander.
+* Provides the name of the requested decommander.
 ***/
-LPWSTR OSVR_DirectMode::GetCommanderName(DWORD dwCommanderIndex)
+LPWSTR OSVR_DirectMode::GetDecommanderName(DWORD dwDecommanderIndex)
 {
-	//switch ((OSVR_Commanders)dwCommanderIndex)
+	switch ((OSVR_Decommanders)dwDecommanderIndex)
 	{
+		case OSVR_Decommanders::LeftTexture:
+			return L"Left Texture";
+		case OSVR_Decommanders::RightTexture:
+			return L"Right Texture";
 	}
 
 	return L"";
 }
 
 /**
-* Provides the type of the requested commander.
+* Returns the plug type for the requested decommander.
 ***/
-DWORD OSVR_DirectMode::GetCommanderType(DWORD dwCommanderIndex)
+DWORD OSVR_DirectMode::GetDecommanderType(DWORD dwDecommanderIndex)
 {
-	//switch ((OSVR_Commanders)dwCommanderIndex)
+	switch ((OSVR_Decommanders)dwDecommanderIndex)
 	{
+		case OSVR_Decommanders::LeftTexture:
+			return NOD_Plugtype::AQU_PNT_ID3D11SHADERRESOURCEVIEW;
+		case OSVR_Decommanders::RightTexture:
+			return NOD_Plugtype::AQU_PNT_ID3D11SHADERRESOURCEVIEW;
 	}
 
 	return 0;
 }
 
 /**
-* Provides the pointer of the requested commander.
+* Sets the input pointer for the requested decommander.
 ***/
-void* OSVR_DirectMode::GetOutputPointer(DWORD dwCommanderIndex)
+void OSVR_DirectMode::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 {
-	//switch ((OSVR_Commanders)dwCommanderIndex)
+	switch ((OSVR_Decommanders)dwDecommanderIndex)
 	{
+		case OSVR_Decommanders::LeftTexture:
+			m_sStereoTextureViews.m_ppcTexView11[0] = (ID3D11ShaderResourceView**)pData;
+			break;
+		case OSVR_Decommanders::RightTexture:
+			m_sStereoTextureViews.m_ppcTexView11[1] = (ID3D11ShaderResourceView**)pData;
+			break;
 	}
-
-	return nullptr;
 }
 
 /**
@@ -168,6 +182,8 @@ bool OSVR_DirectMode::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int 
 ***/
 void* OSVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)
 {
+	if (eD3DInterface != INTERFACE_IDXGISWAPCHAIN) return nullptr;
+	if (eD3DMethod != METHOD_IDXGISWAPCHAIN_PRESENT) return nullptr;
 
 	// Get an OSVR client context to use to access the devices
 	// that we need.
@@ -235,89 +251,18 @@ void* OSVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 			m_pcClientContext.update();
 			asRenderInfo = m_pcRenderManager->GetRenderInfo();
 
-			// Set up the vector of textures to render to and any framebuffer
-			// we need to group them.
-			std::vector<osvr::renderkit::RenderBuffer> renderBuffers;
-			std::vector<ID3D11Texture2D*> depthStencilTextures;
-			std::vector<ID3D11DepthStencilView*> depthStencilViews;
-
-			// Construct test texture
-			D3DCOLOR tex_pixels[256 * 256];
-			int k = 1;
-			for (int j = 0; j < 256; j++)
-			for (int i = 0; i < 256; i++)
-			{
-				if (k == 0) tex_pixels[j * 256 + i] =
-					(((i >> 7) ^ (j >> 7)) & 1) ?
-					D3DCOLOR_ARGB(180, 180, 180, 255) : D3DCOLOR_ARGB(80, 80, 80, 255);
-				if (k == 1) tex_pixels[j * 256 + i] =
-					(((j / 4 & 15) == 0) || (((i / 4 & 15) == 0) && ((((i / 4 & 31) == 0) ^ ((j / 4 >> 4) & 1)) == 0))) ?
-					D3DCOLOR_ARGB(60, 60, 60, 255) : D3DCOLOR_ARGB(180, 180, 180, 255);
-				if (k == 2) tex_pixels[j * 256 + i] =
-					(i / 4 == 0 || j / 4 == 0) ?
-					D3DCOLOR_ARGB(80, 80, 80, 255) : D3DCOLOR_ARGB(180, 180, 180, 255);
-				if (k == 3) tex_pixels[j * 256 + i] =
-					D3DCOLOR_ARGB(128, 128, 128, 255);
-			}
-
-			//  Note that this texture format must be RGBA and unsigned byte,
-			// so that we can present it to Direct3D for DirectMode.
-			unsigned width = static_cast<int>(asRenderInfo[0].viewport.width);
-			unsigned height = static_cast<int>(asRenderInfo[0].viewport.height);
-
-			// Initialize a new texture description.
-			D3D11_TEXTURE2D_DESC textureDesc = {};
-			textureDesc.Width = 256;
-			textureDesc.Height = 256;
-			textureDesc.MipLevels = 1;
-			textureDesc.ArraySize = 1;
-			textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-			textureDesc.SampleDesc.Count = 1;
-			textureDesc.SampleDesc.Quality = 0;
-			textureDesc.Usage = D3D11_USAGE_DEFAULT;
-			textureDesc.BindFlags =
-				D3D11_BIND_SHADER_RESOURCE;
-			textureDesc.CPUAccessFlags = 0;
-			textureDesc.MiscFlags = 0;
-
-			D3D11_SUBRESOURCE_DATA sData;
-			ZeroMemory(&sData, sizeof(sData));
-			sData.pSysMem = tex_pixels;
-			sData.SysMemPitch = 256 * sizeof(BYTE)* 4;
-
-			// Create a new render target texture to use.
-			HRESULT hr = asRenderInfo[0].library.D3D11->device->CreateTexture2D(
-				&textureDesc, &sData, &m_pcTextureTest);
-
-			if (SUCCEEDED(hr))
-			{
-				D3D11_SHADER_RESOURCE_VIEW_DESC sSRVDesc;
-				memset(&sSRVDesc, 0, sizeof(sSRVDesc));
-				sSRVDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-				sSRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-				sSRVDesc.Texture2D.MipLevels = 1;
-
-				if (FAILED(asRenderInfo[0].library.D3D11->device->CreateShaderResourceView(m_pcTextureTest, &sSRVDesc, &m_pcTextureTestView)))
-					OutputDebugString(L"Failed to create Texture Resource View.");
-
-				// Create the sample state
-				D3D11_SAMPLER_DESC sSampDesc;
-				ZeroMemory(&sSampDesc, sizeof(sSampDesc));
-				sSampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-				sSampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-				sSampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-				sSampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-				sSampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-				sSampDesc.MinLOD = 0;
-				sSampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-				hr = asRenderInfo[0].library.D3D11->device->CreateSamplerState(&sSampDesc, &m_pcSamplerState);
-				if (FAILED(hr))
-					OutputDebugString(L"Failed to create Sampler State.");
-			}
-			else
-			{
-				OutputDebugString(L"Failed to create texture !");
-			}
+			// Create the sampler state
+			D3D11_SAMPLER_DESC sSampDesc;
+			ZeroMemory(&sSampDesc, sizeof(sSampDesc));
+			sSampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+			sSampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+			sSampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+			sSampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+			sSampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+			sSampDesc.MinLOD = 0;
+			sSampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+			if (FAILED(asRenderInfo[0].library.D3D11->device->CreateSamplerState(&sSampDesc, &m_pcSamplerState)))
+				OutputDebugString(L"Failed to create Sampler State.");
 		}
 	}
 	else
@@ -401,6 +346,8 @@ void OSVR_DirectMode::SetupDisplay(void* userData, osvr::renderkit::GraphicsLibr
 void OSVR_DirectMode::DrawWorld(void* userData, osvr::renderkit::GraphicsLibrary cLibrary, osvr::renderkit::RenderBuffer cBuffers,
 	osvr::renderkit::OSVR_ViewportDescription sViewport, OSVR_PoseState pose, osvr::renderkit::OSVR_ProjectionMatrix sProjection, OSVR_TimeValue deadline)
 {
+	static int nEye = 0;
+
 	// Make sure our pointers are filled in correctly.  The config file selects
 	// the graphics library to use, and may not match our needs.
 	if (cLibrary.D3D11 == nullptr)
@@ -448,11 +395,6 @@ void OSVR_DirectMode::DrawWorld(void* userData, osvr::renderkit::GraphicsLibrary
 		if (FAILED(CreateMatrixConstantBuffer(pcDevice, &m_pcConstantBufferDirect11)))
 			bAllCreated = false;
 	}
-	// texture ?
-	if (!m_pcTextureTest)
-	{
-		bAllCreated = false;
-	}
 	// sampler ?
 	if (!m_pcSamplerState)
 	{
@@ -460,7 +402,7 @@ void OSVR_DirectMode::DrawWorld(void* userData, osvr::renderkit::GraphicsLibrary
 	}
 
 
-	if (bAllCreated)
+	if ((bAllCreated) && (m_sStereoTextureViews.m_ppcTexView11[nEye]))
 	{
 		// Set the input layout
 		pcContext->IASetInputLayout(m_pcVertexLayout11);
@@ -480,7 +422,7 @@ void OSVR_DirectMode::DrawWorld(void* userData, osvr::renderkit::GraphicsLibrary
 		pcContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 		// set texture, sampler state
-		pcContext->PSSetShaderResources(0, 1, &m_pcTextureTestView);
+		pcContext->PSSetShaderResources(0, 1, m_sStereoTextureViews.m_ppcTexView11[nEye]);
 		pcContext->PSSetSamplers(0, 1, &m_pcSamplerState);
 
 		// set shaders
@@ -489,5 +431,8 @@ void OSVR_DirectMode::DrawWorld(void* userData, osvr::renderkit::GraphicsLibrary
 
 		// Render a triangle
 		pcContext->Draw(6, 0);
+
+		// switch eye for next call
+		nEye = !nEye;
 	}
 }
