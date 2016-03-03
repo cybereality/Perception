@@ -155,10 +155,11 @@ void* OSVR_DirectMode::GetOutputPointer(DWORD dwCommanderIndex)
 }
 
 /**
-* DirectMode supports any calls.
+* DirectMode supports IDXGISwapChain->Present().
 ***/
 bool OSVR_DirectMode::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod)
 {
+	// TODO !! ->Present() only
 	return true;
 }
 
@@ -167,6 +168,7 @@ bool OSVR_DirectMode::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int 
 ***/
 void* OSVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)
 {
+
 	// Get an OSVR client context to use to access the devices
 	// that we need.
 	static osvr::clientkit::ClientContext m_pcClientContext = osvr::clientkit::ClientContext(
@@ -174,11 +176,34 @@ void* OSVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 
 	if (m_pcRenderManager == nullptr)
 	{
+		// TODO !!! ADD -> if (D3D11)... else if (D3D10)...
+
+		// get device and context
+		ID3D11Device* pcDevice = nullptr;
+		ID3D11DeviceContext* pcContext = nullptr;
+		if (FAILED(GetDeviceAndContext((IDXGISwapChain*)pThis, &pcDevice, &pcContext)))
+		{
+			OutputDebugString(L"OSVR-DirectMode: Failed to get d3d11 device + context");
+			// release frame texture+view
+			if (pcDevice) { pcDevice->Release(); pcDevice = nullptr; }
+			if (pcContext) { pcContext->Release(); pcContext = nullptr; }
+			return nullptr;
+		}
+
+		// Put the device and context into a structure to let RenderManager
+		// know to use this one rather than creating its own.
+		osvr::renderkit::GraphicsLibrary cLibrary;
+		cLibrary.D3D11 = new osvr::renderkit::GraphicsLibraryD3D11;
+		cLibrary.D3D11->device = pcDevice;
+		cLibrary.D3D11->context = pcContext;
+		if (pcDevice) { pcDevice->Release(); pcDevice = nullptr; }
+		if (pcContext) { pcContext->Release(); pcContext = nullptr; }
+
 		// Open Direct3D and set up the context for rendering to
 		// an HMD.  Do this using the OSVR RenderManager interface,
 		// which maps to the nVidia or other vendor direct mode
 		// to reduce the latency.
-		m_pcRenderManager = osvr::renderkit::createRenderManager(m_pcClientContext.get(), "Direct3D11");
+		m_pcRenderManager = osvr::renderkit::createRenderManager(m_pcClientContext.get(), "Direct3D11", cLibrary);
 
 		if ((m_pcRenderManager == nullptr) || (!m_pcRenderManager->doingOkay()))
 		{
@@ -297,6 +322,25 @@ void* OSVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 	}
 	else
 	{
+		// get device and context
+		ID3D11Device* pcDevice = nullptr;
+		ID3D11DeviceContext* pcContext = nullptr;
+		if (FAILED(GetDeviceAndContext((IDXGISwapChain*)pThis, &pcDevice, &pcContext)))
+		{
+			OutputDebugString(L"OSVR-DirectMode: Failed to get d3d11 device + context");
+			// release frame texture+view
+			if (pcDevice) { pcDevice->Release(); pcDevice = nullptr; }
+			if (pcContext) { pcContext->Release(); pcContext = nullptr; }
+			return nullptr;
+		}
+
+		// backup all states
+		D3DX11_STATE_BLOCK sStateBlock;
+		CreateStateblock(pcContext, &sStateBlock);
+
+		// clear all states
+		pcContext->ClearState();
+
 		// Update the context so we get our callbacks called and
 		// update tracker state.
 		m_pcClientContext.update();
@@ -305,6 +349,12 @@ void* OSVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 		{
 			OutputDebugString(L"Render() returned false, maybe because it was asked to quit");
 		}
+
+		// set back device
+		ApplyStateblock(pcContext, &sStateBlock);
+
+		if (pcDevice) { pcDevice->Release(); pcDevice = nullptr; }
+		if (pcContext) { pcContext->Release(); pcContext = nullptr; }
 	}
 	return nullptr;
 }
