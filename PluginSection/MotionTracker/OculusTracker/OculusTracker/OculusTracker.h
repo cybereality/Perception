@@ -45,7 +45,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <d3dx9.h>
 #pragma comment(lib, "d3dx9.lib")
 
-#include"OVR_CAPI_D3D.h"
+#include "OVR_CAPI_D3D.h"
 
 #define PNT_FLOAT_PLUG_TYPE                          104
 #define PNT_INT_PLUG_TYPE                            107 
@@ -195,13 +195,13 @@ struct __ovrQuatf : public ovrQuatf
 ***/
 enum OTR_Commanders
 {
-	Yaw,
 	Pitch,
+	Yaw,
 	Roll,
+	OrientationW,
 	OrientationX,
 	OrientationY,
 	OrientationZ,
-	OrientationW,
 	PositionX,
 	PositionY,
 	PositionZ,
@@ -220,19 +220,6 @@ enum OTR_Commanders
 	DefaultProjectionMatrixLeft, /**<  Default FOV Oculus Rift projection matrix (Left) **/
 	DefaultProjectionMatrixRight,/**<  Default FOV Oculus Rift projection matrix (Left) **/
 };
-
-/**
-* Vertex declaration for the oculus distortion vertex.
-* OLD.... OBSOLETE starting with SDK 0.6.x... to be deleted after updating
-***/
-/*static const D3DVERTEXELEMENT9 VertexElements[7] =	{
-	{ 0,  0, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
-	{ 0,  8, D3DDECLTYPE_FLOAT1, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 1 },
-	{ 0, 12, D3DDECLTYPE_FLOAT1, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 2 },
-	{ 0, 16, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0 },
-	{ 0, 24, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 1 },
-	{ 0, 32, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 2 },
-	D3DDECL_END()	};*/
 
 /**
 * Oculus Tracker Node Plugin.
@@ -267,14 +254,14 @@ private:
 	* The handle of the headset.
 	***/
 	ovrHmd m_hHMD;
-	///**
-	//* Eye render description (left).
-	//***/
-	//ovrEyeRenderDesc m_sEyeRenderDescLeft;
-	///**
-	//* Eye render description (right).
-	//***/
-	//ovrEyeRenderDesc m_sEyeRenderDescRight;
+	/**
+	* The HMD description. 
+	***/
+	ovrHmdDesc m_sHMDDesc;
+	/**
+	* Identifier ?
+	***/
+	ovrGraphicsLuid m_sLuid;
 	/**
 	* The current pose of the rift.
 	***/
@@ -315,26 +302,6 @@ private:
 	* The font used.
 	***/
 	HFONT m_hFont;
-	///**
-	//* The direct3d 9 distortion mesh vertex buffer for the left eye.
-	//***/
-	//LPDIRECT3DVERTEXBUFFER9 m_pcDistortionVertexBufferLeft;
-	///**
-	//* The direct3d 9 distortion mesh vertex buffer for the right eye.
-	//***/
-	//LPDIRECT3DVERTEXBUFFER9 m_pcDistortionVertexBufferRight;
-	///**
-	//* Oculus distortion vertex declaration (D3D9).
-	//***/
-	//LPDIRECT3DVERTEXDECLARATION9 m_pcVertexDecl;
-	///**
-	//* The index buffer for the left distortion mesh.
-	//***/
-	//LPDIRECT3DINDEXBUFFER9 m_pcDistortionIndexBufferLeft;
-	///**
-	//* The index buffer for the right distortion mesh.
-	//***/
-	//LPDIRECT3DINDEXBUFFER9 m_pcDistortionIndexBufferRight;
 	/**
 	* Default FOV projection matrix.
 	***/

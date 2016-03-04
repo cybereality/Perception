@@ -80,18 +80,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="AQU_Nodus.h" />
-    <ClInclude Include="OculusTracker.h" />
-    <ClInclude Include="Resources.h" />
+    <ClInclude Include="..\AQU_Nodus.h" />
+    <ClInclude Include="..\OculusTracker.h" />
+    <ClInclude Include="..\Resources.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="OculusTracker.cpp" />
+    <ClCompile Include="..\OculusTracker.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="AQU_Nodus.def" />
+    <None Include="..\AQU_Nodus.def" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="OculusTracker_Resources.rc" />
+    <ResourceCompile Include="..\OculusTracker_Resources.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
