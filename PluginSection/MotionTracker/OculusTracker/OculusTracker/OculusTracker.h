@@ -259,7 +259,7 @@ private:
 	***/
 	ovrHmdDesc m_sHMDDesc;
 	/**
-	* Identifier ?
+	* Adapter Identifier.
 	***/
 	ovrGraphicsLuid m_sLuid;
 	/**
