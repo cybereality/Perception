@@ -99,6 +99,15 @@ HRESULT WINAPI D3D9ProxyTexture::QueryInterface(REFIID riid, LPVOID* ppv)
 		return S_OK;
 	}
 
+	/* IID_IDirect3DBaseTexture9 */
+	/* {580CA87E-1D3C-4d54-991D-B7D3E3C298CE} */
+	IF_GUID(riid, 0x580ca87e, 0x1d3c, 0x4d54, 0x99, 0x1d, 0xb7, 0xd3, 0xe3, 0xc2, 0x98, 0xce)
+	{
+		*ppv = (LPVOID)this;
+		this->AddRef();
+		return S_OK;
+	}
+
 	/* IID_IDirect3DSurface9 */
 	/* {0CFBAF3A-9FF6-429a-99B3-A2796AF8B89B} */
 	IF_GUID(riid,0x0cfbaf3a,0x9ff6,0x429a,0x99,0xb3,0xa2,0x79)
