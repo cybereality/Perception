@@ -126,7 +126,6 @@ DataGatherer::DataGatherer(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy)
 		} cfgFileMode;
 
 		// get names
-		std::vector<std::string> vNames;
 		std::string unused;
 		while ( cfgFile.good() )
 		{
@@ -153,7 +152,7 @@ DataGatherer::DataGatherer(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy)
 				switch(cfgFileMode)
 				{
 				case POTENTIAL_MATRIX_NAMES:
-					vNames.push_back(s);
+					m_wvpMatrixConstantNames.push_back(s);
 					break;
 				case SA_COMMANDS:
 					if (s.compare("Output_Shader_Code")==0)
@@ -195,7 +194,6 @@ DataGatherer::DataGatherer(IDirect3DDevice9* pDevice, BaseDirect3D9* pCreatedBy)
 		}
 
 		cfgFile.close();
-		vNames.clear();
 	}
 	delete helper;
 
