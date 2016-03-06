@@ -73,6 +73,8 @@ m_pcRenderManager(nullptr)
 ***/
 OSVR_DirectMode::~OSVR_DirectMode()
 {
+	if (m_pcVertexShader11) m_pcVertexShader11->Release();
+	if (m_pcPixelShader11) m_pcPixelShader11->Release();
 }
 
 /**

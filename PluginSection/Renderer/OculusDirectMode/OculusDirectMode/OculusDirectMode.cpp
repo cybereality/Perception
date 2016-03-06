@@ -64,32 +64,18 @@ m_pcDeviceTemporary(nullptr),
 m_pcContextTemporary(nullptr),
 m_pcSwapChainTemporary(nullptr),
 m_pcBackBufferTemporary(nullptr),
-m_pcVertexShaderDirect(nullptr),
-m_pcPixelShaderDirect(nullptr),
-m_pcVertexLayoutDirect(nullptr),
-m_pcVertexBufferDirect(nullptr),
-m_pcVertexShaderMirror(nullptr),
-m_pcPixelShaderMirror(nullptr),
-m_pcVertexLayoutMirror(nullptr),
-m_pcVertexBufferMirror(nullptr),
-m_pcTextureDirect(nullptr),
-m_pcBackBufferCopy(nullptr),
-m_pcMirrorCopy(nullptr),
-m_pcTextureViewDirect(nullptr),
 m_bInit(false),
-m_pcMirrorTexture(nullptr),
-m_pcConstantBufferDirect(nullptr),
-m_pcConstantBufferMirror(nullptr)
+m_pcMirrorTexture(nullptr)
 {
 	m_ppcTexView11[0] = nullptr;
 	m_ppcTexView11[1] = nullptr;
 	m_pcTex11Copy[0] = nullptr;
 	m_pcTex11Copy[1] = nullptr;
 
-	pcFrameTexture[0] = nullptr;
-	pcFrameTexture[1] = nullptr;
-	pcFrameTextureView[0] = nullptr;
-	pcFrameTextureView[1] = nullptr;
+	m_pcFrameTexture[0] = nullptr;
+	m_pcFrameTexture[1] = nullptr;
+	m_pcFrameTextureSRView[0] = nullptr;
+	m_pcFrameTextureSRView[1] = nullptr;
 
 	m_pcVertexShader11 = nullptr;
 	m_pcPixelShader11 = nullptr;
@@ -110,21 +96,8 @@ OculusDirectMode::~OculusDirectMode()
 	if (m_pcContextTemporary) m_pcContextTemporary->Release();
 	if (m_pcDeviceTemporary) m_pcDeviceTemporary->Release();
 
-	if (m_pcVertexShaderDirect) m_pcVertexShaderDirect->Release();
-	if (m_pcPixelShaderDirect) m_pcPixelShaderDirect->Release();
-	if (m_pcVertexLayoutDirect) m_pcVertexLayoutDirect->Release();
-	if (m_pcVertexBufferDirect) m_pcVertexBufferDirect->Release();
-	if (m_pcVertexShaderMirror) m_pcVertexShaderMirror->Release();
-	if (m_pcPixelShaderMirror) m_pcPixelShaderMirror->Release();
-	if (m_pcVertexLayoutMirror) m_pcVertexLayoutMirror->Release();
-	if (m_pcVertexBufferMirror) m_pcVertexBufferMirror->Release();
-	if (m_pcTextureDirect) m_pcTextureDirect->Release();
-	if (m_pcTextureViewDirect) m_pcTextureViewDirect->Release();
-	if (m_pcBackBufferCopy) m_pcBackBufferCopy->Release();
-	if (m_pcMirrorCopy) m_pcMirrorCopy->Release();
-
-	if (m_pcConstantBufferDirect) m_pcConstantBufferDirect->Release();
-	if (m_pcConstantBufferMirror) m_pcConstantBufferMirror->Release();
+	if (m_pcVertexShader11) m_pcVertexShader11->Release();
+	if (m_pcPixelShader11) m_pcPixelShader11->Release();
 }
 
 /**
@@ -261,10 +234,6 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 		return nullptr;
 	}
 
-	//// backup all states
-	//D3DX11_STATE_BLOCK sStateBlock;
-	//CreateStateblock(pcContext, &sStateBlock);
-
 	if (!m_bInit)
 	{
 #pragma region Init
@@ -342,84 +311,6 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 		m_psEyeRenderDesc[0] = ovr_GetRenderDesc(m_hHMD, ovrEye_Left, m_sHMDDesc.DefaultEyeFov[0]);
 		m_psEyeRenderDesc[1] = ovr_GetRenderDesc(m_hHMD, ovrEye_Right, m_sHMDDesc.DefaultEyeFov[1]);
 
-		/////////////////////////
-
-		// Compile and create the vertex shader
-		DWORD dwShaderFlags = D3D10_SHADER_ENABLE_STRICTNESS;
-#ifdef _DEBUG
-		dwShaderFlags |= D3D10_SHADER_DEBUG;
-#endif
-		ID3D10Blob* pBlobVS = NULL;
-		ID3D10Blob* pBlobError = NULL;
-		hr = D3DX10CompileFromMemory(g_strVS, strlen(g_strVS), NULL, NULL, NULL, "VS", "vs_4_0", NULL, NULL, NULL, &pBlobVS, NULL, NULL);
-		if (FAILED(hr))
-		{
-			if (pBlobError != NULL)
-			{
-				OutputDebugStringA((CHAR*)pBlobError->GetBufferPointer());
-				pBlobError->Release();
-			}
-			OutputDebugString(L"Failed");
-		}
-		hr = m_pcDeviceTemporary->CreateVertexShader(pBlobVS->GetBufferPointer(), pBlobVS->GetBufferSize(),
-			NULL, &g_pVertexShader);
-		if (FAILED(hr))
-			OutputDebugString(L"Failed");
-
-		// Compile and create the pixel shader
-		ID3D10Blob* pBlobPS = NULL;
-		hr = D3DX10CompileFromMemory(g_strPS, strlen(g_strPS), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pBlobPS, NULL, NULL);
-		if (FAILED(hr))
-		{
-			if (pBlobError != NULL)
-			{
-				OutputDebugStringA((CHAR*)pBlobError->GetBufferPointer());
-				pBlobError->Release();
-			}
-			OutputDebugString(L"Failed");
-		}
-		hr = m_pcDeviceTemporary->CreatePixelShader(pBlobPS->GetBufferPointer(), pBlobPS->GetBufferSize(),
-			NULL, &g_pPixelShader);
-		if (FAILED(hr))
-			OutputDebugString(L"Failed");
-		pBlobPS->Release();
-
-		// Create the input layout
-		D3D11_INPUT_ELEMENT_DESC elements[] =
-		{
-			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		};
-		UINT numElements = _countof(elements);
-
-		hr = m_pcDeviceTemporary->CreateInputLayout(elements, numElements, pBlobVS->GetBufferPointer(),
-			pBlobVS->GetBufferSize(), &g_pInputLayout);
-		if (FAILED(hr))
-			OutputDebugString(L"Failed");
-
-		pBlobVS->Release();
-
-		// Create the vertex buffer
-		SimpleVertex vertices[] =
-		{
-			0.0f, 0.5f, 0.5f,
-			0.5f, -0.5f, 0.5f,
-			-0.5f, -0.5f, 0.5f,
-		};
-		D3D11_BUFFER_DESC bd;
-		bd.Usage = D3D11_USAGE_DEFAULT;
-		bd.ByteWidth = sizeof(vertices);
-		bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-		bd.CPUAccessFlags = 0;
-		bd.MiscFlags = 0;
-		bd.StructureByteStride = 0;
-		D3D11_SUBRESOURCE_DATA initData;
-		initData.pSysMem = vertices;
-		hr = m_pcDeviceTemporary->CreateBuffer(&bd, &initData, &g_pVertexBuffer);
-		if (FAILED(hr))
-			OutputDebugString(L"Failed");
-
-		//////////////////////////
-
 		m_bInit = true;
 #pragma endregion
 	}
@@ -427,24 +318,14 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 	{
 #pragma region Render
 
-		// clear all states
-		//m_pcContextTemporary->ClearState();
-
-		// get eye render pose
+		// get eye render pose and other fields
 		ovrVector3f      asHmdToEyeViewOffset[2] = { m_psEyeRenderDesc[0].HmdToEyeViewOffset,
 			m_psEyeRenderDesc[1].HmdToEyeViewOffset };
 		ovrPosef         asEyeRenderPose[2];
 		ovrPosef         ZeroPose; ZeroMemory(&ZeroPose, sizeof(ovrPosef));
 		ovrTrackingState sHmdState = ovr_GetTrackingState(m_hHMD, ovr_GetTimeInSeconds(), false);
 		ovr_CalcEyePoses(sHmdState.HeadPose.ThePose, asHmdToEyeViewOffset, asEyeRenderPose);
-
-		// Perform a random colorfill.  This does not have to be random, but
-		// random draws attention if we leave any background showing.
-		FLOAT red = static_cast<FLOAT>((double)rand() / (double)RAND_MAX);
-		FLOAT green = static_cast<FLOAT>((double)rand() / (double)RAND_MAX);
-		FLOAT blue = static_cast<FLOAT>((double)rand() / (double)RAND_MAX);
-		FLOAT colorRgba[4] = { 0.3f * red, 0.3f * green, 0.3f * blue, 0.0f };
-
+		FLOAT colorBlack[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 		double sensorSampleTime = ovr_GetTimeInSeconds();
 
 		// render
@@ -466,23 +347,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 			// clear and set render target
 			int texIndex = m_psEyeRenderTexture[eye]->TextureSet->CurrentIndex;
 			m_pcContextTemporary->OMSetRenderTargets(1, &m_psEyeRenderTexture[eye]->TexRtv[texIndex], nullptr);
-			m_pcContextTemporary->ClearRenderTargetView(m_psEyeRenderTexture[eye]->TexRtv[texIndex], colorRgba);
-
-
-			//------------------TODO -> render
-			m_pcContextTemporary->IASetInputLayout(g_pInputLayout);
-
-			UINT stride = sizeof(SimpleVertex);
-			UINT offset = 0;
-			m_pcContextTemporary->IASetVertexBuffers(0, 1, &g_pVertexBuffer, &stride, &offset);
-
-			m_pcContextTemporary->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-			m_pcContextTemporary->VSSetShader(g_pVertexShader, NULL, 0);
-
-			m_pcContextTemporary->PSSetShader(g_pPixelShader, NULL, 0);
-
-			m_pcContextTemporary->Draw(3, 0);
+			m_pcContextTemporary->ClearRenderTargetView(m_psEyeRenderTexture[eye]->TexRtv[texIndex], colorBlack);
 
 			// texture connected ?
 			if ((m_ppcTexView11[eye]) && (*m_ppcTexView11[eye]))
@@ -518,12 +383,12 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 					m_pcDeviceTemporary->OpenSharedResource(sharedHandle, __uuidof(ID3D11Resource), (void**)(&pcResourceShared));
 					if (pcResourceShared)
 					{
-						pcResourceShared->QueryInterface(__uuidof(ID3D11Texture2D), (void**)(&pcFrameTexture[eye]));
+						pcResourceShared->QueryInterface(__uuidof(ID3D11Texture2D), (void**)(&m_pcFrameTexture[eye]));
 						pcResourceShared->Release();
 					} else OutputDebugString(L"Could not open shared resource.");
 
 					// create shader resource view
-					if (pcFrameTexture[eye])
+					if (m_pcFrameTexture[eye])
 					{
 						D3D11_SHADER_RESOURCE_VIEW_DESC sDescSRV;
 						ZeroMemory(&sDescSRV, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
@@ -531,7 +396,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 						sDescSRV.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 						sDescSRV.Texture2D.MostDetailedMip = 0;
 						sDescSRV.Texture2D.MipLevels = 1;
-						if (FAILED(m_pcDeviceTemporary->CreateShaderResourceView(pcFrameTexture[eye], &sDescSRV, &pcFrameTextureView[eye])))
+						if (FAILED(m_pcDeviceTemporary->CreateShaderResourceView(m_pcFrameTexture[eye], &sDescSRV, &m_pcFrameTextureSRView[eye])))
 							OutputDebugString(L"Failed to create shader resource view.");
 					}
 					else OutputDebugString(L"No Texture available.");
@@ -606,16 +471,15 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 						m_pcContextTemporary->IASetVertexBuffers(0, 1, &m_pcVertexBuffer11, &stride, &offset);
 
 						// Set constant buffer, first update it... scale and translate the left and right image
-						D3DXMATRIX sProj;
-						D3DXMatrixIdentity(&sProj);
-						m_pcContextTemporary->UpdateSubresource((ID3D11Resource*)m_pcConstantBufferDirect11, 0, NULL, &sProj, 0, 0);
+						OVR::Matrix4f proj = OVR::Matrix4f::Translation(0.41f - eye*0.82f, 0, 0);
+						m_pcContextTemporary->UpdateSubresource((ID3D11Resource*)m_pcConstantBufferDirect11, 0, NULL, &proj, 0, 0);
 						m_pcContextTemporary->VSSetConstantBuffers(0, 1, &m_pcConstantBufferDirect11);
 
 						// Set primitive topology
 						m_pcContextTemporary->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 						// set texture, sampler state
-						m_pcContextTemporary->PSSetShaderResources(0, 1, &pcFrameTextureView[eye]);
+						m_pcContextTemporary->PSSetShaderResources(0, 1, &m_pcFrameTextureSRView[eye]);
 						m_pcContextTemporary->PSSetSamplers(0, 1, &m_pcSamplerState);
 
 						// set shaders
@@ -650,9 +514,6 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 		ovrResult result = ovr_SubmitFrame(m_hHMD, 0, nullptr, &layers, 1);
 #pragma endregion
 	}
-
-	// apply state block
-	/*ApplyStateblock(pcContext, &sStateBlock);*/
 
 	// release d3d11 device + context... 
 	pcContext->Release();

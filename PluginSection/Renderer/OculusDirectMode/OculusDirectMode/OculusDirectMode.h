@@ -97,140 +97,10 @@ enum ODM_Decommanders
 	RightTexture,
 };
 
-///**
-//* Simple texture vertex structure.
-//***/
-//struct TexturedVertex
-//{
-//	D3DXVECTOR4 sPos;
-//	D3DXVECTOR2 sTex;
-//};
-
-struct SimpleVertex
-{
-	FLOAT Pos[3]; // (X, Y, Z) coordinates of each vertex
-};
-
-CHAR* g_strVS =
-"void VS( in float4 posIn : POSITION,\n"
-"         out float4 posOut : SV_Position )\n"
-"{\n"
-"    // Output the vertex position, unchanged\n"
-"    posOut = posIn;\n"
-"}\n";
-
-CHAR* g_strPS =
-"void PS( out float4 colorOut : SV_Target )\n"
-"{\n"
-"    // Make each pixel yellow, with alpha = 1\n"
-"    colorOut = float4( 1.0f, 1.0f, 0.0f, 1.0f );\n"
-"}\n";
-
-///**
-//* 2D Vertex Shader DX10+.
-//***/
-//static const char* VS2D =
-//"float4x4 ProjView;\n"
-//"struct VS_IN\n"
-//"{\n"
-//"float4 Position  : POSITION;\n"
-//"float2 TexCoord : TEXCOORD0;\n"
-//"};\n"
-//
-//"struct VS_OUT\n"
-//"{\n"
-//"float4 Position  : SV_POSITION;\n"
-//"float2 TexCoord : TEXCOORD0;\n"
-//"};\n"
-//
-//"VS_OUT VS( VS_IN vtx )\n"
-//"{\n"
-//"    VS_OUT Out = (VS_OUT)0;\n"
-////"    Out.Position = vtx.Position;\n"
-//"    Out.Position = mul( vtx.Position, ProjView );\n"
-//"    Out.TexCoord = vtx.TexCoord;\n"
-//"    return Out;\n"
-//"}\n";
-//
-///**
-//* 2D Pixel Shader DX10+.
-//***/
-//static const char* PS2D =
-//"Texture2D fontTexture : register(t0);\n"
-//"SamplerState fontSampler : register(s0);\n"
-//
-//"struct VS_OUT\n"
-//"{\n"
-//"float4 Position  : SV_POSITION;\n"
-//"float2 TexCoord : TEXCOORD0;\n"
-//"};\n"
-//
-//"float4 PS( VS_OUT vtx ) : SV_Target\n"
-//"{\n"
-////"    return fontTexture.Sample( fontSampler, vtx.TexCoord );\n"
-//"    return float4(fontTexture.Sample( fontSampler, vtx.TexCoord ).xyz, 1.0);\n"
-////"    return float4(1.0, 0.4, 0.3, 1.0);\n"
-//"}\n";
-
-/**
-* Simple depth buffer structure.
-* Taken from the OculusRoomTiny demo for simplicity.
-* (libOVR 0.6.1)
-***/
-struct DepthBuffer
-{
-	ID3D11DepthStencilView * TexDsv;
-
-	DepthBuffer(ID3D11Device * Device, OVR::Sizei size, int sampleCount = 1)
-	{
-		DXGI_FORMAT format = DXGI_FORMAT_D32_FLOAT;
-		D3D11_TEXTURE2D_DESC dsDesc;
-		dsDesc.Width = size.w;
-		dsDesc.Height = size.h;
-		dsDesc.MipLevels = 1;
-		dsDesc.ArraySize = 1;
-		dsDesc.Format = format;
-		dsDesc.SampleDesc.Count = sampleCount;
-		dsDesc.SampleDesc.Quality = 0;
-		dsDesc.Usage = D3D11_USAGE_DEFAULT;
-		dsDesc.CPUAccessFlags = 0;
-		dsDesc.MiscFlags = 0;
-		dsDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-		ID3D11Texture2D * Tex;
-		Device->CreateTexture2D(&dsDesc, NULL, &Tex);
-		Device->CreateDepthStencilView(Tex, NULL, &TexDsv);
-	}
-};
-
-/**
-* Simple data buffer structure.
-* Taken from the OculusRoomTiny demo for simplicity.
-* (libOVR 0.6.1)
-***/
-struct DataBuffer
-{
-	ID3D11Buffer * D3DBuffer;
-	size_t         Size;
-
-	DataBuffer(ID3D11Device * Device, D3D11_BIND_FLAG use, const void* buffer, size_t size) : Size(size)
-	{
-		D3D11_BUFFER_DESC desc;   memset(&desc, 0, sizeof(desc));
-		desc.Usage = D3D11_USAGE_DYNAMIC;
-		desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-		desc.BindFlags = use;
-		desc.ByteWidth = (unsigned)size;
-		D3D11_SUBRESOURCE_DATA sr;
-		sr.pSysMem = buffer;
-		sr.SysMemPitch = sr.SysMemSlicePitch = 0;
-		Device->CreateBuffer(&desc, buffer ? &sr : NULL, &D3DBuffer);
-	}
-};
-
 /**
 * ovrSwapTextureSet wrapper class that also maintains the render target views
 * needed for D3D11 rendering.
 * Taken from the OculusRoomTiny demo for simplicity.
-* (libOVR 0.8)
 ***/
 struct OculusTexture
 {
@@ -308,7 +178,7 @@ struct OculusTexture
 };
 
 /**
-* Oculus DirectMode Node Plugin (Direct3D 9).
+* Oculus Direct Mode Node Plugin.
 ***/
 class OculusDirectMode : public AQU_Nodus
 {
@@ -357,10 +227,6 @@ private:
 	***/
 	OculusTexture* m_psEyeRenderTexture[2];
 	/**
-	* The Oculus depth buffer. (for both eyes)
-	***/
-	DepthBuffer* m_psEyeDepthBuffer[2];
-	/**
 	* The Oculus render viewport. (for both eyes)
 	***/
 	ovrRecti m_psEyeRenderViewport[2];
@@ -386,6 +252,7 @@ private:
 	ID3D11DeviceContext* m_pcContextTemporary;
 	/**
 	* Temporary directx 11 dxgi swapchain for the oculus sdk.
+	* (keep that one for the mirror texture)
 	***/
 	IDXGISwapChain* m_pcSwapChainTemporary;
 	/**
@@ -396,75 +263,6 @@ private:
 	* Temporary directx 11 back buffer render target view for the oculus sdk.
 	***/
 	ID3D11RenderTargetView * m_pcBackBufferRTVTemporary;
-	/**
-	* Back buffer copy.
-	***/
-	ID3D11Texture2D* m_pcBackBufferCopy;
-	/**
-	* Mirror copy texture.
-	***/
-	ID3D11Texture2D* m_pcMirrorCopy;
-	/**
-	* The direct mode vertex shader.
-	* Simple 2D vertex shader.
-	***/
-	ID3D11VertexShader* m_pcVertexShaderDirect;
-	/**
-	* The constant buffer for the vertex shader.
-	* Contains only ProjView matrix.
-	***/
-	ID3D11Buffer* m_pcConstantBufferDirect;
-	/**
-	* The direct mode pixel shader.
-	* Simple Texture pixel shader.
-	***/
-	ID3D11PixelShader* m_pcPixelShaderDirect;
-	/**
-	* The direct mode vertex layout.
-	***/
-	ID3D11InputLayout* m_pcVertexLayoutDirect;
-	/**
-	* The direct mode vertex buffer.
-	* Simple full-screen vertex buffer, containing 6 vertices.
-	***/
-	ID3D11Buffer* m_pcVertexBufferDirect;
-	/**
-	* The Mirror vertex shader, to mirror the Oculus screen to the game screen.
-	* Simple 2D vertex shader.
-	***/
-	ID3D11VertexShader* m_pcVertexShaderMirror;
-	/**
-	* The constant buffer for the vertex shader.
-	* Contains only ProjView matrix.
-	***/
-	ID3D11Buffer* m_pcConstantBufferMirror;
-	/**
-	* The Mirror pixel shader, to mirror the Oculus screen to the game screen.
-	* Simple Texture pixel shader.
-	***/
-	ID3D11PixelShader* m_pcPixelShaderMirror;
-	/**
-	* The Mirror vertex layout, to mirror the Oculus screen to the game screen.
-	***/
-	ID3D11InputLayout* m_pcVertexLayoutMirror;
-	/**
-	* The Mirror vertex buffer, to mirror the Oculus screen to the game screen.
-	* Simple full-screen vertex buffer, containing 6 vertices.
-	***/
-	ID3D11Buffer* m_pcVertexBufferMirror;
-	/**
-	* The shared full-screen texture.
-	***/
-	ID3D11Texture2D* m_pcTextureDirect;
-	/**
-	* The shared full-screen texture view.
-	***/
-	ID3D11ShaderResourceView* m_pcTextureViewDirect;
-	ID3D11InputLayout*          g_pInputLayout = NULL;
-	ID3D11Buffer*               g_pVertexBuffer = NULL;
-	ID3D11VertexShader*         g_pVertexShader = NULL;
-	ID3D11PixelShader*          g_pPixelShader = NULL;
-
 	/**
 	* The 2D vertex shader.
 	***/
@@ -490,8 +288,14 @@ private:
 	* Basic sampler state.
 	***/
 	ID3D11SamplerState* m_pcSamplerState;
-	ID3D11Texture2D* pcFrameTexture[2];
-	ID3D11ShaderResourceView* pcFrameTextureView[2];
+	/**
+	* The eventual frame textures to be rendered to the Oculus screens.
+	***/
+	ID3D11Texture2D* m_pcFrameTexture[2];
+	/**
+	* The eventual frame texture shader resource views to be rendered to the Oculus screens.
+	***/
+	ID3D11ShaderResourceView* m_pcFrameTextureSRView[2];
 };
 
 /**
