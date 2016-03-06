@@ -83,6 +83,20 @@ m_pcConstantBufferMirror(nullptr)
 {
 	m_ppcTexView11[0] = nullptr;
 	m_ppcTexView11[1] = nullptr;
+	m_pcTex11Copy[0] = nullptr;
+	m_pcTex11Copy[1] = nullptr;
+
+	pcFrameTexture[0] = nullptr;
+	pcFrameTexture[1] = nullptr;
+	pcFrameTextureView[0] = nullptr;
+	pcFrameTextureView[1] = nullptr;
+
+	m_pcVertexShader11 = nullptr;
+	m_pcPixelShader11 = nullptr;
+	m_pcVertexLayout11 = nullptr;
+	m_pcVertexBuffer11 = nullptr;
+	m_pcConstantBufferDirect11 = nullptr;
+	m_pcSamplerState = nullptr;
 }
 
 /**
@@ -246,10 +260,10 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 		OutputDebugString(L"Oculus Direct Mode Node : No device context !");
 		return nullptr;
 	}
-	
-	// backup all states
-	D3DX11_STATE_BLOCK sStateBlock;
-	CreateStateblock(pcContext, &sStateBlock);
+
+	//// backup all states
+	//D3DX11_STATE_BLOCK sStateBlock;
+	//CreateStateblock(pcContext, &sStateBlock);
 
 	if (!m_bInit)
 	{
@@ -305,7 +319,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 		for (int eye = 0; eye < 2; ++eye)
 		{
 			ovrSizei sIdealSize = ovr_GetFovTextureSize(m_hHMD, (ovrEyeType)eye, m_sHMDDesc.DefaultEyeFov[eye], 1.0f);
-			
+
 			m_psEyeRenderTexture[eye] = new OculusTexture();
 			if (!m_psEyeRenderTexture[eye]->Init(m_pcDeviceTemporary, m_hHMD, sIdealSize.w, sIdealSize.h))
 			{
@@ -414,7 +428,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 #pragma region Render
 
 		// clear all states
-		m_pcContextTemporary->ClearState();
+		//m_pcContextTemporary->ClearState();
 
 		// get eye render pose
 		ovrVector3f      asHmdToEyeViewOffset[2] = { m_psEyeRenderDesc[0].HmdToEyeViewOffset,
@@ -430,7 +444,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 		FLOAT green = static_cast<FLOAT>((double)rand() / (double)RAND_MAX);
 		FLOAT blue = static_cast<FLOAT>((double)rand() / (double)RAND_MAX);
 		FLOAT colorRgba[4] = { 0.3f * red, 0.3f * green, 0.3f * blue, 0.0f };
-		
+
 		double sensorSampleTime = ovr_GetTimeInSeconds();
 
 		// render
@@ -445,7 +459,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 			sD3Dvp.Height = (float)m_psEyeRenderViewport[eye].Size.h;
 			sD3Dvp.MinDepth = 0;
 			sD3Dvp.MaxDepth = 1;
-			sD3Dvp.TopLeftX = (float)m_psEyeRenderViewport[eye].Pos.x; 
+			sD3Dvp.TopLeftX = (float)m_psEyeRenderViewport[eye].Pos.x;
 			sD3Dvp.TopLeftY = (float)m_psEyeRenderViewport[eye].Pos.y;
 			m_pcContextTemporary->RSSetViewports(1, &sD3Dvp);
 
@@ -469,7 +483,154 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 			m_pcContextTemporary->PSSetShader(g_pPixelShader, NULL, 0);
 
 			m_pcContextTemporary->Draw(3, 0);
-					
+
+			// texture connected ?
+			if ((m_ppcTexView11[eye]) && (*m_ppcTexView11[eye]))
+			{
+				ID3D11Resource* pcResource = nullptr;
+				(*m_ppcTexView11[eye])->GetResource(&pcResource);
+
+				if (!m_pcTex11Copy[eye])
+				{
+					// get the description and create the copy texture
+					D3D11_TEXTURE2D_DESC sDesc;
+					((ID3D11Texture2D*)pcResource)->GetDesc(&sDesc);
+					sDesc.MiscFlags |= D3D11_RESOURCE_MISC_SHARED;
+					sDesc.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
+					if (FAILED(((ID3D11Device*)pcDevice)->CreateTexture2D(&sDesc, NULL, (ID3D11Texture2D**)&m_pcTex11Copy[eye])))
+					{
+						OutputDebugString(L"StereoSplitterDX10 : Failed to create twin texture !");
+						break;
+					}
+
+					// get shared handle
+					IDXGIResource* pcDXGIResource(NULL);
+					m_pcTex11Copy[eye]->QueryInterface(__uuidof(IDXGIResource), (void**)&pcDXGIResource);
+					HANDLE sharedHandle;
+					if (pcDXGIResource)
+					{
+						pcDXGIResource->GetSharedHandle(&sharedHandle);
+						pcDXGIResource->Release();
+					} else OutputDebugString(L"Failed to query IDXGIResource.");
+
+					// open the shared handle with the temporary device
+					ID3D11Resource* pcResourceShared;
+					m_pcDeviceTemporary->OpenSharedResource(sharedHandle, __uuidof(ID3D11Resource), (void**)(&pcResourceShared));
+					if (pcResourceShared)
+					{
+						pcResourceShared->QueryInterface(__uuidof(ID3D11Texture2D), (void**)(&pcFrameTexture[eye]));
+						pcResourceShared->Release();
+					} else OutputDebugString(L"Could not open shared resource.");
+
+					// create shader resource view
+					if (pcFrameTexture[eye])
+					{
+						D3D11_SHADER_RESOURCE_VIEW_DESC sDescSRV;
+						ZeroMemory(&sDescSRV, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
+						sDescSRV.Format = sDesc.Format;
+						sDescSRV.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+						sDescSRV.Texture2D.MostDetailedMip = 0;
+						sDescSRV.Texture2D.MipLevels = 1;
+						if (FAILED(m_pcDeviceTemporary->CreateShaderResourceView(pcFrameTexture[eye], &sDescSRV, &pcFrameTextureView[eye])))
+							OutputDebugString(L"Failed to create shader resource view.");
+					}
+					else OutputDebugString(L"No Texture available.");
+				}
+				else
+				{
+					// copy the frame tex to shared texture
+					pcContext->CopyResource(m_pcTex11Copy[eye], pcResource);
+
+					// create all bool
+					bool bAllCreated = true;
+
+					// create vertex shader
+					if (!m_pcVertexShader11)
+					{
+						if (FAILED(Create2DVertexShader(m_pcDeviceTemporary, &m_pcVertexShader11, &m_pcVertexLayout11)))
+						{
+							OutputDebugString(L"FAILED");
+							bAllCreated = false;
+						}
+					}
+
+					// create pixel shader... 
+					if (!m_pcPixelShader11)
+					{
+						if (FAILED(CreateSimplePixelShader(m_pcDeviceTemporary, &m_pcPixelShader11, PixelShaderTechnique::FullscreenChangeAspectRatio)))
+							bAllCreated = false;
+					}
+
+					// Create vertex buffer
+					if (!m_pcVertexBuffer11)
+					{
+						if (FAILED(CreateFullScreenVertexBuffer(m_pcDeviceTemporary, &m_pcVertexBuffer11)))
+							bAllCreated = false;
+					}
+
+					// create constant buffer
+					if (!m_pcConstantBufferDirect11)
+					{
+						if (FAILED(CreateMatrixConstantBuffer(m_pcDeviceTemporary, &m_pcConstantBufferDirect11)))
+							bAllCreated = false;
+					}
+
+					// sampler ?
+					if (!m_pcSamplerState)
+					{
+						// Create the sampler state
+						D3D11_SAMPLER_DESC sSampDesc;
+						ZeroMemory(&sSampDesc, sizeof(sSampDesc));
+						sSampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+						sSampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+						sSampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+						sSampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+						sSampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+						sSampDesc.MinLOD = 0;
+						sSampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+						if (FAILED(m_pcDeviceTemporary->CreateSamplerState(&sSampDesc, &m_pcSamplerState)))
+						{
+							OutputDebugString(L"Failed to create Sampler State.");
+							bAllCreated = false;
+						}
+					}
+
+					if (bAllCreated)
+					{
+						// Set the input layout
+						m_pcContextTemporary->IASetInputLayout(m_pcVertexLayout11);
+
+						// Set vertex buffer
+						UINT stride = sizeof(TexturedVertex);
+						UINT offset = 0;
+						m_pcContextTemporary->IASetVertexBuffers(0, 1, &m_pcVertexBuffer11, &stride, &offset);
+
+						// Set constant buffer, first update it... scale and translate the left and right image
+						D3DXMATRIX sProj;
+						D3DXMatrixIdentity(&sProj);
+						m_pcContextTemporary->UpdateSubresource((ID3D11Resource*)m_pcConstantBufferDirect11, 0, NULL, &sProj, 0, 0);
+						m_pcContextTemporary->VSSetConstantBuffers(0, 1, &m_pcConstantBufferDirect11);
+
+						// Set primitive topology
+						m_pcContextTemporary->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+						// set texture, sampler state
+						m_pcContextTemporary->PSSetShaderResources(0, 1, &pcFrameTextureView[eye]);
+						m_pcContextTemporary->PSSetSamplers(0, 1, &m_pcSamplerState);
+
+						// set shaders
+						m_pcContextTemporary->VSSetShader(m_pcVertexShader11, 0, 0);
+						m_pcContextTemporary->PSSetShader(m_pcPixelShader11, 0, 0);
+
+						// Render a triangle
+						m_pcContextTemporary->Draw(6, 0);
+					}
+
+
+				}
+
+				if (pcResource) pcResource->Release();
+			}
 		}
 
 		// Initialize our single full screen Fov layer.
@@ -491,7 +652,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 	}
 
 	// apply state block
-	ApplyStateblock(pcContext, &sStateBlock);
+	/*ApplyStateblock(pcContext, &sStateBlock);*/
 
 	// release d3d11 device + context... 
 	pcContext->Release();

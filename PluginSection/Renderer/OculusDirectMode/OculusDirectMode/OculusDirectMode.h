@@ -73,7 +73,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Extras/OVR_Math.h"
 #define OVR_D3D_VERSION 11
 #include"OVR_CAPI_D3D.h"
-#include"..\..\..\Include\Vireio_DX11StateBlock.h"
+#include"..\..\..\Include\Vireio_DX11Basics.h"
 #include"..\..\..\Include\Vireio_Node_Plugtypes.h"
 
 #define PNT_FLOAT_PLUG_TYPE                          104
@@ -97,14 +97,14 @@ enum ODM_Decommanders
 	RightTexture,
 };
 
-/**
-* Simple texture vertex structure.
-***/
-struct TexturedVertex
-{
-	D3DXVECTOR4 sPos;
-	D3DXVECTOR2 sTex;
-};
+///**
+//* Simple texture vertex structure.
+//***/
+//struct TexturedVertex
+//{
+//	D3DXVECTOR4 sPos;
+//	D3DXVECTOR2 sTex;
+//};
 
 struct SimpleVertex
 {
@@ -126,51 +126,51 @@ CHAR* g_strPS =
 "    colorOut = float4( 1.0f, 1.0f, 0.0f, 1.0f );\n"
 "}\n";
 
-/**
-* 2D Vertex Shader DX10+.
-***/
-static const char* VS2D =
-"float4x4 ProjView;\n"
-"struct VS_IN\n"
-"{\n"
-"float4 Position  : POSITION;\n"
-"float2 TexCoord : TEXCOORD0;\n"
-"};\n"
-
-"struct VS_OUT\n"
-"{\n"
-"float4 Position  : SV_POSITION;\n"
-"float2 TexCoord : TEXCOORD0;\n"
-"};\n"
-
-"VS_OUT VS( VS_IN vtx )\n"
-"{\n"
-"    VS_OUT Out = (VS_OUT)0;\n"
-//"    Out.Position = vtx.Position;\n"
-"    Out.Position = mul( vtx.Position, ProjView );\n"
-"    Out.TexCoord = vtx.TexCoord;\n"
-"    return Out;\n"
-"}\n";
-
-/**
-* 2D Pixel Shader DX10+.
-***/
-static const char* PS2D =
-"Texture2D fontTexture : register(t0);\n"
-"SamplerState fontSampler : register(s0);\n"
-
-"struct VS_OUT\n"
-"{\n"
-"float4 Position  : SV_POSITION;\n"
-"float2 TexCoord : TEXCOORD0;\n"
-"};\n"
-
-"float4 PS( VS_OUT vtx ) : SV_Target\n"
-"{\n"
-//"    return fontTexture.Sample( fontSampler, vtx.TexCoord );\n"
-"    return float4(fontTexture.Sample( fontSampler, vtx.TexCoord ).xyz, 1.0);\n"
-//"    return float4(1.0, 0.4, 0.3, 1.0);\n"
-"}\n";
+///**
+//* 2D Vertex Shader DX10+.
+//***/
+//static const char* VS2D =
+//"float4x4 ProjView;\n"
+//"struct VS_IN\n"
+//"{\n"
+//"float4 Position  : POSITION;\n"
+//"float2 TexCoord : TEXCOORD0;\n"
+//"};\n"
+//
+//"struct VS_OUT\n"
+//"{\n"
+//"float4 Position  : SV_POSITION;\n"
+//"float2 TexCoord : TEXCOORD0;\n"
+//"};\n"
+//
+//"VS_OUT VS( VS_IN vtx )\n"
+//"{\n"
+//"    VS_OUT Out = (VS_OUT)0;\n"
+////"    Out.Position = vtx.Position;\n"
+//"    Out.Position = mul( vtx.Position, ProjView );\n"
+//"    Out.TexCoord = vtx.TexCoord;\n"
+//"    return Out;\n"
+//"}\n";
+//
+///**
+//* 2D Pixel Shader DX10+.
+//***/
+//static const char* PS2D =
+//"Texture2D fontTexture : register(t0);\n"
+//"SamplerState fontSampler : register(s0);\n"
+//
+//"struct VS_OUT\n"
+//"{\n"
+//"float4 Position  : SV_POSITION;\n"
+//"float2 TexCoord : TEXCOORD0;\n"
+//"};\n"
+//
+//"float4 PS( VS_OUT vtx ) : SV_Target\n"
+//"{\n"
+////"    return fontTexture.Sample( fontSampler, vtx.TexCoord );\n"
+//"    return float4(fontTexture.Sample( fontSampler, vtx.TexCoord ).xyz, 1.0);\n"
+////"    return float4(1.0, 0.4, 0.3, 1.0);\n"
+//"}\n";
 
 /**
 * Simple depth buffer structure.
@@ -262,7 +262,7 @@ struct OculusTexture
 		dsDesc.CPUAccessFlags = 0;
 		dsDesc.MiscFlags = 0;
 		dsDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
-		
+
 		ovrResult result = ovr_CreateSwapTextureSetD3D11(hmd, pcDevice, &dsDesc, ovrSwapTextureSetD3D11_Typeless, &TextureSet);
 		if (!OVR_SUCCESS(result))
 		{
@@ -373,6 +373,10 @@ private:
 	***/
 	ID3D11ShaderResourceView** m_ppcTexView11[2];
 	/**
+	* Shared copy of textures.
+	***/
+	ID3D11Texture2D* m_pcTex11Copy[2];
+	/**
 	* Temporary directx 11 device for the oculus sdk.
 	***/
 	ID3D11Device* m_pcDeviceTemporary;
@@ -460,6 +464,34 @@ private:
 	ID3D11Buffer*               g_pVertexBuffer = NULL;
 	ID3D11VertexShader*         g_pVertexShader = NULL;
 	ID3D11PixelShader*          g_pPixelShader = NULL;
+
+	/**
+	* The 2D vertex shader.
+	***/
+	ID3D11VertexShader* m_pcVertexShader11;
+	/**
+	* The 2D pixel shader.
+	***/
+	ID3D11PixelShader* m_pcPixelShader11;
+	/**
+	* The 2D vertex layout.
+	***/
+	ID3D11InputLayout* m_pcVertexLayout11;
+	/**
+	* The 2D vertex buffer.
+	***/
+	ID3D11Buffer* m_pcVertexBuffer11;
+	/**
+	* The constant buffer for the vertex shader matrix.
+	* Contains only ProjView matrix.
+	***/
+	ID3D11Buffer* m_pcConstantBufferDirect11;
+	/**
+	* Basic sampler state.
+	***/
+	ID3D11SamplerState* m_pcSamplerState;
+	ID3D11Texture2D* pcFrameTexture[2];
+	ID3D11ShaderResourceView* pcFrameTextureView[2];
 };
 
 /**
