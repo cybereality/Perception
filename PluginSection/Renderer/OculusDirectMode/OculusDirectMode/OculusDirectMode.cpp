@@ -268,7 +268,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 			return nullptr;
 
 		// get HMD description
-		ovrHmdDesc hmdDesc = ovr_GetHmdDesc(m_hHMD);
+		m_sHMDDesc = ovr_GetHmdDesc(m_hHMD);
 
 		// create temporary (OVR) device
 		IDXGIFactory * DXGIFactory;
@@ -280,6 +280,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 		if (FAILED(D3D11CreateDevice(Adapter, Adapter ? D3D_DRIVER_TYPE_UNKNOWN : D3D_DRIVER_TYPE_HARDWARE,
 			NULL, 0, NULL, 0, D3D11_SDK_VERSION, &m_pcDeviceTemporary, NULL, &m_pcContextTemporary)))
 			return(false);
+		DXGIFactory->Release();
 
 		// Set max frame latency to 1
 		IDXGIDevice1* DXGIDevice1 = NULL;
@@ -287,16 +288,23 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 		if (FAILED(hr) | (DXGIDevice1 == NULL)) return(false);
 		DXGIDevice1->SetMaximumFrameLatency(1);
 		DXGIDevice1->Release();
-		DXGIFactory->Release();
+
+		// Set a standard blend state, ie transparency from alpha
+		D3D11_BLEND_DESC bm;
+		memset(&bm, 0, sizeof(bm));
+		bm.RenderTarget[0].BlendEnable = TRUE;
+		bm.RenderTarget[0].BlendOp = bm.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+		bm.RenderTarget[0].SrcBlend = bm.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
+		bm.RenderTarget[0].DestBlend = bm.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
+		bm.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+		ID3D11BlendState * BlendState;
+		m_pcDeviceTemporary->CreateBlendState(&bm, &BlendState);
+		m_pcContextTemporary->OMSetBlendState(BlendState, NULL, 0xffffffff);
 
 		// Make the eye render buffers (caution if actual size < requested due to HW limits). 
 		for (int eye = 0; eye < 2; ++eye)
 		{
 			ovrSizei sIdealSize = ovr_GetFovTextureSize(m_hHMD, (ovrEyeType)eye, m_sHMDDesc.DefaultEyeFov[eye], 1.0f);
-			
-			// corrupt method (ovr_GetFovTextureSize)... if zero, apply 1182 x 1464
-			if (!sIdealSize.w) sIdealSize.w = 1182;
-			if (!sIdealSize.h) sIdealSize.h = 1464;
 			
 			m_psEyeRenderTexture[eye] = new OculusTexture();
 			if (!m_psEyeRenderTexture[eye]->Init(m_pcDeviceTemporary, m_hHMD, sIdealSize.w, sIdealSize.h))
@@ -320,18 +328,110 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 		m_psEyeRenderDesc[0] = ovr_GetRenderDesc(m_hHMD, ovrEye_Left, m_sHMDDesc.DefaultEyeFov[0]);
 		m_psEyeRenderDesc[1] = ovr_GetRenderDesc(m_hHMD, ovrEye_Right, m_sHMDDesc.DefaultEyeFov[1]);
 
+		/////////////////////////
+
+		// Compile and create the vertex shader
+		DWORD dwShaderFlags = D3D10_SHADER_ENABLE_STRICTNESS;
+#ifdef _DEBUG
+		dwShaderFlags |= D3D10_SHADER_DEBUG;
+#endif
+		ID3D10Blob* pBlobVS = NULL;
+		ID3D10Blob* pBlobError = NULL;
+		hr = D3DX10CompileFromMemory(g_strVS, strlen(g_strVS), NULL, NULL, NULL, "VS", "vs_4_0", NULL, NULL, NULL, &pBlobVS, NULL, NULL);
+		if (FAILED(hr))
+		{
+			if (pBlobError != NULL)
+			{
+				OutputDebugStringA((CHAR*)pBlobError->GetBufferPointer());
+				pBlobError->Release();
+			}
+			OutputDebugString(L"Failed");
+		}
+		hr = m_pcDeviceTemporary->CreateVertexShader(pBlobVS->GetBufferPointer(), pBlobVS->GetBufferSize(),
+			NULL, &g_pVertexShader);
+		if (FAILED(hr))
+			OutputDebugString(L"Failed");
+
+		// Compile and create the pixel shader
+		ID3D10Blob* pBlobPS = NULL;
+		hr = D3DX10CompileFromMemory(g_strPS, strlen(g_strPS), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pBlobPS, NULL, NULL);
+		if (FAILED(hr))
+		{
+			if (pBlobError != NULL)
+			{
+				OutputDebugStringA((CHAR*)pBlobError->GetBufferPointer());
+				pBlobError->Release();
+			}
+			OutputDebugString(L"Failed");
+		}
+		hr = m_pcDeviceTemporary->CreatePixelShader(pBlobPS->GetBufferPointer(), pBlobPS->GetBufferSize(),
+			NULL, &g_pPixelShader);
+		if (FAILED(hr))
+			OutputDebugString(L"Failed");
+		pBlobPS->Release();
+
+		// Create the input layout
+		D3D11_INPUT_ELEMENT_DESC elements[] =
+		{
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		};
+		UINT numElements = _countof(elements);
+
+		hr = m_pcDeviceTemporary->CreateInputLayout(elements, numElements, pBlobVS->GetBufferPointer(),
+			pBlobVS->GetBufferSize(), &g_pInputLayout);
+		if (FAILED(hr))
+			OutputDebugString(L"Failed");
+
+		pBlobVS->Release();
+
+		// Create the vertex buffer
+		SimpleVertex vertices[] =
+		{
+			0.0f, 0.5f, 0.5f,
+			0.5f, -0.5f, 0.5f,
+			-0.5f, -0.5f, 0.5f,
+		};
+		D3D11_BUFFER_DESC bd;
+		bd.Usage = D3D11_USAGE_DEFAULT;
+		bd.ByteWidth = sizeof(vertices);
+		bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+		bd.CPUAccessFlags = 0;
+		bd.MiscFlags = 0;
+		bd.StructureByteStride = 0;
+		D3D11_SUBRESOURCE_DATA initData;
+		initData.pSysMem = vertices;
+		hr = m_pcDeviceTemporary->CreateBuffer(&bd, &initData, &g_pVertexBuffer);
+		if (FAILED(hr))
+			OutputDebugString(L"Failed");
+
+		//////////////////////////
+
 		m_bInit = true;
 #pragma endregion
 	}
 	else
 	{
 #pragma region Render
+
+		// clear all states
+		m_pcContextTemporary->ClearState();
+
+		// get eye render pose
+		ovrVector3f      asHmdToEyeViewOffset[2] = { m_psEyeRenderDesc[0].HmdToEyeViewOffset,
+			m_psEyeRenderDesc[1].HmdToEyeViewOffset };
+		ovrPosef         asEyeRenderPose[2];
+		ovrPosef         ZeroPose; ZeroMemory(&ZeroPose, sizeof(ovrPosef));
+		ovrTrackingState sHmdState = ovr_GetTrackingState(m_hHMD, ovr_GetTimeInSeconds(), false);
+		ovr_CalcEyePoses(sHmdState.HeadPose.ThePose, asHmdToEyeViewOffset, asEyeRenderPose);
+
 		// Perform a random colorfill.  This does not have to be random, but
 		// random draws attention if we leave any background showing.
 		FLOAT red = static_cast<FLOAT>((double)rand() / (double)RAND_MAX);
 		FLOAT green = static_cast<FLOAT>((double)rand() / (double)RAND_MAX);
 		FLOAT blue = static_cast<FLOAT>((double)rand() / (double)RAND_MAX);
-		FLOAT colorRgba[4] = { 0.3f * red, 0.3f * green, 0.3f * blue, 1.0f };
+		FLOAT colorRgba[4] = { 0.3f * red, 0.3f * green, 0.3f * blue, 0.0f };
+		
+		double sensorSampleTime = ovr_GetTimeInSeconds();
 
 		// render
 		for (int eye = 0; eye < 2; eye++)
@@ -339,34 +439,54 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 			// Increment to use next texture, just before writing
 			m_psEyeRenderTexture[eye]->AdvanceToNextTexture();
 
+			// set viewport
+			D3D11_VIEWPORT sD3Dvp;
+			sD3Dvp.Width = (float)m_psEyeRenderViewport[eye].Size.w;
+			sD3Dvp.Height = (float)m_psEyeRenderViewport[eye].Size.h;
+			sD3Dvp.MinDepth = 0;
+			sD3Dvp.MaxDepth = 1;
+			sD3Dvp.TopLeftX = (float)m_psEyeRenderViewport[eye].Pos.x; 
+			sD3Dvp.TopLeftY = (float)m_psEyeRenderViewport[eye].Pos.y;
+			m_pcContextTemporary->RSSetViewports(1, &sD3Dvp);
+
 			// clear and set render target
 			int texIndex = m_psEyeRenderTexture[eye]->TextureSet->CurrentIndex;
-			m_pcContextTemporary->ClearRenderTargetView(m_psEyeRenderTexture[eye]->TexRtv[texIndex], colorRgba);
 			m_pcContextTemporary->OMSetRenderTargets(1, &m_psEyeRenderTexture[eye]->TexRtv[texIndex], nullptr);
+			m_pcContextTemporary->ClearRenderTargetView(m_psEyeRenderTexture[eye]->TexRtv[texIndex], colorRgba);
 
 
 			//------------------TODO -> render
+			m_pcContextTemporary->IASetInputLayout(g_pInputLayout);
 
-			//------------------TODO -> move to oculus tracker: (as close to ovr_GetTrackingState as possible)
-			double sensorSampleTime = ovr_GetTimeInSeconds();
+			UINT stride = sizeof(SimpleVertex);
+			UINT offset = 0;
+			m_pcContextTemporary->IASetVertexBuffers(0, 1, &g_pVertexBuffer, &stride, &offset);
 
+			m_pcContextTemporary->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-			// Initialize our single full screen Fov layer.
-			ovrLayerEyeFov ld = {};
-			ld.Header.Type = ovrLayerType_EyeFov;
-			ld.Header.Flags = 0;
+			m_pcContextTemporary->VSSetShader(g_pVertexShader, NULL, 0);
 
-			for (int eye = 0; eye < 2; ++eye)
-			{
-				ld.ColorTexture[eye] = m_psEyeRenderTexture[eye]->TextureSet;
-				ld.Viewport[eye] = m_psEyeRenderViewport[eye];
-				ld.Fov[eye] = m_sHMDDesc.DefaultEyeFov[eye];
-				//ld.RenderPose[eye] = EyeRenderPose[eye];
-				ld.SensorSampleTime = sensorSampleTime;
-			}
-			ovrLayerHeader* layers = &ld.Header;
-			ovrResult result = ovr_SubmitFrame(m_hHMD, 0, nullptr, &layers, 1);
+			m_pcContextTemporary->PSSetShader(g_pPixelShader, NULL, 0);
+
+			m_pcContextTemporary->Draw(3, 0);
+					
 		}
+
+		// Initialize our single full screen Fov layer.
+		ovrLayerEyeFov ld = {};
+		ld.Header.Type = ovrLayerType_EyeFov;
+		ld.Header.Flags = 0;
+
+		for (int eye = 0; eye < 2; ++eye)
+		{
+			ld.ColorTexture[eye] = m_psEyeRenderTexture[eye]->TextureSet;
+			ld.Viewport[eye] = m_psEyeRenderViewport[eye];
+			ld.Fov[eye] = m_sHMDDesc.DefaultEyeFov[eye];
+			ld.RenderPose[eye] = asEyeRenderPose[eye];
+			ld.SensorSampleTime = sensorSampleTime;
+		}
+		ovrLayerHeader* layers = &ld.Header;
+		ovrResult result = ovr_SubmitFrame(m_hHMD, 0, nullptr, &layers, 1);
 #pragma endregion
 	}
 

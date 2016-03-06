@@ -106,6 +106,26 @@ struct TexturedVertex
 	D3DXVECTOR2 sTex;
 };
 
+struct SimpleVertex
+{
+	FLOAT Pos[3]; // (X, Y, Z) coordinates of each vertex
+};
+
+CHAR* g_strVS =
+"void VS( in float4 posIn : POSITION,\n"
+"         out float4 posOut : SV_Position )\n"
+"{\n"
+"    // Output the vertex position, unchanged\n"
+"    posOut = posIn;\n"
+"}\n";
+
+CHAR* g_strPS =
+"void PS( out float4 colorOut : SV_Target )\n"
+"{\n"
+"    // Make each pixel yellow, with alpha = 1\n"
+"    colorOut = float4( 1.0f, 1.0f, 0.0f, 1.0f );\n"
+"}\n";
+
 /**
 * 2D Vertex Shader DX10+.
 ***/
@@ -242,7 +262,7 @@ struct OculusTexture
 		dsDesc.CPUAccessFlags = 0;
 		dsDesc.MiscFlags = 0;
 		dsDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
-		OutputDebugString(L"TextureSet->Init()");
+		
 		ovrResult result = ovr_CreateSwapTextureSetD3D11(hmd, pcDevice, &dsDesc, ovrSwapTextureSetD3D11_Typeless, &TextureSet);
 		if (!OVR_SUCCESS(result))
 		{
@@ -254,7 +274,7 @@ struct OculusTexture
 			return false;
 		}
 
-		if (TextureSet->TextureCount == TextureCount)
+		if (TextureSet->TextureCount != TextureCount)
 			OutputDebugString(L"TextureCount mismatch.");
 
 		for (int i = 0; i < TextureCount; ++i)
@@ -436,6 +456,10 @@ private:
 	* The shared full-screen texture view.
 	***/
 	ID3D11ShaderResourceView* m_pcTextureViewDirect;
+	ID3D11InputLayout*          g_pInputLayout = NULL;
+	ID3D11Buffer*               g_pVertexBuffer = NULL;
+	ID3D11VertexShader*         g_pVertexShader = NULL;
+	ID3D11PixelShader*          g_pPixelShader = NULL;
 };
 
 /**
