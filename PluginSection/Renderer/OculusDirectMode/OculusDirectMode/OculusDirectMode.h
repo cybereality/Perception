@@ -86,15 +86,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define PPNT_IDIRECT3DVERTEXBUFFER9_PLUG_TYPE       3049
 #define PPNT_IDIRECT3DVERTEXDECLARATION9_PLUG_TYPE  3050
 
-#define NUMBER_OF_DECOMMANDERS                         2
+#define NUMBER_OF_DECOMMANDERS                         7
 
 /**
 * Node Commander Enumeration.
 ***/
 enum ODM_Decommanders
 {
-	LeftTexture,
-	RightTexture,
+	LeftTexture11,
+	RightTexture11,
+	LeftTexture10,
+	RightTexture10,
+	LeftTexture9,
+	RightTexture9,
+	HMD_Handle
 };
 
 /**
@@ -116,9 +121,9 @@ struct OculusTexture
 		TexRtv[0] = TexRtv[1] = nullptr;
 	}
 
-	bool Init(ID3D11Device* pcDevice, ovrHmd _hmd, int sizeW, int sizeH)
+	bool Init(ID3D11Device* pcDevice, ovrHmd* _hmd, int sizeW, int sizeH)
 	{
-		hmd = _hmd;
+		//hmd = _hmd;
 
 		D3D11_TEXTURE2D_DESC dsDesc;
 		dsDesc.Width = sizeW;
@@ -133,7 +138,7 @@ struct OculusTexture
 		dsDesc.MiscFlags = 0;
 		dsDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
 
-		ovrResult result = ovr_CreateSwapTextureSetD3D11(hmd, pcDevice, &dsDesc, ovrSwapTextureSetD3D11_Typeless, &TextureSet);
+		ovrResult result = ovr_CreateSwapTextureSetD3D11(*_hmd, pcDevice, &dsDesc, ovrSwapTextureSetD3D11_Typeless, &TextureSet);
 		if (!OVR_SUCCESS(result))
 		{
 			ovrErrorInfo sErrorInfo;
@@ -210,6 +215,14 @@ private:
 	* The handle of the headset.
 	***/
 	ovrHmd m_hHMD;
+	/**
+	* The pointer to the HMD handle created either by this node or the oculus tracker node.
+	***/
+	ovrHmd* m_phHMD;
+	/**
+	* The pointer to the handle created by the oculus tracker node.
+	***/
+	ovrHmd* m_phHMD_Tracker;
 	/**
 	* The HMD description.
 	***/

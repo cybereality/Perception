@@ -46,6 +46,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma comment(lib, "d3dx9.lib")
 
 #include "OVR_CAPI_D3D.h"
+#include "..\..\..\Include\Vireio_Node_Plugtypes.h"
 
 #define PNT_FLOAT_PLUG_TYPE                          104
 #define PNT_INT_PLUG_TYPE                            107 
@@ -57,7 +58,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define PPNT_IDIRECT3DVERTEXBUFFER9_PLUG_TYPE       3049
 #define PPNT_IDIRECT3DVERTEXDECLARATION9_PLUG_TYPE  3050
 
-#define NUMBER_OF_COMMANDERS                          24
+#define NUMBER_OF_COMMANDERS                          25
 
 #define MATH_FLOAT_PI                (3.1415926f)
 #define MATH_FLOAT_TWOPI             (2.0f *MATH_FLOAT_PI)
@@ -219,6 +220,7 @@ enum OTR_Commanders
 	MaxEyeFovRight,              /**<  Maximum optical ﬁeld of view that can be practically rendered for each eye. (Right) **/
 	DefaultProjectionMatrixLeft, /**<  Default FOV Oculus Rift projection matrix (Left) **/
 	DefaultProjectionMatrixRight,/**<  Default FOV Oculus Rift projection matrix (Left) **/
+	HMD_Handle,                  /**<  Handle to the HMD, to be connected with the Oculus Direct Mode Node. ***/
 };
 
 /**

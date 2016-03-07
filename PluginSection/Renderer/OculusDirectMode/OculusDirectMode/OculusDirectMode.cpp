@@ -65,7 +65,10 @@ m_pcContextTemporary(nullptr),
 m_pcSwapChainTemporary(nullptr),
 m_pcBackBufferTemporary(nullptr),
 m_bInit(false),
-m_pcMirrorTexture(nullptr)
+m_pcMirrorTexture(nullptr),
+m_hHMD(nullptr),
+m_phHMD(nullptr),
+m_phHMD_Tracker(nullptr)
 {
 	m_ppcTexView11[0] = nullptr;
 	m_ppcTexView11[1] = nullptr;
@@ -152,13 +155,15 @@ LPWSTR OculusDirectMode::GetDecommanderName(DWORD dwDecommanderIndex)
 {
 	switch ((ODM_Decommanders)dwDecommanderIndex)
 	{
-		case ODM_Decommanders::LeftTexture:
+		case ODM_Decommanders::LeftTexture11:
 			return L"Left Texture";
-		case ODM_Decommanders::RightTexture:
+		case ODM_Decommanders::RightTexture11:
 			return L"Right Texture";
+		case ODM_Decommanders::HMD_Handle:
+			return L"HMD Handle";
 	}
 
-	return L"";
+	return L"x";
 }
 
 /**
@@ -168,10 +173,12 @@ DWORD OculusDirectMode::GetDecommanderType(DWORD dwDecommanderIndex)
 {
 	switch ((ODM_Decommanders)dwDecommanderIndex)
 	{
-		case ODM_Decommanders::LeftTexture:
+		case ODM_Decommanders::LeftTexture11:
 			return NOD_Plugtype::AQU_PNT_ID3D11SHADERRESOURCEVIEW;
-		case ODM_Decommanders::RightTexture:
+		case ODM_Decommanders::RightTexture11:
 			return NOD_Plugtype::AQU_PNT_ID3D11SHADERRESOURCEVIEW;
+		case ODM_Decommanders::HMD_Handle:
+			return NOD_Plugtype::AQU_HANDLE;
 	}
 
 	return 0;
@@ -184,11 +191,14 @@ void OculusDirectMode::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 {
 	switch ((ODM_Decommanders)dwDecommanderIndex)
 	{
-		case ODM_Decommanders::LeftTexture:
+		case ODM_Decommanders::LeftTexture11:
 			m_ppcTexView11[0] = (ID3D11ShaderResourceView**)pData;
 			break;
-		case ODM_Decommanders::RightTexture:
+		case ODM_Decommanders::RightTexture11:
 			m_ppcTexView11[1] = (ID3D11ShaderResourceView**)pData;
+			break;
+		case ODM_Decommanders::HMD_Handle:
+			m_phHMD_Tracker = (ovrHmd*)pData;
 			break;
 	}
 }
@@ -237,21 +247,54 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 	if (!m_bInit)
 	{
 #pragma region Init
-		// Initialize LibOVR
-		ovrResult result = ovr_Initialize(nullptr);
-		if (!OVR_SUCCESS(result))
+		if (!m_phHMD)
 		{
-			OutputDebugString(L"Failed to initialize libOVR.");
-			return nullptr;
+			if (m_phHMD_Tracker)
+			{
+				if (!(*m_phHMD_Tracker))
+				{
+					pcSwapChain->Release();
+					pcDevice->Release();
+					pcContext->Release();
+					return nullptr;
+				}
+				
+				// for some reason we have to initialize OVR here again ?!
+				ovrResult result = ovr_Initialize(nullptr);
+
+				// set same handle as created by Oculus tracker node
+				m_phHMD = m_phHMD_Tracker;
+			}
+			else
+			{
+				// Initialize LibOVR
+				ovrResult result = ovr_Initialize(nullptr);
+				if (!OVR_SUCCESS(result))
+				{
+					OutputDebugString(L"Failed to initialize libOVR.");
+					pcSwapChain->Release();
+					pcDevice->Release();
+					pcContext->Release();
+					return nullptr;
+				}
+
+				// create hmd (or session) handle
+				result = ovr_Create(&m_hHMD, &m_sLuid);
+				if (!OVR_SUCCESS(result))
+				{
+					pcSwapChain->Release();
+					pcDevice->Release();
+					pcContext->Release();
+					return nullptr;
+				}
+
+				// set pointer to own created handle
+				m_phHMD = &m_hHMD;
+			}
 		}
 
-		// create hmd (or session) handle
-		result = ovr_Create(&m_hHMD, &m_sLuid);
-		if (!OVR_SUCCESS(result))
-			return nullptr;
-
 		// get HMD description
-		m_sHMDDesc = ovr_GetHmdDesc(m_hHMD);
+		m_sHMDDesc = ovr_GetHmdDesc(*m_phHMD);
 
 		// create temporary (OVR) device
 		IDXGIFactory * DXGIFactory;
@@ -268,7 +311,13 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 		// Set max frame latency to 1
 		IDXGIDevice1* DXGIDevice1 = NULL;
 		HRESULT hr = m_pcDeviceTemporary->QueryInterface(__uuidof(IDXGIDevice1), (void**)&DXGIDevice1);
-		if (FAILED(hr) | (DXGIDevice1 == NULL)) return(false);
+		if (FAILED(hr) | (DXGIDevice1 == NULL))
+		{
+			pcSwapChain->Release();
+			pcDevice->Release();
+			pcContext->Release();
+			return nullptr;
+		}
 		DXGIDevice1->SetMaximumFrameLatency(1);
 		DXGIDevice1->Release();
 
@@ -287,14 +336,19 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 		// Make the eye render buffers (caution if actual size < requested due to HW limits). 
 		for (int eye = 0; eye < 2; ++eye)
 		{
-			ovrSizei sIdealSize = ovr_GetFovTextureSize(m_hHMD, (ovrEyeType)eye, m_sHMDDesc.DefaultEyeFov[eye], 1.0f);
-
+			ovrSizei sIdealSize = ovr_GetFovTextureSize(*m_phHMD, (ovrEyeType)eye, m_sHMDDesc.DefaultEyeFov[eye], 1.0f);
 			m_psEyeRenderTexture[eye] = new OculusTexture();
-			if (!m_psEyeRenderTexture[eye]->Init(m_pcDeviceTemporary, m_hHMD, sIdealSize.w, sIdealSize.h))
+			
+			if (!m_psEyeRenderTexture[eye]->Init(m_pcDeviceTemporary, m_phHMD, sIdealSize.w, sIdealSize.h))
 			{
 				OutputDebugString(L"Failed to create eye texture.");
 				m_bInit = true;
+
+				pcSwapChain->Release();
+				pcDevice->Release();
+				pcContext->Release();
 				return nullptr;
+
 			}
 			m_psEyeRenderViewport[eye].Pos.x = 0;
 			m_psEyeRenderViewport[eye].Pos.y = 0;
@@ -303,13 +357,18 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 			{
 				OutputDebugString(L"Failed to create texture.");
 				m_bInit = true;
+
+				pcSwapChain->Release();
+				pcDevice->Release();
+				pcContext->Release();
 				return nullptr;
+
 			}
 		}
 
 		// Setup VR components, filling out description
-		m_psEyeRenderDesc[0] = ovr_GetRenderDesc(m_hHMD, ovrEye_Left, m_sHMDDesc.DefaultEyeFov[0]);
-		m_psEyeRenderDesc[1] = ovr_GetRenderDesc(m_hHMD, ovrEye_Right, m_sHMDDesc.DefaultEyeFov[1]);
+		m_psEyeRenderDesc[0] = ovr_GetRenderDesc(*m_phHMD, ovrEye_Left, m_sHMDDesc.DefaultEyeFov[0]);
+		m_psEyeRenderDesc[1] = ovr_GetRenderDesc(*m_phHMD, ovrEye_Right, m_sHMDDesc.DefaultEyeFov[1]);
 
 		m_bInit = true;
 #pragma endregion
@@ -323,7 +382,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 			m_psEyeRenderDesc[1].HmdToEyeViewOffset };
 		ovrPosef         asEyeRenderPose[2];
 		ovrPosef         ZeroPose; ZeroMemory(&ZeroPose, sizeof(ovrPosef));
-		ovrTrackingState sHmdState = ovr_GetTrackingState(m_hHMD, ovr_GetTimeInSeconds(), false);
+		ovrTrackingState sHmdState = ovr_GetTrackingState(*m_phHMD, ovr_GetTimeInSeconds(), false);
 		ovr_CalcEyePoses(sHmdState.HeadPose.ThePose, asHmdToEyeViewOffset, asEyeRenderPose);
 		FLOAT colorBlack[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 		double sensorSampleTime = ovr_GetTimeInSeconds();
@@ -376,7 +435,8 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 					{
 						pcDXGIResource->GetSharedHandle(&sharedHandle);
 						pcDXGIResource->Release();
-					} else OutputDebugString(L"Failed to query IDXGIResource.");
+					}
+					else OutputDebugString(L"Failed to query IDXGIResource.");
 
 					// open the shared handle with the temporary device
 					ID3D11Resource* pcResourceShared;
@@ -385,7 +445,8 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 					{
 						pcResourceShared->QueryInterface(__uuidof(ID3D11Texture2D), (void**)(&m_pcFrameTexture[eye]));
 						pcResourceShared->Release();
-					} else OutputDebugString(L"Could not open shared resource.");
+					}
+					else OutputDebugString(L"Could not open shared resource.");
 
 					// create shader resource view
 					if (m_pcFrameTexture[eye])
@@ -511,7 +572,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 			ld.SensorSampleTime = sensorSampleTime;
 		}
 		ovrLayerHeader* layers = &ld.Header;
-		ovrResult result = ovr_SubmitFrame(m_hHMD, 0, nullptr, &layers, 1);
+		ovrResult result = ovr_SubmitFrame(*m_phHMD, 0, nullptr, &layers, 1);
 #pragma endregion
 	}
 

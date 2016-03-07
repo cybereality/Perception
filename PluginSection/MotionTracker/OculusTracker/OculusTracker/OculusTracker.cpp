@@ -44,6 +44,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define INTERFACE_IDIRECT3DDEVICE9 8
 #define INTERFACE_IDIRECT3DSWAPCHAIN9 15
 
+#define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"- %u", a); OutputDebugString(buf); }
+#define DEBUG_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"- %x", a); OutputDebugString(buf); }
+
 /**
 * Constructor.
 ***/
@@ -262,6 +265,9 @@ HBITMAP OculusTracker::GetControl()
 			TextOut(hdcImage, 150, nY, L"Default FOV Projection Matrix Left", 34); nY += 64;
 			TextOut(hdcImage, 150, nY, L"Default FOV Projection Matrix Right", 35); nY += 64;
 
+			// handle
+			TextOut(hdcImage, 150, nY, L"HMD Handle", 10); nY += 64;
+
 			// Display the text string for the provoker
 			szBuffer << m_sHMDDesc.ProductName << " " << m_sHMDDesc.Resolution.w << "x" << m_sHMDDesc.Resolution.h;
 			TextOut(hdcImage, 50, nY, szBuffer.str().c_str(), (int)szBuffer.str().length());
@@ -336,6 +342,8 @@ LPWSTR OculusTracker::GetCommanderName(DWORD dwCommanderIndex)
 			return L"Default FOV Projection Matrix Left";
 		case OTR_Commanders::DefaultProjectionMatrixRight:
 			return L"Default FOV Projection Matrix Right";
+		case OTR_Commanders::HMD_Handle:
+			return L"HMD Handle";
 	}
 
 	return L"";
@@ -377,6 +385,8 @@ DWORD OculusTracker::GetCommanderType(DWORD dwCommanderIndex)
 		case OTR_Commanders::DefaultProjectionMatrixLeft:
 		case OTR_Commanders::DefaultProjectionMatrixRight:
 			return PNT_D3DMATRIX_PLUG_TYPE;
+		case OTR_Commanders::HMD_Handle:
+			return NOD_Plugtype::AQU_HANDLE;
 	}
 
 	return 0;
@@ -389,8 +399,18 @@ DWORD OculusTracker::GetCommanderType(DWORD dwCommanderIndex)
 ***/
 void* OculusTracker::GetOutputPointer(DWORD dwCommanderIndex)
 {
+	if (dwCommanderIndex == (DWORD)OTR_Commanders::Pitch)
+		return (void*)&m_fPitch;
+	if (dwCommanderIndex == (DWORD)OTR_Commanders::Yaw)
+		return (void*)&m_fYaw;
+	if (dwCommanderIndex == (DWORD)OTR_Commanders::Roll)
+		return (void*)&m_fRoll;
+	if (dwCommanderIndex == (DWORD)OTR_Commanders::HMD_Handle)
+	{
+		return (void*)&m_hHMD;
+	}
 	if (dwCommanderIndex < NUMBER_OF_COMMANDERS)
-		return (void*)&m_paOutput[dwCommanderIndex];
+		return (void*)m_paOutput[dwCommanderIndex];
 
 	return nullptr;
 }
@@ -429,6 +449,10 @@ void* OculusTracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DM
 
 			// get angles
 			m_sOrientation.GetEulerAngles<Axis::Axis_Y, Axis::Axis_X, Axis::Axis_Z, RotateDirection::Rotate_CW, HandedSystem::Handed_R >(&m_fYaw, &m_fPitch, &m_fRoll);
+			
+			// quick fix here ... TODO !! ALIGN ANGLES FOR ALL TRACKERS
+			m_fYaw *= -1.0f;
+			m_fPitch *= -1.0f;
 
 			// set the drawing update to true
 			m_bControlUpdate = true;
@@ -447,7 +471,9 @@ void* OculusTracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DM
 		result = ovr_Create(&m_hHMD, &m_sLuid);
 		if (!OVR_SUCCESS(result))
 			return nullptr;
-
+		OutputDebugString(L"CREATED HMD HANDLE");
+		DEBUG_HEX(m_hHMD);
+		DEBUG_HEX(&m_hHMD);
 		if (m_hHMD)
 		{
 			// get the description and set pointers
