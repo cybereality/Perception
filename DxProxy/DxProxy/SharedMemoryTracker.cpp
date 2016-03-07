@@ -91,7 +91,13 @@ int  SharedMemoryTracker::getOrientationAndPosition(float* yaw, float* pitch, fl
 	*yaw = -RADIANS_TO_DEGREES(pTrackBuf->Yaw);
 	*pitch = RADIANS_TO_DEGREES(pTrackBuf->Pitch);
 	*roll = -RADIANS_TO_DEGREES(pTrackBuf->Roll);
-
+	// Also grab position
+	primaryX = pTrackBuf->X;
+	primaryY = pTrackBuf->Y;
+	primaryZ = pTrackBuf->Z;
+	*x = primaryX;
+	*y = primaryY;
+	*z = primaryZ;
 
 	return 0; 
 }
