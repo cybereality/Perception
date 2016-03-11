@@ -236,6 +236,11 @@ private:
 	***/
 	ovrTexture* m_pcMirrorTexture;
 	/**
+	* The mirror texture (of the whole Oculus frame) to be shown on main window.
+	* Dx version for the game device.
+	***/
+	ID3D11Texture2D* m_pcMirrorTextureD3D11;
+	/**
 	* The Oculus swapchain. (for both eyes)
 	***/
 	OculusTexture* m_psEyeRenderTexture[2];
