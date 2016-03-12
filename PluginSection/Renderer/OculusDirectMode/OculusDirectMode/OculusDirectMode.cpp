@@ -583,8 +583,57 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 						UINT offset = 0;
 						m_pcContextTemporary->IASetVertexBuffers(0, 1, &m_pcVertexBuffer11, &stride, &offset);
 
+						// following code is partially from the Oculus SDK (0.8)
+
+						// get HMD render scale and offset
+						float projXScale = 2.0f / (m_psEyeRenderDesc[eye].Fov.LeftTan + m_psEyeRenderDesc[eye].Fov.RightTan);
+						float projXOffset = (m_psEyeRenderDesc[eye].Fov.LeftTan - m_psEyeRenderDesc[eye].Fov.RightTan) * projXScale * 0.5f;
+						float projYScale = 2.0f / (m_psEyeRenderDesc[eye].Fov.UpTan + m_psEyeRenderDesc[eye].Fov.DownTan);
+						float projYOffset = (m_psEyeRenderDesc[eye].Fov.UpTan - m_psEyeRenderDesc[eye].Fov.DownTan) * projYScale * 0.5f;
+
+						// get identity matrix, set offset and scale
+						OVR::Matrix4f proj = OVR::Matrix4f::Identity();
+						float handednessScale = 1.0f;
+						proj.M[0][0] = projXScale;
+						proj.M[0][2] = handednessScale * projXOffset;
+						proj.M[1][1] = projYScale;
+						proj.M[1][2] = handednessScale * -projYOffset;
+						proj.M[3][2] = handednessScale;
+
+						// make matrix orthographical, first set IPD
+						float interpupillaryDistance = 0.064f; // TODO !! connect IPD from configuration
+						
+						// get the orthograpic scale and normalize it by its height (since we use a fullscreen shader here)
+						OVR::Vector2f orthoScale = OVR::Vector2f(1.0f) / OVR::Vector2f(m_psEyeRenderDesc[eye].PixelsPerTanAngleAtCenter);
+						orthoScale.x = proj.M[0][0] * orthoScale.x;
+						orthoScale.y = proj.M[1][1] * orthoScale.y;
+						float fNorm = 1.0f / orthoScale.y;
+						orthoScale.x *= fNorm;
+						orthoScale.y *= fNorm;
+
+						// create the orthographic matrix
+						proj.M[0][0] = orthoScale.x;
+						proj.M[0][1] = 0.0f;
+						proj.M[0][3] = proj.M[0][2];
+						proj.M[0][2] = 0.0f;
+
+						proj.M[1][0] = 0.0f;
+						proj.M[1][1] = orthoScale.y;
+						proj.M[1][3] = proj.M[1][2];
+						proj.M[1][2] = 0.0f;
+
+						proj.M[2][0] = 0.0f;
+						proj.M[2][1] = 0.0f;
+						proj.M[2][2] = 1.0f; // 1.0f here... fullscreen shader !
+						proj.M[2][3] = 0.0f;
+
+						// No perspective correction for ortho.
+						proj.M[3][0] = 0.0f;
+						proj.M[3][1] = 0.0f;
+						proj.M[3][2] = 0.0f;
+						proj.M[3][3] = 1.0f;
+
 						// Set constant buffer, first update it... scale and translate the left and right image
-						OVR::Matrix4f proj = OVR::Matrix4f::Translation(0.41f - eye*0.82f, 0, 0);
 						m_pcContextTemporary->UpdateSubresource((ID3D11Resource*)m_pcConstantBufferDirect11, 0, NULL, &proj, 0, 0);
 						m_pcContextTemporary->VSSetConstantBuffers(0, 1, &m_pcConstantBufferDirect11);
 
@@ -602,8 +651,6 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 						// Render a triangle
 						m_pcContextTemporary->Draw(6, 0);
 					}
-
-
 				}
 
 				if (pcResource) pcResource->Release();
@@ -624,8 +671,8 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 			ld.SensorSampleTime = sensorSampleTime;
 		}
 
-		ovrLayerHeader* layers = &ld.Header;
-		ovrResult result = ovr_SubmitFrame(*m_phHMD, 0, nullptr, &layers, 1);
+		ovrLayerHeader* psLayers = &ld.Header;
+		ovrResult result = ovr_SubmitFrame(*m_phHMD, 0, nullptr, &psLayers, 1);
 
 		// Render mirror
 		ID3D11Texture2D* pcBackBuffer = nullptr;
