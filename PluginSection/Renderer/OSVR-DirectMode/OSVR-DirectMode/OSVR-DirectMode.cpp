@@ -37,6 +37,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include"OSVR-DirectMode.h"
 
+#define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"- %u", a); OutputDebugString(buf); }
+#define DEBUG_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"- %x", a); OutputDebugString(buf); }
+
 #define INTERFACE_IDIRECT3DDEVICE9                                           8
 #define INTERFACE_IDXGISWAPCHAIN                                             29
 
@@ -50,6 +53,12 @@ ID3D11Buffer* OSVR_DirectMode::m_pcVertexBuffer11;
 ID3D11Buffer* OSVR_DirectMode::m_pcConstantBufferDirect11;
 ID3D11SamplerState* OSVR_DirectMode::m_pcSamplerState;
 OSVR_DirectMode::StereoTextureViews OSVR_DirectMode::m_sStereoTextureViews;
+OSVR_DirectMode::StereoTextureCopies OSVR_DirectMode::m_sStereoTextureCopies;
+OSVR_DirectMode::StereoFrameTextures OSVR_DirectMode::m_sStereoFrameTextures;
+OSVR_DirectMode::StereoFrameTextureSRViews OSVR_DirectMode::m_sSteroFrameTextureSRViews;
+OSVR_DirectModeMethods OSVR_DirectMode::m_eMethod;
+ID3D11Device* OSVR_DirectMode::m_pcGameDevice;
+ID3D11DeviceContext* OSVR_DirectMode::m_pcGameDeviceContext;
 #pragma endregion
 
 /**
@@ -66,6 +75,16 @@ m_pcRenderManager(nullptr)
 	m_pcSamplerState = nullptr;
 	m_sStereoTextureViews.m_ppcTexView11[0] = nullptr;
 	m_sStereoTextureViews.m_ppcTexView11[1] = nullptr;
+	m_sStereoTextureCopies.m_pcTex11Copy[0] = nullptr;
+	m_sStereoTextureCopies.m_pcTex11Copy[1] = nullptr;
+	m_sStereoFrameTextures.m_pcFrameTexture[0] = nullptr;
+	m_sStereoFrameTextures.m_pcFrameTexture[1] = nullptr;
+	m_sSteroFrameTextureSRViews.m_pcFrameTextureSRView[0] = nullptr;
+	m_sSteroFrameTextureSRViews.m_pcFrameTextureSRView[1] = nullptr;
+	m_pcGameDevice = nullptr;
+	m_pcGameDeviceContext = nullptr;
+
+	m_eMethod = OSVR_DirectModeMethods::OSVR_D3D11_own_Device;
 }
 
 /**
@@ -189,24 +208,64 @@ void* OSVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 
 	// Get an OSVR client context to use to access the devices
 	// that we need.
-	static osvr::clientkit::ClientContext m_pcClientContext = osvr::clientkit::ClientContext(
-		"com.mtbs3d.vireio.osvr.directmode");
+	static osvr::clientkit::ClientContext m_pcClientContext
+		= osvr::clientkit::ClientContext("com.mtbs3d.vireio.osvr.directmode");
 
 	if (m_pcRenderManager == nullptr)
 	{
-		// TODO !!! ADD -> if (D3D11)... else if (D3D10)...
-
 		// get device and context
 		ID3D11Device* pcDevice = nullptr;
 		ID3D11DeviceContext* pcContext = nullptr;
-		if (FAILED(GetDeviceAndContext((IDXGISwapChain*)pThis, &pcDevice, &pcContext)))
+		switch (m_eMethod)
 		{
-			OutputDebugString(L"OSVR-DirectMode: Failed to get d3d11 device + context");
-			// release frame texture+view
-			if (pcDevice) { pcDevice->Release(); pcDevice = nullptr; }
-			if (pcContext) { pcContext->Release(); pcContext = nullptr; }
-			return nullptr;
+			case OSVR_undefined:
+				// TODO !! determine method by used DX version
+				return nullptr;
+			case OSVR_D3D11_use_Game_Device:
+				if (FAILED(GetDeviceAndContext((IDXGISwapChain*)pThis, &pcDevice, &pcContext)))
+				{
+					OutputDebugString(L"OSVR-DirectMode: Failed to get d3d11 device + context");
+					return nullptr;
+				}
+				break;
+			case OSVR_D3D11_own_Device:
+			case OSVR_D3D10_own_Device:
+			case OSVR_D3D9_own_Device:
+			{
+										 // get game device + context
+										 if (m_eMethod == OSVR_DirectModeMethods::OSVR_D3D11_own_Device)
+										 {
+											 if (FAILED(GetDeviceAndContext((IDXGISwapChain*)pThis, &m_pcGameDevice, &m_pcGameDeviceContext)))
+											 {
+												 OutputDebugString(L"OSVR-DirectMode: Failed to get d3d11 device + context");
+												 return nullptr;
+											 }
+											 m_pcGameDevice->Release();
+											 m_pcGameDeviceContext->Release();
+										 }
+
+										 // Be sure to get D3D11 and have set
+										 // D3D11_CREATE_DEVICE_BGRA_SUPPORT in the device/context
+										 D3D_FEATURE_LEVEL acceptibleAPI = D3D_FEATURE_LEVEL_11_0;
+										 D3D_FEATURE_LEVEL foundAPI;
+										 auto hr =
+											 D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr,
+											 D3D11_CREATE_DEVICE_BGRA_SUPPORT, &acceptibleAPI, 1,
+											 D3D11_SDK_VERSION, &m_pcDevice, &foundAPI, &m_pcDeviceContext);
+										 if (FAILED(hr))
+										 {
+											 OutputDebugString(L"Could not create D3D11 device and context");
+											 return nullptr;
+										 }
+										 pcDevice = m_pcDevice;
+										 pcContext = m_pcDeviceContext;
+
+			}
+				break;
+			default:
+				break;
 		}
+
 
 		// Put the device and context into a structure to let RenderManager
 		// know to use this one rather than creating its own.
@@ -214,8 +273,11 @@ void* OSVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 		cLibrary.D3D11 = new osvr::renderkit::GraphicsLibraryD3D11;
 		cLibrary.D3D11->device = pcDevice;
 		cLibrary.D3D11->context = pcContext;
-		if (pcDevice) { pcDevice->Release(); pcDevice = nullptr; }
-		if (pcContext) { pcContext->Release(); pcContext = nullptr; }
+		if (m_eMethod == OSVR_DirectModeMethods::OSVR_D3D11_use_Game_Device)
+		{
+			if (pcDevice) { pcDevice->Release(); pcDevice = nullptr; }
+			if (pcContext) { pcContext->Release(); pcContext = nullptr; }
+		}
 
 		// Open Direct3D and set up the context for rendering to
 		// an HMD.  Do this using the OSVR RenderManager interface,
@@ -272,21 +334,41 @@ void* OSVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 		// get device and context
 		ID3D11Device* pcDevice = nullptr;
 		ID3D11DeviceContext* pcContext = nullptr;
-		if (FAILED(GetDeviceAndContext((IDXGISwapChain*)pThis, &pcDevice, &pcContext)))
+
+		switch (m_eMethod)
 		{
-			OutputDebugString(L"OSVR-DirectMode: Failed to get d3d11 device + context");
-			// release frame texture+view
-			if (pcDevice) { pcDevice->Release(); pcDevice = nullptr; }
-			if (pcContext) { pcContext->Release(); pcContext = nullptr; }
-			return nullptr;
+			case OSVR_undefined:
+				return nullptr;
+			case OSVR_D3D11_use_Game_Device:
+				if (FAILED(GetDeviceAndContext((IDXGISwapChain*)pThis, &pcDevice, &pcContext)))
+				{
+					OutputDebugString(L"OSVR-DirectMode: Failed to get d3d11 device + context");
+					// release frame texture+view
+					if (pcDevice) { pcDevice->Release(); pcDevice = nullptr; }
+					if (pcContext) { pcContext->Release(); pcContext = nullptr; }
+					return nullptr;
+				}
+				break;
+			case OSVR_D3D11_own_Device:
+			case OSVR_D3D10_own_Device:
+			case OSVR_D3D9_own_Device:
+				pcDevice = m_pcDevice;
+				pcContext = m_pcDeviceContext;
+				break;
+			default:
+				break;
 		}
 
-		// backup all states
+		// backup device states, if game device is used
 		D3DX11_STATE_BLOCK sStateBlock;
-		CreateStateblock(pcContext, &sStateBlock);
+		if (m_eMethod == OSVR_DirectModeMethods::OSVR_D3D11_use_Game_Device)
+		{
+			// backup all states
+			CreateStateblock(pcContext, &sStateBlock);
 
-		// clear all states
-		pcContext->ClearState();
+			// clear all states
+			pcContext->ClearState();
+		}
 
 		// Update the context so we get our callbacks called and
 		// update tracker state.
@@ -297,11 +379,15 @@ void* OSVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 			OutputDebugString(L"Render() returned false, maybe because it was asked to quit");
 		}
 
-		// set back device
-		ApplyStateblock(pcContext, &sStateBlock);
+		// apply state block, if game device is used
+		if (m_eMethod == OSVR_DirectModeMethods::OSVR_D3D11_use_Game_Device)
+		{
+			// set back device
+			ApplyStateblock(pcContext, &sStateBlock);
 
-		if (pcDevice) { pcDevice->Release(); pcDevice = nullptr; }
-		if (pcContext) { pcContext->Release(); pcContext = nullptr; }
+			if (pcDevice) { pcDevice->Release(); pcDevice = nullptr; }
+			if (pcContext) { pcContext->Release(); pcContext = nullptr; }
+		}
 	}
 	return nullptr;
 }
@@ -349,7 +435,6 @@ void OSVR_DirectMode::DrawWorld(void* userData, osvr::renderkit::GraphicsLibrary
 	osvr::renderkit::OSVR_ViewportDescription sViewport, OSVR_PoseState pose, osvr::renderkit::OSVR_ProjectionMatrix sProjection, OSVR_TimeValue deadline)
 {
 	static int nEye = 0;
-
 	// Make sure our pointers are filled in correctly.  The config file selects
 	// the graphics library to use, and may not match our needs.
 	if (cLibrary.D3D11 == nullptr)
@@ -423,9 +508,82 @@ void OSVR_DirectMode::DrawWorld(void* userData, osvr::renderkit::GraphicsLibrary
 		// Set primitive topology
 		pcContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-		// set texture, sampler state
-		pcContext->PSSetShaderResources(0, 1, m_sStereoTextureViews.m_ppcTexView11[nEye]);
-		pcContext->PSSetSamplers(0, 1, &m_pcSamplerState);
+		// texture connected ?
+		if ((m_sStereoTextureViews.m_ppcTexView11[nEye]) && (*m_sStereoTextureViews.m_ppcTexView11[nEye]))
+		{
+			if (m_eMethod == OSVR_DirectModeMethods::OSVR_D3D11_use_Game_Device)
+			{
+				// set texture, sampler state
+				pcContext->PSSetShaderResources(0, 1, m_sStereoTextureViews.m_ppcTexView11[nEye]);
+				pcContext->PSSetSamplers(0, 1, &m_pcSamplerState);
+			}
+			else
+			{
+				ID3D11Resource* pcResource = nullptr;
+				(*m_sStereoTextureViews.m_ppcTexView11[nEye])->GetResource(&pcResource);
+
+				if (!m_sStereoTextureCopies.m_pcTex11Copy[nEye])
+				{
+					// get the description and create the copy texture
+					D3D11_TEXTURE2D_DESC sDesc;
+					((ID3D11Texture2D*)pcResource)->GetDesc(&sDesc);
+					sDesc.MiscFlags |= D3D11_RESOURCE_MISC_SHARED;
+					sDesc.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
+					if (FAILED(((ID3D11Device*)m_pcGameDevice)->CreateTexture2D(&sDesc, NULL, (ID3D11Texture2D**)&m_sStereoTextureCopies.m_pcTex11Copy[nEye])))
+					{
+						OutputDebugString(L"StereoSplitterDX10 : Failed to create twin texture !");
+						return;
+					}
+
+					// TODO !! DX9 // DX10 !!
+
+					// get shared handle
+					IDXGIResource* pcDXGIResource(NULL);
+					m_sStereoTextureCopies.m_pcTex11Copy[nEye]->QueryInterface(__uuidof(IDXGIResource), (void**)&pcDXGIResource);
+					HANDLE sharedHandle;
+					if (pcDXGIResource)
+					{
+						pcDXGIResource->GetSharedHandle(&sharedHandle);
+						pcDXGIResource->Release();
+					}
+					else OutputDebugString(L"Failed to query IDXGIResource.");
+
+					// open the shared handle with the temporary device
+					ID3D11Resource* pcResourceShared;
+					pcDevice->OpenSharedResource(sharedHandle, __uuidof(ID3D11Resource), (void**)(&pcResourceShared));
+					if (pcResourceShared)
+					{
+						pcResourceShared->QueryInterface(__uuidof(ID3D11Texture2D), (void**)(&m_sStereoFrameTextures.m_pcFrameTexture[nEye]));
+						pcResourceShared->Release();
+					}
+					else OutputDebugString(L"Could not open shared resource.");
+
+					// create shader resource view
+					if (m_sStereoFrameTextures.m_pcFrameTexture[nEye])
+					{
+						D3D11_SHADER_RESOURCE_VIEW_DESC sDescSRV;
+						ZeroMemory(&sDescSRV, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
+						sDescSRV.Format = sDesc.Format;
+						sDescSRV.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+						sDescSRV.Texture2D.MostDetailedMip = 0;
+						sDescSRV.Texture2D.MipLevels = 1;
+						if (FAILED(pcDevice->CreateShaderResourceView(m_sStereoFrameTextures.m_pcFrameTexture[nEye], &sDescSRV, &m_sSteroFrameTextureSRViews.m_pcFrameTextureSRView[nEye])))
+							OutputDebugString(L"Failed to create shader resource view.");
+					}
+					else OutputDebugString(L"No Texture available.");
+				}
+				else
+				{
+					// copy the frame tex to shared texture
+					m_pcGameDeviceContext->CopyResource(m_sStereoTextureCopies.m_pcTex11Copy[nEye], pcResource);
+					if (pcResource) pcResource->Release();
+
+					// set texture, sampler state
+					pcContext->PSSetShaderResources(0, 1, &m_sSteroFrameTextureSRViews.m_pcFrameTextureSRView[nEye]);
+					pcContext->PSSetSamplers(0, 1, &m_pcSamplerState);
+				}
+			}
+		}
 
 		// set shaders
 		pcContext->VSSetShader(m_pcVertexShader11, 0, 0);

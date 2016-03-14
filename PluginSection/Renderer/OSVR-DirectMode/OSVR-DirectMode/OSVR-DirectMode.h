@@ -95,6 +95,18 @@ enum OSVR_Decommanders
 };
 
 /**
+* Direct Mode methods.
+***/
+enum OSVR_DirectModeMethods
+{
+	OSVR_undefined,
+	OSVR_D3D11_use_Game_Device,
+	OSVR_D3D11_own_Device,
+	OSVR_D3D10_own_Device,
+	OSVR_D3D9_own_Device
+};
+
+/**
 * Vireio Open Source VR DirectMode Node Plugin.
 ***/
 class OSVR_DirectMode : public AQU_Nodus
@@ -160,6 +172,47 @@ private:
 	{
 		ID3D11ShaderResourceView** m_ppcTexView11[2];
 	} m_sStereoTextureViews;
+	/**
+	* The DX mode method this node works.
+	***/
+	static OSVR_DirectModeMethods m_eMethod;
+	/**
+	* DirectX 11 device used (if not the own device of the game is used).
+	***/
+	ID3D11Device* m_pcDevice;
+	/**
+	* DirectX 11 device condtext used (if not the own device of the game is used).
+	***/
+	ID3D11DeviceContext* m_pcDeviceContext;
+	/**
+	* DirectX 11 game device.
+	***/
+	static ID3D11Device* m_pcGameDevice;
+	/**
+	* DirectX 11 game device context.
+	***/
+	static ID3D11DeviceContext* m_pcGameDeviceContext;
+	/**
+	* Shared copy of textures.
+	***/
+	static struct StereoTextureCopies
+	{
+		ID3D11Texture2D* m_pcTex11Copy[2];
+	} m_sStereoTextureCopies;
+	/**
+	* The eventual frame textures to be rendered to the Oculus screens.
+	***/
+	static struct StereoFrameTextures
+	{
+		ID3D11Texture2D* m_pcFrameTexture[2];
+	} m_sStereoFrameTextures;
+	/**
+	* The eventual frame texture shader resource views to be rendered to the Oculus screens.
+	***/
+	static struct StereoFrameTextureSRViews
+	{
+		ID3D11ShaderResourceView* m_pcFrameTextureSRView[2];
+	} m_sSteroFrameTextureSRViews;
 };
 
 /**
