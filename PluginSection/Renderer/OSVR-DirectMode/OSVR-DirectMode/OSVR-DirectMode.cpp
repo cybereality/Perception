@@ -417,13 +417,7 @@ void OSVR_DirectMode::SetupDisplay(void* userData, osvr::renderkit::GraphicsLibr
 	// Set up to render to the textures for this eye
 	// RenderManager will have already set our render target to this
 	// eye's buffer, so we don't need to do that here.
-
-	// Perform a random colorfill.  This does not have to be random, but
-	// random draws attention if we leave any background showing.
-	FLOAT red = static_cast<FLOAT>((double)rand() / (double)RAND_MAX);
-	FLOAT green = static_cast<FLOAT>((double)rand() / (double)RAND_MAX);
-	FLOAT blue = static_cast<FLOAT>((double)rand() / (double)RAND_MAX);
-	FLOAT colorRgba[4] = { 0.3f * red, 0.3f * green, 0.3f * blue, 1.0f };
+	FLOAT colorRgba[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	pcContext->ClearRenderTargetView(renderTargetView, colorRgba);
 	pcContext->ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 }
@@ -499,9 +493,33 @@ void OSVR_DirectMode::DrawWorld(void* userData, osvr::renderkit::GraphicsLibrary
 		UINT offset = 0;
 		pcContext->IASetVertexBuffers(0, 1, &m_pcVertexBuffer11, &stride, &offset);
 
+		// get orthographic matrix from projection and normalize it by its width (since we use a fullscreen shader here)
+		float afProjectionD3D[16];
+		osvr::renderkit::OSVR_Projection_to_D3D(afProjectionD3D, sProjection);
+		D3DXMATRIX sProj(afProjectionD3D);
+		float fNorm = 1.0f / sProj.m[0][0];
+		
+		sProj.m[0][0] = sProj.m[0][0] * fNorm;
+		sProj.m[0][1] = 0.0f;
+		sProj.m[0][3] = sProj.m[0][2];
+		sProj.m[0][2] = 0.0f;
+
+		sProj.m[1][0] = 0.0f;
+		sProj.m[1][1] = sProj.m[1][1] * fNorm;
+		sProj.m[1][3] = sProj.m[1][2];
+		sProj.m[1][2] = 0.0f;
+
+		sProj.m[2][0] = 0.0f;
+		sProj.m[2][1] = 0.0f;
+		sProj.m[2][2] = 1.0f; // 1.0f here... fullscreen shader !
+		sProj.m[2][3] = 0.0f;
+
+		sProj.m[3][0] = 0.0f;
+		sProj.m[3][1] = 0.0f;
+		sProj.m[3][2] = 0.0f;
+		sProj.m[3][3] = 1.0f;
+
 		// Set constant buffer, first update it... scale and translate the left and right image
-		D3DXMATRIX sProj;
-		D3DXMatrixIdentity(&sProj);
 		pcContext->UpdateSubresource((ID3D11Resource*)m_pcConstantBufferDirect11, 0, NULL, &sProj, 0, 0);
 		pcContext->VSSetConstantBuffers(0, 1, &m_pcConstantBufferDirect11);
 
