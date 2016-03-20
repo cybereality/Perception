@@ -81,7 +81,7 @@ inline DWORD GetHashCode(BYTE* pcData, DWORD dwSize)
 * @param pInitialData Pointer to the initial data, NULL if bCopyData is true.
 * @param bCopyData True if data from main buffer is to be copied to stereo buffers.
 ***/
-inline void CreateStereoConstantBuffer(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, ID3D11Buffer* pcBuffer, D3D11_BUFFER_DESC *pDesc, D3D11_SUBRESOURCE_DATA *pInitialData, bool bCopyData)
+inline void CreateStereoBuffer(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, ID3D11Buffer* pcBuffer, D3D11_BUFFER_DESC *pDesc, D3D11_SUBRESOURCE_DATA *pInitialData, bool bCopyData)
 {
 	// create right buffer
 	ID3D11Buffer* pcBufferRight = nullptr;

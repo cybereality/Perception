@@ -153,10 +153,6 @@ enum STS_Decommanders
 	NumBuffers_VertexShader,                 /**< ID3D10Device/ID3D11DeviceContext::XSSetConstantBuffers ***/
 	ppConstantBuffers_DX10_VertexShader,     /**< ID3D10Device/ID3D11DeviceContext::XSSetConstantBuffers ***/
 	ppConstantBuffers_DX11_VertexShader,     /**< ID3D10Device/ID3D11DeviceContext::XSSetConstantBuffers ***/
-	//StartSlot_PixelShader,                   /**< ID3D10Device/ID3D11DeviceContext::PSSetConstantBuffers ***/
-	//NumBuffers_PixelShader,                  /**< ID3D10Device/ID3D11DeviceContext::PSSetConstantBuffers ***/
-	//ppConstantBuffers_DX10_PixelShader,      /**< ID3D10Device/ID3D11DeviceContext::PSSetConstantBuffers ***/
-	//ppConstantBuffers_DX11_PixelShader,      /**< ID3D10Device/ID3D11DeviceContext::PSSetConstantBuffers ***/
 	pDstResource_DX10,                       /**< ID3D10Device/ID3D11DeviceContext::UpdateSubresource ***/
 	pDstResource_DX11,                       /**< ID3D10Device/ID3D11DeviceContext::UpdateSubresource ***/
 	DstSubresource,                          /**< ID3D10Device/ID3D11DeviceContext::UpdateSubresource ***/
@@ -184,10 +180,6 @@ enum STS_Decommanders
 	NumBuffers_Get_VertexShader,             /**< ID3D10Device/ID3D11DeviceContext::XSGetConstantBuffers ***/
 	ppConstantBuffers_DX10_Get_VertexShader, /**< ID3D10Device/ID3D11DeviceContext::XSGetConstantBuffers ***/
 	ppConstantBuffers_DX11_Get_VertexShader, /**< ID3D10Device/ID3D11DeviceContext::XSGetConstantBuffers ***/
-	//StartSlot_Get_PixelShader,               /**< ID3D10Device/ID3D11DeviceContext::PSGetConstantBuffers ***/
-	//NumBuffers_Get_PixelShader,              /**< ID3D10Device/ID3D11DeviceContext::PSGetConstantBuffers ***/
-	//ppConstantBuffers_DX10_Get_PixelShader,  /**< ID3D10Device/ID3D11DeviceContext::PSGetConstantBuffers ***/
-	//ppConstantBuffers_DX11_Get_PixelShader,  /**< ID3D10Device/ID3D11DeviceContext::PSGetConstantBuffers ***/
 	pResource,                               /**< ID3D11DeviceContext::Map ***/
 	Subresource,                             /**< ID3D11DeviceContext::Map ***/
 	MapType,                                 /**< ID3D11DeviceContext::Map ***/

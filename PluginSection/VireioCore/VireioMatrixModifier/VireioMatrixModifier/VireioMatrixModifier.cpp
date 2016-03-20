@@ -343,7 +343,6 @@ HBITMAP MatrixModifier::GetControl()
 * 3) sizeof(Vireio_Constant_Modification_Rule_Normalized) * Number of Rules
 * 4) sizeof(UINT) = Number of General Indices
 * 5) sizeof(UINT) * Number of General Indices
-* TODO !! SHADER SPECIFIC INDICES
 ***/
 DWORD MatrixModifier::GetSaveDataSize()
 {
@@ -352,7 +351,7 @@ DWORD MatrixModifier::GetSaveDataSize()
 	dwSizeofData += (DWORD)m_asConstantRules.size() * sizeof(Vireio_Constant_Modification_Rule_Normalized);
 	dwSizeofData += sizeof(UINT);
 	dwSizeofData += (DWORD)m_adwGlobalConstantRuleIndices.size() * sizeof(UINT);
-	// TODO !! SHADER SPECIFIC INDICES
+	
 	return dwSizeofData;
 }
 
@@ -784,14 +783,6 @@ DWORD MatrixModifier::GetDecommanderType(DWORD dwDecommanderIndex)
 			return NOD_Plugtype::AQU_PPNT_ID3D10BUFFER;
 		case ppConstantBuffers_DX11_VertexShader:
 			return NOD_Plugtype::AQU_PPNT_ID3D11BUFFER;
-			//case StartSlot_PixelShader:
-			//	return NOD_Plugtype::AQU_UINT;
-			//case NumBuffers_PixelShader:
-			//	return NOD_Plugtype::AQU_UINT;
-			//case ppConstantBuffers_DX10_PixelShader:
-			//	return NOD_Plugtype::AQU_PPNT_ID3D10BUFFER;
-			//case ppConstantBuffers_DX11_PixelShader:
-			//	return NOD_Plugtype::AQU_PPNT_ID3D11BUFFER;
 		case pDstResource_DX10:
 			return NOD_Plugtype::AQU_PNT_ID3D10RESOURCE;
 		case pDstResource_DX11:
@@ -846,14 +837,6 @@ DWORD MatrixModifier::GetDecommanderType(DWORD dwDecommanderIndex)
 			return NOD_Plugtype::AQU_PPNT_ID3D10BUFFER;
 		case ppConstantBuffers_DX11_Get_VertexShader:
 			return NOD_Plugtype::AQU_PPNT_ID3D11BUFFER;
-			//case StartSlot_Get_PixelShader:
-			//	return NOD_Plugtype::AQU_UINT;
-			//case NumBuffers_Get_PixelShader:
-			//	return NOD_Plugtype::AQU_UINT;
-			//case ppConstantBuffers_DX10_Get_PixelShader:
-			//	return NOD_Plugtype::AQU_PPNT_ID3D10BUFFER;
-			//case ppConstantBuffers_DX11_Get_PixelShader:
-			//	return NOD_Plugtype::AQU_PPNT_ID3D11BUFFER;
 		case pResource:
 			return NOD_Plugtype::AQU_PNT_ID3D11RESOURCE;
 		case Subresource:
@@ -1012,18 +995,6 @@ void MatrixModifier::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 		case ppConstantBuffers_DX11_VertexShader:
 			m_pppcConstantBuffers_DX11 = (ID3D11Buffer***)pData;
 			break;
-			//case StartSlot_PixelShader:
-			//	m_pdwStartSlot_PixelShader = (UINT*)pData;
-			//	break;
-			//case NumBuffers_PixelShader:
-			//	m_pdwNumBuffers_PixelShader = (UINT*)pData;
-			//	break;
-			//case ppConstantBuffers_DX10_PixelShader:
-			//	m_pppcConstantBuffers_DX10_PixelShader = (ID3D10Buffer***)pData;
-			//	break;
-			//case ppConstantBuffers_DX11_PixelShader:
-			//	m_pppcConstantBuffers_DX11_PixelShader = (ID3D11Buffer***)pData;
-			//	break;
 		case pDstResource_DX10:
 			m_ppcDstResource_DX10 = (ID3D10Resource**)pData;
 			break;
@@ -1104,17 +1075,6 @@ void MatrixModifier::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 		case ppConstantBuffers_DX11_Get_VertexShader:
 			m_pppcConstantBuffers_VertexShader = (ID3D11Buffer***)pData;
 			break;
-			//case StartSlot_Get_PixelShader:
-			//	m_pdwStartSlot_PixelShader_Get = (UINT*)pData;
-			//	break;
-			//case NumBuffers_Get_PixelShader:
-			//	m_pdwNumBuffers_PixelShader_Get = (UINT*)pData;
-			//	break;
-			//case ppConstantBuffers_DX10_Get_PixelShader:
-			//	break;
-			//case ppConstantBuffers_DX11_Get_PixelShader:
-			//	m_pppcConstantBuffers_PixelShader = (ID3D11Buffer***)pData;
-			//	break;
 		case pResource:
 			m_ppcResource_Map = (ID3D11Resource**)pData;
 			break;
@@ -1355,9 +1315,6 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 							D3D11_BUFFER_DESC sDescDst;
 							((ID3D11Buffer*)*m_ppcDstResource_DX11_CopySub)->GetDesc(&sDescDst);
 
-							//// if constant buffer, continue
-							//if ((sDescDst.BindFlags & D3D11_BIND_CONSTANT_BUFFER) == D3D11_BIND_CONSTANT_BUFFER)
-							//{
 							// set the same shader rules index (if present) for the destination as for the source
 							Vireio_Buffer_Rules_Index sRulesIndex;
 							sRulesIndex.m_nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
@@ -1416,7 +1373,6 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 									pcResourceTwinDst->Release();
 								}
 							}
-							//}
 						}
 						// is this a texture ?
 						else if (eDimension <= D3D11_RESOURCE_DIMENSION::D3D11_RESOURCE_DIMENSION_TEXTURE3D)
@@ -1495,9 +1451,6 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 							D3D11_BUFFER_DESC sDescDst;
 							((ID3D11Buffer*)*m_ppcDstResource_DX11_Copy)->GetDesc(&sDescDst);
 
-							//// if constant buffer, continue
-							//if ((sDescDst.BindFlags & D3D11_BIND_CONSTANT_BUFFER) == D3D11_BIND_CONSTANT_BUFFER)
-							//{
 							// set the same shader rules index (if present) for the destination as for the source
 							Vireio_Buffer_Rules_Index sRulesIndex;
 							sRulesIndex.m_nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
@@ -1540,7 +1493,6 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 									pcResourceTwinDst->Release();
 								}
 							}
-							//}
 						}
 						// is this a texture ?
 						else if (eDimension <= D3D11_RESOURCE_DIMENSION::D3D11_RESOURCE_DIMENSION_TEXTURE3D)
@@ -2913,7 +2865,7 @@ void MatrixModifier::XSSetConstantBuffers(ID3D11DeviceContext* pcContext, std::v
 						apcActiveConstantBuffers[dwInternalIndex]->GetDevice(&pcDevice);
 						if (pcDevice)
 						{
-							CreateStereoConstantBuffer(pcDevice, pcContext, (ID3D11Buffer*)apcActiveConstantBuffers[dwInternalIndex], &sDesc, NULL, true);
+							CreateStereoBuffer(pcDevice, pcContext, (ID3D11Buffer*)apcActiveConstantBuffers[dwInternalIndex], &sDesc, NULL, true);
 							pcDevice->Release();
 						}
 					}
