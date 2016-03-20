@@ -53,6 +53,9 @@ const GUID PDIID_ID3D11Buffer_Constant_Buffer_Right = { 0x8c5b3ad0, 0xd6fa, 0x4e
 // PDIID_ID3D11Buffer_UAV_Right : 46b18cc4-43a9-4047-9887-034183bc5876
 const GUID PDIID_ID3D11Buffer_UAV_Right = { 0x46b18cc4, 0x43a9, 0x4047, { 0x98, 0x87, 0x03, 0x41, 0x83, 0xbc, 0x58, 0x76 } };
 
+// PDIID_ID3D11Buffer_ShaderResourceView_Right : eb76566b-568d-4271-b7ad-8223e70f23c5
+const GUID PDIID_ID3D11Buffer_ShaderResourceView_Right = { 0xeb76566b, 0x568d, 0x4271, { 0xb7, 0xad, 0x82, 0x23, 0xe7, 0x0f, 0x23, 0xc5 } };
+
 // PDID_ID3D11VertexShader_Vireio_Data : 3bffbfc5-7baa-4534-9f4a-06be7d3df832
 const GUID PDID_ID3D11VertexShader_Vireio_Data = { 0x3bffbfc5, 0x7baa, 0x4534, { 0x9f, 0x4a, 0x06, 0xbe, 0x7d, 0x3d, 0xf8, 0x32 } };
 

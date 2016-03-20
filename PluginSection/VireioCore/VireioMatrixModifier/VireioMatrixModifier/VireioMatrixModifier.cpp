@@ -1298,6 +1298,21 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 								}
 							}
 						}
+						else
+						{
+							// get the private data interface
+							ID3D11Buffer* pcBuffer = nullptr;
+							UINT dwSize = sizeof(pcBuffer);
+							((ID3D11Buffer*)*m_ppcDstResource_DX11)->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcBuffer);
+
+							if (pcBuffer)
+							{
+								// update right buffer
+								((ID3D11DeviceContext*)pThis)->UpdateSubresource((ID3D11Resource*)pcBuffer, *m_pdwDstSubresource, *m_ppsDstBox_DX11, *m_ppvSrcData, *m_pdwSrcRowPitch, *m_pdwSrcDepthPitch);
+								pcBuffer->Release();
+							}
+
+						}
 					}
 					else if (eDimension <= D3D11_RESOURCE_DIMENSION::D3D11_RESOURCE_DIMENSION_TEXTURE3D)
 					{
@@ -1340,68 +1355,68 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 							D3D11_BUFFER_DESC sDescDst;
 							((ID3D11Buffer*)*m_ppcDstResource_DX11_CopySub)->GetDesc(&sDescDst);
 
-							// if constant buffer, continue
-							if ((sDescDst.BindFlags & D3D11_BIND_CONSTANT_BUFFER) == D3D11_BIND_CONSTANT_BUFFER)
+							//// if constant buffer, continue
+							//if ((sDescDst.BindFlags & D3D11_BIND_CONSTANT_BUFFER) == D3D11_BIND_CONSTANT_BUFFER)
+							//{
+							// set the same shader rules index (if present) for the destination as for the source
+							Vireio_Buffer_Rules_Index sRulesIndex;
+							sRulesIndex.m_nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
+							sRulesIndex.m_dwUpdateCounter = 0;
+							UINT dwDataSizeRulesIndex = sizeof(Vireio_Buffer_Rules_Index);
+							((ID3D11Resource*)*m_ppcSrcResource_DX11_CopySub)->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Data, &dwDataSizeRulesIndex, &sRulesIndex);
+							if ((dwDataSizeRulesIndex) && (sRulesIndex.m_nRulesIndex >= 0))
 							{
-								// set the same shader rules index (if present) for the destination as for the source
-								Vireio_Buffer_Rules_Index sRulesIndex;
-								sRulesIndex.m_nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
-								sRulesIndex.m_dwUpdateCounter = 0;
-								UINT dwDataSizeRulesIndex = sizeof(Vireio_Buffer_Rules_Index);
-								((ID3D11Resource*)*m_ppcSrcResource_DX11_CopySub)->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Data, &dwDataSizeRulesIndex, &sRulesIndex);
-								if ((dwDataSizeRulesIndex) && (sRulesIndex.m_nRulesIndex >= 0))
+								((ID3D11Resource*)*m_ppcDstResource_DX11_CopySub)->SetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Data, sizeof(Vireio_Buffer_Rules_Index), &sRulesIndex);
+							}
+
+							// copy to both sides, if source is a mono buffer set source to stereo buffer
+							ID3D11Resource* pcResourceTwinSrc = nullptr;
+							UINT dwSize = sizeof(pcResourceTwinSrc);
+							((ID3D11Resource*)*m_ppcSrcResource_DX11_CopySub)->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcResourceTwinSrc);
+							if (pcResourceTwinSrc)
+							{
+								// get the stereo twin of the destination
+								ID3D11Resource* pcResourceTwinDst = nullptr;
+								dwSize = sizeof(pcResourceTwinDst);
+								((ID3D11Resource*)*m_ppcDstResource_DX11_CopySub)->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcResourceTwinDst);
+								if (pcResourceTwinDst)
 								{
-									((ID3D11Resource*)*m_ppcDstResource_DX11_CopySub)->SetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Data, sizeof(Vireio_Buffer_Rules_Index), &sRulesIndex);
+									// do the copy call on the stereo twins of these textures
+									((ID3D11DeviceContext*)pThis)->CopySubresourceRegion(pcResourceTwinDst,
+										*m_pdwDstSubresource_CopySub,
+										*m_pdwDstX,
+										*m_pdwDstY,
+										*m_pdwDstZ,
+										pcResourceTwinSrc,
+										*m_pdwSrcSubresource,
+										*m_ppsSrcBox_DX11);
+
+									pcResourceTwinDst->Release();
 								}
-
-								// copy to both sides, if source is a mono buffer set source to stereo buffer
-								ID3D11Resource* pcResourceTwinSrc = nullptr;
-								UINT dwSize = sizeof(pcResourceTwinSrc);
-								((ID3D11Resource*)*m_ppcSrcResource_DX11_CopySub)->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcResourceTwinSrc);
-								if (pcResourceTwinSrc)
+								pcResourceTwinSrc->Release();
+							}
+							else
+							{
+								// get the stereo twin of the destination
+								ID3D11Resource* pcResourceTwinDst = nullptr;
+								dwSize = sizeof(pcResourceTwinDst);
+								((ID3D11Resource*)*m_ppcDstResource_DX11_CopySub)->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcResourceTwinDst);
+								if (pcResourceTwinDst)
 								{
-									// get the stereo twin of the destination
-									ID3D11Resource* pcResourceTwinDst = nullptr;
-									dwSize = sizeof(pcResourceTwinDst);
-									((ID3D11Resource*)*m_ppcDstResource_DX11_CopySub)->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcResourceTwinDst);
-									if (pcResourceTwinDst)
-									{
-										// do the copy call on the stereo twins of these textures
-										((ID3D11DeviceContext*)pThis)->CopySubresourceRegion(pcResourceTwinDst,
-											*m_pdwDstSubresource_CopySub,
-											*m_pdwDstX,
-											*m_pdwDstY,
-											*m_pdwDstZ,
-											pcResourceTwinSrc,
-											*m_pdwSrcSubresource,
-											*m_ppsSrcBox_DX11);
+									// do the copy call on the stereo twins of these textures
+									((ID3D11DeviceContext*)pThis)->CopySubresourceRegion(pcResourceTwinDst,
+										*m_pdwDstSubresource_CopySub,
+										*m_pdwDstX,
+										*m_pdwDstY,
+										*m_pdwDstZ,
+										*m_ppcSrcResource_DX11_CopySub,
+										*m_pdwSrcSubresource,
+										*m_ppsSrcBox_DX11);
 
-										pcResourceTwinDst->Release();
-									}
-									pcResourceTwinSrc->Release();
-								}
-								else
-								{
-									// get the stereo twin of the destination
-									ID3D11Resource* pcResourceTwinDst = nullptr;
-									dwSize = sizeof(pcResourceTwinDst);
-									((ID3D11Resource*)*m_ppcDstResource_DX11_CopySub)->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcResourceTwinDst);
-									if (pcResourceTwinDst)
-									{
-										// do the copy call on the stereo twins of these textures
-										((ID3D11DeviceContext*)pThis)->CopySubresourceRegion(pcResourceTwinDst,
-											*m_pdwDstSubresource_CopySub,
-											*m_pdwDstX,
-											*m_pdwDstY,
-											*m_pdwDstZ,
-											*m_ppcSrcResource_DX11_CopySub,
-											*m_pdwSrcSubresource,
-											*m_ppsSrcBox_DX11);
-
-										pcResourceTwinDst->Release();
-									}
+									pcResourceTwinDst->Release();
 								}
 							}
+							//}
 						}
 						// is this a texture ?
 						else if (eDimension <= D3D11_RESOURCE_DIMENSION::D3D11_RESOURCE_DIMENSION_TEXTURE3D)
@@ -1480,52 +1495,52 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 							D3D11_BUFFER_DESC sDescDst;
 							((ID3D11Buffer*)*m_ppcDstResource_DX11_Copy)->GetDesc(&sDescDst);
 
-							// if constant buffer, continue
-							if ((sDescDst.BindFlags & D3D11_BIND_CONSTANT_BUFFER) == D3D11_BIND_CONSTANT_BUFFER)
+							//// if constant buffer, continue
+							//if ((sDescDst.BindFlags & D3D11_BIND_CONSTANT_BUFFER) == D3D11_BIND_CONSTANT_BUFFER)
+							//{
+							// set the same shader rules index (if present) for the destination as for the source
+							Vireio_Buffer_Rules_Index sRulesIndex;
+							sRulesIndex.m_nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
+							sRulesIndex.m_dwUpdateCounter = 0;
+							UINT dwDataSizeRulesIndex = sizeof(Vireio_Buffer_Rules_Index);
+							((ID3D11Resource*)*m_ppcSrcResource_DX11_Copy)->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Data, &dwDataSizeRulesIndex, &sRulesIndex);
+							if ((dwDataSizeRulesIndex) && (sRulesIndex.m_nRulesIndex >= 0))
 							{
-								// set the same shader rules index (if present) for the destination as for the source
-								Vireio_Buffer_Rules_Index sRulesIndex;
-								sRulesIndex.m_nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
-								sRulesIndex.m_dwUpdateCounter = 0;
-								UINT dwDataSizeRulesIndex = sizeof(Vireio_Buffer_Rules_Index);
-								((ID3D11Resource*)*m_ppcSrcResource_DX11_Copy)->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Data, &dwDataSizeRulesIndex, &sRulesIndex);
-								if ((dwDataSizeRulesIndex) && (sRulesIndex.m_nRulesIndex >= 0))
-								{
-									((ID3D11Resource*)*m_ppcDstResource_DX11_Copy)->SetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Data, sizeof(Vireio_Buffer_Rules_Index), &sRulesIndex);
-								}
+								((ID3D11Resource*)*m_ppcDstResource_DX11_Copy)->SetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Data, sizeof(Vireio_Buffer_Rules_Index), &sRulesIndex);
+							}
 
-								// copy to both sides, if source is a mono buffer set source to stereo buffer
-								ID3D11Resource* pcResourceTwinSrc = nullptr;
-								UINT dwSize = sizeof(pcResourceTwinSrc);
-								((ID3D11Resource*)*m_ppcSrcResource_DX11_Copy)->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcResourceTwinSrc);
-								if (pcResourceTwinSrc)
+							// copy to both sides, if source is a mono buffer set source to stereo buffer
+							ID3D11Resource* pcResourceTwinSrc = nullptr;
+							UINT dwSize = sizeof(pcResourceTwinSrc);
+							((ID3D11Resource*)*m_ppcSrcResource_DX11_Copy)->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcResourceTwinSrc);
+							if (pcResourceTwinSrc)
+							{
+								// get the stereo twin of the destination
+								ID3D11Resource* pcResourceTwinDst = nullptr;
+								dwSize = sizeof(pcResourceTwinDst);
+								((ID3D11Resource*)*m_ppcDstResource_DX11_Copy)->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcResourceTwinDst);
+								if (pcResourceTwinDst)
 								{
-									// get the stereo twin of the destination
-									ID3D11Resource* pcResourceTwinDst = nullptr;
-									dwSize = sizeof(pcResourceTwinDst);
-									((ID3D11Resource*)*m_ppcDstResource_DX11_Copy)->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcResourceTwinDst);
-									if (pcResourceTwinDst)
-									{
-										// do the copy call on the stereo twins of these textures
-										((ID3D11DeviceContext*)pThis)->CopyResource(pcResourceTwinDst, pcResourceTwinSrc);
-										pcResourceTwinDst->Release();
-									}
-									pcResourceTwinSrc->Release();
+									// do the copy call on the stereo twins of these textures
+									((ID3D11DeviceContext*)pThis)->CopyResource(pcResourceTwinDst, pcResourceTwinSrc);
+									pcResourceTwinDst->Release();
 								}
-								else
+								pcResourceTwinSrc->Release();
+							}
+							else
+							{
+								// get the stereo twin of the destination
+								ID3D11Resource* pcResourceTwinDst = nullptr;
+								dwSize = sizeof(pcResourceTwinDst);
+								((ID3D11Resource*)*m_ppcDstResource_DX11_Copy)->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcResourceTwinDst);
+								if (pcResourceTwinDst)
 								{
-									// get the stereo twin of the destination
-									ID3D11Resource* pcResourceTwinDst = nullptr;
-									dwSize = sizeof(pcResourceTwinDst);
-									((ID3D11Resource*)*m_ppcDstResource_DX11_Copy)->GetPrivateData(PDIID_ID3D11Buffer_Constant_Buffer_Right, &dwSize, (void*)&pcResourceTwinDst);
-									if (pcResourceTwinDst)
-									{
-										// do the copy call on the stereo twins of these textures
-										((ID3D11DeviceContext*)pThis)->CopyResource(pcResourceTwinDst, *m_ppcSrcResource_DX11_Copy);
-										pcResourceTwinDst->Release();
-									}
+									// do the copy call on the stereo twins of these textures
+									((ID3D11DeviceContext*)pThis)->CopyResource(pcResourceTwinDst, *m_ppcSrcResource_DX11_Copy);
+									pcResourceTwinDst->Release();
 								}
 							}
+							//}
 						}
 						// is this a texture ?
 						else if (eDimension <= D3D11_RESOURCE_DIMENSION::D3D11_RESOURCE_DIMENSION_TEXTURE3D)
