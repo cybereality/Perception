@@ -51,6 +51,7 @@ m_hFont(nullptr)
 {
 	ZeroMemory(&m_sState, sizeof(OSVR_PoseState));
 	ZeroMemory(&m_sTimestamp, sizeof(OSVR_TimeValue));
+	ZeroMemory(&m_afTranslation[0], sizeof(float)*3);
 }
 
 /**
@@ -292,11 +293,11 @@ void* OSVR_Tracker::GetOutputPointer(DWORD dwCommanderIndex)
 		case OSVR_Commanders::OrientationZ:
 			return nullptr;
 		case OSVR_Commanders::PositionX:
-			return nullptr;
+			return (void*)&m_afTranslation[0];
 		case OSVR_Commanders::PositionY:
-			return nullptr;
+			return (void*)&m_afTranslation[1];
 		case OSVR_Commanders::PositionZ:
-			return nullptr;
+			return (void*)&m_afTranslation[2];
 	}
 
 	return nullptr;
@@ -377,6 +378,11 @@ void* OSVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMe
 
 			// PITCH = atan2(2.0 * (x * y + w * z), w * w + x * x - y * y - z * z);
 			// ROLL = atan2(2 * y * w - 2 * x * z, 1 - 2 * y * y - 2 * z * z);
+
+			// set position
+			m_afTranslation[0] = (float)m_sState.translation.data[0];
+			m_afTranslation[1] = (float)m_sState.translation.data[1];
+			m_afTranslation[2] = (float)m_sState.translation.data[2];
 
 #ifdef _DEBUG
 			// output debug data

@@ -127,6 +127,10 @@ private:
 	* Euler angles.
 	***/
 	float m_fYaw, m_fRoll, m_fPitch;
+	/**
+	* Position (float).
+	***/
+	float m_afTranslation[3];
 };
 
 /**
