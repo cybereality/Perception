@@ -355,7 +355,7 @@ void* VireioConstructorDx11::Provoke(void* pThis, int eD3D, int eD3DInterface, i
 				if (SUCCEEDED(*(HRESULT*)m_pvReturn))
 				{
 					// create stereo buffers
-					CreateStereoConstantBuffer((ID3D11Device*)pThis, nullptr, (**m_pppcBuffer_DX11), *m_ppsDesc_DX11, *m_ppsInitialData_DX11, false);
+					CreateStereoBuffer((ID3D11Device*)pThis, nullptr, (**m_pppcBuffer_DX11), *m_ppsDesc_DX11, *m_ppsInitialData_DX11, false);
 				}
 
 				// method replaced, immediately return

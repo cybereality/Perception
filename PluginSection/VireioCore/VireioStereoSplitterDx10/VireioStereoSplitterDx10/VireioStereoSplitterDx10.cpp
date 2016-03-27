@@ -134,7 +134,9 @@ m_dwVerifyConstantBuffers(0),
 m_ppcResource(nullptr),
 m_pdwSubresource(nullptr),
 m_ppcResource_Unmap(nullptr),
-m_pdwSubresource_Unmap(nullptr)
+m_pdwSubresource_Unmap(nullptr),
+m_bHotkeySwitch(false),
+m_eStereoMode(VireioMonitorStereoModes::Vireio_Mono)
 {
 	m_pcTexView10[0] = nullptr;
 	m_pcTexView10[1] = nullptr;
@@ -1502,142 +1504,153 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 #pragma endregion
 
 #pragma region draw (optionally)
-	// draw stereo target to screen (optionally) // TODO !! OPTION TO SET DRAWING ON/OFF, TOBEDONE WHEN DOING THE GUI OF THIS NODE
-	if (true)
+	// toggle stereo mode
+	if (GetAsyncKeyState(VK_F12))
+	{
+		m_bHotkeySwitch = true;
+	}
+	else
+	if (m_bHotkeySwitch)
+	{
+		if (m_eStereoMode) m_eStereoMode = VireioMonitorStereoModes::Vireio_Mono; else m_eStereoMode = VireioMonitorStereoModes::Vireio_SideBySide;
+		m_bHotkeySwitch = false;
+	}
+
+	// draw stereo target to screen (optionally)
+	if (m_eStereoMode)
 	{
 		switch (m_eD3DVersion)
 		{
 			case Direct3D10:
 				break;
 			case Direct3D11:
-				if (true)
-				{
-					if (!m_pcActiveBackBuffer11) break;
+			{
+							   if (!m_pcActiveBackBuffer11) break;
 
-					// get device and context
-					ID3D11Device* pcDevice = nullptr;
-					ID3D11DeviceContext* pcContext = nullptr;
-					if (FAILED(GetDeviceAndContext(pcSwapChain, &pcDevice, &pcContext)))
-					{
-						// release frame texture+view
-						if (pcDevice) { pcDevice->Release(); pcDevice = nullptr; }
-						if (pcContext) { pcContext->Release(); pcContext = nullptr; }
-						return;
-					}
+							   // get device and context
+							   ID3D11Device* pcDevice = nullptr;
+							   ID3D11DeviceContext* pcContext = nullptr;
+							   if (FAILED(GetDeviceAndContext(pcSwapChain, &pcDevice, &pcContext)))
+							   {
+								   // release frame texture+view
+								   if (pcDevice) { pcDevice->Release(); pcDevice = nullptr; }
+								   if (pcContext) { pcContext->Release(); pcContext = nullptr; }
+								   return;
+							   }
 
-					// update the output textures - get stored private data
-					if ((m_pcTex11[0]) && (m_pcActiveBackBuffer11)) pcContext->CopyResource((ID3D11Resource*)m_pcTex11[0], (ID3D11Resource*)m_pcActiveBackBuffer11);
-					UINT dwSize = sizeof(m_pcActiveBackBuffer11);
-					m_pcActiveBackBuffer11->GetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, &dwSize, (void*)&m_pcActiveStereoTwinBackBuffer11);
-					if ((dwSize) && (m_pcActiveStereoTwinBackBuffer11))
-					{
-						if (m_pcTex11[1]) pcContext->CopyResource((ID3D11Resource*)m_pcTex11[1], (ID3D11Resource*)m_pcActiveStereoTwinBackBuffer11);
-						m_pcActiveStereoTwinBackBuffer11->Release();
-					}
+							   // update the output textures - get stored private data
+							   if ((m_pcTex11[0]) && (m_pcActiveBackBuffer11)) pcContext->CopyResource((ID3D11Resource*)m_pcTex11[0], (ID3D11Resource*)m_pcActiveBackBuffer11);
+							   UINT dwSize = sizeof(m_pcActiveBackBuffer11);
+							   m_pcActiveBackBuffer11->GetPrivateData(PDIID_ID3D11TextureXD_Stereo_Twin, &dwSize, (void*)&m_pcActiveStereoTwinBackBuffer11);
+							   if ((dwSize) && (m_pcActiveStereoTwinBackBuffer11))
+							   {
+								   if (m_pcTex11[1]) pcContext->CopyResource((ID3D11Resource*)m_pcTex11[1], (ID3D11Resource*)m_pcActiveStereoTwinBackBuffer11);
+								   m_pcActiveStereoTwinBackBuffer11->Release();
+							   }
 
-					// get the viewport
-					UINT dwNumViewports = 1;
-					D3D11_VIEWPORT psViewport[16];
-					pcContext->RSGetViewports(&dwNumViewports, psViewport);
+							   // get the viewport
+							   UINT dwNumViewports = 1;
+							   D3D11_VIEWPORT psViewport[16];
+							   pcContext->RSGetViewports(&dwNumViewports, psViewport);
 
-					// backup all states
-					D3DX11_STATE_BLOCK sStateBlock;
-					CreateStateblock(pcContext, &sStateBlock);
+							   // backup all states
+							   D3DX11_STATE_BLOCK sStateBlock;
+							   CreateStateblock(pcContext, &sStateBlock);
 
-					// clear all states, set targets
-					pcContext->ClearState();
+							   // clear all states, set targets
+							   pcContext->ClearState();
 
-					// set first active render target - the stored back buffer - get the stored private data view
-					ID3D11RenderTargetView* pcView = nullptr;
-					dwSize = sizeof(pcView);
-					m_pcActiveBackBuffer11->GetPrivateData(PDIID_ID3D11TextureXD_RenderTargetView, &dwSize, (void*)&pcView);
-					if (dwSize)
-					{
-						pcContext->OMSetRenderTargets(1, (ID3D11RenderTargetView**)&pcView, (ID3D11DepthStencilView*)m_pcActiveDepthStencilView);
-						pcView->Release();
-					}
-					pcContext->RSSetViewports(dwNumViewports, psViewport);
+							   // set first active render target - the stored back buffer - get the stored private data view
+							   ID3D11RenderTargetView* pcView = nullptr;
+							   dwSize = sizeof(pcView);
+							   m_pcActiveBackBuffer11->GetPrivateData(PDIID_ID3D11TextureXD_RenderTargetView, &dwSize, (void*)&pcView);
+							   if (dwSize)
+							   {
+								   pcContext->OMSetRenderTargets(1, (ID3D11RenderTargetView**)&pcView, (ID3D11DepthStencilView*)m_pcActiveDepthStencilView);
+								   pcView->Release();
+							   }
+							   pcContext->RSSetViewports(dwNumViewports, psViewport);
 
-					// create all bool
-					bool bAllCreated = true;
+							   // create all bool
+							   bool bAllCreated = true;
 
-					// create vertex shader
-					if (!m_pcVertexShader11)
-					{
-						if (FAILED(Create2DVertexShader(pcDevice, &m_pcVertexShader11, &m_pcVertexLayout11)))
-							bAllCreated = false;
-					}
-					// create pixel shader... TODO !! add option to switch output
-					if (!m_pcPixelShader11)
-					{
-						if (FAILED(CreateSimplePixelShader(pcDevice, &m_pcPixelShader11, PixelShaderTechnique::SideBySide)))
-							bAllCreated = false;
-					}
-					// Create vertex buffer
-					if (!m_pcVertexBuffer11)
-					{
-						if (FAILED(CreateFullScreenVertexBuffer(pcDevice, &m_pcVertexBuffer11)))
-							bAllCreated = false;
-					}
-					// create constant buffer
-					if (!m_pcConstantBufferDirect11)
-					{
-						if (FAILED(CreateMatrixConstantBuffer(pcDevice, &m_pcConstantBufferDirect11)))
-							bAllCreated = false;
-					}
+							   // create vertex shader
+							   if (!m_pcVertexShader11)
+							   {
+								   if (FAILED(Create2DVertexShader(pcDevice, &m_pcVertexShader11, &m_pcVertexLayout11)))
+									   bAllCreated = false;
+							   }
+							   // create pixel shader... TODO !! add option to switch output
+							   if (!m_pcPixelShader11)
+							   {
+								   if (FAILED(CreateSimplePixelShader(pcDevice, &m_pcPixelShader11, PixelShaderTechnique::SideBySide)))
+									   bAllCreated = false;
+							   }
+							   // Create vertex buffer
+							   if (!m_pcVertexBuffer11)
+							   {
+								   if (FAILED(CreateFullScreenVertexBuffer(pcDevice, &m_pcVertexBuffer11)))
+									   bAllCreated = false;
+							   }
+							   // create constant buffer
+							   if (!m_pcConstantBufferDirect11)
+							   {
+								   if (FAILED(CreateMatrixConstantBuffer(pcDevice, &m_pcConstantBufferDirect11)))
+									   bAllCreated = false;
+							   }
 
-					if (bAllCreated)
-					{
-						// eventually set option to clear the depth stencil view
-						if (true)
-							pcContext->ClearDepthStencilView((ID3D11DepthStencilView*)m_pcActiveDepthStencilView, D3D11_CLEAR_DEPTH, 1.0, 0);
+							   if (bAllCreated)
+							   {
+								   // eventually set option to clear the depth stencil view
+								   if (true)
+									   pcContext->ClearDepthStencilView((ID3D11DepthStencilView*)m_pcActiveDepthStencilView, D3D11_CLEAR_DEPTH, 1.0, 0);
 
-						// left/right eye
-						for (int nEye = 0; nEye < 2; nEye++)
-						{
-							// Set the input layout
-							pcContext->IASetInputLayout(m_pcVertexLayout11);
+								   // left/right eye
+								   for (int nEye = 0; nEye < 2; nEye++)
+								   {
+									   // Set the input layout
+									   pcContext->IASetInputLayout(m_pcVertexLayout11);
 
-							// Set vertex buffer
-							UINT stride = sizeof(TexturedVertex);
-							UINT offset = 0;
-							pcContext->IASetVertexBuffers(0, 1, &m_pcVertexBuffer11, &stride, &offset);
+									   // Set vertex buffer
+									   UINT stride = sizeof(TexturedVertex);
+									   UINT offset = 0;
+									   pcContext->IASetVertexBuffers(0, 1, &m_pcVertexBuffer11, &stride, &offset);
 
-							// Set constant buffer, first update it... scale and translate the left and right image
-							D3DXMATRIX sScale;
-							D3DXMatrixScaling(&sScale, 0.5f, 1.0f, 1.0f);
-							D3DXMATRIX sTrans;
-							if (nEye == 0)
-								D3DXMatrixTranslation(&sTrans, -0.5f, 0.0f, 0.0f);
-							else
-								D3DXMatrixTranslation(&sTrans, 0.5f, 0.0f, 0.0f);
-							D3DXMatrixTranspose(&sTrans, &sTrans);
-							D3DXMATRIX sProj;
-							D3DXMatrixMultiply(&sProj, &sTrans, &sScale);
-							pcContext->UpdateSubresource((ID3D11Resource*)m_pcConstantBufferDirect11, 0, NULL, &sProj, 0, 0);
-							pcContext->VSSetConstantBuffers(0, 1, &m_pcConstantBufferDirect11);
+									   // Set constant buffer, first update it... scale and translate the left and right image
+									   D3DXMATRIX sScale;
+									   D3DXMatrixScaling(&sScale, 0.5f, 1.0f, 1.0f);
+									   D3DXMATRIX sTrans;
+									   if (nEye == 0)
+										   D3DXMatrixTranslation(&sTrans, -0.5f, 0.0f, 0.0f);
+									   else
+										   D3DXMatrixTranslation(&sTrans, 0.5f, 0.0f, 0.0f);
+									   D3DXMatrixTranspose(&sTrans, &sTrans);
+									   D3DXMATRIX sProj;
+									   D3DXMatrixMultiply(&sProj, &sTrans, &sScale);
+									   pcContext->UpdateSubresource((ID3D11Resource*)m_pcConstantBufferDirect11, 0, NULL, &sProj, 0, 0);
+									   pcContext->VSSetConstantBuffers(0, 1, &m_pcConstantBufferDirect11);
 
-							// Set primitive topology
-							pcContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+									   // Set primitive topology
+									   pcContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-							// set texture
-							pcContext->PSSetShaderResources(0, 1, &m_pcTexView11[nEye]);
+									   // set texture
+									   pcContext->PSSetShaderResources(0, 1, &m_pcTexView11[nEye]);
 
-							// set shaders
-							pcContext->VSSetShader(m_pcVertexShader11, 0, 0);
-							pcContext->PSSetShader(m_pcPixelShader11, 0, 0);
+									   // set shaders
+									   pcContext->VSSetShader(m_pcVertexShader11, 0, 0);
+									   pcContext->PSSetShader(m_pcPixelShader11, 0, 0);
 
-							// Render a triangle
-							pcContext->Draw(6, 0);
-						}
-					}
+									   // Render a triangle
+									   pcContext->Draw(6, 0);
+								   }
+							   }
 
-					// set back device
-					ApplyStateblock(pcContext, &sStateBlock);
+							   // set back device
+							   ApplyStateblock(pcContext, &sStateBlock);
 
-					if (pcDevice) { pcDevice->Release(); pcDevice = nullptr; }
-					if (pcContext) { pcContext->Release(); pcContext = nullptr; }
-				}
+							   if (pcDevice) { pcDevice->Release(); pcDevice = nullptr; }
+							   if (pcContext) { pcContext->Release(); pcContext = nullptr; }
+			}
 				break;
 			default:
 				break;

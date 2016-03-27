@@ -175,6 +175,15 @@ enum D3DVersion
 };
 
 /**
+* Available stereo output modes (only monitor modes here).
+***/
+enum VireioMonitorStereoModes
+{
+	Vireio_Mono = 0,
+	Vireio_SideBySide = 1,
+};
+
+/**
 * Vireio Stereo Splitter Node Plugin (Direct3D 9).
 * Vireio Perception Stereo Render Target Handler.
 ***/
@@ -506,6 +515,14 @@ private:
 		ID3D10Buffer* m_pcConstantBufferDirect10;
 		ID3D11Buffer* m_pcConstantBufferDirect11;
 	};
+	/**
+	* True if a stereo mode is selected.
+	***/
+	VireioMonitorStereoModes m_eStereoMode;
+	/**
+	* Hotkey switch.
+	***/
+	bool m_bHotkeySwitch;
 };
 
 /**
