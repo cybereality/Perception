@@ -167,6 +167,30 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixConvOffsetAdjustment.h" />
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixDoNothing.h" />
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixGatheredOrhoSquash.h" />
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixGuiSquash.h" />
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixHudSlide.h" />
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixHudSquash.h" />
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixIgnoreOrtho.h" />
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixNoPositional.h" />
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixNoRoll.h" />
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixNoShowModification.h" />
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixNoStereoSeparate.h" />
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixOrthoSquash.h" />
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixOrthoSquashHud.h" />
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixOrthoSquashShifted.h" />
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixRollOnly.h" />
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixRollOnlyHalf.h" />
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixRollOnlyNegative.h" />
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixSurfaceRefractionTransform.h" />
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\ShaderConstantModification.h" />
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\ShaderConstantModificationFactory.h" />
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\ShaderMatrixModification.h" />
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\Vector4DeadIslandScaled.h" />
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\Vector4EyeShiftUnity.h" />
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\Vector4SimpleTranslate.h" />
     <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\ViewAdjustment.h" />
     <ClInclude Include="..\..\..\..\..\Shared\ConfigDefaults.h" />
     <ClInclude Include="..\..\..\..\Include\Vireio_GameConfig.h" />

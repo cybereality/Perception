@@ -63,7 +63,7 @@ class ShaderConstantModificationFactory
 {
 public:
 	/**
-	* Vector4 modification identifiers. 
+	* Vector4 modification identifiers.
 	***/
 	enum Vector4ModificationTypes
 	{
@@ -72,11 +72,12 @@ public:
 		Vec4EyeShiftUnity = 2,              /**< **/
 		Vec4DeadIslandScaled = 3              /**< **/
 	};
+	static const UINT m_unVector4ModificationNumber = 4;
 	/**
 	* Matrix modification identifiers.
 	***/
 	enum MatrixModificationTypes
-	 {
+	{
 		MatDoNothing = 0,                   /**< Simple modification that does not apply anything. **/
 		MatSimpleTranslate = 1,             /**< Default modification is simple translate. **/
 		MatOrthographicSquash = 2,          /**< Squashes matrix if orthographic, otherwise simple translate. **/
@@ -91,10 +92,11 @@ public:
 		MatRollOnly = 11,                   /**< Modification applies only the head roll. **/
 		MatRollOnlyNegative = 12,           /**< Modification applies only the head roll. (negative)**/
 		MatRollOnlyHalf = 13,               /**< Modification applies only the head roll. (half roll)**/
-		MatNoRoll = 14,                     /**< Default modification without head roll. **/		
+		MatNoRoll = 14,                     /**< Default modification without head roll. **/
 		MatSimpleTranslateNoPositional = 15,/**< Simple translate, but is not affected by positional tracking **/
 		MatNoStereoSeparate = 16			/**< Don't translate, but is still affected by positional tracking **/
 	};
+	static const UINT m_unMatrixModificationNumber = 17;
 
 	/**
 	* Calls twin function.
@@ -103,6 +105,7 @@ public:
 	{
 		return CreateVector4Modification(static_cast<Vector4ModificationTypes>(modID), adjustmentMatrices);
 	}
+
 	/**
 	* Creates Vector4 modification.
 	* @see Vector4SimpleTranslate
@@ -111,23 +114,42 @@ public:
 	{
 		switch (mod)
 		{
-		case Vec4SimpleTranslate:
-			return std::make_shared<Vector4SimpleTranslate>(mod, adjustmentMatrices);
-		case Vec4EyeShiftUnity:
-			return std::make_shared<Vector4EyeShiftUnity>(mod, adjustmentMatrices);
-		case Vec4DeadIslandScaled:
-			return std::make_shared<Vector4DeadIslandScaled>(mod, adjustmentMatrices);
-		
-		default:
-			OutputDebugString("Nonexistant Vec4 modification\n");
-			assert(false);
-			throw std::out_of_range ("Nonexistant Vec4 modification");
+			case Vec4SimpleTranslate:
+				return std::make_shared<Vector4SimpleTranslate>(mod, adjustmentMatrices);
+			case Vec4EyeShiftUnity:
+				return std::make_shared<Vector4EyeShiftUnity>(mod, adjustmentMatrices);
+			case Vec4DeadIslandScaled:
+				return std::make_shared<Vector4DeadIslandScaled>(mod, adjustmentMatrices);
+
+			default:
+				OutputDebugStringA("Nonexistant Vec4 modification\n");
+				assert(false);
+				throw std::out_of_range("Nonexistant Vec4 modification");
 		}
+	}
+	/**
+	* Returns the name of the modification (std::wstring).
+	***/
+	static std::wstring GetVector4ModificationName(UINT unModID)
+	{
+		switch (unModID)
+		{
+			case Vec4SimpleTranslate:
+				return std::wstring(L"Vec4SimpleTranslate");
+			
+			case Vec4EyeShiftUnity:
+				return std::wstring(L"Vec4EyeShiftUnity");
+			
+			case Vec4DeadIslandScaled:
+				return std::wstring(L"Vec4DeadIslandScaled");
+
+		}
+		return std::wstring(L"Error-Nonexistant");
 	}
 	/**
 	* Calls twin function.
 	***/
-	static std::shared_ptr<ShaderConstantModification<>> CreateMatrixModification(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatrices, bool transpose) 
+	static std::shared_ptr<ShaderConstantModification<>> CreateMatrixModification(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatrices, bool transpose)
 	{
 		return CreateMatrixModification(static_cast<MatrixModificationTypes>(modID), adjustmentMatrices, transpose);
 	}
@@ -142,62 +164,123 @@ public:
 	{
 		switch (mod)
 		{
-		case MatDoNothing:
-			return std::make_shared<MatrixDoNothing>(mod, adjustmentMatrices);
+			case MatDoNothing:
+				return std::make_shared<MatrixDoNothing>(mod, adjustmentMatrices);
 
-		case MatSimpleTranslate:
-			return std::make_shared<ShaderMatrixModification>(mod, adjustmentMatrices, transpose);
+			case MatSimpleTranslate:
+				return std::make_shared<ShaderMatrixModification>(mod, adjustmentMatrices, transpose);
 
-		case MatOrthographicSquash:
-			return std::make_shared<MatrixOrthoSquash>(mod, adjustmentMatrices, transpose);
+			case MatOrthographicSquash:
+				return std::make_shared<MatrixOrthoSquash>(mod, adjustmentMatrices, transpose);
 
-		case MatHudSlide:
-			return std::make_shared<MatrixHudSlide>(mod, adjustmentMatrices, transpose);
+			case MatHudSlide:
+				return std::make_shared<MatrixHudSlide>(mod, adjustmentMatrices, transpose);
 
-		case MatGuiSquash:
-			return std::make_shared<MatrixGuiSquash>(mod, adjustmentMatrices, transpose);
+			case MatGuiSquash:
+				return std::make_shared<MatrixGuiSquash>(mod, adjustmentMatrices, transpose);
 
-		case MatSurfaceRefractionTransform:
-			return std::make_shared<MatrixSurfaceRefractionTransform>(mod, adjustmentMatrices, transpose);
+			case MatSurfaceRefractionTransform:
+				return std::make_shared<MatrixSurfaceRefractionTransform>(mod, adjustmentMatrices, transpose);
 
-		case MatGatheredOrthographicSquash:
-			return std::make_shared<MatrixGatheredOrthoSquash>(mod, adjustmentMatrices, transpose);
+			case MatGatheredOrthographicSquash:
+				return std::make_shared<MatrixGatheredOrthoSquash>(mod, adjustmentMatrices, transpose);
 
-		case MatOrthographicSquashShifted:
-			return std::make_shared<MatrixOrthoSquashShifted>(mod, adjustmentMatrices, transpose);
+			case MatOrthographicSquashShifted:
+				return std::make_shared<MatrixOrthoSquashShifted>(mod, adjustmentMatrices, transpose);
 
-		case MatOrthographicSquashHud:
-			return std::make_shared<MatrixOrthoSquashHud>(mod, adjustmentMatrices, transpose);
+			case MatOrthographicSquashHud:
+				return std::make_shared<MatrixOrthoSquashHud>(mod, adjustmentMatrices, transpose);
 
-		case MatConvergenceOffset:
-			return std::make_shared<MatrixConvOffsetAdjustment>(mod, adjustmentMatrices, transpose);
+			case MatConvergenceOffset:
+				return std::make_shared<MatrixConvOffsetAdjustment>(mod, adjustmentMatrices, transpose);
 
-		case MatSimpleTranslateIgnoreOrtho:
-			return std::make_shared<MatrixIgnoreOrtho>(mod, adjustmentMatrices, transpose);
+			case MatSimpleTranslateIgnoreOrtho:
+				return std::make_shared<MatrixIgnoreOrtho>(mod, adjustmentMatrices, transpose);
 
-		case MatRollOnly:
-			return std::make_shared<MatrixRollOnly>(mod, adjustmentMatrices, transpose);
+			case MatRollOnly:
+				return std::make_shared<MatrixRollOnly>(mod, adjustmentMatrices, transpose);
 
-		case MatRollOnlyNegative:
-			return std::make_shared<MatrixRollOnlyNegative>(mod, adjustmentMatrices, transpose);
+			case MatRollOnlyNegative:
+				return std::make_shared<MatrixRollOnlyNegative>(mod, adjustmentMatrices, transpose);
 
-		case MatRollOnlyHalf:
-			return std::make_shared<MatrixRollOnlyHalf>(mod, adjustmentMatrices, transpose);
+			case MatRollOnlyHalf:
+				return std::make_shared<MatrixRollOnlyHalf>(mod, adjustmentMatrices, transpose);
 
-		case MatNoRoll:
-			return std::make_shared<MatrixNoRoll>(mod, adjustmentMatrices, transpose);
+			case MatNoRoll:
+				return std::make_shared<MatrixNoRoll>(mod, adjustmentMatrices, transpose);
 
-		case MatSimpleTranslateNoPositional:
-			return std::make_shared<MatrixNoPositional>(mod, adjustmentMatrices, transpose);
-		
-		case MatNoStereoSeparate:
-			return std::make_shared<MatrixNoStereoSeparate>(mod, adjustmentMatrices, transpose);
-		
-		default:
-			OutputDebugString("Nonexistant matrix modification\n");
-			assert(false);
-			throw std::out_of_range ("Nonexistant matrix modification");
+			case MatSimpleTranslateNoPositional:
+				return std::make_shared<MatrixNoPositional>(mod, adjustmentMatrices, transpose);
+
+			case MatNoStereoSeparate:
+				return std::make_shared<MatrixNoStereoSeparate>(mod, adjustmentMatrices, transpose);
+
+			default:
+				OutputDebugStringA("Nonexistant matrix modification\n");
+				assert(false);
+				throw std::out_of_range("Nonexistant matrix modification");
 		}
+	}
+	/**
+	* Returns the name of the modification (std::wstring).
+	***/
+	static std::wstring GetMatrixModificationName(UINT unModID)
+	{
+		switch (unModID)
+		{
+			case MatDoNothing:
+				return std::wstring(L"MatDoNothing");
+
+			case MatSimpleTranslate:
+				return std::wstring(L"MatSimpleTranslate");
+
+			case MatOrthographicSquash:
+				return std::wstring(L"MatOrthographicSquash");
+
+			case MatHudSlide:
+				return std::wstring(L"MatHudSlide");
+
+			case MatGuiSquash:
+				return std::wstring(L"MatGuiSquash");
+
+			case MatSurfaceRefractionTransform:
+				return std::wstring(L"MatSurfaceRefractionTransform");
+
+			case MatGatheredOrthographicSquash:
+				return std::wstring(L"MatGatheredOrthographicSquash");
+
+			case MatOrthographicSquashShifted:
+				return std::wstring(L"MatOrthographicSquashShifted");
+
+			case MatOrthographicSquashHud:
+				return std::wstring(L"MatOrthographicSquashHud");
+
+			case MatConvergenceOffset:
+				return std::wstring(L"MatConvergenceOffset");
+
+			case MatSimpleTranslateIgnoreOrtho:
+				return std::wstring(L"MatSimpleTranslateIgnoreOrtho");
+
+			case MatRollOnly:
+				return std::wstring(L"MatRollOnly");
+
+			case MatRollOnlyNegative:
+				return std::wstring(L"MatRollOnlyNegative");
+
+			case MatRollOnlyHalf:
+				return std::wstring(L"MatRollOnlyHalf");
+
+			case MatNoRoll:
+				return std::wstring(L"MatNoRoll");
+
+			case MatSimpleTranslateNoPositional:
+				return std::wstring(L"MatSimpleTranslateNoPositional");
+
+			case MatNoStereoSeparate:
+				return std::wstring(L"MatNoStereoSeparate");
+
+		}
+		return std::wstring(L"Error-Nonexistant");
 	}
 };
 #endif

@@ -53,8 +53,8 @@ public:
 	* @param adjustmentMatrices The matricies to be adjusted
 	* @param transpose Decides if the matrices should be transposed (aka: have rows and columns interchanged)
 	*/
-	MatrixOrthoSquashShifted(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatrices, bool transpose) 
-		: ShaderMatrixModification(modID, adjustmentMatrices, transpose) 
+	MatrixOrthoSquashShifted(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatrices, bool transpose)
+		: ShaderMatrixModification(modID, adjustmentMatrices, transpose)
 	{};
 
 	/**
@@ -66,7 +66,12 @@ public:
 	***/
 	virtual void DoMatrixModification(D3DXMATRIX in, D3DXMATRIX& outLeft, D3DXMATRIX& outright)
 	{
-		if (vireio::AlmostSame(in[15], 1.0f, 0.00001f)) {
+#ifdef VIREIO_MATRIX_MODIFIER
+		if (fabs(in[15] - 1.0f) < 0.00001f)
+#else
+		if (vireio::AlmostSame(in[15], 1.0f, 0.00001f)) 
+#endif
+		{
 
 			// add all translation and scale matrix entries 
 			// (for the GUI this should be 3.0f, for the HUD above)
@@ -86,7 +91,7 @@ public:
 				// separation -> distance translation
 				D3DXMATRIX orthoToPersViewProjTransformLeft  = m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->LeftHUD3DDepthShifted() * m_spAdjustmentMatrices->LeftViewTransform() * m_spAdjustmentMatrices->HUDDistance() *  m_spAdjustmentMatrices->Projection();
 				D3DXMATRIX orthoToPersViewProjTransformRight = m_spAdjustmentMatrices->ProjectionInverse() * m_spAdjustmentMatrices->RightHUD3DDepthShifted() * m_spAdjustmentMatrices->RightViewTransform() * m_spAdjustmentMatrices->HUDDistance() * m_spAdjustmentMatrices->Projection();
-				
+
 				outLeft = in * orthoToPersViewProjTransformLeft;
 				outright = in * orthoToPersViewProjTransformRight;
 			}

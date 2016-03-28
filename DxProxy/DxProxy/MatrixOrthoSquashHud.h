@@ -53,8 +53,8 @@ public:
 	* @param adjustmentMatrices The matricies to be adjusted
 	* @param transpose Decides if the matrices should be transposed (aka: have rows and columns interchanged)
 	*/
-	MatrixOrthoSquashHud(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatrices, bool transpose) 
-		: ShaderMatrixModification(modID, adjustmentMatrices, transpose) 
+	MatrixOrthoSquashHud(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatrices, bool transpose)
+		: ShaderMatrixModification(modID, adjustmentMatrices, transpose)
 	{};
 
 	/**
@@ -66,7 +66,12 @@ public:
 	***/
 	virtual void DoMatrixModification(D3DXMATRIX in, D3DXMATRIX& outLeft, D3DXMATRIX& outright)
 	{
-		if (vireio::AlmostSame(in[15], 1.0f, 0.00001f)) {
+#ifdef VIREIO_MATRIX_MODIFIER
+		if (fabs(in[15] - 1.0f) < 0.00001f)
+#else
+		if (vireio::AlmostSame(in[15], 1.0f, 0.00001f)) 
+#endif
+		{
 
 			// HUD
 			// separation -> distance translation

@@ -48,6 +48,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include<vector>
 
 #include"..\..\..\Include\Vireio_GUIDs.h"
+#include"..\..\..\..\DxProxy\DxProxy\ShaderConstantModificationFactory.h"
 
 #define VIREIO_MAX_VARIABLE_NAME_LENGTH      64  /**< We restrict variable names to 64 characters. ***/
 #define VIREIO_CONSTANT_RULES_NOT_ADDRESSED - 1  /**< No shader rules addressed for this shader. ***/
@@ -264,6 +265,10 @@ struct Vireio_Constant_Modification_Rule
 	* True if input matrix should be transposed before modifying (and transposed back after).
 	***/
 	bool m_bTranspose;
+	/**
+	* The eventual modification class. (created by m_dwOperationToApply index)
+	***/
+	std::shared_ptr<ShaderConstantModification<>> m_pcModification;
 };
 
 /**

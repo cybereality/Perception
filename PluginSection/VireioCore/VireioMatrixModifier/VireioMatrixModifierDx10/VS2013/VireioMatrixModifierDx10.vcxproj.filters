@@ -10,6 +10,78 @@
     <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\ViewAdjustment.h" />
     <ClInclude Include="..\..\..\..\Include\Vireio_GameConfig.h" />
     <ClInclude Include="..\..\..\..\..\Shared\ConfigDefaults.h" />
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixConvOffsetAdjustment.h">
+      <Filter>Modification</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixDoNothing.h">
+      <Filter>Modification</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixGatheredOrhoSquash.h">
+      <Filter>Modification</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixGuiSquash.h">
+      <Filter>Modification</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixHudSlide.h">
+      <Filter>Modification</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixHudSquash.h">
+      <Filter>Modification</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixIgnoreOrtho.h">
+      <Filter>Modification</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixNoPositional.h">
+      <Filter>Modification</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixNoRoll.h">
+      <Filter>Modification</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixNoShowModification.h">
+      <Filter>Modification</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixNoStereoSeparate.h">
+      <Filter>Modification</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixOrthoSquash.h">
+      <Filter>Modification</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixOrthoSquashHud.h">
+      <Filter>Modification</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixOrthoSquashShifted.h">
+      <Filter>Modification</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixRollOnly.h">
+      <Filter>Modification</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixRollOnlyHalf.h">
+      <Filter>Modification</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixRollOnlyNegative.h">
+      <Filter>Modification</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixSurfaceRefractionTransform.h">
+      <Filter>Modification</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\ShaderConstantModification.h">
+      <Filter>Modification</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\ShaderConstantModificationFactory.h">
+      <Filter>Modification</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\ShaderMatrixModification.h">
+      <Filter>Modification</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\Vector4DeadIslandScaled.h">
+      <Filter>Modification</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\Vector4EyeShiftUnity.h">
+      <Filter>Modification</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\Vector4SimpleTranslate.h">
+      <Filter>Modification</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\VireioMatrixModifier\AQU_Nodus.def" />
@@ -21,5 +93,10 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\VireioMatrixModifier\VireioMatrixModifier_Resources.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Modification">
+      <UniqueIdentifier>{b6ce7521-9e0f-401d-ac3f-1b826514ae5f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>

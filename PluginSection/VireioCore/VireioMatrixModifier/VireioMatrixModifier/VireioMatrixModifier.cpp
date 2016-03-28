@@ -157,7 +157,7 @@ m_dwCurrentChosenShaderHashCode(0)
 	m_sGameConfiguration.fPositionYMultiplier = DEFAULT_POS_TRACKING_Y_MULT;
 	m_sGameConfiguration.fPositionZMultiplier = DEFAULT_POS_TRACKING_Z_MULT;
 	m_sGameConfiguration.bPFOVToggle = false;
-	m_pcShaderViewAdjustment = new ViewAdjustment(m_psHmdInfo, &m_sGameConfiguration);
+	m_pcShaderViewAdjustment = std::make_shared<ViewAdjustment>(m_psHmdInfo, &m_sGameConfiguration);
 
 	// init
 	m_pcShaderViewAdjustment->UpdateProjectionMatrices((float)1920.0f / (float)1080.0f, m_sGameConfiguration.fPFOV);
@@ -197,8 +197,9 @@ m_dwCurrentChosenShaderHashCode(0)
 	m_asMappedBuffers = std::vector<Vireio_Map_Data>();
 	m_dwMappedBuffers = 0;
 
-	// reg count to 4 on shader page by default (=Matrix)
+	// reg count to 4 on shader page by default (=Matrix), operation by default to 1 (=Simple Translate)
 	m_sPageGameShaderRules.m_dwRegCountValue = 4;
+	m_sPageGameShaderRules.m_dwOperationToApply = 1;
 
 	// constant rule buffer counter starts with 1 to init a first update
 	m_dwConstantRulesUpdateCounter = 1;
@@ -271,6 +272,7 @@ m_dwCurrentChosenShaderHashCode(0)
 ***/
 MatrixModifier::~MatrixModifier()
 {
+	m_pcShaderViewAdjustment.reset();
 }
 
 /**
@@ -351,7 +353,7 @@ DWORD MatrixModifier::GetSaveDataSize()
 	dwSizeofData += (DWORD)m_asConstantRules.size() * sizeof(Vireio_Constant_Modification_Rule_Normalized);
 	dwSizeofData += sizeof(UINT);
 	dwSizeofData += (DWORD)m_adwGlobalConstantRuleIndices.size() * sizeof(UINT);
-	
+
 	return dwSizeofData;
 }
 
@@ -442,8 +444,14 @@ void MatrixModifier::InitNodeData(char* pData, UINT dwSizeOfData)
 					memcpy(&sRuleNormalized, pData + dwDataOffset, sizeof(Vireio_Constant_Modification_Rule_Normalized));
 					dwDataOffset += sizeof(Vireio_Constant_Modification_Rule_Normalized);
 
-					// create rule
+					// create rule, create modification and push back
 					Vireio_Constant_Modification_Rule sRule = Vireio_Constant_Modification_Rule(&sRuleNormalized);
+					{ wchar_t buf[128]; wsprintf(buf, L"[Vireio] Mod : %u Reg : %u RegCount : %u", sRule.m_dwOperationToApply, sRule.m_dwStartRegIndex, sRule.m_dwRegisterCount); OutputDebugString(buf); }
+					if (sRule.m_dwRegisterCount == 1)
+						sRule.m_pcModification = ShaderConstantModificationFactory::CreateVector4Modification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment);
+					else if (sRule.m_dwRegisterCount == 4)
+						sRule.m_pcModification = ShaderConstantModificationFactory::CreateMatrixModification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment, sRule.m_bTranspose);
+					else sRule.m_pcModification = nullptr;
 					m_asConstantRules.push_back(sRule);
 
 					dwSizeOfRules -= sizeof(Vireio_Constant_Modification_Rule_Normalized);
@@ -2173,6 +2181,24 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 				}
 #endif
 			}
+			else if (sEvent.dwIndexOfPage == m_adwPageIDs[GUI_Pages::ShaderRulesPage])
+			{
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+				if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwRegisterCount)
+				{
+					if (sEvent.dwNewValue == 0)
+						m_sPageGameShaderRules.m_dwRegCountValue = 1;
+					else if (sEvent.dwNewValue == 1)
+						m_sPageGameShaderRules.m_dwRegCountValue = 2;
+					else if (sEvent.dwNewValue == 2)
+						m_sPageGameShaderRules.m_dwRegCountValue = 4;
+				}
+				else if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwOperationToApply)
+				{
+					m_sPageGameShaderRules.m_dwOperationValue = sEvent.dwNewValue;
+				}
+#endif
+			}
 			break;
 		case ChangedToValue:
 #pragma region ChangedToValue
@@ -2351,17 +2377,6 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 				}
 				else if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwTranspose)
 					m_sPageGameShaderRules.m_bTranspose = sEvent.bNewValue;
-				else if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwRegisterCount)
-				{
-					if (sEvent.dwNewValue == 0)
-						m_sPageGameShaderRules.m_dwRegCountValue = 1;
-					else if (sEvent.dwNewValue == 1)
-						m_sPageGameShaderRules.m_dwRegCountValue = 2;
-					else if (sEvent.dwNewValue == 2)
-						m_sPageGameShaderRules.m_dwRegCountValue = 4;
-				}
-				else if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwOperationToApply)
-					m_sPageGameShaderRules.m_dwOperationValue = sEvent.dwNewValue;
 #endif
 			}
 			break;
@@ -2745,7 +2760,7 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 					}
 
 					// operation
-					sRule.m_dwOperationToApply = m_sPageGameShaderRules.m_dwOperationToApply;
+					sRule.m_dwOperationToApply = m_sPageGameShaderRules.m_dwOperationValue;
 
 					// register count
 					sRule.m_dwRegisterCount = m_sPageGameShaderRules.m_dwRegCountValue;
@@ -3314,8 +3329,12 @@ void MatrixModifier::CreateGUI()
 	static std::wstring szToGeneral = std::wstring(L"To General");
 	static std::wstring szDelete = std::wstring(L"Delete");
 
-	std::wstring szOperation1 = std::wstring(L"Simple Modification");
-	static std::vector<std::wstring> aszOperations; aszOperations.push_back(szOperation1);
+	static std::vector<std::wstring> aszOperations;
+	for (UINT nMod = 0; nMod < ShaderConstantModificationFactory::m_unMatrixModificationNumber; nMod++)
+	{
+
+		aszOperations.push_back(ShaderConstantModificationFactory::GetMatrixModificationName(nMod));
+	}
 
 	std::wstring sz1 = std::wstring(L"1 - Vector 4f");
 	std::wstring sz2 = std::wstring(L"2 - Matrix 2x4f");
@@ -3725,6 +3744,14 @@ void MatrixModifier::FillShaderRuleData(UINT dwRuleIndex)
 		else
 			szTranspose << L"Transpose : FALSE";
 		m_aszShaderRuleData.push_back(szTranspose.str());
+	}
+
+	// operation ?
+	{
+		if (m_asConstantRules[dwRuleIndex].m_dwRegisterCount == 1)
+			m_aszShaderRuleData.push_back(ShaderConstantModificationFactory::GetVector4ModificationName(m_asConstantRules[dwRuleIndex].m_dwOperationToApply));
+		else if (m_asConstantRules[dwRuleIndex].m_dwRegisterCount == 4)
+			m_aszShaderRuleData.push_back(ShaderConstantModificationFactory::GetMatrixModificationName(m_asConstantRules[dwRuleIndex].m_dwOperationToApply));
 	}
 #endif
 }

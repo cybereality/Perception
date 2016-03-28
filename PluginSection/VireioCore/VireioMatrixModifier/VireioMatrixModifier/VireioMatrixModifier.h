@@ -564,7 +564,7 @@ private:
 	* View matrix adjustment class.
 	* @see ViewAdjustment
 	**/
-	ViewAdjustment* m_pcShaderViewAdjustment;
+	std::shared_ptr<ViewAdjustment> m_pcShaderViewAdjustment;
 	/**
 	* The game configuration for the current game.
 	***/
