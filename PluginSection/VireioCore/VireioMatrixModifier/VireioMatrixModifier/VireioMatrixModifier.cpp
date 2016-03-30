@@ -3097,7 +3097,7 @@ void MatrixModifier::DoBufferModification(INT nRulesIndex, UINT_PTR pdwLeft, UIN
 			UINT dwIndex = m_aasConstantBufferRuleIndices[nRulesIndex][dwI].m_dwIndex;
 			UINT dwRegister = m_aasConstantBufferRuleIndices[nRulesIndex][dwI].m_dwConstantRuleRegister;
 
-			// TODO !! CHOOSE MODIFICATION BASED ON RULE TYPE
+			// TODO !! VECTOR MODIFICATION, MATRIX2x4 MODIFICATION
 
 			// is this modification in range ?
 			if ((dwBufferSize >= dwRegister * 4 * sizeof(float)+sizeof(D3DMATRIX)))
@@ -3108,21 +3108,31 @@ void MatrixModifier::DoBufferModification(INT nRulesIndex, UINT_PTR pdwLeft, UIN
 
 				// get the matrix
 				D3DXMATRIX sMatrix = D3DXMATRIX((CONST FLOAT*)pvLeft);
-				D3DXMATRIX sMatrixModified;
 
-				if (m_asConstantRules[dwIndex].m_bTranspose) D3DXMatrixTranspose(&sMatrix, &sMatrix);
+				// do matrix modification
+				if (m_asConstantRules[dwIndex].m_pcModification)
+				{
+					// matrix to be transposed ?
+					if (m_asConstantRules[dwIndex].m_bTranspose)
+					{
+						D3DXMatrixTranspose(&sMatrix, &sMatrix);
+					}
 
-				// apply left
-				sMatrixModified = sMatrix *  m_pcShaderViewAdjustment->LeftAdjustmentMatrix()*
-					m_pcShaderViewAdjustment->ProjectionInverse() * m_pcShaderViewAdjustment->PositionMatrix() * m_pcShaderViewAdjustment->Projection();
-				if (m_asConstantRules[dwIndex].m_bTranspose) D3DXMatrixTranspose(&sMatrixModified, &sMatrixModified);
-				memcpy((void*)pvLeft, &sMatrixModified, sizeof(D3DXMATRIX));
+					D3DXMATRIX sMatrixLeft, sMatrixRight;
 
-				// apply right
-				sMatrixModified = sMatrix *  m_pcShaderViewAdjustment->RightAdjustmentMatrix()*
-					m_pcShaderViewAdjustment->ProjectionInverse() * m_pcShaderViewAdjustment->PositionMatrix() * m_pcShaderViewAdjustment->Projection();
-				if (m_asConstantRules[dwIndex].m_bTranspose) D3DXMatrixTranspose(&sMatrixModified, &sMatrixModified);
-				memcpy((void*)pvRight, &sMatrixModified, sizeof(D3DXMATRIX));
+					// do modification
+					((ShaderMatrixModification*)m_asConstantRules[dwIndex].m_pcModification.get())->DoMatrixModification(sMatrix, sMatrixLeft, sMatrixRight);
+
+					// transpose back
+					if (m_asConstantRules[dwIndex].m_bTranspose)
+					{
+						D3DXMatrixTranspose(&sMatrixLeft, &sMatrixLeft);
+						D3DXMatrixTranspose(&sMatrixRight, &sMatrixRight);
+					}
+
+					memcpy((void*)pvLeft, &sMatrixLeft, sizeof(D3DXMATRIX));
+					memcpy((void*)pvRight, &sMatrixRight, sizeof(D3DXMATRIX));
+				}
 			}
 		}
 	}

@@ -95,8 +95,9 @@ public:
 		}
 	}
 
-
+#ifndef VIREIO_MATRIX_MODIFIER
 protected:
+#endif
 	/**
 	* Default modification is simple translate. Override to do actual modification. 
 	* @param in [in] Modification matrix to be multiplied by adjustment matrix (left/right).
