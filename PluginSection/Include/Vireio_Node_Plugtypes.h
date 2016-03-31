@@ -64,6 +64,8 @@ enum NOD_Plugtype
 	AQU_VOID = 14,
 	AQU_HDC = 15,
 	AQU_WCHAR = 16,
+	AQU_FIXEDPOINTER = 64,
+	AQU_SHAREDPOINTER = 65,
 
 	// windows standard pointers			
 	AQU_PNT_BOOL = 100,
