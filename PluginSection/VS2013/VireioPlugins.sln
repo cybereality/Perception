@@ -17,6 +17,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OSVR-DirectMode", "..\Rende
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OculusTracker", "..\MotionTracker\OculusTracker\OculusTracker\VS2013\OculusTracker.vcxproj", "{BD999969-5240-4424-A182-BE1E5B2C6DEE}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VireioStereoPresenter", "..\VireioCore\VireioStereoPresenter\VireioStereoPresenter\VS2013\VireioStereoPresenter.vcxproj", "{FC8AFC4A-0113-427B-8AC6-D7170AEB8F5F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Mixed Platforms = Debug|Mixed Platforms
@@ -108,7 +110,20 @@ Global
 		{BD999969-5240-4424-A182-BE1E5B2C6DEE}.Release|Mixed Platforms.Build.0 = Release|Win32
 		{BD999969-5240-4424-A182-BE1E5B2C6DEE}.Release|Win32.ActiveCfg = Release|Win32
 		{BD999969-5240-4424-A182-BE1E5B2C6DEE}.Release|Win32.Build.0 = Release|Win32
-		{BD999969-5240-4424-A182-BE1E5B2C6DEE}.Release|x64.ActiveCfg = Release|Win32
+		{BD999969-5240-4424-A182-BE1E5B2C6DEE}.Release|x64.ActiveCfg = Release|x64
+		{BD999969-5240-4424-A182-BE1E5B2C6DEE}.Release|x64.Build.0 = Release|x64
+		{FC8AFC4A-0113-427B-8AC6-D7170AEB8F5F}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{FC8AFC4A-0113-427B-8AC6-D7170AEB8F5F}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{FC8AFC4A-0113-427B-8AC6-D7170AEB8F5F}.Debug|Win32.ActiveCfg = Debug|Win32
+		{FC8AFC4A-0113-427B-8AC6-D7170AEB8F5F}.Debug|Win32.Build.0 = Debug|Win32
+		{FC8AFC4A-0113-427B-8AC6-D7170AEB8F5F}.Debug|x64.ActiveCfg = Debug|x64
+		{FC8AFC4A-0113-427B-8AC6-D7170AEB8F5F}.Debug|x64.Build.0 = Debug|x64
+		{FC8AFC4A-0113-427B-8AC6-D7170AEB8F5F}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{FC8AFC4A-0113-427B-8AC6-D7170AEB8F5F}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{FC8AFC4A-0113-427B-8AC6-D7170AEB8F5F}.Release|Win32.ActiveCfg = Release|Win32
+		{FC8AFC4A-0113-427B-8AC6-D7170AEB8F5F}.Release|Win32.Build.0 = Release|Win32
+		{FC8AFC4A-0113-427B-8AC6-D7170AEB8F5F}.Release|x64.ActiveCfg = Release|x64
+		{FC8AFC4A-0113-427B-8AC6-D7170AEB8F5F}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
