@@ -48,7 +48,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include<vector>
 
 #include"..\..\..\Include\Vireio_GUIDs.h"
+#ifdef VIREIO_MATRIX_MODIFIER
 #include"..\..\..\..\DxProxy\DxProxy\ShaderConstantModificationFactory.h"
+#endif
 
 #define VIREIO_MAX_VARIABLE_NAME_LENGTH      64  /**< We restrict variable names to 64 characters. ***/
 #define VIREIO_CONSTANT_RULES_NOT_ADDRESSED - 1  /**< No shader rules addressed for this shader. ***/
@@ -117,6 +119,7 @@ inline void CreateStereoBuffer(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 }
 #pragma endregion
 
+#ifdef VIREIO_MATRIX_MODIFIER
 /**
 * Constant modification rule (v4+) normalized.
 ***/
@@ -270,6 +273,7 @@ struct Vireio_Constant_Modification_Rule
 	***/
 	std::shared_ptr<ShaderConstantModification<>> m_pcModification;
 };
+#endif
 
 /**
 * Shader-specific constant rule index.

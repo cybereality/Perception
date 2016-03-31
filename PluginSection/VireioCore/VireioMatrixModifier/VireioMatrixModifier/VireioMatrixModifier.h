@@ -366,14 +366,14 @@ private:
 	void VerifyConstantBuffer(ID3D11Buffer *pcBuffer, UINT dwBufferIndex);
 	void DoBufferModification(INT nRulesIndex, UINT_PTR pdwLeft, UINT_PTR pdwRight, UINT dwBufferSize);
 #endif
-#if defined(VIREIO_D3D9)
-#endif
 	void DebugOutput(const void *pvSrcData, UINT dwShaderIndex, UINT dwBufferIndex, UINT dwBufferSize);
 	void CreateGUI();
 	void FillShaderRuleIndices();
 	void FillShaderRuleData(UINT dwRuleIndex);
 	void FillShaderRuleGeneralIndices();
+#if defined(VIREIO_D3D9)
 	void FillShaderRuleShaderIndices();
+#endif
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	/*** MatrixModifier input pointers ***/
@@ -655,7 +655,6 @@ private:
 		UINT m_dwRuleIndices;                       /**< [List] List of all created shader rules **/
 		UINT m_dwRuleData;                          /**< [List] Data output for the chosen rule **/
 		UINT m_dwGeneralIndices;                    /**< [List] All general indices **/
-		UINT m_dwShaderIndices;                     /**< [List] All shader-specific indices **/
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 		UINT m_dwConstantName;                      /**< [Switch] Shader constant name **/
@@ -689,6 +688,8 @@ private:
 		bool m_bTranspose;
 		UINT m_dwOperationValue;
 		UINT m_dwRegCountValue;
+#elif defined(VIREIO_D3D9)
+		UINT m_dwShaderIndices;                     /**< [List] All shader-specific indices **/
 #endif
 	} m_sPageGameShaderRules;
 	/**
@@ -769,10 +770,6 @@ private:
 	***/
 	std::vector<std::wstring> m_aszShaderRuleGeneralIndices;
 	/**
-	* List of all shaderrule indices for the currently chosen shader on the shaders page. (std::wstring).
-	***/
-	std::vector<std::wstring> m_aszShaderRuleShaderIndices;
-	/**
 	* Debug trace string list.
 	* Contains all strings for the debug trace.
 	***/
@@ -789,6 +786,16 @@ private:
 	* True if the shader list is to be sorted.
 	***/
 	bool m_bSortShaderList;
+
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+
+#elif defined(VIREIO_D3D9)
+	/**
+	* List of all shaderrule indices for the currently chosen shader on the shaders page. (std::wstring).
+	* (DX9 only)
+	***/
+	std::vector<std::wstring> m_aszShaderRuleShaderIndices;
+#endif
 };
 
 /**

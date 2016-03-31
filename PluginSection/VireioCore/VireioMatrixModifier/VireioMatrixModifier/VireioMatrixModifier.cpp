@@ -169,6 +169,11 @@ m_dwCurrentChosenShaderHashCode(0)
 	ZeroMemory(&m_sPageShader, sizeof(PageShader));
 	ZeroMemory(&m_sPageGameShaderRules, sizeof(PageGameShaderRules));
 
+	// init shader rule page lists
+	m_aszShaderRuleIndices = std::vector<std::wstring>();
+	m_aszShaderRuleData = std::vector<std::wstring>();
+	m_aszShaderRuleGeneralIndices = std::vector<std::wstring>();
+
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	// create buffer vectors ( * 2 for left/right side )
 	m_apcVSActiveConstantBuffers11 = std::vector<ID3D11Buffer*>(D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT * 2, nullptr);
@@ -264,6 +269,9 @@ m_dwCurrentChosenShaderHashCode(0)
 	m_ppsMappedResource = nullptr;
 	m_ppcResource_Unmap = nullptr;
 	m_pdwSubresource_Unmap = nullptr;
+#elif defined(VIREIO_D3D9)
+	// init shader rule page shader indices list (DX9 only)
+	m_aszShaderRuleShaderIndices = std::vector<std::wstring>();
 #endif
 }
 
@@ -489,6 +497,12 @@ void MatrixModifier::InitNodeData(char* pData, UINT dwSizeOfData)
 
 		// fill the string list
 		FillShaderRuleIndices();
+		FillShaderRuleGeneralIndices();
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+
+#elif defined(VIREIO_D3D9)
+		FillShaderRuleShaderIndices();
+#endif
 	}
 	else
 	{
@@ -2599,12 +2613,6 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 					m_aszShaderConstantsCurrent = std::vector<std::wstring>();
 					m_aszShaderBuffersizes = std::vector<std::wstring>();
 
-					// init shader rule page lists
-					m_aszShaderRuleIndices = std::vector<std::wstring>();
-					m_aszShaderRuleData = std::vector<std::wstring>();
-					m_aszShaderRuleGeneralIndices = std::vector<std::wstring>();
-					m_aszShaderRuleShaderIndices = std::vector<std::wstring>();
-
 					if (m_dwCurrentChosenShaderHashCode)
 					{
 						// find the hash code in the shader list
@@ -2768,6 +2776,13 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 					// transpose
 					sRule.m_bTranspose = m_sPageGameShaderRules.m_bTranspose;
 
+					// create modification
+					if (sRule.m_dwRegisterCount == 1)
+						sRule.m_pcModification = ShaderConstantModificationFactory::CreateVector4Modification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment);
+					else if (sRule.m_dwRegisterCount == 4)
+						sRule.m_pcModification = ShaderConstantModificationFactory::CreateMatrixModification(sRule.m_dwOperationToApply, m_pcShaderViewAdjustment, sRule.m_bTranspose);
+					else sRule.m_pcModification = nullptr;
+
 					// add the rule
 					m_asConstantRules.push_back(sRule);
 
@@ -2779,7 +2794,7 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 					// increase the update counter to reverify the constant buffers for rules
 					m_dwConstantRulesUpdateCounter++;
 
-					// get current selection of the shader constant list
+					// get current selection of the rule indices list
 					INT nSelection = 0;
 					nSelection = m_pcVireioGUI->GetCurrentSelection(m_sPageGameShaderRules.m_dwRuleIndices);
 					if ((nSelection >= 0) && (nSelection < (INT)m_aszShaderRuleIndices.size()))
@@ -2796,7 +2811,7 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 					// increase the update counter to reverify the constant buffers for rules
 					m_dwConstantRulesUpdateCounter++;
 
-					// get current selection of the shader constant list
+					// get current selection of the general indices constant list
 					INT nSelection = 0;
 					nSelection = m_pcVireioGUI->GetCurrentSelection(m_sPageGameShaderRules.m_dwGeneralIndices);
 					if ((nSelection >= 0) && (nSelection < (INT)m_aszShaderRuleGeneralIndices.size()))
@@ -2807,6 +2822,39 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 
 					// update the list
 					FillShaderRuleGeneralIndices();
+				}
+				else if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwDeleteLatest)
+				{
+					// increase the update counter to reverify the constant buffers for rules
+					m_dwConstantRulesUpdateCounter++;
+
+					if (m_asConstantRules.size())
+					{
+						// get last index of the shader rule list
+						INT nSelection = (INT)m_asConstantRules.size() - 1;
+
+						{
+							// delete all entries for that index in the general list
+							auto it = m_adwGlobalConstantRuleIndices.begin();
+							while (it < m_adwGlobalConstantRuleIndices.end())
+							{
+								if ((INT)*it == nSelection)
+								{
+									m_adwGlobalConstantRuleIndices.erase(it);
+								}
+								it++;
+							}
+						}
+
+						// erase latest
+						auto it = m_asConstantRules.end();
+						it--;
+						m_asConstantRules.erase(it);
+
+						// update the control string lists
+						FillShaderRuleIndices();
+						FillShaderRuleGeneralIndices();
+					}
 				}
 #endif
 			}
@@ -3418,7 +3466,7 @@ void MatrixModifier::CreateGUI()
 
 #pragma endregion
 
-#pragma region Vertex Shader Page
+#pragma region Shader Page
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	// shader constant buffer size list (lists always first from bottom to top!)
 	ZeroMemory(&sControl, sizeof(Vireio_Control));
@@ -3478,9 +3526,6 @@ void MatrixModifier::CreateGUI()
 
 #pragma region Shader Rule Page
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-	m_sPageGameShaderRules.m_dwShaderIndices = CreateListControlSelectable(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::ShaderRulesPage], &m_aszShaderRuleShaderIndices, GUI_CONTROL_FONTBORDER,
-		(GUI_HEIGHT >> 2) + (GUI_CONTROL_BORDER << 2) + ((GUI_HEIGHT >> 3) + (GUI_CONTROL_FONTSIZE << 1)) * 3,
-		GUI_WIDTH - GUI_CONTROL_BORDER, GUI_HEIGHT >> 3);
 	m_sPageGameShaderRules.m_dwGeneralIndices = CreateListControlSelectable(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::ShaderRulesPage], &m_aszShaderRuleGeneralIndices, GUI_CONTROL_FONTBORDER,
 		(GUI_HEIGHT >> 2) + (GUI_CONTROL_BORDER << 2) + (GUI_HEIGHT >> 2) + (GUI_CONTROL_FONTSIZE << 2),
 		GUI_WIDTH - GUI_CONTROL_BORDER, GUI_HEIGHT >> 3);
@@ -3506,7 +3551,10 @@ void MatrixModifier::CreateGUI()
 	m_sPageGameShaderRules.m_dwDeleteLatest = CreateButtonControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::ShaderRulesPage], &szDeleteLast, GUI_CONTROL_FONTBORDER, (GUI_HEIGHT >> 2) + (GUI_CONTROL_BORDER << 2) + (GUI_HEIGHT >> 3) + GUI_CONTROL_FONTBORDER, GUI_CONTROL_BUTTONSIZE - GUI_CONTROL_FONTBORDER, GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
 	m_sPageGameShaderRules.m_dwAddGeneral = CreateButtonControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::ShaderRulesPage], &szToGeneral, GUI_CONTROL_FONTBORDER + GUI_CONTROL_BUTTONSIZE, (GUI_HEIGHT >> 2) + (GUI_CONTROL_BORDER << 2) + (GUI_HEIGHT >> 3) + GUI_CONTROL_FONTBORDER, GUI_CONTROL_BUTTONSIZE - GUI_CONTROL_FONTBORDER, GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
 	m_sPageGameShaderRules.m_dwDeleteGeneral = CreateButtonControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::ShaderRulesPage], &szDelete, GUI_CONTROL_FONTBORDER, (GUI_HEIGHT >> 2) + (GUI_CONTROL_FONTSIZE << 1) + GUI_CONTROL_FONTBORDER + ((GUI_HEIGHT >> 3) + (GUI_CONTROL_FONTSIZE << 1)) * 3, GUI_CONTROL_BUTTONSIZE, GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
-
+#elif defined(VIREIO_D3D9)
+	m_sPageGameShaderRules.m_dwShaderIndices = CreateListControlSelectable(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::ShaderRulesPage], &m_aszShaderRuleShaderIndices, GUI_CONTROL_FONTBORDER,
+		(GUI_HEIGHT >> 2) + (GUI_CONTROL_BORDER << 2) + ((GUI_HEIGHT >> 3) + (GUI_CONTROL_FONTSIZE << 1)) * 3,
+		GUI_WIDTH - GUI_CONTROL_BORDER, GUI_HEIGHT >> 3);
 #endif
 #pragma endregion
 
@@ -3783,10 +3831,13 @@ void MatrixModifier::FillShaderRuleGeneralIndices()
 	}
 }
 
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+
+#elif defined(VIREIO_D3D9)
 /**
 *
 ***/
 void MatrixModifier::FillShaderRuleShaderIndices()
 {
 }
-
+#endif
