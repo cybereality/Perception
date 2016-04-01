@@ -61,6 +61,13 @@ m_eStereoMode(VireioMonitorStereoModes::Vireio_Mono)
 {
 	m_ppcTexView11[0] = nullptr;
 	m_ppcTexView11[1] = nullptr;
+
+	m_pfEuler[0] = nullptr;
+	m_pfEuler[1] = nullptr;
+	m_pfEuler[2] = nullptr;
+	m_pfPosition[0] = nullptr;
+	m_pfPosition[1] = nullptr;
+	m_pfPosition[2] = nullptr;
 }
 
 /**
@@ -211,24 +218,36 @@ void StereoPresenter::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 			m_ppcShaderViewAdjustment = (std::shared_ptr<ViewAdjustment>*)pData;
 			break;
 		case STP_Decommanders::Yaw:
+			m_pfEuler[0] = (float*)pData;
+			break;
 		case STP_Decommanders::Pitch:
+			m_pfEuler[1] = (float*)pData;
+			break;
 		case STP_Decommanders::Roll:
+			m_pfEuler[2] = (float*)pData;
+			break;
 		case STP_Decommanders::XPosition:
+			m_pfPosition[0] = (float*)pData;
+			break;
 		case STP_Decommanders::YPosition:
+			m_pfPosition[1] = (float*)pData;
+			break;
 		case STP_Decommanders::ZPosition:
+			m_pfPosition[2] = (float*)pData;
 			break;
 	}
 }
 
 /**
-* Stereo Presenter supports D3D9 to D3D11 Present() and EndScene() calls.
+* Stereo Presenter supports any call since it is on the end of the line.
+* (verifies for supported methods in provoke call)
 ***/
 bool StereoPresenter::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod)
 {
-	if ((nD3DInterface == INTERFACE_IDXGISWAPCHAIN) && (nD3DMethod == METHOD_IDXGISWAPCHAIN_PRESENT))
-		return true;
+	//if ((nD3DInterface == INTERFACE_IDXGISWAPCHAIN) && (nD3DMethod == METHOD_IDXGISWAPCHAIN_PRESENT))
+	return true;
 
-	return false;
+	//return false;
 }
 
 /**
@@ -243,7 +262,9 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 	{
 		if (*m_ppcShaderViewAdjustment)
 		{
-			//(*m_ppcShaderViewAdjustment).get()->UpdateRoll(1.0f); // TODO !! TEST !!
+			// update roll, update view transforms
+			if (m_pfEuler[2])
+				(*m_ppcShaderViewAdjustment).get()->UpdateRoll(-(*m_pfEuler[2]));
 			(*m_ppcShaderViewAdjustment).get()->ComputeViewTransforms();
 		}
 	}

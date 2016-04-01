@@ -70,7 +70,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"..\..\..\Include\Vireio_DX11Basics.h"
 #include"..\..\..\Include\Vireio_Node_Plugtypes.h"
 
-#define NUMBER_OF_DECOMMANDERS                         7
+#define NUMBER_OF_DECOMMANDERS                         13
 
 /**
 * Node Commander Enumeration.
@@ -189,6 +189,14 @@ private:
 	* @see ViewAdjustment
 	**/
 	std::shared_ptr<ViewAdjustment>* m_ppcShaderViewAdjustment;
+	/**
+	* Connected Euler angles. Yaw, Pitch, Roll.
+	***/
+	float* m_pfEuler[3];
+	/**
+	* Connected position. X, Y, Z.
+	***/
+	float* m_pfPosition[3];	
 };
 
 /**
