@@ -85,7 +85,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define METHOD_REPLACEMENT                         false                     /**< This node does NOT replace the D3D call (default) **/
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-#define NUMBER_OF_COMMANDERS                          12
+#define NUMBER_OF_COMMANDERS                          13
 #define NUMBER_OF_DECOMMANDERS                        53
 #define GUI_WIDTH                                   1024                      
 #define GUI_HEIGHT                                  5000               
@@ -123,6 +123,7 @@ enum STS_Commanders
 	dwVerifyConstantBuffers,                                                /**< Connect this commander to the stereo splitter to verify constant buffers ***/
 	asVShaderData,                                                          /**< The shader data vector. ***/
 	asPShaderData,                                                          /**< The shader data vector. ***/
+	ViewAdjustments,                                                        /**< Shared pointer to the view adjustment class. ***/
 #elif defined(VIREIO_D3D9)
 #endif
 };

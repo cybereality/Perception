@@ -96,6 +96,7 @@
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>VIREIO_MATRIX_MODIFIER;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -116,6 +117,7 @@
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>VIREIO_MATRIX_MODIFIER;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -138,6 +140,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>VIREIO_MATRIX_MODIFIER;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -162,6 +165,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>VIREIO_MATRIX_MODIFIER;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -179,11 +183,13 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\ViewAdjustment.h" />
     <ClInclude Include="..\AQU_Nodus.h" />
     <ClInclude Include="..\VireioStereoPresenter.h" />
     <ClInclude Include="..\Resources.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\..\..\DxProxy\DxProxy\ViewAdjustment.cpp" />
     <ClCompile Include="..\VireioStereoPresenter.cpp" />
   </ItemGroup>
   <ItemGroup>

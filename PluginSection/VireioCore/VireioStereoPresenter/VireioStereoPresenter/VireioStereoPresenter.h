@@ -35,8 +35,12 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
+#include<stdio.h>
+#include<memory>
+
 #include"AQU_Nodus.h"
 #include"Resources.h"
+#include"..\..\..\..\DxProxy\DxProxy\ViewAdjustment.h"
 
 #include <DXGI.h>
 #pragma comment(lib, "DXGI.lib")
@@ -79,7 +83,13 @@ enum STP_Decommanders
 	RightTexture10,
 	LeftTexture9,
 	RightTexture9,
-	ViewAdjustments
+	ViewAdjustments,
+	Yaw,
+	Pitch, 
+	Roll, 
+	XPosition,
+	YPosition, 
+	ZPosition,
 };
 
 /**
@@ -174,6 +184,11 @@ private:
 		ID3D10Buffer* m_pcConstantBufferDirect10;
 		ID3D11Buffer* m_pcConstantBufferDirect11;
 	};
+	/**
+	* View matrix adjustment class.
+	* @see ViewAdjustment
+	**/
+	std::shared_ptr<ViewAdjustment>* m_ppcShaderViewAdjustment;
 };
 
 /**

@@ -132,6 +132,28 @@ LPWSTR StereoPresenter::GetDecommanderName(DWORD dwDecommanderIndex)
 			return L"Left Texture DX11";
 		case STP_Decommanders::RightTexture11:
 			return L"Right Texture DX11";
+		case STP_Decommanders::LeftTexture10:
+			return L"Left Texture DX10";
+		case STP_Decommanders::RightTexture10:
+			return L"Right Texture DX10";
+		case STP_Decommanders::LeftTexture9:
+			return L"Left Texture DX9";
+		case STP_Decommanders::RightTexture9:
+			return L"Right Texture DX9";
+		case STP_Decommanders::ViewAdjustments:
+			return L"ViewAdjustments";
+		case STP_Decommanders::Yaw:
+			return L"Yaw";
+		case STP_Decommanders::Pitch:
+			return L"Pitch";
+		case STP_Decommanders::Roll:
+			return L"Roll";
+		case STP_Decommanders::XPosition:
+			return L"X-Position";
+		case STP_Decommanders::YPosition:
+			return L"Y-Position";
+		case STP_Decommanders::ZPosition:
+			return L"Z-Position";
 	}
 
 	return L"";
@@ -145,9 +167,23 @@ DWORD StereoPresenter::GetDecommanderType(DWORD dwDecommanderIndex)
 	switch ((STP_Decommanders)dwDecommanderIndex)
 	{
 		case STP_Decommanders::LeftTexture11:
-			return NOD_Plugtype::AQU_PNT_ID3D11SHADERRESOURCEVIEW;
 		case STP_Decommanders::RightTexture11:
 			return NOD_Plugtype::AQU_PNT_ID3D11SHADERRESOURCEVIEW;
+		case STP_Decommanders::LeftTexture10:
+		case STP_Decommanders::RightTexture10:
+			return NOD_Plugtype::AQU_PNT_ID3D10SHADERRESOURCEVIEW;
+		case STP_Decommanders::LeftTexture9:
+		case STP_Decommanders::RightTexture9:
+			return NOD_Plugtype::AQU_PNT_IDIRECT3DTEXTURE9;
+		case STP_Decommanders::ViewAdjustments:
+			return NOD_Plugtype::AQU_SHAREDPOINTER;
+		case STP_Decommanders::Yaw:
+		case STP_Decommanders::Pitch:
+		case STP_Decommanders::Roll:
+		case STP_Decommanders::XPosition:
+		case STP_Decommanders::YPosition:
+		case STP_Decommanders::ZPosition:
+			return NOD_Plugtype::AQU_PNT_FLOAT;
 	}
 
 	return 0;
@@ -165,6 +201,21 @@ void StereoPresenter::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 			break;
 		case STP_Decommanders::RightTexture11:
 			m_ppcTexView11[1] = (ID3D11ShaderResourceView**)pData;
+			break;
+		case STP_Decommanders::LeftTexture10:
+		case STP_Decommanders::RightTexture10:
+		case STP_Decommanders::LeftTexture9:
+		case STP_Decommanders::RightTexture9:
+			break;
+		case STP_Decommanders::ViewAdjustments:
+			m_ppcShaderViewAdjustment = (std::shared_ptr<ViewAdjustment>*)pData;
+			break;
+		case STP_Decommanders::Yaw:
+		case STP_Decommanders::Pitch:
+		case STP_Decommanders::Roll:
+		case STP_Decommanders::XPosition:
+		case STP_Decommanders::YPosition:
+		case STP_Decommanders::ZPosition:
 			break;
 	}
 }
@@ -187,6 +238,15 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 {
 	if (eD3DInterface != INTERFACE_IDXGISWAPCHAIN) return nullptr;
 	if (eD3DMethod != METHOD_IDXGISWAPCHAIN_PRESENT) return nullptr;
+
+	if (m_ppcShaderViewAdjustment)
+	{
+		if (*m_ppcShaderViewAdjustment)
+		{
+			//(*m_ppcShaderViewAdjustment).get()->UpdateRoll(1.0f); // TODO !! TEST !!
+			(*m_ppcShaderViewAdjustment).get()->ComputeViewTransforms();
+		}
+	}
 
 	if ((eD3DInterface == INTERFACE_IDXGISWAPCHAIN) && (eD3DMethod == METHOD_IDXGISWAPCHAIN_PRESENT))
 	{
@@ -323,8 +383,8 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 				if (pcContext) { pcContext->Release(); pcContext = nullptr; }
 			}
 		}
-	}
 #pragma endregion
+	}
 
 	return nullptr;
 }

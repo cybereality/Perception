@@ -512,7 +512,7 @@ void MatrixModifier::InitNodeData(char* pData, UINT dwSizeOfData)
 		m_sGameConfiguration.fWorldScaleFactor = 0.0f;
 		m_sGameConfiguration.fPFOV = 110.0f;
 	}
-
+	// m_sGameConfiguration.nRollImpl = 1; // TODO !! option to change roll behavior
 	m_pcShaderViewAdjustment->Load(m_sGameConfiguration);
 	m_pcShaderViewAdjustment->UpdateProjectionMatrices((float)1920.0f / (float)1080.0f, m_sGameConfiguration.fPFOV);
 	m_pcShaderViewAdjustment->ComputeViewTransforms();
@@ -550,6 +550,8 @@ LPWSTR MatrixModifier::GetCommanderName(DWORD dwCommanderIndex)
 			return L"Vertex Shader Data Array";
 		case asPShaderData:
 			return L"Pixel Shader Data Array";
+		case ViewAdjustments:
+			return L"View Adjustments";
 		default:
 			break;
 	}
@@ -750,6 +752,8 @@ DWORD MatrixModifier::GetCommanderType(DWORD dwCommanderIndex)
 			return NOD_Plugtype::AQU_VOID;
 		case asPShaderData:
 			return NOD_Plugtype::AQU_VOID;
+		case ViewAdjustments:
+			return NOD_Plugtype::AQU_SHAREDPOINTER;
 		default:
 			break;
 	}
@@ -943,6 +947,8 @@ void* MatrixModifier::GetOutputPointer(DWORD dwCommanderIndex)
 			return (void*)&m_asVShaders;
 		case asPShaderData:
 			return (void*)&m_asPShaders;
+		case ViewAdjustments:
+			return (void*)&m_pcShaderViewAdjustment;
 		default:
 			break;
 	}
