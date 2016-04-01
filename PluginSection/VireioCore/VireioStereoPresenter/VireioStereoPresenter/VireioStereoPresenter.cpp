@@ -37,6 +37,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include"VireioStereoPresenter.h"
 
+#define SAFE_RELEASE(a) if (a) { a->Release(); a = nullptr; }
+
 #define INTERFACE_ID3D11DEVICE                                               6
 #define INTERFACE_ID3D10DEVICE                                               7
 #define INTERFACE_IDIRECT3DDEVICE9                                           8
@@ -47,7 +49,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /**
 * Constructor.
 ***/
-StereoPresenter::StereoPresenter() :AQU_Nodus()
+StereoPresenter::StereoPresenter() :AQU_Nodus(),
+m_pcBackBufferView(nullptr),
+m_pcVertexShader10(nullptr),
+m_pcPixelShader10(nullptr),
+m_pcVertexLayout10(nullptr),
+m_pcVertexBuffer10(nullptr),
+m_pcConstantBufferDirect10(nullptr),
+m_bHotkeySwitch(false),
+m_eStereoMode(VireioMonitorStereoModes::Vireio_Mono)
 {
 	m_ppcTexView11[0] = nullptr;
 	m_ppcTexView11[1] = nullptr;
@@ -58,6 +68,12 @@ StereoPresenter::StereoPresenter() :AQU_Nodus()
 ***/
 StereoPresenter::~StereoPresenter()
 {
+	SAFE_RELEASE(m_pcVertexShader10);
+	SAFE_RELEASE(m_pcPixelShader10);
+	SAFE_RELEASE(m_pcVertexLayout10);
+	SAFE_RELEASE(m_pcVertexBuffer10);
+	SAFE_RELEASE(m_pcBackBufferView);
+	SAFE_RELEASE(m_pcConstantBufferDirect10);
 }
 
 /**
@@ -169,9 +185,146 @@ bool StereoPresenter::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int 
 ***/
 void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)
 {
+	if (eD3DInterface != INTERFACE_IDXGISWAPCHAIN) return nullptr;
+	if (eD3DMethod != METHOD_IDXGISWAPCHAIN_PRESENT) return nullptr;
+
 	if ((eD3DInterface == INTERFACE_IDXGISWAPCHAIN) && (eD3DMethod == METHOD_IDXGISWAPCHAIN_PRESENT))
 	{
+#pragma region draw (optionally)
+		// toggle stereo mode
+		if (GetAsyncKeyState(VK_F12))
+		{
+			m_bHotkeySwitch = true;
+		}
+		else
+		if (m_bHotkeySwitch)
+		{
+			if (m_eStereoMode) m_eStereoMode = VireioMonitorStereoModes::Vireio_Mono; else m_eStereoMode = VireioMonitorStereoModes::Vireio_SideBySide;
+			m_bHotkeySwitch = false;
+		}
 
+		// draw stereo target to screen (optionally)
+		if (m_eStereoMode)
+		{
+			// DX 11
+			if ((m_ppcTexView11[0]) && (m_ppcTexView11[1]))
+			{
+				// get device and context
+				ID3D11Device* pcDevice = nullptr;
+				ID3D11DeviceContext* pcContext = nullptr;
+				if (FAILED(GetDeviceAndContext((IDXGISwapChain*)pThis, &pcDevice, &pcContext)))
+				{
+					// release frame texture+view
+					if (pcDevice) { pcDevice->Release(); pcDevice = nullptr; }
+					if (pcContext) { pcContext->Release(); pcContext = nullptr; }
+					return nullptr;
+				}
+
+				// get the viewport
+				UINT dwNumViewports = 1;
+				D3D11_VIEWPORT psViewport[16];
+				pcContext->RSGetViewports(&dwNumViewports, psViewport);
+
+				// backup all states
+				D3DX11_STATE_BLOCK sStateBlock;
+				CreateStateblock(pcContext, &sStateBlock);
+
+				// clear all states, set targets
+				pcContext->ClearState();
+
+				// set first active render target - the stored back buffer - get the stored private data view
+				ID3D11Texture2D* pcBackBuffer = nullptr;
+				((IDXGISwapChain*)pThis)->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pcBackBuffer);
+				ID3D11RenderTargetView* pcView = nullptr;
+				UINT dwSize = sizeof(pcView);
+				pcBackBuffer->GetPrivateData(PDIID_ID3D11TextureXD_RenderTargetView, &dwSize, (void*)&pcView);
+				if (dwSize)
+				{
+					pcContext->OMSetRenderTargets(1, (ID3D11RenderTargetView**)&pcView, NULL);
+					pcView->Release();
+				}
+				pcContext->RSSetViewports(dwNumViewports, psViewport);
+				pcBackBuffer->Release();
+
+				// create all bool
+				bool bAllCreated = true;
+
+				// create vertex shader
+				if (!m_pcVertexShader11)
+				{
+					if (FAILED(Create2DVertexShader(pcDevice, &m_pcVertexShader11, &m_pcVertexLayout11)))
+						bAllCreated = false;
+				}
+				// create pixel shader... TODO !! add option to switch output
+				if (!m_pcPixelShader11)
+				{
+					if (FAILED(CreateSimplePixelShader(pcDevice, &m_pcPixelShader11, PixelShaderTechnique::SideBySide)))
+						bAllCreated = false;
+				}
+				// Create vertex buffer
+				if (!m_pcVertexBuffer11)
+				{
+					if (FAILED(CreateFullScreenVertexBuffer(pcDevice, &m_pcVertexBuffer11)))
+						bAllCreated = false;
+				}
+				// create constant buffer
+				if (!m_pcConstantBufferDirect11)
+				{
+					if (FAILED(CreateMatrixConstantBuffer(pcDevice, &m_pcConstantBufferDirect11)))
+						bAllCreated = false;
+				}
+
+				if (bAllCreated)
+				{
+					// left/right eye
+					for (int nEye = 0; nEye < 2; nEye++)
+					{
+						// Set the input layout
+						pcContext->IASetInputLayout(m_pcVertexLayout11);
+
+						// Set vertex buffer
+						UINT stride = sizeof(TexturedVertex);
+						UINT offset = 0;
+						pcContext->IASetVertexBuffers(0, 1, &m_pcVertexBuffer11, &stride, &offset);
+
+						// Set constant buffer, first update it... scale and translate the left and right image
+						D3DXMATRIX sScale;
+						D3DXMatrixScaling(&sScale, 0.5f, 1.0f, 1.0f);
+						D3DXMATRIX sTrans;
+						if (nEye == 0)
+							D3DXMatrixTranslation(&sTrans, -0.5f, 0.0f, 0.0f);
+						else
+							D3DXMatrixTranslation(&sTrans, 0.5f, 0.0f, 0.0f);
+						D3DXMatrixTranspose(&sTrans, &sTrans);
+						D3DXMATRIX sProj;
+						D3DXMatrixMultiply(&sProj, &sTrans, &sScale);
+						pcContext->UpdateSubresource((ID3D11Resource*)m_pcConstantBufferDirect11, 0, NULL, &sProj, 0, 0);
+						pcContext->VSSetConstantBuffers(0, 1, &m_pcConstantBufferDirect11);
+
+						// Set primitive topology
+						pcContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+						// set texture
+						pcContext->PSSetShaderResources(0, 1, m_ppcTexView11[nEye]);
+
+						// set shaders
+						pcContext->VSSetShader(m_pcVertexShader11, 0, 0);
+						pcContext->PSSetShader(m_pcPixelShader11, 0, 0);
+
+						// Render a triangle
+						pcContext->Draw(6, 0);
+					}
+				}
+
+				// set back device
+				ApplyStateblock(pcContext, &sStateBlock);
+
+				if (pcDevice) { pcDevice->Release(); pcDevice = nullptr; }
+				if (pcContext) { pcContext->Release(); pcContext = nullptr; }
+			}
+		}
 	}
+#pragma endregion
+
 	return nullptr;
 }

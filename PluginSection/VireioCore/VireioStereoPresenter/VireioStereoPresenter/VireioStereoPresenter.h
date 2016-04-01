@@ -62,9 +62,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <d3dx9.h>
 #pragma comment(lib, "d3dx9.lib")
 
+#include"..\..\..\Include\Vireio_GUIDs.h"
+#include"..\..\..\Include\Vireio_DX11Basics.h"
 #include"..\..\..\Include\Vireio_Node_Plugtypes.h"
 
-#define NUMBER_OF_DECOMMANDERS                         0
+#define NUMBER_OF_DECOMMANDERS                         7
 
 /**
 * Node Commander Enumeration.
@@ -77,7 +79,16 @@ enum STP_Decommanders
 	RightTexture10,
 	LeftTexture9,
 	RightTexture9,
-	HMD_Handle
+	ViewAdjustments
+};
+
+/**
+* Available stereo output modes (only monitor modes here).
+***/
+enum VireioMonitorStereoModes
+{
+	Vireio_Mono = 0,
+	Vireio_SideBySide = 1,
 };
 
 /**
@@ -110,6 +121,59 @@ private:
 	* Stereo Textures input. (DX11)
 	***/
 	ID3D11ShaderResourceView** m_ppcTexView11[2];
+	/**
+	* True if a stereo mode is selected.
+	***/
+	VireioMonitorStereoModes m_eStereoMode;
+	/**
+	* Hotkey switch.
+	***/
+	bool m_bHotkeySwitch;
+	/**
+	* The back buffer render target view (DX11).
+	***/
+	ID3D11RenderTargetView* m_pcBackBufferView;
+	/**
+	* The 2D vertex shader.
+	***/
+	union
+	{
+		ID3D10VertexShader* m_pcVertexShader10;
+		ID3D11VertexShader* m_pcVertexShader11;
+	};
+	/**
+	* The 2D pixel shader.
+	***/
+	union
+	{
+		ID3D10PixelShader* m_pcPixelShader10;
+		ID3D11PixelShader* m_pcPixelShader11;
+	};
+	/**
+	* The 2D vertex layout.
+	***/
+	union
+	{
+		ID3D10InputLayout* m_pcVertexLayout10;
+		ID3D11InputLayout* m_pcVertexLayout11;
+	};
+	/**
+	* The 2D vertex buffer.
+	***/
+	union
+	{
+		ID3D10Buffer* m_pcVertexBuffer10;
+		ID3D11Buffer* m_pcVertexBuffer11;
+	};
+	/**
+	* The constant buffer for the vertex shader matrix.
+	* Contains only ProjView matrix.
+	***/
+	union
+	{
+		ID3D10Buffer* m_pcConstantBufferDirect10;
+		ID3D11Buffer* m_pcConstantBufferDirect11;
+	};
 };
 
 /**

@@ -175,15 +175,6 @@ enum D3DVersion
 };
 
 /**
-* Available stereo output modes (only monitor modes here).
-***/
-enum VireioMonitorStereoModes
-{
-	Vireio_Mono = 0,
-	Vireio_SideBySide = 1,
-};
-
-/**
 * Vireio Stereo Splitter Node Plugin (Direct3D 9).
 * Vireio Perception Stereo Render Target Handler.
 ***/
@@ -467,62 +458,6 @@ private:
 	* A needless field of "-1" UINTs needed for CSSetUnorderedAccessViews.
 	***/
 	UINT m_aunMinusOne[D3D11_PS_CS_UAV_REGISTER_COUNT];
-
-	/*** Optional draw operation fields ***/
-
-	/**
-	* The back buffer render target view (DX11).
-	***/
-	ID3D11RenderTargetView* m_pcBackBufferView;
-	/**
-	* The 2D vertex shader.
-	***/
-	union
-	{
-		ID3D10VertexShader* m_pcVertexShader10;
-		ID3D11VertexShader* m_pcVertexShader11;
-	};
-	/**
-	* The 2D pixel shader.
-	***/
-	union
-	{
-		ID3D10PixelShader* m_pcPixelShader10;
-		ID3D11PixelShader* m_pcPixelShader11;
-	};
-	/**
-	* The 2D vertex layout.
-	***/
-	union
-	{
-		ID3D10InputLayout* m_pcVertexLayout10;
-		ID3D11InputLayout* m_pcVertexLayout11;
-	};
-	/**
-	* The 2D vertex buffer.
-	***/
-	union
-	{
-		ID3D10Buffer* m_pcVertexBuffer10;
-		ID3D11Buffer* m_pcVertexBuffer11;
-	};
-	/**
-	* The constant buffer for the vertex shader matrix.
-	* Contains only ProjView matrix.
-	***/
-	union
-	{
-		ID3D10Buffer* m_pcConstantBufferDirect10;
-		ID3D11Buffer* m_pcConstantBufferDirect11;
-	};
-	/**
-	* True if a stereo mode is selected.
-	***/
-	VireioMonitorStereoModes m_eStereoMode;
-	/**
-	* Hotkey switch.
-	***/
-	bool m_bHotkeySwitch;
 };
 
 /**
