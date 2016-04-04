@@ -512,7 +512,7 @@ void MatrixModifier::InitNodeData(char* pData, UINT dwSizeOfData)
 		m_sGameConfiguration.fWorldScaleFactor = 0.0f;
 		m_sGameConfiguration.fPFOV = 110.0f;
 	}
-	// m_sGameConfiguration.nRollImpl = 1; // TODO !! option to change roll behavior
+	
 	m_pcShaderViewAdjustment->Load(m_sGameConfiguration);
 	m_pcShaderViewAdjustment->UpdateProjectionMatrices((float)1920.0f / (float)1080.0f, m_sGameConfiguration.fPFOV);
 	m_pcShaderViewAdjustment->ComputeViewTransforms();
@@ -2219,6 +2219,16 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 				}
 #endif
 			}
+			else if (sEvent.dwIndexOfPage == m_adwPageIDs[GUI_Pages::GameSettingsPage])
+			{
+				if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwRollImpl)
+					m_sGameConfiguration.nRollImpl = sEvent.nNewValue;
+
+				// update view transform
+				m_pcShaderViewAdjustment->Load(m_sGameConfiguration);
+				m_pcShaderViewAdjustment->UpdateProjectionMatrices(((float)1920.0f / (float)1080.0f) * m_sGameConfiguration.fAspectMultiplier, m_sGameConfiguration.fPFOV);
+				m_pcShaderViewAdjustment->ComputeViewTransforms();
+			}
 			break;
 		case ChangedToValue:
 #pragma region ChangedToValue
@@ -2236,8 +2246,6 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 					m_sGameConfiguration.dwVRboostMinShaderCount = sEvent.dwNewValue;
 				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwVRboostMaxShaderCount)
 					m_sGameConfiguration.dwVRboostMaxShaderCount = sEvent.dwNewValue;
-				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwRollImpl)
-					m_sGameConfiguration.nRollImpl = sEvent.nNewValue;
 				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwConvergenceEnabled)
 					m_sGameConfiguration.bConvergenceEnabled = sEvent.bNewValue;
 				else if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwYawMultiplier)
@@ -3046,7 +3054,7 @@ void MatrixModifier::VerifyConstantBuffer(ID3D11Buffer *pcBuffer, UINT dwBufferI
 			if (m_asConstantRules[m_adwGlobalConstantRuleIndices[dwI]].m_bUseStartRegIndex)
 			{
 				UINT dwRegister = m_asConstantRules[m_adwGlobalConstantRuleIndices[dwI]].m_dwStartRegIndex;
-				if (dwRegister <= dwBufferRegisterSize)
+				if ((dwBufferRegisterSize) && (dwRegister <= dwBufferRegisterSize))
 				{
 					bool bOld = abRegistersMatching[dwRegister];
 					abRegistersMatching = std::vector<bool>(dwBufferRegisterSize, false);
@@ -3362,6 +3370,13 @@ void MatrixModifier::CreateGUI()
 	else
 		sz64bit = std::wstring(L"32 Bit");
 	static std::vector<std::wstring> aszEntries64bit; aszEntries64bit.push_back(sz64bit);
+	std::wstring szNoRoll = std::wstring(L"0-No Roll");
+	std::wstring szRollMtx = std::wstring(L"1-Matrix Roll");
+	std::wstring szRollPSh = std::wstring(L"2-Pixel S.Roll");
+	static std::vector<std::wstring> aszRollImpl;
+	aszRollImpl.push_back(szNoRoll);
+	aszRollImpl.push_back(szRollMtx);
+	aszRollImpl.push_back(szRollPSh);
 
 	// vertex shader page
 	static std::wstring szSort = std::wstring(L"Sort");
@@ -3463,6 +3478,7 @@ void MatrixModifier::CreateGUI()
 	m_sPageGameSettings.m_dwPFOV = CreateFloatControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::GameSettingsPage], &szPFOV, m_sGameConfiguration.fPFOV, GUI_CONTROL_BORDER, GUI_CONTROL_BORDER + (GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER) * 30);
 	m_sPageGameSettings.m_dwConvergenceEnabled = CreateSwitchControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::GameSettingsPage], &szConvergenceToggle, m_sGameConfiguration.bConvergenceEnabled, GUI_CONTROL_BORDER, GUI_CONTROL_BORDER + (GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER) * 33, GUI_CONTROL_BUTTONSIZE, GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
 	m_sPageGameSettings.m_dwPFOVToggle = CreateSwitchControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::GameSettingsPage], &szPFOVToggle, m_sGameConfiguration.bPFOVToggle, GUI_CONTROL_BORDER, GUI_CONTROL_BORDER + (GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER) * 33 + GUI_CONTROL_LINE, GUI_CONTROL_BUTTONSIZE, GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
+	m_sPageGameSettings.m_dwRollImpl = CreateSpinControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::GameSettingsPage], &aszRollImpl, m_sGameConfiguration.nRollImpl, GUI_CONTROL_BORDER, GUI_HEIGHT - GUI_CONTROL_FONTSIZE * 24, GUI_CONTROL_BUTTONSIZE);
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	// technical options
