@@ -193,6 +193,9 @@ m_dwCurrentChosenShaderHashCode(0)
 	m_dwVerifyConstantBuffers = CONSTANT_BUFFER_VERIFICATION_FRAME_NUMBER;
 	m_bConstantBuffersInitialized = false;
 
+	// buffer index sizes debug to false
+	m_bBufferIndexDebug = false;
+
 	// init shader vector
 	m_asVShaders = std::vector<Vireio_D3D11_Shader>();
 	m_asPShaders = std::vector<Vireio_D3D11_Shader>();
@@ -512,7 +515,7 @@ void MatrixModifier::InitNodeData(char* pData, UINT dwSizeOfData)
 		m_sGameConfiguration.fWorldScaleFactor = 0.0f;
 		m_sGameConfiguration.fPFOV = 110.0f;
 	}
-	
+
 	m_pcShaderViewAdjustment->Load(m_sGameConfiguration);
 	m_pcShaderViewAdjustment->UpdateProjectionMatrices((float)1920.0f / (float)1080.0f, m_sGameConfiguration.fPFOV);
 	m_pcShaderViewAdjustment->ComputeViewTransforms();
@@ -1797,21 +1800,56 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						// get current shader hash code if there is a shader chosen
 						static Vireio_Shader_Private_Data sPrivateData = { 0 };
 						static UINT dwChosenOld = 0;
-						if (m_dwCurrentChosenShaderHashCode)
+						if ((m_dwCurrentChosenShaderHashCode) || (m_bBufferIndexDebug))
 						{
-							// get the current shader hash
-							UINT dwDataSize = sizeof(sPrivateData);
-							if (m_pcActiveVertexShader11)
-								m_pcActiveVertexShader11->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
-							else ZeroMemory(&sPrivateData, sizeof(Vireio_Shader_Private_Data));
-
-							// output shader debug data as long as the chosen shader is set
-							if (dwChosenOld == 0) dwChosenOld = m_dwCurrentChosenShaderHashCode;
-							if ((dwChosenOld == m_dwCurrentChosenShaderHashCode) && (m_dwCurrentChosenShaderHashCode == sPrivateData.dwHash))
+							if (m_dwCurrentChosenShaderHashCode)
 							{
-								std::wstringstream strStream = std::wstringstream();
-								strStream << L"VSSetConstantBuffers : " << sPrivateData.dwHash;
-								m_aszDebugTrace.push_back(strStream.str().c_str());
+								// get the current shader hash
+								UINT dwDataSize = sizeof(sPrivateData);
+								if (m_pcActiveVertexShader11)
+									m_pcActiveVertexShader11->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
+								else ZeroMemory(&sPrivateData, sizeof(Vireio_Shader_Private_Data));
+
+								// output shader debug data as long as the chosen shader is set
+								if (dwChosenOld == 0) dwChosenOld = m_dwCurrentChosenShaderHashCode;
+								if ((dwChosenOld == m_dwCurrentChosenShaderHashCode) && (m_dwCurrentChosenShaderHashCode == sPrivateData.dwHash))
+								{
+									std::wstringstream strStream = std::wstringstream();
+									strStream << L"VSSetConstantBuffers : " << sPrivateData.dwHash;
+									m_aszDebugTrace.push_back(strStream.str().c_str());
+								}
+							}
+							if (m_bBufferIndexDebug)
+							{
+								// get buffer index
+								UINT dwBufferIndex = 0;
+								std::wstringstream sz = std::wstringstream(m_sPageGameShaderRules.m_szBufferIndex);
+								sz >> dwBufferIndex;
+
+								// is this index set ?
+								if ((dwBufferIndex >= *m_pdwStartSlot) && (dwBufferIndex < (*m_pdwStartSlot + *m_pdwNumBuffers)))
+								{
+									UINT dwIndex = dwBufferIndex - *m_pdwStartSlot;
+									if ((*m_pppcConstantBuffers_DX11)[dwIndex])
+									{
+										// get the buffer description
+										D3D11_BUFFER_DESC sDesc;
+										((*m_pppcConstantBuffers_DX11)[dwIndex])->GetDesc(&sDesc);
+
+										// already enlisted ? else enlist and output on debug trace
+										auto it = std::find(m_aunBufferIndexSizesDebug.begin(), m_aunBufferIndexSizesDebug.end(), sDesc.ByteWidth);
+										if (it == m_aunBufferIndexSizesDebug.end())
+										{
+											// output to debug trace
+											std::wstringstream strStream = std::wstringstream();
+											strStream << L"Buffer Index: " << dwBufferIndex << " Size:" << sDesc.ByteWidth;
+											m_aszDebugTrace.push_back(strStream.str().c_str());
+
+											// add to vector 
+											m_aunBufferIndexSizesDebug.push_back(sDesc.ByteWidth);
+										}
+									}
+								}
 							}
 						}
 						else dwChosenOld = 0;
@@ -2320,7 +2358,9 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 				}
 				else if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwBufferIndex)
 				{
+					// set new value and delete the buffer index sizes debug vector
 					m_sPageGameShaderRules.m_bBufferIndex = sEvent.bNewValue;
+					m_aunBufferIndexSizesDebug = std::vector<UINT>();
 
 					// if true -> try to parse a number from the clipboard
 					if (sEvent.bNewValue)
@@ -2405,6 +2445,11 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 				}
 				else if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwTranspose)
 					m_sPageGameShaderRules.m_bTranspose = sEvent.bNewValue;
+				else if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwBufferIndexDebug)
+				{
+					// set new value
+					m_bBufferIndexDebug = sEvent.bNewValue;
+				}
 #endif
 			}
 			break;
@@ -3407,6 +3452,7 @@ void MatrixModifier::CreateGUI()
 	static std::wstring szDeleteLast = std::wstring(L"Delete Last");
 	static std::wstring szToGeneral = std::wstring(L"To General");
 	static std::wstring szDelete = std::wstring(L"Delete");
+	static std::wstring szBufferIndexDebug = std::wstring(L"Debug Index");
 
 	static std::vector<std::wstring> aszOperations;
 	for (UINT nMod = 0; nMod < ShaderConstantModificationFactory::m_unMatrixModificationNumber; nMod++)
@@ -3573,6 +3619,7 @@ void MatrixModifier::CreateGUI()
 	m_sPageGameShaderRules.m_dwDeleteLatest = CreateButtonControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::ShaderRulesPage], &szDeleteLast, GUI_CONTROL_FONTBORDER, (GUI_HEIGHT >> 2) + (GUI_CONTROL_BORDER << 2) + (GUI_HEIGHT >> 3) + GUI_CONTROL_FONTBORDER, GUI_CONTROL_BUTTONSIZE - GUI_CONTROL_FONTBORDER, GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
 	m_sPageGameShaderRules.m_dwAddGeneral = CreateButtonControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::ShaderRulesPage], &szToGeneral, GUI_CONTROL_FONTBORDER + GUI_CONTROL_BUTTONSIZE, (GUI_HEIGHT >> 2) + (GUI_CONTROL_BORDER << 2) + (GUI_HEIGHT >> 3) + GUI_CONTROL_FONTBORDER, GUI_CONTROL_BUTTONSIZE - GUI_CONTROL_FONTBORDER, GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
 	m_sPageGameShaderRules.m_dwDeleteGeneral = CreateButtonControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::ShaderRulesPage], &szDelete, GUI_CONTROL_FONTBORDER, (GUI_HEIGHT >> 2) + (GUI_CONTROL_FONTSIZE << 1) + GUI_CONTROL_FONTBORDER + ((GUI_HEIGHT >> 3) + (GUI_CONTROL_FONTSIZE << 1)) * 3, GUI_CONTROL_BUTTONSIZE, GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
+	m_sPageGameShaderRules.m_dwBufferIndexDebug = CreateSwitchControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::ShaderRulesPage], &szBufferIndexDebug, m_bBufferIndexDebug, GUI_CONTROL_FONTBORDER + GUI_CONTROL_BUTTONSIZE, (GUI_HEIGHT >> 2) + (GUI_CONTROL_FONTSIZE << 1) + GUI_CONTROL_FONTBORDER + ((GUI_HEIGHT >> 3) + (GUI_CONTROL_FONTSIZE << 1)) * 3, GUI_CONTROL_BUTTONSIZE, GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
 #elif defined(VIREIO_D3D9)
 	m_sPageGameShaderRules.m_dwShaderIndices = CreateListControlSelectable(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::ShaderRulesPage], &m_aszShaderRuleShaderIndices, GUI_CONTROL_FONTBORDER,
 		(GUI_HEIGHT >> 2) + (GUI_CONTROL_BORDER << 2) + ((GUI_HEIGHT >> 3) + (GUI_CONTROL_FONTSIZE << 1)) * 3,

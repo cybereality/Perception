@@ -672,6 +672,7 @@ private:
 		UINT m_dwDeleteLatest;                      /**< [Button] Delete latest rule **/
 		UINT m_dwAddGeneral;                        /**< [Button] Add to general indices **/
 		UINT m_dwDeleteGeneral;                     /**< [Button] Delete chosen general index **/
+		UINT m_dwBufferIndexDebug;                  /**< [Switch] : Activate to output all possible buffer sizes to the debug trace for the index in m_dwBufferIndex.***/
 
 		// string entries for the switches above
 		std::wstring m_szConstantName;
@@ -787,9 +788,16 @@ private:
 	* True if the shader list is to be sorted.
 	***/
 	bool m_bSortShaderList;
-
+	
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-
+	/**
+	* True if the buffer index sizes ar provided to the debug trace.
+	***/
+	bool m_bBufferIndexDebug;
+	/**
+	* Vector helper for the buffer index debug output.
+	***/
+	std::vector<UINT> m_aunBufferIndexSizesDebug;
 #elif defined(VIREIO_D3D9)
 	/**
 	* List of all shaderrule indices for the currently chosen shader on the shaders page. (std::wstring).
