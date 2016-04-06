@@ -82,6 +82,27 @@
     <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\Vector4SimpleTranslate.h">
       <Filter>Modification</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixRoll.h">
+      <Filter>Modification</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixRollConvergence.h">
+      <Filter>Modification</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixRollNegative.h">
+      <Filter>Modification</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixRollNegativeConvergence.h">
+      <Filter>Modification</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixShadowFix1.h">
+      <Filter>Modification</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixShadowFix2.h">
+      <Filter>Modification</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixTransformShadowFix1.h">
+      <Filter>Modification</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\VireioMatrixModifier\AQU_Nodus.def" />

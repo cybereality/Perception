@@ -181,10 +181,17 @@
     <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixOrthoSquash.h" />
     <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixOrthoSquashHud.h" />
     <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixOrthoSquashShifted.h" />
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixRoll.h" />
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixRollConvergence.h" />
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixRollNegative.h" />
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixRollNegativeConvergence.h" />
     <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixRollOnly.h" />
     <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixRollOnlyHalf.h" />
     <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixRollOnlyNegative.h" />
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixShadowFix1.h" />
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixShadowFix2.h" />
     <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixSurfaceRefractionTransform.h" />
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixTransformShadowFix1.h" />
     <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\ShaderConstantModification.h" />
     <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\ShaderConstantModificationFactory.h" />
     <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\ShaderMatrixModification.h" />

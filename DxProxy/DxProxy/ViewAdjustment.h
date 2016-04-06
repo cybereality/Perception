@@ -64,58 +64,62 @@ public:
 
 	/*** ViewAdjustment public methods ***/
 #ifdef VIREIO_MATRIX_MODIFIER
-	void           Load(Vireio_GameConfiguration& cfg);
-	void           Save(Vireio_GameConfiguration& cfg);
+	void                      Load(Vireio_GameConfiguration& cfg);
+	void                      Save(Vireio_GameConfiguration& cfg);
+	Vireio_GameConfiguration* Configuration() { return config; }
 #else
-	void           Load(ProxyConfig& cfg);
-	void           Save(ProxyConfig& cfg);
+	void                      Load(ProxyConfig& cfg);
+	void                      Save(ProxyConfig& cfg);
+	ProxyConfig*              Configuration() { return config; }
 #endif
-	void           UpdateProjectionMatrices(float aspectRatio, float fov_horiz);
-	void           UpdateRoll(float roll);
-	void		   UpdatePosition(float yaw, float pitch, float roll, float xPosition = 0.0f, float yPosition = 0.0f, float zPosition = 0.0f);
-	void           ComputeViewTransforms();
-	D3DXMATRIX     PositionMatrix();
-	D3DXMATRIX     LeftAdjustmentMatrix();
-	D3DXMATRIX     RightAdjustmentMatrix();
-	D3DXMATRIX     LeftAdjustmentMatrixNoRoll();
-	D3DXMATRIX     RightAdjustmentMatrixNoRoll();
-	D3DXMATRIX     LeftView();
-	D3DXMATRIX     RightView();
-	D3DXMATRIX     LeftViewTransform();
-	D3DXMATRIX     RightViewTransform();
-	D3DXMATRIX     Projection();
-	D3DXMATRIX     ProjectionInverse();
-	D3DXMATRIX     RollMatrix();
-	D3DXMATRIX     RollMatrixNegative();
-	D3DXMATRIX     RollMatrixHalf();
-	D3DXMATRIX     LeftHUDMatrix();
-	D3DXMATRIX     RightHUDMatrix();
-	D3DXMATRIX     LeftGUIMatrix();
-	D3DXMATRIX     RightGUIMatrix();
-	D3DXMATRIX     Squash();
-	D3DXMATRIX     HUDDistance();
-	D3DXMATRIX     LeftHUD3DDepth();
-	D3DXMATRIX     RightHUD3DDepth();
-	D3DXMATRIX     LeftHUD3DDepthShifted();
-	D3DXMATRIX     RightHUD3DDepthShifted();
-	D3DXMATRIX     LeftGUI3DDepth();
-	D3DXMATRIX     RightGUI3DDepth();
-	D3DXMATRIX     GatheredMatrixLeft();
-	D3DXMATRIX     GatheredMatrixRight();
-	void           GatherMatrix(D3DXMATRIX& matrixLeft, D3DXMATRIX& matrixRight);
-	float          ChangeWorldScale(float toAdd);
-	float          SetConvergence(float newConvergence);
-	float          ChangeConvergence(float toAdd);
-	void           ChangeGUISquash(float newSquash);
-	void           ChangeGUI3DDepth(float newGui3DDepth);
-	void           ChangeHUDDistance(float newHudDistance);
-	void           ChangeHUD3DDepth(float newHud3DDepth);
-	void	 	   SetGameSpecificPositionalScaling(D3DXVECTOR3 scalingVec);
-	float          Convergence();
-	float          ConvergenceInWorldUnits();
-	float          SeparationInWorldUnits();
-	float          SeparationIPDAdjustment();
-	HMDisplayInfo* HMDInfo();
+	void                      UpdateProjectionMatrices(float aspectRatio, float fov_horiz);
+	void                      UpdateRoll(float roll);
+	void		              UpdatePosition(float yaw, float pitch, float roll, float xPosition = 0.0f, float yPosition = 0.0f, float zPosition = 0.0f);
+	void                      ComputeViewTransforms();
+	D3DXMATRIX                PositionMatrix();
+	D3DXMATRIX                LeftAdjustmentMatrix();
+	D3DXMATRIX                RightAdjustmentMatrix();
+	D3DXMATRIX                LeftAdjustmentMatrixNoRoll();
+	D3DXMATRIX                RightAdjustmentMatrixNoRoll();
+	D3DXMATRIX                LeftView();
+	D3DXMATRIX                RightView();
+	D3DXMATRIX                LeftViewTransform();
+	D3DXMATRIX                RightViewTransform();
+	D3DXMATRIX                Projection();
+	D3DXMATRIX                ProjectionInverse();
+	D3DXMATRIX                RollMatrix();
+	D3DXMATRIX                RollMatrixNegative();
+	D3DXMATRIX                RollMatrixHalf();
+	D3DXMATRIX                LeftHUDMatrix();
+	D3DXMATRIX                RightHUDMatrix();
+	D3DXMATRIX                LeftGUIMatrix();
+	D3DXMATRIX                RightGUIMatrix();
+	D3DXMATRIX                Squash();
+	D3DXMATRIX                HUDDistance();
+	D3DXMATRIX                LeftHUD3DDepth();
+	D3DXMATRIX                RightHUD3DDepth();
+	D3DXMATRIX                LeftHUD3DDepthShifted();
+	D3DXMATRIX                RightHUD3DDepthShifted();
+	D3DXMATRIX                LeftGUI3DDepth();
+	D3DXMATRIX                RightGUI3DDepth();
+	D3DXMATRIX                GatheredMatrixLeft();
+	D3DXMATRIX                GatheredMatrixRight();
+	D3DXMATRIX                ConvergenceOffsetLeft() {	return sMatConvergenceOffsetLeft; }
+	D3DXMATRIX                ConvergenceOffsetRight() { return sMatConvergenceOffsetRight; }
+	void                      GatherMatrix(D3DXMATRIX& matrixLeft, D3DXMATRIX& matrixRight);
+	float                     ChangeWorldScale(float toAdd);
+	float                     SetConvergence(float newConvergence);
+	float                     ChangeConvergence(float toAdd);
+	void                      ChangeGUISquash(float newSquash);
+	void                      ChangeGUI3DDepth(float newGui3DDepth);
+	void                      ChangeHUDDistance(float newHudDistance);
+	void                      ChangeHUD3DDepth(float newHud3DDepth);
+	void                      SetGameSpecificPositionalScaling(D3DXVECTOR3 scalingVec);
+	float                     Convergence();
+	float                     ConvergenceInWorldUnits();
+	float                     SeparationInWorldUnits();
+	float                     SeparationIPDAdjustment();
+	HMDisplayInfo*            HMDInfo();
 
 private:
 #ifdef VIREIO_MATRIX_MODIFIER
@@ -257,6 +261,14 @@ private:
 	* HUD 3d depth matrix, to be used in HUD separation matrices.
 	***/
 	D3DXMATRIX matRightGui3DDepth;
+	/**
+	* Convergence offset left. (only translation)
+	***/
+	D3DXMATRIX sMatConvergenceOffsetLeft;
+	/**
+	* Convergence offset right. (only translation)
+	***/
+	D3DXMATRIX sMatConvergenceOffsetRight;
 	/**
 	* Used to scale the positional movement, seems x/y/z are not equal
 	*/

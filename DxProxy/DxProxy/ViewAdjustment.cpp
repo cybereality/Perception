@@ -231,6 +231,10 @@ void ViewAdjustment::UpdateProjectionMatrices(float aspectRatio, float fov_horiz
 		// now, create the re-projection matrices for both eyes using this frustum asymmetry
 		D3DXMatrixPerspectiveOffCenterLH(&projectLeftConverge, l + frustumAsymmetryLeft, r + frustumAsymmetryLeft, b, t, n, f);
 		D3DXMatrixPerspectiveOffCenterLH(&projectRightConverge, l + frustumAsymmetryRight, r + frustumAsymmetryRight, b, t, n, f);
+
+		// create convergence offset matrices without projection
+		D3DXMatrixTranslation(&sMatConvergenceOffsetLeft, frustumAsymmetryLeftInMeters * config->fWorldScaleFactor, 0, 0);
+		D3DXMatrixTranslation(&sMatConvergenceOffsetRight, frustumAsymmetryRightInMeters * config->fWorldScaleFactor, 0, 0);
 	}
 	else
 	{
