@@ -32,7 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MATRIXSHADOWFIX1_H_INCLUDED
 /**
 * @file MatrixShadowFix1.h
-* Reserved matrix modification, has currently no effect.
+* Translation and negative rotation (game-specific).
 */
 
 #include "d3d9.h"
@@ -42,7 +42,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ShaderMatrixModification.h"
 
 /**
-* Reserved matrix modification, has currently no effect.
+* Translation and negative rotation (game-specific).
 */
 class MatrixShadowFix1 : public ShaderMatrixModification
 {
@@ -64,9 +64,14 @@ public:
 	***/
 	virtual void DoMatrixModification(D3DXMATRIX in, D3DXMATRIX& outLeft, D3DXMATRIX& outright)
 	{
+		D3DXMATRIX sTranslateLeft;
+		D3DXMATRIX sTranslateRight;
+		D3DXMatrixTranslation(&sTranslateLeft, 1.5f * m_spAdjustmentMatrices->Configuration()->fWorldScaleFactor, 0.0f, 0.0f);
+		D3DXMatrixTranslation(&sTranslateRight, -1.5f * m_spAdjustmentMatrices->Configuration()->fWorldScaleFactor, 0.0f, 0.0f);
+
 		// in * rollMatrix
-		outLeft = in;
-		outright = in;
+		outLeft = in * sTranslateLeft * m_spAdjustmentMatrices->RollMatrixNegative();
+		outright = in * sTranslateRight * m_spAdjustmentMatrices->RollMatrixNegative();
 	};
 };
 #endif
