@@ -429,6 +429,8 @@ void OSVR_DirectMode::DrawWorld(void* userData, osvr::renderkit::GraphicsLibrary
 	osvr::renderkit::OSVR_ViewportDescription sViewport, OSVR_PoseState pose, osvr::renderkit::OSVR_ProjectionMatrix sProjection, OSVR_TimeValue deadline)
 {
 	static int nEye = 0;
+	static float fAspect = 1.0f;
+
 	// Make sure our pointers are filled in correctly.  The config file selects
 	// the graphics library to use, and may not match our needs.
 	if (cLibrary.D3D11 == nullptr)
@@ -505,7 +507,7 @@ void OSVR_DirectMode::DrawWorld(void* userData, osvr::renderkit::GraphicsLibrary
 		sProj.m[0][2] = 0.0f;
 
 		sProj.m[1][0] = 0.0f;
-		sProj.m[1][1] = sProj.m[1][1] * fNorm;
+		sProj.m[1][1] = ((sProj.m[1][1] * fNorm) + fAspect) / 2.0f; // < incorporate game screen aspect ratio
 		sProj.m[1][3] = sProj.m[1][2];
 		sProj.m[1][2] = 0.0f;
 
@@ -552,6 +554,9 @@ void OSVR_DirectMode::DrawWorld(void* userData, osvr::renderkit::GraphicsLibrary
 						OutputDebugString(L"StereoSplitterDX10 : Failed to create twin texture !");
 						return;
 					}
+
+					// aspect ratio
+					fAspect = (float)sDesc.Height / (float)sDesc.Width;
 
 					// TODO !! DX9 // DX10 !!
 
