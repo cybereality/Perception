@@ -2,7 +2,8 @@
 Vireio Perception: Open-Source Stereoscopic 3D Driver
 Copyright (C) 2012 Andres Hernandez
 
-File <MatrixShadowFix1.h> :
+File <MatrixTransformToRotation.h> and
+Class <MatrixTransformToRotation> :
 Copyright (C) 2016 Denis Reischl
 
 Vireio Perception Version History:
@@ -28,11 +29,11 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#ifndef MATRIXSHADOWFIX1_H_INCLUDED
-#define MATRIXSHADOWFIX1_H_INCLUDED
+#ifndef MatrixTransformToRotation_H_INCLUDED
+#define MatrixTransformToRotation_H_INCLUDED
 /**
-* @file MatrixShadowFix1.h
-* Translation and negative rotation (game-specific).
+* @file MatrixTransformToRotation.h
+* Matrix applies transform only if no member of the first input row is zero.
 */
 
 #include "d3d9.h"
@@ -42,9 +43,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ShaderMatrixModification.h"
 
 /**
-* Translation and negative rotation (game-specific).
+* Matrix applies transform only if no member of the first input row is zero.
 */
-class MatrixShadowFix1 : public ShaderMatrixModification
+class MatrixTransformToRotation : public ShaderMatrixModification
 {
 public:
 	/**
@@ -53,7 +54,7 @@ public:
 	* @param adjustmentMatrices The matricies to be adjusted
 	* @param transpose Decides if the matrices should be transposed (aka: have rows and columns interchanged)
 	*/
-	MatrixShadowFix1(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatrices, bool transpose)
+	MatrixTransformToRotation(UINT modID, std::shared_ptr<ViewAdjustment> adjustmentMatrices, bool transpose)
 		: ShaderMatrixModification(modID, adjustmentMatrices, transpose)
 	{};
 
@@ -64,21 +65,16 @@ public:
 	***/
 	virtual void DoMatrixModification(D3DXMATRIX in, D3DXMATRIX& outLeft, D3DXMATRIX& outright)
 	{
-		D3DXMATRIX sTranslateLeft;
-		D3DXMATRIX sTranslateRight;
-		D3DXMatrixTranslation(&sTranslateLeft, 1.5f * m_spAdjustmentMatrices->Configuration()->fWorldScaleFactor, 0.0f, 0.0f);
-		D3DXMatrixTranslation(&sTranslateRight, -1.5f * m_spAdjustmentMatrices->Configuration()->fWorldScaleFactor, 0.0f, 0.0f);
-
-		// convergence ?
-		if (m_spAdjustmentMatrices->Configuration()->bConvergenceEnabled)
+		if ((in(0, 0) == 0.0f) || (in(0, 1) == 0.0f) || (in(0, 2) == 0.0f) || (in(0, 3) == 0.0f))
 		{
-			sTranslateLeft(2, 0) = -0.03f;
-			sTranslateRight(2, 0) = 0.03f;
+			outLeft = in;
+			outright = in;
+			return;
 		}
-
-		// in * rollMatrix
-		outLeft = in * sTranslateLeft * m_spAdjustmentMatrices->RollMatrixNegative();
-		outright = in * sTranslateRight * m_spAdjustmentMatrices->RollMatrixNegative();
+		else
+		{
+			ShaderMatrixModification::DoMatrixModification(in, outLeft, outright);
+		}
 	};
 };
 #endif

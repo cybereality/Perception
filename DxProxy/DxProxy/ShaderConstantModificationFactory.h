@@ -62,6 +62,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "MatrixShadowFix1.h"
 #include "MatrixShadowFix2.h"
 #include "MatrixTransformShadowFix1.h"
+#include "MatrixTransformToRotation.h"
+#include "MatrixTransformToRotationNegative.h"
 #pragma endregion
 
 /**
@@ -124,8 +126,9 @@ public:
 		MatTransformShadowFix6 = 34,        /**< Reserved **/
 		MatTransformShadowFix7 = 35,        /**< Reserved **/
 		MatTransformShadowFix8 = 36,        /**< Reserved **/
+		MatTransformToRotation = 37,        /**< Applies transform to rotation matrices. **/
 	};
-	static const UINT m_unMatrixModificationNumber = 37;
+	static const UINT m_unMatrixModificationNumber = 38;
 
 	/**
 	* Calls twin function.
@@ -283,6 +286,9 @@ public:
 			case ShaderConstantModificationFactory::MatTransformShadowFix8:
 				return std::make_shared<MatrixTransformShadowFix1>(mod, adjustmentMatrices, transpose); // RESERVED
 				break;
+			case ShaderConstantModificationFactory::MatTransformToRotation:
+				return std::make_shared<MatrixTransformToRotation>(mod, adjustmentMatrices, transpose); // RESERVED
+				break;
 			default:
 				OutputDebugStringA("Nonexistant matrix modification\n");
 				assert(false);
@@ -370,6 +376,9 @@ public:
 				return std::wstring(L"MatTransformShadowFix7");
 			case ShaderConstantModificationFactory::MatTransformShadowFix8:
 				return std::wstring(L"MatTransformShadowFix8");
+			case ShaderConstantModificationFactory::MatTransformToRotation:
+				return std::wstring(L"MatTransformToRotation");
+				break;
 		}
 		return std::wstring(L"Error-Nonexistant");
 	}

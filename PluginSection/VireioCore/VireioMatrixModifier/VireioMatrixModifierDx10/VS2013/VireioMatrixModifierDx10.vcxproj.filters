@@ -103,6 +103,9 @@
     <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixTransformShadowFix1.h">
       <Filter>Modification</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MatrixTransformToRotation.h">
+      <Filter>Modification</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\VireioMatrixModifier\AQU_Nodus.def" />
