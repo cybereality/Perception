@@ -63,7 +63,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "MatrixShadowFix2.h"
 #include "MatrixTransformShadowFix1.h"
 #include "MatrixTransformToRotation.h"
-#include "MatrixTransformToRotationNegative.h"
 #pragma endregion
 
 /**

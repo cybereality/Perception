@@ -213,6 +213,10 @@ private:
 	{
 		ID3D11ShaderResourceView* m_pcFrameTextureSRView[2];
 	} m_sSteroFrameTextureSRViews;
+	/**
+	* Hotkey switch.
+	***/
+	bool m_bHotkeySwitch;
 };
 
 /**

@@ -65,7 +65,8 @@ ID3D11DeviceContext* OSVR_DirectMode::m_pcGameDeviceContext;
 * Constructor.
 ***/
 OSVR_DirectMode::OSVR_DirectMode() :AQU_Nodus(),
-m_pcRenderManager(nullptr)
+m_pcRenderManager(nullptr),
+m_bHotkeySwitch(false)
 {
 	m_pcVertexShader11 = nullptr;
 	m_pcPixelShader11 = nullptr;
@@ -205,6 +206,14 @@ void* OSVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 {
 	if (eD3DInterface != INTERFACE_IDXGISWAPCHAIN) return nullptr;
 	if (eD3DMethod != METHOD_IDXGISWAPCHAIN_PRESENT) return nullptr;
+	if (!m_bHotkeySwitch)
+	{
+		if (GetAsyncKeyState(VK_F11))
+		{
+			m_bHotkeySwitch = true;
+		}
+		return nullptr;
+	}
 
 	// Get an OSVR client context to use to access the devices
 	// that we need.
@@ -500,7 +509,7 @@ void OSVR_DirectMode::DrawWorld(void* userData, osvr::renderkit::GraphicsLibrary
 		osvr::renderkit::OSVR_Projection_to_D3D(afProjectionD3D, sProjection);
 		D3DXMATRIX sProj(afProjectionD3D);
 		float fNorm = 1.0f / sProj.m[0][0];
-		
+
 		sProj.m[0][0] = sProj.m[0][0] * fNorm;
 		sProj.m[0][1] = 0.0f;
 		sProj.m[0][3] = sProj.m[0][2];
