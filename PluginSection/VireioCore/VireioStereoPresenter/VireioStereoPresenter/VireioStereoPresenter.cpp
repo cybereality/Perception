@@ -311,7 +311,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 				CreateStateblock(pcContext, &sStateBlock);
 
 				// clear all states, set targets
-				pcContext->ClearState();
+				ClearContextState(pcContext);
 
 				// set first active render target - the stored back buffer - get the stored private data view
 				ID3D11Texture2D* pcBackBuffer = nullptr;
