@@ -29,8 +29,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#ifndef MatrixTransformToRotation_H_INCLUDED
-#define MatrixTransformToRotation_H_INCLUDED
+#ifndef MATRIXTRANSFORMTOROTATION_H_INCLUDED
+#define MATRIXTRANSFORMTOROTATION_H_INCLUDED
 /**
 * @file MatrixTransformToRotation.h
 * Matrix applies transform only if no member of the first input row is zero.

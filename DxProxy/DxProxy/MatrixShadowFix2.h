@@ -32,7 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MATRIXSHADOWFIX2_H_INCLUDED
 /**
 * @file MatrixShadowFix2.h
-* Reserved matrix modification, has currently no effect.
+* Special form of MatrixTransformToRotation, applys only if in(0,0) < 0,0f.
 */
 
 #include "d3d9.h"
@@ -42,7 +42,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ShaderMatrixModification.h"
 
 /**
-* Reserved matrix modification, has currently no effect.
+* Special form of MatrixTransformToRotation, applys only if in(0,0) < 0,0f.
 */
 class MatrixShadowFix2 : public ShaderMatrixModification
 {
@@ -64,9 +64,16 @@ public:
 	***/
 	virtual void DoMatrixModification(D3DXMATRIX in, D3DXMATRIX& outLeft, D3DXMATRIX& outright)
 	{
-		// in * rollMatrix
-		outLeft = in;
-		outright = in;
+		if ((in(0, 0) == 0.0f) || (in(0, 1) == 0.0f) || (in(0, 2) == 0.0f) || (in(0, 3) == 0.0f) || ((in(0,0) > 1.0f) && (in(0,0) < 50.0f)) || (in(0, 0) > 150.0f))
+		{
+			outLeft = in;
+			outright = in;
+			return;
+		}
+		else
+		{
+			ShaderMatrixModification::DoMatrixModification(in, outLeft, outright);
+		}
 	};
 };
 #endif
