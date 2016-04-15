@@ -213,7 +213,7 @@ private:
 	void                    XSSetShaderResourceViews(std::vector<ID3D11ShaderResourceView*> &apcActiveShaderResourceViews, UINT& unNumViewsTotal, UINT unStartSlot, UINT unNumViews, ID3D11ShaderResourceView *const *ppShaderResourceViews);
 
 	/*** StereoSplitter private methods ***/
-	void                       CreateStereoView(ID3D11Device* pcDevice, ID3D11View* pcView);
+	void                       CreateStereoView(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, ID3D11View* pcView);
 	ID3D11RenderTargetView*    VerifyPrivateDataInterfaces(ID3D11RenderTargetView* pcRenderTargetView);
 	ID3D11DepthStencilView*    VerifyPrivateDataInterfaces(ID3D11DepthStencilView* pcDepthStencilView);
 	ID3D11UnorderedAccessView* VerifyPrivateDataInterfaces(ID3D11UnorderedAccessView* pcUnorderedAccessView);

@@ -1282,16 +1282,16 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 #pragma region create new
 	if ((m_apcNewRenderTargetViews11.size()) || (m_apcNewDepthStencilViews11.size()) || (m_apcNewShaderResourceViews11.size()) || (m_apcNewUnorderedAccessViews11.size()))
 	{
-		// get device
+		// get device and context
 		ID3D11Device* pcDevice = nullptr;
-		pcSwapChain->GetDevice(__uuidof(ID3D11Device), (void**)&pcDevice);
-		if (pcDevice)
+		ID3D11DeviceContext* pcContext = nullptr;
+		if (SUCCEEDED(GetDeviceAndContext(pcSwapChain, &pcDevice, &pcContext)))
 		{
 			// create new render target view
 			while (m_apcNewRenderTargetViews11.size())
 			{
 				// create and delete the first in the list
-				CreateStereoView(pcDevice, m_apcNewRenderTargetViews11[0]);
+				CreateStereoView(pcDevice, pcContext, m_apcNewRenderTargetViews11[0]);
 				m_apcNewRenderTargetViews11.erase(m_apcNewRenderTargetViews11.begin());
 			}
 
@@ -1299,7 +1299,7 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 			if (m_apcNewDepthStencilViews11.size())
 			{
 				// create and delete the first in the list
-				CreateStereoView(pcDevice, m_apcNewDepthStencilViews11[0]);
+				CreateStereoView(pcDevice, pcContext, m_apcNewDepthStencilViews11[0]);
 				m_apcNewDepthStencilViews11.erase(m_apcNewDepthStencilViews11.begin());
 			}
 
@@ -1307,7 +1307,7 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 			while (m_apcNewUnorderedAccessViews11.size())
 			{
 				// create and delete the first in the list
-				CreateStereoView(pcDevice, m_apcNewUnorderedAccessViews11[0]);
+				CreateStereoView(pcDevice, pcContext, m_apcNewUnorderedAccessViews11[0]);
 				m_apcNewUnorderedAccessViews11.erase(m_apcNewUnorderedAccessViews11.begin());
 			}
 
@@ -1346,7 +1346,7 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 					else
 					{
 						// create new stereo view
-						CreateStereoView(pcDevice, m_apcNewShaderResourceViews11[0]);
+						CreateStereoView(pcDevice, pcContext, m_apcNewShaderResourceViews11[0]);
 					}
 
 					pcResource->Release();
@@ -2004,9 +2004,9 @@ void StereoSplitter::XSSetShaderResourceViews(std::vector<ID3D11ShaderResourceVi
 * Creates a stereo view out of a mono view.
 * Creates the stereo texture and its view, then assignes all as private data interfaces.
 ***/
-void StereoSplitter::CreateStereoView(ID3D11Device* pcDevice, ID3D11View* pcView)
+void StereoSplitter::CreateStereoView(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, ID3D11View* pcView)
 {
-	if ((!pcView) || (!pcDevice)) return;
+	if ((!pcView) || (!pcDevice) || (!pcContext)) return;
 
 #pragma region determine view type
 	// get bind flag
@@ -2104,14 +2104,17 @@ void StereoSplitter::CreateStereoView(ID3D11Device* pcDevice, ID3D11View* pcView
 														   // get the description and create the twin texture
 														   D3D11_TEXTURE1D_DESC sDesc;
 														   ((ID3D11Texture1D*)pcResource)->GetDesc(&sDesc);
-
+														   
 														   if (FAILED(((ID3D11Device*)pcDevice)->CreateTexture1D(&sDesc, NULL, (ID3D11Texture1D**)&pcResourceTwin)))
 														   {
 															   OutputDebugString(L"StereoSplitterDX10 : Failed to create twin texture !");
 															   break;
 														   }
 														   else
+														   {
+															   pcContext->CopyResource(pcResourceTwin, pcResource);
 															   pcResource->SetPrivateDataInterface(PDIID_ID3D11TextureXD_Stereo_Twin, pcResourceTwin);
+														   }
 													   }
 			}
 				break;
@@ -2125,7 +2128,7 @@ void StereoSplitter::CreateStereoView(ID3D11Device* pcDevice, ID3D11View* pcView
 														   // get the description and create the twin texture
 														   D3D11_TEXTURE2D_DESC sDesc;
 														   ((ID3D11Texture2D*)pcResource)->GetDesc(&sDesc);
-
+														   
 														   // handle sRGB formats : there was an error creating textures with one game... can't remember which one... hmm... this fixed it
 														   if (sDesc.Format == DXGI_FORMAT_R8G8B8A8_UNORM_SRGB)
 															   sDescRT11.Format = sDesc.Format;
@@ -2136,7 +2139,10 @@ void StereoSplitter::CreateStereoView(ID3D11Device* pcDevice, ID3D11View* pcView
 															   break;
 														   }
 														   else
+														   {
+															   pcContext->CopyResource(pcResourceTwin, pcResource);
 															   pcResource->SetPrivateDataInterface(PDIID_ID3D11TextureXD_Stereo_Twin, pcResourceTwin);
+														   }
 													   }
 			}
 				break;
@@ -2157,7 +2163,10 @@ void StereoSplitter::CreateStereoView(ID3D11Device* pcDevice, ID3D11View* pcView
 															   break;
 														   }
 														   else
+														   {
+															   pcContext->CopyResource(pcResourceTwin, pcResource);
 															   pcResource->SetPrivateDataInterface(PDIID_ID3D11TextureXD_Stereo_Twin, pcResourceTwin);
+														   }
 													   }
 			}
 				break;
