@@ -64,10 +64,22 @@ public:
 	***/
 	virtual void DoMatrixModification(D3DXMATRIX in, D3DXMATRIX& outLeft, D3DXMATRIX& outright)
 	{
+		/*std::stringstream sz;
+		sz << in(0, 0) << ":" << in(0, 1) << ":" << in(0, 2) << ":" << in(0, 3) << ":" << in(1, 0) << ":" << in(1, 1) << ":" << in(1, 2) << ":" << in(1, 3) << in(2, 0) << ":" << in(2, 1) << ":" << in(2, 2) << ":" << in(2, 3) << ":" << in(3, 0) << ":" << in(3, 1) << ":" << in(3, 2) << ":" << in(3, 3);
+		OutputDebugStringA(sz.str().c_str());*/
+
 		D3DXMATRIX sTranslateLeft;
 		D3DXMATRIX sTranslateRight;
-		D3DXMatrixTranslation(&sTranslateLeft, 1.5f * m_spAdjustmentMatrices->Configuration()->fWorldScaleFactor, 0.0f, 0.0f);
-		D3DXMatrixTranslation(&sTranslateRight, -1.5f * m_spAdjustmentMatrices->Configuration()->fWorldScaleFactor, 0.0f, 0.0f);
+		if (in(0, 0) < 0.6f)
+		{
+			D3DXMatrixTranslation(&sTranslateLeft, 0.47f * m_spAdjustmentMatrices->Configuration()->fWorldScaleFactor, 0.0f, 0.0f);
+			D3DXMatrixTranslation(&sTranslateRight, -0.47f * m_spAdjustmentMatrices->Configuration()->fWorldScaleFactor, 0.0f, 0.0f);
+		}
+		else
+		{
+			D3DXMatrixTranslation(&sTranslateLeft, 1.5f * m_spAdjustmentMatrices->Configuration()->fWorldScaleFactor, 0.0f, 0.0f);
+			D3DXMatrixTranslation(&sTranslateRight, -1.5f * m_spAdjustmentMatrices->Configuration()->fWorldScaleFactor, 0.0f, 0.0f);
+		}
 
 		// convergence ?
 		if (m_spAdjustmentMatrices->Configuration()->bConvergenceEnabled)
