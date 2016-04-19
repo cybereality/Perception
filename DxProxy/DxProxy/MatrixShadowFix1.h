@@ -70,7 +70,7 @@ public:
 
 		D3DXMATRIX sTranslateLeft;
 		D3DXMATRIX sTranslateRight;
-		if (in(0, 0) < 0.6f)
+		if (in(0, 0) < 1.0f)
 		{
 			D3DXMatrixTranslation(&sTranslateLeft, 0.47f * m_spAdjustmentMatrices->Configuration()->fWorldScaleFactor, 0.0f, 0.0f);
 			D3DXMatrixTranslation(&sTranslateRight, -0.47f * m_spAdjustmentMatrices->Configuration()->fWorldScaleFactor, 0.0f, 0.0f);

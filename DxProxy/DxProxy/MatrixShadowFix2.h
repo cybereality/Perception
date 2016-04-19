@@ -64,7 +64,7 @@ public:
 	***/
 	virtual void DoMatrixModification(D3DXMATRIX in, D3DXMATRIX& outLeft, D3DXMATRIX& outright)
 	{
-		if ((in(2,3) == 0.0f) || (in(0, 0) == 0.0f) || (in(0, 1) == 0.0f) || (in(0, 2) == 0.0f) || (in(0, 3) == 0.0f) || ((in(0,0) > 1.0f) && (in(0,0) < 50.0f)) || (in(0, 0) > 150.0f))
+		if ((in(0, 2) == 0.0f) || (in(0, 3) == 0.0f))
 		{
 			outLeft = in;
 			outright = in;
