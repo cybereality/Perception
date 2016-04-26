@@ -44,7 +44,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include"AQU_Nodus.h"
 #include"Resources.h"
-#include<vector>
 #include<sstream>
 
 #include <DXGI.h>
@@ -73,7 +72,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Extras/OVR_Math.h"
 #define OVR_D3D_VERSION 11
-#define SAFE_RELEASE(a) if (a) { a->Release(); a = nullptr; }
 #include"OVR_CAPI_D3D.h"
 #include"..\..\..\Include\Vireio_DX11Basics.h"
 #include"..\..\..\Include\Vireio_Node_Plugtypes.h"
@@ -111,49 +109,56 @@ enum ODM_Decommanders
 ***/
 struct OculusTexture
 {
-	ovrSession               Session;
-	ovrTextureSwapChain      TextureChain;
-	std::vector<ID3D11RenderTargetView*> TexRtv;
+	ovrHmd                   hmd;
+	ovrSwapTextureSet      * TextureSet;
+	static const int         TextureCount = 2;
+	ID3D11RenderTargetView * TexRtv[TextureCount];
 
 	OculusTexture() :
-		Session(nullptr),
-		TextureChain(nullptr)
+		hmd(nullptr),
+		TextureSet(nullptr)
 	{
+		TexRtv[0] = TexRtv[1] = nullptr;
 	}
 
-	bool Init(ID3D11Device* pcDevice, ovrSession session, int sizeW, int sizeH)
+	bool Init(ID3D11Device* pcDevice, ovrHmd* _hmd, int sizeW, int sizeH)
 	{
-		Session = session;
+		//hmd = _hmd;
 
-		ovrTextureSwapChainDesc desc = {};
-		desc.Type = ovrTexture_2D;
-		desc.ArraySize = 1;
-		desc.Format = OVR_FORMAT_R8G8B8A8_UNORM_SRGB;
-		desc.Width = sizeW;
-		desc.Height = sizeH;
-		desc.MipLevels = 1;
-		desc.SampleCount = 1;
-		desc.MiscFlags = ovrTextureMisc_DX_Typeless;
-		desc.BindFlags = ovrTextureBind_DX_RenderTarget;
-		desc.StaticImage = ovrFalse;
+		D3D11_TEXTURE2D_DESC dsDesc;
+		dsDesc.Width = sizeW;
+		dsDesc.Height = sizeH;
+		dsDesc.MipLevels = 1;
+		dsDesc.ArraySize = 1;
+		dsDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+		dsDesc.SampleDesc.Count = 1;   // No multi-sampling allowed
+		dsDesc.SampleDesc.Quality = 0;
+		dsDesc.Usage = D3D11_USAGE_DEFAULT;
+		dsDesc.CPUAccessFlags = 0;
+		dsDesc.MiscFlags = 0;
+		dsDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
 
-		ovrResult result = ovr_CreateTextureSwapChainDX(session, pcDevice, &desc, &TextureChain);
+		ovrResult result = ovr_CreateSwapTextureSetD3D11(*_hmd, pcDevice, &dsDesc, ovrSwapTextureSetD3D11_Typeless, &TextureSet);
 		if (!OVR_SUCCESS(result))
-			return false;
-
-		int textureCount = 0;
-		ovr_GetTextureSwapChainLength(Session, TextureChain, &textureCount);
-		for (int i = 0; i < textureCount; ++i)
 		{
-			ID3D11Texture2D* tex = nullptr;
-			ovr_GetTextureSwapChainBufferDX(Session, TextureChain, i, IID_PPV_ARGS(&tex));
+			ovrErrorInfo sErrorInfo;
+			ovr_GetLastErrorInfo(&sErrorInfo);
+
+			OutputDebugString(L"Error:");
+			OutputDebugStringA(sErrorInfo.ErrorString);
+			return false;
+		}
+
+		if (TextureSet->TextureCount != TextureCount)
+			OutputDebugString(L"TextureCount mismatch.");
+
+		for (int i = 0; i < TextureCount; ++i)
+		{
+			ovrD3D11Texture* tex = (ovrD3D11Texture*)&TextureSet->Textures[i];
 			D3D11_RENDER_TARGET_VIEW_DESC rtvd = {};
 			rtvd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 			rtvd.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-			ID3D11RenderTargetView* rtv;
-			pcDevice->CreateRenderTargetView(tex, &rtvd, &rtv);
-			TexRtv.push_back(rtv);
-			tex->Release();
+			pcDevice->CreateRenderTargetView(tex->D3D11.pTexture, &rtvd, &TexRtv[i]);
 		}
 
 		return true;
@@ -161,27 +166,19 @@ struct OculusTexture
 
 	~OculusTexture()
 	{
-		for (int i = 0; i < (int)TexRtv.size(); ++i)
+		for (int i = 0; i < TextureCount; ++i)
 		{
-			SAFE_RELEASE(TexRtv[i]);
+			if (TexRtv[i]) TexRtv[i]->Release();
 		}
-		if (TextureChain)
+		if (TextureSet)
 		{
-			ovr_DestroyTextureSwapChain(Session, TextureChain);
+			ovr_DestroySwapTextureSet(hmd, TextureSet);
 		}
 	}
 
-	ID3D11RenderTargetView* GetRTV()
+	void AdvanceToNextTexture()
 	{
-		int index = 0;
-		ovr_GetTextureSwapChainCurrentIndex(Session, TextureChain, &index);
-		return TexRtv[index];
-	}
-
-	// Commit changes
-	void Commit()
-	{
-		ovr_CommitTextureSwapChain(Session, TextureChain);
+		TextureSet->CurrentIndex = (TextureSet->CurrentIndex + 1) % TextureSet->TextureCount;
 	}
 };
 
@@ -217,15 +214,15 @@ private:
 	/**
 	* The handle of the headset.
 	***/
-	ovrSession m_hHMD;
+	ovrHmd m_hHMD;
 	/**
 	* The pointer to the HMD handle created either by this node or the oculus tracker node.
 	***/
-	ovrSession* m_phHMD;
+	ovrHmd* m_phHMD;
 	/**
 	* The pointer to the handle created by the oculus tracker node.
 	***/
-	ovrSession* m_phHMD_Tracker;
+	ovrHmd* m_phHMD_Tracker;
 	/**
 	* The HMD description.
 	***/
@@ -237,12 +234,7 @@ private:
 	/**
 	* The mirror texture (of the whole Oculus frame) to be shown on main window.
 	***/
-	ovrMirrorTexture m_pcMirrorTexture;
-	/**
-	* The mirror texture (of the whole Oculus frame) to be shown on main window.
-	* Dx version for the HMD device.
-	***/
-	ID3D11Texture2D* m_pcMirrorTextureD3D11HMD;
+	ovrTexture* m_pcMirrorTexture;
 	/**
 	* The mirror texture (of the whole Oculus frame) to be shown on main window.
 	* Dx version for the game device.

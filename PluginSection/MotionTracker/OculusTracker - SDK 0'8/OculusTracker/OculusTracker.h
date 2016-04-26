@@ -206,10 +206,10 @@ enum OTR_Commanders
 	PositionX,
 	PositionY,
 	PositionZ,
-	OBSOLETE_CameraFrustumHFovInRadians,  /**<  The horizontal FOV of the position tracking camera frustum. **/
-	OBSOLETE_CameraFrustumVFovInRadians,  /**<  The vertical FOV of the position tracking camera frustum. **/
-	OBSOLETE_CameraFrustumNearZInMeters,  /**<  The distance from the position tracking camera to the near frustum bounds. **/
-	OBSOLETE_CameraFrustumFarZInMeters,   /**<  The distance from the position tracking camera to the far frustum bounds. **/
+	CameraFrustumHFovInRadians,  /**<  The horizontal FOV of the position tracking camera frustum. **/
+	CameraFrustumVFovInRadians,  /**<  The vertical FOV of the position tracking camera frustum. **/
+	CameraFrustumNearZInMeters,  /**<  The distance from the position tracking camera to the near frustum bounds. **/
+	CameraFrustumFarZInMeters,   /**<  The distance from the position tracking camera to the far frustum bounds. **/
 	HmdCaps,                     /**<  HMD capability bits described by ovrHmdCaps. **/
 	TrackingCaps,                /**<  Tracking capability bits describing whether orientation, position tracking, and yaw drift correction are supported. **/
 	ResolutionW,                 /**<  Device Resolution Width. **/
@@ -255,7 +255,7 @@ private:
 	/**
 	* The handle of the headset.
 	***/
-	ovrSession m_hHMD;
+	ovrHmd m_hHMD;
 	/**
 	* The HMD description. 
 	***/

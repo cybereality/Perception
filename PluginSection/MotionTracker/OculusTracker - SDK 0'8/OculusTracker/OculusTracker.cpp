@@ -204,21 +204,48 @@ HBITMAP OculusTracker::GetControl()
 			TextOut(hdcImage, 392, nY, szBuffer.str().c_str(), (int)szBuffer.str().length());
 			nY += 64; szBuffer = std::wstringstream();
 
-			// empty... former camera frustum
-			nY += 256;
+			// camera frustum
+			wchar_t szBufferW[128];
+			if (m_hHMD)
+				wsprintf(szBufferW, L"%u", m_sHMDDesc.CameraFrustumHFovInRadians);
+			else
+				wsprintf(szBufferW, L"0");
+			TextOut(hdcImage, 320, nY, L"CameraFrustumHFovInRadians", 25);
+			int nLen = (int)wcslen(szBufferW); if (nLen > 11) nLen = 11;
+			TextOut(hdcImage, 50, nY, szBufferW, nLen); nY += 64;
+			if (m_hHMD)
+				wsprintf(szBufferW, L"%u", m_sHMDDesc.CameraFrustumVFovInRadians);
+			else
+				wsprintf(szBufferW, L"0");
+			TextOut(hdcImage, 320, nY, L"CameraFrustumVFovInRadians", 25);
+			nLen = (int)wcslen(szBufferW); if (nLen > 11) nLen = 11;
+			TextOut(hdcImage, 50, nY, szBufferW, nLen); nY += 64;
+			if (m_hHMD)
+				wsprintf(szBufferW, L"%u", m_sHMDDesc.CameraFrustumNearZInMeters);
+			else
+				wsprintf(szBufferW, L"0");
+			TextOut(hdcImage, 300, nY, L"CameraFrustumNearZInMeters", 26);
+			nLen = (int)wcslen(szBufferW); if (nLen > 11) nLen = 11;
+			TextOut(hdcImage, 50, nY, szBufferW, nLen); nY += 64;
+			if (m_hHMD)
+				wsprintf(szBufferW, L"%u", m_sHMDDesc.CameraFrustumFarZInMeters);
+			else
+				wsprintf(szBufferW, L"0");
+			TextOut(hdcImage, 320, nY, L"CameraFrustumFarZInMeters", 25);
+			nLen = (int)wcslen(szBufferW); if (nLen > 11) nLen = 11;
+			TextOut(hdcImage, 50, nY, szBufferW, nLen); nY += 64;
 
 			// caps
 			TextOut(hdcImage, 770, nY, L"HmdCaps", 7); nY += 64;
 			TextOut(hdcImage, 690, nY, L"TrackingCaps", 12); nY += 64;
 
 			// resolution
-			wchar_t szBufferW[128];
 			if (m_hHMD)
 				wsprintf(szBufferW, L"%u", m_nRenderTextureWidth);
 			else
 				wsprintf(szBufferW, L"0");
 			TextOut(hdcImage, 510, nY, L"TexResolution Width", 19);
-			int nLen = (int)wcslen(szBufferW); if (nLen > 11) nLen = 11;
+			nLen = (int)wcslen(szBufferW); if (nLen > 11) nLen = 11;
 			TextOut(hdcImage, 50, nY, szBufferW, nLen); nY += 64;
 			if (m_hHMD)
 				wsprintf(szBufferW, L"%u", m_nRenderTextureHeight);
@@ -287,6 +314,14 @@ LPWSTR OculusTracker::GetCommanderName(DWORD dwCommanderIndex)
 			return L"Position Y";
 		case OTR_Commanders::PositionZ:
 			return L"Position Z";
+		case OTR_Commanders::CameraFrustumHFovInRadians:
+			return L"CameraFrustumHFovInRadians";
+		case OTR_Commanders::CameraFrustumVFovInRadians:
+			return L"CameraFrustumVFovInRadians";
+		case OTR_Commanders::CameraFrustumNearZInMeters:
+			return L"CameraFrustumNearZInMeters";
+		case OTR_Commanders::CameraFrustumFarZInMeters:
+			return L"CameraFrustumFarZInMeters";
 		case OTR_Commanders::HmdCaps:
 			return L"HmdCaps";
 		case OTR_Commanders::TrackingCaps:
@@ -331,6 +366,10 @@ DWORD OculusTracker::GetCommanderType(DWORD dwCommanderIndex)
 		case OTR_Commanders::PositionX:
 		case OTR_Commanders::PositionY:
 		case OTR_Commanders::PositionZ:
+		case OTR_Commanders::CameraFrustumHFovInRadians:
+		case OTR_Commanders::CameraFrustumVFovInRadians:
+		case OTR_Commanders::CameraFrustumNearZInMeters:
+		case OTR_Commanders::CameraFrustumFarZInMeters:
 			return PNT_FLOAT_PLUG_TYPE;
 		case OTR_Commanders::HmdCaps:
 		case OTR_Commanders::TrackingCaps:
@@ -391,9 +430,9 @@ void* OculusTracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DM
 {
 	if (m_hHMD)
 	{
-		/*// Start the sensor which informs of the Rift's pose and motion   .... obsolete for SDK 1.3.x ??
+		// Start the sensor which informs of the Rift's pose and motion
 		ovr_ConfigureTracking(m_hHMD, ovrTrackingCap_Orientation | ovrTrackingCap_MagYawCorrection |
-			ovrTrackingCap_Position, 0);*/
+			ovrTrackingCap_Position, 0);
 
 		// get the current tracking state
 		ovrTrackingState sTrackingState = ovr_GetTrackingState(m_hHMD, ovr_GetTimeInSeconds(), false);
@@ -474,6 +513,18 @@ void* OculusTracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DM
 						break;
 					case OTR_Commanders::PositionZ:
 						m_paOutput[dwCommanderIndex] = (void*)&m_sPose.Position.z;
+						break;
+					case OTR_Commanders::CameraFrustumHFovInRadians:
+						m_paOutput[dwCommanderIndex] = (void*)&m_sHMDDesc.CameraFrustumHFovInRadians;
+						break;
+					case OTR_Commanders::CameraFrustumVFovInRadians:
+						m_paOutput[dwCommanderIndex] = (void*)&m_sHMDDesc.CameraFrustumVFovInRadians;
+						break;
+					case OTR_Commanders::CameraFrustumNearZInMeters:
+						m_paOutput[dwCommanderIndex] = (void*)&m_sHMDDesc.CameraFrustumNearZInMeters;
+						break;
+					case OTR_Commanders::CameraFrustumFarZInMeters:
+						m_paOutput[dwCommanderIndex] = (void*)&m_sHMDDesc.CameraFrustumFarZInMeters;
 						break;
 					case OTR_Commanders::HmdCaps:
 						m_paOutput[dwCommanderIndex] = (void*)&m_sHMDDesc.DefaultHmdCaps;
