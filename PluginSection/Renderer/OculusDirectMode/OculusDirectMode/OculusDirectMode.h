@@ -314,6 +314,10 @@ private:
 	* The eventual frame texture shader resource views to be rendered to the Oculus screens.
 	***/
 	ID3D11ShaderResourceView* m_pcFrameTextureSRView[2];
+	/**
+	* Hotkey switch.
+	***/
+	bool m_bHotkeySwitch;
 };
 
 /**

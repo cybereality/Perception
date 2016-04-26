@@ -69,7 +69,8 @@ m_pcMirrorTexture(nullptr),
 m_pcMirrorTextureD3D11(nullptr),
 m_hHMD(nullptr),
 m_phHMD(nullptr),
-m_phHMD_Tracker(nullptr)
+m_phHMD_Tracker(nullptr),
+m_bHotkeySwitch(false)
 {
 	m_ppcTexView11[0] = nullptr;
 	m_ppcTexView11[1] = nullptr;
@@ -223,6 +224,14 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 {
 	if (eD3DInterface != INTERFACE_IDXGISWAPCHAIN) return nullptr;
 	if (eD3DMethod != METHOD_IDXGISWAPCHAIN_PRESENT) return nullptr;
+	if (!m_bHotkeySwitch)
+	{
+		if (GetAsyncKeyState(VK_F11))
+		{
+			m_bHotkeySwitch = true;
+		}
+		return nullptr;
+	}
 
 	// cast swapchain
 	IDXGISwapChain* pcSwapChain = (IDXGISwapChain*)pThis;
@@ -390,7 +399,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 		sTd.SampleDesc.Count = 1;
 		sTd.MipLevels = 1;
 		sTd.MiscFlags = D3D11_RESOURCE_MISC_SHARED;
-		ovrResult result = ovr_CreateMirrorTextureD3D11(m_hHMD, m_pcDeviceTemporary, &sTd, 0, &m_pcMirrorTexture);
+		ovrResult result = ovr_CreateMirrorTextureD3D11(*m_phHMD, m_pcDeviceTemporary, &sTd, 0, &m_pcMirrorTexture);
 		if (!OVR_SUCCESS(result))
 		{
 			OutputDebugString(L"OculusDirectMode: Failed to create mirror texture.");

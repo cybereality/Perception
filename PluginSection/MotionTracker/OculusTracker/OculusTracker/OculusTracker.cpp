@@ -450,9 +450,10 @@ void* OculusTracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DM
 			// get angles
 			m_sOrientation.GetEulerAngles<Axis::Axis_Y, Axis::Axis_X, Axis::Axis_Z, RotateDirection::Rotate_CW, HandedSystem::Handed_R >(&m_fYaw, &m_fPitch, &m_fRoll);
 			
-			// quick fix here ... TODO !! ALIGN ANGLES FOR ALL TRACKERS
+			// quick fix here...
 			m_fYaw *= -1.0f;
 			m_fPitch *= -1.0f;
+			m_fRoll *= -1.0f;
 
 			// set the drawing update to true
 			m_bControlUpdate = true;
