@@ -113,6 +113,9 @@
     <ClInclude Include="..\..\PluginSection\Include\Vireio_GUI.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="loadjpg.h">
+      <Filter>Shared Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="app.rc">

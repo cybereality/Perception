@@ -19,6 +19,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OculusTracker", "..\MotionT
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VireioStereoPresenter", "..\VireioCore\VireioStereoPresenter\VireioStereoPresenter\VS2013\VireioStereoPresenter.vcxproj", "{FC8AFC4A-0113-427B-8AC6-D7170AEB8F5F}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OculusDirectMode", "..\Renderer\OculusDirectMode\OculusDirectMode\VS2013\OculusDirectMode.vcxproj", "{BABF4D36-8963-4B98-B457-1C8D64250CA9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Mixed Platforms = Debug|Mixed Platforms
@@ -124,6 +126,18 @@ Global
 		{FC8AFC4A-0113-427B-8AC6-D7170AEB8F5F}.Release|Win32.Build.0 = Release|Win32
 		{FC8AFC4A-0113-427B-8AC6-D7170AEB8F5F}.Release|x64.ActiveCfg = Release|x64
 		{FC8AFC4A-0113-427B-8AC6-D7170AEB8F5F}.Release|x64.Build.0 = Release|x64
+		{BABF4D36-8963-4B98-B457-1C8D64250CA9}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{BABF4D36-8963-4B98-B457-1C8D64250CA9}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{BABF4D36-8963-4B98-B457-1C8D64250CA9}.Debug|Win32.ActiveCfg = Debug|Win32
+		{BABF4D36-8963-4B98-B457-1C8D64250CA9}.Debug|Win32.Build.0 = Debug|Win32
+		{BABF4D36-8963-4B98-B457-1C8D64250CA9}.Debug|x64.ActiveCfg = Debug|x64
+		{BABF4D36-8963-4B98-B457-1C8D64250CA9}.Debug|x64.Build.0 = Debug|x64
+		{BABF4D36-8963-4B98-B457-1C8D64250CA9}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{BABF4D36-8963-4B98-B457-1C8D64250CA9}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{BABF4D36-8963-4B98-B457-1C8D64250CA9}.Release|Win32.ActiveCfg = Release|Win32
+		{BABF4D36-8963-4B98-B457-1C8D64250CA9}.Release|Win32.Build.0 = Release|Win32
+		{BABF4D36-8963-4B98-B457-1C8D64250CA9}.Release|x64.ActiveCfg = Release|x64
+		{BABF4D36-8963-4B98-B457-1C8D64250CA9}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

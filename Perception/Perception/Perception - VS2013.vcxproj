@@ -252,6 +252,7 @@
     <ClInclude Include="..\..\Shared\json\value.h" />
     <ClInclude Include="..\..\Shared\json\version.h" />
     <ClInclude Include="..\..\Shared\json\writer.h" />
+    <ClInclude Include="loadjpg.h" />
     <ClInclude Include="Resource.h" />
   </ItemGroup>
   <ItemGroup>

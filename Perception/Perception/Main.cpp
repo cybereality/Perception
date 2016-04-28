@@ -29,6 +29,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <windowsx.h>
+#include <Shlwapi.h>
+#include <urlmon.h>
 #include <string>
 #include "hijackdll.h"
 #include <CommCtrl.h> 
@@ -39,6 +41,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Resource.h"
 #include "Version.h"
 #include "..\PluginSection\Include\Vireio_GUI.h"
+#include "loadjpg.h"
+#pragma comment(lib, "Urlmon.lib")
+#pragma comment(lib, "Shlwapi.lib")
 
 #define APP_SIZE_WIDTH 800
 #define APP_SIZE_HEIGHT 360
@@ -46,6 +51,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define APP_COLOR_FONT RGB(100, 40, 40)
 #define APP_COLOR_BACK RGB(30, 5, 5)
 #define APP_BUTTON_PENCOLOR RGB(0, 0, 0)
+#define APP_BUTTON_PENCOLOR_INIT RGB(0, 0, 0)
+#define APP_BUTTON_PENCOLOR_IDLE RGB(128, 128, 128)
+#define APP_BUTTON_PENCOLOR_INJECTING RGB(255, 255, 0)
+#define APP_BUTTON_PENCOLOR_TOINJECT RGB(128, 128, 0)
+#define APP_BUTTON_PENCOLOR_INJECTED RGB(0, 255, 0)
+#define APP_BUTTON_PENCOLOR_CLOSED RGB(255, 0, 0)
 #define APP_BUTTON_BRUSHCOLOR RGB(80, 60, 60)
 #define APP_FONT L"Constantia"
 #define APP_FONT_ITALIC FALSE
@@ -66,13 +77,17 @@ ProxyHelper::OculusProfile oculusProfile;
 typedef void (WINAPI *AQUILINUS_Init)();
 typedef void (WINAPI *AQUILINUS_Close)();
 typedef void (WINAPI *AQUILINUS_ForceIdle)();
-typedef void (WINAPI *AQUILINUS_LoadProfile)();
+typedef std::wstring(WINAPI *AQUILINUS_LoadProfile)();
+typedef void (WINAPI *AQUILINUS_Reinject)();
+typedef int (WINAPI *AQUILINUS_GetInjectionState)();
 
 /*** Aquilinus Runtime Environment methods ***/
 AQUILINUS_Init g_pAquilinus_Init;
 AQUILINUS_Close g_pAquilinus_Close;
 AQUILINUS_ForceIdle g_pAquilinus_ForceIdle;
 AQUILINUS_LoadProfile g_pAquilinus_LoadProfile;
+AQUILINUS_Reinject g_pAquilinus_Reinject;
+AQUILINUS_GetInjectionState g_pAquilinus_GetInjectionState;
 
 /**
 * Handle to the Aquilinus Runtime Environment.
@@ -82,6 +97,18 @@ HMODULE g_hmAquilinusRTE = NULL;
 * True if Aquilinus profile to be loaded.
 ***/
 bool g_bLoadAquilinusProfile = false;
+/**
+* Aquilinus injection state.
+***/
+enum InjectionState
+{
+	Initial = 0,
+	Idle = 1,
+	Injecting = 2,
+	ToInject = 3,
+	Injected = 4,
+	Closed = 5
+} g_eInjectionState;
 /**
 * Vector of Vireio Perception Stereo View Render Modes.
 ***/
@@ -94,7 +121,6 @@ vector<int> anTrackerModes;
 * Vector of installed Monitors.
 ***/
 vector<int> anMonitors;
-
 
 /**
 * Vireio Perception Window Class
@@ -110,6 +136,7 @@ private:
 	RECT      client_rectangle;
 	RECT      extended_profile_rectangle;
 	static HBITMAP     logo_bitmap;
+	static HBITMAP     game_bitmap;
 	static POINT       m_ptMouseCursor;            /**< The current mouse cursor. **/
 	static Vireio_GUI* m_pcVireioGUI;              /**< Vireio Graphical User Interface class. **/
 	static UINT        m_dwSpinStereoView;         /**< Main driver stereo view selection. ***/
@@ -309,8 +336,8 @@ public:
 		sControl.m_eControlType = Vireio_Control_Type::Button;
 		sControl.m_sPosition.x = 452;
 		sControl.m_sPosition.y = 128;
-		sControl.m_sSize.cx = 184 + 8; /**< +8 == border **/
-		sControl.m_sSize.cy = 69 + 8; /**< +8 == border **/
+		sControl.m_sSize.cx = 184 + 12; /**< +12 == border **/
+		sControl.m_sSize.cy = 69 + 12; /**< +12 == border **/
 		sControl.m_sButton.m_pszText = &szLoadProfile;
 		m_dwLoadAquilinusProfile = m_pcVireioGUI->AddControl(dwPage, sControl);
 
@@ -333,7 +360,26 @@ public:
 		ShowWindow(window_handle, SW_SHOW);
 		UpdateWindow(window_handle);
 
-		//Refresh on timer for FPS readings
+		// download game jpg files from steam if not present
+		std::vector<std::string> aszImageURLs;
+		std::vector<std::string> aszImageFilePaths;
+		aszImageURLs.push_back("https://steamcdn-a.akamaihd.net/steamcommunity/public/images/apps/377160/8977a8e98acbbdd3c0ff905afb7e0a6e2eb555ea.jpg");
+		aszImageFilePaths.push_back("..//img//Fallout4.jpg");
+		game_bitmap = nullptr;
+
+		for (size_t nI = 0; nI < aszImageURLs.size(); nI++)
+		{
+			if (!PathFileExists(aszImageFilePaths[nI].c_str()))
+			{
+				HRESULT hr = URLDownloadToFile(NULL, aszImageURLs[nI].c_str(), aszImageFilePaths[nI].c_str(), 0, NULL);
+				if (FAILED(hr))
+				{
+					OutputDebugString("Failed to download STEAM game image file !");
+				}
+			}
+		}
+
+		// Refresh on timer for FPS readings
 		SetTimer(window_handle, 1, 500, NULL);
 	}
 	~Vireio_Perception_Main_Window() {
@@ -348,6 +394,7 @@ public:
 /*** Vireio_Perception_Main_Window static fields ***/
 POINT       Vireio_Perception_Main_Window::m_ptMouseCursor;
 HBITMAP     Vireio_Perception_Main_Window::logo_bitmap;
+HBITMAP     Vireio_Perception_Main_Window::game_bitmap;
 Vireio_GUI* Vireio_Perception_Main_Window::m_pcVireioGUI;
 UINT        Vireio_Perception_Main_Window::m_dwSpinStereoView;
 UINT        Vireio_Perception_Main_Window::m_dwSpinTracker;
@@ -449,12 +496,27 @@ LRESULT WINAPI Vireio_Perception_Main_Window::main_window_proc(HWND window_handl
 		{
 							 if (g_hmAquilinusRTE)
 							 {
-								 if (g_bLoadAquilinusProfile)
+								 InjectionState eIS = (InjectionState)g_pAquilinus_GetInjectionState();
+								 if ((g_bLoadAquilinusProfile) && (eIS))
 								 {
-									 OutputDebugString("Vireio Perception: Load Aquilinus Profile!");
+									 if ((eIS == InjectionState::Idle) || (eIS == InjectionState::Injecting))
+									 {
+										 OutputDebugString("Vireio Perception: Load Aquilinus Profile!");
 
-									 // load aquilinus profile
-									 g_pAquilinus_LoadProfile();
+										 // load aquilinus profile
+										 std::wstring szPath = g_pAquilinus_LoadProfile();
+
+										 // load game logo
+										 std::wstring szFilename = szPath.substr(szPath.find_last_of('\\') + 1);
+										 if (szFilename.find(L"Fallout4") == 0)
+										 {
+											 ConvertJpgFile("..//img//Fallout4.jpg", "..//img//game_logo.bmp");
+											 game_bitmap = (HBITMAP)LoadImage(NULL, "..//img//game_logo.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+										 }
+									 }
+									 else
+										 g_pAquilinus_Reinject();
+
 									 g_bLoadAquilinusProfile = false;
 								 }
 							 }
@@ -485,12 +547,46 @@ LRESULT WINAPI Vireio_Perception_Main_Window::main_window_proc(HWND window_handl
 						 // draw profile button + close icon
 						 SelectObject(hdc, GetStockObject(DC_PEN));
 						 SelectObject(hdc, GetStockObject(DC_BRUSH));
-						 SetDCPenColor(hdc, APP_BUTTON_PENCOLOR);
+						 g_eInjectionState = (InjectionState)g_pAquilinus_GetInjectionState();
+						 switch (g_eInjectionState)
+						 {
+							 case Initial:
+								 SetDCPenColor(hdc, APP_BUTTON_PENCOLOR_INIT);
+								 break;
+							 case Idle:
+								 SetDCPenColor(hdc, APP_BUTTON_PENCOLOR_IDLE);
+								 break;
+							 case Injecting:
+								 SetDCPenColor(hdc, APP_BUTTON_PENCOLOR_INJECTING);
+								 break;
+							 case ToInject:
+								 SetDCPenColor(hdc, APP_BUTTON_PENCOLOR_TOINJECT);
+								 break;
+							 case Injected:
+								 SetDCPenColor(hdc, APP_BUTTON_PENCOLOR_INJECTED);
+								 break;
+							 case Closed:
+								 SetDCPenColor(hdc, APP_BUTTON_PENCOLOR_CLOSED);
+								 break;
+							 default:
+								 break;
+						 }
 						 SetDCBrushColor(hdc, APP_BUTTON_BRUSHCOLOR);
-						 Rectangle(hdc, 456, 132, 456 + 184, 132 + 69);
+						 Rectangle(hdc, 456, 132, 456 + 188, 132 + 73);
+						 SetDCPenColor(hdc, APP_BUTTON_PENCOLOR);
 						 Rectangle(hdc, APP_SIZE_WIDTH - 18, bitmap.bmHeight, APP_SIZE_WIDTH - 1, bitmap.bmHeight + 19);
 						 SetDCBrushColor(hdc, APP_BUTTON_PENCOLOR);
 						 Rectangle(hdc, APP_SIZE_WIDTH - 12, bitmap.bmHeight + 7, APP_SIZE_WIDTH - 7, bitmap.bmHeight + 12);
+
+						 // draw game logo
+						 if (game_bitmap)
+						 {
+							 hdcMem = CreateCompatibleDC(hdc);
+							 SelectObject(hdcMem, game_bitmap);
+							 GetObject(game_bitmap, sizeof(bitmap), &bitmap);
+							 BitBlt(hdc, 458, 134, 184, 69, hdcMem, 0, 0, SRCCOPY);
+							 DeleteDC(hdcMem);
+						 }
 
 						 EndPaint(window_handle, &ps);
 
@@ -727,8 +823,10 @@ bool LoadAquilinusRTE()
 		g_pAquilinus_Close = (AQUILINUS_Close)GetProcAddress(g_hmAquilinusRTE, "Aquilinus_Close");
 		g_pAquilinus_ForceIdle = (AQUILINUS_ForceIdle)GetProcAddress(g_hmAquilinusRTE, "Aquilinus_ForceIdle");
 		g_pAquilinus_LoadProfile = (AQUILINUS_LoadProfile)GetProcAddress(g_hmAquilinusRTE, "Aquilinus_LoadProfile");
+		g_pAquilinus_Reinject = (AQUILINUS_Reinject)GetProcAddress(g_hmAquilinusRTE, "Aquilinus_Reinject");
+		g_pAquilinus_GetInjectionState = (AQUILINUS_GetInjectionState)GetProcAddress(g_hmAquilinusRTE, "Aquilinus_GetInjectionState");
 
-		if ((!g_pAquilinus_Init) || (!g_pAquilinus_Close) || (!g_pAquilinus_ForceIdle) || (!g_pAquilinus_LoadProfile))
+		if ((!g_pAquilinus_Init) || (!g_pAquilinus_Close) || (!g_pAquilinus_ForceIdle) || (!g_pAquilinus_LoadProfile) || (!g_pAquilinus_Reinject) || (!g_pAquilinus_GetInjectionState))
 		{
 			OutputDebugString("Aquilinus Runtime Environment method(s) not found !");
 			FreeLibrary(g_hmAquilinusRTE);
