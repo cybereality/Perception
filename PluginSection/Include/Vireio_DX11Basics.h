@@ -97,9 +97,9 @@ static const char* PS2D =
 "}\n";
 
 /**
-* 2D Pixel Shader DX10+, change aspect ratio.
+* 2D Pixel Shader DX10+, gamma correction.
 ***/
-static const char* PS2D_ASPECT_RATIO_CHANGE =
+static const char* PS2D_GAMMA_CORRECTION =
 "Texture2D fontTexture : register(t0);\n"
 "SamplerState fontSampler : register(s0);\n"
 
@@ -111,15 +111,8 @@ static const char* PS2D_ASPECT_RATIO_CHANGE =
 
 "float4 PS( VS_OUT vtx ) : SV_Target\n"
 "{\n"
-"   float2 fUV = vtx.TexCoord;\n"
-"	fUV.x = fUV.x * 2.0f - 1.0f;      // Texture coordinates converted to -1.0 to 1.0 range\n"
-"	fUV.y = fUV.y * 2.0f - 1.0f;\n"
-"	fUV.x = fUV.x * 1.4f;             // Aspect ratio change. \n" // TODO !! changeable parameters !!
-"	fUV.y = fUV.y * 2.1f;             // Aspect ratio change. \n" // TODO !! changeable parameters !!
-"	fUV.x = (fUV.x + 1.0f) * 0.5f;    // Convert range back to 0.0 to 1.0\n"
-"	fUV.y = (fUV.y + 1.0f) * 0.5f; "
-"   if ((fUV.x < 0.0f) || (fUV.x > 1.0f) || (fUV.y < 0.0f) || (fUV.y > 1.0f)) return float4(0.0f, 0.0f, 0.0f, 0.0f);\n"
-"   return float4(fontTexture.Sample( fontSampler, fUV ).xyz, 1.0);\n"
+"    float4 fColor = pow (float4(fontTexture.Sample( fontSampler, vtx.TexCoord ).xyz, 1.0), 2.2);\n"
+"    return fColor;"
 "}\n";
 
 /**
@@ -193,10 +186,10 @@ static const char* PS_DIST_SIMPLE =
 ***/
 enum PixelShaderTechnique
 {
-	SideBySide,
+	FullscreenSimple,
 	WarpSimple,
 	DistortSimple,
-	FullscreenChangeAspectRatio,
+	FullscreenGammaCorrection,
 };
 
 /**
@@ -280,7 +273,7 @@ HRESULT CreateSimplePixelShader(ID3D11Device* pcDevice, ID3D11PixelShader** ppcP
 	// compile selecting technique
 	switch (eTechnique)
 	{
-		case SideBySide:
+		case FullscreenSimple:
 			hr = D3DX10CompileFromMemory(PS2D, strlen(PS2D), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
 			break;
 		case WarpSimple:
@@ -289,8 +282,8 @@ HRESULT CreateSimplePixelShader(ID3D11Device* pcDevice, ID3D11PixelShader** ppcP
 		case DistortSimple:
 			hr = D3DX10CompileFromMemory(PS_DIST_SIMPLE, strlen(PS_DIST_SIMPLE), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
 			break;
-		case FullscreenChangeAspectRatio:
-			hr = D3DX10CompileFromMemory(PS2D_ASPECT_RATIO_CHANGE, strlen(PS2D_ASPECT_RATIO_CHANGE), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+		case FullscreenGammaCorrection:
+			hr = D3DX10CompileFromMemory(PS2D_GAMMA_CORRECTION, strlen(PS2D_GAMMA_CORRECTION), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
 			break;
 	}
 

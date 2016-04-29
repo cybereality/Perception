@@ -206,14 +206,14 @@ void* OSVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 {
 	if (eD3DInterface != INTERFACE_IDXGISWAPCHAIN) return nullptr;
 	if (eD3DMethod != METHOD_IDXGISWAPCHAIN_PRESENT) return nullptr;
-	if (!m_bHotkeySwitch)
+	/*if (!m_bHotkeySwitch)
 	{
 		if (GetAsyncKeyState(VK_F11))
 		{
 			m_bHotkeySwitch = true;
 		}
 		return nullptr;
-	}
+	}*/
 
 	// Get an OSVR client context to use to access the devices
 	// that we need.
@@ -472,7 +472,7 @@ void OSVR_DirectMode::DrawWorld(void* userData, osvr::renderkit::GraphicsLibrary
 	// create pixel shader... 
 	if (!m_pcPixelShader11)
 	{
-		if (FAILED(CreateSimplePixelShader(pcDevice, &m_pcPixelShader11, PixelShaderTechnique::FullscreenChangeAspectRatio)))
+		if (FAILED(CreateSimplePixelShader(pcDevice, &m_pcPixelShader11, PixelShaderTechnique::FullscreenGammaCorrection)))
 			bAllCreated = false;
 	}
 	// Create vertex buffer
@@ -508,15 +508,17 @@ void OSVR_DirectMode::DrawWorld(void* userData, osvr::renderkit::GraphicsLibrary
 		float afProjectionD3D[16];
 		osvr::renderkit::OSVR_Projection_to_D3D(afProjectionD3D, sProjection);
 		D3DXMATRIX sProj(afProjectionD3D);
-		float fNorm = 1.0f / sProj.m[0][0];
 
-		sProj.m[0][0] = sProj.m[0][0] * fNorm;
+		// due to the aspect ratio (90° horizontal, 90° vertical) of the HDK we adjust the screen by 
+		// the height, not by the width... in this case we need to set a higher FOV by following formular:
+		// V = 2 * arctan( tan(H / 2) * aspectratio ) - so we get V 90° and H 121°
+		sProj.m[0][0] = sProj.m[0][0] * fAspect; // < incorporate game screen aspect ratio;
 		sProj.m[0][1] = 0.0f;
 		sProj.m[0][3] = sProj.m[0][2];
 		sProj.m[0][2] = 0.0f;
 
 		sProj.m[1][0] = 0.0f;
-		sProj.m[1][1] = ((sProj.m[1][1] * fNorm) + fAspect) / 2.0f; // < incorporate game screen aspect ratio
+		sProj.m[1][1] = sProj.m[1][1];
 		sProj.m[1][3] = sProj.m[1][2];
 		sProj.m[1][2] = 0.0f;
 
@@ -565,7 +567,7 @@ void OSVR_DirectMode::DrawWorld(void* userData, osvr::renderkit::GraphicsLibrary
 					}
 
 					// aspect ratio
-					fAspect = (float)sDesc.Height / (float)sDesc.Width;
+					fAspect = (float)sDesc.Width / (float)sDesc.Height;
 
 					// TODO !! DX9 // DX10 !!
 

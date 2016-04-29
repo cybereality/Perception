@@ -339,7 +339,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 				// create pixel shader... TODO !! add option to switch output
 				if (!m_pcPixelShader11)
 				{
-					if (FAILED(CreateSimplePixelShader(pcDevice, &m_pcPixelShader11, PixelShaderTechnique::SideBySide)))
+					if (FAILED(CreateSimplePixelShader(pcDevice, &m_pcPixelShader11, PixelShaderTechnique::FullscreenSimple)))
 						bAllCreated = false;
 				}
 				// Create vertex buffer
