@@ -102,6 +102,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define GUI_CONTROL_LINE                              92
 #define GUI_CONTROL_BUTTONSIZE                       488
 
+#define MAX_DATA_SIZE                              65535                     /**< Arbitrary... TODO !! set a maximum node data size **/
+
 #define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"%u", a); OutputDebugString(buf); }
 #define DEBUG_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"%x", a); OutputDebugString(buf); }
 
@@ -788,6 +790,10 @@ private:
 	* True if the shader list is to be sorted.
 	***/
 	bool m_bSortShaderList;
+	/**
+	* Data buffer to save this node.
+	***/
+	char m_acData[MAX_DATA_SIZE];
 	
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	/**

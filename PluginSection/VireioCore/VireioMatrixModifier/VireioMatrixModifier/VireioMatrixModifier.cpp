@@ -416,9 +416,14 @@ char* MatrixModifier::GetSaveData(UINT* pdwSizeOfData)
 	acStream.write((char*)&m_adwGlobalConstantRuleIndices[0], sizeof(UINT)*dwNumberOfIndices);
 
 	// set data size
-	*pdwSizeOfData = (UINT)acStream.str().size();
+	UINT unDataSize = (UINT)acStream.str().size();
+	if (unDataSize > MAX_DATA_SIZE) unDataSize = 0;
+	*pdwSizeOfData = unDataSize;
 
-	return (char*)&acStream.str()[0];
+	// copy data
+	memcpy(&m_acData[0], (void*)&acStream.str()[0], (size_t)unDataSize);
+
+	return (char*)&m_acData[0];
 }
 
 /**
