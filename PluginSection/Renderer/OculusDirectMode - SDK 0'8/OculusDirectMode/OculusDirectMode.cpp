@@ -222,16 +222,18 @@ bool OculusDirectMode::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int
 ***/
 void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)
 {
+	static float fAspect = 1.0f;
+
 	if (eD3DInterface != INTERFACE_IDXGISWAPCHAIN) return nullptr;
 	if (eD3DMethod != METHOD_IDXGISWAPCHAIN_PRESENT) return nullptr;
-	if (!m_bHotkeySwitch)
+	/*if (!m_bHotkeySwitch)
 	{
-		if (GetAsyncKeyState(VK_F11))
-		{
-			m_bHotkeySwitch = true;
-		}
-		return nullptr;
+	if (GetAsyncKeyState(VK_F11))
+	{
+	m_bHotkeySwitch = true;
 	}
+	return nullptr;
+	}*/
 
 	// cast swapchain
 	IDXGISwapChain* pcSwapChain = (IDXGISwapChain*)pThis;
@@ -488,6 +490,11 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 						break;
 					}
 
+					// aspect ratio
+					fAspect = (float)sDesc.Width / (float)sDesc.Height;
+
+					// TODO !! DX9 // DX10 !!
+
 					// get shared handle
 					IDXGIResource* pcDXGIResource(NULL);
 					m_pcTex11Copy[eye]->QueryInterface(__uuidof(IDXGIResource), (void**)&pcDXGIResource);
@@ -544,7 +551,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 					// create pixel shader... 
 					if (!m_pcPixelShader11)
 					{
-						if (FAILED(CreateSimplePixelShader(m_pcDeviceTemporary, &m_pcPixelShader11, PixelShaderTechnique::FullscreenChangeAspectRatio)))
+						if (FAILED(CreateSimplePixelShader(m_pcDeviceTemporary, &m_pcPixelShader11, PixelShaderTechnique::FullscreenSimple)))
 							bAllCreated = false;
 					}
 
@@ -601,49 +608,71 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 						float projYOffset = (m_psEyeRenderDesc[eye].Fov.UpTan - m_psEyeRenderDesc[eye].Fov.DownTan) * projYScale * 0.5f;
 
 						// get identity matrix, set offset and scale
-						OVR::Matrix4f proj = OVR::Matrix4f::Identity();
+						OVR::Matrix4f sProj = OVR::Matrix4f::Identity();
 						float handednessScale = 1.0f;
-						proj.M[0][0] = projXScale;
-						proj.M[0][2] = handednessScale * projXOffset;
-						proj.M[1][1] = projYScale;
-						proj.M[1][2] = handednessScale * -projYOffset;
-						proj.M[3][2] = handednessScale;
+						sProj.M[0][0] = projXScale;
+						sProj.M[0][2] = handednessScale * projXOffset;
+						sProj.M[1][1] = projYScale;
+						sProj.M[1][2] = handednessScale * -projYOffset;
+						sProj.M[3][2] = handednessScale;
 
 						// make matrix orthographical, first set IPD
 						float interpupillaryDistance = 0.064f; // TODO !! connect IPD from configuration
+
+						// Measured DK2 Field of View :
+						//
+						// LENS - CAMERA DISTANCE   0MM  5MM  10MM 15MM 20MM 25MM
+						// LEFT HORIZONTAL FOV      49°  48°  47°  45°  38°  34°
+						// RIGHT HORIZONTAL FOV     47°	 47°  46°  44°	37°  33°
+						// TOTAL HORIZONTAL FOV     96°	 95°  93°  89°	75°  67°
+						// VERTICAL FOV             107° 106° 104° 99°	76°  66°
+						// The Rift DK2’s FoV is maximal at 0mm lens - camera distance, 
+						// i.e., when the user’s eyeball touches the lens.This is generally 
+						// not achievable, and the minimum eye relief configurable in the 
+						// SDK is 8mm, with an effective binocular FoV of 94° x 105°.
+
+						// Measured CV1 Field of View :
+						//
+						// LENS - CAMERA DISTANCE	0MM   5MM   10MM  15MM  20MM  25MM
+						// LEFT HORIZONTAL FOV      35°   36°   37°   37°   35°   30°
+						// RIGHT HORIZONTAL FOV     43°   45°   47°   47°   44°   39°
+						// TOTAL HORIZONTAL FOV     78°   81°   84°   84°   79°   69°
+						// VERTICAL FOV             84°   89°   93°   86°   78°   69°
+						// As in Vive DK1 / Pre, the maximal FoV is achieved at some distance 
+						// from the lens, in this case 12mm. Taking the left / right FoV value 
+						// differences as accurate, the total binocular FoV at that lens - camera 
+						// distance is 94° x 93°.
 						
-						// get the orthograpic scale and normalize it by its height (since we use a fullscreen shader here)
-						OVR::Vector2f orthoScale = OVR::Vector2f(1.0f) / OVR::Vector2f(m_psEyeRenderDesc[eye].PixelsPerTanAngleAtCenter);
-						orthoScale.x = proj.M[0][0] * orthoScale.x;
-						orthoScale.y = proj.M[1][1] * orthoScale.y;
-						float fNorm = 1.0f / orthoScale.y;
-						orthoScale.x *= fNorm;
-						orthoScale.y *= fNorm;
+						// Measurements posted on <Doc-Ok.org>.
 
-						// create the orthographic matrix
-						proj.M[0][0] = orthoScale.x;
-						proj.M[0][1] = 0.0f;
-						proj.M[0][3] = proj.M[0][2];
-						proj.M[0][2] = 0.0f;
+						// so we assume a FoV of 90° x 100° (DK2) and 84° x 93° (CV1), that is ~12 mm lens-eye 
+						// distance
+						// due to this aspect ratio of the DK2/CV1 we adjust the screen by the height
+						// in this case we need to set a higher FOV by following formular:
+						// V = 2 * arctan( tan(H / 2) * aspectratio ) 
+						// so we get V 90° and H 121° (DK2) and V 84° and H 116° (CV1)
+						sProj.M[0][0] = sProj.M[0][0] * fAspect; // < incorporate game screen aspect ratio;
+						sProj.M[0][1] = 0.0f;
+						sProj.M[0][3] = sProj.M[0][2];
+						sProj.M[0][2] = 0.0f;
 
-						proj.M[1][0] = 0.0f;
-						proj.M[1][1] = orthoScale.y;
-						proj.M[1][3] = proj.M[1][2];
-						proj.M[1][2] = 0.0f;
+						sProj.M[1][0] = 0.0f;
+						sProj.M[1][1] = sProj.M[1][1];
+						sProj.M[1][3] = sProj.M[1][2];
+						sProj.M[1][2] = 0.0f;
 
-						proj.M[2][0] = 0.0f;
-						proj.M[2][1] = 0.0f;
-						proj.M[2][2] = 1.0f; // 1.0f here... fullscreen shader !
-						proj.M[2][3] = 0.0f;
+						sProj.M[2][0] = 0.0f;
+						sProj.M[2][1] = 0.0f;
+						sProj.M[2][2] = 1.0f; // 1.0f here... fullscreen shader !
+						sProj.M[2][3] = 0.0f;
 
-						// No perspective correction for ortho.
-						proj.M[3][0] = 0.0f;
-						proj.M[3][1] = 0.0f;
-						proj.M[3][2] = 0.0f;
-						proj.M[3][3] = 1.0f;
+						sProj.M[3][0] = 0.0f;
+						sProj.M[3][1] = 0.0f;
+						sProj.M[3][2] = 0.0f;
+						sProj.M[3][3] = 1.0f;
 
 						// Set constant buffer, first update it... scale and translate the left and right image
-						m_pcContextTemporary->UpdateSubresource((ID3D11Resource*)m_pcConstantBufferDirect11, 0, NULL, &proj, 0, 0);
+						m_pcContextTemporary->UpdateSubresource((ID3D11Resource*)m_pcConstantBufferDirect11, 0, NULL, &sProj, 0, 0);
 						m_pcContextTemporary->VSSetConstantBuffers(0, 1, &m_pcConstantBufferDirect11);
 
 						// Set primitive topology
