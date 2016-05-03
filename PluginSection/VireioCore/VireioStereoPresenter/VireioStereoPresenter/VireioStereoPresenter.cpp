@@ -68,6 +68,8 @@ m_eStereoMode(VireioMonitorStereoModes::Vireio_Mono)
 	m_pfPosition[0] = nullptr;
 	m_pfPosition[1] = nullptr;
 	m_pfPosition[2] = nullptr;
+
+	ZeroMemory(&m_pfFloatInput[0], sizeof(float*)* 16);
 }
 
 /**
@@ -161,6 +163,38 @@ LPWSTR StereoPresenter::GetDecommanderName(DWORD dwDecommanderIndex)
 			return L"Y-Position";
 		case STP_Decommanders::ZPosition:
 			return L"Z-Position";
+		case FloatInput00:
+			return L"FloatInput00";
+		case FloatInput01:
+			return L"FloatInput01";
+		case FloatInput02:
+			return L"FloatInput02";
+		case FloatInput03:
+			return L"FloatInput03";
+		case FloatInput04:
+			return L"FloatInput04";
+		case FloatInput05:
+			return L"FloatInput05";
+		case FloatInput06:
+			return L"FloatInput06";
+		case FloatInput07:
+			return L"FloatInput07";
+		case FloatInput08:
+			return L"FloatInput08";
+		case FloatInput09:
+			return L"FloatInput09";
+		case FloatInput10:
+			return L"FloatInput10";
+		case FloatInput11:
+			return L"FloatInput11";
+		case FloatInput12:
+			return L"FloatInput12";
+		case FloatInput13:
+			return L"FloatInput13";
+		case FloatInput14:
+			return L"FloatInput14";
+		case FloatInput15:
+			return L"FloatInput15";
 	}
 
 	return L"";
@@ -191,6 +225,24 @@ DWORD StereoPresenter::GetDecommanderType(DWORD dwDecommanderIndex)
 		case STP_Decommanders::YPosition:
 		case STP_Decommanders::ZPosition:
 			return NOD_Plugtype::AQU_PNT_FLOAT;
+		case FloatInput00:
+		case FloatInput01:
+		case FloatInput02:
+		case FloatInput03:
+		case FloatInput04:
+		case FloatInput05:
+		case FloatInput06:
+		case FloatInput07:
+		case FloatInput08:
+		case FloatInput09:
+		case FloatInput10:
+		case FloatInput11:
+		case FloatInput12:
+		case FloatInput13:
+		case FloatInput14:
+		case FloatInput15:
+			return NOD_Plugtype::AQU_FLOAT;
+			break;
 	}
 
 	return 0;
@@ -235,6 +287,24 @@ void StereoPresenter::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 		case STP_Decommanders::ZPosition:
 			m_pfPosition[2] = (float*)pData;
 			break;
+		case FloatInput00:
+		case FloatInput01:
+		case FloatInput02:
+		case FloatInput03:
+		case FloatInput04:
+		case FloatInput05:
+		case FloatInput06:
+		case FloatInput07:
+		case FloatInput08:
+		case FloatInput09:
+		case FloatInput10:
+		case FloatInput11:
+		case FloatInput12:
+		case FloatInput13:
+		case FloatInput14:
+		case FloatInput15:
+			m_pfFloatInput[dwDecommanderIndex - 13] = (float*)pData;
+			break;
 	}
 }
 
@@ -255,6 +325,10 @@ bool StereoPresenter::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int 
 ***/
 void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)
 {
+	static float afFoV[] = { 90.0f, 116.0f, 121.0f };
+	static float afHUD[] = { 100.0f, 60.0f, 70.0f, 80.0f };
+	static float afGUI[] = { 100.0f, 60.0f, 70.0f, 80.0f };
+
 	if (eD3DInterface != INTERFACE_IDXGISWAPCHAIN) return nullptr;
 	if (eD3DMethod != METHOD_IDXGISWAPCHAIN_PRESENT) return nullptr;
 
@@ -271,11 +345,22 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 
 	if ((eD3DInterface == INTERFACE_IDXGISWAPCHAIN) && (eD3DMethod == METHOD_IDXGISWAPCHAIN_PRESENT))
 	{
-#pragma region draw (optionally)
-		// toggle stereo mode
+#pragma region menu hotkeys
+		// handle menu hotkeys
 		if (GetAsyncKeyState(VK_F12))
 		{
 			m_bHotkeySwitch = true;
+		}
+		else
+		if (GetAsyncKeyState(VK_LCONTROL) && GetAsyncKeyState(0x51))
+		{
+			m_bMenuHotkeySwitch = true;
+		}
+		else
+		if (m_bMenuHotkeySwitch)
+		{
+			m_bMenu = !m_bMenu;
+			m_bMenuHotkeySwitch = false;
 		}
 		else
 		if (m_bHotkeySwitch)
@@ -283,6 +368,48 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 			if (m_eStereoMode) m_eStereoMode = VireioMonitorStereoModes::Vireio_Mono; else m_eStereoMode = VireioMonitorStereoModes::Vireio_SideBySide;
 			m_bHotkeySwitch = false;
 		}
+#pragma endregion
+#pragma region menu
+		if (m_bMenu)
+		{
+			if ((m_ppcTexView11[0]) && (m_ppcTexView11[1]))
+			{
+				// get device and context
+				ID3D11Device* pcDevice = nullptr;
+				ID3D11DeviceContext* pcContext = nullptr;
+				if (FAILED(GetDeviceAndContext((IDXGISwapChain*)pThis, &pcDevice, &pcContext)))
+				{
+					// release frame texture+view
+					if (pcDevice) { pcDevice->Release(); pcDevice = nullptr; }
+					if (pcContext) { pcContext->Release(); pcContext = nullptr; }
+					return nullptr;
+				}
+
+				// get the textures
+				ID3D11Texture2D* pcTexture[2];
+				for (UINT unI = 0; unI < 2; unI++)
+				{
+					(*m_ppcTexView11[unI])->GetResource((ID3D11Resource**)&pcTexture[unI]);
+
+					if (pcTexture[unI])
+					{
+						D3D11_BOX sBox;
+						sBox.left = 50;
+						sBox.right = 100;
+						sBox.top = 50;
+						sBox.bottom = 100;
+						sBox.front = 0;
+						sBox.back = 1;
+						pcContext->CopySubresourceRegion(pcTexture[unI], 0, 0, 0, 0, pcTexture[0], 0, &sBox);
+
+						pcTexture[unI]->Release();
+					}
+				}
+			}
+		}
+#pragma endregion
+#pragma region draw (optionally)
+
 
 		// draw stereo target to screen (optionally)
 		if (m_eStereoMode)

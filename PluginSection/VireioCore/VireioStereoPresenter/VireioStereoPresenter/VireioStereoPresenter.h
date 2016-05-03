@@ -70,7 +70,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"..\..\..\Include\Vireio_DX11Basics.h"
 #include"..\..\..\Include\Vireio_Node_Plugtypes.h"
 
-#define NUMBER_OF_DECOMMANDERS                         13
+#define NUMBER_OF_DECOMMANDERS                         29
 
 /**
 * Node Commander Enumeration.
@@ -90,6 +90,22 @@ enum STP_Decommanders
 	XPosition,
 	YPosition, 
 	ZPosition,
+	FloatInput00,
+	FloatInput01,
+	FloatInput02,
+	FloatInput03,
+	FloatInput04,
+	FloatInput05,
+	FloatInput06,
+	FloatInput07,
+	FloatInput08,
+	FloatInput09,
+	FloatInput10,
+	FloatInput11,
+	FloatInput12,
+	FloatInput13,
+	FloatInput14,
+	FloatInput15,
 };
 
 /**
@@ -139,6 +155,14 @@ private:
 	* Hotkey switch.
 	***/
 	bool m_bHotkeySwitch;
+	/**
+	* Menu hotkey switch.
+	***/
+	bool m_bMenuHotkeySwitch;
+	/**
+	* True if Menu is shown.
+	***/
+	bool m_bMenu;
 	/**
 	* The back buffer render target view (DX11).
 	***/
@@ -197,6 +221,10 @@ private:
 	* Connected position. X, Y, Z.
 	***/
 	float* m_pfPosition[3];	
+	/**
+	* Float external menu data pointers.
+	***/
+	float* m_pfFloatInput[16];
 };
 
 /**
