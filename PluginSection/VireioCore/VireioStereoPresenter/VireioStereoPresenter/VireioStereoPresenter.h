@@ -51,6 +51,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <d3d11.h>
 #pragma comment(lib, "d3d11.lib")
 
+#include <D3DX11tex.h>
+#pragma comment(lib, "D3DX11.lib")
+
 #include <d3d10_1.h>
 #pragma comment(lib, "d3d10_1.lib")
 
@@ -225,6 +228,18 @@ private:
 	* Float external menu data pointers.
 	***/
 	float* m_pfFloatInput[16];
+	/**
+	* The Menu bitmap. 
+	***/
+	HBITMAP m_hBitmapMenu;
+	/**
+	* The Menu texture.
+	***/
+	union
+	{
+		ID3D10Texture2D* m_pcTextureMenu10;
+		ID3D11Texture2D* m_pcTextureMenu11;
+	};
 };
 
 /**

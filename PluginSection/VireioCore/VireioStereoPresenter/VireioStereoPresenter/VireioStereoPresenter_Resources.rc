@@ -1,6 +1,8 @@
 #define IMG_LOGO01 100
+#define IMG_TILES01 200
 
 #include "Resources.h"
 
 IMG_LOGO01 BITMAP "vireio_stereo_presenter_logo.bmp"
+IMG_TILES01 BITMAP "vireio_stereo_presenter_tiles.bmp"
 

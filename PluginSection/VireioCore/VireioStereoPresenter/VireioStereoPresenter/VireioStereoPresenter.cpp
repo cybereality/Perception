@@ -56,6 +56,7 @@ m_pcPixelShader10(nullptr),
 m_pcVertexLayout10(nullptr),
 m_pcVertexBuffer10(nullptr),
 m_pcConstantBufferDirect10(nullptr),
+m_pcTextureMenu10(nullptr),
 m_bHotkeySwitch(false),
 m_eStereoMode(VireioMonitorStereoModes::Vireio_Mono)
 {
@@ -70,6 +71,7 @@ m_eStereoMode(VireioMonitorStereoModes::Vireio_Mono)
 	m_pfPosition[2] = nullptr;
 
 	ZeroMemory(&m_pfFloatInput[0], sizeof(float*)* 16);
+
 }
 
 /**
@@ -83,6 +85,7 @@ StereoPresenter::~StereoPresenter()
 	SAFE_RELEASE(m_pcVertexBuffer10);
 	SAFE_RELEASE(m_pcBackBufferView);
 	SAFE_RELEASE(m_pcConstantBufferDirect10);
+	SAFE_RELEASE(m_pcTextureMenu10);
 }
 
 /**
@@ -385,6 +388,87 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 					return nullptr;
 				}
 
+				// create the menu texture
+				if (!m_pcTextureMenu11)
+				{
+				// load the bitmap resource
+					HMODULE hModule = GetModuleHandle(L"VireioStereoPresenter.dll");
+					HBITMAP hbTiles = LoadBitmap(hModule, MAKEINTRESOURCE(IMG_TILES01));
+					if (hbTiles)
+					{
+						// get size of bitmap
+						BITMAP bm;
+						GetObject(hbTiles, sizeof(bm), &bm);
+
+						// create byte buffer
+						char *pchBytes = (char*)malloc(bm.bmWidth*bm.bmHeight * 4);
+						
+						// get source hdc
+						HDC hdcImage = CreateCompatibleDC(NULL);
+						HBITMAP hbmOld = (HBITMAP)SelectObject(hdcImage, hbTiles);
+						int x = 0; int y = 0;
+
+						BITMAPINFO MyBMInfo = { 0 };
+						MyBMInfo.bmiHeader.biSize = sizeof(MyBMInfo.bmiHeader);
+
+						// Get the BITMAPINFO structure from the bitmap
+						if (0 == GetDIBits(hdcImage, hbTiles, 0, 0, NULL, &MyBMInfo, DIB_RGB_COLORS))
+						{
+							OutputDebugString(L"VSTP : Error GetDIBits");
+						}
+
+						MyBMInfo.bmiHeader.biBitCount = 32;
+						MyBMInfo.bmiHeader.biCompression = BI_RGB;
+						MyBMInfo.bmiHeader.biHeight = abs(MyBMInfo.bmiHeader.biHeight);
+
+						// Call GetDIBits a second time, this time to store the actual bitmap data
+						if (0 == GetDIBits(hdcImage, hbTiles, 0, MyBMInfo.bmiHeader.biHeight,
+							pchBytes, &MyBMInfo, DIB_RGB_COLORS))
+						{
+							OutputDebugString(L"VSTP : Error GetDIBits");
+						}
+
+						// release bitmap
+						DeleteDC(hdcImage);
+						DeleteObject(hbTiles);
+
+						// create font texture
+						D3D11_TEXTURE2D_DESC sDesc;
+						ZeroMemory(&sDesc, sizeof(sDesc));
+						sDesc.Width = bm.bmWidth;
+						sDesc.Height = bm.bmHeight;
+						sDesc.MipLevels = sDesc.ArraySize = 1;
+						sDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+						sDesc.SampleDesc.Count = 1;
+						sDesc.Usage = D3D11_USAGE_DEFAULT;
+						sDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+						D3D11_SUBRESOURCE_DATA sData;
+						ZeroMemory(&sData, sizeof(sData));
+						sData.pSysMem = pchBytes;
+						sData.SysMemPitch = bm.bmWidth * 4;
+						if (FAILED(pcDevice->CreateTexture2D(&sDesc, &sData, &m_pcTextureMenu11)))
+							OutputDebugString(L"Failed to create Texture DEFAULT.");
+
+						free((void*)pchBytes);
+
+						if (m_pcTextureMenu11)
+						{
+							OutputDebugString(L"VSTP : Created font texture !");
+						}
+						else
+						{
+							OutputDebugString(L"VSTP : Can't create font texture.");
+						}
+
+						DeleteObject(hbTiles);
+					}
+				}
+
+				// get the viewport
+				UINT dwNumViewports = 1;
+				D3D11_VIEWPORT psViewport[16];
+				pcContext->RSGetViewports(&dwNumViewports, psViewport);
+
 				// get the textures
 				ID3D11Texture2D* pcTexture[2];
 				for (UINT unI = 0; unI < 2; unI++)
@@ -394,17 +478,20 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 					if (pcTexture[unI])
 					{
 						D3D11_BOX sBox;
-						sBox.left = 50;
-						sBox.right = 100;
-						sBox.top = 50;
-						sBox.bottom = 100;
+						sBox.left = 0;
+						sBox.right = 128;
+						sBox.top = 0;
+						sBox.bottom = 32;
 						sBox.front = 0;
 						sBox.back = 1;
-						pcContext->CopySubresourceRegion(pcTexture[unI], 0, 0, 0, 0, pcTexture[0], 0, &sBox);
+						pcContext->CopySubresourceRegion(pcTexture[unI], 0, (UINT(psViewport[0].Width) >> 1) - 64, 0, 0, m_pcTextureMenu11, 0, &sBox);
 
 						pcTexture[unI]->Release();
 					}
 				}
+
+				if (pcDevice) { pcDevice->Release(); pcDevice = nullptr; }
+				if (pcContext) { pcContext->Release(); pcContext = nullptr; }
 			}
 		}
 #pragma endregion
