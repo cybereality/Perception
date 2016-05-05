@@ -192,6 +192,7 @@ public:
 		// control structure
 		Vireio_Control sControl;
 
+#ifndef _WIN64
 		// spin control - stereo view
 		static std::vector<std::wstring> m_aszStereoViewOptions;
 		ZeroMemory(&sControl, sizeof(Vireio_Control));
@@ -295,6 +296,7 @@ public:
 		sControl.m_sSpinControl.m_dwCurrentSelection = 0;
 		sControl.m_sSpinControl.m_paszEntries = &m_aszMonitorOptions;
 		m_dwSpinMonitor = m_pcVireioGUI->AddControl(dwPage, sControl);
+#endif
 
 		// create the main entries
 		ZeroMemory(&sControl, sizeof(Vireio_Control));
@@ -327,8 +329,11 @@ public:
 		sControl.m_sStaticListBox.m_paszEntries = &sEntriesOculus;
 		UINT dwOculus = m_pcVireioGUI->AddControl(dwPage, sControl);
 		szStream = std::wstringstream();
-		szStream << "Oculus Profile : " << oculusProfile.Name.c_str();
-		m_pcVireioGUI->AddEntry(dwOculus, szStream.str().c_str());
+		if (oculusProfile.Name.size())
+		{
+			szStream << "Oculus Profile : " << oculusProfile.Name.c_str();
+			m_pcVireioGUI->AddEntry(dwOculus, szStream.str().c_str());
+		}
 
 		// create the 'Load Aquilinus Profile' button
 		ZeroMemory(&sControl, sizeof(Vireio_Control));
