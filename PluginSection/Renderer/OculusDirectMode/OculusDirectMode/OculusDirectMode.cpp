@@ -71,7 +71,8 @@ m_pcMirrorTextureD3D11HMD(nullptr),
 m_hHMD(nullptr),
 m_phHMD(nullptr),
 m_phHMD_Tracker(nullptr),
-m_bHotkeySwitch(false)
+m_bHotkeySwitch(false),
+m_pbZoomOut(nullptr)
 {
 	m_ppcTexView11[0] = nullptr;
 	m_ppcTexView11[1] = nullptr;
@@ -168,6 +169,8 @@ LPWSTR OculusDirectMode::GetDecommanderName(DWORD dwDecommanderIndex)
 			return L"Right Texture";
 		case ODM_Decommanders::HMD_Handle:
 			return L"HMD Handle";
+		case ODM_Decommanders::ZoomOut:
+			return L"Zoom Out";
 	}
 
 	return L"x";
@@ -186,6 +189,8 @@ DWORD OculusDirectMode::GetDecommanderType(DWORD dwDecommanderIndex)
 			return NOD_Plugtype::AQU_PNT_ID3D11SHADERRESOURCEVIEW;
 		case ODM_Decommanders::HMD_Handle:
 			return NOD_Plugtype::AQU_HANDLE;
+		case ODM_Decommanders::ZoomOut:
+			return NOD_Plugtype::AQU_BOOL;
 	}
 
 	return 0;
@@ -206,6 +211,9 @@ void OculusDirectMode::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 			break;
 		case ODM_Decommanders::HMD_Handle:
 			m_phHMD_Tracker = (ovrSession*)pData;
+			break;
+		case ODM_Decommanders::ZoomOut:
+			m_pbZoomOut = (BOOL*)pData;
 			break;
 	}
 }
@@ -230,11 +238,11 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 	if (eD3DMethod != METHOD_IDXGISWAPCHAIN_PRESENT) return nullptr;
 	/*if (!m_bHotkeySwitch)
 	{
-		if (GetAsyncKeyState(VK_F11))
-		{
-			m_bHotkeySwitch = true;
-		}
-		return nullptr;
+	if (GetAsyncKeyState(VK_F11))
+	{
+	m_bHotkeySwitch = true;
+	}
+	return nullptr;
 	}*/
 
 	// cast swapchain
@@ -674,6 +682,16 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 						sProj.M[3][1] = 0.0f;
 						sProj.M[3][2] = 0.0f;
 						sProj.M[3][3] = 1.0f;
+
+						// zoom out ?
+						if (m_pbZoomOut)
+						{
+							if (*m_pbZoomOut)
+							{
+								sProj.M[0][0] /= 2.0f;
+								sProj.M[1][1] /= 2.0f;
+							}
+						}
 
 						// Set constant buffer, first update it... scale and translate the left and right image
 						m_pcContextTemporary->UpdateSubresource((ID3D11Resource*)m_pcConstantBufferDirect11, 0, NULL, &sProj, 0, 0);

@@ -76,7 +76,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"..\..\..\Include\Vireio_DX11Basics.h"
 #include"..\..\..\Include\Vireio_Node_Plugtypes.h"
 
+#define NUMBER_OF_COMMANDERS                           1
 #define NUMBER_OF_DECOMMANDERS                         29
+
+/**
+* Node Commander Enumeration.
+***/
+enum STP_Commanders
+{
+	ZoomOut
+};
 
 /**
 * Node Commander Enumeration.
@@ -91,10 +100,10 @@ enum STP_Decommanders
 	RightTexture9,
 	ViewAdjustments,
 	Yaw,
-	Pitch, 
-	Roll, 
+	Pitch,
+	Roll,
 	XPosition,
-	YPosition, 
+	YPosition,
 	ZPosition,
 	FloatInput00,
 	FloatInput01,
@@ -141,9 +150,13 @@ public:
 	virtual HBITMAP         GetControl();
 	virtual DWORD           GetNodeWidth() { return 4 + 256 + 4; }
 	virtual DWORD           GetNodeHeight() { return 128; }
+	virtual DWORD           GetCommandersNumber() { return NUMBER_OF_COMMANDERS; }
 	virtual DWORD           GetDecommandersNumber() { return NUMBER_OF_DECOMMANDERS; }
+	virtual LPWSTR          GetCommanderName(DWORD dwCommanderIndex);
 	virtual LPWSTR          GetDecommanderName(DWORD dwDecommanderIndex);
+	virtual DWORD           GetCommanderType(DWORD dwCommanderIndex);
 	virtual DWORD           GetDecommanderType(DWORD dwDecommanderIndex);
+	virtual void*           GetOutputPointer(DWORD dwCommanderIndex);
 	virtual void            SetInputPointer(DWORD dwDecommanderIndex, void* pData);
 	virtual bool            SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod);
 	virtual void*           Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex);
@@ -226,13 +239,13 @@ private:
 	/**
 	* Connected position. X, Y, Z.
 	***/
-	float* m_pfPosition[3];	
+	float* m_pfPosition[3];
 	/**
 	* Float external menu data pointers.
 	***/
 	float* m_apfFloatInput[16];
 	/**
-	* The Menu bitmap. 
+	* The Menu bitmap.
 	***/
 	HBITMAP m_hBitmapMenu;
 	/**
@@ -243,6 +256,10 @@ private:
 		ID3D10Texture2D* m_pcTextureMenu10;
 		ID3D11Texture2D* m_pcTextureMenu11;
 	};
+	/**
+	* Zoom out bool.
+	***/
+	BOOL m_bZoomOut;
 };
 
 /**

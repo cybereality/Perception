@@ -58,7 +58,8 @@ m_pcVertexBuffer10(nullptr),
 m_pcConstantBufferDirect10(nullptr),
 m_pcTextureMenu10(nullptr),
 m_bHotkeySwitch(false),
-m_eStereoMode(VireioMonitorStereoModes::Vireio_Mono)
+m_eStereoMode(VireioMonitorStereoModes::Vireio_Mono),
+m_bZoomOut(FALSE)
 {
 	m_ppcTexView11[0] = nullptr;
 	m_ppcTexView11[1] = nullptr;
@@ -134,6 +135,19 @@ HBITMAP StereoPresenter::GetControl()
 }
 
 /**
+* Provides the name of the requested commander.
+***/
+LPWSTR StereoPresenter::GetCommanderName(DWORD dwCommanderIndex)
+{
+	switch ((STP_Commanders)dwCommanderIndex)
+	{
+		case ZoomOut:
+			return L"ZoomOut";
+	}
+	return L"UNTITLED";
+}
+
+/**
 * Provides the name of the requested decommander.
 ***/
 LPWSTR StereoPresenter::GetDecommanderName(DWORD dwDecommanderIndex)
@@ -204,6 +218,19 @@ LPWSTR StereoPresenter::GetDecommanderName(DWORD dwDecommanderIndex)
 }
 
 /**
+* Provides the type of the requested commander.
+***/
+DWORD StereoPresenter::GetCommanderType(DWORD dwCommanderIndex)
+{
+	switch ((STP_Commanders)dwCommanderIndex)
+	{
+		case ZoomOut:
+			return NOD_Plugtype::AQU_BOOL;
+	}
+	return 0;
+}
+
+/**
 * Returns the plug type for the requested decommander.
 ***/
 DWORD StereoPresenter::GetDecommanderType(DWORD dwDecommanderIndex)
@@ -249,6 +276,19 @@ DWORD StereoPresenter::GetDecommanderType(DWORD dwDecommanderIndex)
 	}
 
 	return 0;
+}
+
+/**
+* Provides the output pointer for the requested commander.
+***/
+void* StereoPresenter::GetOutputPointer(DWORD dwCommanderIndex)
+{
+	switch ((STP_Commanders)dwCommanderIndex)
+	{
+		case ZoomOut:
+			return (void*)&m_bZoomOut;
+	}
+	return nullptr;
 }
 
 /**
@@ -382,11 +422,16 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 			if (m_eStereoMode) m_eStereoMode = VireioMonitorStereoModes::Vireio_Mono; else m_eStereoMode = VireioMonitorStereoModes::Vireio_SideBySide;
 			m_bHotkeySwitch = false;
 		}
-		
+
 		// handle controller
-		if (m_apfFloatInput[0])
+		if (bControllerAttached)
 		{
-			if (bControllerAttached)
+			if (sControllerState.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB)
+				m_bZoomOut = TRUE;
+			else
+				m_bZoomOut = FALSE;
+
+			if (m_apfFloatInput[0])
 			{
 				if (sControllerState.Gamepad.wButtons & XINPUT_GAMEPAD_BACK)
 				{
@@ -397,7 +442,15 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 					*m_apfFloatInput[0] = fFoV;
 				}
 			}
+		}
+		else
+		{
+			if (GetAsyncKeyState(VK_MBUTTON))
+				m_bZoomOut = TRUE;
 			else
+				m_bZoomOut = FALSE;
+
+			if (m_apfFloatInput[0])
 			{
 				if (GetAsyncKeyState(VK_LSHIFT))
 				{

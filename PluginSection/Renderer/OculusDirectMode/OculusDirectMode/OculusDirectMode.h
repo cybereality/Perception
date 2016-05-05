@@ -88,7 +88,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define PPNT_IDIRECT3DVERTEXBUFFER9_PLUG_TYPE       3049
 #define PPNT_IDIRECT3DVERTEXDECLARATION9_PLUG_TYPE  3050
 
-#define NUMBER_OF_DECOMMANDERS                         7
+#define NUMBER_OF_DECOMMANDERS                         8
 
 /**
 * Node Commander Enumeration.
@@ -101,7 +101,8 @@ enum ODM_Decommanders
 	RightTexture10,
 	LeftTexture9,
 	RightTexture9,
-	HMD_Handle
+	HMD_Handle,
+	ZoomOut,
 };
 
 /**
@@ -326,6 +327,10 @@ private:
 	* Hotkey switch.
 	***/
 	bool m_bHotkeySwitch;
+	/**
+	* Zoom out switch.
+	***/
+	BOOL* m_pbZoomOut;
 };
 
 /**
