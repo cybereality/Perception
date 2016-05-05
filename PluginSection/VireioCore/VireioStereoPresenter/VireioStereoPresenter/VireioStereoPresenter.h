@@ -42,6 +42,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"Resources.h"
 #include"..\..\..\..\DxProxy\DxProxy\ViewAdjustment.h"
 
+#include<XInput.h>
+#pragma comment(lib, "Xinput9_1_0.lib")
+
 #include <DXGI.h>
 #pragma comment(lib, "DXGI.lib")
 
@@ -227,7 +230,7 @@ private:
 	/**
 	* Float external menu data pointers.
 	***/
-	float* m_pfFloatInput[16];
+	float* m_apfFloatInput[16];
 	/**
 	* The Menu bitmap. 
 	***/

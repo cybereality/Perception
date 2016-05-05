@@ -206,14 +206,14 @@ void* OSVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 {
 	if (eD3DInterface != INTERFACE_IDXGISWAPCHAIN) return nullptr;
 	if (eD3DMethod != METHOD_IDXGISWAPCHAIN_PRESENT) return nullptr;
-	/*if (!m_bHotkeySwitch)
+	if (!m_bHotkeySwitch)
 	{
 		if (GetAsyncKeyState(VK_F11))
 		{
 			m_bHotkeySwitch = true;
 		}
 		return nullptr;
-	}*/
+	}
 
 	// Get an OSVR client context to use to access the devices
 	// that we need.

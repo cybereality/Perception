@@ -70,7 +70,7 @@ m_eStereoMode(VireioMonitorStereoModes::Vireio_Mono)
 	m_pfPosition[1] = nullptr;
 	m_pfPosition[2] = nullptr;
 
-	ZeroMemory(&m_pfFloatInput[0], sizeof(float*)* 16);
+	ZeroMemory(&m_apfFloatInput[0], sizeof(float*)* 16);
 
 }
 
@@ -306,7 +306,7 @@ void StereoPresenter::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 		case FloatInput13:
 		case FloatInput14:
 		case FloatInput15:
-			m_pfFloatInput[dwDecommanderIndex - 13] = (float*)pData;
+			m_apfFloatInput[dwDecommanderIndex - 13] = (float*)pData;
 			break;
 	}
 }
@@ -329,12 +329,14 @@ bool StereoPresenter::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int 
 void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)
 {
 	static float afFoV[] = { 90.0f, 116.0f, 121.0f };
+	static float fFoV = 121.0f;
 	static float afHUD[] = { 100.0f, 60.0f, 70.0f, 80.0f };
 	static float afGUI[] = { 100.0f, 60.0f, 70.0f, 80.0f };
 
 	if (eD3DInterface != INTERFACE_IDXGISWAPCHAIN) return nullptr;
 	if (eD3DMethod != METHOD_IDXGISWAPCHAIN_PRESENT) return nullptr;
 
+	// update view adjustment class for user settings and tracking
 	if (m_ppcShaderViewAdjustment)
 	{
 		if (*m_ppcShaderViewAdjustment)
@@ -346,10 +348,19 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 		}
 	}
 
+	// get xbox controller input
+	XINPUT_STATE sControllerState;
+	bool bControllerAttached = false;
+	ZeroMemory(&sControllerState, sizeof(XINPUT_STATE));
+	if (XInputGetState(0, &sControllerState) == ERROR_SUCCESS)
+	{
+		bControllerAttached = true;
+	}
+
 	if ((eD3DInterface == INTERFACE_IDXGISWAPCHAIN) && (eD3DMethod == METHOD_IDXGISWAPCHAIN_PRESENT))
 	{
-#pragma region menu hotkeys
-		// handle menu hotkeys
+#pragma region menu hotkeys/ controller
+		// handle switch hotkeys
 		if (GetAsyncKeyState(VK_F12))
 		{
 			m_bHotkeySwitch = true;
@@ -371,6 +382,33 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 			if (m_eStereoMode) m_eStereoMode = VireioMonitorStereoModes::Vireio_Mono; else m_eStereoMode = VireioMonitorStereoModes::Vireio_SideBySide;
 			m_bHotkeySwitch = false;
 		}
+		
+		// handle controller
+		if (m_apfFloatInput[0])
+		{
+			if (bControllerAttached)
+			{
+				if (sControllerState.Gamepad.wButtons & XINPUT_GAMEPAD_BACK)
+				{
+					*m_apfFloatInput[0] = afFoV[0];
+				}
+				else
+				{
+					*m_apfFloatInput[0] = fFoV;
+				}
+			}
+			else
+			{
+				if (GetAsyncKeyState(VK_LSHIFT))
+				{
+					*m_apfFloatInput[0] = afFoV[0];
+				}
+				else
+				{
+					*m_apfFloatInput[0] = fFoV;
+				}
+			}
+		}
 #pragma endregion
 #pragma region menu
 		if (m_bMenu)
@@ -391,7 +429,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 				// create the menu texture
 				if (!m_pcTextureMenu11)
 				{
-				// load the bitmap resource
+					// load the bitmap resource
 					HMODULE hModule = GetModuleHandle(L"VireioStereoPresenter.dll");
 					HBITMAP hbTiles = LoadBitmap(hModule, MAKEINTRESOURCE(IMG_TILES01));
 					if (hbTiles)
@@ -402,7 +440,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 
 						// create byte buffer
 						char *pchBytes = (char*)malloc(bm.bmWidth*bm.bmHeight * 4);
-						
+
 						// get source hdc
 						HDC hdcImage = CreateCompatibleDC(NULL);
 						HBITMAP hbmOld = (HBITMAP)SelectObject(hdcImage, hbTiles);
