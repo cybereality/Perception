@@ -507,6 +507,11 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 						break;
 					}
 
+					// aspect ratio
+					fAspect = (float)sDesc.Width / (float)sDesc.Height;
+
+					// TODO !! DX9 // DX10 !!
+
 					// get shared handle
 					IDXGIResource* pcDXGIResource(NULL);
 					m_pcTex11Copy[eye]->QueryInterface(__uuidof(IDXGIResource), (void**)&pcDXGIResource);
@@ -682,6 +687,8 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 						sProj.M[3][1] = 0.0f;
 						sProj.M[3][2] = 0.0f;
 						sProj.M[3][3] = 1.0f;
+
+
 
 						// zoom out ?
 						if (m_pbZoomOut)
