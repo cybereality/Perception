@@ -37,10 +37,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include<stdio.h>
 #include<memory>
+#include<sstream>
 
 #include"AQU_Nodus.h"
 #include"Resources.h"
 #include"..\..\..\..\DxProxy\DxProxy\ViewAdjustment.h"
+
+#include<Shlwapi.h>
+#pragma comment(lib, "Shlwapi.lib")
 
 #include<XInput.h>
 #pragma comment(lib, "Xinput9_1_0.lib")
@@ -260,6 +264,26 @@ private:
 	* Zoom out bool.
 	***/
 	BOOL m_bZoomOut;
+	/**
+	* User settings, first version.
+	***/
+	struct UserSettings
+	{
+		float fFoV;          /**< Field of View setting, current.**/
+		float fFoVADS;       /**< Field of View setting, current.**/
+		float fIPD;          /**< Interpupillary distance. ***/
+		float fWorldScale;   /**< Game separation setting. ***/
+		float fConvergence;  /**< Game convergence setting. ***/
+	} m_sUserSettings;
+	/**
+	* Chosen FoV setting. 
+	***/
+	UINT m_unFoV;
+	/**
+	* Chosen FoV setting (ADS).
+	***/
+	UINT m_unFoVADS;
+
 };
 
 /**

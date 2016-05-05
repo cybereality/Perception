@@ -71,6 +71,91 @@ m_bZoomOut(FALSE)
 	m_pfPosition[1] = nullptr;
 	m_pfPosition[2] = nullptr;
 
+	// read or create the INI file
+	char szFilePathINI[1024];
+	GetCurrentDirectoryA(1024, szFilePathINI);
+	strcat_s(szFilePathINI, "\\VireioPerception.ini");
+	if (PathFileExistsA(szFilePathINI))
+	{
+		char szBuffer[128];
+
+		// fov
+		m_sUserSettings.fFoV = 121.0f;
+		std::stringstream sz;
+		sz << m_sUserSettings.fFoV;
+		GetPrivateProfileStringA("Stereo Presenter", "fFoV", sz.str().c_str(), szBuffer, 128, szFilePathINI);
+		sz = std::stringstream(szBuffer);
+		sz >> m_sUserSettings.fFoV;
+
+		// fov aiming down sights
+		m_sUserSettings.fFoVADS = 121.0f;
+		sz = std::stringstream();
+		sz << m_sUserSettings.fFoVADS;
+		GetPrivateProfileStringA("Stereo Presenter", "fFoVADS", sz.str().c_str(), szBuffer, 128, szFilePathINI);
+		sz = std::stringstream(szBuffer);
+		sz >> m_sUserSettings.fFoVADS;
+
+		// ipd
+		m_sUserSettings.fIPD = 0.064f;
+		sz = std::stringstream();
+		sz << m_sUserSettings.fIPD;
+		GetPrivateProfileStringA("Stereo Presenter", "fIPD", sz.str().c_str(), szBuffer, 128, szFilePathINI);
+		sz = std::stringstream(szBuffer);
+		sz >> m_sUserSettings.fIPD;
+
+		// separation
+		m_sUserSettings.fWorldScale = -1.44f;
+		sz = std::stringstream();
+		sz << m_sUserSettings.fWorldScale;
+		GetPrivateProfileStringA("Stereo Presenter", "fWorldScale", sz.str().c_str(), szBuffer, 128, szFilePathINI);
+		sz = std::stringstream(szBuffer);
+		sz >> m_sUserSettings.fWorldScale;
+
+		// convergence
+		m_sUserSettings.fConvergence = 3.0f;
+		sz = std::stringstream();
+		sz << m_sUserSettings.fConvergence;
+		GetPrivateProfileStringA("Stereo Presenter", "fConvergence", sz.str().c_str(), szBuffer, 128, szFilePathINI);
+		sz = std::stringstream(szBuffer);
+		sz >> m_sUserSettings.fConvergence;
+	}
+	else
+	{
+		// fov
+		m_sUserSettings.fFoV = 121.0f;
+		std::stringstream sz;
+		sz << m_sUserSettings.fFoV;
+		WritePrivateProfileStringA("Stereo Presenter", "fFoV", sz.str().c_str(), szFilePathINI);
+
+		// fov aiming down sights
+		m_sUserSettings.fFoVADS = 136.0f;
+		sz = std::stringstream();
+		sz << m_sUserSettings.fFoVADS;
+		WritePrivateProfileStringA("Stereo Presenter", "fFoVADS", sz.str().c_str(), szFilePathINI);
+
+		// ipd
+		m_sUserSettings.fIPD = 0.064f;
+		sz = std::stringstream();
+		sz << m_sUserSettings.fIPD;
+		WritePrivateProfileStringA("Stereo Presenter", "fIPD", sz.str().c_str(), szFilePathINI);
+
+		// separation
+		m_sUserSettings.fWorldScale = -1.44f;
+		sz = std::stringstream();
+		sz << m_sUserSettings.fWorldScale;
+		WritePrivateProfileStringA("Stereo Presenter", "fWorldScale", sz.str().c_str(), szFilePathINI);
+
+		// convergence
+		m_sUserSettings.fConvergence = 3.0f;
+		sz = std::stringstream();
+		sz << m_sUserSettings.fConvergence;
+		WritePrivateProfileStringA("Stereo Presenter", "fConvergence", sz.str().c_str(), szFilePathINI);
+	}
+
+	// meanwhile we set them both to 99 (=uninitialized)
+	m_unFoV = 99;
+	m_unFoVADS = 99;
+
 	ZeroMemory(&m_apfFloatInput[0], sizeof(float*)* 16);
 
 }
@@ -368,11 +453,26 @@ bool StereoPresenter::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int 
 ***/
 void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)
 {
+	static const UINT unFoVSettings = 3;
 	static float afFoV[] = { 90.0f, 116.0f, 121.0f };
-	static float fFoV = 121.0f;
-	static float afHUD[] = { 100.0f, 60.0f, 70.0f, 80.0f };
-	static float afGUI[] = { 100.0f, 60.0f, 70.0f, 80.0f };
-
+	static const UINT unFoVADSSettings = 10;
+	static float afFoVADS[] = { 141.0f, 146.0f, 101.0f, 106.0f, 111.0f, 116.0f, 121.0f, 126.0f, 131.0f, 136.0f };
+	if (m_unFoV >= unFoVSettings)
+	{
+		m_unFoV = 0;
+		for (UINT un = 0; un < unFoVSettings; un++)
+		{
+			if (m_sUserSettings.fFoV == afFoV[un]) m_unFoV = un;
+		}
+	}
+	if (m_unFoVADS >= unFoVADSSettings)
+	{
+		m_unFoVADS = 0;
+		for (UINT un = 0; un < unFoVADSSettings; un++)
+		{
+			if (m_sUserSettings.fFoVADS == afFoVADS[un]) m_unFoVADS = un;
+		}
+	}
 	if (eD3DInterface != INTERFACE_IDXGISWAPCHAIN) return nullptr;
 	if (eD3DMethod != METHOD_IDXGISWAPCHAIN_PRESENT) return nullptr;
 
@@ -400,7 +500,54 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 	if ((eD3DInterface == INTERFACE_IDXGISWAPCHAIN) && (eD3DMethod == METHOD_IDXGISWAPCHAIN_PRESENT))
 	{
 #pragma region menu hotkeys/ controller
+		static bool bReleased = true;
 		// handle switch hotkeys
+		if (GetAsyncKeyState(VK_F1))
+		{
+			if (bReleased)
+			{
+				// fov
+				m_unFoV++;
+				if (m_unFoV >= unFoVSettings)
+					m_unFoV = 0;
+				m_sUserSettings.fFoV = afFoV[m_unFoV];
+				bReleased = false;
+
+				// read or create the INI file
+				char szFilePathINI[1024];
+				GetCurrentDirectoryA(1024, szFilePathINI);
+				strcat_s(szFilePathINI, "\\VireioPerception.ini");
+
+				// fov
+				std::stringstream sz;
+				sz << m_sUserSettings.fFoV;
+				WritePrivateProfileStringA("Stereo Presenter", "fFoV", sz.str().c_str(), szFilePathINI);
+			}
+		}
+		else
+		if (GetAsyncKeyState(VK_F2))
+		{
+			if (bReleased)
+			{
+				// fov ads
+				m_unFoVADS++;
+				if (m_unFoVADS >= unFoVADSSettings)
+					m_unFoVADS = 0;
+				m_sUserSettings.fFoVADS = afFoVADS[m_unFoVADS];
+				bReleased = false;
+
+				// read or create the INI file
+				char szFilePathINI[1024];
+				GetCurrentDirectoryA(1024, szFilePathINI);
+				strcat_s(szFilePathINI, "\\VireioPerception.ini");
+
+				// fov aiming down sights
+				std::stringstream sz;
+				sz << m_sUserSettings.fFoVADS;
+				WritePrivateProfileStringA("Stereo Presenter", "fFoVADS", sz.str().c_str(), szFilePathINI);
+			}
+		}
+		else
 		if (GetAsyncKeyState(VK_F12))
 		{
 			m_bHotkeySwitch = true;
@@ -422,6 +569,8 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 			if (m_eStereoMode) m_eStereoMode = VireioMonitorStereoModes::Vireio_Mono; else m_eStereoMode = VireioMonitorStereoModes::Vireio_SideBySide;
 			m_bHotkeySwitch = false;
 		}
+		else
+			bReleased = true;
 
 		// handle controller
 		if (bControllerAttached)
@@ -433,13 +582,18 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 
 			if (m_apfFloatInput[0])
 			{
+				*m_apfFloatInput[0] = m_sUserSettings.fFoV;
+			}
+
+			if (m_apfFloatInput[1])
+			{
 				if (sControllerState.Gamepad.wButtons & XINPUT_GAMEPAD_BACK)
 				{
-					*m_apfFloatInput[0] = afFoV[0];
+					*m_apfFloatInput[1] = afFoV[0];
 				}
 				else
 				{
-					*m_apfFloatInput[0] = fFoV;
+					*m_apfFloatInput[1] = m_sUserSettings.fFoVADS;
 				}
 			}
 		}
@@ -452,13 +606,18 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 
 			if (m_apfFloatInput[0])
 			{
+				*m_apfFloatInput[0] = m_sUserSettings.fFoV;
+			}
+
+			if (m_apfFloatInput[1])
+			{
 				if (GetAsyncKeyState(VK_LSHIFT))
 				{
-					*m_apfFloatInput[0] = afFoV[0];
+					*m_apfFloatInput[1] = afFoV[0];
 				}
 				else
 				{
-					*m_apfFloatInput[0] = fFoV;
+					*m_apfFloatInput[1] = m_sUserSettings.fFoVADS;
 				}
 			}
 		}
@@ -560,7 +719,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 				D3D11_VIEWPORT psViewport[16];
 				pcContext->RSGetViewports(&dwNumViewports, psViewport);
 
-				// get the textures
+				// draw to the textures
 				ID3D11Texture2D* pcTexture[2];
 				for (UINT unI = 0; unI < 2; unI++)
 				{
@@ -568,14 +727,25 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 
 					if (pcTexture[unI])
 					{
+						// draw logo
 						D3D11_BOX sBox;
-						sBox.left = 0;
-						sBox.right = 128;
+						sBox.left = 128;
+						sBox.right = 384;
 						sBox.top = 0;
 						sBox.bottom = 32;
 						sBox.front = 0;
 						sBox.back = 1;
-						pcContext->CopySubresourceRegion(pcTexture[unI], 0, (UINT(psViewport[0].Width) >> 1) - 64, 0, 0, m_pcTextureMenu11, 0, &sBox);
+						pcContext->CopySubresourceRegion(pcTexture[unI], 0, (UINT(psViewport[0].Width) >> 1) - 128, (UINT(psViewport[0].Height) >> 1) - 48, 0, m_pcTextureMenu11, 0, &sBox);
+
+						// draw tiles
+						sBox.left = 0;
+						sBox.right = 128;
+						sBox.top = m_unFoV * 32;
+						sBox.bottom = m_unFoV * 32 + 32;
+						pcContext->CopySubresourceRegion(pcTexture[unI], 0, (UINT(psViewport[0].Width) >> 1) - 64, (UINT(psViewport[0].Height) >> 1) - 16, 0, m_pcTextureMenu11, 0, &sBox);
+						sBox.top = (m_unFoVADS + 3) * 32;
+						sBox.bottom = (m_unFoVADS + 3) * 32 + 32;
+						pcContext->CopySubresourceRegion(pcTexture[unI], 0, (UINT(psViewport[0].Width) >> 1) - 64, (UINT(psViewport[0].Height) >> 1) + 16, 0, m_pcTextureMenu11, 0, &sBox);
 
 						pcTexture[unI]->Release();
 					}
