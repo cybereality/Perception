@@ -59,7 +59,8 @@ m_pcConstantBufferDirect10(nullptr),
 m_pcTextureMenu10(nullptr),
 m_bHotkeySwitch(false),
 m_eStereoMode(VireioMonitorStereoModes::Vireio_Mono),
-m_bZoomOut(FALSE)
+m_bZoomOut(FALSE),
+m_bMenu(false)
 {
 	m_ppcTexView11[0] = nullptr;
 	m_ppcTexView11[1] = nullptr;
