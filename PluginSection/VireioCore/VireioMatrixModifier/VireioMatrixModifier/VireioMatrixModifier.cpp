@@ -1233,6 +1233,10 @@ bool MatrixModifier::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 ***/
 void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)
 {
+#ifdef _DEBUG_MAM
+	{ wchar_t buf[128]; wsprintf(buf, L"ifc %u mtd %u", eD3DInterface, eD3DMethod); OutputDebugString(buf); }
+#endif
+
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	switch (eD3DInterface)
 	{

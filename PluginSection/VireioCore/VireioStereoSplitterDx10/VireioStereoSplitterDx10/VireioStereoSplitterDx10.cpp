@@ -760,6 +760,10 @@ bool StereoSplitter::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 ***/
 void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)
 {
+#ifdef _DEBUG_STS
+	{ wchar_t buf[128]; wsprintf(buf, L"ifc %u mtd %u", eD3DInterface, eD3DMethod); OutputDebugString(buf); }
+#endif
+
 	// set node behavior to "double call" for this method
 	// node that this is only supported by drawing methods
 	if (m_bPresent)

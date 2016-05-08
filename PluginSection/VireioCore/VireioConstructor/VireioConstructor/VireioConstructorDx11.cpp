@@ -275,6 +275,10 @@ bool VireioConstructorDx11::SupportsD3DMethod(int nD3DVersion, int nD3DInterface
 ***/
 void* VireioConstructorDx11::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)
 {
+#ifdef _DEBUG_CON
+	{ wchar_t buf[128]; wsprintf(buf, L"ifc %u mtd %u", eD3DInterface, eD3DMethod); OutputDebugString(buf); }
+#endif
+
 	switch (eD3DMethod)
 	{
 #pragma region ID3D11Device::CreateVertexShader

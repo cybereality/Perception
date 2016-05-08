@@ -453,6 +453,10 @@ bool StereoPresenter::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int 
 ***/
 void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)
 {
+#ifdef _DEBUG_STP
+	{ wchar_t buf[128]; wsprintf(buf, L"ifc %u mtd %u", eD3DInterface, eD3DMethod); OutputDebugString(buf); }
+#endif
+
 	static const UINT unFoVSettings = 3;
 	static float afFoV[] = { 90.0f, 116.0f, 121.0f };
 	static const UINT unFoVADSSettings = 10;
