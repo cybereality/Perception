@@ -77,7 +77,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define PNT_UINT_PLUG_TYPE                           112
 
 #define NUMBER_OF_COMMANDERS                           0
-#define NUMBER_OF_DECOMMANDERS                         2
+#define NUMBER_OF_DECOMMANDERS                         7
 
 /**
 * Node Commander Enumeration.
@@ -90,8 +90,13 @@ enum OSVR_Commanders
 ***/
 enum OSVR_Decommanders
 {
-	LeftTexture,
-	RightTexture,
+	LeftTexture11,
+	RightTexture11,
+	LeftTexture10,
+	RightTexture10,
+	LeftTexture9,
+	RightTexture9,
+	ZoomOut,
 };
 
 /**
@@ -217,6 +222,10 @@ private:
 	* Hotkey switch.
 	***/
 	bool m_bHotkeySwitch;
+	/**
+	* Zoom out switch.
+	***/
+	static BOOL* m_pbZoomOut;
 };
 
 /**

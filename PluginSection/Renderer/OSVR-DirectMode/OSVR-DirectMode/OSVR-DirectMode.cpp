@@ -59,6 +59,7 @@ OSVR_DirectMode::StereoFrameTextureSRViews OSVR_DirectMode::m_sSteroFrameTexture
 OSVR_DirectModeMethods OSVR_DirectMode::m_eMethod;
 ID3D11Device* OSVR_DirectMode::m_pcGameDevice;
 ID3D11DeviceContext* OSVR_DirectMode::m_pcGameDeviceContext;
+BOOL* OSVR_DirectMode::m_pbZoomOut;
 #pragma endregion
 
 /**
@@ -84,6 +85,7 @@ m_bHotkeySwitch(false)
 	m_sSteroFrameTextureSRViews.m_pcFrameTextureSRView[1] = nullptr;
 	m_pcGameDevice = nullptr;
 	m_pcGameDeviceContext = nullptr;
+	m_pbZoomOut = nullptr;
 
 	m_eMethod = OSVR_DirectModeMethods::OSVR_D3D11_own_Device;
 }
@@ -149,11 +151,15 @@ LPWSTR OSVR_DirectMode::GetDecommanderName(DWORD dwDecommanderIndex)
 {
 	switch ((OSVR_Decommanders)dwDecommanderIndex)
 	{
-		case OSVR_Decommanders::LeftTexture:
+		case OSVR_Decommanders::LeftTexture11:
 			return L"Left Texture";
-		case OSVR_Decommanders::RightTexture:
+		case OSVR_Decommanders::RightTexture11:
 			return L"Right Texture";
+		case OSVR_Decommanders::ZoomOut:
+			return L"Zoom Out";
 	}
+
+	return L"x";
 
 	return L"";
 }
@@ -165,10 +171,12 @@ DWORD OSVR_DirectMode::GetDecommanderType(DWORD dwDecommanderIndex)
 {
 	switch ((OSVR_Decommanders)dwDecommanderIndex)
 	{
-		case OSVR_Decommanders::LeftTexture:
+		case OSVR_Decommanders::LeftTexture11:
 			return NOD_Plugtype::AQU_PNT_ID3D11SHADERRESOURCEVIEW;
-		case OSVR_Decommanders::RightTexture:
+		case OSVR_Decommanders::RightTexture11:
 			return NOD_Plugtype::AQU_PNT_ID3D11SHADERRESOURCEVIEW;
+		case OSVR_Decommanders::ZoomOut:
+			return NOD_Plugtype::AQU_BOOL;
 	}
 
 	return 0;
@@ -181,11 +189,14 @@ void OSVR_DirectMode::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 {
 	switch ((OSVR_Decommanders)dwDecommanderIndex)
 	{
-		case OSVR_Decommanders::LeftTexture:
+		case OSVR_Decommanders::LeftTexture11:
 			m_sStereoTextureViews.m_ppcTexView11[0] = (ID3D11ShaderResourceView**)pData;
 			break;
-		case OSVR_Decommanders::RightTexture:
+		case OSVR_Decommanders::RightTexture11:
 			m_sStereoTextureViews.m_ppcTexView11[1] = (ID3D11ShaderResourceView**)pData;
+			break;
+		case OSVR_Decommanders::ZoomOut:
+			m_pbZoomOut = (BOOL*)pData;
 			break;
 	}
 }
@@ -531,6 +542,16 @@ void OSVR_DirectMode::DrawWorld(void* userData, osvr::renderkit::GraphicsLibrary
 		sProj.m[3][1] = 0.0f;
 		sProj.m[3][2] = 0.0f;
 		sProj.m[3][3] = 1.0f;
+
+		// zoom out ?
+		if (m_pbZoomOut)
+		{
+			if (*m_pbZoomOut)
+			{
+				sProj.m[0][0] /= 2.0f;
+				sProj.m[1][1] /= 2.0f;
+			}
+		}
 
 		// Set constant buffer, first update it... scale and translate the left and right image
 		pcContext->UpdateSubresource((ID3D11Resource*)m_pcConstantBufferDirect11, 0, NULL, &sProj, 0, 0);
