@@ -22,12 +22,15 @@ Created using [Visual C++ 2013 Express for Windows Desktop]
 
 ####Required dlls
 
-For OSVR copy following dlls (from the OSVR core, differentiate between 32 or 64 bit) to the games executeable folder :
+For OSVR copy following dlls (from the OSVR render manager, differentiate between 32 or 64 bit) to the games executeable folder :
     
     * osvrClient.dll
     * osvrClientKit.dll
     * osvrCommon.dll
     * osvrUtil.dll
+	* osvrRenderManager.dll
+	* SDL2.dll
+	* glew32.dll
 
 ####Visual C++ Redistributables
 
@@ -43,6 +46,9 @@ Also, take care to have the latest Visual Studio Redistributables installed, dow
     * Vireio Oculus Renderer - DevNr 2006 - PluginNr 258
     * Vireio Oculus Direct Mode - DevNr 2006 - PluginNr 259
     * Vireio OSVR Tracker - DevNr 2006 - Plugin Nr 288
+	* Vireio OSVR Direct Mode - DevNr 2006 - PluginNr 289
+	* Vireio HTC Vive Tracker - DevNr 2006 - PluginNr 320
+	* Vireio HTC Vive Direct Mode - DevNr 2006 - PluginNr 321
 
 ####Known Aquilinus Plugins aside this repository:
 
