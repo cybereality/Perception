@@ -2,7 +2,7 @@
 Vireio Perception: Open-Source Stereoscopic 3D Driver
 Copyright (C) 2012 Andres Hernandez
 
-HTC Tracker - HTC Vive Tracking Node
+OpenVR DirectMode - Open Virtual Reality Direct Mode Rendering Node
 Copyright (C) 2016 Denis Reischl
 
 File <AQU_Nodus.h> and

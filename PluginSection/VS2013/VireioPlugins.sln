@@ -21,7 +21,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VireioStereoPresenter", "..
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OculusDirectMode", "..\Renderer\OculusDirectMode\OculusDirectMode\VS2013\OculusDirectMode.vcxproj", "{BABF4D36-8963-4B98-B457-1C8D64250CA9}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HTC-Tracker", "..\MotionTracker\HTC-Tracker\HTC-Tracker\VS2013\HTC-Tracker.vcxproj", "{3015FB47-8420-4FC3-AE37-3E688E3FB350}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenVR-Tracker", "..\MotionTracker\OpenVR-Tracker\OpenVR-Tracker\VS2013\OpenVR-Tracker.vcxproj", "{3015FB47-8420-4FC3-AE37-3E688E3FB350}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenVR-DirectMode", "..\Renderer\OpenVR-DirectMode\OpenVR-DirectMode\VS2013\OpenVR-DirectMode.vcxproj", "{406B5570-0BA2-4BE3-BCF1-CD65AD2E00F9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -152,6 +154,18 @@ Global
 		{3015FB47-8420-4FC3-AE37-3E688E3FB350}.Release|Win32.Build.0 = Release|Win32
 		{3015FB47-8420-4FC3-AE37-3E688E3FB350}.Release|x64.ActiveCfg = Release|x64
 		{3015FB47-8420-4FC3-AE37-3E688E3FB350}.Release|x64.Build.0 = Release|x64
+		{406B5570-0BA2-4BE3-BCF1-CD65AD2E00F9}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{406B5570-0BA2-4BE3-BCF1-CD65AD2E00F9}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{406B5570-0BA2-4BE3-BCF1-CD65AD2E00F9}.Debug|Win32.ActiveCfg = Debug|Win32
+		{406B5570-0BA2-4BE3-BCF1-CD65AD2E00F9}.Debug|Win32.Build.0 = Debug|Win32
+		{406B5570-0BA2-4BE3-BCF1-CD65AD2E00F9}.Debug|x64.ActiveCfg = Debug|x64
+		{406B5570-0BA2-4BE3-BCF1-CD65AD2E00F9}.Debug|x64.Build.0 = Debug|x64
+		{406B5570-0BA2-4BE3-BCF1-CD65AD2E00F9}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{406B5570-0BA2-4BE3-BCF1-CD65AD2E00F9}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{406B5570-0BA2-4BE3-BCF1-CD65AD2E00F9}.Release|Win32.ActiveCfg = Release|Win32
+		{406B5570-0BA2-4BE3-BCF1-CD65AD2E00F9}.Release|Win32.Build.0 = Release|Win32
+		{406B5570-0BA2-4BE3-BCF1-CD65AD2E00F9}.Release|x64.ActiveCfg = Release|x64
+		{406B5570-0BA2-4BE3-BCF1-CD65AD2E00F9}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

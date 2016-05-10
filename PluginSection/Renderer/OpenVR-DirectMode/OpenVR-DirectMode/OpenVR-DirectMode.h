@@ -2,11 +2,11 @@
 Vireio Perception: Open-Source Stereoscopic 3D Driver
 Copyright (C) 2012 Andres Hernandez
 
-HTC Tracker - HTC Vive Tracking Node
+OpenVR DirectMode - Open Virtual Reality Direct Mode Rendering Node
 Copyright (C) 2016 Denis Reischl
 
-File <HTC-Tracker.h> and
-Class <HTC-Tracker> :
+File <OpenVR-DirectMode.h> and
+Class <OpenVR-DirectMode> :
 Copyright (C) 2016 Denis Reischl
 
 The stub class <AQU_Nodus> is the only public class from the Aquilinus
@@ -55,28 +55,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /**
 * Node Commander Enumeration.
 ***/
-enum HTC_Commanders
+enum OpenVR_Commanders
 {
-	Pitch,
-	Yaw,
-	Roll,
-	OrientationW,
-	OrientationX,
-	OrientationY,
-	OrientationZ,
-	PositionX,
-	PositionY,
-	PositionZ,
 };
 
 /**
-* Vireio Open Source VR Tracker Node Plugin.
+* Vireio Open Source VR DirectMode Node Plugin.
 ***/
-class HTC_Tracker : public AQU_Nodus
+class OpenVR_DirectMode : public AQU_Nodus
 {
 public:
-	HTC_Tracker();
-	virtual ~HTC_Tracker();
+	OpenVR_DirectMode();
+	virtual ~OpenVR_DirectMode();
 
 	/*** AQU_Nodus public methods ***/
 	virtual const char*     GetNodeType();
@@ -93,54 +83,6 @@ public:
 	virtual bool            SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod);
 	virtual void*           Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex);
 private:
-	/**
-	* 
-	***/
-	vr::IVRSystem *m_pHMD;
-	/**
-	*
-	***/
-	vr::IVRRenderModels *m_pRenderModels;
-	/**
-	*
-	***/
-	std::string m_strDriver;
-	/**
-	*
-	***/
-	std::string m_strDisplay;
-	/**
-	*
-	***/
-	vr::TrackedDevicePose_t m_rTrackedDevicePose[vr::k_unMaxTrackedDeviceCount];
-	/**
-	*
-	***/
-	// Matrix4 m_rmat4DevicePose[vr::k_unMaxTrackedDeviceCount];
-	/**
-	*
-	***/
-	bool m_rbShowTrackedDevice[vr::k_unMaxTrackedDeviceCount];
-	/**
-	* The control bitmap.
-	***/
-	HBITMAP m_hBitmapControl;
-	/**
-	* The control update bool.
-	***/
-	bool m_bControlUpdate;
-	/**
-	* The font used.
-	***/
-	HFONT m_hFont;
-	/**
-	* Euler angles.
-	***/
-	float m_fYaw, m_fRoll, m_fPitch;
-	/**
-	* Position (float).
-	***/
-	float m_afTranslation[3];
 };
 
 /**
@@ -148,6 +90,6 @@ private:
 ***/
 extern "C" __declspec(dllexport) AQU_Nodus* AQU_Nodus_Create()
 {
-	HTC_Tracker* pHTC_Tracker = new HTC_Tracker();
-	return static_cast<AQU_Nodus*>(pHTC_Tracker);
+	OpenVR_DirectMode* pOpenVR_DirectMode = new OpenVR_DirectMode();
+	return static_cast<AQU_Nodus*>(pOpenVR_DirectMode);
 }

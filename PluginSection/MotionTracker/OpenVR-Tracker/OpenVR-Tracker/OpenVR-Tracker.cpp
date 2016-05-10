@@ -2,11 +2,11 @@
 Vireio Perception: Open-Source Stereoscopic 3D Driver
 Copyright (C) 2012 Andres Hernandez
 
-HTC Tracker - HTC Vive Tracking Node
+OpenVR Tracker - Open Virtual Reality Tracking Node
 Copyright (C) 2016 Denis Reischl
 
-File <HTC-Tracker.cpp> and
-Class <HTC-Tracker> :
+File <OpenVR-Tracker.cpp> and
+Class <OpenVR-Tracker> :
 Copyright (C) 2016 Denis Reischl
 
 The stub class <AQU_Nodus> is the only public class from the Aquilinus
@@ -37,14 +37,14 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-#include"HTC-Tracker.h"
+#include"OpenVR-Tracker.h"
 
 #define INTERFACE_IDIRECT3DDEVICE9           8
 
 /**
 * Constructor.
 ***/
-HTC_Tracker::HTC_Tracker() :AQU_Nodus(),
+OpenVR_Tracker::OpenVR_Tracker() :AQU_Nodus(),
 m_hBitmapControl(nullptr),
 m_bControlUpdate(false),
 m_hFont(nullptr)
@@ -55,23 +55,23 @@ m_hFont(nullptr)
 /**
 * Destructor.
 ***/
-HTC_Tracker::~HTC_Tracker()
+OpenVR_Tracker::~OpenVR_Tracker()
 {
 
 }
 
 /**
-* Return the name of the  HTC Tracker node.
+* Return the name of the  OpenVR Tracker node.
 ***/
-const char* HTC_Tracker::GetNodeType()
+const char* OpenVR_Tracker::GetNodeType()
 {
-	return "HTC Tracker";
+	return "OpenVR Tracker";
 }
 
 /**
-* Returns a global unique identifier for the HTC Tracker node.
+* Returns a global unique identifier for the OpenVR Tracker node.
 ***/
-UINT HTC_Tracker::GetNodeTypeId()
+UINT OpenVR_Tracker::GetNodeTypeId()
 {
 #define DEVELOPER_IDENTIFIER 2006
 #define MY_PLUGIN_IDENTIFIER 320
@@ -79,28 +79,28 @@ UINT HTC_Tracker::GetNodeTypeId()
 }
 
 /**
-* Returns the name of the category for the HTC Tracker node.
+* Returns the name of the category for the OpenVR Tracker node.
 ***/
-LPWSTR HTC_Tracker::GetCategory()
+LPWSTR OpenVR_Tracker::GetCategory()
 {
 	return L"Motion Tracker";
 }
 
 /**
-* Returns a logo to be used for the HTC Tracker node.
+* Returns a logo to be used for the OpenVR Tracker node.
 ***/
-HBITMAP HTC_Tracker::GetLogo()
+HBITMAP OpenVR_Tracker::GetLogo()
 {
-	HMODULE hModule = GetModuleHandle(L"HTC-Tracker.dll");
+	HMODULE hModule = GetModuleHandle(L"OpenVR-Tracker.dll");
 	HBITMAP hBitmap = LoadBitmap(hModule, MAKEINTRESOURCE(IMG_LOGO01));
 	return hBitmap;
 }
 
 /**
-* Returns the updated control for the HTC Tracker node.
+* Returns the updated control for the OpenVR Tracker node.
 * Allways return >nullptr< if there is no update for the control !!
 ***/
-HBITMAP HTC_Tracker::GetControl()
+HBITMAP OpenVR_Tracker::GetControl()
 {
 	if (!m_hBitmapControl)
 	{
@@ -205,29 +205,29 @@ HBITMAP HTC_Tracker::GetControl()
 /**
 * Provides the name of the requested commander.
 ***/
-LPWSTR HTC_Tracker::GetCommanderName(DWORD dwCommanderIndex)
+LPWSTR OpenVR_Tracker::GetCommanderName(DWORD dwCommanderIndex)
 {
-	switch ((HTC_Commanders)dwCommanderIndex)
+	switch ((OpenVR_Commanders)dwCommanderIndex)
 	{
-		case HTC_Commanders::Pitch:
+		case OpenVR_Commanders::Pitch:
 			return L"Pitch";
-		case HTC_Commanders::Yaw:
+		case OpenVR_Commanders::Yaw:
 			return L"Yaw";
-		case HTC_Commanders::Roll:
+		case OpenVR_Commanders::Roll:
 			return L"Roll";
-		case HTC_Commanders::OrientationW:
+		case OpenVR_Commanders::OrientationW:
 			return L"Orientation W";
-		case HTC_Commanders::OrientationX:
+		case OpenVR_Commanders::OrientationX:
 			return L"Orientation X";
-		case HTC_Commanders::OrientationY:
+		case OpenVR_Commanders::OrientationY:
 			return L"Orientation Y";
-		case HTC_Commanders::OrientationZ:
+		case OpenVR_Commanders::OrientationZ:
 			return L"Orientation Z";
-		case HTC_Commanders::PositionX:
+		case OpenVR_Commanders::PositionX:
 			return L"Position X";
-		case HTC_Commanders::PositionY:
+		case OpenVR_Commanders::PositionY:
 			return L"Position Y";
-		case HTC_Commanders::PositionZ:
+		case OpenVR_Commanders::PositionZ:
 			return L"Position Z";
 	}
 
@@ -237,29 +237,29 @@ LPWSTR HTC_Tracker::GetCommanderName(DWORD dwCommanderIndex)
 /**
 * Provides the type of the requested commander.
 ***/
-DWORD HTC_Tracker::GetCommanderType(DWORD dwCommanderIndex)
+DWORD OpenVR_Tracker::GetCommanderType(DWORD dwCommanderIndex)
 {
-	switch ((HTC_Commanders)dwCommanderIndex)
+	switch ((OpenVR_Commanders)dwCommanderIndex)
 	{
-		case HTC_Commanders::Pitch:
+		case OpenVR_Commanders::Pitch:
 			return PNT_FLOAT_PLUG_TYPE;
-		case HTC_Commanders::Yaw:
+		case OpenVR_Commanders::Yaw:
 			return PNT_FLOAT_PLUG_TYPE;
-		case HTC_Commanders::Roll:
+		case OpenVR_Commanders::Roll:
 			return PNT_FLOAT_PLUG_TYPE;
-		case HTC_Commanders::OrientationW:
+		case OpenVR_Commanders::OrientationW:
 			return PNT_FLOAT_PLUG_TYPE;
-		case HTC_Commanders::OrientationX:
+		case OpenVR_Commanders::OrientationX:
 			return PNT_FLOAT_PLUG_TYPE;
-		case HTC_Commanders::OrientationY:
+		case OpenVR_Commanders::OrientationY:
 			return PNT_FLOAT_PLUG_TYPE;
-		case HTC_Commanders::OrientationZ:
+		case OpenVR_Commanders::OrientationZ:
 			return PNT_FLOAT_PLUG_TYPE;
-		case HTC_Commanders::PositionX:
+		case OpenVR_Commanders::PositionX:
 			return PNT_FLOAT_PLUG_TYPE;
-		case HTC_Commanders::PositionY:
+		case OpenVR_Commanders::PositionY:
 			return PNT_FLOAT_PLUG_TYPE;
-		case HTC_Commanders::PositionZ:
+		case OpenVR_Commanders::PositionZ:
 			return PNT_FLOAT_PLUG_TYPE;
 	}
 
@@ -269,29 +269,29 @@ DWORD HTC_Tracker::GetCommanderType(DWORD dwCommanderIndex)
 /**
 * Provides the pointer of the requested commander.
 ***/
-void* HTC_Tracker::GetOutputPointer(DWORD dwCommanderIndex)
+void* OpenVR_Tracker::GetOutputPointer(DWORD dwCommanderIndex)
 {
-	switch ((HTC_Commanders)dwCommanderIndex)
+	switch ((OpenVR_Commanders)dwCommanderIndex)
 	{
-		case HTC_Commanders::Pitch:
+		case OpenVR_Commanders::Pitch:
 			return (void*)&m_fPitch;
-		case HTC_Commanders::Yaw:
+		case OpenVR_Commanders::Yaw:
 			return (void*)&m_fYaw;
-		case HTC_Commanders::Roll:
+		case OpenVR_Commanders::Roll:
 			return (void*)&m_fRoll;
-		case HTC_Commanders::OrientationW:
+		case OpenVR_Commanders::OrientationW:
 			return nullptr;
-		case HTC_Commanders::OrientationX:
+		case OpenVR_Commanders::OrientationX:
 			return nullptr;
-		case HTC_Commanders::OrientationY:
+		case OpenVR_Commanders::OrientationY:
 			return nullptr;
-		case HTC_Commanders::OrientationZ:
+		case OpenVR_Commanders::OrientationZ:
 			return nullptr;
-		case HTC_Commanders::PositionX:
+		case OpenVR_Commanders::PositionX:
 			return (void*)&m_afTranslation[0];
-		case HTC_Commanders::PositionY:
+		case OpenVR_Commanders::PositionY:
 			return (void*)&m_afTranslation[1];
-		case HTC_Commanders::PositionZ:
+		case OpenVR_Commanders::PositionZ:
 			return (void*)&m_afTranslation[2];
 	}
 
@@ -301,15 +301,15 @@ void* HTC_Tracker::GetOutputPointer(DWORD dwCommanderIndex)
 /**
 * Tracker supports any calls.
 ***/
-bool HTC_Tracker::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod)
+bool OpenVR_Tracker::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod)
 {
 	return true;
 }
 
 /**
-* Handle HTC tracking.
+* Handle OpenVR tracking.
 ***/
-void* HTC_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)
+void* OpenVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)
 {
 
 	return nullptr;

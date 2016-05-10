@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Express 2013 for Windows Desktop
 VisualStudioVersion = 12.0.21005.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HTC-Tracker", "..\HTC-Tracker\VS2013\HTC-Tracker.vcxproj", "{3015FB47-8420-4FC3-AE37-3E688E3FB350}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenVR-Tracker", "..\OpenVR-Tracker\VS2013\OpenVR-Tracker.vcxproj", "{3015FB47-8420-4FC3-AE37-3E688E3FB350}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
