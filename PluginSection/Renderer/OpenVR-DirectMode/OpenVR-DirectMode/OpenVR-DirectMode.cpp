@@ -77,7 +77,7 @@ UINT OpenVR_DirectMode::GetNodeTypeId()
 ***/
 LPWSTR OpenVR_DirectMode::GetCategory()
 {
-	return L"OpenVR DirectMode";
+	return L"Renderer";
 }
 
 /**

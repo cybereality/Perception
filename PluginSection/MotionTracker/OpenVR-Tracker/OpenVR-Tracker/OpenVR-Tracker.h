@@ -44,6 +44,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <openvr.h>
 #pragma comment(lib, "openvr_api.lib")
 
+#include <d3dx9.h>
+#pragma comment(lib, "d3dx9.lib")
+
 #define PNT_FLOAT_PLUG_TYPE                          104
 #define PNT_INT_PLUG_TYPE                            107 
 #define PNT_UINT_PLUG_TYPE                           112
@@ -92,35 +95,43 @@ public:
 	virtual void*           GetOutputPointer(DWORD dwCommanderIndex);
 	virtual bool            SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod);
 	virtual void*           Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex);
+
 private:
+	/*** OpenVR_Tracker private methods ***/
+	void ProcessVREvent(const vr::VREvent_t & event);
+
 	/**
-	* 
+	* OpenVR system.
 	***/
 	vr::IVRSystem *m_pHMD;
 	/**
-	*
-	***/
-	vr::IVRRenderModels *m_pRenderModels;
-	/**
-	*
+	* Tracking system name.
 	***/
 	std::string m_strDriver;
 	/**
-	*
+	* Serial number.
 	***/
 	std::string m_strDisplay;
 	/**
-	*
+	* The (tracked) device poses (for all devices).
 	***/
 	vr::TrackedDevicePose_t m_rTrackedDevicePose[vr::k_unMaxTrackedDeviceCount];
 	/**
-	*
+	* Euler angles (for all devices).
 	***/
-	// Matrix4 m_rmat4DevicePose[vr::k_unMaxTrackedDeviceCount];
+	D3DXVECTOR3 m_sEuler[vr::k_unMaxTrackedDeviceCount];
+	/**
+	* Orientation (for all devices)
+	***/
+	D3DXQUATERNION m_sOrientation[vr::k_unMaxTrackedDeviceCount];
+	/**
+	* Position (for all devices).
+	***/
+	D3DXVECTOR3 m_sPosition[vr::k_unMaxTrackedDeviceCount];
 	/**
 	*
 	***/
-	bool m_rbShowTrackedDevice[vr::k_unMaxTrackedDeviceCount];
+	// bool m_rbShowTrackedDevice[vr::k_unMaxTrackedDeviceCount];
 	/**
 	* The control bitmap.
 	***/
@@ -133,14 +144,7 @@ private:
 	* The font used.
 	***/
 	HFONT m_hFont;
-	/**
-	* Euler angles.
-	***/
-	float m_fYaw, m_fRoll, m_fPitch;
-	/**
-	* Position (float).
-	***/
-	float m_afTranslation[3];
+	
 };
 
 /**
