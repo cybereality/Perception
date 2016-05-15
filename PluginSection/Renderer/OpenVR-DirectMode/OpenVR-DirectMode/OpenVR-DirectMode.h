@@ -44,19 +44,48 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <openvr.h>
 #pragma comment(lib, "openvr_api.lib")
 
-#define PNT_FLOAT_PLUG_TYPE                          104
-#define PNT_INT_PLUG_TYPE                            107 
-#define PNT_UINT_PLUG_TYPE                           112
+#include <DXGI.h>
+#pragma comment(lib, "DXGI.lib")
 
-#define NUMBER_OF_COMMANDERS                          10
+#include <d3d11_1.h>
+#pragma comment(lib, "d3d11.lib")
 
-#define FLOAT_PI                            (3.1415926f)
+#include <d3d11.h>
+#pragma comment(lib, "d3d11.lib")
+
+#include <d3d10_1.h>
+#pragma comment(lib, "d3d10_1.lib")
+
+#include <d3d10.h>
+#pragma comment(lib, "d3d10.lib")
+
+#include <d3dx10.h>
+#pragma comment(lib, "d3dx10.lib")
+
+#include <d3d9.h>
+#pragma comment(lib, "d3d9.lib")
+
+#include <d3dx9.h>
+#pragma comment(lib, "d3dx9.lib")
+
+#include"..\..\..\Include\Vireio_DX11Basics.h"
+#include"..\..\..\Include\Vireio_Node_Plugtypes.h"
+
+#define NUMBER_OF_DECOMMANDERS                         8
 
 /**
-* Node Commander Enumeration.
+* Node Decommander Enumeration.
 ***/
-enum OpenVR_Commanders
+enum OpenVR_Decommanders
 {
+	LeftTexture11,
+	RightTexture11,
+	LeftTexture10,
+	RightTexture10,
+	LeftTexture9,
+	RightTexture9,
+	IVRSystem,
+	ZoomOut,
 };
 
 /**
@@ -76,13 +105,83 @@ public:
 	virtual HBITMAP         GetControl();
 	virtual DWORD           GetNodeWidth() { return 4 + 256 + 4; }
 	virtual DWORD           GetNodeHeight() { return 128; }
-	virtual DWORD           GetCommandersNumber() { return NUMBER_OF_COMMANDERS; }
-	virtual LPWSTR          GetCommanderName(DWORD dwCommanderIndex);
-	virtual DWORD           GetCommanderType(DWORD dwCommanderIndex);
-	virtual void*           GetOutputPointer(DWORD dwCommanderIndex);
+	virtual DWORD           GetDecommandersNumber() { return NUMBER_OF_DECOMMANDERS; }
+	virtual LPWSTR          GetDecommanderName(DWORD dwDecommanderIndex);
+	virtual DWORD           GetDecommanderType(DWORD dwDecommanderIndex);
+	virtual void            SetInputPointer(DWORD dwDecommanderIndex, void* pData);
 	virtual bool            SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod);
 	virtual void*           Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex);
 private:
+	/**
+	* Temporary directx 11 device for OpenVR.
+	***/
+	ID3D11Device* m_pcDeviceTemporary;
+	/**
+	* Temporary directx 11 device context for OpenVR.
+	***/
+	ID3D11DeviceContext* m_pcContextTemporary;
+	/**
+	* Temporary directx 11 dxgi swapchain for OpenVR.
+	* (keep that one for the mirror texture)
+	***/
+	IDXGISwapChain* m_pcSwapChainTemporary;
+	/**
+	* Temporary directx 11 back buffer for OpenVR.
+	***/
+	ID3D11Texture2D* m_pcBackBufferTemporary;
+	/**
+	* Temporary directx 11 back buffer render target view for OpenVR.
+	***/
+	ID3D11RenderTargetView * m_pcBackBufferRTVTemporary;
+	/**
+	* Stereo Textures input. (DX11)
+	***/
+	ID3D11ShaderResourceView** m_ppcTexView11[2];
+	/**
+	* Zoom out switch.
+	***/
+	BOOL* m_pbZoomOut;
+	/**
+	* OpenVR system.
+	***/
+	vr::IVRSystem **m_ppHMD;
+	/**
+	* The (tracked) device poses (for all devices).
+	***/
+	vr::TrackedDevicePose_t m_rTrackedDevicePose[vr::k_unMaxTrackedDeviceCount];
+	/**
+	* Hotkey switch.
+	***/
+	bool m_bHotkeySwitch;
+	/**
+	* True if OpenVR is initialized.
+	***/
+	bool m_bInit;
+	/**
+	* The 2D vertex shader.
+	***/
+	ID3D11VertexShader* m_pcVertexShader11;
+	/**
+	* The 2D pixel shader.
+	***/
+	ID3D11PixelShader* m_pcPixelShader11;
+	/**
+	* The 2D vertex layout.
+	***/
+	ID3D11InputLayout* m_pcVertexLayout11;
+	/**
+	* The 2D vertex buffer.
+	***/
+	ID3D11Buffer* m_pcVertexBuffer11;
+	/**
+	* The constant buffer for the vertex shader matrix.
+	* Contains only ProjView matrix.
+	***/
+	ID3D11Buffer* m_pcConstantBufferDirect11;
+	/**
+	* Basic sampler state.
+	***/
+	ID3D11SamplerState* m_pcSamplerState;
 };
 
 /**

@@ -192,6 +192,7 @@ HBITMAP OpenVR_Tracker::GetControl()
 			nY += 64; szBuffer = std::wstringstream();
 
 			// tracking system + serial
+			TextOut(hdcImage, 100, nY, L"IVRSystem", 9); nY += 64;
 			szBuffer << m_strDisplay.c_str() << "-" << m_strDriver.c_str();
 			TextOut(hdcImage, 100, nY, szBuffer.str().c_str(), (int)szBuffer.str().length());
 
@@ -237,6 +238,8 @@ LPWSTR OpenVR_Tracker::GetCommanderName(DWORD dwCommanderIndex)
 			return L"Position Y";
 		case OpenVR_Commanders::PositionZ:
 			return L"Position Z";
+		case OpenVR_Commanders::IVRSystem:
+			return L"IVRSystem";
 	}
 
 	return L"";
@@ -250,25 +253,18 @@ DWORD OpenVR_Tracker::GetCommanderType(DWORD dwCommanderIndex)
 	switch ((OpenVR_Commanders)dwCommanderIndex)
 	{
 		case OpenVR_Commanders::Pitch:
-			return PNT_FLOAT_PLUG_TYPE;
 		case OpenVR_Commanders::Yaw:
-			return PNT_FLOAT_PLUG_TYPE;
 		case OpenVR_Commanders::Roll:
-			return PNT_FLOAT_PLUG_TYPE;
 		case OpenVR_Commanders::OrientationW:
-			return PNT_FLOAT_PLUG_TYPE;
 		case OpenVR_Commanders::OrientationX:
-			return PNT_FLOAT_PLUG_TYPE;
 		case OpenVR_Commanders::OrientationY:
-			return PNT_FLOAT_PLUG_TYPE;
 		case OpenVR_Commanders::OrientationZ:
-			return PNT_FLOAT_PLUG_TYPE;
 		case OpenVR_Commanders::PositionX:
-			return PNT_FLOAT_PLUG_TYPE;
 		case OpenVR_Commanders::PositionY:
-			return PNT_FLOAT_PLUG_TYPE;
 		case OpenVR_Commanders::PositionZ:
-			return PNT_FLOAT_PLUG_TYPE;
+			return NOD_Plugtype::AQU_FLOAT;
+		case OpenVR_Commanders::IVRSystem:
+			return NOD_Plugtype::AQU_HANDLE;
 	}
 
 	return 0;
@@ -301,6 +297,8 @@ void* OpenVR_Tracker::GetOutputPointer(DWORD dwCommanderIndex)
 			return (void*)&m_sPosition[vr::k_unTrackedDeviceIndex_Hmd].y;
 		case OpenVR_Commanders::PositionZ:
 			return (void*)&m_sPosition[vr::k_unTrackedDeviceIndex_Hmd].z;
+		case OpenVR_Commanders::IVRSystem:
+			return (void*)&m_pHMD;
 	}
 
 	return nullptr;
@@ -398,7 +396,7 @@ void* OpenVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 		m_sPosition[unI].x = sPoseMatrix(3, 0);
 		m_sPosition[unI].y = sPoseMatrix(3, 1);
 		m_sPosition[unI].z = sPoseMatrix(3, 2);
-		
+
 		//// output debug string
 		//std::wstringstream sz;
 		//sz << sAxis.x << ":" << sAxis.y << ":" << sAxis.z << ":" << fAngle;

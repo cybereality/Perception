@@ -47,11 +47,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <d3dx9.h>
 #pragma comment(lib, "d3dx9.lib")
 
+#include "..\..\..\Include\Vireio_Node_Plugtypes.h"
+
 #define PNT_FLOAT_PLUG_TYPE                          104
 #define PNT_INT_PLUG_TYPE                            107 
 #define PNT_UINT_PLUG_TYPE                           112
 
-#define NUMBER_OF_COMMANDERS                          10
+#define NUMBER_OF_COMMANDERS                          11
 
 #define FLOAT_PI                            (3.1415926f)
 
@@ -70,6 +72,7 @@ enum OpenVR_Commanders
 	PositionX,
 	PositionY,
 	PositionZ,
+	IVRSystem,
 };
 
 /**
