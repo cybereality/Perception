@@ -525,9 +525,27 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 							// copy to copy texture
 							pcContext->CopyResource(m_pcTex11Copy, m_pcTex11Draw);
 
-							// fill openvr texture struct
-							vr::Texture_t sLeftEyeTexture = { (void*)m_pcTex11Shared, vr::API_DirectX, vr::ColorSpace_Gamma };
-							vr::VROverlay()->SetOverlayTexture(m_ulOverlayHandle, &sLeftEyeTexture);
+							// get shared handle
+							IDXGIResource* pcDXGIResource(NULL);
+							m_pcTex11Copy->QueryInterface(__uuidof(IDXGIResource), (void**)&pcDXGIResource);
+							HANDLE sharedHandle;
+							if (pcDXGIResource)
+							{
+								pcDXGIResource->GetSharedHandle(&sharedHandle);
+								pcDXGIResource->Release();
+							}
+							else OutputDebugString(L"Failed to query IDXGIResource.");
+
+							ID3D11Resource* pcResourceShared;
+							m_pcDeviceTemporary->OpenSharedResource(sharedHandle, __uuidof(ID3D11Resource), (void**)(&pcResourceShared));
+							if (pcResourceShared)
+							{
+								// fill openvr texture struct
+								vr::Texture_t sLeftEyeTexture = { (void*)pcResourceShared, vr::API_DirectX, vr::ColorSpace_Gamma };
+								vr::VROverlay()->SetOverlayTexture(m_ulOverlayHandle, &sLeftEyeTexture);
+								pcResourceShared->Release();
+							}
+
 						}
 					}
 				}
