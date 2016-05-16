@@ -211,6 +211,11 @@ bool OpenVR_DirectMode::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, in
 ***/
 void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)
 {
+
+	static float fAspectRatio = 1.0f;
+	static float bAspectRatio = false;
+	static float fVerticalRatioCorrectionLeft = 0.0f, fVerticalRatioCorrectionRight = 0.0f;
+
 	if (eD3DInterface != INTERFACE_IDXGISWAPCHAIN) return nullptr;
 	if (eD3DMethod != METHOD_IDXGISWAPCHAIN_PRESENT) return nullptr;
 	/*if (!m_bHotkeySwitch)
@@ -221,6 +226,42 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 	}
 	return nullptr;
 	}*/
+
+	// calculate aspect ratio
+	if (!bAspectRatio)
+	{
+		// texture connected ?
+		if ((m_ppcTexView11[0]) && (*m_ppcTexView11[0]))
+		{
+			ID3D11Resource* pcResource = nullptr;
+			(*m_ppcTexView11[0])->GetResource(&pcResource);
+			if (pcResource)
+			{
+				// get the aspect ratio
+				D3D11_TEXTURE2D_DESC sDesc;
+				((ID3D11Texture2D*)pcResource)->GetDesc(&sDesc);
+				fAspectRatio = (float)sDesc.Width / (float)sDesc.Height;
+				pcResource->Release();
+
+				// compute left eye 
+				float fLeft, fRight, fTop, fBottom;
+				(*m_ppHMD)->GetProjectionRaw(vr::Eye_Left, &fLeft, &fRight, &fTop, &fBottom);
+				float fHorizontal = fRight - fLeft;
+				float fVertical = fBottom - fTop;
+				float fAspectHMD = fHorizontal / fVertical;
+				fVerticalRatioCorrectionLeft = (1.0f - (fAspectHMD / fAspectRatio)) / 2.0f;
+
+				// compute right eye 
+				(*m_ppHMD)->GetProjectionRaw(vr::Eye_Right, &fLeft, &fRight, &fTop, &fBottom);
+				fHorizontal = fRight - fLeft;
+				fVertical = fBottom - fTop;
+				fAspectHMD = fHorizontal / fVertical;
+				fVerticalRatioCorrectionRight = (1.0f - (fAspectHMD / fAspectRatio)) / 2.0f;
+
+				bAspectRatio = true;
+			}
+		}
+	}
 
 	// cast swapchain
 	IDXGISwapChain* pcSwapChain = (IDXGISwapChain*)pThis;
@@ -277,9 +318,18 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 					(*m_ppcTexView11[0])->GetResource(&pcResource);
 					if (pcResource)
 					{
+						// fill openvr texture struct
+						vr::Texture_t sLeftEyeTexture = { (void*)pcResource, vr::API_DirectX, vr::ColorSpace_Gamma };
+
+						// adjust aspect ratio
+						vr::VRTextureBounds_t sBounds;
+						sBounds.uMin = fVerticalRatioCorrectionLeft;
+						sBounds.uMax = 1.0f - fVerticalRatioCorrectionLeft;
+						sBounds.vMin = 0.f;
+						sBounds.vMax = 1.f;
+						
 						// submit left texture
-						vr::Texture_t leftEyeTexture = { (void*)pcResource, vr::API_DirectX, vr::ColorSpace_Gamma };
-						vr::VRCompositor()->Submit(vr::Eye_Left, &leftEyeTexture);
+						vr::VRCompositor()->Submit(vr::Eye_Left, &sLeftEyeTexture, &sBounds);
 
 						pcResource->Release();
 					}
@@ -292,9 +342,18 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 					(*m_ppcTexView11[1])->GetResource(&pcResource);
 					if (pcResource)
 					{
+						// fill openvr texture struct
+						vr::Texture_t sRightEyeTexture = { (void*)pcResource, vr::API_DirectX, vr::ColorSpace_Gamma };
+
+						// adjust aspect ratio
+						vr::VRTextureBounds_t sBounds;
+						sBounds.uMin = fVerticalRatioCorrectionRight;
+						sBounds.uMax = 1.0f - fVerticalRatioCorrectionRight;
+						sBounds.vMin = 0.f;
+						sBounds.vMax = 1.f;
+
 						// submit right texture
-						vr::Texture_t rightEyeTexture = { (void*)pcResource, vr::API_DirectX, vr::ColorSpace_Gamma };
-						vr::VRCompositor()->Submit(vr::Eye_Right, &rightEyeTexture);
+						vr::VRCompositor()->Submit(vr::Eye_Right, &sRightEyeTexture, &sBounds);
 
 						pcResource->Release();
 					}
