@@ -39,6 +39,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"AQU_Nodus.h"
 #include"Resources.h"
 #include<stdio.h>
+#include<stdlib.h>
 #include<sstream>
 
 #include <openvr.h>

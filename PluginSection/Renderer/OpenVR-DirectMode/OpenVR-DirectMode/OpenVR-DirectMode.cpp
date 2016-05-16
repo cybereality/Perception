@@ -214,7 +214,8 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 
 	static float fAspectRatio = 1.0f;
 	static float bAspectRatio = false;
-	static float fVerticalRatioCorrectionLeft = 0.0f, fVerticalRatioCorrectionRight = 0.0f;
+	static float fHorizontalRatioCorrectionLeft = 0.0f, fHorizontalRatioCorrectionRight = 0.0f;
+	static float fHorizontalOffsetCorrectionLeft = 0.0f, fHorizontalOffsetCorrectionRight = 0.0f;
 
 	if (eD3DInterface != INTERFACE_IDXGISWAPCHAIN) return nullptr;
 	if (eD3DMethod != METHOD_IDXGISWAPCHAIN_PRESENT) return nullptr;
@@ -227,7 +228,7 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 	return nullptr;
 	}*/
 
-	// calculate aspect ratio
+	// calculate aspect ratio + offset correction
 	if (!bAspectRatio)
 	{
 		// texture connected ?
@@ -249,14 +250,20 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 				float fHorizontal = fRight - fLeft;
 				float fVertical = fBottom - fTop;
 				float fAspectHMD = fHorizontal / fVertical;
-				fVerticalRatioCorrectionLeft = (1.0f - (fAspectHMD / fAspectRatio)) / 2.0f;
+				fHorizontalRatioCorrectionLeft = (1.0f - (fAspectHMD / fAspectRatio)) / 2.0f;
+				fHorizontalOffsetCorrectionLeft = abs(fRight) - abs(fLeft);
+				fHorizontalOffsetCorrectionLeft /= fHorizontal;
+				fHorizontalOffsetCorrectionLeft *= fAspectHMD / fAspectRatio;
 
 				// compute right eye 
 				(*m_ppHMD)->GetProjectionRaw(vr::Eye_Right, &fLeft, &fRight, &fTop, &fBottom);
 				fHorizontal = fRight - fLeft;
 				fVertical = fBottom - fTop;
 				fAspectHMD = fHorizontal / fVertical;
-				fVerticalRatioCorrectionRight = (1.0f - (fAspectHMD / fAspectRatio)) / 2.0f;
+				fHorizontalRatioCorrectionRight = (1.0f - (fAspectHMD / fAspectRatio)) / 2.0f;
+				fHorizontalOffsetCorrectionRight = abs(fRight) - abs(fLeft);
+				fHorizontalOffsetCorrectionRight /= fHorizontal;
+				fHorizontalOffsetCorrectionRight *= fAspectHMD / fAspectRatio;
 
 				bAspectRatio = true;
 			}
@@ -323,8 +330,8 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 
 						// adjust aspect ratio
 						vr::VRTextureBounds_t sBounds;
-						sBounds.uMin = fVerticalRatioCorrectionLeft;
-						sBounds.uMax = 1.0f - fVerticalRatioCorrectionLeft;
+						sBounds.uMin = fHorizontalRatioCorrectionLeft + fHorizontalOffsetCorrectionLeft;
+						sBounds.uMax = 1.0f - fHorizontalRatioCorrectionLeft + fHorizontalOffsetCorrectionLeft;
 						sBounds.vMin = 0.f;
 						sBounds.vMax = 1.f;
 						
@@ -347,8 +354,8 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 
 						// adjust aspect ratio
 						vr::VRTextureBounds_t sBounds;
-						sBounds.uMin = fVerticalRatioCorrectionRight;
-						sBounds.uMax = 1.0f - fVerticalRatioCorrectionRight;
+						sBounds.uMin = fHorizontalRatioCorrectionRight + fHorizontalOffsetCorrectionRight;
+						sBounds.uMax = 1.0f - fHorizontalRatioCorrectionRight + fHorizontalOffsetCorrectionRight;
 						sBounds.vMin = 0.f;
 						sBounds.vMax = 1.f;
 
