@@ -197,7 +197,11 @@ private:
 	/**
 	* Skybox texture.
 	***/
-	ID3D11Texture2D* m_pcTexSkybox;
+	ID3D11Texture2D* m_pcTex11Copy;
+	/**
+	* Skybox texture view.
+	***/
+	ID3D11RenderTargetView* m_pcTex11CopyRTV;
 };
 
 /**

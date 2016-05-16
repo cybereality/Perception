@@ -63,7 +63,8 @@ m_bInit(false),
 m_ppHMD(nullptr),
 m_ulOverlayHandle(0),
 m_ulOverlayThumbnailHandle(0),
-m_pcTexSkybox(nullptr),
+m_pcTex11Copy(nullptr),
+m_pcTex11CopyRTV(nullptr),
 m_bHotkeySwitch(false),
 m_pbZoomOut(nullptr)
 {
@@ -324,32 +325,6 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 				vr::VROverlay()->SetOverlayAlpha(m_ulOverlayHandle, 1.0f);
 				vr::VROverlay()->SetOverlayColor(m_ulOverlayHandle, 1.0f, 1.0f, 1.0f);
 
-				// create (empty) skybox texture
-				if (!m_pcTexSkybox)
-				{
-					// fill desc
-					D3D11_TEXTURE2D_DESC sDesc;
-					ZeroMemory(&sDesc, sizeof(sDesc));
-					sDesc.Width = 16;
-					sDesc.Height = 16;
-					sDesc.MipLevels = 1;
-					sDesc.ArraySize = 1;
-					sDesc.Format = DXGI_FORMAT_R8G8B8A8_UINT;
-					sDesc.SampleDesc.Count = 1;
-					sDesc.Usage = D3D11_USAGE_IMMUTABLE;
-					sDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-					sDesc.CPUAccessFlags = 0;
-					sDesc.MiscFlags = 0;
-
-					//// Create the step count texture
-					//char szNull[16*16*4];
-					//ZeroMemory(&szNull[0], 16*16*4);
-					//D3D11_SUBRESOURCE_DATA sData;
-					//sData.pSysMem = szNull;
-					//sData.SysMemPitch = 16*4;
-					//pcDevice->CreateTexture2D(&sDesc, &sData, &m_pcTexSkybox);
-				}
-
 				m_bInit = true;
 #pragma endregion
 			}
@@ -359,22 +334,116 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 #pragma region Render overlay
 				if (vr::VROverlay() && vr::VROverlay()->IsOverlayVisible(m_ulOverlayHandle))
 				{
+					// create all bool
+					bool bAllCreated = true;
+
+					// create vertex shader
+					if (!m_pcVertexShader11)
+					{
+						if (FAILED(Create2DVertexShader(pcDevice, &m_pcVertexShader11, &m_pcVertexLayout11)))
+						{
+							bAllCreated = false;
+						}
+					}
+					// create pixel shader... 
+					if (!m_pcPixelShader11)
+					{
+						if (FAILED(CreateSimplePixelShader(pcDevice, &m_pcPixelShader11, PixelShaderTechnique::FullscreenSimple)))
+							bAllCreated = false;
+					}
+					// Create vertex buffer
+					if (!m_pcVertexBuffer11)
+					{
+						if (FAILED(CreateFullScreenVertexBuffer(pcDevice, &m_pcVertexBuffer11)))
+							bAllCreated = false;
+					}
+					// create constant buffer
+					if (!m_pcConstantBufferDirect11)
+					{
+						if (FAILED(CreateMatrixConstantBuffer(pcDevice, &m_pcConstantBufferDirect11)))
+							bAllCreated = false;
+					}
+					// sampler ?
+					if (!m_pcSamplerState)
+					{
+						// Create the sampler state
+						D3D11_SAMPLER_DESC sSampDesc;
+						ZeroMemory(&sSampDesc, sizeof(sSampDesc));
+						sSampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+						sSampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+						sSampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+						sSampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+						sSampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+						sSampDesc.MinLOD = 0;
+						sSampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+						if (FAILED(pcDevice->CreateSamplerState(&sSampDesc, &m_pcSamplerState)))
+							bAllCreated = false;
+					}
+
 					// texture connected ?
 					if ((m_ppcTexView11[0]) && (*m_ppcTexView11[0]))
 					{
-						ID3D11Resource* pcResource = nullptr;
-						(*m_ppcTexView11[0])->GetResource(&pcResource);
-						if (pcResource)
-						{
-							// fill openvr texture struct
-							vr::Texture_t sLeftEyeTexture = { (void*)pcResource, vr::API_DirectX, vr::ColorSpace_Gamma };
-							vr::VROverlay()->SetOverlayTexture(m_ulOverlayHandle, &sLeftEyeTexture);
+						// Set the input layout
+						pcContext->IASetInputLayout(m_pcVertexLayout11);
 
-							// set skybox
-							/*vr::Texture_t sSky = { (void*)m_pcTexSkybox, vr::API_DirectX, vr::ColorSpace_Gamma };
-							vr::VRCompositor()->SetSkyboxOverride(&sSky, 1);*/
-							
-							pcResource->Release();
+						// Set vertex buffer
+						UINT stride = sizeof(TexturedVertex);
+						UINT offset = 0;
+						pcContext->IASetVertexBuffers(0, 1, &m_pcVertexBuffer11, &stride, &offset);
+
+						// Set constant buffer, first update it... scale and translate the left and right image
+						D3DXMATRIX sProj;
+						D3DXMatrixIdentity(&sProj);
+						pcContext->UpdateSubresource((ID3D11Resource*)m_pcConstantBufferDirect11, 0, NULL, &sProj, 0, 0);
+						pcContext->VSSetConstantBuffers(0, 1, &m_pcConstantBufferDirect11);
+
+						// Set primitive topology
+						pcContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+						if (bAllCreated)
+						{
+
+							if (!m_pcTex11Copy)
+							{
+								ID3D11Resource* pcResource = nullptr;
+								(*m_ppcTexView11[0])->GetResource(&pcResource);
+								if (pcResource)
+								{
+									// get the description and create the copy texture
+									D3D11_TEXTURE2D_DESC sDesc;
+									((ID3D11Texture2D*)pcResource)->GetDesc(&sDesc);
+									pcResource->Release();
+
+									sDesc.BindFlags |= D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+									if (FAILED(pcDevice->CreateTexture2D(&sDesc, NULL, (ID3D11Texture2D**)&m_pcTex11Copy)))
+									{
+										OutputDebugString(L"OpenVR : Failed to create overlay texture !");
+										return nullptr;
+									}
+									pcDevice->CreateRenderTargetView((ID3D11Resource*)m_pcTex11Copy, NULL, &m_pcTex11CopyRTV);
+								}
+							}
+
+
+							// set and clear render target
+							FLOAT afColorRgba[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+							pcContext->ClearRenderTargetView(m_pcTex11CopyRTV, afColorRgba);
+							pcContext->OMSetRenderTargets(1, &m_pcTex11CopyRTV, nullptr);
+
+							// set texture, sampler state
+							pcContext->PSSetShaderResources(0, 1, m_ppcTexView11[0]);
+							pcContext->PSSetSamplers(0, 1, &m_pcSamplerState);
+
+							// set shaders
+							pcContext->VSSetShader(m_pcVertexShader11, 0, 0);
+							pcContext->PSSetShader(m_pcPixelShader11, 0, 0);
+
+							// Render a triangle
+							pcContext->Draw(6, 0);
+
+							// fill openvr texture struct
+							vr::Texture_t sLeftEyeTexture = { (void*)m_pcTex11Copy, vr::API_DirectX, vr::ColorSpace_Gamma };
+							vr::VROverlay()->SetOverlayTexture(m_ulOverlayHandle, &sLeftEyeTexture);
 						}
 					}
 				}
