@@ -61,6 +61,9 @@ m_pcSwapChainTemporary(nullptr),
 m_pcBackBufferTemporary(nullptr),
 m_bInit(false),
 m_ppHMD(nullptr),
+m_ulOverlayHandle(0),
+m_ulOverlayThumbnailHandle(0),
+m_pcTexSkybox(nullptr),
 m_bHotkeySwitch(false),
 m_pbZoomOut(nullptr)
 {
@@ -307,62 +310,128 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 					return nullptr;
 				}
 
+				// create the overlay
+				vr::VROverlayError overlayError = vr::VROverlay()->CreateDashboardOverlay(OPENVR_OVERLAY_NAME, OPENVR_OVERLAY_FRIENDLY_NAME, &m_ulOverlayHandle, &m_ulOverlayThumbnailHandle);
+				if (overlayError != vr::VROverlayError_None)
+				{
+					OutputDebugString(L"OpenVR: Failed to create overlay.");
+					return nullptr;
+				}
+
+				// set overlay options
+				vr::VROverlay()->SetOverlayWidthInMeters(m_ulOverlayHandle, 3.0f);
+				vr::VROverlay()->SetOverlayInputMethod(m_ulOverlayHandle, vr::VROverlayInputMethod_Mouse);
+				vr::VROverlay()->SetOverlayAlpha(m_ulOverlayHandle, 1.0f);
+				vr::VROverlay()->SetOverlayColor(m_ulOverlayHandle, 1.0f, 1.0f, 1.0f);
+
+				// create (empty) skybox texture
+				if (!m_pcTexSkybox)
+				{
+					// fill desc
+					D3D11_TEXTURE2D_DESC sDesc;
+					ZeroMemory(&sDesc, sizeof(sDesc));
+					sDesc.Width = 16;
+					sDesc.Height = 16;
+					sDesc.MipLevels = 1;
+					sDesc.ArraySize = 1;
+					sDesc.Format = DXGI_FORMAT_R8G8B8A8_UINT;
+					sDesc.SampleDesc.Count = 1;
+					sDesc.Usage = D3D11_USAGE_IMMUTABLE;
+					sDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+					sDesc.CPUAccessFlags = 0;
+					sDesc.MiscFlags = 0;
+
+					//// Create the step count texture
+					//char szNull[16*16*4];
+					//ZeroMemory(&szNull[0], 16*16*4);
+					//D3D11_SUBRESOURCE_DATA sData;
+					//sData.pSysMem = szNull;
+					//sData.SysMemPitch = 16*4;
+					//pcDevice->CreateTexture2D(&sDesc, &sData, &m_pcTexSkybox);
+				}
+
 				m_bInit = true;
 #pragma endregion
 			}
 			else
 			if (vr::VRCompositor()->CanRenderScene())
 			{
-#pragma region Render
-
-				// call WaitGetPoses here to get the scene focus
-				vr::VRCompositor()->WaitGetPoses(m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount, NULL, 0);
-
-				// texture connected ?
-				if ((m_ppcTexView11[0]) && (*m_ppcTexView11[0]))
+#pragma region Render overlay
+				if (vr::VROverlay() && vr::VROverlay()->IsOverlayVisible(m_ulOverlayHandle))
 				{
-					ID3D11Resource* pcResource = nullptr;
-					(*m_ppcTexView11[0])->GetResource(&pcResource);
-					if (pcResource)
+					// texture connected ?
+					if ((m_ppcTexView11[0]) && (*m_ppcTexView11[0]))
 					{
-						// fill openvr texture struct
-						vr::Texture_t sLeftEyeTexture = { (void*)pcResource, vr::API_DirectX, vr::ColorSpace_Gamma };
+						ID3D11Resource* pcResource = nullptr;
+						(*m_ppcTexView11[0])->GetResource(&pcResource);
+						if (pcResource)
+						{
+							// fill openvr texture struct
+							vr::Texture_t sLeftEyeTexture = { (void*)pcResource, vr::API_DirectX, vr::ColorSpace_Gamma };
+							vr::VROverlay()->SetOverlayTexture(m_ulOverlayHandle, &sLeftEyeTexture);
 
-						// adjust aspect ratio
-						vr::VRTextureBounds_t sBounds;
-						sBounds.uMin = fHorizontalRatioCorrectionLeft + fHorizontalOffsetCorrectionLeft;
-						sBounds.uMax = 1.0f - fHorizontalRatioCorrectionLeft + fHorizontalOffsetCorrectionLeft;
-						sBounds.vMin = 0.f;
-						sBounds.vMax = 1.f;
-						
-						// submit left texture
-						vr::VRCompositor()->Submit(vr::Eye_Left, &sLeftEyeTexture, &sBounds);
-
-						pcResource->Release();
+							// set skybox
+							/*vr::Texture_t sSky = { (void*)m_pcTexSkybox, vr::API_DirectX, vr::ColorSpace_Gamma };
+							vr::VRCompositor()->SetSkyboxOverride(&sSky, 1);*/
+							
+							pcResource->Release();
+						}
 					}
 				}
-
-				// texture connected ?
-				if ((m_ppcTexView11[1]) && (*m_ppcTexView11[1]))
+#pragma endregion
+#pragma region Render
+				else
+				if (!vr::VROverlay()->IsDashboardVisible())
 				{
-					ID3D11Resource* pcResource = nullptr;
-					(*m_ppcTexView11[1])->GetResource(&pcResource);
-					if (pcResource)
+					// call WaitGetPoses here to get the scene focus
+					vr::VRCompositor()->WaitGetPoses(m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount, NULL, 0);
+
+					// texture connected ?
+					if ((m_ppcTexView11[0]) && (*m_ppcTexView11[0]))
 					{
-						// fill openvr texture struct
-						vr::Texture_t sRightEyeTexture = { (void*)pcResource, vr::API_DirectX, vr::ColorSpace_Gamma };
+						ID3D11Resource* pcResource = nullptr;
+						(*m_ppcTexView11[0])->GetResource(&pcResource);
+						if (pcResource)
+						{
+							// fill openvr texture struct
+							vr::Texture_t sLeftEyeTexture = { (void*)pcResource, vr::API_DirectX, vr::ColorSpace_Gamma };
 
-						// adjust aspect ratio
-						vr::VRTextureBounds_t sBounds;
-						sBounds.uMin = fHorizontalRatioCorrectionRight + fHorizontalOffsetCorrectionRight;
-						sBounds.uMax = 1.0f - fHorizontalRatioCorrectionRight + fHorizontalOffsetCorrectionRight;
-						sBounds.vMin = 0.f;
-						sBounds.vMax = 1.f;
+							// adjust aspect ratio
+							vr::VRTextureBounds_t sBounds;
+							sBounds.uMin = fHorizontalRatioCorrectionLeft + fHorizontalOffsetCorrectionLeft;
+							sBounds.uMax = 1.0f - fHorizontalRatioCorrectionLeft + fHorizontalOffsetCorrectionLeft;
+							sBounds.vMin = 0.f;
+							sBounds.vMax = 1.f;
 
-						// submit right texture
-						vr::VRCompositor()->Submit(vr::Eye_Right, &sRightEyeTexture, &sBounds);
+							// submit left texture
+							vr::VRCompositor()->Submit(vr::Eye_Left, &sLeftEyeTexture, &sBounds);
 
-						pcResource->Release();
+							pcResource->Release();
+						}
+					}
+
+					// texture connected ?
+					if ((m_ppcTexView11[1]) && (*m_ppcTexView11[1]))
+					{
+						ID3D11Resource* pcResource = nullptr;
+						(*m_ppcTexView11[1])->GetResource(&pcResource);
+						if (pcResource)
+						{
+							// fill openvr texture struct
+							vr::Texture_t sRightEyeTexture = { (void*)pcResource, vr::API_DirectX, vr::ColorSpace_Gamma };
+
+							// adjust aspect ratio
+							vr::VRTextureBounds_t sBounds;
+							sBounds.uMin = fHorizontalRatioCorrectionRight + fHorizontalOffsetCorrectionRight;
+							sBounds.uMax = 1.0f - fHorizontalRatioCorrectionRight + fHorizontalOffsetCorrectionRight;
+							sBounds.vMin = 0.f;
+							sBounds.vMax = 1.f;
+
+							// submit right texture
+							vr::VRCompositor()->Submit(vr::Eye_Right, &sRightEyeTexture, &sBounds);
+
+							pcResource->Release();
+						}
 					}
 				}
 #pragma endregion

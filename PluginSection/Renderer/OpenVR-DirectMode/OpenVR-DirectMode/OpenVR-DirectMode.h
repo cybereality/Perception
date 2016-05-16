@@ -74,6 +74,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define NUMBER_OF_DECOMMANDERS                         8
 
+#define OPENVR_OVERLAY_NAME                            "key.MTBS3D"
+#define OPENVR_OVERLAY_FRIENDLY_NAME                   "MTBS3D"
+
 /**
 * Node Decommander Enumeration.
 ***/
@@ -151,6 +154,14 @@ private:
 	***/
 	vr::TrackedDevicePose_t m_rTrackedDevicePose[vr::k_unMaxTrackedDeviceCount];
 	/**
+	* The overlay handle.
+	***/
+	vr::VROverlayHandle_t m_ulOverlayHandle;
+	/**
+	* The overlay thumbnail handle.
+	***/
+	vr::VROverlayHandle_t m_ulOverlayThumbnailHandle;
+	/**
 	* Hotkey switch.
 	***/
 	bool m_bHotkeySwitch;
@@ -183,6 +194,10 @@ private:
 	* Basic sampler state.
 	***/
 	ID3D11SamplerState* m_pcSamplerState;
+	/**
+	* Skybox texture.
+	***/
+	ID3D11Texture2D* m_pcTexSkybox;
 };
 
 /**
