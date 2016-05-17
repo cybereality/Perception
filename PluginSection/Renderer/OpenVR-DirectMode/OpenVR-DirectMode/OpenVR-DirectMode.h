@@ -124,19 +124,6 @@ private:
 	* Temporary directx 11 device context for OpenVR.
 	***/
 	ID3D11DeviceContext* m_pcContextTemporary;
-	///**
-	//* Temporary directx 11 dxgi swapchain for OpenVR.
-	//* (keep that one for the mirror texture)
-	//***/
-	//IDXGISwapChain* m_pcSwapChainTemporary;
-	///**
-	//* Temporary directx 11 back buffer for OpenVR.
-	//***/
-	//ID3D11Texture2D* m_pcBackBufferTemporary;
-	///**
-	//* Temporary directx 11 back buffer render target view for OpenVR.
-	//***/
-	//ID3D11RenderTargetView * m_pcBackBufferRTVTemporary;
 	/**
 	* Stereo Textures input. (DX11)
 	***/
@@ -197,23 +184,19 @@ private:
 	/**
 	* Drawing texture (created by game device).
 	***/
-	ID3D11Texture2D* m_pcTex11Draw;
+	ID3D11Texture2D* m_pcTex11Draw[2];
 	/**
 	* Drawing texture view (created by game device).
 	***/
-	ID3D11RenderTargetView* m_pcTex11DrawRTV;
+	ID3D11RenderTargetView* m_pcTex11DrawRTV[2];
 	/**
 	* Copy texture shared (created by game device).
 	***/
-	ID3D11Texture2D* m_pcTex11Copy;
+	ID3D11Texture2D* m_pcTex11Copy[2];
 	/**
 	* Shared texture (created by temporary device 1.1)
 	***/
-	ID3D11Texture2D* m_pcTex11Shared;
-	/**
-	* Shared texture shader resource view (created by temporary device 1.1)
-	***/
-	ID3D11ShaderResourceView* m_pcTex11SharedSRV;
+	ID3D11Texture2D* m_pcTex11Shared[2];
 };
 
 /**

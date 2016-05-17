@@ -104,7 +104,7 @@ HRESULT CreateCopyTexture(ID3D11Device* pcDevice, ID3D11Device* pcDeviceTemporar
 		}
 		else OutputDebugString(L"Failed to query IDXGIResource.");
 
-		// open the shared handle with the temporary device
+		// open the shared handle with the TEMPORARY (!) device
 		ID3D11Resource* pcResourceShared;
 		pcDeviceTemporary->OpenSharedResource(sharedHandle, __uuidof(ID3D11Resource), (void**)(&pcResourceShared));
 		if (pcResourceShared)
@@ -122,28 +122,23 @@ HRESULT CreateCopyTexture(ID3D11Device* pcDevice, ID3D11Device* pcDeviceTemporar
 OpenVR_DirectMode::OpenVR_DirectMode() : AQU_Nodus(),
 m_pcDeviceTemporary(nullptr),
 m_pcContextTemporary(nullptr),
-//m_pcSwapChainTemporary(nullptr),
-//m_pcBackBufferTemporary(nullptr),
 m_bInit(false),
 m_ppHMD(nullptr),
 m_ulOverlayHandle(0),
 m_ulOverlayThumbnailHandle(0),
-m_pcTex11Copy(nullptr),
-m_pcTex11Draw(nullptr),
-m_pcTex11DrawRTV(nullptr),
-m_pcTex11Shared(nullptr),
 m_bHotkeySwitch(false),
 m_pbZoomOut(nullptr)
 {
 	m_ppcTexView11[0] = nullptr;
 	m_ppcTexView11[1] = nullptr;
-	/*m_pcTex11Copy[0] = nullptr;
-	m_pcTex11Copy[1] = nullptr;*/
-
-	/*m_pcFrameTexture[0] = nullptr;
-	m_pcFrameTexture[1] = nullptr;
-	m_pcFrameTextureSRView[0] = nullptr;
-	m_pcFrameTextureSRView[1] = nullptr;*/
+	m_pcTex11Copy[0] = nullptr;
+	m_pcTex11Copy[1] = nullptr;
+	m_pcTex11Draw[0] = nullptr;
+	m_pcTex11Draw[1] = nullptr;
+	m_pcTex11DrawRTV[0] = nullptr;
+	m_pcTex11DrawRTV[1] = nullptr;
+	m_pcTex11Shared[0] = nullptr;
+	m_pcTex11Shared[1] = nullptr;
 
 	m_pcVertexShader11 = nullptr;
 	m_pcPixelShader11 = nullptr;
@@ -162,10 +157,14 @@ OpenVR_DirectMode::~OpenVR_DirectMode()
 	if (m_pcContextTemporary) m_pcContextTemporary->Release();
 	if (m_pcDeviceTemporary) m_pcDeviceTemporary->Release();
 
-	if (m_pcTex11Copy) m_pcTex11Copy->Release();
-	if (m_pcTex11Draw) m_pcTex11Draw->Release();
-	if (m_pcTex11DrawRTV) m_pcTex11DrawRTV->Release();
-	if (m_pcTex11Shared) m_pcTex11Shared->Release();
+	if (m_pcTex11Copy[0]) m_pcTex11Copy[0]->Release();
+	if (m_pcTex11Copy[1]) m_pcTex11Copy[1]->Release();
+	if (m_pcTex11Draw[0]) m_pcTex11Draw[0]->Release();
+	if (m_pcTex11Draw[1]) m_pcTex11Draw[1]->Release();
+	if (m_pcTex11DrawRTV[0]) m_pcTex11DrawRTV[0]->Release();
+	if (m_pcTex11DrawRTV[1]) m_pcTex11DrawRTV[1]->Release();
+	if (m_pcTex11Shared[0]) m_pcTex11Shared[0]->Release();
+	if (m_pcTex11Shared[1]) m_pcTex11Shared[1]->Release();
 }
 
 /**
@@ -288,6 +287,7 @@ bool OpenVR_DirectMode::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, in
 ***/
 void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)
 {
+	// aspect ratio static fields
 	static float fAspectRatio = 1.0f;
 	static float bAspectRatio = false;
 	static float fHorizontalRatioCorrectionLeft = 0.0f, fHorizontalRatioCorrectionRight = 0.0f;
@@ -304,12 +304,14 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 	return nullptr;
 	}*/
 
-	// calculate aspect ratio + offset correction
+#pragma region aspect ratio / separation offset
+	// calculate aspect ratio + offset correction..for OpenVR we need to set UV coords as aspect ratio
 	if (!bAspectRatio)
 	{
 		// texture connected ?
 		if ((m_ppcTexView11[0]) && (*m_ppcTexView11[0]))
 		{
+			// get the resource
 			ID3D11Resource* pcResource = nullptr;
 			(*m_ppcTexView11[0])->GetResource(&pcResource);
 			if (pcResource)
@@ -345,6 +347,7 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 			}
 		}
 	}
+#pragma endregion
 
 	// cast swapchain
 	IDXGISwapChain* pcSwapChain = (IDXGISwapChain*)pThis;
@@ -377,38 +380,42 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 			if (!m_bInit)
 			{
 #pragma region Init
-				// create temporary device
-				IDXGIFactory * DXGIFactory;
-				IDXGIAdapter * Adapter;
-				if (FAILED(CreateDXGIFactory1(__uuidof(IDXGIFactory), (void**)(&DXGIFactory))))
-					return(false);
-				if (FAILED(DXGIFactory->EnumAdapters(0, &Adapter)))
-					return(false);
-				if (FAILED(D3D11CreateDevice(Adapter, Adapter ? D3D_DRIVER_TYPE_UNKNOWN : D3D_DRIVER_TYPE_HARDWARE,
-					NULL, 0, NULL, 0, D3D11_SDK_VERSION, &m_pcDeviceTemporary, NULL, &m_pcContextTemporary)))
-					return(false);
-				DXGIFactory->Release();
-
-				// Set max frame latency to 1
-				IDXGIDevice1* DXGIDevice1 = NULL;
-				HRESULT hr = m_pcDeviceTemporary->QueryInterface(__uuidof(IDXGIDevice1), (void**)&DXGIDevice1);
-				if (FAILED(hr) | (DXGIDevice1 == NULL))
+				if (!m_pcDeviceTemporary)
 				{
-					pcSwapChain->Release();
-					pcDevice->Release();
-					pcContext->Release();
-					return nullptr;
-				}
-				DXGIDevice1->SetMaximumFrameLatency(1);
-				DXGIDevice1->Release();
+					// create temporary device
+					IDXGIFactory * DXGIFactory;
+					IDXGIAdapter * Adapter;
+					if (FAILED(CreateDXGIFactory1(__uuidof(IDXGIFactory), (void**)(&DXGIFactory))))
+						return(false);
+					if (FAILED(DXGIFactory->EnumAdapters(0, &Adapter)))
+						return(false);
+					if (FAILED(D3D11CreateDevice(Adapter, Adapter ? D3D_DRIVER_TYPE_UNKNOWN : D3D_DRIVER_TYPE_HARDWARE,
+						NULL, 0, NULL, 0, D3D11_SDK_VERSION, &m_pcDeviceTemporary, NULL, &m_pcContextTemporary)))
+						return(false);
+					DXGIFactory->Release();
 
+					// Set max frame latency to 1
+					IDXGIDevice1* DXGIDevice1 = NULL;
+					HRESULT hr = m_pcDeviceTemporary->QueryInterface(__uuidof(IDXGIDevice1), (void**)&DXGIDevice1);
+					if (FAILED(hr) | (DXGIDevice1 == NULL))
+					{
+						pcSwapChain->Release();
+						pcDevice->Release();
+						pcContext->Release();
+						return nullptr;
+					}
+					DXGIDevice1->SetMaximumFrameLatency(1);
+					DXGIDevice1->Release();
+				}
+
+				// is the OpenVR compositor present ?
 				if (!vr::VRCompositor())
 				{
 					OutputDebugString(L"OpenVR: Compositor initialization failed.\n");
 					return nullptr;
 				}
 
-				// create the overlay
+				// create the dashboard overlay
 				vr::VROverlayError overlayError = vr::VROverlay()->CreateDashboardOverlay(OPENVR_OVERLAY_NAME, OPENVR_OVERLAY_FRIENDLY_NAME, &m_ulOverlayHandle, &m_ulOverlayThumbnailHandle);
 				if (overlayError != vr::VROverlayError_None)
 				{
@@ -478,7 +485,8 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 					}
 
 					// texture connected ?
-					if ((m_ppcTexView11[0]) && (*m_ppcTexView11[0]))
+					int nEye = 0;
+					if ((m_ppcTexView11[nEye]) && (*m_ppcTexView11[nEye]))
 					{
 						// Set the input layout
 						pcContext->IASetInputLayout(m_pcVertexLayout11);
@@ -500,19 +508,19 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 						if (bAllCreated)
 						{
 
-							if (!m_pcTex11Copy)
+							if (!m_pcTex11Copy[nEye])
 							{
-								if (FAILED(CreateCopyTexture(pcDevice, m_pcDeviceTemporary, *m_ppcTexView11[0], &m_pcTex11Copy, &m_pcTex11Draw, &m_pcTex11DrawRTV, &m_pcTex11Shared)))
+								if (FAILED(CreateCopyTexture(pcDevice, m_pcDeviceTemporary, *m_ppcTexView11[nEye], &m_pcTex11Copy[nEye], &m_pcTex11Draw[nEye], &m_pcTex11DrawRTV[nEye], &m_pcTex11Shared[nEye])))
 									return nullptr;
 							}
 
 							// set and clear render target
 							FLOAT afColorRgba[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
-							pcContext->ClearRenderTargetView(m_pcTex11DrawRTV, afColorRgba);
-							pcContext->OMSetRenderTargets(1, &m_pcTex11DrawRTV, nullptr);
+							pcContext->ClearRenderTargetView(m_pcTex11DrawRTV[nEye], afColorRgba);
+							pcContext->OMSetRenderTargets(1, &m_pcTex11DrawRTV[nEye], nullptr);
 
 							// set texture, sampler state
-							pcContext->PSSetShaderResources(0, 1, m_ppcTexView11[0]);
+							pcContext->PSSetShaderResources(0, 1, m_ppcTexView11[nEye]);
 							pcContext->PSSetSamplers(0, 1, &m_pcSamplerState);
 
 							// set shaders
@@ -523,11 +531,11 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 							pcContext->Draw(6, 0);
 
 							// copy to copy texture
-							pcContext->CopyResource(m_pcTex11Copy, m_pcTex11Draw);
+							pcContext->CopyResource(m_pcTex11Copy[nEye], m_pcTex11Draw[nEye]);
 
-							// get shared handle
+							// get shared handle.. for the Overlay we CANNOT use m_pcTex11Shared for some reason !!
 							IDXGIResource* pcDXGIResource(NULL);
-							m_pcTex11Copy->QueryInterface(__uuidof(IDXGIResource), (void**)&pcDXGIResource);
+							m_pcTex11Copy[nEye]->QueryInterface(__uuidof(IDXGIResource), (void**)&pcDXGIResource);
 							HANDLE sharedHandle;
 							if (pcDXGIResource)
 							{
@@ -541,8 +549,8 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 							if (pcResourceShared)
 							{
 								// fill openvr texture struct
-								vr::Texture_t sLeftEyeTexture = { (void*)pcResourceShared, vr::API_DirectX, vr::ColorSpace_Gamma };
-								vr::VROverlay()->SetOverlayTexture(m_ulOverlayHandle, &sLeftEyeTexture);
+								vr::Texture_t sTexture = { (void*)pcResourceShared, vr::API_DirectX, vr::ColorSpace_Gamma };
+								vr::VROverlay()->SetOverlayTexture(m_ulOverlayHandle, &sTexture);
 								pcResourceShared->Release();
 							}
 
@@ -557,68 +565,51 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 					// call WaitGetPoses here to get the scene focus
 					vr::VRCompositor()->WaitGetPoses(m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount, NULL, 0);
 
-					// texture connected ?
-					if ((m_ppcTexView11[0]) && (*m_ppcTexView11[0]))
+					// left + right
+					for (int nEye = 0; nEye < 2; nEye++)
 					{
-						if (!m_pcTex11Copy)
+						// texture connected ?
+						if ((m_ppcTexView11[nEye]) && (*m_ppcTexView11[nEye]))
 						{
-							if (FAILED(CreateCopyTexture(pcDevice, m_pcDeviceTemporary, *m_ppcTexView11[0], &m_pcTex11Copy, &m_pcTex11Draw, &m_pcTex11DrawRTV, &m_pcTex11Shared)))
-								return nullptr;
-						}
+							// are all textures created ?
+							if (!m_pcTex11Copy[nEye])
+							{
+								if (FAILED(CreateCopyTexture(pcDevice, m_pcDeviceTemporary, *m_ppcTexView11[nEye], &m_pcTex11Copy[nEye], &m_pcTex11Draw[nEye], &m_pcTex11DrawRTV[nEye], &m_pcTex11Shared[nEye])))
+									return nullptr;
+							}
 
-						ID3D11Resource* pcResource = nullptr;
-						(*m_ppcTexView11[0])->GetResource(&pcResource);
-						if (pcResource)
-						{
-							// copy resource
-							pcContext->CopyResource(m_pcTex11Copy, pcResource);
-							pcResource->Release();
+							// get the left game image texture resource
+							ID3D11Resource* pcResource = nullptr;
+							(*m_ppcTexView11[nEye])->GetResource(&pcResource);
+							if (pcResource)
+							{
+								// copy resource
+								pcContext->CopyResource(m_pcTex11Copy[nEye], pcResource);
+								pcResource->Release();
 
-							// fill openvr texture struct
-							vr::Texture_t sLeftEyeTexture = { (void*)m_pcTex11Shared, vr::API_DirectX, vr::ColorSpace_Gamma };
+								// fill openvr texture struct
+								vr::Texture_t sTexture = { (void*)m_pcTex11Shared[nEye], vr::API_DirectX, vr::ColorSpace_Gamma };
 
-							// adjust aspect ratio
-							vr::VRTextureBounds_t sBounds;
-							sBounds.uMin = fHorizontalRatioCorrectionLeft + fHorizontalOffsetCorrectionLeft;
-							sBounds.uMax = 1.0f - fHorizontalRatioCorrectionLeft + fHorizontalOffsetCorrectionLeft;
-							sBounds.vMin = 0.f;
-							sBounds.vMax = 1.f;
+								// adjust aspect ratio
+								vr::VRTextureBounds_t sBounds;
+								if (nEye == (int)vr::Eye_Left)
+								{
+									sBounds.uMin = fHorizontalRatioCorrectionLeft + fHorizontalOffsetCorrectionLeft;
+									sBounds.uMax = 1.0f - fHorizontalRatioCorrectionLeft + fHorizontalOffsetCorrectionLeft;
+								}
+								else
+								{
+									sBounds.uMin = fHorizontalRatioCorrectionRight + fHorizontalOffsetCorrectionRight;
+									sBounds.uMax = 1.0f - fHorizontalRatioCorrectionRight + fHorizontalOffsetCorrectionRight;
+								}
+								sBounds.vMin = 0.f;
+								sBounds.vMax = 1.f;
 
-							// submit left texture
-							vr::EVRCompositorError eError = vr::VRCompositor()->Submit(vr::Eye_Left, &sLeftEyeTexture, &sBounds);
-							DEBUG_UINT(eError);
-						}
-					}
-
-					// texture connected ?
-					if ((m_ppcTexView11[1]) && (*m_ppcTexView11[1]))
-					{
-						if (!m_pcTex11Copy)
-						{
-							if (FAILED(CreateCopyTexture(pcDevice, m_pcDeviceTemporary, *m_ppcTexView11[0], &m_pcTex11Copy, &m_pcTex11Draw, &m_pcTex11DrawRTV, &m_pcTex11Shared)))
-								return nullptr;
-						}
-
-						ID3D11Resource* pcResource = nullptr;
-						(*m_ppcTexView11[1])->GetResource(&pcResource);
-						if (pcResource)
-						{
-							// copy resource
-							pcContext->CopyResource(m_pcTex11Copy, pcResource);
-							pcResource->Release();
-
-							// fill openvr texture struct
-							vr::Texture_t sRightEyeTexture = { (void*)m_pcTex11Shared, vr::API_DirectX, vr::ColorSpace_Gamma };
-
-							// adjust aspect ratio
-							vr::VRTextureBounds_t sBounds;
-							sBounds.uMin = fHorizontalRatioCorrectionRight + fHorizontalOffsetCorrectionRight;
-							sBounds.uMax = 1.0f - fHorizontalRatioCorrectionRight + fHorizontalOffsetCorrectionRight;
-							sBounds.vMin = 0.f;
-							sBounds.vMax = 1.f;
-
-							// submit right texture
-							vr::VRCompositor()->Submit(vr::Eye_Right, &sRightEyeTexture, &sBounds);
+								// submit left texture
+								/*vr::EVRCompositorError eError =*/
+								vr::VRCompositor()->Submit((vr::EVREye)nEye, &sTexture, &sBounds);
+								/*DEBUG_UINT(eError);*/
+							}
 						}
 					}
 				}
