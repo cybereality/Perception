@@ -122,7 +122,8 @@ m_asConstantRules(),
 m_adwGlobalConstantRuleIndices(),
 m_asShaderSpecificRuleIndices(),
 m_aasConstantBufferRuleIndices(),
-m_dwCurrentChosenShaderHashCode(0)
+m_dwCurrentChosenShaderHashCode(0),
+m_bSwitchRenderTarget(FALSE)
 {
 	// create a new HRESULT pointer
 	m_pvReturn = (void*)new HRESULT();
@@ -560,6 +561,8 @@ LPWSTR MatrixModifier::GetCommanderName(DWORD dwCommanderIndex)
 			return L"Pixel Shader Data Array";
 		case ViewAdjustments:
 			return L"View Adjustments";
+		case SwitchRenderTarget:
+			return L"Switch Render Target";
 		default:
 			break;
 	}
@@ -762,6 +765,8 @@ DWORD MatrixModifier::GetCommanderType(DWORD dwCommanderIndex)
 			return NOD_Plugtype::AQU_VOID;
 		case ViewAdjustments:
 			return NOD_Plugtype::AQU_SHAREDPOINTER;
+		case SwitchRenderTarget:
+			return NOD_Plugtype::AQU_INT;
 		default:
 			break;
 	}
@@ -957,6 +962,8 @@ void* MatrixModifier::GetOutputPointer(DWORD dwCommanderIndex)
 			return (void*)&m_asPShaders;
 		case ViewAdjustments:
 			return (void*)&m_pcShaderViewAdjustment;
+		case SwitchRenderTarget:
+			return (void*)&m_bSwitchRenderTarget;
 		default:
 			break;
 	}
@@ -1603,15 +1610,27 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 							VerifyConstantBuffer(m_apcVSActiveConstantBuffers11[dwIndex], dwIndex);
 						}
 
+						// get the current shader hash
+						Vireio_Shader_Private_Data sPrivateData;
+						UINT dwDataSize = sizeof(sPrivateData);
+						if (m_pcActiveVertexShader11)
+							m_pcActiveVertexShader11->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
+
+						/*
+						// switch render targets
+						if ((sPrivateData.dwHash == 1682247001))
+						{
+						// switch render targets to temporary
+						m_bSwitchRenderTarget = true;
+
+						((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(NULL, nullptr, nullptr);
+						}
+						else m_bSwitchRenderTarget = false;
+						*/
+
 						// currently chosen ?
 						if ((m_dwCurrentChosenShaderHashCode) && (m_eChosenShaderType == Vireio_Supported_Shaders::VertexShader))
 						{
-							// get the current shader hash
-							Vireio_Shader_Private_Data sPrivateData;
-							UINT dwDataSize = sizeof(sPrivateData);
-							if (m_pcActiveVertexShader11)
-								m_pcActiveVertexShader11->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
-
 							// set null shader if hash matches
 							if (m_dwCurrentChosenShaderHashCode == sPrivateData.dwHash)
 							{

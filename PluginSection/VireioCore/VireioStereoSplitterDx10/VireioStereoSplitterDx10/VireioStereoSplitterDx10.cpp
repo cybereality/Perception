@@ -61,6 +61,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define METHOD_ID3D10DEVICE_OMGETRENDERTARGETS                               56
 #define METHOD_ID3D10DEVICE_CLEARSTATE                                       69
 #define METHOD_ID3D11DEVICECONTEXT_PSSETSHADERRESOURCES                       8
+#define METHOD_ID3D11DEVICECONTEXT_VSSETSHADER                               11
 #define METHOD_ID3D11DEVICECONTEXT_DRAWINDEXED                               12
 #define METHOD_ID3D11DEVICECONTEXT_DRAW                                      13
 #define METHOD_ID3D11DEVICECONTEXT_MAP                                       14
@@ -128,7 +129,9 @@ m_dwVerifyConstantBuffers(0),
 m_ppcResource(nullptr),
 m_pdwSubresource(nullptr),
 m_ppcResource_Unmap(nullptr),
-m_pdwSubresource_Unmap(nullptr)
+m_pdwSubresource_Unmap(nullptr),
+m_pbSwitchRenderTarget(nullptr),
+m_bRenderTargetWasSwitched(false)
 {
 	m_pcTexView10[0] = nullptr;
 	m_pcTexView10[1] = nullptr;
@@ -401,6 +404,8 @@ LPWSTR StereoSplitter::GetDecommanderName(DWORD dwDecommanderIndex)
 			return L"PS Constant Buffers DX11";
 		case dwVerifyConstantBuffers:
 			return L"Verify Constant Buffers";
+		case bSwitchRenderTargets:
+			return L"Switch Render Targets";
 		default:
 			break;
 	}
@@ -514,6 +519,8 @@ DWORD StereoSplitter::GetDecommanderType(DWORD dwDecommanderIndex)
 			return NOD_Plugtype::AQU_PPNT_ID3D11BUFFER;
 		case dwVerifyConstantBuffers:
 			return NOD_Plugtype::AQU_UINT;
+		case bSwitchRenderTargets:
+			return NOD_Plugtype::AQU_INT;
 		default:
 			break;
 	}
@@ -699,6 +706,10 @@ void StereoSplitter::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 			break;
 		case dwVerifyConstantBuffers:
 			m_pdwVerifyConstantBuffers = (UINT*)pData;
+			break;
+		case bSwitchRenderTargets:
+			m_pbSwitchRenderTarget = (BOOL*)pData;
+			break;
 		default:
 			break;
 	}
@@ -721,6 +732,7 @@ bool StereoSplitter::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 		{
 			if ((nD3DMethod == METHOD_ID3D11DEVICECONTEXT_OMSETRENDERTARGETS) ||
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_PSSETSHADERRESOURCES) ||
+				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_VSSETSHADER) ||
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_DRAWINDEXED) ||
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_DRAW) ||
 				(nD3DMethod == METHOD_ID3D11DEVICECONTEXT_DRAWINDEXEDINSTANCED) ||
@@ -830,6 +842,22 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 					// method replaced, immediately return
 					nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+					return nullptr;
+#pragma endregion
+#pragma region VSSETSHADER
+				case METHOD_ID3D11DEVICECONTEXT_VSSETSHADER:
+					if ((m_bRenderTargetWasSwitched) && (m_pbSwitchRenderTarget))
+					{
+						if (!(*m_pbSwitchRenderTarget))
+						{
+							// restore render targets
+							if (m_eCurrentRenderingSide == RenderPosition::Left)
+								((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(*m_pdwNumViews, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews[0], (ID3D11DepthStencilView*)m_pcActiveDepthStencilView);
+							else
+								((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(*m_pdwNumViews, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews[D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT], (ID3D11DepthStencilView*)m_pcActiveStereoTwinDepthStencilView);
+						}
+					}
+
 					return nullptr;
 #pragma endregion
 #pragma region DRAWINDEXED
@@ -994,6 +1022,20 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						// call intern method
 						OMSetRenderTargets((IUnknown*)pThis, *m_pdwNumViews, *m_pppcRenderTargetViews_DX11, *m_ppcDepthStencilView_DX11);
 
+						// switch render targets ?
+						if (m_pbSwitchRenderTarget)
+						{
+							if (*m_pbSwitchRenderTarget)
+							{
+								m_bRenderTargetWasSwitched = true;
+
+								// method replaced, immediately return
+								nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+								return nullptr;
+							}
+						}
+						m_bRenderTargetWasSwitched = false;
+
 						// switch render targets to new side
 						if (m_eCurrentRenderingSide == RenderPosition::Left)
 							((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(*m_pdwNumViews, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews[0], (ID3D11DepthStencilView*)m_pcActiveDepthStencilView);
@@ -1024,6 +1066,24 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						// call internal methods
 						OMSetRenderTargets((IUnknown*)pThis, *m_pdwNumRTVs, *m_pppcRenderTargetViewsUAV_DX11, *m_ppcDepthStencilViewUAV_DX11);
 						CSSetUnorderedAccessViews((ID3D11DeviceContext*)pThis, *m_pdwUAVStartSlot, *m_pdwNumUAVs, *m_pppcUnorderedAccessViews, *m_ppdwUAVInitialCounts);
+
+						// switch render targets ?
+						if (m_pbSwitchRenderTarget)
+						{
+							if (*m_pbSwitchRenderTarget)
+							{
+
+								m_bRenderTargetWasSwitched = true;
+
+								// only set UAVs here
+								((ID3D11DeviceContext*)pThis)->CSSetUnorderedAccessViews(*m_pdwUAVStartSlot, *m_pdwNumUAVs, *m_pppcUnorderedAccessViews, *m_ppdwUAVInitialCounts);
+
+								// method replaced, immediately return
+								nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+								return nullptr;
+							}
+						}
+						m_bRenderTargetWasSwitched = false;
 
 						// switch render targets to new side
 						if (m_eCurrentRenderingSide == RenderPosition::Left)
@@ -2108,7 +2168,7 @@ void StereoSplitter::CreateStereoView(ID3D11Device* pcDevice, ID3D11DeviceContex
 														   // get the description and create the twin texture
 														   D3D11_TEXTURE1D_DESC sDesc;
 														   ((ID3D11Texture1D*)pcResource)->GetDesc(&sDesc);
-														   
+
 														   if (FAILED(((ID3D11Device*)pcDevice)->CreateTexture1D(&sDesc, NULL, (ID3D11Texture1D**)&pcResourceTwin)))
 														   {
 															   OutputDebugString(L"StereoSplitterDX10 : Failed to create twin texture !");
@@ -2132,7 +2192,7 @@ void StereoSplitter::CreateStereoView(ID3D11Device* pcDevice, ID3D11DeviceContex
 														   // get the description and create the twin texture
 														   D3D11_TEXTURE2D_DESC sDesc;
 														   ((ID3D11Texture2D*)pcResource)->GetDesc(&sDesc);
-														   
+
 														   // handle sRGB formats : there was an error creating textures with one game... can't remember which one... hmm... this fixed it
 														   if (sDesc.Format == DXGI_FORMAT_R8G8B8A8_UNORM_SRGB)
 															   sDescRT11.Format = sDesc.Format;
@@ -2474,11 +2534,34 @@ bool StereoSplitter::SetDrawingSide(ID3D11DeviceContext* pcContext, RenderPositi
 	// things, as I have already managed twice.
 	SetDrawingSideField(eSide);
 
-	// switch render targets to new side
-	if (eSide == RenderPosition::Left)
-		pcContext->OMSetRenderTargets(m_dwRenderTargetNumber, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews[0], (ID3D11DepthStencilView*)m_pcActiveDepthStencilView);
+	// switch render targets ?
+	if (m_pbSwitchRenderTarget)
+	{
+		if (*m_pbSwitchRenderTarget)
+		{
+			m_bRenderTargetWasSwitched = true;
+		}
+		else
+		{
+			m_bRenderTargetWasSwitched = false;
+
+			// switch render targets to new side
+			if (eSide == RenderPosition::Left)
+				pcContext->OMSetRenderTargets(m_dwRenderTargetNumber, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews[0], (ID3D11DepthStencilView*)m_pcActiveDepthStencilView);
+			else
+				pcContext->OMSetRenderTargets(m_dwRenderTargetNumber, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews[D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT], (ID3D11DepthStencilView*)m_pcActiveStereoTwinDepthStencilView);
+		}
+	}
 	else
-		pcContext->OMSetRenderTargets(m_dwRenderTargetNumber, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews[D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT], (ID3D11DepthStencilView*)m_pcActiveStereoTwinDepthStencilView);
+	{
+		m_bRenderTargetWasSwitched = false;
+
+		// switch render targets to new side
+		if (eSide == RenderPosition::Left)
+			pcContext->OMSetRenderTargets(m_dwRenderTargetNumber, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews[0], (ID3D11DepthStencilView*)m_pcActiveDepthStencilView);
+		else
+			pcContext->OMSetRenderTargets(m_dwRenderTargetNumber, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews[D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT], (ID3D11DepthStencilView*)m_pcActiveStereoTwinDepthStencilView);
+	}
 
 	// switch textures to new side
 	if (eSide == RenderPosition::Left)

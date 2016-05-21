@@ -67,7 +67,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"..\..\VireioMatrixModifier\VireioMatrixModifier\VireioMatrixModifierDataStructures.h"
 
 #define NUMBER_OF_COMMANDERS                           2
-#define NUMBER_OF_DECOMMANDERS                         53
+#define NUMBER_OF_DECOMMANDERS                         54
 
 // enable for debug -> #define _DEBUG_VIREIO
 
@@ -152,6 +152,7 @@ enum STS_Decommanders
 	ppActiveConstantBuffers_DX11_PixelShader,              /**< Active D3D11 pixel shader constant buffers ***/
 	/*** Additional parameters ***/
 	dwVerifyConstantBuffers,                               /**< The number of frames the constant buffers are to be verified **/
+	bSwitchRenderTargets,                                  /**< Option to switch the render targets for game HUD or GUI ***/
 };
 
 /**
@@ -281,6 +282,7 @@ private:
 	ID3D11Buffer*** m_pppcConstantBuffers;
 
 	UINT* m_pdwVerifyConstantBuffers;                                 /** The number of frames the constant buffers are to be verified. ***/
+	INT* m_pbSwitchRenderTarget;                                      /** Option to switch the render target for HUD and GUI ***/
 
 	/**
 	* Active stored render target views.
@@ -458,6 +460,10 @@ private:
 	* A needless field of "-1" UINTs needed for CSSetUnorderedAccessViews.
 	***/
 	UINT m_aunMinusOne[D3D11_PS_CS_UAV_REGISTER_COUNT];
+	/**
+	* True if render target was switched.
+	***/
+	bool m_bRenderTargetWasSwitched;
 };
 
 /**

@@ -85,7 +85,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define METHOD_REPLACEMENT                         false                     /**< This node does NOT replace the D3D call (default) **/
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-#define NUMBER_OF_COMMANDERS                          13
+#define NUMBER_OF_COMMANDERS                          14
 #define NUMBER_OF_DECOMMANDERS                        53
 #define GUI_WIDTH                                   1024                      
 #define GUI_HEIGHT                                  5000               
@@ -126,6 +126,7 @@ enum STS_Commanders
 	asVShaderData,                                                          /**< The shader data vector. ***/
 	asPShaderData,                                                          /**< The shader data vector. ***/
 	ViewAdjustments,                                                        /**< Shared pointer to the view adjustment class. ***/
+	SwitchRenderTarget,                                                     /**< Option to switch the render target for the game HUD and GUI. ***/
 #elif defined(VIREIO_D3D9)
 #endif
 };
@@ -794,6 +795,10 @@ private:
 	* Data buffer to save this node.
 	***/
 	char m_acData[MAX_DATA_SIZE];
+	/**
+	* Option to switch the render target for game HUD and GUI.
+	***/
+	BOOL m_bSwitchRenderTarget;
 	
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	/**
