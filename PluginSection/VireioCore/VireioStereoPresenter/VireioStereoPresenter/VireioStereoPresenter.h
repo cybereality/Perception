@@ -81,7 +81,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"..\..\..\Include\Vireio_Node_Plugtypes.h"
 
 #define NUMBER_OF_COMMANDERS                           1
-#define NUMBER_OF_DECOMMANDERS                         29
+#define NUMBER_OF_DECOMMANDERS                         45
 
 /**
 * Node Commander Enumeration.
@@ -125,6 +125,22 @@ enum STP_Decommanders
 	FloatInput13,
 	FloatInput14,
 	FloatInput15,
+	IntInput00,
+	IntInput01,
+	IntInput02,
+	IntInput03,
+	IntInput04,
+	IntInput05,
+	IntInput06,
+	IntInput07,
+	IntInput08,
+	IntInput09,
+	IntInput10,
+	IntInput11,
+	IntInput12,
+	IntInput13,
+	IntInput14,
+	IntInput15,
 };
 
 /**
@@ -248,6 +264,10 @@ private:
 	* Float external menu data pointers.
 	***/
 	float* m_apfFloatInput[16];
+	/**
+	* Int external menu data pointers.
+	***/
+	int* m_apnIntInput[16];
 	/**
 	* The Menu bitmap.
 	***/

@@ -85,7 +85,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define METHOD_REPLACEMENT                         false                     /**< This node does NOT replace the D3D call (default) **/
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-#define NUMBER_OF_COMMANDERS                          14
+#define NUMBER_OF_COMMANDERS                          15
 #define NUMBER_OF_DECOMMANDERS                        53
 #define GUI_WIDTH                                   1024                      
 #define GUI_HEIGHT                                  5000               
@@ -127,6 +127,7 @@ enum STS_Commanders
 	asPShaderData,                                                          /**< The shader data vector. ***/
 	ViewAdjustments,                                                        /**< Shared pointer to the view adjustment class. ***/
 	SwitchRenderTarget,                                                     /**< Option to switch the render target for the game HUD and GUI. ***/
+	HudOperation,                                                           /**< True if any HUD operation is executed. ***/
 #elif defined(VIREIO_D3D9)
 #endif
 };
@@ -375,9 +376,12 @@ private:
 	void FillShaderRuleIndices();
 	void FillShaderRuleData(UINT dwRuleIndex);
 	void FillShaderRuleGeneralIndices();
-#if defined(VIREIO_D3D9)
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+	void FillFetchedHashCodeList();
+#else
 	void FillShaderRuleShaderIndices();
 #endif
+
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	/*** MatrixModifier input pointers ***/
@@ -605,6 +609,7 @@ private:
 		UINT m_dwCurrentBuffersizes;               /**< [List] : Contains all constant buffer sizes for the chosen vertex shader (ID) ***/
 		UINT m_dwToBufferSize;                     /**< [Button] : Activate to fill the buffer size control on the shader rule page (ID) ***/
 		UINT m_dwToBufferIndex;                    /**< [Button] : Activate to fill the buffer index control on the shader rule page (ID) ***/
+		UINT m_dwToFetchedList;                    /**< [Button] : Activate to fill the fetched shader hash code list on the shader rule page (ID) ***/
 		UINT m_dwShaderType;                       /**< [Spin] Currently chosen shader type (ID) ***/
 #endif
 	} m_sPageShader;
@@ -661,6 +666,8 @@ private:
 		UINT m_dwGeneralIndices;                    /**< [List] All general indices **/
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+		UINT m_dwFetchedShaderHashcodes;            /**< [List] All shader hash codes using the temporary render target (HUD/GUI) ***/
+
 		UINT m_dwConstantName;                      /**< [Switch] Shader constant name **/
 		UINT m_dwPartialName;                       /**< [Switch] Shader constant partial name **/
 		UINT m_dwBufferIndex;                       /**< [Switch] Buffer index **/
@@ -799,7 +806,11 @@ private:
 	* Option to switch the render target for game HUD and GUI.
 	***/
 	BOOL m_bSwitchRenderTarget;
-	
+	/**
+	* True if HUD operation (Viewport squish or Render Target switch) executed.
+	***/
+	BOOL m_bHudOperation;
+
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 	/**
 	* True if the buffer index sizes ar provided to the debug trace.
@@ -809,6 +820,16 @@ private:
 	* Vector helper for the buffer index debug output.
 	***/
 	std::vector<UINT> m_aunBufferIndexSizesDebug;
+	/**
+	* List of all fetched shader hash codes. (std::wstring).
+	* To be used on the shader rules page.
+	***/
+	std::vector<std::wstring> m_aszFetchedHashCodes;
+	/**
+	* List of all fetched shader hash codes. (UINT).
+	* To be used on the shader rules page.
+	***/
+	std::vector<UINT> m_aunFetchedHashCodes;
 #elif defined(VIREIO_D3D9)
 	/**
 	* List of all shaderrule indices for the currently chosen shader on the shaders page. (std::wstring).

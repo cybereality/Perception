@@ -123,7 +123,8 @@ m_adwGlobalConstantRuleIndices(),
 m_asShaderSpecificRuleIndices(),
 m_aasConstantBufferRuleIndices(),
 m_dwCurrentChosenShaderHashCode(0),
-m_bSwitchRenderTarget(FALSE)
+m_bSwitchRenderTarget(FALSE),
+m_bHudOperation(FALSE)
 {
 	// create a new HRESULT pointer
 	m_pvReturn = (void*)new HRESULT();
@@ -416,6 +417,13 @@ char* MatrixModifier::GetSaveData(UINT* pdwSizeOfData)
 	acStream.write((char*)&dwNumberOfIndices, sizeof(UINT));
 	acStream.write((char*)&m_adwGlobalConstantRuleIndices[0], sizeof(UINT)*dwNumberOfIndices);
 
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+	// fetched shader hash codes
+	UINT unNumberOfFetched = (UINT)m_aunFetchedHashCodes.size();
+	acStream.write((char*)&unNumberOfFetched, sizeof(UINT));
+	acStream.write((char*)&m_aunFetchedHashCodes[0], sizeof(UINT)*unNumberOfFetched);
+#endif
+
 	// set data size
 	UINT unDataSize = (UINT)acStream.str().size();
 	if (unDataSize > MAX_DATA_SIZE) unDataSize = 0;
@@ -504,11 +512,41 @@ void MatrixModifier::InitNodeData(char* pData, UINT dwSizeOfData)
 			}
 		}
 
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+		// fetched hash codes
+		if (dwSizeOfRules >= sizeof(UINT))
+		{
+			// get the number of rules
+			UINT unNumberOfFetched;
+			memcpy(&unNumberOfFetched, pData + dwDataOffset, sizeof(UINT));
+			dwDataOffset += sizeof(UINT);
+
+			// data size correct ?
+			dwSizeOfRules -= sizeof(UINT);
+			if (dwSizeOfRules >= (sizeof(UINT)* unNumberOfFetched))
+			{
+				// create the indices
+				for (UINT dwI = 0; dwI < unNumberOfFetched; dwI++)
+				{
+					// read normalized data block
+					UINT unHash;
+					memcpy(&unHash, pData + dwDataOffset, sizeof(UINT));
+					dwDataOffset += sizeof(UINT);
+
+					// add hash
+					m_aunFetchedHashCodes.push_back(unHash);
+
+					dwSizeOfRules -= sizeof(UINT);
+				}
+			}
+		}
+#endif
+
 		// fill the string list
 		FillShaderRuleIndices();
 		FillShaderRuleGeneralIndices();
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-
+		FillFetchedHashCodeList();
 #elif defined(VIREIO_D3D9)
 		FillShaderRuleShaderIndices();
 #endif
@@ -563,6 +601,8 @@ LPWSTR MatrixModifier::GetCommanderName(DWORD dwCommanderIndex)
 			return L"View Adjustments";
 		case SwitchRenderTarget:
 			return L"Switch Render Target";
+		case HudOperation:
+			return L"HUD Operation";
 		default:
 			break;
 	}
@@ -766,6 +806,7 @@ DWORD MatrixModifier::GetCommanderType(DWORD dwCommanderIndex)
 		case ViewAdjustments:
 			return NOD_Plugtype::AQU_SHAREDPOINTER;
 		case SwitchRenderTarget:
+		case HudOperation:
 			return NOD_Plugtype::AQU_INT;
 		default:
 			break;
@@ -964,6 +1005,8 @@ void* MatrixModifier::GetOutputPointer(DWORD dwCommanderIndex)
 			return (void*)&m_pcShaderViewAdjustment;
 		case SwitchRenderTarget:
 			return (void*)&m_bSwitchRenderTarget;
+		case HudOperation:
+			return (void*)&m_bHudOperation;
 		default:
 			break;
 	}
@@ -1616,17 +1659,25 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						if (m_pcActiveVertexShader11)
 							m_pcActiveVertexShader11->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
 
-						/*
-						// switch render targets
-						if ((sPrivateData.dwHash == 1682247001))
+						// any hud operation taking place ?
+						if (m_bHudOperation)
 						{
-						// switch render targets to temporary
-						m_bSwitchRenderTarget = true;
+							m_bSwitchRenderTarget = false;
 
-						((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(NULL, nullptr, nullptr);
+							// loop through fetched hash codes
+							for (UINT unI = 0; (UINT)unI < m_aunFetchedHashCodes.size(); unI++)
+							{
+								// switch render targets
+								if ((sPrivateData.dwHash == m_aunFetchedHashCodes[unI]))
+								{
+									// switch render targets to temporary
+									m_bSwitchRenderTarget = true;
+
+									((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(NULL, nullptr, nullptr);
+								}
+							}
 						}
 						else m_bSwitchRenderTarget = false;
-						*/
 
 						// currently chosen ?
 						if ((m_dwCurrentChosenShaderHashCode) && (m_eChosenShaderType == Vireio_Supported_Shaders::VertexShader))
@@ -2679,6 +2730,18 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 						m_sPageGameShaderRules.m_szBufferIndex = m_aszShaderBuffersizes[nSelection];
 					}
 				}
+				// "-> To Fetched Hash" - Button
+				else if (sEvent.dwIndexOfControl == m_sPageShader.m_dwToFetchedList)
+				{
+					if (m_dwCurrentChosenShaderHashCode)
+					{
+						// add to hash code list
+						m_aunFetchedHashCodes.push_back(m_dwCurrentChosenShaderHashCode);
+
+						// fill the string list
+						FillFetchedHashCodeList();
+					}
+				}
 #endif
 				// "Hash Codes" - List
 				else if (sEvent.dwIndexOfControl == m_sPageShader.m_dwHashCodes)
@@ -3457,6 +3520,7 @@ void MatrixModifier::CreateGUI()
 	static std::wstring szToRegister = std::wstring(L"-> Register");
 	static std::wstring szToBufferSize = std::wstring(L"-> Buffer Size");
 	static std::wstring szToBufferIndex = std::wstring(L"-> Buffer Index");
+	static std::wstring szToFetchedHash = std::wstring(L"-> Fetched Hash");
 	std::wstring szVertexShader = std::wstring(L"Vertex Shader");
 	std::wstring szPixelShader = std::wstring(L"Pixel Shader");
 	static std::vector<std::wstring> aszShaderTypes;
@@ -3617,11 +3681,15 @@ void MatrixModifier::CreateGUI()
 	m_sPageShader.m_dwToBufferIndex = CreateButtonControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::ShadersPage], &szToBufferIndex, GUI_CONTROL_FONTBORDER + GUI_CONTROL_BUTTONSIZE, GUI_HEIGHT - GUI_CONTROL_FONTSIZE * 9, GUI_CONTROL_BUTTONSIZE, GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
 
 	m_sPageShader.m_dwShaderType = CreateSpinControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::ShadersPage], &aszShaderTypes, 0, GUI_CONTROL_FONTBORDER, GUI_HEIGHT - GUI_CONTROL_FONTSIZE * 7, GUI_CONTROL_BUTTONSIZE);
+	m_sPageShader.m_dwToFetchedList = CreateButtonControl(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::ShadersPage], &szToFetchedHash, GUI_CONTROL_FONTBORDER + GUI_CONTROL_BUTTONSIZE, GUI_HEIGHT - GUI_CONTROL_FONTSIZE * 7, GUI_CONTROL_BUTTONSIZE, GUI_CONTROL_FONTSIZE + GUI_CONTROL_FONTBORDER);
 #endif
 #pragma endregion
 
 #pragma region Shader Rule Page
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+	m_sPageGameShaderRules.m_dwFetchedShaderHashcodes = CreateListControlSelectable(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::ShaderRulesPage], &m_aszFetchedHashCodes, GUI_CONTROL_FONTBORDER,
+		(GUI_HEIGHT >> 1) + (GUI_CONTROL_BORDER << 2) + (GUI_HEIGHT >> 3) + (GUI_CONTROL_FONTSIZE << 3),
+		GUI_WIDTH - GUI_CONTROL_BORDER, GUI_HEIGHT >> 3);
 	m_sPageGameShaderRules.m_dwGeneralIndices = CreateListControlSelectable(m_pcVireioGUI, m_adwPageIDs[GUI_Pages::ShaderRulesPage], &m_aszShaderRuleGeneralIndices, GUI_CONTROL_FONTBORDER,
 		(GUI_HEIGHT >> 2) + (GUI_CONTROL_BORDER << 2) + (GUI_HEIGHT >> 2) + (GUI_CONTROL_FONTSIZE << 2),
 		GUI_WIDTH - GUI_CONTROL_BORDER, GUI_HEIGHT >> 3);
@@ -3929,6 +3997,22 @@ void MatrixModifier::FillShaderRuleGeneralIndices()
 }
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+/**
+*
+***/
+void MatrixModifier::FillFetchedHashCodeList()
+{
+	// first, unselect and clear
+	if (m_pcVireioGUI)
+		m_pcVireioGUI->UnselectCurrentSelection(m_sPageGameShaderRules.m_dwFetchedShaderHashcodes);
+	m_aszFetchedHashCodes = std::vector<std::wstring>();
+	for (UINT dwI = 0; dwI < (UINT)m_aunFetchedHashCodes.size(); dwI++)
+	{
+		// add text
+		std::wstringstream szIndex; szIndex << L"Hash : " << m_aunFetchedHashCodes[dwI];
+		m_aszFetchedHashCodes.push_back(szIndex.str());
+	}
+}
 
 #elif defined(VIREIO_D3D9)
 /**

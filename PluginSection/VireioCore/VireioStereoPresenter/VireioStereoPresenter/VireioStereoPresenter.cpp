@@ -158,6 +158,7 @@ m_bMenu(false)
 	m_unFoVADS = 99;
 
 	ZeroMemory(&m_apfFloatInput[0], sizeof(float*)* 16);
+	ZeroMemory(&m_apnIntInput[0], sizeof(int*)* 16);
 
 }
 
@@ -298,6 +299,38 @@ LPWSTR StereoPresenter::GetDecommanderName(DWORD dwDecommanderIndex)
 			return L"FloatInput14";
 		case FloatInput15:
 			return L"FloatInput15";
+		case IntInput00:
+			return L"IntInput00";
+		case IntInput01:
+			return L"IntInput01";
+		case IntInput02:
+			return L"IntInput02";
+		case IntInput03:
+			return L"IntInput03";
+		case IntInput04:
+			return L"IntInput04";
+		case IntInput05:
+			return L"IntInput05";
+		case IntInput06:
+			return L"IntInput06";
+		case IntInput07:
+			return L"IntInput07";
+		case IntInput08:
+			return L"IntInput08";
+		case IntInput09:
+			return L"IntInput09";
+		case IntInput10:
+			return L"IntInput10";
+		case IntInput11:
+			return L"IntInput11";
+		case IntInput12:
+			return L"IntInput12";
+		case IntInput13:
+			return L"IntInput13";
+		case IntInput14:
+			return L"IntInput14";
+		case IntInput15:
+			return L"IntInput15";
 	}
 
 	return L"";
@@ -358,7 +391,23 @@ DWORD StereoPresenter::GetDecommanderType(DWORD dwDecommanderIndex)
 		case FloatInput14:
 		case FloatInput15:
 			return NOD_Plugtype::AQU_FLOAT;
-			break;
+		case IntInput00:
+		case IntInput01:
+		case IntInput02:
+		case IntInput03:
+		case IntInput04:
+		case IntInput05:
+		case IntInput06:
+		case IntInput07:
+		case IntInput08:
+		case IntInput09:
+		case IntInput10:
+		case IntInput11:
+		case IntInput12:
+		case IntInput13:
+		case IntInput14:
+		case IntInput15:
+			return NOD_Plugtype::AQU_INT;
 	}
 
 	return 0;
@@ -433,6 +482,24 @@ void StereoPresenter::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 		case FloatInput14:
 		case FloatInput15:
 			m_apfFloatInput[dwDecommanderIndex - 13] = (float*)pData;
+			break;
+		case IntInput00:
+		case IntInput01:
+		case IntInput02:
+		case IntInput03:
+		case IntInput04:
+		case IntInput05:
+		case IntInput06:
+		case IntInput07:
+		case IntInput08:
+		case IntInput09:
+		case IntInput10:
+		case IntInput11:
+		case IntInput12:
+		case IntInput13:
+		case IntInput14:
+		case IntInput15:
+			m_apnIntInput[dwDecommanderIndex - 29] = (int*)pData;
 			break;
 	}
 }
@@ -581,9 +648,21 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 		if (bControllerAttached)
 		{
 			if (sControllerState.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB)
+			{
+				if (m_apnIntInput[0])
+				{
+					*m_apnIntInput[0] = TRUE;
+				}
 				m_bZoomOut = TRUE;
+			}
 			else
+			{
+				if (m_apnIntInput[0])
+				{
+					*m_apnIntInput[0] = FALSE;
+				}
 				m_bZoomOut = FALSE;
+			}
 
 			if (m_apfFloatInput[0])
 			{
@@ -605,9 +684,21 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 		else
 		{
 			if (GetAsyncKeyState(VK_MBUTTON))
+			{
+				if (m_apnIntInput[0])
+				{
+					*m_apnIntInput[0] = TRUE;
+				}
 				m_bZoomOut = TRUE;
+			}
 			else
+			{
+				if (m_apnIntInput[0])
+				{
+					*m_apnIntInput[0] = FALSE;
+				}
 				m_bZoomOut = FALSE;
+			}
 
 			if (m_apfFloatInput[0])
 			{
