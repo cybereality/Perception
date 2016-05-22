@@ -406,6 +406,14 @@ LPWSTR StereoSplitter::GetDecommanderName(DWORD dwDecommanderIndex)
 			return L"Verify Constant Buffers";
 		case bSwitchRenderTargets:
 			return L"Switch Render Targets";
+		case ppActiveRenderTargets_DX10:
+			return L"ppActiveRenderTargets_DX10";
+		case ppActiveRenderTargets_DX11:
+			return L"ppActiveRenderTargets_DX11";
+		case ppActiveDepthStencil_DX10:
+			return L"ppActiveDepthStencil_DX10";
+		case ppActiveDepthStencil_DX11:
+			return L"ppActiveDepthStencil_DX11";
 		default:
 			break;
 	}
@@ -521,6 +529,14 @@ DWORD StereoSplitter::GetDecommanderType(DWORD dwDecommanderIndex)
 			return NOD_Plugtype::AQU_UINT;
 		case bSwitchRenderTargets:
 			return NOD_Plugtype::AQU_INT;
+		case ppActiveRenderTargets_DX10:
+			return NOD_Plugtype::AQU_PPNT_ID3D10RENDERTARGETVIEW;
+		case ppActiveRenderTargets_DX11:
+			return NOD_Plugtype::AQU_PPNT_ID3D11RENDERTARGETVIEW;
+		case ppActiveDepthStencil_DX10:
+			return NOD_Plugtype::AQU_PPNT_ID3D10DEPTHSTENCILVIEW;
+		case ppActiveDepthStencil_DX11:
+			return NOD_Plugtype::AQU_PPNT_ID3D11DEPTHSTENCILVIEW;
 		default:
 			break;
 	}
@@ -710,6 +726,12 @@ void StereoSplitter::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 		case bSwitchRenderTargets:
 			m_pbSwitchRenderTarget = (BOOL*)pData;
 			break;
+		case ppActiveRenderTargets_DX11:
+			m_appcRenderTargetViews11 = (ID3D11RenderTargetView***)pData;
+			break;
+		case ppActiveDepthStencil_DX11:
+			m_appcDepthStencilViews11 = (ID3D11DepthStencilView***)pData;
+			break;
 		default:
 			break;
 	}
@@ -852,9 +874,9 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						{
 							// restore render targets
 							if (m_eCurrentRenderingSide == RenderPosition::Left)
-								((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(*m_pdwNumViews, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews[0], (ID3D11DepthStencilView*)m_pcActiveDepthStencilView);
+								((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(m_dwRenderTargetNumber, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews[0], (ID3D11DepthStencilView*)m_pcActiveDepthStencilView);
 							else
-								((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(*m_pdwNumViews, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews[D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT], (ID3D11DepthStencilView*)m_pcActiveStereoTwinDepthStencilView);
+								((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(m_dwRenderTargetNumber, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews[D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT], (ID3D11DepthStencilView*)m_pcActiveStereoTwinDepthStencilView);
 						}
 					}
 
@@ -1022,6 +1044,25 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						// call intern method
 						OMSetRenderTargets((IUnknown*)pThis, *m_pdwNumViews, *m_pppcRenderTargetViews_DX11, *m_ppcDepthStencilView_DX11);
 
+						// copy internal render targets to backup for matrix modifier
+						if (m_appcRenderTargetViews11)
+						{
+							ID3D11RenderTargetView** ppcRTV = (*m_appcRenderTargetViews11);
+							if (ppcRTV)
+							{
+								CopyMemory(&ppcRTV[0], &m_apcActiveRenderTargetViews[0], sizeof (IUnknown*)*D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT * 2);
+							}
+						}
+						if (m_appcDepthStencilViews11)
+						{
+							ID3D11DepthStencilView** ppcDSV = (*m_appcDepthStencilViews11);
+							if (ppcDSV)
+							{
+								ppcDSV[0] = (ID3D11DepthStencilView*)m_pcActiveDepthStencilView;
+								ppcDSV[1] = (ID3D11DepthStencilView*)m_pcActiveStereoTwinDepthStencilView;
+							}
+						}
+
 						// switch render targets ?
 						if (m_pbSwitchRenderTarget)
 						{
@@ -1067,12 +1108,30 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						OMSetRenderTargets((IUnknown*)pThis, *m_pdwNumRTVs, *m_pppcRenderTargetViewsUAV_DX11, *m_ppcDepthStencilViewUAV_DX11);
 						CSSetUnorderedAccessViews((ID3D11DeviceContext*)pThis, *m_pdwUAVStartSlot, *m_pdwNumUAVs, *m_pppcUnorderedAccessViews, *m_ppdwUAVInitialCounts);
 
+						// copy internal render targets to backup for matrix modifier
+						if (m_appcRenderTargetViews11)
+						{
+							ID3D11RenderTargetView** ppcRTV = (*m_appcRenderTargetViews11);
+							if (ppcRTV)
+							{
+								CopyMemory(&ppcRTV[0], &m_apcActiveRenderTargetViews[0], sizeof (IUnknown*)*D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT * 2);
+							}
+						}
+						if (m_appcDepthStencilViews11)
+						{
+							ID3D11DepthStencilView** ppcDSV = (*m_appcDepthStencilViews11);
+							if (ppcDSV)
+							{
+								ppcDSV[0] = (ID3D11DepthStencilView*)m_pcActiveDepthStencilView;
+								ppcDSV[1] = (ID3D11DepthStencilView*)m_pcActiveStereoTwinDepthStencilView;
+							}
+						}
+
 						// switch render targets ?
 						if (m_pbSwitchRenderTarget)
 						{
 							if (*m_pbSwitchRenderTarget)
 							{
-
 								m_bRenderTargetWasSwitched = true;
 
 								// only set UAVs here
@@ -1104,12 +1163,28 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma endregion
 #pragma region OMGETRENDERTARGETS
 				case METHOD_ID3D11DEVICECONTEXT_OMGETRENDERTARGETS:
+
+					if ((m_bRenderTargetWasSwitched) && (m_pbSwitchRenderTarget))
+					{
+						// restore render targets if we are on left side
+						if (m_eCurrentRenderingSide == RenderPosition::Left)
+							((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(m_dwRenderTargetNumber, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews[0], (ID3D11DepthStencilView*)m_pcActiveDepthStencilView);
+					}
+
 					// if the app tries to get the render targets ensure the left render side is set
 					SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Left);
 					return nullptr;
 #pragma endregion
 #pragma region OMGETRENDERTARGETSANDUNORDEREDACCESSVIEWS
 				case METHOD_ID3D11DEVICECONTEXT_OMGETRENDERTARGETSANDUNORDEREDACCESSVIEWS:
+
+					if ((m_bRenderTargetWasSwitched) && (m_pbSwitchRenderTarget))
+					{
+						// restore render targets if we are on left side
+						if (m_eCurrentRenderingSide == RenderPosition::Left)
+							((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(m_dwRenderTargetNumber, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews[0], (ID3D11DepthStencilView*)m_pcActiveDepthStencilView);
+					}
+
 					// if the app tries to get the render targets ensure the left render side is set
 					SetDrawingSide((ID3D11DeviceContext*)pThis, RenderPosition::Left);
 					return nullptr;

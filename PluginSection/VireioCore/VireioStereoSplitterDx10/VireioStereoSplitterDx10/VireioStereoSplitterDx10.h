@@ -67,7 +67,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"..\..\VireioMatrixModifier\VireioMatrixModifier\VireioMatrixModifierDataStructures.h"
 
 #define NUMBER_OF_COMMANDERS                           2
-#define NUMBER_OF_DECOMMANDERS                         54
+#define NUMBER_OF_DECOMMANDERS                         58
 
 // enable for debug -> #define _DEBUG_VIREIO
 
@@ -153,6 +153,10 @@ enum STS_Decommanders
 	/*** Additional parameters ***/
 	dwVerifyConstantBuffers,                               /**< The number of frames the constant buffers are to be verified **/
 	bSwitchRenderTargets,                                  /**< Option to switch the render targets for game HUD or GUI ***/
+	ppActiveRenderTargets_DX10,                            /**< Active render targets DX10. Backup for render target operations. ***/
+	ppActiveRenderTargets_DX11,                            /**< Active render targets DX11. Backup for render target operations. ***/
+	ppActiveDepthStencil_DX10,                             /**< Active depth stencil DX10. Backup for render target operations. ***/
+	ppActiveDepthStencil_DX11,                             /**< Active depth stencil DX11. Backup for render target operations. ***/
 };
 
 /**
@@ -283,6 +287,10 @@ private:
 
 	UINT* m_pdwVerifyConstantBuffers;                                 /** The number of frames the constant buffers are to be verified. ***/
 	INT* m_pbSwitchRenderTarget;                                      /** Option to switch the render target for HUD and GUI ***/
+
+	ID3D11RenderTargetView*** m_appcRenderTargetViews11;                            /** Pointer to an array of ID3D11RenderTargetView, copy for matrix modifier. **/
+	ID3D11DepthStencilView*** m_appcDepthStencilViews11;                            /** Pointer to an array of ID3D11DepthStencilView, copy for matrix modifier. **/
+
 
 	/**
 	* Active stored render target views.

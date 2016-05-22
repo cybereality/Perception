@@ -85,7 +85,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define METHOD_REPLACEMENT                         false                     /**< This node does NOT replace the D3D call (default) **/
 
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
-#define NUMBER_OF_COMMANDERS                          15
+#define NUMBER_OF_COMMANDERS                          21
 #define NUMBER_OF_DECOMMANDERS                        53
 #define GUI_WIDTH                                   1024                      
 #define GUI_HEIGHT                                  5000               
@@ -128,6 +128,12 @@ enum STS_Commanders
 	ViewAdjustments,                                                        /**< Shared pointer to the view adjustment class. ***/
 	SwitchRenderTarget,                                                     /**< Option to switch the render target for the game HUD and GUI. ***/
 	HudOperation,                                                           /**< True if any HUD operation is executed. ***/
+	SecondaryRenderTarget_DX10,                                             /**< Secondary (HUD) render target mono DX10. ***/
+	SecondaryRenderTarget_DX11,                                             /**< Secondary (HUD) render target mono DX11. ***/
+	ppActiveRenderTargets_DX10,                                             /**< Active render targets DX10. Backup for render target operations. ***/
+	ppActiveRenderTargets_DX11,                                             /**< Active render targets DX11. Backup for render target operations. ***/
+	ppActiveDepthStencil_DX10,                                              /**< Active depth stencil DX10. Backup for render target operations. ***/
+	ppActiveDepthStencil_DX11,                                              /**< Active depth stencil DX11. Backup for render target operations. ***/
 #elif defined(VIREIO_D3D9)
 #endif
 };
@@ -502,6 +508,19 @@ private:
 		ID3D11VertexShader* m_pcActiveVertexShader11;
 	};
 	/**
+	* Active stored render target views.
+	* The render targets that are currently in use.
+	* DX11 :
+	* 0---------------------------------------------> D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT ----- Left render target views
+	* D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT -------> D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT * 2 - Right render target views
+	***/
+	std::vector<ID3D11RenderTargetView *> m_apcActiveRenderTargetViews11;
+	/**
+	* Active stored depth stencil view.
+	* The depth stencil surface that is currently in use.
+	***/
+	ID3D11DepthStencilView* m_apcActiveDepthStencilView11[2];
+	/**
 	* The number of actively mapped constant buffers.
 	***/
 	UINT m_dwMappedBuffers;
@@ -534,6 +553,30 @@ private:
 	{
 		BYTE m_pchBuffer10Right[D3D10_REQ_CONSTANT_BUFFER_ELEMENT_COUNT * D3D10_VS_INPUT_REGISTER_COMPONENTS * (D3D10_VS_INPUT_REGISTER_COMPONENT_BIT_COUNT >> 3)];
 		BYTE m_pchBuffer11Right[D3D11_REQ_CONSTANT_BUFFER_ELEMENT_COUNT * D3D11_VS_INPUT_REGISTER_COMPONENTS * (D3D11_VS_INPUT_REGISTER_COMPONENT_BIT_COUNT >> 3)];
+	};
+	/**
+	* Secondary render target.
+	***/
+	union
+	{
+		ID3D10Texture2D* m_pcSecondaryRenderTarget10;
+		ID3D11Texture2D* m_pcSecondaryRenderTarget11;
+	};
+	/**
+	* Secondary render target shader resource view.
+	***/
+	union
+	{
+		ID3D10ShaderResourceView* m_pcSecondaryRenderTargetSRView10;
+		ID3D11ShaderResourceView* m_pcSecondaryRenderTargetSRView11;
+	};
+	/**
+	* Secondary render target view.
+	***/
+	union
+	{
+		ID3D10RenderTargetView* m_pcSecondaryRenderTargetView10;
+		ID3D11RenderTargetView* m_pcSecondaryRenderTargetView11;
 	};
 
 #elif defined(VIREIO_D3D9)

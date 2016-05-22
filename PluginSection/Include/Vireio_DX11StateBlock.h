@@ -252,6 +252,7 @@ void CreateStateblock(ID3D11DeviceContext* pcContext, D3DX11_STATE_BLOCK* sState
 	//pcContext->OMGetRenderTargetsAndUnorderedAccessViews(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, sStateBlock->OMRenderTargets, &sStateBlock->OMRenderTargetStencilView, 0, D3D11_PS_CS_UAV_REGISTER_COUNT, sStateBlock->OMUnorderedAccessViews);
 	pcContext->OMGetRenderTargets(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, sStateBlock->OMRenderTargets, &sStateBlock->OMRenderTargetStencilView);
 	SafeRelease(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, (IUnknown**)sStateBlock->OMRenderTargets);
+	if (sStateBlock->OMRenderTargetStencilView) sStateBlock->OMRenderTargetStencilView->Release();
 	pcContext->OMGetDepthStencilState(&sStateBlock->OMDepthStencilState, &sStateBlock->OMDepthStencilRef);
 	if (sStateBlock->OMDepthStencilState) sStateBlock->OMDepthStencilState->Release();
 	pcContext->OMGetBlendState(&sStateBlock->OMBlendState, sStateBlock->OMBlendFactor, &sStateBlock->OMSampleMask);

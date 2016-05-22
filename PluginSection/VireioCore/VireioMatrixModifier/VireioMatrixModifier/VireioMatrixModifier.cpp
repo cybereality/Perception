@@ -183,6 +183,9 @@ m_bHudOperation(FALSE)
 	m_apcDSActiveConstantBuffers11 = std::vector<ID3D11Buffer*>(D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT * 2, nullptr);
 	m_apcGSActiveConstantBuffers11 = std::vector<ID3D11Buffer*>(D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT * 2, nullptr);
 	m_apcPSActiveConstantBuffers11 = std::vector<ID3D11Buffer*>(D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT * 2, nullptr);
+	m_apcActiveRenderTargetViews11 = std::vector<ID3D11RenderTargetView*>(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT * 2, nullptr);
+	m_apcActiveDepthStencilView11[0] = nullptr;
+	m_apcActiveDepthStencilView11[1] = nullptr;
 
 	// create output pointers
 	m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_VertexShader] = (void*)&m_apcVSActiveConstantBuffers11[0];
@@ -190,6 +193,8 @@ m_bHudOperation(FALSE)
 	m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_DomainShader] = (void*)&m_apcDSActiveConstantBuffers11[0];
 	m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_GeometryShader] = (void*)&m_apcGSActiveConstantBuffers11[0];
 	m_pvOutput[STS_Commanders::ppActiveConstantBuffers_DX11_PixelShader] = (void*)&m_apcPSActiveConstantBuffers11[0];
+	m_pvOutput[STS_Commanders::ppActiveRenderTargets_DX11] = (void*)&m_apcActiveRenderTargetViews11[0];
+	m_pvOutput[STS_Commanders::ppActiveDepthStencil_DX11] = (void*)&m_apcActiveDepthStencilView11[0];
 
 	// set constant buffer verification at startup (first 30 frames)
 	m_dwVerifyConstantBuffers = CONSTANT_BUFFER_VERIFICATION_FRAME_NUMBER;
@@ -274,6 +279,9 @@ m_bHudOperation(FALSE)
 	m_ppsMappedResource = nullptr;
 	m_ppcResource_Unmap = nullptr;
 	m_pdwSubresource_Unmap = nullptr;
+	m_pcSecondaryRenderTarget10 = nullptr;
+	m_pcSecondaryRenderTargetView10 = nullptr;
+	m_pcSecondaryRenderTargetSRView10 = nullptr;
 #elif defined(VIREIO_D3D9)
 	// init shader rule page shader indices list (DX9 only)
 	m_aszShaderRuleShaderIndices = std::vector<std::wstring>();
@@ -603,6 +611,18 @@ LPWSTR MatrixModifier::GetCommanderName(DWORD dwCommanderIndex)
 			return L"Switch Render Target";
 		case HudOperation:
 			return L"HUD Operation";
+		case SecondaryRenderTarget_DX10:
+			return L"SecondaryRenderTarget_DX10";
+		case SecondaryRenderTarget_DX11:
+			return L"SecondaryRenderTarget_DX11";
+		case ppActiveRenderTargets_DX10:
+			return L"ppActiveRenderTargets_DX10";
+		case ppActiveRenderTargets_DX11:
+			return L"ppActiveRenderTargets_DX11";
+		case ppActiveDepthStencil_DX10:
+			return L"ppActiveDepthStencil_DX10";
+		case ppActiveDepthStencil_DX11:
+			return L"ppActiveDepthStencil_DX11";
 		default:
 			break;
 	}
@@ -808,6 +828,18 @@ DWORD MatrixModifier::GetCommanderType(DWORD dwCommanderIndex)
 		case SwitchRenderTarget:
 		case HudOperation:
 			return NOD_Plugtype::AQU_INT;
+		case SecondaryRenderTarget_DX10:
+			return NOD_Plugtype::AQU_PNT_ID3D10SHADERRESOURCEVIEW;
+		case SecondaryRenderTarget_DX11:
+			return NOD_Plugtype::AQU_PNT_ID3D11SHADERRESOURCEVIEW;
+		case ppActiveRenderTargets_DX10:
+			return NOD_Plugtype::AQU_PPNT_ID3D10RENDERTARGETVIEW;
+		case ppActiveRenderTargets_DX11:
+			return NOD_Plugtype::AQU_PPNT_ID3D11RENDERTARGETVIEW;
+		case ppActiveDepthStencil_DX10:
+			return NOD_Plugtype::AQU_PPNT_ID3D10DEPTHSTENCILVIEW;
+		case ppActiveDepthStencil_DX11:
+			return NOD_Plugtype::AQU_PPNT_ID3D11DEPTHSTENCILVIEW;
 		default:
 			break;
 	}
@@ -1007,6 +1039,18 @@ void* MatrixModifier::GetOutputPointer(DWORD dwCommanderIndex)
 			return (void*)&m_bSwitchRenderTarget;
 		case HudOperation:
 			return (void*)&m_bHudOperation;
+		case SecondaryRenderTarget_DX10:
+			return (void*)&m_pcSecondaryRenderTargetSRView10;
+		case SecondaryRenderTarget_DX11:
+			return (void*)&m_pcSecondaryRenderTargetSRView11;
+		case ppActiveRenderTargets_DX10:
+			return (void*)&m_pvOutput[STS_Commanders::ppActiveRenderTargets_DX10];
+		case ppActiveRenderTargets_DX11:
+			return (void*)&m_pvOutput[STS_Commanders::ppActiveRenderTargets_DX11];
+		case ppActiveDepthStencil_DX10:
+			return (void*)&m_pvOutput[STS_Commanders::ppActiveDepthStencil_DX10];
+		case ppActiveDepthStencil_DX11:
+			return (void*)&m_pvOutput[STS_Commanders::ppActiveDepthStencil_DX11];
 		default:
 			break;
 	}
@@ -1662,6 +1706,61 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						// any hud operation taking place ?
 						if (m_bHudOperation)
 						{
+							// restore render targets by backup
+							if (m_eCurrentRenderingSide == RenderPosition::Left)
+								((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews11[0], (ID3D11DepthStencilView*)m_apcActiveDepthStencilView11[0]);
+							else
+								((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews11[D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT], (ID3D11DepthStencilView*)m_apcActiveDepthStencilView11[1]);
+
+							if (!m_pcSecondaryRenderTarget11)
+							{
+								// get device
+								ID3D11Device* pcDevice = nullptr;
+								ID3D11DeviceContext* pcContext = (ID3D11DeviceContext*)pThis;
+								pcContext->GetDevice(&pcDevice);
+								if (pcDevice)
+								{
+									// get the viewport
+									UINT unNumViewports = 1;
+									D3D11_VIEWPORT sViewport;
+									pcContext->RSGetViewports(&unNumViewports, &sViewport);
+
+									if (unNumViewports)
+									{
+										// fill the description
+										D3D11_TEXTURE2D_DESC sDescTex;
+										sDescTex.Width = (UINT)sViewport.Width;
+										sDescTex.Height = (UINT)sViewport.Height;
+										sDescTex.MipLevels = 1;
+										sDescTex.ArraySize = 1;
+										sDescTex.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+										sDescTex.SampleDesc.Count = 1;
+										sDescTex.SampleDesc.Quality = 0;
+										sDescTex.Usage = D3D11_USAGE_DEFAULT;
+										sDescTex.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+										sDescTex.CPUAccessFlags = 0;
+										sDescTex.MiscFlags = 0;
+
+										// create secondary render target
+										pcDevice->CreateTexture2D(&sDescTex, NULL, &m_pcSecondaryRenderTarget11);
+										if (m_pcSecondaryRenderTarget11)
+										{
+											// create render target view
+											if (FAILED(pcDevice->CreateRenderTargetView(m_pcSecondaryRenderTarget11, NULL, &m_pcSecondaryRenderTargetView11)))
+												OutputDebugString(L"MAM: Failed to create secondary render target view.");
+
+											// create shader resource view
+											if (FAILED(pcDevice->CreateShaderResourceView(m_pcSecondaryRenderTarget11, NULL, &m_pcSecondaryRenderTargetSRView11)))
+												OutputDebugString(L"MAM: Failed to create secondary render target shader resource view.");
+										}
+										else OutputDebugString(L"MAM: Failed to create secondary render target !");
+									}
+									else OutputDebugString(L"MAM: No Viewport present !");
+
+									pcDevice->Release();
+								}
+							}
+
 							m_bSwitchRenderTarget = false;
 
 							// loop through fetched hash codes
@@ -1673,11 +1772,18 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 									// switch render targets to temporary
 									m_bSwitchRenderTarget = true;
 
-									((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(NULL, nullptr, nullptr);
+									// set secondary render target
+									((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(1, &m_pcSecondaryRenderTargetView11, nullptr);
+
+									// const float fColor[] = { 1.0f, 0.5f, 0.5f, 1.0f };
+									// ((ID3D11DeviceContext*)pThis)->ClearRenderTargetView(m_pcSecondaryRenderTargetView11, fColor);
 								}
 							}
 						}
-						else m_bSwitchRenderTarget = false;
+						else
+						{
+							m_bSwitchRenderTarget = false;
+						}
 
 						// currently chosen ?
 						if ((m_dwCurrentChosenShaderHashCode) && (m_eChosenShaderType == Vireio_Supported_Shaders::VertexShader))
