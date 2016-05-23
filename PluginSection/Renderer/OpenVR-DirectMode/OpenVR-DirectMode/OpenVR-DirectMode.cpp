@@ -52,6 +52,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define METHOD_IDXGISWAPCHAIN_PRESENT        8
 
 /**
+* Matrix translation helper.
+***/
+inline vr::HmdMatrix34_t Translate_3x4(vr::HmdVector3_t sV)
+{
+	vr::HmdMatrix34_t sRet;
+
+	sRet.m[0][0] = 1.0f; sRet.m[1][0] = 0.0f; sRet.m[2][0] = 0.0f;
+	sRet.m[0][1] = 0.0f; sRet.m[1][1] = 1.0f; sRet.m[2][1] = 0.0f;
+	sRet.m[0][2] = 0.0f; sRet.m[1][2] = 0.0f; sRet.m[2][2] = 1.0f;
+	sRet.m[0][3] = sV.v[0]; sRet.m[1][3] = sV.v[1]; sRet.m[2][3] = sV.v[2];
+
+	return sRet;
+}
+
+/**
 * Little helper.
 ***/
 HRESULT CreateCopyTexture(ID3D11Device* pcDevice, ID3D11Device* pcDeviceTemporary, ID3D11ShaderResourceView* pcSRV, ID3D11Texture2D** ppcDest, ID3D11Texture2D**ppcDestDraw, ID3D11RenderTargetView** ppcDestDrawRTV, ID3D11Texture2D** ppcDestShared)
@@ -120,6 +135,7 @@ HRESULT CreateCopyTexture(ID3D11Device* pcDevice, ID3D11Device* pcDeviceTemporar
 	}
 	return S_OK;
 }
+
 /**
 * Constructor.
 ***/
@@ -152,8 +168,35 @@ m_pbZoomOut(nullptr)
 	m_pcVertexBuffer11 = nullptr;
 	m_pcConstantBufferDirect11 = nullptr;
 	m_pcSamplerState = nullptr;
-}
 
+	// set default overlay properties
+	m_sOverlayPropertiesHud.eTransform = OverlayTransformType::Absolute;
+	switch (m_sOverlayPropertiesHud.eTransform)
+	{
+		case OpenVR_DirectMode::Absolute:
+			m_sOverlayPropertiesHud.eOrigin = vr::ETrackingUniverseOrigin::TrackingUniverseStanding;
+			break;
+		case OpenVR_DirectMode::TrackedDeviceRelative:
+			m_sOverlayPropertiesHud.nDeviceIndex = 0;
+			break;
+		case OpenVR_DirectMode::TrackedDeviceComponent:
+			break;
+	}
+	m_sOverlayPropertiesHud.sVectorTranslation.v[0] = 0.0f;
+	m_sOverlayPropertiesHud.sVectorTranslation.v[1] = 2.0f;
+	m_sOverlayPropertiesHud.sVectorTranslation.v[2] = -2.0f;
+	m_sOverlayPropertiesHud.sColor.a = 1.0f;
+	m_sOverlayPropertiesHud.sColor.r = 1.0f;
+	m_sOverlayPropertiesHud.sColor.g = 1.0f;
+	m_sOverlayPropertiesHud.sColor.b = 1.0f;
+	m_sOverlayPropertiesHud.fWidth = 3.0f;
+
+	m_sOverlayPropertiesDashboard.sColor.a = 1.0f;
+	m_sOverlayPropertiesDashboard.sColor.r = 1.0f;
+	m_sOverlayPropertiesDashboard.sColor.g = 1.0f;
+	m_sOverlayPropertiesDashboard.sColor.b = 1.0f;
+	m_sOverlayPropertiesDashboard.fWidth = 3.0f;
+}
 
 /**
 * Destructor.
@@ -449,19 +492,32 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 				}
 
 				// set overlay options
-				vr::VROverlay()->SetOverlayWidthInMeters(m_ulOverlayHandle, 3.0f);
+				vr::VROverlay()->SetOverlayWidthInMeters(m_ulOverlayHandle, m_sOverlayPropertiesDashboard.fWidth);
 				vr::VROverlay()->SetOverlayInputMethod(m_ulOverlayHandle, vr::VROverlayInputMethod_Mouse);
-				vr::VROverlay()->SetOverlayAlpha(m_ulOverlayHandle, 1.0f);
-				vr::VROverlay()->SetOverlayColor(m_ulOverlayHandle, 1.0f, 1.0f, 1.0f);
+				vr::VROverlay()->SetOverlayAlpha(m_ulOverlayHandle, m_sOverlayPropertiesDashboard.sColor.a);
+				vr::VROverlay()->SetOverlayColor(m_ulOverlayHandle, m_sOverlayPropertiesDashboard.sColor.r, m_sOverlayPropertiesDashboard.sColor.g, m_sOverlayPropertiesDashboard.sColor.b);
 
 				// create the HUD overlay
 				overlayError = vr::VROverlay()->CreateOverlay(OPENVR_HUD_OVERLAY_NAME, OPENVR_HUD_OVERLAY_FRIENDLY_NAME, &m_ulHUDOverlayHandle);
 
 				// set overlay options
-				vr::VROverlay()->SetOverlayWidthInMeters(m_ulHUDOverlayHandle, 3.0f);
+				vr::HmdMatrix34_t sMatTransformHUD_OpenVR;
+				sMatTransformHUD_OpenVR = Translate_3x4(m_sOverlayPropertiesHud.sVectorTranslation);
+				switch (m_sOverlayPropertiesHud.eTransform)
+				{
+					case OpenVR_DirectMode::Absolute:
+						vr::VROverlay()->SetOverlayTransformAbsolute(m_ulHUDOverlayHandle, m_sOverlayPropertiesHud.eOrigin, &sMatTransformHUD_OpenVR);
+						break;
+					case OpenVR_DirectMode::TrackedDeviceRelative:
+						vr::VROverlay()->SetOverlayTransformTrackedDeviceRelative(m_ulHUDOverlayHandle, m_sOverlayPropertiesHud.nDeviceIndex, &sMatTransformHUD_OpenVR);
+						break;
+					case OpenVR_DirectMode::TrackedDeviceComponent:
+						break;
+				}
+				vr::VROverlay()->SetOverlayWidthInMeters(m_ulHUDOverlayHandle, m_sOverlayPropertiesHud.fWidth);
 				vr::VROverlay()->SetOverlayInputMethod(m_ulHUDOverlayHandle, vr::VROverlayInputMethod_Mouse);
-				vr::VROverlay()->SetOverlayAlpha(m_ulHUDOverlayHandle, 1.0f);
-				vr::VROverlay()->SetOverlayColor(m_ulHUDOverlayHandle, 1.0f, 1.0f, 1.0f);
+				vr::VROverlay()->SetOverlayAlpha(m_ulHUDOverlayHandle, m_sOverlayPropertiesHud.sColor.a);
+				vr::VROverlay()->SetOverlayColor(m_ulHUDOverlayHandle, m_sOverlayPropertiesHud.sColor.r, m_sOverlayPropertiesHud.sColor.g, m_sOverlayPropertiesHud.sColor.b);
 
 				vr::VROverlay()->ShowOverlay(m_ulHUDOverlayHandle);
 
@@ -595,19 +651,22 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 					}
 				}
 				else
+#pragma endregion
+#pragma region HUD overlay
 				if ((!vr::VROverlay()->IsDashboardVisible()) && (vr::VROverlay()->IsOverlayVisible(m_ulHUDOverlayHandle)))
 				{
 					if (m_ppcTexViewHud11)
 					{
 						if (*m_ppcTexViewHud11)
 						{
-
+							// hud overlay shared textures present ?
 							if (!m_pcTex11CopyHUD)
 							{
 								if (FAILED(CreateCopyTexture(pcDevice, m_pcDeviceTemporary, *m_ppcTexViewHud11, &m_pcTex11CopyHUD, nullptr, nullptr, &m_pcTex11SharedHUD)))
 									return nullptr;
 							}
 
+							// get the resource texture from the HUD tex view
 							ID3D11Texture2D* pcResource = nullptr;
 							(*m_ppcTexViewHud11)->GetResource((ID3D11Resource**)&pcResource);
 
@@ -624,6 +683,7 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 						}
 					}
 				}
+#pragma endregion
 #pragma endregion
 #pragma region Render
 				if (!vr::VROverlay()->IsDashboardVisible())

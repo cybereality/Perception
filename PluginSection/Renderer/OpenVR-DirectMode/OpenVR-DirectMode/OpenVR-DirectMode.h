@@ -218,6 +218,40 @@ private:
 	* Shared texture for HUD (created by temporary device 1.1)
 	***/
 	ID3D11Texture2D* m_pcTex11SharedHUD;
+	/**
+	* Overlay Transform type.
+	***/
+	enum OverlayTransformType
+	{
+		Absolute,                /**< Sets the transform to absolute tracking origin. */
+		TrackedDeviceRelative,   /**< Sets the transform to relative to the transform of the specified tracked device. */
+		TrackedDeviceComponent,  /**< Sets the transform to draw the overlay on a rendermodel component mesh instead of a quad. */
+	};
+	/**
+	* HUD Overlay Properties
+	* To be read from the ini file.
+	***/
+	struct Overlay_Properties_HUD
+	{
+		OverlayTransformType eTransform;     /**< The type of transform for the HUD overlay **/
+		vr::HmdVector3_t sVectorTranslation; /**< The translation vector for the HUD (in meters) **/
+		vr::HmdColor_t sColor;               /**< The color for the HUD (including alpha) **/
+		float fWidth;                        /**< The width of the HUD (in meters) **/
+		union
+		{
+			vr::ETrackingUniverseOrigin eOrigin;   /**< The universe origin (for absolute transform) ***/
+			vr::TrackedDeviceIndex_t nDeviceIndex; /**< The device index (for device relative transform) ***/
+		};
+	} m_sOverlayPropertiesHud;
+	/**
+	* Dashboard Overlay Properties
+	* To be read from the ini file.
+	***/
+	struct Overlay_Properties_Dashboard
+	{
+		vr::HmdColor_t sColor;               /**< The color for the Dashboard overlay (including alpha) **/
+		float fWidth;                        /**< The width of the Dashboard overlay (in meters) **/
+	} m_sOverlayPropertiesDashboard;
 };
 
 /**

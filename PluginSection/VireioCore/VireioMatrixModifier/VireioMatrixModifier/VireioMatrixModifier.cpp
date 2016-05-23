@@ -1774,15 +1774,14 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 									// set secondary render target
 									((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(1, &m_pcSecondaryRenderTargetView11, nullptr);
-
-									// const float fColor[] = { 1.0f, 0.5f, 0.5f, 1.0f };
-									// ((ID3D11DeviceContext*)pThis)->ClearRenderTargetView(m_pcSecondaryRenderTargetView11, fColor);
 								}
 							}
 						}
 						else
 						{
 							m_bSwitchRenderTarget = false;
+							const float fColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+							((ID3D11DeviceContext*)pThis)->ClearRenderTargetView(m_pcSecondaryRenderTargetView11, fColor);
 						}
 
 						// currently chosen ?
