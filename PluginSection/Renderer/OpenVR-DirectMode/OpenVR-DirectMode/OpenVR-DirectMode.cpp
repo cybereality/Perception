@@ -82,16 +82,20 @@ HRESULT CreateCopyTexture(ID3D11Device* pcDevice, ID3D11Device* pcDeviceTemporar
 			return E_FAIL;
 		}
 
-		// create the drawing texture and view
-		sDesc.MiscFlags = 0;
-		sDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
-		if (FAILED(pcDevice->CreateTexture2D(&sDesc, NULL, ppcDestDraw)))
+		// create only if needed
+		if ((ppcDestDraw) && (ppcDestDrawRTV))
 		{
-			(*ppcDest)->Release(); (*ppcDest) = nullptr;
-			OutputDebugString(L"OpenVR : Failed to create overlay texture !");
-			return E_FAIL;
+			// create the drawing texture and view
+			sDesc.MiscFlags = 0;
+			sDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+			if (FAILED(pcDevice->CreateTexture2D(&sDesc, NULL, ppcDestDraw)))
+			{
+				(*ppcDest)->Release(); (*ppcDest) = nullptr;
+				OutputDebugString(L"OpenVR : Failed to create overlay texture !");
+				return E_FAIL;
+			}
+			pcDevice->CreateRenderTargetView((ID3D11Resource*)*ppcDestDraw, NULL, ppcDestDrawRTV);
 		}
-		pcDevice->CreateRenderTargetView((ID3D11Resource*)*ppcDestDraw, NULL, ppcDestDrawRTV);
 
 		// get shared handle
 		IDXGIResource* pcDXGIResource(NULL);
@@ -133,12 +137,14 @@ m_pbZoomOut(nullptr)
 	m_ppcTexView11[1] = nullptr;
 	m_pcTex11Copy[0] = nullptr;
 	m_pcTex11Copy[1] = nullptr;
+	m_pcTex11CopyHUD = nullptr;
 	m_pcTex11Draw[0] = nullptr;
 	m_pcTex11Draw[1] = nullptr;
 	m_pcTex11DrawRTV[0] = nullptr;
 	m_pcTex11DrawRTV[1] = nullptr;
 	m_pcTex11Shared[0] = nullptr;
 	m_pcTex11Shared[1] = nullptr;
+	m_pcTex11SharedHUD = nullptr;
 
 	m_pcVertexShader11 = nullptr;
 	m_pcPixelShader11 = nullptr;
@@ -220,13 +226,19 @@ LPWSTR OpenVR_DirectMode::GetDecommanderName(DWORD dwDecommanderIndex)
 	switch ((OpenVR_Decommanders)dwDecommanderIndex)
 	{
 		case OpenVR_Decommanders::LeftTexture11:
-			return L"Left Texture";
+			return L"Left Texture DX11";
 		case OpenVR_Decommanders::RightTexture11:
-			return L"Right Texture";
+			return L"Right Texture DX11";
 		case OpenVR_Decommanders::IVRSystem:
 			return L"IVRSystem";
 		case OpenVR_Decommanders::ZoomOut:
 			return L"Zoom Out";
+		case HUDTexture11:
+			return L"HUD Texture DX11";
+		case HUDTexture10:
+			break;
+		case HUDTexture9:
+			break;
 	}
 
 	return L"x";
@@ -247,6 +259,12 @@ DWORD OpenVR_DirectMode::GetDecommanderType(DWORD dwDecommanderIndex)
 			return NOD_Plugtype::AQU_HANDLE;
 		case OpenVR_Decommanders::ZoomOut:
 			return NOD_Plugtype::AQU_BOOL;
+		case HUDTexture11:
+			return NOD_Plugtype::AQU_PNT_ID3D11SHADERRESOURCEVIEW;
+		case HUDTexture10:
+			break;
+		case HUDTexture9:
+			break;
 	}
 
 	return 0;
@@ -270,6 +288,13 @@ void OpenVR_DirectMode::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 			break;
 		case OpenVR_Decommanders::ZoomOut:
 			m_pbZoomOut = (BOOL*)pData;
+			break;
+		case HUDTexture11:
+			m_ppcTexViewHud11 = (ID3D11ShaderResourceView**)pData;
+			break;
+		case HUDTexture10:
+			break;
+		case HUDTexture9:
 			break;
 	}
 }
@@ -429,6 +454,17 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 				vr::VROverlay()->SetOverlayAlpha(m_ulOverlayHandle, 1.0f);
 				vr::VROverlay()->SetOverlayColor(m_ulOverlayHandle, 1.0f, 1.0f, 1.0f);
 
+				// create the HUD overlay
+				overlayError = vr::VROverlay()->CreateOverlay(OPENVR_HUD_OVERLAY_NAME, OPENVR_HUD_OVERLAY_FRIENDLY_NAME, &m_ulHUDOverlayHandle);
+
+				// set overlay options
+				vr::VROverlay()->SetOverlayWidthInMeters(m_ulHUDOverlayHandle, 3.0f);
+				vr::VROverlay()->SetOverlayInputMethod(m_ulHUDOverlayHandle, vr::VROverlayInputMethod_Mouse);
+				vr::VROverlay()->SetOverlayAlpha(m_ulHUDOverlayHandle, 1.0f);
+				vr::VROverlay()->SetOverlayColor(m_ulHUDOverlayHandle, 1.0f, 1.0f, 1.0f);
+
+				vr::VROverlay()->ShowOverlay(m_ulHUDOverlayHandle);
+
 				m_bInit = true;
 #pragma endregion
 			}
@@ -436,6 +472,7 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 			if (vr::VRCompositor()->CanRenderScene())
 			{
 #pragma region Render overlay
+#pragma region Dashboard overlay
 				if (vr::VROverlay() && vr::VROverlay()->IsOverlayVisible(m_ulOverlayHandle))
 				{
 					// create all bool
@@ -533,7 +570,7 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 							// copy to copy texture
 							pcContext->CopyResource(m_pcTex11Copy[nEye], m_pcTex11Draw[nEye]);
 
-							// get shared handle.. for the Overlay we CANNOT use m_pcTex11Shared for some reason !!
+							// get shared handle.. for the Dashboard Overlay we CANNOT use m_pcTex11Shared for some reason !!
 							IDXGIResource* pcDXGIResource(NULL);
 							m_pcTex11Copy[nEye]->QueryInterface(__uuidof(IDXGIResource), (void**)&pcDXGIResource);
 							HANDLE sharedHandle;
@@ -557,9 +594,38 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 						}
 					}
 				}
+				else
+				if ((!vr::VROverlay()->IsDashboardVisible()) && (vr::VROverlay()->IsOverlayVisible(m_ulHUDOverlayHandle)))
+				{
+					if (m_ppcTexViewHud11)
+					{
+						if (*m_ppcTexViewHud11)
+						{
+
+							if (!m_pcTex11CopyHUD)
+							{
+								if (FAILED(CreateCopyTexture(pcDevice, m_pcDeviceTemporary, *m_ppcTexViewHud11, &m_pcTex11CopyHUD, nullptr, nullptr, &m_pcTex11SharedHUD)))
+									return nullptr;
+							}
+
+							ID3D11Texture2D* pcResource = nullptr;
+							(*m_ppcTexViewHud11)->GetResource((ID3D11Resource**)&pcResource);
+
+							if (pcResource)
+							{
+								// copy to copy texture
+								pcContext->CopyResource(m_pcTex11CopyHUD, pcResource);
+
+								// fill openvr texture struct
+								vr::Texture_t sTexture = { (void*)m_pcTex11SharedHUD, vr::API_DirectX, vr::ColorSpace_Gamma };
+								vr::VROverlay()->SetOverlayTexture(m_ulHUDOverlayHandle, &sTexture);
+								pcResource->Release();
+							}
+						}
+					}
+				}
 #pragma endregion
 #pragma region Render
-				else
 				if (!vr::VROverlay()->IsDashboardVisible())
 				{
 					// call WaitGetPoses here to get the scene focus

@@ -72,10 +72,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"..\..\..\Include\Vireio_DX11Basics.h"
 #include"..\..\..\Include\Vireio_Node_Plugtypes.h"
 
-#define NUMBER_OF_DECOMMANDERS                         8
+#define NUMBER_OF_DECOMMANDERS                         11
 
 #define OPENVR_OVERLAY_NAME                            "key.MTBS3D"
 #define OPENVR_OVERLAY_FRIENDLY_NAME                   "MTBS3D"
+#define OPENVR_HUD_OVERLAY_NAME                        "key.HUD"
+#define OPENVR_HUD_OVERLAY_FRIENDLY_NAME               "HUD"
 
 /**
 * Node Decommander Enumeration.
@@ -90,6 +92,9 @@ enum OpenVR_Decommanders
 	RightTexture9,
 	IVRSystem,
 	ZoomOut,
+	HUDTexture11,
+	HUDTexture10,
+	HUDTexture9,
 };
 
 /**
@@ -129,6 +134,10 @@ private:
 	***/
 	ID3D11ShaderResourceView** m_ppcTexView11[2];
 	/**
+	* HUD Texture input. (DX11)
+	***/
+	ID3D11ShaderResourceView** m_ppcTexViewHud11;
+	/**
 	* Zoom out switch.
 	***/
 	BOOL* m_pbZoomOut;
@@ -148,6 +157,10 @@ private:
 	* The overlay thumbnail handle.
 	***/
 	vr::VROverlayHandle_t m_ulOverlayThumbnailHandle;
+	/**
+	* The HUD overlay handle.
+	***/
+	vr::VROverlayHandle_t m_ulHUDOverlayHandle;
 	/**
 	* Hotkey switch.
 	***/
@@ -197,6 +210,14 @@ private:
 	* Shared texture (created by temporary device 1.1)
 	***/
 	ID3D11Texture2D* m_pcTex11Shared[2];
+	/**
+	* Copy texture shared for HUD (created by game device).
+	***/
+	ID3D11Texture2D* m_pcTex11CopyHUD;
+	/**
+	* Shared texture for HUD (created by temporary device 1.1)
+	***/
+	ID3D11Texture2D* m_pcTex11SharedHUD;
 };
 
 /**
