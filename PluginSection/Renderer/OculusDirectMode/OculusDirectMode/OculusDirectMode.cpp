@@ -662,12 +662,11 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 
 						// Measurements posted on <Doc-Ok.org>.
 
-						// so we assume a FoV of 90° x 100° (DK2) and 84° x 93° (CV1), that is ~12 mm lens-eye 
-						// distance
-						// due to this aspect ratio of the DK2/CV1 we adjust the screen by the height
-						// in this case we need to set a higher FOV by following formular:
-						// V = 2 * arctan( tan(H / 2) * aspectratio ) 
-						// so we get V 90° and H 121° (DK2) and V 84° and H 116° (CV1)
+						// Vireio Perception FOV recommandation: (based on Kreylos data)
+						// Resolution (1920x1080)
+						// DK2 : V 105° H 133°
+						// CV1 : V  94° H 124°
+
 						sProj.M[0][0] = sProj.M[0][0] * fAspect; // < incorporate game screen aspect ratio;
 						sProj.M[0][1] = 0.0f;
 						sProj.M[0][3] = sProj.M[0][2];

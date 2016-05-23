@@ -373,6 +373,26 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 	}*/
 
 #pragma region aspect ratio / separation offset
+	// FOV (HTC Vive):
+	// LENS-CAMERA DISTANCE  0MM  5MM 10MM 15MM 20MM 25MM
+	// LEFT HORIZONTAL  FOV  44°  46°  46°  46°  44°  39°
+	// RIGHT HORIZONTAL FOV  48°  53°  54°  47°  41°  37°
+	// TOTAL HORIZONTAL FOV  92°  99° 100°  93°  85°  76°
+	// VERTICAL         FOV 102° 112° 113°  99°  88°  77°
+	// Unlike the Oculus Rift DK2, HTC Vive DK1 / Pre reach their maximal fields 
+	// of view at some distance from the lens, specifically at 8mm eye relief, 
+	// which is practically achievable.Also unlike Rift DK2, the Vive DK1 / Pre’s 
+	// view frusta are skewed outwards, sacrificing stereo overlap for increased 
+	// binocular FoV.At the ideal eye relief of 8mm, and again assuming that the 
+	// frusta are mirror images, total binocular FoV is 110° x 113°(not included 
+	// in above table).To reiterate, measuring FoV offset accurately is rather hard, 
+	// and the resulting binocular FoV estimates, unlike monocular FoV measurements, are to be taken with a grain of salt.
+	// ( Oliver Kreylos FOV measurements )
+
+	// Vireio Perception FOV recommandation: (based on Kreylos data)
+	// Resolution (1920x1080)
+	// HTC Vive : V 112° H 139°
+
 	// calculate aspect ratio + offset correction..for OpenVR we need to set UV coords as aspect ratio
 	if (!bAspectRatio)
 	{
