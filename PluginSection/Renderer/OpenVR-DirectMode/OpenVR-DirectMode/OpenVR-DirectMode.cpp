@@ -400,6 +400,7 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 				fHorizontalOffsetCorrectionLeft = abs(fRight) - abs(fLeft);
 				fHorizontalOffsetCorrectionLeft /= fHorizontal;
 				fHorizontalOffsetCorrectionLeft *= fAspectHMD / fAspectRatio;
+				fHorizontalOffsetCorrectionLeft *= 0.5f;
 
 				// compute right eye 
 				(*m_ppHMD)->GetProjectionRaw(vr::Eye_Right, &fLeft, &fRight, &fTop, &fBottom);
@@ -410,6 +411,7 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 				fHorizontalOffsetCorrectionRight = abs(fRight) - abs(fLeft);
 				fHorizontalOffsetCorrectionRight /= fHorizontal;
 				fHorizontalOffsetCorrectionRight *= fAspectHMD / fAspectRatio;
+				fHorizontalOffsetCorrectionRight *= 0.5f;
 
 				bAspectRatio = true;
 			}

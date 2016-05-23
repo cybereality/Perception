@@ -131,7 +131,9 @@ m_pdwSubresource(nullptr),
 m_ppcResource_Unmap(nullptr),
 m_pdwSubresource_Unmap(nullptr),
 m_pbSwitchRenderTarget(nullptr),
-m_bRenderTargetWasSwitched(false)
+m_bRenderTargetWasSwitched(false),
+m_pcHUDRenderTargetView(nullptr),
+m_bClearHUDRenderTarget(false)
 {
 	m_pcTexView10[0] = nullptr;
 	m_pcTexView10[1] = nullptr;
@@ -147,6 +149,7 @@ m_bRenderTargetWasSwitched(false)
 ***/
 StereoSplitter::~StereoSplitter()
 {
+	SAFE_RELEASE(m_pcHUDRenderTargetView);
 	SAFE_RELEASE(m_pcTexView10[0]);
 	SAFE_RELEASE(m_pcTexView10[1]);
 	SAFE_RELEASE(m_pcTex10[0]);
@@ -956,6 +959,15 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 				case METHOD_ID3D11DEVICECONTEXT_CLEARRENDERTARGETVIEW:
 					if (m_bPresent)
 					{
+						// clear HUD ?
+						if ((m_bClearHUDRenderTarget) && (m_pcHUDRenderTargetView))
+						{
+							// clear HUD render target view
+							float afColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+							((ID3D11DeviceContext*)pThis)->ClearRenderTargetView((ID3D11RenderTargetView*)m_pcHUDRenderTargetView, afColor);
+							m_bClearHUDRenderTarget = false;
+						}
+
 						// verify node pointers
 						if (!m_ppcRenderTargetView_DX11) return nullptr;
 						if (!m_ppfColorRGBA) return nullptr;
@@ -1068,6 +1080,12 @@ void* StereoSplitter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						{
 							if (*m_pbSwitchRenderTarget)
 							{
+								// did we catch the HUD render target view ?
+								if (!m_pcHUDRenderTargetView)
+								{
+									((ID3D11DeviceContext*)pThis)->OMGetRenderTargets(1, &m_pcHUDRenderTargetView, nullptr);
+								}
+
 								m_bRenderTargetWasSwitched = true;
 
 								// method replaced, immediately return
@@ -1655,9 +1673,10 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 	}
 #pragma endregion
 
-	// set present() bool to true, back buffer not picked for the next frame
+	// set present() bool to true, back buffer not picked for the next frame, HUD render target to be deleted
 	m_bPresent = true;
 	m_eBackBufferVerified = NotVerified;
+	m_bClearHUDRenderTarget = true;
 }
 
 /**

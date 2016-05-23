@@ -409,6 +409,14 @@ private:
 	***/
 	std::vector<ID3D11UnorderedAccessView*> m_apcNewUnorderedAccessViews11;
 	/**
+	* Captured HUD render target view.
+	***/
+	ID3D11RenderTargetView* m_pcHUDRenderTargetView;
+	/**
+	* True if HUD render target is to be cleared.
+	***/
+	bool m_bClearHUDRenderTarget;
+	/**
 	* True if Present() was called at least once.
 	* Game can crash if Present() is not connected,
 	* so this is added for security.
