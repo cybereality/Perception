@@ -373,7 +373,7 @@ DWORD StereoPresenter::GetDecommanderType(DWORD dwDecommanderIndex)
 		case STP_Decommanders::XPosition:
 		case STP_Decommanders::YPosition:
 		case STP_Decommanders::ZPosition:
-			return NOD_Plugtype::AQU_PNT_FLOAT;
+			return NOD_Plugtype::AQU_FLOAT;
 		case FloatInput00:
 		case FloatInput01:
 		case FloatInput02:

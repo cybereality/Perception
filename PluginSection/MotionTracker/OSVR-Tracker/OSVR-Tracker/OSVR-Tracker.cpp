@@ -247,25 +247,16 @@ DWORD OSVR_Tracker::GetCommanderType(DWORD dwCommanderIndex)
 	switch ((OSVR_Commanders)dwCommanderIndex)
 	{
 		case OSVR_Commanders::Pitch:
-			return PNT_FLOAT_PLUG_TYPE;
 		case OSVR_Commanders::Yaw:
-			return PNT_FLOAT_PLUG_TYPE;
 		case OSVR_Commanders::Roll:
-			return PNT_FLOAT_PLUG_TYPE;
 		case OSVR_Commanders::OrientationW:
-			return PNT_FLOAT_PLUG_TYPE;
 		case OSVR_Commanders::OrientationX:
-			return PNT_FLOAT_PLUG_TYPE;
 		case OSVR_Commanders::OrientationY:
-			return PNT_FLOAT_PLUG_TYPE;
 		case OSVR_Commanders::OrientationZ:
-			return PNT_FLOAT_PLUG_TYPE;
 		case OSVR_Commanders::PositionX:
-			return PNT_FLOAT_PLUG_TYPE;
 		case OSVR_Commanders::PositionY:
-			return PNT_FLOAT_PLUG_TYPE;
 		case OSVR_Commanders::PositionZ:
-			return PNT_FLOAT_PLUG_TYPE;
+			return NOD_Plugtype::AQU_FLOAT;
 	}
 
 	return 0;

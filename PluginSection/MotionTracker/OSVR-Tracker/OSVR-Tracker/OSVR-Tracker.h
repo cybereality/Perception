@@ -45,9 +45,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <osvr/ClientKit/InterfaceStateC.h>
 #pragma comment(lib, "osvrClientKit.lib")
 
-#define PNT_FLOAT_PLUG_TYPE                          104
-#define PNT_INT_PLUG_TYPE                            107 
-#define PNT_UINT_PLUG_TYPE                           112
+#include "..\..\..\Include\Vireio_Node_Plugtypes.h"
 
 #define NUMBER_OF_COMMANDERS                          10
 
