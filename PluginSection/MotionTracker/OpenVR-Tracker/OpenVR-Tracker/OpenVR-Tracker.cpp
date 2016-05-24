@@ -388,9 +388,40 @@ void* OpenVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			);
 		D3DXQuaternionRotationMatrix(&m_sOrientation[unI], &sPoseMatrix);
 
-		// get euler angles
-		float fAngle;
-		D3DXQuaternionToAxisAngle(&m_sOrientation[unI], &m_sEuler[unI], &fAngle);
+		// quaternion -> euler angles
+		const float w = (float)m_sOrientation[unI].w;
+		const float x = (float)m_sOrientation[unI].x;
+		const float y = (float)m_sOrientation[unI].y;
+		const float z = (float)m_sOrientation[unI].z;
+
+		float sqw = w*w;
+		float sqx = x*x;
+		float sqy = y*y;
+		float sqz = z*z;
+
+		float unit = sqx + sqy + sqz + sqw;
+		float test = x*y + z*w;
+
+		if (test > 0.499*unit)
+		{
+			// singularity at north pole
+			m_sEuler[unI].y = 2 * atan2(x, w);
+			m_sEuler[unI].z = FLOAT_PI / 2;
+			m_sEuler[unI].x = 0;
+		}
+		else if (test < -0.499*unit)
+		{
+			// singularity at south pole
+			m_sEuler[unI].y = -2 * atan2(x, w);
+			m_sEuler[unI].z = -FLOAT_PI / 2;
+			m_sEuler[unI].x = 0;
+		}
+		else
+		{
+			m_sEuler[unI].y = atan2(2 * y*w - 2 * x*z, sqx - sqy - sqz + sqw);
+			m_sEuler[unI].z = asin(2 * test / unit);
+			m_sEuler[unI].x = atan2(2 * x * w - 2 * y * z, -sqx + sqy - sqz + sqw);
+		}
 
 		// get position
 		m_sPosition[unI].x = sPoseMatrix(3, 0);
