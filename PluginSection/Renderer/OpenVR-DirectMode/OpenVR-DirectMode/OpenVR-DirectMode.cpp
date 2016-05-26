@@ -756,29 +756,6 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 								// copy resource
 								pcContext->CopyResource(m_pcTex11Copy[nEye], pcResource);
 								pcResource->Release();
-
-								//// fill openvr texture struct
-								//vr::Texture_t sTexture = { (void*)m_pcTex11Shared[nEye], vr::API_DirectX, vr::ColorSpace_Gamma };
-
-								//// adjust aspect ratio
-								//vr::VRTextureBounds_t sBounds;
-								//if (nEye == (int)vr::Eye_Left)
-								//{
-								//	sBounds.uMin = fHorizontalRatioCorrectionLeft + fHorizontalOffsetCorrectionLeft;
-								//	sBounds.uMax = 1.0f - fHorizontalRatioCorrectionLeft + fHorizontalOffsetCorrectionLeft;
-								//}
-								//else
-								//{
-								//	sBounds.uMin = fHorizontalRatioCorrectionRight + fHorizontalOffsetCorrectionRight;
-								//	sBounds.uMax = 1.0f - fHorizontalRatioCorrectionRight + fHorizontalOffsetCorrectionRight;
-								//}
-								//sBounds.vMin = 0.f;
-								//sBounds.vMax = 1.f;
-
-								//// submit left texture
-								///*vr::EVRCompositorError eError =*/
-								//vr::VRCompositor()->Submit((vr::EVREye)nEye, &sTexture, &sBounds);
-								///*DEBUG_UINT(eError);*/
 							}
 						}
 					}

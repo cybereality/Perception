@@ -56,6 +56,8 @@ OpenVR_Tracker::OpenVR_Tracker() :AQU_Nodus()
 	ZeroMemory(&m_sEuler[0], sizeof(D3DXVECTOR3)* vr::k_unMaxTrackedDeviceCount);
 	ZeroMemory(&m_sOrientation[0], sizeof(D3DXQUATERNION)* vr::k_unMaxTrackedDeviceCount);
 	ZeroMemory(&m_sPosition[0], sizeof(D3DXVECTOR3)* vr::k_unMaxTrackedDeviceCount);
+
+	m_cGameTimer.Reset();
 }
 
 /**
@@ -320,6 +322,9 @@ bool OpenVR_Tracker::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 ***/
 void* OpenVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)
 {
+// update game timer
+m_cGameTimer.Tick();
+
 	if (!m_pHMD)
 	{
 		// Loading the SteamVR Runtime
@@ -381,7 +386,7 @@ void* OpenVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			vr::VRCompositor()->WaitGetPoses(m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount, NULL, 0);
 		else
 		{
-			m_pHMD->GetDeviceToAbsoluteTrackingPose(vr::ETrackingUniverseOrigin::TrackingUniverseStanding, /*fPredictedSecondsToPhotonsFromNow*/0.0f, m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount);
+			m_pHMD->GetDeviceToAbsoluteTrackingPose(vr::ETrackingUniverseOrigin::TrackingUniverseStanding, (float)m_cGameTimer.DeltaTime(), m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount);
 		}
 
 		// first, we only handle the HMD = 0 index
