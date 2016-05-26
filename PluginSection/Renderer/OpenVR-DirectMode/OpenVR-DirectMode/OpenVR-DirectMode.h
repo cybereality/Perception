@@ -122,6 +122,52 @@ public:
 	virtual void*           Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex);
 private:
 	/**
+	* Submit left and right shared texture constantly.
+	***/
+	static DWORD WINAPI SubmitFramesConstantly(void* Param)
+	{
+		while (true)
+		{
+			if (m_ppHMD)
+			{
+				if (*m_ppHMD)
+				{
+					if ((m_bInit) && (vr::VRCompositor()->CanRenderScene()))
+					{
+						// left + right
+						for (int nEye = 0; nEye < 2; nEye++)
+						{
+							// fill openvr texture struct
+							vr::Texture_t sTexture = { (void*)m_pcTex11Shared[nEye], vr::API_DirectX, vr::ColorSpace_Gamma };
+
+							// adjust aspect ratio
+							vr::VRTextureBounds_t sBounds;
+							if (nEye == (int)vr::Eye_Left)
+							{
+								sBounds.uMin = fHorizontalRatioCorrectionLeft + fHorizontalOffsetCorrectionLeft;
+								sBounds.uMax = 1.0f - fHorizontalRatioCorrectionLeft + fHorizontalOffsetCorrectionLeft;
+							}
+							else
+							{
+								sBounds.uMin = fHorizontalRatioCorrectionRight + fHorizontalOffsetCorrectionRight;
+								sBounds.uMax = 1.0f - fHorizontalRatioCorrectionRight + fHorizontalOffsetCorrectionRight;
+							}
+							sBounds.vMin = 0.0f;
+							sBounds.vMax = 1.f;
+
+							// submit left texture
+							vr::VRCompositor()->Submit((vr::EVREye)nEye, &sTexture, &sBounds);
+						}
+
+						// sleep for 10 milliseconds to ensure frame is submitted ~100 times per second
+						Sleep(10);
+					}
+				}
+			}
+		}
+	}
+
+	/**
 	* Temporary directx 11 device for OpenVR.
 	***/
 	ID3D11Device* m_pcDeviceTemporary;
@@ -144,7 +190,7 @@ private:
 	/**
 	* OpenVR system.
 	***/
-	vr::IVRSystem **m_ppHMD;
+	static vr::IVRSystem **m_ppHMD;
 	/**
 	* The (tracked) device poses (for all devices).
 	***/
@@ -162,13 +208,29 @@ private:
 	***/
 	vr::VROverlayHandle_t m_ulHUDOverlayHandle;
 	/**
-	* Hotkey switch.
+	* Left eye aspect ratio correction.
 	***/
-	bool m_bHotkeySwitch;
+	static float fHorizontalRatioCorrectionLeft;
+	/**
+	* Right eye aspect ratio correction.
+	***/
+	static float fHorizontalRatioCorrectionRight;
+	/**
+	* Left eye lens offset correction.
+	***/
+	static float fHorizontalOffsetCorrectionLeft;
+	/**
+	* Right eye lens offset correction.
+	***/
+	static float fHorizontalOffsetCorrectionRight;
 	/**
 	* True if OpenVR is initialized.
 	***/
-	bool m_bInit;
+	static bool m_bInit;
+	/**
+	* Static thread handle.
+	***/
+	static HANDLE pThread;
 	/**
 	* The 2D vertex shader.
 	***/
@@ -209,7 +271,7 @@ private:
 	/**
 	* Shared texture (created by temporary device 1.1)
 	***/
-	ID3D11Texture2D* m_pcTex11Shared[2];
+	static ID3D11Texture2D* m_pcTex11Shared[2];
 	/**
 	* Copy texture shared for HUD (created by game device).
 	***/
@@ -252,6 +314,10 @@ private:
 		vr::HmdColor_t sColor;               /**< The color for the Dashboard overlay (including alpha) **/
 		float fWidth;                        /**< The width of the Dashboard overlay (in meters) **/
 	} m_sOverlayPropertiesDashboard;
+	/**
+	* Hotkey switch.
+	***/
+	bool m_bHotkeySwitch;
 };
 
 /**

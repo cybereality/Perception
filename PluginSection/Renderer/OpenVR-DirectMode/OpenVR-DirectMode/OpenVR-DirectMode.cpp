@@ -51,6 +51,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define	METHOD_IDIRECT3DSWAPCHAIN9_PRESENT   3
 #define METHOD_IDXGISWAPCHAIN_PRESENT        8
 
+#pragma region OpenVR-Tracker static fields
+bool OpenVR_DirectMode::m_bInit;
+vr::IVRSystem **OpenVR_DirectMode::m_ppHMD;
+ID3D11Texture2D *OpenVR_DirectMode::m_pcTex11Shared[2];
+HANDLE OpenVR_DirectMode::pThread;
+float OpenVR_DirectMode::fHorizontalOffsetCorrectionLeft;
+float OpenVR_DirectMode::fHorizontalOffsetCorrectionRight;
+float OpenVR_DirectMode::fHorizontalRatioCorrectionLeft;
+float OpenVR_DirectMode::fHorizontalRatioCorrectionRight;
+#pragma endregion
+
 /**
 * Matrix translation helper.
 ***/
@@ -142,8 +153,6 @@ HRESULT CreateCopyTexture(ID3D11Device* pcDevice, ID3D11Device* pcDeviceTemporar
 OpenVR_DirectMode::OpenVR_DirectMode() : AQU_Nodus(),
 m_pcDeviceTemporary(nullptr),
 m_pcContextTemporary(nullptr),
-m_bInit(false),
-m_ppHMD(nullptr),
 m_ulOverlayHandle(0),
 m_ulOverlayThumbnailHandle(0),
 m_bHotkeySwitch(false),
@@ -168,6 +177,15 @@ m_pbZoomOut(nullptr)
 	m_pcVertexBuffer11 = nullptr;
 	m_pcConstantBufferDirect11 = nullptr;
 	m_pcSamplerState = nullptr;
+
+	// static fields
+	m_bInit = false;
+	m_ppHMD = nullptr;
+	pThread = nullptr;
+	fHorizontalRatioCorrectionLeft = 0.0f;
+	fHorizontalRatioCorrectionRight = 0.0f;
+	fHorizontalOffsetCorrectionLeft = 0.0f;
+	fHorizontalOffsetCorrectionRight = 0.0f;
 
 	// set default overlay properties
 	m_sOverlayPropertiesHud.eTransform = OverlayTransformType::Absolute;
@@ -214,6 +232,8 @@ OpenVR_DirectMode::~OpenVR_DirectMode()
 	if (m_pcTex11DrawRTV[1]) m_pcTex11DrawRTV[1]->Release();
 	if (m_pcTex11Shared[0]) m_pcTex11Shared[0]->Release();
 	if (m_pcTex11Shared[1]) m_pcTex11Shared[1]->Release();
+
+	TerminateThread(pThread, S_OK);
 }
 
 /**
@@ -355,11 +375,12 @@ bool OpenVR_DirectMode::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, in
 ***/
 void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)
 {
+	// submit thread id
+	static DWORD unThreadId = 0;
+
 	// aspect ratio static fields
 	static float fAspectRatio = 1.0f;
 	static float bAspectRatio = false;
-	static float fHorizontalRatioCorrectionLeft = 0.0f, fHorizontalRatioCorrectionRight = 0.0f;
-	static float fHorizontalOffsetCorrectionLeft = 0.0f, fHorizontalOffsetCorrectionRight = 0.0f;
 
 	if (eD3DInterface != INTERFACE_IDXGISWAPCHAIN) return nullptr;
 	if (eD3DMethod != METHOD_IDXGISWAPCHAIN_PRESENT) return nullptr;
@@ -438,6 +459,10 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 		}
 	}
 #pragma endregion
+
+	// create thread
+	if (!unThreadId)
+		pThread = CreateThread(NULL, 0, SubmitFramesConstantly, NULL, 0, &unThreadId);
 
 	// cast swapchain
 	IDXGISwapChain* pcSwapChain = (IDXGISwapChain*)pThis;
@@ -710,9 +735,6 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 #pragma region Render
 				if (!vr::VROverlay()->IsDashboardVisible())
 				{
-					// call WaitGetPoses here to get the scene focus
-					vr::VRCompositor()->WaitGetPoses(m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount, NULL, 0);
-
 					// left + right
 					for (int nEye = 0; nEye < 2; nEye++)
 					{
@@ -735,28 +757,28 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 								pcContext->CopyResource(m_pcTex11Copy[nEye], pcResource);
 								pcResource->Release();
 
-								// fill openvr texture struct
-								vr::Texture_t sTexture = { (void*)m_pcTex11Shared[nEye], vr::API_DirectX, vr::ColorSpace_Gamma };
+								//// fill openvr texture struct
+								//vr::Texture_t sTexture = { (void*)m_pcTex11Shared[nEye], vr::API_DirectX, vr::ColorSpace_Gamma };
 
-								// adjust aspect ratio
-								vr::VRTextureBounds_t sBounds;
-								if (nEye == (int)vr::Eye_Left)
-								{
-									sBounds.uMin = fHorizontalRatioCorrectionLeft + fHorizontalOffsetCorrectionLeft;
-									sBounds.uMax = 1.0f - fHorizontalRatioCorrectionLeft + fHorizontalOffsetCorrectionLeft;
-								}
-								else
-								{
-									sBounds.uMin = fHorizontalRatioCorrectionRight + fHorizontalOffsetCorrectionRight;
-									sBounds.uMax = 1.0f - fHorizontalRatioCorrectionRight + fHorizontalOffsetCorrectionRight;
-								}
-								sBounds.vMin = 0.f;
-								sBounds.vMax = 1.f;
+								//// adjust aspect ratio
+								//vr::VRTextureBounds_t sBounds;
+								//if (nEye == (int)vr::Eye_Left)
+								//{
+								//	sBounds.uMin = fHorizontalRatioCorrectionLeft + fHorizontalOffsetCorrectionLeft;
+								//	sBounds.uMax = 1.0f - fHorizontalRatioCorrectionLeft + fHorizontalOffsetCorrectionLeft;
+								//}
+								//else
+								//{
+								//	sBounds.uMin = fHorizontalRatioCorrectionRight + fHorizontalOffsetCorrectionRight;
+								//	sBounds.uMax = 1.0f - fHorizontalRatioCorrectionRight + fHorizontalOffsetCorrectionRight;
+								//}
+								//sBounds.vMin = 0.f;
+								//sBounds.vMax = 1.f;
 
-								// submit left texture
-								/*vr::EVRCompositorError eError =*/
-								vr::VRCompositor()->Submit((vr::EVREye)nEye, &sTexture, &sBounds);
-								/*DEBUG_UINT(eError);*/
+								//// submit left texture
+								///*vr::EVRCompositorError eError =*/
+								//vr::VRCompositor()->Submit((vr::EVREye)nEye, &sTexture, &sBounds);
+								///*DEBUG_UINT(eError);*/
 							}
 						}
 					}

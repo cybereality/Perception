@@ -41,6 +41,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define INTERFACE_IDIRECT3DDEVICE9           8
 
+#define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"%u", a); OutputDebugString(buf); }
+#define DEBUG_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"%x", a); OutputDebugString(buf); }
+
 /**
 * Constructor.
 ***/
@@ -374,7 +377,12 @@ void* OpenVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 		}*/
 
 		// get predicted pose for next frame
-		m_pHMD->GetDeviceToAbsoluteTrackingPose(vr::ETrackingUniverseOrigin::TrackingUniverseStanding, /*fPredictedSecondsToPhotonsFromNow*/0.0f, m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount);
+		if (!vr::VRCompositor()->GetLastFrameRenderer())
+			vr::VRCompositor()->WaitGetPoses(m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount, NULL, 0);
+		else
+		{
+			m_pHMD->GetDeviceToAbsoluteTrackingPose(vr::ETrackingUniverseOrigin::TrackingUniverseStanding, /*fPredictedSecondsToPhotonsFromNow*/0.0f, m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount);
+		}
 
 		// first, we only handle the HMD = 0 index
 		uint32_t unI = vr::k_unTrackedDeviceIndex_Hmd;
