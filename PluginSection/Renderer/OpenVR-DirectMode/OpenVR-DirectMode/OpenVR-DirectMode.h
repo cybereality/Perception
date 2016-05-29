@@ -159,8 +159,16 @@ private:
 							vr::VRCompositor()->Submit((vr::EVREye)nEye, &sTexture, &sBounds);
 						}
 
-						// sleep for 10 milliseconds to ensure frame is submitted ~100 times per second
-						Sleep(10);
+						if (true) // TODO !! MAKE THIS OPTIONALLY !!
+						{
+							// sleep for 20 milliseconds to ensure frame is submitted ~45 times per second (for reprojection 90fps)
+							Sleep(20);
+						}
+						else
+						{
+							// sleep for 10 milliseconds to ensure frame is submitted ~90 times per second
+							Sleep(10);
+						}
 					}
 				}
 			}
