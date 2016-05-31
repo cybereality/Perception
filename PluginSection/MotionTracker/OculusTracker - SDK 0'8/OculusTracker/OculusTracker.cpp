@@ -63,6 +63,13 @@ m_hHMD(nullptr)
 
 	ZeroMemory(&m_sDefaultFOVMatrixProjLeft, sizeof(D3DMATRIX));
 	ZeroMemory(&m_sDefaultFOVMatrixProjRight, sizeof(D3DMATRIX));
+
+	ZeroMemory(&m_fEulerPredicted[0], sizeof(float)* 3);
+	ZeroMemory(&m_fPositionPredicted[0], sizeof(float)* 3);
+	ZeroMemory(&m_fEulerVelocity[0], sizeof(float)* 3);
+	ZeroMemory(&m_fPositionVelocity[0], sizeof(float)* 3);
+
+	m_cGameTimer.Reset();
 }
 
 /**
@@ -159,15 +166,15 @@ HBITMAP OculusTracker::GetControl()
 			SetBkColor(hdcImage, RGB(240, 160, 192));
 
 			// display the values suiteable to the data commanders... first yaw pitch roll
-			szBuffer << m_fPitch;
+			szBuffer << m_fEuler[0];
 			TextOut(hdcImage, 880, nY, L"Pitch", 5);
 			TextOut(hdcImage, 392, nY, szBuffer.str().c_str(), (int)szBuffer.str().length());
 			nY += 64; szBuffer = std::wstringstream();
-			szBuffer << m_fYaw;
+			szBuffer << m_fEuler[1];
 			TextOut(hdcImage, 880, nY, L"Yaw", 3);
 			TextOut(hdcImage, 392, nY, szBuffer.str().c_str(), (int)szBuffer.str().length());
 			nY += 64; szBuffer = std::wstringstream();
-			szBuffer << m_fRoll;
+			szBuffer << m_fEuler[2];
 			TextOut(hdcImage, 880, nY, L"Roll", 4);
 			TextOut(hdcImage, 392, nY, szBuffer.str().c_str(), (int)szBuffer.str().length());
 			nY += 64; szBuffer = std::wstringstream();
@@ -400,11 +407,11 @@ DWORD OculusTracker::GetCommanderType(DWORD dwCommanderIndex)
 void* OculusTracker::GetOutputPointer(DWORD dwCommanderIndex)
 {
 	if (dwCommanderIndex == (DWORD)OTR_Commanders::Pitch)
-		return (void*)&m_fPitch;
+		return (void*)&m_fEulerPredicted[0];
 	if (dwCommanderIndex == (DWORD)OTR_Commanders::Yaw)
-		return (void*)&m_fYaw;
+		return (void*)&m_fEulerPredicted[1];
 	if (dwCommanderIndex == (DWORD)OTR_Commanders::Roll)
-		return (void*)&m_fRoll;
+		return (void*)&m_fEulerPredicted[2];
 	if (dwCommanderIndex == (DWORD)OTR_Commanders::HMD_Handle)
 	{
 		return (void*)&m_hHMD;
@@ -428,6 +435,9 @@ bool OculusTracker::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD
 ***/
 void* OculusTracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)
 {
+	// update game timer
+	m_cGameTimer.Tick();
+
 	static UINT unFrameSkip = 200;
 	if (unFrameSkip > 0)
 	{
@@ -454,13 +464,37 @@ void* OculusTracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DM
 			m_sOrientation.z = m_sPose.Orientation.z;
 			m_sOrientation.w = m_sPose.Orientation.w;
 
+			// backup old euler angles and velocity
+			float fEulerOld[3];
+			float fEulerVelocityOld[3];
+			memcpy(&fEulerOld[0], &m_fEuler[0], sizeof(float)* 3);
+			memcpy(&fEulerVelocityOld[0], &m_fEulerVelocity[0], sizeof(float)* 3);
+
 			// get angles
-			m_sOrientation.GetEulerAngles<Axis::Axis_Y, Axis::Axis_X, Axis::Axis_Z, RotateDirection::Rotate_CW, HandedSystem::Handed_R >(&m_fYaw, &m_fPitch, &m_fRoll);
+			m_sOrientation.GetEulerAngles<Axis::Axis_Y, Axis::Axis_X, Axis::Axis_Z, RotateDirection::Rotate_CW, HandedSystem::Handed_R >(&m_fEuler[1], &m_fEuler[0], &m_fEuler[2]);
 
 			// quick fix here...
-			m_fYaw *= -1.0f;
-			m_fPitch *= -1.0f;
-			m_fRoll *= -1.0f;
+			m_fEuler[1] *= -1.0f;
+			m_fEuler[0] *= -1.0f;
+			m_fEuler[2] *= -1.0f;
+
+			// get euler velocity + acceleration
+			float fEulerAcceleration[3];
+			for (UINT unI = 0; unI < 3; unI++)
+			{
+				// get the velocity
+				m_fEulerVelocity[unI] = (m_fEuler[unI] - fEulerOld[unI]) / (float)m_cGameTimer.DeltaTime();
+
+				// get the acceleration
+				fEulerAcceleration[unI] = (m_fEulerVelocity[unI] - fEulerVelocityOld[unI]) / (float)m_cGameTimer.DeltaTime();
+			}
+
+			// get predicted euler
+			for (UINT unI = 0; unI < 3; unI++)
+			{
+				// compute predicted euler
+				m_fEulerPredicted[unI] = (0.5f * fEulerAcceleration[unI] * ((float)m_cGameTimer.DeltaTime() * (float)m_cGameTimer.DeltaTime())) + (m_fEulerVelocity[unI] * (float)m_cGameTimer.DeltaTime()) + m_fEuler[unI];
+			}
 
 			// set the drawing update to true
 			m_bControlUpdate = true;
@@ -492,13 +526,13 @@ void* OculusTracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DM
 				switch ((OTR_Commanders)dwCommanderIndex)
 				{
 					case OTR_Commanders::Pitch:
-						m_paOutput[dwCommanderIndex] = (void*)&m_fPitch;
+						m_paOutput[dwCommanderIndex] = (void*)&m_fEulerPredicted[0];
 						break;
 					case OTR_Commanders::Yaw:
-						m_paOutput[dwCommanderIndex] = (void*)&m_fYaw;
+						m_paOutput[dwCommanderIndex] = (void*)&m_fEulerPredicted[1];
 						break;
 					case OTR_Commanders::Roll:
-						m_paOutput[dwCommanderIndex] = (void*)&m_fRoll;
+						m_paOutput[dwCommanderIndex] = (void*)&m_fEulerPredicted[2];
 						break;
 					case OTR_Commanders::OrientationW:
 						m_paOutput[dwCommanderIndex] = (void*)&m_sPose.Orientation.w;
