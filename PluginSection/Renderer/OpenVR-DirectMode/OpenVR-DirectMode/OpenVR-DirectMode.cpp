@@ -55,11 +55,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 bool OpenVR_DirectMode::m_bInit;
 vr::IVRSystem **OpenVR_DirectMode::m_ppHMD;
 ID3D11Texture2D *OpenVR_DirectMode::m_pcTex11Shared[2];
-HANDLE OpenVR_DirectMode::pThread;
-float OpenVR_DirectMode::fHorizontalOffsetCorrectionLeft;
-float OpenVR_DirectMode::fHorizontalOffsetCorrectionRight;
-float OpenVR_DirectMode::fHorizontalRatioCorrectionLeft;
-float OpenVR_DirectMode::fHorizontalRatioCorrectionRight;
+HANDLE OpenVR_DirectMode::m_pThread;
+float OpenVR_DirectMode::m_fHorizontalOffsetCorrectionLeft;
+float OpenVR_DirectMode::m_fHorizontalOffsetCorrectionRight;
+float OpenVR_DirectMode::m_fHorizontalRatioCorrectionLeft;
+float OpenVR_DirectMode::m_fHorizontalRatioCorrectionRight;
 #pragma endregion
 
 /**
@@ -181,11 +181,11 @@ m_pbZoomOut(nullptr)
 	// static fields
 	m_bInit = false;
 	m_ppHMD = nullptr;
-	pThread = nullptr;
-	fHorizontalRatioCorrectionLeft = 0.0f;
-	fHorizontalRatioCorrectionRight = 0.0f;
-	fHorizontalOffsetCorrectionLeft = 0.0f;
-	fHorizontalOffsetCorrectionRight = 0.0f;
+	m_pThread = nullptr;
+	m_fHorizontalRatioCorrectionLeft = 0.0f;
+	m_fHorizontalRatioCorrectionRight = 0.0f;
+	m_fHorizontalOffsetCorrectionLeft = 0.0f;
+	m_fHorizontalOffsetCorrectionRight = 0.0f;
 
 	// set default overlay properties
 	m_sOverlayPropertiesHud.eTransform = OverlayTransformType::Absolute;
@@ -233,7 +233,7 @@ OpenVR_DirectMode::~OpenVR_DirectMode()
 	if (m_pcTex11Shared[0]) m_pcTex11Shared[0]->Release();
 	if (m_pcTex11Shared[1]) m_pcTex11Shared[1]->Release();
 
-	TerminateThread(pThread, S_OK);
+	TerminateThread(m_pThread, S_OK);
 }
 
 /**
@@ -378,8 +378,8 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 	// submit thread id
 	static DWORD unThreadId = 0;
 
-	// aspect ratio static fields
-	static float fAspectRatio = 1.0f;
+	// aspect ratio static fields... optimized now for 1920x1080
+	static float fAspectRatio = 1920.0f / 1200.0f;
 	static float bAspectRatio = false;
 
 	if (eD3DInterface != INTERFACE_IDXGISWAPCHAIN) return nullptr;
@@ -417,52 +417,36 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 	// calculate aspect ratio + offset correction..for OpenVR we need to set UV coords as aspect ratio
 	if (!bAspectRatio)
 	{
-		// texture connected ?
-		if ((m_ppcTexView11[0]) && (*m_ppcTexView11[0]))
-		{
-			// get the resource
-			ID3D11Resource* pcResource = nullptr;
-			(*m_ppcTexView11[0])->GetResource(&pcResource);
-			if (pcResource)
-			{
-				// get the aspect ratio
-				D3D11_TEXTURE2D_DESC sDesc;
-				((ID3D11Texture2D*)pcResource)->GetDesc(&sDesc);
-				fAspectRatio = (float)sDesc.Width / (float)sDesc.Height;
-				pcResource->Release();
+		// compute left eye 
+		float fLeft, fRight, fTop, fBottom;
+		(*m_ppHMD)->GetProjectionRaw(vr::Eye_Left, &fLeft, &fRight, &fTop, &fBottom);
+		float fHorizontal = fRight - fLeft;
+		float fVertical = fBottom - fTop;
+		float fAspectHMD = fHorizontal / fVertical;
+		m_fHorizontalRatioCorrectionLeft = (1.0f - (fAspectHMD / fAspectRatio)) / 2.0f;
+		m_fHorizontalOffsetCorrectionLeft = abs(fRight) - abs(fLeft);
+		m_fHorizontalOffsetCorrectionLeft /= fHorizontal;
+		m_fHorizontalOffsetCorrectionLeft *= fAspectHMD / fAspectRatio;
+		m_fHorizontalOffsetCorrectionLeft *= 0.5f;
 
-				// compute left eye 
-				float fLeft, fRight, fTop, fBottom;
-				(*m_ppHMD)->GetProjectionRaw(vr::Eye_Left, &fLeft, &fRight, &fTop, &fBottom);
-				float fHorizontal = fRight - fLeft;
-				float fVertical = fBottom - fTop;
-				float fAspectHMD = fHorizontal / fVertical;
-				fHorizontalRatioCorrectionLeft = (1.0f - (fAspectHMD / fAspectRatio)) / 2.0f;
-				fHorizontalOffsetCorrectionLeft = abs(fRight) - abs(fLeft);
-				fHorizontalOffsetCorrectionLeft /= fHorizontal;
-				fHorizontalOffsetCorrectionLeft *= fAspectHMD / fAspectRatio;
-				fHorizontalOffsetCorrectionLeft *= 0.5f;
+		// compute right eye 
+		(*m_ppHMD)->GetProjectionRaw(vr::Eye_Right, &fLeft, &fRight, &fTop, &fBottom);
+		fHorizontal = fRight - fLeft;
+		fVertical = fBottom - fTop;
+		fAspectHMD = fHorizontal / fVertical;
+		m_fHorizontalRatioCorrectionRight = (1.0f - (fAspectHMD / fAspectRatio)) / 2.0f;
+		m_fHorizontalOffsetCorrectionRight = abs(fRight) - abs(fLeft);
+		m_fHorizontalOffsetCorrectionRight /= fHorizontal;
+		m_fHorizontalOffsetCorrectionRight *= fAspectHMD / fAspectRatio;
+		m_fHorizontalOffsetCorrectionRight *= 0.5f;
 
-				// compute right eye 
-				(*m_ppHMD)->GetProjectionRaw(vr::Eye_Right, &fLeft, &fRight, &fTop, &fBottom);
-				fHorizontal = fRight - fLeft;
-				fVertical = fBottom - fTop;
-				fAspectHMD = fHorizontal / fVertical;
-				fHorizontalRatioCorrectionRight = (1.0f - (fAspectHMD / fAspectRatio)) / 2.0f;
-				fHorizontalOffsetCorrectionRight = abs(fRight) - abs(fLeft);
-				fHorizontalOffsetCorrectionRight /= fHorizontal;
-				fHorizontalOffsetCorrectionRight *= fAspectHMD / fAspectRatio;
-				fHorizontalOffsetCorrectionRight *= 0.5f;
-
-				bAspectRatio = true;
-			}
-		}
+		bAspectRatio = true;
 	}
 #pragma endregion
 
 	// create thread
 	if (!unThreadId)
-		pThread = CreateThread(NULL, 0, SubmitFramesConstantly, NULL, 0, &unThreadId);
+		m_pThread = CreateThread(NULL, 0, SubmitFramesConstantly, NULL, 0, &unThreadId);
 
 	// cast swapchain
 	IDXGISwapChain* pcSwapChain = (IDXGISwapChain*)pThis;

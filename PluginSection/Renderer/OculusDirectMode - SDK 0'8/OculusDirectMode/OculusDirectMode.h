@@ -209,9 +209,53 @@ public:
 
 private:
 	/**
+	* Submit left and right shared texture constantly.
+	***/
+	static DWORD WINAPI SubmitFramesConstantly(void* Param)
+	{		
+		while (true)
+		{
+			if (m_phHMD)
+			{
+				if (*m_phHMD)
+				{
+					if (m_bInit)
+					{
+						// Initialize our single full screen Fov layer.
+						ovrLayerEyeFov ld = {};
+						ld.Header.Type = ovrLayerType_EyeFov;
+						ld.Header.Flags = 0;
+
+						for (int eye = 0; eye < 2; ++eye)
+						{
+							ld.ColorTexture[eye] = m_psEyeRenderTexture[eye]->TextureSet;
+							ld.Viewport[eye] = m_psEyeRenderViewport[eye];
+							ld.Fov[eye] = m_sHMDDesc.DefaultEyeFov[eye];
+							ld.RenderPose[eye] = asEyeRenderPose[eye];
+							ld.SensorSampleTime = sensorSampleTime;
+						}
+
+						ovrLayerHeader* psLayers = &ld.Header;
+						ovrResult result = ovr_SubmitFrame(*m_phHMD, 0, nullptr, &psLayers, 1);
+
+						if (true) // TODO !! MAKE THIS OPTIONALLY !!
+						{
+							Sleep(10);
+						}
+						else
+						{
+							Sleep(20);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/**
 	* True if OVR is initialized.
 	***/
-	bool m_bInit;
+	static bool m_bInit;
 	/**
 	* The handle of the headset.
 	***/
@@ -219,7 +263,7 @@ private:
 	/**
 	* The pointer to the HMD handle created either by this node or the oculus tracker node.
 	***/
-	ovrHmd* m_phHMD;
+	static ovrHmd* m_phHMD;
 	/**
 	* The pointer to the handle created by the oculus tracker node.
 	***/
@@ -227,7 +271,7 @@ private:
 	/**
 	* The HMD description.
 	***/
-	ovrHmdDesc m_sHMDDesc;
+	static ovrHmdDesc m_sHMDDesc;
 	/**
 	* Adapter Identifier.
 	***/
@@ -244,11 +288,11 @@ private:
 	/**
 	* The Oculus swapchain. (for both eyes)
 	***/
-	OculusTexture* m_psEyeRenderTexture[2];
+	static OculusTexture* m_psEyeRenderTexture[2];
 	/**
 	* The Oculus render viewport. (for both eyes)
 	***/
-	ovrRecti m_psEyeRenderViewport[2];
+	static ovrRecti m_psEyeRenderViewport[2];
 	/**
 	* The Oculus render description. (for both eyes)
 	***/
@@ -323,6 +367,19 @@ private:
 	* Zoom out switch.
 	***/
 	BOOL* m_pbZoomOut;
+	/**
+	* Eye render poses, static to be used by submission thread.
+	***/
+	static ovrPosef asEyeRenderPose[2];
+	/**
+	* Timestamp for last drawn frame.
+	***/
+	static double sensorSampleTime;
+	/**
+	* Static thread handle.
+	***/
+	static HANDLE m_pThread;
+
 };
 
 /**

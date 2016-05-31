@@ -126,6 +126,10 @@ private:
 	***/
 	static DWORD WINAPI SubmitFramesConstantly(void* Param)
 	{
+		// optimize openvr for 1080p, draw space at top and bottom black (1200p)
+		const static float fVMin = -(((1200.0f - 1080.0f) / 2.0f) / 1080.0f);
+		const static float fVMax = 1.0f + (((1200.0f - 1080.0f) / 2.0f) / 1080.0f);
+
 		while (true)
 		{
 			if (m_ppHMD)
@@ -144,16 +148,16 @@ private:
 							vr::VRTextureBounds_t sBounds;
 							if (nEye == (int)vr::Eye_Left)
 							{
-								sBounds.uMin = fHorizontalRatioCorrectionLeft + fHorizontalOffsetCorrectionLeft;
-								sBounds.uMax = 1.0f - fHorizontalRatioCorrectionLeft + fHorizontalOffsetCorrectionLeft;
+								sBounds.uMin = m_fHorizontalRatioCorrectionLeft + m_fHorizontalOffsetCorrectionLeft;
+								sBounds.uMax = 1.0f - m_fHorizontalRatioCorrectionLeft + m_fHorizontalOffsetCorrectionLeft;
 							}
 							else
 							{
-								sBounds.uMin = fHorizontalRatioCorrectionRight + fHorizontalOffsetCorrectionRight;
-								sBounds.uMax = 1.0f - fHorizontalRatioCorrectionRight + fHorizontalOffsetCorrectionRight;
+								sBounds.uMin = m_fHorizontalRatioCorrectionRight + m_fHorizontalOffsetCorrectionRight;
+								sBounds.uMax = 1.0f - m_fHorizontalRatioCorrectionRight + m_fHorizontalOffsetCorrectionRight;
 							}
-							sBounds.vMin = 0.0f;
-							sBounds.vMax = 1.f;
+							sBounds.vMin = fVMin;
+							sBounds.vMax = fVMax;
 
 							// submit left texture
 							vr::VRCompositor()->Submit((vr::EVREye)nEye, &sTexture, &sBounds);
@@ -163,6 +167,7 @@ private:
 						{
 							// sleep for 20 milliseconds to ensure frame is submitted ~45 times per second (for reprojection 90fps)
 							Sleep(20);
+							vr::VRCompositor()->ForceInterleavedReprojectionOn(true);
 						}
 						else
 						{
@@ -218,19 +223,19 @@ private:
 	/**
 	* Left eye aspect ratio correction.
 	***/
-	static float fHorizontalRatioCorrectionLeft;
+	static float m_fHorizontalRatioCorrectionLeft;
 	/**
 	* Right eye aspect ratio correction.
 	***/
-	static float fHorizontalRatioCorrectionRight;
+	static float m_fHorizontalRatioCorrectionRight;
 	/**
 	* Left eye lens offset correction.
 	***/
-	static float fHorizontalOffsetCorrectionLeft;
+	static float m_fHorizontalOffsetCorrectionLeft;
 	/**
 	* Right eye lens offset correction.
 	***/
-	static float fHorizontalOffsetCorrectionRight;
+	static float m_fHorizontalOffsetCorrectionRight;
 	/**
 	* True if OpenVR is initialized.
 	***/
@@ -238,7 +243,7 @@ private:
 	/**
 	* Static thread handle.
 	***/
-	static HANDLE pThread;
+	static HANDLE m_pThread;
 	/**
 	* The 2D vertex shader.
 	***/

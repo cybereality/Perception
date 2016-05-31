@@ -56,6 +56,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define	METHOD_IDIRECT3DSWAPCHAIN9_PRESENT   3
 #define METHOD_IDXGISWAPCHAIN_PRESENT        8
 
+#pragma region OpenVR-Tracker static fields
+bool OculusDirectMode::m_bInit;
+ovrHmd *OculusDirectMode::m_phHMD;
+HANDLE OculusDirectMode::m_pThread;
+double OculusDirectMode::sensorSampleTime;
+ovrRecti OculusDirectMode::m_psEyeRenderViewport[2];
+ovrPosef OculusDirectMode::asEyeRenderPose[2];
+OculusTexture* OculusDirectMode::m_psEyeRenderTexture[2];
+ovrHmdDesc OculusDirectMode::m_sHMDDesc;
+#pragma endregion
+
 /**
 * Constructor.
 ***/
@@ -64,11 +75,9 @@ m_pcDeviceTemporary(nullptr),
 m_pcContextTemporary(nullptr),
 m_pcSwapChainTemporary(nullptr),
 m_pcBackBufferTemporary(nullptr),
-m_bInit(false),
 m_pcMirrorTexture(nullptr),
 m_pcMirrorTextureD3D11(nullptr),
 m_hHMD(nullptr),
-m_phHMD(nullptr),
 m_phHMD_Tracker(nullptr),
 m_bHotkeySwitch(false),
 m_pbZoomOut(nullptr)
@@ -89,6 +98,11 @@ m_pbZoomOut(nullptr)
 	m_pcVertexBuffer11 = nullptr;
 	m_pcConstantBufferDirect11 = nullptr;
 	m_pcSamplerState = nullptr;
+
+	m_bInit = false;
+	m_phHMD = nullptr;
+	sensorSampleTime = 0.0;
+	m_pThread = nullptr;
 }
 
 /**
@@ -96,6 +110,8 @@ m_pbZoomOut(nullptr)
 ***/
 OculusDirectMode::~OculusDirectMode()
 {
+	TerminateThread(m_pThread, S_OK);
+
 	if (m_pcMirrorTextureD3D11) m_pcMirrorTextureD3D11->Release();
 	if (m_pcMirrorTexture) ovr_DestroyMirrorTexture(m_hHMD, m_pcMirrorTexture);
 	if (m_pcBackBufferRTVTemporary) m_pcBackBufferRTVTemporary->Release();
@@ -230,6 +246,16 @@ bool OculusDirectMode::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int
 ***/
 void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)
 {
+	// always skip more frames than the oculus tracker to ensure initialization is done
+	static UINT unFrameSkip = 200 + 10;
+	if (unFrameSkip > 0)
+	{
+		unFrameSkip--;
+		return nullptr;
+	}
+
+	// submit thread id
+	static DWORD unThreadId = 0;
 	static float fAspect = 1.0f;
 
 	if (eD3DInterface != INTERFACE_IDXGISWAPCHAIN) return nullptr;
@@ -242,6 +268,11 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 	}
 	return nullptr;
 	}*/
+
+	// create thread
+	if (!unThreadId)
+		m_pThread = CreateThread(NULL, 0, SubmitFramesConstantly, NULL, CREATE_SUSPENDED, &unThreadId);
+	SetThreadPriority(m_pThread,THREAD_PRIORITY_HIGHEST);
 
 	// cast swapchain
 	IDXGISwapChain* pcSwapChain = (IDXGISwapChain*)pThis;
@@ -451,12 +482,11 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 		// get eye render pose and other fields
 		ovrVector3f      asHmdToEyeViewOffset[2] = { m_psEyeRenderDesc[0].HmdToEyeViewOffset,
 			m_psEyeRenderDesc[1].HmdToEyeViewOffset };
-		ovrPosef         asEyeRenderPose[2];
 		ovrPosef         ZeroPose; ZeroMemory(&ZeroPose, sizeof(ovrPosef));
 		ovrTrackingState sHmdState = ovr_GetTrackingState(*m_phHMD, ovr_GetTimeInSeconds(), false);
 		ovr_CalcEyePoses(sHmdState.HeadPose.ThePose, asHmdToEyeViewOffset, asEyeRenderPose);
 		FLOAT colorBlack[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-		double sensorSampleTime = ovr_GetTimeInSeconds();
+		sensorSampleTime = ovr_GetTimeInSeconds();
 
 		// render
 		for (int eye = 0; eye < 2; eye++)
@@ -650,7 +680,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 						// from the lens, in this case 12mm. Taking the left / right FoV value 
 						// differences as accurate, the total binocular FoV at that lens - camera 
 						// distance is 94° x 93°.
-						
+
 						// Measurements posted on <Doc-Ok.org>.
 
 						// so we assume a FoV of 90° x 100° (DK2) and 84° x 93° (CV1), that is ~12 mm lens-eye 
@@ -713,22 +743,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 			}
 		}
 
-		// Initialize our single full screen Fov layer.
-		ovrLayerEyeFov ld = {};
-		ld.Header.Type = ovrLayerType_EyeFov;
-		ld.Header.Flags = 0;
-
-		for (int eye = 0; eye < 2; ++eye)
-		{
-			ld.ColorTexture[eye] = m_psEyeRenderTexture[eye]->TextureSet;
-			ld.Viewport[eye] = m_psEyeRenderViewport[eye];
-			ld.Fov[eye] = m_sHMDDesc.DefaultEyeFov[eye];
-			ld.RenderPose[eye] = asEyeRenderPose[eye];
-			ld.SensorSampleTime = sensorSampleTime;
-		}
-
-		ovrLayerHeader* psLayers = &ld.Header;
-		ovrResult result = ovr_SubmitFrame(*m_phHMD, 0, nullptr, &psLayers, 1);
+		ResumeThread(m_pThread);
 
 		// Render mirror
 		ID3D11Texture2D* pcBackBuffer = nullptr;

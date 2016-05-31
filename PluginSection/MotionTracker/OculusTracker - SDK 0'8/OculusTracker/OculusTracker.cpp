@@ -428,6 +428,13 @@ bool OculusTracker::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD
 ***/
 void* OculusTracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)
 {
+	static UINT unFrameSkip = 200;
+	if (unFrameSkip > 0)
+	{
+		unFrameSkip--;
+		return nullptr;
+	}
+
 	if (m_hHMD)
 	{
 		// Start the sensor which informs of the Rift's pose and motion
@@ -449,7 +456,7 @@ void* OculusTracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DM
 
 			// get angles
 			m_sOrientation.GetEulerAngles<Axis::Axis_Y, Axis::Axis_X, Axis::Axis_Z, RotateDirection::Rotate_CW, HandedSystem::Handed_R >(&m_fYaw, &m_fPitch, &m_fRoll);
-			
+
 			// quick fix here...
 			m_fYaw *= -1.0f;
 			m_fPitch *= -1.0f;
