@@ -65,6 +65,9 @@ ovrRecti OculusDirectMode::m_psEyeRenderViewport[2];
 ovrPosef OculusDirectMode::asEyeRenderPose[2];
 OculusTexture* OculusDirectMode::m_psEyeRenderTexture[2];
 ovrHmdDesc OculusDirectMode::m_sHMDDesc;
+ovrLayerHeader* OculusDirectMode::m_pasLayerList[OculusLayer_Total];
+ovrLayerEyeFov OculusDirectMode::m_sLayerPrimal;
+ovrLayerQuad OculusDirectMode::m_sLayerHud;
 #pragma endregion
 
 /**
@@ -272,7 +275,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 	// create thread
 	if (!unThreadId)
 		m_pThread = CreateThread(NULL, 0, SubmitFramesConstantly, NULL, CREATE_SUSPENDED, &unThreadId);
-	SetThreadPriority(m_pThread,THREAD_PRIORITY_HIGHEST);
+	SetThreadPriority(m_pThread, THREAD_PRIORITY_HIGHEST);
 
 	// cast swapchain
 	IDXGISwapChain* pcSwapChain = (IDXGISwapChain*)pThis;

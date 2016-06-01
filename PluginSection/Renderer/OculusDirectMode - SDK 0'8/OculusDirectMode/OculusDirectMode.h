@@ -104,6 +104,16 @@ enum ODM_Decommanders
 };
 
 /**
+* Oculus layers enumeration.
+***/
+enum OculusLayers
+{
+	OculusLayer_MainEye = 0,
+	OculusLayer_Hud = 1,
+	OculusLayer_Total = 2,      /**< Total # of layers. **/
+};
+
+/**
 * ovrSwapTextureSet wrapper class that also maintains the render target views
 * needed for D3D11 rendering.
 * Taken from the OculusRoomTiny demo for simplicity.
@@ -212,7 +222,7 @@ private:
 	* Submit left and right shared texture constantly.
 	***/
 	static DWORD WINAPI SubmitFramesConstantly(void* Param)
-	{		
+	{
 		while (true)
 		{
 			if (m_phHMD)
@@ -221,22 +231,55 @@ private:
 				{
 					if (m_bInit)
 					{
-						// Initialize our single full screen Fov layer.
-						ovrLayerEyeFov ld = {};
-						ld.Header.Type = ovrLayerType_EyeFov;
-						ld.Header.Flags = 0;
+						// init our layers, first our full screen Fov layer.
+						ZeroMemory(&m_sLayerPrimal, sizeof(ovrLayerQuad));
+						m_sLayerPrimal.Header.Type = ovrLayerType_EyeFov;
+						m_sLayerPrimal.Header.Flags = 0;
 
 						for (int eye = 0; eye < 2; ++eye)
 						{
-							ld.ColorTexture[eye] = m_psEyeRenderTexture[eye]->TextureSet;
-							ld.Viewport[eye] = m_psEyeRenderViewport[eye];
-							ld.Fov[eye] = m_sHMDDesc.DefaultEyeFov[eye];
-							ld.RenderPose[eye] = asEyeRenderPose[eye];
-							ld.SensorSampleTime = sensorSampleTime;
+							m_sLayerPrimal.ColorTexture[eye] = m_psEyeRenderTexture[eye]->TextureSet;
+							m_sLayerPrimal.Viewport[eye] = m_psEyeRenderViewport[eye];
+							m_sLayerPrimal.Fov[eye] = m_sHMDDesc.DefaultEyeFov[eye];
+							m_sLayerPrimal.RenderPose[eye] = asEyeRenderPose[eye];
+							m_sLayerPrimal.SensorSampleTime = sensorSampleTime;
 						}
 
-						ovrLayerHeader* psLayers = &ld.Header;
-						ovrResult result = ovr_SubmitFrame(*m_phHMD, 0, nullptr, &psLayers, 1);
+						m_pasLayerList[OculusLayers::OculusLayer_MainEye] = &m_sLayerPrimal.Header;
+
+						// next, our HUD layer
+						float fMenuHudDistance = 300.0f;
+						OVR::Recti sHudRenderedSize;
+						sHudRenderedSize.w = 800;
+						sHudRenderedSize.h = 1080;
+						sHudRenderedSize.x = sHudRenderedSize.w >> 2;
+						sHudRenderedSize.y = sHudRenderedSize.h >> 2;
+						ovrPosef sMenuPose;
+
+						sMenuPose.Orientation = OVR::Quatf();
+						sMenuPose.Position = OVR::Vector3f(0.0f, 0.0f, -fMenuHudDistance);
+
+						// Assign HudLayer data.
+						ZeroMemory(&m_sLayerHud, sizeof(ovrLayerQuad));
+						m_sLayerHud.Header.Type = ovrLayerType_Quad;
+						m_sLayerHud.Header.Flags = 0;/*(LayerHudMenuHighQuality ? ovrLayerFlag_HighQuality : 0) |
+													  (TextureOriginAtBottomLeft ? ovrLayerFlag_TextureOriginAtBottomLeft : 0) |
+													  (menuIsHeadLocked ? ovrLayerFlag_HeadLocked : 0);*/
+						m_sLayerHud.QuadPoseCenter = sMenuPose;
+						m_sLayerHud.QuadSize = OVR::Vector2f((float)sHudRenderedSize.w, (float)sHudRenderedSize.h);
+						m_sLayerHud.ColorTexture = m_psEyeRenderTexture[0]->TextureSet;
+						m_sLayerHud.Viewport = (ovrRecti)sHudRenderedSize;
+
+						// Grow the cliprect slightly to get a nicely-filtered edge.
+						m_sLayerHud.Viewport.Pos.x -= 1;
+						m_sLayerHud.Viewport.Pos.y -= 1;
+						m_sLayerHud.Viewport.Size.w += 2;
+						m_sLayerHud.Viewport.Size.h += 2;
+
+						// IncrementSwapTextureSetIndex ( HudLayer.ColorTexture ) was done above when it was rendered.
+						m_pasLayerList[OculusLayers::OculusLayer_Hud] = &m_sLayerHud.Header;
+
+						ovrResult result = ovr_SubmitFrame(*m_phHMD, 0, nullptr, m_pasLayerList, 2);
 
 						if (true) // TODO !! MAKE THIS OPTIONALLY !!
 						{
@@ -379,7 +422,18 @@ private:
 	* Static thread handle.
 	***/
 	static HANDLE m_pThread;
-
+	/**
+	* Oculus layers.
+	***/
+	static ovrLayerHeader* m_pasLayerList[OculusLayer_Total];
+	/**
+	* Layer primal.
+	***/
+	static ovrLayerEyeFov m_sLayerPrimal;
+	/**
+	* Layer HUD.
+	***/
+	static ovrLayerQuad m_sLayerHud;
 };
 
 /**
