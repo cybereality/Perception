@@ -377,21 +377,21 @@ DWORD OculusTracker::GetCommanderType(DWORD dwCommanderIndex)
 		case OTR_Commanders::CameraFrustumVFovInRadians:
 		case OTR_Commanders::CameraFrustumNearZInMeters:
 		case OTR_Commanders::CameraFrustumFarZInMeters:
-			return PNT_FLOAT_PLUG_TYPE;
+			return NOD_Plugtype::AQU_FLOAT;
 		case OTR_Commanders::HmdCaps:
 		case OTR_Commanders::TrackingCaps:
-			return PNT_UINT_PLUG_TYPE;
+			return NOD_Plugtype::AQU_UINT;
 		case OTR_Commanders::ResolutionW:
 		case OTR_Commanders::ResolutionH:
-			return PNT_INT_PLUG_TYPE;
+			return NOD_Plugtype::AQU_INT;
 		case OTR_Commanders::DefaultEyeFovLeft:
 		case OTR_Commanders::DefaultEyeFovRight:
 		case OTR_Commanders::MaxEyeFovLeft:
 		case OTR_Commanders::MaxEyeFovRight:
-			return PNT_VECTOR4F_PLUG_TYPE;
+			return NOD_Plugtype::AQU_VECTOR4F;
 		case OTR_Commanders::DefaultProjectionMatrixLeft:
 		case OTR_Commanders::DefaultProjectionMatrixRight:
-			return PNT_D3DMATRIX_PLUG_TYPE;
+			return NOD_Plugtype::AQU_D3DMATRIX;
 		case OTR_Commanders::HMD_Handle:
 			return NOD_Plugtype::AQU_HANDLE;
 	}

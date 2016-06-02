@@ -64,10 +64,12 @@ double OculusDirectMode::sensorSampleTime;
 ovrRecti OculusDirectMode::m_psEyeRenderViewport[2];
 ovrPosef OculusDirectMode::asEyeRenderPose[2];
 OculusTexture* OculusDirectMode::m_psEyeRenderTexture[2];
+OculusTexture* OculusDirectMode::m_psEyeRenderTextureHUD;
 ovrHmdDesc OculusDirectMode::m_sHMDDesc;
 ovrLayerHeader* OculusDirectMode::m_pasLayerList[OculusLayer_Total];
 ovrLayerEyeFov OculusDirectMode::m_sLayerPrimal;
 ovrLayerQuad OculusDirectMode::m_sLayerHud;
+BOOL* OculusDirectMode::m_pbZoomOut;
 #pragma endregion
 
 /**
@@ -83,7 +85,8 @@ m_pcMirrorTextureD3D11(nullptr),
 m_hHMD(nullptr),
 m_phHMD_Tracker(nullptr),
 m_bHotkeySwitch(false),
-m_pbZoomOut(nullptr)
+m_ppcTexViewHud11(nullptr),
+m_pcTex11CopyHUD(nullptr)
 {
 	m_ppcTexView11[0] = nullptr;
 	m_ppcTexView11[1] = nullptr;
@@ -106,6 +109,12 @@ m_pbZoomOut(nullptr)
 	m_phHMD = nullptr;
 	sensorSampleTime = 0.0;
 	m_pThread = nullptr;
+
+	m_psEyeRenderTexture[0] = nullptr;
+	m_psEyeRenderTexture[1] = nullptr;
+	m_psEyeRenderTextureHUD = nullptr;
+
+	m_pbZoomOut = nullptr;
 }
 
 /**
@@ -188,6 +197,12 @@ LPWSTR OculusDirectMode::GetDecommanderName(DWORD dwDecommanderIndex)
 			return L"HMD Handle";
 		case ODM_Decommanders::ZoomOut:
 			return L"Zoom Out";
+		case HUDTexture11:
+			return L"HUD Texture DX11";
+		case HUDTexture10:
+			break;
+		case HUDTexture9:
+			break;
 	}
 
 	return L"x";
@@ -208,6 +223,12 @@ DWORD OculusDirectMode::GetDecommanderType(DWORD dwDecommanderIndex)
 			return NOD_Plugtype::AQU_HANDLE;
 		case ODM_Decommanders::ZoomOut:
 			return NOD_Plugtype::AQU_BOOL;
+		case HUDTexture11:
+			return NOD_Plugtype::AQU_PNT_ID3D11SHADERRESOURCEVIEW;
+		case HUDTexture10:
+			break;
+		case HUDTexture9:
+			break;
 	}
 
 	return 0;
@@ -231,6 +252,13 @@ void OculusDirectMode::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 			break;
 		case ODM_Decommanders::ZoomOut:
 			m_pbZoomOut = (BOOL*)pData;
+			break;
+		case HUDTexture11:
+			m_ppcTexViewHud11 = (ID3D11ShaderResourceView**)pData;
+			break;
+		case HUDTexture10:
+			break;
+		case HUDTexture9:
 			break;
 	}
 }
@@ -405,8 +433,8 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 				pcDevice->Release();
 				pcContext->Release();
 				return nullptr;
-
 			}
+
 			m_psEyeRenderViewport[eye].Pos.x = 0;
 			m_psEyeRenderViewport[eye].Pos.y = 0;
 			m_psEyeRenderViewport[eye].Size = sIdealSize;
@@ -431,6 +459,19 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 		{
 			pcBackBuffer->GetDesc(&sDescBackBuffer);
 			pcBackBuffer->Release();
+		}
+
+		// create HUD oculus texture swapchain
+		m_psEyeRenderTextureHUD = new OculusTexture();
+		if (!m_psEyeRenderTextureHUD->Init(m_pcDeviceTemporary, m_phHMD, sDescBackBuffer.Width, sDescBackBuffer.Height))
+		{
+			OutputDebugString(L"OculusDirectMode: Failed to create HUD texture.");
+			m_bInit = true;
+
+			pcSwapChain->Release();
+			pcDevice->Release();
+			pcContext->Release();
+			return nullptr;
 		}
 
 		// Create a mirror to see on the monitor.
@@ -482,6 +523,23 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 	{
 #pragma region Render
 
+		// secondary hud active ? copy in case
+		if ((m_pbZoomOut) && (m_ppcTexViewHud11))
+		{
+			if ((*m_pbZoomOut) && (*m_ppcTexViewHud11))
+			{
+				// get the resource
+				ID3D11Resource* pcResource = nullptr;
+				(*m_ppcTexViewHud11)->GetResource(&pcResource);
+				if (pcResource)
+				{
+					// copy the hud
+					pcContext->CopyResource(m_pcTex11CopyHUD, pcResource);
+					pcResource->Release();
+				}
+			}
+		}
+
 		// get eye render pose and other fields
 		ovrVector3f      asHmdToEyeViewOffset[2] = { m_psEyeRenderDesc[0].HmdToEyeViewOffset,
 			m_psEyeRenderDesc[1].HmdToEyeViewOffset };
@@ -531,6 +589,51 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 						break;
 					}
 
+					// create the HUD texture, shared + view
+					if (!m_pcTex11CopyHUD)
+					{
+						if (FAILED(((ID3D11Device*)pcDevice)->CreateTexture2D(&sDesc, NULL, (ID3D11Texture2D**)&m_pcTex11CopyHUD)))
+						{
+							OutputDebugString(L"StereoSplitterDX10 : Failed to create HUD copy texture !");
+							break;
+						}
+
+						// get shared handle
+						IDXGIResource* pcDXGIResource(NULL);
+						m_pcTex11CopyHUD->QueryInterface(__uuidof(IDXGIResource), (void**)&pcDXGIResource);
+						HANDLE sharedHandle;
+						if (pcDXGIResource)
+						{
+							pcDXGIResource->GetSharedHandle(&sharedHandle);
+							pcDXGIResource->Release();
+						}
+						else OutputDebugString(L"Failed to query IDXGIResource.");
+
+						// open the shared handle with the temporary device
+						ID3D11Resource* pcResourceShared = nullptr;
+						m_pcDeviceTemporary->OpenSharedResource(sharedHandle, __uuidof(ID3D11Resource), (void**)(&pcResourceShared));
+						if (pcResourceShared)
+						{
+							pcResourceShared->QueryInterface(__uuidof(ID3D11Texture2D), (void**)(&m_pcTex11SharedHUD));
+							pcResourceShared->Release();
+						}
+						else OutputDebugString(L"Could not open shared resource.");
+
+						// create shader resource view
+						if (m_pcTex11SharedHUD)
+						{
+							D3D11_SHADER_RESOURCE_VIEW_DESC sDescSRV;
+							ZeroMemory(&sDescSRV, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
+							sDescSRV.Format = sDesc.Format;
+							sDescSRV.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+							sDescSRV.Texture2D.MostDetailedMip = 0;
+							sDescSRV.Texture2D.MipLevels = 1;
+							if (FAILED(m_pcDeviceTemporary->CreateShaderResourceView(m_pcTex11SharedHUD, &sDescSRV, &m_pcTex11SharedHudSRV)))
+								OutputDebugString(L"Failed to create shader resource view.");
+						}
+						else OutputDebugString(L"No Texture available.");
+					}
+
 					// aspect ratio
 					fAspect = (float)sDesc.Width / (float)sDesc.Height;
 
@@ -548,7 +651,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 					else OutputDebugString(L"Failed to query IDXGIResource.");
 
 					// open the shared handle with the temporary device
-					ID3D11Resource* pcResourceShared;
+					ID3D11Resource* pcResourceShared = nullptr;
 					m_pcDeviceTemporary->OpenSharedResource(sharedHandle, __uuidof(ID3D11Resource), (void**)(&pcResourceShared));
 					if (pcResourceShared)
 					{
@@ -712,16 +815,6 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 						sProj.M[3][2] = 0.0f;
 						sProj.M[3][3] = 1.0f;
 
-						// zoom out ?
-						if (m_pbZoomOut)
-						{
-							if (*m_pbZoomOut)
-							{
-								sProj.M[0][0] /= 2.0f;
-								sProj.M[1][1] /= 2.0f;
-							}
-						}
-
 						// Set constant buffer, first update it... scale and translate the left and right image
 						m_pcContextTemporary->UpdateSubresource((ID3D11Resource*)m_pcConstantBufferDirect11, 0, NULL, &sProj, 0, 0);
 						m_pcContextTemporary->VSSetConstantBuffers(0, 1, &m_pcConstantBufferDirect11);
@@ -739,6 +832,23 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 
 						// Render a triangle
 						m_pcContextTemporary->Draw(6, 0);
+
+						// render hud ? only once
+						if ((m_pbZoomOut) && (eye))
+						{
+							if (*m_pbZoomOut)
+							{
+								// Increment to use next texture, just before writing
+								m_psEyeRenderTextureHUD->AdvanceToNextTexture();
+
+								// get render target index
+								int texIndex1 = m_psEyeRenderTextureHUD->TextureSet->CurrentIndex;
+
+								// render by copy recource
+								ovrD3D11Texture* tex = (ovrD3D11Texture*)&m_psEyeRenderTextureHUD->TextureSet->Textures[texIndex1];
+								m_pcContextTemporary->CopyResource(tex->D3D11.pTexture, m_pcTex11SharedHUD);
+							}
+						}
 					}
 				}
 

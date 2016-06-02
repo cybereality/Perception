@@ -86,7 +86,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define PPNT_IDIRECT3DVERTEXBUFFER9_PLUG_TYPE       3049
 #define PPNT_IDIRECT3DVERTEXDECLARATION9_PLUG_TYPE  3050
 
-#define NUMBER_OF_DECOMMANDERS                         8
+#define NUMBER_OF_DECOMMANDERS                         11
 
 /**
 * Node Commander Enumeration.
@@ -100,7 +100,10 @@ enum ODM_Decommanders
 	LeftTexture9,
 	RightTexture9,
 	HMD_Handle,
-	ZoomOut
+	ZoomOut,
+	HUDTexture11,
+	HUDTexture10,
+	HUDTexture9,
 };
 
 /**
@@ -248,12 +251,12 @@ private:
 						m_pasLayerList[OculusLayers::OculusLayer_MainEye] = &m_sLayerPrimal.Header;
 
 						// next, our HUD layer
-						float fMenuHudDistance = 300.0f;
+						float fMenuHudDistance = 500.0f;
 						OVR::Recti sHudRenderedSize;
-						sHudRenderedSize.w = 800;
+						sHudRenderedSize.w = 1920;
 						sHudRenderedSize.h = 1080;
-						sHudRenderedSize.x = sHudRenderedSize.w >> 2;
-						sHudRenderedSize.y = sHudRenderedSize.h >> 2;
+						sHudRenderedSize.x = 0;
+						sHudRenderedSize.y = 0;
 						ovrPosef sMenuPose;
 
 						sMenuPose.Orientation = OVR::Quatf();
@@ -262,12 +265,10 @@ private:
 						// Assign HudLayer data.
 						ZeroMemory(&m_sLayerHud, sizeof(ovrLayerQuad));
 						m_sLayerHud.Header.Type = ovrLayerType_Quad;
-						m_sLayerHud.Header.Flags = 0;/*(LayerHudMenuHighQuality ? ovrLayerFlag_HighQuality : 0) |
-													  (TextureOriginAtBottomLeft ? ovrLayerFlag_TextureOriginAtBottomLeft : 0) |
-													  (menuIsHeadLocked ? ovrLayerFlag_HeadLocked : 0);*/
+						m_sLayerHud.Header.Flags = 0;
 						m_sLayerHud.QuadPoseCenter = sMenuPose;
 						m_sLayerHud.QuadSize = OVR::Vector2f((float)sHudRenderedSize.w, (float)sHudRenderedSize.h);
-						m_sLayerHud.ColorTexture = m_psEyeRenderTexture[0]->TextureSet;
+						m_sLayerHud.ColorTexture = m_psEyeRenderTextureHUD->TextureSet;
 						m_sLayerHud.Viewport = (ovrRecti)sHudRenderedSize;
 
 						// Grow the cliprect slightly to get a nicely-filtered edge.
@@ -279,7 +280,16 @@ private:
 						// IncrementSwapTextureSetIndex ( HudLayer.ColorTexture ) was done above when it was rendered.
 						m_pasLayerList[OculusLayers::OculusLayer_Hud] = &m_sLayerHud.Header;
 
-						ovrResult result = ovr_SubmitFrame(*m_phHMD, 0, nullptr, m_pasLayerList, 2);
+						// and submit
+						UINT unLayerNumber = 1;
+						if (m_pbZoomOut)
+						{
+							if (*m_pbZoomOut)
+							{
+								unLayerNumber = 2;
+							}
+						}
+						ovrResult result = ovr_SubmitFrame(*m_phHMD, 0, nullptr, m_pasLayerList, unLayerNumber);
 
 						if (true) // TODO !! MAKE THIS OPTIONALLY !!
 						{
@@ -333,6 +343,10 @@ private:
 	***/
 	static OculusTexture* m_psEyeRenderTexture[2];
 	/**
+	* The Oculus HUD swapchain.
+	***/
+	static OculusTexture* m_psEyeRenderTextureHUD;
+	/**
 	* The Oculus render viewport. (for both eyes)
 	***/
 	static ovrRecti m_psEyeRenderViewport[2];
@@ -345,9 +359,25 @@ private:
 	***/
 	ID3D11ShaderResourceView** m_ppcTexView11[2];
 	/**
+	* HUD Texture input. (DX11)
+	***/
+	ID3D11ShaderResourceView** m_ppcTexViewHud11;
+	/**
 	* Shared copy of textures.
 	***/
 	ID3D11Texture2D* m_pcTex11Copy[2];
+	/**
+	* Copy texture shared for HUD (created by game device).
+	***/
+	ID3D11Texture2D* m_pcTex11CopyHUD;
+	/**
+	* Shared texture for HUD (created by temporary device 1.1)
+	***/
+	ID3D11Texture2D* m_pcTex11SharedHUD;
+	/**
+	* Shared texture shader resource view for HUD (created by temporary device 1.1)
+	**/
+	ID3D11ShaderResourceView* m_pcTex11SharedHudSRV;
 	/**
 	* Temporary directx 11 device for the oculus sdk.
 	***/
@@ -409,7 +439,7 @@ private:
 	/**
 	* Zoom out switch.
 	***/
-	BOOL* m_pbZoomOut;
+	static BOOL* m_pbZoomOut;
 	/**
 	* Eye render poses, static to be used by submission thread.
 	***/
