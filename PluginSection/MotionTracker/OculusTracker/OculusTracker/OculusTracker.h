@@ -182,6 +182,120 @@ struct __ovrQuatf : public ovrQuatf
 };
 
 /**
+* Game timer helper class for OpenVR prediction model.
+* Based on class <GameTimer> by Frank Luna (C) 2011.
+***/
+class Vireio_GameTimer
+{
+public:
+	Vireio_GameTimer() : m_dSecondsPerCount(0.0), m_dDeltaTime(-1.0), m_nBaseTime(0), m_nPausedTime(0), m_nStopTime(0), m_nPreviousTime(0), m_nCurrentTime(0), m_bStopped(false)
+	{
+		INT64 nCountsPerSec;
+		QueryPerformanceFrequency((LARGE_INTEGER*)&nCountsPerSec);
+		m_dSecondsPerCount = 1.0 / (double)nCountsPerSec;
+	}
+
+	/**
+	* Total time from game start, in seconds.
+	***/
+	float TotalTime() const
+	{
+		if (m_bStopped) { return (float)(((m_nStopTime - m_nPausedTime) - m_nBaseTime)*m_dSecondsPerCount); }
+		else { return (float)(((m_nCurrentTime - m_nPausedTime) - m_nBaseTime)*m_dSecondsPerCount); }
+	}
+	/**
+	* Time since last frame, in seconds.
+	***/
+	float DeltaTime() const
+	{
+		return (float)m_dDeltaTime;
+	}
+	/**
+	* Sets all values to zero.
+	***/
+	void Reset()
+	{
+		INT64 nCurrentTime;
+		QueryPerformanceCounter((LARGE_INTEGER*)&nCurrentTime);
+
+		m_nBaseTime = nCurrentTime;
+		m_nPreviousTime = nCurrentTime;
+		m_nStopTime = 0;
+		m_bStopped = false;
+	}
+	/**
+	* Restart after pause.
+	***/
+	void Start()
+	{
+		INT64 nStartTime;
+		QueryPerformanceCounter((LARGE_INTEGER*)&nStartTime);
+
+		if (m_bStopped)
+		{
+			m_nPausedTime += (nStartTime - m_nStopTime);
+
+			m_nPreviousTime = nStartTime;
+			m_nStopTime = 0;
+			m_bStopped = false;
+		}
+	}
+	/**
+	* Pause this class.
+	***/
+	void Stop()
+	{
+		if (!m_bStopped)
+		{
+			INT64 nCurrentTime;
+			QueryPerformanceCounter((LARGE_INTEGER*)&nCurrentTime);
+
+			m_nStopTime = nCurrentTime;
+			m_bStopped = true;
+		}
+	}
+	/**
+	* Call this once per frame.
+	***/
+	void Tick()
+	{
+		if (m_bStopped)
+		{
+			m_dDeltaTime = 0.0;
+			return;
+		}
+
+		INT64 nCurrentTime;
+		QueryPerformanceCounter((LARGE_INTEGER*)&nCurrentTime);
+		m_nCurrentTime = nCurrentTime;
+
+		// Time difference between this frame and the previous.
+		m_dDeltaTime = (m_nCurrentTime - m_nPreviousTime)*m_dSecondsPerCount;
+
+		// Prepare for next frame.
+		m_nPreviousTime = m_nCurrentTime;
+
+		// Force nonnegative.
+		if (m_dDeltaTime < 0.0)
+		{
+			m_dDeltaTime = 0.0;
+		}
+	}
+
+private:
+	double m_dSecondsPerCount;
+	double m_dDeltaTime;
+
+	INT64 m_nBaseTime;
+	INT64 m_nPausedTime;
+	INT64 m_nStopTime;
+	INT64 m_nPreviousTime;
+	INT64 m_nCurrentTime;
+
+	bool m_bStopped;
+};
+
+/**
 * Node Commander Enumeration.
 ***/
 enum OTR_Commanders
@@ -263,17 +377,25 @@ private:
 	***/
 	__ovrQuatf m_sOrientation;
 	/**
-	* Yaw angle.
+	* Euler angles. (0-Pitch, 1-Yaw, 2-Roll)
 	***/
-	float m_fYaw;
+	float m_fEuler[3];
 	/**
-	* Pitch angle.
+	* Euler angles predicted.
 	***/
-	float m_fPitch;
+	float m_fEulerPredicted[3];
 	/**
-	* Roll angle.
+	* Position predicted.
 	***/
-	float m_fRoll;
+	float m_fPositionPredicted[3];
+	/**
+	* Euler angles velocity.
+	***/
+	float m_fEulerVelocity[3];
+	/**
+	* Position velocity.
+	***/
+	float m_fPositionVelocity[3];
 	/**
 	* Render texture width (default).
 	***/
@@ -302,6 +424,10 @@ private:
 	* Default FOV projection matrix.
 	***/
 	D3DMATRIX m_sDefaultFOVMatrixProjRight;
+	/**
+	* Game timer class for predicted tracking.
+	***/
+	Vireio_GameTimer m_cGameTimer;
 };
 
 /**
