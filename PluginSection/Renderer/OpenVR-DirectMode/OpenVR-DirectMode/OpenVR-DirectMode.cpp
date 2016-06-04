@@ -60,6 +60,8 @@ float OpenVR_DirectMode::m_fHorizontalOffsetCorrectionLeft;
 float OpenVR_DirectMode::m_fHorizontalOffsetCorrectionRight;
 float OpenVR_DirectMode::m_fHorizontalRatioCorrectionLeft;
 float OpenVR_DirectMode::m_fHorizontalRatioCorrectionRight;
+bool OpenVR_DirectMode::m_bForceInterleavedReprojection;
+DWORD OpenVR_DirectMode::m_unSleepTime;
 #pragma endregion
 
 /**
@@ -148,6 +150,65 @@ HRESULT CreateCopyTexture(ID3D11Device* pcDevice, ID3D11Device* pcDeviceTemporar
 }
 
 /**
+* Ini file helper.
+***/
+DWORD GetIniFileSetting(DWORD unDefault, LPCSTR szAppName, LPCSTR szKeyName, LPCSTR szFileName, bool bFileExists)
+{
+	DWORD unRet = 0;
+	char szBuffer[128];
+
+	if (bFileExists)
+	{
+		// fov
+		std::stringstream sz;
+		sz << unDefault;
+		GetPrivateProfileStringA(szAppName, szKeyName, sz.str().c_str(), szBuffer, 128, szFileName);
+		sz = std::stringstream(szBuffer);
+		sz >> unRet;
+	}
+	else
+	{
+		// fov
+		std::stringstream sz;
+		sz << unDefault;
+		WritePrivateProfileStringA(szAppName, szKeyName, sz.str().c_str(), szFileName);
+		unRet = unDefault;
+	}
+
+	return unRet;
+}
+
+/**
+* Ini file helper.
+***/
+float GetIniFileSetting(float fDefault, LPCSTR szAppName, LPCSTR szKeyName, LPCSTR szFileName, bool bFileExists)
+{
+	float fRet = 0;
+	char szBuffer[128];
+
+	if (bFileExists)
+	{
+		// fov
+		std::stringstream sz;
+		sz << fDefault;
+		GetPrivateProfileStringA(szAppName, szKeyName, sz.str().c_str(), szBuffer, 128, szFileName);
+		sz = std::stringstream(szBuffer);
+		sz >> fRet;
+	}
+	else
+	{
+		// fov
+		std::stringstream sz;
+		sz << fDefault;
+		WritePrivateProfileStringA(szAppName, szKeyName, sz.str().c_str(), szFileName);
+		fRet = fDefault;
+	}
+
+	return fRet;
+}
+
+
+/**
 * Constructor.
 ***/
 OpenVR_DirectMode::OpenVR_DirectMode() : AQU_Nodus(),
@@ -187,6 +248,13 @@ m_pbZoomOut(nullptr)
 	m_fHorizontalOffsetCorrectionLeft = 0.0f;
 	m_fHorizontalOffsetCorrectionRight = 0.0f;
 
+	//----------------------
+
+	// set default ini settings
+	m_fAspectRatio = 1920.0f / 1080.0f;
+	m_bForceInterleavedReprojection = true;
+	m_unSleepTime = 20;
+
 	// set default overlay properties
 	m_sOverlayPropertiesHud.eTransform = OverlayTransformType::Absolute;
 	switch (m_sOverlayPropertiesHud.eTransform)
@@ -214,6 +282,46 @@ m_pbZoomOut(nullptr)
 	m_sOverlayPropertiesDashboard.sColor.g = 1.0f;
 	m_sOverlayPropertiesDashboard.sColor.b = 1.0f;
 	m_sOverlayPropertiesDashboard.fWidth = 3.0f;
+
+	// locate or create the INI file
+	char szFilePathINI[1024];
+	GetCurrentDirectoryA(1024, szFilePathINI);
+	strcat_s(szFilePathINI, "\\VireioPerception_OpenVR.ini");
+	bool bFileExists = false; 
+	if (PathFileExistsA(szFilePathINI)) bFileExists = true;
+	
+	// get all ini settings
+	m_fAspectRatio = GetIniFileSetting(m_fAspectRatio, "OpenVR", "fAspectRatio", szFilePathINI, bFileExists);
+	if (GetIniFileSetting((DWORD)m_bForceInterleavedReprojection, "OpenVR", "bForceInterleavedReprojection", szFilePathINI, bFileExists)) m_bForceInterleavedReprojection = true; else m_bForceInterleavedReprojection = false;
+	m_unSleepTime = GetIniFileSetting(m_unSleepTime, "OpenVR", "unSleepTime", szFilePathINI, bFileExists);
+	m_sOverlayPropertiesHud.eTransform = (OverlayTransformType)GetIniFileSetting((DWORD)m_sOverlayPropertiesHud.eTransform, "OpenVR", "sOverlayPropertiesHud.eTransform", szFilePathINI, bFileExists);
+	switch (m_sOverlayPropertiesHud.eTransform)
+	{
+		case OpenVR_DirectMode::Absolute:
+			m_sOverlayPropertiesHud.eOrigin = (vr::ETrackingUniverseOrigin)GetIniFileSetting((DWORD)m_sOverlayPropertiesHud.eOrigin, "OpenVR", "sOverlayPropertiesHud.eOrigin", szFilePathINI, bFileExists);
+			GetIniFileSetting((DWORD)0, "OpenVR", "sOverlayPropertiesHud.nDeviceIndex", szFilePathINI, bFileExists);
+			break;
+		case OpenVR_DirectMode::TrackedDeviceRelative:
+			GetIniFileSetting((DWORD)0, "OpenVR", "sOverlayPropertiesHud.eOrigin", szFilePathINI, bFileExists);
+			m_sOverlayPropertiesHud.nDeviceIndex = (vr::TrackedDeviceIndex_t)GetIniFileSetting((DWORD)m_sOverlayPropertiesHud.nDeviceIndex, "OpenVR", "sOverlayPropertiesHud.nDeviceIndex", szFilePathINI, bFileExists);
+			break;
+		case OpenVR_DirectMode::TrackedDeviceComponent:
+			break;
+	}
+	m_sOverlayPropertiesHud.sVectorTranslation.v[0] = GetIniFileSetting(m_sOverlayPropertiesHud.sVectorTranslation.v[0], "OpenVR", "sOverlayPropertiesHud.sVectorTranslation.v[0]", szFilePathINI, bFileExists);
+	m_sOverlayPropertiesHud.sVectorTranslation.v[1] = GetIniFileSetting(m_sOverlayPropertiesHud.sVectorTranslation.v[1], "OpenVR", "sOverlayPropertiesHud.sVectorTranslation.v[1]", szFilePathINI, bFileExists);
+	m_sOverlayPropertiesHud.sVectorTranslation.v[2] = GetIniFileSetting(m_sOverlayPropertiesHud.sVectorTranslation.v[2], "OpenVR", "sOverlayPropertiesHud.sVectorTranslation.v[2]", szFilePathINI, bFileExists);
+	m_sOverlayPropertiesHud.sColor.a = GetIniFileSetting(m_sOverlayPropertiesHud.sColor.a, "OpenVR", "sOverlayPropertiesHud.sColor.a", szFilePathINI, bFileExists);
+	m_sOverlayPropertiesHud.sColor.r = GetIniFileSetting(m_sOverlayPropertiesHud.sColor.r, "OpenVR", "sOverlayPropertiesHud.sColor.r", szFilePathINI, bFileExists);
+	m_sOverlayPropertiesHud.sColor.g = GetIniFileSetting(m_sOverlayPropertiesHud.sColor.g, "OpenVR", "sOverlayPropertiesHud.sColor.g", szFilePathINI, bFileExists);
+	m_sOverlayPropertiesHud.sColor.b = GetIniFileSetting(m_sOverlayPropertiesHud.sColor.b, "OpenVR", "sOverlayPropertiesHud.sColor.b", szFilePathINI, bFileExists);
+	m_sOverlayPropertiesHud.fWidth = GetIniFileSetting(m_sOverlayPropertiesHud.fWidth, "OpenVR", "sOverlayPropertiesHud.fWidth", szFilePathINI, bFileExists);
+
+	m_sOverlayPropertiesDashboard.sColor.a = GetIniFileSetting(m_sOverlayPropertiesDashboard.sColor.a, "OpenVR", "sOverlayPropertiesDashboard.sColor.a", szFilePathINI, bFileExists);
+	m_sOverlayPropertiesDashboard.sColor.r = GetIniFileSetting(m_sOverlayPropertiesDashboard.sColor.r, "OpenVR", "sOverlayPropertiesDashboard.sColor.r", szFilePathINI, bFileExists);
+	m_sOverlayPropertiesDashboard.sColor.g = GetIniFileSetting(m_sOverlayPropertiesDashboard.sColor.g, "OpenVR", "sOverlayPropertiesDashboard.sColor.g", szFilePathINI, bFileExists);
+	m_sOverlayPropertiesDashboard.sColor.b = GetIniFileSetting(m_sOverlayPropertiesDashboard.sColor.b, "OpenVR", "sOverlayPropertiesDashboard.sColor.b", szFilePathINI, bFileExists);
+	m_sOverlayPropertiesDashboard.fWidth = GetIniFileSetting(m_sOverlayPropertiesDashboard.fWidth, "OpenVR", "sOverlayPropertiesDashboard.fWidth", szFilePathINI, bFileExists);
 }
 
 /**
@@ -379,7 +487,7 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 	static DWORD unThreadId = 0;
 
 	// aspect ratio static fields... optimized now for 1920x1080
-	static float fAspectRatio = 1920.0f / 1200.0f;
+	static float fAspectRatio = m_fAspectRatio;
 	static float bAspectRatio = false;
 
 	if (eD3DInterface != INTERFACE_IDXGISWAPCHAIN) return nullptr;

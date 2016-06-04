@@ -42,6 +42,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include<stdlib.h>
 #include<sstream>
 
+#include<Shlwapi.h>
+#pragma comment(lib, "Shlwapi.lib")
+
 #include <openvr.h>
 #pragma comment(lib, "openvr_api.lib")
 
@@ -163,17 +166,9 @@ private:
 							vr::VRCompositor()->Submit((vr::EVREye)nEye, &sTexture, &sBounds);
 						}
 
-						if (true) // TODO !! MAKE THIS OPTIONALLY !!
-						{
-							// sleep for 20 milliseconds to ensure frame is submitted ~45 times per second (for reprojection 90fps)
-							Sleep(20);
-							vr::VRCompositor()->ForceInterleavedReprojectionOn(true);
-						}
-						else
-						{
-							// sleep for 10 milliseconds to ensure frame is submitted ~90 times per second
-							Sleep(10);
-						}
+						// sleep for 20 milliseconds (default) to ensure frame is submitted ~45 times per second (for reprojection 90fps)
+						Sleep(m_unSleepTime);
+						vr::VRCompositor()->ForceInterleavedReprojectionOn(m_bForceInterleavedReprojection);
 					}
 				}
 			}
@@ -331,6 +326,18 @@ private:
 	* Hotkey switch.
 	***/
 	bool m_bHotkeySwitch;
+	/**
+	* True if interleaved reprojection is forced on.
+	***/
+	static bool m_bForceInterleavedReprojection;
+	/**
+	* Time to sleep for each submission frame. (in ms)
+	***/
+	static DWORD m_unSleepTime;
+	/**
+	* Default aspect ratio.
+	***/
+	float m_fAspectRatio;
 };
 
 /**
