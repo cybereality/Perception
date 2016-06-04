@@ -51,7 +51,9 @@ m_hFont(nullptr)
 {
 	ZeroMemory(&m_sState, sizeof(OSVR_PoseState));
 	ZeroMemory(&m_sTimestamp, sizeof(OSVR_TimeValue));
-	ZeroMemory(&m_afTranslation[0], sizeof(float)*3);
+	ZeroMemory(&m_afPosition[0], sizeof(float)*3);
+
+	m_cGameTimer.Reset();
 }
 
 /**
@@ -147,15 +149,15 @@ HBITMAP OSVR_Tracker::GetControl()
 			SetBkColor(hdcImage, RGB(238, 238, 238));
 
 			// display the values suiteable to the data commanders... first yaw pitch roll
-			szBuffer << m_fPitch;
+			szBuffer << m_afEuler[0];
 			TextOut(hdcImage, 730, nY, L"Pitch X", 7);
 			TextOut(hdcImage, 200, nY, szBuffer.str().c_str(), (int)szBuffer.str().length());
 			nY += 64; szBuffer = std::wstringstream();
-			szBuffer << m_fYaw;
+			szBuffer << m_afEuler[1];
 			TextOut(hdcImage, 780, nY, L"Yaw Y", 5);
 			TextOut(hdcImage, 200, nY, szBuffer.str().c_str(), (int)szBuffer.str().length());
 			nY += 64; szBuffer = std::wstringstream();
-			szBuffer << m_fRoll;
+			szBuffer << m_afEuler[2];
 			TextOut(hdcImage, 765, nY, L"Roll Z", 6);
 			TextOut(hdcImage, 200, nY, szBuffer.str().c_str(), (int)szBuffer.str().length());
 			nY += 64; szBuffer = std::wstringstream();
@@ -270,11 +272,11 @@ void* OSVR_Tracker::GetOutputPointer(DWORD dwCommanderIndex)
 	switch ((OSVR_Commanders)dwCommanderIndex)
 	{
 		case OSVR_Commanders::Pitch:
-			return (void*)&m_fPitch;
+			return (void*)&m_afEulerPredicted[0];
 		case OSVR_Commanders::Yaw:
-			return (void*)&m_fYaw;
+			return (void*)&m_afEulerPredicted[1];
 		case OSVR_Commanders::Roll:
-			return (void*)&m_fRoll;
+			return (void*)&m_afEulerPredicted[2];
 		case OSVR_Commanders::OrientationW:
 			return nullptr;
 		case OSVR_Commanders::OrientationX:
@@ -284,11 +286,11 @@ void* OSVR_Tracker::GetOutputPointer(DWORD dwCommanderIndex)
 		case OSVR_Commanders::OrientationZ:
 			return nullptr;
 		case OSVR_Commanders::PositionX:
-			return (void*)&m_afTranslation[0];
+			return (void*)&m_afPosition[0];
 		case OSVR_Commanders::PositionY:
-			return (void*)&m_afTranslation[1];
+			return (void*)&m_afPosition[1];
 		case OSVR_Commanders::PositionZ:
-			return (void*)&m_afTranslation[2];
+			return (void*)&m_afPosition[2];
 	}
 
 	return nullptr;
@@ -307,6 +309,9 @@ bool OSVR_Tracker::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3
 ***/
 void* OSVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)
 {
+	// update game timer
+	m_cGameTimer.Tick();
+
 	if ((!m_psOSVR_ClientContext) || (!m_psOSVR_ClientInterface))
 	{
 		// create client context handle
@@ -332,6 +337,12 @@ void* OSVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMe
 		{
 			m_bControlUpdate = true;
 
+			// backup old euler angles and velocity
+			float afEulerOld[3];
+			float afEulerVelocityOld[3];
+			memcpy(&afEulerOld[0], &m_afEuler[0], sizeof(float)* 3);
+			memcpy(&afEulerVelocityOld[0], &m_afEulerVelocity[0], sizeof(float)* 3);
+
 			// quaternion -> euler angles
 			const float w = (float)m_sState.rotation.data[0];
 			const float x = (float)m_sState.rotation.data[1];
@@ -349,31 +360,49 @@ void* OSVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMe
 			if (test > 0.499*unit)
 			{
 				// singularity at north pole
-				m_fYaw = 2 * atan2(x, w);
-				m_fRoll = FLOAT_PI / 2;
-				m_fPitch = 0;
+				m_afEuler[1] = 2 * atan2(x, w);
+				m_afEuler[2] = FLOAT_PI / 2;
+				m_afEuler[0] = 0;
 			}
 			else if (test < -0.499*unit)
 			{
 				// singularity at south pole
-				m_fYaw = -2 * atan2(x, w);
-				m_fRoll = -FLOAT_PI / 2;
-				m_fPitch = 0;
+				m_afEuler[1] = -2 * atan2(x, w);
+				m_afEuler[2] = -FLOAT_PI / 2;
+				m_afEuler[0] = 0;
 			}
 			else
 			{
-				m_fYaw = atan2(2 * y*w - 2 * x*z, sqx - sqy - sqz + sqw);
-				m_fRoll = asin(2 * test / unit);
-				m_fPitch = atan2(2 * x * w - 2 * y * z, -sqx + sqy - sqz + sqw);
+				m_afEuler[1] = atan2(2 * y*w - 2 * x*z, sqx - sqy - sqz + sqw);
+				m_afEuler[2] = asin(2 * test / unit);
+				m_afEuler[0] = atan2(2 * x * w - 2 * y * z, -sqx + sqy - sqz + sqw);
 			}
 
 			// PITCH = atan2(2.0 * (x * y + w * z), w * w + x * x - y * y - z * z);
 			// ROLL = atan2(2 * y * w - 2 * x * z, 1 - 2 * y * y - 2 * z * z);
 
+			// get euler velocity + acceleration
+			float afEulerAcceleration[3];
+			for (UINT unI = 0; unI < 3; unI++)
+			{
+				// get the velocity
+				m_afEulerVelocity[unI] = (m_afEuler[unI] - afEulerOld[unI]) / (float)m_cGameTimer.DeltaTime();
+
+				// get the acceleration
+				afEulerAcceleration[unI] = (m_afEulerVelocity[unI] - afEulerVelocityOld[unI]) / (float)m_cGameTimer.DeltaTime();
+			}
+
+			// get predicted euler
+			for (UINT unI = 0; unI < 3; unI++)
+			{
+				// compute predicted euler
+				m_afEulerPredicted[unI] = (0.5f * afEulerAcceleration[unI] * ((float)m_cGameTimer.DeltaTime() * (float)m_cGameTimer.DeltaTime())) + (m_afEulerVelocity[unI] * (float)m_cGameTimer.DeltaTime()) + m_afEuler[unI];
+			}
+
 			// set position
-			m_afTranslation[0] = (float)m_sState.translation.data[0];
-			m_afTranslation[1] = (float)m_sState.translation.data[1];
-			m_afTranslation[2] = (float)m_sState.translation.data[2];
+			m_afPosition[0] = (float)m_sState.translation.data[0];
+			m_afPosition[1] = (float)m_sState.translation.data[1];
+			m_afPosition[2] = (float)m_sState.translation.data[2];
 
 #ifdef _DEBUG
 			// output debug data
