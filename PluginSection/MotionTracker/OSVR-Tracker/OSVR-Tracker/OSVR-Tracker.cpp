@@ -312,6 +312,13 @@ void* OSVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMe
 	// update game timer
 	m_cGameTimer.Tick();
 
+	static UINT unFrameSkip = 200;
+	if (unFrameSkip > 0)
+	{
+		unFrameSkip--;
+		return nullptr;
+	}
+
 	if ((!m_psOSVR_ClientContext) || (!m_psOSVR_ClientInterface))
 	{
 		// create client context handle

@@ -556,6 +556,27 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 			// update roll, update view transforms
 			if (m_pfEuler[2])
 				(*m_ppcShaderViewAdjustment).get()->UpdateRoll(-(*m_pfEuler[2]));
+
+
+			// update position
+			if (/*m_pfEuler[0] &&
+				m_pfEuler[1] &&*/
+				m_pfEuler[2] &&
+				/*m_pfPosition[0] &&*/
+				m_pfPosition[1]
+				/*m_pfPosition[2]*/)
+			{
+				// optimized for 1.75 meters eye height
+				float fY = *m_pfPosition[1] - 1.75f;
+				(*m_ppcShaderViewAdjustment).get()->UpdatePosition(
+					0.0f,//*m_pfEuler[0],
+					0.0f,//*m_pfEuler[1],
+					*m_pfEuler[2],
+					0.0f,//*m_pfPosition[0], <- Currently only y positional tracking !!
+					-fY,
+					0.0f);//*m_pfPosition[2]);
+			}
+
 			(*m_ppcShaderViewAdjustment).get()->ComputeViewTransforms();
 		}
 	}
@@ -651,7 +672,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 			{
 				if (m_apnIntInput[0])
 				{
-					*m_apnIntInput[0] = TRUE;
+					(*m_apnIntInput[0])++;
 				}
 				m_bZoomOut = TRUE;
 			}

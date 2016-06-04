@@ -1704,6 +1704,8 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 							m_pcActiveVertexShader11->GetPrivateData(PDID_ID3D11VertexShader_Vireio_Data, &dwDataSize, (void*)&sPrivateData);
 
 						// any hud operation taking place ?
+						static BOOL bOldHudCount = 0;
+						m_bSwitchRenderTarget = false;
 						if (m_bHudOperation)
 						{
 							// restore render targets by backup
@@ -1761,8 +1763,6 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 								}
 							}
 
-							m_bSwitchRenderTarget = false;
-
 							// loop through fetched hash codes
 							for (UINT unI = 0; (UINT)unI < m_aunFetchedHashCodes.size(); unI++)
 							{
@@ -1777,11 +1777,14 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 								}
 							}
 						}
-						else
+						else bOldHudCount = 0;
+						if ((bOldHudCount < m_bHudOperation) && (m_bSwitchRenderTarget))
 						{
 							m_bSwitchRenderTarget = false;
 							const float fColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
 							((ID3D11DeviceContext*)pThis)->ClearRenderTargetView(m_pcSecondaryRenderTargetView11, fColor);
+
+							bOldHudCount = m_bHudOperation;
 						}
 
 						// currently chosen ?
