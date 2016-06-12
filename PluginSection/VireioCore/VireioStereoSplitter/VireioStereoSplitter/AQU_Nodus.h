@@ -85,17 +85,17 @@ public:
 	virtual int             GetProvokingType() { return 0; }
 	virtual bool            GetMethodReplacement() { return false; }
 	virtual DWORD           GetSaveDataSize() { return 0; }
-	virtual char*           GetSaveData(UINT* pdwSizeOfData) { return nullptr; }
-	virtual void            InitNodeData(char* pData, UINT dwSizeOfData) { (pData); (dwSizeOfData); }
+	virtual char*           GetSaveData(UINT* punSizeOfData) { return nullptr; }
+	virtual void            InitNodeData(char* pData, UINT unSizeOfData) { (pData); (unSizeOfData); }
 	virtual DWORD           GetCommandersNumber() { return 0; }
 	virtual DWORD           GetDecommandersNumber() { return 0; }
-	virtual LPWSTR          GetCommanderName(DWORD dwCommanderIndex) { return L""; }
-	virtual LPWSTR          GetDecommanderName(DWORD dwDecommanderIndex) { return L""; }
-	virtual DWORD           GetCommanderType(DWORD dwCommanderIndex) { return 0; }
-	virtual DWORD           GetDecommanderType(DWORD dwDecommanderIndex) { return 0; }
-	virtual void*           GetOutputPointer(DWORD dwCommanderIndex) { return nullptr; }
-	virtual void            SetInputPointer(DWORD dwDecommanderIndex, void* pData) { (dwDecommanderIndex); (pData); }
+	virtual LPWSTR          GetCommanderName(DWORD unCommanderIndex) { return L""; }
+	virtual LPWSTR          GetDecommanderName(DWORD unDecommanderIndex) { return L""; }
+	virtual DWORD           GetCommanderType(DWORD unCommanderIndex) { return 0; }
+	virtual DWORD           GetDecommanderType(DWORD unDecommanderIndex) { return 0; }
+	virtual void*           GetOutputPointer(DWORD unCommanderIndex) { return nullptr; }
+	virtual void            SetInputPointer(DWORD unDecommanderIndex, void* pData) { (unDecommanderIndex); (pData); }
 	virtual bool            SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod)  { return false; }
-	virtual void*           Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)	{ (pThis); (eD3D); (eD3DInterface); (eD3DMethod); (dwNumberConnected); (nProvokerIndex); return nullptr; }
+	virtual void*           Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD unNumberConnected, int& nProvokerIndex)	{ (pThis); (eD3D); (eD3DInterface); (eD3DMethod); (unNumberConnected); (nProvokerIndex); return nullptr; }
 	virtual void            WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam) {}
 };
