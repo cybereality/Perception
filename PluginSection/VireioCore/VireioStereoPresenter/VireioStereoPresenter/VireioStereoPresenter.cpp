@@ -38,6 +38,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"VireioStereoPresenter.h"
 
 #define SAFE_RELEASE(a) if (a) { a->Release(); a = nullptr; }
+#define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"- %u", a); OutputDebugString(buf); }
+#define DEBUG_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"- %x", a); OutputDebugString(buf); }
 
 #define INTERFACE_ID3D11DEVICE                                               6
 #define INTERFACE_ID3D10DEVICE                                               7
@@ -57,6 +59,10 @@ m_pcVertexLayout10(nullptr),
 m_pcVertexBuffer10(nullptr),
 m_pcConstantBufferDirect10(nullptr),
 m_pcTextureMenu10(nullptr),
+m_pcVSGeometry10(nullptr),
+m_pcVLGeometry10(nullptr),
+m_pcPSGeometry10(nullptr),
+m_pcVBGeometry10(nullptr),
 m_bHotkeySwitch(false),
 m_eStereoMode(VireioMonitorStereoModes::Vireio_Mono),
 m_bZoomOut(FALSE),
@@ -157,8 +163,8 @@ m_bMenu(false)
 	m_unFoV = 99;
 	m_unFoVADS = 99;
 
-	ZeroMemory(&m_apfFloatInput[0], sizeof(float*)* 16);
-	ZeroMemory(&m_apnIntInput[0], sizeof(int*)* 16);
+	ZeroMemory(&m_apfFloatInput[0], sizeof(float*) * 16);
+	ZeroMemory(&m_apnIntInput[0], sizeof(int*) * 16);
 
 }
 
@@ -174,6 +180,10 @@ StereoPresenter::~StereoPresenter()
 	SAFE_RELEASE(m_pcBackBufferView);
 	SAFE_RELEASE(m_pcConstantBufferDirect10);
 	SAFE_RELEASE(m_pcTextureMenu10);
+	SAFE_RELEASE(m_pcVLGeometry10);
+	SAFE_RELEASE(m_pcVSGeometry10);
+	SAFE_RELEASE(m_pcPSGeometry10);
+	SAFE_RELEASE(m_pcVBGeometry10);
 }
 
 /**
@@ -618,52 +628,52 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 			}
 		}
 		else
-		if (GetAsyncKeyState(VK_F2))
-		{
-			if (bReleased)
+			if (GetAsyncKeyState(VK_F2))
 			{
-				// fov ads
-				m_unFoVADS++;
-				if (m_unFoVADS >= unFoVADSSettings)
-					m_unFoVADS = 0;
-				m_sUserSettings.fFoVADS = afFoVADS[m_unFoVADS];
-				bReleased = false;
+				if (bReleased)
+				{
+					// fov ads
+					m_unFoVADS++;
+					if (m_unFoVADS >= unFoVADSSettings)
+						m_unFoVADS = 0;
+					m_sUserSettings.fFoVADS = afFoVADS[m_unFoVADS];
+					bReleased = false;
 
-				// read or create the INI file
-				char szFilePathINI[1024];
-				GetCurrentDirectoryA(1024, szFilePathINI);
-				strcat_s(szFilePathINI, "\\VireioPerception.ini");
+					// read or create the INI file
+					char szFilePathINI[1024];
+					GetCurrentDirectoryA(1024, szFilePathINI);
+					strcat_s(szFilePathINI, "\\VireioPerception.ini");
 
-				// fov aiming down sights
-				std::stringstream sz;
-				sz << m_sUserSettings.fFoVADS;
-				WritePrivateProfileStringA("Stereo Presenter", "fFoVADS", sz.str().c_str(), szFilePathINI);
+					// fov aiming down sights
+					std::stringstream sz;
+					sz << m_sUserSettings.fFoVADS;
+					WritePrivateProfileStringA("Stereo Presenter", "fFoVADS", sz.str().c_str(), szFilePathINI);
+				}
 			}
-		}
-		else
-		if (GetAsyncKeyState(VK_F12))
-		{
-			m_bHotkeySwitch = true;
-		}
-		else
-		if (GetAsyncKeyState(VK_LCONTROL) && GetAsyncKeyState(0x51))
-		{
-			m_bMenuHotkeySwitch = true;
-		}
-		else
-		if (m_bMenuHotkeySwitch)
-		{
-			m_bMenu = !m_bMenu;
-			m_bMenuHotkeySwitch = false;
-		}
-		else
-		if (m_bHotkeySwitch)
-		{
-			if (m_eStereoMode) m_eStereoMode = VireioMonitorStereoModes::Vireio_Mono; else m_eStereoMode = VireioMonitorStereoModes::Vireio_SideBySide;
-			m_bHotkeySwitch = false;
-		}
-		else
-			bReleased = true;
+			else
+				if (GetAsyncKeyState(VK_F12))
+				{
+					m_bHotkeySwitch = true;
+				}
+				else
+					if (GetAsyncKeyState(VK_LCONTROL) && GetAsyncKeyState(0x51))
+					{
+						m_bMenuHotkeySwitch = true;
+					}
+					else
+						if (m_bMenuHotkeySwitch)
+						{
+							m_bMenu = !m_bMenu;
+							m_bMenuHotkeySwitch = false;
+						}
+						else
+							if (m_bHotkeySwitch)
+							{
+								if (m_eStereoMode) m_eStereoMode = VireioMonitorStereoModes::Vireio_Mono; else m_eStereoMode = VireioMonitorStereoModes::Vireio_SideBySide;
+								m_bHotkeySwitch = false;
+							}
+							else
+								bReleased = true;
 
 		// handle controller
 		if (bControllerAttached)
@@ -873,8 +883,119 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 			}
 		}
 #pragma endregion
-#pragma region draw (optionally)
+#pragma region draw to stereo textures
+		
+		// draw to stereo targets
+		if (true/*TODO*/)
+		{
+			// get device and context
+			ID3D11Device* pcDevice = nullptr;
+			ID3D11DeviceContext* pcContext = nullptr;
+			if (FAILED(GetDeviceAndContext((IDXGISwapChain*)pThis, &pcDevice, &pcContext)))
+			{
+				// release frame texture+view
+				if (pcDevice) { pcDevice->Release(); pcDevice = nullptr; }
+				if (pcContext) { pcContext->Release(); pcContext = nullptr; }
+				return nullptr;
+			}
 
+			// create vertex shader
+			if (!m_pcVSGeometry11)
+			{
+				if (FAILED(Create3DVertexShader(pcDevice, &m_pcVSGeometry11, &m_pcVLGeometry11)))
+					OutputDebugString(L"[STP] Failed to create vertex shader. !");
+			}
+
+			// create pixel shader
+			if (!m_pcPSGeometry11)
+			{
+				if (FAILED(CreateSimplePixelShader(pcDevice, &m_pcPSGeometry11, PixelShaderTechnique::GeometryDiffuseTextured)))
+					OutputDebugString(L"[STP] Failed to create pixel shader. !");
+			}
+
+			// Create vertex buffer
+			TexturedDiffuseVertex asVertices[] =
+			{
+				{ D3DXVECTOR3(-1.0f, 1.0f, -1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(0.0f, 0.0f) },
+				{ D3DXVECTOR3(1.0f, 1.0f, -1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(1.0f, 0.0f) },
+				{ D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(1.0f, 1.0f) },
+				{ D3DXVECTOR3(-1.0f, 1.0f, 1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(0.0f, 1.0f) },
+
+				{ D3DXVECTOR3(-1.0f, -1.0f, -1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(0.0f, 0.0f) },
+				{ D3DXVECTOR3(1.0f, -1.0f, -1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(1.0f, 0.0f) },
+				{ D3DXVECTOR3(1.0f, -1.0f, 1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(1.0f, 1.0f) },
+				{ D3DXVECTOR3(-1.0f, -1.0f, 1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(0.0f, 1.0f) },
+
+				{ D3DXVECTOR3(-1.0f, -1.0f, 1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(0.0f, 0.0f) },
+				{ D3DXVECTOR3(-1.0f, -1.0f, -1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(1.0f, 0.0f) },
+				{ D3DXVECTOR3(-1.0f, 1.0f, -1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(1.0f, 1.0f) },
+				{ D3DXVECTOR3(-1.0f, 1.0f, 1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(0.0f, 1.0f) },
+
+				{ D3DXVECTOR3(1.0f, -1.0f, 1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(0.0f, 0.0f) },
+				{ D3DXVECTOR3(1.0f, -1.0f, -1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(1.0f, 0.0f) },
+				{ D3DXVECTOR3(1.0f, 1.0f, -1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(1.0f, 1.0f) },
+				{ D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(0.0f, 1.0f) },
+
+				{ D3DXVECTOR3(-1.0f, -1.0f, -1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(0.0f, 0.0f) },
+				{ D3DXVECTOR3(1.0f, -1.0f, -1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(1.0f, 0.0f) },
+				{ D3DXVECTOR3(1.0f, 1.0f, -1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(1.0f, 1.0f) },
+				{ D3DXVECTOR3(-1.0f, 1.0f, -1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(0.0f, 1.0f) },
+
+				{ D3DXVECTOR3(-1.0f, -1.0f, 1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(0.0f, 0.0f) },
+				{ D3DXVECTOR3(1.0f, -1.0f, 1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(1.0f, 0.0f) },
+				{ D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(1.0f, 1.0f) },
+				{ D3DXVECTOR3(-1.0f, 1.0f, 1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(0.0f, 1.0f) },
+			};
+
+			D3D11_BUFFER_DESC bd;
+			ZeroMemory(&bd, sizeof(bd));
+			bd.Usage = D3D11_USAGE_DEFAULT;
+			bd.ByteWidth = sizeof(TexturedDiffuseVertex) * 24;
+			bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+			bd.CPUAccessFlags = 0;
+			D3D11_SUBRESOURCE_DATA InitData;
+			ZeroMemory(&InitData, sizeof(InitData));
+			InitData.pSysMem = asVertices;
+			if (FAILED(pcDevice->CreateBuffer(&bd, &InitData, &m_pcVBGeometry11)))
+				OutputDebugString(L"[STS] Failed to create vertex buffer.");
+
+			// Create index buffer
+			// Create vertex buffer
+			WORD indices[] =
+			{
+				3, 1, 0,
+				2, 1, 3,
+
+				6, 4, 5,
+				7, 4, 6,
+
+				11, 9, 8,
+				10, 9, 11,
+
+				14, 12, 13,
+				15, 12, 14,
+
+				19, 17, 16,
+				18, 17, 19,
+
+				22, 20, 21,
+				23, 20, 22
+			};
+
+			bd.Usage = D3D11_USAGE_DEFAULT;
+			bd.ByteWidth = sizeof(WORD) * 36;
+			bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+			bd.CPUAccessFlags = 0;
+			InitData.pSysMem = indices;
+			/*hr = g_pd3dDevice->CreateBuffer(&bd, &InitData, &g_pIndexBuffer);
+			if (FAILED(hr))
+				return hr;*/
+
+			if (pcDevice) { pcDevice->Release(); pcDevice = nullptr; }
+			if (pcContext) { pcContext->Release(); pcContext = nullptr; }
+		}
+#pragma endregion
+#pragma region draw (optionally)
 
 		// draw stereo target to screen (optionally)
 		if (m_eStereoMode)

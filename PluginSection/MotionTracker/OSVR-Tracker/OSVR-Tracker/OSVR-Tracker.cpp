@@ -278,13 +278,13 @@ void* OSVR_Tracker::GetOutputPointer(DWORD dwCommanderIndex)
 		case OSVR_Commanders::Roll:
 			return (void*)&m_afEulerPredicted[2];
 		case OSVR_Commanders::OrientationW:
-			return nullptr;
+			return (void*)&m_sState.rotation.data[0];
 		case OSVR_Commanders::OrientationX:
-			return nullptr;
+			return (void*)&m_sState.rotation.data[1];
 		case OSVR_Commanders::OrientationY:
-			return nullptr;
+			return (void*)&m_sState.rotation.data[2];
 		case OSVR_Commanders::OrientationZ:
-			return nullptr;
+			return (void*)&m_sState.rotation.data[3];
 		case OSVR_Commanders::PositionX:
 			return (void*)&m_afPosition[0];
 		case OSVR_Commanders::PositionY:

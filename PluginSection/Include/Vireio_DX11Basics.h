@@ -44,12 +44,39 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"Vireio_DX11StateBlock.h"
 
 /**
-* Simple texture vertex structure.
+* Texture vertex structure.
 ***/
 struct TexturedVertex
 {
 	D3DXVECTOR4 sPos;
 	D3DXVECTOR2 sTex;
+};
+
+/**
+* Diffuse textured vertex structure.
+* Matches OpenVR render model vertex.
+**/
+struct TexturedDiffuseVertex
+{
+	D3DXVECTOR3 sPosition;
+	D3DXVECTOR3 sNormal;
+	D3DXVECTOR2 sTextureCoord;
+};
+
+/**
+* Geometry constant buffer structure.
+***/
+struct GeometryConstantBuffer
+{
+	/*D3DXVECTOR4 m_sMaterialAmbientColor;
+	D3DXVECTOR4 m_sMaterialDiffuseColor;
+
+	D3DXVECTOR3 m_sLightDir;
+	D3DXVECTOR4 m_sLightDiffuse;
+	D3DXVECTOR4 m_sLightAmbient;*/
+
+	D3DXMATRIX m_sWorldViewProjection;
+	D3DXMATRIX m_sWorld;
 };
 
 /**
@@ -76,6 +103,44 @@ static const char* VS2D =
 "    Out.Position = mul( vtx.Position, ProjView );\n"
 "    Out.TexCoord = vtx.TexCoord;\n"
 "    return Out;\n"
+"}\n";
+
+/**
+* 3D Vertex Shader.
+***/
+static const char* VS3D =
+// constant buffer
+"cbuffer cbPerObject : register(b0)\n"
+"{\n"
+"	matrix		g_mWorldViewProjection : packoffset(c0);\n"
+"	matrix		g_mWorld : packoffset(c4);\n"
+"};\n"
+
+// input / output structures
+"struct VS_INPUT\n"
+"{\n"
+"	float3 vPosition : POSITION;\n"
+"	float3 vNormal : NORMAL;\n"
+"	float2 vTexcoord : TEXCOORD0;\n"
+"};\n"
+
+"struct VS_OUTPUT\n"
+"{\n"
+"	float4 vPosition : SV_POSITION;\n"
+"	float3 vNormal : NORMAL;\n"
+"	float2 vTexcoord : TEXCOORD0;\n"
+"};\n"
+
+// vertex shader
+"VS_OUTPUT VS(VS_INPUT Input)\n"
+"{\n"
+"	VS_OUTPUT Output;\n"
+
+"	Output.vPosition = mul(Input.vPosition, g_mWorldViewProjection);\n"
+"	Output.vNormal = mul(Input.vNormal, (float3x3)g_mWorld);\n"
+"	Output.vTexcoord = Input.vTexcoord;\n"
+
+"	return Output;\n"
 "}\n";
 
 /**
@@ -182,6 +247,76 @@ static const char* PS_DIST_SIMPLE =
 "}\n";
 
 /**
+* 3D Pixel Shader.
+***/
+static const char* PS3D =
+// constant buffer
+/*"cbuffer cbPerObject : register(b0)\n"
+"{\n"
+"	float4		g_vObjectColor : packoffset(c0);\n"
+"};\n"
+
+"cbuffer cbPerFrame : register(b1)\n"
+"{\n"
+"	float3		g_vLightDir : packoffset(c0);\n"
+"	float		g_fAmbient : packoffset(c0.w);\n"
+"};\n"*/
+
+// textures and samplers
+"Texture2D	g_txDiffuse : register(t0);\n"
+"SamplerState g_samLinear : register(s0);\n"
+
+// input / output structures
+"struct PS_INPUT\n"
+"{\n"
+"	float4 vPosition : SV_POSITION;\n"
+"	float3 vNormal : NORMAL;\n"
+"	float2 vTexcoord : TEXCOORD0;\n"
+"};\n"
+
+// pixel shader
+"float4 PS(PS_INPUT Input) : SV_TARGET\n"
+"{\n"
+"	float4 vDiffuse = g_txDiffuse.Sample(g_samLinear, Input.vTexcoord);\n"
+
+// "	float fLighting = saturate(dot(g_vLightDir, Input.vNormal));\n"
+// "	fLighting = max(fLighting, g_fAmbient);\n"
+
+"	return vDiffuse;\n" // * fLighting;\n"
+"}\n";
+
+/*"texture g_MeshTexture;"
+"sampler MeshTextureSampler =\n"
+"sampler_state\n"
+"{\n"
+"	Texture = <g_MeshTexture>;\n"
+"	MipFilter = LINEAR;\n"
+"	MinFilter = LINEAR;\n"
+"	MagFilter = LINEAR;\n"
+"};\n"
+
+"struct VS_OUTPUT\n"
+"{\n"
+"	float4 Position : POSITION;\n"
+"	float4 Diffuse : COLOR0;\n"
+"	float2 TextureUV : TEXCOORD0;\n"
+"};\n"
+
+"struct PS_OUTPUT\n"
+"{\n"
+"	float4 RGBColor : COLOR0;\n"
+"};\n"
+
+"PS_OUTPUT PS(VS_OUTPUT In)\n"
+"{\n"
+"	PS_OUTPUT Output;\n"
+
+"	Output.RGBColor = tex2D(MeshTextureSampler, In.TextureUV) * In.Diffuse;\n"
+
+"	return Output;\n"
+"}\n";*/
+
+/**
 * Simple enumeration of available pixel shaders.
 ***/
 enum PixelShaderTechnique
@@ -190,6 +325,7 @@ enum PixelShaderTechnique
 	WarpSimple,
 	DistortSimple,
 	FullscreenGammaCorrection,
+	GeometryDiffuseTextured,
 };
 
 /**
@@ -261,6 +397,58 @@ HRESULT Create2DVertexShader(ID3D11Device* pcDevice, ID3D11VertexShader** ppcVer
 }
 
 /**
+* Creates a simple 3D vertex shader with an input layout.
+***/
+HRESULT Create3DVertexShader(ID3D11Device* pcDevice, ID3D11VertexShader** ppcVertexShader, ID3D11InputLayout** ppcInputLayout)
+{
+	if ((!ppcVertexShader) || (!ppcInputLayout) || (!pcDevice)) return E_INVALIDARG;
+
+	ID3D10Blob* pcShader;
+	HRESULT hr;
+
+	// compile and create shader
+	if (SUCCEEDED(hr = D3DX10CompileFromMemory(VS3D, strlen(VS3D), NULL, NULL, NULL, "VS", "vs_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL)))
+	{
+		//#ifdef _DEBUG
+		OutputDebugString(L"Vireio Perception : Vertex Shader compiled !");
+		//#endif
+		hr = pcDevice->CreateVertexShader(pcShader->GetBufferPointer(), pcShader->GetBufferSize(), NULL, ppcVertexShader);
+
+		if (FAILED(hr))
+		{
+			OutputDebugString(L"Vireio Perception : Failed to create Vertex Shader !");
+			return hr;
+		}
+		else
+		{
+			// Define the input layout
+			D3D11_INPUT_ELEMENT_DESC aLayout[] =
+			{
+				{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+				{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+				{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			};
+			UINT unNumElements = sizeof(aLayout) / sizeof(aLayout[0]);
+
+			hr = pcDevice->CreateInputLayout(aLayout, unNumElements, pcShader->GetBufferPointer(), pcShader->GetBufferSize(), ppcInputLayout);
+			if (FAILED(hr))
+			{
+				OutputDebugString(L"Vireio Perception : Failed to create input layout !");
+				if (*ppcVertexShader)
+				{
+					(*ppcVertexShader)->Release(); (*ppcVertexShader) = nullptr;
+				}
+				return hr;
+			}
+		}
+		pcShader->Release();
+	}
+	else return hr;
+
+	return S_OK;
+}
+
+/**
 * Creates a simple pixel shader
 ***/
 HRESULT CreateSimplePixelShader(ID3D11Device* pcDevice, ID3D11PixelShader** ppcPixelShader, PixelShaderTechnique eTechnique)
@@ -285,12 +473,15 @@ HRESULT CreateSimplePixelShader(ID3D11Device* pcDevice, ID3D11PixelShader** ppcP
 		case FullscreenGammaCorrection:
 			hr = D3DX10CompileFromMemory(PS2D_GAMMA_CORRECTION, strlen(PS2D_GAMMA_CORRECTION), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
 			break;
+		case GeometryDiffuseTextured:
+			hr = D3DX10CompileFromMemory(PS3D, strlen(PS3D), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+			break;
 	}
 
 	// succeded ?
 	if (SUCCEEDED(hr))
 	{
-		OutputDebugString(L"HelloWorldDx10 Node : Pixel Shader compiled !");
+		OutputDebugString(L"Vireio Perception : Pixel Shader compiled !");
 		pcDevice->CreatePixelShader(pcShader->GetBufferPointer(), pcShader->GetBufferSize(), NULL, ppcPixelShader);
 		pcShader->Release();
 
@@ -317,7 +508,7 @@ HRESULT CreateFullScreenVertexBuffer(ID3D11Device* pcDevice, ID3D11Buffer** ppcB
 	};
 	D3D11_BUFFER_DESC bd;
 	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof(TexturedVertex)* 6;
+	bd.ByteWidth = sizeof(TexturedVertex) * 6;
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = 0;
 	bd.MiscFlags = 0;

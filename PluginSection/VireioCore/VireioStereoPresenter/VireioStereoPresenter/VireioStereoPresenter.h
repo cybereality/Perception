@@ -215,12 +215,28 @@ private:
 		ID3D11VertexShader* m_pcVertexShader11;
 	};
 	/**
+	* The 3D vertex shader.
+	***/
+	union
+	{
+		ID3D10VertexShader* m_pcVSGeometry10;
+		ID3D11VertexShader* m_pcVSGeometry11;
+	};
+	/**
 	* The 2D pixel shader.
 	***/
 	union
 	{
 		ID3D10PixelShader* m_pcPixelShader10;
 		ID3D11PixelShader* m_pcPixelShader11;
+	};
+	/**
+	* The 2D pixel shader.
+	***/
+	union
+	{
+		ID3D10PixelShader* m_pcPSGeometry10;
+		ID3D11PixelShader* m_pcPSGeometry11;
 	};
 	/**
 	* The 2D vertex layout.
@@ -231,12 +247,28 @@ private:
 		ID3D11InputLayout* m_pcVertexLayout11;
 	};
 	/**
+	* The 3D vertex layout.
+	***/
+	union
+	{
+		ID3D10InputLayout* m_pcVLGeometry10;
+		ID3D11InputLayout* m_pcVLGeometry11;
+	};
+	/**
 	* The 2D vertex buffer.
 	***/
 	union
 	{
 		ID3D10Buffer* m_pcVertexBuffer10;
 		ID3D11Buffer* m_pcVertexBuffer11;
+	};
+	/**
+	* The 3D vertex buffer. 
+	***/
+	union
+	{
+		ID3D10Buffer* m_pcVBGeometry10;
+		ID3D11Buffer* m_pcVBGeometry11;
 	};
 	/**
 	* The constant buffer for the vertex shader matrix.
