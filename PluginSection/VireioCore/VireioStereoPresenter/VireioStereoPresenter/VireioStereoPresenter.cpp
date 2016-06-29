@@ -63,6 +63,10 @@ m_pcVSGeometry10(nullptr),
 m_pcVLGeometry10(nullptr),
 m_pcPSGeometry10(nullptr),
 m_pcVBGeometry10(nullptr),
+m_pcIBGeometry11(nullptr),
+m_pcDSGeometry11(nullptr),
+m_pcDSVGeometry11(nullptr),
+m_pcSampler11(nullptr),
 m_bHotkeySwitch(false),
 m_eStereoMode(VireioMonitorStereoModes::Vireio_Mono),
 m_bZoomOut(FALSE),
@@ -173,6 +177,9 @@ m_bMenu(false)
 ***/
 StereoPresenter::~StereoPresenter()
 {
+	SAFE_RELEASE(m_pcDSVGeometry11);
+	SAFE_RELEASE(m_pcDSGeometry11);
+	SAFE_RELEASE(m_pcSampler11);
 	SAFE_RELEASE(m_pcVertexShader10);
 	SAFE_RELEASE(m_pcPixelShader10);
 	SAFE_RELEASE(m_pcVertexLayout10);
@@ -535,6 +542,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 	{ wchar_t buf[128]; wsprintf(buf, L"ifc %u mtd %u", eD3DInterface, eD3DMethod); OutputDebugString(buf); }
 #endif
 
+	static UINT unWidthRT = 0, unHeightRT = 0;
 	static const UINT unFoVSettings = 3;
 	static float afFoV[] = { 90.0f, 116.0f, 121.0f };
 	static const UINT unFoVADSSettings = 10;
@@ -718,7 +726,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 			{
 				if (m_apnIntInput[0])
 				{
-					*m_apnIntInput[0] = TRUE;
+					(*m_apnIntInput[0])++;
 				}
 				m_bZoomOut = TRUE;
 			}
@@ -884,7 +892,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 		}
 #pragma endregion
 #pragma region draw to stereo textures
-		
+
 		// draw to stereo targets
 		if (true/*TODO*/)
 		{
@@ -913,83 +921,151 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 					OutputDebugString(L"[STP] Failed to create pixel shader. !");
 			}
 
-			// Create vertex buffer
-			TexturedDiffuseVertex asVertices[] =
+			// create the depth stencil
+			if (!m_pcDSGeometry11)
 			{
-				{ D3DXVECTOR3(-1.0f, 1.0f, -1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(0.0f, 0.0f) },
-				{ D3DXVECTOR3(1.0f, 1.0f, -1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(1.0f, 0.0f) },
-				{ D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(1.0f, 1.0f) },
-				{ D3DXVECTOR3(-1.0f, 1.0f, 1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(0.0f, 1.0f) },
+				ID3D11Texture2D* pcBackBuffer = nullptr;
+				((IDXGISwapChain*)pThis)->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pcBackBuffer);
 
-				{ D3DXVECTOR3(-1.0f, -1.0f, -1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(0.0f, 0.0f) },
-				{ D3DXVECTOR3(1.0f, -1.0f, -1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(1.0f, 0.0f) },
-				{ D3DXVECTOR3(1.0f, -1.0f, 1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(1.0f, 1.0f) },
-				{ D3DXVECTOR3(-1.0f, -1.0f, 1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(0.0f, 1.0f) },
+				if (pcBackBuffer)
+				{
+					D3D11_TEXTURE2D_DESC sDesc;
+					pcBackBuffer->GetDesc(&sDesc);
+					pcBackBuffer->Release();
 
-				{ D3DXVECTOR3(-1.0f, -1.0f, 1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(0.0f, 0.0f) },
-				{ D3DXVECTOR3(-1.0f, -1.0f, -1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(1.0f, 0.0f) },
-				{ D3DXVECTOR3(-1.0f, 1.0f, -1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(1.0f, 1.0f) },
-				{ D3DXVECTOR3(-1.0f, 1.0f, 1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(0.0f, 1.0f) },
+					// set static height, width
+					unWidthRT = sDesc.Width;
+					unHeightRT = sDesc.Height;
 
-				{ D3DXVECTOR3(1.0f, -1.0f, 1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(0.0f, 0.0f) },
-				{ D3DXVECTOR3(1.0f, -1.0f, -1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(1.0f, 0.0f) },
-				{ D3DXVECTOR3(1.0f, 1.0f, -1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(1.0f, 1.0f) },
-				{ D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(0.0f, 1.0f) },
+					// Create depth stencil texture
+					D3D11_TEXTURE2D_DESC descDepth;
+					ZeroMemory(&descDepth, sizeof(descDepth));
+					descDepth.Width = sDesc.Width;
+					descDepth.Height = sDesc.Height;
+					descDepth.MipLevels = 1;
+					descDepth.ArraySize = 1;
+					descDepth.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+					descDepth.SampleDesc.Count = 1;
+					descDepth.SampleDesc.Quality = 0;
+					descDepth.Usage = D3D11_USAGE_DEFAULT;
+					descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+					descDepth.CPUAccessFlags = 0;
+					descDepth.MiscFlags = 0;
+					if (FAILED(pcDevice->CreateTexture2D(&descDepth, NULL, &m_pcDSGeometry11)))
+						OutputDebugString(L"[STP] Failed to create depth stencil.");
 
-				{ D3DXVECTOR3(-1.0f, -1.0f, -1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(0.0f, 0.0f) },
-				{ D3DXVECTOR3(1.0f, -1.0f, -1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(1.0f, 0.0f) },
-				{ D3DXVECTOR3(1.0f, 1.0f, -1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(1.0f, 1.0f) },
-				{ D3DXVECTOR3(-1.0f, 1.0f, -1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(0.0f, 1.0f) },
+					// Create the depth stencil view
+					D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;
+					ZeroMemory(&descDSV, sizeof(descDSV));
+					descDSV.Format = descDepth.Format;
+					descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+					descDSV.Texture2D.MipSlice = 0;
+					if (FAILED(pcDevice->CreateDepthStencilView(m_pcDSGeometry11, &descDSV, &m_pcDSVGeometry11)))
+						OutputDebugString(L"[STP] Failed to create depth stencil view.");
+				}
+			}
 
-				{ D3DXVECTOR3(-1.0f, -1.0f, 1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(0.0f, 0.0f) },
-				{ D3DXVECTOR3(1.0f, -1.0f, 1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(1.0f, 0.0f) },
-				{ D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(1.0f, 1.0f) },
-				{ D3DXVECTOR3(-1.0f, 1.0f, 1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR2(0.0f, 1.0f) },
-			};
+			// Create vertex buffer
+			if (!m_pcVBGeometry11)
+			{
+				TexturedDiffuseVertex asVertices[] =
+				{
+					{ D3DXVECTOR3(-1.0f, 1.0f, -1.0f), D3DXVECTOR3(0.0f, 1.0f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
+					{ D3DXVECTOR3(1.0f, 1.0f, -1.0f), D3DXVECTOR3(0.0f, 1.0f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) },
+					{ D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR3(0.0f, 1.0f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
+					{ D3DXVECTOR3(-1.0f, 1.0f, 1.0f), D3DXVECTOR3(0.0f, 1.0f, 0.0f), D3DXVECTOR2(0.0f, 1.0f) },
 
-			D3D11_BUFFER_DESC bd;
-			ZeroMemory(&bd, sizeof(bd));
-			bd.Usage = D3D11_USAGE_DEFAULT;
-			bd.ByteWidth = sizeof(TexturedDiffuseVertex) * 24;
-			bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-			bd.CPUAccessFlags = 0;
-			D3D11_SUBRESOURCE_DATA InitData;
-			ZeroMemory(&InitData, sizeof(InitData));
-			InitData.pSysMem = asVertices;
-			if (FAILED(pcDevice->CreateBuffer(&bd, &InitData, &m_pcVBGeometry11)))
-				OutputDebugString(L"[STS] Failed to create vertex buffer.");
+					{ D3DXVECTOR3(-1.0f, -1.0f, -1.0f), D3DXVECTOR3(0.0f, -1.0f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
+					{ D3DXVECTOR3(1.0f, -1.0f, -1.0f), D3DXVECTOR3(0.0f, -1.0f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) },
+					{ D3DXVECTOR3(1.0f, -1.0f, 1.0f), D3DXVECTOR3(0.0f, -1.0f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
+					{ D3DXVECTOR3(-1.0f, -1.0f, 1.0f), D3DXVECTOR3(0.0f, -1.0f, 0.0f), D3DXVECTOR2(0.0f, 1.0f) },
+
+					{ D3DXVECTOR3(-1.0f, -1.0f, 1.0f), D3DXVECTOR3(-1.0f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
+					{ D3DXVECTOR3(-1.0f, -1.0f, -1.0f), D3DXVECTOR3(-1.0f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) },
+					{ D3DXVECTOR3(-1.0f, 1.0f, -1.0f), D3DXVECTOR3(-1.0f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
+					{ D3DXVECTOR3(-1.0f, 1.0f, 1.0f), D3DXVECTOR3(-1.0f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 1.0f) },
+
+					{ D3DXVECTOR3(1.0f, -1.0f, 1.0f), D3DXVECTOR3(1.0f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
+					{ D3DXVECTOR3(1.0f, -1.0f, -1.0f), D3DXVECTOR3(1.0f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) },
+					{ D3DXVECTOR3(1.0f, 1.0f, -1.0f), D3DXVECTOR3(1.0f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
+					{ D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR3(1.0f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 1.0f) },
+
+					{ D3DXVECTOR3(-1.0f, -1.0f, -1.0f), D3DXVECTOR3(0.0f, 0.0f, -1.0f), D3DXVECTOR2(0.0f, 0.0f) },
+					{ D3DXVECTOR3(1.0f, -1.0f, -1.0f), D3DXVECTOR3(0.0f, 0.0f, -1.0f), D3DXVECTOR2(1.0f, 0.0f) },
+					{ D3DXVECTOR3(1.0f, 1.0f, -1.0f), D3DXVECTOR3(0.0f, 0.0f, -1.0f), D3DXVECTOR2(1.0f, 1.0f) },
+					{ D3DXVECTOR3(-1.0f, 1.0f, -1.0f), D3DXVECTOR3(0.0f, 0.0f, -1.0f), D3DXVECTOR2(0.0f, 1.0f) },
+
+					{ D3DXVECTOR3(-1.0f, -1.0f, 1.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(0.0f, 0.0f) },
+					{ D3DXVECTOR3(1.0f, -1.0f, 1.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(1.0f, 0.0f) },
+					{ D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(1.0f, 1.0f) },
+					{ D3DXVECTOR3(-1.0f, 1.0f, 1.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(0.0f, 1.0f) },
+				};
+
+				D3D11_BUFFER_DESC bd;
+				ZeroMemory(&bd, sizeof(bd));
+				bd.Usage = D3D11_USAGE_DEFAULT;
+				bd.ByteWidth = sizeof(TexturedDiffuseVertex) * 24;
+				bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+				bd.CPUAccessFlags = 0;
+				D3D11_SUBRESOURCE_DATA InitData;
+				ZeroMemory(&InitData, sizeof(InitData));
+				InitData.pSysMem = asVertices;
+				if (FAILED(pcDevice->CreateBuffer(&bd, &InitData, &m_pcVBGeometry11)))
+					OutputDebugString(L"[STS] Failed to create vertex buffer.");
+			}
 
 			// Create index buffer
-			// Create vertex buffer
-			WORD indices[] =
+			if (!m_pcIBGeometry11)
 			{
-				3, 1, 0,
-				2, 1, 3,
+				WORD aunIndices[] =
+				{
+					3, 1, 0,
+					2, 1, 3,
 
-				6, 4, 5,
-				7, 4, 6,
+					6, 4, 5,
+					7, 4, 6,
 
-				11, 9, 8,
-				10, 9, 11,
+					11, 9, 8,
+					10, 9, 11,
 
-				14, 12, 13,
-				15, 12, 14,
+					14, 12, 13,
+					15, 12, 14,
 
-				19, 17, 16,
-				18, 17, 19,
+					19, 17, 16,
+					18, 17, 19,
 
-				22, 20, 21,
-				23, 20, 22
-			};
+					22, 20, 21,
+					23, 20, 22
+				};
 
-			bd.Usage = D3D11_USAGE_DEFAULT;
-			bd.ByteWidth = sizeof(WORD) * 36;
-			bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-			bd.CPUAccessFlags = 0;
-			InitData.pSysMem = indices;
-			/*hr = g_pd3dDevice->CreateBuffer(&bd, &InitData, &g_pIndexBuffer);
-			if (FAILED(hr))
-				return hr;*/
+				D3D11_BUFFER_DESC bd;
+				ZeroMemory(&bd, sizeof(bd));
+				bd.Usage = D3D11_USAGE_DEFAULT;
+				bd.ByteWidth = sizeof(WORD) * 36;
+				bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+				bd.CPUAccessFlags = 0;
+				D3D11_SUBRESOURCE_DATA InitData;
+				ZeroMemory(&InitData, sizeof(InitData));
+				InitData.pSysMem = aunIndices;
+				if (FAILED(pcDevice->CreateBuffer(&bd, &InitData, &m_pcIBGeometry11)))
+					OutputDebugString(L"[STS] Failed to create index buffer.");
+			}
+
+			if (!m_pcSampler11)
+			{
+				// Create the sample state
+				D3D11_SAMPLER_DESC sampDesc;
+				ZeroMemory(&sampDesc, sizeof(sampDesc));
+				sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+				sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+				sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+				sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+				sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+				sampDesc.MinLOD = 0;
+				sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+				if (FAILED(pcDevice->CreateSamplerState(&sampDesc, &m_pcSampler11)))
+					OutputDebugString(L"[STS] Failed to create sampler.");
+			}
 
 			if (pcDevice) { pcDevice->Release(); pcDevice = nullptr; }
 			if (pcContext) { pcContext->Release(); pcContext = nullptr; }
@@ -998,7 +1074,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 #pragma region draw (optionally)
 
 		// draw stereo target to screen (optionally)
-		if (m_eStereoMode)
+		if (true)//m_eStereoMode)
 		{
 			// DX 11
 			if ((m_ppcTexView11[0]) && (m_ppcTexView11[1]))
@@ -1034,11 +1110,14 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 				pcBackBuffer->GetPrivateData(PDIID_ID3D11TextureXD_RenderTargetView, &dwSize, (void*)&pcView);
 				if (dwSize)
 				{
-					pcContext->OMSetRenderTargets(1, (ID3D11RenderTargetView**)&pcView, NULL);
+					pcContext->OMSetRenderTargets(1, (ID3D11RenderTargetView**)&pcView, m_pcDSVGeometry11);
 					pcView->Release();
 				}
 				pcContext->RSSetViewports(dwNumViewports, psViewport);
 				pcBackBuffer->Release();
+
+				// clear the depth stencil
+				pcContext->ClearDepthStencilView(m_pcDSVGeometry11, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 				// create all bool
 				bool bAllCreated = true;
@@ -1064,7 +1143,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 				// create constant buffer
 				if (!m_pcConstantBufferDirect11)
 				{
-					if (FAILED(CreateMatrixConstantBuffer(pcDevice, &m_pcConstantBufferDirect11)))
+					if (FAILED(CreateGeometryConstantBuffer(pcDevice, &m_pcConstantBufferDirect11, (UINT)sizeof(GeometryConstantBuffer))))
 						bAllCreated = false;
 				}
 
@@ -1106,8 +1185,59 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 						pcContext->PSSetShader(m_pcPixelShader11, 0, 0);
 
 						// Render a triangle
-						pcContext->Draw(6, 0);
+						// pcContext->Draw(6, 0);
 					}
+
+					// test draw... TODO !!
+
+					// Update our time
+					static float t = 0.0f;
+					static DWORD dwTimeStart = 0;
+					DWORD dwTimeCur = GetTickCount();
+					if (dwTimeStart == 0)
+						dwTimeStart = dwTimeCur;
+					t = (dwTimeCur - dwTimeStart) / 1000.0f;
+
+					// Rotate cube around the origin
+					D3DXMATRIX sWorld, sView, sProj;
+					D3DXMatrixRotationYawPitchRoll(&sWorld, t, t / 4.0f, t / 8.0f);
+
+					// Initialize the view matrix
+					D3DXVECTOR3 sEye = D3DXVECTOR3(0.0f, 3.0f, -6.0f);
+					D3DXVECTOR3 sAt = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+					D3DXVECTOR3 sUp = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+					D3DXMatrixLookAtLH(&sView, &sEye, &sAt, &sUp);
+
+					// ...and the projection matrix
+					D3DXMatrixPerspectiveFovLH(&sProj, D3DX_PI / 4, (float)unWidthRT / (float)unHeightRT, 0.01f, 100.0f);
+					D3DXMATRIX sWorldViewProjection = sWorld * sView * sProj;
+
+					// update constant buffer
+					D3DXMatrixTranspose(&m_sGeometryConstants.m_sWorld, &sWorld);
+					D3DXMatrixTranspose(&m_sGeometryConstants.m_sWorldViewProjection, &sWorldViewProjection);
+					D3DXVECTOR4 sLightDir(-0.7f, -0.6f, -0.02f, 1.0f);
+					D3DXVec4Normalize(&sLightDir, &sLightDir);
+					m_sGeometryConstants.m_sLightDir = sLightDir;
+					m_sGeometryConstants.m_sLightAmbient = D3DXCOLOR(0.2f, 0.2f, 0.2f, 1.0f);
+					m_sGeometryConstants.m_sLightDiffuse = D3DXCOLOR(1.0f, 0.2f, 0.7f, 1.0f);
+					pcContext->UpdateSubresource(m_pcConstantBufferDirect11, 0, NULL, &m_sGeometryConstants, 0, 0);
+
+					// Set the input layout, buffers, sampler
+					pcContext->IASetInputLayout(m_pcVLGeometry11);
+					UINT stride = sizeof(TexturedDiffuseVertex);
+					UINT offset = 0;
+					pcContext->IASetVertexBuffers(0, 1, &m_pcVBGeometry11, &stride, &offset);
+					pcContext->IASetIndexBuffer(m_pcIBGeometry11, DXGI_FORMAT_R16_UINT, 0);
+					pcContext->VSSetConstantBuffers(0, 1, &m_pcConstantBufferDirect11);
+					pcContext->PSSetConstantBuffers(0, 1, &m_pcConstantBufferDirect11);
+					pcContext->PSSetSamplers(0, 1, &m_pcSampler11);
+
+					// set shaders
+					pcContext->VSSetShader(m_pcVSGeometry11, NULL, 0);
+					pcContext->PSSetShader(m_pcPSGeometry11, NULL, 0);
+
+					// draw
+					pcContext->DrawIndexed(36, 0, 0);
 				}
 
 				// set back device

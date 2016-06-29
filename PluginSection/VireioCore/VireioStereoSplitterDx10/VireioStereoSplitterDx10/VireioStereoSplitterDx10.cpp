@@ -291,6 +291,11 @@ HBITMAP StereoSplitter::GetControl()
 			TextOut(hdcImage, 50, nY, L"GS Constant Buffers DX11", 24); nY += 64;
 			TextOut(hdcImage, 50, nY, L"PS Constant Buffers DX11", 24); nY += 64;
 			TextOut(hdcImage, 50, nY, L"Verify Constant Buffers", 23); nY += 64;
+			TextOut(hdcImage, 50, nY, L"bSwitchRenderTargets", 20); nY += 64;
+			TextOut(hdcImage, 50, nY, L"ppActiveRenderTargets_DX10", 26); nY += 64;
+			TextOut(hdcImage, 50, nY, L"ppActiveRenderTargets_DX11", 26); nY += 64;
+			TextOut(hdcImage, 50, nY, L"ppActiveDepthStencil_DX10", 25); nY += 64;
+			TextOut(hdcImage, 50, nY, L"ppActiveDepthStencil_DX11", 25); nY += 64;
 			TextOut(hdcImage, 600, nY, L"Left Texture", 12); nY += 64;
 			TextOut(hdcImage, 600, nY, L"Right Texture", 13); nY += 128;
 

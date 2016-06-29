@@ -1691,11 +1691,11 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 						// loop through active constant buffers, get private data and update them accordingly to the new shader
 						for (UINT dwIndex = 0; dwIndex < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; dwIndex++)
-						if (m_apcVSActiveConstantBuffers11[dwIndex])
-						{
-							// verify buffer
-							VerifyConstantBuffer(m_apcVSActiveConstantBuffers11[dwIndex], dwIndex);
-						}
+							if (m_apcVSActiveConstantBuffers11[dwIndex])
+							{
+								// verify buffer
+								VerifyConstantBuffer(m_apcVSActiveConstantBuffers11[dwIndex], dwIndex);
+							}
 
 						// get the current shader hash
 						Vireio_Shader_Private_Data sPrivateData;
@@ -1705,15 +1705,21 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 
 						// any hud operation taking place ?
 						static BOOL bOldHudCount = 0;
-						m_bSwitchRenderTarget = false;
+						if (m_bSwitchRenderTarget)
+						{
+							if (!m_bHudOperation)
+							{
+								// restore render targets by backup
+								if (m_eCurrentRenderingSide == RenderPosition::Left)
+									((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews11[0], (ID3D11DepthStencilView*)m_apcActiveDepthStencilView11[0]);
+								else
+									((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews11[D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT], (ID3D11DepthStencilView*)m_apcActiveDepthStencilView11[1]);
+
+							}
+							m_bSwitchRenderTarget = false;
+						}
 						if (m_bHudOperation)
 						{
-							// restore render targets by backup
-							if (m_eCurrentRenderingSide == RenderPosition::Left)
-								((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews11[0], (ID3D11DepthStencilView*)m_apcActiveDepthStencilView11[0]);
-							else
-								((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews11[D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT], (ID3D11DepthStencilView*)m_apcActiveDepthStencilView11[1]);
-
 							if (!m_pcSecondaryRenderTarget11)
 							{
 								// get device
@@ -1764,7 +1770,7 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 							}
 
 							// loop through fetched hash codes
-							for (UINT unI = 0; (UINT)unI < m_aunFetchedHashCodes.size(); unI++)
+							for (UINT unI = 0; unI < (UINT)m_aunFetchedHashCodes.size(); unI++)
 							{
 								// switch render targets
 								if ((sPrivateData.dwHash == m_aunFetchedHashCodes[unI]))
@@ -1776,11 +1782,20 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 									((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(1, &m_pcSecondaryRenderTargetView11, nullptr);
 								}
 							}
+
+							if (!m_bSwitchRenderTarget)
+							{
+								// restore render targets by backup
+								if (m_eCurrentRenderingSide == RenderPosition::Left)
+									((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews11[0], (ID3D11DepthStencilView*)m_apcActiveDepthStencilView11[0]);
+								else
+									((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, (ID3D11RenderTargetView**)&m_apcActiveRenderTargetViews11[D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT], (ID3D11DepthStencilView*)m_apcActiveDepthStencilView11[1]);
+							}
 						}
 						else bOldHudCount = 0;
 						if ((bOldHudCount < m_bHudOperation) && (m_bSwitchRenderTarget))
 						{
-							m_bSwitchRenderTarget = false;
+							// new frame, clear secondary render target view
 							const float fColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
 							((ID3D11DeviceContext*)pThis)->ClearRenderTargetView(m_pcSecondaryRenderTargetView11, fColor);
 
@@ -1816,28 +1831,29 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 									dwChosenOld = m_dwCurrentChosenShaderHashCode;
 
 									for (UINT dwI = 0; dwI < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; dwI++)
-									if (m_apcVSActiveConstantBuffers11[dwI])
-									{
-										// get shader rules index
-										Vireio_Buffer_Rules_Index sRulesIndex;
-										sRulesIndex.m_nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
-										sRulesIndex.m_dwUpdateCounter = 0;
-										UINT dwDataSizeRulesIndex = sizeof(Vireio_Buffer_Rules_Index);
-										m_apcVSActiveConstantBuffers11[dwI]->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Data, &dwDataSizeRulesIndex, &sRulesIndex);
+										if (m_apcVSActiveConstantBuffers11[dwI])
+										{
+											// get shader rules index
+											Vireio_Buffer_Rules_Index sRulesIndex;
+											sRulesIndex.m_nRulesIndex = VIREIO_CONSTANT_RULES_NOT_ADDRESSED;
+											sRulesIndex.m_dwUpdateCounter = 0;
+											UINT dwDataSizeRulesIndex = sizeof(Vireio_Buffer_Rules_Index);
+											m_apcVSActiveConstantBuffers11[dwI]->GetPrivateData(PDID_ID3D11Buffer_Vireio_Rules_Data, &dwDataSizeRulesIndex, &sRulesIndex);
 
-										D3D11_BUFFER_DESC sDesc;
-										m_apcVSActiveConstantBuffers11[dwI]->GetDesc(&sDesc);
-										strStream = std::wstringstream();
-										strStream << L"Buffer Size [" << dwI << L"]:" << sDesc.ByteWidth << L" RuleInd:" << sRulesIndex.m_nRulesIndex;
-										m_aszDebugTrace.push_back(strStream.str().c_str());
-									}
+											D3D11_BUFFER_DESC sDesc;
+											m_apcVSActiveConstantBuffers11[dwI]->GetDesc(&sDesc);
+											strStream = std::wstringstream();
+											strStream << L"Buffer Size [" << dwI << L"]:" << sDesc.ByteWidth << L" RuleInd:" << sRulesIndex.m_nRulesIndex;
+											m_aszDebugTrace.push_back(strStream.str().c_str());
+										}
 								}
 
-								// call super method
-								((ID3D11DeviceContext*)pThis)->VSSetShader(nullptr, nullptr, NULL);
+								// switch render targets to temporary
+								m_bSwitchRenderTarget = true;
+								m_bHudOperation = true;
 
-								// method replaced, immediately return
-								nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+								// set secondary render target
+								((ID3D11DeviceContext*)pThis)->OMSetRenderTargets(1, &m_pcSecondaryRenderTargetView11, nullptr);
 							}
 						}
 
@@ -2855,6 +2871,9 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 				else if (sEvent.dwIndexOfControl == m_sPageShader.m_dwHashCodes)
 				{
 #if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
+					// turn off HUD operation
+					m_bHudOperation = false;
+
 					INT nSelection = 0;
 
 					// get current selection of the shader constant list
@@ -3406,7 +3425,7 @@ void MatrixModifier::DoBufferModification(INT nRulesIndex, UINT_PTR pdwLeft, UIN
 			// TODO !! VECTOR MODIFICATION, MATRIX2x4 MODIFICATION
 
 			// is this modification in range ?
-			if ((dwBufferSize >= dwRegister * 4 * sizeof(float)+sizeof(D3DMATRIX)))
+			if ((dwBufferSize >= dwRegister * 4 * sizeof(float) + sizeof(D3DMATRIX)))
 			{
 				// get pointers to the matrix (left+right)
 				UINT_PTR pvLeft = (UINT_PTR)pdwLeft + dwRegister * 4 * sizeof(float);
@@ -3490,7 +3509,7 @@ void MatrixModifier::DebugOutput(const void *pvSrcData, UINT dwShaderIndex, UINT
 				// test the name of the constant
 				if (std::strstr((*pasShaders)[dwShaderIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, m_aszShaderConstantsA[nSelection].c_str()))
 				{
-					UINT dwSize = sizeof(float)* 4;
+					UINT dwSize = sizeof(float) * 4;
 
 					// is this  in range ?
 					if (dwBufferSize >= ((*pasShaders)[dwShaderIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset + dwSize))
@@ -3512,7 +3531,7 @@ void MatrixModifier::DebugOutput(const void *pvSrcData, UINT dwShaderIndex, UINT
 				// test the name of the constant
 				if (std::strstr((*pasShaders)[dwShaderIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, m_aszShaderConstantsA[nSelection].c_str()))
 				{
-					UINT dwSize = sizeof(float)* 4 * 2;
+					UINT dwSize = sizeof(float) * 4 * 2;
 
 					// is this  in range ?
 					if (dwBufferSize >= ((*pasShaders)[dwShaderIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset + dwSize))
@@ -3538,7 +3557,7 @@ void MatrixModifier::DebugOutput(const void *pvSrcData, UINT dwShaderIndex, UINT
 				// test the name of the constant
 				if (std::strstr((*pasShaders)[dwShaderIndex].asBuffers[dwBufferIndex].asVariables[nConstant].szName, m_aszShaderConstantsA[nSelection].c_str()))
 				{
-					UINT dwSize = sizeof(float)* 4 * 4;
+					UINT dwSize = sizeof(float) * 4 * 4;
 
 					// is this  in range ?
 					if (dwBufferSize >= ((*pasShaders)[dwShaderIndex].asBuffers[dwBufferIndex].asVariables[nConstant].dwStartOffset + dwSize))

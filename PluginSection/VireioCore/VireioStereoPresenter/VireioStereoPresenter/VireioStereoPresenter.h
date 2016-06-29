@@ -271,6 +271,18 @@ private:
 		ID3D11Buffer* m_pcVBGeometry11;
 	};
 	/**
+	* The 3D index buffer.
+	***/
+	union
+	{
+		ID3D10Buffer* m_pcIBGeometry10;
+		ID3D11Buffer* m_pcIBGeometry11;
+	};
+	/**
+	* The d3d11 sampler.
+	***/
+	ID3D11SamplerState* m_pcSampler11;
+	/**
 	* The constant buffer for the vertex shader matrix.
 	* Contains only ProjView matrix.
 	***/
@@ -279,6 +291,26 @@ private:
 		ID3D10Buffer* m_pcConstantBufferDirect10;
 		ID3D11Buffer* m_pcConstantBufferDirect11;
 	};
+	/**
+	* The depth stencil DX11.
+	***/
+	union
+	{
+		ID3D10Texture2D* m_pcDSGeometry10;
+		ID3D11Texture2D* m_pcDSGeometry11;
+	};
+	/**
+	* The depth stencil view DX11.
+	***/
+	union
+	{
+		ID3D10DepthStencilView* m_pcDSVGeometry10;
+		ID3D11DepthStencilView* m_pcDSVGeometry11;
+	};
+	/**
+	* Constant buffer data structure.
+	***/
+	GeometryConstantBuffer m_sGeometryConstants;
 	/**
 	* View matrix adjustment class.
 	* @see ViewAdjustment

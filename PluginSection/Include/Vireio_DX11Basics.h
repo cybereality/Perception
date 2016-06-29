@@ -43,6 +43,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include"Vireio_DX11StateBlock.h"
 
+#pragma region shader data structures
 /**
 * Texture vertex structure.
 ***/
@@ -68,17 +69,18 @@ struct TexturedDiffuseVertex
 ***/
 struct GeometryConstantBuffer
 {
-	/*D3DXVECTOR4 m_sMaterialAmbientColor;
-	D3DXVECTOR4 m_sMaterialDiffuseColor;
+	D3DXCOLOR m_sMaterialAmbientColor;
+	D3DXCOLOR m_sMaterialDiffuseColor;
 
-	D3DXVECTOR3 m_sLightDir;
-	D3DXVECTOR4 m_sLightDiffuse;
-	D3DXVECTOR4 m_sLightAmbient;*/
+	D3DXVECTOR4 m_sLightDir;
+	D3DXCOLOR m_sLightDiffuse;
+	D3DXCOLOR m_sLightAmbient;
 
 	D3DXMATRIX m_sWorldViewProjection;
 	D3DXMATRIX m_sWorld;
 };
-
+#pragma endregion
+#pragma region vertex shader
 /**
 * 2D Vertex Shader DX10+.
 ***/
@@ -110,24 +112,28 @@ static const char* VS2D =
 ***/
 static const char* VS3D =
 // constant buffer
-"cbuffer cbPerObject : register(b0)\n"
-"{\n"
-"	matrix		g_mWorldViewProjection : packoffset(c0);\n"
-"	matrix		g_mWorld : packoffset(c4);\n"
-"};\n"
+"float4 m_sMaterialAmbientColor;\n"
+"float4 m_sMaterialDiffuseColor;\n"
+
+"float4 m_sLightDir;\n"
+"float4 m_sLightDiffuse;\n"
+"float4 m_sLightAmbient;\n"
+
+"float4x4 m_sWorldViewProjection;\n"
+"float4x4 m_sWorld;\n"
 
 // input / output structures
 "struct VS_INPUT\n"
 "{\n"
-"	float3 vPosition : POSITION;\n"
-"	float3 vNormal : NORMAL;\n"
+"	float4 vPosition : POSITION;\n"
+"	float4 vNormal : NORMAL;\n"
 "	float2 vTexcoord : TEXCOORD0;\n"
 "};\n"
 
 "struct VS_OUTPUT\n"
 "{\n"
 "	float4 vPosition : SV_POSITION;\n"
-"	float3 vNormal : NORMAL;\n"
+"	float4 vNormal : NORMAL;\n"
 "	float2 vTexcoord : TEXCOORD0;\n"
 "};\n"
 
@@ -136,13 +142,14 @@ static const char* VS3D =
 "{\n"
 "	VS_OUTPUT Output;\n"
 
-"	Output.vPosition = mul(Input.vPosition, g_mWorldViewProjection);\n"
-"	Output.vNormal = mul(Input.vNormal, (float3x3)g_mWorld);\n"
+"	Output.vPosition = mul(Input.vPosition, m_sWorldViewProjection);\n"
+"	Output.vNormal = mul(Input.vNormal, m_sWorld);\n"
 "	Output.vTexcoord = Input.vTexcoord;\n"
 
 "	return Output;\n"
 "}\n";
-
+#pragma endregion
+#pragma region pixel shader a
 /**
 * 2D Pixel Shader DX10+.
 ***/
@@ -245,22 +252,22 @@ static const char* PS_DIST_SIMPLE =
 "   if ((fDist.x < 0.0f) || (fDist.x > 1.0f) || (fDist.y < 0.0f) || (fDist.y > 1.0f)) return float4(0.0f, 0.0f, 0.0f, 0.0f);\n"
 "   return float4(fontTexture.Sample( fontSampler, fDist ).xyz, 1.0);\n"
 "}\n";
-
+#pragma endregion
+#pragma region pixel shader b
 /**
 * 3D Pixel Shader.
 ***/
 static const char* PS3D =
 // constant buffer
-/*"cbuffer cbPerObject : register(b0)\n"
-"{\n"
-"	float4		g_vObjectColor : packoffset(c0);\n"
-"};\n"
+"float4 m_sMaterialAmbientColor;\n"
+"float4 m_sMaterialDiffuseColor;\n"
 
-"cbuffer cbPerFrame : register(b1)\n"
-"{\n"
-"	float3		g_vLightDir : packoffset(c0);\n"
-"	float		g_fAmbient : packoffset(c0.w);\n"
-"};\n"*/
+"float4 m_sLightDir;\n"
+"float4 m_sLightDiffuse;\n"
+"float4 m_sLightAmbient;\n"
+
+"float4x4 m_sWorldViewProjection;\n"
+"float4x4 m_sWorld;\n"
 
 // textures and samplers
 "Texture2D	g_txDiffuse : register(t0);\n"
@@ -270,7 +277,7 @@ static const char* PS3D =
 "struct PS_INPUT\n"
 "{\n"
 "	float4 vPosition : SV_POSITION;\n"
-"	float3 vNormal : NORMAL;\n"
+"	float4 vNormal : NORMAL;\n"
 "	float2 vTexcoord : TEXCOORD0;\n"
 "};\n"
 
@@ -279,42 +286,139 @@ static const char* PS3D =
 "{\n"
 "	float4 vDiffuse = g_txDiffuse.Sample(g_samLinear, Input.vTexcoord);\n"
 
-// "	float fLighting = saturate(dot(g_vLightDir, Input.vNormal));\n"
-// "	fLighting = max(fLighting, g_fAmbient);\n"
+"	float4 fLighting = saturate(dot(m_sLightDir, Input.vNormal));\n"
+"	fLighting = max(fLighting, m_sLightAmbient);\n"
 
-"	return vDiffuse;\n" // * fLighting;\n"
+"	return vDiffuse * fLighting;\n"
 "}\n";
 
-/*"texture g_MeshTexture;"
-"sampler MeshTextureSampler =\n"
-"sampler_state\n"
+/**
+* 3D Pixel Shader Fabric.
+***/
+static const char* PS3D_FABRIC =
+// constant buffer
+"float4 m_sMaterialAmbientColor;\n"
+"float4 m_sMaterialDiffuseColor;\n"
+
+"float4 m_sLightDir;\n"
+"float4 m_sLightDiffuse;\n"
+"float4 m_sLightAmbient;\n"
+
+"float4x4 m_sWorldViewProjection;\n"
+"float4x4 m_sWorld;\n"
+
+// textures and samplers
+"Texture2D	g_txDiffuse : register(t0);\n"
+// "Texture2D	g_txNoise : register(t1);\n"
+"SamplerState g_samLinear : register(s0);\n"
+
+// input / output structures
+"struct PS_INPUT\n"
 "{\n"
-"	Texture = <g_MeshTexture>;\n"
-"	MipFilter = LINEAR;\n"
-"	MinFilter = LINEAR;\n"
-"	MagFilter = LINEAR;\n"
+"	float4 vPosition : SV_POSITION;\n"
+"	float4 vNormal : NORMAL;\n"
+"	float2 vTexcoord : TEXCOORD0;\n"
 "};\n"
 
-"struct VS_OUTPUT\n"
+"float gaussian(float d2, float radius)\n"
 "{\n"
-"	float4 Position : POSITION;\n"
-"	float4 Diffuse : COLOR0;\n"
-"	float2 TextureUV : TEXCOORD0;\n"
+"	return exp(-d2 / radius);\n"
+"}\n"
+
+// pixel shader
+"float4 PS(PS_INPUT Input) : SV_TARGET\n"
+"{\n"
+
+// create some noise grid
+"float2 noisy;\n"
+"noisy.x = gaussian(Input.vTexcoord.x / 12.0f, 0.06f);\n"
+"noisy.y = gaussian(Input.vTexcoord.y / 10.0f, 0.08f);\n"
+
+"float2 fp = frac(0.06 * Input.vTexcoord + 1.92 * (2 * noisy - 1));\n"
+"fp *= (1 - fp);\n"
+
+// get texel
+"float4 diffuse = g_txDiffuse.Sample(g_samLinear, Input.vTexcoord) * (fp.x + fp.y + noisy.x);\n"
+
+"float4 fLighting = saturate(dot(m_sLightDir, Input.vNormal));\n"
+"fLighting = max(fLighting, m_sLightAmbient);\n"
+
+"return diffuse * fLighting;\n"
+
+"}\n";
+
+/**
+* 3D Pixel Shader bump mapping, compute normal map.
+***/
+static const char* PS3D_BUMP =
+// constant buffer
+"float4 m_sMaterialAmbientColor;\n"
+"float4 m_sMaterialDiffuseColor;\n"
+
+"float4 m_sLightDir;\n"
+"float4 m_sLightDiffuse;\n"
+"float4 m_sLightAmbient;\n"
+
+"float4x4 m_sWorldViewProjection;\n"
+"float4x4 m_sWorld;\n"
+
+// textures and samplers
+"Texture2D	g_txDiffuse : register(t0);\n"
+"SamplerState g_samLinear : register(s0);\n"
+
+// input / output structures
+"struct PS_INPUT\n"
+"{\n"
+"	float4 vPosition : SV_POSITION;\n"
+"	float4 vNormal : NORMAL;\n"
+"	float2 vTexcoord : TEXCOORD0;\n"
 "};\n"
 
-"struct PS_OUTPUT\n"
+// pixel shader
+"float4 PS(PS_INPUT Input) : SV_TARGET\n"
 "{\n"
-"	float4 RGBColor : COLOR0;\n"
-"};\n"
 
-"PS_OUTPUT PS(VS_OUTPUT In)\n"
-"{\n"
-"	PS_OUTPUT Output;\n"
+"	float fOffset = 1.0 / 92.0;\n"
 
-"	Output.RGBColor = tex2D(MeshTextureSampler, In.TextureUV) * In.Diffuse;\n"
+// Take all neighbor samples
+"	float4 s00 = g_txDiffuse.Sample(g_samLinear, Input.vTexcoord + float2(-fOffset, -fOffset));\n"
+"	float4 s01 = g_txDiffuse.Sample(g_samLinear, Input.vTexcoord + float2(0.0f, -fOffset));\n"
+"	float4 s02 = g_txDiffuse.Sample(g_samLinear, Input.vTexcoord + float2(fOffset, -fOffset));\n"
 
-"	return Output;\n"
-"}\n";*/
+"	float4 s10 = g_txDiffuse.Sample(g_samLinear, Input.vTexcoord + float2(-fOffset, 0.0f));\n"
+"	float4 s12 = g_txDiffuse.Sample(g_samLinear, Input.vTexcoord + float2(fOffset, 0.0f));\n"
+
+"	float4 s20 = g_txDiffuse.Sample(g_samLinear, Input.vTexcoord + float2(-fOffset, fOffset));\n"
+"	float4 s21 = g_txDiffuse.Sample(g_samLinear, Input.vTexcoord + float2(0.0f, fOffset));\n"
+"	float4 s22 = g_txDiffuse.Sample(g_samLinear, Input.vTexcoord + float2(fOffset, fOffset));\n"
+
+// Slope in X direction
+"	float4 sobelX = s00 + 2 * s10 + s20 - s02 - 2 * s12 - s22;\n"
+// Slope in Y direction
+"	float4 sobelY = s00 + 2 * s01 + s02 - s20 - 2 * s21 - s22;\n"
+
+// Weight the slope in all channels, we use grayscale as height
+"	float4 lightness = float4(1.0, 1.0, 1.0, 0.0);\n"
+"	float sx = dot(sobelX, lightness);\n"
+"	float sy = dot(sobelY, lightness);\n"
+
+// Compose the normal
+"	float3 fvNormal = normalize(float3(sx, sy, 1.0f));\n"
+
+// Pack [-1, 1] into [0, 1]
+"	float4 vNormal = float4(fvNormal * 0.5f + 0.5f, 1.0f);\n"
+
+// color + lighting
+"	float4 vDiffuse = g_txDiffuse.Sample(g_samLinear, Input.vTexcoord);\n"
+
+"	float4 fLighting = saturate(dot(m_sLightDir, vNormal)) * 2.0;\n"
+"   float4 fLightingNormal = saturate(dot(m_sLightDir, Input.vNormal));\n"
+"	fLighting = max(fLighting, fLightingNormal);\n"
+
+"	return vDiffuse * fLighting;\n"
+
+"}\n";
+#pragma endregion
 
 /**
 * Simple enumeration of available pixel shaders.
@@ -474,7 +578,8 @@ HRESULT CreateSimplePixelShader(ID3D11Device* pcDevice, ID3D11PixelShader** ppcP
 			hr = D3DX10CompileFromMemory(PS2D_GAMMA_CORRECTION, strlen(PS2D_GAMMA_CORRECTION), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
 			break;
 		case GeometryDiffuseTextured:
-			hr = D3DX10CompileFromMemory(PS3D, strlen(PS3D), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+			// hr = D3DX10CompileFromMemory(PS3D, strlen(PS3D), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+			hr = D3DX10CompileFromMemory(PS3D_BUMP, strlen(PS3D_BUMP), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
 			break;
 	}
 
@@ -546,6 +651,24 @@ HRESULT CreateMatrixConstantBuffer(ID3D11Device* pcDevice, ID3D11Buffer** ppcBuf
 
 	// Create the buffer.
 	return pcDevice->CreateBuffer(&cbDesc, &InitData, ppcBuffer);
+}
+
+/**
+* Creates a simple matrix constant buffer.
+***/
+HRESULT CreateGeometryConstantBuffer(ID3D11Device* pcDevice, ID3D11Buffer** ppcBuffer, UINT unSize)
+{
+	// Fill in a buffer description.
+	D3D11_BUFFER_DESC cbDesc;
+	ZeroMemory(&cbDesc, sizeof(D3D11_BUFFER_DESC));
+	cbDesc.ByteWidth = unSize;
+	cbDesc.Usage = D3D11_USAGE_DEFAULT;
+	cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	cbDesc.MiscFlags = 0;
+	cbDesc.StructureByteStride = 0;
+
+	// Create the buffer.
+	return pcDevice->CreateBuffer(&cbDesc, nullptr, ppcBuffer);
 }
 
 /**
