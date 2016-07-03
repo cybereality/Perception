@@ -179,6 +179,8 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\MurmurHash3.h" />
+    <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\StereoShaderConstant.h" />
     <ClInclude Include="..\..\..\..\..\DxProxy\DxProxy\ViewAdjustment.h" />
     <ClInclude Include="..\..\..\..\..\Shared\ConfigDefaults.h" />
     <ClInclude Include="..\..\..\..\Include\Vireio_GameConfig.h" />
@@ -190,6 +192,7 @@
     <ClInclude Include="..\VireioMatrixModifierDataStructures.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\..\..\DxProxy\DxProxy\MurmurHash3.cpp" />
     <ClCompile Include="..\..\..\..\..\DxProxy\DxProxy\ViewAdjustment.cpp" />
     <ClCompile Include="..\..\..\..\Include\Vireio_GUI.cpp" />
     <ClCompile Include="..\VireioMatrixModifier.cpp" />

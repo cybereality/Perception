@@ -50,9 +50,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <d3dx9.h>
 #pragma comment(lib, "d3dx9.lib")
 
-#include"..\..\..\Include\Vireio_GUIDs.h"
 #include"..\..\..\Include\Vireio_Node_Plugtypes.h"
-
+#include"..\..\VireioMatrixModifier\VireioMatrixModifier\VireioMatrixModifierDataStructures.h"
 
 #define	FLOAT_PLUG_TYPE                                4
 #define INT_PLUG_TYPE                                  7 
@@ -70,7 +69,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define PNT_IDIRECT3DTEXTURE9_PLUG_TYPE             2048
 
 #define NUMBER_OF_COMMANDERS                           2
-#define NUMBER_OF_DECOMMANDERS                        19
+#define NUMBER_OF_DECOMMANDERS                        22
 
 /**
 * Maximum simultaneous textures : 16 {shader sampling stage registers: s0 to s15}
@@ -114,6 +113,9 @@ enum STS_Decommanders
 	pDestSurface_StretchRect,     /**< ->StretchRect() destination surface ***/
 	pDestRect_StretchRect,        /**< ->StretchRect() destination rectangle ***/
 	Filter_StretchRect,           /**< ->StretchRect() filter ***/
+	peDrawingSide,                /**< Pointer to the extern drawing side bool. The extern bool will be updated depending on m_eCurrentRenderingSide ***/
+	pasVShaderConstantIndices,    /**< The constant rule indices for the actual vertex shader. ***/
+	pasPShaderConstantIndices,    /**< The constant rule indices for the actual pixel shader. ***/
 };
 
 /**
@@ -169,6 +171,7 @@ private:
 	IDirect3DSurface9*      VerifyPrivateDataInterfaces(IDirect3DDevice9* pcDevice, IDirect3DSurface9* pcSurface);
 	IDirect3DBaseTexture9*  VerifyPrivateDataInterfaces(IDirect3DDevice9* pcDevice, IDirect3DBaseTexture9* pcTexture);
 	bool                    SetDrawingSide(IDirect3DDevice9* pcDevice, RenderPosition side);
+	void                    SetDrawingSideField(RenderPosition eSide) { m_eCurrentRenderingSide = eSide; if (m_peDrawingSide) *m_peDrawingSide = eSide; }
 	void                    CreateStereoTexture(IDirect3DDevice9* pcDevice, IDirect3DBaseTexture9* pcTexture, IDirect3DSurface9* pcSurface, IDirect3DBaseTexture9** ppcStereoTwinTexture, IDirect3DSurface9** ppcStereoTwinSurface);
 	bool                    ShouldDuplicateRenderTarget(UINT unWidth, UINT unHeight, D3DFORMAT Format, D3DMULTISAMPLE_TYPE eMultiSample, DWORD unMultisampleQuality, BOOL bLockable, bool bIsSwapChainBackBuffer);
 	bool                    ShouldDuplicateDepthStencilSurface(UINT unWidth, UINT unHeight, D3DFORMAT eFormat, D3DMULTISAMPLE_TYPE eMultiSample, DWORD unMultisampleQuality, BOOL bDiscard);
@@ -196,6 +199,9 @@ private:
 	IDirect3DSurface9**     m_ppcDestSurface_StretchRect;        /**< ->StretchRect() destination surface ***/
 	RECT**                  m_ppcDestRect_StretchRect;           /**< ->StretchRect() destination rectangle ***/
 	D3DTEXTUREFILTERTYPE*   m_peFilter_StretchRect;              /**< ->StretchRect() filter ***/
+	RenderPosition*         m_peDrawingSide;                     /**< Pointer to the extern drawing side bool. The extern bool will be updated depending on m_eCurrentRenderingSide ***/
+	std::vector<Vireio_Constant_Rule_Index_DX9>** m_ppasVSConstantRuleIndices; /**< Pointer to the constant rule indices for the current vertex shader ***/
+	std::vector<Vireio_Constant_Rule_Index_DX9>** m_ppasPSConstantRuleIndices; /**< Pointer to the constant rule indices for the current pixel shader ***/
 
 	/**
 	* Active stored render target views.

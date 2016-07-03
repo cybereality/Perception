@@ -151,18 +151,18 @@ struct Vireio_Constant_Modification_Rule
 	* Creates empty shader constant modification rule.
 	***/
 	Vireio_Constant_Modification_Rule() :
-	m_szConstantName("ThisWontMatchAnything"),
-	m_dwBufferIndex(999999),
-	m_dwBufferSize(0),
-	m_dwStartRegIndex(0),
-	m_bUseName(false),
-	m_bUsePartialNameMatch(false),
-	m_bUseBufferIndex(false),
-	m_bUseBufferSize(false),
-	m_bUseStartRegIndex(false),
-	m_dwRegisterCount(0),
-	m_dwOperationToApply(0),
-	m_bTranspose(false)
+		m_szConstantName("ThisWontMatchAnything"),
+		m_dwBufferIndex(999999),
+		m_dwBufferSize(0),
+		m_dwStartRegIndex(0),
+		m_bUseName(false),
+		m_bUsePartialNameMatch(false),
+		m_bUseBufferIndex(false),
+		m_bUseBufferSize(false),
+		m_bUseStartRegIndex(false),
+		m_dwRegisterCount(0),
+		m_dwOperationToApply(0),
+		m_bTranspose(false)
 	{};
 
 	/**
@@ -294,6 +294,34 @@ struct Vireio_Constant_Rule_Index
 	UINT m_dwConstantRuleRegister;
 	UINT m_dwIndex;
 };
+
+/**
+* Constant rule index DX9.
+* Stores register index and shader rule index.
+* For efficiency in DX9 we also store the modified constant data here.
+***/
+struct Vireio_Constant_Rule_Index_DX9
+{
+	UINT m_dwConstantRuleRegister;
+	UINT m_dwIndex;
+	UINT m_dwConstantRuleRegisterCount;
+
+	union
+	{
+		unsigned char m_acConstantDataLeft[4 * 4 * sizeof(float)]; /**< Constant data left in bytes. (max. sizeof(MATRIX 4*4)) **/
+		float m_afConstantDataLeft[4 * 4];                         /**< Constant data left in float. (max. sizeof(MATRIX 4*4)) **/
+		UINT32 m_aunConstantDataLeft[4 * 4];                       /**< Constant data left in unsigned int. (max. sizeof(MATRIX 4*4)) **/
+		D3DMATRIX m_asConstantDataLeft;
+	};
+	union
+	{
+		unsigned char m_acConstantDataRight[4 * 4 * sizeof(float)]; /**< Constant data right in bytes. (max. sizeof(MATRIX 4*4)) **/
+		float m_afConstantDataRight[4 * 4];                         /**< Constant data right in float. (max. sizeof(MATRIX 4*4)) **/
+		UINT32 m_aunConstantDataRight[4 * 4];                       /**< Constant data right in unsigned int. (max. sizeof(MATRIX 4*4)) **/
+		D3DMATRIX m_asConstantDataRight;
+	};
+};
+
 
 /**
 * Buffer specific rules index.

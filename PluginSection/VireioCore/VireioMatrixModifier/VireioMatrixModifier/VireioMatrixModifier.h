@@ -39,6 +39,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
 #include<stdio.h>
+#include<map>
 #include<vector>
 #include<sstream>
 #include<ctime>
@@ -76,6 +77,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <d3dx9.h>
 #pragma comment(lib, "d3dx9.lib")
+
+#include"..\..\..\..\DxProxy\DxProxy\MurmurHash3.h"
+#include"..\..\..\..\DxProxy\DxProxy\StereoShaderConstant.h"
 #endif
 
 #include"..\..\..\Include\Vireio_GUI.h"
@@ -91,10 +95,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define GUI_HEIGHT                                  5000               
 #define CONSTANT_BUFFER_VERIFICATION_FRAME_NUMBER    100                     /**< If no shader data is present, the constant buffers are verified for 100 frames. ***/
 #elif defined(VIREIO_D3D9)
-#define NUMBER_OF_COMMANDERS                           0
-#define NUMBER_OF_DECOMMANDERS                        12
+#define NUMBER_OF_COMMANDERS                           3
+#define NUMBER_OF_DECOMMANDERS                        20
 #define GUI_WIDTH                                   1024                      
 #define GUI_HEIGHT                                  2000     
+#define VECTOR_LENGTH 4                                                      /**< One shader register has 4 float values. ***/
+#define MAX_DX9_CONSTANT_REGISTERS                   224                     /**< Maximum shader registers for DX9 ***/
+#define RegisterIndex(x) (x * VECTOR_LENGTH)                                 /**< Simple helper to access shader register. ***/
 #endif
 #define GUI_CONTROL_BORDER                            64
 #define GUI_CONTROL_FONTSIZE                          64
@@ -106,6 +113,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"%u", a); OutputDebugString(buf); }
 #define DEBUG_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"%x", a); OutputDebugString(buf); }
+void debugf(const char *fmt, ...) { va_list args; va_start(args, fmt); char buf[8192]; vsnprintf_s(buf, 8192, fmt, args); va_end(args); OutputDebugStringA(buf); }
 
 /**
 * Node Commander Enumeration.
@@ -135,6 +143,9 @@ enum STS_Commanders
 	ppActiveDepthStencil_DX10,                                              /**< Active depth stencil DX10. Backup for render target operations. ***/
 	ppActiveDepthStencil_DX11,                                              /**< Active depth stencil DX11. Backup for render target operations. ***/
 #elif defined(VIREIO_D3D9)
+	eDrawingSide,                                                           /**< Left/Right drawing side enumeration. Switches once per draw call ***/
+	pasVShaderConstantIndices,                                              /**< The constant rule indices for the actual vertex shader. ***/
+	pasPShaderConstantIndices,                                              /**< The constant rule indices for the actual pixel shader. ***/
 #endif
 };
 
@@ -200,20 +211,26 @@ enum STS_Decommanders
 	Subresource_Unmap,                       /**< ID3D11DeviceContext::Unmap ***/
 #elif defined(VIREIO_D3D9)
 	/*** D3D9 methods ***/
-	pShader_Vertex, // SetVertexShader(IDirect3DVertexShader9 *pShader);
-	pShader_Pixel, // SetPixelShader(IDirect3DPixelShader9 *pShader);
-	State, // SetTransform(D3DTRANSFORMSTATETYPE State, CONST D3DMATRIX* pMatrix);
+	pShader_Vertex,              // SetVertexShader(IDirect3DVertexShader9 *pShader);
+	pShader_Pixel,               // SetPixelShader(IDirect3DPixelShader9 *pShader);
+	State,                       // SetTransform(D3DTRANSFORMSTATETYPE State, CONST D3DMATRIX* pMatrix);
 	pMatrix,
-	State_Multiply, // MultiplyTransform(D3DTRANSFORMSTATETYPE State,CONST D3DMATRIX* pMatrix);
+	State_Multiply,              // MultiplyTransform(D3DTRANSFORMSTATETYPE State,CONST D3DMATRIX* pMatrix);
 	pMatrix_Multiply,
-	StartRegister_VertexShader, // SetVertexShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
-	pConstantData_VertexShader,
-	Vector4fCount_VertexShader,
-	StartRegister_PixelShader, // SetPixelShaderConstantF(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
-	pConstantData_PixelShader,
-	Vector4fCount_PixelShader,
-	// GetVertexShaderConstantF(UINT StartRegister,float* pData,UINT Vector4fCount);
-	// GetPixelShaderConstantF(UINT StartRegister,float* pData,UINT Vector4fCount);
+	StartRegister,               // Set/GetVertex/PixelShaderConstant(UINT StartRegister,CONST float* pConstantData,UINT Vector4fCount);
+	pConstantData,
+	Vector4fCount,
+	StreamNumber,                // SetStreamSource(UINT StreamNumber, IDirect3DVertexBuffer9* pStreamData, UINT OffsetInBytes, UINT Stride)
+	pStreamData,
+	OffsetInBytes,
+	Stride,
+	StreamNumber_Get,            // GetStreamSource(UINT StreamNumber, IDirect3DVertexBuffer9** ppStreamData, UINT* pOffsetInBytes, UINT* pStride)
+	ppStreamData_Get,
+	pOffsetInBytes_Get,
+	pStride_Get,
+	pFunction,                   // CreateVertex/PixelShader(CONST DWORD* pFunction,IDirect3DVertexShader9** ppShader) 
+	ppShader_Vertex,
+	ppShader_Pixel,
 	// IDirect3DStateBlock::Apply();
 #endif
 };
@@ -311,6 +328,404 @@ enum Vireio_Supported_Shaders
 	PixelShader
 };
 #elif defined(VIREIO_D3D9)
+/**
+* Simple helper to get the hash of a shader.
+* @param pShader The input vertex shader.
+* @return The hash code of the shader.
+***/
+uint32_t ShaderHash(LPDIRECT3DVERTEXSHADER9 pcShader)
+{
+	if (!pcShader) return 0;
+
+	BYTE* pnData = NULL;
+	UINT punSizeOfData;
+	pcShader->GetFunction(NULL, &punSizeOfData);
+
+	pnData = new BYTE[punSizeOfData];
+	pcShader->GetFunction(pnData, &punSizeOfData);
+
+	uint32_t unHash = 0;
+	MurmurHash3_x86_32(pnData, punSizeOfData, VIREIO_SEED, &unHash);
+	delete[] pnData;
+	return unHash;
+}
+/**
+*
+*/
+class IDirect3DManagedStereoShader9 : public IDirect3DVertexShader9
+{
+public:
+	IDirect3DManagedStereoShader9(IDirect3DVertexShader9* pcActualVertexShader, IDirect3DDevice9* pcOwningDevice, std::vector<Vireio_Constant_Modification_Rule>* pasConstantRules) :
+		m_pcActualVertexShader(pcActualVertexShader),
+		m_pcOwningDevice(pcOwningDevice),
+		m_pasConstantRules(pasConstantRules),
+		m_unRefCount(1)
+	{
+		assert(pcActualVertexShader != NULL);
+		assert(pcOwningDevice != NULL);
+		assert(pasConstantRules != NULL);
+
+		pcOwningDevice->AddRef();
+
+		// get shader hash
+		m_unShaderHash = ShaderHash(pcActualVertexShader);
+
+		// create managed registers
+		m_unMaxShaderConstantRegs = MAX_DX9_CONSTANT_REGISTERS; /** TODO !! COUNT MAX CONSTANT REG NUMBER FOR THIS SHADER ***/
+		m_afRegisters = std::vector<float>(m_unMaxShaderConstantRegs * VECTOR_LENGTH);
+
+		// init the shader rules
+		InitShaderRules();
+	}
+	virtual ~IDirect3DManagedStereoShader9() {}
+
+	/*** IUnknown methods ***/
+	virtual HRESULT WINAPI QueryInterface(REFIID riid, LPVOID* ppv)
+	{
+		return m_pcActualVertexShader->QueryInterface(riid, ppv);
+	}
+	virtual ULONG   WINAPI AddRef()
+	{
+		return ++m_unRefCount;
+	}
+	virtual ULONG   WINAPI Release()
+	{
+		if (--m_unRefCount == 0)
+		{
+			delete this;
+			return 0;
+		}
+
+		return m_unRefCount;
+	}
+
+	/*** IDirect3DVertexShader9 methods ***/
+	virtual HRESULT WINAPI GetDevice(IDirect3DDevice9 **ppcDevice)
+	{
+		if (!m_pcOwningDevice)
+			return D3DERR_INVALIDCALL;
+		else
+		{
+			*ppcDevice = m_pcOwningDevice;
+			//m_pOwningDevice->AddRef(); //TODO Test this. Docs don't have the notice that is usually there about a refcount increase
+			return D3D_OK;
+		}
+	}
+	virtual HRESULT WINAPI GetFunction(void *pDate, UINT *punSizeOfData)
+	{
+		return m_pcActualVertexShader->GetFunction(pDate, punSizeOfData);
+	}
+
+	/*** IDirect3DManagedStereoShader9 methods ***/
+	void InitShaderRules()
+	{
+		// @see ShaderModificationRepository::GetModifiedConstantsF from Vireio < v3
+
+		// clear constant rule vector
+		m_asConstantRuleIndices = std::vector<Vireio_Constant_Rule_Index_DX9>();
+
+		// clear register indices to max int
+		FillMemory(m_aunRegisterModificationIndex, MAX_DX9_CONSTANT_REGISTERS * sizeof(UINT), 0xFF);
+
+		/*if (m_shaderSpecificModificationRuleIDs.count(hash) == 1)
+		{
+
+		// There are specific modification rules to use with this shader
+		auto itRules = m_shaderSpecificModificationRuleIDs[hash].begin();
+		while (itRules != m_shaderSpecificModificationRuleIDs[hash].end())
+		{
+		rulesToApply.push_back(&(m_AllModificationRules[*itRules]));
+		++itRules;
+		}
+		}*/
+
+		// get shader function
+		BYTE *pData = NULL;
+		UINT pSizeOfData;
+
+		m_pcActualVertexShader->GetFunction(NULL, &pSizeOfData);
+		pData = new BYTE[pSizeOfData];
+		m_pcActualVertexShader->GetFunction(pData, &pSizeOfData);
+
+		// Load the constant descriptions for this shader and create StereoShaderConstants as the applicable rules require them.
+		LPD3DXCONSTANTTABLE pConstantTable = NULL;
+		D3DXGetShaderConstantTable(reinterpret_cast<DWORD*>(pData), &pConstantTable);
+
+		if (pConstantTable)
+		{
+			D3DXCONSTANTTABLE_DESC pDesc;
+			pConstantTable->GetDesc(&pDesc);
+
+			D3DXCONSTANT_DESC pConstantDesc[64];
+
+			for (UINT i = 0; i < pDesc.Constants; i++)
+			{
+				D3DXHANDLE handle = pConstantTable->GetConstant(NULL, i);
+				if (handle == NULL) continue;
+
+				UINT unConstantNum = 64;
+				pConstantTable->GetConstantDesc(handle, pConstantDesc, &unConstantNum);
+				if (unConstantNum >= 64)
+				{
+					OutputDebugString(L"[MAM] Need larger constant description buffer");
+					unConstantNum = 63;
+				}
+
+				for (UINT j = 0; j < unConstantNum; j++)
+				{
+					// register count 1 (= vector) and 4 (= matrix) supported
+					if (((pConstantDesc[j].Class == D3DXPC_VECTOR) && (pConstantDesc[j].RegisterCount == 1))
+						|| (((pConstantDesc[j].Class == D3DXPC_MATRIX_ROWS) || (pConstantDesc[j].Class == D3DXPC_MATRIX_COLUMNS)) && (pConstantDesc[j].RegisterCount == 4)))
+					{
+						// Check if any rules match this constant
+						UINT unIndex = 0;
+						auto itRules = (*m_pasConstantRules).begin();
+						while (itRules != (*m_pasConstantRules).end())
+						{
+							// Type match
+							if ((*itRules).m_dwRegisterCount == pConstantDesc[j].RegisterCount)
+							{
+								// name match required
+								if ((*itRules).m_szConstantName.size() > 0)
+								{
+									bool nameMatch = false;
+									if ((*itRules).m_bUsePartialNameMatch)
+									{
+										nameMatch = std::strstr(pConstantDesc[j].Name, (*itRules).m_szConstantName.c_str()) != NULL;
+									}
+									else
+									{
+										nameMatch = (*itRules).m_szConstantName.compare(pConstantDesc[j].Name) == 0;
+									}
+
+									if (!nameMatch)
+									{
+										// no match
+										++itRules; ++unIndex;
+										continue;
+									}
+								}
+
+								// register match required
+								if ((*itRules).m_dwStartRegIndex != UINT_MAX)
+								{
+									if ((*itRules).m_dwStartRegIndex != pConstantDesc[j].RegisterIndex)
+									{
+										// no match
+										++itRules; ++unIndex;
+										continue;
+									}
+								}
+
+#ifdef _DEBUG
+								// output shader constant + index 
+								switch (pConstantDesc[j].Class)
+								{
+									case D3DXPC_VECTOR:
+										OutputDebugString(L"VS: D3DXPC_VECTOR");
+										break;
+									case D3DXPC_MATRIX_ROWS:
+										OutputDebugString(L"VS: D3DXPC_MATRIX_ROWS");
+										break;
+									case D3DXPC_MATRIX_COLUMNS:
+										OutputDebugString(L"VS: D3DXPC_MATRIX_COLUMNS");
+										break;
+									default:
+										OutputDebugString(L"VS: UNKNOWN_CONSTANT");
+										break;
+								}
+								debugf("Register Index: %d", pConstantDesc[j].RegisterIndex);
+#endif // DEBUG
+
+								// Create StereoShaderConstant<float> and add to result
+								// result.insert(std::pair<UINT, StereoShaderConstant<>>(pConstantDesc[j].RegisterIndex, CreateStereoConstantFrom(*itRules, pConstantDesc[j].RegisterIndex, pConstantDesc[j].RegisterCount)));
+
+								// set register index
+								m_aunRegisterModificationIndex[pConstantDesc[j].RegisterIndex] = (UINT)m_asConstantRuleIndices.size();
+
+								// set constant rule index
+								Vireio_Constant_Rule_Index_DX9 sConstantRuleIndex;
+								sConstantRuleIndex.m_dwIndex = unIndex;
+								sConstantRuleIndex.m_dwConstantRuleRegister = pConstantDesc[j].RegisterIndex;
+								sConstantRuleIndex.m_dwConstantRuleRegisterCount = pConstantDesc[j].RegisterCount;
+
+								// init data.. TODO !! INIT DATA MODIFIED
+								IDirect3DDevice9* pcDevice = nullptr;
+								m_pcActualVertexShader->GetDevice(&pcDevice);
+								if (pcDevice)
+								{
+									pcDevice->GetVertexShaderConstantF(pConstantDesc[j].RegisterIndex, sConstantRuleIndex.m_afConstantDataLeft, pConstantDesc[j].RegisterCount);
+									pcDevice->GetVertexShaderConstantF(pConstantDesc[j].RegisterIndex, sConstantRuleIndex.m_afConstantDataRight, pConstantDesc[j].RegisterCount);
+									pcDevice->Release();
+								}
+
+								m_asConstantRuleIndices.push_back(sConstantRuleIndex);
+
+								// only the first matching rule is applied to a constant
+								break;
+							}
+
+							++itRules; ++unIndex;
+						}
+					}
+				}
+			}
+		}
+
+		if (pConstantTable) pConstantTable->Release();
+		if (pData) delete[] pData;
+	}
+	HRESULT SetShaderConstantF(UINT unStartRegister, const float* pfConstantData, UINT unVector4fCount, bool& bModified, UINT& unIndex)
+	{
+		if ((unStartRegister >= m_unMaxShaderConstantRegs) || ((unStartRegister + unVector4fCount) >= m_unMaxShaderConstantRegs))
+			return D3DERR_INVALIDCALL;
+
+		// Set proxy registers
+		std::copy(pfConstantData, pfConstantData + (VECTOR_LENGTH * unVector4fCount), m_afRegisters.begin() + RegisterIndex(unStartRegister));
+
+		// modification present for this index ?
+		if ((m_aunRegisterModificationIndex[unStartRegister] < (UINT)m_asConstantRuleIndices.size()) && (unVector4fCount == 4))
+		{
+			// apply to left and right data
+			unIndex = m_aunRegisterModificationIndex[unStartRegister];
+			bModified = true;
+			// m_asConstantRuleIndices[unIndex].
+
+			D3DXMATRIX tempMatrix(pfConstantData);
+			{
+				// matrix to be transposed ?
+				if (true)
+				{
+					D3DXMatrixTranspose(&tempMatrix, &tempMatrix);
+				}
+
+				D3DXMATRIX tempLeft;
+				D3DXMATRIX tempRight;
+				D3DXMATRIX rollMatrix;
+				D3DXMatrixRotationZ(&rollMatrix, 0.3f);
+
+				// do modification
+				tempLeft = tempMatrix * rollMatrix;
+				tempRight = tempMatrix * rollMatrix;
+
+				// transpose back
+				if (true)
+				{
+					D3DXMatrixTranspose(&tempLeft, &tempLeft);
+					D3DXMatrixTranspose(&tempRight, &tempRight);
+				}
+
+				m_asConstantRuleIndices[unIndex].m_asConstantDataLeft = (D3DMATRIX)tempLeft;
+				m_asConstantRuleIndices[unIndex].m_asConstantDataRight = (D3DMATRIX)tempRight;
+			}
+		}
+		else if (unVector4fCount > 4)
+		{
+			UINT unInd = 0;
+
+			// more data, loop through modified constants for this shader
+			auto it = m_asConstantRuleIndices.begin();
+			while (it != m_asConstantRuleIndices.end())
+			{
+				// register in range ?
+				if (((*it).m_dwConstantRuleRegister >= unStartRegister) && ((*it).m_dwConstantRuleRegister <= (unStartRegister + unVector4fCount - (*it).m_dwConstantRuleRegisterCount)))
+				{
+					// apply to left and right data
+					bModified = true;
+					unIndex = unInd;
+					// m_asConstantRuleIndices[unIndex].
+
+					D3DXMATRIX tempMatrix(&m_afRegisters[(*it).m_dwConstantRuleRegister]);
+					{
+						// matrix to be transposed ?
+						if (true)
+						{
+							D3DXMatrixTranspose(&tempMatrix, &tempMatrix);
+						}
+
+						D3DXMATRIX tempLeft;
+						D3DXMATRIX tempRight;
+						D3DXMATRIX rollMatrix;
+						D3DXMatrixRotationZ(&rollMatrix, 0.3f);
+
+						// do modification
+						tempLeft = tempMatrix * rollMatrix;
+						tempRight = tempMatrix * rollMatrix;
+
+						// transpose back
+						if (true)
+						{
+							D3DXMatrixTranspose(&tempLeft, &tempLeft);
+							D3DXMatrixTranspose(&tempRight, &tempRight);
+						}
+
+						m_asConstantRuleIndices[unIndex].m_asConstantDataLeft = (D3DMATRIX)tempLeft;
+						m_asConstantRuleIndices[unIndex].m_asConstantDataRight = (D3DMATRIX)tempRight;
+					}
+				}
+				it++; unInd++;
+			}
+		}
+
+
+		return D3D_OK;
+	}
+	HRESULT GetShaderConstantF(UINT unStartRegister, float* pfConstantData, UINT unVector4fCount)
+	{
+		if ((StartRegister >= m_unMaxShaderConstantRegs) || ((StartRegister + Vector4fCount) >= m_unMaxShaderConstantRegs))
+			return D3DERR_INVALIDCALL;
+
+		pfConstantData = &m_afRegisters[RegisterIndex(StartRegister)];
+
+		return D3D_OK;
+	}
+	uint32_t GetShaderHash() { return m_unShaderHash; }
+	IDirect3DVertexShader9* GetActualShader() { return m_pcActualVertexShader; }
+
+	/**
+	* The indices of the shader rules assigned to that shader.
+	* For DX9 these indices also contain the left/right modified constant data.
+	***/
+	std::vector<Vireio_Constant_Rule_Index_DX9> m_asConstantRuleIndices;
+
+protected:
+	/**
+	* The actual vertex shader embedded.
+	***/
+	IDirect3DVertexShader9* const m_pcActualVertexShader;
+	/**
+	* Pointer to the D3D device that owns the shader.
+	***/
+	IDirect3DDevice9* m_pcOwningDevice;
+	/**
+	* Internal reference counter.
+	***/
+	ULONG m_unRefCount;
+	/**
+	* Shader register vector. Unmodified shader constant data.
+	* 4 floats == 1 register (defined in VECTOR_LENGTH):
+	* [0][1][2][3] would be the first register.
+	* [4][5][6][7] the second, etc.
+	* use RegisterIndex(x) to access first float in register
+	***/
+	std::vector<float> m_afRegisters;
+	/**
+	* Maximum shader constant registers.
+	***/
+	UINT m_unMaxShaderConstantRegs;
+	/**
+	* The shader hash code.
+	***/
+	uint32_t m_unShaderHash;
+	/**
+	* Pointer to all available constant rules.
+	***/
+	std::vector<Vireio_Constant_Modification_Rule>* m_pasConstantRules;
+	/**
+	* Index of modification for the specified register.
+	***/
+	UINT m_aunRegisterModificationIndex[MAX_DX9_CONSTANT_REGISTERS];
+};
 #endif
 
 /**
@@ -545,7 +960,7 @@ private:
 	{
 		BYTE m_pchBuffer10Left[D3D10_REQ_CONSTANT_BUFFER_ELEMENT_COUNT * D3D10_VS_INPUT_REGISTER_COMPONENTS * (D3D10_VS_INPUT_REGISTER_COMPONENT_BIT_COUNT >> 3)];
 		BYTE m_pchBuffer11Left[D3D11_REQ_CONSTANT_BUFFER_ELEMENT_COUNT * D3D11_VS_INPUT_REGISTER_COMPONENTS * (D3D11_VS_INPUT_REGISTER_COMPONENT_BIT_COUNT >> 3)];
-	};
+};
 	/**
 	* Constant Buffer private data buffer right eye.
 	***/
@@ -587,12 +1002,67 @@ private:
 	D3DMATRIX** m_ppsMatrix;
 	D3DTRANSFORMSTATETYPE* m_psState_Multiply;
 	D3DMATRIX** m_ppsMatrix_Multiply;
-	UINT* m_pdwStartRegister_VertexShader;
-	float** m_ppfConstantData_VertexShader;
-	UINT* m_pdwVector4fCount_VertexShader;
-	UINT* m_pdwStartRegister_PixelShader;
-	float** m_ppfConstantData_PixelShader;
-	UINT* m_pdwVector4fCount_PixelShader;
+	UINT* m_pdwStartRegister;
+	float** m_ppfConstantData;
+	UINT* m_pdwVector4fCount;
+	UINT* m_punStreamNumber;
+	IDirect3DVertexBuffer9** m_ppcStreamData;
+	UINT* m_punOffsetInBytes;
+	UINT* m_punStride;
+	UINT* m_punStreamNumber_Get;
+	IDirect3DVertexBuffer9*** m_pppcStreamData_Get;
+	UINT** m_ppunOffsetInBytes_Get;
+	UINT** m_ppunStride_Get;
+	DWORD** m_ppunFunction;
+	IDirect3DVertexShader9*** m_pppcShader_Vertex;
+	IDirect3DPixelShader9*** m_pppcShader_Pixel;
+
+	/**
+	* The active vertex shader.
+	***/
+	IDirect3DManagedStereoShader9* m_pcActiveVertexShader;
+	/**
+	* The indices of the shader rules assigned to the active vertex shader.
+	***/
+	std::vector<Vireio_Constant_Rule_Index_DX9>* m_pasVSConstantRuleIndices;
+	/**
+	* The indices of the shader rules assigned to the active pixel shader.
+	***/
+	std::vector<Vireio_Constant_Rule_Index_DX9>* m_pasPSConstantRuleIndices;
+	/**
+	* True if view transform is set via SetTransform().
+	* @see SetTransform()
+	**/
+	bool m_bViewTransformSet;
+	/**
+	* True if projection transform is set via SetTransform().
+	* @see SetTransform()
+	**/
+	bool m_bProjectionTransformSet;
+	/**
+	* The stored left view transform set via SetTransform().
+	**/
+	D3DXMATRIX m_sMatViewLeft;
+	/**
+	* The stored right view transform set via SetTransform().
+	**/
+	D3DXMATRIX m_sMatViewRight;
+	/**
+	* The stored left projection transform set via SetTransform().
+	**/
+	D3DXMATRIX m_sMatProjLeft;
+	/**
+	* The stored right projection transform set via SetTransform().
+	**/
+	D3DXMATRIX m_sMatProjRight;
+	/**
+	* Either the left or right view, depending on active render side.
+	**/
+	D3DXMATRIX* m_psMatViewCurrent;
+	/**
+	* Either the left or right projection, depending on active render side.
+	**/
+	D3DXMATRIX* m_psMatProjCurrent;
 #endif
 
 	/**
@@ -880,7 +1350,7 @@ private:
 	***/
 	std::vector<std::wstring> m_aszShaderRuleShaderIndices;
 #endif
-};
+	};
 
 /**
 * Exported Constructor Method.

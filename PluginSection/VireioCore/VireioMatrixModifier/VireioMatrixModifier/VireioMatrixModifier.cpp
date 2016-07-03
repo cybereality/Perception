@@ -45,9 +45,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define INTERFACE_ID3D11DEVICE                                               6
 #define INTERFACE_ID3D10DEVICE                                               7
+#define INTERFACE_IDIRECT3DDEVICE9                                           8
 #define INTERFACE_ID3D11DEVICECONTEXT                                        11
+#define INTERFACE_IDIRECT3DSTATEBLOCK9                                       13
 #define INTERFACE_IDXGISWAPCHAIN                                             29
 
+#if defined(VIREIO_D3D11) || defined(VIREIO_D3D10)
 #define METHOD_IDXGISWAPCHAIN_PRESENT                                        8
 #define METHOD_ID3D11DEVICE_CREATEBUFFER                                     3
 #define METHOD_ID3D11DEVICE_CREATEVERTEXSHADER                               12
@@ -68,6 +71,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define METHOD_ID3D10DEVICE_COPYSUBRESOURCEREGION                            32
 #define METHOD_ID3D10DEVICE_COPYRESOURCE                                     33
 #define METHOD_ID3D10DEVICE_UPDATESUBRESOURCE                                34
+#elif defined(VIREIO_D3D9)
+#define METHOD_IDIRECT3DDEVICE9_SETVERTEXSHADER 92
+#define METHOD_IDIRECT3DDEVICE9_SETPIXELSHADER 107
+#define METHOD_IDIRECT3DDEVICE9_SETTRANSFORM  44
+#define METHOD_IDIRECT3DDEVICE9_MULTIPLYTRANSFORM 46
+#define METHOD_IDIRECT3DDEVICE9_SETVERTEXSHADERCONSTANTF 94
+#define METHOD_IDIRECT3DDEVICE9_GETVERTEXSHADERCONSTANTF 95
+#define METHOD_IDIRECT3DDEVICE9_SETPIXELSHADERCONSTANTF 109
+#define METHOD_IDIRECT3DDEVICE9_GETPIXELSHADERCONSTANTF 110
+#define METHOD_IDIRECT3DDEVICE9_SETSTREAMSOURCE 100
+#define METHOD_IDIRECT3DDEVICE9_GETSTREAMSOURCE 101
+#define METHOD_IDIRECT3DDEVICE9_CREATEVERTEXSHADER 91
+#define METHOD_IDIRECT3DDEVICE9_CREATEPIXELSHADER 106
+#define METHOD_IDIRECT3DSTATEBLOCK9_APPLY 5
+#endif
 
 #define SAFE_RELEASE(a) if (a) { a->Release(); a = nullptr; }
 
@@ -118,16 +136,19 @@ m_adwPShaderHashCodes(),
 m_eDebugOption(Debug_Grab_Options::Debug_ConstantFloat4),
 m_bGrabDebug(false),
 m_adwPageIDs(0, 0),
-m_asConstantRules(),
 m_adwGlobalConstantRuleIndices(),
 m_asShaderSpecificRuleIndices(),
 m_aasConstantBufferRuleIndices(),
 m_dwCurrentChosenShaderHashCode(0),
 m_bSwitchRenderTarget(FALSE),
-m_bHudOperation(FALSE)
+m_bHudOperation(FALSE),
+m_eCurrentRenderingSide(RenderPosition::Left)
 {
 	// create a new HRESULT pointer
 	m_pvReturn = (void*)new HRESULT();
+
+	// init constant rule vector, otherwise pointer to vector may not work
+	m_asConstantRules = std::vector<Vireio_Constant_Modification_Rule>();
 
 	// Vireio GUI is always null at begin... since in a compiled profile it is never used
 	m_pcVireioGUI = nullptr;
@@ -285,6 +306,40 @@ m_bHudOperation(FALSE)
 #elif defined(VIREIO_D3D9)
 	// init shader rule page shader indices list (DX9 only)
 	m_aszShaderRuleShaderIndices = std::vector<std::wstring>();
+
+	// init shader constant indices (DX9 only)
+	m_pasVSConstantRuleIndices = nullptr;
+	m_pasPSConstantRuleIndices = nullptr;
+
+	// init dx9 classes
+	m_pcActiveVertexShader = nullptr;
+	m_bViewTransformSet = false;
+
+	D3DXMatrixIdentity(&m_sMatViewLeft);
+	D3DXMatrixIdentity(&m_sMatViewRight);
+	D3DXMatrixIdentity(&m_sMatProjLeft);
+	D3DXMatrixIdentity(&m_sMatProjRight);
+
+	m_psMatViewCurrent = &m_sMatViewLeft;
+	m_psMatProjCurrent = &m_sMatProjLeft;
+
+	// TODO !! TEST RULES
+	/*<rule constantName = "WorldViewProj" partialName = "true" id = "1" constantType = "MatrixR" modToApply = "7" startReg = "0" transpose = "true" / >
+		<rule constantName = "mvp" partialName = "true" id = "2" constantType = "MatrixC" modToApply = "7" startReg = "0" transpose = "true" / >
+		<rule constantName = "WorldViewProj" partialName = "true" id = "3" constantType = "MatrixR" modToApply = "7" startReg = "128" transpose = "true" / >
+		<rule constantName = "WorldViewProj" partialName = "true" id = "4" constantType = "MatrixR" modToApply = "7" startReg = "180" transpose = "true" / >
+		<rule constantName = "ModelViewProj" partialName = "true" id = "5" constantType = "MatrixR" modToApply = "7" startReg = "0" transpose = "true" / >*/
+	Vireio_Constant_Modification_Rule sRule = Vireio_Constant_Modification_Rule("WorldViewProj", 0, 0, 0, true, true, false, false, true, 4, 0, true);
+	m_asConstantRules.push_back(sRule);
+	Vireio_Constant_Modification_Rule sRule1 = Vireio_Constant_Modification_Rule("mvp", 0, 0, 0, true, true, false, false, true, 4, 0, true);
+	m_asConstantRules.push_back(sRule1);
+	Vireio_Constant_Modification_Rule sRule2 = Vireio_Constant_Modification_Rule("WorldViewProj", 0, 0, 128, true, true, false, false, true, 4, 0, true);
+	m_asConstantRules.push_back(sRule2);
+	Vireio_Constant_Modification_Rule sRule3 = Vireio_Constant_Modification_Rule("WorldViewProj", 0, 0, 180, true, true, false, false, true, 4, 0, true);
+	m_asConstantRules.push_back(sRule3);
+	Vireio_Constant_Modification_Rule sRule4 = Vireio_Constant_Modification_Rule("ModelViewProj", 0, 0, 0, true, true, false, false, true, 4, 0, true);
+	m_asConstantRules.push_back(sRule4);
+
 #endif
 }
 
@@ -558,7 +613,7 @@ void MatrixModifier::InitNodeData(char* pData, UINT dwSizeOfData)
 #elif defined(VIREIO_D3D9)
 		FillShaderRuleShaderIndices();
 #endif
-	}
+		}
 	else
 	{
 		// set to ipd using vireio presenter.... // TODO !! currently set ipd to default
@@ -571,7 +626,7 @@ void MatrixModifier::InitNodeData(char* pData, UINT dwSizeOfData)
 	m_pcShaderViewAdjustment->Load(m_sGameConfiguration);
 	m_pcShaderViewAdjustment->UpdateProjectionMatrices((float)1920.0f / (float)1080.0f, m_sGameConfiguration.fPFOV);
 	m_pcShaderViewAdjustment->ComputeViewTransforms();
-}
+	}
 
 /**
 * Provides the name of the requested commander.
@@ -625,8 +680,17 @@ LPWSTR MatrixModifier::GetCommanderName(DWORD dwCommanderIndex)
 			return L"ppActiveDepthStencil_DX11";
 		default:
 			break;
-	}
+}
 #elif defined(VIREIO_D3D9)
+	switch ((STS_Commanders)dwCommanderIndex)
+	{
+		case eDrawingSide:
+			return L"Stereo Drawing Side";
+		case pasVShaderConstantIndices:
+			return L"pasVShaderConstantIndices";
+		case pasPShaderConstantIndices:
+			return L"pasPShaderConstantIndices";
+	}
 #endif
 
 	return L"UNTITLED";
@@ -678,14 +742,6 @@ LPWSTR MatrixModifier::GetDecommanderName(DWORD dwDecommanderIndex)
 			return L"ppConstantBuffers_DX10_VS";
 		case ppConstantBuffers_DX11_VertexShader:
 			return L"ppConstantBuffers_DX11_VS";
-			//case StartSlot_PixelShader:
-			//	return L"StartSlot_PS";
-			//case NumBuffers_PixelShader:
-			//	return L"NumBuffers_PS";
-			//case ppConstantBuffers_DX10_PixelShader:
-			//	return L"ppConstantBuffers_DX10_PS";
-			//case ppConstantBuffers_DX11_PixelShader:
-			//	return L"ppConstantBuffers_DX11_PS";
 		case pDstResource_DX10:
 			return L"pDstResource_DX10";
 		case pDstResource_DX11:
@@ -740,14 +796,6 @@ LPWSTR MatrixModifier::GetDecommanderName(DWORD dwDecommanderIndex)
 			return L"ppConstantBuffers_DX10_Get_VS";
 		case ppConstantBuffers_DX11_Get_VertexShader:
 			return L"ppConstantBuffers_DX11_Get_VS";
-			//case StartSlot_Get_PixelShader:
-			//	return L"StartSlot_Get_PixelShader";
-			//case NumBuffers_Get_PixelShader:
-			//	return L"NumBuffers_Get_PixelShader";
-			//case ppConstantBuffers_DX10_Get_PixelShader:
-			//	return L"ppConstantBuffers_DX10_Get_PS";
-			//case ppConstantBuffers_DX11_Get_PixelShader:
-			//	return L"ppConstantBuffers_DX11_Get_PS";
 		case pResource:
 			return L"pResource";
 		case Subresource:
@@ -780,18 +828,34 @@ LPWSTR MatrixModifier::GetDecommanderName(DWORD dwDecommanderIndex)
 			return L"State_Multiply";
 		case pMatrix_Multiply:
 			return L"pMatrix_Multiply";
-		case StartRegister_VertexShader:
+		case StartRegister:
 			return L"StartRegister_VS";
-		case pConstantData_VertexShader:
+		case pConstantData:
 			return L"pConstantData_VS";
-		case Vector4fCount_VertexShader:
+		case Vector4fCount:
 			return L"Vector4fCount_VS";
-		case StartRegister_PixelShader:
-			return L"StartRegister_PS";
-		case pConstantData_PixelShader:
-			return L"pConstantData_PS";
-		case Vector4fCount_PixelShader:
-			return L"Vector4fCount_PS";
+		case StreamNumber:
+			return L"StreamNumber";
+		case pStreamData:
+			return L"pStreamData";
+		case OffsetInBytes:
+			return L"OffsetInBytes";
+		case Stride:
+			return L"Stride";
+		case StreamNumber_Get:
+			return L"StreamNumber_Get";
+		case ppStreamData_Get:
+			return L"ppStreamData_Get";
+		case pOffsetInBytes_Get:
+			return L"pOffsetInBytes_Get";
+		case pStride_Get:
+			return L"pStride_Get";
+		case pFunction:
+			return L"pFunction";
+		case ppShader_Vertex:
+			return L"ppShader_Vertex";
+		case ppShader_Pixel:
+			return L"ppShader_Pixel";
 	}
 #endif
 	return L"UNTITLED";
@@ -844,6 +908,15 @@ DWORD MatrixModifier::GetCommanderType(DWORD dwCommanderIndex)
 			break;
 	}
 #elif defined(VIREIO_D3D9)
+	switch ((STS_Commanders)dwCommanderIndex)
+	{
+		case eDrawingSide:
+			return NOD_Plugtype::AQU_INT;
+		case pasVShaderConstantIndices:
+			return NOD_Plugtype::AQU_VOID;
+		case pasPShaderConstantIndices:
+			return NOD_Plugtype::AQU_VOID;
+	}
 #endif
 
 	return NULL;
@@ -981,18 +1054,34 @@ DWORD MatrixModifier::GetDecommanderType(DWORD dwDecommanderIndex)
 			return NOD_Plugtype::AQU_D3DTRANSFORMSTATETYPE;
 		case pMatrix_Multiply:
 			return NOD_Plugtype::AQU_PNT_D3DMATRIX;
-		case StartRegister_VertexShader:
+		case StartRegister:
 			return NOD_Plugtype::AQU_UINT;
-		case pConstantData_VertexShader:
+		case pConstantData:
 			return NOD_Plugtype::AQU_PNT_FLOAT;
-		case Vector4fCount_VertexShader:
+		case Vector4fCount:
 			return NOD_Plugtype::AQU_UINT;
-		case StartRegister_PixelShader:
+		case StreamNumber:
 			return NOD_Plugtype::AQU_UINT;
-		case pConstantData_PixelShader:
-			return NOD_Plugtype::AQU_PNT_FLOAT;
-		case Vector4fCount_PixelShader:
+		case pStreamData:
+			return NOD_Plugtype::AQU_PNT_IDIRECT3DVERTEXBUFFER9;
+		case OffsetInBytes:
 			return NOD_Plugtype::AQU_UINT;
+		case Stride:
+			return NOD_Plugtype::AQU_UINT;
+		case StreamNumber_Get:
+			return NOD_Plugtype::AQU_UINT;
+		case ppStreamData_Get:
+			return NOD_Plugtype::AQU_PPNT_IDIRECT3DVERTEXBUFFER9;
+		case pOffsetInBytes_Get:
+			return NOD_Plugtype::AQU_PNT_UINT;
+		case pStride_Get:
+			return NOD_Plugtype::AQU_PNT_UINT;
+		case pFunction:
+			return NOD_Plugtype::AQU_PNT_UINT;
+		case ppShader_Vertex:
+			return NOD_Plugtype::AQU_PPNT_IDIRECT3DVERTEXSHADER9;
+		case ppShader_Pixel:
+			return NOD_Plugtype::AQU_PPNT_IDIRECT3DPIXELSHADER9;
 	}
 #endif
 	return 0;
@@ -1055,6 +1144,15 @@ void* MatrixModifier::GetOutputPointer(DWORD dwCommanderIndex)
 			break;
 	}
 #elif defined(VIREIO_D3D9)
+	switch ((STS_Commanders)dwCommanderIndex)
+	{
+		case eDrawingSide:
+			return (void*)&m_eCurrentRenderingSide;
+		case pasVShaderConstantIndices:
+			return (void*)&m_pasVSConstantRuleIndices;
+		case pasPShaderConstantIndices:
+			return (void*)&m_pasPSConstantRuleIndices;
+	}
 #endif
 
 	return nullptr;
@@ -1250,23 +1348,47 @@ void MatrixModifier::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 		case pMatrix_Multiply:
 			m_ppsMatrix_Multiply = (D3DMATRIX**)pData;
 			break;
-		case StartRegister_VertexShader:
-			m_pdwStartRegister_VertexShader = (UINT*)pData;
+		case StartRegister:
+			m_pdwStartRegister = (UINT*)pData;
 			break;
-		case pConstantData_VertexShader:
-			m_ppfConstantData_VertexShader = (float**)pData;
+		case pConstantData:
+			m_ppfConstantData = (float**)pData;
 			break;
-		case Vector4fCount_VertexShader:
-			m_pdwVector4fCount_VertexShader = (UINT*)pData;
+		case Vector4fCount:
+			m_pdwVector4fCount = (UINT*)pData;
 			break;
-		case StartRegister_PixelShader:
-			m_pdwStartRegister_PixelShader = (UINT*)pData;
+		case StreamNumber:
+			m_punStreamNumber = (UINT*)pData;
 			break;
-		case pConstantData_PixelShader:
-			m_ppfConstantData_PixelShader = (float**)pData;
+		case pStreamData:
+			m_ppcStreamData = (IDirect3DVertexBuffer9**)pData;
 			break;
-		case Vector4fCount_PixelShader:
-			m_pdwVector4fCount_PixelShader = (UINT*)pData;
+		case OffsetInBytes:
+			m_punOffsetInBytes = (UINT*)pData;
+			break;
+		case Stride:
+			m_punStride = (UINT*)pData;
+			break;
+		case StreamNumber_Get:
+			m_punStreamNumber_Get = (UINT*)pData;
+			break;
+		case ppStreamData_Get:
+			m_pppcStreamData_Get = (IDirect3DVertexBuffer9***)pData;
+			break;
+		case pOffsetInBytes_Get:
+			m_ppunOffsetInBytes_Get = (UINT**)pData;
+			break;
+		case pStride_Get:
+			m_ppunStride_Get = (UINT**)pData;
+			break;
+		case pFunction:
+			m_ppunFunction = (DWORD**)pData;
+			break;
+		case ppShader_Vertex:
+			m_pppcShader_Vertex = (IDirect3DVertexShader9***)pData;
+			break;
+		case ppShader_Pixel:
+			m_pppcShader_Pixel = (IDirect3DPixelShader9***)pData;
 			break;
 	}
 #endif
@@ -1317,6 +1439,31 @@ bool MatrixModifier::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 		}
 	}
 #elif defined(VIREIO_D3D9)
+	if ((nD3DVersion >= (int)AQU_DirectXVersion::DirectX_9_0) &&
+		(nD3DVersion <= (int)AQU_DirectXVersion::DirectX_9_29))
+	{
+		if (nD3DInterface == INTERFACE_IDIRECT3DDEVICE9)
+		{
+			if ((nD3DMethod == METHOD_IDIRECT3DDEVICE9_SETVERTEXSHADER) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_SETPIXELSHADER) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_SETTRANSFORM) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_MULTIPLYTRANSFORM) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_SETVERTEXSHADERCONSTANTF) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_GETVERTEXSHADERCONSTANTF) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_SETPIXELSHADERCONSTANTF) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_GETPIXELSHADERCONSTANTF) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_SETSTREAMSOURCE) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_GETSTREAMSOURCE) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_CREATEVERTEXSHADER) ||
+				(nD3DMethod == METHOD_IDIRECT3DDEVICE9_CREATEPIXELSHADER))
+				return true;
+		}
+		else if (nD3DInterface == INTERFACE_IDIRECT3DSTATEBLOCK9)
+		{
+			if (nD3DMethod == METHOD_IDIRECT3DSTATEBLOCK9_APPLY) return true;
+		}
+	}
+
 #endif
 	return false;
 }
@@ -1327,6 +1474,8 @@ bool MatrixModifier::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int n
 ***/
 void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)
 {
+	static HRESULT nHr = S_OK;
+
 #ifdef _DEBUG_MAM
 	{ wchar_t buf[128]; wsprintf(buf, L"ifc %u mtd %u", eD3DInterface, eD3DMethod); OutputDebugString(buf); }
 #endif
@@ -2399,8 +2548,289 @@ void* MatrixModifier::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 #pragma region ID3D10Device::PSGetConstantBuffers
 			// ID3D10Device::PSGetConstantBuffers(UINT StartSlot, UINT NumBuffers, ID3D10Buffer **ppConstantBuffers);
 #pragma endregion
-	}
+}
 #elif defined(VIREIO_D3D9)
+	switch (eD3DInterface)
+	{
+		case INTERFACE_IDIRECT3DDEVICE9:
+			switch (eD3DMethod)
+			{
+#pragma region SetVertexShader
+				case METHOD_IDIRECT3DDEVICE9_SETVERTEXSHADER:
+					if (!m_ppcShader_Vertex) return nullptr;
+					//if (m_pcActiveVertexShader == *m_ppcShader_Vertex) return nullptr;
+					if (!*m_ppcShader_Vertex)
+					{
+						m_pcActiveVertexShader = nullptr;
+						m_pasVSConstantRuleIndices = nullptr;
+						nHr = ((IDirect3DDevice9*)pThis)->SetVertexShader(nullptr);
+					}
+					else
+					{
+						// set new active shader
+						m_pcActiveVertexShader = static_cast<IDirect3DManagedStereoShader9*>(*m_ppcShader_Vertex);
+
+						// set constant rule indices pointer for stereo splitter
+						m_pasVSConstantRuleIndices = &m_pcActiveVertexShader->m_asConstantRuleIndices;
+
+						// set modified constants
+						if (m_eCurrentRenderingSide == RenderPosition::Left)
+						{
+							for (std::vector<Vireio_Constant_Rule_Index_DX9>::size_type nI = 0; nI < m_pasVSConstantRuleIndices->size(); nI++)
+								((IDirect3DDevice9*)pThis)->SetVertexShaderConstantF((*m_pasVSConstantRuleIndices)[nI].m_dwConstantRuleRegister, (*m_pasVSConstantRuleIndices)[nI].m_afConstantDataLeft, (*m_pasVSConstantRuleIndices)[nI].m_dwConstantRuleRegisterCount);
+						}
+						else
+						{
+							for (std::vector<Vireio_Constant_Rule_Index_DX9>::size_type nI = 0; nI < m_pasVSConstantRuleIndices->size(); nI++)
+								((IDirect3DDevice9*)pThis)->SetVertexShaderConstantF((*m_pasVSConstantRuleIndices)[nI].m_dwConstantRuleRegister, (*m_pasVSConstantRuleIndices)[nI].m_afConstantDataRight, (*m_pasVSConstantRuleIndices)[nI].m_dwConstantRuleRegisterCount);
+						}
+
+						// replace call, set actual shader
+						nHr = ((IDirect3DDevice9*)pThis)->SetVertexShader(m_pcActiveVertexShader->GetActualShader());
+					}
+
+					// method replaced, immediately return
+					nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+					return (void*)&nHr;
+#pragma endregion
+#pragma region SetPixelShader
+				case METHOD_IDIRECT3DDEVICE9_SETPIXELSHADER:
+					if (!m_ppcShader_Pixel) return nullptr;
+
+					break;
+#pragma endregion
+#pragma region SetTransform
+				case METHOD_IDIRECT3DDEVICE9_SETTRANSFORM:
+					if (!m_psState) return nullptr;
+					if (!m_ppsMatrix) return nullptr;
+
+					if ((*m_psState) == D3DTS_VIEW)
+					{
+						D3DXMATRIX sMatTempLeft;
+						D3DXMATRIX sMatTempRight;
+						D3DXMATRIX* psMatViewToSet = NULL;
+						bool bIsTransformSetTemp = false;
+
+						if (!(*m_ppsMatrix))
+						{
+							D3DXMatrixIdentity(&sMatTempLeft);
+							D3DXMatrixIdentity(&sMatTempRight);
+						}
+						else
+						{
+							D3DXMATRIX sMatSource(*(*m_ppsMatrix));
+
+							// If the view is set to the identity then we don't need to perform any adjustments
+							if (D3DXMatrixIsIdentity(&sMatSource))
+							{
+								D3DXMatrixIdentity(&sMatTempLeft);
+								D3DXMatrixIdentity(&sMatTempRight);
+							}
+							else
+							{
+								// If the view matrix is modified we need to apply left/right adjustments (for stereo rendering)
+								sMatTempLeft = sMatSource * m_pcShaderViewAdjustment->LeftViewTransform();
+								sMatTempRight = sMatSource * m_pcShaderViewAdjustment->RightViewTransform();
+
+								bIsTransformSetTemp = true;
+							}
+						}
+
+						// update proxy device
+						m_bViewTransformSet = bIsTransformSetTemp;
+						m_sMatViewLeft = sMatTempLeft;
+						m_sMatViewRight = sMatTempRight;
+
+						if (m_eCurrentRenderingSide == RenderPosition::Left)
+						{
+							m_psMatViewCurrent = &m_sMatViewLeft;
+						}
+						else
+						{
+							m_psMatViewCurrent = &m_sMatViewRight;
+						}
+
+						psMatViewToSet = m_psMatViewCurrent;
+
+						// method replaced, immediately return
+						nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+
+						nHr = ((IDirect3DDevice9*)pThis)->SetTransform((*m_psState), psMatViewToSet);
+						return (void*)&nHr;
+					}
+					else if ((*m_psState) == D3DTS_PROJECTION)
+					{
+						D3DXMATRIX sMatTempLeft;
+						D3DXMATRIX sMatTempRight;
+						D3DXMATRIX* psMatProjToSet = NULL;
+						bool bIsTransformSetTemp = false;
+
+						if (!(*m_ppsMatrix))
+						{
+							D3DXMatrixIdentity(&sMatTempLeft);
+							D3DXMatrixIdentity(&sMatTempRight);
+						}
+						else
+						{
+							D3DXMATRIX sMatSource(*(*m_ppsMatrix));
+
+							// If the view is set to the identity then we don't need to perform any adjustments
+							if (D3DXMatrixIsIdentity(&sMatSource))
+							{
+								D3DXMatrixIdentity(&sMatTempLeft);
+								D3DXMatrixIdentity(&sMatTempRight);
+							}
+							else
+							{
+								// TODO !! LEFT/RIGHT PROJECTION MATRIX ??
+								sMatTempLeft = sMatSource;
+								sMatTempRight = sMatSource;
+
+								bIsTransformSetTemp = true;
+							}
+						}
+
+						// update proxy device
+						m_bProjectionTransformSet = bIsTransformSetTemp;
+						m_sMatProjLeft = sMatTempLeft;
+						m_sMatProjRight = sMatTempRight;
+
+						if (m_eCurrentRenderingSide == RenderPosition::Left)
+						{
+							m_psMatProjCurrent = &m_sMatProjLeft;
+						}
+						else
+						{
+							m_psMatProjCurrent = &m_sMatProjRight;
+						}
+
+						psMatProjToSet = m_psMatProjCurrent;
+
+						// method replaced, immediately return
+						nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+
+						nHr = ((IDirect3DDevice9*)pThis)->SetTransform((*m_psState), psMatProjToSet);
+						return (void*)&nHr;
+					}
+					break;
+#pragma endregion
+#pragma region MultiplyTransform
+				case METHOD_IDIRECT3DDEVICE9_MULTIPLYTRANSFORM:
+					if (!m_psState_Multiply) return nullptr;
+					if (!m_ppsMatrix_Multiply) return nullptr;
+
+					break;
+#pragma endregion
+#pragma region SetVertexShaderConstantF
+				case METHOD_IDIRECT3DDEVICE9_SETVERTEXSHADERCONSTANTF:
+					if (!m_pdwStartRegister) return nullptr;
+					if (!m_ppfConstantData) return nullptr;
+					if (!m_pdwVector4fCount) return nullptr;
+
+					if (m_pcActiveVertexShader)
+					{
+						bool bModified = false;
+						UINT unIndex = 0;
+						m_pcActiveVertexShader->SetShaderConstantF(*m_pdwStartRegister, *m_ppfConstantData, *m_pdwVector4fCount, bModified, unIndex);
+
+						// was the data modified for stereo ?
+						if (bModified)
+						{
+							// set modified data
+							if (m_eCurrentRenderingSide == RenderPosition::Left)
+							{
+								nHr = ((IDirect3DDevice9*)pThis)->SetVertexShaderConstantF(*m_pdwStartRegister, *m_ppfConstantData, *m_pdwVector4fCount);
+								((IDirect3DDevice9*)pThis)->SetVertexShaderConstantF(*m_pdwStartRegister, m_pcActiveVertexShader->m_asConstantRuleIndices[unIndex].m_afConstantDataLeft, 4);
+							}
+							else
+							{
+								nHr = ((IDirect3DDevice9*)pThis)->SetVertexShaderConstantF(*m_pdwStartRegister, *m_ppfConstantData, *m_pdwVector4fCount);
+								((IDirect3DDevice9*)pThis)->SetVertexShaderConstantF(*m_pdwStartRegister, m_pcActiveVertexShader->m_asConstantRuleIndices[unIndex].m_afConstantDataRight, 4);
+							}
+
+							// method replaced, immediately return
+							nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+							return (void*)&nHr;
+						}
+					}
+					break;
+#pragma endregion
+#pragma region GetVertexShaderConstantF
+				case METHOD_IDIRECT3DDEVICE9_GETVERTEXSHADERCONSTANTF:
+					if (!m_pdwStartRegister) return nullptr;
+					if (!m_ppfConstantData) return nullptr;
+					if (!m_pdwVector4fCount) return nullptr;
+
+					break;
+#pragma endregion
+#pragma region SetPixelShaderConstantF
+				case METHOD_IDIRECT3DDEVICE9_SETPIXELSHADERCONSTANTF:
+					if (!m_pdwStartRegister) return nullptr;
+					if (!m_ppfConstantData) return nullptr;
+					if (!m_pdwVector4fCount) return nullptr;
+
+					break;
+#pragma endregion
+#pragma region GetPixelShaderConstantF
+				case METHOD_IDIRECT3DDEVICE9_GETPIXELSHADERCONSTANTF:
+					if (!m_pdwStartRegister) return nullptr;
+					if (!m_ppfConstantData) return nullptr;
+					if (!m_pdwVector4fCount) return nullptr;
+
+					break;
+#pragma endregion
+#pragma region SetStreamSource
+				case METHOD_IDIRECT3DDEVICE9_SETSTREAMSOURCE:
+					if (!m_punStreamNumber) return nullptr;
+					if (!m_ppcStreamData) return nullptr;
+					if (!m_punOffsetInBytes) return nullptr;
+					if (!m_punStride) return nullptr;
+
+					break;
+#pragma endregion
+#pragma region GetStreamSource
+				case METHOD_IDIRECT3DDEVICE9_GETSTREAMSOURCE:
+					if (!m_punStreamNumber_Get) return nullptr;
+					if (!m_pppcStreamData_Get) return nullptr;
+					if (!m_ppunOffsetInBytes_Get) return nullptr;
+					if (!m_ppunStride_Get) return nullptr;
+
+					break;
+#pragma endregion
+#pragma region CreateVertexShader
+				case METHOD_IDIRECT3DDEVICE9_CREATEVERTEXSHADER:
+					if (!m_ppunFunction) return nullptr;
+					if (!m_pppcShader_Vertex) return nullptr;
+					if (!*m_pppcShader_Vertex) return nullptr;
+					{
+						IDirect3DVertexShader9* pcActualVShader = NULL;
+						nHr = ((IDirect3DDevice9*)pThis)->CreateVertexShader(*m_ppunFunction, &pcActualVShader);
+
+						if (SUCCEEDED(nHr))
+						{
+							**m_pppcShader_Vertex = new IDirect3DManagedStereoShader9(pcActualVShader, (IDirect3DDevice9*)pThis, &m_asConstantRules);
+						}
+						else
+						{
+							OutputDebugString(L"[MAM] Failed to create the vertex shader!");
+						}
+
+						// method replaced, immediately return
+						nProvokerIndex |= AQU_PluginFlags::ImmediateReturnFlag;
+					}
+					return (void*)&nHr;
+#pragma endregion
+#pragma region CreatePixelShader
+				case METHOD_IDIRECT3DDEVICE9_CREATEPIXELSHADER:
+					if (!m_ppunFunction) return nullptr;
+					if (!m_pppcShader_Pixel) return nullptr;
+
+					break;
+#pragma endregion
+#pragma region Apply
+#pragma endregion
+			}
+	}
 #endif
 
 	return nullptr;
@@ -2434,7 +2864,7 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 					if (m_eChosenShaderType == Vireio_Supported_Shaders::VertexShader)
 					{
 						m_pcVireioGUI->SetNewTextList(m_sPageShader.m_dwHashCodes, &m_aszVShaderHashCodes);
-					}
+	}
 					else if (m_eChosenShaderType == Vireio_Supported_Shaders::PixelShader)
 					{
 						m_pcVireioGUI->SetNewTextList(m_sPageShader.m_dwHashCodes, &m_aszPShaderHashCodes);
@@ -2453,13 +2883,13 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 						m_sPageGameShaderRules.m_dwRegCountValue = 2;
 					else if (sEvent.dwNewValue == 2)
 						m_sPageGameShaderRules.m_dwRegCountValue = 4;
-				}
+					}
 				else if (sEvent.dwIndexOfControl == m_sPageGameShaderRules.m_dwOperationToApply)
 				{
 					m_sPageGameShaderRules.m_dwOperationValue = sEvent.dwNewValue;
 				}
 #endif
-			}
+}
 			else if (sEvent.dwIndexOfPage == m_adwPageIDs[GUI_Pages::GameSettingsPage])
 			{
 				if (sEvent.dwIndexOfControl == m_sPageGameSettings.m_dwRollImpl)
@@ -2654,7 +3084,7 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 					m_bBufferIndexDebug = sEvent.bNewValue;
 				}
 #endif
-			}
+				}
 			break;
 #pragma endregion
 		case ChangedToText:
@@ -2734,7 +3164,7 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 							std::wstring szHash = std::to_wstring((*pasShaders)[dwI].dwHashCode);
 							(*pasShaderHashCodes).push_back(szHash);
 							(*padwShaderHashCodes).push_back((*pasShaders)[dwI].dwHashCode);
-						}
+				}
 					}
 #endif
 				}
@@ -2817,8 +3247,8 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 										std::wstringstream szStartRegister; szStartRegister << (*pasShaders)[dwIndex].asBuffersUnaccounted[dwBufferIndex].dwRegister;
 										m_sPageGameShaderRules.m_szBufferIndex = szStartRegister.str();
 									}
-								}
-							}
+					}
+				}
 						}
 
 
@@ -2928,7 +3358,7 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 							m_aszShaderBuffersizes.push_back(szReg.str());
 							std::wstringstream szSize; szSize << (*pasShaders)[dwIndex].asBuffersUnaccounted[dwI].dwSize;
 							m_aszShaderBuffersizes.push_back(szSize.str());
-						}
+			}
 					}
 #endif
 				}
@@ -2977,7 +3407,7 @@ void MatrixModifier::WindowsEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 							std::wstringstream szSize; szSize << adwBufferSizes[dwJ];
 							m_aszShaderBuffersizes.push_back(szSize.str());
 						}
-					}
+			}
 #endif
 				}
 			}

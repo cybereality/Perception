@@ -88,7 +88,9 @@ m_hFont(nullptr),
 m_unTextureNumber(0),
 m_unRenderTargetNumber(0),
 m_bPresent(false),
-m_bApply(true)
+m_bApply(true),
+m_ppasVSConstantRuleIndices(nullptr),
+m_ppasPSConstantRuleIndices(nullptr)
 {
 	m_pcActiveDepthStencilSurface[0] = nullptr;
 	m_pcActiveDepthStencilSurface[1] = nullptr;
@@ -228,6 +230,9 @@ HBITMAP StereoSplitter::GetControl()
 			TextOut(hdcImage, 50, nY, L"pDestSurface_StretchRect", 24); nY += 64;
 			TextOut(hdcImage, 50, nY, L"pDestRect_StretchRect", 21); nY += 64;
 			TextOut(hdcImage, 50, nY, L"Filter_StretchRect", 18); nY += 64;
+			TextOut(hdcImage, 50, nY, L"peDrawingSide", 15); nY += 64;
+			TextOut(hdcImage, 50, nY, L"asVShaderConstantIndices", 24); nY += 64;
+			TextOut(hdcImage, 50, nY, L"asPShaderConstantIndices", 24); nY += 64;
 
 			TextOut(hdcImage, 600, nY, L"Left Texture", 12); nY += 64;
 			TextOut(hdcImage, 600, nY, L"Right Texture", 13); nY += 128;
@@ -319,6 +324,12 @@ LPWSTR StereoSplitter::GetDecommanderName(DWORD unDecommanderIndex)
 			return L"pDestRect_StretchRect";
 		case Filter_StretchRect:
 			return L"Filter_StretchRect";
+		case peDrawingSide:
+			return L"peDrawingSide";
+		case pasVShaderConstantIndices:
+			return L"pasVShaderConstantIndices";
+		case pasPShaderConstantIndices:
+			return L"pasPShaderConstantIndices";
 		default:
 			break;
 	}
@@ -379,6 +390,12 @@ DWORD StereoSplitter::GetDecommanderType(DWORD unDecommanderIndex)
 			return NOD_Plugtype::AQU_PNT_RECT;
 		case Filter_StretchRect:
 			return NOD_Plugtype::AQU_D3DTEXTUREFILTERTYPE;
+		case peDrawingSide:
+			return NOD_Plugtype::AQU_INT;
+		case pasVShaderConstantIndices:
+			return NOD_Plugtype::AQU_VOID;
+		case pasPShaderConstantIndices:
+			return NOD_Plugtype::AQU_VOID;
 		default:
 			break;
 	}
@@ -465,6 +482,15 @@ void StereoSplitter::SetInputPointer(DWORD unDecommanderIndex, void* pData)
 			break;
 		case Filter_StretchRect:
 			m_peFilter_StretchRect = (D3DTEXTUREFILTERTYPE*)pData;       /**< ->StretchRect() filter ***/
+			break;
+		case peDrawingSide:
+			m_peDrawingSide = (RenderPosition*)pData;
+			break;
+		case pasVShaderConstantIndices:
+			m_ppasVSConstantRuleIndices = (std::vector<Vireio_Constant_Rule_Index_DX9>**)pData;
+			break;
+		case pasPShaderConstantIndices:
+			m_ppasPSConstantRuleIndices = (std::vector<Vireio_Constant_Rule_Index_DX9>**)pData;
 			break;
 		default:
 			break;
@@ -1251,6 +1277,10 @@ bool StereoSplitter::SetDrawingSide(IDirect3DDevice9* pcDevice, RenderPosition e
 	if (eSide == m_eCurrentRenderingSide)
 		return true;
 
+	// Everything hasn't changed yet but we set this first so we don't accidentally use the member instead of the local and break
+	// things, as I have already managed twice.
+	SetDrawingSideField(eSide);
+
 	// state block was applied ?
 	if (m_bApply)
 	{
@@ -1328,6 +1358,25 @@ bool StereoSplitter::SetDrawingSide(IDirect3DDevice9* pcDevice, RenderPosition e
 			OutputDebugString(L"Error trying to set one of the textures while switching between active eyes for drawing.\n");
 	}
 
+	// set shader constants to new side, first vertex shader
+	if (m_ppasVSConstantRuleIndices)
+	{
+		if (*m_ppasVSConstantRuleIndices)
+		{
+			std::vector<Vireio_Constant_Rule_Index_DX9>* pasIndices = *m_ppasVSConstantRuleIndices;
+			if (eSide == RenderPosition::Left)
+			{
+				for (std::vector<Vireio_Constant_Rule_Index_DX9>::size_type nI = 0; nI < pasIndices->size(); nI++)
+					pcDevice->SetVertexShaderConstantF((*pasIndices)[nI].m_dwConstantRuleRegister, (*pasIndices)[nI].m_afConstantDataLeft, (*pasIndices)[nI].m_dwConstantRuleRegisterCount);
+			}
+			else
+			{
+				for (std::vector<Vireio_Constant_Rule_Index_DX9>::size_type nI = 0; nI < pasIndices->size(); nI++)
+					pcDevice->SetVertexShaderConstantF((*pasIndices)[nI].m_dwConstantRuleRegister, (*pasIndices)[nI].m_afConstantDataRight, (*pasIndices)[nI].m_dwConstantRuleRegisterCount);
+			}
+		}
+	}
+
 	return true;
 }
 
@@ -1359,7 +1408,7 @@ void StereoSplitter::CreateStereoTexture(IDirect3DDevice9* pcDevice, IDirect3DBa
 				wsprintf(buf, L"sDesc.Format %u", sDesc.Format); OutputDebugString(buf);
 #endif
 				*ppcStereoTwinTexture = nullptr;
-			}
+	}
 			else
 			{
 				// update the texture
@@ -1373,7 +1422,7 @@ void StereoSplitter::CreateStereoTexture(IDirect3DDevice9* pcDevice, IDirect3DBa
 		case D3DRTYPE_CUBETEXTURE:
 		default:
 			break;
-	}
+}
 }
 
 /**
