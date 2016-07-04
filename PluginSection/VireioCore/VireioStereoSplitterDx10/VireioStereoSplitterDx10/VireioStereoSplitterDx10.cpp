@@ -1587,7 +1587,7 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 								ZeroMemory(&sDesc, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
 								D3D11_TEXTURE2D_DESC sDescRT;
 								pcBackBuffer->GetDesc(&sDescRT);
-								sDescRT.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+								sDescRT.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
 
 								if (FAILED(pcDevice->CreateTexture2D(&sDescRT, NULL, &m_pcTex11[0])))
 									OutputDebugString(L"VireioStereoSplitter: Failed to create Texture.");
@@ -1604,6 +1604,26 @@ void StereoSplitter::Present(IDXGISwapChain* pcSwapChain)
 									OutputDebugString(L"VireioStereoSplitter: Failed to create texture view!");
 								if ((FAILED(pcDevice->CreateShaderResourceView((ID3D11Resource*)m_pcTex11[1], &sDesc, &m_pcTexView11[1]))))
 									OutputDebugString(L"VireioStereoSplitter: Failed to create texture view!");
+
+								ID3D11RenderTargetView* pcRTV[2];
+								pcRTV[0] = nullptr; pcRTV[1] = nullptr;
+								if ((FAILED(pcDevice->CreateRenderTargetView((ID3D11Resource*)m_pcTex11[0], NULL, &pcRTV[0]))))
+									OutputDebugString(L"VireioStereoSplitter: Failed to create texture view!");
+								if ((FAILED(pcDevice->CreateRenderTargetView((ID3D11Resource*)m_pcTex11[1], NULL, &pcRTV[1]))))
+									OutputDebugString(L"VireioStereoSplitter: Failed to create texture view!");
+
+								// set this as private data interface to the shader resource views instead of texture here !!!!
+								if (pcRTV[0])
+								{
+									m_pcTexView11[0]->SetPrivateDataInterface(PDIID_ID3D11TextureXD_RenderTargetView, pcRTV[0]);
+									pcRTV[0]->Release();
+								}
+								if (pcRTV[1])
+								{
+									m_pcTexView11[1]->SetPrivateDataInterface(PDIID_ID3D11TextureXD_RenderTargetView, pcRTV[1]);
+									pcRTV[1]->Release();
+								}
+
 								pcDevice->Release();
 							}
 

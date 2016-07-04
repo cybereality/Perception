@@ -283,8 +283,7 @@ private:
 	***/
 	ID3D11SamplerState* m_pcSampler11;
 	/**
-	* The constant buffer for the vertex shader matrix.
-	* Contains only ProjView matrix.
+	* The constant buffer.
 	***/
 	union
 	{

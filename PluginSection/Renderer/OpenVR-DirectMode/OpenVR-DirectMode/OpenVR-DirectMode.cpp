@@ -39,8 +39,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include"OpenVR-DirectMode.h"
 
+#define SAFE_RELEASE(a) if (a) { a->Release(); a = nullptr; }
 #define DEBUG_UINT(a) { wchar_t buf[128]; wsprintf(buf, L"- %u", a); OutputDebugString(buf); }
 #define DEBUG_HEX(a) { wchar_t buf[128]; wsprintf(buf, L"- %x", a); OutputDebugString(buf); }
+#define DEBUG_MARKER(a) { wchar_t buf[128]; wsprintf(buf, L"Debug marker %u", a); OutputDebugString(buf); }
 
 #define INTERFACE_IDIRECT3DDEVICE9           8
 #define INTERFACE_IDIRECT3DSWAPCHAIN9       15
@@ -207,7 +209,6 @@ float GetIniFileSetting(float fDefault, LPCSTR szAppName, LPCSTR szKeyName, LPCS
 	return fRet;
 }
 
-
 /**
 * Constructor.
 ***/
@@ -217,7 +218,18 @@ m_pcContextTemporary(nullptr),
 m_ulOverlayHandle(0),
 m_ulOverlayThumbnailHandle(0),
 m_bHotkeySwitch(false),
-m_pbZoomOut(nullptr)
+m_pbZoomOut(nullptr),
+m_pcVSGeometry11(nullptr),
+m_pcVLGeometry11(nullptr),
+m_pcPSGeometry11(nullptr),
+m_pcVBGeometry11(nullptr),
+m_pcIBGeometry11(nullptr),
+m_pcDSGeometry11(nullptr),
+m_pcDSVGeometry11(nullptr),
+m_pcSampler11(nullptr),
+m_pcConstantBufferGeometry(nullptr),
+m_pcTexGeometry(nullptr),
+m_pcTexGeometrySRV(nullptr)
 {
 	m_ppcTexView11[0] = nullptr;
 	m_ppcTexView11[1] = nullptr;
@@ -287,9 +299,9 @@ m_pbZoomOut(nullptr)
 	char szFilePathINI[1024];
 	GetCurrentDirectoryA(1024, szFilePathINI);
 	strcat_s(szFilePathINI, "\\VireioPerception_OpenVR.ini");
-	bool bFileExists = false; 
+	bool bFileExists = false;
 	if (PathFileExistsA(szFilePathINI)) bFileExists = true;
-	
+
 	// get all ini settings
 	m_fAspectRatio = GetIniFileSetting(m_fAspectRatio, "OpenVR", "fAspectRatio", szFilePathINI, bFileExists);
 	if (GetIniFileSetting((DWORD)m_bForceInterleavedReprojection, "OpenVR", "bForceInterleavedReprojection", szFilePathINI, bFileExists)) m_bForceInterleavedReprojection = true; else m_bForceInterleavedReprojection = false;
@@ -329,6 +341,19 @@ m_pbZoomOut(nullptr)
 ***/
 OpenVR_DirectMode::~OpenVR_DirectMode()
 {
+	SAFE_RELEASE(m_pcTexGeometrySRV);
+	SAFE_RELEASE(m_pcTexGeometry);
+	SAFE_RELEASE(m_pcSampler11);
+	SAFE_RELEASE(m_pcConstantBufferGeometry);
+	SAFE_RELEASE(m_pcDSVGeometry11);
+	SAFE_RELEASE(m_pcDSGeometry11);
+	SAFE_RELEASE(m_pcVLGeometry11);
+	SAFE_RELEASE(m_pcVSGeometry11);
+	SAFE_RELEASE(m_pcPSGeometry11);
+	SAFE_RELEASE(m_pcVBGeometry11);
+	SAFE_RELEASE(m_pcVBGeometry11);
+	SAFE_RELEASE(m_pcIBGeometry11);
+
 	if (m_pcContextTemporary) m_pcContextTemporary->Release();
 	if (m_pcDeviceTemporary) m_pcDeviceTemporary->Release();
 
@@ -666,6 +691,356 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 			else
 			if (vr::VRCompositor()->CanRenderScene())
 			{
+#pragma region render models
+				// textures connected ?
+				if ((m_ppcTexView11[0]) && (m_ppcTexView11[1]))
+				{
+					// get the viewport
+					UINT dwNumViewports = 1;
+					D3D11_VIEWPORT psViewport[16];
+					pcContext->RSGetViewports(&dwNumViewports, psViewport);
+
+					// backup all states
+					D3DX11_STATE_BLOCK sStateBlock;
+					CreateStateblock(pcContext, &sStateBlock);
+
+					// clear all states, set targets
+					ClearContextState(pcContext);
+
+					// set back viewport
+					pcContext->RSSetViewports(dwNumViewports, psViewport);
+
+					static UINT unWidthRT = 0, unHeightRT = 0;
+
+					// create vertex shader
+					if (!m_pcVSGeometry11)
+					{
+						if (FAILED(Create3DVertexShader(pcDevice, &m_pcVSGeometry11, &m_pcVLGeometry11)))
+							OutputDebugString(L"[OPENVR] Failed to create vertex shader. !");
+					}
+
+					// create pixel shader
+					if (!m_pcPSGeometry11)
+					{
+						if (FAILED(CreateSimplePixelShader(pcDevice, &m_pcPSGeometry11, PixelShaderTechnique::GeometryDiffuseTextured)))
+							OutputDebugString(L"[OPENVR] Failed to create pixel shader. !");
+					}
+
+					// create the depth stencil
+					if (!m_pcDSGeometry11)
+					{
+						ID3D11Texture2D* pcResource = nullptr;
+						if (m_ppcTexView11[0])
+							(*m_ppcTexView11)[0]->GetResource((ID3D11Resource**)&pcResource);
+
+						if (pcResource)
+						{
+							D3D11_TEXTURE2D_DESC sDesc;
+							pcResource->GetDesc(&sDesc);
+							pcResource->Release();
+
+							// set static height, width
+							unWidthRT = sDesc.Width;
+							unHeightRT = sDesc.Height;
+
+							// Create depth stencil texture
+							D3D11_TEXTURE2D_DESC descDepth;
+							ZeroMemory(&descDepth, sizeof(descDepth));
+							descDepth.Width = sDesc.Width;
+							descDepth.Height = sDesc.Height;
+							descDepth.MipLevels = 1;
+							descDepth.ArraySize = 1;
+							descDepth.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+							descDepth.SampleDesc.Count = 1;
+							descDepth.SampleDesc.Quality = 0;
+							descDepth.Usage = D3D11_USAGE_DEFAULT;
+							descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+							descDepth.CPUAccessFlags = 0;
+							descDepth.MiscFlags = 0;
+							if (FAILED(pcDevice->CreateTexture2D(&descDepth, NULL, &m_pcDSGeometry11)))
+								OutputDebugString(L"[OPENVR] Failed to create depth stencil.");
+
+							// Create the depth stencil view
+							D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;
+							ZeroMemory(&descDSV, sizeof(descDSV));
+							descDSV.Format = descDepth.Format;
+							descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+							descDSV.Texture2D.MipSlice = 0;
+							if (FAILED(pcDevice->CreateDepthStencilView(m_pcDSGeometry11, &descDSV, &m_pcDSVGeometry11)))
+								OutputDebugString(L"[OPENVR] Failed to create depth stencil view.");
+						}
+					}
+
+					// Create vertex buffer
+					if (!m_pcVBGeometry11)
+					{
+						TexturedDiffuseVertex asVertices[] =
+						{
+							{ D3DXVECTOR3(-1.0f, 1.0f, -1.0f), D3DXVECTOR3(0.0f, 1.0f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
+							{ D3DXVECTOR3(1.0f, 1.0f, -1.0f), D3DXVECTOR3(0.0f, 1.0f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) },
+							{ D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR3(0.0f, 1.0f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
+							{ D3DXVECTOR3(-1.0f, 1.0f, 1.0f), D3DXVECTOR3(0.0f, 1.0f, 0.0f), D3DXVECTOR2(0.0f, 1.0f) },
+
+							{ D3DXVECTOR3(-1.0f, -1.0f, -1.0f), D3DXVECTOR3(0.0f, -1.0f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
+							{ D3DXVECTOR3(1.0f, -1.0f, -1.0f), D3DXVECTOR3(0.0f, -1.0f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) },
+							{ D3DXVECTOR3(1.0f, -1.0f, 1.0f), D3DXVECTOR3(0.0f, -1.0f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
+							{ D3DXVECTOR3(-1.0f, -1.0f, 1.0f), D3DXVECTOR3(0.0f, -1.0f, 0.0f), D3DXVECTOR2(0.0f, 1.0f) },
+
+							{ D3DXVECTOR3(-1.0f, -1.0f, 1.0f), D3DXVECTOR3(-1.0f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
+							{ D3DXVECTOR3(-1.0f, -1.0f, -1.0f), D3DXVECTOR3(-1.0f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) },
+							{ D3DXVECTOR3(-1.0f, 1.0f, -1.0f), D3DXVECTOR3(-1.0f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
+							{ D3DXVECTOR3(-1.0f, 1.0f, 1.0f), D3DXVECTOR3(-1.0f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 1.0f) },
+
+							{ D3DXVECTOR3(1.0f, -1.0f, 1.0f), D3DXVECTOR3(1.0f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
+							{ D3DXVECTOR3(1.0f, -1.0f, -1.0f), D3DXVECTOR3(1.0f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) },
+							{ D3DXVECTOR3(1.0f, 1.0f, -1.0f), D3DXVECTOR3(1.0f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
+							{ D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR3(1.0f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 1.0f) },
+
+							{ D3DXVECTOR3(-1.0f, -1.0f, -1.0f), D3DXVECTOR3(0.0f, 0.0f, -1.0f), D3DXVECTOR2(0.0f, 0.0f) },
+							{ D3DXVECTOR3(1.0f, -1.0f, -1.0f), D3DXVECTOR3(0.0f, 0.0f, -1.0f), D3DXVECTOR2(1.0f, 0.0f) },
+							{ D3DXVECTOR3(1.0f, 1.0f, -1.0f), D3DXVECTOR3(0.0f, 0.0f, -1.0f), D3DXVECTOR2(1.0f, 1.0f) },
+							{ D3DXVECTOR3(-1.0f, 1.0f, -1.0f), D3DXVECTOR3(0.0f, 0.0f, -1.0f), D3DXVECTOR2(0.0f, 1.0f) },
+
+							{ D3DXVECTOR3(-1.0f, -1.0f, 1.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(0.0f, 0.0f) },
+							{ D3DXVECTOR3(1.0f, -1.0f, 1.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(1.0f, 0.0f) },
+							{ D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(1.0f, 1.0f) },
+							{ D3DXVECTOR3(-1.0f, 1.0f, 1.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(0.0f, 1.0f) },
+						};
+
+						D3D11_BUFFER_DESC bd;
+						ZeroMemory(&bd, sizeof(bd));
+						bd.Usage = D3D11_USAGE_DEFAULT;
+						bd.ByteWidth = sizeof(TexturedDiffuseVertex)* 24;
+						bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+						bd.CPUAccessFlags = 0;
+						D3D11_SUBRESOURCE_DATA InitData;
+						ZeroMemory(&InitData, sizeof(InitData));
+						InitData.pSysMem = asVertices;
+						if (FAILED(pcDevice->CreateBuffer(&bd, &InitData, &m_pcVBGeometry11)))
+							OutputDebugString(L"[OPENVR] Failed to create vertex buffer.");
+					}
+
+					// Create index buffer
+					if (!m_pcIBGeometry11)
+					{
+						WORD aunIndices[] =
+						{
+							3, 1, 0,
+							2, 1, 3,
+
+							6, 4, 5,
+							7, 4, 6,
+
+							11, 9, 8,
+							10, 9, 11,
+
+							14, 12, 13,
+							15, 12, 14,
+
+							19, 17, 16,
+							18, 17, 19,
+
+							22, 20, 21,
+							23, 20, 22
+						};
+
+						D3D11_BUFFER_DESC bd;
+						ZeroMemory(&bd, sizeof(bd));
+						bd.Usage = D3D11_USAGE_DEFAULT;
+						bd.ByteWidth = sizeof(WORD)* 36;
+						bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+						bd.CPUAccessFlags = 0;
+						D3D11_SUBRESOURCE_DATA InitData;
+						ZeroMemory(&InitData, sizeof(InitData));
+						InitData.pSysMem = aunIndices;
+						if (FAILED(pcDevice->CreateBuffer(&bd, &InitData, &m_pcIBGeometry11)))
+							OutputDebugString(L"[OPENVR] Failed to create index buffer.");
+					}
+
+					if (!m_pcSampler11)
+					{
+						// Create the sample state
+						D3D11_SAMPLER_DESC sampDesc;
+						ZeroMemory(&sampDesc, sizeof(sampDesc));
+						sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+						sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+						sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+						sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+						sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+						sampDesc.MinLOD = 0;
+						sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+						if (FAILED(pcDevice->CreateSamplerState(&sampDesc, &m_pcSampler11)))
+							OutputDebugString(L"[OPENVR] Failed to create sampler.");
+					}
+
+					// create constant buffer
+					if (!m_pcConstantBufferGeometry)
+					{
+						if (FAILED(CreateGeometryConstantBuffer(pcDevice, &m_pcConstantBufferGeometry, (UINT)sizeof(GeometryConstantBuffer))))
+							OutputDebugString(L"[OPENVR] Failed to create constant buffer.");
+					}
+
+					// create all models
+					if (!m_pcTexGeometry)
+					{
+						// get model name
+						uint32_t unRequiredBufferLen = (*m_ppHMD)->GetStringTrackedDeviceProperty(vr::ETrackedDeviceClass::TrackedDeviceClass_Controller, vr::Prop_RenderModelName_String, NULL, 0, NULL);
+						char *pchBuffer = new char[unRequiredBufferLen];
+						if (unRequiredBufferLen > 0)
+							unRequiredBufferLen = (*m_ppHMD)->GetStringTrackedDeviceProperty(vr::ETrackedDeviceClass::TrackedDeviceClass_Controller, vr::Prop_RenderModelName_String, pchBuffer, unRequiredBufferLen, NULL);
+						std::string szModelName = pchBuffer;
+						delete[] pchBuffer;
+
+						// Mesh laden
+						vr::RenderModel_t *pModel = NULL;
+						vr::RenderModel_TextureMap_t *pTexture = NULL;
+
+						while (vr::VRRenderModels()->LoadRenderModel_Async(szModelName.c_str(), &pModel) == vr::VRRenderModelError_Loading)
+						{
+							Sleep(50);
+						}
+
+						if (vr::VRRenderModels()->LoadRenderModel_Async(szModelName.c_str(), &pModel) || pModel == NULL)
+						{
+							OutputDebugString(L"[OPENVR] Unable to load render model");
+						}
+
+
+						while (vr::VRRenderModels()->LoadTexture_Async(pModel->diffuseTextureId, &pTexture) == vr::VRRenderModelError_Loading)
+						{
+							Sleep(50);
+						}
+
+						if (vr::VRRenderModels()->LoadTexture_Async(pModel->diffuseTextureId, &pTexture) || pTexture == NULL)
+						{
+							OutputDebugString(L"[OPENVR] Unable to load render texture");
+						}
+
+
+						/*pRenderModel = new CGLRenderModel(pchRenderModelName);
+						if (!pRenderModel->BInit(*pModel, *pTexture))
+						{
+						dprintf("Unable to create GL model from render model %s\n", pchRenderModelName);
+						delete pRenderModel;
+						pRenderModel = NULL;
+						}
+						else
+						{
+						m_vecRenderModels.push_back(pRenderModel);
+						}*/
+
+						// create font texture
+						D3D11_TEXTURE2D_DESC sDesc;
+						ZeroMemory(&sDesc, sizeof(sDesc));
+						sDesc.Width = pTexture->unWidth;
+						sDesc.Height = pTexture->unHeight;
+						sDesc.MipLevels = sDesc.ArraySize = 1;
+						sDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+						sDesc.SampleDesc.Count = 1;
+						sDesc.Usage = D3D11_USAGE_DEFAULT;
+						sDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+						D3D11_SUBRESOURCE_DATA sData;
+						ZeroMemory(&sData, sizeof(sData));
+						sData.pSysMem = pTexture->rubTextureMapData;
+						sData.SysMemPitch = pTexture->unWidth * 4;
+						if (FAILED(pcDevice->CreateTexture2D(&sDesc, &sData, &m_pcTexGeometry)))
+							OutputDebugString(L"[OPENVR] Failed to create model texture.");
+
+						if (m_pcTexGeometry)
+						{
+							D3D11_SHADER_RESOURCE_VIEW_DESC sDesc;
+							ZeroMemory(&sDesc, sizeof(sDesc));
+							sDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+							sDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+							sDesc.Texture2D.MostDetailedMip = 0;
+							sDesc.Texture2D.MipLevels = 1;
+
+							if ((FAILED(pcDevice->CreateShaderResourceView((ID3D11Resource*)m_pcTexGeometry, &sDesc, &m_pcTexGeometrySRV))))
+								OutputDebugString(L"[OPENVR] Failed to create model texture shader resource view!");
+						}
+
+						vr::VRRenderModels()->FreeRenderModel(pModel);
+						vr::VRRenderModels()->FreeTexture(pTexture);
+					}
+
+
+					// Update our time
+					static float t = 0.0f;
+					static DWORD dwTimeStart = 0;
+					DWORD dwTimeCur = GetTickCount();
+					if (dwTimeStart == 0)
+						dwTimeStart = dwTimeCur;
+					t = (dwTimeCur - dwTimeStart) / 1000.0f;
+
+					// Rotate cube around the origin
+					D3DXMATRIX sWorld, sView, sProj;
+					D3DXMatrixRotationYawPitchRoll(&sWorld, t, t / 4.0f, t / 8.0f);
+
+					// Initialize the view matrix
+					D3DXVECTOR3 sEye = D3DXVECTOR3(0.0f, 3.0f, -6.0f);
+					D3DXVECTOR3 sAt = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+					D3DXVECTOR3 sUp = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+					D3DXMatrixLookAtLH(&sView, &sEye, &sAt, &sUp);
+
+					// ...and the projection matrix
+					D3DXMatrixPerspectiveFovLH(&sProj, (float)D3DX_PI / 4, (float)unWidthRT / (float)unHeightRT, 0.01f, 100.0f);
+					D3DXMATRIX sWorldViewProjection = sWorld * sView * sProj;
+
+					// update constant buffer
+					D3DXMatrixTranspose(&m_sGeometryConstants.m_sWorld, &sWorld);
+					D3DXMatrixTranspose(&m_sGeometryConstants.m_sWorldViewProjection, &sWorldViewProjection);
+					D3DXVECTOR4 sLightDir(-0.7f, -0.6f, -0.02f, 1.0f);
+					D3DXVec4Normalize(&sLightDir, &sLightDir);
+					m_sGeometryConstants.m_sLightDir = sLightDir;
+					m_sGeometryConstants.m_sLightAmbient = D3DXCOLOR(0.2f, 0.2f, 0.2f, 1.0f);
+					m_sGeometryConstants.m_sLightDiffuse = D3DXCOLOR(1.0f, 0.2f, 0.7f, 1.0f);
+					pcContext->UpdateSubresource(m_pcConstantBufferGeometry, 0, NULL, &m_sGeometryConstants, 0, 0);
+
+					// Set the input layout, buffers, sampler
+					pcContext->IASetInputLayout(m_pcVLGeometry11);
+					UINT stride = sizeof(TexturedDiffuseVertex);
+					UINT offset = 0;
+					pcContext->IASetVertexBuffers(0, 1, &m_pcVBGeometry11, &stride, &offset);
+					pcContext->IASetIndexBuffer(m_pcIBGeometry11, DXGI_FORMAT_R16_UINT, 0);
+					pcContext->VSSetConstantBuffers(0, 1, &m_pcConstantBufferGeometry);
+					pcContext->PSSetConstantBuffers(0, 1, &m_pcConstantBufferGeometry);
+					pcContext->PSSetSamplers(0, 1, &m_pcSampler11);
+
+					// Set primitive topology
+					pcContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+					// set shaders
+					pcContext->VSSetShader(m_pcVSGeometry11, NULL, 0);
+					pcContext->PSSetShader(m_pcPSGeometry11, NULL, 0);
+
+					// left + right
+					for (int nEye = 0; nEye < 2; nEye++)
+					{
+						// get render target view
+						ID3D11RenderTargetView* pcRTV = nullptr;
+						UINT dwSize = sizeof(pcRTV);
+						(*m_ppcTexView11)[nEye]->GetPrivateData(PDIID_ID3D11TextureXD_RenderTargetView, &dwSize, (void*)&pcRTV);
+
+						// clear the depth stencil
+						pcContext->ClearDepthStencilView(m_pcDSVGeometry11, D3D11_CLEAR_DEPTH, 1.0f, 0);
+
+						// set render target
+						pcContext->OMSetRenderTargets(1, &pcRTV, m_pcDSVGeometry11);
+
+						// set texture
+						pcContext->PSSetShaderResources(0, 1, &m_pcTexGeometrySRV);
+
+						// draw
+						pcContext->DrawIndexed(36, 0, 0);
+
+						// relese RTV
+						if (pcRTV) pcRTV->Release(); else OutputDebugString(L"[OPENVR] No render target view !");
+					}
+
+					// set back device
+					ApplyStateblock(pcContext, &sStateBlock);
+				}
+#pragma endregion
 #pragma region Render overlay
 #pragma region Dashboard overlay
 				if (vr::VROverlay() && vr::VROverlay()->IsOverlayVisible(m_ulOverlayHandle))
@@ -739,7 +1114,6 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 
 						if (bAllCreated)
 						{
-
 							if (!m_pcTex11Copy[nEye])
 							{
 								if (FAILED(CreateCopyTexture(pcDevice, m_pcDeviceTemporary, *m_ppcTexView11[nEye], &m_pcTex11Copy[nEye], &m_pcTex11Draw[nEye], &m_pcTex11DrawRTV[nEye], &m_pcTex11Shared[nEye])))

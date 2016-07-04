@@ -72,6 +72,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <d3dx9.h>
 #pragma comment(lib, "d3dx9.lib")
 
+#include"..\..\..\Include\Vireio_GUIDs.h"
 #include"..\..\..\Include\Vireio_DX11Basics.h"
 #include"..\..\..\Include\Vireio_Node_Plugtypes.h"
 
@@ -338,6 +339,50 @@ private:
 	* Default aspect ratio.
 	***/
 	float m_fAspectRatio;
+	/**
+	* The 3D vertex shader for the openVR models.
+	***/
+	ID3D11VertexShader* m_pcVSGeometry11;
+	/**
+	* The 3D pixel shader for the openVR models.
+	***/
+	ID3D11PixelShader* m_pcPSGeometry11;
+	/**
+	* The 3D vertex layout for the openVR models.
+	***/
+	ID3D11InputLayout* m_pcVLGeometry11;
+	/**
+	* The 3D vertex buffer for the openVR models.
+	***/
+	ID3D11Buffer* m_pcVBGeometry11;
+	/**
+	* The 3D index buffer for the openVR models.
+	***/
+	ID3D11Buffer* m_pcIBGeometry11;
+	/**
+	* The depth stencil DX11.
+	***/
+	ID3D11Texture2D* m_pcDSGeometry11;
+	/**
+	* The depth stencil view DX11.
+	***/
+	ID3D11DepthStencilView* m_pcDSVGeometry11;
+	/**
+	* The d3d11 sampler.
+	***/
+	ID3D11SamplerState* m_pcSampler11;
+	/**
+	* Constant buffer data structure.
+	***/
+	GeometryConstantBuffer m_sGeometryConstants;
+	/**
+	* The constant buffer for geometry shaders.
+	***/
+	ID3D11Buffer* m_pcConstantBufferGeometry;
+
+	// TODO !! TO OWN STRUCT/CLASS
+	ID3D11Texture2D* m_pcTexGeometry;
+	ID3D11ShaderResourceView* m_pcTexGeometrySRV;
 };
 
 /**

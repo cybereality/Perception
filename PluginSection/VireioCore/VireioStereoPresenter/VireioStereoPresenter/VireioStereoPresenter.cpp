@@ -167,8 +167,8 @@ m_bMenu(false)
 	m_unFoV = 99;
 	m_unFoVADS = 99;
 
-	ZeroMemory(&m_apfFloatInput[0], sizeof(float*) * 16);
-	ZeroMemory(&m_apnIntInput[0], sizeof(int*) * 16);
+	ZeroMemory(&m_apfFloatInput[0], sizeof(float*)* 16);
+	ZeroMemory(&m_apnIntInput[0], sizeof(int*)* 16);
 
 }
 
@@ -191,6 +191,7 @@ StereoPresenter::~StereoPresenter()
 	SAFE_RELEASE(m_pcVSGeometry10);
 	SAFE_RELEASE(m_pcPSGeometry10);
 	SAFE_RELEASE(m_pcVBGeometry10);
+	SAFE_RELEASE(m_pcIBGeometry10);
 }
 
 /**
@@ -636,52 +637,52 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 			}
 		}
 		else
-			if (GetAsyncKeyState(VK_F2))
+		if (GetAsyncKeyState(VK_F2))
+		{
+			if (bReleased)
 			{
-				if (bReleased)
-				{
-					// fov ads
-					m_unFoVADS++;
-					if (m_unFoVADS >= unFoVADSSettings)
-						m_unFoVADS = 0;
-					m_sUserSettings.fFoVADS = afFoVADS[m_unFoVADS];
-					bReleased = false;
+				// fov ads
+				m_unFoVADS++;
+				if (m_unFoVADS >= unFoVADSSettings)
+					m_unFoVADS = 0;
+				m_sUserSettings.fFoVADS = afFoVADS[m_unFoVADS];
+				bReleased = false;
 
-					// read or create the INI file
-					char szFilePathINI[1024];
-					GetCurrentDirectoryA(1024, szFilePathINI);
-					strcat_s(szFilePathINI, "\\VireioPerception.ini");
+				// read or create the INI file
+				char szFilePathINI[1024];
+				GetCurrentDirectoryA(1024, szFilePathINI);
+				strcat_s(szFilePathINI, "\\VireioPerception.ini");
 
-					// fov aiming down sights
-					std::stringstream sz;
-					sz << m_sUserSettings.fFoVADS;
-					WritePrivateProfileStringA("Stereo Presenter", "fFoVADS", sz.str().c_str(), szFilePathINI);
-				}
+				// fov aiming down sights
+				std::stringstream sz;
+				sz << m_sUserSettings.fFoVADS;
+				WritePrivateProfileStringA("Stereo Presenter", "fFoVADS", sz.str().c_str(), szFilePathINI);
 			}
-			else
-				if (GetAsyncKeyState(VK_F12))
-				{
-					m_bHotkeySwitch = true;
-				}
-				else
-					if (GetAsyncKeyState(VK_LCONTROL) && GetAsyncKeyState(0x51))
-					{
-						m_bMenuHotkeySwitch = true;
-					}
-					else
-						if (m_bMenuHotkeySwitch)
-						{
-							m_bMenu = !m_bMenu;
-							m_bMenuHotkeySwitch = false;
-						}
-						else
-							if (m_bHotkeySwitch)
-							{
-								if (m_eStereoMode) m_eStereoMode = VireioMonitorStereoModes::Vireio_Mono; else m_eStereoMode = VireioMonitorStereoModes::Vireio_SideBySide;
-								m_bHotkeySwitch = false;
-							}
-							else
-								bReleased = true;
+		}
+		else
+		if (GetAsyncKeyState(VK_F12))
+		{
+			m_bHotkeySwitch = true;
+		}
+		else
+		if (GetAsyncKeyState(VK_LCONTROL) && GetAsyncKeyState(0x51))
+		{
+			m_bMenuHotkeySwitch = true;
+		}
+		else
+		if (m_bMenuHotkeySwitch)
+		{
+			m_bMenu = !m_bMenu;
+			m_bMenuHotkeySwitch = false;
+		}
+		else
+		if (m_bHotkeySwitch)
+		{
+			if (m_eStereoMode) m_eStereoMode = VireioMonitorStereoModes::Vireio_Mono; else m_eStereoMode = VireioMonitorStereoModes::Vireio_SideBySide;
+			m_bHotkeySwitch = false;
+		}
+		else
+			bReleased = true;
 
 		// handle controller
 		if (bControllerAttached)
@@ -894,7 +895,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 #pragma region draw to stereo textures
 
 		// draw to stereo targets
-		if (true/*TODO*/)
+		if (false) //true/*TODO*/)
 		{
 			// get device and context
 			ID3D11Device* pcDevice = nullptr;
@@ -1004,7 +1005,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 				D3D11_BUFFER_DESC bd;
 				ZeroMemory(&bd, sizeof(bd));
 				bd.Usage = D3D11_USAGE_DEFAULT;
-				bd.ByteWidth = sizeof(TexturedDiffuseVertex) * 24;
+				bd.ByteWidth = sizeof(TexturedDiffuseVertex)* 24;
 				bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 				bd.CPUAccessFlags = 0;
 				D3D11_SUBRESOURCE_DATA InitData;
@@ -1041,7 +1042,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 				D3D11_BUFFER_DESC bd;
 				ZeroMemory(&bd, sizeof(bd));
 				bd.Usage = D3D11_USAGE_DEFAULT;
-				bd.ByteWidth = sizeof(WORD) * 36;
+				bd.ByteWidth = sizeof(WORD)* 36;
 				bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
 				bd.CPUAccessFlags = 0;
 				D3D11_SUBRESOURCE_DATA InitData;
@@ -1074,7 +1075,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 #pragma region draw (optionally)
 
 		// draw stereo target to screen (optionally)
-		if (true)//m_eStereoMode)
+		if (m_eStereoMode)
 		{
 			// DX 11
 			if ((m_ppcTexView11[0]) && (m_ppcTexView11[1]))
@@ -1185,59 +1186,62 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 						pcContext->PSSetShader(m_pcPixelShader11, 0, 0);
 
 						// Render a triangle
-						// pcContext->Draw(6, 0);
+						pcContext->Draw(6, 0);
 					}
 
-					// test draw... TODO !!
+					if (false)
+					{
+						// test draw... TODO !!
 
-					// Update our time
-					static float t = 0.0f;
-					static DWORD dwTimeStart = 0;
-					DWORD dwTimeCur = GetTickCount();
-					if (dwTimeStart == 0)
-						dwTimeStart = dwTimeCur;
-					t = (dwTimeCur - dwTimeStart) / 1000.0f;
+						// Update our time
+						static float t = 0.0f;
+						static DWORD dwTimeStart = 0;
+						DWORD dwTimeCur = GetTickCount();
+						if (dwTimeStart == 0)
+							dwTimeStart = dwTimeCur;
+						t = (dwTimeCur - dwTimeStart) / 1000.0f;
 
-					// Rotate cube around the origin
-					D3DXMATRIX sWorld, sView, sProj;
-					D3DXMatrixRotationYawPitchRoll(&sWorld, t, t / 4.0f, t / 8.0f);
+						// Rotate cube around the origin
+						D3DXMATRIX sWorld, sView, sProj;
+						D3DXMatrixRotationYawPitchRoll(&sWorld, t, t / 4.0f, t / 8.0f);
 
-					// Initialize the view matrix
-					D3DXVECTOR3 sEye = D3DXVECTOR3(0.0f, 3.0f, -6.0f);
-					D3DXVECTOR3 sAt = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
-					D3DXVECTOR3 sUp = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
-					D3DXMatrixLookAtLH(&sView, &sEye, &sAt, &sUp);
+						// Initialize the view matrix
+						D3DXVECTOR3 sEye = D3DXVECTOR3(0.0f, 3.0f, -6.0f);
+						D3DXVECTOR3 sAt = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+						D3DXVECTOR3 sUp = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+						D3DXMatrixLookAtLH(&sView, &sEye, &sAt, &sUp);
 
-					// ...and the projection matrix
-					D3DXMatrixPerspectiveFovLH(&sProj, D3DX_PI / 4, (float)unWidthRT / (float)unHeightRT, 0.01f, 100.0f);
-					D3DXMATRIX sWorldViewProjection = sWorld * sView * sProj;
+						// ...and the projection matrix
+						D3DXMatrixPerspectiveFovLH(&sProj, D3DX_PI / 4, (float)unWidthRT / (float)unHeightRT, 0.01f, 100.0f);
+						D3DXMATRIX sWorldViewProjection = sWorld * sView * sProj;
 
-					// update constant buffer
-					D3DXMatrixTranspose(&m_sGeometryConstants.m_sWorld, &sWorld);
-					D3DXMatrixTranspose(&m_sGeometryConstants.m_sWorldViewProjection, &sWorldViewProjection);
-					D3DXVECTOR4 sLightDir(-0.7f, -0.6f, -0.02f, 1.0f);
-					D3DXVec4Normalize(&sLightDir, &sLightDir);
-					m_sGeometryConstants.m_sLightDir = sLightDir;
-					m_sGeometryConstants.m_sLightAmbient = D3DXCOLOR(0.2f, 0.2f, 0.2f, 1.0f);
-					m_sGeometryConstants.m_sLightDiffuse = D3DXCOLOR(1.0f, 0.2f, 0.7f, 1.0f);
-					pcContext->UpdateSubresource(m_pcConstantBufferDirect11, 0, NULL, &m_sGeometryConstants, 0, 0);
+						// update constant buffer
+						D3DXMatrixTranspose(&m_sGeometryConstants.m_sWorld, &sWorld);
+						D3DXMatrixTranspose(&m_sGeometryConstants.m_sWorldViewProjection, &sWorldViewProjection);
+						D3DXVECTOR4 sLightDir(-0.7f, -0.6f, -0.02f, 1.0f);
+						D3DXVec4Normalize(&sLightDir, &sLightDir);
+						m_sGeometryConstants.m_sLightDir = sLightDir;
+						m_sGeometryConstants.m_sLightAmbient = D3DXCOLOR(0.2f, 0.2f, 0.2f, 1.0f);
+						m_sGeometryConstants.m_sLightDiffuse = D3DXCOLOR(1.0f, 0.2f, 0.7f, 1.0f);
+						pcContext->UpdateSubresource(m_pcConstantBufferDirect11, 0, NULL, &m_sGeometryConstants, 0, 0);
 
-					// Set the input layout, buffers, sampler
-					pcContext->IASetInputLayout(m_pcVLGeometry11);
-					UINT stride = sizeof(TexturedDiffuseVertex);
-					UINT offset = 0;
-					pcContext->IASetVertexBuffers(0, 1, &m_pcVBGeometry11, &stride, &offset);
-					pcContext->IASetIndexBuffer(m_pcIBGeometry11, DXGI_FORMAT_R16_UINT, 0);
-					pcContext->VSSetConstantBuffers(0, 1, &m_pcConstantBufferDirect11);
-					pcContext->PSSetConstantBuffers(0, 1, &m_pcConstantBufferDirect11);
-					pcContext->PSSetSamplers(0, 1, &m_pcSampler11);
+						// Set the input layout, buffers, sampler
+						pcContext->IASetInputLayout(m_pcVLGeometry11);
+						UINT stride = sizeof(TexturedDiffuseVertex);
+						UINT offset = 0;
+						pcContext->IASetVertexBuffers(0, 1, &m_pcVBGeometry11, &stride, &offset);
+						pcContext->IASetIndexBuffer(m_pcIBGeometry11, DXGI_FORMAT_R16_UINT, 0);
+						pcContext->VSSetConstantBuffers(0, 1, &m_pcConstantBufferDirect11);
+						pcContext->PSSetConstantBuffers(0, 1, &m_pcConstantBufferDirect11);
+						pcContext->PSSetSamplers(0, 1, &m_pcSampler11);
 
-					// set shaders
-					pcContext->VSSetShader(m_pcVSGeometry11, NULL, 0);
-					pcContext->PSSetShader(m_pcPSGeometry11, NULL, 0);
+						// set shaders
+						pcContext->VSSetShader(m_pcVSGeometry11, NULL, 0);
+						pcContext->PSSetShader(m_pcPSGeometry11, NULL, 0);
 
-					// draw
-					pcContext->DrawIndexed(36, 0, 0);
+						// draw
+						pcContext->DrawIndexed(36, 0, 0);
+					}
 				}
 
 				// set back device
