@@ -387,9 +387,6 @@ void* OpenVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 		else
 		{
 			m_pHMD->GetDeviceToAbsoluteTrackingPose(vr::ETrackingUniverseOrigin::TrackingUniverseStanding, (float)m_cGameTimer.DeltaTime(), m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount);
-
-			// TODO !! MAKE THIS OPTIONALLY !!
-			vr::VRCompositor()->ForceInterleavedReprojectionOn(true);
 		}
 
 		// first, we only handle the HMD = 0 index

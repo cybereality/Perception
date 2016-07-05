@@ -776,35 +776,35 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 					{
 						TexturedDiffuseVertex asVertices[] =
 						{
-							{ D3DXVECTOR3(-1.0f, 1.0f, -1.0f), D3DXVECTOR3(0.0f, 1.0f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
-							{ D3DXVECTOR3(1.0f, 1.0f, -1.0f), D3DXVECTOR3(0.0f, 1.0f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) },
-							{ D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR3(0.0f, 1.0f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
-							{ D3DXVECTOR3(-1.0f, 1.0f, 1.0f), D3DXVECTOR3(0.0f, 1.0f, 0.0f), D3DXVECTOR2(0.0f, 1.0f) },
+							{ D3DXVECTOR3(-0.05f, 0.05f, -0.05f), D3DXVECTOR3(0.0f, 0.05f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
+							{ D3DXVECTOR3(0.05f, 0.05f, -0.05f), D3DXVECTOR3(0.0f, 0.05f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) },
+							{ D3DXVECTOR3(0.05f, 0.05f, 0.05f), D3DXVECTOR3(0.0f, 0.05f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
+							{ D3DXVECTOR3(-0.05f, 0.05f, 0.05f), D3DXVECTOR3(0.0f, 0.05f, 0.0f), D3DXVECTOR2(0.0f, 1.0f) },
 
-							{ D3DXVECTOR3(-1.0f, -1.0f, -1.0f), D3DXVECTOR3(0.0f, -1.0f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
-							{ D3DXVECTOR3(1.0f, -1.0f, -1.0f), D3DXVECTOR3(0.0f, -1.0f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) },
-							{ D3DXVECTOR3(1.0f, -1.0f, 1.0f), D3DXVECTOR3(0.0f, -1.0f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
-							{ D3DXVECTOR3(-1.0f, -1.0f, 1.0f), D3DXVECTOR3(0.0f, -1.0f, 0.0f), D3DXVECTOR2(0.0f, 1.0f) },
+							{ D3DXVECTOR3(-0.05f, -0.05f, -0.05f), D3DXVECTOR3(0.0f, -0.05f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
+							{ D3DXVECTOR3(0.05f, -0.05f, -0.05f), D3DXVECTOR3(0.0f, -0.05f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) },
+							{ D3DXVECTOR3(0.05f, -0.05f, 0.05f), D3DXVECTOR3(0.0f, -0.05f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
+							{ D3DXVECTOR3(-0.05f, -0.05f, 0.05f), D3DXVECTOR3(0.0f, -0.05f, 0.0f), D3DXVECTOR2(0.0f, 1.0f) },
 
-							{ D3DXVECTOR3(-1.0f, -1.0f, 1.0f), D3DXVECTOR3(-1.0f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
-							{ D3DXVECTOR3(-1.0f, -1.0f, -1.0f), D3DXVECTOR3(-1.0f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) },
-							{ D3DXVECTOR3(-1.0f, 1.0f, -1.0f), D3DXVECTOR3(-1.0f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
-							{ D3DXVECTOR3(-1.0f, 1.0f, 1.0f), D3DXVECTOR3(-1.0f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 1.0f) },
+							{ D3DXVECTOR3(-0.05f, -0.05f, 0.05f), D3DXVECTOR3(-0.05f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
+							{ D3DXVECTOR3(-0.05f, -0.05f, -0.05f), D3DXVECTOR3(-0.05f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) },
+							{ D3DXVECTOR3(-0.05f, 0.05f, -0.05f), D3DXVECTOR3(-0.05f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
+							{ D3DXVECTOR3(-0.05f, 0.05f, 0.05f), D3DXVECTOR3(-0.05f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 1.0f) },
 
-							{ D3DXVECTOR3(1.0f, -1.0f, 1.0f), D3DXVECTOR3(1.0f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
-							{ D3DXVECTOR3(1.0f, -1.0f, -1.0f), D3DXVECTOR3(1.0f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) },
-							{ D3DXVECTOR3(1.0f, 1.0f, -1.0f), D3DXVECTOR3(1.0f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
-							{ D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR3(1.0f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 1.0f) },
+							{ D3DXVECTOR3(0.05f, -0.05f, 0.05f), D3DXVECTOR3(0.05f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
+							{ D3DXVECTOR3(0.05f, -0.05f, -0.05f), D3DXVECTOR3(0.05f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) },
+							{ D3DXVECTOR3(0.05f, 0.05f, -0.05f), D3DXVECTOR3(0.05f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
+							{ D3DXVECTOR3(0.05f, 0.05f, 0.05f), D3DXVECTOR3(0.05f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 1.0f) },
 
-							{ D3DXVECTOR3(-1.0f, -1.0f, -1.0f), D3DXVECTOR3(0.0f, 0.0f, -1.0f), D3DXVECTOR2(0.0f, 0.0f) },
-							{ D3DXVECTOR3(1.0f, -1.0f, -1.0f), D3DXVECTOR3(0.0f, 0.0f, -1.0f), D3DXVECTOR2(1.0f, 0.0f) },
-							{ D3DXVECTOR3(1.0f, 1.0f, -1.0f), D3DXVECTOR3(0.0f, 0.0f, -1.0f), D3DXVECTOR2(1.0f, 1.0f) },
-							{ D3DXVECTOR3(-1.0f, 1.0f, -1.0f), D3DXVECTOR3(0.0f, 0.0f, -1.0f), D3DXVECTOR2(0.0f, 1.0f) },
+							{ D3DXVECTOR3(-0.05f, -0.05f, -0.05f), D3DXVECTOR3(0.0f, 0.0f, -0.05f), D3DXVECTOR2(0.0f, 0.0f) },
+							{ D3DXVECTOR3(0.05f, -0.05f, -0.05f), D3DXVECTOR3(0.0f, 0.0f, -0.05f), D3DXVECTOR2(1.0f, 0.0f) },
+							{ D3DXVECTOR3(0.05f, 0.05f, -0.05f), D3DXVECTOR3(0.0f, 0.0f, -0.05f), D3DXVECTOR2(1.0f, 1.0f) },
+							{ D3DXVECTOR3(-0.05f, 0.05f, -0.05f), D3DXVECTOR3(0.0f, 0.0f, -0.05f), D3DXVECTOR2(0.0f, 1.0f) },
 
-							{ D3DXVECTOR3(-1.0f, -1.0f, 1.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(0.0f, 0.0f) },
-							{ D3DXVECTOR3(1.0f, -1.0f, 1.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(1.0f, 0.0f) },
-							{ D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(1.0f, 1.0f) },
-							{ D3DXVECTOR3(-1.0f, 1.0f, 1.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(0.0f, 1.0f) },
+							{ D3DXVECTOR3(-0.05f, -0.05f, 0.05f), D3DXVECTOR3(0.0f, 0.0f, 0.05f), D3DXVECTOR2(0.0f, 0.0f) },
+							{ D3DXVECTOR3(0.05f, -0.05f, 0.05f), D3DXVECTOR3(0.0f, 0.0f, 0.05f), D3DXVECTOR2(1.0f, 0.0f) },
+							{ D3DXVECTOR3(0.05f, 0.05f, 0.05f), D3DXVECTOR3(0.0f, 0.0f, 0.05f), D3DXVECTOR2(1.0f, 1.0f) },
+							{ D3DXVECTOR3(-0.05f, 0.05f, 0.05f), D3DXVECTOR3(0.0f, 0.0f, 0.05f), D3DXVECTOR2(0.0f, 1.0f) },
 						};
 
 						D3D11_BUFFER_DESC bd;
@@ -881,15 +881,19 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 					}
 
 					// create all models
+					UINT unIndex = 3;
 					if (!m_pcTexGeometry)
 					{
 						// get model name
-						uint32_t unRequiredBufferLen = (*m_ppHMD)->GetStringTrackedDeviceProperty(vr::ETrackedDeviceClass::TrackedDeviceClass_Controller, vr::Prop_RenderModelName_String, NULL, 0, NULL);
+						uint32_t unRequiredBufferLen = (*m_ppHMD)->GetStringTrackedDeviceProperty(unIndex, vr::Prop_RenderModelName_String, NULL, 0, NULL);
 						char *pchBuffer = new char[unRequiredBufferLen];
 						if (unRequiredBufferLen > 0)
-							unRequiredBufferLen = (*m_ppHMD)->GetStringTrackedDeviceProperty(vr::ETrackedDeviceClass::TrackedDeviceClass_Controller, vr::Prop_RenderModelName_String, pchBuffer, unRequiredBufferLen, NULL);
+							unRequiredBufferLen = (*m_ppHMD)->GetStringTrackedDeviceProperty(unIndex, vr::Prop_RenderModelName_String, pchBuffer, unRequiredBufferLen, NULL);
 						std::string szModelName = pchBuffer;
 						delete[] pchBuffer;
+
+						OutputDebugString(L"OPENVR model name : ");
+						OutputDebugStringA(szModelName.c_str());
 
 						// Mesh laden
 						vr::RenderModel_t *pModel = NULL;
@@ -915,19 +919,6 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 						{
 							OutputDebugString(L"[OPENVR] Unable to load render texture");
 						}
-
-
-						/*pRenderModel = new CGLRenderModel(pchRenderModelName);
-						if (!pRenderModel->BInit(*pModel, *pTexture))
-						{
-						dprintf("Unable to create GL model from render model %s\n", pchRenderModelName);
-						delete pRenderModel;
-						pRenderModel = NULL;
-						}
-						else
-						{
-						m_vecRenderModels.push_back(pRenderModel);
-						}*/
 
 						// create font texture
 						D3D11_TEXTURE2D_DESC sDesc;
@@ -963,27 +954,54 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 						vr::VRRenderModels()->FreeTexture(pTexture);
 					}
 
+					// get tracking pose... 
+					(*m_ppHMD)->GetDeviceToAbsoluteTrackingPose(vr::ETrackingUniverseOrigin::TrackingUniverseStanding, 0, m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount);
 
-					// Update our time
-					static float t = 0.0f;
-					static DWORD dwTimeStart = 0;
-					DWORD dwTimeCur = GetTickCount();
-					if (dwTimeStart == 0)
-						dwTimeStart = dwTimeCur;
-					t = (dwTimeCur - dwTimeStart) / 1000.0f;
+					// convert to left handed matrices
+					/*m_rmat4DevicePose[0] = D3DXMATRIX(
+						-m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[0][0], -m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[1][0], m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[2][0], 0.0,
+						m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[0][1], m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[1][1], -m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[2][1], 0.0,
+						m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[0][2], m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[1][2], -m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[2][2], 0.0,
+						m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[0][3], m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[1][3], -m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[2][3], 1.0f
+						);*/
 
-					// Rotate cube around the origin
+					/*m_rmat4DevicePose[0] = D3DXMATRIX(
+						-m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[0][0], -m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[1][0], m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[2][0], 0.0,
+						m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[0][1], m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[1][1], m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[2][1], 0.0,
+						m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[0][2], -m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[1][2], -m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[2][2], 0.0,
+						m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[0][3], m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[1][3], -m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[2][3], 1.0f
+						);*/
+
+					/*m_rmat4DevicePose[0] = D3DXMATRIX(
+						m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[0][0], m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[1][0], m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[2][0], 0.0,
+						m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[0][1], m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[1][1], m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[2][1], 0.0,
+						m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[0][2], -m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[1][2], m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[2][2], 0.0,
+						m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[0][3], m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[1][3], -m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[2][3], 1.0f
+						);*/
+
+					m_rmat4DevicePose[0] = D3DXMATRIX(
+						m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[0][0], m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[1][0], -m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[2][0], 0.0,
+						m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[0][1], m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[1][1], -m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[2][1], 0.0,
+						-m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[0][2], -m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[1][2], m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[2][2], 0.0,
+						m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[0][3], m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[1][3], -m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[2][3], 1.0f
+						);
+
+					m_rmat4DevicePose[unIndex] = D3DXMATRIX(
+						-m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[0][0], -m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[1][0], m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[2][0], 0.0,
+						m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[0][1], m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[1][1], -m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[2][1], 0.0,
+						m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[0][2], m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[1][2], -m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[2][2], 0.0,
+						m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[0][3], m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[1][3], -m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[2][3], 1.0f
+						);
+
+					// create world, view, projection
 					D3DXMATRIX sWorld, sView, sProj;
-					D3DXMatrixRotationYawPitchRoll(&sWorld, t, t / 4.0f, t / 8.0f);
+					D3DXMatrixIdentity(&sWorld);
 
-					// Initialize the view matrix
-					D3DXVECTOR3 sEye = D3DXVECTOR3(0.0f, 3.0f, -6.0f);
-					D3DXVECTOR3 sAt = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
-					D3DXVECTOR3 sUp = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
-					D3DXMatrixLookAtLH(&sView, &sEye, &sAt, &sUp);
+					// create view matrix by hmd matrix
+					D3DXMatrixInverse(&sView, 0, &m_rmat4DevicePose[0]);
 
 					// ...and the projection matrix
-					D3DXMatrixPerspectiveFovLH(&sProj, (float)D3DX_PI / 4, (float)unWidthRT / (float)unHeightRT, 0.01f, 100.0f);
+					D3DXMatrixPerspectiveFovLH(&sProj, (float)D3DX_PI / 4, (float)unWidthRT / (float)unHeightRT, 0.1f, 30.0f);
 					D3DXMATRIX sWorldViewProjection = sWorld * sView * sProj;
 
 					// update constant buffer

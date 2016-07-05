@@ -84,6 +84,41 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define OPENVR_HUD_OVERLAY_FRIENDLY_NAME               "HUD"
 
 /**
+* Matrix helper DX.
+***/
+D3DXMATRIX GetHMDMatrixProjectionEye(vr::IVRSystem* pHmd, vr::Hmd_Eye nEye, float fNearClip, float fFarClip)
+{
+	if (!pHmd)
+		return D3DXMATRIX();
+
+	vr::HmdMatrix44_t mat = pHmd->GetProjectionMatrix(nEye, fNearClip, fFarClip, vr::API_OpenGL);//API_DirectX);
+
+	return D3DXMATRIX(
+		mat.m[0][0], mat.m[1][0], mat.m[2][0], mat.m[3][0],
+		mat.m[0][1], mat.m[1][1], mat.m[2][1], mat.m[3][1],
+		mat.m[0][2], mat.m[1][2], mat.m[2][2], mat.m[3][2],
+		mat.m[0][3], mat.m[1][3], mat.m[2][3], mat.m[3][3]
+		);
+}
+D3DXMATRIX GetHMDMatrixPoseEye(vr::IVRSystem* pHmd, vr::Hmd_Eye nEye)
+{
+	if (!pHmd)
+		return D3DXMATRIX();
+
+	vr::HmdMatrix34_t matEyeRight = pHmd->GetEyeToHeadTransform(nEye);
+	D3DXMATRIX matrixObj(
+		matEyeRight.m[0][0], matEyeRight.m[1][0], matEyeRight.m[2][0], 0.0,
+		matEyeRight.m[0][1], matEyeRight.m[1][1], matEyeRight.m[2][1], 0.0,
+		matEyeRight.m[0][2], matEyeRight.m[1][2], matEyeRight.m[2][2], 0.0,
+		matEyeRight.m[0][3], matEyeRight.m[1][3], matEyeRight.m[2][3], 1.0f
+		);
+
+	D3DXMATRIX matrixObjInv;
+	// D3DXMatrixInverse(&matrixObjInv, 0, &matrixObj);
+	return matrixObj;// matrixObjInv;
+}
+
+/**
 * Node Decommander Enumeration.
 ***/
 enum OpenVR_Decommanders
@@ -204,6 +239,10 @@ private:
 	* The (tracked) device poses (for all devices).
 	***/
 	vr::TrackedDevicePose_t m_rTrackedDevicePose[vr::k_unMaxTrackedDeviceCount];
+	/**
+	* The device pose matrices.
+	***/
+	D3DXMATRIX m_rmat4DevicePose[vr::k_unMaxTrackedDeviceCount];
 	/**
 	* The overlay handle.
 	***/
