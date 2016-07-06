@@ -85,37 +85,97 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
 * Matrix helper DX.
+* @returns Left handed D3D matrix from Steam HmdMatrix34_t type.
 ***/
-D3DXMATRIX GetHMDMatrixProjectionEye(vr::IVRSystem* pHmd, vr::Hmd_Eye nEye, float fNearClip, float fFarClip)
+D3DMATRIX GetLH(vr::HmdMatrix34_t sMat)
 {
-	if (!pHmd)
-		return D3DXMATRIX();
-
-	vr::HmdMatrix44_t mat = pHmd->GetProjectionMatrix(nEye, fNearClip, fFarClip, vr::API_OpenGL);//API_DirectX);
-
-	return D3DXMATRIX(
-		mat.m[0][0], mat.m[1][0], mat.m[2][0], mat.m[3][0],
-		mat.m[0][1], mat.m[1][1], mat.m[2][1], mat.m[3][1],
-		mat.m[0][2], mat.m[1][2], mat.m[2][2], mat.m[3][2],
-		mat.m[0][3], mat.m[1][3], mat.m[2][3], mat.m[3][3]
+	D3DXMATRIX sRet = D3DXMATRIX(
+		sMat.m[0][0], sMat.m[1][0], -sMat.m[2][0], 0.0,
+		sMat.m[0][1], sMat.m[1][1], -sMat.m[2][1], 0.0,
+		-sMat.m[0][2], -sMat.m[1][2], sMat.m[2][2], 0.0,
+		sMat.m[0][3], sMat.m[1][3], -sMat.m[2][3], 1.0f
 		);
+
+	return sRet;
 }
-D3DXMATRIX GetHMDMatrixPoseEye(vr::IVRSystem* pHmd, vr::Hmd_Eye nEye)
+/**
+* Matrix helper DX.
+* @returns Left handed D3D matrix from Steam HmdMatrix44_t type.
+***/
+D3DMATRIX GetLH(vr::HmdMatrix44_t sMat)
+{
+	D3DXMATRIX sRet = D3DXMATRIX(
+		sMat.m[0][0], sMat.m[1][0], -sMat.m[2][0], sMat.m[3][0],
+		sMat.m[0][1], sMat.m[1][1], -sMat.m[2][1], sMat.m[3][1],
+		-sMat.m[0][2], -sMat.m[1][2], sMat.m[2][2], sMat.m[3][2],
+		sMat.m[0][3], sMat.m[1][3], -sMat.m[2][3], sMat.m[3][3]
+		);
+
+	return sRet;
+}
+/**
+* Matrix helper DX.
+* @returns Left handed OpenVR projection matrix for specified eye.
+***/
+D3DXMATRIX GetHMDMatrixProjectionEyeLH(vr::IVRSystem* pHmd, vr::Hmd_Eye nEye, float fFOVy, float fAspect, float fNearClip, float fFarClip)
 {
 	if (!pHmd)
 		return D3DXMATRIX();
 
-	vr::HmdMatrix34_t matEyeRight = pHmd->GetEyeToHeadTransform(nEye);
-	D3DXMATRIX matrixObj(
-		matEyeRight.m[0][0], matEyeRight.m[1][0], matEyeRight.m[2][0], 0.0,
-		matEyeRight.m[0][1], matEyeRight.m[1][1], matEyeRight.m[2][1], 0.0,
-		matEyeRight.m[0][2], matEyeRight.m[1][2], matEyeRight.m[2][2], 0.0,
-		matEyeRight.m[0][3], matEyeRight.m[1][3], matEyeRight.m[2][3], 1.0f
+	// get projection basics by FOV and aspect ratio
+	float fYScale = (float)tan((D3DX_PI / 2.0f) - (fFOVy / 2.0));
+	float fXScale = fYScale / fAspect;
+	float fRightSrc = 0.1f / fXScale;
+	float fLeftSrc = -0.1f / fXScale;
+	float fTopSrc = 0.1f / fYScale;
+	float fBottomSrc = -0.1f / fYScale;
+	float fWidthSrc = abs(fRightSrc) + abs(fLeftSrc);
+	float fHeightSrc = abs(fTopSrc) + abs(fBottomSrc);
+
+	// get raw projection data
+	float fLeft, fRight, fTop, fBottom;
+	pHmd->GetProjectionRaw(nEye, &fLeft, &fRight, &fTop, &fBottom);
+	float fWidth = abs(fRight) + abs(fLeft);
+	float fHeight = abs(fTop) + abs(fBottom);
+
+	// compute eventual projection data
+	fLeft = fLeft * (fWidthSrc / fWidth);
+	fRight = fRight * (fWidthSrc / fWidth);
+	fTop = fTop * (fHeightSrc / fHeight);
+	fBottom = fBottom * (fHeightSrc / fHeight);
+
+	// negative / positive ?
+	if (((fLeftSrc < 0.0f) && (fLeft > 0.0f)) || ((fLeftSrc > 0.0f) && (fLeft < 0.0f))) fLeft *= -1.0f;
+	if (((fRightSrc < 0.0f) && (fRight > 0.0f)) || ((fRightSrc > 0.0f) && (fRight < 0.0f))) fRight *= -1.0f;
+	if (((fTopSrc < 0.0f) && (fTop > 0.0f)) || ((fTopSrc > 0.0f) && (fTop < 0.0f))) fTop *= -1.0f;
+	if (((fBottomSrc < 0.0f) && (fBottom > 0.0f)) || ((fBottomSrc > 0.0f) && (fBottom < 0.0f))) fBottom *= -1.0f;
+
+	// create matrix
+	D3DXMATRIX sRet;
+	D3DXMatrixPerspectiveOffCenterLH(&sRet, fLeft, fRight, fBottom, fTop, fNearClip, fFarClip);
+
+	return sRet;
+}
+/**
+* Matrix helper DX.
+* @returns Left handed OpenVR pose matrix for specified eye.
+***/
+D3DXMATRIX GetHMDMatrixPoseEyeLH(vr::IVRSystem* pHmd, vr::Hmd_Eye nEye)
+{
+	if (!pHmd)
+		return D3DXMATRIX();
+
+	vr::HmdMatrix34_t sMat = pHmd->GetEyeToHeadTransform(nEye);
+	D3DXMATRIX matrixObj = D3DXMATRIX(
+		sMat.m[0][0], sMat.m[1][0], sMat.m[2][0], 0.0,
+		sMat.m[0][1], sMat.m[1][1], sMat.m[2][1], 0.0,
+		sMat.m[0][2], sMat.m[1][2], sMat.m[2][2], 0.0,
+		sMat.m[0][3], sMat.m[1][3], sMat.m[2][3], 1.0f
 		);
 
 	D3DXMATRIX matrixObjInv;
-	// D3DXMatrixInverse(&matrixObjInv, 0, &matrixObj);
-	return matrixObj;// matrixObjInv;
+	D3DXMatrixInverse(&matrixObjInv, 0, &matrixObj);
+	return matrixObjInv;
 }
 
 /**

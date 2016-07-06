@@ -999,20 +999,14 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 
 					// create view matrix by hmd matrix
 					D3DXMatrixInverse(&sView, 0, &m_rmat4DevicePose[0]);
-
-					// ...and the projection matrix
-					D3DXMatrixPerspectiveFovLH(&sProj, (float)D3DX_PI / 4, (float)unWidthRT / (float)unHeightRT, 0.1f, 30.0f);
-					D3DXMATRIX sWorldViewProjection = sWorld * sView * sProj;
-
-					// update constant buffer
+					
+					// update constants for buffer... TODO !! create once before drawing
 					D3DXMatrixTranspose(&m_sGeometryConstants.m_sWorld, &sWorld);
-					D3DXMatrixTranspose(&m_sGeometryConstants.m_sWorldViewProjection, &sWorldViewProjection);
 					D3DXVECTOR4 sLightDir(-0.7f, -0.6f, -0.02f, 1.0f);
 					D3DXVec4Normalize(&sLightDir, &sLightDir);
 					m_sGeometryConstants.m_sLightDir = sLightDir;
 					m_sGeometryConstants.m_sLightAmbient = D3DXCOLOR(0.2f, 0.2f, 0.2f, 1.0f);
 					m_sGeometryConstants.m_sLightDiffuse = D3DXCOLOR(1.0f, 0.2f, 0.7f, 1.0f);
-					pcContext->UpdateSubresource(m_pcConstantBufferGeometry, 0, NULL, &m_sGeometryConstants, 0, 0);
 
 					// Set the input layout, buffers, sampler
 					pcContext->IASetInputLayout(m_pcVLGeometry11);
@@ -1034,6 +1028,16 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 					// left + right
 					for (int nEye = 0; nEye < 2; nEye++)
 					{
+						// get the projection matrix for each eye
+						// sProj = GetHMDMatrixProjectionEyeLH(*m_ppHMD, (vr::Hmd_Eye)nEye, (float)D3DXToRadian(110.0), (float)unWidthRT / (float)unHeightRT, 0.1f, 30.0f);
+						D3DXMatrixPerspectiveFovLH(&sProj, (float)D3DXToRadian(110.0), (float)unWidthRT / (float)unHeightRT, 0.1f, 30.0f);
+
+						// TODO !! TO EYE POSE
+						D3DXMATRIX sToEye = GetHMDMatrixPoseEyeLH(*m_ppHMD, (vr::Hmd_Eye)nEye);
+						D3DXMATRIX sWorldViewProjection = sWorld * sView * sToEye * sProj;
+						D3DXMatrixTranspose(&m_sGeometryConstants.m_sWorldViewProjection, &sWorldViewProjection);
+						pcContext->UpdateSubresource(m_pcConstantBufferGeometry, 0, NULL, &m_sGeometryConstants, 0, 0);
+
 						// get render target view
 						ID3D11RenderTargetView* pcRTV = nullptr;
 						UINT dwSize = sizeof(pcRTV);
