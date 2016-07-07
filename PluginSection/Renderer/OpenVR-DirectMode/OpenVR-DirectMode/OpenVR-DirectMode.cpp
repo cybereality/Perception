@@ -771,92 +771,6 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 						}
 					}
 
-					// Create vertex buffer
-					if (!m_pcVBGeometry11)
-					{
-						TexturedDiffuseVertex asVertices[] =
-						{
-							{ D3DXVECTOR3(-0.05f, 0.05f, -0.05f), D3DXVECTOR3(0.0f, 0.05f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
-							{ D3DXVECTOR3(0.05f, 0.05f, -0.05f), D3DXVECTOR3(0.0f, 0.05f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) },
-							{ D3DXVECTOR3(0.05f, 0.05f, 0.05f), D3DXVECTOR3(0.0f, 0.05f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
-							{ D3DXVECTOR3(-0.05f, 0.05f, 0.05f), D3DXVECTOR3(0.0f, 0.05f, 0.0f), D3DXVECTOR2(0.0f, 1.0f) },
-
-							{ D3DXVECTOR3(-0.05f, -0.05f, -0.05f), D3DXVECTOR3(0.0f, -0.05f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
-							{ D3DXVECTOR3(0.05f, -0.05f, -0.05f), D3DXVECTOR3(0.0f, -0.05f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) },
-							{ D3DXVECTOR3(0.05f, -0.05f, 0.05f), D3DXVECTOR3(0.0f, -0.05f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
-							{ D3DXVECTOR3(-0.05f, -0.05f, 0.05f), D3DXVECTOR3(0.0f, -0.05f, 0.0f), D3DXVECTOR2(0.0f, 1.0f) },
-
-							{ D3DXVECTOR3(-0.05f, -0.05f, 0.05f), D3DXVECTOR3(-0.05f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
-							{ D3DXVECTOR3(-0.05f, -0.05f, -0.05f), D3DXVECTOR3(-0.05f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) },
-							{ D3DXVECTOR3(-0.05f, 0.05f, -0.05f), D3DXVECTOR3(-0.05f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
-							{ D3DXVECTOR3(-0.05f, 0.05f, 0.05f), D3DXVECTOR3(-0.05f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 1.0f) },
-
-							{ D3DXVECTOR3(0.05f, -0.05f, 0.05f), D3DXVECTOR3(0.05f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
-							{ D3DXVECTOR3(0.05f, -0.05f, -0.05f), D3DXVECTOR3(0.05f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) },
-							{ D3DXVECTOR3(0.05f, 0.05f, -0.05f), D3DXVECTOR3(0.05f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
-							{ D3DXVECTOR3(0.05f, 0.05f, 0.05f), D3DXVECTOR3(0.05f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 1.0f) },
-
-							{ D3DXVECTOR3(-0.05f, -0.05f, -0.05f), D3DXVECTOR3(0.0f, 0.0f, -0.05f), D3DXVECTOR2(0.0f, 0.0f) },
-							{ D3DXVECTOR3(0.05f, -0.05f, -0.05f), D3DXVECTOR3(0.0f, 0.0f, -0.05f), D3DXVECTOR2(1.0f, 0.0f) },
-							{ D3DXVECTOR3(0.05f, 0.05f, -0.05f), D3DXVECTOR3(0.0f, 0.0f, -0.05f), D3DXVECTOR2(1.0f, 1.0f) },
-							{ D3DXVECTOR3(-0.05f, 0.05f, -0.05f), D3DXVECTOR3(0.0f, 0.0f, -0.05f), D3DXVECTOR2(0.0f, 1.0f) },
-
-							{ D3DXVECTOR3(-0.05f, -0.05f, 0.05f), D3DXVECTOR3(0.0f, 0.0f, 0.05f), D3DXVECTOR2(0.0f, 0.0f) },
-							{ D3DXVECTOR3(0.05f, -0.05f, 0.05f), D3DXVECTOR3(0.0f, 0.0f, 0.05f), D3DXVECTOR2(1.0f, 0.0f) },
-							{ D3DXVECTOR3(0.05f, 0.05f, 0.05f), D3DXVECTOR3(0.0f, 0.0f, 0.05f), D3DXVECTOR2(1.0f, 1.0f) },
-							{ D3DXVECTOR3(-0.05f, 0.05f, 0.05f), D3DXVECTOR3(0.0f, 0.0f, 0.05f), D3DXVECTOR2(0.0f, 1.0f) },
-						};
-
-						D3D11_BUFFER_DESC bd;
-						ZeroMemory(&bd, sizeof(bd));
-						bd.Usage = D3D11_USAGE_DEFAULT;
-						bd.ByteWidth = sizeof(TexturedDiffuseVertex)* 24;
-						bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-						bd.CPUAccessFlags = 0;
-						D3D11_SUBRESOURCE_DATA InitData;
-						ZeroMemory(&InitData, sizeof(InitData));
-						InitData.pSysMem = asVertices;
-						if (FAILED(pcDevice->CreateBuffer(&bd, &InitData, &m_pcVBGeometry11)))
-							OutputDebugString(L"[OPENVR] Failed to create vertex buffer.");
-					}
-
-					// Create index buffer
-					if (!m_pcIBGeometry11)
-					{
-						WORD aunIndices[] =
-						{
-							3, 1, 0,
-							2, 1, 3,
-
-							6, 4, 5,
-							7, 4, 6,
-
-							11, 9, 8,
-							10, 9, 11,
-
-							14, 12, 13,
-							15, 12, 14,
-
-							19, 17, 16,
-							18, 17, 19,
-
-							22, 20, 21,
-							23, 20, 22
-						};
-
-						D3D11_BUFFER_DESC bd;
-						ZeroMemory(&bd, sizeof(bd));
-						bd.Usage = D3D11_USAGE_DEFAULT;
-						bd.ByteWidth = sizeof(WORD)* 36;
-						bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-						bd.CPUAccessFlags = 0;
-						D3D11_SUBRESOURCE_DATA InitData;
-						ZeroMemory(&InitData, sizeof(InitData));
-						InitData.pSysMem = aunIndices;
-						if (FAILED(pcDevice->CreateBuffer(&bd, &InitData, &m_pcIBGeometry11)))
-							OutputDebugString(L"[OPENVR] Failed to create index buffer.");
-					}
-
 					if (!m_pcSampler11)
 					{
 						// Create the sample state
@@ -882,7 +796,8 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 
 					// create all models
 					UINT unIndex = 3;
-					if (!m_pcTexGeometry)
+					static UINT unIndicesCount = 0;
+					if ((!m_pcIBGeometry11) || (!m_pcTexGeometry) || (!m_pcVBGeometry11))
 					{
 						// get model name
 						uint32_t unRequiredBufferLen = (*m_ppHMD)->GetStringTrackedDeviceProperty(unIndex, vr::Prop_RenderModelName_String, NULL, 0, NULL);
@@ -920,6 +835,34 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 							OutputDebugString(L"[OPENVR] Unable to load render texture");
 						}
 
+						// Create vertex buffer
+						D3D11_BUFFER_DESC sVertexBufferDesc;
+						ZeroMemory(&sVertexBufferDesc, sizeof(sVertexBufferDesc));
+						sVertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+						sVertexBufferDesc.ByteWidth = sizeof(TexturedDiffuseVertex)* pModel->unVertexCount;
+						sVertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+						sVertexBufferDesc.CPUAccessFlags = 0;
+						D3D11_SUBRESOURCE_DATA sInitData;
+						ZeroMemory(&sInitData, sizeof(sInitData));
+						sInitData.pSysMem = pModel->rVertexData;
+						if (FAILED(pcDevice->CreateBuffer(&sVertexBufferDesc, &sInitData, &m_pcVBGeometry11)))
+							OutputDebugString(L"[OPENVR] Failed to create vertex buffer.");
+
+						// create index buffer
+						D3D11_BUFFER_DESC sIndexBufferDesc;
+						ZeroMemory(&sIndexBufferDesc, sizeof(sIndexBufferDesc));
+						sIndexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+						sIndexBufferDesc.ByteWidth = sizeof(WORD)* pModel->unTriangleCount * 3;
+						sIndexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+						sIndexBufferDesc.CPUAccessFlags = 0;
+						ZeroMemory(&sInitData, sizeof(sInitData));
+						sInitData.pSysMem = pModel->rIndexData;
+						if (FAILED(pcDevice->CreateBuffer(&sIndexBufferDesc, &sInitData, &m_pcIBGeometry11)))
+							OutputDebugString(L"[OPENVR] Failed to create index buffer.");
+
+						// set indices count TODO !! OWN STRUCTURE !!
+						unIndicesCount = pModel->unTriangleCount * 3;
+
 						// create font texture
 						D3D11_TEXTURE2D_DESC sDesc;
 						ZeroMemory(&sDesc, sizeof(sDesc));
@@ -939,6 +882,7 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 
 						if (m_pcTexGeometry)
 						{
+							// create texture shader resource view
 							D3D11_SHADER_RESOURCE_VIEW_DESC sDesc;
 							ZeroMemory(&sDesc, sizeof(sDesc));
 							sDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -958,48 +902,16 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 					(*m_ppHMD)->GetDeviceToAbsoluteTrackingPose(vr::ETrackingUniverseOrigin::TrackingUniverseStanding, 0, m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount);
 
 					// convert to left handed matrices
-					/*m_rmat4DevicePose[0] = D3DXMATRIX(
-						-m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[0][0], -m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[1][0], m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[2][0], 0.0,
-						m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[0][1], m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[1][1], -m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[2][1], 0.0,
-						m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[0][2], m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[1][2], -m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[2][2], 0.0,
-						m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[0][3], m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[1][3], -m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[2][3], 1.0f
-						);*/
+					m_rmat4DevicePose[0] = GetLH(m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking);
+					m_rmat4DevicePose[unIndex] = GetLH(m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking);
 
-					/*m_rmat4DevicePose[0] = D3DXMATRIX(
-						-m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[0][0], -m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[1][0], m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[2][0], 0.0,
-						m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[0][1], m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[1][1], m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[2][1], 0.0,
-						m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[0][2], -m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[1][2], -m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[2][2], 0.0,
-						m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[0][3], m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[1][3], -m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[2][3], 1.0f
-						);*/
-
-					/*m_rmat4DevicePose[0] = D3DXMATRIX(
-						m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[0][0], m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[1][0], m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[2][0], 0.0,
-						m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[0][1], m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[1][1], m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[2][1], 0.0,
-						m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[0][2], -m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[1][2], m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[2][2], 0.0,
-						m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[0][3], m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[1][3], -m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[2][3], 1.0f
-						);*/
-
-					m_rmat4DevicePose[0] = D3DXMATRIX(
-						m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[0][0], m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[1][0], -m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[2][0], 0.0,
-						m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[0][1], m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[1][1], -m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[2][1], 0.0,
-						-m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[0][2], -m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[1][2], m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[2][2], 0.0,
-						m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[0][3], m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[1][3], -m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking.m[2][3], 1.0f
-						);
-
-					m_rmat4DevicePose[unIndex] = D3DXMATRIX(
-						-m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[0][0], -m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[1][0], m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[2][0], 0.0,
-						m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[0][1], m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[1][1], -m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[2][1], 0.0,
-						m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[0][2], m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[1][2], -m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[2][2], 0.0,
-						m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[0][3], m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[1][3], -m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[2][3], 1.0f
-						);
-
-					// create world, view, projection
+					// set world matrix
 					D3DXMATRIX sWorld, sView, sProj;
-					D3DXMatrixIdentity(&sWorld);
+					sWorld = m_rmat4DevicePose[unIndex];
 
 					// create view matrix by hmd matrix
 					D3DXMatrixInverse(&sView, 0, &m_rmat4DevicePose[0]);
-					
+
 					// update constants for buffer... TODO !! create once before drawing
 					D3DXMatrixTranspose(&m_sGeometryConstants.m_sWorld, &sWorld);
 					D3DXVECTOR4 sLightDir(-0.7f, -0.6f, -0.02f, 1.0f);
@@ -1030,7 +942,7 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 					{
 						// get the projection matrix for each eye
 						// sProj = GetHMDMatrixProjectionEyeLH(*m_ppHMD, (vr::Hmd_Eye)nEye, (float)D3DXToRadian(110.0), (float)unWidthRT / (float)unHeightRT, 0.1f, 30.0f);
-						D3DXMatrixPerspectiveFovLH(&sProj, (float)D3DXToRadian(110.0), (float)unWidthRT / (float)unHeightRT, 0.1f, 30.0f);
+						D3DXMatrixPerspectiveFovLH(&sProj, (float)D3DXToRadian(116.0), (float)unWidthRT / (float)unHeightRT, 0.1f, 30.0f);
 
 						// TODO !! TO EYE POSE
 						D3DXMATRIX sToEye = GetHMDMatrixPoseEyeLH(*m_ppHMD, (vr::Hmd_Eye)nEye);
@@ -1053,7 +965,7 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 						pcContext->PSSetShaderResources(0, 1, &m_pcTexGeometrySRV);
 
 						// draw
-						pcContext->DrawIndexed(36, 0, 0);
+						pcContext->DrawIndexed(unIndicesCount * 3, 0, 0);
 
 						// relese RTV
 						if (pcRTV) pcRTV->Release(); else OutputDebugString(L"[OPENVR] No render target view !");

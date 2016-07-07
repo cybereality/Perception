@@ -115,6 +115,7 @@ D3DMATRIX GetLH(vr::HmdMatrix44_t sMat)
 }
 /**
 * Matrix helper DX.
+* TODO !! DOES NOT WORK CURRENTLY, TEST WHAT IS ACTUALLY HAPPENING HERE !!
 * @returns Left handed OpenVR projection matrix for specified eye.
 ***/
 D3DXMATRIX GetHMDMatrixProjectionEyeLH(vr::IVRSystem* pHmd, vr::Hmd_Eye nEye, float fFOVy, float fAspect, float fNearClip, float fFarClip)
