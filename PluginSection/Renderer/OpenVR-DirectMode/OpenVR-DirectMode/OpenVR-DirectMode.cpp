@@ -222,14 +222,10 @@ m_pbZoomOut(nullptr),
 m_pcVSGeometry11(nullptr),
 m_pcVLGeometry11(nullptr),
 m_pcPSGeometry11(nullptr),
-m_pcVBGeometry11(nullptr),
-m_pcIBGeometry11(nullptr),
-m_pcDSGeometry11(nullptr),
-m_pcDSVGeometry11(nullptr),
 m_pcSampler11(nullptr),
 m_pcConstantBufferGeometry(nullptr),
-m_pcTexGeometry(nullptr),
-m_pcTexGeometrySRV(nullptr)
+m_asRenderModels(),
+m_bRenderModelsCreated(false)
 {
 	m_ppcTexView11[0] = nullptr;
 	m_ppcTexView11[1] = nullptr;
@@ -250,6 +246,10 @@ m_pcTexGeometrySRV(nullptr)
 	m_pcVertexBuffer11 = nullptr;
 	m_pcConstantBufferDirect11 = nullptr;
 	m_pcSamplerState = nullptr;
+	m_pcDSGeometry11[0] = nullptr;
+	m_pcDSGeometry11[1] = nullptr;
+	m_pcDSVGeometry11[0] = nullptr;
+	m_pcDSVGeometry11[1] = nullptr;
 
 	// static fields
 	m_bInit = false;
@@ -266,6 +266,11 @@ m_pcTexGeometrySRV(nullptr)
 	m_fAspectRatio = 1920.0f / 1080.0f;
 	m_bForceInterleavedReprojection = true;
 	m_unSleepTime = 20;
+
+	// set first matrices.. 
+	D3DXMatrixIdentity(&m_sView);
+	D3DXMatrixIdentity(&m_sProj[0]);
+	D3DXMatrixIdentity(&m_sProj[1]);
 
 	// set default overlay properties
 	m_sOverlayPropertiesHud.eTransform = OverlayTransformType::Absolute;
@@ -294,6 +299,12 @@ m_pcTexGeometrySRV(nullptr)
 	m_sOverlayPropertiesDashboard.sColor.g = 1.0f;
 	m_sOverlayPropertiesDashboard.sColor.b = 1.0f;
 	m_sOverlayPropertiesDashboard.fWidth = 3.0f;
+
+	// create constant shader constants..
+	D3DXVECTOR4 sLightDir(-0.7f, -0.6f, -0.02f, 1.0f);
+	m_sGeometryConstants.m_sLightDir = sLightDir;
+	m_sGeometryConstants.m_sLightAmbient = D3DXCOLOR(0.2f, 0.2f, 0.2f, 1.0f);
+	m_sGeometryConstants.m_sLightDiffuse = D3DXCOLOR(1.0f, 0.2f, 0.7f, 1.0f);
 
 	// locate or create the INI file
 	char szFilePathINI[1024];
@@ -334,6 +345,21 @@ m_pcTexGeometrySRV(nullptr)
 	m_sOverlayPropertiesDashboard.sColor.g = GetIniFileSetting(m_sOverlayPropertiesDashboard.sColor.g, "OpenVR", "sOverlayPropertiesDashboard.sColor.g", szFilePathINI, bFileExists);
 	m_sOverlayPropertiesDashboard.sColor.b = GetIniFileSetting(m_sOverlayPropertiesDashboard.sColor.b, "OpenVR", "sOverlayPropertiesDashboard.sColor.b", szFilePathINI, bFileExists);
 	m_sOverlayPropertiesDashboard.fWidth = GetIniFileSetting(m_sOverlayPropertiesDashboard.fWidth, "OpenVR", "sOverlayPropertiesDashboard.fWidth", szFilePathINI, bFileExists);
+
+	m_sGeometryConstants.m_sLightDir.x = GetIniFileSetting(m_sGeometryConstants.m_sLightDir.x, "OpenVR", "m_sGeometryConstants.sLightDir.x", szFilePathINI, bFileExists);
+	m_sGeometryConstants.m_sLightDir.y = GetIniFileSetting(m_sGeometryConstants.m_sLightDir.y, "OpenVR", "m_sGeometryConstants.sLightDir.y", szFilePathINI, bFileExists);
+	m_sGeometryConstants.m_sLightDir.z = GetIniFileSetting(m_sGeometryConstants.m_sLightDir.z, "OpenVR", "m_sGeometryConstants.sLightDir.z", szFilePathINI, bFileExists);
+	m_sGeometryConstants.m_sLightAmbient.a = GetIniFileSetting(m_sGeometryConstants.m_sLightAmbient.a, "OpenVR", "sGeometryConstants.sLightAmbient.a", szFilePathINI, bFileExists);
+	m_sGeometryConstants.m_sLightAmbient.r = GetIniFileSetting(m_sGeometryConstants.m_sLightAmbient.r, "OpenVR", "sGeometryConstants.sLightAmbient.r", szFilePathINI, bFileExists);
+	m_sGeometryConstants.m_sLightAmbient.g = GetIniFileSetting(m_sGeometryConstants.m_sLightAmbient.g, "OpenVR", "sGeometryConstants.sLightAmbient.g", szFilePathINI, bFileExists);
+	m_sGeometryConstants.m_sLightAmbient.b = GetIniFileSetting(m_sGeometryConstants.m_sLightAmbient.b, "OpenVR", "sGeometryConstants.sLightAmbient.b", szFilePathINI, bFileExists);
+	m_sGeometryConstants.m_sLightDiffuse.a = GetIniFileSetting(m_sGeometryConstants.m_sLightDiffuse.a, "OpenVR", "sGeometryConstants.sLightDiffuse.a", szFilePathINI, bFileExists);
+	m_sGeometryConstants.m_sLightDiffuse.r = GetIniFileSetting(m_sGeometryConstants.m_sLightDiffuse.r, "OpenVR", "sGeometryConstants.sLightDiffuse.r", szFilePathINI, bFileExists);
+	m_sGeometryConstants.m_sLightDiffuse.g = GetIniFileSetting(m_sGeometryConstants.m_sLightDiffuse.g, "OpenVR", "sGeometryConstants.sLightDiffuse.g", szFilePathINI, bFileExists);
+	m_sGeometryConstants.m_sLightDiffuse.b = GetIniFileSetting(m_sGeometryConstants.m_sLightDiffuse.b, "OpenVR", "sGeometryConstants.sLightDiffuse.b", szFilePathINI, bFileExists);
+
+	// normalize light direction
+	D3DXVec4Normalize(&m_sGeometryConstants.m_sLightDir, &m_sGeometryConstants.m_sLightDir);
 }
 
 /**
@@ -341,18 +367,23 @@ m_pcTexGeometrySRV(nullptr)
 ***/
 OpenVR_DirectMode::~OpenVR_DirectMode()
 {
-	SAFE_RELEASE(m_pcTexGeometrySRV);
-	SAFE_RELEASE(m_pcTexGeometry);
+	for (UINT unI = 0; unI < (UINT)m_asRenderModels.size(); unI++)
+	{
+		SAFE_RELEASE(m_asRenderModels[unI].pcIndexBuffer);
+		SAFE_RELEASE(m_asRenderModels[unI].pcVertexBuffer);
+		SAFE_RELEASE(m_asRenderModels[unI].pcTextureSRV);
+		SAFE_RELEASE(m_asRenderModels[unI].pcTexture);
+	}
+
 	SAFE_RELEASE(m_pcSampler11);
 	SAFE_RELEASE(m_pcConstantBufferGeometry);
-	SAFE_RELEASE(m_pcDSVGeometry11);
-	SAFE_RELEASE(m_pcDSGeometry11);
+	SAFE_RELEASE(m_pcDSVGeometry11[0]);
+	SAFE_RELEASE(m_pcDSVGeometry11[1]);
+	SAFE_RELEASE(m_pcDSGeometry11[0]);
+	SAFE_RELEASE(m_pcDSGeometry11[1]);
 	SAFE_RELEASE(m_pcVLGeometry11);
 	SAFE_RELEASE(m_pcVSGeometry11);
 	SAFE_RELEASE(m_pcPSGeometry11);
-	SAFE_RELEASE(m_pcVBGeometry11);
-	SAFE_RELEASE(m_pcVBGeometry11);
-	SAFE_RELEASE(m_pcIBGeometry11);
 
 	if (m_pcContextTemporary) m_pcContextTemporary->Release();
 	if (m_pcDeviceTemporary) m_pcDeviceTemporary->Release();
@@ -692,317 +723,341 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 			if (vr::VRCompositor()->CanRenderScene())
 			{
 #pragma region render models
-				// textures connected ?
-				if ((m_ppcTexView11[0]) && (m_ppcTexView11[1]))
+				if (!vr::VROverlay()->IsDashboardVisible())
 				{
-					// get the viewport
-					UINT dwNumViewports = 1;
-					D3D11_VIEWPORT psViewport[16];
-					pcContext->RSGetViewports(&dwNumViewports, psViewport);
-
-					// backup all states
-					D3DX11_STATE_BLOCK sStateBlock;
-					CreateStateblock(pcContext, &sStateBlock);
-
-					// clear all states, set targets
-					ClearContextState(pcContext);
-
-					// set back viewport
-					pcContext->RSSetViewports(dwNumViewports, psViewport);
-
 					static UINT unWidthRT = 0, unHeightRT = 0;
 
-					// create vertex shader
-					if (!m_pcVSGeometry11)
+					// textures connected ?
+					if ((m_ppcTexView11[0]) && (m_ppcTexView11[1]))
 					{
-						if (FAILED(Create3DVertexShader(pcDevice, &m_pcVSGeometry11, &m_pcVLGeometry11)))
-							OutputDebugString(L"[OPENVR] Failed to create vertex shader. !");
+						// get the viewport
+						UINT dwNumViewports = 1;
+						D3D11_VIEWPORT psViewport[16];
+						pcContext->RSGetViewports(&dwNumViewports, psViewport);
+
+						// backup all states
+						D3DX11_STATE_BLOCK sStateBlock;
+						CreateStateblock(pcContext, &sStateBlock);
+
+						// clear all states, set targets
+						ClearContextState(pcContext);
+
+						// set back viewport
+						pcContext->RSSetViewports(dwNumViewports, psViewport);
+
+
+						// create vertex shader
+						if (!m_pcVSGeometry11)
+						{
+							if (FAILED(Create3DVertexShader(pcDevice, &m_pcVSGeometry11, &m_pcVLGeometry11)))
+								OutputDebugString(L"[OPENVR] Failed to create vertex shader. !");
+						}
+
+						// create pixel shader
+						if (!m_pcPSGeometry11)
+						{
+							if (FAILED(CreateSimplePixelShader(pcDevice, &m_pcPSGeometry11, PixelShaderTechnique::GeometryDiffuseTextured)))
+								OutputDebugString(L"[OPENVR] Failed to create pixel shader. !");
+						}
+
+						// create the depth stencil
+						if (!m_pcDSGeometry11[0])
+						{
+							ID3D11Texture2D* pcResource = nullptr;
+							if (m_ppcTexView11[0])
+								(*m_ppcTexView11)[0]->GetResource((ID3D11Resource**)&pcResource);
+
+							if (pcResource)
+							{
+								D3D11_TEXTURE2D_DESC sDesc;
+								pcResource->GetDesc(&sDesc);
+								pcResource->Release();
+
+								// set static height, width
+								unWidthRT = sDesc.Width;
+								unHeightRT = sDesc.Height;
+
+								// Create depth stencil textures
+								D3D11_TEXTURE2D_DESC descDepth;
+								ZeroMemory(&descDepth, sizeof(descDepth));
+								descDepth.Width = sDesc.Width;
+								descDepth.Height = sDesc.Height;
+								descDepth.MipLevels = 1;
+								descDepth.ArraySize = 1;
+								descDepth.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+								descDepth.SampleDesc.Count = 1;
+								descDepth.SampleDesc.Quality = 0;
+								descDepth.Usage = D3D11_USAGE_DEFAULT;
+								descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+								descDepth.CPUAccessFlags = 0;
+								descDepth.MiscFlags = 0;
+								if (FAILED(pcDevice->CreateTexture2D(&descDepth, NULL, &m_pcDSGeometry11[0])))
+									OutputDebugString(L"[OPENVR] Failed to create depth stencil.");
+								if (FAILED(pcDevice->CreateTexture2D(&descDepth, NULL, &m_pcDSGeometry11[1])))
+									OutputDebugString(L"[OPENVR] Failed to create depth stencil.");
+
+								// Create the depth stencil views
+								D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;
+								ZeroMemory(&descDSV, sizeof(descDSV));
+								descDSV.Format = descDepth.Format;
+								descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+								descDSV.Texture2D.MipSlice = 0;
+								if (FAILED(pcDevice->CreateDepthStencilView(m_pcDSGeometry11[0], &descDSV, &m_pcDSVGeometry11[0])))
+									OutputDebugString(L"[OPENVR] Failed to create depth stencil view.");
+								if (FAILED(pcDevice->CreateDepthStencilView(m_pcDSGeometry11[1], &descDSV, &m_pcDSVGeometry11[1])))
+									OutputDebugString(L"[OPENVR] Failed to create depth stencil view.");
+
+								// optimized for 1920x1080 here :
+								// total aspect ratio is here 1920x1200 due to the space at top and bottom (@see SubmitFramesConstantly() ),
+								// so in case we need to lower aspect ratio height to be 1080 * (1080 / 1200)
+								float fARatio = 1920.0f / (1080.0f * (1080.0f / 1200.0f));
+
+								// create left/right matrices
+								for (INT nEye = 0; nEye < 2; nEye++)
+								{
+									// get the projection matrix for each eye
+									// sProj = GetHMDMatrixProjectionEyeLH(*m_ppHMD, (vr::Hmd_Eye)nEye, (float)D3DXToRadian(110.0), (float)unWidthRT / (float)unHeightRT, 0.1f, 30.0f);
+									D3DXMatrixPerspectiveFovLH(&m_sProj[nEye], (float)D3DXToRadian(116.0), fARatio, 0.1f, 30.0f);
+
+									// create eye pose matrix
+									m_sToEye[nEye] = GetHMDMatrixPoseEyeLH(*m_ppHMD, (vr::Hmd_Eye)nEye);
+								}
+							}
+						}
+
+						if (!m_pcSampler11)
+						{
+							// Create the sample state
+							D3D11_SAMPLER_DESC sampDesc;
+							ZeroMemory(&sampDesc, sizeof(sampDesc));
+							sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+							sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+							sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+							sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+							sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+							sampDesc.MinLOD = 0;
+							sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+							if (FAILED(pcDevice->CreateSamplerState(&sampDesc, &m_pcSampler11)))
+								OutputDebugString(L"[OPENVR] Failed to create sampler.");
+						}
+
+						// create constant buffer
+						if (!m_pcConstantBufferGeometry)
+						{
+							if (FAILED(CreateGeometryConstantBuffer(pcDevice, &m_pcConstantBufferGeometry, (UINT)sizeof(GeometryConstantBuffer))))
+								OutputDebugString(L"[OPENVR] Failed to create constant buffer.");
+						}
+
+						// create all models
+						if (!m_bRenderModelsCreated)
+						{
+							for (uint32_t unTrackedDevice = vr::k_unTrackedDeviceIndex_Hmd + 1; unTrackedDevice < vr::k_unMaxTrackedDeviceCount; unTrackedDevice++)
+							{
+								// continue if not connected
+								if (!(*m_ppHMD)->IsTrackedDeviceConnected(unTrackedDevice))
+									continue;
+
+								// get model name
+								uint32_t unRequiredBufferLen = (*m_ppHMD)->GetStringTrackedDeviceProperty(unTrackedDevice, vr::Prop_RenderModelName_String, NULL, 0, NULL);
+								char *pchBuffer = new char[unRequiredBufferLen];
+								if (unRequiredBufferLen > 0)
+									unRequiredBufferLen = (*m_ppHMD)->GetStringTrackedDeviceProperty(unTrackedDevice, vr::Prop_RenderModelName_String, pchBuffer, unRequiredBufferLen, NULL);
+								std::string szModelName = pchBuffer;
+								delete[] pchBuffer;
+
+								// output model name
+								OutputDebugString(L"[OPENVR] Connected model name : ");
+								OutputDebugStringA(szModelName.c_str());
+
+								// load model and texture
+								vr::RenderModel_t *pModel = NULL;
+								vr::RenderModel_TextureMap_t *pTexture = NULL;
+
+								// model
+								while (vr::VRRenderModels()->LoadRenderModel_Async(szModelName.c_str(), &pModel) == vr::VRRenderModelError_Loading)
+									Sleep(50);
+								if (vr::VRRenderModels()->LoadRenderModel_Async(szModelName.c_str(), &pModel) || pModel == NULL)
+									OutputDebugString(L"[OPENVR] Unable to load render model");
+
+								// texture
+								while (vr::VRRenderModels()->LoadTexture_Async(pModel->diffuseTextureId, &pTexture) == vr::VRRenderModelError_Loading)
+									Sleep(50);
+								if (vr::VRRenderModels()->LoadTexture_Async(pModel->diffuseTextureId, &pTexture) || pTexture == NULL)
+									OutputDebugString(L"[OPENVR] Unable to load render texture");
+
+								// create a D3D render model structure
+								RenderModel_D3D sRenderModel = {};
+
+								// translate the model from Right-Handed to Left-Handed (negate z-axis for each vertex)
+								vr::RenderModel_Vertex_t* asVertices = new vr::RenderModel_Vertex_t[pModel->unVertexCount];
+								memcpy(asVertices, pModel->rVertexData, sizeof(vr::RenderModel_Vertex_t) * pModel->unVertexCount);
+								for (UINT unI = 0; unI < pModel->unVertexCount; unI++)
+								{
+									// negate z axis
+									asVertices[unI].vPosition.v[2] *= -1.0f;
+									asVertices[unI].vNormal.v[2] *= -1.0f;
+								}
+
+								// arrange the indices accordingly to match the new vertex translations
+								uint16_t* aunIndices = new uint16_t[pModel->unTriangleCount * 3];
+								memcpy(aunIndices, pModel->rIndexData, sizeof(uint16_t)* pModel->unTriangleCount * 3);
+								for (UINT unI = 0; unI < pModel->unTriangleCount; unI++)
+								{
+									// exchange 2nd and 3rd index of the triangle
+									uint16_t unIndex3 = aunIndices[unI * 3 + 2];
+									aunIndices[unI * 3 + 2] = aunIndices[unI * 3 + 1];
+									aunIndices[unI * 3 + 1] = unIndex3;
+								}
+
+								// Create vertex buffer
+								D3D11_BUFFER_DESC sVertexBufferDesc;
+								ZeroMemory(&sVertexBufferDesc, sizeof(sVertexBufferDesc));
+								sVertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+								sVertexBufferDesc.ByteWidth = sizeof(TexturedDiffuseVertex)* pModel->unVertexCount;
+								sVertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+								sVertexBufferDesc.CPUAccessFlags = 0;
+								D3D11_SUBRESOURCE_DATA sInitData;
+								ZeroMemory(&sInitData, sizeof(sInitData));
+								sInitData.pSysMem = asVertices;
+								if (FAILED(pcDevice->CreateBuffer(&sVertexBufferDesc, &sInitData, &sRenderModel.pcVertexBuffer)))
+									OutputDebugString(L"[OPENVR] Failed to create vertex buffer.");
+
+
+								// create index buffer
+								D3D11_BUFFER_DESC sIndexBufferDesc;
+								ZeroMemory(&sIndexBufferDesc, sizeof(sIndexBufferDesc));
+								sIndexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+								sIndexBufferDesc.ByteWidth = sizeof(WORD)* pModel->unTriangleCount * 3;
+								sIndexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+								sIndexBufferDesc.CPUAccessFlags = 0;
+								ZeroMemory(&sInitData, sizeof(sInitData));
+								sInitData.pSysMem = aunIndices;
+								if (FAILED(pcDevice->CreateBuffer(&sIndexBufferDesc, &sInitData, &sRenderModel.pcIndexBuffer)))
+									OutputDebugString(L"[OPENVR] Failed to create index buffer.");
+
+								// delete vertex/index translation buffers
+								delete[] asVertices;
+								delete[] aunIndices;
+
+								// set vertices/triangle count and tracked device index
+								sRenderModel.unTriangleCount = pModel->unTriangleCount;
+								sRenderModel.unVertexCount = pModel->unVertexCount;
+								sRenderModel.unTrackedDeviceIndex = unTrackedDevice;
+
+								// create geometry texture
+								D3D11_TEXTURE2D_DESC sDesc;
+								ZeroMemory(&sDesc, sizeof(sDesc));
+								sDesc.Width = pTexture->unWidth;
+								sDesc.Height = pTexture->unHeight;
+								sDesc.MipLevels = sDesc.ArraySize = 1;
+								sDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+								sDesc.SampleDesc.Count = 1;
+								sDesc.Usage = D3D11_USAGE_DEFAULT;
+								sDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+								D3D11_SUBRESOURCE_DATA sData;
+								ZeroMemory(&sData, sizeof(sData));
+								sData.pSysMem = pTexture->rubTextureMapData;
+								sData.SysMemPitch = pTexture->unWidth * 4;
+								if (FAILED(pcDevice->CreateTexture2D(&sDesc, &sData, &sRenderModel.pcTexture)))
+									OutputDebugString(L"[OPENVR] Failed to create model texture.");
+
+								if (sRenderModel.pcTexture)
+								{
+									// create texture shader resource view
+									D3D11_SHADER_RESOURCE_VIEW_DESC sDesc;
+									ZeroMemory(&sDesc, sizeof(sDesc));
+									sDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+									sDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+									sDesc.Texture2D.MostDetailedMip = 0;
+									sDesc.Texture2D.MipLevels = 1;
+
+									if ((FAILED(pcDevice->CreateShaderResourceView((ID3D11Resource*)sRenderModel.pcTexture, &sDesc, &sRenderModel.pcTextureSRV))))
+										OutputDebugString(L"[OPENVR] Failed to create model texture shader resource view!");
+								}
+
+								// and add to vector
+								m_asRenderModels.push_back(sRenderModel);
+
+								vr::VRRenderModels()->FreeRenderModel(pModel);
+								vr::VRRenderModels()->FreeTexture(pTexture);
+							}
+							m_bRenderModelsCreated = true;
+						}
+
+						// get tracking pose... 
+						(*m_ppHMD)->GetDeviceToAbsoluteTrackingPose(vr::ETrackingUniverseOrigin::TrackingUniverseStanding, 0, m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount);
+
+						// convert HMD matrix to left handed matrix
+						m_rmat4DevicePose[0] = GetLH(m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking);
+
+						// create view matrix by hmd matrix
+						D3DXMatrixInverse(&m_sView, 0, &m_rmat4DevicePose[0]);
+
+						// Set the input layout, buffers, sampler
+						pcContext->IASetInputLayout(m_pcVLGeometry11);
+						UINT stride = sizeof(TexturedDiffuseVertex);
+						UINT offset = 0;
+
+						pcContext->VSSetConstantBuffers(0, 1, &m_pcConstantBufferGeometry);
+						pcContext->PSSetConstantBuffers(0, 1, &m_pcConstantBufferGeometry);
+						pcContext->PSSetSamplers(0, 1, &m_pcSampler11);
+
+						// Set primitive topology
+						pcContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+						// set shaders
+						pcContext->VSSetShader(m_pcVSGeometry11, NULL, 0);
+						pcContext->PSSetShader(m_pcPSGeometry11, NULL, 0);
+
+						// get render target views for both eyes and clear the depth stencil
+						ID3D11RenderTargetView* pcRTV[2];
+						pcRTV[0] = nullptr;
+						pcRTV[1] = nullptr;
+						for (int nEye = 0; nEye < 2; nEye++)
+						{
+							// get private data interface
+							UINT dwSize = sizeof(ID3D11RenderTargetView*);
+							(*m_ppcTexView11)[nEye]->GetPrivateData(PDIID_ID3D11TextureXD_RenderTargetView, &dwSize, (void*)&pcRTV[nEye]);
+
+							// clear the depth stencil
+							pcContext->ClearDepthStencilView(m_pcDSVGeometry11[nEye], D3D11_CLEAR_DEPTH, 1.0f, 0);
+						}
+
+						// loop through available render models, render
+						for (UINT unI = 0; unI < (UINT)m_asRenderModels.size(); unI++)
+						{
+							// set texture and buffers
+							pcContext->PSSetShaderResources(0, 1, &m_asRenderModels[unI].pcTextureSRV);
+							pcContext->IASetVertexBuffers(0, 1, &m_asRenderModels[unI].pcVertexBuffer, &stride, &offset);
+							pcContext->IASetIndexBuffer(m_asRenderModels[unI].pcIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+
+							// set world matrix, first get left-handed
+							m_rmat4DevicePose[m_asRenderModels[unI].unTrackedDeviceIndex] = GetLH(m_rTrackedDevicePose[m_asRenderModels[unI].unTrackedDeviceIndex].mDeviceToAbsoluteTracking);
+							D3DXMatrixTranspose(&m_sGeometryConstants.m_sWorld, &m_rmat4DevicePose[m_asRenderModels[unI].unTrackedDeviceIndex]);
+
+							// left + right
+							for (int nEye = 0; nEye < 2; nEye++)
+							{
+								// set WVP matrix, update constant buffer							
+								D3DXMATRIX sWorldViewProjection = m_rmat4DevicePose[m_asRenderModels[unI].unTrackedDeviceIndex] * m_sView * m_sToEye[nEye] * m_sProj[nEye];
+								D3DXMatrixTranspose(&m_sGeometryConstants.m_sWorldViewProjection, &sWorldViewProjection);
+								pcContext->UpdateSubresource(m_pcConstantBufferGeometry, 0, NULL, &m_sGeometryConstants, 0, 0);
+
+								// set render target
+								pcContext->OMSetRenderTargets(1, &pcRTV[nEye], m_pcDSVGeometry11[nEye]);
+
+								// draw
+								pcContext->DrawIndexed(m_asRenderModels[unI].unTriangleCount * 3, 0, 0);
+							}
+						}
+
+						// release RTVs
+						SAFE_RELEASE(pcRTV[0]);
+						SAFE_RELEASE(pcRTV[1]);
+
+						// set back device
+						ApplyStateblock(pcContext, &sStateBlock);
 					}
-
-					// create pixel shader
-					if (!m_pcPSGeometry11)
-					{
-						if (FAILED(CreateSimplePixelShader(pcDevice, &m_pcPSGeometry11, PixelShaderTechnique::GeometryDiffuseTextured)))
-							OutputDebugString(L"[OPENVR] Failed to create pixel shader. !");
-					}
-
-					// create the depth stencil
-					if (!m_pcDSGeometry11)
-					{
-						ID3D11Texture2D* pcResource = nullptr;
-						if (m_ppcTexView11[0])
-							(*m_ppcTexView11)[0]->GetResource((ID3D11Resource**)&pcResource);
-
-						if (pcResource)
-						{
-							D3D11_TEXTURE2D_DESC sDesc;
-							pcResource->GetDesc(&sDesc);
-							pcResource->Release();
-
-							// set static height, width
-							unWidthRT = sDesc.Width;
-							unHeightRT = sDesc.Height;
-
-							// Create depth stencil texture
-							D3D11_TEXTURE2D_DESC descDepth;
-							ZeroMemory(&descDepth, sizeof(descDepth));
-							descDepth.Width = sDesc.Width;
-							descDepth.Height = sDesc.Height;
-							descDepth.MipLevels = 1;
-							descDepth.ArraySize = 1;
-							descDepth.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-							descDepth.SampleDesc.Count = 1;
-							descDepth.SampleDesc.Quality = 0;
-							descDepth.Usage = D3D11_USAGE_DEFAULT;
-							descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-							descDepth.CPUAccessFlags = 0;
-							descDepth.MiscFlags = 0;
-							if (FAILED(pcDevice->CreateTexture2D(&descDepth, NULL, &m_pcDSGeometry11)))
-								OutputDebugString(L"[OPENVR] Failed to create depth stencil.");
-
-							// Create the depth stencil view
-							D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;
-							ZeroMemory(&descDSV, sizeof(descDSV));
-							descDSV.Format = descDepth.Format;
-							descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-							descDSV.Texture2D.MipSlice = 0;
-							if (FAILED(pcDevice->CreateDepthStencilView(m_pcDSGeometry11, &descDSV, &m_pcDSVGeometry11)))
-								OutputDebugString(L"[OPENVR] Failed to create depth stencil view.");
-						}
-					}
-
-					if (!m_pcSampler11)
-					{
-						// Create the sample state
-						D3D11_SAMPLER_DESC sampDesc;
-						ZeroMemory(&sampDesc, sizeof(sampDesc));
-						sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-						sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-						sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-						sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-						sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-						sampDesc.MinLOD = 0;
-						sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-						if (FAILED(pcDevice->CreateSamplerState(&sampDesc, &m_pcSampler11)))
-							OutputDebugString(L"[OPENVR] Failed to create sampler.");
-					}
-
-					// create constant buffer
-					if (!m_pcConstantBufferGeometry)
-					{
-						if (FAILED(CreateGeometryConstantBuffer(pcDevice, &m_pcConstantBufferGeometry, (UINT)sizeof(GeometryConstantBuffer))))
-							OutputDebugString(L"[OPENVR] Failed to create constant buffer.");
-					}
-
-					// create all models
-					UINT unIndex = 3;
-					static UINT unIndicesCount = 0;
-					if ((!m_pcIBGeometry11) || (!m_pcTexGeometry) || (!m_pcVBGeometry11))
-					{
-						// get model name
-						uint32_t unRequiredBufferLen = (*m_ppHMD)->GetStringTrackedDeviceProperty(unIndex, vr::Prop_RenderModelName_String, NULL, 0, NULL);
-						char *pchBuffer = new char[unRequiredBufferLen];
-						if (unRequiredBufferLen > 0)
-							unRequiredBufferLen = (*m_ppHMD)->GetStringTrackedDeviceProperty(unIndex, vr::Prop_RenderModelName_String, pchBuffer, unRequiredBufferLen, NULL);
-						std::string szModelName = pchBuffer;
-						delete[] pchBuffer;
-
-						OutputDebugString(L"OPENVR model name : ");
-						OutputDebugStringA(szModelName.c_str());
-
-						// Mesh laden
-						vr::RenderModel_t *pModel = NULL;
-						vr::RenderModel_TextureMap_t *pTexture = NULL;
-
-						while (vr::VRRenderModels()->LoadRenderModel_Async(szModelName.c_str(), &pModel) == vr::VRRenderModelError_Loading)
-						{
-							Sleep(50);
-						}
-
-						if (vr::VRRenderModels()->LoadRenderModel_Async(szModelName.c_str(), &pModel) || pModel == NULL)
-						{
-							OutputDebugString(L"[OPENVR] Unable to load render model");
-						}
-
-
-						while (vr::VRRenderModels()->LoadTexture_Async(pModel->diffuseTextureId, &pTexture) == vr::VRRenderModelError_Loading)
-						{
-							Sleep(50);
-						}
-
-						if (vr::VRRenderModels()->LoadTexture_Async(pModel->diffuseTextureId, &pTexture) || pTexture == NULL)
-						{
-							OutputDebugString(L"[OPENVR] Unable to load render texture");
-						}
-
-						// translate the model from Right-Handed to Left-Handed (negate z-axis for each vertex)
-						vr::RenderModel_Vertex_t* asVertices = new vr::RenderModel_Vertex_t[pModel->unVertexCount];
-						memcpy(asVertices, pModel->rVertexData, sizeof(vr::RenderModel_Vertex_t) * pModel->unVertexCount);
-						for (UINT unI = 0; unI < pModel->unVertexCount; unI++)
-						{
-							// negate z axis
-							asVertices[unI].vPosition.v[2] *= -1.0f;
-							asVertices[unI].vNormal.v[2] *= -1.0f;
-						}
-
-						// arrange the indices accordingly to match the new vertex translations
-						uint16_t* aunIndices = new uint16_t[pModel->unTriangleCount * 3];
-						memcpy(aunIndices, pModel->rIndexData, sizeof(uint16_t)* pModel->unTriangleCount * 3);
-						for (UINT unI = 0; unI < pModel->unTriangleCount; unI++)
-						{
-							// exchange 2nd and 3rd index of the triangle
-							uint16_t unIndex3 = aunIndices[unI * 3 + 2];
-							aunIndices[unI * 3 + 2] = aunIndices[unI * 3 + 1];
-							aunIndices[unI * 3 + 1] = unIndex3;
-						}
-
-						// Create vertex buffer
-						D3D11_BUFFER_DESC sVertexBufferDesc;
-						ZeroMemory(&sVertexBufferDesc, sizeof(sVertexBufferDesc));
-						sVertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-						sVertexBufferDesc.ByteWidth = sizeof(TexturedDiffuseVertex)* pModel->unVertexCount;
-						sVertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-						sVertexBufferDesc.CPUAccessFlags = 0;
-						D3D11_SUBRESOURCE_DATA sInitData;
-						ZeroMemory(&sInitData, sizeof(sInitData));
-						sInitData.pSysMem = asVertices;
-						if (FAILED(pcDevice->CreateBuffer(&sVertexBufferDesc, &sInitData, &m_pcVBGeometry11)))
-							OutputDebugString(L"[OPENVR] Failed to create vertex buffer.");
-
-
-						// create index buffer
-						D3D11_BUFFER_DESC sIndexBufferDesc;
-						ZeroMemory(&sIndexBufferDesc, sizeof(sIndexBufferDesc));
-						sIndexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-						sIndexBufferDesc.ByteWidth = sizeof(WORD)* pModel->unTriangleCount * 3;
-						sIndexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-						sIndexBufferDesc.CPUAccessFlags = 0;
-						ZeroMemory(&sInitData, sizeof(sInitData));
-						sInitData.pSysMem = aunIndices;
-						if (FAILED(pcDevice->CreateBuffer(&sIndexBufferDesc, &sInitData, &m_pcIBGeometry11)))
-							OutputDebugString(L"[OPENVR] Failed to create index buffer.");
-
-						// delete vertex/index translation buffers
-						delete[] asVertices;
-						delete[] aunIndices;
-
-						// set indices count TODO !! OWN STRUCTURE !!
-						unIndicesCount = pModel->unTriangleCount * 3;
-
-						// create font texture
-						D3D11_TEXTURE2D_DESC sDesc;
-						ZeroMemory(&sDesc, sizeof(sDesc));
-						sDesc.Width = pTexture->unWidth;
-						sDesc.Height = pTexture->unHeight;
-						sDesc.MipLevels = sDesc.ArraySize = 1;
-						sDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-						sDesc.SampleDesc.Count = 1;
-						sDesc.Usage = D3D11_USAGE_DEFAULT;
-						sDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-						D3D11_SUBRESOURCE_DATA sData;
-						ZeroMemory(&sData, sizeof(sData));
-						sData.pSysMem = pTexture->rubTextureMapData;
-						sData.SysMemPitch = pTexture->unWidth * 4;
-						if (FAILED(pcDevice->CreateTexture2D(&sDesc, &sData, &m_pcTexGeometry)))
-							OutputDebugString(L"[OPENVR] Failed to create model texture.");
-
-						if (m_pcTexGeometry)
-						{
-							// create texture shader resource view
-							D3D11_SHADER_RESOURCE_VIEW_DESC sDesc;
-							ZeroMemory(&sDesc, sizeof(sDesc));
-							sDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-							sDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-							sDesc.Texture2D.MostDetailedMip = 0;
-							sDesc.Texture2D.MipLevels = 1;
-
-							if ((FAILED(pcDevice->CreateShaderResourceView((ID3D11Resource*)m_pcTexGeometry, &sDesc, &m_pcTexGeometrySRV))))
-								OutputDebugString(L"[OPENVR] Failed to create model texture shader resource view!");
-						}
-
-						vr::VRRenderModels()->FreeRenderModel(pModel);
-						vr::VRRenderModels()->FreeTexture(pTexture);
-					}
-
-					// get tracking pose... 
-					(*m_ppHMD)->GetDeviceToAbsoluteTrackingPose(vr::ETrackingUniverseOrigin::TrackingUniverseStanding, 0, m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount);
-
-					// convert to left handed matrices
-					m_rmat4DevicePose[0] = GetLH(m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking);
-					m_rmat4DevicePose[unIndex] = GetLH(m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking);
-
-					// set world matrix
-					D3DXMATRIX sWorld, sView, sProj;
-					sWorld = m_rmat4DevicePose[unIndex];
-
-					// create view matrix by hmd matrix
-					D3DXMatrixInverse(&sView, 0, &m_rmat4DevicePose[0]);
-
-					// update constants for buffer... TODO !! create once before drawing
-					D3DXMatrixTranspose(&m_sGeometryConstants.m_sWorld, &sWorld);
-					D3DXVECTOR4 sLightDir(-0.7f, -0.6f, -0.02f, 1.0f);
-					D3DXVec4Normalize(&sLightDir, &sLightDir);
-					m_sGeometryConstants.m_sLightDir = sLightDir;
-					m_sGeometryConstants.m_sLightAmbient = D3DXCOLOR(0.2f, 0.2f, 0.2f, 1.0f);
-					m_sGeometryConstants.m_sLightDiffuse = D3DXCOLOR(1.0f, 0.2f, 0.7f, 1.0f);
-
-					// Set the input layout, buffers, sampler
-					pcContext->IASetInputLayout(m_pcVLGeometry11);
-					UINT stride = sizeof(TexturedDiffuseVertex);
-					UINT offset = 0;
-					pcContext->IASetVertexBuffers(0, 1, &m_pcVBGeometry11, &stride, &offset);
-					pcContext->IASetIndexBuffer(m_pcIBGeometry11, DXGI_FORMAT_R16_UINT, 0);
-					pcContext->VSSetConstantBuffers(0, 1, &m_pcConstantBufferGeometry);
-					pcContext->PSSetConstantBuffers(0, 1, &m_pcConstantBufferGeometry);
-					pcContext->PSSetSamplers(0, 1, &m_pcSampler11);
-
-					// Set primitive topology
-					pcContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-					// set shaders
-					pcContext->VSSetShader(m_pcVSGeometry11, NULL, 0);
-					pcContext->PSSetShader(m_pcPSGeometry11, NULL, 0);
-
-					// left + right
-					for (int nEye = 0; nEye < 2; nEye++)
-					{
-						// total aspect ratio is here 1920x1200 due to the space at top and bottom (@see SubmitFramesConstantly() ),
-						// so in case we need to lower aspect ratio height to be 1080 * (1080 / 1200)
-						float fAspectRatio = 1920.0f / (1080.0f * (1080.0f / 1200.0f));
-
-						// get the projection matrix for each eye
-						// sProj = GetHMDMatrixProjectionEyeLH(*m_ppHMD, (vr::Hmd_Eye)nEye, (float)D3DXToRadian(110.0), (float)unWidthRT / (float)unHeightRT, 0.1f, 30.0f);
-						D3DXMatrixPerspectiveFovLH(&sProj, (float)D3DXToRadian(116.0), fAspectRatio, 0.1f, 30.0f);
-
-						// TODO !! TO EYE POSE
-						D3DXMATRIX sToEye = GetHMDMatrixPoseEyeLH(*m_ppHMD, (vr::Hmd_Eye)nEye);
-						D3DXMATRIX sWorldViewProjection = sWorld * sView * sToEye * sProj;
-						D3DXMatrixTranspose(&m_sGeometryConstants.m_sWorldViewProjection, &sWorldViewProjection);
-						pcContext->UpdateSubresource(m_pcConstantBufferGeometry, 0, NULL, &m_sGeometryConstants, 0, 0);
-
-						// get render target view
-						ID3D11RenderTargetView* pcRTV = nullptr;
-						UINT dwSize = sizeof(pcRTV);
-						(*m_ppcTexView11)[nEye]->GetPrivateData(PDIID_ID3D11TextureXD_RenderTargetView, &dwSize, (void*)&pcRTV);
-
-						// clear the depth stencil
-						pcContext->ClearDepthStencilView(m_pcDSVGeometry11, D3D11_CLEAR_DEPTH, 1.0f, 0);
-
-						// set render target
-						pcContext->OMSetRenderTargets(1, &pcRTV, m_pcDSVGeometry11);
-
-						// set texture
-						pcContext->PSSetShaderResources(0, 1, &m_pcTexGeometrySRV);
-
-						// draw
-						pcContext->DrawIndexed(unIndicesCount * 3, 0, 0);
-
-						// relese RTV
-						if (pcRTV) pcRTV->Release(); else OutputDebugString(L"[OPENVR] No render target view !");
-					}
-
-					// set back device
-					ApplyStateblock(pcContext, &sStateBlock);
 				}
 #pragma endregion
 #pragma region Render overlay

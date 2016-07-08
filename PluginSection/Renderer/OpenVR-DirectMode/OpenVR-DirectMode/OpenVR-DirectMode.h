@@ -41,6 +41,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include<stdio.h>
 #include<stdlib.h>
 #include<sstream>
+#include<vector>
 
 #include<Shlwapi.h>
 #pragma comment(lib, "Shlwapi.lib")
@@ -452,21 +453,13 @@ private:
 	***/
 	ID3D11InputLayout* m_pcVLGeometry11;
 	/**
-	* The 3D vertex buffer for the openVR models.
+	* The depth stencil DX11 left/right.
 	***/
-	ID3D11Buffer* m_pcVBGeometry11;
-	/**
-	* The 3D index buffer for the openVR models.
-	***/
-	ID3D11Buffer* m_pcIBGeometry11;
-	/**
-	* The depth stencil DX11.
-	***/
-	ID3D11Texture2D* m_pcDSGeometry11;
+	ID3D11Texture2D* m_pcDSGeometry11[2];
 	/**
 	* The depth stencil view DX11.
 	***/
-	ID3D11DepthStencilView* m_pcDSVGeometry11;
+	ID3D11DepthStencilView* m_pcDSVGeometry11[2];
 	/**
 	* The d3d11 sampler.
 	***/
@@ -479,10 +472,39 @@ private:
 	* The constant buffer for geometry shaders.
 	***/
 	ID3D11Buffer* m_pcConstantBufferGeometry;
-
-	// TODO !! TO OWN STRUCT/CLASS
-	ID3D11Texture2D* m_pcTexGeometry;
-	ID3D11ShaderResourceView* m_pcTexGeometrySRV;
+	/**
+	* Current view matrix.
+	***/
+	D3DXMATRIX m_sView;
+	/**
+	* Current eye pose matrix left/right.
+	***/
+	D3DXMATRIX m_sToEye[2];
+	/**
+	* Current projection matrix left/right.
+	***/
+	D3DXMATRIX m_sProj[2];
+	/**
+	* True if all render models are created.
+	***/
+	bool m_bRenderModelsCreated;
+	/**
+	* DX version of the OpenVR RenderModel_t structure.
+	***/
+	struct RenderModel_D3D
+	{
+		ID3D11Buffer* pcVertexBuffer;               /**< Vertex buffer for the mesh **/
+		uint32_t unVertexCount;						/**< Number of vertices in the vertex data **/
+		ID3D11Buffer* pcIndexBuffer;                /**< Indices into the vertex data for each triangle **/
+		uint32_t unTriangleCount;					/**< Number of triangles in the mesh. Index count is 3 * TriangleCount **/
+		ID3D11Texture2D* pcTexture;                 /**< Texture **/
+		ID3D11ShaderResourceView* pcTextureSRV;     /**< Texture SRV **/
+		uint32_t unTrackedDeviceIndex;              /**< Index of the device for this model **/
+	};
+	/**
+	* Vector of all models to render.
+	***/
+	std::vector<RenderModel_D3D> m_asRenderModels;
 };
 
 /**
