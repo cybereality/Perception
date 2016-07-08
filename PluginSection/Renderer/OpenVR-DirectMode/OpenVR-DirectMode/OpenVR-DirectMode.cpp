@@ -835,6 +835,27 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 							OutputDebugString(L"[OPENVR] Unable to load render texture");
 						}
 
+						// translate the model from Right-Handed to Left-Handed (negate z-axis for each vertex)
+						vr::RenderModel_Vertex_t* asVertices = new vr::RenderModel_Vertex_t[pModel->unVertexCount];
+						memcpy(asVertices, pModel->rVertexData, sizeof(vr::RenderModel_Vertex_t) * pModel->unVertexCount);
+						for (UINT unI = 0; unI < pModel->unVertexCount; unI++)
+						{
+							// negate z axis
+							asVertices[unI].vPosition.v[2] *= -1.0f;
+							asVertices[unI].vNormal.v[2] *= -1.0f;
+						}
+
+						// arrange the indices accordingly to match the new vertex translations
+						uint16_t* aunIndices = new uint16_t[pModel->unTriangleCount * 3];
+						memcpy(aunIndices, pModel->rIndexData, sizeof(uint16_t)* pModel->unTriangleCount * 3);
+						for (UINT unI = 0; unI < pModel->unTriangleCount; unI++)
+						{
+							// exchange 2nd and 3rd index of the triangle
+							uint16_t unIndex3 = aunIndices[unI * 3 + 2];
+							aunIndices[unI * 3 + 2] = aunIndices[unI * 3 + 1];
+							aunIndices[unI * 3 + 1] = unIndex3;
+						}
+
 						// Create vertex buffer
 						D3D11_BUFFER_DESC sVertexBufferDesc;
 						ZeroMemory(&sVertexBufferDesc, sizeof(sVertexBufferDesc));
@@ -844,9 +865,10 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 						sVertexBufferDesc.CPUAccessFlags = 0;
 						D3D11_SUBRESOURCE_DATA sInitData;
 						ZeroMemory(&sInitData, sizeof(sInitData));
-						sInitData.pSysMem = pModel->rVertexData;
+						sInitData.pSysMem = asVertices;
 						if (FAILED(pcDevice->CreateBuffer(&sVertexBufferDesc, &sInitData, &m_pcVBGeometry11)))
 							OutputDebugString(L"[OPENVR] Failed to create vertex buffer.");
+
 
 						// create index buffer
 						D3D11_BUFFER_DESC sIndexBufferDesc;
@@ -856,9 +878,13 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 						sIndexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
 						sIndexBufferDesc.CPUAccessFlags = 0;
 						ZeroMemory(&sInitData, sizeof(sInitData));
-						sInitData.pSysMem = pModel->rIndexData;
+						sInitData.pSysMem = aunIndices;
 						if (FAILED(pcDevice->CreateBuffer(&sIndexBufferDesc, &sInitData, &m_pcIBGeometry11)))
 							OutputDebugString(L"[OPENVR] Failed to create index buffer.");
+
+						// delete vertex/index translation buffers
+						delete[] asVertices;
+						delete[] aunIndices;
 
 						// set indices count TODO !! OWN STRUCTURE !!
 						unIndicesCount = pModel->unTriangleCount * 3;
@@ -940,9 +966,13 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 					// left + right
 					for (int nEye = 0; nEye < 2; nEye++)
 					{
+						// total aspect ratio is here 1920x1200 due to the space at top and bottom (@see SubmitFramesConstantly() ),
+						// so in case we need to lower aspect ratio height to be 1080 * (1080 / 1200)
+						float fAspectRatio = 1920.0f / (1080.0f * (1080.0f / 1200.0f));
+
 						// get the projection matrix for each eye
 						// sProj = GetHMDMatrixProjectionEyeLH(*m_ppHMD, (vr::Hmd_Eye)nEye, (float)D3DXToRadian(110.0), (float)unWidthRT / (float)unHeightRT, 0.1f, 30.0f);
-						D3DXMatrixPerspectiveFovLH(&sProj, (float)D3DXToRadian(116.0), (float)unWidthRT / (float)unHeightRT, 0.1f, 30.0f);
+						D3DXMatrixPerspectiveFovLH(&sProj, (float)D3DXToRadian(116.0), fAspectRatio, 0.1f, 30.0f);
 
 						// TODO !! TO EYE POSE
 						D3DXMATRIX sToEye = GetHMDMatrixPoseEyeLH(*m_ppHMD, (vr::Hmd_Eye)nEye);
