@@ -237,7 +237,7 @@ private:
 			{
 				if (*m_ppHMD)
 				{
-					if ((m_bInit) && (vr::VRCompositor()->CanRenderScene()))
+					if ((m_bInit) && (vr::VRCompositor()->CanRenderScene()) && (!vr::VROverlay()->IsDashboardVisible()))
 					{
 						// left + right
 						for (int nEye = 0; nEye < 2; nEye++)

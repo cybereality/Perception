@@ -264,8 +264,8 @@ m_bRenderModelsCreated(false)
 
 	// set default ini settings
 	m_fAspectRatio = 1920.0f / 1080.0f;
-	m_bForceInterleavedReprojection = true;
-	m_unSleepTime = 20;
+	m_bForceInterleavedReprojection = false;
+	m_unSleepTime = 10;
 
 	// set first matrices.. 
 	D3DXMatrixIdentity(&m_sView);
@@ -745,7 +745,6 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 						// set back viewport
 						pcContext->RSSetViewports(dwNumViewports, psViewport);
 
-
 						// create vertex shader
 						if (!m_pcVSGeometry11)
 						{
@@ -1064,6 +1063,21 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 #pragma region Dashboard overlay
 				if (vr::VROverlay() && vr::VROverlay()->IsOverlayVisible(m_ulOverlayHandle))
 				{
+					// get the viewport
+					UINT dwNumViewports = 1;
+					D3D11_VIEWPORT psViewport[16];
+					pcContext->RSGetViewports(&dwNumViewports, psViewport);
+
+					// backup all states
+					D3DX11_STATE_BLOCK sStateBlock;
+					CreateStateblock(pcContext, &sStateBlock);
+
+					// clear all states, set targets
+					ClearContextState(pcContext);
+
+					// set back viewport
+					pcContext->RSSetViewports(dwNumViewports, psViewport);
+
 					// create all bool
 					bool bAllCreated = true;
 
@@ -1181,6 +1195,9 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 
 						}
 					}
+
+					// set back device
+					ApplyStateblock(pcContext, &sStateBlock);
 				}
 				else
 #pragma endregion
