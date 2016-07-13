@@ -43,8 +43,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <d3dx9.h>
 #pragma comment(lib, "d3dx9.lib")
 
+#define INT_PLUG_TYPE                                  7 
 #define PNT_FLOAT_PLUG_TYPE                          104
-#define PNT_INT_PLUG_TYPE                            107 
 #define PNT_D3DMATRIX_PLUG_TYPE                     2017
 #define PNT_VECTOR3F_PLUG_TYPE                      2061
 #define PNT_IDIRECT3DTEXTURE9_PLUG_TYPE             2048
@@ -262,12 +262,12 @@ private:
 	* Texture resolution width.
 	* Each stereo output texture will have this width.
 	***/
-	int** m_ppnTexResolutionWidth;
+	int* m_pnTexResolutionWidth;
 	/**
 	* Texture resolution Height.
 	* Each stereo output texture will have this height.
 	***/
-	int** m_ppnTexResolutionHeight;
+	int* m_pnTexResolutionHeight;
 	/**
 	* Render FOV aspect ratio.
 	***/

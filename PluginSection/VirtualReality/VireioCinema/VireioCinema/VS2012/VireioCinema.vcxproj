@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{44C97809-D330-419D-A70C-68B53960B351}</ProjectGuid>
+    <ProjectGuid>{DFC2AA0A-2379-4BE9-9523-A46BA14D2E44}</ProjectGuid>
     <RootNamespace>VireioCinema</RootNamespace>
     <ProjectName>VireioCinema</ProjectName>
   </PropertyGroup>
@@ -40,12 +40,12 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(USERPROFILE)\Documents\my games\Aquilinus\My Nodes\</OutDir>
+    <OutDir>$(USERPROFILE)\Documents\my games\Aquilinus\My Nodes Win32\</OutDir>
     <IncludePath>$(WindowsSDK_IncludePath);$(DXSDK_DIR)Include;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSDK_IncludePath);</IncludePath>
     <LibraryPath>$(DXSDK_DIR)Lib\x86;$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSDK_LibraryPath_x86);</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(USERPROFILE)\Documents\my games\Aquilinus\My Nodes\</OutDir>
+    <OutDir>$(USERPROFILE)\Documents\my games\Aquilinus\My Nodes Win32\</OutDir>
     <IncludePath>$(WindowsSDK_IncludePath);$(DXSDK_DIR)Include;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSDK_IncludePath);</IncludePath>
     <LibraryPath>$(DXSDK_DIR)Lib\x86;$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSDK_LibraryPath_x86);</LibraryPath>
   </PropertyGroup>
@@ -72,19 +72,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="AQU_Nodus.h" />
-    <ClInclude Include="Resources.h" />
-    <ClInclude Include="Shader_D3D9.h" />
-    <ClInclude Include="VireioCinema.h" />
+    <ClInclude Include="..\AQU_Nodus.h" />
+    <ClInclude Include="..\Resources.h" />
+    <ClInclude Include="..\Shader_D3D9.h" />
+    <ClInclude Include="..\VireioCinema.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="VireioCinema.cpp" />
+    <ClCompile Include="..\VireioCinema.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="AQU_Nodus.def" />
+    <None Include="..\AQU_Nodus.def" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="VireioCinema_Resources.rc" />
+    <ResourceCompile Include="..\VireioCinema_Resources.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

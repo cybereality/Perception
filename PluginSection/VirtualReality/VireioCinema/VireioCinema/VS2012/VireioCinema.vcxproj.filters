@@ -1,17 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <None Include="AQU_Nodus.def" />
+    <None Include="..\AQU_Nodus.def" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AQU_Nodus.h" />
-    <ClInclude Include="Resources.h">
+    <ClInclude Include="..\AQU_Nodus.h" />
+    <ClInclude Include="..\Resources.h">
       <Filter>Resource</Filter>
     </ClInclude>
-    <ClInclude Include="Shader_D3D9.h">
+    <ClInclude Include="..\Shader_D3D9.h">
       <Filter>Shader</Filter>
     </ClInclude>
-    <ClInclude Include="VireioCinema.h" />
+    <ClInclude Include="..\VireioCinema.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Resource">
@@ -22,10 +22,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="VireioCinema.cpp" />
+    <ClCompile Include="..\VireioCinema.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="VireioCinema_Resources.rc">
+    <ResourceCompile Include="..\VireioCinema_Resources.rc">
       <Filter>Resource</Filter>
     </ResourceCompile>
   </ItemGroup>
