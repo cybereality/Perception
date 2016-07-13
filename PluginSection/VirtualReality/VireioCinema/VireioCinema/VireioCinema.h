@@ -2,15 +2,15 @@
 Vireio Perception: Open-Source Stereoscopic 3D Driver
 Copyright (C) 2012 Andres Hernandez
 
-Vireio Cinema - Virtual Reality Cinema Node Plugin 
+Vireio Cinema - Virtual Reality Cinema Node Plugin
 Copyright (C) 2014 Denis Reischl
 
 File <VireioCinema.h> and
 Class <VireioCinema> :
 Copyright (C) 2015 Denis Reischl
 
-The stub class <AQU_Nodus> is the only public class from the Aquilinus 
-repository and permitted to be used for open source plugins of any kind. 
+The stub class <AQU_Nodus> is the only public class from the Aquilinus
+repository and permitted to be used for open source plugins of any kind.
 Read the Aquilinus documentation for further information.
 
 Vireio Perception Version History:
@@ -36,12 +36,34 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
 #include"AQU_Nodus.h"
+#include<vector>
+
+#include <DXGI.h>
+#pragma comment(lib, "DXGI.lib")
+
+#include <d3d11_1.h>
+#pragma comment(lib, "d3d11.lib")
+
+#include <d3d11.h>
+#pragma comment(lib, "d3d11.lib")
+
+#include <d3d10_1.h>
+#pragma comment(lib, "d3d10_1.lib")
+
+#include <d3d10.h>
+#pragma comment(lib, "d3d10.lib")
+
+#include <d3dx10.h>
+#pragma comment(lib, "d3dx10.lib")
 
 #include <d3d9.h>
 #pragma comment(lib, "d3d9.lib")
 
 #include <d3dx9.h>
 #pragma comment(lib, "d3dx9.lib")
+
+#include"..\..\..\Include\Vireio_DX11Basics.h"
+#include"..\..\..\Include\Vireio_Node_Plugtypes.h"
 
 #define INT_PLUG_TYPE                                  7 
 #define PNT_FLOAT_PLUG_TYPE                          104
@@ -50,15 +72,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define PNT_IDIRECT3DTEXTURE9_PLUG_TYPE             2048
 
 #define NUMBER_OF_COMMANDERS                           2
-#define NUMBER_OF_DECOMMANDERS                        13
+#define NUMBER_OF_DECOMMANDERS                        22
 
 /**
 * Node Commander Enumeration.
 ***/
 enum VRC_Commanders
 {
-	StereoTextureLeft,
-	StereoTextureRight
+	LeftTexture11,
+	RightTexture11,
+	LeftTexture10,
+	RightTexture10,
+	LeftTexture9,
+	RightTexture9,
 };
 
 /**
@@ -66,13 +92,22 @@ enum VRC_Commanders
 ***/
 enum VRC_Decommanders
 {
-	Yaw,
+	LeftTexture11_In,
+	RightTexture11_In,
+	LeftTexture10_In,
+	RightTexture10_In,
+	LeftTexture9_In,
+	RightTexture9_In,
 	Pitch,
+	Yaw,
 	Roll,
+	OrientationW,
+	OrientationX,
+	OrientationY,
+	OrientationZ,
 	PositionX,
 	PositionY,
 	PositionZ,
-	FrameTexture,
 	ViewOffsetLeft,
 	ViewOffsetRight,
 	ResolutionWidth,
@@ -95,7 +130,7 @@ public:
 	virtual UINT            GetNodeTypeId();
 	virtual LPWSTR          GetCategory();
 	virtual HBITMAP         GetLogo();
-	virtual DWORD           GetNodeWidth() { return 4+256+4; }
+	virtual DWORD           GetNodeWidth() { return 4 + 256 + 4; }
 	virtual DWORD           GetNodeHeight() { return 128; }
 	virtual DWORD           GetCommandersNumber() { return NUMBER_OF_COMMANDERS; }
 	virtual DWORD           GetDecommandersNumber() { return NUMBER_OF_DECOMMANDERS; }
@@ -114,6 +149,7 @@ private:
 	void Render(LPDIRECT3DDEVICE9 pcDevice);
 	void SetAllRenderStatesDefault(LPDIRECT3DDEVICE9 pcDevice);
 
+#pragma region VireioCinema D3D9 private fields
 	/**
 	* Cinema screen vertex shader.
 	***/
@@ -167,73 +203,9 @@ private:
 	***/
 	LPDIRECT3DTEXTURE9 m_pTextureCinemaTheatre;
 	/**
-	* Yaw angle pointer.
-	***/
-	float** m_ppfYaw;
-	/**
-	* Pitch angle pointer.
-	***/
-	float** m_ppfPitch;
-	/**
-	* Roll angle pointer.
-	***/
-	float** m_ppfRoll;
-	/**
-	* Yaw angle.
-	***/
-	float m_fYaw;
-	/**
-	* Pitch angle.
-	***/
-	float m_fPitch;
-	/**
-	* Roll angle.
-	***/
-	float m_fRoll;
-	/**
-	* Position X pointer.
-	***/
-	float** m_ppfPositionX;
-	/**
-	* Position Y pointer.
-	***/
-	float** m_ppfPositionY;
-	/**
-	* Position X pointer.
-	***/
-	float** m_ppfPositionZ;
-	/**
-	* Projection Left pointer.
-	***/
-	D3DMATRIX** m_ppsProjectionLeft;
-	/**
-	* Projection Left pointer.
-	***/
-	D3DMATRIX** m_ppsProjectionRight;
-	/**
-	* View offset pointer left.
-	***/
-	D3DVECTOR** m_ppsViewOffsetLeft;
-	/**
-	* View offset pointer right.
-	***/
-	D3DVECTOR** m_ppsViewOffsetRight;
-	/**
-	* View offset left.
-	***/
-	D3DVECTOR m_sViewOffsetLeft;
-	/**
-	* View offset right.
-	***/
-	D3DVECTOR m_sViewOffsetRight;
-	/**
-	* Position vector.
-	***/
-	D3DVECTOR m_sPositionVector;
-	/**
 	* The texture of the current frame.
 	***/
-	LPDIRECT3DTEXTURE9* m_ppcFrameTexture;
+	IDirect3DTexture9** m_ppcFrameTexture;
 	/**
 	* The output texture (left).
 	***/
@@ -258,6 +230,137 @@ private:
 	* The depth stencil surface (right).
 	***/
 	LPDIRECT3DSURFACE9 m_pcDepthStencilRight;
+#pragma endregion
+#pragma region VireioCinema D3D11 private fields
+	/**
+	* Drawing textures left/right.
+	***/
+	ID3D11Texture2D* m_pcTex11Draw[2];
+	/**
+	* Drawing texture RT views left/right.
+	***/
+	ID3D11RenderTargetView* m_pcTex11DrawRTV[2];
+	/**
+	* Drawing texture SR views left/right.
+	***/
+	ID3D11ShaderResourceView* m_pcTex11DrawSRV[2];
+	/**
+	* Input texture SR views left/right.
+	***/
+	ID3D11ShaderResourceView** m_ppcTex11InputSRV[2];
+	/**
+	* The 3D vertex shader for the openVR models.
+	***/
+	ID3D11VertexShader* m_pcVSGeometry11;
+	/**
+	* The 3D pixel shader for the openVR models.
+	***/
+	ID3D11PixelShader* m_pcPSGeometry11;
+	/**
+	* The 3D vertex layout for the openVR models.
+	***/
+	ID3D11InputLayout* m_pcVLGeometry11;
+	/**
+	* The depth stencil DX11 left/right.
+	***/
+	ID3D11Texture2D* m_pcDSGeometry11[2];
+	/**
+	* The depth stencil view DX11.
+	***/
+	ID3D11DepthStencilView* m_pcDSVGeometry11[2];
+	/**
+	* The d3d11 sampler.
+	***/
+	ID3D11SamplerState* m_pcSampler11;
+	/**
+	* Constant buffer data structure.
+	***/
+	GeometryConstantBuffer m_sGeometryConstants;
+	/**
+	* The constant buffer for geometry shaders.
+	***/
+	ID3D11Buffer* m_pcConstantBufferGeometry;
+	/**
+	* Current view matrix.
+	***/
+	D3DXMATRIX m_sView;
+	/**
+	* Current eye pose matrix left/right.
+	***/
+	D3DXMATRIX m_sToEye[2];
+	/**
+	* Current projection matrix left/right.
+	***/
+	D3DXMATRIX m_sProj[2];
+	/**
+	* DX11 simple model structure.
+	***/
+	struct RenderModel_D3D11
+	{
+		ID3D11Buffer* pcVertexBuffer;               /**< Vertex buffer for the mesh **/
+		UINT32 unVertexCount;						/**< Number of vertices in the vertex data **/
+		ID3D11Buffer* pcIndexBuffer;                /**< Indices into the vertex data for each triangle **/
+		UINT32 unTriangleCount;					    /**< Number of triangles in the mesh. Index count is 3 * TriangleCount **/
+		ID3D11Texture2D* pcTexture;                 /**< Texture **/
+		ID3D11ShaderResourceView* pcTextureSRV;     /**< Texture SRV **/
+	};
+	/**
+	* Vector of all models to render.
+	***/
+	std::vector<RenderModel_D3D11> m_asRenderModels;
+#pragma endregion
+	/**
+	* Yaw angle pointer.
+	***/
+	float* m_pfYaw;
+	/**
+	* Pitch angle pointer.
+	***/
+	float* m_pfPitch;
+	/**
+	* Roll angle pointer.
+	***/
+	float* m_pfRoll;
+	/**
+	* Yaw angle.
+	***/
+	float m_fYaw;
+	/**
+	* Pitch angle.
+	***/
+	float m_fPitch;
+	/**
+	* Roll angle.
+	***/
+	float m_fRoll;
+	/**
+	* Position X pointer.
+	***/
+	float* m_pfPositionX;
+	/**
+	* Position Y pointer.
+	***/
+	float* m_pfPositionY;
+	/**
+	* Position X pointer.
+	***/
+	float* m_pfPositionZ;
+	/**
+	* Projection pointers left/right.
+	***/
+	D3DMATRIX* m_psProjection[2];
+	/**
+	* View offset pointers left/right.
+	***/
+	D3DVECTOR* m_psViewOffset[2];
+	/**
+	* View offset left/right.
+	***/
+	D3DVECTOR m_sViewOffset[2];
+	/**
+	* Position in cinema.
+	***/
+	D3DVECTOR m_sPositionVector;	
 	/**
 	* Texture resolution width.
 	* Each stereo output texture will have this width.

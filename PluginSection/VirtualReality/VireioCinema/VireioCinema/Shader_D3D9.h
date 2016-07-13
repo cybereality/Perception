@@ -35,18 +35,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
 /**
-* Simple texture vertex structure.
-***/
-struct TexturedVertex
-{
-	float x;
-	float y;
-	float z;
-	float u;
-	float v;
-};
-
-/**
 * Textured, colored vertex.
 ***/
 struct TexColoredVertex

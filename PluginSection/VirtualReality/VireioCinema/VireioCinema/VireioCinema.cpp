@@ -66,15 +66,18 @@ m_pVBCinemaTheatre(nullptr),
 m_pIBCinemaTheatre(nullptr),
 m_pTextureCinema(nullptr),
 m_pTextureCinemaTheatre(nullptr),
-m_ppfYaw(nullptr),
-m_ppfPitch(nullptr),
-m_ppfRoll(nullptr),
+m_pcVSGeometry11(nullptr),
+m_pcVLGeometry11(nullptr),
+m_pcPSGeometry11(nullptr),
+m_pfYaw(nullptr),
+m_pfPitch(nullptr),
+m_pfRoll(nullptr),
 m_fYaw(0.0f),
 m_fPitch(0.0f),
 m_fRoll(0.0f),
-m_ppfPositionX(nullptr),
-m_ppfPositionY(nullptr),
-m_ppfPositionZ(nullptr),
+m_pfPositionX(nullptr),
+m_pfPositionY(nullptr),
+m_pfPositionZ(nullptr),
 m_ppcFrameTexture(nullptr),
 m_pStereoOutputLeft(nullptr),
 m_pStereoOutputRight(nullptr),
@@ -82,14 +85,37 @@ m_pStereoOutputSurfaceLeft(nullptr),
 m_pStereoOutputSurfaceRight(nullptr),
 m_pcDepthStencilLeft(nullptr),
 m_pcDepthStencilRight(nullptr),
-m_bOculusTinyRoomMesh(false)
+m_bOculusTinyRoomMesh(false),
+m_asRenderModels()
 {
 	ZeroMemory(&m_sPositionVector, sizeof(D3DVECTOR));
-	ZeroMemory(&m_sViewOffsetLeft, sizeof(D3DVECTOR));
-	ZeroMemory(&m_sViewOffsetRight, sizeof(D3DVECTOR));
+	ZeroMemory(&m_sViewOffset[0], sizeof(D3DVECTOR));
+	ZeroMemory(&m_sViewOffset[1], sizeof(D3DVECTOR));
+	ZeroMemory(&m_sGeometryConstants, sizeof(GeometryConstantBuffer));
 
 	// set default aspect ratio
 	m_fAspectRatio = 1920.0f / 1080.0f;
+
+	m_pcConstantBufferGeometry = nullptr;
+	m_pcSampler11 = nullptr;
+	m_pcDSGeometry11[0] = nullptr;
+	m_pcDSGeometry11[1] = nullptr;
+	m_pcDSVGeometry11[0] = nullptr;
+	m_pcDSVGeometry11[1] = nullptr;
+	m_pcTex11Draw[0] = nullptr;
+	m_pcTex11Draw[1] = nullptr;
+	m_pcTex11DrawRTV[0] = nullptr;
+	m_pcTex11DrawRTV[1] = nullptr;
+	m_pcTex11DrawSRV[0] = nullptr;
+	m_pcTex11DrawSRV[1] = nullptr;
+	m_ppcTex11InputSRV[0] = nullptr;
+	m_ppcTex11InputSRV[1] = nullptr;
+
+	D3DXMatrixIdentity(&m_sView);
+	D3DXMatrixIdentity(&m_sToEye[0]);
+	D3DXMatrixIdentity(&m_sToEye[1]);
+	D3DXMatrixIdentity(&m_sProj[0]);
+	D3DXMatrixIdentity(&m_sProj[1]);
 }
 
 /**
@@ -117,6 +143,24 @@ VireioCinema::~VireioCinema()
 		m_pStereoOutputRight->Release();
 		m_pStereoOutputRight = nullptr;
 	}
+
+	for (UINT unI = 0; unI < (UINT)m_asRenderModels.size(); unI++)
+	{
+		SAFE_RELEASE(m_asRenderModels[unI].pcIndexBuffer);
+		SAFE_RELEASE(m_asRenderModels[unI].pcVertexBuffer);
+		SAFE_RELEASE(m_asRenderModels[unI].pcTextureSRV);
+		SAFE_RELEASE(m_asRenderModels[unI].pcTexture);
+	}
+
+	SAFE_RELEASE(m_pcSampler11);
+	SAFE_RELEASE(m_pcConstantBufferGeometry);
+	SAFE_RELEASE(m_pcDSVGeometry11[0]);
+	SAFE_RELEASE(m_pcDSVGeometry11[1]);
+	SAFE_RELEASE(m_pcDSGeometry11[0]);
+	SAFE_RELEASE(m_pcDSGeometry11[1]);
+	SAFE_RELEASE(m_pcVLGeometry11);
+	SAFE_RELEASE(m_pcVSGeometry11);
+	SAFE_RELEASE(m_pcPSGeometry11);
 }
 
 /**
@@ -162,13 +206,21 @@ LPWSTR VireioCinema::GetCommanderName(DWORD dwCommanderIndex)
 {
 	switch ((VRC_Commanders)dwCommanderIndex)
 	{
-		case VRC_Commanders::StereoTextureLeft:
-			return L"Stereo Output Texture Left";
-		case VRC_Commanders::StereoTextureRight:
-			return L"Stereo Output Texture Right";
+		case LeftTexture11:
+			return L"Left Texture DX11";
+		case RightTexture11:
+			return L"Right Texture DX11";
+		case LeftTexture10:
+			break;
+		case RightTexture10:
+			break;
+		case LeftTexture9:
+			break;
+		case RightTexture9:
+			break;
 	}
 
-	return L"";
+	return L"x";
 }
 
 /**
@@ -178,35 +230,53 @@ LPWSTR VireioCinema::GetDecommanderName(DWORD dwDecommanderIndex)
 {
 	switch ((VRC_Decommanders)dwDecommanderIndex)
 	{
-		case VRC_Decommanders::Yaw:
-			return L"Yaw";
-		case VRC_Decommanders::Pitch:
+		case LeftTexture11:
+			return L"Left Texture DX11";
+		case RightTexture11:
+			return L"Right Texture DX11";
+		case LeftTexture10:
+			break;
+		case RightTexture10:
+			break;
+		case LeftTexture9:
+			break;
+		case RightTexture9:
+			break;
+		case Pitch:
 			return L"Pitch";
-		case VRC_Decommanders::Roll:
+		case Yaw:
+			return L"Yaw";
+		case Roll:
 			return L"Roll";
-		case VRC_Decommanders::PositionX:
+		case OrientationW:
+			break;
+		case OrientationX:
+			break;
+		case OrientationY:
+			break;
+		case OrientationZ:
+			break;
+		case PositionX:
 			return L"Position X";
-		case VRC_Decommanders::PositionY:
+		case PositionY:
 			return L"Position Y";
-		case VRC_Decommanders::PositionZ:
+		case PositionZ:
 			return L"Position Z";
-		case VRC_Decommanders::FrameTexture:
-			return L"Frame Texture";
-		case VRC_Decommanders::ViewOffsetLeft:
+		case ViewOffsetLeft:
 			return L"View Offset Left";
-		case VRC_Decommanders::ViewOffsetRight:
+		case ViewOffsetRight:
 			return L"View Offset Right";
-		case VRC_Decommanders::ResolutionWidth:
+		case ResolutionWidth:
 			return L"Resolution Width";
-		case VRC_Decommanders::ResolutionHeight:
+		case ResolutionHeight:
 			return L"Resolution Height";
-		case VRC_Decommanders::ProjectionLeft:
+		case ProjectionLeft:
 			return L"Projection Left";
-		case VRC_Decommanders::ProjectionRight:
+		case ProjectionRight:
 			return L"Projection Right";
 	}
 
-	return L"";
+	return L"x";
 }
 
 /**
@@ -214,7 +284,22 @@ LPWSTR VireioCinema::GetDecommanderName(DWORD dwDecommanderIndex)
 ***/
 DWORD VireioCinema::GetCommanderType(DWORD dwCommanderIndex)
 {
-	return PNT_IDIRECT3DTEXTURE9_PLUG_TYPE;
+	switch ((VRC_Commanders)dwCommanderIndex)
+	{
+		case LeftTexture11:
+		case RightTexture11:
+			return NOD_Plugtype::AQU_PNT_ID3D11SHADERRESOURCEVIEW;
+		case LeftTexture10:
+			break;
+		case RightTexture10:
+			break;
+		case LeftTexture9:
+			break;
+		case RightTexture9:
+			break;
+	}
+
+	return 0;
 }
 
 /**
@@ -222,15 +307,43 @@ DWORD VireioCinema::GetCommanderType(DWORD dwCommanderIndex)
 ***/
 DWORD VireioCinema::GetDecommanderType(DWORD dwDecommanderIndex)
 {
-	if (dwDecommanderIndex < 6)
-		return PNT_FLOAT_PLUG_TYPE;
-	else if (dwDecommanderIndex == 6)
-		return PNT_IDIRECT3DTEXTURE9_PLUG_TYPE;
-	else if (dwDecommanderIndex < 9)
-		return PNT_VECTOR3F_PLUG_TYPE;
-	else if (dwDecommanderIndex < 11)
-		return INT_PLUG_TYPE;
-	else return PNT_D3DMATRIX_PLUG_TYPE;
+	switch ((VRC_Decommanders)dwDecommanderIndex)
+	{
+		case LeftTexture11:
+		case RightTexture11:
+			return NOD_Plugtype::AQU_PNT_ID3D11SHADERRESOURCEVIEW;
+		case LeftTexture10:
+			break;
+		case RightTexture10:
+			break;
+		case LeftTexture9:
+			break;
+		case RightTexture9:
+			break;
+		case Pitch:
+		case Yaw:
+		case Roll:
+		case OrientationW:
+		case OrientationX:
+		case OrientationY:
+		case OrientationZ:
+		case PositionX:
+		case PositionY:
+		case PositionZ:
+			return NOD_Plugtype::AQU_FLOAT;
+		case ViewOffsetLeft:
+			break;
+		case ViewOffsetRight:
+			break;
+		case ResolutionWidth:
+		case ResolutionHeight:
+			return NOD_Plugtype::AQU_INT;
+		case ProjectionLeft:
+		case ProjectionRight:
+			return NOD_Plugtype::AQU_D3DMATRIX;
+	}
+
+	return 0;
 }
 
 /**
@@ -240,10 +353,20 @@ void* VireioCinema::GetOutputPointer(DWORD dwCommanderIndex)
 {
 	switch ((VRC_Commanders)dwCommanderIndex)
 	{
-		case VRC_Commanders::StereoTextureLeft:
-			return (void*)&m_pStereoOutputLeft;
-		case VRC_Commanders::StereoTextureRight:
-			return (void*)&m_pStereoOutputRight;
+		case LeftTexture11:
+			return (void*)&m_pcTex11DrawSRV[0];
+		case RightTexture11:
+			return (void*)&m_pcTex11DrawSRV[1];
+		case LeftTexture10:
+			break;
+		case RightTexture10:
+			break;
+		case LeftTexture9:
+			break;
+		case RightTexture9:
+			break;
+		default:
+			break;
 	}
 
 	return nullptr;
@@ -256,44 +379,63 @@ void VireioCinema::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 {
 	switch ((VRC_Decommanders)dwDecommanderIndex)
 	{
-		case VRC_Decommanders::Yaw:
-			m_ppfYaw = (float**)pData;
+		case LeftTexture11:
+			m_ppcTex11InputSRV[0] = (ID3D11ShaderResourceView**)pData;
 			break;
-		case VRC_Decommanders::Pitch:
-			m_ppfPitch = (float**)pData;
+		case RightTexture11:
+			m_ppcTex11InputSRV[1] = (ID3D11ShaderResourceView**)pData;
 			break;
-		case VRC_Decommanders::Roll:
-			m_ppfRoll = (float**)pData;
+		case LeftTexture10:
 			break;
-		case VRC_Decommanders::PositionX:
-			m_ppfPositionX = (float**)pData;
+		case RightTexture10:
 			break;
-		case VRC_Decommanders::PositionY:
-			m_ppfPositionY = (float**)pData;
+		case LeftTexture9:
 			break;
-		case VRC_Decommanders::PositionZ:
-			m_ppfPositionZ = (float**)pData;
+		case RightTexture9:
 			break;
-		case VRC_Decommanders::FrameTexture:
-			m_ppcFrameTexture = (LPDIRECT3DTEXTURE9*)pData;
+		case Pitch:
+			m_pfPitch = (float*)pData;
 			break;
-		case VRC_Decommanders::ViewOffsetLeft:
-			m_ppsViewOffsetLeft = (D3DVECTOR**)pData;
+		case Yaw:
+			m_pfYaw = (float*)pData;
 			break;
-		case VRC_Decommanders::ViewOffsetRight:
-			m_ppsViewOffsetRight = (D3DVECTOR**)pData;
+		case Roll:
+			m_pfRoll = (float*)pData;
 			break;
-		case VRC_Decommanders::ResolutionWidth:
+		case OrientationW:
+			break;
+		case OrientationX:
+			break;
+		case OrientationY:
+			break;
+		case OrientationZ:
+			break;
+		case PositionX:
+			m_pfPositionX = (float*)pData;
+			break;
+		case PositionY:
+			m_pfPositionY = (float*)pData;
+			break;
+		case PositionZ:
+			m_pfPositionZ = (float*)pData;
+			break;
+		case ViewOffsetLeft:
+			m_psViewOffset[0] = (D3DVECTOR*)pData;
+			break;
+		case ViewOffsetRight:
+			m_psViewOffset[1] = (D3DVECTOR*)pData;
+			break;
+		case ResolutionWidth:
 			m_pnTexResolutionWidth = (int*)pData;
 			break;
-		case VRC_Decommanders::ResolutionHeight:
+		case ResolutionHeight:
 			m_pnTexResolutionHeight = (int*)pData;
 			break;
-		case VRC_Decommanders::ProjectionLeft:
-			m_ppsProjectionLeft = (D3DMATRIX**)pData;
+		case ProjectionLeft:
+			m_psProjection[0] = (D3DMATRIX*)pData;
 			break;
-		case VRC_Decommanders::ProjectionRight:
-			m_ppsProjectionRight = (D3DMATRIX**)pData;
+		case ProjectionRight:
+			m_psProjection[1] = (D3DMATRIX*)pData;
 			break;
 	}
 }
@@ -347,35 +489,26 @@ void* VireioCinema::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMe
 	}
 
 	// get data
-	if (m_ppfYaw)
-	if (*m_ppfYaw) m_fYaw = **m_ppfYaw;
-	if (m_ppfPitch)
-	if (*m_ppfPitch)  m_fPitch = **m_ppfPitch;
-	if (m_ppfRoll)
-	if (*m_ppfRoll)  m_fRoll = **m_ppfRoll;
-	if (m_ppfPositionX)
-	if (*m_ppfPositionX)  m_sPositionVector.x = **m_ppfPositionX;
-	if (m_ppfPositionY)
-	if (*m_ppfPositionY)  m_sPositionVector.y = **m_ppfPositionY;
-	if (m_ppfPositionZ)
-	if (*m_ppfPositionZ)  m_sPositionVector.z = **m_ppfPositionZ;
-	if (m_ppsViewOffsetLeft)
+	if (m_pfPitch) m_fPitch = *m_pfPitch;
+	if (m_pfYaw) m_fYaw = *m_pfYaw;
+	if (m_pfRoll) m_fRoll = *m_pfRoll;
+
+	if (m_pfPositionX) m_sPositionVector.x = *m_pfPositionX;
+	if (m_pfPositionY) m_sPositionVector.y = *m_pfPositionY;
+	if (m_pfPositionZ) m_sPositionVector.z = *m_pfPositionZ;
+	if (m_psViewOffset[0])
 	{
-		if (*m_ppsViewOffsetLeft)
-		{
-			m_sViewOffsetLeft.x = (*m_ppsViewOffsetLeft)->x;
-			m_sViewOffsetLeft.y = (*m_ppsViewOffsetLeft)->y;
-			m_sViewOffsetLeft.z = (*m_ppsViewOffsetLeft)->z;
-		}
+
+		m_sViewOffset[0].x = (*m_psViewOffset[0]).x;
+		m_sViewOffset[0].y = (*m_psViewOffset[0]).y;
+		m_sViewOffset[0].z = (*m_psViewOffset[0]).z;
+
 	}
-	if (m_ppsViewOffsetRight)
+	if (m_psViewOffset[1])
 	{
-		if (*m_ppsViewOffsetRight)
-		{
-			m_sViewOffsetLeft.x = (*m_ppsViewOffsetLeft)->x;
-			m_sViewOffsetLeft.y = (*m_ppsViewOffsetLeft)->y;
-			m_sViewOffsetLeft.z = (*m_ppsViewOffsetLeft)->z;
-		}
+		m_sViewOffset[1].x = (*m_psViewOffset[1]).x;
+		m_sViewOffset[1].y = (*m_psViewOffset[1]).y;
+		m_sViewOffset[1].z = (*m_psViewOffset[1]).z;
 	}
 
 	// init all stuff
@@ -565,10 +698,10 @@ void VireioCinema::Init(LPDIRECT3DDEVICE9 pcDevice)
 	{
 		TexturedVertex asVertices[] =
 		{
-			{ -1.92f, -1.08f, 0.0f, 1.0f, 1.0f },
-			{ 1.92f, -1.08f, 0.0f, 0.0f, 1.0f },
-			{ 1.92f, 1.08f, 0.0f, 0.0f, 0.0f },
-			{ -1.92f, 1.08f, 0.0f, 1.0f, 0.0f }
+			{ D3DXVECTOR4(-1.92f, -1.08f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) } ,
+			{ D3DXVECTOR4(1.92f, -1.08f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 1.0f) },
+			{ D3DXVECTOR4(1.92f, 1.08f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
+			{ D3DXVECTOR4(-1.92f, 1.08f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) }
 		};
 
 		float fScale = 0.8f;
@@ -576,13 +709,13 @@ void VireioCinema::Init(LPDIRECT3DDEVICE9 pcDevice)
 		for (int i = 0; i < 4; i++)
 		{
 			// scale and translate
-			asVertices[i].x *= fScale;
-			asVertices[i].y *= fScale;
-			asVertices[i].z *= fScale;
+			asVertices[i].sPos.x *= fScale;
+			asVertices[i].sPos.y *= fScale;
+			asVertices[i].sPos.z *= fScale;
 
-			asVertices[i].x += sTranslate.x;
-			asVertices[i].y += sTranslate.y;
-			asVertices[i].z += sTranslate.z;
+			asVertices[i].sPos.x += sTranslate.x;
+			asVertices[i].sPos.y += sTranslate.y;
+			asVertices[i].sPos.z += sTranslate.z;
 		}
 
 		// create
@@ -658,8 +791,8 @@ void VireioCinema::Render(LPDIRECT3DDEVICE9 pcDevice)
 
 	// is that right to add the offset at this point ?
 	D3DXMATRIX matViewLeft, matViewRight, matTransLeft, matTransRight;
-	D3DXMatrixTranslation(&matTransLeft, m_sViewOffsetLeft.x, m_sViewOffsetLeft.y, m_sViewOffsetLeft.z);
-	D3DXMatrixTranslation(&matTransRight, m_sViewOffsetRight.x, m_sViewOffsetRight.y, m_sViewOffsetRight.z);
+	D3DXMatrixTranslation(&matTransLeft, m_sViewOffset[0].x, m_sViewOffset[0].y, m_sViewOffset[0].z);
+	D3DXMatrixTranslation(&matTransRight, m_sViewOffset[1].x, m_sViewOffset[1].y, m_sViewOffset[1].z);
 	matViewLeft = matTransLeft * matView;
 	matViewRight = matTransRight * matView;
 
@@ -731,11 +864,8 @@ void VireioCinema::Render(LPDIRECT3DDEVICE9 pcDevice)
 	D3DCOLOR clearColor = D3DCOLOR_RGBA(0, 255, 0, 0);
 
 	// set matrix
-	if (m_ppsProjectionLeft)
-	{
-		if (*m_ppsProjectionLeft)
-			CopyMemory(&matProjection, (void*)(*m_ppsProjectionLeft), sizeof(D3DMATRIX));
-	}
+	if (m_psProjection[0])
+		CopyMemory(&matProjection, (void*)(m_psProjection[0]), sizeof(D3DMATRIX));
 	m_ctVCinema->SetMatrix(pcDevice, "xViewProjection", &(matViewLeft * matYaw * matPitch * matRoll * matSeparationLeft * matProjection));
 	// pcDevice->SetVertexShaderConstantF(0, &matProjection.m[0][0], 4);
 
@@ -760,13 +890,10 @@ void VireioCinema::Render(LPDIRECT3DDEVICE9 pcDevice)
 
 	D3DRECT crec = { 200, 200, 400, 600 }; //position and dimensions of our rectangle
 	pcDevice->Clear(1, &crec, D3DCLEAR_TARGET, D3DCOLOR_XRGB(255, 128, 64), 0, 0);
-	
+
 	// set matrix (right)
-	if (m_ppsProjectionRight)
-	{
-		if (*m_ppsProjectionRight)
-			CopyMemory(&matProjection, (void*)(*m_ppsProjectionRight), sizeof(D3DMATRIX));
-	}
+	if (m_psProjection[1])
+		CopyMemory(&matProjection, (void*)(m_psProjection[1]), sizeof(D3DMATRIX));
 	m_ctVCinema->SetMatrix(pcDevice, "xViewProjection", &(matViewRight * matYaw * matPitch * matRoll * matSeparationRight * matProjection));
 
 	// set all back and render right cinema screen
