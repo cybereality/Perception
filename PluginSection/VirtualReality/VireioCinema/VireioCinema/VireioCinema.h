@@ -47,6 +47,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <d3d11.h>
 #pragma comment(lib, "d3d11.lib")
 
+#include <D3DX11.h>
+#pragma comment(lib, "D3DX11.lib")
+
 #include <d3d10_1.h>
 #pragma comment(lib, "d3d10_1.lib")
 
@@ -62,6 +65,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <d3dx9.h>
 #pragma comment(lib, "d3dx9.lib")
 
+#include"..\..\..\Include\Vireio_GUIDs.h"
 #include"..\..\..\Include\Vireio_DX11Basics.h"
 #include"..\..\..\Include\Vireio_Node_Plugtypes.h"
 
@@ -145,8 +149,10 @@ public:
 
 private:
 	/*** VireioCinema private methods ***/
-	void Init(LPDIRECT3DDEVICE9 pcDevice);
-	void Render(LPDIRECT3DDEVICE9 pcDevice);
+	void InitD3D9(LPDIRECT3DDEVICE9 pcDevice);
+	void RenderD3D9(LPDIRECT3DDEVICE9 pcDevice);
+	void InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, IDXGISwapChain* pcSwapchain);
+	void RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, IDXGISwapChain* pcSwapchain);
 	void SetAllRenderStatesDefault(LPDIRECT3DDEVICE9 pcDevice);
 
 #pragma region VireioCinema D3D9 private fields

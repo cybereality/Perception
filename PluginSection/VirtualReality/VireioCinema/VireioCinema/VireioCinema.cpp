@@ -45,9 +45,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define INTERFACE_IDIRECT3DDEVICE9 8
 #define INTERFACE_IDIRECT3DSWAPCHAIN9 15
+#define INTERFACE_IDXGISWAPCHAIN 29
 #define	METHOD_IDIRECT3DDEVICE9_PRESENT 17
 #define	METHOD_IDIRECT3DDEVICE9_ENDSCENE 42
 #define	METHOD_IDIRECT3DSWAPCHAIN9_PRESENT 3
+#define METHOD_IDXGISWAPCHAIN_PRESENT 8
 
 /**
 * Constructor.
@@ -456,6 +458,11 @@ bool VireioCinema::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3
 			(nD3DMethod == METHOD_IDIRECT3DSWAPCHAIN9_PRESENT)))
 			return true;
 	}
+	else
+	if ((nD3DInterface == INTERFACE_IDIRECT3DSWAPCHAIN9) &&
+		(nD3DMethod == METHOD_IDXGISWAPCHAIN_PRESENT))
+		return true;
+
 	return false;
 }
 
@@ -464,29 +471,18 @@ bool VireioCinema::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3
 ***/
 void* VireioCinema::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMethod, DWORD dwNumberConnected, int& nProvokerIndex)
 {
-	// get device 
-	LPDIRECT3DDEVICE9 pcDevice = nullptr;
-	bool bReleaseDevice = false;
-	if (eD3DInterface == INTERFACE_IDIRECT3DDEVICE9)
+	// TODO !! DX9 classes
+	if (eD3DInterface != INTERFACE_IDXGISWAPCHAIN) return nullptr;
+	if (eD3DMethod != METHOD_IDXGISWAPCHAIN_PRESENT) return nullptr;
+
+	// D3D version ?
+	static enum D3DVersion
 	{
-		pcDevice = (LPDIRECT3DDEVICE9)pThis;
-	}
-	else if (eD3DInterface == INTERFACE_IDIRECT3DSWAPCHAIN9)
-	{
-		LPDIRECT3DSWAPCHAIN9 pSwapChain = (LPDIRECT3DSWAPCHAIN9)pThis;
-		if (!pSwapChain)
-		{
-			OutputDebugString(L"VireioCinema : No swapchain !");
-			return nullptr;
-		}
-		pSwapChain->GetDevice(&pcDevice);
-		bReleaseDevice = true;
-	}
-	if (!pcDevice)
-	{
-		OutputDebugString(L"VireioCinema Node : No device !");
-		return nullptr;
-	}
+		D3D_Undefined,
+		D3D_9,
+		D3D_10,
+		D3D_11,
+	} eD3DVersion = D3D_Undefined;
 
 	// get data
 	if (m_pfPitch) m_fPitch = *m_pfPitch;
@@ -511,23 +507,120 @@ void* VireioCinema::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMe
 		m_sViewOffset[1].z = (*m_psViewOffset[1]).z;
 	}
 
-	// init all stuff
-	Init(pcDevice);
+	// render cinema for specified D3D version
+	switch (eD3DVersion)
+	{
+		case D3D_Undefined:
+			// D3D version not defined ?
+			switch (eD3DInterface)
+			{
+				case INTERFACE_IDIRECT3DDEVICE9:
+				case INTERFACE_IDIRECT3DSWAPCHAIN9:
+					eD3DVersion = D3D_9;
+					break;
+				case INTERFACE_IDXGISWAPCHAIN:
+					if (eD3DVersion == D3D_Undefined)
+					{
+						// get device
+						IUnknown* pcDevice = nullptr;
+						((IDXGISwapChain*)pThis)->GetDevice(__uuidof(ID3D10Device), (void**)&pcDevice);
+						if (pcDevice)
+						{
+							eD3DVersion = D3D_10;
+							pcDevice->Release();
+							return nullptr;
+						}
+						// get device
+						((IDXGISwapChain*)pThis)->GetDevice(__uuidof(ID3D11Device), (void**)&pcDevice);
+						if (pcDevice)
+						{
+							eD3DVersion = D3D_11;
+							pcDevice->Release();
+							return nullptr;
+						}
+						// no device ?
+						OutputDebugString(L"[CIN] Could not resolve which D3D device is in use !");
+					}
+					break;
+			}
+			break;
+		case D3D_9:
+		{
 
-	// ..and render
-	if ((m_pVBCinemaTheatre) && (m_pVBCinemaScreen))
-		Render(pcDevice);
+					  // get device 
+					  LPDIRECT3DDEVICE9 pcDevice = nullptr;
+					  bool bReleaseDevice = false;
+					  if (eD3DInterface == INTERFACE_IDIRECT3DDEVICE9)
+					  {
+						  pcDevice = (LPDIRECT3DDEVICE9)pThis;
+					  }
+					  else if (eD3DInterface == INTERFACE_IDIRECT3DSWAPCHAIN9)
+					  {
+						  LPDIRECT3DSWAPCHAIN9 pSwapChain = (LPDIRECT3DSWAPCHAIN9)pThis;
+						  if (!pSwapChain)
+						  {
+							  OutputDebugString(L"[CIN] No swapchain !");
+							  return nullptr;
+						  }
+						  pSwapChain->GetDevice(&pcDevice);
+						  bReleaseDevice = true;
+					  }
+					  if (!pcDevice)
+					  {
+						  OutputDebugString(L"[CIN] No device !");
+						  return nullptr;
+					  }
 
-	// release device if provided by swapchain
-	if (bReleaseDevice) pcDevice->Release();
+					  if ((m_pVBCinemaTheatre) && (m_pVBCinemaScreen))
+						  // render
+						  RenderD3D9(pcDevice);
+					  else
+						  // ...or init all stuff
+						  InitD3D9(pcDevice);
 
+
+					  // release device if provided by swapchain
+					  if (bReleaseDevice) pcDevice->Release();
+		}
+			break;
+		case D3D_10:
+			break;
+		case D3D_11:
+		{
+					   // get device
+					   ID3D11Device* pcDevice = nullptr;
+					   ((IDXGISwapChain*)pThis)->GetDevice(__uuidof(ID3D11Device), (void**)&pcDevice);
+					   if (pcDevice)
+					   {
+						   // get context
+						   ID3D11DeviceContext* pcContext = nullptr;
+						   pcDevice->GetImmediateContext(&pcContext);
+						   if (pcContext)
+						   {
+							   if (m_asRenderModels.size())
+								   // render
+								   RenderD3D11(pcDevice, pcContext, (IDXGISwapChain*)pThis);
+							   else
+								   // ...or init all stuff
+								   InitD3D11(pcDevice, pcContext, (IDXGISwapChain*)pThis);
+
+							   pcContext->Release();
+						   }
+						   pcDevice->Release();
+						   return nullptr;
+					   }
+		}
+			break;
+		default:
+			break;
+	}
 	return nullptr;
 }
 
 /**
-* Inits all stuff.
+* Inits all stuff (DX9).
 ***/
-void VireioCinema::Init(LPDIRECT3DDEVICE9 pcDevice)
+void VireioCinema::InitD3D9(LPDIRECT3DDEVICE9 pcDevice)
 {
 	// output textures...left
 	if ((!m_pStereoOutputLeft) && (m_pnTexResolutionWidth) && (m_pnTexResolutionHeight))
@@ -543,7 +636,7 @@ void VireioCinema::Init(LPDIRECT3DDEVICE9 pcDevice)
 			// create left render target
 			if (FAILED(pcDevice->CreateTexture((UINT)nWidth, (UINT)nHeight, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &m_pStereoOutputLeft, NULL)))
 			{
-				OutputDebugString(L"VRCinema Node : Failed to create left stereo output texture.");
+				OutputDebugString(L"[CIN] Failed to create left stereo output texture.");
 				m_pStereoOutputLeft = nullptr;
 			}
 			else
@@ -559,7 +652,7 @@ void VireioCinema::Init(LPDIRECT3DDEVICE9 pcDevice)
 				}
 				if (FAILED(pcDevice->CreateDepthStencilSurface((UINT)nWidth, (UINT)nHeight, D3DFMT_D24X8, D3DMULTISAMPLE_NONE, 0, false, &m_pcDepthStencilLeft, NULL)))
 				{
-					OutputDebugString(L"VRCinema Node : Failed to create left depth stencil !");
+					OutputDebugString(L"[CIN] Failed to create left depth stencil !");
 				}
 			}
 		}
@@ -588,7 +681,7 @@ void VireioCinema::Init(LPDIRECT3DDEVICE9 pcDevice)
 			// create left render target
 			if (FAILED(pcDevice->CreateTexture((UINT)nWidth, (UINT)nHeight, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &m_pStereoOutputRight, NULL)))
 			{
-				OutputDebugString(L"VRCinema Node : Failed to create right stereo output texture.");
+				OutputDebugString(L"[CIN] Failed to create right stereo output texture.");
 				m_pStereoOutputRight = nullptr;
 			}
 			else
@@ -604,7 +697,7 @@ void VireioCinema::Init(LPDIRECT3DDEVICE9 pcDevice)
 				}
 				if (FAILED(pcDevice->CreateDepthStencilSurface((UINT)nWidth, (UINT)nHeight, D3DFMT_D24X8, D3DMULTISAMPLE_NONE, 0, false, &m_pcDepthStencilRight, NULL)))
 				{
-					OutputDebugString(L"VRCinema Node : Failed to create right depth stencil !");
+					OutputDebugString(L"[CIN] Failed to create right depth stencil !");
 				}
 			}
 		}
@@ -698,7 +791,7 @@ void VireioCinema::Init(LPDIRECT3DDEVICE9 pcDevice)
 	{
 		TexturedVertex asVertices[] =
 		{
-			{ D3DXVECTOR4(-1.92f, -1.08f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) } ,
+			{ D3DXVECTOR4(-1.92f, -1.08f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
 			{ D3DXVECTOR4(1.92f, -1.08f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 1.0f) },
 			{ D3DXVECTOR4(1.92f, 1.08f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
 			{ D3DXVECTOR4(-1.92f, 1.08f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) }
@@ -778,9 +871,9 @@ void VireioCinema::Init(LPDIRECT3DDEVICE9 pcDevice)
 }
 
 /**
-* Renders the virtual cinema.
+* Renders the virtual cinema (DX9).
 ***/
-void VireioCinema::Render(LPDIRECT3DDEVICE9 pcDevice)
+void VireioCinema::RenderD3D9(LPDIRECT3DDEVICE9 pcDevice)
 {
 	// render... first create matrices
 	D3DXMATRIX matProjection;
@@ -935,6 +1028,363 @@ void VireioCinema::Render(LPDIRECT3DDEVICE9 pcDevice)
 	pStateBlock->Release();
 
 	pcDevice->EndScene();
+}
+
+/**
+* Inits all stuff (DX11).
+***/
+void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, IDXGISwapChain* pcSwapchain)
+{
+	// create vertex shader
+	if (!m_pcVSGeometry11)
+	{
+		if (FAILED(Create3DVertexShader(pcDevice, &m_pcVSGeometry11, &m_pcVLGeometry11)))
+			OutputDebugString(L"[CIN] Failed to create vertex shader. !");
+	}
+
+	// create pixel shader
+	if (!m_pcPSGeometry11)
+	{
+		if (FAILED(CreateSimplePixelShader(pcDevice, &m_pcPSGeometry11, PixelShaderTechnique::GeometryDiffuseTextured)))
+			OutputDebugString(L"[CIN] Failed to create pixel shader. !");
+	}
+
+	// create the depth stencil
+	if ((!m_pcDSGeometry11[0]) && (m_pnTexResolutionHeight) && (m_pnTexResolutionWidth))
+	{
+		if ((*m_pnTexResolutionHeight) && (*m_pnTexResolutionWidth))
+		{
+			// Create depth stencil textures
+			D3D11_TEXTURE2D_DESC descDepth;
+			ZeroMemory(&descDepth, sizeof(descDepth));
+			descDepth.Width = 1280;//*m_pnTexResolutionWidth;
+			descDepth.Height = 800;//*m_pnTexResolutionHeight;
+			descDepth.MipLevels = 1;
+			descDepth.ArraySize = 1;
+			descDepth.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+			descDepth.SampleDesc.Count = 1;
+			descDepth.SampleDesc.Quality = 0;
+			descDepth.Usage = D3D11_USAGE_DEFAULT;
+			descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+			descDepth.CPUAccessFlags = 0;
+			descDepth.MiscFlags = 0;
+			if (FAILED(pcDevice->CreateTexture2D(&descDepth, NULL, &m_pcDSGeometry11[0])))
+				OutputDebugString(L"[CIN] Failed to create depth stencil.");
+			if (FAILED(pcDevice->CreateTexture2D(&descDepth, NULL, &m_pcDSGeometry11[1])))
+				OutputDebugString(L"[CIN] Failed to create depth stencil.");
+
+			// Create the depth stencil views
+			D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;
+			ZeroMemory(&descDSV, sizeof(descDSV));
+			descDSV.Format = descDepth.Format;
+			descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+			descDSV.Texture2D.MipSlice = 0;
+			if (FAILED(pcDevice->CreateDepthStencilView(m_pcDSGeometry11[0], &descDSV, &m_pcDSVGeometry11[0])))
+				OutputDebugString(L"[CIN] Failed to create depth stencil view.");
+			if (FAILED(pcDevice->CreateDepthStencilView(m_pcDSGeometry11[1], &descDSV, &m_pcDSVGeometry11[1])))
+				OutputDebugString(L"[CIN] Failed to create depth stencil view.");
+
+			float fAspect = (float)descDepth.Width / (float)descDepth.Height;
+
+			// create left/right matrices
+			for (INT nEye = 0; nEye < 2; nEye++)
+			{
+				// get the projection matrix for each eye
+				D3DXMatrixPerspectiveFovLH(&m_sProj[nEye], (float)D3DXToRadian(116.0), 1.0f, 0.1f, 30.0f);
+
+				// create eye pose matrix... TODO !!
+				D3DXMatrixIdentity(&m_sToEye[nEye]);
+			}
+		}
+	}
+
+	if (!m_pcSampler11)
+	{
+		// Create the sampler state
+		D3D11_SAMPLER_DESC sampDesc;
+		ZeroMemory(&sampDesc, sizeof(sampDesc));
+		sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+		sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+		sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+		sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+		sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+		sampDesc.MinLOD = 0;
+		sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+		if (FAILED(pcDevice->CreateSamplerState(&sampDesc, &m_pcSampler11)))
+			OutputDebugString(L"[CIN] Failed to create sampler.");
+	}
+
+	// create constant buffer
+	if (!m_pcConstantBufferGeometry)
+	{
+		if (FAILED(CreateGeometryConstantBuffer(pcDevice, &m_pcConstantBufferGeometry, (UINT)sizeof(GeometryConstantBuffer))))
+			OutputDebugString(L"[CIN] Failed to create constant buffer.");
+	}
+
+	// create render models... TODO !! CREATE ONLY IF ALL OTHER IS CREATED
+	if (!m_asRenderModels.size())
+	{
+		// create a D3D render model structure
+		RenderModel_D3D11 sRenderModel = {};
+
+		/*TexturedDiffuseVertex asVertices[] =
+		{
+			{ D3DXVECTOR3(-1.92f, -1.08f, 0.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(1.0f, 1.0f) },
+			{ D3DXVECTOR3(1.92f, -1.08f, 0.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(0.0f, 1.0f) },
+			{ D3DXVECTOR3(1.92f, 1.08f, 0.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(0.0f, 0.0f) },
+			{ D3DXVECTOR3(-1.92f, 1.08f, 0.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(1.0f, 0.0f) }
+		};*/
+
+		TexturedDiffuseVertex asVertices[] =
+		{
+			{ D3DXVECTOR3(-1.0f, 1.0f, -1.0f), D3DXVECTOR3(0.0f, 1.0f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
+			{ D3DXVECTOR3(1.0f, 1.0f, -1.0f), D3DXVECTOR3(0.0f, 1.0f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) },
+			{ D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR3(0.0f, 1.0f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
+			{ D3DXVECTOR3(-1.0f, 1.0f, 1.0f), D3DXVECTOR3(0.0f, 1.0f, 0.0f), D3DXVECTOR2(0.0f, 1.0f) },
+
+			{ D3DXVECTOR3(-1.0f, -1.0f, -1.0f), D3DXVECTOR3(0.0f, -1.0f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
+			{ D3DXVECTOR3(1.0f, -1.0f, -1.0f), D3DXVECTOR3(0.0f, -1.0f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) },
+			{ D3DXVECTOR3(1.0f, -1.0f, 1.0f), D3DXVECTOR3(0.0f, -1.0f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
+			{ D3DXVECTOR3(-1.0f, -1.0f, 1.0f), D3DXVECTOR3(0.0f, -1.0f, 0.0f), D3DXVECTOR2(0.0f, 1.0f) },
+
+			{ D3DXVECTOR3(-1.0f, -1.0f, 1.0f), D3DXVECTOR3(-1.0f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
+			{ D3DXVECTOR3(-1.0f, -1.0f, -1.0f), D3DXVECTOR3(-1.0f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) },
+			{ D3DXVECTOR3(-1.0f, 1.0f, -1.0f), D3DXVECTOR3(-1.0f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
+			{ D3DXVECTOR3(-1.0f, 1.0f, 1.0f), D3DXVECTOR3(-1.0f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 1.0f) },
+
+			{ D3DXVECTOR3(1.0f, -1.0f, 1.0f), D3DXVECTOR3(1.0f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
+			{ D3DXVECTOR3(1.0f, -1.0f, -1.0f), D3DXVECTOR3(1.0f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) },
+			{ D3DXVECTOR3(1.0f, 1.0f, -1.0f), D3DXVECTOR3(1.0f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
+			{ D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR3(1.0f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 1.0f) },
+
+			{ D3DXVECTOR3(-1.0f, -1.0f, -1.0f), D3DXVECTOR3(0.0f, 0.0f, -1.0f), D3DXVECTOR2(0.0f, 0.0f) },
+			{ D3DXVECTOR3(1.0f, -1.0f, -1.0f), D3DXVECTOR3(0.0f, 0.0f, -1.0f), D3DXVECTOR2(1.0f, 0.0f) },
+			{ D3DXVECTOR3(1.0f, 1.0f, -1.0f), D3DXVECTOR3(0.0f, 0.0f, -1.0f), D3DXVECTOR2(1.0f, 1.0f) },
+			{ D3DXVECTOR3(-1.0f, 1.0f, -1.0f), D3DXVECTOR3(0.0f, 0.0f, -1.0f), D3DXVECTOR2(0.0f, 1.0f) },
+
+			{ D3DXVECTOR3(-1.0f, -1.0f, 1.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(0.0f, 0.0f) },
+			{ D3DXVECTOR3(1.0f, -1.0f, 1.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(1.0f, 0.0f) },
+			{ D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(1.0f, 1.0f) },
+			{ D3DXVECTOR3(-1.0f, 1.0f, 1.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(0.0f, 1.0f) },
+		};
+
+		//float fScale = 0.8f;
+		//D3DXVECTOR3 sTranslate = D3DXVECTOR3(0.0f, 2.0f, 1.0f);
+		//for (int i = 0; i < 4; i++)
+		//{
+		//	// scale and translate
+		//	asVertices[i].sPos.x *= fScale;
+		//	asVertices[i].sPos.y *= fScale;
+		//	asVertices[i].sPos.z *= fScale;
+
+		//	asVertices[i].sPos.x += sTranslate.x;
+		//	asVertices[i].sPos.y += sTranslate.y;
+		//	asVertices[i].sPos.z += sTranslate.z;
+		//}
+
+		// Create vertex buffer
+		D3D11_BUFFER_DESC sVertexBufferDesc;
+		ZeroMemory(&sVertexBufferDesc, sizeof(sVertexBufferDesc));
+		sVertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+		sVertexBufferDesc.ByteWidth = sizeof(TexturedDiffuseVertex)* 24;
+		sVertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+		sVertexBufferDesc.CPUAccessFlags = 0;
+		D3D11_SUBRESOURCE_DATA sInitData;
+		ZeroMemory(&sInitData, sizeof(sInitData));
+		sInitData.pSysMem = asVertices;
+		if (FAILED(pcDevice->CreateBuffer(&sVertexBufferDesc, &sInitData, &sRenderModel.pcVertexBuffer)))
+			OutputDebugString(L"[CIN] Failed to create vertex buffer.");
+
+		// set indices
+		// WORD aunIndices[] = { 0, 1, 2, 1, 2, 3 };
+		WORD aunIndices[] =
+		{
+			3, 1, 0,
+			2, 1, 3,
+
+			6, 4, 5,
+			7, 4, 6,
+
+			11, 9, 8,
+			10, 9, 11,
+
+			14, 12, 13,
+			15, 12, 14,
+
+			19, 17, 16,
+			18, 17, 19,
+
+			22, 20, 21,
+			23, 20, 22
+		};
+
+		// create index buffer
+		D3D11_BUFFER_DESC sIndexBufferDesc;
+		ZeroMemory(&sIndexBufferDesc, sizeof(sIndexBufferDesc));
+		sIndexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+		sIndexBufferDesc.ByteWidth = sizeof(WORD)* 36;
+		sIndexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+		sIndexBufferDesc.CPUAccessFlags = 0;
+		ZeroMemory(&sInitData, sizeof(sInitData));
+		sInitData.pSysMem = aunIndices;
+		if (FAILED(pcDevice->CreateBuffer(&sIndexBufferDesc, &sInitData, &sRenderModel.pcIndexBuffer)))
+			OutputDebugString(L"[CIN] Failed to create index buffer.");
+
+		// set vertices/triangle count
+		sRenderModel.unTriangleCount = 12;
+		sRenderModel.unVertexCount = 24;
+
+		// create test texture
+		/*D3D11_TEXTURE2D_DESC sDesc;
+		ZeroMemory(&sDesc, sizeof(sDesc));
+		sDesc.Width = 256;
+		sDesc.Height = 256;
+		sDesc.MipLevels = sDesc.ArraySize = 1;
+		sDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		sDesc.SampleDesc.Count = 1;
+		sDesc.Usage = D3D11_USAGE_DEFAULT;
+		sDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+		D3D11_SUBRESOURCE_DATA sData;
+		ZeroMemory(&sData, sizeof(sData));
+		sData.pSysMem = pTexture->rubTextureMapData;
+		sData.SysMemPitch = pTexture->unWidth * 4;
+		if (FAILED(pcDevice->CreateTexture2D(&sDesc, &sData, &sRenderModel.pcTexture)))
+		OutputDebugString(L"[OPENVR] Failed to create model texture.");*/
+
+		HMODULE hModule = GetModuleHandle(L"VireioCinema.dll");
+		if (SUCCEEDED(D3DX11CreateTextureFromResource(pcDevice, hModule, MAKEINTRESOURCE(IMG_LOGO01), NULL, NULL, (ID3D11Resource**)&sRenderModel.pcTexture, NULL)))
+			OutputDebugString(L"[CIN] Texture created !");
+
+		if (sRenderModel.pcTexture)
+		{
+			// create texture shader resource view
+			D3D11_SHADER_RESOURCE_VIEW_DESC sDesc;
+			ZeroMemory(&sDesc, sizeof(sDesc));
+			sDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+			sDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+			sDesc.Texture2D.MostDetailedMip = 0;
+			sDesc.Texture2D.MipLevels = 1;
+
+			if ((FAILED(pcDevice->CreateShaderResourceView((ID3D11Resource*)sRenderModel.pcTexture, &sDesc, &sRenderModel.pcTextureSRV))))
+				OutputDebugString(L"[CIN] Failed to create model texture shader resource view!");
+		}
+
+		// and add to vector
+		m_asRenderModels.push_back(sRenderModel);
+	}
+}
+
+/**
+* Renders the virtual cinema (DX11).
+***/
+void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, IDXGISwapChain* pcSwapchain)
+{
+	if ((!m_ppcTex11InputSRV[0]) || (!m_ppcTex11InputSRV[1])) return;
+
+	// get the viewport
+	UINT dwNumViewports = 1;
+	D3D11_VIEWPORT psViewport[16];
+	pcContext->RSGetViewports(&dwNumViewports, psViewport);
+
+	// backup all states
+	D3DX11_STATE_BLOCK sStateBlock;
+	CreateStateblock(pcContext, &sStateBlock);
+
+	// clear all states, set targets
+	ClearContextState(pcContext);
+
+	// set back viewport
+	pcContext->RSSetViewports(dwNumViewports, psViewport);
+
+	// Set the input layout, buffers, sampler
+	pcContext->IASetInputLayout(m_pcVLGeometry11);
+	UINT stride = sizeof(TexturedDiffuseVertex);
+	UINT offset = 0;
+
+	pcContext->VSSetConstantBuffers(0, 1, &m_pcConstantBufferGeometry);
+	pcContext->PSSetConstantBuffers(0, 1, &m_pcConstantBufferGeometry);
+	pcContext->PSSetSamplers(0, 1, &m_pcSampler11);
+
+	// Set primitive topology
+	pcContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	// set shaders
+	pcContext->VSSetShader(m_pcVSGeometry11, NULL, 0);
+	pcContext->PSSetShader(m_pcPSGeometry11, NULL, 0);
+
+	// get render target views for both eyes and clear the depth stencil
+	ID3D11RenderTargetView* pcRTV[2];
+	pcRTV[0] = nullptr;
+	pcRTV[1] = nullptr;
+	for (int nEye = 0; nEye < 2; nEye++)
+	{
+		// get private data interface
+		UINT dwSize = sizeof(ID3D11RenderTargetView*);
+		(*m_ppcTex11InputSRV)[nEye]->GetPrivateData(PDIID_ID3D11TextureXD_RenderTargetView, &dwSize, (void*)&pcRTV[nEye]);
+
+		// clear the depth stencil
+		pcContext->ClearDepthStencilView(m_pcDSVGeometry11[nEye], D3D11_CLEAR_DEPTH, 1.0f, 0);
+
+		// clear render target
+		// FLOAT afColorRgba[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+		// pcContext->ClearRenderTargetView(pcRTV[nEye], afColorRgba);
+
+		// set output SRV
+		m_pcTex11DrawSRV[nEye] = (*m_ppcTex11InputSRV)[nEye];
+	}
+
+	// Initialize the view matrix
+	D3DXVECTOR3 sEye = D3DXVECTOR3(0.0f, 3.0f, -6.0f);
+	D3DXVECTOR3 sAt = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+	D3DXVECTOR3 sUp = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+	D3DXMatrixLookAtLH(&m_sView, &sEye, &sAt, &sUp);
+
+	// Update our time
+	static float t = 0.0f;
+	static DWORD dwTimeStart = 0;
+	DWORD dwTimeCur = GetTickCount();
+	if (dwTimeStart == 0)
+		dwTimeStart = dwTimeCur;
+	t = (dwTimeCur - dwTimeStart) / 1000.0f;
+
+	// Rotate cube around the origin
+	D3DXMATRIX sWorld;
+	D3DXMatrixRotationYawPitchRoll(&sWorld, t, t / 4.0f, t / 8.0f);
+
+	// loop through available render models, render
+	for (UINT unI = 0; unI < (UINT)m_asRenderModels.size(); unI++)
+	{
+		// set texture and buffers
+		pcContext->PSSetShaderResources(0, 1, &m_asRenderModels[unI].pcTextureSRV);
+		pcContext->IASetVertexBuffers(0, 1, &m_asRenderModels[unI].pcVertexBuffer, &stride, &offset);
+		pcContext->IASetIndexBuffer(m_asRenderModels[unI].pcIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+
+		// set world matrix
+		D3DXMatrixIdentity(&sWorld);
+		D3DXMatrixTranspose(&m_sGeometryConstants.m_sWorld, &sWorld);
+
+		// left + right
+		for (int nEye = 0; nEye < 2; nEye++)
+		{
+			// set WVP matrix, update constant buffer							
+			D3DXMATRIX sWorldViewProjection = sWorld * m_sView /** m_sToEye[nEye]*/ * m_sProj[nEye];
+			D3DXMatrixTranspose(&m_sGeometryConstants.m_sWorldViewProjection, &sWorldViewProjection);
+			pcContext->UpdateSubresource(m_pcConstantBufferGeometry, 0, NULL, &m_sGeometryConstants, 0, 0);
+
+			// set render target
+			pcContext->OMSetRenderTargets(1, &pcRTV[nEye], m_pcDSVGeometry11[nEye]);
+
+			// draw
+			pcContext->DrawIndexed(m_asRenderModels[unI].unTriangleCount * 3, 0, 0);
+		}
+	}
+
+	// release RTVs
+	SAFE_RELEASE(pcRTV[0]);
+	SAFE_RELEASE(pcRTV[1]);
+
+	// set back device
+	ApplyStateblock(pcContext, &sStateBlock);
 }
 
 /**
