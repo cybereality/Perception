@@ -149,7 +149,7 @@ static const char* VS3D =
 "	return Output;\n"
 "}\n";
 #pragma endregion
-#pragma region pixel shader a
+#pragma region pixel shader basic
 /**
 * 2D Pixel Shader DX10+.
 ***/
@@ -253,7 +253,7 @@ static const char* PS_DIST_SIMPLE =
 "   return float4(fontTexture.Sample( fontSampler, fDist ).xyz, 1.0);\n"
 "}\n";
 #pragma endregion
-#pragma region pixel shader b
+#pragma region pixel shader enhanced
 /**
 * 3D Pixel Shader.
 ***/
@@ -418,6 +418,108 @@ static const char* PS3D_BUMP =
 "	return vDiffuse * fLighting;\n"
 
 "}\n";
+
+/**
+* Pixel Shader from shadertoy.com
+* "String Theory" by nimitz (twitter: @stormoid)
+* https://www.shadertoy.com/view/XdSSz1
+* This work is licenced under :
+* https://creativecommons.org/licenses/by-nc-sa/3.0/deed.en_US
+***/
+static const char* PS_STRING_THEORY =
+// constant buffer
+"float4 m_sMaterialAmbientColor;\n"
+"float4 m_sMaterialDiffuseColor;\n"
+
+"float4 m_sLightDir;\n"
+"float4 m_sLightDiffuse;\n"
+"float4 m_sLightAmbient;\n"
+
+"float4x4 m_sWorldViewProjection;\n"
+"float4x4 m_sWorld;\n"
+
+// string theory constant buffer fields
+"float3    iResolution;\n"           // viewport resolution (in pixels)
+"float     iGlobalTime;\n"           // shader playback time (in seconds)
+"float     iTimeDelta;\n"            // render time (in seconds)
+"int       iFrame;\n"                // shader playback frame
+"float     iChannelTime[4];\n"       // channel playback time (in seconds)
+"float3    iChannelResolution[4];\n" // channel resolution (in pixels)
+"float4    iMouse;\n"                // mouse pixel coords. xy: current (if MLB down), zw: click
+"float4    iDate;\n"                 // (year, month, day, time in seconds)
+"float     iSampleRate;\n"           // sound sample rate (i.e., 44100)
+
+// textures and samplers
+"Texture2D	g_txDiffuse : register(t0);\n"
+"SamplerState g_samLinear : register(s0);\n"
+
+// input / output structures
+"struct PS_INPUT\n"
+"{\n"
+"	float4 vPosition : SV_POSITION;\n"
+"	float4 vNormal : NORMAL;\n"
+"	float2 vTexcoord : TEXCOORD0;\n"
+"};\n"
+
+//String Theory by nimitz (twitter: @stormoid)
+
+"#define vec2 float2\n"
+"#define vec3 float3\n"
+"#define vec4 float4\n"
+"#define mat2 float2x2\n"
+"#define mix lerp\n"
+"#define fract frac\n"
+
+"#define BASE_ANGLE 3.5\n"
+"#define ANGLE_DELTA 0.02\n"
+"#define XOFF .7\n"
+
+"#define time iGlobalTime\n"
+
+"mat2 mm2(float a){ float c = cos(a), s = sin(a); return mat2(c, -s, s, c); }\n"
+
+"float f(vec2 p, float fSize)\n"
+"{\n"
+"	p.x = sin(p.x*1. + time*1.2)*sin(time + p.x*0.1)*3.;\n"
+"	p += sin(p.x*1.5)*.1;\n"
+"	return smoothstep(-0.0, fSize, abs(p.y));\n"
+"}\n"
+
+// pixel shader
+"float4 PS(PS_INPUT Input) : SV_TARGET\n"
+"{\n"
+
+//"float aspect = iResolution.x / iResolution.y;\n"
+//"float featureSize = 60. / ((iResolution.x*aspect + iResolution.y));\n"
+"float aspect = 1024.0 / 1024.0;\n"
+"float featureSize = 60. / ((1024.0 *aspect + 1024.0));\n"
+
+//"	vec2 p = Input.vPosition.xy / iResolution.xy*6.5 - 3.25;\n"
+"   vec2 iRes = vec2(1024.0, 1024.0);\n"
+"	vec2 p = Input.vPosition.xy / iRes.xy*6.5 - 3.25;\n"
+//"	vec2 p = Input.vTexcoord / iRes.xy*6.5 - 3.25;\n"
+"	p.x *= aspect;\n"
+"	p.y = abs(p.y);\n"
+
+"	vec3 col = vec3(0.0, 0.0, 0.0);\n"
+"	for (float i = 0.; i<26.; i++)\n"
+"	{\n"
+"		vec3 col2 = (sin(vec3(3.3, 2.5, 2.2) + i*0.15)*0.5 + 0.54)*(1. - f(p, featureSize));\n"
+"		col = max(col, col2);\n"
+
+"		p.x -= XOFF;\n"
+"		p.y -= sin(time*0.11 + 1.5)*1.5 + 1.5;\n"
+"       mat2 temp = mm2(i*ANGLE_DELTA + BASE_ANGLE);\n"
+"       p = mul( p, temp );\n"
+
+"		vec2 pa = vec2(abs(p.x - .9), abs(p.y));\n"
+"		vec2 pb = vec2(p.x, abs(p.y));\n"
+
+"		p = mix(pa, pb, smoothstep(-.07, .07, sin(time*0.24) + .1));\n"
+"	}\n"
+
+"   return vec4(col, 1.0);\n"
+"}\n";
 #pragma endregion
 
 /**
@@ -578,7 +680,8 @@ HRESULT CreateSimplePixelShader(ID3D11Device* pcDevice, ID3D11PixelShader** ppcP
 			hr = D3DX10CompileFromMemory(PS2D_GAMMA_CORRECTION, strlen(PS2D_GAMMA_CORRECTION), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
 			break;
 		case GeometryDiffuseTextured:
-			hr = D3DX10CompileFromMemory(PS3D, strlen(PS3D), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+			// hr = D3DX10CompileFromMemory(PS3D, strlen(PS3D), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+			hr = D3DX10CompileFromMemory(PS_STRING_THEORY, strlen(PS_STRING_THEORY), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
 			// hr = D3DX10CompileFromMemory(PS3D_BUMP, strlen(PS3D_BUMP), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
 			break;
 	}
@@ -613,7 +716,7 @@ HRESULT CreateFullScreenVertexBuffer(ID3D11Device* pcDevice, ID3D11Buffer** ppcB
 	};
 	D3D11_BUFFER_DESC bd;
 	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof(TexturedVertex) * 6;
+	bd.ByteWidth = sizeof(TexturedVertex)* 6;
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = 0;
 	bd.MiscFlags = 0;
