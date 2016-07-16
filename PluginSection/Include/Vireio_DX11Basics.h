@@ -534,6 +534,292 @@ static const char* PS_STRING_THEORY =
 "   return vec4(col, 1.0);\n"
 "}\n";
 #pragma endregion
+#pragma region PS_BUBBLES
+/**
+* Pixel Shader from shadertoy.com
+* "Bubbles!" by weyland
+* Created by inigo quilez - iq/2013 : https://www.shadertoy.com/view/4dl3zn
+* License Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
+* Messed up by Weyland
+***/
+static const char* PS_BUBBLES =
+// constant buffer
+"float4 sMaterialAmbientColor;\n"
+"float4 sMaterialDiffuseColor;\n"
+
+"float4 sLightDir;\n"
+"float4 sLightDiffuse;\n"
+"float4 sLightAmbient;\n"
+
+"float4x4 sWorldViewProjection;\n"
+"float4x4 sWorld;\n"
+
+// shadertoy constant buffer fields
+"float3    sResolution;\n"           // viewport resolution (in pixels)
+"float     fGlobalTime;\n"           // shader playback time (in seconds)
+"float4    sMouse;\n"                // mouse pixel coords. xy: current (if MLB down), zw: click
+
+// textures and samplers
+"Texture2D	g_txDiffuse : register(t0);\n"
+"SamplerState g_samLinear : register(s0);\n"
+
+// input / output structures
+"struct PS_INPUT\n"
+"{\n"
+"	float4 vPosition : SV_POSITION;\n"
+"	float4 vNormal : NORMAL;\n"
+"	float2 vTexcoord : TEXCOORD0;\n"
+"};\n"
+
+// "Bubbles!" by weyland
+
+"#define vec2 float2\n"
+"#define vec3 float3\n"
+"#define vec4 float4\n"
+"#define mat2 float2x2\n"
+"#define mix lerp\n"
+"#define fract frac\n"
+"#define mod fmod\n"
+
+// pixel shader
+"float4 PS(PS_INPUT Input) : SV_TARGET\n"
+"{\n"
+
+// vec2 uv = -1.0 + 2.0*fragCoord.xy / sResolution.xy; // original code
+// uv.x *= sResolution.x / sResolution.y;
+"   vec2 uv = -4.0 + 8.0 * Input.vTexcoord;\n"
+
+// background	 
+"   vec3 color = vec3(1.0, 1.0, 1.0);\n"
+
+// bubbles	
+"   for (int i = 0; i<64; i++)\n"
+"   {\n"
+// bubble seeds
+"       float pha = sin(float(i)*546.13 + 1.0)*0.5 + 0.5;\n"
+"       float siz = pow(sin(float(i)*651.74 + 5.0)*0.5 + 0.5, 4.0);\n"
+"       float pox = sin(float(i)*321.55 + 4.1) * sResolution.x / sResolution.y;\n"
+
+// bubble size, position and color
+"       float rad = 0.1 + 0.5*siz + sin(fGlobalTime / 6. + pha*500.0 + siz) / 20.0;\n"
+"       vec2  pos = vec2(pox + sin(fGlobalTime / 10. + pha + siz), -1.0 - rad + (2.0 + 2.0*rad)\n"
+"	      	*mod(pha + 0.1*(fGlobalTime / 5.0)*(0.2 + 0.8*siz), 1.0));\n"
+"       float dis = length(uv - pos);\n"
+
+"       float fTemp = 0.5 + 0.5*sin(float(i)*1.2 + 1.9);"
+"       vec3  col = mix(vec3(0.194*sin(fGlobalTime / 6.0), 0.3, 0.0),\n"
+"   		vec3(1.1*sin(fGlobalTime / 9.0), 0.4, 0.8),\n"
+"	     	vec3(fTemp, fTemp, fTemp));\n"
+// render
+"       float f = length(uv - pos) / rad;\n"
+"       f = sqrt(clamp(1.0 + (sin((fGlobalTime / 7.0) + pha*500.0 + siz)*0.5) - f*f, 0.0, 1.0));\n"
+"       color -= col.zyx *(1.0 - smoothstep(rad*0.95, rad, dis)) * f;\n"
+"   }\n"
+"   return vec4(color, 1.0);\n"
+"}\n";
+#pragma endregion
+#pragma region PS_C64_PLASMA
+/**
+* Pixel Shader from shadertoy.com
+* 2D plasma in C64 graphics style
+*
+* Version 1.0 (2013-03-31)
+* Simon Stelling-de San Antonio
+* This work is licenced under :
+* https://creativecommons.org/licenses/by-nc-sa/3.0/deed.en_US
+***/
+static const char* PS_C64_PLASMA =
+// constant buffer
+"float4 sMaterialAmbientColor;\n"
+"float4 sMaterialDiffuseColor;\n"
+
+"float4 sLightDir;\n"
+"float4 sLightDiffuse;\n"
+"float4 sLightAmbient;\n"
+
+"float4x4 sWorldViewProjection;\n"
+"float4x4 sWorld;\n"
+
+// shadertoy constant buffer fields
+"float3    sResolution;\n"           // viewport resolution (in pixels)
+"float     fGlobalTime;\n"           // shader playback time (in seconds)
+"float4    sMouse;\n"                // mouse pixel coords. xy: current (if MLB down), zw: click
+
+// textures and samplers
+"Texture2D	g_txDiffuse : register(t0);\n"
+"SamplerState g_samLinear : register(s0);\n"
+
+// input / output structures
+"struct PS_INPUT\n"
+"{\n"
+"	float4 vPosition : SV_POSITION;\n"
+"	float4 vNormal : NORMAL;\n"
+"	float2 vTexcoord : TEXCOORD0;\n"
+"};\n"
+
+// "C64 plasma" by ssdsa
+
+"#define vec2 float2\n"
+"#define vec3 float3\n"
+"#define vec4 float4\n"
+"#define mat2 float2x2\n"
+"#define mix lerp\n"
+"#define fract frac\n"
+"#define mod fmod\n"
+
+// pixel shader
+"float4 PS(PS_INPUT Input) : SV_TARGET\n"
+"{\n"
+
+"float camtime = 1.23*fGlobalTime;\n"
+
+// vec2 p = fragCoord.xy / sResolution.xy; (original code)
+"vec2 p = -4.0 + 8.0 * Input.vTexcoord;\n"
+
+"p.y = 1.0 - p.y;\n"
+"p *= 200.0;\n"
+"p.x *= (sResolution.x / sResolution.y);\n"
+"p.x /= 2.0;\n"
+"p = floor(p);\n"
+"p.x *= 2.0;\n"
+"float a = p.x + 30.0*sin(p.x / 21.0 + 0.3*sin(0.4*camtime)) + 20.0*cos(p.y / 19.0 + 0.2*cos(0.6*camtime)) - 160.0;\n"
+"float b = p.y + 30.0*cos(p.y / 18.0 + 0.4*sin(0.7*camtime)) + 20.0*sin(p.x / 16.0 + 0.5*cos(0.7*camtime)) - 97.0;\n"
+"float e = floor((length(vec2(a, b))\n"
+"	+ 4.0*mod(floor((p.x + p.y + p.y) / 2.0), 2.0)) / 13.0);\n"
+"float c;\n"
+"if (e == 0.0)\n"
+"{\n"
+"	c = 9.0;\n"
+"}\n"
+"else if (e == 1.0)\n"
+"{\n"
+"	c = 2.0;\n"
+"}\n"
+"else if (e == 2.0)\n"
+"{\n"
+"	c = 8.0;\n"
+"}\n"
+"else if (e == 3.0)\n"
+"{\n"
+"	c = 10.0;\n"
+"}\n"
+"else if (e == 4.0)\n"
+"{\n"
+"	c = 15.0;\n"
+"}\n"
+"else if (e == 5.0)\n"
+"{\n"
+"	c = 7.0;\n"
+"}\n"
+"else if (e == 6.0)\n"
+"{\n"
+"	c = 1.0;\n"
+"}\n"
+"else if (e == 7.0)\n"
+"{\n"
+"	c = 13.0;\n"
+"}\n"
+"else if (e == 8.0)\n"
+"{\n"
+"	c = 3.0;\n"
+"}\n"
+"else if (e == 9.0)\n"
+"{\n"
+"	c = 14.0;\n"
+"}\n"
+"else if (e == 10.0)\n"
+"{\n"
+"	c = 4.0;\n"
+"}\n"
+"else if (e == 11.0)\n"
+"{\n"
+"	c = 6.0;\n"
+"}\n"
+"else if (e == 12.0)\n"
+"{\n"
+"	c = 0.0;\n"
+"}\n"
+"else if (e == 13.0)\n"
+"{\n"
+"	c = 11.0;\n"
+"}\n"
+"else if (e == 14.0)\n"
+"{\n"
+"	c = 5.0;\n"
+"}\n"
+"else\n"
+"{\n"
+"	c = 12.0;\n"
+"}\n"
+"vec3 col;\n"
+"if (c == 0.0)\n"
+"{\n"
+"	col = vec3(0.0, 0.0, 0.0);\n"
+"}\n"
+"else if (c == 1.0)\n"
+"{\n"
+"	col = vec3(1.0,1.0,1.0);\n"
+"}\n"
+"else if (c == 2.0)\n"
+"{\n"
+"	col = vec3(137.0, 64.0, 54.0) / 256.0;\n"
+"}\n"
+"else if (c == 3.0)\n"
+"{\n"
+"	col = vec3(122.0, 191.0, 199.0) / 256.0;\n"
+"}\n"
+"else if (c == 4.0)\n"
+"{\n"
+"	col = vec3(138.0, 70.0, 174.0) / 256.0;\n"
+"}\n"
+"else if (c == 5.0)\n"
+"{\n"
+"	col = vec3(104.0, 169.0, 65.0) / 256.0;\n"
+"}\n"
+"else if (c == 6.0)\n"
+"{\n"
+"	col = vec3(62.0, 49.0, 162.0) / 256.0;\n"
+"}\n"
+"else if (c == 7.0)\n"
+"{\n"
+"	col = vec3(208.0, 220.0, 113.0) / 256.0;\n"
+"}\n"
+"else if (c == 8.0)\n"
+"{\n"
+"	col = vec3(144.0, 95.0, 37.0) / 256.0;\n"
+"}\n"
+"else if (c == 9.0)\n"
+"{\n"
+"	col = vec3(92.0, 71.0, 0.0) / 256.0;\n"
+"}\n"
+"else if (c == 10.0)\n"
+"{\n"
+"	col = vec3(187.0, 119.0, 109.0) / 256.0;\n"
+"}\n"
+"else if (c == 11.0)\n"
+"{\n"
+"	col = vec3(85.0, 85.0, 85.0) / 256.0;\n"
+"}\n"
+"else if (c == 12.0)\n"
+"{\n"
+"	col = vec3(128.0, 128.0, 128.0) / 256.0;\n"
+"}\n"
+"else if (c == 13.0)\n"
+"{\n"
+"	col = vec3(172.0, 234.0, 136.0) / 256.0;\n"
+"}\n"
+"else if (c == 14.0)\n"
+"{\n"
+"	col = vec3(124.0, 112.0, 218.0) / 256.0;\n"
+"}\n"
+"else\n"
+"{\n"
+"	col = vec3(171.0, 171.0, 171.0) / 256.0;\n"
+"}\n"
+
+"   return vec4(col, 1.0);\n"
+"}\n";
+#pragma endregion
 #pragma endregion
 
 /**
@@ -549,6 +835,8 @@ enum PixelShaderTechnique
 	Fabric,                    /**< TexturedNormalVertex : fabric effect **/
 	BumpComputeNormal,         /**< TexturedNormalVertex : bump mapping, computes per pixel normals **/
 	StringTheory,              /**< TexturedNormalVertex : "String Theory" effect from shadertoy.com **/
+	Bubbles,                   /**< TexturedNormalVertex : "Bubbles!" effect from shadertoy.com **/
+	C64Plasma,                 /**< TexturedNormalVertex : "C64 plasma" effect from shadertoy.com **/
 };
 
 /**
@@ -680,27 +968,7 @@ HRESULT CreatePixelShaderEffect(ID3D11Device* pcDevice, ID3D11PixelShader** ppcP
 
 	ID3D10Blob* pcShader;
 	HRESULT hr;
-	switch (eTechnique)
-	{
-		case FullscreenSimple:
-			break;
-		case WarpSimple:
-			break;
-		case DistortSimple:
-			break;
-		case FullscreenGammaCorrection:
-			break;
-		case GeometryDiffuseTextured:
-			break;
-		case Fabric:
-			break;
-		case BumpComputeNormal:
-			break;
-		case StringTheory:
-			break;
-		default:
-			break;
-	}
+
 	// compile selecting technique
 	switch (eTechnique)
 	{
@@ -728,6 +996,12 @@ HRESULT CreatePixelShaderEffect(ID3D11Device* pcDevice, ID3D11PixelShader** ppcP
 		case StringTheory:
 			hr = D3DX10CompileFromMemory(PS_STRING_THEORY, strlen(PS_STRING_THEORY), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
 			break;
+		case Bubbles:
+			hr = D3DX10CompileFromMemory(PS_BUBBLES, strlen(PS_BUBBLES), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+			break;
+		case C64Plasma:
+			hr = D3DX10CompileFromMemory(PS_C64_PLASMA, strlen(PS_C64_PLASMA), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+			break;
 		default:
 			return E_INVALIDARG;
 			break;
@@ -736,13 +1010,17 @@ HRESULT CreatePixelShaderEffect(ID3D11Device* pcDevice, ID3D11PixelShader** ppcP
 	// succeded ?
 	if (SUCCEEDED(hr))
 	{
-		OutputDebugString(L"Vireio Perception : Pixel Shader compiled !");
+		OutputDebugString(L"Vireio Perception : Pixel shader compiled !");
 		pcDevice->CreatePixelShader(pcShader->GetBufferPointer(), pcShader->GetBufferSize(), NULL, ppcPixelShader);
 		pcShader->Release();
 
 		return S_OK;
 	}
-	else return hr;
+	else
+	{
+		OutputDebugString(L"Vireio Perception : Failed to create pixel shader !");
+		return hr;
+	}
 }
 
 /**
