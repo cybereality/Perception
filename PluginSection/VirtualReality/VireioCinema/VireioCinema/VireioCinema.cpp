@@ -152,6 +152,7 @@ VireioCinema::~VireioCinema()
 		SAFE_RELEASE(m_asRenderModels[unI].pcVertexBuffer);
 		SAFE_RELEASE(m_asRenderModels[unI].pcTextureSRV);
 		SAFE_RELEASE(m_asRenderModels[unI].pcTexture);
+		SAFE_RELEASE(m_asRenderModels[unI].pcEffect);
 	}
 
 	SAFE_RELEASE(m_pcTex11Draw[0]);
@@ -1050,7 +1051,7 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 	// create pixel shader
 	if (!m_pcPSGeometry11)
 	{
-		if (FAILED(CreateSimplePixelShader(pcDevice, &m_pcPSGeometry11, PixelShaderTechnique::GeometryDiffuseTextured)))
+		if (FAILED(CreatePixelShaderEffect(pcDevice, &m_pcPSGeometry11, PixelShaderTechnique::GeometryDiffuseTextured)))
 			OutputDebugString(L"[CIN] Failed to create pixel shader. !");
 	}
 
@@ -1171,7 +1172,7 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 		if (true/**TODO_ADD_BOOL_HERE**/)
 		{
 			// set vertices
-			TexturedDiffuseVertex asVertices[] =
+			TexturedNormalVertex asVertices[] =
 			{
 				{ D3DXVECTOR3(-1.92f, -1.08f, 0.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(1.0f, 1.0f) },
 				{ D3DXVECTOR3(1.92f, -1.08f, 0.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(0.0f, 1.0f) },
@@ -1183,14 +1184,14 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 			WORD aunIndices[] = { 0, 1, 3, 1, 2, 3 };
 
 			// and create the model
-			AddRenderModelD3D11(pcDevice, nullptr, asVertices, aunIndices, 4, 2, 1.5f, D3DXVECTOR3(0.0f, 2.0f, 0.0f));
+			AddRenderModelD3D11(pcDevice, nullptr, nullptr, asVertices, aunIndices, 4, 2, 1.5f, D3DXVECTOR3(0.0f, 2.0f, 0.0f));
 		}
 #pragma endregion
 #pragma region ground
 		if (true/**TODO_ADD_BOOL_HERE**/)
 		{
 			// set vertices
-			TexturedDiffuseVertex asVertices[] =
+			TexturedNormalVertex asVertices[] =
 			{
 				{ D3DXVECTOR3(-2.0f, 0.0f, -2.0f), D3DXVECTOR3(0.0f, 1.0f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
 				{ D3DXVECTOR3(2.0f, 0.0f, -2.0f), D3DXVECTOR3(0.0f, 1.0f, 0.0f), D3DXVECTOR2(0.0f, 1.0f) },
@@ -1201,15 +1202,19 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 			// set indices
 			WORD aunIndices[] = { 3, 1, 0, 3, 2, 1 };
 
+			// create ground effect..
+			ID3D11PixelShader* pcEffect = nullptr;
+			CreatePixelShaderEffect(pcDevice, &pcEffect, PixelShaderTechnique::StringTheory);
+
 			// and create the model
-			AddRenderModelD3D11(pcDevice, nullptr, asVertices, aunIndices, 4, 2, 10.0f);
+			AddRenderModelD3D11(pcDevice, nullptr, pcEffect, asVertices, aunIndices, 4, 2, 10.0f);
 		}
 #pragma endregion
 #pragma region cube
 		if (false/**TODO_ADD_BOOL_HERE**/)
 		{
 			// set vertices
-			TexturedDiffuseVertex asVertices[] =
+			TexturedNormalVertex asVertices[] =
 			{
 				{ D3DXVECTOR3(-1.0f, 1.0f, -1.0f), D3DXVECTOR3(0.0f, 1.0f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
 				{ D3DXVECTOR3(1.0f, 1.0f, -1.0f), D3DXVECTOR3(0.0f, 1.0f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) },
@@ -1265,7 +1270,7 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 			};
 
 			// and create the model
-			AddRenderModelD3D11(pcDevice, nullptr, asVertices, aunIndices, 24, 12);
+			AddRenderModelD3D11(pcDevice, nullptr, nullptr, asVertices, aunIndices, 24, 12);
 		}
 #pragma endregion
 	}
@@ -1309,7 +1314,7 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 
 	// Set the input layout, buffers, sampler
 	pcContext->IASetInputLayout(m_pcVLGeometry11);
-	UINT stride = sizeof(TexturedDiffuseVertex);
+	UINT stride = sizeof(TexturedNormalVertex);
 	UINT offset = 0;
 
 	pcContext->VSSetConstantBuffers(0, 1, &m_pcConstantBufferGeometry);
@@ -1319,9 +1324,8 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 	// Set primitive topology
 	pcContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	// set shaders
+	// set vertex shader... this is a constant shader for all geometry
 	pcContext->VSSetShader(m_pcVSGeometry11, NULL, 0);
-	pcContext->PSSetShader(m_pcPSGeometry11, NULL, 0);
 
 	// clear render target, depth stencil
 	for (int nEye = 0; nEye < 2; nEye++)
@@ -1363,11 +1367,21 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 		// set world matrix
 		D3DXMatrixTranspose(&m_sGeometryConstants.sWorld, &sWorld);
 
+		// set texture and effect if pixel shader assigned
+		if (m_asRenderModels[unI].pcEffect)
+		{
+			pcContext->PSSetShaderResources(0, 1, &m_asRenderModels[unI].pcTextureSRV);
+			pcContext->PSSetShader(m_asRenderModels[unI].pcEffect, NULL, 0);
+		}
+		else // set main shader
+			pcContext->PSSetShader(m_pcPSGeometry11, NULL, 0);
+
 		// left + right
 		for (int nEye = 0; nEye < 2; nEye++)
 		{
-			// set frame texture left/right
-			pcContext->PSSetShaderResources(0, 1, m_ppcTex11InputSRV[nEye]);
+			// set frame texture left/right if main effect
+			if (!m_asRenderModels[unI].pcEffect)
+				pcContext->PSSetShaderResources(0, 1, m_ppcTex11InputSRV[nEye]);
 
 			// set WVP matrix, update constant buffer							
 			D3DXMATRIX sWorldViewProjection = sWorld * m_sView * m_sToEye[nEye] * m_sProj[nEye];
@@ -1389,7 +1403,7 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 /**
 * Creates a simple render model based on mesh data and adds it to the input vector.
 ***/
-void VireioCinema::AddRenderModelD3D11(ID3D11Device* pcDevice, ID3D11Texture2D* pcTexture, TexturedDiffuseVertex* asVertices, WORD* aunIndices, UINT32 unVertexCount, UINT32 unTriangleCount, float fScale, D3DXVECTOR3 sTranslate)
+void VireioCinema::AddRenderModelD3D11(ID3D11Device* pcDevice, ID3D11Texture2D* pcTexture, ID3D11PixelShader* pcEffect, TexturedNormalVertex* asVertices, WORD* aunIndices, UINT32 unVertexCount, UINT32 unTriangleCount, float fScale, D3DXVECTOR3 sTranslate)
 {
 	// create a D3D render model structure
 	RenderModel_D3D11 sRenderModel = {};
@@ -1410,7 +1424,7 @@ void VireioCinema::AddRenderModelD3D11(ID3D11Device* pcDevice, ID3D11Texture2D* 
 	D3D11_BUFFER_DESC sVertexBufferDesc;
 	ZeroMemory(&sVertexBufferDesc, sizeof(sVertexBufferDesc));
 	sVertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	sVertexBufferDesc.ByteWidth = sizeof(TexturedDiffuseVertex)* unVertexCount;
+	sVertexBufferDesc.ByteWidth = sizeof(TexturedNormalVertex)* unVertexCount;
 	sVertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	sVertexBufferDesc.CPUAccessFlags = 0;
 	D3D11_SUBRESOURCE_DATA sInitData;
@@ -1435,9 +1449,9 @@ void VireioCinema::AddRenderModelD3D11(ID3D11Device* pcDevice, ID3D11Texture2D* 
 	sRenderModel.unTriangleCount = unTriangleCount;
 	sRenderModel.unVertexCount = unVertexCount;
 
-	// set texture and create shader resource view
+	// set effect, texture and create shader resource view
+	sRenderModel.pcEffect = pcEffect;
 	sRenderModel.pcTexture = pcTexture;
-
 	if (sRenderModel.pcTexture)
 	{
 		// get texture description

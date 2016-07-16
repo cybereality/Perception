@@ -54,10 +54,10 @@ struct TexturedVertex
 };
 
 /**
-* Diffuse textured vertex structure.
+* Textured vertex structure with normal.
 * Matches OpenVR render model vertex.
 **/
-struct TexturedDiffuseVertex
+struct TexturedNormalVertex
 {
 	D3DXVECTOR3 sPosition;
 	D3DXVECTOR3 sNormal;
@@ -75,6 +75,7 @@ struct RenderModel_D3D11
 	UINT32 unTriangleCount;					    /**< Number of triangles in the mesh. Index count is 3 * TriangleCount **/
 	ID3D11Texture2D* pcTexture;                 /**< Texture **/
 	ID3D11ShaderResourceView* pcTextureSRV;     /**< Texture SRV **/
+	ID3D11PixelShader* pcEffect;                /**< Pixel shader effect for that render model, NULL for main effect and main texture **/
 };
 
 /**
@@ -540,11 +541,14 @@ static const char* PS_STRING_THEORY =
 ***/
 enum PixelShaderTechnique
 {
-	FullscreenSimple,
-	WarpSimple,
-	DistortSimple,
-	FullscreenGammaCorrection,
-	GeometryDiffuseTextured,
+	FullscreenSimple,          /**< TexturedVertex **/
+	WarpSimple,                /**< TexturedVertex **/
+	DistortSimple,             /**< TexturedVertex **/
+	FullscreenGammaCorrection, /**< TexturedVertex **/
+	GeometryDiffuseTextured,   /**< TexturedNormalVertex : simple lighting **/
+	Fabric,                    /**< TexturedNormalVertex : fabric effect **/
+	BumpComputeNormal,         /**< TexturedNormalVertex : bump mapping, computes per pixel normals **/
+	StringTheory,              /**< TexturedNormalVertex : "String Theory" effect from shadertoy.com **/
 };
 
 /**
@@ -668,15 +672,35 @@ HRESULT Create3DVertexShader(ID3D11Device* pcDevice, ID3D11VertexShader** ppcVer
 }
 
 /**
-* Creates a simple pixel shader
+* Creates a pixel shader effect.
 ***/
-HRESULT CreateSimplePixelShader(ID3D11Device* pcDevice, ID3D11PixelShader** ppcPixelShader, PixelShaderTechnique eTechnique)
+HRESULT CreatePixelShaderEffect(ID3D11Device* pcDevice, ID3D11PixelShader** ppcPixelShader, PixelShaderTechnique eTechnique)
 {
 	if ((!pcDevice) || (!ppcPixelShader)) return E_INVALIDARG;
 
 	ID3D10Blob* pcShader;
 	HRESULT hr;
-
+	switch (eTechnique)
+	{
+		case FullscreenSimple:
+			break;
+		case WarpSimple:
+			break;
+		case DistortSimple:
+			break;
+		case FullscreenGammaCorrection:
+			break;
+		case GeometryDiffuseTextured:
+			break;
+		case Fabric:
+			break;
+		case BumpComputeNormal:
+			break;
+		case StringTheory:
+			break;
+		default:
+			break;
+	}
 	// compile selecting technique
 	switch (eTechnique)
 	{
@@ -694,8 +718,18 @@ HRESULT CreateSimplePixelShader(ID3D11Device* pcDevice, ID3D11PixelShader** ppcP
 			break;
 		case GeometryDiffuseTextured:
 			hr = D3DX10CompileFromMemory(PS3D, strlen(PS3D), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
-			// hr = D3DX10CompileFromMemory(PS_STRING_THEORY, strlen(PS_STRING_THEORY), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
-			// hr = D3DX10CompileFromMemory(PS3D_BUMP, strlen(PS3D_BUMP), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+			break;
+		case Fabric:
+			hr = D3DX10CompileFromMemory(PS3D_FABRIC, strlen(PS3D_FABRIC), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+			break;
+		case BumpComputeNormal:
+			hr = D3DX10CompileFromMemory(PS3D_BUMP, strlen(PS3D_BUMP), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+			break;
+		case StringTheory:
+			hr = D3DX10CompileFromMemory(PS_STRING_THEORY, strlen(PS_STRING_THEORY), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+			break;
+		default:
+			return E_INVALIDARG;
 			break;
 	}
 

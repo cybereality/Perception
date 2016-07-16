@@ -153,7 +153,7 @@ private:
 	void RenderD3D9(LPDIRECT3DDEVICE9 pcDevice);
 	void InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, IDXGISwapChain* pcSwapchain);
 	void RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, IDXGISwapChain* pcSwapchain);
-	void AddRenderModelD3D11(ID3D11Device* pcDevice, ID3D11Texture2D* pcTexture, TexturedDiffuseVertex* asVertices, WORD* aunIndices, UINT32 unVertexCount, UINT32 unTriangleCount, float fScale = 1.0f, D3DXVECTOR3 sTranslate = D3DXVECTOR3());
+	void AddRenderModelD3D11(ID3D11Device* pcDevice, ID3D11Texture2D* pcTexture, ID3D11PixelShader* pcEffect, TexturedNormalVertex* asVertices, WORD* aunIndices, UINT32 unVertexCount, UINT32 unTriangleCount, float fScale = 1.0f, D3DXVECTOR3 sTranslate = D3DXVECTOR3());
 	void SetAllRenderStatesDefault(LPDIRECT3DDEVICE9 pcDevice);
 
 #pragma region VireioCinema D3D9 private fields

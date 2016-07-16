@@ -918,7 +918,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 			// create pixel shader
 			if (!m_pcPSGeometry11)
 			{
-				if (FAILED(CreateSimplePixelShader(pcDevice, &m_pcPSGeometry11, PixelShaderTechnique::GeometryDiffuseTextured)))
+				if (FAILED(CreatePixelShaderEffect(pcDevice, &m_pcPSGeometry11, PixelShaderTechnique::GeometryDiffuseTextured)))
 					OutputDebugString(L"[STP] Failed to create pixel shader. !");
 			}
 
@@ -969,7 +969,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 			// Create vertex buffer
 			if (!m_pcVBGeometry11)
 			{
-				TexturedDiffuseVertex asVertices[] =
+				TexturedNormalVertex asVertices[] =
 				{
 					{ D3DXVECTOR3(-1.0f, 1.0f, -1.0f), D3DXVECTOR3(0.0f, 1.0f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
 					{ D3DXVECTOR3(1.0f, 1.0f, -1.0f), D3DXVECTOR3(0.0f, 1.0f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) },
@@ -1005,7 +1005,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 				D3D11_BUFFER_DESC bd;
 				ZeroMemory(&bd, sizeof(bd));
 				bd.Usage = D3D11_USAGE_DEFAULT;
-				bd.ByteWidth = sizeof(TexturedDiffuseVertex)* 24;
+				bd.ByteWidth = sizeof(TexturedNormalVertex)* 24;
 				bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 				bd.CPUAccessFlags = 0;
 				D3D11_SUBRESOURCE_DATA InitData;
@@ -1132,7 +1132,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 				// create pixel shader... TODO !! add option to switch output
 				if (!m_pcPixelShader11)
 				{
-					if (FAILED(CreateSimplePixelShader(pcDevice, &m_pcPixelShader11, PixelShaderTechnique::FullscreenSimple)))
+					if (FAILED(CreatePixelShaderEffect(pcDevice, &m_pcPixelShader11, PixelShaderTechnique::FullscreenSimple)))
 						bAllCreated = false;
 				}
 				// Create vertex buffer
@@ -1227,7 +1227,7 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 
 						// Set the input layout, buffers, sampler
 						pcContext->IASetInputLayout(m_pcVLGeometry11);
-						UINT stride = sizeof(TexturedDiffuseVertex);
+						UINT stride = sizeof(TexturedNormalVertex);
 						UINT offset = 0;
 						pcContext->IASetVertexBuffers(0, 1, &m_pcVBGeometry11, &stride, &offset);
 						pcContext->IASetIndexBuffer(m_pcIBGeometry11, DXGI_FORMAT_R16_UINT, 0);

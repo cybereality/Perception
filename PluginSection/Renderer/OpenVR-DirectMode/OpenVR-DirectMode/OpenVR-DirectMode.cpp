@@ -755,7 +755,7 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 						// create pixel shader
 						if (!m_pcPSGeometry11)
 						{
-							if (FAILED(CreateSimplePixelShader(pcDevice, &m_pcPSGeometry11, PixelShaderTechnique::GeometryDiffuseTextured)))
+							if (FAILED(CreatePixelShaderEffect(pcDevice, &m_pcPSGeometry11, PixelShaderTechnique::GeometryDiffuseTextured)))
 								OutputDebugString(L"[OPENVR] Failed to create pixel shader. !");
 						}
 
@@ -912,7 +912,7 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 								D3D11_BUFFER_DESC sVertexBufferDesc;
 								ZeroMemory(&sVertexBufferDesc, sizeof(sVertexBufferDesc));
 								sVertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-								sVertexBufferDesc.ByteWidth = sizeof(TexturedDiffuseVertex)* pModel->unVertexCount;
+								sVertexBufferDesc.ByteWidth = sizeof(TexturedNormalVertex)* pModel->unVertexCount;
 								sVertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 								sVertexBufferDesc.CPUAccessFlags = 0;
 								D3D11_SUBRESOURCE_DATA sInitData;
@@ -994,7 +994,7 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 
 						// Set the input layout, buffers, sampler
 						pcContext->IASetInputLayout(m_pcVLGeometry11);
-						UINT stride = sizeof(TexturedDiffuseVertex);
+						UINT stride = sizeof(TexturedNormalVertex);
 						UINT offset = 0;
 
 						pcContext->VSSetConstantBuffers(0, 1, &m_pcConstantBufferGeometry);
@@ -1092,7 +1092,7 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 					// create pixel shader... 
 					if (!m_pcPixelShader11)
 					{
-						if (FAILED(CreateSimplePixelShader(pcDevice, &m_pcPixelShader11, PixelShaderTechnique::FullscreenSimple)))
+						if (FAILED(CreatePixelShaderEffect(pcDevice, &m_pcPixelShader11, PixelShaderTechnique::FullscreenSimple)))
 							bAllCreated = false;
 					}
 					// Create vertex buffer

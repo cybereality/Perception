@@ -568,7 +568,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 					// create pixel shader... 
 					if (!m_pcPixelShader11)
 					{
-						if (FAILED(CreateSimplePixelShader(m_pcDeviceTemporary, &m_pcPixelShader11, PixelShaderTechnique::FullscreenSimple)))
+						if (FAILED(CreatePixelShaderEffect(m_pcDeviceTemporary, &m_pcPixelShader11, PixelShaderTechnique::FullscreenSimple)))
 							bAllCreated = false;
 					}
 
