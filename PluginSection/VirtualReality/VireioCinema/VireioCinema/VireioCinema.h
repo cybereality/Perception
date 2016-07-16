@@ -153,6 +153,7 @@ private:
 	void RenderD3D9(LPDIRECT3DDEVICE9 pcDevice);
 	void InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, IDXGISwapChain* pcSwapchain);
 	void RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcContext, IDXGISwapChain* pcSwapchain);
+	void AddRenderModelD3D11(ID3D11Device* pcDevice, ID3D11Texture2D* pcTexture, TexturedDiffuseVertex* asVertices, WORD* aunIndices, UINT32 unVertexCount, UINT32 unTriangleCount, float fScale = 1.0f, D3DXVECTOR3 sTranslate = D3DXVECTOR3());
 	void SetAllRenderStatesDefault(LPDIRECT3DDEVICE9 pcDevice);
 
 #pragma region VireioCinema D3D9 private fields
@@ -297,19 +298,7 @@ private:
 	/**
 	* Current projection matrix left/right.
 	***/
-	D3DXMATRIX m_sProj[2];
-	/**
-	* DX11 simple model structure.
-	***/
-	struct RenderModel_D3D11
-	{
-		ID3D11Buffer* pcVertexBuffer;               /**< Vertex buffer for the mesh **/
-		UINT32 unVertexCount;						/**< Number of vertices in the vertex data **/
-		ID3D11Buffer* pcIndexBuffer;                /**< Indices into the vertex data for each triangle **/
-		UINT32 unTriangleCount;					    /**< Number of triangles in the mesh. Index count is 3 * TriangleCount **/
-		ID3D11Texture2D* pcTexture;                 /**< Texture **/
-		ID3D11ShaderResourceView* pcTextureSRV;     /**< Texture SRV **/
-	};
+	D3DXMATRIX m_sProj[2];	
 	/**
 	* Vector of all models to render.
 	***/

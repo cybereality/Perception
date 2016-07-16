@@ -65,6 +65,19 @@ struct TexturedDiffuseVertex
 };
 
 /**
+* DX11 simple model structure.
+***/
+struct RenderModel_D3D11
+{
+	ID3D11Buffer* pcVertexBuffer;               /**< Vertex buffer for the mesh **/
+	UINT32 unVertexCount;						/**< Number of vertices in the vertex data **/
+	ID3D11Buffer* pcIndexBuffer;                /**< Indices into the vertex data for each triangle **/
+	UINT32 unTriangleCount;					    /**< Number of triangles in the mesh. Index count is 3 * TriangleCount **/
+	ID3D11Texture2D* pcTexture;                 /**< Texture **/
+	ID3D11ShaderResourceView* pcTextureSRV;     /**< Texture SRV **/
+};
+
+/**
 * Geometry constant buffer structure.
 ***/
 struct GeometryConstantBuffer
@@ -680,8 +693,8 @@ HRESULT CreateSimplePixelShader(ID3D11Device* pcDevice, ID3D11PixelShader** ppcP
 			hr = D3DX10CompileFromMemory(PS2D_GAMMA_CORRECTION, strlen(PS2D_GAMMA_CORRECTION), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
 			break;
 		case GeometryDiffuseTextured:
-			// hr = D3DX10CompileFromMemory(PS3D, strlen(PS3D), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
-			hr = D3DX10CompileFromMemory(PS_STRING_THEORY, strlen(PS_STRING_THEORY), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+			hr = D3DX10CompileFromMemory(PS3D, strlen(PS3D), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+			// hr = D3DX10CompileFromMemory(PS_STRING_THEORY, strlen(PS_STRING_THEORY), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
 			// hr = D3DX10CompileFromMemory(PS3D_BUMP, strlen(PS3D_BUMP), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
 			break;
 	}

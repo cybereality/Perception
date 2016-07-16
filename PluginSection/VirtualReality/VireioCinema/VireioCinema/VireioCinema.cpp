@@ -1167,153 +1167,107 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 	// create render models... TODO !! CREATE ONLY IF ALL OTHER IS CREATED
 	if (!m_asRenderModels.size())
 	{
-		// create a D3D render model structure
-		RenderModel_D3D11 sRenderModel = {};
-
-		/*TexturedDiffuseVertex asVertices[] =
+#pragma region cinema screen
+		if (true/**TODO_ADD_BOOL_HERE**/)
 		{
-		{ D3DXVECTOR3(-1.92f, -1.08f, 0.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(1.0f, 1.0f) },
-		{ D3DXVECTOR3(1.92f, -1.08f, 0.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(0.0f, 1.0f) },
-		{ D3DXVECTOR3(1.92f, 1.08f, 0.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(0.0f, 0.0f) },
-		{ D3DXVECTOR3(-1.92f, 1.08f, 0.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(1.0f, 0.0f) }
-		};*/
+			// set vertices
+			TexturedDiffuseVertex asVertices[] =
+			{
+				{ D3DXVECTOR3(-1.92f, -1.08f, 0.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(1.0f, 1.0f) },
+				{ D3DXVECTOR3(1.92f, -1.08f, 0.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(0.0f, 1.0f) },
+				{ D3DXVECTOR3(1.92f, 1.08f, 0.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(0.0f, 0.0f) },
+				{ D3DXVECTOR3(-1.92f, 1.08f, 0.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(1.0f, 0.0f) }
+			};
 
-		TexturedDiffuseVertex asVertices[] =
-		{
-			{ D3DXVECTOR3(-1.0f, 1.0f, -1.0f), D3DXVECTOR3(0.0f, 1.0f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
-			{ D3DXVECTOR3(1.0f, 1.0f, -1.0f), D3DXVECTOR3(0.0f, 1.0f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) },
-			{ D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR3(0.0f, 1.0f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
-			{ D3DXVECTOR3(-1.0f, 1.0f, 1.0f), D3DXVECTOR3(0.0f, 1.0f, 0.0f), D3DXVECTOR2(0.0f, 1.0f) },
+			// set indices
+			WORD aunIndices[] = { 0, 1, 3, 1, 2, 3 };
 
-			{ D3DXVECTOR3(-1.0f, -1.0f, -1.0f), D3DXVECTOR3(0.0f, -1.0f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
-			{ D3DXVECTOR3(1.0f, -1.0f, -1.0f), D3DXVECTOR3(0.0f, -1.0f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) },
-			{ D3DXVECTOR3(1.0f, -1.0f, 1.0f), D3DXVECTOR3(0.0f, -1.0f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
-			{ D3DXVECTOR3(-1.0f, -1.0f, 1.0f), D3DXVECTOR3(0.0f, -1.0f, 0.0f), D3DXVECTOR2(0.0f, 1.0f) },
-
-			{ D3DXVECTOR3(-1.0f, -1.0f, 1.0f), D3DXVECTOR3(-1.0f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
-			{ D3DXVECTOR3(-1.0f, -1.0f, -1.0f), D3DXVECTOR3(-1.0f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) },
-			{ D3DXVECTOR3(-1.0f, 1.0f, -1.0f), D3DXVECTOR3(-1.0f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
-			{ D3DXVECTOR3(-1.0f, 1.0f, 1.0f), D3DXVECTOR3(-1.0f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 1.0f) },
-
-			{ D3DXVECTOR3(1.0f, -1.0f, 1.0f), D3DXVECTOR3(1.0f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
-			{ D3DXVECTOR3(1.0f, -1.0f, -1.0f), D3DXVECTOR3(1.0f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) },
-			{ D3DXVECTOR3(1.0f, 1.0f, -1.0f), D3DXVECTOR3(1.0f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
-			{ D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR3(1.0f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 1.0f) },
-
-			{ D3DXVECTOR3(-1.0f, -1.0f, -1.0f), D3DXVECTOR3(0.0f, 0.0f, -1.0f), D3DXVECTOR2(0.0f, 0.0f) },
-			{ D3DXVECTOR3(1.0f, -1.0f, -1.0f), D3DXVECTOR3(0.0f, 0.0f, -1.0f), D3DXVECTOR2(1.0f, 0.0f) },
-			{ D3DXVECTOR3(1.0f, 1.0f, -1.0f), D3DXVECTOR3(0.0f, 0.0f, -1.0f), D3DXVECTOR2(1.0f, 1.0f) },
-			{ D3DXVECTOR3(-1.0f, 1.0f, -1.0f), D3DXVECTOR3(0.0f, 0.0f, -1.0f), D3DXVECTOR2(0.0f, 1.0f) },
-
-			{ D3DXVECTOR3(-1.0f, -1.0f, 1.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(0.0f, 0.0f) },
-			{ D3DXVECTOR3(1.0f, -1.0f, 1.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(1.0f, 0.0f) },
-			{ D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(1.0f, 1.0f) },
-			{ D3DXVECTOR3(-1.0f, 1.0f, 1.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(0.0f, 1.0f) },
-		};
-
-		//float fScale = 0.8f;
-		//D3DXVECTOR3 sTranslate = D3DXVECTOR3(0.0f, 2.0f, 1.0f);
-		//for (int i = 0; i < 4; i++)
-		//{
-		//	// scale and translate
-		//	asVertices[i].sPos.x *= fScale;
-		//	asVertices[i].sPos.y *= fScale;
-		//	asVertices[i].sPos.z *= fScale;
-
-		//	asVertices[i].sPos.x += sTranslate.x;
-		//	asVertices[i].sPos.y += sTranslate.y;
-		//	asVertices[i].sPos.z += sTranslate.z;
-		//}
-
-		// Create vertex buffer
-		D3D11_BUFFER_DESC sVertexBufferDesc;
-		ZeroMemory(&sVertexBufferDesc, sizeof(sVertexBufferDesc));
-		sVertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-		sVertexBufferDesc.ByteWidth = sizeof(TexturedDiffuseVertex)* 24;
-		sVertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-		sVertexBufferDesc.CPUAccessFlags = 0;
-		D3D11_SUBRESOURCE_DATA sInitData;
-		ZeroMemory(&sInitData, sizeof(sInitData));
-		sInitData.pSysMem = asVertices;
-		if (FAILED(pcDevice->CreateBuffer(&sVertexBufferDesc, &sInitData, &sRenderModel.pcVertexBuffer)))
-			OutputDebugString(L"[CIN] Failed to create vertex buffer.");
-
-		// set indices
-		// WORD aunIndices[] = { 0, 1, 2, 1, 2, 3 };
-		WORD aunIndices[] =
-		{
-			3, 1, 0,
-			2, 1, 3,
-
-			6, 4, 5,
-			7, 4, 6,
-
-			11, 9, 8,
-			10, 9, 11,
-
-			14, 12, 13,
-			15, 12, 14,
-
-			19, 17, 16,
-			18, 17, 19,
-
-			22, 20, 21,
-			23, 20, 22
-		};
-
-		// create index buffer
-		D3D11_BUFFER_DESC sIndexBufferDesc;
-		ZeroMemory(&sIndexBufferDesc, sizeof(sIndexBufferDesc));
-		sIndexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-		sIndexBufferDesc.ByteWidth = sizeof(WORD)* 36;
-		sIndexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-		sIndexBufferDesc.CPUAccessFlags = 0;
-		ZeroMemory(&sInitData, sizeof(sInitData));
-		sInitData.pSysMem = aunIndices;
-		if (FAILED(pcDevice->CreateBuffer(&sIndexBufferDesc, &sInitData, &sRenderModel.pcIndexBuffer)))
-			OutputDebugString(L"[CIN] Failed to create index buffer.");
-
-		// set vertices/triangle count
-		sRenderModel.unTriangleCount = 12;
-		sRenderModel.unVertexCount = 24;
-
-		// create test texture
-		/*D3D11_TEXTURE2D_DESC sDesc;
-		ZeroMemory(&sDesc, sizeof(sDesc));
-		sDesc.Width = 256;
-		sDesc.Height = 256;
-		sDesc.MipLevels = sDesc.ArraySize = 1;
-		sDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		sDesc.SampleDesc.Count = 1;
-		sDesc.Usage = D3D11_USAGE_DEFAULT;
-		sDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-		D3D11_SUBRESOURCE_DATA sData;
-		ZeroMemory(&sData, sizeof(sData));
-		sData.pSysMem = pTexture->rubTextureMapData;
-		sData.SysMemPitch = pTexture->unWidth * 4;
-		if (FAILED(pcDevice->CreateTexture2D(&sDesc, &sData, &sRenderModel.pcTexture)))
-		OutputDebugString(L"[OPENVR] Failed to create model texture.");*/
-
-		/*HMODULE hModule = GetModuleHandle(L"VireioCinema.dll");
-		if (FAILED(D3DX11CreateTextureFromResource(pcDevice, hModule, MAKEINTRESOURCE(IMG_LOGO01), NULL, NULL, (ID3D11Resource**)&sRenderModel.pcTexture, NULL)))
-			OutputDebugString(L"[CIN] Failed to create default texture !");*/
-
-		if (sRenderModel.pcTexture)
-		{
-			// create texture shader resource view
-			D3D11_SHADER_RESOURCE_VIEW_DESC sDesc;
-			ZeroMemory(&sDesc, sizeof(sDesc));
-			sDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-			sDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-			sDesc.Texture2D.MostDetailedMip = 0;
-			sDesc.Texture2D.MipLevels = 1;
-
-			if ((FAILED(pcDevice->CreateShaderResourceView((ID3D11Resource*)sRenderModel.pcTexture, &sDesc, &sRenderModel.pcTextureSRV))))
-				OutputDebugString(L"[CIN] Failed to create model texture shader resource view!");
+			// and create the model
+			AddRenderModelD3D11(pcDevice, nullptr, asVertices, aunIndices, 4, 2, 1.5f, D3DXVECTOR3(0.0f, 2.0f, 0.0f));
 		}
+#pragma endregion
+#pragma region ground
+		if (true/**TODO_ADD_BOOL_HERE**/)
+		{
+			// set vertices
+			TexturedDiffuseVertex asVertices[] =
+			{
+				{ D3DXVECTOR3(-2.0f, 0.0f, -2.0f), D3DXVECTOR3(0.0f, 1.0f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
+				{ D3DXVECTOR3(2.0f, 0.0f, -2.0f), D3DXVECTOR3(0.0f, 1.0f, 0.0f), D3DXVECTOR2(0.0f, 1.0f) },
+				{ D3DXVECTOR3(2.0f, 0.0f, 2.0f), D3DXVECTOR3(0.0f, 1.0f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
+				{ D3DXVECTOR3(-2.0f, 0.0f, 2.0f), D3DXVECTOR3(0.0f, 1.0f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) }
+			};
 
-		// and add to vector
-		m_asRenderModels.push_back(sRenderModel);
+			// set indices
+			WORD aunIndices[] = { 3, 1, 0, 3, 2, 1 };
+
+			// and create the model
+			AddRenderModelD3D11(pcDevice, nullptr, asVertices, aunIndices, 4, 2, 10.0f);
+		}
+#pragma endregion
+#pragma region cube
+		if (false/**TODO_ADD_BOOL_HERE**/)
+		{
+			// set vertices
+			TexturedDiffuseVertex asVertices[] =
+			{
+				{ D3DXVECTOR3(-1.0f, 1.0f, -1.0f), D3DXVECTOR3(0.0f, 1.0f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
+				{ D3DXVECTOR3(1.0f, 1.0f, -1.0f), D3DXVECTOR3(0.0f, 1.0f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) },
+				{ D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR3(0.0f, 1.0f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
+				{ D3DXVECTOR3(-1.0f, 1.0f, 1.0f), D3DXVECTOR3(0.0f, 1.0f, 0.0f), D3DXVECTOR2(0.0f, 1.0f) },
+
+				{ D3DXVECTOR3(-1.0f, -1.0f, -1.0f), D3DXVECTOR3(0.0f, -1.0f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
+				{ D3DXVECTOR3(1.0f, -1.0f, -1.0f), D3DXVECTOR3(0.0f, -1.0f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) },
+				{ D3DXVECTOR3(1.0f, -1.0f, 1.0f), D3DXVECTOR3(0.0f, -1.0f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
+				{ D3DXVECTOR3(-1.0f, -1.0f, 1.0f), D3DXVECTOR3(0.0f, -1.0f, 0.0f), D3DXVECTOR2(0.0f, 1.0f) },
+
+				{ D3DXVECTOR3(-1.0f, -1.0f, 1.0f), D3DXVECTOR3(-1.0f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
+				{ D3DXVECTOR3(-1.0f, -1.0f, -1.0f), D3DXVECTOR3(-1.0f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) },
+				{ D3DXVECTOR3(-1.0f, 1.0f, -1.0f), D3DXVECTOR3(-1.0f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
+				{ D3DXVECTOR3(-1.0f, 1.0f, 1.0f), D3DXVECTOR3(-1.0f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 1.0f) },
+
+				{ D3DXVECTOR3(1.0f, -1.0f, 1.0f), D3DXVECTOR3(1.0f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
+				{ D3DXVECTOR3(1.0f, -1.0f, -1.0f), D3DXVECTOR3(1.0f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) },
+				{ D3DXVECTOR3(1.0f, 1.0f, -1.0f), D3DXVECTOR3(1.0f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
+				{ D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR3(1.0f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 1.0f) },
+
+				{ D3DXVECTOR3(-1.0f, -1.0f, -1.0f), D3DXVECTOR3(0.0f, 0.0f, -1.0f), D3DXVECTOR2(0.0f, 0.0f) },
+				{ D3DXVECTOR3(1.0f, -1.0f, -1.0f), D3DXVECTOR3(0.0f, 0.0f, -1.0f), D3DXVECTOR2(1.0f, 0.0f) },
+				{ D3DXVECTOR3(1.0f, 1.0f, -1.0f), D3DXVECTOR3(0.0f, 0.0f, -1.0f), D3DXVECTOR2(1.0f, 1.0f) },
+				{ D3DXVECTOR3(-1.0f, 1.0f, -1.0f), D3DXVECTOR3(0.0f, 0.0f, -1.0f), D3DXVECTOR2(0.0f, 1.0f) },
+
+				{ D3DXVECTOR3(-1.0f, -1.0f, 1.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(0.0f, 0.0f) },
+				{ D3DXVECTOR3(1.0f, -1.0f, 1.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(1.0f, 0.0f) },
+				{ D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(1.0f, 1.0f) },
+				{ D3DXVECTOR3(-1.0f, 1.0f, 1.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(0.0f, 1.0f) },
+			};
+
+			// set indices
+			WORD aunIndices[] =
+			{
+				3, 1, 0,
+				2, 1, 3,
+
+				6, 4, 5,
+				7, 4, 6,
+
+				11, 9, 8,
+				10, 9, 11,
+
+				14, 12, 13,
+				15, 12, 14,
+
+				19, 17, 16,
+				18, 17, 19,
+
+				22, 20, 21,
+				23, 20, 22
+			};
+
+			// and create the model
+			AddRenderModelD3D11(pcDevice, nullptr, asVertices, aunIndices, 24, 12);
+		}
+#pragma endregion
 	}
 
 	// create constant shader constants..
@@ -1381,8 +1335,8 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 	}
 
 	// Initialize the view matrix
-	D3DXVECTOR3 sEye = D3DXVECTOR3(0.0f, 2.0f, -3.0f);
-	D3DXVECTOR3 sAt = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+	D3DXVECTOR3 sEye = D3DXVECTOR3(0.0f, 1.8f, 3.0f);
+	D3DXVECTOR3 sAt = D3DXVECTOR3(0.0f, 1.5f, 0.0f);
 	D3DXVECTOR3 sUp = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
 	D3DXMatrixLookAtLH(&m_sView, &sEye, &sAt, &sUp);
 
@@ -1397,7 +1351,7 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 
 	// Rotate cube around the origin
 	D3DXMATRIX sWorld;
-	D3DXMatrixRotationYawPitchRoll(&sWorld, fTime, fTime / 4.0f, fTime / 8.0f);
+	D3DXMatrixIdentity(&sWorld);
 
 	// loop through available render models, render
 	for (UINT unI = 0; unI < (UINT)m_asRenderModels.size(); unI++)
@@ -1430,6 +1384,80 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 
 	// set back device
 	ApplyStateblock(pcContext, &sStateBlock);
+}
+
+/**
+* Creates a simple render model based on mesh data and adds it to the input vector.
+***/
+void VireioCinema::AddRenderModelD3D11(ID3D11Device* pcDevice, ID3D11Texture2D* pcTexture, TexturedDiffuseVertex* asVertices, WORD* aunIndices, UINT32 unVertexCount, UINT32 unTriangleCount, float fScale, D3DXVECTOR3 sTranslate)
+{
+	// create a D3D render model structure
+	RenderModel_D3D11 sRenderModel = {};
+
+	for (int i = 0; i < (int)unVertexCount; i++)
+	{
+		// scale and translate
+		asVertices[i].sPosition.x *= fScale;
+		asVertices[i].sPosition.y *= fScale;
+		asVertices[i].sPosition.z *= fScale;
+
+		asVertices[i].sPosition.x += sTranslate.x;
+		asVertices[i].sPosition.y += sTranslate.y;
+		asVertices[i].sPosition.z += sTranslate.z;
+	}
+
+	// Create vertex buffer
+	D3D11_BUFFER_DESC sVertexBufferDesc;
+	ZeroMemory(&sVertexBufferDesc, sizeof(sVertexBufferDesc));
+	sVertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	sVertexBufferDesc.ByteWidth = sizeof(TexturedDiffuseVertex)* unVertexCount;
+	sVertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	sVertexBufferDesc.CPUAccessFlags = 0;
+	D3D11_SUBRESOURCE_DATA sInitData;
+	ZeroMemory(&sInitData, sizeof(sInitData));
+	sInitData.pSysMem = asVertices;
+	if (FAILED(pcDevice->CreateBuffer(&sVertexBufferDesc, &sInitData, &sRenderModel.pcVertexBuffer)))
+		OutputDebugString(L"[CIN] Failed to create vertex buffer.");
+
+	// create index buffer
+	D3D11_BUFFER_DESC sIndexBufferDesc;
+	ZeroMemory(&sIndexBufferDesc, sizeof(sIndexBufferDesc));
+	sIndexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	sIndexBufferDesc.ByteWidth = sizeof(WORD)* unTriangleCount * 3;
+	sIndexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	sIndexBufferDesc.CPUAccessFlags = 0;
+	ZeroMemory(&sInitData, sizeof(sInitData));
+	sInitData.pSysMem = aunIndices;
+	if (FAILED(pcDevice->CreateBuffer(&sIndexBufferDesc, &sInitData, &sRenderModel.pcIndexBuffer)))
+		OutputDebugString(L"[CIN] Failed to create index buffer.");
+
+	// set vertices/triangle count
+	sRenderModel.unTriangleCount = unTriangleCount;
+	sRenderModel.unVertexCount = unVertexCount;
+
+	// set texture and create shader resource view
+	sRenderModel.pcTexture = pcTexture;
+
+	if (sRenderModel.pcTexture)
+	{
+		// get texture description
+		D3D11_TEXTURE2D_DESC sDescTex;
+		pcTexture->GetDesc(&sDescTex);
+
+		// create texture shader resource view
+		D3D11_SHADER_RESOURCE_VIEW_DESC sDesc;
+		ZeroMemory(&sDesc, sizeof(sDesc));
+		sDesc.Format = sDescTex.Format;
+		sDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		sDesc.Texture2D.MostDetailedMip = 0;
+		sDesc.Texture2D.MipLevels = 1;
+
+		if ((FAILED(pcDevice->CreateShaderResourceView((ID3D11Resource*)sRenderModel.pcTexture, &sDesc, &sRenderModel.pcTextureSRV))))
+			OutputDebugString(L"[CIN] Failed to create model texture shader resource view!");
+	}
+
+	// and add to vector
+	m_asRenderModels.push_back(sRenderModel);
 }
 
 /**
