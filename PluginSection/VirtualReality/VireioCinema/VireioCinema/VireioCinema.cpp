@@ -1318,9 +1318,13 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 
 	// create constant shader constants..
 	D3DXVECTOR4 sLightDir(-0.7f, -0.6f, -0.02f, 1.0f);
-	m_sGeometryConstants.m_sLightDir = sLightDir;
-	m_sGeometryConstants.m_sLightAmbient = D3DXCOLOR(0.2f, 0.2f, 0.2f, 1.0f);
-	m_sGeometryConstants.m_sLightDiffuse = D3DXCOLOR(1.0f, 0.2f, 0.7f, 1.0f);
+	m_sGeometryConstants.sLightDir = sLightDir;
+	m_sGeometryConstants.sLightAmbient = D3DXCOLOR(0.2f, 0.2f, 0.2f, 1.0f);
+	m_sGeometryConstants.sLightDiffuse = D3DXCOLOR(1.0f, 0.2f, 0.7f, 1.0f);
+
+	// for aspect ratio based fx we set a 1.0 ratio here
+	m_sGeometryConstants.sResolution.x = 1024.0f;
+	m_sGeometryConstants.sResolution.y = 1024.0f;
 }
 
 /**
@@ -1382,17 +1386,18 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 	D3DXVECTOR3 sUp = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
 	D3DXMatrixLookAtLH(&m_sView, &sEye, &sAt, &sUp);
 
-	// Update our time
-	static float t = 0.0f;
-	static DWORD dwTimeStart = 0;
+	// Update and set our time
+	static float fTime = 0.0f;
+	static DWORD unTimeStart = 0;
 	DWORD dwTimeCur = GetTickCount();
-	if (dwTimeStart == 0)
-		dwTimeStart = dwTimeCur;
-	t = (dwTimeCur - dwTimeStart) / 1000.0f;
+	if (unTimeStart == 0)
+		unTimeStart = dwTimeCur;
+	fTime = (dwTimeCur - unTimeStart) / 1000.0f;
+	m_sGeometryConstants.fGlobalTime = fTime;
 
 	// Rotate cube around the origin
 	D3DXMATRIX sWorld;
-	D3DXMatrixRotationYawPitchRoll(&sWorld, t, t / 4.0f, t / 8.0f);
+	D3DXMatrixRotationYawPitchRoll(&sWorld, fTime, fTime / 4.0f, fTime / 8.0f);
 
 	// loop through available render models, render
 	for (UINT unI = 0; unI < (UINT)m_asRenderModels.size(); unI++)
@@ -1402,7 +1407,7 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 		pcContext->IASetIndexBuffer(m_asRenderModels[unI].pcIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
 		// set world matrix
-		D3DXMatrixTranspose(&m_sGeometryConstants.m_sWorld, &sWorld);
+		D3DXMatrixTranspose(&m_sGeometryConstants.sWorld, &sWorld);
 
 		// left + right
 		for (int nEye = 0; nEye < 2; nEye++)
@@ -1412,7 +1417,7 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 
 			// set WVP matrix, update constant buffer							
 			D3DXMATRIX sWorldViewProjection = sWorld * m_sView * m_sToEye[nEye] * m_sProj[nEye];
-			D3DXMatrixTranspose(&m_sGeometryConstants.m_sWorldViewProjection, &sWorldViewProjection);
+			D3DXMatrixTranspose(&m_sGeometryConstants.sWorldViewProjection, &sWorldViewProjection);
 			pcContext->UpdateSubresource(m_pcConstantBufferGeometry, 0, NULL, &m_sGeometryConstants, 0, 0);
 
 			// set render target

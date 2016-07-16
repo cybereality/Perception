@@ -69,15 +69,19 @@ struct TexturedDiffuseVertex
 ***/
 struct GeometryConstantBuffer
 {
-	D3DXCOLOR m_sMaterialAmbientColor;
-	D3DXCOLOR m_sMaterialDiffuseColor;
+	D3DXCOLOR   sMaterialAmbientColor; /**< ambient material color **/
+	D3DXCOLOR   sMaterialDiffuseColor; /**< diffuse material color **/
 
-	D3DXVECTOR4 m_sLightDir;
-	D3DXCOLOR m_sLightDiffuse;
-	D3DXCOLOR m_sLightAmbient;
+	D3DXVECTOR4 sLightDir;             /**< light direction vector **/
+	D3DXCOLOR   sLightDiffuse;         /**< diffuse light color **/
+	D3DXCOLOR   sLightAmbient;         /**< ambient light color **/
 
-	D3DXMATRIX m_sWorldViewProjection;
-	D3DXMATRIX m_sWorld;
+	D3DXMATRIX  sWorldViewProjection;  /**< world view projection matrix **/
+	D3DXMATRIX  sWorld;                /**< world matrix **/
+
+	D3DXVECTOR3 sResolution;           /**< viewport resolution (in pixels) **/
+	float       fGlobalTime;           /**< shader playback time (in seconds) **/
+	D3DXVECTOR4 sMouse;                /**< mouse pixel coords. xy: current (if MLB down), zw: click **/
 };
 #pragma endregion
 #pragma region vertex shader
@@ -112,15 +116,15 @@ static const char* VS2D =
 ***/
 static const char* VS3D =
 // constant buffer
-"float4 m_sMaterialAmbientColor;\n"
-"float4 m_sMaterialDiffuseColor;\n"
+"float4 sMaterialAmbientColor;\n"
+"float4 sMaterialDiffuseColor;\n"
 
-"float4 m_sLightDir;\n"
-"float4 m_sLightDiffuse;\n"
-"float4 m_sLightAmbient;\n"
+"float4 sLightDir;\n"
+"float4 sLightDiffuse;\n"
+"float4 sLightAmbient;\n"
 
-"float4x4 m_sWorldViewProjection;\n"
-"float4x4 m_sWorld;\n"
+"float4x4 sWorldViewProjection;\n"
+"float4x4 sWorld;\n"
 
 // input / output structures
 "struct VS_INPUT\n"
@@ -142,8 +146,8 @@ static const char* VS3D =
 "{\n"
 "	VS_OUTPUT Output;\n"
 
-"	Output.vPosition = mul(Input.vPosition, m_sWorldViewProjection);\n"
-"	Output.vNormal = mul(Input.vNormal, m_sWorld);\n"
+"	Output.vPosition = mul(Input.vPosition, sWorldViewProjection);\n"
+"	Output.vNormal = mul(Input.vNormal, sWorld);\n"
 "	Output.vTexcoord = Input.vTexcoord;\n"
 
 "	return Output;\n"
@@ -254,20 +258,21 @@ static const char* PS_DIST_SIMPLE =
 "}\n";
 #pragma endregion
 #pragma region pixel shader enhanced
+#pragma region PS3D
 /**
 * 3D Pixel Shader.
 ***/
 static const char* PS3D =
 // constant buffer
-"float4 m_sMaterialAmbientColor;\n"
-"float4 m_sMaterialDiffuseColor;\n"
+"float4 sMaterialAmbientColor;\n"
+"float4 sMaterialDiffuseColor;\n"
 
-"float4 m_sLightDir;\n"
-"float4 m_sLightDiffuse;\n"
-"float4 m_sLightAmbient;\n"
+"float4 sLightDir;\n"
+"float4 sLightDiffuse;\n"
+"float4 sLightAmbient;\n"
 
-"float4x4 m_sWorldViewProjection;\n"
-"float4x4 m_sWorld;\n"
+"float4x4 sWorldViewProjection;\n"
+"float4x4 sWorld;\n"
 
 // textures and samplers
 "Texture2D	g_txDiffuse : register(t0);\n"
@@ -286,26 +291,27 @@ static const char* PS3D =
 "{\n"
 "	float4 vDiffuse = g_txDiffuse.Sample(g_samLinear, Input.vTexcoord);\n"
 
-"	float4 fLighting = saturate(dot(m_sLightDir, Input.vNormal));\n"
-"	fLighting = max(fLighting, m_sLightAmbient);\n"
+"	float4 fLighting = saturate(dot(sLightDir, Input.vNormal));\n"
+"	fLighting = max(fLighting, sLightAmbient);\n"
 
 "	return vDiffuse * fLighting;\n"
 "}\n";
-
+#pragma endregion
+#pragma region PS3D_FABRIC
 /**
 * 3D Pixel Shader Fabric.
 ***/
 static const char* PS3D_FABRIC =
 // constant buffer
-"float4 m_sMaterialAmbientColor;\n"
-"float4 m_sMaterialDiffuseColor;\n"
+"float4 sMaterialAmbientColor;\n"
+"float4 sMaterialDiffuseColor;\n"
 
-"float4 m_sLightDir;\n"
-"float4 m_sLightDiffuse;\n"
-"float4 m_sLightAmbient;\n"
+"float4 sLightDir;\n"
+"float4 sLightDiffuse;\n"
+"float4 sLightAmbient;\n"
 
-"float4x4 m_sWorldViewProjection;\n"
-"float4x4 m_sWorld;\n"
+"float4x4 sWorldViewProjection;\n"
+"float4x4 sWorld;\n"
 
 // textures and samplers
 "Texture2D	g_txDiffuse : register(t0);\n"
@@ -340,27 +346,28 @@ static const char* PS3D_FABRIC =
 // get texel
 "float4 diffuse = g_txDiffuse.Sample(g_samLinear, Input.vTexcoord) * (fp.x + fp.y + noisy.x);\n"
 
-"float4 fLighting = saturate(dot(m_sLightDir, Input.vNormal));\n"
-"fLighting = max(fLighting, m_sLightAmbient);\n"
+"float4 fLighting = saturate(dot(sLightDir, Input.vNormal));\n"
+"fLighting = max(fLighting, sLightAmbient);\n"
 
 "return diffuse * fLighting;\n"
 
 "}\n";
-
+#pragma endregion
+#pragma region PS3D_BUMP
 /**
 * 3D Pixel Shader bump mapping, compute normal map.
 ***/
 static const char* PS3D_BUMP =
 // constant buffer
-"float4 m_sMaterialAmbientColor;\n"
-"float4 m_sMaterialDiffuseColor;\n"
+"float4 sMaterialAmbientColor;\n"
+"float4 sMaterialDiffuseColor;\n"
 
-"float4 m_sLightDir;\n"
-"float4 m_sLightDiffuse;\n"
-"float4 m_sLightAmbient;\n"
+"float4 sLightDir;\n"
+"float4 sLightDiffuse;\n"
+"float4 sLightAmbient;\n"
 
-"float4x4 m_sWorldViewProjection;\n"
-"float4x4 m_sWorld;\n"
+"float4x4 sWorldViewProjection;\n"
+"float4x4 sWorld;\n"
 
 // textures and samplers
 "Texture2D	g_txDiffuse : register(t0);\n"
@@ -411,14 +418,15 @@ static const char* PS3D_BUMP =
 // color + lighting
 "	float4 vDiffuse = g_txDiffuse.Sample(g_samLinear, Input.vTexcoord);\n"
 
-"	float4 fLighting = saturate(dot(m_sLightDir, vNormal)) * 2.0;\n"
-"   float4 fLightingNormal = saturate(dot(m_sLightDir, Input.vNormal));\n"
+"	float4 fLighting = saturate(dot(sLightDir, vNormal)) * 2.0;\n"
+"   float4 fLightingNormal = saturate(dot(sLightDir, Input.vNormal));\n"
 "	fLighting = max(fLighting, fLightingNormal);\n"
 
 "	return vDiffuse * fLighting;\n"
 
 "}\n";
-
+#pragma endregion
+#pragma region PS_STRING_THEORY
 /**
 * Pixel Shader from shadertoy.com
 * "String Theory" by nimitz (twitter: @stormoid)
@@ -428,26 +436,20 @@ static const char* PS3D_BUMP =
 ***/
 static const char* PS_STRING_THEORY =
 // constant buffer
-"float4 m_sMaterialAmbientColor;\n"
-"float4 m_sMaterialDiffuseColor;\n"
+"float4 sMaterialAmbientColor;\n"
+"float4 sMaterialDiffuseColor;\n"
 
-"float4 m_sLightDir;\n"
-"float4 m_sLightDiffuse;\n"
-"float4 m_sLightAmbient;\n"
+"float4 sLightDir;\n"
+"float4 sLightDiffuse;\n"
+"float4 sLightAmbient;\n"
 
-"float4x4 m_sWorldViewProjection;\n"
-"float4x4 m_sWorld;\n"
+"float4x4 sWorldViewProjection;\n"
+"float4x4 sWorld;\n"
 
-// string theory constant buffer fields
-"float3    iResolution;\n"           // viewport resolution (in pixels)
-"float     iGlobalTime;\n"           // shader playback time (in seconds)
-"float     iTimeDelta;\n"            // render time (in seconds)
-"int       iFrame;\n"                // shader playback frame
-"float     iChannelTime[4];\n"       // channel playback time (in seconds)
-"float3    iChannelResolution[4];\n" // channel resolution (in pixels)
-"float4    iMouse;\n"                // mouse pixel coords. xy: current (if MLB down), zw: click
-"float4    iDate;\n"                 // (year, month, day, time in seconds)
-"float     iSampleRate;\n"           // sound sample rate (i.e., 44100)
+// shadertoy constant buffer fields
+"float3    sResolution;\n"           // viewport resolution (in pixels)
+"float     fGlobalTime;\n"           // shader playback time (in seconds)
+"float4    sMouse;\n"                // mouse pixel coords. xy: current (if MLB down), zw: click
 
 // textures and samplers
 "Texture2D	g_txDiffuse : register(t0);\n"
@@ -474,7 +476,7 @@ static const char* PS_STRING_THEORY =
 "#define ANGLE_DELTA 0.02\n"
 "#define XOFF .7\n"
 
-"#define time iGlobalTime\n"
+"#define time fGlobalTime\n"
 
 "mat2 mm2(float a){ float c = cos(a), s = sin(a); return mat2(c, -s, s, c); }\n"
 
@@ -489,15 +491,12 @@ static const char* PS_STRING_THEORY =
 "float4 PS(PS_INPUT Input) : SV_TARGET\n"
 "{\n"
 
-//"float aspect = iResolution.x / iResolution.y;\n"
-//"float featureSize = 60. / ((iResolution.x*aspect + iResolution.y));\n"
-"float aspect = 1024.0 / 1024.0;\n"
-"float featureSize = 60. / ((1024.0 *aspect + 1024.0));\n"
+"float aspect = sResolution.x / sResolution.y;\n"
+"float featureSize = 60. / ((sResolution.x*aspect + sResolution.y));\n"
 
-//"	vec2 p = Input.vPosition.xy / iResolution.xy*6.5 - 3.25;\n"
-"   vec2 iRes = vec2(1024.0, 1024.0);\n"
-"	vec2 p = Input.vPosition.xy / iRes.xy*6.5 - 3.25;\n"
-//"	vec2 p = Input.vTexcoord / iRes.xy*6.5 - 3.25;\n"
+//"	vec2 p = Input.vPosition.xy / sResolution.xy*6.5 - 3.25;\n" /**< original computation from shadertoy.com for fullscreen output ***/
+"	vec2 p = Input.vTexcoord * 6.5 - 3.25;\n"
+
 "	p.x *= aspect;\n"
 "	p.y = abs(p.y);\n"
 
@@ -520,6 +519,7 @@ static const char* PS_STRING_THEORY =
 
 "   return vec4(col, 1.0);\n"
 "}\n";
+#pragma endregion
 #pragma endregion
 
 /**

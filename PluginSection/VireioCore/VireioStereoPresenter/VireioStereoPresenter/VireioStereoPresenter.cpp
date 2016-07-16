@@ -1216,13 +1216,13 @@ void* StereoPresenter::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3
 						D3DXMATRIX sWorldViewProjection = sWorld * sView * sProj;
 
 						// update constant buffer
-						D3DXMatrixTranspose(&m_sGeometryConstants.m_sWorld, &sWorld);
-						D3DXMatrixTranspose(&m_sGeometryConstants.m_sWorldViewProjection, &sWorldViewProjection);
+						D3DXMatrixTranspose(&m_sGeometryConstants.sWorld, &sWorld);
+						D3DXMatrixTranspose(&m_sGeometryConstants.sWorldViewProjection, &sWorldViewProjection);
 						D3DXVECTOR4 sLightDir(-0.7f, -0.6f, -0.02f, 1.0f);
 						D3DXVec4Normalize(&sLightDir, &sLightDir);
-						m_sGeometryConstants.m_sLightDir = sLightDir;
-						m_sGeometryConstants.m_sLightAmbient = D3DXCOLOR(0.2f, 0.2f, 0.2f, 1.0f);
-						m_sGeometryConstants.m_sLightDiffuse = D3DXCOLOR(1.0f, 0.2f, 0.7f, 1.0f);
+						m_sGeometryConstants.sLightDir = sLightDir;
+						m_sGeometryConstants.sLightAmbient = D3DXCOLOR(0.2f, 0.2f, 0.2f, 1.0f);
+						m_sGeometryConstants.sLightDiffuse = D3DXCOLOR(1.0f, 0.2f, 0.7f, 1.0f);
 						pcContext->UpdateSubresource(m_pcConstantBufferDirect11, 0, NULL, &m_sGeometryConstants, 0, 0);
 
 						// Set the input layout, buffers, sampler

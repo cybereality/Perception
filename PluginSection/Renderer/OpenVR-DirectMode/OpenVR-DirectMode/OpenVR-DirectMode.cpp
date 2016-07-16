@@ -302,9 +302,9 @@ m_bRenderModelsCreated(false)
 
 	// create constant shader constants..
 	D3DXVECTOR4 sLightDir(-0.7f, -0.6f, -0.02f, 1.0f);
-	m_sGeometryConstants.m_sLightDir = sLightDir;
-	m_sGeometryConstants.m_sLightAmbient = D3DXCOLOR(0.2f, 0.2f, 0.2f, 1.0f);
-	m_sGeometryConstants.m_sLightDiffuse = D3DXCOLOR(1.0f, 0.2f, 0.7f, 1.0f);
+	m_sGeometryConstants.sLightDir = sLightDir;
+	m_sGeometryConstants.sLightAmbient = D3DXCOLOR(0.2f, 0.2f, 0.2f, 1.0f);
+	m_sGeometryConstants.sLightDiffuse = D3DXCOLOR(1.0f, 0.2f, 0.7f, 1.0f);
 
 	// locate or create the INI file
 	char szFilePathINI[1024];
@@ -346,20 +346,20 @@ m_bRenderModelsCreated(false)
 	m_sOverlayPropertiesDashboard.sColor.b = GetIniFileSetting(m_sOverlayPropertiesDashboard.sColor.b, "OpenVR", "sOverlayPropertiesDashboard.sColor.b", szFilePathINI, bFileExists);
 	m_sOverlayPropertiesDashboard.fWidth = GetIniFileSetting(m_sOverlayPropertiesDashboard.fWidth, "OpenVR", "sOverlayPropertiesDashboard.fWidth", szFilePathINI, bFileExists);
 
-	m_sGeometryConstants.m_sLightDir.x = GetIniFileSetting(m_sGeometryConstants.m_sLightDir.x, "OpenVR", "m_sGeometryConstants.sLightDir.x", szFilePathINI, bFileExists);
-	m_sGeometryConstants.m_sLightDir.y = GetIniFileSetting(m_sGeometryConstants.m_sLightDir.y, "OpenVR", "m_sGeometryConstants.sLightDir.y", szFilePathINI, bFileExists);
-	m_sGeometryConstants.m_sLightDir.z = GetIniFileSetting(m_sGeometryConstants.m_sLightDir.z, "OpenVR", "m_sGeometryConstants.sLightDir.z", szFilePathINI, bFileExists);
-	m_sGeometryConstants.m_sLightAmbient.a = GetIniFileSetting(m_sGeometryConstants.m_sLightAmbient.a, "OpenVR", "sGeometryConstants.sLightAmbient.a", szFilePathINI, bFileExists);
-	m_sGeometryConstants.m_sLightAmbient.r = GetIniFileSetting(m_sGeometryConstants.m_sLightAmbient.r, "OpenVR", "sGeometryConstants.sLightAmbient.r", szFilePathINI, bFileExists);
-	m_sGeometryConstants.m_sLightAmbient.g = GetIniFileSetting(m_sGeometryConstants.m_sLightAmbient.g, "OpenVR", "sGeometryConstants.sLightAmbient.g", szFilePathINI, bFileExists);
-	m_sGeometryConstants.m_sLightAmbient.b = GetIniFileSetting(m_sGeometryConstants.m_sLightAmbient.b, "OpenVR", "sGeometryConstants.sLightAmbient.b", szFilePathINI, bFileExists);
-	m_sGeometryConstants.m_sLightDiffuse.a = GetIniFileSetting(m_sGeometryConstants.m_sLightDiffuse.a, "OpenVR", "sGeometryConstants.sLightDiffuse.a", szFilePathINI, bFileExists);
-	m_sGeometryConstants.m_sLightDiffuse.r = GetIniFileSetting(m_sGeometryConstants.m_sLightDiffuse.r, "OpenVR", "sGeometryConstants.sLightDiffuse.r", szFilePathINI, bFileExists);
-	m_sGeometryConstants.m_sLightDiffuse.g = GetIniFileSetting(m_sGeometryConstants.m_sLightDiffuse.g, "OpenVR", "sGeometryConstants.sLightDiffuse.g", szFilePathINI, bFileExists);
-	m_sGeometryConstants.m_sLightDiffuse.b = GetIniFileSetting(m_sGeometryConstants.m_sLightDiffuse.b, "OpenVR", "sGeometryConstants.sLightDiffuse.b", szFilePathINI, bFileExists);
+	m_sGeometryConstants.sLightDir.x = GetIniFileSetting(m_sGeometryConstants.sLightDir.x, "OpenVR", "m_sGeometryConstants.sLightDir.x", szFilePathINI, bFileExists);
+	m_sGeometryConstants.sLightDir.y = GetIniFileSetting(m_sGeometryConstants.sLightDir.y, "OpenVR", "m_sGeometryConstants.sLightDir.y", szFilePathINI, bFileExists);
+	m_sGeometryConstants.sLightDir.z = GetIniFileSetting(m_sGeometryConstants.sLightDir.z, "OpenVR", "m_sGeometryConstants.sLightDir.z", szFilePathINI, bFileExists);
+	m_sGeometryConstants.sLightAmbient.a = GetIniFileSetting(m_sGeometryConstants.sLightAmbient.a, "OpenVR", "sGeometryConstants.sLightAmbient.a", szFilePathINI, bFileExists);
+	m_sGeometryConstants.sLightAmbient.r = GetIniFileSetting(m_sGeometryConstants.sLightAmbient.r, "OpenVR", "sGeometryConstants.sLightAmbient.r", szFilePathINI, bFileExists);
+	m_sGeometryConstants.sLightAmbient.g = GetIniFileSetting(m_sGeometryConstants.sLightAmbient.g, "OpenVR", "sGeometryConstants.sLightAmbient.g", szFilePathINI, bFileExists);
+	m_sGeometryConstants.sLightAmbient.b = GetIniFileSetting(m_sGeometryConstants.sLightAmbient.b, "OpenVR", "sGeometryConstants.sLightAmbient.b", szFilePathINI, bFileExists);
+	m_sGeometryConstants.sLightDiffuse.a = GetIniFileSetting(m_sGeometryConstants.sLightDiffuse.a, "OpenVR", "sGeometryConstants.sLightDiffuse.a", szFilePathINI, bFileExists);
+	m_sGeometryConstants.sLightDiffuse.r = GetIniFileSetting(m_sGeometryConstants.sLightDiffuse.r, "OpenVR", "sGeometryConstants.sLightDiffuse.r", szFilePathINI, bFileExists);
+	m_sGeometryConstants.sLightDiffuse.g = GetIniFileSetting(m_sGeometryConstants.sLightDiffuse.g, "OpenVR", "sGeometryConstants.sLightDiffuse.g", szFilePathINI, bFileExists);
+	m_sGeometryConstants.sLightDiffuse.b = GetIniFileSetting(m_sGeometryConstants.sLightDiffuse.b, "OpenVR", "sGeometryConstants.sLightDiffuse.b", szFilePathINI, bFileExists);
 
 	// normalize light direction
-	D3DXVec4Normalize(&m_sGeometryConstants.m_sLightDir, &m_sGeometryConstants.m_sLightDir);
+	D3DXVec4Normalize(&m_sGeometryConstants.sLightDir, &m_sGeometryConstants.sLightDir);
 }
 
 /**
@@ -1032,14 +1032,14 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 
 							// set world matrix, first get left-handed
 							m_rmat4DevicePose[m_asRenderModels[unI].unTrackedDeviceIndex] = GetLH(m_rTrackedDevicePose[m_asRenderModels[unI].unTrackedDeviceIndex].mDeviceToAbsoluteTracking);
-							D3DXMatrixTranspose(&m_sGeometryConstants.m_sWorld, &m_rmat4DevicePose[m_asRenderModels[unI].unTrackedDeviceIndex]);
+							D3DXMatrixTranspose(&m_sGeometryConstants.sWorld, &m_rmat4DevicePose[m_asRenderModels[unI].unTrackedDeviceIndex]);
 
 							// left + right
 							for (int nEye = 0; nEye < 2; nEye++)
 							{
 								// set WVP matrix, update constant buffer							
 								D3DXMATRIX sWorldViewProjection = m_rmat4DevicePose[m_asRenderModels[unI].unTrackedDeviceIndex] * m_sView * m_sToEye[nEye] * m_sProj[nEye];
-								D3DXMatrixTranspose(&m_sGeometryConstants.m_sWorldViewProjection, &sWorldViewProjection);
+								D3DXMatrixTranspose(&m_sGeometryConstants.sWorldViewProjection, &sWorldViewProjection);
 								pcContext->UpdateSubresource(m_pcConstantBufferGeometry, 0, NULL, &m_sGeometryConstants, 0, 0);
 
 								// set render target

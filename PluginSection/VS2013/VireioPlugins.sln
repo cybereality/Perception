@@ -25,6 +25,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenVR-Tracker", "..\Motion
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenVR-DirectMode", "..\Renderer\OpenVR-DirectMode\OpenVR-DirectMode\VS2013\OpenVR-DirectMode.vcxproj", "{406B5570-0BA2-4BE3-BCF1-CD65AD2E00F9}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VireioCinema", "..\VirtualReality\VireioCinema\VireioCinema\VS2013\VireioCinema.vcxproj", "{DFC2AA0A-2379-4BE9-9523-A46BA14D2E44}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Mixed Platforms = Debug|Mixed Platforms
@@ -166,6 +168,16 @@ Global
 		{406B5570-0BA2-4BE3-BCF1-CD65AD2E00F9}.Release|Win32.Build.0 = Release|Win32
 		{406B5570-0BA2-4BE3-BCF1-CD65AD2E00F9}.Release|x64.ActiveCfg = Release|x64
 		{406B5570-0BA2-4BE3-BCF1-CD65AD2E00F9}.Release|x64.Build.0 = Release|x64
+		{DFC2AA0A-2379-4BE9-9523-A46BA14D2E44}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{DFC2AA0A-2379-4BE9-9523-A46BA14D2E44}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{DFC2AA0A-2379-4BE9-9523-A46BA14D2E44}.Debug|Win32.ActiveCfg = Debug|Win32
+		{DFC2AA0A-2379-4BE9-9523-A46BA14D2E44}.Debug|Win32.Build.0 = Debug|Win32
+		{DFC2AA0A-2379-4BE9-9523-A46BA14D2E44}.Debug|x64.ActiveCfg = Debug|Win32
+		{DFC2AA0A-2379-4BE9-9523-A46BA14D2E44}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{DFC2AA0A-2379-4BE9-9523-A46BA14D2E44}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{DFC2AA0A-2379-4BE9-9523-A46BA14D2E44}.Release|Win32.ActiveCfg = Release|Win32
+		{DFC2AA0A-2379-4BE9-9523-A46BA14D2E44}.Release|Win32.Build.0 = Release|Win32
+		{DFC2AA0A-2379-4BE9-9523-A46BA14D2E44}.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
