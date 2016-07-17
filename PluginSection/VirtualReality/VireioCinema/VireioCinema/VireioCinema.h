@@ -112,8 +112,8 @@ enum VRC_Decommanders
 	PositionX,
 	PositionY,
 	PositionZ,
-	ViewOffsetLeft,
-	ViewOffsetRight,
+	View,
+	World,
 	ResolutionWidth,
 	ResolutionHeight,
 	ProjectionLeft,
@@ -345,13 +345,9 @@ private:
 	***/
 	D3DMATRIX* m_psProjection[2];
 	/**
-	* View offset pointers left/right.
+	* View pointers left/right.
 	***/
-	D3DVECTOR* m_psViewOffset[2];
-	/**
-	* View offset left/right.
-	***/
-	D3DVECTOR m_sViewOffset[2];
+	D3DMATRIX* m_psView;
 	/**
 	* Position in cinema.
 	***/

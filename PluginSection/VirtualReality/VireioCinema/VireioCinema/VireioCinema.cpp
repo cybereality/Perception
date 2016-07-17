@@ -91,8 +91,6 @@ m_bOculusTinyRoomMesh(false),
 m_asRenderModels()
 {
 	ZeroMemory(&m_sPositionVector, sizeof(D3DVECTOR));
-	ZeroMemory(&m_sViewOffset[0], sizeof(D3DVECTOR));
-	ZeroMemory(&m_sViewOffset[1], sizeof(D3DVECTOR));
 	ZeroMemory(&m_sGeometryConstants, sizeof(GeometryConstantBuffer));
 
 	// set default aspect ratio
@@ -112,6 +110,9 @@ m_asRenderModels()
 	m_pcTex11DrawSRV[1] = nullptr;
 	m_ppcTex11InputSRV[0] = nullptr;
 	m_ppcTex11InputSRV[1] = nullptr;
+	m_psView = nullptr;
+	m_psProjection[0] = nullptr;
+	m_psProjection[1] = nullptr;
 
 	D3DXMatrixIdentity(&m_sView);
 	D3DXMatrixIdentity(&m_sToEye[0]);
@@ -270,10 +271,10 @@ LPWSTR VireioCinema::GetDecommanderName(DWORD dwDecommanderIndex)
 			return L"Position Y";
 		case PositionZ:
 			return L"Position Z";
-		case ViewOffsetLeft:
-			return L"View Offset Left";
-		case ViewOffsetRight:
-			return L"View Offset Right";
+		case View:
+			return L"View";
+		case World:
+			return L"World";
 		case ResolutionWidth:
 			return L"Resolution Width";
 		case ResolutionHeight:
@@ -339,9 +340,9 @@ DWORD VireioCinema::GetDecommanderType(DWORD dwDecommanderIndex)
 		case PositionY:
 		case PositionZ:
 			return NOD_Plugtype::AQU_FLOAT;
-		case ViewOffsetLeft:
-			break;
-		case ViewOffsetRight:
+		case View:
+		case World:
+			return NOD_Plugtype::AQU_D3DMATRIX;
 			break;
 		case ResolutionWidth:
 		case ResolutionHeight:
@@ -427,11 +428,10 @@ void VireioCinema::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 		case PositionZ:
 			m_pfPositionZ = (float*)pData;
 			break;
-		case ViewOffsetLeft:
-			m_psViewOffset[0] = (D3DVECTOR*)pData;
+		case View:
+			m_psView = (D3DMATRIX*)pData;
 			break;
-		case ViewOffsetRight:
-			m_psViewOffset[1] = (D3DVECTOR*)pData;
+		case World:
 			break;
 		case ResolutionWidth:
 			m_pnTexResolutionWidth = (int*)pData;
@@ -498,20 +498,6 @@ void* VireioCinema::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMe
 	if (m_pfPositionX) m_sPositionVector.x = *m_pfPositionX;
 	if (m_pfPositionY) m_sPositionVector.y = *m_pfPositionY;
 	if (m_pfPositionZ) m_sPositionVector.z = *m_pfPositionZ;
-	if (m_psViewOffset[0])
-	{
-
-		m_sViewOffset[0].x = (*m_psViewOffset[0]).x;
-		m_sViewOffset[0].y = (*m_psViewOffset[0]).y;
-		m_sViewOffset[0].z = (*m_psViewOffset[0]).z;
-
-	}
-	if (m_psViewOffset[1])
-	{
-		m_sViewOffset[1].x = (*m_psViewOffset[1]).x;
-		m_sViewOffset[1].y = (*m_psViewOffset[1]).y;
-		m_sViewOffset[1].z = (*m_psViewOffset[1]).z;
-	}
 
 	// render cinema for specified D3D version
 	switch (eD3DVersion)
@@ -881,6 +867,10 @@ void VireioCinema::InitD3D9(LPDIRECT3DDEVICE9 pcDevice)
 ***/
 void VireioCinema::RenderD3D9(LPDIRECT3DDEVICE9 pcDevice)
 {
+	// TODO !! WHOLE FUNCTIONALITY BROKEN FOR NOW !!
+	(E_NOTIMPL);
+	return;
+
 	// render... first create matrices
 	D3DXMATRIX matProjection;
 	//D3DXMatrixPerspectiveFovLH(&matProjection, (float)(70.0f * 3.14f / 180.0f), m_fAspectRatio, 0.01f, 50.0f);
@@ -890,8 +880,8 @@ void VireioCinema::RenderD3D9(LPDIRECT3DDEVICE9 pcDevice)
 
 	// is that right to add the offset at this point ?
 	D3DXMATRIX matViewLeft, matViewRight, matTransLeft, matTransRight;
-	D3DXMatrixTranslation(&matTransLeft, m_sViewOffset[0].x, m_sViewOffset[0].y, m_sViewOffset[0].z);
-	D3DXMatrixTranslation(&matTransRight, m_sViewOffset[1].x, m_sViewOffset[1].y, m_sViewOffset[1].z);
+	// D3DXMatrixTranslation(&matTransLeft, m_sViewOffset[0].x, m_sViewOffset[0].y, m_sViewOffset[0].z);
+	// D3DXMatrixTranslation(&matTransRight, m_sViewOffset[1].x, m_sViewOffset[1].y, m_sViewOffset[1].z);
 	matViewLeft = matTransLeft * matView;
 	matViewRight = matTransRight * matView;
 
@@ -1174,17 +1164,17 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 			// set vertices
 			TexturedNormalVertex asVertices[] =
 			{
-				{ D3DXVECTOR3(-1.92f, -1.08f, 0.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(1.0f, 1.0f) },
-				{ D3DXVECTOR3(1.92f, -1.08f, 0.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(0.0f, 1.0f) },
-				{ D3DXVECTOR3(1.92f, 1.08f, 0.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(0.0f, 0.0f) },
-				{ D3DXVECTOR3(-1.92f, 1.08f, 0.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(1.0f, 0.0f) }
+				{ D3DXVECTOR3(1.92f, -1.08f, 0.0f), D3DXVECTOR3(0.0f, 0.0f, -1.0f), D3DXVECTOR2(1.0f, 1.0f) },
+				{ D3DXVECTOR3(-1.92f, -1.08f, 0.0f), D3DXVECTOR3(0.0f, 0.0f, -1.0f), D3DXVECTOR2(0.0f, 1.0f) },
+				{ D3DXVECTOR3(-1.92f, 1.08f, 0.0f), D3DXVECTOR3(0.0f, 0.0f, -1.0f), D3DXVECTOR2(0.0f, 0.0f) },
+				{ D3DXVECTOR3(1.92f, 1.08f, 0.0f), D3DXVECTOR3(0.0f, 0.0f, -1.0f), D3DXVECTOR2(1.0f, 0.0f) }
 			};
 
 			// set indices
 			WORD aunIndices[] = { 0, 1, 3, 1, 2, 3 };
 
 			// and create the model
-			AddRenderModelD3D11(pcDevice, nullptr, nullptr, asVertices, aunIndices, 4, 2, 1.5f, D3DXVECTOR3(0.0f, 2.0f, 0.0f));
+			AddRenderModelD3D11(pcDevice, nullptr, nullptr, asVertices, aunIndices, 4, 2, 1.5f, D3DXVECTOR3(0.0f, 2.0f, 2.0f));
 		}
 #pragma endregion
 #pragma region ground
@@ -1339,10 +1329,21 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 	}
 
 	// Initialize the view matrix
-	D3DXVECTOR3 sEye = D3DXVECTOR3(0.0f, 1.8f, 3.0f);
-	D3DXVECTOR3 sAt = D3DXVECTOR3(0.0f, 1.5f, 0.0f);
-	D3DXVECTOR3 sUp = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
-	D3DXMatrixLookAtLH(&m_sView, &sEye, &sAt, &sUp);
+	if (m_psView)
+	{
+		// get connected
+		CopyMemory(&m_sView, m_psView, sizeof(D3DMATRIX));
+	}
+	else
+	{
+		// TODO !! CREATE VIEW MATRIX HERE BASED ON CONNECTED EULER AND POSITION
+
+		// no view matrix connected, create basic lookat matrix
+		D3DXVECTOR3 sEye = D3DXVECTOR3(0.0f, 1.8f, -3.0f);
+		D3DXVECTOR3 sAt = D3DXVECTOR3(0.0f, 1.5f, 0.0f);
+		D3DXVECTOR3 sUp = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+		D3DXMatrixLookAtLH(&m_sView, &sEye, &sAt, &sUp);
+	}
 
 	// Update and set our time
 	static float fTime = 0.0f;
@@ -1383,8 +1384,14 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 			if (!m_asRenderModels[unI].pcEffect)
 				pcContext->PSSetShaderResources(0, 1, m_ppcTex11InputSRV[nEye]);
 
-			// set WVP matrix, update constant buffer							
-			D3DXMATRIX sWorldViewProjection = sWorld * m_sView * m_sToEye[nEye] * m_sProj[nEye];
+			// set WVP matrix, update constant buffer
+			D3DXMATRIX sWorldViewProjection;
+			if (m_psProjection[nEye])
+			{
+				sWorldViewProjection = sWorld * m_sView * (*(m_psProjection[nEye]));
+			}
+			else sWorldViewProjection = sWorld * m_sView * m_sToEye[nEye] * m_sProj[nEye];
+
 			D3DXMatrixTranspose(&m_sGeometryConstants.sWorldViewProjection, &sWorldViewProjection);
 			pcContext->UpdateSubresource(m_pcConstantBufferGeometry, 0, NULL, &m_sGeometryConstants, 0, 0);
 

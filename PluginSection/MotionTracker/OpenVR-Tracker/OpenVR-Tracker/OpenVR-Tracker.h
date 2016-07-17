@@ -53,9 +53,88 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define PNT_INT_PLUG_TYPE                            107 
 #define PNT_UINT_PLUG_TYPE                           112
 
-#define NUMBER_OF_COMMANDERS                          11
+#define NUMBER_OF_COMMANDERS                          14
 
 #define FLOAT_PI                            (3.1415926f)
+
+/**
+* Matrix helper DX.
+* @returns Left handed D3D matrix from Steam HmdMatrix34_t type.
+***/
+D3DMATRIX GetLH(vr::HmdMatrix34_t sMat)
+{
+	D3DXMATRIX sRet = D3DXMATRIX(
+		sMat.m[0][0], sMat.m[1][0], -sMat.m[2][0], 0.0,
+		sMat.m[0][1], sMat.m[1][1], -sMat.m[2][1], 0.0,
+		-sMat.m[0][2], -sMat.m[1][2], sMat.m[2][2], 0.0,
+		sMat.m[0][3], sMat.m[1][3], -sMat.m[2][3], 1.0f
+		);
+
+	return sRet;
+}
+/**
+* Matrix helper DX.
+* @returns Left handed D3D matrix from Steam HmdMatrix44_t type.
+***/
+D3DMATRIX GetLH(vr::HmdMatrix44_t sMat)
+{
+	D3DXMATRIX sRet = D3DXMATRIX(
+		sMat.m[0][0], sMat.m[1][0], -sMat.m[2][0], sMat.m[3][0],
+		sMat.m[0][1], sMat.m[1][1], -sMat.m[2][1], sMat.m[3][1],
+		-sMat.m[0][2], -sMat.m[1][2], sMat.m[2][2], sMat.m[3][2],
+		sMat.m[0][3], sMat.m[1][3], -sMat.m[2][3], sMat.m[3][3]
+		);
+
+	return sRet;
+}
+
+/**
+* Matrix helper DX.
+* @returns Left handed OpenVR projection matrix for specified eye.
+***/
+D3DXMATRIX GetHMDMatrixProjectionEyeLH(vr::IVRSystem* pHmd, vr::Hmd_Eye nEye, /*float fFOVy, float fAspect, */float fNearClip, float fFarClip)
+{
+	if (!pHmd)
+		return D3DXMATRIX();
+
+	// get raw projection data
+	float fLeft, fRight, fTop, fBottom;
+	pHmd->GetProjectionRaw(nEye, &fLeft, &fRight, &fTop, &fBottom);
+
+	// create matrix
+	D3DXMATRIX sRet;
+	D3DXVECTOR2 asVec[2];
+	asVec[0].x = fLeft;
+	asVec[0].y = fRight;
+	asVec[1].x = -fBottom;
+	asVec[1].y = -fTop;
+	asVec[0] *= fNearClip;
+	asVec[1] *= fNearClip;
+	D3DXMatrixPerspectiveOffCenterLH(&sRet, asVec[0].x, asVec[0].y, asVec[1].x, asVec[1].y, fNearClip, fFarClip);
+
+	return sRet;
+}
+/**
+* Matrix helper DX.
+* @returns Left handed OpenVR pose matrix for specified eye.
+***/
+D3DXMATRIX GetHMDMatrixPoseEyeLH(vr::IVRSystem* pHmd, vr::Hmd_Eye nEye)
+{
+	if (!pHmd)
+		return D3DXMATRIX();
+
+	vr::HmdMatrix34_t sMat = pHmd->GetEyeToHeadTransform(nEye);
+	D3DXMATRIX matrixObj = D3DXMATRIX(
+		sMat.m[0][0], sMat.m[1][0], sMat.m[2][0], 0.0,
+		sMat.m[0][1], sMat.m[1][1], sMat.m[2][1], 0.0,
+		sMat.m[0][2], sMat.m[1][2], sMat.m[2][2], 0.0,
+		sMat.m[0][3], sMat.m[1][3], sMat.m[2][3], 1.0f
+		);
+
+	D3DXMATRIX matrixObjInv;
+	D3DXMatrixInverse(&matrixObjInv, 0, &matrixObj);
+	return matrixObjInv;
+}
 
 /**
 * Node Commander Enumeration.
@@ -73,6 +152,9 @@ enum OpenVR_Commanders
 	PositionY,
 	PositionZ,
 	IVRSystem,
+	View,
+	ProjectionLeft,
+	ProjectionRight,
 };
 
 /**
@@ -246,10 +328,6 @@ private:
 	***/
 	D3DXVECTOR3 m_sPosition[vr::k_unMaxTrackedDeviceCount];
 	/**
-	*
-	***/
-	// bool m_rbShowTrackedDevice[vr::k_unMaxTrackedDeviceCount];
-	/**
 	* The control bitmap.
 	***/
 	HBITMAP m_hBitmapControl;
@@ -264,7 +342,16 @@ private:
 	/**
 	* Game timer class for prediction model.
 	***/
-	Vireio_GameTimer m_cGameTimer;	
+	Vireio_GameTimer m_cGameTimer;
+	/**
+	* Current view matrix.
+	***/
+	D3DXMATRIX m_sView;
+	/**
+	* Current projection matrix left/right.
+	* Inherits "to eye" translation.
+	***/
+	D3DXMATRIX m_asProjection[2];
 };
 
 /**

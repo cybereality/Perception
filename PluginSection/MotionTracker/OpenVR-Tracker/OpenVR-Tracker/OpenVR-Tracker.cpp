@@ -197,7 +197,10 @@ HBITMAP OpenVR_Tracker::GetControl()
 			nY += 64; szBuffer = std::wstringstream();
 
 			// tracking system + serial
-			TextOut(hdcImage, 100, nY, L"IVRSystem", 9); nY += 64;
+			TextOut(hdcImage, 650, nY, L"IVRSystem", 9); nY += 64;
+			TextOut(hdcImage, 650, nY, L"View", 4); nY += 64;
+			TextOut(hdcImage, 650, nY, L"ProjectionLeft", 14); nY += 64;
+			TextOut(hdcImage, 650, nY, L"ProjectionRight", 15); nY += 64;
 			szBuffer << m_strDisplay.c_str() << "-" << m_strDriver.c_str();
 			TextOut(hdcImage, 100, nY, szBuffer.str().c_str(), (int)szBuffer.str().length());
 
@@ -245,6 +248,10 @@ LPWSTR OpenVR_Tracker::GetCommanderName(DWORD dwCommanderIndex)
 			return L"Position Z";
 		case OpenVR_Commanders::IVRSystem:
 			return L"IVRSystem";
+		case OpenVR_Commanders::ProjectionLeft:
+			return L"ProjectionLeft";
+		case OpenVR_Commanders::ProjectionRight:
+			return L"ProjectionRight";
 	}
 
 	return L"";
@@ -270,6 +277,10 @@ DWORD OpenVR_Tracker::GetCommanderType(DWORD dwCommanderIndex)
 			return NOD_Plugtype::AQU_FLOAT;
 		case OpenVR_Commanders::IVRSystem:
 			return NOD_Plugtype::AQU_HANDLE;
+		case OpenVR_Commanders::View:
+		case OpenVR_Commanders::ProjectionLeft:
+		case OpenVR_Commanders::ProjectionRight:
+			return NOD_Plugtype::AQU_D3DMATRIX;
 	}
 
 	return 0;
@@ -304,6 +315,12 @@ void* OpenVR_Tracker::GetOutputPointer(DWORD dwCommanderIndex)
 			return (void*)&m_sPosition[vr::k_unTrackedDeviceIndex_Hmd].z;
 		case OpenVR_Commanders::IVRSystem:
 			return (void*)&m_pHMD;
+		case OpenVR_Commanders::View:
+			return (void*)&m_sView;
+		case OpenVR_Commanders::ProjectionLeft:
+			return (void*)&m_asProjection[0];
+		case OpenVR_Commanders::ProjectionRight:
+			return (void*)&m_asProjection[1];
 	}
 
 	return nullptr;
@@ -360,6 +377,17 @@ void* OpenVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 				m_strDisplay = pchBuffer;
 				delete[] pchBuffer;
 			}
+		}
+
+		// create projection matrices
+		D3DXMATRIX asProj[2];
+		D3DXMATRIX asToEye[2];
+		for (UINT unEye = 0; unEye < 2; unEye++)
+		{
+			D3DXMATRIX asProj[2];
+			asProj[unEye] = GetHMDMatrixProjectionEyeLH(m_pHMD, (vr::Hmd_Eye)unEye, 0.1f, 30.0f);
+			asToEye[unEye] = GetHMDMatrixPoseEyeLH(m_pHMD, (vr::Hmd_Eye)unEye);
+			m_asProjection[unEye] = asToEye[unEye] * asProj[unEye];
 		}
 	}
 	else
@@ -440,6 +468,12 @@ void* OpenVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 		m_sPosition[unI].x = sPoseMatrix(3, 0);
 		m_sPosition[unI].y = sPoseMatrix(3, 1);
 		m_sPosition[unI].z = sPoseMatrix(3, 2);
+
+		// get view matrix convert HMD matrix to left handed matrix
+		D3DXMATRIX sDeviceToAbsoluteTracking = GetLH(m_rTrackedDevicePose[0].mDeviceToAbsoluteTracking);
+
+		// create view matrix by hmd matrix
+		D3DXMatrixInverse(&m_sView, 0, &sDeviceToAbsoluteTracking);
 
 		//// output debug string
 		//std::wstringstream sz;
