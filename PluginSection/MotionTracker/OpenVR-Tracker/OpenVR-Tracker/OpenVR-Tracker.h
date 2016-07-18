@@ -53,7 +53,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define PNT_INT_PLUG_TYPE                            107 
 #define PNT_UINT_PLUG_TYPE                           112
 
-#define NUMBER_OF_COMMANDERS                          14
+#define NUMBER_OF_COMMANDERS                          16
 
 #define FLOAT_PI                            (3.1415926f)
 
@@ -155,6 +155,8 @@ enum OpenVR_Commanders
 	View,
 	ProjectionLeft,
 	ProjectionRight,
+	TargetWidth,
+	TargetHeight,
 };
 
 /**
@@ -352,6 +354,14 @@ private:
 	* Inherits "to eye" translation.
 	***/
 	D3DXMATRIX m_asProjection[2];
+	/**
+	* Recommended render target size.
+	***/
+	struct OpenVR_Size
+	{
+		uint32_t unWidth;
+		uint32_t unHeight;
+	} m_sTargetSize;
 };
 
 /**

@@ -56,6 +56,7 @@ OpenVR_Tracker::OpenVR_Tracker() :AQU_Nodus()
 	ZeroMemory(&m_sEuler[0], sizeof(D3DXVECTOR3)* vr::k_unMaxTrackedDeviceCount);
 	ZeroMemory(&m_sOrientation[0], sizeof(D3DXQUATERNION)* vr::k_unMaxTrackedDeviceCount);
 	ZeroMemory(&m_sPosition[0], sizeof(D3DXVECTOR3)* vr::k_unMaxTrackedDeviceCount);
+	ZeroMemory(&m_sTargetSize, sizeof(OpenVR_Size));
 
 	m_cGameTimer.Reset();
 }
@@ -201,6 +202,8 @@ HBITMAP OpenVR_Tracker::GetControl()
 			TextOut(hdcImage, 650, nY, L"View", 4); nY += 64;
 			TextOut(hdcImage, 650, nY, L"ProjectionLeft", 14); nY += 64;
 			TextOut(hdcImage, 650, nY, L"ProjectionRight", 15); nY += 64;
+			TextOut(hdcImage, 650, nY, L"TargetWidth", 11); nY += 64;
+			TextOut(hdcImage, 650, nY, L"TargetHeight", 12); nY += 64;
 			szBuffer << m_strDisplay.c_str() << "-" << m_strDriver.c_str();
 			TextOut(hdcImage, 100, nY, szBuffer.str().c_str(), (int)szBuffer.str().length());
 
@@ -252,6 +255,10 @@ LPWSTR OpenVR_Tracker::GetCommanderName(DWORD dwCommanderIndex)
 			return L"ProjectionLeft";
 		case OpenVR_Commanders::ProjectionRight:
 			return L"ProjectionRight";
+		case OpenVR_Commanders::TargetWidth:
+			return L"TargetWidth";
+		case OpenVR_Commanders::TargetHeight:
+			return L"TargetHeight";
 	}
 
 	return L"";
@@ -281,6 +288,9 @@ DWORD OpenVR_Tracker::GetCommanderType(DWORD dwCommanderIndex)
 		case OpenVR_Commanders::ProjectionLeft:
 		case OpenVR_Commanders::ProjectionRight:
 			return NOD_Plugtype::AQU_D3DMATRIX;
+		case OpenVR_Commanders::TargetWidth:
+		case OpenVR_Commanders::TargetHeight:
+			return NOD_Plugtype::AQU_UINT;
 	}
 
 	return 0;
@@ -321,6 +331,10 @@ void* OpenVR_Tracker::GetOutputPointer(DWORD dwCommanderIndex)
 			return (void*)&m_asProjection[0];
 		case OpenVR_Commanders::ProjectionRight:
 			return (void*)&m_asProjection[1];
+		case OpenVR_Commanders::TargetWidth:
+			return (void*)&m_sTargetSize.unWidth;
+		case OpenVR_Commanders::TargetHeight:
+			return (void*)&m_sTargetSize.unHeight;
 	}
 
 	return nullptr;
@@ -389,6 +403,9 @@ void* OpenVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 			asToEye[unEye] = GetHMDMatrixPoseEyeLH(m_pHMD, (vr::Hmd_Eye)unEye);
 			m_asProjection[unEye] = asToEye[unEye] * asProj[unEye];
 		}
+
+		// get recommended size
+		m_pHMD->GetRecommendedRenderTargetSize(&m_sTargetSize.unWidth, &m_sTargetSize.unHeight);
 	}
 	else
 	{

@@ -346,7 +346,7 @@ DWORD VireioCinema::GetDecommanderType(DWORD dwDecommanderIndex)
 			break;
 		case ResolutionWidth:
 		case ResolutionHeight:
-			return NOD_Plugtype::AQU_INT;
+			return NOD_Plugtype::AQU_UINT;
 		case ProjectionLeft:
 		case ProjectionRight:
 			return NOD_Plugtype::AQU_D3DMATRIX;
@@ -434,10 +434,10 @@ void VireioCinema::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 		case World:
 			break;
 		case ResolutionWidth:
-			m_pnTexResolutionWidth = (int*)pData;
+			m_punTexResolutionWidth = (UINT32*)pData;
 			break;
 		case ResolutionHeight:
-			m_pnTexResolutionHeight = (int*)pData;
+			m_punTexResolutionHeight = (UINT32*)pData;
 			break;
 		case ProjectionLeft:
 			m_psProjection[0] = (D3DMATRIX*)pData;
@@ -452,7 +452,7 @@ void VireioCinema::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 * Vireio Cinema supports D3D 9 Present() and EndScene() calls.
 ***/
 bool VireioCinema::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod)
-{
+{return true;
 	if ((nD3DVersion >= (int)AQU_DirectXVersion::DirectX_9_0) &&
 		(nD3DVersion <= (int)AQU_DirectXVersion::DirectX_9_29))
 	{
@@ -615,12 +615,12 @@ void* VireioCinema::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMe
 void VireioCinema::InitD3D9(LPDIRECT3DDEVICE9 pcDevice)
 {
 	// output textures...left
-	if ((!m_pStereoOutputLeft) && (m_pnTexResolutionWidth) && (m_pnTexResolutionHeight))
+	if ((!m_pStereoOutputLeft) && (m_punTexResolutionWidth) && (m_punTexResolutionHeight))
 	{
-		if ((*m_pnTexResolutionWidth) && (*m_pnTexResolutionHeight))
+		if ((*m_punTexResolutionWidth) && (*m_punTexResolutionHeight))
 		{
-			INT32 nWidth = *m_pnTexResolutionWidth;
-			INT32 nHeight = *m_pnTexResolutionHeight;
+			INT32 nWidth = (INT32)*m_punTexResolutionWidth;
+			INT32 nHeight = (INT32)*m_punTexResolutionHeight;
 
 			// set same aspect ratio for left and right
 			m_fAspectRatio = float(nWidth) / float(nHeight);
@@ -651,7 +651,7 @@ void VireioCinema::InitD3D9(LPDIRECT3DDEVICE9 pcDevice)
 	}
 	else
 	{
-		if (!(*m_pnTexResolutionWidth) || !(*m_pnTexResolutionHeight))
+		if (!(*m_punTexResolutionWidth) || !(*m_punTexResolutionHeight))
 		{
 			SAFE_RELEASE(m_pStereoOutputSurfaceLeft);
 			SAFE_RELEASE(m_pStereoOutputLeft);
@@ -660,12 +660,12 @@ void VireioCinema::InitD3D9(LPDIRECT3DDEVICE9 pcDevice)
 	}
 
 	// output textures...right
-	if ((!m_pStereoOutputRight) && (m_pnTexResolutionWidth) && (m_pnTexResolutionHeight))
+	if ((!m_pStereoOutputRight) && (m_punTexResolutionWidth) && (m_punTexResolutionHeight))
 	{
-		if ((*m_pnTexResolutionWidth) && (*m_pnTexResolutionHeight))
+		if ((*m_punTexResolutionWidth) && (*m_punTexResolutionHeight))
 		{
-			INT32 nWidth = *m_pnTexResolutionWidth;
-			INT32 nHeight = *m_pnTexResolutionHeight;
+			INT32 nWidth = *m_punTexResolutionWidth;
+			INT32 nHeight = *m_punTexResolutionHeight;
 
 			// set same aspect ratio for left and right
 			m_fAspectRatio = float(nWidth) / float(nHeight);
@@ -696,7 +696,7 @@ void VireioCinema::InitD3D9(LPDIRECT3DDEVICE9 pcDevice)
 	}
 	else
 	{
-		if (!(*m_pnTexResolutionWidth) || !(*m_pnTexResolutionHeight))
+		if (!(*m_punTexResolutionWidth) || !(*m_punTexResolutionHeight))
 		{
 			SAFE_RELEASE(m_pStereoOutputSurfaceRight);
 			SAFE_RELEASE(m_pStereoOutputRight);
@@ -1048,12 +1048,12 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 	// create render targets
 	for (UINT unEye = 0; unEye < 2; unEye++)
 	{
-		if ((!m_pcTex11Draw[unEye]) && (m_pnTexResolutionHeight) && (m_pnTexResolutionWidth))
+		if ((!m_pcTex11Draw[unEye]) && (m_punTexResolutionHeight) && (m_punTexResolutionWidth))
 		{
 			// fill the description
 			D3D11_TEXTURE2D_DESC sDescTex;
-			sDescTex.Width = (UINT)(*m_pnTexResolutionWidth);
-			sDescTex.Height = (UINT)(*m_pnTexResolutionHeight);
+			sDescTex.Width = (UINT)(*m_punTexResolutionWidth);
+			sDescTex.Height = (UINT)(*m_punTexResolutionHeight);
 			sDescTex.MipLevels = 1;
 			sDescTex.ArraySize = 1;
 			sDescTex.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -1081,15 +1081,15 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 	}
 
 	// create the depth stencil
-	if ((!m_pcDSGeometry11[0]) && (m_pnTexResolutionHeight) && (m_pnTexResolutionWidth))
+	if ((!m_pcDSGeometry11[0]) && (m_punTexResolutionHeight) && (m_punTexResolutionWidth))
 	{
-		if ((*m_pnTexResolutionHeight) && (*m_pnTexResolutionWidth))
+		if ((*m_punTexResolutionHeight) && (*m_punTexResolutionWidth))
 		{
 			// Create depth stencil textures
 			D3D11_TEXTURE2D_DESC descDepth;
 			ZeroMemory(&descDepth, sizeof(descDepth));
-			descDepth.Width = *m_pnTexResolutionWidth;
-			descDepth.Height = *m_pnTexResolutionHeight;
+			descDepth.Width = *m_punTexResolutionWidth;
+			descDepth.Height = *m_punTexResolutionHeight;
 			descDepth.MipLevels = 1;
 			descDepth.ArraySize = 1;
 			descDepth.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
@@ -1297,8 +1297,8 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 
 	// set render target viewport
 	D3D11_VIEWPORT sViewport = {};
-	sViewport.Width = (FLOAT)(*m_pnTexResolutionWidth);
-	sViewport.Height = (FLOAT)(*m_pnTexResolutionHeight);
+	sViewport.Width = (FLOAT)(*m_punTexResolutionWidth);
+	sViewport.Height = (FLOAT)(*m_punTexResolutionHeight);
 	sViewport.MaxDepth = 1.0f;
 	pcContext->RSSetViewports(dwNumViewports, &sViewport);
 

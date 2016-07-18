@@ -356,12 +356,12 @@ private:
 	* Texture resolution width.
 	* Each stereo output texture will have this width.
 	***/
-	int* m_pnTexResolutionWidth;
+	UINT32* m_punTexResolutionWidth;
 	/**
 	* Texture resolution Height.
 	* Each stereo output texture will have this height.
 	***/
-	int* m_pnTexResolutionHeight;
+	UINT32* m_punTexResolutionHeight;
 	/**
 	* Render FOV aspect ratio.
 	***/
