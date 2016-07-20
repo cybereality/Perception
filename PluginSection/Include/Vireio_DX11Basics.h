@@ -76,6 +76,11 @@ struct RenderModel_D3D11
 	ID3D11Texture2D* pcTexture;                 /**< Texture **/
 	ID3D11ShaderResourceView* pcTextureSRV;     /**< Texture SRV **/
 	ID3D11PixelShader* pcEffect;                /**< Pixel shader effect for that render model, NULL for main effect and main texture **/
+	struct Vireio_Resolution
+	{
+		UINT32 unWidth;
+		UINT32 unHeight;
+	} sResolution;                              /**< Resolution of the effect render target. **/
 };
 
 /**
@@ -510,6 +515,7 @@ static const char* PS_STRING_THEORY =
 
 //"	vec2 p = Input.vPosition.xy / sResolution.xy*6.5 - 3.25;\n" /**< original computation from shadertoy.com for fullscreen output ***/
 "	vec2 p = Input.vTexcoord * 6.5 - 3.25;\n"
+"   p.x *= sResolution.x / sResolution.y;\n"
 
 "	p.x *= aspect;\n"
 "	p.y = abs(p.y);\n"
@@ -587,7 +593,8 @@ static const char* PS_BUBBLES =
 
 // vec2 uv = -1.0 + 2.0*fragCoord.xy / sResolution.xy; // original code
 // uv.x *= sResolution.x / sResolution.y;
-"   vec2 uv = -4.0 + 8.0 * Input.vTexcoord;\n"
+"   vec2 uv = -1.0 + 2.0 * Input.vTexcoord;\n"
+"   uv.x *= sResolution.x / sResolution.y;\n"
 
 // background	 
 "   vec3 color = vec3(1.0, 1.0, 1.0);\n"
@@ -674,7 +681,8 @@ static const char* PS_C64_PLASMA =
 "float camtime = 1.23*fGlobalTime;\n"
 
 // vec2 p = fragCoord.xy / sResolution.xy; (original code)
-"vec2 p = -4.0 + 8.0 * Input.vTexcoord;\n"
+"vec2 p = -1.0 + 2.0 * Input.vTexcoord;\n"
+"p.x *= sResolution.x / sResolution.y;\n"
 
 "p.y = 1.0 - p.y;\n"
 "p *= 200.0;\n"
@@ -820,6 +828,228 @@ static const char* PS_C64_PLASMA =
 "   return vec4(col, 1.0);\n"
 "}\n";
 #pragma endregion
+#pragma region PS_TOON_CLOUD
+/**
+* Pixel Shader from shadertoy.com
+* ----------------------------------------------------------------------------------------
+*	"Toon Cloud" by Antoine Clappier - March 2015
+*
+*	Licensed under:
+*  A Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License.
+*	http://creativecommons.org/licenses/by-nc-sa/4.0/
+* ----------------------------------------------------------------------------------------
+***/
+static const char* PS_TOON_CLOUD =
+// constant buffer
+"float4 sMaterialAmbientColor;\n"
+"float4 sMaterialDiffuseColor;\n"
+
+"float4 sLightDir;\n"
+"float4 sLightDiffuse;\n"
+"float4 sLightAmbient;\n"
+
+"float4x4 sWorldViewProjection;\n"
+"float4x4 sWorld;\n"
+
+// shadertoy constant buffer fields
+"float3    sResolution;\n"           // viewport resolution (in pixels)
+"float     fGlobalTime;\n"           // shader playback time (in seconds)
+"float4    sMouse;\n"                // mouse pixel coords. xy: current (if MLB down), zw: click
+
+// textures and samplers
+"Texture2D	g_txDiffuse : register(t0);\n"
+"SamplerState g_samLinear : register(s0);\n"
+
+// input / output structures
+"struct PS_INPUT\n"
+"{\n"
+"	float4 vPosition : SV_POSITION;\n"
+"	float4 vNormal : NORMAL;\n"
+"	float2 vTexcoord : TEXCOORD0;\n"
+"};\n"
+
+// "Toon Cloud" by Antoine Clappier - March 2015
+
+"#define vec2 float2\n"
+"#define vec3 float3\n"
+"#define vec4 float4\n"
+"#define mat2 float2x2\n"
+"#define mix lerp\n"
+"#define fract frac\n"
+"#define mod fmod\n"
+"#define TAU 6.28318530718\n"
+
+"float Func(float pX)\n"
+"{\n"
+"	return 0.6*(0.5*sin(0.1*pX) + 0.5*sin(0.553*pX) + 0.7*sin(1.2*pX));\n"
+"}\n"
+
+"float FuncR(float pX)\n"
+"{\n"
+"	return 0.5 + 0.25*(1.0 + sin(mod(40.0*pX, TAU)));\n"
+"}\n"
+
+"float Layer(vec2 pQ, float pT)\n"
+"{\n"
+"	vec2 Qt = 3.5*pQ;\n"
+"	pT *= 0.5;\n"
+"	Qt.x += pT;\n"
+
+"	float Xi = floor(Qt.x);\n"
+"	float Xf = Qt.x - Xi - 0.5;\n"
+
+"	vec2 C;\n"
+"	float Yi;\n"
+"	float D = 1.0 - step(Qt.y, Func(Qt.x));\n"
+
+// Disk:
+"	Yi = Func(Xi + 0.5);\n"
+"	C = vec2(Xf, Qt.y - Yi);\n"
+"	D = min(D, length(C) - FuncR(Xi + pT / 80.0));\n"
+
+// Previous disk:
+"	Yi = Func(Xi + 1.0 + 0.5);\n"
+"	C = vec2(Xf - 1.0, Qt.y - Yi);\n"
+"	D = min(D, length(C) - FuncR(Xi + 1.0 + pT / 80.0));\n"
+
+// Next Disk:
+"	Yi = Func(Xi - 1.0 + 0.5);\n"
+"	C = vec2(Xf + 1.0, Qt.y - Yi);\n"
+"	D = min(D, length(C) - FuncR(Xi - 1.0 + pT / 80.0));\n"
+
+"	return min(1.0, D);\n"
+"}\n"
+
+// pixel shader
+"float4 PS(PS_INPUT Input) : SV_TARGET\n"
+"{\n"
+// set constant colors
+"	vec3 BackColor = vec3(0.0, 0.4, 0.58);\n"
+"	vec3 CloudColor = vec3(0.18, 0.70, 0.87);\n"
+
+//// Setup:
+//"	vec2 UV = 2.0*(fragCoord.xy - iResolution.xy / 2.0) / min(iResolution.x, iResolution.y);\n" // original code
+"	vec2 UV = -1.0 + 2.0 * Input.vTexcoord;\n"
+"   UV.x *= sResolution.x / sResolution.y;\n"
+
+//// Render:
+"	vec3 Color = BackColor;\n"
+
+"	for (float J = 0.0; J <= 1.0; J += 0.2)\n"
+"	{\n"
+// Cloud Layer: 
+"		float Lt = fGlobalTime*(0.5 + 2.0*J)*(1.0 + 0.1*sin(226.0*J)) + 17.0*J;\n"
+"		vec2 Lp = vec2(0.0, 0.3 + 1.5*(J - 0.5));\n"
+"		float L = Layer(UV + Lp, Lt);\n"
+
+// Blur and color:
+"		float Blur = 4.0*(0.5*abs(2.0 - 5.0*J)) / (11.0 - 5.0*J);\n"
+
+"		float V = mix(0.0, 1.0, 1.0 - smoothstep(0.0, 0.01 + 0.2*Blur, L));\n"
+"		vec3 Lc = mix(CloudColor, vec3(1.0, 1.0, 1.0), J);\n"
+
+"		Color = mix(Color, Lc, V);\n"
+"	}\n"
+
+"   return vec4(Color, 1.0);\n"
+"}\n";
+#pragma endregion
+#pragma region PS_WORLEY_01
+/**
+* Pixel Shader from shadertoy.com
+* "Worley Algorithm (Cell Noise )" by  Yeis
+* This work is licenced under :
+* https://creativecommons.org/licenses/by-nc-sa/3.0/deed.en_US
+***/
+static const char* PS_WORLEY_01 =
+// constant buffer
+"float4 sMaterialAmbientColor;\n"
+"float4 sMaterialDiffuseColor;\n"
+
+"float4 sLightDir;\n"
+"float4 sLightDiffuse;\n"
+"float4 sLightAmbient;\n"
+
+"float4x4 sWorldViewProjection;\n"
+"float4x4 sWorld;\n"
+
+// shadertoy constant buffer fields
+"float3    sResolution;\n"           // viewport resolution (in pixels)
+"float     fGlobalTime;\n"           // shader playback time (in seconds)
+"float4    sMouse;\n"                // mouse pixel coords. xy: current (if MLB down), zw: click
+
+// textures and samplers
+"Texture2D	g_txDiffuse : register(t0);\n"
+"SamplerState g_samLinear : register(s0);\n"
+
+// input / output structures
+"struct PS_INPUT\n"
+"{\n"
+"	float4 vPosition : SV_POSITION;\n"
+"	float4 vNormal : NORMAL;\n"
+"	float2 vTexcoord : TEXCOORD0;\n"
+"};\n"
+
+// "Worley Algorithm (Cell Noise )" by  Yeis 
+
+"#define vec2 float2\n"
+"#define vec3 float3\n"
+"#define vec4 float4\n"
+"#define mat2 float2x2\n"
+"#define mix lerp\n"
+"#define fract frac\n"
+"#define mod fmod\n"
+"#define fract frac\n"
+
+"float length2(vec2 p){\n"
+//producto punto entre los 2 vectore vx*vx + vY*vY
+"	return dot(p, p);\n"
+"}\n"
+"float noise(vec2 p)\n"
+"{\n"
+//funcion de ruido pseudo-aleatoria basada en la funcio seno 
+"	return fract(sin(fract(sin(p.x)*(41.13311)) + p.y)*31.0011);\n"
+"}\n"
+
+"float worley(vec2 p) {\n"
+//ponemos un numero grandote 
+"	float d = 1e30;\n"
+//checamos todos los puntos vecinos en 9 direcciones 
+"	for (int xo = -1; xo <= 1; ++xo)\n"
+"	{\n"
+"		for (int yo = -1; yo <= 1; ++yo)\n"
+"		{\n"
+"			vec2 tp = floor(p) + vec2(xo, yo);\n"
+"			d = min(d, length2(p - tp - noise(tp)));\n"
+"		}\n"
+"	}\n"
+//funcion exponencial mamona 3.0*exp(-4.0*abs(2.0*d - 1.0)).
+"	return 3.0*exp(-4.0*abs((2.5*d) - 1.0));\n"
+"}\n"
+
+"float fworley(vec2 p)\n"
+"{\n"
+"	return sqrt(sqrt(sqrt(worley(p * 5.0 + 0.05 * fGlobalTime) *\n"
+"		sqrt(worley(p*50.0 + 0.12 + -0.1*fGlobalTime)) *\n"
+"		sqrt(sqrt(worley(p*-10.0 + 00.03*fGlobalTime))))));\n"
+"}\n"
+
+// pixel shader
+"float4 PS(PS_INPUT Input) : SV_TARGET\n"
+"{\n"
+
+//"	vec2 uv = fragCoord.xy / iResolution.xy;\n" // original code
+"	vec2 uv = -1.0 + 2.0 * Input.vTexcoord;\n"
+"   uv.x *= sResolution.x / sResolution.y;\n"
+
+"	float wolo = fworley(uv*sResolution.xy / 1500.0);\n"
+// Repeat the grid pattern 5 times by multiplying by uv.
+"	wolo *= exp(-length2(abs(0.7*uv - 1.0)));\n"
+
+//link http://ibreakdownshaders.blogspot.mx/
+"   return vec4(wolo * vec3(1.0, 0.1*wolo, pow(wolo, 0.90 - wolo)), 1.0);\n"
+"}\n";
+#pragma endregion
 #pragma endregion
 
 /**
@@ -837,6 +1067,8 @@ enum PixelShaderTechnique
 	StringTheory,              /**< TexturedNormalVertex : "String Theory" effect from shadertoy.com **/
 	Bubbles,                   /**< TexturedNormalVertex : "Bubbles!" effect from shadertoy.com **/
 	C64Plasma,                 /**< TexturedNormalVertex : "C64 plasma" effect from shadertoy.com **/
+	ToonCloud,                 /**< TexturedNormalVertex : "Toon Cloud" effect from shadertoy.com **/
+	Worley01,                  /**< TexturedNormalVertex : "Worley Algorithm (Cell Noise )" effect from shadertoy.com **/
 };
 
 /**
@@ -1001,6 +1233,12 @@ HRESULT CreatePixelShaderEffect(ID3D11Device* pcDevice, ID3D11PixelShader** ppcP
 			break;
 		case C64Plasma:
 			hr = D3DX10CompileFromMemory(PS_C64_PLASMA, strlen(PS_C64_PLASMA), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+			break;
+		case ToonCloud:
+			hr = D3DX10CompileFromMemory(PS_TOON_CLOUD, strlen(PS_TOON_CLOUD), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+			break;
+		case Worley01:
+			hr = D3DX10CompileFromMemory(PS_WORLEY_01, strlen(PS_WORLEY_01), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
 			break;
 		default:
 			return E_INVALIDARG;

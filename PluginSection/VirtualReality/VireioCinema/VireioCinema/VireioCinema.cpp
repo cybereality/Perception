@@ -1177,7 +1177,7 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 			AddRenderModelD3D11(pcDevice, nullptr, nullptr, asVertices, aunIndices, 4, 2, 1.5f, D3DXVECTOR3(0.0f, 2.0f, 2.0f));
 		}
 #pragma endregion
-#pragma region ground
+#pragma region floor top/bottom
 		if (true/**TODO_ADD_BOOL_HERE**/)
 		{
 			// set vertices
@@ -1192,75 +1192,77 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 			// set indices
 			WORD aunIndices[] = { 3, 1, 0, 3, 2, 1 };
 
-			// create ground effect..
+			// create bottom floor effect..
 			ID3D11PixelShader* pcEffect = nullptr;
-			CreatePixelShaderEffect(pcDevice, &pcEffect, PixelShaderTechnique::StringTheory);
+			CreatePixelShaderEffect(pcDevice, &pcEffect, PixelShaderTechnique::Worley01);
 
 			// and create the model
-			AddRenderModelD3D11(pcDevice, nullptr, pcEffect, asVertices, aunIndices, 4, 2, 10.0f);
+			AddRenderModelD3D11(pcDevice, nullptr, pcEffect, asVertices, aunIndices, 4, 2, 2.0f, D3DXVECTOR3(0.0f, 0.0f, 0.0f));
+
+			// set indices top
+			WORD aunIndices_top[] = { 0, 1, 3, 1, 2, 3 };
+
+			// negate normals
+			for (UINT unI = 0; unI < 4; unI++) asVertices[unI].sNormal *= -1.0f;
+
+			// create top floor effect...
+			ID3D11PixelShader* pcEffect_top = nullptr;
+			CreatePixelShaderEffect(pcDevice, &pcEffect_top, PixelShaderTechnique::C64Plasma);
+
+			// and create the model
+			AddRenderModelD3D11(pcDevice, nullptr, pcEffect_top, asVertices, aunIndices_top, 4, 2, 2.0f, D3DXVECTOR3(0.0f, 4.8f, 0.0f));
+
 		}
 #pragma endregion
-#pragma region cube
-		if (false/**TODO_ADD_BOOL_HERE**/)
+#pragma region walls
+		if (true/**TODO_ADD_BOOL_HERE**/)
 		{
 			// set vertices
 			TexturedNormalVertex asVertices[] =
 			{
-				{ D3DXVECTOR3(-1.0f, 1.0f, -1.0f), D3DXVECTOR3(0.0f, 1.0f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
-				{ D3DXVECTOR3(1.0f, 1.0f, -1.0f), D3DXVECTOR3(0.0f, 1.0f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) },
-				{ D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR3(0.0f, 1.0f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
-				{ D3DXVECTOR3(-1.0f, 1.0f, 1.0f), D3DXVECTOR3(0.0f, 1.0f, 0.0f), D3DXVECTOR2(0.0f, 1.0f) },
+				{ D3DXVECTOR3(-1.0f, -0.6f, 1.0f), D3DXVECTOR3(1.0f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
+				{ D3DXVECTOR3(-1.0f, -0.6f, -1.0f), D3DXVECTOR3(1.0f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) },
+				{ D3DXVECTOR3(-1.0f, 0.6f, -1.0f), D3DXVECTOR3(1.0f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
+				{ D3DXVECTOR3(-1.0f, 0.6f, 1.0f), D3DXVECTOR3(1.0f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 1.0f) },
 
-				{ D3DXVECTOR3(-1.0f, -1.0f, -1.0f), D3DXVECTOR3(0.0f, -1.0f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
-				{ D3DXVECTOR3(1.0f, -1.0f, -1.0f), D3DXVECTOR3(0.0f, -1.0f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) },
-				{ D3DXVECTOR3(1.0f, -1.0f, 1.0f), D3DXVECTOR3(0.0f, -1.0f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
-				{ D3DXVECTOR3(-1.0f, -1.0f, 1.0f), D3DXVECTOR3(0.0f, -1.0f, 0.0f), D3DXVECTOR2(0.0f, 1.0f) },
+				{ D3DXVECTOR3(1.0f, -0.6f, 1.0f), D3DXVECTOR3(-1.0f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
+				{ D3DXVECTOR3(1.0f, -0.6f, -1.0f), D3DXVECTOR3(-1.0f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) },
+				{ D3DXVECTOR3(1.0f, 0.6f, -1.0f), D3DXVECTOR3(-1.0f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
+				{ D3DXVECTOR3(1.0f, 0.6f, 1.0f), D3DXVECTOR3(-1.0f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 1.0f) },
 
-				{ D3DXVECTOR3(-1.0f, -1.0f, 1.0f), D3DXVECTOR3(-1.0f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
-				{ D3DXVECTOR3(-1.0f, -1.0f, -1.0f), D3DXVECTOR3(-1.0f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) },
-				{ D3DXVECTOR3(-1.0f, 1.0f, -1.0f), D3DXVECTOR3(-1.0f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
-				{ D3DXVECTOR3(-1.0f, 1.0f, 1.0f), D3DXVECTOR3(-1.0f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 1.0f) },
+				{ D3DXVECTOR3(-1.0f, -0.6f, -1.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(0.0f, 0.0f) },
+				{ D3DXVECTOR3(1.0f, -0.6f, -1.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(1.0f, 0.0f) },
+				{ D3DXVECTOR3(1.0f, 0.6f, -1.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(1.0f, 1.0f) },
+				{ D3DXVECTOR3(-1.0f, 0.6f, -1.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(0.0f, 1.0f) },
 
-				{ D3DXVECTOR3(1.0f, -1.0f, 1.0f), D3DXVECTOR3(1.0f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 0.0f) },
-				{ D3DXVECTOR3(1.0f, -1.0f, -1.0f), D3DXVECTOR3(1.0f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 0.0f) },
-				{ D3DXVECTOR3(1.0f, 1.0f, -1.0f), D3DXVECTOR3(1.0f, 0.0f, 0.0f), D3DXVECTOR2(1.0f, 1.0f) },
-				{ D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR3(1.0f, 0.0f, 0.0f), D3DXVECTOR2(0.0f, 1.0f) },
-
-				{ D3DXVECTOR3(-1.0f, -1.0f, -1.0f), D3DXVECTOR3(0.0f, 0.0f, -1.0f), D3DXVECTOR2(0.0f, 0.0f) },
-				{ D3DXVECTOR3(1.0f, -1.0f, -1.0f), D3DXVECTOR3(0.0f, 0.0f, -1.0f), D3DXVECTOR2(1.0f, 0.0f) },
-				{ D3DXVECTOR3(1.0f, 1.0f, -1.0f), D3DXVECTOR3(0.0f, 0.0f, -1.0f), D3DXVECTOR2(1.0f, 1.0f) },
-				{ D3DXVECTOR3(-1.0f, 1.0f, -1.0f), D3DXVECTOR3(0.0f, 0.0f, -1.0f), D3DXVECTOR2(0.0f, 1.0f) },
-
-				{ D3DXVECTOR3(-1.0f, -1.0f, 1.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(0.0f, 0.0f) },
-				{ D3DXVECTOR3(1.0f, -1.0f, 1.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(1.0f, 0.0f) },
-				{ D3DXVECTOR3(1.0f, 1.0f, 1.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(1.0f, 1.0f) },
-				{ D3DXVECTOR3(-1.0f, 1.0f, 1.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), D3DXVECTOR2(0.0f, 1.0f) },
+				{ D3DXVECTOR3(-1.0f, -0.6f, 1.0f), D3DXVECTOR3(0.0f, 0.0f, -1.0f), D3DXVECTOR2(0.0f, 0.0f) },
+				{ D3DXVECTOR3(1.0f, -0.6f, 1.0f), D3DXVECTOR3(0.0f, 0.0f, -1.0f), D3DXVECTOR2(1.0f, 0.0f) },
+				{ D3DXVECTOR3(1.0f, 0.6f, 1.0f), D3DXVECTOR3(0.0f, 0.0f, -1.0f), D3DXVECTOR2(1.0f, 1.0f) },
+				{ D3DXVECTOR3(-1.0f, 0.6f, 1.0f), D3DXVECTOR3(0.0f, 0.0f, -1.0f), D3DXVECTOR2(0.0f, 1.0f) },
 			};
 
 			// set indices
 			WORD aunIndices[] =
 			{
-				3, 1, 0,
-				2, 1, 3,
+				0, 1, 3,
+				3, 1, 2,
 
-				6, 4, 5,
-				7, 4, 6,
+				5, 4, 6,
+				6, 4, 7,
 
-				11, 9, 8,
-				10, 9, 11,
+				8, 9, 11,
+				11, 9, 10,
 
-				14, 12, 13,
-				15, 12, 14,
-
-				19, 17, 16,
-				18, 17, 19,
-
-				22, 20, 21,
-				23, 20, 22
+				13, 12, 14,
+				14, 12, 15, 
 			};
 
+			// create ground effect..
+			ID3D11PixelShader* pcEffect = nullptr;
+			CreatePixelShaderEffect(pcDevice, &pcEffect, PixelShaderTechnique::ToonCloud);
+
 			// and create the model
-			AddRenderModelD3D11(pcDevice, nullptr, nullptr, asVertices, aunIndices, 24, 12);
+			AddRenderModelD3D11(pcDevice, nullptr, pcEffect, asVertices, aunIndices, 16, 8, 4.0f, D3DXVECTOR3(0.0f, 2.4f, 0.0f), 2000, 1200);
 		}
 #pragma endregion
 	}
@@ -1365,8 +1367,10 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 		pcContext->IASetVertexBuffers(0, 1, &m_asRenderModels[unI].pcVertexBuffer, &stride, &offset);
 		pcContext->IASetIndexBuffer(m_asRenderModels[unI].pcIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
-		// set world matrix
+		// set world matrix and render target resolution
 		D3DXMatrixTranspose(&m_sGeometryConstants.sWorld, &sWorld);
+		m_sGeometryConstants.sResolution.x = (float)m_asRenderModels[unI].sResolution.unWidth;
+		m_sGeometryConstants.sResolution.y = (float)m_asRenderModels[unI].sResolution.unHeight;
 
 		// set texture and effect if pixel shader assigned
 		if (m_asRenderModels[unI].pcEffect)
@@ -1410,7 +1414,7 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 /**
 * Creates a simple render model based on mesh data and adds it to the input vector.
 ***/
-void VireioCinema::AddRenderModelD3D11(ID3D11Device* pcDevice, ID3D11Texture2D* pcTexture, ID3D11PixelShader* pcEffect, TexturedNormalVertex* asVertices, WORD* aunIndices, UINT32 unVertexCount, UINT32 unTriangleCount, float fScale, D3DXVECTOR3 sTranslate)
+void VireioCinema::AddRenderModelD3D11(ID3D11Device* pcDevice, ID3D11Texture2D* pcTexture, ID3D11PixelShader* pcEffect, TexturedNormalVertex* asVertices, WORD* aunIndices, UINT32 unVertexCount, UINT32 unTriangleCount, float fScale, D3DXVECTOR3 sTranslate, UINT32 unWidth, UINT32 unHeight)
 {
 	// create a D3D render model structure
 	RenderModel_D3D11 sRenderModel = {};
@@ -1476,6 +1480,10 @@ void VireioCinema::AddRenderModelD3D11(ID3D11Device* pcDevice, ID3D11Texture2D* 
 		if ((FAILED(pcDevice->CreateShaderResourceView((ID3D11Resource*)sRenderModel.pcTexture, &sDesc, &sRenderModel.pcTextureSRV))))
 			OutputDebugString(L"[CIN] Failed to create model texture shader resource view!");
 	}
+
+	// set resolution
+	sRenderModel.sResolution.unWidth = unWidth;
+	sRenderModel.sResolution.unHeight = unHeight;
 
 	// and add to vector
 	m_asRenderModels.push_back(sRenderModel);
