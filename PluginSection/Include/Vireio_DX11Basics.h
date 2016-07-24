@@ -279,7 +279,10 @@ static const char* PS_DIST_SIMPLE =
 #pragma region pixel shader enhanced
 #pragma region PS3D
 /**
-* 3D Pixel Shader.
+* 3D Pixel Shader with mouse cursor drawn.
+* Mouse cursor technique from shadertoy.com pixel shader "CursorTest" by jherico.
+* "CursorTest" is licenced under :
+* https://creativecommons.org/licenses/by-nc-sa/3.0/deed.en_US
 ***/
 static const char* PS3D =
 // constant buffer
@@ -293,6 +296,11 @@ static const char* PS3D =
 "float4x4 sWorldViewProjection;\n"
 "float4x4 sWorld;\n"
 
+// shadertoy constant buffer fields
+"float3    sResolution;\n"           // viewport resolution (in pixels)
+"float     fGlobalTime;\n"           // shader playback time (in seconds)
+"float4    sMouse;\n"                // mouse pixel coords. xy: current (if MLB down), zw: click
+
 // textures and samplers
 "Texture2D	g_txDiffuse : register(t0);\n"
 "SamplerState g_samLinear : register(s0);\n"
@@ -305,6 +313,15 @@ static const char* PS3D =
 "	float2 vTexcoord : TEXCOORD0;\n"
 "};\n"
 
+"float easeInOutCubic(float f) {\n"
+"	const float d = 1.0;\n"
+"	const float b = 0.0;\n"
+"	const float c = 1.0;\n"
+"	float t = f;\n"
+"	if ((t /= d / 2.0) < 1.0) return c / 2.0 * t * t * t + b;\n"
+"	return c / 2.0 * ((t -= 2.0) * t * t + 2.0) + b;\n"
+"}\n"
+
 // pixel shader
 "float4 PS(PS_INPUT Input) : SV_TARGET\n"
 "{\n"
@@ -312,6 +329,19 @@ static const char* PS3D =
 
 "	float4 fLighting = saturate(dot(sLightDir, Input.vNormal));\n"
 "	fLighting = max(fLighting, sLightAmbient);\n"
+
+"   float fMouseX = abs(Input.vTexcoord.x - sMouse.x);\n"
+"   float fMouseY = abs(Input.vTexcoord.y - sMouse.y);\n"
+"   if (fMouseX < 0.01 && fMouseY < 0.01) {\n"
+
+"   float2 fAspect = float2(1.0, sResolution.y / sResolution.x);\n"
+"   float dist = distance(Input.vTexcoord * fAspect, sMouse.xy * fAspect);\n"
+"	float glowIntensity = 1.0 - (dist / 0.005);\n"
+"   float4 glowColor = pow(float4(0.2, 1.0, 0.5, 1.0), float4(1.0 - glowIntensity, 1.0 - glowIntensity, 1.0 - glowIntensity, 1.0));\n"
+"   glowIntensity = easeInOutCubic(glowIntensity); \n"
+"   glowIntensity *= 0.9; \n"
+"   if (glowIntensity > 0.0)\n"
+"   { return lerp(vDiffuse, glowColor, glowIntensity); } }\n"
 
 "	return vDiffuse * fLighting;\n"
 "}\n";

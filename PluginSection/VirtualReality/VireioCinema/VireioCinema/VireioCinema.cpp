@@ -1180,8 +1180,8 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 			// set indices
 			WORD aunIndices[] = { 0, 1, 3, 1, 2, 3 };
 
-			// and create the model
-			AddRenderModelD3D11(pcDevice, nullptr, nullptr, asVertices, aunIndices, 4, 2, 1.5f, D3DXVECTOR3(0.0f, 2.0f, 2.0f));
+			// and create the model... TODO !! GET RESOLUTION FROM INPUT TEXTURE
+			AddRenderModelD3D11(pcDevice, nullptr, nullptr, asVertices, aunIndices, 4, 2, 1.5f, D3DXVECTOR3(0.0f, 2.0f, 2.0f), 1920, 1080);
 		}
 #pragma endregion
 #pragma region floor top/bottom
@@ -1354,6 +1354,14 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 		D3DXMatrixLookAtLH(&m_sView, &sEye, &sAt, &sUp);
 	}
 
+	// set mouse position
+	RECT sDesktop;
+	HWND pDesktop = GetDesktopWindow();
+	GetWindowRect(pDesktop, &sDesktop);
+	POINT sPoint;
+	GetCursorPos(&sPoint);
+	m_sGeometryConstants.sMouse = D3DXVECTOR4((float)sPoint.x / (float)sDesktop.right, (float)sPoint.y / (float)sDesktop.bottom, 0.0f, 0.0f);
+	
 	// Update and set our time
 	static float fTime = 0.0f;
 	static DWORD unTimeStart = 0;
