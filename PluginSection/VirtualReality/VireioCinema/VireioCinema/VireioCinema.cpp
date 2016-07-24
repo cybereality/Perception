@@ -1075,6 +1075,13 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 				// create shader resource view
 				if (FAILED(pcDevice->CreateShaderResourceView(m_pcTex11Draw[unEye], NULL, &m_pcTex11DrawSRV[unEye])))
 					OutputDebugString(L"[CIN] Failed to create render target shader resource view.");
+
+				// set this as private data interface to the shader resource views instead of texture here !!!!
+				if ((m_pcTex11DrawRTV[unEye]) && (m_pcTex11DrawSRV[unEye]))
+				{
+					m_pcTex11DrawSRV[unEye]->SetPrivateDataInterface(PDIID_ID3D11TextureXD_RenderTargetView, m_pcTex11DrawRTV[unEye]);
+					m_pcTex11DrawRTV[unEye]->Release();
+				}
 			}
 			else OutputDebugString(L"[CIN] Failed to create render target !");
 		}
@@ -1257,7 +1264,7 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 				14, 12, 15, 
 			};
 
-			// create ground effect..
+			// create wall effect..
 			ID3D11PixelShader* pcEffect = nullptr;
 			CreatePixelShaderEffect(pcDevice, &pcEffect, PixelShaderTechnique::ToonCloud);
 

@@ -742,8 +742,14 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 						// clear all states, set targets
 						ClearContextState(pcContext);
 
-						// set back viewport
-						pcContext->RSSetViewports(dwNumViewports, psViewport);
+						// set viewport by render target size
+						uint32_t unWidth, unHeight;
+						(*m_ppHMD)->GetRecommendedRenderTargetSize(&unWidth, &unHeight);
+						D3D11_VIEWPORT sViewport = {};
+						sViewport.Width = (FLOAT)unWidth;
+						sViewport.Height = (FLOAT)unHeight;
+						sViewport.MaxDepth = 1.0f;
+						pcContext->RSSetViewports(dwNumViewports, &sViewport);
 
 						// create vertex shader
 						if (!m_pcVSGeometry11)
@@ -815,8 +821,7 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 								for (INT nEye = 0; nEye < 2; nEye++)
 								{
 									// get the projection matrix for each eye
-									// sProj = GetHMDMatrixProjectionEyeLH(*m_ppHMD, (vr::Hmd_Eye)nEye, (float)D3DXToRadian(110.0), (float)unWidthRT / (float)unHeightRT, 0.1f, 30.0f);
-									D3DXMatrixPerspectiveFovLH(&m_sProj[nEye], (float)D3DXToRadian(116.0), fARatio, 0.1f, 30.0f);
+									m_sProj[nEye] = GetHMDMatrixProjectionEyeLH(*m_ppHMD, (vr::Hmd_Eye)nEye, 0.1f, 30.0f);
 
 									// create eye pose matrix
 									m_sToEye[nEye] = GetHMDMatrixPoseEyeLH(*m_ppHMD, (vr::Hmd_Eye)nEye);
@@ -1033,7 +1038,7 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 							// set world matrix, first get left-handed
 							m_rmat4DevicePose[m_asRenderModels[unI].unTrackedDeviceIndex] = GetLH(m_rTrackedDevicePose[m_asRenderModels[unI].unTrackedDeviceIndex].mDeviceToAbsoluteTracking);
 							D3DXMatrixTranspose(&m_sGeometryConstants.sWorld, &m_rmat4DevicePose[m_asRenderModels[unI].unTrackedDeviceIndex]);
-
+							
 							// left + right
 							for (int nEye = 0; nEye < 2; nEye++)
 							{

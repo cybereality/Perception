@@ -1050,6 +1050,91 @@ static const char* PS_WORLEY_01 =
 "   return vec4(wolo * vec3(1.0, 0.1*wolo, pow(wolo, 0.90 - wolo)), 1.0);\n"
 "}\n";
 #pragma endregion
+#pragma region PS_WATER_CAUSTIC
+/**
+* Pixel Shader from shadertoy.com
+// Tileable Water Caustic
+// Found this on GLSL sandbox. I really liked it, changed a few things and made it tileable.
+// :)
+// by David Hoskins.
+
+
+// Water turbulence effect by joltz0r 2013-07-04, improved 2013-07-07
+***/
+static const char* PS_WATER_CAUSTIC =
+// constant buffer
+"float4 sMaterialAmbientColor;\n"
+"float4 sMaterialDiffuseColor;\n"
+
+"float4 sLightDir;\n"
+"float4 sLightDiffuse;\n"
+"float4 sLightAmbient;\n"
+
+"float4x4 sWorldViewProjection;\n"
+"float4x4 sWorld;\n"
+
+// shadertoy constant buffer fields
+"float3    sResolution;\n"           // viewport resolution (in pixels)
+"float     fGlobalTime;\n"           // shader playback time (in seconds)
+"float4    sMouse;\n"                // mouse pixel coords. xy: current (if MLB down), zw: click
+
+// textures and samplers
+"Texture2D	g_txDiffuse : register(t0);\n"
+"SamplerState g_samLinear : register(s0);\n"
+
+// input / output structures
+"struct PS_INPUT\n"
+"{\n"
+"	float4 vPosition : SV_POSITION;\n"
+"	float4 vNormal : NORMAL;\n"
+"	float2 vTexcoord : TEXCOORD0;\n"
+"};\n"
+
+// 
+
+"#define vec2 float2\n"
+"#define vec3 float3\n"
+"#define vec4 float4\n"
+"#define mat2 float2x2\n"
+"#define mix lerp\n"
+"#define fract frac\n"
+"#define mod fmod\n"
+"#define fract frac\n"
+
+"#define TAU 6.28318530718\n"
+"#define MAX_ITER 5\n"
+
+// pixel shader
+"float4 PS(PS_INPUT Input) : SV_TARGET\n"
+"{\n"
+"	float time = fGlobalTime * .5 + 23.0;\n"
+
+// uv should be the 0-1 uv of texture...
+// "	vec2 uv = fragCoord.xy / iResolution.xy;\n" // original code
+"	vec2 uv = Input.vTexcoord;\n"
+
+"	vec2 p = mod(uv*TAU, TAU) - 250.0;\n"
+"	vec2 i = vec2(p);\n"
+"	float c = 1.0;\n"
+"	float inten = .005;\n"
+
+"	for (int n = 0; n < MAX_ITER; n++)\n"
+"	{\n"
+"		float t = time * (1.0 - (3.5 / float(n + 1)));\n"
+"		i = p + vec2(cos(t - i.x) + sin(t + i.y), sin(t - i.y) + cos(t + i.x));\n"
+"		c += 1.0 / length(vec2(p.x / (sin(i.x + t) / inten), p.y / (cos(i.y + t) / inten)));\n"
+"	}\n"
+"	c /= float(MAX_ITER);\n"
+"	c = 1.17 - pow(c, 1.4);\n"
+
+"   float fTemp = pow(abs(c), 8.0);\n"
+"	vec3 colour = vec3(fTemp, fTemp, fTemp);\n"
+"	colour = clamp(colour + vec3(0.0, 0.35, 0.5), 0.0, 1.0);\n"
+
+"   return vec4(colour, 1.0);\n"
+"}\n";
+#pragma endregion
+
 #pragma endregion
 
 /**
@@ -1069,6 +1154,7 @@ enum PixelShaderTechnique
 	C64Plasma,                 /**< TexturedNormalVertex : "C64 plasma" effect from shadertoy.com **/
 	ToonCloud,                 /**< TexturedNormalVertex : "Toon Cloud" effect from shadertoy.com **/
 	Worley01,                  /**< TexturedNormalVertex : "Worley Algorithm (Cell Noise )" effect from shadertoy.com **/
+	WaterCaustic,              /**< TexturedNormalVertex : "Tileable Water Caustic" effect from shadertoy.com **/
 };
 
 /**
@@ -1239,6 +1325,9 @@ HRESULT CreatePixelShaderEffect(ID3D11Device* pcDevice, ID3D11PixelShader** ppcP
 			break;
 		case Worley01:
 			hr = D3DX10CompileFromMemory(PS_WORLEY_01, strlen(PS_WORLEY_01), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+			break;
+		case WaterCaustic:
+			hr = D3DX10CompileFromMemory(PS_WATER_CAUSTIC, strlen(PS_WATER_CAUSTIC), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
 			break;
 		default:
 			return E_INVALIDARG;

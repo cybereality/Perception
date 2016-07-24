@@ -116,45 +116,27 @@ D3DMATRIX GetLH(vr::HmdMatrix44_t sMat)
 }
 /**
 * Matrix helper DX.
-* TODO !! DOES NOT WORK CURRENTLY, TEST WHAT IS ACTUALLY HAPPENING HERE !!
 * @returns Left handed OpenVR projection matrix for specified eye.
 ***/
-D3DXMATRIX GetHMDMatrixProjectionEyeLH(vr::IVRSystem* pHmd, vr::Hmd_Eye nEye, float fFOVy, float fAspect, float fNearClip, float fFarClip)
+D3DXMATRIX GetHMDMatrixProjectionEyeLH(vr::IVRSystem* pHmd, vr::Hmd_Eye nEye, float fNearClip, float fFarClip)
 {
 	if (!pHmd)
 		return D3DXMATRIX();
 
-	// get projection basics by FOV and aspect ratio
-	float fYScale = (float)tan((D3DX_PI / 2.0f) - (fFOVy / 2.0));
-	float fXScale = fYScale / fAspect;
-	float fRightSrc = 0.1f / fXScale;
-	float fLeftSrc = -0.1f / fXScale;
-	float fTopSrc = 0.1f / fYScale;
-	float fBottomSrc = -0.1f / fYScale;
-	float fWidthSrc = abs(fRightSrc) + abs(fLeftSrc);
-	float fHeightSrc = abs(fTopSrc) + abs(fBottomSrc);
-
 	// get raw projection data
 	float fLeft, fRight, fTop, fBottom;
 	pHmd->GetProjectionRaw(nEye, &fLeft, &fRight, &fTop, &fBottom);
-	float fWidth = abs(fRight) + abs(fLeft);
-	float fHeight = abs(fTop) + abs(fBottom);
-
-	// compute eventual projection data
-	fLeft = fLeft * (fWidthSrc / fWidth);
-	fRight = fRight * (fWidthSrc / fWidth);
-	fTop = fTop * (fHeightSrc / fHeight);
-	fBottom = fBottom * (fHeightSrc / fHeight);
-
-	// negative / positive ?
-	if (((fLeftSrc < 0.0f) && (fLeft > 0.0f)) || ((fLeftSrc > 0.0f) && (fLeft < 0.0f))) fLeft *= -1.0f;
-	if (((fRightSrc < 0.0f) && (fRight > 0.0f)) || ((fRightSrc > 0.0f) && (fRight < 0.0f))) fRight *= -1.0f;
-	if (((fTopSrc < 0.0f) && (fTop > 0.0f)) || ((fTopSrc > 0.0f) && (fTop < 0.0f))) fTop *= -1.0f;
-	if (((fBottomSrc < 0.0f) && (fBottom > 0.0f)) || ((fBottomSrc > 0.0f) && (fBottom < 0.0f))) fBottom *= -1.0f;
 
 	// create matrix
 	D3DXMATRIX sRet;
-	D3DXMatrixPerspectiveOffCenterLH(&sRet, fLeft, fRight, fBottom, fTop, fNearClip, fFarClip);
+	D3DXVECTOR2 asVec[2];
+	asVec[0].x = fLeft;
+	asVec[0].y = fRight;
+	asVec[1].x = -fBottom;
+	asVec[1].y = -fTop;
+	asVec[0] *= fNearClip;
+	asVec[1] *= fNearClip;
+	D3DXMatrixPerspectiveOffCenterLH(&sRet, asVec[0].x, asVec[0].y, asVec[1].x, asVec[1].y, fNearClip, fFarClip);
 
 	return sRet;
 }
