@@ -812,11 +812,6 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 								if (FAILED(pcDevice->CreateDepthStencilView(m_pcDSGeometry11[1], &descDSV, &m_pcDSVGeometry11[1])))
 									OutputDebugString(L"[OPENVR] Failed to create depth stencil view.");
 
-								// optimized for 1920x1080 here :
-								// total aspect ratio is here 1920x1200 due to the space at top and bottom (@see SubmitFramesConstantly() ),
-								// so in case we need to lower aspect ratio height to be 1080 * (1080 / 1200)
-								float fARatio = 1920.0f / (1080.0f * (1080.0f / 1200.0f));
-
 								// create left/right matrices
 								for (INT nEye = 0; nEye < 2; nEye++)
 								{
@@ -1038,7 +1033,60 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 							// set world matrix, first get left-handed
 							m_rmat4DevicePose[m_asRenderModels[unI].unTrackedDeviceIndex] = GetLH(m_rTrackedDevicePose[m_asRenderModels[unI].unTrackedDeviceIndex].mDeviceToAbsoluteTracking);
 							D3DXMatrixTranspose(&m_sGeometryConstants.sWorld, &m_rmat4DevicePose[m_asRenderModels[unI].unTrackedDeviceIndex]);
-							
+
+							// set mouse cursor for first controller device
+							if (unI == 2)
+							{
+								// get pose matrix
+								UINT unIndex = (UINT)m_asRenderModels[unI].unTrackedDeviceIndex;
+								D3DXMATRIX sPoseMatrix(
+									m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[0][0], m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[1][0], m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[2][0], 0.0,
+									m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[0][1], m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[1][1], m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[2][1], 0.0,
+									m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[0][2], m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[1][2], m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[2][2], 0.0,
+									m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[0][3], m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[1][3], m_rTrackedDevicePose[unIndex].mDeviceToAbsoluteTracking.m[2][3], 1.0f
+									);
+
+								// get position and set matrix translation to zero
+								D3DXVECTOR3 sPosition = D3DXVECTOR3(sPoseMatrix(3, 0), sPoseMatrix(3, 1), sPoseMatrix(3, 2));
+								sPoseMatrix(3, 0) = 0.0f;
+								sPoseMatrix(3, 1) = 0.0f;
+								sPoseMatrix(3, 2) = 0.0f;
+
+								// transform direction vector using this matrix and normalize it, negate
+								D3DXVECTOR3 sDirectionZ = D3DXVECTOR3(0.0f, 0.0f, 1.0f);
+								D3DXVECTOR4 sDirection;
+								D3DXVec3Transform(&sDirection, &sDirectionZ, &sPoseMatrix);
+								sDirection.x *= -1.0f;
+								sDirection.y *= -1.0f;
+								D3DXVec4Normalize(&sDirection, &sDirection);
+								float fPlaneDistanceZ = sPosition.z + 2.0f;
+
+								// get intersection point to screen... TODO !! CONNECT TO CINEMA FOR PLANE DATA 
+								D3DXVECTOR3 sIntersect = D3DXVECTOR3(sDirection.x * (1.0f / sDirection.z), sDirection.y * (1.0f / sDirection.z), 0.0f);
+								sIntersect *= fPlaneDistanceZ;
+
+								// add position to intersection point
+								sIntersect.x += sPosition.x;
+								sIntersect.y += sPosition.y;
+
+								// substract the height of the screen center and negate
+								sIntersect.y -= 2.0f;
+								sIntersect.y *= -1.0f;
+
+								// set new mouse cursor position
+								float fXClip = 2.88f;
+								float fYClip = 1.62f;
+								if ((sIntersect.x >= -fXClip) && (sIntersect.y >= -fYClip) && (sIntersect.x <= fXClip) && (sIntersect.y <= fYClip))
+								{
+									RECT sDesktop;
+									HWND pDesktop = GetDesktopWindow();
+									GetWindowRect(pDesktop, &sDesktop);
+									float fXPos = ((sIntersect.x + fXClip) / (fXClip * 2.0f)) * (float)sDesktop.right;
+									float fYPos = ((sIntersect.y + fYClip) / (fYClip * 2.0f)) * (float)sDesktop.bottom;
+									SetCursorPos((int)fXPos, (int)fYPos);
+								}
+							}
+
 							// left + right
 							for (int nEye = 0; nEye < 2; nEye++)
 							{
