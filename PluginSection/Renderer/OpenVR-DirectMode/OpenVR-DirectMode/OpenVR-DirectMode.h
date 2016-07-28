@@ -487,6 +487,16 @@ private:
 	* Vector of all models to render.
 	***/
 	std::vector<RenderModel_D3D> m_asRenderModels;
+	/**
+	* Cinema room setup structure.
+	* Fields from Vireio Cinema necessary for OpenVR.
+	***/
+	struct CinemaRoomSetup
+	{
+		float fScreenWidth;        /**< The width of the cinema screen, in physical meters. */
+		float fScreenLevel;        /**< The vertical level of the cinema center, in physical meters. */
+		float fScreenDepth;        /**< The depth of the cinema screen, in physical meters. */
+	} m_sCinemaRoomSetup;
 };
 
 /**

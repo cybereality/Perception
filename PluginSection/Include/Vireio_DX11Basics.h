@@ -101,6 +101,8 @@ struct GeometryConstantBuffer
 	D3DXVECTOR3 sResolution;           /**< viewport resolution (in pixels) **/
 	float       fGlobalTime;           /**< shader playback time (in seconds) **/
 	D3DXVECTOR4 sMouse;                /**< mouse pixel coords. xy: current (if MLB down), zw: click **/
+
+	D3DXCOLOR sColorFX[8];             /**< Colors to be used by a shader effect **/
 };
 #pragma endregion
 #pragma region vertex shader
@@ -279,12 +281,56 @@ static const char* PS_DIST_SIMPLE =
 #pragma region pixel shader enhanced
 #pragma region PS3D
 /**
+* 3D Pixel Shader simple lighting.
+***/
+static const char* PS3D =
+// constant buffer
+"float4 sMaterialAmbientColor;\n"
+"float4 sMaterialDiffuseColor;\n"
+
+"float4 sLightDir;\n"
+"float4 sLightDiffuse;\n"
+"float4 sLightAmbient;\n"
+
+"float4x4 sWorldViewProjection;\n"
+"float4x4 sWorld;\n"
+
+// shadertoy constant buffer fields
+"float3    sResolution;\n"           // viewport resolution (in pixels)
+"float     fGlobalTime;\n"           // shader playback time (in seconds)
+"float4    sMouse;\n"                // mouse pixel coords. xy: current (if MLB down), zw: click
+
+// textures and samplers
+"Texture2D	g_txDiffuse : register(t0);\n"
+"SamplerState g_samLinear : register(s0);\n"
+
+// input / output structures
+"struct PS_INPUT\n"
+"{\n"
+"	float4 vPosition : SV_POSITION;\n"
+"	float4 vNormal : NORMAL;\n"
+"	float2 vTexcoord : TEXCOORD0;\n"
+"};\n"
+
+// pixel shader
+"float4 PS(PS_INPUT Input) : SV_TARGET\n"
+"{\n"
+"	float4 vDiffuse = g_txDiffuse.Sample(g_samLinear, Input.vTexcoord);\n"
+
+"	float4 fLighting = saturate(dot(sLightDir, Input.vNormal));\n"
+"	fLighting = max(fLighting, sLightAmbient);\n"
+
+"	return vDiffuse * fLighting;\n"
+"}\n";
+#pragma endregion
+#pragma region PS3D_MOUSE
+/**
 * 3D Pixel Shader with mouse cursor drawn.
 * Mouse cursor technique from shadertoy.com pixel shader "CursorTest" by jherico.
 * "CursorTest" is licenced under :
 * https://creativecommons.org/licenses/by-nc-sa/3.0/deed.en_US
 ***/
-static const char* PS3D =
+static const char* PS3D_MOUSE =
 // constant buffer
 "float4 sMaterialAmbientColor;\n"
 "float4 sMaterialDiffuseColor;\n"
@@ -1172,19 +1218,20 @@ static const char* PS_WATER_CAUSTIC =
 ***/
 enum PixelShaderTechnique
 {
-	FullscreenSimple,          /**< TexturedVertex **/
-	WarpSimple,                /**< TexturedVertex **/
-	DistortSimple,             /**< TexturedVertex **/
-	FullscreenGammaCorrection, /**< TexturedVertex **/
-	GeometryDiffuseTextured,   /**< TexturedNormalVertex : simple lighting **/
-	Fabric,                    /**< TexturedNormalVertex : fabric effect **/
-	BumpComputeNormal,         /**< TexturedNormalVertex : bump mapping, computes per pixel normals **/
-	StringTheory,              /**< TexturedNormalVertex : "String Theory" effect from shadertoy.com **/
-	Bubbles,                   /**< TexturedNormalVertex : "Bubbles!" effect from shadertoy.com **/
-	C64Plasma,                 /**< TexturedNormalVertex : "C64 plasma" effect from shadertoy.com **/
-	ToonCloud,                 /**< TexturedNormalVertex : "Toon Cloud" effect from shadertoy.com **/
-	Worley01,                  /**< TexturedNormalVertex : "Worley Algorithm (Cell Noise )" effect from shadertoy.com **/
-	WaterCaustic,              /**< TexturedNormalVertex : "Tileable Water Caustic" effect from shadertoy.com **/
+	FullscreenSimple,              /**< TexturedVertex **/
+	WarpSimple,                    /**< TexturedVertex **/
+	DistortSimple,                 /**< TexturedVertex **/
+	FullscreenGammaCorrection,     /**< TexturedVertex **/
+	GeometryDiffuseTextured,       /**< TexturedNormalVertex : simple lighting **/
+	GeometryDiffuseTexturedMouse,  /**< TexturedNormalVertex : simple lighting, draws mouse laser pointer **/
+	Fabric,                        /**< TexturedNormalVertex : fabric effect **/
+	BumpComputeNormal,             /**< TexturedNormalVertex : bump mapping, computes per pixel normals **/
+	StringTheory,                  /**< TexturedNormalVertex : "String Theory" effect from shadertoy.com **/
+	Bubbles,                       /**< TexturedNormalVertex : "Bubbles!" effect from shadertoy.com **/
+	C64Plasma,                     /**< TexturedNormalVertex : "C64 plasma" effect from shadertoy.com **/
+	ToonCloud,                     /**< TexturedNormalVertex : "Toon Cloud" effect from shadertoy.com **/
+	Worley01,                      /**< TexturedNormalVertex : "Worley Algorithm (Cell Noise )" effect from shadertoy.com **/
+	WaterCaustic,                  /**< TexturedNormalVertex : "Tileable Water Caustic" effect from shadertoy.com **/
 };
 
 /**
@@ -1334,6 +1381,9 @@ HRESULT CreatePixelShaderEffect(ID3D11Device* pcDevice, ID3D11PixelShader** ppcP
 			break;
 		case GeometryDiffuseTextured:
 			hr = D3DX10CompileFromMemory(PS3D, strlen(PS3D), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
+			break;
+		case GeometryDiffuseTexturedMouse:
+			hr = D3DX10CompileFromMemory(PS3D_MOUSE, strlen(PS3D_MOUSE), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);
 			break;
 		case Fabric:
 			hr = D3DX10CompileFromMemory(PS3D_FABRIC, strlen(PS3D_FABRIC), NULL, NULL, NULL, "PS", "ps_4_0", NULL, NULL, NULL, &pcShader, NULL, NULL);

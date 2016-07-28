@@ -119,6 +119,59 @@ m_asRenderModels()
 	D3DXMatrixIdentity(&m_sToEye[1]);
 	D3DXMatrixIdentity(&m_sProj[0]);
 	D3DXMatrixIdentity(&m_sProj[1]);
+
+	// locate or create the INI file
+	char szFilePathINI[1024];
+	GetCurrentDirectoryA(1024, szFilePathINI);
+	strcat_s(szFilePathINI, "\\VireioPerception.ini");
+	bool bFileExists = false;
+	if (PathFileExistsA(szFilePathINI)) bFileExists = true;
+
+	// set default room setup
+	const D3DXCOLOR WHITE(D3DCOLOR_XRGB(255, 255, 255));
+	const D3DXCOLOR BLACK(D3DCOLOR_XRGB(0, 0, 0));
+	const D3DXCOLOR RED(D3DCOLOR_XRGB(255, 0, 0));
+	const D3DXCOLOR GREEN(D3DCOLOR_XRGB(0, 255, 0));
+	const D3DXCOLOR BLUE(D3DCOLOR_XRGB(0, 0, 255));
+	m_sCinemaRoomSetup.sColorAmbient = D3DXCOLOR(0.2f, 0.2f, 0.2f, 1.0f);
+	m_sCinemaRoomSetup.sColorDiffuse = D3DXCOLOR(1.0f, 0.2f, 0.7f, 1.0f);
+	m_sCinemaRoomSetup.sLightDirection = D3DXVECTOR4(-0.7f, -0.6f, -0.02f, 1.0f);
+	m_sCinemaRoomSetup.ePixelShaderFX_Screen = VireioCinema::CinemaRoomSetup::PixelShaderFX_Screen::Screen_GeometryDiffuseTexturedMouse;
+	m_sCinemaRoomSetup.ePixelShaderFX_Wall_FB[0] = VireioCinema::CinemaRoomSetup::PixelShaderFX_Wall_FB::Wall_FB_Worley01;
+	m_sCinemaRoomSetup.ePixelShaderFX_Wall_FB[1] = VireioCinema::CinemaRoomSetup::PixelShaderFX_Wall_FB::Wall_FB_C64Plasma;
+	m_sCinemaRoomSetup.ePixelShaderFX_Wall_LR[0] = VireioCinema::CinemaRoomSetup::PixelShaderFX_Wall_LR::Wall_LR_ToonCloud;
+	m_sCinemaRoomSetup.ePixelShaderFX_Wall_LR[1] = VireioCinema::CinemaRoomSetup::PixelShaderFX_Wall_LR::Wall_LR_Bubbles;
+	m_sCinemaRoomSetup.ePixelShaderFX_Floor[0] = VireioCinema::CinemaRoomSetup::PixelShaderFX_Floor::Floor_StringTheory;
+	m_sCinemaRoomSetup.ePixelShaderFX_Floor[1] = VireioCinema::CinemaRoomSetup::PixelShaderFX_Floor::Floor_Worley01;
+	m_sCinemaRoomSetup.fScreenWidth = 6.0f; /**< default : 6 meters screen width **/
+	m_sCinemaRoomSetup.fScreenLevel = 2.0f; /**< default : 2 meters height level */
+	m_sCinemaRoomSetup.fScreenDepth = 3.0f; /**< default : 3 meters depth level */
+
+	// TODO !! FX COLORS
+
+	// read ini file
+	m_sCinemaRoomSetup.sColorAmbient.a = GetIniFileSetting(m_sCinemaRoomSetup.sColorAmbient.a, "Stereo Cinema", "sCinemaRoomSetup.sColorAmbient.a", szFilePathINI, bFileExists);
+	m_sCinemaRoomSetup.sColorAmbient.r = GetIniFileSetting(m_sCinemaRoomSetup.sColorAmbient.r, "Stereo Cinema", "sCinemaRoomSetup.sColorAmbient.r", szFilePathINI, bFileExists);
+	m_sCinemaRoomSetup.sColorAmbient.g = GetIniFileSetting(m_sCinemaRoomSetup.sColorAmbient.g, "Stereo Cinema", "sCinemaRoomSetup.sColorAmbient.g", szFilePathINI, bFileExists);
+	m_sCinemaRoomSetup.sColorAmbient.b = GetIniFileSetting(m_sCinemaRoomSetup.sColorAmbient.b, "Stereo Cinema", "sCinemaRoomSetup.sColorAmbient.b", szFilePathINI, bFileExists);
+	m_sCinemaRoomSetup.sColorDiffuse.a = GetIniFileSetting(m_sCinemaRoomSetup.sColorDiffuse.a, "Stereo Cinema", "sCinemaRoomSetup.sColorDiffuse.a", szFilePathINI, bFileExists);
+	m_sCinemaRoomSetup.sColorDiffuse.r = GetIniFileSetting(m_sCinemaRoomSetup.sColorDiffuse.r, "Stereo Cinema", "sCinemaRoomSetup.sColorDiffuse.r", szFilePathINI, bFileExists);
+	m_sCinemaRoomSetup.sColorDiffuse.g = GetIniFileSetting(m_sCinemaRoomSetup.sColorDiffuse.g, "Stereo Cinema", "sCinemaRoomSetup.sColorDiffuse.g", szFilePathINI, bFileExists);
+	m_sCinemaRoomSetup.sColorDiffuse.b = GetIniFileSetting(m_sCinemaRoomSetup.sColorDiffuse.b, "Stereo Cinema", "sCinemaRoomSetup.sColorDiffuse.b", szFilePathINI, bFileExists);
+	m_sCinemaRoomSetup.sLightDirection.w = GetIniFileSetting(m_sCinemaRoomSetup.sLightDirection.w, "Stereo Cinema", "sCinemaRoomSetup.sLightDirection.w", szFilePathINI, bFileExists);
+	m_sCinemaRoomSetup.sLightDirection.x = GetIniFileSetting(m_sCinemaRoomSetup.sLightDirection.x, "Stereo Cinema", "sCinemaRoomSetup.sLightDirection.x", szFilePathINI, bFileExists);
+	m_sCinemaRoomSetup.sLightDirection.y = GetIniFileSetting(m_sCinemaRoomSetup.sLightDirection.y, "Stereo Cinema", "sCinemaRoomSetup.sLightDirection.y", szFilePathINI, bFileExists);
+	m_sCinemaRoomSetup.sLightDirection.z = GetIniFileSetting(m_sCinemaRoomSetup.sLightDirection.z, "Stereo Cinema", "sCinemaRoomSetup.sLightDirection.z", szFilePathINI, bFileExists);
+	m_sCinemaRoomSetup.ePixelShaderFX_Screen = (VireioCinema::CinemaRoomSetup::PixelShaderFX_Screen)GetIniFileSetting((DWORD)m_sCinemaRoomSetup.ePixelShaderFX_Screen, "Stereo Cinema", "sCinemaRoomSetup.ePixelShaderFX_Screen.b", szFilePathINI, bFileExists);
+	m_sCinemaRoomSetup.ePixelShaderFX_Wall_FB[0] = (VireioCinema::CinemaRoomSetup::PixelShaderFX_Wall_FB)GetIniFileSetting((DWORD)m_sCinemaRoomSetup.ePixelShaderFX_Wall_FB[0], "Stereo Cinema", "sCinemaRoomSetup.ePixelShaderFX_Wall_FB[0]", szFilePathINI, bFileExists);
+	m_sCinemaRoomSetup.ePixelShaderFX_Wall_FB[1] = (VireioCinema::CinemaRoomSetup::PixelShaderFX_Wall_FB)GetIniFileSetting((DWORD)m_sCinemaRoomSetup.ePixelShaderFX_Wall_FB[1], "Stereo Cinema", "sCinemaRoomSetup.ePixelShaderFX_Wall_FB[1]", szFilePathINI, bFileExists);
+	m_sCinemaRoomSetup.ePixelShaderFX_Wall_LR[0] = (VireioCinema::CinemaRoomSetup::PixelShaderFX_Wall_LR)GetIniFileSetting((DWORD)m_sCinemaRoomSetup.ePixelShaderFX_Wall_LR[0], "Stereo Cinema", "sCinemaRoomSetup.ePixelShaderFX_Wall_LR[0]", szFilePathINI, bFileExists);
+	m_sCinemaRoomSetup.ePixelShaderFX_Wall_LR[1] = (VireioCinema::CinemaRoomSetup::PixelShaderFX_Wall_LR)GetIniFileSetting((DWORD)m_sCinemaRoomSetup.ePixelShaderFX_Wall_LR[1], "Stereo Cinema", "sCinemaRoomSetup.ePixelShaderFX_Wall_LR[1]", szFilePathINI, bFileExists);
+	m_sCinemaRoomSetup.ePixelShaderFX_Floor[0] = (VireioCinema::CinemaRoomSetup::PixelShaderFX_Floor)GetIniFileSetting((DWORD)m_sCinemaRoomSetup.ePixelShaderFX_Floor[0], "Stereo Cinema", "sCinemaRoomSetup.ePixelShaderFX_Floor[0]", szFilePathINI, bFileExists);
+	m_sCinemaRoomSetup.ePixelShaderFX_Floor[1] = (VireioCinema::CinemaRoomSetup::PixelShaderFX_Floor)GetIniFileSetting((DWORD)m_sCinemaRoomSetup.ePixelShaderFX_Floor[1], "Stereo Cinema", "sCinemaRoomSetup.ePixelShaderFX_Floor[1]", szFilePathINI, bFileExists);
+	m_sCinemaRoomSetup.fScreenWidth = GetIniFileSetting(m_sCinemaRoomSetup.fScreenWidth, "Stereo Cinema", "sCinemaRoomSetup.fScreenWidth", szFilePathINI, bFileExists);
+	m_sCinemaRoomSetup.fScreenLevel = GetIniFileSetting(m_sCinemaRoomSetup.fScreenLevel, "Stereo Cinema", "sCinemaRoomSetup.fScreenLevel", szFilePathINI, bFileExists);
+	m_sCinemaRoomSetup.fScreenDepth = GetIniFileSetting(m_sCinemaRoomSetup.fScreenDepth, "Stereo Cinema", "sCinemaRoomSetup.fScreenDepth", szFilePathINI, bFileExists);
 }
 
 /**
@@ -452,7 +505,8 @@ void VireioCinema::SetInputPointer(DWORD dwDecommanderIndex, void* pData)
 * Vireio Cinema supports D3D 9 Present() and EndScene() calls.
 ***/
 bool VireioCinema::SupportsD3DMethod(int nD3DVersion, int nD3DInterface, int nD3DMethod)
-{return true;
+{
+	return true;
 	if ((nD3DVersion >= (int)AQU_DirectXVersion::DirectX_9_0) &&
 		(nD3DVersion <= (int)AQU_DirectXVersion::DirectX_9_29))
 	{
@@ -1041,7 +1095,15 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 	// create pixel shader
 	if (!m_pcPSGeometry11)
 	{
-		if (FAILED(CreatePixelShaderEffect(pcDevice, &m_pcPSGeometry11, PixelShaderTechnique::GeometryDiffuseTextured)))
+		// create screen pixel shader technique by cinema room setup
+		PixelShaderTechnique eTechnique = PixelShaderTechnique::GeometryDiffuseTexturedMouse;
+		switch (m_sCinemaRoomSetup.ePixelShaderFX_Screen)
+		{
+			case CinemaRoomSetup::PixelShaderFX_Screen::Screen_GeometryDiffuseTexturedMouse:
+				eTechnique = PixelShaderTechnique::GeometryDiffuseTexturedMouse;
+				break;
+		}
+		if (FAILED(CreatePixelShaderEffect(pcDevice, &m_pcPSGeometry11, eTechnique)))
 			OutputDebugString(L"[CIN] Failed to create pixel shader. !");
 	}
 
@@ -1180,8 +1242,8 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 			// set indices
 			WORD aunIndices[] = { 0, 1, 3, 1, 2, 3 };
 
-			// and create the model... TODO !! GET RESOLUTION FROM INPUT TEXTURE
-			AddRenderModelD3D11(pcDevice, nullptr, nullptr, asVertices, aunIndices, 4, 2, 1.5f, D3DXVECTOR3(0.0f, 2.0f, 2.0f), 1920, 1080);
+			// and create the model...
+			AddRenderModelD3D11(pcDevice, nullptr, nullptr, asVertices, aunIndices, 4, 2, m_sCinemaRoomSetup.fScreenWidth / 3.84f, D3DXVECTOR3(0.0f, m_sCinemaRoomSetup.fScreenLevel, m_sCinemaRoomSetup.fScreenDepth), 1920, 1080);
 		}
 #pragma endregion
 #pragma region floor top/bottom
@@ -1199,12 +1261,31 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 			// set indices
 			WORD aunIndices[] = { 3, 1, 0, 3, 2, 1 };
 
-			// create bottom floor effect..
+			// create bottom floor effect by cinema room setup
+			PixelShaderTechnique eTechnique = PixelShaderTechnique::GeometryDiffuseTexturedMouse;
+			switch (m_sCinemaRoomSetup.ePixelShaderFX_Floor[1])
+			{
+				case CinemaRoomSetup::PixelShaderFX_Floor::Floor_Bubbles:
+					eTechnique = PixelShaderTechnique::Bubbles;
+					break;
+				case CinemaRoomSetup::PixelShaderFX_Floor::Floor_C64Plasma:
+					eTechnique = PixelShaderTechnique::C64Plasma;
+					break;
+				case CinemaRoomSetup::PixelShaderFX_Floor::Floor_StringTheory:
+					eTechnique = PixelShaderTechnique::StringTheory;
+					break;
+				case CinemaRoomSetup::PixelShaderFX_Floor::Floor_WaterCaustic:
+					eTechnique = PixelShaderTechnique::WaterCaustic;
+					break;
+				case CinemaRoomSetup::PixelShaderFX_Floor::Floor_Worley01:
+					eTechnique = PixelShaderTechnique::Worley01;
+					break;
+			}
 			ID3D11PixelShader* pcEffect = nullptr;
-			CreatePixelShaderEffect(pcDevice, &pcEffect, PixelShaderTechnique::Worley01);
+			CreatePixelShaderEffect(pcDevice, &pcEffect, eTechnique);
 
-			// and create the model
-			AddRenderModelD3D11(pcDevice, nullptr, pcEffect, asVertices, aunIndices, 4, 2, 2.0f, D3DXVECTOR3(0.0f, 0.0f, 0.0f));
+			// and create the model... scale here by the screen depth to ensure the screen is always seen
+			AddRenderModelD3D11(pcDevice, nullptr, pcEffect, asVertices, aunIndices, 4, 2, m_sCinemaRoomSetup.fScreenDepth, D3DXVECTOR3(0.0f, 0.0f, 0.0f));
 
 			// set indices top
 			WORD aunIndices_top[] = { 0, 1, 3, 1, 2, 3 };
@@ -1212,9 +1293,28 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 			// negate normals
 			for (UINT unI = 0; unI < 4; unI++) asVertices[unI].sNormal *= -1.0f;
 
-			// create top floor effect...
+			// create top floor effect by cinema room setup
+			PixelShaderTechnique eTechnique_top = PixelShaderTechnique::GeometryDiffuseTexturedMouse;
+			switch (m_sCinemaRoomSetup.ePixelShaderFX_Floor[0])
+			{
+				case CinemaRoomSetup::PixelShaderFX_Floor::Floor_Bubbles:
+					eTechnique_top = PixelShaderTechnique::Bubbles;
+					break;
+				case CinemaRoomSetup::PixelShaderFX_Floor::Floor_C64Plasma:
+					eTechnique_top = PixelShaderTechnique::C64Plasma;
+					break;
+				case CinemaRoomSetup::PixelShaderFX_Floor::Floor_StringTheory:
+					eTechnique_top = PixelShaderTechnique::StringTheory;
+					break;
+				case CinemaRoomSetup::PixelShaderFX_Floor::Floor_WaterCaustic:
+					eTechnique_top = PixelShaderTechnique::WaterCaustic;
+					break;
+				case CinemaRoomSetup::PixelShaderFX_Floor::Floor_Worley01:
+					eTechnique_top = PixelShaderTechnique::Worley01;
+					break;
+			}
 			ID3D11PixelShader* pcEffect_top = nullptr;
-			CreatePixelShaderEffect(pcDevice, &pcEffect_top, PixelShaderTechnique::C64Plasma);
+			CreatePixelShaderEffect(pcDevice, &pcEffect_top, eTechnique_top);
 
 			// and create the model
 			AddRenderModelD3D11(pcDevice, nullptr, pcEffect_top, asVertices, aunIndices_top, 4, 2, 2.0f, D3DXVECTOR3(0.0f, 4.8f, 0.0f));
@@ -1261,24 +1361,46 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 				11, 9, 10,
 
 				13, 12, 14,
-				14, 12, 15, 
+				14, 12, 15,
 			};
 
-			// create wall effect..
+			// create wall effect by cinema room setup
+			PixelShaderTechnique eTechnique = PixelShaderTechnique::GeometryDiffuseTexturedMouse;
+			switch (m_sCinemaRoomSetup.ePixelShaderFX_Wall_LR[0])
+			{
+				case CinemaRoomSetup::PixelShaderFX_Wall_LR::Wall_LR_Bubbles:
+					eTechnique = PixelShaderTechnique::Bubbles;
+					break;
+				case CinemaRoomSetup::PixelShaderFX_Wall_LR::Wall_LR_C64Plasma:
+					eTechnique = PixelShaderTechnique::C64Plasma;
+					break;
+				case CinemaRoomSetup::PixelShaderFX_Wall_LR::Wall_LR_StringTheory:
+					eTechnique = PixelShaderTechnique::StringTheory;
+					break;
+				case CinemaRoomSetup::PixelShaderFX_Wall_LR::Wall_LR_ToonCloud:
+					eTechnique = PixelShaderTechnique::ToonCloud;
+					break;
+				case CinemaRoomSetup::PixelShaderFX_Wall_LR::Wall_LR_WaterCaustic:
+					eTechnique = PixelShaderTechnique::WaterCaustic;
+					break;
+				case CinemaRoomSetup::PixelShaderFX_Wall_LR::Wall_LR_Worley01:
+					eTechnique = PixelShaderTechnique::Worley01;
+					break;
+			}
 			ID3D11PixelShader* pcEffect = nullptr;
-			CreatePixelShaderEffect(pcDevice, &pcEffect, PixelShaderTechnique::ToonCloud);
+			CreatePixelShaderEffect(pcDevice, &pcEffect, eTechnique);
 
-			// and create the model
-			AddRenderModelD3D11(pcDevice, nullptr, pcEffect, asVertices, aunIndices, 16, 8, 4.0f, D3DXVECTOR3(0.0f, 2.4f, 0.0f), 2000, 1200);
+			// and create the model... scale here by the screen depth to ensure the screen is always seen
+			AddRenderModelD3D11(pcDevice, nullptr, pcEffect, asVertices, aunIndices, 16, 8, m_sCinemaRoomSetup.fScreenDepth * 2.0f, D3DXVECTOR3(0.0f, 2.4f, 0.0f), 2000, 1200);
 		}
 #pragma endregion
 	}
 
 	// create constant shader constants..
-	D3DXVECTOR4 sLightDir(-0.7f, -0.6f, -0.02f, 1.0f);
+	D3DXVECTOR4 sLightDir = m_sCinemaRoomSetup.sLightDirection;
 	m_sGeometryConstants.sLightDir = sLightDir;
-	m_sGeometryConstants.sLightAmbient = D3DXCOLOR(0.2f, 0.2f, 0.2f, 1.0f);
-	m_sGeometryConstants.sLightDiffuse = D3DXCOLOR(1.0f, 0.2f, 0.7f, 1.0f);
+	m_sGeometryConstants.sLightAmbient = m_sCinemaRoomSetup.sColorAmbient;
+	m_sGeometryConstants.sLightDiffuse = m_sCinemaRoomSetup.sColorDiffuse;
 
 	// for aspect ratio based fx we set a 1.0 ratio here
 	m_sGeometryConstants.sResolution.x = 1024.0f;
@@ -1361,7 +1483,7 @@ void VireioCinema::RenderD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCo
 	POINT sPoint;
 	GetCursorPos(&sPoint);
 	m_sGeometryConstants.sMouse = D3DXVECTOR4((float)sPoint.x / (float)sDesktop.right, (float)sPoint.y / (float)sDesktop.bottom, 0.0f, 0.0f);
-	
+
 	// Update and set our time
 	static float fTime = 0.0f;
 	static DWORD unTimeStart = 0;

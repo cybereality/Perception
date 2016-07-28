@@ -38,6 +38,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"AQU_Nodus.h"
 #include<vector>
 
+#include<Shlwapi.h>
+#pragma comment(lib, "Shlwapi.lib")
+
 #include <DXGI.h>
 #pragma comment(lib, "DXGI.lib")
 
@@ -89,6 +92,8 @@ enum VRC_Commanders
 	RightTexture10,
 	LeftTexture9,
 	RightTexture9,
+	ScreenWidth,
+	ScreenLevel,
 };
 
 /**
@@ -298,7 +303,7 @@ private:
 	/**
 	* Current projection matrix left/right.
 	***/
-	D3DXMATRIX m_sProj[2];	
+	D3DXMATRIX m_sProj[2];
 	/**
 	* Vector of all models to render.
 	***/
@@ -351,7 +356,7 @@ private:
 	/**
 	* Position in cinema.
 	***/
-	D3DVECTOR m_sPositionVector;	
+	D3DVECTOR m_sPositionVector;
 	/**
 	* Texture resolution width.
 	* Each stereo output texture will have this width.
@@ -371,6 +376,61 @@ private:
 	* ( to be deleted... )
 	***/
 	bool m_bOculusTinyRoomMesh;
+	/**
+	* Cinema room setup structure.
+	***/
+	struct CinemaRoomSetup
+	{
+		D3DXCOLOR sColorAmbient;
+		D3DXCOLOR sColorDiffuse;
+		D3DXVECTOR4 sLightDirection;
+
+		enum PixelShaderFX_Screen
+		{
+			Screen_GeometryDiffuseTexturedMouse,  /**< TexturedNormalVertex : simple lighting, draws mouse laser pointer **/
+		} ePixelShaderFX_Screen;
+
+		enum PixelShaderFX_Wall_FB
+		{
+			Wall_FB_StringTheory,              /**< TexturedNormalVertex : "String Theory" effect from shadertoy.com **/
+			Wall_FB_Bubbles,                   /**< TexturedNormalVertex : "Bubbles!" effect from shadertoy.com **/
+			Wall_FB_C64Plasma,                 /**< TexturedNormalVertex : "C64 plasma" effect from shadertoy.com **/
+			Wall_FB_ToonCloud,                 /**< TexturedNormalVertex : "Toon Cloud" effect from shadertoy.com **/
+			Wall_FB_Worley01,                  /**< TexturedNormalVertex : "Worley Algorithm (Cell Noise )" effect from shadertoy.com **/
+			Wall_FB_WaterCaustic,              /**< TexturedNormalVertex : "Tileable Water Caustic" effect from shadertoy.com **/
+		} ePixelShaderFX_Wall_FB[2];
+
+		enum PixelShaderFX_Wall_LR
+		{
+			Wall_LR_StringTheory,              /**< TexturedNormalVertex : "String Theory" effect from shadertoy.com **/
+			Wall_LR_Bubbles,                   /**< TexturedNormalVertex : "Bubbles!" effect from shadertoy.com **/
+			Wall_LR_C64Plasma,                 /**< TexturedNormalVertex : "C64 plasma" effect from shadertoy.com **/
+			Wall_LR_ToonCloud,                 /**< TexturedNormalVertex : "Toon Cloud" effect from shadertoy.com **/
+			Wall_LR_Worley01,                  /**< TexturedNormalVertex : "Worley Algorithm (Cell Noise )" effect from shadertoy.com **/
+			Wall_LR_WaterCaustic,              /**< TexturedNormalVertex : "Tileable Water Caustic" effect from shadertoy.com **/
+		} ePixelShaderFX_Wall_LR[2];
+
+		enum PixelShaderFX_Floor
+		{
+			Floor_StringTheory,              /**< TexturedNormalVertex : "String Theory" effect from shadertoy.com **/
+			Floor_Bubbles,                   /**< TexturedNormalVertex : "Bubbles!" effect from shadertoy.com **/
+			Floor_C64Plasma,                 /**< TexturedNormalVertex : "C64 plasma" effect from shadertoy.com **/
+			Floor_Worley01,                  /**< TexturedNormalVertex : "Worley Algorithm (Cell Noise )" effect from shadertoy.com **/
+			Floor_WaterCaustic,              /**< TexturedNormalVertex : "Tileable Water Caustic" effect from shadertoy.com **/
+		} ePixelShaderFX_Floor[2];
+
+		struct PixelShaderFX_Colors
+		{
+			D3DXCOLOR sColorFX[8];               /**< Colors to be used by a shader effect **/
+		} sColors_Screen;                        /**< Colors to be used by the screen effect **/
+		PixelShaderFX_Colors sColors_Wall_FB[2]; /**< Colors to be used by the wall (front+back) effects **/
+		PixelShaderFX_Colors sColors_Wall_LR[2]; /**< Colors to be used by the wall (left+right) effects **/
+		PixelShaderFX_Colors sColors_Floor[2];   /**< Colors to be used by the floor (top+bottom) effects **/
+
+		float fScreenWidth;        /**< The width of the cinema screen, in physical meters. */
+		float fScreenLevel;        /**< The vertical level of the cinema center, in physical meters. */
+		float fScreenDepth;        /**< The depth of the cinema screen, in physical meters. */
+	} m_sCinemaRoomSetup;
 };
 
 /**

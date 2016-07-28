@@ -94,41 +94,46 @@ m_bMenu(false)
 		m_sUserSettings.fFoV = 121.0f;
 		std::stringstream sz;
 		sz << m_sUserSettings.fFoV;
-		GetPrivateProfileStringA("Stereo Presenter", "fFoV", sz.str().c_str(), szBuffer, 128, szFilePathINI);
+		DWORD unCount = GetPrivateProfileStringA("Stereo Presenter", "fFoV", sz.str().c_str(), szBuffer, 128, szFilePathINI);
 		sz = std::stringstream(szBuffer);
 		sz >> m_sUserSettings.fFoV;
+		if (m_sUserSettings.fFoV == 121.0f) WritePrivateProfileStringA("Stereo Presenter", "fFoV", sz.str().c_str(), szFilePathINI);
 
 		// fov aiming down sights
 		m_sUserSettings.fFoVADS = 121.0f;
 		sz = std::stringstream();
 		sz << m_sUserSettings.fFoVADS;
-		GetPrivateProfileStringA("Stereo Presenter", "fFoVADS", sz.str().c_str(), szBuffer, 128, szFilePathINI);
+		unCount = GetPrivateProfileStringA("Stereo Presenter", "fFoVADS", sz.str().c_str(), szBuffer, 128, szFilePathINI);
 		sz = std::stringstream(szBuffer);
 		sz >> m_sUserSettings.fFoVADS;
+		if (m_sUserSettings.fFoVADS == 121.0f) WritePrivateProfileStringA("Stereo Presenter", "fFoVADS", sz.str().c_str(), szFilePathINI);
 
 		// ipd
 		m_sUserSettings.fIPD = 0.064f;
 		sz = std::stringstream();
 		sz << m_sUserSettings.fIPD;
-		GetPrivateProfileStringA("Stereo Presenter", "fIPD", sz.str().c_str(), szBuffer, 128, szFilePathINI);
+		unCount = GetPrivateProfileStringA("Stereo Presenter", "fIPD", sz.str().c_str(), szBuffer, 128, szFilePathINI);
 		sz = std::stringstream(szBuffer);
 		sz >> m_sUserSettings.fIPD;
+		if (m_sUserSettings.fIPD == 0.064f) WritePrivateProfileStringA("Stereo Presenter", "fIPD", sz.str().c_str(), szFilePathINI);
 
 		// separation
 		m_sUserSettings.fWorldScale = -1.44f;
 		sz = std::stringstream();
 		sz << m_sUserSettings.fWorldScale;
-		GetPrivateProfileStringA("Stereo Presenter", "fWorldScale", sz.str().c_str(), szBuffer, 128, szFilePathINI);
+		unCount = GetPrivateProfileStringA("Stereo Presenter", "fWorldScale", sz.str().c_str(), szBuffer, 128, szFilePathINI);
 		sz = std::stringstream(szBuffer);
 		sz >> m_sUserSettings.fWorldScale;
+		if (m_sUserSettings.fWorldScale == -1.44f) WritePrivateProfileStringA("Stereo Presenter", "fWorldScale", sz.str().c_str(), szFilePathINI);
 
 		// convergence
 		m_sUserSettings.fConvergence = 3.0f;
 		sz = std::stringstream();
 		sz << m_sUserSettings.fConvergence;
-		GetPrivateProfileStringA("Stereo Presenter", "fConvergence", sz.str().c_str(), szBuffer, 128, szFilePathINI);
+		unCount = GetPrivateProfileStringA("Stereo Presenter", "fConvergence", sz.str().c_str(), szBuffer, 128, szFilePathINI);
 		sz = std::stringstream(szBuffer);
 		sz >> m_sUserSettings.fConvergence;
+		if (m_sUserSettings.fConvergence == 3.0f) WritePrivateProfileStringA("Stereo Presenter", "fConvergence", sz.str().c_str(), szFilePathINI);
 	}
 	else
 	{

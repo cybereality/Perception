@@ -32,6 +32,70 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
+#include<stdio.h>
+#include<stdlib.h>
+#include<sstream>
+
+/**
+* Ini file helper.
+***/
+DWORD GetIniFileSetting(DWORD unDefault, LPCSTR szAppName, LPCSTR szKeyName, LPCSTR szFileName, bool bFileExists)
+{
+	DWORD unRet = 0;
+	char szBuffer[128];
+
+	if (bFileExists)
+	{
+		// fov
+		std::stringstream sz;
+		sz << unDefault;
+		GetPrivateProfileStringA(szAppName, szKeyName, sz.str().c_str(), szBuffer, 128, szFileName);
+		sz = std::stringstream(szBuffer);
+		sz >> unRet;
+		if (unRet == unDefault) WritePrivateProfileStringA(szAppName, szKeyName, sz.str().c_str(), szFileName);
+	}
+	else
+	{
+		// fov
+		std::stringstream sz;
+		sz << unDefault;
+		WritePrivateProfileStringA(szAppName, szKeyName, sz.str().c_str(), szFileName);
+		unRet = unDefault;
+	}
+
+	return unRet;
+}
+
+/**
+* Ini file helper.
+***/
+float GetIniFileSetting(float fDefault, LPCSTR szAppName, LPCSTR szKeyName, LPCSTR szFileName, bool bFileExists)
+{
+	float fRet = 0;
+	char szBuffer[128];
+
+	if (bFileExists)
+	{
+		// fov
+		std::stringstream sz;
+		sz << fDefault;
+		GetPrivateProfileStringA(szAppName, szKeyName, sz.str().c_str(), szBuffer, 128, szFileName);
+		sz = std::stringstream(szBuffer);
+		sz >> fRet;
+		if (fRet == fDefault) WritePrivateProfileStringA(szAppName, szKeyName, sz.str().c_str(), szFileName);
+	}
+	else
+	{
+		// fov
+		std::stringstream sz;
+		sz << fDefault;
+		WritePrivateProfileStringA(szAppName, szKeyName, sz.str().c_str(), szFileName);
+		fRet = fDefault;
+	}
+
+	return fRet;
+}
+
 /**
 * Plugin flags.
 **/

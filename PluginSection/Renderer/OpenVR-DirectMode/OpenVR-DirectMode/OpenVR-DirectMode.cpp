@@ -152,64 +152,6 @@ HRESULT CreateCopyTexture(ID3D11Device* pcDevice, ID3D11Device* pcDeviceTemporar
 }
 
 /**
-* Ini file helper.
-***/
-DWORD GetIniFileSetting(DWORD unDefault, LPCSTR szAppName, LPCSTR szKeyName, LPCSTR szFileName, bool bFileExists)
-{
-	DWORD unRet = 0;
-	char szBuffer[128];
-
-	if (bFileExists)
-	{
-		// fov
-		std::stringstream sz;
-		sz << unDefault;
-		GetPrivateProfileStringA(szAppName, szKeyName, sz.str().c_str(), szBuffer, 128, szFileName);
-		sz = std::stringstream(szBuffer);
-		sz >> unRet;
-	}
-	else
-	{
-		// fov
-		std::stringstream sz;
-		sz << unDefault;
-		WritePrivateProfileStringA(szAppName, szKeyName, sz.str().c_str(), szFileName);
-		unRet = unDefault;
-	}
-
-	return unRet;
-}
-
-/**
-* Ini file helper.
-***/
-float GetIniFileSetting(float fDefault, LPCSTR szAppName, LPCSTR szKeyName, LPCSTR szFileName, bool bFileExists)
-{
-	float fRet = 0;
-	char szBuffer[128];
-
-	if (bFileExists)
-	{
-		// fov
-		std::stringstream sz;
-		sz << fDefault;
-		GetPrivateProfileStringA(szAppName, szKeyName, sz.str().c_str(), szBuffer, 128, szFileName);
-		sz = std::stringstream(szBuffer);
-		sz >> fRet;
-	}
-	else
-	{
-		// fov
-		std::stringstream sz;
-		sz << fDefault;
-		WritePrivateProfileStringA(szAppName, szKeyName, sz.str().c_str(), szFileName);
-		fRet = fDefault;
-	}
-
-	return fRet;
-}
-
-/**
 * Constructor.
 ***/
 OpenVR_DirectMode::OpenVR_DirectMode() : AQU_Nodus(),
@@ -306,10 +248,14 @@ m_bRenderModelsCreated(false)
 	m_sGeometryConstants.sLightAmbient = D3DXCOLOR(0.2f, 0.2f, 0.2f, 1.0f);
 	m_sGeometryConstants.sLightDiffuse = D3DXCOLOR(1.0f, 0.2f, 0.7f, 1.0f);
 
+	m_sCinemaRoomSetup.fScreenWidth = 6.0f; /**< default : 6 meters screen width **/
+	m_sCinemaRoomSetup.fScreenLevel = 2.0f; /**< default : 2 meters height level */
+	m_sCinemaRoomSetup.fScreenDepth = 3.0f; /**< default : 3 meters depth level */
+
 	// locate or create the INI file
 	char szFilePathINI[1024];
 	GetCurrentDirectoryA(1024, szFilePathINI);
-	strcat_s(szFilePathINI, "\\VireioPerception_OpenVR.ini");
+	strcat_s(szFilePathINI, "\\VireioPerception.ini");
 	bool bFileExists = false;
 	if (PathFileExistsA(szFilePathINI)) bFileExists = true;
 
@@ -346,17 +292,21 @@ m_bRenderModelsCreated(false)
 	m_sOverlayPropertiesDashboard.sColor.b = GetIniFileSetting(m_sOverlayPropertiesDashboard.sColor.b, "OpenVR", "sOverlayPropertiesDashboard.sColor.b", szFilePathINI, bFileExists);
 	m_sOverlayPropertiesDashboard.fWidth = GetIniFileSetting(m_sOverlayPropertiesDashboard.fWidth, "OpenVR", "sOverlayPropertiesDashboard.fWidth", szFilePathINI, bFileExists);
 
-	m_sGeometryConstants.sLightDir.x = GetIniFileSetting(m_sGeometryConstants.sLightDir.x, "OpenVR", "m_sGeometryConstants.sLightDir.x", szFilePathINI, bFileExists);
-	m_sGeometryConstants.sLightDir.y = GetIniFileSetting(m_sGeometryConstants.sLightDir.y, "OpenVR", "m_sGeometryConstants.sLightDir.y", szFilePathINI, bFileExists);
-	m_sGeometryConstants.sLightDir.z = GetIniFileSetting(m_sGeometryConstants.sLightDir.z, "OpenVR", "m_sGeometryConstants.sLightDir.z", szFilePathINI, bFileExists);
-	m_sGeometryConstants.sLightAmbient.a = GetIniFileSetting(m_sGeometryConstants.sLightAmbient.a, "OpenVR", "sGeometryConstants.sLightAmbient.a", szFilePathINI, bFileExists);
-	m_sGeometryConstants.sLightAmbient.r = GetIniFileSetting(m_sGeometryConstants.sLightAmbient.r, "OpenVR", "sGeometryConstants.sLightAmbient.r", szFilePathINI, bFileExists);
-	m_sGeometryConstants.sLightAmbient.g = GetIniFileSetting(m_sGeometryConstants.sLightAmbient.g, "OpenVR", "sGeometryConstants.sLightAmbient.g", szFilePathINI, bFileExists);
-	m_sGeometryConstants.sLightAmbient.b = GetIniFileSetting(m_sGeometryConstants.sLightAmbient.b, "OpenVR", "sGeometryConstants.sLightAmbient.b", szFilePathINI, bFileExists);
-	m_sGeometryConstants.sLightDiffuse.a = GetIniFileSetting(m_sGeometryConstants.sLightDiffuse.a, "OpenVR", "sGeometryConstants.sLightDiffuse.a", szFilePathINI, bFileExists);
-	m_sGeometryConstants.sLightDiffuse.r = GetIniFileSetting(m_sGeometryConstants.sLightDiffuse.r, "OpenVR", "sGeometryConstants.sLightDiffuse.r", szFilePathINI, bFileExists);
-	m_sGeometryConstants.sLightDiffuse.g = GetIniFileSetting(m_sGeometryConstants.sLightDiffuse.g, "OpenVR", "sGeometryConstants.sLightDiffuse.g", szFilePathINI, bFileExists);
-	m_sGeometryConstants.sLightDiffuse.b = GetIniFileSetting(m_sGeometryConstants.sLightDiffuse.b, "OpenVR", "sGeometryConstants.sLightDiffuse.b", szFilePathINI, bFileExists);
+	m_sGeometryConstants.sLightDir.x = GetIniFileSetting(m_sGeometryConstants.sLightDir.x, "Stereo Cinema", "sCinemaRoomSetup.sLightDirection.x", szFilePathINI, bFileExists);
+	m_sGeometryConstants.sLightDir.y = GetIniFileSetting(m_sGeometryConstants.sLightDir.y, "Stereo Cinema", "sCinemaRoomSetup.sLightDirection.y", szFilePathINI, bFileExists);
+	m_sGeometryConstants.sLightDir.z = GetIniFileSetting(m_sGeometryConstants.sLightDir.z, "Stereo Cinema", "sCinemaRoomSetup.sLightDirection.z", szFilePathINI, bFileExists);
+	m_sGeometryConstants.sLightAmbient.a = GetIniFileSetting(m_sGeometryConstants.sLightAmbient.a, "Stereo Cinema", "sCinemaRoomSetup.sColorAmbient.a", szFilePathINI, bFileExists);
+	m_sGeometryConstants.sLightAmbient.r = GetIniFileSetting(m_sGeometryConstants.sLightAmbient.r, "Stereo Cinema", "sCinemaRoomSetup.sColorAmbient.r", szFilePathINI, bFileExists);
+	m_sGeometryConstants.sLightAmbient.g = GetIniFileSetting(m_sGeometryConstants.sLightAmbient.g, "Stereo Cinema", "sCinemaRoomSetup.sColorAmbient.g", szFilePathINI, bFileExists);
+	m_sGeometryConstants.sLightAmbient.b = GetIniFileSetting(m_sGeometryConstants.sLightAmbient.b, "Stereo Cinema", "sCinemaRoomSetup.sColorAmbient.b", szFilePathINI, bFileExists);
+	m_sGeometryConstants.sLightDiffuse.a = GetIniFileSetting(m_sGeometryConstants.sLightDiffuse.a, "Stereo Cinema", "sCinemaRoomSetup.sColorDiffuse.a", szFilePathINI, bFileExists);
+	m_sGeometryConstants.sLightDiffuse.r = GetIniFileSetting(m_sGeometryConstants.sLightDiffuse.r, "Stereo Cinema", "sCinemaRoomSetup.sColorDiffuse.r", szFilePathINI, bFileExists);
+	m_sGeometryConstants.sLightDiffuse.g = GetIniFileSetting(m_sGeometryConstants.sLightDiffuse.g, "Stereo Cinema", "sCinemaRoomSetup.sColorDiffuse.g", szFilePathINI, bFileExists);
+	m_sGeometryConstants.sLightDiffuse.b = GetIniFileSetting(m_sGeometryConstants.sLightDiffuse.b, "Stereo Cinema", "sCinemaRoomSetup.sColorDiffuse.b", szFilePathINI, bFileExists);
+
+	m_sCinemaRoomSetup.fScreenWidth = GetIniFileSetting(m_sCinemaRoomSetup.fScreenWidth, "Stereo Cinema", "sCinemaRoomSetup.fScreenWidth", szFilePathINI, bFileExists);
+	m_sCinemaRoomSetup.fScreenLevel = GetIniFileSetting(m_sCinemaRoomSetup.fScreenLevel, "Stereo Cinema", "sCinemaRoomSetup.fScreenLevel", szFilePathINI, bFileExists);
+	m_sCinemaRoomSetup.fScreenDepth = GetIniFileSetting(m_sCinemaRoomSetup.fScreenDepth, "Stereo Cinema", "sCinemaRoomSetup.fScreenDepth", szFilePathINI, bFileExists);
 
 	// normalize light direction
 	D3DXVec4Normalize(&m_sGeometryConstants.sLightDir, &m_sGeometryConstants.sLightDir);
@@ -1059,9 +1009,9 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 								sDirection.x *= -1.0f;
 								sDirection.y *= -1.0f;
 								D3DXVec4Normalize(&sDirection, &sDirection);
-								float fPlaneDistanceZ = sPosition.z + 2.0f;
+								float fPlaneDistanceZ = sPosition.z + m_sCinemaRoomSetup.fScreenDepth;
 
-								// get intersection point to screen... TODO !! CONNECT TO CINEMA FOR PLANE DATA 
+								// get intersection point to screen...
 								D3DXVECTOR3 sIntersect = D3DXVECTOR3(sDirection.x * (1.0f / sDirection.z), sDirection.y * (1.0f / sDirection.z), 0.0f);
 								sIntersect *= fPlaneDistanceZ;
 
@@ -1070,12 +1020,12 @@ void* OpenVR_DirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int e
 								sIntersect.y += sPosition.y;
 
 								// substract the height of the screen center and negate
-								sIntersect.y -= 2.0f;
+								sIntersect.y -= m_sCinemaRoomSetup.fScreenLevel;
 								sIntersect.y *= -1.0f;
 
 								// set new mouse cursor position
-								float fXClip = 2.88f;
-								float fYClip = 1.62f;
+								float fXClip = m_sCinemaRoomSetup.fScreenWidth / 2.0f;
+								float fYClip = fXClip / 1.777777777777778f;
 								if ((sIntersect.x >= -fXClip) && (sIntersect.y >= -fYClip) && (sIntersect.x <= fXClip) && (sIntersect.y <= fYClip))
 								{
 									RECT sDesktop;

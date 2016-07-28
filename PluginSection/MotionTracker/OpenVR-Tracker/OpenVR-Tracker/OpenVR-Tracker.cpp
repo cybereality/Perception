@@ -414,17 +414,40 @@ void* OpenVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 		while (m_pHMD->PollNextEvent(&event, sizeof(event)))
 		{
 		ProcessVREvent(event);
-		}
+		}*/
 
 		// Process SteamVR controller state
 		for (vr::TrackedDeviceIndex_t unDevice = 0; unDevice < vr::k_unMaxTrackedDeviceCount; unDevice++)
 		{
-		vr::VRControllerState_t state;
-		if (m_pHMD->GetControllerState(unDevice, &state))
-		{
-		m_rbShowTrackedDevice[unDevice] = state.ulButtonPressed == 0;
+			vr::VRControllerState_t state;
+			if (m_pHMD->GetControllerState(unDevice, &state))
+			{
+				// m_rbShowTrackedDevice[unDevice] = state.ulButtonPressed == 0;
+
+				// as a start, simple simulate left mouse button click
+				static bool bLeftMouse = false;
+				if (vr::ButtonMaskFromId(vr::EVRButtonId::k_EButton_SteamVR_Trigger) && state.ulButtonPressed)
+				{
+					INPUT    Input = { 0 };
+					// left down 
+					Input.type = INPUT_MOUSE;
+					Input.mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
+					::SendInput(1, &Input, sizeof(INPUT));
+					bLeftMouse = true;
+				}
+				else
+				if (bLeftMouse)
+				{
+
+					// left up
+					INPUT    Input = { 0 };
+					Input.type = INPUT_MOUSE;
+					Input.mi.dwFlags = MOUSEEVENTF_LEFTUP;
+					::SendInput(1, &Input, sizeof(INPUT));
+					bLeftMouse = false;
+				}
+			}
 		}
-		}*/
 
 		// get predicted pose for next frame
 		if (!vr::VRCompositor()->GetLastFrameRenderer())
