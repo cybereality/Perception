@@ -319,7 +319,7 @@ void* VireioConstructorDx11::Provoke(void* pThis, int eD3D, int eD3DInterface, i
 			if (!m_pnBytecodeLength_PixelShader) return nullptr;
 			if (!m_ppcClassLinkage_PixelShader) return nullptr;
 			if (!m_pppcPixelShader_DX11) return nullptr;
-			
+
 			{
 				// create the shader
 				*(HRESULT*)m_pvReturn = ((ID3D11Device*)pThis)->CreatePixelShader(*m_ppvShaderBytecode_PixelShader,
@@ -341,6 +341,7 @@ void* VireioConstructorDx11::Provoke(void* pThis, int eD3D, int eD3DInterface, i
 #pragma endregion
 #pragma region ID3D11Device::CreateBuffer
 		case METHOD_ID3D11DEVICE_CREATEBUFFER:
+			return nullptr;
 			if (!TO_DO_ADD_BOOL_HERE_FALSE) return nullptr; // add option to enable stereo constant buffer creation
 			if (!m_ppsDesc_DX11) return nullptr;
 			if (!m_ppsInitialData_DX11) return nullptr;

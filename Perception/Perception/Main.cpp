@@ -77,7 +77,7 @@ ProxyHelper::OculusProfile oculusProfile;
 typedef void (WINAPI *AQUILINUS_Init)();
 typedef void (WINAPI *AQUILINUS_Close)();
 typedef void (WINAPI *AQUILINUS_ForceIdle)();
-typedef std::wstring(WINAPI *AQUILINUS_LoadProfile)();
+typedef void(WINAPI *AQUILINUS_LoadProfile)();
 typedef void (WINAPI *AQUILINUS_Reinject)();
 typedef int (WINAPI *AQUILINUS_GetInjectionState)();
 
@@ -192,7 +192,7 @@ public:
 		// control structure
 		Vireio_Control sControl;
 
-#ifndef _WIN64
+#ifdef _VIREIO_3
 		// spin control - stereo view
 		static std::vector<std::wstring> m_aszStereoViewOptions;
 		ZeroMemory(&sControl, sizeof(Vireio_Control));
@@ -509,15 +509,15 @@ LRESULT WINAPI Vireio_Perception_Main_Window::main_window_proc(HWND window_handl
 										 OutputDebugString("Vireio Perception: Load Aquilinus Profile!");
 
 										 // load aquilinus profile
-										 std::wstring szPath = g_pAquilinus_LoadProfile();
+										 /*std::wstring szPath =*/ g_pAquilinus_LoadProfile();
 
 										 // load game logo
-										 std::wstring szFilename = szPath.substr(szPath.find_last_of('\\') + 1);
+										 /*std::wstring szFilename = szPath.substr(szPath.find_last_of('\\') + 1);
 										 if (szFilename.find(L"Fallout4") == 0)
 										 {
 											 ConvertJpgFile("..//img//Fallout4.jpg", "..//img//game_logo.bmp");
 											 game_bitmap = (HBITMAP)LoadImage(NULL, "..//img//game_logo.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-										 }
+										 }*/
 									 }
 									 else
 										 g_pAquilinus_Reinject();
@@ -661,7 +661,7 @@ int WINAPI wWinMain(HINSTANCE instance_handle, HINSTANCE, LPWSTR, INT) {
 	if (LoadAquilinusRTE()) OutputDebugString("Vireio Perception : Using Aquilinus Runtime Environment.");
 	InitConfig();
 	InitModes();
-#ifndef _WIN64
+#ifdef _VIREIO_3
 	InstallHook();
 #endif
 
@@ -676,7 +676,7 @@ int WINAPI wWinMain(HINSTANCE instance_handle, HINSTANCE, LPWSTR, INT) {
 	// run main window
 	main_window.run();
 
-#ifndef _WIN64
+#ifdef _VIREIO_3
 	// remove hook, exit
 	RemoveHook();
 #endif
