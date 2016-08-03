@@ -59,7 +59,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma region OpenVR-Tracker static fields
 bool OculusDirectMode::m_bInit;
 ovrHmd *OculusDirectMode::m_phHMD;
-HANDLE OculusDirectMode::m_pThread;
 double OculusDirectMode::sensorSampleTime;
 ovrRecti OculusDirectMode::m_psEyeRenderViewport[2];
 ovrPosef OculusDirectMode::asEyeRenderPose[2];
@@ -70,6 +69,7 @@ ovrLayerHeader* OculusDirectMode::m_pasLayerList[OculusLayer_Total];
 ovrLayerEyeFov OculusDirectMode::m_sLayerPrimal;
 ovrLayerQuad OculusDirectMode::m_sLayerHud;
 BOOL* OculusDirectMode::m_pbZoomOut;
+bool OculusDirectMode::m_bShowMirror;
 #pragma endregion
 
 /**
@@ -108,13 +108,15 @@ m_pcTex11CopyHUD(nullptr)
 	m_bInit = false;
 	m_phHMD = nullptr;
 	sensorSampleTime = 0.0;
-	m_pThread = nullptr;
+	m_bShowMirror = false;
 
 	m_psEyeRenderTexture[0] = nullptr;
 	m_psEyeRenderTexture[1] = nullptr;
 	m_psEyeRenderTextureHUD = nullptr;
 
 	m_pbZoomOut = nullptr;
+
+	// TODO !! READ INI FILE SETTINGS
 }
 
 /**
@@ -122,8 +124,6 @@ m_pcTex11CopyHUD(nullptr)
 ***/
 OculusDirectMode::~OculusDirectMode()
 {
-	TerminateThread(m_pThread, S_OK);
-
 	if (m_pcMirrorTextureD3D11) m_pcMirrorTextureD3D11->Release();
 	if (m_pcMirrorTexture) ovr_DestroyMirrorTexture(m_hHMD, m_pcMirrorTexture);
 	if (m_pcBackBufferRTVTemporary) m_pcBackBufferRTVTemporary->Release();
@@ -299,11 +299,6 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 	}
 	return nullptr;
 	}*/
-
-	// create thread
-	if (!unThreadId)
-		m_pThread = CreateThread(NULL, 0, SubmitFramesConstantly, NULL, CREATE_SUSPENDED, &unThreadId);
-	SetThreadPriority(m_pThread, THREAD_PRIORITY_HIGHEST);
 
 	// cast swapchain
 	IDXGISwapChain* pcSwapChain = (IDXGISwapChain*)pThis;
@@ -695,7 +690,7 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 					// create pixel shader... 
 					if (!m_pcPixelShader11)
 					{
-						if (FAILED(CreateSimplePixelShader(m_pcDeviceTemporary, &m_pcPixelShader11, PixelShaderTechnique::FullscreenSimple)))
+						if (FAILED(CreatePixelShaderEffect(m_pcDeviceTemporary, &m_pcPixelShader11, PixelShaderTechnique::FullscreenSimple)))
 							bAllCreated = false;
 					}
 
@@ -856,20 +851,79 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 			}
 		}
 
-		ResumeThread(m_pThread);
+		// init our layers, first our full screen Fov layer.
+		ZeroMemory(&m_sLayerPrimal, sizeof(ovrLayerQuad));
+		m_sLayerPrimal.Header.Type = ovrLayerType_EyeFov;
+		m_sLayerPrimal.Header.Flags = 0;
+
+		for (int eye = 0; eye < 2; ++eye)
+		{
+			m_sLayerPrimal.ColorTexture[eye] = m_psEyeRenderTexture[eye]->TextureSet;
+			m_sLayerPrimal.Viewport[eye] = m_psEyeRenderViewport[eye];
+			m_sLayerPrimal.Fov[eye] = m_sHMDDesc.DefaultEyeFov[eye];
+			m_sLayerPrimal.RenderPose[eye] = asEyeRenderPose[eye];
+			m_sLayerPrimal.SensorSampleTime = sensorSampleTime;
+		}
+
+		m_pasLayerList[OculusLayers::OculusLayer_MainEye] = &m_sLayerPrimal.Header;
+
+		// next, our HUD layer
+		float fMenuHudDistance = 500.0f;
+		OVR::Recti sHudRenderedSize;
+		sHudRenderedSize.w = 1920;
+		sHudRenderedSize.h = 1080;
+		sHudRenderedSize.x = 0;
+		sHudRenderedSize.y = 0;
+		ovrPosef sMenuPose;
+
+		sMenuPose.Orientation = OVR::Quatf();
+		sMenuPose.Position = OVR::Vector3f(0.0f, 0.0f, -fMenuHudDistance);
+
+		// Assign HudLayer data.
+		ZeroMemory(&m_sLayerHud, sizeof(ovrLayerQuad));
+		m_sLayerHud.Header.Type = ovrLayerType_Quad;
+		m_sLayerHud.Header.Flags = 0;
+		m_sLayerHud.QuadPoseCenter = sMenuPose;
+		m_sLayerHud.QuadSize = OVR::Vector2f((float)sHudRenderedSize.w, (float)sHudRenderedSize.h);
+		m_sLayerHud.ColorTexture = m_psEyeRenderTextureHUD->TextureSet;
+		m_sLayerHud.Viewport = (ovrRecti)sHudRenderedSize;
+
+		// Grow the cliprect slightly to get a nicely-filtered edge.
+		m_sLayerHud.Viewport.Pos.x -= 1;
+		m_sLayerHud.Viewport.Pos.y -= 1;
+		m_sLayerHud.Viewport.Size.w += 2;
+		m_sLayerHud.Viewport.Size.h += 2;
+
+		// IncrementSwapTextureSetIndex ( HudLayer.ColorTexture ) was done above when it was rendered.
+		m_pasLayerList[OculusLayers::OculusLayer_Hud] = &m_sLayerHud.Header;
+
+		// and submit
+		UINT unLayerNumber = 1;
+		if (m_pbZoomOut)
+		{
+			if (*m_pbZoomOut)
+			{
+				unLayerNumber = 2;
+			}
+		}
+		ovrResult result = ovr_SubmitFrame(*m_phHMD, 0, nullptr, m_pasLayerList, unLayerNumber);
 
 		// Render mirror
-		ID3D11Texture2D* pcBackBuffer = nullptr;
-		pcSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&pcBackBuffer);
-		if (pcBackBuffer)
+		if (m_bShowMirror)
 		{
-			pcContext->CopyResource(pcBackBuffer, m_pcMirrorTextureD3D11);
-			pcBackBuffer->Release();
+			ID3D11Texture2D* pcBackBuffer = nullptr;
+			pcSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&pcBackBuffer);
+			if (pcBackBuffer)
+			{
+				pcContext->CopyResource(pcBackBuffer, m_pcMirrorTextureD3D11);
+				pcBackBuffer->Release();
+			}
+			else
+				OutputDebugString(L"No Back Buffer");
 		}
-		else
-			OutputDebugString(L"No Back Buffer");
 
 		if (!m_pcMirrorTextureD3D11) OutputDebugString(L"No mirror texture!");
+
 #pragma endregion
 	}
 

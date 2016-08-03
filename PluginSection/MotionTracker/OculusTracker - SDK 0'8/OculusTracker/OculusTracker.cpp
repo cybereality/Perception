@@ -54,13 +54,10 @@ OculusTracker::OculusTracker() :AQU_Nodus(),
 m_hBitmapControl(nullptr),
 m_bControlUpdate(false),
 m_hFont(nullptr),
-m_nRenderTextureWidth(0),
-m_nRenderTextureHeight(1),
+m_unRenderTextureWidth(0),
+m_unRenderTextureHeight(0),
 m_hHMD(nullptr)
 {
-	for (int i = 0; i < NUMBER_OF_COMMANDERS; i++)
-		m_paOutput[i] = nullptr;
-
 	ZeroMemory(&m_sDefaultFOVMatrixProjLeft, sizeof(D3DMATRIX));
 	ZeroMemory(&m_sDefaultFOVMatrixProjRight, sizeof(D3DMATRIX));
 
@@ -248,14 +245,14 @@ HBITMAP OculusTracker::GetControl()
 
 			// resolution
 			if (m_hHMD)
-				wsprintf(szBufferW, L"%u", m_nRenderTextureWidth);
+				wsprintf(szBufferW, L"%u", m_unRenderTextureWidth);
 			else
 				wsprintf(szBufferW, L"0");
 			TextOut(hdcImage, 510, nY, L"TexResolution Width", 19);
 			nLen = (int)wcslen(szBufferW); if (nLen > 11) nLen = 11;
 			TextOut(hdcImage, 50, nY, szBufferW, nLen); nY += 64;
 			if (m_hHMD)
-				wsprintf(szBufferW, L"%u", m_nRenderTextureHeight);
+				wsprintf(szBufferW, L"%u", m_unRenderTextureHeight);
 			else
 				wsprintf(szBufferW, L"0");
 			TextOut(hdcImage, 500, nY, L"TexResolution Height", 20);
@@ -380,10 +377,9 @@ DWORD OculusTracker::GetCommanderType(DWORD dwCommanderIndex)
 			return NOD_Plugtype::AQU_FLOAT;
 		case OTR_Commanders::HmdCaps:
 		case OTR_Commanders::TrackingCaps:
-			return NOD_Plugtype::AQU_UINT;
 		case OTR_Commanders::ResolutionW:
 		case OTR_Commanders::ResolutionH:
-			return NOD_Plugtype::AQU_INT;
+			return NOD_Plugtype::AQU_UINT;
 		case OTR_Commanders::DefaultEyeFovLeft:
 		case OTR_Commanders::DefaultEyeFovRight:
 		case OTR_Commanders::MaxEyeFovLeft:
@@ -406,18 +402,61 @@ DWORD OculusTracker::GetCommanderType(DWORD dwCommanderIndex)
 ***/
 void* OculusTracker::GetOutputPointer(DWORD dwCommanderIndex)
 {
-	if (dwCommanderIndex == (DWORD)OTR_Commanders::Pitch)
-		return (void*)&m_fEulerPredicted[0];
-	if (dwCommanderIndex == (DWORD)OTR_Commanders::Yaw)
-		return (void*)&m_fEulerPredicted[1];
-	if (dwCommanderIndex == (DWORD)OTR_Commanders::Roll)
-		return (void*)&m_fEulerPredicted[2];
-	if (dwCommanderIndex == (DWORD)OTR_Commanders::HMD_Handle)
+	switch (dwCommanderIndex)
 	{
-		return (void*)&m_hHMD;
+		case OTR_Commanders::Pitch:
+			return (void*)&m_fEulerPredicted[0];
+		case OTR_Commanders::Yaw:
+			return (void*)&m_fEulerPredicted[1];
+		case OTR_Commanders::Roll:
+			return (void*)&m_fEulerPredicted[2];
+		case OTR_Commanders::OrientationW:
+			return (void*)&m_sPose.Orientation.w;
+		case OTR_Commanders::OrientationX:
+			return (void*)&m_sPose.Orientation.x;
+		case OTR_Commanders::OrientationY:
+			return (void*)&m_sPose.Orientation.y;
+		case OTR_Commanders::OrientationZ:
+			return (void*)&m_sPose.Orientation.z;
+		case OTR_Commanders::PositionX:
+			return (void*)&m_sPose.Position.x;
+		case OTR_Commanders::PositionY:
+			return (void*)&m_sPose.Position.y;
+		case OTR_Commanders::PositionZ:
+			return (void*)&m_sPose.Position.z;
+		case OTR_Commanders::CameraFrustumHFovInRadians:
+			return (void*)&m_sHMDDesc.CameraFrustumHFovInRadians;
+		case OTR_Commanders::CameraFrustumVFovInRadians:
+			return (void*)&m_sHMDDesc.CameraFrustumVFovInRadians;
+		case OTR_Commanders::CameraFrustumNearZInMeters:
+			return (void*)&m_sHMDDesc.CameraFrustumNearZInMeters;
+		case OTR_Commanders::CameraFrustumFarZInMeters:
+			return (void*)&m_sHMDDesc.CameraFrustumFarZInMeters;
+		case OTR_Commanders::HmdCaps:
+			return (void*)&m_sHMDDesc.DefaultHmdCaps;
+		case OTR_Commanders::TrackingCaps:
+			return (void*)&m_sHMDDesc.DefaultTrackingCaps;
+		case OTR_Commanders::ResolutionW:
+			return (void*)&m_unRenderTextureWidth;
+		case OTR_Commanders::ResolutionH:
+			return (void*)&m_unRenderTextureHeight;
+		case OTR_Commanders::DefaultEyeFovLeft:
+			return (void*)&m_sHMDDesc.MaxEyeFov[0];
+		case OTR_Commanders::DefaultEyeFovRight:
+			return (void*)&m_sHMDDesc.MaxEyeFov[1];
+		case OTR_Commanders::MaxEyeFovLeft:
+			return (void*)&m_sHMDDesc.MaxEyeFov[0];
+		case OTR_Commanders::MaxEyeFovRight:
+			return (void*)&m_sHMDDesc.MaxEyeFov[1];
+		case OTR_Commanders::DefaultProjectionMatrixLeft:
+			return (void*)&m_sDefaultFOVMatrixProjLeft;
+		case OTR_Commanders::DefaultProjectionMatrixRight:
+			return (void*)&m_sDefaultFOVMatrixProjRight;
+		case OTR_Commanders::HMD_Handle:
+			return (void*)&m_hHMD;
+		default:
+			break;
 	}
-	if (dwCommanderIndex < NUMBER_OF_COMMANDERS)
-		return (void*)m_paOutput[dwCommanderIndex];
 
 	return nullptr;
 }
@@ -513,92 +552,23 @@ void* OculusTracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DM
 		result = ovr_Create(&m_hHMD, &m_sLuid);
 		if (!OVR_SUCCESS(result))
 			return nullptr;
-		OutputDebugString(L"CREATED HMD HANDLE");
-		DEBUG_HEX(m_hHMD);
-		DEBUG_HEX(&m_hHMD);
+
 		if (m_hHMD)
 		{
 			// get the description and set pointers
 			m_sHMDDesc = ovr_GetHmdDesc(m_hHMD);
 
-			for (DWORD dwCommanderIndex = 0; dwCommanderIndex < NUMBER_OF_COMMANDERS; dwCommanderIndex++)
-			{
-				switch ((OTR_Commanders)dwCommanderIndex)
-				{
-					case OTR_Commanders::Pitch:
-						m_paOutput[dwCommanderIndex] = (void*)&m_fEulerPredicted[0];
-						break;
-					case OTR_Commanders::Yaw:
-						m_paOutput[dwCommanderIndex] = (void*)&m_fEulerPredicted[1];
-						break;
-					case OTR_Commanders::Roll:
-						m_paOutput[dwCommanderIndex] = (void*)&m_fEulerPredicted[2];
-						break;
-					case OTR_Commanders::OrientationW:
-						m_paOutput[dwCommanderIndex] = (void*)&m_sPose.Orientation.w;
-						break;
-					case OTR_Commanders::OrientationX:
-						m_paOutput[dwCommanderIndex] = (void*)&m_sPose.Orientation.x;
-						break;
-					case OTR_Commanders::OrientationY:
-						m_paOutput[dwCommanderIndex] = (void*)&m_sPose.Orientation.y;
-						break;
-					case OTR_Commanders::OrientationZ:
-						m_paOutput[dwCommanderIndex] = (void*)&m_sPose.Orientation.z;
-						break;
-					case OTR_Commanders::PositionX:
-						m_paOutput[dwCommanderIndex] = (void*)&m_sPose.Position.x;
-						break;
-					case OTR_Commanders::PositionY:
-						m_paOutput[dwCommanderIndex] = (void*)&m_sPose.Position.y;
-						break;
-					case OTR_Commanders::PositionZ:
-						m_paOutput[dwCommanderIndex] = (void*)&m_sPose.Position.z;
-						break;
-					case OTR_Commanders::CameraFrustumHFovInRadians:
-						m_paOutput[dwCommanderIndex] = (void*)&m_sHMDDesc.CameraFrustumHFovInRadians;
-						break;
-					case OTR_Commanders::CameraFrustumVFovInRadians:
-						m_paOutput[dwCommanderIndex] = (void*)&m_sHMDDesc.CameraFrustumVFovInRadians;
-						break;
-					case OTR_Commanders::CameraFrustumNearZInMeters:
-						m_paOutput[dwCommanderIndex] = (void*)&m_sHMDDesc.CameraFrustumNearZInMeters;
-						break;
-					case OTR_Commanders::CameraFrustumFarZInMeters:
-						m_paOutput[dwCommanderIndex] = (void*)&m_sHMDDesc.CameraFrustumFarZInMeters;
-						break;
-					case OTR_Commanders::HmdCaps:
-						m_paOutput[dwCommanderIndex] = (void*)&m_sHMDDesc.DefaultHmdCaps;
-						break;
-					case OTR_Commanders::TrackingCaps:
-						m_paOutput[dwCommanderIndex] = (void*)&m_sHMDDesc.DefaultTrackingCaps;
-						break;
-					case OTR_Commanders::ResolutionW:
-						m_paOutput[dwCommanderIndex] = (void*)&m_nRenderTextureWidth;
-						break;
-					case OTR_Commanders::ResolutionH:
-						m_paOutput[dwCommanderIndex] = (void*)&m_nRenderTextureHeight;
-						break;
-					case OTR_Commanders::DefaultEyeFovLeft:
-						m_paOutput[dwCommanderIndex] = (void*)&m_sHMDDesc.MaxEyeFov[0];
-						break;
-					case OTR_Commanders::DefaultEyeFovRight:
-						m_paOutput[dwCommanderIndex] = (void*)&m_sHMDDesc.MaxEyeFov[1];
-						break;
-					case OTR_Commanders::MaxEyeFovLeft:
-						m_paOutput[dwCommanderIndex] = (void*)&m_sHMDDesc.MaxEyeFov[0];
-						break;
-					case OTR_Commanders::MaxEyeFovRight:
-						m_paOutput[dwCommanderIndex] = (void*)&m_sHMDDesc.MaxEyeFov[1];
-						break;
-					case OTR_Commanders::DefaultProjectionMatrixLeft:
-						m_paOutput[dwCommanderIndex] = (void*)&m_sDefaultFOVMatrixProjLeft;
-						break;
-					case OTR_Commanders::DefaultProjectionMatrixRight:
-						m_paOutput[dwCommanderIndex] = (void*)&m_sDefaultFOVMatrixProjRight;
-						break;
-				}
-			}
+			// Configure Stereo settings.
+			ovrSizei sRecommenedTex0Size = ovr_GetFovTextureSize(m_hHMD, ovrEye_Left,
+				m_sHMDDesc.DefaultEyeFov[0], 1.0f);
+			ovrSizei sRecommenedTex1Size = ovr_GetFovTextureSize(m_hHMD, ovrEye_Right,
+				m_sHMDDesc.DefaultEyeFov[1], 1.0f);
+
+			ovrSizei sTextureSize;
+			sTextureSize.w = max(sRecommenedTex0Size.w, sRecommenedTex1Size.w);
+			sTextureSize.h = max(sRecommenedTex0Size.h, sRecommenedTex1Size.h);
+			m_unRenderTextureWidth = (UINT)sTextureSize.w;
+			m_unRenderTextureHeight = (UINT)sTextureSize.h;
 		}
 	}
 

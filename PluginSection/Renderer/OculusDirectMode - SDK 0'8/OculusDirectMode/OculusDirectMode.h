@@ -222,90 +222,6 @@ public:
 
 private:
 	/**
-	* Submit left and right shared texture constantly.
-	***/
-	static DWORD WINAPI SubmitFramesConstantly(void* Param)
-	{
-		while (true)
-		{
-			if (m_phHMD)
-			{
-				if (*m_phHMD)
-				{
-					if (m_bInit)
-					{
-						// init our layers, first our full screen Fov layer.
-						ZeroMemory(&m_sLayerPrimal, sizeof(ovrLayerQuad));
-						m_sLayerPrimal.Header.Type = ovrLayerType_EyeFov;
-						m_sLayerPrimal.Header.Flags = 0;
-
-						for (int eye = 0; eye < 2; ++eye)
-						{
-							m_sLayerPrimal.ColorTexture[eye] = m_psEyeRenderTexture[eye]->TextureSet;
-							m_sLayerPrimal.Viewport[eye] = m_psEyeRenderViewport[eye];
-							m_sLayerPrimal.Fov[eye] = m_sHMDDesc.DefaultEyeFov[eye];
-							m_sLayerPrimal.RenderPose[eye] = asEyeRenderPose[eye];
-							m_sLayerPrimal.SensorSampleTime = sensorSampleTime;
-						}
-
-						m_pasLayerList[OculusLayers::OculusLayer_MainEye] = &m_sLayerPrimal.Header;
-
-						// next, our HUD layer
-						float fMenuHudDistance = 500.0f;
-						OVR::Recti sHudRenderedSize;
-						sHudRenderedSize.w = 1920;
-						sHudRenderedSize.h = 1080;
-						sHudRenderedSize.x = 0;
-						sHudRenderedSize.y = 0;
-						ovrPosef sMenuPose;
-
-						sMenuPose.Orientation = OVR::Quatf();
-						sMenuPose.Position = OVR::Vector3f(0.0f, 0.0f, -fMenuHudDistance);
-
-						// Assign HudLayer data.
-						ZeroMemory(&m_sLayerHud, sizeof(ovrLayerQuad));
-						m_sLayerHud.Header.Type = ovrLayerType_Quad;
-						m_sLayerHud.Header.Flags = 0;
-						m_sLayerHud.QuadPoseCenter = sMenuPose;
-						m_sLayerHud.QuadSize = OVR::Vector2f((float)sHudRenderedSize.w, (float)sHudRenderedSize.h);
-						m_sLayerHud.ColorTexture = m_psEyeRenderTextureHUD->TextureSet;
-						m_sLayerHud.Viewport = (ovrRecti)sHudRenderedSize;
-
-						// Grow the cliprect slightly to get a nicely-filtered edge.
-						m_sLayerHud.Viewport.Pos.x -= 1;
-						m_sLayerHud.Viewport.Pos.y -= 1;
-						m_sLayerHud.Viewport.Size.w += 2;
-						m_sLayerHud.Viewport.Size.h += 2;
-
-						// IncrementSwapTextureSetIndex ( HudLayer.ColorTexture ) was done above when it was rendered.
-						m_pasLayerList[OculusLayers::OculusLayer_Hud] = &m_sLayerHud.Header;
-
-						// and submit
-						UINT unLayerNumber = 1;
-						if (m_pbZoomOut)
-						{
-							if (*m_pbZoomOut)
-							{
-								unLayerNumber = 2;
-							}
-						}
-						ovrResult result = ovr_SubmitFrame(*m_phHMD, 0, nullptr, m_pasLayerList, unLayerNumber);
-
-						if (true) // TODO !! MAKE THIS OPTIONALLY !!
-						{
-							Sleep(10);
-						}
-						else
-						{
-							Sleep(20);
-						}
-					}
-				}
-			}
-		}
-	}
-
-	/**
 	* True if OVR is initialized.
 	***/
 	static bool m_bInit;
@@ -449,10 +365,6 @@ private:
 	***/
 	static double sensorSampleTime;
 	/**
-	* Static thread handle.
-	***/
-	static HANDLE m_pThread;
-	/**
 	* Oculus layers.
 	***/
 	static ovrLayerHeader* m_pasLayerList[OculusLayer_Total];
@@ -464,6 +376,10 @@ private:
 	* Layer HUD.
 	***/
 	static ovrLayerQuad m_sLayerHud;
+	/**
+	* True if mirror is to be shown.
+	***/
+	static bool m_bShowMirror;
 };
 
 /**

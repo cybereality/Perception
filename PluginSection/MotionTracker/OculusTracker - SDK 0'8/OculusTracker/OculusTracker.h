@@ -363,10 +363,6 @@ public:
 
 private:
 	/**
-	* All output pointers.
-	***/
-	LPVOID m_paOutput[NUMBER_OF_COMMANDERS];
-	/**
 	* The handle of the headset.
 	***/
 	ovrHmd m_hHMD;
@@ -409,11 +405,11 @@ private:
 	/**
 	* Render texture width (default).
 	***/
-	int m_nRenderTextureWidth;
+	UINT m_unRenderTextureWidth;
 	/**
 	* Render texture height (default).
 	***/
-	int m_nRenderTextureHeight;
+	UINT m_unRenderTextureHeight;
 	/**
 	* The control bitmap.
 	***/

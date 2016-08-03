@@ -1114,10 +1114,6 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 		{
 			if (!(*m_punTexResolutionWidth) || !(*m_punTexResolutionHeight)) continue;
 
-			/*OutputDebugString(L"Width/Heigth");
-			DEBUG_UINT(*m_punTexResolutionWidth);
-			DEBUG_UINT(*m_punTexResolutionHeight);*/
-
 			// fill the description
 			D3D11_TEXTURE2D_DESC sDescTex;
 			sDescTex.Width = (UINT)(*m_punTexResolutionWidth);
