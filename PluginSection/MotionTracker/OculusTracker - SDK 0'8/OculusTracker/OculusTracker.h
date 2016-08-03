@@ -39,6 +39,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include"Resources.h"
 #include<sstream>
 
+#include<Shlwapi.h>
+#pragma comment(lib, "Shlwapi.lib")
+
 #include <d3d9.h>
 #pragma comment(lib, "d3d9.lib")
 
@@ -58,7 +61,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define PPNT_IDIRECT3DVERTEXBUFFER9_PLUG_TYPE       3049
 #define PPNT_IDIRECT3DVERTEXDECLARATION9_PLUG_TYPE  3050
 
-#define NUMBER_OF_COMMANDERS                          25
+#define NUMBER_OF_COMMANDERS                          28
 
 #define MATH_FLOAT_PI                (3.1415926f)
 #define MATH_FLOAT_TWOPI             (2.0f *MATH_FLOAT_PI)
@@ -335,6 +338,9 @@ enum OTR_Commanders
 	DefaultProjectionMatrixLeft, /**<  Default FOV Oculus Rift projection matrix (Left) **/
 	DefaultProjectionMatrixRight,/**<  Default FOV Oculus Rift projection matrix (Left) **/
 	HMD_Handle,                  /**<  Handle to the HMD, to be connected with the Oculus Direct Mode Node. ***/
+	View,                        /**<  Current view matrix for the HMD ***/
+	ProjectionLeft,              /**<  Left projection matrix (LH) for the HMD ***/
+	ProjectionRight,             /**<  Right projection matrix (LH) for the HMD ***/
 };
 
 /**
@@ -434,6 +440,23 @@ private:
 	* Game timer class for predicted tracking.
 	***/
 	Vireio_GameTimer m_cGameTimer;
+	/**
+	* Current view matrix.
+	***/
+	D3DXMATRIX m_sView;
+	/**
+	* Current projection matrix left/right.
+	* Inherits "to eye" translation.
+	***/
+	D3DXMATRIX m_asProjection[2];
+	/**
+	* Position (float).
+	***/
+	float m_afPosition[3];
+	/**
+	* Position origin (float).
+	***/
+	float m_afPositionOrigin[3];
 };
 
 /**

@@ -1196,9 +1196,9 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 
 				// create eye pose matrix... TODO !! first, use standard IPD (0.064 meters)
 				if (nEye)
-					D3DXMatrixTranslation(&m_sToEye[nEye], 0.032f, 0, 0);
-				else
 					D3DXMatrixTranslation(&m_sToEye[nEye], -0.032f, 0, 0);
+				else
+					D3DXMatrixTranslation(&m_sToEye[nEye], 0.032f, 0, 0);
 			}
 		}
 	}

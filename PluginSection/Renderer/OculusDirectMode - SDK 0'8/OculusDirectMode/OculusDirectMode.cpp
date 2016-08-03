@@ -738,77 +738,41 @@ void* OculusDirectMode::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD
 						UINT offset = 0;
 						m_pcContextTemporary->IASetVertexBuffers(0, 1, &m_pcVertexBuffer11, &stride, &offset);
 
-						// following code is partially from the Oculus SDK (0.8)
+						//// Measured DK2 Field of View :
+						////
+						//// LENS - CAMERA DISTANCE   0MM  5MM  10MM 15MM 20MM 25MM
+						//// LEFT HORIZONTAL FOV      49°  48°  47°  45°  38°  34°
+						//// RIGHT HORIZONTAL FOV     47°	 47°  46°  44°	37°  33°
+						//// TOTAL HORIZONTAL FOV     96°	 95°  93°  89°	75°  67°
+						//// VERTICAL FOV             107° 106° 104° 99°	76°  66°
+						//// The Rift DK2’s FoV is maximal at 0mm lens - camera distance, 
+						//// i.e., when the user’s eyeball touches the lens.This is generally 
+						//// not achievable, and the minimum eye relief configurable in the 
+						//// SDK is 8mm, with an effective binocular FoV of 94° x 105°.
 
-						// get HMD render scale and offset
-						float projXScale = 2.0f / (m_psEyeRenderDesc[eye].Fov.LeftTan + m_psEyeRenderDesc[eye].Fov.RightTan);
-						float projXOffset = (m_psEyeRenderDesc[eye].Fov.LeftTan - m_psEyeRenderDesc[eye].Fov.RightTan) * projXScale * 0.5f;
-						float projYScale = 2.0f / (m_psEyeRenderDesc[eye].Fov.UpTan + m_psEyeRenderDesc[eye].Fov.DownTan);
-						float projYOffset = (m_psEyeRenderDesc[eye].Fov.UpTan - m_psEyeRenderDesc[eye].Fov.DownTan) * projYScale * 0.5f;
+						//// Measured CV1 Field of View :
+						////
+						//// LENS - CAMERA DISTANCE	0MM   5MM   10MM  15MM  20MM  25MM
+						//// LEFT HORIZONTAL FOV      35°   36°   37°   37°   35°   30°
+						//// RIGHT HORIZONTAL FOV     43°   45°   47°   47°   44°   39°
+						//// TOTAL HORIZONTAL FOV     78°   81°   84°   84°   79°   69°
+						//// VERTICAL FOV             84°   89°   93°   86°   78°   69°
+						//// As in Vive DK1 / Pre, the maximal FoV is achieved at some distance 
+						//// from the lens, in this case 12mm. Taking the left / right FoV value 
+						//// differences as accurate, the total binocular FoV at that lens - camera 
+						//// distance is 94° x 93°.
 
-						// get identity matrix, set offset and scale
+						//// Measurements posted on <Doc-Ok.org>.
+
+						//// so we assume a FoV of 90° x 100° (DK2) and 84° x 93° (CV1), that is ~12 mm lens-eye 
+						//// distance
+						//// due to this aspect ratio of the DK2/CV1 we adjust the screen by the height
+						//// in this case we need to set a higher FOV by following formular:
+						//// V = 2 * arctan( tan(H / 2) * aspectratio ) 
+						//// so we get V 90° and H 121° (DK2) and V 84° and H 116° (CV1)
+
+						// get identity matrix, this is a fullscreen copy
 						OVR::Matrix4f sProj = OVR::Matrix4f::Identity();
-						float handednessScale = 1.0f;
-						sProj.M[0][0] = projXScale;
-						sProj.M[0][2] = handednessScale * projXOffset;
-						sProj.M[1][1] = projYScale;
-						sProj.M[1][2] = handednessScale * -projYOffset;
-						sProj.M[3][2] = handednessScale;
-
-						// make matrix orthographical, first set IPD
-						float interpupillaryDistance = 0.064f; // TODO !! connect IPD from configuration
-
-						// Measured DK2 Field of View :
-						//
-						// LENS - CAMERA DISTANCE   0MM  5MM  10MM 15MM 20MM 25MM
-						// LEFT HORIZONTAL FOV      49°  48°  47°  45°  38°  34°
-						// RIGHT HORIZONTAL FOV     47°	 47°  46°  44°	37°  33°
-						// TOTAL HORIZONTAL FOV     96°	 95°  93°  89°	75°  67°
-						// VERTICAL FOV             107° 106° 104° 99°	76°  66°
-						// The Rift DK2’s FoV is maximal at 0mm lens - camera distance, 
-						// i.e., when the user’s eyeball touches the lens.This is generally 
-						// not achievable, and the minimum eye relief configurable in the 
-						// SDK is 8mm, with an effective binocular FoV of 94° x 105°.
-
-						// Measured CV1 Field of View :
-						//
-						// LENS - CAMERA DISTANCE	0MM   5MM   10MM  15MM  20MM  25MM
-						// LEFT HORIZONTAL FOV      35°   36°   37°   37°   35°   30°
-						// RIGHT HORIZONTAL FOV     43°   45°   47°   47°   44°   39°
-						// TOTAL HORIZONTAL FOV     78°   81°   84°   84°   79°   69°
-						// VERTICAL FOV             84°   89°   93°   86°   78°   69°
-						// As in Vive DK1 / Pre, the maximal FoV is achieved at some distance 
-						// from the lens, in this case 12mm. Taking the left / right FoV value 
-						// differences as accurate, the total binocular FoV at that lens - camera 
-						// distance is 94° x 93°.
-
-						// Measurements posted on <Doc-Ok.org>.
-
-						// so we assume a FoV of 90° x 100° (DK2) and 84° x 93° (CV1), that is ~12 mm lens-eye 
-						// distance
-						// due to this aspect ratio of the DK2/CV1 we adjust the screen by the height
-						// in this case we need to set a higher FOV by following formular:
-						// V = 2 * arctan( tan(H / 2) * aspectratio ) 
-						// so we get V 90° and H 121° (DK2) and V 84° and H 116° (CV1)
-						sProj.M[0][0] = sProj.M[0][0] * fAspect; // < incorporate game screen aspect ratio;
-						sProj.M[0][1] = 0.0f;
-						sProj.M[0][3] = sProj.M[0][2];
-						sProj.M[0][2] = 0.0f;
-
-						sProj.M[1][0] = 0.0f;
-						sProj.M[1][1] = sProj.M[1][1];
-						sProj.M[1][3] = sProj.M[1][2];
-						sProj.M[1][2] = 0.0f;
-
-						sProj.M[2][0] = 0.0f;
-						sProj.M[2][1] = 0.0f;
-						sProj.M[2][2] = 1.0f; // 1.0f here... fullscreen shader !
-						sProj.M[2][3] = 0.0f;
-
-						sProj.M[3][0] = 0.0f;
-						sProj.M[3][1] = 0.0f;
-						sProj.M[3][2] = 0.0f;
-						sProj.M[3][3] = 1.0f;
 
 						// Set constant buffer, first update it... scale and translate the left and right image
 						m_pcContextTemporary->UpdateSubresource((ID3D11Resource*)m_pcConstantBufferDirect11, 0, NULL, &sProj, 0, 0);

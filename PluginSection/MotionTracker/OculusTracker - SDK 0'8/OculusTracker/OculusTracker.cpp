@@ -67,6 +67,23 @@ m_hHMD(nullptr)
 	ZeroMemory(&m_fPositionVelocity[0], sizeof(float)* 3);
 
 	m_cGameTimer.Reset();
+
+	// set default ini file settings
+	m_afPositionOrigin[0] = 0.0f;
+	m_afPositionOrigin[1] = 1.7f; /**< Default y tracking origin : 1.7 meters **/
+	m_afPositionOrigin[2] = 0.0f;
+
+	// locate or create the INI file
+	char szFilePathINI[1024];
+	GetCurrentDirectoryA(1024, szFilePathINI);
+	strcat_s(szFilePathINI, "\\VireioPerception.ini");
+	bool bFileExists = false;
+	if (PathFileExistsA(szFilePathINI)) bFileExists = true;
+
+	// get ini file settings
+	m_afPositionOrigin[0] = GetIniFileSetting(m_afPositionOrigin[0], "Oculus", "afPositionOrigin[0]", szFilePathINI, bFileExists);
+	m_afPositionOrigin[1] = GetIniFileSetting(m_afPositionOrigin[1], "Oculus", "afPositionOrigin[1]", szFilePathINI, bFileExists);
+	m_afPositionOrigin[2] = GetIniFileSetting(m_afPositionOrigin[2], "Oculus", "afPositionOrigin[2]", szFilePathINI, bFileExists);
 }
 
 /**
@@ -127,7 +144,7 @@ HBITMAP OculusTracker::GetControl()
 		// create bitmap, set control update to true
 		HWND hwnd = GetActiveWindow();
 		HDC hdc = GetDC(hwnd);
-		m_hBitmapControl = CreateCompatibleBitmap(hdc, 1024, 1700);
+		m_hBitmapControl = CreateCompatibleBitmap(hdc, 1024, 2000);
 		if (!m_hBitmapControl)
 			OutputDebugString(L"Failed to create bitmap!");
 		m_bControlUpdate = true;
@@ -142,7 +159,7 @@ HBITMAP OculusTracker::GetControl()
 
 		// clear the background
 		RECT rc;
-		SetRect(&rc, 0, 0, 1024, 1700);
+		SetRect(&rc, 0, 0, 1024, 2000);
 		FillRect(hdcImage, &rc, (HBRUSH)CreateSolidBrush(RGB(240, 160, 192)));
 
 		// create font
@@ -269,8 +286,11 @@ HBITMAP OculusTracker::GetControl()
 			TextOut(hdcImage, 150, nY, L"Default FOV Projection Matrix Left", 34); nY += 64;
 			TextOut(hdcImage, 150, nY, L"Default FOV Projection Matrix Right", 35); nY += 64;
 
-			// handle
+			// handle, matrices
 			TextOut(hdcImage, 150, nY, L"HMD Handle", 10); nY += 64;
+			TextOut(hdcImage, 150, nY, L"View", 4); nY += 64;
+			TextOut(hdcImage, 150, nY, L"Projection Left", 15); nY += 64;
+			TextOut(hdcImage, 150, nY, L"Projection Right", 16); nY += 64;
 
 			// Display the text string for the provoker
 			szBuffer << m_sHMDDesc.ProductName << " " << m_sHMDDesc.Resolution.w << "x" << m_sHMDDesc.Resolution.h;
@@ -348,6 +368,12 @@ LPWSTR OculusTracker::GetCommanderName(DWORD dwCommanderIndex)
 			return L"Default FOV Projection Matrix Right";
 		case OTR_Commanders::HMD_Handle:
 			return L"HMD Handle";
+		case OTR_Commanders::View:
+			return L"View";
+		case OTR_Commanders::ProjectionLeft:
+			return L"ProjectionLeft";
+		case OTR_Commanders::ProjectionRight:
+			return L"ProjectionRight";
 	}
 
 	return L"";
@@ -390,6 +416,10 @@ DWORD OculusTracker::GetCommanderType(DWORD dwCommanderIndex)
 			return NOD_Plugtype::AQU_D3DMATRIX;
 		case OTR_Commanders::HMD_Handle:
 			return NOD_Plugtype::AQU_HANDLE;
+		case OTR_Commanders::View:
+		case OTR_Commanders::ProjectionLeft:
+		case OTR_Commanders::ProjectionRight:
+			return NOD_Plugtype::AQU_D3DMATRIX;
 	}
 
 	return 0;
@@ -419,11 +449,11 @@ void* OculusTracker::GetOutputPointer(DWORD dwCommanderIndex)
 		case OTR_Commanders::OrientationZ:
 			return (void*)&m_sPose.Orientation.z;
 		case OTR_Commanders::PositionX:
-			return (void*)&m_sPose.Position.x;
+			return (void*)&m_afPosition[0];
 		case OTR_Commanders::PositionY:
-			return (void*)&m_sPose.Position.y;
+			return (void*)&m_afPosition[1];
 		case OTR_Commanders::PositionZ:
-			return (void*)&m_sPose.Position.z;
+			return (void*)&m_afPosition[2];
 		case OTR_Commanders::CameraFrustumHFovInRadians:
 			return (void*)&m_sHMDDesc.CameraFrustumHFovInRadians;
 		case OTR_Commanders::CameraFrustumVFovInRadians:
@@ -454,6 +484,12 @@ void* OculusTracker::GetOutputPointer(DWORD dwCommanderIndex)
 			return (void*)&m_sDefaultFOVMatrixProjRight;
 		case OTR_Commanders::HMD_Handle:
 			return (void*)&m_hHMD;
+		case OTR_Commanders::View:
+			return (void*)&m_sView;
+		case OTR_Commanders::ProjectionLeft:
+			return (void*)&m_asProjection[0];
+		case OTR_Commanders::ProjectionRight:
+			return (void*)&m_asProjection[1];
 		default:
 			break;
 	}
@@ -537,6 +573,22 @@ void* OculusTracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DM
 
 			// set the drawing update to true
 			m_bControlUpdate = true;
+
+			// set position
+			m_afPosition[0] = (float)-m_sPose.Position.x - m_afPositionOrigin[0];
+			m_afPosition[1] = (float)-m_sPose.Position.y - m_afPositionOrigin[1];
+			m_afPosition[2] = (float)m_sPose.Position.z + m_afPositionOrigin[2];
+
+			// create view matrix from rotation and position
+			D3DXMATRIX sRotation;
+			D3DXMATRIX sPitch, sYaw, sRoll;
+			D3DXMatrixRotationX(&sPitch, m_fEulerPredicted[0]);
+			D3DXMatrixRotationY(&sYaw, m_fEulerPredicted[1]);
+			D3DXMatrixRotationZ(&sRoll, -m_fEulerPredicted[2]);
+			sRotation = sYaw * sPitch * sRoll;
+			D3DXMATRIX sTranslation;
+			D3DXMatrixTranslation(&sTranslation, (float)m_afPosition[0], (float)m_afPosition[1], (float)m_afPosition[2]);
+			m_sView = sTranslation * sRotation;
 		}
 	}
 	else
@@ -569,6 +621,31 @@ void* OculusTracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DM
 			sTextureSize.h = max(sRecommenedTex0Size.h, sRecommenedTex1Size.h);
 			m_unRenderTextureWidth = (UINT)sTextureSize.w;
 			m_unRenderTextureHeight = (UINT)sTextureSize.h;
+
+			// get view offset
+			ovrEyeRenderDesc asEyeRenderDesc[2];
+			asEyeRenderDesc[0] = ovr_GetRenderDesc(m_hHMD, ovrEye_Left, m_sHMDDesc.DefaultEyeFov[0]);
+			asEyeRenderDesc[1] = ovr_GetRenderDesc(m_hHMD, ovrEye_Right, m_sHMDDesc.DefaultEyeFov[1]);
+			ovrVector3f asViewOffset[2] = { asEyeRenderDesc[0].HmdToEyeViewOffset, asEyeRenderDesc[1].HmdToEyeViewOffset };
+
+			// get projection matrices left/right
+			D3DXMATRIX asToEye[2];
+			D3DXMATRIX asProjection[2];
+			for (UINT unEye = 0; unEye < 2; unEye++)
+			{
+				// get ovr projection
+				ovrMatrix4f sProj = ovrMatrix4f_Projection(m_sHMDDesc.DefaultEyeFov[unEye], 0.01f, 30.0f, ovrProjection_None);
+
+				// create dx projection
+				asProjection[unEye] = D3DXMATRIX(&sProj.M[0][0]);
+				D3DXMatrixTranspose(&asProjection[unEye], &asProjection[unEye]);
+
+				// create view offset translation matrix
+				D3DXMatrixTranslation(&asToEye[unEye], -asViewOffset[unEye].x, -asViewOffset[unEye].y, asViewOffset[unEye].z);
+
+				// create eventual projection
+				m_asProjection[unEye] = asToEye[unEye] * asProjection[unEye];
+			}
 		}
 	}
 
