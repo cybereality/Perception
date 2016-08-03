@@ -51,7 +51,25 @@ m_hFont(nullptr)
 {
 	ZeroMemory(&m_sState, sizeof(OSVR_PoseState));
 	ZeroMemory(&m_sTimestamp, sizeof(OSVR_TimeValue));
-	ZeroMemory(&m_afPosition[0], sizeof(float)*3);
+	ZeroMemory(&m_afPosition[0], sizeof(float) * 3);
+	ZeroMemory(&m_sTargetSize, sizeof(OSVR_Size));
+
+	// set default ini file settings
+	m_afPositionOrigin[0] = 0.0f;
+	m_afPositionOrigin[1] = 1.7f; /**< Default y tracking origin : 1.7 meters **/
+	m_afPositionOrigin[2] = 0.0f;
+
+	// locate or create the INI file
+	char szFilePathINI[1024];
+	GetCurrentDirectoryA(1024, szFilePathINI);
+	strcat_s(szFilePathINI, "\\VireioPerception.ini");
+	bool bFileExists = false;
+	if (PathFileExistsA(szFilePathINI)) bFileExists = true;
+
+	// get ini file settings
+	m_afPositionOrigin[0] = GetIniFileSetting(m_afPositionOrigin[0], "OSVR", "afPositionOrigin[0]", szFilePathINI, bFileExists);
+	m_afPositionOrigin[1] = GetIniFileSetting(m_afPositionOrigin[1], "OSVR", "afPositionOrigin[1]", szFilePathINI, bFileExists);
+	m_afPositionOrigin[2] = GetIniFileSetting(m_afPositionOrigin[2], "OSVR", "afPositionOrigin[2]", szFilePathINI, bFileExists);
 
 	m_cGameTimer.Reset();
 }
@@ -236,6 +254,16 @@ LPWSTR OSVR_Tracker::GetCommanderName(DWORD dwCommanderIndex)
 			return L"Position Y";
 		case OSVR_Commanders::PositionZ:
 			return L"Position Z";
+		case OSVR_Commanders::View:
+			return L"View";
+		case OSVR_Commanders::ProjectionLeft:
+			return L"ProjectionLeft";
+		case OSVR_Commanders::ProjectionRight:
+			return L"ProjectionRight";
+		case OSVR_Commanders::TargetWidth:
+			return L"TargetWidth";
+		case OSVR_Commanders::TargetHeight:
+			return L"TargetHeight";
 	}
 
 	return L"";
@@ -259,6 +287,13 @@ DWORD OSVR_Tracker::GetCommanderType(DWORD dwCommanderIndex)
 		case OSVR_Commanders::PositionY:
 		case OSVR_Commanders::PositionZ:
 			return NOD_Plugtype::AQU_FLOAT;
+		case OSVR_Commanders::View:
+		case OSVR_Commanders::ProjectionLeft:
+		case OSVR_Commanders::ProjectionRight:
+			return NOD_Plugtype::AQU_D3DMATRIX;
+		case OSVR_Commanders::TargetWidth:
+		case OSVR_Commanders::TargetHeight:
+			return NOD_Plugtype::AQU_UINT;
 	}
 
 	return 0;
@@ -291,6 +326,16 @@ void* OSVR_Tracker::GetOutputPointer(DWORD dwCommanderIndex)
 			return (void*)&m_afPosition[1];
 		case OSVR_Commanders::PositionZ:
 			return (void*)&m_afPosition[2];
+		case OSVR_Commanders::View:
+			return (void*)&m_sView;
+		case OSVR_Commanders::ProjectionLeft:
+			return (void*)&m_asProjection[0];
+		case OSVR_Commanders::ProjectionRight:
+			return (void*)&m_asProjection[1];
+		case OSVR_Commanders::TargetWidth:
+			return (void*)&m_sTargetSize.unWidth;
+		case OSVR_Commanders::TargetHeight:
+			return (void*)&m_sTargetSize.unHeight;
 	}
 
 	return nullptr;
@@ -327,6 +372,26 @@ void* OSVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMe
 
 		// get client interface
 		osvrClientGetInterface(m_psOSVR_ClientContext, "/me/head", &m_psOSVR_ClientInterface);
+
+		// set render target size to 1200x1200... OSVR direct mode node will override this setting eventually
+		m_sTargetSize.unWidth = 1200;
+		m_sTargetSize.unHeight = 1200;
+		
+		// get the projection matrix for each eye, OSVR direct mode node will override this setting eventually
+		for (UINT unEye = 0; unEye < 2; unEye++)
+		{
+			D3DXMATRIX sProj;
+			D3DXMatrixPerspectiveFovLH(&sProj, (float)D3DXToRadian(116.0), 1.0f, 0.1f, 30.0f);
+
+			// create eye pose matrix... first, use standard IPD (0.064 meters)
+			D3DXMATRIX sToEye;
+			if (unEye)
+				D3DXMatrixTranslation(&sToEye, -0.032f, 0, 0);
+			else
+				D3DXMatrixTranslation(&sToEye, 0.032f, 0, 0);
+
+			m_asProjection[unEye] = sToEye * sProj;
+		}
 	}
 	else
 	{
@@ -347,8 +412,8 @@ void* OSVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMe
 			// backup old euler angles and velocity
 			float afEulerOld[3];
 			float afEulerVelocityOld[3];
-			memcpy(&afEulerOld[0], &m_afEuler[0], sizeof(float)* 3);
-			memcpy(&afEulerVelocityOld[0], &m_afEulerVelocity[0], sizeof(float)* 3);
+			memcpy(&afEulerOld[0], &m_afEuler[0], sizeof(float) * 3);
+			memcpy(&afEulerVelocityOld[0], &m_afEulerVelocity[0], sizeof(float) * 3);
 
 			// quaternion -> euler angles
 			const float w = (float)m_sState.rotation.data[0];
@@ -404,12 +469,23 @@ void* OSVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3DMe
 			{
 				// compute predicted euler
 				m_afEulerPredicted[unI] = (0.5f * afEulerAcceleration[unI] * ((float)m_cGameTimer.DeltaTime() * (float)m_cGameTimer.DeltaTime())) + (m_afEulerVelocity[unI] * (float)m_cGameTimer.DeltaTime()) + m_afEuler[unI];
-			}
+			}		
 
-			// set position
-			m_afPosition[0] = (float)m_sState.translation.data[0];
-			m_afPosition[1] = (float)m_sState.translation.data[1];
-			m_afPosition[2] = (float)m_sState.translation.data[2];
+			// set position TODO !! TEST ORIGIN SETTINGS USING POSITIONAL TRACKING
+			m_afPosition[0] = (float)m_sState.translation.data[0] - m_afPositionOrigin[0];
+			m_afPosition[1] = (float)m_sState.translation.data[1] - m_afPositionOrigin[1];
+			m_afPosition[2] = (float)m_sState.translation.data[2] + m_afPositionOrigin[2];
+
+			// create view matrix from rotation and position
+			D3DXMATRIX sRotation;
+			D3DXMATRIX sPitch, sYaw, sRoll;
+			D3DXMatrixRotationX(&sPitch, m_afEulerPredicted[0]);
+			D3DXMatrixRotationY(&sYaw, m_afEulerPredicted[1]);
+			D3DXMatrixRotationZ(&sRoll, -m_afEulerPredicted[2]);
+			sRotation = sYaw * sPitch * sRoll;
+			D3DXMATRIX sTranslation;
+			D3DXMatrixTranslation(&sTranslation, (float)m_afPosition[0], (float)m_afPosition[1], (float)m_afPosition[2]);
+			m_sView = sTranslation * sRotation;
 
 #ifdef _DEBUG
 			// output debug data

@@ -1112,6 +1112,12 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 	{
 		if ((!m_pcTex11Draw[unEye]) && (m_punTexResolutionHeight) && (m_punTexResolutionWidth))
 		{
+			if (!(*m_punTexResolutionWidth) || !(*m_punTexResolutionHeight)) continue;
+
+			/*OutputDebugString(L"Width/Heigth");
+			DEBUG_UINT(*m_punTexResolutionWidth);
+			DEBUG_UINT(*m_punTexResolutionHeight);*/
+
 			// fill the description
 			D3D11_TEXTURE2D_DESC sDescTex;
 			sDescTex.Width = (UINT)(*m_punTexResolutionWidth);
@@ -1224,7 +1230,10 @@ void VireioCinema::InitD3D11(ID3D11Device* pcDevice, ID3D11DeviceContext* pcCont
 			OutputDebugString(L"[CIN] Failed to create constant buffer.");
 	}
 
-	// create render models... TODO !! CREATE ONLY IF ALL OTHER IS CREATED
+	// is all created ? only create render models if all things are created
+	if ((!m_pcConstantBufferGeometry) || (!m_pcSampler11) || (!m_pcDSGeometry11[0]) || (!m_pcTex11Draw[0]) || (!m_pcPSGeometry11) || (!m_pcVSGeometry11)) return;
+
+	// create render models...
 	if (!m_asRenderModels.size())
 	{
 #pragma region cinema screen

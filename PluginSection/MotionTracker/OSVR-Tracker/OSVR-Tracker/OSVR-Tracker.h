@@ -40,14 +40,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include<stdio.h>
 #include<sstream>
 
+#include<Shlwapi.h>
+#pragma comment(lib, "Shlwapi.lib")
+
 #include <osvr/ClientKit/ContextC.h>
 #include <osvr/ClientKit/InterfaceC.h>
 #include <osvr/ClientKit/InterfaceStateC.h>
 #pragma comment(lib, "osvrClientKit.lib")
 
+#include <d3dx9.h>
+#pragma comment(lib, "d3dx9.lib")
+
 #include "..\..\..\Include\Vireio_Node_Plugtypes.h"
 
-#define NUMBER_OF_COMMANDERS                          10
+#define NUMBER_OF_COMMANDERS                          15
 
 #define FLOAT_PI                            (3.1415926f)
 
@@ -66,6 +72,11 @@ enum OSVR_Commanders
 	PositionX,
 	PositionY,
 	PositionZ,
+	View,
+	ProjectionLeft,
+	ProjectionRight,
+	TargetWidth,
+	TargetHeight,
 };
 
 /**
@@ -260,9 +271,30 @@ private:
 	***/
 	float m_afPosition[3];
 	/**
+	* Position origin (float).
+	***/
+	float m_afPositionOrigin[3];
+	/**
 	* Game timer class for predicted tracking.
 	***/
 	Vireio_GameTimer m_cGameTimer;
+	/**
+	* Current view matrix.
+	***/
+	D3DXMATRIX m_sView;
+	/**
+	* Current projection matrix left/right.
+	* Inherits "to eye" translation.
+	***/
+	D3DXMATRIX m_asProjection[2];
+	/**
+	* Recommended render target size.
+	***/
+	struct OSVR_Size
+	{
+		uint32_t unWidth;
+		uint32_t unHeight;
+	} m_sTargetSize;
 };
 
 /**
