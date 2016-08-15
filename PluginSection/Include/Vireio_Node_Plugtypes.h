@@ -39,6 +39,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma region ini file helpers
 /**
 * Provides the keyboard code by initialization string.
+* Also returns WM_MOUSEMOVE code by string.
 ***/
 UINT GetVkCodeByString(std::string szCode)
 {
@@ -145,6 +146,7 @@ UINT GetVkCodeByString(std::string szCode)
 	if (szCode == "VK_RCONTROL") return       0xA3;
 	if (szCode == "VK_LMENU") return          0xA4;
 	if (szCode == "VK_RMENU") return          0xA5;
+	if (szCode == "WM_MOUSEMOVE") return      WM_MOUSEMOVE;
 
 	return 0x00;
 }

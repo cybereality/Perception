@@ -143,19 +143,22 @@ OpenVR_Tracker::OpenVR_Tracker() :AQU_Nodus()
 
 	m_cGameTimer.Reset();
 
-	std::string astrVKCodes[] = { "VK_ESCAPE", "VK_SHIFT", "VK_ESCAPE", "X", "X", "X", "X", "VK_TAB", "VK_RBUTTON", "VK_LBUTTON", "VK_F4", "VK_F5", "VK_F6", // << Keys controller 0
-		"VK_LEFT", "VK_RIGHT", "VK_DOWN", "VK_UP", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X",                           // << Keys controller 0 axis 
-		"X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X",                                                  // << Keys controller 0 axis pressed
-		"VK_ESCAPE", "VK_RETURN", "VK_E", "X", "X", "X", "X", "VK_C", "VK_RETURN", "VK_SPACE", "VK_F1", "VK_F2", "VK_F3",                                    // << Keys controller 1
-		"VK_A", "VK_D", "VK_S", "VK_W", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X",                                      // << Keys controller 1 axis
-		"X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X" };                                                // << Keys controller 1 axis pressed
+	std::string astrVKCodes[] = { "VK_ESCAPE", "VK_CONTROL", "VK_ESCAPE", "X", "X", "X", "X", "VK_TAB", "VK_RBUTTON", "VK_LBUTTON", "VK_F4", "VK_F5", "VK_F6", // << Keys controller 0
+		"WM_MOUSEMOVE", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X",                                         // << Keys controller 0 axis 
+		"X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X",                                                    // << Keys controller 0 axis pressed
+		"VK_ESCAPE", "VK_R", "VK_E", "X", "X", "X", "X", "VK_C", "VK_RETURN", "VK_SPACE", "VK_F1", "VK_F2", "VK_F3",                                           // << Keys controller 1
+		"VK_A", "VK_D", "VK_S", "VK_W", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X",                                        // << Keys controller 1 axis
+		"X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X" };                                                  // << Keys controller 1 axis pressed
 
 	// set inner scope
 	for (UINT unI = 0; unI < 5; unI++)
 	{
-		m_aafAxisInnerScope[0][unI] = 0.8f;
-		m_aafAxisInnerScope[1][unI] = 0.8f;
+		m_aafAxisScopeOrFactor[0][unI] = 0.8f;
+		m_aafAxisScopeOrFactor[1][unI] = 0.8f;
 	}
+
+	// set movement factor for trackpad 0
+	m_aafAxisScopeOrFactor[0][0] = 10.0f;
 
 	// locate or create the INI file
 	char szFilePathINI[1024];
@@ -277,17 +280,17 @@ OpenVR_Tracker::OpenVR_Tracker() :AQU_Nodus()
 	m_aaunKeys[1][Index_EButton_Axis4_Below_Pressed_Y] = GetIniFileSettingKeyCode(astrVKCodes[104], "OpenVR", "aaunKeys[1][Index_EButton_Axis4_Below_Pressed_Y]", szFilePathINI, bFileExists);
 	m_aaunKeys[1][Index_EButton_Axis4_Above_Pressed_Y] = GetIniFileSettingKeyCode(astrVKCodes[105], "OpenVR", "aaunKeys[1][Index_EButton_Axis4_Above_Pressed_Y]", szFilePathINI, bFileExists);
 
-	m_aafAxisInnerScope[0][0] = GetIniFileSetting(m_aafAxisInnerScope[0][0], "OpenVR", "aafAxisInnerScope[0][0]", szFilePathINI, bFileExists);
-	m_aafAxisInnerScope[0][1] = GetIniFileSetting(m_aafAxisInnerScope[0][1], "OpenVR", "aafAxisInnerScope[0][1]", szFilePathINI, bFileExists);
-	m_aafAxisInnerScope[0][2] = GetIniFileSetting(m_aafAxisInnerScope[0][2], "OpenVR", "aafAxisInnerScope[0][2]", szFilePathINI, bFileExists);
-	m_aafAxisInnerScope[0][3] = GetIniFileSetting(m_aafAxisInnerScope[0][3], "OpenVR", "aafAxisInnerScope[0][3]", szFilePathINI, bFileExists);
-	m_aafAxisInnerScope[0][4] = GetIniFileSetting(m_aafAxisInnerScope[0][4], "OpenVR", "aafAxisInnerScope[0][4]", szFilePathINI, bFileExists);
+	m_aafAxisScopeOrFactor[0][0] = GetIniFileSetting(m_aafAxisScopeOrFactor[0][0], "OpenVR", "aafAxisScopeOrFactor[0][0]", szFilePathINI, bFileExists);
+	m_aafAxisScopeOrFactor[0][1] = GetIniFileSetting(m_aafAxisScopeOrFactor[0][1], "OpenVR", "aafAxisScopeOrFactor[0][1]", szFilePathINI, bFileExists);
+	m_aafAxisScopeOrFactor[0][2] = GetIniFileSetting(m_aafAxisScopeOrFactor[0][2], "OpenVR", "aafAxisScopeOrFactor[0][2]", szFilePathINI, bFileExists);
+	m_aafAxisScopeOrFactor[0][3] = GetIniFileSetting(m_aafAxisScopeOrFactor[0][3], "OpenVR", "aafAxisScopeOrFactor[0][3]", szFilePathINI, bFileExists);
+	m_aafAxisScopeOrFactor[0][4] = GetIniFileSetting(m_aafAxisScopeOrFactor[0][4], "OpenVR", "aafAxisScopeOrFactor[0][4]", szFilePathINI, bFileExists);
 
-	m_aafAxisInnerScope[1][0] = GetIniFileSetting(m_aafAxisInnerScope[1][0], "OpenVR", "aafAxisInnerScope[1][0]", szFilePathINI, bFileExists);
-	m_aafAxisInnerScope[1][1] = GetIniFileSetting(m_aafAxisInnerScope[1][1], "OpenVR", "aafAxisInnerScope[1][1]", szFilePathINI, bFileExists);
-	m_aafAxisInnerScope[1][2] = GetIniFileSetting(m_aafAxisInnerScope[1][2], "OpenVR", "aafAxisInnerScope[1][2]", szFilePathINI, bFileExists);
-	m_aafAxisInnerScope[1][3] = GetIniFileSetting(m_aafAxisInnerScope[1][3], "OpenVR", "aafAxisInnerScope[1][3]", szFilePathINI, bFileExists);
-	m_aafAxisInnerScope[1][4] = GetIniFileSetting(m_aafAxisInnerScope[1][4], "OpenVR", "aafAxisInnerScope[1][4]", szFilePathINI, bFileExists);
+	m_aafAxisScopeOrFactor[1][0] = GetIniFileSetting(m_aafAxisScopeOrFactor[1][0], "OpenVR", "aafAxisScopeOrFactor[1][0]", szFilePathINI, bFileExists);
+	m_aafAxisScopeOrFactor[1][1] = GetIniFileSetting(m_aafAxisScopeOrFactor[1][1], "OpenVR", "aafAxisScopeOrFactor[1][1]", szFilePathINI, bFileExists);
+	m_aafAxisScopeOrFactor[1][2] = GetIniFileSetting(m_aafAxisScopeOrFactor[1][2], "OpenVR", "aafAxisScopeOrFactor[1][2]", szFilePathINI, bFileExists);
+	m_aafAxisScopeOrFactor[1][3] = GetIniFileSetting(m_aafAxisScopeOrFactor[1][3], "OpenVR", "aafAxisScopeOrFactor[1][3]", szFilePathINI, bFileExists);
+	m_aafAxisScopeOrFactor[1][4] = GetIniFileSetting(m_aafAxisScopeOrFactor[1][4], "OpenVR", "aafAxisScopeOrFactor[1][4]", szFilePathINI, bFileExists);
 
 	// erase key bool field
 	ZeroMemory(&m_aabKeys[0][0], sizeof(BOOL)* 2 * 13);
@@ -702,12 +705,25 @@ void* OpenVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 					// loop throug axis
 					for (UINT unAxisIx = 0; unAxisIx < 5; unAxisIx++)
 					{
+#pragma region mouse emulation
+						// mouse emulation set ? 
+						UINT unButtonIx0 = unAxisIx * 4 + (UINT)Index_EButton_Axis0_Below_X;
+						if (m_aaunKeys[unControllerIndex][unButtonIx0] == WM_MOUSEMOVE)
+						{
+							float fXMove = state.rAxis[unAxisIx].x * m_aafAxisScopeOrFactor[unControllerIndex][unAxisIx];
+							float fYMove = -state.rAxis[unAxisIx].y * m_aafAxisScopeOrFactor[unControllerIndex][unAxisIx];
+
+							POINT sPoint;
+							GetCursorPos(&sPoint);
+							mouse_event(MOUSEEVENTF_MOVE, (DWORD)fXMove, (DWORD)fYMove, 0, 0);
+						}
+#pragma endregion
 #pragma region axis below/above pressed
 						// is the axis button pressed ?
 						if (vr::ButtonMaskFromId((vr::EVRButtonId)(unAxisIx + (UINT)vr::EVRButtonId::k_EButton_Axis0)) & state.ulButtonPressed)
 						{
 							// take half of the full scope here
-							float fAxisScope = m_aafAxisInnerScope[unControllerIndex][unAxisIx] / 2.0f;
+							float fAxisScope = m_aafAxisScopeOrFactor[unControllerIndex][unAxisIx] / 2.0f;
 
 							// x ?
 							if (state.rAxis[unAxisIx].x < -fAxisScope)
@@ -777,7 +793,7 @@ void* OpenVR_Tracker::Provoke(void* pThis, int eD3D, int eD3DInterface, int eD3D
 						else if (vr::ButtonMaskFromId((vr::EVRButtonId)(unAxisIx + (UINT)vr::EVRButtonId::k_EButton_Axis0)) & state.ulButtonTouched)
 						{
 							// take half of the full scope here
-							float fAxisScope = m_aafAxisInnerScope[unControllerIndex][unAxisIx] / 2.0f;
+							float fAxisScope = m_aafAxisScopeOrFactor[unControllerIndex][unAxisIx] / 2.0f;
 
 							// x ?
 							if (state.rAxis[unAxisIx].x < -fAxisScope)

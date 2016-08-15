@@ -414,11 +414,11 @@ private:
 	***/
 	BOOL m_aabKeyExtended[2][53];
 	/**
-	* Inner scope (no button) user setting structure for any axis pressed / not pressed.
+	* Inner scope (no button) user setting structure for any axis pressed / not pressed or mouse movement emulation factor.
 	* 0..2 Controller index.
 	* 0..5 Axis index.
 	***/
-	float m_aafAxisInnerScope[2][5];
+	float m_aafAxisScopeOrFactor[2][5];
 };
 
 /**
